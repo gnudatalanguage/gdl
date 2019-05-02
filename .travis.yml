@@ -1,295 +1,295 @@
-#language: cpp
-#
-## TODO: investigate why MINI builds timeout on icc, while FULL ones not?!
-#matrix:
-#  include:
-##    - os: linux
-##      env: COMPILER=icc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
+language: cpp
+
+# TODO: investigate why MINI builds timeout on icc, while FULL ones not?!
+matrix:
+  include:
 #    - os: linux
-#      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
-#    - os: osx
-#      env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=MINI
-#
+#      env: COMPILER=icc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
+    - os: linux
+      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
+    - os: osx
+      env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=MINI
+
+    - os: linux
+      env: COMPILER=icc   CMAKE_BUILD_TYPE=Debug    DEPS=FULL
+    - os: linux
+      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=FULL  CODECOV=yes
+    - os: osx
+      env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=FULL
+
 #    - os: linux
-#      env: COMPILER=icc   CMAKE_BUILD_TYPE=Debug    DEPS=FULL
-#    - os: linux
-#      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=FULL  CODECOV=yes
-#    - os: osx
-#      env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=FULL
-#
-##    - os: linux
-##      env: COMPILER=icc   CMAKE_BUILD_TYPE=Release  DEPS=MINI
-#    - os: linux
-#      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Release  DEPS=MINI
-#    - os: osx
-#      env: COMPILER=clang CMAKE_BUILD_TYPE=Release  DEPS=MINI
-#
-#    - os: linux
-#      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Release  DEPS=FULL
-#    - os: linux
-#      env: COMPILER=icc   CMAKE_BUILD_TYPE=Release  DEPS=FULL
-#    - os: osx
-#      env: COMPILER=clang CMAKE_BUILD_TYPE=Release  DEPS=FULL
-#
-#before_install:
-#    # TEMPORARILY disabling tests that did not work at "day zero" (i.e. SF -> github migration)
-#    - if [ $TRAVIS_OS_NAME == osx ]; then export SEDCMD="sed -i ''"; fi 
-#    - if [ $TRAVIS_OS_NAME == linux ]; then export SEDCMD="sed -i"; fi 
-#    - $SEDCMD '/test_bytscl.pro/d'           testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_dicom.pro/d'            testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_container.pro/d'        testsuite/Makefile.am # TODO! not ready
-#    - $SEDCMD '/test_fft_leak.pro/d'         testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_file_delete.pro/d'      testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_file_search.pro/d'      testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_file_test.pro/d'        testsuite/Makefile.am # TODO! 2 errors on Dangling 
-#    - $SEDCMD '/test_fix.pro/d'              testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_formats.pro/d'          testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_image_statistics.pro/d' testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_make_dll.pro/d'         testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_n_tags.pro/d'           testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_obj_isa.pro/d'          testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_obj_new.pro/d'          testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_plot_ranges.pro/d'      testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_resolve_routine.pro/d'  testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_rounding.pro/d'         testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_simplex.pro/d'          testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_step.pro/d'             testsuite/Makefile.am # TODO!
-#    - if [ $TRAVIS_OS_NAME == osx ]; then $SEDCMD '/test_tic_toc.pro/d' testsuite/Makefile.am; fi # TODO! fails on OSX, e.g.    https://travis-ci.org/gnudatalanguage/gdl/jobs/440977990
-#    - $SEDCMD '/test_typename.pro/d'         testsuite/Makefile.am # TODO!
-#    - $SEDCMD '/test_wait.pro/d'             testsuite/Makefile.am # TODO!
-#
-#    # https://github.com/travis-ci/travis-ci/issues/8613
-#    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export LD_LIBRARY_PATH=/usr/local/clang/lib:$LD_LIBRARY_PATH; fi
-#
-#    # homebrew Python stuff...
-#    - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade python; fi
-#    - if [ $TRAVIS_OS_NAME == osx ]; then brew install python@2; fi
-#    - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | /usr/local/bin/python -m pip uninstall numpy; fi
-#    - if [ $TRAVIS_OS_NAME == osx ]; then brew remove numpy gdal postgis; fi
-#    - if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython2.7.dylib -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python2.7"; fi
-#
-#install:
-#    ##
-#    ## BUILD DEPENDENCIES
-#    ##
-#
-#    # https://github.com/nemequ/icc-travis
-#    - if [ $COMPILER == icc ]; then wget "https://raw.githubusercontent.com/nemequ/icc-travis/master/install-icc.sh"; fi
-#    - if [ $COMPILER == icc ]; then sudo sh install-icc.sh; fi
-#    - if [ $COMPILER == icc ]; then source ~/.bashrc; fi
-#    - if [ $COMPILER == icc ]; then export CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=icpc -DCMAKE_C_COMPILER=icc"; fi
-#
-#    # codecov
-#    - if [ -v CODECOV ]; then export APT_PACKAGES="$APT_PACKAGES lcov"; fi
-#    - if [ -v CODECOV ]; then wget -O CMakeModules/CodeCoverage.cmake https://raw.githubusercontent.com/bilke/cmake-modules/master/CodeCoverage.cmake; fi
-#    - if [ -v CODECOV ]; then TMPFILE=`tempfile` ;fi
-#    - if [ -v CODECOV ]; then tac src/CMakeLists.txt > $TMPFILE; fi
-#    - if [ -v CODECOV ]; then echo "set(CMAKE_CXX_FLAGS \${CMAKE_CXX_FLAGS_COVERAGE})" >> $TMPFILE; fi
-#    - if [ -v CODECOV ]; then echo "INCLUDE(CodeCoverage)" >> $TMPFILE; fi
-#    - if [ -v CODECOV ]; then tac $TMPFILE > src/CMakeLists.txt; fi
-#    - if [ -v CODECOV ]; then rm $TMPFILE; fi
-#    - if [ -v CODECOV ]; then echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} check)" >> testsuite/CMakeLists.txt; fi
-#
-#    # pytest
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python-pytest"; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python2 -m pip install pytest; fi 
-#
-#    # CMake 
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} cmake"; fi
-#
-#    ##
-#    ## MANDATORY DEPENDENCIES
-#    ##
-#
-#    # ncurses
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libncurses-dev"; fi
-#
-#    # zlib
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} zlib1g-dev"; fi
-#
-#    # gsl
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgsl0-dev"; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} gsl"; fi
-#
-#    # plplot
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libplplot-dev"; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} plplot"; fi
-#
-#    ##
-#    ## OPTIONAL DEPENDENCIES
-#    ##
-#
-#    # readline (OSX) / editline (Linux) - just to try both - TODO
-#    #TODO! - see https://github.com/gnudatalanguage/gdl/issues/227
-#    # - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libeditline-dev"; fi
-#    # - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=ON -DREADLINE=OFF"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libreadline-gplv2-dev"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=ON"; fi
-#
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} readline"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=ON -DREADLINEDIR=/usr/local/opt/readline"; fi
-#
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=OFF"; fi 
-#
-#    # pnglib
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libpng-dev"; fi
-#    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPNGLIB=ON"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPNGLIB=OFF"; fi 
-#
-#    # OpenMP (for DEPS=FULL only if supported by the compile)
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DOPENMP=OFF"; fi 
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} llvm libomp"; fi 
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang"; fi 
-#
-#    # ImageMagick (Linux) / GraphicsMagick (OSX) - just to try both
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libmagick++-dev"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=ON"; fi 
-#
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} graphicsmagick"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=ON -DMAGICK=OFF"; fi 
-#
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=OFF"; fi 
-#
-#    # wx
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libwxgtk2.8-dev"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} wxwidgets"; fi
-#    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=ON"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=OFF"; fi 
-#
-#    # netcdf
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libnetcdf-dev"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} netcdf"; fi
-#    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DNETCDF=ON"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DNETCDF=OFF"; fi 
-#
-#    # hdf4
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libhdf4-alt-dev"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DNETCDF=ON"; fi 
-#    # TODO - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} hdf4"; fi
-#    # TODO - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=ON"; fi 
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=OFF"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=OFF"; fi 
-#
-#    # hdf5
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libhdf5-serial-dev"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} hdf5"; fi
-#    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF5=ON"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF5=OFF"; fi 
-#
-#    # fftw
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libfftw3-dev"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} fftw"; fi
-#    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DFFTW=ON"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DFFTW=OFF"; fi 
-#
-#    # proj4 (only for Linux - TODO)
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libproj-dev"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DLIBPROJ4=ON"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DLIBPROJ4=OFF"; fi 
-#
-#    # MPI
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libmpich-dev"; fi
-#    # TODO conflict - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} mpich"; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DMPI=OFF"; fi 
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DMPI=ON"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DMPI=OFF"; fi 
-#
-#    # Python & NumPy (installing always as needed for the Python module build)
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python-dev python-numpy-dev"; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} numpy"; fi
-#    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=ON"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=OFF"; fi 
-#
-#    # udunits
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libudunits2-dev"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} udunits"; fi
-#    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DUDUNITS=ON"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DUDUNITS=OFF"; fi 
-#
-#    # eigen
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then wget http://bitbucket.org/eigen/eigen/get/3.3.2.zip; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then unzip 3.3.2.zip; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEIGEN3DIR=../eigen-eigen-da9b4e14c255"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} eigen"; fi
-#    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEIGEN3=ON"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEIGEN3=OFF"; fi 
-#
-#    # pslib (only Linux - TODO!)
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} pslib-dev"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPSLIB=ON"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPSLIB=OFF"; fi 
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPSLIB=OFF"; fi 
-# 
-#    # ECCODES API 
-##    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libeccodes-dev"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgrib-api-dev"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} eccodes"; fi
-#    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON"; fi 
-#    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=OFF"; fi 
-#
-#    # QHULL - TODO: disabled for icc (see https://github.com/gnudatalanguage/gdl/issues/229)
-#    #- if [[ $COMPILER != icc && $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libqhull-dev"; fi
-#    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libqhull-dev"; fi
-#    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} qhull"; fi
-#    #- if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DQHULL=ON"; fi 
-#    #- if [[ $COMPILER != icc && $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DQHULL=ON"; fi 
-#    #- if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DQHULL=OFF"; fi 
-#
-#    # GLPK
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libglpk-dev"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} glpk"; fi
-#    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGLPK=ON"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGLPK=OFF"; fi 
-#
-#    # X11
-#    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=ON"; fi 
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=OFF"; fi 
-#
-#
-#    # TIFF/GeoTIFF - TODO: find appropriate libgeotiff package for linux
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgeotiff-dev"; fi
-#    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} libgeotiff"; fi
-#    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DTIFF=ON -DGEOTIFF=ON"; fi
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DTIFF=OFF -DGEOTIFF=OFF"; fi
-#
-#    # shapelib
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libshp-dev"; fi
-#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} shapelib"; fi
-#    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DSHAPELIB=ON"; fi
-#    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DSHAPELIB=OFF"; fi
-#    # tirpc - TODO!
-##    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libtirpc-dev"; fi
-##    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DRPCDIR=/usr/include/tirpc/"; fi
-##    - if [[ $DEPS == 'MINI' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DRPCDIR=/usr/include/"; fi
-#
-#
-#    # diagnostics
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then echo APT_PACKAGES $APT_PACKAGES; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo BREW_PACKAGES $BREW_PACKAGES; fi
-#    - echo CMAKE_ARGS $CMAKE_ARGS
-#
-#    # apt-get/brew invocation
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -y $APT_PACKAGES; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install $BREW_PACKAGES; fi
-#
-#script:
-#    - mkdir build
-#    - cd build
-#    - cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ../
-#    - travis_wait 60 make -j 2 # travis_wait needed for icc
-#    - if [ -v CODECOV ]; then make codecov; else make check; fi
-#    - sudo make install
-#
-#    - cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DPYTHON_MODULE=ON ../ 
-#    - travis_wait 60 make -j 2 # travis_wait needed for icc
-#    - PYTHONPATH=$PYTHONPATH:`find . -name GDL.so | xargs dirname` python -m pytest ../testsuite/python/test-GDL.py 
-#
-#after_script:
-#    - if [ $COMPILER == icc ]; then '[[ ! -z "${INTEL_INSTALL_PATH}" ]] && uninstall_intel_software'; fi
-#
-#after_failure:
-#    - cat testsuite/Testing/Temporary/LastTest.log
-#
-#after_success:
-#    - if [ -v CODECOV ]; then bash <(curl -s https://codecov.io/bash) -f codecov.info; fi
+#      env: COMPILER=icc   CMAKE_BUILD_TYPE=Release  DEPS=MINI
+    - os: linux
+      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Release  DEPS=MINI
+    - os: osx
+      env: COMPILER=clang CMAKE_BUILD_TYPE=Release  DEPS=MINI
+
+    - os: linux
+      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Release  DEPS=FULL
+    - os: linux
+      env: COMPILER=icc   CMAKE_BUILD_TYPE=Release  DEPS=FULL
+    - os: osx
+      env: COMPILER=clang CMAKE_BUILD_TYPE=Release  DEPS=FULL
+
+before_install:
+    # TEMPORARILY disabling tests that did not work at "day zero" (i.e. SF -> github migration)
+    - if [ $TRAVIS_OS_NAME == osx ]; then export SEDCMD="sed -i ''"; fi 
+    - if [ $TRAVIS_OS_NAME == linux ]; then export SEDCMD="sed -i"; fi 
+    - $SEDCMD '/test_bytscl.pro/d'           testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_dicom.pro/d'            testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_container.pro/d'        testsuite/Makefile.am # TODO! not ready
+    - $SEDCMD '/test_fft_leak.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_file_delete.pro/d'      testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_file_search.pro/d'      testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_file_test.pro/d'        testsuite/Makefile.am # TODO! 2 errors on Dangling 
+    - $SEDCMD '/test_fix.pro/d'              testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_formats.pro/d'          testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_image_statistics.pro/d' testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_make_dll.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_n_tags.pro/d'           testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_obj_isa.pro/d'          testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_obj_new.pro/d'          testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_plot_ranges.pro/d'      testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_resolve_routine.pro/d'  testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_rounding.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_simplex.pro/d'          testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_step.pro/d'             testsuite/Makefile.am # TODO!
+    - if [ $TRAVIS_OS_NAME == osx ]; then $SEDCMD '/test_tic_toc.pro/d' testsuite/Makefile.am; fi # TODO! fails on OSX, e.g.    https://travis-ci.org/gnudatalanguage/gdl/jobs/440977990
+    - $SEDCMD '/test_typename.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_wait.pro/d'             testsuite/Makefile.am # TODO!
+
+    # https://github.com/travis-ci/travis-ci/issues/8613
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export LD_LIBRARY_PATH=/usr/local/clang/lib:$LD_LIBRARY_PATH; fi
+
+    # homebrew Python stuff...
+    - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade python; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then brew install python@2; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | /usr/local/bin/python -m pip uninstall numpy; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then brew remove numpy gdal postgis; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython2.7.dylib -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python2.7"; fi
+
+install:
+    ##
+    ## BUILD DEPENDENCIES
+    ##
+
+    # https://github.com/nemequ/icc-travis
+    - if [ $COMPILER == icc ]; then wget "https://raw.githubusercontent.com/nemequ/icc-travis/master/install-icc.sh"; fi
+    - if [ $COMPILER == icc ]; then sudo sh install-icc.sh; fi
+    - if [ $COMPILER == icc ]; then source ~/.bashrc; fi
+    - if [ $COMPILER == icc ]; then export CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=icpc -DCMAKE_C_COMPILER=icc"; fi
+
+    # codecov
+    - if [ -v CODECOV ]; then export APT_PACKAGES="$APT_PACKAGES lcov"; fi
+    - if [ -v CODECOV ]; then wget -O CMakeModules/CodeCoverage.cmake https://raw.githubusercontent.com/bilke/cmake-modules/master/CodeCoverage.cmake; fi
+    - if [ -v CODECOV ]; then TMPFILE=`tempfile` ;fi
+    - if [ -v CODECOV ]; then tac src/CMakeLists.txt > $TMPFILE; fi
+    - if [ -v CODECOV ]; then echo "set(CMAKE_CXX_FLAGS \${CMAKE_CXX_FLAGS_COVERAGE})" >> $TMPFILE; fi
+    - if [ -v CODECOV ]; then echo "INCLUDE(CodeCoverage)" >> $TMPFILE; fi
+    - if [ -v CODECOV ]; then tac $TMPFILE > src/CMakeLists.txt; fi
+    - if [ -v CODECOV ]; then rm $TMPFILE; fi
+    - if [ -v CODECOV ]; then echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} check)" >> testsuite/CMakeLists.txt; fi
+
+    # pytest
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python-pytest"; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python2 -m pip install pytest; fi 
+
+    # CMake 
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} cmake"; fi
+
+    ##
+    ## MANDATORY DEPENDENCIES
+    ##
+
+    # ncurses
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libncurses-dev"; fi
+
+    # zlib
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} zlib1g-dev"; fi
+
+    # gsl
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgsl0-dev"; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} gsl"; fi
+
+    # plplot
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libplplot-dev"; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} plplot"; fi
+
+    ##
+    ## OPTIONAL DEPENDENCIES
+    ##
+
+    # readline (OSX) / editline (Linux) - just to try both - TODO
+    #TODO! - see https://github.com/gnudatalanguage/gdl/issues/227
+    # - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libeditline-dev"; fi
+    # - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=ON -DREADLINE=OFF"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libreadline-gplv2-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=ON"; fi
+
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} readline"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=ON -DREADLINEDIR=/usr/local/opt/readline"; fi
+
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=OFF"; fi 
+
+    # pnglib
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libpng-dev"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPNGLIB=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPNGLIB=OFF"; fi 
+
+    # OpenMP (for DEPS=FULL only if supported by the compile)
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DOPENMP=OFF"; fi 
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} llvm libomp"; fi 
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang"; fi 
+
+    # ImageMagick (Linux) / GraphicsMagick (OSX) - just to try both
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libmagick++-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=ON"; fi 
+
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} graphicsmagick"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=ON -DMAGICK=OFF"; fi 
+
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=OFF"; fi 
+
+    # wx
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libwxgtk2.8-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} wxwidgets"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=OFF"; fi 
+
+    # netcdf
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libnetcdf-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} netcdf"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DNETCDF=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DNETCDF=OFF"; fi 
+
+    # hdf4
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libhdf4-alt-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DNETCDF=ON"; fi 
+    # TODO - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} hdf4"; fi
+    # TODO - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=ON"; fi 
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=OFF"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=OFF"; fi 
+
+    # hdf5
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libhdf5-serial-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} hdf5"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF5=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF5=OFF"; fi 
+
+    # fftw
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libfftw3-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} fftw"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DFFTW=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DFFTW=OFF"; fi 
+
+    # proj4 (only for Linux - TODO)
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libproj-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DLIBPROJ4=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DLIBPROJ4=OFF"; fi 
+
+    # MPI
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libmpich-dev"; fi
+    # TODO conflict - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} mpich"; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DMPI=OFF"; fi 
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DMPI=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DMPI=OFF"; fi 
+
+    # Python & NumPy (installing always as needed for the Python module build)
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python-dev python-numpy-dev"; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} numpy"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=OFF"; fi 
+
+    # udunits
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libudunits2-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} udunits"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DUDUNITS=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DUDUNITS=OFF"; fi 
+
+    # eigen
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then wget http://bitbucket.org/eigen/eigen/get/3.3.2.zip; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then unzip 3.3.2.zip; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEIGEN3DIR=../eigen-eigen-da9b4e14c255"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} eigen"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEIGEN3=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEIGEN3=OFF"; fi 
+
+    # pslib (only Linux - TODO!)
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} pslib-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPSLIB=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPSLIB=OFF"; fi 
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPSLIB=OFF"; fi 
+ 
+    # ECCODES API 
+#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libeccodes-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgrib-api-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} eccodes"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON"; fi 
+    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=OFF"; fi 
+
+    # QHULL - TODO: disabled for icc (see https://github.com/gnudatalanguage/gdl/issues/229)
+    #- if [[ $COMPILER != icc && $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libqhull-dev"; fi
+    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libqhull-dev"; fi
+    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} qhull"; fi
+    #- if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DQHULL=ON"; fi 
+    #- if [[ $COMPILER != icc && $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DQHULL=ON"; fi 
+    #- if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DQHULL=OFF"; fi 
+
+    # GLPK
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libglpk-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} glpk"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGLPK=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGLPK=OFF"; fi 
+
+    # X11
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=OFF"; fi 
+
+
+    # TIFF/GeoTIFF - TODO: find appropriate libgeotiff package for linux
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgeotiff-dev"; fi
+    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} libgeotiff"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DTIFF=ON -DGEOTIFF=ON"; fi
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DTIFF=OFF -DGEOTIFF=OFF"; fi
+
+    # shapelib
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libshp-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} shapelib"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DSHAPELIB=ON"; fi
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DSHAPELIB=OFF"; fi
+    # tirpc - TODO!
+#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libtirpc-dev"; fi
+#    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DRPCDIR=/usr/include/tirpc/"; fi
+#    - if [[ $DEPS == 'MINI' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DRPCDIR=/usr/include/"; fi
+
+
+    # diagnostics
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then echo APT_PACKAGES $APT_PACKAGES; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo BREW_PACKAGES $BREW_PACKAGES; fi
+    - echo CMAKE_ARGS $CMAKE_ARGS
+
+    # apt-get/brew invocation
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -y $APT_PACKAGES; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install $BREW_PACKAGES; fi
+
+script:
+    - mkdir build
+    - cd build
+    - cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ../
+    - travis_wait 60 make -j 2 # travis_wait needed for icc
+    - if [ -v CODECOV ]; then make codecov; else make check; fi
+    - sudo make install
+
+    - cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DPYTHON_MODULE=ON ../ 
+    - travis_wait 60 make -j 2 # travis_wait needed for icc
+    - PYTHONPATH=$PYTHONPATH:`find . -name GDL.so | xargs dirname` python -m pytest ../testsuite/python/test-GDL.py 
+
+after_script:
+    - if [ $COMPILER == icc ]; then '[[ ! -z "${INTEL_INSTALL_PATH}" ]] && uninstall_intel_software'; fi
+
+after_failure:
+    - cat testsuite/Testing/Temporary/LastTest.log
+
+after_success:
+    - if [ -v CODECOV ]; then bash <(curl -s https://codecov.io/bash) -f codecov.info; fi
