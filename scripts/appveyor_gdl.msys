@@ -87,5 +87,5 @@ cp $LOCALM32/bin/*.dll /c/projects/gdl/install/gdl/bin
 cp $plplot/bin/lib*.dll /c/projects/gdl/install/gdl/bin
 cp /c/mingw-w64/$GCC/$mname/bin/*.dll /c/projects/gdl/install/gdl/bin
 export PATH=/c/projects/gdl/install/gdl/bin:$PATH
-#make check
+make check
 rm src/CMakeFiles/gdl.dir/*.obj
