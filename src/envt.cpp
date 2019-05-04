@@ -1364,8 +1364,10 @@ int EnvBaseT::findvar(BaseGDL* delP)
 
 void EnvBaseT::SetNextParUnchecked( BaseGDL* const nextP) // by value (reset loc)
 {
-  //   if(!( static_cast<int>(parIx - pro->key.size()) < pro->nPar))
-  assert( static_cast<int>(parIx - pro->key.size()) < pro->nPar);
+  if(!( static_cast<int>(parIx - pro->key.size()) < pro->nPar)){
+	  throw GDLException(callingNode,
+			     pro->Name()+": Incorrect number of arguments.",false,false);
+	}
   env.Set(parIx++,nextP); // check done in parameter_def
 }
 void EnvBaseT::SetNextParUncheckedVarNum( BaseGDL* const nextP) // by reference (reset env)
@@ -1376,7 +1378,10 @@ void EnvBaseT::SetNextParUncheckedVarNum( BaseGDL* const nextP) // by reference 
 
 void EnvBaseT::SetNextParUnchecked( BaseGDL** const nextP) // by reference (reset env)
 {
-  assert( static_cast<int>(parIx - pro->key.size()) < pro->nPar);
+  if(!( static_cast<int>(parIx - pro->key.size()) < pro->nPar)){
+	  throw GDLException(callingNode,
+			     pro->Name()+": Incorrect number of arguments.",false,false);
+	}
   env.Set(parIx++,nextP);
 }
 void EnvBaseT::SetNextParUncheckedVarNum( BaseGDL** const nextP) // by reference (reset env)
