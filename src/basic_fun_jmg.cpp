@@ -735,11 +735,15 @@ namespace lib {
       if(!dimKey) arr(e, dim);
       else dim = dimension(&(*dimKey)[0], dimKey->N_Elements());
 
-      if(value)
+      if(value) {
+        if (value->Type() != GDL_STRUCT) {
         return static_cast<T*>(value)->
           New(dim, BaseGDL::INIT)->
           Convert2(T::Traits::t);
-
+        } else {
+          return new DStructGDL(static_cast<DStructGDL*>(value)->Desc(),dim);
+        }
+      }
       if(e->KeywordSet("NOZERO"))
         return new T(dim, BaseGDL::NOZERO);
 
@@ -755,6 +759,22 @@ namespace lib {
     return NULL;
   }
 
+  DStructGDL* make_array_template(EnvT* e, DLongGDL* dimKey, DStructGDL* value, DDouble off, DDouble inc)
+  {
+    try {
+      dimension dim;
+
+      if(!dimKey) arr(e, dim);
+      else dim = dimension(&(*dimKey)[0], dimKey->N_Elements());
+      return new DStructGDL(value->Desc(),dim);
+    } catch(GDLException& ex) {
+      e->Throw(ex.getMessage());
+    }
+
+    assert(false);      
+    return NULL;
+  }
+  
   BaseGDL* make_array(EnvT* e) {
     DDouble off = 0, inc = 1;
     DType type = GDL_UNDEF;
@@ -812,9 +832,8 @@ namespace lib {
     static int indexIx = e->KeywordIx("INDEX");
     static int valueIx = e->KeywordIx("VALUE");
     BaseGDL* value = e->GetKW(valueIx);
-
-    if(value && !value->Scalar())
-      e->Throw("Expression must be a scalar in this context: " + e->GetString(valueIx));
+    bool wasAValue=false;
+    if(value && !value->Scalar()) e->Throw("Expression must be a scalar in this context: " + e->GetString(valueIx));
 
     static int typeIx = e->KeywordIx("TYPE");
     if(e->KeywordPresent(typeIx)) {
@@ -843,7 +862,10 @@ namespace lib {
     else if(e->KeywordSet("UINT"))      type = GDL_UINT;
     else if(e->KeywordSet("UL64"))      type = GDL_ULONG64;
     else if(e->KeywordSet("ULONG"))     type = GDL_ULONG;
-    else if(value)                      type = value->Type();
+    else if(value) {
+        wasAValue=true;
+        type = value->Type();
+    }
 
     switch(type) {
     case GDL_BYTE:          return make_array_template<DByteGDL>(e, dimKey, value, off, inc);
@@ -867,7 +889,7 @@ namespace lib {
       if(!e->KeywordSet(indexIx)) return make_array_template<DStringGDL>(e, dimKey, value, off, inc);
       else return make_array_template<DULongGDL>(e, dimKey, value, off, inc)->Convert2(GDL_STRING);
     case GDL_STRUCT:
-      e->Throw("Invalid type specified for result.");
+      if (wasAValue) return make_array_template(e, dimKey, static_cast<DStructGDL*>(value), off, inc); else e->Throw("Invalid type specified for result.");
     default:; // Default to FLOAT to emulate IDL
     }
 
