@@ -92,6 +92,30 @@ procedures to decide whether some function or option should be used. It is
 sometimes possible to use this option to fool a procedure that request a
 specific value of !VERSION.RELEASE
 .TP
+.B \-\-fussy
+signals that all used procedures will adhere with modern IDL, 
+where "()" are for functions and "[]" are for arrays.
+This speeds up (sometimes terribly) compilation but choke on every use of "()" with arrays.
+Conversion of procedures to modern IDL can be done with D. Landsman's idlv4_to_v5 procedure.
+Use enviromnment variable "GDL_IS_FUSSY" to set up permanently this feature.
+.TP
+.B \-\-sloppy
+inverse of fussy above.
+Sets the traditional (default) compiling option where "()"  can be used both with functions and arrays.
+Needed to counteract temporarily the effect of the enviromnment variable "GDL_IS_FUSSY".
+.TP
+.B \-\-use-wx
+Tells GDL to use WxWidgets graphics instead of X11 or Windows. (nicer plots).
+Also enabled by setting the environment variable GDL_USE_WX to a non-null value.
+.TP
+.B \-\-no-use-wx
+Tells GDL no to use WxWidgets graphics, even if env. var. "GDL_USE_WX" is set.
+.TP
+.B \-\-no-dSFMT
+Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random doubles.
+Also disabled by setting the environment variable GDL_NO_DSFMT to a non-null value.
+
+
 The \-demo, \-em, \-novm, \-queue, \-rt, \-ulicense and \-vm options
 are ignored for compatibility with IDL.
 .TP
