@@ -832,6 +832,7 @@ void SetupOverloadSubroutines()
   gdlContainerDesc->ProList().push_back(DProlist);
 // GDL_CONTAINER::EQUALS()
   DFunlist = new DFun("EQUALS","GDL_CONTAINER",INTERNAL_LIBRARY_STR);
+  DFunlist->AddPar("VALUE");
   treeFun = new WRAPPED_FUNNode( lib::container__equals);
   DFunlist->SetTree( treeFun);
   gdlContainerDesc->FunList().push_back( DFunlist);
