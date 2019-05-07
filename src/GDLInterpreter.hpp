@@ -789,7 +789,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         std::cerr << std::endl;
         
         if( dumpStack) DumpStack( emsg.size() + 1);
-        if (noInteractive) exit(1);
+        if (noInteractive) exit(EXIT_SUCCESS); //strangely, IDL exits on error when non interactive with 0 not 1.
     }
     
     static void DumpStack( SizeT w)
@@ -866,7 +866,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
             std::cerr << std::left << " " << file;
         }
         std::cerr << std::endl;
-        if (noInteractive) exit(1);
+        if (noInteractive) exit(EXIT_SUCCESS);
     }
 
     static void RetAll( RetAllException::ExCode c=RetAllException::NONE)    

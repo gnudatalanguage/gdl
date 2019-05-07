@@ -60,11 +60,10 @@ GDLInterpreter::HeapT     GDLInterpreter::heap;
 GDLInterpreter::ObjHeapT  GDLInterpreter::objHeap; 
 SizeT                     GDLInterpreter::objHeapIx;
 SizeT                     GDLInterpreter::heapIx;
-EnvStackT             GDLInterpreter::callStack;
-DLong                   GDLInterpreter::stepCount;
-// this to exit on error or stop in line execution mode (gdl -e do_something)
-bool GDLInterpreter::noInteractive;
-ProgNode GDLInterpreter::NULLProgNode;
+EnvStackT                 GDLInterpreter::callStack;
+DLong                     GDLInterpreter::stepCount;
+bool                      GDLInterpreter::noInteractive; // To exit on error or stop in line execution mode (gdl -e do_something)
+ProgNode                  GDLInterpreter::NULLProgNode;
 ProgNodeP GDLInterpreter::NULLProgNodeP = &GDLInterpreter::NULLProgNode;
 
 void LibInit(); // defined in libinit.cpp
