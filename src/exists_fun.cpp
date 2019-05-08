@@ -86,13 +86,13 @@ namespace lib {
 #endif
   }
 
-  BaseGDL* gshhg_exists( EnvT* e )
+  BaseGDL* shapelib_exists( EnvT* e )
   {
-#ifdef USE_GSHHG
-    //    e->Message( "GDL was compiled with support for GSHHG" );
+#ifdef USE_SHAPELIB
+    //    e->Message( "GDL was compiled with support for Shapefile format." );
     return new DIntGDL(1);
 #else
-    //e->Message( "GDL was compiled without support for GSHHG" );
+    //e->Message( "GDL was compiled without support for Shapefile format." );
     return new DIntGDL(0);
 #endif
   }

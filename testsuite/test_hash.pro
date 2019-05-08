@@ -101,16 +101,31 @@ hash2['key1'] = 'hello'
     if keyword_set(verbose) then $
 print," hash1['key1']: ", hash1['key1'], "   hash2['key1']: ", hash2['key1']
 if( ~isgit) then begin
-    hnew = hash2[*]
-    keq = (hnew eq hash1).toarray()
-    if n_elements(keq) ne hash1.count() then $
-        ERRORS_ADD, nb_errors,' error (hash1[*] eq hash1).toarray() '
 endif
 
 keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
 values = LIST('one', 2.0, 3, 4l, PTR_NEW(5), {n:6}, COMPLEX(7,0))
 htest = HASH(keys, values)
 IF N_ELEMENTS(htest) ne 7 then $
+if eq7 ne 7 then $
+
+; cvs does not do most of this:
+if ~isgit then begin
+
+    chk = 2*indgen(20)+1
+    struct = {FIELD1: 4.0, FIELD2: {SUBFIELD1: "hello", SUBFIELD2: 3.14}}
+
+
+    htest = HASH(struct, /EXTRACT,/fold,/lower)
+
+    if keyword_set(verbose) then $
+        print,' htest = HASH(struct, /EXTRACT,/fold,/lower) ',htest
+
+    hnew = hash2[*]
+    keq = (hnew eq hash1).toarray()
+    if n_elements(keq) ne hash1.count() then $
+        ERRORS_ADD, nb_errors,' error (hash1[*] eq hash1).toarray() '
+
     ERRORS_ADD, nb_errors,$
     ' N_ELEMENTS(htest) ne 7  .. fail '
 
@@ -132,43 +147,7 @@ if ~ISA(sback.FIELD2,'STRUCT')  then $
     if isgit then scalars[keys[1:4]] = 4+intarr(4) else $
         scalars[keys[1:4]] = 4
     eq4 = scalars.count(4)
-if eq7 ne 7 then $
-    ERRORS_ADD, nb_errors,$
-        ' eq7 = scalars.count(0) is not 7'
-if eq4 ne 4 then    ERRORS_ADD, nb_errors,$
-        ' scalars[keys[1:4]] = 4 scalars.count(4) is not 4'
 
-; cvs does not do most of this:
-if ~isgit then begin
-
-    chk = 2*indgen(20)+1
-    struct = {FIELD1: 4.0, FIELD2: {SUBFIELD1: "hello", SUBFIELD2: 3.14}}
-
-
-    htest = HASH(struct, /EXTRACT,/fold,/lower)
-
-    if keyword_set(verbose) then $
-        print,' htest = HASH(struct, /EXTRACT,/fold,/lower) ',htest
-
-    if htest['FIELD2','SUBFIELD2'] ne 3.14 then     ERRORS_ADD, nb_errors,$
-                " hash['FIELD2','SUBFIELD2'] ne 3.14"
-    htest['FIELD2','SUBFIELD2'] = chk
-
-    if htest['FIELD2','SUBFIELD2',2] ne 5 then  ERRORS_ADD, nb_errors,$
-                " htest['FIELD2','SUBFIELD2',2] ne 3" 
-    htest['field2','subfield2',3] = 101
-    if htest['FIELD2','SUBFIELD2',3] ne 101 then    ERRORS_ADD, nb_errors,$
-                " htest['FIELD2','SUBFIELD2',3] ne 101"
-
-    htest = hash('field1', 4.0, 'field2', hash(/fold),/fold)
-    htest['field2','subfield1'] = "hello"
-    htest['field2','subfield2'] = chk
-    if htest['FIELD2','SUBFIELD2',3] ne chk[3] then $
-            ERRORS_ADD, nb_errors,$
-                " htest['FIELD2','SUBFIELD2',3] ne chk[3]"
-    rt = htest['field2']
-    if keyword_set(verbose) then begin 
-        help,rt & print,rt & endif
 
     endif else $
     print,' Limited tests for legacy HASH in git'
@@ -207,3 +186,7 @@ if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
 return
 end
+    ERRORS_ADD, nb_errors,$
+        ' eq7 = scalars.count(0) is not 7'
+if eq4 ne 4 then    ERRORS_ADD, nb_errors,$
+        ' scalars[keys[1:4]] = 4 scalars.count(4) is not 4'

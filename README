@@ -93,7 +93,7 @@ python      http://www.python.org
 libproj4    (consult the MAP_INSTALL file)
 UDUNITS-2   http://www.unidata.ucar.edu/software/udunits/
 GRIB API    http://www.ecmwf.int/products/data/software/grib_api.html        
-GSHHS       (consult the MAP_INSTALL file)
+shp         http://shapelib.maptools.org/ (consult the MAP_INSTALL file)
 wxWidgets   http://www.wxwidgets.org/
 pslib       http://pslib.sourceforge.net/
 glpk        https://www.gnu.org/software/glpk/  : only to have the linear programming function SIMPLEX() available.
@@ -291,7 +291,7 @@ MAP PROJECTIONS and GEOPHYSICS:
   It is NOT used by default.
   If you want to use it, use --with-libproj4=DIR
 
-  GDL uses GSHHS to implement MAP_CONTINENTS - see MAP_INSTALL (optional)
+  GDL uses libshp (shapelib) to implement MAP_CONTINENTS - see MAP_INSTALL (optional)
 
 PYTHON INTERFACE:
 -----------------
