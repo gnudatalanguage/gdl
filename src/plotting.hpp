@@ -60,7 +60,10 @@
 #include "envt.hpp"
 #include "graphicsdevice.hpp"
 #include "initsysvar.hpp"
-#include <limits>
+
+#ifdef USE_LIBPROJ4
+#include "projections.hpp"
+#endif 
 
 struct GDL_3DTRANSFORMDATA
 {
@@ -186,87 +189,16 @@ namespace lib {
   void scale3_pro(EnvT* e);
   void t3d_pro( EnvT* e);
   
+  BaseGDL* convert_coord( EnvT* e);
+
   // Map stuff
   void get_mapset(bool &mapset);
   void set_mapset(bool mapset);
-  BaseGDL* map_proj_forward_fun( EnvT* e);
-  BaseGDL* map_proj_inverse_fun( EnvT* e);
-  BaseGDL* convert_coord( EnvT* e);
-  //dummy functions for compatibility support of GCTP projections 
-  void map_proj_gctp_forinit (EnvT* e);
-  void map_proj_gctp_revinit (EnvT* e);
-  
-#if defined(USE_LIBPROJ4) || defined(USE_LIBPROJ4_NEW) 
-#define GDL_COMPLEX COMPLEX2
-
-#ifdef USE_LIBPROJ4_NEW
-  extern "C" {
-    //#include "projects.h"
-#include "proj_api.h"
-  }
-#define LPTYPE projLP
-#define XYTYPE projXY
-
-#define PROJTYPE projPJ
-#define PROJDATA projUV
-#define PJ_INIT pj_init
-
-  PROJDATA protect_proj_fwd (PROJDATA idata, PROJTYPE proj);
-  PROJDATA protect_proj_inv (PROJDATA idata, PROJTYPE proj);
-
-#define PJ_FWD protect_proj_fwd
-#define LIB_PJ_FWD pj_fwd
-#define PJ_INV protect_proj_inv 
-#define LIB_PJ_INV pj_inv
-  PROJTYPE map_init(DStructGDL *map=SysVar::Map());
-  static volatile PROJTYPE ref;
-  static volatile PROJTYPE prev_ref;
-  static PROJDATA badProj={sqrt(-1),sqrt(-1)};
-#else
-  extern "C" {
-    //adding this removes the problem with lam,phi vs. x,y and make no diffs between old an new lib proj.4    
-#define PROJ_UV_TYPE 1
-#include "lib_proj.h"
-  }
-#define LPTYPE PROJ_LP
-#define XYTYPE PROJ_XY
-
-#define PROJTYPE PROJ*
-#define PROJDATA PROJ_UV
-#define PJ_INIT proj_init
-
-  PROJDATA protect_proj_fwd (PROJDATA idata, PROJTYPE proj);
-  PROJDATA protect_proj_inv (PROJDATA idata, PROJTYPE proj);
-
-#define PJ_FWD protect_proj_fwd
-#define LIB_PJ_FWD proj_fwd
-#define PJ_INV protect_proj_inv
-#define LIB_PJ_INV proj_inv
-  PROJTYPE map_init(DStructGDL *map=SysVar::Map());
-  static PROJTYPE ref;
-  static PROJTYPE prev_ref;
-  static PROJDATA badProj={sqrt(-1),sqrt(-1)};
-  //general reprojecting function
-#endif
-
-  //general reprojecting function
-  DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map,
-			     DDoubleGDL* lon, DDoubleGDL *lat, DLongGDL* connectivity,
-			     bool doConn, DLongGDL* &gons, bool doGons,
-			     DLongGDL* &lines, bool doLines, bool doFill);
-
+#ifdef USE_LIBPROJ4
   void GDLgrProjectedPolygonPlot(GDLGStream * a, PROJTYPE ref, DStructGDL* map, 
 				 DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians,
 				 bool const doFill, DLongGDL *conn=NULL);
-   
-  DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap); //not static since KW is at same place for all uses.
-
-#define COMPLEX2 GDL_COMPLEX
-#else //NOT USE_LIBPROJ4 : define some more or less dummy values:
-#define PROJTYPE void*
-#define DEG_TO_RAD 0.017453292
-#endif //USE_LIBPROJ4
-
+#endif
   //3D conversions
   void SelfTranspose3d(DDoubleGDL* me);
   void SelfReset3d(DDoubleGDL* me);
@@ -527,7 +459,7 @@ namespace lib {
     static int XTICKSIx = e->KeywordIx("XTICKS");
     static int YTICKSIx = e->KeywordIx("YTICKS");
     static int ZTICKSIx = e->KeywordIx("ZTICKS");
-    int choosenIx;
+    int choosenIx=XTICKSIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKSIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKSIx; }
@@ -567,7 +499,7 @@ namespace lib {
     static int XCharsizeIx = e->KeywordIx("XCHARSIZE");
     static int YCharsizeIx = e->KeywordIx("YCHARSIZE");
     static int ZCharsizeIx = e->KeywordIx("ZCHARSIZE");
-    int choosenIx;
+    int choosenIx=XCharsizeIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XCharsizeIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YCharsizeIx; }
@@ -602,7 +534,7 @@ namespace lib {
     static int XGRIDSTYLEIx = e->KeywordIx("XGRIDSTYLE");
     static int YGRIDSTYLEIx = e->KeywordIx("YGRIDSTYLE");
     static int ZGRIDSTYLEIx = e->KeywordIx("ZGRIDSTYLE");
-    int choosenIx;
+    int choosenIx=XGRIDSTYLEIx;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XGRIDSTYLEIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YGRIDSTYLEIx; }
     if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZGRIDSTYLEIx; }
@@ -619,7 +551,7 @@ namespace lib {
     static int XMARGINIx = e->KeywordIx("XMARGIN");
     static int YMARGINIx = e->KeywordIx("YMARGIN");
     static int ZMARGINIx = e->KeywordIx("ZMARGIN");
-    int choosenIx;
+    int choosenIx=XMARGINIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XMARGINIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YMARGINIx; }
@@ -652,7 +584,7 @@ namespace lib {
     static int XMINORIx = e->KeywordIx("XMINOR");
     static int YMINORIx = e->KeywordIx("YMINOR");
     static int ZMINORIx = e->KeywordIx("ZMINOR");
-    int choosenIx;
+    int choosenIx=XMINORIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XMINORIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YMINORIx; }
@@ -670,7 +602,7 @@ namespace lib {
     static int XRANGEIx = e->KeywordIx("XRANGE");
     static int YRANGEIx = e->KeywordIx("YRANGE");
     static int ZRANGEIx = e->KeywordIx("ZRANGE");
-    int choosenIx;
+    int choosenIx=XRANGEIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XRANGEIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YRANGEIx; }
@@ -710,7 +642,7 @@ namespace lib {
     static int XSTYLEIx = e->KeywordIx("XSTYLE");
     static int YSTYLEIx = e->KeywordIx("YSTYLE");
     static int ZSTYLEIx = e->KeywordIx("ZSTYLE");
-    int choosenIx;
+    int choosenIx=XSTYLEIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XSTYLEIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YSTYLEIx; }
@@ -730,7 +662,7 @@ namespace lib {
     static int XTHICKIx = e->KeywordIx("XTHICK");
     static int YTHICKIx = e->KeywordIx("YTHICK");
     static int ZTHICKIx = e->KeywordIx("ZTHICK");
-    int choosenIx;
+    int choosenIx=XTHICKIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTHICKIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTHICKIx; }
@@ -755,7 +687,7 @@ namespace lib {
     static int XTICKFORMATIx = e->KeywordIx("XTICKFORMAT");
     static int YTICKFORMATIx = e->KeywordIx("YTICKFORMAT");
     static int ZTICKFORMATIx = e->KeywordIx("ZTICKFORMAT");
-    int choosenIx;
+    int choosenIx=XTICKFORMATIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKFORMATIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKFORMATIx; }
@@ -778,7 +710,7 @@ namespace lib {
     static int XTICKINTERVALIx = e->KeywordIx("XTICKINTERVAL");
     static int YTICKINTERVALIx = e->KeywordIx("YTICKINTERVAL");
     static int ZTICKINTERVALIx = e->KeywordIx("ZTICKINTERVAL");
-    int choosenIx;
+    int choosenIx=XTICKINTERVALIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKINTERVALIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKINTERVALIx; }
@@ -799,7 +731,7 @@ namespace lib {
     static int XTICKLAYOUTIx = e->KeywordIx("XTICKLAYOUT");
     static int YTICKLAYOUTIx = e->KeywordIx("YTICKLAYOUT");
     static int ZTICKLAYOUTIx = e->KeywordIx("ZTICKLAYOUT");
-    int choosenIx;
+    int choosenIx=XTICKLAYOUTIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKLAYOUTIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKLAYOUTIx; }
@@ -827,7 +759,7 @@ namespace lib {
     static int XTICKLENIx = e->KeywordIx("XTICKLEN");
     static int YTICKLENIx = e->KeywordIx("YTICKLEN");
     static int ZTICKLENIx = e->KeywordIx("ZTICKLEN");
-    int choosenIx;
+    int choosenIx=XTICKLENIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKLENIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKLENIx; }
@@ -847,7 +779,7 @@ namespace lib {
     static int XTICKNAMEIx = e->KeywordIx("XTICKNAME");
     static int YTICKNAMEIx = e->KeywordIx("YTICKNAME");
     static int ZTICKNAMEIx = e->KeywordIx("ZTICKNAME");
-    int choosenIx;
+    int choosenIx=XTICKNAMEIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKNAMEIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKNAMEIx; }
@@ -878,7 +810,7 @@ namespace lib {
     static int XTICKSIx = e->KeywordIx("XTICKS");
     static int YTICKSIx = e->KeywordIx("YTICKS");
     static int ZTICKSIx = e->KeywordIx("ZTICKS");
-    int choosenIx;
+    int choosenIx=XTICKSIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKSIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKSIx; }
@@ -903,7 +835,7 @@ namespace lib {
     static int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
     static int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
     static int ZTICKUNITSIx = e->KeywordIx("ZTICKUNITS");
-    int choosenIx;
+    int choosenIx=XTICKUNITSIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKUNITSIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKUNITSIx; }
@@ -936,7 +868,7 @@ namespace lib {
     static int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
     static int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
     static int ZTICKUNITSIx = e->KeywordIx("ZTICKUNITS");
-    int choosenIx;
+    int choosenIx=XTICKUNITSIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKUNITSIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKUNITSIx; }
@@ -957,7 +889,7 @@ namespace lib {
     static int XTICKVIx = e->KeywordIx("XTICKV");
     static int YTICKVIx = e->KeywordIx("YTICKV");
     static int ZTICKVIx = e->KeywordIx("ZTICKV");
-    int choosenIx;
+    int choosenIx=XTICKVIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKVIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKVIx; }
@@ -979,7 +911,7 @@ namespace lib {
     static int XTITLEIx = e->KeywordIx("XTITLE");
     static int YTITLEIx = e->KeywordIx("YTITLE");
     static int ZTITLEIx = e->KeywordIx("ZTITLE");
-    int choosenIx;
+    int choosenIx=XTITLEIx;
     DStructGDL* Struct=NULL;
     if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTITLEIx; }
     if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTITLEIx; }

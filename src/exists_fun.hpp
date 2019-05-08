@@ -24,7 +24,7 @@ namespace lib {
  BaseGDL* fftw_exists(EnvT *e);
  BaseGDL* glpk_exists(EnvT *e);
  BaseGDL* grib_exists(EnvT *e);
- BaseGDL* gshhg_exists(EnvT *e);
+ BaseGDL* shapelib_exists(EnvT *e);
  BaseGDL* hdf5_exists(EnvT *e);
  BaseGDL* hdf_exists(EnvT *e);
  BaseGDL* magick_exists(EnvT *e);

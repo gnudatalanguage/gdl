@@ -239,6 +239,10 @@ endif
 ;
 cumul_errors=0
 ;
+RESOLVE_ROUTINE,"GDL_IDL_FL",/IS_FUNCTION
+RESOLVE_ROUTINE,"BANNER_FOR_TESTSUITE"
+RESOLVE_ROUTINE,"ERRORS_CUMUL"
+; compile banner_for_testsuite BEFORE cd to tmp_dir.
 tmp_dir='TMPDIR_FILE_SEARCH'
 FILE_MKDIR, tmp_dir
 CD, tmp_dir, cur=cur

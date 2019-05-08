@@ -30,10 +30,11 @@
 ;	Original: 2013-March-28; SJT (see Feature Requests 3606434)
 ;        Mods for win32 2015-May-18 G. Jung
 ;	/NOWAIT keyword for win32 (Windows) and 'X' (unix)
+;       GD: added Directory, removed first '+' line and return if doc empty.
 ; LICENCE:
 ;       This code in under GNU GPL v2 or later
 ;
-pro DOC_LIBRARY, proc, print = print, test=test, nowait=nowait
+pro DOC_LIBRARY, proc, directory=directory, print = print, test=test, nowait=nowait
 ;-
 
 if ~KEYWORD_SET(test) then ON_ERROR, 2
@@ -65,7 +66,7 @@ endif else begin
    endif
 endelse
 ;
-proc_path = FILE_WHICH(proc+'.pro', /include_current)
+if n_elements(directory) gt 0 then  proc_path = FILE_WHICH(directory, proc+'.pro') else proc_path = FILE_WHICH(proc+'.pro', /include_current)
 if (proc_path eq '') then begin
    print, proc, ' not found'
    return
@@ -79,19 +80,28 @@ inln = ''
 
 OPENW, isu, out_name, /get
 dflag=0
+nlines=0
 while (~EOF(ipu)) do begin
    READF, ipu, inln
    inln = STRTRIM(inln, 2)
    if (STRPOS(inln, ';') eq 0) then begin
-      if (STRPOS(inln, ';+') eq 0) then dflag = 1b
+      if (STRPOS(inln, ';+') eq 0) then begin 
+         dflag = 1b
+         continue
+      endif
       if (STRPOS(inln, ';-') eq 0) then break
       inln = strmid(inln,1)
    endif else if dflag then inln='@>'+inln
    ;;
-   if dflag then printf, isu, inln
+   if dflag then begin & printf, isu, inln & nlines++ & endif
 endwhile
 ;
 FREE_LUN,  isu,  ipu
+
+if (nlines lt 1) then begin
+ message,/info,"procedure "+strupcase(proc)+" is not documented."
+ return
+endif
 ;
 if KEYWORD_SET(nowait) then begin
    if (!version.os_family eq 'unix') then  begin

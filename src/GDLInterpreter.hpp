@@ -85,7 +85,6 @@ private:
     friend class WRAPPED_PRONode;
 
 public: 
-
 //     RetCode returnCode;    
     ProgNodeP GetNULLProgNodeP() const { return NULLProgNodeP;}
 
@@ -172,9 +171,7 @@ protected:
     BaseGDL** returnValueL; // holding the return value for l_functions
 
     bool interruptEnable;
-
 public:
-
     bool InterruptEnable() const { return interruptEnable;}
     // procedure (searchForPro == true) or function (searchForPro == false)
     static bool CompileFile(const std::string& f, 
@@ -202,7 +199,7 @@ protected:
     static SizeT heapIx;
 
     static EnvStackT  callStack; 
-
+    static bool noInteractive;
     static DLong stepCount;
 
 
@@ -792,6 +789,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         std::cerr << std::endl;
         
         if( dumpStack) DumpStack( emsg.size() + 1);
+        if (noInteractive) exit(EXIT_SUCCESS); //strangely, IDL exits on error when non interactive with 0 not 1.
     }
     
     static void DumpStack( SizeT w)
@@ -868,6 +866,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
             std::cerr << std::left << " " << file;
         }
         std::cerr << std::endl;
+        if (noInteractive) exit(EXIT_SUCCESS);
     }
 
     static void RetAll( RetAllException::ExCode c=RetAllException::NONE)    

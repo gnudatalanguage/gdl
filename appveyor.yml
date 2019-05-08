@@ -287,8 +287,6 @@ before_build:
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_python_module_0.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_python_module_1.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_python_module_2.pro' -NotMatch)
-  # test_qhull does plots
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_qhull.pro' -NotMatch)
   #% Execution halted at: TEST_RANDOM_POISSON   229
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_random.pro' -NotMatch)
   #% Execution halted at: TESTREADF          192
