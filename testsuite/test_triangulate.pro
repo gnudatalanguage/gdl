@@ -2,6 +2,7 @@
 ; AC 11/11/2016
 ; Very preliminary tests on TRIANGULATE, TRIGRID, ...
 ; GD 06/05/2019: test only triangulate and trigrid by default. No gaussfit dependency.
+; GD 08/05/2019: gaussfit can be tested as we have it now.
 ; ----------------------
 ;
 ; Regridding a Gaussian computed on a Spiral ...
@@ -45,11 +46,8 @@ if KEYWORD_SET(display) then begin
 endif
 if KEYWORD_SET(fit) then begin
    ;;
-   is_code_around=EXECUTE("a=GAUSS2DFIT(RANDOMU(seed, 12,12))")
-   if is_code_around then begin
-      g=GAUSS2DFIT(trigrid_gauss2d, g_params)
-      print, g_params
-   endif
+   g=GAUSS2DFIT(trigrid_gauss2d, g_params)
+   print, g_params
    if KEYWORD_SET(benchmark) then begin
        TOC & print, 'After Gauss 2D FIT (if)' & TIC
    endif
@@ -72,7 +70,7 @@ if KEYWORD_SET(help) then begin
 endif
 ;
 if (n_elements(display) eq 0 ) then display=0
-if (n_elements(fit) eq 0 ) then fit=0
+if (n_elements(fit) eq 0 ) then fit=1
 TEST_GAUSS2D_ON_SPIRAL, 100, display=display, $
                         benchmark=benchmark, fit=fit
 ;
