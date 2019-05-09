@@ -65,6 +65,7 @@
 #cmakedefine USE_GRIB 1
 #cmakedefine USE_GLPK 1
 #cmakedefine USE_SHAPELIB 1
+#cmakedefine USE_EXPAT 1
 #cmakedefine USE_HDF 1
 #cmakedefine USE_HDF5 1
 #cmakedefine USE_LIBPROJ4 1

@@ -258,6 +258,13 @@ install:
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} shapelib"; fi
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DSHAPELIB=ON"; fi
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DSHAPELIB=OFF"; fi
+    
+    # expat for XML read support
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libexpat1-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} expat"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEXPAT=ON"; fi
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEXPAT=OFF"; fi
+    
     # tirpc - TODO!
 #    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libtirpc-dev"; fi
 #    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DRPCDIR=/usr/include/tirpc/"; fi
