@@ -226,7 +226,7 @@ TESTS = \
   test_wordexp.pro \
   test_wordexp_null_string.pro \
   test_xdr.pro \
-  tes_xmlsax.pro \
+  test_xmlsax.pro \
   test_zeropoly.pro \
   test_zip.pro \
   checks
