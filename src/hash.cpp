@@ -2418,6 +2418,8 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
  
         finalprm = (iprm+prmbeg+1 == nParam);
         BaseGDL* XX = e->GetKW( iprm + prmbeg);
+        if( XX == NULL) 
+            ThrowFromInternalUDSub( e,       "Parameter is undefined " );
         if( XX->Rank() != 0 ) break; // must be a scalar
 
         if( islist) {
@@ -2760,6 +2762,8 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
     
         finalprm = (iprm+prmbeg+1 == nParam);
         BaseGDL* XX = e->GetKW( iprm + prmbeg);
+        if( XX == NULL) 
+            ThrowFromInternalUDSub( e,       "Parameter is undefined " );
         if( XX->Rank() != 0 ) break; // must be a scalar
 
         if( islist) {

@@ -60,10 +60,10 @@ GDLInterpreter::HeapT     GDLInterpreter::heap;
 GDLInterpreter::ObjHeapT  GDLInterpreter::objHeap; 
 SizeT                     GDLInterpreter::objHeapIx;
 SizeT                     GDLInterpreter::heapIx;
-EnvStackT             GDLInterpreter::callStack;
-DLong                   GDLInterpreter::stepCount;
-
-ProgNode GDLInterpreter::NULLProgNode;
+EnvStackT                 GDLInterpreter::callStack;
+DLong                     GDLInterpreter::stepCount;
+bool                      GDLInterpreter::noInteractive; // To exit on error or stop in line execution mode (gdl -e do_something)
+ProgNode                  GDLInterpreter::NULLProgNode;
 ProgNodeP GDLInterpreter::NULLProgNodeP = &GDLInterpreter::NULLProgNode;
 
 void LibInit(); // defined in libinit.cpp
@@ -1645,6 +1645,7 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
   if (statement.length() > 0) {
     // execute single statement and exit (a new-line is added to statement in gdl.cpp)
     // (e.g. $ gdl -e "print, 'hello world'")
+    noInteractive=true;
     istringstream iss(statement, ios_base::out);
     try {
       ExecuteLine(&iss);
