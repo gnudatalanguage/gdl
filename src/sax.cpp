@@ -341,6 +341,7 @@ createGdlSaxXmlLocator(EnvUDT* e) {
   ret->e=e;
   ret->depth=0;
   ret->fileP=NULL;
+  return ret;
 }  /* End */
 
 
