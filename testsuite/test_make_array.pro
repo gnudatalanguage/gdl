@@ -119,7 +119,12 @@ if ~ARRAY_EQUAL(make_array(2, /string, value="ok"), [ "ok", "ok" ]) then $
    ERRORS_ADD, nerr, 'MAKE_ARRAY with VALUE yields wrong result for STRING type'
 if ~ARRAY_EQUAL(make_array(3, /int, value=4), [ 4, 4, 4 ]) then $
    ERRORS_ADD, nerr, 'MAKE_ARRAY with VALUE yields wrong result for INT type'
-;
+; VALUE with structure
+a={a:33,b:5}
+toto=make_array(5,4,value=33)
+t=make_array(5,4,val=temporary(a)) ;temporary to test another problem: a crash
+if ~ARRAY_EQUAL(t.a,toto) then $
+   ERRORS_ADD, nerr, 'MAKE_ARRAY with structure VALUE is false.'
 ; ----- final ----
 ;
 BANNER_FOR_TESTSUITE, 'TEST_MAKE_ARRAY_MISC', nerr, /status
