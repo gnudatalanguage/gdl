@@ -72,5 +72,6 @@ void LibInit_exists()
   new DLibFunRetNew(lib::wxwidgets_exists, string("WXWIDGETS_EXISTS"));
   new DLibFunRetNew(lib::x11_exists, string("X11_EXISTS"));
   new DLibFunRetNew(lib::dsfmt_exists, string("DSFMT_EXISTS"));
+  new DLibFunRetNew(lib::expat_exists, string("EXPAT_EXISTS"));
 
 }
