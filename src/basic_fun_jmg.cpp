@@ -736,19 +736,11 @@ namespace lib {
       else dim = dimension(&(*dimKey)[0], dimKey->N_Elements());
 
       if(value) {
-        if (value->Type() != GDL_STRUCT) {
-        return static_cast<T*>(value)->
-          New(dim, BaseGDL::INIT)->
-          Convert2(T::Traits::t);
-        } else {
-          return new DStructGDL(static_cast<DStructGDL*>(value)->Desc(),dim);
-        }
+        return static_cast<T*>(value)->New(dim, BaseGDL::INIT)->Convert2(T::Traits::t);
       }
-      if(e->KeywordSet("NOZERO"))
-        return new T(dim, BaseGDL::NOZERO);
+      if(e->KeywordSet("NOZERO")) return new T(dim, BaseGDL::NOZERO);
 
-      if(e->KeywordSet("INDEX"))
-        return new T(dim, BaseGDL::INDGEN, off, inc);
+      if(e->KeywordSet("INDEX"))  return new T(dim, BaseGDL::INDGEN, off, inc);
 
       return new T(dim);
     } catch(GDLException& ex) {
@@ -766,7 +758,7 @@ namespace lib {
 
       if(!dimKey) arr(e, dim);
       else dim = dimension(&(*dimKey)[0], dimKey->N_Elements());
-      return new DStructGDL(value->Desc(),dim);
+      return value->New(dim,BaseGDL::INIT);
     } catch(GDLException& ex) {
       e->Throw(ex.getMessage());
     }
@@ -889,7 +881,8 @@ namespace lib {
       if(!e->KeywordSet(indexIx)) return make_array_template<DStringGDL>(e, dimKey, value, off, inc);
       else return make_array_template<DULongGDL>(e, dimKey, value, off, inc)->Convert2(GDL_STRING);
     case GDL_STRUCT:
-      if (wasAValue) return make_array_template(e, dimKey, static_cast<DStructGDL*>(value), off, inc); else e->Throw("Invalid type specified for result.");
+      if (wasAValue) return make_array_template(e, dimKey, static_cast<DStructGDL*>(value), off, inc);
+      else e->Throw("Invalid type specified for result.");
     default:; // Default to FLOAT to emulate IDL
     }
 
