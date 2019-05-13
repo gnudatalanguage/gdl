@@ -54,7 +54,7 @@ void LibInit_exists()
   new DLibFunRetNew(lib::fftw_exists,string("FFTW_EXISTS"));
   new DLibFunRetNew(lib::glpk_exists,string("GLPK_EXISTS"));
   new DLibFunRetNew(lib::grib_exists,string("GRIB_EXISTS"));
-  new DLibFunRetNew(lib::gshhg_exists,string("GSHHG_EXISTS"));
+  new DLibFunRetNew(lib::shapelib_exists,string("SHAPELIB_EXISTS"));
   new DLibFunRetNew(lib::hdf5_exists,string("HDF5_EXISTS"));
   new DLibFunRetNew(lib::hdf_exists,string("HDF_EXISTS"));
   new DLibFunRetNew(lib::magick_exists,string("MAGICK_EXISTS"));
@@ -72,5 +72,6 @@ void LibInit_exists()
   new DLibFunRetNew(lib::wxwidgets_exists, string("WXWIDGETS_EXISTS"));
   new DLibFunRetNew(lib::x11_exists, string("X11_EXISTS"));
   new DLibFunRetNew(lib::dsfmt_exists, string("DSFMT_EXISTS"));
+  new DLibFunRetNew(lib::expat_exists, string("EXPAT_EXISTS"));
 
 }

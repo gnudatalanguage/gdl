@@ -3,11 +3,14 @@
 ;
 ; Alain C., under GNU GPL
 ;
+; 2018 change object example from gdlffdicom object, which is huge, to  'idlsysmonitorinfo'
+; (Win32 has trouble gdlffdicom unrelated to this test.)
+;
 pro USING_PRO, count, verbose=verbose
 ;
 if KEYWORD_SET(verbose) then MESSAGE, /continue, 'inside USING_PRO'
 tic
-tmp1=OBJ_NEW('gdlffdicom')
+tmp1=OBJ_NEW('idlsysmonitorinfo')
 toc
 count=count+1
 if KEYWORD_SET(verbose) then MESSAGE, /continue, 'end inside USING_PRO'
@@ -19,7 +22,7 @@ pro USING_PRO_ONE_LINE, count, verbose=verbose
 if KEYWORD_SET(verbose) then MESSAGE, /continue, 'inside USING_PRO_ONE_LINE'
 txt='end of line calling  OBJ_NEW in USING_PRO_ONE_LINE'
 ;
-tic & tmp1=OBJ_NEW('gdlffdicom') & count++ & toc & print, txt
+tic & tmp1=OBJ_NEW('idlsysmonitorinfo') & count++ & toc & print, txt
 ;
 if KEYWORD_SET(verbose) then MESSAGE, /continue, 'end inside USING_PRO_ONE_LINE'
 ;
@@ -29,7 +32,7 @@ function USING_FUN, count, verbose=verbose
 ;
 if KEYWORD_SET(verbose) then MESSAGE, /continue, 'inside USING_FUN'
 tic
-tmp1=OBJ_NEW('gdlffdicom')
+tmp1=OBJ_NEW('idlsysmonitorinfo')
 toc
 count=count+1
 if KEYWORD_SET(verbose) then MESSAGE, /continue, 'end inside USING_FUN'

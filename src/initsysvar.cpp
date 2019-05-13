@@ -56,7 +56,7 @@ namespace SysVar
   UInt nullIx, trueIx, falseIx, pathIx, promptIx, edit_inputIx, quietIx,
     dIx, pIx, xIx, yIx, zIx, vIx, gdlWarningIx, gdlIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
-    journalIx, exceptIx, mapIx, cpuIx, dirIx, GshhsDirIx, stimeIx,
+    journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx,
     warnIx, usersymIx, orderIx, MakeDllIx, colorIx;
 
   // !D structs
@@ -275,12 +275,6 @@ namespace SysVar
     return (*static_cast<DLongGDL*>( pStruct->GetTag( tag)))[0];
   }
 
-  const DString& GshhsDir()
-  {
-    DVar& var = *sysVarList[GshhsDirIx];
-    return static_cast<DStringGDL&>(*var.Data())[0];
-  }
-
   DStringGDL* STime()
   {
     DVar& var = *sysVarList[ stimeIx];
@@ -335,6 +329,13 @@ namespace SysVar
   {
     DVar& var = *sysVarList[ MouseIx];
     return static_cast<DStructGDL*>(var.Data());
+  }
+
+  // returns !GDL
+  DStructGDL* GDLconfig()
+  {
+    DVar* sysVarList_gdlIx = sysVarList[ gdlIx];
+    return static_cast<DStructGDL*>(sysVarList_gdlIx->Data());    
   }
 
   DStructGDL* Cpu()
@@ -539,7 +540,12 @@ namespace SysVar
     // printf("seconds since the Epoch: %ld\n", (long) t_of_day);
 
     gdlStruct->NewTag("EPOCH", new DLongGDL((long) t_of_day));
+    gdlStruct->NewTag("GDL_NO_DSFMT", new DByteGDL(0));
+    gdlStruct->NewTag("GDL_USE_WX", new DByteGDL(0));
+    gdlStruct->NewTag("MAP_QUALITY", new DStringGDL("CRUDE"));
+
     DVar *gdl        = new DVar( "GDL", gdlStruct);
+    gdlIx=sysVarList.size();
     sysVarList.push_back(gdl);
     sysVarRdOnlyList.push_back( gdl); // make it read only
 
@@ -946,12 +952,10 @@ namespace SysVar
     dirIx=sysVarList.size();
     sysVarList.push_back( dir);
 
-    // !GSHHS_DATA_DIR 
-    string tmpDir=GetEnvString("GSHHS_DATA_DIR");
-    if( tmpDir == "") tmpDir = string(GDLDATADIR) + "/../gshhs/";
-    //    cout << "1 GSHHS data dir : " << tmpDir << endl;
-    // is the path a true path ?
-    char *symlinkpath =const_cast<char*> (tmpDir.c_str());
+    // !GDL_MAPS_DIR 
+    string tmpDir=GetEnvString("GDL_MAPS_DIR");
+    if( tmpDir == "") tmpDir = string(GDLDATADIR) + "/resource/maps/";
+    char *symlinkpath =const_cast<char*> (tmpDir.c_str());// is the path a true path ?
 
 #ifdef _MSC_VER
 	#define PATH_MAX MAX_PATH
@@ -964,11 +968,9 @@ namespace SysVar
     char *ptr;
     ptr = realpath(symlinkpath, actualpath);
     if( ptr != NULL ) tmpDir=string(ptr)+lib::PathSeparator(); else tmpDir="";
-    //cout << "2 GSHHS data dir : " << tmpDir << endl;
-    DStringGDL *GshhsDataDir =  new DStringGDL( tmpDir);
-    DVar *GshhsDir = new DVar("GSHHS_DATA_DIR", GshhsDataDir);
-    GshhsDirIx=sysVarList.size();
-    sysVarList.push_back(GshhsDir);
+    DStringGDL *GdlMapsDataDir =  new DStringGDL( tmpDir);
+    DVar *GdlMapsDir = new DVar("GDL_MAPS_DIR", GdlMapsDataDir);
+    sysVarList.push_back(GdlMapsDir);
    
     // !STIME
     DStringGDL *stimeData = new DStringGDL( "");

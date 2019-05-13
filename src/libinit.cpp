@@ -112,7 +112,10 @@ void LibInit()
 
   const string cpuKey[]={ "RESET","RESTORE","TPOOL_MAX_ELTS", "TPOOL_MIN_ELTS",
 					"TPOOL_NTHREADS","VECTOR_ENABLE",KLISTEND};
-  new DLibPro(lib::cpu,string("CPU"),0,cpuKey);
+  new DLibPro(lib::cpu_pro,string("CPU"),0,cpuKey);
+
+  const string gdlconfigKey[]={"MAP_QUALITY","GDL_NO_DSFMT","GDL_USE_WX",KLISTEND};
+  new DLibPro(lib::gdl_config_pro,string("GDL_CONFIG"),0,gdlconfigKey);
 
   const string get_kbrdKey[]={"ESCAPE","KEY_NAME",KLISTEND};
   new DLibFunRetNew(lib::get_kbrd,string("GET_KBRD"),1,NULL,get_kbrdKey);
@@ -125,6 +128,10 @@ void LibInit()
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
 				  "PARAMETERS","SOURCE", KLISTEND};
   new DLibFunRetNew(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);
+
+  new DLibFunRetNew(lib::routine_name_fun,string("ROUTINE_NAME_INTERNALGDL"),1);
+  new DLibFunRetNew(lib::routine_dir_fun,string("ROUTINE_DIR"),1);
+
 
 #ifdef _WIN32
 //Please note that NOWAIT and HIDE are WINDOWS-Reserved Keywords.

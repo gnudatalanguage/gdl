@@ -86,13 +86,13 @@ namespace lib {
 #endif
   }
 
-  BaseGDL* gshhg_exists( EnvT* e )
+  BaseGDL* shapelib_exists( EnvT* e )
   {
-#ifdef USE_GSHHS
-    //    e->Message( "GDL was compiled with support for GSHHG" );
+#ifdef USE_SHAPELIB
+    //    e->Message( "GDL was compiled with support for Shapefile format." );
     return new DIntGDL(1);
 #else
-    //e->Message( "GDL was compiled without support for GSHHG" );
+    //e->Message( "GDL was compiled without support for Shapefile format." );
     return new DIntGDL(0);
 #endif
   }
@@ -234,9 +234,17 @@ namespace lib {
   
   BaseGDL* dsfmt_exists(EnvT* e)
   {
-    //dSFMT (random generator) is used AT THE MOMENT only if Eigen is present, and only if useDSFMTAcceleration == true
+    //dSFMT (random generator) is now used by default if Eigen:: but also can be controlled by -noDSFMT .
 #ifdef USE_EIGEN
     return new DIntGDL(useDSFMTAcceleration == true);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+  BaseGDL* expat_exists(EnvT* e)
+  {
+#ifdef USE_EXPAT
+    return new DIntGDL(1);
 #else
     return new DIntGDL(0);
 #endif

@@ -360,8 +360,7 @@ namespace lib
 	  gdlGetAxisType("Y", yLog);
 	  gdlGetAxisType("Z", zLog);
 	  GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd);
-	  gdlGetCurrentAxisRange("Z", zStart, zEnd); //we should memorize the number of levels!
-
+      
 	  if (!doT3d) {
 	    restorelayout=true;
 	    actStream->OnePageSaveLayout(); // we'll give back actual plplot's setup at end
@@ -377,7 +376,8 @@ namespace lib
 
 	    actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
 	    actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
-	  }
+	  } else gdlGetCurrentAxisRange("Z", zStart, zEnd); //we should memorize the number of levels!
+
 	}
 
       static DDouble x0,y0,xs,ys; //conversion to normalized coords
@@ -624,9 +624,10 @@ namespace lib
 	  bool tidyGrid1WorldData=false;
 	  bool tidyGrid2WorldData=false;
 	  bool oneDim=true;
+      bool rank1=( xVal->Rank ( )==1&&yVal->Rank ( )==1 );
 	  // the Grids:
 	  // 1 DIM X & Y
-	  if ( xVal->Rank ( )==1&&yVal->Rank ( )==1 && !mapSet) //mapSet: must create a 2d grid 
+	  if ( rank1 && !mapSet) //mapSet: must create a 2d grid 
 	    {
 	      oneDim=true;
 	      xg1 = new PLFLT[xEl];
@@ -642,7 +643,7 @@ namespace lib
 	      if (yLog) for ( SizeT i=0; i<yEl; i++ ) cgrid1.yg[i] = cgrid1.yg[i]>0?log10(cgrid1.yg[i]):1E-12;
 	      tidyGrid1WorldData=true;
 	    }
-	  else //if ( xVal->Rank ( )==2&&yVal->Rank ( )==2 )
+	  else //rank 2 or mapset
 	    {
 	      oneDim=false;
 
@@ -652,15 +653,25 @@ namespace lib
 	      cgrid2.nx=xEl;
 	      cgrid2.ny=yEl;
 	      //create 2D grid
-	      for ( SizeT i=0; i<xEl; i++ )
-		{
-		  for ( SizeT j=0; j<yEl; j++ )
-		    {
-		      cgrid2.xg[i][j]=mapSet?(*xVal)[i]:(*xVal)[j*( xEl )+i];
-		      cgrid2.yg[i][j]=mapSet?(*yVal)[j]:(*yVal)[j*( xEl )+i];
-		    }
-		}
+          if (mapSet && rank1) {
+           for (SizeT i = 0; i < xEl; i++) {
+              for (SizeT j = 0; j < yEl; j++) {
+                cgrid2.xg[i][j] = (*xVal)[i] ;
+                cgrid2.yg[i][j] = (*yVal)[j] ;
+              }
+            }
+          } else {
+            for (SizeT i = 0; i < xEl; i++) {
+              for (SizeT j = 0; j < yEl; j++) {
+                cgrid2.xg[i][j] = (*xVal)[j * (xEl) + i];
+                cgrid2.yg[i][j] = (*yVal)[j * (xEl) + i];
+              }
+            }
+          }
 	      //apply projection transformations:
+          //This is going to work in a very restricted case.
+          //One MUST instead plot the contours as for map_continents, i.e., using gdlPolygonPlot.
+          //this will be feasible as soon as we use our  own contour-making algorithm, not plplot's.
 #ifdef USE_LIBPROJ4
 	      if ( mapSet )
 		{
@@ -906,12 +917,12 @@ namespace lib
 	  if (stopClip) stopClipping(actStream);
 	  actStream->Free2dGrid(map, xEl, yEl);
 	}
-      //finished? Store Zrange and Loginess unless we are overplot:
-      if ( make2dBox || make3dBox )
-	{
+////      finished? Store Zrange and Loginess unless we are overplot:
+//      if ( make2dBox || make3dBox )
+//	{
 	  gdlStoreAxisCRANGE("Z", zStart, zEnd, zLog);
 	  gdlStoreAxisType("Z",zLog);
-	}
+//	}
 
       if (doT3d) {
         actStream->stransform(NULL,NULL); //remove transform BEFORE writing axes, ticks..

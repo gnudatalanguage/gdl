@@ -26,6 +26,14 @@
 #include "list.hpp"
 #include "hash.hpp"
 
+#ifdef USE_SHAPELIB
+#include "Shapefiles.hpp"
+#endif
+
+#ifdef USE_EXPAT
+#include "sax.hpp"
+#endif
+
 using namespace std;
 
 std::string overloadOperatorNames[] = 
@@ -427,8 +435,17 @@ void SetupOverloadSubroutines()
   assert( listDesc != NULL);
   DStructDesc* hashDesc = FindInStructList(structList, "HASH");
   assert( hashDesc != NULL);
+
+#ifdef USE_SHAPELIB
+  DStructDesc* GDLffShapeDesc = FindInStructList(structList, "IDLFFSHAPE");
+  assert( GDLffShapeDesc != NULL);
+#endif
+
+#ifdef USE_EXPAT  
+  DStructDesc* GDLffXmlSaxDesc = FindInStructList(structList, "IDLFFXMLSAX");
+  assert( GDLffXmlSaxDesc != NULL);  
+#endif
   
-  WRAPPED_FUNNode *tree;
   WRAPPED_FUNNode *treeFun;
   WRAPPED_PRONode *treePro;
   
@@ -823,6 +840,7 @@ void SetupOverloadSubroutines()
   gdlContainerDesc->ProList().push_back(DProlist);
 // GDL_CONTAINER::EQUALS()
   DFunlist = new DFun("EQUALS","GDL_CONTAINER",INTERNAL_LIBRARY_STR);
+  DFunlist->AddPar("VALUE");
   treeFun = new WRAPPED_FUNNode( lib::container__equals);
   DFunlist->SetTree( treeFun);
   gdlContainerDesc->FunList().push_back( DFunlist);
@@ -833,5 +851,331 @@ void SetupOverloadSubroutines()
   treeFun = new WRAPPED_FUNNode( lib::container__iscontained);
   DFunlist->SetTree( treeFun);
   gdlContainerDesc->FunList().push_back( DFunlist);
+#ifdef USE_SHAPELIB  
+  //=============GDLffShape========================
+//IDLFFSHAPE::GETATTRIBUTES
+  DFunlist = new DFun("GETATTRIBUTES","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DFunlist->AddPar("INDEX");
+  DFunlist->AddKey("ATTRIBUTE_STRUCTURE","ATTRIBUTE_STRUCTURE");
+  DFunlist->AddKey("ALL","ALL"); 
+  treeFun = new WRAPPED_FUNNode( lib::GDLffShape___GetAttributes);
+  DFunlist->SetTree( treeFun);
+  GDLffShapeDesc->FunList().push_back(DFunlist);
+//IDLFFSHAPE::GETENTITY
+  DFunlist = new DFun("GETENTITY","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DFunlist->AddPar("INDEX");
+  DFunlist->AddKey("ATTRIBUTES","ATTRIBUTES");
+  DFunlist->AddKey("ALL","ALL"); 
+  treeFun = new WRAPPED_FUNNode( lib::GDLffShape___GetEntity);
+  DFunlist->SetTree( treeFun);
+  GDLffShapeDesc->FunList().push_back(DFunlist);
+//IDLFFSHAPE::INIT
+  DFunlist = new DFun("INIT","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DFunlist->AddPar("FILENAME");
+  DFunlist->AddKey("DBF_ONLY","DBF_ONLY");
+  DFunlist->AddKey("ENTITY_TYPE","ENTITY_TYPE");
+  DFunlist->AddKey("UPDATE","UPDATE");
+  treeFun = new WRAPPED_FUNNode( lib::GDLffShape___Init);
+  DFunlist->SetTree( treeFun);
+  GDLffShapeDesc->FunList().push_back(DFunlist);
+  //IDLFFSHAPE::OPEN
+  DFunlist = new DFun("OPEN","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DFunlist->AddPar("FILENAME");
+  DFunlist->AddKey("DBF_ONLY","DBF_ONLY");
+  DFunlist->AddKey("ENTITY_TYPE","ENTITY_TYPE"); 
+  DFunlist->AddKey("UPDATE","UPDATE"); 
+  treeFun = new WRAPPED_FUNNode( lib::GDLffShape___Open);
+  DFunlist->SetTree( treeFun);
+  GDLffShapeDesc->FunList().push_back(DFunlist);
+ //IDLFFSHAPE::ADDATTRIBUTE
+  DProlist = new DPro("ADDATTRIBUTE","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("NAME");
+  DProlist->AddPar("TYPE");
+  DProlist->AddPar("WIDTH");
+  DProlist->AddKey("PRECISION","PRECISION");
+  treePro = new WRAPPED_PRONode( lib::GDLffShape___AddAttribute);
+  DProlist->SetTree( treePro);
+  GDLffShapeDesc->ProList().push_back(DProlist);
+ //IDLFFSHAPE::CLEANUP
+  DProlist = new DPro("CLEANUP","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  treePro = new WRAPPED_PRONode( lib::GDLffShape___Cleanup);
+  DProlist->SetTree( treePro);
+  GDLffShapeDesc->ProList().push_back(DProlist);
+ //IDLFFSHAPE::CLOSE
+  DProlist = new DPro("CLOSE","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  treePro = new WRAPPED_PRONode( lib::GDLffShape___Close);
+  DProlist->SetTree( treePro);
+  GDLffShapeDesc->ProList().push_back(DProlist);
+ //IDLFFSHAPE::DESTROYENTITY
+  DProlist = new DPro("DESTROYENTITY","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Entity");
+  treePro = new WRAPPED_PRONode( lib::GDLffShape___DestroyEntity);
+  DProlist->SetTree( treePro);
+  GDLffShapeDesc->ProList().push_back(DProlist);
+ //IDLFFSHAPE::GETPROPERTY
+  DProlist = new DPro("GETPROPERTY","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DProlist->AddKey("ATTRIBUTE_INFO","ATTRIBUTE_INFO");
+  DProlist->AddKey("ATTRIBUTE_NAMES","ATTRIBUTE_NAMES");
+  DProlist->AddKey("ENTITY_TYPE","ENTITY_TYPE");
+  DProlist->AddKey("FILENAME","FILENAME");
+  DProlist->AddKey("IS_OPEN","IS_OPEN");
+  DProlist->AddKey("N_ATTRIBUTES","N_ATTRIBUTES");
+  DProlist->AddKey("N_ENTITIES","N_ENTITIES");
+  DProlist->AddKey("N_RECORDS","N_RECORDS");
+  treePro = new WRAPPED_PRONode( lib::GDLffShape___GetProperty);
+  DProlist->SetTree( treePro);
+  GDLffShapeDesc->ProList().push_back(DProlist);
+ //IDLFFSHAPE::PUTENTITY
+  DProlist = new DPro("PUTENTITY","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("DATA");
+  treePro = new WRAPPED_PRONode( lib::GDLffShape___PutEntity);
+  DProlist->SetTree( treePro);
+  GDLffShapeDesc->ProList().push_back(DProlist);
+ //IDLFFSHAPE::SETATTRIBUTES
+  DProlist = new DPro("SETATTRIBUTES","IDLFFSHAPE",INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("INDEX");
+  DProlist->AddPar("ATTRIBUTES_NUM");
+  DProlist->AddPar("Value"); 
+  treePro = new WRAPPED_PRONode( lib::GDLffShape___SetAttributes);
+  DProlist->SetTree( treePro);
+  GDLffShapeDesc->ProList().push_back(DProlist);
+#endif
+
+#ifdef USE_EXPAT
+  //IDLFFXMLSAX::INIT
+  DFunlist = new DFun("INIT", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  treeFun = new WRAPPED_FUNNode(lib::GDLffXmlSax___Init);
+  DFunlist->SetTree(treeFun);
+  GDLffXmlSaxDesc->FunList().push_back(DFunlist);
+  //IDLFFXMLSAX::CLEANUP
+  DProlist = new DPro("CLEANUP", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax___Cleanup);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+  //IDLFFXMLSAX::PARSEFILE
+  DProlist = new DPro("PARSEFILE", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("INPUT");
+  DProlist->AddKey("URL", "URL");
+  DProlist->AddKey("XML_STRING", "XML_STRING");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__ParseFile);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+
+  DProlist = new DPro("ATTRIBUTEDECL", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("eName");
+  DProlist->AddPar("aName");
+  DProlist->AddPar("Type");
+  DProlist->AddPar("Mode");
+  DProlist->AddPar("Value");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__AttributeDecl);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("CHARACTERS", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Chars");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__Characters);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("COMMENT", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Comment");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__Comment);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("ELEMENTDECL", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Name");
+  DProlist->AddPar("Model");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__ElementDecl);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("ENDCDATA", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__EndCDATA);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("ENDDOCUMENT", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__EndDocument);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("ENDDTD", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__EndDTD);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("ENDELEMENT", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("URI");
+  DProlist->AddPar("Local");
+  DProlist->AddPar("qName");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__EndElement);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("ENDENTITY", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Name");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__EndEntity);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("ENDPREFIXMAPPING", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("prefix");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__EndPrefixMapping);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("ERROR", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("SystemID");
+  DProlist->AddPar("LineNumber");
+  DProlist->AddPar("ColumnNumber");
+  DProlist->AddPar("Message");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__Error);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("EXTERNALENTITYDECL", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Name");
+  DProlist->AddPar("PublicID");
+  DProlist->AddPar("SystemID");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__ExternalEntityDecl);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("FATALERROR", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("SystemID");
+  DProlist->AddPar("LineNumber");
+  DProlist->AddPar("ColumnNumber");
+  DProlist->AddPar("Message");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__FatalError);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("IGNORABLEWHITESPACE", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("CHARS");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__IgnorableWhitespace);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("INTERNALENTITYDECL", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Name");
+  DProlist->AddPar("Value");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__InternalEntityDecl);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("NOTATIONDECL", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Name");
+  DProlist->AddPar("PublicID");
+  DProlist->AddPar("SystemID");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__NotationDecl);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("PROCESSINGINSTRUCTION", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Target");
+  DProlist->AddPar("Data");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__ProcessingInstruction);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("SETPROPERTY", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddKey("PROPERTY", "property");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__SetProperty);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("SKIPPEDENTITY", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Name");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__SkippedEntity);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("STARTCDATA", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__StartCDATA);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("STARTDOCUMENT", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__StartDocument);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("STARTDTD", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Name");
+  DProlist->AddPar("PublicID");
+  DProlist->AddPar("SystemID");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__StartDTD);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("STARTELEMENT", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("URI");
+  DProlist->AddPar("Local");
+  DProlist->AddPar("qName");
+  DProlist->AddPar("attName");
+  DProlist->AddPar("attValue");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__StartElement);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("STARTENTITY", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Name");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__StartEntity);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("STARTPREFIXMAPPING", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Prefix");
+  DProlist->AddPar("URI");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__StartPrefixmapping);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("STOPPARSING", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__StopParsing);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("UNPARSEDENTITYDECL", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("Name");
+  DProlist->AddPar("PublicID");
+  DProlist->AddPar("SystemID");
+  DProlist->AddPar("Notation");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__UnparsedEntityDecl);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("WARNING", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
+  DProlist->AddPar("SystemID");
+  DProlist->AddPar("LineNumber");
+  DProlist->AddPar("ColumnNumber");
+  DProlist->AddPar("Message");
+  treePro = new WRAPPED_PRONode(lib::GDLffXmlSax__Warning);
+  DProlist->SetTree(treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  DProlist = new DPro("GETPROPERTY","IDLFFXMLSAX",INTERNAL_LIBRARY_STR);
+  DProlist->AddKey("VALIDATION_MODE","VALIDATION_MODE"); //6
+  DProlist->AddKey("SCHEMA_CHECKING","SCHEMA_CHECKING"); //5
+  DProlist->AddKey("PARSER_URI","PARSER_URI"); //4
+  DProlist->AddKey("PARSER_PUBLICID","PARSER_PUBLICID"); //3
+  DProlist->AddKey("PARSER_LOCATION","PARSER_LOCATION"); //2
+  DProlist->AddKey("NAMESPACE_PREFIXES","NAMESPACE_PREFIXES"); //1
+  DProlist->AddKey("FILENAME","FILENAME"); //0
+  treePro = new WRAPPED_PRONode( lib::GDLffXmlSax__GetProperty);
+  DProlist->SetTree( treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
   
+  DProlist = new DPro("SETPROPERTY","IDLFFXMLSAX",INTERNAL_LIBRARY_STR);
+  DProlist->AddKey("NAMESPACE_PREFIXES","NAMESPACE_PREFIXES");
+  DProlist->AddKey("SCHEMA_CHECKING","SCHEMA_CHECKING");
+  DProlist->AddKey("VALIDATION_MODE","VALIDATION_MODE");
+  treePro = new WRAPPED_PRONode( lib::GDLffXmlSax__SetProperty);
+  DProlist->SetTree( treePro);
+  GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
+  
+#endif
 }

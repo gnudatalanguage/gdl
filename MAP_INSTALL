@@ -1,17 +1,18 @@
 Revised version by Gilles Duvert on July 2014
+Small revision by Alain on Jan. 2019 (mostly GSHHS --> GSHHG)
+Removed gshhs[g] stuff now that IDLffShape works. (GD)
 
 To provide map projections support your first need to make sure the
 proj.4 library is installed. There are two libraries, the 'classic
 PROJ.4' library maintained by the original author, G. Evenden:
 http://home.comcast.net/~gevenden56/proj/
 (http://home.comcast.net/~gevenden56/proj/libproj4.3_20081120.tar.bz2)
-and a more complete (but by no means bug free!) fork of this library
-available at http://trac.osgeo.org/proj.
+and a fork of this library available at http://trac.osgeo.org/proj.
 
 Both work with GDL and provide all projection-related internal
 facilities.  We tend to prefer G. Evenden's trimmed classical version
 since it handles correctly rotations and has fever
-crashes. Unfortunately the fancy interrupted Goode Homomsine is not
+crashes. Unfortunately the fancy interrupted Goode Homolosine is not
 present in GE's library.  It is recommendend to recompile either of
 these libraries instead of using the version that may come with your
 software distribution (but it can work, too).
@@ -51,35 +52,22 @@ that do not need the above procedures...
 
 ===========================================================================
 
-MAP_CONTINENTS is implemented in GDL using the GSHHSG (Global 
-Self-consistent, Hierarchical, High-resolution Geography Database) 
-available under the GNU GPL. To provide support for MAP_CONTINENTS the 
-database files and one header file (gshhs.h) need to be downloaded e.g. from:
-
-ftp://ftp.soest.hawaii.edu/pwessel/gshhsg
-
-see file ftp://ftp.soest.hawaii.edu/pwessel/gshhg/README.TXT for
-complete description.
-
-The header file for the 2.0 dataset is in the gshhs_1.12_src.zip file.
-The datafiles (*.b) are in the gshhs_2.0.tbz file.
-
-When compiling GDL, the "-DGSHHS=YES" option must be given (not
-enabled by default), optionally with an argument pointing to the GSHHS
-installation prefix: -DGSHHSDIR="DIR"
+MAP_CONTINENTS is now implemented in GDL as a procedure using maintly the Natural Earth 
+(http://www.naturalearthdata.com/, hereafter NE) shapefiles plus gshhs shapefiles 
+(https://www.ngdc.noaa.gov/mgg/shorelines/gshhs.html) for continental outlines, and our 
+new support for reading the ESRI Shapefile format in which one can find any number of geospatial informations.
+Since we added support for IDLffShape (meaning IDL f[ile] f[ormat] Shape[file] tool)
+one can now use shapefile tools to do more useful work than just MAP_CONTINENTS. 
+pro/gdlDrawShapefile.pro is such an utility. See also
+coyote's http://www.idlcoyote.com/idldoc/maps/cgdrawshapes.html
  
-Warning: At execution time, GDL will look for the GSHHS datafiles
-(gshhs_f.b, gshhs_l.b, etc...) in the $GSHHS_DATA_DIR. Before running
-GDL you can setup this variable (e.g. in bash : 
-export GSHHS_DATA_DIR=/my/path/to/gshhs/). 
-When GDL is compiled, if $GSHHS_DATA_DIR unknown, if $GDLDATADIR
-exists and if $GDLDATADIR/../gshhs/ exist too, this path is used as a
-defaut directory for gshhs data. So the files can/must be put there. 
-(we need a more flexible solution - FIXME!)
+The necessary shapefiles for MAP_CONTINENTS are now shipped with GDL (in !DIR+"/share/gnudatalanguage/maps")
+However a knowledgeable user may use a more recent version by setting the variable
+!GDL_MAPS_DIR directly such as
+GDL> !GDL_MAPS_DIR="/a/path/to/the/data"
 
-Reference:
-Wessel, P. and Smith, W.H.F., 1996. A global, self-consistent, hierarchical, 
-  high-resolution shoreline database. J. Geophys. Res., 101(B4): 8741--8743.
+The FILLing of NE shapefiles is not possible as these are not closed, oriented, shapes.
+This why we used also gshhs shapefiles (seriously edited with qgis ( https://www.qgis.org ).
 
 ===========================================================================
 NOTE ON PROJECTION-RELATED PROCEDURES IN GDL (and IDL)
@@ -95,13 +83,13 @@ a valid PROJ.4 command line in the projection name of a map structure,
 with the projection number set to 999
 
 example:
+;given lon and lat, a table of "test" longitudes and latitudes:
 a=!map
 a.up_name="+proj=mbtfpq +a=1"
 a.projection=999
 map_clip_set,/TRANSFORM,map=a
 b=map_proj_forward(lon, lat,map=a)
 a.uv_box=[min(b(0,*)),min(b(1,*)),max(b(0,*)),max(b(1,*))];
-(lon and lat being a table of "test" longitudes and latitudes)
 plot, a.uv_box[[0,2]],a.uv_box[[1,3]],/NODATA, /ISOTROPIC, XSTYLE=1, YSTYLE=1
 map_continents,map=a
 map_grid,map=a

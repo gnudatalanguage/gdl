@@ -152,6 +152,7 @@ TESTS = \
   test_modulo.pro \
   test_moment.pro \
   test_mpfit.pro \
+  test_mpi.pro \
   test_multiroots.pro \
   test_n_tags.pro \
   test_nans_in_sort_and_median.pro \
@@ -171,6 +172,7 @@ TESTS = \
   test_pmulti.pro \
   test_pmulti_basic.pro \
   test_point_lun.pro \
+  test_poly_fit.pro \
   test_postscript.pro \
   test_product.pro \
   test_ps_decomposed.pro \
@@ -180,7 +182,6 @@ TESTS = \
   test_python_module_0.pro \
   test_python_module_1.pro \
   test_python_module_2.pro \
-  test_qhull.pro \
   test_qromb.pro \
   test_qromo.pro \
   test_random.pro \
@@ -213,6 +214,7 @@ TESTS = \
   test_tic_toc.pro \
   test_tiff.pro \
   test_total.pro \
+  test_triangulate.pro \
   test_trisol.pro \
   test_tv.pro \
   test_typename.pro \
@@ -224,6 +226,7 @@ TESTS = \
   test_wordexp.pro \
   test_wordexp_null_string.pro \
   test_xdr.pro \
+  test_xmlsax.pro \
   test_zeropoly.pro \
   test_zip.pro \
   checks

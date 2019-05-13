@@ -18,6 +18,7 @@
 #              change plplot to 5.13.0 (OSX) or 5.12 (other)
 #              flag for OpenMP (OSX)
 # 2018-08-07 : force cmake 3+, force plplot 5.12 or 5.13
+# 2018-12-19 : move to 0.9.9
 #
 # The purpose of this shell script is to automaticaly compile a minimum GDL
 # as a basic user even if mandatory packages are not available
@@ -40,8 +41,8 @@
 # step 2 : GSL
 # step 3 : CMake
 # step 4 : Plplot
-# step 5 : GDL 0.9.8 vanilla
-# step 6 : GDL 0.9.8 Git
+# step 5 : GDL 0.9.9 vanilla
+# step 6 : GDL 0.9.9 Git
 #
 # $1 == $use_curl, $2 = $URL, $3 = $filename
 run_wget_or_curl(){
@@ -88,9 +89,7 @@ GSL_URL="ftp://ftp.gnu.org/gnu/gsl/gsl-1.16.tar.gz"
 PLPLOT_URL512="https://sourceforge.net/projects/plplot/files/plplot/5.12.0%20Source/plplot-5.12.0.tar.gz/download?use_mirror=autoselect"
 PLPLOT_URL513="https://sourceforge.net/projects/plplot/files/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz/download?use_mirror=autoselect"
 #
-GDL_VANILLA_URL="http://downloads.sourceforge.net/project/gnudatalanguage/gdl/0.9.8/gdl-0.9.8.tgz"
-GDL_CVS_URL="http://gnudatalanguage.cvs.sourceforge.net/viewvc/gnudatalanguage/gdl/?view=tar"
-GDL_SVN_URL="https://svn.code.sf.net/p/gnudatalanguage/svn/trunk/gdl"
+GDL_VANILLA_URL="https://github.com/gnudatalanguage/gdl/archive/v0.9.9.tar.gz"
 GDL_GIT_URL="https://codeload.github.com/gnudatalanguage/gdl/zip/master"
 #
 step=$1
@@ -313,19 +312,14 @@ else
 fi
 
 # ----------------------------------- GDL -----------------------
-# starting GDL : 2 cases : with the SVN or the 0.9.7 vanilla version
-# we don't need to manage the step here ... (always 5 or 6)
+# starting GDL : 2 cases : with vanilla version or Git
+# we don't need to manage the step here ... (always 5 or 6)
 echo "** preparing GDL"
 cd $RACINE
 #
-# SVN Obsolete
-#if [ "$gdl_svn" -eq 1 ] ; then
-#    echo "preparing to compiled GDL 0.9.7 SVN version"
-#    gdl_path='gdl-0.9.7svn'`date +%y%m%d`
-#    svn checkout $GDL_SVN_URL $gdl_path
 if [ "$gdl_git" -eq 1 ] ; then
-    echo "preparing to compiled GDL 0.9.8 Git version"
-    gdl_path='gdl-0.9.8git'`date +%y%m%d`
+    echo "preparing to compiled GDL 0.9.9 Git version"
+    gdl_path='gdl-0.9.9git'`date +%y%m%d`
     gdl_name=${gdl_path}'.tgz'
     if [ ! -e $gdl_name ] ; then
 	run_wget_or_curl_v2 $use_curl $GDL_GIT_URL $gdl_name
@@ -333,8 +327,8 @@ if [ "$gdl_git" -eq 1 ] ; then
     unzip $gdl_name
     mv gdl-master $gdl_path
 else 
-    echo "preparing to compiled GDL 0.9.8 VANILLA version"
-    gdl_path='gdl-0.9.8'
+    echo "preparing to compiled GDL 0.9.9 VANILLA version"
+    gdl_path='gdl-0.9.9'
     gdl_name=${gdl_path}'.tgz'
     if [ ! -e $gdl_name ] ; then
 	run_wget_or_curl_v2 $use_curl $GDL_VANILLA_URL $gdl_name
@@ -347,6 +341,11 @@ if [ $os_type == Darwin ] ; then
     flag_openmp=OFF
 else
     flag_openmp=ON
+fi
+#
+# 2018-12-19 the code in Vanilla don't compile if Eigen3 off AND openmp on
+if [ "$gdl_git" -eq 0 ] ; then
+    flag_openmp=OFF
 fi
 #
 cd $gdl_path

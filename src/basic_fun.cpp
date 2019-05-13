@@ -72,6 +72,8 @@ extern "C" char **environ;
 #include "typedefs.hpp"
 #include "base64.hpp"
 #include "objects.hpp"
+//#include "file.hpp"
+
 
 #ifdef HAVE_LOCALE_H
 # include <locale.h>
@@ -126,8 +128,8 @@ static DStructGDL* GetObjStruct( BaseGDL* Objptr, EnvT* e)
 static bool trace_me(false);
 
 namespace lib {
-	bool trace_arg();
-	bool gdlarg_present(const char* s);
+  bool trace_arg();
+  bool gdlarg_present(const char* s);
   SizeT HASH_count( DStructGDL* oStructGDL);
   SizeT LIST_count( DStructGDL* oStructGDL);
   
@@ -7209,6 +7211,14 @@ BaseGDL* routine_filepath( EnvT* e)
 	}
 //    if(nParam == 0) return new DStringGDL(FullFileName);
     return res_guard.release();
+  }
+
+  //AC 2019 (see "routine_name.pro". Here another way to catch the name ...)
+  BaseGDL* routine_name_fun( EnvT* e)
+  {
+    EnvStackT& callStack = e->Interpreter()->CallStack();
+    string name=callStack.back()->GetProName();
+    return new DStringGDL(name);
   }
 
   BaseGDL* routine_info( EnvT* e)

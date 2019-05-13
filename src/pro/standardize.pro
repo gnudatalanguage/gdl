@@ -26,7 +26,7 @@
 ;
 ; EXAMPLE: see "testsuite/test_standarize,pro" in GDL CVS
 ;
-;     (another exemple here:
+;     (another example here:
 ;     http://idlastro.gsfc.nasa.gov/idl_html_help/STANDARDIZE.html) 
 ;     Define an array with 4 variables and 20 observations:  
 ;     array = FLTARR(4, 20)

@@ -1,0 +1,24 @@
+#!bin/bash
+#
+echo " convert_wx.msys: copy MSYS style $WXNAME to MinGW-style"
+LOCALM32=/c/projects/gdl/mingw/$WXNAME
+LIB_DIR=/c/projects/gdl/win32libs/$WXNAME/lib/gcc_dll
+echo "LOCALM32=$LOCALM32 occupied by wxWidgets alone (for now)"
+echo "LIB_DIR=$LIB_DIR holding windows-style wx."
+mkdir -p $LIB_DIR
+mkdir -p $LIB_DIR/mswu/wx
+cd /c/projects/gdl/win32libs/$WXNAME
+# (try to) make LIB_DIR to be compatible for a mingw compilation for wxWidgets_ROOT=CWD
+WXROOT=/c/projects/gdl/mingw/$WXNAME
+mkdir ./bin
+mkdir -p $WXROOT/utils/wxrc/vc_msw
+cp $WXROOT/bin/wxrc.exe $WXROOT/utils/wxrc/vc_msw/
+cp $WXROOT/lib/wx/include/msw-unicode-3.0/wx/setup.h $LIB_DIR/mswu/wx/
+cp -r $WXROOT/include/wx-3.0 ./include
+if [[ -d $LIB_DIR/mswu ]] ; then
+    echo " $LIB_DIR/mswu has already been created "
+    else
+cp -r $WXROOT/lib/wx/include/msw-unicode-3.0 $LIB_DIR/mswu
+    fi
+cp $WXROOT/lib/*.a $LIB_DIR
+cp $WXROOT/bin/*.dll $LIB_DIR

@@ -153,8 +153,6 @@ basic_pro_jmg.hpp
 brent.cpp
 grib.cpp
 grib.hpp
-gshhs.cpp
-gshhs.hpp
 gsl_fun.cpp
 gsl_fun.hpp
 gsl_matrix.cpp
@@ -235,7 +233,6 @@ plotting_cursor.cpp
 plotting_device.cpp
 plotting_erase.cpp
 plotting_image.cpp
-plotting_map_proj.cpp
 plotting_misc.cpp
 plotting_oplot.cpp
 plotting_plot.cpp
@@ -253,6 +250,7 @@ print_tree.hpp
 prognode.cpp
 prognode_lexpr.cpp
 prognodeexpr.cpp
+projections.cpp
 randomgenerators.cpp
 read.cpp
 real2int.hpp
@@ -280,6 +278,18 @@ where.cpp
 widget.cpp
 widget.hpp
 )
+if(USE_SHAPELIB)
+set(SOURCES
+${SOURCES}
+Shapefiles.cpp
+)
+endif(USE_SHAPELIB)
+if(USE_EXPAT)
+set (SOURCES
+${SOURCES}
+sax.cpp
+)
+endif(USE_EXPAT)
 
 add_subdirectory(antlr)
 
@@ -330,3 +340,8 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/pro/ DESTINATION ${CMAKE_INSTALL_PREFI
 	PATTERN Makefile* EXCLUDE
 	PATTERN UrgentNeed.txt EXCLUDE)
 
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}
+	PATTERN CVS EXCLUDE
+	PATTERN checks EXCLUDE
+	PATTERN Makefile* EXCLUDE
+	PATTERN UrgentNeed.txt EXCLUDE)

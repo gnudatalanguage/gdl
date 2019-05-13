@@ -1916,7 +1916,10 @@ BaseGDL* widget_info( EnvT* e ) {
       GDLWidget *widget = GDLWidget::GetWidget( widgetID );
 
       // Check if valid widgetID else exit with 0
-      if ( widget == NULL ) return new DLongGDL( 0 ); //solves valid = 0 too.
+      if ( widget == NULL) {
+	      if (valid || managed) return new DLongGDL( 0 ); 
+	      else e->Throw("Invalid widget identifier:"+i2s(widgetID));
+      } //note: /display is not currently in gdl      
       bool result=false;
       if (valid) result=( widget != NULL );
       else if (managed) result=( widget->GetManaged( ) == true );

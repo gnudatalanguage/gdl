@@ -140,10 +140,10 @@ bool GraphicsDevice::ExistDevice( const string& device, int &index)
   for( int i=0; i<size; i++)
     {
       if( deviceList[ i]->Name() == device)
-	{
-	  index=i;
-	  return true;
-	}
+    {
+      index=i;
+      return true;
+    }
     }
   return false;
 }
@@ -154,13 +154,13 @@ bool GraphicsDevice::SetDevice( const string& device)
   for( int i=0; i<size; i++)
     {
       if( deviceList[ i]->Name() == device)
-	{
-	  actDevice=deviceList[ i];
-	  // update !D
-	  SysVar::SetD( actDevice->DStruct());
-	  
-	  return true;
-	}
+    {
+      actDevice=deviceList[ i];
+      // update !D
+      SysVar::SetD( actDevice->DStruct());
+      
+      return true;
+    }
     }
   return false;
 }
@@ -171,9 +171,9 @@ DStructGDL* GraphicsDevice::GetDeviceStruct( const string& device)
   for( int i=0; i<size; i++)
     {
       if( deviceList[ i]->Name() == device)
-	{
-	  return deviceList[ i]->DStruct();
-	}
+    {
+      return deviceList[ i]->DStruct();
+    }
     }
   return NULL;
 }
@@ -189,13 +189,17 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
   
+#ifdef HAVE_LIBWXWIDGETS
+    DStructGDL* version = SysVar::Version();
+    static unsigned osTag = version->Desc()->TagIndex( "OS");
+    DString os = (*static_cast<DStringGDL*>( version->GetTag( osTag, 0)))[0];
+    if( os != "darwin")  GDLWidget::Init();
+#endif
+ //*/
   // if GDL_USE_WX (or switch --use-wx) , and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
   // no other device is defined.
   if (useWxWidgetsForGraphics) {
 #ifdef HAVE_LIBWXWIDGETS
-    //start wxWidgets here instead of first call of a widget function.
-      if( ! wxInitialize( ) ) ThrowGDLException("Unable to initialize wxWidgets");
-      GDLWidget::SetWxStarted();
 #ifdef HAVE_X
     deviceList.push_back( new DeviceWX("X"));
 #else
@@ -231,11 +235,11 @@ void GraphicsDevice::Init()
 #elif defined (HAVE_LIBWXWIDGETS) // Finally check WX
       if (!SetDevice("MAC"))
 #else
-	if( !SetDevice( "NULL")) 
+    if( !SetDevice( "NULL")) 
 #  endif
 #  if !defined (HAVE_X) && !defined (HAVE_LIBWXWIDGETS) && !defined (_WIN32)
-	  {
-	  }
+      {
+      }
 #  else
   {
     cerr << "Error initializing graphics." << endl;
@@ -285,6 +289,10 @@ void GraphicsDevice::Init()
 
 void GraphicsDevice::DestroyDevices()
 {
+    
+#ifdef HAVE_LIBWXWIDGETS
+  GDLWidget::UnInit();    // un-initialize widget system
+#endif
   PurgeContainer( deviceList);
   actDevice = NULL;
 }
@@ -523,12 +531,11 @@ bool GraphicsMultiDevice::WShow(int ix, bool show, int iconic) {
 
   if (iconic!=-1) { //iconic asked. do nothing else.
     if (iconic==1) IconicWin(ix); else DeIconicWin(ix);
-    return true;
-  }
+    } else {
   
   if (show) RaiseWin(ix);  else LowerWin(ix);
-
-  //UnsetFocus();
+  }
+  UnsetFocus();
 
   return true;
 }

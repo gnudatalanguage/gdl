@@ -1,0 +1,20 @@
+find_path(SHAPELIB_INCLUDE_DIR NAMES shapefil.h)
+
+if(MSVC)
+    set(SHAPELIB_LIBNAME shapelib)
+else()
+    set(SHAPELIB_LIBNAME shp)
+endif()
+
+find_library(SHAPELIB_LIBRARY NAMES ${SHAPELIB_LIBNAME})
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(SHAPELIB
+    FOUND_VAR SHAPELIB_FOUND
+    REQUIRED_VARS SHAPELIB_INCLUDE_DIR SHAPELIB_LIBRARY
+)
+
+set(SHAPELIB_INCLUDE_DIRS ${SHAPELIB_INCLUDE_DIR})
+set(SHAPELIB_LIBRARIES ${SHAPELIB_LIBRARY})
+
+mark_as_advanced(SHAPELIB_INCLUDE_DIR SHAPELIB_LIBRARY)

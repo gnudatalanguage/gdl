@@ -92,6 +92,7 @@ void LibInit_mes()
 
 #ifdef USE_HDF5
   // hdf5 procedures/functions 
+  new DLibFunRetNew(lib::h5f_create_fun, string("H5F_CREATE"), 1);
   new DLibFunRetNew(lib::h5f_open_fun, string("H5F_OPEN"), 1);
   new DLibFunRetNew(lib::h5d_open_fun, string("H5D_OPEN"), 2);
   new DLibFunRetNew(lib::h5d_read_fun, string("H5D_READ"), 1); // TODO: 2nd argument & keywords

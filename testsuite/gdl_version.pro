@@ -1,37 +1,71 @@
 ;
 ; AC 2017-dec-26
 ;
-; we expect the GDL version is as : A.B.C
-; with B and C between 0 and 99
+; we expect the GDL version is as : A.B.C (major.minor.dev)
+; with A, B and C supposed to be integers
+;
+; 0.9.9 -->   909
+; 8.4   --> 80400
+; 8.4.1 --> 80401
+;
+; OK with IDL, OK with FL since 0.79.46
+; ---------------------------------------
+; Modifications history :
+;
+; AC 2019-Feb-08 : * generalisation to manage A.B too
+; (A.B should be lower than A.B.C)
+; * should work with IDL too (!version.release)
+;
+; ---------------------------------------
+;
+pro APRINT, tab3nbps
+;
+tmp=FIX(tab3nbps, type=2)
+;
+fmt2='(A,i3,A,i3)'
+fmt3='(A,i3,A,i3,A,i3)'
+
+if N_ELEMENTS(tmp) EQ 2 then $
+   print, format=fmt2, 'major :', tmp[0], ', minor :', tmp[1]
+if N_ELEMENTS(tmp) EQ 3 then $
+   print, format=fmt3, 'major :', tmp[0], ', minor :', tmp[1], ', dev :', tmp[2]
+;
+end
+;
+; ---------------------------------------
 ;
 function GDL_VERSION, version=version, test=test, debug=debug
 ;
-if KEYWORD_SET(version) then suite=version else suite=!gdl.release
+suite=''
+if KEYWORD_SET(version) then begin
+   suite=version 
+endif else begin
+   case GDL_IDL_FL() of
+      'IDL' : suite=!version.release
+      'GDL' : suite=!gdl.release
+      ;; for FL before, 
+      'FL' : begin
+         DEFSYSV, '!fl', exists=isFVrecent
+         if isFVrecent then suite=!fl.release else return, -1
+      end
+      else : MESSAGE, 'strange that no software detected !'
+   endcase
+endelse
 ;
 if KEYWORD_SET(debug) then print, suite
 ;
-ii=strpos(suite,'.')
-major=STRMID(suite,0,ii)
-suite=STRMID(suite,ii+1)
-if KEYWORD_SET(debug) then print, major, suite
+indices=STRSPLIT(suite,'.',/extract)
+if KEYWORD_SET(debug) then APRINT, indices
 ;
-ii=strpos(suite,'.')
-minor=STRMID(suite,0,ii)
-suite=STRMID(suite,ii+1)
-if KEYWORD_SET(debug) then print, minor, suite
+if  N_ELEMENTS(indices) EQ 2 then indices=[indices,'0']
+int_indices=FIX(indices)
 ;
-ii=strpos(suite,' ')
-if ii EQ -1 then dev=STRMID(suite,0) else dev=STRMID(suite,0,ii)
-if KEYWORD_SET(debug) then print, dev, suite
+if KEYWORD_SET(debug) then APRINT, int_indices
 ;
-; we use the fact that FIX() remove all alphabetical chars ...
-;print, major, minor, dev
-value=10000L*major+100L*minor+dev
+value=TOTAL([10000L,100,1]*int_indices,/integer)
 ;
-if KEYWORD_SET(test) then begin
-   print, value
-   STOP
-endif
+if KEYWORD_SET(debug) then PRINT, 'resulting value : ', value
+if KEYWORD_SET(test) then STOP
 ;
 return, value
 end

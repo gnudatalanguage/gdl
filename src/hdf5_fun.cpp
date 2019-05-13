@@ -4,7 +4,7 @@
     begin                : Aug 02 2004
     copyright            : (C) 2004 by Peter Messmer
     email                : messmer@users.sourceforge.net
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -30,6 +30,10 @@
 #include "includefirst.hpp"
 
 #include "hdf5_fun.hpp"
+
+#if defined(H5_USE_16_API) && defined(H5_NO_DEPRECATED_SYMBOLS)
+#error "Can't choose old API versions when deprecated APIs are disabled"
+#endif /* defined(H5_USE_16_API) && defined(H5_NO_DEPRECATED_SYMBOLS) */
 
 namespace lib {
 
@@ -76,7 +80,7 @@ namespace lib {
   class hdf5_space_guard 
   {
     hid_t space;
-    public: 
+  public: 
     hdf5_space_guard(hid_t space_) { space = space_; }
     ~hdf5_space_guard() { H5Sclose(space); }
   };
@@ -89,157 +93,197 @@ namespace lib {
   class hdf5_type_guard 
   {
     hid_t type;
-    public: 
+  public: 
     hdf5_type_guard(hid_t type_) { type = type_; }
     ~hdf5_type_guard() { H5Tclose(type); }
   };
+  
   // --------------------------------------------------------------------
-  DLong mapH5DatatypesToGDL(DLong h5type){
-//must be in order, from most complicated to simplest, string at end
 
-//not until LDOUBLE Is handled everywhere!!
-//    if (H5Tequal(h5type , H5T_NATIVE_LDOUBLE )) return GDL_LDOUBLE;
-if (H5Tequal(h5type , H5T_NATIVE_DOUBLE )) return GDL_DOUBLE;
-if (H5Tequal(h5type , H5T_NATIVE_FLOAT )) return GDL_FLOAT;
+  DLong mapH5DatatypesToGDL(hid_t h5type){
+    //must be in order, from most complicated to simplest, string at end
 
-if (H5Tequal(h5type , H5T_NATIVE_ULLONG )) return GDL_ULONG64;
-if (H5Tequal(h5type , H5T_ALPHA_U64 )) return GDL_ULONG64;
-if (H5Tequal(h5type , H5T_INTEL_U64 )) return GDL_ULONG64;
-if (H5Tequal(h5type , H5T_MIPS_U64 )) return GDL_ULONG64;
-if (H5Tequal(h5type , H5T_NATIVE_UINT64 )) return GDL_ULONG64;
-if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST64 )) return GDL_ULONG64;
-if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST64 )) return GDL_ULONG64;
-if (H5Tequal(h5type , H5T_STD_U64BE )) return GDL_ULONG64;
-if (H5Tequal(h5type , H5T_STD_U64LE )) return GDL_ULONG64;
+    //not until LDOUBLE Is handled everywhere!!
+    //    if (H5Tequal(h5type , H5T_NATIVE_LDOUBLE )) return GDL_LDOUBLE;
 
+    if (H5Tequal(h5type , H5T_NATIVE_DOUBLE )) return GDL_DOUBLE;
+    if (H5Tequal(h5type , H5T_NATIVE_FLOAT )) return GDL_FLOAT;
 
-if (H5Tequal(h5type , H5T_NATIVE_LLONG )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_IEEE_F64BE )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_IEEE_F64LE )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_INTEL_B64 )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_INTEL_F64 )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_INTEL_I64 )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_MIPS_B64 )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_MIPS_F64 )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_MIPS_I64 )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_NATIVE_B64 )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_NATIVE_INT64 )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_NATIVE_INT_FAST64 )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST64 )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_STD_B64BE )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_STD_B64LE )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_STD_I64BE )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_STD_I64LE )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_UNIX_D64BE )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_UNIX_D64LE )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_ALPHA_B64 )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_ALPHA_F64 )) return GDL_LONG64;
-if (H5Tequal(h5type , H5T_ALPHA_I64 )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_NATIVE_ULLONG )) return GDL_ULONG64;
+    if (H5Tequal(h5type , H5T_ALPHA_U64 )) return GDL_ULONG64;
+    if (H5Tequal(h5type , H5T_INTEL_U64 )) return GDL_ULONG64;
+    if (H5Tequal(h5type , H5T_MIPS_U64 )) return GDL_ULONG64;
+    if (H5Tequal(h5type , H5T_NATIVE_UINT64 )) return GDL_ULONG64;
+    if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST64 )) return GDL_ULONG64;
+    if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST64 )) return GDL_ULONG64;
+    if (H5Tequal(h5type , H5T_STD_U64BE )) return GDL_ULONG64;
+    if (H5Tequal(h5type , H5T_STD_U64LE )) return GDL_ULONG64;
 
 
-if (H5Tequal(h5type , H5T_NATIVE_ULONG )) return GDL_ULONG;
-if (H5Tequal(h5type , H5T_ALPHA_U32 )) return GDL_ULONG;
-if (H5Tequal(h5type , H5T_INTEL_U32 )) return GDL_ULONG;
-if (H5Tequal(h5type , H5T_MIPS_U32 )) return GDL_ULONG;
-if (H5Tequal(h5type , H5T_NATIVE_UINT32 )) return GDL_ULONG;
-if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST32 )) return GDL_ULONG;
-if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST32 )) return GDL_ULONG;
-if (H5Tequal(h5type , H5T_STD_U32BE )) return GDL_ULONG;
-if (H5Tequal(h5type , H5T_STD_U32LE )) return GDL_ULONG;
-
-if (H5Tequal(h5type , H5T_NATIVE_HBOOL )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_NATIVE_LONG )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_ALPHA_B32 )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_ALPHA_F32 )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_ALPHA_I32 )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_IEEE_F32BE )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_IEEE_F32LE )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_INTEL_B32 )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_INTEL_F32 )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_INTEL_I32 )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_MIPS_B32 )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_MIPS_F32 )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_MIPS_I32 )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_NATIVE_B32 )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_NATIVE_INT32 )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_NATIVE_INT_FAST32 )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST32 )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_STD_B32BE )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_STD_B32LE )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_STD_I32BE )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_STD_I32LE )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_UNIX_D32BE )) return GDL_LONG;
-if (H5Tequal(h5type , H5T_UNIX_D32LE )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_NATIVE_LLONG )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_IEEE_F64BE )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_IEEE_F64LE )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_INTEL_B64 )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_INTEL_F64 )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_INTEL_I64 )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_MIPS_B64 )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_MIPS_F64 )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_MIPS_I64 )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_NATIVE_B64 )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_NATIVE_INT64 )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_NATIVE_INT_FAST64 )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST64 )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_STD_B64BE )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_STD_B64LE )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_STD_I64BE )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_STD_I64LE )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_UNIX_D64BE )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_UNIX_D64LE )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_ALPHA_B64 )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_ALPHA_F64 )) return GDL_LONG64;
+    if (H5Tequal(h5type , H5T_ALPHA_I64 )) return GDL_LONG64;
 
 
-if (H5Tequal(h5type , H5T_NATIVE_UINT )) return GDL_UINT;
-if (H5Tequal(h5type , H5T_NATIVE_UINT16 )) return GDL_UINT;
-if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST16 )) return GDL_UINT;
-if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST16 )) return GDL_UINT;
-if (H5Tequal(h5type , H5T_STD_U16BE )) return GDL_UINT;
-if (H5Tequal(h5type , H5T_STD_U16LE )) return GDL_UINT;
-if (H5Tequal(h5type , H5T_ALPHA_U16 )) return GDL_UINT;
-if (H5Tequal(h5type , H5T_INTEL_U16 )) return GDL_UINT;
-if (H5Tequal(h5type , H5T_MIPS_U16 )) return GDL_UINT;
+    if (H5Tequal(h5type , H5T_NATIVE_ULONG )) return GDL_ULONG;
+    if (H5Tequal(h5type , H5T_ALPHA_U32 )) return GDL_ULONG;
+    if (H5Tequal(h5type , H5T_INTEL_U32 )) return GDL_ULONG;
+    if (H5Tequal(h5type , H5T_MIPS_U32 )) return GDL_ULONG;
+    if (H5Tequal(h5type , H5T_NATIVE_UINT32 )) return GDL_ULONG;
+    if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST32 )) return GDL_ULONG;
+    if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST32 )) return GDL_ULONG;
+    if (H5Tequal(h5type , H5T_STD_U32BE )) return GDL_ULONG;
+    if (H5Tequal(h5type , H5T_STD_U32LE )) return GDL_ULONG;
+
+    if (H5Tequal(h5type , H5T_NATIVE_HBOOL )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_NATIVE_LONG )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_ALPHA_B32 )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_ALPHA_F32 )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_ALPHA_I32 )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_IEEE_F32BE )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_IEEE_F32LE )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_INTEL_B32 )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_INTEL_F32 )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_INTEL_I32 )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_MIPS_B32 )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_MIPS_F32 )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_MIPS_I32 )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_NATIVE_B32 )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_NATIVE_INT32 )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_NATIVE_INT_FAST32 )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST32 )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_STD_B32BE )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_STD_B32LE )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_STD_I32BE )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_STD_I32LE )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_UNIX_D32BE )) return GDL_LONG;
+    if (H5Tequal(h5type , H5T_UNIX_D32LE )) return GDL_LONG;
 
 
-if (H5Tequal(h5type , H5T_NATIVE_INT )) return GDL_INT;
-if (H5Tequal(h5type , H5T_NATIVE_INT16 )) return GDL_INT;
-if (H5Tequal(h5type , H5T_NATIVE_INT_FAST16 )) return GDL_INT;
-if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST16 )) return GDL_INT;
-if (H5Tequal(h5type , H5T_STD_B16BE )) return GDL_INT;
-if (H5Tequal(h5type , H5T_STD_B16LE )) return GDL_INT;
-if (H5Tequal(h5type , H5T_STD_I16BE )) return GDL_INT;
-if (H5Tequal(h5type , H5T_STD_I16LE )) return GDL_INT;
-if (H5Tequal(h5type , H5T_ALPHA_B16 )) return GDL_INT;
-if (H5Tequal(h5type , H5T_ALPHA_I16 )) return GDL_INT;
-if (H5Tequal(h5type , H5T_INTEL_B16 )) return GDL_INT;
-if (H5Tequal(h5type , H5T_INTEL_I16 )) return GDL_INT;
-if (H5Tequal(h5type , H5T_MIPS_B16 )) return GDL_INT;
-if (H5Tequal(h5type , H5T_MIPS_I16 )) return GDL_INT;
-if (H5Tequal(h5type , H5T_NATIVE_B16 )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_NATIVE_UINT )) return GDL_UINT;
+    if (H5Tequal(h5type , H5T_NATIVE_UINT16 )) return GDL_UINT;
+    if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST16 )) return GDL_UINT;
+    if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST16 )) return GDL_UINT;
+    if (H5Tequal(h5type , H5T_STD_U16BE )) return GDL_UINT;
+    if (H5Tequal(h5type , H5T_STD_U16LE )) return GDL_UINT;
+    if (H5Tequal(h5type , H5T_ALPHA_U16 )) return GDL_UINT;
+    if (H5Tequal(h5type , H5T_INTEL_U16 )) return GDL_UINT;
+    if (H5Tequal(h5type , H5T_MIPS_U16 )) return GDL_UINT;
 
-if (H5Tequal(h5type , H5T_ALPHA_U8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_MIPS_U8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_INTEL_U8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_NATIVE_UINT8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_STD_U8BE )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_STD_U8LE )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_NATIVE_USHORT )) return GDL_BYTE;
 
-if (H5Tequal(h5type , H5T_NATIVE_INT8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_ALPHA_B8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_ALPHA_I8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_INTEL_B8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_INTEL_I8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_MIPS_I8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_NATIVE_B8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_NATIVE_INT_FAST8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_NATIVE_SHORT )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_MIPS_B8 )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_STD_B8BE )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_STD_B8LE )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_STD_I8BE )) return GDL_BYTE;
-if (H5Tequal(h5type , H5T_STD_I8LE )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_NATIVE_INT )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_NATIVE_INT16 )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_NATIVE_INT_FAST16 )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST16 )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_STD_B16BE )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_STD_B16LE )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_STD_I16BE )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_STD_I16LE )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_ALPHA_B16 )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_ALPHA_I16 )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_INTEL_B16 )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_INTEL_I16 )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_MIPS_B16 )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_MIPS_I16 )) return GDL_INT;
+    if (H5Tequal(h5type , H5T_NATIVE_B16 )) return GDL_INT;
 
-if (H5Tequal(h5type , H5T_C_S1 )) return GDL_STRING;
-if (H5Tequal(h5type , H5T_FORTRAN_S1 )) return GDL_STRING;
-if (H5Tequal(h5type , H5T_STRING )) return GDL_STRING;
+    if (H5Tequal(h5type , H5T_ALPHA_U8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_MIPS_U8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_INTEL_U8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_NATIVE_UINT8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_STD_U8BE )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_STD_U8LE )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_NATIVE_USHORT )) return GDL_BYTE;
 
-if (H5Tequal(h5type , H5T_NATIVE_CHAR )) return GDL_STRING;
-if (H5Tequal(h5type , H5T_NATIVE_SCHAR )) return GDL_STRING;
-if (H5Tequal(h5type , H5T_NATIVE_UCHAR )) return GDL_STRING;
-return GDL_UNDEF;
+    if (H5Tequal(h5type , H5T_NATIVE_INT8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_ALPHA_B8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_ALPHA_I8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_INTEL_B8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_INTEL_I8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_MIPS_I8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_NATIVE_B8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_NATIVE_INT_FAST8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_NATIVE_SHORT )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_MIPS_B8 )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_STD_B8BE )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_STD_B8LE )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_STD_I8BE )) return GDL_BYTE;
+    if (H5Tequal(h5type , H5T_STD_I8LE )) return GDL_BYTE;
+
+    if (H5Tequal(h5type , H5T_C_S1 )) return GDL_STRING;
+    if (H5Tequal(h5type , H5T_FORTRAN_S1 )) return GDL_STRING;
+    if (H5Tequal(h5type , H5T_STRING )) return GDL_STRING;
+
+    if (H5Tequal(h5type , H5T_NATIVE_CHAR )) return GDL_STRING;
+    if (H5Tequal(h5type , H5T_NATIVE_SCHAR )) return GDL_STRING;
+    if (H5Tequal(h5type , H5T_NATIVE_UCHAR )) return GDL_STRING;
+    return GDL_UNDEF;
   }
+
   BaseGDL* h5_get_libversion_fun( EnvT* e)
   {
     unsigned int majnum, minnum, relnum;
     if (H5get_libversion(&majnum, &minnum, &relnum) < 0)
       { string msg; e->Throw(hdf5_error_message(msg)); }
     return new DStringGDL(i2s(majnum) + "." + i2s(minnum) + "." + i2s(relnum));
+  }
+
+  /* AC 2019 Jan : managing a major change since Release 1.10.0. !!
+
+https://support.hdfgroup.org/HDF5/doc/ADGuide/Changes.html
+
+This section lists interface-level changes and other user-visible
+changes in behavior in the transition from HDF5 Release 1.8.16 to
+Release 1.10.0.  Changed Type
+
+hid_t
+    Changed from a 32-bit to a 64-bit value. 
+  */
+
+  hid_t hdf5_input_conversion( EnvT* e, int position)
+  {
+    
+    hid_t hdf5_id;
+    
+#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
+    e->AssureLongScalarPar(position, (DLong64&)hdf5_id);
+#else
+    e->AssureLongScalarPar(position, hdf5_id);
+#endif
+    return  hdf5_id;
+  }
+
+  BaseGDL* hdf5_output_conversion( hid_t h5type)
+  {
+
+#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
+    return new DLong64GDL(h5type);
+#else
+    return new DLongGDL(h5type);
+#endif
+    
   }
 
   BaseGDL* h5f_is_hdf5_fun( EnvT* e)
@@ -253,74 +297,89 @@ return GDL_UNDEF;
   }
 
 
-  BaseGDL* h5f_open_fun( EnvT* e)
+  BaseGDL* h5f_create_fun( EnvT* e)
   {
-    DLong h5f_id;
     
     DString h5fFilename;
     e->AssureScalarPar<DStringGDL>( 0, h5fFilename);
     WordExp( h5fFilename);
+
+    hid_t h5f_id;
+    h5f_id = H5Fcreate( h5fFilename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
     
-    h5f_id = H5Fopen(h5fFilename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
     if (h5f_id < 0) 
-    { 
-      string msg; 
-      e->Throw(hdf5_error_message(msg)); 
-    }
+      { 
+	string msg; 
+	e->Throw(hdf5_error_message(msg)); 
+      }
+   
+    return hdf5_output_conversion( h5f_id ); 
+  }
+  
+  BaseGDL* h5f_open_fun( EnvT* e)
+  {
     
-    return new DLongGDL( h5f_id );
+    DString h5fFilename;
+    e->AssureScalarPar<DStringGDL>( 0, h5fFilename);
+    WordExp( h5fFilename);
+
+    hid_t h5f_id;
+    h5f_id = H5Fopen(h5fFilename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+
+    if (h5f_id < 0) 
+      { 
+	string msg; 
+	e->Throw(hdf5_error_message(msg)); 
+      }
+
+    return hdf5_output_conversion( h5f_id ); 
   }
 
-  
   BaseGDL* h5g_open_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(2);
 
-    DLong h5f_id;
-    e->AssureLongScalarPar(0, h5f_id);
+    hid_t h5f_id = hdf5_input_conversion(e, 0);
 
     DString h5gGroupname;
     e->AssureScalarPar<DStringGDL>( 1, h5gGroupname);
 
-    DLong h5g_id;
+    hid_t h5g_id;
     h5g_id = H5Gopen(h5f_id, h5gGroupname.c_str());
     if (h5g_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
-    return new DLongGDL( h5g_id );
-  }
+    return hdf5_output_conversion( h5g_id ); 
 
+  }
   
   BaseGDL* h5d_open_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(2);
 
-    DLong h5f_id;
-    e->AssureLongScalarPar(0, h5f_id);
+    hid_t h5f_id = hdf5_input_conversion(e,0);
 
     DString h5dDatasetname;
     e->AssureScalarPar<DStringGDL>( 1, h5dDatasetname);
 
-    DLong h5d_id;
-    h5d_id = H5Dopen(h5f_id, h5dDatasetname.c_str());
-    if (h5d_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-    
-    return new DLongGDL( h5d_id );
-  }
+    hid_t h5d_id= H5Dopen((long)h5f_id, h5dDatasetname.c_str());
 
+    if (h5d_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return hdf5_output_conversion( h5d_id ); 
+
+  }
 
   BaseGDL* h5a_open_idx_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(2);
 
-    DLong h5f_id, attr_idx;
-    e->AssureLongScalarPar(0, h5f_id);
-    e->AssureLongScalarPar(1, attr_idx);
+    hid_t h5f_id = hdf5_input_conversion(e,0);
+    hid_t attr_idx = hdf5_input_conversion(e,1);
 
-    DLong h5a_id;
-    h5a_id = H5Aopen_idx(h5f_id, attr_idx);
+    hid_t h5a_id = H5Aopen_idx(h5f_id, attr_idx);
     if (h5a_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-    
-    return new DLongGDL( h5a_id );
+
+    return hdf5_output_conversion( h5a_id );
   }
 
 
@@ -328,8 +387,7 @@ return GDL_UNDEF;
   {
     SizeT nParam=e->NParam(1);
 
-    DLong h5a_id;
-    e->AssureLongScalarPar(0, h5a_id);
+    hid_t h5a_id = hdf5_input_conversion(e,0);
 
     // querying for the length of the name
     char tmp;
@@ -341,11 +399,11 @@ return GDL_UNDEF;
     char* name = static_cast<char*>(malloc(len * sizeof(char)));
     if (name == NULL) e->Throw("Failed to allocate memory!");
     if (H5Aget_name(h5a_id, len, name) < 0) 
-    { 
-      free(name);
-      { string msg; e->Throw(hdf5_error_message(msg)); }
-      return NULL;
-    }
+      { 
+	free(name);
+	{ string msg; e->Throw(hdf5_error_message(msg)); }
+	return NULL;
+      }
     DStringGDL* ret = new DStringGDL(name);
     free(name);
     return ret;
@@ -356,14 +414,13 @@ return GDL_UNDEF;
   {
     SizeT nParam=e->NParam(1);
     
-    DLong h5a_id;
-    e->AssureLongScalarPar(0, h5a_id);
+    hid_t h5a_id = hdf5_input_conversion(e,0);
 
-    DLong h5a_type_id;
+    hid_t h5a_type_id;
     h5a_type_id = H5Aget_type( h5a_id );
     if (h5a_type_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
-    return new DLongGDL( h5a_type_id );
+    return hdf5_output_conversion( h5a_type_id);
   }
 
 
@@ -371,17 +428,15 @@ return GDL_UNDEF;
   {
     SizeT nParam=e->NParam(2);
 
-    DLong h5f_id;
-    e->AssureLongScalarPar(0, h5f_id);
+    hid_t h5f_id = hdf5_input_conversion(e,0);
 
     DString h5aAttrname;
     e->AssureScalarPar<DStringGDL>( 1, h5aAttrname);
 
-    DLong h5a_id;
-    h5a_id = H5Aopen_name(h5f_id, h5aAttrname.c_str());
+    hid_t h5a_id = H5Aopen_name(h5f_id, h5aAttrname.c_str());
     if (h5a_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
-    return new DLongGDL( h5a_id );
+    return hdf5_output_conversion( h5a_id);
   }
   
 
@@ -389,45 +444,37 @@ return GDL_UNDEF;
   {
     SizeT nParam=e->NParam(1);
     
-    DLong h5d_id;
-    e->AssureLongScalarPar(0, h5d_id);
+    hid_t h5d_id = hdf5_input_conversion(e,0);
     
-    DLong h5d_space_id;
-    h5d_space_id = H5Dget_space( h5d_id );
+    hid_t h5d_space_id = H5Dget_space( h5d_id );
     if (h5d_space_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
-    return new DLongGDL( h5d_space_id );
+    return hdf5_output_conversion( h5d_space_id );
   }
 
-  
   BaseGDL* h5a_get_space_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
     
-    DLong h5a_id;
-#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-    e->AssureLongScalarPar(0, (DLong64&)h5a_id);
-#else
-    e->AssureLongScalarPar(0, h5a_id);
-#endif
-    DLong h5a_space_id;
-    h5a_space_id = H5Aget_space( h5a_id );
-    if (h5a_space_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-    
-    return new DLongGDL( h5a_space_id );
-  }
+    hid_t h5a_id=hdf5_input_conversion(e,0);
 
+    hid_t h5a_space_id = H5Aget_space( h5a_id );
+    if (h5a_space_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return hdf5_output_conversion( h5a_space_id );
+
+  }
 
   BaseGDL* h5a_get_num_attrs_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
     
-    DLong loc_id;
-    e->AssureLongScalarPar(0, loc_id);
+    hid_t loc_id=hdf5_input_conversion(e,0);
     
     int num = H5Aget_num_attrs( loc_id );
     if (num < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
+    // following the doc., should return a "int"
     return new DLongGDL( num );
   }
 
@@ -435,15 +482,13 @@ return GDL_UNDEF;
   BaseGDL* h5d_get_type_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
-    
-    DLong h5d_id;
-    e->AssureLongScalarPar(0, h5d_id);
-    
-    DLong h5d_type_id;
-    h5d_type_id = H5Dget_type( h5d_id );
+
+    hid_t h5d_id=hdf5_input_conversion(e,0);
+        
+    hid_t h5d_type_id = H5Dget_type( h5d_id );
     if (h5d_type_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
-    return new DLongGDL( h5d_type_id );
+    return hdf5_output_conversion( h5d_type_id );
   }
 
 
@@ -451,9 +496,9 @@ return GDL_UNDEF;
   {
     SizeT nParam=e->NParam(1);
     
-    DLong h5t_id;
-    e->AssureLongScalarPar(0, h5t_id);
+    hid_t h5t_id=hdf5_input_conversion(e,0);
     
+    // following the doc., should return a "size_t"
     size_t size = H5Tget_size( h5t_id );
     if (size == 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     
@@ -467,8 +512,7 @@ return GDL_UNDEF;
     SizeT nParam=e->NParam(1);
     hsize_t dims_out[MAXRANK];
     
-    DLong h5s_id;
-    e->AssureLongScalarPar(0, h5s_id);
+    hid_t h5s_id=hdf5_input_conversion(e,0);
     
     int rank = H5Sget_simple_extent_ndims(h5s_id);
     if (rank < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
@@ -487,17 +531,15 @@ return GDL_UNDEF;
 
   BaseGDL* h5a_read_fun( EnvT* e)
   {
+    bool debug = false;
+
     SizeT nParam=e->NParam(1);
     hsize_t dims_out[MAXRANK];
 
-    hid_t h5a_id;
-#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-    e->AssureLongScalarPar(0, (DLong64&)h5a_id);
-#else
-    e->AssureLongScalarPar(0, h5a_id);
-#endif
-    
+    hid_t h5a_id = hdf5_input_conversion(e,0);
+
     hid_t h5s_id = H5Aget_space(h5a_id);
+
     if (h5s_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     hdf5_space_guard h5s_id_guard = hdf5_space_guard(h5s_id);
 
@@ -521,6 +563,7 @@ return GDL_UNDEF;
     dimension dim(count_s, rank);
 
     BaseGDL *res;
+    if (debug) cout << "datatype : " << datatype << endl;
     DLong ourType = mapH5DatatypesToGDL(datatype);
     hsize_t type;
 
@@ -591,9 +634,9 @@ return GDL_UNDEF;
       e->Throw("Unsupported data format" + i2s(datatype));
     }
     if (H5Aread(h5a_id, type, res->DataAddr()) < 0)
-        { string msg; e->Throw(hdf5_error_message(msg)); }
+      { string msg; e->Throw(hdf5_error_message(msg)); }
     
-      return res;
+    return res;
 
     return new DIntGDL(-1);
   }
@@ -605,15 +648,13 @@ return GDL_UNDEF;
    * - Does not allow to select hyperslabs
    */
   BaseGDL* h5d_read_fun(EnvT* e) {
+
+    bool debug = false;
+
     SizeT nParam = e->NParam(1);
     hsize_t dims_out[MAXRANK];
 
-    hid_t h5d_id;
-#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-    e->AssureLongScalarPar(0, (DLong64&)h5d_id);
-#else
-    e->AssureLongScalarPar(0, h5d_id);
-#endif
+    hid_t h5d_id = hdf5_input_conversion(e,0);
 
     hid_t h5s_id = H5Dget_space(h5d_id);
     if (h5s_id < 0) {
@@ -627,6 +668,9 @@ return GDL_UNDEF;
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
+
+    if (debug) cout << "here 1" <<endl;
+    
     hdf5_type_guard datatype_guard = hdf5_type_guard(datatype);
 
     // determine the rank and dimension of the dataset
@@ -656,6 +700,7 @@ return GDL_UNDEF;
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
+    if (debug) cout << "here 2" <<endl;
 
     // define memory dataspace
     hid_t memspace = H5Screate_simple(rank, count, NULL);
@@ -679,6 +724,8 @@ return GDL_UNDEF;
       e->Throw(hdf5_error_message(msg));
     }
 
+    if (debug) cout << "here 3" <<endl;
+
     SizeT count_s[MAXRANK];
     SizeT rank_s;
 
@@ -692,9 +739,15 @@ return GDL_UNDEF;
     //std::cout << dim << std::endl;
     BaseGDL *res;
 
+    if (debug) cout << "datatype : " << datatype << endl;
+
+    
     DLong ourType = mapH5DatatypesToGDL(datatype);
     hsize_t type;
 
+    if (debug)  cout << "ourType : " << ourType  << endl;
+    if (debug) cout << "GDL_STRING : " << GDL_STRING << endl;
+    
     if (ourType == GDL_BYTE) {
       res = new DByteGDL(dim);
       type = H5T_NATIVE_UINT8;
@@ -723,6 +776,9 @@ return GDL_UNDEF;
       res = new DDoubleGDL(dim);
       type = H5T_NATIVE_DOUBLE;
     } else if (ourType == GDL_STRING) {
+
+      if (debug) cout << "here 4a" <<endl;
+
       // a bit special, lets follow the example on h5 site:
       res = new DStringGDL(dim);
       type = H5T_C_S1;
@@ -749,22 +805,30 @@ return GDL_UNDEF;
       hid_t memtype = H5Tcopy(H5T_C_S1);
       hid_t status = H5Tset_size(memtype, sdim);
 
+      if (debug) cout << "here 4b" <<endl;
 
       status = H5Dread(h5d_id, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, rdata[0]);
+
+      if (debug) cout << "here 4c" <<endl;
+
       if (status < 0) {
         string msg;
         e->Throw(hdf5_error_message(msg));
       }
+      if (debug) cout << "here 4d" <<endl;
+      
       for (int i = 0; i < count_s[0]; i++)
         (*(static_cast<DStringGDL*> (res)))[i] = rdata[i];
-        free (rdata); //but not rdata[0]
-        status = H5Tclose (filetype);
-        status = H5Tclose (memtype);
+      free (rdata); //but not rdata[0]
+      status = H5Tclose (filetype);
+      status = H5Tclose (memtype);
       return res;
     } else {
       e->Throw("Unsupported data format" + i2s(datatype));
     }
 
+    if (debug) cout << "here 5" <<endl;
+ 
     if (H5Dread(h5d_id, type, memspace, h5s_id, H5P_DEFAULT, res->DataAddr()) < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
@@ -777,12 +841,9 @@ return GDL_UNDEF;
   void h5s_close_pro( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
-    DLong h5s_id;
-#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-    e->AssureLongScalarPar(0, (DLong64&)h5s_id);
-#else
-    e->AssureLongScalarPar(0, h5s_id);
-#endif
+
+    hid_t h5s_id = hdf5_input_conversion(e,0);
+    
     if (H5Sclose(h5s_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
   
@@ -790,12 +851,9 @@ return GDL_UNDEF;
   void h5d_close_pro( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
-    DLong h5d_id;
-#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-    e->AssureLongScalarPar(0, (DLong64&)h5d_id);
-#else
-    e->AssureLongScalarPar(0, h5d_id);
-#endif
+
+    hid_t h5d_id = hdf5_input_conversion(e,0);
+    
     if (H5Dclose(h5d_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
   
@@ -803,12 +861,9 @@ return GDL_UNDEF;
   void h5f_close_pro( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
-    DLong h5f_id;
-#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-    e->AssureLongScalarPar(0, (DLong64&)h5f_id);
-#else
-    e->AssureLongScalarPar(0, h5f_id);
-#endif
+
+    hid_t h5f_id = hdf5_input_conversion(e,0);
+
     if (H5Fclose(h5f_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
@@ -816,12 +871,9 @@ return GDL_UNDEF;
   void h5t_close_pro( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
-    DLong h5t_id;
-#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-    e->AssureLongScalarPar(0, (DLong64&)h5t_id);
-#else
-    e->AssureLongScalarPar(0, h5t_id);
-#endif
+
+    hid_t h5t_id = hdf5_input_conversion(e,0);
+
     if (H5Tclose(h5t_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
@@ -829,12 +881,9 @@ return GDL_UNDEF;
   void h5g_close_pro( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
-    DLong h5g_id;
-#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-    e->AssureLongScalarPar(0, (DLong64&)h5g_id);
-#else
-    e->AssureLongScalarPar(0, h5g_id);
-#endif
+
+    hid_t h5g_id = hdf5_input_conversion(e,0);
+
     if (H5Gclose(h5g_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
@@ -842,15 +891,11 @@ return GDL_UNDEF;
   void h5a_close_pro( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
-    DLong h5a_id;
-#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
-    e->AssureLongScalarPar(0, (DLong64&)h5a_id);
-#else
-    e->AssureLongScalarPar(0, h5a_id);
-#endif
+
+    hid_t h5a_id = hdf5_input_conversion(e,0);
+
     if (H5Aclose(h5a_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
-
 
 } // namespace
 

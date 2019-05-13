@@ -25,7 +25,15 @@
  * needs the hdf5 library, obtainable from http://hdf.ncsa.uiuc.edu/HDF5/
  */
 #define H5_USE_16_API 1
+#include <H5version.h>
 #include "hdf5.h"
+
+/*
+// We stay in 1.8 version, using the "1" old interface
+#define H5Dopen H5Dopen1
+#define H5Gopen H5Gopen1
+#define H5Ewalk H5Ewalk1
+*/
 
 namespace lib {
 
@@ -33,6 +41,9 @@ namespace lib {
    * wrapper routines for hdf5 function calls. Only minimal set currently
    * implemented in order to get things going. The rest is bare-bones work
    */
+
+  BaseGDL* h5f_create_fun( EnvT* e);
+
   BaseGDL* h5f_open_fun( EnvT* e);
   BaseGDL* h5d_open_fun( EnvT* e);
   BaseGDL* h5d_read_fun( EnvT* e);
