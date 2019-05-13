@@ -155,7 +155,7 @@ nerr=0
 ;
 ;; Is our parallel indgen generation robust? Compare with sample.
 RESTORE, "indgen_sample.sav"   ; defines "sampleSIZE".
-b_gdl=RANDOMU(33,1000)*sampleSIZE
+b_gdl=RANDOMU(33,1000,/RAN1)*sampleSIZE  ; /RAN1 for compatiblity wit IDL8+ random numbers. See dSFMT
 byt_gdl=BINDGEN(sampleSIZE,start=33.122,incr=0.017)
 f_gdl=FINDGEN(sampleSIZE,start=33.122,incr=0.017)
 i_gdl=INDGEN(sampleSIZE,start=33.122,incr=0.017)

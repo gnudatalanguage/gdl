@@ -234,9 +234,17 @@ namespace lib {
   
   BaseGDL* dsfmt_exists(EnvT* e)
   {
-    //dSFMT (random generator) is used AT THE MOMENT only if Eigen is present, and only if useDSFMTAcceleration == true
+    //dSFMT (random generator) is now used by default if Eigen:: but also can be controlled by -noDSFMT .
 #ifdef USE_EIGEN
     return new DIntGDL(useDSFMTAcceleration == true);
+#else
+    return new DIntGDL(0);
+#endif
+  }
+  BaseGDL* expat_exists(EnvT* e)
+  {
+#ifdef USE_EXPAT
+    return new DIntGDL(1);
 #else
     return new DIntGDL(0);
 #endif

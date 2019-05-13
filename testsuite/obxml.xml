@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<a:observingBlockDefinition xmlns:a="http://www.jmmc.fr/aspro-ob/0.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <schemaVersion>2017.7</schemaVersion>
+    <name>default</name>
+    <interferometerConfiguration>
+        <name>VLTI</name>
+        <version>Period 100</version>
+        <stations>UT1 UT2 UT3 UT4</stations>
+        <pops></pops>
+        <channels>IP1 IP3 IP5 IP7 </channels>
+    </interferometerConfiguration>
+    <instrumentConfiguration>
+        <name>GRAVITY</name>
+        <instrumentMode>LOW-COMBINED</instrumentMode>
+    </instrumentConfiguration>
+    <observationConfiguration id="HD_17081">
+        <type>SCIENCE</type>
+        <SCTarget>
+            <name>HD 17081</name>
+            <RA>02:44:07.34928</RA>
+            <DEC>-13:51:31.3130</DEC>
+            <EQUINOX>2000.0</EQUINOX>
+            <PMRA>-8.62</PMRA>
+            <PMDEC>-9.07</PMDEC>
+            <PARALLAX>8.3</PARALLAX>
+            <IDS>2MASS J02440733-1351312,SBC9 2374,* 89 Cet,* pi. Cet,BD-14 519,FK5 97,GC 3300,GCRV 1548,GEN# +1.00017081,GSC 05292-00970,HD 17081,HIC 12770,HIP 12770,HR 811,IRAS 02417-1404,JP11 692,N30 557,PHL 8515,PMC 90-93 69,PPM 211922,ROT 371,SACS 59,SAO 148575,SKY# 4105,TD1 1628,TYC 5292-970-1,UBV 2717,UBV M 9128,[DML87] 59,uvby98 100017081,ALS 16849,PSCz P02417-1404</IDS>
+            <OBJTYP>*,IR,blu,UV,SB*,SB*</OBJTYP>
+            <SPECTYP>B7IV</SPECTYP>
+            <FLUX_V>4.235</FLUX_V>
+            <FLUX_J>4.429</FLUX_J>
+            <FLUX_H>4.462</FLUX_H>
+            <FLUX_K>4.505</FLUX_K>
+        </SCTarget>
+        <observationConstraints>
+            <HAinterval>-4.20/3.18</HAinterval>
+            <LSTinterval>22:32/05:55</LSTinterval>
+        </observationConstraints>
+    </observationConfiguration>
+    <observationConfiguration id="HD_16825">
+        <type>CALIBRATION</type>
+        <SCTarget>
+            <name>HD 16825</name>
+            <RA>02:41:34.128</RA>
+            <DEC>-14:32:57.42</DEC>
+            <EQUINOX>2000.0</EQUINOX>
+            <PMRA>-8.03</PMRA>
+            <PMDEC>52.93</PMDEC>
+            <PARALLAX>20.35</PARALLAX>
+            <IDS>HD 16825,HIP 12562,2MASS J02413412-1432573,DM -1500478,</IDS>
+            <SPECTYP>F5V</SPECTYP>
+            <FLUX_V>5.974</FLUX_V>
+            <FLUX_I>5.294</FLUX_I>
+            <FLUX_J>5.151</FLUX_J>
+            <FLUX_H>4.935</FLUX_H>
+            <FLUX_K>4.842</FLUX_K>
+            <FLUX_N>5.194</FLUX_N>
+            <DIAMETER>0.448</DIAMETER>
+        </SCTarget>
+        <observationConstraints>
+            <HAinterval>-4.22/3.16</HAinterval>
+            <LSTinterval>22:29/05:51</LSTinterval>
+        </observationConstraints>
+    </observationConfiguration>
+    <observationSchedule>
+        <OB ref="HD_16825"/>
+        <OB ref="HD_17081"/>
+        <OB ref="HD_16825"/>
+    </observationSchedule>
+</a:observingBlockDefinition>

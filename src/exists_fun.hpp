@@ -42,6 +42,7 @@ namespace lib {
   // only exception wxwidgets_exists in "dialop.hpp"
  BaseGDL* x11_exists(EnvT *e);
  BaseGDL* dsfmt_exists(EnvT *e);
+ BaseGDL* expat_exists(EnvT *e);
 
 } // namespace
 

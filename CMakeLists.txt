@@ -126,8 +126,11 @@ set(PYTHON ON CACHE BOOL "GDL: Enable Python ?")
 set(PYTHONDIR "" CACHE PATH "GDL: Specifiy the use Python directory tree")
 set(PYTHONVERSION "" CACHE STRING "GDL: Specify the Python version to use")
 
-set(SHAPELIB ON CACHE BOOL "GDL: Enable SHAPELIB (for IDLffShape, MAP_CONTINENTS and all geographic data?")
+set(SHAPELIB ON CACHE BOOL "GDL: Enable SHAPELIB (for IDLffShape, MAP_CONTINENTS and all geographic data?)")
 set(SHAPELIBDIR "" CACHE PATH "GDL: Specify the SHAPELIB directory tree")
+
+set(EXPAT ON CACHE BOOL "GDL: Enable EXPAT (for IDLffXMLSAX)")
+set(EXPATDIR "" CACHE PATH "GDL: Specify the libEXPAT-devel directory tree")
 
 if(NOT WIN32)
   set(NCURSESDIR "" CACHE PATH "GDL: Specify the ncurses (or curses) directory tree")
@@ -1043,6 +1046,23 @@ if(SHAPELIB)
       "shapelib is often in package libshp-devel.")
   endif(SHAPELIB_FOUND)
 endif(SHAPELIB)
+# EXPAT for IDLffXMLSAX and IDLffXMLDOM
+# -DEXPAT=ON|OFF
+# -DEXPATDIR=DIR
+if(EXPAT)
+  set(CMAKE_PREFIX_PATH ${EXPATDIR})
+  find_package(EXPAT QUIET)
+  set(USE_EXPAT ${EXPAT_FOUND})
+  if(EXPAT_FOUND)
+    set(LIBRARIES ${LIBRARIES} ${EXPAT_LIBRARIES})
+    include_directories(${EXPAT_INCLUDE_DIR})
+  else(EXPAT_FOUND)
+    message(FATAL_ERROR "EXPAT is required but was not found.\n"
+      "Use -DEXPATDIR=DIR to specify the LibXML2-devel directory tree.\n"
+      "Use -DEXPAT=OFF to not use it.\n"
+      "EXPAT is often in package libEXPAT-devel.")
+  endif(EXPAT_FOUND)
+endif(EXPAT)
 # X11
 if(X11)
     set(CMAKE_PREFIX_PATH ${X11DIR})
@@ -1180,6 +1200,8 @@ set(GLPK_LIBRARIES ${GLPK_LIBRARIES})
 module(GLPK      "GLPK          ")
 set(SHAPELIB_LIBRARIES ${SHAPELIB_LIBRARIES})
 module(SHAPELIB      "SHAPELIB          ")
+set(EXPAT_LIBRARIES ${EXPAT_LIBRARIES})
+module(EXPAT      "EXPAT          ")
 module(PSLIB	 "pslib         ")
 if(WIN32 AND NOT CYGWIN)
   module(XPORTMINGW  "XPortMinGW (Win32 Xlib)       ")
