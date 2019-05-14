@@ -69,7 +69,7 @@ GDLInterpreter::GDLInterpreter()
 	return retCode;
 }
 
- RetCode  GDLInterpreter::statement(ProgNodeP _t, bool throwImmediately) {
+ RetCode  GDLInterpreter::statement(ProgNodeP _t) {
 	 RetCode retCode;
 	ProgNodeP statement_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -93,7 +93,7 @@ GDLInterpreter::GDLInterpreter()
 		// track actual line number
 		callStack.back()->SetLineNumber( last->getLine());
 		
-		retCode = last->Run(throwImmediately); // Run() sets _retTree
+		retCode = last->Run(); // Run() sets _retTree
 		
 		}
 		while( 
@@ -632,7 +632,7 @@ GDLInterpreter::GDLInterpreter()
 	return retCode;
 }
 
- RetCode  GDLInterpreter::execute(ProgNodeP _t, bool throwImmediately) {
+ RetCode  GDLInterpreter::execute(ProgNodeP _t) {
 	 RetCode retCode;
 	ProgNodeP execute_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
@@ -640,22 +640,22 @@ GDLInterpreter::GDLInterpreter()
 	ValueGuard<bool> guard( interruptEnable);
 	interruptEnable = false;
 	
-//		return statement_list(_t,throwImmediately);
+//		return statement_list(_t);
 	
 	
-	retCode=statement_list(_t,throwImmediately);
+	retCode=statement_list(_t);
 	_t = _retTree;
 	_retTree = _t;
 	return retCode;
 }
 
- RetCode  GDLInterpreter::statement_list(ProgNodeP _t, bool throwImmediately) {
+ RetCode  GDLInterpreter::statement_list(ProgNodeP _t) {
 	 RetCode retCode;
 	ProgNodeP statement_list_AST_in = (_t == ProgNodeP(ASTNULL)) ? ProgNodeP(antlr::nullAST) : _t;
 	
 		for (; _t != NULL;) {
 	
-			retCode=statement(_t,throwImmediately);
+			retCode=statement(_t);
 			_t = _retTree;
 				
 			if( retCode != RC_OK) break; // break out if non-regular
@@ -670,7 +670,7 @@ GDLInterpreter::GDLInterpreter()
 		if (_t == ProgNodeP(antlr::nullAST) )
 			_t = ASTNULL;
 		if ((_tokenSet_0.member(_t->getType()))) {
-			retCode=statement(_t,throwImmediately);
+			retCode=statement(_t);
 			_t = _retTree;
 		}
 		else {
