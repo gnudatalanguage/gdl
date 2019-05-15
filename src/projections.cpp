@@ -1030,7 +1030,7 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
     return p;
   }
 
-  void rotate3d(Point3d &p1, const Point3d a, DDouble theta)
+  void rotate3d(Point3d &p1, const Point3d &a, DDouble theta)
   {
     DDouble st,ct;
     gdl_sincos(theta,&st,&ct);
