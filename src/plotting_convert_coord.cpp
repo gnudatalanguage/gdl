@@ -88,9 +88,9 @@ namespace lib {
     GetSFromPlotStructs(&sx, &sy, &sz);
     
     bool xLog, yLog, zLog;
-    gdlGetAxisType("X", xLog);
-    gdlGetAxisType("Y", yLog);
-    gdlGetAxisType("Z", zLog);
+    gdlGetAxisType(XAXIS, xLog);
+    gdlGetAxisType(YAXIS, yLog);
+    gdlGetAxisType(ZAXIS, zLog);
         
     int xSize, ySize;
     //give default values

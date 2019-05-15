@@ -103,8 +103,8 @@ void tvcrs( EnvT* e)
 #endif
     }
      bool xLog, yLog;
-     gdlGetAxisType("X", xLog);
-     gdlGetAxisType("Y", yLog);
+     gdlGetAxisType(XAXIS, xLog);
+     gdlGetAxisType(YAXIS, yLog);
      if(xLog) tempx=pow(10,tempx);
      if(yLog) tempy=pow(10,tempy);
     actStream->WorldToDevice(tempx,tempy,ix,iy);
@@ -245,8 +245,8 @@ void cursor(EnvT* e){
       }
 #endif
       bool xLog, yLog;
-      gdlGetAxisType("X", xLog);
-      gdlGetAxisType("Y", yLog);
+      gdlGetAxisType(XAXIS, xLog);
+      gdlGetAxisType(YAXIS, yLog);
       if(xLog) tempx=pow(10,tempx);
       if(yLog) tempy=pow(10,tempy);
       x = new DDoubleGDL(tempx);

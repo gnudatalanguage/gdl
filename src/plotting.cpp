@@ -225,7 +225,7 @@ namespace lib
   // plots are not exactly what IDL does in the same conditions. The reasons for the choices should be
   // clearly described in the code, to be checked by others.
   
-  PLFLT gdlAdjustAxisRange(EnvT* e, string axis, DDouble &start, DDouble &end, bool log /* = false */, int code /* = 0 */) {
+  PLFLT gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &start, DDouble &end, bool log /* = false */, int code /* = 0 */) {
     gdlHandleUnwantedAxisValue(start, end, log);
 
     DDouble min, max;
@@ -379,7 +379,7 @@ namespace lib
 
     //check if tickinterval would make more than 59 ticks (IDL apparent limit). In which case, IDL plots only the first 59 intervals:
     DDouble TickInterval;
-    gdlGetDesiredAxisTickInterval(e, axis, TickInterval);
+    gdlGetDesiredAxisTickInterval(e, axisId, TickInterval);
     if ( TickInterval > 0.0 ) if ((max-min)/TickInterval > 59) max=min+59.0*TickInterval;
 
     if (invert) {
@@ -1037,12 +1037,12 @@ namespace lib
   
   //crange to struct
 
-  void gdlStoreAxisCRANGE(string axis, DDouble Start, DDouble End, bool log)
+  void gdlStoreAxisCRANGE(int axisId, DDouble Start, DDouble End, bool log)
   {
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) Struct=SysVar::X();
-    if ( axis=="Y" ) Struct=SysVar::Y();
-    if ( axis=="Z" ) Struct=SysVar::Z();
+    if ( axisId==XAXIS ) Struct=SysVar::X();
+    if ( axisId==YAXIS ) Struct=SysVar::Y();
+    if ( axisId==ZAXIS ) Struct=SysVar::Z();
     if ( Struct!=NULL )
     {
       int debug=0;
@@ -1065,12 +1065,12 @@ namespace lib
 
   //CRANGE from struct
 
-  void gdlGetCurrentAxisRange(string axis, DDouble &Start, DDouble &End, bool checkMapset)
+  void gdlGetCurrentAxisRange(int axisId, DDouble &Start, DDouble &End, bool checkMapset)
   {
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) Struct=SysVar::X();
-    if ( axis=="Y" ) Struct=SysVar::Y();
-    if ( axis=="Z" ) Struct=SysVar::Z();
+    if ( axisId==XAXIS ) Struct=SysVar::X();
+    if ( axisId==YAXIS ) Struct=SysVar::Y();
+    if ( axisId==ZAXIS ) Struct=SysVar::Z();
     Start=0;
     End=0;
     if ( Struct!=NULL )
@@ -1079,12 +1079,12 @@ namespace lib
       if ( debug ) cout<<"Get     :"<<Start<<" "<<End<<endl;
       bool isProj;
       get_mapset(isProj);
-      if (checkMapset && isProj && axis!="Z") {
+      if (checkMapset && isProj && axisId!=ZAXIS) {
         DStructGDL* mapStruct=SysVar::Map();   //MUST NOT BE STATIC, due to .reset 
         static unsigned uvboxTag=mapStruct->Desc()->TagIndex("UV_BOX");
         static DDoubleGDL *uvbox;
         uvbox=static_cast<DDoubleGDL*>(mapStruct->GetTag(uvboxTag, 0));
-        if (axis=="X") {
+        if (axisId==XAXIS) {
           Start=(*uvbox)[0];
           End=(*uvbox)[2];
         } else {
@@ -1107,12 +1107,12 @@ namespace lib
     }
   }
 
-  void gdlGetCurrentAxisWindow(string axis, DDouble &wStart, DDouble &wEnd)
+  void gdlGetCurrentAxisWindow(int axisId, DDouble &wStart, DDouble &wEnd)
   {
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) Struct=SysVar::X();
-    if ( axis=="Y" ) Struct=SysVar::Y();
-    if ( axis=="Z" ) Struct=SysVar::Z();
+    if ( axisId==XAXIS ) Struct=SysVar::X();
+    if ( axisId==YAXIS ) Struct=SysVar::Y();
+    if ( axisId==ZAXIS ) Struct=SysVar::Z();
     wStart=0;
     wEnd=0;
     if ( Struct!=NULL )
@@ -1124,14 +1124,14 @@ namespace lib
   }
 
   //Stores [XYZ].WINDOW, .REGION and .S
-  void gdlStoreAxisSandWINDOW(GDLGStream* actStream, string axis, DDouble Start, DDouble End, bool log)
+  void gdlStoreAxisSandWINDOW(GDLGStream* actStream, int axisId, DDouble Start, DDouble End, bool log)
   {
     PLFLT p_xmin, p_xmax, p_ymin, p_ymax, norm_min, norm_max, charDim;
     actStream->gvpd(p_xmin, p_xmax, p_ymin, p_ymax); //viewport normalized coords
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) {Struct=SysVar::X(); norm_min=p_xmin; norm_max=p_xmax; charDim=actStream->nCharLength();}
-    if ( axis=="Y" ) {Struct=SysVar::Y(); norm_min=p_ymin; norm_max=p_ymax; charDim=actStream->nCharHeight();}
-    if ( axis=="Z" ) {Struct=SysVar::Z(); norm_min=0; norm_max=1; charDim=actStream->nCharLength();}
+    if ( axisId==XAXIS ) {Struct=SysVar::X(); norm_min=p_xmin; norm_max=p_xmax; charDim=actStream->nCharLength();}
+    if ( axisId==YAXIS ) {Struct=SysVar::Y(); norm_min=p_ymin; norm_max=p_ymax; charDim=actStream->nCharHeight();}
+    if ( axisId==ZAXIS ) {Struct=SysVar::Z(); norm_min=0; norm_max=1; charDim=actStream->nCharLength();}
     if ( Struct!=NULL )
     {
       unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
@@ -1162,12 +1162,12 @@ namespace lib
     for ( i=0; i<clipBox->N_Elements(); ++i ) (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[i]=(*clipBox)[i];
   }
 
-  void gdlGetAxisType(string axis, bool &log)
+  void gdlGetAxisType(int axisId, bool &log)
   {
     DStructGDL* Struct;
-    if ( axis=="X" ) Struct=SysVar::X();
-    if ( axis=="Y" ) Struct=SysVar::Y();
-    if ( axis=="Z" ) Struct=SysVar::Z();
+    if ( axisId==XAXIS ) Struct=SysVar::X();
+    if ( axisId==YAXIS ) Struct=SysVar::Y();
+    if ( axisId==ZAXIS ) Struct=SysVar::Z();
     if ( Struct!=NULL )
     {
       static unsigned typeTag=Struct->Desc()->TagIndex("TYPE");
@@ -1205,12 +1205,12 @@ namespace lib
 
   //axis type (log..)
 
-  void gdlStoreAxisType(string axis, bool Type)
+  void gdlStoreAxisType(int axisId, bool Type)
   {
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) Struct=SysVar::X();
-    if ( axis=="Y" ) Struct=SysVar::Y();
-    if ( axis=="Z" ) Struct=SysVar::Z();
+    if ( axisId==XAXIS ) Struct=SysVar::X();
+    if ( axisId==YAXIS ) Struct=SysVar::Y();
+    if ( axisId==ZAXIS ) Struct=SysVar::Z();
     if ( Struct!=NULL )
     {
       static unsigned typeTag=Struct->Desc()->TagIndex("TYPE");

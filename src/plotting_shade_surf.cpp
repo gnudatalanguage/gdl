@@ -159,8 +159,8 @@ namespace lib
       GetMinMaxVal ( yVal, &yStart, &yEnd );
       //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
       DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;
-      bool setx=gdlGetDesiredAxisRange(e, "X", xAxisStart, xAxisEnd);
-      bool sety=gdlGetDesiredAxisRange(e, "Y", yAxisStart, yAxisEnd);
+      bool setx=gdlGetDesiredAxisRange(e, XAXIS, xAxisStart, xAxisEnd);
+      bool sety=gdlGetDesiredAxisRange(e, YAXIS, yAxisStart, yAxisEnd);
       if (setx) {
         xStart=xAxisStart;
         xEnd=xAxisEnd;
@@ -175,7 +175,7 @@ namespace lib
       GetMinMaxVal ( zVal, &datamin, &datamax );
       zStart=datamin;
       zEnd=datamax;
-      setZrange = gdlGetDesiredAxisRange(e, "Z", zStart, zEnd);
+      setZrange = gdlGetDesiredAxisRange(e, ZAXIS, zStart, zEnd);
 
       //SHADES: Doing the job will be for nothing since plplot does not give the functionality.
       static int shadesIx=e->KeywordIx ( "SHADES" ); doShade=false;
@@ -213,9 +213,9 @@ namespace lib
 
       // [XYZ]STYLE
       DLong xStyle=0, yStyle=0, zStyle=0; ;
-      gdlGetDesiredAxisStyle(e, "X", xStyle);
-      gdlGetDesiredAxisStyle(e, "Y", yStyle);
-      gdlGetDesiredAxisStyle(e, "Z", zStyle);
+      gdlGetDesiredAxisStyle(e, XAXIS, xStyle);
+      gdlGetDesiredAxisStyle(e, YAXIS, yStyle);
+      gdlGetDesiredAxisStyle(e, ZAXIS, zStyle);
 
       //check here since after AutoIntvAC values will be good but arrays passed
       //to plplot will be bad...
@@ -234,12 +234,12 @@ namespace lib
 
       if ( ( xStyle&1 )!=1 )
       {
-        PLFLT intv=gdlAdjustAxisRange (e, "X", xStart, xEnd, xLog );
+        PLFLT intv=gdlAdjustAxisRange (e, XAXIS, xStart, xEnd, xLog );
       }
 
       if ( ( yStyle&1 )!=1 )
       {
-        PLFLT intv=gdlAdjustAxisRange (e, "Y", yStart, yEnd, yLog );
+        PLFLT intv=gdlAdjustAxisRange (e, YAXIS, yStart, yEnd, yLog );
       }
 
       static int MIN_VALUEIx = e->KeywordIx( "MIN_VALUE");
@@ -260,7 +260,7 @@ namespace lib
       // then only apply expansion  of axes:
       if ( ( zStyle&1 )!=1 )
       {
-        PLFLT intv=gdlAdjustAxisRange ( e, "Z", zStart, zEnd, zLog );
+        PLFLT intv=gdlAdjustAxisRange ( e, ZAXIS, zStart, zEnd, zLog );
       }
 
       // background BEFORE next plot since it is the only place plplot may redraw the background...
