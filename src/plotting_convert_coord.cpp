@@ -123,20 +123,24 @@ namespace lib {
       case DATA:
         // to u,v
 #ifdef USE_LIBPROJ4
-      if ( mapSet )
+      if ( mapSet ) // could be gdlFullProjectionTransformation(ref, NULL, xVal, yVal);
       {
+#ifdef PROJ_IS_THREADSAFE
 #pragma omp parallel if (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows))
         {
 #pragma omp for private(idata,odata)
-            for (SizeT i = 0; i < nrows; i++) {
+#endif
+          for (SizeT i = 0; i < nrows; i++) {
               idata.u = (*xVal)[i] * DEG_TO_RAD;
               idata.v = (*yVal)[i] * DEG_TO_RAD;
               odata = PJ_FWD(idata, ref);
               (*xVal)[i] = odata.u;
               (*yVal)[i] = odata.v;
             }
-          }
+#ifdef PROJ_IS_THREADSAFE
         }
+#endif
+      }
 #endif
         // to norm:
 #pragma omp parallel if (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows))
@@ -182,9 +186,11 @@ namespace lib {
 #ifdef USE_LIBPROJ4
       if ( mapSet )
       {
+#ifdef PROJ_IS_THREADSAFE
 #pragma omp parallel if (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows))
         {
 #pragma omp for private(idata,odata)
+#endif
             for (SizeT i = 0; i < nrows; i++) {
               odata.u = (*xVal)[i];
               odata.v = (*yVal)[i];
@@ -192,8 +198,10 @@ namespace lib {
               (*xVal)[i] = idata.u * RAD_TO_DEG;
               (*yVal)[i] = idata.v * RAD_TO_DEG;
             }
+#ifdef PROJ_IS_THREADSAFE
           }
-        }
+#endif
+      }
 #endif
 
         break;
@@ -768,7 +776,7 @@ namespace lib {
     SelfExch3d(t3dMatrix,01); //XY, 1
     if (isMatrixRotation(t3dMatrix,alt,az,ay,scale))
     {
-      code=XY;   goto done;
+      code=OXY;   goto done;
     }
     SelfExch3d(t3dMatrix,01); //-XY
     SelfExch3d(t3dMatrix,02); //+XZ 2

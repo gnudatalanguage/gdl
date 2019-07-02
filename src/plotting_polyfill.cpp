@@ -290,7 +290,7 @@ namespace lib
           case NORMAL3D: //X->X Y->Y plane XY
             Data3d.code = code012;
             break;
-          case XY: // X->Y Y->X plane XY
+          case OXY: // X->Y Y->X plane XY
             Data3d.code = code102;
             break;
           case XZ: // Y->Y X->Z plane YZ
@@ -353,7 +353,7 @@ namespace lib
           case NORMAL3D: //X->X Y->Y plane XY
             Data3d.code = code012;
             break;
-          case XY: // X->Y Y->X plane XY
+          case OXY: // X->Y Y->X plane XY
             Data3d.code = code102;
             break;
           case XZ: // Y->Y X->Z plane YZ

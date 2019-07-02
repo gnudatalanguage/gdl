@@ -2885,7 +2885,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     wxPoint( xOffset, yOffset ),
     computeWidgetSize( ), style );
     //our widget will ALWAYS have an image list...
-    wxImageList* images=new wxImageList(16,16,TRUE,3);
+    wxImageList* images=new wxImageList();//16,16,TRUE,3);
     images->Add(wxArtProvider::GetBitmap(wxART_FOLDER)); //0
     images->Add(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN)); //1
     images->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE)); //2

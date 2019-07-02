@@ -18,7 +18,6 @@
 #include "includefirst.hpp"
 #include "projections.hpp"
 
-
 namespace lib {
 
   using namespace std;
@@ -146,30 +145,7 @@ namespace lib {
       res = gdlProjForward(ref, map, lon, lat, connectivity, doConn, gons, doGons, lines, doLines, doFill);
       if (doGons) e->SetKW(gonsIx, gons);
       else e->SetKW(linesIx, lines);
-    } else { //do it oursef
-      LPTYPE idata;
-      XYTYPE odata;
-      DLong dims[2];
-      dims[0] = 2;
-      dims[1] = nEl;
-      dimension dim(dims, 2);
-      res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-#ifdef PROJ_IS_THREADSAFE
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-      {
-#pragma omp for
-#endif
-        for (OMPInt i = 0; i < nEl; ++i) {
-          idata.u = (*lon)[i];
-          idata.v = (*lat)[i];
-          odata = PJ_FWD(idata, ref);
-          (*res)[2 * i] = odata.u;
-          (*res)[2 * i + 1] = odata.v;
-        }
-      }
-#ifdef PROJ_IS_THREADSAFE
-    }
-#endif
+    } else res=gdlApplyFullProjection(ref, map, lon, lat);
     return res;
 #else
     e->Throw("GDL was compiled without support for map projections");
@@ -593,7 +569,12 @@ namespace lib {
         {SEMIMAJOR_AXIS, SEMIMINOR_AXIS, STANDARD_PARALLEL, 0, CENTER_LONGITUDE, 0, FALSE_EASTING, FALSE_NORTHING,0},
         {0}}
     };
-    
+
+    //epsilon is the size of the "trouble ahead" region around splits. Mostly due to projection numerical errors?
+  //if set to a smaller value, the splits of the Goode projections are not OK (? some goode's projection computation in float instead of double?)
+static double epsilon = std::numeric_limits<float>::epsilon(); //say, 5e-7 
+
+
   PROJTYPE map_init(DStructGDL * map)
   {
 
@@ -612,7 +593,13 @@ namespace lib {
     unsigned projNameTag = map->Desc()->TagIndex("UP_NAME");
 
     DDouble map_rot = (*static_cast<DDoubleGDL*> (map->GetTag(rTag, 0)))[0];
-
+    
+    if (map_rot != 0.0) {
+      isRot = true;
+      sRot = sin(map_rot * DEG_TO_RAD);
+      cRot = cos(map_rot * DEG_TO_RAD);
+    } else isRot = false;
+    
     DLong map_projection = (*static_cast<DLongGDL*> (map->GetTag(projectionTag, 0)))[0];
 
     if (map_projection < 1) return NULL;
@@ -628,22 +615,25 @@ namespace lib {
     DDouble map_lat1 = (*static_cast<DDoubleGDL*> (map->GetTag(pTag, 0)))[3];
     DDouble map_lat2 = (*static_cast<DDoubleGDL*> (map->GetTag(pTag, 0)))[4];
     DString projName = (*static_cast<DStringGDL*> (map->GetTag(projNameTag, 0)))[0];
-
+    
+ // test: use value (if non-zero) in map.up_flags to define epsilon (actually, 1/epsilon)
+    unsigned epsilonTag = map->Desc()->TagIndex("UP_FLAGS");
+    DLong epsilonvalue = (*static_cast<DLongGDL*> (map->GetTag(epsilonTag, 0)))[0];
+    if (epsilonvalue != 0) epsilon=1.0/double(epsilonvalue); else epsilon=std::numeric_limits<float>::epsilon();
     //Trick for using ALL the libproj.4 projections.
     if (map_projection == 999) { //our special code
 #ifdef USE_LIBPROJ4_NEW
       prev_ref = pj_init_plus(projName.c_str());
       if (!prev_ref) {
-        Warning("LIBPROJ.4 returned error message: ");
-        Warning(pj_strerrno(pj_errno));
+        ThrowGDLException("LIBPROJ.4 returned error message: "+std::string(pj_strerrno(pj_errno)));
       }
 #else
       prev_ref = proj_initstr((char*) projName.c_str());
       if (!prev_ref) {
-        Warning("LIBPROJ.4 returned error message: ");
-        Warning(proj_strerrno(proj_errno));
+        ThrowGDLException("LIBPROJ.4 returned error message: "+std::string(proj_strerrno(proj_errno)));
       }
 #endif
+      noInv=((void*)(static_cast<PJ*>(prev_ref)->inv) == NULL);
       return prev_ref;
     }    
     
@@ -656,13 +646,6 @@ namespace lib {
       map_projection = (*static_cast<DLongGDL*> (map->GetTag(simpleTag, 0)))[0] + GoodesHomolosine + 1;
       noptions=projectionOptions[map_projection].nopt-1; //-1 as the last is not an option but variant;
       variant=(map_p[noptions]>0);
-    }
-
-    //protect against projections that have no inverse in proj.4 (and inverse in libproj) (silly, is'nt it?) (I guess I'll copy all
-    //this code one day and make our own certified version!
-    noInv = FALSE;
-    if (map_projection == 12 || map_projection == 13 || map_projection == 47 || map_projection == 49) {
-      noInv = TRUE;
     }
 
     char proj[64];
@@ -724,14 +707,6 @@ namespace lib {
       last_projName = projName;
       for (SizeT i = 0; i < 16; ++i) last_p[i] = map_p[i];
 
-
-      if (map_rot != 0.0) {
-        isRot = true;
-        sRot = sin(map_rot * DEG_TO_RAD);
-        cRot = cos(map_rot * DEG_TO_RAD);
-      } else isRot = false;
-
-
       if (projectionOptions[map_projection].ptyp > 1 && abs(map_p0lat) > 1) trans = true;
       DDouble val;
       //GCTP Projections only:
@@ -778,15 +753,13 @@ namespace lib {
 #ifdef USE_LIBPROJ4_NEW
         prev_ref = pj_init_plus(projCommand.c_str());
         if (!prev_ref) {
-          Warning("LIBPROJ.4 returned error message: ");
-          Warning(pj_strerrno(pj_errno));
+          ThrowGDLException("LIBPROJ.4 returned error message: " + std::string(pj_strerrno(pj_errno)));
         }
 #else
         prev_ref = proj_initstr((char*) projCommand.c_str());
-        if (!prev_ref) {
-          Warning("LIBPROJ.4 returned error message: ");
-          Warning(proj_strerrno(proj_errno));
-        }
+      if (!prev_ref) {
+        ThrowGDLException("LIBPROJ.4 returned error message: "+std::string(proj_strerrno(proj_errno)));
+      }
 #endif
         return prev_ref;
       }
@@ -878,14 +851,12 @@ namespace lib {
 #ifdef USE_LIBPROJ4_NEW
       prev_ref = PJ_INIT(nparms, parms);
       if (!prev_ref) {
-        Warning("LIBPROJ.4 returned error message: ");
-        Warning(pj_strerrno(pj_errno));
+        ThrowGDLException("LIBPROJ.4 returned error message: " + std::string(pj_strerrno(pj_errno)));
       }
 #else
       prev_ref = PJ_INIT(nparms, parms);
       if (!prev_ref) {
-        Warning("LIBPROJ.4 returned error message: ");
-        Warning(proj_strerrno(proj_errno));
+        ThrowGDLException("LIBPROJ.4 returned error message: "+std::string(proj_strerrno(proj_errno)));
       }
 #endif      
     }
@@ -919,17 +890,15 @@ namespace lib {
     //  throw GDLException("The proj4 library version you use unfortunately defines no inverse for this projection!");
     LPTYPE odata;
     DDouble u, v;
+    if (isRot) {
+      u = idata.u;
+      v = idata.v;
+      idata.u = u * cRot - v*sRot;
+      idata.v = u * sRot + v*cRot;
+    }
     if (isfinite((idata.u)*(idata.v))) {
       odata = LIB_PJ_INV(idata, proj);
-      if (isfinite(odata.u) && odata.u != HUGE_VAL) {
-        if (isRot) {
-          u = odata.u;
-          v = odata.v;
-          odata.u = u * cRot - v*sRot;
-          odata.v = u * sRot + v*cRot;
-        }
-        return odata;
-      }
+      return odata;
     }
     return badProj;
   }
@@ -995,9 +964,7 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
   
 #define GDL_PI     double(3.1415926535897932384626433832795)
 #define GDL_HALFPI 0.5*GDL_PI  
-  //epsilon is the size of the "trouble ahead" region around splits. Mostly due to projection numerical errors?
-  //if set to a smaller value, the splits of the Goode projections are not OK (? some goode's projection computation in float instead of double?)
-  static double epsilon = std::numeric_limits<float>::epsilon(); //say, 5e-7   
+  
 
 #define DELTA  (double)(0.5*DEG_TO_RAD) //0.5 degree for increment between stitch vertexes.
 
@@ -1040,7 +1007,7 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
       { a.y * a.x * (1 - ct) + a.z*st, a.y * a.y * (1 - ct) + ct, a.y * a.z * (1 - ct) - a.x * st},
     { a.z * a.x * (1 - ct) - a.y*st, a.z * a.y * (1 - ct) + a.x*st, a.z * a.z * (1 - ct) + ct },
      };
-    // multiply matrix Ã vector
+    // multiply matrix vector
     DDouble vector[3]={p1.x, p1.y, p1.z};
     DDouble rotated[3] = {0, 0, 0};
     for (int i = 0; i < 3; i++) {
@@ -1090,7 +1057,7 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
   
 
   //angular distance between 2 points on sphere.
-  inline DDouble DistanceOnSphere(Vertex v1, Vertex v2, DDouble px, DDouble py, DDouble pz, DDouble pt=0)
+  inline DDouble DistanceOnSphere(Vertex v1, Vertex v2, DDouble px, DDouble py, DDouble pz)
   {
     DDouble clon,slon,clat,slat;
 
@@ -1148,40 +1115,42 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
 //      }
 //    }  
 
-
+  inline void correct(DDouble &x, DDouble &y, DDouble &z){
+    DDouble mag = sqrt(x * x + y * y + z * z);
+    x /= mag;
+    y /= mag;
+    z /= mag;
+    DDouble lon = atan2(y, x);
+    DDouble lat = atan2(z, sqrt(x * x + y * y));
+    DDouble clon,slon,clat,slat;
+    gdl_sincos(lon,&slon,&clon);
+    gdl_sincos(lat,&slat,&clat);
+    x = clon * clat;
+    y = slon * clat;
+    z = slat;
+  }
 
 
   // are we on the cut pole side or not?
 
-  inline int getSign(DDouble indicator)
+  inline int getSign(DDouble distanceToPlane)
   {
-    if (indicator < 0) return 1;
+    if (distanceToPlane >= 0) return 1;
     else return -1;
   }
 
-  // push values on a split plane on one or the other side by 'epsilon'.
+  // push values on a split/clip plane on one or the other side by 'epsilon'.
 
-  inline bool avoid(DDouble &x, DDouble &y, DDouble &z, DDouble u, DDouble v, DDouble w, int sign = 0)
+  inline bool avoid(DDouble &x, DDouble &y, DDouble &z, DDouble a, DDouble b, DDouble c, DDouble d, int sideCode)
   {
-    static DDouble avoidance = epsilon;
-    DDouble indicator = u * x + v * y + w * z;
+    DDouble distanceToPlane = a * x + b * y + c * z + d;
     int i = 0;
-    if (sign == 0) sign = getSign(indicator);
-
-    while (abs(indicator) < avoidance) { //just displace a bit in the opposite to the current pole a,b,c
-      x -= sign * avoidance*u;
-      y -= sign * avoidance*v;
-      z -= sign * avoidance*w;
-      DDouble mag = sqrt(x * x + y * y + z * z);
-      x /= mag;
-      y /= mag;
-      z /= mag;
-      DDouble lon = atan2(y, x);
-      DDouble lat = atan2(z, sqrt(x * x + y * y));
-      x = cos(lon) * cos(lat);
-      y = sin(lon) * cos(lat);
-      z = sin(lat);
-      indicator = u * x + v * y + w * z;
+    assert (sideCode == 1 || sideCode == -1);
+    while (abs(distanceToPlane) < epsilon) { //just displace a bit on the same "side" but at a larger distance.
+      x += sideCode * epsilon * a;
+      y += sideCode * epsilon * b;
+      z += sideCode * epsilon * c;
+      distanceToPlane = a * x + b * y + c * z + d;
       i++;
     }
     if (i) return true;
@@ -1190,49 +1159,58 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
 
   //returns the point on the clip plane located between two vertexes.
 
-  inline void OnSphereVectorClipPlaneIntersection(DDouble x1, DDouble y1, DDouble z1, DDouble x2, DDouble y2,
-      DDouble z2, DDouble u, DDouble v, DDouble w, DDouble h,
-      DDouble &x, DDouble &y, DDouble &z)
+  inline void OnSphereVectorPlaneIntersection(DDouble x1, DDouble y1, DDouble z1, DDouble x2, DDouble y2,
+      DDouble z2, DDouble a, DDouble b, DDouble c, DDouble d,
+      DDouble &xb, DDouble &yb, DDouble &zb, DDouble &xe, DDouble &ye, DDouble &ze, int sideCode)
   {
-
-    DDouble a = x2 - x1;
-    DDouble b = y2 - y1;
-    DDouble c = z2 - z1;
-    DDouble t = u * a + v * b + w * c;
-    t = (-h - u * x1 - v * y1 - w * z1) / t;
-    if (!finite(t)) {
-      x = x1;
-      y = y1;
-      z = z1;
+    //intersection of line between points 1 and 2 (parametrized line equation with paramteter t) with plane height d
+    DDouble dx = x2 - x1;
+    DDouble dy = y2 - y1;
+    DDouble dz = z2 - z1;
+    DDouble denom = (a * dx) + (b * dy) + (c * dz);
+    DDouble numer = -(a * x1) - (b * y1) - (c * z1) - d; //using point 1 as vector.
+    if (denom == 0) { //very unlikely!
+      xb = x1;
+      yb = y1;
+      zb = z1;
+      xe = x2;
+      ye = y2;
+      ze = z2;
       return;
     }
-    if (t < epsilon) {
-      x = x1;
-      y = y1;
-      z = z1;
-      return;
+    // 3D vector, on the plane but not on the sphere. Use a newton method (!) to converge on the plane AND on the sphere
+    DDouble t = numer / denom; //found parameter
+    DDouble x = dx * t + x1;
+    DDouble y = dy * t + y1;
+    DDouble z = dz * t + z1;
+    DDouble distanceToPlane = a * x + b * y + c * z + d;
+    int i=0;
+    while (abs(distanceToPlane) > epsilon && i < 10) {
+      int sign=getSign(distanceToPlane);
+      dx = x - x1;
+      dy = y - y1;
+      dz = z - z1;
+      denom = (a * dx) + (b * dy) + (c * dz);
+      if (denom == 0) break;
+      t = numer / denom;
+      x = dx * sign * t + x1;
+      y = dy * sign * t + y1;
+      z = dz * sign * t + z1;
+      distanceToPlane = a * x + b * y + c * z + d;
+      ++i;
     }
-    if (t > (1.0 - epsilon)) {
-      x = x2;
-      y = y2;
-      z = z2;
-      return;
-    }
-    x = a * t + x1;
-    y = b * t + y1;
-    z = c * t + z1;
-    DDouble norm = sqrt(x * x + y * y + z * z);
-    x /= norm;
-    y /= norm;
-    z /= norm;
-    avoid(x,y,z,u,v,w);
+    xb = xe = x;
+    yb = ye = y;
+    zb = ze = z; //already normed etc.
+    bool ret= avoid(xb, yb, zb, a, b, c, d, sideCode);
+    ret = avoid(xe, ye, ze, a, b, c, d, -sideCode);
     return;
   }
 
   // will insure that no point falls exactly on a split, since the projection errors may send the value on either side of it 
   // if we do no avoid the splits by a (rather large) margin.
 
-  inline bool avoidSplits(std::list<Vertex>::iterator vertex, DDouble u, DDouble v, DDouble w, int sign = 0)
+  inline bool avoidSplits(std::list<Vertex>::iterator vertex, DDouble a, DDouble b, DDouble c, DDouble d, int sideCode)
   {
     DDouble x, y, z;
     DDouble clon,slon,clat,slat;
@@ -1241,19 +1219,18 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
     x = clon * clat;
     y = slon * clat;
     z = slat;
-    bool b = avoid(x, y, z, u, v, w, sign);
-    if (b) {
+    bool avoided = avoid(x, y, z, a, b, c, d, sideCode);
+    if (avoided) {
       vertex->lon = atan2(y, x);
       vertex->lat = atan2(z, sqrt(x * x + y * y));
     }
-    return b;
+    return avoided;
   }
 
   //find the 'sign' of the initial cut. Used to force stitch values to stay on this side, for example.
 
-  int findSign(Polygon p, DDouble u, DDouble v, DDouble w)
+  int findSign(Polygon p, DDouble a, DDouble b, DDouble c, DDouble d)
   {
-    static DDouble avoidance = epsilon;
     DDouble x, y, z;
     DDouble clon,slon,clat,slat;
 
@@ -1263,80 +1240,73 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
     x = clon * clat;
     y = slon * clat;
     z = slat;
-    DDouble indicator = u * x + v * y + w * z; 
+    DDouble distanceToPlane = a * x + b * y + c * z + d; 
     ++vertex;
-    while (abs(indicator) < avoidance && vertex != p.VertexList.end()) {
+    while (abs(distanceToPlane) < epsilon && vertex != p.VertexList.end()) {
       gdl_sincos(vertex->lon,&slon,&clon);
       gdl_sincos(vertex->lat,&slat,&clat);
       x = clon * clat;
       y = slon * clat;
       z = slat;
-      indicator = u * x + v * y + w * z;
+      distanceToPlane = a * x + b * y + c * z + d;
       ++vertex;
     }
-    return getSign(indicator);
+    return getSign(distanceToPlane);
   }
 
-  //returns the point on the split plane (defined by u,v,w) located between two 3d points.
+//  //returns the point on the split plane (defined by u,v,w) located between two 3d points.
+//
+//  Point3d* CutPosition(const Point3d* p1, const Point3d* p2, DDouble a, DDouble b, DDouble c)
+//  {
+//    // p1 p2 define a plane--> perpendicular vector
+//    Point3d* p1p2 = normedCrossP(p1, p2);
+//    // u,v,w define the 2nd vector
+//    Point3d* cutplane = toPoint3d(a, b, c);
+//    // intersection of the 2 planes give two opposite points on sphere. We must choose.
+//    Point3d* cut1 = normedCrossP(p1p2, cutplane);
+//    Point3d* cut2 = normedCrossP(cutplane, p1p2);
+//    //general case: cut must be between p1 and p2
+//    delete p1p2;
+//    delete cutplane;
+//    if (dotP(p1, cut1) < 0) {
+//      delete cut1;
+//      return cut2;
+//    } else {
+//      delete cut2;
+//      return cut1;
+//    }
+//  }
 
-  Point3d* CutPosition(const Point3d* p1, const Point3d* p2, DDouble u, DDouble v, DDouble w)
-  {
-    // p1 p2 define a plane--> perpendicular vector
-    Point3d* p1p2 = normedCrossP(p1, p2);
-    // u,v,w define the 2nd vector
-    Point3d* cutplane = toPoint3d(u, v, w);
-    // intersection of the 2 planes give two opposite points on sphere. We must choose.
-    Point3d* cut1 = normedCrossP(p1p2, cutplane);
-    Point3d* cut2 = normedCrossP(cutplane, p1p2);
-    //general case: cut must be between p1 and p2
-    delete p1p2;
-    delete cutplane;
-    if (dotP(p1, cut1) < 0) {
-      delete cut1;
-      return cut2;
-    } else {
-      delete cut2;
-      return cut1;
-    }
-  }
-
-  //returns the point on the split plane located between two vertexes.
-  //this is a plane-vector intersection. Problem is: we cannot afford (x1,y1,z1) or (x2,y2,z2) to be exactly on the plane.
-  //in this case, the result, within the numerical error, can be on the "wrong" side. Hence the 'avoid' trick.
-
-  inline void OnSphereVectorSplitPlaneIntersection(DDouble xs, DDouble ys, DDouble zs, DDouble xe, DDouble ye,
-      DDouble ze, DDouble u, DDouble v, DDouble w,
-      DDouble &xb, DDouble &yb, DDouble &zb,
-      DDouble &xa, DDouble &ya, DDouble &za)
-  {
-    //compute exact point of crossing the plane, following a great circle (3d vectors=> we follow great circles.)
-    DDouble indicator = u * xs + v * ys + w * zs;
-    int sign = getSign(indicator);
-
-    Point3d* p1 = toPoint3d(xs, ys, zs);
-    Point3d* p2 = toPoint3d(xe, ye, ze);
-    Point3d* cut = CutPosition(p1, p2, u, v, w);
-    xb = xa = cut->x;
-    yb = ya = cut->y;
-    zb = za = cut->z;
-    avoid(xb, yb, zb, u, v, w, sign);
-
-
-    indicator = u * xe + v * ye + w * ze;
-    sign = getSign(indicator);
-    avoid(xa, ya, za, u, v, w, sign);
-    delete p1;
-    delete p2;
-    delete cut;
-    return;
-  }
+//  //returns the point on the split plane located between two vertexes.
+//  //this is a plane-vector intersection. Problem is: we cannot afford (x1,y1,z1) or (x2,y2,z2) to be exactly on the plane.
+//  //in this case, the result, within the numerical error, can be on the "wrong" side. Hence the 'avoid' trick.
+//
+//  inline void OnSphereVectorSplitPlaneIntersection(DDouble xs, DDouble ys, DDouble zs, DDouble xe, DDouble ye,
+//      DDouble ze, DDouble a, DDouble b, DDouble c, DDouble d,
+//      DDouble &xb, DDouble &yb, DDouble &zb,
+//      DDouble &xa, DDouble &ya, DDouble &za, int sideCode)
+//  {
+//    //compute exact point of crossing the plane, following a great circle (3d vectors=> we follow great circles.)
+//    Point3d* p1 = toPoint3d(xs, ys, zs);
+//    Point3d* p2 = toPoint3d(xe, ye, ze);
+//    Point3d* cut = CutPosition(p1, p2, a, b, c);
+//    xb = xa = cut->x;
+//    yb = ya = cut->y;
+//    zb = za = cut->z;
+//    avoid(xb, yb, zb, a, b, c, d, sideCode);
+//    avoid(xa, ya, za, a, b, c, d, -sideCode);
+//    delete p1;
+//    delete p2;
+//    delete cut;
+//    return;
+//  }
 
   // returns the distance between end of first and start of second
-  inline DDouble proximityEvaluator(const Polygon * outside, const Polygon * inside, DDouble px, DDouble py, DDouble pz, DDouble pt=0)
+  inline DDouble proximityEvaluator(const Polygon * outside, const Polygon * inside, DDouble px, DDouble py, DDouble pz)
   {
     Vertex endout = (outside->VertexList.back());
     Vertex startin = (inside->VertexList.front());
-    DDouble ret= DistanceOnSphere(endout, startin, px, py, pz, pt);
+    DDouble ret= DistanceOnSphere(endout, startin, px, py, pz);
     return ret;
   }
   
@@ -1350,11 +1320,11 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
     //angles here are vectorial products. We need to keep the direction of future stitch, form end of "outside" to start of "ouside".
     Vertex startout = (outside->VertexList.front());
     Vertex endout = (outside->VertexList.back());
-    DDouble outRange = DistanceOnSphere(endout, startout, px, py, pz, pt);
+    DDouble outRange = DistanceOnSphere(endout, startout, px, py, pz);
     Vertex startin = (inside->VertexList.front());
     Vertex endin = (inside->VertexList.back());
-    DDouble endout2startin = DistanceOnSphere(endout, startin, px, py, pz, pt);
-    DDouble endout2endin = DistanceOnSphere(endout, endin, px, py, pz, pt);
+    DDouble endout2startin = DistanceOnSphere(endout, startin, px, py, pz);
+    DDouble endout2endin = DistanceOnSphere(endout, endin, px, py, pz);
     //we go in the direction of "outside".
     bool ret = ( (outRange > 0 && endout2startin > 0 && endout2endin > 0 ) || (outRange < 0 && endout2startin <0 && endout2endin <0 ));
     if (ret) { 
@@ -1371,7 +1341,7 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
     //stitch end of p to start of q
     Vertex endOfP = p->VertexList.back();
     Vertex startOfQ = q->VertexList.front();
-    DDouble dist = DistanceOnSphere(endOfP,startOfQ,a,b,c,d); //is an angle.
+    DDouble dist = DistanceOnSphere(endOfP,startOfQ,a,b,c); //is an angle.
     DDouble dintervals = dist / DELTA;
     //add vertexes to end of p until start of q is reached
     if (abs(dintervals) > 1) {
@@ -1401,43 +1371,218 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
     }
   }
   
-  //this is for cutplanes polygons. Start and End points are on the same latitude, at different longitudes. No 3d calculation.
-  void StitchTwoPolygonsOnCutPlane(Polygon *p, Polygon *q)
-  {
-    //stitch end of p to start of q
-    Vertex endOfP = p->VertexList.back();
-    Vertex startOfQ = q->VertexList.front();
-    //take care of modulo
-    DDouble lon1,lon2;
-    lon1=startOfQ.lon; if (lon1<0) lon1+=2*GDL_PI;
-    lon2=endOfP.lon;if (lon2<0) lon2+=2*GDL_PI;
-    DDouble dist = lon1-lon2;
-    DDouble dintervals = abs(dist / DELTA);
-    //add vertexes to end of p until start of q is reached
-    if (dintervals > 1) { // can be cut in 2
-      int nintervals = dintervals;
-      dintervals = floor(dintervals);
-      DDouble dlon = dist / dintervals;
-      for (int k = 0; k < nintervals; k++) {
-        Vertex stitch;
-        stitch.lon = endOfP.lon+k*dlon;
-        stitch.lat = endOfP.lat; 
-        p->VertexList.push_back(stitch); //add at end of p
-      }
-    }
-    if (p == q) {
-      p->VertexList.push_back(startOfQ); //close contour
-    } else { //add all of q at end of p;
-      p->VertexList.splice(p->VertexList.end(), q->VertexList);
-    }
-  }
-  
 //  bool intersectsLonLatBox(DDouble minlon, DDouble maxlon, DDouble minlat, DDouble maxlat, const DDouble* llbox){
 //    return !( ( (maxlon < llbox[1]) || (minlon > llbox[3]) ) && ( ( maxlat < llbox[0] ) || ( minlat > llbox[2]) ) );
 //  }
   
 // a predicate implemented as a function:
 bool isInvalid (const Polygon& pol) { return (!pol.valid); }
+
+//special version of gdlProJForward that works on non-polygon data and takes care of current projection limits and CLIPS.
+  DDoubleGDL* gdlApplyFullProjection(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lonsIn, DDoubleGDL *latsIn)
+  {
+    if (map==NULL) map = SysVar::Map();
+    //DATA MUST BE IN RADIANS
+    unsigned pTag = map->Desc()->TagIndex("PIPELINE");
+    DDoubleGDL* pipeline = (static_cast<DDoubleGDL*> (map->GetTag(pTag, 0))->Dup());
+    Guard<BaseGDL> pipeGuard(pipeline);
+
+    unsigned llboxTag = map->Desc()->TagIndex("LL_BOX");
+    DDoubleGDL* llbox = (static_cast<DDoubleGDL*> (map->GetTag(llboxTag, 0))->Dup());
+    Guard<BaseGDL> llboxGuard(llbox);
+
+    // convert to radians
+    for (int i=0; i<4; ++i) (*llbox)[i]*=DEG_TO_RAD;
+
+    DLong pipedims[2];
+
+    enum {
+      EXIT = 0,
+      SPLIT,
+      CLIP_PLANE,
+      TRANSFORM,
+      CLIP_UV
+    };
+
+    pipedims[0] = pipeline->Dim(0);
+    pipedims[1] = pipeline->Dim(1);
+    int line = 0;
+    //if pipeline is void, a TRANSFORM will be applied anyway.This test is just for that.
+    bool PerformTransform = (pipeline->Sum() == 0);
+    if (PerformTransform) (*pipeline)[0] = TRANSFORM; //just change value of pipeline (which is a copy)
+
+    int icode = (*pipeline)[pipedims[0] * line + 0];
+    DDouble a = (*pipeline)[pipedims[0] * line + 1]; //plane a,b,c,d
+    DDouble b = (*pipeline)[pipedims[0] * line + 2];
+    DDouble c = (*pipeline)[pipedims[0] * line + 3];
+    DDouble d = (*pipeline)[pipedims[0] * line + 4];
+    DDouble px = (*pipeline)[pipedims[0] * line + 5]; //pole x,y,z
+    DDouble py = (*pipeline)[pipedims[0] * line + 6];
+    DDouble pz = (*pipeline)[pipedims[0] * line + 7];
+    DDouble clon,slon,clat,slat;
+    DDouble x,y,z;
+    DDouble* lons=static_cast<DDouble*>(&(*lonsIn)[0]);
+    DDouble* lats=static_cast<DDouble*>(&(*latsIn)[0]);
+    bool isHidden;
+
+    SizeT nEl = lonsIn->N_Elements();
+    LPTYPE idata;
+    XYTYPE odata;
+    DLong dims[2];
+    dims[0] = 2;
+    dims[1] = nEl;
+    dimension dim(dims, 2);
+    DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+    
+    //convert all lons lats, next tag NaN those outside CUTS
+#ifdef PROJ_IS_THREADSAFE
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    {
+#pragma omp for
+#endif
+      for (OMPInt i = 0; i < nEl; ++i) {
+        idata.u = lons[i];
+        idata.v = lats[i];
+        odata = PJ_FWD(idata, ref);
+        (*res)[2 * i] = odata.u;
+        (*res)[2 * i + 1] = odata.v;
+      }
+#ifdef PROJ_IS_THREADSAFE
+    }
+#endif
+    while (icode > 0 && line < 12) {
+      switch (icode) {
+      case CLIP_PLANE:
+        for (SizeT i = 0; i < nEl; ++i) {
+          gdl_sincos(lons[i], &slon, &clon);
+          gdl_sincos(lats[i], &slat, &clat);
+          x = clon * clat;
+          y = slon * clat;
+          z = slat;
+          isHidden = (a * x + b * y + c * z + d < 0.0);
+          if (isHidden) {
+            (*res)[2 * i] = std::numeric_limits<double>::quiet_NaN();
+            (*res)[2 * i + 1] = std::numeric_limits<double>::quiet_NaN();
+          }
+        }
+        break;
+      case CLIP_UV:
+        //TO BE DONE (really useful?)
+        break;
+      }
+      line++;
+      icode = (*pipeline)[pipedims[0] * line + 0];
+      a = (*pipeline)[pipedims[0] * line + 1]; //plane a,b,c,d
+      b = (*pipeline)[pipedims[0] * line + 2];
+      c = (*pipeline)[pipedims[0] * line + 3];
+      d = (*pipeline)[pipedims[0] * line + 4];
+      px = (*pipeline)[pipedims[0] * line + 5]; //pole x,y,z
+      py = (*pipeline)[pipedims[0] * line + 6];
+      pz = (*pipeline)[pipedims[0] * line + 7];
+    }
+    return res;
+  }
+
+//special version of gdlProJForward that updates X and Y and generalizes PJ_FWD by enabling clipping to NaNs
+  void gdlFullProjectionTransformation(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lonsIn, DDoubleGDL *latsIn)
+  {
+    if (map==NULL) map = SysVar::Map();
+    //DATA MUST BE IN RADIANS
+    unsigned pTag = map->Desc()->TagIndex("PIPELINE");
+    DDoubleGDL* pipeline = (static_cast<DDoubleGDL*> (map->GetTag(pTag, 0))->Dup());
+    Guard<BaseGDL> pipeGuard(pipeline);
+
+    unsigned llboxTag = map->Desc()->TagIndex("LL_BOX");
+    DDoubleGDL* llbox = (static_cast<DDoubleGDL*> (map->GetTag(llboxTag, 0))->Dup());
+    Guard<BaseGDL> llboxGuard(llbox);
+
+    // convert to radians
+    for (int i=0; i<4; ++i) (*llbox)[i]*=DEG_TO_RAD;
+
+    DLong pipedims[2];
+
+    enum {
+      EXIT = 0,
+      SPLIT,
+      CLIP_PLANE,
+      TRANSFORM,
+      CLIP_UV
+    };
+
+    pipedims[0] = pipeline->Dim(0);
+    pipedims[1] = pipeline->Dim(1);
+    int line = 0;
+    //if pipeline is void, a TRANSFORM will be applied anyway.This test is just for that.
+    bool PerformTransform = (pipeline->Sum() == 0);
+    if (PerformTransform) (*pipeline)[0] = TRANSFORM; //just change value of pipeline (which is a copy)
+
+    int icode = (*pipeline)[pipedims[0] * line + 0];
+    DDouble a = (*pipeline)[pipedims[0] * line + 1]; //plane a,b,c,d
+    DDouble b = (*pipeline)[pipedims[0] * line + 2];
+    DDouble c = (*pipeline)[pipedims[0] * line + 3];
+    DDouble d = (*pipeline)[pipedims[0] * line + 4];
+    DDouble px = (*pipeline)[pipedims[0] * line + 5]; //pole x,y,z
+    DDouble py = (*pipeline)[pipedims[0] * line + 6];
+    DDouble pz = (*pipeline)[pipedims[0] * line + 7];
+    DDouble clon,slon,clat,slat;
+    DDouble x,y,z;
+    DDouble* lons=static_cast<DDouble*>(&(*lonsIn)[0]);
+    DDouble* lats=static_cast<DDouble*>(&(*latsIn)[0]);
+    bool isHidden;
+    // convert to radians
+    
+
+    SizeT nEl = lonsIn->N_Elements();
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (OMPInt i = 0; i < nEl; ++i) {
+       lons[i]*=DEG_TO_RAD;
+       lats[i]*=DEG_TO_RAD;
+    }
+
+    LPTYPE idata;
+    XYTYPE odata;
+
+    while (icode > 0 && line < 12) {
+      switch (icode) {
+      case CLIP_PLANE:
+        for (SizeT i = 0; i < nEl; ++i) {
+          gdl_sincos(lons[i], &slon, &clon);
+          gdl_sincos(lats[i], &slat, &clat);
+          x = clon * clat;
+          y = slon * clat;
+          z = slat;
+          isHidden = (a * x + b * y + c * z + d < 0.0);
+          if (isHidden) {
+            lons[i] = std::numeric_limits<double>::quiet_NaN();
+            lats[i] = std::numeric_limits<double>::quiet_NaN();
+          }
+        }
+        break;
+      case CLIP_UV:
+        //TO BE DONE (really useful?)
+        break;
+      case TRANSFORM:
+        for (OMPInt i = 0; i < nEl; ++i) {
+          if (isfinite(lons[i])) {
+            idata.u = lons[i];
+            idata.v = lats[i];
+            odata = PJ_FWD(idata, ref);
+            lons[i] = odata.u;
+            lats[i] = odata.v;
+          }
+        }
+      }
+      line++;
+      icode = (*pipeline)[pipedims[0] * line + 0];
+      a = (*pipeline)[pipedims[0] * line + 1]; //plane a,b,c,d
+      b = (*pipeline)[pipedims[0] * line + 2];
+      c = (*pipeline)[pipedims[0] * line + 3];
+      d = (*pipeline)[pipedims[0] * line + 4];
+      px = (*pipeline)[pipedims[0] * line + 5]; //pole x,y,z
+      py = (*pipeline)[pipedims[0] * line + 6];
+      pz = (*pipeline)[pipedims[0] * line + 7];
+    }
+  }
 
   DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lonsIn, DDoubleGDL *latsIn, DLongGDL *connIn,
       bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines, bool const doFill)
@@ -1494,7 +1639,7 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
     DDoubleGDL *lons;
     DDoubleGDL *lats;
     DLongGDL *currentConn;
-    bool isVisible;
+
     DDouble clon,slon,clat,slat;
     DDouble minlon,maxlon,minlat,maxlat;
 
@@ -1591,31 +1736,35 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
     std::list<Polygon> newPolygonList;
     std::list<Polygon> tmpPolygonList;
     
-    while (icode > 0 && line < 8) {
+    int sideCode = 0; //side Code: +1: on the pole side if the clip/split plane = visible (for CLIP) -1 on the other side.
+    while (icode > 0 && line < 12) {
+      bool doClip=false; //say we clip plane, not split along poles.
       switch (icode) {
+      case CLIP_PLANE:
+        doClip=true;
       case SPLIT:
         if (PolygonList.empty()) break;
         for (std::list<Polygon>::iterator p = PolygonList.begin(); p != PolygonList.end(); ++p) {
 
           //cut current polygon, copy in a new polygon list the cuts
-          int sign = 0;
           currentVertexList.clear();
           Vertex curr;
 
           std::list<Vertex>::iterator v = p->VertexList.begin();
-          //peculiar case: start point is on a split. We need to find the first point in the vertex list that is not on the split and "push"
-          //all the previous points towards it. This is the reason of the "sign" parameter in avoidSplits(). Sign is the sign of "before" when 
-          //the point giving "before" is not on the split. If every vertexes are on the split (MAP_GRID values for example), sign is 0 and the result
-          //is "somewhere" but consistent. In summary: once "sign" is defined and followed, nothing should go wrong.
           gdl_sincos(v->lon,&slon,&clon);
           gdl_sincos(v->lat,&slat,&clat);
           xs = clon * clat;
           ys = slon * clat;
           zs = slat;
-          before = a * xs + b * ys + c * zs;
-          if (abs(before) < epsilon) sign = findSign((*p), a, b, c);
-          else sign = getSign(before);
-          avoidSplits(v, a, b, c, sign);
+          before = a * xs + b * ys + c * zs + d;
+          // peculiar case: start point is on a split. We need to find the first point in the vertex list that is not on the split and "push"
+          // all the previous points towards it. This is the reason of the "sideCode" parameter in avoidSplits(), based on positivity of the
+          // distance to the plane. If every vertexes are on the split (MAP_GRID values for example), sideCode is 0 and the result
+          // is "somewhere" but consistent. In summary: once "sideCode" is defined and followed, nothing should go wrong.
+ 
+          if (abs(before) < epsilon) sideCode = findSign((*p), a, b, c, d); //if we start too close to the plane, 
+          else sideCode = getSign(before);
+          avoidSplits(v, a, b, c, d, sideCode);
           // xs etc may have changed due to avoidSplits(), recompute.
           gdl_sincos(v->lon,&slon,&clon);
           gdl_sincos(v->lat,&slat,&clat);
@@ -1623,27 +1772,27 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
           ys = slon * clat;
           zs = slat;
 
-          before = a * xs + b * ys + c * zs;
+          before = a * xs + b * ys + c * zs + d;
 
-          currentPol.type = p->type; //inherit type at start
-          currentPol.valid = true;
+          currentPol.type = sideCode;
+          currentPol.valid = (doClip && currentPol.type ==-1)?false:true;
           curr.lon = v->lon;
           curr.lat = v->lat;
           currentVertexList.push_back(curr);
           for (++v; v != p->VertexList.end(); ++v) {
 
-            avoidSplits(v, a, b, c, sign);
+            avoidSplits(v, a, b, c, d, sideCode);
             gdl_sincos(v->lon,&slon,&clon);
             gdl_sincos(v->lat,&slat,&clat);
             xe = clon * clat;
             ye = slon * clat;
             ze = slat;
-            after = a * xe + b * ye + c * ze;
+            after = a * xe + b * ye + c * ze + d;
 
             if (before * after < 0) {
               //cut and start a new polygon
-              //find intersection
-              OnSphereVectorSplitPlaneIntersection(xs, ys, zs, xe, ye, ze, a, b, c, xcutb, ycutb, zcutb, xcuta, ycuta, zcuta);
+              //find intersection. 
+                OnSphereVectorPlaneIntersection(xs, ys, zs, xe, ye, ze, a, b, c, d, xcutb, ycutb, zcutb, xcuta, ycuta, zcuta, sideCode);
 
               //double dist = DistanceFromSplitPole(xcutb, ycutb, zcutb, px, py, pz);
               //SPLIT is made to cut on the opposite side of the sphere, not on all the split plane.
@@ -1657,13 +1806,11 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
                 //end of current Pol. Memorize cut position of first cut for cut ordering if filling occurs:
                 currentPol.VertexList = currentVertexList;
                 currentVertexList.clear();
-                int newtype = -1 * currentPol.type;
-
                 tmpPolygonList.push_back(currentPol);
-
+                sideCode = -sideCode; //as we are on the other side
                 //create a new polygon list
-                currentPol.type = newtype; //inherit type at start
-                currentPol.valid = true;
+                currentPol.type = sideCode; 
+                currentPol.valid = (doClip && currentPol.type ==-1)?false:true;
                 x = xcuta;
                 y = ycuta;
                 z = zcuta;
@@ -1671,7 +1818,6 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
                 curr.lat = atan2(z, sqrt(x * x + y * y));
                 currentVertexList.push_back(curr);
               }
-              sign = -sign; //as we are on the other side
             }
             curr.lon = v->lon;
             curr.lat = v->lat;
@@ -1695,6 +1841,10 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
             tmpPolygonList.pop_back();
           }
 
+          if (doClip) { //eliminate invalid (cached) polygons.
+            tmpPolygonList.remove_if(isInvalid);
+          }
+          
           if (fill && tmpPolygonList.size() > 1) {
             // produce 2 lists: before and after cut
             std::list<Polygon> beforePolygonList;
@@ -1806,164 +1956,6 @@ done:             aliasList->remove_if(isInvalid);
 
         //Should remove empty polygons: TODO
         break;
-      case CLIP_PLANE:
-        if (PolygonList.empty()) break;
-
-        //copy & cut...
-        for (std::list<Polygon>::iterator p = PolygonList.begin(); p != PolygonList.end(); ++p) {
-          currentVertexList.clear();
-          Vertex curr;
-
-          std::list<Vertex>::iterator v = p->VertexList.begin();
-          gdl_sincos(v->lon,&slon,&clon);
-          gdl_sincos(v->lat,&slat,&clat);
-          xs = clon * clat;
-          ys = slon * clat;
-          zs = slat;
-          before = a * xs + b * ys + c * zs + d;
-          isVisible = (before >= 0.0);
-          if (isVisible) {
-            curr.lon = v->lon;
-            curr.lat = v->lat;
-            currentVertexList.push_back(curr);
-          }
-          for (++v; v != p->VertexList.end(); ++v) {
-            gdl_sincos(v->lon,&slon,&clon);
-            gdl_sincos(v->lat,&slat,&clat);
-            xe = clon * clat;
-            ye = slon * clat;
-            ze = slat;
-            after = a * xe + b * ye + c * ze + d;
-
-            if (before * after < 0.0) { //cut and start a new polygon
-              //find intersection for clip_plane
-              OnSphereVectorClipPlaneIntersection(xs, ys, zs, xe, ye, ze, a, b, c, d, xcuta, ycuta, zcuta);
-              if (isVisible) {
-                x = xcuta;
-                y = ycuta;
-                z = zcuta;
-                curr.lon = atan2(y, x);
-                curr.lat = atan2(z, sqrt(x * x + y * y));
-                currentVertexList.push_back(curr);
-                //end of current Pol.
-                currentPol.VertexList = currentVertexList;
-                currentVertexList.clear();
-                tmpPolygonList.push_back(currentPol);
-              }
-              isVisible = !isVisible;
-              if (isVisible) {
-                //create a new polygon list
-                x = xcuta;
-                y = ycuta;
-                z = zcuta;
-                curr.lon = atan2(y, x);
-                curr.lat = atan2(z, sqrt(x * x + y * y)); //asin( z );
-                currentVertexList.push_back(curr);
-              }
-            } else if (isVisible) {
-              curr.lon = v->lon;
-              curr.lat = v->lat;
-              currentVertexList.push_back(curr);
-            }
-            before = after;
-            xs = xe;
-            ys = ye;
-            zs = ze;
-          }
-          if (isVisible) {
-            currentPol.VertexList = currentVertexList;
-            currentVertexList.clear();
-            tmpPolygonList.push_back(currentPol);
-          }
-          
-          if (fill && tmpPolygonList.size() > 1) {
-            std::list<Polygon>::iterator beg = tmpPolygonList.begin();
-            std::list<Polygon>::reverse_iterator end = tmpPolygonList.rbegin();
-            beg->VertexList.splice(beg->VertexList.begin(), end->VertexList); //concatenate
-            tmpPolygonList.pop_back();
-          }
-
-          if (fill) {
-          
-          int maxloop = 0;
-              do {
-                //same procedure as for SPLITs except for stitch.
-done2:            tmpPolygonList.remove_if(isInvalid);
-                  for (std::list<Polygon>::iterator q = tmpPolygonList.begin(); q != tmpPolygonList.end(); ++q) {
-                  Polygon * container = &(*q);
-                  container->inside = 0;
-                  container->outside = 0;
-                  for (std::list<Polygon>::iterator p = tmpPolygonList.begin(); p != tmpPolygonList.end(); ++p) {
-                    Polygon * test = &(*p);
-                    if (!(test == container)) { 
-                      if (IsPolygonInside(container, test,a,b,c)) container->inside += 1;
-                      if (IsPolygonInside(test, container,a,b,c)) container->outside += 1;
-                    }
-                  }
-                }
-                int needsUpdate=0;  
-                for (std::list<Polygon>::iterator q = tmpPolygonList.begin(); q != tmpPolygonList.end(); ++q) {
-                  Polygon * container = &(*q);
-                  if (container->inside == 0 && container->outside == 0) {
-                      StitchTwoPolygons(container, container, a, b, c, d);
-                      newPolygonList.push_back(*container);
-                      container->valid = false;
-                      needsUpdate++;
-                    }
-                  }
-                if (needsUpdate) goto done2;
-                for (std::list<Polygon>::iterator q = tmpPolygonList.begin(); q != tmpPolygonList.end(); ++q) {
-                  Polygon * container = &(*q);
-                  if (container->inside > 0 && container->outside == 0) { 
-                      std::list<Polygon>::iterator toStitch = tmpPolygonList.end();
-                      DDouble distref = proximityEvaluator(container,container,a,b,c,d);
-                      DDouble dist;
-                      for (std::list<Polygon>::iterator p = tmpPolygonList.begin(); p != tmpPolygonList.end(); ++p) {
-                        Polygon * inside = &(*p);
-                        if (!(inside == container) && IsPolygonInside(container, inside,a,b,c)) {
-                          dist = proximityEvaluator(container,inside,a,b,c,d);
-                          if (dist/distref > 0 && dist/distref < 1) {
-                            distref = dist;
-                            toStitch = p;
-                          }
-                        }
-                      }
-                      StitchTwoPolygons(container, &(*toStitch), a, b, c, d);
-                      toStitch->valid = false; 
-                      goto done2;
-                    }
-                  }
-                int erase_all = 1;
-                for (std::list<Polygon>::iterator q = tmpPolygonList.begin(); q != tmpPolygonList.end(); ++q) {
-                  if (q->valid) erase_all *= 0;
-                }
-                maxloop++;
-
-                if (maxloop > 32) {
-                  erase_all = 1;
-                }
-                if (erase_all == 1) tmpPolygonList.clear();
-              } while (!tmpPolygonList.empty());
-
-
-          }else {
-            //just add tmpPolygonList content to end of newPolygonList
-            newPolygonList.splice(newPolygonList.end(), tmpPolygonList);
-            //clear tmp (normally should be empty!)
-            tmpPolygonList.clear();
-          }
-
-
-
-
-
-        }
-        //exchange new & old contents and void new
-        if (newPolygonList.empty()) PolygonList.clear();
-        else PolygonList.swap(newPolygonList);
-        newPolygonList.clear();
-
-        break;
       case TRANSFORM:
         if (PolygonList.empty()) break;
 
@@ -2058,8 +2050,6 @@ done2:            tmpPolygonList.remove_if(isInvalid);
 
     return res;
   }
-
-
 
 
 } // namespace

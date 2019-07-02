@@ -17,7 +17,8 @@ PRO gdlDrawSingleshape, shape, zvalue, extra, polyfill=poly, MAPSTRUCT=mapStruct
 ; see Coyote's Guide to IDL Programming: http://www.idlcoyote.com
 ;       
 
-;   Compile_Opt idl2
+  Compile_Opt idl2, hidden
+  on_error, 2
 
    minpts=[1,3] ; for [poly=0,1]
    ; Drawing is going to be done based on the shape type.
@@ -98,6 +99,8 @@ PRO gdlDrawSingleshape, shape, zvalue, extra, polyfill=poly, MAPSTRUCT=mapStruct
 END 
 
 PRO gdlFreeShapeCompound, compound
+  Compile_Opt idl2, hidden
+  on_error, 2
   attributes_names=compound[0]
   entities=compound[1]
   nentities=N_Elements(*entities)
@@ -112,8 +115,10 @@ PRO gdlFreeShapeCompound, compound
 END
 
 PRO gdlDrawShapeCompound, compound, zvalue, extra, attrname=attrname, attrval=attrval, polyfill=poly, MAPSTRUCT=mapStruct, force_fill=force
-  ; Cycle through each compound's shape and draw it, if required.
+  Compile_Opt idl2, hidden
+  on_error, 2
 
+  ; Cycle through each compound's shape and draw it, if required.
   if n_elements(attrname) eq 0 then attrname = '*'
 
   attributes_names=compound[0]

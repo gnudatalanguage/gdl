@@ -424,7 +424,7 @@ namespace lib
 	case NORMAL3D: //X->X Y->Y plane XY
 	  Data3d.code = code012;
 	  break;
-	case XY: // X->Y Y->X plane XY
+	case OXY: // X->Y Y->X plane XY
 	  Data3d.code = code102;
 	  break;
 	case XZ: // Y->Y X->Z plane YZ
@@ -950,7 +950,7 @@ namespace lib
 	  gdlAxis3(e, actStream, XAXIS, xStart, xEnd, xLog);
 	  gdlAxis3(e, actStream, YAXIS, yStart, yEnd, yLog);
 	  break;
-	case XY: // X->Y Y->X plane XY
+	case OXY: // X->Y Y->X plane XY
 	  t3yStart=(xLog)?log10(xStart):xStart,
             t3yEnd=(xLog)?log10(xEnd):xEnd,
             t3xStart=(yLog)?log10(yStart):yStart,

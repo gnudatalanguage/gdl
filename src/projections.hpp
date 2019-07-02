@@ -39,7 +39,7 @@ namespace lib {
 
 #ifdef USE_LIBPROJ4_NEW
   extern "C" {
-    //#include "projects.h"
+#include "projects.h"
 #include "proj_api.h"
   }
 #define LPTYPE projLP
@@ -87,12 +87,15 @@ namespace lib {
   //general reprojecting function
 #endif
 
-  //general reprojecting function
+  //general reprojecting functions
+  DDoubleGDL* gdlApplyFullProjection(PROJTYPE ref, DStructGDL* map,
+			     DDoubleGDL* lon, DDoubleGDL *lat);
+  void gdlFullProjectionTransformation(PROJTYPE ref, DStructGDL* map,
+			     DDoubleGDL* lon, DDoubleGDL *lat);
   DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map,
 			     DDoubleGDL* lon, DDoubleGDL *lat, DLongGDL* connectivity,
 			     bool doConn, DLongGDL* &gons, bool doGons,
 			     DLongGDL* &lines, bool doLines, bool doFill);
-
   DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap); //not static since KW is at same place for all uses.
 
 #define COMPLEX2 GDL_COMPLEX

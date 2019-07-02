@@ -93,7 +93,7 @@ static int code021[3] = {0, 2, 1};
 enum ORIENTATION3D
   {
     NORMAL3D=0,
-    XY,
+    OXY, //XY is a macro from proj4...
     XZ,
     YZ,
     XZYZ,
