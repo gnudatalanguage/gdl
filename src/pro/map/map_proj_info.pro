@@ -32,7 +32,7 @@ ll_limits = ll_limits, uvrange=u, uv_range=uu, map_structure=mapstruct
 
    name = proj[index].fullname
    property=proj_properties[index]
-   conic=(property.CONIC eq 1)
+   conic=(property.CONIC eq 1 and property.ELL eq 0 and property.SPH eq 0) ; only true conics (ex: not Bonne)
    spheric=(property.SPH eq 1)
    cylindrical=(property.CYL eq 1)
    azimuthal=(property.AZI eq 1)

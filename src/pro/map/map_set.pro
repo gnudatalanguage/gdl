@@ -32,6 +32,8 @@ PRO MAP_SET, lat, lon, rot, $
   GOODESHOMOLOSINE = goodeshomolosine , $  
 ; special: condensed form for 2 standar parallels...
   STANDARD_PARALLELS = standard_parallels  , $ 
+; ellipsois has a different meaning as in map_proj_init!!!
+  ELLIPSOID=ellipsoid,$
 ; and 3 satellite projection  parameters.
   SAT_P = Sat_p, $
 ; MAP_SET:
@@ -59,6 +61,9 @@ PRO MAP_SET, lat, lon, rot, $
   WHOLE_MAP=whole_map,$
 ; extra to add non-idl keywords, like proj-like keywords. Has some implications.
   _extra=extra
+
+
+  ON_ERROR, 2                   ; return to caller
 
 ; limit vs. scale
  doscale=n_elements(scale) gt 0
@@ -98,7 +103,12 @@ PRO MAP_SET, lat, lon, rot, $
      map_struct_append, extra, "SAT_TILT",sat_p[1]
      map_struct_append, extra, "CENTER_AZIMUTH",sat_p[2] 
   endif
-
+  if n_elements(ellipsoid) gt 0 then begin
+     if n_elements(ellipsoid) ne 3 then message, "ELLIPSOID must be a 3-element array"
+     a=ellipsoid[0] & e2=ellipsoid[1]  & b=a*sqrt(1-e2^2)
+     map_struct_append, extra, "SEMIMAJOR_AXIS",a 
+     map_struct_append, extra, "SEMIMINOR_AXIS",b
+  endif
   if n_elements(standard_parallels) gt 0 then map_struct_append, extra, "STANDARD_PAR1",standard_parallels[0] 
   if n_elements(standard_parallels) gt 1 then map_struct_append, extra, "STANDARD_PAR2",standard_parallels[1] 
   if keyword_set(STEREOGRAPHIC) then nam = 'stereographic'

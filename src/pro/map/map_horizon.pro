@@ -64,14 +64,16 @@ PRO map_horizon, fill=fill, nverts=n, zvalue=zvalue, _extra=Extra
 ;;
     endif else if name eq "HEALPIX" then begin
        z=1e-4
-       inc=(45-z)/(n/2-1)
-       yt=[45d:90-z:inc]
+       magic=asin(2./3.)/!dtor
+       inc=(magic-z)/(n/2-1)
+       yt=[magic:90-z:inc]
        ryt=reverse(yt) 
        yb=-yt & ryb=reverse(yb)
-       y0=[0d:45:inc]
+       y0=[0d:magic:inc]
        ry0=reverse(y0)
+       x0=y0*0.0d
        x=yt*0.0d 
-       xx=[x-180+z,x-180+z,x-90-z, x-90+z, x-z,x+z, x+90-z, x+90+z, x+180-z, x+180-z]
+       xx=[x0-180+z,x-180+z,x-90-z, x-90+z, x-z,x+z, x+90-z, x+90+z, x+180-z, x0+180-z]
        xx=[xx,reverse(xx)]
        yy=[y0,yt, ryt, yt,ryt,yt,ryt,yt,ryt,ry0]
        yy=[yy,-1*reverse(yy)]
@@ -82,7 +84,6 @@ PRO map_horizon, fill=fill, nverts=n, zvalue=zvalue, _extra=Extra
        yr=xy[1,*]
     endif else if name eq "RHEALPIX" then begin
        z=1e-4
-       magic=asin(2./3.)/!dtor
        x1=-!DPI & x2=x1/2. & x3=!DPI & y0=-3*!DPI/4 & y1=-!DPI/4 & y2=-y1 & y3=-y0
        xr=[x1,x1,x2,x2,x3,x3,x2,x2,x1]
        yr=[y0,y3,y3,y2,y2,y1,y1,y0,y0]

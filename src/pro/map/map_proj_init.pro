@@ -109,6 +109,7 @@ n_optional = n_elements(list_of_optional_params)
 property=proj_properties[index]
 if (property.EXIST eq 0) then message,'Unfortunately, projection '+shortname+ ' is flagged as absent. Please check MAP_INSTALL in GDL documentation.'
 conic=(property.CONIC eq 1)
+elliptic=(property.ELL eq 1)
 spheric=(property.SPH eq 1)
 cylindric=(property.CYL eq 1)
 azimuthal=(property.AZI eq 1)
@@ -116,7 +117,7 @@ interrupted=(property.INTER eq 1)
 ; test possibility of applying rotation.
 ; it can be forbidden by definition of NOROT
 rotPossible=(property.NOROT eq 0)
-
+south=0
 ; this logical tells if a coordinate rotation can be tempted
 ; basically if projection accepts lat_0 or lat_1 or lat_2 or lat_ts as parameter
 ; (required or optional) it is not necessary to use the
@@ -193,7 +194,17 @@ if n_passed gt 0 and n_passed ge n_required then begin
          message,"Missing required parameters: "+kwlist
       endif
       ; populate required parameter list
-      for i=0,n_required-1 do filled_required_parameter_string+=" "+list_of_needed_params[i]+passed_values[tindex[i]]
+      for i=0,n_required-1 do begin
+         ; filter negative values for zone and set south
+         if list_of_needed_params[i] eq "+zone=" then begin
+            the_zone=fix(passed_values[tindex[i]])
+            if the_zone lt 0 then begin
+               passed_values[tindex[i]]=strtrim(-1*the_zone,2)
+               south=1
+            endif
+         endif
+         filled_required_parameter_string+=" "+list_of_needed_params[i]+passed_values[tindex[i]]
+      endfor
    endif
 
    ; do we have optional values for projection?
@@ -270,10 +281,11 @@ p0lon=p0lon[0]
 p0lat=p0lat[0]
 p1=p1[0]
 p2=p2[0]
+
 ; for conic projections, although lat_0 is not in the list of
 ; authorized parameters, it works, so we add it, as it is very
 ; important to center the projection.
-if (~rotPossible ) then begin
+if (~rotPossible and conic and ~elliptic ) then begin
  w=where(list_of_passed_params eq '+lat_0=', count)
  if count gt 0 then begin
     val=passed_values[w[0]]
@@ -301,12 +313,18 @@ myMap.pole=[0,!DPI/2,0,0,0,0,1] ; need to define myMap.pole BEFORE calling MAP_P
 
 MAP_CLIP_SET, MAP=myMap, /RESET        ;Clear clipping pipeline.
 ; do various clever things...
+; need to get base proj4 name!
+p4n=proj[index].proj4name
+; need to keep ony the real proj4 name if perchance there was additional commands already set in the name
+p4n=(strsplit(strtrim(p4n,2),' ',/extract))[0] 
 
 ; 1) get !map useful values
 ; radius or ell or..
 myMap.a=6370997.0d ; default
 myMap.e2=1
-hasRadius=0 & if n_elements(sphere_radius) gt 0 then begin 
+hasRadius=0 
+ellipticalusagerequired=(p4n eq "utm" or p4n eq "ups")
+if n_elements(sphere_radius) gt 0 then begin 
    hasRadius=1
    myMap.a=sphere_radius[0]
 endif else begin 
@@ -337,16 +355,23 @@ if n_elements(SEMIMAJOR_AXIS) gt 0 then begin
  if ~n_elements(SEMIMINOR_AXIS) gt 0 then Message,"Keywords SEMIMAJOR_AXIS and SEMIMINOR_AXIS must both be supplied."
  hasDefinedEll=1
  myMap.a=SEMIMAJOR_AXIS
- myMap.e2 = sqrt (1. -SEMIMINOR_AXIS^2/SEMIMAJOR_AXIS^2)
+ f=1.-(semiminor_axis/semimajor_axis)
+ myMap.e2 = 2*f-f^2
 endif
 
 ; 2) split, clip..
-; non-azimuthal projections: split at 180 degrees from map center -
-; treat interrupted cases separately
-
-p4n=proj[index].proj4name
-; need to keep ony the real proj4 name if perchance there was additional commands already set in the name
-p4n=(strsplit(strtrim(p4n,2),' ',/extract))[0] 
+; treat all interrupted cases separately (probably need to change !Map
+; pipeline size to accomodate for many-faceted projections: not done
+; but easy!
+; non-azimuthal projections: split at 180 degrees from map center,
+; then:
+; conic: will cut out pole region at some lat, and stop somewhere on
+; the other side, usually not far from the lat_2 if exists.
+; cylindric: should cut 'cylinder ends' ---> not done properly for
+; transverse?
+; azim: should cut somewhere: gnomonic cannot show one hemisphere,
+; other can, but will be very distorted.
+; transverse mercator projections are treated also in "interrupted"
 if (interrupted) then begin
  case p4n of
     "igh": BEGIN
@@ -382,72 +407,66 @@ if (interrupted) then begin
     END
  ELSE: print,"Interrupted projection "+p4n+" is not yet properly taken into account in map_proj_init, please FIXME!"
  endcase
-endif
+endif else begin ; not interrupted
+   if not azimuthal then begin
+      MAP_PROJ_SET_SPLIT,myMap ; for all projs non azim
+; conics: clip around the poles
+      if conic then begin
+                                ; apparently clipping is done 10 degrees above or below equator for
+                                ; opposite hemisphere and at +75 degrees on same hemisphere unless the
+                                ; standard parallels are not on the same side of equator, giving a 75
+                                ; degree clip on both sides. 
+         test1= (p1 ge 0.0) ? 1 : -1
+         test2= (p2 ge 0.0) ? 1 : -1
+         if (test1 eq test2) then begin
+            map_clip_set, map=myMap, clip_plane=[0,0,test1,sin(!dtor*10.)]
+            map_clip_set, map=myMap, clip_plane=[0,0,-1*test2,sin(!dtor*75.0)]
+            myMap.p[13]=-1*test1*10. ; use it to store this value, see map_grid, map_horizon
+            myMap.p[14]=test2*75.    ; use it to store this value, see map_grid, map_horizon
+         endif else begin
+            map_clip_set, map=myMap, clip_plane=[0,0,1,sin(!dtor*75.0)]
+            map_clip_set, map=myMap, clip_plane=[0,0,-1,sin(!dtor*75.0)]
+            myMap.p[13]=75.     ; use it to store this value, see map_grid, map_horizon
+            myMap.p[14]=-75.    ; use it to store this value, see map_grid, map_horizon
+         endelse
+      endif else if cylindric then begin
+         map_clip_set, map=myMap, clip_plane=[0,0,1,sin(!dtor*89.99)]
+         map_clip_set, map=myMap, clip_plane=[0,0,-1,sin(!dtor*89.99)]
+         myMap.p[13]=89.99        ; use it to store this value, see map_grid, map_horizon
+         myMap.p[14]=-89.99       ; use it to store this value, see map_grid, map_horizon
+      endif
+   endif else begin               ; azim projs.
+      case p4n of
+         "nsper": BEGIN
+            if satheight eq 0 then begin 
+               MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[cos(myMap.u0)*cos(myMap.v0), sin(myMap.u0)*cos(myMap.v0), sin(myMap.v0), -0.5d]
+               myMap.p[14]=-0.5d ; use it to store this value, see map_grid, map_horizon
+            endif else begin
+               val=-1.01d /(1+satheight/myMap.a)
+               MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[cos(myMap.u0)*cos(myMap.v0), sin(myMap.u0)*cos(myMap.v0), sin(myMap.v0), val]
+               myMap.p[14]=val  ; use it to store this value, see map_grid, map_horizon
+            endelse
+         END
+         "gnom": BEGIN 
+            MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[cos(myMap.u0)*cos(myMap.v0), sin(myMap.u0)*cos(myMap.v0), sin(myMap.v0), -0.5d]
+            myMap.p[14]=-0.5d   ; use it to store this value, see map_grid, map_horizon
+         END
+         ELSE: BEGIN
+            MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[cos(myMap.u0)*cos(myMap.v0), sin(myMap.u0)*cos(myMap.v0), sin(myMap.v0), -1d-8]
+            myMap.p[14]=-1d-8   ; use it to store this value, see map_grid, map_horizon
+         END
+      ENDCASE
+   endelse                      ; end azim projs
+endelse                         ; not interrupted
 
-if ( (spheric and not azimuthal) or cylindric or conic and ~interrupted) then if ~limited then MAP_PROJ_SET_SPLIT,myMap 
-
-; cylindrical projections: next: clip the poles , with different
-; values as conics
-; conics: split across center longitude, and clip around the
-; pole. TODO: special treatment for "south" projections.
-if (conic or cylindric and ~interrupted and ~limited ) then begin
- if (cylindric) then begin
-    map_clip_set, map=myMap, clip_plane=[0,0,1,sin(!dtor*89.99)]
-    map_clip_set, map=myMap, clip_plane=[0,0,-1,sin(!dtor*89.99)]
-    myMap.p[13]=89.99 ; use it to store this value, see map_grid, map_horizon
-    myMap.p[14]=-89.99 ; use it to store this value, see map_grid, map_horizon
- endif else begin
- ; apparently clipping is done 10 degrees above or below equator for
- ; opposite hemisphere and at +75 degrees on same hemisphere unless the
- ; standard parallels are not on the same side of equator, giving a 75
- ; degree clip on both sides. 
-    test1= (p1 ge 0.0) ? 1 : -1
-    test2= (p2 ge 0.0) ? 1 : -1
-    if (test1 eq test2) then begin
-       map_clip_set, map=myMap, clip_plane=[0,0,test1,sin(!dtor*10.)]
-       map_clip_set, map=myMap, clip_plane=[0,0,-1*test2,sin(!dtor*75.0)]
-       myMap.p[13]=-1*test1*10.        ; use it to store this value, see map_grid, map_horizon
-       myMap.p[14]=test2*75.       ; use it to store this value, see map_grid, map_horizon
-    endif else begin
-       map_clip_set, map=myMap, clip_plane=[0,0,1,sin(!dtor*75.0)]
-       map_clip_set, map=myMap, clip_plane=[0,0,-1,sin(!dtor*75.0)]
-       myMap.p[13]=75.        ; use it to store this value, see map_grid, map_horizon
-       myMap.p[14]=-75.       ; use it to store this value, see map_grid, map_horizon
-    endelse
- endelse
-endif
-
-; azimuthal projections: clip at some projected radius r
-if (azimuthal) then begin
- case p4n of
-    "nsper": BEGIN
-       if satheight eq 0 then begin 
-          MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[cos(myMap.u0)*cos(myMap.v0), sin(myMap.u0)*cos(myMap.v0), sin(myMap.v0), -0.5d]
-       myMap.p[14]=-0.5d       ; use it to store this value, see map_grid, map_horizon
-       endif else begin
-          val=-1.01d /(1+satheight/myMap.a)
-          MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[cos(myMap.u0)*cos(myMap.v0), sin(myMap.u0)*cos(myMap.v0), sin(myMap.v0), val]
-       myMap.p[14]=val       ; use it to store this value, see map_grid, map_horizon
-       endelse
-    END
-    "gnom": BEGIN 
-       MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[cos(myMap.u0)*cos(myMap.v0), sin(myMap.u0)*cos(myMap.v0), sin(myMap.v0), -0.5d]
-       myMap.p[14]=-0.5d        ; use it to store this value, see map_grid, map_horizon
-    END
-  ELSE: BEGIN
-    MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[cos(myMap.u0)*cos(myMap.v0), sin(myMap.u0)*cos(myMap.v0), sin(myMap.v0), -1d-8]
-    myMap.p[14]=-1d-8           ; use it to store this value, see map_grid, map_horizon
-  END
-
- ENDCASE
-endif
-
+if ellipticalusagerequired then proj4Options+=' +ellps=GRS80 '
+if south then proj4Options+=' +south'
 ; finalize projection to be used in finding limits:
 myMap.up_name=proj4command+" "+proj4Options
 
 if (hasDefinedEll) then begin
 myMap.up_name+=" +a="+strtrim(SEMIMAJOR_AXIS[0],2)+" +b="+strtrim(SEMIMINOR_AXIS[0],2)
-endif else if (hasRadius) then begin
+endif else if (hasRadius and ~ellipticalusagerequired) then begin
 myMap.up_name+=" +R="+strtrim(SPHERE_RADIUS[0],2)
 endif else if (hasEll) then begin
 myMap.up_name+=" +ell="+ellipsoid
@@ -503,7 +522,15 @@ proj_scale=dblarr(nproj)
 ; save once to have map_proj_init work.
 save,filen="projDefinitions.sav",proj,proj_properties,required,optional,proj_scale,proj_limits
 
-; now compute default limits [-180..180, -90..90] for all projections:
+; now compute default limits [-180..180, -90..90] for all projections.
+; the idea is to call all the projections with all 'possible'
+; parameters in order to have only unexisting projections that cause a
+; (trapped) error. As the projection has been set up, the uv box is
+; the one computed in map_proj_init using a brute force
+; method. Obvioulsy this could be made more exact if the uv_box was
+; part of the database, but imho this small amount of work will rebuke
+; everybody. An other option would be to use Proj functions to get all
+; the needed information, I've not looked into that.  
 ; call proj_init for uv_box approximate calculation...
 for i=0,nproj-1 do begin
    catch,absent
@@ -533,19 +560,25 @@ endfor
 save,filen="projDefinitions.sav",proj,proj_properties,required,optional,proj_scale,proj_limits
 end
 
-;csv_proj=read_csv("projections.csv",n_table=1)
-;save,csv_proj,filename="csv.sav"
+;soffice --headless --convert-to csv projections.ods
+;csv_proj=read_csv("projections.csv",n_table=1) & save,csv_proj,filename="csv.sav" & exit
+; gdl
+; .compile map_proj_init.pro
+; MAP_PROJ_AUXILIARY_READ_CSV
+; exit
 
 pro test_all_projs, n
-if n_elements(n) eq 0 then n=1
-on_error,2
-map_proj_info,proj_names=pjn
- catch,absent 
- if absent ne 0 then  continue
-
-for i=n,n_elements(pjn) do begin
-print,i,pjn[i]
-map_set,33,120,33,sphere=1,name=pjn[i],lat_1=12,lat_2=56,lat_ts=33,height=2,e_cont={cont:1,fill:1,color:'33e469'x,hires:0},/hor,e_hor={nvert:200,fill:1,color:'1260E2'x},e_grid={box_axes:0,grid:1},title=pjn[i],/iso
-wait,1
-endfor
+  if n_elements(n) eq 0 then n=1
+  on_error,2
+  map_proj_info,proj_names=pjn
+  for i=n,n_elements(pjn) do begin
+     catch,absent
+     if absent ne 0 then begin
+        catch,/cancel
+        continue
+     endif
+     map_set,48.83,-2.33,name=pjn[i],lat_1=12,lat_2=56,lat_ts=33,height=2,e_cont={cont:1,fill:1,color:'33e469'x,hires:0},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:0,color:'1260E2'x,glinethick:1,glinestyle:0},title=pjn[i],/iso,center_azimuth=44,sat_tilt=33
+     print,i,pjn[i]
+     wait,1
+  endfor
 end
