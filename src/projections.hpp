@@ -30,11 +30,13 @@ namespace lib {
 
   BaseGDL* map_proj_forward_fun( EnvT* e);
   BaseGDL* map_proj_inverse_fun( EnvT* e);
+
+#if defined(USE_LIBPROJ4) || defined(USE_LIBPROJ4_NEW) 
+
   //dummy functions for compatibility support of GCTP projections 
   void map_proj_gctp_forinit (EnvT* e);
   void map_proj_gctp_revinit (EnvT* e);
-  
-#if defined(USE_LIBPROJ4) || defined(USE_LIBPROJ4_NEW) 
+
 #define GDL_COMPLEX COMPLEX2
 
 #ifdef USE_LIBPROJ4_NEW

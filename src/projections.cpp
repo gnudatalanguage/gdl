@@ -953,7 +953,6 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
   void map_proj_gctp_revinit(EnvT* e)
   {
   };
-#endif
 
 //our implementation of sincos(), test if generic sincos() is faster than compiler optimzation of sin() and cos()
   inline void gdl_sincos(DDouble angle, DDouble *s, DDouble *c){
@@ -2051,6 +2050,7 @@ done:             aliasList->remove_if(isInvalid);
     return res;
   }
 
+#endif
 
 } // namespace
 

@@ -250,13 +250,13 @@ if strlen(proj4options) gt 0 then begin
    x=where(strpos(s,'+') eq 0, comp=y)
    a=hash(s[x],s[y])
 ; if a contains "+lon_0" this is p0lon, etc.
-   if a.HasKey("+lon_0") then p0lon=a["+lon_0"]*1d
+   if a.HasKey("+lon_0") then p0lon=(a["+lon_0"]*1d)[0]
    if a.HasKey("+lat_0") then begin
 ;      if ~rotPossible then message,"projection "+
-      p0lat=a["+lat_0"]*1d
+      p0lat=(a["+lat_0"]*1d)[0]
    endif
-   if a.HasKey("+lat_1") then p1=a["+lat_1"]*1d
-   if a.HasKey("+lat_2") then p2=a["+lat_2"]*1d
+   if a.HasKey("+lat_1") then p1=(a["+lat_1"]*1d)[0]
+   if a.HasKey("+lat_2") then p2=(a["+lat_2"]*1d)[0]
    if a.HasKey("+h")     then satheight=a["+h"]*1d
 endif
 
@@ -277,10 +277,6 @@ if (rotPossible) then begin
    endif
 endif
 ; insure following values are zero-dimension doubles (due to Hash, could be arrays)
-p0lon=p0lon[0]
-p0lat=p0lat[0]
-p1=p1[0]
-p2=p2[0]
 
 ; for conic projections, although lat_0 is not in the list of
 ; authorized parameters, it works, so we add it, as it is very
@@ -577,7 +573,7 @@ pro test_all_projs, n
         catch,/cancel
         continue
      endif
-     map_set,48.83,-2.33,name=pjn[i],lat_1=12,lat_2=56,lat_ts=33,height=2,e_cont={cont:1,fill:1,color:'33e469'x,hires:0},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:0,color:'1260E2'x,glinethick:1,glinestyle:0},title=pjn[i],/iso,center_azimuth=44,sat_tilt=33
+     map_set,/advance,48.83,-2.33,name=pjn[i],lat_1=12,lat_2=56,lat_ts=33,height=2,e_cont={cont:1,fill:1,color:'33e469'x,hires:0},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:0,color:'1260E2'x,glinethick:1,glinestyle:0},title=pjn[i],/iso,center_azimuth=44,sat_tilt=33
      print,i,pjn[i]
      wait,1
   endfor

@@ -143,7 +143,6 @@ void LibInit_jmg()
   const string macharKey[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::machar_fun,string("MACHAR"),0,macharKey);
 
-#if defined(USE_LIBPROJ4)||defined(USE_LIBPROJ4_NEW)
   const string map_proj_forwardKey[]={"MAP_STRUCTURE","RADIANS","POLYGONS","POLYLINES","CONNECTIVITY","FILL",KLISTEND};  //WARNING FIXED ORDER for GetMapAsMapStructureKeyword()
   new DLibFunRetNew(lib::map_proj_forward_fun,
 	      string("MAP_PROJ_FORWARD"),2,map_proj_forwardKey,NULL);
@@ -151,6 +150,7 @@ void LibInit_jmg()
   const string map_proj_inverseKey[]={"MAP_STRUCTURE","RADIANS",KLISTEND}; //WARNING FIXED ORDER for GetMapAsMapStructureKeyword()
   new DLibFunRetNew(lib::map_proj_inverse_fun,
 	      string("MAP_PROJ_INVERSE"),2,map_proj_inverseKey);
+#if defined(USE_LIBPROJ4)||defined(USE_LIBPROJ4_NEW)
 //dummy functions for compatibility support of GCTP projections 
   new DLibPro(lib::map_proj_gctp_forinit,string("MAP_PROJ_GCTP_FORINIT"),4);
   new DLibPro(lib::map_proj_gctp_revinit,string("MAP_PROJ_GCTP_REVINIT"),4);
