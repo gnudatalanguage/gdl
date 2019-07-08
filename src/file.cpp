@@ -523,11 +523,11 @@ static void ExpandPathN( FileListT& result,
         fstat_win32(testDir, addlink, dwattrib);
         statStruct.st_mode |= addlink;
 #endif
-        bool isASymLink = S_ISLNK(statStruct.st_mode);
+        bool isaSymLink = S_ISLNK(statStruct.st_mode);
 	//
 	//   follow for expand_path, as per documented behavior of IDL
 	//
-	if(isASymLink) actStat = stat64(testDir.c_str(), &statStruct);
+        if(isaSymLink) actStat = stat64(testDir.c_str(), &statStruct);
         if( S_ISDIR(statStruct.st_mode) != 0) {
 //	  if( debug && isASymLink ) cout << " following a symlink directory: " << testDir << endl;
           recurDir.push_back( testDir);
@@ -695,7 +695,8 @@ static void ExpandPathN( FileListT& result,
     DString cat = sArr[0];
     for( SizeT i=1; i<nArr; ++i)
       cat += pathsep + sArr[i];
-    return new DStringGDL( cat);  }
+    return new DStringGDL( cat);
+ }
 
 #ifdef _WIN32
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH) 
@@ -703,7 +704,35 @@ static void ExpandPathN( FileListT& result,
   // http://msdn.microsoft.com/en-us/library/506720ff.aspx
 #endif
 
+static int filestat( const char *actFile, struct stat64 &statStruct,
+	bool &isaDir, bool &isaSymLink)
+{	// populate a statStruct, determinewhether it is a SymLink or a Dir (or both).
+   struct stat64 statlink;
+
+   int actStat = lstat64(actFile, &statStruct);
+   isaDir = false;
+   isaSymLink = false;
+   if(actStat != 0) return actStat;
+#ifdef _WIN32
+DWORD dwattrib;
+   int addlink = 0;
+   fstat_win32(actFile, addlink, dwattrib);
+   statStruct.st_mode |= addlink;
+#endif
+
+   isaDir = (S_ISDIR(statStruct.st_mode) != 0);
+   isaSymLink = S_ISLNK(statStruct.st_mode);
+//   SizeT lenpath = statStruct.st_size; // if a symlink, this is path size.
+
+   if (isaSymLink ) {
+	 actStat = stat64(actFile, &statlink); // preserving the original actStat
+	 if(actStat == 0) isaDir = (S_ISDIR(statlink.st_mode) != 0);
+	}
+	return 0;
+}
+
 //     modifications        : 2014, 2015 by Greg Jung
+
 static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pat,
 		bool recursive,
 		bool accErr,   bool mark,  bool quote, 
@@ -829,8 +858,8 @@ static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pa
 #endif
 
 		bool isaDir = (S_ISDIR(statStruct.st_mode) != 0);
-		bool isASymLink = (S_ISLNK(statStruct.st_mode) != 0);
-		if(isASymLink) {
+            bool isaSymLink = (S_ISLNK(statStruct.st_mode) != 0);
+            if(isaSymLink) {
 				actStat = stat64( fpC, &statlink);
 		  statStruct.st_mode |= statlink.st_mode;
 		  isaDir = (S_ISDIR(statlink.st_mode) != 0);
@@ -839,7 +868,7 @@ static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pa
 				if( tests[testregular] &&
 					(S_ISREG( statStruct.st_mode) == 0)) continue;
 		if( tests[testdir] && !isaDir) continue;
-		if( tests[testsymlink] && !isASymLink) continue;
+                if( tests[testsymlink] && !isaSymLink) continue;
 
 
 		if( tests[testzero] &&
@@ -1083,15 +1112,13 @@ static void FileSearch( FileListT& fileList, const DString& pathSpec,
       int actStat;
       std::string actFile = p.gl_pathv[ f];
       if ( dotest != 0 ) {
-
-        actStat = lstat64( actFile.c_str(), &statStruct );
+			bool isaDir, isaSymLink;
+              actStat = filestat( actFile.c_str(), statStruct, isaDir, isaSymLink);
         if ( tests[testregular] && // (excludes dirs, sym)
         (S_ISREG( statStruct.st_mode ) == 0) ) continue;
-			  bool isASymLink = (S_ISLNK(statStruct.st_mode) != 0);
-			  if(isASymLink)  actStat = stat64( actFile.c_str(), &statStruct);
-        bool isaDir = (S_ISDIR( statStruct.st_mode ) != 0);
+
         if ( tests[testdir] && !isaDir ) continue;
-        if ( tests[testsymlink] && !isASymLink ) continue;
+              if( tests[testsymlink] && !isaSymLink) continue;
 
         if ( tests[testzero] &&
         (statStruct.st_size != 0) ) continue;
@@ -1925,24 +1952,17 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 	  }
 
         struct stat64 statStruct, statlink;
+		bool isaDir, isaSymLink;
+        int actStat = filestat(actFile.c_str(), statStruct, isaDir, isaSymLink);
 
-        int actStat = lstat64(actFile.c_str(), &statStruct);
-        int addlink = 0;
-#ifdef _WIN32
-	DWORD dwattrib;
-        fstat_win32(actFile, addlink, dwattrib);
-        statStruct.st_mode |= addlink;
-#endif
-        bool isASymLink = (S_ISLNK(statStruct.st_mode) != 0);
-        if (isASymLink ) addlink = stat64(actFile.c_str(), &statlink);
+    if( actStat != 0)     continue;
+
+        bool isaDanglingSymLink = false;
+        if (isaSymLink ) isaDanglingSymLink = 
+			(stat64(actFile.c_str(), &statlink) != 0);
 	//
 	//be more precise in case of symlinks --- use stat
 // to check if target exists or is a dangling symlink
-// keep result in addlink
-
-        bool isADanglingSymLink = (addlink != 0 && isASymLink);
-
-	if( actStat != 0) 	  continue;
 
 	if( read && access( actFile.c_str(), R_OK) != 0)  continue;
 	if( write && access( actFile.c_str(), W_OK) != 0)  continue;
@@ -1967,12 +1987,10 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 
 #endif
 
-	if( dsymlink && !isADanglingSymLink ) 	  continue;
-        if( symlink && !isASymLink ) 	  continue;
+    if( dsymlink && !isaDanglingSymLink )     continue;
+        if( symlink && !isaSymLink )      continue;
 
-	if( directory && ( S_ISDIR(statStruct.st_mode) ||
-		 S_ISDIR(statlink.st_mode) ) == 0)
-	  continue;
+    if( directory && !isaDir)      continue;
 
 	if( regular && S_ISREG(statStruct.st_mode) == 0) 
 	  continue;
@@ -2075,8 +2093,8 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
         statStruct.st_mode |= addlink;
 #endif
 		SizeT lenpath = statStruct.st_size;
-        bool isASymLink = (S_ISLNK(statStruct.st_mode) != 0);
-        if(!isASymLink ) {
+        bool isaSymLink = (S_ISLNK(statStruct.st_mode) != 0);
+        if(!isaSymLink ) {
 			if(!allow_nonsymlink) e->Throw(" Path provided is not a symlink "+tmp);
 			(*res)[r]=""; 
 			continue;
@@ -2190,10 +2208,12 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
         actFile = p0Sf.c_str();
         
 		*(res->GetTag(tName, f)) = DStringGDL(p0Sf);
-
         // stating the file (and moving on to the next file if failed)
        struct stat64 statStruct, statlink;
-
+/***
+       bool isaDir, isaSymLink;
+       int actStat = filestat(actFile, statStruct, isaDir, isaSymLink);
+****/
        int actStat = lstat64(actFile, &statStruct);
        int addlink = 0;
 
@@ -2204,22 +2224,13 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 #endif
 
        bool isaDir = (S_ISDIR(statStruct.st_mode) != 0);
-       bool isASymLink = S_ISLNK(statStruct.st_mode);
-		SizeT lenpath = statStruct.st_size; // if a symlink, this is path size.
-
-       if (isASymLink ) {
-		 addlink = stat64(actFile, &statlink); // preserving the original actStat
+       bool isaSymLink = S_ISLNK(statStruct.st_mode);
+       if (isaSymLink ) {
+         addlink = stat64(actFile, &statlink);
 		 isaDir = (S_ISDIR(statlink.st_mode) != 0);
-// This works ok here but fails in FileSearch
 	    }
-
-     bool isADanglingSymLink = (addlink != 0 && isASymLink); 
-
-
-	  // DANGLING_SYMLINK good place
-	  // SYMLINK
-
-	  if (isASymLink)
+//     bool isaDanglingSymLink = ( isaSymLink && (addlink != 0) ); 
+        if (isaSymLink)
 	    {
 	      *(res->GetTag(tSymlink, f)) = DByteGDL(1);
           if( addlink != 0 )
@@ -2310,7 +2321,7 @@ void file_mkdir( EnvT* e)
 
       static int noexpand_pathIx = e->KeywordIx( "NOEXPAND_PATH");
       bool noexpand_path = e->KeywordSet( noexpand_pathIx);
-
+        int status;
       for (int i=0; i<nParam; i++)
 	{
 	  DStringGDL* pi = dynamic_cast<DStringGDL*>(e->GetParDefined(i));
@@ -2319,24 +2330,69 @@ void file_mkdir( EnvT* e)
 	      string tmp = (*pi)[j];
 	      if (!noexpand_path) WordExp(tmp);
 		#ifndef _WIN32
-        int status = mkdir(tmp.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        status = mkdir(tmp.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        #else
+        status = mkdir(tmp.c_str());
+        #endif
+        if (status == 0) continue; // the easy case.
+        if (errno == EEXIST) {
+            ;
+           struct stat64 statStruct;
+		   bool isaDir, isaSymLink;
+
+		   int actStat = filestat(tmp.c_str(), statStruct, isaDir, isaSymLink);
+		   if( isaDir) continue;
+            std::cout << " File_mkdir error: a file (not directory) already exists:"<<tmp<<std::endl;
+
+        }  else if (errno == ENOENT) {
+
+            vector<std::string> paths;
+            paths.push_back(tmp);
+            string dn = Dirname(tmp);
+             while( dn != tmp ) {
+                tmp = dn;
+                #ifndef _WIN32
+                status = mkdir(tmp.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		#else
-        int status = mkdir(tmp.c_str());
+                status = mkdir(tmp.c_str());
 		#endif
+                if( status == 0) break;
+                if (errno != ENOENT) break;
+                paths.push_back(tmp);
+                 dn = Dirname(tmp);
 	    }
+            if(status == 0) {
+                SizeT szp = paths.size();
+                for (int d = 0; d < szp; ++d) {
+                    tmp = paths.back(); paths.pop_back();
+                    #ifndef _WIN32
+                    status = mkdir(tmp.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+                    #else
+                    status = mkdir(tmp.c_str());
+                    #endif
+                    }
+                } else {
+                std::cout << " File_mkdir: unable/unwilling to create "<<tmp<<std::endl;
+            }
+                    
+            } else 
+                std::cout << " !!!! File_mkdir: unable to create "<<tmp<<std::endl;
+            
+      } // for (int j=0; j<pi->N_Elements(); j++)
 	}
 } // file_mkdir
   
 static void FileDelete( DString& name, bool verbose, bool recursive)
 {
 	struct stat64 statStruct;
-	int actStat = lstat64(name.c_str(), &statStruct);
+       bool isaDir, isaSymLink;
+       
+       int actStat = filestat(name.c_str(), statStruct, isaDir, isaSymLink);
 	if(actStat != 0) {
  		cout << " (status="<<actStat<<") FileDelete ERROR: malformed: "+name<<std::endl;
 		return;
 	}
 //	if(trace_me) printf(" trace: FileDelete= %s \n",name.c_str());
-	bool isaDir = (S_ISDIR(statStruct.st_mode) != 0);
 	if(isaDir) {
 		DIR* dir = opendir( name.c_str());
 		if( dir == NULL) return;
@@ -2393,15 +2449,12 @@ void file_delete( EnvT* e)
 
       if (pi == NULL) {
 		  if (quiet) continue;
-//		  par = e->GetPar(i);
+
 		  cout << " file_delete: error parameter "
 		       << caller->GetString( e->GetPar(i),false)
 		       <<" is not a string "<<endl;
 		       continue;
 	  }
-//	  if(verbose) cout << " file_delete: parameter value " This works,
-// to read just the parameter name (undefined)
-//						<< caller->GetString( e->GetPar(i),false);
 
       for (SizeT j=0; j<pi->N_Elements(); j++) {
 		DString srctmp = (*pi)[j];
