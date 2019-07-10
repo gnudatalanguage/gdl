@@ -2230,6 +2230,8 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 		 isaDir = (S_ISDIR(statlink.st_mode) != 0);
 	    }
 //     bool isaDanglingSymLink = ( isaSymLink && (addlink != 0) ); 
+
+     if( actStat != 0 ) continue;
         if (isaSymLink)
 	    {
 	      *(res->GetTag(tSymlink, f)) = DByteGDL(1);
@@ -2237,7 +2239,6 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 		*(res->GetTag(tDanglingSymlink, f)) = DByteGDL(1);
 	    }
 
-	  if( actStat != 0 ) continue;
 
 	  // EXISTS (would not reach here if stat failed)
 	  *(res->GetTag(tExists, f)) = DByteGDL(1);
@@ -2342,7 +2343,8 @@ void file_mkdir( EnvT* e)
 
 		   int actStat = filestat(tmp.c_str(), statStruct, isaDir, isaSymLink);
 		   if( isaDir) continue;
-            std::cout << " File_mkdir error: a file (not directory) already exists:"<<tmp<<std::endl;
+//            std::cout << " File_mkdir error: a file (not directory) already exists:"<<tmp<<std::endl;
+            throw GDLException( " a file (not directory) already exists:"+tmp);
 
         }  else if (errno == ENOENT) {
 
@@ -2372,7 +2374,8 @@ void file_mkdir( EnvT* e)
                     #endif
                     }
                 } else {
-                std::cout << " File_mkdir: unable/unwilling to create "<<tmp<<std::endl;
+//                std::cout << " File_mkdir: unable/unwilling to create "<<tmp<<std::endl;
+                throw GDLException( " unable/unwilling to create "+tmp);
             }
                     
             } else 

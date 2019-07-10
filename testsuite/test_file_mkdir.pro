@@ -23,8 +23,6 @@ if file_test(sandbox) eq 0 then FILE_MKDIR, sandbox $
 openw,/get_lun,lu,sandbox+'/aaafile' & free_lun,lu
 CD, sandbox, cur=cur
 ;
-if KEYWORD_SET(verbose) then message,/continue,$
-        ' note that FILE_MKDIR does not signal back on errors creating a directory'
 afile = 'aaafile'
 if file_test(afile) eq 0 then begin
     message,/continue,' test file not found!'+sandbox+'/aaafile'
@@ -33,6 +31,11 @@ if file_test(afile) eq 0 then begin
     endif
 if KEYWORD_SET(verbose) then message,/continue,$
         ' attempting to create directory over a file'
+++cumul_errors;
+;catch, mkdir_err
+;if mkdir_err ne 0 then begin &$
+;  catch,/cancel & --cumul_errors & endif $
+;  else $
 file_mkdir,afile
 adir = 'adir'
 
@@ -56,8 +59,17 @@ foreach c, chkdirs do $
   if ~file_test(c,/directory) then begin &$
   message,/continue,' test directory fail'+sandbox+c &$
   cumul_errors++ & endif
-
+  
+if KEYWORD_SET(verbose) then message,/continue,$
+        ' another attempt to create directory over a file'
 CD,cur
+direrr = sandbox+'/aaafile/a/b/c'
+++cumul_errors;
+catch, mkdir_err
+if mkdir_err ne 0 then begin &$
+  catch,/cancel & --cumul_errors  & endif $
+  else $
+file_mkdir,direrr
 FILE_DELETE, sandbox, /recursive
 ;
 ; ----------------- final message ----------
