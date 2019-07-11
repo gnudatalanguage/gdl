@@ -32,10 +32,10 @@ if file_test(afile) eq 0 then begin
 if KEYWORD_SET(verbose) then message,/continue,$
         ' attempting to create directory over a file'
 ++cumul_errors;
-;catch, mkdir_err
-;if mkdir_err ne 0 then begin &$
-;  catch,/cancel & --cumul_errors & endif $
-;  else $
+catch, mkdir_err
+if mkdir_err ne 0 then begin &$
+  catch,/cancel & --cumul_errors & endif $
+  else $
 file_mkdir,afile
 adir = 'adir'
 
