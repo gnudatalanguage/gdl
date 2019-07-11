@@ -2379,8 +2379,8 @@ void file_mkdir( EnvT* e)
             }
                     
             } else 
-                std::cout << " !!!! File_mkdir: unable to create "<<tmp<<std::endl;
-            
+//                std::cout << " !!!! File_mkdir: unable to create "<<tmp<<std::endl;
+                throw GDLException(   " !!!! unable to create "+tmp);          
       } // for (int j=0; j<pi->N_Elements(); j++)
 	}
 } // file_mkdir

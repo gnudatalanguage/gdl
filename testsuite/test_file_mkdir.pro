@@ -34,7 +34,7 @@ if KEYWORD_SET(verbose) then message,/continue,$
 ++cumul_errors;
 catch, mkdir_err
 if mkdir_err ne 0 then begin &$
-  catch,/cancel & --cumul_errors & endif $
+  catch,/cancel & --cumul_errors & message,/continue,' expected error caught' & endif $
   else $
 file_mkdir,afile
 adir = 'adir'
@@ -67,7 +67,7 @@ direrr = sandbox+'/aaafile/a/b/c'
 ++cumul_errors;
 catch, mkdir_err
 if mkdir_err ne 0 then begin &$
-  catch,/cancel & --cumul_errors  & endif $
+  catch,/cancel & --cumul_errors  &  message,/continue,' expected error caught' & endif $
   else $
 file_mkdir,direrr
 FILE_DELETE, sandbox, /recursive
