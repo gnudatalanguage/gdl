@@ -82,6 +82,22 @@ PRO map_horizon, fill=fill, nverts=n, zvalue=zvalue, _extra=Extra
        xy=map_proj_forward(xx,yy) ; includes rotation.
        xr=xy[0,*]
        yr=xy[1,*]
+    endif else if name eq "BIPOLARCONICOFWESTERNHEMISPHERE" then begin
+       z=1e-2
+       inc=(180-2*z)/(n/2-1)
+       yt=[-90+z:90-z:inc]
+       ryt=reverse(yt) 
+       x=yt*0.0d 
+       rstx=[-180+z:-110-z:1] & rsty=(rstx*0);-10.0
+       r2stx=[-20+z:180-z:1] & r2sty=(r2stx*0);-10.0
+       xx=[rstx,x-110-z,x-110+z,x-20-z, x-20+z,r2stx]
+       yy=[rsty,yt,ryt, yt, ryt,r2sty]
+       ; add p0lon
+       xx+=!map.p0lon
+       xy=map_proj_forward(xx,yy) ; includes rotation.
+       xr=xy[0,*]
+       yr=xy[1,*]
+
     endif else if name eq "RHEALPIX" then begin
        z=1e-4
        x1=-!DPI & x2=x1/2. & x3=!DPI & y0=-3*!DPI/4 & y1=-!DPI/4 & y2=-y1 & y3=-y0

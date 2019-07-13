@@ -259,7 +259,13 @@ if strlen(proj4options) gt 0 then begin
    if a.HasKey("+lat_2") then p2=(a["+lat_2"]*1d)[0]
    if a.HasKey("+h")     then satheight=a["+h"]*1d
 endif
+; adjust ranges
+map_adjlon,p0lon
 
+p0lat= p0lat > (-89.999) & p0lat=p0lat < 89.999
+p1=p1 > (-89.999) & p1=p1<89.999
+p2=p2 > (-89.999) & p2=p2<89.999
+;if (p2 lt p1) then begin & tmp=p2 & p2=p1 & p1=p2 & end 
 if (rotPossible) then begin
   if replaceCenterByTrueScale then search_string='lat_ts=' else search_string='+lat_0='
 ; try a general oblique transformation
@@ -281,7 +287,7 @@ endif
 ; for conic projections, although lat_0 is not in the list of
 ; authorized parameters, it works, so we add it, as it is very
 ; important to center the projection.
-if (~rotPossible and conic and ~elliptic ) then begin
+if (~rotPossible and conic or spheric) then begin ;  ~elliptic ?
  w=where(list_of_passed_params eq '+lat_0=', count)
  if count gt 0 then begin
     val=passed_values[w[0]]
@@ -368,8 +374,19 @@ endif
 ; azim: should cut somewhere: gnomonic cannot show one hemisphere,
 ; other can, but will be very distorted.
 ; transverse mercator projections are treated also in "interrupted"
-if (interrupted) then begin
+if (interrupted or p4n eq 'bipc') then begin
  case p4n of
+         "bipc": BEGIN
+       splits = [-20,-110] + p0lon
+
+       for i=0,n_elements(splits)-1 do begin 
+          theta = !dtor * splits[i]
+          MAP_CLIP_SET, map=myMap, SPLIT=[splits[i], 0, -sin(theta), cos(theta), 0., 0.]
+       endfor 
+       myMap.up_flags=1000 ; redefine "epsilon" due to precision problems in proj4!!!!
+
+         END
+
     "igh": BEGIN
        splits = [-180, -40, -100, -20, 80] + 180d + p0lon
        
@@ -563,18 +580,23 @@ end
 ; MAP_PROJ_AUXILIARY_READ_CSV
 ; exit
 
-pro test_all_projs, n
-  if n_elements(n) eq 0 then n=1
+pro test_all_projs, from=from, to=to, lon=lon, lat=lat, halt=halt
   on_error,2
   map_proj_info,proj_names=pjn
-  for i=n,n_elements(pjn) do begin
+  ttt=''
+  if n_elements(from) eq 0 then from=1
+  if n_elements(to) eq 0 then to=n_elements(pjn) else to=to<(n_elements(pjn)+1)
+  if n_elements(lon) eq 0 then lon=-2.33
+  if n_elements(lat) eq 0 then lat=48.83
+  
+  for i=from,to do begin
      catch,absent
      if absent ne 0 then begin
         catch,/cancel
         continue
      endif
-     map_set,/advance,48.83,-2.33,name=pjn[i],lat_1=12,lat_2=56,lat_ts=33,height=2,e_cont={cont:1,fill:1,color:'33e469'x,hires:0},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:0,color:'1260E2'x,glinethick:1,glinestyle:0},title=pjn[i],/iso,center_azimuth=44,sat_tilt=33
+     map_set,/advance,lat,lon,name=pjn[i],lat_1=12,lat_2=56,lat_ts=33,height=3,e_cont={cont:1,fill:1,color:'33e469'x,hires:0},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:0,color:'1260E2'x,glinethick:1,glinestyle:0},title=pjn[i],/iso,center_azimuth=44,sat_tilt=33
      print,i,pjn[i]
-     wait,1
+     if keyword_set(halt) then read,ttt,prompt='Waiting for keypad input...' else wait,1
   endfor
 end

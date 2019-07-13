@@ -29,6 +29,7 @@ function  map_image, pristine, xstart, ystart, xsize, ysize, $
 
   ON_ERROR,2
   doMymap=0
+  if n_elements(missing) eq 0 then missing=((!d.flags and 512) ? !d.n_colors-1 : 0)
   if n_tags(map_structure) gt 0 then doMymap=1 else if (!x.type ne 3) then  message, "Current window must have map coordinates"
   
   dims = size(pristine, /dimensions)
@@ -170,14 +171,13 @@ C  =        -179.98333333333333
 F  =        89.98333333333333
 x=0 & y =0 & lonmin=A*x + B*y + C & latmin=D*x + E*y + F
 x=dims[1]-1 & y =dims[2]-1 & lonmax=A*x + B*y + C & latmax=D*x + E*y + F
-stop
 map_set,48.83,-2.33,name="gnomic",scale=3e6,/iso,title='Zoom on Brittany, Gnomic Projection'
 for i=0,2 do begin & z=map_image(reform(r[i,*,*]),Startx,Starty,latmin=latmin,latmax=latmax,lonmin=lonmin,lonmax=lonmax) & tv,z,startx,starty,chan=i+1 & endfor
 map_continents,/hi
 map_grid,box_axes=1,color='1260E2'x,glinethick=1,glinestyle=0,latdel=1,londel=1
 ;map_grid,box_axes=1,color='1260E2'x,glinethick=1,glinestyle=0,latdel=10,londel=15
 R = READ_TIFF("~/gdl/resource/maps/high/NE_SUBSET.tiff")
-map_set,48.83,-2.33,name="gnomic",scale=3e7,/iso,title='Europa, Gnomic Projection'
+map_set,48.83,-2.33,name="gnomic",scale=3e7,/iso,title='Europa, Gnomic Projection',e_cont={cont:1,fill:1,color:'33e469'x,hires:1},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x}
 for i=0,2 do begin & z=map_image(reform(r[i,*,*]),Startx,Starty,lonmin=-10.5149147727,latmin=59.3309659091,lonmax=10.6044034091,latmax=41.2542613636) & tv,z,startx,starty,chan=i+1 & endfor
 map_continents,/hi
 map_grid,box_axes=1,color='1260E2'x,glinethick=1,glinestyle=0,latdel=10,londel=10

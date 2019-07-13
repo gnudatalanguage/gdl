@@ -184,16 +184,6 @@ PRO MAP_SET, lat, lon, rot, $
 
   ; reverse? TODO
 
-  ; graphic passable keywords
-  map_struct_append, egraphics, "COLOR", color
-  map_struct_append, egraphics, "T3D", t3d
-  map_struct_append, egraphics, "ZVALUE", zvalue
- 
-
-; the real thing
-  plot,[0,1],/noerase,/nodata,xrange=uvrange[[0,2]],yrange=uvrange[[1,3]],isotropic=keyword_set(scale)?1:isotropic,xsty=5,ysty=5, position=position, charsize=charsize, color=color,title=title
-  if doborder then plots, !x.window[[0,1,1,0,0]], !y.window[[0,0,1,1,0]], COLOR=color, zvalue, /NORM, /NOCLIP, T3D=t3d
-
   !x.type=3
 
 ; map_horizon? first, because of possibility to be filled... 
