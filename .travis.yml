@@ -151,7 +151,7 @@ install:
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=OFF"; fi 
 
     # wx
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libwxgtk2.8-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libwxgtk3.0-dev"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} wxwidgets"; fi
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=OFF"; fi 
