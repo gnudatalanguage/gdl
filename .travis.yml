@@ -83,6 +83,7 @@ install:
     # codecov
     - if [ -v CODECOV ]; then export APT_PACKAGES="$APT_PACKAGES lcov"; fi
     - if [ -v CODECOV ]; then wget -O CMakeModules/CodeCoverage.cmake https://raw.githubusercontent.com/bilke/cmake-modules/master/CodeCoverage.cmake; fi
+    - if [ -v CODECOV ]; then $SEDCMD 's/--output-file ${Coverage_NAME}/--output-file ${PROJECT_BINARY_DIR}\/${Coverage_NAME}/g' CMakeModules/CodeCoverage.cmake
     - if [ -v CODECOV ]; then TMPFILE=`tempfile` ;fi
     - if [ -v CODECOV ]; then tac src/CMakeLists.txt > $TMPFILE; fi
     - if [ -v CODECOV ]; then echo "set(CMAKE_CXX_FLAGS \${CMAKE_CXX_FLAGS_COVERAGE})" >> $TMPFILE; fi
