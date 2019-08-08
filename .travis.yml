@@ -67,6 +67,7 @@ before_install:
     - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | /usr/local/bin/python -m pip uninstall numpy; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then brew remove numpy gdal postgis; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython2.7.dylib -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python2.7"; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_CXX_FLAGS="-Wdeprecated-register"; fi
 
 install:
     ##
@@ -142,8 +143,10 @@ install:
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang"; fi 
 
     # ImageMagick (Linux) / GraphicsMagick (OSX) - just to try both
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libmagick++-dev"; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=ON"; fi 
+    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libmagick++-dev"; fi
+    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=ON"; fi 
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgraphicsmagick++1-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=ON -DMAGICK=ON"; fi 
 
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} graphicsmagick"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=ON -DMAGICK=OFF"; fi 
@@ -151,7 +154,7 @@ install:
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=OFF"; fi 
 
     # wx
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libwxgtk2.8-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libwxgtk3.0-dev"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} wxwidgets"; fi
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=OFF"; fi 
