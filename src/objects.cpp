@@ -82,6 +82,7 @@ namespace structDesc {
   DStructDesc* GDL_CONTAINER_NODE = NULL;
   DStructDesc* GDL_HASHTABLEENTRY = NULL;
   DStructDesc* IDLFFSHAPE = NULL;
+  DStructDesc* IDLFFXMLSAX = NULL;
 }
 
 // for OpenMP
@@ -248,6 +249,7 @@ void InitStructs()
   structList.push_back(gdlHashTE);
   structDesc::GDL_HASHTABLEENTRY = gdlHashTE;
   
+#ifdef USE_SHAPELIB  
   //for IDLffShape
   DStructDesc* gdlffShape = new DStructDesc( "IDLFFSHAPE");
   gdlffShape->AddTag("IDLFFSHAPE_TOP", &aLong64);
@@ -285,6 +287,26 @@ void InitStructs()
   gdlffShape_attribute->AddTag("PRECISION", &aLong);
   // insert into structList
   structList.push_back(gdlffShape_attribute);
+#endif
+  
+#ifdef USE_EXPAT
+  
+  //for IDLffXMLSAX
+  DStructDesc* gdlffXmlSax = new DStructDesc( "IDLFFXMLSAX");
+  gdlffXmlSax->AddTag("IDLFFXMLSAX_TOP", &aLong64);
+  gdlffXmlSax->AddTag("IDLFFXMLSAXVERSION", &aInt);
+  gdlffXmlSax->AddTag("VALIDATION_MODE", &aInt);
+  gdlffXmlSax->AddTag("HALT_PROCESSING", &aInt);
+  gdlffXmlSax->AddTag("_XML_PARSER", &aLong64);
+  gdlffXmlSax->AddTag("_XML_LOCATOR", &aLong64);
+  gdlffXmlSax->AddTag("IDLFFXMLSAX_BOTTOM", &aLong64);
+//  gdlffXmlSax->AddParent(gdl_object);
+  // insert into structList
+  structList.push_back(gdlffXmlSax);
+  structDesc::IDLFFXMLSAX = gdlffXmlSax;
+#endif
+  
+  
   
   // OBJECTS END =======================================================
    

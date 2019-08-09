@@ -283,6 +283,12 @@ ${SOURCES}
 Shapefiles.cpp
 )
 endif(USE_SHAPELIB)
+if(USE_EXPAT)
+set (SOURCES
+${SOURCES}
+sax.cpp
+)
+endif(USE_EXPAT)
 
 add_subdirectory(antlr)
 
