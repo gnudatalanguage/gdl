@@ -5,11 +5,13 @@ branches:
 clone_folder: c:\projects\gdl
 configuration:
   - Release
-  - Debug
+  #- Debug
 environment:
   matrix:
   # #- platform: mingw64720x8664
-  - platform: mingw64630x8664
+  #- platform: mingw64630x8664 64-bit off
+  # try gcc version 7.3 then back to 6.3 (32-bit)
+  - platform: mingw64730x8664
   - platform: mingw64630i686
   # #- platform: mingw64730x8664
    
