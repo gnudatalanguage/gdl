@@ -36,6 +36,9 @@ PRO MAP_SET, lat, lon, rot, $
   ELLIPSOID=ellipsoid,$
 ; and 3 satellite projection  parameters.
   SAT_P = Sat_p, $
+; central_azimuth for Mercator, Cylindrical, Miller, Mollweide, and
+; Sinusoidal. works ? only for Mercator
+  CENTRAL_AZIMUTH=cent_azim, $
 ; MAP_SET:
   CLIP=clip, $  ;Default = do map specific clipping, CLIP=0 to disable (yet unused)
   REVERSE=reverse, $ ; TODO: 
@@ -84,7 +87,6 @@ PRO MAP_SET, lat, lon, rot, $
 ; lon better be between -180 and 180
   map_adjlon,lon
 
-  if n_elements(cent_azim) le 0 then cent_azim = 0.0
   if n_elements(color) eq 0 then color = !p.color ;Default color
   if n_elements(title) eq 0 then title = " "
   if n_elements(t3d) le 0 then t3d = 0
@@ -118,8 +120,17 @@ PRO MAP_SET, lat, lon, rot, $
   if keyword_set(GNOMIC) then nam = 'gnomonic'
   if keyword_set(AZIMUTHAL) then nam = 'azimuthal equidistant'
   if keyword_set(SATELLITE) then nam = 'satellite'
-  if keyword_set(CYLINDRICAL) then begin & nam = 'cylindrical' & map_struct_append, extra,"LAT_TS",0.0 & end
-  if keyword_set(MERCATOR) then nam = 'mercator'
+  if keyword_set(CYLINDRICAL) then nam = 'equidistant cylindrical' ; idl:cylindrical is just equidistant cylindrical
+  if keyword_set(MERCATOR) then begin
+     if n_elements(cent_azim) gt 0 then begin
+        map_struct_append, extra,"ALPHA",cent_azim
+        map_struct_append, extra,"LONC",lon
+        lon=0
+        nam = 'oblique mercator'
+     endif else begin
+        nam = 'mercator'
+     endelse
+  endif
   if keyword_set(MILLER_CYLINDRICAL) then nam='miller cylindrical'
   if keyword_set(MOLLWEIDE) then nam = 'mollweide'
   if keyword_set(SINUSOIDAL) then nam = 'sinusoidal'
@@ -129,6 +140,13 @@ PRO MAP_SET, lat, lon, rot, $
   if keyword_set(TRANSVERSE_MERCATOR) then nam = 'transverse mercator'
   if keyword_set(ROBINSON) then nam = 'robinson'
   if keyword_set(GOODESHOMOLOSINE) then nam = 'interrupted goode'
+
+  if n_elements(cent_azim) gt 0 then begin
+     if keyword_set(MILLER_CYLINDRICAL) then map_struct_append, extra, "CENTER_AZIMUTH",cent_azim 
+     if keyword_set(MOLLWEIDE) then map_struct_append, extra, "CENTER_AZIMUTH",cent_azim 
+     if keyword_set(CYLINDRICAL) then map_struct_append, extra, "CENTER_AZIMUTH",cent_azim 
+     if keyword_set(SINUSOIDAL) then map_struct_append, extra, "CENTER_AZIMUTH",cent_azim 
+  endif
 
   if dolimit then begin
    ; We use sphere_radius=1 as all the rest (grid and horizon) are based on that 

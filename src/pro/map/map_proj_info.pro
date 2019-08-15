@@ -3,7 +3,8 @@
 ;
 pro map_proj_info, rindex, current=current, name=name, scale=meters, cylindrical=cylindrical, $
 proj_names = list_of_pnames, circle=circle, conic=conic, azimuthal=azimuthal, uv_limits = uv_limits, $
-ll_limits = ll_limits, uvrange=u, uv_range=uu, map_structure=mapstruct
+ll_limits = ll_limits, uvrange=u, uv_range=uu, map_structure=mapstruct, $
+p4name=p4n ; special for GDL
   
   COMPILE_OPT hidden
 ; the common contains all relevant values after initialisation
@@ -31,6 +32,9 @@ ll_limits = ll_limits, uvrange=u, uv_range=uu, map_structure=mapstruct
    if rindex lt 1 or rindex gt nproj then message, 'Projection number must be within range of 1 to'+ strtrim(nproj-1,2)
 
    name = proj[index].fullname
+   p4n=proj[index].proj4name
+   ; need to keep ony the real proj4 name if perchance there was additional commands already set in the name
+   p4n=(strsplit(strtrim(p4n,2),' ',/extract))[0] 
    property=proj_properties[index]
    conic=(property.CONIC eq 1 and property.ELL eq 0 and property.SPH eq 0) ; only true conics (ex: not Bonne)
    spheric=(property.SPH eq 1)

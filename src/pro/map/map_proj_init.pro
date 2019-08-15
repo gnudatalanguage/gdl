@@ -6,26 +6,41 @@
 ; IDL, i.e., one cannot use a GDL-defined mapstruct in IDL (if passed
 ; within a save file), (but one can use an IDL-defined mapstruct in GDL).
 
-pro map_proj_set_split, myMap
-
+;rotates vector p1 around vector a by angle theta (degrees) 
+function map_rotate3d, p1, a, theta
     compile_opt idl2, hidden
-    
+    ON_ERROR, 2  ; return to caller
+    st=sin(theta*!const.dtor)
+    ct=cos(theta*!const.dtor)
+    ; quaternion-derived rotation matrix
+    matrix=[[ a[0] * a[0] * (1 - ct) + ct, a[0] * a[1] * (1 - ct) - a[2]*st, a[0] * a[2] * (1 - ct) + a[1] * st],$
+      [ a[1] * a[0] * (1 - ct) + a[2]*st, a[1] * a[1] * (1 - ct) + ct, a[1] * a[2] * (1 - ct) - a[0] * st],$
+      [ a[2] * a[0] * (1 - ct) - a[1]*st, a[2] * a[1] * (1 - ct) + a[0]*st, a[2] * a[2] * (1 - ct) + ct ]]
+    ; multiply matrix vector
+    vector=[p1[0], p1[1], p1[2]]
+    rotated = matrix # vector
+    return, rotated
+ end
+
+pro map_proj_set_split, myMap
+    compile_opt idl2, hidden
+    ON_ERROR, 2  ; return to caller
+    ; v0 and u0 are the center lon & lat
     sinlat = sin(myMap.v0)
     coslat = cos(myMap.v0)
     sinlon = sin(myMap.u0)
     coslon = cos(myMap.u0)
-    xyzProjCenter = [coslon*coslat, $
-                     sinlon*coslat, sinlat]
+    xyzProjCenter = [coslon*coslat, sinlon*coslat, sinlat]
+; pole:lon & lat in rad, sin and cos of polar latitude, x,y,z
+; coordinates of pole.
     pole = myMap.pole[4:6]        ;Location of pole
     plane = CROSSP(xyzProjCenter, pole)
     split=[myMap.p0lon, myMap.p0lat, plane, 0d]
     MAP_CLIP_SET, MAP=myMap, SPLIT=split
 end
 
-function map_proj_init, pindex, p4number=p4number, relaxed=relaxed, rotation=rotation, gctp=gctp, radians=radians, limit=passed_limit, ellipsoid=ellipsoid, semimajor_axis=semimajor_axis, semiminor_axis=semiminor_axis, sphere_radius=sphere_radius, datum=datum, clip=clip,  gdl_precise=gdl_precise, _extra=extra
-
+function map_proj_init, pindex, p4number=p4number, relaxed=relaxed, rotation=rotation, gctp=gctp, radians=radians, limit=passed_limit, ellipsoid=ellipsoid, semimajor_axis=semimajor_axis, semiminor_axis=semiminor_axis, sphere_radius=sphere_radius, center_azimuth=center_azimuth, datum=datum, clip=clip,  gdl_precise=gdl_precise, _extra=extra
     compile_opt idl2, hidden
-
     ON_ERROR, 2  ; return to caller
 
 ; NOTE: We are always "relaxed".
@@ -85,6 +100,11 @@ endelse
 if index ge nproj then message, /noname,   'Invalid Projection number: ' + strtrim(sindex)
 
 ; useful strings:
+; get base proj4 name!
+p4n=proj[index].proj4name
+; need to keep ony the real proj4 name if perchance there was additional commands already set in the name
+p4n=(strsplit(strtrim(p4n,2),' ',/extract))[0] 
+
 ; required parameters, filled.
 filled_required_parameter_string=""
 list_of_needed_params=""
@@ -102,9 +122,10 @@ endif else n_required=0
 ; all optional elements in a string; add false northing easting that are
 ; common for all projections.
 optional_opt=optional[index]+" x_0= y_0="
-list_of_optional_params="+"+strsplit(optional_opt," ",/extract)
+list_of_optional_params="+"+strsplit(optional_opt," ",/extract) 
 n_optional = n_elements(list_of_optional_params)
 ;print,list_of_optional_params
+
 ;define type(s) of current projection 
 property=proj_properties[index]
 if (property.EXIST eq 0) then message,'Unfortunately, projection '+shortname+ ' is flagged as absent. Please check MAP_INSTALL in GDL documentation.'
@@ -114,29 +135,25 @@ spheric=(property.SPH eq 1)
 cylindric=(property.CYL eq 1)
 azimuthal=(property.AZI eq 1)
 interrupted=(property.INTER eq 1)
-; test possibility of applying rotation.
+noRot=(property.NOROT eq 1) ; this indicates that, unexpectedly, a GOR cannot be tempted on this particular projection.
+; enable non-zero latitudes by use of general oblique rotation (GOR).
+; this is general but GOR adds uncertainties (and complexity=execution
+; time, especially near the poles). Besides, some projections crash
+; GDL when GOR is tempted. Finally, some projections do not need GOR
+; (they accept and use +lat_0=). Interrupted must not use GOR of course.
 ; it can be forbidden by definition of NOROT
-rotPossible=(property.NOROT eq 0)
-south=0
-; this logical tells if a coordinate rotation can be tempted
-; basically if projection accepts lat_0 or lat_1 or lat_2 or lat_ts as parameter
-; (required or optional) it is not necessary to use the
-; general oblique transformation to permit non-zero center_latitudes.
-; But, worse, if projection accepts lat_ts it will be extremely
-; disagreeable to use a general oblique transformation...
-replaceCenterbyTrueScale=0
-if (rotPossible) then begin
-   w=where( strpos([list_of_needed_params,optional_opt],'lat_') ge 0, count)
-   RotPossible=(count eq 0)
-   w1=where( strpos(([list_of_needed_params,optional_opt])[w],'lat_ts') ge 0, count)
-   replaceCenterByTrueScale=(count gt 0) ; some projections, like default "stereo" use lat_ts in proj4 and CENTER_LATITUDE in IDL. We'll translate.
+rotPossible=~noROT and ~azimuthal and ~conic and ~interrupted
+
+; GOR should not be tempted on projections that use +alpha and/or +lonc, as these
+; should be passed as arguments.
+if (n_required gt 0 or n_optional gt 0) then begin
+   w=WHERE(STRMATCH([list_of_needed_params,list_of_optional_params], '+alpha=') EQ 1, count)
+   if (count gt 0) then rotPossible=0
 endif
 
-; there are passed arguments, but no need to bother if they are less
-; than required.
+south=0
 
 passed_params=""
-
 n_passed=0
 
 ; enable abbreviated parameters
@@ -156,18 +173,6 @@ if n_elements(extra) gt 0 then begin
       endif else if count gt 1 then message,"Ambiguous keyword abbreviation: "+passed_params[i]
    endfor
    n_passed=n_elements(list_of_passed_params) ; the only useful, recognized, ones, along with their passed_values.
-endif
-
-; case of lat_ts
-if n_passed gt 0 and replaceCenterByTrueScale then begin
- ; if lat_ts is present, no need to convert lat_0 to lat_ts
-  w=where(list_of_passed_params eq '+lat_ts=', count) & if count le 0 then begin
-     w=where(list_of_passed_params eq '+lat_0=', count) & if count ne 0 then list_of_passed_params[w]='+lat_ts=' ;
-                                ;as it will be searched further down either in list_of_needed_params or in  list_of_optional_params, we need to update both
-;  w=where(list_of_needed_params eq '+lat_0=', count) & if count ne 0 then list_of_needed_params[w]='+lat_ts=' ;
-;  w=where(list_of_optional_params eq '+lat_0=', count) & if count ne
-;  0 then list_of_optional_params[w]='+lat_ts=' ;
-  endif
 endif
 
 if n_passed gt 0 and n_passed ge n_required then begin
@@ -220,7 +225,14 @@ if n_passed gt 0 and n_passed ge n_required then begin
       w=where(tindex ge 0, count) & if count gt 0 then begin
                                 ; populate optional parameter list
          tindex=tindex[w]
-         for i=0,count-1 do filled_optional_parameter_string+=" "+list_of_passed_params[tindex[i]]+passed_values[tindex[i]]; strtrim(extra.(tindex[i]),2)
+         for i=0,count-1 do begin
+            ; filter +n value between 0 and 1 only for fouc_s:
+            if list_of_passed_params[tindex[i]] eq "+n=" and p4n eq "fouc_s" then begin
+               n_val=fix(passed_values[tindex[i]])
+               if (n_val lt 0 or n_val gt 1) then message,"Invalid parameter value ("+strtrim(n_val,2)+") for Foucaut Sinusoidal"
+            endif
+            filled_optional_parameter_string+=" "+list_of_passed_params[tindex[i]]+passed_values[tindex[i]] ; strtrim(extra.(tindex[i]),2)
+         endfor
       endif
    endif
 endif else begin                ; or not...
@@ -236,13 +248,15 @@ proj4options=filled_required_parameter_string+filled_optional_parameter_string
 ; all these into valid elements of !map. Up to now we have only
 ; translated from idl to proj4. now is time to interpret things a bit.
 
-; define defaults values
+; define useful defaults values
 p0lon = 0d                      ; center longitude
 p0lat = 0d                      ; center latitude
  if n_elements(rotation) le 0 then rotation=0d ; rotation
 p1=0 ; locally used standard parallels p1 and p2
 p2=0
 satheight=0
+alpha=90 ; 
+lonc=0 ; see f.e. oblique mercator in proj.org 
 
 if strlen(proj4options) gt 0 then begin
 ; convert proj4options to hash
@@ -251,14 +265,17 @@ if strlen(proj4options) gt 0 then begin
    a=hash(s[x],s[y])
 ; if a contains "+lon_0" this is p0lon, etc.
    if a.HasKey("+lon_0") then p0lon=(a["+lon_0"]*1d)[0]
-   if a.HasKey("+lat_0") then begin
-;      if ~rotPossible then message,"projection "+
+   if a.HasKey("+lat_0") and rotPossible then begin
       p0lat=(a["+lat_0"]*1d)[0]
    endif
    if a.HasKey("+lat_1") then p1=(a["+lat_1"]*1d)[0]
    if a.HasKey("+lat_2") then p2=(a["+lat_2"]*1d)[0]
    if a.HasKey("+h")     then satheight=a["+h"]*1d
+   if a.HasKey("+alpha") then alpha=a["+alpha"]*1d
+   if a.HasKey("+lonc")  then lonc=a["+lonc"]*1d
 endif
+
+
 ; adjust ranges
 map_adjlon,p0lon
 
@@ -267,35 +284,38 @@ p1=p1 > (-89.999) & p1=p1<89.999
 p2=p2 > (-89.999) & p2=p2<89.999
 ;if (p2 lt p1) then begin & tmp=p2 & p2=p1 & p1=p2 & end 
 if (rotPossible) then begin
-  if replaceCenterByTrueScale then search_string='lat_ts=' else search_string='+lat_0='
+  search_string='+lat_0='
 ; try a general oblique transformation
    if spheric and n_passed ne 0 then begin
       w=where(list_of_passed_params eq search_string, count)
       if count gt 0 then begin  ; try general oblique
          p0lat=extra.(w[0])
          if p0lat ne 0 then begin 
-            if p0lat gt 89.999 then p0lat = 89.999 ;take some precautions as PROJ.4 is not protected!!! 
-            if p0lat lt -89.999 then p0lat = -89.999 ;
-            proj4command="+proj=ob_tran +o_proj="+proj[index].proj4name+" +o_lat_p="+strtrim(90.0-p0lat,2) ; center azimuth not OK, FIXME! +" +o_lon_p="+strtrim(center_azimuth,2)
-            p0lat = 0.0
+            if p0lat gt 89.9 then p0lat = 89.9 ;take some precautions as PROJ.4 is not protected!!! 
+            if p0lat lt -89.9 then p0lat = -89.9 ;
+            ; compute pole of transformed projection
+            proj4command="+proj=ob_tran +o_proj="+proj[index].proj4name
+            ; remove '+lat_0=xxx ' from proj4options
+            a=strsplit(proj4options,"\+lat_0=[0-9.]*",/regex,/extract)
+            proj4options=strjoin(a)
          endif
       endif
    endif
 endif
-; insure following values are zero-dimension doubles (due to Hash, could be arrays)
 
 ; for conic projections, although lat_0 is not in the list of
 ; authorized parameters, it works, so we add it, as it is very
 ; important to center the projection.
-if (~rotPossible and conic or spheric) then begin ;  ~elliptic ?
- w=where(list_of_passed_params eq '+lat_0=', count)
- if count gt 0 then begin
-    val=passed_values[w[0]]
-    p0lat=double(val)
-    proj4options+=" +lat_0="+val
- endif
-endif
-
+if noRot eq 1 then p0lat=0 else begin
+   if (~rotPossible and (conic or spheric)) then begin ;
+      w=where(list_of_passed_params eq '+lat_0=', count)
+      if count gt 0 then begin
+         val=passed_values[w[0]]
+         p0lat=double(val)
+         proj4options+=" +lat_0="+val
+      endif
+   endif
+endelse
 
 ; create a 999 !map
 myMap={!map}
@@ -303,22 +323,52 @@ myMap.projection=999
 mymap.p[15]=index ;!useful for map_proj_info and unused apparently.
 myMap.p0lon = p0lon
 myMap.p0lat = p0lat
-myMap.u0 = p0lon * !dtor
-myMap.v0 = p0lat * !dtor
+myMap.u0 = p0lon * !const.dtor
+myMap.v0 = p0lat * !const.dtor
 ;myMap.a = semimajor     ; ellipsoid --> need table of correspondences!
 ;myMap.e2 = e2
 
 myMap.rotation = rotation                      ; map rotation
-myMap.cosr=cos(rotation*!dtor)
-myMap.sinr=sin(rotation*!dtor)
-myMap.pole=[0,!DPI/2,0,0,0,0,1] ; need to define myMap.pole BEFORE calling MAP_PROJ_SET_SPLIT 
+myMap.cosr=cos(rotation*!const.dtor)
+myMap.sinr=sin(rotation*!const.dtor)
+; pole is at +90° on meridian p0lon, eventually rotated by
+; center_azimuth
+pole_lon=p0lon
+pole_lat=p0lat+90
+if pole_lat gt 90 then begin
+   pole_lon+=180 & if pole_lon gt 180 then pole_lon-=360.0
+   pole_lat=180-pole_lat
+endif
+sinlat = sin(pole_lat*!const.dtor)
+coslat = cos(pole_lat*!const.dtor)
+sinlon = sin(pole_lon*!const.dtor)
+coslon = cos(pole_lon*!const.dtor)
+xyzpole = [coslon*coslat, sinlon*coslat, sinlat]
+; rotate pole by center_azimuth if needed
+if keyword_set(center_azimuth) and rotPossible then begin
+   sinlat = sin(myMap.v0)
+   coslat = cos(myMap.v0)
+   sinlon = sin(myMap.u0)
+   coslon = cos(myMap.u0)
+   xyzProjCenter = [coslon*coslat, sinlon*coslat, sinlat]
+   xyz=map_rotate3d(xyzpole,xyzprojcenter,center_azimuth)
+   pole_lon = atan(xyz[1], xyz[0])*!const.rtod
+   pole_lat = atan(xyz[2], sqrt(xyz[0]^2 + xyz[1]^2))*!const.rtod
+   xyzpole=xyz
+   sinlat = sin(pole_lat*!const.dtor)
+   coslat = cos(pole_lat*!const.dtor)
+endif        
+                
+ 
+
+; pole:lon & lat in rad, sin and cos of polar latitude, x,y,z
+myMap.pole=[pole_lon*!const.dtor,pole_lat*!const.dtor,sinlat,coslat,xyzpole] ; need to define myMap.pole BEFORE calling MAP_PROJ_SET_SPLIT 
+
+; now that pole is computed correctly, add pole position to
+; generalized oblique 
+if rotPossible then proj4command+=" +o_lat_p="+strtrim(mymap.pole[1]*!const.rtod,2)+" +o_lon_p="+strtrim(mymap.pole[0]*!const.rtod,2)+" +lon_0="+strtrim(mymap.pole[0]*!const.rtod,2)
 
 MAP_CLIP_SET, MAP=myMap, /RESET        ;Clear clipping pipeline.
-; do various clever things...
-; need to get base proj4 name!
-p4n=proj[index].proj4name
-; need to keep ony the real proj4 name if perchance there was additional commands already set in the name
-p4n=(strsplit(strtrim(p4n,2),' ',/extract))[0] 
 
 ; 1) get !map useful values
 ; radius or ell or..
@@ -373,14 +423,14 @@ endif
 ; transverse?
 ; azim: should cut somewhere: gnomonic cannot show one hemisphere,
 ; other can, but will be very distorted.
-; transverse mercator projections are treated also in "interrupted"
+
 if (interrupted or p4n eq 'bipc') then begin
  case p4n of
          "bipc": BEGIN
        splits = [-20,-110] + p0lon
 
        for i=0,n_elements(splits)-1 do begin 
-          theta = !dtor * splits[i]
+          theta = !const.dtor * splits[i]
           MAP_CLIP_SET, map=myMap, SPLIT=[splits[i], 0, -sin(theta), cos(theta), 0., 0.]
        endfor 
        myMap.up_flags=1000 ; redefine "epsilon" due to precision problems in proj4!!!!
@@ -391,7 +441,7 @@ if (interrupted or p4n eq 'bipc') then begin
        splits = [-180, -40, -100, -20, 80] + 180d + p0lon
        
        for i=0,n_elements(splits)-1 do begin 
-          theta = !dtor * splits[i]
+          theta = !const.dtor * splits[i]
           MAP_CLIP_SET, map=myMap, SPLIT=[splits[i], 0, -sin(theta), cos(theta), 0., 0.]
        endfor 
        myMap.up_flags=1000000 ; redefine "epsilon" due to precision problems in pr
@@ -401,7 +451,7 @@ if (interrupted or p4n eq 'bipc') then begin
        splits = [-3*45, -2*45, -45, 0, 45, 2*45, 3*45] + 180d + p0lon
 
        for i=0,n_elements(splits)-1 do begin 
-          theta = !dtor * splits[i]
+          theta = !const.dtor * splits[i]
           MAP_CLIP_SET, map=myMap, SPLIT=[splits[i], 0, -sin(theta), cos(theta), 0., 0.]
        endfor 
        map_clip_set, map=myMap, SPLIT=[0,90,0,0,1d,-2d/3d]
@@ -413,7 +463,7 @@ if (interrupted or p4n eq 'bipc') then begin
        splits = [-3*45, -2*45, -45, 0, 45, 2*45, 3*45] + 180d + p0lon
 
        for i=0,n_elements(splits)-1 do begin 
-          theta = !dtor * splits[i]
+          theta = !const.dtor * splits[i]
           MAP_CLIP_SET, map=myMap, SPLIT=[splits[i], 0, -sin(theta), cos(theta), 0., 0.]
        endfor 
        myMap.up_flags=10000 ; redefine "epsilon" due to precision problems in proj4!!!!
@@ -422,7 +472,7 @@ if (interrupted or p4n eq 'bipc') then begin
  endcase
 endif else begin ; not interrupted
    if not azimuthal then begin
-      MAP_PROJ_SET_SPLIT,myMap ; for all projs non azim
+      MAP_PROJ_SET_SPLIT,myMap ; standard cut
 ; conics: clip around the poles
       if conic then begin
                                 ; apparently clipping is done 10 degrees above or below equator for
@@ -432,43 +482,36 @@ endif else begin ; not interrupted
          test1= (p1 ge 0.0) ? 1 : -1
          test2= (p2 ge 0.0) ? 1 : -1
          if (test1 eq test2) then begin
-            map_clip_set, map=myMap, clip_plane=[0,0,test1,sin(!dtor*10.)]
-            map_clip_set, map=myMap, clip_plane=[0,0,-1*test2,sin(!dtor*75.0)]
+            map_clip_set, map=myMap, clip_plane=[0,0,test1,sin(!const.dtor*10.)]
+            map_clip_set, map=myMap, clip_plane=[0,0,-1*test2,sin(!const.dtor*75.0)]
             myMap.p[13]=-1*test1*10. ; use it to store this value, see map_grid, map_horizon
             myMap.p[14]=test2*75.    ; use it to store this value, see map_grid, map_horizon
          endif else begin
-            map_clip_set, map=myMap, clip_plane=[0,0,1,sin(!dtor*75.0)]
-            map_clip_set, map=myMap, clip_plane=[0,0,-1,sin(!dtor*75.0)]
+            map_clip_set, map=myMap, clip_plane=[0,0,1,sin(!const.dtor*75.0)]
+            map_clip_set, map=myMap, clip_plane=[0,0,-1,sin(!const.dtor*75.0)]
             myMap.p[13]=75.     ; use it to store this value, see map_grid, map_horizon
             myMap.p[14]=-75.    ; use it to store this value, see map_grid, map_horizon
          endelse
-      endif else if cylindric then begin
-         map_clip_set, map=myMap, clip_plane=[0,0,1,sin(!dtor*89.99)]
-         map_clip_set, map=myMap, clip_plane=[0,0,-1,sin(!dtor*89.99)]
-         myMap.p[13]=89.99        ; use it to store this value, see map_grid, map_horizon
-         myMap.p[14]=-89.99       ; use it to store this value, see map_grid, map_horizon
+      endif else if cylindric then begin ; mercator et: clip 10 degrees from poles.
+                                ;alpha is the rotation angle for
+                                ;oblique cylindric. alpha=0 for
+                                ;transverse projections
+         val=80
+         ; remove poles
+         map_clip_set, map=myMap, clip_plane=[myMap.pole[4:6],sin(!const.dtor*val)]
+         map_clip_set, map=myMap, clip_plane=[-1*myMap.pole[4:6],sin(!const.dtor*val)]
+         myMap.p[13]=val        ; use it to store this value, see map_grid, map_horizon
+         myMap.p[14]=-val       ; use it to store this value, see map_grid, map_horizon
       endif
    endif else begin               ; azim projs.
+      val=-1d-8
       case p4n of
-         "nsper": BEGIN
-            if satheight eq 0 then begin 
-               MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[cos(myMap.u0)*cos(myMap.v0), sin(myMap.u0)*cos(myMap.v0), sin(myMap.v0), -0.5d]
-               myMap.p[14]=-0.5d ; use it to store this value, see map_grid, map_horizon
-            endif else begin
-               val=-1.01d /(1+satheight/myMap.a)
-               MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[cos(myMap.u0)*cos(myMap.v0), sin(myMap.u0)*cos(myMap.v0), sin(myMap.v0), val]
-               myMap.p[14]=val  ; use it to store this value, see map_grid, map_horizon
-            endelse
-         END
-         "gnom": BEGIN 
-            MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[cos(myMap.u0)*cos(myMap.v0), sin(myMap.u0)*cos(myMap.v0), sin(myMap.v0), -0.5d]
-            myMap.p[14]=-0.5d   ; use it to store this value, see map_grid, map_horizon
-         END
-         ELSE: BEGIN
-            MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[cos(myMap.u0)*cos(myMap.v0), sin(myMap.u0)*cos(myMap.v0), sin(myMap.v0), -1d-8]
-            myMap.p[14]=-1d-8   ; use it to store this value, see map_grid, map_horizon
-         END
-      ENDCASE
+         "tpers": if satheight eq 0 then val=-0.5d else val=-1.01d /(1+satheight/myMap.a)
+         "nsper": if satheight eq 0 then  val=-0.5d else val=-1.01d /(1+satheight/myMap.a)
+         "gnom": val=-0.5d
+      endcase
+      MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[myMap.pole[4:6], val]
+      myMap.p[14]=val         ; use it to store this value, see map_grid, map_horizon
    endelse                      ; end azim projs
 endelse                         ; not interrupted
 
@@ -552,7 +595,7 @@ for i=0,nproj-1 do begin
       proj_properties[i].exist=0b
       continue
    endif
-   myMap=map_proj_init(/gdl_precise, i,/p4num,height=1,standard_parall=30,standard_par1=50,standard_par2=-45,sat_tilt=45,center_azim=0,center_lon=0,true_scale_latitude=12,lat_3=13,HOM_LONGITUDE1=1,HOM_LONGITUDE2=80,LON_3=120,OEA_SHAPEN=1, OEA_SHAPEM=1,SOM_LANDSAT_NUMBER=2, SOM_LANDSAT_PATH=22, ZONE=28, center_lat=0) ; uses ellps=wgs84 by default.
+   myMap=map_proj_init(/gdl_precise, i,/p4num,alpha=0.001,height=1,standard_parall=30,standard_par1=50,standard_par2=-45,sat_tilt=45,center_azim=0,center_lon=0,true_scale_latitude=12,lat_3=13,HOM_LONGITUDE1=1,HOM_LONGITUDE2=80,LON_3=120,OEA_SHAPEN=1, OEA_SHAPEM=1,SOM_LANDSAT_NUMBER=2, SOM_LANDSAT_PATH=22, ZONE=28, center_lat=0) ; uses ellps=wgs84 by default.
       proj_scale[i]=abs(myMap.uv_box[2]-myMap.uv_box[0]) ; number of ellipsoid meters in uv_box
 endfor
 ; proj_scale, only on existing projections.
@@ -564,7 +607,7 @@ for i=0,nproj-1 do begin
    endif
 
    if proj_properties[i].exist eq 1 then begin 
-      myMap=map_proj_init(/gdl_precise,i,/p4num,sphere=1,height=1,standard_parall=30,standard_par1=50,standard_par2=-45,sat_tilt=45,center_azim=0,center_lon=0,true_scale_latitude=12,lat_3=13,HOM_LONGITUDE1=1,HOM_LONGITUDE2=80,LON_3=120,OEA_SHAPEN=1, OEA_SHAPEM=1,SOM_LANDSAT_NUMBER=2, SOM_LANDSAT_PATH=22, ZONE=28, center_lat=0)
+      myMap=map_proj_init(/gdl_precise,i,/p4num,alpha=0.001,sphere=1,height=1,standard_parall=30,standard_par1=50,standard_par2=-45,sat_tilt=45,center_azim=0,center_lon=0,true_scale_latitude=12,lat_3=13,HOM_LONGITUDE1=1,HOM_LONGITUDE2=80,LON_3=120,OEA_SHAPEN=1, OEA_SHAPEM=1,SOM_LANDSAT_NUMBER=2, SOM_LANDSAT_PATH=22, ZONE=28, center_lat=0)
      proj_limits[*,i]=myMap.uv_box ; normalized uv_box
    endif
 endfor
@@ -580,23 +623,3 @@ end
 ; MAP_PROJ_AUXILIARY_READ_CSV
 ; exit
 
-pro test_all_projs, from=from, to=to, lon=lon, lat=lat, halt=halt
-  on_error,2
-  map_proj_info,proj_names=pjn
-  ttt=''
-  if n_elements(from) eq 0 then from=1
-  if n_elements(to) eq 0 then to=n_elements(pjn) else to=to<(n_elements(pjn)+1)
-  if n_elements(lon) eq 0 then lon=-2.33
-  if n_elements(lat) eq 0 then lat=48.83
-  
-  for i=from,to do begin
-     catch,absent
-     if absent ne 0 then begin
-        catch,/cancel
-        continue
-     endif
-     map_set,/advance,lat,lon,name=pjn[i],lat_1=12,lat_2=56,lat_ts=33,height=3,e_cont={cont:1,fill:1,color:'33e469'x,hires:0},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:0,color:'1260E2'x,glinethick:1,glinestyle:0},title=pjn[i],/iso,center_azimuth=44,sat_tilt=33
-     print,i,pjn[i]
-     if keyword_set(halt) then read,ttt,prompt='Waiting for keypad input...' else wait,1
-  endfor
-end
