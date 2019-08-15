@@ -115,7 +115,7 @@ public:
     static bool SearchCompilePro(const std::string& pro, bool searchForPro); 
     static int GetFunIx( ProgNodeP);
     static int GetFunIx( const std::string& subName);
-    static int GetProIx( ProgNodeP, bool throwImmediately=false);//const std::string& subName);
+    static int GetProIx( ProgNodeP);//const std::string& subName);
     static int GetProIx( const std::string& subName);
     DStructGDL* ObjectStruct( DObjGDL* self, ProgNodeP mp);
     void SetRootR( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, ArrayIndexListT* aL);
@@ -129,7 +129,7 @@ public:
 
 private: 
 
-    static void SetProIx( ProgNodeP f, bool throwImmediately=false); // triggers read/compile
+    static void SetProIx( ProgNodeP f); // triggers read/compile
     static void AdjustTypes( BaseGDL*&, BaseGDL*&);
 
 
@@ -907,9 +907,9 @@ public:
 		return GDLInterpreter::tokenNames;
 	}
 	public:  RetCode  interactive(ProgNodeP _t);
-	public:  RetCode  statement(ProgNodeP _t, bool throwImmediately=false);
-	public:  RetCode  execute(ProgNodeP _t, bool throwImmediately=false);
-	public:  RetCode  statement_list(ProgNodeP _t, bool throwImmediately=false);
+	public:  RetCode  statement(ProgNodeP _t);
+	public:  RetCode  execute(ProgNodeP _t);
+	public:  RetCode  statement_list(ProgNodeP _t);
 	public:  BaseGDL*  call_fun(ProgNodeP _t);
 	public:  BaseGDL**  call_lfun(ProgNodeP _t);
 	public: void call_pro(ProgNodeP _t);
