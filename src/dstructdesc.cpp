@@ -77,12 +77,13 @@ DStructDesc* FindInStructList(StructListT v, const string& s)
 
 void DUStructDesc::AddTag( const string& tagName, const BaseGDL* data)
 {
+  string TN = StrUpCase( tagName);  // prevent non-capitalized chars.
   for( SizeT i=0; i < tNames.size(); i++)
-    if( tNames[i] == tagName)
-      throw GDLException(tagName+" is already defined "
+    if( tNames[i] == TN)
+      throw GDLException(TN+" is already defined "
 			 "with a conflicting definition");
   
-  tNames.push_back(tagName);
+  tNames.push_back(  TN);
   Add( data->GetTag());
 }
 
