@@ -197,8 +197,8 @@ private:
     static int xTickunitsIx = e->KeywordIx( "XTICKUNITS" );
     static int yTickunitsIx = e->KeywordIx( "YTICKUNITS" );
 
-    calendar_codex = gdlGetCalendarCode(e,"X");
-    calendar_codey = gdlGetCalendarCode(e,"Y");
+    calendar_codex = gdlGetCalendarCode(e,XAXIS);
+    calendar_codey = gdlGetCalendarCode(e,YAXIS);
     if ( e->KeywordSet( xTickunitsIx ) && xLog) {
       Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
       xLog = FALSE;
@@ -267,8 +267,8 @@ private:
     if (yEnd <= yStart) yEnd=yStart+1;
     //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
     DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;
-    bool setx=gdlGetDesiredAxisRange(e, "X", xAxisStart, xAxisEnd);
-    bool sety=gdlGetDesiredAxisRange(e, "Y", yAxisStart, yAxisEnd);
+    bool setx=gdlGetDesiredAxisRange(e, XAXIS, xAxisStart, xAxisEnd);
+    bool sety=gdlGetDesiredAxisRange(e, YAXIS, yAxisStart, yAxisEnd);
     if(setx && sety)
     {
       xStart=xAxisStart;
@@ -312,21 +312,21 @@ private:
 
     // [XY]STYLE
     DLong xStyle=0, yStyle=0;
-    gdlGetDesiredAxisStyle(e, "X", xStyle);
-    gdlGetDesiredAxisStyle(e, "Y", yStyle);
+    gdlGetDesiredAxisStyle(e, XAXIS, xStyle);
+    gdlGetDesiredAxisStyle(e, YAXIS, yStyle);
 
      //xStyle and yStyle apply on range values
     if ((xStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(e, "X", xStart, xEnd, xLog, calendar_codex);
+      PLFLT intv = gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog, calendar_codex);
     }
     if ((yStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(e, "Y", yStart, yEnd, yLog, calendar_codey);
+      PLFLT intv = gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog, calendar_codey);
     }
 
     // MARGIN
     DFloat xMarginL, xMarginR, yMarginB, yMarginT;
-    gdlGetDesiredAxisMargin(e, "X", xMarginL, xMarginR);
-    gdlGetDesiredAxisMargin(e, "Y", yMarginB, yMarginT);
+    gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
+    gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
 
     // viewport and world coordinates
     // set the PLOT charsize before setting viewport (margin depend on charsize)
@@ -366,8 +366,8 @@ private:
           actStream->w3d(scale, scale, scale*(1.0 - zValue),
           t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
           alt, az);
-          gdlAxis3(e, actStream, "X", xStart, xEnd, xLog);
-          gdlAxis3(e, actStream, "Y", yStart, yEnd, yLog);
+          gdlAxis3(e, actStream, XAXIS, xStart, xEnd, xLog);
+          gdlAxis3(e, actStream, YAXIS, yStart, yEnd, yLog);
           break;
         case XY: // X->Y Y->X plane XY
           t3yStart=(xLog)?log10(xStart):xStart,
@@ -379,8 +379,8 @@ private:
           actStream->w3d(scale, scale, scale*(1.0 - zValue),
           t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
           alt, az);
-          gdlAxis3(e, actStream, "Y", xStart, xEnd, xLog);
-          gdlAxis3(e, actStream, "X", yStart, yEnd, yLog);
+          gdlAxis3(e, actStream, YAXIS, xStart, xEnd, xLog);
+          gdlAxis3(e, actStream, XAXIS, yStart, yEnd, yLog);
           break;
         case XZ: // Y->Y X->Z plane YZ
           t3zStart=(xLog)?log10(xStart):xStart,
@@ -392,8 +392,8 @@ private:
           actStream->w3d(scale, scale, scale,
           t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
           alt, az);
-          gdlAxis3(e, actStream, "Z", xStart, xEnd, xLog,0);
-          gdlAxis3(e, actStream, "Y", yStart, yEnd, yLog);
+          gdlAxis3(e, actStream, ZAXIS, xStart, xEnd, xLog,0);
+          gdlAxis3(e, actStream, YAXIS, yStart, yEnd, yLog);
           break;
         case YZ: // X->X Y->Z plane XZ
           t3xStart=(xLog)?log10(xStart):xStart,
@@ -405,8 +405,8 @@ private:
           actStream->w3d(scale, scale, scale,
           t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
           alt, az);
-          gdlAxis3(e, actStream, "X", xStart, xEnd, xLog);
-          gdlAxis3(e, actStream, "Z", yStart, yEnd, yLog,1);
+          gdlAxis3(e, actStream, XAXIS, xStart, xEnd, xLog);
+          gdlAxis3(e, actStream, ZAXIS, yStart, yEnd, yLog,1);
           break;
         case XZXY: //X->Y Y->Z plane YZ
           t3yStart=(xLog)?log10(xStart):xStart,
@@ -418,8 +418,8 @@ private:
           actStream->w3d(scale, scale, scale,
           t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
           alt, az);
-          gdlAxis3(e, actStream, "Y", xStart, xEnd, xLog);
-          gdlAxis3(e, actStream, "Z", yStart, yEnd, yLog);
+          gdlAxis3(e, actStream, YAXIS, xStart, xEnd, xLog);
+          gdlAxis3(e, actStream, ZAXIS, yStart, yEnd, yLog);
           break;
         case XZYZ: //X->Z Y->X plane XZ
           t3zStart=(xLog)?log10(xStart):xStart,
@@ -431,8 +431,8 @@ private:
           actStream->w3d(scale, scale, scale,
           t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
           alt, az);
-          gdlAxis3(e, actStream, "Z", xStart, xEnd, xLog,1);
-          gdlAxis3(e, actStream, "X", yStart, yEnd, yLog);
+          gdlAxis3(e, actStream, ZAXIS, xStart, xEnd, xLog,1);
+          gdlAxis3(e, actStream, XAXIS, yStart, yEnd, yLog);
           break;
       }
       //finish box: since there is no option in plplot for upper box 3d axes, do it ourselve:
