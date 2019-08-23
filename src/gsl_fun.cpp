@@ -2023,9 +2023,9 @@ namespace lib {
     // bool dbl = e->KeywordSet(dblIx);
 
     static int missingIx = e->KeywordIx("MISSING");
-    bool use_missing = e->KeywordSet(missingIx);
-    DDouble missing;
-    e->AssureDoubleScalarKWIfPresent(missingIx, missing);
+    bool use_missing = e->KeywordPresent(missingIx);
+    DDouble missing=0;
+    if (use_missing) e->AssureDoubleScalarKWIfPresent(missingIx, missing);
 
     DDoubleGDL* p0D[2];
     DDoubleGDL* p1D;
