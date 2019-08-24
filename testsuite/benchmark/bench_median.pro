@@ -75,7 +75,7 @@ end
 ; --------------------------------------------------------------
 ;
 pro BENCH_MEDIAN, size=size, seed=seed, max_width=max_width, $
-                  save=save, double=double, $
+                  save=save, double=double, even=even, $
                   verbose=verbose, test=test, help=help
 ;
 if KEYWORD_SET(help) then begin
@@ -93,6 +93,7 @@ if (N_ELEMENTS(size) EQ 0) then size=1000
 if (N_ELEMENTS(seed) EQ 0) then seed=11 ;; not used now
 ;
 if KEYWORD_SET(max_width) then nb_run=max_width else nb_run=20
+if KEYWORD_SET(even) then add=0 else add=1
 ;
 width_list=FLTARR(nb_run)
 time_median=FLTARR(nb_run)
@@ -101,13 +102,14 @@ input=DIST(size)
 if KEYWORD_SET(double) then input=DOUBLE(input)
 ;
 for ii=1, nb_run-1 do begin
-   width_list[ii]=2*ii
+   width_list[ii]=2*ii+add
+
    ;;
    time0=SYSTIME(1)
-   b=MEDIAN(input, 2*ii)
+   b=MEDIAN(input, width_list[ii])
    time1=SYSTIME(1)
    ;;
-   print, 'width size, time : ', 2*ii, time1-time0
+   print, 'width size, time : ', width_list[ii], time1-time0
    time_median[ii]=time1-time0
 endfor
 ;
