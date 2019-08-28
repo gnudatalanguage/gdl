@@ -26,8 +26,8 @@ matrix:
 
     - os: linux
       env: COMPILER=gcc   CMAKE_BUILD_TYPE=Release  DEPS=FULL
-    - os: linux
-      env: COMPILER=icc   CMAKE_BUILD_TYPE=Release  DEPS=FULL
+#    - os: linux
+#      env: COMPILER=icc   CMAKE_BUILD_TYPE=Release  DEPS=FULL
     - os: osx
       env: COMPILER=clang CMAKE_BUILD_TYPE=Release  DEPS=FULL
 
@@ -67,6 +67,7 @@ before_install:
     - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | /usr/local/bin/python -m pip uninstall numpy; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then brew remove numpy gdal postgis; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython2.7.dylib -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python2.7"; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_CXX_FLAGS="-Wdeprecated-register"; fi
 
 install:
     ##
@@ -82,6 +83,7 @@ install:
     # codecov
     - if [ -v CODECOV ]; then export APT_PACKAGES="$APT_PACKAGES lcov"; fi
     - if [ -v CODECOV ]; then wget -O CMakeModules/CodeCoverage.cmake https://raw.githubusercontent.com/bilke/cmake-modules/master/CodeCoverage.cmake; fi
+    - if [ -v CODECOV ]; then $SEDCMD 's/--output-file ${Coverage_NAME}/--output-file ${PROJECT_BINARY_DIR}\/${Coverage_NAME}/g' CMakeModules/CodeCoverage.cmake; fi
     - if [ -v CODECOV ]; then TMPFILE=`tempfile` ;fi
     - if [ -v CODECOV ]; then tac src/CMakeLists.txt > $TMPFILE; fi
     - if [ -v CODECOV ]; then echo "set(CMAKE_CXX_FLAGS \${CMAKE_CXX_FLAGS_COVERAGE})" >> $TMPFILE; fi
@@ -142,8 +144,10 @@ install:
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang"; fi 
 
     # ImageMagick (Linux) / GraphicsMagick (OSX) - just to try both
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libmagick++-dev"; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=ON"; fi 
+    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libmagick++-dev"; fi
+    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=ON"; fi 
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgraphicsmagick++1-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=ON -DMAGICK=ON"; fi 
 
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} graphicsmagick"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=ON -DMAGICK=OFF"; fi 
@@ -151,7 +155,7 @@ install:
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=OFF"; fi 
 
     # wx
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libwxgtk2.8-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libwxgtk3.0-dev"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} wxwidgets"; fi
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=OFF"; fi 
