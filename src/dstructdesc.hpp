@@ -45,16 +45,38 @@ protected:
   // and DStringGDL (considers actual string sizes)
   SizeT nBytes = tags.back()->NBytes();
 
-  // alignment 
+//  2-May-2019 GVJ
+//  Align data in structures according to data lengthin accord with IDL).
+/********************
 #ifdef USE_EIGEN
+ (This forced all data to be aligned on 16-bytes.  There was no perceptible perfomance gain,
+ nor was any penalty found for simply using 2-byte alignment.
+
+  const int alignmentInBytes = 2; // there was no performance difference.
+
   assert( sizeof( char*) <= 16); 
   const int alignmentInBytes = 16; // set to multiple of 16 >= sizeof( char*)
 #else
   const int alignmentInBytes = sizeof( char*);
 #endif
+******************/
+
+  const int alignmentInBytes = sizeof( char*);
+
+// The old way:
+/******
   SizeT exceed = nBytes % alignmentInBytes;
   if( exceed > 0)
 	nBytes += alignmentInBytes - exceed;
+*****/
+// replacement:
+  SizeT Align = (nBytes < alignmentInBytes)? nBytes: alignmentInBytes;
+  SizeT initOffset = tagOffset.back();
+  SizeT Oddbytes = initOffset % Align;
+  if(Oddbytes > 0) { 
+	  tagOffset.pop_back();
+	  tagOffset.push_back( initOffset + (Align-Oddbytes));
+  }
 
   // valid tagOffset (used by NBytes())
   tagOffset.push_back( tagOffset.back() + nBytes);

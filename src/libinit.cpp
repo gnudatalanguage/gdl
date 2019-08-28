@@ -36,6 +36,7 @@
 #include "math_fun_gm.hpp"
 #include "math_fun_ng.hpp"
 #include "plotting.hpp"
+#include "sorting.hpp"
 
 #include "file.hpp"
 
@@ -264,6 +265,8 @@ void LibInit()
 
   const string sortKey[]={"L64",KLISTEND};
   new DLibFunRetNew(lib::sort_fun,string("SORT"),1,sortKey,NULL,true);
+  const string gdlsortKey[]={"L64","QUICK","MERGE","RADIX","INSERT","AUTO",KLISTEND}; //,"CHECK"
+  new DLibFunRetNew(lib::gdl_sort_fun,string("GDL_SORT"),1,gdlsortKey,NULL,true);
 
   const string medianKey[]={"EVEN","DOUBLE","DIMENSION",KLISTEND};
   new DLibFunRetNew(lib::median,string("MEDIAN"),2,medianKey);

@@ -108,6 +108,7 @@ TESTS = \
   test_file_delete.pro \
   test_file_dirname.pro \
   test_file_lines.pro \
+  test_file_mkdir.pro \
   test_file_move.pro \
   test_file_search.pro \
   test_file_test.pro \

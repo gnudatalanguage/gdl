@@ -5,10 +5,10 @@
     copyright            : (C) 2013 by M. Schellens et al.
     email                : m_schellens@users.sf.net
 * 
-*	April 11 2016: Greg Jung 
+*   April 11 2016: Greg Jung 
 *   - implemented EXTRACT, FOLD_CASE. 
-* 	- hash__tostruct set up for RECURSIVE, NO_COPY implementations.
-*   - 	ORDEREDHASH placeholder routines, flags only.
+*   - hash__tostruct set up for RECURSIVE, NO_COPY implementations.
+*   -   ORDEREDHASH placeholder routines, flags only.
 *   - [ and ] overloads revision to accomodate in-place array access
 *  is implemented in list.cpp - same logic overhaul can be applied here.
 * 
@@ -22,41 +22,42 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#define GDL_LIST_STRUCT()			\
-  static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");	\
-  static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");	\
+#define GDL_LIST_STRUCT()           \
+  static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");  \
+  static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");  \
   static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
 
-#define	GDL_CONTAINER_NODE()			\
-    static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");	\
+#define GDL_CONTAINER_NODE()            \
+    static unsigned pNextTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PNEXT");  \
     static unsigned pListDataTag = structDesc::GDL_CONTAINER_NODE->TagIndex( "PDATA");
 
-#define GDL_HASH_STRUCT() 			\
+#define GDL_HASH_STRUCT()           \
     static unsigned TableBitsTag = structDesc::HASH->TagIndex( "TABLE_BITS"); \
     static unsigned pTableTag = structDesc::HASH->TagIndex( "TABLE_DATA"); \
     static unsigned TableSizeTag = structDesc::HASH->TagIndex( "TABLE_SIZE"); \
     static unsigned TableCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
 
-#define GDL_HASHTABLEENTRY()			\
+#define GDL_HASHTABLEENTRY()            \
     static unsigned pKeyTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PKEY"); \
     static unsigned pValueTag = structDesc::GDL_HASHTABLEENTRY->TagIndex( "PVALUE");
 
 #define MAKE_LONGGDL(X, XLong) \
-		DLongGDL* XLong=0; \
-		Guard<DLongGDL> XLongGuard; \
-		if( X != 0) \
-		  if( X->Type() == GDL_LONG) \
-			XLong = static_cast<DLongGDL*>( X); \
-		  else  { \
-			try{ \
-			  XLong = static_cast<DLongGDL*>( X->Convert2( GDL_LONG, BaseGDL::COPY)); \
-				} \
-				catch( GDLException& ex) { \
-				  ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage()); \
-				} \
-			XLongGuard.Init( XLong); \
-		  }
-
+        DLongGDL* XLong=0; \
+        Guard<DLongGDL> XLongGuard; \
+        if( X != 0) { \
+          if( X->Type() == GDL_LONG) \
+            XLong = static_cast<DLongGDL*>( X); \
+          else  { \
+            try{ \
+              XLong = static_cast<DLongGDL*>( X->Convert2( GDL_LONG, BaseGDL::COPY)); \
+                } \
+                catch( GDLException& ex) { \
+                  ThrowFromInternalUDSub( e, ex.ANTLRException::getMessage()); \
+                } \
+            XLongGuard.Init( XLong); \
+          } \
+        }
+    
 #include "includefirst.hpp"
 
 #include "nullgdl.hpp"
@@ -69,10 +70,10 @@
 static bool trace_me(false);
  
 namespace lib {
-//	bool trace_arg();
+//  bool trace_arg();
  
   void help_item( std::ostream& os,
-		  BaseGDL* par, DString parString, bool doIndentation);
+          BaseGDL* par, DString parString, bool doIndentation);
 //  void help_struct( std::ostream& os,  BaseGDL* par, int indent , bool debug );
   SizeT HASH_count( DStructGDL* hash)
   {
@@ -99,8 +100,8 @@ std::string ValidTagName( const std::string& in) // (performance) Function param
   for( ; i<result.length(); ++i)
   {
     if( !((result[i] >= 'A' && result[i] <= 'Z') ||
-	(result[i] >= '0' && result[i] <= '9') ||
-	result[i] == '$'))
+    (result[i] >= '0' && result[i] <= '9') ||
+    result[i] == '$'))
       result[i] = '_';
   }
   return result;
@@ -117,17 +118,17 @@ static  DStructGDL* GetLISTStruct( EnvUDT* e, DPtr actP) // (copied from list.cp
     catch( GDLInterpreter::HeapException& hEx)
     {
       if( e == NULL)
-			throw GDLException( "LIST container node ID <"
-							+i2s(actP)+"> not found.");
+            throw GDLException( "LIST container node ID <"
+                            +i2s(actP)+"> not found.");
       ThrowFromInternalUDSub( e, "LIST container node ID <"
-							+i2s(actP)+"> not found.");      
+                            +i2s(actP)+"> not found.");      
     }
     if( actPHeap == NULL || actPHeap->Type() != GDL_STRUCT)
       {
-		if( e == NULL)
-		  throw GDLException( "LIST node must be a STRUCT.");
-		else
-		  ThrowFromInternalUDSub( e, "LIST node must be a STRUCT.");
+        if( e == NULL)
+          throw GDLException( "LIST node must be a STRUCT.");
+        else
+          ThrowFromInternalUDSub( e, "LIST node must be a STRUCT.");
       }
 
     DStructGDL* actPStruct = static_cast<DStructGDL*>( actPHeap);
@@ -137,7 +138,7 @@ static  DStructGDL* GetLISTStruct( EnvUDT* e, DPtr actP) // (copied from list.cp
 
 static DPtr GetLISTNode( EnvUDT* e, DStructGDL* self, DLong targetIx)
   {
-	  
+      
     GDL_LIST_STRUCT()
     GDL_CONTAINER_NODE()
       
@@ -151,9 +152,9 @@ static DPtr GetLISTNode( EnvUDT* e, DStructGDL* self, DLong targetIx)
       actP = (*static_cast<DPtrGDL*>(self->GetTag( pTailTag, 0)))[0];
       for( SizeT elIx = 0; elIx < targetIx; ++elIx)
       {
-	DStructGDL* actPStruct = GetLISTStruct(e, actP);
+    DStructGDL* actPStruct = GetLISTStruct(e, actP);
 
-	actP = (*static_cast<DPtrGDL*>( actPStruct->GetTag( pNextTag, 0)))[0];
+    actP = (*static_cast<DPtrGDL*>( actPStruct->GetTag( pNextTag, 0)))[0];
       }
     }
     return actP;
@@ -161,36 +162,36 @@ static DPtr GetLISTNode( EnvUDT* e, DStructGDL* self, DLong targetIx)
 
 static BaseGDL* GetNodeData(DPtr &Node) 
 {
-	GDL_CONTAINER_NODE()
+    GDL_CONTAINER_NODE()
 
-	DStructGDL* act = GetLISTStruct( NULL, Node);
-	DPtr ptrX = (*static_cast<DPtrGDL*>(act->GetTag( pListDataTag, 0)))[0];
-	Node = (*static_cast<DPtrGDL*>(act->GetTag( pNextTag, 0)))[0];
+    DStructGDL* act = GetLISTStruct( NULL, Node);
+    DPtr ptrX = (*static_cast<DPtrGDL*>(act->GetTag( pListDataTag, 0)))[0];
+    Node = (*static_cast<DPtrGDL*>(act->GetTag( pNextTag, 0)))[0];
     BaseGDL* result = new BaseGDL( );
     Guard<BaseGDL> resultGuard( result);
-	result =  BaseGDL::interpreter->GetHeap( ptrX);
-	if( result == NULL) result = NullGDL::GetSingleInstance();
-//	if(trace_me) lib::help_item(std::cout, result, " from GetNodeData", false);
+    result =  BaseGDL::interpreter->GetHeap( ptrX);
+    if( result == NULL) result = NullGDL::GetSingleInstance();
+//  if(trace_me) lib::help_item(std::cout, result, " from GetNodeData", false);
     resultGuard.Release();
     return result;
 }
 
 static  BaseGDL* hash_create( EnvT* e, bool isordered );
 static BaseGDL* structP_tohash( EnvT* e,BaseGDL* par,
-						bool foldcasekw, bool extractkw, bool isordered );
+                        bool foldcasekw, bool extractkw, bool isordered );
 
 static DStructGDL* GetOBJ( BaseGDL* Objptr, EnvUDT* e)
   {
     if( Objptr == NULL || Objptr->Type() != GDL_OBJ) {
-		if( e == NULL)
-			  throw GDLException( "Objptr not of type OBJECT. Please report.");
-		else ThrowFromInternalUDSub( e, "Objptr not of type OBJECT. Please report.");
-		}
+        if( e == NULL)
+              throw GDLException( "Objptr not of type OBJECT. Please report.");
+        else ThrowFromInternalUDSub( e, "Objptr not of type OBJECT. Please report.");
+        }
     if( !Objptr->Scalar()) {
-		if( e == NULL)
-			  throw GDLException(  "Objptr must be a scalar. Please report.");
-		else ThrowFromInternalUDSub( e, "Objptr must be a scalar. Please report.");
-	}
+        if( e == NULL)
+              throw GDLException(  "Objptr must be a scalar. Please report.");
+        else ThrowFromInternalUDSub( e, "Objptr must be a scalar. Please report.");
+    }
     DObjGDL* Object = static_cast<DObjGDL*>( Objptr);
     DObj ID = (*Object)[0];
     try {
@@ -198,9 +199,9 @@ static DStructGDL* GetOBJ( BaseGDL* Objptr, EnvUDT* e)
     }
     catch( GDLInterpreter::HeapException& hEx)
     {
-		if( e == NULL)
-			  throw GDLException(  "Object ID <"+i2s(ID)+"> not found.");
-		else ThrowFromInternalUDSub( e, "Object ID <"+i2s(ID)+"> not found.");      
+        if( e == NULL)
+              throw GDLException(  "Object ID <"+i2s(ID)+"> not found.");
+        else ThrowFromInternalUDSub( e, "Object ID <"+i2s(ID)+"> not found.");      
     }
 
     assert(false);
@@ -210,58 +211,58 @@ static DStructGDL* GetOBJ( BaseGDL* Objptr, EnvUDT* e)
 // if not found returns -(pos +1)
 DLong HashIndex( DStructGDL* hashTable, BaseGDL* key, bool isfoldcase=false)
 {
-	GDL_HASHTABLEENTRY()
+    GDL_HASHTABLEENTRY()
   assert( key != NULL && key != NullGDL::GetSingleInstance());
   
   DLong searchIxStart = 0;
   DLong searchIxEnd = hashTable->N_Elements();
   bool dofoldcase = isfoldcase;
   if( key->Type() != GDL_STRING) dofoldcase = false;
-	if(trace_me) std::cout << ". ";
+    if(trace_me) std::cout << ". ";
 
   BaseGDL* keyfind = key;
   if(dofoldcase) 
-    {		// this code bombs if key is not a string.
-	DString keyval = (*static_cast<DStringGDL*>(key))[0];
-	std::transform(keyval.begin(), keyval.end(),
-							keyval.begin(), ::tolower);
+    {       // this code bombs if key is not a string.
+    DString keyval = (*static_cast<DStringGDL*>(key))[0];
+    std::transform(keyval.begin(), keyval.end(),
+                            keyval.begin(), ::tolower);
     keyfind = static_cast<BaseGDL*>(new DStringGDL(keyval));
-	  }
-	if(trace_me) std::cout << ". ";
+      }
+    if(trace_me) std::cout << ". ";
   
   for(;;)
   {
     DLong searchIx = (searchIxStart + searchIxEnd) / 2;
     if( (*static_cast<DPtrGDL*>( hashTable->GetTag( pKeyTag, searchIx)))[0] == 0)
     {
-	DLong checkIx = searchIx-1;
-	while( checkIx >= searchIxStart &&
-	(*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, checkIx)))[0] == 0) 
-	  --checkIx;
-	if( checkIx < searchIxStart)
-	{
-	  checkIx = searchIx+1;
-	  while( checkIx < searchIxEnd &&
-	  (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, checkIx)))[0] == 0) 
-	    ++checkIx;
-	  if( checkIx == searchIxEnd)
-	  {
-	    // only empty elements found in interval
-	    return -(searchIx + 1);
-	  }
-	}
-	searchIx = checkIx;
+    DLong checkIx = searchIx-1;
+    while( checkIx >= searchIxStart &&
+    (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, checkIx)))[0] == 0) 
+      --checkIx;
+    if( checkIx < searchIxStart)
+    {
+      checkIx = searchIx+1;
+      while( checkIx < searchIxEnd &&
+      (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, checkIx)))[0] == 0) 
+        ++checkIx;
+      if( checkIx == searchIxEnd)
+      {
+        // only empty elements found in interval
+        return -(searchIx + 1);
+      }
+    }
+    searchIx = checkIx;
     }
     DPtr kID = (*static_cast<DPtrGDL*>( hashTable->GetTag( pKeyTag, searchIx)))[0];
     assert( kID != 0);
     BaseGDL* candidate = BaseGDL::interpreter->GetHeap( kID);
     if( dofoldcase  and  candidate->Type() == GDL_STRING) 
       {
-		  DString keyval = (*static_cast<DStringGDL*>(candidate))[0];
-		  	std::transform(keyval.begin(), keyval.end(),
-							keyval.begin(), ::tolower);
-		candidate = static_cast<BaseGDL*>(new DStringGDL(keyval));
-		  }
+          DString keyval = (*static_cast<DStringGDL*>(candidate))[0];
+            std::transform(keyval.begin(), keyval.end(),
+                            keyval.begin(), ::tolower);
+        candidate = static_cast<BaseGDL*>(new DStringGDL(keyval));
+          }
 
     int hashCompare = keyfind->HashCompare( candidate);
     if( hashCompare == 0)
@@ -269,7 +270,7 @@ DLong HashIndex( DStructGDL* hashTable, BaseGDL* key, bool isfoldcase=false)
     
     if( searchIxStart == searchIxEnd)      
     {
-	return -(searchIxStart + 1);
+    return -(searchIxStart + 1);
     }
 
     if( hashCompare == -1) // key < hashKey[searchIx]
@@ -279,12 +280,12 @@ DLong HashIndex( DStructGDL* hashTable, BaseGDL* key, bool isfoldcase=false)
       searchIxStart = searchIx+1;
       if( searchIxStart >= hashTable->N_Elements())
       {
-	return -(hashTable->N_Elements() + 1);
+    return -(hashTable->N_Elements() + 1);
       }
     }
     if( searchIxStart == searchIxEnd && searchIx == searchIxStart)      
     {
-	return -(searchIxStart + 1);
+    return -(searchIxStart + 1);
     }
   }
 }
@@ -292,26 +293,26 @@ DLong HashIndex( DStructGDL* hashTable, BaseGDL* key, bool isfoldcase=false)
 
 bool Hashisfoldcase( DStructGDL* hashStruct)
 {
-	static unsigned fold_case_mask = 0x00000001;
+    static unsigned fold_case_mask = 0x00000001;
     static unsigned TableBitsTag = structDesc::HASH->TagIndex( "TABLE_BITS");
     if(hashStruct == NULL) return false;
     DLong bits = (*static_cast<DLongGDL*>( hashStruct->GetTag( TableBitsTag , 0)))[0];
 //    if(trace_me) std::cout << "isfold: bits=" << bits << std::endl;
     if ( (bits & fold_case_mask) == 0) return false; else return true;
-	}  
+    }  
 static bool Hashisordered( DStructGDL* hashStruct)
 {
-	static unsigned ordmask = 0x00000010;
+    static unsigned ordmask = 0x00000010;
     static unsigned TableBitsTag = structDesc::HASH->TagIndex( "TABLE_BITS");
     if(hashStruct == NULL) return false;
     DLong bits = (*static_cast<DLongGDL*>( hashStruct->GetTag( TableBitsTag , 0)))[0];
     if ( (bits & ordmask) == 0) return false; else return true;
-	}  
+    }  
 // copies all keys and values  
 DStructGDL* CopyHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, DLong nSizeNew)
 {
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
   
     if(hashStruct == NULL) return NULL;
   DLong nSize = hashTable->N_Elements();
@@ -388,8 +389,8 @@ DStructGDL* CopyHashTable( DStructGDL* hashStruct, DStructGDL* hashTable, DLong 
 // keeps the keys and values 
 void GrowHashTable( DStructGDL* hashStruct, DStructGDL*& hashTable, DLong nSizeNew)
 {
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
   
     if(hashStruct == NULL) return;
   DLong nSize = hashTable->N_Elements();
@@ -462,8 +463,8 @@ void GrowHashTable( DStructGDL* hashStruct, DStructGDL*& hashTable, DLong nSizeN
   
 BaseGDL* RemoveFromHashTable( EnvUDT* e, DStructGDL* hashStruct, BaseGDL* key)
 {
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
 
     if(hashStruct == NULL) return NULL;
   bool isfoldcase = Hashisfoldcase( hashStruct);
@@ -480,8 +481,8 @@ BaseGDL* RemoveFromHashTable( EnvUDT* e, DStructGDL* hashStruct, BaseGDL* key)
       DPtr kID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, h)))[0];
       if( kID != 0)
       {
-	hashIndex = h;
-	break;
+    hashIndex = h;
+    break;
       }
     }
     if( hashIndex < 0) // nothing found - ok for empty table :-)
@@ -515,8 +516,8 @@ BaseGDL* RemoveFromHashTable( EnvUDT* e, DStructGDL* hashStruct, BaseGDL* key)
 // must pass hashTable as reference as it might be changed (GrowHashTable)
 void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL*& hashTable, BaseGDL* key, BaseGDL* value)
 {
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
 // key is always copied into heap, value is taken as is.
     if(hashStruct == NULL) return;
   bool isfoldcase = Hashisfoldcase( hashStruct);
@@ -579,13 +580,13 @@ void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL*& hashTable, BaseGD
       // we could optimize this by using a new DStructGDL function
       for( DLong i=nextFreeElementIx; i>insertPos; --i)
       {
-	(*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i)))[0] =
-	(*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i-1)))[0];
-	
-	(*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i)))[0] =
-	(*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i-1)))[0];
+    (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i)))[0] =
+    (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i-1)))[0];
+    
+    (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i)))[0] =
+    (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i-1)))[0];
 
-// 	std::cout << i2s(i-1) << " -> " << i2s(i) << std::endl;
+//  std::cout << i2s(i-1) << " -> " << i2s(i) << std::endl;
       }
       break;  
     }
@@ -601,22 +602,22 @@ void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL*& hashTable, BaseGD
     {
       if( (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, nextFreeElementIx)))[0] == 0)
       {
-	for( DLong i=nextFreeElementIx; i<insertPos; ++i)
-	{
-// 	  std::cout << i2s(i+1) << " -> " << i2s(i) << "   kID:";//std::endl;
-// 	  std::cout << (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i+1)))[0]; 
-// 	  std::cout << "   vID:" << (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i+1)))[0];
-// 	  std::cout << std::endl;
+    for( DLong i=nextFreeElementIx; i<insertPos; ++i)
+    {
+//    std::cout << i2s(i+1) << " -> " << i2s(i) << "   kID:";//std::endl;
+//    std::cout << (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i+1)))[0]; 
+//    std::cout << "   vID:" << (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i+1)))[0];
+//    std::cout << std::endl;
 
-	  (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i)))[0] =
-	  (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i+1)))[0];
-	  
-	  (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i)))[0] =
-	  (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i+1)))[0];
+      (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i)))[0] =
+      (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i+1)))[0];
+      
+      (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i)))[0] =
+      (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i+1)))[0];
 
-// 	  std::cout << i2s(i+1) << " -> " << i2s(i) << std::endl;
-	}
-	break;
+//    std::cout << i2s(i+1) << " -> " << i2s(i) << std::endl;
+    }
+    break;
       }      
     }
   }
@@ -638,9 +639,9 @@ void InsertIntoHashTable( DStructGDL* hashStruct, DStructGDL*& hashTable, BaseGD
   
   
 void HASH__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* actPosPtr)
-{	  
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
+{     
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
   
   SizeT nCount = (*static_cast<DLongGDL*>(oStructGDL->GetTag( TableCountTag, 0)))[0];
 
@@ -684,95 +685,95 @@ DLong GetInitialTableSize( DLong nEntries)
 }
  
 DObj new_hashStruct(  DLong initialTableSize, DStructGDL*& hashTable,
-						bool foldcasekw=false, bool isordered=false)
+                        bool foldcasekw=false, bool isordered=false)
 {
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
-	static unsigned fold_case_mask = 0x00000001;
-	static unsigned orderedmask = 0x00000010;
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
+    static unsigned fold_case_mask = 0x00000001;
+    static unsigned orderedmask = 0x00000010;
 
-	// because of .RESET_SESSION, we cannot use static here
-	DStructDesc* hashDesc=structDesc::HASH;
-	DStructDesc* entryDesc=structDesc::GDL_HASHTABLEENTRY;
-	assert( hashDesc != NULL && hashDesc->NTags() > 0);
-	assert( entryDesc != NULL && entryDesc->NTags() > 0);
+    // because of .RESET_SESSION, we cannot use static here
+    DStructDesc* hashDesc=structDesc::HASH;
+    DStructDesc* entryDesc=structDesc::GDL_HASHTABLEENTRY;
+    assert( hashDesc != NULL && hashDesc->NTags() > 0);
+    assert( entryDesc != NULL && entryDesc->NTags() > 0);
 
-	DStructGDL* hashStruct= new DStructGDL( hashDesc, dimension());
+    DStructGDL* hashStruct= new DStructGDL( hashDesc, dimension());
     DObj objID= BaseGDL::interpreter->NewObjHeap( 1, hashStruct);
 
-	hashTable= new DStructGDL( entryDesc, dimension(initialTableSize));
-	DPtr hashTableID= BaseGDL::interpreter->NewHeap( 1, hashTable);
+    hashTable= new DStructGDL( entryDesc, dimension(initialTableSize));
+    DPtr hashTableID= BaseGDL::interpreter->NewHeap( 1, hashTable);
 
-	(*static_cast<DPtrGDL*>( hashStruct->GetTag( pTableTag, 0)))[0] = hashTableID;
-	(*static_cast<DLongGDL*>( hashStruct->GetTag( TableSizeTag, 0)))[0] = initialTableSize;
-	unsigned long bitmask=0;
-	 	// apply specialty bits to TABLE_BITS of hashStruct
-		if( foldcasekw) bitmask = fold_case_mask;
-		if( isordered) bitmask |= orderedmask;
-		(*static_cast<DLongGDL*>( hashStruct->GetTag( TableBitsTag, 0)))[0] = bitmask;
-	return objID;
+    (*static_cast<DPtrGDL*>( hashStruct->GetTag( pTableTag, 0)))[0] = hashTableID;
+    (*static_cast<DLongGDL*>( hashStruct->GetTag( TableSizeTag, 0)))[0] = initialTableSize;
+    unsigned long bitmask=0;
+        // apply specialty bits to TABLE_BITS of hashStruct
+        if( foldcasekw) bitmask = fold_case_mask;
+        if( isordered) bitmask |= orderedmask;
+        (*static_cast<DLongGDL*>( hashStruct->GetTag( TableBitsTag, 0)))[0] = bitmask;
+    return objID;
 }  
 
 
 static BaseGDL* struct_tohash( EnvT* e,DStructGDL* parStruct,
-						bool foldcasekw, bool extractkw, bool isordered=false)
+                        bool foldcasekw, bool extractkw, bool isordered=false)
 {
 
     static int kwLOWERCASEIx = e->KeywordIx("LOWERCASE");
 
-	bool keytolower = e->KeywordSet(kwLOWERCASEIx);
-	DStructDesc* desc = parStruct->Desc();
-	DStructGDL* hashTable;
-	DLong initialTableSize = GetInitialTableSize( desc->NTags());
-	DObj objID= 
-		new_hashStruct( initialTableSize, hashTable, foldcasekw, isordered);
-	BaseGDL* newObj = new DObjGDL( objID); // the hash object
-	Guard<BaseGDL> newObjGuard( newObj);
-	DStructGDL* hashStruct = GetOBJ( newObj, 0);
-	for( SizeT t=0; t<desc->NTags(); ++t)
-	  {
-		  DString validName = ValidTagName( desc->TagName(t));
-	// http://blog.fourthwoods.com/2013/12/10/convert-c-string-to-lower-case-or-upper-case/
-		  if(keytolower) 
-			std::transform(validName.begin(), validName.end(),
-							validName.begin(), ::tolower);
-		  DStringGDL *structKey = new DStringGDL( validName);
-		  BaseGDL* structData;
-		  BaseGDL* par = parStruct->GetTag(t,0);
-		  assert(par != NULL);
-		  if( extractkw and par->Type() == GDL_STRUCT and (par->N_Elements()==1))
-					structData = structP_tohash( e, par, foldcasekw, extractkw, isordered);
-		  else structData = par->Dup();
-		  
-		  InsertIntoHashTable( hashStruct, hashTable, structKey, structData);
-	  }
-	
-	newObjGuard.Release();
-	return newObj;
+    bool keytolower = e->KeywordSet(kwLOWERCASEIx);
+    DStructDesc* desc = parStruct->Desc();
+    DStructGDL* hashTable;
+    DLong initialTableSize = GetInitialTableSize( desc->NTags());
+    DObj objID= 
+        new_hashStruct( initialTableSize, hashTable, foldcasekw, isordered);
+    BaseGDL* newObj = new DObjGDL( objID); // the hash object
+    Guard<BaseGDL> newObjGuard( newObj);
+    DStructGDL* hashStruct = GetOBJ( newObj, 0);
+    for( SizeT t=0; t<desc->NTags(); ++t)
+      {
+          DString validName = ValidTagName( desc->TagName(t));
+    // http://blog.fourthwoods.com/2013/12/10/convert-c-string-to-lower-case-or-upper-case/
+          if(keytolower) 
+            std::transform(validName.begin(), validName.end(),
+                            validName.begin(), ::tolower);
+          DStringGDL *structKey = new DStringGDL( validName);
+          BaseGDL* structData;
+          BaseGDL* par = parStruct->GetTag(t,0);
+          assert(par != NULL);
+          if( extractkw and par->Type() == GDL_STRUCT and (par->N_Elements()==1))
+                    structData = structP_tohash( e, par, foldcasekw, extractkw, isordered);
+          else structData = par->Dup();
+          
+          InsertIntoHashTable( hashStruct, hashTable, structKey, structData);
+      }
+    
+    newObjGuard.Release();
+    return newObj;
 }
 
 static BaseGDL* structP_tohash( EnvT* e,BaseGDL* par, bool foldcasekw, bool extractkw, bool isordered=false)
 {
     if(par->N_Elements() != 1)
-			e->Throw(" only a single struct may be hashed");
-	DStructGDL* parStruct = static_cast<DStructGDL*>(par);
-	return struct_tohash( e, parStruct, foldcasekw, extractkw, isordered);
+            e->Throw(" only a single struct may be hashed");
+    DStructGDL* parStruct = static_cast<DStructGDL*>(par);
+    return struct_tohash( e, parStruct, foldcasekw, extractkw, isordered);
 }
 
   BaseGDL* hash_tostruct( DStructGDL* self ,
-	BaseGDL* missing, BaseGDL** skipped, bool recursive, bool no_copy)
+    BaseGDL* missing, BaseGDL** skipped, bool recursive, bool no_copy)
   {
 
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
 
     DPtr Ptr = (*static_cast<DPtrGDL*>( self->GetTag( pTableTag, 0)))[0];
     DStructGDL* hashTable = static_cast<DStructGDL*>(BaseGDL::interpreter->GetHeap( Ptr));
 
     DLong nSize = hashTable->N_Elements();
   
-	GDL_LIST_STRUCT()
-	GDL_CONTAINER_NODE()
+    GDL_LIST_STRUCT()
+    GDL_CONTAINER_NODE()
  
     DStructDesc* listDesc= structDesc::LIST;
     DStructDesc* containerDesc= structDesc::GDL_CONTAINER_NODE;
@@ -790,8 +791,8 @@ static BaseGDL* structP_tohash( EnvT* e,BaseGDL* par, bool foldcasekw, bool extr
     
     DStructDesc* nStructDesc = new DStructDesc( "$truct");
     // instance takes care of nStructDesc since it is unnamed
-    // 	dimension dim( 1);
-    // 	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
+    //  dimension dim( 1);
+    //  DStructGDL* instance = new DStructGDL( nStructDesc, dim);
     DStructGDL* instance = new DStructGDL( nStructDesc);
     Guard<DStructGDL> instance_guard(instance);
 
@@ -813,16 +814,16 @@ static BaseGDL* structP_tohash( EnvT* e,BaseGDL* par, bool foldcasekw, bool extr
       BaseGDL* value = BaseGDL::interpreter->GetHeap( pValue);
       if( value == NULL || value == NullGDL::GetSingleInstance())
       {
-	value = missing;
+    value = missing;
       }
       // we are not owner of value here
       
       bool added = false;
       if( key->Type() == GDL_STRING && value != NULL) {
-	assert( key->N_Elements() == 1);
-	DString keyString = (*static_cast<DStringGDL*>(key))[0];
-	
-	DString tagString = ValidTagName( keyString);
+    assert( key->N_Elements() == 1);
+    DString keyString = (*static_cast<DStringGDL*>(key))[0];
+    
+    DString tagString = ValidTagName( keyString);
         if( nStructDesc->TagIndex( tagString) == -1) {
             if(value->Type() == GDL_OBJ and value->StrictScalar()) {
                 if(recursive) {
@@ -834,32 +835,32 @@ static BaseGDL* structP_tohash( EnvT* e,BaseGDL* par, bool foldcasekw, bool extr
                                     missing, skipped, recursive, no_copy);
                             }
                         }
-			}
+            }
             } //else if(trace_me) std::cout<<" value->Type() or StrictScalar()" << std::endl;
             //if(trace_me) lib::help_item(std::cout,value,tagString, false);
 
           instance->NewTag( tagString, value->Dup());
-	  added = true;
+      added = true;
 
          } //else if(trace_me) std::cout<<" TagIndex != -1" << std::endl;
       }
       
       if( !added && listStruct != NULL) // add key to skipped
       {
-	key = key->Dup();
-	DPtr dID = BaseGDL::interpreter->NewHeap(1,key);
+    key = key->Dup();
+    DPtr dID = BaseGDL::interpreter->NewHeap(1,key);
 
-	cStruct = new DStructGDL( containerDesc, dimension());
-	cID = BaseGDL::interpreter->NewHeap(1,cStruct);
-	(*static_cast<DPtrGDL*>( cStruct->GetTag( pListDataTag, 0)))[0] = dID;
+    cStruct = new DStructGDL( containerDesc, dimension());
+    cID = BaseGDL::interpreter->NewHeap(1,cStruct);
+    (*static_cast<DPtrGDL*>( cStruct->GetTag( pListDataTag, 0)))[0] = dID;
       
-	if( cStructLast != NULL)
-	  (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
-	else
-	{ // 1st element
-	  (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;	      
-	}
-	    
+    if( cStructLast != NULL)
+      (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
+    else
+    { // 1st element
+      (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;       
+    }
+        
       cStructLast = cStruct;
       }
     }
@@ -908,7 +909,7 @@ bool PtrDerefEqual( DPtrGDL* l, DPtrGDL* r)
     {
       // recursion here
       if( !PtrDerefEqual( static_cast<DPtrGDL*>( derefL), static_cast<DPtrGDL*>( derefR)))
-	return false;
+    return false;
     }
     else  if( !derefL->ArrayEqual( derefR))
       return false;
@@ -926,8 +927,8 @@ BaseGDL* list_rightextraction( EnvUDT* e, BaseGDL* theref, int iprm  );
 void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
   BaseGDL* HASH___OverloadIsTrue( EnvUDT* e)
   {
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
 
     SizeT nParam = e->NParam(1);
 
@@ -946,8 +947,8 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
   
   BaseGDL* HASH___OverloadNEOp( EnvUDT* e)
   {
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
 
     SizeT nParam = e->NParam(); // number of parameters actually given
     // more precise error message
@@ -973,19 +974,19 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       leftID = (*left)[0];
       if( leftID == 0)
       { // null object -> compare to !NULL
-	l = NULL;
+    l = NULL;
       }
       else
       {
-	try {
-	  leftStruct = BaseGDL::interpreter->GetObjHeap( leftID);
-	}
-	catch( GDLInterpreter::HeapException& hEx)
-	{
-	  ThrowFromInternalUDSub( e, "Left parameter object ID <"+i2s(leftID)+"> not found.");      
-	}
-	if( !leftStruct->Desc()->IsParent("HASH"))	
-	  leftStruct = NULL;
+    try {
+      leftStruct = BaseGDL::interpreter->GetObjHeap( leftID);
+    }
+    catch( GDLInterpreter::HeapException& hEx)
+    {
+      ThrowFromInternalUDSub( e, "Left parameter object ID <"+i2s(leftID)+"> not found.");      
+    }
+    if( !leftStruct->Desc()->IsParent("HASH"))  
+      leftStruct = NULL;
       }
     }
     DStructGDL* rightStruct = NULL;
@@ -996,19 +997,19 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       rightID = (*right)[0];
       if( rightID == 0)
       { // null object -> compare to !NULL
-	r = NULL;
+    r = NULL;
       }
       else
       {
-	try {
-	  rightStruct = BaseGDL::interpreter->GetObjHeap( rightID);
-	}
-	catch( GDLInterpreter::HeapException& hEx)
-	{
-	  ThrowFromInternalUDSub( e, "Right parameter object ID <"+i2s(rightID)+"> not found.");      
-	}
-	if( !rightStruct->Desc()->IsParent("HASH"))	
-	  rightStruct = NULL;
+    try {
+      rightStruct = BaseGDL::interpreter->GetObjHeap( rightID);
+    }
+    catch( GDLInterpreter::HeapException& hEx)
+    {
+      ThrowFromInternalUDSub( e, "Right parameter object ID <"+i2s(rightID)+"> not found.");      
+    }
+    if( !rightStruct->Desc()->IsParent("HASH")) 
+      rightStruct = NULL;
       }
     }
 
@@ -1025,13 +1026,13 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
 
       if( rightStruct != NULL)
       {
-	compareStruct = rightStruct;
-	DPtr Ptr = (*static_cast<DPtrGDL*>( compareStruct->GetTag( pTableTag, 0)))[0];
-	compareTable = static_cast<DStructGDL*>(BaseGDL::interpreter->GetHeap( Ptr));
+    compareStruct = rightStruct;
+    DPtr Ptr = (*static_cast<DPtrGDL*>( compareStruct->GetTag( pTableTag, 0)))[0];
+    compareTable = static_cast<DStructGDL*>(BaseGDL::interpreter->GetHeap( Ptr));
       }
       else
       {
-	compare = r;	
+    compare = r;    
       }
     } 
     else if( rightStruct != NULL)
@@ -1049,8 +1050,8 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     DLong nSize = hashTable->N_Elements();
 //     DLong nCount = (*static_cast<DLongGDL*>( hashStruct->GetTag( TableCountTag, 0)))[0];
 
-	GDL_LIST_STRUCT()
-	GDL_CONTAINER_NODE()
+    GDL_LIST_STRUCT()
+    GDL_CONTAINER_NODE()
 
     // the result list
     DStructDesc* listDesc= structDesc::LIST;
@@ -1069,80 +1070,80 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     {
       DPtr kID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i)))[0];
       if( kID == 0)
-	continue;
+    continue;
 
       BaseGDL* key = BaseGDL::interpreter->GetHeap( kID);
       assert( key != NULL);
 
       if( compareStruct == NULL) // against value
       {
-	DPtr vID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i)))[0];
-	BaseGDL* v = BaseGDL::interpreter->GetHeap( vID);
+    DPtr vID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i)))[0];
+    BaseGDL* v = BaseGDL::interpreter->GetHeap( vID);
 
-	BaseGDL* vCmp = compare;
-	
-	if( v == NULL || v == NullGDL::GetSingleInstance())
-	{
-	  if( vCmp == NULL /*&& vCmp == NullGDL::GetSingleInstance()*/)
-	    continue;
-	}
-	if( vCmp == NULL /*|| vCmp == NullGDL::GetSingleInstance()*/)
-	{
-	  if( v == NULL && v == NullGDL::GetSingleInstance())
-	    continue;
-	}
-	if( v != NULL && vCmp != NULL)
-	{
-	  if( v->Type() == vCmp->Type())
-	  {
-	  
-	    if( v->Type() == GDL_PTR)
-	    {
-	      if( PtrDerefEqual( static_cast<DPtrGDL*>(v), static_cast<DPtrGDL*>(vCmp)))
-		continue;
-	    }
-	    else if( v->ArrayEqual( vCmp))
-	      continue;
-	  }
-	}
+    BaseGDL* vCmp = compare;
+    
+    if( v == NULL || v == NullGDL::GetSingleInstance())
+    {
+      if( vCmp == NULL /*&& vCmp == NullGDL::GetSingleInstance()*/)
+        continue;
+    }
+    if( vCmp == NULL /*|| vCmp == NullGDL::GetSingleInstance()*/)
+    {
+      if( v == NULL && v == NullGDL::GetSingleInstance())
+        continue;
+    }
+    if( v != NULL && vCmp != NULL)
+    {
+      if( v->Type() == vCmp->Type())
+      {
+      
+        if( v->Type() == GDL_PTR)
+        {
+          if( PtrDerefEqual( static_cast<DPtrGDL*>(v), static_cast<DPtrGDL*>(vCmp)))
+        continue;
+        }
+        else if( v->ArrayEqual( vCmp))
+          continue;
+      }
+    }
       }
       else // against other HASH
       {
-	DLong insertIx = HashIndex(compareTable, key, isfoldcase);
-	if( insertIx >= 0) // found
-	{
+    DLong insertIx = HashIndex(compareTable, key, isfoldcase);
+    if( insertIx >= 0) // found
+    {
 
-	  DPtr vID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i)))[0];
-	  BaseGDL* v = BaseGDL::interpreter->GetHeap( vID);
+      DPtr vID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i)))[0];
+      BaseGDL* v = BaseGDL::interpreter->GetHeap( vID);
 
-	  DPtr vCmpID = (*static_cast<DPtrGDL*>(compareTable->GetTag( pValueTag, insertIx)))[0];
-	  BaseGDL* vCmp = BaseGDL::interpreter->GetHeap( vCmpID);
-	  
-	  if( v == NULL || v == NullGDL::GetSingleInstance())
-	  {
-	    if( vCmp == NULL || vCmp == NullGDL::GetSingleInstance())
-	      continue;
-	  }
-	  if( vCmp == NULL || vCmp == NullGDL::GetSingleInstance())
-	  {
-	    if( v == NULL || v == NullGDL::GetSingleInstance())
-	      continue;
-	  }
-	  if( v != NULL && vCmp != NULL)
-	  {
-	    if( v->Type() == vCmp->Type())
-	    {
-	    
-	      if( v->Type() == GDL_PTR)
-	      {
-		if( PtrDerefEqual( static_cast<DPtrGDL*>(v), static_cast<DPtrGDL*>(vCmp)))
-		  continue;
-	      }
-	      else if( v->ArrayEqual( vCmp))
-		continue;
-	    }
-	  }
-	}
+      DPtr vCmpID = (*static_cast<DPtrGDL*>(compareTable->GetTag( pValueTag, insertIx)))[0];
+      BaseGDL* vCmp = BaseGDL::interpreter->GetHeap( vCmpID);
+      
+      if( v == NULL || v == NullGDL::GetSingleInstance())
+      {
+        if( vCmp == NULL || vCmp == NullGDL::GetSingleInstance())
+          continue;
+      }
+      if( vCmp == NULL || vCmp == NullGDL::GetSingleInstance())
+      {
+        if( v == NULL || v == NullGDL::GetSingleInstance())
+          continue;
+      }
+      if( v != NULL && vCmp != NULL)
+      {
+        if( v->Type() == vCmp->Type())
+        {
+        
+          if( v->Type() == GDL_PTR)
+          {
+        if( PtrDerefEqual( static_cast<DPtrGDL*>(v), static_cast<DPtrGDL*>(vCmp)))
+          continue;
+          }
+          else if( v->ArrayEqual( vCmp))
+        continue;
+        }
+      }
+    }
       }
 
       // not equal or not found -> insert into LIST
@@ -1153,12 +1154,12 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       (*static_cast<DPtrGDL*>( cStruct->GetTag( pListDataTag, 0)))[0] = dID;
       
       if( cStructLast != NULL)
-	(*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
+    (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
       else
       { // 1st element
-	(*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;	      
+    (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;         
       }
-	    
+        
       cStructLast = cStruct;
       ++nCountList;
     } // for
@@ -1170,40 +1171,40 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       DLong nSizeCmp = compareTable->N_Elements();       
       for( SizeT i=0; i<nSizeCmp; ++i)
       {
-	DPtr kID = (*static_cast<DPtrGDL*>(compareTable->GetTag( pKeyTag, i)))[0];
-	if( kID == 0)
-	  continue;
+    DPtr kID = (*static_cast<DPtrGDL*>(compareTable->GetTag( pKeyTag, i)))[0];
+    if( kID == 0)
+      continue;
 
-	BaseGDL* key = BaseGDL::interpreter->GetHeap( kID);
-	assert( key != NULL);
+    BaseGDL* key = BaseGDL::interpreter->GetHeap( kID);
+    assert( key != NULL);
 
-	DLong insertIx = HashIndex(hashTable, key, isfoldcase);
-	if( insertIx >= 0) // found
-	{
-	  // this key was already handled (inserted or not) during the first compare
-	  continue;
-	}
+    DLong insertIx = HashIndex(hashTable, key, isfoldcase);
+    if( insertIx >= 0) // found
+    {
+      // this key was already handled (inserted or not) during the first compare
+      continue;
+    }
 
-	// not equal -> insert into LIST
-	DPtr dID = e->Interpreter()->NewHeap(1,key->Dup());
+    // not equal -> insert into LIST
+    DPtr dID = e->Interpreter()->NewHeap(1,key->Dup());
 
-	cStruct = new DStructGDL( containerDesc, dimension());
-	cID = e->Interpreter()->NewHeap(1,cStruct);
-	(*static_cast<DPtrGDL*>( cStruct->GetTag( pListDataTag, 0)))[0] = dID;
-	
-	if( cStructLast != NULL)
-	  (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
-	else
-	{ // 1st element
-	  (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;	      
-	}
-	      
-	cStructLast = cStruct;
-	++nCountList;
+    cStruct = new DStructGDL( containerDesc, dimension());
+    cID = e->Interpreter()->NewHeap(1,cStruct);
+    (*static_cast<DPtrGDL*>( cStruct->GetTag( pListDataTag, 0)))[0] = dID;
+    
+    if( cStructLast != NULL)
+      (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
+    else
+    { // 1st element
+      (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;       
+    }
+          
+    cStructLast = cStruct;
+    ++nCountList;
       } // for
     }
 
-    (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;	      
+    (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;         
     (*static_cast<DLongGDL*>( listStruct->GetTag( nListTag, 0)))[0] = nCountList;      
 
     newObjGuard.Release();
@@ -1214,8 +1215,8 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
   
   BaseGDL* HASH___OverloadEQOp( EnvUDT* e)
   {
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
 
     SizeT nParam = e->NParam(); // number of parameters actually given
     // more precise error message
@@ -1241,19 +1242,19 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       leftID = (*left)[0];
       if( leftID == 0)
       { // null object -> compare to !NULL
-	l = NULL;
+    l = NULL;
       }
       else
       {
-	try {
-	  leftStruct = BaseGDL::interpreter->GetObjHeap( leftID);
-	}
-	catch( GDLInterpreter::HeapException& hEx)
-	{
-	  ThrowFromInternalUDSub( e, "Left parameter object ID <"+i2s(leftID)+"> not found.");      
-	}
-	if( !leftStruct->Desc()->IsParent("HASH"))	
-	  leftStruct = NULL;
+    try {
+      leftStruct = BaseGDL::interpreter->GetObjHeap( leftID);
+    }
+    catch( GDLInterpreter::HeapException& hEx)
+    {
+      ThrowFromInternalUDSub( e, "Left parameter object ID <"+i2s(leftID)+"> not found.");      
+    }
+    if( !leftStruct->Desc()->IsParent("HASH"))  
+      leftStruct = NULL;
       }
     }
     DStructGDL* rightStruct = NULL;
@@ -1264,19 +1265,19 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       rightID = (*right)[0];
       if( rightID == 0)
       { // null object -> compare to !NULL
-	r = NULL;
+    r = NULL;
       }
       else
       {
-	try {
-	  rightStruct = BaseGDL::interpreter->GetObjHeap( rightID);
-	}
-	catch( GDLInterpreter::HeapException& hEx)
-	{
-	  ThrowFromInternalUDSub( e, "Right parameter object ID <"+i2s(rightID)+"> not found.");      
-	}
-	if( !rightStruct->Desc()->IsParent("HASH"))	
-	  rightStruct = NULL;
+    try {
+      rightStruct = BaseGDL::interpreter->GetObjHeap( rightID);
+    }
+    catch( GDLInterpreter::HeapException& hEx)
+    {
+      ThrowFromInternalUDSub( e, "Right parameter object ID <"+i2s(rightID)+"> not found.");      
+    }
+    if( !rightStruct->Desc()->IsParent("HASH")) 
+      rightStruct = NULL;
       }
     }
 
@@ -1295,13 +1296,13 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
 
       if( rightStruct != NULL)
       {
-	compareStruct = rightStruct;
-	DPtr Ptr = (*static_cast<DPtrGDL*>( compareStruct->GetTag( pTableTag, 0)))[0];
-	compareTable = static_cast<DStructGDL*>(BaseGDL::interpreter->GetHeap( Ptr));
+    compareStruct = rightStruct;
+    DPtr Ptr = (*static_cast<DPtrGDL*>( compareStruct->GetTag( pTableTag, 0)))[0];
+    compareTable = static_cast<DStructGDL*>(BaseGDL::interpreter->GetHeap( Ptr));
       }
       else
       {
-	compare = r;	
+    compare = r;    
       }
     } 
     else if( rightStruct != NULL)
@@ -1338,77 +1339,77 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     {
       DPtr kID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, i)))[0];
       if( kID == 0)
-	continue;
+    continue;
 
       BaseGDL* key = BaseGDL::interpreter->GetHeap( kID);
       assert( key != NULL);
 
       if( compareStruct == NULL) // against value
       {
-	DPtr vID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i)))[0];
-	BaseGDL* v = BaseGDL::interpreter->GetHeap( vID);
+    DPtr vID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i)))[0];
+    BaseGDL* v = BaseGDL::interpreter->GetHeap( vID);
 
-	BaseGDL* vCmp = compare;
-	
-	if( v == NULL || v == NullGDL::GetSingleInstance())
-	{
-	  if( vCmp != NULL /*&& vCmp != NullGDL::GetSingleInstance()*/)
-	    continue;
-	}
-	if( vCmp == NULL /*|| vCmp == NullGDL::GetSingleInstance()*/)
-	{
-	  if( v != NULL && v != NullGDL::GetSingleInstance())
-	    continue;
-	}
-	if( v != NULL)
-	{
-	  if( v->Type() != vCmp->Type())
-	    continue;
-	  
-	  if( v->Type() == GDL_PTR)
-	  {
-	    if( !PtrDerefEqual( static_cast<DPtrGDL*>(v), static_cast<DPtrGDL*>(vCmp)))
-	      continue;
-	  }
-	  else if( !v->ArrayEqual( vCmp))
-	    continue;
-	}
+    BaseGDL* vCmp = compare;
+    
+    if( v == NULL || v == NullGDL::GetSingleInstance())
+    {
+      if( vCmp != NULL /*&& vCmp != NullGDL::GetSingleInstance()*/)
+        continue;
+    }
+    if( vCmp == NULL /*|| vCmp == NullGDL::GetSingleInstance()*/)
+    {
+      if( v != NULL && v != NullGDL::GetSingleInstance())
+        continue;
+    }
+    if( v != NULL)
+    {
+      if( v->Type() != vCmp->Type())
+        continue;
+      
+      if( v->Type() == GDL_PTR)
+      {
+        if( !PtrDerefEqual( static_cast<DPtrGDL*>(v), static_cast<DPtrGDL*>(vCmp)))
+          continue;
+      }
+      else if( !v->ArrayEqual( vCmp))
+        continue;
+    }
       }
       else // against other HASH
       {
-	DLong insertIx = HashIndex(compareTable, key, isfoldcase);
-	if( insertIx < 0) // not found
-	  continue;
+    DLong insertIx = HashIndex(compareTable, key, isfoldcase);
+    if( insertIx < 0) // not found
+      continue;
 
-	DPtr vID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i)))[0];
-	BaseGDL* v = BaseGDL::interpreter->GetHeap( vID);
+    DPtr vID = (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, i)))[0];
+    BaseGDL* v = BaseGDL::interpreter->GetHeap( vID);
 
-	DPtr vCmpID = (*static_cast<DPtrGDL*>(compareTable->GetTag( pValueTag, insertIx)))[0];
-	BaseGDL* vCmp = BaseGDL::interpreter->GetHeap( vCmpID);
-	
-	if( v == NULL || v == NullGDL::GetSingleInstance())
-	{
-	  if( vCmp != NULL && vCmp != NullGDL::GetSingleInstance())
-	    continue;
-	}
-	if( vCmp == NULL || vCmp == NullGDL::GetSingleInstance())
-	{
-	  if( v != NULL && v != NullGDL::GetSingleInstance())
-	    continue;
-	}
-	if( v != NULL)
-	{
-	  if( v->Type() != vCmp->Type())
-	    continue;
-	  
-	  if( v->Type() == GDL_PTR)
-	  {
-	    if( !PtrDerefEqual( static_cast<DPtrGDL*>(v), static_cast<DPtrGDL*>(vCmp)))
-	      continue;
-	  }
-	  else if( !v->ArrayEqual( vCmp))
-	    continue;
-	}
+    DPtr vCmpID = (*static_cast<DPtrGDL*>(compareTable->GetTag( pValueTag, insertIx)))[0];
+    BaseGDL* vCmp = BaseGDL::interpreter->GetHeap( vCmpID);
+    
+    if( v == NULL || v == NullGDL::GetSingleInstance())
+    {
+      if( vCmp != NULL && vCmp != NullGDL::GetSingleInstance())
+        continue;
+    }
+    if( vCmp == NULL || vCmp == NullGDL::GetSingleInstance())
+    {
+      if( v != NULL && v != NullGDL::GetSingleInstance())
+        continue;
+    }
+    if( v != NULL)
+    {
+      if( v->Type() != vCmp->Type())
+        continue;
+      
+      if( v->Type() == GDL_PTR)
+      {
+        if( !PtrDerefEqual( static_cast<DPtrGDL*>(v), static_cast<DPtrGDL*>(vCmp)))
+          continue;
+      }
+      else if( !v->ArrayEqual( vCmp))
+        continue;
+    }
       }
 
       // equal -> insert into LIST
@@ -1419,16 +1420,16 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       (*static_cast<DPtrGDL*>( cStruct->GetTag( pListDataTag, 0)))[0] = dID;
       
       if( cStructLast != NULL)
-	(*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
+    (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
       else
       { // 1st element
-	(*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;	      
+    (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;         
       }
-	    
+        
       cStructLast = cStruct;
       ++nCountList;
     } // for
-    (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;	      
+    (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;         
     (*static_cast<DLongGDL*>( listStruct->GetTag( nListTag, 0)))[0] = nCountList;      
 
     newObjGuard.Release();
@@ -1439,8 +1440,8 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
   
   BaseGDL* HASH___OverloadPlus( EnvUDT* e)
   {
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
 
     SizeT nParam = e->NParam(); // number of parameters actually given
     // more precise error message
@@ -1469,14 +1470,14 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       DObjGDL* left = static_cast<DObjGDL*>(l);
       leftID = (*left)[0];
       try {
-	leftStruct = BaseGDL::interpreter->GetObjHeap( leftID);
+    leftStruct = BaseGDL::interpreter->GetObjHeap( leftID);
       }
       catch( GDLInterpreter::HeapException& hEx)
       {
-	ThrowFromInternalUDSub( e, "Left parameter object ID <"+i2s(leftID)+"> not found.");      
+    ThrowFromInternalUDSub( e, "Left parameter object ID <"+i2s(leftID)+"> not found.");      
       }
       if( !leftStruct->Desc()->IsParent("HASH"))
-	ThrowFromInternalUDSub( e, "Left parameter object ("+leftStruct->Desc()->Name()+") must be a HASH.");      	
+    ThrowFromInternalUDSub( e, "Left parameter object ("+leftStruct->Desc()->Name()+") must be a HASH.");       
     }
     else
     {
@@ -1490,14 +1491,14 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       DObjGDL* right = static_cast<DObjGDL*>(r);
       rightID = (*right)[0];
       try {
-	rightStruct = BaseGDL::interpreter->GetObjHeap( rightID);
+    rightStruct = BaseGDL::interpreter->GetObjHeap( rightID);
       }
       catch( GDLInterpreter::HeapException& hEx)
       {
-	ThrowFromInternalUDSub( e, "Right parameter object ID <"+i2s(rightID)+"> not found.");      
+    ThrowFromInternalUDSub( e, "Right parameter object ID <"+i2s(rightID)+"> not found.");      
       }
       if( !rightStruct->Desc()->IsParent("HASH"))
-	ThrowFromInternalUDSub( e, "Right parameter object ("+rightStruct->Desc()->Name()+") must be a HASH.");      	
+    ThrowFromInternalUDSub( e, "Right parameter object ("+rightStruct->Desc()->Name()+") must be a HASH.");         
     }
     else
     {
@@ -1532,102 +1533,102 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
 
       if( nCountMax == 0) // two empty HASH
       {
-	(*static_cast<DLongGDL*>( hashStruct->GetTag( TableSizeTag, 0)))[0] = nSize;
-	// nCount was set to zero at init
-	newObjGuard.Release();
-	return newObj;
+    (*static_cast<DLongGDL*>( hashStruct->GetTag( TableSizeTag, 0)))[0] = nSize;
+    // nCount was set to zero at init
+    newObjGuard.Release();
+    return newObj;
       }
       
       DLong leftIx = -1;
       DLong rightIx = -1;
       // advance both to 1st
       if( nCountL > 0)
-	while( (*static_cast<DPtrGDL*>(hashTableL->GetTag( pKeyTag, ++leftIx)))[0] == 0);
+    while( (*static_cast<DPtrGDL*>(hashTableL->GetTag( pKeyTag, ++leftIx)))[0] == 0);
       if( leftIx == -1)
-	leftIx = nSizeL;
+    leftIx = nSizeL;
       if( nCountR > 0)
-	while( (*static_cast<DPtrGDL*>(hashTableR->GetTag( pKeyTag, ++rightIx)))[0] == 0);
+    while( (*static_cast<DPtrGDL*>(hashTableR->GetTag( pKeyTag, ++rightIx)))[0] == 0);
       if( rightIx == -1)
-	rightIx = nSizeR;
+    rightIx = nSizeR;
       
       DLong nCount = nCountMax;
       for( SizeT el=0; el<nCount; ++el)
       {
-	int hashCompare;
-	BaseGDL* keyL;
-	BaseGDL* keyR;
-	if( leftIx < nSizeL)
-	{
-	  DPtr kIDL = (*static_cast<DPtrGDL*>(hashTableL->GetTag( pKeyTag, leftIx)))[0];
-	  keyL = BaseGDL::interpreter->GetHeap( kIDL);
-	  assert( keyL != NULL);
+    int hashCompare;
+    BaseGDL* keyL;
+    BaseGDL* keyR;
+    if( leftIx < nSizeL)
+    {
+      DPtr kIDL = (*static_cast<DPtrGDL*>(hashTableL->GetTag( pKeyTag, leftIx)))[0];
+      keyL = BaseGDL::interpreter->GetHeap( kIDL);
+      assert( keyL != NULL);
 
-	  if( rightIx < nSizeR)
-	  {
-	    DPtr kIDR = (*static_cast<DPtrGDL*>(hashTableR->GetTag( pKeyTag, rightIx)))[0];
-	    keyR = BaseGDL::interpreter->GetHeap( kIDR);
-	    assert( keyR != NULL);
+      if( rightIx < nSizeR)
+      {
+        DPtr kIDR = (*static_cast<DPtrGDL*>(hashTableR->GetTag( pKeyTag, rightIx)))[0];
+        keyR = BaseGDL::interpreter->GetHeap( kIDR);
+        assert( keyR != NULL);
 
-	    // both valid -> compare
-	    hashCompare = keyL->HashCompare( keyR);
-	    if( hashCompare == 0)
-	      --nCount;
-	  }
-	  else
-	  {
-	    // right finish -> use left
-	    hashCompare = -1;
-	  }
-	}
-	else
-	{
-	  // left finish -> use right
-	  if( rightIx >= nSizeR)
-	    assert( rightIx < nSizeR);
+        // both valid -> compare
+        hashCompare = keyL->HashCompare( keyR);
+        if( hashCompare == 0)
+          --nCount;
+      }
+      else
+      {
+        // right finish -> use left
+        hashCompare = -1;
+      }
+    }
+    else
+    {
+      // left finish -> use right
+      if( rightIx >= nSizeR)
+        assert( rightIx < nSizeR);
 
-	  DPtr kIDR = (*static_cast<DPtrGDL*>(hashTableR->GetTag( pKeyTag, rightIx)))[0];
-	  keyR = BaseGDL::interpreter->GetHeap( kIDR);
-	  assert( keyR != NULL);
+      DPtr kIDR = (*static_cast<DPtrGDL*>(hashTableR->GetTag( pKeyTag, rightIx)))[0];
+      keyR = BaseGDL::interpreter->GetHeap( kIDR);
+      assert( keyR != NULL);
 
-	  hashCompare = 1;
-	}
+      hashCompare = 1;
+    }
 
-	DLong insertIx = el * nSize / nCountMax;	
-	if( hashCompare == -1) // keyL smaller -> use left
-	{
-	    DPtr kID = BaseGDL::interpreter->NewHeap(1,keyL->Dup());
-	    (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, insertIx)))[0] = kID;
+    DLong insertIx = el * nSize / nCountMax;    
+    if( hashCompare == -1) // keyL smaller -> use left
+    {
+        DPtr kID = BaseGDL::interpreter->NewHeap(1,keyL->Dup());
+        (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, insertIx)))[0] = kID;
 
-	    DPtr vSrcID = (*static_cast<DPtrGDL*>(hashTableL->GetTag( pValueTag, leftIx)))[0];
-	    BaseGDL* value = BaseGDL::interpreter->GetHeap( vSrcID);
-	    if( value != NULL) 
-	      value = value->Dup();
-	    
-	    DPtr vID = BaseGDL::interpreter->NewHeap(1,value);
-	    (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, insertIx)))[0] = vID;
+        DPtr vSrcID = (*static_cast<DPtrGDL*>(hashTableL->GetTag( pValueTag, leftIx)))[0];
+        BaseGDL* value = BaseGDL::interpreter->GetHeap( vSrcID);
+        if( value != NULL) 
+          value = value->Dup();
+        
+        DPtr vID = BaseGDL::interpreter->NewHeap(1,value);
+        (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, insertIx)))[0] = vID;
 
-	    // advance l
-	    while( (++leftIx < nSizeL) && (*static_cast<DPtrGDL*>(hashTableL->GetTag( pKeyTag, leftIx)))[0] == 0);
-	}
-	else // keyL larger or equal -> use right
-	{
-	    DPtr kID = BaseGDL::interpreter->NewHeap(1,keyR->Dup());
-	    (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, insertIx)))[0] = kID;
+        // advance l
+        while( (++leftIx < nSizeL) && (*static_cast<DPtrGDL*>(hashTableL->GetTag( pKeyTag, leftIx)))[0] == 0);
+    }
+    else // keyL larger or equal -> use right
+    {
+        DPtr kID = BaseGDL::interpreter->NewHeap(1,keyR->Dup());
+        (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, insertIx)))[0] = kID;
 
-	    DPtr vSrcID = (*static_cast<DPtrGDL*>(hashTableR->GetTag( pValueTag, rightIx)))[0];
-	    BaseGDL* value = BaseGDL::interpreter->GetHeap( vSrcID);
-	    if( value != NULL) 
-	      value = value->Dup();
-	    
-	    DPtr vID = BaseGDL::interpreter->NewHeap(1,value);
-	    (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, insertIx)))[0] = vID;
+        DPtr vSrcID = (*static_cast<DPtrGDL*>(hashTableR->GetTag( pValueTag, rightIx)))[0];
+        BaseGDL* value = BaseGDL::interpreter->GetHeap( vSrcID);
+        if( value != NULL) 
+          value = value->Dup();
+        
+        DPtr vID = BaseGDL::interpreter->NewHeap(1,value);
+        (*static_cast<DPtrGDL*>(hashTable->GetTag( pValueTag, insertIx)))[0] = vID;
 
-	    // advance r
-	    while( (++rightIx < nSizeR) && (*static_cast<DPtrGDL*>(hashTableR->GetTag( pKeyTag, rightIx)))[0] == 0);
-	    
-	    if( hashCompare == 0) // advance r also if equal keys
-	      while( (++leftIx < nSizeL) && (*static_cast<DPtrGDL*>(hashTableL->GetTag( pKeyTag, leftIx)))[0] == 0);
-	}
+        // advance r
+        while( (++rightIx < nSizeR) && (*static_cast<DPtrGDL*>(hashTableR->GetTag( pKeyTag, rightIx)))[0] == 0);
+        
+        if( hashCompare == 0) // advance r also if equal keys
+          while( (++leftIx < nSizeL) && (*static_cast<DPtrGDL*>(hashTableL->GetTag( pKeyTag, leftIx)))[0] == 0);
+    }
       }
 
       (*static_cast<DLongGDL*>( hashStruct->GetTag( TableSizeTag, 0)))[0] = nSize;     
@@ -1691,30 +1692,30 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
 
     if( leftID == 0) // add left struct
     {
-	DStructDesc* desc = leftStruct->Desc();
-	for( SizeT t=0; t<desc->NTags(); ++t)
-	{
-	  DStringGDL *structKey = new DStringGDL( desc->TagName(t));
-	  BaseGDL* structData = leftStruct->GetTag(t,0);
-	  assert(structData != NULL);
-	  structData = structData->Dup();
-	  
-	  InsertIntoHashTable( hashStruct, newHashTable, structKey, structData);
-	}
+    DStructDesc* desc = leftStruct->Desc();
+    for( SizeT t=0; t<desc->NTags(); ++t)
+    {
+      DStringGDL *structKey = new DStringGDL( desc->TagName(t));
+      BaseGDL* structData = leftStruct->GetTag(t,0);
+      assert(structData != NULL);
+      structData = structData->Dup();
+      
+      InsertIntoHashTable( hashStruct, newHashTable, structKey, structData);
+    }
 
     }
     if( rightID == 0) // add right struct
     {
-	DStructDesc* desc = rightStruct->Desc();
-	for( SizeT t=0; t<desc->NTags(); ++t)
-	{
-	  DStringGDL *structKey = new DStringGDL( desc->TagName(t));
-	  BaseGDL* structData = rightStruct->GetTag(t,0);
-	  assert(structData != NULL);
-	  structData = structData->Dup();
-	  
-	  InsertIntoHashTable( hashStruct, newHashTable, structKey, structData);
-	}
+    DStructDesc* desc = rightStruct->Desc();
+    for( SizeT t=0; t<desc->NTags(); ++t)
+    {
+      DStringGDL *structKey = new DStringGDL( desc->TagName(t));
+      BaseGDL* structData = rightStruct->GetTag(t,0);
+      assert(structData != NULL);
+      structData = structData->Dup();
+      
+      InsertIntoHashTable( hashStruct, newHashTable, structKey, structData);
+    }
 
     }
     
@@ -1742,7 +1743,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
 
     SizeT nParam = e->NParam(1); 
     DStructGDL* self = GetOBJ( e->GetKW( kwSELFIx), e);
-	return hash_tostruct( self, missing, skipped, recursive, no_copy);
+    return hash_tostruct( self, missing, skipped, recursive, no_copy);
 }
   BaseGDL* hash__isempty( EnvUDT* e)
   {
@@ -1756,7 +1757,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
 
   BaseGDL* hash__isordered( EnvUDT* e)
   {
-	static unsigned ordmask = 0x00000010;
+    static unsigned ordmask = 0x00000010;
     static unsigned TableBitsTag = structDesc::HASH->TagIndex( "TABLE_BITS");
     static unsigned TableCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
     static int kwSELFIx = 0;
@@ -1770,7 +1771,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
   }
   BaseGDL* hash__isfoldcase( EnvUDT* e)
   {
-	static unsigned fold_case_mask = 0x00000001;
+    static unsigned fold_case_mask = 0x00000001;
     static unsigned TableBitsTag = structDesc::HASH->TagIndex( "TABLE_BITS");
     
     if ( Hashisfoldcase( GetOBJ( e->GetKW( 0), e)) ) return new DByteGDL(1);
@@ -1784,10 +1785,10 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     static unsigned TableCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
     static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
 
-	BaseGDL* selfP = e->GetKW( kwSELFIx);
+    BaseGDL* selfP = e->GetKW( kwSELFIx);
 
     SizeT nParam = e->NParam(1);
-	if( nParam == 1) return new DLongGDL( HASH_count( GetOBJ( selfP, e)));
+    if( nParam == 1) return new DLongGDL( HASH_count( GetOBJ( selfP, e)));
 
     DObjGDL* selfObj = static_cast<DObjGDL*>(selfP);
     // nParam > 1:
@@ -1798,7 +1799,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     
       DStructGDL* selfLIST = GetOBJ( listObj, e);
 
-      DLong nList = (*static_cast<DLongGDL*>( selfLIST->GetTag( nListTag, 0)))[0];	      
+      DLong nList = (*static_cast<DLongGDL*>( selfLIST->GetTag( nListTag, 0)))[0];        
 
       return new DLongGDL( nList);
     }
@@ -1828,23 +1829,23 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     Guard<DObjGDL> listObjGuard( listObj);
 
     DStructGDL* selfLIST = GetOBJ( listObj, e);
-    DLong nList = (*static_cast<DLongGDL*>( selfLIST->GetTag( nListTag, 0)))[0];	      
+    DLong nList = (*static_cast<DLongGDL*>( selfLIST->GetTag( nListTag, 0)))[0];          
 
     if( e->KeywordPresent( kwNCOMPLEMENTIx)) // NCOMPLEMENT
     {
-		DLong nCount = 
-			(*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0];
-	e->SetKW( kwNCOMPLEMENTIx, new DLongGDL( nCount - nList));
+        DLong nCount = 
+            (*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0];
+    e->SetKW( kwNCOMPLEMENTIx, new DLongGDL( nCount - nList));
     }
     if( e->KeywordPresent( kwCOUNTIx)) // COUNT
     {
-	e->SetKW( kwCOUNTIx, new DLongGDL( nList));
+    e->SetKW( kwCOUNTIx, new DLongGDL( nList));
     }
     if( e->KeywordPresent( kwCOMPLEMENTIx)) // COMPLEMENT
     {
-		DObjGDL* compObj = 
-			static_cast<DObjGDL*>( selfObj->NeOp( r));
-	e->SetKW( kwCOMPLEMENTIx, compObj);
+        DObjGDL* compObj = 
+            static_cast<DObjGDL*>( selfObj->NeOp( r));
+    e->SetKW( kwCOMPLEMENTIx, compObj);
     }
     
     listObjGuard.Release();
@@ -1864,8 +1865,8 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
   }
   BaseGDL* hash__keysvalues( EnvUDT* e, bool doKeys)
   {
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
 
     static int kwSELFIx = 0;
 
@@ -1876,8 +1877,8 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
 
     DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0];
 
-	GDL_LIST_STRUCT()
-	GDL_CONTAINER_NODE()
+    GDL_LIST_STRUCT()
+    GDL_CONTAINER_NODE()
    
     DStructDesc* listDesc= structDesc::LIST;
     DStructDesc* containerDesc= structDesc::GDL_CONTAINER_NODE;
@@ -1910,7 +1911,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     {
       while( ix < nSize &&
       (*static_cast<DPtrGDL*>(hashTable->GetTag( pKeyTag, ix)))[0] == 0) 
-	++ix;
+    ++ix;
       assert( ix < nSize);  
       
       DPtr pSource = (*static_cast<DPtrGDL*>(hashTable->GetTag( sourceTag, ix)))[0];
@@ -1918,7 +1919,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       assert( !doKeys || source != NULL);    
       
       if( source != NULL) // NULL is ok for values
-	source = source->Dup();
+    source = source->Dup();
       DPtr dID = e->Interpreter()->NewHeap(1,source);
 
       cStruct = new DStructGDL( containerDesc, dimension());
@@ -1926,16 +1927,16 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       (*static_cast<DPtrGDL*>( cStruct->GetTag( pListDataTag, 0)))[0] = dID;
       
       if( cStructLast != NULL)
-	(*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
+    (*static_cast<DPtrGDL*>( cStructLast->GetTag( pNextTag, 0)))[0] = cID;
       else
       { // 1st element
-	(*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;	      
+    (*static_cast<DPtrGDL*>( listStruct->GetTag( pTailTag, 0)))[0] = cID;         
       }
-	    
+        
       cStructLast = cStruct;
     }
   
-    (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;	      
+    (*static_cast<DPtrGDL*>( listStruct->GetTag( pHeadTag, 0)))[0] = cID;         
     (*static_cast<DLongGDL*>( listStruct->GetTag( nListTag, 0)))[0] = nCount;      
 
     newObjGuard.Release();
@@ -1944,8 +1945,8 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     
   BaseGDL* hash__haskey( EnvUDT* e)
   {
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
 
     // see overload.cpp
     static int kwSELFIx = 0;
@@ -1971,7 +1972,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     {
       DLong hashIndex = HashIndex( thisHashTable, keyList, isfoldcase);
       if( hashIndex >= 0)
-	return new DIntGDL( 1);
+    return new DIntGDL( 1);
       return new DIntGDL( 0);
     }
     
@@ -1980,11 +1981,11 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     Guard<BaseGDL> resultGuard( result);
     for( SizeT i=0; i<keyListN_Elements; ++i)
     {
-	BaseGDL* key = keyList->NewIx( i);
-//	Guard<BaseGDL> keyGuard( key);
-	DLong hashIndex = HashIndex( thisHashTable, key, isfoldcase);
-	if( hashIndex >= 0)
-	  (*result)[ i] = 1;
+    BaseGDL* key = keyList->NewIx( i);
+//  Guard<BaseGDL> keyGuard( key);
+    DLong hashIndex = HashIndex( thisHashTable, key, isfoldcase);
+    if( hashIndex >= 0)
+      (*result)[ i] = 1;
     }
     resultGuard.Release();
     return result;
@@ -2004,8 +2005,8 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
 
   BaseGDL* hash__remove( EnvUDT* e, bool asFunction)
   {
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
 
     // see overload.cpp
     static int kwALLIx = 0; 
@@ -2023,60 +2024,60 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     {
       if( asFunction)
       {
-	DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0];
+    DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0];
 
-	DLong initialTableSize = GetInitialTableSize( 0);
+    DLong initialTableSize = GetInitialTableSize( 0);
 
-	// our current table
-	DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pTableTag, 0)))[0];
-  	DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
+    // our current table
+    DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pTableTag, 0)))[0];
+    DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
 
-	DLong nSize = thisHashTable->N_Elements();
+    DLong nSize = thisHashTable->N_Elements();
 
-	// new hash
-	DStructGDL* hashStruct= new DStructGDL( structDesc::HASH, dimension());
-	DObj objID= e->NewObjHeap( 1, hashStruct); // owns hashStruct, sets ref count to 1 
-	BaseGDL* newObj = new DObjGDL( objID); // the return HASH object
-	Guard<BaseGDL> newObjGuard( newObj);
+    // new hash
+    DStructGDL* hashStruct= new DStructGDL( structDesc::HASH, dimension());
+    DObj objID= e->NewObjHeap( 1, hashStruct); // owns hashStruct, sets ref count to 1 
+    BaseGDL* newObj = new DObjGDL( objID); // the return HASH object
+    Guard<BaseGDL> newObjGuard( newObj);
 
-	// our new hash table
-	DStructGDL* hashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(initialTableSize));
-	DPtr hashTableID= e->NewHeap( 1, hashTable); // owns hashTable, sets ref count to 1 
+    // our new hash table
+    DStructGDL* hashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(initialTableSize));
+    DPtr hashTableID= e->NewHeap( 1, hashTable); // owns hashTable, sets ref count to 1 
 
-	// set our table to new empty table
-	(*static_cast<DPtrGDL*>( self->GetTag( pTableTag, 0)))[0] = hashTableID;
-	(*static_cast<DLongGDL*>( self->GetTag( TableSizeTag, 0)))[0] = initialTableSize;
-	(*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0] = 0;
-	
-	// set our old table to new HASH
-	(*static_cast<DPtrGDL*>( hashStruct->GetTag( pTableTag, 0)))[0] = thisTableID;
-	(*static_cast<DLongGDL*>( hashStruct->GetTag( TableSizeTag, 0)))[0] = nSize;
-	(*static_cast<DLongGDL*>( hashStruct->GetTag( TableCountTag, 0)))[0] = nCount;
-	
-	newObjGuard.Release();
-	return newObj;    
+    // set our table to new empty table
+    (*static_cast<DPtrGDL*>( self->GetTag( pTableTag, 0)))[0] = hashTableID;
+    (*static_cast<DLongGDL*>( self->GetTag( TableSizeTag, 0)))[0] = initialTableSize;
+    (*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0] = 0;
+    
+    // set our old table to new HASH
+    (*static_cast<DPtrGDL*>( hashStruct->GetTag( pTableTag, 0)))[0] = thisTableID;
+    (*static_cast<DLongGDL*>( hashStruct->GetTag( TableSizeTag, 0)))[0] = nSize;
+    (*static_cast<DLongGDL*>( hashStruct->GetTag( TableCountTag, 0)))[0] = nCount;
+    
+    newObjGuard.Release();
+    return newObj;    
       }
       else
       {
-	DLong initialTableSize = GetInitialTableSize( 0);
+    DLong initialTableSize = GetInitialTableSize( 0);
 
-	// our current table
-	DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pTableTag, 0)))[0];
-//  	DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
+    // our current table
+    DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pTableTag, 0)))[0];
+//      DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
 
-	// our new hash table
-	DStructGDL* hashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(initialTableSize));
-	DPtr hashTableID= e->NewHeap( 1, hashTable); // owns hashTable, sets ref count to 1 
+    // our new hash table
+    DStructGDL* hashTable= new DStructGDL( structDesc::GDL_HASHTABLEENTRY, dimension(initialTableSize));
+    DPtr hashTableID= e->NewHeap( 1, hashTable); // owns hashTable, sets ref count to 1 
 
-	// set our table to new empty table
-	(*static_cast<DPtrGDL*>( self->GetTag( pTableTag, 0)))[0] = hashTableID;
-	(*static_cast<DLongGDL*>( self->GetTag( TableSizeTag, 0)))[0] = initialTableSize;
-	(*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0] = 0;
-	
-	// trigger ref-count delete of all elements      
-	BaseGDL::interpreter->FreeHeap( thisTableID); 
-	
-	return NULL;      
+    // set our table to new empty table
+    (*static_cast<DPtrGDL*>( self->GetTag( pTableTag, 0)))[0] = hashTableID;
+    (*static_cast<DLongGDL*>( self->GetTag( TableSizeTag, 0)))[0] = initialTableSize;
+    (*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0] = 0;
+    
+    // trigger ref-count delete of all elements      
+    BaseGDL::interpreter->FreeHeap( thisTableID); 
+    
+    return NULL;      
       }
     }
 
@@ -2089,8 +2090,8 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       BaseGDL* removedElement = RemoveFromHashTable( e, self, NULL);
       if( !asFunction)
       {
-	  GDLDelete( removedElement);
-	  removedElement = NULL;
+      GDLDelete( removedElement);
+      removedElement = NULL;
       }
       return removedElement;
     }
@@ -2100,8 +2101,8 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       BaseGDL* removedElement = RemoveFromHashTable( e, self, index);
       if( !asFunction)
       {
-	  GDLDelete( removedElement);
-	  removedElement = NULL;
+      GDLDelete( removedElement);
+      removedElement = NULL;
       }
       return removedElement;
     }
@@ -2129,10 +2130,10 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
 
       for( SizeT r=0; r<nRemove; ++r)
       {
-	BaseGDL* removeKey = index->NewIx( r);
-	Guard<BaseGDL> removeKeyGuard( removeKey);
-	BaseGDL* removedElement = RemoveFromHashTable( e, self, removeKey);      
-	InsertIntoHashTable( hashStruct, hashTable, removeKeyGuard.release(), removedElement);    
+    BaseGDL* removeKey = index->NewIx( r);
+    Guard<BaseGDL> removeKeyGuard( removeKey);
+    BaseGDL* removedElement = RemoveFromHashTable( e, self, removeKey);      
+    InsertIntoHashTable( hashStruct, hashTable, removeKeyGuard.release(), removedElement);    
       }
 
       newObjGuard.Release();
@@ -2143,10 +2144,10 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       SizeT nRemove = index->N_Elements();
       for( SizeT r=0; r<nRemove; ++r)
       {
-	BaseGDL* removeKey = index->NewIx( r);
-	Guard<BaseGDL> removeKeyGuard( removeKey);
-	BaseGDL* removedElement = RemoveFromHashTable( e, self, removeKey);      
-	GDLDelete( removedElement);
+    BaseGDL* removeKey = index->NewIx( r);
+    Guard<BaseGDL> removeKeyGuard( removeKey);
+    BaseGDL* removedElement = RemoveFromHashTable( e, self, removeKey);      
+    GDLDelete( removedElement);
       }
       return NULL;
     }
@@ -2156,15 +2157,15 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
     // new hash
     GDL_HASHTABLEENTRY()
     GDL_HASH_STRUCT()
-	static unsigned fold_case_mask = 0x00000001;
+    static unsigned fold_case_mask = 0x00000001;
 
-	DLong initialTableSize = GetInitialTableSize(nEntries);	
+    DLong initialTableSize = GetInitialTableSize(nEntries); 
     DStructGDL* hashStruct= new DStructGDL( structDesc::HASH, dimension());
     DObj objID= BaseGDL::interpreter->NewObjHeap( 1, hashStruct);
 
-	if( isfoldcase) (*static_cast<DLongGDL*>
-		( hashStruct->GetTag( TableBitsTag, 0)))[0]
-							= fold_case_mask;
+    if( isfoldcase) (*static_cast<DLongGDL*>
+        ( hashStruct->GetTag( TableBitsTag, 0)))[0]
+                            = fold_case_mask;
     BaseGDL* newObj = new DObjGDL( objID);
     Guard<BaseGDL> newObjGuard( newObj);
 
@@ -2344,7 +2345,7 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
     if( *objRef == NULL || *objRef == NullGDL::GetSingleInstance())
     {
       if( !e->GlobalKW(1))
-	ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) is undefined.");    
+    ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) is undefined.");    
       dotAccess = true;
     }
     BaseGDL* rValue = e->GetKW(2);
@@ -2418,6 +2419,8 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
  
         finalprm = (iprm+prmbeg+1 == nParam);
         BaseGDL* XX = e->GetKW( iprm + prmbeg);
+        if( XX == NULL) 
+            ThrowFromInternalUDSub( e,       "Parameter is undefined " );
         if( XX->Rank() != 0 ) break; // must be a scalar
 
         if( islist) {
@@ -2437,7 +2440,7 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
                 if(trace_me) std::cout<<" - immediate Dup()"<<std::endl;
                 BaseGDL::interpreter->GetHeap( Ptr) = rValue->Dup();
                 return;
-	  }
+      }
             theref = BaseGDL::interpreter->GetHeap( Ptr);
             if( theref == 0)
                 ThrowFromInternalUDSub( e, " No data in list at index "+i2s(Ixref));
@@ -2457,15 +2460,15 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
                 if( finalprm ) {
                     if(trace_me) std::cout<<" - immediate Dup()"<<std::endl;
                     BaseGDL::interpreter->GetHeap( pValue) = rValue->Dup();
-	  return;
+      return;
                     } else {
                     theref = BaseGDL::interpreter->GetHeap( pValue);
-	}    
+    }    
             } else { // hashIndex >= 0
                 if( finalprm ) {
                     if(trace_me) std::cout<<" - insert rVal->Dup()";
                     hash_leftinsertion( e,  theStruct, iprm);
-	return;
+    return;
     }
                  else{
                     if(trace_me) std::cout<<" newhash(0)";
@@ -2551,52 +2554,52 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
   }
 
 BaseGDL* hash_subset(DStructGDL* thisTable, BaseGDL* index, bool isfoldcase)
-{	
+{   
 
-	GDL_LIST_STRUCT()
+    GDL_LIST_STRUCT()
 
-	DStructGDL* ListHead;
-	SizeT listSize = 0;
-	DPtr keyNode;
-	bool iskeylist = false;;
-	SizeT nEntries = 0;
-	DType theType;
-	if( index != NULL) {  // use index==NULL to simply make a blank hash.
-		nEntries = index->N_Elements();
-		theType = index->Type();
-	if(trace_me) std::cout << " hash_subset: index->Type() " << theType << std::endl;
+    DStructGDL* ListHead;
+    SizeT listSize = 0;
+    DPtr keyNode;
+    bool iskeylist = false;;
+    SizeT nEntries = 0;
+    DType theType;
+    if( index != NULL) {  // use index==NULL to simply make a blank hash.
+        nEntries = index->N_Elements();
+        theType = index->Type();
+    if(trace_me) std::cout << " hash_subset: index->Type() " << theType << std::endl;
 
-	if(theType == GDL_OBJ && index->Rank() == 0) {
-		  DObj p=(*static_cast<DObjGDL*>( index))[0];
-		  if(p != 0) {
-		  ListHead = GetOBJ( index, 0);
-		  DStructDesc* desc = ListHead->Desc();
-		  iskeylist = desc->IsParent("LIST");
-			}
-	if(iskeylist) {
-		listSize = (*static_cast<DLongGDL*>(ListHead->GetTag( nListTag, 0)))[0];
-		keyNode = GetLISTNode( 0, ListHead, 0);
-		if( listSize == 1) { 
-			index = GetNodeData( keyNode);
-			iskeylist = false;
-				}
-		nEntries = listSize;
-				}
-	  }
-	}
+    if(theType == GDL_OBJ && index->Rank() == 0) {
+          DObj p=(*static_cast<DObjGDL*>( index))[0];
+          if(p != 0) {
+          ListHead = GetOBJ( index, 0);
+          DStructDesc* desc = ListHead->Desc();
+          iskeylist = desc->IsParent("LIST");
+            }
+    if(iskeylist) {
+        listSize = (*static_cast<DLongGDL*>(ListHead->GetTag( nListTag, 0)))[0];
+        keyNode = GetLISTNode( 0, ListHead, 0);
+        if( listSize == 1) { 
+            index = GetNodeData( keyNode);
+            iskeylist = false;
+                }
+        nEntries = listSize;
+                }
+      }
+    }
 
     GDL_HASHTABLEENTRY()
     GDL_HASH_STRUCT()
-	static unsigned fold_case_mask = 0x00000001;
+    static unsigned fold_case_mask = 0x00000001;
 
     DLong initialTableSize = GetInitialTableSize( nEntries);
 
     // new hash
     DStructGDL* hashStruct= new DStructGDL( structDesc::HASH, dimension());
     DObj objID= BaseGDL::interpreter->NewObjHeap( 1, hashStruct);
-	if( isfoldcase) (*static_cast<DLongGDL*>
-		( hashStruct->GetTag( TableBitsTag, 0)))[0]
-							= fold_case_mask;
+    if( isfoldcase) (*static_cast<DLongGDL*>
+        ( hashStruct->GetTag( TableBitsTag, 0)))[0]
+                            = fold_case_mask;
     BaseGDL* newObj = new DObjGDL( objID);
     Guard<BaseGDL> newObjGuard( newObj);
 
@@ -2608,15 +2611,15 @@ BaseGDL* hash_subset(DStructGDL* thisTable, BaseGDL* index, bool isfoldcase)
     BaseGDL* actKey;
     for( SizeT eIx=0; eIx<nEntries; ++eIx)
     {
-		if(iskeylist)	actKey = GetNodeData(keyNode);
-		else 			actKey = index->NewIx( eIx);
+        if(iskeylist)   actKey = GetNodeData(keyNode);
+        else            actKey = index->NewIx( eIx);
       
       DLong hashIndex = HashIndex( thisTable, actKey, isfoldcase);
       if( hashIndex < 0) continue;
       DPtr vID = (*static_cast<DPtrGDL*>(thisTable->GetTag( pValueTag, hashIndex)))[0];
       BaseGDL* value = BaseGDL::interpreter->GetHeap( vID);
 
-      if( value != NULL)	value = value->Dup();          
+      if( value != NULL)    value = value->Dup();          
 
       InsertIntoHashTable( hashStruct, hashTable, actKey->Dup(), value);
     }
@@ -2734,8 +2737,8 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
         MAKE_LONGGDL(parX, parXLong)
 
       if( (*parXLong)[0] != 0 || (*parXLong)[1] != -1 || (*parXLong)[2] != 1)
-	ThrowFromInternalUDSub( e, "Subscript range is not allowed: [" + 
-	i2s((*parXLong)[0])+":"+i2s((*parXLong)[1])+":"+i2s((*parXLong)[2])+"]");
+    ThrowFromInternalUDSub( e, "Subscript range is not allowed: [" + 
+    i2s((*parXLong)[0])+":"+i2s((*parXLong)[1])+":"+i2s((*parXLong)[2])+"]");
         BaseGDL* cloned = hash_duplicate(self); 
         if(trace_me) std::cout << " cloned " <<std::endl;
             return cloned;
@@ -2760,6 +2763,8 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
     
         finalprm = (iprm+prmbeg+1 == nParam);
         BaseGDL* XX = e->GetKW( iprm + prmbeg);
+        if( XX == NULL) 
+            ThrowFromInternalUDSub( e,       "Parameter is undefined " );
         if( XX->Rank() != 0 ) break; // must be a scalar
 
         if( islist) {
@@ -2829,7 +2834,7 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
             if(ptagindex < 0) 
                 ThrowFromInternalUDSub( e, " struct tag not found ");
             theref = theStruct->Get( ptagindex);
-	
+    
         } else {
             if(trace_me) std::cout << "isstruct || ishash || islist "<< iprm <<std::endl;
             break;} // isstruct || ishash || islist
@@ -2896,7 +2901,7 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
       BaseGDL* value = e->Interpreter()->GetHeap( vID);
     if(trace_me) lib::help_item(std::cout, value," value",false);
       if( value == NULL)
-	return NullGDL::GetSingleInstance();
+    return NullGDL::GetSingleInstance();
       else  return value->Dup();
     } else return hash_subset(thisHashTable, index, isfoldcase);
     }
@@ -2909,18 +2914,18 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
   BaseGDL* orderedhash_fun( EnvT* e)
   {
     BaseGDL* par = hash_create( e , true);
-	static unsigned ordmask = 0x00000010;
+    static unsigned ordmask = 0x00000010;
     static unsigned TableBitsTag = structDesc::HASH->TagIndex( "TABLE_BITS");
     
-	DObj s = (*static_cast<DObjGDL*>(par))[0]; // is StrictScalar()
-	if( s == 0) e->Throw(" fail ( s == 0) in ordered hash! ");
-	DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
-	if( oStructGDL == NULL) e->Throw(" fail ( struct == NULL) in ordered hash! ");
-	DStructDesc* desc = oStructGDL->Desc();
-	
-	static unsigned TableBitsIx = desc->TagIndex("TABLE_BITS");
-	(*static_cast<DLongGDL*>(oStructGDL->GetTag( TableBitsIx, 0)))[0] = ordmask;
-	return par;
+    DObj s = (*static_cast<DObjGDL*>(par))[0]; // is StrictScalar()
+    if( s == 0) e->Throw(" fail ( s == 0) in ordered hash! ");
+    DStructGDL* oStructGDL= GDLInterpreter::GetObjHeapNoThrow( s);
+    if( oStructGDL == NULL) e->Throw(" fail ( struct == NULL) in ordered hash! ");
+    DStructDesc* desc = oStructGDL->Desc();
+    
+    static unsigned TableBitsIx = desc->TagIndex("TABLE_BITS");
+    (*static_cast<DLongGDL*>(oStructGDL->GetTag( TableBitsIx, 0)))[0] = ordmask;
+    return par;
   }
 } // namespace lib
   
@@ -2930,17 +2935,17 @@ static  BaseGDL* hash_create( EnvT* e, bool isordered=false)
     bool kwNO_COPY = false;
     if (e->KeywordSet(kwNO_COPYIx)){ kwNO_COPY = true;}
     static int kwFOLD_CASEIx = e->KeywordIx("FOLD_CASE");
-	static unsigned fold_case_mask = 0x00000001;
-    static int kwEXTRACTIx = e->KeywordIx("EXTRACT");	// still new
-	trace_me = false; // lib::trace_arg();
+    static unsigned fold_case_mask = 0x00000001;
+    static int kwEXTRACTIx = e->KeywordIx("EXTRACT");   // still new
+    trace_me = false; // lib::trace_arg();
 
     SizeT nParam = e->NParam();   
 
     ProgNodeP cN = e->CallingNode();
     DInterpreter* ip = e->Interpreter();
   
-	GDL_HASH_STRUCT()
-	GDL_HASHTABLEENTRY()
+    GDL_HASH_STRUCT()
+    GDL_HASHTABLEENTRY()
 
     // because of .RESET_SESSION, we cannot use static here
     DStructDesc* hashDesc=structDesc::HASH;
@@ -2951,184 +2956,184 @@ static  BaseGDL* hash_create( EnvT* e, bool isordered=false)
      bool foldcasekw = e->KeywordSet( kwFOLD_CASEIx);
      bool extractkw = e->KeywordSet( kwEXTRACTIx);
 
-	GDL_LIST_STRUCT()
-	GDL_CONTAINER_NODE()
+    GDL_LIST_STRUCT()
+    GDL_CONTAINER_NODE()
 
-	BaseGDL* key;
-	SizeT nEntries = 0;
-	if( nParam == 1) {
+    BaseGDL* key;
+    SizeT nEntries = 0;
+    if( nParam == 1) {
       key = e->GetPar( 0);
       if( key == NULL || key == NullGDL::GetSingleInstance())
-				e->Throw(" invalid 1st parameter ");
+                e->Throw(" invalid 1st parameter ");
       if(trace_me) std::cout << " hash(nParam=1) ";
-	  if(  key->Type() == GDL_STRUCT ) {
-		        if(trace_me) std::cout << " . " ;
-			return structP_tohash( e, key, foldcasekw, extractkw, isordered);
-		  }// direct return for the case of struct --> hash
-	  else if ( key->Type() == GDL_OBJ and key->StrictScalar())
-	  {    // GDL extension: put object structure directly into a hash.
-			DStructGDL* oStructGDL= GetOBJ( key, NULL);
-			return struct_tohash( e, oStructGDL, foldcasekw, extractkw, isordered);
-		}	else {	// key->Type() == GDL_STRUCT || key->Type() == GDL_OBJ
-		 // 1-element hash table, value=null);
-		 nEntries = key->N_Elements();
-		if(trace_me) std::cout << " nEntries= " << nEntries;
-		}
-	  }  // nParam==1
+      if(  key->Type() == GDL_STRUCT ) {
+                if(trace_me) std::cout << " . " ;
+            return structP_tohash( e, key, foldcasekw, extractkw, isordered);
+          }// direct return for the case of struct --> hash
+      else if ( key->Type() == GDL_OBJ and key->StrictScalar())
+      {    // GDL extension: put object structure directly into a hash.
+            DStructGDL* oStructGDL= GetOBJ( key, NULL);
+            return struct_tohash( e, oStructGDL, foldcasekw, extractkw, isordered);
+        }   else {  // key->Type() == GDL_STRUCT || key->Type() == GDL_OBJ
+         // 1-element hash table, value=null);
+         nEntries = key->N_Elements();
+        if(trace_me) std::cout << " nEntries= " << nEntries;
+        }
+      }  // nParam==1
 
 // Count the possible entries, no check for total correctness.
-	for( SizeT eIx=0; eIx < nParam/2; ++eIx) {
-		BaseGDL* key = e->GetPar(  2 * eIx);
-		if( key == NULL || key == NullGDL::GetSingleInstance())
-			continue;
-		if ( key->Type() == GDL_OBJ and key->StrictScalar()) {
-			DStructGDL* theList = GetOBJ( key, NULL);
-			DStructDesc* desc = theList->Desc();
-			if(desc->IsParent("LIST")) nEntries += 
-				(*static_cast<DLongGDL*>( theList->GetTag( nListTag, 0)))[0];
-			}
-		else if( key->Type() == GDL_STRUCT )
-				e->Throw("Only 1 argument is allowed with input of type STRUCT.");
-		else nEntries += key->N_Elements();
-		}
-	if(trace_me) std::cout << " hash_create: counted nEntries=" << nEntries << std::endl;
+    for( SizeT eIx=0; eIx < nParam/2; ++eIx) {
+        BaseGDL* key = e->GetPar(  2 * eIx);
+        if( key == NULL || key == NullGDL::GetSingleInstance())
+            continue;
+        if ( key->Type() == GDL_OBJ and key->StrictScalar()) {
+            DStructGDL* theList = GetOBJ( key, NULL);
+            DStructDesc* desc = theList->Desc();
+            if(desc->IsParent("LIST")) nEntries += 
+                (*static_cast<DLongGDL*>( theList->GetTag( nListTag, 0)))[0];
+            }
+        else if( key->Type() == GDL_STRUCT )
+                e->Throw("Only 1 argument is allowed with input of type STRUCT.");
+        else nEntries += key->N_Elements();
+        }
+    if(trace_me) std::cout << " hash_create: counted nEntries=" << nEntries << std::endl;
   
     DStructGDL* hashTable;
     DLong initialTableSize = GetInitialTableSize( nEntries);
 //    DStructGDL* hashStruct = 
-//		create_hashStruct( initialTableSize, hashTable, foldcasekw, isordered);   
-//	DObj objID= e->NewObjHeap( 1, hashStruct); // owns hashStruct, sets ref count to 1 
-	DObj objID= 
-		new_hashStruct( initialTableSize, hashTable, foldcasekw, isordered);
-	BaseGDL* newObj = new DObjGDL( objID); // the hash object
-	Guard<BaseGDL> newObjGuard( newObj);
-    DStructGDL* hashStruct = GetOBJ( newObj, 0);	
-	if( nParam == 1) {
-		if( key->N_Elements() == 1) {
-			InsertIntoHashTable( hashStruct, hashTable, key, NULL);
-			} else {
-			for( SizeT kIx=0; kIx < nEntries; ++kIx)
-				InsertIntoHashTable( hashStruct, hashTable, key->NewIx(kIx), NULL);
-			}
-		newObjGuard.Release();
-		return newObj;
-		}
+//      create_hashStruct( initialTableSize, hashTable, foldcasekw, isordered);   
+//  DObj objID= e->NewObjHeap( 1, hashStruct); // owns hashStruct, sets ref count to 1 
+    DObj objID= 
+        new_hashStruct( initialTableSize, hashTable, foldcasekw, isordered);
+    BaseGDL* newObj = new DObjGDL( objID); // the hash object
+    Guard<BaseGDL> newObjGuard( newObj);
+    DStructGDL* hashStruct = GetOBJ( newObj, 0);    
+    if( nParam == 1) {
+        if( key->N_Elements() == 1) {
+            InsertIntoHashTable( hashStruct, hashTable, key, NULL);
+            } else {
+            for( SizeT kIx=0; kIx < nEntries; ++kIx)
+                InsertIntoHashTable( hashStruct, hashTable, key->NewIx(kIx), NULL);
+            }
+        newObjGuard.Release();
+        return newObj;
+        }
 
     for( SizeT eIx=0; eIx < nParam/2; ++eIx)
     {
-		SizeT keyIx = 2 * eIx;
-		SizeT valueIx = 2 * eIx + 1;
-		BaseGDL* key = e->GetPar( keyIx);
-		bool iskeylist=false;
-		// !NULL keys are not inserted
-		if( key == NULL || key == NullGDL::GetSingleInstance())
-								continue;		// --- (to change)
-		if(trace_me ) {
-			std::cout << i2s(eIx) << " key:";
-			lib::help_item(std::cout , key, " key for hash", false);
-		}
+        SizeT keyIx = 2 * eIx;
+        SizeT valueIx = 2 * eIx + 1;
+        BaseGDL* key = e->GetPar( keyIx);
+        bool iskeylist=false;
+        // !NULL keys are not inserted
+        if( key == NULL || key == NullGDL::GetSingleInstance())
+                                continue;       // --- (to change)
+        if(trace_me ) {
+            std::cout << i2s(eIx) << " key:";
+            lib::help_item(std::cout , key, " key for hash", false);
+        }
 
-		SizeT nKey = key->N_Elements();
-		DPtr keyNode = 0;
-		DPtr valNode = 0;
-		if ( key->Type() == GDL_OBJ and key->StrictScalar()) {
-			DStructGDL* keyList = GetOBJ( key, NULL);
-			DStructDesc* desc = keyList->Desc();
-			iskeylist = desc->IsParent("LIST");
-			if(iskeylist) {
-				nKey = 
-				(*static_cast<DLongGDL*>( keyList->GetTag( nListTag, 0)))[0];
-				keyNode = GetLISTNode(NULL, keyList, 0);
-				}
-			else
-				e->Throw("only objects allowed for keys or values are LISTs");
-			}
-		else if( key->Type() == GDL_STRUCT )
-				e->Throw("Only 1 argument is allowed with input of type STRUCT.");
+        SizeT nKey = key->N_Elements();
+        DPtr keyNode = 0;
+        DPtr valNode = 0;
+        if ( key->Type() == GDL_OBJ and key->StrictScalar()) {
+            DStructGDL* keyList = GetOBJ( key, NULL);
+            DStructDesc* desc = keyList->Desc();
+            iskeylist = desc->IsParent("LIST");
+            if(iskeylist) {
+                nKey = 
+                (*static_cast<DLongGDL*>( keyList->GetTag( nListTag, 0)))[0];
+                keyNode = GetLISTNode(NULL, keyList, 0);
+                }
+            else
+                e->Throw("only objects allowed for keys or values are LISTs");
+            }
+        else if( key->Type() == GDL_STRUCT )
+                e->Throw("Only 1 argument is allowed with input of type STRUCT.");
 
-		BaseGDL* value = e->GetPar( valueIx);
-		SizeT nValue = 1;
-		bool isvallist = false;
-		bool isvalscalar = false;
-		if( value == NULL || value == NullGDL::GetSingleInstance())
-			isvalscalar = true;
-		else
-			nValue = value->N_Elements();
-			if ( value->Type() == GDL_OBJ and value->StrictScalar()) {
-				isvalscalar = true;
-				DStructGDL* valList = GetOBJ( value, NULL);
-				DStructDesc* desc = valList->Desc();
-				isvallist = desc->IsParent("LIST");
-				if(isvallist) {
-					nValue = 
-					(*static_cast<DLongGDL*>( valList->GetTag( nListTag, 0)))[0];
-					valNode = GetLISTNode(NULL, valList, 0);
-					isvalscalar = false;
-				if(trace_me) 
-				std::cout <<"HASH: isvallist=true, nvalue="<<nValue<<std::endl;
-					}
-				}  // GDL_OBJ and value->StrictScalar
-			else if( value->Type() == GDL_STRUCT )
-					e->Throw("Only 1 argument is allowed with input of type STRUCT.");
-			else if( value->StrictScalar() )
-					isvalscalar = true;;
-	if(trace_me) std::cout << " isvalscalar/ iskeylist? nkey:"<<
-				isvalscalar<< iskeylist << nKey << std::endl;
-		if( ( !isvalscalar) &&
-			( nValue != 0 && nKey != 1 && nValue != nKey) )
-		  e->Throw( "Key and Value must have the same number of elements.");
+        BaseGDL* value = e->GetPar( valueIx);
+        SizeT nValue = 1;
+        bool isvallist = false;
+        bool isvalscalar = false;
+        if( value == NULL || value == NullGDL::GetSingleInstance())
+            isvalscalar = true;
+        else
+            nValue = value->N_Elements();
+            if ( value->Type() == GDL_OBJ and value->StrictScalar()) {
+                isvalscalar = true;
+                DStructGDL* valList = GetOBJ( value, NULL);
+                DStructDesc* desc = valList->Desc();
+                isvallist = desc->IsParent("LIST");
+                if(isvallist) {
+                    nValue = 
+                    (*static_cast<DLongGDL*>( valList->GetTag( nListTag, 0)))[0];
+                    valNode = GetLISTNode(NULL, valList, 0);
+                    isvalscalar = false;
+                if(trace_me) 
+                std::cout <<"HASH: isvallist=true, nvalue="<<nValue<<std::endl;
+                    }
+                }  // GDL_OBJ and value->StrictScalar
+            else if( value->Type() == GDL_STRUCT )
+                    e->Throw("Only 1 argument is allowed with input of type STRUCT.");
+            else if( value->StrictScalar() )
+                    isvalscalar = true;;
+    if(trace_me) std::cout << " isvalscalar/ iskeylist? nkey:"<<
+                isvalscalar<< iskeylist << nKey << std::endl;
+        if( ( !isvalscalar) &&
+            ( nValue != 0 && nKey != 1 && nValue != nKey) )
+          e->Throw( "Key and Value must have the same number of elements.");
 // Allowing a list of key and/or a list of values
-// leaves an ambiguity for the case of a single addition		
-		if( nKey == 1) {
-				if(isvallist && nValue == 1) value = GetNodeData(valNode);
-				if(iskeylist) key   = GetNodeData(keyNode);
-			  if( !kwNO_COPY && value != NULL)
-							value = value->Dup();
-			  InsertIntoHashTable( hashStruct, hashTable, key, value);
-			}
-		 else // nkey > 1
-			{
-			  if( isvalscalar)
-			  {
-				if(iskeylist) 
-					for( SizeT kIx=0; kIx<nKey; ++kIx)
-				  InsertIntoHashTable( hashStruct, hashTable,
-							GetNodeData(keyNode), value->Dup());
-				else	 
-					for( SizeT kIx=0; kIx<nKey; ++kIx)
-				  InsertIntoHashTable( hashStruct, hashTable,
-								key->NewIx(kIx), value->Dup());
-			  }
-			  else
-			  {			// value not a scalar.
-				if(iskeylist) {
-					if(isvallist) {
-						for( SizeT kIx=0; kIx<nKey; ++kIx)
-						InsertIntoHashTable( hashStruct, hashTable, 
-							GetNodeData(keyNode), (GetNodeData(valNode))->Dup());
-					} else {
-						for( SizeT kIx=0; kIx<nKey; ++kIx)
-						InsertIntoHashTable( hashStruct, hashTable, 
-							GetNodeData(keyNode), value->NewIx(kIx));
-					}
-				} else {
-					if(isvallist) {
-						for( SizeT kIx=0; kIx<nKey; ++kIx)
-						InsertIntoHashTable( hashStruct, hashTable, 
-							key->NewIx(kIx), (GetNodeData(valNode))->Dup());
-					} else {
-						for( SizeT kIx=0; kIx<nKey; ++kIx)
-						InsertIntoHashTable( hashStruct, hashTable,
-							key->NewIx(kIx), value->NewIx(kIx));
-						}
-					}
-			  }
-			}
-		if( kwNO_COPY)
-			{
-			  bool stolen = e->StealLocalPar( valueIx);
-			  if( !stolen) e->GetPar(valueIx) = NULL;
-			}
+// leaves an ambiguity for the case of a single addition        
+        if( nKey == 1) {
+                if(isvallist && nValue == 1) value = GetNodeData(valNode);
+                if(iskeylist) key   = GetNodeData(keyNode);
+              if( !kwNO_COPY && value != NULL)
+                            value = value->Dup();
+              InsertIntoHashTable( hashStruct, hashTable, key, value);
+            }
+         else // nkey > 1
+            {
+              if( isvalscalar)
+              {
+                if(iskeylist) 
+                    for( SizeT kIx=0; kIx<nKey; ++kIx)
+                  InsertIntoHashTable( hashStruct, hashTable,
+                            GetNodeData(keyNode), value->Dup());
+                else     
+                    for( SizeT kIx=0; kIx<nKey; ++kIx)
+                  InsertIntoHashTable( hashStruct, hashTable,
+                                key->NewIx(kIx), value->Dup());
+              }
+              else
+              {         // value not a scalar.
+                if(iskeylist) {
+                    if(isvallist) {
+                        for( SizeT kIx=0; kIx<nKey; ++kIx)
+                        InsertIntoHashTable( hashStruct, hashTable, 
+                            GetNodeData(keyNode), (GetNodeData(valNode))->Dup());
+                    } else {
+                        for( SizeT kIx=0; kIx<nKey; ++kIx)
+                        InsertIntoHashTable( hashStruct, hashTable, 
+                            GetNodeData(keyNode), value->NewIx(kIx));
+                    }
+                } else {
+                    if(isvallist) {
+                        for( SizeT kIx=0; kIx<nKey; ++kIx)
+                        InsertIntoHashTable( hashStruct, hashTable, 
+                            key->NewIx(kIx), (GetNodeData(valNode))->Dup());
+                    } else {
+                        for( SizeT kIx=0; kIx<nKey; ++kIx)
+                        InsertIntoHashTable( hashStruct, hashTable,
+                            key->NewIx(kIx), value->NewIx(kIx));
+                        }
+                    }
+              }
+            }
+        if( kwNO_COPY)
+            {
+              bool stolen = e->StealLocalPar( valueIx);
+              if( !stolen) e->GetPar(valueIx) = NULL;
+            }
 
     }
   

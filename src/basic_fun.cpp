@@ -22,7 +22,7 @@
 
  2017 July gilles-duvert  New version of Where() twice as fast as previous
 ***************************************************************************/
-	  // AC 2018-feb 
+      // AC 2018-feb 
 
 /***************************************************************************
  *                                                                         *
@@ -96,7 +96,7 @@ int strncasecmp(const char *s1, const char *s2, size_t n)
   while (n-- != 0 && tolower(*s1) == tolower(*s2))
     {
       if (n == 0 || *s1 == '\0' || *s2 == '\0')
-	break;
+    break;
       s1++;
       s2++;
     }
@@ -123,6 +123,7 @@ static DStructGDL* GetObjStruct( BaseGDL* Objptr, EnvT* e)
     {
       e->Throw(  "Object ID <"+i2s(ID)+"> not found.");      
     }
+    assert(false);
     return NULL;
   }
 
@@ -181,30 +182,30 @@ namespace lib {
     if( nParam == 1 ) {
 
       BaseGDL* par = e->GetParDefined( pOffs); 
- 	
+    
       SizeT newDim;
       int ret = par->Scalar2Index( newDim);
 
       if (ret < 0) throw GDLException(BadDims);
 
       if( ret > 0) {  // single argument
-	if (newDim < 1) throw GDLException(BadDims);
-	dim << newDim;
-	return;
+    if (newDim < 1) throw GDLException(BadDims);
+    dim << newDim;
+    return;
       } 
       if( ret == 0) { //  array argument
-	DLongGDL* ind = 
-	  static_cast<DLongGDL*>(par->Convert2(GDL_LONG, BaseGDL::COPY)); 	 
-	Guard<DLongGDL> ind_guard( ind);
-	//e->Guard( ind);
+    DLongGDL* ind = 
+      static_cast<DLongGDL*>(par->Convert2(GDL_LONG, BaseGDL::COPY));    
+    Guard<DLongGDL> ind_guard( ind);
+    //e->Guard( ind);
 
-	for(SizeT i =0; i < par->N_Elements(); ++i){
-	  if  ((*ind)[i] < 1) throw GDLException(BadDims);
-	  dim << (*ind)[i];
-	}
-	return;
+    for(SizeT i =0; i < par->N_Elements(); ++i){
+      if  ((*ind)[i] < 1) throw GDLException(BadDims);
+      dim << (*ind)[i];
+    }
+    return;
       }
-      e->Throw( "arr: should never arrive here.");	
+      e->Throw( "arr: should never arrive here.");  
       return;
     }
 
@@ -212,12 +213,12 @@ namespace lib {
     SizeT endIx=nParam+pOffs;
     for( SizeT i=pOffs; i<endIx; i++)
       {
-	BaseGDL* par=e->GetParDefined( i);
+    BaseGDL* par=e->GetParDefined( i);
 
-	SizeT newDim;
-	int ret=par->Scalar2Index( newDim);
-	if( ret < 1 || newDim == 0) throw GDLException(BadDims);
-	dim << newDim;
+    SizeT newDim;
+    int ret=par->Scalar2Index( newDim);
+    if( ret < 1 || newDim == 0) throw GDLException(BadDims);
+    dim << newDim;
       }
   }
 
@@ -246,7 +247,7 @@ namespace lib {
     //     }
     //     catch( GDLException& ex)
     //       {
-    // 	e->Throw( "INTARR: "+ex.getMessage());
+    //  e->Throw( "INTARR: "+ex.getMessage());
     //       }
   }
   BaseGDL* uintarr( EnvT* e)
@@ -262,7 +263,7 @@ namespace lib {
     //     }
     //     catch( GDLException& ex)
     //       {
-    // 	e->Throw( "UINTARR: "+ex.getMessage());
+    //  e->Throw( "UINTARR: "+ex.getMessage());
     //       }
   }
   BaseGDL* lonarr( EnvT* e)
@@ -276,10 +277,10 @@ namespace lib {
     if( e->KeywordSet(0)) return new DLongGDL(dim, BaseGDL::NOZERO);
     return new DLongGDL(dim);
     /*    }
-	  catch( GDLException& ex)
-	  {
-	  e->Throw( "LONARR: "+ex.getMessage());
-	  }*/
+      catch( GDLException& ex)
+      {
+      e->Throw( "LONARR: "+ex.getMessage());
+      }*/
   }
   BaseGDL* ulonarr( EnvT* e)
   {
@@ -292,10 +293,10 @@ namespace lib {
     if( e->KeywordSet(0)) return new DULongGDL(dim, BaseGDL::NOZERO);
     return new DULongGDL(dim);
     /*   }
-	 catch( GDLException& ex)
-	 {
-	 e->Throw( "ULONARR: "+ex.getMessage());
-	 }
+     catch( GDLException& ex)
+     {
+     e->Throw( "ULONARR: "+ex.getMessage());
+     }
     */ 
   }
   BaseGDL* lon64arr( EnvT* e)
@@ -309,10 +310,10 @@ namespace lib {
     if( e->KeywordSet(0)) return new DLong64GDL(dim, BaseGDL::NOZERO);
     return new DLong64GDL(dim);
     /*    }
-	  catch( GDLException& ex)
-	  {
-	  e->Throw( "LON64ARR: "+ex.getMessage());
-	  }*/
+      catch( GDLException& ex)
+      {
+      e->Throw( "LON64ARR: "+ex.getMessage());
+      }*/
   }
   BaseGDL* ulon64arr( EnvT* e)
   {
@@ -325,10 +326,10 @@ namespace lib {
     if( e->KeywordSet(0)) return new DULong64GDL(dim, BaseGDL::NOZERO);
     return new DULong64GDL(dim);
     /*  }
-	catch( GDLException& ex)
-	{
-	e->Throw( "ULON64ARR: "+ex.getMessage());
-	}*/
+    catch( GDLException& ex)
+    {
+    e->Throw( "ULON64ARR: "+ex.getMessage());
+    }*/
   }
   BaseGDL* fltarr( EnvT* e)
   {
@@ -374,10 +375,10 @@ namespace lib {
       e->Throw( "Keyword parameters not allowed in call.");
     return new DStringGDL(dim);
     /*   }
-	 catch( GDLException& ex)
-	 {
-	 e->Throw( "STRARR: "+ex.getMessage());
-	 }
+     catch( GDLException& ex)
+     {
+     e->Throw( "STRARR: "+ex.getMessage());
+     }
     */ }
   BaseGDL* complexarr( EnvT* e)
   {
@@ -405,10 +406,10 @@ namespace lib {
       if( e->KeywordSet(0)) return new DComplexDblGDL(dim, BaseGDL::NOZERO);
     return new DComplexDblGDL(dim);
     /*   }
-	 catch( GDLException& ex)
-	 {
-	 e->Throw( "DCOMPLEXARR: "+ex.getMessage());
-	 }
+     catch( GDLException& ex)
+     {
+     e->Throw( "DCOMPLEXARR: "+ex.getMessage());
+     }
     */ }
   BaseGDL* ptrarr( EnvT* e)
   {
@@ -421,12 +422,12 @@ namespace lib {
     DPtrGDL* ret;
 
     //       if( e->KeywordSet(0))
-    // 	       ret= new DPtrGDL(dim);//, BaseGDL::NOZERO);
+    //         ret= new DPtrGDL(dim);//, BaseGDL::NOZERO);
     //       else
     //     if( e->KeywordSet(1))
-    // 	ret= new DPtrGDL(dim, BaseGDL::NOZERO);
+    //  ret= new DPtrGDL(dim, BaseGDL::NOZERO);
     //       else
-    // 	return new DPtrGDL(dim);
+    //  return new DPtrGDL(dim);
     if( !e->KeywordSet(1))
       return new DPtrGDL(dim);
 
@@ -438,14 +439,14 @@ namespace lib {
     {
       // #pragma omp for
       for( SizeT i=0; i<nEl; i++)
-	(*ret)[i]=sIx+i;
+    (*ret)[i]=sIx+i;
     }
     return ret;
     /*    }
-	  catch( GDLException& ex)
-	  {
-	  e->Throw( "PTRARR: "+ex.getMessage());
-	  }*/
+      catch( GDLException& ex)
+      {
+      e->Throw( "PTRARR: "+ex.getMessage());
+      }*/
   }
   BaseGDL* objarr( EnvT* e)
   {
@@ -458,10 +459,10 @@ namespace lib {
     // reference counting      if( e->KeywordSet(0)) return new DObjGDL(dim, BaseGDL::NOZERO);
     return new DObjGDL(dim);
     /*  }
-	catch( GDLException& ex)
-	{
-	e->Throw( "OBJARR: "+ex.getMessage());
-	}
+    catch( GDLException& ex)
+    {
+    e->Throw( "OBJARR: "+ex.getMessage());
+    }
     */ }
 
   BaseGDL* ptr_new( EnvT* e)
@@ -469,48 +470,48 @@ namespace lib {
     int nParam=e->NParam();
     if( nParam > 0)
       {
-	BaseGDL* p= e->GetPar( 0);
+    BaseGDL* p= e->GetPar( 0);
 
-	// new ptr from undefined variable is allowed as well
-	// this case was discovered by chance by Leva, July 16, 2014
-	// p=ptr_new(), p=ptr_new(!null), p=ptr_new(undef_var) should work
+    // new ptr from undefined variable is allowed as well
+    // this case was discovered by chance by Leva, July 16, 2014
+    // p=ptr_new(), p=ptr_new(!null), p=ptr_new(undef_var) should work
 
         if ((p == NULL) || (p->Type() == GDL_UNDEF))
-	  {
-	    DPtr heapID= e->NewHeap();
-	    return new DPtrGDL( heapID);
-	  }	
+      {
+        DPtr heapID= e->NewHeap();
+        return new DPtrGDL( heapID);
+      } 
     static int no_copyIx=e->KeywordIx("NO_COPY");
-	if (e->KeywordSet(no_copyIx)) // NO_COPY
-	  {
-	    BaseGDL** p= &e->GetPar( 0);
-	    // 	    if( *p == NULL)
-	    // 	      e->Throw( "Parameter undefined: "+
-	    // 				  e->GetParString(0));
+    if (e->KeywordSet(no_copyIx)) // NO_COPY
+      {
+        BaseGDL** p= &e->GetPar( 0);
+        //      if( *p == NULL)
+        //        e->Throw( "Parameter undefined: "+
+        //                e->GetParString(0));
 
-	    DPtr heapID= e->NewHeap( 1, *p);
-	    *p=NULL;
-	    return new DPtrGDL( heapID);
-	  }
-	else
-	  {
-	    BaseGDL* p= e->GetParDefined( 0);
-
-	    DPtr heapID= e->NewHeap( 1, p->Dup());
-	    return new DPtrGDL( heapID);
-	  }
+        DPtr heapID= e->NewHeap( 1, *p);
+        *p=NULL;
+        return new DPtrGDL( heapID);
       }
     else
       {
-	if( e->KeywordSet(1)) // ALLOCATE_HEAP
-	  {
-	    DPtr heapID= e->NewHeap();
-	    return new DPtrGDL( heapID);
-	  }
-	else
-	  {
-	    return new DPtrGDL( 0); // null ptr
-	  }
+        BaseGDL* p= e->GetParDefined( 0);
+
+        DPtr heapID= e->NewHeap( 1, p->Dup());
+        return new DPtrGDL( heapID);
+      }
+      }
+    else
+      {
+    if( e->KeywordSet(1)) // ALLOCATE_HEAP
+      {
+        DPtr heapID= e->NewHeap();
+        return new DPtrGDL( heapID);
+      }
+    else
+      {
+        return new DPtrGDL( 0); // null ptr
+      }
       }
   }
 
@@ -523,18 +524,18 @@ namespace lib {
     
     if( e->KeywordPresent( COUNTIx))
       {
-	e->SetKW( COUNTIx, new DLongGDL( e->Interpreter()->HeapSize()));
+    e->SetKW( COUNTIx, new DLongGDL( e->Interpreter()->HeapSize()));
       }
 
     if( nParam == 0)
       {
-	return e->Interpreter()->GetAllHeap();
+    return e->Interpreter()->GetAllHeap();
       } 
 
     BaseGDL* p = e->GetPar( 0);
     if( p == NULL)
       {
-	return new DByteGDL( 0);
+    return new DByteGDL( 0);
       } 
 
     DType pType = p->Type();
@@ -545,38 +546,38 @@ namespace lib {
     GDLInterpreter* interpreter = e->Interpreter();
 
     if( pType == GDL_PTR){
-		DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
-		pL = new DLongGDL( p->Dim());
-		for( SizeT i=0; i < pL->N_Elements(); ++i) (*pL) [i] = (*pPtr)[i];
-		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
-			if(isscalar) return new DLongGDL( (*pL)[0] );
-				else 	return pL; 
-			}
-		pL_guard.Init( pL);
-	} else {	// pType==GDL_PTR
-		pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
-		pL_guard.Init( pL);
-		if( e->KeywordSet( CASTIx))  {
-			if(isscalar) {
-				DLong p0 = (*pL)[0];
-				if(  interpreter->PtrValid( p0 )) {
-						interpreter->IncRef( p0);
-						return new DPtrGDL( p0);
-				} else	return new DPtrGDL( 0);
-			}
-			DPtrGDL* ret = new DPtrGDL( pL->Dim());
-			for( SizeT i=0; i < pL->N_Elements(); ++i)
-			  if( interpreter->PtrValid( (*pL)[ i])) {
-				  interpreter->IncRef((*pL)[ i]);
-				  (*ret)[ i] = (*pL)[ i];
-				  }
-		  return ret;
-		  }
+        DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
+        pL = new DLongGDL( p->Dim());
+        for( SizeT i=0; i < pL->N_Elements(); ++i) (*pL) [i] = (*pPtr)[i];
+        if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
+            if(isscalar) return new DLongGDL( (*pL)[0] );
+                else    return pL; 
+            }
+        pL_guard.Init( pL);
+    } else {    // pType==GDL_PTR
+        pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
+        pL_guard.Init( pL);
+        if( e->KeywordSet( CASTIx))  {
+            if(isscalar) {
+                DLong p0 = (*pL)[0];
+                if(  interpreter->PtrValid( p0 )) {
+                        interpreter->IncRef( p0);
+                        return new DPtrGDL( p0);
+                } else  return new DPtrGDL( 0);
+            }
+            DPtrGDL* ret = new DPtrGDL( pL->Dim());
+            for( SizeT i=0; i < pL->N_Elements(); ++i)
+              if( interpreter->PtrValid( (*pL)[ i])) {
+                  interpreter->IncRef((*pL)[ i]);
+                  (*ret)[ i] = (*pL)[ i];
+                  }
+          return ret;
+          }
       }
     DByteGDL* ret = new DByteGDL( pL->Dim());
     for( SizeT i=0; i < pL->N_Elements(); ++i) {
-		if( interpreter->PtrValid( (*pL)[ i])) 
-			(*ret)[ i] = 1;
+        if( interpreter->PtrValid( (*pL)[ i])) 
+            (*ret)[ i] = 1;
       }
       
     if(isscalar) return new DByteGDL( (*ret)[0] );
@@ -600,18 +601,18 @@ namespace lib {
     
     if( e->KeywordPresent( COUNTIx)) // COUNT
       {
-	e->SetKW( COUNTIx, new DLongGDL( e->Interpreter()->ObjHeapSize()));
+    e->SetKW( COUNTIx, new DLongGDL( e->Interpreter()->ObjHeapSize()));
       }
 
     if( nParam == 0)
       {
-	return e->Interpreter()->GetAllObjHeap();
+    return e->Interpreter()->GetAllObjHeap();
       } 
 
     BaseGDL* p = e->GetPar( 0);
     if( p == NULL)
       {
-	return new DByteGDL( 0);
+    return new DByteGDL( 0);
       } 
 
     DType pType = p->Type();
@@ -621,40 +622,40 @@ namespace lib {
 
     GDLInterpreter* interpreter = e->Interpreter();
     if( pType == GDL_OBJ) {
- 		DObjGDL* pObj = static_cast<DObjGDL*>( p);
-		pL = new DLongGDL( p->Dim());
-		for( SizeT i=0; i < pL->N_Elements(); ++i) (*pL) [i] = (*pObj)[i];
-		if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
-			if(isscalar) return new DLongGDL( (*pL)[0] );
-				else 	return pL; 
-			}
-	}
-    else {			// pType == GDL_OBJ
-	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
-	    pL_guard.Init( pL);
-		if( e->KeywordSet( CASTIx))  {
-			if(isscalar) {
-				DLong p0 = (*pL)[0];
-				if(  interpreter->ObjValid( p0 )) {
-						interpreter->IncRefObj( p0);
-						return new DObjGDL( p0);
-				} else	return new DObjGDL( 0);
-			}
-			DObjGDL* ret = new DObjGDL( pL->Dim());
-			for( SizeT i=0; i < pL->N_Elements(); ++i)
-			  if( interpreter->ObjValid( (*pL)[ i])) {
-				  interpreter->IncRefObj((*pL)[ i]);
-				  (*ret)[ i] = (*pL)[ i];
-				  }
-		  return ret;
-		  }
+        DObjGDL* pObj = static_cast<DObjGDL*>( p);
+        pL = new DLongGDL( p->Dim());
+        for( SizeT i=0; i < pL->N_Elements(); ++i) (*pL) [i] = (*pObj)[i];
+        if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
+            if(isscalar) return new DLongGDL( (*pL)[0] );
+                else    return pL; 
+            }
+    }
+    else {          // pType == GDL_OBJ
+        pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
+        pL_guard.Init( pL);
+        if( e->KeywordSet( CASTIx))  {
+            if(isscalar) {
+                DLong p0 = (*pL)[0];
+                if(  interpreter->ObjValid( p0 )) {
+                        interpreter->IncRefObj( p0);
+                        return new DObjGDL( p0);
+                } else  return new DObjGDL( 0);
+            }
+            DObjGDL* ret = new DObjGDL( pL->Dim());
+            for( SizeT i=0; i < pL->N_Elements(); ++i)
+              if( interpreter->ObjValid( (*pL)[ i])) {
+                  interpreter->IncRefObj((*pL)[ i]);
+                  (*ret)[ i] = (*pL)[ i];
+                  }
+          return ret;
+          }
       }
 
     DByteGDL* ret = new DByteGDL( pL->Dim()); // zero
     for( SizeT i=0; i<pL->N_Elements(); ++i)
       {
-	if( interpreter->ObjValid( (*pL)[ i])) 
-	  (*ret)[ i] = 1;
+    if( interpreter->ObjValid( (*pL)[ i])) 
+      (*ret)[ i] = 1;
       }
       
     if(isscalar) return new DByteGDL( (*ret)[0] );
@@ -669,7 +670,7 @@ namespace lib {
     
     if( nParam == 0)
       {
-	return new DObjGDL( 0);
+    return new DObjGDL( 0);
       }
     
     DString objName;
@@ -679,8 +680,8 @@ namespace lib {
     objName=StrUpCase(objName);
     if( objName == "IDL_OBJECT")
       objName = GDL_OBJECT_NAME; // replacement also done in GDLParser
-	else if( objName == "IDL_CONTAINER" )
-	   objName = GDL_CONTAINER_NAME;
+    else if( objName == "IDL_CONTAINER" )
+       objName = GDL_CONTAINER_NAME;
     DStructDesc* objDesc=e->Interpreter()->GetStruct( objName, e->CallingNode());
 
     DStructGDL* objStruct= new DStructGDL( objDesc, dimension());
@@ -693,21 +694,21 @@ namespace lib {
       // call INIT function
       DFun* objINIT= objDesc->GetFun( "INIT");
       if( objINIT != NULL)
-	{
-	  StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+    {
+      StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 
-	  // morph to obj environment and push it onto the stack again
-	  e->PushNewEnvUD( objINIT, 1, &newObj);
-	
-	  BaseGDL* res=e->Interpreter()->call_fun( objINIT->GetTree());
-	
-	  if( res == NULL || (!res->Scalar()) || res->False())
-	    {
-	      GDLDelete(res);
-	      return new DObjGDL( 0);
-	    }
-	  GDLDelete(res);
-	}
+      // morph to obj environment and push it onto the stack again
+      e->PushNewEnvUD( objINIT, 1, &newObj);
+    
+      BaseGDL* res=e->Interpreter()->call_fun( objINIT->GetTree());
+    
+      if( res == NULL || (!res->Scalar()) || res->False())
+        {
+          GDLDelete(res);
+          return new DObjGDL( 0);
+        }
+      GDLDelete(res);
+    }
     } catch(...) {
       e->FreeObjHeap( objID); // newObj might be changed
       GDLDelete(newObj);
@@ -725,26 +726,26 @@ namespace lib {
 //    trace_me = trace_arg();
     int nParam=e->NParam();
     
-	GDLInterpreter* interpreter = e->Interpreter();
+    GDLInterpreter* interpreter = e->Interpreter();
 
     if( nParam == 0) {
-	if( e->KeywordSet(DISABLEIx)) {
-	  EnableGC(false);
-	  }
-	else if( e->KeywordSet(ENABLEIx)) {
-	  EnableGC(true);
-	  interpreter->EnableAllGC();
-	}
-	if(e->KeywordPresent(IS_ENABLEDIx)) 
-	      e->SetKW( IS_ENABLEDIx,
-			new DByteGDL( IsEnabledGC()) );
-	return new DIntGDL( 0);
-	}
+    if( e->KeywordSet(DISABLEIx)) {
+      EnableGC(false);
+      }
+    else if( e->KeywordSet(ENABLEIx)) {
+      EnableGC(true);
+      interpreter->EnableAllGC();
+    }
+    if(e->KeywordPresent(IS_ENABLEDIx)) 
+          e->SetKW( IS_ENABLEDIx,
+            new DByteGDL( IsEnabledGC()) );
+    return new DIntGDL( 0);
+    }
 
     BaseGDL* p = e->GetPar( 0);
     if( p == NULL)
       {
-	return new DIntGDL( 0);
+    return new DIntGDL( 0);
       } 
 
     DIntGDL* ret = new DIntGDL(p->Dim());
@@ -752,75 +753,75 @@ namespace lib {
     DType pType = p->Type();
     SizeT nEl = p->N_Elements();
     if(pType == GDL_OBJ) {
-	DObjGDL* pObj = static_cast<DObjGDL*>( p);
-	for( SizeT i=0; i<nEl; ++i)
-		(*ret)[ i] = interpreter->RefCountHeapObj( (*pObj)[ i]);
-	if( e->KeywordSet(DISABLEIx) or
-	    e->KeywordSet(ENABLEIx) ) {
-	      bool set = e->KeywordSet(ENABLEIx) ? true: false;
-	      interpreter->EnableGCObj( pObj, set);
-	    }
-	}
+    DObjGDL* pObj = static_cast<DObjGDL*>( p);
+    for( SizeT i=0; i<nEl; ++i)
+        (*ret)[ i] = interpreter->RefCountHeapObj( (*pObj)[ i]);
+    if( e->KeywordSet(DISABLEIx) or
+        e->KeywordSet(ENABLEIx) ) {
+          bool set = e->KeywordSet(ENABLEIx) ? true: false;
+          interpreter->EnableGCObj( pObj, set);
+        }
+    }
     else {
       if( pType == GDL_PTR) {
       
-	  DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
-	  for( SizeT i=0; i<nEl; ++i)
-		  (*ret)[ i] = interpreter->RefCountHeap( (*pPtr)[ i]);
-	  if( e->KeywordSet(DISABLEIx) or
-	      e->KeywordSet(ENABLEIx) ) {
-		bool set = e->KeywordSet(ENABLEIx) ? true: false;
-//	if(trace_me) cout <<" GC set? "<<set<<endl;
-		interpreter->EnableGC( pPtr, set);
-	      }
-	} else {
-	  DLongGDL* pL;
-	  Guard<DLongGDL> pL_guard(pL);
-	  if( pType != GDL_LONG)
-	  {
-	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY)); 
-	    pL_guard.Init( pL);
-	  }
-	  else
-	  {
-	    pL = static_cast<DLongGDL*>(p);
-	  }
-	  for( SizeT i=0; i<nEl; ++i)
-		  (*ret)[ i] = interpreter->RefCountHeap( (*pL)[ i]);
-	}
+      DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
+      for( SizeT i=0; i<nEl; ++i)
+          (*ret)[ i] = interpreter->RefCountHeap( (*pPtr)[ i]);
+      if( e->KeywordSet(DISABLEIx) or
+          e->KeywordSet(ENABLEIx) ) {
+        bool set = e->KeywordSet(ENABLEIx) ? true: false;
+//  if(trace_me) cout <<" GC set? "<<set<<endl;
+        interpreter->EnableGC( pPtr, set);
+          }
+    } else {
+      DLongGDL* pL;
+      Guard<DLongGDL> pL_guard(pL);
+      if( pType != GDL_LONG)
+      {
+        pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY)); 
+        pL_guard.Init( pL);
+      }
+      else
+      {
+        pL = static_cast<DLongGDL*>(p);
+      }
+      for( SizeT i=0; i<nEl; ++i)
+          (*ret)[ i] = interpreter->RefCountHeap( (*pL)[ i]);
+    }
       }
 // #if 1 
     if(e->KeywordPresent(IS_ENABLEDIx)) {
       DByteGDL* enabled;
-//     	if(trace_me) 
-//	cout << "  heap_refcount( prm, KeywordPresent(IS_ENABLEDIx)) "<< endl;
+//      if(trace_me) 
+//  cout << "  heap_refcount( prm, KeywordPresent(IS_ENABLEDIx)) "<< endl;
       if(pType == GDL_OBJ) {
-	enabled = interpreter->IsEnabledGCObj(static_cast<DObjGDL*>( p));
-	}
+    enabled = interpreter->IsEnabledGCObj(static_cast<DObjGDL*>( p));
+    }
       else {
       if( pType == GDL_PTR) {
-	  enabled = interpreter->IsEnabledGC(static_cast<DPtrGDL*>( p));
-	} else {
-//	if(trace_me) 
-//	cout << " heap_refcount(prm=lonarr, KeywordPresent(IS_ENABLEDIx) "<< endl;
-	  DLongGDL* pL;
-	  Guard<DLongGDL> pL_guard(pL);
-	  if( pType != GDL_LONG)
-	  {
-	    pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY)); 
-	    pL_guard.Init( pL);
-	  }
-	  else
-	  {
-	    pL = static_cast<DLongGDL*>(p);
-	  }
-	  DPtrGDL* ptr = new DPtrGDL( p->Dim());
-	  Guard<DPtrGDL> ptr_guard(ptr);
-	  for( SizeT i=0; i<nEl; ++i)
-	        (*ptr)[ i] = (*pL)[ i];
+      enabled = interpreter->IsEnabledGC(static_cast<DPtrGDL*>( p));
+    } else {
+//  if(trace_me) 
+//  cout << " heap_refcount(prm=lonarr, KeywordPresent(IS_ENABLEDIx) "<< endl;
+      DLongGDL* pL;
+      Guard<DLongGDL> pL_guard(pL);
+      if( pType != GDL_LONG)
+      {
+        pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY)); 
+        pL_guard.Init( pL);
+      }
+      else
+      {
+        pL = static_cast<DLongGDL*>(p);
+      }
+      DPtrGDL* ptr = new DPtrGDL( p->Dim());
+      Guard<DPtrGDL> ptr_guard(ptr);
+      for( SizeT i=0; i<nEl; ++i)
+            (*ptr)[ i] = (*pL)[ i];
 
-	  enabled = interpreter->IsEnabledGC(ptr);
-	}
+      enabled = interpreter->IsEnabledGC(ptr);
+    }
       }
       e->SetKW( IS_ENABLEDIx, enabled);
     }
@@ -913,21 +914,21 @@ namespace lib {
       case GDL_LONG64:     return new DLong64GDL(dim, BaseGDL::INDGEN, off, inc);
       case GDL_LONG:       return new DLongGDL(dim, BaseGDL::INDGEN, off, inc);
       case GDL_STRING: {
-	DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
-	return iGen->Convert2(GDL_STRING);
+    DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
+    return iGen->Convert2(GDL_STRING);
       }
       case GDL_UINT:       return new DUIntGDL(dim, BaseGDL::INDGEN, off, inc);
       case GDL_ULONG64:    return new DULong64GDL(dim, BaseGDL::INDGEN, off, inc);
       case GDL_ULONG:      return new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
       default:
-	e->Throw( "Invalid type code specified.");
-	break;
+    e->Throw( "Invalid type code specified.");
+    break;
       }
     /*      }
-	    catch( GDLException& ex)
-	    {
-	    e->Throw( ex.getMessage());
-	    }*/
+        catch( GDLException& ex)
+        {
+        e->Throw( ex.getMessage());
+        }*/
     assert(false);
     return NULL;
   }
@@ -964,10 +965,10 @@ namespace lib {
     DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
     return iGen->Convert2( GDL_STRING);
     /*    }
-	  catch( GDLException& ex)
-	  {
-	  e->Throw( "SINDGEN: "+ex.getMessage());
-	  }*/
+      catch( GDLException& ex)
+      {
+      e->Throw( "SINDGEN: "+ex.getMessage());
+      }*/
   }
   BaseGDL* lindgen( EnvT* e)
   {
@@ -982,10 +983,10 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
     return new DLongGDL(dim, BaseGDL::INDGEN, off, inc);
     /*    }
-	  catch( GDLException& ex)
-	  {
-	  e->Throw( "LINDGEN: "+ex.getMessage());
-	  }*/
+      catch( GDLException& ex)
+      {
+      e->Throw( "LINDGEN: "+ex.getMessage());
+      }*/
   }
   BaseGDL* ulindgen( EnvT* e)
   {
@@ -1000,10 +1001,10 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
     return new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
     /*    }
-	  catch( GDLException& ex)
-	  {
-	  e->Throw( "ULINDGEN: "+ex.getMessage());
-	  }*/
+      catch( GDLException& ex)
+      {
+      e->Throw( "ULINDGEN: "+ex.getMessage());
+      }*/
   }
   BaseGDL* l64indgen( EnvT* e)
   {
@@ -1018,10 +1019,10 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
     return new DLong64GDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
-	catch( GDLException& ex)
-	{
-	e->Throw( "L64INDGEN: "+ex.getMessage());
-	}*/
+    catch( GDLException& ex)
+    {
+    e->Throw( "L64INDGEN: "+ex.getMessage());
+    }*/
   }
   BaseGDL* ul64indgen( EnvT* e)
   {
@@ -1036,10 +1037,10 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
     return new DULong64GDL(dim, BaseGDL::INDGEN, off, inc);
     /*   }
-	 catch( GDLException& ex)
-	 {
-	 e->Throw( "UL64INDGEN: "+ex.getMessage());
-	 }
+     catch( GDLException& ex)
+     {
+     e->Throw( "UL64INDGEN: "+ex.getMessage());
+     }
     */ }
   BaseGDL* findgen( EnvT* e)
   {
@@ -1054,10 +1055,10 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
     return new DFloatGDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
-	catch( GDLException& ex)
-	{
-	e->Throw( "FINDGEN: "+ex.getMessage());
-	}*/
+    catch( GDLException& ex)
+    {
+    e->Throw( "FINDGEN: "+ex.getMessage());
+    }*/
   }
   BaseGDL* dindgen( EnvT* e)
   {
@@ -1072,10 +1073,10 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
     return new DDoubleGDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
-	catch( GDLException& ex)
-	{
-	e->Throw( "DINDGEN: "+ex.getMessage());
-	}*/
+    catch( GDLException& ex)
+    {
+    e->Throw( "DINDGEN: "+ex.getMessage());
+    }*/
   }
   BaseGDL* cindgen( EnvT* e)
   {
@@ -1090,10 +1091,10 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
     return new DComplexGDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
-	catch( GDLException& ex)
-	{
-	e->Throw( "CINDGEN: "+ex.getMessage());
-	}*/
+    catch( GDLException& ex)
+    {
+    e->Throw( "CINDGEN: "+ex.getMessage());
+    }*/
   }
   BaseGDL* dcindgen( EnvT* e)
   {
@@ -1108,10 +1109,10 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
     return new DComplexDblGDL(dim, BaseGDL::INDGEN, off, inc);
     /*  }
-	catch( GDLException& ex)
-	{
-	e->Throw( "DCINDGEN: "+ex.getMessage());
-	}
+    catch( GDLException& ex)
+    {
+    e->Throw( "DCINDGEN: "+ex.getMessage());
+    }
     */ }
 
   // only called from CALL_FUNCTION 
@@ -1131,13 +1132,13 @@ namespace lib {
       return new DLongGDL( 1);
     if(p0->Type() == GDL_OBJ) 
     {
-		DStructGDL* s = GetObjStruct(p0, e);
-		if( s->Desc()->IsParent("LIST"))
-		  return new DLongGDL( LIST_count(s));
-		else
-		if( s->Desc()->IsParent("HASH"))
-		  return new DLongGDL( HASH_count(s));
-	}
+        DStructGDL* s = GetObjStruct(p0, e);
+        if( s->Desc()->IsParent("LIST"))
+          return new DLongGDL( LIST_count(s));
+        else
+        if( s->Desc()->IsParent("HASH"))
+          return new DLongGDL( HASH_count(s));
+    }
     if (p0->N_Elements() > 2147483647UL) 
       return new DLong64GDL( p0->N_Elements()); 
     else 
@@ -1152,7 +1153,7 @@ namespace lib {
     // JAdZ 20150506: This should now only be called when nParam=2, see below
     if( nParam != 2)
       {
-	e->Throw( "Exception: You should never have been able to get here! Please report this.");
+    e->Throw( "Exception: You should never have been able to get here! Please report this.");
       }
 
     BaseGDL* p0=e->GetParDefined( 0);
@@ -1166,67 +1167,67 @@ namespace lib {
     Guard<Float> p1FloatGuard(p1Float);
     if( p0Float->Rank() == 0)
       {
-	ComplexGDL* res = new ComplexGDL( p1Float->Dim(), 
-					  BaseGDL::NOZERO);
-		
-	SizeT nE=p1Float->N_Elements();
-	// #pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
-	{
-	  // #pragma omp for
-	  for( SizeT i=0; i<nE; i++)
-	    {
-	      (*res)[i]=Complex( (*p0Float)[0], (*p1Float)[i]);
-	    }
-	}
-	return res;
+    ComplexGDL* res = new ComplexGDL( p1Float->Dim(), 
+                      BaseGDL::NOZERO);
+        
+    SizeT nE=p1Float->N_Elements();
+    // #pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
+    {
+      // #pragma omp for
+      for( SizeT i=0; i<nE; i++)
+        {
+          (*res)[i]=Complex( (*p0Float)[0], (*p1Float)[i]);
+        }
+    }
+    return res;
       }
     else if( p1Float->Rank() == 0)
       {
-	ComplexGDL* res = new ComplexGDL( p0Float->Dim(), 
-					  BaseGDL::NOZERO);
-		
-	SizeT nE=p0Float->N_Elements();
-	// #pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
-	{
-	  // #pragma omp for
-	  for( SizeT i=0; i<nE; i++)
-	    {
-	      (*res)[i]=Complex( (*p0Float)[i], (*p1Float)[0]);
-	    }
-	}
-	return res;
+    ComplexGDL* res = new ComplexGDL( p0Float->Dim(), 
+                      BaseGDL::NOZERO);
+        
+    SizeT nE=p0Float->N_Elements();
+    // #pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
+    {
+      // #pragma omp for
+      for( SizeT i=0; i<nE; i++)
+        {
+          (*res)[i]=Complex( (*p0Float)[i], (*p1Float)[0]);
+        }
+    }
+    return res;
       }
     else if( p0Float->N_Elements() >= p1Float->N_Elements())
       {
-	ComplexGDL* res = new ComplexGDL( p1Float->Dim(), 
-					  BaseGDL::NOZERO);
+    ComplexGDL* res = new ComplexGDL( p1Float->Dim(), 
+                      BaseGDL::NOZERO);
 
-	SizeT nE=p1Float->N_Elements();
-	// #pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
-	{
-	  // #pragma omp for
-	  for( SizeT i=0; i<nE; i++)
-	    {
-	      (*res)[i]=Complex( (*p0Float)[i], (*p1Float)[i]);
-	    }
-	}
-	return res;
+    SizeT nE=p1Float->N_Elements();
+    // #pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
+    {
+      // #pragma omp for
+      for( SizeT i=0; i<nE; i++)
+        {
+          (*res)[i]=Complex( (*p0Float)[i], (*p1Float)[i]);
+        }
+    }
+    return res;
       }
     else
       {
-	ComplexGDL* res = new ComplexGDL( p0Float->Dim(), 
-					  BaseGDL::NOZERO);
-		
-	SizeT nE=p0Float->N_Elements();
-	// #pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
-	{
-	  // #pragma omp for
-	  for( SizeT i=0; i<nE; i++)
-	    {
-	      (*res)[i]=Complex( (*p0Float)[i], (*p1Float)[i]);
-	    }
-	}
-	return res;
+    ComplexGDL* res = new ComplexGDL( p0Float->Dim(), 
+                      BaseGDL::NOZERO);
+        
+    SizeT nE=p0Float->N_Elements();
+    // #pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
+    {
+      // #pragma omp for
+      for( SizeT i=0; i<nE; i++)
+        {
+          (*res)[i]=Complex( (*p0Float)[i], (*p1Float)[i]);
+        }
+    }
+    return res;
       }
   }
 
@@ -1254,23 +1255,23 @@ namespace lib {
 
     if( nParam == 1)
       {
-	BaseGDL* p0=e->GetParDefined( 0);
+    BaseGDL* p0=e->GetParDefined( 0);
 
-	assert( dynamic_cast< EnvUDT*>( e->Caller()) != NULL);
+    assert( dynamic_cast< EnvUDT*>( e->Caller()) != NULL);
 
-	// type_fun( expr) just convert
-	if( static_cast< EnvUDT*>( e->Caller())->GetIOError() != NULL) 
-	  return p0->Convert2( TargetClass::t, 
-			       BaseGDL::COPY_THROWIOERROR);
+    // type_fun( expr) just convert
+    if( static_cast< EnvUDT*>( e->Caller())->GetIOError() != NULL) 
+      return p0->Convert2( TargetClass::t, 
+                   BaseGDL::COPY_THROWIOERROR);
         // SA: see tracker item no. 3151760 
         else if (TargetClass::t == p0->Type() && e->GlobalPar(0)) 
-	  // HERE THE INPUT VARIABLE IS RETURNED
-	  {
-	    e->SetPtrToReturnValue( &e->GetPar(0));
-	    return p0;
-	  }
-	else
-	  return p0->Convert2( TargetClass::t, BaseGDL::COPY);
+      // HERE THE INPUT VARIABLE IS RETURNED
+      {
+        e->SetPtrToReturnValue( &e->GetPar(0));
+        return p0;
+      }
+    else
+      return p0->Convert2( TargetClass::t, BaseGDL::COPY);
       }
     
     BaseGDL* p0=e->GetNumericParDefined( 0);
@@ -1292,14 +1293,14 @@ namespace lib {
       
     if( offs < 0 || (offs+nByteCreate) > nByteSource)
       {
-	GDLDelete(res);
-	e->Throw( "Specified offset to"
-		  " expression is out of range: "+e->GetParString(0));
+    GDLDelete(res);
+    e->Throw( "Specified offset to"
+          " expression is out of range: "+e->GetParString(0));
       }
 
     //*** POSSIBLE ERROR because of alignment here
     void* srcAddr = static_cast<void*>( static_cast<char*>(p0->DataAddr()) + 
-					offs);
+                    offs);
     void* dstAddr = static_cast<void*>(&(*res)[0]);
     memcpy( dstAddr, srcAddr, nByteCreate);
 
@@ -1350,15 +1351,15 @@ namespace lib {
     if( nParam == 2)
       {
       static int doubleIx=e->KeywordIx("DOUBLE");
-	if (e->KeywordSet(doubleIx)) {
-	  return complex_fun_template_twopar< DComplexDblGDL, DComplexDbl, DDoubleGDL>( e);
-	} else {
-	  return complex_fun_template_twopar< DComplexGDL, DComplex, DFloatGDL>( e);
-	}      
+    if (e->KeywordSet(doubleIx)) {
+      return complex_fun_template_twopar< DComplexDblGDL, DComplexDbl, DDoubleGDL>( e);
+    } else {
+      return complex_fun_template_twopar< DComplexGDL, DComplex, DFloatGDL>( e);
+    }      
       }
     else
       {
-	return type_fun<DComplexGDL>( e);
+    return type_fun<DComplexGDL>( e);
       }
   }
   BaseGDL* dcomplex_fun( EnvT* e)
@@ -1366,11 +1367,11 @@ namespace lib {
     SizeT nParam=e->NParam( 1);
     if( nParam == 2)
       {
-	return complex_fun_template_twopar< DComplexDblGDL, DComplexDbl, DDoubleGDL>( e);
+    return complex_fun_template_twopar< DComplexDblGDL, DComplexDbl, DDoubleGDL>( e);
       }
     else
       {
-	return type_fun<DComplexDblGDL>( e);
+    return type_fun<DComplexDblGDL>( e);
       }
   }
   // END JAdZ 20150506
@@ -1398,18 +1399,18 @@ namespace lib {
     bool vmshack = false;
     if (!printKey && (e->GetKW(0) == NULL) && nParam > 1) 
       {    
-	vmshack = true;
-	BaseGDL* par = e->GetParDefined(nParam - 1);
-	if (par->Type() == GDL_STRING && par->Scalar())
-	  {
-	    int dollar = (*static_cast<DStringGDL*>(par))[0].compare(0,2,"$(");
-	    if (dollar == 0 || ((*static_cast<DStringGDL*>(par))[0].compare(0,1,"(") == 0 && (*static_cast<DStringGDL*>(par))[0] != "()"))   
-	      {    
-		e->SetKeyword("FORMAT", new DStringGDL(
-						       (*static_cast<DStringGDL*>(par))[0].c_str() + (dollar == 0 ? 1 : 0) 
-						       ));
-	      }
-	  }    
+    vmshack = true;
+    BaseGDL* par = e->GetParDefined(nParam - 1);
+    if (par->Type() == GDL_STRING && par->Scalar())
+      {
+        int dollar = (*static_cast<DStringGDL*>(par))[0].compare(0,2,"$(");
+        if (dollar == 0 || ((*static_cast<DStringGDL*>(par))[0].compare(0,1,"(") == 0 && (*static_cast<DStringGDL*>(par))[0] != "()"))   
+          {    
+        e->SetKeyword("FORMAT", new DStringGDL(
+                               (*static_cast<DStringGDL*>(par))[0].c_str() + (dollar == 0 ? 1 : 0) 
+                               ));
+          }
+      }    
       }
     
     static int formatIx=e->KeywordIx ("FORMAT"); 
@@ -1420,84 +1421,84 @@ namespace lib {
 
     if( printKey || formatKey) // PRINT or FORMAT
       {
-	stringstream os;
+    stringstream os;
 
-	SizeT width = 0;
-	if( printKey) // otherwise: FORMAT -> width is ignored
-	  {
-	    // for /PRINT always a terminal width of 80 is assumed
-	    width = 80;//TermWidth();
-	  }
-	
+    SizeT width = 0;
+    if( printKey) // otherwise: FORMAT -> width is ignored
+      {
+        // for /PRINT always a terminal width of 80 is assumed
+        width = 80;//TermWidth();
+      }
+    
         if (vmshack)
-	  {
-	    parOffset = 1; 
-	    e->ShiftParNumbering(1);
-	  }
-	print_os( &os, e, parOffset, width);
+      {
+        parOffset = 1; 
+        e->ShiftParNumbering(1);
+      }
+    print_os( &os, e, parOffset, width);
         if (vmshack) 
-	  {
-	    e->ShiftParNumbering(-1);
-	  }
+      {
+        e->ShiftParNumbering(-1);
+      }
 
-	vector<DString> buf;
-	while( os.good())
-	  {
-	    string line;
-	    getline( os, line);
-	    if(!line.empty()) buf.push_back( line); //should save the day for the formats with '$' at end.
-	  }
+    vector<DString> buf;
+    while( os.good())
+      {
+        string line;
+        getline( os, line);
+        if(!line.empty()) buf.push_back( line); //should save the day for the formats with '$' at end.
+      }
 
-	SizeT bufSize = buf.size();
-	if( bufSize == 0)
-	  e->Throw( "Internal error: print buffer empty.");
+    SizeT bufSize = buf.size();
+    if( bufSize == 0)
+      e->Throw( "Internal error: print buffer empty.");
 
-	if( bufSize > 1) 
-	  {
-	    DStringGDL* retVal = 
-	      new DStringGDL( dimension( bufSize), BaseGDL::NOZERO);
+    if( bufSize > 1) 
+      {
+        DStringGDL* retVal = 
+          new DStringGDL( dimension( bufSize), BaseGDL::NOZERO);
 
-	    for( SizeT i=0; i<bufSize; ++i)
-	      (*retVal)[ i] = buf[ i];
+        for( SizeT i=0; i<bufSize; ++i)
+          (*retVal)[ i] = buf[ i];
 
-	    return retVal;
-	  }
-	else
-	  return new DStringGDL( buf[0]);
+        return retVal;
+      }
+    else
+      return new DStringGDL( buf[0]);
       }
     else
       {
-	if( nParam == 1) // nParam == 1 -> conversion
-	  {
-	    BaseGDL* p0 = e->GetParDefined( 0);
+    if( nParam == 1) // nParam == 1 -> conversion
+      {
+        BaseGDL* p0 = e->GetParDefined( 0);
             // SA: see tracker item no. 3151760 
 
-	    // HERE INPUT VARIABLE IS RETURNED
+        // HERE INPUT VARIABLE IS RETURNED
             if (p0->Type() == GDL_STRING && e->GlobalPar(0)) 
-	      {
-		e->SetPtrToReturnValue( &e->GetPar(0));
-		return p0;
-	      }
-	    return p0->Convert2( GDL_STRING, BaseGDL::COPY);
-	  }
-	else // concatenation
-	  {
-	    DString s;
-	    for( SizeT i=0; i<nParam; ++i)
-	      {
-		BaseGDL* p = e->GetParDefined( i);
-		DStringGDL* sP = static_cast<DStringGDL*>
-		  ( p->Convert2(GDL_STRING,
-				BaseGDL::COPY_BYTE_AS_INT));
+          {
+        e->SetPtrToReturnValue( &e->GetPar(0));
+        return p0;
+          }
+        return p0->Convert2( GDL_STRING, BaseGDL::COPY);
+      }
+    else // concatenation
+      {
+        DString s;
+        for( SizeT i=0; i<nParam; ++i)
+          {
+        BaseGDL* p = e->GetParDefined( i);
+        DStringGDL* sP = static_cast<DStringGDL*>
+          ( p->Convert2(GDL_STRING,
+                BaseGDL::COPY_BYTE_AS_INT));
 
-		SizeT nEl = sP->N_Elements();
-		for( SizeT e=0; e<nEl; ++e)
-		  s += (*sP)[ e];
-		GDLDelete(sP);
-	      }
-	    // IDL here breaks the string into tty-width substrings
-	    return new DStringGDL( s);
-	  }
+        SizeT nEl = sP->N_Elements();
+        for( SizeT e=0; e<nEl; ++e)
+          s += (*sP)[ e];
+        GDLDelete(sP);
+          }
+        // IDL here breaks the string into tty-width substrings
+        return new DStringGDL( s);
+      }
       }
   }
 
@@ -1507,12 +1508,12 @@ namespace lib {
     if (type != NULL) {
       int typ = (*type)[0];
       if (typ == GDL_BYTE)
-	{
-	  // SA: slow yet simple solution using GDL_BYTE->GDL_INT->GDL_BYTE conversion
-	  return (e->KeywordSet(1) && e->GetPar(0)->Type() == GDL_STRING)
-	    ? type_fun<DIntGDL>( e)->Convert2(GDL_BYTE, BaseGDL::CONVERT) 
-	    : type_fun<DByteGDL>( e);
-	}
+    {
+      // SA: slow yet simple solution using GDL_BYTE->GDL_INT->GDL_BYTE conversion
+      return (e->KeywordSet(1) && e->GetPar(0)->Type() == GDL_STRING)
+        ? type_fun<DIntGDL>( e)->Convert2(GDL_BYTE, BaseGDL::CONVERT) 
+        : type_fun<DByteGDL>( e);
+    }
       if (typ == 0 || typ == GDL_INT) return type_fun<DIntGDL>( e);
       if (typ == GDL_UINT) return type_fun<DUIntGDL>( e);
       if (typ == GDL_LONG) return type_fun<DLongGDL>( e);
@@ -1524,22 +1525,22 @@ namespace lib {
       if (typ == GDL_COMPLEX) return type_fun<DComplexGDL>( e);
       if (typ == GDL_COMPLEXDBL) return type_fun<DComplexDblGDL>( e);
       if (typ == GDL_STRING) 
-	{
-	  // SA: calling GDL_STRING() with correct parameters
-	  static int stringIx = LibFunIx("STRING");
+    {
+      // SA: calling GDL_STRING() with correct parameters
+      static int stringIx = LibFunIx("STRING");
 
-	  assert( stringIx >= 0);
-	
-	  EnvT* newEnv= new EnvT(e, libFunList[stringIx], NULL);
+      assert( stringIx >= 0);
+    
+      EnvT* newEnv= new EnvT(e, libFunList[stringIx], NULL);
 
-	  Guard<EnvT> guard( newEnv);
+      Guard<EnvT> guard( newEnv);
 
-	  newEnv->SetNextPar(&e->GetPar(0)); // pass as global
-	  if (e->KeywordSet(1) && e->GetPar(0)->Type() == GDL_BYTE)
-	    newEnv->SetKeyword("PRINT", new DIntGDL(1));
-	  //         e->Interpreter()->CallStack().push_back( newEnv); 
-	  return static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-	}
+      newEnv->SetNextPar(&e->GetPar(0)); // pass as global
+      if (e->KeywordSet(1) && e->GetPar(0)->Type() == GDL_BYTE)
+        newEnv->SetKeyword("PRINT", new DIntGDL(1));
+      //         e->Interpreter()->CallStack().push_back( newEnv); 
+      return static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+    }
       e->Throw( "Improper TYPE value.");
     }
     return type_fun<DIntGDL>( e);
@@ -1561,47 +1562,47 @@ namespace lib {
     int funIx=LibFunIx( callF);
     if( funIx != -1)
       {
-	// 	e->PushNewEnv( libFunList[ funIx], 1);
-	// make the call
-	// 	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
+    //  e->PushNewEnv( libFunList[ funIx], 1);
+    // make the call
+    //  EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
 
-	// handle direct call functions 
-	if( libFunList[ funIx]->DirectCall())
-	  {
-	    BaseGDL* directCallParameter = e->GetParDefined(1);
-	    BaseGDL* res = 
-	      static_cast<DLibFunDirect*>(libFunList[ funIx])->FunDirect()(directCallParameter, true /*isReference*/);
-	    return res;
-	  }
-	else
-	  {
-	    EnvT* newEnv = e->NewEnv( libFunList[ funIx], 1);
-	    Guard<EnvT> guard( newEnv);
-	    BaseGDL* res = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-	    e->SetPtrToReturnValue( newEnv->GetPtrToReturnValue());
-	    return res;
-	  }
+    // handle direct call functions 
+    if( libFunList[ funIx]->DirectCall())
+      {
+        BaseGDL* directCallParameter = e->GetParDefined(1);
+        BaseGDL* res = 
+          static_cast<DLibFunDirect*>(libFunList[ funIx])->FunDirect()(directCallParameter, true /*isReference*/);
+        return res;
       }
     else
       {
-	// no direct call here
-	
-	funIx = GDLInterpreter::GetFunIx( callF);
-	
-	StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
+        EnvT* newEnv = e->NewEnv( libFunList[ funIx], 1);
+        Guard<EnvT> guard( newEnv);
+        BaseGDL* res = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+        e->SetPtrToReturnValue( newEnv->GetPtrToReturnValue());
+        return res;
+      }
+      }
+    else
+      {
+    // no direct call here
+    
+    funIx = GDLInterpreter::GetFunIx( callF);
+    
+    StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
 
-	EnvUDT* newEnv = e->PushNewEnvUD( funList[ funIx], 1);
-	
-	// make the call
-	// 	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
+    EnvUDT* newEnv = e->PushNewEnvUD( funList[ funIx], 1);
+    
+    // make the call
+    //  EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
     //GD: changed LRFUNCTION to RFUNCTION and removed e->SetPtrToReturnValue() below.
     //this solved bug #706
-	newEnv->SetCallContext( EnvUDT::RFUNCTION);
-	BaseGDL* res = e->Interpreter()->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
-//GD: removed	e->SetPtrToReturnValue( newEnv->GetPtrToReturnValue());
-	// 	BaseGDL* ppp = res->Dup();
-	// 	cout << " res = " << res << "  p to res = " << newEnv->GetPtrToReturnValue() << endl;
-	return res;
+    newEnv->SetCallContext( EnvUDT::RFUNCTION);
+    BaseGDL* res = e->Interpreter()->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+//GD: removed   e->SetPtrToReturnValue( newEnv->GetPtrToReturnValue());
+    //  BaseGDL* ppp = res->Dup();
+    //  cout << " res = " << res << "  p to res = " << newEnv->GetPtrToReturnValue() << endl;
+    return res;
       }
   }
 
@@ -1645,27 +1646,27 @@ namespace lib {
     bool compileFlags = false;
     if( nParam >= 2)
       {
-	BaseGDL* p1 = e->GetParDefined( 1);
+    BaseGDL* p1 = e->GetParDefined( 1);
 
-	if( !p1->Scalar())
-	  e->Throw( "Expression must be scalar in this context: "+
-		    e->GetParString(1));
+    if( !p1->Scalar())
+      e->Throw( "Expression must be scalar in this context: "+
+            e->GetParString(1));
 
-	// we do not enforce the case of Implied Print, then only 2 states
-	compileFlags = p1->LogTrue();
+    // we do not enforce the case of Implied Print, then only 2 states
+    compileFlags = p1->LogTrue();
       }
 
     bool quietExecution = false;
     if( nParam == 3)
       {
-	BaseGDL* p2 = e->GetParDefined( 2);
+    BaseGDL* p2 = e->GetParDefined( 2);
 
-	if( !p2->Scalar())
-	  e->Throw( "Expression must be scalar in this context: "+
-		    e->GetParString(2));
+    if( !p2->Scalar())
+      e->Throw( "Expression must be scalar in this context: "+
+            e->GetParString(2));
 
-	quietExecution = p2->LogTrue();
-	Warning("This third argument is not enforce now !");
+    quietExecution = p2->LogTrue();
+    Warning("This third argument is not enforce now !");
       }
 
     if (e->GetParDefined(0)->Rank() != 0)
@@ -1679,8 +1680,8 @@ namespace lib {
     EnvUDT* caller = static_cast<EnvUDT*>(e->Caller());
     //     e->Interpreter()->CallStack().pop_back();
 
-    // wrong: e is guarded, do not delete it here	
-    //	delete e;
+    // wrong: e is guarded, do not delete it here   
+    //  delete e;
 
     istringstream istr(line+"\n");
 
@@ -1695,14 +1696,14 @@ namespace lib {
     }
     catch( GDLException& ex)
       {
-	if( !compileFlags) GDLInterpreter::ReportCompileError( ex);
-	return new DIntGDL( 0);
+    if( !compileFlags) GDLInterpreter::ReportCompileError( ex);
+    return new DIntGDL( 0);
       }
     catch( ANTLRException& ex)
       {
-	if( !compileFlags) cerr << "EXECUTE: Lexer/Parser exception: " <<  
-			     ex.getMessage() << endl;
-	return new DIntGDL( 0);
+    if( !compileFlags) cerr << "EXECUTE: Lexer/Parser exception: " <<  
+                 ex.getMessage() << endl;
+    return new DIntGDL( 0);
       }
     
     if( theAST == NULL) return new DIntGDL( 1);
@@ -1710,23 +1711,23 @@ namespace lib {
     RefDNode trAST;
     try
       {
-	GDLTreeParser treeParser( caller);
-	  
-	treeParser.interactive(theAST);
+    GDLTreeParser treeParser( caller);
+      
+    treeParser.interactive(theAST);
 
-	trAST=treeParser.getAST();
+    trAST=treeParser.getAST();
       }
     catch( GDLException& ex)
       {
-	if( !compileFlags) GDLInterpreter::ReportCompileError( ex);
-	return new DIntGDL( 0);
+    if( !compileFlags) GDLInterpreter::ReportCompileError( ex);
+    return new DIntGDL( 0);
       }
 
     catch( ANTLRException& ex)
       {
-	if( !compileFlags) cerr << "EXECUTE: Compiler exception: " <<  
-			     ex.getMessage() << endl;
-	return new DIntGDL( 0);
+    if( !compileFlags) cerr << "EXECUTE: Compiler exception: " <<  
+                 ex.getMessage() << endl;
+    return new DIntGDL( 0);
       }
       
     if( trAST == NULL) return new DIntGDL( 1);
@@ -1734,42 +1735,42 @@ namespace lib {
     int nForLoopsIn = caller->NForLoops();
     try
       {
-	ProgNodeP progAST = ProgNode::NewProgNode( trAST);
-	Guard< ProgNode> progAST_guard( progAST);
+    ProgNodeP progAST = ProgNode::NewProgNode( trAST);
+    Guard< ProgNode> progAST_guard( progAST);
 
-	int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
-	caller->ResizeForLoops( nForLoops);
+    int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
+    caller->ResizeForLoops( nForLoops);
 
-	progAST->setLine( e->GetLineNumber());
+    progAST->setLine( e->GetLineNumber());
 
-	// AC 2016-02-26 : bug report #692 always verbose in EXECUTE()
-	// Do we have a way not to *always* issue a message here 
-	// in case of problem ???
-	RetCode retCode = caller->Interpreter()->execute( progAST); 
+    // AC 2016-02-26 : bug report #692 always verbose in EXECUTE()
+    // Do we have a way not to *always* issue a message here 
+    // in case of problem ???
+    RetCode retCode = caller->Interpreter()->execute( progAST); 
 
-	caller->ResizeForLoops( nForLoopsIn);
+    caller->ResizeForLoops( nForLoopsIn);
 
-	if( retCode == RC_OK)
-	  return new DIntGDL( 1);
-	else
-	  return new DIntGDL( 0);
+    if( retCode == RC_OK)
+      return new DIntGDL( 1);
+    else
+      return new DIntGDL( 0);
       }
     catch( GDLException& ex)
       {
-	caller->ResizeForLoops( nForLoopsIn);
-	// are we throwing to target environment?
-	// 		if( ex.GetTargetEnv() == NULL)
-	if( !compileFlags) cerr << "EXECUTE: " <<
-			     ex.getMessage() << endl;
-	return new DIntGDL( 0);
+    caller->ResizeForLoops( nForLoopsIn);
+    // are we throwing to target environment?
+    //      if( ex.GetTargetEnv() == NULL)
+    if( !compileFlags) cerr << "EXECUTE: " <<
+                 ex.getMessage() << endl;
+    return new DIntGDL( 0);
       }
     catch( ANTLRException& ex)
       {
-	caller->ResizeForLoops( nForLoopsIn);
-		
-	if( !compileFlags) cerr << "EXECUTE: Interpreter exception: " <<
-			     ex.getMessage() << endl;
-	return new DIntGDL( 0);
+    caller->ResizeForLoops( nForLoopsIn);
+        
+    if( !compileFlags) cerr << "EXECUTE: Interpreter exception: " <<
+                 ex.getMessage() << endl;
+    return new DIntGDL( 0);
       }
 
     return new DIntGDL( 0); // control flow cannot reach here - compiler shut up
@@ -1785,7 +1786,7 @@ namespace lib {
     bool stdLun = check_lun( e, lun);
     if( stdLun)
       e->Throw( "File unit does not allow"
-		" this operation. Unit: "+i2s( lun));
+        " this operation. Unit: "+i2s( lun));
 
     DLong offset = 0;
     if( nParam >= 3) e->AssureLongScalarPar( 2, offset);
@@ -1794,7 +1795,7 @@ namespace lib {
     
     if( arr->StrictScalar())
       e->Throw( "Scalar variable not allowed in this"
-		" context: "+e->GetParString(1));
+        " context: "+e->GetParString(1));
     
     return arr->AssocVar( lun, offset);
   }
@@ -1805,7 +1806,7 @@ namespace lib {
     SizeT nParam=e->NParam();
     if( nParam != 2)
       e->Throw(
-	       "Incorrect number of arguments.");
+           "Incorrect number of arguments.");
 
     BaseGDL* e1=e->GetParDefined( 0);//, "LOGICAL_AND");
     BaseGDL* e2=e->GetParDefined( 1);//, "LOGICAL_AND");
@@ -1817,57 +1818,57 @@ namespace lib {
 
     if( e1->Scalar()) 
       {
-	if( e1->LogTrue(0)) 
-	  {
-	    res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
-	    // #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
-	    {
-	      // #pragma omp for
-	      for( SizeT i=0; i < nEl2; i++)
-		(*res)[i] = e2->LogTrue( i) ? 1 : 0;
-	    }
-	  }
-	else
-	  {
-	    return new Data_<SpDByte>( e2->Dim());
-	  }
+    if( e1->LogTrue(0)) 
+      {
+        res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
+        // #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
+        {
+          // #pragma omp for
+          for( SizeT i=0; i < nEl2; i++)
+        (*res)[i] = e2->LogTrue( i) ? 1 : 0;
+        }
+      }
+    else
+      {
+        return new Data_<SpDByte>( e2->Dim());
+      }
       }
     else if( e2->Scalar()) 
       {
-	if( e2->LogTrue(0)) 
-	  {
-	    res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
-	    // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
-	    {
-	      // #pragma omp for
-	      for( SizeT i=0; i < nEl1; i++)
-		(*res)[i] = e1->LogTrue( i) ? 1 : 0;
-	    }
-	  }
-	else
-	  {
-	    return new Data_<SpDByte>( e1->Dim());
-	  }
+    if( e2->LogTrue(0)) 
+      {
+        res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
+        // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
+        {
+          // #pragma omp for
+          for( SizeT i=0; i < nEl1; i++)
+        (*res)[i] = e1->LogTrue( i) ? 1 : 0;
+        }
+      }
+    else
+      {
+        return new Data_<SpDByte>( e1->Dim());
+      }
       }
     else if( nEl2 < nEl1) 
       {
-	res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
-	// #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
-	{
-	  // #pragma omp for
-	  for( SizeT i=0; i < nEl2; i++)
-	    (*res)[i] = (e1->LogTrue( i) && e2->LogTrue( i)) ? 1 : 0;
-	}
+    res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
+    // #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
+    {
+      // #pragma omp for
+      for( SizeT i=0; i < nEl2; i++)
+        (*res)[i] = (e1->LogTrue( i) && e2->LogTrue( i)) ? 1 : 0;
+    }
       }
     else // ( nEl2 >= nEl1)
       {
-	res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
-	// #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
-	{
-	  // #pragma omp for
-	  for( SizeT i=0; i < nEl1; i++)
-	    (*res)[i] = (e1->LogTrue( i) && e2->LogTrue( i)) ? 1 : 0;
-	}
+    res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
+    // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
+    {
+      // #pragma omp for
+      for( SizeT i=0; i < nEl1; i++)
+        (*res)[i] = (e1->LogTrue( i) && e2->LogTrue( i)) ? 1 : 0;
+    }
       }
     return res;
   }
@@ -1878,7 +1879,7 @@ namespace lib {
     SizeT nParam=e->NParam();
     if( nParam != 2)
       e->Throw(
-	       "Incorrect number of arguments.");
+           "Incorrect number of arguments.");
 
     BaseGDL* e1=e->GetParDefined( 0);//, "LOGICAL_OR");
     BaseGDL* e2=e->GetParDefined( 1);//, "LOGICAL_OR");
@@ -1890,69 +1891,69 @@ namespace lib {
 
     if( e1->Scalar()) 
       {
-	if( e1->LogTrue(0)) 
-	  {
-	    res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
-	    // #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
-	    {
-	      // #pragma omp for
-	      for( SizeT i=0; i < nEl2; i++)
-		(*res)[i] = 1;
-	    }
-	  }
-	else
-	  {
-	    res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
-	    // #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
-	    {
-	      // #pragma omp for
-	      for( SizeT i=0; i < nEl2; i++)
-		(*res)[i] = e2->LogTrue( i) ? 1 : 0;
-	    }
-	  }
+    if( e1->LogTrue(0)) 
+      {
+        res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
+        // #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
+        {
+          // #pragma omp for
+          for( SizeT i=0; i < nEl2; i++)
+        (*res)[i] = 1;
+        }
+      }
+    else
+      {
+        res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
+        // #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
+        {
+          // #pragma omp for
+          for( SizeT i=0; i < nEl2; i++)
+        (*res)[i] = e2->LogTrue( i) ? 1 : 0;
+        }
+      }
       }
     else if( e2->Scalar()) 
       {
-	if( e2->LogTrue(0)) 
-	  {
-	    res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
-	    // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
-	    {
-	      // #pragma omp for
-	      for( SizeT i=0; i < nEl1; i++)
-		(*res)[i] = 1;
-	    }
-	  }
-	else
-	  {
-	    res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
-	    // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
-	    {
-	      // #pragma omp for
-	      for( SizeT i=0; i < nEl1; i++)
-		(*res)[i] = e1->LogTrue( i) ? 1 : 0;
-	    }
-	  }
+    if( e2->LogTrue(0)) 
+      {
+        res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
+        // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
+        {
+          // #pragma omp for
+          for( SizeT i=0; i < nEl1; i++)
+        (*res)[i] = 1;
+        }
+      }
+    else
+      {
+        res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
+        // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
+        {
+          // #pragma omp for
+          for( SizeT i=0; i < nEl1; i++)
+        (*res)[i] = e1->LogTrue( i) ? 1 : 0;
+        }
+      }
       }
     else if( nEl2 < nEl1) 
       {
-	res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
-	// #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
-	{
-	  // #pragma omp for
-	  for( SizeT i=0; i < nEl2; i++)
-	    (*res)[i] = (e1->LogTrue( i) || e2->LogTrue( i)) ? 1 : 0;
-	}
+    res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
+    // #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
+    {
+      // #pragma omp for
+      for( SizeT i=0; i < nEl2; i++)
+        (*res)[i] = (e1->LogTrue( i) || e2->LogTrue( i)) ? 1 : 0;
+    }
       }
     else // ( nEl2 >= nEl1)
       {
-	res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
-	// #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
-	{
-	  // #pragma omp for
-	  for( SizeT i=0; i < nEl1; i++)
-	    (*res)[i] = (e1->LogTrue( i) || e2->LogTrue( i)) ? 1 : 0;
-	}
+    res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
+    // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
+    {
+      // #pragma omp for
+      for( SizeT i=0; i < nEl1; i++)
+        (*res)[i] = (e1->LogTrue( i) || e2->LogTrue( i)) ? 1 : 0;
+    }
       }
     return res;
   }
@@ -1966,7 +1967,7 @@ namespace lib {
     //     SizeT nParam=e->NParam();
     //     if( nParam != 1)
     //       e->Throw(
-    // 			  "Incorrect number of arguments.");
+    //            "Incorrect number of arguments.");
     // 
     //     BaseGDL* e1=e->GetParDefined( 0);//, "LOGICAL_TRUE");
     //     
@@ -1977,7 +1978,7 @@ namespace lib {
     {
       // #pragma omp for
       for( SizeT i=0; i < nEl1; i++)
-	(*res)[i] = e1->LogTrue( i) ? 1 : 0;
+    (*res)[i] = e1->LogTrue( i) ? 1 : 0;
     }    
     return res;
   }
@@ -1992,8 +1993,8 @@ namespace lib {
 
     BaseGDL* p0=e->GetParDefined( 0);//, "REPLICATE");
     if( !p0->Scalar())
-      e->Throw(	"Expression must be a scalar in this context: "+
-		e->GetParString(0));
+      e->Throw( "Expression must be a scalar in this context: "+
+        e->GetParString(0));
 
     return p0->New( dim, BaseGDL::INIT);
   }
@@ -2010,93 +2011,93 @@ namespace lib {
     DLong mode = 0;
     if( nParam == 2)
       {
-	BaseGDL* p1 = e->GetPar( 1);
-	if( p1 == NULL)
-	  e->Throw("Variable is undefined: "+e->GetParString(1));
-	if( !p1->Scalar())
-	  e->Throw("Expression must be a scalar in this context: "+
-		   e->GetParString(1));
-	DLongGDL* p1L = static_cast<DLongGDL*>
-	  (p1->Convert2(GDL_LONG,BaseGDL::COPY));
+    BaseGDL* p1 = e->GetPar( 1);
+    if( p1 == NULL)
+      e->Throw("Variable is undefined: "+e->GetParString(1));
+    if( !p1->Scalar())
+      e->Throw("Expression must be a scalar in this context: "+
+           e->GetParString(1));
+    DLongGDL* p1L = static_cast<DLongGDL*>
+      (p1->Convert2(GDL_LONG,BaseGDL::COPY));
 
-	mode = (*p1L)[ 0];
+    mode = (*p1L)[ 0];
 
-	GDLDelete(p1L);
+    GDLDelete(p1L);
 
-	if( mode < 0 || mode > 2)
-	  {
-	    ostringstream os;
-	    p1->ToStream( os);
-	    e->Throw( "Value of <"+ p1->TypeStr() + "  ("+ os.str() +
-		      ")> is out of allowed range.");
-	  }
+    if( mode < 0 || mode > 2)
+      {
+        ostringstream os;
+        p1->ToStream( os);
+        e->Throw( "Value of <"+ p1->TypeStr() + "  ("+ os.str() +
+              ")> is out of allowed range.");
+      }
       }
     
     SizeT nEl = p0S->N_Elements();
 
     if( mode == 2) // both
       {
-	TRACEOMP( __FILE__, __LINE__)
+    TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-	  {
+      {
 #pragma omp for
-	    for( OMPInt i=0; i<nEl; ++i)
-	      {
-		unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
-//		if( first == (*p0S)[ i].npos)
+        for( OMPInt i=0; i<nEl; ++i)
+          {
+        unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
+//      if( first == (*p0S)[ i].npos)
                 if (first >= (*p0S)[i].length())
-		  {
-		    (*p0S)[ i] = "";
-		  }
-		else
-		  {
-		    unsigned long last = (*p0S)[ i].find_last_not_of(" \t");
-		    (*p0S)[ i] = (*p0S)[ i].substr(first,last-first+1);
-		  }
-	      }
-	  }
+          {
+            (*p0S)[ i] = "";
+          }
+        else
+          {
+            unsigned long last = (*p0S)[ i].find_last_not_of(" \t");
+            (*p0S)[ i] = (*p0S)[ i].substr(first,last-first+1);
+          }
+          }
+      }
       }
     else if( mode == 1) // leading
       {
-	TRACEOMP( __FILE__, __LINE__)
+    TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-	  {
+      {
 #pragma omp for
-	    for( OMPInt i=0; i<nEl; ++i)
-	      {
-		unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
-//		if( first == (*p0S)[ i].npos)
+        for( OMPInt i=0; i<nEl; ++i)
+          {
+        unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
+//      if( first == (*p0S)[ i].npos)
             if (first >= (*p0S)[i].length())
-		  {
-		    (*p0S)[ i] = "";
-		  }
-		else
-		  {
-		    (*p0S)[ i] = (*p0S)[ i].substr(first);
-		  }
-	      }
-	  }
+          {
+            (*p0S)[ i] = "";
+          }
+        else
+          {
+            (*p0S)[ i] = (*p0S)[ i].substr(first);
+          }
+          }
+      }
       }
     else // trailing
       {
-	TRACEOMP( __FILE__, __LINE__)
+    TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-	  {
+      {
 #pragma omp for
-	    for( OMPInt i=0; i<nEl; ++i)
-	      {
-		unsigned long last = (*p0S)[ i].find_last_not_of(" \t");
-//		if( last == (*p0S)[ i].npos)
+        for( OMPInt i=0; i<nEl; ++i)
+          {
+        unsigned long last = (*p0S)[ i].find_last_not_of(" \t");
+//      if( last == (*p0S)[ i].npos)
             if (last >= (*p0S)[i].length())
-		  {
-		    (*p0S)[ i] = "";
-		  }
-		else
-		  {
-		    (*p0S)[ i] = (*p0S)[ i].substr(0,last+1);
-		  }
-	      }
-	  }
+          {
+            (*p0S)[ i] = "";
+          }
+        else
+          {
+            (*p0S)[ i] = (*p0S)[ i].substr(0,last+1);
+          }
+          }
+      }
       }
     return p0S;
   }
@@ -2116,10 +2117,10 @@ namespace lib {
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
       {
 #pragma omp for
-	for( OMPInt i=0; i<nEl; ++i)
-	  {
-	    (*res)[ i] = StrCompress((*p0S)[ i], removeAll);
-	  }
+    for( OMPInt i=0; i<nEl; ++i)
+      {
+        (*res)[ i] = StrCompress((*p0S)[ i], removeAll);
+      }
       }
     return res;
   }
@@ -2138,23 +2139,23 @@ namespace lib {
     DStringGDL* sStr = e->GetParAs<DStringGDL>( 1);
     if( !sStr->Scalar( searchString))
       e->Throw( "Search string must be a scalar or one element array: "+
-		e->GetParString( 1));
+        e->GetParString( 1));
 
     unsigned long pos = string::npos;
     if( nParam > 2)
       {
-	BaseGDL* p2 = e->GetParDefined(2);
-	//     if( p2 != NULL) //e->AssureLongScalarPar( 2,posDLong);
-	//       {
-	const SizeT pIx = 2;
-	BaseGDL* p = e->GetParDefined( pIx);
-	DLongGDL* lp = static_cast<DLongGDL*>(p->Convert2( GDL_LONG, BaseGDL::COPY));
-	Guard<DLongGDL> guard_lp( lp);
-	DLong scalar;
-	if( !lp->Scalar( scalar))
-	  throw GDLException("Parameter must be a scalar in this context: "+
-			     e->GetParString(pIx));
-	pos = scalar;
+    BaseGDL* p2 = e->GetParDefined(2);
+    //     if( p2 != NULL) //e->AssureLongScalarPar( 2,posDLong);
+    //       {
+    const SizeT pIx = 2;
+    BaseGDL* p = e->GetParDefined( pIx);
+    DLongGDL* lp = static_cast<DLongGDL*>(p->Convert2( GDL_LONG, BaseGDL::COPY));
+    Guard<DLongGDL> guard_lp( lp);
+    DLong scalar;
+    if( !lp->Scalar( scalar))
+      throw GDLException("Parameter must be a scalar in this context: "+
+                 e->GetParString(pIx));
+    pos = scalar;
       }
 
     DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
@@ -2164,11 +2165,11 @@ namespace lib {
 #pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10)))
       {
 #pragma omp for
-	for( OMPInt i=0; i<nSrcStr; ++i)
-	  {
-	    (*res)[ i] = StrPos((*p0S)[ i], searchString, pos, 
-				reverseOffset, reverseSearch);
-	  }
+    for( OMPInt i=0; i<nSrcStr; ++i)
+      {
+        (*res)[ i] = StrPos((*p0S)[ i], searchString, pos, 
+                reverseOffset, reverseSearch);
+      }
       }    
     return res;
   }
@@ -2193,28 +2194,28 @@ namespace lib {
     bool sc2 = true;
     if( p2L != NULL) 
       {
-	DLong scalar;
-	sc2 = p2L->Scalar( scalar);
-	scVal2 = scalar;
+    DLong scalar;
+    sc2 = p2L->Scalar( scalar);
+    scVal2 = scalar;
       }
 
     DLong stride;
     if( !sc1 && !sc2)
       {
-	stride = p1L->Dim( 0);
-	if( stride != p2L->Dim( 0))
-	  e->Throw( "Starting offset and length arguments "
-		    "have incompatible first dimension.");	  
+    stride = p1L->Dim( 0);
+    if( stride != p2L->Dim( 0))
+      e->Throw( "Starting offset and length arguments "
+            "have incompatible first dimension.");    
       }
     else
       {
-	// at least one scalar, p2L possibly NULL
-	if( p2L == NULL)
-	  stride = p1L->Dim( 0);
-	else
-	  stride = max( p1L->Dim( 0), p2L->Dim( 0));
-	
-	stride = (stride > 0)? stride : 1;
+    // at least one scalar, p2L possibly NULL
+    if( p2L == NULL)
+      stride = p1L->Dim( 0);
+    else
+      stride = max( p1L->Dim( 0), p2L->Dim( 0));
+    
+    stride = (stride > 0)? stride : 1;
       }
 
     dimension resDim( p0S->Dim());
@@ -2229,37 +2230,37 @@ namespace lib {
     SizeT nSrcStr = p0S->N_Elements();
     if( nSrcStr == 1)
       {
-	// possibly this optimization is not worth the longer code (as the gain can only be a small fraction
-	// of the overall time), but then this is a very common use
-	for( long ii=0; ii<stride; ++ii)
-	  {
-	    SizeT destIx = ii;
-	    DLong actFirst = (sc1)? scVal1 : (*p1L)[ destIx % nEl1];
-	    DLong actLen   = (sc2)? scVal2 : (*p2L)[ destIx % nEl2];
-	    if( actLen <= 0)
-	      (*res)[ destIx] = "";//StrMid((*p0S)[ i], actFirst, actLen, reverse);
-	    else	
-	      (*res)[ destIx] = StrMid((*p0S)[ 0], actFirst, actLen, reverse);
-	  }
-	return res;
+    // possibly this optimization is not worth the longer code (as the gain can only be a small fraction
+    // of the overall time), but then this is a very common use
+    for( long ii=0; ii<stride; ++ii)
+      {
+        SizeT destIx = ii;
+        DLong actFirst = (sc1)? scVal1 : (*p1L)[ destIx % nEl1];
+        DLong actLen   = (sc2)? scVal2 : (*p2L)[ destIx % nEl2];
+        if( actLen <= 0)
+          (*res)[ destIx] = "";//StrMid((*p0S)[ i], actFirst, actLen, reverse);
+        else    
+          (*res)[ destIx] = StrMid((*p0S)[ 0], actFirst, actLen, reverse);
+      }
+    return res;
       }
     TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10))) default( shared)
       {
 #pragma omp for
-	for( OMPInt i=0; i<nSrcStr; ++i)
-	  {
-	    for( long ii=0; ii<stride; ++ii)
-	      {
-		SizeT destIx = i * stride + ii;
-		DLong actFirst = (sc1)? scVal1 : (*p1L)[ destIx % nEl1];
-		DLong actLen   = (sc2)? scVal2 : (*p2L)[ destIx % nEl2];
-		if( actLen <= 0)
-		  (*res)[ destIx] = "";//StrMid((*p0S)[ i], actFirst, actLen, reverse);
-		else	
-		  (*res)[ destIx] = StrMid((*p0S)[ i], actFirst, actLen, reverse);
-	      }
-	  }
+    for( OMPInt i=0; i<nSrcStr; ++i)
+      {
+        for( long ii=0; ii<stride; ++ii)
+          {
+        SizeT destIx = i * stride + ii;
+        DLong actFirst = (sc1)? scVal1 : (*p1L)[ destIx % nEl1];
+        DLong actLen   = (sc2)? scVal2 : (*p2L)[ destIx % nEl2];
+        if( actLen <= 0)
+          (*res)[ destIx] = "";//StrMid((*p0S)[ i], actFirst, actLen, reverse);
+        else    
+          (*res)[ destIx] = StrMid((*p0S)[ i], actFirst, actLen, reverse);
+          }
+      }
       }    
     return res;
   }
@@ -2274,21 +2275,21 @@ namespace lib {
     //     DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
     DStringGDL* p0S;
     DStringGDL* res;
-    // 	Guard<DStringGDL> guard;
+    //  Guard<DStringGDL> guard;
 
     if( p0->Type() == GDL_STRING)
       {
-	p0S = static_cast<DStringGDL*>( p0);
-	if( !isReference)
-	  res = p0S;
-	else
-	  res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
+    p0S = static_cast<DStringGDL*>( p0);
+    if( !isReference)
+      res = p0S;
+    else
+      res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
       }
     else
       {
-	p0S = static_cast<DStringGDL*>( p0->Convert2( GDL_STRING, BaseGDL::COPY));
-	res = p0S;
-	// 	    guard.Reset( p0S);
+    p0S = static_cast<DStringGDL*>( p0->Convert2( GDL_STRING, BaseGDL::COPY));
+    res = p0S;
+    //      guard.Reset( p0S);
       }
 
     //     DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
@@ -2297,27 +2298,27 @@ namespace lib {
 
     if( res == p0S)
       {
-	TRACEOMP( __FILE__, __LINE__)
+    TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-	  {
+      {
 #pragma omp for
-	    for( OMPInt i=0; i<nEl; ++i)
-	      {
-		StrLowCaseInplace((*p0S)[ i]);
-	      }
-	  }
+        for( OMPInt i=0; i<nEl; ++i)
+          {
+        StrLowCaseInplace((*p0S)[ i]);
+          }
+      }
       }
     else
       {
-	TRACEOMP( __FILE__, __LINE__)
+    TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-	  {
+      {
 #pragma omp for
-	    for( OMPInt i=0; i<nEl; ++i)
-	      {
-		(*res)[ i] = StrLowCase((*p0S)[ i]);
-	      }
-	  }
+        for( OMPInt i=0; i<nEl; ++i)
+          {
+        (*res)[ i] = StrLowCase((*p0S)[ i]);
+          }
+      }
       }
     return res;
   }
@@ -2332,21 +2333,21 @@ namespace lib {
     //     DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
     DStringGDL* p0S;
     DStringGDL* res;
-    // 	Guard<DStringGDL> guard;
+    //  Guard<DStringGDL> guard;
 
     if( p0->Type() == GDL_STRING)
       {
-	p0S = static_cast<DStringGDL*>( p0);
-	if( !isReference)
-	  res = p0S;
-	else
-	  res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
+    p0S = static_cast<DStringGDL*>( p0);
+    if( !isReference)
+      res = p0S;
+    else
+      res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
       }
     else
       {
-	p0S = static_cast<DStringGDL*>( p0->Convert2( GDL_STRING, BaseGDL::COPY));
-	res = p0S;
-	// 	    guard.Reset( p0S);
+    p0S = static_cast<DStringGDL*>( p0->Convert2( GDL_STRING, BaseGDL::COPY));
+    res = p0S;
+    //      guard.Reset( p0S);
       }
 
     //     DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
@@ -2355,27 +2356,27 @@ namespace lib {
 
     if( res == p0S)
       {
-	TRACEOMP( __FILE__, __LINE__)
+    TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-	  {
+      {
 #pragma omp for
-	    for( OMPInt i=0; i<nEl; ++i)
-	      {
-		StrUpCaseInplace((*p0S)[ i]);
-	      }
-	  }
+        for( OMPInt i=0; i<nEl; ++i)
+          {
+        StrUpCaseInplace((*p0S)[ i]);
+          }
+      }
       }
     else
       {
-	TRACEOMP( __FILE__, __LINE__)
+    TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-	  {
+      {
 #pragma omp for
-	    for( OMPInt i=0; i<nEl; ++i)
-	      {
-		(*res)[ i] = StrUpCase((*p0S)[ i]);
-	      }
-	  }
+        for( OMPInt i=0; i<nEl; ++i)
+          {
+        (*res)[ i] = StrUpCase((*p0S)[ i]);
+          }
+      }
       }
     return res;
   }
@@ -2389,13 +2390,13 @@ namespace lib {
 
     DStringGDL* p0S;
     Guard<DStringGDL> guard;
-	
+    
     if( p0->Type() == GDL_STRING)
       p0S = static_cast<DStringGDL*>( p0);
     else
       {
-	p0S = static_cast<DStringGDL*>( p0->Convert2( GDL_STRING, BaseGDL::COPY));
-	guard.Reset( p0S);
+    p0S = static_cast<DStringGDL*>( p0->Convert2( GDL_STRING, BaseGDL::COPY));
+    guard.Reset( p0S);
       }
 
     DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
@@ -2405,9 +2406,9 @@ namespace lib {
     {
       // #pragma omp for
       for( SizeT i=0; i<nEl; ++i)
-	{
-	  (*res)[ i] = (*p0S)[ i].length();
-	}
+    {
+      (*res)[ i] = (*p0S)[ i].length();
+    }
     }
     return res;
   }
@@ -2427,13 +2428,13 @@ namespace lib {
 
     if( single)
       {
-	DStringGDL* res = new DStringGDL( (*p0S)[0]);
-	DString&    scl = (*res)[0];
+    DStringGDL* res = new DStringGDL( (*p0S)[0]);
+    DString&    scl = (*res)[0];
 
-	for( SizeT i=1; i<nEl; ++i)
-	  scl += delim + (*p0S)[i];
+    for( SizeT i=1; i<nEl; ++i)
+      scl += delim + (*p0S)[i];
 
-	return res;
+    return res;
       }
 
     dimension resDim( p0S->Dim());
@@ -2446,9 +2447,9 @@ namespace lib {
     DStringGDL* res = new DStringGDL( resDim, BaseGDL::NOZERO);
     for( SizeT src=0, dst=0; src<nEl; ++dst)
       {
-	(*res)[ dst] = (*p0S)[ src++];
-	for(SizeT l=1; l<stride; ++l)
-	  (*res)[ dst] += delim + (*p0S)[ src++];
+    (*res)[ dst] = (*p0S)[ src++];
+    for(SizeT l=1; l<stride; ++l)
+      (*res)[ dst] += delim + (*p0S)[ src++];
       }
     
     return res;
@@ -2484,15 +2485,15 @@ namespace lib {
   {
     if (std::isfinite(value)) 
       {
-	// #pragma omp atomic
-	dest += value; 
+    // #pragma omp atomic
+    dest += value; 
       }
   }
   template<class T> inline void AddOmitNaNCpx(T& dest, T value)
   {
     // #pragma omp atomic
     dest += T(std::isfinite(value.real())? value.real() : 0,
-	      std::isfinite(value.imag())? value.imag() : 0);
+          std::isfinite(value.imag())? value.imag() : 0);
   }
   template<> inline void AddOmitNaN(DComplex& dest, DComplex value)
   { AddOmitNaNCpx<DComplex>(dest, value); }
@@ -2522,10 +2523,10 @@ namespace lib {
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(sum)
       {
 #pragma omp for
-	for ( OMPInt i=0; i<nEl; ++i)
-	  {
-	    AddOmitNaN(sum, (*src)[ i]);
-	  }
+    for ( OMPInt i=0; i<nEl; ++i)
+      {
+        AddOmitNaN(sum, (*src)[ i]);
+      }
       }
     return new T(sum);
   }
@@ -2550,8 +2551,8 @@ namespace lib {
   // total over one dim
   template< typename T>
   BaseGDL* total_over_dim_template( T* src, 
-				    const dimension& srcDim,
-				    SizeT sumDimIx, bool omitNaN) {
+                    const dimension& srcDim,
+                    SizeT sumDimIx, bool omitNaN) {
     SizeT nEl = src->N_Elements();
 
     // get dest dim and number of summations
@@ -2600,7 +2601,7 @@ namespace lib {
   // cumulative over one dim
   template< typename T>
   BaseGDL* total_over_dim_cu_template( T* res, 
-				       SizeT sumDimIx,
+                       SizeT sumDimIx,
                                        bool omitNaN) {
     SizeT nEl = res->N_Elements();
     const dimension& resDim = res->Dim();
@@ -2698,7 +2699,7 @@ namespace lib {
             (static_cast<DComplexDblGDL*> (p0), nan);
         }
 
-	// AC 2018-feb  doc. said Long64 & ULong64 too, but when ?! TBC !
+    // AC 2018-feb  doc. said Long64 & ULong64 too, but when ?! TBC !
         if (!doubleRes) {
           if (p0->Type() == GDL_FLOAT) {
             return total_template<DFloatGDL>
@@ -2709,35 +2710,35 @@ namespace lib {
               (static_cast<DComplexGDL*> (p0), nan);
           }
 
-	  // AC 2018-feb 
-	  // cout << "hello default general  case" << endl;
-	  // the ulong64 is missing 
+      // AC 2018-feb 
+      // cout << "hello default general  case" << endl;
+      // the ulong64 is missing 
 
           if (p0->Type() == GDL_BYTE || p0->Type() == GDL_INT ||
-	      p0->Type() == GDL_LONG || p0->Type() == GDL_LONG64) {
-	    // Conver to Long64
-	    DLong64GDL* p0L64 = static_cast<DLong64GDL*>
-	      (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
-	    Guard<DLong64GDL> guard(p0L64);
-	    BaseGDL* tmp;
-	    tmp= total_template<DLong64GDL>(p0L64, nan);
-		if (p0->Type() == GDL_LONG64)
-	    	return tmp->Convert2(GDL_DOUBLE, BaseGDL::COPY);
-	    return tmp->Convert2(GDL_FLOAT, BaseGDL::COPY);
-	  }
+          p0->Type() == GDL_LONG || p0->Type() == GDL_LONG64) {
+        // Conver to Long64
+        DLong64GDL* p0L64 = static_cast<DLong64GDL*>
+          (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
+        Guard<DLong64GDL> guard(p0L64);
+        BaseGDL* tmp;
+        tmp= total_template<DLong64GDL>(p0L64, nan);
+        if (p0->Type() == GDL_LONG64)
+            return tmp->Convert2(GDL_DOUBLE, BaseGDL::COPY);
+        return tmp->Convert2(GDL_FLOAT, BaseGDL::COPY);
+      }
           if (p0->Type() == GDL_ULONG || p0->Type() == GDL_ULONG64) {
-	    // Conver to ULong64
-	    DULong64GDL* p0UL64 = static_cast<DULong64GDL*>
-	      (p0->Convert2(GDL_ULONG64, BaseGDL::COPY));
-	    Guard<DULong64GDL> guard(p0UL64);
-	    BaseGDL* tmp;
-	    tmp= total_template<DULong64GDL>(p0UL64, nan);
-		if (p0->Type() == GDL_ULONG64)
-	    	return tmp->Convert2(GDL_DOUBLE, BaseGDL::COPY);
-	    return tmp->Convert2(GDL_FLOAT, BaseGDL::COPY);
-	  }
-	  
-	
+        // Conver to ULong64
+        DULong64GDL* p0UL64 = static_cast<DULong64GDL*>
+          (p0->Convert2(GDL_ULONG64, BaseGDL::COPY));
+        Guard<DULong64GDL> guard(p0UL64);
+        BaseGDL* tmp;
+        tmp= total_template<DULong64GDL>(p0UL64, nan);
+        if (p0->Type() == GDL_ULONG64)
+            return tmp->Convert2(GDL_DOUBLE, BaseGDL::COPY);
+        return tmp->Convert2(GDL_FLOAT, BaseGDL::COPY);
+      }
+      
+    
           DFloatGDL* p0F = static_cast<DFloatGDL*>
             (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
           Guard<DFloatGDL> guard(p0F);
@@ -2895,7 +2896,7 @@ namespace lib {
         DFloatGDL* p0F = static_cast<DFloatGDL*>
           (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
         Guard<DFloatGDL> p0F_guard(p0F);
-        //	    p0F_guard.Reset( p0F);
+        //      p0F_guard.Reset( p0F);
         return total_over_dim_template< DFloatGDL>
           (p0F, srcDim, sumDim - 1, false);
       }
@@ -2903,7 +2904,7 @@ namespace lib {
         DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
           (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
         Guard<DComplexDblGDL> p0D_guard(p0D);
-        // 	    p0D_guard.Reset( p0D);
+        //      p0D_guard.Reset( p0D);
         return total_over_dim_template< DComplexDblGDL>
           (p0D, srcDim, sumDim - 1, nan);
       }
@@ -2990,14 +2991,14 @@ namespace lib {
   { 
     if (std::isfinite(value)) 
       {
-	// #pragma omp atomic
-	dest *= value; 
+    // #pragma omp atomic
+    dest *= value; 
       }
   }
   template<class T> inline void MultOmitNaNCpx(T& dest, T value)
   {
     dest *= T(std::isfinite(value.real())? value.real() : 1,
-	      std::isfinite(value.imag())? value.imag() : 1);
+          std::isfinite(value.imag())? value.imag() : 1);
   }
   template<> inline void MultOmitNaN(DComplex& dest, DComplex value)
   { MultOmitNaNCpx<DComplex>(dest, value); }
@@ -3093,9 +3094,9 @@ namespace lib {
   // product over one dim
   template< typename T>
   BaseGDL* product_over_dim_template( T* src, 
-				      const dimension& srcDim, 
-				      SizeT prodDimIx,
-				      bool omitNaN) {
+                      const dimension& srcDim, 
+                      SizeT prodDimIx,
+                      bool omitNaN) {
     SizeT nEl = src->N_Elements();
 
     // get dest dim and number of products
@@ -3145,8 +3146,8 @@ namespace lib {
   // cumulative over one dim
   template< typename T>
   BaseGDL* product_over_dim_cu_template( T* res, 
-					 SizeT sumDimIx,
-					 bool omitNaN) {
+                     SizeT sumDimIx,
+                     bool omitNaN) {
     SizeT nEl = res->N_Elements();
     const dimension& resDim = res->Dim();
     if (omitNaN) {
@@ -3256,7 +3257,7 @@ namespace lib {
         DDoubleGDL* p0D = static_cast<DDoubleGDL*>
           (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
         Guard<DDoubleGDL> p0D_guard(p0D);
-        //	    p0D_guard.Reset( p0D);
+        //      p0D_guard.Reset( p0D);
         return product_template<DDoubleGDL>(p0D, KwNaN);
       }
       else { // KwCumul
@@ -3394,7 +3395,7 @@ namespace lib {
         DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
           (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
         Guard<DComplexDblGDL> p0D_guard(p0D);
-        //	    p0D_guard.Reset( p0D);
+        //      p0D_guard.Reset( p0D);
         return product_over_dim_template< DComplexDblGDL>
           (p0D, srcDim, sumDim - 1, KwNaN);
       }
@@ -3477,8 +3478,8 @@ namespace lib {
   }
 //  servicing array_equal and also gdl_container::equals
   bool array_equal_bool( BaseGDL* p0, BaseGDL* p1,
-	bool notypeconv=false, bool not_equal=false,
-	bool quiet=true)
+    bool notypeconv=false, bool not_equal=false,
+    bool quiet=true)
    {
 
       if( p0 == p1) return true;
@@ -3494,10 +3495,10 @@ namespace lib {
     // ARRAY_EQUAL(1,[1,1]) True, ARRAY_EQUAL([1],[1,1]) False !!
     if (nEl0 != nEl1) {
       if (nEl0 == 1 && nEl1 != 1) {
-	if (!p0->StrictScalar()) return false;
+    if (!p0->StrictScalar()) return false;
       }
       if (nEl0 != 1 && nEl1 == 1) {
-	if (!p1->StrictScalar()) return false;
+    if (!p1->StrictScalar()) return false;
       }
     }
 
@@ -3515,12 +3516,12 @@ namespace lib {
     Guard<BaseGDL> p1_guard;
     
     if( ( aTy==GDL_PTR and bTy==GDL_PTR) or
-	( aTy==GDL_OBJ and bTy==GDL_OBJ) ) {
-	Data_<SpDULong64>* p0t =
-	      static_cast<Data_<SpDULong64>* >( p0);
-	if( not_equal) return p0t->ArrayNeverEqual( p1);
-	else 	   return p0t->ArrayEqual( p1);
-	}
+    ( aTy==GDL_OBJ and bTy==GDL_OBJ) ) {
+    Data_<SpDULong64>* p0t =
+          static_cast<Data_<SpDULong64>* >( p0);
+    if( not_equal) return p0t->ArrayNeverEqual( p1);
+    else       return p0t->ArrayEqual( p1);
+    }
     else if( aTy==GDL_PTR or bTy==GDL_PTR) {
       if(quiet) return false;
       throw GDLException("array_equal: GDL_PTR only with PTR");
@@ -3531,16 +3532,16 @@ namespace lib {
       }
     else if( aTy != bTy)
       {
-	if( notypeconv) // NO_TYPECONV
-	  return false;
-	else
-	  {
-	    if( !ConvertableType( aTy) or !ConvertableType( bTy)) {
-	      if(quiet) return false;
-	      throw GDLException("array_equal: inconvertable type");
-	      }
-	    else if( DTypeOrder[aTy] >= DTypeOrder[bTy])
-	      {
+    if( notypeconv) // NO_TYPECONV
+      return false;
+    else
+      {
+        if( !ConvertableType( aTy) or !ConvertableType( bTy)) {
+          if(quiet) return false;
+          throw GDLException("array_equal: inconvertable type");
+          }
+        else if( DTypeOrder[aTy] >= DTypeOrder[bTy])
+          {
           p1 = p1->Convert2(aTy, BaseGDL::COPY);
           p1_guard.Reset(p1);
         } else {
@@ -3550,7 +3551,7 @@ namespace lib {
       }
     }
     if( not_equal) return p0->ArrayNeverEqual( p1);
-    else 	   return p0->ArrayEqual( p1);
+    else       return p0->ArrayEqual( p1);
   }
 
   BaseGDL* array_equal( EnvT* e)
@@ -3792,37 +3793,37 @@ namespace lib {
     BaseGDL* p0 = e->GetParDefined( 0);
     if( p0->Type() == GDL_STRUCT)
       e->Throw("Struct expression not allowed in this context: "+
-	       e->GetParString(0));
+           e->GetParString(0));
     
     SizeT rank = p0->Rank();
     if( rank == 0)
       e->Throw( "Expression must be an array "
-		"in this context: "+ e->GetParString(0));
+        "in this context: "+ e->GetParString(0));
     
     if( nParam == 2) 
       {
  
-	BaseGDL* p1 = e->GetParDefined( 1);
-	if( p1->N_Elements() != rank)
-	  e->Throw("Incorrect number of elements in permutation.");
+    BaseGDL* p1 = e->GetParDefined( 1);
+    if( p1->N_Elements() != rank)
+      e->Throw("Incorrect number of elements in permutation.");
 
-	DUInt* perm = new DUInt[rank];
-	ArrayGuard<DUInt> perm_guard( perm);
+    DUInt* perm = new DUInt[rank];
+    ArrayGuard<DUInt> perm_guard( perm);
 
-	DUIntGDL* p1L = static_cast<DUIntGDL*>
-	  (p1->Convert2( GDL_UINT, BaseGDL::COPY));
-	for( SizeT i=0; i<rank; ++i) perm[i] = (*p1L)[ i];
-	GDLDelete(p1L);
+    DUIntGDL* p1L = static_cast<DUIntGDL*>
+      (p1->Convert2( GDL_UINT, BaseGDL::COPY));
+    for( SizeT i=0; i<rank; ++i) perm[i] = (*p1L)[ i];
+    GDLDelete(p1L);
 
-	// check permutation vector
-	for( SizeT i=0; i<rank; ++i) 
-	  {
-	    DUInt j;
-	    for( j=0; j<rank; ++j) if( perm[j] == i) break;
-	    if (j == rank)
-	      e->Throw( "Incorrect permutation vector.");
-	  }
-	return p0->Transpose( perm);
+    // check permutation vector
+    for( SizeT i=0; i<rank; ++i) 
+      {
+        DUInt j;
+        for( j=0; j<rank; ++j) if( perm[j] == i) break;
+        if (j == rank)
+          e->Throw( "Incorrect permutation vector.");
+      }
+    return p0->Transpose( perm);
       }
 
     return p0->Transpose( NULL);
@@ -3846,25 +3847,25 @@ namespace lib {
   // 
   //     
   //     if( p1->N_Elements() != rank)
-  // 	  e->Throw("Incorrect number of elements in permutation.");
+  //      e->Throw("Incorrect number of elements in permutation.");
   // 
-  // 	DUInt* perm = new DUInt[rank];
-  // 	Guard<DUInt> perm_guard( perm);
+  //    DUInt* perm = new DUInt[rank];
+  //    Guard<DUInt> perm_guard( perm);
   // 
-  // 	DUIntGDL* p1L = static_cast<DUIntGDL*>
-  // 	  (p1->Convert2( GDL_UINT, BaseGDL::COPY));
-  // 	for( SizeT i=0; i<rank; ++i) perm[i] = (*p1L)[ i];
-  // 	delete p1L;
+  //    DUIntGDL* p1L = static_cast<DUIntGDL*>
+  //      (p1->Convert2( GDL_UINT, BaseGDL::COPY));
+  //    for( SizeT i=0; i<rank; ++i) perm[i] = (*p1L)[ i];
+  //    delete p1L;
   // 
-  // 	// check permutaion vector
-  // 	for( SizeT i=0; i<rank; ++i) 
-  // 	  {
-  // 	    DUInt j;
-  // 	    for( j=0; j<rank; ++j) if( perm[j] == i) break;
-  // 	    if (j == rank)
-  // 	      e->Throw( "Incorrect permutation vector.");
-  // 	  }
-  // 	return p0->Transpose( perm);
+  //    // check permutaion vector
+  //    for( SizeT i=0; i<rank; ++i) 
+  //      {
+  //        DUInt j;
+  //        for( j=0; j<rank; ++j) if( perm[j] == i) break;
+  //        if (j == rank)
+  //          e->Throw( "Incorrect permutation vector.");
+  //      }
+  //    return p0->Transpose( perm);
   //       }
   // 
   //     return a->Transpose( NULL);
@@ -3874,7 +3875,7 @@ namespace lib {
   // optimized version
   template< typename IndexT>
   void MergeSortOpt( BaseGDL* p0, IndexT* hhS, IndexT* h1, IndexT* h2,
-		     SizeT len) 
+             SizeT len) 
   {
     if( len <= 1) return;       
 
@@ -3896,163 +3897,18 @@ namespace lib {
     SizeT  h2Ix = 0;
     for( i=0; (h1Ix < h1N) && (h2Ix < h2N); ++i) 
       {
-	// the actual comparisson
-	if( p0->Greater( h1[h1Ix], h2[h2Ix])) 
-	  hhS[ i] = h2[ h2Ix++];
-	else
-	  hhS[ i] = h1[ h1Ix++];
+    // the actual comparisson
+    if( p0->Greater( h1[h1Ix], h2[h2Ix])) 
+      hhS[ i] = h2[ h2Ix++];
+    else
+      hhS[ i] = h1[ h1Ix++];
       }
     for(; h1Ix < h1N; ++i) hhS[ i] = h1[ h1Ix++];
     for(; h2Ix < h2N; ++i) hhS[ i] = h2[ h2Ix++];
   }
 
-  // helper function for sort_fun, recursive
-  void MergeSort( BaseGDL* p0, SizeT* hh, SizeT* h1, SizeT* h2,
-		  SizeT start, SizeT end) 
-  {
-    if( start+1 >= end) return;       
-
-    SizeT middle = (start+end) / 2;
-
-    MergeSort(p0, hh, h1, h2, start, middle);
-    MergeSort(p0, hh, h1, h2, middle, end);
-
-    SizeT h1N = middle - start;
-    SizeT h2N = end - middle;
-
-    SizeT* hhS = &hh[start];
-
-    SizeT i;
-    for(i=0; i<h1N; ++i) h1[i] = hhS[ i];
-    for(i=0; i<h2N; ++i) h2[i] = hh[middle + i];
-
-    SizeT  h1Ix = 0;
-    SizeT  h2Ix = 0;
-    for( i=0; (h1Ix < h1N) && (h2Ix < h2N); ++i) 
-      {
-	// the actual comparisson
-	if( p0->Greater( h1[h1Ix], h2[h2Ix])) 
-	  hhS[ i] = h2[ h2Ix++];
-	else
-	  hhS[ i] = h1[ h1Ix++];
-      }
-    for(; h1Ix < h1N; ++i) hhS[ i] = h1[ h1Ix++];
-    for(; h2Ix < h2N; ++i) hhS[ i] = h2[ h2Ix++];
-  }
-
-  // sort function uses MergeSort
-  BaseGDL* sort_fun( EnvT* e)
-  {
-    e->NParam( 1);
-    
-    BaseGDL* p0 = e->GetParDefined( 0);
-
-    if( p0->Type() == GDL_STRUCT)
-      e->Throw( "Struct expression not allowed in this context: "+
-		e->GetParString(0));
-    
-    static int l64Ix = e->KeywordIx( "L64");
-    bool l64 = e->KeywordSet( l64Ix);
-    
-    SizeT nEl = p0->N_Elements();
-    
-    // helper arrays
-    DLongGDL* res = new DLongGDL( dimension( nEl), BaseGDL::INDGEN);
-
-    DLong nanIx = nEl;
-    if( p0->Type() == GDL_FLOAT)
-      {
-	DFloatGDL* p0F = static_cast<DFloatGDL*>(p0);
-	for( DLong i=nEl-1; i >= 0; --i)
-	  {
-	    if( isnan((*p0F)[ i]) )//|| !std::isfinite((*p0F)[ i]))
-	      {
-		--nanIx;
-		(*res)[i] = (*res)[nanIx];
-		(*res)[ nanIx] = i;
-
-		// cout << "swap " << i << " with " << nanIx << endl;
-		// cout << "now:     ";
-		// 		for( DLong ii=0; ii < nEl; ++ii)
-		// 		{
-		// 		cout << (*res)[ii] << " ";		
-		// 		}
-		// cout  << endl;
-	      }
-	  }
-      }
-    else if( p0->Type() == GDL_DOUBLE)
-      {
-	DDoubleGDL* p0F = static_cast<DDoubleGDL*>(p0);
-	for( DLong i=nEl-1; i >= 0; --i)
-	  {
-	    if( isnan((*p0F)[ i]))// || !std::isfinite((*p0F)[ i]))
-	      {
-		--nanIx;
-		(*res)[i] = (*res)[nanIx];
-		(*res)[ nanIx] = i;
-	      }
-	  }
-      }
-    else if( p0->Type() == GDL_COMPLEX)
-      {
-	DComplexGDL* p0F = static_cast<DComplexGDL*>(p0);
-	for( DLong i=nEl-1; i >= 0; --i)
-	  {
-	    if( isnan((*p0F)[ i].real()) || //!std::isfinite((*p0F)[ i].real()) ||
-		isnan((*p0F)[ i].imag()))// || !std::isfinite((*p0F)[ i].imag()) )
-	      {
-		--nanIx;
-		(*res)[i] = (*res)[nanIx];
-		(*res)[ nanIx] = i;
-	      }
-	  }
-      }
-    else if( p0->Type() == GDL_COMPLEXDBL)
-      {
-	DComplexDblGDL* p0F = static_cast<DComplexDblGDL*>(p0);
-	for( DLong i=nEl-1; i >= 0; --i)
-	  {
-	    if( isnan((*p0F)[ i].real()) || //!std::isfinite((*p0F)[ i].real()) ||
-		isnan((*p0F)[ i].imag()))// || !std::isfinite((*p0F)[ i].imag()) )
-	      {
-		--nanIx;
-		(*res)[i] = (*res)[nanIx];
-		(*res)[ nanIx] = i;
-	      }
-	  }
-      }
-
-    // cout << "nEl " << nEl << " nanIx " << nanIx << endl;
-    nEl = nanIx;
-    // cout << "sorting:  ";
-    // 		for( DLong ii=0; ii < nEl; ++ii)
-    // 		{
-    // 		cout << (*res)[ii] << " ";		
-    // 		}
-    // cout  << endl;
-
-    DLong *hh = static_cast<DLong*>(res->DataAddr());
-
-    DLong* h1 = new DLong[ nEl/2];
-    DLong* h2 = new DLong[ (nEl+1)/2];
-    // call the sort routine
-    MergeSortOpt<DLong>( p0, hh, h1, h2, nEl);
-    delete[] h1;
-    delete[] h2;
-
-    if( l64) 
-      {
-	// leave it this way, as sorting of more than 2^31
-	// items seems not feasible in the future we might 
-	// use MergeSortOpt<DLong64>(...) for this 
-	return res->Convert2( GDL_LONG64);
-      }
-
-    return res;
-  }
   // start of highly-optimized median code. 1D and 2D fast medians are in medianfilter.cpp, gathered from
-  // recent sources. see tjis file for explanations & copyrights.
+  // recent sources. see the include file for explanations & copyrights.
 #include "medianfilter.cpp"  
 /*
  *  Following routines are variants of the algorithm described in
@@ -4441,7 +4297,7 @@ namespace lib {
       //rank is important as fast algos are different!
       bool twoD = (p0->Rank() == 2);
 
-      // basic checks on "width" input		
+      // basic checks on "width" input      
       DDoubleGDL* p1d = e->GetParAs<DDoubleGDL>(1);
 
       if (p1d->N_Elements() > 1 || (*p1d)[0] <= 0)
@@ -4590,7 +4446,7 @@ namespace lib {
       static int dimensionIx = e->KeywordIx("DIMENSION");
       e->AssureLongScalarKWIfPresent(dimensionIx, dim);
 
-      //	cout << "dim : "<< dim << endl;
+      //    cout << "dim : "<< dim << endl;
 
       if (dim > p0->Rank())
         e->Throw("Illegal keyword value for DIMENSION.");
@@ -4620,7 +4476,7 @@ namespace lib {
       // helper arrays
       if (nmed > 1) nEl = p0->N_Elements() / nmed;
 
-      //	cout << "hello2" << endl;
+      //    cout << "hello2" << endl;
 
       DLong *hh = new DLong[ nEl];
       DLong* h1 = new DLong[ nEl / 2];
@@ -4637,15 +4493,15 @@ namespace lib {
       // nEl_extern is used to store "nEl" initial value
       DLong nanIx, nEl_extern;
       nEl_extern = nEl;
-      //	if (nmed > 1) nEl_extern = p0->N_Elements() / nmed;
+      //    if (nmed > 1) nEl_extern = p0->N_Elements() / nmed;
       //else nEl_extern = p0->N_Elements();
 
-      //	cout << "hello type" << p0->Type() << endl;
+      //    cout << "hello type" << p0->Type() << endl;
 
       // Loop over all subarray medians
       for (SizeT k = 0; k < nmed; ++k) {
 
-        //	  nEl=nEl_extern;
+        //    nEl=nEl_extern;
 
         if (nmed == 1) {
           //cout << "hello inside 1D" << endl;
@@ -4680,7 +4536,7 @@ namespace lib {
           nanIx = nEl;
           nEl = nEl_extern;
 
-          //	      DLong nanIx = nEl;
+          //          DLong nanIx = nEl;
           // Starting Element
           DLong start = accumStride * p0->Dim(dim - 1) * (k / accumStride) +
             (k % accumStride);
@@ -4736,7 +4592,7 @@ namespace lib {
           else (*static_cast<DFloatGDL*> (res))[k] = f_nan;
         } else {
           //cout << k << "" << (*static_cast<DFloatGDL*>(p0))[medEl] << " " 
-          //	 << (*static_cast<DFloatGDL*>(p0))[medEl_1] << endl;
+          //     << (*static_cast<DFloatGDL*>(p0))[medEl_1] << endl;
           //cout << "k :" << k << endl;
           if ((nEl % 2) == 1 || !e->KeywordSet(evenIx)) {
             if (nmed == 1)
@@ -4792,13 +4648,13 @@ namespace lib {
       //  such as histogram algorithms.
       // Copyright: (C) 2008 by Nicolas Galmiche
 
-      // basic checks on "vector/array" input	
+      // basic checks on "vector/array" input   
       DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
 
       if (p0->Rank() > 2)
         e->Throw("Only 1 or 2 dimensions allowed: " + e->GetParString(0));
 
-      // basic checks on "width" input		
+      // basic checks on "width" input      
       DDoubleGDL* p1d = e->GetParAs<DDoubleGDL>(1);
 
       if (p1d->N_Elements() > 1 || (*p1d)[0] <= 0)
@@ -6453,15 +6309,15 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     // nicer error message (Disregard if socket)
     if ( fileUnits[ lun-1].SockNum() == -1) {
       if( !fileUnits[ lun-1].IsOpen())
-	throw GDLIOException( e->CallingNode(), "File unit is not open: "+i2s( lun)+".");
+    throw GDLIOException( e->CallingNode(), "File unit is not open: "+i2s( lun)+".");
 
       if( fileUnits[ lun-1].Eof())
-	return new DIntGDL( 1);
+    return new DIntGDL( 1);
     } else {
       // Socket
       string *recvBuf = &fileUnits[ lun-1].RecvBuf();
       if (recvBuf->size() == 0)
-	return new DIntGDL( 1);
+    return new DIntGDL( 1);
     }
     return new DIntGDL( 0);
   }
@@ -6476,7 +6332,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
 
     if( rank == 0) 
       e->Throw( "Expression must be an array in this context: "+
-		e->GetParString(0));
+        e->GetParString(0));
     
     SizeT resDimInit[ MAXRANK];
 
@@ -6487,32 +6343,32 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
 
     for( SizeT p=1; p<np; ++p)
       {
-	DLong newDim;
-	if (p1->Rank() == 0) e->AssureLongScalarPar( p, newDim);
+    DLong newDim;
+    if (p1->Rank() == 0) e->AssureLongScalarPar( p, newDim);
         else newDim = (*p1)[p - 1];
 
-	if( newDim <= 0)
-	  e->Throw( "Array dimensions must be greater than 0.");
-	
-	if( rank >= p)
-	  {
-	    SizeT oldDim = p0->Dim( p-1);
+    if( newDim <= 0)
+      e->Throw( "Array dimensions must be greater than 0.");
+    
+    if( rank >= p)
+      {
+        SizeT oldDim = p0->Dim( p-1);
 
-	    if( newDim > oldDim)
-	      {
-		if( (newDim % oldDim) != 0)
-		  e->Throw( "Result dimensions must be integer factor "
-			    "of original dimensions.");
-	      }
-	    else
-	      {
-		if( (oldDim % newDim) != 0)
-		  e->Throw( "Result dimensions must be integer factor "
-			    "of original dimensions.");
-	      }
-	  }
-	
-	resDimInit[ p-1] = newDim; 
+        if( newDim > oldDim)
+          {
+        if( (newDim % oldDim) != 0)
+          e->Throw( "Result dimensions must be integer factor "
+                "of original dimensions.");
+          }
+        else
+          {
+        if( (oldDim % newDim) != 0)
+          e->Throw( "Result dimensions must be integer factor "
+                "of original dimensions.");
+          }
+      }
+    
+    resDimInit[ p-1] = newDim; 
       }
 
     dimension resDim( resDimInit, np-1);
@@ -6538,87 +6394,87 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
 
     if( nParam > 0)
       {
-	BaseGDL* p0 = e->GetParDefined( 0);
+    BaseGDL* p0 = e->GetParDefined( 0);
 
-	if( p0->Type() != GDL_STRING && p0->Type() != GDL_OBJ)
-	  e->Throw( "Argument must be a scalar object reference or string: "+
-		    e->GetParString(0));
+    if( p0->Type() != GDL_STRING && p0->Type() != GDL_OBJ)
+      e->Throw( "Argument must be a scalar object reference or string: "+
+            e->GetParString(0));
 
-	if( !p0->Scalar())
-	  e->Throw( "Expression must be a scalar or 1 element "
-		    "array in this context: "+e->GetParString(0));
+    if( !p0->Scalar())
+      e->Throw( "Expression must be a scalar or 1 element "
+            "array in this context: "+e->GetParString(0));
 
-	DStructDesc* objDesc;
+    DStructDesc* objDesc;
 
-	if( p0->Type() == GDL_STRING)
-	  {
-	    DString objName;
-	    e->AssureScalarPar<DStringGDL>( 0, objName);
-	    objName = StrUpCase( objName);
+    if( p0->Type() == GDL_STRING)
+      {
+        DString objName;
+        e->AssureScalarPar<DStringGDL>( 0, objName);
+        objName = StrUpCase( objName);
 
-	    objDesc = FindInStructList( structList, objName);
-	    if( objDesc == NULL)
-	      {
-		if( count)
-		  e->SetKW( countIx, new DLongGDL( 0));
-		return new DStringGDL( "");
-	      }
-	  }
-	else // GDL_OBJ
-	  {
-	    DObj objRef;
-	    e->AssureScalarPar<DObjGDL>( 0, objRef);
+        objDesc = FindInStructList( structList, objName);
+        if( objDesc == NULL)
+          {
+        if( count)
+          e->SetKW( countIx, new DLongGDL( 0));
+        return new DStringGDL( "");
+          }
+      }
+    else // GDL_OBJ
+      {
+        DObj objRef;
+        e->AssureScalarPar<DObjGDL>( 0, objRef);
 
-	    if( objRef == 0)
-	      {
-		if( count)
-		  e->SetKW( countIx, new DLongGDL( 0));
-		return new DStringGDL( "");
-	      }
+        if( objRef == 0)
+          {
+        if( count)
+          e->SetKW( countIx, new DLongGDL( 0));
+        return new DStringGDL( "");
+          }
 
-	    DStructGDL* oStruct;
-	    try {
-	      oStruct = e->GetObjHeap( objRef);
-	    }
-	    catch ( GDLInterpreter::HeapException& )
-	      { // non valid object
-		if( count)
-		  e->SetKW( countIx, new DLongGDL( 0));
-		return new DStringGDL( "");
-	      }
+        DStructGDL* oStruct;
+        try {
+          oStruct = e->GetObjHeap( objRef);
+        }
+        catch ( GDLInterpreter::HeapException& )
+          { // non valid object
+        if( count)
+          e->SetKW( countIx, new DLongGDL( 0));
+        return new DStringGDL( "");
+          }
 
-	    objDesc = oStruct->Desc(); // cannot be NULL
-	  }
+        objDesc = oStruct->Desc(); // cannot be NULL
+      }
 
-	if( !super)
-	  {
-	    if( count)
-	      e->SetKW( countIx, new DLongGDL( 1));
-	    return new DStringGDL( objDesc->Name());
-	  }
-	
-	vector< string> pNames;
-	objDesc->GetParentNames( pNames);
+    if( !super)
+      {
+        if( count)
+          e->SetKW( countIx, new DLongGDL( 1));
+        return new DStringGDL( objDesc->Name());
+      }
+    
+    vector< string> pNames;
+    objDesc->GetParentNames( pNames);
 
-	SizeT nNames = pNames.size();
-	    
-	if( count)
-	  e->SetKW( countIx, new DLongGDL( nNames));
+    SizeT nNames = pNames.size();
+        
+    if( count)
+      e->SetKW( countIx, new DLongGDL( nNames));
 
-	if( nNames == 0)
-	  {
-	    return new DStringGDL( "");
-	  }
+    if( nNames == 0)
+      {
+        return new DStringGDL( "");
+      }
 
-	DStringGDL* res = new DStringGDL( dimension( nNames), 
-					  BaseGDL::NOZERO);
+    DStringGDL* res = new DStringGDL( dimension( nNames), 
+                      BaseGDL::NOZERO);
 
-	for( SizeT i=0; i<nNames; ++i)
-	  {
-	    (*res)[i] = pNames[i];
-	  }
-	
-	return res;
+    for( SizeT i=0; i<nNames; ++i)
+      {
+        (*res)[i] = pNames[i];
+      }
+    
+    return res;
       }
 
     if( super)
@@ -6627,68 +6483,68 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     SizeT nObj = structList.size();
 
     DStringGDL* res = new DStringGDL( dimension( nObj), 
-				      BaseGDL::NOZERO);
+                      BaseGDL::NOZERO);
 
     for( SizeT i=0; i<nObj; ++i)
       {
-	(*res)[i] = structList[i]->Name();
+    (*res)[i] = structList[i]->Name();
       }
-	
+    
     return res;
   }
  BaseGDL* obj_hasmethod( EnvT* e)
   {
     SizeT nParam = e->NParam( 2);
-			//trace_me = trace_arg();
+            //trace_me = trace_arg();
     BaseGDL*& p0 = e->GetPar( 0);
     if( p0 == NULL || p0->Type() != GDL_OBJ)
       e->Throw( "Object reference type required in this context: "+
-		e->GetParString(0));
+        e->GetParString(0));
 
-	BaseGDL* p1 = e->GetParDefined( 1);
-	if( p1->Type() != GDL_STRING)
-		      e->Throw( "Methods can be referenced only with names (strings)");
+    BaseGDL* p1 = e->GetParDefined( 1);
+    if( p1->Type() != GDL_STRING)
+              e->Throw( "Methods can be referenced only with names (strings)");
     DStringGDL* p1S =  static_cast<DStringGDL*>( p1);
     DObjGDL* pObj = static_cast<DObjGDL*>( p0);
-	SizeT nObj = p0->StrictScalar() ? 1 : p0->N_Elements();
+    SizeT nObj = p0->StrictScalar() ? 1 : p0->N_Elements();
     DByteGDL* res = new DByteGDL( dimension(nObj));
     Guard<DByteGDL> res_guard(res);
     DByteGDL* altres = new DByteGDL( dimension(nObj));
     Guard<DByteGDL> altres_guard(altres);
-	GDLInterpreter* interpreter = e->Interpreter();
+    GDLInterpreter* interpreter = e->Interpreter();
     
     for( SizeT iobj=0; iobj<nObj; ++iobj)
       {
-		if( ((*res)[iobj] != 0) || ((*altres)[iobj] != 0)) continue; 
-			DObj s = (*static_cast<DObjGDL*>( p0))[iobj];
-		if( s != 0)
-		{
-//			DStructGDL* oStruct = e->GetObjHeap( (*pObj)[iobj]);
-			DStructGDL* oStruct = e->GetObjHeap( s);		
-			//if(trace_me) std::cout << " oStruct";
-			DStructDesc* odesc = oStruct->Desc();
-			int passed = 1;
-			for( SizeT m=0; m<p1->N_Elements(); m++)
-			{
-				DString method = StrUpCase((*p1S)[m]);
-	//			if(trace_me) std::cout << method;
-				if( odesc->GetFun( method) != NULL) continue;
-				if( odesc->GetPro( method) != NULL) continue;
-				passed = 0; break;
-			}
-			(*res)[iobj] = passed;
-			for( SizeT i=iobj+1; i<nObj; ++i) {
-				if( interpreter->ObjValid( (*pObj)[ i])) 
-					if( e->GetObjHeap( (*pObj)[i])->Desc() == odesc) {
-							 (*res)[i] = passed;
-							 (*altres)[i] = 1-passed;
-						 }
-				 }
-		} // else if(trace_me) std::cout << " 0 ";
+        if( ((*res)[iobj] != 0) || ((*altres)[iobj] != 0)) continue; 
+            DObj s = (*static_cast<DObjGDL*>( p0))[iobj];
+        if( s != 0)
+        {
+//          DStructGDL* oStruct = e->GetObjHeap( (*pObj)[iobj]);
+            DStructGDL* oStruct = e->GetObjHeap( s);        
+            //if(trace_me) std::cout << " oStruct";
+            DStructDesc* odesc = oStruct->Desc();
+            int passed = 1;
+            for( SizeT m=0; m<p1->N_Elements(); m++)
+            {
+                DString method = StrUpCase((*p1S)[m]);
+    //          if(trace_me) std::cout << method;
+                if( odesc->GetFun( method) != NULL) continue;
+                if( odesc->GetPro( method) != NULL) continue;
+                passed = 0; break;
+            }
+            (*res)[iobj] = passed;
+            for( SizeT i=iobj+1; i<nObj; ++i) {
+                if( interpreter->ObjValid( (*pObj)[ i])) 
+                    if( e->GetObjHeap( (*pObj)[i])->Desc() == odesc) {
+                             (*res)[i] = passed;
+                             (*altres)[i] = 1-passed;
+                         }
+                 }
+        } // else if(trace_me) std::cout << " 0 ";
       }
-	if( p0->StrictScalar())
-			 return new DByteGDL((*res)[0]);
-	else     return res_guard.release();
+    if( p0->StrictScalar())
+             return new DByteGDL((*res)[0]);
+    else     return res_guard.release();
   }
 
   BaseGDL* obj_isa(EnvT* e) {
@@ -6697,8 +6553,8 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     className = StrUpCase(className);
      if( className == "IDL_OBJECT")
        className = GDL_OBJECT_NAME;
-	else if( className == "IDL_CONTAINER" )
-	   className = GDL_CONTAINER_NAME;
+    else if( className == "IDL_CONTAINER" )
+       className = GDL_CONTAINER_NAME;
     BaseGDL* p0 = e->GetPar(0);
     //nObjects is the number of objects or strings passed in array format.
     SizeT nElem = p0->N_Elements();
@@ -6930,7 +6786,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
       if (compRes) {
         regerror(compRes, &regexp, err_msg, MAX_REGEXPERR_LENGTH);
         e->Throw("Error processing regular expression: " +
-		 pattern + "\n           " + string(err_msg) + ".");
+         pattern + "\n           " + string(err_msg) + ".");
       }
     }
 
@@ -7066,38 +6922,38 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
       // copy the stuff into local string only if param found
       char *resPtr;
       for(SizeT i=0; i < nEnv ; ++i)
-	{
-	  // handle special environment variables
-	  // GDL_TMPDIR, IDL_TMPDIR
-	  if( (*name)[i] == "GDL_TMPDIR" || (*name)[i] == "IDL_TMPDIR")
-	    {
-	      resPtr = getenv((*name)[i].c_str());
+    {
+      // handle special environment variables
+      // GDL_TMPDIR, IDL_TMPDIR
+      if( (*name)[i] == "GDL_TMPDIR" || (*name)[i] == "IDL_TMPDIR")
+        {
+          resPtr = getenv((*name)[i].c_str());
 
-	      if (resPtr != NULL)
-		{
-		  (*env)[i] = resPtr;
-		}
-	      else
-		{
-		  //		(*env)[i] = SysVar::Dir();
+          if (resPtr != NULL)
+        {
+          (*env)[i] = resPtr;
+        }
+          else
+        {
+          //        (*env)[i] = SysVar::Dir();
 #ifdef _WIN32
-		  WCHAR tmpBuf[MAX_PATH];
-		  GetTempPathW(MAX_PATH, tmpBuf);
-		  char c_tmpBuf[MAX_PATH];
-		  WideCharToMultiByte(CP_ACP, 0, tmpBuf, MAX_PATH, c_tmpBuf, MAX_PATH, NULL, NULL);
-		  (*env)[i] = c_tmpBuf;
+          WCHAR tmpBuf[MAX_PATH];
+          GetTempPathW(MAX_PATH, tmpBuf);
+          char c_tmpBuf[MAX_PATH];
+          WideCharToMultiByte(CP_ACP, 0, tmpBuf, MAX_PATH, c_tmpBuf, MAX_PATH, NULL, NULL);
+          (*env)[i] = c_tmpBuf;
 #else
-		  // AC 2017/10/19 : why _PATH_VARTMP_, not just _PATH_TMP_
-		  (*env)[i] = _PATH_TMP ;
+          // AC 2017/10/19 : why _PATH_VARTMP_, not just _PATH_TMP_
+          (*env)[i] = _PATH_TMP ;
 #endif
-		}
-	      
-	      AppendIfNeeded( (*env)[i], "/");
-	    }
-	  else // normal environment variables
-	    if( (resPtr = getenv((*name)[i].c_str())) ) 
-	      (*env)[i] = resPtr;
-	}
+        }
+          
+          AppendIfNeeded( (*env)[i], "/");
+        }
+      else // normal environment variables
+        if( (resPtr = getenv((*name)[i].c_str())) ) 
+          (*env)[i] = resPtr;
+    }
     }
     
     return env;
@@ -7116,9 +6972,9 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     if(structureName){
         
       if ((*struc).Desc()->Name() != "$truct")
-	tagNames =  new DStringGDL((*struc).Desc()->Name());
+    tagNames =  new DStringGDL((*struc).Desc()->Name());
       else
-	tagNames =  new DStringGDL("");
+    tagNames =  new DStringGDL("");
 
     } else {
       SizeT nTags = (*struc).Desc()->NTags();
@@ -7145,8 +7001,8 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     e->AssureStringScalarPar(1, pattern);
     if (pattern.size() <= 0)
       {
-	e->Throw( "Error processing regular expression: "+pattern+
-		  "\n           empty (sub)expression");
+    e->Throw( "Error processing regular expression: "+pattern+
+          "\n           empty (sub)expression");
       }
 
     static int booleanIx = e->KeywordIx( "BOOLEAN" );
@@ -7187,7 +7043,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     if (compRes) {
       regerror(compRes, &regexp, err_msg, MAX_REGEXPERR_LENGTH);
       e->Throw( "Error processing regular expression: "+
-		pattern+"\n           "+string(err_msg)+".");
+        pattern+"\n           "+string(err_msg)+".");
     }
 
     BaseGDL* result;
@@ -7196,18 +7052,18 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
       result = new DByteGDL(dim);
     else if( extractKW && !subexprKW)
       {
-	//	cout << "my pb ! ? dim= " << dim << endl;
-	result = new DStringGDL(dim);
+    //  cout << "my pb ! ? dim= " << dim << endl;
+    result = new DStringGDL(dim);
       }
     else if( subexprKW)
       {
-	//	cout << "my pb 2 ? dim= " << dim << endl;
-	dimension subExprDim = dim;
- 	subExprDim >> nSubExpr; // m_schellens: commented in, needed
-	if( extractKW)
-	  result = new DStringGDL(subExprDim);
-	else
-	  result = new DLongGDL(subExprDim);
+    //  cout << "my pb 2 ? dim= " << dim << endl;
+    dimension subExprDim = dim;
+    subExprDim >> nSubExpr; // m_schellens: commented in, needed
+    if( extractKW)
+      result = new DStringGDL(subExprDim);
+    else
+      result = new DLongGDL(subExprDim);
       }
     else 
       result = new DLongGDL(dim); 
@@ -7216,17 +7072,17 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     if( lengthKW) {
       e->AssureGlobalKW( lengthIx);
       if( subexprKW)
-	{
-	  dimension subExprDim = dim;
-	  subExprDim >> nSubExpr; // m_schellens: commented in, needed
-	  len = new DLongGDL(subExprDim);
-	}
+    {
+      dimension subExprDim = dim;
+      subExprDim >> nSubExpr; // m_schellens: commented in, needed
+      len = new DLongGDL(subExprDim);
+    }
       else
-	{
-	  len = new DLongGDL(dim);
-	}
+    {
+      len = new DLongGDL(dim);
+    }
       for( SizeT i=0; i<len->N_Elements(); ++i)
-	(*len)[i]= -1;
+    (*len)[i]= -1;
     } 
     
     int nmatch = 1;
@@ -7235,60 +7091,60 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     regmatch_t* pmatch = new regmatch_t[nSubExpr];
     ArrayGuard<regmatch_t> pmatchGuard( pmatch);
 
-    //    cout << "dim " << dim.NDimElements() << endl;	    
+    //    cout << "dim " << dim.NDimElements() << endl;     
     for( SizeT s=0; s<dim.NDimElements(); ++s)
       {
-	int eflags = 0; 
+    int eflags = 0; 
 
-	for( SizeT sE=0; sE<nSubExpr; ++sE)
-	  pmatch[sE].rm_so = -1;
+    for( SizeT sE=0; sE<nSubExpr; ++sE)
+      pmatch[sE].rm_so = -1;
 
-	// now match towards the string
-	int matchres = regexec( &regexp, (*stringExpr)[s].c_str(),  nmatch, pmatch, eflags);
+    // now match towards the string
+    int matchres = regexec( &regexp, (*stringExpr)[s].c_str(),  nmatch, pmatch, eflags);
 
-	// subexpressions
-	if ( extractKW && subexprKW) {
+    // subexpressions
+    if ( extractKW && subexprKW) {
 
-	  // Loop through subexpressions & fill output array
-	  for( SizeT i = 0; i<nSubExpr; ++i) {
-	    if (pmatch[i].rm_so != -1)
-	      (*static_cast<DStringGDL*>(result))[i+s*nSubExpr] =
-		(*stringExpr)[s].substr( pmatch[i].rm_so,  pmatch[i].rm_eo - pmatch[i].rm_so);
-	    // 			(*stringExpr)[i+s*nSubExpr].substr( pmatch[i].rm_so,  pmatch[i].rm_eo - pmatch[i].rm_so);
-	    if( lengthKW)
-	      (*len)[i+s*nSubExpr] = pmatch[i].rm_so != -1 ? pmatch[i].rm_eo - pmatch[i].rm_so : -1;
-	    //  	      (*len)[i+s*nSubExpr] = pmatch[i].rm_eo - pmatch[i].rm_so;
-	  }
-	}
-	else  if ( subexprKW) 
-	  {
-	    //	    cout << "je ne comprends pas v2: "<< nSubExpr << endl;
+      // Loop through subexpressions & fill output array
+      for( SizeT i = 0; i<nSubExpr; ++i) {
+        if (pmatch[i].rm_so != -1)
+          (*static_cast<DStringGDL*>(result))[i+s*nSubExpr] =
+        (*stringExpr)[s].substr( pmatch[i].rm_so,  pmatch[i].rm_eo - pmatch[i].rm_so);
+        //          (*stringExpr)[i+s*nSubExpr].substr( pmatch[i].rm_so,  pmatch[i].rm_eo - pmatch[i].rm_so);
+        if( lengthKW)
+          (*len)[i+s*nSubExpr] = pmatch[i].rm_so != -1 ? pmatch[i].rm_eo - pmatch[i].rm_so : -1;
+        //            (*len)[i+s*nSubExpr] = pmatch[i].rm_eo - pmatch[i].rm_so;
+      }
+    }
+    else  if ( subexprKW) 
+      {
+        //      cout << "je ne comprends pas v2: "<< nSubExpr << endl;
 
-	    // Loop through subexpressions & fill output array
-	    for( SizeT i = 0; i<nSubExpr; ++i) {
-	      (* static_cast<DLongGDL*>(result))[i+s*nSubExpr] =  pmatch[i].rm_so;
-	      if( lengthKW)
-		(*len)[i+s*nSubExpr] = pmatch[i].rm_so != -1 ? pmatch[i].rm_eo - pmatch[i].rm_so : -1;
-	    }
-	  }
-	else
-	  {
-	    if( booleanKW)
-	      (* static_cast<DByteGDL*>(result))[s] = (matchres == 0);
-	    else if ( extractKW) // !subExprKW
-	      {
-		if( matchres == 0)
-		  (* static_cast<DStringGDL*>(result))[s] = 
-		    (*stringExpr)[s].substr( pmatch[0].rm_so, 
-					     pmatch[0].rm_eo - pmatch[0].rm_so);
-	      }
-	    else
-	      (*static_cast<DLongGDL*>(result))[s] = matchres ? -1 : pmatch[0].rm_so;
-	  }
+        // Loop through subexpressions & fill output array
+        for( SizeT i = 0; i<nSubExpr; ++i) {
+          (* static_cast<DLongGDL*>(result))[i+s*nSubExpr] =  pmatch[i].rm_so;
+          if( lengthKW)
+        (*len)[i+s*nSubExpr] = pmatch[i].rm_so != -1 ? pmatch[i].rm_eo - pmatch[i].rm_so : -1;
+        }
+      }
+    else
+      {
+        if( booleanKW)
+          (* static_cast<DByteGDL*>(result))[s] = (matchres == 0);
+        else if ( extractKW) // !subExprKW
+          {
+        if( matchres == 0)
+          (* static_cast<DStringGDL*>(result))[s] = 
+            (*stringExpr)[s].substr( pmatch[0].rm_so, 
+                         pmatch[0].rm_eo - pmatch[0].rm_so);
+          }
+        else
+          (*static_cast<DLongGDL*>(result))[s] = matchres ? -1 : pmatch[0].rm_so;
+      }
 
-	if( lengthKW && !subexprKW)
-	  //(*len)[s] = pmatch[0].rm_eo - pmatch[0].rm_so;
-	  (*len)[s] = pmatch[0].rm_so != -1 ? pmatch[0].rm_eo - pmatch[0].rm_so : -1;
+    if( lengthKW && !subexprKW)
+      //(*len)[s] = pmatch[0].rm_eo - pmatch[0].rm_so;
+      (*len)[s] = pmatch[0].rm_so != -1 ? pmatch[0].rm_eo - pmatch[0].rm_so : -1;
 
       }
 
@@ -7304,57 +7160,57 @@ BaseGDL* routine_filepath( EnvT* e)
   {
     SizeT nParam=e->NParam();
     DStringGDL* p0S;
-	Guard<DStringGDL> p0S_guard;
+    Guard<DStringGDL> p0S_guard;
     if (nParam > 1) e->Throw("Incorrect number of arguments.");
-	if( nParam > 0)  {
-		BaseGDL* p0 = e->GetParDefined( 0);
-		if( p0->Type() != GDL_STRING)
-		  e->Throw("String expression required in this context: " + e->GetParString(0));
-		p0S = static_cast<DStringGDL*>( p0);
-      } else {			// routine_filepath()
-		p0S = new DStringGDL(
-			dynamic_cast<DSubUD*>((e->Caller())->GetPro())->Name());
-		p0S_guard.Init(p0S);
-		}
+    if( nParam > 0)  {
+        BaseGDL* p0 = e->GetParDefined( 0);
+        if( p0->Type() != GDL_STRING)
+          e->Throw("String expression required in this context: " + e->GetParString(0));
+        p0S = static_cast<DStringGDL*>( p0);
+      } else {          // routine_filepath()
+        p0S = new DStringGDL(
+            dynamic_cast<DSubUD*>((e->Caller())->GetPro())->Name());
+        p0S_guard.Init(p0S);
+        }
 
     static int is_functionIx = e->KeywordIx( "IS_FUNCTION" );
     bool is_functionKW = e->KeywordSet( is_functionIx );
     static int eitherIx = e->KeywordIx( "EITHER" );
     bool eitherKW = e->KeywordSet( eitherIx );
-	
-	SizeT nPath = p0S->N_Elements();
+    
+    SizeT nPath = p0S->N_Elements();
     DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
     Guard<DStringGDL> res_guard(res);
 
     DString name;
     string FullFileName;
-	for(int i = 0; i < nPath; i ++) {
+    for(int i = 0; i < nPath; i ++) {
 
-		name = StrUpCase((*p0S)[i]);      
-		bool found=false;
-		FullFileName = "";
+        name = StrUpCase((*p0S)[i]);      
+        bool found=false;
+        FullFileName = "";
 
-		if( eitherKW || !is_functionKW) {
-			for(ProListT::iterator i=proList.begin();
-									i != proList.end(); ++i)
-			  if ((*i)->ObjectName() == name) {
-				found=true;
-				FullFileName=(*i)->GetFilename();
-				break;
-			  }
-		  }
-		  
-		if (!found && (is_functionKW || eitherKW)) {
-			for(FunListT::iterator i=funList.begin();
-									i != funList.end(); ++i)
-			  if ((*i)->ObjectName() == name) {
-				found=true;
-				FullFileName=(*i)->GetFilename();
-				break;
-			  }
-		  } 
-		(*res)[i] = FullFileName;
-	}
+        if( eitherKW || !is_functionKW) {
+            for(ProListT::iterator i=proList.begin();
+                                    i != proList.end(); ++i)
+              if ((*i)->ObjectName() == name) {
+                found=true;
+                FullFileName=(*i)->GetFilename();
+                break;
+              }
+          }
+          
+        if (!found && (is_functionKW || eitherKW)) {
+            for(FunListT::iterator i=funList.begin();
+                                    i != funList.end(); ++i)
+              if ((*i)->ObjectName() == name) {
+                found=true;
+                FullFileName=(*i)->GetFilename();
+                break;
+              }
+          } 
+        (*res)[i] = FullFileName;
+    }
 //    if(nParam == 0) return new DStringGDL(FullFileName);
     return res_guard.release();
   }
@@ -7441,21 +7297,21 @@ BaseGDL* routine_filepath( EnvT* e)
 //always starts with $MAIN$
         SizeT N=(functionsKW)?funList.size()+1:proList.size()+1;
         stru = new DStructGDL( stru_desc, dimension(N) );
-	    (*static_cast<DStringGDL*>(stru->GetTag((SizeT)0, 0)))[0]="$MAIN$";
+        (*static_cast<DStringGDL*>(stru->GetTag((SizeT)0, 0)))[0]="$MAIN$";
 
         if ( functionsKW ) {
           SizeT ii=1;
           for ( FunListT::iterator i = funList.begin( ); i != funList.end( ); ++i ) {
-	    (*static_cast<DStringGDL*>(stru->GetTag((SizeT)0, ii)))[0]=(*i)->ObjectName( );
-	    (*static_cast<DStringGDL*>(stru->GetTag((SizeT)1, ii)))[0]=(*i)->GetFilename( );
-	    ii++;
-	  }
+        (*static_cast<DStringGDL*>(stru->GetTag((SizeT)0, ii)))[0]=(*i)->ObjectName( );
+        (*static_cast<DStringGDL*>(stru->GetTag((SizeT)1, ii)))[0]=(*i)->GetFilename( );
+        ii++;
+      }
         } else {
           SizeT ii=1;
           for ( ProListT::iterator i = proList.begin( ); i != proList.end( ); ++i ) {
-	    (*static_cast<DStringGDL*>(stru->GetTag((SizeT)0, ii)))[0]=(*i)->ObjectName( );
-	    (*static_cast<DStringGDL*>(stru->GetTag((SizeT)1, ii)))[0]=(*i)->GetFilename( );
-	    ii++;
+        (*static_cast<DStringGDL*>(stru->GetTag((SizeT)0, ii)))[0]=(*i)->ObjectName( );
+        (*static_cast<DStringGDL*>(stru->GetTag((SizeT)1, ii)))[0]=(*i)->GetFilename( );
+        ii++;
           }
         }
         return stru;
@@ -7464,56 +7320,56 @@ BaseGDL* routine_filepath( EnvT* e)
 
     if (parametersKW)
       {
-	// sanity checks
-	if (systemKW || disabledKW) e->Throw("Conflicting keywords.");
+    // sanity checks
+    if (systemKW || disabledKW) e->Throw("Conflicting keywords.");
 
-	// getting the routine name from the first parameter
-	DString name;
-	e->AssureScalarPar<DStringGDL>(0, name);
-	name = StrUpCase(name);
+    // getting the routine name from the first parameter
+    DString name;
+    e->AssureScalarPar<DStringGDL>(0, name);
+    name = StrUpCase(name);
         
-	DSubUD* routine = functionsKW 
-	  ? static_cast<DSubUD*>(funList[GDLInterpreter::GetFunIx(name)])
-	  : static_cast<DSubUD*>(proList[GDLInterpreter::GetProIx(name)]);
-	SizeT np = routine->NPar(), nk = routine->NKey();
+    DSubUD* routine = functionsKW 
+      ? static_cast<DSubUD*>(funList[GDLInterpreter::GetFunIx(name)])
+      : static_cast<DSubUD*>(proList[GDLInterpreter::GetProIx(name)]);
+    SizeT np = routine->NPar(), nk = routine->NKey();
 
-	// creating the output anonymous structure
-	DStructDesc* stru_desc = new DStructDesc("$truct");
-	SpDLong aLong;
-	stru_desc->AddTag("NUM_ARGS", &aLong);
-	stru_desc->AddTag("NUM_KW_ARGS", &aLong);
-	if (np > 0) 
-	  {
-	    SpDString aStringArr(dimension((int)np));
-	    stru_desc->AddTag("ARGS", &aStringArr);
-	  }
-	if (nk > 0) 
-	  {
-	    SpDString aStringArr(dimension((int)nk));
-	    stru_desc->AddTag("KW_ARGS", &aStringArr);
-	  }
-	DStructGDL* stru = new DStructGDL(stru_desc, dimension());
+    // creating the output anonymous structure
+    DStructDesc* stru_desc = new DStructDesc("$truct");
+    SpDLong aLong;
+    stru_desc->AddTag("NUM_ARGS", &aLong);
+    stru_desc->AddTag("NUM_KW_ARGS", &aLong);
+    if (np > 0) 
+      {
+        SpDString aStringArr(dimension((int)np));
+        stru_desc->AddTag("ARGS", &aStringArr);
+      }
+    if (nk > 0) 
+      {
+        SpDString aStringArr(dimension((int)nk));
+        stru_desc->AddTag("KW_ARGS", &aStringArr);
+      }
+    DStructGDL* stru = new DStructGDL(stru_desc, dimension());
 
-	// filling the structure with information about the routine 
-	stru->InitTag("NUM_ARGS", DLongGDL(np));
-	stru->InitTag("NUM_KW_ARGS", DLongGDL(nk));
-	if (np > 0)
-	  {
-	    DStringGDL *pnames = new DStringGDL(dimension(np));
-	    for (SizeT p = 0; p < np; ++p) (*pnames)[p] = routine->GetVarName(nk + p); 
-	    stru->InitTag("ARGS", *pnames);
-	    GDLDelete(pnames);
-	  }
-	if (nk > 0)
-	  {
-	    DStringGDL *knames = new DStringGDL(dimension(nk));
-	    for (SizeT k = 0; k < nk; ++k) (*knames)[k] = routine->GetKWName(k); 
-	    stru->InitTag("KW_ARGS", *knames);
-	    GDLDelete(knames);
-	  }
+    // filling the structure with information about the routine 
+    stru->InitTag("NUM_ARGS", DLongGDL(np));
+    stru->InitTag("NUM_KW_ARGS", DLongGDL(nk));
+    if (np > 0)
+      {
+        DStringGDL *pnames = new DStringGDL(dimension(np));
+        for (SizeT p = 0; p < np; ++p) (*pnames)[p] = routine->GetVarName(nk + p); 
+        stru->InitTag("ARGS", *pnames);
+        GDLDelete(pnames);
+      }
+    if (nk > 0)
+      {
+        DStringGDL *knames = new DStringGDL(dimension(nk));
+        for (SizeT k = 0; k < nk; ++k) (*knames)[k] = routine->GetKWName(k); 
+        stru->InitTag("KW_ARGS", *knames);
+        GDLDelete(knames);
+      }
 
-	// returning
-	return stru;
+    // returning
+    return stru;
       }
 
     // GDL does not have disabled routines
@@ -7522,59 +7378,59 @@ BaseGDL* routine_filepath( EnvT* e)
     //    if( functionsKW || systemKW || nParam == 0)
     //      {
     vector<DString> subList;
-	    
+        
     if( functionsKW)
       {
-	if( systemKW)
-	  {
-	    SizeT n = libFunList.size();
-	    if( n == 0) return new DStringGDL("");
+    if( systemKW)
+      {
+        SizeT n = libFunList.size();
+        if( n == 0) return new DStringGDL("");
 
-	    DStringGDL* res = new DStringGDL( dimension( n), BaseGDL::NOZERO);
-	    for( SizeT i = 0; i<n; ++i)
-	      (*res)[i] = libFunList[ i]->ObjectName();
+        DStringGDL* res = new DStringGDL( dimension( n), BaseGDL::NOZERO);
+        for( SizeT i = 0; i<n; ++i)
+          (*res)[i] = libFunList[ i]->ObjectName();
 
-	    return res;
-	  }
-	else
-	  {
-	    SizeT n = funList.size();
-	    if( n == 0) {
-	      Message("No FUNCTIONS compiled yet !");
-	      return new DStringGDL("");
-	    }
-	    for( SizeT i = 0; i<n; ++i)
-	      subList.push_back( funList[ i]->ObjectName());
-	  }
+        return res;
       }
     else
       {
-	if( systemKW)
-	  {
-	    SizeT n = libProList.size();
-	    if( n == 0) return new DStringGDL("");
-
-	    DStringGDL* res = new DStringGDL( dimension( n), BaseGDL::NOZERO);
-	    for( SizeT i = 0; i<n; ++i)
-	      (*res)[i] = libProList[ i]->ObjectName();
-
-	    return res;
-	  }
-	else
-	  {
-	    SizeT n = proList.size();
-	    if( n == 0) {
-	      Message("No PROCEDURES compiled yet !");
-	      DStringGDL* res = new DStringGDL(1, BaseGDL::NOZERO);
-	      (*res)[0]="$MAIN$";
-	      return res;
-	    }
-	    subList.push_back("$MAIN$");
-	    for( SizeT i = 0; i<n; ++i)
-	      subList.push_back( proList[ i]->ObjectName());
-	  }
+        SizeT n = funList.size();
+        if( n == 0) {
+          Message("No FUNCTIONS compiled yet !");
+          return new DStringGDL("");
+        }
+        for( SizeT i = 0; i<n; ++i)
+          subList.push_back( funList[ i]->ObjectName());
       }
-	
+      }
+    else
+      {
+    if( systemKW)
+      {
+        SizeT n = libProList.size();
+        if( n == 0) return new DStringGDL("");
+
+        DStringGDL* res = new DStringGDL( dimension( n), BaseGDL::NOZERO);
+        for( SizeT i = 0; i<n; ++i)
+          (*res)[i] = libProList[ i]->ObjectName();
+
+        return res;
+      }
+    else
+      {
+        SizeT n = proList.size();
+        if( n == 0) {
+          Message("No PROCEDURES compiled yet !");
+          DStringGDL* res = new DStringGDL(1, BaseGDL::NOZERO);
+          (*res)[0]="$MAIN$";
+          return res;
+        }
+        subList.push_back("$MAIN$");
+        for( SizeT i = 0; i<n; ++i)
+          subList.push_back( proList[ i]->ObjectName());
+      }
+      }
+    
     sort( subList.begin(), subList.end());
     SizeT nS = subList.size();
 
@@ -7603,13 +7459,13 @@ BaseGDL* routine_filepath( EnvT* e)
     bool doWait = true;
     if( nParam > 0)
       {
-	doWait = false;
-	DLong waitArg = 0;
-	e->AssureLongScalarPar( 0, waitArg);
-	if( waitArg != 0)
-	  {
-	    doWait = true;
-	  }
+    doWait = false;
+    DLong waitArg = 0;
+    e->AssureLongScalarPar( 0, waitArg);
+    if( waitArg != 0)
+      {
+        doWait = true;
+      }
       }
 
     // https://sourceforge.net/forum/forum.php?thread_id=3292183&forum_id=338691
@@ -7631,27 +7487,27 @@ BaseGDL* routine_filepath( EnvT* e)
 #endif
     if (doWait)
       {
-	// will wait for a character
+    // will wait for a character
 #ifndef _WIN32
-	get.c_cc[VTIME]=0;
-	get.c_cc[VMIN]=1;
-	(void)tcsetattr(fd, TCSANOW, &get); 
+    get.c_cc[VTIME]=0;
+    get.c_cc[VMIN]=1;
+    (void)tcsetattr(fd, TCSANOW, &get); 
 #endif
-	cin.get(c);
+    cin.get(c);
       }
     else 
       {
-	// will not wait, but return EOF or next character in terminal buffer if present
+    // will not wait, but return EOF or next character in terminal buffer if present
 #ifndef _WIN32
-	get.c_cc[VTIME]=0;
-	get.c_cc[VMIN]=0;
-	(void)tcsetattr(fd, TCSANOW, &get); 
+    get.c_cc[VTIME]=0;
+    get.c_cc[VMIN]=0;
+    (void)tcsetattr(fd, TCSANOW, &get); 
 #endif
-	//the trick is *not to use C++ functions here. cin.get would wait.*
-	c=std::fgetc(stdin);
-	//and to convert EOF to null (otherwise GDL may exit if not compiled with
-	//[lib][n]curses)
-	if(c==EOF) c='\0';
+    //the trick is *not to use C++ functions here. cin.get would wait.*
+    c=std::fgetc(stdin);
+    //and to convert EOF to null (otherwise GDL may exit if not compiled with
+    //[lib][n]curses)
+    if(c==EOF) c='\0';
       }
     
     // Restore original terminal settings. 
@@ -7693,84 +7549,84 @@ BaseGDL* routine_filepath( EnvT* e)
     static int structureIx=e->KeywordIx("STRUCTURE");
     if (e->KeywordSet(structureIx))
       {
-	// returning structure
-	if (kw_l64) 
-	  {
-	    ret = new DStructGDL("IDL_MEMORY64");
-	    DStructGDL* retStru = static_cast<DStructGDL*>(ret);
-	    (retStru->GetTag(retStru->Desc()->TagIndex("CURRENT")))->InitFrom( DLong64GDL(MemStats::GetCurrent()));
-	    (retStru->GetTag(retStru->Desc()->TagIndex("NUM_ALLOC")))->InitFrom( DLong64GDL(MemStats::GetNumAlloc()));
-	    (retStru->GetTag(retStru->Desc()->TagIndex("NUM_FREE")))->InitFrom( DLong64GDL(MemStats::GetNumFree()));
-	    (retStru->GetTag(retStru->Desc()->TagIndex("HIGHWATER")))->InitFrom( DLong64GDL(MemStats::GetHighWater()));
-	  }
-	else 
-	  {
-	    ret = new DStructGDL("IDL_MEMORY");
-	    DStructGDL* retStru = static_cast<DStructGDL*>(ret);
-	    (retStru->GetTag(retStru->Desc()->TagIndex("CURRENT")))->InitFrom( DLongGDL(MemStats::GetCurrent()));
-	    (retStru->GetTag(retStru->Desc()->TagIndex("NUM_ALLOC")))->InitFrom( DLongGDL(MemStats::GetNumAlloc()));
-	    (retStru->GetTag(retStru->Desc()->TagIndex("NUM_FREE")))->InitFrom( DLongGDL(MemStats::GetNumFree()));
-	    (retStru->GetTag(retStru->Desc()->TagIndex("HIGHWATER")))->InitFrom( DLongGDL(MemStats::GetHighWater()));
-	  }
+    // returning structure
+    if (kw_l64) 
+      {
+        ret = new DStructGDL("IDL_MEMORY64");
+        DStructGDL* retStru = static_cast<DStructGDL*>(ret);
+        (retStru->GetTag(retStru->Desc()->TagIndex("CURRENT")))->InitFrom( DLong64GDL(MemStats::GetCurrent()));
+        (retStru->GetTag(retStru->Desc()->TagIndex("NUM_ALLOC")))->InitFrom( DLong64GDL(MemStats::GetNumAlloc()));
+        (retStru->GetTag(retStru->Desc()->TagIndex("NUM_FREE")))->InitFrom( DLong64GDL(MemStats::GetNumFree()));
+        (retStru->GetTag(retStru->Desc()->TagIndex("HIGHWATER")))->InitFrom( DLong64GDL(MemStats::GetHighWater()));
       }
     else 
       {
-	static int Ix_kw_current   = e->KeywordIx("CURRENT");
-	static int Ix_kw_num_alloc = e->KeywordIx("NUM_ALLOC");
-	static int Ix_kw_num_free  = e->KeywordIx("NUM_FREE");
-	static int Ix_kw_highwater = e->KeywordIx("HIGHWATER");
+        ret = new DStructGDL("IDL_MEMORY");
+        DStructGDL* retStru = static_cast<DStructGDL*>(ret);
+        (retStru->GetTag(retStru->Desc()->TagIndex("CURRENT")))->InitFrom( DLongGDL(MemStats::GetCurrent()));
+        (retStru->GetTag(retStru->Desc()->TagIndex("NUM_ALLOC")))->InitFrom( DLongGDL(MemStats::GetNumAlloc()));
+        (retStru->GetTag(retStru->Desc()->TagIndex("NUM_FREE")))->InitFrom( DLongGDL(MemStats::GetNumFree()));
+        (retStru->GetTag(retStru->Desc()->TagIndex("HIGHWATER")))->InitFrom( DLongGDL(MemStats::GetHighWater()));
+      }
+      }
+    else 
+      {
+    static int Ix_kw_current   = e->KeywordIx("CURRENT");
+    static int Ix_kw_num_alloc = e->KeywordIx("NUM_ALLOC");
+    static int Ix_kw_num_free  = e->KeywordIx("NUM_FREE");
+    static int Ix_kw_highwater = e->KeywordIx("HIGHWATER");
 
-	bool kw_current =   e->KeywordSet( Ix_kw_current  );
-	bool kw_num_alloc = e->KeywordSet( Ix_kw_num_alloc);
-	bool kw_num_free =  e->KeywordSet( Ix_kw_num_free );
-	bool kw_highwater = e->KeywordSet( Ix_kw_highwater);
+    bool kw_current =   e->KeywordSet( Ix_kw_current  );
+    bool kw_num_alloc = e->KeywordSet( Ix_kw_num_alloc);
+    bool kw_num_free =  e->KeywordSet( Ix_kw_num_free );
+    bool kw_highwater = e->KeywordSet( Ix_kw_highwater);
 
-	// Following the IDL documentation: mutually exclusive keywords
-	// IDL behaves different, incl. segfaults with selected kw combinations
-	if (kw_current + kw_num_alloc + kw_num_free + kw_highwater > 1) 
-	  e->Throw("CURRENT, NUM_ALLOC, NUM_FREE & HIGHWATER keywords"
-		   " are mutually exclusive");
+    // Following the IDL documentation: mutually exclusive keywords
+    // IDL behaves different, incl. segfaults with selected kw combinations
+    if (kw_current + kw_num_alloc + kw_num_free + kw_highwater > 1) 
+      e->Throw("CURRENT, NUM_ALLOC, NUM_FREE & HIGHWATER keywords"
+           " are mutually exclusive");
 
-	if (kw_current)
-	  {
-	    if (kw_l64) ret = new DLong64GDL(MemStats::GetCurrent());
-	    else ret = new DLongGDL(MemStats::GetCurrent());
-	  } 
-	else if (kw_num_alloc)
-	  {
-	    if (kw_l64) ret = new DLong64GDL(MemStats::GetNumAlloc());
-	    else ret = new DLongGDL(MemStats::GetNumAlloc());
-	  }
-	else if (kw_num_free)
-	  {
-	    if (kw_l64) ret = new DLong64GDL(MemStats::GetNumFree());
-	    else ret = new DLongGDL(MemStats::GetNumFree());
-	  }
-	else if (kw_highwater)
-	  {
-	    if (kw_l64) ret = new DLong64GDL(MemStats::GetHighWater());
-	    else ret = new DLongGDL(MemStats::GetHighWater());
-	  }
-	else 
-	  {
-	    // returning 4-element array 
-	    if (kw_l64) 
-	      {
-		ret = new DLong64GDL(dimension(4));
-		(*static_cast<DLong64GDL*>(ret))[0] = MemStats::GetCurrent();
-		(*static_cast<DLong64GDL*>(ret))[1] = MemStats::GetNumAlloc();
-		(*static_cast<DLong64GDL*>(ret))[2] = MemStats::GetNumFree();
-		(*static_cast<DLong64GDL*>(ret))[3] = MemStats::GetHighWater();
-	      }
-	    else 
-	      {
-		ret = new DLongGDL(dimension(4));
-		(*static_cast<DLongGDL*>(ret))[0] = MemStats::GetCurrent();
-		(*static_cast<DLongGDL*>(ret))[1] = MemStats::GetNumAlloc();
-		(*static_cast<DLongGDL*>(ret))[2] = MemStats::GetNumFree();
-		(*static_cast<DLongGDL*>(ret))[3] = MemStats::GetHighWater();
-	      }
-	  }
+    if (kw_current)
+      {
+        if (kw_l64) ret = new DLong64GDL(MemStats::GetCurrent());
+        else ret = new DLongGDL(MemStats::GetCurrent());
+      } 
+    else if (kw_num_alloc)
+      {
+        if (kw_l64) ret = new DLong64GDL(MemStats::GetNumAlloc());
+        else ret = new DLongGDL(MemStats::GetNumAlloc());
+      }
+    else if (kw_num_free)
+      {
+        if (kw_l64) ret = new DLong64GDL(MemStats::GetNumFree());
+        else ret = new DLongGDL(MemStats::GetNumFree());
+      }
+    else if (kw_highwater)
+      {
+        if (kw_l64) ret = new DLong64GDL(MemStats::GetHighWater());
+        else ret = new DLongGDL(MemStats::GetHighWater());
+      }
+    else 
+      {
+        // returning 4-element array 
+        if (kw_l64) 
+          {
+        ret = new DLong64GDL(dimension(4));
+        (*static_cast<DLong64GDL*>(ret))[0] = MemStats::GetCurrent();
+        (*static_cast<DLong64GDL*>(ret))[1] = MemStats::GetNumAlloc();
+        (*static_cast<DLong64GDL*>(ret))[2] = MemStats::GetNumFree();
+        (*static_cast<DLong64GDL*>(ret))[3] = MemStats::GetHighWater();
+          }
+        else 
+          {
+        ret = new DLongGDL(dimension(4));
+        (*static_cast<DLongGDL*>(ret))[0] = MemStats::GetCurrent();
+        (*static_cast<DLongGDL*>(ret))[1] = MemStats::GetNumAlloc();
+        (*static_cast<DLongGDL*>(ret))[2] = MemStats::GetNumFree();
+        (*static_cast<DLongGDL*>(ret))[3] = MemStats::GetHighWater();
+          }
+      }
       }
 
     return ret;
@@ -7809,7 +7665,7 @@ BaseGDL* routine_filepath( EnvT* e)
     DLongGDL* l2 = NULL;
     if( nParam > 2)
       {
-	l2 = static_cast<DLongGDL*>( e->GetParAs< DLongGDL>( 2));
+    l2 = static_cast<DLongGDL*>( e->GetParAs< DLongGDL>( 2));
       }
 
     static int foldIx = e->KeywordIx( "FOLD_CASE");
@@ -7817,169 +7673,169 @@ BaseGDL* routine_filepath( EnvT* e)
     
     if( s0->Scalar() && s1->Scalar())
       {
-	if( l2 == NULL)
-	  {
-	    if( fold)
-	      return new DByteGDL( StrCmpFold( (*s0)[0], (*s1)[0]));
-	    else
-	      return new DByteGDL( StrCmp( (*s0)[0], (*s1)[0]));
-	  }
-	else
-	  {
-	    DByteGDL* res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
-	    SizeT nEl = l2->N_Elements();
-	    if( fold)
-	      for( SizeT i=0; i<nEl; ++i)
-		(*res)[i] = StrCmpFold( (*s0)[0], (*s1)[0], (*l2)[i]);
-	    else
-	      for( SizeT i=0; i<nEl; ++i)
-		(*res)[i] = StrCmp( (*s0)[0], (*s1)[0], (*l2)[i]);
-	    return res;
-	  }
+    if( l2 == NULL)
+      {
+        if( fold)
+          return new DByteGDL( StrCmpFold( (*s0)[0], (*s1)[0]));
+        else
+          return new DByteGDL( StrCmp( (*s0)[0], (*s1)[0]));
+      }
+    else
+      {
+        DByteGDL* res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
+        SizeT nEl = l2->N_Elements();
+        if( fold)
+          for( SizeT i=0; i<nEl; ++i)
+        (*res)[i] = StrCmpFold( (*s0)[0], (*s1)[0], (*l2)[i]);
+        else
+          for( SizeT i=0; i<nEl; ++i)
+        (*res)[i] = StrCmp( (*s0)[0], (*s1)[0], (*l2)[i]);
+        return res;
+      }
       }
     else // at least one array
       {
-	if( l2 == NULL)
-	  {
-	    if( s0->Scalar())
-	      {
-		DByteGDL* res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
-		SizeT nEl = s1->N_Elements();
-		if( fold)
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[i] = StrCmpFold( (*s0)[0], (*s1)[i]);
-		else
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[i] = StrCmp( (*s0)[0], (*s1)[i]);
-		return res;
-	      }
-	    else if( s1->Scalar())
-	      {
-		DByteGDL* res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
-		SizeT nEl = s0->N_Elements();
-		if( fold)
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[i] = StrCmpFold( (*s0)[i], (*s1)[0]);
-		else
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[i] = StrCmp( (*s0)[i], (*s1)[0]);
-		return res;
-	      }
-	    else // both arrays
-	      {
-		DByteGDL* res;
-		SizeT    nEl;
-		if( s0->N_Elements() <= s1->N_Elements())
-		  {
-		    res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
-		    nEl = s0->N_Elements();
-		  }
-		else		      
-		  {
-		    res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
-		    nEl = s1->N_Elements();
-		  }
-		if( fold)
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[i] = StrCmpFold( (*s0)[i], (*s1)[i]);
-		else
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[i] = StrCmp( (*s0)[i], (*s1)[i]);
-		return res;
-	      }
-	  }
-	else // l2 != NULL
-	  {
-	    DByteGDL* res;
-	    SizeT    nEl;
-	    bool l2Scalar = l2->Scalar();
-	    if( s0->Scalar())
-	      {
-		if( l2Scalar || s1->N_Elements() <= l2->N_Elements())
-		  {
-		    res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
-		    nEl = s1->N_Elements();
-		  }
-		else
-		  {
-		    res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
-		    nEl = l2->N_Elements();
-		  }
-		if( fold)
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[i] = StrCmpFold( (*s0)[0], (*s1)[i], (*l2)[l2Scalar?0:i]);
-		else
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[i] = StrCmp( (*s0)[0], (*s1)[i], (*l2)[l2Scalar?0:i]);
-		return res;
-	      }
-	    else if( s1->Scalar())
-	      {
-		if( l2Scalar || s0->N_Elements() <= l2->N_Elements())
-		  {
-		    res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
-		    nEl = s0->N_Elements();
-		  }
-		else
-		  {
-		    res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
-		    nEl = l2->N_Elements();
-		  }
-		if( fold)
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[i] = StrCmpFold( (*s0)[i], (*s1)[0], (*l2)[l2Scalar?0:i]);
-		else
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[i] = StrCmp( (*s0)[i], (*s1)[0], (*l2)[l2Scalar?0:i]);
-		return res;
-	      }
-	    else // s1 and s2 are arrays
-	      {
-		if( l2Scalar)
-		  if( s0->N_Elements() <= s1->N_Elements())
-		    {
-		      res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
-		      nEl = s0->N_Elements();
-		    }
-		  else 
-		    {
-		      res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
-		      nEl = s1->N_Elements();
-		    }
-		else 
-		  {
-		    if( s0->N_Elements() <= s1->N_Elements())
-		      if( s0->N_Elements() <= l2->N_Elements())
-			{
-			  res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
-			  nEl = s0->N_Elements();
-			}
-		      else
-			{
-			  res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
-			  nEl = l2->N_Elements();
-			}
-		    else
-		      if( s1->N_Elements() <= l2->N_Elements())
-			{
-			  res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
-			  nEl = s1->N_Elements();
-			}
-		      else
-			{
-			  res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
-			  nEl = l2->N_Elements();
-			}
-		  }
-		if( fold)
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[i] = StrCmpFold( (*s0)[i], (*s1)[i], (*l2)[l2Scalar?0:i]);
-		else
-		  for( SizeT i=0; i<nEl; ++i)
-		    (*res)[i] = StrCmp( (*s0)[i], (*s1)[i], (*l2)[l2Scalar?0:i]);
-		return res;
-	      }
-	  }
+    if( l2 == NULL)
+      {
+        if( s0->Scalar())
+          {
+        DByteGDL* res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
+        SizeT nEl = s1->N_Elements();
+        if( fold)
+          for( SizeT i=0; i<nEl; ++i)
+            (*res)[i] = StrCmpFold( (*s0)[0], (*s1)[i]);
+        else
+          for( SizeT i=0; i<nEl; ++i)
+            (*res)[i] = StrCmp( (*s0)[0], (*s1)[i]);
+        return res;
+          }
+        else if( s1->Scalar())
+          {
+        DByteGDL* res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
+        SizeT nEl = s0->N_Elements();
+        if( fold)
+          for( SizeT i=0; i<nEl; ++i)
+            (*res)[i] = StrCmpFold( (*s0)[i], (*s1)[0]);
+        else
+          for( SizeT i=0; i<nEl; ++i)
+            (*res)[i] = StrCmp( (*s0)[i], (*s1)[0]);
+        return res;
+          }
+        else // both arrays
+          {
+        DByteGDL* res;
+        SizeT    nEl;
+        if( s0->N_Elements() <= s1->N_Elements())
+          {
+            res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
+            nEl = s0->N_Elements();
+          }
+        else              
+          {
+            res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
+            nEl = s1->N_Elements();
+          }
+        if( fold)
+          for( SizeT i=0; i<nEl; ++i)
+            (*res)[i] = StrCmpFold( (*s0)[i], (*s1)[i]);
+        else
+          for( SizeT i=0; i<nEl; ++i)
+            (*res)[i] = StrCmp( (*s0)[i], (*s1)[i]);
+        return res;
+          }
+      }
+    else // l2 != NULL
+      {
+        DByteGDL* res;
+        SizeT    nEl;
+        bool l2Scalar = l2->Scalar();
+        if( s0->Scalar())
+          {
+        if( l2Scalar || s1->N_Elements() <= l2->N_Elements())
+          {
+            res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
+            nEl = s1->N_Elements();
+          }
+        else
+          {
+            res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
+            nEl = l2->N_Elements();
+          }
+        if( fold)
+          for( SizeT i=0; i<nEl; ++i)
+            (*res)[i] = StrCmpFold( (*s0)[0], (*s1)[i], (*l2)[l2Scalar?0:i]);
+        else
+          for( SizeT i=0; i<nEl; ++i)
+            (*res)[i] = StrCmp( (*s0)[0], (*s1)[i], (*l2)[l2Scalar?0:i]);
+        return res;
+          }
+        else if( s1->Scalar())
+          {
+        if( l2Scalar || s0->N_Elements() <= l2->N_Elements())
+          {
+            res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
+            nEl = s0->N_Elements();
+          }
+        else
+          {
+            res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
+            nEl = l2->N_Elements();
+          }
+        if( fold)
+          for( SizeT i=0; i<nEl; ++i)
+            (*res)[i] = StrCmpFold( (*s0)[i], (*s1)[0], (*l2)[l2Scalar?0:i]);
+        else
+          for( SizeT i=0; i<nEl; ++i)
+            (*res)[i] = StrCmp( (*s0)[i], (*s1)[0], (*l2)[l2Scalar?0:i]);
+        return res;
+          }
+        else // s1 and s2 are arrays
+          {
+        if( l2Scalar)
+          if( s0->N_Elements() <= s1->N_Elements())
+            {
+              res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
+              nEl = s0->N_Elements();
+            }
+          else 
+            {
+              res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
+              nEl = s1->N_Elements();
+            }
+        else 
+          {
+            if( s0->N_Elements() <= s1->N_Elements())
+              if( s0->N_Elements() <= l2->N_Elements())
+            {
+              res = new DByteGDL( s0->Dim(), BaseGDL::NOZERO);
+              nEl = s0->N_Elements();
+            }
+              else
+            {
+              res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
+              nEl = l2->N_Elements();
+            }
+            else
+              if( s1->N_Elements() <= l2->N_Elements())
+            {
+              res = new DByteGDL( s1->Dim(), BaseGDL::NOZERO);
+              nEl = s1->N_Elements();
+            }
+              else
+            {
+              res = new DByteGDL( l2->Dim(), BaseGDL::NOZERO);
+              nEl = l2->N_Elements();
+            }
+          }
+        if( fold)
+          for( SizeT i=0; i<nEl; ++i)
+            (*res)[i] = StrCmpFold( (*s0)[i], (*s1)[i], (*l2)[l2Scalar?0:i]);
+        else
+          for( SizeT i=0; i<nEl; ++i)
+            (*res)[i] = StrCmp( (*s0)[i], (*s1)[i], (*l2)[l2Scalar?0:i]);
+        return res;
+          }
+      }
       }
     assert( false);
   }
@@ -7992,13 +7848,13 @@ BaseGDL* routine_filepath( EnvT* e)
       e->Throw( "Illegal tag name: "+name+".");
     for( SizeT i=1; i<len; ++i)
       {
-	if( n[i] == ' ')
-	  n[i] = '_';
-	else 
-	  if( n[i] != '_' && n[i] != '$' && //n[0] != '!' &&
-	      (n[i] < 'A' || n[i] > 'Z') &&
-	      (n[i] < '0' || n[i] > '9'))
-	    e->Throw( "Illegal tag name: "+name+".");
+    if( n[i] == ' ')
+      n[i] = '_';
+    else 
+      if( n[i] != '_' && n[i] != '$' && //n[0] != '!' &&
+          (n[i] < 'A' || n[i] > 'Z') &&
+          (n[i] < '0' || n[i] > '9'))
+        e->Throw( "Illegal tag name: "+name+".");
       }
     return n;
   }
@@ -8010,176 +7866,176 @@ BaseGDL* routine_filepath( EnvT* e)
     if( e->KeywordPresent( nameIx)) {
       // Check if name exists, if not then treat as unnamed
       if (e->GetKW( nameIx) != NULL)
-	e->AssureStringScalarKW( nameIx, name);
+    e->AssureStringScalarKW( nameIx, name);
     }
 
     if( name != "$truct") // named struct
       {
-	name = StrUpCase( name);
-	
-	SizeT nParam=e->NParam();
+    name = StrUpCase( name);
+    
+    SizeT nParam=e->NParam();
 
-	if( nParam == 0)
-	  {
-	    DStructDesc* desc = 
-	      e->Interpreter()->GetStruct( name, e->CallingNode());
-	   
-	    dimension dim( 1);
-	    return new DStructGDL( desc, dim);
-	  }
+    if( nParam == 0)
+      {
+        DStructDesc* desc = 
+          e->Interpreter()->GetStruct( name, e->CallingNode());
+       
+        dimension dim( 1);
+        return new DStructGDL( desc, dim);
+      }
 
-	DStructDesc*          nStructDesc;
-	Guard<DStructDesc> nStructDescGuard;
-	
-	DStructDesc* oStructDesc=
-	  FindInStructList( structList, name);
-	
-	if( oStructDesc == NULL || oStructDesc->NTags() > 0)
-	  {
-	    // not defined at all yet (-> define now)
-	    // or completely defined  (-> define now and check equality)
-	    nStructDesc= new DStructDesc( name);
+    DStructDesc*          nStructDesc;
+    Guard<DStructDesc> nStructDescGuard;
+    
+    DStructDesc* oStructDesc=
+      FindInStructList( structList, name);
+    
+    if( oStructDesc == NULL || oStructDesc->NTags() > 0)
+      {
+        // not defined at all yet (-> define now)
+        // or completely defined  (-> define now and check equality)
+        nStructDesc= new DStructDesc( name);
                     
-	    // guard it
-	    nStructDescGuard.Reset( nStructDesc); 
-	  }
-	else
-	  {   
-	    // NTags() == 0
-	    // not completely defined (only name in list)
-	    nStructDesc= oStructDesc;
-	  }
+        // guard it
+        nStructDescGuard.Reset( nStructDesc); 
+      }
+    else
+      {   
+        // NTags() == 0
+        // not completely defined (only name in list)
+        nStructDesc= oStructDesc;
+      }
                 
-	// the instance variable
-	// 	dimension dim( 1);
-	// 	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
-	DStructGDL* instance = new DStructGDL( nStructDesc);
-	Guard<DStructGDL> instance_guard(instance);
+    // the instance variable
+    //  dimension dim( 1);
+    //  DStructGDL* instance = new DStructGDL( nStructDesc, dim);
+    DStructGDL* instance = new DStructGDL( nStructDesc);
+    Guard<DStructGDL> instance_guard(instance);
 
-	for( SizeT p=0; p<nParam; ++p)
-	  {
-	    BaseGDL* par = e->GetParDefined( p);
-	    if( par->Type() == GDL_STRUCT)
-	      {
-		DStructGDL* parStruct = static_cast<DStructGDL*>( par);
-		// add struct
-		if( !parStruct->Scalar())
-		  e->Throw("Expression must be a scalar in this context: "+
-			   e->GetParString( p));
-		
-		DStructDesc* desc = parStruct->Desc();
-		for( SizeT t=0; t< desc->NTags(); ++t)
-		  {
-		    instance->NewTag( desc->TagName( t), 
-				      parStruct->GetTag( t)->Dup());
-		  }
-	      }
-	    else
-	      {
-		// add tag value pair
-		DStringGDL* tagNames = e->GetParAs<DStringGDL>( p);
-		SizeT nTags = tagNames->N_Elements();
+    for( SizeT p=0; p<nParam; ++p)
+      {
+        BaseGDL* par = e->GetParDefined( p);
+        if( par->Type() == GDL_STRUCT)
+          {
+        DStructGDL* parStruct = static_cast<DStructGDL*>( par);
+        // add struct
+        if( !parStruct->Scalar())
+          e->Throw("Expression must be a scalar in this context: "+
+               e->GetParString( p));
+        
+        DStructDesc* desc = parStruct->Desc();
+        for( SizeT t=0; t< desc->NTags(); ++t)
+          {
+            instance->NewTag( desc->TagName( t), 
+                      parStruct->GetTag( t)->Dup());
+          }
+          }
+        else
+          {
+        // add tag value pair
+        DStringGDL* tagNames = e->GetParAs<DStringGDL>( p);
+        SizeT nTags = tagNames->N_Elements();
 
-		SizeT tagStart = p+1;
-		SizeT tagEnd   = p+nTags;
-		if( tagEnd >= nParam)
-		  e->Throw( "Incorrect number of arguments.");
+        SizeT tagStart = p+1;
+        SizeT tagEnd   = p+nTags;
+        if( tagEnd >= nParam)
+          e->Throw( "Incorrect number of arguments.");
 
-		do{
-		  ++p;
-		  BaseGDL* value = e->GetParDefined( p);
-		    
-		  // add 
-		  instance->NewTag( TagName( e, (*tagNames)[ p-tagStart]),
-				    value->Dup());
-		} 
-		while( p<tagEnd);
-	      }
-	  }
+        do{
+          ++p;
+          BaseGDL* value = e->GetParDefined( p);
+            
+          // add 
+          instance->NewTag( TagName( e, (*tagNames)[ p-tagStart]),
+                    value->Dup());
+        } 
+        while( p<tagEnd);
+          }
+      }
 
-	if( oStructDesc != NULL)
-	  {
-	    if( oStructDesc != nStructDesc)
-	      {
-		oStructDesc->AssureIdentical(nStructDesc);
-		instance->DStructGDL::SetDesc(oStructDesc);
-		//delete nStructDesc; // auto_ptr
-	      }
-	  }
-	else
-	  {
-	    // release from guard (if not NULL)
-	    nStructDescGuard.release();
-	    // insert into struct list 
-	    structList.push_back(nStructDesc);
-	  }
-	
-	instance_guard.release();
-	return instance;
+    if( oStructDesc != NULL)
+      {
+        if( oStructDesc != nStructDesc)
+          {
+        oStructDesc->AssureIdentical(nStructDesc);
+        instance->DStructGDL::SetDesc(oStructDesc);
+        //delete nStructDesc; // auto_ptr
+          }
+      }
+    else
+      {
+        // release from guard (if not NULL)
+        nStructDescGuard.release();
+        // insert into struct list 
+        structList.push_back(nStructDesc);
+      }
+    
+    instance_guard.release();
+    return instance;
       }
     else 
       { // unnamed struc
 
-	// Handle case of single structure parameter
-	SizeT nParam;
-	nParam = e->NParam(1);
-	BaseGDL* par = e->GetParDefined( 0);
-	// 	DStructGDL* parStruct = dynamic_cast<DStructGDL*>( par);
-	if (nParam != 1 || par->Type() != GDL_STRUCT)// == NULL)
-	  nParam=e->NParam(2);
+    // Handle case of single structure parameter
+    SizeT nParam;
+    nParam = e->NParam(1);
+    BaseGDL* par = e->GetParDefined( 0);
+    //  DStructGDL* parStruct = dynamic_cast<DStructGDL*>( par);
+    if (nParam != 1 || par->Type() != GDL_STRUCT)// == NULL)
+      nParam=e->NParam(2);
 
-	DStructDesc*          nStructDesc = new DStructDesc( "$truct");
-	// instance takes care of nStructDesc since it is unnamed
-	// 	dimension dim( 1);
-	// 	DStructGDL* instance = new DStructGDL( nStructDesc, dim);
-	DStructGDL* instance = new DStructGDL( nStructDesc);
-	Guard<DStructGDL> instance_guard(instance);
+    DStructDesc*          nStructDesc = new DStructDesc( "$truct");
+    // instance takes care of nStructDesc since it is unnamed
+    //  dimension dim( 1);
+    //  DStructGDL* instance = new DStructGDL( nStructDesc, dim);
+    DStructGDL* instance = new DStructGDL( nStructDesc);
+    Guard<DStructGDL> instance_guard(instance);
 
-	for( SizeT p=0; p<nParam;)
-	  {
-	    BaseGDL* par = e->GetParDefined( p);
-	    // 	    DStructGDL* parStruct = dynamic_cast<DStructGDL*>( par);
-	    // 	    if( parStruct != NULL)
-	    if( par->Type() == GDL_STRUCT)
-	      {
-		// add struct
-		DStructGDL* parStruct = static_cast<DStructGDL*>( par);
-		if( !parStruct->Scalar())
-		  e->Throw("Expression must be a scalar in this context: "+
-			   e->GetParString( p));
-		
-		DStructDesc* desc = parStruct->Desc();
-		for( SizeT t=0; t< desc->NTags(); ++t)
-		  {
-		    instance->NewTag( desc->TagName( t), 
-				      parStruct->GetTag( t)->Dup());
-		  }
-		++p;
-	      }
-	    else
-	      {
-		// add tag value pair
-		DStringGDL* tagNames = e->GetParAs<DStringGDL>( p);
-		SizeT nTags = tagNames->N_Elements();
+    for( SizeT p=0; p<nParam;)
+      {
+        BaseGDL* par = e->GetParDefined( p);
+        //      DStructGDL* parStruct = dynamic_cast<DStructGDL*>( par);
+        //      if( parStruct != NULL)
+        if( par->Type() == GDL_STRUCT)
+          {
+        // add struct
+        DStructGDL* parStruct = static_cast<DStructGDL*>( par);
+        if( !parStruct->Scalar())
+          e->Throw("Expression must be a scalar in this context: "+
+               e->GetParString( p));
+        
+        DStructDesc* desc = parStruct->Desc();
+        for( SizeT t=0; t< desc->NTags(); ++t)
+          {
+            instance->NewTag( desc->TagName( t), 
+                      parStruct->GetTag( t)->Dup());
+          }
+        ++p;
+          }
+        else
+          {
+        // add tag value pair
+        DStringGDL* tagNames = e->GetParAs<DStringGDL>( p);
+        SizeT nTags = tagNames->N_Elements();
 
-		SizeT tagStart = p+1;
-		SizeT tagEnd   = p+nTags;
-		if( tagEnd >= nParam)
-		  e->Throw( "Incorrect number of arguments.");
+        SizeT tagStart = p+1;
+        SizeT tagEnd   = p+nTags;
+        if( tagEnd >= nParam)
+          e->Throw( "Incorrect number of arguments.");
 
-		for(++p; p<=tagEnd; ++p)
-		  {
-		    BaseGDL* value = e->GetParDefined( p);
+        for(++p; p<=tagEnd; ++p)
+          {
+            BaseGDL* value = e->GetParDefined( p);
 
-		    // add 
-		    instance->NewTag( TagName( e, (*tagNames)[ p-tagStart]),
-				      value->Dup());
-		  }
-	      }
-	  }
-	
-	instance_guard.release();
-	return instance;
+            // add 
+            instance->NewTag( TagName( e, (*tagNames)[ p-tagStart]),
+                      value->Dup());
+          }
+          }
+      }
+    
+    instance_guard.release();
+    return instance;
       }
   }
 
@@ -8225,7 +8081,7 @@ BaseGDL* routine_filepath( EnvT* e)
       p0->Reverse(dim - 1);
       bool stolen = e->StealLocalPar(0);
       //    if( !stolen) 
-      // 	e->GetPar(0) = NULL;
+      //    e->GetPar(0) = NULL;
       if (!stolen)
         e->SetPtrToReturnValue(&e->GetPar(0));
       return p0;
@@ -8265,56 +8121,56 @@ BaseGDL* parse_url( EnvT* env)
     // initialise PORT at 80
     urlstru->InitTag("PORT", DStringGDL("80"));
    
-	//searching for the scheme and exciting if not found
-	pStart = str;
-	if (!(pEnd = std::strstr(str, "://"))){
-    	urlstru_guard.release();
-		return (urlstru);
-	}
-	urlstru->InitTag("SCHEME", DStringGDL(pStart < pEnd ? string(pStart, pEnd - pStart) : ""));
+    //searching for the scheme and exciting if not found
+    pStart = str;
+    if (!(pEnd = std::strstr(str, "://"))){
+        urlstru_guard.release();
+        return (urlstru);
+    }
+    urlstru->InitTag("SCHEME", DStringGDL(pStart < pEnd ? string(pStart, pEnd - pStart) : ""));
 
-	// setting pStart after "://"
-	pEnd += 3;
-	pStart = pEnd;
+    // setting pStart after "://"
+    pEnd += 3;
+    pStart = pEnd;
 
-	//searching for the username and password (':' & '@')
-	if (std::strchr(pStart, '@')){
-		pEnd = std::strchr(pStart, '@');
-		if (!(pMid = std::strchr(pStart, ':')))
-			pMid = pEnd;
-		if (pMid && pMid < pEnd)
-			urlstru->InitTag("PASSWORD", DStringGDL(pMid + 1 < pEnd ? string(pMid + 1, pEnd - (pMid + 1)) : ""));
-		urlstru->InitTag("USERNAME", DStringGDL(pStart < pMid ? string(pStart, pMid - pStart) : ""));
-		pStart = pEnd + 1;
-	}
-	
-	// setting pEnd at the first '/' found or at the end if not found
-	if (std::strchr(pStart, '/')){
-		pEnd = std::strchr(pStart, '/');
-	} else {
-		pEnd = pStart + std::strlen(pStart);
-	}
-	
-	// setting pMid at the first ':' found or at the end if not found
-	// if found : InitTag "PORT" from pMid + 1 (after ':') to pEnd ('/' or END)
-	if (std::strchr(pStart, ':')){
-		pMid = std::strchr(pStart, ':');
-		urlstru->InitTag("PORT", DStringGDL(pMid + 1 < pEnd ? string(pMid + 1, pEnd - (pMid + 1)) : ""));
-	} else {
-		pMid = pEnd;
-	}
-	// InitTag "PORT" from pStart(after "://" or '@') to pMid (':' or '/' or END)
-	urlstru->InitTag("HOST", DStringGDL(pStart < pMid ? string(pStart, pMid - pStart) : ""));
-	pStart = pEnd + 1;
-	// Searching for a query ('?')
-	// if found : InitTag "QUERY" from pEnd + 1 (after '?') to the end
-	if ((pEnd = strchr(pMid, '?'))){
-		urlstru->InitTag("QUERY", DStringGDL(std::strlen(pEnd + 1) > 0 ? string(pEnd + 1, std::strlen(pEnd + 1)) : ""));
-	} else {
-		pEnd = pMid + std::strlen(pMid);
-	}
-	// InitTag "PATH" from pStart (after '/') to the end
-	urlstru->InitTag("PATH", DStringGDL(pStart < pEnd ? string(pStart, pEnd - pStart) : ""));	
+    //searching for the username and password (':' & '@')
+    if (std::strchr(pStart, '@')){
+        pEnd = std::strchr(pStart, '@');
+        if (!(pMid = std::strchr(pStart, ':')))
+            pMid = pEnd;
+        if (pMid && pMid < pEnd)
+            urlstru->InitTag("PASSWORD", DStringGDL(pMid + 1 < pEnd ? string(pMid + 1, pEnd - (pMid + 1)) : ""));
+        urlstru->InitTag("USERNAME", DStringGDL(pStart < pMid ? string(pStart, pMid - pStart) : ""));
+        pStart = pEnd + 1;
+    }
+    
+    // setting pEnd at the first '/' found or at the end if not found
+    if (std::strchr(pStart, '/')){
+        pEnd = std::strchr(pStart, '/');
+    } else {
+        pEnd = pStart + std::strlen(pStart);
+    }
+    
+    // setting pMid at the first ':' found or at the end if not found
+    // if found : InitTag "PORT" from pMid + 1 (after ':') to pEnd ('/' or END)
+    if (std::strchr(pStart, ':')){
+        pMid = std::strchr(pStart, ':');
+        urlstru->InitTag("PORT", DStringGDL(pMid + 1 < pEnd ? string(pMid + 1, pEnd - (pMid + 1)) : ""));
+    } else {
+        pMid = pEnd;
+    }
+    // InitTag "PORT" from pStart(after "://" or '@') to pMid (':' or '/' or END)
+    urlstru->InitTag("HOST", DStringGDL(pStart < pMid ? string(pStart, pMid - pStart) : ""));
+    pStart = pEnd + 1;
+    // Searching for a query ('?')
+    // if found : InitTag "QUERY" from pEnd + 1 (after '?') to the end
+    if ((pEnd = strchr(pMid, '?'))){
+        urlstru->InitTag("QUERY", DStringGDL(std::strlen(pEnd + 1) > 0 ? string(pEnd + 1, std::strlen(pEnd + 1)) : ""));
+    } else {
+        pEnd = pMid + std::strlen(pMid);
+    }
+    // InitTag "PATH" from pStart (after '/') to the end
+    urlstru->InitTag("PATH", DStringGDL(pStart < pEnd ? string(pStart, pEnd - pStart) : ""));   
     urlstru_guard.release();
     return urlstru;
   }
@@ -8349,33 +8205,33 @@ BaseGDL* parse_url( EnvT* env)
     BaseGDL* setKW = e->GetKW(setIx);
     if( setKW != NULL) 
     {
-		if(setKW->Type() != GDL_STRING) 
-				e->Throw(" SET string values only allowed ");
-		DString setp;
-		for(SizeT i = 0; i < setKW->N_Elements(); i++)
-		{
-			setp = (*static_cast<DStringGDL*>(setKW))[i] ;
-			command_line_args.push_back( setp);
-		}
-//			printf(" SET: %s \n", (*static_cast<DStringGDL*>(setKW))[i] )
-//			command_line_args.push_back( ( (*static_cast<DStringGDL*>(setKW))[i] );
+        if(setKW->Type() != GDL_STRING) 
+                e->Throw(" SET string values only allowed ");
+        DString setp;
+        for(SizeT i = 0; i < setKW->N_Elements(); i++)
+        {
+            setp = (*static_cast<DStringGDL*>(setKW))[i] ;
+            command_line_args.push_back( setp);
+        }
+//          printf(" SET: %s \n", (*static_cast<DStringGDL*>(setKW))[i] )
+//          command_line_args.push_back( ( (*static_cast<DStringGDL*>(setKW))[i] );
 
-	}
+    }
     // setting the COUNT keyword value
     if (e->KeywordPresent(countIx))
       {
-	e->AssureGlobalKW(countIx);
-	e->SetKW(countIx, new DLongGDL(command_line_args.size()));
+    e->AssureGlobalKW(countIx);
+    e->SetKW(countIx, new DLongGDL(command_line_args.size()));
       }
 
     // returning empty string or an array of arguments
     if (command_line_args.empty()) return new DStringGDL("");
     else
       {
-	BaseGDL* ret = new DStringGDL(dimension(command_line_args.size()));   
-	for (size_t i = 0; i < command_line_args.size(); i++)
-	  (*static_cast<DStringGDL*>(ret))[i] = command_line_args[i];
-	return ret;
+    BaseGDL* ret = new DStringGDL(dimension(command_line_args.size()));   
+    for (size_t i = 0; i < command_line_args.size(); i++)
+      (*static_cast<DStringGDL*>(ret))[i] = command_line_args[i];
+    return ret;
       }
   }
 
@@ -8425,31 +8281,31 @@ BaseGDL* parse_url( EnvT* env)
     BaseGDL* p0 = e->GetPar(0);    
     if (p0 != NULL)
       { 
-	if (p0->Rank() == 0 && p0->Type() == GDL_STRING)
-	  {
-	    // decoding
-	    string* str = &((*static_cast<DStringGDL*>(p0))[0]);
-	    if (str->length() == 0) return new DByteGDL(0);
-	    if (str->length() % 4 != 0) 
-	      e->Throw("Input string length must be a multiple of 4");
-	    unsigned int retlen = base64::decodeSize(*str);
-	    if (retlen == 0 || retlen > str->length()) e->Throw("No data in the input string");
-	    DByteGDL* ret = new DByteGDL(dimension(retlen));
-	    if (!base64::decode(*str, (char*)&((*ret)[0]), ret->N_Elements()))
-	      {
-		delete ret;
-		e->Throw("Base64 decoder failed"); 
-		return NULL;
-	      }
-	    return ret;
-	  }
-	if (p0->Rank() >= 1 && p0->Type() == GDL_BYTE)
-	  {
-	    // encoding
-	    return new DStringGDL(
-				  base64::encode((char*)&(*static_cast<DByteGDL*>(p0))[0], p0->N_Elements())
-				  );
-	  } 
+    if (p0->Rank() == 0 && p0->Type() == GDL_STRING)
+      {
+        // decoding
+        string* str = &((*static_cast<DStringGDL*>(p0))[0]);
+        if (str->length() == 0) return new DByteGDL(0);
+        if (str->length() % 4 != 0) 
+          e->Throw("Input string length must be a multiple of 4");
+        unsigned int retlen = base64::decodeSize(*str);
+        if (retlen == 0 || retlen > str->length()) e->Throw("No data in the input string");
+        DByteGDL* ret = new DByteGDL(dimension(retlen));
+        if (!base64::decode(*str, (char*)&((*ret)[0]), ret->N_Elements()))
+          {
+        delete ret;
+        e->Throw("Base64 decoder failed"); 
+        return NULL;
+          }
+        return ret;
+      }
+    if (p0->Rank() >= 1 && p0->Type() == GDL_BYTE)
+      {
+        // encoding
+        return new DStringGDL(
+                  base64::encode((char*)&(*static_cast<DByteGDL*>(p0))[0], p0->N_Elements())
+                  );
+      } 
       }
     e->Throw("Expecting string or byte array as a first parameter");
     return NULL; //pacify dumb compilers
@@ -8498,59 +8354,59 @@ BaseGDL* parse_url( EnvT* env)
       res = new DStringGDL(dimension(actIx) , BaseGDL::NOZERO);
 
       for( SizeT i=0; i<actIx; ++i)
-	{
-	  EnvStackT::pointer_type upEnv = callStack[i]; 
-	  tmp= upEnv->GetProName();
-	  filename=upEnv->GetFilename();
-	  if( filename != "")
-	    {              
-	      lineNumber = upEnv->GetLineNumber();
-	      if( lineNumber != 0)
-		{
-		  tmp=tmp+" <"+filename+"("+i2s(lineNumber)+")>";
-		}
-	    }
-	  if (debug) cout << tmp << endl;
-	  (*res)[i]=tmp;
-	}
+    {
+      EnvStackT::pointer_type upEnv = callStack[i]; 
+      tmp= upEnv->GetProName();
+      filename=upEnv->GetFilename();
+      if( filename != "")
+        {              
+          lineNumber = upEnv->GetLineNumber();
+          if( lineNumber != 0)
+        {
+          tmp=tmp+" <"+filename+"("+i2s(lineNumber)+")>";
+        }
+        }
+      if (debug) cout << tmp << endl;
+      (*res)[i]=tmp;
+    }
       
       return res;
     }
 
     if (structureKW) {
       DStructGDL* res = new DStructGDL(
-				       FindInStructList(structList, "IDL_TRACEBACK"),
-				       dimension(actIx));
+                       FindInStructList(structList, "IDL_TRACEBACK"),
+                       dimension(actIx));
 
       int tRoutine, tFilename, tLine, tLevel, tFunction;
       int tMethod=0, tRestored=0, tSystem=0;
 
       for( SizeT i=0; i<actIx; ++i) {
-	
-	EnvStackT::pointer_type upEnv = callStack[i]; 
-	tmp= upEnv->GetProName();
-	filename=upEnv->GetFilename();
-	if (filename.length() == 0) filename=" ";
-	lineNumber = upEnv->GetLineNumber();
-	
-	tRoutine = res->Desc()->TagIndex("ROUTINE"); 
-	tFilename= res->Desc()->TagIndex("FILENAME"); 
-	tLine= res->Desc()->TagIndex("LINE"); 
-	tLevel= res->Desc()->TagIndex("LEVEL"); 
-	tFunction= res->Desc()->TagIndex("IS_FUNCTION"); 
-	tMethod= res->Desc()->TagIndex("METHOD"); 
-	tRestored= res->Desc()->TagIndex("RESTORED"); 
-	tSystem= res->Desc()->TagIndex("SYSTEM"); 
+    
+    EnvStackT::pointer_type upEnv = callStack[i]; 
+    tmp= upEnv->GetProName();
+    filename=upEnv->GetFilename();
+    if (filename.length() == 0) filename=" ";
+    lineNumber = upEnv->GetLineNumber();
+    
+    tRoutine = res->Desc()->TagIndex("ROUTINE"); 
+    tFilename= res->Desc()->TagIndex("FILENAME"); 
+    tLine= res->Desc()->TagIndex("LINE"); 
+    tLevel= res->Desc()->TagIndex("LEVEL"); 
+    tFunction= res->Desc()->TagIndex("IS_FUNCTION"); 
+    tMethod= res->Desc()->TagIndex("METHOD"); 
+    tRestored= res->Desc()->TagIndex("RESTORED"); 
+    tSystem= res->Desc()->TagIndex("SYSTEM"); 
 
-	*(res->GetTag(tRoutine, i)) = DStringGDL(tmp);
-	*(res->GetTag(tFilename, i)) = DStringGDL(filename);
-	*(res->GetTag(tLine, i)) = DLongGDL(lineNumber);
-	*(res->GetTag(tLevel, i)) = DLongGDL(i);
+    *(res->GetTag(tRoutine, i)) = DStringGDL(tmp);
+    *(res->GetTag(tFilename, i)) = DStringGDL(filename);
+    *(res->GetTag(tLine, i)) = DLongGDL(lineNumber);
+    *(res->GetTag(tLevel, i)) = DLongGDL(i);
 
-	// AC 2015/03/03 : HELP WELCOME
-	// I don't know how to know if we use Pro or Func
-	// we do have a long way in "dinterpreter.cpp" with 
-	// if( firstChar == "#")
+    // AC 2015/03/03 : HELP WELCOME
+    // I don't know how to know if we use Pro or Func
+    // we do have a long way in "dinterpreter.cpp" with 
+    // if( firstChar == "#")
     bool isFunc = false;
       for (FunListT::iterator ifunc = funList.begin(); ifunc != funList.end(); ++ifunc) {
         if (StrUpCase(tmp).find((*ifunc)->ObjectName()) != std::string::npos) {
@@ -8558,11 +8414,11 @@ BaseGDL* parse_url( EnvT* env)
           break;
         }
       }
-	*(res->GetTag(tFunction, i)) = (isFunc)?DByteGDL(1):DByteGDL(0);
+    *(res->GetTag(tFunction, i)) = (isFunc)?DByteGDL(1):DByteGDL(0);
 //all others 0 for the time being
-	*(res->GetTag(tMethod, i)) = DByteGDL(0);
-	*(res->GetTag(tRestored, i)) = DByteGDL(0);
-	*(res->GetTag(tSystem, i)) = DByteGDL(0);
+    *(res->GetTag(tMethod, i)) = DByteGDL(0);
+    *(res->GetTag(tRestored, i)) = DByteGDL(0);
+    *(res->GetTag(tSystem, i)) = DByteGDL(0);
       }
       return res;
     }
@@ -8671,7 +8527,7 @@ BaseGDL* parse_url( EnvT* env)
       BaseGDL*& par = callStack[desiredlevnum - 1]->GetKW(xI);
 
       //       if( par == NULL)
-      // 	e->Throw( "Variable is undefined: " + varName);
+      //    e->Throw( "Variable is undefined: " + varName);
 
       return &par;
     } else if (acceptNew)

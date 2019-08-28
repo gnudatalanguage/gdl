@@ -22,7 +22,6 @@
 ;       /CENTER means assume pixels centered.  This means
 ;         the pixel at (0,[0,[0]]) is clipped to 1/4 size.
 ;         Default is that pixel start (not center) is at index.'
-;       MISSING=missing gives a value for undefined pixels.
 ;       /MINUS_ONE: option will be ignored. MISSING can be used instead.
 ;       /HELP gives this help.'
 ;
@@ -48,7 +47,6 @@ function CONGRID, t, mx, my, mz, $
                   INTERP=interp, $
                   CUBIC = cubic, $
                   MINUS_ONE=minus_one, $
-                  MISSING=missing, $
                   HELP=help, test=test
 
 npar=N_PARAMS()
@@ -67,7 +65,6 @@ if (npar lt 2) or (npar gt 4) or KEYWORD_SET(help) then begin
     print,'   the pixel at (0,[0,[0]]) is clipped to 1/4 size.'
     print,'   Default is that pixel start (not center) is at index.'
     print,'   CUBIC=cubic: use a cubic interpolation.'
-    print,'   MISSING=missing gives a value for undefined pixels.'
     print,'   /MINUS_ONE: option will be ignored. MISSING can be used instead.'
     print, '  /HELP gives this help.'
     print,' NOTE: CONGRID performs a resampling. Does not conserve Fluxes.'
@@ -118,17 +115,17 @@ IF (nopt lt ndim) THEN BEGIN
     p=SHIFT(INDGEN(ndim),-nopt)
     temp=TRANSPOSE(t,p)
     CASE nopt OF
-        3: temp2 = INTERPOLATE(temp,x,y,z,/grid,cubic=cubic,missing=missing)
-        2: temp2 = INTERPOLATE(temp,x,y,/grid,nearest_neighbour=nnbor,cubic=cubic,missing=missing)
-        1: temp2 = INTERPOLATE(temp,x,/grid,nearest_neighbour=nnbor,cubic=cubic,missing=missing)
+        3: temp2 = INTERPOLATE(temp,x,y,z,/grid,cubic=cubic)
+        2: temp2 = INTERPOLATE(temp,x,y,/grid,nearest_neighbour=nnbor,cubic=cubic)
+        1: temp2 = INTERPOLATE(temp,x,/grid,nearest_neighbour=nnbor,cubic=cubic)
     ENDCASE
     p=SHIFT(INDGEN(ndim),nopt)
     t2=TRANSPOSE(temp2,p)
 ENDIF ELSE BEGIN
     CASE nopt OF
-        3: t2 = INTERPOLATE(t,x,y,z,/grid,cubic=cubic,missing=missing)
-        2: t2 = INTERPOLATE(t,x,y,/grid,nearest_neighbour=nnbor,cubic=cubic,missing=missing)
-        1: t2 = INTERPOLATE(t,x,/grid,nearest_neighbour=nnbor,cubic=cubic,missing=missing)
+        3: t2 = INTERPOLATE(t,x,y,z,/grid,cubic=cubic)
+        2: t2 = INTERPOLATE(t,x,y,/grid,nearest_neighbour=nnbor,cubic=cubic)
+        1: t2 = INTERPOLATE(t,x,/grid,nearest_neighbour=nnbor,cubic=cubic)
     ENDCASE
 ENDELSE
 ;
