@@ -192,6 +192,7 @@ TESTS = \
   test_resolve_routine.pro \
   test_rk4.pro \
   test_rounding.pro \
+  test_routine_filepath.pro \
   test_routine_names.pro \
   test_same_name.pro \
   test_save_restore.pro \
