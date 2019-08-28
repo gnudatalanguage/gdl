@@ -147,11 +147,15 @@ nb_errors=0
 rootp=COMPLEX(-1,SQRT(3))/2.
 rootm=COMPLEX(-1,-SQRT(3))/2.
 ;
-r1=FX_ROOT([-2,-1,0],'poly111')
-r1b=FX_ROOT([-20,-10,0],'poly111')
+; 
+;  We need to tilt the guesses to get predictable roots.
 ;
-r2=FX_ROOT([-2,-1,4],'poly111')
-r2b=FX_ROOT([-20,-10,10],'poly111')
+ii=complex(0,1)
+r1=FX_ROOT([-2,-1,ii],'poly111')
+r1b=FX_ROOT([-20,-10,ii],'poly111')
+;
+r2=FX_ROOT([-2,-1,4-ii],'poly111')
+r2b=FX_ROOT([-20,-10,10-ii],'poly111')
 ;
 if ABS(rootp-r1) GT eps then ERRORS_ADD, nb_errors, 'bad root1'
 if ABS(rootp-r1b) GT eps then ERRORS_ADD, nb_errors, 'bad root1 bis'
@@ -204,7 +208,7 @@ TEST_FX_ROOT_ON_FUNC, cumul_errors, FLOAT(init), expected, $
 WHERE_DO_WE_CONVERGE, cumul_errors
 ;
 ; search of complex roots in polynoms ...
-COMPLEX_ROOT_OF_POLYNOM, cumul_errors
+COMPLEX_ROOT_OF_POLYNOM, cumul_errors, test=test
 ;
 ; ----- final ----
 ;
