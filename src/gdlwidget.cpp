@@ -2885,11 +2885,11 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     wxPoint( xOffset, yOffset ),
     computeWidgetSize( ), style );
     //our widget will ALWAYS have an image list...
-    wxImageList* images=new wxImageList(16,16,TRUE,3);
+    wxImageList* images=new wxImageList();
     images->Add(wxArtProvider::GetBitmap(wxART_FOLDER)); //0
     images->Add(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN)); //1
     images->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE)); //2
-    images->Add(wxArtProvider::GetBitmap(wxART_FILE_OPEN)); //3
+////    images->Add(wxArtProvider::GetBitmap(wxART_FILE_OPEN)); //3 //no use: a selected entry is highlighted and there is no specific wxArt pixmap to do more (visually).
 
     tree->AssignImageList(images);
     folder=TRUE;
@@ -2931,8 +2931,8 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
         if (treeindex>-1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,0,1, treeItemData);
         else treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,0,1, treeItemData);
       }
-      else if (treeindex>-1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,3, treeItemData);
-      else  treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,3, treeItemData);
+      else if (treeindex>-1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,2, treeItemData);
+      else  treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,2, treeItemData);
     }
     if ( parentTree->IsFolder() && parentTree->IsExpanded())  parentTree->DoExpand();
     //dragability inheritance.
