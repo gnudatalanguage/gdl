@@ -40,27 +40,19 @@ GDLWXStream::GDLWXStream( int width, int height )
     delete m_dc;
     throw GDLException("GDLWXStream: Failed to create DC.");
   }
-#if ( (PLPLOT_VERSION_MAJOR < 6) && (PLPLOT_VERSION_MINOR < 10) )
-//  if ( GetEnvString("GDL_WX_BACKEND") == "2" )  
-    setopt("drvopt", "hrshsym=1,backend=2,text=0" );
-//  else if ( GetEnvString("GDL_WX_BACKEND") == "1") setopt("drvopt", "hrshsym=1,backend=1,text=0" ); 
-//  else  setopt("drvopt", "hrshsym=1,backend=0,text=0" ); // do not use freetype. Backend=0 enable compatibility (sort of) with X11 behaviour in plots. To be augmented one day...
-#else
-  else  setopt("drvopt", "hrshsym=1,text=0" ); //
+  setopt("drvopt", "hrshsym=0,text=1" ); //no hershey; WE USE TT fonts (antialiasing very nice and readable).
+
+  PLFLT XDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_PX_CM"))))[0]*2.5;
+  PLFLT YDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_PX_CM"))))[0]*2.5;
+  spage( XDPI, YDPI, width, height, 0, 0 ); //width and height have importance. 90 dpi is what is in the driver code.
+  
+  //plplot switched from PLESC_DEVINIT to dev_data for wxwidgets around version 5.11
+#define PLPLOT_TEST_VERSION_NUMBER PLPLOT_VERSION_MAJOR*1000+PLPLOT_VERSION_MINOR
+#if (PLPLOT_TEST_VERSION_NUMBER > 5010)
+  this->pls->dev_data=(void*)m_dc;
 #endif
-    PLFLT XDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_PX_CM"))))[0]*2.5;
-    PLFLT YDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_PX_CM"))))[0]*2.5;
-    spage( XDPI, YDPI, width, height, 0, 0 ); //width and height have importance. 90 dpi is what is in the driver code.
   this->plstream::init();
   plstream::cmd(PLESC_DEVINIT, (void*)m_dc );
-  //Apparently no effect on fonts!!!
-//#if ( (PLPLOT_VERSION_MAJOR > 4) && (PLPLOT_VERSION_MINOR > 10) )
-//  bool fixed=true;
-//  cerr << "fixed\n";
-//  plstream::cmd(PLESC_FIXASPECT, (void*)&fixed );
-//#endif
-
-//  plstream::set_stream();
 
    // no pause on win destruction
     spause( false);
@@ -84,9 +76,6 @@ GDLWXStream::GDLWXStream( int width, int height )
     vpor(0,1,0,1);
     wind(0,1,0,1);
     DefaultCharSize();
-//    PLFLT defhmm, scalhmm;
-//    plgchr(&defhmm, &scalhmm); // height of a letter in millimetres
-//    RenewPlplotDefaultCharsize(defhmm /1.5 );    
 }
 
 GDLWXStream::~GDLWXStream()
@@ -96,6 +85,22 @@ GDLWXStream::~GDLWXStream()
   delete m_dc;
 }
 
+//special DefaultCharZise() to compensate a (plplot?) problem in reporting size of TT fonts: rescale by ~1.8 seems OK.
+void GDLWXStream::DefaultCharSize() {
+      DStructGDL* d = SysVar::D();
+  DStructDesc* s = d->Desc();
+  int X_CH_SIZE = s->TagIndex("X_CH_SIZE");
+  int Y_CH_SIZE = s->TagIndex("Y_CH_SIZE");
+  int X_PX_CM = s->TagIndex("X_PX_CM");
+  int Y_PX_CM = s->TagIndex("Y_PX_CM");
+  DLong chx = (*static_cast<DLongGDL*> (d->GetTag(X_CH_SIZE, 0)))[0];
+  DLong chy = (*static_cast<DLongGDL*> (d->GetTag(Y_CH_SIZE, 0)))[0];
+  DFloat xpxcm = (*static_cast<DFloatGDL*> (d->GetTag(X_PX_CM, 0)))[0];
+  DFloat ypxcm = (*static_cast<DFloatGDL*> (d->GetTag(Y_PX_CM, 0)))[0];
+  DFloat xchsizemm = 1.8 * chx * CM_IN_MM / xpxcm;
+  DFloat linespacingmm = 1.8 * chy * CM_IN_MM / ypxcm;
+  schr(xchsizemm, 1.0, linespacingmm);
+}
 void GDLWXStream::SetGDLDrawPanel(GDLDrawPanel* w)
 {
   gdlWindow = w;

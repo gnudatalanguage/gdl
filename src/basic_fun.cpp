@@ -123,7 +123,6 @@ static DStructGDL* GetObjStruct( BaseGDL* Objptr, EnvT* e)
     {
       e->Throw(  "Object ID <"+i2s(ID)+"> not found.");      
     }
-
     assert(false);
     return NULL;
   }

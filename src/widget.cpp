@@ -126,9 +126,9 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   static int ALIGN_TOP = e->KeywordIx( "ALIGN_TOP" );
   static int ALIGN_BOTTOM = e->KeywordIx( "ALIGN_BOTTOM" );
   static int FONT = e->KeywordIx( "FONT" );
-//  static int RESOURCE_NAME = e->KeywordIx( "RESOURCE_NAME" ); // string
+//  static int RESOURCE_NAME = e->KeywordIx( "RESOURCE_NAME" ); // std::string
 
-  string inputfont="";
+  std::string inputfont="";
   e->AssureStringScalarKWIfPresent( FONT, inputfont );
   if (inputfont.length() > 0) font=wxFont(wxString(inputfont.c_str( ), wxConvLibc)); else font=wxNullFont;
   
@@ -3064,8 +3064,6 @@ void widget_control( EnvT* e ) {
 
   if ( destroy ) {
     delete widget;
-    //necessary since we have removed Tidy(...) from eventloop (too time consuming).
-    GraphicsDevice::GetDevice()->TidyWindowsList(); 
     return;
   }
 
