@@ -27,9 +27,9 @@ namespace tripack {
 
 static struct {
     doublereal y;
-} stcom_;
+} stcom_tripack;  //avoid conflicts "conflicting C language linkage declaration 'stripack::<unnamed struct> stripack::stcom_"
 
-#define stcom_1 stcom_
+#define stcom_2 stcom_tripack
 
 static struct {
     doublereal swtol;
@@ -4277,8 +4277,8 @@ doublereal store_(doublereal *x)
 /* *********************************************************** */
 
 
-    stcom_1.y = *x;
-    ret_val = stcom_1.y;
+    stcom_2.y = *x;
+    ret_val = stcom_2.y;
     return ret_val;
 } /* store_ */
 

@@ -297,6 +297,7 @@ namespace lib {
 	 return res;
 	}
 		assert( false);
+        return NULL; //-Wreturn-type
      }
    };
 

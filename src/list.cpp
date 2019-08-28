@@ -629,6 +629,7 @@ BaseGDL* list_extraction( BaseGDL* theref, ArrayIndexListT* ixList)
         return static_cast<BaseGDL*>(dest) ;}
             }
     //  Guard<BaseGDL> resultGuard( result);
+  return NULL; // -Wreturn-type
 }
   
   void list__cleanup( EnvUDT* e)

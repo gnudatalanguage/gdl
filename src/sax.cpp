@@ -283,6 +283,7 @@ static int  XMLCALL  dtdhandler(XML_Parser parser,
   if (publicId) ret=new DStringGDL(std::string(publicId)); else  ret=new DStringGDL("");
   if (method->NPar() > par) curenv->GetPar(par++) = ret;
   e->Interpreter()->call_pro(method->GetTree());
+  return XML_STATUS_OK; //probably too optimistic!
 }
 
 static void XMLCALL unparsedentityhandler(void *data, const XML_Char *entityName,
