@@ -27,8 +27,8 @@ namespace lib {
   using namespace antlr;
   //internal
 
-  string GDLitos(int i);
-  string GDLutos(unsigned int i);
+//  string GDLitos(int i);
+//  string GDLutos(unsigned int i);
   void magick_setup(void);
   unsigned int magick_id(void);
   Image& magick_image(EnvT * e,unsigned int mid);
