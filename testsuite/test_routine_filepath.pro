@@ -92,8 +92,10 @@ pro TEST_ROUTINE_FILEPATH, help=help, verbose=verbose, short=short, $
     cumul_errors = 0
 
     ref = ROUTINE_DIR() + 'test_routine_filepath.pro'
-    print, 'System filepath for this script: ' + ref
     
+    ; simple check that the ref makes sense, i.e. we should be able to read "this" script
+    if ( FILE_TEST( ref, /READ ) ne 1 ) then ERRORS_ADD, nb_errors, 'FILE_TEST(ref)'
+
     TH_PRO1234, ref, cumul_errors, test=test
     dummy = TH_FUNC1234( ref, cumul_errors, test=test )
     
