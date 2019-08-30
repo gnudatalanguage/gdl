@@ -116,7 +116,7 @@ set(HDF5DIR "" CACHE PATH "GDL: Specifiy the HDF5 directory tree")
 set(FFTW ON CACHE BOOL "GDL: Enable FFTW ?")
 set(FFTWDIR "" CACHE PATH "GDL: Specifiy the FFTW directory tree")
 
-set(LIBPROJ4 OFF CACHE BOOL "GDL: Enable LIBPROJ4 ?")
+set(LIBPROJ4 ON CACHE BOOL "GDL: Enable LIBPROJ4 ?")
 set(LIBPROJ4DIR "" CACHE PATH "GDL: Specifiy the LIBPROJ4 directory tree")
 
 set(MPI OFF CACHE BOOL "GDL: Enable MPI ?")
