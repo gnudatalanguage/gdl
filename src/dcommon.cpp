@@ -47,7 +47,8 @@ void DCommon::DeleteData()
 
 void DCommon::AddVar(const string& v)
 {
-  var.push_back(new DVar(v));
+  DByteGDL* dummy=new DByteGDL(0);      // TODO: This dummy should be replaced by a proper "undefined" type/placeholder when such exists.
+  var.push_back(new DVar(v,dummy));
 }
 
 const string& DCommon::Name() const
