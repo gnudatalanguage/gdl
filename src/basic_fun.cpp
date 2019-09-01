@@ -6962,29 +6962,42 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
   BaseGDL* tag_names_fun( EnvT* e)
   {
     SizeT nParam=e->NParam();
-    DStructGDL* struc= e->GetParAs<DStructGDL>(0);
+
+    DObjGDL* obj = e->GetParAs<DObjGDL>(0);
+    DObj objRef;
+    DStructGDL* struc = nullptr;
+    if( obj && obj->Scalar( objRef ) ) {
+      try {
+        struc = e->GetObjHeap( objRef );
+      } catch ( GDLInterpreter::HeapException& ) { }
+    }
+    
+    if( !struc ) {
+      struc = e->GetParAs<DStructGDL>(0);
+    }
 
     static int structureNameIx = e->KeywordIx( "STRUCTURE_NAME" );
     bool structureName = e->KeywordSet( structureNameIx );
-    
+
     DStringGDL* tagNames;
 
     if(structureName){
         
-      if ((*struc).Desc()->Name() != "$truct")
-    tagNames =  new DStringGDL((*struc).Desc()->Name());
-      else
-    tagNames =  new DStringGDL("");
-
+      if ((*struc).Desc()->Name() != "$truct") {
+        tagNames =  new DStringGDL((*struc).Desc()->Name());
+      } else {
+        tagNames =  new DStringGDL("");
+      }
     } else {
       SizeT nTags = (*struc).Desc()->NTags();
-    
       tagNames = new DStringGDL(dimension(nTags));
-      for(int i=0; i < nTags; ++i)
+      for(int i=0; i < nTags; ++i) {
         (*tagNames)[i] = (*struc).Desc()->TagName(i);
+      }
     }
 
     return tagNames;
+      
   }
 
   // AC 12-Oc-2011: better version for: len=len, /Extract and /Sub
