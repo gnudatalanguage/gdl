@@ -1,0 +1,21 @@
+This folder contains projections.ods and projDefinitions.sav
+
+projection.ods describes the projections currently known by proj4 (https://proj4.org/operations/projections) with their short name, full name, peculiarities, required parameters, optional parameters, projection scale.
+
+One can update projections.ods each time a new projection comes available.
+The .ods can give a .csv copy that can be read with, e.g.
+?DL> csv_proj=read_csv("projections.csv",n_table=1)
+?DL> save,csv_proj,filename="csv.sav
+(note that read_csv is not distributed with GDL at the time, help welcome).
+
+the csv.sav file is then converted to adequate structures with  'map_proj_auxiliary_read_csv' hidden in map_proj_init.pro, structures that are saved by this procedure in projDefinitions.sav 
+
+At that moment, projDefintions.sav has been updated and all the projection related procedures (map_set, etc) are aware of the new projection(s). Of course, these files should be installed properly (by a "make install"), in gnudatalanguage/resource/maps.
+
+it is important to note in the "hints" column the type of projection (for correct clips or horizon) and also if they support rotation of coordinates (some do not and that would probably result in a crash of the proj4 library.)
+
+specifics for interrupted projections (where are the splits) must be added in map_proj_init.pro and map_horizon.pro (nothing is ever easy). 
+
+good hack.
+Gilles
+

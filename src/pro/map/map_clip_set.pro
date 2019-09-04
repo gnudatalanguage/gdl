@@ -48,8 +48,8 @@ endif
 if (keyword_set(transform)) then begin
     i = 0
     while (map_structure.pipeline[0,i] ne 0 and map_structure.pipeline[0,i] ne 3) do i = i + 1
-    if (i eq 11) then begin
-        message, 'Too many pipeline stages..'
+    if (i eq 11) then begin ; can already be set to 3
+       if map_structure.pipeline[0,i] ne 3 then  message, 'Too many pipeline stages..'
     endif else begin
         map_structure.pipeline[0,i] = 3
     endelse
