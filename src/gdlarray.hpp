@@ -75,7 +75,7 @@ private:
   {
 // better align all data, also POD    
 // as compound types might benefit from it as well
-#ifdef USE_EIGEN 
+#ifdef USE_EIGEN
     return Eigen::internal::aligned_new<Ty>( s);
 #else
     return new Ty[ s];
@@ -122,10 +122,9 @@ public:
   {
     if( IsPOD)
     {
-      try {
+try {
 	  buf = (cp.size() > smallArraySize) ? New(cp.size()) /*New T[ cp.size()]*/ : InitScalar();
       } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-
       std::memcpy(buf,cp.buf,sz*sizeof(T));
     }
     else
@@ -133,8 +132,8 @@ public:
       try {
 	buf = (cp.size() > smallArraySize) ? New(cp.size()) /*new Ty[ cp.size()]*/ : InitScalar();
       } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-      for( SizeT i=0; i<sz; ++i)
-	buf[ i] = cp.buf[ i];
+//#pragma omp parallel for ?
+      for( SizeT i=0; i<sz; ++i)	buf[ i] = cp.buf[ i];
     }
   }
 
@@ -150,9 +149,8 @@ public:
     try {
 	    buf = (s > smallArraySize) ? New(s) /*T[ s]*/ : InitScalar();
     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-
-    for( SizeT i=0; i<sz; ++i)
-      buf[ i] = val;
+//#pragma omp parallel for ?
+    for( SizeT i=0; i<sz; ++i) buf[ i] = val;
   }
   
   GDLArray( const T* arr, SizeT s) : sz( s)
@@ -172,8 +170,8 @@ public:
       try {
 	buf = (s > smallArraySize) ? New(s) /*new Ty[ s]*/: InitScalar();
       } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-      for( SizeT i=0; i<sz; ++i)
-	buf[ i] = arr[ i];
+//#pragma omp parallel for ? 
+      for( SizeT i=0; i<sz; ++i)	buf[ i] = arr[ i];
       }
   }
 
