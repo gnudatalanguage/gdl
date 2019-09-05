@@ -76,6 +76,23 @@ return, input
 ;
 end
 ;
+pro TEST_SIZE_TYPE, cumul_errors, dims=dims, verbose=verbose, $
+                    help=help, test=test, debug=debug
+common test_size_type,aa
+code=[1,2,3,4,5,6,7,9,12,13,14,15] & list_type = ["UNDEFINED","BYTE","INT","LONG","FLOAT","DOUBLE","COMPLEX","STRING","STRUCT","DCOMPLEX","POINTER","OBJREF","UINT","ULONG","LONG64","ULONG64"] 
+for i=0,n_elements(code)-1 do begin
+   a=fix(indgen(2,3,4),type=code[i]) & aa=a
+   b=[3,2,3,4,code[i],24]
+   c=size(a)
+   cc=size(aa)
+   if(total(b eq c) ne 6 ) then  ERRORS_ADD, cumul_errors,' size(normal variable)  wrong'
+   if(total(b eq cc) ne 6 ) then  ERRORS_ADD, cumul_errors,' size(variable in common)  wrong'
+endfor
+
+if keyword_set(test) then stop,' at end of test_size_type'
+return
+end
+;
 pro TEST_SIZE_HASH, cumul_errors, dims=dims, verbose=verbose, $
                      help=help, test=test, debug=debug
 h = hash('a',1,'b',2,'c',3)
@@ -157,10 +174,13 @@ if KEYWORD_SET(help) then begin
     return
 endif
 ;
+common test_size_type,aa
+;
 nb_errors=0
 ;
-TEST_BUG_675, nb_errors, verbose=verbose
+TEST_BUG_675, nb_errors, verbose=verbose, test=test, debug=debug
 ;
+TEST_SIZE_TYPE, nb_errors, verbose=verbose
 TEST_SIZE_STRUCTURE, nb_errors, verbose=verbose
 ;
 TEST_SIZE_ARRAY, nb_errors, verbose=verbose
