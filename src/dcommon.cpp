@@ -20,6 +20,7 @@
 #include "gdlexception.hpp"
 #include "dcommon.hpp"
 #include "str.hpp"
+#include "nullgdl.hpp"
 #include "objects.hpp"
 
 // common block ********************************************
