@@ -231,7 +231,7 @@ namespace lib {
       throw GDLException( "Array dimensions must be greater than 0");
 
     if( e->KeywordSet(0)) return new DByteGDL(dim, BaseGDL::NOZERO);
-    return new DByteGDL(dim);
+    return new DByteGDL(dim,BaseGDL::ZERO);
   }
 
   BaseGDL* intarr( EnvT* e)
@@ -243,7 +243,7 @@ namespace lib {
       throw GDLException( "Array dimensions must be greater than 0");
 
     if( e->KeywordSet(0)) return new DIntGDL(dim, BaseGDL::NOZERO);
-    return new DIntGDL(dim);
+    return new DIntGDL(dim,BaseGDL::ZERO);
     //     }
     //     catch( GDLException& ex)
     //       {
@@ -259,7 +259,7 @@ namespace lib {
       throw GDLException( "Array dimensions must be greater than 0");
 
     if( e->KeywordSet(0)) return new DUIntGDL(dim, BaseGDL::NOZERO);
-    return new DUIntGDL(dim);
+    return new DUIntGDL(dim,BaseGDL::ZERO);
     //     }
     //     catch( GDLException& ex)
     //       {
@@ -275,7 +275,7 @@ namespace lib {
       throw GDLException( "Array dimensions must be greater than 0");
 
     if( e->KeywordSet(0)) return new DLongGDL(dim, BaseGDL::NOZERO);
-    return new DLongGDL(dim);
+    return new DLongGDL(dim, BaseGDL::ZERO);
     /*    }
       catch( GDLException& ex)
       {
@@ -291,7 +291,7 @@ namespace lib {
       throw GDLException( "Array dimensions must be greater than 0");
 
     if( e->KeywordSet(0)) return new DULongGDL(dim, BaseGDL::NOZERO);
-    return new DULongGDL(dim);
+    return new DULongGDL(dim,BaseGDL::ZERO);
     /*   }
      catch( GDLException& ex)
      {
@@ -308,7 +308,7 @@ namespace lib {
       throw GDLException( "Array dimensions must be greater than 0");
 
     if( e->KeywordSet(0)) return new DLong64GDL(dim, BaseGDL::NOZERO);
-    return new DLong64GDL(dim);
+    return new DLong64GDL(dim,BaseGDL::ZERO);
     /*    }
       catch( GDLException& ex)
       {
@@ -324,7 +324,7 @@ namespace lib {
       throw GDLException( "Array dimensions must be greater than 0");
 
     if( e->KeywordSet(0)) return new DULong64GDL(dim, BaseGDL::NOZERO);
-    return new DULong64GDL(dim);
+    return new DULong64GDL(dim,BaseGDL::ZERO);
     /*  }
     catch( GDLException& ex)
     {
@@ -340,7 +340,7 @@ namespace lib {
       throw GDLException( "Array dimensions must be greater than 0");
 
     if( e->KeywordSet(0)) return new DFloatGDL(dim, BaseGDL::NOZERO);
-    return new DFloatGDL(dim);
+    return new DFloatGDL(dim,BaseGDL::ZERO);
     /* }
        catch( GDLException& ex)
        {
@@ -356,7 +356,7 @@ namespace lib {
       throw GDLException( "Array dimensions must be greater than 0");
 
     if( e->KeywordSet(0)) return new DDoubleGDL(dim, BaseGDL::NOZERO);
-    return new DDoubleGDL(dim);
+    return new DDoubleGDL(dim,BaseGDL::ZERO);
     /* }
        catch( GDLException& ex)
        {
@@ -373,7 +373,7 @@ namespace lib {
 
     if( e->KeywordSet(0)) 
       e->Throw( "Keyword parameters not allowed in call.");
-    return new DStringGDL(dim);
+    return new DStringGDL(dim,BaseGDL::ZERO);
     /*   }
      catch( GDLException& ex)
      {
@@ -389,7 +389,7 @@ namespace lib {
       throw GDLException( "Array dimensions must be greater than 0");
 
     if( e->KeywordSet(0)) return new DComplexGDL(dim, BaseGDL::NOZERO);
-    return new DComplexGDL(dim);
+    return new DComplexGDL(dim,BaseGDL::ZERO);
     /*}
       catch( GDLException& ex)
       {
@@ -404,7 +404,7 @@ namespace lib {
     if (dim[0] == 0)
 
       if( e->KeywordSet(0)) return new DComplexDblGDL(dim, BaseGDL::NOZERO);
-    return new DComplexDblGDL(dim);
+    return new DComplexDblGDL(dim,BaseGDL::ZERO);
     /*   }
      catch( GDLException& ex)
      {
@@ -457,7 +457,7 @@ namespace lib {
       throw GDLException( "Array dimensions must be greater than 0");
 
     // reference counting      if( e->KeywordSet(0)) return new DObjGDL(dim, BaseGDL::NOZERO);
-    return new DObjGDL(dim);
+    return new DObjGDL(dim,BaseGDL::ZERO);
     /*  }
     catch( GDLException& ex)
     {
@@ -1830,7 +1830,7 @@ namespace lib {
       }
     else
       {
-        return new Data_<SpDByte>( e2->Dim());
+        return new Data_<SpDByte>( e2->Dim(),BaseGDL::ZERO);
       }
       }
     else if( e2->Scalar()) 
@@ -1847,7 +1847,7 @@ namespace lib {
       }
     else
       {
-        return new Data_<SpDByte>( e1->Dim());
+        return new Data_<SpDByte>( e1->Dim(),BaseGDL::ZERO);
       }
       }
     else if( nEl2 < nEl1) 
@@ -3304,6 +3304,7 @@ namespace lib {
       }
     }
     assert(false);
+    return NULL;
   }
 
 
@@ -3934,7 +3935,7 @@ namespace lib {
 
       // memory allocation
       BaseGDL *maxVal, *resArr = searchArr->New(destDim, BaseGDL::NOZERO);
-      DLongGDL *minElArr, *maxElArr;
+      DLongGDL *minElArr=NULL, *maxElArr=NULL;
 
       if (maxSet) {
         e->AssureGlobalKW(maxIx); // instead of using a guard pointer
@@ -4042,7 +4043,7 @@ namespace lib {
 
       // memory allocation
       BaseGDL *minVal, *resArr = searchArr->New(destDim, BaseGDL::NOZERO);
-      DLongGDL *minElArr, *maxElArr;
+      DLongGDL *minElArr=NULL, *maxElArr=NULL;
 
       if (minSet) {
         e->AssureGlobalKW(minIx); // instead of using a guard pointer

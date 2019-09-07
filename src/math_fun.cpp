@@ -2131,7 +2131,7 @@ namespace lib {
       throw GDLException( "Object reference not allowed in this context.");
     
     // all other types (return array of zeros)
-    DFloatGDL* res = new DFloatGDL( p0->Dim()); // ZERO
+    DFloatGDL* res = new DFloatGDL( p0->Dim(),BaseGDL::ZERO); // ZERO
     return res;
   }
 

@@ -365,7 +365,7 @@ namespace lib {
 	  e->SetPtrToReturnValue(&e->GetPar(0));
       }
     
-    DComplexGDL* tabfft = new DComplexGDL(p0->Dim());
+    DComplexGDL* tabfft = new DComplexGDL(p0->Dim(),BaseGDL::ZERO);
     Guard<DComplexGDL> tabfftGuard( tabfft);
     
     DComplexGDL* p0C = static_cast<DComplexGDL*>

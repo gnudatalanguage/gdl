@@ -134,7 +134,7 @@ namespace lib
           minEl=(minEl<strEl)?minEl:strEl;          
          }
         zEl=minEl;
-        zVal=new DDoubleGDL(dimension(zEl));
+        zVal=new DDoubleGDL(dimension(zEl),BaseGDL::ZERO);
         zval_guard.Reset(zVal); // delete upon exit
         for (SizeT i=0; i< zEl ; ++i) (*zVal)[i]=zValue;
       }

@@ -137,7 +137,7 @@ namespace lib
         }
         //z will be set at Zero unless Z=value is given
         zEl=xEl;
-        zVal=new DDoubleGDL(dimension(zEl));
+        zVal=new DDoubleGDL(dimension(zEl),BaseGDL::ZERO);
         zval_guard.Reset(zVal); // delete upon exit
         for (SizeT i=0; i< zEl ; ++i) (*zVal)[i]=zValue;
       }
@@ -389,8 +389,8 @@ namespace lib
             break;
           }
         }
-        DDoubleGDL *xValou=new DDoubleGDL(dimension(xEl));
-        DDoubleGDL *yValou=new DDoubleGDL(dimension(yEl));
+        DDoubleGDL *xValou=new DDoubleGDL(dimension(xEl),BaseGDL::ZERO);
+        DDoubleGDL *yValou=new DDoubleGDL(dimension(yEl),BaseGDL::ZERO);
         Guard<BaseGDL> xval_guard, yval_guard;
         xval_guard.reset(xValou);
         yval_guard.reset(yValou);

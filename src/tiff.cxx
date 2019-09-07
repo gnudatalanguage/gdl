@@ -262,15 +262,15 @@ namespace lib
             }
 
             switch(dir.PixelType()) {
-            case GDL_BYTE:      addScanline = createScanlineFn(image, new DByteGDL(dim));       break;
-            case GDL_UINT:      addScanline = createScanlineFn(image, new DUIntGDL(dim));       break;
-            case GDL_ULONG:     addScanline = createScanlineFn(image, new DULongGDL(dim));      break;
-            case GDL_ULONG64:   addScanline = createScanlineFn(image, new DULong64GDL(dim));    break;
-            case GDL_INT:       addScanline = createScanlineFn(image, new DIntGDL(dim));        break;
-            case GDL_LONG:      addScanline = createScanlineFn(image, new DLongGDL(dim));       break;
-            case GDL_LONG64:    addScanline = createScanlineFn(image, new DLong64GDL(dim));     break;
-            case GDL_FLOAT:     addScanline = createScanlineFn(image, new DFloatGDL(dim));      break;
-            case GDL_DOUBLE:    addScanline = createScanlineFn(image, new DDoubleGDL(dim));     break;
+            case GDL_BYTE:      addScanline = createScanlineFn(image, new DByteGDL(dim ,BaseGDL::ZERO));       break;
+            case GDL_UINT:      addScanline = createScanlineFn(image, new DUIntGDL(dim ,BaseGDL::ZERO));       break;
+            case GDL_ULONG:     addScanline = createScanlineFn(image, new DULongGDL(dim,BaseGDL::ZERO));      break;
+            case GDL_ULONG64:   addScanline = createScanlineFn(image, new DULong64GDL(dim,BaseGDL::ZERO));    break;
+            case GDL_INT:       addScanline = createScanlineFn(image, new DIntGDL(dim,BaseGDL::ZERO));        break;
+            case GDL_LONG:      addScanline = createScanlineFn(image, new DLongGDL(dim,BaseGDL::ZERO));       break;
+            case GDL_LONG64:    addScanline = createScanlineFn(image, new DLong64GDL(dim,BaseGDL::ZERO));     break;
+            case GDL_FLOAT:     addScanline = createScanlineFn(image, new DFloatGDL(dim,BaseGDL::ZERO));      break;
+            case GDL_DOUBLE:    addScanline = createScanlineFn(image, new DDoubleGDL(dim,BaseGDL::ZERO));     break;
 
             default:
                 fprintf(stderr, "Unsupported PIXEL_TYPE: %d\n", dir.PixelType());
