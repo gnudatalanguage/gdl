@@ -212,6 +212,7 @@ TESTS = \
   test_structures.pro \
   test_suite.pro \
   test_systime.pro \
+  test_tag_names.pro \
   test_tic_toc.pro \
   test_tiff.pro \
   test_total.pro \

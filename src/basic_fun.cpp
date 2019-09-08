@@ -6962,18 +6962,22 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
   BaseGDL* tag_names_fun( EnvT* e)
   {
     SizeT nParam=e->NParam();
-
-    DObjGDL* obj = e->GetParAs<DObjGDL>(0);
-    DObj objRef;
+    BaseGDL* p = e->GetParDefined(0);
     DStructGDL* struc = nullptr;
-    if( obj && obj->Scalar( objRef ) ) {
-      try {
-        struc = e->GetObjHeap( objRef );
-      } catch ( GDLInterpreter::HeapException& ) { }
+    if( p->Type() == DObjGDL::t ) {
+        DObjGDL* obj = static_cast<DObjGDL*>( p);
+        DObj objRef;
+        if( obj && obj->Scalar( objRef ) ) {
+        try {
+            struc = e->GetObjHeap( objRef );
+        } catch ( GDLInterpreter::HeapException& ) { }
+        }
+    } else if( p->Type() == DStructGDL::t ) {
+       struc = static_cast<DStructGDL*>( p);
     }
-    
+
     if( !struc ) {
-      struc = e->GetParAs<DStructGDL>(0);
+        e->Throw( "Error: Failed to obtain structure. Input type: " + p->TypeStr() );
     }
 
     static int structureNameIx = e->KeywordIx( "STRUCTURE_NAME" );
