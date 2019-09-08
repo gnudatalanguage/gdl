@@ -124,6 +124,8 @@ void LibInit()
   new DLibPro(lib::svdc,string("SVDC"),4,svdcKey);
 
   new DLibFunRetNew(lib::temporary,string("TEMPORARY"),1);
+  
+  new DLibFunRetNew(lib::terminal_size_fun,string("TERMINAL_SIZE"),0);
 
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
 				  "PARAMETERS","SOURCE", KLISTEND};
