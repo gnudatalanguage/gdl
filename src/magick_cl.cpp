@@ -41,26 +41,19 @@
 #include "magick_cl.hpp"
 #include "graphicsdevice.hpp"
 
+#define GDL_DEBUG
+//#undef GDL_DEBUG
+
 // If Magick has not been initialized, do it here, instead of initilizing it in the main program (speedup and avoid strange backtraces)
-// Removed warning about limitations due to local implementation of Magick library, replacing them by a message if the library handles more than 9 bit images.
+// Also warn about limitations due to local implementation of Magick library.
 //We should do more, by example hat octave people do in their code (they circumvent some other limitations)
 #define START_MAGICK  \
     if (notInitialized ) { \
       notInitialized = false; \
         Magick::InitializeMagick(NULL);  \
-      if ( QuantumDepth > 8) Message("Using an installed "+std::string(MagickPackageName)+" library with "+\
-      i2s(QuantumDepth)+" bits per pixel."); \
+      if ( QuantumDepth < 32) fprintf(stderr, "%% WARNING: your version of the %s library will truncate images to %d bits per pixel\n", \
+              MagickPackageName, QuantumDepth); \
     }
-
-#define HANDLE_EXCEPTIONS \
-catch (Magick::Warning &warning_) { \
-        cerr << warning_.what() << endl; \
-      } catch (Magick::Exception &error_) { \
-        if (strstr(error_.what(),"delegates.mgk")!=NULL) e->Throw(" GraphicsMagick Error: "+std::string(error_.what())+"\n GraphicsMagick does not seem to be installed on your system."); else \
-        e->Throw(" GraphicsMagick Error: "+std::string(error_.what())); \
-      } catch (...) { \
-        e->Throw(" Unexpected Error: "); \
-      }
 
 namespace lib {
 
@@ -125,13 +118,17 @@ namespace lib {
       Image a;
       try {
         a.read(filename);
-      } HANDLE_EXCEPTIONS;
+      } catch (WarningCoder &warning_) {
+        cerr << warning_.what() << endl;
+      }
       if ((a.rows() * a.columns()) == 0) e->Throw("Error reading image dimensions!");
       a.flip();
       unsigned int mid;
       mid = magick_image(e, a);
       return new DUIntGDL(mid);
-    } HANDLE_EXCEPTIONS;
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
     return NULL; //pacify -Wreturn-type
   }
 
@@ -154,10 +151,11 @@ namespace lib {
       Image a;
       try {
         a.ping(filename);
+        //a.read(filename);
+      } catch (WarningCoder &warning_) {
+        cerr << warning_.what() << endl;
       }
-      
-      HANDLE_EXCEPTIONS ;
-      
+
       if (nParam == 2) {
         DString magick;
         e->AssureScalarPar<DStringGDL>(1, magick);
@@ -336,7 +334,9 @@ namespace lib {
         return new DUIntGDL(mid);
       }
 
-    } HANDLE_EXCEPTIONS;
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
     return NULL; //pacify -Wreturn-type
   }
   
@@ -354,7 +354,9 @@ namespace lib {
       gValid[mid] = 0;
       gImage[mid] = NULL;
       if (gCount - 1 == mid) gCount--;
-    } HANDLE_EXCEPTIONS;
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
   }
 
   //image=MAGICK_READINDEXES(mid) //read an indexed image.
@@ -412,7 +414,9 @@ namespace lib {
         image.write(0, 0, columns, rows, map, CharPixel, &(*bImage)[0]);
         return bImage;
       }
-    } HANDLE_EXCEPTIONS;
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
     return NULL; //pacify -Wreturn-type
   }
 
@@ -488,7 +492,9 @@ namespace lib {
         e->Throw("Not an indexed image: " + e->GetParString(0));
       }
 
-    } HANDLE_EXCEPTIONS ;
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
   }
 // iImage = MAGIC_READ(magic_id [,RGB=rgb_code] [,SUB_RECT=[a,b,c,d]] [,MAP=map_code])
 // rgb_code is 0="BGR", 1="RGB", 2="RBG", 3="BRG", 4="GRB", 5="GBR"
@@ -569,7 +575,10 @@ namespace lib {
         e->Throw("Unsupported bit depth");
       }
 
-    } HANDLE_EXCEPTIONS ;
+
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
     return NULL; //pacify -Wreturn-type
   }
 
@@ -654,7 +663,10 @@ namespace lib {
       }
       image.flip();
       magick_replace(e, mid, image);
-    } HANDLE_EXCEPTIONS ;
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
+
   }
 //MAGICK_WRITEFILE, mid, filename, imageType
   void magick_writefile(EnvT* e) {
@@ -676,7 +688,9 @@ namespace lib {
       }
       image.write(filename);
       magick_replace(e, mid, image);
-    } HANDLE_EXCEPTIONS ;
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
   }
 
   //Attributes
@@ -697,8 +711,9 @@ namespace lib {
       }
 
       return new DLongGDL(image.colorMapSize());
-    } HANDLE_EXCEPTIONS ;
-
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
     return NULL; //pacify -Wreturn-type
   }
 
@@ -718,8 +733,9 @@ namespace lib {
       }
 
       return new DStringGDL(image.magick());
-    } HANDLE_EXCEPTIONS ;
-
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
     return NULL; //pacify -Wreturn-type
   }
 
@@ -731,8 +747,9 @@ namespace lib {
       e->AssureScalarPar<DUIntGDL>(0, mid);
       Image image = magick_image(e, mid);
       return new DLongGDL(image.rows());
-    } HANDLE_EXCEPTIONS ;
-
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
     return NULL; //pacify -Wreturn-type
   }
 
@@ -744,8 +761,9 @@ namespace lib {
       e->AssureScalarPar<DUIntGDL>(0, mid);
       Image image = magick_image(e, mid);
       return new DLongGDL(image.columns());
-    } HANDLE_EXCEPTIONS ;
-
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
     return NULL; //pacify -Wreturn-type
   }
 //bool=MAGICK_INDEXEDCOLOR(mid)
@@ -760,8 +778,9 @@ namespace lib {
         return new DIntGDL(0);
       if (image.classType() == PseudoClass)
         return new DIntGDL(1);
-    } HANDLE_EXCEPTIONS ;
-
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
     return NULL; //pacify -Wreturn-type
   }
 
@@ -780,8 +799,9 @@ namespace lib {
       Image image = magick_image(e, mid);
       image.quality(q);
       magick_replace(e, mid, image);
-    } HANDLE_EXCEPTIONS ;
-
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
   }
 
 
@@ -795,8 +815,9 @@ namespace lib {
       Image image = magick_image(e, mid);
       image.flip();
       magick_replace(e, mid, image);
-    } HANDLE_EXCEPTIONS ;
-
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
   }
 //MAGICK_MATTE, mid
   void magick_matte(EnvT* e) {
@@ -808,8 +829,9 @@ namespace lib {
       image.matte(true);
 
       magick_replace(e, mid, image);
-    } HANDLE_EXCEPTIONS ;
-
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
   }
   //MAGICK_MATTECOLOR, mid, index
   void magick_mattecolor(EnvT* e) {
@@ -824,8 +846,9 @@ namespace lib {
 
         magick_replace(e, mid, image);
       }
-    } HANDLE_EXCEPTIONS ;
-
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
   }
 //MAGICK_INTERLACE, mid, /NOINTERLACE, /LINEINTERLACE, /PLANEINTERLACE
   void magick_interlace(EnvT* e) {
@@ -848,8 +871,9 @@ namespace lib {
         image.interlaceType(PlaneInterlace);
 
       magick_replace(e, mid, image);
-    } HANDLE_EXCEPTIONS ;
-
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
   }
 //MAGICK_ADDNOISE,mid, /UNIFORMNOISE, /GAUSSIANNOISE, /MULTIPLICATIVEGAUSSIANNOISE, /IMPULSENOISE, /LAPLACIANNOISE",
  // /POISSONNOISE, NOISE=value
@@ -894,8 +918,9 @@ namespace lib {
         image.addNoise(UniformNoise);
 
       magick_replace(e, mid, image);
-    } HANDLE_EXCEPTIONS ;
-
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
   }
 //MAGICK_QUANTIZE, mid [, ncolors] [,/TRUECOLOR] [,/YUV] [,/GRAYSCALE] [,/DITHER]
   void magick_quantize(EnvT* e) {
@@ -938,8 +963,9 @@ namespace lib {
       }
 
       magick_replace(e, mid, image);
-    } HANDLE_EXCEPTIONS ;
-
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
   }
 
   //MAGICK_DISPLAY,mid
@@ -986,8 +1012,9 @@ namespace lib {
       image.syncPixels();
 
       magick_replace(e, mid, image);
-    } HANDLE_EXCEPTIONS ;
-
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
   }
 
   //MAGICK_WRITECOLORTABLE,mid[,r,g,b]
@@ -1037,8 +1064,9 @@ namespace lib {
         for (unsigned long c = 0; c < n; ++c) image.colorMap(c, ColorRGB((double)r[c] / 255., (double)g[c] / 255., (double)b[c] / 255.));
       }
       magick_replace(e, mid, image);
-    } HANDLE_EXCEPTIONS ;
-
+    } catch (Exception &error_) {
+      e->Throw(error_.what());
+    }
   }
 
 
@@ -1052,8 +1080,10 @@ namespace lib {
 
     magick_replace(e,mid,image);      
     }
-    HANDLE_EXCEPTIONS ;
-
+    catch (Exception &error_ )
+      {
+        e->Throw(error_.what());
+      }
   }
    */
 
