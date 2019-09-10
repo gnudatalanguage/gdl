@@ -1840,7 +1840,7 @@ namespace lib {
       DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
       if( nEl == 1)
 	{
-	  (*res)[ 0] = (DLong64) floor((*p0C)[ 0]); 
+	  (*res)[ 0] = floor((*p0C)[ 0]); 
 	  return res;	      
 	}
       TRACEOMP( __FILE__, __LINE__)
@@ -1849,7 +1849,7 @@ namespace lib {
 #pragma omp for
 	  for( OMPInt i=0; i<nEl; ++i)
 	    {
-	      (*res)[ i] = (DLong64) floor((*p0C)[ i]); 
+	      (*res)[ i] = floor((*p0C)[ i]); 
 	    }
 	}
       return res;
@@ -1857,7 +1857,7 @@ namespace lib {
       DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
       if( nEl == 1)
 	{
-	  (*res)[ 0] = (int) floor((*p0C)[ 0]); 
+	  (*res)[ 0] = (DLong) floor((*p0C)[ 0]); 
 	  return res;	      
 	}
       TRACEOMP( __FILE__, __LINE__)
@@ -1866,7 +1866,7 @@ namespace lib {
 #pragma omp for
 	  for( OMPInt i=0; i<nEl; ++i)
 	    {
-	      (*res)[ i] = (int) floor((*p0C)[ i]); 
+	      (*res)[ i] = (DLong) floor((*p0C)[ i]); 
 	    }
 	}
       return res;
@@ -1876,147 +1876,107 @@ namespace lib {
   BaseGDL* floor_fun( EnvT* e)
   {
     e->NParam( 1);//, "FLOOR");
-
+	DType  pType =e->GetPar(0)->Type();     
+    if (!(NumericType(pType))) e->Throw(e->GetPar(0)->TypeStr()+" expression: not allowed in this context: "+e->GetParString(0));
+    
     BaseGDL* p0 = e->GetParDefined( 0);//, "FLOOR");
 
     SizeT nEl = p0->N_Elements();
-    if( nEl == 0)
-      e->Throw( 
-	       "Variable is undefined: "+e->GetParString(0));
+    if( nEl == 0) e->Throw("Variable is undefined: "+e->GetParString(0));
+    
+//L64 means it: output IS ALWAYS L64.
+    if (e->KeywordSet( 0 )){ //L64, same place in ceil and floor.
+      if (p0->Type() == GDL_COMPLEX) {
+        DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
+        SizeT nEl = p0->N_Elements();
+          DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+          if (nEl == 1) {
+            DComplex& C = (*p0C)[ 0];
+            (*res)[ 0] = (DLong64) floor(C.real());
+            return res;
+          }
 
-    bool isKWSetL64 = e->KeywordSet( 0 ); //L64, same place in ceil and floor.
+          TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          {
+#pragma omp for
+            for (OMPInt i = 0; i < nEl; ++i) {
+              DComplex& C = (*p0C)[ i];
+              (*res)[ i] = (DLong64) floor(C.real());
+            }
+          }
+          return res;
+      } else if (p0->Type() == GDL_COMPLEXDBL) {
+        DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (p0);
+        SizeT nEl = p0->N_Elements();
+          DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
+          if (nEl == 1) {
+            DComplexDbl& C = (*p0C)[ 0];
+            (*res)[ 0] = (DLong64) floor(C.real());
+            return res;
+          }
 
-    if( p0->Type() == GDL_COMPLEX)
-      {
-	DComplexGDL* p0C = static_cast<DComplexGDL*>( p0);
-	SizeT nEl = p0->N_Elements();
-
-	// L64 keyword support
-	if (isKWSetL64) {
-	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
-	  if( nEl == 1)
-	    {
-	      DComplex& C = (*p0C)[ 0];
-	      (*res)[ 0] = (DLong64) floor(C.real());
-	      return res;	      
-	    }
-	  TRACEOMP( __FILE__, __LINE__)
+          TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	    {
+          {
 #pragma omp for
-	      for( OMPInt i=0; i<nEl; ++i)
-		{
-		  DComplex& C = (*p0C)[ i];
-		  (*res)[ i] = (DLong64) floor(C.real());
-		}
-	    }
-	  return res;
-	} else {
-	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
-	  if( nEl == 1)
-	    {
-	      DComplex& C = (*p0C)[ 0];
-	      (*res)[ 0] = (int) floor(C.real());
-	      return res;	      
-	    }
-	  TRACEOMP( __FILE__, __LINE__)
+            for (OMPInt i = 0; i < nEl; ++i) {
+              DComplexDbl& C = (*p0C)[ i];
+              (*res)[ i] = (DLong64) floor(C.real());
+            }
+          }
+          return res;
+      } 
+      else if (p0->Type() == GDL_DOUBLE)
+        return floor_fun_template< DDoubleGDL>(p0, true);
+      else if (p0->Type() == GDL_FLOAT)
+        return floor_fun_template< DFloatGDL>(p0, true);
+      else if (p0->Type() == GDL_LONG64) return p0->Dup();
+      else return p0->Convert2(GDL_LONG64, BaseGDL::COPY);
+    } else {
+      if (p0->Type() == GDL_COMPLEX) {
+        DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
+        SizeT nEl = p0->N_Elements();
+          DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+          if (nEl == 1) {
+            DComplex& C = (*p0C)[ 0];
+            (*res)[ 0] = (int) floor(C.real());
+            return res;
+          }
+          TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	    {
+          {
 #pragma omp for
-	      for( OMPInt i=0; i<nEl; ++i)
-		{
-		  DComplex& C = (*p0C)[ i];
-		  (*res)[ i] = (int) floor(C.real());
-		}
-	    }
-	  return res;
-	}
-      }
-    else if( p0->Type() == GDL_COMPLEXDBL)
-      {
-	DComplexDblGDL* p0C = static_cast<DComplexDblGDL*>( p0);
-	SizeT nEl = p0->N_Elements();
-
-	// L64 keyword support
-	if (isKWSetL64) {
-	  DLong64GDL* res = new DLong64GDL(p0C->Dim(), BaseGDL::NOZERO);
-	  if( nEl == 1)
-	    {
-	      DComplexDbl& C = (*p0C)[ 0];
-	      (*res)[ 0] = (DLong64) floor(C.real());
-	      return res;	      
-	    }
-	  TRACEOMP( __FILE__, __LINE__)
+            for (OMPInt i = 0; i < nEl; ++i) {
+              DComplex& C = (*p0C)[ i];
+              (*res)[ i] = (int) floor(C.real());
+            }
+          }
+          return res;
+      } else if (p0->Type() == GDL_COMPLEXDBL) {
+        DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (p0);
+        SizeT nEl = p0->N_Elements();
+          DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
+          if (nEl == 1) {
+            DComplexDbl& C = (*p0C)[ 0];
+            (*res)[ 0] = (int) floor(C.real());
+            return res;
+          }
+          TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	    {
+          {
 #pragma omp for
-	      for( OMPInt i=0; i<nEl; ++i)
-		{
-		  DComplexDbl& C = (*p0C)[ i];
-		  (*res)[ i] = (DLong64) floor(C.real());
-		}
-	    }
-	  return res;
-	} else {
-	  DLongGDL* res = new DLongGDL(p0C->Dim(), BaseGDL::NOZERO);
-	  if( nEl == 1)
-	    {
-	      DComplexDbl& C = (*p0C)[ 0];
-	      (*res)[ 0] = (int) floor(C.real());
-	      return res;	      
-	    }
-	  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	    {
-#pragma omp for
-	      for( OMPInt i=0; i<nEl; ++i)
-		{
-		  DComplexDbl& C = (*p0C)[ i];
-		  (*res)[ i] = (int) floor(C.real());
-		}
-	    }
-	  return res;
-	}
-      }
-    else if( p0->Type() == GDL_DOUBLE)
-      return floor_fun_template< DDoubleGDL>( p0, isKWSetL64);
-    else if( p0->Type() == GDL_FLOAT)
-      return floor_fun_template< DFloatGDL>( p0, isKWSetL64);
-    else if( p0->Type() == GDL_LONG64)
-      return p0->Dup();
-    else if( p0->Type() == GDL_LONG)
-      return p0->Dup();
-    else if( p0->Type() == GDL_INT)
-      return p0->Dup();
-    else if( p0->Type() == GDL_ULONG64)
-      return p0->Dup();
-    else if( p0->Type() == GDL_ULONG)
-      return p0->Dup();
-    else if( p0->Type() == GDL_UINT)
-      return p0->Dup();
-    else if( p0->Type() == GDL_BYTE)
-      return p0->Dup();
-    else 
-      {
-	DFloatGDL* p0F = e->GetParAs<DFloatGDL>( 0);
-	DLongGDL* res = new DLongGDL(p0->Dim(), BaseGDL::NOZERO);
-	SizeT nEl = p0->N_Elements();
-	if( nEl == 1)
-	  {
-	    (*res)[ 0] = (int) floor((double) (*p0F)[ 0]); 
-	    return res;	      
-	  }
-	TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	  {
-#pragma omp for
-	    for( OMPInt i=0; i<nEl; ++i)
-	      {
-		(*res)[ i] = (int) floor((double) (*p0F)[ i]); 
-	      }
-	  }
-	return res;
-      }
+            for (OMPInt i = 0; i < nEl; ++i) {
+              DComplexDbl& C = (*p0C)[ i];
+              (*res)[ i] = (int) floor(C.real());
+            }
+          }
+          return res;
+      } 
+      else if (p0->Type() == GDL_DOUBLE) return floor_fun_template< DDoubleGDL>(p0, false);
+      else if (p0->Type() == GDL_FLOAT) return floor_fun_template< DFloatGDL>(p0, false);
+      else return p0->Dup();
+    }
   }
 
   
