@@ -6962,29 +6962,46 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
   BaseGDL* tag_names_fun( EnvT* e)
   {
     SizeT nParam=e->NParam();
-    DStructGDL* struc= e->GetParAs<DStructGDL>(0);
+    BaseGDL* p = e->GetParDefined(0);
+    DStructGDL* struc = nullptr;
+    if( p->Type() == DObjGDL::t ) {
+        DObjGDL* obj = static_cast<DObjGDL*>( p);
+        DObj objRef;
+        if( obj && obj->Scalar( objRef ) ) {
+        try {
+            struc = e->GetObjHeap( objRef );
+        } catch ( GDLInterpreter::HeapException& ) { }
+        }
+    } else if( p->Type() == DStructGDL::t ) {
+       struc = static_cast<DStructGDL*>( p);
+    }
+
+    if( !struc ) {
+        e->Throw( "Error: Failed to obtain structure. Input type: " + p->TypeStr() );
+    }
 
     static int structureNameIx = e->KeywordIx( "STRUCTURE_NAME" );
     bool structureName = e->KeywordSet( structureNameIx );
-    
+
     DStringGDL* tagNames;
 
     if(structureName){
         
-      if ((*struc).Desc()->Name() != "$truct")
-    tagNames =  new DStringGDL((*struc).Desc()->Name());
-      else
-    tagNames =  new DStringGDL("");
-
+      if ((*struc).Desc()->Name() != "$truct") {
+        tagNames =  new DStringGDL((*struc).Desc()->Name());
+      } else {
+        tagNames =  new DStringGDL("");
+      }
     } else {
       SizeT nTags = (*struc).Desc()->NTags();
-    
       tagNames = new DStringGDL(dimension(nTags));
-      for(int i=0; i < nTags; ++i)
+      for(int i=0; i < nTags; ++i) {
         (*tagNames)[i] = (*struc).Desc()->TagName(i);
+      }
     }
 
     return tagNames;
+      
   }
 
   // AC 12-Oc-2011: better version for: len=len, /Extract and /Sub
