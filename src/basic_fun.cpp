@@ -7165,13 +7165,12 @@ BaseGDL* routine_filepath( EnvT* e)
     if( nParam > 0)  {
         BaseGDL* p0 = e->GetParDefined( 0);
         if( p0->Type() != GDL_STRING)
-          e->Throw("String expression required in this context: " + e->GetParString(0));
+        e->Throw("String expression required in this context: " + e->GetParString(0));
         p0S = static_cast<DStringGDL*>( p0);
-      } else {          // routine_filepath()
-        p0S = new DStringGDL(
-            dynamic_cast<DSubUD*>((e->Caller())->GetPro())->Name());
+    } else {          // routine_filepath()
+        p0S = new DStringGDL( dynamic_cast<DSubUD*>((e->Caller())->GetPro())->ObjectName() );
         p0S_guard.Init(p0S);
-        }
+    }
 
     static int is_functionIx = e->KeywordIx( "IS_FUNCTION" );
     bool is_functionKW = e->KeywordSet( is_functionIx );
@@ -7184,31 +7183,57 @@ BaseGDL* routine_filepath( EnvT* e)
 
     DString name;
     string FullFileName;
-    for(int i = 0; i < nPath; i ++) {
+    for(int i = 0; i < nPath; i++) {
 
-        name = StrUpCase((*p0S)[i]);      
+        name = StrUpCase((*p0S)[i]);
+
         bool found=false;
         FullFileName = "";
-
-        if( eitherKW || !is_functionKW) {
-            for(ProListT::iterator i=proList.begin();
-                                    i != proList.end(); ++i)
-              if ((*i)->ObjectName() == name) {
-                found=true;
-                FullFileName=(*i)->GetFilename();
-                break;
-              }
-          }
-          
-        if (!found && (is_functionKW || eitherKW)) {
-            for(FunListT::iterator i=funList.begin();
-                                    i != funList.end(); ++i)
-              if ((*i)->ObjectName() == name) {
-                found=true;
-                FullFileName=(*i)->GetFilename();
-                break;
-              }
-          } 
+        
+        size_t pos(0);
+        if( (pos=name.find("::")) != DString::npos ) {
+            DString struct_tag = name.substr( 0, pos );
+            DString method_name = name.substr( pos+2 );
+            for( auto& s: structList ) {
+                if( s && (s->Name() != struct_tag) ) continue;
+                if( eitherKW || !is_functionKW ) {
+                    DPro* pp = s->FindInProList(method_name);
+                    if( pp ) {
+                        found = true;
+                        FullFileName = pp->GetFilename();
+                        break;
+                    }
+                }
+                if( !found && (is_functionKW || eitherKW) ) {
+                    DFun* fp = s->FindInFunList(method_name);
+                    if( fp ) {
+                        found = true;
+                        FullFileName = fp->GetFilename();
+                        break;
+                    }
+                }
+            }
+        } else {
+            if( eitherKW || !is_functionKW) {
+                for(ProListT::iterator i=proList.begin();
+                                        i != proList.end(); ++i)
+                if ((*i)->ObjectName() == name) {
+                    found=true;
+                    FullFileName=(*i)->GetFilename();
+                    break;
+                }
+            }
+            if (!found && (is_functionKW || eitherKW)) {
+                for(FunListT::iterator i=funList.begin();
+                                        i != funList.end(); ++i)
+                if ((*i)->ObjectName() == name) {
+                    found=true;
+                    FullFileName=(*i)->GetFilename();
+                    break;
+                }
+            } 
+        }
+        
         (*res)[i] = FullFileName;
     }
 //    if(nParam == 0) return new DStringGDL(FullFileName);
