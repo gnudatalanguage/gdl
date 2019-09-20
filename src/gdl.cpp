@@ -178,6 +178,7 @@ static bool trace_me;
 // SA: for use in COMMAND_LINE_ARGS()
 namespace lib {
   extern std::vector<std::string> command_line_args;
+  bool posixpaths;
   bool gdlarg_present(const char* s)
   {
 		for (size_t i = 0; i < command_line_args.size(); i++)
@@ -215,7 +216,10 @@ int main(int argc, char *argv[])
   bool force_no_wxgraphics = false;
 
   useDSFMTAcceleration = true;
-
+    lib::posixpaths = false;
+    #ifndef _WIN32
+      lib::posixpaths = true;
+    #endif
   for( SizeT a=1; a< argc; ++a)
     {
       if( string( argv[a]) == "--help" | string( argv[a]) == "-h")
@@ -335,6 +339,10 @@ int main(int argc, char *argv[])
       {
           useWxWidgetsForGraphics = true;
       }      
+      else if (string(argv[a]) == "--posix")
+    {
+    lib::posixpaths=true;
+	}
       else if (string(argv[a]) == "--no-use-wx")
       {
            force_no_wxgraphics = true;

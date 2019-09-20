@@ -47,14 +47,18 @@ if KEYWORD_SET(search_path) then begin
       MESSAGE, /info, 'Conflicting keywords specified. Returning SEARCH_PATH.'
    endif
    array = [':', ';']
-endif else begin
-   if KEYWORD_SET(parent_directory) then begin
-      return, '..'
-   endif else begin
+endif
+if KEYWORD_SET(parent_directory) then return, '..'
+defsysv,'!gdl',exist=exist
+if exist then begin
+    ret = '/'
+    catch, badname
+    if badname then return, ret
+    if ~ !gdl.gdl_posix then ret = '\' 
+    catch,/cancel
+    return, ret
+endif
       array = ['/', '\']
-   endelse
-endelse
-
 OS = ['unix', 'Windows']
 iOS = WHERE(OS eq !version.os_family)
 

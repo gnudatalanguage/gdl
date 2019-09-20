@@ -542,6 +542,7 @@ namespace SysVar
     gdlStruct->NewTag("EPOCH", new DLongGDL((long) t_of_day));
     gdlStruct->NewTag("GDL_NO_DSFMT", new DByteGDL(0));
     gdlStruct->NewTag("GDL_USE_WX", new DByteGDL(0));
+    gdlStruct->NewTag("GDL_POSIX", new DByteGDL(lib::posixpaths));
     gdlStruct->NewTag("MAP_QUALITY", new DStringGDL("CRUDE"));
 
     DVar *gdl        = new DVar( "GDL", gdlStruct);
