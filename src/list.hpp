@@ -23,7 +23,6 @@
 void LIST__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* actPosPtr);
 
 DStructGDL*GetOBJ( BaseGDL* selfP, EnvUDT* e);
-DStructGDL*GetSELF( BaseGDL* selfP, EnvUDT* e);
 
 namespace lib {
 
