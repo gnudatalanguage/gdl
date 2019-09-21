@@ -181,6 +181,8 @@ namespace lib {
   BaseGDL* scope_varname_fun( EnvT* e);
   BaseGDL* mean_fun(EnvT* e); 
   BaseGDL* moment_fun(EnvT* e); 
+  bool gdlarg_present(const char *s);
+  bool trace_arg();
 } // namespace
 
 #endif

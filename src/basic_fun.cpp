@@ -8277,6 +8277,18 @@ BaseGDL* parse_url( EnvT* env)
     return ret;
       }
   }
+  bool gdlarg_present(const char* s)
+  {
+		for (size_t i = 0; i < command_line_args.size(); i++)
+			  if( command_line_args[i] == s )  return true;
+		return false;
+		  }
+  bool trace_arg()
+  {
+		for (size_t i = 0; i < command_line_args.size(); i++) 
+			  if( command_line_args[i] == "trace" )  return true;
+		return false;
+   }
 
   // SA: relies in the uname() from libc (must be there if POSIX)
   BaseGDL* get_login_info( EnvT* e)
