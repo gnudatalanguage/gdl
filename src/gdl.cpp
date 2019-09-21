@@ -178,7 +178,7 @@ static bool trace_me;
 // SA: for use in COMMAND_LINE_ARGS()
 namespace lib {
   extern std::vector<std::string> command_line_args;
-  bool posixpaths;
+  extern bool posixpaths;
   bool gdlarg_present(const char* s)
   {
 		for (size_t i = 0; i < command_line_args.size(); i++)

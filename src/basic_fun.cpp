@@ -132,6 +132,7 @@ static bool trace_me(false);
 namespace lib {
   bool trace_arg();
   bool gdlarg_present(const char* s);
+  bool posixpaths;
   SizeT HASH_count( DStructGDL* oStructGDL);
   SizeT LIST_count( DStructGDL* oStructGDL);
   
