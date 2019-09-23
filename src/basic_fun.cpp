@@ -72,8 +72,6 @@ extern "C" char **environ;
 #include "typedefs.hpp"
 #include "base64.hpp"
 #include "objects.hpp"
-//#include "file.hpp"
-
 
 #ifdef HAVE_LOCALE_H
 # include <locale.h>
@@ -2142,7 +2140,7 @@ namespace lib {
       e->Throw( "Search string must be a scalar or one element array: "+
         e->GetParString( 1));
 
-    unsigned long pos = string::npos;
+    unsigned long pos = (unsigned long) string::npos;
     if( nParam > 2)
       {
     BaseGDL* p2 = e->GetParDefined(2);

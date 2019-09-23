@@ -19,7 +19,9 @@
 #define FILE_HPP_
 
 namespace lib {
+#ifdef _WIN32
   extern bool posixpaths;
+#endif
 
   // library functions
   BaseGDL* file_test( EnvT* e);
@@ -48,9 +50,9 @@ namespace lib {
   
   // helper functions
   void ExpandPath( FileListT& result,
-		   const DString& dirN, 
-		   const DString& pat,
-		   bool all_dirs = false);
+           const DString& dirN, 
+           const DString& pat,
+           bool all_dirs = false);
 
   DString GetCWD(); // also used by gdljournal.cpp
 

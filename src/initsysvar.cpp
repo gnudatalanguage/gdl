@@ -92,12 +92,12 @@ namespace SysVar
     long   sPos=0;
     do
       {
-	d=newPath.find(pathsep[0],sPos);
-	string act = newPath.substr(sPos,d-sPos);
-	
-	lib::ExpandPath( sArr, act, "*.pro");
-	
-	sPos=d+1;
+    d=newPath.find(pathsep[0],sPos);
+    string act = newPath.substr(sPos,d-sPos);
+    
+    lib::ExpandPath( sArr, act, "*.pro");
+    
+    sPos=d+1;
       }
     while( d != newPath.npos);
 
@@ -170,7 +170,7 @@ namespace SysVar
 //    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("X_SIZE"), 0)))[0] = xSizeGG;
 //    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ySizeGG;
 //    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xSizeGG;
-//    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ySizeGG;	    
+//    (*static_cast<DLongGDL*>(dD->GetTag(dD->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ySizeGG;       
 //  }
 
   // returns array of path strings
@@ -197,9 +197,9 @@ namespace SysVar
 
     do
       {
-	d=path.find(pathsep[0],sPos);
-	sArr.push_back(path.substr(sPos,d-sPos));
-	sPos=d+1;
+    d=path.find(pathsep[0],sPos);
+    sArr.push_back(path.substr(sPos,d-sPos));
+    sPos=d+1;
       }
     while( d != path.npos);
 
@@ -522,7 +522,7 @@ namespace SysVar
     if (MyDate.find("Oct")!=string::npos) CompilationMonth=10;
     if (MyDate.find("Nov")!=string::npos) CompilationMonth=11;
     if (MyDate.find("Dec")!=string::npos) CompilationMonth=12;
-		     
+             
     //cout << SCompilationYear << " "<< CompilationMonth <<endl;
     //cout << CompilationYear<< endl;
     struct tm t;
@@ -542,7 +542,11 @@ namespace SysVar
     gdlStruct->NewTag("EPOCH", new DLongGDL((long) t_of_day));
     gdlStruct->NewTag("GDL_NO_DSFMT", new DByteGDL(0));
     gdlStruct->NewTag("GDL_USE_WX", new DByteGDL(0));
+#ifdef _WIN32
     gdlStruct->NewTag("GDL_POSIX", new DByteGDL(lib::posixpaths));
+#else
+    gdlStruct->NewTag("GDL_POSIX", new DByteGDL(1));
+#endif
     gdlStruct->NewTag("MAP_QUALITY", new DStringGDL("CRUDE"));
 
     DVar *gdl        = new DVar( "GDL", gdlStruct);
@@ -815,13 +819,13 @@ namespace SysVar
     DStructGDL*  valuesData = new DStructGDL( "!VALUES");
     if( std::numeric_limits< DFloat>::has_infinity)
       {
-	valuesData->NewTag("F_INFINITY", 
-			   new DFloatGDL( std::numeric_limits< DFloat>::infinity())); 
+    valuesData->NewTag("F_INFINITY", 
+               new DFloatGDL( std::numeric_limits< DFloat>::infinity())); 
       }
     else
       {
 #ifndef _MSC_VER // Can be ignored, because the windows version of limit has infinity()
-	valuesData->NewTag("F_INFINITY", new DFloatGDL((float)1.0/0.0)); 
+    valuesData->NewTag("F_INFINITY", new DFloatGDL((float)1.0/0.0)); 
 #endif
       }
 #ifdef NAN
@@ -832,13 +836,13 @@ namespace SysVar
 
     if( std::numeric_limits< DDouble>::has_infinity)
       {
-	valuesData->NewTag("D_INFINITY", 
-			   new DDoubleGDL( std::numeric_limits< DDouble>::infinity())); 
+    valuesData->NewTag("D_INFINITY", 
+               new DDoubleGDL( std::numeric_limits< DDouble>::infinity())); 
       }
     else
       {
 #ifndef _MSC_VER // Can be ignored, because the windows version of limit has infinity()
-	valuesData->NewTag("D_INFINITY", new DDoubleGDL( (double)1.0/0.0)); 
+    valuesData->NewTag("D_INFINITY", new DDoubleGDL( (double)1.0/0.0)); 
 #endif
       }
 
@@ -929,7 +933,7 @@ namespace SysVar
 
 #ifdef _OPENMP
     if( omp_get_dynamic())
-	omp_set_dynamic( 1);
+    omp_set_dynamic( 1);
 #endif
 #if defined (_WIN32)
 
@@ -945,10 +949,10 @@ namespace SysVar
     string gdlDir=GetEnvString("GDL_DIR");
     if( gdlDir == "") gdlDir=GetEnvString("IDL_DIR");
     if( gdlDir != "") 
-	{
-	delete dirData;
-	dirData = new DStringGDL( gdlDir);
-	}
+    {
+    delete dirData;
+    dirData = new DStringGDL( gdlDir);
+    }
     DVar *dir = new DVar( "DIR", dirData);
     dirIx=sysVarList.size();
     sysVarList.push_back( dir);
@@ -959,7 +963,7 @@ namespace SysVar
     char *symlinkpath =const_cast<char*> (tmpDir.c_str());// is the path a true path ?
 
 #ifdef _MSC_VER
-	#define PATH_MAX MAX_PATH
+    #define PATH_MAX MAX_PATH
 #endif
 //patch #90
 #ifndef PATH_MAX

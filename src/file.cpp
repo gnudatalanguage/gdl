@@ -388,7 +388,12 @@ namespace lib {
     DString cur = GetCWD();
     e->SetKW( 0, new DStringGDL( cur));
       }
-    if( lib::gdlarg_present("posix") ) lib::posixpaths = true;
+#ifdef _WIN32 // backdoor setting of posixpaths
+    if( !lib::posixpaths && lib::gdlarg_present("posix") ) {
+        lib::posixpaths = true;
+        cout << "posixpaths turned on. !gdl.gdl_posiz was not set. (restart with --posix to set)" << endl;
+        }
+#endif
 
     SizeT nParam=e->NParam(); 
     if( nParam == 0) return;
@@ -442,7 +447,7 @@ static bool FindInDir( const DString& dirN, const DString& pat)
     MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), -1, patW, MAX_PATH+1);
 #endif
     DString root = dirN;
-    AppendIfNeeded( root, "/");
+    AppendIfNeeded( root, PathSeparator());
 
     for(;;)
       {

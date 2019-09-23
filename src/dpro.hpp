@@ -31,9 +31,11 @@
 #include "str.hpp"
 
 #include <antlr/Token.hpp>
-namespace lib {
-  extern bool posixpaths;
-}
+#ifdef _WIN32
+    namespace lib {
+      extern bool posixpaths;
+    }
+#endif
 template<typename T>  class Is_eq: public std::unary_function<T,bool>
 {
   std::string name;
@@ -116,8 +118,8 @@ protected:
   // par_1,..,par_nPar, var1,..,varK
   // N=size(key)
   // K=size(var)-nPar-N
-  KeyVarListT 	      key;    // keyword names (IDList: typedefs.hpp)
-			      // (KEYWORD_NAME=keyword_value)
+  KeyVarListT         key;    // keyword names (IDList: typedefs.hpp)
+                  // (KEYWORD_NAME=keyword_value)
   int                 nPar;   // number of parameters (-1 = infinite)
   int                 nParMin;  // minimum number of parameters (-1 = infinite)
 
@@ -163,9 +165,9 @@ public:
     String_abbref_eq searchKey(s);
     int ix=0;
     for(KeyVarListT::iterator i=key.begin();
-	i != key.end(); ++i, ++ix) if( searchKey(*i)) {
-	  return ix;
-	}
+    i != key.end(); ++i, ++ix) if( searchKey(*i)) {
+      return ix;
+    }
     return -1;
   }
 
@@ -196,8 +198,8 @@ class DLib: public DSub
   
 public:
   DLib( const std::string& n, const std::string& o, const int nPar_,
-	const std::string keyNames[],
-	const std::string warnKeyNames[], const int nParMin_);
+    const std::string keyNames[],
+    const std::string warnKeyNames[], const int nParMin_);
 
   virtual const std::string ToString() = 0;
   
@@ -226,13 +228,13 @@ public:
   // Note that due to their nature, there should never be keywords
   // on which a value is returned.
   DLibPro( LibPro p, const std::string& n, const int nPar_=0, 
-	   const std::string keyNames[]=NULL,
-	   const std::string warnKeyNames[]=NULL, const int nParMin_=0);
+       const std::string keyNames[]=NULL,
+       const std::string warnKeyNames[]=NULL, const int nParMin_=0);
 
   DLibPro( LibPro p, const std::string& n, const std::string& o, 
-	   const int nPar_=0, 
-	   const std::string keyNames[]=NULL,
-	   const std::string warnKeyNames[]=NULL, const int nParMin_=0);
+       const int nPar_=0, 
+       const std::string keyNames[]=NULL,
+       const std::string warnKeyNames[]=NULL, const int nParMin_=0);
 
   LibPro Pro() { return pro;}
 
@@ -245,13 +247,13 @@ class DLibFun: public DLib
   LibFun fun;
 public:
   DLibFun( LibFun f, const std::string& n, const int nPar_=0, 
-	   const std::string keyNames[]=NULL,
-	   const std::string warnKeyNames[]=NULL, const int nParMin_=0);
+       const std::string keyNames[]=NULL,
+       const std::string warnKeyNames[]=NULL, const int nParMin_=0);
 
   DLibFun( LibFun f, const std::string& n, const std::string& o, 
-	   const int nPar_=0, 
-	   const std::string keyNames[]=NULL,
-	   const std::string warnKeyNames[]=NULL, const int nParMin_=0);
+       const int nPar_=0, 
+       const std::string keyNames[]=NULL,
+       const std::string warnKeyNames[]=NULL, const int nParMin_=0);
 
   LibFun Fun() { return fun;}
 
@@ -268,14 +270,14 @@ class DLibFunRetNew: public DLibFun
   bool   retConstant; // means: can be pre-evaluated with constant input 
 public:
   DLibFunRetNew( LibFun f, const std::string& n, const int nPar_=0, 
-		 const std::string keyNames[]=NULL,
-		 const std::string warnKeyNames[]=NULL, bool rConstant=false, const int nParMin_=0);
+         const std::string keyNames[]=NULL,
+         const std::string warnKeyNames[]=NULL, bool rConstant=false, const int nParMin_=0);
 
 
   DLibFunRetNew( LibFun f, const std::string& n, const std::string& o, 
-		 const int nPar_=0, 
-		 const std::string keyNames[]=NULL,
-		 const std::string warnKeyNames[]=NULL, const int nParMin_=0);
+         const int nPar_=0, 
+         const std::string keyNames[]=NULL,
+         const std::string warnKeyNames[]=NULL, const int nParMin_=0);
 
   bool RetNew() { return true;}
   bool RetConstant() { return this->retConstant;}
@@ -332,12 +334,12 @@ public:
   }
     void commonPtrs( std::vector<DCommonBase *>& cptr)
 {
-	cptr.clear();
+    cptr.clear();
     CommonBaseListT::iterator c = common.begin();
     for(; c != common.end(); ++c)
        cptr.push_back((*c));
     return;
-	}
+    }
   
   void ResolveAllLabels();
   LabelListT& LabelList() { return labelList;}
@@ -446,14 +448,14 @@ void ReName( SizeT ix, const std::string& s)
   BaseGDL** GetCommonVarPtr(const BaseGDL* p)
   {
     for( CommonBaseListT::iterator c=common.begin();
-	 c != common.end(); ++c)
+     c != common.end(); ++c)
       {
-	int vIx = (*c)->Find( p);
-	if( vIx >= 0) 
-	  {
-	    DVar* var = (*c)->Var( vIx);
-	    return &(var->Data());
-	  }
+    int vIx = (*c)->Find( p);
+    if( vIx >= 0) 
+      {
+        DVar* var = (*c)->Var( vIx);
+        return &(var->Data());
+      }
       }
     return NULL;
   }
@@ -461,10 +463,10 @@ void ReName( SizeT ix, const std::string& s)
   BaseGDL** GetCommonVarPtr(std::string& s)
   {
     for(CommonBaseListT::iterator c=common.begin();
-   	c != common.end(); ++c)
+    c != common.end(); ++c)
       {
-       	DVar* v=(*c)->Find(s);
-       	if (v) return &(v->Data());
+        DVar* v=(*c)->Find(s);
+        if (v) return &(v->Data());
       }
     return NULL;
   }
@@ -472,10 +474,10 @@ void ReName( SizeT ix, const std::string& s)
   bool ReplaceExistingCommonVar(std::string& s, BaseGDL* val)
   {
     for(CommonBaseListT::iterator c=common.begin();
-   	c != common.end(); ++c)
+    c != common.end(); ++c)
       {
-       	DVar* v=(*c)->Find(s);
-       	if (v) { 
+        DVar* v=(*c)->Find(s);
+        if (v) { 
          delete (v)->Data();
          (v)->SetData(val);
          return true;
@@ -493,10 +495,10 @@ void ReName( SizeT ix, const std::string& s)
   DVar* FindCommonVar(const std::string& s) 
   { 
     for(CommonBaseListT::iterator c=common.begin();
-   	c != common.end(); ++c)
+    c != common.end(); ++c)
       {
-       	DVar* v=(*c)->Find(s);
-       	if( v) return v;
+        DVar* v=(*c)->Find(s);
+        if( v) return v;
       }
     return NULL;
   }
