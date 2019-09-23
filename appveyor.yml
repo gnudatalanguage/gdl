@@ -74,6 +74,7 @@ install:
         $env:LOCALM32="c:/projects/gdl/mingw/$env:mname"
         c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
         cd c:/projects/gdl/mingw
+        ls $env:mname/bin
         rm mingw-w64-*tar.xz
         cd c:\projects\gdl\win32libs
         appveyor DownloadFile `
