@@ -1200,7 +1200,7 @@ PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
     DDouble c = z2 - z1;
     DDouble t = u * a + v * b + w * c;
     t = (-h - u * x1 - v * y1 - w * z1) / t;
-    if (!finite(t)) {
+    if (!isfinite(t)) {
       x = x1;
       y = y1;
       z = z1;
