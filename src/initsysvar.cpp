@@ -543,6 +543,8 @@ namespace SysVar
     gdlStruct->NewTag("GDL_NO_DSFMT", new DByteGDL(0));
     gdlStruct->NewTag("GDL_USE_WX", new DByteGDL(0));
 #ifdef _WIN32
+    std::string use_posix=GetEnvString("GDL_USE_POSIX");
+    if( use_posix.length() > 0) lib::posixpaths = true;
     gdlStruct->NewTag("GDL_POSIX", new DByteGDL(lib::posixpaths));
 #else
     gdlStruct->NewTag("GDL_POSIX", new DByteGDL(1));
