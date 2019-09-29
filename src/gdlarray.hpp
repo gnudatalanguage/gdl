@@ -54,7 +54,8 @@ private:
     }
     else
     {
-      Ty* b = reinterpret_cast<Ty*>(scalarBuf); 
+      Ty* b = reinterpret_cast<Ty*>(scalarBuf);
+#pragma omp parallel for if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))      
       for( int i = 0; i<sz; ++i) new (&(b[ i])) Ty();
       return b;
     }
@@ -132,7 +133,7 @@ try {
       try {
 	buf = (cp.size() > smallArraySize) ? New(cp.size()) /*new Ty[ cp.size()]*/ : InitScalar();
       } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-//#pragma omp parallel for ?
+#pragma omp parallel for if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
       for( SizeT i=0; i<sz; ++i)	buf[ i] = cp.buf[ i];
     }
   }
@@ -149,7 +150,7 @@ try {
     try {
 	    buf = (s > smallArraySize) ? New(s) /*T[ s]*/ : InitScalar();
     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-//#pragma omp parallel for ?
+#pragma omp parallel for if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     for( SizeT i=0; i<sz; ++i) buf[ i] = val;
   }
   
@@ -170,7 +171,7 @@ try {
       try {
 	buf = (s > smallArraySize) ? New(s) /*new Ty[ s]*/: InitScalar();
       } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-//#pragma omp parallel for ? 
+#pragma omp parallel for if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz)) 
       for( SizeT i=0; i<sz; ++i)	buf[ i] = arr[ i];
       }
   }
@@ -225,6 +226,7 @@ void InitFrom( const GDLArray& right )
   }
   else
   {
+#pragma omp parallel for   if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     for ( SizeT i=0; i<sz; ++i )
 	buf[ i] = right.buf[ i];
   }    
@@ -240,6 +242,7 @@ GDLArray& operator= ( const GDLArray& right )
   }
   else
   {
+#pragma omp parallel for   if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     for ( SizeT i=0; i<sz; ++i )
       buf[ i] = right.buf[ i];
   }
@@ -248,12 +251,14 @@ GDLArray& operator= ( const GDLArray& right )
 
   GDLArray& operator+=( const GDLArray& right) throw()
   {
+#pragma omp parallel for   if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     for( SizeT i=0; i<sz; ++i)
       buf[ i] += right.buf[ i];
     return *this;
   }
   GDLArray& operator-=( const GDLArray& right) throw()
   {
+#pragma omp parallel for   if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     for( SizeT i=0; i<sz; ++i)
       buf[ i] -= right.buf[ i];
     return *this;
@@ -261,12 +266,14 @@ GDLArray& operator= ( const GDLArray& right )
 
   GDLArray& operator+=( const T& right) throw()
   {
+#pragma omp parallel for   if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     for( SizeT i=0; i<sz; ++i)
       buf[ i] += right;
     return *this;
   }
   GDLArray& operator-=( const T& right) throw()
   {
+#pragma omp parallel for   if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     for( SizeT i=0; i<sz; ++i)
       buf[ i] -= right;
     return *this;
