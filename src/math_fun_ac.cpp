@@ -54,137 +54,137 @@
 
 #define GM_MIN(a, b) ((a) < (b) ? (a) : (b))
 
-#define GM_5P0(a)							\
-  e->NParam(a);								\
-  									\
-  DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);				\
-  SizeT nElp0 = p0->N_Elements();					\
-  if (nElp0 == 0)							\
-    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0));	\
-  									\
-  DType t0 = e->GetParDefined(0)->Type();				\
+#define GM_5P0(a)                           \
+  e->NParam(a);                             \
+                                    \
+  DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);              \
+  SizeT nElp0 = p0->N_Elements();                   \
+  if (nElp0 == 0)                           \
+    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0)); \
+                                    \
+  DType t0 = e->GetParDefined(0)->Type();               \
 
 //no "//" comments in macro !!!!
-//if (t0 == GDL_COMPLEX || t0 == GDL_COMPLEXDBL)		\
+//if (t0 == GDL_COMPLEX || t0 == GDL_COMPLEXDBL)        \
 //  e->Throw("Complex not implemented (GSL limitation). ");
 
-#define AC_2P1()							\
-  SizeT nElp1;								\
-  DIntGDL* p1;								\
-  DFloatGDL* p1_float;							\
-  DType t1;								\
-									\
-  if  (e->NParam() == 1)						\
-    {									\
-      p1 = new DIntGDL(1, BaseGDL::NOZERO);				\
-      (*p1)[0]=0;							\
-      nElp1=1;								\
-      t1 = GDL_INT;							\
-      p1_float = new DFloatGDL(1, BaseGDL::NOZERO);			\
-      (*p1_float)[0]=0.000;						\
-    }									\
-  else									\
-    {									\
-      p1 = e->GetParAs<DIntGDL>(1);					\
-      nElp1 = p1->N_Elements();						\
-      t1 = e->GetParDefined(1)->Type();					\
-      p1_float = e->GetParAs<DFloatGDL>(1);				\
-    }									\
-									\
-  const double dzero = 0.0000000000000000000 ;				\
-									\
+#define AC_2P1()                            \
+  SizeT nElp1;                              \
+  DIntGDL* p1;                              \
+  DFloatGDL* p1_float;                          \
+  DType t1;                             \
+                                    \
+  if  (e->NParam() == 1)                        \
+    {                                   \
+      p1 = new DIntGDL(1, BaseGDL::NOZERO);             \
+      (*p1)[0]=0;                           \
+      nElp1=1;                              \
+      t1 = GDL_INT;                         \
+      p1_float = new DFloatGDL(1, BaseGDL::NOZERO);         \
+      (*p1_float)[0]=0.000;                     \
+    }                                   \
+  else                                  \
+    {                                   \
+      p1 = e->GetParAs<DIntGDL>(1);                 \
+      nElp1 = p1->N_Elements();                     \
+      t1 = e->GetParDefined(1)->Type();                 \
+      p1_float = e->GetParAs<DFloatGDL>(1);             \
+    }                                   \
+                                    \
+  const double dzero = 0.0000000000000000000 ;              \
+                                    \
   //    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(1)); \
-  									\
-  //  DType t1 = e->GetParDefined(1)->Type();				\
-  //  if (t1 == GDL_COMPLEX || t1 == GDL_COMPLEXDBL)			\
+                                    \
+  //  DType t1 = e->GetParDefined(1)->Type();               \
+  //  if (t1 == GDL_COMPLEX || t1 == GDL_COMPLEXDBL)            \
   // e->Throw("Complex not implemented (GSL limitation). ");
 
 
 // change by Alain C., June 1st 2015 : IDL 8.4 behavior
-#define GM_DF2()							\
-									\
-  DDoubleGDL* res;							\
+#define GM_DF2()                            \
+                                    \
+  DDoubleGDL* res;                          \
   /*/  cout << p0->Rank() << " " <<p0->Dim() <<" " <<p0->N_Elements() <<endl;*/ \
   /* //cout << p1->Rank() << " " << p1->Dim()<<" " <<p1->N_Elements() <<endl;*/ \
-									\
-  if (p0->Rank() == 0)							\
-    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);			\
-  else if (p1->Rank() == 0)						\
-    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);			\
-  else if (p0->N_Elements() > p1->N_Elements())				\
-    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);			\
-  else									\
-    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);			\
-  									\
+                                    \
+  if (p0->Rank() == 0)                          \
+    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);           \
+  else if (p1->Rank() == 0)                     \
+    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);           \
+  else if (p0->N_Elements() > p1->N_Elements())             \
+    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);           \
+  else                                  \
+    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);           \
+                                    \
   /*  cout << res->Rank() << " " << res->Dim()<<" " << res->N_Elements() <<endl;*/ \
-  									\
-  SizeT nElp = res->N_Elements();					\
+                                    \
+  SizeT nElp = res->N_Elements();                   \
 
-#define GM_DF2_OLD()							\
-									\
-  DDoubleGDL* res;							\
+#define GM_DF2_OLD()                            \
+                                    \
+  DDoubleGDL* res;                          \
   cout << p0->Rank() << " " << p0->Dim() <<" " <<p0->N_Elements() <<endl; \
   cout << p1->Rank() << " " << p1->Dim() <<" " <<p1->N_Elements() <<endl; \
-									\
-  if (nElp0 == 1 && nElp1 == 1)						\
-    res = new DDoubleGDL(1, BaseGDL::NOZERO);				\
-  else if (nElp0 > 1 && nElp1 == 1)					\
-    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);			\
-  else if (nElp0 == 1 && nElp1 > 1)					\
-    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);			\
-  else if (nElp0 <= nElp1)						\
-    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);			\
-  else									\
-    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);			\
-									\
-  SizeT nElp = res->N_Elements();					\
+                                    \
+  if (nElp0 == 1 && nElp1 == 1)                     \
+    res = new DDoubleGDL(1, BaseGDL::NOZERO);               \
+  else if (nElp0 > 1 && nElp1 == 1)                 \
+    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);           \
+  else if (nElp0 == 1 && nElp1 > 1)                 \
+    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);           \
+  else if (nElp0 <= nElp1)                      \
+    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);           \
+  else                                  \
+    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);           \
+                                    \
+  SizeT nElp = res->N_Elements();                   \
 
-#define GM_CV0()					\
-  static DInt doubleKWIx = e->KeywordIx("DOUBLE");	\
-							\
-  if (e->KeywordSet(doubleKWIx))			\
-    return res;						\
-  else							\
+#define GM_CV0()                    \
+  static DInt doubleKWIx = e->KeywordIx("DOUBLE");  \
+                            \
+  if (e->KeywordSet(doubleKWIx))            \
+    return res;                     \
+  else                          \
     return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);
 
-#define GM_CV1()					\
-  static DInt doubleKWIx = e->KeywordIx("DOUBLE");	\
-							\
-  if (t0 != GDL_DOUBLE && t0 != GDL_COMPLEXDBL &&	\
-      !e->KeywordSet(doubleKWIx))			\
-    return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);	\
-  else							\
+#define GM_CV1()                    \
+  static DInt doubleKWIx = e->KeywordIx("DOUBLE");  \
+                            \
+  if (t0 != GDL_DOUBLE && t0 != GDL_COMPLEXDBL &&   \
+      !e->KeywordSet(doubleKWIx))           \
+    return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);  \
+  else                          \
     return res;
 
-#define GM_CV2()							\
-  static DInt doubleKWIx = e->KeywordIx("DOUBLE");			\
-									\
-  /*cout << t0 << t1 << endl;					*/	\
-  if (t0 != GDL_DOUBLE && t0 != GDL_COMPLEXDBL &&			\
-      t1 != GDL_DOUBLE && t1 != GDL_COMPLEXDBL &&			\
-      !e->KeywordSet(doubleKWIx))					\
-    return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);			\
-  else									\
+#define GM_CV2()                            \
+  static DInt doubleKWIx = e->KeywordIx("DOUBLE");          \
+                                    \
+  /*cout << t0 << t1 << endl;                   */  \
+  if (t0 != GDL_DOUBLE && t0 != GDL_COMPLEXDBL &&           \
+      t1 != GDL_DOUBLE && t1 != GDL_COMPLEXDBL &&           \
+      !e->KeywordSet(doubleKWIx))                   \
+    return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);          \
+  else                                  \
     return res;
 
-#define GM_CC1()							\
-  static DInt coefKWIx = e->KeywordIx("ITER");				\
-  if(e->KeywordPresent(coefKWIx))					\
-    {									\
-      cout << "ITER keyword not used, always return -1)" << endl;	\
-      e->SetKW( coefKWIx, new DLongGDL( -1));				\
+#define GM_CC1()                            \
+  static DInt coefKWIx = e->KeywordIx("ITER");              \
+  if(e->KeywordPresent(coefKWIx))                   \
+    {                                   \
+      cout << "ITER keyword not used, always return -1)" << endl;   \
+      e->SetKW( coefKWIx, new DLongGDL( -1));               \
     }
 
-#define AC_HELP()							\
-  static int HELPIx=e->KeywordIx("HELP");				\
-  if (e->KeywordSet(HELPIx)) {						\
-    string inline_help[]={						\
-      "Usage: res="+e->GetProName()+"(x, [n,] double=double)",		\
-      " -- x is a number or an array",					\
-      " -- n is a number or an array (if missing, set to 0)",		\
-      " If x and n dimensions differ, reasonable rules applied"};	\
-    int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);	\
-    e->Help(inline_help, size_of_s);					\
+#define AC_HELP()                           \
+  static int HELPIx=e->KeywordIx("HELP");               \
+  if (e->KeywordSet(HELPIx)) {                      \
+    string inline_help[]={                      \
+      "Usage: res="+e->GetProName()+"(x, [n,] double=double)",      \
+      " -- x is a number or an array",                  \
+      " -- n is a number or an array (if missing, set to 0)",       \
+      " If x and n dimensions differ, reasonable rules applied"};   \
+    int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);   \
+    e->Help(inline_help, size_of_s);                    \
   }
 
 #include "includefirst.hpp"
@@ -220,60 +220,60 @@ namespace lib {
     // GSL Limitation for X : must be lower than ~708
     for (count = 0;count<nElp0;++count)
       if ((*p0)[count] > 708.)
-	e->Throw("Value of X is out of allowed range.");
+    e->Throw("Value of X is out of allowed range.");
 
     // we need to check if N values (array) are Integer or not
     int test=0;
 
     for (count = 0;count<nElp1;++count)
       if (abs((*p1_float)[count]-(float)(*p1)[count]) > 0.000001) // don't know if a "machar" value exists
-	test=1;
+    test=1;
 
     if (test==0)
       {
-	if(nElp0==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      (*res)[count] = gsl_sf_bessel_In((*p1)[count],(*p0)[0]);
-	  }
-	else if(nElp1==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      (*res)[count] = gsl_sf_bessel_In((*p1)[0],(*p0)[count]);
-	  }
-	else
-	  {
-	    for (count = 0;count<nElp;++count)
-	      (*res)[count] = gsl_sf_bessel_In((*p1)[count],(*p0)[count]);
-	  }
+    if(nElp0==1)
+      {
+        for (count = 0;count<nElp;++count)
+          (*res)[count] = gsl_sf_bessel_In((*p1)[count],(*p0)[0]);
+      }
+    else if(nElp1==1)
+      {
+        for (count = 0;count<nElp;++count)
+          (*res)[count] = gsl_sf_bessel_In((*p1)[0],(*p0)[count]);
       }
     else
       {
-	// we need to check if X values (array) are positives
-	for (count = 0;count<nElp0;++count)
-	  if ((*p0)[count] < dzero) // don't know if a "machar" value exists
-	    e->Throw("Value of X is out of allowed range (Only positive values when N is non integer).");
+        for (count = 0;count<nElp;++count)
+          (*res)[count] = gsl_sf_bessel_In((*p1)[count],(*p0)[count]);
+      }
+      }
+    else
+      {
+    // we need to check if X values (array) are positives
+    for (count = 0;count<nElp0;++count)
+      if ((*p0)[count] < dzero) // don't know if a "machar" value exists
+        e->Throw("Value of X is out of allowed range (Only positive values when N is non integer).");
 
-	// we need to check if N values (array) are positives
-	for (count = 0;count<nElp1;++count)
-	  if ((*p1)[count] < dzero) // don't know if a "machar" value exists
-	    e->Throw("Value of N is out of allowed range (Only positive values when N is non integer).");
+    // we need to check if N values (array) are positives
+    for (count = 0;count<nElp1;++count)
+      if ((*p1)[count] < dzero) // don't know if a "machar" value exists
+        e->Throw("Value of N is out of allowed range (Only positive values when N is non integer).");
 
-	if(nElp0==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      (*res)[count] = gsl_sf_bessel_Inu((*p1_float)[count],(*p0)[0]);
-	  }
-	else if(nElp1==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      (*res)[count] = gsl_sf_bessel_Inu((*p1_float)[0],(*p0)[count]);
-	  }
-	else
-	  {
-	    for (count = 0;count<nElp;++count)
-	      (*res)[count] = gsl_sf_bessel_Inu((*p1_float)[count],(*p0)[count]);
-	  }
+    if(nElp0==1)
+      {
+        for (count = 0;count<nElp;++count)
+          (*res)[count] = gsl_sf_bessel_Inu((*p1_float)[count],(*p0)[0]);
+      }
+    else if(nElp1==1)
+      {
+        for (count = 0;count<nElp;++count)
+          (*res)[count] = gsl_sf_bessel_Inu((*p1_float)[0],(*p0)[count]);
+      }
+    else
+      {
+        for (count = 0;count<nElp;++count)
+          (*res)[count] = gsl_sf_bessel_Inu((*p1_float)[count],(*p0)[count]);
+      }
       }
     GM_CC1();
     GM_CV2();
@@ -294,55 +294,55 @@ namespace lib {
 
     for (count = 0;count<nElp1;++count)
       if (abs((*p1_float)[count]-(float)(*p1)[count]) > 0.000001) // don't know if a "machar" value exists
-	test=1;
+    test=1;
 
     if (test==0)
       {
-	if(nElp0==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      (*res)[count] = gsl_sf_bessel_Jn((*p1)[count],(*p0)[0]);
-	  }
-	else if(nElp1==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      (*res)[count] = gsl_sf_bessel_Jn((*p1)[0],(*p0)[count]);
-	  }
-	else
-	  {
-	    for (count = 0;count<nElp;++count)
-	      (*res)[count] = gsl_sf_bessel_Jn((*p1)[count],(*p0)[count]);
-	  }
+    if(nElp0==1)
+      {
+        for (count = 0;count<nElp;++count)
+          (*res)[count] = gsl_sf_bessel_Jn((*p1)[count],(*p0)[0]);
+      }
+    else if(nElp1==1)
+      {
+        for (count = 0;count<nElp;++count)
+          (*res)[count] = gsl_sf_bessel_Jn((*p1)[0],(*p0)[count]);
       }
     else
       {
-	// we need to check if X values (array) are positives
-	for (count = 0;count<nElp0;++count)
-	  if ((*p0)[count] < dzero) // don't know if a "machar" value exists
-	    e->Throw("Value of X is out of allowed range (Only positive values when N is non integer).");
+        for (count = 0;count<nElp;++count)
+          (*res)[count] = gsl_sf_bessel_Jn((*p1)[count],(*p0)[count]);
+      }
+      }
+    else
+      {
+    // we need to check if X values (array) are positives
+    for (count = 0;count<nElp0;++count)
+      if ((*p0)[count] < dzero) // don't know if a "machar" value exists
+        e->Throw("Value of X is out of allowed range (Only positive values when N is non integer).");
 
-	// we need to check if N values (array) are positives
-	for (count = 0;count<nElp1;++count)
-	  if ((*p1)[count] < dzero) // don't know if a "machar" value exists
-	    e->Throw("Value of N is out of allowed range (Only positive values when N is non integer).");
+    // we need to check if N values (array) are positives
+    for (count = 0;count<nElp1;++count)
+      if ((*p1)[count] < dzero) // don't know if a "machar" value exists
+        e->Throw("Value of N is out of allowed range (Only positive values when N is non integer).");
 
-	if(nElp0==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      (*res)[count] = gsl_sf_bessel_Jnu((*p1_float)[count],(*p0)[0]);
-	  }
-	
-	else if(nElp1==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      (*res)[count] = gsl_sf_bessel_Jnu((*p1_float)[0],(*p0)[count]);
-	  }
+    if(nElp0==1)
+      {
+        for (count = 0;count<nElp;++count)
+          (*res)[count] = gsl_sf_bessel_Jnu((*p1_float)[count],(*p0)[0]);
+      }
+    
+    else if(nElp1==1)
+      {
+        for (count = 0;count<nElp;++count)
+          (*res)[count] = gsl_sf_bessel_Jnu((*p1_float)[0],(*p0)[count]);
+      }
 
-	else
-	  {
-	    for (count = 0;count<nElp;++count)
-	      (*res)[count] = gsl_sf_bessel_Jnu((*p1_float)[count],(*p0)[count]);
-	  }
+    else
+      {
+        for (count = 0;count<nElp;++count)
+          (*res)[count] = gsl_sf_bessel_Jnu((*p1_float)[count],(*p0)[count]);
+      }
       }
     GM_CC1();
     GM_CV2();
@@ -372,72 +372,72 @@ namespace lib {
 
     for (count = 0;count<nElp1;++count)
       if (abs((*p1_float)[count]-(float)(*p1)[count]) > 0.000001) // don't know if a "machar" value exists
-	test=1;
+    test=1;
 
     if (test==0)
       {
-	// when X value is below ~1e-20 --> return -Inf (we use log(0.) which gives -Inf)
-	const double smallVal = 1e-38 ;
+    // when X value is below ~1e-20 --> return -Inf (we use log(0.) which gives -Inf)
+    const double smallVal = 1e-38 ;
 
-	if(nElp0==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      if (abs((*p0)[0]) < smallVal)
-		(*res)[count] =log(dzero) ;
-	      else
-		(*res)[count] = gsl_sf_bessel_Kn((*p1)[count],(*p0)[0]);
-	  }
-	else if(nElp1==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      if (abs((*p0)[count]) < smallVal)
-		(*res)[count] =log(dzero) ;
-	      else
-		(*res)[count] = gsl_sf_bessel_Kn((*p1)[0],(*p0)[count]);
-	  }
-	else
-	  {
-	    for (count = 0;count<nElp;++count)
-	      if (abs((*p0)[count]) < smallVal)
-		(*res)[count] =log(dzero) ;
-	      else
-		(*res)[count] = gsl_sf_bessel_Kn((*p1)[count],(*p0)[count]);
-	  }
+    if(nElp0==1)
+      {
+        for (count = 0;count<nElp;++count)
+          if (abs((*p0)[0]) < smallVal)
+        (*res)[count] =log(dzero) ;
+          else
+        (*res)[count] = gsl_sf_bessel_Kn((*p1)[count],(*p0)[0]);
+      }
+    else if(nElp1==1)
+      {
+        for (count = 0;count<nElp;++count)
+          if (abs((*p0)[count]) < smallVal)
+        (*res)[count] =log(dzero) ;
+          else
+        (*res)[count] = gsl_sf_bessel_Kn((*p1)[0],(*p0)[count]);
       }
     else
       {
-	// we need to check if N values (array) are positives
-	for (count = 0;count<nElp1;++count)
-	  if ((*p1)[count] < dzero) // don't know if a "machar" value exists
-	    e->Throw("Value of N is out of allowed range (Only positive values when N is non integer).");
+        for (count = 0;count<nElp;++count)
+          if (abs((*p0)[count]) < smallVal)
+        (*res)[count] =log(dzero) ;
+          else
+        (*res)[count] = gsl_sf_bessel_Kn((*p1)[count],(*p0)[count]);
+      }
+      }
+    else
+      {
+    // we need to check if N values (array) are positives
+    for (count = 0;count<nElp1;++count)
+      if ((*p1)[count] < dzero) // don't know if a "machar" value exists
+        e->Throw("Value of N is out of allowed range (Only positive values when N is non integer).");
 
-	// when X value is below ~1e-20 --> return -Inf (we use log(0.) which gives -Inf)
-	const double smallVal = 1e-38 ;
+    // when X value is below ~1e-20 --> return -Inf (we use log(0.) which gives -Inf)
+    const double smallVal = 1e-38 ;
 
-	if(nElp0==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      if (abs((*p0)[0]) < smallVal)
-		(*res)[count] =log(dzero) ;
-	      else
-		(*res)[count] = gsl_sf_bessel_Knu((*p1_float)[count],(*p0)[0]);
-	  }
-	else if(nElp1==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      if (abs((*p0)[count]) < smallVal)
-		(*res)[count] =log(dzero) ;
-	      else
-		(*res)[count] = gsl_sf_bessel_Knu((*p1_float)[0],(*p0)[count]);
-	  }
-	else
-	  {
-	    for (count = 0;count<nElp;++count)
-	      if (abs((*p0)[count]) < smallVal)
-		(*res)[count] =log(dzero) ;
-	      else
-		(*res)[count] = gsl_sf_bessel_Knu((*p1_float)[count],(*p0)[count]);
-	  }
+    if(nElp0==1)
+      {
+        for (count = 0;count<nElp;++count)
+          if (abs((*p0)[0]) < smallVal)
+        (*res)[count] =log(dzero) ;
+          else
+        (*res)[count] = gsl_sf_bessel_Knu((*p1_float)[count],(*p0)[0]);
+      }
+    else if(nElp1==1)
+      {
+        for (count = 0;count<nElp;++count)
+          if (abs((*p0)[count]) < smallVal)
+        (*res)[count] =log(dzero) ;
+          else
+        (*res)[count] = gsl_sf_bessel_Knu((*p1_float)[0],(*p0)[count]);
+      }
+    else
+      {
+        for (count = 0;count<nElp;++count)
+          if (abs((*p0)[count]) < smallVal)
+        (*res)[count] =log(dzero) ;
+          else
+        (*res)[count] = gsl_sf_bessel_Knu((*p1_float)[count],(*p0)[count]);
+      }
       }
     GM_CC1();
     GM_CV2();
@@ -466,72 +466,72 @@ namespace lib {
 
     for (count = 0;count<nElp1;++count)
       if (abs((*p1_float)[count]-(float)(*p1)[count]) > 0.000001) // don't know if a "machar" value exists
-	test=1;
+    test=1;
 
     if (test==0)
       {
-	// when X value is below ~1e-20 --> return -Inf (we use log(0.) which gives -Inf)
-	const double smallVal = 1e-38 ;
+    // when X value is below ~1e-20 --> return -Inf (we use log(0.) which gives -Inf)
+    const double smallVal = 1e-38 ;
 
-	if(nElp0==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      if (abs((*p0)[0]) < smallVal)
-		(*res)[count] =log(dzero) ;
-	      else
-		(*res)[count] = gsl_sf_bessel_Yn((*p1)[count],(*p0)[0]);
-	  }
-	else if(nElp1==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      if (abs((*p0)[count]) < smallVal)
-		(*res)[count] =log(dzero) ;
-	      else
-		(*res)[count] = gsl_sf_bessel_Yn((*p1)[0],(*p0)[count]);
-	  }
-	else
-	  {
-	    for (count = 0;count<nElp;++count)
-	      if (abs((*p0)[count]) < smallVal)
-		(*res)[count] =log(dzero) ;
-	      else
-		(*res)[count] = gsl_sf_bessel_Yn((*p1)[count],(*p0)[count]);
-	  }
+    if(nElp0==1)
+      {
+        for (count = 0;count<nElp;++count)
+          if (abs((*p0)[0]) < smallVal)
+        (*res)[count] =log(dzero) ;
+          else
+        (*res)[count] = gsl_sf_bessel_Yn((*p1)[count],(*p0)[0]);
+      }
+    else if(nElp1==1)
+      {
+        for (count = 0;count<nElp;++count)
+          if (abs((*p0)[count]) < smallVal)
+        (*res)[count] =log(dzero) ;
+          else
+        (*res)[count] = gsl_sf_bessel_Yn((*p1)[0],(*p0)[count]);
       }
     else
       {
-	// we need to check if N values (array) are positives
-	for (count = 0;count<nElp1;++count)
-	  if ((*p1)[count] < dzero) // don't know if a "machar" value exists
-	    e->Throw("Value of N is out of allowed range (Only positive values when N is non integer).");
+        for (count = 0;count<nElp;++count)
+          if (abs((*p0)[count]) < smallVal)
+        (*res)[count] =log(dzero) ;
+          else
+        (*res)[count] = gsl_sf_bessel_Yn((*p1)[count],(*p0)[count]);
+      }
+      }
+    else
+      {
+    // we need to check if N values (array) are positives
+    for (count = 0;count<nElp1;++count)
+      if ((*p1)[count] < dzero) // don't know if a "machar" value exists
+        e->Throw("Value of N is out of allowed range (Only positive values when N is non integer).");
 
-	// when X value is below ~1e-20 --> return -Inf (we use log(0.) which gives -Inf)
-	const double smallVal = 1e-38 ;
+    // when X value is below ~1e-20 --> return -Inf (we use log(0.) which gives -Inf)
+    const double smallVal = 1e-38 ;
 
-	if(nElp0==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      if (abs((*p0)[0]) < smallVal)
-		(*res)[count] =log(dzero) ;
-	      else
-		(*res)[count] = gsl_sf_bessel_Ynu((*p1_float)[count],(*p0)[0]);
-	  }
-	else if(nElp1==1)
-	  {
-	    for (count = 0;count<nElp;++count)
-	      if (abs((*p0)[count]) < smallVal)
-		(*res)[count] =log(dzero) ;
-	      else
-		(*res)[count] = gsl_sf_bessel_Ynu((*p1_float)[0],(*p0)[count]);
-	  }
-	else
-	  {
-	    for (count = 0;count<nElp;++count)
-	      if (abs((*p0)[count]) < smallVal)
-		(*res)[count] =log(dzero) ;
-	      else
-		(*res)[count] = gsl_sf_bessel_Ynu((*p1_float)[count],(*p0)[count]);
-	  }
+    if(nElp0==1)
+      {
+        for (count = 0;count<nElp;++count)
+          if (abs((*p0)[0]) < smallVal)
+        (*res)[count] =log(dzero) ;
+          else
+        (*res)[count] = gsl_sf_bessel_Ynu((*p1_float)[count],(*p0)[0]);
+      }
+    else if(nElp1==1)
+      {
+        for (count = 0;count<nElp;++count)
+          if (abs((*p0)[count]) < smallVal)
+        (*res)[count] =log(dzero) ;
+          else
+        (*res)[count] = gsl_sf_bessel_Ynu((*p1_float)[0],(*p0)[count]);
+      }
+    else
+      {
+        for (count = 0;count<nElp;++count)
+          if (abs((*p0)[count]) < smallVal)
+        (*res)[count] =log(dzero) ;
+          else
+        (*res)[count] = gsl_sf_bessel_Ynu((*p1_float)[count],(*p0)[count]);
+      }
       }
     GM_CC1();
     GM_CV2();
@@ -545,12 +545,12 @@ namespace lib {
     static int HELPIx=e->KeywordIx("HELP");
     if (e->KeywordSet(HELPIx)) {
       string inline_help[]={
-	"Usage: y2a=SPL_INIT(xa, ya, yp0=yp0, ypn_1= ypn_1, double=double)",
-	" -- xa is a N elements *ordered* array",
-	" -- ya is a N elements array containing values of the function",
-	" -- yp0 is the value of derivate of YA function at first point",
-	" -- ypN_1 is the value of derivate of YA function at last point",
-	"If X or Y contain NaN or Inf, output is NaN"};
+    "Usage: y2a=SPL_INIT(xa, ya, yp0=yp0, ypn_1= ypn_1, double=double)",
+    " -- xa is a N elements *ordered* array",
+    " -- ya is a N elements array containing values of the function",
+    " -- yp0 is the value of derivate of YA function at first point",
+    " -- ypN_1 is the value of derivate of YA function at last point",
+    "If X or Y contain NaN or Inf, output is NaN"};
       int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);
       e->Help(inline_help, size_of_s);
     }
@@ -566,7 +566,7 @@ namespace lib {
       cout << "SPL_INIT (warning): X and Y arrays do not have same lengths !" << endl;
       // all next computations to be done on MIN(nElpXpos,nElpYpos) (except NaN/Inf checks)
       if (nElpXpos > nElpYpos)
-	nElpXpos=nElpYpos;
+    nElpXpos=nElpYpos;
     }
 
     // creating result array
@@ -581,16 +581,16 @@ namespace lib {
 
     for (count = 0; count < nElpXpos; ++count) {
       if (!isfinite((*Xpos)[count])) {
-	cout << "SPL_INIT (fatal): at least one value in X input array is NaN or Inf ..." << endl;
-	for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] =d_nan;
-	return res;
+    cout << "SPL_INIT (fatal): at least one value in X input array is NaN or Inf ..." << endl;
+    for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] =d_nan;
+    return res;
       }
     }
     for (count = 0; count < nElpYpos; ++count) {
       if (!isfinite((*Ypos)[count])) {
-	cout << "SPL_INIT (fatal): at least one value in Y input array is NaN or Inf ..." << endl;
-	for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] =d_nan;
-	return res;
+    cout << "SPL_INIT (fatal): at least one value in Y input array is NaN or Inf ..." << endl;
+    for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] =d_nan;
+    return res;
       }
     }
 
@@ -600,15 +600,15 @@ namespace lib {
     for (count = 1; count < nElpXpos; ++count) {
       step=(*Xpos)[count]-(*Xpos)[count-1];
       if (step < 0.0) {
-	if (flag_skip == 0) {
-	  cout << "SPL_INIT (warning): at least one x[n+1]-x[n] step is negative: X is assumed to be ordered" << endl;
-	  flag_skip = 1;
-	}
+    if (flag_skip == 0) {
+      cout << "SPL_INIT (warning): at least one x[n+1]-x[n] step is negative: X is assumed to be ordered" << endl;
+      flag_skip = 1;
+    }
       }
       if (abs(step) == 0.0) {
-	cout << "SPL_INIT (fatal): at least two consecutive X values are identical" << endl;
- 	for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] =d_nan;
-	return res;
+    cout << "SPL_INIT (fatal): at least two consecutive X values are identical" << endl;
+    for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] =d_nan;
+    return res;
       }
     }
 
@@ -626,7 +626,7 @@ namespace lib {
       // first derivative at the point X0 is defined and different to Inf
       (*res)[0]=-0.5;
       (*U)[0] = ( 3. / ((*Xpos)[1]-(*Xpos)[0])) * (((*Ypos)[1]-(*Ypos)[0]) /
-						   ((*Xpos)[1]-(*Xpos)[0]) - (*YP0)[0] );
+                           ((*Xpos)[1]-(*Xpos)[0]) - (*YP0)[0] );
 
     }else{
       // YP0 is omitted or equal to Inf
@@ -686,12 +686,12 @@ namespace lib {
       //  string inline_help[]={};
       // e->Help(inline_help, 0);
       string inline_help[]={
-	"Usage: res=SPL_INTERP(xa, ya, y2a, new_x, double=double)",
-	" -- xa is a N elements *ordered* array",
-	" -- ya is a N elements array containing values of the function",
-	" -- y2a is the value of derivate of YA function at first point",
-	" -- new_x is an array for new X positions where we want to compute SPLINE",
-	"This function should be called only after use of SPL_INIT() !"};
+    "Usage: res=SPL_INTERP(xa, ya, y2a, new_x, double=double)",
+    " -- xa is a N elements *ordered* array",
+    " -- ya is a N elements array containing values of the function",
+    " -- y2a is the value of derivate of YA function at first point",
+    " -- new_x is an array for new X positions where we want to compute SPLINE",
+    "This function should be called only after use of SPL_INIT() !"};
       int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);
       e->Help(inline_help, size_of_s);
     }
@@ -725,10 +725,10 @@ namespace lib {
       ilo=0;
       ihi=nElpXpos-1;
       while ((ihi-ilo) > 1){
-	imiddle=(ilo+ihi)/2;
-	xposcur=(*Xpos)[imiddle];
-	if (xposcur > xcur) ihi=imiddle;
-	else ilo=imiddle;
+    imiddle=(ilo+ihi)/2;
+    xposcur=(*Xpos)[imiddle];
+    if (xposcur > xcur) ihi=imiddle;
+    else ilo=imiddle;
       }
       h=(*Xpos)[ihi]-(*Xpos)[ilo];
       if (abs(h) == 0.0)  e->Throw("SPL_INTERP: Bad XA input (XA not ordered or zero step in XA).");
@@ -767,14 +767,14 @@ namespace lib {
     for( SizeT k=1; k<=nbY-2; k++)
       {
         for( SizeT j=1; j<= nbX-2; j++)
-	  {
-            a =   labs    ((*p0)[j+1+nbX*(k+1)]+2*(*p0)[j+1+nbX*k]+(*p0)[j+1+nbX*(k-1)]
-			   -    ((*p0)[j-1+nbX*(k+1)]+2*(*p0)[j-1+nbX*k]+(*p0)[j-1+nbX*(k-1)]))
-	      +
-	      labs    ((*p0)[j-1+nbX*(k-1)]+2*(*p0)[j+nbX*(k-1)]+(*p0)[j+1+nbX*(k-1)]
-		       -   ((*p0)[j-1+nbX*(k+1)]+2*(*p0)[j+nbX*(k+1)]+(*p0)[j+1+nbX*(k+1)]));
+      {
+            a =   (T3) (std::abs  ((*p0)[j+1+nbX*(k+1)]+2*(*p0)[j+1+nbX*k]+(*p0)[j+1+nbX*(k-1)]
+               -    ((*p0)[j-1+nbX*(k+1)]+2*(*p0)[j-1+nbX*k]+(*p0)[j-1+nbX*(k-1)]))
+          +
+          std::abs  ((*p0)[j-1+nbX*(k-1)]+2*(*p0)[j+nbX*(k-1)]+(*p0)[j+1+nbX*(k-1)]
+               -   ((*p0)[j-1+nbX*(k+1)]+2*(*p0)[j+nbX*(k+1)]+(*p0)[j+1+nbX*(k+1)])) );
             (*res)[j+nbX*k]=a;
-	  }
+      }
       }
 
     return res;
@@ -798,36 +798,36 @@ namespace lib {
       return Sobel_Template<DIntGDL>(static_cast<DByteGDL*>(p0),a);
     }
     case GDL_INT: {long int a;
-	return Sobel_Template<DIntGDL>(static_cast<DIntGDL*> (p0),a);
+    return Sobel_Template<DIntGDL>(static_cast<DIntGDL*> (p0),a);
     }
     case GDL_UINT:{long int a;
-	return Sobel_Template<DUIntGDL>(static_cast<DUIntGDL*> (p0),a);
+    return Sobel_Template<DUIntGDL>(static_cast<DUIntGDL*> (p0),a);
     }
     case GDL_LONG:{long int a;
-	return Sobel_Template<DLongGDL>(static_cast<DLongGDL*> (p0),a);
+    return Sobel_Template<DLongGDL>(static_cast<DLongGDL*> (p0),a);
     }
     case GDL_ULONG:{long int a;
-	return Sobel_Template<DULongGDL>(static_cast<DULongGDL*> (p0),a);
+    return Sobel_Template<DULongGDL>(static_cast<DULongGDL*> (p0),a);
     }
     case GDL_LONG64:{long int a;
-	return Sobel_Template<DLong64GDL>(static_cast<DLong64GDL*> (p0),a);
+    return Sobel_Template<DLong64GDL>(static_cast<DLong64GDL*> (p0),a);
     }
     case GDL_ULONG64:{long int a;
-	return Sobel_Template<DULong64GDL>(static_cast<DULong64GDL*> (p0),a);
+    return Sobel_Template<DULong64GDL>(static_cast<DULong64GDL*> (p0),a);
     }
     case GDL_FLOAT:{long double a;
-	return Sobel_Template<DFloatGDL>(static_cast<DFloatGDL*> (p0),a);
+    return Sobel_Template<DFloatGDL>(static_cast<DFloatGDL*> (p0),a);
     }
     case GDL_DOUBLE: {long double a;
-	return Sobel_Template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0),a);
+    return Sobel_Template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
     case GDL_COMPLEX: { long int a;
-	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
-	return Sobel_Template<DComplexGDL>(static_cast<DDoubleGDL*> (p0),a);
+    DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
+    return Sobel_Template<DComplexGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
     case GDL_COMPLEXDBL:{long double a;
-	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
-	return Sobel_Template<DComplexDblGDL>(static_cast<DDoubleGDL*> (p0),a);
+    DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
+    return Sobel_Template<DComplexDblGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
 
     default: e->Throw( "Should not reach this point, please report");
@@ -876,8 +876,8 @@ namespace lib {
     //DDoubleGDL z = new DDoubleGDL[nbX,nbY];
     for( SizeT k=0; k<nbY-1; k++) {
       for( SizeT j=0; j< nbX-1; j++) {
-	(*res)[j+nbX*k] = abs((*p0)[j+nbX*k]-(*p0)[j+1+nbX*(k+1)])+
-	  abs((*p0)[j+nbX*(k+1)]-(*p0)[j+1+nbX*k]);
+    (*res)[j+nbX*k] = abs((*p0)[j+nbX*k]-(*p0)[j+1+nbX*(k+1)])+
+      abs((*p0)[j+nbX*(k+1)]-(*p0)[j+1+nbX*k]);
       }
     }
     return res;
@@ -910,17 +910,17 @@ namespace lib {
     for( SizeT k=1; k<=nbY-2; k++)
       {
         for( SizeT j=1; j<= nbX-2; j++)
-	  {
+      {
             Gx=     ((*p0)[j+1+nbX*(k+1)]+(*p0)[j+1+nbX*k]+(*p0)[j+1+nbX*(k-1)]
-		     -   ((*p0)[j-1+nbX*(k+1)]+(*p0)[j-1+nbX*k]+(*p0)[j-1+nbX*(k-1)]));
+             -   ((*p0)[j-1+nbX*(k+1)]+(*p0)[j-1+nbX*k]+(*p0)[j-1+nbX*(k-1)]));
 
             Gy=     ((*p0)[j-1+nbX*(k-1)]+(*p0)[j+nbX*(k-1)]+(*p0)[j+1+nbX*(k-1)]
-		     -   ((*p0)[j-1+nbX*(k+1)]+(*p0)[j+nbX*(k+1)]+(*p0)[j+1+nbX*(k+1)]));
+             -   ((*p0)[j-1+nbX*(k+1)]+(*p0)[j+nbX*(k+1)]+(*p0)[j+1+nbX*(k+1)]));
 
             if (debug) cout<<Gx<<" : "<<Gy<<"\t";
             r=sqrt(Gx * Gx + Gy * Gy);
             (*res)[j+nbX*k]=r;
-	  }
+      }
         if (debug) cout<< endl;
       }
 
@@ -946,36 +946,36 @@ namespace lib {
       return Prewitt_Template<DIntGDL>(static_cast<DByteGDL*>(p0),a);
     }
     case GDL_INT: {long int a;
-	return Prewitt_Template<DIntGDL>(static_cast<DIntGDL*> (p0),a);
+    return Prewitt_Template<DIntGDL>(static_cast<DIntGDL*> (p0),a);
     }
     case GDL_UINT:{long int a;
-	return Prewitt_Template<DUIntGDL>(static_cast<DUIntGDL*> (p0),a);
+    return Prewitt_Template<DUIntGDL>(static_cast<DUIntGDL*> (p0),a);
     }
     case GDL_LONG:{long int a;
-	return Prewitt_Template<DLongGDL>(static_cast<DLongGDL*> (p0),a);
+    return Prewitt_Template<DLongGDL>(static_cast<DLongGDL*> (p0),a);
     }
     case GDL_ULONG:{long int a;
-	return Prewitt_Template<DULongGDL>(static_cast<DULongGDL*> (p0),a);
+    return Prewitt_Template<DULongGDL>(static_cast<DULongGDL*> (p0),a);
     }
     case GDL_LONG64:{long int a;
-	return Prewitt_Template<DLong64GDL>(static_cast<DLong64GDL*> (p0),a);
+    return Prewitt_Template<DLong64GDL>(static_cast<DLong64GDL*> (p0),a);
     }
     case GDL_ULONG64:{long int a;
-	return Prewitt_Template<DULong64GDL>(static_cast<DULong64GDL*> (p0),a);
+    return Prewitt_Template<DULong64GDL>(static_cast<DULong64GDL*> (p0),a);
     }
     case GDL_FLOAT:{long int a;
-	return Prewitt_Template<DFloatGDL>(static_cast<DFloatGDL*> (p0),a);
+    return Prewitt_Template<DFloatGDL>(static_cast<DFloatGDL*> (p0),a);
     }
     case GDL_DOUBLE: {long int a;
-	return Prewitt_Template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0),a);
+    return Prewitt_Template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
     case GDL_COMPLEX: { long int a;
-	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
-	return Prewitt_Template<DComplexGDL>(static_cast<DDoubleGDL*> (p0),a);
+    DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
+    return Prewitt_Template<DComplexGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
     case GDL_COMPLEXDBL:{long int a;
-	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
-	return Prewitt_Template<DComplexDblGDL>(static_cast<DDoubleGDL*> (p0),a);
+    DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
+    return Prewitt_Template<DComplexDblGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
 
     default: e->Throw( "Should not reach this point, please report");
@@ -1002,32 +1002,32 @@ namespace lib {
 
     if (e->GetKW(grayix) != NULL)
       {
-	e->Throw( "/GRAY not yet programmed.");
+    e->Throw( "/GRAY not yet programmed.");
       }
 
     DByteGDL* res = new DByteGDL(p0->Dim(), BaseGDL::NOZERO);
 
     if (e->GetKW(preserveix) != NULL)
       {
-	switch (p0->Type())
-	  {
-	  case GDL_BYTE:{
-	    DByteGDL* res = new DByteGDL(p0->Dim(), BaseGDL::NOZERO);
-	    break;
-	  }
-	  case GDL_UINT:{
-	    DUIntGDL* res = new DUIntGDL(p0->Dim(), BaseGDL::NOZERO);
-	    break;
-	  }
-	  case GDL_ULONG:{
-	    DULongGDL* res = new DULongGDL(p0->Dim(), BaseGDL::NOZERO);
-	    break;
-	  }
-	  default:{
-	    e->Throw( "PRESERVE_TYPE valid only with BYTE, UINT, and ULONG.");
-	    break;
-	  }
-	  }
+    switch (p0->Type())
+      {
+      case GDL_BYTE:{
+        DByteGDL* res = new DByteGDL(p0->Dim(), BaseGDL::NOZERO);
+        break;
+      }
+      case GDL_UINT:{
+        DUIntGDL* res = new DUIntGDL(p0->Dim(), BaseGDL::NOZERO);
+        break;
+      }
+      case GDL_ULONG:{
+        DULongGDL* res = new DULongGDL(p0->Dim(), BaseGDL::NOZERO);
+        break;
+      }
+      default:{
+        e->Throw( "PRESERVE_TYPE valid only with BYTE, UINT, and ULONG.");
+        break;
+      }
+      }
       }
 
     long int nbX = p0->Dim(0);
@@ -1059,8 +1059,8 @@ namespace lib {
       }
     if (nParam>=3)
       {
-	DIntGDL* p2 = e->GetParAs<DIntGDL>(2);
-	midx=(*p2)[0];
+    DIntGDL* p2 = e->GetParAs<DIntGDL>(2);
+    midx=(*p2)[0];
       }
     if (nParam>=4)
       {
@@ -1088,55 +1088,55 @@ namespace lib {
     for( SizeT l=-midz; l<nbZ; l++)
       {
         for( long int k=-midy; k<nbY; k++)
-	  {
+      {
             for( long int j=-midx; j<nbX; j++)
-	      {
-		for( long int x=0; x<mX; x++)
-		  {
-		    if (bo==true)
-		      break;
-		    if (((j+x)>=nbX)|((j+x)<0))
-		      {
+          {
+        for( long int x=0; x<mX; x++)
+          {
+            if (bo==true)
+              break;
+            if (((j+x)>=nbX)|((j+x)<0))
+              {
                         bo=true;
                         break;
-		      }
-		    for( long int y=0; y<mY; y++)
-		      {
+              }
+            for( long int y=0; y<mY; y++)
+              {
                         if (bo==true)
-			  break;
+              break;
                         if (((k+y)>=nbY)|((k+y)<0))
-			  {
-			    bo=true;
-			    break;
-			  }
-			for( long int z=0; z<mZ; z++)
-			  {
-			    //      cout<<"fait z "<< z <<" " ;
+              {
+                bo=true;
+                break;
+              }
+            for( long int z=0; z<mZ; z++)
+              {
+                //      cout<<"fait z "<< z <<" " ;
                             if (((l+z)>=nbZ)|((l+z)<0))
-			      {
-				bo=true;
-				break;
-			      }
+                  {
+                bo=true;
+                break;
+                  }
                             if ((*p1)[x+mX*y+z*(mX*mY)]==1)
-			      if ((*p0)[(j+x)+nbX*(k+y)+(l+z)*(nbX*nbY)]
-				  !=(*p1)[x+mX*y+z*(mX*mY)])
+                  if ((*p0)[(j+x)+nbX*(k+y)+(l+z)*(nbX*nbY)]
+                  !=(*p1)[x+mX*y+z*(mX*mY)])
                                 {
-				  bo=true;
-				  break;
+                  bo=true;
+                  break;
                                 }
-			  }
-		      }
-		  }
+              }
+              }
+          }
                 if (bo==true)
-		  {
+          {
                     if ((j+midx<nbX)&&(k+midy<nbY)&&(l+midz<nbZ))
-		      (*res)[(j+midx)+nbX*(k+midy)+(l+midz)*(nbX*nbY)] =0;
+              (*res)[(j+midx)+nbX*(k+midy)+(l+midz)*(nbX*nbY)] =0;
                     bo=false;
-		  }else{     if ((j+midx<nbX)&&(k+midy<nbY)&&(l+midz<nbZ))
-		    (*res)[(j+midx)+nbX*(k+midy)+(l+midz)*(nbX*nbY)] =1;
-		}
-	      }
-	  }
+          }else{     if ((j+midx<nbX)&&(k+midy<nbY)&&(l+midz<nbZ))
+            (*res)[(j+midx)+nbX*(k+midy)+(l+midz)*(nbX*nbY)] =1;
+        }
+          }
+      }
       }
     return res;
   }
@@ -1160,32 +1160,32 @@ namespace lib {
 
     if (e->GetKW(grayix) != NULL)
       {
-	e->Throw( "/GRAY not yet programmed.");
+    e->Throw( "/GRAY not yet programmed.");
       }
 
     DByteGDL* res = new DByteGDL(p0->Dim(), BaseGDL::NOZERO);
 
     if (e->GetKW(preserveix) != NULL)
       {
-	switch (p0->Type())
-	  {
-	  case GDL_BYTE:{
-	    DByteGDL* res = new DByteGDL(p0->Dim(), BaseGDL::NOZERO);
-	    break;
-	  }
-	  case GDL_UINT:{
-	    DUIntGDL* res = new DUIntGDL(p0->Dim(), BaseGDL::NOZERO);
-	    break;
-	  }
-	  case GDL_ULONG:{
-	    DULongGDL* res = new DULongGDL(p0->Dim(), BaseGDL::NOZERO);
-	    break;
-	  }
-	  default:{
-	    e->Throw( "PRESERVE_TYPE valid only with BYTE, UINT, and ULONG.");
-	    break;
-	  }
-	  }
+    switch (p0->Type())
+      {
+      case GDL_BYTE:{
+        DByteGDL* res = new DByteGDL(p0->Dim(), BaseGDL::NOZERO);
+        break;
+      }
+      case GDL_UINT:{
+        DUIntGDL* res = new DUIntGDL(p0->Dim(), BaseGDL::NOZERO);
+        break;
+      }
+      case GDL_ULONG:{
+        DULongGDL* res = new DULongGDL(p0->Dim(), BaseGDL::NOZERO);
+        break;
+      }
+      default:{
+        e->Throw( "PRESERVE_TYPE valid only with BYTE, UINT, and ULONG.");
+        break;
+      }
+      }
       }
 
     long int nbX = p0->Dim(0);
@@ -1217,8 +1217,8 @@ namespace lib {
       }
     if (nParam>=3)
       {
-	DIntGDL* p2 = e->GetParAs<DIntGDL>(2);
-	midx=(*p2)[0];
+    DIntGDL* p2 = e->GetParAs<DIntGDL>(2);
+    midx=(*p2)[0];
       }
     if (nParam>=4)
       {
@@ -1246,49 +1246,49 @@ namespace lib {
     for( SizeT l=-midz; l<nbZ; l++)
       {
         for( long int k=-midy; k<nbY; k++)
-	  {
+      {
             for( long int j=-midx; j<nbX; j++)
-	      {
-		for( long int x=0; x<mX; x++)
-		  {
-		    if (bo==true)
-		      break;
-		    if (((j+x)<nbX)&&((j+x)>=0))
-		      {
-			for( long int y=0; y<mY; y++)
-			  {
+          {
+        for( long int x=0; x<mX; x++)
+          {
+            if (bo==true)
+              break;
+            if (((j+x)<nbX)&&((j+x)>=0))
+              {
+            for( long int y=0; y<mY; y++)
+              {
                             if (bo==true)
-			      break;
-			    if (((k+y)<nbY)&&((k+y)>=0))
-			      {
-				for( long int z=0; z<mZ; z++)
-				  {
-				    //      cout<<"fait z "<< z <<" " ;
-				    if (((l+z)<nbZ)&&((l+z)>=0))
-				      {
+                  break;
+                if (((k+y)<nbY)&&((k+y)>=0))
+                  {
+                for( long int z=0; z<mZ; z++)
+                  {
+                    //      cout<<"fait z "<< z <<" " ;
+                    if (((l+z)<nbZ)&&((l+z)>=0))
+                      {
                                         if ((*p1)[x+mX*y+z*(mX*mY)]==1)
-					  if ((*p0)[(j+x)+nbX*(k+y)+(l+z)*(nbX*nbY)]
-					      ==(*p1)[x+mX*y+z*(mX*mY)])
+                      if ((*p0)[(j+x)+nbX*(k+y)+(l+z)*(nbX*nbY)]
+                          ==(*p1)[x+mX*y+z*(mX*mY)])
                                             {
-					      bo=true;
-					      break;
+                          bo=true;
+                          break;
                                             }
-				      }
-				  }
-			      }
-			  }
-		      }
-		  }
+                      }
+                  }
+                  }
+              }
+              }
+          }
                 if (bo==true)
-		  {
+          {
                     if ((j+midx<nbX)&&(k+midy<nbY)&&(l+midz<nbZ))
-		      (*res)[(j+midx)+nbX*(k+midy)+(l+midz)*(nbX*nbY)] =1;
+              (*res)[(j+midx)+nbX*(k+midy)+(l+midz)*(nbX*nbY)] =1;
                     bo=false;
-		  }else{     if ((j+midx<nbX)&&(k+midy<nbY)&&(l+midz<nbZ))
-		    (*res)[(j+midx)+nbX*(k+midy)+(l+midz)*(nbX*nbY)] =0;
-		}
-	      }
-	  }
+          }else{     if ((j+midx<nbX)&&(k+midy<nbY)&&(l+midz<nbZ))
+            (*res)[(j+midx)+nbX*(k+midy)+(l+midz)*(nbX*nbY)] =0;
+        }
+          }
+      }
       }
     return res;
   }
@@ -1312,11 +1312,11 @@ namespace lib {
 
     if (a->Rank() > 2)
       {
-	e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(0));
+    e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(0));
       }
     if (b->Rank() > 2)
       {
-	e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(1));
+    e->Throw("Array must have 1 or 2 dimensions: " + e->GetParString(1));
       }
 
     // code from ProgNode::AdjustTypes()
@@ -1327,25 +1327,25 @@ namespace lib {
     DType cxTy = PromoteComplexOperand( aTy, bTy);
     if( cxTy != GDL_UNDEF)
       {
-	a = a->Convert2( cxTy, BaseGDL::COPY);
-	aGuard.Init( a);
-	b = b->Convert2( cxTy, BaseGDL::COPY);
-	bGuard.Init( b);
+    a = a->Convert2( cxTy, BaseGDL::COPY);
+    aGuard.Init( a);
+    b = b->Convert2( cxTy, BaseGDL::COPY);
+    bGuard.Init( b);
       }
     else
       {
-	DType cTy = PromoteMatrixOperands( aTy, bTy);
+    DType cTy = PromoteMatrixOperands( aTy, bTy);
 
-	if( aTy != cTy)
-	  {
-	    a = a->Convert2( cTy, BaseGDL::COPY);
-	    aGuard.Init( a);
-	  }
-	if( bTy != cTy)
-	  {
-	    b = b->Convert2( cTy, BaseGDL::COPY);
-	    bGuard.Init( b);
-	  }
+    if( aTy != cTy)
+      {
+        a = a->Convert2( cTy, BaseGDL::COPY);
+        aGuard.Init( a);
+      }
+    if( bTy != cTy)
+      {
+        b = b->Convert2( cTy, BaseGDL::COPY);
+        bGuard.Init( b);
+      }
       }
 
     // might use eigen3

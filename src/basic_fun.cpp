@@ -2141,7 +2141,7 @@ namespace lib {
       e->Throw( "Search string must be a scalar or one element array: "+
         e->GetParString( 1));
 
-    unsigned long pos = string::npos;
+    unsigned long pos = (unsigned long) string::npos;
     if( nParam > 2)
       {
     BaseGDL* p2 = e->GetParDefined(2);
