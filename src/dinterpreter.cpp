@@ -14,7 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
+#define INCLUDE_PYTHON 1
 #include "includefirst.hpp"
 
 #include <iostream>
@@ -80,7 +80,7 @@ DInterpreter::DInterpreter(): GDLInterpreter()
   returnValue  = NULL;
   returnValueL = NULL;
 
-	stepCount = 0;
+    stepCount = 0;
   
     // setup main level environment
   DPro* mainPro=new DPro();        // $MAIN$  NOT inserted into proList
@@ -99,7 +99,7 @@ DInterpreter::DInterpreter(): GDLInterpreter()
 // void SetActualCompileOpt( unsigned int cOpt)
 // {
 // if( BaseGDL::interpreter!=NULL && BaseGDL::interpreter->CallStack().size()>0) 
-// 	BaseGDL::interpreter->CallStack().back()->SetCompileOpt( cOpt);
+//  BaseGDL::interpreter->CallStack().back()->SetCompileOpt( cOpt);
 // }
 
 // used in the statement function.
@@ -118,18 +118,18 @@ DStructGDL* GDLInterpreter::ObjectStruct( DObjGDL* self, ProgNodeP mp)
 //   DType selfType = self->Type();
 //   if( selfType != GDL_OBJ) 
 //     throw GDLException( mp, "Object reference type"
-// 			" required in this context: "+Name(self));
+//          " required in this context: "+Name(self));
 
   DObjGDL* obj=self;//static_cast<DObjGDL*>(self);
 
   SizeT o;
   if( !obj->Scalar( o))
     throw GDLException( mp, "Object reference"
-			" must be scalar in this context: "+Name(self));
+            " must be scalar in this context: "+Name(self));
   
   if( o == 0)
     throw GDLException( mp, "Unable to invoke method"
-			" on NULL object reference: "+Name(self));
+            " on NULL object reference: "+Name(self));
   
   DStructGDL* oStructGDL;
   try {
@@ -148,21 +148,21 @@ void GDLInterpreter::SetRootL( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, Arr
   if( r->Type() == GDL_STRUCT)
   {
       if( r->IsAssoc())
-	  {
-	      ArrayIndexListGuard guard( aL);
-	      throw GDLException( tt, "File expression not allowed in this context: "+
-					Name(r),true,false);
-	  }
+      {
+          ArrayIndexListGuard guard( aL);
+          throw GDLException( tt, "File expression not allowed in this context: "+
+                    Name(r),true,false);
+      }
       DStructGDL* structR=static_cast<DStructGDL*>(r);
       aD->ADRoot(structR, aL); 
   }
   else
   {
       if( r->Type() != GDL_OBJ)
-	  {
-	      throw GDLException( tt, "Expression must be a STRUCT in this context: "+
-					Name(r),true,false);
-	  }
+      {
+          throw GDLException( tt, "Expression must be a STRUCT in this context: "+
+                    Name(r),true,false);
+      }
 
       ArrayIndexListGuard guard( aL);
 
@@ -172,53 +172,53 @@ void GDLInterpreter::SetRootL( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, Arr
       bool isObj = callStack.back()->IsObject(); // called from member subroutine?
 
       if( desc->IsParent( GDL_OBJECT_NAME))
-	  {
-	    SizeT sss = 0;
-	    SizeT ooo = 0;
-	    if( isObj)
-	    {
-	      static_cast<DObjGDL*>(r)->Scalar( ooo); // checked in ObjectStruct
+      {
+        SizeT sss = 0;
+        SizeT ooo = 0;
+        if( isObj)
+        {
+          static_cast<DObjGDL*>(r)->Scalar( ooo); // checked in ObjectStruct
 
-	      BaseGDL* self = callStack.back()->GetKW(callStack.back()->GetPro()->NKey()); // SELF
+          BaseGDL* self = callStack.back()->GetKW(callStack.back()->GetPro()->NKey()); // SELF
 
-	      assert( dynamic_cast<DObjGDL*>(self) != NULL);
+          assert( dynamic_cast<DObjGDL*>(self) != NULL);
 
-	      if( !static_cast<DObjGDL*>(self)->Scalar( sss))
-		  throw GDLException( tt, "Internal error: SELF Object reference"
-				    " must be scalar in this context: "+Name(self));
+          if( !static_cast<DObjGDL*>(self)->Scalar( sss))
+          throw GDLException( tt, "Internal error: SELF Object reference"
+                    " must be scalar in this context: "+Name(self));
 
-	      assert( sss != 0);
-	    }
+          assert( sss != 0);
+        }
 
-	    if( !isObj || (sss != ooo))
-	    {
-	      // call SetProperty
-	      throw GDLException( tt, "Calling SetProperty not yet implemented: "+Name(r));
-	      //return;
-	    }
-	  }
+        if( !isObj || (sss != ooo))
+        {
+          // call SetProperty
+          throw GDLException( tt, "Calling SetProperty not yet implemented: "+Name(r));
+          //return;
+        }
+      }
 
       if( isObj) // member access to object?
-	  {
-	      if( !desc->IsParent( callStack.back()->GetPro()->Object()))
-		  {
-		      throw GDLException( tt, "Object of type "+desc->Name()+
-					  " is not accessible within "+
-					  callStack.back()->GetProName() + 
-					  ": "+Name(r));
-		  }
-	      // DStructGDL* oStruct = 
-	      //        ObjectStructCheckAccess( static_cast<DObjGDL*>(r), tt);
+      {
+          if( !desc->IsParent( callStack.back()->GetPro()->Object()))
+          {
+              throw GDLException( tt, "Object of type "+desc->Name()+
+                      " is not accessible within "+
+                      callStack.back()->GetProName() + 
+                      ": "+Name(r));
+          }
+          // DStructGDL* oStruct = 
+          //        ObjectStructCheckAccess( static_cast<DObjGDL*>(r), tt);
 
-	      // oStruct cannot be "Assoc_"
-	      aD->ADRoot( oStruct, guard.release()); 
-	  }
+          // oStruct cannot be "Assoc_"
+          aD->ADRoot( oStruct, guard.release()); 
+      }
       else
-	  {
-	      throw GDLException( tt, "Expression must be a"
-				  " STRUCT in this context: "+Name(r),
-				  true,false);
-	  }
+      {
+          throw GDLException( tt, "Expression must be a"
+                  " STRUCT in this context: "+Name(r),
+                  true,false);
+      }
   }
 }
 
@@ -228,11 +228,11 @@ void GDLInterpreter::SetRootR( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, Arr
 if( r->Type() == GDL_STRUCT)
   {
       if( r->IsAssoc())
-	  {
-	      ArrayIndexListGuard guard( aL);
-	      throw GDLException( tt, "File expression not allowed in this context: "+
-				       Name(r),true,false);
-	  }
+      {
+          ArrayIndexListGuard guard( aL);
+          throw GDLException( tt, "File expression not allowed in this context: "+
+                       Name(r),true,false);
+      }
       DStructGDL* structR=static_cast<DStructGDL*>(r);
       aD->ADRoot( structR, aL); 
   }
@@ -241,11 +241,11 @@ else
       ArrayIndexListGuard guard( aL);
 
       if( r->Type() != GDL_OBJ)
-	  {
-	      throw GDLException( tt, "Expression must be a"
-				  " STRUCT in this context: "+Name(r),
-				  true,false);
-	  }
+      {
+          throw GDLException( tt, "Expression must be a"
+                  " STRUCT in this context: "+Name(r),
+                  true,false);
+      }
 
       DStructGDL* oStruct = ObjectStruct( static_cast<DObjGDL*>(r), tt);
       DStructDesc* desc = oStruct->Desc();
@@ -253,56 +253,56 @@ else
       bool isObj = callStack.back()->IsObject();
 
       if( desc->IsParent( GDL_OBJECT_NAME))
-	  {
-	    SizeT sss = 0;
-	    SizeT ooo = 0;
-	    if( isObj)
-	    {
-	      static_cast<DObjGDL*>(r)->Scalar( ooo); // checked in ObjectStruct
+      {
+        SizeT sss = 0;
+        SizeT ooo = 0;
+        if( isObj)
+        {
+          static_cast<DObjGDL*>(r)->Scalar( ooo); // checked in ObjectStruct
 
-	      BaseGDL* self = callStack.back()->GetKW(callStack.back()->GetPro()->NKey()); // SELF
+          BaseGDL* self = callStack.back()->GetKW(callStack.back()->GetPro()->NKey()); // SELF
 
-	      assert( dynamic_cast<DObjGDL*>(self) != NULL);
+          assert( dynamic_cast<DObjGDL*>(self) != NULL);
 
-	      if( !static_cast<DObjGDL*>(self)->Scalar( sss))
-		  throw GDLException( tt, "Internal error: SELF Object reference"
-				    " must be scalar in this context: "+Name(self));
+          if( !static_cast<DObjGDL*>(self)->Scalar( sss))
+          throw GDLException( tt, "Internal error: SELF Object reference"
+                    " must be scalar in this context: "+Name(self));
 
-	      assert( sss != 0);
-	    }
+          assert( sss != 0);
+        }
 
-	    if( !isObj || (sss != ooo))
-	    {
-	      // call GetProperty
-	      throw GDLException( tt, "Calling GetProperty not yet implemented: "+Name(r));
+        if( !isObj || (sss != ooo))
+        {
+          // call GetProperty
+          throw GDLException( tt, "Calling GetProperty not yet implemented: "+Name(r));
 
-	      //aD->ADRootGetProperty( oStruct, guard.release()); 
-	      return;
-	    }
-	  }
+          //aD->ADRootGetProperty( oStruct, guard.release()); 
+          return;
+        }
+      }
 
       if( isObj)
-	  {
-	      if( !desc->IsParent( callStack.back()->GetPro()->Object()))
-		  {
-		      throw GDLException( tt, "Object of type "+desc->Name()+
-					  " is not accessible within "+
-					  callStack.back()->GetProName() + 
-					  ": "+Name(r));
-		  }
-	      // DStructGDL* oStruct = 
-	      //     ObjectStructCheckAccess( static_cast<DObjGDL*>(r), tt);
+      {
+          if( !desc->IsParent( callStack.back()->GetPro()->Object()))
+          {
+              throw GDLException( tt, "Object of type "+desc->Name()+
+                      " is not accessible within "+
+                      callStack.back()->GetProName() + 
+                      ": "+Name(r));
+          }
+          // DStructGDL* oStruct = 
+          //     ObjectStructCheckAccess( static_cast<DObjGDL*>(r), tt);
 
-	      if( aD->IsOwner()) delete r; 
-	      aD->SetOwner( false); // object struct, not owned
-	      
-	      aD->ADRoot( oStruct, guard.release()); 
-	  }
+          if( aD->IsOwner()) delete r; 
+          aD->SetOwner( false); // object struct, not owned
+          
+          aD->ADRoot( oStruct, guard.release()); 
+      }
       else
-	  {
-	      throw GDLException( tt, "Expression must be a"
-				  " STRUCT in this context: "+Name(r),true,false);
-	  }
+      {
+          throw GDLException( tt, "Expression must be a"
+                  " STRUCT in this context: "+Name(r),true,false);
+      }
   }
 }
 
@@ -329,8 +329,8 @@ else
 //   if( !desc->IsParent( callStack.back()->GetPro()->Object()))
 //     {
 //       throw GDLException( mp, "Object of type "+desc->Name()+
-// 			  " is not accessible within "+
-// 			  callStack.back()->GetProName() + ": "+Name(self));
+//            " is not accessible within "+
+//            callStack.back()->GetProName() + ": "+Name(self));
 //     }
 //   
 //   //return oStruct;
@@ -380,7 +380,7 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
   for( StrArr::iterator i=getStructList.begin(); i != getStructList.end(); ++i)
     {
       if( proName == *i) 
-		throw GDLException(cN, "Structure type not defined (recursive call): "+name,true,false);
+        throw GDLException(cN, "Structure type not defined (recursive call): "+name,true,false);
     }
 
   StackSizeGuard<StrArr> guardStructList( getStructList);
@@ -400,7 +400,7 @@ DStructDesc* GDLInterpreter::GetStruct(const string& name, ProgNodeP cN)
   int proIx=ProIx(proName);
   if( proIx == -1)
     {
-	throw GDLException(cN, "Procedure not found: "+proName, true, false);
+    throw GDLException(cN, "Procedure not found: "+proName, true, false);
     }
   
   // 'guard' call stack
@@ -441,9 +441,9 @@ int GDLInterpreter::GetFunIx( ProgNodeP f)
             
       funIx=FunIx(subName);
       if( funIx == -1)
-	{
-	  throw GDLException(f, "Function not found: "+subName, true, false);
-	}
+    {
+      throw GDLException(f, "Function not found: "+subName, true, false);
+    }
     }
   return funIx;
 }
@@ -457,9 +457,9 @@ int GDLInterpreter::GetFunIx( const string& subName)
             
       funIx=FunIx(subName);
       if( funIx == -1)
-	{
-	  throw GDLException("Function not found: "+subName);
-	}
+    {
+      throw GDLException("Function not found: "+subName);
+    }
     }
   return funIx;
 }
@@ -542,12 +542,12 @@ int GDLInterpreter::GetProIx( const string& subName)
     {
       // trigger reading/compiling of source file
       /*bool found=*/ SearchCompilePro(subName, true);
-	  
+      
       proIx=ProIx(subName);
       if( proIx == -1)
-	{
-	  throw GDLException("Procedure not found: "+subName);
-	}
+    {
+      throw GDLException("Procedure not found: "+subName);
+    }
     }
   return proIx;
 }
@@ -584,12 +584,12 @@ void GDLInterpreter::ReportCompileError( GDLException& e, const string& file)
       cerr << "  At: " << file;
       SizeT line = e.getLine();
       if( line != 0)
-	{       
-	  cerr  << ", Line " << line;
-	  SizeT col = e.getColumn();
-	  if( col != 0)
-	    cerr << "  Column " << e.getColumn();
-	}
+    {       
+      cerr  << ", Line " << line;
+      SizeT col = e.getColumn();
+      if( col != 0)
+        cerr << "  Column " << e.getColumn();
+    }
       cerr << endl;
     }
 }
@@ -614,9 +614,9 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool s
     
     if( !theAST)
       {
-	cout << "No parser output generated." << endl;
-	return false;
-      }	
+    cout << "No parser output generated." << endl;
+    return false;
+      } 
   }
   catch( GDLException& e)
     {
@@ -686,7 +686,7 @@ void AppendExtension( string& argstr)
 
   if( dotPos == string::npos || (slPos != string::npos && slPos > dotPos))
     //  if( argstr.length() <= 4 || argstr.find( '.', 1) == string::npos) 
-    //	      StrLowCase( argstr.substr(argstr.length()-4,4)) != ".pro")
+    //        StrLowCase( argstr.substr(argstr.length()-4,4)) != ".pro")
     {
       argstr += ".pro";
     }
@@ -724,39 +724,39 @@ DInterpreter::CommandCode DInterpreter::CmdCompile( const string& command)
 
       // Found a file
       if ((sppos - pos) > 0) 
-	{
-	  string argstr  = command.substr(pos, sppos-pos);
-	  string origstr = argstr;
+    {
+      string argstr  = command.substr(pos, sppos-pos);
+      string origstr = argstr;
 
-	  // try first with extension
-	  AppendExtension( argstr);
-	  bool found = CompleteFileName( argstr);
+      // try first with extension
+      AppendExtension( argstr);
+      bool found = CompleteFileName( argstr);
 
-	  // 2nd try without extension
-	  if( !found)
-	    {
-	      argstr = origstr;
-	      found = CompleteFileName( argstr);
-	    }
+      // 2nd try without extension
+      if( !found)
+        {
+          argstr = origstr;
+          found = CompleteFileName( argstr);
+        }
 
-	  if (found) 
-	    {
-	      try {
-		// default is more verbose
-		CompileFile( argstr); //, origstr); 
-	      }
-	      catch( RetAllException&)
-		{
-		  // delay the RetAllException until finished
-		  retAll = true;
-		}
-	    } 
-	  else 
-	    {
-	      Message( "Error opening file. File: "+origstr+".");
-	      return CC_OK;
-	    }
-	}
+      if (found) 
+        {
+          try {
+        // default is more verbose
+        CompileFile( argstr); //, origstr); 
+          }
+          catch( RetAllException&)
+        {
+          // delay the RetAllException until finished
+          retAll = true;
+        }
+        } 
+      else 
+        {
+          Message( "Error opening file. File: "+origstr+".");
+          return CC_OK;
+        }
+    }
       pos = sppos + 1;
     }
   if( retAll) RetAll();
@@ -783,51 +783,51 @@ DInterpreter::CommandCode DInterpreter::CmdRun( const string& command)
       sppos = command.find(" ",pos);
       size_t spposComma = command.find(",",pos);
       if (sppos == string::npos && spposComma == string::npos) 
-	sppos = command.length();
+    sppos = command.length();
       else if (sppos == string::npos)
-	sppos = spposComma;
-	
+    sppos = spposComma;
+    
 
       // Found a file
       if ((sppos - pos) > 0) 
-	{
-	  string argstr  = command.substr(pos, sppos-pos);
-	  string origstr = argstr;
+    {
+      string argstr  = command.substr(pos, sppos-pos);
+      string origstr = argstr;
 
-	  // try 1st with extension
-	  AppendExtension( argstr);
-	  bool found = CompleteFileName(argstr);
+      // try 1st with extension
+      AppendExtension( argstr);
+      bool found = CompleteFileName(argstr);
 
-	  // 2nd try without extension
-	  if( !found)
-	    {
-	      argstr = origstr;
-	      found = CompleteFileName( argstr);
-	    }
+      // 2nd try without extension
+      if( !found)
+        {
+          argstr = origstr;
+          found = CompleteFileName( argstr);
+        }
 
-	  if (found) 
-	    {
-	      try {
-		// default is more verbose
-		CompileFile( argstr); //, origstr); 
-	      }
-	      catch( RetAllException&)
-		{
-		  // delay the RetAllException until finished
-		  retAll = true;
-		}
-	    } 
-	  else 
-	    {
-	      Message( "Error opening file. File: "+origstr+".");
-	      return CC_OK;
-	    }
-	}
+      if (found) 
+        {
+          try {
+        // default is more verbose
+        CompileFile( argstr); //, origstr); 
+          }
+          catch( RetAllException&)
+        {
+          // delay the RetAllException until finished
+          retAll = true;
+        }
+        } 
+      else 
+        {
+          Message( "Error opening file. File: "+origstr+".");
+          return CC_OK;
+        }
+    }
       pos = sppos + 1;
     }
   if( retAll) 
     Warning( "Compiled a main program while inside a procedure. "
-	     "Returning.");
+         "Returning.");
 
   // actual run is perfomed in InterpreterLoop()
   RetAll( RetAllException::RUN); // throws (always)
@@ -892,13 +892,13 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
     }
   if( cmd( "RNEW"))
     {
-	    EnvUDT* mainEnv = 
-		   static_cast<EnvUDT*>(GDLInterpreter::callStack[0]);
-			  SizeT nEnv = mainEnv->EnvSize();
+        EnvUDT* mainEnv = 
+           static_cast<EnvUDT*>(GDLInterpreter::callStack[0]);
+              SizeT nEnv = mainEnv->EnvSize();
 
-		dynamic_cast<DSubUD*>(mainEnv->GetPro())->Reset();
-		if(!mainEnv->Removeall()) 
-			cout << " Danger ! Danger! Unexpected result. Please exit asap & report" <<endl;
+        dynamic_cast<DSubUD*>(mainEnv->GetPro())->Reset();
+        if(!mainEnv->Removeall()) 
+            cout << " Danger ! Danger! Unexpected result. Please exit asap & report" <<endl;
 
       return CmdRun( command);
     }
@@ -908,22 +908,22 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
       DLong sCount;
       if( args == "")
       {
-	  sCount = 1;
+      sCount = 1;
       }
       else
       {
-	  const char* cStart=args.c_str();
-	  char* cEnd;
-	  sCount = strtol(cStart,&cEnd,10);
-	  if( cEnd == cStart)
-	  {
-	    cout << "Type conversion error: Unable to convert given STRING: '"+args+"' to LONG." << endl;
-	    return CC_OK;
-	  }
-	}
-	stepCount = sCount;
-	debugMode = DEBUG_STEP;
-	return CC_STEP;
+      const char* cStart=args.c_str();
+      char* cEnd;
+      sCount = strtol(cStart,&cEnd,10);
+      if( cEnd == cStart)
+      {
+        cout << "Type conversion error: Unable to convert given STRING: '"+args+"' to LONG." << endl;
+        return CC_OK;
+      }
+    }
+    stepCount = sCount;
+    debugMode = DEBUG_STEP;
+    return CC_STEP;
     }
 
   if( cmd( "SKIP"))
@@ -931,18 +931,18 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command)
       DLong sCount;
       if( args == "")
       {
-	  sCount = 1;
+      sCount = 1;
       }
       else
       {
-	const char* cStart=args.c_str();
-	char* cEnd;
-	sCount = strtol(cStart,&cEnd,10);
-	if( cEnd == cStart)
-	{
-	  cout << "Type conversion error: Unable to convert given STRING: '"+args+"' to LONG." << endl;
-	  return CC_OK;
-	}
+    const char* cStart=args.c_str();
+    char* cEnd;
+    sCount = strtol(cStart,&cEnd,10);
+    if( cEnd == cStart)
+    {
+      cout << "Type conversion error: Unable to convert given STRING: '"+args+"' to LONG." << endl;
+      return CC_OK;
+    }
       }
       stepCount = sCount;
       return CC_SKIP;
@@ -974,13 +974,13 @@ void DInterpreter::ExecuteShellCommand(const string& command)
   string commandLine = command;
   if(commandLine == "") {
      char* shellEnv = getenv("SHELL");
-	 if (shellEnv == NULL) shellEnv = getenv("COMSPEC");
-	 if (shellEnv == NULL) {
+     if (shellEnv == NULL) shellEnv = getenv("COMSPEC");
+     if (shellEnv == NULL) {
         cout << "Error managing child process. " <<
-		" Environment variable SHELL or COMSPEC not set." << endl;
+        " Environment variable SHELL or COMSPEC not set." << endl;
       return;
     }
-	 commandLine = shellEnv;
+     commandLine = shellEnv;
   }
 
   int ignored = system( commandLine.c_str());
@@ -1029,11 +1029,11 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
       // later, we will have to check whether we have X11/Display or not
       // on some computing nodes on supercomputers, this is de-activated.
       if (line.substr(1).length() > 0) {
-	line=line.substr(1);
-	StrTrim(line);
-	line="online_help, '"+line+"'"; //'
+    line=line.substr(1);
+    StrTrim(line);
+    line="online_help, '"+line+"'"; //'
       } else {
-	line="online_help";
+    line="online_help";
       }
     }
   
@@ -1041,57 +1041,57 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   if( firstChar == "#") 
     {
       if (line.substr(1).length() > 0) {
-	line=line.substr(1);
-	StrTrim(line);
-	line=StrUpCase(line);
-	//cout << "yes ! >>"<<StrUpCase(line)<<"<<" << endl;
-	SizeT nProFun;
-	int nbFound=0;
-	// looking in internal procedures
-	nProFun=libProList.size();
-	for( SizeT i = 0; i<nProFun; ++i)
-	  {
-	    if (line.compare(libProList[ i]->Name()) == 0) {
-	      cout << "Internal PROCEDURE : " << libProList[ i]->ToString() << endl;
-	      nbFound++;
-	      break;
-	    }
-	  }
-	// looking in internal functions
-	nProFun = libFunList.size();
-	for( SizeT i = 0; i<nProFun; ++i)
-	  {
-	    if (line.compare(libFunList[ i]->Name()) == 0) {
-	      cout << "Internal FUNCTION : " << libFunList[ i]->ToString() << endl;
-	      nbFound++;
-	      break;
-	    }
-	  }
-	// looking in compiled functions
-	nProFun = funList.size();
-	for( SizeT i = 0; i<nProFun; ++i)
-	  {
-	    if (line.compare(funList[ i]->Name()) == 0) {
-	      cout << "Compiled FUNCTION : " << funList[ i]->ToString() << endl;
-	      nbFound++;
-	      break;
-	    }
-	  }
-	// looking in compiled procedures
-	nProFun = proList.size();
-	for( SizeT i = 0; i<nProFun; ++i)
-	  {
-	    if (line.compare(proList[ i]->Name()) == 0) {
-	      cout << "Compiled PROCEDURE : " << proList[ i]->ToString() << endl;
-	      nbFound++;
-	      break;
-	    }
-	  }
-	if (nbFound == 0) {
-	  cout << "No Procedure/Function, internal or compiled, with name : "<< line << endl;
-	}
+    line=line.substr(1);
+    StrTrim(line);
+    line=StrUpCase(line);
+    //cout << "yes ! >>"<<StrUpCase(line)<<"<<" << endl;
+    SizeT nProFun;
+    int nbFound=0;
+    // looking in internal procedures
+    nProFun=libProList.size();
+    for( SizeT i = 0; i<nProFun; ++i)
+      {
+        if (line.compare(libProList[ i]->Name()) == 0) {
+          cout << "Internal PROCEDURE : " << libProList[ i]->ToString() << endl;
+          nbFound++;
+          break;
+        }
+      }
+    // looking in internal functions
+    nProFun = libFunList.size();
+    for( SizeT i = 0; i<nProFun; ++i)
+      {
+        if (line.compare(libFunList[ i]->Name()) == 0) {
+          cout << "Internal FUNCTION : " << libFunList[ i]->ToString() << endl;
+          nbFound++;
+          break;
+        }
+      }
+    // looking in compiled functions
+    nProFun = funList.size();
+    for( SizeT i = 0; i<nProFun; ++i)
+      {
+        if (line.compare(funList[ i]->Name()) == 0) {
+          cout << "Compiled FUNCTION : " << funList[ i]->ToString() << endl;
+          nbFound++;
+          break;
+        }
+      }
+    // looking in compiled procedures
+    nProFun = proList.size();
+    for( SizeT i = 0; i<nProFun; ++i)
+      {
+        if (line.compare(proList[ i]->Name()) == 0) {
+          cout << "Compiled PROCEDURE : " << proList[ i]->ToString() << endl;
+          nbFound++;
+          break;
+        }
+      }
+    if (nbFound == 0) {
+      cout << "No Procedure/Function, internal or compiled, with name : "<< line << endl;
+    }
       } else {
-	cout << "Please provide a pro/fun name !" << endl;
+    cout << "Please provide a pro/fun name !" << endl;
       }
       return CC_OK;
     }
@@ -1115,10 +1115,10 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
       
       bool found = CompleteFileName( file);
       if( !found)
-	{
-	  file = fileRaw;
-	  CompleteFileName( file);
-	}
+    {
+      file = fileRaw;
+      CompleteFileName( file);
+    }
 
       ExecuteFile( file);
       return CC_OK;
@@ -1140,56 +1140,56 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
     int lCNum = 0;
     for(;;) 
       {
-	lexer.Reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
-	try {
-	  // works, but ugly -> depends from parser detecting an error
-	  // (which it always will due to missing END_U token in case of LC)
- 	  //lexer->Parser().SetCompileOpt(callStack.back()->CompileOpt());
- 	  lexer.Get()->Parser().interactive();
-	  break; // no error -> everything ok
-	}
-	catch( GDLException& e)
-	  {
-	    int lCNew = lexer.Get()->LineContinuation();
-	    if( lCNew == lCNum)
-// 	      throw; // no LC -> real error
-	{
-#ifdef 	AUTO_PRINT_EXPR
-#ifndef GDL_DEBUG 		
- 		try {
-// 			executeLine.clear(); // clear EOF (for executeLine)
-// 			lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
-// 			lexer->Parser().expr();
-	
-			executeLine.clear(); // clear EOF (for executeLine)
-			executeLine.str( "print,/implied_print," + executeLine.str()); // append new line
-			
-			lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
-			lexer->Parser().interactive();
-			
-			break; // no error -> everything ok
-		}
-		catch( GDLException& e2)
+    lexer.Reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
+    try {
+      // works, but ugly -> depends from parser detecting an error
+      // (which it always will due to missing END_U token in case of LC)
+      //lexer->Parser().SetCompileOpt(callStack.back()->CompileOpt());
+      lexer.Get()->Parser().interactive();
+      break; // no error -> everything ok
+    }
+    catch( GDLException& e)
+      {
+        int lCNew = lexer.Get()->LineContinuation();
+        if( lCNew == lCNum)
+//        throw; // no LC -> real error
+    {
+#ifdef  AUTO_PRINT_EXPR
+#ifndef GDL_DEBUG       
+        try {
+//          executeLine.clear(); // clear EOF (for executeLine)
+//          lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
+//          lexer->Parser().expr();
+    
+            executeLine.clear(); // clear EOF (for executeLine)
+            executeLine.str( "print,/implied_print," + executeLine.str()); // append new line
+            
+            lexer.reset( new GDLLexer(executeLine, "", callStack.back()->CompileOpt()));
+            lexer->Parser().interactive();
+            
+            break; // no error -> everything ok
+        }
+        catch( GDLException& e2)
 #endif
 #endif
-		{
-			throw e;
-		}
-	}
+        {
+            throw e;
+        }
+    }
 
-	    lCNum = lCNew; // save number to see if next line also has LC
-	  }
+        lCNum = lCNew; // save number to see if next line also has LC
+      }
 
 
 
-	// line continuation -> get next line
-	if( in != NULL && !in->good())
-	  throw GDLException( "End of file encountered during line continuation.");
-	
-	string cLine = (in != NULL) ? ::GetLine(in) : GetLine();
+    // line continuation -> get next line
+    if( in != NULL && !in->good())
+      throw GDLException( "End of file encountered during line continuation.");
+    
+    string cLine = (in != NULL) ? ::GetLine(in) : GetLine();
 
-	executeLine.clear(); // clear EOF (for executeLine)
-	executeLine.str( executeLine.str() + cLine + "\n"); // append new line
+    executeLine.clear(); // clear EOF (for executeLine)
+    executeLine.str( executeLine.str() + cLine + "\n"); // append new line
       } 
     
     //    lexer->Parser().interactive();
@@ -1211,7 +1211,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 
     // consider line offset
     if( lineOffset > 0)
-		AddLineOffset( lineOffset, theAST);
+        AddLineOffset( lineOffset, theAST);
 
 #ifdef GDL_DEBUG
   antlr::print_tree pt;
@@ -1223,14 +1223,14 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   ProgNodeP progAST = NULL;
 
   RefDNode trAST;
-	
+    
   assert( dynamic_cast<EnvUDT*>(callStack.back()) != NULL);
   EnvUDT* env = static_cast<EnvUDT*>(callStack.back());
   int nForLoopsIn = env->NForLoops();
   try
     {
       GDLTreeParser treeParser( callStack.back());
-	  
+      
       treeParser.interactive(theAST);
 
       trAST=treeParser.getAST();
@@ -1239,7 +1239,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
     {
       // normal condition for cmd line procedure calls
       return CC_OK;
-    }	
+    }   
 
 #ifdef GDL_DEBUG
   cout << "Tree parser output (RefDNode):" << endl;
@@ -1247,26 +1247,26 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
   cout << "ExecuteLine: Tree parser end." << endl;
 #endif
 
-	// **************************************
-	// this is the call of the ProgNode factory
-	// **************************************
+    // **************************************
+    // this is the call of the ProgNode factory
+    // **************************************
     progAST = ProgNode::NewProgNode( trAST);
 
-	assert( dynamic_cast<EnvUDT*>(callStack.back()) != NULL);
+    assert( dynamic_cast<EnvUDT*>(callStack.back()) != NULL);
     EnvUDT* env = static_cast<EnvUDT*>(callStack.back());
     int nForLoops = ProgNode::NumberForLoops( progAST, nForLoopsIn);
-	env->ResizeForLoops( nForLoops);
+    env->ResizeForLoops( nForLoops);
     }
   catch( GDLException& e)
     {
-	  env->ResizeForLoops( nForLoopsIn);
+      env->ResizeForLoops( nForLoopsIn);
       
       ReportCompileError( e);
       return CC_OK;
     }
   catch( ANTLRException& e)
     {
-	  env->ResizeForLoops( nForLoopsIn);
+      env->ResizeForLoops( nForLoopsIn);
       
       cerr << "Compiler exception: " <<  e.getMessage() << endl;
       return CC_OK;
@@ -1284,7 +1284,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 
       RetCode retCode = interactive( progAST);
       
-	  env->ResizeForLoops( nForLoopsIn);
+      env->ResizeForLoops( nForLoopsIn);
       
       // write to journal file
       string actualLine = GetClearActualLine();
@@ -1295,14 +1295,14 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
     }
   catch( GDLException& e)
     {
-	  env->ResizeForLoops( nForLoopsIn);
+      env->ResizeForLoops( nForLoopsIn);
       
       cerr << "Unhandled GDL exception: " <<  e.toString() << endl;
       return CC_OK;
     }
   catch( ANTLRException& e)
     {
-	  env->ResizeForLoops( nForLoopsIn);
+      env->ResizeForLoops( nForLoopsIn);
       
       cerr << "Interpreter exception: " <<  e.getMessage() << endl;
       return CC_OK;
@@ -1317,11 +1317,11 @@ void inputThread() {
       //char ch = getchar(); if (ch==EOF) return NULL;
       char ch = getchar();
       if (ch==EOF) {
-	return;
+    return;
       }        
       inputstr += ch;
       if (ch == '\n')
-	break;
+    break;
     }
 }
 
@@ -1384,7 +1384,7 @@ string DInterpreter::GetLine()
 
     char *cline;
 
-	actualPrompt = SysVar::Prompt();
+    actualPrompt = SysVar::Prompt();
 
     lineEdit = true;
 
@@ -1404,13 +1404,13 @@ string DInterpreter::GetLine()
     
     if( !cline) 
       {
-	if (isatty(0)) cout << endl;
-	// instead or going out (EXITing) immediately, we go to
-	// the "exitgdl" in order to save the history
-	// exit( EXIT_SUCCESS); //break; // readline encountered eof
-	line="EXIT";
-	StrTrim(line);
-	break;
+    if (isatty(0)) cout << endl;
+    // instead or going out (EXITing) immediately, we go to
+    // the "exitgdl" in order to save the history
+    // exit( EXIT_SUCCESS); //break; // readline encountered eof
+    line="EXIT";
+    StrTrim(line);
+    break;
       }
     else
     // make a string
@@ -1422,7 +1422,7 @@ string DInterpreter::GetLine()
   
     StrTrim(line);
   } while( line == "" 
-	|| line[0] == ';'); // skip also comment lines (bug #663)
+    || line[0] == ';'); // skip also comment lines (bug #663)
   
 #if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
   // SA: commented out to comply with IDL behaviour- allowing to 
@@ -1448,9 +1448,9 @@ for( int h=0;h<history_length; ++h)
 {
 HIST_ENTRY *lH = history_get (h);
 if( lH != NULL)
-	cout << h << ": " << string(lH->line) << endl;
+    cout << h << ": " << string(lH->line) << endl;
 else
-	cout << h << ": NULL" << endl;
+    cout << h << ": NULL" << endl;
 }
 */
 #endif
@@ -1465,7 +1465,7 @@ RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset)
   ProgNodeP retTreeSave = _retTree;
   for (;;) {
 #if defined (_MSC_VER) && _MSC_VER < 1800
-	_clearfp();
+    _clearfp();
 #else
     feclearexcept(FE_ALL_EXCEPT);
 #endif
@@ -1478,10 +1478,10 @@ RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset)
     {
       for( int s=0; s<stepCount; ++s)
       {
-	if( _retTree == NULL)
-	  break;
-	
-	_retTree = _retTree->getNextSibling();
+    if( _retTree == NULL)
+      break;
+    
+    _retTree = _retTree->getNextSibling();
       }
 //       cout << ".SKIP " << stepCount << "   " << _retTree << endl;
 
@@ -1489,9 +1489,9 @@ RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset)
       retTreeSave = _retTree;
       // we stay at the command line here
       if( _retTree == NULL)
-	Message( "Can't continue from this point.");
+    Message( "Can't continue from this point.");
       else
-	DebugMsg( _retTree, "Skipped to: ");
+    DebugMsg( _retTree, "Skipped to: ");
     }
     else if( ret == CC_RETURN) return RC_RETURN;
     else if( ret == CC_CONTINUE) return RC_OK; 
@@ -1508,32 +1508,32 @@ bool DInterpreter::RunBatch( istream* in)
   while( in->good())
     {
 #if defined (_MSC_VER) && _MSC_VER < 1800
-	  _clearfp();
+      _clearfp();
 #else
       feclearexcept(FE_ALL_EXCEPT);
 #endif
       
       try
-	{
-	  DInterpreter::CommandCode ret=ExecuteLine( in);
-	      
-	  if( debugMode != DEBUG_CLEAR)
-	    {
-	      debugMode = DEBUG_CLEAR;
-	      return false;
-	    }
-	}
+    {
+      DInterpreter::CommandCode ret=ExecuteLine( in);
+          
+      if( debugMode != DEBUG_CLEAR)
+        {
+          debugMode = DEBUG_CLEAR;
+          return false;
+        }
+    }
       catch( RetAllException& retAllEx)
-	{
-	}
+    {
+    }
       catch( exception& e)
-	{
-	  cerr << "Batch" << ": Exception: " << e.what() << endl;
-	}
+    {
+      cerr << "Batch" << ": Exception: " << e.what() << endl;
+    }
       catch (...)
-	{	
-	  cerr << "Batch" << ": Unhandled Error." << endl;
-	}
+    {   
+      cerr << "Batch" << ": Unhandled Error." << endl;
+    }
     } // while
 
   return true;
@@ -1555,43 +1555,43 @@ void DInterpreter::ExecuteFile( const string& file)
   while( in.good())
     {
 #if defined (_MSC_VER) && _MSC_VER < 1800
-	  _clearfp();
+      _clearfp();
 #else
       feclearexcept(FE_ALL_EXCEPT);
 #endif 
 
       try
- 	{
-	  if( runCmd)
-	    {
-	      runCmd = false;
-	      RunDelTree();
-	    }
-	  else
-	    {		  
-	      DInterpreter::CommandCode ret=ExecuteLine( &in);
-	      
-	      if( debugMode != DEBUG_CLEAR)
-		{
-		  debugMode = DEBUG_CLEAR;
-		  // Warning( "Prematurely closing batch file: "+startup);
-		  break;
-		}
-	    }
-	}
+    {
+      if( runCmd)
+        {
+          runCmd = false;
+          RunDelTree();
+        }
+      else
+        {         
+          DInterpreter::CommandCode ret=ExecuteLine( &in);
+          
+          if( debugMode != DEBUG_CLEAR)
+        {
+          debugMode = DEBUG_CLEAR;
+          // Warning( "Prematurely closing batch file: "+startup);
+          break;
+        }
+        }
+    }
       catch( RetAllException& retAllEx)
-	{
-	  runCmd = (retAllEx.Code() == RetAllException::RUN);
-	  if( !runCmd) throw;
-	}
+    {
+      runCmd = (retAllEx.Code() == RetAllException::RUN);
+      if( !runCmd) throw;
+    }
       //       catch( exception& e)
-      // 	{
-      // 	  cerr << file << ": Exception: " << e.what() << endl;
-      // 	}
+      //    {
+      //      cerr << file << ": Exception: " << e.what() << endl;
+      //    }
       //       catch (...)
-      // 	{	
-      // 	  cerr << file << ": Unhandled Error." << endl;
-      // 	}
+      //    {   
+      //      cerr << file << ": Unhandled Error." << endl;
+      //    }
     } // while
 }
 
@@ -1602,19 +1602,19 @@ void DInterpreter::RunDelTree()
       (callStack.back()->GetPro())->GetTree() != NULL)
     {
       try
-	{
-	  call_pro(static_cast<DSubUD*>
-		   (callStack.back()->GetPro())->GetTree());
+    {
+      call_pro(static_cast<DSubUD*>
+           (callStack.back()->GetPro())->GetTree());
 
-	  static_cast<DSubUD*>
-	    (callStack.back()->GetPro())->DelTree();
-	}
+      static_cast<DSubUD*>
+        (callStack.back()->GetPro())->DelTree();
+    }
       catch( RetAllException&)
-	{
-	  static_cast<DSubUD*>
-	    (callStack.back()->GetPro())->DelTree();
-	  throw;
-	}
+    {
+      static_cast<DSubUD*>
+        (callStack.back()->GetPro())->DelTree();
+      throw;
+    }
     }
 }
 
