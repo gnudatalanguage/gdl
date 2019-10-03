@@ -768,11 +768,11 @@ namespace lib {
       {
         for( SizeT j=1; j<= nbX-2; j++)
       {
-            a =   (T3) (std::abs  ((*p0)[j+1+nbX*(k+1)]+2*(*p0)[j+1+nbX*k]+(*p0)[j+1+nbX*(k-1)]
+            a =   labs    ((*p0)[j+1+nbX*(k+1)]+2*(*p0)[j+1+nbX*k]+(*p0)[j+1+nbX*(k-1)]
                -    ((*p0)[j-1+nbX*(k+1)]+2*(*p0)[j-1+nbX*k]+(*p0)[j-1+nbX*(k-1)]))
           +
-          std::abs  ((*p0)[j-1+nbX*(k-1)]+2*(*p0)[j+nbX*(k-1)]+(*p0)[j+1+nbX*(k-1)]
-               -   ((*p0)[j-1+nbX*(k+1)]+2*(*p0)[j+nbX*(k+1)]+(*p0)[j+1+nbX*(k+1)])) );
+	      labs    ((*p0)[j-1+nbX*(k-1)]+2*(*p0)[j+nbX*(k-1)]+(*p0)[j+1+nbX*(k-1)]
+		       -   ((*p0)[j-1+nbX*(k+1)]+2*(*p0)[j+nbX*(k+1)]+(*p0)[j+1+nbX*(k+1)]));
             (*res)[j+nbX*k]=a;
       }
       }
