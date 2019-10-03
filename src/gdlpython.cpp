@@ -72,28 +72,28 @@ BaseGDL* FromPython( PyObject* pyObj)
   if( !PyArray_Check( pyObj))
     {
       if( PyString_Check( pyObj))
-	{
-	  return new DStringGDL( PyString_AsString( pyObj));
-	}
+    {
+      return new DStringGDL( PyString_AsString( pyObj));
+    }
       if( PyInt_Check( pyObj))
-	{
-	  return new DLongGDL( PyInt_AsLong( pyObj));
-	}
+    {
+      return new DLongGDL( PyInt_AsLong( pyObj));
+    }
       if( PyLong_Check( pyObj))
-	{
-	  return new DLongGDL( PyLong_AsLong( pyObj));
-	}
+    {
+      return new DLongGDL( PyLong_AsLong( pyObj));
+    }
       if( PyFloat_Check( pyObj))
-	{
-	  return new DDoubleGDL( PyFloat_AsDouble( pyObj));
-	}
+    {
+      return new DDoubleGDL( PyFloat_AsDouble( pyObj));
+    }
       if( PyComplex_Check( pyObj))
-	{
-	  DDouble re,im;
-	  re = PyComplex_RealAsDouble( pyObj);
-	  im = PyComplex_ImagAsDouble( pyObj);
-	  return new DComplexDblGDL( DComplexDbl( re, im));
-	}
+    {
+      DDouble re,im;
+      re = PyComplex_RealAsDouble( pyObj);
+      im = PyComplex_ImagAsDouble( pyObj);
+      return new DComplexDblGDL( DComplexDbl( re, im));
+    }
       throw GDLException( "Cannot convert python scalar.") ;
     }
 
@@ -108,7 +108,7 @@ BaseGDL* FromPython( PyObject* pyObj)
   if( nDim > MAXRANK)
     {
     Warning( "Python array has more than "+MAXRANK_STR+
-	     " dimensions. Extending last one."); 
+         " dimensions. Extending last one."); 
     SizeT lastDim = array->dimensions[ MAXRANK-1];
     for( SizeT i=MAXRANK; i<nDim; ++i) lastDim *= array->dimensions[ i];
     for( SizeT i=0; i<MAXRANK-1; ++i)
@@ -119,7 +119,7 @@ BaseGDL* FromPython( PyObject* pyObj)
   else
     {
       for( SizeT i=0; i<nDim; ++i)
-	dimArr[ i] = array->dimensions[ i];
+    dimArr[ i] = array->dimensions[ i];
     }
   dimension dim( dimArr, nDim);
 
@@ -129,15 +129,15 @@ BaseGDL* FromPython( PyObject* pyObj)
       return NewFromPyArrayObject< DByteGDL>( dim, array);
     case NPY_INT16:   //GDL_INT
       return NewFromPyArrayObject< DIntGDL>( dim, array);
-    case NPY_INT32:     //GDL_LONG	
+    case NPY_INT32:     //GDL_LONG  
       return NewFromPyArrayObject< DLongGDL>( dim, array);
-    case NPY_FLOAT32:   //GDL_FLOAT	
+    case NPY_FLOAT32:   //GDL_FLOAT 
       return NewFromPyArrayObject< DFloatGDL>( dim, array);
-    case NPY_FLOAT64:  //GDL_DOUBLE	
+    case NPY_FLOAT64:  //GDL_DOUBLE 
       return NewFromPyArrayObject< DDoubleGDL>( dim, array);
-    case NPY_COMPLEX64:  //GDL_COMPLEX	
+    case NPY_COMPLEX64:  //GDL_COMPLEX  
       return NewFromPyArrayObject< DComplexGDL>( dim, array);
-    case NPY_COMPLEX128: //GDL_COMPLEXDBL	
+    case NPY_COMPLEX128: //GDL_COMPLEXDBL   
       return NewFromPyArrayObject< DComplexDblGDL>( dim, array);
     case NPY_UINT16:         //GDL_UINT*
       return NewFromPyArrayObject< DUIntGDL>( dim, array);
@@ -169,19 +169,19 @@ namespace lib {
     BaseGDL* argv1 = e->GetKW( argvIx);
     if( argv1 != NULL)
       {
-	DStringGDL* argvS = dynamic_cast<DStringGDL*>( argv1);
-	if( argvS == NULL)
-	  e->Throw( "ARGV keyword must be of type STRING.");
-	
-	int argc = argvS->N_Elements();
-	char** argv = new char*[ argc];
+    DStringGDL* argvS = dynamic_cast<DStringGDL*>( argv1);
+    if( argvS == NULL)
+      e->Throw( "ARGV keyword must be of type STRING.");
+    
+    int argc = argvS->N_Elements();
+    char** argv = new char*[ argc];
 
-	// pyhton copies the value -> threats it as const
-	for( int i=0; i<argc; ++i)
-	  argv[i] = const_cast<char*>((*argvS)[ i].c_str()); 
+    // pyhton copies the value -> threats it as const
+    for( int i=0; i<argc; ++i)
+      argv[i] = const_cast<char*>((*argvS)[ i].c_str()); 
 
-	PySys_SetArgv(argc, argv);
-	delete[] argv;
+    PySys_SetArgv(argc, argv);
+    delete[] argv;
       }
 
     if( nParam < 2 && kIx != -1)
@@ -201,14 +201,14 @@ namespace lib {
       PyImport_ImportModule(const_cast<char*>(module.c_str()));
     if (pModule == NULL)
       {
-	PyErr_Print();
-	e->Throw( "Failed to load module: "+module);
+    PyErr_Print();
+    e->Throw( "Failed to load module: "+module);
       }
 
     if( nParam == 1)
       {
-	Py_DECREF(pModule);
-	return NULL; // ok, only load module
+    Py_DECREF(pModule);
+    return NULL; // ok, only load module
       }
     
     DString function;
@@ -222,25 +222,25 @@ namespace lib {
 
     if( !(pFunc && PyCallable_Check(pFunc)))
       {
-	if (PyErr_Occurred()) PyErr_Print();
-	e->Throw( "Cannot find function: "+function);
+    if (PyErr_Occurred()) PyErr_Print();
+    e->Throw( "Cannot find function: "+function);
       }
 
     PyObject* pArgs = PyTuple_New( nParam-2);
     for( SizeT i = 2; i<nParam; ++i) 
       {
-	BaseGDL* actPar = e->GetParDefined( i);
-	PyObject* pValue = actPar->ToPython();
-	if (!pValue) 
-	  {
-	    Py_DECREF(pArgs);
-	    Py_DECREF(pModule);
-	    
-	    e->Throw( "Cannot convert value: "+
-		      e->GetParString( i));
-	  }
-	/* pValue reference stolen here: */
-	PyTuple_SetItem(pArgs, i-2, pValue);
+    BaseGDL* actPar = e->GetParDefined( i);
+    PyObject* pValue = actPar->ToPython();
+    if (!pValue) 
+      {
+        Py_DECREF(pArgs);
+        Py_DECREF(pModule);
+        
+        e->Throw( "Cannot convert value: "+
+              e->GetParString( i));
+      }
+    /* pValue reference stolen here: */
+    PyTuple_SetItem(pArgs, i-2, pValue);
       }
 
     PyObject* pResult = PyObject_CallObject(pFunc, pArgs);
@@ -249,38 +249,38 @@ namespace lib {
     // pDict and pFunc are borrowed and must not be Py_DECREF-ed
     if( pResult == NULL) 
       {
-	PyErr_Print();
-	e->Throw( "Call failed: "+module+"."+function);
+    PyErr_Print();
+    e->Throw( "Call failed: "+module+"."+function);
       }
 
     if( kIx == -1) // called as procedures
       {
-	Py_DECREF(pResult);
-	return NULL;
+    Py_DECREF(pResult);
+    return NULL;
       }
 
     // as function
     BaseGDL* res;
     if( pResult == Py_None)
       {
-	Py_DECREF(pResult);
-	BaseGDL* defRet = e->GetKW( kIx);
-	if( defRet == NULL)
-	  e->Throw( "Function returned 'None' "
-		    "and DEFAULTRETURN not defined.");
-	res = defRet->Dup();
+    Py_DECREF(pResult);
+    BaseGDL* defRet = e->GetKW( kIx);
+    if( defRet == NULL)
+      e->Throw( "Function returned 'None' "
+            "and DEFAULTRETURN not defined.");
+    res = defRet->Dup();
       }
     else
       {
-	try {
-	  res = FromPython( pResult);
-	  Py_DECREF(pResult);
-	}
-	catch(...)
-	  {
-	    Py_DECREF(pResult);
-	    throw;
-	  }
+    try {
+      res = FromPython( pResult);
+      Py_DECREF(pResult);
+    }
+    catch(...)
+      {
+        Py_DECREF(pResult);
+        throw;
+      }
       }
     
     return res;

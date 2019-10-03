@@ -14,7 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
+#define INCLUDE_PYTHON 1
 #include "includefirst.hpp"
 
 #include <string>
@@ -113,7 +113,7 @@ void LibInit()
   new DLibFun( lib::scope_varname_fun, string("SCOPE_VARNAME"), -1, scope_varnameKey );
 
   const string cpuKey[]={ "RESET","RESTORE","TPOOL_MAX_ELTS", "TPOOL_MIN_ELTS",
-					"TPOOL_NTHREADS","VECTOR_ENABLE",KLISTEND};
+                    "TPOOL_NTHREADS","VECTOR_ENABLE",KLISTEND};
   new DLibPro(lib::cpu_pro,string("CPU"),0,cpuKey);
 
   const string gdlconfigKey[]={"MAP_QUALITY","GDL_NO_DSFMT","GDL_USE_WX",KLISTEND};
@@ -128,7 +128,7 @@ void LibInit()
   new DLibFunRetNew(lib::temporary,string("TEMPORARY"),1);
 
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
-				  "PARAMETERS","SOURCE", KLISTEND};
+                  "PARAMETERS","SOURCE", KLISTEND};
   new DLibFunRetNew(lib::routine_info,string("ROUTINE_INFO"),1,routine_infoKey);
 
   new DLibFunRetNew(lib::routine_name_fun,string("ROUTINE_NAME_INTERNALGDL"),1);
@@ -138,10 +138,10 @@ void LibInit()
 #ifdef _WIN32
 //Please note that NOWAIT and HIDE are WINDOWS-Reserved Keywords.
   const string spawnKey[] = { "COUNT", "EXIT_STATUS", "PID",
-	  "SH", "NOSHELL", "UNIT", "HIDE", "NOWAIT", KLISTEND };
+      "SH", "NOSHELL", "UNIT", "HIDE", "NOWAIT", KLISTEND };
 #else
   const string spawnKey[]={ "COUNT","EXIT_STATUS","PID",
-			    "SH","NOSHELL","UNIT",KLISTEND};
+                "SH","NOSHELL","UNIT",KLISTEND};
 #endif
  
   new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
@@ -153,11 +153,11 @@ void LibInit()
   new DLibFunRetNew(lib::n_tags,string("N_TAGS"),1,n_tagsKey);
   
   const string byteorderKey[]={"SSWAP","LSWAP","L64SWAP",
-			       "SWAP_IF_BIG_ENDIAN",
-			       "SWAP_IF_LITTLE_ENDIAN",
-			       "NTOHL","NTOHS","HTONL","HTONS",
-			       "FTOXDR","DTOXDR","XDRTOF","XDRTOD",
-			       KLISTEND};
+                   "SWAP_IF_BIG_ENDIAN",
+                   "SWAP_IF_LITTLE_ENDIAN",
+                   "NTOHL","NTOHS","HTONL","HTONS",
+                   "FTOXDR","DTOXDR","XDRTOF","XDRTOD",
+                   KLISTEND};
   new DLibPro(lib::byteorder,string("BYTEORDER"),-1,byteorderKey);
 
   const string obj_classKey[]={"COUNT","SUPERCLASS",KLISTEND};
@@ -170,16 +170,16 @@ void LibInit()
   new DLibFunRetNew(lib::rebin_fun,string("REBIN"),9,rebinKey);
 
   const string convolKey[]={"CENTER","EDGE_TRUNCATE","EDGE_WRAP","EDGE_ZERO", "EDGE_MIRROR",
-			    "BIAS","NORMALIZE","NAN", "INVALID", "MISSING",KLISTEND};
+                "BIAS","NORMALIZE","NAN", "INVALID", "MISSING",KLISTEND};
   new DLibFunRetNew(lib::convol_fun,string("CONVOL"),3,convolKey);
 
   const string smoothKey[]={"NAN", "EDGE_MIRROR", "EDGE_WRAP","EDGE_TRUNCATE", "EDGE_ZERO", "MISSING", KLISTEND};
   new DLibFunRetNew(lib::smooth_fun,string("SMOOTH"),2,smoothKey);
 
   const string file_searchKey[]={"COUNT","EXPAND_ENVIRONMENT","EXPAND_TILDE",
-				 "FOLD_CASE","ISSUE_ACCESS_ERROR",
-				 "MARK_DIRECTORY","NOSORT","QUOTE",
-				 "MATCH_INITIAL_DOT",
+                 "FOLD_CASE","ISSUE_ACCESS_ERROR",
+                 "MARK_DIRECTORY","NOSORT","QUOTE",
+                 "MATCH_INITIAL_DOT",
                                  "MATCH_ALL_INITIAL_DOT","FULLY_QUALIFY_PATH",
                                 "TEST_DIRECTORY", "TEST_EXECUTABLE", "TEST_READ",
                                  "TEST_REGULAR", "TEST_WRITE", "TEST_ZERO_LENGTH",
@@ -208,8 +208,8 @@ void LibInit()
   new DLibFunRetNew(lib::arg_present,string("ARG_PRESENT"),1);
 
   const string messageKey[]={"CONTINUE","INFORMATIONAL","IOERROR","LEVEL",
-			     "NONAME","NOPREFIX","NOPRINT",
-			     "RESET","REISSUE_LAST","TRACEBACK", KLISTEND}; 
+                 "NONAME","NOPREFIX","NOPRINT",
+                 "RESET","REISSUE_LAST","TRACEBACK", KLISTEND}; 
   //TRACEBACK is in MESSAGE but obsolete since 5.0. it is used widely in CMSVlib !
   const string messageWarnKey[]={"NAME", "BLOCK",KLISTEND};
   new DLibPro(lib::message_pro,string("MESSAGE"),-1,messageKey,messageWarnKey);
@@ -218,10 +218,10 @@ void LibInit()
   new DLibPro(lib::cd_pro,string("CD"),1,cdKey);
 
   const string file_testKey[]={"DIRECTORY","EXECUTABLE","READ",
-			       "REGULAR","WRITE","ZERO_LENGTH",
-			       "GET_MODE",
-			       "BLOCK_SPECIAL","CHARACTER_SPECIAL",
-			       "NAMED_PIPE","SOCKET","SYMLINK","NOEXPAND_PATH","DANGLING_SYMLINK",KLISTEND};
+                   "REGULAR","WRITE","ZERO_LENGTH",
+                   "GET_MODE",
+                   "BLOCK_SPECIAL","CHARACTER_SPECIAL",
+                   "NAMED_PIPE","SOCKET","SYMLINK","NOEXPAND_PATH","DANGLING_SYMLINK",KLISTEND};
   new DLibFunRetNew(lib::file_test,string("FILE_TEST"),1,file_testKey);
 
   const string file_basenameKey[]={"FOLD_CASE",KLISTEND};
@@ -232,21 +232,21 @@ void LibInit()
 
 
   const string file_moveKey[]={"ALLOW_SAME", "OVERWRITE", "REQUIRE_DIRECTORY", 
-			"VERBOSE", "NOEXPAND_PATH",KLISTEND};
+            "VERBOSE", "NOEXPAND_PATH",KLISTEND};
   new DLibPro(lib::file_move,string("FILE_MOVE"),2,file_moveKey);
   
   //exists as stub procedure for _WIN32
 #ifndef _WIN32
   const string file_linkKey[]={"ALLOW_SAME", "HARDLINK", 
-			"VERBOSE", "NOEXPAND_PATH",KLISTEND};
+            "VERBOSE", "NOEXPAND_PATH",KLISTEND};
   new DLibPro(lib::file_link,string("FILE_LINK"),2,file_linkKey);
 #endif  
   const string file_copyKey[]={"ALLOW_SAME", "OVERWRITE","FORCE", "REQUIRE_DIRECTORY", 
-			"VERBOSE", "NOEXPAND_PATH","RECURSIVE","COPY_SYMLINK",KLISTEND};
+            "VERBOSE", "NOEXPAND_PATH","RECURSIVE","COPY_SYMLINK",KLISTEND};
   new DLibPro(lib::file_copy,string("FILE_COPY"),2,file_copyKey);
 
   const string file_deleteKey[]={"ALLOW_NONEXISTENT","NOEXPAND_PATH","RECURSIVE",
-			"QUIET","VERBOSE",KLISTEND};
+            "QUIET","VERBOSE",KLISTEND};
   new DLibPro(lib::file_delete,string("FILE_DELETE"),-1,file_deleteKey);
 
 
@@ -293,13 +293,13 @@ void LibInit()
   new DLibPro(lib::exitgdl,string("EXIT"),0,exitKey);
   
   const string helpKey[]={"ALL_KEYS","BRIEF","FULL","CALLS",
-	           "DEBUG","DEVICE","FUNCTIONS","HEAP_VARIABLES","HELP","INFO","FILES",
-			  "INTERNAL_LIB_GDL","KEYS","LAST_MESSAGE","LIB","MEMORY","NAMES",
-		"OBJECTS","OUTPUT","PATH_CACHE","PREFERENCES","PROCEDURES",
-			  "RECALL_COMMANDS","ROUTINES","SOURCE_FILES","STRUCTURES",
+               "DEBUG","DEVICE","FUNCTIONS","HEAP_VARIABLES","HELP","INFO","FILES",
+              "INTERNAL_LIB_GDL","KEYS","LAST_MESSAGE","LIB","MEMORY","NAMES",
+        "OBJECTS","OUTPUT","PATH_CACHE","PREFERENCES","PROCEDURES",
+              "RECALL_COMMANDS","ROUTINES","SOURCE_FILES","STRUCTURES",
               "SYSTEM_VARIABLES","TRACEBACK", "COMMON","LEVEL", KLISTEND};
   const string helpWarnKey[]={"BREAKPOINTS","DLM", "MESSAGES",
-			      "SHARED_MEMORY", KLISTEND};
+                  "SHARED_MEMORY", KLISTEND};
   new DLibPro(lib::help_pro,string("HELP"),-1,helpKey,helpWarnKey);
 
   new DLibPro(lib::delvar_pro,string("DELVAR"),-1,NULL,NULL);
@@ -338,7 +338,7 @@ void LibInit()
   new DLibPro(lib::read,string("READ"),-1,readKey);
   new DLibPro(lib::readf,string("READF"),-1,readKey);
 
-  const string readsKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,	   KLISTEND}; // no PROMPT
+  const string readsKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,      KLISTEND}; // no PROMPT
   new DLibPro(lib::reads,string("READS"),-1,readsKey);
 
   const string stringKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"PRINT",KLISTEND};
@@ -394,9 +394,9 @@ void LibInit()
   new DLibPro(lib::call_method_procedure,string("CALL_METHOD"),-1,obj_newKey);
   
   const string indKey[]={"TYPE","BYTE","COMPLEX","DCOMPLEX",
-			 "DOUBLE","FLOAT","L64","LONG",
-			 "STRING","UINT","UL64","ULONG",
-			 "START", "INCREMENT", KLISTEND};
+             "DOUBLE","FLOAT","L64","LONG",
+             "STRING","UINT","UL64","ULONG",
+             "START", "INCREMENT", KLISTEND};
   const string xindKey[]={"START", "INCREMENT", KLISTEND};
   new DLibFunRetNew(lib::bindgen,string("BINDGEN"),MAXRANK,xindKey,NULL,true);
   new DLibFunRetNew(lib::indgen,string("INDGEN"),MAXRANK,indKey,NULL,true);
@@ -416,13 +416,13 @@ void LibInit()
   new DLibFun(lib::execute_fun,string("EXECUTE"),3);
 
   const string openKey[]={"APPEND","COMPRESS","BUFSIZE",
-			  "DELETE","ERROR","F77_UNFORMATTED",
-			  "GET_LUN" /*7*/,"MORE","STDIO",
-			  "SWAP_ENDIAN","SWAP_IF_BIG_ENDIAN",
-			  "SWAP_IF_LITTLE_ENDIAN" /*12*/,
-			  "VAX_FLOAT","WIDTH","XDR", "BLOCK",
-			  "NOAUTOMODE","BINARY","STREAM",
-			  KLISTEND};
+              "DELETE","ERROR","F77_UNFORMATTED",
+              "GET_LUN" /*7*/,"MORE","STDIO",
+              "SWAP_ENDIAN","SWAP_IF_BIG_ENDIAN",
+              "SWAP_IF_LITTLE_ENDIAN" /*12*/,
+              "VAX_FLOAT","WIDTH","XDR", "BLOCK",
+              "NOAUTOMODE","BINARY","STREAM",
+              KLISTEND};
   const string openWarnKey[]={"INITIALSIZE","EXTENDSIZE",KLISTEND}; // VAX only
   new DLibPro(lib::openr,string("OPENR"),3,openKey,openWarnKey);
   new DLibPro(lib::openw,string("OPENW"),3,openKey,openWarnKey);
@@ -430,11 +430,11 @@ void LibInit()
   new DLibPro(lib::get_lun,string("GET_LUN"),1);
 
   const string socketKey[]={"ERROR","GET_LUN","STDIO",
-			    "SWAP_ENDIAN","SWAP_IF_BIG_ENDIAN",
-			    "SWAP_IF_LITTLE_ENDIAN","WIDTH",
-			    "CONNECT_TIMEOUT","READ_TIMEOUT",
-			    "WRITE_TIMEOUT",
-			    KLISTEND};
+                "SWAP_ENDIAN","SWAP_IF_BIG_ENDIAN",
+                "SWAP_IF_LITTLE_ENDIAN","WIDTH",
+                "CONNECT_TIMEOUT","READ_TIMEOUT",
+                "WRITE_TIMEOUT",
+                KLISTEND};
   new DLibPro(lib::socket,string("SOCKET"),3,socketKey);
 
   new DLibPro(lib::flush_lun,string("FLUSH"),-1);
@@ -454,11 +454,11 @@ void LibInit()
   const string resolve_routineWarnKey[]={"SKIP_EXISTING",KLISTEND};
   const string resolve_routineKey[]={"NO_RECOMPILE","IS_FUNCTION","EITHER","COMPILE_FULL_FILE","QUIET",KLISTEND};
   new DLibPro(lib::resolve_routine,string("RESOLVE_ROUTINE"),1,
-	      resolve_routineKey,resolve_routineWarnKey);
+          resolve_routineKey,resolve_routineWarnKey);
 
   const string routine_filepathKey[]={"EITHER","IS_FUNCTION", KLISTEND};
   new DLibFunRetNew(lib::routine_filepath,string("ROUTINE_FILEPATH"),1,
-				routine_filepathKey);
+                routine_filepathKey);
 
   const string assocKey[]={"PACKED",KLISTEND};
   new DLibFunRetNew(lib::assoc,string("ASSOC"),3,assocKey);
@@ -596,7 +596,7 @@ void LibInit()
 
   // graphics *******************************************************
   const string windowKey[]={"COLORS","FREE","PIXMAP","RETAIN","TITLE",
-			    "XPOS","YPOS","XSIZE","YSIZE",KLISTEND};
+                "XPOS","YPOS","XSIZE","YSIZE",KLISTEND};
   new DLibPro(lib::window,string("WINDOW"),1,windowKey);
   new DLibPro(lib::wdelete,string("WDELETE"),-1);
   new DLibPro(lib::wset,string("WSET"),1);
@@ -605,7 +605,7 @@ void LibInit()
   new DLibPro(lib::wshow,string("WSHOW"),2,wshowKey);
 
   const string cursorKey[]={"CHANGE","DOWN","NOWAIT","UP","WAIT",
-				"DATA","DEVICE","NORMAL",KLISTEND};
+                "DATA","DEVICE","NORMAL",KLISTEND};
   new DLibPro(lib::cursor,string("CURSOR"),3,cursorKey);
 
   const string set_plotKey[]={"COPY","INTERPOLATE",KLISTEND};

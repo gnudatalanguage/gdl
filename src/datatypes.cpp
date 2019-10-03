@@ -14,7 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
+#define INCLUDE_PYTHON 1
 #include "includefirst.hpp"
 
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
@@ -42,18 +42,18 @@
 extern "C" {
 #endif
 // #define      isnan( x )         ( ( sizeof ( x ) == sizeof(double) ) ?  \
-// 				  __isnand ( x ) :			\
-// 				  ( sizeof ( x ) == sizeof( float) ) ?	\
-// 				  __isnanf ( x ) :			\
-// 				  __isnan  ( x ) )
+//                __isnand ( x ) :          \
+//                ( sizeof ( x ) == sizeof( float) ) ?  \
+//                __isnanf ( x ) :          \
+//                __isnan  ( x ) )
 namespace std {
 
   template <typename T>
   bool isnan( T x) { return ( ( sizeof ( x ) == sizeof(double) ) ?  
-				  __isnand ( x ) :			
-				  ( sizeof ( x ) == sizeof( float) ) ?	
-				  __isnanf ( x ) :			
-				  __isnan  ( x ) );}
+                  __isnand ( x ) :          
+                  ( sizeof ( x ) == sizeof( float) ) ?  
+                  __isnanf ( x ) :          
+                  __isnan  ( x ) );}
 }
 #ifdef __cplusplus
 }
@@ -133,16 +133,16 @@ FreeListT Data_<Sp>::freeList;
 
 inline void TraceCache( SizeT& cacheSize, SizeT sz, bool cacheIsNull, SizeT smallArraySize)
 {
-  // 	if( cacheSize > smallArraySize && cacheSize == sz  && !cacheIsNull)
-  // 			std::cout << "+++ CACHE HIT\tID: ("  << &cacheSize  << ")   sz: " << cacheSize << std::endl;
-  // 	else
+  //    if( cacheSize > smallArraySize && cacheSize == sz  && !cacheIsNull)
+  //            std::cout << "+++ CACHE HIT\tID: ("  << &cacheSize  << ")   sz: " << cacheSize << std::endl;
+  //    else
   if( sz > smallArraySize)
     std::cout << "+ New\t\tID: ("  << &cacheSize  << ")   sz: " << sz << "   cache size: " <<  cacheSize <<std::endl;
 }
-		
+        
 #else
 
-#define TraceCache( a, b, c, d)		
+#define TraceCache( a, b, c, d)     
 
 #endif
 
@@ -153,7 +153,7 @@ template<>
 SizeT GDLArray<char>::cacheSize = 0;
 
 template<class Sp>
-typename	GDLArray<Sp>::Ty* GDLArray<Sp>::cache = NULL;
+typename    GDLArray<Sp>::Ty* GDLArray<Sp>::cache = NULL;
 
 template<class Sp>
 typename GDLArray<Sp>::Ty* GDLArray<Sp>::Cached( SizeT newSize)
@@ -174,15 +174,15 @@ typename GDLArray<Sp>::Ty* GDLArray<Sp>::Cached( SizeT newSize)
 template<class Sp>GDLArray<Sp>::GDLArray( const GDLArray<Sp>& cp) : sz( cp.size())
 {
   TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
-	  
+      
   try {
     buf = (sz > smallArraySize) ? Cached( sz) /* new Ty[ cp.size()]*/  : scalar;
   } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-	  
+      
   std::memcpy(buf,cp.buf,sz*sizeof(Ty));
 }
 
-template<class Sp>GDLArray<Sp>::	GDLArray( SizeT s, bool b) : sz( s)
+template<class Sp>GDLArray<Sp>::    GDLArray( SizeT s, bool b) : sz( s)
 {
   TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
 
@@ -191,7 +191,7 @@ template<class Sp>GDLArray<Sp>::	GDLArray( SizeT s, bool b) : sz( s)
   } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
 }
 
-template<class Sp>GDLArray<Sp>::	GDLArray( Ty val, SizeT s) : sz( s)
+template<class Sp>GDLArray<Sp>::    GDLArray( Ty val, SizeT s) : sz( s)
 {
   TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
 
@@ -202,10 +202,10 @@ template<class Sp>GDLArray<Sp>::	GDLArray( Ty val, SizeT s) : sz( s)
     buf[ i] = val;
 }
 
-template<class Sp>GDLArray<Sp>::	GDLArray( const Ty* arr, SizeT s) : sz( s)
+template<class Sp>GDLArray<Sp>::    GDLArray( const Ty* arr, SizeT s) : sz( s)
 {
   TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
-	  
+      
   try {
     buf = (sz > smallArraySize) ? Cached( sz) /* new Ty[ sz]*/  : scalar;
   } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
@@ -217,29 +217,29 @@ template<class Sp>GDLArray<Sp>::~GDLArray() throw()
 #ifdef GDLARRAY_DEBUG
   if( buf == cache)
     std::cout << "~~~ recycled cache\tID: ("  << &cacheSize << ")   sz: " << sz << "\tcacheSize: " << cacheSize << std::endl;
-#endif			
+#endif          
 
   assert( buf != cache || sz == cacheSize);
-	
+    
   if ( buf != NULL && buf != scalar &&
        buf != cache // note: assumes cacheSize never changes for a given cache
        )
-    {		
+    {       
       assert( sz > smallArraySize);
       if ( sz <= maxCache )
-	{
-			
+    {
+            
 #ifdef GDLARRAY_DEBUG
-	  std::cout << "--- free cache\tID: ("  << &cacheSize << ")   sz: " << cacheSize << "\tnew: " << sz << std::endl;
-#endif			
-	  delete cache;
-	  cache = buf;
-	  cacheSize = sz;
-	}
+      std::cout << "--- free cache\tID: ("  << &cacheSize << ")   sz: " << cacheSize << "\tnew: " << sz << std::endl;
+#endif          
+      delete cache;
+      cache = buf;
+      cacheSize = sz;
+    }
       else
-	{
-	  delete[] buf;
-	}
+    {
+      delete[] buf;
+    }
     }
 }
 // as strings may occupy arbitrary memory (regardless of the array size), better not cache them
@@ -291,7 +291,7 @@ template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
       return freeList.pop_back();
 //       void* res = freeList.back();
 //       freeList.pop_back();
-//       return res;	
+//       return res;    
     }
 
   const size_t newSize = multiAlloc - 1;
@@ -521,14 +521,14 @@ template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT, DD
     {
       SizeT sz = dd.size();
       /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       for( int i=0; i<sz; ++i)
-	{
-	  (*this)[i]=0;
-	}
-      // 	  val += 1; // no increment operator for floats
-      // 	}
+    {
+      (*this)[i]=0;
+    }
+      //      val += 1; // no increment operator for floats
+      //    }
     }
 }
 template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble):
@@ -543,14 +543,14 @@ template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDo
     {
       SizeT sz = dd.size();
       /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       for( int i=0; i<sz; i++)
-	{
-	  (*this)[i]=0;
-	}
-      // 	  val += 1; // no increment operator for floats
-      // 	}
+    {
+      (*this)[i]=0;
+    }
+      //      val += 1; // no increment operator for floats
+      //    }
     }
 }
 
@@ -612,7 +612,7 @@ BaseGDL* Data_<SpDFloat>::Log()
     {
 #pragma omp for
       for( int i=0; i<nEl; ++i)
-	(*n)[ i] = log( (*this)[ i]);
+    (*n)[ i] = log( (*this)[ i]);
     }
   return n;
 }
@@ -992,7 +992,7 @@ BaseGDL* Data_<Sp>::CShift( DLong d) const
 
   memcpy( &sh->dd[ shift], &dd[0], firstChunk * sizeof(Ty));
   memcpy( &sh->dd[ 0], &dd[firstChunk], shift * sizeof(Ty));
-	
+    
   return sh;
 }
 
@@ -1073,7 +1073,7 @@ BaseGDL* Data_<SpDObj>::CShift( DLong d) const
 
 template<typename Ty>
 inline void CShift1( Ty* dst, SizeT& dstLonIx, const Ty* src, SizeT& srcLonIx,
-		     SizeT stride_1, SizeT chunk0, SizeT chunk1)
+             SizeT stride_1, SizeT chunk0, SizeT chunk1)
 {
   memcpy(  &dst[ dstLonIx], &src[ srcLonIx], chunk0 * sizeof(Ty));
   dstLonIx += chunk0;
@@ -1155,7 +1155,7 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK]) const {
         }
         dstLonIx += stride[ 1];
       }
-      //	dstLonIx += stride[ 2];
+      //    dstLonIx += stride[ 2];
       assert(a == nEl);
     } // if( Sp::t != GDL_STRING) else
 
@@ -1503,7 +1503,7 @@ BaseGDL* Data_<Sp>::DupReverse(DLong dim) {
         SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
         for (SizeT s = oi; s < half + 1; s += revStride) {
           SizeT opp = last_plus_oi - s;
-          //	cout << s <<" "<< opp << " " << (*this)[s] << " " << (*this)[opp] << endl;
+          //    cout << s <<" "<< opp << " " << (*this)[s] << " " << (*this)[opp] << endl;
           (*res)[s] = (*this)[opp];
           (*res)[opp] = (*this)[s];
         }
@@ -1668,9 +1668,9 @@ typename Data_<Sp>::Ty Data_<Sp>::Sum() const
     {
 #pragma omp for reduction(+:s)
       for( int i=1; i<nEl; ++i)
-	{
-	  s += dd[ i];
-	}
+    {
+      s += dd[ i];
+    }
     }
   return s;
 }
@@ -2110,8 +2110,8 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero) cons
       Data_* res =  new Data_(dim_, BaseGDL::NOZERO);
       SizeT nEl = res->dd.size();
       /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       for( SizeT i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
       //}
       return res;
@@ -2272,9 +2272,9 @@ int Data_<Sp>::HashCompare( BaseGDL* p2) const
       RangeT thisValue = this->LoopIndex();
       RangeT p2Value = p2->LoopIndex();
       if( thisValue == p2Value)
-	return 0;
+    return 0;
       if( thisValue < p2Value)
-	return -1;
+    return -1;
       return 1;
     }
   }  
@@ -2528,15 +2528,15 @@ RangeT Data_<SpDString>::LoopIndex() const
 {
   if( (*this)[0] == "")
     return 0;
-	
+    
   const char* cStart=(*this)[0].c_str();
   char* cEnd;
   RangeT ix=strtol(cStart,&cEnd,10);
   if( cEnd == cStart)
     {
       Warning( "Type conversion error: "
-	       "Unable to convert given STRING: '"+
-	       (*this)[0]+"' to index.");
+           "Unable to convert given STRING: '"+
+           (*this)[0]+"' to index.");
       return 0;
     }
   return ix;
@@ -2677,7 +2677,7 @@ bool Data_<SpDObj>::True()
   {
     // always put out warning first, in case of a later crash
     Warning( "WARNING: " + isTrueOverload->ObjectName() + 
-	  ": Assignment to SELF detected (GDL session still ok).");
+      ": Assignment to SELF detected (GDL session still ok).");
     // assignment to SELF -> self was deleted and points to new variable
     // which it owns
     selfGuard.Release();
@@ -2697,7 +2697,7 @@ bool Data_<SpDObj>::True()
     ostringstream os;
     res->ToStream(os);
     throw GDLException( isTrueOverload->ObjectName() + ": Object reference expression not allowed in this context: " +
-			 os.str(),true,false);
+             os.str(),true,false);
   }
   
   return res->LogTrue();
@@ -2873,13 +2873,13 @@ bool Data_<Sp>::ArrayNeverEqual( BaseGDL* rIn)
   if( rEl == 1)
     {
       for( SizeT i=0; i<nEl; ++i)
-	if( (*this)[i] == (*r)[0]) return false;
+    if( (*this)[i] == (*r)[0]) return false;
       return true;
     }
   if( nEl == 1)
     {
       for( SizeT i=0; i<rEl; ++i)
-	if( (*this)[0] == (*r)[i]) return false;
+    if( (*this)[0] == (*r)[i]) return false;
       return true;
     }
   if( nEl != rEl) return true;
@@ -2956,20 +2956,20 @@ void Data_<Sp>::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
   if( this->t == GDL_INT && lType != GDL_INT)
     {
       if( lType == GDL_COMPLEX || lType == GDL_COMPLEXDBL)
-	throw GDLException("Complex expression not allowed in this context.");  
+    throw GDLException("Complex expression not allowed in this context.");  
     
       if( lType == GDL_STRING)
-	{
-	  *lEnd=(*lEnd)->Convert2( GDL_LONG);  // try with long
-	  if( !(*lEnd)->OutOfRangeOfInt())
-	    {
-	      *lEnd=(*lEnd)->Convert2( GDL_INT); // back to GDL_INT if within range     
-	    }
-	}
+    {
+      *lEnd=(*lEnd)->Convert2( GDL_LONG);  // try with long
+      if( !(*lEnd)->OutOfRangeOfInt())
+        {
+          *lEnd=(*lEnd)->Convert2( GDL_INT); // back to GDL_INT if within range     
+        }
+    }
       else if( !(*lEnd)->OutOfRangeOfInt())
-	{
-	  *lEnd=(*lEnd)->Convert2( GDL_INT);  // regular conversion    
-	}  
+    {
+      *lEnd=(*lEnd)->Convert2( GDL_INT);  // regular conversion    
+    }  
 
       // if the GDL_INT range is exceeded, lEnd is NOT changed
       
@@ -2980,7 +2980,7 @@ void Data_<Sp>::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
   if( this->t == GDL_LONG)
     {
       if( lType == GDL_COMPLEX || lType == GDL_COMPLEXDBL)
-	throw GDLException("Complex expression not allowed in this context.");        
+    throw GDLException("Complex expression not allowed in this context.");        
     }
   
   // no promotion happened
@@ -3117,21 +3117,21 @@ void Data_<Sp>::AssignAtIx( RangeT ixR, BaseGDL* srcIn)
   if( ixR < 0)
     {
       SizeT nEl = this->N_Elements();
-	
+    
       if( -ixR > nEl)
-	throw GDLException("Subscript out of range: " + i2s(ixR));
+    throw GDLException("Subscript out of range: " + i2s(ixR));
 
       SizeT ix = nEl + ixR;
   
       if( srcIn->Type() != this->Type())
-	{
-	  Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY_BYTE_AS_INT));
-	  //      Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
-	  Guard<Data_> conv_guard( rConv);
-	  (*this)[ix] = (*rConv)[0];
-	}
+    {
+      Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY_BYTE_AS_INT));
+      //      Data_* rConv = static_cast<Data_*>(srcIn->Convert2( this->Type(), BaseGDL::COPY));
+      Guard<Data_> conv_guard( rConv);
+      (*this)[ix] = (*rConv)[0];
+    }
       else
-	(*this)[ix] = (*static_cast<Data_*>(srcIn))[0];
+    (*this)[ix] = (*static_cast<Data_*>(srcIn))[0];
 
       return;
     } // ixR >= 0
@@ -3164,97 +3164,97 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
       Ty scalar=(*src)[0];
       
       if( ixList == NULL)
-	{
-	  SizeT nCp=Data_::N_Elements();
+    {
+      SizeT nCp=Data_::N_Elements();
 
-	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	    {
-	    #pragma omp for*/
-	  for( int c=0; c<nCp; ++c)
-	    (*this)[ c]=scalar;
-	  // }
-	}
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+        {
+        #pragma omp for*/
+      for( int c=0; c<nCp; ++c)
+        (*this)[ c]=scalar;
+      // }
+    }
       else
-	{
-	  SizeT nCp=ixList->N_Elements();
-	  
-	  AllIxBaseT* allIx = ixList->BuildIx();
-	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	    {
-	    #pragma omp for*/
-	  (*this)[ allIx->InitSeqAccess()]=scalar;
-	  for( SizeT c=1; c<nCp; ++c)
-	    (*this)[ allIx->SeqAccess()]=scalar;
-	  //}	  //	    (*this)[ ixList->GetIx( c)]=scalar;
- 	}
+    {
+      SizeT nCp=ixList->N_Elements();
+      
+      AllIxBaseT* allIx = ixList->BuildIx();
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+        {
+        #pragma omp for*/
+      (*this)[ allIx->InitSeqAccess()]=scalar;
+      for( SizeT c=1; c<nCp; ++c)
+        (*this)[ allIx->SeqAccess()]=scalar;
+      //}     //        (*this)[ ixList->GetIx( c)]=scalar;
+    }
     }
   else
     {
       if( ixList == NULL)
-	{
-	  SizeT nCp=Data_::N_Elements();
-	
-	  // if (non-indexed) src is smaller -> just copy its number of elements
-	  if( nCp > (srcElem-offset)) {
-	    if( offset == 0)
-	      nCp=srcElem;
-	    else
-	      throw GDLException("Source expression contains not enough elements.");
-	  }
-	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	    {
-	    #pragma omp for*/
-	  for( int c=0; c<nCp; ++c)
-	    (*this)[ c]=(*src)[c+offset];
-	}//}
+    {
+      SizeT nCp=Data_::N_Elements();
+    
+      // if (non-indexed) src is smaller -> just copy its number of elements
+      if( nCp > (srcElem-offset)) {
+        if( offset == 0)
+          nCp=srcElem;
+        else
+          throw GDLException("Source expression contains not enough elements.");
+      }
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+        {
+        #pragma omp for*/
+      for( int c=0; c<nCp; ++c)
+        (*this)[ c]=(*src)[c+offset];
+    }//}
       else
-	{
- 	  // crucial part
-	  SizeT nCp=ixList->N_Elements();
+    {
+      // crucial part
+      SizeT nCp=ixList->N_Elements();
 
-	  if( nCp == 1)
-	    {
-	      SizeT destStart = ixList->LongIx();
-	      //  len = 1;
-	      SizeT rStride = srcIn->Stride(this->Rank());
-	      (*this)[ destStart] = (*src)[ offset/rStride];
+      if( nCp == 1)
+        {
+          SizeT destStart = ixList->LongIx();
+          //  len = 1;
+          SizeT rStride = srcIn->Stride(this->Rank());
+          (*this)[ destStart] = (*src)[ offset/rStride];
 
-	      //	      InsAt( src, ixList, offset);
-	    }
-	  else
-	    {
-	      if( offset == 0)
-		{
-		  if( srcElem < nCp)
-		    throw GDLException("Array subscript must have same size as"
-				       " source expression.");
-		  
-		  AllIxBaseT* allIx = ixList->BuildIx();
-		  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-		    {
-		    #pragma omp for*/
-		  (*this)[ allIx->InitSeqAccess()]=(*src)[0];
-		  for( SizeT c=1; c<nCp; ++c)
-		    (*this)[ allIx->SeqAccess()]=(*src)[c];
-		  // }		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
-		}
-	      else
-		{
-		  if( (srcElem-offset) < nCp)
-		    throw GDLException("Array subscript must have same size as"
-				       " source expression.");
-		  
-		  AllIxBaseT* allIx = ixList->BuildIx();
-		  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-		    {
-		    #pragma omp for*/
-		  (*this)[ allIx->InitSeqAccess()]=(*src)[offset];
-		  for( SizeT c=1; c<nCp; ++c)
-		    (*this)[ allIx->SeqAccess()]=(*src)[c+offset];
-		  // }		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
-		}
-	    }
-	}
+          //          InsAt( src, ixList, offset);
+        }
+      else
+        {
+          if( offset == 0)
+        {
+          if( srcElem < nCp)
+            throw GDLException("Array subscript must have same size as"
+                       " source expression.");
+          
+          AllIxBaseT* allIx = ixList->BuildIx();
+          /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+            {
+            #pragma omp for*/
+          (*this)[ allIx->InitSeqAccess()]=(*src)[0];
+          for( SizeT c=1; c<nCp; ++c)
+            (*this)[ allIx->SeqAccess()]=(*src)[c];
+          // }        //        (*this)[ ixList->GetIx( c)]=(*src)[c+offset];
+        }
+          else
+        {
+          if( (srcElem-offset) < nCp)
+            throw GDLException("Array subscript must have same size as"
+                       " source expression.");
+          
+          AllIxBaseT* allIx = ixList->BuildIx();
+          /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+            {
+            #pragma omp for*/
+          (*this)[ allIx->InitSeqAccess()]=(*src)[offset];
+          for( SizeT c=1; c<nCp; ++c)
+            (*this)[ allIx->SeqAccess()]=(*src)[c+offset];
+          // }        //        (*this)[ ixList->GetIx( c)]=(*src)[c+offset];
+        }
+        }
+    }
     }
 }
 template<class Sp>
@@ -3272,24 +3272,24 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
 
       if( nCp == 1)
-	{
-	  (*this)[ ixList->LongIx()] = (*src)[0];
-	}
+    {
+      (*this)[ ixList->LongIx()] = (*src)[0];
+    }
       else
-	{
-	  Ty scalar=(*src)[0];
-	  AllIxBaseT* allIx = ixList->BuildIx();
-	  (*this)[ allIx->InitSeqAccess()]=scalar;
-	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	    {
-	    #pragma omp for*/
-	  for( int c=1; c<nCp; ++c)
-	    (*this)[ allIx->SeqAccess()]=scalar;
-	  // 	    (*this)[ (*allIx)[ c]]=scalar;
+    {
+      Ty scalar=(*src)[0];
+      AllIxBaseT* allIx = ixList->BuildIx();
+      (*this)[ allIx->InitSeqAccess()]=scalar;
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+        {
+        #pragma omp for*/
+      for( int c=1; c<nCp; ++c)
+        (*this)[ allIx->SeqAccess()]=scalar;
+      //        (*this)[ (*allIx)[ c]]=scalar;
 
 
-	  // }	  //	    (*this)[ ixList->GetIx( c)]=scalar;
-	}
+      // }    //        (*this)[ ixList->GetIx( c)]=scalar;
+    }
     }
   else
     {
@@ -3297,25 +3297,25 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       if( nCp == 1)
-	{
-	  InsAt( src, ixList);
-	}
+    {
+      InsAt( src, ixList);
+    }
       else
-	{
-	  if( srcElem < nCp)
-	    throw GDLException("Array subscript must have same size as"
-			       " source expression.");
-	  
-	  AllIxBaseT* allIx = ixList->BuildIx();
-	  (*this)[ allIx->InitSeqAccess()]=(*src)[0];
-	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	    {
-	    #pragma omp for*/
-	  for( int c=1; c<nCp; ++c)
-	    (*this)[ allIx->SeqAccess()]=(*src)[c];
-	  // 	    (*this)[ (*allIx)[ c]]=(*src)[c];
-	  // }	  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
-	}
+    {
+      if( srcElem < nCp)
+        throw GDLException("Array subscript must have same size as"
+                   " source expression.");
+      
+      AllIxBaseT* allIx = ixList->BuildIx();
+      (*this)[ allIx->InitSeqAccess()]=(*src)[0];
+      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+        {
+        #pragma omp for*/
+      for( int c=1; c<nCp; ++c)
+        (*this)[ allIx->SeqAccess()]=(*src)[c];
+      //        (*this)[ (*allIx)[ c]]=(*src)[c];
+      // }    //        (*this)[ ixList->GetIx( c)]=(*src)[c+offset];
+    }
     }
 }
 template<class Sp>
@@ -3335,15 +3335,15 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn)
       
       
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       for( int c=0; c<nCp; ++c)
-	(*this)[ c]=scalar;
+    (*this)[ c]=scalar;
       // }      
       //       SizeT nCp=Data_::N_Elements();
 
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ c]=scalar;
+      //    (*this)[ c]=scalar;
     }
   else
     {
@@ -3353,10 +3353,10 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn)
       if( nCp > srcElem) nCp=srcElem;
       
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       for( int c=0; c<nCp; ++c)
-	(*this)[ c]=(*src)[c];
+    (*this)[ c]=(*src)[c];
       // }
     }
 }
@@ -3372,7 +3372,7 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ c]--;
+      //    (*this)[ c]--;
     }
   else
     {
@@ -3380,11 +3380,11 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
 
       AllIxBaseT* allIx = ixList->BuildIx();
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       (*this)[ allIx->InitSeqAccess()]--;
       for( SizeT c=1; c<nCp; ++c)
-	(*this)[ allIx->SeqAccess()]--;
+    (*this)[ allIx->SeqAccess()]--;
     }//    }
 }
 template<class Sp>
@@ -3396,7 +3396,7 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ c]++;
+      //    (*this)[ c]++;
     }
   else
     {
@@ -3404,11 +3404,11 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
       
       AllIxBaseT* allIx = ixList->BuildIx();
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       (*this)[ allIx->InitSeqAccess()]++;
       for( SizeT c=1; c<nCp; ++c)
-	(*this)[ allIx->SeqAccess()]++;
+    (*this)[ allIx->SeqAccess()]++;
     }//    }
 }
 // float, double
@@ -3422,7 +3422,7 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ c] -= 1.0;
+      //    (*this)[ c] -= 1.0;
     }
   else
     {
@@ -3430,11 +3430,11 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
 
       AllIxBaseT* allIx = ixList->BuildIx();
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] -= 1.0f;
       for( SizeT c=1; c<nCp; ++c)
-	(*this)[ allIx->SeqAccess()] -=1.0f;
+    (*this)[ allIx->SeqAccess()] -=1.0f;
     }//    }
 }
 template<>
@@ -3447,7 +3447,7 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ c] += 1.0;
+      //    (*this)[ c] += 1.0;
     }
   else
     {
@@ -3455,11 +3455,11 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
       
       AllIxBaseT* allIx = ixList->BuildIx();
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] += 1.0f;
       for( SizeT c=1; c<nCp; ++c)
-	(*this)[ allIx->SeqAccess()] +=1.0f;
+    (*this)[ allIx->SeqAccess()] +=1.0f;
     }//    }
 }
 template<>
@@ -3472,7 +3472,7 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ c] -= 1.0;
+      //    (*this)[ c] -= 1.0;
     }
   else
     {
@@ -3480,11 +3480,11 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
       
       AllIxBaseT* allIx = ixList->BuildIx();
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] -= 1.0;
       for( SizeT c=1; c<nCp; ++c)
-	(*this)[ allIx->SeqAccess()] -=1.0;
+    (*this)[ allIx->SeqAccess()] -=1.0;
     }//    }
 }
 template<>
@@ -3497,7 +3497,7 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
       //       SizeT nCp=Data_::N_Elements();
       
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ c] += 1.0;
+      //    (*this)[ c] += 1.0;
     }
   else
     {
@@ -3505,11 +3505,11 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
       
       AllIxBaseT* allIx = ixList->BuildIx();
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] += 1.0f;
       for( SizeT c=1; c<nCp; ++c)
-	(*this)[ allIx->SeqAccess()] +=1.0f;
+    (*this)[ allIx->SeqAccess()] +=1.0f;
     }//    }
 }
 // complex
@@ -3523,10 +3523,10 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=Data_::N_Elements();
       
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       for( int c=0; c<nCp; ++c)
-	(*this)[ c] -= 1.0;
+    (*this)[ c] -= 1.0;
     }//    }
   else
     {
@@ -3534,13 +3534,13 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
       
       AllIxBaseT* allIx = ixList->BuildIx();
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] -= 1.0;
       for( SizeT c=1; c<nCp; ++c)
-	(*this)[ allIx->SeqAccess()] -=1.0;
+    (*this)[ allIx->SeqAccess()] -=1.0;
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ (*allIx)[ c]] -= 1.0;
+      //    (*this)[ (*allIx)[ c]] -= 1.0;
     }//    }
 }
 template<>
@@ -3553,10 +3553,10 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=Data_::N_Elements();
       
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       for( int c=0; c<nCp; ++c)
-      	(*this)[ c] += 1.0;
+        (*this)[ c] += 1.0;
     }//    }
   else
     {
@@ -3564,13 +3564,13 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
       
       AllIxBaseT* allIx = ixList->BuildIx();
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] += 1.0;
       for( SizeT c=1; c<nCp; ++c)
-	(*this)[ allIx->SeqAccess()] +=1.0;
+    (*this)[ allIx->SeqAccess()] +=1.0;
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ (*allIx)[ c]] += 1.0;
+      //    (*this)[ (*allIx)[ c]] += 1.0;
     }//    }
 }
 template<>
@@ -3583,10 +3583,10 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=Data_::N_Elements();
       
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       for( int c=0; c<nCp; ++c)
-      	(*this)[ c] -= 1.0;
+        (*this)[ c] -= 1.0;
     }//    }
   else
     {
@@ -3594,13 +3594,13 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
       
       AllIxBaseT* allIx = ixList->BuildIx();
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] -= 1.0;
       for( SizeT c=1; c<nCp; ++c)
-	(*this)[ allIx->SeqAccess()] -=1.0;
+    (*this)[ allIx->SeqAccess()] -=1.0;
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ (*allIx)[ c]] -= 1.0;
+      //    (*this)[ (*allIx)[ c]] -= 1.0;
     } //   }
 }
 template<>
@@ -3613,10 +3613,10 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=Data_::N_Elements();
       
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       for( int c=0; c<nCp; ++c)
-      	(*this)[ c] += 1.0;
+        (*this)[ c] += 1.0;
     }//    }
   else
     {
@@ -3624,13 +3624,13 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
       
       AllIxBaseT* allIx = ixList->BuildIx();
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] += 1.0;
       for( SizeT c=1; c<nCp; ++c)
-	(*this)[ allIx->SeqAccess()] +=1.0;
+    (*this)[ allIx->SeqAccess()] +=1.0;
       //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ (*allIx)[ c]] += 1.0;
+      //    (*this)[ (*allIx)[ c]] += 1.0;
     }//    }
 }
 // forbidden types
@@ -3671,7 +3671,7 @@ void Data_<SpDObj>::IncAt( ArrayIndexListT* ixList)
 // used by DotAccessDescT::DoResolve
 template<class Sp>
 void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn, 
-			  ArrayIndexListT* ixList)
+              ArrayIndexListT* ixList)
 {
   Data_* src=static_cast<Data_* >(srcIn);
   if( ixList == NULL)
@@ -3679,10 +3679,10 @@ void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn,
       SizeT nCp=src->N_Elements();
 
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       for( int c=0; c<nCp; ++c)
-	(*this)[ c+offset]=(*src)[c];
+    (*this)[ c+offset]=(*src)[c];
     }//    }
   else
     {
@@ -3690,12 +3690,12 @@ void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn,
 
       AllIxBaseT* allIx = ixList->BuildIx();
       /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+    {
+    #pragma omp for*/
       (*this)[ offset]=(*src)[ allIx->InitSeqAccess()];
       for( SizeT c=1; c<nCp; ++c)
-	(*this)[ c+offset]=(*src)[ allIx->SeqAccess()];
-      //}      //	(*this)[ c+offset]=(*src)[ ixList->GetIx( c)];
+    (*this)[ c+offset]=(*src)[ allIx->SeqAccess()];
+      //}      //   (*this)[ c+offset]=(*src)[ ixList->GetIx( c)];
     }
 }
 
@@ -3703,8 +3703,8 @@ void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn,
 // used for array concatenation
 template<class Sp>
 Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
-				const SizeT catRankIx, 
-				const SizeT rank)
+                const SizeT catRankIx, 
+                const SizeT rank)
 {
   //  breakpoint();
   SizeT rankIx = RankIx( rank);
@@ -3723,20 +3723,20 @@ Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
       (*i)=(*i)->Convert2( this->t);
 
       for( SizeT dIx=0; dIx<=maxIx; dIx++)
-	{
-	  if( dIx != catRankIx) 
-	    {
-	      if( catArrDim[dIx] == (*i)->Dim(dIx)) continue;
-	      if( (catArrDim[dIx] > 1) || ((*i)->Dim(dIx) > 1)) 
+    {
+      if( dIx != catRankIx) 
+        {
+          if( catArrDim[dIx] == (*i)->Dim(dIx)) continue;
+          if( (catArrDim[dIx] > 1) || ((*i)->Dim(dIx) > 1)) 
                 throw  GDLException("Unable to concatenate variables "
                                     "because the dimensions do not agree");
-	    }
-	  else
-	    {
-	      SizeT add=(*i)->Dim(dIx);
-	      dimSum+=(add)?add:1;
-	    }
-	}
+        }
+      else
+        {
+          SizeT add=(*i)->Dim(dIx);
+          dimSum+=(add)?add:1;
+        }
+    }
     }
   
   catArrDim.SetOneDim(catRankIx,dimSum);
@@ -3748,7 +3748,7 @@ Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
   for( i=exprList.begin(); i != exprList.end(); ++i)
     {
       catArr->CatInsert(static_cast<Data_<Sp>*>( (*i)),
-			catRankIx,at); // advances 'at'
+            catRankIx,at); // advances 'at'
     }
   
   return catArr;
@@ -3804,14 +3804,14 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
     //       SizeT len = srcIn->Dim( 0); // length of segment to copy
     //       // check if in bounds of a
     //       if( (destStart+len) > this->N_Elements()) //dim[0])
-    // 	throw GDLException("Out of range subscript encountered (1).");
+    //  throw GDLException("Out of range subscript encountered (1).");
   
     //       DataT& srcIn_dd = srcIn->dd; 
     //       SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
 
     //       SizeT destEnd = destStart + len;
     //       for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
-    // 	(*this)[ destIx] = (*srcIn)[ srcIx++];
+    //  (*this)[ destIx] = (*srcIn)[ srcIx++];
 
     //       return;
     //     }
@@ -3820,28 +3820,28 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
 
       //SizeT len;
       if( this->N_Elements() == 1)
-	{
-	  //	  len = 1;
-	  SizeT rStride = srcIn->Stride(this->Rank());
-	  (*this)[ destStart] = (*srcIn)[ offset/rStride];
-	}
+    {
+      //      len = 1;
+      SizeT rStride = srcIn->Stride(this->Rank());
+      (*this)[ destStart] = (*srcIn)[ offset/rStride];
+    }
       else 
-	{
-	  SizeT len = srcIn->Dim( 0); // length of segment to copy
+    {
+      SizeT len = srcIn->Dim( 0); // length of segment to copy
           // TODO: IDL reports here (and probably in the insert-dimension case below as well) 
           //       the name of a variable, e.g.:
           //       IDL> a=[0,0,0] & a[2]=[2,2,2]
           //       % Out of range subscript encountered: A.
-	  if( (destStart+len) > this->N_Elements()) //dim[0])
-	    throw GDLException("Out of range subscript encountered (length of insert exceeds array boundaries).");
+      if( (destStart+len) > this->N_Elements()) //dim[0])
+        throw GDLException("Out of range subscript encountered (length of insert exceeds array boundaries).");
 
-	  // DataT& srcIn_dd = srcIn->dd; 
-	  SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
+      // DataT& srcIn_dd = srcIn->dd; 
+      SizeT srcIx = 0; // this one simply runs from 0 to N_Elements(srcIn)
 
-	  SizeT destEnd = destStart + len;
-	  for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
-	    (*this)[ destIx] = (*srcIn)[ srcIx++];
-	}
+      SizeT destEnd = destStart + len;
+      for( SizeT destIx = destStart; destIx < destEnd; ++destIx)
+        (*this)[ destIx] = (*srcIn)[ srcIx++];
+    }
 
       return;
     }
@@ -3875,7 +3875,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
   SizeT resetStep[MAXRANK+1];
   for( SizeT a=1; a <= nDim; ++a) 
     resetStep[a]=(retStride[a]-1)/retStride[a-1]*this->dim.Stride(a);
-	
+    
   //  SizeT destStart=this->dim.LongIndex(ixDim); // starting pos
 
   // DataT& srcIn_dd = srcIn->dd; 
@@ -3886,24 +3886,24 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
       // copy one segment
       SizeT destEnd=destStart+len;
       for( SizeT destIx=destStart; destIx<destEnd; ++destIx)
-	(*this)[destIx] = (*srcIn)[ srcIx++];
+    (*this)[destIx] = (*srcIn)[ srcIx++];
 
       // update destStart for all dimensions
       if( c < nCp)
-	for( SizeT a=1; a<=nDim; ++a)
-	  {
-	    if( c % retStride[a])
-	      {
-		// advance to next
-		destStart += this->dim.Stride(a);
-		break;
-	      }
-	    else
-	      {
-		// reset
-		destStart -= resetStep[a];
-	      }
-	  }
+    for( SizeT a=1; a<=nDim; ++a)
+      {
+        if( c % retStride[a])
+          {
+        // advance to next
+        destStart += this->dim.Stride(a);
+        break;
+          }
+        else
+          {
+        // reset
+        destStart -= resetStep[a];
+          }
+      }
     }
 }
 
@@ -4091,8 +4091,8 @@ BaseGDL* Data_<SpDComplexDbl>::Rebin( const dimension& newDim, bool sample)
 // newDim != srcDim[ dimIx] -> compress or expand
 template< typename T>
 T* Rebin1( T* src, 
-	   const dimension& srcDim, 
-	   SizeT dimIx, SizeT newDim, bool sample)
+       const dimension& srcDim, 
+       SizeT dimIx, SizeT newDim, bool sample)
 {
   SizeT nEl = src->N_Elements();
   
@@ -4121,111 +4121,111 @@ T* Rebin1( T* src,
       SizeT ratio = srcDimIx / newDim;
  
       if( sample)
-	{
-	  T* res = new T( destDim, BaseGDL::NOZERO);
+    {
+      T* res = new T( destDim, BaseGDL::NOZERO);
     
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
+      for( SizeT o=0; o < nEl; o += outerStride) // outer dim
+        for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
+          {
+        SizeT oi = o+i;
+        SizeT oiLimit = oi + rebinLimit;
 
-		for( SizeT s=oi; s<oiLimit; s += dimStride*ratio) // run over dim
-		  {
-		    (*res)[ (s / dimStride / ratio) * dimStride + i] = (*src)[ s];
-		  }
-	      }
+        for( SizeT s=oi; s<oiLimit; s += dimStride*ratio) // run over dim
+          {
+            (*res)[ (s / dimStride / ratio) * dimStride + i] = (*src)[ s];
+          }
+          }
       
-	  return res;
-	}
+      return res;
+    }
       else
-	{
-	  T* res = new T( destDim); // zero fields
+    {
+      T* res = new T( destDim); // zero fields
 
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
+      for( SizeT o=0; o < nEl; o += outerStride) // outer dim
+        for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
+          {
+        SizeT oi = o+i;
+        SizeT oiLimit = oi + rebinLimit;
 
-		for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
-		  {
-		    // the way s indexes:
-		    // assume over b (compress index)
-		    // src[ a, b, c]
-		    // [ 0, 0, 0] [ 0, 1, 0] [ 0, 2, 0] ...
-		    // [ 1, 0, 0] [ 1, 1, 0] [ 1, 2, 0] ...
-		    // [ 2, 0, 0] [ 2, 1, 0] [ 2, 2, 0] ...
+        for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
+          {
+            // the way s indexes:
+            // assume over b (compress index)
+            // src[ a, b, c]
+            // [ 0, 0, 0] [ 0, 1, 0] [ 0, 2, 0] ...
+            // [ 1, 0, 0] [ 1, 1, 0] [ 1, 2, 0] ...
+            // [ 2, 0, 0] [ 2, 1, 0] [ 2, 2, 0] ...
 
-		    (*res)[ (s / dimStride / ratio) * dimStride + i] += (*src)[ s];
-		  }
-	      }
+            (*res)[ (s / dimStride / ratio) * dimStride + i] += (*src)[ s];
+          }
+          }
       
-	  SizeT resEl = res->N_Elements();
-	  /*#pragma omp parallel if (resEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= resEl))
-	    {
-	    #pragma omp for*/
-	  for( int r=0; r < resEl; ++r)
-	    (*res)[ r] /= ratio;
-	  // }
-	  return res;
-	}
+      SizeT resEl = res->N_Elements();
+      /*#pragma omp parallel if (resEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= resEl))
+        {
+        #pragma omp for*/
+      for( int r=0; r < resEl; ++r)
+        (*res)[ r] /= ratio;
+      // }
+      return res;
+    }
     }
   else // expand
     {
       T* res = new T( destDim, BaseGDL::NOZERO);
 
       if( sample)
-	{
-	  SizeT ratio = newDim / srcDimIx;
+    {
+      SizeT ratio = newDim / srcDimIx;
  
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
+      for( SizeT o=0; o < nEl; o += outerStride) // outer dim
+        for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
+          {
+        SizeT oi = o+i;
+        SizeT oiLimit = oi + rebinLimit;
 
-		for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
-		  {
-		    typename T::Ty src_s = (*src)[ s];
+        for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
+          {
+            typename T::Ty src_s = (*src)[ s];
 
-		    SizeT s_dimStride_ratio_dimStride_i = 
-		      (s / dimStride) * ratio * dimStride + i;
+            SizeT s_dimStride_ratio_dimStride_i = 
+              (s / dimStride) * ratio * dimStride + i;
 
-		    for( SizeT r=0; r<ratio; ++r)
-		      {
-			(*res)[ s_dimStride_ratio_dimStride_i + r * dimStride] = 
-			  src_s;
-		      }
-		  }
-	      }
-	}
+            for( SizeT r=0; r<ratio; ++r)
+              {
+            (*res)[ s_dimStride_ratio_dimStride_i + r * dimStride] = 
+              src_s;
+              }
+          }
+          }
+    }
       else
-	{
-	  DLong64 ratio = newDim / srcDimIx; // make sure 32 bit integers are working also
+    {
+      DLong64 ratio = newDim / srcDimIx; // make sure 32 bit integers are working also
 
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
+      for( SizeT o=0; o < nEl; o += outerStride) // outer dim
+        for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
+          {
+        SizeT oi = o+i;
+        SizeT oiLimit = oi + rebinLimit;
 
-		for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
-		  {
-		    typename T::Ty first = (*src)[ s];
-		    typename T::Ty next = 
-		      (*src)[ (s+dimStride)<oiLimit?s+dimStride:s];
+        for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
+          {
+            typename T::Ty first = (*src)[ s];
+            typename T::Ty next = 
+              (*src)[ (s+dimStride)<oiLimit?s+dimStride:s];
 
-		    SizeT s_dimStride_ratio_dimStride_i = 
-		      (s / dimStride) * ratio * dimStride + i;
-		    for( DLong64 r=0; r<ratio; ++r)
-		      {
-			(*res)[ s_dimStride_ratio_dimStride_i + r * dimStride] = 
-			  (first * (ratio - r) + next * r) / ratio; // 64 bit temporary
-		      }
-		  }
-	      }
-	}
+            SizeT s_dimStride_ratio_dimStride_i = 
+              (s / dimStride) * ratio * dimStride + i;
+            for( DLong64 r=0; r<ratio; ++r)
+              {
+            (*res)[ s_dimStride_ratio_dimStride_i + r * dimStride] = 
+              (first * (ratio - r) + next * r) / ratio; // 64 bit temporary
+              }
+          }
+          }
+    }
 
       return res;
     }
@@ -4234,8 +4234,8 @@ T* Rebin1( T* src,
 // for integer
 template< typename T, typename TNext>
 T* Rebin1Int( T* src, 
-	      const dimension& srcDim, 
-	      SizeT dimIx, SizeT newDim, bool sample)
+          const dimension& srcDim, 
+          SizeT dimIx, SizeT newDim, bool sample)
 {
   SizeT nEl = src->N_Elements();
   
@@ -4264,106 +4264,106 @@ T* Rebin1Int( T* src,
       SizeT ratio = srcDimIx / newDim;
  
       if( sample)
-	{
-	  T* res = new T( destDim, BaseGDL::NOZERO);
+    {
+      T* res = new T( destDim, BaseGDL::NOZERO);
     
-	  SizeT ratio = srcDimIx / newDim;
+      SizeT ratio = srcDimIx / newDim;
  
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
+      for( SizeT o=0; o < nEl; o += outerStride) // outer dim
+        for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
+          {
+        SizeT oi = o+i;
+        SizeT oiLimit = oi + rebinLimit;
 
-		for( SizeT s=oi; s<oiLimit; s += dimStride*ratio) // run over dim
-		  {
-		    (*res)[ (s / dimStride / ratio) * dimStride + i] = (*src)[ s];
-		  }
-	      }
+        for( SizeT s=oi; s<oiLimit; s += dimStride*ratio) // run over dim
+          {
+            (*res)[ (s / dimStride / ratio) * dimStride + i] = (*src)[ s];
+          }
+          }
       
-	  return res;
-	}
+      return res;
+    }
       else
-	{
-	  T* res = new T( destDim); // zero fields
+    {
+      T* res = new T( destDim); // zero fields
 
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
+      for( SizeT o=0; o < nEl; o += outerStride) // outer dim
+        for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
+          {
+        SizeT oi = o+i;
+        SizeT oiLimit = oi + rebinLimit;
 
-		TNext tmp = 0;
-		for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
-		  {
-		    tmp += (*src)[ s];
-		    
-		    if( (s / dimStride) % ratio == (ratio - 1))
-		      {
-			(*res)[ (s / dimStride / ratio) * dimStride + i] = tmp / ratio;
-			tmp = 0;
-		      }
-		  }
-	      }
+        TNext tmp = 0;
+        for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
+          {
+            tmp += (*src)[ s];
+            
+            if( (s / dimStride) % ratio == (ratio - 1))
+              {
+            (*res)[ (s / dimStride / ratio) * dimStride + i] = tmp / ratio;
+            tmp = 0;
+              }
+          }
+          }
       
-	  return res;
-	}
+      return res;
+    }
     }
   else // expand
     {
       T* res = new T( destDim, BaseGDL::NOZERO);
 
       if( sample)
-	{
-	  SizeT ratio = newDim / srcDimIx;
+    {
+      SizeT ratio = newDim / srcDimIx;
  
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
+      for( SizeT o=0; o < nEl; o += outerStride) // outer dim
+        for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
+          {
+        SizeT oi = o+i;
+        SizeT oiLimit = oi + rebinLimit;
 
-		for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
-		  {
-		    typename T::Ty src_s = (*src)[ s];
+        for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
+          {
+            typename T::Ty src_s = (*src)[ s];
 
-		    SizeT s_dimStride_ratio_dimStride_i = 
-		      (s / dimStride) * ratio * dimStride + i;
+            SizeT s_dimStride_ratio_dimStride_i = 
+              (s / dimStride) * ratio * dimStride + i;
 
-		    for( SizeT r=0; r<ratio; ++r)
-		      {
-			(*res)[ s_dimStride_ratio_dimStride_i + r * dimStride] = 
-			  src_s;
-		      }
-		  }
-	      }
-	}
+            for( SizeT r=0; r<ratio; ++r)
+              {
+            (*res)[ s_dimStride_ratio_dimStride_i + r * dimStride] = 
+              src_s;
+              }
+          }
+          }
+    }
       else
-	{
-	  DLong64 ratio = newDim / srcDimIx; // make sure 32 bit integers are working also
+    {
+      DLong64 ratio = newDim / srcDimIx; // make sure 32 bit integers are working also
 
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
+      for( SizeT o=0; o < nEl; o += outerStride) // outer dim
+        for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
+          {
+        SizeT oi = o+i;
+        SizeT oiLimit = oi + rebinLimit;
 
-		for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
-		  {
-		    typename T::Ty first = (*src)[ s];
-		    typename T::Ty next = 
-		      (*src)[ (s+dimStride)<oiLimit?s+dimStride:s];
+        for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
+          {
+            typename T::Ty first = (*src)[ s];
+            typename T::Ty next = 
+              (*src)[ (s+dimStride)<oiLimit?s+dimStride:s];
 
-		    SizeT s_dimStride_ratio_dimStride_i = 
-		      (s / dimStride) * ratio * dimStride + i;
-		    for( DLong64 r=0; r<ratio; ++r)
-		      {
-			(*res)[ s_dimStride_ratio_dimStride_i + r * dimStride] = 
-			  (first * (ratio - r) + next * r) / ratio; // 64 bit temporary
-		      }
-		  }
-	      }
-	}
+            SizeT s_dimStride_ratio_dimStride_i = 
+              (s / dimStride) * ratio * dimStride + i;
+            for( DLong64 r=0; r<ratio; ++r)
+              {
+            (*res)[ s_dimStride_ratio_dimStride_i + r * dimStride] = 
+              (first * (ratio - r) + next * r) / ratio; // 64 bit temporary
+              }
+          }
+          }
+    }
 
       return res;
     }
@@ -4389,24 +4389,24 @@ BaseGDL* Data_<Sp>::Rebin( const dimension& newDim, bool sample)
   for( SizeT d=0; d<nDim; ++d)
     if( newDim[d] <  this->dim[d])
       { // compress
-	
-	Data_* act = Rebin1( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
+    
+    Data_* act = Rebin1( actIn, actDim, d, newDim[d], sample);
+    actDim = act->Dim();
+    
+    if( actIn != this) GDLDelete(actIn);
+    actIn = act;
       }
 
   // 2nd expand
   for( SizeT d=0; d<nDim; ++d)
     if( newDim[ d] >  this->dim[d])
       { // expand
-	
-	Data_* act = Rebin1( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
+    
+    Data_* act = Rebin1( actIn, actDim, d, newDim[d], sample);
+    actDim = act->Dim();
+    
+    if( actIn != this) GDLDelete(actIn);
+    actIn = act;
       }
   
   if( actIn == this) return actIn->Dup();
@@ -4433,24 +4433,24 @@ BaseGDL* Data_<SpDByte>::Rebin( const dimension& newDim, bool sample)
   for( SizeT d=0; d<nDim; ++d)
     if( newDim[d] <  dim[d])
       { // compress
-	
-	Data_* act = Rebin1Int<DByteGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
+    
+    Data_* act = Rebin1Int<DByteGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
+    actDim = act->Dim();
+    
+    if( actIn != this) GDLDelete(actIn);
+    actIn = act;
       }
 
   // 2nd expand
   for( SizeT d=0; d<nDim; ++d)
     if( newDim[ d] >  dim[d])
       { // expand
-	
-	Data_* act = Rebin1Int<DByteGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
+    
+    Data_* act = Rebin1Int<DByteGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
+    actDim = act->Dim();
+    
+    if( actIn != this) GDLDelete(actIn);
+    actIn = act;
       }
   
   if( actIn == this) return actIn->Dup();
@@ -4475,24 +4475,24 @@ BaseGDL* Data_<SpDInt>::Rebin( const dimension& newDim, bool sample)
   for( SizeT d=0; d<nDim; ++d)
     if( newDim[d] <  dim[d])
       { // compress
-	
-	Data_* act = Rebin1Int<DIntGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
+    
+    Data_* act = Rebin1Int<DIntGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
+    actDim = act->Dim();
+    
+    if( actIn != this) GDLDelete(actIn);
+    actIn = act;
       }
 
   // 2nd expand
   for( SizeT d=0; d<nDim; ++d)
     if( newDim[ d] >  dim[d])
       { // expand
-	
-	Data_* act = Rebin1Int<DIntGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
+    
+    Data_* act = Rebin1Int<DIntGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
+    actDim = act->Dim();
+    
+    if( actIn != this) GDLDelete(actIn);
+    actIn = act;
       }
   
   if( actIn == this) return actIn->Dup();
@@ -4517,24 +4517,24 @@ BaseGDL* Data_<SpDUInt>::Rebin( const dimension& newDim, bool sample)
   for( SizeT d=0; d<nDim; ++d)
     if( newDim[d] <  dim[d])
       { // compress
-	
-	Data_* act = Rebin1Int<DUIntGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
+    
+    Data_* act = Rebin1Int<DUIntGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
+    actDim = act->Dim();
+    
+    if( actIn != this) GDLDelete(actIn);
+    actIn = act;
       }
 
   // 2nd expand
   for( SizeT d=0; d<nDim; ++d)
     if( newDim[ d] >  dim[d])
       { // expand
-	
-	Data_* act = Rebin1Int<DUIntGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
+    
+    Data_* act = Rebin1Int<DUIntGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
+    actDim = act->Dim();
+    
+    if( actIn != this) GDLDelete(actIn);
+    actIn = act;
       }
   
   if( actIn == this) return actIn->Dup();
@@ -4559,24 +4559,24 @@ BaseGDL* Data_<SpDLong>::Rebin( const dimension& newDim, bool sample)
   for( SizeT d=0; d<nDim; ++d)
     if( newDim[d] <  dim[d])
       { // compress
-	
-	Data_* act = Rebin1Int<DLongGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
+    
+    Data_* act = Rebin1Int<DLongGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
+    actDim = act->Dim();
+    
+    if( actIn != this) GDLDelete(actIn);
+    actIn = act;
       }
 
   // 2nd expand
   for( SizeT d=0; d<nDim; ++d)
     if( newDim[ d] >  dim[d])
       { // expand
-	
-	Data_* act = Rebin1Int<DLongGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
+    
+    Data_* act = Rebin1Int<DLongGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
+    actDim = act->Dim();
+    
+    if( actIn != this) GDLDelete(actIn);
+    actIn = act;
       }
   
   if( actIn == this) return actIn->Dup();
@@ -4601,24 +4601,24 @@ BaseGDL* Data_<SpDULong>::Rebin( const dimension& newDim, bool sample)
   for( SizeT d=0; d<nDim; ++d)
     if( newDim[d] <  dim[d])
       { // compress
-	
-	Data_* act = Rebin1Int<DULongGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
+    
+    Data_* act = Rebin1Int<DULongGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
+    actDim = act->Dim();
+    
+    if( actIn != this) GDLDelete(actIn);
+    actIn = act;
       }
 
   // 2nd expand
   for( SizeT d=0; d<nDim; ++d)
     if( newDim[ d] >  dim[d])
       { // expand
-	
-	Data_* act = Rebin1Int<DULongGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
+    
+    Data_* act = Rebin1Int<DULongGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
+    actDim = act->Dim();
+    
+    if( actIn != this) GDLDelete(actIn);
+    actIn = act;
       }
   
   if( actIn == this) return actIn->Dup();
@@ -4728,8 +4728,8 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 
   // no type checking needed here: GetAsIndex() will fail with grace
   //     int typeCheck = DTypeOrder[ dType];
-  // 	if( typeCheck >= 100)
-  // 	  throw GDLException("Type "+ix->TypeStr()+" not allowed as subscript.");
+  //    if( typeCheck >= 100)
+  //      throw GDLException("Type "+ix->TypeStr()+" not allowed as subscript.");
   
   SizeT nElem = ix->N_Elements();
 
@@ -4741,24 +4741,24 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
   if( strict)
     {
       for(SizeT i = 0 ; i < nElem; ++i)
-	{
-	  SizeT actIx = ix->GetAsIndexStrict( i);
-	  if( actIx > upper)
-	    throw GDLException("Array used to subscript array "
-			       "contains out of range (>) subscript (at index: "+i2s(i)+").");
-	  (*res)[i]= (*this)[ actIx];
-	}
+    {
+      SizeT actIx = ix->GetAsIndexStrict( i);
+      if( actIx > upper)
+        throw GDLException("Array used to subscript array "
+                   "contains out of range (>) subscript (at index: "+i2s(i)+").");
+      (*res)[i]= (*this)[ actIx];
+    }
     }
   else // not strict
     {
       for(SizeT i = 0 ; i < nElem; ++i)
-	{
-	  SizeT actIx = ix->GetAsIndex( i);
-	  if( actIx >= upper)
-	    (*res)[i] = upperVal;
-	  else
-	    (*res)[i]= (*this)[ actIx];
-	}
+    {
+      SizeT actIx = ix->GetAsIndex( i);
+      if( actIx >= upper)
+        (*res)[i] = upperVal;
+      else
+        (*res)[i]= (*this)[ actIx];
+    }
     }
   return guard.release();
 }
@@ -4780,79 +4780,79 @@ SizeT Data_<SpDInt>::GetAsIndex( SizeT i) const
   if( (*this)[i] < 0)
     return 0;
   return (*this)[i];
-}	
+}   
 template<>
 SizeT Data_<SpDInt>::GetAsIndexStrict( SizeT i) const
 {
   if( (*this)[i] < 0)
     throw GDLException(-1,NULL,"Array used to subscript array "
-		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+               "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   return (*this)[i];
-}	
+}   
 template<>
 SizeT Data_<SpDLong>::GetAsIndex( SizeT i) const
 {
   if( (*this)[i] < 0)
     return 0;
   return (*this)[i];
-}	
+}   
 template<>
 SizeT Data_<SpDLong>::GetAsIndexStrict( SizeT i) const
 {
   if( (*this)[i] < 0)
     throw GDLException(-1,NULL,"Array used to subscript array "
-		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+               "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   return (*this)[i];
-}	
+}   
 template<>
 SizeT Data_<SpDLong64>::GetAsIndex( SizeT i) const
 {
   if( (*this)[i] < 0)
     return 0;
   return (*this)[i];
-}	
+}   
 template<>
 SizeT Data_<SpDLong64>::GetAsIndexStrict( SizeT i) const
 {
   if( (*this)[i] < 0)
     throw GDLException(-1,NULL,"Array used to subscript array "
-		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+               "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   return (*this)[i];
-}	
+}   
 template<>
 SizeT Data_<SpDFloat>::GetAsIndex( SizeT i) const
 {
   if( (*this)[i] <= 0.0)
     return 0;
   return Real2Int<SizeT,float>((*this)[i]);
-}	
+}   
 template<>
 SizeT Data_<SpDFloat>::GetAsIndexStrict( SizeT i) const
 {
   if( (*this)[i] <= -1.0)
     throw GDLException(-1,NULL,"Array used to subscript array "
-		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+               "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   if( (*this)[i] <= 0.0)
     return 0;
   return Real2Int<SizeT,float>((*this)[i]);
-}	
+}   
 template<>
 SizeT Data_<SpDDouble>::GetAsIndex( SizeT i) const
 {
   if( (*this)[i] <= 0.0)
     return 0;
   return Real2Int<SizeT,double>((*this)[i]);
-}	
+}   
 template<>
 SizeT Data_<SpDDouble>::GetAsIndexStrict( SizeT i) const
 {
   if( (*this)[i] <= -1.0)
     throw GDLException(-1,NULL,"Array used to subscript array "
-		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+               "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   if( (*this)[i] <= 0.0)
     return 0;
   return Real2Int<SizeT,double>((*this)[i]);
-}	
+}   
 template<>
 SizeT Data_<SpDString>::GetAsIndex( SizeT i) const
 {
@@ -4867,7 +4867,7 @@ SizeT Data_<SpDString>::GetAsIndex( SizeT i) const
   if( l < 0)
     return 0;
   return l;
-}	
+}   
 template<>
 SizeT Data_<SpDString>::GetAsIndexStrict( SizeT i) const
 {
@@ -4881,9 +4881,9 @@ SizeT Data_<SpDString>::GetAsIndexStrict( SizeT i) const
     }
   if( l < 0)
     throw GDLException(-1,NULL,"Array used to subscript array "
-		       "contains out of range (<0) subscript.",true,false);
+               "contains out of range (<0) subscript.",true,false);
   return l;
-}	
+}   
 
 template<>
 SizeT Data_<SpDComplex>::GetAsIndex( SizeT i) const
@@ -4891,34 +4891,34 @@ SizeT Data_<SpDComplex>::GetAsIndex( SizeT i) const
   if( real((*this)[i]) <= 0.0)
     return 0;
   return Real2Int<SizeT,float>(real((*this)[i]));
-}	
+}   
 template<>
 SizeT Data_<SpDComplex>::GetAsIndexStrict( SizeT i) const
 {
   if( real((*this)[i]) <= -1.0)
     throw GDLException(-1,NULL,"Array used to subscript array "
-		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+               "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   if( real((*this)[i]) <= 0.0)
     return 0;
   return Real2Int<SizeT,float>(real((*this)[i]));
-}	
+}   
 template<>
 SizeT Data_<SpDComplexDbl>::GetAsIndex( SizeT i) const
 {
   if( real((*this)[i]) <= 0.0)
     return 0;
   return Real2Int<SizeT,double>(real((*this)[i]));
-}	
+}   
 template<>
 SizeT Data_<SpDComplexDbl>::GetAsIndexStrict( SizeT i) const
 {
   if( real((*this)[i]) <= -1.0)
     throw GDLException(-1,NULL,"Array used to subscript array "
-		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
+               "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
   if( real((*this)[i]) <= 0.0)
     return 0;
   return Real2Int<SizeT,double>(real((*this)[i]));
-}	
+}   
 
 //#include "instantiate_templates.hpp"
 

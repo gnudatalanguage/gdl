@@ -14,7 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
+#define INCLUDE_PYTHON 1
 #include "includefirst.hpp"
 
 #include "basegdl.hpp"
@@ -121,18 +121,18 @@ void BaseGDL::Assign( BaseGDL* src, SizeT nEl)
 }
 
 std::ostream& BaseGDL::Write( std::ostream& os, bool swapEndian, 
-			      bool compress, XDR *xdrs)
+                  bool compress, XDR *xdrs)
 {
   throw GDLException("BaseGDL::Write(...) called.");
 }
 std::istream& BaseGDL::Read( std::istream& os, bool swapEndian, 
-			     bool compress, XDR *xdrs)
+                 bool compress, XDR *xdrs)
 {
   throw GDLException("BaseGDL::Read(...) called.");
 }
 
 std::ostream& BaseGDL::ToStream(std::ostream& o, SizeT width, 
-				SizeT* actPosPtr )
+                SizeT* actPosPtr )
 {
   throw GDLException("BaseGDL::ToStream(...) called.");
 }
@@ -323,8 +323,8 @@ void BaseGDL::ForAdd( BaseGDL* add)
 }
 
 BaseGDL* BaseGDL::CatArray( ExprListT& exprList,
-			    const SizeT catRank, 
-			    const SizeT rank) 
+                const SizeT catRank, 
+                const SizeT rank) 
 {
   throw GDLException("BaseGDL::CatArray(...) called.");
 }
@@ -474,7 +474,7 @@ BaseGDL* BaseGDL::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
   throw GDLException("Operation not defined for UNDEF 18.");
 }
 
-void BaseGDL::AssignAt( BaseGDL* srcIn,	ArrayIndexListT* ixList, SizeT offset)
+void BaseGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 {
   throw GDLException("BaseGDL::AssignAt(...) called.");
 }
@@ -532,11 +532,11 @@ SizeT BaseGDL::IFmtF( std::istream* is, SizeT offs, SizeT num, int width)
 {throw GDLException("BaseGDL::IFmtF(...) called.");}
 
 SizeT BaseGDL::IFmtI( std::istream* is, SizeT offs, SizeT num, int width, 
-		      BaseGDL::IOMode oM)
+              BaseGDL::IOMode oM)
 {throw GDLException("BaseGDL::IFmtI(...) called.");}
 
 BaseGDL* BaseGDL::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
-		          bool center, bool normalize, int edgeMode,
+                  bool center, bool normalize, int edgeMode,
                           bool doNan, BaseGDL* missing, bool doMissing,
                           BaseGDL* invalid, bool doInvalid)
 {

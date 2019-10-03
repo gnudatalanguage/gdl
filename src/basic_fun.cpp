@@ -32,7 +32,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
+#define INCLUDE_PYTHON 1
 #include "includefirst.hpp"
 
 // get_kbrd patch

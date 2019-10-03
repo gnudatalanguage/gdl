@@ -14,7 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
+#define INCLUDE_PYTHON 1
 #include "includefirst.hpp"
 
 #include <limits>
@@ -67,12 +67,12 @@ GDLFileListT  fileUnits;
 volatile bool sigControlC;
 int           debugMode;
 bool  strictInterpreter;
-//	global garbage collection flag in support of HEAP_REFCOUNT:
+//  global garbage collection flag in support of HEAP_REFCOUNT:
 static bool enabled_GC=true;
-	bool IsEnabledGC()  // Referenced from GDLInterpreter.hpp
-	 { return enabled_GC; }
-	void EnableGC( bool set=true) // same names, many contexts.
-	 { enabled_GC = set; }
+    bool IsEnabledGC()  // Referenced from GDLInterpreter.hpp
+     { return enabled_GC; }
+    void EnableGC( bool set=true) // same names, many contexts.
+     { enabled_GC = set; }
 
 namespace structDesc {
   // set in InitStructs()
@@ -170,15 +170,15 @@ void InitStructs()
   DStructDesc* gdltypecodes = new DStructDesc("GDL_TYPECODES_AS_STRUCT");
    gdltypecodes->AddTag("GDL_UNDEF",   &aInt            );  //Danger! // 0 Undefined value, the default for new symbols
    gdltypecodes->AddTag("GDL_BYTE",    &aByte           );  // 1 byte
-   gdltypecodes->AddTag("GDL_INT",	   &aInt            );  // 2 Integer scalar 
-   gdltypecodes->AddTag("GDL_LONG",	   &aLong           );  // 3 long Integer scalar
+   gdltypecodes->AddTag("GDL_INT",     &aInt            );  // 2 Integer scalar 
+   gdltypecodes->AddTag("GDL_LONG",    &aLong           );  // 3 long Integer scalar
    gdltypecodes->AddTag("GDL_FLOAT",   &aFloat          );  // 4 Real scalar
    gdltypecodes->AddTag("GDL_DOUBLE",  &aDouble         );  // 5 Double scalar
    gdltypecodes->AddTag("GDL_COMPLEX", &aComplex        );  // 6 Complex scalar
    gdltypecodes->AddTag("GDL_STRING",  &aString         );  // 7 String
    gdltypecodes->AddTag("GDL_STRUCT",  &aInt            );  //Danger // 8 Struct
    gdltypecodes->AddTag("GDL_COMPLEXDBL",  &aComplexDbl );  // 9 Complex double
-   gdltypecodes->AddTag("GDL_PTR",	   &aPtrRef         );  // 10 Pointer
+   gdltypecodes->AddTag("GDL_PTR",     &aPtrRef         );  // 10 Pointer
    gdltypecodes->AddTag("GDL_OBJ",     &aObjRef         );  // 11 Object reference
    gdltypecodes->AddTag("GDL_UINT",    &auInt           );  // 12 unsigned int
    gdltypecodes->AddTag("GDL_ULONG",   &auLong          );  // 13 unsigned long int
@@ -913,11 +913,11 @@ bool IsFun(antlr::RefToken rT1)
 // Speeds up the process of finding (in gdlc.g) if a syntax like foo(bar) is a call to the function 'foo'
 // or the 'bar' element of array 'foo'.
   LibFunListT::iterator p=find_if(libFunList.begin(),libFunList.end(),
-			       Is_eq<DLibFun>(searchName));
+                   Is_eq<DLibFun>(searchName));
   if( p != libFunList.end()) if( *p != NULL) return true;
 
   FunListT::iterator q=find_if(funList.begin(),funList.end(),
-			       Is_eq<DFun>(searchName));
+                   Is_eq<DFun>(searchName));
   if( q != funList.end()) if( *q != NULL) return true;
 
   //  cout << "Not found: " << searchName << endl;

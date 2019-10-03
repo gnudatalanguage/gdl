@@ -14,7 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
+#define INCLUDE_PYTHON 1
 #include "includefirst.hpp"
 
 #include "nullgdl.hpp"
@@ -32,8 +32,8 @@ NullGDL::~NullGDL()
 // it would be the fastest way, to just ignore it.
 // but ~BaseGDL() is called as well. And this must not be
   cerr << "Internal error: !NULL destructor called.\n"
-	  "Save your work and restart GDL (GDL is still functional, but !NULL will not work anymore).\n"
-	  "Please report at https://github.com/gnudatalanguage/gdl/issues" << endl;
+      "Save your work and restart GDL (GDL is still functional, but !NULL will not work anymore).\n"
+      "Please report at https://github.com/gnudatalanguage/gdl/issues" << endl;
 }
 
 bool NullGDL::IsAssoc() const { return false;}
@@ -93,7 +93,7 @@ BaseGDL* NullGDL::Transpose( DUInt* perm)
 }
 
 void NullGDL::MinMax( DLong* minE, DLong* maxE, 
-		      BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
+              BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
               SizeT start, SizeT stop, SizeT step, DLong valIx, bool useAbs)
 {
   throw GDLException("NullGDL::MinMax(...) called.");
@@ -122,18 +122,18 @@ void NullGDL::Assign( BaseGDL* src, SizeT nEl)
 }
 
 std::ostream& NullGDL::Write( std::ostream& os, bool swapEndian, 
-			      bool compress, XDR *xdrs)
+                  bool compress, XDR *xdrs)
 {
   throw GDLException("NullGDL::Write(...) called.");
 }
 std::istream& NullGDL::Read( std::istream& os, bool swapEndian, 
-			     bool compress, XDR *xdrs)
+                 bool compress, XDR *xdrs)
 {
   throw GDLException("NullGDL::Read(...) called.");
 }
 
 std::ostream& NullGDL::ToStream(std::ostream& o, SizeT width, 
-				SizeT* actPosPtr )
+                SizeT* actPosPtr )
 {
   o << "!NULL";
   return o;
@@ -319,8 +319,8 @@ void NullGDL::ForAdd( BaseGDL* add)
 }
 
 BaseGDL* NullGDL::CatArray( ExprListT& exprList,
-			    const SizeT catRank, 
-			    const SizeT rank) 
+                const SizeT catRank, 
+                const SizeT rank) 
 {
   throw GDLException("NullGDL::CatArray(...) called.");
 }
@@ -510,7 +510,7 @@ BaseGDL* NullGDL::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
   throw GDLException("Operation not defined for !NULL 18.");
 }
 
-void NullGDL::AssignAt( BaseGDL* srcIn,	ArrayIndexListT* ixList, SizeT offset)
+void NullGDL::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 {
   throw GDLException("NullGDL::AssignAt(...) called.");
 }
@@ -559,7 +559,7 @@ SizeT NullGDL::IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, BaseGD
 {throw GDLException("NullGDL::IFmtCal(...) called.");}
 
 SizeT NullGDL::OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width,
-			int minN, char *f, NullGDL::Cal_IOMode cM)
+            int minN, char *f, NullGDL::Cal_IOMode cM)
 {throw GDLException("NullGDL::OFmtCal(...) called.");}
           
 SizeT NullGDL::IFmtA( std::istream* is, SizeT offset, SizeT num, int width)
@@ -569,11 +569,11 @@ SizeT NullGDL::IFmtF( std::istream* is, SizeT offs, SizeT num, int width)
 {throw GDLException("NullGDL::IFmtF(...) called.");}
 
 SizeT NullGDL::IFmtI( std::istream* is, SizeT offs, SizeT num, int width, 
-		      NullGDL::IOMode oM)
+              NullGDL::IOMode oM)
 {throw GDLException("NullGDL::IFmtI(...) called.");}
 
 BaseGDL* NullGDL::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
-		          bool center, bool normalize, int edgeMode,
+                  bool center, bool normalize, int edgeMode,
                           bool doNan, BaseGDL* missing, bool doMissing,
                           BaseGDL* invalid, bool doInvalid)
 {

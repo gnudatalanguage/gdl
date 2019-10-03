@@ -37,21 +37,23 @@
 #pragma warning( disable : 4716 )
 #endif
 
+#if defined(INCLUDE_PYTHON)
 // Python.h must be included before everything else
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
 
-#ifndef HAVE_LIBREADLINE
-#define GDL_NOT_HAVE_READLINE
+    #ifndef HAVE_LIBREADLINE
+    #define GDL_NOT_HAVE_READLINE
+    #endif
+
+    #include <Python.h>
+
+    #ifdef GDL_NOT_HAVE_READLINE
+    #undef HAVE_LIBREADLINE
+    #endif
+
+    #undef GDL_NOT_HAVE_READLINE
+
 #endif
-
-#include <Python.h>
-
-#ifdef GDL_NOT_HAVE_READLINE
-#undef HAVE_LIBREADLINE
-#endif
-
-#undef GDL_NOT_HAVE_READLINE
-
 #endif
 
 #include <cstddef>
