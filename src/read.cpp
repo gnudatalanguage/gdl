@@ -14,8 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
-
+#define INCLUDE_PYTHON 1
 #include "includefirst.hpp"
 
 #include <string>
@@ -54,59 +53,59 @@ namespace lib {
     bool stdLun = check_lun( e, lun);
     if( stdLun)
       {
-	if( lun != 0)
-	  e->Throw( "Cannot read from stdout and stderr."
-		    " Unit: "+i2s( lun));
-	is = &cin;
+    if( lun != 0)
+      e->Throw( "Cannot read from stdout and stderr."
+            " Unit: "+i2s( lun));
+    is = &cin;
       }
     else
       {
-	if( fileUnits[ lun-1].F77())
-	  e->Throw( "Formatted IO not allowed with F77_UNFORMATTED "
-		    "files. Unit: "+i2s( lun));
+    if( fileUnits[ lun-1].F77())
+      e->Throw( "Formatted IO not allowed with F77_UNFORMATTED "
+            "files. Unit: "+i2s( lun));
 
-	int sockNum = fileUnits[ lun-1].SockNum();
-	//cout << "sockNum: " << sockNum << endl;
+    int sockNum = fileUnits[ lun-1].SockNum();
+    //cout << "sockNum: " << sockNum << endl;
 
-       	if (sockNum == -1) {
-	  // *** File Read *** //
-	  if( fileUnits[ lun-1].Compress())
-	    is = &fileUnits[ lun-1].IgzStream();
-	  else
-	    is = &fileUnits[ lun-1].IStream();
+        if (sockNum == -1) {
+      // *** File Read *** //
+      if( fileUnits[ lun-1].Compress())
+        is = &fileUnits[ lun-1].IgzStream();
+      else
+        is = &fileUnits[ lun-1].IStream();
 
-	} else {
-	  //  *** Socket Read *** //
-	  string *recvBuf = &fileUnits[ lun-1].RecvBuf();
+    } else {
+      //  *** Socket Read *** //
+      string *recvBuf = &fileUnits[ lun-1].RecvBuf();
 
-	  // Setup recv buffer & string
-	  const int MAXRECV = 2048*8;
-	  char buf[MAXRECV+1];
+      // Setup recv buffer & string
+      const int MAXRECV = 2048*8;
+      char buf[MAXRECV+1];
 
-	  // Read socket until finished & store in recv string
-	  int totalread = 0;
-	  while (1) {
-	    memset(buf, 0, MAXRECV+1);
-	    int status = recv(sockNum, buf, MAXRECV, 0);
-	    //	    cout << "Bytes received: " << status << endl;
-	    if (status == 0) break;
+      // Read socket until finished & store in recv string
+      int totalread = 0;
+      while (1) {
+        memset(buf, 0, MAXRECV+1);
+        int status = recv(sockNum, buf, MAXRECV, 0);
+        //      cout << "Bytes received: " << status << endl;
+        if (status == 0) break;
 
-	    recvBuf->append(buf, status);
+        recvBuf->append(buf, status);
 
-	    //	    for( SizeT i=0; i<status; i++) 
-	    // recvBuf->push_back(buf[i]);
+        //      for( SizeT i=0; i<status; i++) 
+        // recvBuf->push_back(buf[i]);
 
-	    totalread += status;
-	    //cout << "recvBuf size: " << recvBuf->size() << endl;
-	    //cout << "Total bytes read: " << totalread << endl << endl;
-	  }
-	  //  if (totalread > 0) cout << "Total bytes read: " << totalread << endl;
+        totalread += status;
+        //cout << "recvBuf size: " << recvBuf->size() << endl;
+        //cout << "Total bytes read: " << totalread << endl << endl;
+      }
+      //  if (totalread > 0) cout << "Total bytes read: " << totalread << endl;
 
-	  // Get istringstream, write recv string, & assign to istream
-	  istringstream *iss = &fileUnits[ lun-1].ISocketStream();
-	  iss->str(*recvBuf);
-	  is = iss;
-	}
+      // Get istringstream, write recv string, & assign to istream
+      istringstream *iss = &fileUnits[ lun-1].ISocketStream();
+      iss->str(*recvBuf);
+      is = iss;
+    }
       }
 
     read_is( is, e, 1);
@@ -133,7 +132,7 @@ namespace lib {
     BaseGDL* prompt = e->GetKW( 4);
     if( prompt != NULL && !prompt->Scalar())
       throw GDLException( e->CallingNode(),
-			  "PROMPT keyword expression must be a scalar in this context.");
+              "PROMPT keyword expression must be a scalar in this context.");
 
     bool lastParIsString = true; // default set to 'true' so that nothing is done 
     streampos posBeforeLast;
@@ -141,162 +140,162 @@ namespace lib {
     // FORMAT keyword
     if( e->GetKW( 0) != NULL)
       {
-	DString fmtString;
-	e->AssureScalarKW<DStringGDL>( 0, fmtString);
+    DString fmtString;
+    e->AssureScalarKW<DStringGDL>( 0, fmtString);
 
-	// removing "$" in input format : not used
-	std::size_t found =fmtString.find("$");
-	if (found!=std::string::npos)
-	  fmtString.erase(found,1); 
+    // removing "$" in input format : not used
+    std::size_t found =fmtString.find("$");
+    if (found!=std::string::npos)
+      fmtString.erase(found,1); 
 
-	RefFMTNode fmtAST = GetFMTAST( fmtString);
+    RefFMTNode fmtAST = GetFMTAST( fmtString);
 
-	FMTIn Formatter( fmtAST, is, e, parOffset, prompt);
+    FMTIn Formatter( fmtAST, is, e, parOffset, prompt);
       }
     else // default-format input
       {
-	bool noPrompt = true;
+    bool noPrompt = true;
 
-	int nParam = e->NParam();
-	if( nParam == parOffset) return; 
+    int nParam = e->NParam();
+    if( nParam == parOffset) return; 
       
-	ostringstream oss;
+    ostringstream oss;
       
-	BaseGDL* parIn;
-	for( SizeT i=parOffset; i<nParam; i++)
-	  {
+    BaseGDL* parIn;
+    for( SizeT i=parOffset; i<nParam; i++)
+      {
             BaseGDL** par = &e->GetPar( i);
             if( (*par) != NULL)
-	      {
+          {
                 if( e->GlobalPar( i))
-		  { // defined global
+          { // defined global
                     parIn = *par;
-		  }
+          }
                 else
-		  { // defined local
-		    if( prompt != NULL)
-		      { // prompt keyword there -> error
-			throw GDLException( e->CallingNode(),
-					    "Expression must be named variable "
-					    "in this context: "+e->GetParString( i));
-		      }
-		    else
-		      { // prompt not there -> put out or ignore
-			if( is == &cin)
-			  {
-			    (*par)->ToStream( oss);
-			    actualPrompt = oss.str();
-#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
-			    cout << flush;
-#else
-			    cout << oss.str() << flush;
-#endif
-			    noPrompt = false;
-			  }
-			continue;
-		      }
-		  }
-	      }
+          { // defined local
+            if( prompt != NULL)
+              { // prompt keyword there -> error
+            throw GDLException( e->CallingNode(),
+                        "Expression must be named variable "
+                        "in this context: "+e->GetParString( i));
+              }
             else
-	      { // undefined
+              { // prompt not there -> put out or ignore
+            if( is == &cin)
+              {
+                (*par)->ToStream( oss);
+                actualPrompt = oss.str();
+#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
+                cout << flush;
+#else
+                cout << oss.str() << flush;
+#endif
+                noPrompt = false;
+              }
+            continue;
+              }
+          }
+          }
+            else
+          { // undefined
                 if( e->LocalPar( i))
-		  throw GDLException( e->CallingNode(),
-				      "Internal error: Input: UNDEF is local.");
+          throw GDLException( e->CallingNode(),
+                      "Internal error: Input: UNDEF is local.");
 
                 (*par) = new DFloatGDL( 0.0);
                 parIn = *par;
-	      }
+          }
 
-	    if( is == &cin && noPrompt)
-	      {
-		if( prompt != NULL)
-		  {
-		    prompt->ToStream( oss);
-		    actualPrompt = oss.str();
+        if( is == &cin && noPrompt)
+          {
+        if( prompt != NULL)
+          {
+            prompt->ToStream( oss);
+            actualPrompt = oss.str();
 #if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
-		    cout << flush;
+            cout << flush;
 #else
-		    cout << oss.str() << flush;
+            cout << oss.str() << flush;
 #endif
-		  }
-		else
-		  {
-		    actualPrompt = ": ";
+          }
+        else
+          {
+            actualPrompt = ": ";
 #if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
-		    cout << flush;
+            cout << flush;
 #else
-		    cout << ": " << flush;
+            cout << ": " << flush;
 #endif
-		  }
-	      }
-		
+          }
+          }
+        
 #if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
-	    if( is == &cin  && isatty(0))
-	      {
-		string line;
-		string strTrimLine;
+        if( is == &cin  && isatty(0))
+          {
+        string line;
+        string strTrimLine;
 
-		int edit_input = SysVar::Edit_Input();// && isatty(0);
+        int edit_input = SysVar::Edit_Input();// && isatty(0);
 
-		do {
-		  char *cline;
+        do {
+          char *cline;
 
-		  lineEdit = true;
+          lineEdit = true;
 
-		  if( edit_input != 0)
-		    cline = readline(actualPrompt.c_str());
-		  else
-		    cline = e->Interpreter()->NoReadline(actualPrompt.c_str());
+          if( edit_input != 0)
+            cline = readline(actualPrompt.c_str());
+          else
+            cline = e->Interpreter()->NoReadline(actualPrompt.c_str());
 
-		  lineEdit = false;
+          lineEdit = false;
 
-		  if( !cline)
-		    {
-		      // 						if (isatty(0))
-		      cout << endl;
-		      e->Throw("Error encountered reading from: Unit: 0, <stdin> (redirected).");
-		    }
-		  else
-		    // make a string
-		    line = cline;
+          if( !cline)
+            {
+              //                        if (isatty(0))
+              cout << endl;
+              e->Throw("Error encountered reading from: Unit: 0, <stdin> (redirected).");
+            }
+          else
+            // make a string
+            line = cline;
 
-		  free(cline);        // done here for compatibility with readline
+          free(cline);        // done here for compatibility with readline
 
-		  strTrimLine = line;
-		  StrTrim(strTrimLine); 
-		} while( strTrimLine == "" && parIn->Type() != GDL_STRING);
+          strTrimLine = line;
+          StrTrim(strTrimLine); 
+        } while( strTrimLine == "" && parIn->Type() != GDL_STRING);
 
-		istringstream iss( line + "\n");
+        istringstream iss( line + "\n");
 
-		parIn->FromStream( iss);
+        parIn->FromStream( iss);
 
-		if( sigControlC)
-		  return;
-	      }
-	    else
+        if( sigControlC)
+          return;
+          }
+        else
 #endif
-	      {
-// 		posBeforeLast = is->tellg();
+          {
+//      posBeforeLast = is->tellg();
 
-		parIn->FromStream( *is);
+        parIn->FromStream( *is);
 
-		lastParIsString = parIn->Type() == GDL_STRING;
-	      }
-	  }
+        lastParIsString = parIn->Type() == GDL_STRING;
+          }
+      }
       }
       // read until end of line
       if( !lastParIsString && !is->eof()) // && is->peek() != '\n' && is->peek() != '\r')
       {
-	streampos actPos = is->tellg();
+    streampos actPos = is->tellg();
 
-// 	is->seekg( posBeforeLast);
-	assert( actPos > 0);
-	
-	streamoff one = 1;
-	is->seekg( actPos-one);
-	
-	DStringGDL gdlString("");
-	gdlString.FromStream( *is);
+//  is->seekg( posBeforeLast);
+    assert( actPos > 0);
+    
+    streamoff one = 1;
+    is->seekg( actPos-one);
+    
+    DStringGDL gdlString("");
+    gdlString.FromStream( *is);
       }
 }
 
