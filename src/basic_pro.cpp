@@ -16,7 +16,8 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
+ ***************************************************************************/
+#define INCLUDE_PYTHON 1
 #include "includefirst.hpp"
 
 #include <sys/types.h>
@@ -177,12 +178,12 @@ namespace lib {
       map_quality.push_back("FULL"); 
 
       for (int i=0; i<map_quality.size(); i++) {
-	if (mapname.compare(map_quality[i]) == 0) {
-	  DStructGDL* gdlconfig = SysVar::GDLconfig();
-	  static unsigned MapQualityTag = gdlconfig->Desc()->TagIndex("MAP_QUALITY");
-	  (*static_cast<DStringGDL*> (gdlconfig->GetTag(MapQualityTag, 0)))[0] =mapname;
-	  break;
-	}
+    if (mapname.compare(map_quality[i]) == 0) {
+      DStructGDL* gdlconfig = SysVar::GDLconfig();
+      static unsigned MapQualityTag = gdlconfig->Desc()->TagIndex("MAP_QUALITY");
+      (*static_cast<DStringGDL*> (gdlconfig->GetTag(MapQualityTag, 0)))[0] =mapname;
+      break;
+    }
       }
     }
   }
@@ -199,9 +200,9 @@ namespace lib {
       // Create eventually the ".gdl" path in user $HOME
       int result, debug = 0;
       char *homeDir = getenv("HOME");
-	  
-	  if( homeDir == NULL) homeDir = getenv("HOMEPATH"); 
-	  
+      
+      if( homeDir == NULL) homeDir = getenv("HOMEPATH"); 
+      
       if (homeDir != NULL) {
         string pathToGDL_history = homeDir;
         AppendIfNeeded(pathToGDL_history, "/");
@@ -260,7 +261,7 @@ namespace lib {
 
     e->HeapGC(doPtr, doObj, verbose);
       if( GDLInterpreter::HeapSize() == 0 and (GDLInterpreter::ObjHeapSize() == 0)  )
-				GDLInterpreter::ResetHeap();
+                GDLInterpreter::ResetHeap();
   }
 
   void HeapFreeObj(EnvT* env, BaseGDL* var, bool verbose) {
@@ -279,9 +280,9 @@ namespace lib {
       DPtrGDL* varPtr = static_cast<DPtrGDL*> (var);
       for (SizeT e = 0; e < varPtr->N_Elements(); ++e) {
         DPtr actPtrID = (*varPtr)[e];
-		  if( !DInterpreter::PtrValid(actPtrID)) continue;
+          if( !DInterpreter::PtrValid(actPtrID)) continue;
 
-	      BaseGDL* derefPtr = DInterpreter::GetHeap(actPtrID);
+          BaseGDL* derefPtr = DInterpreter::GetHeap(actPtrID);
         HeapFreeObj(env, derefPtr, verbose);
       }
     } else if (var->Type() == GDL_OBJ) {
@@ -323,10 +324,10 @@ namespace lib {
 
 
 //GJ 2016.05.12 Replaced "if (actPtrID == 0)" for a more restrictive condition:
-		  if( !DInterpreter::PtrValid(actPtrID)) continue;
+          if( !DInterpreter::PtrValid(actPtrID)) continue;
 
-	      BaseGDL* derefPtr = DInterpreter::GetHeap(actPtrID);
-	      if (verbose)
+          BaseGDL* derefPtr = DInterpreter::GetHeap(actPtrID);
+          if (verbose)
         {
           help_item(cout,
             derefPtr, DString("<PtrHeapVar") +
@@ -334,7 +335,7 @@ namespace lib {
             false);
         }
 
-	      if (derefPtr == NULL)	continue;
+          if (derefPtr == NULL) continue;
         HeapFreePtr(derefPtr, verbose); // recursive call
       // 2. free pointer
       DInterpreter::FreeHeap(varPtr);
@@ -381,15 +382,15 @@ namespace lib {
   void obj_destroy(EnvT* e) {
     StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
 
-	int n_Param=e->NParam();
-	if( n_Param == 0) return;
-	BaseGDL*& par=e->GetPar( 0);
-	if( par == NULL or par->Type() != GDL_OBJ) return;
-	DObjGDL* op= static_cast<DObjGDL*>(par);
+    int n_Param=e->NParam();
+    if( n_Param == 0) return;
+    BaseGDL*& par=e->GetPar( 0);
+    if( par == NULL or par->Type() != GDL_OBJ) return;
+    DObjGDL* op= static_cast<DObjGDL*>(par);
 
     SizeT nEl = op->N_Elements();
-	for( SizeT i=0; i<nEl; i++)	
-			e->ObjCleanup( (*op)[i]);
+    for( SizeT i=0; i<nEl; i++) 
+            e->ObjCleanup( (*op)[i]);
   }
 
   void call_procedure(EnvT* e) {
@@ -406,9 +407,9 @@ namespace lib {
     // first search library procedures
     int proIx = LibProIx(callP);
     if (proIx != -1) {
-      // 	e->PushNewEnv( libProList[ proIx], 1);
+      //    e->PushNewEnv( libProList[ proIx], 1);
       // make the call
-      // 	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
+      //    EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
       EnvT* newEnv = e->NewEnv(libProList[proIx], 1);
       Guard<EnvT> guard(newEnv);
       static_cast<DLibPro*> (newEnv->GetPro())->Pro()(newEnv);
@@ -420,7 +421,7 @@ namespace lib {
       EnvUDT* newEnv = e->PushNewEnvUD(proList[proIx], 1);
 
       // make the call
-      // 	EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
+      //    EnvUDT* newEnv = static_cast<EnvUDT*>(e->Interpreter()->CallStack().back());
       e->Interpreter()->call_pro(static_cast<DSubUD*> (newEnv->GetPro())->GetTree());
     }
   }
@@ -636,7 +637,7 @@ namespace lib {
         " Unit: " + i2s(lun) + ", File: " + name; // + fileUnits[lun - 1].Name();
 
       if (!errorKeyword) e->Throw(errorMsg);
-      //				throw GDLIOException(ex.ErrorCode(), e->CallingNode(), errorMsg);
+      //                throw GDLIOException(ex.ErrorCode(), e->CallingNode(), errorMsg);
 
       BaseGDL** err = &e->GetKW(errorIx);
 
@@ -650,7 +651,7 @@ namespace lib {
     if (errorKeyword) {
       BaseGDL** err = &e->GetKW(errorIx);
 
-      // 	if( *err != e->Caller()->Object()) delete (*err);
+      //    if( *err != e->Caller()->Object()) delete (*err);
       GDLDelete((*err));
 
       *err = new DLongGDL(0);
@@ -764,7 +765,7 @@ namespace lib {
     if (errorKeyword) {
       BaseGDL** err = &e->GetKW(errorIx);
 
-      // 	if( *err != e->Caller()->Object()) delete (*err);
+      //    if( *err != e->Caller()->Object()) delete (*err);
       GDLDelete((*err));
 
       *err = new DLongGDL(0);
@@ -800,7 +801,7 @@ namespace lib {
 //      for (int p = maxUserLun; p < maxLun; ++p) {
 //        if ((journalLUN - 1) != p) {
 //          fileUnits[p].Close();
-//          //	      if( freeLun)
+//          //        if( freeLun)
 //          fileUnits[p].Free();
 //        }
 //      }
@@ -1016,7 +1017,7 @@ namespace lib {
       while (1) {
         memset(buf, 0, MAXRECV + 1);
         int status = recv(sockNum, buf, MAXRECV, 0);
-        //	  cout << "Bytes received: " << status << endl;
+        //    cout << "Bytes received: " << status << endl;
         if (status == 0) break;
         for (SizeT i = 0; i < status; i++)
           recvBuf->push_back(buf[i]);
@@ -1069,7 +1070,7 @@ namespace lib {
     } else
       for (SizeT i = 1; i < nParam; i++) {
         BaseGDL* p = e->GetPar(i);
-        //	  cout << p->Rank() << endl; // JMG
+        //    cout << p->Rank() << endl; // JMG
         if (p == NULL) {
           e->AssureGlobalPar(i);
           p = new DFloatGDL(0.0);
@@ -1125,7 +1126,7 @@ namespace lib {
         if (sockNum != -1) {
           int pos = is->tellg();
           string *recvBuf = &fileUnits[lun - 1].RecvBuf();
-          //	    cout << "pos: " << pos << endl;
+          //        cout << "pos: " << pos << endl;
           recvBuf->erase(0, pos);
         }
       }
@@ -1276,8 +1277,8 @@ namespace lib {
       sysVar->Data() = newVar->Dup();
 
       // only on first definition
-      //	if( rdOnly != 0)
-      //	  sysVarRdOnlyList.push_back( sysVar);
+      //    if( rdOnly != 0)
+      //      sysVarRdOnlyList.push_back( sysVar);
     }
   }
 
@@ -1622,7 +1623,7 @@ namespace lib {
           buf[ptr] = 0;
           ptr = 0;
           nlines++;
-          //			if(debug) std::printf(" %d:%s",dwRead,buf);
+          //            if(debug) std::printf(" %d:%s",dwRead,buf);
           s_str->push_back(DString(buf));
         } else buf[ptr++] = a_chr;
         if (ptr >= BUFSIZE - 1) {
@@ -1641,7 +1642,7 @@ namespace lib {
   }
 static DWORD launch_cmd(BOOL hide, BOOL nowait,
                      const char * cmd, const char * title = NULL, DWORD *pid = NULL,
-		     vector<DString> *ds_outs = NULL, vector<DString> *ds_errs = NULL)
+             vector<DString> *ds_outs = NULL, vector<DString> *ds_errs = NULL)
     {
     DWORD status;
     CHAR outbuf[BUFSIZE];
@@ -1656,9 +1657,9 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       if( title != NULL)
               MultiByteToWideChar(CP_UTF8, 0, title, -1, w_title, 100);
       WCHAR w_cwd[MAX_PATH];
-	DString cwd = lib::GetCWD();
+    DString cwd = lib::GetCWD();
              MultiByteToWideChar(CP_UTF8, 0, cwd.c_str(), -1, w_cwd, MAX_PATH);
-	
+    
     SECURITY_ATTRIBUTES saAttr;
 
     saAttr.nLength = sizeof (SECURITY_ATTRIBUTES);
@@ -1697,8 +1698,8 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       si.dwFlags |= STARTF_USESTDHANDLES;
       if (debug) std::printf(" CreateProcess: ");
         CreateProcessW(NULL, w_cmd, NULL, NULL, TRUE,
-						 0, NULL, w_cwd,	// start from wherever we happen to be 
-								&si, &pi);
+                         0, NULL, w_cwd,    // start from wherever we happen to be 
+                                &si, &pi);
       if (pid != NULL) *pid = pi.dwProcessId;
       DWORD progress;
 
@@ -1708,7 +1709,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       CloseHandle(g_hChildStd_OUT_Wr);
       do {
         Sleep(10);
-        //		   if (ds_errs != NULL) ReadPipeToDString(g_hChildStd_ERR_Rd,errbuf,&poserr,ds_errs);
+        //         if (ds_errs != NULL) ReadPipeToDString(g_hChildStd_ERR_Rd,errbuf,&poserr,ds_errs);
         if (ds_outs != NULL) ReadPipeToDString(g_hChildStd_OUT_Rd, outbuf, &posout, ds_outs);
         if (debug) std::printf(" Wait 1 sec: ");
         if (debug) Sleep(1000);
@@ -1742,11 +1743,11 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 
       }
       else
-	{
+    {
           CreateProcessW(NULL, w_cmd, NULL, NULL, FALSE,
                         CREATE_NEW_CONSOLE, 
-                        NULL, w_cwd,	// start from wherever we happen to be 
-								&si, &pi);
+                        NULL, w_cwd,    // start from wherever we happen to be 
+                                &si, &pi);
       if (pid != NULL) *pid = pi.dwProcessId;
       if (!nowait) WaitForSingleObject(pi.hProcess, INFINITE);
       GetExitCodeProcess(pi.hProcess, &status);
@@ -1802,7 +1803,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     }
 
       if (nParam == 0)
-	{
+    {
           DWORD status = launch_cmd(hideKeyword, nowaitKeyword,
                               "cmd", " (GDL-Spawned) Command Prompt");
       if (countKeyword)
@@ -2157,7 +2158,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         e->Throw("D1 (3rd) argument is out of range: " +
         e->GetParString(2));
 
-      // 	BaseGDL* p3 = e->GetNumericParDefined( 3);
+      //    BaseGDL* p3 = e->GetNumericParDefined( 3);
       DLongGDL* p3 = e->GetParAs< DLongGDL>(3);
       if (p3->N_Elements() != p0->Rank())
         e->Throw("Loc1 (4th) argument must have the same number of "
@@ -2180,12 +2181,12 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         p5 = e->GetNumericParDefined(5);
       }
 
-      // 	ArrayIndexVectorT* ixList = new ArrayIndexVectorT();
-      // 	Guard< ArrayIndexVectorT> ixList_guard( ixList);
+      //    ArrayIndexVectorT* ixList = new ArrayIndexVectorT();
+      //    Guard< ArrayIndexVectorT> ixList_guard( ixList);
       ArrayIndexVectorT ixList;
-      // 	BaseGDL* loc1 = p3->Dup();
-      // 	loc1->SetDim (dimension( loc1->N_Elements()));
-      //	ixList->reserve( p3->N_Elements());
+      //    BaseGDL* loc1 = p3->Dup();
+      //    loc1->SetDim (dimension( loc1->N_Elements()));
+      //    ixList->reserve( p3->N_Elements());
       for (size_t i = 0; i < p3->N_Elements(); i++)
         if ((i + 1) == d1)
           ixList.push_back(new ArrayIndexAll());
@@ -2480,96 +2481,96 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 void delvar_pro( EnvT* e)
     {
       StackGuard<EnvStackT> guard( e->Interpreter()->CallStack());
-	static volatile bool debug(false);
-	static bool message_needed(false);
-	static volatile SizeT numEnv;
-	std::vector<int>  delvar, delcommon;
-//	  trace_me = trace_arg(); 
-	SizeT n_Param = e->NParam();
-	set<string> showStr;  // "Sorted List" 
+    static volatile bool debug(false);
+    static bool message_needed(false);
+    static volatile SizeT numEnv;
+    std::vector<int>  delvar, delcommon;
+//    trace_me = trace_arg(); 
+    SizeT n_Param = e->NParam();
+    set<string> showStr;  // "Sorted List" 
 // 2016.05.16: message is taken down since errors have been attributed to 
 // other aspects, not delvar specifically.
-	if(message_needed) {
-		std::cout << " ** DELVAR - Warning -- experimental routine !! " << std::endl
-		<< "  o- Not 100 % robust: should NOT be used for objects"   << std::endl;
-		message_needed = false;
-	}
-	EnvBaseT* caller = e->Caller();
-	if(caller->CallingNode() != 0) return;
-//			e->Throw(" DELVAR may only  be called from $MAIN$");
-			
+    if(message_needed) {
+        std::cout << " ** DELVAR - Warning -- experimental routine !! " << std::endl
+        << "  o- Not 100 % robust: should NOT be used for objects"   << std::endl;
+        message_needed = false;
+    }
+    EnvBaseT* caller = e->Caller();
+    if(caller->CallingNode() != 0) return;
+//          e->Throw(" DELVAR may only  be called from $MAIN$");
+            
     SizeT pIndex;
-	int todel[33];
-	static int itest,ndel;
+    int todel[33];
+    static int itest,ndel;
     ndel=0;
-	delvar.clear();  delcommon.clear();
-	for( SizeT ip=0; ip<n_Param; ip++)
-		{
-		BaseGDL*& par=e->GetPar( ip);
-		if(par == 0) continue;
-		DString parString = caller->GetString( par,true);
-		itest= caller->findvar(parString);
-		if ( itest < 0) {delcommon.push_back(ip); continue;}
-		if( par->Type() == GDL_OBJ) {
-/*			if(trace_me) // deliberately skpping code unless in debug mode.
-				std::cout << " ** delvar on object "<< parString<< std::endl;
-			else { */
-				std::cout << " ** DELVAR - object " + parString + 
-				"	skipped !! use obj_destroy " << std::endl;
-				continue;
-				}
-/*	GDLDelete may not be adequate for cleanup.  Problems calling this way.
+    delvar.clear();  delcommon.clear();
+    for( SizeT ip=0; ip<n_Param; ip++)
+        {
+        BaseGDL*& par=e->GetPar( ip);
+        if(par == 0) continue;
+        DString parString = caller->GetString( par,true);
+        itest= caller->findvar(parString);
+        if ( itest < 0) {delcommon.push_back(ip); continue;}
+        if( par->Type() == GDL_OBJ) {
+/*          if(trace_me) // deliberately skpping code unless in debug mode.
+                std::cout << " ** delvar on object "<< parString<< std::endl;
+            else { */
+                std::cout << " ** DELVAR - object " + parString + 
+                "   skipped !! use obj_destroy " << std::endl;
+                continue;
+                }
+/*  GDLDelete may not be adequate for cleanup.  Problems calling this way.
 // ObjCleanup wants to reference _EXTRA keyword but DELVAR does not support that.
-	 		DObjGDL* op= static_cast<DObjGDL*>(par);
-			SizeT nEl=op->N_Elements();
-			for( SizeT i=0; i<nEl; i++)	
-				e->ObjCleanup( (*op)[i]);
+            DObjGDL* op= static_cast<DObjGDL*>(par);
+            SizeT nEl=op->N_Elements();
+            for( SizeT i=0; i<nEl; i++) 
+                e->ObjCleanup( (*op)[i]);
 
- 			}*/
-		delvar.push_back(itest); ndel++;
-		if (ndel == 32) break;
-		pIndex = caller->findvar(par);
-		if(debug) cout << " delvar_pro: "+parString+" pro.var, .env= "
-		  <<itest << " : "<< pIndex <<endl;
-			  
-		}
-	if(!delvar.empty()) {
-			sort(delvar.begin(), delvar.end());
-        	int ndel=0;
-			for (std::vector<int>::iterator ix=delvar.begin();
-			                           ix< delvar.end(); ix++) todel[ndel++] = (*ix);
-			if(trace_me) std::cout << " ** delvar x-"<< ndel;
-			todel[ndel] = -1;
-			caller->Remove(todel);
-			if(trace_me) std::cout << std::endl;
-		}
-	if(delcommon.empty()) return;
-	int cIx;
-	int ncmnfound=0;
-	std::vector<DCommonBase*> c;
-	DSubUD* proUD   = dynamic_cast<DSubUD*>(caller->GetPro());
-	proUD->commonPtrs(c);
-	for (std::vector<int>::iterator ix=delcommon.begin();
-			                           ix< delcommon.end(); ix++) {
-		int i;
-		BaseGDL*& par=e->GetPar(*ix);
-		for( i=0; i < c.size(); i++) {
-			cIx = c[i]->Find(par);
-			if(cIx >= 0) break;
-		  }
-		if(cIx >= 0) {
-		    DString parString = c[i]->VarName( cIx) +" ("+c[i]->Name()+')';
-		    help_item( cout , par, parString, false);
- 		    c[i]->Var(cIx)->Delete(); // this would delete the variable. 
-		    ncmnfound++;			// but 
-			} else {
-				cout << " lost variable" << endl;
-			}
-		}
-//	if(ncmnfound > 0) 
-//		    cout << "( delvar will not handle common-block variables)"<< endl;
-	if(ncmnfound != delcommon.size())
-			cout << "( delvar did not find common block variables that it should have!"<<endl;
+            }*/
+        delvar.push_back(itest); ndel++;
+        if (ndel == 32) break;
+        pIndex = caller->findvar(par);
+        if(debug) cout << " delvar_pro: "+parString+" pro.var, .env= "
+          <<itest << " : "<< pIndex <<endl;
+              
+        }
+    if(!delvar.empty()) {
+            sort(delvar.begin(), delvar.end());
+            int ndel=0;
+            for (std::vector<int>::iterator ix=delvar.begin();
+                                       ix< delvar.end(); ix++) todel[ndel++] = (*ix);
+            if(trace_me) std::cout << " ** delvar x-"<< ndel;
+            todel[ndel] = -1;
+            caller->Remove(todel);
+            if(trace_me) std::cout << std::endl;
+        }
+    if(delcommon.empty()) return;
+    int cIx;
+    int ncmnfound=0;
+    std::vector<DCommonBase*> c;
+    DSubUD* proUD   = dynamic_cast<DSubUD*>(caller->GetPro());
+    proUD->commonPtrs(c);
+    for (std::vector<int>::iterator ix=delcommon.begin();
+                                       ix< delcommon.end(); ix++) {
+        int i;
+        BaseGDL*& par=e->GetPar(*ix);
+        for( i=0; i < c.size(); i++) {
+            cIx = c[i]->Find(par);
+            if(cIx >= 0) break;
+          }
+        if(cIx >= 0) {
+            DString parString = c[i]->VarName( cIx) +" ("+c[i]->Name()+')';
+            help_item( cout , par, parString, false);
+            c[i]->Var(cIx)->Delete(); // this would delete the variable. 
+            ncmnfound++;            // but 
+            } else {
+                cout << " lost variable" << endl;
+            }
+        }
+//  if(ncmnfound > 0) 
+//          cout << "( delvar will not handle common-block variables)"<< endl;
+    if(ncmnfound != delcommon.size())
+            cout << "( delvar did not find common block variables that it should have!"<<endl;
     }
 #if 1
 void findvar_pro( EnvT* e) { cout << " debugger routine: edit/recompile to use" << endl; return;}
@@ -2579,43 +2580,43 @@ void findvar_pro( EnvT* e)
       static volatile bool debug(true);
       static volatile SizeT numEnv;
       
-	  SizeT n_Param = e->NParam();
-	  //bool isKWSetStructures = e->KeywordSet( "STRUCTURES");
-	bool isKWSetStructures = (n_Param == 0);
-	  static EnvBaseT* caller = e->Caller();
+      SizeT n_Param = e->NParam();
+      //bool isKWSetStructures = e->KeywordSet( "STRUCTURES");
+    bool isKWSetStructures = (n_Param == 0);
+      static EnvBaseT* caller = e->Caller();
 
-	  bool foundit=false;
-	  int sIndex,pIndex;
-	  for( SizeT i=0; i<n_Param; i++)
-	    {
-	      BaseGDL*& par=e->GetPar( i);
-		DString parString = caller->GetString( par,true);
-	      if(debug) {
-			help_item(cout, par, parString, false);
-			}
-		sIndex = caller->findvar(parString);
-		pIndex = caller->findvar(par);
-		cout << " findvar: "+parString+" pro.var, .env= "
-			  <<sIndex << " : "<< pIndex <<endl;
-		
-		foundit = (sIndex >= 0);
-	  
-//	  if(foundit) continue;
-		  
-	    }
-	if(!isKWSetStructures) return;
-	std::string name;
-	bool started = false;
-	for(StructListT::iterator is = structList.begin(); 
-		is != structList.end(); is++) {
-		name = (*is)->Name();
-		if(started) {
-			if((*is)->IsUnnamed()) name ="Anonymous";
-			cout << "{"+name+"} (" << (*is)->NTags() <<" tags) " ;
-			}
-			else started = (name.compare("!DEVICE") == 0);
-			}
-		cout << endl;
+      bool foundit=false;
+      int sIndex,pIndex;
+      for( SizeT i=0; i<n_Param; i++)
+        {
+          BaseGDL*& par=e->GetPar( i);
+        DString parString = caller->GetString( par,true);
+          if(debug) {
+            help_item(cout, par, parString, false);
+            }
+        sIndex = caller->findvar(parString);
+        pIndex = caller->findvar(par);
+        cout << " findvar: "+parString+" pro.var, .env= "
+              <<sIndex << " : "<< pIndex <<endl;
+        
+        foundit = (sIndex >= 0);
+      
+//    if(foundit) continue;
+          
+        }
+    if(!isKWSetStructures) return;
+    std::string name;
+    bool started = false;
+    for(StructListT::iterator is = structList.begin(); 
+        is != structList.end(); is++) {
+        name = (*is)->Name();
+        if(started) {
+            if((*is)->IsUnnamed()) name ="Anonymous";
+            cout << "{"+name+"} (" << (*is)->NTags() <<" tags) " ;
+            }
+            else started = (name.compare("!DEVICE") == 0);
+            }
+        cout << endl;
 
     }
 #endif
