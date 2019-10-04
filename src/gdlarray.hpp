@@ -121,21 +121,11 @@ public:
 
   GDLArray( const GDLArray& cp) : sz( cp.size())
   {
-    if( IsPOD)
-    {
-try {
-	  buf = (cp.size() > smallArraySize) ? New(cp.size()) /*new ty[ cp.size()]*/ : InitScalar();
-      } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-      std::memcpy(buf,cp.buf,sz*sizeof(T));
-    }
-    else
-    {
       try {
 	buf = (cp.size() > smallArraySize) ? New(cp.size()) /*new Ty[ cp.size()]*/ : InitScalar();
       } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
 #pragma omp parallel for if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
       for( SizeT i=0; i<sz; ++i)	buf[ i] = cp.buf[ i];
-    }
   }
 
   GDLArray( SizeT s, bool dummy) : sz( s)
@@ -155,25 +145,12 @@ try {
   }
   
   GDLArray( const T* arr, SizeT s) : sz( s)
-  {
-    if( IsPOD)
-    {
-      try
-      {
-	      buf = ( s > smallArraySize ) ? New(s) /*T[ s]*/: InitScalar();
-      }
-      catch ( std::bad_alloc& ) { ThrowGDLException ( "Array requires more memory than available" ); }
-
-      std::memcpy(buf,arr,sz*sizeof(T));
-    }
-    else
-    {    
+  {   
       try {
 	buf = (s > smallArraySize) ? New(s) /*new Ty[ s]*/: InitScalar();
       } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
 #pragma omp parallel for if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz)) 
       for( SizeT i=0; i<sz; ++i)	buf[ i] = arr[ i];
-      }
   }
 
 #else // GDLARRAY_CACHE

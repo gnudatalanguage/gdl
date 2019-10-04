@@ -22,8 +22,7 @@
 #include <omp.h>
 #endif
 
-#include "nullgdl.hpp"
-#include "dstructgdl.hpp"
+#include "datatypes.hpp"
 
 template<>
 void Data_<SpDObj>::MinMax( DLong* minE, DLong* maxE, 
