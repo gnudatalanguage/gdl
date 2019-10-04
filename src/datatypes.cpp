@@ -14,103 +14,20 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
-#include "includefirst.hpp"
-
-#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
-#include <numpy/arrayobject.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
 
-#include <iomanip>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
-//#include "datatypes.hpp" // included from arrayindex.hpp
+#include "datatypes.hpp" // for friend declaration
 #include "nullgdl.hpp"
-#include "dstructgdl.hpp"
-#include "arrayindexlistt.hpp"
-#include "assocdata.hpp"
-#include "io.hpp"
 #include "dinterpreter.hpp"
-#include "terminfo.hpp"
 
 // needed with gcc-3.3.2
 #include <cassert>
-
-// on OS X isnan is not defined
-#if defined(__APPLE__) && defined(OLD_DARWIN) && !defined(isnan)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-// #define      isnan( x )         ( ( sizeof ( x ) == sizeof(double) ) ?  \
-// 				  __isnand ( x ) :			\
-// 				  ( sizeof ( x ) == sizeof( float) ) ?	\
-// 				  __isnanf ( x ) :			\
-// 				  __isnan  ( x ) )
-namespace std {
-
-  template <typename T>
-  bool isnan( T x) { return ( ( sizeof ( x ) == sizeof(double) ) ?  
-				  __isnand ( x ) :			
-				  ( sizeof ( x ) == sizeof( float) ) ?	
-				  __isnanf ( x ) :			
-				  __isnan  ( x ) );}
-}
-#ifdef __cplusplus
-}
-#endif
-#endif
-
-#ifdef _MSC_VER
-#define isfinite _finite
-#define std__isnan isnan
-#else
-#define std__isnan std::isnan
-#endif
-
-//using namespace std;
-//using std::isnan;
-
-// this (ugly) including of other sourcefiles has to be done, because
-// on Mac OS X a template instantiation request (see bottom of file)
-// can only be done once
-#define INCLUDE_GETAS_CPP 1
-#include "getas.cpp"
-
-#define INCLUDE_BASIC_OP_CPP 1
-#include "basic_op.cpp"
-#include "basic_op_new.cpp"
-
-#define INCLUDE_DEFAULT_IO_CPP 1
-#include "default_io.cpp"
-
-#define INCLUDE_IFMT_CPP 1
-#include "ifmt.cpp"
-
-#define INCLUDE_OFMT_CPP 1
-#include "ofmt.cpp"
-
-#define INCLUDE_DATATYPESREF_CPP 1
-#include "datatypesref.cpp"
-
-#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
-
-#  define INCLUDE_TOPYTHON_CPP 1
-#  include "topython.cpp"
-
-#  define INCLUDE_GDLPYTHON_CPP 1
-#  include "gdlpython.cpp"
-
-#  ifdef PYTHON_MODULE
-#    define INCLUDE_PYTHONGDL_CPP 1
-#    include "pythongdl.cpp"
-#  endif
-#endif
-
-#ifdef _MSC_VER
-#define isnan _isnan
-#define isinfinite _isinfinite
-#endif
-
 
 #ifdef TESTTG
 
@@ -2628,7 +2545,7 @@ bool Data_<SpDObj>::True()
   // prevent recursion
   if( res->Type() == GDL_OBJ)
   {
-    ostringstream os;
+    std::ostringstream os;
     res->ToStream(os);
     throw GDLException( isTrueOverload->ObjectName() + ": Object reference expression not allowed in this context: " +
 			 os.str(),true,false);
@@ -4859,20 +4776,4 @@ SizeT Data_<SpDComplexDbl>::GetAsIndexStrict( SizeT i) const
   return Real2Int<SizeT,double>(real((*this)[i]));
 }	
 
-//#include "instantiate_templates.hpp"
-
-template class Data_< SpDByte>;
-template class Data_< SpDInt>;
-template class Data_< SpDUInt>;
-template class Data_< SpDLong>;
-template class Data_< SpDULong>;
-template class Data_< SpDLong64>;
-template class Data_< SpDULong64>;
-template class Data_< SpDPtr>;
-template class Data_< SpDFloat>;
-template class Data_< SpDDouble>;
-template class Data_< SpDString>;
-template class Data_< SpDObj>;
-template class Data_< SpDComplex>;
-template class Data_< SpDComplexDbl>;
-
+#include "instantiate_templates.hpp"

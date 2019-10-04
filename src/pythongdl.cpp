@@ -16,30 +16,28 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+#include <numpy/arrayobject.h>
+#endif
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#include "datatypes.hpp" // for friend declaration
+
 // this has to be included from gdlpython because python
 // (here numarray) duplicates the C API for each compilation unit module
 // which includes it and hence numarray does not feel initialized in 
 // gdlpython.cpp
 // and as topython.cpp has to be included from datatypes,
 // they all have to be included from datatypes
-#ifdef INCLUDE_PYTHONGDL_CPP
 
-//#include "includefirst.hpp"
-
-// if build as a python module
-//#ifdef PYTHON_MODULE
-
-// already included from includefirst
-//#include <Python.h>
-
-//#include <memory> // auto_ptr
-//#include <vector> 
-
-//#include "datatypes.hpp"
-//#include "envt.hpp"
-//#include "sigfpehandler.hpp"
-//#include "terminfo.hpp"
-//#include "dinterpreter.hpp"
+#include "dinterpreter.hpp"
 
 #include "gdleventhandler.hpp"
 
@@ -272,8 +270,11 @@ int GDLEventHandlerPy()
   GDLEventHandler();
   if( oldInputHook != NULL)
     (*oldInputHook)();
+  return 0; //compiler needs
 }
-  
+
+#include "sigfpehandler.hpp"
+
 // Execute a GDL subroutine
 PyObject *GDLSub( PyObject *self, PyObject *argTuple, PyObject *kwDict,
 		  bool functionCall)
@@ -523,7 +524,8 @@ extern "C" {
     {NULL, NULL, 0, NULL}        // Sentinel
   };
 
-
+#include "terminfo.hpp"
+  
   // python GDL module init function
   PyMODINIT_FUNC initGDL()
   { 
@@ -565,5 +567,3 @@ extern "C" {
   
 } // extern "C" 
 
-//#endif
-#endif // INCLUDE_PYTHONGDL_CPP
