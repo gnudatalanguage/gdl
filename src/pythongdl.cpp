@@ -269,8 +269,9 @@ int GDLEventHandlerPy()
 {
   GDLEventHandler();
   if( oldInputHook != NULL)
-    (*oldInputHook)();
-  return 0; //compiler needs
+    return (*oldInputHook)();
+  else
+    return 0;
 }
 
 #include "sigfpehandler.hpp"
