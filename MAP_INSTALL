@@ -1,56 +1,31 @@
 Revised version by Gilles Duvert on July 2014
 Small revision by Alain on Jan. 2019 (mostly GSHHS --> GSHHG)
 Removed gshhs[g] stuff now that IDLffShape works. (GD)
+Revised version by Gilles Duvert on May 2019
+
+==============================INTRODUCTION=================================
 
 To provide map projections support your first need to make sure the
-proj.4 library is installed. There are two libraries, the 'classic
-PROJ.4' library maintained by the original author, G. Evenden:
-http://home.comcast.net/~gevenden56/proj/
-(http://home.comcast.net/~gevenden56/proj/libproj4.3_20081120.tar.bz2)
-and a fork of this library available at http://trac.osgeo.org/proj.
-
-Both work with GDL and provide all projection-related internal
-facilities.  We tend to prefer G. Evenden's trimmed classical version
-since it handles correctly rotations and has fever
-crashes. Unfortunately the fancy interrupted Goode Homolosine is not
-present in GE's library.  It is recommendend to recompile either of
-these libraries instead of using the version that may come with your
-software distribution (but it can work, too).
+proj library available at https://proj.org (formerly proj4.org)
+It is probably already installed on your computer.
 
 If GDL does not find (lib)proj4 files automatically, use 
 "-DLIBPROJ4=YES" "-DLIBPROJ4DIR=DIR" as arguments for cmake. 
 (were 'DIR' is the location of the compiled library.
 
-To finish the support of projections in GDL, first the following
-additional PRO files must be acquired and placed in a directory of the
-GDL PATH:
+==============================MAP_* COMMANDS in GDL=======================
 
-http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_grid.pro
-http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_horizon.pro
-http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_image.pro
-http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_patch.pro
-http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_point_valid.pro
-http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_proj_image.pro
-http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_proj_info.pro
-http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_proj_init_commonblock.pro
-http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_proj_init_common.pro
-http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_proj_init.pro
-http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_satellite_limit.pro
-http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_set.pro
-http://idlastro.gsfc.nasa.gov/ftp/exelislib/map_struct_append.pro
-(cd src/pro/ ; mkdir map; cd map; grep 'gsfc.nasa' ../../../MAP* | xargs wget)
+The complete suite of projection-related commands is available with GDL
+(map_set, map_proj_init, map_horizon, map_continents...). The main difference
+with IDL is that GDL provides the same interface, but for all of the 150 or so projections
+of the proj library!
 
-Note that 'map_continents.pro' is not in this list. map_continents is
-inside GDL.  If these .pro files are not available, google is your
-friend;^).  These are proprietary files and not part of the GDL
-distribution.  They do lots of complicated things in a
-not-very-general way, and should be rewritten completely for GDL. As
-GDL uses Proj.4 and Proj know all the tricks used in these procedures,
-it should not be such a terrible job. Help would be most
-appreciated. See below for an example where new projections are used
-that do not need the above procedures...
-
-===========================================================================
+This is done, at a cost: projections are internally represented in a compact(!) 
+form in IDL via the !MAP structure. We maintain a minimum compatibility with
+the original IDL structure, that is, a !MAP structure made with IDL that would
+be passed 'as is' in GDL using, e.g., a save file, would still "work". The contrary
+is impossible, as the GDL structure encodes more projections. Proj4 aficionados will quickly
+realize that they can define projections in GDL as easily as with the 'proj' program.
 
 MAP_CONTINENTS is now implemented in GDL as a procedure using maintly the Natural Earth 
 (http://www.naturalearthdata.com/, hereafter NE) shapefiles plus gshhs shapefiles 
@@ -66,44 +41,35 @@ However a knowledgeable user may use a more recent version by setting the variab
 !GDL_MAPS_DIR directly such as
 GDL> !GDL_MAPS_DIR="/a/path/to/the/data"
 
-The FILLing of NE shapefiles is not possible as these are not closed, oriented, shapes.
-This why we used also gshhs shapefiles (seriously edited with qgis ( https://www.qgis.org ).
+The FILLing of Natural Earth shapefiles is not possible as these are not closed, oriented, shapes.
+This is why we used also gshhs shapefiles (seriously edited with qgis ( https://www.qgis.org ).
+We'll be happy to hear about better opensource shapefiles than those provided with GDL.
 
-===========================================================================
-NOTE ON PROJECTION-RELATED PROCEDURES IN GDL (and IDL)
-===========================================================================
+==================================DEMO=======================================
 
-All the historical projections are supported fully (Godde's Homolosine
-will not be truncated if you link with G.Evenden's library).  The GCTP
-supplementary projections are at least partially supported. They lack
-the proper initialisation of the map.pipeline array, which governs the
-clipping and avoids spurious lines.  Moreover, ALL the projections in
-the PROJ.4 library linked with GDL are supported via a trick: passing
-a valid PROJ.4 command line in the projection name of a map structure,
-with the projection number set to 999
+see "test_map.pro" in the testsuite/
 
-example:
-;given lon and lat, a table of "test" longitudes and latitudes:
-a=!map
-a.up_name="+proj=mbtfpq +a=1"
-a.projection=999
-map_clip_set,/TRANSFORM,map=a
-b=map_proj_forward(lon, lat,map=a)
-a.uv_box=[min(b(0,*)),min(b(1,*)),max(b(0,*)),max(b(1,*))];
-plot, a.uv_box[[0,2]],a.uv_box[[1,3]],/NODATA, /ISOTROPIC, XSTYLE=1, YSTYLE=1
-map_continents,map=a
-map_grid,map=a
+============================TWEAKING NEW PROJECTIONS==========================
 
-Some warnings:
-- MAP_SET is straightforward to use but is restricted to historical
-  projections.
-- MAP_PROJ_INIT is very long to compile (GDL bug!) but gives access to
-all projections.  However some projections may crash with
-MAP_PROJ_INIT since proj.4 is not protected at all (against null
-pointers, unknown projection inverses, etc...). We recommend
-G.Ewenden's library which is not so "good programmer practice" but has
-more "good sense"!
+The file resource/map/projections.ods is made to keep all the info about proj's projections needed by
+GDL, however GDL procedures use a digested version of this file, "projDefinitions.sav" also present in
+resource/map/.
 
-Joel Gales, Gilles Duvert
+projections.ods is the file to update to add more projections when they are available in proj.
+the format is very simple: proj4 little name, commonly accepted name, one possible alias,
+hints about projection type, required parameters, accepted parameters.
+Pay attention to the hints. the general projection type (conic, cylindric ...) is used to guess the horizons.
+noRot is crucial to avoid problems with the rare projections that crashes when used with proj4's general oblique
+transformation (the way GDL copes with non-null center latitude when the projection does not accept lat_0 keyword. aitoff is an example). 
+ 
+Once projections.ods has been updated, make a copy as a CSV file (projections.csv) and use the following commands:
+?DL> csv_proj=read_csv("projections.csv",n_table=1)
+?DL>save,csv_proj,filename="csv.sav"
 
-PS (by AC): a demo ("test_map.pro") is now available in the testsuite/
+Then, a conversion from the comma separated value text to the save file used internaly by GDL is
+done using the "map_proj_auxiliary_read_csv" procedure hidden in the map_proj_init.pro file. Simple enough.
+The procedure produces a new "projDefinitions.sav" that must be installed in resource/map/. 
+The new projections.ods should be reported here (GitHub). the csv files can be deleted.
+
+Incidentally, this projections.ods file is apparently also the one and only place on the Net where all the proj4 projections
+and their associated parameters happens to be available at a glance...

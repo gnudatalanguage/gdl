@@ -54,7 +54,7 @@ PRO GdlDrawShapefile, shapefile, ATTRNAME=attrname, ATTRVAL=attrval, COLOR=color
 ;       fillcode =2 -> line fill (SPACING etc)
 ;
 
-;ON_ERROR, 2
+ON_ERROR, 2
 
 if n_elements(zvalue) eq 0 then zvalue=0.0
 

@@ -55,24 +55,25 @@
   if (omitNaN) //get first not-nan. Rest of processing will ignore nans since logical expressions must be true.
   {
     SizeT j = start;
+    SizeT old_j=start; //this index exists!
     for (; j < stop; j += step) {
       if (std::isfinite(COMPLEX_ABS((*this)[j]))) break;
     }
     start = j;
     nElem = (stop - start) / step;
-    if (nElem == 0)
+    if (nElem == 0) //only Nans!
     {
       if (minE != NULL) *minE = 0;
       if (maxE != NULL) *maxE = 0;
       if (minVal != NULL)
       {
-        if (valIx == -1) *minVal = new Data_((*this)[j]);
-        else (*static_cast<Data_*> (*minVal))[valIx] = (*this)[j];
+        if (valIx == -1) *minVal = new Data_((*this)[old_j]); //essentially: NaN
+        else (*static_cast<Data_*> (*minVal))[valIx] = (*this)[old_j];
       }
       if (maxVal != NULL)
       {
-        if (valIx == -1) *maxVal = new Data_((*this)[j]);
-        else (*static_cast<Data_*> (*maxVal))[valIx] = (*this)[j];
+        if (valIx == -1) *maxVal = new Data_((*this)[old_j]);
+        else (*static_cast<Data_*> (*maxVal))[valIx] = (*this)[old_j];
       }
       return;
     }
