@@ -109,6 +109,8 @@ void LibInit()
   new DLibFun(lib::scope_varfetch_value,string("SCOPE_VARFETCH"),-1,scope_varfetchKey,scope_varfetchWarnKey);
   const string scope_tracebackKey[]={"STRUCTURE","SYSTEM", KLISTEND};
   new DLibFunRetNew(lib::scope_traceback,string("SCOPE_TRACEBACK"),0,scope_tracebackKey);
+  const string scope_varnameKey[]={ "COMMON", "COUNT", "LEVEL", KLISTEND };
+  new DLibFun( lib::scope_varname_fun, string("SCOPE_VARNAME"), -1, scope_varnameKey );
 
   const string cpuKey[]={ "RESET","RESTORE","TPOOL_MAX_ELTS", "TPOOL_MIN_ELTS",
 					"TPOOL_NTHREADS","VECTOR_ENABLE",KLISTEND};

@@ -7285,29 +7285,46 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
   BaseGDL* tag_names_fun( EnvT* e)
   {
     SizeT nParam=e->NParam();
-    DStructGDL* struc= e->GetParAs<DStructGDL>(0);
+    BaseGDL* p = e->GetParDefined(0);
+    DStructGDL* struc = nullptr;
+    if( p->Type() == DObjGDL::t ) {
+        DObjGDL* obj = static_cast<DObjGDL*>( p);
+        DObj objRef;
+        if( obj && obj->Scalar( objRef ) ) {
+        try {
+            struc = e->GetObjHeap( objRef );
+        } catch ( GDLInterpreter::HeapException& ) { }
+        }
+    } else if( p->Type() == DStructGDL::t ) {
+       struc = static_cast<DStructGDL*>( p);
+    }
+
+    if( !struc ) {
+        e->Throw( "Error: Failed to obtain structure. Input type: " + p->TypeStr() );
+    }
 
     static int structureNameIx = e->KeywordIx( "STRUCTURE_NAME" );
     bool structureName = e->KeywordSet( structureNameIx );
-    
+
     DStringGDL* tagNames;
 
     if(structureName){
         
-      if ((*struc).Desc()->Name() != "$truct")
-    tagNames =  new DStringGDL((*struc).Desc()->Name());
-      else
-    tagNames =  new DStringGDL("");
-
+      if ((*struc).Desc()->Name() != "$truct") {
+        tagNames =  new DStringGDL((*struc).Desc()->Name());
+      } else {
+        tagNames =  new DStringGDL("");
+      }
     } else {
       SizeT nTags = (*struc).Desc()->NTags();
-    
       tagNames = new DStringGDL(dimension(nTags));
-      for(int i=0; i < nTags; ++i)
+      for(int i=0; i < nTags; ++i) {
         (*tagNames)[i] = (*struc).Desc()->TagName(i);
+      }
     }
 
     return tagNames;
+      
   }
 
   // AC 12-Oc-2011: better version for: len=len, /Extract and /Sub
@@ -7488,13 +7505,12 @@ BaseGDL* routine_filepath( EnvT* e)
     if( nParam > 0)  {
         BaseGDL* p0 = e->GetParDefined( 0);
         if( p0->Type() != GDL_STRING)
-          e->Throw("String expression required in this context: " + e->GetParString(0));
+        e->Throw("String expression required in this context: " + e->GetParString(0));
         p0S = static_cast<DStringGDL*>( p0);
-      } else {          // routine_filepath()
-        p0S = new DStringGDL(
-            dynamic_cast<DSubUD*>((e->Caller())->GetPro())->Name());
+    } else {          // routine_filepath()
+        p0S = new DStringGDL( dynamic_cast<DSubUD*>((e->Caller())->GetPro())->ObjectName() );
         p0S_guard.Init(p0S);
-        }
+    }
 
     static int is_functionIx = e->KeywordIx( "IS_FUNCTION" );
     bool is_functionKW = e->KeywordSet( is_functionIx );
@@ -7507,31 +7523,57 @@ BaseGDL* routine_filepath( EnvT* e)
 
     DString name;
     string FullFileName;
-    for(int i = 0; i < nPath; i ++) {
+    for(int i = 0; i < nPath; i++) {
 
-        name = StrUpCase((*p0S)[i]);      
+        name = StrUpCase((*p0S)[i]);
+
         bool found=false;
         FullFileName = "";
-
-        if( eitherKW || !is_functionKW) {
-            for(ProListT::iterator i=proList.begin();
-                                    i != proList.end(); ++i)
-              if ((*i)->ObjectName() == name) {
-                found=true;
-                FullFileName=(*i)->GetFilename();
-                break;
-              }
-          }
-          
-        if (!found && (is_functionKW || eitherKW)) {
-            for(FunListT::iterator i=funList.begin();
-                                    i != funList.end(); ++i)
-              if ((*i)->ObjectName() == name) {
-                found=true;
-                FullFileName=(*i)->GetFilename();
-                break;
-              }
-          } 
+        
+        size_t pos(0);
+        if( (pos=name.find("::")) != DString::npos ) {
+            DString struct_tag = name.substr( 0, pos );
+            DString method_name = name.substr( pos+2 );
+            for( auto& s: structList ) {
+                if( s && (s->Name() != struct_tag) ) continue;
+                if( eitherKW || !is_functionKW ) {
+                    DPro* pp = s->FindInProList(method_name);
+                    if( pp ) {
+                        found = true;
+                        FullFileName = pp->GetFilename();
+                        break;
+                    }
+                }
+                if( !found && (is_functionKW || eitherKW) ) {
+                    DFun* fp = s->FindInFunList(method_name);
+                    if( fp ) {
+                        found = true;
+                        FullFileName = fp->GetFilename();
+                        break;
+                    }
+                }
+            }
+        } else {
+            if( eitherKW || !is_functionKW) {
+                for(ProListT::iterator i=proList.begin();
+                                        i != proList.end(); ++i)
+                if ((*i)->ObjectName() == name) {
+                    found=true;
+                    FullFileName=(*i)->GetFilename();
+                    break;
+                }
+            }
+            if (!found && (is_functionKW || eitherKW)) {
+                for(FunListT::iterator i=funList.begin();
+                                        i != funList.end(); ++i)
+                if ((*i)->ObjectName() == name) {
+                    found=true;
+                    FullFileName=(*i)->GetFilename();
+                    break;
+                }
+            } 
+        }
+        
         (*res)[i] = FullFileName;
     }
 //    if(nParam == 0) return new DStringGDL(FullFileName);
@@ -8863,7 +8905,111 @@ BaseGDL* parse_url( EnvT* env)
     e->Throw("LVariable not found: " + varName);
     return NULL; // compiler shut-up
   }
-  
+
+    BaseGDL* scope_varname_fun( EnvT* e ) {
+
+        SizeT nParam = e->NParam();
+
+        EnvStackT& callStack = e->Interpreter()->CallStack();
+        
+        DLong currentLvl = callStack.size();
+        DLong level = currentLvl;               // default to current level
+
+        DStringGDL* retVal = nullptr;
+        SizeT count(0);
+        
+        static int commonIx = e->KeywordIx("COMMON");
+        static int countIx = e->KeywordIx("COUNT");
+        static int levelIx = e->KeywordIx("LEVEL");
+        
+        if( e->KeywordSet(commonIx) ) {
+            
+            if( e->KeywordSet(levelIx) ) e->Throw("Conflicting keywords.");
+                
+            DString commonName = "";
+            e->AssureStringScalarKW( commonIx, commonName );
+            DSubUD* pro = static_cast<DSubUD*>( e->Caller()->GetPro() );
+            SizeT nComm = pro->CommonsSize();
+            DCommon* common = pro->Common( StrUpCase(commonName) );
+            count = nParam;
+            retVal = new DStringGDL( dimension( nParam ), BaseGDL::NOZERO );
+            for( SizeT i(0); i<nParam; ++i ) {
+                DLong par;
+                e->AssureLongScalarPar( i, par );
+                if( (par >= 0) && (par < nComm) ) {
+                    (*retVal)[i] = common->VarName( par );
+                } else (*retVal)[i] = "";
+            }
+        } else {
+            
+            DLongGDL* kwLvl = e->IfDefGetKWAs<DLongGDL>(levelIx);
+            if( kwLvl ) {
+                DLong tmp = (*kwLvl)[0];
+                if( tmp > 0 ) level = tmp;
+                else level += tmp;
+                level = std::max( std::min(level, currentLvl), 1 );
+            }
+            
+            EnvT* requestedScope = (EnvT*)callStack[level-1];
+            DSubUD* scope_pro = static_cast<DSubUD*>( requestedScope->GetPro() );
+            SizeT scope_nVar = scope_pro->Size();
+            SizeT scope_nComm = scope_pro->CommonsSize();
+
+            if( nParam == 0 ) {         // Just list and return all defined parameters at the requested level.
+                count = scope_nVar+scope_nComm;
+                if( !count ) {
+                    retVal = new DStringGDL("");
+                } else {                // N.B. Order doesn't matter since the result is lexically sorted.
+                    vector<string> names(count);
+                    for( SizeT i(0); i<scope_nVar; ++i ) {
+                        names[ i ] = scope_pro->GetVarName( i );
+                        if( names[ i ].empty() ) names[ i ] = "*";
+                    }
+                    if( scope_nComm ) {
+                        DStringGDL* list = static_cast<DStringGDL*>(scope_pro->GetCommonVarNameList());
+                        for( SizeT i(0); i < list->N_Elements(); ++i ) {
+                            names[ scope_nVar+i ] = (*list)[i];
+                        }
+                    }
+                    std::sort( names.begin(), names.end() );
+                    retVal = new DStringGDL( dimension( count ), BaseGDL::NOZERO );
+                    for( SizeT i(0); i<count; ++i) {
+                        (*retVal)[i] = names[i];
+                    }
+                }
+            } else {
+                count = nParam;
+                retVal = new DStringGDL( dimension( nParam ), BaseGDL::NOZERO );
+                for( SizeT i(0); i<nParam; ++i ) {
+                    (*retVal)[i] = "";      // not found
+                    BaseGDL*& par = e->GetPar( i );
+                    std::string tmp_name;
+                    if( scope_pro->GetCommonVarName( par, tmp_name ) ) { // Variable found in common-block, so use that name first.
+                        (*retVal)[i] = tmp_name;
+                        continue;
+                    }
+                    if( level == currentLvl ) {                         // For current level we need to resolve using e
+                        (*retVal)[i] = e->GetParString( i );
+                    } else if( par ) {
+                        DString parString = requestedScope->GetString( par );
+                        (*retVal)[i] = parString;
+                        continue;
+                    }
+                    
+                }
+            }
+            
+        }
+        
+        // set the COUNT keyword
+        if( e->KeywordPresent(countIx) ) {
+            e->AssureGlobalKW(countIx);
+            e->SetKW( countIx, new DLongGDL(count) );
+        }
+
+        return retVal;
+        
+    }
 
 } // namespace
 
