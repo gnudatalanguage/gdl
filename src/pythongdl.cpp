@@ -41,6 +41,9 @@
 
 #include "gdleventhandler.hpp"
 
+#include "terminfo.hpp"
+  
+
 // SA fix based on:
 // http://synopsis.fresco.org/viewsvn/Synopsis/branches/Synopsis_0_8/src/Synopsis/Python/Object.hh?r2=1792&rev=1792&r1=1657&sortdir=down
 #if PY_VERSION_HEX < 0x02050000
@@ -524,8 +527,6 @@ extern "C" {
     {NULL, NULL, 0, NULL}        // Sentinel
   };
 
-#include "terminfo.hpp"
-  
   // python GDL module init function
   PyMODINIT_FUNC initGDL()
   { 

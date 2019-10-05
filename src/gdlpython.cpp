@@ -29,9 +29,8 @@
 
 #include "datatypes.hpp" // for friend declaration
 
-// needed with gcc-3.3.2
-#include <cassert>
-
+#include "terminfo.hpp"
+  
 
 // this part contains variable conversion stuff
 // used by both GDL embedded in python and python embedded in GDL
