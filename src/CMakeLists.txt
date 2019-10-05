@@ -8,7 +8,9 @@ GDLInterpreter.cpp
 GDLLexer.cpp
 GDLParser.cpp
 GDLTreeParser.cpp
-datatypes.cpp
+datatypes.cpp #long
+convol.cpp #long
+smooth.cpp   #long also
 basic_op.cpp
 basic_op_new.cpp
 getas.cpp
@@ -32,7 +34,6 @@ calendar.cpp
 #cformat.g
 color.cpp
 convert2.cpp
-convol.cpp
 dcommon.cpp
 dcompiler.cpp
 dialog.cpp
@@ -159,7 +160,6 @@ read.cpp
 saverestore.cpp
 semshm.cpp
 sigfpehandler.cpp
-smooth.cpp
 sorting.cpp
 str.cpp
 terminfo.cpp
