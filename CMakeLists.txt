@@ -43,6 +43,8 @@ include(CheckCSourceRuns)
 include(CheckCXXSourceCompiles)
 include(FindPkgConfig)
 include(FindPackageHandleStandardArgs)
+include(CMakeFindFrameworks.cmake)
+include(SelectLibraryConfigurations.cmake)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 
@@ -806,17 +808,17 @@ endif(LIBPROJ4)
 # -DMPI=ON|OFF
 # -DMPIDIR=DIR
 if(MPI)
-	set(CMAKE_PREFIX_PATH ${MPIDIR})
-	find_package(MPI QUIET)
-	set(USE_MPI ${MPI_FOUND})
-	if(MPI_FOUND)
-		include_directories(${MPI_INCLUDE_PATH})	
-		set(LIBRARIES ${LIBRARIES} ${MPI_LIBRARIES})
-	else(MPI_FOUND)
-		message(FATAL_ERROR "MPI is required but was not found.\n"
-		"Use -DMPIDIR=DIR to specify the MPI directory tree.\n"
-		"Use -DMPI=OFF to not use it.")
-	endif(MPI_FOUND)	
+    set(CMAKE_PREFIX_PATH ${MPIDIR})
+    find_package(MPI QUIET)
+    set(USE_MPI ${MPI_FOUND})
+    if(MPI_FOUND)
+        include_directories(${MPI_INCLUDE_PATH})    
+        set(LIBRARIES ${LIBRARIES} ${MPI_LIBRARIES})
+    else(MPI_FOUND)
+        message(FATAL_ERROR "MPI is required but was not found.\n"
+        "Use -DMPIDIR=DIR to specify the MPI directory tree.\n"
+        "Use -DMPI=OFF to not use it.")
+    endif(MPI_FOUND)    
 endif(MPI)
 # python
 # -DPYTHON=ON|OFF
@@ -1202,7 +1204,7 @@ set(SHAPELIB_LIBRARIES ${SHAPELIB_LIBRARIES})
 module(SHAPELIB      "SHAPELIB          ")
 set(EXPAT_LIBRARIES ${EXPAT_LIBRARIES})
 module(EXPAT      "EXPAT          ")
-module(PSLIB	 "pslib         ")
+module(PSLIB     "pslib         ")
 if(WIN32 AND NOT CYGWIN)
   module(XPORTMINGW  "XPortMinGW (Win32 Xlib)       ")
 else(WIN32 AND NOT CYGWIN)
