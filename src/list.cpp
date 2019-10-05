@@ -542,7 +542,7 @@ void list_insertion( BaseGDL* theref, BaseGDL* rVal,
       { Data_<SpDObj>* dest=static_cast<Data_<SpDObj>* >(theref);
         dest->AssignAt( rVal, ixList);
         break;}
-
+    default: GDLException( "Invalid type code specified.");
     }
     return;
 }
@@ -627,7 +627,8 @@ BaseGDL* list_extraction( BaseGDL* theref, ArrayIndexListT* ixList)
       {DStructGDL* dest=new DStructGDL((static_cast<DStructGDL* >(theref))->Desc(), dim);
         dest->InsertAt( 0, theref, ixList);
         return static_cast<BaseGDL*>(dest) ;}
-            }
+    default: GDLException( "Invalid type code specified.");
+    }
     //  Guard<BaseGDL> resultGuard( result);
   return NULL; // -Wreturn-type
 }
@@ -2062,8 +2063,8 @@ BaseGDL* list__toarray( EnvUDT* e)
             {
             if ( theType == GDL_COMPLEXDBL) resultType = GDL_COMPLEXDBL;
             else if (resultType == GDL_COMPLEXDBL) continue;
-            else if (( theType == GDL_COMPLEX) && (resultType == GDL_DOUBLE)
-              || ( theType == GDL_DOUBLE) && (resultType == GDL_COMPLEX) )
+            else if ((( theType == GDL_COMPLEX) && (resultType == GDL_DOUBLE))
+              || (( theType == GDL_DOUBLE) && (resultType == GDL_COMPLEX)) )
                 resultType = GDL_COMPLEXDBL;
             else if (resultType == GDL_COMPLEX ) continue;
             else if (theType == GDL_DOUBLE ) resultType = GDL_DOUBLE;

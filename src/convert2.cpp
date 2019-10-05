@@ -33,9 +33,16 @@ using namespace std;
 //#define TRACE_CONVERT2 cout << "Convert2 " << this->TypeStr() << " -> " << destTy << "\tn " << dd.size() << "\tmode " << mode << endl;
 #define TRACE_CONVERT2
 
-#define SINGLE_ELEMENT_OPTIMIZATION                   if( nEl == 1) \
-{ (*dest)[0]=(*this)[0]; if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest;}
+#define DO_CONVERT_START(tnew)  {\
+        Data_<tnew>* dest=new Data_<tnew>( dim, BaseGDL::NOZERO);\
+         if( nEl == 1) { (*dest)[0]=(*this)[0]; if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest;}
 
+#define DO_CONVERT_START_CPX(tnew)  {\
+        Data_<tnew>* dest=new Data_<tnew>( dim, BaseGDL::NOZERO);\
+         if( nEl == 1) { (*dest)[0]=(*this)[0].real(); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest;}
+
+#define DO_CONVERT_END 	for( SizeT i=0; i < nEl; ++i) (*dest)[i]=(*this)[i]; if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
+#define DO_CONVERT_END_CPX 	for( SizeT i=0; i < nEl; ++i) (*dest)[i]=(*this)[i].real(); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
 
 // for double -> string
 inline string double2string( const DDouble d)      
@@ -97,568 +104,271 @@ inline real_t string2real(const char* cStart, char** cEnd)
 // each function creates the new type on the heap
 
 // non convertables
-BaseGDL* DStructGDL::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
+
+BaseGDL* DStructGDL::Convert2(DType destTy, BaseGDL::Convert2Mode mode)
 {
-TRACE_CONVERT2
-  if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
-//DInterpreter* testDbg = BaseGDL::interpreter;
-//int szDbg = BaseGDL::interpreter->CallStack().size();
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Struct expression not allowed in this context: "+BaseGDL::interpreter->Name(this));
+  TRACE_CONVERT2
+  if (destTy == t) return (((mode & BaseGDL::COPY) != 0) ? Dup() : this);
+  //DInterpreter* testDbg = BaseGDL::interpreter;
+  //int szDbg = BaseGDL::interpreter->CallStack().size();
+  if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Struct expression not allowed in this context: " + BaseGDL::interpreter->Name(this));
   throw GDLException("Struct expression not allowed in this context.");
   return NULL; // get rid of warning 
-}  
-template<> BaseGDL* Data_<SpDPtr>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
+}
+
+template<> BaseGDL* Data_<SpDPtr>::Convert2(DType destTy, BaseGDL::Convert2Mode mode)
 {
-TRACE_CONVERT2
-  if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Ptr expression not allowed in this context: "+BaseGDL::interpreter->Name(this));
+  TRACE_CONVERT2
+  if (destTy == t) return (((mode & BaseGDL::COPY) != 0) ? Dup() : this);
+  if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Ptr expression not allowed in this context: " + BaseGDL::interpreter->Name(this));
   throw GDLException("Ptr expression not allowed in this context.");
   return NULL; // get rid of warning 
-}  
-template<> BaseGDL* Data_<SpDObj>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
+}
+
+template<> BaseGDL* Data_<SpDObj>::Convert2(DType destTy, BaseGDL::Convert2Mode mode)
 {
-TRACE_CONVERT2
-  if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Object expression not allowed in this context: "+BaseGDL::interpreter->Name(this));
+  TRACE_CONVERT2
+  if (destTy == t) return (((mode & BaseGDL::COPY) != 0) ? Dup() : this);
+  if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Object expression not allowed in this context: " + BaseGDL::interpreter->Name(this));
   throw GDLException("Object expression not allowed in this context.");
   return NULL; // get rid of warning 
-}  
+}
 
 // the real Convert2 functions
-template<> BaseGDL* Data_<SpDByte>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
+
+template<> BaseGDL* Data_<SpDByte>::Convert2(DType destTy, BaseGDL::Convert2Mode mode)
+{
+  TRACE_CONVERT2
+  if (destTy == t) return (((mode & BaseGDL::COPY) != 0) ? Dup() : this);
+
+  SizeT nEl = dd.size();
+
+  switch (destTy) {
+  case GDL_BYTE: return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
+  case GDL_INT:
+    DO_CONVERT_START(SpDInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_UINT:
+    DO_CONVERT_START(SpDUInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_LONG:
+    DO_CONVERT_START(SpDLong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_ULONG:
+    DO_CONVERT_START(SpDULong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_LONG64:
+    DO_CONVERT_START(SpDLong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_ULONG64:
+    DO_CONVERT_START(SpDULong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_FLOAT:
+    DO_CONVERT_START(SpDFloat)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_DOUBLE:
+    DO_CONVERT_START(SpDDouble)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_COMPLEX:
+    DO_CONVERT_START(SpDComplex)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_COMPLEXDBL:
+    DO_CONVERT_START(SpDComplexDbl)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+  {
+    if (mode == BaseGDL::COPY_BYTE_AS_INT) {
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      for (SizeT i = 0; i < nEl; ++i)
+        (*dest)[i] = i2s(static_cast<int> ((*this)[i]), 4);
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      return dest;
+    } else //NOTE: This should be only for BYTES according to the doc, but IDL in fact does it for all integer types below l64 apparently
+    {
+      dimension strDim(dim);
+      SizeT strLen = strDim.Remove(0);
+
+      if (strLen == 0) strLen = 1;
+
+      nEl /= strLen;
+
+      char *buf = new char[ strLen + 1];
+      ArrayGuard<char> guard(buf);
+
+      buf[ strLen] = 0;
+      Data_<SpDString>* dest =
+          new Data_<SpDString>(strDim, BaseGDL::NOZERO);
+      for (SizeT i = 0; i < nEl; ++i) {
+        SizeT basePtr = i*strLen;
+        for (SizeT b = 0; b < strLen; b++)
+          buf[b] = (*this)[ basePtr + b];
+
+        (*dest)[i] = buf; //i2s((*this)[i]);
+      }
+
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      return dest;
+    }
+  }
+  case GDL_PTR:
+  case GDL_OBJ:
+  case GDL_STRUCT:
+  case GDL_UNDEF:
+  default:
+    if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+    throw GDLException("Cannot convert to this type.");
+  }
+
+  return NULL; // get rid of warning
+} // GDL_BYTE 
+
+template<> BaseGDL* Data_<SpDInt>::Convert2(DType destTy, BaseGDL::Convert2Mode mode)
+{
+  TRACE_CONVERT2
+  if (destTy == t) return (((mode & BaseGDL::COPY) != 0) ? Dup() : this);
+
+  SizeT nEl = dd.size();
+
+  switch (destTy) {
+  case GDL_BYTE:
+    DO_CONVERT_START(SpDByte)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_INT: return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
+  case GDL_UINT:
+    DO_CONVERT_START(SpDUInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_LONG:
+    DO_CONVERT_START(SpDLong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_ULONG:
+    DO_CONVERT_START(SpDULong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_LONG64:
+    DO_CONVERT_START(SpDLong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_ULONG64:
+    DO_CONVERT_START(SpDULong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_FLOAT:
+    DO_CONVERT_START(SpDFloat)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_DOUBLE:
+    DO_CONVERT_START(SpDDouble)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_COMPLEX:
+    DO_CONVERT_START(SpDComplex)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_COMPLEXDBL:
+    DO_CONVERT_START(SpDComplexDbl)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_STRING:
+  {
+    Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 8);
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  }
+  case GDL_PTR:
+  case GDL_OBJ:
+  case GDL_STRUCT:
+  case GDL_UNDEF:
+  default:
+    if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+    throw GDLException("Cannot convert to this type.");
+  }
+
+  return NULL; // get rid of warning
+} // GDL_INT  
+
+template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
 {
   TRACE_CONVERT2
   if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
 
   SizeT nEl=dd.size();
-  
-  switch( destTy)
-    {
-//    case GDL_BYTE:
-    case GDL_INT:
-      {
-      	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-      	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_UINT:
-      {
-      	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_LONG:
-      {
-      	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_ULONG:
-      {
-      	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_LONG64:
-      {
-      	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_ULONG64:
-      {
-      	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_FLOAT: 
-      {
-      	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_DOUBLE: 
-      {
-      	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEX: 
-      {
-      	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEXDBL: 
-      {
-      	Data_<SpDComplexDbl>* dest=
-	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
-      {
-	if( mode == BaseGDL::COPY_BYTE_AS_INT)
-	  {
-	    Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-// TRACEOMP( __FILE__, __LINE__)
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-// {
-// #pragma omp for
-	    for( SizeT i=0; i < nEl; ++i)
-	      (*dest)[i]=i2s(static_cast<int>((*this)[i]),4);
-// }
-	    if( (mode & BaseGDL::CONVERT) != 0) delete this;
-	    return dest;
-	  }
-	else
-	  {
-	    dimension strDim( dim);
-	    SizeT strLen = strDim.Remove( 0);
 
-	    if (strLen == 0) strLen = 1;
-
-	    nEl /= strLen;
-
-	    char *buf = new char[ strLen+1];
-	    ArrayGuard<char> guard( buf);
-
-	    buf[ strLen] = 0;
-	    Data_<SpDString>* dest = 
-	      new Data_<SpDString>( strDim, BaseGDL::NOZERO);
-	    for( SizeT i=0; i < nEl; ++i)
-	      {
-		SizeT basePtr = i*strLen;
-		for( SizeT b=0; b<strLen; b++)
-		  buf[b] = (*this)[ basePtr+b];
-		
-		(*dest)[i]=buf; //i2s((*this)[i]);
-	      }
-	    
-	    if( (mode & BaseGDL::CONVERT) != 0) delete this;
-	    return dest;
-	  }
-      }
-    default: 
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
-throw GDLException("Cannot convert to this type.");
-    }
-
-   return NULL; // get rid of warning
-} // GDL_BYTE 
-
-template<> BaseGDL* Data_<SpDInt>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
-{
-TRACE_CONVERT2
-  if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
-
-  SizeT nEl=dd.size();
-
-  switch( destTy)
-    {
-    case GDL_BYTE:
-      {
-      	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-      //    case GDL_INT:
-    case GDL_UINT:
-      {
-      	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-// This does not work, as the type constant is not changed 
-//       if( (mode & BaseGDL::CONVERT) != 0)
-// 	return reinterpret_cast<Data_<SpDUInt>*>(this);
-//       else
-// 	return reinterpret_cast<Data_<SpDUInt>*>(this->Dup());
-    case GDL_LONG:
-      {
-      	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=static_cast<DLong>((*this)[i]);
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_ULONG:
-      {
-      	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_LONG64:
-      {
-      	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-//       	  (*dest)[i]=static_cast<DLong64>((*this)[i]);
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_ULONG64:
-      {
-      	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_FLOAT: 
-      {
-      	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_DOUBLE: 
-      {
-      	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_STRING: 
-      {
-      	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=i2s((*this)[i],8);
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEX: 
-      {
-      	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEXDBL: 
-      {
-      	Data_<SpDComplexDbl>* dest=
-	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_PTR:
-    case GDL_OBJ:
-    case GDL_STRUCT:
-    case GDL_UNDEF:
-    default:
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
-throw GDLException("Cannot convert to this type.");
-    }
-
-   // get rid of warning
-  return NULL; 
-} // GDL_INT  
-
-template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
-{
-TRACE_CONVERT2
-  if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
-
-  SizeT nEl=dd.size();
-
-  switch( destTy)
-    {
-    case GDL_BYTE:
-      {
-      	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_INT:
-      {
-      	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-//       if( (mode & BaseGDL::CONVERT) != 0)
-// 	return reinterpret_cast<Data_<SpDInt>*>(this);
-//       else
-// 	return reinterpret_cast<Data_<SpDInt>*>(this->Dup());
-      //    case GDL_UINT:
-    case GDL_LONG:
-      {
-      	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_ULONG:
-      {
-      	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_LONG64:
-      {
-      	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_ULONG64:
-      {
-      	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_FLOAT: 
-      {
-      	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_DOUBLE: 
-      {
-      	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_STRING: 
-      {
-      	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=i2s((*this)[i],8);
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEX: 
-      {
-      	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEXDBL: 
-      {
-      	Data_<SpDComplexDbl>* dest=
-	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+  switch (destTy) {
+  case GDL_BYTE:
+    DO_CONVERT_START(SpDByte)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_INT:
+    DO_CONVERT_START(SpDInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_UINT: return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
+  case GDL_LONG:
+    DO_CONVERT_START(SpDLong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_ULONG:
+    DO_CONVERT_START(SpDULong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_LONG64:
+    DO_CONVERT_START(SpDLong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_ULONG64:
+    DO_CONVERT_START(SpDULong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_FLOAT:
+    DO_CONVERT_START(SpDFloat)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_DOUBLE:
+    DO_CONVERT_START(SpDDouble)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_COMPLEX:
+    DO_CONVERT_START(SpDComplex)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_COMPLEXDBL:
+    DO_CONVERT_START(SpDComplexDbl)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        DO_CONVERT_END
+  case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+  {
+    Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 8);
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  }
     case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
-    default:
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
-throw GDLException("Cannot convert to this type.");
-    }
+  default:
+    if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+    throw GDLException("Cannot convert to this type.");
+  }
 
-   // get rid of warning
-  return NULL; 
+   return NULL; // get rid of warning
 } // GDL_UINT
 
 
@@ -671,164 +381,63 @@ TRACE_CONVERT2
 
   SizeT nEl=dd.size();
 
-  switch( destTy)
-    {
+    switch (destTy) {
     case GDL_BYTE:
-      {
-      	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDByte)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_INT:
-      {
-      	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_UINT:
-      {
-      	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-      //    case GDL_LONG:
+      DO_CONVERT_START(SpDUInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_LONG:       return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
     case GDL_ULONG:
-      {
-      	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-//       if( (mode & BaseGDL::CONVERT) != 0)
-// 	return reinterpret_cast<Data_<SpDULong>*>(this);
-//       else
-// 	return reinterpret_cast<Data_<SpDULong>*>(this->Dup());
+      DO_CONVERT_START(SpDULong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_LONG64:
-      {
-      	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDLong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_ULONG64:
-      {
-      	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_FLOAT: 
-      {
-      	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_DOUBLE: 
-      {
-      	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_STRING: 
-      {
-      	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=i2s((*this)[i],12);
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEX: 
-      {
-      	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEXDBL: 
-      {
-      	Data_<SpDComplexDbl>* dest=
-	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDULong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_FLOAT:
+      DO_CONVERT_START(SpDFloat)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_DOUBLE:
+      DO_CONVERT_START(SpDDouble)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_COMPLEX:
+      DO_CONVERT_START(SpDComplex)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_COMPLEXDBL:
+      DO_CONVERT_START(SpDComplexDbl)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+    {
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 12);
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      return dest;
+    }
     case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
     default:
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
-throw GDLException("Cannot convert to this type.");
+      if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+      throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
@@ -845,164 +454,63 @@ TRACE_CONVERT2
 
   SizeT nEl=dd.size();
 
-  switch( destTy)
-    {
+  switch( destTy) {
     case GDL_BYTE:
-      {
-      	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDByte)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_INT:
-      {
-      	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_UINT:
-      {
-      	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDUInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_LONG:
-      {
-      	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-//       if( (mode & BaseGDL::CONVERT) != 0)
-// 	return reinterpret_cast<Data_<SpDLong>*>(this);
-//       else
-// 	return reinterpret_cast<Data_<SpDLong>*>(this->Dup());
-      //    case GDL_ULONG:
+      DO_CONVERT_START(SpDLong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+  case GDL_ULONG:       return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
     case GDL_LONG64:
-      {
-      	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDLong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_ULONG64:
-      {
-      	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_FLOAT: 
-      {
-      	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_DOUBLE: 
-      {
-      	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_STRING: 
-      {
-      	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=i2s((*this)[i],12);
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEX: 
-      {
-      	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEXDBL: 
-      {
-      	Data_<SpDComplexDbl>* dest=
-	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-//   #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-// #pragma omp for
-    	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDULong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_FLOAT:
+      DO_CONVERT_START(SpDFloat)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_DOUBLE:
+      DO_CONVERT_START(SpDDouble)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_COMPLEX:
+      DO_CONVERT_START(SpDComplex)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_COMPLEXDBL:
+      DO_CONVERT_START(SpDComplexDbl)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+    {
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 12);
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      return dest;
+    }
     case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
     default:
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
-throw GDLException("Cannot convert to this type.");
+      if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+      throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
@@ -1018,218 +526,67 @@ TRACE_CONVERT2
 
   SizeT nEl=dd.size();
 
-  switch( destTy)
-    {
+  switch( destTy) {
     case GDL_BYTE:
-      {
-      	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) 
-	{
-		(*dest)[0]=Real2DByte<float>((*this)[0]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-	  (*dest)[i]=Real2DByte<float>((*this)[i]); 
-}	//(*dest)[i]=Real2DByte((*this)[i]); 
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDByte)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_INT:
-      {
-      	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) 
-	{
-		(*dest)[0]=Real2Int<DInt,float>((*this)[0]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DInt,float>((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_UINT:
-      {
-      	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) 
-	{
-		(*dest)[0]= static_cast< DUInt>( ((*this)[0]));//Real2Int<DUInt,float>((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]= static_cast< DUInt>( ((*this)[i]));//Real2Int<DUInt,float>((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDUInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_LONG:
-      {
-      	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) 
-	{
-		(*dest)[0]=Real2Int<DLong,float>((*this)[0]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DLong,float>((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_ULONG:
-      {
-      	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) 
-	{
-		const SizeT i = 0;
-		(*dest)[i]=static_cast< DULong>( ((*this)[i]));//Real2Int<DULong,float>((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=static_cast< DULong>( ((*this)[i]));//Real2Int<DULong,float>((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_LONG64:
-      {
-      	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) 
-	{
-		const SizeT i = 0;
-		(*dest)[i]=Real2Int<DLong64,float>((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DLong64,float>((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDLong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+  case GDL_ULONG: 
+      DO_CONVERT_START(SpDULong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+  case GDL_LONG64:
+      DO_CONVERT_START(SpDLong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_ULONG64:
-      {
-      	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) 
-	{
-		const SizeT i = 0;
-		(*dest)[i]=static_cast< DULong64>( ((*this)[i]));//Real2Int<DULong64,float>((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=static_cast< DULong64>( ((*this)[i]));//Real2Int<DULong64,float>((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-      //    case GDL_FLOAT: 
-    case GDL_DOUBLE: 
-      {
-      	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_STRING: 
-      {
-      	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=float2string((*this)[i]);
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEX: 
-      {
-      	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-// #pragma omp for
-    	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEXDBL: 
-      {
-      	Data_<SpDComplexDbl>* dest=
-	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDULong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_FLOAT:      return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
+
+    case GDL_DOUBLE:
+      DO_CONVERT_START(SpDDouble)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_COMPLEX:
+      DO_CONVERT_START(SpDComplex)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_COMPLEXDBL:
+      DO_CONVERT_START(SpDComplexDbl)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+    {
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      for (SizeT i = 0; i < nEl; ++i) (*dest)[i]=float2string((*this)[i]);
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      return dest;
+    }
     case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
     default:
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
-throw GDLException("Cannot convert to this type.");
+      if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+      throw GDLException("Cannot convert to this type.");
     }
 
-   // get rid of warning
+// get rid of warning
   return NULL; 
 }  
 
@@ -1243,221 +600,63 @@ TRACE_CONVERT2
 
   SizeT nEl=dd.size();
 
-  switch( destTy)
-    {
+  switch( destTy) {
     case GDL_BYTE:
-      {
-      	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) 
-	{
-		const SizeT i = 0;
-		(*dest)[i]=Real2DByte<double>((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-	  (*dest)[i]=Real2DByte<double>((*this)[i]); 
-	  //(*dest)[i]=Double2DByte((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDByte)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_INT:
-      {
-      	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) 
-	{
-		const SizeT i = 0;
-		(*dest)[i]=Real2Int<DInt,double>((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DInt,double>((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_UINT:
-      {
-      	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) 
-	{
-		const SizeT i = 0;
-		(*dest)[i]=static_cast< DUInt>((*this)[i]);//Real2Int<DUInt,double>((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=static_cast< DUInt>((*this)[i]);//Real2Int<DUInt,double>((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDUInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_LONG:
-      {
-      	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) 
-	{
-		const SizeT i = 0;
-		(*dest)[i]=Real2Int<DLong,double>((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DLong,double>((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_ULONG:
-      {
-      	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) 
-	{
-		const SizeT i = 0;
-		(*dest)[i]=static_cast< DULong>((*this)[i]);//Real2Int<DULong,double>((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=static_cast< DULong>((*this)[i]);//Real2Int<DULong,double>((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_LONG64:
-      {
-      	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) 
-	{
-		const SizeT i = 0;
-		(*dest)[i]=Real2Int<DLong64,double>((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DLong64,double>((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDLong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+  case GDL_ULONG: 
+      DO_CONVERT_START(SpDULong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+  case GDL_LONG64:
+      DO_CONVERT_START(SpDLong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_ULONG64:
-      {
-      	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) 
-	{
-		const SizeT i = 0;
-		(*dest)[i]=static_cast< DULong64>((*this)[i]);//Real2Int<DULong64,double>((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=static_cast< DULong64>((*this)[i]);//Real2Int<DULong64,double>((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDULong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_FLOAT: 
-      {
-      	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-      //    case GDL_DOUBLE: 
-    case GDL_STRING: 
-      {
-      	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=double2string((*this)[i]);
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEX: 
-      {
-      	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEXDBL: 
-      {
-      	Data_<SpDComplexDbl>* dest=
-	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) 
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDFloat)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_DOUBLE:     return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
+    case GDL_COMPLEX:
+      DO_CONVERT_START(SpDComplex)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_COMPLEXDBL:
+      DO_CONVERT_START(SpDComplexDbl)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+    {
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      for (SizeT i = 0; i < nEl; ++i) (*dest)[i]=double2string((*this)[i]);
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      return dest;
+    }
     case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
     default:
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
-throw GDLException("Cannot convert to this type.");
+      if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+      throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
@@ -1520,10 +719,10 @@ TRACEOMP( __FILE__, __LINE__)
     case GDL_INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-// TRACEOMP( __FILE__, __LINE__)
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
-// {
-// #pragma omp for
+ TRACEOMP( __FILE__, __LINE__)
+ #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( errorFlag, mode)
+ {
+ #pragma omp for
       	for( OMPInt i=0; i < nEl; ++i)
       	  {
       	    const char* cStart=(*this)[i].c_str();
@@ -1536,7 +735,7 @@ TRACEOMP( __FILE__, __LINE__)
 				       (*this)[i]+"' to INT.");
       	      }
 	  }
-// }
+ }
 	if( errorFlag)
 	{
 		delete dest;
@@ -1832,236 +1031,71 @@ TRACE_CONVERT2
 
   SizeT nEl=dd.size();
 
-  switch( destTy)
-    {
+  switch( destTy) {
     case GDL_BYTE:
-      {
-      	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=Real2DByte<float>(real((*this)[i]));
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2DByte<float>(real((*this)[i])); 
-}	//(*dest)[i]=Real2DByte(real((*this)[i])); 
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START_CPX(SpDByte)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
     case GDL_INT:
-      {
-      	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=Real2Int<DInt,float>(real((*this)[i]));
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-    	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DInt,float>(real((*this)[i])); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START_CPX(SpDInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
     case GDL_UINT:
-      {
-      	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=static_cast< DUInt>(real((*this)[i]));//Real2Int<DUInt,float>(real((*this)[i]));
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=static_cast< DUInt>(real((*this)[i]));//Real2Int<DUInt,float>(real((*this)[i])); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START_CPX(SpDUInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
     case GDL_LONG:
-      {
-      	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=Real2Int<DLong,float>(real((*this)[i]));
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DLong,float>(real((*this)[i])); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_ULONG:
-      {
-      	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=static_cast< DULong>(real((*this)[i]));//Real2Int<DULong,float>(real((*this)[i]));
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=static_cast< DULong>(real((*this)[i]));//Real2Int<DULong,float>(real((*this)[i])); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_LONG64:
-      {
-      	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=Real2Int<DLong64,float>(real((*this)[i]));
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DLong64,float>(real((*this)[i])); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START_CPX(SpDLong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
+  case GDL_ULONG: 
+      DO_CONVERT_START_CPX(SpDULong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
+  case GDL_LONG64:
+      DO_CONVERT_START_CPX(SpDLong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
     case GDL_ULONG64:
-      {
-      	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=static_cast< DULong64>(real((*this)[i]));//Real2Int<DULong64,float>(real((*this)[i]));
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=static_cast< DULong64>(real((*this)[i]));//Real2Int<DULong64,float>(real((*this)[i])); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START_CPX(SpDULong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
     case GDL_FLOAT: 
-      {
-	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=real((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-	for( SizeT i=0; i < nEl; ++i)
-	  (*dest)[i]=real((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-	return dest;
-      }
+      DO_CONVERT_START_CPX(SpDFloat)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
     case GDL_DOUBLE: 
-      {
-      	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=real((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=real((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_STRING: 
-      {
-      	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]="("+i2s(real((*this)[i]))+","+i2s(imag((*this)[i]))+")";
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-      //    case GDL_COMPLEX: 
-    case GDL_COMPLEXDBL: 
-      {
-      	Data_<SpDComplexDbl>* dest=new Data_<SpDComplexDbl>( dim, 
-							     BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START_CPX(SpDDouble)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
+    case GDL_COMPLEX:    return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
+    case GDL_COMPLEXDBL:
+      DO_CONVERT_START(SpDComplexDbl)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+    {
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      
+//FUTURE WORK: the version below is incredibely fast
+      // using 'code=[1,2,3,4,5,6,7,9,12,13,14,15] & tic & for i=6,6 do begin a=cindgen(10LL^8) & b=fix(a,type=code[i]) & help,b & print,b[-1] & end & toc'
+      // I get 18 seconds instead of 71 seconds on IDL. However the adaptive formatting of IDL must be respected, so this has to be completed. Probably in io.cpp
+//      for (SizeT i = 0; i < nEl; ++i) {
+//        (*dest)[i].resize(32);
+//        snprintf(&((*dest)[i])[0],32,"(%13g,%13g)",(*this)[i].real(),(*this)[i].imag());
+//      }
+   for( SizeT i=0; i < nEl; ++i)  (*dest)[i]="("+i2s(real((*this)[i]))+","+i2s(imag((*this)[i]))+")";   
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      return dest;
+    }
     case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
     default:
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
-throw GDLException("Cannot convert to this type.");
+      if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+      throw GDLException("Cannot convert to this type.");
     }
 
   return NULL; // get rid of warning
@@ -2077,246 +1111,63 @@ TRACE_CONVERT2
 
   SizeT nEl=dd.size();
 
-  switch( destTy)
-    {
+  switch( destTy) {
     case GDL_BYTE:
-      {
-      	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=Real2DByte<double>(real((*this)[i]));
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2DByte<double>(real((*this)[i])); 
-}      	  //(*dest)[i]=Double2DByte(real((*this)[i])); 
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START_CPX(SpDByte)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
     case GDL_INT:
-      {
-      	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=Real2Int<DInt,double>(real((*this)[i]));
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DInt,double>(real((*this)[i])); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START_CPX(SpDInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
     case GDL_UINT:
-      {
-      	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=static_cast< DUInt>(real((*this)[i]));//Real2Int<DUInt,double>(real((*this)[i]));
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=static_cast< DUInt>(real((*this)[i]));//Real2Int<DUInt,double>(real((*this)[i])); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START_CPX(SpDUInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
     case GDL_LONG:
-      {
-      	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=Real2Int<DLong,double>(real((*this)[i]));
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DLong,double>(real((*this)[i])); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_ULONG:
-      {
-      	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=static_cast< DULong>(real((*this)[i]));//Real2Int<DULong,double>(real((*this)[i]));
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=static_cast< DULong>(real((*this)[i]));//Real2Int<DULong,double>(real((*this)[i])); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_LONG64:
-      {
-      	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=Real2Int<DLong64,double>(real((*this)[i]));
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=Real2Int<DLong64,double>(real((*this)[i])); 
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-}
-      	return dest;
-      }
+      DO_CONVERT_START_CPX(SpDLong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
+  case GDL_ULONG: 
+      DO_CONVERT_START_CPX(SpDULong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
+  case GDL_LONG64:
+      DO_CONVERT_START_CPX(SpDLong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
     case GDL_ULONG64:
-      {
-      	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=static_cast< DULong64>(real((*this)[i]));//Real2Int<DULong64,double>(real((*this)[i]));
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=static_cast< DULong64>(real((*this)[i]));//Real2Int<DULong64,double>(real((*this)[i])); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START_CPX(SpDULong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
     case GDL_FLOAT: 
-      {
-	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=real((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-	for( SizeT i=0; i < nEl; ++i)
-	  (*dest)[i]=real((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-	return dest;
-      }
+      DO_CONVERT_START_CPX(SpDFloat)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
     case GDL_DOUBLE: 
-      {
-      	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i]=real((*this)[i]);
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=real((*this)[i]); 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_STRING: 
-      {
-      	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]="("+i2s(real((*this)[i]))+","+i2s(imag((*this)[i]))+")";
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START_CPX(SpDDouble)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END_CPX
     case GDL_COMPLEX: 
-      {
-      	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-#ifdef SINGLE_ELEMENT_OPTIMIZATION
-	if( nEl == 1) \
-	{
-		const SizeT i = 0;
-		(*dest)[i] = DComplex( static_cast<float>((*this)[i].real()),
-					static_cast<float>((*this)[i].imag()) );
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		return dest;
-	}
-#endif
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-// 	  (*dest)[i] = DComplex( static_cast<float>((*this)[i].real()), 
-// 				 static_cast<float>((*this)[i].imag()) );
-//}      	  
-	(*dest)[i]=(*this)[i];
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-      //    case GDL_COMPLEXDBL: 
+      DO_CONVERT_START(SpDComplex)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_COMPLEXDBL:   return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
+    case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+    {
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      for (SizeT i = 0; i < nEl; ++i) (*dest)[i]="("+i2s(real((*this)[i]))+","+i2s(imag((*this)[i]))+")";
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      return dest;
+    }
     case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF:
     default:
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
-throw GDLException("Cannot convert to this type.");
+      if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+      throw GDLException("Cannot convert to this type.");
     }
 
   return NULL; // get rid of warning
@@ -2333,164 +1184,64 @@ TRACE_CONVERT2
 
   SizeT nEl=dd.size();
 
-  switch( destTy)
-    {
+
+    switch (destTy) {
     case GDL_BYTE:
-      {
-      	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDByte)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_INT:
-      {
-      	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_UINT:
-      {
-      	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDUInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_LONG:
-      {
-      	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDLong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_ULONG:
-      {
-      	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-      //    case GDL_LONG64:
+      DO_CONVERT_START(SpDULong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_LONG64:       return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
     case GDL_ULONG64:
-      {
-      	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-//       if( (mode & BaseGDL::CONVERT) != 0)
-// 	return reinterpret_cast<Data_<SpDULong64>*>(this);
-//       else
-// 	return reinterpret_cast<Data_<SpDULong64>*>(this->Dup());
-    case GDL_FLOAT: 
-      {
-      	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_DOUBLE: 
-      {
-      	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_STRING: 
-      {
-      	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=i2s((*this)[i],22);
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEX: 
-      {
-      	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEXDBL: 
-      {
-      	Data_<SpDComplexDbl>* dest=
-	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDULong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_FLOAT:
+      DO_CONVERT_START(SpDFloat)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_DOUBLE:
+      DO_CONVERT_START(SpDDouble)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_COMPLEX:
+      DO_CONVERT_START(SpDComplex)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_COMPLEXDBL:
+      DO_CONVERT_START(SpDComplexDbl)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+    {
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 22);
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      return dest;
+    }
     case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
-    case GDL_UNDEF:
+    case GDL_UNDEF: 
     default:
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
-throw GDLException("Cannot convert to this type.");
+      if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+      throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
@@ -2506,164 +1257,64 @@ TRACE_CONVERT2
 
   SizeT nEl=dd.size();
 
-  switch( destTy)
-    {
+
+    switch (destTy) {
     case GDL_BYTE:
-      {
-      	Data_<SpDByte>* dest=new Data_<SpDByte>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDByte)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_INT:
-      {
-      	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_UINT:
-      {
-      	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDUInt)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_LONG:
-      {
-      	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDLong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_ULONG:
-      {
-      	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDULong)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
     case GDL_LONG64:
-      {
-      	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-//       if( (mode & BaseGDL::CONVERT) != 0)
-// 	return reinterpret_cast<Data_<SpDLong64>*>(this);
-//       else
-// 	return reinterpret_cast<Data_<SpDLong64>*>(this->Dup());
-//  case GDL_ULONG64:
-    case GDL_FLOAT: 
-      {
-      	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_DOUBLE: 
-      {
-      	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i]; 
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_STRING: 
-      {
-      	Data_<SpDString>* dest=new Data_<SpDString>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  (*dest)[i]=i2s((*this)[i],22);
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEX: 
-      {
-      	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEXDBL: 
-      {
-      	Data_<SpDComplexDbl>* dest=
-	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-	SINGLE_ELEMENT_OPTIMIZATION
-// #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-{
-// #pragma omp for
-      	for( SizeT i=0; i < nEl; ++i)
-      	  (*dest)[i]=(*this)[i];
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
+      DO_CONVERT_START(SpDLong64)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_ULONG64:       return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
+    case GDL_FLOAT:
+      DO_CONVERT_START(SpDFloat)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_DOUBLE:
+      DO_CONVERT_START(SpDDouble)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_COMPLEX:
+      DO_CONVERT_START(SpDComplex)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_COMPLEXDBL:
+      DO_CONVERT_START(SpDComplexDbl)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+          DO_CONVERT_END
+    case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+    {
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 22);
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      return dest;
+    }
     case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
-    case GDL_UNDEF:
+    case GDL_UNDEF: 
     default:
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
-throw GDLException("Cannot convert to this type.");
+      if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+      throw GDLException("Cannot convert to this type.");
     }
 
    // get rid of warning
