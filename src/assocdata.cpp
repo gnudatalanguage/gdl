@@ -14,13 +14,22 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-#include "includefirst.hpp"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#include "datatypes.hpp" // for friend declaration
+#include "nullgdl.hpp"
+#include "dinterpreter.hpp"
+
+// needed with gcc-3.3.2
+#include <cassert>
 
 #include "assocdata.hpp"
-#include "arrayindexlistt.hpp"
-#include "objects.hpp"
-#include "io.hpp"
 
 using namespace std;
 

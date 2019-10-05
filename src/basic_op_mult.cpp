@@ -14,27 +14,20 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-// to be included from datatypes.cpp
-#ifdef INCLUDE_BASIC_OP_CPP
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
-// // header in datatypes.hpp
-// 
-// //#include "datatypes.hpp"
-// //#include "dstructgdl.hpp"
-// //#include "arrayindex.hpp"
-// 
-// //#include <csignal>
-// #include "sigfpehandler.hpp"
-// 
-// #ifdef _OPENMP
-// #include <omp.h>
-// #endif
-// 
-// #include "typetraits.hpp"
-// 
-// using namespace std;
+#include "datatypes.hpp" // for friend declaration
+#include "nullgdl.hpp"
+#include "dinterpreter.hpp"
 
+// needed with gcc-3.3.2
+#include <cassert>
 // Mult
 // Mults right to itself, //C deletes right
 // right must always have more or same number of elements
@@ -143,4 +136,4 @@ Data_<SpDObj>* Data_<SpDObj>::MultS( BaseGDL* r)
   return this;
 }
 
-#endif
+#include "instantiate_templates.hpp"

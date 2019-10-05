@@ -15,20 +15,25 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef INCLUDE_GDLPYTHON_CPP
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-//#include "includefirst.hpp"
+#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+#include <numpy/arrayobject.h>
+#endif
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#include "datatypes.hpp" // for friend declaration
+
+#include "terminfo.hpp"
+  
 
 // this part contains variable conversion stuff
 // used by both GDL embedded in python and python embedded in GDL
-//#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
-
-//#include <deque>
-//#include <iterator>
-
-//#include "datatypes.hpp"
-//#include "envt.hpp"
-//#include "objects.hpp"
 
 using namespace std;
 
@@ -154,6 +159,8 @@ BaseGDL* FromPython( PyObject* pyObj)
 // you can compile GDL as a python module without supporting
 // python *within* GDL
 #ifdef USE_PYTHON
+
+#include "dinterpreter.hpp"
 
 namespace lib {
 
@@ -306,6 +313,3 @@ namespace lib {
 
 #endif // #ifdef USE_PYTHON
 
-//#endif // #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
-
-#endif // #ifdef INCLUDE_GDLPYTHON_CPP
