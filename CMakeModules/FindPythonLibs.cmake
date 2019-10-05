@@ -58,10 +58,9 @@ if(IS_ABSOLUTE "${PYTHON_EXECUTABLE}")
     unset(_Python_PREFIX)
   endif()
 endif()
-message( STATUS "GDL-specific FindPythonlibs:" ${CMAKE_CURRENT_LIST_DIR})
-#include(${CMAKE_CURRENT_LIST_DIR}/CMakeFindFrameworks.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/CMakeFindFrameworks.cmake)
 # Search for the python framework on Apple.
-#CMAKE_FIND_FRAMEWORKS(Python)
+CMAKE_FIND_FRAMEWORKS(Python)
 
 # Save CMAKE_FIND_FRAMEWORK
 if(DEFINED CMAKE_FIND_FRAMEWORK)
@@ -246,7 +245,7 @@ set(PYTHON_DEBUG_LIBRARIES "${PYTHON_DEBUG_LIBRARY}")
 # what SELECT_LIBRARY_CONFIGURATIONS() expects.
 set(PYTHON_LIBRARY_DEBUG "${PYTHON_DEBUG_LIBRARY}")
 set(PYTHON_LIBRARY_RELEASE "${PYTHON_LIBRARY}")
-#include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
 SELECT_LIBRARY_CONFIGURATIONS(PYTHON)
 # SELECT_LIBRARY_CONFIGURATIONS() sets ${PREFIX}_FOUND if it has a library.
 # Unset this, this prefix doesn't match the module prefix, they are different
