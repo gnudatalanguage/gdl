@@ -20,6 +20,7 @@
 #include "gdlexception.hpp"
 #include "dcommon.hpp"
 #include "str.hpp"
+#include "nullgdl.hpp"
 #include "objects.hpp"
 
 // common block ********************************************
@@ -47,7 +48,7 @@ void DCommon::DeleteData()
 
 void DCommon::AddVar(const string& v)
 {
-  var.push_back(new DVar(v));
+  var.push_back( new DVar(v, NullGDL::GetSingleInstance() ) );
 }
 
 const string& DCommon::Name() const

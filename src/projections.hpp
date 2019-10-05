@@ -30,11 +30,13 @@ namespace lib {
 
   BaseGDL* map_proj_forward_fun( EnvT* e);
   BaseGDL* map_proj_inverse_fun( EnvT* e);
+
+#if defined(USE_LIBPROJ4) || defined(USE_LIBPROJ4_NEW) 
+
   //dummy functions for compatibility support of GCTP projections 
   void map_proj_gctp_forinit (EnvT* e);
   void map_proj_gctp_revinit (EnvT* e);
-  
-#if defined(USE_LIBPROJ4) || defined(USE_LIBPROJ4_NEW) 
+
 #define GDL_COMPLEX COMPLEX2
 
 #ifdef USE_LIBPROJ4_NEW
@@ -88,12 +90,15 @@ namespace lib {
   //general reprojecting function
 #endif
 
-  //general reprojecting function
+  //general reprojecting functions
+  DDoubleGDL* gdlApplyFullProjection(PROJTYPE ref, DStructGDL* map,
+			     DDoubleGDL* lon, DDoubleGDL *lat);
+  void gdlFullProjectionTransformation(PROJTYPE ref, DStructGDL* map,
+			     DDoubleGDL* lon, DDoubleGDL *lat);
   DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map,
 			     DDoubleGDL* lon, DDoubleGDL *lat, DLongGDL* connectivity,
 			     bool doConn, DLongGDL* &gons, bool doGons,
 			     DLongGDL* &lines, bool doLines, bool doFill);
-
   DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap); //not static since KW is at same place for all uses.
 
 #define COMPLEX2 GDL_COMPLEX

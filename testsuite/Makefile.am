@@ -192,10 +192,12 @@ TESTS = \
   test_resolve_routine.pro \
   test_rk4.pro \
   test_rounding.pro \
+  test_routine_filepath.pro \
   test_routine_names.pro \
   test_same_name.pro \
   test_save_restore.pro \
   test_scope_varfetch.pro \
+  test_scope_varname.pro \
   test_sem.pro \
   test_simplex.pro \
   test_size.pro \
@@ -212,6 +214,7 @@ TESTS = \
   test_structures.pro \
   test_suite.pro \
   test_systime.pro \
+  test_tag_names.pro \
   test_tic_toc.pro \
   test_tiff.pro \
   test_total.pro \
