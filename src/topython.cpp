@@ -15,22 +15,14 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+// to be included from datatypes.cpp
+#ifdef INCLUDE_TOPYTHON_CPP
 
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
 #include <numpy/arrayobject.h>
 #endif
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
-#include "datatypes.hpp" // for friend declaration
-
-// needed with gcc-3.3.2
-#include <cassert>
+//#include "datatypes.hpp" // for friend declaration
 
 using namespace std;
 
@@ -158,5 +150,6 @@ PyObject* Data_<SpDString>::ToPythonScalar()
   return Py_BuildValue("s", (*this)[0].c_str());
 }
 
-#include "instantiate_templates.hpp"
+//#include "instantiate_templates.hpp"
 
+#endif

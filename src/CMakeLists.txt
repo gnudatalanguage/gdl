@@ -164,20 +164,12 @@ sorting.cpp
 str.cpp
 terminfo.cpp
 tiff.cxx
+topython.cpp
 triangulation.cpp
 typetraits.cpp
 where.cpp
 widget.cpp
 )
-
-if (USE_PYTHON)
-set (SOURCES
-${SOURCES}
-topython.cpp
-gdlpython.cpp
-)
-endif (USE_PYTHON)
-
 if(USE_SHAPELIB)
 set(SOURCES
 ${SOURCES}

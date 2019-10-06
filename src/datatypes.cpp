@@ -29,6 +29,20 @@
 // needed with gcc-3.3.2
 #include <cassert>
 
+#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+
+#  define INCLUDE_TOPYTHON_CPP 1
+#  include "topython.cpp"
+
+#  define INCLUDE_GDLPYTHON_CPP 1
+#  include "gdlpython.cpp"
+
+#  ifdef PYTHON_MODULE
+#    define INCLUDE_PYTHONGDL_CPP 1
+#    include "pythongdl.cpp"
+#  endif
+#endif
+
 #ifdef TESTTG
 
 #include "test_template_grouping.cpp"
