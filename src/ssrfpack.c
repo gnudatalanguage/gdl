@@ -3,8 +3,12 @@
  * are not required to compile and link the sph supplement.
  */
 #ifdef __APPLE__
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1090
 #define sincos(x, s, c) __sincos(x, s, c)
 #define sincosf(x, s, c) __sincosf(x, s, c)
+#else
+#define sincos(x,s,c) (*s = sin(x), *c = cos(x))
+#endif
 #endif
 
 #ifdef __FreeBSD__

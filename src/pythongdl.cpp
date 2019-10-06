@@ -271,7 +271,9 @@ int GDLEventHandlerPy()
 {
   GDLEventHandler();
   if( oldInputHook != NULL)
-    (*oldInputHook)();
+    return (*oldInputHook)();
+  else
+    return 0;
 }
   
 // Execute a GDL subroutine
