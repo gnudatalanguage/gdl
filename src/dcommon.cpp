@@ -47,8 +47,8 @@ void DCommon::DeleteData()
 
 void DCommon::AddVar(const string& v)
 {
-  var.push_back( new DVar(v, NullGDL::GetSingleInstance() ) );
-//  var.push_back(new DVar(v));
+//  var.push_back( new DVar(v, NullGDL::GetSingleInstance() ) );
+  var.push_back(new DVar(v));
 }
 
 const string& DCommon::Name() const
