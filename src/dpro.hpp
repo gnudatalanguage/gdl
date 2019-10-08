@@ -409,11 +409,9 @@ public:
   DCommon* Common(const std::string& n)
   {
     CommonBaseListT::iterator c = common.begin();
-    for(; c != common.end(); ++c) {
-      if( (*c)->Name() == n) {
-        return (*c)->getCommon();
-      }
-    }
+    for(; c != common.end(); ++c)
+      if( dynamic_cast< DCommon*>( *c) != NULL && (*c)->Name() == n)
+	return static_cast< DCommon*>( *c);
     return NULL;
   }
 
