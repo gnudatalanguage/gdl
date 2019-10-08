@@ -961,7 +961,7 @@ namespace SysVar
 
     // !GDL_MAPS_DIR 
     string tmpDir=GetEnvString("GDL_MAPS_DIR");
-    if( tmpDir == "") tmpDir = string(GDLDATADIR) + "/resource/maps/";
+    if( tmpDir == "") tmpDir = string(GDLDATADIR) + "/resource/maps";
     char *symlinkpath =const_cast<char*> (tmpDir.c_str());// is the path a true path ?
 
 #ifdef _MSC_VER
