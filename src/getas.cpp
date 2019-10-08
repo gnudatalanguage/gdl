@@ -24,9 +24,9 @@
 #include "terminfo.hpp"
 
 
-#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
-#include <numpy/arrayobject.h>
-#endif
+//#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+//#include <numpy/arrayobject.h>
+//#endif
 
 
 

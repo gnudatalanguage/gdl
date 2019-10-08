@@ -10,6 +10,7 @@ GDLParser.cpp
 GDLTreeParser.cpp
 datatypes.cpp #long
 convol.cpp #long
+convol2.cpp #long
 smooth.cpp   #long also
 basic_op.cpp
 basic_op_new.cpp
