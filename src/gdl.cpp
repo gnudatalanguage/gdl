@@ -178,19 +178,6 @@ static bool trace_me;
 // SA: for use in COMMAND_LINE_ARGS()
 namespace lib {
   extern std::vector<std::string> command_line_args;
-  bool gdlarg_present(const char* s)
-  {
-		for (size_t i = 0; i < command_line_args.size(); i++)
-			  if( command_line_args[i] == s )  return true;
-		return false;
-		  }
-  bool trace_arg()
-  {
-		for (size_t i = 0; i < command_line_args.size(); i++) 
-			  if( command_line_args[i] == "trace" )  return true;
-		return false;
-   }
-
 }
 
 int main(int argc, char *argv[])
@@ -219,19 +206,19 @@ int main(int argc, char *argv[])
   for( SizeT a=1; a< argc; ++a)
     {
       if( string( argv[a]) == "--help" | string( argv[a]) == "-h")
-	{
-	  cout << "Usage: gdl [ OPTIONS ] [ batch_file ... ]" << endl;
-	  cout << "Start the GDL interpreter (incremental compiler)" << endl;
-	  cout << endl;
-	  cout << "GDL options:" << endl;
-	  cout << "  --help (-h)        display this message" << endl;
-	  cout << "  --version (-V, -v) show version information" << endl;
-	  cout << "  --fakerelease X.y  pretend that !VERSION.RELEASE is X.y" << endl;
-	  cout << "  --fussy            implies that procedures adhere with modern IDL, where \"()\" are for functions and \"[]\" are for arrays." <<endl;
+    {
+      cout << "Usage: gdl [ OPTIONS ] [ batch_file ... ]" << endl;
+      cout << "Start the GDL interpreter (incremental compiler)" << endl;
+      cout << endl;
+      cout << "GDL options:" << endl;
+      cout << "  --help (-h)        display this message" << endl;
+      cout << "  --version (-V, -v) show version information" << endl;
+      cout << "  --fakerelease X.y  pretend that !VERSION.RELEASE is X.y" << endl;
+      cout << "  --fussy            implies that procedures adhere with modern IDL, where \"()\" are for functions and \"[]\" are for arrays." <<endl;
       cout << "                     This speeds up (sometimes terribly) compilation but choke on every use of \"()\" with arrays." << endl;
       cout << "                     Conversion of procedures to modern IDL can be done with D. Landsman's idlv4_to_v5 procedure." << endl;
       cout << "                     Use enviromnment variable \"GDL_IS_FUSSY\" to set up permanently this feature." << endl;
-	  cout << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
+      cout << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
       cout << "                     Needed to counteract temporarily the effect of the enviromnment variable \"GDL_IS_FUSSY\"." << endl;
       cout << "  --use-wx           Tells GDL to use WxWidgets graphics instead of X11 or Windows. (nicer plots)." << endl;
       cout << "                     Also enabled by setting the environment variable GDL_USE_WX to a non-null value." << endl;
@@ -239,24 +226,24 @@ int main(int argc, char *argv[])
       cout << "  --no-dSFMT         Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random doubles." << endl;
       cout << "                     Also disable by setting the environment variable GDL_NO_DSFMT to a non-null value." << endl;
       cout << endl;
-	  cout << "IDL-compatible options:" << endl;
-	  cout << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
+      cout << "IDL-compatible options:" << endl;
+      cout << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
           cout << "             the following argument (may be specified more than once)" << endl;
-	  cout << "  -args ...  tells COMMAND_LINE_ARGS() to report " << endl;
+      cout << "  -args ...  tells COMMAND_LINE_ARGS() to report " << endl;
           cout << "             all following arguments" << endl;
           cout << "  -e value   execute given statement and exit (last occurrence taken into account only," << endl;
           cout << "             executed after startup file, may not be specified together with batch files)" << endl;
-	  cout << "  -pref=/path/to/params_file  loads the specified preference file" << endl;
-	  cout << "  -quiet (--quiet, -q) suppress welcome messages" << endl;
-	  cout << endl;
-	  cout << "Homepage: http://gnudatalanguage.sf.net" << endl;
-	  return 0;
-	}
+      cout << "  -pref=/path/to/params_file  loads the specified preference file" << endl;
+      cout << "  -quiet (--quiet, -q) suppress welcome messages" << endl;
+      cout << endl;
+      cout << "Homepage: http://gnudatalanguage.sf.net" << endl;
+      return 0;
+    }
       else if (string(argv[a])=="--version" | string(argv[a])=="-v" | string(argv[a])=="-V")
-	{
-	  cout << "GDL - GNU Data Language, Version " << VERSION << endl;
-	  return 0;
-	}
+    {
+      cout << "GDL - GNU Data Language, Version " << VERSION << endl;
+      return 0;
+    }
       else if( string( argv[a]) == "-arg")
       {
         if (a == argc - 1)
@@ -272,39 +259,39 @@ int main(int argc, char *argv[])
         break;
       }
       else if (string(argv[a])=="-quiet" | string(argv[a])=="--quiet" | string(argv[a])=="-q") 
-	{
-	  quiet = true;
-	}
+    {
+      quiet = true;
+    }
       else if (string(argv[a]).find("-pref=") ==0)
-	{
-	  cout << "This option is not operational now" << endl;
-	  string tmp;
-	  tmp=string(argv[a]);
-	  string params_file(tmp.begin()+6,tmp.end());
-	  //cout << "(not ready) to be processed file >>" << params_file << "<<" << endl;
-	  WordExp(params_file);
-	  ifstream file_params;
-	  file_params.open(params_file.c_str());
-	  if (!file_params.is_open()) {
-	    cerr << "Error opening file. File: "<< params_file << endl;
-	    cerr << "No such file or directory"<< endl;
-	    return 0;
-	  }
-	  file_params.close();
-	}
+    {
+      cout << "This option is not operational now" << endl;
+      string tmp;
+      tmp=string(argv[a]);
+      string params_file(tmp.begin()+6,tmp.end());
+      //cout << "(not ready) to be processed file >>" << params_file << "<<" << endl;
+      WordExp(params_file);
+      ifstream file_params;
+      file_params.open(params_file.c_str());
+      if (!file_params.is_open()) {
+        cerr << "Error opening file. File: "<< params_file << endl;
+        cerr << "No such file or directory"<< endl;
+        return 0;
+      }
+      file_params.close();
+    }
       else if (string(argv[a]) == "-e")
-	{
-	  if (a == argc - 1)
-	    {
-	      cerr << "gdl: -e must be followed by a user argument." << endl;
-	      return 0;
-	    }
-	  statement = string(argv[++a]);
-	  statement.append("\n"); // apparently not needed but this way the empty-string case is covered
-	  // (e.g. $ gdl -e "")
-	}
+    {
+      if (a == argc - 1)
+        {
+          cerr << "gdl: -e must be followed by a user argument." << endl;
+          return 0;
+        }
+      statement = string(argv[++a]);
+      statement.append("\n"); // apparently not needed but this way the empty-string case is covered
+      // (e.g. $ gdl -e "")
+    }
       else if (
-	    string(argv[a]) == "-demo" || 
+        string(argv[a]) == "-demo" || 
         string(argv[a]) == "-em" || 
         string(argv[a]) == "-novm" ||
         string(argv[a]) == "-queue" ||
@@ -423,14 +410,14 @@ int main(int argc, char *argv[])
 //     {
 //       // if path not given, add users home
 //       if( !PathGiven(startup))
-// 	{
-// 	  string home=GetEnvString("HOME");
-// 	  if( home != "") 
-// 	    {
-// 	      AppendIfNeeded(home,"/");
-// 	      startup=home+startup;
-// 	    }
-// 	}
+//  {
+//    string home=GetEnvString("HOME");
+//    if( home != "") 
+//      {
+//        AppendIfNeeded(home,"/");
+//        startup=home+startup;
+//      }
+//  }
 //     }
 
 #ifdef USE_MPI
@@ -454,7 +441,7 @@ int main(int argc, char *argv[])
   if (myrank == 0 && mpi_procedure != NULL){
     for( SizeT i = 0; i < size; i++)
       MPI_Send(mpi_procedure, strlen(mpi_procedure)+1, MPI_CHAR, i, 
-	       tag, MPI_COMM_WORLD);
+           tag, MPI_COMM_WORLD);
   }
 #endif // USE_MPI
 

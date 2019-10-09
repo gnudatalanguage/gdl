@@ -13,15 +13,15 @@ if(p[-1]!='o'||p[-2]!='r'||p[-3]!='p'||p[-4]!='.') return 1;
 *(p-4)=0;
 
 _putenv("LC_COLLATE=C");
-_putenv("GDL_PATH=C:/projects/gdl/testsuite/;C:/projects/gdl/src/pro/");
+_putenv("GDL_PATH=F:/github/gdlgit/testsuite/;F:/github/gdlgit/src/pro/");
 _putenv("GDL_STARTUP=");
 _putenv("IDL_STARTUP=");
 
-char *tmp = (char *)malloc( sizeof(char) * (strlen("C:/projects/gdl/build/gdl/msys/src/gdl -quiet -e ") + strlen(v[1]) + 1));
+char *tmp = (char *)malloc( sizeof(char) * (strlen("D:/bld/gdl/mingw64-git/src/gdl -quiet -e ") + strlen(v[1]) + 1));
 //PROCESS_INFORMATION processInformation = {0};
 //STARTUPINFO startupInfo                = {0};
 //startupInfo.cb                         = sizeof(startupInfo);
-sprintf(tmp, "C:/projects/gdl/build/gdl/msys/src/gdl.exe -quiet -e %s", v[1]);
+sprintf(tmp, "D:/bld/gdl/mingw64-git/src/gdl.exe -quiet -e %s", v[1]);
 //int rtn = CreateProcess(NULL, tmp, NULL, NULL, TRUE, 0, NULL, NULL, &startupInfo, &processInformation);
 int rtn = system(tmp);
 
