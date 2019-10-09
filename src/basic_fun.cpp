@@ -2141,12 +2141,10 @@ namespace lib {
       e->Throw( "Search string must be a scalar or one element array: "+
         e->GetParString( 1));
 
-    unsigned long pos = string::npos;
+    long pos = -1; //string::npos
     if( nParam > 2)
       {
     BaseGDL* p2 = e->GetParDefined(2);
-    //     if( p2 != NULL) //e->AssureLongScalarPar( 2,posDLong);
-    //       {
     const SizeT pIx = 2;
     BaseGDL* p = e->GetParDefined( pIx);
     DLongGDL* lp = static_cast<DLongGDL*>(p->Convert2( GDL_LONG, BaseGDL::COPY));
