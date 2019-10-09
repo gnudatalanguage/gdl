@@ -26,12 +26,6 @@
 
 #include "includefirst.hpp"
 
-// if build as a python module
-//#ifdef PYTHON_MODULE
-
-// already included from includefirst
-//#include <Python.h>
-
 #include <memory> // auto_ptr
 #include <vector> 
 

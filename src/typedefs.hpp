@@ -43,16 +43,28 @@
 #undef _POSIX_C_SOURCE // get rid of warning
 #undef _XOPEN_SOURCE // get rid of warning
 #undef HAVE_PROTOTYPES // get rid of warning
+
+//libreadline must be deactivated after Python.h if we do not use libreadline 
+#ifndef HAVE_LIBREADLINE
+#define GDL_NOT_HAVE_READLINE
+#endif
+
 #include <Python.h>
-#ifndef _POSIX_C_SOURCE 
-#warning "_POSIX_C_SOURCE not defined in Python.h (remove #undef)"
+
+#ifdef GDL_NOT_HAVE_READLINE
+#undef HAVE_LIBREADLINE
 #endif
-#ifndef _XOPEN_SOURCE 
-#warning "_XOPEN_SOURCE not defined in Python.h (remove #undef)"
-#endif
-#ifndef HAVE_PROTOTYPES 
-#warning "HAVE_PROTOTYPES not defined in Python.h (remove #undef)"
-#endif
+#undef GDL_NOT_HAVE_READLINE
+
+//#ifndef _POSIX_C_SOURCE 
+//#warning "_POSIX_C_SOURCE not defined in Python.h (remove #undef)"
+//#endif
+//#ifndef _XOPEN_SOURCE 
+//#warning "_XOPEN_SOURCE not defined in Python.h (remove #undef)"
+//#endif
+//#ifndef HAVE_PROTOTYPES 
+//#warning "HAVE_PROTOTYPES not defined in Python.h (remove #undef)"
+//#endif
 #endif
 
 #include <set>
