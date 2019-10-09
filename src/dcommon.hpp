@@ -21,6 +21,8 @@
 #include "gdlexception.hpp"
 #include "dvar.hpp"
 
+class DCommon;
+
 class DCommonBase 
 {
 public:
@@ -32,6 +34,8 @@ public:
   virtual int Find(const BaseGDL*)=0;
   virtual const std::string& VarName(const unsigned i)=0;
   virtual DVar* Var(unsigned ix)=0;
+  virtual DCommon* getCommon(void)=0;
+  virtual bool isRef(void) const { return false; };
 };
 
 // common block *******************************************************
@@ -58,6 +62,7 @@ public:
   DVar* Find(const std::string&);
   int Find(const BaseGDL*);
   DVar* Var(unsigned ix) { return var[ix];}
+  DCommon* getCommon(void) { return this; };
 };
 
 class DCommon_eq: public std::unary_function<DCommon,bool>
@@ -90,6 +95,8 @@ public:
   DVar* Find(const std::string&);
   int Find(const BaseGDL*);
   DVar* Var(unsigned ix);
+  DCommon* getCommon(void) { return cRef; };
+  bool isRef(void) const { return true; };
 };
 
 typedef std::vector<DCommonBase*> CommonBaseListT;
