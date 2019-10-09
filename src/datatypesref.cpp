@@ -15,20 +15,10 @@ datatypesref.cpp  -  specializations for DPtrGDL and DObjGDL for reference count
  *                                                                         *
  ***************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
-#include "datatypes.hpp" // for friend declaration
+// to be included from datatypes.cpp
+#ifdef INCLUDE_DATATYPESREF_CPP
+#undef INCLUDE_DATATYPESREF_CPP
 #include "nullgdl.hpp"
-#include "dinterpreter.hpp"
-
-// needed with gcc-3.3.2
-#include <cassert>
 
 // reference counting for INIT
 template<>
@@ -1661,3 +1651,4 @@ Data_<SpDObj>* Data_<SpDObj>::NewIx( BaseGDL* ix, bool strict)
   return guard.release();
 }
 
+#endif

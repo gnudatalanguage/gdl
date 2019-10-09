@@ -29,6 +29,9 @@
 // needed with gcc-3.3.2
 #include <cassert>
 
+#define INCLUDE_DATATYPESREF_CPP 1
+#include "datatypesref.cpp"
+
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
 
 #  define INCLUDE_TOPYTHON_CPP 1

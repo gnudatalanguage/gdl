@@ -22,7 +22,6 @@ basic_op_div.cpp
 default_io.cpp
 ifmt.cpp
 ofmt.cpp
-datatypesref.cpp
 datatypes_minmax.cpp
 allix.cpp
 arrayindex.cpp
