@@ -17,14 +17,14 @@ pro TEST_FILE_SEARCH_CREATE, list_luns
 ;
 ;
 easynames = [ ']foo.txt', $
-	'afoo.txt',  $
-	'[Foo', 'foobar.txt' ]
+    'afoo.txt',  $
+    '[Foo', 'foobar.txt' ]
 neasy = n_elements(easynames)
 
 list_luns = lonarr(neasy)
 for k=0,neasy-1 do begin &$
-	openw, lu, /delete,/get_lun, easynames[k] &$
-	list_luns[k] = lu & endfor
+    openw, lu, /delete,/get_lun, easynames[k] &$
+    list_luns[k] = lu & endfor
 ;
 if(!version.OS_FAMILY eq "Windows") then return
 
@@ -39,8 +39,8 @@ morefiles = [ 'Afoo.txt', 'AfoO.txt', 'foo\*.txt', 'foobar.txt']
 nmore = n_elements(morefiles)
 list_luns = [list_luns, lonarr(nmore-1)]
 for k=0,nmore-1 do begin &$
-	openw, lu, /delete,/get_lun, morefiles[k] &$
-	list_luns[k+neasy] = lu & endfor
+    openw, lu, /delete,/get_lun, morefiles[k] &$
+    list_luns[k+neasy] = lu & endfor
 ;
 end
 ;
@@ -177,14 +177,6 @@ if KEYWORD_SET(test) then STOP
 ;
 end
 ;
-function pathtounix,strin
-; convert path to unix-style (switch '\' to '/')
-bs = byte(strin)
-jj = where(bs eq 92,nj)
-if nj gt 0 then bs[jj] = 47
-return,string(bs)
-end
-;
 ; --------------------------------------------
 ;
 pro TEST_SPECIAL_PATHS, cumul_errors, no_erase=no_erase, test=test
@@ -193,7 +185,7 @@ errors=0
 ;
 CD,'..', current=current
 CD, current, current=updir
-home=pathtounix(GETENV('HOME'))
+home=GETENV('HOME')
 ;
 res1=FILE_SEARCH('.', /FULLY_QUALIFY_PATH)
 res2=FILE_SEARCH('..',/FULLY_QUALIFY_PATH)
@@ -248,7 +240,7 @@ FILE_MKDIR, tmp_dir
 CD, tmp_dir, cur=cur
 ;
 if(!version.OS_FAMILY eq "Windows") then $
-	message,' Windows System: no glob test done ',/continue $
+    message,' Windows System: no glob test done ',/continue $
    else TEST_FILE_SEARCH_GLOB, cumul_errors, no_erase=no_erase, test=test
 ;
 TEST_FULLY_QUALIFY_PATH, cumul_errors, no_erase=no_erase, test=test
