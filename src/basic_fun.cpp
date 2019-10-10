@@ -2139,12 +2139,10 @@ namespace lib {
       e->Throw( "Search string must be a scalar or one element array: "+
         e->GetParString( 1));
 
-    unsigned long pos = (unsigned long) string::npos;
+    long pos = -1; //string::npos
     if( nParam > 2)
       {
     BaseGDL* p2 = e->GetParDefined(2);
-    //     if( p2 != NULL) //e->AssureLongScalarPar( 2,posDLong);
-    //       {
     const SizeT pIx = 2;
     BaseGDL* p = e->GetParDefined( pIx);
     DLongGDL* lp = static_cast<DLongGDL*>(p->Convert2( GDL_LONG, BaseGDL::COPY));
@@ -2479,59 +2477,209 @@ namespace lib {
 
   // passing 2nd argument by value is slightly better for float and double, 
   // but incur some overhead for the complex class.
+
   template<class T> inline void AddOmitNaN(T& dest, T value)
   {
-    if (std::isfinite(value)) 
-      {
+    if (std::isfinite(value)) {
     // #pragma omp atomic
     dest += value; 
       }
   }
+
   template<class T> inline void AddOmitNaNCpx(T& dest, T value)
   {
     // #pragma omp atomic
-    dest += T(std::isfinite(value.real())? value.real() : 0,
-          std::isfinite(value.imag())? value.imag() : 0);
+    dest += T(std::isfinite(value.real()) ? value.real() : 0,
+        std::isfinite(value.imag()) ? value.imag() : 0);
   }
+
   template<> inline void AddOmitNaN(DComplex& dest, DComplex value)
-  { AddOmitNaNCpx<DComplex>(dest, value); }
+  {
+    AddOmitNaNCpx<DComplex>(dest, value);
+  }
+
   template<> inline void AddOmitNaN(DComplexDbl& dest, DComplexDbl value)
-  { AddOmitNaNCpx<DComplexDbl>(dest, value); }
+  {
+    AddOmitNaNCpx<DComplexDbl>(dest, value);
+  }
 
   template<class T> inline void NaN2Zero(T& value)
-  { if (!std::isfinite(value)) value = 0; }
+  {
+    if (!std::isfinite(value)) value = 0;
+  }
+
   template<class T> inline void NaN2ZeroCpx(T& value)
   {
-    value = T(std::isfinite(value.real())? value.real() : 0, 
-              std::isfinite(value.imag())? value.imag() : 0);
+    value = T(std::isfinite(value.real()) ? value.real() : 0,
+        std::isfinite(value.imag()) ? value.imag() : 0);
   }
-  template<> inline void NaN2Zero(DComplex& value)
-  { NaN2ZeroCpx< DComplex>(value); }
-  template<> inline void NaN2Zero(DComplexDbl& value)
-  { NaN2ZeroCpx< DComplexDbl>(value); }
 
-  // total over all elements
-  template<class T>
-  BaseGDL* total_template( T* src, bool omitNaN)
+  template<> inline void NaN2Zero(DComplex& value)
   {
-    if (!omitNaN) return new T(src->Sum());
-    typename T::Ty sum = 0;
+    NaN2ZeroCpx< DComplex>(value);
+  }
+
+  template<> inline void NaN2Zero(DComplexDbl& value)
+  {
+    NaN2ZeroCpx< DComplexDbl>(value);
+  }
+
+  // total over all elements, preserve type
+
+  template<class T>
+  BaseGDL* total_template_generic(T* src, bool omitNaN)
+  {
+    //   std::cerr<<" total_template_generic "<<std::endl;
     SizeT nEl = src->N_Elements();
-    TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(sum)
+    typename T::Ty sum = 0;
+    if (!omitNaN) {
+#pragma omp  parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) reduction(+:sum)
+      for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+    } else {
+#pragma omp  parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
-#pragma omp for
-    for ( OMPInt i=0; i<nEl; ++i)
-      {
-        AddOmitNaN(sum, (*src)[ i]);
+        typename T::Ty localsum = 0;
+#pragma omp for nowait
+        for (SizeT i = 0; i < nEl; ++i) {
+          if (isfinite((*src)[i])) localsum += (*src)[ i];
+        }
+#pragma omp atomic
+        sum += localsum;
       }
-      }
+    }
     return new T(sum);
+  }
+
+  template<>
+  BaseGDL* total_template_generic(DComplexGDL* src, bool omitNaN)
+  {
+    //    std::cerr << " total_template_generic_DComplexGdl " << std::endl;
+    SizeT nEl = src->N_Elements();
+    DFloat sr = 0;
+    DFloat si = 0;
+    if (!omitNaN) {
+#pragma omp  parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) reduction(+:sr,si)
+      for (SizeT i = 0; i < nEl; ++i) {
+        sr += (*src)[i].real();
+        si += (*src)[i].imag();
+      }
+    } else {
+#pragma omp  parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        DFloat lsr = 0;
+        DFloat lsi = 0;
+#pragma omp for nowait
+        for (SizeT i = 0; i < nEl; ++i) {
+          if (isfinite((*src)[i].real())) lsr += (*src)[i].real();
+          if (isfinite((*src)[i].imag())) lsi += (*src)[i].imag();
+        }
+#pragma omp atomic
+        sr += lsr;
+        si += lsi;
+      }
+    }
+    return new DComplexGDL(std::complex<float>(sr, si));
+  }
+
+  template<>
+  BaseGDL* total_template_generic(DComplexDblGDL* src, bool omitNaN)
+  {
+    //    std::cerr << " total_template_generic_DcomplexGDlDbl " << std::endl;
+    SizeT nEl = src->N_Elements();
+    DDouble sr = 0;
+    DDouble si = 0;
+    if (!omitNaN) {
+#pragma omp  parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) reduction(+:sr,si)
+      for (SizeT i = 0; i < nEl; ++i) {
+        sr += (*src)[i].real();
+        si += (*src)[i].imag();
+      }
+    } else {
+#pragma omp  parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        DDouble lsr = 0;
+        DDouble lsi = 0;
+#pragma omp for nowait
+        for (SizeT i = 0; i < nEl; ++i) {
+          if (isfinite((*src)[i].real())) lsr += (*src)[i].real();
+          if (isfinite((*src)[i].imag())) lsi += (*src)[i].imag();
+        }
+#pragma omp atomic
+        sr += lsr;
+        si += lsi;
+      }
+    }
+    return new DComplexDblGDL(std::complex<double>(sr, si));
+  }
+
+  // total over all elements, done on Double. Avoids costly convert! 
+
+  template<class T>
+  DDoubleGDL* total_template_double(T* src, bool omitNaN)
+  {
+    //   std::cerr<<" total_template_double "<<std::endl;
+    SizeT nEl = src->N_Elements();
+    DDouble sum = 0;
+    if (!omitNaN) {
+#pragma omp  parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) reduction(+:sum)
+      for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+    } else {
+#pragma omp  parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        DDouble localsum = 0;
+#pragma omp for nowait
+        for (SizeT i = 0; i < nEl; ++i) {
+          if (isfinite((*src)[i])) localsum += (*src)[ i];
+        }
+#pragma omp atomic
+        sum += localsum;
+      }
+    }
+    return new DDoubleGDL(sum);
+  }
+
+  template<class T>
+  DFloatGDL* total_template_single(T* src, bool omitNaN)
+      {
+    //   std::cerr<<" total_template_single "<<std::endl;
+    SizeT nEl = src->N_Elements();
+    DDouble sum = 0;
+    if (!omitNaN) {
+#pragma omp  parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) reduction(+:sum)
+      for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+    } else {
+#pragma omp  parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      {
+        DDouble localsum = 0;
+#pragma omp for nowait
+        for (SizeT i = 0; i < nEl; ++i) {
+          if (isfinite((*src)[i])) localsum += (*src)[ i];
+      }
+#pragma omp atomic
+        sum += localsum;
+      }
+    }
+    return new DFloatGDL(sum);
+      }
+
+  //special case for /INT  using LONG64
+
+  template<class T>
+  DLong64GDL* total_template_integer(T* src)
+  {
+    //   std::cerr<<" total_template_integer "<<std::endl;
+    SizeT nEl = src->N_Elements();
+    DLong64 sum = 0;
+#pragma omp  parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) reduction(+:sum)
+    for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+    return new DLong64GDL(sum);
   }
   
   // cumulative over all dims
+
   template<typename T>
-  BaseGDL* total_cu_template( T* res, bool omitNaN) {
+  BaseGDL* total_cu_template(T* res, bool omitNaN)
+  {
     SizeT nEl = res->N_Elements();
     if (omitNaN) {
       // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -2547,10 +2695,12 @@ namespace lib {
   }
 
   // total over one dim
+
   template< typename T>
-  BaseGDL* total_over_dim_template( T* src, 
+  BaseGDL* total_over_dim_template(T* src,
                     const dimension& srcDim,
-                    SizeT sumDimIx, bool omitNaN) {
+      SizeT sumDimIx, bool omitNaN)
+  {
     SizeT nEl = src->N_Elements();
 
     // get dest dim and number of summations
@@ -2597,10 +2747,12 @@ namespace lib {
   }
 
   // cumulative over one dim
+
   template< typename T>
-  BaseGDL* total_over_dim_cu_template( T* res, 
+  BaseGDL* total_over_dim_cu_template(T* res,
                        SizeT sumDimIx,
-                                       bool omitNaN) {
+      bool omitNaN)
+  {
     SizeT nEl = res->N_Elements();
     const dimension& resDim = res->Dim();
     if (omitNaN) {
@@ -2617,8 +2769,11 @@ namespace lib {
     return res;
   }
 
+  BaseGDL* total_fun(EnvT* e)
+  {
 
-  BaseGDL* total_fun( EnvT* e) {
+    // Integer parts initially by Erin Sheldon
+
     SizeT nParam = e->NParam(1); //, "TOTAL");
 
     BaseGDL* p0 = e->GetParDefined(0); //, "TOTAL");
@@ -2638,8 +2793,32 @@ namespace lib {
     static int preserveIx = e->KeywordIx("PRESERVE_TYPE");
 
     bool cumulative = e->KeywordSet(cumIx);
-    bool intRes = e->KeywordSet(intIx);
-    bool doubleRes = e->KeywordSet(doubleIx);
+    bool useIntegerArithmetic = e->KeywordSet(intIx);
+    // if double is set to ZERO, then DOUBLE things are converted IN THE END to SINGLE
+    // if double is set to 1, SINGLE things are converted to double before summing, then total is reconverted to single:
+    // DL> a=FINDGEN(10LL^7) & z=total(a) & help,z                
+    // Z               FLOAT     =   4.98246e+13
+    // DL> a=FINDGEN(10LL^7) & z=total(a,/doub) & help,z 
+    // Z               DOUBLE    =    4.9999995e+13
+    // DL> a=DINDGEN(10LL^7) & z=total(a,doub=0) & help,z  
+    // Z               FLOAT     =   5.00000e+13
+
+    // PRESERVE takes precedence.
+    // Next, INTEGER arithmetic takes precedence, and floats are individually converted to integers: 
+    // 1) ULONG64 are treated "as is" and result is like "preserve"
+    // 2) Others are converted to LONG64 and result is LONG64. Complex values uses only real part.
+    // /double converts individually values to doubles before summing and double=0 converts THE RESULT ONLY to single.
+    // CUMULATIVE: If the input array is a temporary variable or an expression, and the result type matches the input type
+    // the cumulative sum should be made in place to save memory.
+
+    bool doublePrecision = false;
+    bool downgradeDoubleResult = false;
+
+    if (e->KeywordPresent(doubleIx)) {
+      doublePrecision = e->KeywordSet(doubleIx);
+      downgradeDoubleResult = !doublePrecision;
+    }
+
     bool nan = e->KeywordSet(nanIx);
     bool preserve = e->KeywordSet(preserveIx);
 
@@ -2648,114 +2827,23 @@ namespace lib {
       e->AssureLongScalarPar(1, sumDim);
 
     if (sumDim == 0) {
+      if (preserve) {
       if (!cumulative) {
-        if (preserve) {
           switch (p0->Type()) {
-            case GDL_BYTE: return total_template<DByteGDL>(static_cast<DByteGDL*> (p0), false);
-            case GDL_INT: return total_template<DIntGDL>(static_cast<DIntGDL*> (p0), false);
-            case GDL_UINT: return total_template<DUIntGDL>(static_cast<DUIntGDL*> (p0), false);
-            case GDL_LONG: return total_template<DLongGDL>(static_cast<DLongGDL*> (p0), false);
-            case GDL_ULONG: return total_template<DULongGDL>(static_cast<DULongGDL*> (p0), false);
-            case GDL_LONG64: return total_template<DLong64GDL>(static_cast<DLong64GDL*> (p0), false);
-            case GDL_ULONG64: return total_template<DULong64GDL>(static_cast<DULong64GDL*> (p0), false);
-            case GDL_FLOAT: return total_template<DFloatGDL>(static_cast<DFloatGDL*> (p0), nan);
-            case GDL_DOUBLE: return total_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0), nan);
-            case GDL_COMPLEX: return total_template<DComplexGDL>(static_cast<DComplexGDL*> (p0), nan);
-            case GDL_COMPLEXDBL: return total_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0), nan);
+          case GDL_BYTE: return total_template_generic<DByteGDL>(static_cast<DByteGDL*> (p0), false);
+          case GDL_INT: return total_template_generic<DIntGDL>(static_cast<DIntGDL*> (p0), false);
+          case GDL_UINT: return total_template_generic<DUIntGDL>(static_cast<DUIntGDL*> (p0), false);
+          case GDL_LONG: return total_template_generic<DLongGDL>(static_cast<DLongGDL*> (p0), false);
+          case GDL_ULONG: return total_template_generic<DULongGDL>(static_cast<DULongGDL*> (p0), false);
+          case GDL_LONG64: return total_template_generic<DLong64GDL>(static_cast<DLong64GDL*> (p0), false);
+          case GDL_ULONG64: return total_template_generic<DULong64GDL>(static_cast<DULong64GDL*> (p0), false);
+          case GDL_FLOAT: return total_template_generic<DFloatGDL>(static_cast<DFloatGDL*> (p0), nan);
+          case GDL_DOUBLE: return total_template_generic<DDoubleGDL>(static_cast<DDoubleGDL*> (p0), nan);
+          case GDL_COMPLEX: return total_template_generic<DComplexGDL>(static_cast<DComplexGDL*> (p0), nan);
+          case GDL_COMPLEXDBL: return total_template_generic<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0), nan);
             default: assert(false);
           }
-        }
-
-        // Integer parts by Erin Sheldon
-        // In IDL total(), the INTEGER keyword takes precedence 
-        if (intRes) {
-          // We use GDL_LONG64 unless the input is GDL_ULONG64
-          if (p0->Type() == GDL_LONG64) {
-            return total_template<DLong64GDL>
-              (static_cast<DLong64GDL*> (p0), nan);
-          }
-          if (p0->Type() == GDL_ULONG64) {
-            return total_template<DULong64GDL>
-              (static_cast<DULong64GDL*> (p0), nan);
-          }
-
-          // Conver to Long64
-          DLong64GDL* p0L64 = static_cast<DLong64GDL*>
-            (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
-          Guard<DLong64GDL> guard(p0L64);
-          return total_template<DLong64GDL>(p0L64, nan);
-
-        } // integer results
-
-
-        if (p0->Type() == GDL_DOUBLE) {
-          return total_template<DDoubleGDL>
-            (static_cast<DDoubleGDL*> (p0), nan);
-        }
-        if (p0->Type() == GDL_COMPLEXDBL) {
-          return total_template<DComplexDblGDL>
-            (static_cast<DComplexDblGDL*> (p0), nan);
-        }
-
-    // AC 2018-feb  doc. said Long64 & ULong64 too, but when ?! TBC !
-        if (!doubleRes) {
-          if (p0->Type() == GDL_FLOAT) {
-            return total_template<DFloatGDL>
-              (static_cast<DFloatGDL*> (p0), nan);
-          }
-          if (p0->Type() == GDL_COMPLEX) {
-            return total_template<DComplexGDL>
-              (static_cast<DComplexGDL*> (p0), nan);
-          }
-
-      // AC 2018-feb 
-      // cout << "hello default general  case" << endl;
-      // the ulong64 is missing 
-
-          if (p0->Type() == GDL_BYTE || p0->Type() == GDL_INT ||
-          p0->Type() == GDL_LONG || p0->Type() == GDL_LONG64) {
-        // Conver to Long64
-        DLong64GDL* p0L64 = static_cast<DLong64GDL*>
-          (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
-        Guard<DLong64GDL> guard(p0L64);
-        BaseGDL* tmp;
-        tmp= total_template<DLong64GDL>(p0L64, nan);
-        if (p0->Type() == GDL_LONG64)
-            return tmp->Convert2(GDL_DOUBLE, BaseGDL::COPY);
-        return tmp->Convert2(GDL_FLOAT, BaseGDL::COPY);
-      }
-          if (p0->Type() == GDL_ULONG || p0->Type() == GDL_ULONG64) {
-        // Conver to ULong64
-        DULong64GDL* p0UL64 = static_cast<DULong64GDL*>
-          (p0->Convert2(GDL_ULONG64, BaseGDL::COPY));
-        Guard<DULong64GDL> guard(p0UL64);
-        BaseGDL* tmp;
-        tmp= total_template<DULong64GDL>(p0UL64, nan);
-        if (p0->Type() == GDL_ULONG64)
-            return tmp->Convert2(GDL_DOUBLE, BaseGDL::COPY);
-        return tmp->Convert2(GDL_FLOAT, BaseGDL::COPY);
-      }
-      
-    
-          DFloatGDL* p0F = static_cast<DFloatGDL*>
-            (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
-          Guard<DFloatGDL> guard(p0F);
-          return total_template<DFloatGDL>(p0F, false);
-        }
-        if (p0->Type() == GDL_COMPLEX) {
-          DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
-            (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
-          Guard<DComplexDblGDL> p0D_guard(p0D);
-          return total_template<DComplexDblGDL>(p0D, nan);
-        }
-
-        DDoubleGDL* p0D = static_cast<DDoubleGDL*>
-          (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-        Guard<DDoubleGDL> p0D_guard(p0D);
-        return total_template<DDoubleGDL>(p0D, nan);
-      } else // cumulative
-      {
-        if (preserve) {
+        } else {
           switch (p0->Type()) {
             case GDL_BYTE: return total_cu_template<DByteGDL>(static_cast<DByteGDL*> (p0->Dup()), false);
             case GDL_INT: return total_cu_template<DIntGDL>(static_cast<DIntGDL*> (p0->Dup()), false);
@@ -2771,57 +2859,210 @@ namespace lib {
             default: assert(false);
           }
         }
-
-        // INTEGER keyword takes precedence
-        if (intRes) {
-          // We use GDL_LONG64 unless the input is GDL_ULONG64
-          if (p0->Type() == GDL_LONG64) {
-            return total_cu_template<DLong64GDL>
-              (static_cast<DLong64GDL*> (p0->Dup()), nan);
-          }
-          if (p0->Type() == GDL_ULONG64) {
-            return total_cu_template<DULong64GDL>
-              (static_cast<DULong64GDL*> (p0->Dup()), nan);
-          }
-
-          // Convert to Long64
-          return total_cu_template<DLong64GDL>
-            (static_cast<DLong64GDL*>
-            (p0->Convert2(GDL_LONG64, BaseGDL::COPY)), nan);
-
-        } // integer results
-
-
-        // special case as GDL_DOUBLE type overrides /GDL_DOUBLE
-        if (p0->Type() == GDL_DOUBLE) {
-          return total_cu_template< DDoubleGDL>
-            (static_cast<DDoubleGDL*> (p0->Dup()), nan);
-        }
-        if (p0->Type() == GDL_COMPLEXDBL) {
-          return total_cu_template< DComplexDblGDL>
-            (static_cast<DComplexDblGDL*> (p0->Dup()), nan);
-        }
-
-        if (!doubleRes && p0->Type() != GDL_LONG64 && p0->Type() != GDL_ULONG64) {
-          // special case for GDL_FLOAT has no advantage here
-          if (p0->Type() == GDL_COMPLEX) {
-            return total_cu_template< DComplexGDL>
-              (static_cast<DComplexGDL*> (p0->Dup()), nan);
-          }
-          return total_cu_template< DFloatGDL>
-            (static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT,
-            BaseGDL::COPY)), nan);
-        }
-        if (p0->Type() == GDL_COMPLEX) {
-          return total_cu_template< DComplexDblGDL>
-            (static_cast<DComplexDblGDL*> (p0->Convert2(GDL_COMPLEXDBL,
-            BaseGDL::COPY)), nan);
-        }
-        return total_cu_template< DDoubleGDL>
-          (static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE,
-          BaseGDL::COPY)), nan);
       }
+
+      // Next, Integer Aritmetic
+      if (useIntegerArithmetic) {
+        if (!cumulative) {
+          switch (p0->Type()) {
+          // We use GDL_LONG64 unless the input is GDL_ULONG64
+          case GDL_ULONG64: return total_template_generic<DULong64GDL>(static_cast<DULong64GDL*> (p0), false);
+          case GDL_LONG64: return total_template_generic<DLong64GDL>(static_cast<DLong64GDL*> (p0), false);
+          case GDL_BYTE: return total_template_integer<DByteGDL>(static_cast<DByteGDL*> (p0));
+          case GDL_INT: return total_template_integer<DIntGDL>(static_cast<DIntGDL*> (p0));
+          case GDL_UINT: return total_template_integer<DUIntGDL>(static_cast<DUIntGDL*> (p0));
+          case GDL_LONG: return total_template_integer<DLongGDL>(static_cast<DLongGDL*> (p0));
+          case GDL_ULONG: return total_template_integer<DULongGDL>(static_cast<DULongGDL*> (p0));
+          case GDL_FLOAT: return total_template_integer<DFloatGDL>(static_cast<DFloatGDL*> (p0));
+          case GDL_DOUBLE: return total_template_integer<DDoubleGDL>(static_cast<DDoubleGDL*> (p0));
+          case GDL_COMPLEX:
+          case GDL_COMPLEXDBL:
+            // Convert to Long64 OR write a variant of total_template_integer...
+          {
+            DLong64GDL* p0L64 = static_cast<DLong64GDL*> (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
+            Guard<DLong64GDL> guard(p0L64);
+            return total_template_generic<DLong64GDL>(p0L64, false);
+          }
+          default: assert(false);
+          }
+
+        } else {
+          switch (p0->Type()) {
+          case GDL_ULONG64: return total_cu_template<DULong64GDL>(static_cast<DULong64GDL*> (p0->Dup()), false);
+          case GDL_LONG64: return total_cu_template<DLong64GDL>(static_cast<DLong64GDL*> (p0->Dup()), false);
+          case GDL_BYTE:
+          case GDL_INT:
+          case GDL_UINT:
+          case GDL_LONG:
+          case GDL_ULONG:
+          case GDL_FLOAT:
+          case GDL_DOUBLE:
+          case GDL_COMPLEX:
+          case GDL_COMPLEXDBL:
+          {
+            DLong64GDL* p0L64 = static_cast<DLong64GDL*> (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
+            return total_cu_template<DLong64GDL>(p0L64, false);
+          }
+          default: assert(false);
+          }
+        }
+      } // integer result
+
+      // Next, upgrade single values, and downgrade result if needed
+      if (doublePrecision) {
+        if (!cumulative) {
+          switch (p0->Type()) {
+          case GDL_DOUBLE: return total_template_generic<DDoubleGDL>(static_cast<DDoubleGDL*> (p0), nan);
+          case GDL_COMPLEXDBL: return total_template_generic<DComplexGDL>(static_cast<DComplexGDL*> (p0), nan);
+            // We use GDL_DOUBLE for others
+          case GDL_ULONG64:
+            return total_template_double<DULong64GDL>(static_cast<DULong64GDL*> (p0), false);
+          case GDL_LONG64:
+            return total_template_double<DLong64GDL>(static_cast<DLong64GDL*> (p0), false);
+          case GDL_BYTE:
+            return total_template_double<DByteGDL>(static_cast<DByteGDL*> (p0), false);
+          case GDL_INT:
+            return total_template_double<DIntGDL>(static_cast<DIntGDL*> (p0), false);
+          case GDL_UINT:
+            return total_template_double<DUIntGDL>(static_cast<DUIntGDL*> (p0), false);
+          case GDL_LONG:
+            return total_template_double<DLongGDL>(static_cast<DLongGDL*> (p0), false);
+          case GDL_ULONG:
+            return total_template_double<DULongGDL>(static_cast<DULongGDL*> (p0), false);
+          case GDL_FLOAT:
+            return total_template_double<DFloatGDL>(static_cast<DFloatGDL*> (p0), nan);
+          case GDL_COMPLEX:
+          {
+            DComplexDblGDL* p0Double = static_cast<DComplexDblGDL*> (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
+            Guard<DComplexDblGDL> guard(p0Double);
+            return total_template_generic<DComplexDblGDL>(p0Double, nan);
+          }
+          default: assert(false);
+          }
+        } else {
+          switch (p0->Type()) {
+          case GDL_DOUBLE: return total_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0->Dup()), nan);
+          case GDL_COMPLEXDBL: return total_cu_template<DComplexGDL>(static_cast<DComplexGDL*> (p0->Dup()), nan);
+            // We use GDL_DOUBLE for others
+          case GDL_FLOAT:
+            // Conver to Double
+          {
+            DDoubleGDL* p0Double = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+            return total_cu_template<DDoubleGDL>(p0Double, nan);
+          }
+          case GDL_ULONG64:
+          case GDL_LONG64:
+          case GDL_BYTE:
+          case GDL_INT:
+          case GDL_UINT:
+          case GDL_LONG:
+          case GDL_ULONG:
+            // Conver to Double
+          {
+            DDoubleGDL* p0Double = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+            return total_cu_template<DDoubleGDL>(p0Double, false);
+          }
+          case GDL_COMPLEX:
+          {
+            DComplexDblGDL* p0Double = static_cast<DComplexDblGDL*> (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
+            return total_cu_template<DComplexDblGDL>(p0Double, nan);
+          }
+          default: assert(false);
+          }
+        }
+      }
+      else { //does not promote, but eventually downgrade double results if downgradeDoubleResult is true
+        // note integer conversion is in doubles, not floats (verified).
+        if (!cumulative) {
+          switch (p0->Type()) {
+          case GDL_FLOAT: return total_template_generic<DFloatGDL>(static_cast<DFloatGDL*> (p0), nan);
+          case GDL_DOUBLE:
+          {
+            if (downgradeDoubleResult) {
+              return (total_template_generic<DDoubleGDL>(static_cast<DDoubleGDL*> (p0), nan))->Convert2(GDL_FLOAT, BaseGDL::COPY);
+            } else return total_template_generic<DDoubleGDL>(static_cast<DDoubleGDL*> (p0), nan);
+          }
+          case GDL_COMPLEX: return total_template_generic<DComplexGDL>(static_cast<DComplexGDL*> (p0), nan);
+          case GDL_COMPLEXDBL: if (downgradeDoubleResult) {
+              return (total_template_generic<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0), nan))->Convert2(GDL_COMPLEX, BaseGDL::COPY);
+            } else return total_template_generic<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0), nan);
+            // convert to double, total then return double or float...
+          case GDL_ULONG64:
+          {
+            DDoubleGDL* res = total_template_double<DULong64GDL>(static_cast<DULong64GDL*> (p0), false);
+            if (downgradeDoubleResult) {
+              return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);
+            } else return res;
+          }
+          case GDL_LONG64:
+          {
+            DDoubleGDL* res = total_template_double<DLong64GDL>(static_cast<DLong64GDL*> (p0), false);
+            if (downgradeDoubleResult) {
+              return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);
+            } else return res;
+          }
+            // We use GDL_FLOAT for others
+          case GDL_BYTE:
+            return total_template_single<DByteGDL>(static_cast<DByteGDL*> (p0), false);
+          case GDL_INT:
+            return total_template_single<DIntGDL>(static_cast<DIntGDL*> (p0), false);
+          case GDL_UINT:
+            return total_template_single<DUIntGDL>(static_cast<DUIntGDL*> (p0), false);
+          case GDL_LONG:
+            return total_template_single<DLongGDL>(static_cast<DLongGDL*> (p0), false);
+          case GDL_ULONG:
+            return total_template_single<DULongGDL>(static_cast<DULongGDL*> (p0), false);
+          default: assert(false);
+          }
+        } else {
+          switch (p0->Type()) {
+          case GDL_FLOAT: return total_cu_template<DFloatGDL>(static_cast<DFloatGDL*> (p0->Dup()), nan);
+          case GDL_DOUBLE:
+          {
+            if (downgradeDoubleResult) {
+              DDoubleGDL* p0Double = static_cast<DDoubleGDL*> (total_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0->Dup()), nan));
+              Guard<DDoubleGDL> guard(p0Double);
+              return (p0Double)->Convert2(GDL_FLOAT, BaseGDL::COPY);
+            } else
+              return total_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0->Dup()), nan);
+          }
+          case GDL_COMPLEX: return total_cu_template<DComplexGDL>(static_cast<DComplexGDL*> (p0->Dup()), nan);
+          case GDL_COMPLEXDBL: if (downgradeDoubleResult) {
+              DComplexGDL* p0Cpx = static_cast<DComplexGDL*> (total_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0->Dup()), nan));
+              Guard<DComplexGDL> guard(p0Cpx);
+              return (p0Cpx)->Convert2(GDL_COMPLEX, BaseGDL::COPY);
+            } else
+              return total_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0->Dup()), nan);
+            // convert to double, total then return double or float...
+          case GDL_ULONG64:
+          case GDL_LONG64:
+          {
+            DDoubleGDL* p0Double = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+            if (downgradeDoubleResult) {
+              DDoubleGDL* tmp = static_cast<DDoubleGDL*> (total_cu_template<DDoubleGDL>(p0Double, false));
+              Guard<DDoubleGDL> guard(tmp);
+              return (tmp)->Convert2(GDL_FLOAT, BaseGDL::COPY);
+            } else
+              return total_cu_template<DDoubleGDL>(p0Double, false);
+        }
+            // We use GDL_FLOAT for others
+          case GDL_BYTE:
+          case GDL_INT:
+          case GDL_UINT:
+          case GDL_LONG:
+          case GDL_ULONG:
+          {
+            DFloatGDL* p0Single = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+            return total_cu_template<DFloatGDL>(p0Single, false);
+        }
+          default: assert(false);
+          }
+        }
+      }
+      assert(false);
     }
+
+    // SUM Over a dimension.
 
     // total over sumDim
     dimension srcDim = p0->Dim();
@@ -2832,8 +3073,9 @@ namespace lib {
       "Array must have " + i2s(sumDim) +
       " dimensions: " + e->GetParString(0));
 
+    // Preserve , fast , has preference .
+    if (preserve) {
     if (!cumulative) {
-      if (preserve) {
         switch (p0->Type()) {
           case GDL_BYTE: return total_over_dim_template<DByteGDL>(static_cast<DByteGDL*> (p0), srcDim, sumDim - 1, false);
           case GDL_INT: return total_over_dim_template<DIntGDL>(static_cast<DIntGDL*> (p0), srcDim, sumDim - 1, false);
@@ -2848,73 +3090,7 @@ namespace lib {
           case GDL_COMPLEXDBL: return total_over_dim_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0), srcDim, sumDim - 1, nan);
           default: assert(false);
         }
-      }
-
-      // INTEGER keyword takes precedence 
-      if (intRes) {
-        // We use GDL_LONG64 unless the input is GDL_ULONG64
-        if (p0->Type() == GDL_LONG64) {
-          return total_over_dim_template<DLong64GDL>
-            (static_cast<DLong64GDL*> (p0), srcDim, sumDim - 1, nan);
-        }
-        if (p0->Type() == GDL_ULONG64) {
-          return total_over_dim_template<DULong64GDL>
-            (static_cast<DULong64GDL*> (p0), srcDim, sumDim - 1, nan);
-        }
-
-        // Conver to Long64
-        DLong64GDL* p0L64 = static_cast<DLong64GDL*>
-          (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
-
-        Guard<DLong64GDL> p0L64_guard(p0L64);
-        return total_over_dim_template<DLong64GDL>
-          (p0L64, srcDim, sumDim - 1, nan);
-
-      } // integer results
-
-
-      if (p0->Type() == GDL_DOUBLE) {
-        return total_over_dim_template< DDoubleGDL>
-          (static_cast<DDoubleGDL*> (p0), srcDim, sumDim - 1, nan);
-      }
-      if (p0->Type() == GDL_COMPLEXDBL) {
-        return total_over_dim_template< DComplexDblGDL>
-          (static_cast<DComplexDblGDL*> (p0), srcDim, sumDim - 1, nan);
-      }
-      if (!doubleRes) {
-        if (p0->Type() == GDL_FLOAT) {
-          return total_over_dim_template< DFloatGDL>
-            (static_cast<DFloatGDL*> (p0), srcDim, sumDim - 1, nan);
-        }
-        if (p0->Type() == GDL_COMPLEX) {
-          return total_over_dim_template< DComplexGDL>
-            (static_cast<DComplexGDL*> (p0), srcDim, sumDim - 1, nan);
-        }
-        // default for NOT /GDL_DOUBLE
-        DFloatGDL* p0F = static_cast<DFloatGDL*>
-          (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
-        Guard<DFloatGDL> p0F_guard(p0F);
-        //      p0F_guard.Reset( p0F);
-        return total_over_dim_template< DFloatGDL>
-          (p0F, srcDim, sumDim - 1, false);
-      }
-      if (p0->Type() == GDL_COMPLEX) {
-        DComplexDblGDL* p0D = static_cast<DComplexDblGDL*>
-          (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
-        Guard<DComplexDblGDL> p0D_guard(p0D);
-        //      p0D_guard.Reset( p0D);
-        return total_over_dim_template< DComplexDblGDL>
-          (p0D, srcDim, sumDim - 1, nan);
-      }
-      // default for /GDL_DOUBLE
-      DDoubleGDL* p0D = static_cast<DDoubleGDL*>
-        (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-      Guard<DDoubleGDL> p0D_guard(p0D);
-      //p0D_guard.Reset( p0D);
-      return total_over_dim_template< DDoubleGDL>(p0D, srcDim, sumDim - 1, nan);
-    } else // cumulative
-    {
-      if (preserve) {
+      } else {
         switch (p0->Type()) {
           case GDL_BYTE: return total_over_dim_cu_template<DByteGDL>(static_cast<DByteGDL*> (p0->Dup()), sumDim - 1, false);
           case GDL_INT: return total_over_dim_cu_template<DIntGDL>(static_cast<DIntGDL*> (p0->Dup()), sumDim - 1, false);
@@ -2930,56 +3106,201 @@ namespace lib {
           default: assert(false);
         }
       }
-
-      // INTEGER keyword takes precedence
-      if (intRes) {
-        // We use GDL_LONG64 unless the input is GDL_ULONG64
-        if (p0->Type() == GDL_LONG64) {
-          return total_over_dim_cu_template<DLong64GDL>
-            (static_cast<DLong64GDL*> (p0->Dup()), sumDim - 1, nan);
-        }
-        if (p0->Type() == GDL_ULONG64) {
-          return total_over_dim_cu_template<DULong64GDL>
-            (static_cast<DULong64GDL*> (p0->Dup()), sumDim - 1, nan);
-        }
-
-        // Convert to Long64
-        return total_over_dim_cu_template<DLong64GDL>
-          (static_cast<DLong64GDL*>
-          (p0->Convert2(GDL_LONG64, BaseGDL::COPY)), sumDim - 1, nan);
-
-      } // integer results
-
-
-      if (p0->Type() == GDL_DOUBLE) {
-        return total_over_dim_cu_template< DDoubleGDL>
-          (static_cast<DDoubleGDL*> (p0->Dup()), sumDim - 1, nan);
-      }
-      if (p0->Type() == GDL_COMPLEXDBL) {
-        return total_over_dim_cu_template< DComplexDblGDL>
-          (static_cast<DComplexDblGDL*> (p0->Dup()), sumDim - 1, nan);
-      }
-      if (!doubleRes) {
-        // special case for GDL_FLOAT has no advantage here
-        if (p0->Type() == GDL_COMPLEX) {
-          return total_over_dim_cu_template< DComplexGDL>
-            (static_cast<DComplexGDL*> (p0->Dup()), sumDim - 1, nan);
-        }
-        // default for NOT /GDL_DOUBLE
-        return total_over_dim_cu_template< DFloatGDL>
-          (static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT,
-          BaseGDL::COPY)), sumDim - 1, nan);
-      }
-      if (p0->Type() == GDL_COMPLEX) {
-        return total_over_dim_cu_template< DComplexDblGDL>
-          (static_cast<DComplexDblGDL*> (p0->Convert2(GDL_COMPLEXDBL,
-          BaseGDL::COPY)), sumDim - 1, nan);
-      }
-      // default for /GDL_DOUBLE
-      return total_over_dim_cu_template< DDoubleGDL>
-        (static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE,
-        BaseGDL::COPY)), sumDim - 1, nan);
     }
+    // Next, Integer Aritmetic
+    if (useIntegerArithmetic) {
+      if (!cumulative) {
+        switch (p0->Type()) {
+        case GDL_ULONG64: return total_over_dim_template<DULong64GDL>(static_cast<DULong64GDL*> (p0), srcDim, sumDim - 1, false);
+        case GDL_LONG64: return total_over_dim_template<DLong64GDL>(static_cast<DLong64GDL*> (p0), srcDim, sumDim - 1, false);
+        // We use GDL_LONG64 unless the input is GDL_ULONG64
+        case GDL_BYTE:
+        case GDL_INT:
+        case GDL_UINT:
+        case GDL_LONG:
+        case GDL_ULONG:
+        case GDL_FLOAT:
+        case GDL_DOUBLE:
+        case GDL_COMPLEX:
+        case GDL_COMPLEXDBL:
+          // Conver to Long64
+        {
+          DLong64GDL* p0L64 = static_cast<DLong64GDL*> (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
+          Guard<DLong64GDL> guard(p0L64);
+          return total_over_dim_template<DLong64GDL>(p0L64, srcDim, sumDim - 1, false);
+        }
+        default: assert(false);
+        }
+
+      } else {
+        switch (p0->Type()) {
+        case GDL_ULONG64: return total_over_dim_cu_template<DULong64GDL>(static_cast<DULong64GDL*> (p0->Dup()), sumDim - 1, false);
+        case GDL_LONG64: return total_over_dim_cu_template<DLong64GDL>(static_cast<DLong64GDL*> (p0->Dup()), sumDim - 1, false);
+        case GDL_BYTE:
+        case GDL_INT:
+        case GDL_UINT:
+        case GDL_LONG:
+        case GDL_ULONG:
+        case GDL_FLOAT:
+        case GDL_DOUBLE:
+        case GDL_COMPLEX:
+        case GDL_COMPLEXDBL:
+        {
+          DLong64GDL* p0L64 = static_cast<DLong64GDL*> (p0->Convert2(GDL_LONG64, BaseGDL::COPY));
+          return total_over_dim_cu_template<DLong64GDL>(p0L64, sumDim - 1, false);
+        }
+        default: assert(false);
+        }
+      }
+    } // integer result
+
+    // Next, upgrade single values, and downgrade result if needed
+    if (doublePrecision) {
+      if (!cumulative) {
+        switch (p0->Type()) {
+        case GDL_DOUBLE: return total_over_dim_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0), srcDim, sumDim - 1, nan);
+        case GDL_COMPLEXDBL: return total_over_dim_template<DComplexGDL>(static_cast<DComplexGDL*> (p0), srcDim, sumDim - 1, nan);
+          // We use GDL_DOUBLE for others
+        case GDL_FLOAT:
+          // Conver to Double
+        {
+          DDoubleGDL* p0Double = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+          Guard<DDoubleGDL> guard(p0Double);
+          return total_over_dim_template<DDoubleGDL>(p0Double, srcDim, sumDim - 1, nan);
+        }
+        case GDL_ULONG64:
+        case GDL_LONG64:
+        case GDL_BYTE:
+        case GDL_INT:
+        case GDL_UINT:
+        case GDL_LONG:
+        case GDL_ULONG:
+          // Conver to Double
+        {
+          DDoubleGDL* p0Double = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+          Guard<DDoubleGDL> guard(p0Double);
+          return total_over_dim_template<DDoubleGDL>(p0Double, srcDim, sumDim - 1, false);
+        }
+        case GDL_COMPLEX:
+        {
+          DComplexDblGDL* p0Double = static_cast<DComplexDblGDL*> (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
+          Guard<DComplexDblGDL> guard(p0Double);
+          return total_over_dim_template<DComplexDblGDL>(p0Double, srcDim, sumDim - 1, nan);
+        }
+        default: assert(false);
+        }
+      } else {
+        switch (p0->Type()) {
+        case GDL_DOUBLE: return total_over_dim_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0->Dup()), sumDim - 1, nan);
+        case GDL_COMPLEXDBL: return total_over_dim_cu_template<DComplexGDL>(static_cast<DComplexGDL*> (p0->Dup()), sumDim - 1, nan);
+          // We use GDL_DOUBLE for others
+        case GDL_FLOAT:
+          // Conver to Double
+        {
+          DDoubleGDL* p0Double = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+          return total_over_dim_cu_template<DDoubleGDL>(p0Double, sumDim - 1, nan);
+        }
+        case GDL_ULONG64:
+        case GDL_LONG64:
+        case GDL_BYTE:
+        case GDL_INT:
+        case GDL_UINT:
+        case GDL_LONG:
+        case GDL_ULONG:
+          // Conver to Double
+        {
+          DDoubleGDL* p0Double = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+          return total_over_dim_cu_template<DDoubleGDL>(p0Double, sumDim - 1, false);
+        }
+        case GDL_COMPLEX:
+        {
+          DComplexDblGDL* p0Cpx = static_cast<DComplexDblGDL*> (p0->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
+          return total_over_dim_cu_template<DComplexDblGDL>(p0Cpx, sumDim - 1, nan);
+        }
+        default: assert(false);
+        }
+      }
+    }// promote to double 
+    else { //does not promote, but eventually downgrade double results if downgradeDoubleResult is true
+      if (!cumulative) {
+        switch (p0->Type()) {
+        case GDL_FLOAT: return total_over_dim_template<DFloatGDL>(static_cast<DFloatGDL*> (p0), srcDim, sumDim - 1, nan);
+        case GDL_DOUBLE:
+        {
+          if (downgradeDoubleResult) {
+            return (total_over_dim_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0), srcDim, sumDim - 1, nan))->Convert2(GDL_FLOAT, BaseGDL::COPY);
+          } else return total_over_dim_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0), srcDim, sumDim - 1, nan);
+        }
+        case GDL_COMPLEX: return total_over_dim_template<DComplexGDL>(static_cast<DComplexGDL*> (p0), srcDim, sumDim - 1, nan);
+        case GDL_COMPLEXDBL: if (downgradeDoubleResult) {
+            return (total_over_dim_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0), srcDim, sumDim - 1, nan))->Convert2(GDL_COMPLEX, BaseGDL::COPY);
+          } else return total_over_dim_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0), srcDim, sumDim - 1, nan);
+          // convert to double, total_over_dim then return double or float...
+        case GDL_ULONG64:
+        case GDL_LONG64:
+        {
+          DDoubleGDL* p0Double = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+          Guard<DDoubleGDL> guard(p0Double);
+          if (downgradeDoubleResult) {
+            return (total_over_dim_template<DDoubleGDL>(p0Double, srcDim, sumDim - 1, false))->Convert2(GDL_FLOAT, BaseGDL::COPY);
+          } else return total_over_dim_template<DDoubleGDL>(p0Double, srcDim, sumDim - 1, false);
+        }
+          // We use GDL_FLOAT for others
+        case GDL_BYTE:
+        case GDL_INT:
+        case GDL_UINT:
+        case GDL_LONG:
+        case GDL_ULONG:
+        {
+          DFloatGDL* p0Single = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+          Guard<DFloatGDL> guard(p0Single);
+          return total_over_dim_template<DFloatGDL>(p0Single, srcDim, sumDim - 1, false);
+        }
+        default: assert(false);
+        }
+      } else {
+        switch (p0->Type()) {
+        case GDL_FLOAT: return total_over_dim_cu_template<DFloatGDL>(static_cast<DFloatGDL*> (p0->Dup()), sumDim - 1, nan);
+        case GDL_DOUBLE:
+        {
+          if (downgradeDoubleResult) {
+            DDoubleGDL* tmp = static_cast<DDoubleGDL*> (total_over_dim_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0->Dup()), sumDim - 1, nan));
+            Guard<DDoubleGDL> guard(tmp);
+            return tmp->Convert2(GDL_FLOAT, BaseGDL::COPY);
+          } else return total_over_dim_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0->Dup()), sumDim - 1, nan);
+        }
+        case GDL_COMPLEX: return total_over_dim_cu_template<DComplexGDL>(static_cast<DComplexGDL*> (p0->Dup()), sumDim - 1, nan);
+        case GDL_COMPLEXDBL: if (downgradeDoubleResult) {
+            DComplexDblGDL* tmp = static_cast<DComplexDblGDL*> (total_over_dim_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0->Dup()), sumDim - 1, nan));
+            Guard<DComplexDblGDL> guard(tmp);
+            return tmp->Convert2(GDL_COMPLEX, BaseGDL::COPY);
+          } else return total_over_dim_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0->Dup()), sumDim - 1, nan);
+          // convert to double, total_over_dim then return double or float...
+        case GDL_ULONG64:
+        case GDL_LONG64:
+        {
+          DDoubleGDL* p0Double = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+          if (downgradeDoubleResult) {
+            Guard<DDoubleGDL> guard(p0Double);
+            return (total_over_dim_cu_template<DDoubleGDL>(p0Double, sumDim - 1, false))->Convert2(GDL_FLOAT, BaseGDL::COPY);
+          } else return total_over_dim_cu_template<DDoubleGDL>(p0Double, sumDim - 1, false);
+      }
+          // We use GDL_FLOAT for others
+        case GDL_BYTE:
+        case GDL_INT:
+        case GDL_UINT:
+        case GDL_LONG:
+        case GDL_ULONG:
+        {
+          DFloatGDL* p0Single = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+          return total_over_dim_cu_template<DFloatGDL>(p0Single, sumDim - 1, false);
+      }
+        default: assert(false);
+        }
+      }
+    }
+    assert(false);
+    return NULL;
   }
 
 
@@ -3610,7 +3931,7 @@ namespace lib {
 
       // memory allocation
       BaseGDL *maxVal, *resArr = searchArr->New(destDim, BaseGDL::NOZERO);
-      DLongGDL *minElArr, *maxElArr;
+      DLongGDL *minElArr=NULL, *maxElArr=NULL;
 
       if (maxSet) {
         e->AssureGlobalKW(maxIx); // instead of using a guard pointer
@@ -3718,7 +4039,7 @@ namespace lib {
 
       // memory allocation
       BaseGDL *minVal, *resArr = searchArr->New(destDim, BaseGDL::NOZERO);
-      DLongGDL *minElArr, *maxElArr;
+      DLongGDL *minElArr=NULL, *maxElArr=NULL;
 
       if (minSet) {
         e->AssureGlobalKW(minIx); // instead of using a guard pointer

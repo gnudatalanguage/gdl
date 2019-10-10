@@ -14,11 +14,24 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-// to be included from datatypes.cpp
-// after basic_op.cpp
-#ifdef INCLUDE_BASIC_OP_CPP
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
+#include "datatypes.hpp" // for friend declaration
+#include "nullgdl.hpp"
+#include "dinterpreter.hpp"
+
+// needed with gcc-3.3.2
+#include <cassert>
+
+#include "typetraits.hpp"
+
+#include "sigfpehandler.hpp"
 
 using namespace std;
 
@@ -1878,6 +1891,25 @@ Data_<SpDObj>* Data_<SpDObj>::DivInvSNew( BaseGDL* r)
 
 // Mod %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // modulo division: left=left % right
+
+// float modulo division: left=left % right
+inline DFloat Modulo( const DFloat& l, const DFloat& r)
+{
+//   float t=abs(l/r);
+//   if( l < 0.0) return t=(floor(t)-t)*abs(r);
+//   return (t-floor(t))*abs(r);
+  return fmod(l,r);
+}
+// in basic_op.cpp
+// double modulo division: left=left % right
+inline DDouble DModulo( const DDouble& l, const DDouble& r)
+ {
+//    DDouble t=abs(l/r);
+//    if( l < 0.0) return t=(floor(t)-t)*abs(r);
+//    return (t-floor(t))*abs(r);
+   return fmod(l,r);
+ }
+
 template<class Sp>
 Data_<Sp>* Data_<Sp>::ModNew( BaseGDL* r)
 {
@@ -3518,6 +3550,4 @@ Data_<SpDObj>* Data_<SpDObj>::PowInvSNew( BaseGDL* r)
   return NULL;
 }
 
-//#include "instantiate_templates.hpp"
-
-#endif
+#include "instantiate_templates.hpp"

@@ -23,11 +23,12 @@
 #endif
 
 #ifdef USE_HDF
+#include "mfhdf.h"
+#include "hdf_fun.hpp"
 
 #include "includefirst.hpp"
 
-#include "mfhdf.h"
-#include "hdf_fun.hpp"
+
 
 namespace lib {
 

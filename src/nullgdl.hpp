@@ -44,10 +44,10 @@ class NullGDL: public BaseGDL
     return NullGDL::buf;
     }
 
-    void operator delete( void *ptr)
-    {
-    // do nothing
-    }
+//    void operator delete( void *ptr)
+//    {
+//    // do nothing
+//    }
     void operator delete( void *ptr, size_t bytes) {}
     void operator delete( void *ptr, size_t bytes, char* cP) {}
     

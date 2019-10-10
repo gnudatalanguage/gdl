@@ -18,6 +18,12 @@
 // to be included from datatypes.cpp
 #ifdef INCLUDE_TOPYTHON_CPP
 
+#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+#include <numpy/arrayobject.h>
+#endif
+
+//#include "datatypes.hpp" // for friend declaration
+
 using namespace std;
 
 const int pyType[] = {
