@@ -14,17 +14,21 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-// to be included from datatypes.cpp
-#ifdef INCLUDE_IFMT_CPP
+#include "datatypes.hpp"
+#include "dstructgdl.hpp"
+#include "real2int.hpp"
+#include "calendar.hpp"
 
+
+// needed with gcc-3.3.2
+#include <cassert>
 #include <iostream>
 #include <sstream>
-
-//#include "datatypes.hpp"
-//#include "dstructgdl.hpp"
-//#include "io.hpp"
-#include "real2int.hpp"
+#include <iomanip>
 
 using namespace std;
 
@@ -1048,6 +1052,5 @@ IFmtCal( istream* is, SizeT offs, SizeT r, int w, BaseGDL::Cal_IOMode cMode)
 }
 
 
-//#include "instantiate_templates.hpp"
+#include "instantiate_templates.hpp"
 
-#endif

@@ -743,42 +743,68 @@ namespace lib {
     GM_CV0();
   }
 
-
-  template<typename T2,typename T,typename T3>
-  T2* Sobel_Template(T* p0,T3 a)
+  template<typename T2, typename T, typename T3>
+  T2* Sobel_Template(T* p0, T3 a)
   {
     SizeT nbX = p0->Dim(0);
     SizeT nbY = p0->Dim(1);
     T2* res = new T2(p0->Dim(), BaseGDL::NOZERO);
-
     //DDoubleGDL z = new DDoubleGDL[nbX,nbY];
-    for( SizeT k=0; k<=nbY-1; k++)
-      {
-        (*res)[0+nbX*k]=0;
-        (*res)[nbX-1+nbX*k]=0;
-      }
-    for( SizeT j=0; j<= nbX-1; j++)
-      {
-        (*res)[j+0]=0;
-        (*res)[j+nbX*(nbY-1)]=0;
-      }
+    for (SizeT k = 0; k <= nbY - 1; k++) {
+      (*res)[0 + nbX * k] = 0;
+      (*res)[nbX - 1 + nbX * k] = 0;
+    }
+    for (SizeT j = 0; j <= nbX - 1; j++) {
+      (*res)[j + 0] = 0;
+      (*res)[j + nbX * (nbY - 1)] = 0;
+    }
 
 
-    for( SizeT k=1; k<=nbY-2; k++)
-      {
-        for( SizeT j=1; j<= nbX-2; j++)
-	  {
-            a =   labs    ((*p0)[j+1+nbX*(k+1)]+2*(*p0)[j+1+nbX*k]+(*p0)[j+1+nbX*(k-1)]
-			   -    ((*p0)[j-1+nbX*(k+1)]+2*(*p0)[j-1+nbX*k]+(*p0)[j-1+nbX*(k-1)]))
-	      +
-	      labs    ((*p0)[j-1+nbX*(k-1)]+2*(*p0)[j+nbX*(k-1)]+(*p0)[j+1+nbX*(k-1)]
-		       -   ((*p0)[j-1+nbX*(k+1)]+2*(*p0)[j+nbX*(k+1)]+(*p0)[j+1+nbX*(k+1)]));
-            (*res)[j+nbX*k]=a;
-	  }
+    for (SizeT k = 1; k <= nbY - 2; k++) {
+      for (SizeT j = 1; j <= nbX - 2; j++) {
+        T3 b1 = -((*p0)[j - 1 + nbX * (k + 1)] + 2 * (*p0)[j - 1 + nbX * k]+(*p0)[j - 1 + nbX * (k - 1)]);
+        b1 += ((*p0)[j + 1 + nbX * (k + 1)] + 2 * (*p0)[j + 1 + nbX * k]+(*p0)[j + 1 + nbX * (k - 1)]);
+        T3 b2 = -((*p0)[j - 1 + nbX * (k + 1)] + 2 * (*p0)[j + nbX * (k + 1)]+(*p0)[j + 1 + nbX * (k + 1)]);
+        b2 += ((*p0)[j - 1 + nbX * (k - 1)] + 2 * (*p0)[j + nbX * (k - 1)]+(*p0)[j + 1 + nbX * (k - 1)]);
+        a = labs(b1) + labs(b2);
+        (*res)[j + nbX * k] = a;
       }
+    }
 
     return res;
   }
+
+  template<typename T2, typename T, typename T3>
+  T2* Sobel_Template_floatingpointTypes(T* p0, T3 a)
+  {
+    SizeT nbX = p0->Dim(0);
+    SizeT nbY = p0->Dim(1);
+    T2* res = new T2(p0->Dim(), BaseGDL::NOZERO);
+    //DDoubleGDL z = new DDoubleGDL[nbX,nbY];
+    for (SizeT k = 0; k <= nbY - 1; k++) {
+      (*res)[0 + nbX * k] = 0;
+      (*res)[nbX - 1 + nbX * k] = 0;
+    }
+    for (SizeT j = 0; j <= nbX - 1; j++) {
+      (*res)[j + 0] = 0;
+      (*res)[j + nbX * (nbY - 1)] = 0;
+    }
+
+
+    for (SizeT k = 1; k <= nbY - 2; k++) {
+      for (SizeT j = 1; j <= nbX - 2; j++) {
+        T3 b1 = -((*p0)[j - 1 + nbX * (k + 1)] + 2 * (*p0)[j - 1 + nbX * k]+(*p0)[j - 1 + nbX * (k - 1)]);
+        b1 += ((*p0)[j + 1 + nbX * (k + 1)] + 2 * (*p0)[j + 1 + nbX * k]+(*p0)[j + 1 + nbX * (k - 1)]);
+        T3 b2 = -((*p0)[j - 1 + nbX * (k + 1)] + 2 * (*p0)[j + nbX * (k + 1)]+(*p0)[j + 1 + nbX * (k + 1)]);
+        b2 += ((*p0)[j - 1 + nbX * (k - 1)] + 2 * (*p0)[j + nbX * (k - 1)]+(*p0)[j + 1 + nbX * (k - 1)]);
+        a = std::abs(b1) + std::abs(b2);
+        (*res)[j + nbX * k] = a;
+      }
+    }
+
+    return res;
+  }
+  
   BaseGDL* sobel_fun( EnvT* e)
   {
     BaseGDL* p0 = e->GetParDefined(0);
@@ -793,8 +819,7 @@ namespace lib {
       e->Throw( "Array must have 2 dimensions: "+ e->GetParString(0));
 
     switch (p0->Type()) {
-    case GDL_BYTE:{
-      long int a;
+    case GDL_BYTE:{ long int a;
       return Sobel_Template<DIntGDL>(static_cast<DByteGDL*>(p0),a);
     }
     case GDL_INT: {long int a;
@@ -809,25 +834,25 @@ namespace lib {
     case GDL_ULONG:{long int a;
 	return Sobel_Template<DULongGDL>(static_cast<DULongGDL*> (p0),a);
     }
-    case GDL_LONG64:{long int a;
+    case GDL_LONG64:{DLong64 a;
 	return Sobel_Template<DLong64GDL>(static_cast<DLong64GDL*> (p0),a);
     }
-    case GDL_ULONG64:{long int a;
+    case GDL_ULONG64:{DLong64 a;
 	return Sobel_Template<DULong64GDL>(static_cast<DULong64GDL*> (p0),a);
     }
     case GDL_FLOAT:{long double a;
-	return Sobel_Template<DFloatGDL>(static_cast<DFloatGDL*> (p0),a);
+	return Sobel_Template_floatingpointTypes<DFloatGDL>(static_cast<DFloatGDL*> (p0),a);
     }
     case GDL_DOUBLE: {long double a;
-	return Sobel_Template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0),a);
+	return Sobel_Template_floatingpointTypes<DDoubleGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
-    case GDL_COMPLEX: { long int a;
+    case GDL_COMPLEX: { long double a;
 	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
-	return Sobel_Template<DComplexGDL>(static_cast<DDoubleGDL*> (p0),a);
+	return Sobel_Template_floatingpointTypes<DComplexGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
     case GDL_COMPLEXDBL:{long double a;
 	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
-	return Sobel_Template<DComplexDblGDL>(static_cast<DDoubleGDL*> (p0),a);
+	return Sobel_Template_floatingpointTypes<DComplexDblGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
 
     default: e->Throw( "Should not reach this point, please report");

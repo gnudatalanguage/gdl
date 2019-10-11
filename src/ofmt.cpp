@@ -14,9 +14,30 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#include "datatypes.hpp" // for friend declaration
+#include "dstructgdl.hpp"
+#include "real2int.hpp"
+#include "calendar.hpp"
 
-// to be included from datatypes.cpp
-#ifdef INCLUDE_OFMT_CPP
+#include "ofmt.hpp"
+using namespace std;
+
+// for double -> string
+inline string double2string( DDouble d)      
+{
+  std::ostringstream os;
+  OutAuto( os, d, 16, 8, ' ');
+  return os.str();
+}
+
+// for float -> string
+inline string float2string( DFloat f)      
+{
+  std::ostringstream os;
+  OutAuto( os, f, 13, 6, ' ');
+  return os.str();
+}
+
 
 static const std::string allstars="****************************************************************************************************************************";
 template< typename Ty>
@@ -1124,6 +1145,4 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f, int code, Base
   return tCount;
  }
 
-//#include "instantiate_templates.hpp"
-
-#endif
+#include "instantiate_templates.hpp"
