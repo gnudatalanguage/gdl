@@ -90,41 +90,42 @@ BaseGDL* Data_<SpDPtr>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,BaseGDL* bias,
 #include "convol_inc.cpp"
 #undef CONVOL_ULONG64__
 
-#define Sp SpDLong64
-#define Ty DLong64
-#include "convol_inc.cpp"
-#undef Sp
-#undef Ty
-
-#define Sp SpDLong
-#define Ty DLong
-#include "convol_inc.cpp"
-#undef Sp
-#undef Ty
-
-#define Sp SpDFloat
-#define Ty DFloat
-#include "convol_inc.cpp"
-#undef Sp
-#undef Ty
-
-#define Sp SpDDouble
-#define Ty DDouble
-#include "convol_inc.cpp"
-#undef Sp
-#undef Ty
-
-#define Sp SpDComplex
-#define Ty DComplex
-#include "convol_inc.cpp"
-#undef Sp
-#undef Ty
-
-#define Sp SpDComplexDbl
-#define Ty DComplexDbl
-#include "convol_inc.cpp"
-#undef Sp
-#undef Ty
+//displaced in convol2.cpp to speedup parallel ('make -j8') compilation
+//#define Sp SpDLong64
+//#define Ty DLong64
+//#include "convol_inc.cpp"
+//#undef Sp
+//#undef Ty
+//
+//#define Sp SpDLong
+//#define Ty DLong
+//#include "convol_inc.cpp"
+//#undef Sp
+//#undef Ty
+//
+//#define Sp SpDFloat
+//#define Ty DFloat
+//#include "convol_inc.cpp"
+//#undef Sp
+//#undef Ty
+//
+//#define Sp SpDDouble
+//#define Ty DDouble
+//#include "convol_inc.cpp"
+//#undef Sp
+//#undef Ty
+//
+//#define Sp SpDComplex
+//#define Ty DComplex
+//#include "convol_inc.cpp"
+//#undef Sp
+//#undef Ty
+//
+//#define Sp SpDComplexDbl
+//#define Ty DComplexDbl
+//#include "convol_inc.cpp"
+//#undef Sp
+//#undef Ty
 
 #undef INCLUDE_CONVOL_CPP
 

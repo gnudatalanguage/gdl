@@ -15,26 +15,21 @@
  *                                                                         *
  ***************************************************************************/
 
-// to be included from datatypes.cpp
-#ifdef INCLUDE_BASIC_OP_CPP
 
-// // header in datatypes.hpp
-// 
-// //#include "datatypes.hpp"
-// //#include "dstructgdl.hpp"
-// //#include "arrayindex.hpp"
-// 
-// //#include <csignal>
-// #include "sigfpehandler.hpp"
-// 
-// #ifdef _OPENMP
-// #include <omp.h>
-// #endif
-// 
-// #include "typetraits.hpp"
-// 
-// using namespace std;
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#include "datatypes.hpp" // for friend declaration
+#include "nullgdl.hpp"
+#include "dinterpreter.hpp"
+
+// needed with gcc-3.3.2
+#include <cassert>
 
 // Sub
 // substraction: left=left-right
@@ -435,5 +430,4 @@ Data_<SpDObj>* Data_<SpDObj>::SubInvS( BaseGDL* r)
   return this;
 }
 
-
-#endif
+#include "instantiate_templates.hpp"

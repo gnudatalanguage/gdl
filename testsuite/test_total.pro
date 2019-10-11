@@ -320,7 +320,7 @@ end
 ;
 pro TEST_TOTAL, help=help, test=test, verbose=verbose, no_exit=no_exit
 ;
-if KEYWORD_SET(test) then begin
+if KEYWORD_SET(help) then begin
    print, 'pro TEST_TOTAL, help=help, test=test, verbose=verbose, no_exit=no_exit'
    return
 endif 
@@ -342,3 +342,35 @@ if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 if KEYWORD_SET(test) then STOP
 ;
 end
+
+; some tests:
+;code=[1,2,3,4,5,12,13,14,15] & list_type = ["UNDEFINED","BYTE","INT","LONG","FLOAT","DOUBLE","COMPLEX","STRING","STRUCT","DCOMPLEX","POINTER","OBJREF","UINT","ULONG","LONG64","ULONG64"] & for i=0,n_elements(code)-1 do begin a=fix(lindgen(10LL^8),type=code[i]) & c=[a,-a] & tic & b=total(c,/pres) & toc & print,list_type[code[i]] & help,b[-1] & end 
+;% Time elapsed: 0.016649008 seconds.
+;BYTE
+;<Expression>    BYTE      =    0
+;% Time elapsed: 0.019578934 seconds.
+;INT
+;<Expression>    INT       =        0
+;% Time elapsed: 0.044885874 seconds.
+;LONG
+;<Expression>    LONG      =            0
+;% Time elapsed: 0.037983894 seconds.
+;FLOAT
+;<Expression>    FLOAT     =       0.00000
+;% Time elapsed: 0.074567080 seconds.
+;DOUBLE
+;<Expression>    DOUBLE    =        0.0000000
+;% Time elapsed: 0.020087957 seconds.
+;UINT
+;<Expression>    UINT      =        0
+;% Time elapsed: 0.039674997 seconds.
+;ULONG
+;<Expression>    ULONG     =            0
+;% Time elapsed: 0.079846144 seconds.
+;LONG64
+;<Expression>    LONG64    =                      0
+;% Time elapsed: 0.074343920 seconds.
+;ULONG64
+;<Expression>    ULONG64   =                      0
+;IDL> 
+

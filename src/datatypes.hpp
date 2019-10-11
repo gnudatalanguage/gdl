@@ -19,19 +19,12 @@
 #ifndef DATATYPES_HPP_
 #define DATATYPES_HPP_
 
-#include <iomanip>
-#include <sstream>
-//#include <vector>
-//#include <valarray>
-#include <string>
 
-//#include <complex>
-// #include <deque>
-
-// #include <type_traits>
 #include "typedefs.hpp"
 #include "basegdl.hpp"
 #include "typetraits.hpp"
+
+#include <string>
 
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
 // by default intel C++ defines __GNUC__

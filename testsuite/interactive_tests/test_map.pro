@@ -44,6 +44,171 @@ return,0
 
 end
 ;
+; -------------------------------------------------
+;
+pro GET_MAP_PROCEDURES, path2file, quiet=quiet, verbose=verbose, $
+                        help=help, debug=debug, test=test
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro GET_MAP_PROCEDURES, path2file, quiet=quiet, verbose=verbose, $'
+   print, '                        help=help, debug=debug, test=test'
+   return
+endif
+;
+print, 'Starting GET_MAP_PROCEDURES'
+;
+filename='MAP_INSTALL'
+;
+if (N_PARAMS() EQ 0) then path2file=''
+;
+full_name=''
+;
+; we just try 3 basic locations
+;
+if FILE_TEST(path2file+filename) then full_name=path2file+filename
+if (STRLEN(full_name) EQ 0) then begin
+   testfile=path2file+PATH_SEP()+filename
+   if FILE_TEST(testfile) then full_name=testfile
+endif
+if (STRLEN(full_name) EQ 0) then begin
+   testfile='..'+PATH_SEP()+filename
+   if FILE_TEST(testfile) then full_name=testfile
+endif
+;
+if (STRLEN(full_name) EQ 0) then begin
+   MESSAGE, /continue, "the file MAP_INSTALL was not found"
+   MESSAGE, /continue, "please provide path two this file"
+   return
+endif
+;
+; recovering the list of missing map routines
+;
+get_lun, lun
+openr, lun, full_name
+cur_line=''
+lines=''
+while ~EOF(lun) do begin
+   readf, lun, cur_line
+   lines=[lines,cur_line]
+endwhile
+close, lun
+free_lun, lun
+;
+filtre='http://idlastro'
+
+OK=WHERE(STRPOS(lines, filtre) GE 0, nb_ok)
+if nb_ok EQ 0 then MESSAGE, 'something wrong in MAP_INSTALL file !'
+;
+if KEYWORD_SET(debug) OR KEYWORD_SET(verbose) then begin
+   print, 'OK indexes values : ', OK
+   for ii=0, nb_ok-1 do begin
+      print, lines[OK[ii]]
+   endfor
+   if KEYWORD_SET(debug) then STOP
+endif
+;
+; do we need to had this path to the whole !path
+;
+dir_name='map_routines'
+CD, current=old_current
+new_current=old_current+PATH_SEP()+dir_name
+;
+; we check whether we already have the mandatory files around
+;
+list_of_dir=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
+;
+; do we already have a "map_routines" dir. here ??
+exist=STRPOS(list_of_dir,'map_routine')
+exist_ok=WHERE(exist GE 0, nb_exist_ok)
+if nb_exist_ok EQ 0 then begin
+   !path=!path+':'+new_current
+   list_of_dir=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
+endif
+;
+for ii=0, nb_ok-1 do begin
+   fullfile=lines[OK[ii]]
+   file=STRMID(fullfile,1+STRPOS(lines[ok[ii]],'/', /reverse_search))
+   Result = FILE_SEARCH(list_of_dir+PATH_SEP()+file)
+   if STRLEN(result) GT 0 then OK[ii]=-1
+endfor
+OK_tmp=WHERE(OK GE 0, nb_ok_tmp)
+if (nb_ok_tmp EQ 0) then begin
+   print, 'all mandatory routines already available'
+   return
+endif
+;
+; creating a sub-dir for Map routines
+; updating the !path
+;
+CD, current=old_current
+;
+FILE_MKDIR, dir_name
+;
+CD, dir_name
+CD, current=new_current
+;
+if KEYWORD_SET(debug) then STOP
+;
+; 
+old_html='http://idlastro.gsfc.nasa.gov/ftp/exelislib/'
+new_html='http://www.lancesimms.com/programs/IDL/lib/'
+list_todo=lines[OK]
+list_todo=new_html+STRMID(list_todo,STRLEN(new_html))
+;
+; downloading the files
+GRAB_ON_INTERNET, list_todo, /quiet, /count
+;for ii=0, N_ELEMENTS(list_todo)-1 do begin
+;   spawn, "curl -O "+list_todo[ii]
+;endfor
+;
+CD, old_current
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+function TEST_MAP_PROCEDURES
+;
+; do we have this procedure in GDL syntax in the PATH ?
+;
+test=EXECUTE("map_set")
+;
+if test EQ 0 then return, 0 else return, 1
+;
+end
+;
+; ------------------------------------
+;
+pro INTERNAL_GDL_MAP_CHECK, test=test
+;
+ON_ERROR, 2
+;
+; Checking if GDL is compiled with one of the 2 projections libraries
+;
+status=INTERNAL_GDL_MAP_LIBS()
+;
+if (status Lt 10)  then begin
+   MESSAGE, /continue, 'GDL without Projection support !'
+   status=-1
+endif
+;
+if (status LT 0) then begin
+   MESSAGE, 'please read the MAP_INSTALL document in the root of the GDL dir.'
+endif
+;
+; Getting the missing routines if needed.
+; (based on MAP_INSTALL informations --> test of presence of this file
+; not done now, ToDo)
+;
+status_map_pro=TEST_MAP_PROCEDURES()
+;
+if status_map_pro EQ 0 then GET_MAP_PROCEDURES
+;
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
 ; ------------------------------------
 ;
 function DoWeBreak, tictac=tictac, fill=fill
@@ -79,8 +244,6 @@ end
 ;
 pro TEST_MAP, dir=dir, tictac=tictac, fill=fill
 ;
-status=INTERNAL_GDL_MAP_LIBS()
-;
 print, 'Exemple 1: Should plot the whole world centered on the Japan time line'
 MAP_SET, 0, 139, /continent, title='Continents'
 if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
@@ -94,19 +257,18 @@ MAP_SET, 0, 0, /continent, /grid, title='Continents, centered on Greenwitch Meri
 if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
 ;
 print, 'Exemple 4: Should plot Europa centered on Paris Observatory using Gnomic Projection'
-map_set,48.83,2.33,name="gnomic",e_cont={cont:1,fill:1,color:'33e469'x,hires:0},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:1,color:'1260E2'x,glinethick:1,glinestyle:0},scale=3e7,/iso,title='Zoom on Europa, Gnomic Projection'
-;MAP_SET, /cont, 48.83,2.33, /grid, /gnomic, /iso, scale=3.e7, title='Zoom on Europa, Gnomic Projection'
+MAP_SET, /cont, 48.83,2.33, /grid, /gnomic, /iso, scale=3.e7, title='Zoom on Europa, Gnomic Projection'
 if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
 ;
 print, 'Exemple 4bis: Should plot Europa centered on Paris Observatory using Gnomic Projection (+ rivers and countries)'
+MAP_SET, 48.83,2.33, /grid, /gnomic, /iso, scale=3.e7, $
+         title='Zoom on Europa, Gnomic Projection'
 MAP_CONTINENTS, color='ffff00'x, /river
-MAP_CONTINENTS, color='FFFFFF'x, /countrie, /cont
-;MAP_CONTINENTS, colo='ffffff'x, /continents
+MAP_CONTINENTS, color='00ff00'x, /countrie
+MAP_CONTINENTS, colo='ffffff'x, /continents
 if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
 ;
 print, 'Exemple 5: Should plot North America using Gnomic Projection'
-map_set,40,-105,name="gnomic",e_cont={cont:1,fill:1,color:'33e469'x,hires:0},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:1,color:'1260E2'x,glinethick:1,glinestyle:0},scale=3e7,/iso,limit=[20,-130,70,-70],title='Gnomic, North America'
-
 MAP_SET, /gnomic, /iso,40,-105, /cont, limit=[20,-130,70,-70], $
          title='Gnomic, North America'
 if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end

@@ -55,26 +55,26 @@ print, 'Pixel Size (in mm) :', resolution
 nb_doubts=0
 nb_pbs=0
 if (taille[0] LE 0) then $
-   ERROTS_ADD, nb_errors, 'Error, screen length < 0'
+   ERRORS_ADD, nb_errors, 'Error, screen length < 0'
 if (taille[1] LE 0) then $
-   ERROTS_ADD, nb_errors, 'Error, screen height < 0'
+   ERRORS_ADD, nb_errors, 'Error, screen height < 0'
 if (resolution[0] LE 0) then $
-   ERROTS_ADD, nb_errors, 'Error, length resolution < 0'
+   ERRORS_ADD, nb_errors, 'Error, length resolution < 0'
 if (resolution[1] LE 0) then $
-   ERROTS_ADD, nb_errors, 'Error, height resolution < 0'
+   ERRORS_ADD, nb_errors, 'Error, height resolution < 0'
 ;
 pixel_aspect_ratio=resolution[1]/resolution[0]
 if ((pixel_aspect_ratio LT 0.95) OR (pixel_aspect_ratio GT 1.05)) then begin
-   ERROTS_ADD, nb_errors, 'the pixels of this screen are not square !'
+   ERRORS_ADD, nb_errors, 'the pixels of this screen are not square !'
 endif
 ;
 screen_aspect_ratio=float(taille[1])/float(taille[0])
 if ((screen_aspect_ratio LT 0.5) OR (screen_aspect_ratio GT 2.)) then begin
-   ERROTS_ADD, nb_errors, 'this screen has strange aspect ratio !! (< 0.5 or > 2)'
+   ERRORS_ADD, nb_errors, 'this screen has strange aspect ratio !! (< 0.5 or > 2)'
 endif
 ;
-if (ISA(taille, 'Long')) then begin
-   ERROTS_ADD, nb_errors, 'The return value is not a "Long" type !'
+if (~ISA(taille, 'Long')) then begin
+   ERRORS_ADD, nb_errors, 'The return value is not a "Long" type !'
 endif
 ;	
 BANNER_FOR_TESTSUITE, 'TESTING_GET_SCREEN_SIZE', nb_errors, /status

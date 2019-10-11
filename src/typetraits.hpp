@@ -97,12 +97,6 @@ struct SpDInt: public BaseGDL
   static const std::string str; 
   static const DInt zero;
 
-//   static const bool IS_INTEGER;
-//   static const bool IS_SIGNED;
-//   static const bool IS_NUMERIC;
-//   static const bool IS_COMPLEX;
-//   static const bool IS_POD;
-//   static const bool IS_CONVERTABLE;
   static const bool IS_INTEGER = true;
   static const bool IS_SIGNED = true;
   static const bool IS_NUMERIC = true;
@@ -147,12 +141,6 @@ struct SpDUInt: public BaseGDL
   static const std::string str; 
   static const DUInt zero;
 
-//   static const bool IS_INTEGER;
-//   static const bool IS_SIGNED;
-//   static const bool IS_NUMERIC;
-//   static const bool IS_COMPLEX;
-//   static const bool IS_POD;
-//   static const bool IS_CONVERTABLE;
   static const bool IS_INTEGER = true;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = true;
@@ -198,12 +186,6 @@ struct SpDLong: public BaseGDL
   static const std::string str; 
   static const DLong  zero;
 
-//   static const bool IS_INTEGER;
-//   static const bool IS_SIGNED;
-//   static const bool IS_NUMERIC;
-//   static const bool IS_COMPLEX;
-//   static const bool IS_POD;
-//   static const bool IS_CONVERTABLE;
   static const bool IS_INTEGER = true;
   static const bool IS_SIGNED = true;
   static const bool IS_NUMERIC = true;
@@ -249,12 +231,6 @@ struct SpDULong: public BaseGDL
   static const std::string str; 
   static const DULong zero;
 
-//   static const bool IS_INTEGER;
-//   static const bool IS_SIGNED;
-//   static const bool IS_NUMERIC;
-//   static const bool IS_COMPLEX;
-//   static const bool IS_POD;
-//   static const bool IS_CONVERTABLE;
   static const bool IS_INTEGER = true;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = true;
@@ -300,12 +276,6 @@ struct SpDLong64: public BaseGDL
   static const std::string str; 
   static const DLong64  zero;
 
-//   static const bool IS_INTEGER;
-//   static const bool IS_SIGNED;
-//   static const bool IS_NUMERIC;
-//   static const bool IS_COMPLEX;
-//   static const bool IS_POD;
-//   static const bool IS_CONVERTABLE;
   static const bool IS_INTEGER = true;
   static const bool IS_SIGNED = true;
   static const bool IS_NUMERIC = true;
@@ -351,12 +321,6 @@ struct SpDULong64: public BaseGDL
   static const std::string str; 
   static const DULong64 zero;
 
-//   static const bool IS_INTEGER;
-//   static const bool IS_SIGNED;
-//   static const bool IS_NUMERIC;
-//   static const bool IS_COMPLEX;
-//   static const bool IS_POD;
-//   static const bool IS_CONVERTABLE;
   static const bool IS_INTEGER = true;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = true;
@@ -402,12 +366,6 @@ struct SpDFloat: public BaseGDL
   static const std::string str; 
   static const DFloat zero;
 
-//   static const bool IS_INTEGER;
-//   static const bool IS_SIGNED;
-//   static const bool IS_NUMERIC;
-//   static const bool IS_COMPLEX;
-//   static const bool IS_POD;
-//   static const bool IS_CONVERTABLE;
   static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = true;
   static const bool IS_NUMERIC = true;
@@ -452,13 +410,6 @@ struct SpDDouble: public BaseGDL
   static const std::string str; 
   static const DDouble zero;
 
-//   static const bool IS_INTEGER;
-//   static const bool IS_SIGNED;
-//   static const bool IS_NUMERIC;
-//   static const bool IS_COMPLEX;
-//   static const bool IS_POD;
-//   static const bool IS_CONVERTABLE;
-
   static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = true;
   static const bool IS_NUMERIC = true;
@@ -499,12 +450,6 @@ struct SpDString: public BaseGDL
 	return (this->N_Elements() * sizeof( Ty));
   }
 
-//   static const bool IS_INTEGER;
-//   static const bool IS_SIGNED;
-//   static const bool IS_NUMERIC;
-//   static const bool IS_COMPLEX;
-//   static const bool IS_POD;
-//   static const bool IS_CONVERTABLE;
   static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = false;
@@ -571,13 +516,6 @@ public:
     return ( this->N_Elements() * desc->NBytes());
   }
 
-//   static const bool IS_INTEGER;
-//   static const bool IS_SIGNED;
-//   static const bool IS_NUMERIC;
-//   static const bool IS_COMPLEX;
-//   static const bool IS_POD;
-//   static const bool IS_CONVERTABLE;
-
   static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = false;
@@ -614,12 +552,6 @@ struct SpDPtr: public BaseGDL
 	return (this->N_Elements() * sizeof( Ty));
   }
 
-//   static const bool IS_INTEGER;
-//   static const bool IS_SIGNED;
-//   static const bool IS_NUMERIC;
-//   static const bool IS_COMPLEX;
-//   static const bool IS_POD;
-//   static const bool IS_CONVERTABLE;
   static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = false;
@@ -665,12 +597,6 @@ struct SpDObj: public BaseGDL
 	return (this->N_Elements() * sizeof( Ty));
   }
 
-//   static const bool IS_INTEGER;
-//   static const bool IS_SIGNED;
-//   static const bool IS_NUMERIC;
-//   static const bool IS_COMPLEX;
-//   static const bool IS_POD;
-//   static const bool IS_CONVERTABLE;
   static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = false;
   static const bool IS_NUMERIC = false;
@@ -715,13 +641,6 @@ struct SpDComplex: public BaseGDL
 	return (this->N_Elements() * sizeof( Ty));
   }
 
-//   static const bool IS_INTEGER;
-//   static const bool IS_SIGNED;
-//   static const bool IS_NUMERIC;
-//   static const bool IS_COMPLEX;
-//   static const bool IS_POD;
-//   static const bool IS_CONVERTABLE;
-
   static const bool IS_INTEGER = false;
   static const bool IS_SIGNED = true;
   static const bool IS_NUMERIC = true;
@@ -765,13 +684,6 @@ struct SpDComplexDbl: public BaseGDL
   {
 	return (this->N_Elements() * sizeof( Ty));
   }
-
-//   static const bool IS_INTEGER;
-//   static const bool IS_SIGNED;
-//   static const bool IS_NUMERIC;
-//   static const bool IS_COMPLEX;
-//   static const bool IS_POD;
-//   static const bool IS_CONVERTABLE;
 
   static const bool IS_SIGNED = true;
   static const bool IS_NUMERIC = true;

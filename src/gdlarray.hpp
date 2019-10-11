@@ -54,9 +54,9 @@ private:
     }
     else
     {
-      Ty* b = reinterpret_cast<Ty*>(scalarBuf); 
-      for( int i = 0; i<sz; ++i) 
-	new (&(b[ i])) Ty();
+      Ty* b = reinterpret_cast<Ty*>(scalarBuf);
+#pragma omp parallel for if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))      
+      for( int i = 0; i<sz; ++i) new (&(b[ i])) Ty();
       return b;
     }
   }
@@ -73,10 +73,15 @@ private:
 
   Ty* New( SizeT s)
   {
-// better align all data, also POD    
-// as compound types might benefit from it as well
-#ifdef USE_EIGEN 
-    return Eigen::internal::aligned_new<Ty>( s);
+// We should align all our arrays on the boundary that will be beneficial for the acceleration of the machine GDL is built,
+// as sse and other avx need 32,64..512 alignment. Not necessary on the EIGEN_ALIGN_16, and not only if we use Eigen:: as some code (median filter, random)
+// uses hardware acceleration independently of whatever speedup Eigen:: may propose. Note that according to http://eigen.tuxfamily.org/dox/group__CoeffwiseMathFunctions.html
+// Eigen:: may eventually use sse2 or avx on reals but not doubles, etc.
+// As Eigen::internal::aligned_new is SLOW FOR NON-PODS and sdt::complex is a NON-POD for the compiler (but not for us), we use gdlAlignedMalloc for all PODS.
+// Normally, Everything should be allocated using gdlAlignedMalloc with the 'good' alignment, not only in the USE_EIGEN case.
+// Unfortunately gdlAlignedMalloc uses Eigen::internal::alogned_malloc at the moment. Todo Next.
+#ifdef USE_EIGEN
+   if (IsPOD) return (Ty*) gdlAlignedMalloc(s*sizeof(Ty)); else return Eigen::internal::aligned_new<Ty>( s);
 #else
     return new Ty[ s];
 #endif
@@ -92,8 +97,8 @@ public:
   if( IsPOD)
     {
 #ifdef USE_EIGEN  
-    if( buf != reinterpret_cast<Ty*>(scalarBuf)) 
-	Eigen::internal::aligned_delete( buf, sz);
+    if ( buf != reinterpret_cast<Ty*>(scalarBuf)) gdlAlignedFree(buf);
+//	Eigen::internal::aligned_delete( buf, sz);
 #else
     if( buf != reinterpret_cast<Ty*>(scalarBuf)) 
 	delete[] buf; // buf == NULL also possible
@@ -103,39 +108,24 @@ public:
   else
     {
 #ifdef USE_EIGEN  
-    if( buf != reinterpret_cast<Ty*>(scalarBuf)) 
-	Eigen::internal::aligned_delete( buf, sz);
+    if( buf != reinterpret_cast<Ty*>(scalarBuf)) Eigen::internal::aligned_delete( buf, sz);
     else
-      for( int i = 0; i<sz; ++i) 
-	buf[i].~Ty();
+      for( int i = 0; i<sz; ++i) buf[i].~Ty();
 #else
-    if( buf != reinterpret_cast<Ty*>(scalarBuf)) 
-	delete[] buf; // buf == NULL also possible
+    if( buf != reinterpret_cast<Ty*>(scalarBuf)) delete[] buf; // buf == NULL also possible
     else
-      for( int i = 0; i<sz; ++i) 
-	buf[i].~Ty();
+      for( int i = 0; i<sz; ++i) buf[i].~Ty();
 #endif
     }
   }
 
   GDLArray( const GDLArray& cp) : sz( cp.size())
   {
-    if( IsPOD)
-    {
-      try {
-	  buf = (cp.size() > smallArraySize) ? New(cp.size()) /*New T[ cp.size()]*/ : InitScalar();
-      } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-
-      std::memcpy(buf,cp.buf,sz*sizeof(T));
-    }
-    else
-    {
       try {
 	buf = (cp.size() > smallArraySize) ? New(cp.size()) /*new Ty[ cp.size()]*/ : InitScalar();
       } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-      for( SizeT i=0; i<sz; ++i)
-	buf[ i] = cp.buf[ i];
-    }
+#pragma omp parallel for if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+      for( SizeT i=0; i<sz; ++i)	buf[ i] = cp.buf[ i];
   }
 
   GDLArray( SizeT s, bool dummy) : sz( s)
@@ -150,31 +140,17 @@ public:
     try {
 	    buf = (s > smallArraySize) ? New(s) /*T[ s]*/ : InitScalar();
     } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-
-    for( SizeT i=0; i<sz; ++i)
-      buf[ i] = val;
+#pragma omp parallel for if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    for( SizeT i=0; i<sz; ++i) buf[ i] = val;
   }
   
   GDLArray( const T* arr, SizeT s) : sz( s)
-  {
-    if( IsPOD)
-    {
-      try
-      {
-	      buf = ( s > smallArraySize ) ? New(s) /*T[ s]*/: InitScalar();
-      }
-      catch ( std::bad_alloc& ) { ThrowGDLException ( "Array requires more memory than available" ); }
-
-      std::memcpy(buf,arr,sz*sizeof(T));
-    }
-    else
-    {    
+  {   
       try {
 	buf = (s > smallArraySize) ? New(s) /*new Ty[ s]*/: InitScalar();
       } catch (std::bad_alloc&) { ThrowGDLException("Array requires more memory than available"); }
-      for( SizeT i=0; i<sz; ++i)
-	buf[ i] = arr[ i];
-      }
+#pragma omp parallel for if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz)) 
+      for( SizeT i=0; i<sz; ++i)	buf[ i] = arr[ i];
   }
 
 #else // GDLARRAY_CACHE
@@ -227,6 +203,7 @@ void InitFrom( const GDLArray& right )
   }
   else
   {
+#pragma omp parallel for   if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     for ( SizeT i=0; i<sz; ++i )
 	buf[ i] = right.buf[ i];
   }    
@@ -242,6 +219,7 @@ GDLArray& operator= ( const GDLArray& right )
   }
   else
   {
+#pragma omp parallel for   if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     for ( SizeT i=0; i<sz; ++i )
       buf[ i] = right.buf[ i];
   }
@@ -250,12 +228,14 @@ GDLArray& operator= ( const GDLArray& right )
 
   GDLArray& operator+=( const GDLArray& right) throw()
   {
+#pragma omp parallel for   if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     for( SizeT i=0; i<sz; ++i)
       buf[ i] += right.buf[ i];
     return *this;
   }
   GDLArray& operator-=( const GDLArray& right) throw()
   {
+#pragma omp parallel for   if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     for( SizeT i=0; i<sz; ++i)
       buf[ i] -= right.buf[ i];
     return *this;
@@ -263,12 +243,14 @@ GDLArray& operator= ( const GDLArray& right )
 
   GDLArray& operator+=( const T& right) throw()
   {
+#pragma omp parallel for   if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     for( SizeT i=0; i<sz; ++i)
       buf[ i] += right;
     return *this;
   }
   GDLArray& operator-=( const T& right) throw()
   {
+#pragma omp parallel for   if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     for( SizeT i=0; i<sz; ++i)
       buf[ i] -= right;
     return *this;

@@ -49,6 +49,7 @@ namespace lib {
 
   BaseGDL* conj_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
   BaseGDL* imaginary_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
+  BaseGDL* real_part_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
 
   BaseGDL* exp_fun( BaseGDL* p0, bool isReference);//( EnvT* e);
 
