@@ -42,26 +42,28 @@ function PATH_SEP, parent_directory=parent_directory, $
                    search_path=search_path, test=test
 ON_ERROR, 2
 
-if KEYWORD_SET(search_path) then begin
-   if KEYWORD_SET(parent_directory) then begin
-      MESSAGE, /info, 'Conflicting keywords specified. Returning SEARCH_PATH.'
-   endif
-   array = [':', ';']
-endif else begin
-   if KEYWORD_SET(parent_directory) then begin
-      return, '..'
-   endif else begin
-      array = ['/', '\']
-   endelse
-endelse
+if KEYWORD_SET(parent_directory) then begin
+	if KEYWORD_SET(search_path) then $
+      MESSAGE, /info, 'Conflicting keywords specified. Returning SEARCH_PATH.' $
+		else $
+		   return, '..'
+endif
 
-OS = ['unix', 'Windows']
-iOS = WHERE(OS eq !version.os_family)
+if KEYWORD_SET(search_path) then $
+   if !version.os_family eq 'unix' then return,':' else return,';'
 
-if iOS LT 0 then MESSAGE, 'bad detection of OS_Family'
+defsysv,'!gdl',exist=exist
+if exist then begin
+    ret = '/'
+    catch, badname
+    if badname then return, ret
+    if ~ !gdl.gdl_posix then ret = '\' 
+    catch,/cancel
+    return, ret
+endif
+
+if !version.os_family eq 'Windows' then return,'\' else return,'/'
 
 if KEYWORD_SET(test) then STOP
-
-return, (array[iOS])[0]  ; force conversion
 
 end

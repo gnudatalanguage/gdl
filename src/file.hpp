@@ -19,6 +19,9 @@
 #define FILE_HPP_
 
 namespace lib {
+#ifdef _WIN32
+  extern bool posixpaths;
+#endif
 
   // library functions
   BaseGDL* file_test( EnvT* e);
@@ -56,6 +59,7 @@ namespace lib {
   // SA:
   void file_mkdir( EnvT* e);
   void file_delete( EnvT* e);
+  bool gdlarg_present(const char *s);
 
 } // namespace
 

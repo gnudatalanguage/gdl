@@ -31,7 +31,11 @@
 #include "str.hpp"
 
 #include <antlr/Token.hpp>
-
+#ifdef _WIN32
+    namespace lib {
+      extern bool posixpaths;
+    }
+#endif
 template<typename T>  class Is_eq: public std::unary_function<T,bool>
 {
   std::string name;
@@ -350,6 +354,24 @@ public:
 
   std::string GetFilename()
   {
+#ifdef _WIN32
+    if (lib::posixpaths) {
+        std::string name;
+        name = file;
+        char* ptr = (char *) name.c_str();
+        for(size_t i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
+        return name;
+    }
+/*  does not work !! (??)
+     if (lib::posixpaths) for(;;)
+    {
+      size_t pp;  // This is to make path names uniform w.r.t. Unix
+                //           and compliant with posix shell.
+        pp=name.find( "\\",pp);
+        if (pp==std::string::npos) break;
+        name[pp]='/';
+      } */
+#endif
     return file;
   }
 

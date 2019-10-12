@@ -340,6 +340,7 @@ namespace lib {
   string PathSeparator()
   {
 #ifdef _WIN32
+    if (lib::posixpaths) return string ("/");
     return string ("\\");
 #else
     return string ("/");
@@ -369,7 +370,8 @@ namespace lib {
       size_t pp;  // This is to make path names uniform w.r.t. Unix
                 //           and compliant with posix shell.
       pp=0;
-    for(;;){
+    if (lib::posixpaths) for(;;)
+    {
         pp=cur.find( "\\",pp);
         if (pp==string::npos) break;
         cur[pp]='/';
@@ -386,6 +388,12 @@ namespace lib {
     DString cur = GetCWD();
     e->SetKW( 0, new DStringGDL( cur));
       }
+#ifdef _WIN32 // backdoor setting of posixpaths
+    if( !lib::posixpaths && lib::gdlarg_present("posix") ) {
+        lib::posixpaths = true;
+        cout << "posixpaths turned on. !gdl.gdl_posiz was not set. (restart with --posix to set)" << endl;
+        }
+#endif
 
     SizeT nParam=e->NParam(); 
     if( nParam == 0) return;
@@ -407,7 +415,8 @@ namespace lib {
       dir = string( homeDir) + "/" + dir.substr(1);
           size_t pp; 
           pp=0;
-        for(;;){
+        if (lib::posixpaths) for(;;)
+        {
             pp=dir.find( "\\",pp);
             if (pp==string::npos) break;
             dir[pp]='/';
@@ -438,7 +447,7 @@ static bool FindInDir( const DString& dirN, const DString& pat)
     MultiByteToWideChar(CP_UTF8, 0, pat.c_str(), -1, patW, MAX_PATH+1);
 #endif
     DString root = dirN;
-    AppendIfNeeded( root, "/");
+    AppendIfNeeded( root, PathSeparator());
 
     for(;;)
       {
@@ -487,7 +496,7 @@ static void ExpandPathN( FileListT& result,
     //    fnFlags |= FNM_NOESCAPE;
 
     DString root = dirN;
-    AppendIfNeeded( root, "/");
+    AppendIfNeeded( root, PathSeparator());
     
     struct stat64    statStruct;
 
@@ -786,7 +795,7 @@ static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pa
 
     DString prefix = root;
 
-    if(root != "") AppendIfNeeded(prefix,"/");
+    if(root != "") AppendIfNeeded(prefix,PathSeparator());
 // If Dir_specification does not have a "/" at end then we will include <dirspec>/.. 
 // but this is a fix for other issues.
 //    if(onlyDir) fL.push_back(prefix);
@@ -846,7 +855,7 @@ static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pa
  
             if( match == 0) {
             if(  onlyDir ) {
-                if( mark ) filepath.append("/");
+                if( mark ) filepath.append(PathSeparator());
                 if(S_ISDIR(statStruct.st_mode) != 0) fL.push_back( filepath);
                 continue;
             }
@@ -878,7 +887,7 @@ static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pa
                     (access(fpC, accessmode) != 0) ) continue;
                 }
             if( isaDir and mark) {
-                 filepath.append("/"); fpC = filepath.c_str();
+                 filepath.append(PathSeparator()); fpC = filepath.c_str();
           }
             if(forceAbsPath) {
         char actualpath [PATH_MAX+1];
@@ -886,7 +895,7 @@ static void PatternSearch( FileListT& fL, const DString& dirN, const DString& pa
                 ptr = realpath(fpC, actualpath);
                 if( ptr != NULL ) {
 #ifdef _WIN32
-    for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
+    if (lib::posixpaths) for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
 #endif          
                     fL.push_back( string(ptr));
                 }
@@ -1250,14 +1259,15 @@ static std::string Dirname(const string& tmp,
       size_t pp;  // This is to make path names uniform w.r.t. Unix
                 //           and compliant with posix shell.
       pp=0;
-    for(;;){
+    if (lib::posixpaths) for(;;)
+    {
         pp=dname.find( "\\",pp);
         if (pp==string::npos) break;
         dname[pp]='/';
       }
         
 #endif
-    if (mark_dir) dname = dname + string("/");
+    if (mark_dir) dname = dname + lib::PathSeparator();
     return dname;
   }
 
@@ -1300,7 +1310,7 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
             char *ptr;
             ptr = realpath("../", actualpath);
 #ifdef _WIN32
-    for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
+                if (lib::posixpaths) for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
 #endif          
             dir = string(ptr) + dir.substr(2);
             }
@@ -1323,7 +1333,8 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
               size_t pp;  // This is to make path names uniform w.r.t. Unix
                         //           and compliant with posix shell.
               pp=0;
-            for(;;){
+                if (lib::posixpaths) for(;;)
+                {
                 pp=dir.find( "\\",pp);
                 if (pp==string::npos) break;
                 dir[pp]='/';
@@ -1417,7 +1428,7 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
     char *ptr;
     ptr = realpath(symlinkpath, actualpath);
 #ifdef _WIN32
-    for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
+    if (lib::posixpaths) for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
 #endif          
     if( ptr != NULL ){
       (*res)[r] =string(ptr);
@@ -2111,7 +2122,7 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
         ptr = &actualpath[0];
 #else
           ptr = realpath(symlinkpath, actualpath);
-    for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
+    if (lib::posixpaths) for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
         
 #endif
           if( ptr != NULL ){
