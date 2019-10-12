@@ -59,7 +59,7 @@ cmake  -G"MSYS Makefiles" /c/projects/gdl \
       -DGRAPHICSMAGICKDIR=$GMDIR \
       -DPSLIB=OFF -DNETCDF=$doCDF -DHDF=OFF -DHDF5=$doCDF \
       -DTIFF=$doTIFF -DGEOTIFF=$doGEO -DLIBPROJ4=$doTIFF \
-      -DFFTW=ON -DGSHHS=OFF -DPYTHON=OFF \
+      -DFFTW=ON -DPYTHON=OFF \
       -DUSE_WINGDI_NOT_WINGCC=ON | tee cmake.out
 
 echo "CONTINUE FROM CMAKE"
