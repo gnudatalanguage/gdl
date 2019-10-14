@@ -27,21 +27,187 @@
 #include "prognode.hpp"
 #include "basic_pro_jmg.hpp"
 
-#define MAXNDLL 40
-
 //#define GDL_DEBUG
 #undef GDL_DEBUG
 
-#if defined (_WIN32) && !defined(__CYGWIN__)
-#include "gtdhelper.hpp" // just a workaround, using QueryPerformanceCounter is better
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#   include "gtdhelper.hpp" // just a workaround, using QueryPerformanceCounter is better
+    typedef HMODULE handle_t;
+#else
+    typedef void* handle_t;
 #endif
 
 namespace lib {
 
-  using namespace std;
+    using namespace std;
 
-  LibPro dynPro[MAXNDLL/2];
-  LibFun dynFun[MAXNDLL/2];
+    void CleanupProc( DLibPro* proc ) {
+        auto it = libProList.begin();
+        auto itE = libProList.end();
+        for( ; it != itE; it++ ) {
+            if( *it == proc ) break;
+        }
+        if( it < itE ) {
+            delete *it;
+            libProList.erase( it );
+        }
+    }
+
+    void CleanupFunc( DLibFun* func ) {
+        auto it = libFunList.begin();
+        auto itE = libFunList.end();
+        for( ; it != itE; it++ ) {
+            if( *it == func ) break;
+        }
+        if( it < itE ) {
+            delete *it;
+            libFunList.erase( it );
+        }
+    }
+
+    struct DllContainer {
+        DllContainer( const DllContainer& ) = delete;
+        DllContainer( DllContainer&& rhs ) : handle(nullptr) { std::swap( handle, rhs.handle ); };
+        DllContainer( const string& fn ) : handle(nullptr) { load(fn); }
+        ~DllContainer() { unload( true ); }
+        void load( const string& fn ) {
+            if( handle ) return;     // already loaded.
+            string msg;
+#if defined(_WIN32) && !defined(__CYGWIN__)
+            WCHAR u_shrdimgName[255];
+            MultiByteToWideChar(CP_ACP, 0, fn.c_str(), fn.length(), u_shrdimgName, 255);
+            handle = LoadLibraryW(u_shrdimgName);
+            if( !handle ) {
+                msg = "Couldn't open " + fn;
+            }
+#else
+            handle = dlopen(fn.c_str(), RTLD_LAZY);
+            if( !handle ) {
+                msg = "Couldn't open " + fn;
+                char* error = dlerror();
+                if( error ) {
+                    msg += string(": ") + error;
+                }
+            }
+#endif
+            if( !handle ) {
+                throw runtime_error( msg );
+            }
+        }
+        void unload( bool force=false ) {
+            if( !force && !(my_procs.empty() && my_funcs.empty()) ) {
+                return;
+            }
+            
+            for( auto&p: my_procs ) {
+                all_procs.erase(p);
+            }
+            for( auto&f: my_funcs ) {
+                all_funcs.erase(f);
+            }
+            
+#if defined(_WIN32) && !defined(__CYGWIN__)
+            if( handle ) FreeLibrary(handle);
+#else
+            if( handle ) dlclose(handle);
+#endif
+            handle = nullptr;
+        }
+        static DllContainer& get( const string& fn ) {
+            auto res = libs.emplace( std::pair<string,DllContainer>(fn, DllContainer(fn)) );
+            DllContainer& l = res.first->second;
+            if( ! l.isLoaded() ) {
+                l.load(fn);
+            }
+            return l;
+        }
+        static void unload( const string& fn, bool force=false ) {
+            if( libs.count(fn) ) {
+                DllContainer& l = libs.at( fn );
+                l.unload( force );
+            }
+        }
+        static void clear( void ) {
+            libs.clear();
+            all_procs.clear();
+            all_funcs.clear();
+        }
+        void RegsisterSymbol( const string& lib_symbol, const string& proc_name, DLong funcType, DLong max_args=16, DLong min_args=0, const string keyNames[]=NULL ) {
+            if( !handle ) {
+                throw runtime_error( "Library not loaded!" );
+            } else if( funcType < 0 || funcType>1 ) {
+                throw runtime_error( "Improper function type: "+to_string(funcType) );
+            }
+            if( funcType == 0 ) {
+                RegsisterProc( lib_symbol, proc_name, max_args, min_args, keyNames );
+            } else {
+                RegsisterFunc( lib_symbol, proc_name, max_args, min_args, keyNames );
+            }
+        }
+        void UnregsisterSymbol( const string& proc_name, DLong funcType ) {
+            if( !handle ) {
+                throw runtime_error( "Library not loaded!" );
+            } else if( funcType < 0 || funcType>1 ) {
+                throw runtime_error( "Improper function type: "+to_string(funcType) );
+            }
+            if( (funcType == 0) && my_procs.count(proc_name) ) {
+                all_procs.erase( proc_name );
+                my_procs.erase( proc_name );
+            } else if( my_funcs.count(proc_name) ) {
+                all_funcs.erase( proc_name );
+                my_funcs.erase( proc_name );
+            }
+        }
+        template <typename T>
+        T LinkAs( const string& lib_symbol, const string& proc_name ) { 
+            T fPtr = nullptr;
+            char* error = nullptr;
+#if defined(_WIN32) && !defined(__CYGWIN__)
+            fPtr = (T) GetProcAddress( handle, lib_symbol.c_str() );
+#else
+            error = dlerror();  // clear error
+            fPtr = (T) dlsym( handle, lib_symbol.c_str() );
+            error = dlerror();
+#endif
+            if( error ) {
+                throw runtime_error( "Failed to register DLL-routine: " + proc_name + string(" -> ") + lib_symbol + string(" : ") + error );
+            }
+            return fPtr;
+        }
+        void RegsisterProc( const string& lib_symbol, const string& proc_name, DLong max_args, DLong min_args, const string keyNames[] ) { 
+            if( all_procs.count( proc_name ) ) return;
+            all_procs[proc_name].reset(
+                new DLibPro( LinkAs<LibPro>( lib_symbol, proc_name ), proc_name.c_str(), max_args, keyNames, NULL, min_args),
+                CleanupProc
+            );
+            my_procs.insert(proc_name);
+        }
+        void RegsisterFunc( const string& lib_symbol, const string& func_name, DLong max_args, DLong min_args, const string keyNames[] ) { 
+            if( all_funcs.count( func_name ) ) return;
+            all_funcs[func_name].reset(
+                new DLibFun( LinkAs<LibFun>( lib_symbol, func_name ), func_name.c_str(), max_args, keyNames, NULL, min_args),
+                CleanupFunc
+            );
+            my_funcs.insert(func_name);
+        }
+        bool isLoaded( void ) { return handle; };
+        
+        handle_t handle;                                    // Handle to the linked DLL
+        
+        set<string> my_procs;                               // list of procedures linked within this DLL
+        set<string> my_funcs;                               // list of functions linked within this DLL
+        
+        static map<string,shared_ptr<DLibPro>> all_procs;   // list of ALL procedures linked (using linkimage)
+        static map<string,shared_ptr<DLibFun>> all_funcs;   // list of ALL functions linked (using linkimage)
+        static map<string,DllContainer> libs;               // list of ALL DLLs linked (using linkimage)
+        
+    };
+
+    // Instantiate static members
+    map<string,shared_ptr<DLibPro>> DllContainer::all_procs;
+    map<string,shared_ptr<DLibFun>> DllContainer::all_funcs;
+    map<string,DllContainer> DllContainer::libs;
+
 
   void point_lun( EnvT* e) 
   { 
@@ -81,111 +247,125 @@ namespace lib {
     }
   }
 
-  void linkimage( EnvT* e) 
-  {
+  void linkimage( EnvT* e ) {
 
-#if defined(_WIN32) && !defined(__CYGWIN__)
-    HMODULE module[MAXNDLL];
-#else
-    const char *error;
-    void *module[MAXNDLL];
-#endif
-    static int count_pro=0;
-    static int count_fun=0;
-    int count;
-
-    if (count_pro == MAXNDLL/2) {
-      printf("Maximum number of dynamic procedures reached: %d\n", 
-	     MAXNDLL/2);
-      return;
-    }
-
-    if (count_fun == MAXNDLL/2) {
-      printf("Maximum number of dynamic functions reached: %d\n", 
-	     MAXNDLL/2);
-      return;
-    }
-
-    count = count_pro + count_fun;
-
-    SizeT nParam=e->NParam();
-
+    SizeT nP = e->NParam(2);
+ 
     DString funcName;
-    e->AssureScalarPar<DStringGDL>( 0, funcName);
-    DString upCasefuncName = StrUpCase( funcName);
+    e->AssureScalarPar<DStringGDL>( 0, funcName );
+    DString upCasefuncName = StrUpCase( funcName );
 
     DString shrdimgName;
-    e->AssureScalarPar<DStringGDL>( 1, shrdimgName);
+    e->AssureScalarPar<DStringGDL>( 1, shrdimgName );
 
-    DLong funcType;
-    e->AssureLongScalarPar( 2, funcType);
-
+    DLong funcType = 0;
+    if( nP > 2 ) {
+        e->AssureLongScalarPar( 2, funcType );
+    }
+    
     DString entryName;
-    e->AssureScalarPar<DStringGDL>( 3, entryName);
-
-    /* Load dynamically loaded library */
-#if defined(_WIN32) && !defined(__CYGWIN__)
-    WCHAR u_shrdimgName[255];
-    MultiByteToWideChar(CP_ACP, 0, shrdimgName.c_str(), shrdimgName.length(), u_shrdimgName, 255);
-    module[count] = LoadLibraryW(u_shrdimgName);
-
-    if (!module[count]) {
-      fprintf(stderr, "Couldn't open %s\n", 
-	      shrdimgName.c_str());
-      return;
+    if( nP > 3 ) {
+        e->AssureScalarPar<DStringGDL>( 3, entryName );
     }
-#else
-    module[count] = dlopen(shrdimgName.c_str(), RTLD_LAZY);
+    
+    static int functIx = e->KeywordIx("FUNCT");
+    static int keywordsIx = e->KeywordIx("KEYWORDS");
+    static int maxargsIx = e->KeywordIx("MAX_ARGS");
+    static int minargsIx = e->KeywordIx("MIN_ARGS");
+    
+    if( e->KeywordPresent( functIx ) ) funcType = 1;
+    
+    DLong max_args = 16;
+    e->AssureLongScalarKWIfPresent( maxargsIx, max_args );
+    DLong min_args = 0;
+    e->AssureLongScalarKWIfPresent( minargsIx, min_args );
 
-    if (!module[count]) {
-      fprintf(stderr, "Couldn't open %s: %s\n", 
-	      shrdimgName.c_str(), dlerror());
-      return;
-    }
-
-    /* Get symbol */
-    dlerror();
-#endif
-
-#if defined(_WIN32) && !defined(__CYGWIN__)
-    if (funcType == 0) {
-      dynPro[count_pro] = 
-	(LibPro) GetProcAddress(module[count], entryName.c_str());
-    } else if (funcType == 1) {
-      dynFun[count_fun] = 
-	(LibFun) GetProcAddress(module[count], entryName.c_str());
-    } else {
-      printf("Improper function type: %d\n", funcType);
-      FreeLibrary(module[count]);
-      return;
-    }
-#else
-    if (funcType == 0) {
-      dynPro[count_pro] = 
-        (LibPro) dlsym(module[count], entryName.c_str());
-    } else if (funcType == 1) {
-      dynFun[count_fun] = 
-	(LibFun) dlsym(module[count], entryName.c_str());
-    } else {
-      printf("Improper function type: %d\n", funcType);
-      dlclose(module[count]);
-      return;
+    vector<string> keywords;
+    string* kw_ptr = nullptr;
+    if( e->KeywordSet( keywordsIx ) ) {
+        DStringGDL* kws = e->GetKWAs<DStringGDL>( keywordsIx );
+        if( kws ) {
+            SizeT nEL = kws->N_Elements();
+            for( SizeT i=0; i<nEL; ++i ) {
+                string tmpS = StrUpCase((*kws)[i]);
+                if( !tmpS.empty() ) keywords.push_back( tmpS );
+            }
+        }
     }
 
-    if ((error = dlerror())) {
-      fprintf(stderr, "Couldn't find %s: %s\n", entryName.c_str(), error);
-      return;
+    if( !keywords.empty() ) {
+        std::sort( keywords.begin(), keywords.end() ); 
+        keywords.push_back("");
+        kw_ptr = keywords.data();
     }
-#endif
-    if (funcType == 0){
-      new DLibPro(lib::dynPro[count_pro], upCasefuncName.c_str(), 16);
-      count_pro++;
-    } else if (funcType == 1) {
-      new DLibFun(lib::dynFun[count_fun], upCasefuncName.c_str(), 16);
-      count_fun++;
+
+    if( entryName.empty() ) {
+        entryName = funcName;
     }
+
+    try {
+        DllContainer& lib = DllContainer::get( shrdimgName );
+        lib.RegsisterSymbol( entryName, upCasefuncName, funcType, max_args, min_args, kw_ptr );
+    } catch ( const std::exception& ex ) {
+        e->Throw("Error linking procedure/DLL: " + funcName + " -> " + entryName + "  (" + shrdimgName + ") : " + ex.what() );
+    }
+    
+  }
+  
+  void unlinkimage( EnvT* e ) {
+
+    e->NParam(1);
+    
+    DString shrdimgName;
+    e->AssureScalarPar<DStringGDL>( 0, shrdimgName );
+    
+    bool force = false;
+    static int forceIx = e->KeywordIx("FORCE");
+    if( e->KeywordPresent( forceIx ) ) force = true;
+
+    try {
+        DllContainer::unload( shrdimgName, force );
+    } catch ( const std::exception& ex ) {
+        e->Throw("Error unlinkimage:  (" + shrdimgName + ") : " + ex.what() );
+    }
+    
   }
 
+  
+  void unlinksymbol( EnvT* e ) {
+
+    SizeT nP = e->NParam(2);
+ 
+    DString funcName;
+    e->AssureScalarPar<DStringGDL>( 0, funcName );
+    DString upCasefuncName = StrUpCase( funcName );
+
+    DString shrdimgName;
+    e->AssureScalarPar<DStringGDL>( 1, shrdimgName );
+    
+    DLong funcType = 0;
+    if( nP > 2 ) {
+        e->AssureLongScalarPar( 2, funcType );
+    }
+    
+    static int functIx = e->KeywordIx("FUNCT");
+    if( e->KeywordPresent( functIx ) ) funcType = 1;
+
+    try {
+        DllContainer& lib = DllContainer::get( shrdimgName );
+        lib.UnregsisterSymbol( upCasefuncName, funcType );
+        lib.unload();       // will only unload if all symbols have been unregistered.
+    } catch ( const std::exception& ex ) {
+        e->Throw("Error unlinksymbol: " + funcName + "  (" + shrdimgName + ") : " + ex.what() );
+    }
+    
+  }
+
+  
+  void ResetDLLs( void ) {
+      DllContainer::clear();
+  }
+  
   void wait_pro( EnvT* e) 
   { 
     e->NParam( 1);//, "WAIT");

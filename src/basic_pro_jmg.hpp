@@ -26,8 +26,11 @@
 
 namespace lib {
 
-  void point_lun( EnvT* e);
-  void linkimage( EnvT* e);
+  void point_lun( EnvT* e );
+  void linkimage( EnvT* e );
+  void unlinkimage( EnvT* e );
+  void unlinksymbol( EnvT* e );
+  void ResetDLLs( void );
   void wait_pro( EnvT* e);
 
   void kwtest( EnvT* e);
