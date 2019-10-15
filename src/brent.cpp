@@ -15,6 +15,11 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "includefirst.hpp"
+#include "datatypes.hpp"
+#include "envt.hpp"
+#include "dinterpreter.hpp"
+
 # include <cmath>
 # include <cstdlib>
 # include <cstring>
@@ -2620,10 +2625,6 @@ void svsort ( int n, double d[], double v[] )
 }
 
 
-#include "includefirst.hpp"
-#include "datatypes.hpp"
-#include "envt.hpp"
-#include "dinterpreter.hpp"
 
 namespace lib {
 

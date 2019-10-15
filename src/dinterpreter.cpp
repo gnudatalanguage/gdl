@@ -32,6 +32,7 @@
 #include "dinterpreter.hpp"
 #include "gdljournal.hpp"
 #include "gdleventhandler.hpp"
+#include "basic_pro_jmg.hpp"
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -1807,6 +1808,7 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
         ResetObjects();
         ResetHeap();
         if (fullResetCmd) {
+          lib::ResetDLLs();
           PurgeContainer(libFunList);
           PurgeContainer(libProList);
         }

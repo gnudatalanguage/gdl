@@ -155,7 +155,7 @@ fill=0
 poly=0
 if n_elements(fillvalue) gt 0 then begin
   fill=fillvalue
-  poly=1
+  if (fill ne 0) then poly=1
 endif
 
 ; nothing=doContinents;
@@ -210,12 +210,12 @@ endif
 
 if (doContinents) then begin ; coasts = continents + lakes. coasts may be more complicated depending on scale.  NaturalEarth contours are not of the "fillable" type.
    compound = map_getcompound( ['continents', 'continents_med'], 'Continents', doHires)
-   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct  ;, attrname=attrname, attrval=attrval
+   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct, /force_fill ;, attrname=attrname, attrval=attrval
 endif
 
 if (doCoasts) then begin ; coasts = continents + lakes. coasts may be more complicated depending on scale.
    compound = map_getcompound( ['ne_110m_lakes', 'ne_10m_lakes'], 'Lakes', doHires)
-   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct  ;, attrname=attrname, attrval=attrval
+   gdlDrawShapeCompound, compound, zvalue, extra, POLYFILL=poly, MAPSTRUCT=mapStruct, /force_fill  ;, attrname=attrname, attrval=attrval
 endif
 
 

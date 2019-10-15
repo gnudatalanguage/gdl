@@ -24,22 +24,16 @@
 // they all have to be included from datatypes
 #ifdef INCLUDE_PYTHONGDL_CPP
 
-//#include "includefirst.hpp"
+#include "includefirst.hpp"
 
-// if build as a python module
-//#ifdef PYTHON_MODULE
+#include <memory> // auto_ptr
+#include <vector> 
 
-// already included from includefirst
-//#include <Python.h>
-
-//#include <memory> // auto_ptr
-//#include <vector> 
-
-//#include "datatypes.hpp"
-//#include "envt.hpp"
-//#include "sigfpehandler.hpp"
-//#include "terminfo.hpp"
-//#include "dinterpreter.hpp"
+#include "datatypes.hpp"
+#include "envt.hpp"
+#include "sigfpehandler.hpp"
+#include "terminfo.hpp"
+#include "dinterpreter.hpp"
 
 #include "gdleventhandler.hpp"
 

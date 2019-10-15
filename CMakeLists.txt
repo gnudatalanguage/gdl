@@ -116,7 +116,7 @@ set(HDF5DIR "" CACHE PATH "GDL: Specifiy the HDF5 directory tree")
 set(FFTW ON CACHE BOOL "GDL: Enable FFTW ?")
 set(FFTWDIR "" CACHE PATH "GDL: Specifiy the FFTW directory tree")
 
-set(LIBPROJ4 OFF CACHE BOOL "GDL: Enable LIBPROJ4 ?")
+set(LIBPROJ4 ON CACHE BOOL "GDL: Enable LIBPROJ4 ?")
 set(LIBPROJ4DIR "" CACHE PATH "GDL: Specifiy the LIBPROJ4 directory tree")
 
 set(MPI OFF CACHE BOOL "GDL: Enable MPI ?")
@@ -266,7 +266,7 @@ if(READLINE)
       message(FATAL_ERROR "GNU readline was not found.\n"
     "Use -DREADLINEDIR=no to explicitely disable it.\n"
     "(suitable Debian/Ubuntu package: libreadline-gplv2-dev)\n"
-    "(suitable Fedora package: readline-devel)")
+    "(suitable Fedora/CentOS package readline-devel)")
     endif(EDITLINE)    
   endif(READLINE_FOUND)
 endif(READLINE)
@@ -317,7 +317,7 @@ else(ZLIB_FOUND)
     message(FATAL_ERROR "ZLib library is required but was not found.\n"
     "Use -DZLIBDIR=DIR to specify the zlib directory tree.\n"
         "(suitable Debian/Ubuntu package: zlib1g-dev)\n"
-        "(suitable Fedora package: zlib-devel)")
+        "(suitable Fedora/CentOS package zlib-devel)")
 endif(ZLIB_FOUND)
 
 # libpng
@@ -336,7 +336,7 @@ if(PNGLIB)
         "Use -DPNGLIBDIR=DIR to specify the libpng directory tree.\n"
         "Use -DPNGLIB=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libpng-dev)\n"
-                "(suitable Fedora package: libpng-devel)")
+                "(suitable Fedora/CentOS package libpng-devel)")
     endif(PNG_FOUND)
 endif(PNGLIB)
 
@@ -391,7 +391,7 @@ else(GSL_FOUND)
     message(FATAL_ERROR "Gnu Scientific library (1.7 or higher) and libgslcblas are mandatory.\n"
     "Use -DGSLDIR=DIR to specify the gsl directory tree.\n"
         "(suitable Debian/Ubuntu package: libgsl0-dev)\n"
-        "(suitable Fedora package: gsl-devel)")
+        "(suitable Fedora/CentOS package gsl-devel)")
 endif(GSL_FOUND)
 
 if(UNIX)
@@ -449,7 +449,7 @@ else(PLPLOT_FOUND)
     message(FATAL_ERROR "plplot library is required but was not found.\n"
     "Use -DPLPLOTDIR=DIR to specify the plplot directory tree.\n"
         "(suitable Debian/Ubuntu packages: libplplot-dev, [plplot9-driver-xwin])"
-        "(suitable Fedora package: plplot-devel)")
+        "(suitable Fedora/CentOS package plplot-devel)")
 endif(PLPLOT_FOUND)
 
 if(PLPLOT_FOUND)
@@ -510,7 +510,7 @@ if(GRAPHICSMAGICK)
         "GRAPHICSMAGICK is strongly suggested but was not found.
         Use -DGRAPHICSMAGICKDIR=DIR to specify the GraphicsMagick directory tree.
         Use -DGRAPHICSMAGICK=OFF to not use it.
-                (suitable Fedora package: GraphicsMagick-c++-devel
+                (suitable Fedora/CentOS package GraphicsMagick-c++-devel
            Debian/Ubuntu package: libgraphicsmagick++1-dev)\n")
         message( STATUS 
         "Looking for ImageMagick")
@@ -545,7 +545,7 @@ if(MAGICK)
     "Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
     "Use -DMAGICK=OFF to not use it.\n"
         "(suitable Debian/Ubuntu package: libmagick++-dev)\n"
-        "(suitable Fedora package: ImageMagick-c++-devel)")
+        "(suitable Fedora/CentOS package ImageMagick-c++-devel)")
     endif(MAGICKXXCONFIG)
     set(LIBRARIES ${LIBRARIES} ${ImageMagick_LIBRARIES})
     include_directories(${ImageMagick_INCLUDE_DIRS})
@@ -555,7 +555,7 @@ if(MAGICK)
       "Use -DMAGICKDIR=DIR to specify the ImageMagick directory.\n"
       "Use -DMAGICK=OFF to not use it.\n"
       "(suitable Debian/Ubuntu package: libmagick++-dev)\n"
-      "(suitable Fedora package: ImageMagick-c++-devel)")
+      "(suitable Fedora/CentOS package ImageMagick-c++-devel)")
   endif(ImageMagick_FOUND)
 endif(MAGICK)
 
@@ -601,7 +601,7 @@ if(WXWIDGETS)
         "Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
         "Use -DWXWIDGETS=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libwxgtk2.8-dev)\n"
-                "(suitable Fedora package: wxGTK-devel)")
+                "(suitable Fedora/CentOS package wxGTK-devel)")
     endif(wxWidgets_FOUND)
 endif(WXWIDGETS)
 
@@ -637,7 +637,8 @@ if(GEOTIFF AND USE_TIFF)
         message(FATAL_ERROR
         "libgeotiff is required for GeoTIFF support but was not found.\n"
         "Use -DGEOTIFFDIR=DIR to specify the libgeotiff directory tree.\n"
-        "Use -DGEOTIFF=OFF to not use it.")
+        "Use -DGEOTIFF=OFF to not use it.\n"
+                "(suitable Fedora/CentOS package libgeotiff-devel)")
     endif(GEOTIFF_FOUND)
 endif(GEOTIFF AND USE_TIFF)
 
@@ -676,7 +677,7 @@ if(NETCDF)
         "Use -DNETCDFDIR=DIR to specify the netcdf directory tree.\n"
         "Use -DNETCDF=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libnetcdf-dev)\n"
-                "(suitable Fedora package: netcdf-devel)")
+                "(suitable Fedora/CentOS package netcdf-devel)")
     endif(NETCDF_FOUND)
 endif(NETCDF)
 
@@ -705,6 +706,7 @@ if(HDF)
         "Use -DHDFDIR=DIR to specify the HDF directory tree.\n"
         "Use -DHDF=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libhdf4-alt-dev)\n"
+                "(suitable Fedora/CentOS package hdf-devel)\n"
         "You can use -DJPEGDIR=DIR to specify the JPEG directory tree. "
         "You can also use -DSZIPDIR=DIR to specify SZip directory tree if "
         "HDF was compiled with SZip support.")
@@ -731,7 +733,7 @@ if(HDF5)
         "Use -DHDF5DIR=DIR to specify the HDF5 directory tree.\n"
         "Use -DHDF5=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libhdf5-serial-dev)\n"
-                "(suitable Fedora package: hdf5-devel)")
+                "(suitable Fedora/CentOS package hdf5-devel)")
     endif(HDF5_FOUND)
 endif(HDF5)
 
@@ -750,7 +752,7 @@ if(FFTW)
         "Use -DFFTWDIR=DIR to specify the FFTW directory tree.\n"
         "Use -DFFTW=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libfftw3-dev)\n"
-                "(suitable Fedora package: fftw-devel)")
+                "(suitable Fedora/CentOS package fftw-devel)")
     endif(FFTW_FOUND)
 endif(FFTW)
 
@@ -892,7 +894,7 @@ if(PYTHON OR PYTHON_MODULE)
         "Use -DPYTHONDIR=DIR to specify the Python directory tree.\n"
                 "Use -DPYTHONVERSION=VERSION to help searching for the right version.\n"
                 "(suitable Debian/Ubuntu package: python-dev)\n"
-                "(suitable Fedora package: python-devel)\n"
+                "(suitable Fedora/CentOS package python-devel)\n"
         "${PYTHONMSG} ${PYTHON_MODULEMSG}")
     endif(PYTHONLIBS_FOUND)
 endif(PYTHON OR PYTHON_MODULE)
@@ -912,7 +914,7 @@ if(UDUNITS)
         "Use -DUDUNITSDIR=DIR to specify the Udunits directory tree.\n"
         "Use -DUDUNITS=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libudunits2-dev)\n"
-                "(suitable Fedora package: udunits2-devel)")
+                "(suitable Fedora/CentOS package udunits2-devel)")
     endif(UDUNITS_FOUND)
 endif(UDUNITS)
 
@@ -943,7 +945,7 @@ if(EIGEN3)
       message(FATAL_ERROR "EIGEN3 is required but was not found.\n"
         "Use -DEIGEN3DIR=DIR to specify the Eigen3 directory tree.\n"
         "Use -DEIGEN3=OFF to not use it.\n"
-            "(suitable Fedora package: eigen3-devel)\n"
+            "(suitable Fedora/CentOS package eigen3-devel)\n"
             "(suitable Debian/Ubuntu package: libeigen3-dev)")
     endif(EIGEN3_FOUND)
       endif(EIGEN3_TOO_OLD)
@@ -965,7 +967,7 @@ if(PSLIB)
         "Use -DPSLIBDIR=DIR to specify the pslib directory tree.\n"
         "Use -DPSLIB=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: pslib-dev)\n"
-                "(suitable Fedora package: pslib-devel)")
+                "(suitable Fedora/CentOS package pslib-devel)")
     endif(PSLIB_FOUND)
 endif(PSLIB)
 
@@ -986,7 +988,7 @@ if(GRIB)
         "Use -DJASPERDIR=DIR and|or -DJPEGDIR=DIR to specify "
         "the directory trees of JasPer and openJPEG libraries.\n"
                 "(suitable Debian/Ubuntu package: libeccodes-dev or libgrib-api-dev)\n"
-                "(suitable Fedora package: grib_api-devel)\n"
+                "(suitable Fedora/CentOS package grib_api-devel)\n"
         "(suitable Homebrew package: eccodes)\n")
     endif(GRIB_FOUND)
 endif(GRIB)
@@ -1006,7 +1008,7 @@ endif(GRIB)
 #       message(FATAL_ERROR "QHULL is required but was not found.\n"
 #       "Use -DQHULLDIR=DIR to specify the QHULL directory tree.\n"
 #       "Use -DQHULL=OFF to not use it.\n"
-#                 "(suitable Fedora package: libqhull-devel)")
+#                 "(suitable Fedora/CentOS package libqhull-devel)")
 #   endif(QHULL_FOUND)
 # endif(QHULL)
 
@@ -1043,7 +1045,8 @@ if(SHAPELIB)
     message(FATAL_ERROR "SHAPELIB (http://shapelib.maptools.org/)  is required but was not found.\n"
       "Use -DSHAPELIBDIR=DIR to specify the SHAPELIB-devel directory tree.\n"
       "Use -DSHAPELIB=OFF to not use it.\n"
-      "shapelib is often in package libshp-devel.")
+      "shapelib is often in package libshp-devel.\n"
+                "(suitable Fedora/CentOS package shapelib-devel)\n")
   endif(SHAPELIB_FOUND)
 endif(SHAPELIB)
 # EXPAT for IDLffXMLSAX and IDLffXMLDOM

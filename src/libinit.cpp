@@ -109,8 +109,6 @@ void LibInit()
   new DLibFun(lib::scope_varfetch_value,string("SCOPE_VARFETCH"),-1,scope_varfetchKey,scope_varfetchWarnKey);
   const string scope_tracebackKey[]={"STRUCTURE","SYSTEM", KLISTEND};
   new DLibFunRetNew(lib::scope_traceback,string("SCOPE_TRACEBACK"),0,scope_tracebackKey);
-  const string scope_varnameKey[]={ "COMMON", "COUNT", "LEVEL", KLISTEND };
-  new DLibFun( lib::scope_varname_fun, string("SCOPE_VARNAME"), -1, scope_varnameKey );
 
   const string cpuKey[]={ "RESET","RESTORE","TPOOL_MAX_ELTS", "TPOOL_MIN_ELTS",
 					"TPOOL_NTHREADS","VECTOR_ENABLE",KLISTEND};
@@ -528,13 +526,14 @@ void LibInit()
   // retConstant: check definition of the rounding functions if they depend 
   // from some sys var (defining a round mode) 
   // (probably nobody rounds a constant anyway)
-  new DLibFunRetNew(lib::round_fun,string("ROUND"),1,roundKey);
-  const string ceilfloorKey[]={"L64",KLISTEND};
-  new DLibFunRetNew(lib::ceil_fun,string("CEIL"),1,ceilfloorKey);
-  new DLibFunRetNew(lib::floor_fun,string("FLOOR"),1,ceilfloorKey);
+  const string roundceilfloorKey[]={"L64",KLISTEND};
+  new DLibFunRetNew(lib::round_fun,string("ROUND"),1,roundceilfloorKey);
+  new DLibFunRetNew(lib::ceil_fun,string("CEIL"),1,roundceilfloorKey);
+  new DLibFunRetNew(lib::floor_fun,string("FLOOR"),1,roundceilfloorKey);
 
   new DLibFunDirect(lib::conj_fun,string("CONJ"));
   new DLibFunDirect(lib::imaginary_fun,string("IMAGINARY"));
+  new DLibFunDirect(lib::real_part_fun,string("REAL_PART"));
 
   const string strcompressKey[]={"REMOVE_ALL",KLISTEND};
   new DLibFunRetNew(lib::strcompress,string("STRCOMPRESS"),1,strcompressKey,NULL,true);

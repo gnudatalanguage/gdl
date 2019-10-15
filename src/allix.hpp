@@ -490,9 +490,12 @@ private:
   SizeT nIx;
   SizeT seqIx;
   SizeT add;
-  SizeT seqIter;
+//  SizeT seqIter; see cpp file: used in previous, slower, version.
   SizeT correctionIncrease;
   SizeT nextCorrection;
+  SizeT sequence[MAXRANK];
+  SizeT xx[MAXRANK];
+  int   factor[MAXRANK];
 
 //   SizeT seqIxDebug;
 

@@ -21,7 +21,9 @@
 
 // this part contains variable conversion stuff
 // used by both GDL embedded in python and python embedded in GDL
-//#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+
+#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+#include <numpy/arrayobject.h>
 
 //#include <deque>
 //#include <iterator>
@@ -335,6 +337,6 @@ namespace lib {
 
 #endif // #ifdef USE_PYTHON
 
-//#endif // #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+#endif // #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
 
 #endif // #ifdef INCLUDE_GDLPYTHON_CPP
