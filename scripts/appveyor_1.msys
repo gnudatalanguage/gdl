@@ -17,30 +17,29 @@ cd ./mingw
 
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-gsl-2.5-1-any.pkg.tar.xz
 #
-#curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-readline-6.3.008-1-any.pkg.tar.xz
-readline=readline-6.3.008
-# A later version of readline, under suspicion but so far vindicated:
+# readline=readline-6.3.008-1
+#readline=readline-8.0.000-4 	(26-Jul-2019 - gcc 9.1)
+# A later version of readline does not work (gcc6.3)
 #readline=readline-7.0.005 This was used in build 593. back to 6.3
-gettext=gettext-0.19.6
-curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${readline}-1-any.pkg.tar.xz
-curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${gettext}-1-any.pkg.tar.xz
-tar xf mingw-w64-${arch}-${readline}-1-any.pkg.tar.xz
-tar xf mingw-w64-${arch}-${gettext}-1-any.pkg.tar.xz
+readline=readline-8.0.000-4
+curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${readline}-any.pkg.tar.xz
+gettext=gettext-0.19.6-1
+curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${gettext}-any.pkg.tar.xz
+tar xf mingw-w64-${arch}-${readline}-any.pkg.tar.xz
+tar xf mingw-w64-${arch}-${gettext}-any.pkg.tar.xz
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-libiconv-1.15-3-any.pkg.tar.xz
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-termcap-1.3.1-3-any.pkg.tar.xz
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-libsystre-1.0.1-4-any.pkg.tar.xz
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-libtre-git-r128.6fb7206-2-any.pkg.tar.xz
-# later versions of libpng were found to link badly.
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-eigen3-3.3.5-1-any.pkg.tar.xz
-#curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-zlib-1.2.8-9-any.pkg.tar.xz
-#http://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-zlib-1.2.11-4-any.pkg.tar.xz
 zlib=zlib-1.2.11-4
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${zlib}-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-${zlib}-any.pkg.tar.xz
-libpng=libpng-1.6.18
+# later versions of libpng were found to link badly.
+libpng=libpng-1.6.18-1
 #libpng=libpng-1.6.26
-curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${libpng}-1-any.pkg.tar.xz
-tar xf mingw-w64-${arch}-${libpng}-1-any.pkg.tar.xz
+curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${libpng}-any.pkg.tar.xz
+tar xf mingw-w64-${arch}-${libpng}-any.pkg.tar.xz
 # fftw-3.3.8 from 29-May-2018 (gcc 7.2)
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-fftw-3.3.8-1-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-fftw-3.3.8-1-any.pkg.tar.xz
