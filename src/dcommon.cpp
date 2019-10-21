@@ -60,8 +60,10 @@ DVar* DCommon::Find(const string& n)
   return FindInVarList(var,n); 
 }
 
+//Will uncorrectly work with uninitialized variables, as uninitialized variables have data=0x0 and var->Data() = dd = 0x0 
 int DCommon::Find(const BaseGDL* data_)
 {
+  if (data_ == NULL) return -1;
   int vSize=var.size();
   for( int i=0; i<vSize; i++)
     {
@@ -104,6 +106,7 @@ DVar* DCommonRef::Find(const string& n)
 int DCommonRef::Find(const BaseGDL* data_)
 {
   int ix=cRef->Find( data_);
+  if( ix < 0) return -1;
   if( ix >= static_cast<int>(varNames.size())) return -1;
   return ix;
 }

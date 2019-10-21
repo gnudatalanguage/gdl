@@ -20,7 +20,6 @@
 #include <algorithm>
 
 #include "dvar.hpp"
-#include "nullgdl.hpp"
 
 using namespace std;
 

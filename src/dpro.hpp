@@ -362,7 +362,7 @@ public:
 
    void Resize( SizeT s) { var.resize( s);}
   SizeT Size() {return var.size();}
-  SizeT CommonsSize() {
+  SizeT CommonsSize() { //number of elements in ALL commons known by this DSubUD.
    SizeT commonsize=0;
    CommonBaseListT::iterator c = common.begin();
    for(; c != common.end(); ++c) commonsize+=(*c)->NVar();
@@ -384,14 +384,16 @@ public:
   }
 
   // returns common block with name n
-  DCommon* Common(const std::string& n)
-  {
-    CommonBaseListT::iterator c = common.begin();
-    for(; c != common.end(); ++c)
-      if( dynamic_cast< DCommon*>( *c) != NULL && (*c)->Name() == n)
-	return static_cast< DCommon*>( *c);
-    return NULL;
+
+ DCommon* Common(const std::string& n) {
+  CommonBaseListT::iterator c = common.begin();
+  for (; c != common.end(); ++c) {
+   if ((*c)->Name() == n) {
+    return (*c)->getCommon();
+   }
   }
+  return NULL;
+ }
 
   // returns common block which holds variable n
   DCommonBase* FindCommon(const std::string& n)
