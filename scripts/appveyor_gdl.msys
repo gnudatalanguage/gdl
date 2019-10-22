@@ -1,8 +1,10 @@
 #!bin/bash.exe
 #
-if [ "x${WXNAME}" = "x" ] ; then
-   WXNAME=wxWidgets-3.0.2-17
-   fi
+# WXNAME is set prior to running this script. This should not be needed.
+#if [ "x${WXNAME}" = "x" ] ; then
+#   WXNAME=wxWidgets-3.0.2-17
+#   fi
+
 # wxwidgets 3.0.4 is the latest, made 18-Apr-2018. Earlier was made 17-sep-2017.
 # there are a few changes in wx/msw/winundef.h since 3.0.2, which has a patch.
 

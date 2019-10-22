@@ -4,6 +4,7 @@
   # evidently, the appveyor PS environment is carried through:
     echo $env:WXNAME $env:GMNAME
   # those two env. variables determine how the build proceeds.
+  # $env:platform has been set to ="" in appveyor.yml, because the .bat didn't work.
       if ( $env:platform -Match "mingw64630x8664") 
       {
       $env:WXNAME=""
@@ -13,5 +14,10 @@
       }
       else
       {
+      echo $env:platform
+      $env:DOTIFF="OFF"
+      $env:DOGEOTIFF="OFF"
+      $env:WXNAME=""
+      $env:GMNAME=""
       C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl &&. ./scripts/appveyor_gdl.msys"
       }
