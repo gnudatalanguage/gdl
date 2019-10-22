@@ -18,6 +18,6 @@
       $env:DOTIFF="OFF"
       $env:DOGEOTIFF="OFF"
       $env:WXNAME=""
-      $env:GMNAME=""
+      #env:GMNAME=""
       C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl &&. ./scripts/appveyor_gdl.msys"
       }

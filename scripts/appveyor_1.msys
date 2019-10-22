@@ -18,7 +18,7 @@ cd ./mingw
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-gsl-2.5-1-any.pkg.tar.xz
 #
 # readline=readline-6.3.008-1
-#readline=readline-8.0.000-4 	(26-Jul-2019 - gcc 9.1)
+#readline=readline-8.0.000-4    (26-Jul-2019 - gcc 9.1)
 # A later version of readline does not work (gcc6.3)
 #readline=readline-7.0.005 This was used in build 593. back to 6.3
 readline=readline-8.0.000-4
@@ -84,8 +84,9 @@ curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-libjpeg-turbo-1
 tar xf mingw-w64-${arch}-libjpeg-turbo-1.5.3-1-any.pkg.tar.xz
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-libtiff-4.0.9-1-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-libtiff-4.0.9-1-any.pkg.tar.xz
-# graphicsmagick-1.3.27 from 14-Dec-2017
-GMname=graphicsmagick-1.3.27
+# graphicsmagick-1.3.27 from 14-Dec-2017 (gcc 7.x)
+# GMname=graphicsmagick-1.3.30-1 from 08-Aug-2018 (gcc 8.x)
+GMname=graphicsmagick-1.3.30
 cd /c/projects/gdl/win32libs
 curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${GMname}-1-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-${GMname}-1-any.pkg.tar.xz
