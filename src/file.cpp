@@ -1200,67 +1200,42 @@ static void FileSearch( FileListT& fileList, const DString& pathSpec,
 #endif
 
 
-static std::string Dirname(const string& tmp,
-    bool mark_dir = false)
-{
+static string Dirname( const string& in, bool mark_dir=false ) {
 
-    char buf[ PATH_MAX+1];
+    char win_sep = '\\';
+    char unix_sep = '/';
+    char path_sep = unix_sep;
 
-// G. Jung Simplify the alternatives to psalt, PS using same processing.
-// for mark_dir, always just place a "/"
+#if defined (_WIN32) && !defined(__CYGWIN__)
+    path_sep = win_sep;
+    DString dname(in);
 
-    char PS='\\';
-    char psalt[] = "/";
+    std::replace( dname.begin(), dname.end(), unix_sep, win_sep );  // replace separators in input
+    DString::size_type pos = dname.find_last_of( path_sep );        // strip filename if present
 
-#ifndef _WIN32
-    strncpy(buf, tmp.c_str(), PATH_MAX+1);
-    string dname = dirname(buf);
+    if( pos != DString::npos ) {
+        dname.erase(pos);
+    }
 #else
-   char drive[_MAX_DRIVE];
-   char dir[_MAX_DIR];
-   char fname[_MAX_FNAME];
-   char ext[_MAX_EXT];
-   DString::size_type pos = 0, offset = 0;
-   DString tmp2(tmp);
-// if 0/ if 1: by preference.
-   while ((pos = tmp2.find(psalt, offset)) != string::npos)
-   {
-       tmp2[pos] = PS;
-       offset = pos + 1;
-   }
-    
-   int size=tmp2.size();
-   if(tmp2[size--] == PS) 
-        do      tmp2.resize(size);
-        while((size != 0) && tmp2[size--] == PS);
-        
-   _splitpath( tmp2.c_str(),drive,dir,fname,ext);
-   dir[strlen(dir) - 1] = 0; // Remove separator
-   DString dname = DString(drive) + dir;
-   
-   if( dname == "" ) dname = string(".");
-
- //  if( trace_me ) std::cout << " dirname(win32) drive=" << drive <<
- //     " dir: "<< dir << std::endl;
-   size = dname.size();
-   if(dname[size--] == PS)
-          do      dname.resize(size);
-          while((size != 0) && dname[size--] == PS);
-
-      size_t pp;  // This is to make path names uniform w.r.t. Unix
-                //           and compliant with posix shell.
-      pp=0;
-    for(;;){
-        pp=dname.find( "\\",pp);
-        if (pp==string::npos) break;
-        dname[pp]='/';
-      }
-        
+    char buf[ PATH_MAX+1];
+    strncpy( buf, in.c_str(), PATH_MAX+1 );
+    std::replace( buf, buf+in.length(), win_sep, unix_sep );        // replace separators in input
+    string dname = dirname( buf );                                  // strip filename if present
 #endif
-    if (mark_dir) dname = dname + string("/");
-    return dname;
-  }
 
+    while( !dname.empty() && (dname.back() == path_sep) ) {         // strip trailing separator(s)
+        dname.pop_back();
+    }
+
+    if( mark_dir ) dname.push_back( path_sep );                     // append separator if requested
+    
+    return dname;
+    
+}
+
+
+  
+  
 //     modifications        : 2014, 2015 by Greg Jung
 static void PathSearch( FileListT& fileList,  const DString& pathSpec,
     bool noexpand_path=false,
