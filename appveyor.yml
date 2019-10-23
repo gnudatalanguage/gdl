@@ -5,13 +5,13 @@ branches:
 clone_folder: c:\projects\gdl
 configuration:
   - Release
-  - Debug
+  #- Debug
 environment:
   matrix:
   # #- platform: mingw64720x8664
   #- platform: mingw64630x8664
-  - platform: mingw64810x8664
   - platform: mingw64630x8664
+  - platform: mingw64810x8664
   # - platform: mingw64630i686
   # #- platform: mingw64730x8664
    
@@ -78,7 +78,8 @@ install:
         # scripts/XXX.msys make gdl/mingw/mingw32 and load it.
         cd c:/projects/gdl
         $env:GMNAME="GraphicsMagick-1.3.30"
-        $env:WXNAME="wxWidgets-3.0.2-17"
+        #$env:WXNAME="wxWidgets-3.0.2-17"
+        $env:WXNAME="wxWidgets-3.0.4-2"
         $env:LOCALM32="c:/projects/gdl/mingw/$env:mname"
         c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
         cd c:/projects/gdl/mingw
