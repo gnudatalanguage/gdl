@@ -18,7 +18,11 @@
 #ifndef GDLPYTHON_HPP_
 #define GDLPYTHON_HPP_
 
+#if PY_MAJOR_VERSION >= 3
+int PythonInit();
+#else
 void PythonInit();
+#endif
 void PythonEnd();
 BaseGDL* FromPython( PyObject* pyObj);
 
