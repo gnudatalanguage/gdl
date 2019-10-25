@@ -210,7 +210,12 @@ void LibInit_jmg()
 
   new DLibPro(lib::point_lun,string("POINT_LUN"),2);
 
-  new DLibPro(lib::linkimage,string("LINKIMAGE"),4);
+  const string linkimageKey[]={"FUNCT", "KEYWORDS", "MAX_ARGS", "MIN_ARGS", KLISTEND};
+  new DLibPro( lib::linkimage, string("LINKIMAGE"), 4, linkimageKey, NULL, 2 );
+  const string unlinkimageKey[]={"FORCE", KLISTEND};
+  new DLibPro( lib::unlinkimage, string("UNLINKIMAGE"), 1, unlinkimageKey );
+  const string unlinksymbolKey[]={"FUNCT", KLISTEND};
+  new DLibPro( lib::unlinksymbol, string("UNLINKSYMBOL"), 2, unlinksymbolKey, NULL, 2 );
 
   new DLibPro(lib::wait_pro,string("WAIT"),1);
 
