@@ -1,10 +1,10 @@
 #!/usr/bin/bash.exe
 #
 topdir=`pwd`
-arch="i686"
+arch="i686" && mname="mingw32"
 if [ -n "$MSYSTEM" ] ; then
   if [ "$MSYSTEM" = "MINGW64" ] ; then
-    arch="x86_64"
+    arch="x86_64" && mname="mingw64"
     fi
   fi
 echo "bld_gm32: Architecture =  ${arch}"
@@ -19,6 +19,7 @@ echo "bld_gm32: going into MSYS initialization. Cleared CC, CXX, PATH=Begin_path
      fi
 echo "CC = $CC CXX = $CXX"
 echo $PATH
+echo $topdir
 . /etc/profile
 # this is needed to find bin/wx-config
 #
@@ -52,21 +53,29 @@ echo " gcc -v :"
 gcc -v
 GMname=GraphicsMagick-1.3.30
 cd $topdir/win32libs
-curl -O -s https://cytranet.dl.sourceforge.net/project/graphicsmagick/graphicsmagick/1.3.30/GraphicsMagick-1.3.30.tar.xz
-if [ -f ${GMname}.tar.xz ]; then
-  echo " $GMname if here "
+if  ! [ -f  ${GMname}.tar.xz]; then
+	echo " curl..."
+	curl -O -s https://iweb.dl.sourceforge.net/project/graphicsmagick/graphicsmagick/1.3.30/${GMname}.tar.xz
+	echo "  ${GMname}.tar.xz"
+	else
+	echo " $GMname}.tar.xz already there"
+fi
+if [ -f  ${GMname}.tar.xz ]; then
+  echo " $GMname is here "
     tar xf ${GMname}.tar.xz
     mkdir -p $topdir/build/${GMname}
     bldout=$topdir/build/${GMname}
     cd $topdir/win32libs/${GMname}
     mkdir -p bld${mname}
     cd bld${mname}
+    echo $topdir
     ../configure --prefix=$topdir/mingw/GM-Q32 \
   --enable-quantum-library-names --with-quantum-depth=32 --enable-shared --with-gnu-ld \
    --host=${arch}-w64-mingw32 --build=${arch}-w64-mingw32 --disable-static \
   --with-modules --with-wmf --with-xml --with-lcms2 --with-jp2 \
   --with-webp --with-gslib --with-jbig --without-fpx --without-dps \
   --without-perl --without-x >& $bldout/configure.out
+  echo $bldout
   tail -40 $bldout/configure.out &&  echo "That was tail end of configure.out"
   make -j4 >& $bldout/make.out
   tail $bldout/make.out &&  echo "That was tail end of make.out"
