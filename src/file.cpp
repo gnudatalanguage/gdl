@@ -1235,11 +1235,11 @@ static string Dirname( const string& in, bool mark_dir=false ) {
     while( !dname.empty() && (dname.back() == path_sep) ) {         // strip trailing separator(s)
         dname.pop_back();
     }
-#endif
+
     if( mark_dir ) dname.push_back( path_sep );                     // append separator if requested
-  #ifdef _WIN32
-  if (lib:posixpaths) std::replace(dname.begin(), dname.end(), win_sep, unix_sep);
-  #endif
+#ifdef _WIN32
+    if (lib:posixpaths) std::replace(dname.begin(), dname.end(), win_sep, unix_sep);
+#endif
     return dname;
     
 }
