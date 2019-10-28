@@ -12,7 +12,7 @@ environment:
   #- platform: mingw64630x8664
   #- platform: mingw64630i686
   - platform: mingw64810x8664
-  - platform: mingw64730x8664
+  #- platform: mingw64730x8664
    
 matrix:
   fast_finish: true
@@ -67,8 +67,8 @@ install:
         md c:\projects\gdl\mingw
         md c:\projects\gdl\build ;  $env:BLDDIR="c:\projects\gdl\build"
         cd c:\projects\gdl\win32libs
-        #$env:CC="C:/mingw-w64/$env:GCC/$env:mname/bin/gcc"
-        #$env:CXX="C:/mingw-w64/$env:GCC/$env:mname/bin/g++"
+        $env:CC="C:/mingw-w64/$env:GCC/$env:mname/bin/gcc"
+        $env:CXX="C:/mingw-w64/$env:GCC/$env:mname/bin/g++"
         $env:DOTIFF="ON"
         $env:DOGEOTIFF="ON"
         $env:platform=""
@@ -329,7 +329,7 @@ before_build:
   - ps: cd  C:\projects\gdl
 build_script:
   #- ps: $env:GMNAME=""
-  - ps: $env:CC=""  ;  $env:CXX=""
+  #- ps: $env:CC=""  ;  $env:CXX=""
   # the MSYS script in win32 will build a 32-bit GraphicsMagick distro on a healthy MSYS system
   # but it won't for appveyor.  So, GMNAME="" to quash it and move on, the repo distribution created by
   # appveyor_1.msys will be there for 8-bit images. 
