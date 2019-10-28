@@ -1,9 +1,10 @@
-#!/usr/bin/py.test -vv
+#!/usr/bin/env -S python3 -m pytest -vv
 
 import math
 import numpy
 import pytest
 import os
+import tempfile
 import warnings
 
 if 'ADTTMP' in os.environ:
@@ -37,11 +38,11 @@ class GDLFile (object):
             self.name = None
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                self.fname = os.tmpnam()
+                self.fname = tempfile.mkstemp()[1]
         self.code = code
 
     def __enter__(self):
-        fp = file(self.fname, 'w')
+        fp = open(self.fname, 'w')
         fp.write(self.code)
         fp.close()
         return self.name or self.fname
@@ -70,18 +71,17 @@ def test_function_user():
 
 @pytest.mark.parametrize('arg', [
     'Hello, world', '', '\n',
-#    u'Hello, world',
+    u'Hello, world',
     -1.2, 1e-39, 0.0, 0.05, 1.0, 1e128, float('inf'), float('-inf'),
     -1, 0, 1, 1000, 2**31-1, -2**31,
-    -1L, 0L, 1L, 2L**31-1, -2L**31,
-#    2**45-1,
-#    complex(1.,1.), complex(0,0),
-#    numpy.arange(0, 259, dtype=int),
-#    numpy.arange(0, 259, dtype=long),
-#    numpy.arange(-255, 255, dtype=numpy.int8),
+    # 2**45-1, # GDL returns int
+    # complex(1.,1.), # Aborts execution
+    # complex(0.,0.), # Aborts execution
+    # numpy.arange(0, 259, dtype=int) # GDL Error: unknown return array type"
     numpy.arange(0, 259, dtype=numpy.uint8),
     numpy.arange(-255, 259, dtype=numpy.int16),
-#    numpy.arange(0, 259, dtype=numpy.uint16),
+    # numpy.arange(-255, 255, dtype=numpy.int8), # GDL Error: unknown return array type
+    # numpy.arange(0, 259, dtype=numpy.uint16), # GDL Error: unknown return array type
     numpy.arange(-255, 259, dtype=numpy.int32),
     numpy.arange(0, 259, dtype=numpy.uint32),
     numpy.arange(-1, 1., 0.1, dtype=float),
@@ -89,9 +89,9 @@ def test_function_user():
     numpy.arange(-1, 1., 0.1, dtype=numpy.float64),
     numpy.arange(-1, 1., 0.1, dtype=numpy.complex64),
     numpy.arange(-1, 1., 0.1, dtype=numpy.complex128),
-#    [1,2,3,4,5],
-#    (1,2,3,4,5),
-#    {'1':2},
+    # [1,2,3,4,5], # GDL Error: Cannot convert python scalar"
+    # (1,2,3,4,5), # Returns only the first number
+    # {'1':2}, # GDL Error: Cannot convert python scalar
 ])
 def test_function_arg_pass_return(arg):
     '''Call a function that just returns its argument, with different data types'''
@@ -128,12 +128,11 @@ def test_pro_user():
 
 @pytest.mark.parametrize('arg', [
     'Hello, world', '',
-#    u'Hello, world',
+    u'Hello, world',
     -1.2, 1e-39, 0.0, 0.05, 1.0, 1e128, float('inf'), float('-inf'),
     -1, 0, 1, 1000, 2**31-1, -2**31,
-    -1L, 0L, 1L, 2L**31-1, -2L**31,
-#    2**45-1,
-#    complex(1.,1.),
+    # 2**45-1, # GDL returns int
+    # complex(1.,1.), # Aborts execution
 ])
 def test_pro_arg_pass(arg):
     '''Call a user defined procedure that stores the value for different
@@ -149,7 +148,7 @@ def test_pro_arg_pass(arg):
     with GDLFile(code) as name:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            fname = os.tmpnam()
+            fname = tempfile.mkstemp()[1]
         GDL.pro(name, fname, arg)
         ret = open(fname).read().strip()
         os.unlink(fname)
@@ -185,7 +184,8 @@ def test_script():
     
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        fname = os.tmpnam()
+        fname = tempfile.mkstemp()[1]
+        scriptname = tempfile.mkstemp()[1]
     arg = 'Hello, world!'
     code = '''openw, 5, '{0}'
     printf, 5, '{1}'
@@ -198,7 +198,7 @@ def test_script():
         assert arg == ret
 
 
-@pytest.mark.skipif(True, reason='This will errornously abort the test suite')
+@pytest.mark.xfail(reason='Does not raise a GDL.error')
 def test_invalid_code():
     '''Call a function with some invalid GDL code'''
     
