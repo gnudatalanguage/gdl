@@ -71,16 +71,16 @@ namespace lib {
     }
     
     // MARGIN
-    gdlGetDesiredAxisMargin(e, "X",xMarginL, xMarginR);
-    gdlGetDesiredAxisMargin(e, "Y",yMarginB, yMarginT);
+    gdlGetDesiredAxisMargin(e, XAXIS,xMarginL, xMarginR);
+    gdlGetDesiredAxisMargin(e, YAXIS,yMarginB, yMarginT);
 
     // will handle axis logness..
     bool xLog, yLog, zLog;
     // is current box log or not?
     bool xAxisWasLog, yAxisWasLog, zAxisWasLog;
-    gdlGetAxisType("X", xAxisWasLog);
-    gdlGetAxisType("Y", yAxisWasLog);
-    gdlGetAxisType("Z", zAxisWasLog);
+    gdlGetAxisType(XAXIS, xAxisWasLog);
+    gdlGetAxisType(YAXIS, yAxisWasLog);
+    gdlGetAxisType(ZAXIS, zAxisWasLog);
     xLog=xAxisWasLog;
     yLog=yAxisWasLog; //by default logness is similar until another option is set
     zLog=zAxisWasLog;
@@ -102,8 +102,8 @@ namespace lib {
 
     // get viewport coordinates in normalised units
     PLFLT ovpXL, ovpXR, ovpYB, ovpYT;
-    gdlGetCurrentAxisWindow("X", ovpXL, ovpXR);
-    gdlGetCurrentAxisWindow("Y", ovpYB, ovpYT);
+    gdlGetCurrentAxisWindow(XAXIS, ovpXL, ovpXR);
+    gdlGetCurrentAxisWindow(YAXIS, ovpYB, ovpYT);
     //undefined or null previous viewport, seems IDL returns without complain:
     if ((ovpXL==ovpXR) || (ovpYB==ovpYT)) return;
 
@@ -113,8 +113,8 @@ namespace lib {
     DDouble oyStart, oyEnd;
 
     // get ![XY].CRANGE
-    gdlGetCurrentAxisRange("X", oxStart, oxEnd, FALSE); //ignore projection limits, convert to linear values if necessary.
-    gdlGetCurrentAxisRange("Y", oyStart, oyEnd, FALSE);
+    gdlGetCurrentAxisRange(XAXIS, oxStart, oxEnd, FALSE); //ignore projection limits, convert to linear values if necessary.
+    gdlGetCurrentAxisRange(YAXIS, oyStart, oyEnd, FALSE);
 
     if ((oyStart == oyEnd) || (oxStart == oxEnd))
     {
@@ -162,8 +162,8 @@ namespace lib {
 
     //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
     DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;
-    bool setx=gdlGetDesiredAxisRange(e, "X", xAxisStart, xAxisEnd);
-    bool sety=gdlGetDesiredAxisRange(e, "Y", yAxisStart, yAxisEnd);
+    bool setx=gdlGetDesiredAxisRange(e, XAXIS, xAxisStart, xAxisEnd);
+    bool sety=gdlGetDesiredAxisRange(e, YAXIS, yAxisStart, yAxisEnd);
     if (sety)
     {
       yStart=yAxisStart;
@@ -182,15 +182,15 @@ namespace lib {
 
     // [XY]STYLE
     DLong xStyle=0, yStyle=0;
-    gdlGetDesiredAxisStyle(e, "X", xStyle);
-    gdlGetDesiredAxisStyle(e, "Y", yStyle);
+    gdlGetDesiredAxisStyle(e, XAXIS, xStyle);
+    gdlGetDesiredAxisStyle(e, YAXIS, yStyle);
 
      //xStyle and yStyle apply on range values
     if ((xStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(e, "X", xStart, xEnd, xLog);
+      PLFLT intv = gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
     }
     if ((yStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(e, "Y", yStart, yEnd, yLog);
+      PLFLT intv = gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
     }
     
     DDouble yVal, xVal;
@@ -290,26 +290,26 @@ namespace lib {
     actStream->wind(xStart, xEnd, yStart, yEnd);
 
     if ( xAxis )
-    { //special name "axisX" needed because we artificially changed size of box
-      gdlAxis(e, actStream, "axisX", xStart, xEnd, xLog, standardNumPos?1:2, ovpSizeY);
+    { //special ID "XAXIS2" needed because we artificially changed size of box
+      gdlAxis(e, actStream, XAXIS2, xStart, xEnd, xLog, standardNumPos?1:2, ovpSizeY);
 
       if ( e->KeywordSet(SAVEIx) )
       {
-        gdlStoreAxisCRANGE("X", xStart, xEnd, xLog);
-        gdlStoreAxisType("X", xLog);
-        gdlStoreAxisSandWINDOW(actStream, "X", xStart, xEnd, xLog);
+        gdlStoreAxisCRANGE(XAXIS, xStart, xEnd, xLog);
+        gdlStoreAxisType(XAXIS, xLog);
+        gdlStoreAxisSandWINDOW(actStream,XAXIS, xStart, xEnd, xLog);
       }
     }
 
     if ( yAxis )
-    {//special name "axisY" needed because we artificially changed size of box
-      gdlAxis(e, actStream, "axisY", yStart, yEnd, yLog, standardNumPos?1:2, ovpSizeX);
+    {//special id "YAXIS2" needed because we artificially changed size of box
+      gdlAxis(e, actStream, YAXIS2, yStart, yEnd, yLog, standardNumPos?1:2, ovpSizeX);
 
       if ( e->KeywordSet(SAVEIx) )
       {
-        gdlStoreAxisCRANGE("Y", yStart, yEnd, yLog);
-        gdlStoreAxisType("Y", yLog);
-        gdlStoreAxisSandWINDOW(actStream, "Y", yStart, yEnd, yLog);
+        gdlStoreAxisCRANGE(YAXIS, yStart, yEnd, yLog);
+        gdlStoreAxisType(YAXIS, yLog);
+        gdlStoreAxisSandWINDOW(actStream,YAXIS, yStart, yEnd, yLog);
       }
     }
     // reset the viewport and world coordinates to the original values

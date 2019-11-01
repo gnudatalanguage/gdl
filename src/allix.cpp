@@ -353,34 +353,69 @@ SizeT AllIxNewMultiNoneIndexedT::operator[]( SizeT i) const
     }
     return resIndex;
   }
+
+//new version see below.
 SizeT AllIxNewMultiNoneIndexedT::InitSeqAccess()
 {
 //  	seqIxDebug = 0;
 // 	return (*this)[0];
 	seqIx = add;
-	seqIter = 0;
+    for( SizeT l=1; l < acRank; ++l)
+    {
+      xx[l]=stride[l]*nIterLimit[l];
+      sequence[l]=stride[1];
+	  if( nIterLimit[l] > 1) factor[l]=1; else factor[l]=0;
+    }
 	correctionIncrease = stride[1] * ixListStride[0];
 	nextCorrection = seqIx + correctionIncrease; // stride[1] == nIterLimit[0]
 	return seqIx; //(*this)[0];
 }
+//previous version. see below.
+//SizeT AllIxNewMultiNoneIndexedT::InitSeqAccess()
+//{
+////  	seqIxDebug = 0;
+//// 	return (*this)[0];
+//	seqIx = add;
+//	seqIter = 0;
+//	correctionIncrease = stride[1] * ixListStride[0];
+//	nextCorrection = seqIx + correctionIncrease; // stride[1] == nIterLimit[0]
+//	return seqIx; //(*this)[0];
+//}
+
+//new version, 30% faster --- to be tested. We are waaay slower than IDL on some arrays.
 SizeT AllIxNewMultiNoneIndexedT::SeqAccess() // 1st dim linearized
 {
-//   return (*this)[++seqIx];
   seqIx += ixListStride[0];
   if( seqIx >= nextCorrection)
     {
-      seqIter += stride[1];
       seqIx = add;
       for( SizeT l=1; l < acRank; ++l)
       {
-	  if( nIterLimit[l] > 1)
-	    seqIx += ((seqIter / stride[l]) %  nIterLimit[l]) * ixListStride[l];
-      }
+        seqIx += factor[l] * sequence[l] / stride[l] *  ixListStride[l];//* yy[l] ;
+        sequence[l] += factor[l] * stride[1]; if (sequence[l] >= xx[l]) sequence[l]%=xx[l];
+      }      
       nextCorrection = seqIx + correctionIncrease; // stride[1] == nIterLimit[0]
     }
   return seqIx; // fast path
 }
-
+//original version, a bit slower but thoroughly tested. The if and the % in the loop make it slow.
+//SizeT AllIxNewMultiNoneIndexedT::SeqAccess() // 1st dim linearized
+//{
+////   return (*this)[++seqIx];
+//  seqIx += ixListStride[0];
+//  if( seqIx >= nextCorrection)
+//    {
+//      seqIter += stride[1];
+//      seqIx = add;
+//      for( SizeT l=1; l < acRank; ++l)
+//      {
+//	  if( nIterLimit[l] > 1)
+//	    seqIx += ((seqIter / stride[l]) %  nIterLimit[l]) * ixListStride[l];
+//      }
+//      nextCorrection = seqIx + correctionIncrease; // stride[1] == nIterLimit[0]
+//    }
+//  return seqIx; // fast path
+//}
 
 // acRank == 2
 SizeT AllIxNewMultiNoneIndexed2DT::operator[]( SizeT i) const

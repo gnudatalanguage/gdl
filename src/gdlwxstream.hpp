@@ -24,6 +24,7 @@
 
 #include "gdlgstream.hpp"
 #include "gdlwidget.hpp"
+#include "graphicsdevice.hpp"
 
 #include <wx/fontenum.h>
 #include <wx/fontmap.h>
@@ -52,6 +53,7 @@ public:
 //    void SetSize( int width, int height );   //!< Set new size of plot area.
     void RenewPlot();   //!< Redo plot.
     void Update();
+    void DefaultCharSize();
     void SetGDLDrawPanel(GDLDrawPanel* w);
     GDLDrawPanel* GetGDLDrawPanel(){return gdlWindow;}
 

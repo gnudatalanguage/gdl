@@ -85,7 +85,6 @@ private:
     friend class WRAPPED_PRONode;
 
 public: 
-
 //     RetCode returnCode;    
     ProgNodeP GetNULLProgNodeP() const { return NULLProgNodeP;}
 
@@ -116,7 +115,7 @@ public:
     static bool SearchCompilePro(const std::string& pro, bool searchForPro); 
     static int GetFunIx( ProgNodeP);
     static int GetFunIx( const std::string& subName);
-    static int GetProIx( ProgNodeP, bool throwImmediately=false);//const std::string& subName);
+    static int GetProIx( ProgNodeP);//const std::string& subName);
     static int GetProIx( const std::string& subName);
     DStructGDL* ObjectStruct( DObjGDL* self, ProgNodeP mp);
     void SetRootR( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, ArrayIndexListT* aL);
@@ -130,7 +129,7 @@ public:
 
 private: 
 
-    static void SetProIx( ProgNodeP f, bool throwImmediately=false); // triggers read/compile
+    static void SetProIx( ProgNodeP f); // triggers read/compile
     static void AdjustTypes( BaseGDL*&, BaseGDL*&);
 
 
@@ -172,9 +171,7 @@ protected:
     BaseGDL** returnValueL; // holding the return value for l_functions
 
     bool interruptEnable;
-
 public:
-
     bool InterruptEnable() const { return interruptEnable;}
     // procedure (searchForPro == true) or function (searchForPro == false)
     static bool CompileFile(const std::string& f, 
@@ -202,7 +199,7 @@ protected:
     static SizeT heapIx;
 
     static EnvStackT  callStack; 
-
+    static bool noInteractive;
     static DLong stepCount;
 
 
@@ -792,6 +789,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         std::cerr << std::endl;
         
         if( dumpStack) DumpStack( emsg.size() + 1);
+        if (noInteractive) exit(EXIT_SUCCESS); //strangely, IDL exits on error when non interactive with 0 not 1.
     }
     
     static void DumpStack( SizeT w)
@@ -868,6 +866,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
             std::cerr << std::left << " " << file;
         }
         std::cerr << std::endl;
+        if (noInteractive) exit(EXIT_SUCCESS);
     }
 
     static void RetAll( RetAllException::ExCode c=RetAllException::NONE)    
@@ -908,9 +907,9 @@ public:
 		return GDLInterpreter::tokenNames;
 	}
 	public:  RetCode  interactive(ProgNodeP _t);
-	public:  RetCode  statement(ProgNodeP _t, bool throwImmediately=false);
-	public:  RetCode  execute(ProgNodeP _t, bool throwImmediately=false);
-	public:  RetCode  statement_list(ProgNodeP _t, bool throwImmediately=false);
+	public:  RetCode  statement(ProgNodeP _t);
+	public:  RetCode  execute(ProgNodeP _t);
+	public:  RetCode  statement_list(ProgNodeP _t);
 	public:  BaseGDL*  call_fun(ProgNodeP _t);
 	public:  BaseGDL**  call_lfun(ProgNodeP _t);
 	public: void call_pro(ProgNodeP _t);

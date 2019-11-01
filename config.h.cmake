@@ -10,7 +10,6 @@
 #cmakedefine HAVE_X 1
 #cmakedefine HAVE_64BIT_OS 1
 #cmakedefine HAVE_DLFCN_H 1
-#cmakedefine HAVE_GSHHG_H 1
 #cmakedefine HAVE_INTTYPES_H 1
 #cmakedefine HAVE_LIBCURSES 1
 #cmakedefine HAVE_LIBGSL 1
@@ -65,7 +64,8 @@
 #cmakedefine USE_FFTW 1
 #cmakedefine USE_GRIB 1
 #cmakedefine USE_GLPK 1
-#cmakedefine USE_GSHHG 1
+#cmakedefine USE_SHAPELIB 1
+#cmakedefine USE_EXPAT 1
 #cmakedefine USE_HDF 1
 #cmakedefine USE_HDF5 1
 #cmakedefine USE_LIBPROJ4 1
@@ -83,4 +83,5 @@
 #cmakedefine USE_EIGEN 1
 #cmakedefine USE_PNGLIB 1
 #cmakedefine USE_X 1
+#cmakedefine USE_WINGDI_NOT_WINGCC 1
 #endif

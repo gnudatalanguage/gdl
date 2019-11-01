@@ -24,22 +24,16 @@
 // they all have to be included from datatypes
 #ifdef INCLUDE_PYTHONGDL_CPP
 
-//#include "includefirst.hpp"
+#include "includefirst.hpp"
 
-// if build as a python module
-//#ifdef PYTHON_MODULE
+#include <memory> // auto_ptr
+#include <vector> 
 
-// already included from includefirst
-//#include <Python.h>
-
-//#include <memory> // auto_ptr
-//#include <vector> 
-
-//#include "datatypes.hpp"
-//#include "envt.hpp"
-//#include "sigfpehandler.hpp"
-//#include "terminfo.hpp"
-//#include "dinterpreter.hpp"
+#include "datatypes.hpp"
+#include "envt.hpp"
+#include "sigfpehandler.hpp"
+#include "terminfo.hpp"
+#include "dinterpreter.hpp"
 
 #include "gdleventhandler.hpp"
 
@@ -191,14 +185,22 @@ bool CopyArgFromPython( vector<BaseGDL*>& parRef,
       for( SizeT k=0; k<nKW; ++k)
 	{
 	  PyDict_Next( kwDict, &dictPos, &key, &value);
+#if PY_MAJOR_VERSION >= 3
+	  int keyIsString =  PyUnicode_Check( key);
+#else
 	  int keyIsString =  PyString_Check( key);
+#endif
 	  if( !keyIsString)
 	    {
 	      PyErr_SetString( gdlError, 
 			       "Keywords must be of type string");
 	      return false;
 	    }
+#if PY_MAJOR_VERSION >= 3
+	  const char* keyChar = PyUnicode_AsUTF8( key);
+#else
 	  const char* keyChar = PyString_AsString( key);
+#endif
 	  string keyString = StrUpCase( keyChar);
 	  int kwIx = e.GetPro()->FindKey( keyString);
 	  if( kwIx == -1) 
@@ -271,7 +273,9 @@ int GDLEventHandlerPy()
 {
   GDLEventHandler();
   if( oldInputHook != NULL)
-    (*oldInputHook)();
+    return (*oldInputHook)();
+  else
+    return 0;
 }
   
 // Execute a GDL subroutine
@@ -523,9 +527,42 @@ extern "C" {
     {NULL, NULL, 0, NULL}        // Sentinel
   };
 
+#if PY_MAJOR_VERSION >= 3
+  struct module_state {
+    PyObject *error;
+  };
+
+  #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+
+  static int GDL_traverse(PyObject *m, visitproc visit, void *arg) {
+    Py_VISIT(GETSTATE(m)->error);
+    return 0;
+  }
+
+  static int GDL_clear(PyObject *m) {
+    Py_CLEAR(GETSTATE(m)->error);
+    return 0;
+  }
+
+  static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "GDL",
+    NULL,
+    sizeof(struct module_state),
+    GDLMethods,
+    NULL,
+    GDL_traverse,
+    GDL_clear,
+    NULL
+  };
+#endif
 
   // python GDL module init function
-  PyMODINIT_FUNC initGDL()
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_GDL(void)
+#else
+  PyMODINIT_FUNC initGDL(void)
+#endif
   { 
     // http://docs.scipy.org/doc/numpy/reference/c-api.array.html#miscellaneous
     import_array();
@@ -552,7 +589,11 @@ extern "C" {
       }
     SysVar::SetGDLPath( gdlPath);
     
+#if PY_MAJOR_VERSION >= 3
+    PyObject* m = PyModule_Create(&moduledef);
+#else
     PyObject* m = Py_InitModule("GDL", GDLMethods);
+#endif
 
     gdlError = PyErr_NewException((char*)"GDL.error", NULL, NULL);
     Py_INCREF(gdlError);
@@ -561,6 +602,9 @@ extern "C" {
     // GDL event handling
     oldInputHook = PyOS_InputHook;
     PyOS_InputHook = GDLEventHandlerPy;
+#if PY_MAJOR_VERSION >= 3
+    return m;
+#endif
   }
   
 } // extern "C" 

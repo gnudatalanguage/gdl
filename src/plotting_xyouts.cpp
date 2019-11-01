@@ -183,14 +183,14 @@ namespace lib
       if (coordinateSystem == DEVICE) doT3d =false;
       
       // get_axis_type
-      gdlGetAxisType("X", xLog);
-      gdlGetAxisType("Y", yLog);
-      gdlGetAxisType("Z", zLog);
+      gdlGetAxisType(XAXIS, xLog);
+      gdlGetAxisType(YAXIS, yLog);
+      gdlGetAxisType(ZAXIS, zLog);
 
       //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
       GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd);
       // get !Z.CRANGE
-      gdlGetCurrentAxisRange("Z", zStart, zEnd);
+      gdlGetCurrentAxisRange(ZAXIS, zStart, zEnd);
 
       if (zStart != 0.0 && zStart == zEnd)
       {

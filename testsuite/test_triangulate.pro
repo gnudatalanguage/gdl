@@ -1,12 +1,13 @@
 ;
 ; AC 11/11/2016
 ; Very preliminary tests on TRIANGULATE, TRIGRID, ...
-;
+; GD 06/05/2019: test only triangulate and trigrid by default. No gaussfit dependency.
+; GD 08/05/2019: gaussfit can be tested as we have it now.
 ; ----------------------
 ;
 ; Regridding a Gaussian computed on a Spiral ...
 ;
-pro TEST_GAUSS2D_ON_SPIRAL, nbp, no_display=no_display, no_fit=no_fit, $
+pro TEST_GAUSS2D_ON_SPIRAL, nbp, display=display, fit=fit, $
                             help=help, verbose=verbose, test=test, $
                             no_wait=no_wait, benchmark=benchmark
 ;
@@ -35,19 +36,18 @@ if KEYWORD_SET(benchmark) then begin
     TOC & print, 'After TRIGRID  and before Gauss 2D FIT (if)' & TIC
 endif
 ;
-WINDOW, xsize=1000, ysize=500
-!p.multi=[0,2,0]
-;
-PLOT, x, y, psym=-1, symsize=0.3, /iso, title=STRING(nbp)+ ' npbs in Spiral'
-SURFACE, trigrid_gauss2d
-;
-if ~KEYWORD_SET(no_fit) then begin
+if KEYWORD_SET(display) then begin
+ WINDOW, xsize=1000, ysize=500
+ !p.multi=[0,2,0]
+ ;
+ PLOT, x, y, psym=-1, symsize=0.3, /iso, title=STRING(nbp)+ ' npbs in Spiral'
+ SURFACE, trigrid_gauss2d
+ ;
+endif
+if KEYWORD_SET(fit) then begin
    ;;
-   is_code_around=EXECUTE("a=GAUSS2DFIT(RANDOMU(seed, 12,12))")
-   if is_code_around then begin
-      g=GAUSS2DFIT(trigrid_gauss2d, g_params)
-      print, g_params
-   endif
+   g=GAUSS2DFIT(trigrid_gauss2d, g_params)
+   print, g_params
    if KEYWORD_SET(benchmark) then begin
        TOC & print, 'After Gauss 2D FIT (if)' & TIC
    endif
@@ -61,22 +61,24 @@ if KEYWORD_SET(test) then STOP
 end
 ;
 pro TEST_TRIANGULATE, help=help, test=test, verbose=verbose, benchmark=benchmark, $
-                no_exit=no_exit, no_display=no_display
+                no_exit=no_exit, display=display, fit=fit
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_TRIANGULATE, help=help, test=test, verbose=verbose, benchmark=benchmark, $'
-   print, '                no_exit=no_exit, no_display=no_display'
+   print, '                no_exit=no_exit, display=display', fit=fit
    return
 endif
 ;
-TEST_GAUSS2D_ON_SPIRAL, 100, no_display=no_display, $
-                        benchmark=benchmark, no_fit=no_fit
+if (n_elements(display) eq 0 ) then display=0
+if (n_elements(fit) eq 0 ) then fit=1
+TEST_GAUSS2D_ON_SPIRAL, 100, display=display, $
+                        benchmark=benchmark, fit=fit
 ;
-TEST_GAUSS2D_ON_SPIRAL, 1000, no_display=no_display, $
-                        benchmark=benchmark, no_fit=no_fit
+TEST_GAUSS2D_ON_SPIRAL, 1000, display=display, $
+                        benchmark=benchmark, fit=fit
 ;
-TEST_GAUSS2D_ON_SPIRAL, 10000, no_display=no_display, $
-                        benchmark=benchmark, no_fit=no_fit
+TEST_GAUSS2D_ON_SPIRAL, 10000, display=display, $
+                        benchmark=benchmark, fit=fit
 ;
 
 end

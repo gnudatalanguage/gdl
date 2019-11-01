@@ -14,80 +14,20 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
-#include "includefirst.hpp"
-
-#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
-#include <numpy/arrayobject.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
 
-#include <iomanip>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
-//#include "datatypes.hpp" // included from arrayindex.hpp
+#include "datatypes.hpp" // for friend declaration
 #include "nullgdl.hpp"
-#include "dstructgdl.hpp"
-#include "arrayindexlistt.hpp"
-#include "assocdata.hpp"
-#include "io.hpp"
 #include "dinterpreter.hpp"
-#include "terminfo.hpp"
 
 // needed with gcc-3.3.2
 #include <cassert>
-
-// on OS X isnan is not defined
-#if defined(__APPLE__) && defined(OLD_DARWIN) && !defined(isnan)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-// #define      isnan( x )         ( ( sizeof ( x ) == sizeof(double) ) ?  \
-// 				  __isnand ( x ) :			\
-// 				  ( sizeof ( x ) == sizeof( float) ) ?	\
-// 				  __isnanf ( x ) :			\
-// 				  __isnan  ( x ) )
-namespace std {
-
-  template <typename T>
-  bool isnan( T x) { return ( ( sizeof ( x ) == sizeof(double) ) ?  
-				  __isnand ( x ) :			
-				  ( sizeof ( x ) == sizeof( float) ) ?	
-				  __isnanf ( x ) :			
-				  __isnan  ( x ) );}
-}
-#ifdef __cplusplus
-}
-#endif
-#endif
-
-#ifdef _MSC_VER
-#define isfinite _finite
-#define std__isnan isnan
-#else
-#define std__isnan std::isnan
-#endif
-
-//using namespace std;
-//using std::isnan;
-
-// this (ugly) including of other sourcefiles has to be done, because
-// on Mac OS X a template instantiation request (see bottom of file)
-// can only be done once
-#define INCLUDE_GETAS_CPP 1
-#include "getas.cpp"
-
-#define INCLUDE_BASIC_OP_CPP 1
-#include "basic_op.cpp"
-#include "basic_op_new.cpp"
-
-#define INCLUDE_DEFAULT_IO_CPP 1
-#include "default_io.cpp"
-
-#define INCLUDE_IFMT_CPP 1
-#include "ifmt.cpp"
-
-#define INCLUDE_OFMT_CPP 1
-#include "ofmt.cpp"
 
 #define INCLUDE_DATATYPESREF_CPP 1
 #include "datatypesref.cpp"
@@ -105,12 +45,6 @@ namespace std {
 #    include "pythongdl.cpp"
 #  endif
 #endif
-
-#ifdef _MSC_VER
-#define isnan _isnan
-#define isinfinite _isinfinite
-#endif
-
 
 #ifdef TESTTG
 
@@ -396,7 +330,7 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT,
 #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     {
 #pragma omp for
-      for (int i = 0; i < sz; ++i) {
+      for (SizeT i = 0; i < sz; ++i) {
         (*this)[i] = 0;
       }
     }
@@ -433,7 +367,7 @@ template<> Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, D
 #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     {
 #pragma omp for
-      for (int i = 0; i < sz; ++i) {
+      for (SizeT i = 0; i < sz; ++i) {
         (*this)[i] = 0;
       }
     }
@@ -472,7 +406,7 @@ template<> Data_<SpDComplex>::Data_(const dimension& dim_, BaseGDL::InitType iT,
 #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
     {
 #pragma omp for
-      for (int i = 0; i < sz; ++i) {
+      for (SizeT i = 0; i < sz; ++i) {
         (*this)[i] = 0;
       }
     }
@@ -520,15 +454,15 @@ template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT, DD
   if( iT != BaseGDL::NOALLOC && iT != BaseGDL::NOZERO)
     {
       SizeT sz = dd.size();
-      /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 	{
-	#pragma omp for*/
-      for( int i=0; i<sz; ++i)
+	#pragma omp for
+      for( SizeT i=0; i<sz; ++i)
 	{
 	  (*this)[i]=0;
 	}
       // 	  val += 1; // no increment operator for floats
-      // 	}
+     	}
     }
 }
 template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble):
@@ -542,15 +476,15 @@ template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDo
   if( iT != BaseGDL::NOALLOC && iT != BaseGDL::NOZERO)
     {
       SizeT sz = dd.size();
-      /*#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+    #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
 	{
-	#pragma omp for*/
-      for( int i=0; i<sz; i++)
+	#pragma omp for
+      for( SizeT i=0; i<sz; i++)
 	{
 	  (*this)[i]=0;
 	}
       // 	  val += 1; // no increment operator for floats
-      // 	}
+    }
     }
 }
 
@@ -607,13 +541,8 @@ BaseGDL* Data_<SpDFloat>::Log()
       (*n)[ 0] = log( (*this)[ 0]);
       return n;
     }
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( int i=0; i<nEl; ++i)
-	(*n)[ i] = log( (*this)[ i]);
-    }
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log( (*this)[ i]);
   return n;
 }
 template<>
@@ -626,10 +555,8 @@ BaseGDL* Data_<SpDDouble>::Log()
       (*n)[ 0] = log( (*this)[ 0]);
       return n;
     }
-  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
-      (*n)[ i] = log( (*this)[ i]);
+    for( SizeT i=0; i<nEl; ++i)  (*n)[ i] = log( (*this)[ i]);
   return n;
 }
 template<>
@@ -642,10 +569,8 @@ BaseGDL* Data_<SpDComplex>::Log()
       (*n)[ 0] = log( (*this)[ 0]);
       return n;
     }
-  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
-      (*n)[ i] = log( (*this)[ i]);
+    for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log( (*this)[ i]);
   return n;
 }
 template<>
@@ -658,10 +583,8 @@ BaseGDL* Data_<SpDComplexDbl>::Log()
       (*n)[ 0] = log( (*this)[ 0]);
       return n;
     }
-  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
-      (*n)[ i] = log( (*this)[ i]);
+    for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log( (*this)[ i]);
   return n;
 }
 
@@ -686,70 +609,47 @@ BaseGDL* Data_<SpDFloat>::LogThis()
       (*this)[ 0] = log( (*this)[ 0]);
       return this;
     }
-  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
-      (*this)[ i] = log( (*this)[ i]);
+    for( SizeT i=0; i<nEl; ++i) (*this)[ i] = log( (*this)[ i]);
   return this;
 }
 template<>
 BaseGDL* Data_<SpDDouble>::LogThis()              
 { 
-  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
   SizeT nEl = N_Elements();
   if( nEl == 1)
     {
       (*this)[ 0] = log( (*this)[ 0]);
       return this;
     }
-  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
-      (*this)[ i] = log( (*this)[ i]);
-  /*#else
-    dd = log(dd);
-    #endif*/
+    for( SizeT i=0; i<nEl; ++i) (*this)[ i] = log( (*this)[ i]);
   return this;
 }
 template<>
 BaseGDL* Data_<SpDComplex>::LogThis()              
 { 
-  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
   SizeT nEl = N_Elements();
   if( nEl == 1)
     {
       (*this)[ 0] = log( (*this)[ 0]);
       return this;
     }
-  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
-      (*this)[ i] = log( (*this)[ i]);
-  /*#else
-    dd = log(dd);
-    #endif*/
+    for( SizeT i=0; i<nEl; ++i) (*this)[ i] = log( (*this)[ i]);
   return this;
 }
 template<>
 BaseGDL* Data_<SpDComplexDbl>::LogThis()              
 { 
-  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
   SizeT nEl = N_Elements();
   if( nEl == 1)
     {
       (*this)[ 0] = log( (*this)[ 0]);
       return this;
     }
-  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
-      (*this)[ i] = log( (*this)[ i]);
-  /*#else
-    dd = log(dd);
-    #endif*/
+    for( SizeT i=0; i<nEl; ++i) (*this)[ i] = log( (*this)[ i]);
   return this;
 }
 
@@ -764,8 +664,6 @@ BaseGDL* Data_<Sp>::Log10()
 template<>
 BaseGDL* Data_<SpDFloat>::Log10()              
 { 
-  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
@@ -773,20 +671,13 @@ BaseGDL* Data_<SpDFloat>::Log10()
       (*n)[ 0] = log10( (*this)[ 0]);
       return n;
     }
-  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
-      (*n)[ i] = log10( (*this)[ i]);
+    for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   return n;
-  /*#else
-    return new Data_(this->dim, log10(dd));
-    #endif*/
 }
 template<>
 BaseGDL* Data_<SpDDouble>::Log10()              
 { 
-  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
@@ -794,20 +685,13 @@ BaseGDL* Data_<SpDDouble>::Log10()
       (*n)[ 0] = log10( (*this)[ 0]);
       return n;
     }
-  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
-      (*n)[ i] = log10( (*this)[ i]);
+    for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   return n;
-  /*#else
-    return new Data_(this->dim, log10(dd));
-    #endif*/
 }
 template<>
 BaseGDL* Data_<SpDComplex>::Log10()              
 { 
-  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
@@ -815,20 +699,13 @@ BaseGDL* Data_<SpDComplex>::Log10()
       (*n)[ 0] = log10( (*this)[ 0]);
       return n;
     }
-  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
-      (*n)[ i] = log10( (*this)[ i]);
+    for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   return n;
-  /*#else
-    return new Data_(this->dim, log10(dd));
-    #endif*/
 }
 template<>
 BaseGDL* Data_<SpDComplexDbl>::Log10()              
 { 
-  //#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
   Data_* n = this->New( this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if( nEl == 1)
@@ -836,14 +713,9 @@ BaseGDL* Data_<SpDComplexDbl>::Log10()
       (*n)[ 0] = log10( (*this)[ 0]);
       return n;
     }
-  TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
-      (*n)[ i] = log10( (*this)[ i]);
+    for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   return n;
-  /*#else
-    return new Data_(this->dim, log10(dd));
-    #endif*/
 }
 
 // see comment at void Data_<Sp>::LogThis()              
@@ -868,7 +740,7 @@ BaseGDL* Data_<SpDFloat>::Log10This()
     }
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
+    for( SizeT i=0; i<nEl; ++i)
       (*this)[ i] = log10( (*this)[ i]);
 #else
   dd = log10(dd);
@@ -888,7 +760,7 @@ BaseGDL* Data_<SpDDouble>::Log10This()
     }
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
+    for( SizeT i=0; i<nEl; ++i)
       (*this)[ i] = log10( (*this)[ i]);
 #else
   dd = log10(dd);
@@ -908,7 +780,7 @@ BaseGDL* Data_<SpDComplex>::Log10This()
     }
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
+    for( SizeT i=0; i<nEl; ++i)
       (*this)[ i] = log10( (*this)[ i]);
 #else
   dd = log10(dd);
@@ -928,7 +800,7 @@ BaseGDL* Data_<SpDComplexDbl>::Log10This()
     }
   TRACEOMP( __FILE__, __LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( int i=0; i<nEl; ++i)
+    for( SizeT i=0; i<nEl; ++i)
       (*this)[ i] = log10( (*this)[ i]);
 #else
   dd = log10(dd);
@@ -1667,7 +1539,7 @@ typename Data_<Sp>::Ty Data_<Sp>::Sum() const
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( s)
     {
 #pragma omp for reduction(+:s)
-      for( int i=1; i<nEl; ++i)
+      for( SizeT i=1; i<nEl; ++i)
 	{
 	  s += dd[ i];
 	}
@@ -1693,7 +1565,7 @@ Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::Sum() const
   DDouble si= dd[ 0].imag();
   SizeT nEl = dd.size();
   TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( sr,si)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( sr,si)
     {
 #pragma omp for reduction(+:si,sr)
   for( SizeT i=1; i<nEl; ++i)
@@ -1711,7 +1583,7 @@ Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const
   DFloat si= dd[ 0].imag();
   SizeT nEl = dd.size();
   TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( sr,si)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( sr,si)
     {
 #pragma omp for reduction(+:si,sr)
   for( SizeT i=1; i<nEl; ++i)
@@ -2008,7 +1880,7 @@ void Data_<Sp>::ConstructTo0()
 //   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 //     {
 //     #pragma omp for*/
-//   for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
+//   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
 // }//}
 // template<>
 // void Data_< SpDComplex>::ConstructTo0() 
@@ -2017,7 +1889,7 @@ void Data_<Sp>::ConstructTo0()
 //   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 //     {
 //     #pragma omp for*/
-//   for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
+//   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
 // }//}
 // template<>
 // void Data_< SpDComplexDbl>::ConstructTo0() 
@@ -2026,7 +1898,7 @@ void Data_<Sp>::ConstructTo0()
 //   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 //     {
 //     #pragma omp for*/
-//   for( int i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
+//   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
 // }//}
 
 template< class Sp>
@@ -2151,12 +2023,8 @@ template<> SizeT Data_<SpDString>::NBytes() const
 {
   SizeT nEl = dd.size();
   SizeT nB = 0;
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
-  for( int i=0; i<nEl; ++i)
-    nB += (*this)[i].size();
-  //}
+  #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) reduction(+:nB)
+  for( SizeT i=0; i<nEl; ++i)  nB += (*this)[i].size();
   return nB;
 }
 // template<> SizeT Data_<SpDObj>::NBytes() const
@@ -2694,7 +2562,7 @@ bool Data_<SpDObj>::True()
   // prevent recursion
   if( res->Type() == GDL_OBJ)
   {
-    ostringstream os;
+    std::ostringstream os;
     res->ToStream(os);
     throw GDLException( isTrueOverload->ObjectName() + ": Object reference expression not allowed in this context: " +
 			 os.str(),true,false);
@@ -3741,10 +3609,18 @@ Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
   
   catArrDim.SetOneDim(catRankIx,dimSum);
   
+// special case: identity (c=[a]) equivalent to c=a, e.g. Dup(). Speedup
+  if (exprList.size()==1 && (this->dim==catArrDim)) return this->Dup(); 
+
   // the concatenated array
   Data_<Sp>* catArr=New(catArrDim, BaseGDL::NOZERO);
   
   SizeT at=0;
+
+// accelerated in CatInsert. Note that "at" is computed serially in CatInsert but can be computed externally (if one wanted to precompute it for parallel calls to CatInsert:
+//  SizeT add=static_cast<Data_<Sp>*>( (*i))->dim[catRankIx]; // update 'at'
+//  for( i=exprList.begin(); i != exprList.end(); ++i) at += (add > 1)? add : 1;
+
   for( i=exprList.begin(); i != exprList.end(); ++i)
     {
       catArr->CatInsert(static_cast<Data_<Sp>*>( (*i)),
@@ -3907,57 +3783,54 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
     }
 }
 
-  
+
 // used for concatenation, called from CatArray
 // assumes that everything is checked (see CatInfo)
 template<class Sp>
-void Data_<Sp>::CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at)
+void Data_<Sp>::CatInsert (const Data_* srcArr, const SizeT atDim, SizeT& at)
 {
   // length of one segment to copy
-  SizeT len=srcArr->dim.Stride(atDim+1); // src array
+  SizeT len = srcArr->dim.Stride (atDim + 1); // src array
 
-  SizeT nEl=srcArr->N_Elements();
+  SizeT nEl = srcArr->N_Elements ();
   // number of copy actions
-  SizeT nCp=nEl/len;
+  SizeT nCp = nEl / len;
 
   // initial offset
-  SizeT destStart= this->dim.Stride(atDim) * at; // dest array
-  SizeT destEnd  = destStart + len;
+  SizeT destStart = this->dim.Stride (atDim) * at; // dest array
+  SizeT destEnd = destStart + len;
 
   // number of elements to skip
-  SizeT gap=this->dim.Stride(atDim+1);    // dest array
-
+  SizeT gap = this->dim.Stride (atDim + 1); // dest array
+  
 #ifdef _OPENMP
-    #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-        #pragma omp for
-        for( OMPInt c=0; c<nCp; ++c)
-        {
-            // copy one segment
-            SizeT destStartLoop = destStart + c * gap;
-            SizeT destEndLoop   = destStartLoop + len;
-            SizeT srcIxLoop     = c * len;
-            for( SizeT destIx=destStartLoop; destIx< destEndLoop; destIx++)
-                (*this)[destIx] = (*srcArr)[ srcIxLoop++];
-
-        }
-    } // OMP
+//GD: speed up by using indexing that permit parallel and collapse. 
+#pragma omp parallel for collapse(2) if (len*nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= len*nCp))
+    for (OMPInt c = 0; c < nCp; ++c)
+      {
+        //            // copy one segment
+        //            SizeT destStartLoop = destStart + c * gap;
+        //            SizeT destEndLoop   = destStartLoop + len;
+        //            SizeT srcIxLoop     = c * len;
+        //            std::cerr<<"ncp="<<nCp<<",c="<<c<<": start: "<<destStart+c*gap<<" end: "<<destStart + c * gap + len<<" srcIxLoop="<<c * len<<std::endl;
+        for (SizeT destIx = 0; destIx < len; destIx++) (*this)[destIx + destStart + c * gap] = (*srcArr)[ destIx + c * len];
+      }
 #else // #ifdef _OPENMP
-    SizeT srcIx=0;
-    for( SizeT c=0; c<nCp; ++c)
+  SizeT srcIx = 0;
+  for (SizeT c = 0; c < nCp; ++c)
     {
-        // copy one segment
-        for( SizeT destIx=destStart; destIx< destEnd; destIx++)
-            (*this)[destIx] = (*srcArr)[ srcIx++];
+      // copy one segment
+      for (SizeT destIx = destStart; destIx < destEnd; destIx++)
+        (*this)[destIx] = (*srcArr)[ srcIx++];
 
-        // set new destination pointer
-        destStart += gap;
-        destEnd   += gap;
+      // set new destination pointer
+      destStart += gap;
+      destEnd += gap;
     }
 #endif
 
-  SizeT add=srcArr->dim[atDim]; // update 'at'
-  at += (add > 1)? add : 1;
+  SizeT add = srcArr->dim[atDim]; // update 'at'
+  at += (add > 1) ? add : 1;
 }
 
 // Logical True
@@ -4920,20 +4793,4 @@ SizeT Data_<SpDComplexDbl>::GetAsIndexStrict( SizeT i) const
   return Real2Int<SizeT,double>(real((*this)[i]));
 }	
 
-//#include "instantiate_templates.hpp"
-
-template class Data_< SpDByte>;
-template class Data_< SpDInt>;
-template class Data_< SpDUInt>;
-template class Data_< SpDLong>;
-template class Data_< SpDULong>;
-template class Data_< SpDLong64>;
-template class Data_< SpDULong64>;
-template class Data_< SpDPtr>;
-template class Data_< SpDFloat>;
-template class Data_< SpDDouble>;
-template class Data_< SpDString>;
-template class Data_< SpDObj>;
-template class Data_< SpDComplex>;
-template class Data_< SpDComplexDbl>;
-
+#include "instantiate_templates.hpp"

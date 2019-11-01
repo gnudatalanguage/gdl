@@ -164,8 +164,8 @@ private:
 
     bool xLog;
     bool yLog;
-    gdlGetAxisType("X", xLog);
-    gdlGetAxisType("Y", yLog);
+    gdlGetAxisType(XAXIS, xLog);
+    gdlGetAxisType(YAXIS, yLog);
 
    GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd);
 

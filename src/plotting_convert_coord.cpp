@@ -88,9 +88,9 @@ namespace lib {
     GetSFromPlotStructs(&sx, &sy, &sz);
     
     bool xLog, yLog, zLog;
-    gdlGetAxisType("X", xLog);
-    gdlGetAxisType("Y", yLog);
-    gdlGetAxisType("Z", zLog);
+    gdlGetAxisType(XAXIS, xLog);
+    gdlGetAxisType(YAXIS, yLog);
+    gdlGetAxisType(ZAXIS, zLog);
         
     int xSize, ySize;
     //give default values
@@ -125,9 +125,11 @@ namespace lib {
 #ifdef USE_LIBPROJ4
       if ( mapSet )
       {
+#ifdef PROJ_IS_THREADSAFE
 #pragma omp parallel if (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows))
         {
 #pragma omp for private(idata,odata)
+#endif
             for (SizeT i = 0; i < nrows; i++) {
               idata.u = (*xVal)[i] * DEG_TO_RAD;
               idata.v = (*yVal)[i] * DEG_TO_RAD;
@@ -135,7 +137,9 @@ namespace lib {
               (*xVal)[i] = odata.u;
               (*yVal)[i] = odata.v;
             }
+#ifdef PROJ_IS_THREADSAFE
           }
+#endif
         }
 #endif
         // to norm:
@@ -182,9 +186,11 @@ namespace lib {
 #ifdef USE_LIBPROJ4
       if ( mapSet )
       {
+#ifdef PROJ_IS_THREADSAFE
 #pragma omp parallel if (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows))
         {
 #pragma omp for private(idata,odata)
+#endif
             for (SizeT i = 0; i < nrows; i++) {
               odata.u = (*xVal)[i];
               odata.v = (*yVal)[i];
@@ -192,7 +198,9 @@ namespace lib {
               (*xVal)[i] = idata.u * RAD_TO_DEG;
               (*yVal)[i] = idata.v * RAD_TO_DEG;
             }
+#ifdef PROJ_IS_THREADSAFE
           }
+#endif
         }
 #endif
 

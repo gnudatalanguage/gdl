@@ -1,4 +1,4 @@
-[![Linux/OSX Build Status](https://travis-ci.org/gnudatalanguage/gdl.svg?branch=master)](https://travis-ci.org/gnudatalanguage/gdl) 
+[![Linux/OSX Build Status](https://travis-ci.org/gnudatalanguage/gdl.svg?branch=master)](https://travis-ci.org/gnudatalanguage/gdl/branches) 
 [![Windows Build status](http://ci.appveyor.com/api/projects/status/github/gnudatalanguage/gdl?branch=master&svg=true)](https://ci.appveyor.com/project/slayoo/gdl/branch/master)
 [![Coverage Status](https://img.shields.io/codecov/c/github/gnudatalanguage/gdl/master.svg)](https://codecov.io/github/gnudatalanguage/gdl?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/e5de1c1571c649279dad18d5d8590789)](https://www.codacy.com/app/slayoo/gdl?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=gnudatalanguage/gdl&amp;utm_campaign=Badge_Grade)
@@ -66,8 +66,9 @@ The table below summarises GDL mandatory and optional dependencies along with th
 | [HDF5](https://support.hdfgroup.org/HDF5/)                                              |   +    |    +       |   +    | +       |   -   |    +      |   +   |   +   |
 | [FFTW](http://www.fftw.org/)                                                            |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [PROJ.4](http://proj4.org/)                                                             |   -    |    -       |   -    | +       |   -   |    +      |   -   |   +   |
-| [GSHHG](http://www.soest.hawaii.edu/wessel/gshhg/)                                      |   -    |    -       |   -    | +       |   -   |    -      |   -   |   +   |
-| [MPICH](https://www.mpich.org/)                                                         |   -    |    -       |   -    | -       |   -   |    +      |   -   |   +   |
+| [Shapelib](http://shapelib.maptools.org/)                                               |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |                                   |   -    |    -       |   -    | +       |   -   |    -      |   -   |   +   |
+| [Expat](https://libexpat.github.io/)                                                    |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |                                   |   -    |    -       |   -    | +       |   -   |    -      |   -   |   +   |
+| [MPI](https://en.wikipedia.org/wiki/Message_Passing_Interface)                          |   -    |    -       |   -    | -       |   -   |    +      |   -   |   +   |
 | [Python](https://www.python.org/)/[NumPy](http://www.numpy.org/)                        |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
 | [udunits](https://www.unidata.ucar.edu/software/udunits/)                               |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [Eigen](https://eigen.tuxfamily.org/)                                                   |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |

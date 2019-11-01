@@ -56,7 +56,7 @@ namespace SysVar
   UInt nullIx, trueIx, falseIx, pathIx, promptIx, edit_inputIx, quietIx,
     dIx, pIx, xIx, yIx, zIx, vIx, gdlWarningIx, gdlIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
-    journalIx, exceptIx, mapIx, cpuIx, dirIx, GshhgDirIx, stimeIx,
+    journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx,
     warnIx, usersymIx, orderIx, MakeDllIx, colorIx;
 
   // !D structs
@@ -273,12 +273,6 @@ namespace SysVar
     DStructGDL* pStruct = SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     static int tag = pStruct->Desc()->TagIndex( "FONT");
     return (*static_cast<DLongGDL*>( pStruct->GetTag( tag)))[0];
-  }
-
-  const DString& GshhgDir()
-  {
-    DVar& var = *sysVarList[GshhgDirIx];
-    return static_cast<DStringGDL&>(*var.Data())[0];
   }
 
   DStringGDL* STime()
@@ -958,12 +952,10 @@ namespace SysVar
     dirIx=sysVarList.size();
     sysVarList.push_back( dir);
 
-    // !GSHHG_DATA_DIR 
-    string tmpDir=GetEnvString("GSHHG_DATA_DIR");
-    if( tmpDir == "") tmpDir = string(GDLDATADIR) + "/../gshhg/";
-    //    cout << "1 GSHHG data dir : " << tmpDir << endl;
-    // is the path a true path ?
-    char *symlinkpath =const_cast<char*> (tmpDir.c_str());
+    // !GDL_MAPS_DIR 
+    string tmpDir=GetEnvString("GDL_MAPS_DIR");
+    if( tmpDir == "") tmpDir = string(GDLDATADIR) + "/resource/maps";
+    char *symlinkpath =const_cast<char*> (tmpDir.c_str());// is the path a true path ?
 
 #ifdef _MSC_VER
 	#define PATH_MAX MAX_PATH
@@ -976,11 +968,9 @@ namespace SysVar
     char *ptr;
     ptr = realpath(symlinkpath, actualpath);
     if( ptr != NULL ) tmpDir=string(ptr)+lib::PathSeparator(); else tmpDir="";
-    //cout << "2 GSHHG data dir : " << tmpDir << endl;
-    DStringGDL *GshhgDataDir =  new DStringGDL( tmpDir);
-    DVar *GshhgDir = new DVar("GSHHG_DATA_DIR", GshhgDataDir);
-    GshhgDirIx=sysVarList.size();
-    sysVarList.push_back(GshhgDir);
+    DStringGDL *GdlMapsDataDir =  new DStringGDL( tmpDir);
+    DVar *GdlMapsDir = new DVar("GDL_MAPS_DIR", GdlMapsDataDir);
+    sysVarList.push_back(GdlMapsDir);
    
     // !STIME
     DStringGDL *stimeData = new DStringGDL( "");

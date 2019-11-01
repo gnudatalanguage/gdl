@@ -60,7 +60,10 @@
 #include "envt.hpp"
 #include "graphicsdevice.hpp"
 #include "initsysvar.hpp"
-#include <limits>
+
+#ifdef USE_LIBPROJ4
+#include "projections.hpp"
+#endif 
 
 struct GDL_3DTRANSFORMDATA
 {
@@ -96,6 +99,19 @@ enum ORIENTATION3D
     XZYZ,
     XZXY
   };
+  
+enum PLOT_AXES_IDENTIFIERS
+{
+ XAXIS=0,
+ YAXIS,
+ ZAXIS,
+ XAXIS2, //special identifiere for gdlAxis
+ YAXIS2,
+ ZAXIS2
+};
+
+static const std::string axisName[6]={"X","Y","Z","X","Y","Z"}; 
+  
 #define GDL_NONE -1
 #define GDL_TICKFORMAT 0
 #define GDL_TICKUNITS 1
@@ -186,87 +202,16 @@ namespace lib {
   void scale3_pro(EnvT* e);
   void t3d_pro( EnvT* e);
   
+  BaseGDL* convert_coord( EnvT* e);
+
   // Map stuff
   void get_mapset(bool &mapset);
   void set_mapset(bool mapset);
-  BaseGDL* map_proj_forward_fun( EnvT* e);
-  BaseGDL* map_proj_inverse_fun( EnvT* e);
-  BaseGDL* convert_coord( EnvT* e);
-  //dummy functions for compatibility support of GCTP projections 
-  void map_proj_gctp_forinit (EnvT* e);
-  void map_proj_gctp_revinit (EnvT* e);
-  
-#if defined(USE_LIBPROJ4) || defined(USE_LIBPROJ4_NEW) 
-#define GDL_COMPLEX COMPLEX2
-
-#ifdef USE_LIBPROJ4_NEW
-  extern "C" {
-    //#include "projects.h"
-#include "proj_api.h"
-  }
-#define LPTYPE projLP
-#define XYTYPE projXY
-
-#define PROJTYPE projPJ
-#define PROJDATA projUV
-#define PJ_INIT pj_init
-
-  PROJDATA protect_proj_fwd (PROJDATA idata, PROJTYPE proj);
-  PROJDATA protect_proj_inv (PROJDATA idata, PROJTYPE proj);
-
-#define PJ_FWD protect_proj_fwd
-#define LIB_PJ_FWD pj_fwd
-#define PJ_INV protect_proj_inv 
-#define LIB_PJ_INV pj_inv
-  PROJTYPE map_init(DStructGDL *map=SysVar::Map());
-  static volatile PROJTYPE ref;
-  static volatile PROJTYPE prev_ref;
-  static PROJDATA badProj={sqrt(-1),sqrt(-1)};
-#else
-  extern "C" {
-    //adding this removes the problem with lam,phi vs. x,y and make no diffs between old an new lib proj.4    
-#define PROJ_UV_TYPE 1
-#include "lib_proj.h"
-  }
-#define LPTYPE PROJ_LP
-#define XYTYPE PROJ_XY
-
-#define PROJTYPE PROJ*
-#define PROJDATA PROJ_UV
-#define PJ_INIT proj_init
-
-  PROJDATA protect_proj_fwd (PROJDATA idata, PROJTYPE proj);
-  PROJDATA protect_proj_inv (PROJDATA idata, PROJTYPE proj);
-
-#define PJ_FWD protect_proj_fwd
-#define LIB_PJ_FWD proj_fwd
-#define PJ_INV protect_proj_inv
-#define LIB_PJ_INV proj_inv
-  PROJTYPE map_init(DStructGDL *map=SysVar::Map());
-  static PROJTYPE ref;
-  static PROJTYPE prev_ref;
-  static PROJDATA badProj={sqrt(-1),sqrt(-1)};
-  //general reprojecting function
-#endif
-
-  //general reprojecting function
-  DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map,
-			     DDoubleGDL* lon, DDoubleGDL *lat, DLongGDL* connectivity,
-			     bool doConn, DLongGDL* &gons, bool doGons,
-			     DLongGDL* &lines, bool doLines, bool doFill);
-
+#ifdef USE_LIBPROJ4
   void GDLgrProjectedPolygonPlot(GDLGStream * a, PROJTYPE ref, DStructGDL* map, 
 				 DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians,
 				 bool const doFill, DLongGDL *conn=NULL);
-   
-  DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap); //not static since KW is at same place for all uses.
-
-#define COMPLEX2 GDL_COMPLEX
-#else //NOT USE_LIBPROJ4 : define some more or less dummy values:
-#define PROJTYPE void*
-#define DEG_TO_RAD 0.017453292
-#endif //USE_LIBPROJ4
-
+#endif
   //3D conversions
   void SelfTranspose3d(DDoubleGDL* me);
   void SelfReset3d(DDoubleGDL* me);
@@ -356,12 +301,12 @@ namespace lib {
   void gdlHandleUnwantedAxisValue(DDouble &min, DDouble &max, bool log);
   void gdlSetGraphicsPenColorToBackground(GDLGStream *a);
   void gdlLineStyle(GDLGStream *a, DLong style);
-  void gdlStoreAxisCRANGE(string axis, DDouble Start, DDouble End, bool log);
-  void gdlStoreAxisSandWINDOW(GDLGStream* actStream, string axis, DDouble Start, DDouble End, bool log=false);
-  void gdlGetAxisType(string axis, bool &log);
-  void gdlGetCurrentAxisRange(string axis, DDouble &Start, DDouble &End, bool checkMapset=FALSE);
-  void gdlGetCurrentAxisWindow(string axis, DDouble &wStart, DDouble &wEnd);
-  void gdlStoreAxisType(string axis, bool type);
+  void gdlStoreAxisCRANGE(int axisId, DDouble Start, DDouble End, bool log);
+  void gdlStoreAxisSandWINDOW(GDLGStream* actStream, int axisId, DDouble Start, DDouble End, bool log=false);
+  void gdlGetAxisType(int axisId, bool &log);
+  void gdlGetCurrentAxisRange(int axisId, DDouble &Start, DDouble &End, bool checkMapset=FALSE);
+  void gdlGetCurrentAxisWindow(int axisId, DDouble &wStart, DDouble &wEnd);
+  void gdlStoreAxisType(int axisId, bool type);
   void gdlGetCharSizes(GDLGStream *a, PLFLT &nsx, PLFLT &nsy, DDouble &wsx, DDouble &wsy, 
 		       DDouble &dsx, DDouble &dsy, DDouble &lsx, DDouble &lsy); 
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz=NULL);
@@ -373,7 +318,7 @@ namespace lib {
   void gdlStoreCLIP(DLongGDL* clipBox);
   void GetCurrentUserLimits(GDLGStream *a, 
 			    DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd);
-  PLFLT gdlAdjustAxisRange(EnvT* e, string axis, DDouble &val_min, DDouble &val_max, bool log = false, int calendarcode = 0);
+  PLFLT gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &val_min, DDouble &val_max, bool log = false, int calendarcode = 0);
   PLFLT AutoTick(DDouble x);
   void setIsoPort(GDLGStream* actStream,PLFLT x1,PLFLT x2,PLFLT y1,PLFLT y2,PLFLT aspect);
   void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal);
@@ -520,18 +465,18 @@ namespace lib {
     a->Thick(charthick);
   }
    
-  static PLFLT gdlComputeTickInterval(EnvT *e, string axis, DDouble &min, DDouble &max, bool log)
+  static PLFLT gdlComputeTickInterval(EnvT *e, int axisId, DDouble &min, DDouble &max, bool log)
   {
     DLong nticks=0;
 
     static int XTICKSIx = e->KeywordIx("XTICKS");
     static int YTICKSIx = e->KeywordIx("YTICKS");
     static int ZTICKSIx = e->KeywordIx("ZTICKS");
-    int choosenIx;
+    int choosenIx=XTICKSIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKSIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKSIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKSIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKSIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YTICKSIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZTICKSIx; }
 
     if ( Struct!=NULL )
     {
@@ -550,7 +495,7 @@ namespace lib {
     return intv;
   }
   
-  static void gdlGetDesiredAxisCharsize(EnvT* e, string axis, DFloat &charsize)
+  static void gdlGetDesiredAxisCharsize(EnvT* e, int axisId, DFloat &charsize)
   {
     //default:
     charsize=1.0;
@@ -567,11 +512,11 @@ namespace lib {
     static int XCharsizeIx = e->KeywordIx("XCHARSIZE");
     static int YCharsizeIx = e->KeywordIx("YCHARSIZE");
     static int ZCharsizeIx = e->KeywordIx("ZCHARSIZE");
-    int choosenIx;
+    int choosenIx=XCharsizeIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XCharsizeIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YCharsizeIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZCharsizeIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XCharsizeIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YCharsizeIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZCharsizeIx; }
 
     if ( Struct!=NULL )
     {
@@ -581,12 +526,12 @@ namespace lib {
       if (axisCharsizeMultiplier>0.0) charsize*=axisCharsizeMultiplier; //IDL Behaviour...
     }
   }
-  static  void gdlSetAxisCharsize(EnvT *e, GDLGStream *a, string axis)
+  static  void gdlSetAxisCharsize(EnvT *e, GDLGStream *a, int axisId)
   {
 
     DFloat charsize=0.0;
     DDouble pmultiscale=1.0;
-    gdlGetDesiredAxisCharsize(e, axis, charsize);
+    gdlGetDesiredAxisCharsize(e, axisId, charsize);
     // adjust if MULTI:
     DLongGDL* pMulti=SysVar::GetPMulti();
     if ( (*pMulti)[1]>2||(*pMulti)[2]>2 ) pmultiscale=0.5; //IDL behaviour
@@ -595,17 +540,17 @@ namespace lib {
     a->sizeChar(charsize*pmultiscale);
   }
 
-  static void gdlGetDesiredAxisGridStyle(EnvT* e, string axis, DLong &axisGridstyle)
+  static void gdlGetDesiredAxisGridStyle(EnvT* e, int axisId, DLong &axisGridstyle)
   {
     axisGridstyle=0;
     DStructGDL* Struct=NULL;
     static int XGRIDSTYLEIx = e->KeywordIx("XGRIDSTYLE");
     static int YGRIDSTYLEIx = e->KeywordIx("YGRIDSTYLE");
     static int ZGRIDSTYLEIx = e->KeywordIx("ZGRIDSTYLE");
-    int choosenIx;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XGRIDSTYLEIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YGRIDSTYLEIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZGRIDSTYLEIx; }
+    int choosenIx=XGRIDSTYLEIx;
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XGRIDSTYLEIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YGRIDSTYLEIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZGRIDSTYLEIx; }
 
     if ( Struct!=NULL )
     {
@@ -614,16 +559,16 @@ namespace lib {
       e->AssureLongScalarKWIfPresent(choosenIx, axisGridstyle);
     }
   }
-  static void gdlGetDesiredAxisMargin(EnvT *e, string axis, DFloat &start, DFloat &end)
+  static void gdlGetDesiredAxisMargin(EnvT *e, int axisId, DFloat &start, DFloat &end)
   {
     static int XMARGINIx = e->KeywordIx("XMARGIN");
     static int YMARGINIx = e->KeywordIx("YMARGIN");
     static int ZMARGINIx = e->KeywordIx("ZMARGIN");
-    int choosenIx;
+    int choosenIx=XMARGINIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XMARGINIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YMARGINIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZMARGINIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XMARGINIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YMARGINIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZMARGINIx; }
 
     if ( Struct!=NULL )
     {
@@ -636,7 +581,7 @@ namespace lib {
     if ( Margin!=NULL )
     {
       if ( Margin->N_Elements()>2 )
-        e->Throw("Keyword array parameter "+axis+"MARGIN must have from 1 to 2 elements.");
+        e->Throw("Keyword array parameter "+axisName[axisId]+"MARGIN must have from 1 to 2 elements.");
       Guard<DFloatGDL> guard;
       DFloatGDL* MarginF=static_cast<DFloatGDL*>
       (Margin->Convert2(GDL_FLOAT, BaseGDL::COPY));
@@ -646,17 +591,17 @@ namespace lib {
         end=(*MarginF)[1];
     }
   }
-  static void gdlGetDesiredAxisMinor(EnvT* e, string axis, DLong &axisMinor)
+  static void gdlGetDesiredAxisMinor(EnvT* e, int axisId, DLong &axisMinor)
   {
     axisMinor=0;
     static int XMINORIx = e->KeywordIx("XMINOR");
     static int YMINORIx = e->KeywordIx("YMINOR");
     static int ZMINORIx = e->KeywordIx("ZMINOR");
-    int choosenIx;
+    int choosenIx=XMINORIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XMINORIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YMINORIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZMINORIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XMINORIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YMINORIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZMINORIx; }
    if ( Struct!=NULL )
     {
       unsigned AxisMinorTag=Struct->Desc()->TagIndex("MINOR");
@@ -664,17 +609,17 @@ namespace lib {
     }
     e->AssureLongScalarKWIfPresent(choosenIx, axisMinor);
   }
-  static bool gdlGetDesiredAxisRange(EnvT *e, string axis, DDouble &start, DDouble &end)
+  static bool gdlGetDesiredAxisRange(EnvT *e, int axisId, DDouble &start, DDouble &end)
   {
     bool set=FALSE;
     static int XRANGEIx = e->KeywordIx("XRANGE");
     static int YRANGEIx = e->KeywordIx("YRANGE");
     static int ZRANGEIx = e->KeywordIx("ZRANGE");
-    int choosenIx;
+    int choosenIx=XRANGEIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XRANGEIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YRANGEIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZRANGEIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XRANGEIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YRANGEIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZRANGEIx; }
     if ( Struct!=NULL )
     {
       DDouble test1, test2;
@@ -692,7 +637,7 @@ namespace lib {
     if ( Range!=NULL )
     {
       if ( Range->N_Elements()!=2 )
-        e->Throw("Keyword array parameter "+axis+"RANGE must have 2 elements.");
+        e->Throw("Keyword array parameter "+axisName[axisId]+"RANGE must have 2 elements.");
       Guard<DDoubleGDL> guard;
       DDoubleGDL* RangeF=static_cast<DDoubleGDL*>(Range->Convert2(GDL_DOUBLE, BaseGDL::COPY));
       guard.Reset(RangeF);
@@ -705,16 +650,16 @@ namespace lib {
     }
     return set;
   }
-  static  void gdlGetDesiredAxisStyle(EnvT *e, string axis, DLong &style)
+  static  void gdlGetDesiredAxisStyle(EnvT *e, int axisId, DLong &style)
   {
     static int XSTYLEIx = e->KeywordIx("XSTYLE");
     static int YSTYLEIx = e->KeywordIx("YSTYLE");
     static int ZSTYLEIx = e->KeywordIx("ZSTYLE");
-    int choosenIx;
+    int choosenIx=XSTYLEIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XSTYLEIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YSTYLEIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZSTYLEIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XSTYLEIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YSTYLEIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZSTYLEIx; }
 
     if ( Struct!=NULL )
     {
@@ -724,17 +669,17 @@ namespace lib {
 
     e->AssureLongScalarKWIfPresent( choosenIx, style);
   }
-    static void gdlGetDesiredAxisThick(EnvT *e,  string axis, DFloat &thick)
+    static void gdlGetDesiredAxisThick(EnvT *e,  int axisId, DFloat &thick)
   {
     thick=1.0;
     static int XTHICKIx = e->KeywordIx("XTHICK");
     static int YTHICKIx = e->KeywordIx("YTHICK");
     static int ZTHICKIx = e->KeywordIx("ZTHICK");
-    int choosenIx;
+    int choosenIx=XTHICKIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTHICKIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTHICKIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTHICKIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTHICKIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YTHICKIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZTHICKIx; }
 
     if ( Struct!=NULL )
     {
@@ -745,21 +690,21 @@ namespace lib {
     e->AssureFloatScalarKWIfPresent(choosenIx, thick);
     if ( thick <= 0.0 ) thick=1.0;
   }
-   static void gdlGetDesiredAxisTickget(EnvT *e,  string axis, DDoubleGDL *Axistickget)
+   static void gdlGetDesiredAxisTickget(EnvT *e,  int axisId, DDoubleGDL *Axistickget)
   {
     //TODO!
   }
 
-  static void gdlGetDesiredAxisTickFormat(EnvT* e, string axis, DStringGDL* &axisTickformatVect)
+  static void gdlGetDesiredAxisTickFormat(EnvT* e, int axisId, DStringGDL* &axisTickformatVect)
   {
     static int XTICKFORMATIx = e->KeywordIx("XTICKFORMAT");
     static int YTICKFORMATIx = e->KeywordIx("YTICKFORMAT");
     static int ZTICKFORMATIx = e->KeywordIx("ZTICKFORMAT");
-    int choosenIx;
+    int choosenIx=XTICKFORMATIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKFORMATIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKFORMATIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKFORMATIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKFORMATIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YTICKFORMATIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZTICKFORMATIx; }
 
    if ( Struct!=NULL )
     {
@@ -772,17 +717,17 @@ namespace lib {
     }
   }
 
-  static void gdlGetDesiredAxisTickInterval(EnvT* e, string axis, DDouble &axisTickinterval)
+  static void gdlGetDesiredAxisTickInterval(EnvT* e, int axisId, DDouble &axisTickinterval)
   {
     axisTickinterval=0;
     static int XTICKINTERVALIx = e->KeywordIx("XTICKINTERVAL");
     static int YTICKINTERVALIx = e->KeywordIx("YTICKINTERVAL");
     static int ZTICKINTERVALIx = e->KeywordIx("ZTICKINTERVAL");
-    int choosenIx;
+    int choosenIx=XTICKINTERVALIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKINTERVALIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKINTERVALIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKINTERVALIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKINTERVALIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YTICKINTERVALIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZTICKINTERVALIx; }
 
     if ( Struct!=NULL )
     {
@@ -793,17 +738,17 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent(choosenIx, axisTickinterval);
   }
 
-  static void gdlGetDesiredAxisTickLayout(EnvT* e, string axis, DLong &axisTicklayout)
+  static void gdlGetDesiredAxisTickLayout(EnvT* e, int axisId, DLong &axisTicklayout)
   {
     axisTicklayout=0;
     static int XTICKLAYOUTIx = e->KeywordIx("XTICKLAYOUT");
     static int YTICKLAYOUTIx = e->KeywordIx("YTICKLAYOUT");
     static int ZTICKLAYOUTIx = e->KeywordIx("ZTICKLAYOUT");
-    int choosenIx;
+    int choosenIx=XTICKLAYOUTIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKLAYOUTIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKLAYOUTIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKLAYOUTIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKLAYOUTIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YTICKLAYOUTIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZTICKLAYOUTIx; }
     if ( Struct!=NULL )
     {
       axisTicklayout=(*static_cast<DLongGDL*>
@@ -813,7 +758,7 @@ namespace lib {
     e->AssureLongScalarKWIfPresent(choosenIx, axisTicklayout);
   }
 
-  static void gdlGetDesiredAxisTickLen(EnvT* e, string axis, DFloat &ticklen)
+  static void gdlGetDesiredAxisTickLen(EnvT* e, int axisId, DFloat &ticklen)
   {
     // order: !P.TICKLEN, TICKLEN, !X.TICKLEN, /XTICKLEN
     // get !P preference
@@ -827,11 +772,11 @@ namespace lib {
     static int XTICKLENIx = e->KeywordIx("XTICKLEN");
     static int YTICKLENIx = e->KeywordIx("YTICKLEN");
     static int ZTICKLENIx = e->KeywordIx("ZTICKLEN");
-    int choosenIx;
+    int choosenIx=XTICKLENIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKLENIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKLENIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKLENIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKLENIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YTICKLENIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZTICKLENIx; }
     if ( Struct!=NULL )
     {
       unsigned ticklenTag=Struct->Desc()->TagIndex("TICKLEN");
@@ -841,17 +786,17 @@ namespace lib {
     }
   }
 
- static void gdlGetDesiredAxisTickName(EnvT* e, GDLGStream* a, string axis, DStringGDL* &axisTicknameVect)
+ static void gdlGetDesiredAxisTickName(EnvT* e, GDLGStream* a, int axisId, DStringGDL* &axisTicknameVect)
   {
 
     static int XTICKNAMEIx = e->KeywordIx("XTICKNAME");
     static int YTICKNAMEIx = e->KeywordIx("YTICKNAME");
     static int ZTICKNAMEIx = e->KeywordIx("ZTICKNAME");
-    int choosenIx;
+    int choosenIx=XTICKNAMEIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKNAMEIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKNAMEIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKNAMEIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKNAMEIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YTICKNAMEIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZTICKNAMEIx; }
     if ( Struct!=NULL )
     {
       unsigned AxisTicknameTag=Struct->Desc()->TagIndex("TICKNAME");
@@ -871,18 +816,18 @@ namespace lib {
 
   }
 
-  static void gdlGetDesiredAxisTicks(EnvT* e, string axis, DLong &axisTicks)
+  static void gdlGetDesiredAxisTicks(EnvT* e, int axisId, DLong &axisTicks)
   {
     axisTicks=0;
 
     static int XTICKSIx = e->KeywordIx("XTICKS");
     static int YTICKSIx = e->KeywordIx("YTICKS");
     static int ZTICKSIx = e->KeywordIx("ZTICKS");
-    int choosenIx;
+    int choosenIx=XTICKSIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKSIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKSIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKSIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKSIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YTICKSIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZTICKSIx; }
 
     if ( Struct!=NULL )
     {
@@ -898,16 +843,16 @@ namespace lib {
   //if axis tick units is specified, first tickunit determines how the automatic limits are computed.
   // for example, if tickunits=['year','day'] the limits will be on a round nuber of years.
   // This is conveyed by the code
-  static int gdlGetCalendarCode(EnvT* e, string axis)
+  static int gdlGetCalendarCode(EnvT* e, int axisId)
   {
     static int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
     static int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
     static int ZTICKUNITSIx = e->KeywordIx("ZTICKUNITS");
-    int choosenIx;
+    int choosenIx=XTICKUNITSIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKUNITSIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKUNITSIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKUNITSIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKUNITSIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YTICKUNITSIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZTICKUNITSIx; }
     DStringGDL* axisTickunitsVect=NULL;
     if ( Struct!=NULL )
     {
@@ -931,16 +876,16 @@ namespace lib {
     return code;
   }
  
- static void gdlGetDesiredAxisTickUnits(EnvT* e, string axis, DStringGDL* &axisTickunitsVect)
+ static void gdlGetDesiredAxisTickUnits(EnvT* e, int axisId, DStringGDL* &axisTickunitsVect)
   {
     static int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
     static int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
     static int ZTICKUNITSIx = e->KeywordIx("ZTICKUNITS");
-    int choosenIx;
+    int choosenIx=XTICKUNITSIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKUNITSIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKUNITSIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKUNITSIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKUNITSIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YTICKUNITSIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZTICKUNITSIx; }
    if ( Struct!=NULL )
     {
       unsigned AxisTickunitsTag=Struct->Desc()->TagIndex("TICKUNITS");
@@ -952,16 +897,16 @@ namespace lib {
     }
       }
 
-  static void gdlGetDesiredAxisTickv(EnvT* e, string axis, DDoubleGDL* axisTickvVect)
+  static void gdlGetDesiredAxisTickv(EnvT* e, int axisId, DDoubleGDL* axisTickvVect)
   {
     static int XTICKVIx = e->KeywordIx("XTICKV");
     static int YTICKVIx = e->KeywordIx("YTICKV");
     static int ZTICKVIx = e->KeywordIx("ZTICKV");
-    int choosenIx;
+    int choosenIx=XTICKVIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTICKVIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTICKVIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTICKVIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKVIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YTICKVIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZTICKVIx; }
     if ( Struct!=NULL )
     {
       unsigned AxisTickvTag=Struct->Desc()->TagIndex("TICKV");
@@ -974,16 +919,16 @@ namespace lib {
     }
   }
 
-  static void gdlGetDesiredAxisTitle(EnvT *e, string axis, DString &title)
+  static void gdlGetDesiredAxisTitle(EnvT *e, int axisId, DString &title)
   {
     static int XTITLEIx = e->KeywordIx("XTITLE");
     static int YTITLEIx = e->KeywordIx("YTITLE");
     static int ZTITLEIx = e->KeywordIx("ZTITLE");
-    int choosenIx;
+    int choosenIx=XTITLEIx;
     DStructGDL* Struct=NULL;
-    if ( axis=="X" ) { Struct=SysVar::X(); choosenIx=XTITLEIx; }
-    if ( axis=="Y" ) { Struct=SysVar::Y(); choosenIx=YTITLEIx; }
-    if ( axis=="Z" ) { Struct=SysVar::Z(); choosenIx=ZTITLEIx; }
+    if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTITLEIx; }
+    if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YTITLEIx; }
+    if ( axisId==ZAXIS ) { Struct=SysVar::Z(); choosenIx=ZTITLEIx; }
 
     if ( Struct!=NULL )
     {
@@ -1092,7 +1037,7 @@ namespace lib {
     if ( e->KeywordSet( YRANGEIx)) return TRUE;
     //Style contains 1?
     DLong ystyle;
-    gdlGetDesiredAxisStyle(e, "Y", ystyle);
+    gdlGetDesiredAxisStyle(e, YAXIS, ystyle);
     if (ystyle&1) return TRUE;
 
     DLong nozero=0;
@@ -1160,17 +1105,17 @@ namespace lib {
   {
 
    // set ![XY].CRANGE Before doing anything relative to 3D.
-    gdlStoreAxisCRANGE("X", xStart, xEnd, xLog);
-    gdlStoreAxisCRANGE("Y", yStart, yEnd, yLog);
-    gdlStoreAxisCRANGE("Z", zStart, zEnd, zLog);
+    gdlStoreAxisCRANGE(XAXIS, xStart, xEnd, xLog);
+    gdlStoreAxisCRANGE(YAXIS, yStart, yEnd, yLog);
+    gdlStoreAxisCRANGE(ZAXIS, zStart, zEnd, zLog);
     //set ![XY].type
-    gdlStoreAxisType("X",xLog);
-    gdlStoreAxisType("Y",yLog);
-    gdlStoreAxisType("Z",zLog);
+    gdlStoreAxisType(XAXIS,xLog);
+    gdlStoreAxisType(YAXIS,yLog);
+    gdlStoreAxisType(ZAXIS,zLog);
     //set ![XY].WINDOW and ![XY].S
-    gdlStoreAxisSandWINDOW(actStream, "X", xStart, xEnd, xLog);
-    gdlStoreAxisSandWINDOW(actStream, "Y", yStart, yEnd, yLog);
-    gdlStoreAxisSandWINDOW(actStream, "Z", zStart, zEnd, zLog);
+    gdlStoreAxisSandWINDOW(actStream, XAXIS, xStart, xEnd, xLog);
+    gdlStoreAxisSandWINDOW(actStream, YAXIS, yStart, yEnd, yLog);
+    gdlStoreAxisSandWINDOW(actStream, ZAXIS, zStart, zEnd, zLog);
 
     //3D work
     enum{ DATA=0,
@@ -1202,8 +1147,8 @@ namespace lib {
 
     PLFLT xMR, xML, yMB, yMT;
     DFloat xMarginL, xMarginR, yMarginB, yMarginT;
-    gdlGetDesiredAxisMargin(e, "X", xMarginL, xMarginR);
-    gdlGetDesiredAxisMargin(e, "Y", yMarginB, yMarginT);
+    gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
+    gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
     PLFLT scl=actStream->nCharLength(); //current char width
     xML=xMarginL*scl; //margin as percentage of subpage
     xMR=xMarginR*scl;
@@ -1576,16 +1521,16 @@ namespace lib {
     //        cout << "yStart " << yStart << "  yEnd "<<yEnd<<endl;
     
     // set ![XYZ].CRANGE (Z is not defined but must be [0,1])
-    gdlStoreAxisCRANGE("X", xStart, xEnd, FALSE); //already in log here if relevant!
-    gdlStoreAxisCRANGE("Y", yStart, yEnd, FALSE);
+    gdlStoreAxisCRANGE(XAXIS, xStart, xEnd, FALSE); //already in log here if relevant!
+    gdlStoreAxisCRANGE(YAXIS, yStart, yEnd, FALSE);
 
     //set ![XY].type
-    gdlStoreAxisType("X",xLog); 
-    gdlStoreAxisType("Y",yLog);
+    gdlStoreAxisType(XAXIS,xLog); 
+    gdlStoreAxisType(YAXIS,yLog);
 
     //set ![XY].WINDOW and ![XY].S
-    gdlStoreAxisSandWINDOW(actStream, "X", xStart, xEnd, FALSE);//already in log here if relevant!
-    gdlStoreAxisSandWINDOW(actStream, "Y", yStart, yEnd, FALSE);
+    gdlStoreAxisSandWINDOW(actStream, XAXIS, xStart, xEnd, FALSE);//already in log here if relevant!
+    gdlStoreAxisSandWINDOW(actStream, YAXIS, yStart, yEnd, FALSE);
     //set P.CLIP (done by PLOT, CONTOUR, SHADE_SURF, and SURFACE)
     Guard<BaseGDL> clipbox_guard;
     DLongGDL* clipBox= new DLongGDL(4, BaseGDL::ZERO); clipbox_guard.Reset(clipBox);
@@ -1720,7 +1665,7 @@ namespace lib {
 //    a->box( "bc", 0, 0, "bc", 0.0, 0);
     return TRUE;
   }
-    static bool gdlAxis(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log,
+    static bool gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log,
     DLong modifierCode=0, DDouble NormedLength=0)
   {
     static GDL_TICKNAMEDATA data;
@@ -1745,38 +1690,38 @@ namespace lib {
 
     //special values
     PLFLT OtherAxisSizeInMm;
-    if (axis=="X") OtherAxisSizeInMm=a->mmyPageSize()*(a->boxnYSize());
-    if (axis=="Y") OtherAxisSizeInMm=a->mmxPageSize()*(a->boxnXSize());
+    if (axisId==XAXIS) OtherAxisSizeInMm=a->mmyPageSize()*(a->boxnYSize());
+    if (axisId==YAXIS) OtherAxisSizeInMm=a->mmxPageSize()*(a->boxnXSize());
     //special for AXIS who change the requested box size!
-    if (axis=="axisX") {axis="X"; OtherAxisSizeInMm=a->mmyPageSize()*(NormedLength);}
-    if (axis=="axisY") {axis="Y"; OtherAxisSizeInMm=a->mmxPageSize()*(NormedLength);}
+    if (axisId==XAXIS2) {axisId=XAXIS; OtherAxisSizeInMm=a->mmyPageSize()*(NormedLength);}
+    if (axisId==YAXIS2) {axisId=YAXIS; OtherAxisSizeInMm=a->mmxPageSize()*(NormedLength);}
     
     DLong GridStyle;
-    gdlGetDesiredAxisGridStyle(e, axis, GridStyle);
+    gdlGetDesiredAxisGridStyle(e, axisId, GridStyle);
     DLong Minor;
-    gdlGetDesiredAxisMinor(e, axis, Minor);
+    gdlGetDesiredAxisMinor(e, axisId, Minor);
     DLong Style;
-    gdlGetDesiredAxisStyle(e, axis, Style);
+    gdlGetDesiredAxisStyle(e, axisId, Style);
     DFloat Thick;
-    gdlGetDesiredAxisThick(e, axis, Thick);
+    gdlGetDesiredAxisThick(e, axisId, Thick);
     DStringGDL* TickFormat;
-    gdlGetDesiredAxisTickFormat(e, axis, TickFormat);
+    gdlGetDesiredAxisTickFormat(e, axisId, TickFormat);
     DDouble TickInterval;
-    gdlGetDesiredAxisTickInterval(e, axis, TickInterval);
+    gdlGetDesiredAxisTickInterval(e, axisId, TickInterval);
     DLong TickLayout;
-    gdlGetDesiredAxisTickLayout(e, axis, TickLayout);
+    gdlGetDesiredAxisTickLayout(e, axisId, TickLayout);
     DFloat TickLen;
-    gdlGetDesiredAxisTickLen(e, axis, TickLen);
+    gdlGetDesiredAxisTickLen(e, axisId, TickLen);
     DStringGDL* TickName;
-    gdlGetDesiredAxisTickName(e, a, axis, TickName);
+    gdlGetDesiredAxisTickName(e, a, axisId, TickName);
     DLong Ticks;
-    gdlGetDesiredAxisTicks(e, axis, Ticks);
+    gdlGetDesiredAxisTicks(e, axisId, Ticks);
     DStringGDL* TickUnits;
-    gdlGetDesiredAxisTickUnits(e, axis, TickUnits);
+    gdlGetDesiredAxisTickUnits(e, axisId, TickUnits);
 //    DDoubleGDL *Tickv;
-//    gdlGetDesiredAxisTickv(e, axis, Tickv);
+//    gdlGetDesiredAxisTickv(e, axisId, Tickv);
     DString Title;
-    gdlGetDesiredAxisTitle(e, axis, Title);
+    gdlGetDesiredAxisTitle(e, axisId, Title);
     
     bool hasTickUnitDefined = (TickUnits->NBytes()>0);
     int tickUnitArraySize=(hasTickUnitDefined)?TickUnits->N_Elements():0;
@@ -1785,15 +1730,15 @@ namespace lib {
     DFloat ticklen_in_mm= TickLen;
     if (TickLen<0) ticklen_in_mm*=-1;
     //ticklen in a percentage of box x or y size, to be expressed in mm 
-    if (axis=="X") ticklen_in_mm=a->mmyPageSize()*(a->boxnYSize())*ticklen_in_mm;
-    if (axis=="Y") ticklen_in_mm=a->mmxPageSize()*(a->boxnXSize())*ticklen_in_mm;
-    DFloat ticklen_as_norm=(axis=="X")?a->mm2ndy(ticklen_in_mm):a->mm2ndx(ticklen_in_mm); //in normed coord
+    if (axisId==XAXIS) ticklen_in_mm=a->mmyPageSize()*(a->boxnYSize())*ticklen_in_mm;
+    if (axisId==YAXIS) ticklen_in_mm=a->mmxPageSize()*(a->boxnXSize())*ticklen_in_mm;
+    DFloat ticklen_as_norm=(axisId==XAXIS)?a->mm2ndy(ticklen_in_mm):a->mm2ndx(ticklen_in_mm); //in normed coord
     //eventually, each succesive X or Y axis is separated from previous by interligne + ticklen in adequate units. 
     DFloat interligne_as_char;
     DFloat interligne_as_norm;
-    DFloat typical_char_size_mm= (axis=="X")?a->mmCharHeight():a->mmCharLength();
-    interligne_as_char=(axis=="X")?a->mmLineSpacing()/typical_char_size_mm:a->mmCharLength()/typical_char_size_mm; //in normed coord
-    interligne_as_norm=(axis=="X")?a->nLineSpacing():a->nCharLength(); //in normed coord
+    DFloat typical_char_size_mm= (axisId==XAXIS)?a->mmCharHeight():a->mmCharLength();
+    interligne_as_char=(axisId==XAXIS)?a->mmLineSpacing()/typical_char_size_mm:a->mmCharLength()/typical_char_size_mm; //in normed coord
+    interligne_as_norm=(axisId==XAXIS)?a->nLineSpacing():a->nCharLength(); //in normed coord
     DFloat displacement_of_new_axis_as_norm=2*interligne_as_norm+ticklen_as_norm;
     DFloat current_displacement=0;
     DFloat title_position=0;
@@ -1804,14 +1749,14 @@ namespace lib {
       string otherOpt;
       if (TickInterval==0)
       {
-        if (Ticks<=0) TickInterval=gdlComputeTickInterval(e, axis, Start, End, Log);
+        if (Ticks<=0) TickInterval=gdlComputeTickInterval(e, axisId, Start, End, Log);
         else if (Ticks>1) TickInterval=(End-Start)/Ticks;
         else TickInterval=(End-Start);
       } else { //check that tickinterval does not make more than 59 ticks:
        if (abs((End-Start)/TickInterval) > 59) TickInterval=(End-Start)/59;
       }
       //first write labels only:
-      gdlSetAxisCharsize(e, a, axis);
+      gdlSetAxisCharsize(e, a, axisId);
       gdlSetPlotCharthick(e, a);
 
       //axis, 1st time: labels
@@ -1830,10 +1775,10 @@ namespace lib {
         a->slabelfunc( gdlSingleAxisTickNamedFunc, &data );
         Opt+="o";
         if (modifierCode==2) Opt+="m"; else Opt+="n";
-        if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-        else if (axis=="Y") a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
+        if (axisId==XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
+        else if (axisId==YAXIS) a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
         nchars=data.nchars;
-        if (axis=="Y") title_position=nchars+2.5; else title_position=3.5;
+        if (axisId==YAXIS) title_position=nchars+2.5; else title_position=3.5;
         a->slabelfunc( NULL, NULL );
       }
       //care Tickunits size is 10 if not defined because it is the size of !X.TICKUNITS.
@@ -1860,7 +1805,7 @@ namespace lib {
         {
           muaxdata.nchars=0; //set nchars to 0, at the end nchars will be the maximum size.
           if (i>0) Opt=otherOpt+"b"; //supplementary axes are to be wwritten with ticks, no smallticks;
-          if (axis=="X") 
+          if (axisId==XAXIS) 
           {
             a->vpor(un,deux,trois-current_displacement,quatre);
             a->wind(xun,xdeux,xtrois,xquatre);
@@ -1868,7 +1813,7 @@ namespace lib {
             title_position=current_displacement/a->nCharHeight()+3.5;
             current_displacement+=displacement_of_new_axis_as_norm; //and the spacing plus the ticklengths
           }
-          else if (axis=="Y") 
+          else if (axisId==YAXIS) 
           {
             a->vpor(un-current_displacement,deux,trois,quatre);
             a->wind(xun,xdeux,xtrois,xquatre);
@@ -1894,10 +1839,10 @@ namespace lib {
         a->slabelfunc( gdlMultiAxisTickFunc, &muaxdata );
         Opt+="o";
         if (modifierCode==2) Opt+="m"; else Opt+="n";
-        if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-        else if (axis=="Y") a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
+        if (axisId==XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
+        else if (axisId==YAXIS) a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
         nchars=muaxdata.nchars;
-        if (axis=="Y") title_position=nchars+2; else title_position=3.5;
+        if (axisId==YAXIS) title_position=nchars+2; else title_position=3.5;
         a->slabelfunc( NULL, NULL );
       }
       else
@@ -1906,22 +1851,22 @@ namespace lib {
         a->slabelfunc( gdlSimpleAxisTickFunc, &tdata );
         Opt+="o";
         if (modifierCode==2) Opt+="m"; else Opt+="n";
-        if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-        else if (axis=="Y") a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
+        if (axisId==XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
+        else if (axisId==YAXIS) a->box("", 0.0 ,0.0, Opt.c_str(), TickInterval, Minor);
         nchars=tdata.nchars;
-        if (axis=="Y") title_position=nchars+2; else title_position=3.5;
+        if (axisId==YAXIS) title_position=nchars+2; else title_position=3.5;
         a->slabelfunc( NULL, NULL );
       }
 
       if (modifierCode==0 ||modifierCode==1)
       {
-        if (axis=="X") a->mtex("b",title_position, 0.5, 0.5, Title.c_str());
-        else if (axis=="Y") a->mtex("l",title_position,0.5,0.5,Title.c_str());
+        if (axisId==XAXIS) a->mtex("b",title_position, 0.5, 0.5, Title.c_str());
+        else if (axisId==YAXIS) a->mtex("l",title_position,0.5,0.5,Title.c_str());
       }
       else if (modifierCode==2)
       {
-        if (axis=="X") a->mtex("t", title_position, 0.5, 0.5, Title.c_str());
-        else if (axis=="Y") a->mtex("r",title_position,0.5,0.5,Title.c_str());
+        if (axisId==XAXIS) a->mtex("t", title_position, 0.5, 0.5, Title.c_str());
+        else if (axisId==YAXIS) a->mtex("r",title_position,0.5,0.5,Title.c_str());
       }      
       
       if (TickLayout==0)
@@ -1948,8 +1893,8 @@ namespace lib {
         //gridstyle applies here:
         gdlLineStyle(a,GridStyle);
         if ( Log ) Opt+="l";
-        if (axis=="X") a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-        else if (axis=="Y") a->box("", 0.0, 0, Opt.c_str(), TickInterval, Minor);
+        if (axisId==XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
+        else if (axisId==YAXIS) a->box("", 0.0, 0, Opt.c_str(), TickInterval, Minor);
         //reset gridstyle
         gdlLineStyle(a,0);
         // pass over with outer box, with thick. No style applied, only ticks
@@ -1965,8 +1910,8 @@ namespace lib {
           case 0:
             if ( (Style&8)==8 ) Opt+="b"; else Opt+="bc";
         }
-        if (axis=="X") a->box(Opt.c_str(), 0.0, 0, "", 0.0, 0);
-        else if (axis=="Y") a->box("", 0.0, 0 , Opt.c_str(), 0.0, 0);
+        if (axisId==XAXIS) a->box(Opt.c_str(), 0.0, 0, "", 0.0, 0);
+        else if (axisId==YAXIS) a->box("", 0.0, 0 , Opt.c_str(), 0.0, 0);
       }
       //reset charsize & thick
       a->Thick(1.0);
@@ -1979,12 +1924,12 @@ namespace lib {
   static bool gdlBox(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd, bool xLog, bool yLog)
   {
     gdlWriteTitleAndSubtitle(e, a);
-    gdlAxis(e, a, "X", xStart, xEnd, xLog);
-    gdlAxis(e, a, "Y", yStart, yEnd, yLog);
+    gdlAxis(e, a, XAXIS, xStart, xEnd, xLog);
+    gdlAxis(e, a, YAXIS, yStart, yEnd, yLog);
     // title and sub title
     return true;
   }
-  static bool gdlAxis3(EnvT *e, GDLGStream *a, string axis, DDouble Start, DDouble End, bool Log, DLong zAxisCode=0, DDouble NormedLength=0)
+  static bool gdlAxis3(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong zAxisCode=0, DDouble NormedLength=0)
   {
     string addCode="b"; //for X and Y, and some Z
     if(zAxisCode==1 || zAxisCode==4) addCode="cm";
@@ -2013,44 +1958,44 @@ namespace lib {
     
     //special values
     PLFLT OtherAxisSizeInMm;
-    if (axis=="X") OtherAxisSizeInMm=a->mmyPageSize()*(a->boxnYSize());
-    if (axis=="Y") OtherAxisSizeInMm=a->mmxPageSize()*(a->boxnXSize());
-    if (axis=="Z") OtherAxisSizeInMm=a->mmxPageSize()*(a->boxnXSize()); //not always correct
+    if (axisId==XAXIS) OtherAxisSizeInMm=a->mmyPageSize()*(a->boxnYSize());
+    if (axisId==YAXIS) OtherAxisSizeInMm=a->mmxPageSize()*(a->boxnXSize());
+    if (axisId==ZAXIS) OtherAxisSizeInMm=a->mmxPageSize()*(a->boxnXSize()); //not always correct
     //special for AXIS who change the requested box size!
-    if (axis=="axisX") {axis="X"; OtherAxisSizeInMm=a->mmyPageSize()*(NormedLength);}
-    if (axis=="axisY") {axis="Y"; OtherAxisSizeInMm=a->mmxPageSize()*(NormedLength);}
-    if (axis=="axisZ") {axis="Y"; OtherAxisSizeInMm=a->mmxPageSize()*(NormedLength);} //not always correct
+    if (axisId==XAXIS2) {axisId=XAXIS; OtherAxisSizeInMm=a->mmyPageSize()*(NormedLength);}
+    if (axisId==YAXIS2) {axisId=YAXIS; OtherAxisSizeInMm=a->mmxPageSize()*(NormedLength);}
+    if (axisId==ZAXIS2) {axisId=ZAXIS; OtherAxisSizeInMm=a->mmxPageSize()*(NormedLength);} //not always correct
     
 //    DFloat Charsize;//done in gdlSetAxisCharsize() below
-//    gdlGetDesiredAxisCharsize(e, axis, Charsize);
+//    gdlGetDesiredAxisCharsize(e, axisId, Charsize);
     DLong GridStyle;
-    gdlGetDesiredAxisGridStyle(e, axis, GridStyle);
+    gdlGetDesiredAxisGridStyle(e, axisId, GridStyle);
 //    DFloat MarginL, MarginR; //unused yet (fixme)
-//    gdlGetDesiredAxisMargin(e, axis, MarginL, MarginR);
+//    gdlGetDesiredAxisMargin(e, axisId, MarginL, MarginR);
     DLong Minor;
-    gdlGetDesiredAxisMinor(e, axis, Minor);
+    gdlGetDesiredAxisMinor(e, axisId, Minor);
     DLong Style;
-    gdlGetDesiredAxisStyle(e, axis, Style);
+    gdlGetDesiredAxisStyle(e, axisId, Style);
     DFloat Thick;
-    gdlGetDesiredAxisThick(e, axis, Thick);
+    gdlGetDesiredAxisThick(e, axisId, Thick);
     DStringGDL* TickFormat;
-    gdlGetDesiredAxisTickFormat(e, axis, TickFormat);
+    gdlGetDesiredAxisTickFormat(e, axisId, TickFormat);
     DDouble TickInterval;
-    gdlGetDesiredAxisTickInterval(e, axis, TickInterval);
+    gdlGetDesiredAxisTickInterval(e, axisId, TickInterval);
     DLong TickLayout;
-    gdlGetDesiredAxisTickLayout(e, axis, TickLayout);
+    gdlGetDesiredAxisTickLayout(e, axisId, TickLayout);
     DFloat TickLen;
-    gdlGetDesiredAxisTickLen(e, axis, TickLen);
+    gdlGetDesiredAxisTickLen(e, axisId, TickLen);
     DStringGDL* TickName;
-    gdlGetDesiredAxisTickName(e, a, axis, TickName);
+    gdlGetDesiredAxisTickName(e, a, axisId, TickName);
     DLong Ticks;
-    gdlGetDesiredAxisTicks(e, axis, Ticks);
+    gdlGetDesiredAxisTicks(e, axisId, Ticks);
     DStringGDL* TickUnits;
-    gdlGetDesiredAxisTickUnits(e, axis, TickUnits);
+    gdlGetDesiredAxisTickUnits(e, axisId, TickUnits);
 //    DDoubleGDL* Tickv;
-//    gdlGetDesiredAxisTickv(e, axis, Tickv);
+//    gdlGetDesiredAxisTickv(e, axisId, Tickv);
     DString Title;
-    gdlGetDesiredAxisTitle(e, axis, Title);
+    gdlGetDesiredAxisTitle(e, axisId, Title);
 
     bool hasTickUnitDefined = (TickUnits->NBytes()>0);
     int tickUnitArraySize=(hasTickUnitDefined)?TickUnits->N_Elements():0;
@@ -2058,18 +2003,18 @@ namespace lib {
     DFloat ticklen_in_mm= TickLen;
     if (TickLen<0) ticklen_in_mm*=-1;
     //ticklen in a percentage of box x or y size, to be expressed in mm 
-    if (axis=="X") ticklen_in_mm=a->mmyPageSize()*(a->boxnYSize())*ticklen_in_mm;
-    if (axis=="Y") ticklen_in_mm=a->mmyPageSize()*(a->boxnXSize())*ticklen_in_mm;
-    //eventually, each succesive X or Y axis is separated from previous by interligne + ticklen in adequate units. 
+    if (axisId==XAXIS) ticklen_in_mm=a->mmyPageSize()*(a->boxnYSize())*ticklen_in_mm;
+    if (axisId==YAXIS) ticklen_in_mm=a->mmyPageSize()*(a->boxnXSize())*ticklen_in_mm;
+    //eventually, each succesive X or Y axisId is separated from previous by interligne + ticklen in adequate units. 
     DFloat interligne;
-    if (axis=="X") interligne=a->mmLineSpacing()/a->mmCharHeight(); //in units of character size      
-    if (axis=="Y") interligne=a->mmLineSpacing()/a->mmCharLength(); //in units of character size 
+    if (axisId==XAXIS) interligne=a->mmLineSpacing()/a->mmCharHeight(); //in units of character size      
+    if (axisId==YAXIS) interligne=a->mmLineSpacing()/a->mmCharLength(); //in units of character size 
 
     if ( (Style&4)!=4 ) //if we write the axis...
     {
       if (TickInterval==0)
       {
-        if (Ticks<=0) TickInterval=gdlComputeTickInterval(e, axis, Start, End, Log);
+        if (Ticks<=0) TickInterval=gdlComputeTickInterval(e, axisId, Start, End, Log);
         else if (Ticks>1) TickInterval=(End-Start)/Ticks;
         else TickInterval=(End-Start);
       }
@@ -2080,14 +2025,14 @@ namespace lib {
       }
       string Opt;
       //first write labels only:
-      gdlSetAxisCharsize(e, a, axis);
+      gdlSetAxisCharsize(e, a, axisId);
       gdlSetPlotCharthick(e, a);
       // axis legend if box style, else do not draw. Take care writing BELOW/ABOVE all axis if tickunits present:actStream->wCharHeight()
       DDouble displacement=(tickUnitArraySize>1)?2.5*tickUnitArraySize:0;
 
       //no option to care of placement of Z axis???
-      if (axis=="X") a->mtex3("xp",3.5+displacement, 0.5, 0.5, Title.c_str());
-      else if (axis=="Y") a->mtex3("yp",5.0+displacement,0.5,0.5,Title.c_str());
+      if (axisId==XAXIS) a->mtex3("xp",3.5+displacement, 0.5, 0.5, Title.c_str());
+      else if (axisId==YAXIS) a->mtex3("yp",5.0+displacement,0.5,0.5,Title.c_str());
       else if (doZ) a->mtex3("zp",5.0+displacement,0.5,0.5,Title.c_str());
       
       //axis, 1st time: labels
@@ -2100,9 +2045,9 @@ namespace lib {
         data.nTickName=TickName->N_Elements();
         a->slabelfunc( gdlSingleAxisTickNamedFunc, &data );
         Opt+="o";
-        if      (axis=="X") a->box3(Opt.c_str(), "" , TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
-        else if (axis=="Y") a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
-        else if (doZ) if (axis=="Z") a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
+        if      (axisId==XAXIS) a->box3(Opt.c_str(), "" , TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
+        else if (axisId==YAXIS) a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
+        else if (doZ) if (axisId==ZAXIS) a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
         a->slabelfunc( NULL, NULL );
       }
       //care Tickunits size is 10 if not defined because it is the size of !X.TICKUNITS.
@@ -2126,9 +2071,9 @@ namespace lib {
 //          PLFLT un,deux,trois,quatre,xun,xdeux,xtrois,xquatre;
 //          a->plstream::gvpd(un,deux,trois,quatre);
 //          a->plstream::gvpw(xun,xdeux,xtrois,xquatre);
-            if      (axis=="X") a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
-            else if (axis=="Y") a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
-            else if (doZ) if (axis=="Z") a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
+            if      (axisId==XAXIS) a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
+            else if (axisId==YAXIS) a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
+            else if (doZ) if (axisId==ZAXIS) a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
 //          a->plstream::vpor(un,deux,trois,quatre);
 //          a->plstream::wind(xun,xdeux,xtrois,xquatre);
             muaxdata.counter++;
@@ -2143,9 +2088,9 @@ namespace lib {
         muaxdata.nTickFormat=1;
         a->slabelfunc( gdlMultiAxisTickFunc, &muaxdata );
         Opt+="o";
-        if      (axis=="X") a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
-        else if (axis=="Y") a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
-        else if (doZ) if (axis=="Z") a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
+        if      (axisId==XAXIS) a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
+        else if (axisId==YAXIS) a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
+        else if (doZ) if (axisId==ZAXIS) a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
         
         a->slabelfunc( NULL, NULL );
       }
@@ -2153,9 +2098,9 @@ namespace lib {
       {
         a->slabelfunc( gdlSimpleAxisTickFunc, &tdata );
         Opt+="o";
-        if      (axis=="X") a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
-        else if (axis=="Y") a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
-        else if (doZ) if (axis=="Z") a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
+        if      (axisId==XAXIS) a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
+        else if (axisId==YAXIS) a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
+        else if (doZ) if (axisId==ZAXIS) a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
         a->slabelfunc( NULL, NULL );
       }
 
@@ -2173,17 +2118,17 @@ namespace lib {
         //gridstyle applies here:
         gdlLineStyle(a,GridStyle);
         if ( Log ) Opt+="l";
-        if      (axis=="X") a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
-        else if (axis=="Y") a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
-        else if (doZ) if (axis=="Z") a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
+        if      (axisId==XAXIS) a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
+        else if (axisId==YAXIS) a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
+        else if (doZ) if (axisId==ZAXIS) a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
         //reset ticks to default plplot value...
         //reset gridstyle
         gdlLineStyle(a,0);
         // pass over with outer box, with thick. No style applied, only ticks
         Opt="b";
-        if      (axis=="X") a->box3(Opt.c_str(), "", TickInterval, Minor, "","",0,0,"","",0,0);
-        else if (axis=="Y") a->box3("","",0,0, Opt.c_str(), "", TickInterval, Minor, "","",0,0);
-        else if (doZ) if (axis=="Z") a->box3("","",0,0,"","",0,0, Opt.c_str(), "", TickInterval, Minor);
+        if      (axisId==XAXIS) a->box3(Opt.c_str(), "", TickInterval, Minor, "","",0,0,"","",0,0);
+        else if (axisId==YAXIS) a->box3("","",0,0, Opt.c_str(), "", TickInterval, Minor, "","",0,0);
+        else if (doZ) if (axisId==ZAXIS) a->box3("","",0,0,"","",0,0, Opt.c_str(), "", TickInterval, Minor);
       }
       //reset charsize & thick
       a->Thick(1.0);
@@ -2198,9 +2143,9 @@ namespace lib {
     DLong zAxisCode=0;
     static int ZAXISIx=e->KeywordIx("ZAXIS");
     if (doSpecialZAxisPlacement) e->AssureLongScalarKWIfPresent(ZAXISIx, zAxisCode);
-    gdlAxis3(e, a, "X", xStart, xEnd, xLog, 0);
-    gdlAxis3(e, a, "Y", yStart, yEnd, yLog, 0);
-    gdlAxis3(e, a, "Z", zStart, zEnd, zLog, zAxisCode);
+    gdlAxis3(e, a, XAXIS, xStart, xEnd, xLog, 0);
+    gdlAxis3(e, a, YAXIS, yStart, yEnd, yLog, 0);
+    gdlAxis3(e, a, ZAXIS, zStart, zEnd, zLog, zAxisCode);
     // title and sub title
     gdlWriteTitleAndSubtitle(e, a);
     return true;

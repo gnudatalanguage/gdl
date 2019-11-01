@@ -81,6 +81,8 @@ namespace structDesc {
   DStructDesc* GDL_CONTAINER = NULL;
   DStructDesc* GDL_CONTAINER_NODE = NULL;
   DStructDesc* GDL_HASHTABLEENTRY = NULL;
+  DStructDesc* IDLFFSHAPE = NULL;
+  DStructDesc* IDLFFXMLSAX = NULL;
 }
 
 // for OpenMP
@@ -154,6 +156,7 @@ void InitStructs()
   SpDInt   aColor( dimension(3));
   SpDLong   aLongArr8( dimension(8));
   SpDLong64   aLong64Arr8( dimension(8));
+  SpDDouble   aDoubleArr8( dimension(8));
   SpDPtr    aPtrRef;
   SpDObj    aObjRef;
   SpDUInt   auInt;
@@ -245,6 +248,65 @@ void InitStructs()
   // insert into structList
   structList.push_back(gdlHashTE);
   structDesc::GDL_HASHTABLEENTRY = gdlHashTE;
+  
+#ifdef USE_SHAPELIB  
+  //for IDLffShape
+  DStructDesc* gdlffShape = new DStructDesc( "IDLFFSHAPE");
+  gdlffShape->AddTag("IDLFFSHAPE_TOP", &aLong64);
+  gdlffShape->AddTag("IDLFFSHAPEVERSION", &aInt);
+  gdlffShape->AddTag("FILENAME", &aString);
+  gdlffShape->AddTag("ISOPEN", &aInt);
+  gdlffShape->AddTag("SHPTYPE", &aInt);
+  gdlffShape->AddTag("PATTRIBUTE", &aPtrRef);
+  gdlffShape->AddTag("SHAPEHANDLE", &aLong64);
+  gdlffShape->AddTag("DBFHANDLE", &aLong64);
+  gdlffShape->AddTag("IDLFFSHAPE_BOTTOM", &aLong64);
+  // insert into structList
+  structList.push_back(gdlffShape);
+  structDesc::IDLFFSHAPE = gdlffShape;
+ 
+  
+  DStructDesc* gdlffShape_entity = new DStructDesc( "IDL_SHAPE_ENTITY");
+  gdlffShape_entity->AddTag("SHAPE_TYPE", &aLong);
+  gdlffShape_entity->AddTag("ISHAPE", &aLong);
+  gdlffShape_entity->AddTag("BOUNDS", &aDoubleArr8);
+  gdlffShape_entity->AddTag("N_VERTICES", &aLong);
+  gdlffShape_entity->AddTag("VERTICES", &aPtrRef);
+  gdlffShape_entity->AddTag("MEASURE", &aPtrRef);
+  gdlffShape_entity->AddTag("N_PARTS", &aLong);
+  gdlffShape_entity->AddTag("PARTS", &aPtrRef);
+  gdlffShape_entity->AddTag("PART_TYPES", &aPtrRef);
+  gdlffShape_entity->AddTag("ATTRIBUTES", &aPtrRef);
+  // insert into structList
+  structList.push_back(gdlffShape_entity);
+  
+  DStructDesc* gdlffShape_attribute = new DStructDesc( "IDL_SHAPE_ATTRIBUTE");
+  gdlffShape_attribute->AddTag("NAME", &aString);
+  gdlffShape_attribute->AddTag("TYPE", &aLong);
+  gdlffShape_attribute->AddTag("WIDTH", &aLong);
+  gdlffShape_attribute->AddTag("PRECISION", &aLong);
+  // insert into structList
+  structList.push_back(gdlffShape_attribute);
+#endif
+  
+#ifdef USE_EXPAT
+  
+  //for IDLffXMLSAX
+  DStructDesc* gdlffXmlSax = new DStructDesc( "IDLFFXMLSAX");
+  gdlffXmlSax->AddTag("IDLFFXMLSAX_TOP", &aLong64);
+  gdlffXmlSax->AddTag("IDLFFXMLSAXVERSION", &aInt);
+  gdlffXmlSax->AddTag("VALIDATION_MODE", &aInt);
+  gdlffXmlSax->AddTag("HALT_PROCESSING", &aInt);
+  gdlffXmlSax->AddTag("_XML_PARSER", &aLong64);
+  gdlffXmlSax->AddTag("_XML_LOCATOR", &aLong64);
+  gdlffXmlSax->AddTag("IDLFFXMLSAX_BOTTOM", &aLong64);
+//  gdlffXmlSax->AddParent(gdl_object);
+  // insert into structList
+  structList.push_back(gdlffXmlSax);
+  structDesc::IDLFFXMLSAX = gdlffXmlSax;
+#endif
+  
+  
   
   // OBJECTS END =======================================================
    

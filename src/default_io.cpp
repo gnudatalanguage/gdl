@@ -15,14 +15,22 @@
  *                                                                         *
  ***************************************************************************/
 
-// to be included from datatypes.cpp
-#ifdef INCLUDE_DEFAULT_IO_CPP
 
-//#include "datatypes.hpp"
-//#include "dstructgdl.hpp"
-//#include "arrayindex.hpp".
-//#include "assocdata.hpp"
-//#include "io.hpp"
+#include "includefirst.hpp"
+
+#include "nullgdl.hpp"
+#include "typedefs.hpp"
+#include "datatypes.hpp" // for friend declaration
+
+#include "dstructgdl.hpp"
+#include "arrayindexlistt.hpp"
+#include "assocdata.hpp"
+#include "dinterpreter.hpp"
+
+// needed with gcc-3.3.2
+#include <cassert>
+
+
 #include "ofmt.hpp"
 #include "gdljournal.hpp"
 #include "list.hpp"
@@ -1858,6 +1866,4 @@ BaseGDL* DStructGDL::AssocVar( int lun, SizeT offset)
   return new Assoc_<DStructGDL >( lun, this, offset);
 }
 
-//#include "instantiate_templates.hpp"
-
-#endif
+#include "instantiate_templates.hpp"

@@ -370,7 +370,9 @@ namespace lib {
 	else
 	  return Yout;
       }
-    assert( false);	
+    assert( false);
+    return NULL; //-Wreturn-type
+
   }// RK4_fun
 
 }//namespace

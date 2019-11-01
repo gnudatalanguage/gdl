@@ -395,11 +395,10 @@ bool DeviceWIN::WShow(int ix, bool show, int iconic)
 	if (ix >= wLSize || ix < 0 || winList[ix] == NULL) return false;
 
   if (iconic!=-1) { //iconic asked. do nothing else.
-    if (iconic==1) winList[ix]->Iconic();  else winList[ix]->DeIconic();
-    return true;
+		if (iconic==1) IconicWin(ix); else DeIconicWin(ix);
+	} else {
+		if (show) RaiseWin(ix);  else LowerWin(ix);
   }
-	if (show) winList[ix]->Raise();      else winList[ix]->Lower();
-
 	UnsetFocus();
 
 	return true;
@@ -473,9 +472,13 @@ DIntGDL* DeviceWIN::GetWindowPosition()
 
 DLong DeviceWIN::GetVisualDepth()
 {
-	TidyWindowsList();
-	this->GetStream(); //to open a window if none opened.
-	return winList[actWin]->GetVisualDepth();
+//        TidyWindowsList();
+//        this->GetStream(); //to open a window if none opened.
+//        return winList[ actWin]->GetVisualDepth();
+	HDC hscreenDC = GetWindowDC(GetDesktopWindow());
+	int bitsperpixel = GetDeviceCaps(hscreenDC, BITSPIXEL);
+	ReleaseDC(NULL, hscreenDC);
+	return bitsperpixel;
 }
 
 DString DeviceWIN::GetVisualName()
@@ -492,6 +495,49 @@ DString DeviceWIN::GetVisualName()
 //	ReleaseDC(NULL, hscreenDC);
 //	return bitsperpixel;
 //}
+
+  bool DeviceWIN::Decomposed( bool value)                
+  { 
+    decomposed = value;
+    int bitsperpixel = DeviceWIN::GetVisualDepth();
+    bitsperpixel = (bitsperpixel > 24 ? 24: bitsperpixel);
+    unsigned long nSystemColors= (1 << bitsperpixel );
+    BaseGDL* Pcolortag = SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0);
+    unsigned long oldColor = (*static_cast<DLongGDL*>(Pcolortag))[0];
+    unsigned long oldNColor =  (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0];
+    if (this->decomposed==1 && oldNColor==256) {
+        (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = nSystemColors ;
+        if (oldColor == 255) (*static_cast<DLongGDL*>(Pcolortag))[0] = nSystemColors-1 ; 
+    } else if (this->decomposed==0 && oldNColor==nSystemColors) { 
+        (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = 256 ;
+        if (oldColor == nSystemColors-1) (*static_cast<DLongGDL*>(Pcolortag))[0] = 255 ; 
+    }
+    return true;
+  }
+
+  DLong DeviceWIN::GetDecomposed()                
+  { 
+    // initial setting 
+    if( decomposed == -1)
+      {
+        int Depth = DeviceWIN::GetVisualDepth();
+        Depth = (Depth > 24 ? 24: Depth);
+        unsigned long nSystemColors= (1 << Depth );
+	decomposed = (Depth >= 15 ? true : false);
+        BaseGDL* Pcolortag = SysVar::P()->GetTag(SysVar::P()->Desc()->TagIndex("COLOR"), 0);
+        unsigned long oldColor = (*static_cast<DLongGDL*>(Pcolortag))[0];
+        unsigned long oldNColor =  (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0];
+        if (this->decomposed==1 && oldNColor==256) {
+            (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = nSystemColors ;
+            if (oldColor == 255) (*static_cast<DLongGDL*>(Pcolortag))[0] = nSystemColors-1 ; 
+        } else if (this->decomposed==0 && oldNColor==nSystemColors) { 
+            (*static_cast<DLongGDL*>( dStruct->GetTag( n_colorsTag)))[0] = 256 ;
+            if (oldColor == nSystemColors-1) (*static_cast<DLongGDL*>(Pcolortag))[0] = 255 ; 
+         }
+      }
+    if( decomposed) return 1;
+    return 0;
+  }
 
 DByteGDL* DeviceWIN::WindowState()
 {

@@ -66,6 +66,10 @@ namespace lib {
   unsigned int gCount = 0;
   static bool notInitialized = true;
 
+  __attribute__((constructor)) static void init(void) {
+    START_MAGICK;
+  }
+
   void magick_setup() {
     int i;
     for (i = 0; i < 40; ++i) gValid[i] = 0;

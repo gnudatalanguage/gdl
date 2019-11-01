@@ -37,23 +37,6 @@
 #pragma warning( disable : 4716 )
 #endif
 
-// Python.h must be included before everything else
-#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
-
-#ifndef HAVE_LIBREADLINE
-#define GDL_NOT_HAVE_READLINE
-#endif
-
-#include <Python.h>
-
-#ifdef GDL_NOT_HAVE_READLINE
-#undef HAVE_LIBREADLINE
-#endif
-
-#undef GDL_NOT_HAVE_READLINE
-
-#endif
-
 #include <cstddef>
 #include <cstdlib>
 
@@ -69,8 +52,9 @@
 #endif
 
 //define globally a gdl method for allocating/deallocating/freeing data compatible with alignment needed by EIGEN.
-//This permits to create unallocated data varibale (BaseGDL* objects) and have them point to some
+//This permits to create unallocated data variable (BaseGDL* objects) and have them point to some
 // data adress that has been allocated in a c or c++ function.
+//NOTE THIS RELIES ON EIGEN today so its not aligned without EIGEN. ~/nbut we could use C11 aligned_alloc 
 inline void* gdlAlignedMalloc(std::size_t size) {
 #if defined(USE_EIGEN)
  return Eigen::internal::aligned_malloc(size);

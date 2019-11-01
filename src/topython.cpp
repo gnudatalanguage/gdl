@@ -18,6 +18,12 @@
 // to be included from datatypes.cpp
 #ifdef INCLUDE_TOPYTHON_CPP
 
+#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+#include <numpy/arrayobject.h>
+#endif
+
+//#include "datatypes.hpp" // for friend declaration
+
 using namespace std;
 
 const int pyType[] = {
@@ -67,7 +73,7 @@ PyObject* Data_<Sp>::ToPython()
     // TODO: free the memory:  PyArray_Free(PyObject* op, void* ptr) ?
     throw GDLException("Failed to convert array to python.");
   }
-  memcpy(PyArray_DATA(ret), DataAddr(), this->N_Elements() * Data_<Sp>::Sizeof());
+  memcpy(PyArray_DATA(ret), DataAddr(), this->NBytes());
   return ret;
 }
 

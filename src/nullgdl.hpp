@@ -35,24 +35,26 @@ class NullGDL: public BaseGDL
 
     void* operator new( size_t bytes, char* cP)
     {
-	assert( bytes == sizeof( NullGDL));
-	return NullGDL::buf;
+    assert( bytes == sizeof( NullGDL));
+    return NullGDL::buf;
     }
     void* operator new( size_t bytes)
     {
-	assert( bytes == sizeof( NullGDL));
-	return NullGDL::buf;
+    assert( bytes == sizeof( NullGDL));
+    return NullGDL::buf;
     }
 
     void operator delete( void *ptr)
     {
-	// do nothing
+    // do nothing
     }
+    void operator delete( void *ptr, size_t bytes) {}
+    void operator delete( void *ptr, size_t bytes, char* cP) {}
     
     static NullGDL* GetSingleInstance()
     {
       if( instance == NULL)
-	instance = new (NullGDL::buf) NullGDL();
+    instance = new (NullGDL::buf) NullGDL();
       return instance;
     }
     
@@ -86,7 +88,7 @@ class NullGDL: public BaseGDL
   /*virtual*/ BaseGDL* DupReverse( DLong dim);
 
   /*virtual*/ void MinMax( DLong* minE, DLong* maxE, 
-		       BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
+               BaseGDL** minVal, BaseGDL** maxVal, bool omitNaN,
                SizeT start = 0, SizeT stop = 0, SizeT step = 1, DLong valIx = -1, bool useAbs = false);
 
   /*virtual*/ void Clear();
@@ -94,12 +96,12 @@ class NullGDL: public BaseGDL
   /*virtual*/ void ConstructTo0();
   /*virtual*/ void Destruct();
   /*virtual*/ std::ostream& Write( std::ostream& os, bool swapEndian, 
-			       bool compress, XDR *xdrs);
+                   bool compress, XDR *xdrs);
   /*virtual*/ std::istream& Read( std::istream& os, bool swapEndian, 
-			      bool compress, XDR *xdrs);
+                  bool compress, XDR *xdrs);
 
   /*virtual*/ std::ostream& ToStream(std::ostream& o, SizeT width = 0, 
-			    SizeT* actPosPtr = NULL);
+                SizeT* actPosPtr = NULL);
   /*virtual*/ std::istream& FromStream(std::istream& i);
 
   /*virtual*/ bool Greater(SizeT i1, SizeT i2) const; // comp 2 elements
@@ -152,8 +154,8 @@ class NullGDL: public BaseGDL
 //   /*virtual*/ bool ForCondUpDown( BaseGDL*);
   /*virtual*/ void ForAdd( BaseGDL* add=NULL);
   /*virtual*/ BaseGDL* CatArray( ExprListT& exprList,
-			     const SizeT catRank, 
-			     const SizeT rank); 
+                 const SizeT catRank, 
+                 const SizeT rank); 
   /*virtual*/ BaseGDL* Index( ArrayIndexListT* ixList); 
   //  /*virtual*/ BaseGDL* Abs() const; 
 
@@ -168,7 +170,7 @@ class NullGDL: public BaseGDL
 
   // library functions
   /*virtual*/ BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
-			       bool center, bool normalize, int edgeMode,
+                   bool center, bool normalize, int edgeMode,
                                bool doNan, BaseGDL* missing, bool doMissing,
                                BaseGDL* invalid, bool doInvalid);
   /*virtual*/ BaseGDL* Smooth( DLong* width, int edgeMode,
@@ -306,11 +308,11 @@ class NullGDL: public BaseGDL
   /*virtual*/ SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code, BaseGDL::IOMode oM = FIXED); 
   /*virtual*/ SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN,  int code, BaseGDL::IOMode oM = DEC);
   /*virtual*/ SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, 
-			     int minN, char *fill, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT);
+                 int minN, char *fill, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT);
   /*virtual*/ SizeT IFmtA( std::istream* is, SizeT offset, SizeT num, int width);
   /*virtual*/ SizeT IFmtF( std::istream* is, SizeT offs, SizeT num, int width);
   /*virtual*/ SizeT IFmtI( std::istream* is, SizeT offs, SizeT num, int width, 
-			BaseGDL::IOMode oM = DEC);
+            BaseGDL::IOMode oM = DEC);
   /*virtual*/ SizeT IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, 
             BaseGDL::Cal_IOMode cMode);
 

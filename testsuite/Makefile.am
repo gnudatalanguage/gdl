@@ -108,6 +108,7 @@ TESTS = \
   test_file_delete.pro \
   test_file_dirname.pro \
   test_file_lines.pro \
+  test_file_mkdir.pro \
   test_file_move.pro \
   test_file_search.pro \
   test_file_test.pro \
@@ -152,6 +153,7 @@ TESTS = \
   test_modulo.pro \
   test_moment.pro \
   test_mpfit.pro \
+  test_mpi.pro \
   test_multiroots.pro \
   test_n_tags.pro \
   test_nans_in_sort_and_median.pro \
@@ -171,6 +173,7 @@ TESTS = \
   test_pmulti.pro \
   test_pmulti_basic.pro \
   test_point_lun.pro \
+  test_poly_fit.pro \
   test_postscript.pro \
   test_product.pro \
   test_ps_decomposed.pro \
@@ -180,7 +183,6 @@ TESTS = \
   test_python_module_0.pro \
   test_python_module_1.pro \
   test_python_module_2.pro \
-  test_qhull.pro \
   test_qromb.pro \
   test_qromo.pro \
   test_random.pro \
@@ -190,10 +192,12 @@ TESTS = \
   test_resolve_routine.pro \
   test_rk4.pro \
   test_rounding.pro \
+  test_routine_filepath.pro \
   test_routine_names.pro \
   test_same_name.pro \
   test_save_restore.pro \
   test_scope_varfetch.pro \
+  test_scope_varname.pro \
   test_sem.pro \
   test_simplex.pro \
   test_size.pro \
@@ -210,9 +214,11 @@ TESTS = \
   test_structures.pro \
   test_suite.pro \
   test_systime.pro \
+  test_tag_names.pro \
   test_tic_toc.pro \
   test_tiff.pro \
   test_total.pro \
+  test_triangulate.pro \
   test_trisol.pro \
   test_tv.pro \
   test_typename.pro \
@@ -224,6 +230,7 @@ TESTS = \
   test_wordexp.pro \
   test_wordexp_null_string.pro \
   test_xdr.pro \
+  test_xmlsax.pro \
   test_zeropoly.pro \
   test_zip.pro \
   checks

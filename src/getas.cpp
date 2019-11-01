@@ -15,14 +15,29 @@
  *                                                                         *
  ***************************************************************************/
 
-// to be included from datatypes.cpp
-#ifdef INCLUDE_GETAS_CPP
+#include "nullgdl.hpp"
+#include "dstructgdl.hpp"
+#include "arrayindexlistt.hpp"
+#include "assocdata.hpp"
+#include "io.hpp"
+#include "dinterpreter.hpp"
+#include "terminfo.hpp"
 
-// #include "includefirst.hpp"
-// //#include "datatypes.hpp"
-// #include "dstructgdl.hpp"
-// #include "real2int.hpp"
+
+//#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+//#include <numpy/arrayobject.h>
+//#endif
+
+
+
+#include "real2int.hpp"
 #include "ofmt.hpp" // OutAuto
+
+#include <iomanip>
+
+// needed with gcc-3.3.2
+#include <cassert>
+
 // 
 // #include "dinterpreter.hpp"
 
@@ -44,22 +59,6 @@ inline string float2string( DFloat f)
   return os.str();
 }
 
-
-
-// typedef Data_<SpDByte>       DByteGDL;
-// typedef Data_<SpDInt>        DIntGDL;
-// typedef Data_<SpDUInt>       DUIntGDL;
-// typedef Data_<SpDLong>       DLongGDL;
-// typedef Data_<SpDULong>      DULongGDL;
-// typedef Data_<SpDLong64>     DLong64GDL;
-// typedef Data_<SpDULong64>    DULong64GDL;
-// typedef Data_<SpDFloat>      DFloatGDL;
-// typedef Data_<SpDDouble>     DDoubleGDL;
-// typedef Data_<SpDString>     DStringGDL;
-// typedef Data_<SpDPtr>        DPtrGDL;
-// typedef Data_<SpDObj>        DObjGDL;
-// typedef Data_<SpDComplex>    DComplexGDL;
-// typedef Data_<SpDComplexDbl> DComplexDblGDL;
 
 
 // general case
@@ -550,4 +549,3 @@ template<>
     return "("+i2s(real((*this)[i]))+","+i2s(imag((*this)[i]))+")";
   }
 
-#endif

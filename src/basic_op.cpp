@@ -15,35 +15,29 @@
  *                                                                         *
  ***************************************************************************/
 
-// to be included from datatypes.cpp
-#ifdef INCLUDE_BASIC_OP_CPP
-
-// header in datatypes.hpp
-
-//#include "datatypes.hpp"
-//#include "dstructgdl.hpp"
-//#include "arrayindex.hpp"
-
-//#include <csignal>
-#include "sigfpehandler.hpp"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
-// #include "strassenmatrix.hpp"
+#include "datatypes.hpp" // for friend declaration
+#include "nullgdl.hpp"
+#include "dinterpreter.hpp"
+
+// needed with gcc-3.3.2
+#include <cassert>
+
 #include "typetraits.hpp"
 
+#include "sigfpehandler.hpp"
 using namespace std;
 
 #if defined(USE_EIGEN)
 using namespace Eigen;
 #endif
-
-#include "basic_op_add.cpp"
-#include "basic_op_sub.cpp"
-#include "basic_op_mult.cpp"
-#include "basic_op_div.cpp"
 
 // Not operation
 // for integers
@@ -4664,6 +4658,4 @@ Data_<SpDObj>* Data_<SpDObj>::PowInvS( BaseGDL* r)
 }
 
 
-//#include "instantiate_templates.hpp"
-
-#endif
+#include "instantiate_templates.hpp"

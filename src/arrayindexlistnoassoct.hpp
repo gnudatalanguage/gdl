@@ -96,7 +96,7 @@ public:
 //     if( cleanupIxIn != NULL)
 //       cleanupIx = *cleanupIxIn;
 
-    DLongGDL* isRange = new DLongGDL( dimension(1, BaseGDL::NOZERO));
+    DLongGDL* isRange = new DLongGDL( dimension(1), BaseGDL::NOZERO);
     ixOut.push_back(isRange);
     
     (*isRange)[ 0] = (ix->IsRange()) ? 1 : 0;
@@ -892,7 +892,7 @@ public:
   { 
     assert( ix.size() == 0);
 
-    DLongGDL* isRange = new DLongGDL( dimension(ixList.size(), BaseGDL::ZERO));
+    DLongGDL* isRange = new DLongGDL( dimension(ixList.size()), BaseGDL::ZERO);
     ixOut.push_back(isRange);
     
     for( SizeT i=0; i<ixList.size(); ++i)
@@ -1100,7 +1100,7 @@ public:
   { 
     assert( ix.size() == 0);
 
-    DLongGDL* isRange = new DLongGDL( dimension(ixList.size(), BaseGDL::ZERO));
+    DLongGDL* isRange = new DLongGDL( dimension(ixList.size()), BaseGDL::ZERO);
     ixOut.push_back(isRange);
     
     for( SizeT i=0; i<ixList.size(); ++i)
@@ -1379,7 +1379,7 @@ public:
 //     if( cleanupIxIn != NULL)
 //       cleanupIx = *cleanupIxIn;
 
-    DLongGDL* isRange = new DLongGDL( dimension(ixList.size(), BaseGDL::NOZERO));
+    DLongGDL* isRange = new DLongGDL( dimension(ixList.size()), BaseGDL::NOZERO);
     ixOut.push_back(isRange);
     
     SizeT pIX = 0;

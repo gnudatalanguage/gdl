@@ -116,8 +116,6 @@ namespace lib {
 
   BaseGDL* transpose( EnvT* e);
 
-  BaseGDL* sort_fun( EnvT* e);
-
   BaseGDL* SlowReliableMedian( EnvT* e);
   BaseGDL* median( EnvT* e);
 
@@ -180,6 +178,7 @@ namespace lib {
   BaseGDL* scope_traceback( EnvT* e);
   BaseGDL* scope_varfetch_value( EnvT* e); // regular library function
   BaseGDL** scope_varfetch_reference( EnvT* e); // special version for LEval()
+  BaseGDL* scope_varname_fun( EnvT* e);
   BaseGDL* mean_fun(EnvT* e); 
   BaseGDL* moment_fun(EnvT* e); 
 } // namespace

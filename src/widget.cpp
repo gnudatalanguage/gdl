@@ -126,9 +126,9 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   static int ALIGN_TOP = e->KeywordIx( "ALIGN_TOP" );
   static int ALIGN_BOTTOM = e->KeywordIx( "ALIGN_BOTTOM" );
   static int FONT = e->KeywordIx( "FONT" );
-//  static int RESOURCE_NAME = e->KeywordIx( "RESOURCE_NAME" ); // string
+//  static int RESOURCE_NAME = e->KeywordIx( "RESOURCE_NAME" ); // std::string
 
-  string inputfont="";
+  std::string inputfont="";
   e->AssureStringScalarKWIfPresent( FONT, inputfont );
   if (inputfont.length() > 0) font=wxFont(wxString(inputfont.c_str( ), wxConvLibc)); else font=wxNullFont;
   
@@ -1916,7 +1916,10 @@ BaseGDL* widget_info( EnvT* e ) {
       GDLWidget *widget = GDLWidget::GetWidget( widgetID );
 
       // Check if valid widgetID else exit with 0
-      if ( widget == NULL ) return new DLongGDL( 0 ); //solves valid = 0 too.
+      if ( widget == NULL) {
+	      if (valid || managed) return new DLongGDL( 0 ); 
+	      else e->Throw("Invalid widget identifier:"+i2s(widgetID));
+      } //note: /display is not currently in gdl      
       bool result=false;
       if (valid) result=( widget != NULL );
       else if (managed) result=( widget->GetManaged( ) == true );
@@ -3061,8 +3064,6 @@ void widget_control( EnvT* e ) {
 
   if ( destroy ) {
     delete widget;
-    //necessary since we have removed Tidy(...) from eventloop (too time consuming).
-    GraphicsDevice::GetDevice()->TidyWindowsList(); 
     return;
   }
 

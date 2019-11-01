@@ -21,7 +21,9 @@
 
 // this part contains variable conversion stuff
 // used by both GDL embedded in python and python embedded in GDL
-//#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+
+#if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+#include <numpy/arrayobject.h>
 
 //#include <deque>
 //#include <iterator>
@@ -32,18 +34,32 @@
 
 using namespace std;
 
+#if PY_MAJOR_VERSION >= 3
+int PythonInit()
+{
+  if( Py_IsInitialized()) return NULL;
+#else
 void PythonInit()
 {
   if( Py_IsInitialized()) return;
+#endif
   Py_Initialize(); // signal handlers?
   
   static int argc = 1;
+#if PY_MAJOR_VERSION >= 3
+  static wchar_t* arg0 = Py_DecodeLocale("./py/python.exe",NULL);
+  static wchar_t* argv[] = {arg0};
+#else
   static char* arg0 = (char*)"./py/python.exe";
   static char* argv[] = {arg0};
+#endif
   PySys_SetArgv(argc, argv);
 
   // http://docs.scipy.org/doc/numpy/reference/c-api.array.html#miscellaneous
   import_array();
+#if PY_MAJOR_VERSION >= 3
+  return NULL;
+#endif
 }
 
 void PythonEnd()
@@ -71,6 +87,12 @@ BaseGDL* FromPython( PyObject* pyObj)
 {
   if( !PyArray_Check( pyObj))
     {
+#if PY_MAJOR_VERSION >= 3
+      if( PyUnicode_Check( pyObj))
+	{
+	  return new DStringGDL( PyUnicode_AsUTF8( pyObj));
+	}
+#else
       if( PyString_Check( pyObj))
 	{
 	  return new DStringGDL( PyString_AsString( pyObj));
@@ -79,6 +101,7 @@ BaseGDL* FromPython( PyObject* pyObj)
 	{
 	  return new DLongGDL( PyInt_AsLong( pyObj));
 	}
+#endif
       if( PyLong_Check( pyObj))
 	{
 	  return new DLongGDL( PyLong_AsLong( pyObj));
@@ -174,11 +197,19 @@ namespace lib {
 	  e->Throw( "ARGV keyword must be of type STRING.");
 	
 	int argc = argvS->N_Elements();
+#if PY_MAJOR_VERSION >= 3
+	wchar_t** argv = new wchar_t*[ argc];
+#else
 	char** argv = new char*[ argc];
+#endif
 
-	// pyhton copies the value -> threats it as const
+	// python copies the value -> treats it as const
 	for( int i=0; i<argc; ++i)
+#if PY_MAJOR_VERSION >= 3
+	  argv[i] = Py_DecodeLocale(const_cast<char*>((*argvS)[ i].c_str()), NULL); 
+#else
 	  argv[i] = const_cast<char*>((*argvS)[ i].c_str()); 
+#endif
 
 	PySys_SetArgv(argc, argv);
 	delete[] argv;
@@ -306,6 +337,6 @@ namespace lib {
 
 #endif // #ifdef USE_PYTHON
 
-//#endif // #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+#endif // #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
 
 #endif // #ifdef INCLUDE_GDLPYTHON_CPP
