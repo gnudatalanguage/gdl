@@ -5,27 +5,27 @@ matrix:
   include:
 #    - os: linux
 #      env: COMPILER=icc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
-##    - os: linux
-##      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
+    - os: linux
+      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
     - os: osx
       env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=MINI
 
-##    - os: linux
-##      env: COMPILER=icc   CMAKE_BUILD_TYPE=Debug    DEPS=FULL
-##    - os: linux
-##      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=FULL  CODECOV=yes
+    - os: linux
+      env: COMPILER=icc   CMAKE_BUILD_TYPE=Debug    DEPS=FULL
+    - os: linux
+      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=FULL  CODECOV=yes
     - os: osx
       env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=FULL
 
 #    - os: linux
 #      env: COMPILER=icc   CMAKE_BUILD_TYPE=Release  DEPS=MINI
-##    - os: linux
-##      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Release  DEPS=MINI
+    - os: linux
+      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Release  DEPS=MINI
     - os: osx
       env: COMPILER=clang CMAKE_BUILD_TYPE=Release  DEPS=MINI
 
-##    - os: linux
-##      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Release  DEPS=FULL
+    - os: linux
+      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Release  DEPS=FULL
 #    - os: linux
 #      env: COMPILER=icc   CMAKE_BUILD_TYPE=Release  DEPS=FULL
     - os: osx
@@ -62,18 +62,9 @@ before_install:
     # https://github.com/travis-ci/travis-ci/issues/8613
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export LD_LIBRARY_PATH=/usr/local/clang/lib:$LD_LIBRARY_PATH; fi
 
-    # Homebrew issue (https://stackoverflow.com/questions/54888582/ruby-cannot-load-such-file-active-support-core-ext-object-blank)
+    # OSX stuff
     - if [ $TRAVIS_OS_NAME == osx ]; then brew update-reset; fi
-
-    # homebrew Python stuff...
     - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade numpy; fi
-    #- if [ $TRAVIS_OS_NAME == osx ]; then brew install python@2; fi
-    #- if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython2.7.dylib -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python2.7"; fi
-#    - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade python; fi
-#    - if [ $TRAVIS_OS_NAME == osx ]; then brew link --force python2; fi
-#    - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | /usr/local/bin/python -m pip uninstall numpy; fi
-#    - if [ $TRAVIS_OS_NAME == osx ]; then brew remove numpy gdal postgis; fi
-
     - if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_CXX_FLAGS="-Wdeprecated-register"; fi
 
 install:
@@ -207,7 +198,6 @@ install:
 
     # Python & NumPy (installing always as needed for the Python module build)
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python3-dev python3-numpy-dev"; fi
-    #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} numpy"; fi
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=OFF"; fi 
 
