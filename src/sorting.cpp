@@ -55,7 +55,8 @@ namespace lib {
 //3. This notice may not be removed or altered from any source distribution.
 //------------------Radix Sorting Codes ------------------------------------------------------------------------------
 //    
-#if defined(__APPLE__) || defined(_XBOX) //IEEE little_endian in fact --> should use a better ifdef.
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+//defined(__APPLE__) || defined(_XBOX) //IEEE little_endian in fact --> should use a better ifdef.
 	#define H1_OFFSET2	0
 	#define H0_OFFSET2	256
 	#define BYTES_INC2	(1-j)
@@ -73,7 +74,7 @@ namespace lib {
 	#define H1_OFFSET8	1536
 	#define H0_OFFSET8	1792
 	#define BYTES_INC8	(7-j)
-#else 
+#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ 
 	#define H0_OFFSET2	0
 	#define H1_OFFSET2	256
 	#define BYTES_INC2	j
@@ -91,6 +92,8 @@ namespace lib {
 	#define H6_OFFSET8	1536
 	#define H7_OFFSET8	1792
 	#define BYTES_INC8	j
+#else
+#warning "Help with the byte order !!"
 #endif
 
 #include <string.h> //for memset (Windows)
