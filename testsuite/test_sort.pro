@@ -21,7 +21,7 @@ nb_errors=0
 array=RANDOMU(seed, nbps)
 sort_array=array[SORT(array)]
 ;
-nb_errors=TOTAL(sort_array[1:*] LE sort_array[0])
+nb_errors=TOTAL(sort_array[1:*] LT sort_array)
 ;
 ; ----- final ----
 ;
