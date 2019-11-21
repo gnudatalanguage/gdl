@@ -111,6 +111,7 @@ extern "C" {
 #include "dpro.hpp"
 
 #include "gdlhelp.hpp"
+#include "nullgdl.hpp"
 
 // for sorting compiled pro/fun lists by name
 struct CompFunName: public std::binary_function< DFun*, DFun*, bool>
@@ -572,7 +573,7 @@ BaseGDL* recall_commands( EnvT* e)
       ostr << "UNDEFINED = <Undefined>" << endl;
       return;
     }
-    if (!par) {
+    if (par==NullGDL::GetSingleInstance()) {
       ostr << "UNDEFINED = !NULL" << endl;
       return;
     }

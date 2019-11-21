@@ -197,9 +197,11 @@ TESTS = \
   test_same_name.pro \
   test_save_restore.pro \
   test_scope_varfetch.pro \
+  test_scope_varname.pro \
   test_sem.pro \
   test_simplex.pro \
   test_size.pro \
+  test_sort.pro \
   test_spawn_unit.pro \
   test_spher_harm.pro \
   test_spl_init.pro \

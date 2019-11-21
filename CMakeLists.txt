@@ -43,6 +43,7 @@ include(CheckCSourceRuns)
 include(CheckCXXSourceCompiles)
 include(FindPkgConfig)
 include(FindPackageHandleStandardArgs)
+include(TestBigEndian)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 
@@ -149,6 +150,9 @@ set(GDL_DATA_DIR "/share/gnudatalanguage" CACHE PATH "GDL: data directory relati
 if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
     set(HAVE_64BIT_OS 1)
 endif(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
+
+# check for endianness, and set macro in case it is big.
+TEST_BIG_ENDIAN(IS_BIGENDIAN)
 
 #### check headers and libraries
 
@@ -868,9 +872,9 @@ if(PYTHON OR PYTHON_MODULE)
                 endif()
     else()
         if(NOT PYTHONVERSION)
-            set(PYTHONVERSION 2)
+            set(PYTHONVERSION 3)
         endif()
-        find_package(PythonInterp)
+        find_package(PythonInterp ${PYTHONVERSION})
         find_package(PythonLibs ${PYTHONVERSION})
         if (NOT PYTHON_VERSION_STRING VERSION_EQUAL PYTHONLIBS_VERSION_STRING)
             message(STATUS "PYTHON_EXECUTABLE: " ${PYTHON_EXECUTABLE})

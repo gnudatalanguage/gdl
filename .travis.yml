@@ -55,22 +55,15 @@ before_install:
     - $SEDCMD '/test_simplex.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_step.pro/d'             testsuite/Makefile.am # TODO!
     - if [ $TRAVIS_OS_NAME == osx ]; then $SEDCMD '/test_tic_toc.pro/d' testsuite/Makefile.am; fi # TODO! fails on OSX, e.g.    https://travis-ci.org/gnudatalanguage/gdl/jobs/440977990
-    - if [ $TRAVIS_OS_NAME == osx ]; then $SEDCMD '/test_deriv.pro/d' testsuite/Makefile.am; fi # TODO! fails on OSX, e.g.    https://travis-ci.org/gnudatalanguage/gdl/jobs/592575065
     - $SEDCMD '/test_typename.pro/d'         testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_wait.pro/d'             testsuite/Makefile.am # TODO!
 
     # https://github.com/travis-ci/travis-ci/issues/8613
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export LD_LIBRARY_PATH=/usr/local/clang/lib:$LD_LIBRARY_PATH; fi
 
-    # Homebrew issue (https://stackoverflow.com/questions/54888582/ruby-cannot-load-such-file-active-support-core-ext-object-blank)
+    # OSX stuff
     - if [ $TRAVIS_OS_NAME == osx ]; then brew update-reset; fi
-
-    # homebrew Python stuff...
-    - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade python; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then brew install python@2; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then /usr/bin/yes | /usr/local/bin/python -m pip uninstall numpy; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then brew remove numpy gdal postgis; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython2.7.dylib -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python2.7"; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade numpy; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_CXX_FLAGS="-Wdeprecated-register"; fi
 
 install:
@@ -97,8 +90,8 @@ install:
     - if [ -v CODECOV ]; then echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} check)" >> testsuite/CMakeLists.txt; fi
 
     # pytest
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python-pytest"; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python2 -m pip install pytest; fi 
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python3-pytest"; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install pytest; fi 
 
     # CMake 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} cmake"; fi
@@ -203,8 +196,7 @@ install:
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DMPI=OFF"; fi 
 
     # Python & NumPy (installing always as needed for the Python module build)
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python-dev python-numpy-dev"; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} numpy"; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python3-dev python3-numpy-dev"; fi
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=OFF"; fi 
 
@@ -298,7 +290,7 @@ script:
 
     - cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DPYTHON_MODULE=ON ../ 
     - travis_wait 60 make -j 2 # travis_wait needed for icc
-    - PYTHONPATH=$PYTHONPATH:`find . -name GDL.so | xargs dirname` python -m pytest ../testsuite/python/test-GDL.py 
+    - PYTHONPATH=$PYTHONPATH:`find . -name GDL.so | xargs dirname` python3 -m pytest ../testsuite/python/test-GDL.py 
 
 after_script:
     - if [ $COMPILER == icc ]; then '[[ ! -z "${INTEL_INSTALL_PATH}" ]] && uninstall_intel_software'; fi

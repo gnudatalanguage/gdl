@@ -212,7 +212,7 @@ target_link_libraries(gdl ${LIBRARIES})
 add_definitions(-DHAVE_CONFIG_H)
 
 if(PYTHON_MODULE)
-	find_package( PythonInterp REQUIRED )
+        find_package( PythonInterp ${PYTHONVERSION} REQUIRED )
 	execute_process(COMMAND ${PYTHON_EXECUTABLE} -c
 		"import site, sys; sys.stdout.write(site.PREFIXES[-1])"
 			OUTPUT_VARIABLE PYTHON_PREFIX)

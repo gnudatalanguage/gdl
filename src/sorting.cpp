@@ -55,8 +55,7 @@ namespace lib {
 //3. This notice may not be removed or altered from any source distribution.
 //------------------Radix Sorting Codes ------------------------------------------------------------------------------
 //    
-#if defined(__APPLE__) || defined(_XBOX) //IEEE little_endian in fact --> should use a better ifdef.
-	#define H1_OFFSET2	0
+#if defined(IS_BIGENDIAN)
 	#define H0_OFFSET2	256
 	#define BYTES_INC2	(1-j)
     #define H0_OFFSET4	768

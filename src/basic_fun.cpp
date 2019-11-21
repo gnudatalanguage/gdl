@@ -8904,6 +8904,159 @@ BaseGDL* parse_url( EnvT* env)
     return NULL; // compiler shut-up
   }
 
+  BaseGDL* scope_varname_fun(EnvT* e)
+  {
+
+    SizeT nParam = e->NParam( );
+
+    EnvStackT& callStack = e->Interpreter( )->CallStack( );
+
+    DLong currentLvl = callStack.size( );
+    DLong level = currentLvl; // default to current level
+
+    DStringGDL* retVal = nullptr;
+    SizeT count( 0 );
+
+    static int commonIx = e->KeywordIx( "COMMON" );
+    static int countIx = e->KeywordIx( "COUNT" );
+    static int levelIx = e->KeywordIx( "LEVEL" );
+
+    if ( e->KeywordSet( commonIx ) )
+      {
+
+        if ( e->KeywordSet( levelIx ) ) e->Throw( "Conflicting keywords." );
+
+        DString commonName = "";
+        e->AssureStringScalarKW( commonIx, commonName );
+        DSubUD* pro = static_cast<DSubUD*> ( e->Caller( )->GetPro( ) );
+        DCommon* common = pro->Common( StrUpCase( commonName ) );
+        if ( common == NULL ) e->Throw( "Common block does not exist: " + commonName );
+        bool passed_list = true;
+        SizeT nComm = common->NVar( );
+        if ( nParam < 1 )
+          {
+            nParam = nComm;
+            passed_list = false;
+          }
+        count=nParam;
+        retVal = new DStringGDL( dimension( count ), BaseGDL::NOZERO );
+        for ( SizeT i( 0 ); i < count; ++i )
+          {
+            DLong ipar = i;
+            if ( passed_list ) e->AssureLongScalarPar( i, ipar );
+            if ( ( ipar >= 0 ) && ( ipar < nComm ) )
+              {
+                ( *retVal )[i] = common->VarName( ipar );
+              }
+            else ( *retVal )[i] = "";
+          }
+      }
+    else
+      {
+
+        DLongGDL* kwLvl = e->IfDefGetKWAs<DLongGDL>( levelIx );
+        if ( kwLvl )
+          {
+            DLong tmp = ( *kwLvl )[0];
+            if ( tmp > 0 ) level = tmp;
+            else level += tmp;
+            level = std::max( std::min( level, currentLvl ), 1 );
+          }
+
+
+
+        if ( nParam == 0 )
+          { // Just list and return all defined parameters at the requested level.
+            EnvT* requestedScope = (EnvT*) callStack[level - 1];
+            DSubUD* scope_pro = static_cast<DSubUD*> ( requestedScope->GetPro( ) );
+            SizeT scope_nVar = scope_pro->Size( );
+            SizeT scope_nComm = scope_pro->CommonsSize( );
+            count = scope_nVar + scope_nComm;
+            if ( !count )
+              {
+                retVal = new DStringGDL( "" );
+              }
+            else
+              { // N.B. Order doesn't matter since the result is lexically sorted.
+                vector<string> names( count );
+                for ( SizeT i( 0 ); i < scope_nVar; ++i )
+                  {
+                    names[ i ] = scope_pro->GetVarName( i );
+                    if ( names[ i ].empty( ) ) names[ i ] = "*";
+                  }
+                if ( scope_nComm )
+                  {
+                    DStringGDL* list = static_cast<DStringGDL*> ( scope_pro->GetCommonVarNameList( ) );
+                    for ( SizeT i( 0 ); i < list->N_Elements( ); ++i )
+                      {
+                        names[ scope_nVar + i ] = ( *list )[i];
+                      }
+                  }
+                std::sort( names.begin( ), names.end( ) );
+                retVal = new DStringGDL( dimension( count ), BaseGDL::NOZERO );
+                for ( SizeT i( 0 ); i < count; ++i )
+                  {
+                    ( *retVal )[i] = names[i];
+                  }
+              }
+          }
+        else
+          {
+            EnvT* requestedScope = (EnvT*) callStack[level - 1];
+            DSubUD* scope_pro = static_cast<DSubUD*> ( requestedScope->GetPro( ) );
+            SizeT scope_nVar = scope_pro->Size( );
+            SizeT scope_nComm = scope_pro->CommonsSize( );
+            count = nParam;
+            retVal = new DStringGDL( dimension( nParam ), BaseGDL::NOZERO );
+            //retrieve each variable at current level, fetch name at desired level
+            for ( SizeT i( 0 ); i < nParam; ++i )
+              {
+                ( *retVal )[i] = ""; // not found
+                BaseGDL*& par = e->GetPar( i );
+                std::string tmp_name;
+                bool undefineOnExit = false;
+                 //DANGEROUS trick to get parameter name, not <undefined> : avoid to have par=0x0 = NULL
+                if (par==NULL) {
+                    e->SetPar(i, NullGDL::GetSingleInstance()); //make it something not meaningful
+                    par = e->GetPar (i);       
+                    undefineOnExit=true;
+                  }
+                if ( scope_pro->GetCommonVarName( par, tmp_name ) )
+                  { // Variable found in common-block, so use that name first.
+                    ( *retVal )[i] = tmp_name;
+
+                    if ( undefineOnExit ) {
+                        par=NULL;  //PROBABLY WILL CREATE PROBLEM SOMEWHERE ELSE 
+                      };
+                    continue;
+                  }
+                // not defined in common, can only be local.
+                if ( level == currentLvl )
+                  { // For current level we need to resolve using e, but return empty string if not a named variable (ex: expression)
+                    tmp_name = e->GetParString( i );
+                    if ( tmp_name.find( '>' ) == std::string::npos ) ( *retVal )[i] = tmp_name;
+                    if ( undefineOnExit ) {
+                        par=NULL; //PROBABLY WILL CREATE PROBLEM SOMEWHERE ELSE 
+                      };
+                  } else {
+                    tmp_name = requestedScope->GetString (par);
+                    if ( tmp_name.find( '>' ) == std::string::npos ) ( *retVal )[i] = tmp_name;
+                  }
+              }
+          }
+
+      }
+
+    // set the COUNT keyword
+    if ( e->KeywordPresent( countIx ) )
+      {
+        e->AssureGlobalKW( countIx );
+        e->SetKW( countIx, new DLongGDL( count ) );
+      }
+
+    return retVal;
+
+  }
 
 } // namespace
 

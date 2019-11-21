@@ -766,11 +766,19 @@ const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
   //   if( sysVar != NULL) return sysVar->Name();
 
   // search common blocks
-  if( name == Default && subUD != NULL)
+  if (name == Default && subUD != NULL)
     {
       string varName;
-      if( subUD->GetCommonVarName4Help( p, varName)) 
-	return varName;
+      if (calledFromHELP)
+        {
+          if (subUD->GetCommonVarName4Help (p, varName))
+            return varName;
+        }
+      else
+        {
+          if (subUD->GetCommonVarName (p, varName))
+            return varName;
+        }
     }
 
   if( !p)
