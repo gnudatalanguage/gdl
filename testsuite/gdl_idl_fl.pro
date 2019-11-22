@@ -1,4 +1,4 @@
-;
+;+
 ; Alain C., March 2015
 ;
 ; * AC 2017-JUL-27 adding /uppercase
@@ -19,9 +19,10 @@
 ; 2018-Sep-06 : AC. new test for FL (mail from Lajos)
 ;               using undocument trick in FL
 ; 2018-Sep-06 : AC. adding /title 
+; 2019-Nov-19 : AC. Since FL 0.79.46, we do have a !FL :)
 ;
 ; ----------------------------------------------------
-;
+;-
 function GDL_IDL_FL, uppercase=uppercase, prefix=prefix, $
                      lowercase=lowercase, title=title, $
                      verbose=verbose, test=test
@@ -36,18 +37,26 @@ if isGDL then suffix='gdl' else begin
    ;; check if we are in FL or IDL ! (better test welcome !)
    ;; This test is still OK in FL fl_0.79.41
    ;;
-   DEFSYSV, '!slave', exists=isFL
+   ;; new way since FL 0.79.46
+   DEFSYSV, '!FL', exists=isFL
    if isFL then begin
       suffix='fl'
    endif else begin
-      ;;  new way to detect FL 
-      ;; AC: FL trick : don't change next line !!!!
-      in_fl=0   ;#fl +1
-      ;; AC: FL trick : don't change previous line !!!!
-      if in_fl then begin
+      ;; older ways ... may be unacurate :(
+      
+      DEFSYSV, '!slave', exists=isFL
+      if isFL then begin
          suffix='fl'
       endif else begin
-         suffix='idl'
+         ;;  new way to detect FL 
+         ;; AC: FL trick : don't change next line !!!!
+         in_fl=0              ;#fl +1
+         ;; AC: FL trick : don't change previous line !!!!
+         if in_fl then begin
+            suffix='fl'
+         endif else begin
+            suffix='idl'
+         endelse
       endelse
    endelse
 endelse
