@@ -1,9 +1,17 @@
-;
+;+
 ; Under GNU GPL V3+
 ; Alain C., August 2018
 ;
 ; Nota Bene : we don't check all the XDR provided come from the
 ; same machine ...
+;
+; Tip : special is a keyword which can be used to intercompare GDL
+; versions in case of regression (need tuning; to be clarify)
+;
+; ---------------------------------
+;
+; TYPE : INTEGER (int, long, ulong, ...), FLOAT, DOUBLE, COMPLEX, DCOMPLEX
+; To Do : management of TYPE is far from perfect 
 ;
 ; ---------------------------------
 ; 
@@ -12,16 +20,60 @@
 ; - 2018-10-15 : AC. 
 ;   * adding on the plot more informations on the machine used
 ;   * better display of Float & Double
-;   * filtering on used type (eg float of dlb ...)
+;   * filtering on used type (eg Float, Double or Long ...)
 ;
 ; ---------------------------------
+;-
+;
+pro FAMILY_TYPE, used_type, family_type, psymb, my_line, test=test
+;
+case used_type of
+   'FLOAT' : begin
+      family_type='FLOAT'
+      psymb=4
+      my_line=0
+   end
+   'DOUBLE' : begin
+      family_type='DOUBLE'
+      psymb=6
+      my_line=2
+   end
+   'INT' : begin
+      family_type='INTEGER'
+      psymb=2
+      my_line=1
+   end
+   'BYTE' : begin
+      family_type='INTEGER'
+      psymb=2
+      my_line=1
+   end
+   'LONG' : begin
+      family_type='INTEGER'
+      psymb=2
+      my_line=1
+   end
+   'ULONG' : begin
+      family_type='INTEGER'
+      psymb=2
+      my_line=1
+   end
+   ELSE: begin
+      print,  used_type
+      print, 'not ready !!'
+      end
+ENDCASE
+;
+if KEYWORD_SET(test) then STOP
+;
+end
 ;
 pro PLOT_BASIC_BENCHMARKS, path=path, filter=filter, type=type, $
-                           select=select, $
+                           select=select, title=title, $
                            xrange=xrange, yrange=yrange, $
                            xlog=xlog, ylog=ylog, $
                            svg=svg, special=special, $
-                           help=help, test=test
+                           help=help, test=test, debug=debug, verbose=verbose
 ;
 if KEYWORD_SET(help) then begin
     print, 'pro PLOT_BASIC_BENCHMARKS, path=path, filter=filter, $'
@@ -32,7 +84,7 @@ if KEYWORD_SET(help) then begin
     return
 endif
 ;
-ON_ERROR, 2
+if ~KEYWORD_SET(test) then ON_ERROR, 2
 ;
 CHECK_SAVE_RESTORE
 ;
@@ -52,6 +104,7 @@ if ISA(keep_type,/string) then begin
 endif else begin
    keep_type=TYPENAME(FIX(1, type=keep_type))
 endelse
+if KEYWORD_SET(debug) then print, 'Type : ',  keep_type
 ;
 ; name for the output, if needed (+ type name if selected)
 ;
@@ -80,10 +133,13 @@ DEVICE, decompose=1
 BENCHMARK_GRAPHIC_STYLE, liste, colors, mypsym, myline, flags, $
                          languages, select=select
 ;
+bb_title='Basic Benchmark'
+if KEYWORD_SET(title) then bb_title=bb_title+' : '+title
+;
 PLOT, FINDGEN(xelems), /nodata, xstyle=5, /ystyle, ylog=ylog, $
       xrange=xrange, yrange=yrange, $
       xtitle='Operations', ytitle='time [s]', $
-      title='Basic Benchmark', pos=[0.05,0.05, 0.75, 0.9]
+      title=bb_title, pos=[0.05,0.05, 0.75, 0.9]
 ;
 XYOUTS, 0.78, 0.95, SYSTIME(), /normal
 XYOUTS, 0.78, 0.90, info_os.hostname, /normal
@@ -101,18 +157,16 @@ for ii=0, N_ELEMENTS(liste)-1 do begin
       AXIS, xtickname=['',op_name,''], xticks=N_ELEMENTS(op_name)+1
    ;;
    ;; type ?
-   if (used_type EQ 'FLOAT') then psymb=4
-   if (used_type EQ 'FLOAT') then my_line=0
-   if (used_type EQ 'DOUBLE') then psymb=6
-   if (used_type EQ 'DOUBLE') then my_line=2
+   ;;
+   FAMILY_TYPE, used_type, family_type, psymb, my_line, test=test
    ;;
    ;; skipped unwanted inputs if Type= provided
-   if KEYWORD_SET(type) then if (keep_type NE used_type) then continue
+   if KEYWORD_SET(type) then if (keep_type NE family_type) then continue
    ;;
    jj=flags[ii]
    if jj GE 0 then begin
-      OPLOT, xval, op_val, line=my_line, col=colors[jj], thick=1.5
-      OPLOT, xval, op_val, psym=psymb, col=colors[jj], thick=1.5
+      OPLOT, xval, op_val, line=my_line, col=colors[jj], thick=2
+      OPLOT, xval, op_val, psym=psymb, col=colors[jj], thick=2
    endif
    ;;   print, ii, jj, mypsym[jj], myline, colors[jj]
 endfor
@@ -121,12 +175,13 @@ endfor
 ;
 BENCHMARK_PLOT_CARTOUCHE, pos=[0.75,0.05,0.98,0.4], languages, /box, $
                           colors=colors, lines=lines, /all, /absolute, $
-                          thick=1.5, title='Languages'
+                          thick=2, title='Languages'
 ;
-BENCHMARK_PLOT_CARTOUCHE, pos=[0.75,0.4,0.98,0.6], ['Float','Double'], /box, $
+BENCHMARK_PLOT_CARTOUCHE, pos=[0.75,0.4,0.98,0.7], $
+                          ['Int/Long ...','Float','Double'], /box, $
 ;                          colors=color2color(!color.white), $
-                          linestyle=[0,2], psym=[-4,-6], /all, /absolute, $
-                          thick=1.5, title='Types'
+                          linestyle=[1,0,2], psym=[-2,-4,-6], /all, /absolute, $
+                          thick=2, title='Types'
 ;
 if KEYWORD_SET(special) then begin
    colors=[colors[0],colors[0]]

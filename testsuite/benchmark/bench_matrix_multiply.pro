@@ -16,15 +16,19 @@
 ; -- for (D)Complex types, no nul matrix (because FL ultra fast on 0 arrays)
 ; -- Adding PLOT_BENCH_MATRIX_MULTIPLY
 ;
+; * AC 2019-11-21:
+; -- filter= for PLOT
+; -- more info in XDR (info_cpu, info_os, info_soft)
+;
 ; ------------------------------------------------------------
 ;
-pro PLOT_BENCH_MATRIX_MULTIPLY, xrange=xrange, yrange=yrange, $
+pro PLOT_BENCH_MATRIX_MULTIPLY, filter=filter, xrange=xrange, yrange=yrange, $
                                 xlog=xlog, ylog=ylog, $
                                 path=path, svg=svg, $
                                 help=help, test=test
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro PLOT_BENCH_MATRIX_MULTIPLY, xrange=xrange, yrange=yrange, $'
+    print, 'pro PLOT_BENCH_MATRIX_MULTIPLY, filter=filter, xrange=xrange, yrange=yrange, $'
     print, '                                xlog=xlog, ylog=ylog, $'
     print, '                                path=path, svg=svg, $'
     print, '                                help=help, test=test'
@@ -35,7 +39,8 @@ ON_ERROR, 2
 ;
 CHECK_SAVE_RESTORE
 ;
-liste=BENCHMARK_FILE_SEARCH('bench_matmul*.xdr', 'Matrix Multiply', path=path)
+if ~KEYWORD_SET(filter) then filter='bench_matmul*.xdr'
+liste=BENCHMARK_FILE_SEARCH(filter, 'Matrix Multiply', path=path)
 ;
 BENCHMARK_SVG, svg=svg, /on, filename='bench_matmul.svg', infosvg=infosvg 
 ;
@@ -234,11 +239,15 @@ BENCH_MATRIX_MULTIPLY_ONE, time_res=time_c, /complex
 BENCH_MATRIX_MULTIPLY_ONE, time_res=time_dc, /dcomplex
 ;
 if KEYWORD_SET(save) then begin
-   cpuinfo=BENCHMARK_GENERATE_CPUINFO()
    filename=BENCHMARK_GENERATE_FILENAME('matmul')
    ;;
-   SAVE, file=filename, cpuinfo, matrix_size, $
-         time_f, time_d, time_c, time_dc
+   info_cpu=BENCHMARK_INFO_CPU()
+   info_os=BENCHMARK_INFO_OS()
+   info_soft=BENCHMARK_INFO_SOFT()
+   ;;
+   SAVE, file=filename, matrix_size, $
+         time_f, time_d, time_c, time_dc, $
+         info_cpu, info_os, info_soft
 endif
 ;
 if KEYWORD_SET(test) then STOP
