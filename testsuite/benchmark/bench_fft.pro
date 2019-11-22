@@ -5,15 +5,19 @@
 ; --------------
 ; Modifications history :
 ;
+; * AC 2019-11-21:
+; -- filter= for PLOT
+; -- more info in XDR (info_cpu, info_os, info_soft)
+;
 ; --------------------------------------------------------------
 ;
-pro PLOT_BENCH_FFT, xrange=xrange, yrange=yrange, $
+pro PLOT_BENCH_FFT, filter=filter, xrange=xrange, yrange=yrange, $
                     xmini=xmini, ymini=ymini, $
                     path=path, svg=svg, $
                     norm=norm, test=test, help=help
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro PLOT_BENCH_FFT, xrange=xrange, yrange=yrange, $'
+   print, 'pro PLOT_BENCH_FFT, filter=filter, xrange=xrange, yrange=yrange, $'
    print, '                    xmini=xmini, ymini=ymini, $'
    print, '                    path=path, svg=svg, $'
    print, '                    norm=norm, test=test, help=help'
@@ -24,7 +28,8 @@ ON_ERROR, 2
 ;
 CHECK_SAVE_RESTORE
 ;
-liste=BENCHMARK_FILE_SEARCH('bench_fft*.xdr', 'FFT', path=path)
+if ~KEYWORD_SET(filter) then filter='bench_fft*.xdr'
+liste=BENCHMARK_FILE_SEARCH(filter, 'FFT', path=path)
 ;
 BENCHMARK_SVG, svg=svg, /on, filename='bench_fft.svg', infosvg=infosvg 
 ;
@@ -116,10 +121,14 @@ endif
 ;
 if KEYWORD_SET(save) then begin
    if KEYWORD_SET(double) then radical='fft_d' else radical='fft'
-   cpuinfo=BENCHMARK_GENERATE_CPUINFO()
-   filename=BENCHMARK_GENERATE_FILENAME(radical)   
+   filename=BENCHMARK_GENERATE_FILENAME(radical)
    ;;
-   SAVE, file=filename, cpuinfo, x, st
+   info_cpu=BENCHMARK_INFO_CPU()
+   info_os=BENCHMARK_INFO_OS()
+   info_soft=BENCHMARK_INFO_SOFT()
+   ;;
+   SAVE, file=filename, x, st, $
+      info_cpu, info_os, info_soft
 endif
 ;
 if KEYWORD_SET(test) then STOP
