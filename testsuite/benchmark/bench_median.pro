@@ -11,14 +11,18 @@
 ; ----------
 ; Modification history :
 ;
+; * AC 2019-11-21:
+; -- filter= for PLOT
+; -- more info in XDR (info_cpu, info_os, info_soft)
+;
 ; --------------------------------------------------------------
 ;
-pro PLOT_BENCH_MEDIAN, xrange=xrange, yrange=yrange, $
+pro PLOT_BENCH_MEDIAN, filter=filter, xrange=xrange, yrange=yrange, $
                        path=path, svg=svg, $
                        xlog=xlog, ylog=ylog, test=test, help=help
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro PLOT_BENCH_MEDIAN, xrange=xrange, yrange=yrange, $'
+   print, 'pro PLOT_BENCH_MEDIAN, filter=filter, xrange=xrange, yrange=yrange, $'
    print, '                       path=path, svg=svg, $'
    print, '                       xlog=xlog, ylog=ylog, $'
    print, '                       test=test, help=help'
@@ -29,7 +33,8 @@ ON_ERROR, 2
 ;
 CHECK_SAVE_RESTORE
 ;
-liste=BENCHMARK_FILE_SEARCH('bench_median*.xdr', 'Invert Matrix', path=path)
+if ~KEYWORD_SET(filter) then filter='bench_median*.xdr'
+liste=BENCHMARK_FILE_SEARCH(filter, 'Invert Matrix', path=path)
 ;
 BENCHMARK_SVG, svg=svg, /on, filename='bench_median.svg', infosvg=infosvg 
 ;
@@ -116,9 +121,14 @@ endfor
 PLOT, width_list, time_median, xtitle='Width values', ytitle='Median time [s]'
 ;
 if KEYWORD_SET(save) then begin
-   cpuinfo=BENCHMARK_GENERATE_CPUINFO()
-   filename=BENCHMARK_GENERATE_FILENAME(radical)   
-   SAVE, filename=filename, cpuinfo, size, width_list, time_median
+   filename=BENCHMARK_GENERATE_FILENAME(radical)
+   ;;
+   info_cpu=BENCHMARK_INFO_CPU()
+   info_os=BENCHMARK_INFO_OS()
+   info_soft=BENCHMARK_INFO_SOFT()
+   ;;
+   SAVE, filename=filename, size, width_list, time_median, $
+         info_cpu, info_os, info_soft
 endif
 ;
 if KEYWORD_SET(test) then STOP

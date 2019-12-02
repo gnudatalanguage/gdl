@@ -1,4 +1,4 @@
-;
+;+
 ; Under GNU GPL V3+
 ; Alain C., summer 2018
 ;
@@ -8,6 +8,10 @@
 ; more high level functionnalities (WHERE, SORT, FINITE, ...)
 ;
 ; ---------------------------------
+;
+; ToDo : (clean) extension to other types (Complex, Int/Long, ...)
+;
+; ---------------------------------
 ; 
 ; Modifications history :
 ;
@@ -15,19 +19,23 @@
 ;   * forcing !cpu.TPOOL_NTHREADS to be equal to
 ;     physical (detected !) core number !cpu.HW_NCPU
 ;   * ading more informations on the machine used in the output XDR
-;     (to be used by "PLOT_BASIC_BENCHMARKS"
+;     (to be used by "PLOT_BASIC_BENCHMARKS" & "PRINT_BASIC_BENCHMARKS")
+;
+; - 2019-11-19 : AC. 
+;   * we are not fully ready for types different than Float & Double
 ;
 ; ---------------------------------
-;
+;-
 ; just a convenience code for smart print ...
 pro PRINTB, str, flt, tab_name, tab_val
 vide='              '
-print, format='(A20, g12.6e3)', str+vide, flt
+print, format='(A23, g12.6)', str+vide, flt
 ;
 tmp=STRMID(STRMID(str,9),STRLEN(str), STRLEN(str)-9-2, /REV)
 tab_name=[tab_name, tmp]
 tab_val=[tab_val, flt]
 end
+; ---------------------------------
 pro PRINT_CPUINFO, message
 txt1=': nb detected CORES : '+STRING(!cpu.HW_NCPU, format='(i4)')
 txt2=', nb cores/threads in use : '+STRING(!cpu.TPOOL_NTHREADS, format='(i4)')
@@ -71,11 +79,20 @@ if nbps lt 10LL then message,"nbps must be > 10."
 ; compute ntrials such as 1 is for 10^8 and 10^8 for one
 log_ntrials=floor(6-alog10(nbps)) > 0
 ntrials=10.^log_ntrials > 1
-
+ntrials=ROUND(ntrials)
+;
+if KEYWORD_SET(verbose) then print, 'Nb Trials : ', ntrials
+;
 tab_name=['']
 tab_val=[0.]
 ;
-; ------------ need to change the type if needed ---
+; do we want to convert the type ?
+tmp=RANDOMN(seed, 4, double=double)
+if KEYWORD_SET(type) then input=FIX(tmp, type=type) else input=tmp
+used_type=TYPENAME(input)
+print, 'Working on type : ', used_type
+;
+; -------- RANDOM are always on Float or Double (ULong ToDo) ---
 ;
 a=TIC()
 for i=1,ntrials do input=RANDOMN(seed, nbps/4, double=double)
@@ -85,10 +102,10 @@ a=TIC()
 for i=1,ntrials do input=RANDOMU(seed, nbps, double=double)
 printb, 'Time for RANDOMU : ', TOC(a)/ntrials, tab_name, tab_val
 ;
+; ------------ need to change the type if needed ---
+;
 ; do we want to convert the type ?
 if KEYWORD_SET(type) then input=FIX(input, type=type)
-used_type=TYPENAME(input)
-print, 'Working on type : ', used_type
 ;
 ; ------------ starting other computation ! ----
 ;
@@ -134,7 +151,7 @@ a=TIC()
 for i=1,ntrials do res=FIX(input)
 printb, 'Time for FIX : ', TOC(a)/ntrials, tab_name, tab_val
 ;
-; save file ...
+; -------- computations finished, saving file now ... ----
 ;
 if ~KEYWORD_SET(prefix) then prefix=''
 filename=BENCHMARK_GENERATE_FILENAME('basic'+prefix)
