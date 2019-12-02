@@ -574,7 +574,13 @@ pro map_proj_auxiliary_read_csv
  required=replicate(required_template,nproj)
  ntags=n_tags(required_template)
  tname=strlowcase(tag_names(required_template)) ; ALL LOWCASE in table FOR THE MOMENT. WARNING if NOT!!!
- for i=0,ntags-1 do begin & w=WHERE(STRMATCH(csv_proj.field5, '*'+tname[i]+'=*', /FOLD_CASE) EQ 1, count) & if (count gt 0) then required[w].(i)=1 & end
+ ; to avoid problems, each element of csv_proj.field5, which is a
+ ; serie of strings like "plat_0= plon_0= phdg_0=" must be comparable
+ ; only with same tname (ex: plat_0) and not a subset tname such as
+ ; "lat_0". this implies to add at least one whitespace at the
+ ; beginning:
+ newfield5=" "+csv_proj.field5
+for i=0,ntags-1 do begin & w=WHERE(STRMATCH(newfield5, '* '+tname[i]+'=*', /FOLD_CASE) EQ 1, count) & if (count gt 0) then required[w].(i)=1 & end
 
 ; optional
  optional=csv_proj.field6
@@ -602,7 +608,7 @@ for i=0,nproj-1 do begin
       proj_properties[i].exist=0b
       continue
    endif
-   myMap=map_proj_init(/gdl_precise, i,/p4num,alpha=0.001,height=1,standard_parall=30,standard_par1=50,standard_par2=-45,sat_tilt=45,center_azim=0,center_lon=0,true_scale_latitude=12,lat_3=13,HOM_LONGITUDE1=1,HOM_LONGITUDE2=80,LON_3=120,OEA_SHAPEN=1, OEA_SHAPEM=1,SOM_LANDSAT_NUMBER=2, SOM_LANDSAT_PATH=22, ZONE=28, center_lat=0) ; uses ellps=wgs84 by default.
+   myMap=map_proj_init(/gdl_precise, i,/p4num,alpha=0.0001,height=1,standard_parall=30,standard_par1=50,standard_par2=-45,sat_tilt=45,true_scale_latitude=12,lat_3=13,HOM_LONGITUDE1=1,HOM_LONGITUDE2=80,LON_3=120,OEA_SHAPEN=1, OEA_SHAPEM=1,SOM_LANDSAT_NUMBER=2, SOM_LANDSAT_PATH=22, ZONE=28) ; uses ellps=wgs84 by default.
       proj_scale[i]=abs(myMap.uv_box[2]-myMap.uv_box[0]) ; number of ellipsoid meters in uv_box
 endfor
 ; proj_scale, only on existing projections.
@@ -614,7 +620,7 @@ for i=0,nproj-1 do begin
    endif
 
    if proj_properties[i].exist eq 1 then begin 
-      myMap=map_proj_init(/gdl_precise,i,/p4num,alpha=0.001,sphere=1,height=1,standard_parall=30,standard_par1=50,standard_par2=-45,sat_tilt=45,center_azim=0,center_lon=0,true_scale_latitude=12,lat_3=13,HOM_LONGITUDE1=1,HOM_LONGITUDE2=80,LON_3=120,OEA_SHAPEN=1, OEA_SHAPEM=1,SOM_LANDSAT_NUMBER=2, SOM_LANDSAT_PATH=22, ZONE=28, center_lat=0)
+      myMap=map_proj_init(/gdl_precise,i,/p4num,alpha=0.0001,sphere=1,height=1,standard_parall=30,standard_par1=50,standard_par2=-45,sat_tilt=45,true_scale_latitude=12,lat_3=13,HOM_LONGITUDE1=1,HOM_LONGITUDE2=80,LON_3=120,OEA_SHAPEN=1, OEA_SHAPEM=1,SOM_LANDSAT_NUMBER=2, SOM_LANDSAT_PATH=22, ZONE=28)
      proj_limits[*,i]=myMap.uv_box ; normalized uv_box
    endif
 endfor
