@@ -6,6 +6,15 @@
 ; This incredible bug was reported by René Gastaud !
 ; Intermitendly happen since 0.9.5 ... (see on u14.04)
 ;
+; -----------------------------------------------
+; 
+; Modifications history :
+;
+; - 2019-11-06 : AC : should not be run when device is NULL
+; (is it OK to extend for PS & SVG devices ?)
+;
+; -----------------------------------------------
+;
 pro TEST_PLOT_YRANGES, cumul_errors, negative=negative, $
                        test=test, verbose=verbose, debug=debug
 ;
@@ -60,8 +69,22 @@ if KEYWORD_SET(help) then begin
    return
 endif
 ;
+; store the !p/!d env
+save_p=!p
+save_dname=!d.name
+;
+rname=ROUTINE_NAME()
+;
+if ~CHECK_IF_DEVICE_IS_OK(rname, /force) then begin
+   if ~KEYWORD_SET(no_exit) then EXIT, status=77 else STOP
+endif
+;
 TEST_PLOT_YRANGES, nb_errors
 TEST_PLOT_YRANGES, nb_errors, /negative
+;
+; reset the initial !p/!d env.
+!p=save_p
+SET_PLOT, save_dname
 ;
 ; ----------------- final message ----------
 ;

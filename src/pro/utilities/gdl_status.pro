@@ -13,6 +13,9 @@
 ; -- we can display only the non active options
 ; -- we cross check with the internal list ...
 ;
+; 2019-Nov-18 : AC. 
+; -- updating the list of EXISTS_ functs.
+;
 ; ---------------------------------------------------
 ;
 pro IPRINT, ii, txt, status, only_off=only_off
@@ -47,11 +50,11 @@ i=1
 ;
 IPRINT, i, 'DSFMT ?  : ', DSFMT_EXISTS(), only_off=only_off
 IPRINT, i, 'Eigen3 ? : ', EIGEN_EXISTS(), only_off=only_off
+IPRINT, i, 'Expat ?  : ', EXPAT_EXISTS(), only_off=only_off
 IPRINT, i, 'FFTw ?   : ', FFTW_EXISTS(), only_off=only_off
 IPRINT, i, 'GEOTIFF ?: ', GEOTIFF_EXISTS(), only_off=only_off
 IPRINT, i, 'GLPK ?   : ', GLPK_EXISTS(), only_off=only_off
 IPRINT, i, 'GRIB ?   : ', GRIB_EXISTS(), only_off=only_off
-IPRINT, i, 'GSHHG ?  : ', GSHHG_EXISTS(), only_off=only_off
 IPRINT, i, 'HDF ?    : ', HDF_EXISTS(), only_off=only_off
 IPRINT, i, 'HDF5 ?   : ', HDF5_EXISTS(), only_off=only_off
 IPRINT, i, 'Magick ? : ', MAGICK_EXISTS(), only_off=only_off
@@ -63,10 +66,11 @@ IPRINT, i, 'Proj4 ?  : ', PROJ4_EXISTS(), only_off=only_off
 IPRINT, i, 'Proj4 new: ', PROJ4NEW_EXISTS(), only_off=only_off
 IPRINT, i, 'PSlib ?  : ', PSLIB_EXISTS(), only_off=only_off
 IPRINT, i, 'Python ? : ', PYTHON_EXISTS(), only_off=only_off
+IPRINT, i, 'ShapeLib : ', SHAPELIB_EXISTS(), only_off=only_off
 IPRINT, i, 'TIFF ?   : ', TIFF_EXISTS(), only_off=only_off
 IPRINT, i, 'UDUNITS  : ', UDUNITS_EXISTS(), only_off=only_off
-IPRINT, i, 'wxwidgets: ', WXWIDGETS_EXISTS(), only_off=only_off
-IPRINT, i, 'x11      : ', X11_EXISTS(), only_off=only_off
+IPRINT, i, 'WxWidgets: ', WXWIDGETS_EXISTS(), only_off=only_off
+IPRINT, i, 'X11      : ', X11_EXISTS(), only_off=only_off
 ;
 ; How many _EXISTS() founctions should we have ?
 ;

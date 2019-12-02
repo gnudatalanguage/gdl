@@ -590,7 +590,7 @@ namespace SysVar
     // Speed of Light in Vacuum [m/s]
     constantList ->NewTag("C", new DDoubleGDL(299792458.));
     // Degrees to radians
-    constantList ->NewTag("DTOR", new DDoubleGDL((*dpiData)[0] / 180.));
+    constantList ->NewTag("DTOR", new DDoubleGDL(0.0174532925199433));  //exact value in double. previous was wrong.
     // Elementary Charge [Coulon]
     constantList ->NewTag("E", new DDoubleGDL(1.602176565e-19));
     // Electric Vacuum Permittivity [F/m]

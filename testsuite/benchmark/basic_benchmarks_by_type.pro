@@ -1,7 +1,9 @@
-
+;
+;
+;
 pro printb, str, flt, tab
 vide='              '
-print, format='(A20, f7.2)', str+vide, flt
+print, format='(A40, f7.2)', str+vide, flt
 tab=[tab, STRING(str), STRING(flt, format='(f7.2)')]
 end
 ;
@@ -32,7 +34,7 @@ endfor
 ; save file ...
 ;
 tab=REFORM(tab[1:*],2, N_ELEMENTS(tab)/2)
-filename=BENCHMARK_GENERATE_FILENAME('bench_where_by_type')
+filename=BENCHMARK_GENERATE_FILENAME('where_by_type')
 cpuinfo=BENCHMARK_GENERATE_CPUINFO()
 DEFSYSV, '!GDL', exist=exist
 if exist then version=!gdl.release else version=!version.release

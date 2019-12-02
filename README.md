@@ -52,7 +52,7 @@ The table below summarises GDL mandatory and optional dependencies along with th
 
 | | [Fedora](https://src.fedoraproject.org/rpms/gdl) | [Debian](https://packages.debian.org/sid/gnudatalanguage) | [Ubuntu](http://packages.ubuntu.com/gnudatalanguage) | [Gentoo](https://packages.gentoo.org/packages/dev-lang/gdl) | [Arch](https://aur.archlinux.org/packages/gnudatalanguage/)  | [FreeBSD](https://svnweb.freebsd.org/ports/head/science/gnudatalanguage/) | [Homebrew](https://github.com/brewsci/homebrew-science/blob/master/Formula/gnudatalanguage.rb) | [Macports](https://github.com/macports/macports-ports/tree/master/math/gnudatalanguage) |
 | --------------------------------------------------------------------------------------- | :----: | :--------: | :----: | :----: | :---: | :-------: | :------: | :------: |
-| latest release                                                                          | 0.9.8  |   0.9.8    | 0.9.8  | 0.9.6   | 0.9.7 |   0.9.8   | 0.9.7 | 0.9.7 |
+| latest release                                                                          | 0.9.8  |   0.9.9    | 0.9.9  | 0.9.6   | 0.9.7 |   0.9.8   | 0.9.7 | 0.9.7 |
 | [readline](http://thrysoee.dk/editline/)/[editline](http://thrysoee.dk/editline/)       | + (r)  |    + (r)   |  + (r) | + (r)   | + (r) |   + (r)   | + (r) |   +   |
 | [\[n\]curses](https://www.gnu.org/software/ncurses/)                                    | + (n)  |    + (n)   |  + (n) | + (n)   |   +   |   + (n)   | + (n) | + (n) |
 | [zlib](https://zlib.net/)                                                               |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
@@ -65,7 +65,7 @@ The table below summarises GDL mandatory and optional dependencies along with th
 | [HDF4](https://support.hdfgroup.org/products/hdf4/)                                     |   +    |    +       |   +    | +       |   -   |    -      |   -   |   +   |
 | [HDF5](https://support.hdfgroup.org/HDF5/)                                              |   +    |    +       |   +    | +       |   -   |    +      |   +   |   +   |
 | [FFTW](http://www.fftw.org/)                                                            |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
-| [PROJ.4](http://proj4.org/)                                                             |   -    |    -       |   -    | +       |   -   |    +      |   -   |   +   |
+| [PROJ.4](http://proj4.org/)                                                             |   -    |    +       |   +    | +       |   -   |    +      |   -   |   +   |
 | [Shapelib](http://shapelib.maptools.org/)                                               |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |                                   |   -    |    -       |   -    | +       |   -   |    -      |   -   |   +   |
 | [Expat](https://libexpat.github.io/)                                                    |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |                                   |   -    |    -       |   -    | +       |   -   |    -      |   -   |   +   |
 | [MPI](https://en.wikipedia.org/wiki/Message_Passing_Interface)                          |   -    |    -       |   -    | -       |   -   |    +      |   -   |   +   |
@@ -74,8 +74,8 @@ The table below summarises GDL mandatory and optional dependencies along with th
 | [Eigen](https://eigen.tuxfamily.org/)                                                   |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
 | [pslib](http://pslib.sourceforge.net/)                                                  |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
 | [ecCodes](https://software.ecmwf.int/wiki/display/ECC/ecCodes+Home)/[GRIB](https://software.ecmwf.int/wiki/display/GRIB)                                    |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
-| [GLPK](https://www.gnu.org/software/glpk/)                                              |   -    |    -       |   -    | -       |   -   |    +      |   -   |   -   |
-| [Python](https://www.python.org/) module                                                | + (python2-gdl) | + ([python-gdl](https://packages.debian.org/python-gdl)) | + ([python-gdl](https://packages.ubuntu.com/python-gdl)) | +       |   -   |    -      |   -   |   -   |
+| [GLPK](https://www.gnu.org/software/glpk/)                                              |   -    |    +       |   +    | -       |   -   |    +      |   -   |   -   |
+| [Python](https://www.python.org/) module                                                | + (python3-gdl) | + ([python3-gdl](https://packages.debian.org/python3-gdl)) | + ([python3-gdl](https://packages.ubuntu.com/python3-gdl)) | +       |   -   |    -      |   -   |   -   |
 
 Build-time dependencies
 -----------------------
