@@ -96,14 +96,14 @@ xypos_norm=DOUBLE(xypos)
 xrange=!x.crange[1]-!x.crange[0]
 if !x.type EQ 1 then xrange=10^xrange
 xscale=!x.window[1]-!x.window[0]
-xypos_norm[0]=!x.window[0]+(xscale/xrange)*xypos[0]
-xypos_norm[1]=!x.window[0]+(xscale/xrange)*xypos[1]
+xypos_norm[0]=!x.window[0]+(xscale/xrange)*(xypos[0]-!x.crange[0])
+xypos_norm[1]=!x.window[0]+(xscale/xrange)*(xypos[1]-!x.crange[0])
 ;
 yrange=!y.crange[1]-!y.crange[0]
 if !y.type EQ 1 then yrange=10^yrange
 yscale=!y.window[1]-!y.window[0]
-xypos_norm[2]=!y.window[0]+(yscale/yrange)*xypos[2]
-xypos_norm[3]=!y.window[0]+(yscale/yrange)*xypos[3]
+xypos_norm[2]=!y.window[0]+(yscale/yrange)*(xypos[2]-!y.crange[0])
+xypos_norm[3]=!y.window[0]+(yscale/yrange)*(xypos[3]-!y.crange[0])
 ;
 if KEYWORD_SET(debug) then print, 'out :', xypos_norm
 ;
