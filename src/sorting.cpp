@@ -56,6 +56,7 @@ namespace lib {
 //------------------Radix Sorting Codes ------------------------------------------------------------------------------
 //    
 #if defined(IS_BIGENDIAN)
+	#define H1_OFFSET2	0
 	#define H0_OFFSET2	256
 	#define BYTES_INC2	(1-j)
     #define H0_OFFSET4	768
@@ -73,6 +74,7 @@ namespace lib {
 	#define H0_OFFSET8	1792
 	#define BYTES_INC8	(7-j)
 #else
+	#define H0_OFFSET2	0
 	#define H1_OFFSET2	256
 	#define BYTES_INC2	j
 	#define H0_OFFSET4	0

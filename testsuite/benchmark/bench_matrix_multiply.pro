@@ -59,7 +59,7 @@ xrange=[0,MAX(xval)]
 ;
 ; extending yrange to add info
 ;
-if ~KEYWORD_SET(ylog) then yrange=[-0.5,yrange[1]] else yrange=[1e-3,yrange[1]]
+if ~KEYWORD_SET(ylog) then yrange=[-0.25,1]*yrange[1] else yrange=[1e-3,yrange[1]]
 ;
 ; we need to adjust due to log-log plot
 ;if ~KEYWORD_SET(xmini) then xmini=2 
@@ -96,13 +96,13 @@ for ii=1, nbv-2 do PLOTS, [xx[ii],xx[ii]], yy, line=2
 ;
 liste_info=['Float','Double','Complex','D Complex']
 xpos=3+6*indgen(4)
-if KEYWORD_SET(ylog) then ypos=2e-3 else ypos=-0.25
+if KEYWORD_SET(ylog) then ypos=2e-3 else ypos=yrange[1]*(-1./8)
 ;
 for ii=0,3 do XYOUTS, xpos[ii], ypos, liste_info[ii], ali=.5
 ;
-if KEYWORD_SET(ylog) then cpos=[20,23,1e-3,1e-2] else cpos=['lt'] 
+if KEYWORD_SET(ylog) then cpos=[19,1e-2,23,1e-1] else cpos=[0.5, .7*yrange[1], 5.5, 0.98*yrange[1]];cpos=['lt'] 
 BENCHMARK_PLOT_CARTOUCHE, pos=cpos, languages, /box, $
-                      colors=colors, lines=lines, thick=1.5, title='Languages'
+                          colors=colors, lines=lines, thick=1.5, title='Languages'
 ;
 BENCHMARK_SVG, svg=svg, /off, infosvg=infosvg
 ;
