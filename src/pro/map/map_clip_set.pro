@@ -35,7 +35,8 @@
 pro map_clip_set,map_structure=map_structure,$
  reset=reset,split=split,clip_plane=clip_plane,$
  transform=transform,clip_uv=clip_uv, show=show
-on_error, 2
+  on_error, 2
+  deg2rad=!dpi/180d
 giveback=0
 if (n_elements(map_structure) eq 0) then begin
  map_structure=!map
@@ -64,11 +65,11 @@ if (n_elements(split) ne 0) then begin
 ;        print,"split=",split
         map_structure.pipeline[0,i+1] = 3
         map_structure.pipeline[0,i] = 1
-        map_structure.pipeline[1,i] = -1*split[2]
-        map_structure.pipeline[2,i] = -1*split[3]
-        map_structure.pipeline[3,i] = -1*split[4]
-        map_structure.pipeline[4,i] = -1*split[5]
-        lon=split[0]*!DTOR &  lat=split[1]*!DTOR
+        map_structure.pipeline[1,i] = split[2]
+        map_structure.pipeline[2,i] = split[3]
+        map_structure.pipeline[3,i] = split[4]
+        map_structure.pipeline[4,i] = split[5]
+        lon=split[0]*deg2rad &  lat=split[1]*deg2rad
         x = cos(lon) * cos(lat) &  y = sin(lon) * cos(lat) &z = sin(lat)
         map_structure.pipeline[5,i] = x
         map_structure.pipeline[6,i] = y

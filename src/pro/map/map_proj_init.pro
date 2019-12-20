@@ -10,8 +10,9 @@
 function map_rotate3d, p1, a, theta
     compile_opt idl2, hidden
     ON_ERROR, 2  ; return to caller
-    st=sin(theta*!const.dtor)
-    ct=cos(theta*!const.dtor)
+    deg2rad=!dpi/180d
+    st=sin(theta*deg2rad)
+    ct=cos(theta*deg2rad)
     ; quaternion-derived rotation matrix
     matrix=[[ a[0] * a[0] * (1 - ct) + ct, a[0] * a[1] * (1 - ct) - a[2]*st, a[0] * a[2] * (1 - ct) + a[1] * st],$
       [ a[1] * a[0] * (1 - ct) + a[2]*st, a[1] * a[1] * (1 - ct) + ct, a[1] * a[2] * (1 - ct) - a[0] * st],$
@@ -33,26 +34,83 @@ pro map_proj_set_split, myMap
     xyzProjCenter = [coslon*coslat, sinlon*coslat, sinlat]
 ; pole:lon & lat in rad, sin and cos of polar latitude, x,y,z
 ; coordinates of pole.
+; SPLIT General case: if projection center is at (lon,lat) of 3D coords x,y,z and pole at xp,yp,zp
+; we have SPLIT=[lon, lat, CROSSP([x, y, z], [xp, yp, zp]), 0]
     pole = myMap.pole[4:6]        ;Location of pole
     plane = CROSSP(xyzProjCenter, pole)
     split=[myMap.p0lon, myMap.p0lat, plane, 0d]
     MAP_CLIP_SET, MAP=myMap, SPLIT=split
 end
 
-function map_proj_init, pindex, p4number=p4number, relaxed=relaxed, rotation=rotation, gctp=gctp, radians=radians, limit=passed_limit, ellipsoid=ellipsoid, semimajor_axis=semimajor_axis, semiminor_axis=semiminor_axis, sphere_radius=sphere_radius, center_azimuth=center_azimuth, datum=datum, clip=clip,  gdl_precise=gdl_precise, _extra=extra
+; Ancillary procedure, compute limits (uv_box and ll_box) for full maps. Used only in initialization phase
+; of the projDefinitions.sav file
+pro gdl_compute_map_limits, myMap
+  
+  compile_opt idl2, hidden
+  
+  xmin=-1d & ymin=-1d & xmax=1d & ymax=1d
+  
+  lonmin=-180.0d & lonmax=180.0d & latmin=-90.0d & latmax=90.0d
+  lonrange = lonmax - lonmin
+  latrange = latmax - latmin
+; is there another way (proj4) to get ranges except brute force on a grid of possible points?
+; epsilon useful as projections are not precise (see #define EPS in proj4 c files: apparently < 1e-6)
+  epsx = 1d-6*ABS(lonrange)
+  epsy = 1d-6*ABS(latrange)
+
+  n_lons = 720
+  lons = [ lonmin + epsx, DINDGEN(n_lons)*(lonrange/(n_lons-1d)) + lonmin, lonmax - epsx] & n_lons += 2
+     
+  n_lats = 360
+  lats =  [latmin + epsy, DINDGEN(n_lats)*(latrange/(n_lats-1d)) + latmin, latmax - epsy, -epsy, epsy] & n_lats += 4 
+     
+  lons = reform(rebin(lons, n_lons, n_lats), 1, n_lons*n_lats)
+  lats = reform(rebin(transpose(lats), n_lons, n_lats), 1, n_lons*n_lats)
+  tmp = [temporary(lons), temporary(lats)]
+     
+  xy = map_proj_forward(tmp, MAP=myMap)
+                                ; Default if no points are valid is just the map_limits.
+  good = WHERE(FINITE(xy[0,*]) and FINITE(xy[1,*]), ngood)
+
+  if (ngood gt 0) then begin
+    xy = xy[*, good]
+    lonlat = tmp[*, good]
+                                ; further check: are backprojected good points really close to original point?
+    tmp = MAP_PROJ_INVERSE(xy, MAP=myMap)
+    bad = WHERE(~FINITE(tmp[0,*]) or ~FINITE(tmp[1,*]), nbad)
+    if (nbad gt 0) then tmp[*, bad] = -9999
+    diff = ABS(lonlat - tmp)
+    diff[0,*] = diff[0,*] mod 360 ; Ignore 360 degre differences for longitude.
+    w = where(diff[0,*] gt 359.99, count) & if count gt 0 then diff[0,w] = 0
+    w = where((abs(tmp[0,*]) le 720) and (abs(tmp[1,*]) le 90) and (total(diff,1) lt 1d), count)
+    if (count gt 0) then begin ; Only those good during forward and inverse projection.
+      lonlat = lonlat[*, w]
+      xy = xy[*,w]
+    endif
+    xmin = min(xy[0,*], max=xmax)
+    ymin = min(xy[1,*], max=ymax)
+    lonmin = min(lonlat[0,*],poslonmin, max=lonmax, subscript_max=poslonmax)
+    latmin = min(lonlat[1,*],poslatmin, max=latmax, subscript_max=poslatmax)
+  endif
+  
+  myMap.ll_box = [latmin, lonmin, latmax, lonmax]
+  myMap.uv_box = [xmin, ymin, xmax, ymax]
+end
+
+
+function map_proj_init, pindex, p4number=p4number, relaxed=relaxed, rotation=rotation, gctp=gctp, radians=radians, limit=passed_limit, ellipsoid=ellipsoid, semimajor_axis=semimajor_axis, semiminor_axis=semiminor_axis, sphere_radius=sphere_radius, center_azimuth=center_azimuth, datum=datum, clip=clip,  gdl_precise=gdl_precise, check_proj4=chkprj4,  _extra=extra
     compile_opt idl2, hidden
     ON_ERROR, 2  ; return to caller
 
 ; NOTE: We are always "relaxed".
 ; p4num bool indicates pindex is a number and refers to the internal proj4 table of proj4 properties line and not an IDL number for which an equivalent must be found 
 
-; define limit a zeros if not present 
-if n_elements(passed_limit) lt 4 then limit=dblarr(4) else limit=passed_limit
-; this boolean says some non-default limits are set and limit clippings will be sufficient (To be Tested Thoroughly)
-limited=((limit[0] ne limit[2]) or (limit[1] ne limit[3]))
+; define limit
+if n_elements(passed_limit) lt 4 then limit=dblarr(4) else limit=double(passed_limit)
 
 ; the common contains all relevant values after initialisation
 @gdlcommon_mapprojections_common
+deg2rad=!dpi/180d
 
 nkeys=n_tags(required)
 
@@ -142,7 +200,7 @@ noRot=(property.NOROT eq 1) ; this indicates that, unexpectedly, a GOR cannot be
 ; GDL when GOR is tempted. Finally, some projections do not need GOR
 ; (they accept and use +lat_0=). Interrupted must not use GOR of course.
 ; it can be forbidden by definition of NOROT
-rotPossible=~noROT and ~azimuthal and ~conic and ~interrupted
+rotPossible= ( ~noROT and ~azimuthal and ~conic and ~interrupted )
 
 ; GOR should not be tempted on projections that use +alpha and/or +lonc, as these
 ; should be passed as arguments.
@@ -300,7 +358,7 @@ if (rotPossible) then begin
             a=strsplit(proj4options,"\+lat_0=[0-9.]*",/regex,/extract)
             a=strsplit(proj4options,"\+lon_0=[0-9.]*",/regex,/extract)
             proj4options=strjoin(a)
-         endif
+         endif else rotPossible=0B
       endif
    endif else rotPossible=0B
 endif
@@ -325,49 +383,55 @@ myMap.projection=999
 mymap.p[15]=index ;!useful for map_proj_info and unused apparently.
 myMap.p0lon = p0lon
 myMap.p0lat = p0lat
-myMap.u0 = p0lon * !const.dtor
-myMap.v0 = p0lat * !const.dtor
+myMap.u0 = p0lon * deg2rad
+myMap.v0 = p0lat * deg2rad
 ;myMap.a = semimajor     ; ellipsoid --> need table of correspondences!
 ;myMap.e2 = e2
 
 myMap.rotation = rotation                      ; map rotation
-myMap.cosr=cos(rotation*!const.dtor)
-myMap.sinr=sin(rotation*!const.dtor)
+myMap.cosr=cos(rotation*deg2rad)
+myMap.sinr=sin(rotation*deg2rad)
 ; pole is at +90 on meridian p0lon, eventually rotated by
 ; center_azimuth
 pole_lon=p0lon
 pole_lat=p0lat+90
+; pole sines and xyz
+psinlat = 1d
+pcoslat = 0d
+psinlon = 0d
+pcoslon = 1d
+xyzpole = [pcoslon*pcoslat, psinlon*pcoslat, psinlat]
+; projection center sines and xyz
+csinlat = sin(myMap.v0)
+ccoslat = cos(myMap.v0)
+csinlon = sin(myMap.u0)
+ccoslon = cos(myMap.u0)
+xyzProjCenter = [ccoslon*ccoslat, csinlon*ccoslat, csinlat]
+
 if pole_lat gt 90 then begin
-   pole_lon+=180 & if pole_lon gt 180 then pole_lon-=360.0
-   pole_lat=180-pole_lat
+  pole_lon+=180 & if pole_lon gt 180 then pole_lon-=360.0
+  pole_lat=180-pole_lat
+  psinlat = sin(pole_lat*deg2rad)
+  pcoslat = cos(pole_lat*deg2rad)
+  psinlon = sin(pole_lon*deg2rad)
+  pcoslon = cos(pole_lon*deg2rad)
+  xyzpole = [pcoslon*pcoslat, psinlon*pcoslat, psinlat]
 endif
-sinlat = sin(pole_lat*!const.dtor)
-coslat = cos(pole_lat*!const.dtor)
-sinlon = sin(pole_lon*!const.dtor)
-coslon = cos(pole_lon*!const.dtor)
-xyzpole = [coslon*coslat, sinlon*coslat, sinlat]
 ; rotate pole by center_azimuth if needed
 if keyword_set(center_azimuth) and rotPossible then begin
-   sinlat = sin(myMap.v0)
-   coslat = cos(myMap.v0)
-   sinlon = sin(myMap.u0)
-   coslon = cos(myMap.u0)
-   xyzProjCenter = [coslon*coslat, sinlon*coslat, sinlat]
-   xyz=map_rotate3d(xyzpole,xyzprojcenter,center_azimuth)
-   pole_lon = atan(xyz[1], xyz[0])*!const.rtod
-   pole_lat = atan(xyz[2], sqrt(xyz[0]^2 + xyz[1]^2))*!const.rtod
-   xyzpole=xyz
-   sinlat = sin(pole_lat*!const.dtor)
-   coslat = cos(pole_lat*!const.dtor)
-endif        
-                
- 
+  xyz=map_rotate3d(xyzpole,xyzprojcenter,center_azimuth)
+  pole_lon = atan(xyz[1], xyz[0])*!const.rtod
+  pole_lat = atan(xyz[2], sqrt(xyz[0]^2 + xyz[1]^2))*!const.rtod
+  xyzpole=xyz
+  psinlat = sin(pole_lat*deg2rad)
+  pcoslat = cos(pole_lat*deg2rad)
+endif
 
 ; pole:lon & lat in rad, sin and cos of polar latitude, x,y,z
-myMap.pole=[pole_lon*!const.dtor,pole_lat*!const.dtor,sinlat,coslat,xyzpole] ; need to define myMap.pole BEFORE calling MAP_PROJ_SET_SPLIT 
+myMap.pole=[pole_lon*deg2rad,pole_lat*deg2rad,psinlat,pcoslat,xyzpole] ; need to define myMap.pole BEFORE calling MAP_PROJ_SET_SPLIT 
 
 ; now that pole is computed correctly, add pole position to
-; generalized oblique 
+; generalized oblique
 if rotPossible then begin
    proj4command+=" +o_alpha=90 +o_lat_c="+strtrim(p0lat,2)+" +o_lon_c=180"
    if (p0lat gt 0) then proj4command+=" +lon_0="+strtrim(p0lon,2) else  proj4command+=" +lon_0="+strtrim(180+p0lon,2)
@@ -430,13 +494,23 @@ endif
 ; azim: should cut somewhere: gnomonic cannot show one hemisphere,
 ; other can, but will be very distorted.
 
-if (interrupted or p4n eq 'bipc') then begin
- case p4n of
+if (interrupted or p4n eq 'bipc' or p4n eq "bertin1953" or p4n eq "qsc" ) then begin
+  case p4n of
+    "bertin1953": BEGIN
+          theta = deg2rad * 16.5
+          MAP_CLIP_SET, map=myMap, SPLIT=[16.5, 42, -sin(theta), $
+                        cos(theta), 0., 0.]
+          myMap.p0lon=16.5
+          myMap.p0lat=42
+    END
+    "qsc": BEGIN
+      MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[xyzProjCenter, -0.5]
+    END
          "bipc": BEGIN
        splits = [-20,-110] + p0lon
 
        for i=0,n_elements(splits)-1 do begin 
-          theta = !const.dtor * splits[i]
+          theta = deg2rad * splits[i]
           MAP_CLIP_SET, map=myMap, SPLIT=[splits[i], 0, -sin(theta), cos(theta), 0., 0.]
        endfor 
        myMap.up_flags=1000 ; redefine "epsilon" due to precision problems in proj4!!!!
@@ -444,20 +518,21 @@ if (interrupted or p4n eq 'bipc') then begin
          END
 
     "igh": BEGIN
-       splits = [-180, -40, -100, -20, 80] + 180d + p0lon
-       
+       splits =  [-180, -40, -100, -20, 80] + p0lon + 180.0d
+
        for i=0,n_elements(splits)-1 do begin 
-          theta = !const.dtor * splits[i]
+          theta = deg2rad * splits[i]
           MAP_CLIP_SET, map=myMap, SPLIT=[splits[i], 0, -sin(theta), cos(theta), 0., 0.]
        endfor 
        myMap.up_flags=1000000 ; redefine "epsilon" due to precision problems in pr
-    END
+
+     END
 
     "rhealpix": BEGIN
        splits = [-3*45, -2*45, -45, 0, 45, 2*45, 3*45] + 180d + p0lon
 
        for i=0,n_elements(splits)-1 do begin 
-          theta = !const.dtor * splits[i]
+          theta = deg2rad * splits[i]
           MAP_CLIP_SET, map=myMap, SPLIT=[splits[i], 0, -sin(theta), cos(theta), 0., 0.]
        endfor 
        map_clip_set, map=myMap, SPLIT=[0,90,0,0,1d,-2d/3d]
@@ -469,7 +544,7 @@ if (interrupted or p4n eq 'bipc') then begin
        splits = [-3*45, -2*45, -45, 0, 45, 2*45, 3*45] + 180d + p0lon
 
        for i=0,n_elements(splits)-1 do begin 
-          theta = !const.dtor * splits[i]
+          theta = deg2rad * splits[i]
           MAP_CLIP_SET, map=myMap, SPLIT=[splits[i], 0, -sin(theta), cos(theta), 0., 0.]
        endfor 
        myMap.up_flags=10000 ; redefine "epsilon" due to precision problems in proj4!!!!
@@ -488,13 +563,13 @@ endif else begin ; not interrupted
          test1= (p1 ge 0.0) ? 1 : -1
          test2= (p2 ge 0.0) ? 1 : -1
          if (test1 eq test2) then begin
-            map_clip_set, map=myMap, clip_plane=[0,0,test1,sin(!const.dtor*10.)]
-            map_clip_set, map=myMap, clip_plane=[0,0,-1*test2,sin(!const.dtor*75.0)]
+            map_clip_set, map=myMap, clip_plane=[0,0,test1,sin(deg2rad*10.)]
+            map_clip_set, map=myMap, clip_plane=[0,0,-1*test2,sin(deg2rad*75.0)]
             myMap.p[13]=-1*test1*10. ; use it to store this value, see map_grid, map_horizon
             myMap.p[14]=test2*75.    ; use it to store this value, see map_grid, map_horizon
          endif else begin
-            map_clip_set, map=myMap, clip_plane=[0,0,1,sin(!const.dtor*75.0)]
-            map_clip_set, map=myMap, clip_plane=[0,0,-1,sin(!const.dtor*75.0)]
+            map_clip_set, map=myMap, clip_plane=[0,0,1,sin(deg2rad*75.0)]
+            map_clip_set, map=myMap, clip_plane=[0,0,-1,sin(deg2rad*75.0)]
             myMap.p[13]=75.     ; use it to store this value, see map_grid, map_horizon
             myMap.p[14]=-75.    ; use it to store this value, see map_grid, map_horizon
          endelse
@@ -504,8 +579,8 @@ endif else begin ; not interrupted
                                 ;transverse projections
          val=80
          ; remove poles
-         map_clip_set, map=myMap, clip_plane=[myMap.pole[4:6],sin(!const.dtor*val)]
-         map_clip_set, map=myMap, clip_plane=[-1*myMap.pole[4:6],sin(!const.dtor*val)]
+         map_clip_set, map=myMap, clip_plane=[myMap.pole[4:6],sin(deg2rad*val)]
+         map_clip_set, map=myMap, clip_plane=[-1*myMap.pole[4:6],sin(deg2rad*val)]
          myMap.p[13]=val        ; use it to store this value, see map_grid, map_horizon
          myMap.p[14]=-val       ; use it to store this value, see map_grid, map_horizon
       endif
@@ -517,7 +592,7 @@ endif else begin ; not interrupted
          "gnom": val=-0.5d
       else: val=-0.49999d
       endcase
-      MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[myMap.pole[4:6], val]
+      MAP_CLIP_SET, MAP=myMap, CLIP_PLANE=[xyzProjCenter, val]
       myMap.p[14]=val         ; use it to store this value, see map_grid, map_horizon
    endelse                      ; end azim projs
 endelse                         ; not interrupted
@@ -535,10 +610,10 @@ endif else if (hasEll) then begin
 myMap.up_name+=" +ell="+ellipsoid
 endif
 
-print,myMap.up_name
+if keyword_set(chkprj4) then print,myMap.up_name
 ; 3) Set LIMITs and clip.
 
-gdl_set_map_limits, myMap, limit, gdl_precise=gdl_precise
+if keyword_set(gdl_precise) then gdl_compute_map_limits, myMap else gdl_set_map_limits, myMap, limit
 
 ; 4) transform
 MAP_CLIP_SET, MAP=myMap, /transform        ;apply transform
@@ -585,7 +660,7 @@ for i=0,ntags-1 do begin & w=WHERE(STRMATCH(newfield5, '* '+tname[i]+'=*', /FOLD
 ; optional
  optional=csv_proj.field6
 ; 
-proj_limits=reform(replicate(-1.0,4*nproj),4,nproj)
+proj_limits=reform(replicate(-1.0d,4*nproj),4,nproj)
 proj_scale=dblarr(nproj)
 
 ; save once to have map_proj_init work.
@@ -620,7 +695,7 @@ for i=0,nproj-1 do begin
    endif
 
    if proj_properties[i].exist eq 1 then begin 
-      myMap=map_proj_init(/gdl_precise,i,/p4num,alpha=0.0001,sphere=1,height=1,standard_parall=30,standard_par1=50,standard_par2=-45,sat_tilt=45,true_scale_latitude=12,lat_3=13,HOM_LONGITUDE1=1,HOM_LONGITUDE2=80,LON_3=120,OEA_SHAPEN=1, OEA_SHAPEM=1,SOM_LANDSAT_NUMBER=2, SOM_LANDSAT_PATH=22, ZONE=28)
+      myMap=map_proj_init(/gdl_precise,i,/p4num,alpha=0.0001,sphere=1,height=1,standard_parall=30,standard_par1=50,standard_par2=-45,sat_tilt=45,true_scale_latitude=12,lat_3=13,HOM_LONGITUDE1=1,HOM_LONGITUDE2=80,LON_3=120,OEA_SHAPEN=1, OEA_SHAPEM=1,SOM_LANDSAT_NUMBER=2, SOM_LANDSAT_PATH=22, ZONE=28, /check)
      proj_limits[*,i]=myMap.uv_box ; normalized uv_box
    endif
 endfor
