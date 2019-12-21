@@ -1180,13 +1180,18 @@ namespace lib {
       SizeT nPoissonKey = poissonKey->N_Elements();
       if (nPoissonKey != 1)
 	e->Throw("Expression must be a scalar or 1 element array in this context: " + e->GetString(POISSONIx));
-      if (e->KeywordSet(0)) { // GDL_DOUBLE
+      if ((*poissonKey)[0] < 0.0)
+	  e->Throw("Value of POISSON is out of allowed range: Poisson > 0.0");
+
+      if (e->KeywordSet("DOUBLE")) {
 	DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 	random_poisson< DDoubleGDL, double>(res, gsl_rng_mem, dim, poissonKey);
 	get_random_state(e, gsl_rng_mem, seed);
 	return res;
       } else {
 	DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+	if ((*poissonKey)[0] > 1.0e7)
+	  e->Throw("Value of POISSON is out of allowed range: Try /DOUBLE.");
 	random_poisson< DFloatGDL, float>(res, gsl_rng_mem, dim, poissonKey);
 	get_random_state(e, gsl_rng_mem, seed);
 	return res;
