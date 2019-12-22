@@ -727,3 +727,12 @@
             - numerous compiler warnings addressed  
             - pytest-based Python module testsuite
             - new tests, test cleanups
+
+  
+1.0.0-rc.1
+            - entirely rewritten mapping support 
+            - major improvements on the Windows compatibility
+            - shift to Python 3
+            - added READ_CVS, SCOPE_VARNAME
+            - fixes in CONGRID, FILE_MKDIR, FX_ROOT, INTRPOLATE, LINFIT, MAKE_ARRAY, RESTORE, TAG_NAMES, ...
+            - numerous other fixes and performance improvements and increased test coverage 

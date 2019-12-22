@@ -12,14 +12,20 @@
 ; ------------
 ; Modifications history :
 ;
+; * AC 2019-11-21:
+; -- filter= for PLOT
+; -- more info in XDR (info_cpu, info_os, info_soft)
+;
 ; --------------------------------------------------------------
 ;
-pro PLOT_BENCH_MATRIX_INVERT, xrange=xrange, yrange=yrange, $
+pro PLOT_BENCH_MATRIX_INVERT, filter=filter, $
+                              xrange=xrange, yrange=yrange, $
                               path=path, svg=svg, $
                               xlog=xlog, ylog=ylog, test=test, help=help
 ;
 if KEYWORD_SET(help) then begin
-   print, 'pro PLOT_BENCH_MATRIX_INVERT, xrange=xrange, yrange=yrange, $'
+   print, 'pro PLOT_BENCH_MATRIX_INVERT, filter=filter, $'
+   print, '                              xrange=xrange, yrange=yrange, $'
    print, '                              path=path, svg=svg, $'
    print, '                              xlog=xlog, ylog=ylog, $'
    print, '                              test=test, help=help'
@@ -30,7 +36,8 @@ ON_ERROR, 2
 ;
 CHECK_SAVE_RESTORE
 ;
-liste=BENCHMARK_FILE_SEARCH('bench_invert*.xdr', 'Invert Matrix', path=path)
+if ~KEYWORD_SET(filter) then filter='bench_invert*.xdr'
+liste=BENCHMARK_FILE_SEARCH(filter, 'Invert Matrix', path=path)
 ;
 BENCHMARK_SVG, svg=svg, /on, filename='bench_invert.svg', infosvg=infosvg 
 ;
@@ -40,7 +47,7 @@ if keyword_set(xrange) then xmax=xrange[1] else xmax=0
 if keyword_set(yrange) then ymax=yrange[1] else ymax=0
 ;
 BENCHMARK_COMPUTE_RANGE, liste, xrange_data, yrange_data, $
-                     'size_index', 'resu_inv', xmax=xmax, ymax=ymax
+                         'size_index', 'resu_inv', xmax=xmax, ymax=ymax
 ;
 if ~KEYWORD_SET(xrange) then xrange=xrange_data
 if ~KEYWORD_SET(yrange) then yrange=yrange_data
@@ -124,9 +131,15 @@ PLOT, size_index, resu_inv, xtitle='Matrix size', ytitle='Inversion time [s]'
 OPLOT, size_index, resu_gen
 ;
 if KEYWORD_SET(save) then begin
-   cpuinfo=BENCHMARK_GENERATE_CPUINFO()
+   ;;
    filename=BENCHMARK_GENERATE_FILENAME(radical)   
-   SAVE, filename=filename, cpuinfo, size_index, resu_gen, resu_inv
+   ;;
+   info_cpu=BENCHMARK_INFO_CPU()
+   info_os=BENCHMARK_INFO_OS()
+   info_soft=BENCHMARK_INFO_SOFT()
+   ;;
+   SAVE, filename=filename, size_index, resu_gen, resu_inv, $
+      info_cpu, info_os, info_soft
 endif
 ;
 if KEYWORD_SET(test) then STOP

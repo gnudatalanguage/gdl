@@ -16,15 +16,19 @@
 ; -- for (D)Complex types, no nul matrix (because FL ultra fast on 0 arrays)
 ; -- Adding PLOT_BENCH_MATRIX_MULTIPLY
 ;
+; * AC 2019-11-21:
+; -- filter= for PLOT
+; -- more info in XDR (info_cpu, info_os, info_soft)
+;
 ; ------------------------------------------------------------
 ;
-pro PLOT_BENCH_MATRIX_MULTIPLY, xrange=xrange, yrange=yrange, $
+pro PLOT_BENCH_MATRIX_MULTIPLY, filter=filter, xrange=xrange, yrange=yrange, $
                                 xlog=xlog, ylog=ylog, $
                                 path=path, svg=svg, $
                                 help=help, test=test
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro PLOT_BENCH_MATRIX_MULTIPLY, xrange=xrange, yrange=yrange, $'
+    print, 'pro PLOT_BENCH_MATRIX_MULTIPLY, filter=filter, xrange=xrange, yrange=yrange, $'
     print, '                                xlog=xlog, ylog=ylog, $'
     print, '                                path=path, svg=svg, $'
     print, '                                help=help, test=test'
@@ -35,7 +39,8 @@ ON_ERROR, 2
 ;
 CHECK_SAVE_RESTORE
 ;
-liste=BENCHMARK_FILE_SEARCH('bench_matmul*.xdr', 'Matrix Multiply', path=path)
+if ~KEYWORD_SET(filter) then filter='bench_matmul*.xdr'
+liste=BENCHMARK_FILE_SEARCH(filter, 'Matrix Multiply', path=path)
 ;
 BENCHMARK_SVG, svg=svg, /on, filename='bench_matmul.svg', infosvg=infosvg 
 ;
@@ -54,7 +59,7 @@ xrange=[0,MAX(xval)]
 ;
 ; extending yrange to add info
 ;
-if ~KEYWORD_SET(ylog) then yrange=[-0.5,yrange[1]] else yrange=[1e-3,yrange[1]]
+if ~KEYWORD_SET(ylog) then yrange=[-0.25,1]*yrange[1] else yrange=[1e-3,yrange[1]]
 ;
 ; we need to adjust due to log-log plot
 ;if ~KEYWORD_SET(xmini) then xmini=2 
@@ -91,13 +96,13 @@ for ii=1, nbv-2 do PLOTS, [xx[ii],xx[ii]], yy, line=2
 ;
 liste_info=['Float','Double','Complex','D Complex']
 xpos=3+6*indgen(4)
-if KEYWORD_SET(ylog) then ypos=2e-3 else ypos=-0.25
+if KEYWORD_SET(ylog) then ypos=2e-3 else ypos=yrange[1]*(-1./8)
 ;
 for ii=0,3 do XYOUTS, xpos[ii], ypos, liste_info[ii], ali=.5
 ;
-if KEYWORD_SET(ylog) then cpos=[20,23,1e-3,1e-2] else cpos=['lt'] 
+if KEYWORD_SET(ylog) then cpos=[19,1e-2,23,1e-1] else cpos=[0.5, .7*yrange[1], 5.5, 0.98*yrange[1]];cpos=['lt'] 
 BENCHMARK_PLOT_CARTOUCHE, pos=cpos, languages, /box, $
-                      colors=colors, lines=lines, thick=1.5, title='Languages'
+                          colors=colors, lines=lines, thick=1.5, title='Languages'
 ;
 BENCHMARK_SVG, svg=svg, /off, infosvg=infosvg
 ;
@@ -234,11 +239,15 @@ BENCH_MATRIX_MULTIPLY_ONE, time_res=time_c, /complex
 BENCH_MATRIX_MULTIPLY_ONE, time_res=time_dc, /dcomplex
 ;
 if KEYWORD_SET(save) then begin
-   cpuinfo=BENCHMARK_GENERATE_CPUINFO()
    filename=BENCHMARK_GENERATE_FILENAME('matmul')
    ;;
-   SAVE, file=filename, cpuinfo, matrix_size, $
-         time_f, time_d, time_c, time_dc
+   info_cpu=BENCHMARK_INFO_CPU()
+   info_os=BENCHMARK_INFO_OS()
+   info_soft=BENCHMARK_INFO_SOFT()
+   ;;
+   SAVE, file=filename, matrix_size, $
+         time_f, time_d, time_c, time_dc, $
+         info_cpu, info_os, info_soft
 endif
 ;
 if KEYWORD_SET(test) then STOP
