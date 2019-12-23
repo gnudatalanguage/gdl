@@ -384,14 +384,41 @@ namespace lib
         if (mapSet) 
           GDLgrProjectedPolygonPlot(actStream, ref, NULL, xVal, yVal, false, true, NULL);
         else  actStream->fill(xEl, static_cast<PLFLT*>(&(*xValou)[0]), static_cast<PLFLT*>(&(*yValou)[0]));
-      } else {  
-        if (mapSet) GDLgrProjectedPolygonPlot(actStream, ref, NULL, xVal, yVal, false, true, NULL);
-        else actStream->fill(xEl, static_cast<PLFLT*>(&(*xVal)[0]), static_cast<PLFLT*>(&(*yVal)[0]));
+      } else { 
+        Guard<BaseGDL> xval_guard, yval_guard;
+        DDoubleGDL *xValou=xVal;
+        DDoubleGDL *yValou=yVal;
+        if (xLog) {
+            xValou=new DDoubleGDL(dimension(xEl));
+            xval_guard.reset(xValou);
+            for (SizeT i=0; i<xEl; ++i) (*xValou)[i]=log10((*xVal)[i]);
+          }
+        if (yLog) {
+            yValou=new DDoubleGDL(dimension(yEl));
+            yval_guard.reset(yValou);
+            for (SizeT i=0; i<yEl; ++i) (*yValou)[i]=log10((*yVal)[i]);
+          }
+
+        if (mapSet) GDLgrProjectedPolygonPlot(actStream, ref, NULL, xValou, yValou, false, true, NULL);
+        else actStream->fill(xEl, static_cast<PLFLT*>(&(*xValou)[0]), static_cast<PLFLT*>(&(*yValou)[0]));
       }
 #else
         actStream->fill(xEl, static_cast<PLFLT*>(&(*xValou)[0]), static_cast<PLFLT*>(&(*yValou)[0]));
-      } else {  
-        actStream->fill(xEl, static_cast<PLFLT*>(&(*xVal)[0]), static_cast<PLFLT*>(&(*yVal)[0]));
+      } else { 
+        Guard<BaseGDL> xval_guard, yval_guard;
+        DDoubleGDL *xValou=xVal;
+        DDoubleGDL *yValou=yVal;
+        if (xLog) {
+            xValou=new DDoubleGDL(dimension(xEl));
+            xval_guard.reset(xValou);
+            for (SizeT i=0; i<xEl; ++i) (*xValou)[i]=log10((*xVal)[i]);
+          }
+        if (yLog) {
+            yValou=new DDoubleGDL(dimension(yEl));
+            yval_guard.reset(yValou);
+            for (SizeT i=0; i<yEl; ++i) (*yValou)[i]=log10((*yVal)[i]);
+          }
+        actStream->fill(xEl, static_cast<PLFLT*>(&(*xValou)[0]), static_cast<PLFLT*>(&(*yValou)[0]));
       }
 #endif
       if (stopClip) stopClipping(actStream);
