@@ -13,7 +13,7 @@ image = BYTSCL(SIN(DIST(400)/10))
 MAP_SET, lat, lon, NAME=PROJNAME, /ISOTROPIC,TITLE=projname+' + REPROJECTED IMAGE'
 result = MAP_IMAGE(image,Startx,Starty)
 TV, result, Startx, Starty
-MAP_CONTINENTS, /coasts
+MAP_CONTINENTS ; , /coasts
 MAP_GRID, latdel=10, londel=10, /LABEL, /HORIZON, CHARS=2
 plots,[30,30,120,120,30],[0,-40,-40,0,0],color='FFFF00'x,thick=8
 polyfill,[32,32,118,118,32],[-2,-38,-38,-2,-2],color='FFFF00'x,thick=8

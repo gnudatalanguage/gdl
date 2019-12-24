@@ -2915,7 +2915,7 @@ namespace lib {
         if (!cumulative) {
           switch (p0->Type()) {
           case GDL_DOUBLE: return total_template_generic<DDoubleGDL>(static_cast<DDoubleGDL*> (p0), nan);
-          case GDL_COMPLEXDBL: return total_template_generic<DComplexGDL>(static_cast<DComplexGDL*> (p0), nan);
+          case GDL_COMPLEXDBL: return total_template_generic<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0), nan);
             // We use GDL_DOUBLE for others
           case GDL_ULONG64:
             return total_template_double<DULong64GDL>(static_cast<DULong64GDL*> (p0), false);

@@ -97,7 +97,10 @@ dictionary=hash($
 "GAMMA","+gamma=",$
 "LONC","+lonc=",$
 "LSAT","+lsat=",$
-"PATH","+path=") 
+"PATH","+path=",$
+"PLAT_0","+plat_0=",$  ; only for proj=sch !
+"PLON_0","+plon_0=",$  ; id
+"PHDG_0","+phdg=")     ; ibid
 
 mirror_dictionary,dictionary,yranoitcid
 

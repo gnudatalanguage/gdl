@@ -41,41 +41,43 @@ Other open-source numerical data analysis tools similar to GDL include
 [R](http://www.r-project.org/),
 [Yorick](http://yorick.sourceforge.net/).
 
-Dependencies and package availability
+Package availability
+-------------------------------------
+
+See:
+- [GDL on Linux](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-Linux)
+- [GDL on OSX](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-OSX)
+- [GDL on BSD](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-BSD)
+- [GDL on Windows](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-Windows)
+
+Dependencies 
 -------------------------------------
 
 Packaged versions of GDL are available for several Linux distributions, BSD and Mac OS X. 
 Please note that several features of GDL depend on compile-time configuration, and might not 
   be available in pre-built or pre-configured packages. 
-The table below summarises GDL mandatory and optional dependencies along with the availability 
-  of the optional functionalities in packages (as of April 2018):
-
-| | [Fedora](https://src.fedoraproject.org/rpms/gdl) | [Debian](https://packages.debian.org/sid/gnudatalanguage) | [Ubuntu](http://packages.ubuntu.com/gnudatalanguage) | [Gentoo](https://packages.gentoo.org/packages/dev-lang/gdl) | [Arch](https://aur.archlinux.org/packages/gnudatalanguage/)  | [FreeBSD](https://svnweb.freebsd.org/ports/head/science/gnudatalanguage/) | [Homebrew](https://github.com/brewsci/homebrew-science/blob/master/Formula/gnudatalanguage.rb) | [Macports](https://github.com/macports/macports-ports/tree/master/math/gnudatalanguage) |
-| --------------------------------------------------------------------------------------- | :----: | :--------: | :----: | :----: | :---: | :-------: | :------: | :------: |
-| latest release                                                                          | 0.9.8  |   0.9.9    | 0.9.9  | 0.9.6   | 0.9.7 |   0.9.8   | 0.9.7 | 0.9.7 |
-| [readline](http://thrysoee.dk/editline/)/[editline](http://thrysoee.dk/editline/)       | + (r)  |    + (r)   |  + (r) | + (r)   | + (r) |   + (r)   | + (r) |   +   |
-| [\[n\]curses](https://www.gnu.org/software/ncurses/)                                    | + (n)  |    + (n)   |  + (n) | + (n)   |   +   |   + (n)   | + (n) | + (n) |
-| [zlib](https://zlib.net/)                                                               |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
-| [GSL](https://www.gnu.org/software/gsl/)                                                |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
-| [plplot](https://plplot.sourceforge.net)                                                |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
-| [OpenMP](http://www.openmp.org/)                                                        |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
-| [Magick++](https://imagemagick.org/) / [GraphicsMagick](http://graphicsmagick.org/)     | + (G)  |  + (G)     | + (G)  | + (G/I) |   -   |  + (G)    | + (G) | + (G) |
-| [wxWidgets](https://www.wxwidgets.org/)                                                 |   +    |    +       |   +    | +       |   +   |    +      |   -   |   -   |
-| [netCDF](https://www.unidata.ucar.edu/software/netcdf/)                                 |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
-| [HDF4](https://support.hdfgroup.org/products/hdf4/)                                     |   +    |    +       |   +    | +       |   -   |    -      |   -   |   +   |
-| [HDF5](https://support.hdfgroup.org/HDF5/)                                              |   +    |    +       |   +    | +       |   -   |    +      |   +   |   +   |
-| [FFTW](http://www.fftw.org/)                                                            |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
-| [PROJ.4](http://proj4.org/)                                                             |   -    |    +       |   +    | +       |   -   |    +      |   -   |   +   |
-| [Shapelib](http://shapelib.maptools.org/)                                               |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |                                   |   -    |    -       |   -    | +       |   -   |    -      |   -   |   +   |
-| [Expat](https://libexpat.github.io/)                                                    |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |                                   |   -    |    -       |   -    | +       |   -   |    -      |   -   |   +   |
-| [MPI](https://en.wikipedia.org/wiki/Message_Passing_Interface)                          |   -    |    -       |   -    | -       |   -   |    +      |   -   |   +   |
-| [Python](https://www.python.org/)/[NumPy](http://www.numpy.org/)                        |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
-| [udunits](https://www.unidata.ucar.edu/software/udunits/)                               |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
-| [Eigen](https://eigen.tuxfamily.org/)                                                   |   +    |    +       |   +    | +       |   +   |    +      |   +   |   +   |
-| [pslib](http://pslib.sourceforge.net/)                                                  |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
-| [ecCodes](https://software.ecmwf.int/wiki/display/ECC/ecCodes+Home)/[GRIB](https://software.ecmwf.int/wiki/display/GRIB)                                    |   +    |    +       |   +    | +       |   +   |    +      |   -   |   +   |
-| [GLPK](https://www.gnu.org/software/glpk/)                                              |   -    |    +       |   +    | -       |   -   |    +      |   -   |   -   |
-| [Python](https://www.python.org/) module                                                | + (python3-gdl) | + ([python3-gdl](https://packages.debian.org/python3-gdl)) | + ([python3-gdl](https://packages.ubuntu.com/python3-gdl)) | +       |   -   |    -      |   -   |   -   |
+GDL has numerous dependencies, most of the optional (buth highly recommended):
+- [readline](http://thrysoee.dk/editline/)/[editline](http://thrysoee.dk/editline/)
+- [\[n\]curses](https://www.gnu.org/software/ncurses/)
+- [zlib](https://zlib.net/)
+- [GSL](https://www.gnu.org/software/gsl/)
+- [OpenMP](http://www.openmp.org/)   
+- [Magick++](https://imagemagick.org/) / [GraphicsMagick](http://graphicsmagick.org/)
+- [wxWidgets](https://www.wxwidgets.org/)
+- [netCDF](https://www.unidata.ucar.edu/software/netcdf/) 
+- [HDF4](https://support.hdfgroup.org/products/hdf4/) 
+- [HDF5](https://support.hdfgroup.org/HDF5/)  
+- [FFTW](http://www.fftw.org/) 
+- [PROJ.4](http://proj4.org/)
+- [Shapelib](http://shapelib.maptools.org/) 
+- [Expat](https://libexpat.github.io/)
+- [MPI](https://en.wikipedia.org/wiki/Message_Passing_Interface) 
+- [Python](https://www.python.org/)/[NumPy](http://www.numpy.org/)
+- [udunits](https://www.unidata.ucar.edu/software/udunits/)
+- [Eigen](https://eigen.tuxfamily.org/) 
+- [pslib](http://pslib.sourceforge.net/)
+- [ecCodes](https://software.ecmwf.int/wiki/display/ECC/ecCodes+Home)/[GRIB](https://software.ecmwf.int/wiki/display/GRIB)
+- [GLPK](https://www.gnu.org/software/glpk/)
 
 Build-time dependencies
 -----------------------
