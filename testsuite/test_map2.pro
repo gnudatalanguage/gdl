@@ -9,11 +9,10 @@ if (n_elements(lon) eq 0) then lon=0
 if (n_elements(lat) eq 0) then lat=0
 if ~keyword_set(projname) then projname="Sinusoidal"
 image = BYTSCL(SIN(DIST(400)/10))
-;note there is a problem for the GRID if lat=0 exactly. To be investigated!
 MAP_SET, lat, lon, NAME=PROJNAME, /ISOTROPIC,TITLE=projname+' + REPROJECTED IMAGE'
 result = MAP_IMAGE(image,Startx,Starty)
 TV, result, Startx, Starty
-MAP_CONTINENTS, /coasts
+MAP_CONTINENTS,/coasts
 MAP_GRID, latdel=10, londel=10, /LABEL, /HORIZON, CHARS=2
 plots,[30,30,120,120,30],[0,-40,-40,0,0],color='FFFF00'x,thick=8
 polyfill,[32,32,118,118,32],[-2,-38,-38,-2,-2],color='FFFF00'x,thick=8

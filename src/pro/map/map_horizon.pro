@@ -95,14 +95,24 @@ PRO map_horizon, fill=fill, nverts=n, zvalue=zvalue, _extra=Extra
        xy=map_proj_forward(xx,yy) ; includes rotation.
        xr=xy[0,*]
        yr=xy[1,*]
-
+    endif else if p4name eq "qsc" then begin ; wrong formula. 
+       z=1d-4
+       inc=(360-z)/(n-1)
+       minlat=-40 & maxlat=+40
+       minlon=-60 & maxlon=+60
+       xx1=[minlon+z:maxlon-z:inc] & yy1=xx1*0+maxlat-z & xx=[xx1,reverse(xx1)] & yy=[yy1,xx1*0+minlat+z]
+       ; add p0lon
+       xx+=!map.p0lon
+       xy=map_proj_forward(xx,yy) ; includes rotation.
+       xr=xy[0,*]
+       yr=xy[1,*]
     endif else if p4name eq "rhealpix" then begin
        z=1e-4
        x1=-!DPI & x2=x1/2. & x3=!DPI & y0=-3*!DPI/4 & y1=-!DPI/4 & y2=-y1 & y3=-y0
        xr=[x1,x1,x2,x2,x3,x3,x2,x2,x1]
        yr=[y0,y3,y3,y2,y2,y1,y1,y0,y0]
        map_xy_rotforward,xr,yr ; do rotation ourselve
-    endif else if p4name eq "nsper" or p4name eq "geos" or p4name eq  "tpers" then begin
+     endif else if p4name eq "nsper" or p4name eq "geos" or p4name eq "tpers" then begin
        xr=(!map.uv_box[2]-!map.uv_box[0])/2. * cos(a)
        yr=(!map.uv_box[3]-!map.uv_box[1])/2. * sin(a)
     endif else if circle then begin ; limb is a circle
@@ -153,7 +163,7 @@ PRO map_horizon, fill=fill, nverts=n, zvalue=zvalue, _extra=Extra
        xy=map_proj_forward(xx,yy)
        xr=xy[0,*]
        yr=xy[1,*]
-    endelse
+     endelse
 
 ; do nothing if "almost" nothing has been done.
     if (n_elements(xr) lt 3) then return
