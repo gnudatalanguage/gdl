@@ -141,7 +141,8 @@ doCoasts = keyword_set(_coasts)
 ; IDL's USA is only at low resolution. We *can* do better.  
 doUsa = keyword_set(_usa) & if doUsa then begin  ATTRNAME="ADM0_A3" & ATTRVALUES="USA" & end
 ; this to show how it would be easy to have other countries than
-; USA. The admin boundary of NE at 10m contains oodles of
+; USA. The admin boundary of original NE files at 10m (not the oe
+; shipped with GDL, which are edited because dbf files were too large) contains oodles of
 ; boundaries.
 ;doCa = 0 ;keyword_set(_canada)& if doCa then ATTRVALUES=[ATTRVALUES,"CA"] 
 ;doFr = 0 ;keyword_set(_france)& if doFr then ATTRVALUES=[ATTRVALUES,"FR"] 
