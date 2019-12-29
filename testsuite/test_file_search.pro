@@ -193,7 +193,15 @@ errors=0
 ;
 CD,'..', current=current
 CD, current, current=updir
-home=pathtounix(GETENV('HOME'))
+home = GETENV('HOME')
+
+defsysv,'!gdl',exist=exist
+if !version.os_family ne 'unix' and exist then begin
+    catch, badname
+    if ~badname then $
+        if !gdl.gdl_posix then home = pathtounix(home)
+    catch,/cancel
+endif
 ;
 res1=FILE_SEARCH('.', /FULLY_QUALIFY_PATH)
 res2=FILE_SEARCH('..',/FULLY_QUALIFY_PATH)
