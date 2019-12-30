@@ -340,6 +340,12 @@ namespace lib {
 	      if ((*basenamestrgdl)[0].find(".") == string::npos)
 		(*res)[i] += "." + defaultextstr;
 	    }
+#ifdef _WIN32 // if posixpaths desired, convert them here.
+    if (lib::posixpaths) {
+        char * ptr = (char *) (*res)[i].c_str();
+        for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
+    }
+#endif          
 	  }
       }
     return res;

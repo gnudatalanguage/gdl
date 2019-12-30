@@ -57,7 +57,7 @@ namespace lib {
 //    
 #if defined(IS_BIGENDIAN)
 	#define H0_OFFSET2	256
-        #define H1_OFFSET2      0
+	#define H1_OFFSET2	0
         #define BYTES_INC2	(1-j)
     #define H0_OFFSET4	768
 	#define H1_OFFSET4	512
@@ -73,7 +73,7 @@ namespace lib {
 	#define H1_OFFSET8	1536
 	#define H0_OFFSET8	1792
 	#define BYTES_INC8	(7-j)
-#else 
+#else
 	#define H0_OFFSET2	0
 	#define H1_OFFSET2	256
 	#define BYTES_INC2	j
