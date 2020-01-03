@@ -2195,7 +2195,9 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
           ixList.push_back(new CArrayIndexScalar((*p3)[i])); //p3->NewIx(i)));
       ArrayIndexListT* ixL;
       MakeArrayIndex(&ixList, &ixL);
-      Guard< ArrayIndexListT> ixL_guard(ixL);
+              //Keeping the following Guard makes lots of problems when the Evt* associate to the call to this libarry is destroyed.
+              //To be investigated further (I'm stymied), see #574.
+//      Guard< ArrayIndexListT> ixL_guard(ixL);
       ixL->AssignAt(p0, p1);
       return;
     }
