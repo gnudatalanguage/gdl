@@ -45,6 +45,27 @@ pps[1] = ptr_new(mlist)
 if total(ptr_valid(pps)) ne 2  then err++ $
 else if(keyword_set(verbose)) then message,/con,'2 created pointers are valid"
 
+; GD: I'm not sure about the pertinence of above tests. Issue #425 showed that PTR_VALID was perfectly invalid in most cases.
+; the following is however sure:
+
+; will crash if bug #241 is not cured as ptr_valid(on_a_not_pointer) is always 0 whatever the type.
+a={un:1, deux:[0,4], trois:[0.66,68.33,222.16], quatre:'zzzzz'}
+; simple tests 
+x=ptr_valid(a) & print,x ; would have crashed on the array
+x=ptr_valid(a.(1)) & print,x & if total(x) ne 0 then err++
+x=ptr_valid(a.(2)) & print,x & if total(x) ne 0 then err++
+x=ptr_valid(a.(3)) & print,x & if total(x) ne 0 then err++
+; more complicated: valid and not valid array of pointers:
+D=PTRARR(10)& c=dindgen(10) & for i=0,5 do d[i]=ptr_new(c[i])
+res=PTR_VALID(D,/GET) & if isa(res,"Ulong") ne 1 then err++
+; last 4 values of res must be zero as they are not initialized:
+if total(res[6:9]) ne 0 then err++
+; same with byte output
+res=PTR_VALID(D) & if isa(res,"Byte") ne 1 then err++
+; last 4 values of res must be zero as they are not initialized:
+if total(res[6:9]) ne 0 then err++
+PTR_FREE, D ; clean 
+res=PTR_VALID(D) & if total(res) ne 0 then err++
 ;
 if(keyword_set(test)) then stop,' at end of test routine'
 ;
