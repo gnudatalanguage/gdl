@@ -515,74 +515,107 @@ namespace lib {
       }
   }
 
-  BaseGDL* ptr_valid( EnvT* e)
+  BaseGDL* ptr_valid(EnvT* e)
   {
-    int nParam=e->NParam();
-    static int CASTIx = e->KeywordIx("CAST");
-    static int COUNTIx = e->KeywordIx("COUNT");
-    static int GET_HEAP_IDENTIFIERIx = e->KeywordIx("GET_HEAP_IDENTIFIER");
-    
-    if( e->KeywordPresent( COUNTIx))
+    int nParam = e->NParam( );
+    static int CASTIx = e->KeywordIx( "CAST" );
+    static int COUNTIx = e->KeywordIx( "COUNT" );
+    static int GET_HEAP_IDENTIFIERIx = e->KeywordIx( "GET_HEAP_IDENTIFIER" );
+
+    if ( e->KeywordPresent( COUNTIx ) )
       {
-    e->SetKW( COUNTIx, new DLongGDL( e->Interpreter()->HeapSize()));
+        e->SetKW( COUNTIx, new DLongGDL( e->Interpreter( )->HeapSize( ) ) );
       }
 
-    if( nParam == 0)
+    if ( nParam == 0 )
       {
-    return e->Interpreter()->GetAllHeap();
-      } 
+        return e->Interpreter( )->GetAllHeap( );
+      }
 
-    BaseGDL* p = e->GetPar( 0);
-    if( p == NULL)
+    BaseGDL* p = e->GetPar( 0 );
+    if ( p == NULL )
       {
-    return new DByteGDL( 0);
-      } 
+        return new DByteGDL( 0 );
+      }
 
-    DType pType = p->Type();
-    bool isscalar = p->StrictScalar();
-    DLongGDL* pL;
-    Guard<DLongGDL> pL_guard;
+    DType pType = p->Type( );
+    bool isscalar = p->StrictScalar( );
 
-    GDLInterpreter* interpreter = e->Interpreter();
 
-    if( pType == GDL_PTR){
-        DPtrGDL* pPtr = static_cast<DPtrGDL*>( p);
-        pL = new DLongGDL( p->Dim());
-        for( SizeT i=0; i < pL->N_Elements(); ++i) (*pL) [i] = (*pPtr)[i];
-        if( e->KeywordSet( GET_HEAP_IDENTIFIERIx)) {
-            if(isscalar) return new DLongGDL( (*pL)[0] );
-                else    return pL; 
-            }
-        pL_guard.Init( pL);
-    } else {    // pType==GDL_PTR
-        pL = static_cast<DLongGDL*>(p->Convert2(GDL_LONG,BaseGDL::COPY));
-        pL_guard.Init( pL);
-        if( e->KeywordSet( CASTIx))  {
-            if(isscalar) {
-                DLong p0 = (*pL)[0];
-                if(  interpreter->PtrValid( p0 )) {
-                        interpreter->IncRef( p0);
-                        return new DPtrGDL( p0);
-                } else  return new DPtrGDL( 0);
-            }
-            DPtrGDL* ret = new DPtrGDL( pL->Dim());
-            for( SizeT i=0; i < pL->N_Elements(); ++i)
-              if( interpreter->PtrValid( (*pL)[ i])) {
-                  interpreter->IncRef((*pL)[ i]);
-                  (*ret)[ i] = (*pL)[ i];
-                  }
-          return ret;
+    GDLInterpreter* interpreter = e->Interpreter( );
+
+    //if called with  CAST return either a new pointer if arg is a pointer, or a pointer to the heap variable whose arg is an index to.
+    if ( e->KeywordSet( CASTIx ) )
+      {
+        if ( pType == GDL_PTR ) return p->Dup( );
+        //else: only integer or array thereof authorized: 
+        DULongGDL* pL = static_cast<DULongGDL*> ( p->Convert2( GDL_ULONG, BaseGDL::COPY ) );
+        Guard<DULongGDL> pL_guard( pL );
+        if ( isscalar )
+          {
+            DULong p0 = ( *pL )[0];
+            if ( interpreter->PtrValid( p0 ) )
+              {
+                interpreter->IncRef( p0 );
+                return new DPtrGDL( p0 );
+              }
+            else return new DPtrGDL( 0 );
+          }
+        else
+          {
+            DPtrGDL* ret = new DPtrGDL( pL->Dim( ) );
+            for ( SizeT i = 0; i < pL->N_Elements( ); ++i )
+              if ( interpreter->PtrValid( ( *pL )[ i] ) )
+                {
+                  interpreter->IncRef( ( *pL )[ i] );
+                  ( *ret )[ i] = ( *pL )[ i];
+                }
+            return ret;
           }
       }
-    DByteGDL* ret = new DByteGDL( pL->Dim());
-    for( SizeT i=0; i < pL->N_Elements(); ++i) {
-        if( interpreter->PtrValid( (*pL)[ i])) 
-            (*ret)[ i] = 1;
+    //no CAST. If PTR type, return true of false, or heap index if  GET_HEAP_IDENTIFIER is used.
+    if ( pType == GDL_PTR )
+      {
+        DPtrGDL* pPtr = static_cast<DPtrGDL*> ( p );
+
+        if ( e->KeywordSet( GET_HEAP_IDENTIFIERIx ) )
+          {
+            DULongGDL* pL = new DULongGDL( p->Dim( ) );
+            Guard<DULongGDL> pL_guard( pL );
+            for ( SizeT i = 0; i < pL->N_Elements( ); ++i ) ( *pL ) [i] = ( *pPtr )[i]; //heap indexes
+            if ( isscalar ) return new DULongGDL( ( *pL )[0] );
+            else
+              {
+                pL_guard.release( );
+                return pL;
+              }
+          }
+        else
+          {
+            if ( isscalar )
+              {
+                return new DByteGDL( interpreter->PtrValid( (*pPtr)[ 0] ));
+              }
+            else
+              {
+                DByteGDL* ret= new DByteGDL( p->Dim( ));
+                for (SizeT i=0; i< ret->N_Elements(); ++i) (*ret)[i]=interpreter->PtrValid( (*pPtr)[ i] );
+                return ret;
+              }
+          }
       }
-      
-    if(isscalar) return new DByteGDL( (*ret)[0] );
-       else return ret;
-  }
+    else
+      { // pType!=GDL_PTR: return false = 0 always.
+        if ( isscalar )
+          {
+            if ( e->KeywordSet( GET_HEAP_IDENTIFIERIx )) return new DULongGDL( 0 ); else return new DByteGDL( 0 );
+            }
+        else
+          {
+                 if ( e->KeywordSet( GET_HEAP_IDENTIFIERIx )) return new DULongGDL( p->Dim( ) ); else return new DByteGDL( p->Dim( ) );
+            }
+      }
+    }
 //
 // 2018 May 29 G. Jung: Note there is an inordinate separation of  scalar and non-scalar treament.
 //  This was my last line of attempt to quash an error, due to an assert
