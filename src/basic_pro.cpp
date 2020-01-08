@@ -1556,31 +1556,41 @@ namespace lib {
         int ix = ( *dest ).Desc( )->TagIndex( sourceTagName );
         if ( ix >= 0 )
           {
-            SizeT nTagElements = source->GetTag( t )->N_Elements( );
-            SizeT nTagDestElements = dest->GetTag( ix )->N_Elements( );
-
-            if ( verbose )
+            //as always structure handling in GDL is painful and special methods should be specifically called for.
+            if ( source->GetTag( t )->Type( ) == GDL_STRUCT || dest->GetTag( t )->Type( ) == GDL_STRUCT )
               {
-                if ( nTagElements > nTagDestElements )
-                  Warning( "STRUCT_ASSIGN: " + sourceName +
-                           " tag " + sourceTagName +
-                           " is longer than destination. "
-                           "The end will be clipped." );
-                else if ( nTagElements < nTagDestElements )
-                  Warning( "STRUCT_ASSIGN: " + sourceName +
-                           " tag " + sourceTagName +
-                           " is shorter than destination. "
-                           "The end will be zero filled." );
+                if ( dest->GetTag( t )->Type( ) == source->GetTag( t )->Type( ) ) 
+                  do_relaxed_struct_assign( static_cast<DStructGDL*> ( source->GetTag( t ) ), static_cast<DStructGDL*> ( dest->GetTag( t ) ), nozero, verbose );
+                else if ( verbose )
+                  {
+                    Warning( "STRUCT_ASSIGN: Incompatible types. Unable to convert "+sourceName + " tag "+sourceTagName+" from "+source->GetTag(t)->TypeStr()+
+                            " to "+dest->GetTag(t)->TypeStr() );
+                  }
               }
-
-            if ( nTagElements > nTagDestElements )
-              nTagElements = nTagDestElements;
-
-            for ( SizeT a = 0; a < nElements; ++a )
+            else
               {
-                if ( (source->GetTag( ix, a )->Type()) == GDL_STRUCT && (dest->GetTag( ix, a )->Type()) == GDL_STRUCT ) 
-                  do_relaxed_struct_assign(static_cast<DStructGDL*>(source->GetTag( ix, a )), static_cast<DStructGDL*>(dest->GetTag( ix, a )), nozero, verbose);
-                else dest->GetTag( ix, a )->Assign( source->GetTag( t, a ), nTagElements );
+
+                SizeT nTagElements = source->GetTag( t )->N_Elements( );
+                SizeT nTagDestElements = dest->GetTag( ix )->N_Elements( );
+
+                if ( verbose )
+                  {
+                    if ( nTagElements > nTagDestElements )
+                      Warning( "STRUCT_ASSIGN: " + sourceName +
+                               " tag " + sourceTagName +
+                               " is longer than destination. "
+                               "The end will be clipped." );
+                    else if ( nTagElements < nTagDestElements )
+                      Warning( "STRUCT_ASSIGN: " + sourceName +
+                               " tag " + sourceTagName +
+                               " is shorter than destination. "
+                               "The end will be zero filled." );
+                  }
+
+                if ( nTagElements > nTagDestElements )
+                  nTagElements = nTagDestElements;
+
+                for ( SizeT a = 0; a < nElements; ++a ) dest->GetTag( ix, a )->Assign( source->GetTag( t, a ), nTagElements );
               }
           }
         else
