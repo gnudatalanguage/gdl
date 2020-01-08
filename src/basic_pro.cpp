@@ -1557,14 +1557,14 @@ namespace lib {
         if ( ix >= 0 )
           {
             //as always structure handling in GDL is painful and special methods should be specifically called for.
-            if ( source->GetTag( t )->Type( ) == GDL_STRUCT || dest->GetTag( t )->Type( ) == GDL_STRUCT )
+            if ( source->GetTag( t )->Type( ) == GDL_STRUCT || dest->GetTag( ix )->Type( ) == GDL_STRUCT )
               {
-                if ( dest->GetTag( t )->Type( ) == source->GetTag( t )->Type( ) ) 
-                  do_relaxed_struct_assign( static_cast<DStructGDL*> ( source->GetTag( t ) ), static_cast<DStructGDL*> ( dest->GetTag( t ) ), nozero, verbose );
+                if ( dest->GetTag( ix )->Type( ) == source->GetTag( t )->Type( ) ) 
+                  do_relaxed_struct_assign( static_cast<DStructGDL*> ( source->GetTag( t ) ), static_cast<DStructGDL*> ( dest->GetTag( ix ) ), nozero, verbose );
                 else if ( verbose )
                   {
                     Warning( "STRUCT_ASSIGN: Incompatible types. Unable to convert "+sourceName + " tag "+sourceTagName+" from "+source->GetTag(t)->TypeStr()+
-                            " to "+dest->GetTag(t)->TypeStr() );
+                            " to "+dest->GetTag(ix)->TypeStr() );
                   }
               }
             else
