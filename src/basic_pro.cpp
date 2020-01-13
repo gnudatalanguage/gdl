@@ -1532,19 +1532,7 @@ namespace lib {
 #endif
     }
   }
-
-  void struct_assign_pro(EnvT* e) {
-    SizeT nParam = e->NParam(2);
-
-    DStructGDL* source = e->GetParAs<DStructGDL>(0);
-    DStructGDL* dest = e->GetParAs<DStructGDL>(1);
-
-    static int nozeroIx = e->KeywordIx("NOZERO");
-    bool nozero = e->KeywordSet(nozeroIx);
-
-    static int verboseIx = e->KeywordIx("VERBOSE");
-    bool verbose = e->KeywordSet(verboseIx);
-
+  void do_relaxed_struct_assign(DStructGDL* source, DStructGDL* dest, bool nozero, bool verbose) {
     string sourceName = (*source).Desc()->Name();
 
     SizeT nTags = 0;
@@ -1562,36 +1550,68 @@ namespace lib {
     nTags = (*source).Desc()->NTags();
 
     // copy the stuff
-    for (int t = 0; t < nTags; ++t) {
-      string sourceTagName = (*source).Desc()->TagName(t);
-      int ix = (*dest).Desc()->TagIndex(sourceTagName);
-      if (ix >= 0) {
-        SizeT nTagElements = source->GetTag(t)->N_Elements();
-        SizeT nTagDestElements = dest->GetTag(ix)->N_Elements();
+    for ( int t = 0; t < nTags; ++t )
+      {
+        string sourceTagName = ( *source ).Desc( )->TagName( t );
+        int ix = ( *dest ).Desc( )->TagIndex( sourceTagName );
+        if ( ix >= 0 )
+          {
+            //as always structure handling in GDL is painful and special methods should be specifically called for.
+            if ( source->GetTag( t )->Type( ) == GDL_STRUCT || dest->GetTag( ix )->Type( ) == GDL_STRUCT )
+              {
+                if ( dest->GetTag( ix )->Type( ) == source->GetTag( t )->Type( ) ) 
+                  do_relaxed_struct_assign( static_cast<DStructGDL*> ( source->GetTag( t ) ), static_cast<DStructGDL*> ( dest->GetTag( ix ) ), nozero, verbose );
+                else if ( verbose )
+                  {
+                    Warning( "STRUCT_ASSIGN: Incompatible types. Unable to convert "+sourceName + " tag "+sourceTagName+" from "+source->GetTag(t)->TypeStr()+
+                            " to "+dest->GetTag(ix)->TypeStr() );
+                  }
+              }
+            else
+              {
 
-        if (verbose) {
-          if (nTagElements > nTagDestElements)
-            Warning("STRUCT_ASSIGN: " + sourceName +
-            " tag " + sourceTagName +
-            " is longer than destination. "
-            "The end will be clipped.");
-          else if (nTagElements < nTagDestElements)
-            Warning("STRUCT_ASSIGN: " + sourceName +
-            " tag " + sourceTagName +
-            " is shorter than destination. "
-            "The end will be zero filled.");
-        }
+                SizeT nTagElements = source->GetTag( t )->N_Elements( );
+                SizeT nTagDestElements = dest->GetTag( ix )->N_Elements( );
 
-        if (nTagElements > nTagDestElements)
-          nTagElements = nTagDestElements;
+                if ( verbose )
+                  {
+                    if ( nTagElements > nTagDestElements )
+                      Warning( "STRUCT_ASSIGN: " + sourceName +
+                               " tag " + sourceTagName +
+                               " is longer than destination. "
+                               "The end will be clipped." );
+                    else if ( nTagElements < nTagDestElements )
+                      Warning( "STRUCT_ASSIGN: " + sourceName +
+                               " tag " + sourceTagName +
+                               " is shorter than destination. "
+                               "The end will be zero filled." );
+                  }
 
-        for (SizeT a = 0; a < nElements; ++a)
-          dest->GetTag(ix, a)->Assign(source->GetTag(t, a), nTagElements);
-      } else
-        if (verbose)
-        Warning("STRUCT_ASSIGN: Destination lacks " + sourceName +
-        " tag " + sourceTagName + ". Not copied.");
-    }
+                if ( nTagElements > nTagDestElements )
+                  nTagElements = nTagDestElements;
+
+                for ( SizeT a = 0; a < nElements; ++a ) dest->GetTag( ix, a )->Assign( source->GetTag( t, a ), nTagElements );
+              }
+          }
+        else
+          if ( verbose )
+          Warning( "STRUCT_ASSIGN: Destination lacks " + sourceName +
+                   " tag " + sourceTagName + ". Not copied." );
+      }
+  }
+  
+  void struct_assign_pro(EnvT* e) {
+    SizeT nParam = e->NParam(2);
+
+    DStructGDL* source = e->GetParAs<DStructGDL>(0);
+    DStructGDL* dest = e->GetParAs<DStructGDL>(1);
+
+    static int nozeroIx = e->KeywordIx("NOZERO");
+    bool nozero = e->KeywordSet(nozeroIx);
+
+    static int verboseIx = e->KeywordIx("VERBOSE");
+    bool verbose = e->KeywordSet(verboseIx);
+    do_relaxed_struct_assign(source, dest, nozero, verbose);
   }
 #ifdef _WIN32
 #define BUFSIZE 1024
