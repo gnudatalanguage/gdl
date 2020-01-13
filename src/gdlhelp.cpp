@@ -683,8 +683,8 @@ void help_struct(ostream& ostr,  BaseGDL* par, int indent=0, bool debug=false)
 			if(debug) ostr.width(18);
 			if(debug) ostr <<"dbg: OFFSET="<<s->Desc()->Offset(t);
 		    help_item( ostr, s->GetTag(t), s->Desc()->TagName(t), true);
-		    if(s->GetTag(t)->Type() == GDL_STRUCT) 
-				help_struct(ostr, s->GetTag(t), indent+1);
+                    // only one level visible in "help".
+//		    if(s->GetTag(t)->Type() == GDL_STRUCT) help_struct(ostr, s->GetTag(t), indent+1);
 		}
 //		lines_count += nTags;
   }

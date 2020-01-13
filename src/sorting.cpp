@@ -1761,6 +1761,24 @@ template <typename T, typename IndexT>
       SizeT high=nEl-1; 
       QuickSortIndex<DString, IndexT>( val, hh, low, high);
       return res;
+    } else if (p0->Type() == GDL_PTR) {
+        // actually it sorts the index in heap.
+      DPtr* val = (DPtr*)(static_cast<DPtrGDL*>(p0)->DataAddr()); //heap indexes
+      GDLIndexT* res = new GDLIndexT(dimension(nEl), BaseGDL::INDGEN);
+      IndexT *hh = static_cast<IndexT*> (res->DataAddr());
+      SizeT low=0; 
+      SizeT high=nEl-1; 
+      AdaptiveSortIndex<DPtr, IndexT>( val, hh, low, high);
+      return res;
+    } else if (p0->Type() == GDL_OBJ) {
+        // idem?
+      DObj* val = (DObj*)(static_cast<DObjGDL*>(p0)->DataAddr()); //heap indexes
+      GDLIndexT* res = new GDLIndexT(dimension(nEl), BaseGDL::INDGEN);
+      IndexT *hh = static_cast<IndexT*> (res->DataAddr());
+      SizeT low=0; 
+      SizeT high=nEl-1; 
+      AdaptiveSortIndex<DObj, IndexT>( val, hh, low, high);
+      return res;
     }
     return NULL;
   }

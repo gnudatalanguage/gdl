@@ -213,6 +213,7 @@ TESTS = \
   test_strmatch.pro \
   test_strsplit.pro \
   test_structures.pro \
+  test_struct_assign.pro \
   test_suite.pro \
   test_systime.pro \
   test_tag_names.pro \
