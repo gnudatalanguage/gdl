@@ -88,10 +88,13 @@ hcomp = HASH(struchash,/fold)
 if KEYWORD_SET(verbose) then begin
    print,' hcomp = hash(struchash,/FOLD_CASE) & help, hcomp eq hash1 '
    hcomp = HASH(struchash,/FOLD_CASE)
+   IF KEYWORD_SET(test) THEN BEGIN
+   message,/cont,' exhibiting issue #702 ...'
    help, hcomp eq hash1	  ; after sucessful completion, causes interpreter to return to caller. 
 ll=hhtest[1:2] & help,ll ; this will substitute fine.
 
 stop ; (doesn't happen due to above "help, hcomp eq hash1")
+	ENDIF
    print," keys = [ 'key1', 'key3' ] & print, hash1[keys] "
    keys = [ 'key1', 'key3' ]
    print, hash1[keys]
@@ -118,28 +121,10 @@ keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
 values = LIST('one', 2.0, 3, 4l, PTR_NEW(5), {n:6}, COMPLEX(7,0))
 htest = HASH(keys, values)
 IF N_ELEMENTS(htest) ne 7 then $
-if eq7 ne 7 then $
+    ERRORS_ADD, nb_errors,$
+    ' N_ELEMENTS(htest) ne 7  .. fail '
 
-; cvs does not do most of this:
-;
-if ~isgit then begin
-   ;;
-   chk = 2*indgen(20)+1
-   struct = {FIELD1: 4.0, FIELD2: {SUBFIELD1: "hello", SUBFIELD2: 3.14}}
-   ;;
-   htest = HASH(struct, /EXTRACT,/fold,/lower)
-   ;;
-   if KEYWORD_SET(verbose) then $
-      print,' htest = HASH(struct, /EXTRACT,/fold,/lower) ',htest
-   ;;
-   hnew = hash2[*]
-   keq = (hnew eq hash1).toarray()
-   if n_elements(keq) ne hash1.count() then $
-      ERRORS_ADD, nb_errors,' error (hash1[*] eq hash1).toarray() '
-   ;;
-   ERRORS_ADD, nb_errors, ' N_ELEMENTS(htest) ne 7  .. fail '
-   ;;
-   ;; Tostruct(/recursive)
+; Tostruct(/recursive)
    struct = {FIELD1: 4.0, FIELD2: {SUBFIELD1: "hello", SUBFIELD2: 3.14, subfield3: 6.28}}
    hash = HASH(struct, /EXTRACT)
    sback = hash.toStruct(/recursive)
@@ -158,9 +143,6 @@ if ~isgit then begin
    if isgit then scalars[keys[1:4]] = 4+intarr(4) else $
       scalars[keys[1:4]] = 4
    eq4 = scalars.count(4)
-endif else begin
-    print,' Limited tests for legacy HASH in git'
-endelse
 
 ; git should be able to do HasKey()
 hbw = HASH('black', 0, 'gray', 128, 'grey', 128, 'white', 255)
@@ -169,12 +151,8 @@ if KEYWORD_SET(verbose) then $
    print,[ hbw.HasKey('gray'), hbw.HasKey(['grey','red','white'])]
 
 keys = ['a','b','c','d','e','f','g']
-if ~isgit then begin
-   scalars = HASH(keys,0)
-endif else begin
-   scalars=HASH(keys,intarr(n_elements(keys)))
-endelse
 
+scalars=HASH(keys,intarr(n_elements(keys)))
 scalars[keys]=100+INDGEN(n_elements(keys))
 
 if KEYWORD_SET(verbose) then begin
