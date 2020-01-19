@@ -80,7 +80,6 @@ hhtest =  hcomp eq hash1
 
 if KEYWORD_SET(verbose) then begin
    print,' hcomp = hash(struchash,/lower)'
-   hhtest =  hcomp eq hash1
    help, hhtest & print, hhtest
 endif
 
@@ -89,15 +88,15 @@ hcomp = HASH(struchash,/fold)
 if KEYWORD_SET(verbose) then begin
    print,' hcomp = hash(struchash,/FOLD_CASE) & help, hcomp eq hash1 '
    hcomp = HASH(struchash,/FOLD_CASE)
-   complist = hcomp eq hash1
-   HELP, complist[*]
+   help, hcomp eq hash1	  ; after sucessful completion, causes interpreter to return to caller. 
+ll=hhtest[1:2] & help,ll ; this will substitute fine.
+
+stop ; (doesn't happen due to above "help, hcomp eq hash1")
    print," keys = [ 'key1', 'key3' ] & print, hash1[keys] "
    keys = [ 'key1', 'key3' ]
    print, hash1[keys]
    MESSAGE, /continue,' End verbose block'
 endif
-
-stop
 
 if ~isgit then begin
 endif
