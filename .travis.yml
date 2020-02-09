@@ -63,6 +63,7 @@ before_install:
 
     # OSX stuff
     - if [ $TRAVIS_OS_NAME == osx ]; then brew update-reset; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then brew unlink python@2; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade numpy; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_CXX_FLAGS="-Wdeprecated-register"; fi
 
