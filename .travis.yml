@@ -54,7 +54,6 @@ before_install:
     - $SEDCMD '/test_rounding.pro/d'         testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_simplex.pro/d'          testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_step.pro/d'             testsuite/Makefile.am # TODO!
-    - if [ $TRAVIS_OS_NAME == osx ]; then $SEDCMD '/test_tic_toc.pro/d' testsuite/Makefile.am; fi # TODO! fails on OSX, e.g.    https://travis-ci.org/gnudatalanguage/gdl/jobs/440977990
     - $SEDCMD '/test_typename.pro/d'         testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_wait.pro/d'             testsuite/Makefile.am # TODO!
 
@@ -63,6 +62,7 @@ before_install:
 
     # OSX stuff
     - if [ $TRAVIS_OS_NAME == osx ]; then brew update-reset; fi
+    - if [ $TRAVIS_OS_NAME == osx ]; then brew unlink python@2; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade numpy; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_CXX_FLAGS="-Wdeprecated-register"; fi
 

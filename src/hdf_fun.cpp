@@ -238,11 +238,11 @@ namespace lib {
       dims[0] = recsize*nRecs;
       rank = 1;
     } else if (nFlds == 1) {
-      dims[0] = nRecs;
+      dims[0] = recsize/sizeof(type) * nRecs;
       rank = 1;
     } else {
       dims[0] = nFlds;
-      dims[1] = nRecs;
+      dims[1] = recsize/sizeof(type) * nRecs;
       rank = 2;
     }
 
