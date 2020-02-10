@@ -57,9 +57,6 @@
 #   define S_IFLNK 0xA000
 #   define S_ISLNK(mode) (((mode) & S_IFLNK) == S_IFLNK)
 #    endif
-#   if !defined(S_ISLNK)
-#   define S_ISLNK(mode) (((mode) & S_IFLNK) == S_IFLNK)
-#   endif
 #endif
 
 #ifndef _MSC_VER
