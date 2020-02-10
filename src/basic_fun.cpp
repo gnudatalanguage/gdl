@@ -6806,9 +6806,8 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
           e->SetKW( countIx, new DLongGDL( 1));
         return new DStringGDL( objDesc->Name());
       }
-
+    
     vector< string> pNames;
-
     objDesc->GetParentNames( pNames);
 
     SizeT nNames = pNames.size();
@@ -6836,14 +6835,14 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
       e->Throw( "Conflicting keywords.");
 
     vector< string> objNames;
-    for(  SizeT i= 0; i<structList.size(); ++i)      {
-	     if( (structList[i]->FunList().size() + structList[i]->ProList().size()) ==0 ) continue;
-		 objNames.push_back(structList[i]->Name());
-      }
+    for(  SizeT i= 0; i<structList.size(); ++i)      {    
+             if( (structList[i]->FunList().size() + structList[i]->ProList().size()) ==0 ) continue;
+                 objNames.push_back(structList[i]->Name());
+      }    
     SizeT nObj = objNames.size();
     DStringGDL* res = new DStringGDL( dimension( nObj), BaseGDL::NOZERO);
 
-    for( SizeT i=0; i<nObj; ++i)   {   (*res)[i] = objNames[i];      }
+    for( SizeT i=0; i<nObj; ++i)   {   (*res)[i] = objNames[i];      }    
 
     return res;
   }
@@ -6929,15 +6928,9 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
         return res;
       }
     } else if (p0->Type() == GDL_STRING) {
-//      std::cerr << "OBJ_ISA: not implemented for strings, only objects (FIXME)." << endl;
-    DStringGDL* p0S = static_cast<DStringGDL*>(p0);
+      std::cerr << "OBJ_ISA: not implemented for strings, only objects (FIXME)." << endl;
       for (SizeT i = 0; i < nElem; ++i) {
-            std::string parString = (*p0S)[i];
-            DStructDesc* desc = FindInStructList(structList, parString);
-            if (desc == NULL) continue;
-		  FunListT& funlist = desc->FunList();
-		  ProListT& prolist = desc->ProList();
-        (*res)[i] = ( funlist.size() + prolist.size() != 0) ;
+        (*res)[i] = 0;
       }
       return res;
     } else e->Throw("Object reference type required in this context: " + e->GetParString(0)); return NULL;
