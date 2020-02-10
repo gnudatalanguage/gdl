@@ -392,14 +392,18 @@ static void help_object( ostream& ostr, DString parString, bool verbose=true )
 	if(desc == NULL) {
 		ostr << objectnotfound << endl;
 	} else {
-		ostr << objectdefined  << endl;
-		if(not verbose) return;
-      DStructGDL* dumm = new DStructGDL( desc, dimension());
-	Guard<DStructGDL> guard(dumm);
-	  lib::help_struct(ostr, dumm , 0 , false);
 	  FunListT& funlist = desc->FunList();
 	  ProListT& prolist = desc->ProList();
-	  help_ListMethods("", ostr, funlist, prolist);
+	  if ( funlist.size() + prolist.size() == 0) 
+	      ostr << " is a structure, not an object ." << endl;
+	   else{
+		  ostr << objectdefined  << endl;
+		  if(not verbose) return;
+      DStructGDL* dumm = new DStructGDL( desc, dimension());
+	Guard<DStructGDL> guard(dumm);
+	     lib::help_struct(ostr, dumm , 0 , false);
+          help_ListMethods("", ostr, funlist, prolist);
+	  }
 	}
 }
 static void help_ListLib(DString names, ostream& ostr, bool internal=true)
