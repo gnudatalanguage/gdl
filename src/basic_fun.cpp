@@ -6834,16 +6834,16 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     if( super)
       e->Throw( "Conflicting keywords.");
 
-    SizeT nObj = structList.size();
+    vector< string> objNames;
+    for(  SizeT i= 0; i<structList.size(); ++i)      {    
+             if( (structList[i]->FunList().size() + structList[i]->ProList().size()) ==0 ) continue;
+                 objNames.push_back(structList[i]->Name());
+      }    
+    SizeT nObj = objNames.size();
+    DStringGDL* res = new DStringGDL( dimension( nObj), BaseGDL::NOZERO);
 
-    DStringGDL* res = new DStringGDL( dimension( nObj), 
-                      BaseGDL::NOZERO);
+    for( SizeT i=0; i<nObj; ++i)   {   (*res)[i] = objNames[i];      }    
 
-    for( SizeT i=0; i<nObj; ++i)
-      {
-    (*res)[i] = structList[i]->Name();
-      }
-    
     return res;
   }
  BaseGDL* obj_hasmethod( EnvT* e)
