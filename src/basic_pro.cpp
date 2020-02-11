@@ -1332,7 +1332,7 @@ namespace lib {
     if (reissue) {
       DStructGDL* errorState = SysVar::Error_State();
       static unsigned msgTag = errorState->Desc()->TagIndex("MSG");
-      if (!info || (SysVar::Quiet() == 0)) cout << (*static_cast<DStringGDL*> (errorState->GetTag(msgTag)))[0] << endl;
+      if (!info || (SysVar::Quiet() == 0)) cerr << (*static_cast<DStringGDL*> (errorState->GetTag(msgTag)))[0] << endl;
       return;
     }
 
@@ -1394,7 +1394,7 @@ namespace lib {
       msg = SysVar::MsgPrefix() + msg;
 
     if (!info || (SysVar::Quiet() == 0))
-      cout << msg << endl;
+      cerr << msg << endl;
   }
 
   void byteorderDo(EnvT* e, BaseGDL* pIn, SizeT swapSz, DLong p) {
@@ -1922,6 +1922,9 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     static int noshellIx = e->KeywordIx("NOSHELL");
     bool noshellKeyword = e->KeywordSet(noshellIx);
 
+    static int stderrIx = e->KeywordIx("STDERR");
+    bool stderrKeyword = e->KeywordSet(stderrIx);
+    
     static int unitIx = e->KeywordIx("UNIT");
     bool unitKeyword = e->KeywordPresent(unitIx);
     if (unitKeyword) e->AssureGlobalKW(unitIx);
@@ -1962,7 +1965,13 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 
     DStringGDL* command = e->GetParAs<DStringGDL>(0);
     DString cmd = (*command)[0];
-
+// Analyze command, if it ends by a "&" do not remove it but apply the same code as unitkeyword.
+// As  the user probably know what he/she wants, do not mess with stderrkeyword.
+// The stderr and stdout outputs shall be returned as empty strings.
+//find the last non-blank character in string and check.
+    bool IS_A_Spawn=false;
+    std::size_t found= cmd.find_last_not_of(" \t");
+    if (found!=std::string::npos && cmd.substr(found,1)=="&") IS_A_Spawn=true;
     const int bufSize = 1024;
     char buf[bufSize];
 
@@ -1975,8 +1984,10 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     }
 
     int cerrP[2];
+    if (nParam > 2 && stderrKeyword) e->Throw("STDERR option conflicts with "+e->GetParString(2));
     if (nParam > 2 && !unitKeyword && pipe(cerrP)) return;
-
+    if (stderrKeyword && !IS_A_Spawn) cmd+=" 2>&1";
+    
     pid_t pid = fork(); // *** fork
     if (pid == -1) // error in fork
     {
@@ -2034,11 +2045,11 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       if (nParam > 1 || unitKeyword) close(coutP[1]);
       if (nParam > 2 && !unitKeyword) close(cerrP[1]);
 
-      if (unitKeyword) {
+      if (unitKeyword || IS_A_Spawn ) {
 #ifdef HAVE_EXT_STDIO_FILEBUF_H
         // UNIT kw code based on the patch by Greg Huey:
 
-        Warning("Warning: UNIT keyword to SPAWN may not yet be fully implemented (proceeding)");
+        if (unitKeyword) Warning("Warning: UNIT keyword to SPAWN may not yet be fully implemented (proceeding)");
         // This is just code stolen from void get_lun( EnvT* e)
         // here lun is the GDL lun, not the internal one
         DLong unit_lun = GetLUN();
@@ -2050,10 +2061,13 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         coutF = fdopen(coutP[0], "r");
         if (coutF == NULL) close(coutP[0]);
 
-        e->SetKW(unitIx, new DLongGDL(unit_lun));
-        bool stdLun = check_lun(e, unit_lun);
-        if (stdLun)
-          e->Throw("SPAWN: Failed to open new LUN: Unit already open. Unit: " + i2s(unit_lun));
+        if (unitKeyword) {
+          e->SetKW(unitIx, new DLongGDL(unit_lun)); //only if this sort of "spwan /nowait" was triggered by the UNIT
+          // keyword and not by the presence of a terminal ampersand that indicates under unix that the process is detached.
+          bool stdLun = check_lun(e, unit_lun);
+          if (stdLun)
+            e->Throw("SPAWN: Failed to open new LUN: Unit already open. Unit: " + i2s(unit_lun));
+        }
         fileUnits[unit_lun - 1].PutVarLenVMS(false);
 
         // Here we invoke the black arts of converting from a C FILE*fd to an fstream object
@@ -2069,10 +2083,11 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         fileUnits[unit_lun - 1].set_readbuf_frb_destroy_on_close(frb_p);
         fileUnits[unit_lun - 1].set_readbuf_bsrb_destroy_on_close(bsrb_old_p);
         fileUnits[unit_lun - 1].set_fd_close_on_close(coutP[0]);
+        if (IS_A_Spawn && nParam > 1 ) e->SetPar(1, new DStringGDL(""));
+        if (IS_A_Spawn && nParam > 2 ) e->SetPar(2, new DStringGDL(""));
 #else
         e->Throw("UNIT kw. relies on GNU extensions to the std C++ library (that were not available during compilation?)");
 #endif
-
       } else {
         FILE *coutF, *cerrF;
         if (nParam > 1) {
