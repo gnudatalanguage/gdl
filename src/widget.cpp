@@ -1573,6 +1573,10 @@ BaseGDL* widget_info( EnvT* e ) {
   static int modalIx = e->KeywordIx( "MODAL" );
   bool modal = e->KeywordSet( modalIx );
 
+  static int mapIx = e->KeywordIx( "MAP" );
+  bool is_mapped=e->KeywordSet( mapIx );
+  static int displayIx = e->KeywordIx( "DISPLAY" );
+  bool isdisplayed=e->KeywordSet( displayIx );
   static int managedIx = e->KeywordIx( "MANAGED" );
   bool managed = e->KeywordSet( managedIx );
 
@@ -1731,6 +1735,35 @@ BaseGDL* widget_info( EnvT* e ) {
       GDLDelete(res);
       return new DLongGDL(actnumber); 
     }
+  
+  if (isdisplayed) return new DLongGDL(1); 
+  
+  if (is_mapped) {
+    //must return 1 if the widget is visble, which is normally beacuse the grand parent is mapped.
+    if ( rank == 0 ) {
+      // Scalar Input
+      WidgetIDT widgetID = (*p0L)[0];
+      GDLWidget *widget = GDLWidget::GetWidget( widgetID );
+      if ( widget == NULL ) {
+        e->Throw("Invalid widget identifier:"+i2s(widgetID));
+      } else {
+        if (widget->GetTopLevelBaseWidget(widget->WidgetID())->GetMap()) return new DLongGDL(1); else return new DLongGDL(0);
+      }
+    } else {
+      // Array Input
+      DLongGDL* res = new DLongGDL( p0L->Dim( ) );
+      bool atLeastOneFound=false;
+      for ( SizeT i = 0; i < nEl; i++ ) {
+        WidgetIDT widgetID = (*p0L)[i];
+        GDLWidget *widget = GDLWidget::GetWidget( widgetID );
+        if ( widget != NULL ) {
+          atLeastOneFound=TRUE;
+          if (widget->GetTopLevelBaseWidget(widget->WidgetID())->GetMap()) (*res)[i] = 1;
+        }
+      }
+      if (atLeastOneFound) return res; else e->Throw("Invalid widget identifier:"+i2s((*p0L)[0]));
+    }
+  }
   
   //debug is used for the moment to list all windows hierarchy for debug purposes.
   if (debug) {
@@ -2242,6 +2275,9 @@ void widget_control( EnvT* e ) {
 #ifndef HAVE_LIBWXWIDGETS
   e->Throw( "GDL was compiled without support for wxWidgets" );
 #else
+
+  if (e->NParam()==0) return; //quietly return when no widget is given.
+
   static int hourglassIx =  e->KeywordIx( "HOURGLASS" );
   bool sethourglass = e->KeywordPresent( hourglassIx );  
   
@@ -3279,8 +3315,7 @@ void widget_control( EnvT* e ) {
     static int SET_LIST_SELECT = e->KeywordIx( "SET_LIST_SELECT" );
     if (e->KeywordPresent(SET_LIST_SELECT)) {
       DLongGDL* listSelection =  e->GetKWAs<DLongGDL>(SET_LIST_SELECT);
-      if (listSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context:");
-      list->SelectEntry((*listSelection)[0]);
+      for (int i=0; i<listSelection->N_Elements() ; ++i) list->SelectEntry((*listSelection)[i]); //mots probably not the right thing to do.
     }
   }
   
