@@ -273,6 +273,10 @@ public:
 	pNames.push_back( parent[i]->Name());
       }
   }
+  
+  int GetNumberOfParents(){
+   return parent.size();
+  }
 
   void AssureIdentical( DStructDesc* d);
   //  DStructDesc* FindEqual( const StructListT& sL);
