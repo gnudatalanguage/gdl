@@ -136,14 +136,13 @@ void LibInit()
   new DLibFunRetNew(lib::routine_dir_fun,string("ROUTINE_DIR"),1);
 
 
+  const string spawnKey[]={ "COUNT","EXIT_STATUS","NOSHELL","NULL_STDIN","PID","STDERR","UNIT", //All platforms
 #ifdef _WIN32
-//Please note that NOWAIT and HIDE are WINDOWS-Reserved Keywords.
-  const string spawnKey[] = { "COUNT", "EXIT_STATUS", "PID",
-	  "SH", "NOSHELL", "UNIT", "HIDE", "NOWAIT", KLISTEND };
+	  "HIDE", "LOG_OUTPUT", "NOWAIT",};
 #else
-  const string spawnKey[]={ "COUNT","EXIT_STATUS","PID",
-			    "SH","NOSHELL","UNIT",KLISTEND};
+  "NOTTYRESET","SH",
 #endif
+  KLISTEND};
  
   new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
 
