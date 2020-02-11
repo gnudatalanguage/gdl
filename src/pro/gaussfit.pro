@@ -33,6 +33,7 @@ FUNCTION GAUSSFIT, x, y, a, $
     SIGMA=sigma, $
     YERROR=yerror
 
+compile_opt idl2, hidden
   ON_ERROR,2              ;Return to caller IF error
 
   return,mpfitpeak (x, y, a, estimates=est, nterms=nterms, /gauss, $

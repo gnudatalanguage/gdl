@@ -9,6 +9,9 @@ function READ_TIFF, filename, r, g, b, channels=channels, $
                     photoshop=photoshop, planarconfig=planarconfig, $
                     sub_rect=sub_rect, verbose=verbose
 
+
+compile_opt hidden, idl2
+
 ON_ERROR, 2
 
 if TIFF_EXISTS() eq 0 then begin

@@ -17,6 +17,6 @@
 ;---------------------------------------------------------------------------
 Function IDL_CONTAINER
 
-   Compile_Opt hidden
+   Compile_Opt idl2,hidden
    return, obj_new('idl_container')
 END  

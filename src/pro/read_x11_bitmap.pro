@@ -52,7 +52,11 @@
 ;
 PRO READ_X11_BITMAP, filename, bitmap , X, Y , expand_to_bytes=expand
 ;
+
+compile_opt hidden, idl2
+
 ON_ERROR, 2
+
 ;
 ; this line allows to compile also in IDL ...
 FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ

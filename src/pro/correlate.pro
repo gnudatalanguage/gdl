@@ -11,6 +11,8 @@
 ;
 function CORRELATE, x, y, covariance=covariance, double=double
 ;
+compile_opt idl2, hidden
+
 ON_ERROR, 2
 ;
 if N_PARAMS() eq 2 then begin
