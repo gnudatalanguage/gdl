@@ -316,85 +316,104 @@ unsigned long int Str2UL( const string& s, int base)
   const char* cStart = s.c_str();
   return Str2UL( cStart, base);
 }
-void WordExp( std::string& s)
+#ifdef _WIN32
+
+void WordExp(std::string& s)
 {
+  if (s.length() == 0) return;
+  bool trace_me = false;
 
-	bool trace_me = false; //lib::trace_arg();
+  string sEsc = "";
+  int ipos = 0;
+  if (s[ipos] == '~') {
+    char* homeDir = getenv("HOME");
+    ipos++;
+    if (homeDir == NULL) homeDir = getenv("HOMEPATH");
 
-//AC 2018-04-25 : because crash of :
-// openr, unit, '', ERROR=error,/get_lun
-
-	if (s.length() == 0) return;
-
-    string sEsc="";
-     int ipos=0;
-#ifdef _WIN32
-     if( s[0] == '~')
-       {
- 	char* homeDir = getenv( "HOME");
- 	ipos++;
- 	if( homeDir == NULL) homeDir = getenv("HOMEPATH");
-
- 	if( homeDir != NULL)
- 	    sEsc = string( homeDir) + "/";
-       }
-     for( int i=ipos; i<s.length(); ++i)
-     {
-		char achar = s[i];
-#else
-     for( int i=ipos; i<s.length(); ++i)
-     {
-       char achar = s[i];
-       if( achar == ' ')
-   	sEsc += string("\\ ");
-       else if( achar == '\\') {
-		if( (i+1)<s.length()){
-		  if( s[i+1] == ' ') {
-   	    sEsc += string("\\ ");
-   	    ++i;
-   	  }
-   	}	  
-         }
-       else
- #endif
-        if( achar != '$')  sEsc.push_back(achar);
-       else { // $
-   
-			string name = "";
-			for( int ind=i+1; i<s.length(); ++ind)  {
-				char tchar = s[ind];
-				if(tchar == ' ' or tchar == '/' or 
-						tchar == '\\' or tchar == ':') break;
-				name.push_back(tchar);
-				}
-			char* subst = getenv(name.c_str());
-			if( subst != NULL) {
-					sEsc += string(subst);
-						i += name.length();
-					} else sEsc.push_back(achar);
-	   }
-     }
-	if(trace_me) 
-		cout << "WordExp  in: " << s 
-			<< " -(modified original)- WordExp esc: " << sEsc << endl;
-#ifdef _WIN32
-	s = sEsc;
+    if (homeDir != NULL)
+      sEsc = string(homeDir) + "/";
+  }
+  for (int i = ipos; i < s.length(); ++i) {
+    char achar = s[i];
+    if (achar != '$') sEsc.push_back(achar);
+    else { // $
+      string name = "";
+      for (int ind = i + 1; i < s.length(); ++ind) {
+        char tchar = s[ind];
+        if (tchar == ' ' or tchar == '/' or
+          tchar == '\\' or tchar == ':') break;
+        name.push_back(tchar);
+      }
+      char* subst = getenv(name.c_str());
+      if (subst != NULL) {
+        sEsc += string(subst);
+        i += name.length();
+      } else sEsc.push_back(achar);
+    }
+  }
+  if (trace_me) cout << "WordExp  in: " << s << " -(modified original)- WordExp esc: " << sEsc << endl;
+  s = sEsc;
+}
 #endif
-#if (!defined(__OpenBSD__) && !defined(_WIN32)) 
 
+#ifndef _WIN32
+
+void WordExp(std::string& s)
+{
+  //AC 2018-04-25 : because crash of :  // openr, unit, '', ERROR=error,/get_lun
+  if (s.length() == 0) return;
+  bool trace_me = false; //lib::trace_arg();
+
+  string sEsc = "";
+  int ipos = 0;
+  // escape blanks
+  for (int i = ipos; i < s.length(); ++i) {
+    char achar = s[i];
+    if (achar == ' ') sEsc += string("\\ ");
+    else if (achar == '\\') {
+      if ((i + 1) < s.length()) {
+        if (s[i + 1] == ' ') {
+          sEsc += string("\\ ");
+          ++i;
+        }
+      }
+    }
+#ifdef __OpenBSD__
+      //in the case of OpenBSD, try to expand at least simple things like $HOME as we do not have wordexp() available.
+    else if (achar != '$') sEsc.push_back(achar);
+    else { // $
+      string name = "";
+      for (int ind = i + 1; i < s.length(); ++ind) {
+        char tchar = s[ind];
+        if (tchar == ' ' or tchar == '/' or tchar == '\\' or tchar == ':') break;
+        name.push_back(tchar);
+      }
+      char* subst = getenv(name.c_str());
+      if (subst != NULL) {
+        sEsc += string(subst);
+        i += name.length();
+      } else sEsc.push_back(achar);
+    }
+  }
+#else 
+    else sEsc.push_back(achar);
+  }
+  //after blank escaping we refer to wordexp to manage the (eventually complicated) expansions.    
   wordexp_t p;
-  int ok0 = wordexp( sEsc.c_str(), &p, 0);
-  if(ok0 == 0) {
-	   s=p.we_wordv[0];
-      
-#  if defined(__APPLE__)
-      p.we_offs = 0;
-#  endif
-      wordfree( &p);
+  std::cerr<<sEsc<<std::endl;
+  int ok0 = wordexp(sEsc.c_str(), &p, WRDE_NOCMD);
+  if (ok0 == 0) {
+    if (p.we_wordv[0] !=NULL) s=std::string(p.we_wordv[0]);
+#if defined(__APPLE__)
+    p.we_offs = 0;
+#endif
+    wordfree(&p);
   }
 #endif
-  //cout << "WordExp out: " << s << endl;
+  if (trace_me) cout << "WordExp  in: " << s << " -(modified original)- WordExp esc: " << sEsc << endl;
 }
+
+#endif //not def WIN32
 
 #if defined (_WIN32)
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH) 
