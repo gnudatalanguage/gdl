@@ -113,7 +113,8 @@
 ;   - just a warning when array clearly not monotoneous (results are
 ;     not OK)
 ;   - few type conversions/test ...
-;
+; GD 09 Jan 2020: use a faster method for the check and use
+; scope_varname for retrieving the caller's name of the non monotonous array.
 ;-
 ; Copyright (C) 2006, richard schwartz
 ; This software is provided as is without any warranty whatsoever.
@@ -208,14 +209,14 @@ type_u=SIZE(u,/type)
 if ((type_u EQ 8) or (type_u EQ 10) or (type_u EQ 11)) then $
    MESSAGE, 'Second variable : '+SIZE(u,/tname)+' not allowed in this context.'
 ;
-; warning if array is not monotomeous (GDL extension)
+; warning if array is not monotonous (GDL extension)
 ;
 if N_ELEMENTS(x) GT 1 then begin
    diff=x-SHIFT(x,1)
-   maxi=MAX(diff[1:*])
-   mini=MIN(diff[1:*])
+   maxi=MAX(diff[1:*],min=mini)
    if (maxi*mini LT 0.0) then begin
-      txt='Warning : input array is NOT monotonically increasing or decreasing'
+      varnamewas=scope_varname(x,level=-1)
+      txt='Warning : input array "'+varnamewas+'" is NOT monotonically increasing or decreasing'
       MESSAGE,/continue, txt
    endif
 endif
