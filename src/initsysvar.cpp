@@ -53,7 +53,7 @@ namespace SysVar
 
 
   // the index of some system variables
-  UInt nullIx, trueIx, falseIx, pathIx, promptIx, edit_inputIx, quietIx,
+  UInt nullIx, trueIx, falseIx, pathIx, promptIx, edit_inputIx, quietIx, moreIx,
     dIx, pIx, xIx, yIx, zIx, vIx, gdlWarningIx, gdlIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
     journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx,
@@ -422,6 +422,12 @@ namespace SysVar
     DVar *quiet=new DVar( "QUIET", quietData);
     quietIx=sysVarList.size();
     sysVarList.push_back(quiet);
+    
+    // !MORE
+    DIntGDL* moreData=new DIntGDL( 1);
+    DVar *more=new DVar( "MORE", moreData);
+    moreIx=sysVarList.size();
+    sysVarList.push_back(more);
 
     // !C
     DLongGDL* cData=new DLongGDL( 0);
