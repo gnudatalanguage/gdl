@@ -400,7 +400,7 @@ void WordExp(std::string& s)
   }
   //after blank escaping we refer to wordexp to manage the (eventually complicated) expansions.    
   wordexp_t p;
-  std::cerr<<sEsc<<std::endl;
+// std::cerr<<sEsc<<std::endl;
   int ok0 = wordexp(sEsc.c_str(), &p, WRDE_NOCMD);
   if (ok0 == 0) {
     if (p.we_wordv[0] !=NULL) s=std::string(p.we_wordv[0]);
