@@ -6817,118 +6817,112 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     return p0->Rebin( resDim, sample);
   }
 
-  BaseGDL* obj_class( EnvT* e)
+  BaseGDL* obj_class(EnvT* e)
   {
     SizeT nParam = e->NParam();
 
-    static int countIx = e->KeywordIx( "COUNT");
-    static int superIx = e->KeywordIx( "SUPERCLASS");
+    static int countIx = e->KeywordIx("COUNT");
+    static int superIx = e->KeywordIx("SUPERCLASS");
 
-    bool super = e->KeywordSet( superIx);
+    bool super = e->KeywordSet(superIx);
 
-    bool count = e->KeywordPresent( countIx);
-    if( count)
-      e->AssureGlobalKW( countIx);
+    bool count = e->KeywordPresent(countIx);
+    if (count)
+      e->AssureGlobalKW(countIx);
 
-    if( nParam > 0)
-      {
-    BaseGDL* p0 = e->GetParDefined( 0);
+    if (nParam > 0) {
+      BaseGDL* p0 = e->GetParDefined(0);
 
-    if( p0->Type() != GDL_STRING && p0->Type() != GDL_OBJ)
-      e->Throw( "Argument must be a scalar object reference or string: "+
-            e->GetParString(0));
+      if (p0->Type() != GDL_STRING && p0->Type() != GDL_OBJ)
+        e->Throw("Argument must be a scalar object reference or string: " +
+        e->GetParString(0));
 
-    if( !p0->Scalar())
-      e->Throw( "Expression must be a scalar or 1 element "
-            "array in this context: "+e->GetParString(0));
+      if (!p0->Scalar())
+        e->Throw("Expression must be a scalar or 1 element "
+        "array in this context: " + e->GetParString(0));
 
-    DStructDesc* objDesc;
+      DStructDesc* objDesc;
 
-    if( p0->Type() == GDL_STRING)
-      {
+      if (p0->Type() == GDL_STRING) {
         DString objName;
-        e->AssureScalarPar<DStringGDL>( 0, objName);
-        objName = StrUpCase( objName);
+        e->AssureScalarPar<DStringGDL>(0, objName);
+        objName = StrUpCase(objName);
 
-        objDesc = FindInStructList( structList, objName);
-        if( objDesc == NULL)
-          {
-        if( count)
-          e->SetKW( countIx, new DLongGDL( 0));
-        return new DStringGDL( "");
-          }
-      }
-    else // GDL_OBJ
+        objDesc = FindObjectInStructList(structList, objName);
+        if (objDesc == NULL) {
+          if (count)
+            e->SetKW(countIx, new DLongGDL(0));
+          return new DStringGDL("");
+        }
+      } else // GDL_OBJ
       {
         DObj objRef;
-        e->AssureScalarPar<DObjGDL>( 0, objRef);
+        e->AssureScalarPar<DObjGDL>(0, objRef);
 
-        if( objRef == 0)
-          {
-        if( count)
-          e->SetKW( countIx, new DLongGDL( 0));
-        return new DStringGDL( "");
-          }
+        if (objRef == 0) {
+          if (count)
+            e->SetKW(countIx, new DLongGDL(0));
+          return new DStringGDL("");
+        }
 
         DStructGDL* oStruct;
         try {
-          oStruct = e->GetObjHeap( objRef);
+          oStruct = e->GetObjHeap(objRef);
+        }        catch (GDLInterpreter::HeapException&) { // non valid object
+          if (count)
+            e->SetKW(countIx, new DLongGDL(0));
+          return new DStringGDL("");
         }
-        catch ( GDLInterpreter::HeapException& )
-          { // non valid object
-        if( count)
-          e->SetKW( countIx, new DLongGDL( 0));
-        return new DStringGDL( "");
-          }
 
         objDesc = oStruct->Desc(); // cannot be NULL
       }
 
-    if( !super)
-      {
-        if( count)
-          e->SetKW( countIx, new DLongGDL( 1));
-        return new DStringGDL( objDesc->Name());
-      }
-    
-    vector< string> pNames;
-    objDesc->GetParentNames( pNames);
-
-    SizeT nNames = pNames.size();
-        
-    if( count)
-      e->SetKW( countIx, new DLongGDL( nNames));
-
-    if( nNames == 0)
-      {
-        return new DStringGDL( "");
+      if (!super) {
+        if (count)
+          e->SetKW(countIx, new DLongGDL(1));
+        return new DStringGDL(objDesc->Name());
       }
 
-    DStringGDL* res = new DStringGDL( dimension( nNames), 
-                      BaseGDL::NOZERO);
+      vector< string> pNames;
+      objDesc->GetParentNames(pNames);
 
-    for( SizeT i=0; i<nNames; ++i)
-      {
+      SizeT nNames = pNames.size();
+
+      if (count)
+        e->SetKW(countIx, new DLongGDL(nNames));
+
+      if (nNames == 0) {
+        return new DStringGDL("");
+      }
+
+      DStringGDL* res = new DStringGDL(dimension(nNames),
+        BaseGDL::NOZERO);
+
+      for (SizeT i = 0; i < nNames; ++i) {
         (*res)[i] = pNames[i];
       }
-    
-    return res;
-      }
 
-    if( super)
-      e->Throw( "Conflicting keywords.");
-    
+      return res;
+    }
+
+    if (super)
+      e->Throw("Conflicting keywords.");
+
     vector< string> objNames;
     for (SizeT i = 0; i < structList.size(); ++i) {
       if ((structList[i]->FunList().size() + structList[i]->ProList().size()) == 0) continue;
       objNames.push_back(structList[i]->Name());
     }
     SizeT nObj = objNames.size();
+    if (count) e->SetKW(countIx, new DLongGDL(nObj));
     if (nObj > 0) {
       DStringGDL* res = new DStringGDL(dimension(nObj), BaseGDL::NOZERO);
-      for( SizeT i=0; i<nObj; ++i)   {   (*res)[i] = objNames[i];      }
+
+      for (SizeT i = 0; i < nObj; ++i) {
+        (*res)[i] = objNames[i];
+      }
       return res;
-    } else return new DStringGDL(""); 
+    } else return new DStringGDL("");
   }
  BaseGDL* obj_hasmethod( EnvT* e)
   {

@@ -304,6 +304,7 @@ public:
 };
 
 DStructDesc* FindInStructList(StructListT, const std::string& name);
+DStructDesc* FindObjectInStructList(StructListT, const std::string& name);
 
 // actually holding the data **********************************************
 // class DStructGDL see dstructgdl.hpp
