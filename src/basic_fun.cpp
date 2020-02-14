@@ -6923,6 +6923,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
       }
       return res;
     } else return new DStringGDL("");
+
   }
  BaseGDL* obj_hasmethod( EnvT* e)
   {
