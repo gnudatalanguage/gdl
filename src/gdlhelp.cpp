@@ -23,6 +23,7 @@
  ***************************************************************************/
 
 #include "includefirst.hpp"
+#include "terminfo.hpp" 
 
 #include <sys/types.h>
 
@@ -613,10 +614,11 @@ BaseGDL* recall_commands( EnvT* e)
         if (!doIndentation) ostr << "= ";
         doTypeString = false;
 
-        // trim string larger than 45 characters
+        // trim string larger than $COLUMNS- characters
         DString dataString = (*static_cast<DStringGDL*> (par))[0];
-        ostr << "'" << StrMid(dataString, 0, 45, 0) << "'";
-        if (dataString.length() > 45) ostr << "...";
+        int ncols=max(39,TermWidth()-12-29); //29 as this is the position where the string is writte, 11 for '... plus blank on rght
+        ostr << "'" << StrMid(dataString, 0,ncols, 0) << "'";
+        if (dataString.length() > ncols) ostr << "...";
       } else if (par->Type() == GDL_OBJ && par->StrictScalar()) {
         DObj s = (*static_cast<DObjGDL*> (par))[0]; // is StrictScalar()
         if (s != 0) // no overloads for null object
