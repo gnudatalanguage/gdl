@@ -914,7 +914,7 @@ void help_help(EnvT* e)
         ostrp->width(20);
         *ostrp << right << structList[i]->Name() << endl;
       }
-      help_Output(outputKW, ostr, OutputLines);
+      help_Output(outputKW, ostr, OutputLines, false);
       return;
     }
 
