@@ -143,49 +143,28 @@ namespace lib {
 #endif
   }
 
-  // control !GDL settings
-  void gdl_config_pro(EnvT* e) {
-    
-    static int wxIx = e->KeywordIx("GDL_USE_WX");
-    static int dsfmtIx = e->KeywordIx("GDL_NO_DSFMT");
-    static int mapqualityIx = e->KeywordIx("MAP_QUALITY");
-    bool setWX = e->KeywordSet(wxIx);
-    bool setDSFMT = e->KeywordSet(dsfmtIx);
-    bool setMapQual = e->KeywordSet(mapqualityIx);
-
-    if (setDSFMT) {
-      DByteGDL* no_dsfmt= e->GetKWAs<DByteGDL>(dsfmtIx);
-      //e->AssureScalarKW<DByteGDL>(dsfmtIx, no_dsfmt);
-      //      cout << (int)no_dsfmt << endl;
-      DStructGDL* gdlconfig = SysVar::GDLconfig();
-      static unsigned  NoDSFMTTag= gdlconfig->Desc()->TagIndex("GDL_NO_DSFMT");
-      (*static_cast<DByteGDL*> (gdlconfig->GetTag(NoDSFMTTag, 0)))[0]=(*no_dsfmt)[0];
-    }
-    
-    if (setMapQual) {
-      DString mapname;
-      e->AssureStringScalarKW(mapqualityIx, mapname);
-      cout << mapname.c_str() << endl;
-      StrUpCaseInplace(mapname);
-      
-      // list of possible values ...
-      vector <string> map_quality;
-      map_quality.push_back("CRUDE"); 
-      map_quality.push_back("LOW"); 
-      map_quality.push_back("INTERMEDIATE"); 
-      map_quality.push_back("HIGH"); 
-      map_quality.push_back("FULL"); 
-
-      for (int i=0; i<map_quality.size(); i++) {
-	if (mapname.compare(map_quality[i]) == 0) {
-	  DStructGDL* gdlconfig = SysVar::GDLconfig();
-	  static unsigned MapQualityTag = gdlconfig->Desc()->TagIndex("MAP_QUALITY");
-	  (*static_cast<DStringGDL*> (gdlconfig->GetTag(MapQualityTag, 0)))[0] =mapname;
-	  break;
-	}
-      }
-    }
-  }
+//  // Was supposed to control some !GDL settings
+  // Should not work as dSFMT initialization cannot be done 'at will' yet.
+  // Neither use of WX widgets. This is too far away from how IDL works.
+//  void gdl_config_pro(EnvT* e) {
+//    
+//    static int wxIx = e->KeywordIx("GDL_USE_WX");
+//    static int dsfmtIx = e->KeywordIx("GDL_NO_DSFMT");
+//    static int mapqualityIx = e->KeywordIx("MAP_QUALITY");
+//    bool setWX = e->KeywordSet(wxIx);
+//    bool setDSFMT = e->KeywordSet(dsfmtIx);
+//    bool setMapQual = e->KeywordSet(mapqualityIx);
+//
+//    if (setDSFMT) {
+//      DByteGDL* no_dsfmt= e->GetKWAs<DByteGDL>(dsfmtIx);
+//      //e->AssureScalarKW<DByteGDL>(dsfmtIx, no_dsfmt);
+//      //      cout << (int)no_dsfmt << endl;
+//      DStructGDL* gdlconfig = SysVar::GDLconfig();
+//      static unsigned  NoDSFMTTag= gdlconfig->Desc()->TagIndex("GDL_NO_DSFMT");
+//      (*static_cast<DByteGDL*> (gdlconfig->GetTag(NoDSFMTTag, 0)))[0]=(*no_dsfmt)[0];
+//    }
+//    
+//  }
   
   void exitgdl(EnvT* e) {
 

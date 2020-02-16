@@ -546,7 +546,7 @@ namespace SysVar
     // printf("seconds since the Epoch: %ld\n", (long) t_of_day);
 
     gdlStruct->NewTag("EPOCH", new DLongGDL((long) t_of_day));
-    gdlStruct->NewTag("GDL_NO_DSFMT", new DByteGDL(0));
+    gdlStruct->NewTag("GDL_USE_DSFMT", new DByteGDL(1));
     gdlStruct->NewTag("GDL_USE_WX", new DByteGDL(0));
 #ifdef _WIN32
     std::string use_posix=GetEnvString("GDL_USE_POSIX");
@@ -555,7 +555,6 @@ namespace SysVar
 #else
     gdlStruct->NewTag("GDL_POSIX", new DByteGDL(1));
 #endif
-    gdlStruct->NewTag("MAP_QUALITY", new DStringGDL("CRUDE"));
 
     DVar *gdl        = new DVar( "GDL", gdlStruct);
     gdlIx=sysVarList.size();

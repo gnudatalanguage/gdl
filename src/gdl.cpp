@@ -400,7 +400,16 @@ int main(int argc, char *argv[])
 
   
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
-
+  
+  //report in !GDL status struct
+  DStructGDL* gdlconfig = SysVar::GDLconfig();
+  unsigned  DSFMTTag= gdlconfig->Desc()->TagIndex("GDL_USE_DSFMT");
+  (*static_cast<DByteGDL*> (gdlconfig->GetTag(DSFMTTag, 0)))[0]=useDSFMTAcceleration;
+  
+  //same for use of wxwidgets
+  unsigned  useWXTAG= gdlconfig->Desc()->TagIndex("GDL_USE_WX");
+  (*static_cast<DByteGDL*> (gdlconfig->GetTag(useWXTAG, 0)))[0]=useWxWidgetsForGraphics;
+  
   SysVar::SetGDLPath( gdlPath);
   
   if (!pretendRelease.empty()) SysVar::SetFakeRelease(pretendRelease);
