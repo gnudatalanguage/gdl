@@ -28,6 +28,9 @@
 ;-
 
 function split_csv_line,line,separator=separator
+
+compile_opt idl2, hidden
+on_error,2
 ;useful values:
   comma=44b
   doublequote=34b
@@ -94,6 +97,10 @@ function read_csv, filename, count=count, header=header, missing_value=missval,$
                    types=types, $
                    separator=sep ; GDL only. Thanks, GDL.
 
+
+compile_opt hidden, idl2
+
+ON_ERROR, 2
   count=0L
   header=""
   tableHeader= ''

@@ -634,7 +634,7 @@ namespace lib {
 
     if( lun < -2 || lun > maxLun)
       throw GDLException( e->CallingNode(), 
-			  " File unit is not within allowed range.");
+			  " File unit is not within allowed range: "+i2s(lun)+".");
 
     SizeT size;
     bool big = false;
@@ -648,82 +648,70 @@ namespace lib {
       }
     }
 
-    DStructGDL* fstat;
-    if (big) fstat = new DStructGDL( "FSTAT64");
-    else fstat = new DStructGDL( "FSTAT");
+    DStructGDL* fileStatus;
+    if (big) fileStatus = new DStructGDL( "FSTAT64");
+    else fileStatus = new DStructGDL( "FSTAT");
    
-    fstat->InitTag("UNIT", DLongGDL( lun));
+    fileStatus->InitTag("UNIT", DLongGDL( lun));
 
-    if( lun == -2)
+    if( lun <= 0)
       {
-	fstat->InitTag("NAME", DStringGDL( "<stderr>"));
-	// fstat->InitTag("SIZE", DLongGDL( 0)); 
-	fstat->InitTag("OPEN", DByteGDL( 1)); 
-	fstat->InitTag("ISATTY", DByteGDL( 1)); 
-	// fstat->InitTag("ISAGUI", DByteGDL( 0)); 
-	fstat->InitTag("INTERACTIVE", DByteGDL( 1)); 
-	// fstat->InitTag("XDR", DByteGDL( 0)); 
-	// fstat->InitTag("COMPRESS", DByteGDL( 0)); 
-	// fstat->InitTag("READ", DByteGDL( 0)); 
-	fstat->InitTag("WRITE", DByteGDL( 1)); 
-      }
-    else if( lun == -1)
-      {
-	fstat->InitTag("NAME", DStringGDL( "<stdout>"));
-	// fstat->InitTag("SIZE", DLongGDL( 0)); 
-	fstat->InitTag("OPEN", DByteGDL( 1)); 
-	fstat->InitTag("ISATTY", DByteGDL( 1)); 
-	// fstat->InitTag("ISAGUI", DByteGDL( 0)); 
-	fstat->InitTag("INTERACTIVE", DByteGDL( 1)); 
-	// fstat->InitTag("XDR", DByteGDL( 0)); 
-	// fstat->InitTag("COMPRESS", DByteGDL( 0)); 
-	// fstat->InitTag("READ", DByteGDL( 0)); 
-	fstat->InitTag("WRITE", DByteGDL( 1)); 
-      }
-    else if( lun == 0)
-      {
-	fstat->InitTag("NAME", DStringGDL( "<stdin>"));
-	// fstat->InitTag("SIZE", DLongGDL( 0)); 
-	fstat->InitTag("OPEN", DByteGDL( 1)); 
-	fstat->InitTag("ISATTY", DByteGDL( 1)); 
-	// fstat->InitTag("ISAGUI", DByteGDL( 0)); 
-	fstat->InitTag("INTERACTIVE", DByteGDL( 1)); 
-	// fstat->InitTag("XDR", DByteGDL( 0)); 
-	// fstat->InitTag("COMPRESS", DByteGDL( 0)); 
-	fstat->InitTag("READ", DByteGDL( 1)); 
-	// fstat->InitTag("WRITE", DByteGDL( 0)); 
+        std::string names[3]={"<stdin>","<stdout>","<stderr>"};
+        int rval[3]={1,0,0};
+	struct stat buffer;
+	int status = fstat(-lun, &buffer);
+	fileStatus->InitTag("NAME", DStringGDL( names[-lun]));
+	fileStatus->InitTag("OPEN", DByteGDL( 1 )); 
+        DByte isatty=((buffer.st_mode & S_IFMT) == S_IFCHR);
+	fileStatus->InitTag("ISATTY", DByteGDL( isatty )); 
+	fileStatus->InitTag("ISAGUI", DByteGDL( 0)); 
+	fileStatus->InitTag("INTERACTIVE", DByteGDL( isatty ));
+//	fileStatus->InitTag("XDR", DByteGDL( 0 )); 
+//	fileStatus->InitTag("COMPRESS",DByteGDL( 0 ));
+	fileStatus->InitTag("READ", DByteGDL( rval[-lun] )); 
+	fileStatus->InitTag("WRITE", DByteGDL( rval[-lun]==0 )); 
+	fileStatus->InitTag("ATIME", DLong64GDL( buffer.st_atime)); 
+	fileStatus->InitTag("CTIME", DLong64GDL( buffer.st_ctime)); 
+	fileStatus->InitTag("MTIME", DLong64GDL( buffer.st_mtime));  
+//	fileStatus->InitTag("TRANSFER_COUNT", DLongGDL( 0 ));
+//	fileStatus->InitTag("CUR_PTR", DLongGDL( 0 ));
+//	fileStatus->InitTag("SIZE", DLongGDL( 0 ));
+//	fileStatus->InitTag("REC_LEN", DLongGDL( 0 ));
       }
     else
       { // normal file
 	GDLStream& actUnit = fileUnits[ lun-1];
 
 	if( !actUnit.IsOpen()) 
-	  return fstat; // OPEN tag is init to zero (SpDByte::GetInstance())
+	  return fileStatus; // OPEN tag is init to zero (SpDByte::GetInstance())
 
 	struct stat buffer;
 	int status = stat(actUnit.Name().c_str(), &buffer);
 
-	fstat->InitTag("NAME", DStringGDL( actUnit.Name()));
-	if (big) fstat->InitTag("SIZE", DLong64GDL( buffer.st_size));//size)); 
-	else fstat->InitTag("SIZE", DLongGDL( buffer.st_size));//size));
-	fstat->InitTag("OPEN", DByteGDL( 1)); 
-	// fstat->InitTag("ISATTY", DByteGDL( 0)); 
-	// fstat->InitTag("ISAGUI", DByteGDL( 0)); 
-	// fstat->InitTag("INTERACTIVE", DByteGDL( 0)); 
-	// fstat->InitTag("COMPRESS", DByteGDL( 0)); 
-
-	fstat->InitTag("COMPRESS",DByteGDL( actUnit.Compress()));
-
-	fstat->InitTag("READ", DByteGDL( actUnit.IsReadable()?1:0)); 
-	fstat->InitTag("WRITE", DByteGDL( actUnit.IsWriteable()?1:0)); 
-	fstat->InitTag("ATIME", DLong64GDL( buffer.st_atime)); 
-	fstat->InitTag("CTIME", DLong64GDL( buffer.st_ctime)); 
-	fstat->InitTag("MTIME", DLong64GDL( buffer.st_mtime));  
-	if (big) fstat->InitTag("CUR_PTR", DLong64GDL( actUnit.Tell()));
-	else fstat->InitTag("CUR_PTR", DLongGDL( actUnit.Tell()));
+	fileStatus->InitTag("NAME", DStringGDL( actUnit.Name()));
+	fileStatus->InitTag("OPEN", DByteGDL( 1)); 
+	if (big) fileStatus->InitTag("SIZE", DLong64GDL( buffer.st_size));//size)); 
+	else fileStatus->InitTag("SIZE", DLongGDL( buffer.st_size));//size));
+        DByte isatty=((buffer.st_mode & S_IFMT) == S_IFCHR);
+	fileStatus->InitTag("ISATTY", DByteGDL( isatty )); 
+	fileStatus->InitTag("ISAGUI", DByteGDL( 0)); 
+	fileStatus->InitTag("INTERACTIVE", DByteGDL( isatty )); 
+	fileStatus->InitTag("XDR", DByteGDL( (actUnit.Xdr()==NULL)?0:1)); 
+	fileStatus->InitTag("COMPRESS",DByteGDL( actUnit.Compress()));
+	fileStatus->InitTag("READ", DByteGDL( actUnit.IsReadable()?1:0)); 
+	fileStatus->InitTag("WRITE", DByteGDL( actUnit.IsWriteable()?1:0)); 
+	fileStatus->InitTag("ATIME", DLong64GDL( buffer.st_atime)); 
+	fileStatus->InitTag("CTIME", DLong64GDL( buffer.st_ctime)); 
+	fileStatus->InitTag("MTIME", DLong64GDL( buffer.st_mtime));  
+//	fileStatus->InitTag("TRANSFER_COUNT", DLongGDL( 0 ));
+	if (big) fileStatus->InitTag("CUR_PTR", DLong64GDL( actUnit.Tell()));
+	else fileStatus->InitTag("CUR_PTR", DLongGDL( actUnit.Tell()));
+	if (big) fileStatus->InitTag("SIZE", DLong64GDL( buffer.st_size ));
+        else  fileStatus->InitTag("SIZE", DLongGDL( buffer.st_size ));
+//	fileStatus->InitTag("REC_LEN", DLongGDL( 0 ));
       }
 
-    return fstat;
+    return fileStatus;
   }
   
   template<typename T>

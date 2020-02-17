@@ -255,14 +255,14 @@ void Message(const string& s)
 {
   if( SysVar::Quiet() == 0)
     {
-      cout << SysVar::MsgPrefix() << s << endl; 
+      cerr << SysVar::MsgPrefix() << s << endl; 
       lib::write_journal_comment( SysVar::MsgPrefix() + s);
     }
 } 
 
 void Warning(const std::string& s) 
 {
-  cout << SysVar::MsgPrefix() << s << endl; 
+  cerr << SysVar::MsgPrefix() << s << endl; 
   lib::write_journal_comment( SysVar::MsgPrefix() + s);
 } 
 

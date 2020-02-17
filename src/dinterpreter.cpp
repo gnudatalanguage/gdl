@@ -1714,6 +1714,7 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
   // http://www.delorie.com/gnu/docs/readline/rlman.html
   char rlName[] = "GDL";
   rl_readline_name = rlName;
+  rl_outstream = stderr;
   //Our handler takes too long
   //when editing the command line with ARROW keys. (bug 562). (used also in gdl.cpp)
   //but... without it we have no graphics event handler! FIXME!!!

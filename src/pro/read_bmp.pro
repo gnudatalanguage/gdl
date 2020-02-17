@@ -47,6 +47,9 @@
 ;
 function READ_BMP, filename, red, green, blue, rgb=rgb, $
                    help=help, test=test, verbose=verbose
+
+compile_opt idl2, hidden
+
 ;
 ON_ERROR, 2
 ;

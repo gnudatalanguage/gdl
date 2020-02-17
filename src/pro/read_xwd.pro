@@ -41,6 +41,9 @@ function READ_XWD, filename, red, green, blue
 ;
 ;-
 ;
+
+compile_opt hidden, idl2
+
 ON_ERROR, 2
 ;
 ; this line allows to compile also in IDL ...

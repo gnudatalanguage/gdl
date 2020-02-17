@@ -66,7 +66,10 @@
 ;-
 
 function UNIQ, arr, index
-  on_error, 2
+
+compile_opt hidden, idl2
+
+ON_ERROR, 2
 
   nEl = n_elements( arr)
   if nEl le 1 then return,0

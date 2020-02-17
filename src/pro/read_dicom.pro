@@ -66,6 +66,11 @@ function read_dicom, filename, red, green, blue, image_index=image_index
 ;
 ;
 ;-
+
+compile_opt hidden, idl2
+
+ON_ERROR, 2
+
 f=filename
 if(keyword_set(IMAGE_INDEX)) then f=filename+"["+string(IMAGE_INDEX)+"]"
 

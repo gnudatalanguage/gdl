@@ -5,6 +5,9 @@ pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $
                true=true, two_pass_quantize=two_pass_quantize, $
                help=help, test=test, debug=debug
 ;
+
+compile_opt hidden, idl2
+
 ON_ERROR, 2
 ;+
 ;
