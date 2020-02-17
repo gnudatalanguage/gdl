@@ -1,7 +1,11 @@
 ;$Id: read_pict.pro,v 1.4 2012-08-14 14:21:37 alaingdl Exp $
 
 pro read_pict, filename, image,red, green, blue
-  on_error, 2
+
+compile_opt hidden, idl2
+
+ON_ERROR, 2
+
 ;+
 ;
 ;

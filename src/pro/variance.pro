@@ -53,6 +53,9 @@ function VARIANCE, x, double=double, NaN=NaN, dimension=dimension
 ;
 ;-
 ;
+
+compile_opt hidden, idl2
+
 ON_ERROR, 2
 ;
 tmp = MOMENT(x, variance=variance, double=double, NaN=NaN, $

@@ -59,7 +59,13 @@ DStructDesc* FindInStructList(StructListT v, const string& s)
   if( f == v.end()) return NULL;
   return *f;
 }
-
+DStructDesc* FindObjectInStructList(StructListT v, const string& s)
+{
+  StructListT::iterator f=find_if(v.begin(),v.end(),DStruct_eq(s));
+  if( f == v.end()) return NULL;
+  if (((*f)->FunList().size() + (*f)->ProList().size()) == 0) return NULL;
+  return *f;
+}
   bool DStructBase::ContainsStringPtrObject()
   {
    for( SizeT t=0; t<tags.size(); ++t)

@@ -3,6 +3,9 @@
 ;
 function QUERY_IMAGE, filename, info, _ref_extra=ex
 ;
+
+compile_opt idl2, hidden
+
 ON_ERROR, 2
 ;
 ; Do we have access to ImageMagick functionnalities ??

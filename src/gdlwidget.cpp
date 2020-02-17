@@ -3368,7 +3368,7 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style,
   
   wxListBox * list = new wxListBox( gdlParent->GetPanel( ), widgetID, wxPoint( xOffset, yOffset ),
   computeWidgetSize( ),
-  choices, style|wxLB_NEEDED_SB );
+  choices, style|wxLB_NEEDED_SB|wxLB_MULTIPLE );
   this->wxWidget = list;
 
   list->Connect(widgetID,wxEVT_COMMAND_LISTBOX_DOUBLECLICKED,wxCommandEventHandler(GDLFrame::OnListBoxDoubleClicked));

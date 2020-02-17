@@ -188,6 +188,7 @@ TESTS = \
   test_qromo.pro \
   test_random.pro \
   test_readf.pro \
+  test_readf_with_crlf.pro \
   test_reads.pro \
   test_rebin.pro \
   test_resolve_routine.pro \

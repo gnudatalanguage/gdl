@@ -273,6 +273,10 @@ public:
 	pNames.push_back( parent[i]->Name());
       }
   }
+  
+  int GetNumberOfParents(){
+   return parent.size();
+  }
 
   void AssureIdentical( DStructDesc* d);
   //  DStructDesc* FindEqual( const StructListT& sL);
@@ -300,6 +304,7 @@ public:
 };
 
 DStructDesc* FindInStructList(StructListT, const std::string& name);
+DStructDesc* FindObjectInStructList(StructListT, const std::string& name);
 
 // actually holding the data **********************************************
 // class DStructGDL see dstructgdl.hpp

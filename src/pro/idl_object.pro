@@ -16,6 +16,7 @@
 ;---------------------------------------------------------------------------
 Function IDL_OBJECT
 
-   Compile_Opt hidden
+   compile_opt idl2, hidden
+
    return, obj_new('idl_object')
 END  

@@ -45,6 +45,9 @@ function IDENTITY, n, double=double_keyword, help=help
 ; (at your option) any later version.                                   
 ;
 ;-
+
+compile_opt idl2, hidden
+
 ;
 ON_ERROR, 2
 ;

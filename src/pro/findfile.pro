@@ -60,7 +60,7 @@
 ;
 ; MODIFICATION HISTORY:
 ;   - 21/03/2006 written by Alain Coulais (ARSC)
-;
+;   - 12/01/2020 GD remove unnecessary annoying warning.
 ;-
 ; LICENCE:
 ; Copyright (C) 2006, Alain Coulais
@@ -77,10 +77,6 @@ function FINDFILE, filtre_, count=count, $
 ON_ERROR, 2
 ;
 ;
-if not(KEYWORD_SET(quiet)) then begin
-   print, 'This functionality is obsolete.'
-   print, 'You are adviced to use FILE_SEARCH() instead.'
-endif
 ;
 ; When nothing is found ...
 ;
