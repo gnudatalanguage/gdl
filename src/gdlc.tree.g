@@ -942,7 +942,7 @@ array_def returns [int depth]
             #aaa->SetArrayDepth(depth);
         }
 	;
-
+//note that IDL *compiles* the xxx__define.pro files given by a list of 'INHERITS xxx' entries *in reverse order*, starting from last encountered.
 struct_def
 {
     bool noTagName = false;
