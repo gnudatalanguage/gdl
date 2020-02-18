@@ -814,7 +814,7 @@ namespace lib {
        objName = GDL_CONTAINER_NAME;
     DStructDesc* objDesc=e->Interpreter()->GetStruct( objName, e->CallingNode());
 
-    DStructGDL* objStruct= new DStructGDL( objDesc, dimension());
+    DStructGDL* objStruct= new DStructGDL( objDesc, dimension(1));
 
     DObj objID= e->NewObjHeap( 1, objStruct); // owns objStruct
 

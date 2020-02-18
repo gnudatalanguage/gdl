@@ -458,12 +458,39 @@ static void help_heap_obj_ptr_head(EnvT* e, ostream& ostr)
   ostr << "    # Pointer: " << numPtr << std::endl;
   ostr << "    # Object : " << numObj << std::endl<<std::endl;
 }
-      
+
+static void help_mix_heap_and_obj(EnvT* e, ostream& ostr)
+{
+  std::vector<DObj>* objheap = e->Interpreter()->GetAllObjHeapSTL();
+  Guard< std::vector<DObj> > heap_objguard(objheap);
+  SizeT nobjH = objheap->size();
+  std::vector<DPtr>* heap = e->Interpreter()->GetAllHeapSTL();
+  Guard< std::vector<DPtr> > heap_guard(heap);
+  SizeT nH = heap->size();
+  SizeT tot=nH+nobjH;
+  if (tot <= 0) return;
+  for (SizeT h = 0; h < tot; ++h) {
+    if (e->Interpreter()->ObjValid(h))
+    {
+      BaseGDL* hV = BaseGDL::interpreter->GetObjHeap(h);
+      SizeT refc = BaseGDL::interpreter->RefCountHeapObj(h);
+      lib::help_item(ostr, hV, DString("<ObjHeapVar") + i2s(h) + ">  refcount=" + i2s(refc), false);
+    } else {
+      if (e->Interpreter()->PtrValid(h))
+      {
+        BaseGDL* hV = BaseGDL::interpreter->GetHeap(h);
+        SizeT refc = BaseGDL::interpreter->RefCountHeap(h);
+        lib::help_item(ostr, hV, DString("<PtrHeapVar") + i2s(h) + ">  refcount=" + i2s(refc), false);
+      }
+    }
+  }
+  return;
+}      
       
 static void help_heap_obj(EnvT* e, ostream& ostr)
 {
-  std::vector<DPtr>* objheap = e->Interpreter()->GetAllObjHeapSTL();
-  Guard< std::vector<DPtr> > heap_guard(objheap);
+  std::vector<DObj>* objheap = e->Interpreter()->GetAllObjHeapSTL();
+  Guard< std::vector<DObj> > heap_objguard(objheap);
   SizeT nH = objheap->size();
   if (nH <= 0 || (*objheap)[0] == 0) return;
   for (SizeT h = 0; h < nH; ++h) {
@@ -581,7 +608,7 @@ BaseGDL* recall_commands( EnvT* e)
     ostr.width(16);
     ostr << left << parString;
     if (parString.length() >= 16) {
-      ostr << " " << endl; // for cmsv compatible output (uses help,OUTPUT)
+      ostr << endl; // for cmsv compatible output (uses help,OUTPUT)
       ostr.width(doIndentation ? 19 : 16);
       ostr << "";
     }
@@ -879,8 +906,9 @@ void help_help(EnvT* e)
     if (e->KeywordSet(heapIx)) {
       help_heap_obj_ptr_head(e, *ostrp);
       if (briefKW) return;
-      help_heap_obj(e, *ostrp);
-      help_heap_ptr(e, *ostrp);
+      help_mix_heap_and_obj(e, *ostrp);
+//      help_heap_obj(e, *ostrp);
+//      help_heap_ptr(e, *ostrp);
       if (doOutput) (*outputKW) = StreamToGDLString(ostr, true);
       else SortAndPrintStream(ostr);
       return;
