@@ -310,6 +310,30 @@ namespace lib {
       { return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT); }
   }
   
+int TDMAsolver(int M, double a[], double b[], double c[], double d[], double x[])
+{
+    /* Tri Diagonal Matrix Algorithm(a.k.a Thomas algorithm) solver
+     TDMA solver, a b c d can be NumPy array type or Python list type.
+     refer to http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
+     */
+    double w;
+    int i;
+ 
+    for (i = 1; i < M; ++i)
+    {
+        w = a[i] / b[i - 1];
+        b[i] -= w *  c[i - 1];
+        d[i] -= w * d[i - 1];
+   }
+    x[M - 1] = d[M - 1] / b[M - 1];
+
+    for (i = M - 2; i >= 0; --i)
+    {
+        x[i] = (d[i] - c[i] * x[i + 1]) / b[i];
+ }
+    return 0;
+}
+ 
   BaseGDL* trisol_fun( EnvT* e) {
     
     // managing first input: Square Matrix
@@ -346,64 +370,25 @@ namespace lib {
 
     // computations are done in Double type, conversion at the end
     
-    DDoubleGDL *p0D = e->GetParAs<DDoubleGDL>(0);
-    gsl_vector *subd = gsl_vector_alloc(nEl-1);
-    GDLGuard<gsl_vector> g1(subd,gsl_vector_free);
-    memcpy(subd->data, &(*p0D)[1], (nEl-1)*szdbl);
-    
-    DDoubleGDL *p1D= e->GetParAs<DDoubleGDL>(1);// = static_cast<DDoubleGDL*>(p1);
-    gsl_vector *diag = gsl_vector_alloc(nEl);
-    GDLGuard<gsl_vector> g2(diag,gsl_vector_free);
-    memcpy(diag->data, &(*p1D)[0], nEl*szdbl);
-    
-    DDoubleGDL *p2D= e->GetParAs<DDoubleGDL>(2); // = static_cast<DDoubleGDL*>(p2);
-    gsl_vector *supd = gsl_vector_alloc(nEl-1);
-    GDLGuard<gsl_vector> g3(supd,gsl_vector_free);
-    memcpy(supd->data, &(*p2D)[0], (nEl-1)*szdbl);
-    
-    DDoubleGDL *p3D= e->GetParAs<DDoubleGDL>(3);// = static_cast<DDoubleGDL*>(p3);
-    gsl_vector *rhs = gsl_vector_alloc(nEl);
-    GDLGuard<gsl_vector> g4(rhs,gsl_vector_free);
-    memcpy(rhs->data, &(*p3D)[0], nEl*szdbl);
-    
-    gsl_vector *x = gsl_vector_alloc(nEl);
-    GDLGuard<gsl_vector> g5(x,gsl_vector_free); // x was NOT freed before
-    
-    // computation by GSL  
-    int error_code=-1;
-    error_code=gsl_linalg_solve_tridiag (diag, supd, subd, rhs, x);
-
-    if (error_code > 0)
-      Message( e->GetProName() + ": GSL did return an error. Is realy the matrix Pos. Define ?");
-  
-    int debug=0;
-    if (debug) {
-      gsl_vector_fprintf (stdout, diag, "diag: %g");
-      gsl_vector_fprintf (stdout, subd, "subd: %g");
-      gsl_vector_fprintf (stdout, supd, "supd: %g");
-      gsl_vector_fprintf (stdout, rhs, "rhs: %g");
-      gsl_vector_fprintf (stdout, x, "res: %g");
-    }
-    
-//     gsl_vector_free(diag);
-//     gsl_vector_free(subd);
-//     gsl_vector_free(supd);
-//     gsl_vector_free(rhs);
-//     x ???
-
-    int double_flag=0;
-    if (p0->Type() == GDL_DOUBLE || p1->Type() == GDL_DOUBLE) double_flag=1;
-    if (p2->Type() == GDL_DOUBLE || p3->Type() == GDL_DOUBLE) double_flag=1;
-    static int doubleIx=e->KeywordIx("DOUBLE");
-    if (e->KeywordSet(doubleIx)) double_flag=1;
-    
+    DDoubleGDL *p0D = e->GetParAs<DDoubleGDL>(0); //A
+    DDoubleGDL *p1D= e->GetParAs<DDoubleGDL>(1)->Dup();//B modified in call to TDMASolver
+    Guard<BaseGDL> g1(p1D);
+    DDoubleGDL *p2D= e->GetParAs<DDoubleGDL>(2);//C
+    DDoubleGDL *p3D= e->GetParAs<DDoubleGDL>(3)->Dup();//D idem
+    Guard<BaseGDL> g3(p3D);
     DDoubleGDL* res = new DDoubleGDL(nEl, BaseGDL::NOZERO);
-    memcpy(&(*res)[0], x->data, nEl*szdbl);
-    
-    if (double_flag)
-      {	return res; }
-    else
-      { return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT); }
+    TDMAsolver(nEl,(double*)p0D->DataAddr(),(double*)p1D->DataAddr(),(double*)p2D->DataAddr(),(double*)p3D->DataAddr(), (double*)res->DataAddr());
+    DLong double_flag=0;
+    static int doubleIx=e->KeywordIx("DOUBLE");
+    e->AssureLongScalarKWIfPresent(doubleIx,double_flag);
+    if (double_flag) {
+      return res;
+    } else {  
+      DFloatGDL* resf = new DFloatGDL(nEl, BaseGDL::NOZERO);
+      for (SizeT i=0; i< nEl; ++i) (*resf)[i]=(*res)[i];
+      Guard<BaseGDL> gres(res);
+      return resf;
+    }
   }
 }
 
