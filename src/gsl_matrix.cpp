@@ -316,10 +316,12 @@ namespace lib {
      TDMA solver, a b c d can be NumPy array type or Python list type.
      refer to http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
      */
+    if (b[0] == 0) return 1;
     double w;
     DLong i; //not SizeT as unsigned loops fail miserably with decrementing (--i)
 
     for (i = 1; i < M; ++i) {
+      if (b[i-1] == 0) return 1;
       w = a[i] / b[i - 1];
       b[i] -= w * c[i - 1];
       d[i] -= w * d[i - 1];
@@ -342,6 +344,7 @@ namespace lib {
     DLong i; //not SizeT as unsigned loops fail miserably with decrementing (--i)
 
     for (i = 1; i < M; ++i) {
+      if (b[i-1] == 0) return 1;
       w = a[i] / b[i - 1];
       b[i] -= w * c[i - 1];
       d[i] -= w * d[i - 1];
@@ -401,11 +404,19 @@ namespace lib {
     e->AssureLongScalarKWIfPresent(doubleIx,double_flag);
     if (double_flag) {
       DDoubleGDL* res = new DDoubleGDL(nEl, BaseGDL::NOZERO);
-      TDMAsolver8(nEl,(DDouble*)p0D->DataAddr(),(DDouble*)p1D->DataAddr(),(DDouble*)p2D->DataAddr(),(DDouble*)p3D->DataAddr(), (DDouble*)res->DataAddr());
+      int err=TDMAsolver8(nEl,(DDouble*)p0D->DataAddr(),(DDouble*)p1D->DataAddr(),(DDouble*)p2D->DataAddr(),(DDouble*)p3D->DataAddr(), (DDouble*)res->DataAddr());
+      if (err > 0) {
+        GDLDelete(res);
+        e->Throw("TRISOL: Error "+i2s(err)+" in tridag");
+      }
       return res;
     } else {  
       DFloatGDL* res = new DFloatGDL(nEl, BaseGDL::NOZERO);
-      TDMAsolver4(nEl,(DDouble*)p0D->DataAddr(),(DDouble*)p1D->DataAddr(),(DDouble*)p2D->DataAddr(),(DDouble*)p3D->DataAddr(), (DFloat*)res->DataAddr());
+      int err=TDMAsolver4(nEl,(DDouble*)p0D->DataAddr(),(DDouble*)p1D->DataAddr(),(DDouble*)p2D->DataAddr(),(DDouble*)p3D->DataAddr(), (DFloat*)res->DataAddr());
+      if (err > 0) {
+        GDLDelete(res);
+        e->Throw("TRISOL: Error "+i2s(err)+" in tridag");
+      }
       return res;
     }
   }
