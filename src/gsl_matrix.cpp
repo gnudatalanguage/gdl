@@ -309,30 +309,50 @@ namespace lib {
     else
       { return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT); }
   }
-  
-int TDMAsolver(int M, double a[], double b[], double c[], double d[], double x[])
-{
+
+  int TDMAsolver8(SizeT M, double a[], double b[], double c[], double d[], double x[])
+  {
     /* Tri Diagonal Matrix Algorithm(a.k.a Thomas algorithm) solver
      TDMA solver, a b c d can be NumPy array type or Python list type.
      refer to http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
      */
     double w;
-    int i;
- 
-    for (i = 1; i < M; ++i)
-    {
-        w = a[i] / b[i - 1];
-        b[i] -= w *  c[i - 1];
-        d[i] -= w * d[i - 1];
-   }
+    DLong i; //not SizeT as unsigned loops fail miserably with decrementing (--i)
+
+    for (i = 1; i < M; ++i) {
+      w = a[i] / b[i - 1];
+      b[i] -= w * c[i - 1];
+      d[i] -= w * d[i - 1];
+    }
     x[M - 1] = d[M - 1] / b[M - 1];
 
-    for (i = M - 2; i >= 0; --i)
-    {
-        x[i] = (d[i] - c[i] * x[i + 1]) / b[i];
- }
+    for (i = M - 2; i >= 0; --i) {
+      x[i] = (d[i] - c[i] * x[i + 1]) / b[i];
+    }
     return 0;
-}
+  }
+
+  int TDMAsolver4(SizeT M, double a[], double b[], double c[], double d[], float x[])
+  {
+    /* Tri Diagonal Matrix Algorithm(a.k.a Thomas algorithm) solver
+     TDMA solver, a b c d can be NumPy array type or Python list type.
+     refer to http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
+     */
+    double w;
+    DLong i; //not SizeT as unsigned loops fail miserably with decrementing (--i)
+
+    for (i = 1; i < M; ++i) {
+      w = a[i] / b[i - 1];
+      b[i] -= w * c[i - 1];
+      d[i] -= w * d[i - 1];
+    }
+    x[M - 1] = d[M - 1] / b[M - 1];
+
+    for (i = M - 2; i >= 0; --i) {
+      x[i] = (d[i] - c[i] * x[i + 1]) / b[i];
+    }
+    return 0;
+  }
  
   BaseGDL* trisol_fun( EnvT* e) {
     
@@ -376,18 +396,17 @@ int TDMAsolver(int M, double a[], double b[], double c[], double d[], double x[]
     DDoubleGDL *p2D= e->GetParAs<DDoubleGDL>(2);//C
     DDoubleGDL *p3D= e->GetParAs<DDoubleGDL>(3)->Dup();//D idem
     Guard<BaseGDL> g3(p3D);
-    DDoubleGDL* res = new DDoubleGDL(nEl, BaseGDL::NOZERO);
-    TDMAsolver(nEl,(double*)p0D->DataAddr(),(double*)p1D->DataAddr(),(double*)p2D->DataAddr(),(double*)p3D->DataAddr(), (double*)res->DataAddr());
     DLong double_flag=0;
     static int doubleIx=e->KeywordIx("DOUBLE");
     e->AssureLongScalarKWIfPresent(doubleIx,double_flag);
     if (double_flag) {
+      DDoubleGDL* res = new DDoubleGDL(nEl, BaseGDL::NOZERO);
+      TDMAsolver8(nEl,(DDouble*)p0D->DataAddr(),(DDouble*)p1D->DataAddr(),(DDouble*)p2D->DataAddr(),(DDouble*)p3D->DataAddr(), (DDouble*)res->DataAddr());
       return res;
     } else {  
-      DFloatGDL* resf = new DFloatGDL(nEl, BaseGDL::NOZERO);
-      for (SizeT i=0; i< nEl; ++i) (*resf)[i]=(*res)[i];
-      Guard<BaseGDL> gres(res);
-      return resf;
+      DFloatGDL* res = new DFloatGDL(nEl, BaseGDL::NOZERO);
+      TDMAsolver4(nEl,(DDouble*)p0D->DataAddr(),(DDouble*)p1D->DataAddr(),(DDouble*)p2D->DataAddr(),(DDouble*)p3D->DataAddr(), (DFloat*)res->DataAddr());
+      return res;
     }
   }
 }
