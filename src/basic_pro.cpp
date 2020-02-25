@@ -1581,10 +1581,19 @@ namespace lib {
   
   void struct_assign_pro(EnvT* e) {
     SizeT nParam = e->NParam(2);
+    BaseGDL* p0=e->GetPar(0);
+    BaseGDL* p1=e->GetPar(1);
+    DStructGDL* source=NULL;
+    DStructGDL* dest = NULL;
 
-    DStructGDL* source = e->GetParAs<DStructGDL>(0);
-    DStructGDL* dest = e->GetParAs<DStructGDL>(1);
-
+    if (p0->Type()==GDL_STRUCT) source=e->GetParAs<DStructGDL>(0);
+    else if (p0->Type()==GDL_OBJ) source=e->GetObjectPar(0);
+    else e->Throw("Expression must be a structure in this context: "+e->GetParString(0));
+    
+    if (p1->Type()==GDL_STRUCT) dest=e->GetParAs<DStructGDL>(1);
+    else if (p1->Type()==GDL_OBJ) dest=e->GetObjectPar(1);
+    else e->Throw("Expression must be a structure in this context: "+e->GetParString(1));
+        
     static int nozeroIx = e->KeywordIx("NOZERO");
     bool nozero = e->KeywordSet(nozeroIx);
 
