@@ -264,6 +264,7 @@ public:
   }
 
   void AddParent( DStructDesc*);
+  void AddParentListOnly( DStructDesc*); //for restore
 
   void GetParentNames( std::vector< std::string>& pNames) const
   {

@@ -107,6 +107,17 @@ void DStructDesc::AddParent( DStructDesc* p)
   }
 }
 
+void DStructDesc::AddParentListOnly( DStructDesc* p)
+{
+  parent.push_back(p);
+  OperatorList* parentOperatorList = p->GetOperatorList(); 
+  if( parentOperatorList != NULL)
+  {
+    assert( this->operatorList == NULL); // GDL_OBJECT can only be inherited once
+    operatorList = new OperatorList(*parentOperatorList);
+  }
+}
+
 // copy appropiate member subroutines from fun and pro lists
 void DStructDesc::SetupOperators()
 {
@@ -179,7 +190,7 @@ void DStructDesc::AssureIdentical( DStructDesc* d)
 				  " redefinition.");
 	    }
 	}
-    }
+  }
   // compare all parents
   for( SizeT i=0; i < parent.size(); i++)
     {

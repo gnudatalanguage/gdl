@@ -468,9 +468,11 @@ enum {
     }
     char* structname = 0;
     if (!xdr_string(xdrs, &structname, 2048)) return NULL;
+    
     int32_t structure_def_flags;
     if (!xdr_int32_t(xdrs, &structure_def_flags)) return NULL;
-    bool ispredef = false;
+    bool ispredef = false; //ispredef means that this struct has been already defined inside the save file,
+    // but its definition may clash with an existing definition already made in GDL previous to the RESTORE command.
     if (structure_def_flags & 0x01)
     {
       ispredef = true;
@@ -517,6 +519,8 @@ enum {
     if (ispredef)
     {
       std::string name = std::string(structname);
+      if( name == "IDL_OBJECT") name = GDL_OBJECT_NAME; // replacement also done in GDLParser
+      if( name == "IDL_CONTAINER") name = GDL_CONTAINER_NAME; // replacement also done in GDLParser
       if (name != "$truct") // named struct
         name = StrUpCase(name);
       DStructDesc* desc =
@@ -524,7 +528,10 @@ enum {
 
       return new DStructGDL(desc, *inputdims);
     } else
-    {
+    { //definition of a new structure or class. Structure, if named, may be different from already existing (prior to RESTORE): clash!
+      //this is why the "RELAXED" option of RESTORE exists.
+      // Besides, if we create an Object, (a named structure) it is necessary to check wether it can be defined using XXXX__define.pro
+      // and if this definition is in accordance with the structure defined here, i.e., in the save file.
       //TAG_DESC repated ntags times:
       int32_t tag_typecode[ntags];
       char* tag_name[ntags];
@@ -558,12 +565,43 @@ enum {
       }
 
       std::string stru_name = std::string(structname);
+      if( stru_name == "IDL_OBJECT") stru_name = GDL_OBJECT_NAME; // replacement also done in GDLParser
+      if( stru_name == "IDL_CONTAINER") stru_name = GDL_CONTAINER_NAME; // replacement also done in GDLParser
       DStructDesc* stru_desc;
       DStructDesc* ref_desc;
       bool checkStruct=false;
-      //take care of named structures
+      //take care of named structures. Here is also where one should try to create an object, since, if it exists, its structure must be
+      //compared with the current one.
       if (stru_name.length() > 0 && stru_name[0] != '$')
       {
+        if (isObjStruct) { //create a dummy object of this name, remove it.
+          DString objName=StrUpCase(stru_name);
+          DStructDesc* objDesc;
+          try {
+            objDesc = e->Interpreter()->GetStruct(objName, e->CallingNode());
+            DStructGDL* objStruct = new DStructGDL(objDesc, dimension(1));
+            DObj objID = e->NewObjHeap(1, objStruct); // owns objStruct
+            DObjGDL* newObj = new DObjGDL(objID); // the object
+            try {
+              // call INIT function
+              DFun* objINIT = objDesc->GetFun("INIT");
+              if (objINIT != NULL) {
+                StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
+
+                // morph to obj environment and push it onto the stack again
+                e->PushNewEnvUD(objINIT, 1, &newObj);
+
+                BaseGDL* res = e->Interpreter()->call_fun(objINIT->GetTree());
+                GDLDelete(res);
+              }
+            } catch (...) {
+            }
+            e->FreeObjHeap(objID); // delete objStruct
+            GDLDelete(newObj);
+          } catch (...) {
+            if (DEBUG_SAVERESTORE) std::cerr << " not existing\n";
+          }
+        }
         stru_desc = FindInStructList(structList, stru_name);
 
         if (stru_desc == NULL)
@@ -571,6 +609,7 @@ enum {
           stru_desc = new DStructDesc(stru_name);
           structList.push_back(stru_desc);
         } else {
+          if (DEBUG_SAVERESTORE) cerr<<".................."<<stru_name<<"..........EXISTS"<<endl;
           checkStruct=true;
           ref_desc=stru_desc;
           stru_desc=new DStructDesc("$truct"); //make it anonymous, test if equality at end!
@@ -724,9 +763,11 @@ enum {
           for (int i = 0; i < nsupclasses; ++i)
           {
             //define all parent classes in objheap.
-            DStructGDL* superclass = getDStruct(e, xdrs, new dimension(1), isObjStruct); // will define the class as an object.
+            DStructGDL* superclass = NULL;
+            superclass = getDStruct(e, xdrs, new dimension(1), isObjStruct); // will define the class as an object.
+            if (superclass) stru_desc->AddParentListOnly(superclass->Desc());
             if (isObjStruct)  {
-              DPtr ptr= e->NewObjHeap(1, static_cast<DStructGDL*>(superclass));
+             DPtr ptr= e->NewObjHeap(1, static_cast<DStructGDL*>(superclass));
             }
           }
         }
@@ -739,6 +780,7 @@ enum {
           stru_desc=ref_desc; //OK, switch back.
         }        catch (GDLException& ex)
         {
+          e->Throw("Structure not restored due to conflict with existing definition: "+stru_name);
           return NULL;
         }
       }
@@ -1773,12 +1815,13 @@ enum {
         if (DEBUG_SAVERESTORE) cerr<<"SYSTEM ";
           isSysVar = 0x02; //see? no break. defines a read-write system variable (default)
       case VARIABLE:
-        if (DEBUG_SAVERESTORE) cerr<<"Variable\n";
+        if (DEBUG_SAVERESTORE) cerr<<"Variable ";
           if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
         {
           char* varname = 0;
           if (!xdr_string(xdrs, &varname, 2048)) break;
           string varName(varname);
+          if (DEBUG_SAVERESTORE) cerr<<varname<<endl;
           bool isObjStruct=false;
           BaseGDL* ret = getVariable(e, xdrs, isSysVar, isObjStruct);
           if (ret == NULL)
@@ -1825,10 +1868,10 @@ enum {
           if (heapIndexMapRestore.find(heap_index) == heapIndexMapRestore.end()) {
             e->Throw("Lost track in HEAP VARIABLE definition at offset " + i2s(nextptr));
           } else {
-            if (DEBUG_SAVERESTORE) std::cerr<<"success restore Heap var"<<std::endl;
             BaseGDL* ret = heapIndexMapRestore.find(heap_index)->second.first;
             if (ret == NullGDL::GetSingleInstance()) break; //no data follows as this is a !NULL
             fillVariableData(xdrs, ret);
+            if (DEBUG_SAVERESTORE) std::cerr<<"success restore Heap var "<<heapIndexMapRestore.find(heap_index)->second.second<<std::endl;
           }
 
 
