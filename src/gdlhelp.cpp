@@ -398,11 +398,11 @@ static void help_object( ostream& ostr, DString parString, bool verbose=true )
     if ( funlist.size() + prolist.size() == 0)      ostr << " is a structure, not an object ." << endl;
     else{
       ostr << objectdefined << endl;
-      if (not verbose) return;
+      help_ListMethods("", ostr, funlist, prolist);
+      if (!verbose) return;
       DStructGDL* dumm = new DStructGDL(desc, dimension());
       Guard<DStructGDL> guard(dumm);
       lib::help_struct(ostr, dumm, 0, false);
-      help_ListMethods("", ostr, funlist, prolist);
     }
 	}
 }
@@ -469,7 +469,16 @@ static void help_mix_heap_and_obj(EnvT* e, ostream& ostr)
   SizeT nH = heap->size();
   SizeT tot=nH+nobjH;
   if (tot <= 0) return;
-  for (SizeT h = 0; h < tot; ++h) {
+  // objHeap and heap contain different, globally increasing, integers.
+  // to show them in incresing order like in IDL one needs to put them in an ordered fashion:
+  std::set<DPtr> myHeapIndex;
+  SizeT k=0;
+  for (SizeT i=0; i<nobjH; ++i) myHeapIndex.insert((*objheap)[i]);
+  for (SizeT i=0; i<nH;    ++i) myHeapIndex.insert((*heap)[i]);
+  
+  std::set<DPtr>::iterator it;
+  for (it = myHeapIndex.begin(); it!=myHeapIndex.end(); ++it) {
+    DPtr h=(*it); 
     if (e->Interpreter()->ObjValid(h))
     {
       BaseGDL* hV = BaseGDL::interpreter->GetObjHeap(h);
@@ -907,8 +916,8 @@ void help_help(EnvT* e)
       help_heap_obj_ptr_head(e, *ostrp);
       if (briefKW) return;
       help_mix_heap_and_obj(e, *ostrp);
-//      help_heap_obj(e, *ostrp);
-//      help_heap_ptr(e, *ostrp);
+      //      help_heap_obj(e, *ostrp);
+      //      help_heap_ptr(e, *ostrp);
       if (doOutput) (*outputKW) = StreamToGDLString(ostr, true);
       else SortAndPrintStream(ostr);
       return;
@@ -936,11 +945,31 @@ void help_help(EnvT* e)
     if (e->KeywordSet(objectsIx) and (nParam == 0)) {
       SizeT nObj = structList.size();
       for (SizeT i = 0; i < nObj; ++i) {
-        int num_methods = structList[i]->FunList().size() +
-          structList[i]->ProList().size();
-        if (num_methods == 0) continue;
-        ostrp->width(20);
-        *ostrp << right << structList[i]->Name() << endl;
+        FunListT& funlist = structList[i]->FunList();
+        ProListT& prolist = structList[i]->ProList();
+        int num_methods = funlist.size() + prolist.size();
+        if (num_methods == 0) continue; //    is a structure, not an object .
+        int numpar = structList[i]->GetNumberOfParents();
+        *ostrp << "** Object class " << structList[i]->Name() << ", " << numpar << " direct superclasses, " << num_methods << " known methods" << std::endl;
+        if (numpar > 0) {
+          *ostrp << "   Superclasses:\n      ";
+          vector< string> pNames;
+          structList[i]->GetParentNames(pNames);
+          for (int j = 0; j < pNames.size(); ++j) *ostrp << pNames[j] << std::endl;
+        }
+        if (num_methods > 0) {
+          if (funlist.size() > 0) *ostrp << "   Known Function Methods:\n      ";
+          for (int j = 0; j < funlist.size(); ++j) *ostrp << funlist[j]->Name() << " ";
+          *ostrp << endl;
+          if (prolist.size() > 0) *ostrp << "   Known Procedure Methods:\n      ";
+          for (int j = 0; j < prolist.size(); ++j) *ostrp << prolist[j]->Name() << " ";
+          *ostrp << endl;
+          help_Output(outputKW, ostr, OutputLines, false);
+          if (!fullKW) continue;
+          DStructGDL* dumm = new DStructGDL(structList[i], dimension());
+          Guard<DStructGDL> guard(dumm);
+          lib::help_struct(ostr, dumm, 0, false);
+        }
       }
       help_Output(outputKW, ostr, OutputLines, false);
       return;
