@@ -6,7 +6,7 @@ matrix:
 #    - os: linux
 #      env: COMPILER=icc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
     - os: linux
-      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
+      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI  ANTLR=yes
     - os: osx
       env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=MINI
 
@@ -92,6 +92,9 @@ install:
     # pytest
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python3-pytest"; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install pytest; fi 
+
+    # antlr
+    - if [ -v ANTLR ]; then export APT_PACKAGES="${APT_PACKAGES} antlr"; fi
 
     # CMake 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} cmake"; fi
@@ -281,6 +284,13 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install $BREW_PACKAGES; fi
 
 script:
+    # antlr
+    - if [ -v ANTLR ]; then cd src; fi
+    - if [ -v ANTLR ]; then for i in *.g; do runantlr $i; done; fi;
+    - if [ -v ANTLR ]; then git diff -G '(^[ANTLR 2.7.7 (])' | tee diff.log; fi
+    - if [ -v ANTLR -a `cat diff.log | wc -l` -gt 0 ]; then travis_terminate 1; fi;
+    - if [ -v ANTLR ]; then cd ..; fi
+
     - mkdir build
     - cd build
     - cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ../
