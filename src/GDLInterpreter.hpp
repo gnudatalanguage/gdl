@@ -3,7 +3,7 @@
 
 #include <antlr/config.hpp>
 #include "GDLInterpreterTokenTypes.hpp"
-/* $ANTLR 2.7.7 (2006-11-01): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
+/* $ANTLR 2.7.7 (20190904): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
 #include <antlr/TreeParser.hpp>
 
 
@@ -248,7 +248,7 @@ public:
     {
         BaseGDL* del = (*it).second.get();
         objHeap.erase( id); 
-        if (!NullGDL::IsNULLorNullGDL(del)) delete del;
+        if (!NullGDL::IsNULLorNullGDL(del)) delete del; //avoid destroying !NULL
     }
     static void FreeObjHeap( DObj id)
     {
