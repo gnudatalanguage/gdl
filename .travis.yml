@@ -41,6 +41,9 @@ before_install:
     - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade numpy; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_CXX_FLAGS="-Wdeprecated-register"; fi
 
+    - if [ $TRAVIS_OS_NAME == osx ]; then export SEDCMD="sed -i ''"; fi 
+    - if [ $TRAVIS_OS_NAME == linux ]; then export SEDCMD="sed -i"; fi 
+
 install:
     ##
     ## BUILD DEPENDENCIES
@@ -267,8 +270,6 @@ script:
     - if [ -v ANTLR ]; then cd ..; fi
 
     # TEMPORARILY disabling tests that did not work at "day zero" (i.e. SF -> github migration)
-    - if [ $TRAVIS_OS_NAME == osx ]; then export SEDCMD="sed -i ''"; fi 
-    - if [ $TRAVIS_OS_NAME == linux ]; then export SEDCMD="sed -i"; fi 
     - $SEDCMD '/test_bytscl.pro/d'           testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_dicom.pro/d'            testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_container.pro/d'        testsuite/Makefile.am # TODO! not ready
