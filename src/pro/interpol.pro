@@ -47,10 +47,10 @@ if ((p1_type EQ 7) OR (p1_type EQ 8) OR (p1_type EQ 10)) then $
 ;
 if N_PARAMS() eq 1 then $
   MESSAGE, 'Two or three parameters required'
-if KEYWORD_SET(lsquadratic) then $
-  MESSAGE, 'LSQUADRATIC keyword not supported yet (FIXME!)'
-if KEYWORD_SET(quadratic) then $
-  MESSAGE, 'QUADRATIC keyword not supported yet (FIXME!)'
+;if KEYWORD_SET(lsquadratic) then $
+;  MESSAGE, 'LSQUADRATIC keyword not supported yet (FIXME!)'
+;if KEYWORD_SET(quadratic) then $
+;  MESSAGE, 'QUADRATIC keyword not supported yet (FIXME!)'
 ;
 ;  if N_PARAMS() eq 3 and N_ELEMENTS(p0) ne N_ELEMENTS(p1) then $
 ;    MESSAGE, 'In the three-parameter case the first and second argument must be of equal length'
