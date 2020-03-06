@@ -282,10 +282,10 @@ public:
     // the New... functions 'own' their BaseGDL*
     SizeT NewObjHeap( SizeT n=1, DStructGDL* var=NULL)
     {
-        SizeT tmpIx=objHeapIx;
+        SizeT tmpIx=heapIx;
         for( SizeT i=0; i<n; i++)
         objHeap.insert( objHeap.end(),
-            std::pair<SizeT, RefDStructGDL>( objHeapIx++, (DStructGDL*)var));
+            std::pair<SizeT, RefDStructGDL>( heapIx++, (DStructGDL*)var));
         return tmpIx;
     }
     SizeT NewHeap( SizeT n=1, BaseGDL* var=NULL)
