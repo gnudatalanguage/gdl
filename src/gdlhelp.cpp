@@ -208,33 +208,22 @@ static void help_info()
 	  cout << endl;
 		return;
 }
-static void help_sysvar(ostream& os , bool briefKW=true)
-  {
-	  if (briefKW) {
-	    string tmp_line="", tmp_word="";
-	    for( SizeT v=0; v<sysVarList.size(); ++v)
-	      {
-	      DVar* var = sysVarList[ v];
-	      tmp_word=" !"+var->Name();
-	      if (tmp_line.length()+tmp_word.length() >= 80) {
-		    os << tmp_line <<endl;
-			tmp_line=tmp_word;
-			}
-			else {
-			tmp_line=tmp_line+tmp_word;
-	        }
-	      }
-	      if (tmp_line.length() > 0) os << tmp_line <<endl;
-		}
-		else {
-	      for( SizeT v=0; v<sysVarList.size(); ++v) {
-			DVar* var = sysVarList[ v];
-			DStructGDL* tmp= tmp=static_cast<DStructGDL*>(var->Data());
-			lib::help_item(os, tmp, "!"+var->Name(), false);	    
-		  }
-		}
-	return;
+
+static void help_sysvar(ostream& os, bool briefKW = true)
+{
+  std::map<std::string, DVar*>list;
+  for (SizeT v = 0; v < sysVarList.size(); ++v) list.insert(std::pair<std::string, DVar*>(" !" +sysVarList[ v]->Name(), sysVarList[ v]));
+  if (briefKW) {
+    for (std::map<std::string, DVar*>::iterator it=list.begin(); it!=list.end(); ++it) { os << it->first << endl;}
+  } else {
+    for (std::map<std::string, DVar*>::iterator it=list.begin(); it!=list.end(); ++it) { 
+      DVar* v=it->second;
+      BaseGDL* var= v->Data();
+      lib::help_item(os, var , it->first, false);
+    }
   }
+  return;
+}
 
 static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, bool doOutput=true)
   {
@@ -252,7 +241,7 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
 	     }   while( (found++ != std::string::npos) );
 
 	  nlines = --nOut;	if(nlines == 0) return;
-	  GDLDelete((*outputKW));
+	  if (*outputKW!=NULL) GDLDelete((*outputKW));
 	  dimension dim(&nlines, (size_t) 1);
 	  *outputKW = new DStringGDL(dim, BaseGDL::NOZERO);
 	}
@@ -283,9 +272,8 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
     size_t found;
 
     StrArr path = SysVar::GDLPath();
-
-    ostr << "!PATH (no cache management --now-- in GDL, ";
-    ostr << path.size() << " directories)" << endl;
+    std::sort(path.begin(),path.end());
+    ostr << "!PATH (Disabled, "<< path.size() <<" directories)" << endl;
     lines_count = 1;
 
     for (StrArr::iterator CurrentDir = path.begin(); CurrentDir != path.end(); ++CurrentDir) {
@@ -346,66 +334,40 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
     }
 	  return;
   }
-static void help_ListMethods(DString names, ostream& ostr, FunListT& funlist, ProListT& prolist)
+
+static void help_object(std::ostream* ostrp, DStructDesc* objDesc, bool verbose = false)
 {
-	bool searchbyname;
-	searchbyname = (names != "");
-	vector<DString> subList;
-	DString proname;
-	for( SizeT i = 0; i<prolist.size(); ++i)  {
-	  proname = prolist[i]->Name();
-		 if(searchbyname and not 
-			CompareWithJokers(names, proname)) continue;
-		  subList.push_back(proname);
-		}
-	sort( subList.begin(), subList.end());
-	ostr << "Method procedures (" 
-			<< subList.size() <<"):" << endl;
-	for( SizeT i = 0; i<subList.size(); ++i)
-		ostr << " "<< subList[ i] ;
-	ostr << endl;
-
-	subList.clear();
-
-	for( SizeT i = 0; i<funlist.size(); ++i)  {
-	  proname = funlist[i]->Name();
-		 if(searchbyname and not 
-			CompareWithJokers(names, proname)) continue;
-		  subList.push_back(proname);
-		}
-	sort( subList.begin(), subList.end());
-	ostr << "Method functions (" 
-			<< subList.size() <<"):" << endl;
-	for( SizeT i = 0; i<subList.size(); ++i)
-		ostr << " "<< subList[ i] ;
-	ostr << endl;
-	  subList.clear();
-}
-
-static void help_object( ostream& ostr, DString parString, bool verbose=true )
-  {
-	const string objectnotfound = ": Object not found";
-	const string objectdefined = ": Object defined";
-	StrUpCaseInplace( parString);
-	DStructDesc* desc = FindInStructList(structList, parString);
-	ostr.width(20);
-	ostr << right << parString;
-	if(desc == NULL) {
-		ostr << objectnotfound << endl;
-	} else {
-    FunListT& funlist = desc->FunList();
-    ProListT& prolist = desc->ProList();
-    if ( funlist.size() + prolist.size() == 0)      ostr << " is a structure, not an object ." << endl;
-    else{
-      ostr << objectdefined << endl;
-      help_ListMethods("", ostr, funlist, prolist);
-      if (!verbose) return;
-      DStructGDL* dumm = new DStructGDL(desc, dimension());
-      Guard<DStructGDL> guard(dumm);
-      lib::help_struct(ostr, dumm, 0, false);
+  FunListT& funlist = objDesc->FunList();
+  ProListT& prolist = objDesc->ProList();
+  int num_methods = funlist.size() + prolist.size();
+  int numpar = objDesc->GetNumberOfParents();
+  *ostrp << "** Object class " << objDesc->Name() << ", " << numpar << " direct superclasses, " << num_methods << " known methods" << std::endl;
+  if (numpar > 0) {
+    *ostrp << "   Superclasses:\n";
+    std::set< std::string> pNames;
+    objDesc->GetParentNames(pNames);
+    for (std::set<string>::iterator j = pNames.begin(); j != pNames.end(); ++j) *ostrp << "      " << (*j) << " <Direct>\n";
+    //find all ancestors
+    pNames.clear();
+    objDesc->GetAncestorsNames(pNames);
+    for (std::set<string>::iterator j = pNames.begin(); j != pNames.end(); ++j) *ostrp << "      " << (*j) << "\n";
+  }
+  if (num_methods > 0) {
+    if (funlist.size() > 0) {
+      *ostrp << "   Known Function Methods:\n";
+      for (int j = 0; j < funlist.size(); ++j) *ostrp << "      " << objDesc->Name() << "::" << funlist[j]->Name() << "\n";
     }
-	}
+    if (prolist.size() > 0) {
+      *ostrp << "   Known Procedure Methods:\n";
+      for (int j = 0; j < prolist.size(); ++j) *ostrp << "      " << objDesc->Name() << "::" << prolist[j]->Name() << "\n";
+    }
+    if (!verbose) return;
+    DStructGDL* dumm = new DStructGDL(objDesc, dimension());
+    Guard<DStructGDL> guard(dumm);
+    lib::help_struct(*ostrp, dumm, 0, false);
+  }
 }
+
 static void help_ListLib(DString names, ostream& ostr, bool internal=true)
   {
 	bool searchbyname;
@@ -496,43 +458,6 @@ static void help_mix_heap_and_obj(EnvT* e, ostream& ostr)
   return;
 }      
       
-static void help_heap_obj(EnvT* e, ostream& ostr)
-{
-  std::vector<DObj>* objheap = e->Interpreter()->GetAllObjHeapSTL();
-  Guard< std::vector<DObj> > heap_objguard(objheap);
-  SizeT nH = objheap->size();
-  if (nH <= 0 || (*objheap)[0] == 0) return;
-  for (SizeT h = 0; h < nH; ++h) {
-    DObj p = (*objheap)[ h];
-    if (e->Interpreter()->ObjValid(p))
-    {
-      BaseGDL* hV = BaseGDL::interpreter->GetObjHeap(p);
-      SizeT refc = BaseGDL::interpreter->RefCountHeapObj(p);
-      lib::help_item(ostr, hV, DString("<ObjHeapVar") + i2s(p) + ">  refcount=" + i2s(refc), false);
-    }
-  }
-  return;
-}
-
-static void help_heap_ptr(EnvT* e, ostream& ostr)
-{
-  std::vector<DPtr>* heap = e->Interpreter()->GetAllHeapSTL();
-  Guard< std::vector<DPtr> > heap_guard(heap);
-  SizeT nH = heap->size();
-  if (nH <= 0 || (*heap)[0] == 0) return;
-  for (SizeT h = 0; h < nH; ++h) {
-    DPtr p = (*heap)[ h];
-    if (e->Interpreter()->PtrValid(p))
-    {
-      BaseGDL* hV = BaseGDL::interpreter->GetHeap(p);
-      SizeT refc = BaseGDL::interpreter->RefCountHeap(p);
-      lib::help_item(ostr, hV, DString("<PtrHeapVar") + i2s(p) + ">  refcount=" + i2s(refc), false);
-    }
-  }
-  return;
-}
-
-
 static void help_lastmsg(EnvT* e)
   {
       // if LAST_MESSAGE is present, it is the only output.
@@ -942,36 +867,35 @@ void help_help(EnvT* e)
 	
      */
     static int objectsIx = e->KeywordIx("OBJECTS");
-    if (e->KeywordSet(objectsIx) and (nParam == 0)) {
-      SizeT nObj = structList.size();
-      for (SizeT i = 0; i < nObj; ++i) {
-        FunListT& funlist = structList[i]->FunList();
-        ProListT& prolist = structList[i]->ProList();
-        int num_methods = funlist.size() + prolist.size();
-        if (num_methods == 0) continue; //    is a structure, not an object .
-        int numpar = structList[i]->GetNumberOfParents();
-        *ostrp << "** Object class " << structList[i]->Name() << ", " << numpar << " direct superclasses, " << num_methods << " known methods" << std::endl;
-        if (numpar > 0) {
-          *ostrp << "   Superclasses:\n      ";
-          vector< string> pNames;
-          structList[i]->GetParentNames(pNames);
-          for (int j = 0; j < pNames.size(); ++j) *ostrp << pNames[j] << std::endl;
+    if (e->KeywordSet(objectsIx)) {
+      if (nParam == 0) {
+        //sort alphabetically object names...
+        std::set< std::string> objNames;
+        for (SizeT i = 0; i < structList.size(); ++i) {
+          if ((structList[i]->FunList().size() + structList[i]->ProList().size()) == 0) continue;
+          objNames.insert(structList[i]->Name());
         }
-        if (num_methods > 0) {
-          if (funlist.size() > 0) *ostrp << "   Known Function Methods:\n      ";
-          for (int j = 0; j < funlist.size(); ++j) *ostrp << funlist[j]->Name() << " ";
-          *ostrp << endl;
-          if (prolist.size() > 0) *ostrp << "   Known Procedure Methods:\n      ";
-          for (int j = 0; j < prolist.size(); ++j) *ostrp << prolist[j]->Name() << " ";
-          *ostrp << endl;
-          help_Output(outputKW, ostr, OutputLines, false);
-          if (!fullKW) continue;
-          DStructGDL* dumm = new DStructGDL(structList[i], dimension());
-          Guard<DStructGDL> guard(dumm);
-          lib::help_struct(ostr, dumm, 0, false);
+        SizeT nObj = objNames.size();
+        if (nObj < 1) return;
+
+        //these are objects that have at least one method.
+        //sort alphabetically
+
+        for (std::set<string>::iterator iobj = objNames.begin(); iobj != objNames.end(); ++iobj) {
+          DStructDesc* objDesc = FindObjectInStructList(structList, *iobj);
+          if (objDesc != NULL) help_object(ostrp, objDesc, fullKW);
+        }
+      } else {
+        for (SizeT i = 0; i < nParam; ++i) {
+          BaseGDL*& par = e->GetPar(i);
+          if (par!=NULL && e->GetPar(i)->Type() == GDL_OBJ) {
+            DObjGDL* myObj = static_cast<DObjGDL*> (e->GetParDefined(i));
+            DStructDesc* objDesc = (BaseGDL::interpreter->GetObjHeap( (*myObj)[0]))->Desc();
+            if (objDesc != NULL) help_object(ostrp, objDesc, fullKW);
+          }
         }
       }
-      help_Output(outputKW, ostr, OutputLines, false);
+      if (doOutput) (*outputKW) = StreamToGDLString(ostr, true);
       return;
     }
 
@@ -1262,34 +1186,15 @@ void help_help(EnvT* e)
     }
 
     if (debugKW) std::cout << " help_pro: nParam=" << nParam;
-    const string objectnotfound = ": Object not found";
-    bool objectsKW = e->KeywordSet(objectsIx);
     for (SizeT i = 0; i < nParam; ++i) {
       BaseGDL*& par = e->GetPar(i);
       DString parString = e->Caller()->GetString(par, true); //= string(" ??? ");
       if (debugKW) std::cout << ". ";
       if (par == NULL) {
         if (debugKW) std::cout << " par ==(NULL)" << endl;
-        if (objectsKW) {
-          help_object(ostr, parString, !briefKW);
-          continue;
-        }
         if (!briefKW) help_item(ostr, par, parString, false);
         continue;
       }
-      if (objectsKW && par->Type() != GDL_OBJ) {
-        if (par->Type() == GDL_STRING) {
-          for (SizeT kobj = 0; kobj < par->N_Elements(); ++kobj)
-            help_object(ostr,
-            (*static_cast<DStringGDL*> (par))[kobj], !briefKW);
-          continue;
-        } else {
-          cout << parString +
-            ":error (help,prm,/OBJECTS - prm is not object nor string) " << endl;
-          continue;
-        }
-      }
-      
       // NON-STRUCTURES except if one and only one param is a Struct.
       if (par->Type() == GDL_STRUCT && !briefKW ) {
         if (((par->N_Elements()==1) && nParam==1 ) || isKWSetStructures) {
@@ -1300,18 +1205,11 @@ void help_help(EnvT* e)
       help_item(ostr, par, parString, false);
       if (nParam != 1) continue;
       else if (par->Type() == GDL_OBJ and par->StrictScalar()) {
-        bool isKWSetMethods = e->KeywordSet("METHODS");
         DObj s = (*static_cast<DObjGDL*> (par))[0];
         DStructGDL* oStructGDL;
         if (s != 0) oStructGDL = GDLInterpreter::GetObjHeapNoThrow(s);
         if (s != 0 and (isKWSetStructures or fullKW))
           help_struct(ostr, oStructGDL, 0, debugKW);
-        if (s != 0 and (isKWSetMethods or fullKW)) {
-          DStructDesc* desc = oStructGDL->Desc();
-          FunListT& funlist = desc->FunList();
-          ProListT& prolist = desc->ProList();
-          help_ListMethods(names, ostr, funlist, prolist);
-        }
       } else if (par->Type() == GDL_OBJ) {
         SizeT nObj = par->N_Elements();
         if (debugKW) std::cout << "nObj=" << nObj;
