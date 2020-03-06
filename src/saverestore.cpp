@@ -581,20 +581,21 @@ enum {
             DStructGDL* objStruct = new DStructGDL(objDesc, dimension(1));
             DObj objID = e->NewObjHeap(1, objStruct); // owns objStruct
             DObjGDL* newObj = new DObjGDL(objID); // the object
-            try {
-              // call INIT function
-              DFun* objINIT = objDesc->GetFun("INIT");
-              if (objINIT != NULL) {
-                StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
-
-                // morph to obj environment and push it onto the stack again
-                e->PushNewEnvUD(objINIT, 1, &newObj);
-
-                BaseGDL* res = e->Interpreter()->call_fun(objINIT->GetTree());
-                GDLDelete(res);
-              }
-            } catch (...) {
-            }
+            //calling the INIT function seems to intrusive.
+//            try {
+//              // call INIT function
+//              DFun* objINIT = objDesc->GetFun("INIT");
+//              if (objINIT != NULL) {
+//                StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
+//
+//                // morph to obj environment and push it onto the stack again
+//                e->PushNewEnvUD(objINIT, 1, &newObj);
+//
+//                BaseGDL* res = e->Interpreter()->call_fun(objINIT->GetTree());
+//                GDLDelete(res);
+//              }
+//            } catch (...) {
+//            }
             e->FreeObjHeap(objID); // delete objStruct
             GDLDelete(newObj);
           } catch (...) {
@@ -1116,7 +1117,7 @@ enum {
 
           DPtr heapptr = heapIndexMapRestore.find(heapNumber[ix])->second.second;
            (*ptr)[ix] = heapptr;
-           GDLInterpreter::IncRef(ptr);
+           GDLInterpreter::IncRef(heapptr);
           if (DEBUG_SAVERESTORE) std::cerr<<"PTR at #"<<heapNumber[ix]<<" restored at "<<heapptr<<std::endl;
         }
         break;
@@ -1130,7 +1131,7 @@ enum {
         {
           DObj heapptr = heapIndexMapRestore.find(heapNumber[ix])->second.second;
             (*ptr)[ix] = heapptr;
-           GDLInterpreter::IncRefObj(ptr);
+           GDLInterpreter::IncRefObj(heapptr);
           if (DEBUG_SAVERESTORE) std::cerr<<"OBJ at #"<<heapNumber[ix]<<" restored at "<<heapptr<<std::endl;
         }
         break;
@@ -1336,7 +1337,12 @@ enum {
 
     // start of TYPEDESC. Structures may be objects, in which case ptr.second is negative.
     BaseGDL* var;
-    if (isObject) var=e->GetObjHeap(ptr);else var=e->GetHeap(ptr); //TRICK!
+    try{
+     if (isObject) var=e->GetObjHeap(ptr);else var=e->GetHeap(ptr); //TRICK!
+    } catch( GDLInterpreter::HeapException& hEx)
+    {
+      e->Throw("ID <"+i2s(ptr)+"> not found.");      
+    }
     if (var==NULL) return updateNewRecordHeader(xdrs, cur); //unexistent var
     if (DEBUG_SAVERESTORE) std::cerr<<var->TypeStr()<<" @ "<<std::hex<<var<<std::dec<<std::endl;
     writeVariableHeader(xdrs, var, isSysVar, readonly, isObject );
@@ -1903,13 +1909,13 @@ enum {
       if (verbose) Message("Restored variable: " + (variableVector.back()).first+".");
       variableVector.pop_back();
     }
-    //PTR and OBJ have one more reference that necessary (1 at creation of the heap variable + 1 each time somthing points to it).
+    //heap variables have one more reference that necessary (1 at creation of the heap variable + 1 each time somthing points to it).
     //decrease each of them by 1:
     std::map<long, std::pair<BaseGDL*,DPtr>>::iterator imap;
     for (imap=heapIndexMapRestore.begin(); imap!=heapIndexMapRestore.end(); ++imap) {
       DPtr ptr=(*imap).second.second;
       GDLInterpreter::DecRef(ptr);
-
+      GDLInterpreter::DecRefObj(ptr); //if not PTR then try Obj --- will always decrement the good one now that ptr is unique between Obj and Ptr.
     }
     //everything ok, remove guards and exit
     while (!guardVector.empty())
@@ -1930,25 +1936,35 @@ enum {
         if (subptr > 0) {
           heapT::iterator itheap=heapIndexMapSave.find(subptr);
           if ( itheap==heapIndexMapSave.end() ) {
-            heapIndexMapSave.insert(std::pair<DPtr, SizeT>(subptr, subptr));
-            if (DEBUG_SAVERESTORE)   std::cerr<<"Adding Heaplist PTR: HeapIndex="<<subptr<<std::endl;
-            BaseGDL* v = e->GetHeap(subptr);
-            if (DEBUG_SAVERESTORE)  std::cerr<<std::hex<<v<<std::dec<<std::endl;
-            if (v && v!=NullGDL::GetSingleInstance()) addToHeapList(e, v);
+            try {
+              BaseGDL* v = e->GetHeap(subptr);  //this pointed-to heap value MAY NOT EXIST. It may have been destroyed.
+              heapIndexMapSave.insert(std::pair<DPtr, SizeT>(subptr, subptr));
+              if (DEBUG_SAVERESTORE)   std::cerr<<"Adding Heaplist PTR: HeapIndex="<<subptr<<", id="<<std::hex<<v<<std::dec<<std::endl;
+              if (v && v!=NullGDL::GetSingleInstance()) addToHeapList(e, v);
+            } catch( GDLInterpreter::HeapException& hEx)
+            {
+              if (DEBUG_SAVERESTORE) std::cerr<<"PTR ID<"<<subptr<<"> not found."<<std::endl;      
+            }
+
           }
         }
       }
     } else if (var->Type() == GDL_OBJ) {
       for (SizeT ielem = 0; ielem < var->N_Elements(); ++ielem) {
         DObj subptr = (*static_cast<DObjGDL*> (var))[ielem];
-        if (subptr) {
+        if (subptr > 0) {
           heapT::iterator itheap=heapIndexMapSave.find(subptr);
           if ( itheap==heapIndexMapSave.end() ) {
-            heapIndexMapSave.insert(std::pair<DPtr, SizeT>(subptr, subptr));
-            if (DEBUG_SAVERESTORE)   std::cerr<<"Adding Heaplist OBJ: ObjIndex="<<subptr<<std::endl;
-            BaseGDL* v = e->GetObjHeap(subptr); //remember subptr IS uniquely increasing between OBJ and PTR Heaps indexes, but v is to be found in OBJ.
-            if (DEBUG_SAVERESTORE)  std::cerr<<std::hex<<v<<std::dec<<std::endl;
-            if (v && v!=NullGDL::GetSingleInstance() ) addToHeapList(e, v);
+            try {
+              BaseGDL* v = e->GetObjHeap(subptr); //remember subptr IS uniquely increasing between OBJ and PTR Heaps indexes, but v is to be found in OBJ.
+              heapIndexMapSave.insert(std::pair<DPtr, SizeT>(subptr, subptr));
+              if (DEBUG_SAVERESTORE)   std::cerr<<"Adding Heaplist OBJ: HeapIndex="<<subptr<<", id="<<std::hex<<v<<std::dec<<std::endl;
+              if (v && v!=NullGDL::GetSingleInstance() ) addToHeapList(e, v);
+            } catch( GDLInterpreter::HeapException& hEx)
+            {
+              if (DEBUG_SAVERESTORE) std::cerr<<"OBJ ID <"<<subptr<<"> not found."<<std::endl;      
+            }
+
           }
         }
       }
@@ -2269,6 +2285,9 @@ enum {
       DPtrGDL* heapPtrList=e->Interpreter( )->GetAllHeap( );
       for (SizeT i=0; i<heapPtrList->N_Elements(); ++i) nextptr=writeHeapVariable(e, xdrs, (*heapPtrList)[i], false);
       GDLDelete(heapPtrList);
+      DObjGDL* heapObjPtrList=e->Interpreter( )->GetAllObjHeap( );
+      for (SizeT i=0; i<heapObjPtrList->N_Elements(); ++i) nextptr=writeHeapVariable(e, xdrs, (*heapObjPtrList)[i], true);
+      GDLDelete(heapObjPtrList);
     }
 
 
