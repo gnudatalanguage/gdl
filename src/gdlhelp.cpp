@@ -341,12 +341,13 @@ static void help_object(std::ostream* ostrp, DStructDesc* objDesc, bool verbose 
   ProListT& prolist = objDesc->ProList();
   int num_methods = funlist.size() + prolist.size();
   int numpar = objDesc->GetNumberOfParents();
-  *ostrp << "** Object class " << objDesc->Name() << ", " << numpar << " direct superclasses, " << num_methods << " known methods" << std::endl;
+  if (numpar==1) *ostrp << "** Object class " << objDesc->Name() << ", " << numpar << " direct superclass, " << num_methods << " known methods" << std::endl;
+  else *ostrp << "** Object class " << objDesc->Name() << ", " << numpar << " direct superclasses, " << num_methods << " known methods" << std::endl;
   if (numpar > 0) {
     *ostrp << "   Superclasses:\n";
     std::set< std::string> pNames;
     objDesc->GetParentNames(pNames);
-    for (std::set<string>::iterator j = pNames.begin(); j != pNames.end(); ++j) *ostrp << "      " << (*j) << " <Direct>\n";
+    for (std::set<string>::iterator j = pNames.begin(); j != pNames.end(); ++j) *ostrp << "      " << (*j) << "  <Direct>\n";
     //find all ancestors
     pNames.clear();
     objDesc->GetAncestorsNames(pNames);
