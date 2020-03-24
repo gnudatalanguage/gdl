@@ -114,7 +114,8 @@
 ;
 pro READ_ASCII_HELPER, tags, tag, structure, variable, default
 ;
-COMPILE_OPT hidden
+
+compile_opt idl2, hidden
 
 if N_ELEMENTS(variable) ne 0 then return
 if N_ELEMENTS(tags) eq 0 then begin
@@ -133,7 +134,9 @@ end
 ;
 function READ_ASCII_READ, filename
 ;
-COMPILE_OPT hidden
+
+compile_opt idl2, hidden
+
 ON_ERROR, 2
 ;
 if FILE_TEST(filename, /directory) then $
@@ -153,7 +156,8 @@ end
 ;
 function READ_ASCII_GETTYPE, types
 
-compile_opt hidden
+compile_opt hidden, idl2
+
 on_error, 2
 
 priority = [ 0,  $              ; undefined
@@ -196,6 +200,9 @@ function READ_ASCII, filename, count=linecount, $
                      template=template, header=header, $
                      help=help, test=test, verbose=verbose
 ;
+
+compile_opt hidden, idl2
+
 ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
@@ -325,7 +332,7 @@ RWORDS=['AND','BEGIN','BREAK','CASE','COMMON','COMPILE_OPT','CONTINUE','DO',$
 'GE','GOTO','GT','IF','INHERITS','LE','LT','MOD','NE','NOT','OF','ON_IOERROR',$
 'OR','PRO','REPEAT','SWITCH','THEN','UNTIL','WHILE','XOR'] 
 for ifield=0L,n_elements(fieldnames)-1 do begin
- if total(strmatch(RWORDS,fieldnames[ifield],/FOLD_CASE)) ne 0 then Message,'Illegal field name: '+fieldnames[ifield]
+ if TOTAL(strmatch(RWORDS,fieldnames[ifield],/FOLD_CASE)) ne 0 then Message,'Illegal field name: '+fieldnames[ifield]
  ;unblank blanks:
   b=byte(fieldnames[ifield])
   for ibyte=0L,n_elements(b)-1 do if b[ibyte] eq 32 then b[ibyte]=95

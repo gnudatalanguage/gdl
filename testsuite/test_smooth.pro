@@ -124,8 +124,8 @@ if (TAG_NAMES(/STRUCT,{a:0}) eq '$truct') then begin
     a=SMOOTH(r,0)
 endif
 ;
-a=fltarr([10,10,9])
-temp=SMOOTH(a,[3,3])
+; bug 682
+ a=fltarr(2000, 2559) & b=smooth(a,3) & b=smooth(a,3,/nan) 
 ;
 ; common checks on calculations
 ;
@@ -139,10 +139,10 @@ print, SMOOTH(a,4)
 print, SMOOTH(a,5)
 print, SMOOTH(a,6)
 print, '------------- 1D test, edge trunc. ------------'
-print, SMOOTH(a,3,/edge)
-print, SMOOTH(a,4,/edge)
-print, SMOOTH(a,5,/edge)
-print, SMOOTH(a,6,/edge)
+print, SMOOTH(a,3,/edge_trunc)
+print, SMOOTH(a,4,/edge_trunc)
+print, SMOOTH(a,5,/edge_trunc)
+print, SMOOTH(a,6,/edge_trunc)
 ;
 ;gnbp=1e5
 ;a=randomu(seed,gnbp)
@@ -199,7 +199,7 @@ if (ABS(TOTAL(SMOOTH(DIST(12),3),/double)- results[0]) GT error) then print, 'OK
 if (ABS(TOTAL(SMOOTH(DIST(128),3),/double)- results[0]) GT error) then print, 'OK 2' else print, 'PB 2' 
 if (ABS(TOTAL(SMOOTH(DIST(128,12),3),/double)- results[0]) GT error) then print, 'OK 3' else print, 'PB 3' 
 if (ABS(TOTAL(SMOOTH(DIST(12,12),5),/double)- results[0]) GT error) then print, 'OK 4' else print, 'PB 4' 
-if (ABS(TOTAL(SMOOTH(DIST(128,12),3,/edge),/double)- results[0]) GT error) then print, 'OK 5' else print, 'PB 5' 
+if (ABS(TOTAL(SMOOTH(DIST(128,12),3,/edge_trunc),/double)- results[0]) GT error) then print, 'OK 5' else print, 'PB 5' 
 ;
 print, '---------------- SMOOTH is invariant by transposition -------------'
 print, 'Both should be Zero: true in FDL, first wrong in IDL'

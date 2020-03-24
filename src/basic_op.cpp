@@ -659,12 +659,18 @@ BaseGDL* Data_<SpDObj>::EqOp( BaseGDL* r)
 //       DStructDesc* desc = oStructGDL->Desc();
 //   
 //       DFun* EQOverload = static_cast<DFun*>(desc->GetOperator( OOEQ));
-//       
+//
       DSubUD* EQOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*this)[0], OOEQ));
       if( EQOverload == NULL)
       {
+      //scalar object 'this' can be equal to NullGDL::GetSingleInstance() only of it is undefined. If not scalar, not equal, if defined, not equal.
 	if( r == NullGDL::GetSingleInstance())
 	{
+            DObj pVal;
+            if( this->Scalar( pVal)) {
+               if (pVal==0) return new Data_<SpDByte>( 1);
+               return new DByteGDL( !interpreter->ObjValid( pVal ));
+              }
 	  Data_<SpDByte>* res= new Data_<SpDByte>( this->dim, BaseGDL::NOZERO);
 	  (*res)[0] = (0 == (*this)[0]);
 	  return res;

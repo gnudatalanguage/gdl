@@ -160,7 +160,7 @@ BaseGDL* Data_<SpDComplexDbl>::Smooth( DLong* width, int edgeMode,
   BaseGDL* resi=im->Smooth(width, edgeMode, doNan, missi);
   DDouble* dresi=(DDouble*)resi->DataAddr();  
   DDouble* dresr=(DDouble*)resr->DataAddr();  
-  for (SizeT i=0; i< this->N_Elements(); ++i) (*res)[i]=std::complex<DDouble>(dresr[i], dresr[i]);
+  for (SizeT i=0; i< this->N_Elements(); ++i) (*res)[i]=std::complex<DDouble>(dresr[i], dresi[i]);
   GDLDelete (resr);
   GDLDelete (re);
   GDLDelete (missr);
@@ -185,7 +185,7 @@ BaseGDL* Data_<SpDComplex>::Smooth( DLong* width, int edgeMode,
   BaseGDL* resi=im->Smooth(width, edgeMode, doNan, missi);
   DFloat* fresi=(DFloat*)resi->DataAddr();  
   DFloat* fresr=(DFloat*)resr->DataAddr();  
-  for (SizeT i=0; i< this->N_Elements(); ++i) (*res)[i]=std::complex<DFloat>(fresr[i], fresr[i]);
+  for (SizeT i=0; i< this->N_Elements(); ++i) (*res)[i]=std::complex<DFloat>(fresr[i], fresi[i]);
   GDLDelete (resr);
   GDLDelete (re);
   GDLDelete (missr);

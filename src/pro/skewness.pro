@@ -54,6 +54,9 @@ function skewness, x, double=double, NaN=NaN, dimension=dimension
 ;
 ;-
 ;
+
+compile_opt hidden, idl2
+
 ON_ERROR, 2
 ;
 tmp = MOMENT(x, skewness=skewness, double=double, NaN=NaN, $

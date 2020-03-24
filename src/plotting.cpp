@@ -35,6 +35,7 @@ namespace lib
 #endif
   
 //static values
+  static DLong savedStyle=0;
   static DDouble savedPointX=0.0;
   static DDouble savedPointY=0.0;
   static gdlSavebox saveBox;
@@ -624,6 +625,49 @@ namespace lib
     a->NormedDeviceToWorld(savedPointX, savedPointY, wx, wy);
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"getLastPoint: Got dev: %lf %lf giving %lf %lf world\n", savedPointX, savedPointY, wx, wy);
   }
+  //LINESTYLE
+  void gdlLineStyle(GDLGStream *a, DLong style)
+  {
+      //set saved Satle to nex style:
+      savedStyle=style;
+      static PLINT mark1[]={75};
+      static PLINT space1[]={1500};
+      static PLINT mark2[]={1500};
+      static PLINT space2[]={1500};
+      static PLINT mark3[]={1500, 100};
+      static PLINT space3[]={1000, 1000};
+      static PLINT mark4[]={1500, 100, 100, 100};
+      static PLINT space4[]={1000, 1000, 1000, 1000};
+      static PLINT mark5[]={3000};
+      static PLINT space5[]={1500};          // see plplot-5.5.3/examples/c++/x09.cc
+      switch(style)
+      {
+        case 0:
+          a->styl(0, mark1, space1);
+          return;
+         case 1:
+          a->styl(1, mark1, space1);
+          return;
+        case 2:
+          a->styl(1, mark2, space2);
+          return;
+        case 3:
+          a->styl(2, mark3, space3);
+          return;
+        case 4:
+          a->styl(4, mark4, space4);
+          return;
+        case 5:
+          a->styl(1, mark5, space5);
+          return;
+        default:
+          a->styl(0, NULL, NULL);
+          return;
+      }
+  }
+  DLong gdlGetCurrentStyle(){
+    return savedStyle;
+  }
 
 ///
 /// Draws a line along xVal, yVal
@@ -810,6 +854,7 @@ namespace lib
           }
           if (psym_>0&&psym_<8)
           {
+            DLong oldStyl=gdlGetCurrentStyle();
             a->styl(0, NULL, NULL); //symbols drawn in continuous lines
             for ( int j=0; j<i_buff; ++j )
             {
@@ -832,9 +877,11 @@ namespace lib
                 a->line(*userSymArrayDim, xSym, ySym);
               }
             }
+            gdlLineStyle(a,oldStyl);
           }
         else if ( psym_==8 )
         {
+          DLong oldStyl=gdlGetCurrentStyle();
           a->styl(0, NULL, NULL); //symbols drawn in continuous lines
           if (*usersymhascolor)
           {
@@ -859,6 +906,7 @@ namespace lib
               a->line(*userSymArrayDim, xSym, ySym);
             }
           }
+          gdlLineStyle(a,oldStyl);
         }
         else if ( psym_==10 )
           {
@@ -889,6 +937,7 @@ namespace lib
         }
         if ( psym_>0&&psym_<8 )
         {
+          DLong oldStyl=gdlGetCurrentStyle();
           a->styl(0, NULL, NULL); //symbols drawn in continuous lines
           for ( int j=0; j<i_buff; ++j )
           {
@@ -911,10 +960,11 @@ namespace lib
               a->line(*userSymArrayDim, xSym, ySym);
             }
           }
-
+          gdlLineStyle(a,oldStyl);
         }
         else if ( psym_==8 )
         {
+          DLong oldStyl=gdlGetCurrentStyle();
           a->styl(0, NULL, NULL); //symbols drawn in continuous lines
           if (*usersymhascolor)
           {
@@ -939,6 +989,7 @@ namespace lib
               a->line(*userSymArrayDim, xSym, ySym);
             }
           }
+          gdlLineStyle(a,oldStyl);
         }
         else if ( psym_==10 )
         {
@@ -971,69 +1022,15 @@ namespace lib
 
   //COLOR
 
-
   // helper for NOERASE
-
 
   //PSYM
 
-
-
   //SYMSIZE
-
-
 
   //CHARSIZE
 
-
-
-
-
-
-
-
   //THICK
-
-  //LINESTYLE
-  void gdlLineStyle(GDLGStream *a, DLong style)
-  {
-      static PLINT mark1[]={75};
-      static PLINT space1[]={1500};
-      static PLINT mark2[]={1500};
-      static PLINT space2[]={1500};
-      static PLINT mark3[]={1500, 100};
-      static PLINT space3[]={1000, 1000};
-      static PLINT mark4[]={1500, 100, 100, 100};
-      static PLINT space4[]={1000, 1000, 1000, 1000};
-      static PLINT mark5[]={3000};
-      static PLINT space5[]={1500};          // see plplot-5.5.3/examples/c++/x09.cc
-      switch(style)
-      {
-        case 0:
-          a->styl(0, mark1, space1);
-          return;
-         case 1:
-          a->styl(1, mark1, space1);
-          return;
-        case 2:
-          a->styl(1, mark2, space2);
-          return;
-        case 3:
-          a->styl(2, mark3, space3);
-          return;
-        case 4:
-          a->styl(4, mark4, space4);
-          return;
-        case 5:
-          a->styl(1, mark5, space5);
-          return;
-        default:
-          a->styl(0, NULL, NULL);
-          return;
-      }
-  }
-
-
   
   //crange to struct
 

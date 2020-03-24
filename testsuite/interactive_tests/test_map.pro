@@ -146,11 +146,11 @@ map_set,/CONIC,standard_par=[30,60],/iso,e_cont={cont:1,fill:1,color:'33e469'x,h
 ;
 if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
 !P.MULTI=0
-R = READ_TIFF(FILE_SEARCH(!GDL_MAPS_DIR, 'NE_SUBSET.tiff'))
-map_set,48.83,-2.33,name="goode",/iso,title="Goode's projection and France",e_cont={cont:1,fill:1,color:'33e469'x,hires:1},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x}
-for i=0,2 do begin & z=map_image(reform(r[i,*,*]),Startx,Starty,lonmin=-10.5149147727,latmin=59.3309659091,lonmax=10.6044034091,latmax=41.2542613636) & tv,z,startx,starty,chan=i+1 & endfor
-map_continents,/hi
-map_grid,box_axes=1,color='1260E2'x,glinethick=1,glinestyle=0,latdel=10,londel=10
+READ_JPEG,FILE_SEARCH(!GDL_MAPS_DIR, 'earth.jpg'),R
+map_set,48.83,-2.33,name="goode",/iso
+z=map_image(r,Startx,Starty)
+tv,z,startx,starty
+map_continents
 print, 'last demo done'
 ;
 go_to_end:

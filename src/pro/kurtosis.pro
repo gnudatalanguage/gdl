@@ -54,6 +54,9 @@ function KURTOSIS, x, double=double, NaN=NaN, dimension=dimension
 ;
 ;-
 ;
+
+compile_opt idl2, hidden
+
 ON_ERROR, 2
 ;
 tmp=MOMENT(x, kurtosis=kurtosis, double=double, NaN=NaN, $

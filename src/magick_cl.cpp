@@ -50,10 +50,7 @@
 #define START_MAGICK  \
     if (notInitialized ) { \
       notInitialized = false; \
-        Magick::InitializeMagick(NULL);  \
-      if ( QuantumDepth < 32) fprintf(stderr, "%% WARNING: your version of the %s library will truncate images to %d bits per pixel\n", \
-              MagickPackageName, QuantumDepth); \
-    }
+        Magick::InitializeMagick(NULL); }
 
 namespace lib {
 

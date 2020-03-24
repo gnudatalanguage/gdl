@@ -67,6 +67,11 @@ function INTERNAL_READ_PNG, filename, red, green, blue, $
                             order=order, transparent=transparent, $
                             test=test, verbose=verbose
 ;
+
+compile_opt hidden, idl2
+
+ON_ERROR, 2
+
 ; this line allows to compile also in IDL ...
 FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ
 ;
@@ -127,6 +132,9 @@ pro READ_PNG, filename, image, red, green, blue, $
               order=order, transparent=transparent, $
               help=help, test=test, verbose=verbose
 ;
+
+compile_opt hidden, idl2
+
 ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
@@ -148,6 +156,9 @@ function READ_PNG, filename, red, green, blue, $
                    order=order, transparent=transparent, $
                    help=help, test=test, verbose=verbose
 ;
+
+compile_opt hidden, idl2
+
 ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin

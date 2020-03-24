@@ -28,7 +28,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # X.X.X git becomes release X.X.X+1
-set(VERSION "1.0.0-rc.1 git")
+set(VERSION "1.0.0-rc.2 git")
 enable_testing()
 
 # cf issue 511, managing MultiArch on Debian ...
@@ -412,12 +412,12 @@ if(UNIX)
         "recommended and more modern libtirpc instead.\n"
         "Use -DRPCDIR=DIR to specify the rpc directory tree.\n")
     endif(RPC_FOUND)
-elseif (WIN32 AND NOT CYGWIN)
+elseif (WIN32)
     set(CMAKE_PREFIX_PATH ${XDRDIR})
     find_package(Xdr)
     set(HAVE_LIBXDR ${XDR_FOUND})
     if(XDR_FOUND)
-        set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARY})
+        set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARIES})
         include_directories(${XDR_INCLUDE_DIR})
     else(XDR_FOUND)
         message(FATAL_ERROR "bsd-xdr library is required but was not found.\n"

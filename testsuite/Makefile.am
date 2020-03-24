@@ -123,6 +123,7 @@ TESTS = \
   test_get_lun.pro \
   test_get_screen_size.pro \
   test_gh00178.pro \
+  test_gh00716.pro \
   test_grib.pro \
   test_hash.pro \
   test_hdf5.pro \
@@ -187,6 +188,7 @@ TESTS = \
   test_qromo.pro \
   test_random.pro \
   test_readf.pro \
+  test_readf_with_crlf.pro \
   test_reads.pro \
   test_rebin.pro \
   test_resolve_routine.pro \
@@ -213,6 +215,7 @@ TESTS = \
   test_strmatch.pro \
   test_strsplit.pro \
   test_structures.pro \
+  test_struct_assign.pro \
   test_suite.pro \
   test_systime.pro \
   test_tag_names.pro \

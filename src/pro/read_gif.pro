@@ -51,6 +51,9 @@
 pro READ_GIF, filename, image, Red, Green, Blue, $
               help=help, test=test, debug=debug
 ;
+
+compile_opt hidden, idl2
+
 ON_ERROR, 2
 ;
 ; this line allows to compile also in IDL ...

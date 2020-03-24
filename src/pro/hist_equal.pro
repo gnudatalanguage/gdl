@@ -98,6 +98,8 @@
 ;-
 ;
 pro LINEAR_PERCENT, cumuhist, percent, min, binSIZE, maxDN, minDN
+
+compile_opt idl2, hidden
 ;
 n = cumuhist[N_ELEMENTS(cumuhist)-1]
 low = (percent/100.) 
@@ -133,6 +135,9 @@ function HIST_EQUAL, img, binSIZE=bs, fcn=fcn, Histogram_Only=ho, $
                      percent=percent, Top=top_, $
                      help=help, test=test
 ;
+
+compile_opt idl2, hidden
+
 ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin

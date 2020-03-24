@@ -18,7 +18,7 @@
 #include "includefirst.hpp"
 
 #include "nullgdl.hpp"
-
+#include "dinterpreter.hpp"
 #include "datatypes.hpp"
 
 using namespace std;
@@ -377,21 +377,26 @@ BaseGDL* NullGDL::EqOp( BaseGDL* r)
   {
     return new Data_<SpDByte>( 1);
   }
-  // check for null opject and pointer
+  // check for null object and pointer
   DType rTy= r->Type();
   if( rTy == GDL_PTR)
   {
     DPtrGDL* rP = static_cast<DPtrGDL*>(r);
     DPtr pVal;
-    if( rP->Scalar( pVal) && pVal == 0)
-      return new Data_<SpDByte>( 1);
+    if( rP->Scalar( pVal) ) {
+      if (pVal==0) return new Data_<SpDByte>( 1);
+      return new DByteGDL( !interpreter->PtrValid( pVal ));
+      }
   }
+  //following never happens since comparison with !NULL is never done in this direction, it is always converted to !NULL eq something in AdjustTypesNCNull
   else if( rTy == GDL_OBJ)
   {
     DObjGDL* rP = static_cast<DObjGDL*>(r);
     DObj pVal;
-    if( rP->Scalar( pVal) && pVal == 0)
-      return new Data_<SpDByte>( 1);
+    if( rP->Scalar( pVal)) {
+      if (pVal==0) return new Data_<SpDByte>( 1);
+      return new DByteGDL( !interpreter->ObjValid( pVal ));
+      }
   }
   return new Data_<SpDByte>( 0);
 }

@@ -88,6 +88,20 @@ if (errors2 EQ 0) then MESSAGE, /continue, 'Case 2 : succesfully done'
 ;
 errors=errors1+errors2
 ;
+; special case for complex. Not yet ready for GDL
+;; f1=complex(12,13) & f2=complex(18,19)
+;; f=complexarr(2) & inarray=' ( 12,13) (18,19) ' & reads,inarray,f ; 2 complex written correctly: real and imaginary part readable
+;; if total(atan(f-[f1,f2],/phas)) ne 0.0 then errors++
+;; ;
+;; ; special case for complex:
+;; f1=complex(12,13) & f2=complex(18,0) & f3=complex(19,0)
+;; f=complexarr(3) & inarray=' ( 12,13) 18 19' & reads,inarray,f ; 3 complex mixed writing: 1st real and imaginary part, rest is real only
+;; if total(atan(f-[f1,f2,f3],/phas)) ne 0.0 then errors++
+;; ;
+;; f1=complex(12,0) & f2=complex(13,0)
+;; f=complexarr(2) & inarray=' 12,13 ' & reads,inarray,f
+;; if total(atan(f-[f1,f2],/phas)) ne 0.0 then errors++
+;; 
 ; ----- final ----
 ;
 BANNER_FOR_TESTSUITE, functionname, errors, /status

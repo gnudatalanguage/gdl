@@ -57,7 +57,8 @@ namespace lib {
 //    
 #if defined(IS_BIGENDIAN)
 	#define H0_OFFSET2	256
-	#define BYTES_INC2	(1-j)
+	#define H1_OFFSET2	0
+        #define BYTES_INC2	(1-j)
     #define H0_OFFSET4	768
 	#define H1_OFFSET4	512
 	#define H2_OFFSET4	256
@@ -72,7 +73,7 @@ namespace lib {
 	#define H1_OFFSET8	1536
 	#define H0_OFFSET8	1792
 	#define BYTES_INC8	(7-j)
-#else 
+#else
 	#define H0_OFFSET2	0
 	#define H1_OFFSET2	256
 	#define BYTES_INC2	j
@@ -1759,6 +1760,24 @@ template <typename T, typename IndexT>
       SizeT low=0; 
       SizeT high=nEl-1; 
       QuickSortIndex<DString, IndexT>( val, hh, low, high);
+      return res;
+    } else if (p0->Type() == GDL_PTR) {
+        // actually it sorts the index in heap.
+      DPtr* val = (DPtr*)(static_cast<DPtrGDL*>(p0)->DataAddr()); //heap indexes
+      GDLIndexT* res = new GDLIndexT(dimension(nEl), BaseGDL::INDGEN);
+      IndexT *hh = static_cast<IndexT*> (res->DataAddr());
+      SizeT low=0; 
+      SizeT high=nEl-1; 
+      AdaptiveSortIndex<DPtr, IndexT>( val, hh, low, high);
+      return res;
+    } else if (p0->Type() == GDL_OBJ) {
+        // idem?
+      DObj* val = (DObj*)(static_cast<DObjGDL*>(p0)->DataAddr()); //heap indexes
+      GDLIndexT* res = new GDLIndexT(dimension(nEl), BaseGDL::INDGEN);
+      IndexT *hh = static_cast<IndexT*> (res->DataAddr());
+      SizeT low=0; 
+      SizeT high=nEl-1; 
+      AdaptiveSortIndex<DObj, IndexT>( val, hh, low, high);
       return res;
     }
     return NULL;

@@ -86,7 +86,9 @@
  
 
 function read_binary_filesize, filename
- compile_opt hidden
+
+compile_opt idl2, hidden
+
  spawn, ['wc', '-c', filename], output, exit_status=status, /noshell
  if status ne 0 then message, 'Invalid filename.'
  return, long64(output[0])
@@ -95,6 +97,9 @@ end
 function read_binary, input, template=template, data_start=datastart, $
                  data_type=datatypes, data_dims=datadims, endian=endian
  
+
+compile_opt idl2, hidden
+
  on_error, 2
 
  if keyword_set(template) then begin

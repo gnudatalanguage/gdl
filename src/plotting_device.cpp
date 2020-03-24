@@ -17,6 +17,7 @@
 
 #include "includefirst.hpp"
 #include "plotting.hpp"
+#include "nullgdl.hpp"
 #include <gsl/gsl_const_mksa.h> // GSL_CONST_MKSA_INCH
 
 namespace lib {
@@ -60,7 +61,8 @@ namespace lib {
     if ( e->KeywordPresent( get_fontnamesIx ) )
       {
         BaseGDL* value = actDevice->GetFontnames( );
-        if ( value != NULL )  e->SetKW( get_fontnamesIx, value->Dup() ); //Throw error elsewhere.
+        if ( value != NULL )  e->SetKW( get_fontnamesIx, value->Dup() ); 
+        else e->SetKW( get_fontnamesIx, NullGDL::GetSingleInstance() ); //protected from Throw
       }
     }
     //GET_FONTNUM? 
@@ -69,7 +71,8 @@ namespace lib {
     if ( e->KeywordPresent( get_fontnumIx ) )
       {
         DLong value = actDevice->GetFontnum( );
-        if ( value >= 0 ) e->SetKW( get_fontnumIx, new DLongGDL( value) ); //Throw error elsewhere.
+        if ( value >= 0 ) e->SetKW( get_fontnumIx, new DLongGDL( value) ); 
+        else e->SetKW( get_fontnumIx, NullGDL::GetSingleInstance() ); //protected from Throw
       }
     }
     //GET_CURRENT_FONT? 

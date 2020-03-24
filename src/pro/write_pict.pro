@@ -43,6 +43,11 @@
 pro WRITE_PICT, filename, image, red, green, blue, $
                 test=test, help=help, debug=debug
 ;
+
+compile_opt hidden, idl2
+
+ON_ERROR, 2
+
 ; this line allows to compile also in IDL ...
 FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ
 ;
