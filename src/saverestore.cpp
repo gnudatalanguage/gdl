@@ -233,7 +233,6 @@ enum {
     return next;
   }
 
-
   char* getDescription(XDR *xdrs) {
     int32_t length = 0;
     if (!xdr_int32_t(xdrs, &length)) cerr << "error reading description string length" << endl;
@@ -845,7 +844,8 @@ enum {
       xdr_int32_t(xdrs, &nsupclasses);
       if (nsupclasses > 0) {
         DStructGDL* parents[nsupclasses];
-        std::string pnames[nsupclasses];
+        // AC not OK on OSX12: std::string pnames[nsupclasses];
+	string *pnames = new string[nsupclasses];
         int k=0;
         for (int i=0 ; i< pNames.size();++i) {
           DStructGDL* parent = new DStructGDL( pNames[i]);
@@ -862,9 +862,10 @@ enum {
             Guard<DStructGDL> parent_guard(parent);
             writeStructDesc(xdrs, parent, true, true);
           }
-        }
-      }
+	delete [] pnames;       
+	}
     }
+  }
   
   
   BaseGDL* getVariable(EnvT* e, XDR* xdrs, int &isSysVar, bool &isObjStruct) {
@@ -1471,15 +1472,17 @@ enum {
     }
     //if testSafety is correct, DLong and int32_t , DInt and int16_t etc have the same meaning.
 
+    static int FILENAME = e->KeywordIx("FILENAME");
 
     static int VERBOSE = e->KeywordIx("VERBOSE");
-    static int FILENAME = e->KeywordIx("FILENAME");
-    static int DESCRIPTION = e->KeywordIx("DESCRIPTION");
-
     bool verbose = e->KeywordSet(VERBOSE);
     DLong verboselevel=(verbose?1:0);
     if (verbose) e->AssureLongScalarKW(VERBOSE,verboselevel);
+
+    static int DESCRIPTION = e->KeywordIx("DESCRIPTION");
     bool hasDescription = e->KeywordPresent(DESCRIPTION);
+    // AC 20200323 : we may have this keyword set but no value in the file : should return "" 
+    if (hasDescription)	e->SetKW(DESCRIPTION, new DStringGDL(""));
 
     //empty heap map by security.
     heapIndexMapRestore.clear();
@@ -1638,6 +1641,7 @@ enum {
             if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
             std::string descr(getDescription(xdrs));
             if (verbose) Message("Description: " + descr);
+	    // AC 20200323 no "else" possible here, see above
             if (hasDescription) e->SetKW(DESCRIPTION, new DStringGDL(descr));
           }
           break;
