@@ -110,8 +110,14 @@ namespace lib {
       glp_set_col_bnds(theProblem, i, GLP_LO, 0.0, 0.0);
     }
 
-    int ia[n * m], ja[n * m];
-    double ar[n * m], z, x1, x2, x3;
+    // AC 2020-03-31 : adding +1 following example in glpk.pdf
+    // page 12 http://www.chiark.greenend.org.uk/doc/glpk-doc/glpk.pdf
+    
+    int ia[ 1+ n * m], ja[ 1 + n * m];
+    double ar[ 1+ n * m];
+    
+    double z, x1, x2, x3;
+    
     int k = 1; //their numbering starts at 1
     for (int j = 0; j < m; ++j)
     {
