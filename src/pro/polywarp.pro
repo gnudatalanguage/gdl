@@ -1,29 +1,22 @@
 ;
-;
-;
 ; NAME: POLYWARP
-;
 ;
 ; PURPOSE: Performs polynomial spatial warping with given points.
 ;
-;
 ; CATEGORY: Image Processing/ mathematics
 ;
+; CALLING SEQUENCE:
 ;
-; CALLING SEQUENCE: polywarp, Xi, Yi, Xo, Yo, Degree, Kx, Ky [, /DOUBLE] [, STATUS=variable]
-;
+;  POLYWARP, Xi, Yi, Xo, Yo, Degree, Kx, Ky [, /DOUBLE] [, STATUS=variable]
 ;
 ; OUTPUTS: Estimated coefficients Kx[i,j] and Ky[i,j] of the polynomial functions
 ;                     Xi = Sum[i,j](Kx[i,j] * Xo^j * Yo^i)
 ;                     Yi = Sum[i,j](Ky[i,j] * Xo^j * Yo^i)
 ;
-;
 ; RESTRICTIONS: Xi, Yi, Xo, and Yo should be number array with the same lengths.
 ;               The number of Xi and Yi should be greater or equal than (degree+1)^2.
 ;
-;
 ; PROCEDURE: Estimates Kx[i,j] and Ky[i,j] using least eqares estimation.
-;
 ;
 ; EXAMPLE:  Xi = [33, 53, 53, 56]
 ;           Yi = [34, 12, 123, 125]
@@ -39,8 +32,8 @@
 ;
 ;
 ; MODIFICATION HISTORY:
-; 	Written by: Jeongbin Park, 2015-Apr-05
-;
+;   * 2015-Apr-05 : Jeongbin Park : original writting
+;   * 2020-Apr-02 : Igor Chilingarian : input dimensionality bug FIXed
 ;
 ;-
 ; LICENCE:
@@ -51,55 +44,58 @@
 ; (at your option) any later version.                                   
 ;
 ;-
-pro polywarp, Xi, Yi, Xo, Yo, Degree, Kx, Ky, DOUBLE=isdouble, STATUS=status
-  on_error, 2
+pro POLYWARP, Xi, Yi, Xo, Yo, Degree, Kx, Ky, DOUBLE=isdouble, STATUS=status
+;
+on_error, 2
 
-  IF (N_PARAMS() LT 5) THEN BEGIN
-    message, 'Incorrect number of arguments.'
-  ENDIF
+IF (N_PARAMS() LT 5) THEN BEGIN
+   MESSAGE, 'Incorrect number of arguments.'
+ENDIF
 
-  n = n_elements(Xi)
-  IF ((n NE n_elements(Yi)) OR (n NE n_elements(Xo)) OR (n NE n_elements(Yo))) THEN BEGIN
-    message, 'Inconsistent number of elements.'
-  ENDIF
-  
-  k = (Degree+1)^2
-  IF (n LT k) THEN BEGIN
-    message, '# of points must be ge (degree+1)^2.'
-  ENDIF
+n = N_ELEMENTS(Xi)
+IF ((n NE N_ELEMENTS(Yi)) OR (n NE N_ELEMENTS(Xo)) OR (n NE N_ELEMENTS(Yo))) THEN BEGIN
+   MESSAGE, 'Inconsistent number of elements.'
+ENDIF
 
-  _X = DBLARR(n, k, /NOZERO)
-  _Xi = DOUBLE(Xi)
-  _Yi = DOUBLE(Yi)
-  _Xo = DOUBLE(Xo)
-  _Yo = DOUBLE(Yo)
+k = (Degree+1)^2
+IF (n LT k) THEN BEGIN
+   MESSAGE, '# of points must be ge (degree+1)^2.'
+ENDIF
 
-  FOR i = 0, n-1 do begin
-    FOR jj = 0, Degree do begin
+_X = DBLARR(n, k, /NOZERO)
+_Xi = DOUBLE(REFORM(Xi,n))
+_Yi = DOUBLE(REFORM(Yi,n))
+_Xo = DOUBLE(REFORM(Xo,n))
+_Yo = DOUBLE(REFORM(Yo,n))
+
+FOR i = 0, n-1 do begin
+   FOR jj = 0, Degree do begin
       FOR ii = 0, Degree do begin
-        _X[i, jj*(Degree+1)+ii] = _Xo[i]^jj*_Yo[i]^ii
+         _X[i, jj*(Degree+1)+ii] = _Xo[i]^jj*_Yo[i]^ii
       ENDFOR
-    ENDFOR
-  ENDFOR
+   ENDFOR
+ENDFOR
 
-  _trX = TRANSPOSE(_X)
-  _Sol = INVERT(_trX#_X, STATUS, /DOUBLE)#_trX
+_trX = TRANSPOSE(_X)
+_Sol = INVERT(_trX#_X, STATUS, /DOUBLE)#_trX
 
-  CASE STATUS OF
-    1: MESSAGE, "Singular matrix detected.", /INFORMATIONAL
-    2: MESSAGE, "Warning: Invert detected a small pivot element.", /INFORMATIONAL
-    ELSE:
-  ENDCASE
+CASE STATUS OF
+   1: MESSAGE, "Singular matrix detected.", /INFORMATIONAL
+   2: MESSAGE, "Warning: Invert detected a small pivot element.", /INFORMATIONAL
+   ELSE:
+ENDCASE
 
-  IF (keyword_set(DOUBLE) OR (SIZE(Xi, /TN) EQ "DOUBLE") OR (SIZE(Yi, /TN) EQ "DOUBLE") OR $
-                             (SIZE(Xo, /TN) EQ "DOUBLE") OR (SIZE(Yo, /TN) EQ "DOUBLE")) THEN BEGIN
-    kX = DOUBLE(_Sol#_Xi)
-    kY = DOUBLE(_Sol#_Yi)
-  ENDIF ELSE BEGIN
-    kX = FLOAT(_Sol#_Xi)
-    kY = FLOAT(_Sol#_Yi)
-  ENDELSE
-
-  kX = REFORM(kX, Degree+1, Degree+1, /OVERWRITE)
-  kY = REFORM(kY, Degree+1, Degree+1, /OVERWRITE)
+IF (KEYWORD_SET(DOUBLE) OR $
+    (SIZE(Xi, /TN) EQ "DOUBLE") OR (SIZE(Yi, /TN) EQ "DOUBLE") OR $
+    (SIZE(Xo, /TN) EQ "DOUBLE") OR (SIZE(Yo, /TN) EQ "DOUBLE")) THEN BEGIN
+   kX = DOUBLE(_Sol#_Xi)
+   kY = DOUBLE(_Sol#_Yi)
+ENDIF ELSE BEGIN
+   kX = FLOAT(_Sol#_Xi)
+   kY = FLOAT(_Sol#_Yi)
+ENDELSE
+;
+kX = REFORM(kX, Degree+1, Degree+1, /OVERWRITE)
+kY = REFORM(kY, Degree+1, Degree+1, /OVERWRITE)
+;
 end
