@@ -98,15 +98,39 @@ int TermWidth()
   return cols;
 }
 
+int TermHeight()
+{
+  int lines = 0;
+  SCREEN *screen;
+
+  if( lines != 0) return lines;
+
+  // original line follows:
+  // initscr();
+
+  screen = newterm((char *) NULL, stdout, stdin);
+  if((void *)screen == NULL)
+    lines = 24;
+  else
+    lines = LINES;
+
+  endwin();
+
+  return lines;
+}
+
 #else
 
 // default
 
-// note: TermHeight() not yet used
-
 int TermWidth()
 {
   return 80;
+}
+
+int TermHeight()
+{
+  return 24;
 }
 
 #endif
