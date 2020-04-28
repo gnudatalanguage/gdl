@@ -60,9 +60,11 @@ int TermWidth()
 
 int TermHeight()
 {
+
+  //  std::cout << "hello" << std::endl;
   int cols;
   int rows;
-
+  rl_reset_screen_size ();
   rl_get_screen_size(&rows, &cols);
   return rows;
 }
