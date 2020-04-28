@@ -23,7 +23,6 @@
  ***************************************************************************/
 
 #include "includefirst.hpp"
-#include "terminfo.hpp" 
 
 #include <sys/types.h>
 
@@ -123,6 +122,8 @@ extern "C" {
 
 #include "gdlhelp.hpp"
 #include "nullgdl.hpp"
+#include "terminfo.hpp"
+
 
 // for sorting compiled pro/fun lists by name
 struct CompFunName: public std::binary_function< DFun*, DFun*, bool>
