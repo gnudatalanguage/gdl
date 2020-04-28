@@ -17,7 +17,7 @@
 ; -- updating the list of EXISTS_ functs.
 ;
 ; 2020-Mar-30 : AC. 
-; -- I clearly prefer keywork /missing ! (more nmemonic)
+; -- I clearly prefer keyword /missing ! (more nmemonic)
 ;
 ; ---------------------------------------------------
 ;
