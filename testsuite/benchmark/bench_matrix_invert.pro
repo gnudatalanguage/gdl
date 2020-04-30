@@ -15,6 +15,8 @@
 ; * AC 2019-11-21:
 ; -- filter= for PLOT
 ; -- more info in XDR (info_cpu, info_os, info_soft)
+; * AC 2020-04-29:
+; -- /display to avoid pb on nodes without X11 ...
 ;
 ; --------------------------------------------------------------
 ;
@@ -84,7 +86,7 @@ end
 ;
 pro BENCH_MATRIX_INVERT, nb_matrix=nb_matrix, seed=seed, $
                          start_size=start_size, step=step, $
-                         save=save, double=double, $
+                         save=save, double=double, display=display, $
                          verbose=verbose, test=test, help=help
 ;
 if KEYWORD_SET(help) then begin
@@ -127,8 +129,10 @@ for ii=0, nb_matrix-1 do begin
    resu_inv[ii]=time2-time1
 endfor
 ;
-PLOT, size_index, resu_inv, xtitle='Matrix size', ytitle='Inversion time [s]'
-OPLOT, size_index, resu_gen
+if KEYWORD_SET(display) then begin
+   PLOT, size_index, resu_inv, xtitle='Matrix size', ytitle='Inversion time [s]'
+   OPLOT, size_index, resu_gen
+endif
 ;
 if KEYWORD_SET(save) then begin
    ;;
