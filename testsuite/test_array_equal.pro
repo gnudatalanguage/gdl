@@ -88,36 +88,36 @@ a_array=[1]
 a_full_array=REPLICATE(1, 5)
 ;
 if ARRAY_EQUAL(a_singleton, a_singleton) NE 1 then begin
-   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_singleton, a_singleton)'
+   ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_singleton, a_singleton)'
 endif
 if ARRAY_EQUAL(a_array, a_array) NE 1 then begin
-   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_array, a_array)'
+   ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_array, a_array)'
 endif
 if ARRAY_EQUAL(a_full_array, a_full_array) NE 1 then begin
-   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_full_array, a_full_array)'
+   ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_full_array, a_full_array)'
 endif
 ;
 if ARRAY_EQUAL(a_singleton, a_array) NE 1 then begin
-   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_singleton, a_array)'
+   ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_singleton, a_array)'
 endif
 if ARRAY_EQUAL(a_array, a_singleton) NE 1 then begin
-   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_array, a_singleton)'
+   ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_array, a_singleton)'
 endif
 ;
 if ARRAY_EQUAL(a_singleton, a_full_array) NE 1 then begin
-   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_singleton, a_full_array)'
+   ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_singleton, a_full_array)'
 endif
 if ARRAY_EQUAL(a_full_array, a_singleton) NE 1 then begin
-   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_full_array, a_singleton)'
+   ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_full_array, a_singleton)'
 endif
 ;
 ; When both inputs are arrays, if n_elements differents, should return ZERO
 ;
 if ARRAY_EQUAL(a_array, a_full_array) NE 0 then begin
-   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_array, a_full_array)'
+   ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_array, a_full_array)'
 endif
 if ARRAY_EQUAL(a_full_array, a_array) NE 0 then begin
-   ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_full_array, a_array)'
+   ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_full_array, a_array)'
 endif
 ;
 ; ----- final ----
@@ -152,27 +152,27 @@ b_array=[10]
 b_full_array=REPLICATE(10, 5)
 ;
 if ARRAY_EQUAL(a_singleton, b_array) NE 0 then begin
-    ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_singleton, b_array)'
+    ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_singleton, b_array)'
 endif
 if ARRAY_EQUAL(a_array, b_singleton) NE 0 then begin
-    ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_array, b_singleton)'
+    ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_array, b_singleton)'
 endif
 ;
 ;
 if ARRAY_EQUAL(a_singleton, b_full_array) NE 0 then begin
-    ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_singleton, b_full_array)'
+    ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_singleton, b_full_array)'
 endif
 if ARRAY_EQUAL(a_full_array, b_singleton) NE 0 then begin
-    ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_full_array, b_singleton)'
+    ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_full_array, b_singleton)'
 endif
 ;
 ; When both inputs are arrays, if n_elements differents, should return ZERO
 ;
 if ARRAY_EQUAL(a_array, b_full_array) NE 0 then begin
-    ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_array, b_full_array)'
+    ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_array, b_full_array)'
 endif
 if ARRAY_EQUAL(a_full_array, b_array) NE 0 then begin
-    ERRORS_ADDS, nb_pbs, 'ARRAY_EQUAL(a_full_array, b_array)'
+    ERRORS_ADD, nb_pbs, 'ARRAY_EQUAL(a_full_array, b_array)'
 endif
 ;
 BANNER_FOR_TESTSUITE, case_name, nb_pbs, /status
