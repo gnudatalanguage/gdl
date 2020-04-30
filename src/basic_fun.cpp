@@ -8011,7 +8011,18 @@ BaseGDL* routine_filepath( EnvT* e)
     *p0 = NULL; // make parameter undefined
     return ret;
   }
+  
+  
+    BaseGDL* terminal_size_fun( EnvT* e ) {
+        // TODO: Also allow setting width/height
+        SizeT nParam = e->NParam(0);
+        DLongGDL* ret = new DLongGDL( dimension(2) );
+        (*ret)[0] = TermWidth();
+        (*ret)[1] = TermHeight();
+        return ret;
+    }
 
+  
   BaseGDL* memory( EnvT* e)
   {
     SizeT nParam=e->NParam( 0); 
