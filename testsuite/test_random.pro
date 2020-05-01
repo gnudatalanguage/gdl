@@ -23,6 +23,44 @@
 ;
 ; - 2019-12-23 : AC: better managment of DSFMT_EXISTS()
 ;
+; - 2020-04-30 : AC: should work when !d.name=Null ! (AKA config. Mini)
+;   Should work for IDL & FL (pb with DSFMT_EXISTS())
+;
+; ----------------------------------------------
+;
+function STATUS_OF_DSFMT, test=test, verbose=verbose
+;
+FORWARD_FUNCTION DSFMT_EXISTS
+;
+; flag is 0 for IDL & FL, or old GDL
+flag=0
+;
+if (GDL_IDL_FL() EQ 'GDL') then begin
+   ;; we may run this code with old GDL version without DSFMT_EXISTS()
+   res=EXECUTE('dsfmt_flag=DSFMT_EXISTS()')
+   if (res) then begin
+      if KEYWORD_SET(verbose) then $
+         print, GDL_IDL_FL(), ', DSFMT_EXISTS() = ', dsfmt_flag
+      ;; do we use it ?? (if activated by !gdl.GDL_USE_DSFMT)
+      if dsfmt_flag then begin
+         gdltags=TAG_NAMES(!gdl)
+         ok=WHERE(STRPOS(gdltags, 'GDL_USE_DSFMT') EQ 0, nb_ok)
+         if nb_ok then begin
+            if (!gdl.GDL_USE_DSFMT EQ 1) then flag=1
+            if KEYWORD_SET(verbose) then $
+               print, GDL_IDL_FL(), ', !gdl.GDL_USE_DSFMT : ', flag
+         endif else print, GDL_IDL_FL(), ' no !gdl.GDL_USE_DSFMT !'
+      endif
+   endif
+endif
+;
+if KEYWORD_SET(verbose) then print, GDL_IDL_FL(), ', flag DSFMT = ', flag
+if KEYWORD_SET(test) then STOP
+;
+return, flag
+;
+end
+;
 ; ----------------------------------------------
 ;
 function STATUS_VERSION_OF_RANDOM, verbose=verbose, test=test
@@ -97,8 +135,6 @@ end
 ;
 pro TEST_RANDOM_MERSENNE, cumul_errors, test=test, verbose=verbose 
 ;
-FORWARD_FUNCTION DSFMT_EXISTS
-;
 nb_errors=0
 ;
 ; tolerance
@@ -113,7 +149,7 @@ indices=4*INDGEN(5)
 ; /RAN1 could be used to insure that the values returned are equal with the non-parallel old mersenne twister,
 ; as /RAN1 gives values identical to IDL. However it would be necessary to modify the logic below.
 ;
-if (GDL_IDL_FL() EQ 'GDL') AND DSFMT_EXISTS() then begin
+if (GDL_IDL_FL() EQ 'GDL') AND STATUS_OF_DSFMT() then begin
   exptd_u_f=[0.683328, 0.511748, 0.712392, 0.974657, 0.267097]
   exptd_u_d=[0.6833279104279921, 0.5117476599880262, 0.7123919069196021, 0.9746571081546436, 0.2670968079969038]
   exptd_n_f=[-1.0257840, -0.8902389, 0.2266469, 0.2755476, 0.9339375]
@@ -155,14 +191,12 @@ end
 ;
 pro TEST_RANDOM_ULONG, cumul_errors, test=test, verbose=verbose
 ;
-FORWARD_FUNCTION DSFMT_EXISTS
-;
 nb_errors=0
 seed=10
 nbp=5
 ;
 ; these values are the same for all 4 cases ...
-if (GDL_IDL_FL() EQ 'GDL') AND DSFMT_EXISTS() then begin
+if (GDL_IDL_FL() EQ 'GDL') AND STATUS_OF_DSFMT() then begin
    exp_ul10=[ 1060878149, 1956351291, 1923111058, 1181360106, 1349992422]
 endif else begin
    exp_ul10=[ 3312796937, 1283169405, 89128932, 2124247567, 2721498432]
@@ -230,11 +264,6 @@ pro TEST_RANDOM_POISSON, errors, nb_points=nb_points, $
 ;
 nb_pbs=0
 ;
-if ((!d.name EQ 'X') or (!d.name EQ 'WIN')) then WINDOW, 0
-;
-DEVICE, get_decomposed=old_decomposed
-if NOT(old_decomposed) then DEVICE, decomposed=1
-;
 if KEYWORD_SET(nb_points) then nbps=nb_points else nbps=100000
 nbps_f=FLOAT(nbps)
 ;
@@ -250,12 +279,19 @@ res_l10=HISTOGRAM(RANDOMN(seed, nbps, poisson=10))/nbps_f
 indices=20
 xranges=[-0.5, MAX(indices)+0.5]
 ;
-PLOT, INDGEN(N_ELEMENTS(res_l1)), res_l1, xrange=xranges, /xstyle, $
-      xtitle='k', ytitle='P(X=k)', title='Poisson law', /nodata
-;
-PLOT_BATONS, res_l1, col='ff'x, psym=psym, line=2
-PLOT_BATONS, res_l4, off=0.05, col='ffff'x, psym=psym, line=2
-PLOT_BATONS, res_l10, off=0.1, col='ffffff'x, psym=psym, line=2
+if ((!d.name EQ 'X') or (!d.name EQ 'WIN')) then begin 
+   WINDOW, 0
+   ;;
+   DEVICE, get_decomposed=old_decomposed
+   if NOT(old_decomposed) then DEVICE, decomposed=1
+   ;;
+   PLOT, INDGEN(N_ELEMENTS(res_l1)), res_l1, xrange=xranges, /xstyle, $
+         xtitle='k', ytitle='P(X=k)', title='Poisson law', /nodata
+   ;;
+   PLOT_BATONS, res_l1, col='ff'x, psym=psym, line=2
+   PLOT_BATONS, res_l4, off=0.05, col='ffff'x, psym=psym, line=2
+   PLOT_BATONS, res_l10, off=0.1, col='ffffff'x, psym=psym, line=2
+endif
 ;
 ; Is the sum of all the values equal to One ?!
 ;
@@ -282,7 +318,9 @@ ERRORS_CUMUL, errors, nb_pbs
 ;
 if KEYWORD_SET(test) then STOP
 ;
-DEVICE, decomposed=old_decomposed
+if ((!d.name EQ 'X') or (!d.name EQ 'WIN')) then begin
+   DEVICE, decomposed=old_decomposed
+endif
 ;
 end
 ;
@@ -385,7 +423,7 @@ for ii=0, N_ELEMENTS(values)-1 do begin
    dispersion=ABS(MEAN(resu)-amplitude*values[ii])
    if (dispersion GT amplitude/ratio) then begin
       txt='bad result for (amplitude, value) : ('+string(amplitude)+','+string(values)+')'
-      ERRORS_ADDS, errors, txt
+      ERRORS_ADD, errors, txt
    endif
    if KEYWORD_SET(verbose) then begin
       print, format='(i12,4f12,6x,I1.1)', amplitude, values[ii], $
@@ -440,12 +478,8 @@ endelse
 ;
 BANNER_FOR_TESTSUITE, "TEST_RANDOM", cumul_errors
 ;
-; if /debug OR /test nodes, we don't want to exit
-if (cumul_errors GT 0) then begin
-    if ~KEYWORD_SET(verbose) then MESSAGE, /continue, 're-run with /verbose for details'
-    if ~(KEYWORD_SET(test) or KEYWORD_SET(no_exit)) then EXIT, status=1
- endif
+if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
-if KEYWORD_SET(no_exit) OR KEYWORD_SET(test) then STOP
+if KEYWORD_SET(test) then STOP
 ;
 end

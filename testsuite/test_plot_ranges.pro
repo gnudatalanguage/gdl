@@ -13,6 +13,7 @@
 ; - 2019-11-06 : AC : should not be run when device is NULL
 ; (is it OK to extend for PS & SVG devices ?)
 ;
+; - 2020-04-30 : AC now working for NULL (env MINI in Travis ...)
 ; -----------------------------------------------
 ;
 pro TEST_PLOT_YRANGES, cumul_errors, negative=negative, $
@@ -69,15 +70,15 @@ if KEYWORD_SET(help) then begin
    return
 endif
 ;
-; store the !p/!d env
-save_p=!p
-save_dname=!d.name
-;
 rname=ROUTINE_NAME()
 ;
 if ~CHECK_IF_DEVICE_IS_OK(rname, /force) then begin
-   if ~KEYWORD_SET(no_exit) then EXIT, status=77 else STOP
+   if KEYWORD_SET(no_exit) then STOP else return
 endif
+;
+; store the !p/!d env
+save_p=!p
+save_dname=!d.name
 ;
 TEST_PLOT_YRANGES, nb_errors
 TEST_PLOT_YRANGES, nb_errors, /negative
