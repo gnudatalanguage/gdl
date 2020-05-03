@@ -178,7 +178,7 @@ install:
 
     # Python & NumPy (installing always as needed for the Python module build)
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python3-dev python3-numpy-dev"; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install numpy; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install --upgrade --no-deps --force-reinstall numpy; fi
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=OFF"; fi 
 
