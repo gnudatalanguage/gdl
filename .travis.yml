@@ -259,7 +259,7 @@ install:
 
     # apt-get/brew invocation
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -y $APT_PACKAGES; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install $BREW_PACKAGES; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then for pkg in $BREW_PACKAGES; do echo "install $pkg" >> Brewfile; done; brew bundle --file=Brewfile; fi
 
 script:
     # antlr
