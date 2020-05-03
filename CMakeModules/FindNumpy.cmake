@@ -22,10 +22,10 @@ endif (PYTHON_NUMPY_INCLUDE_DIR)
 #INCLUDE(FindPythonInterp) #SA: this is now done in CMakeLists.txt
 
 IF(PYTHON_EXECUTABLE)
-    EXEC_PROGRAM ("${PYTHON_EXECUTABLE}"
-      ARGS "-c \"import numpy; print (numpy.get_include())\""
+    execute_process (COMMAND "${PYTHON_EXECUTABLE}"
+      "-c \"import numpy; print (numpy.get_include())\""
       OUTPUT_VARIABLE PYTHON_NUMPY_INCLUDE_DIR
-      RETURN_VALUE PYTHON_NUMPY_NOT_FOUND)
+      RESULT_VARIABLE PYTHON_NUMPY_NOT_FOUND)
 
     if (PYTHON_NUMPY_NOT_FOUND)
       set(PYTHON_NUMPY_FOUND FALSE)
