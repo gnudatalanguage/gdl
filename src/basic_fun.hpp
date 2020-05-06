@@ -147,6 +147,8 @@ namespace lib {
 
   BaseGDL* temporary( EnvT* e);
 
+  BaseGDL* terminal_size_fun( EnvT* e );
+
   BaseGDL* memory(EnvT* e);
 
   // the following by Peter Messmer 

@@ -16,11 +16,14 @@
 ; 2019-Nov-18 : AC. 
 ; -- updating the list of EXISTS_ functs.
 ;
+; 2020-Mar-30 : AC. 
+; -- I clearly prefer keyword /missing ! (more nmemonic)
+;
 ; ---------------------------------------------------
 ;
-pro IPRINT, ii, txt, status, only_off=only_off
+pro IPRINT, ii, txt, status, skip
 ;
-if KEYWORD_SET(only_off) then begin
+if skip then begin
    if status EQ 1 then begin
       ii++
       return
@@ -32,7 +35,8 @@ end
 ;
 ; ---------------------------------------------------
 ;
-pro GDL_STATUS, test=test, verbose=verbose, only_off=only_off
+pro GDL_STATUS, missing=missing, only_off=only_off, $
+                test=test, verbose=verbose, help=help
 ;
 FORWARD_FUNCTION DSFMT_EXISTS, EIGEN_EXISTS, FFTW_EXISTS, GEOTIFF_EXISTS, $
    GLPK_EXISTS, GRIB_EXISTS, GSHHG_EXISTS, HDF5_EXISTS, HDF_EXISTS, $
@@ -42,35 +46,44 @@ FORWARD_FUNCTION DSFMT_EXISTS, EIGEN_EXISTS, FFTW_EXISTS, GEOTIFF_EXISTS, $
 ;
 ON_ERROR, 2
 ;
+if KEYWORD_SET(help) then begin
+   print, 'pro GDL_STATUS, missing=missing, only_off=only_off, $'
+   print, '                test=test, verbose=verbose help=help'
+   return
+endif
+;
 if GDL_IDL_FL(/uppercase) NE 'GDL' then $
    MESSAGE, 'This code can be run only under GDL !'
 ;
 ; counting ...
 i=1
 ;
-IPRINT, i, 'DSFMT ?  : ', DSFMT_EXISTS(), only_off=only_off
-IPRINT, i, 'Eigen3 ? : ', EIGEN_EXISTS(), only_off=only_off
-IPRINT, i, 'Expat ?  : ', EXPAT_EXISTS(), only_off=only_off
-IPRINT, i, 'FFTw ?   : ', FFTW_EXISTS(), only_off=only_off
-IPRINT, i, 'GEOTIFF ?: ', GEOTIFF_EXISTS(), only_off=only_off
-IPRINT, i, 'GLPK ?   : ', GLPK_EXISTS(), only_off=only_off
-IPRINT, i, 'GRIB ?   : ', GRIB_EXISTS(), only_off=only_off
-IPRINT, i, 'HDF ?    : ', HDF_EXISTS(), only_off=only_off
-IPRINT, i, 'HDF5 ?   : ', HDF5_EXISTS(), only_off=only_off
-IPRINT, i, 'Magick ? : ', MAGICK_EXISTS(), only_off=only_off
-IPRINT, i, 'NetCDF ? : ', NCDF_EXISTS(), only_off=only_off
-IPRINT, i, 'NetCDF4 ?: ', NCDF4_EXISTS(), only_off=only_off
-IPRINT, i, 'OpenMP ? : ', OPENMP_EXISTS(), only_off=only_off
-IPRINT, i, 'PNGLIB ? : ', PNGLIB_EXISTS(), only_off=only_off
-IPRINT, i, 'Proj4 ?  : ', PROJ4_EXISTS(), only_off=only_off
-IPRINT, i, 'Proj4 new: ', PROJ4NEW_EXISTS(), only_off=only_off
-IPRINT, i, 'PSlib ?  : ', PSLIB_EXISTS(), only_off=only_off
-IPRINT, i, 'Python ? : ', PYTHON_EXISTS(), only_off=only_off
-IPRINT, i, 'ShapeLib : ', SHAPELIB_EXISTS(), only_off=only_off
-IPRINT, i, 'TIFF ?   : ', TIFF_EXISTS(), only_off=only_off
-IPRINT, i, 'UDUNITS  : ', UDUNITS_EXISTS(), only_off=only_off
-IPRINT, i, 'WxWidgets: ', WXWIDGETS_EXISTS(), only_off=only_off
-IPRINT, i, 'X11      : ', X11_EXISTS(), only_off=only_off
+skip=0
+if KEYWORD_SET(missing) OR KEYWORD_SET(only_off) then skip=1 
+;
+IPRINT, i, 'DSFMT ?  : ', DSFMT_EXISTS(), skip
+IPRINT, i, 'Eigen3 ? : ', EIGEN_EXISTS(), skip
+IPRINT, i, 'Expat ?  : ', EXPAT_EXISTS(), skip
+IPRINT, i, 'FFTw ?   : ', FFTW_EXISTS(), skip
+IPRINT, i, 'GEOTIFF ?: ', GEOTIFF_EXISTS(), skip
+IPRINT, i, 'GLPK ?   : ', GLPK_EXISTS(), skip
+IPRINT, i, 'GRIB ?   : ', GRIB_EXISTS(), skip
+IPRINT, i, 'HDF ?    : ', HDF_EXISTS(), skip
+IPRINT, i, 'HDF5 ?   : ', HDF5_EXISTS(), skip
+IPRINT, i, 'Magick ? : ', MAGICK_EXISTS(), skip
+IPRINT, i, 'NetCDF ? : ', NCDF_EXISTS(), skip
+IPRINT, i, 'NetCDF4 ?: ', NCDF4_EXISTS(), skip
+IPRINT, i, 'OpenMP ? : ', OPENMP_EXISTS(), skip
+IPRINT, i, 'PNGLIB ? : ', PNGLIB_EXISTS(), skip
+IPRINT, i, 'Proj4 ?  : ', PROJ4_EXISTS(), skip
+IPRINT, i, 'Proj4 new: ', PROJ4NEW_EXISTS(), skip
+IPRINT, i, 'PSlib ?  : ', PSLIB_EXISTS(), skip
+IPRINT, i, 'Python ? : ', PYTHON_EXISTS(), skip
+IPRINT, i, 'ShapeLib : ', SHAPELIB_EXISTS(), skip
+IPRINT, i, 'TIFF ?   : ', TIFF_EXISTS(), skip
+IPRINT, i, 'UDUNITS  : ', UDUNITS_EXISTS(), skip
+IPRINT, i, 'WxWidgets: ', WXWIDGETS_EXISTS(), skip
+IPRINT, i, 'X11      : ', X11_EXISTS(), skip
 ;
 ; How many _EXISTS() founctions should we have ?
 ;
@@ -93,3 +106,4 @@ endelse
 if KEYWORD_SET(test) then STOP
 ;
 end
+

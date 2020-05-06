@@ -53,7 +53,7 @@ namespace SysVar
 
 
   // the index of some system variables
-  UInt nullIx, trueIx, falseIx, pathIx, promptIx, edit_inputIx, quietIx,
+  UInt nullIx, trueIx, falseIx, pathIx, promptIx, edit_inputIx, quietIx, moreIx,
     dIx, pIx, xIx, yIx, zIx, vIx, gdlWarningIx, gdlIx, cIx, MouseIx,
     errorStateIx, errorIx, errIx, err_stringIx, valuesIx,
     journalIx, exceptIx, mapIx, cpuIx, dirIx, stimeIx,
@@ -422,6 +422,12 @@ namespace SysVar
     DVar *quiet=new DVar( "QUIET", quietData);
     quietIx=sysVarList.size();
     sysVarList.push_back(quiet);
+    
+    // !MORE
+    DIntGDL* moreData=new DIntGDL( 1);
+    DVar *more=new DVar( "MORE", moreData);
+    moreIx=sysVarList.size();
+    sysVarList.push_back(more);
 
     // !C
     DLongGDL* cData=new DLongGDL( 0);
@@ -540,7 +546,7 @@ namespace SysVar
     // printf("seconds since the Epoch: %ld\n", (long) t_of_day);
 
     gdlStruct->NewTag("EPOCH", new DLongGDL((long) t_of_day));
-    gdlStruct->NewTag("GDL_NO_DSFMT", new DByteGDL(0));
+    gdlStruct->NewTag("GDL_USE_DSFMT", new DByteGDL(1));
     gdlStruct->NewTag("GDL_USE_WX", new DByteGDL(0));
 #ifdef _WIN32
     std::string use_posix=GetEnvString("GDL_USE_POSIX");
@@ -549,7 +555,6 @@ namespace SysVar
 #else
     gdlStruct->NewTag("GDL_POSIX", new DByteGDL(1));
 #endif
-    gdlStruct->NewTag("MAP_QUALITY", new DStringGDL("CRUDE"));
 
     DVar *gdl        = new DVar( "GDL", gdlStruct);
     gdlIx=sysVarList.size();

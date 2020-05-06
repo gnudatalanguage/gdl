@@ -14,6 +14,8 @@
 ; * AC 2019-11-21:
 ; -- filter= for PLOT
 ; -- more info in XDR (info_cpu, info_os, info_soft)
+; * AC 2020-04-29:
+; -- /display to avoid pb on nodes without X11 ...
 ;
 ; --------------------------------------------------------------
 ;
@@ -79,8 +81,8 @@ end
 ;
 ; --------------------------------------------------------------
 ;
-pro BENCH_MEDIAN, size=size, seed=seed, max_width=max_width, $
-                  save=save, double=double, even=even, $
+pro BENCH_MEDIAN, size=size, seed=seed, max_width=max_width, even=even, $
+                  save=save, double=double, display=display, $
                   verbose=verbose, test=test, help=help
 ;
 if KEYWORD_SET(help) then begin
@@ -108,7 +110,6 @@ if KEYWORD_SET(double) then input=DOUBLE(input)
 ;
 for ii=1, nb_run-1 do begin
    width_list[ii]=2*ii+add
-
    ;;
    time0=SYSTIME(1)
    b=MEDIAN(input, width_list[ii])
@@ -118,7 +119,9 @@ for ii=1, nb_run-1 do begin
    time_median[ii]=time1-time0
 endfor
 ;
-PLOT, width_list, time_median, xtitle='Width values', ytitle='Median time [s]'
+if KEYWORD_SET(display) then begin
+   PLOT, width_list, time_median, xtitle='Width values', ytitle='Median time [s]'
+endif
 ;
 if KEYWORD_SET(save) then begin
    filename=BENCHMARK_GENERATE_FILENAME(radical)

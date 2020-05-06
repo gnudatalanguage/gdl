@@ -50,10 +50,10 @@ else if(keyword_set(verbose)) then message,/con,'2 created pointers are valid"
 ; will crash if bug #241 is not cured as ptr_valid(on_a_not_pointer) is always 0 whatever the type.
 a={un:1, deux:[0,4], trois:[0.66,68.33,222.16], quatre:'zzzzz'}
 ; simple tests 
-x=ptr_valid(a) & print,x ; before would have crashed on a being a structure
-x=ptr_valid(a.(1)) & print,x & if total(x) ne 0 then err++
-x=ptr_valid(a.(2)) & print,x & if total(x) ne 0 then err++
-x=ptr_valid(a.(3)) & print,x & if total(x) ne 0 then err++
+x=ptr_valid(a) ; before would have crashed on a being a structure
+x=ptr_valid(a.(1)) & if total(x) ne 0 then err++
+x=ptr_valid(a.(2)) & if total(x) ne 0 then err++
+x=ptr_valid(a.(3)) & if total(x) ne 0 then err++
 ; more complicated: valid and not valid array of pointers:
 D=PTRARR(10)& c=dindgen(10) & for i=0,5 do d[i]=ptr_new(c[i])
 ; x should be a pointer on the double precision value "2.000", of course provided we get the value of the heap slot good for d[2]:
@@ -76,13 +76,18 @@ if ptr_valid(x) ne 0 then err++
 
 ; following should complain and must be trapped:
 ;zz=ptr_valid(a,/cast) --> struct expression not allowed in this context: A
+;
+; separately, test equality to !NULL for valid and invalid pointers
+; the idea is , if a pointer is undefined, it is equal to !NULL. But a pointer to !NULL is not undefined:
+good=[1b,0b] & p = PTR_NEW(33) & res=[ptr_valid(p),p eq !NULL] & if total(res eq good) ne 2 then err++
+good=[0b,1b] & p = PTR_NEW() & res=[ptr_valid(p),p eq !NULL] & if total(res eq good) ne 2 then err++
+good=[1b,0b] & p = PTR_NEW(!NULL) & res=[ptr_valid(p),p eq !NULL] & if total(res eq good) ne 2 then err++
 
 if(keyword_set(test)) then stop,' at end of test routine'
 ;
 ;
 banner_for_testsuite,' TEST_PTR_VALID',err
-if (err gt 0) and ~keyword_set(noexit) then exit, status = 1 $
-  else if (err eq 0) then print,'Success!'
+if (err gt 0) and ~keyword_set(noexit) then exit, status = 1 
 
 return
 end

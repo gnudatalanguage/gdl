@@ -53,9 +53,10 @@
 ;-
 pro write_csv, file, input1, input2, input3, input4, input5, input6, input7, input8,  header=header, table_header=tableheader
 
-  compile_opt idl2
 
-  ON_ERROR, 2                   ;Return on error
+compile_opt hidden, idl2
+
+ON_ERROR, 2
 
   ON_IOERROR, error_io
 

@@ -24,105 +24,508 @@
 ; -- add "-L" for Curl
 ; -- better management of keyword filename= & string_array=
 ; -- tested with current (in 2018) QuerySimbad,'GAL045.45+00.06' in astrolib
-;
+; 2020-Jan-10 : GD
+; support most options for Get() etc.
 ; ----------------------------------------------------
 ;
 ;
-pro idlneturl::CloseConnections
+function get_percent
+  openr,lun,"/tmp/pb",/get
+  a=''
+  readf,lun,a,format='(A)'
+  percent=0.01*strmid(a,5,5,/rever)
+  free_lun,lun
+  return, percent
 end
-function idlneturl::Get, filename=filename, string_array=string_array, $
-                         test=test, verbose=verbose
+
+function idlneturl::format_response_header,stringarray,response_header_size
+  linefeed=string(10b)
+; we have the header size in bytes.
+;find the number of lines in the stringarray that give
+;response_header_size bytes. A zero-length response header does not
+;necessary mean no-response, as FTP transactions do not give it.
+  i=0 &  n=0 & self.response_header=''
+  while i lt response_header_size do begin
+     i+=(n_bytes(stringarray[n])+1) ;  since the newline is absent in result array
+     self.response_header+=stringarray[n]
+     if (i lt response_header_size) then self.response_header+=linefeed ;header is the concatenation of the n first lines
+     n++                                                                ; next line
+  end
+  if n_elements(stringarray) gt 4+n then response=stringarray[n:-5] else response=''
+  return, response
+end
+
+function idlneturl::Get, buffer=buffer, filename=filename, string_array=string_array, ftp_explicit_ssl=ftp_explicit_ssl, url=url, test=test, verbose=verbose
+
+  if ~KEYWORD_SET(filename) then filename='idl.dat'
+  if (STRLEN(self.URL_QUERY) GT 0) then filename=self.URL_QUERY
+
+
+  if n_elements(url) gt 0 then begin
+     id_cmd=url
+  endif else begin
+     id_cmd=''
+     if STRLEN(self.URL_USERNAME) GT 0 then id_cmd=' -u '+self.URL_USERNAME
+     if STRLEN(self.URL_PASSWORD) GT 0 then id_cmd=id_cmd+':'+self.URL_PASSWORD+' '
+     id_cmd=id_cmd+self.URL_SCHEME+'://'+self.URL_HOSTNAME
+     if STRLEN(self.URL_PORT) GT 0 then id_cmd=id_cmd+':'+strtrim(self.URL_PORT,2)
+     where=self.URL_PATH
+     if strlen(where) gt 0 then id_cmd+='/'+where
+     if STRLEN(self.URL_QUERY) GT 0 then id_cmd=id_cmd+'?'+strtrim(self.URL_QUERY,2)
+  endelse
 ;
-;; AC 2018-spet-27 : no more useful ?!
-;; tmpIDLDir = GETENV('IDL_TMPDIR')
-;; if STRLEN(tmpIDLDir) EQ 0 then tmpIDLDir='/tmp/'
+; AC, 2018-sep-20 : we need option -L in curl (in vizier, the /viz-bin was moved into a /cgi-bin ...
 ;
-id_cmd=''
 ;
-if STRLEN(self.URL_USERNAME) GT 0 then id_cmd=' -u '+self.URL_USERNAME
-if STRLEN(self.URL_PASSWORD) GT 0 then id_cmd=id_cmd+':'+self.URL_PASSWORD+' '
-id_cmd=id_cmd+self.URL_SCHEME+'://'+self.URL_HOSTNAME
-if STRLEN(self.URL_PORT) GT 0 then id_cmd=id_cmd+':'+self.URL_PORT
-id_cmd=id_cmd+self.URL_PATH
-if STRLEN(self.URL_QUERY) GT 0 then id_cmd=id_cmd+'?'+self.URL_QUERY
-;
-; AC, 2018-sep-20 : option -L in curl
-; in vizier, the /viz-bin was moved into a /cgi-bin ...
-;
-curl_cmd='curl -L '
-;
-if ~KEYWORD_SET(string_array) then begin
-   if (STRLEN(self.URL_QUERY) GT 0) then begin
-      curl_cmd=curl_cmd+'-O '
-   endif else begin
-      if ~KEYWORD_SET(filename) then filename='idl.dat'
-      curl_cmd=curl_cmd+'-o '+filename+' '
-   endelse
-endif
-;
-cmd=curl_cmd+id_cmd
+; string curl_cmd contains all the common parameters between the to approaches:
+  curl_cmd=""
+; authentification
+  if self.authentication GT 0 then begin
+     case self.authentication of
+        1:  curl_cmd+='--basic ' 
+        2:  curl_cmd+='--digest ' 
+        3:  curl_cmd+='-u --negotiate ' 
+     endcase
+  endif
+; connect timeout  
+  curl_cmd+='--connect-timeout '+strtrim(self.connect_timeout,2)+' ' 
+  
+; encode
+  if self.encode GT 0 then curl_cmd+='--tr-encoding ' 
+  if self.ftp_connection_mode EQ 0 then curl_cmd+='--ftp-pasv '
+; headers
+  if ptr_valid(self.headers) and n_elements(*(self.headers)) gt 0 then begin
+     for i=0,n_elements(*(self.headers))-1 do begin
+        if strlen((*self.headers)[i]) gt 0 then curl_cmd+="-H '"+strtrim((*self.headers)[i],2)+"' "
+     endfor
+  endif
+
+; proxy hostname, untested.
+  proxy_cmd=''
+  if STRLEN(self.PROXY_HOSTNAME) GT 0 then begin
+     proxy_cmd=' -x '+strtrim(self.PROXY_HOSTNAME,2)
+     if self.PROXY_PORT ne 80 then proxy_cmd+=':'+strtrim(self.PROXY_PORT,2)+' ' else proxy_cmd+=' '
+     if STRLEN(self.PROXY_USERNAME) GT 0 then proxy_cmd+=' --proxy-user '+strtrim(self.PROXY_USERNAME,2)
+     if STRLEN(self.PROXY_PASSWORD) GT 0 then proxy_cmd+=':'+strtrim(self.PROXY_PASSWORD,2)
+     proxy_cmd+=' '
+; proxy authentication
+     if self.proxy_authentication GT 0 then begin
+        case self.proxy_authentication of
+           1:  proxy_cmd+='--proxy-basic ' 
+           2:  proxy_cmd+='--proxy-digest ' 
+           3:  proxy_cmd+='--proxy-anyauth ' 
+        endcase
+     endif
+     curl_cmd+=proxy_cmd
+  endif
+; timeout
+  curl_cmd+='--max-time '+strtrim(self.timeout,2)+' '
+
+  
+  if strlen(self.CALLBACK_FUNCTION) gt 0 then begin
+     if ptr_valid(self.Callback_Data) then callback_data= *(self.Callback_Data)
+; GD:
+; in the presence of a callback function:
+; first, get the response header and treat it, eventually sending some
+; data to the callback. This because we cannot send the headers
+; asynchronously, we would have to wait until the entire file has
+; been downloaded. When we write this function directly in GDL using
+; libcurl, things will be way esaier.
+     curl_asyn_get_headers='curl -LI --silent --include ' ; will get only headers
+     curl_asyn_get_headers+="--write-out '\n%{size_header}\n%{content_type}\n%{response_code}\n%{size_download}' " ; we get some useful values
+     cmd=curl_asyn_get_headers+id_cmd
 if KEYWORD_SET(verbose) then print, cmd
-;
-SPAWN, cmd, result, blahblah
-if KEYWORD_SET(verbose) then begin
-   print, 'Result : ', result
-   print, 'blahblah : ', blahblah
-endif
-;
-if KEYWORD_SET(test) then STOP
-;
+     SPAWN, cmd, result, blahblah
+; last 4 lines of result are the header size, the content_type, response_code and size_download respectively
+     response_header_size=result[-4]
+     if response_header_size eq 0 then begin ; in error and blahblah is curl's error, throw on it
+        message,blahblah
+     endif
+     self.content_type=result[-3]
+     self.response_code=fix(result[-2])
+     downloaded=long64(result[-1]) ; should be zero as this is the data downloaded, not the header.
+                                ; header of query is response without the last 4 lines
+     if n_elements(result) gt 4 then headers=result[0:-5] else headers=''     
+                                ; set response header property
+     response=self->idlneturl::format_response_header(result,response_header_size)
+     
+; retrieve content_length if present in headers
+     content_length_str=STREGEX(self.response_header, 'Content-Length: *[0-9]+', length=len, /extra)
+     if (len gt 0) then begin
+        content_length_substr=strsplit(content_length_str,":",/extr)
+        content_length=long(content_length_substr[1])
+     endif else content_length=0
+
+;if content length is zero, it will be impossible to mimic the
+;callback by looking at the "progessbar"
+     if content_length eq 0 then goto, no_callback
+
+;set progressinfo and pass to callback, it's up to it to
+;continue or not, we have downloaded 0
+     
+     StatusInfo="Header"
+     ProgressInfo=[1LL,content_length,downloaded,0LL,0LL]
+     if call_function(self.CALLBACK_FUNCTION, StatusInfo, ProgressInfo, Callback_Data) eq 0 then return,''
+     
+; if we are ok, get the real thing:
+; cmd will be a spawned commande.
+; we need, alongside the data, the CONTENT_TYPE, the RESPONSE_CODE
+; (200=success) , the RESPONSE_HEADER and preferably the
+; content_length that should be the value of progress_info[1] and the
+; number of bytes downloaded at each instant, aka progress_info[2]
+; of course if the transfer encoding is not 'chunked'.
+
+     curl_asyn_get_all='curl -L --progress-bar -o '+filename+' ' ; will use progressbar values, but alas need output in external file.
+; remove /tmp/pb
+     file_delete,'/tmp/pb',/allow_nonexistent,/quiet,/noexpand_path
+     
+     cmd=curl_asyn_get_all+id_cmd+" 2>/tmp/pb &"
+; will send data to filename and have the progressbar in /tmp/pb
+                                ;if KEYWORD_SET(verbose) then
+;     print, cmd
+     
+     SPAWN, cmd 
+     StatusInfo="Downloading..."
+     time=0d
+     while (file_test('/tmp/pb') eq 0 and time le 1 ) do begin
+        wait,0.1
+        time+=0.1
+     end
+     if (time ge 1) then goto,done ; curl did not even create the progressbar (? to fast or problem?) , skip callback
+     ProgressInfo=[1LL,content_length,0LL,0LL,0LL]
+     while 1 do begin
+        wait,1
+        percent=get_percent()
+        if percent ge 1 then ProgressInfo[2]=content_length else ProgressInfo[2]=percent*content_length
+        if call_function(self.CALLBACK_FUNCTION, StatusInfo, ProgressInfo, Callback_Data ) eq 0 then break ;
+        if  percent ge 1 then break                                                                        ;
+     end
+done:
+; clear headers property as specified in documentation
+     self->idlneturl::SetProperty,HEADERS = ''
+     
 ; order of Keywords is : STRING, BUFFER, FILENAME
-if KEYWORD_SET(string_array) then return, result
-if KEYWORD_SET(buffer) then print, 'what is a BUFFER ?!'
-if KEYWORD_SET(filename) then return, FILE_SEARCH(filename, /full)
-;
-; AC 2018-sep-20 : somethings not clear here because I succeed
-; to got "idl.dat" !
-;
-; return an empty string if none of the previous 3 keywords !
-return, ''
+; filename exists, so the filename case is easy.
+     if ~KEYWORD_SET(string_array) and ~KEYWORD_SET(buffer) then return,FILE_SEARCH(filename, /full)
+; else, read, convert, delete          
+     if KEYWORD_SET(string_array) or KEYWORD_SET(buffer) then begin
+        openr,lun,filename,/get
+        sz=(fstat(lun)).size
+        response=bytarr(sz)
+        readu, lun, response
+        free_lun,lun
+     endif
+     if KEYWORD_SET(buffer) then return,response
+     return,fix(response,type=7) ;as string array
+  endif else begin
+no_callback:
+; GD:
+; if there is no callback function, directly get the file as we do not
+; need to be asynchronous.
+
+; for content_type, response code, downloaded size
+     curl_cmd+="--write-out '\n%{size_header}\n%{content_type}\n%{response_code}\n%{size_download}' "
+     curl_syn='curl -L --silent --show-error --include ' ; include http header, disable progress meter but keeps error messages!
+     cmd=curl_syn+curl_cmd+id_cmd
+if KEYWORD_SET(verbose) then print, cmd
+     SPAWN, cmd, result, blahblah
+; last 4 lines of result are the header size, the content_type, response_code and size_download respectively
+     response_header_size=fix(result[-4])
+     self.content_type=result[-3]
+     self.response_code=fix(result[-2])
+     response=self->idlneturl::format_response_header(result,response_header_size)
+  endelse
+  
+  if KEYWORD_SET(test) then STOP
+  
+; clear headers property as specified in documentation
+  self->idlneturl::SetProperty,HEADERS = ''
+  
+; order of Keywords is : STRING, BUFFER, FILENAME
+  if KEYWORD_SET(string_array) then return,response
+  if KEYWORD_SET(buffer) then begin
+     if n_elements(response) gt 0 then begin
+        b=bytes(response)
+        return,reform(b,n_bytes(b))
+     endif else return,0b
+  endif
+  
+; makes default: filename
+  if ~KEYWORD_SET(filename) then filename='idl.dat'
+  if (STRLEN(self.URL_QUERY) GT 0) then filename='XXXXXXXXXXXXXXXXXXXX'
+  openw, lun, filename, /GET_LUN
+  printf,lun,response
+  free_lun,lun
+  return, FILE_SEARCH(filename, /full)
 ;
 end
 ;
 ; --------------------------
 ;
-pro idlneturl::SetProperty, URL_SCHEME = URL_SCHEME, $
-                            URL_HOSTNAME = URL_HOSTNAME, $
-                            URL_PATH = URL_PATH, $
-                            URL_PORT = URL_PORT, $
-                            URL_QUERY= URL_QUERY, $
-                            URL_USERNAME =  URL_USERNAME, $
-                            URL_PASSWORD =  URL_PASSWORD
-;
-IF KEYWORD_SET(URL_SCHEME) then self.URL_SCHEME=URL_SCHEME
-IF KEYWORD_SET(URL_HOSTNAME) then self.URL_HOSTNAME=URL_HOSTNAME
-IF KEYWORD_SET(URL_PATH) then self.URL_PATH=URL_PATH
-IF KEYWORD_SET(URL_PORT) then self.URL_PORT=URL_PORT
-IF KEYWORD_SET(URL_QUERY) then self.URL_QUERY=URL_QUERY
-IF KEYWORD_SET(URL_USERNAME) then self.URL_USERNAME=URL_USERNAME
-IF KEYWORD_SET(URL_PASSWORD) then self.URL_PASSWORD=URL_PASSWORD
-;
+PRO idlneturl::Cleanup
+  OBJ_DESTROY, self
 end
+PRO idlneturl::CloseConnections
+  message,/info,"idlneturl::CloseConnexions not yet implemented, FIXME"
+end
+PRO idlneturl::Delete, URL=URL
+  message,/info,"idlneturl::Delete not yet implemented, FIXME"
+end
+function idlneturl::FtpCommand,command, FTP_EXPLICIT_SSL=z , URL=url
+  message,/info,"idlneturl::FtpCommand not yet implemented, FIXME"
+end
+function idlneturl::GetFtpDirList, FTP_EXPLICIT_SSL=z , URL=url, SHORT=short
+  message,/info,"idlneturl::GetFtpDirList not yet implemented, FIXME"
+end
+function idlneturl::Put, data, BUFFER=buf, FILENAME=file, FTP_EXPLICIT_SSL=z, POST=post, STRING_ARRAY=str, URL=url
+; clears headers property
+self->idlneturl::SetProperty,HEADERS = ''
+  message,/info,"idlneturl::Put not yet implemented, FIXME"
+end
+function idlneturl::URLDecode,String
+  message,/info,"idlneturl::URLDecode not yet implemented, FIXME"
+end
+function idlneturl::URLEncode,String
+  message,/info,"idlneturl::URLEncode not yet implemented, FIXME"
+end
+
+pro idlneturl::SetProperty,$
+   URL_SCHEME = URL_SCHEME, $
+   URL_HOSTNAME = URL_HOSTNAME, $
+   URL_PATH = URL_PATH, $
+   URL_PORT = URL_PORT, $
+   URL_QUERY= URL_QUERY, $
+   URL_USERNAME =  URL_USERNAME, $
+   URL_PASSWORD =  URL_PASSWORD, $
+   VERBOSE=VERBOSE, $
+   AUTHENTICATION=AUTHENTICATION,$
+   CALLBACK_DATA=CALLBACK_DATA,$
+   CALLBACK_FUNCTION=CALLBACK_FUNCTION,$
+   CONNECT_TIMEOUT=CONNECT_TIMEOUT,$
+   ENCODE=ENCODE,$
+   FTP_CONNECTION_MODE=FTP_CONNECTION_MODE,$
+   HEADERS=HEADERS,$
+   PROXY_AUTHENTICATION=PROXY_AUTHENTICATION,$
+   PROXY_HOSTNAME=PROXY_HOSTNAME,$
+   PROXY_PASSWORD=PROXY_PASSWORD,$
+   PROXY_PORT=PROXY_PORT,$
+   PROXY_USERNAME=PROXY_USERNAME,$
+   SSL_CERTIFICATE_FILE=SSL_CERTIFICATE_FILE,$
+   SSL_VERIFY_HOST=SSL_VERIFY_HOST,$
+   SSL_VERIFY_PEER=SSL_VERIFY_PEER,$
+   SSL_VERSION=SSL_VERSION,$
+   TIMEOUT=TIMEOUT,_extra=extra
 ;
-; --------------------------
-;
-function idlneturl::Init, filename, VERBOSE=verbose
-;
-return, 1
+IF N_ELEMENTS(URL_SCHEME) gt 0 then self.URL_SCHEME=URL_SCHEME
+IF N_ELEMENTS(URL_HOSTNAME) gt 0 then self.URL_HOSTNAME=URL_HOSTNAME
+IF N_ELEMENTS(URL_PATH) gt 0 then self.URL_PATH=URL_PATH
+IF N_ELEMENTS(URL_PORT) gt 0 then self.URL_PORT=URL_PORT
+IF N_ELEMENTS(URL_QUERY) gt 0 then self.URL_QUERY=URL_QUERY
+IF N_ELEMENTS(URL_USERNAME) gt 0 then self.URL_USERNAME=URL_USERNAME
+IF N_ELEMENTS(URL_PASSWORD) gt 0 then self.URL_PASSWORD=URL_PASSWORD
+IF N_ELEMENTS(VERBOSE) gt 0 then self.VERBOSE=VERBOSE
+IF N_ELEMENTS(AUTHENTICATION) gt 0 then self.AUTHENTICATION=AUTHENTICATION
+
+IF N_ELEMENTS(CALLBACK_DATA) gt 0 then begin
+   if ptr_valid(self.callback_data) gt 0 then ptr_free,self.callback_data
+   self.CALLBACK_DATA=ptr_new(CALLBACK_DATA)
+endif
+
+IF N_ELEMENTS(CALLBACK_FUNCTION) gt 0 then self.CALLBACK_FUNCTION=CALLBACK_FUNCTION
+IF N_ELEMENTS(CONNECT_TIMEOUT) gt 0 then self.CONNECT_TIMEOUT=CONNECT_TIMEOUT
+IF N_ELEMENTS(ENCODE) gt 0 then self.ENCODE=ENCODE
+IF N_ELEMENTS(FTP_CONNECTION_MODE) gt 0 then self.FTP_CONNECTION_MODE=FTP_CONNECTION_MODE
+
+IF N_ELEMENTS(HEADERS) gt 0 then begin
+  if ptr_valid(self.headers) gt 0 then ptr_free,self.HEADERS
+  self.HEADERS=ptr_new(HEADERS)
+endif
+
+IF N_ELEMENTS(PROXY_AUTHENTICATION) gt 0 then self.PROXY_AUTHENTICATION=PROXY_AUTHENTICATION
+IF N_ELEMENTS(PROXY_HOSTNAME) gt 0 then self.PROXY_HOSTNAME=PROXY_HOSTNAME
+IF N_ELEMENTS(PROXY_PASSWORD) gt 0 then self.PROXY_PASSWORD=PROXY_PASSWORD
+IF N_ELEMENTS(PROXY_PORT) gt 0 then self.PROXY_PORT=PROXY_PORT
+IF N_ELEMENTS(PROXY_USERNAME) gt 0 then self.PROXY_USERNAME=PROXY_USERNAME
+IF N_ELEMENTS(SSL_CERTIFICATE_FILE) gt 0 then self.SSL_CERTIFICATE_FILE=SSL_CERTIFICATE_FILE
+IF N_ELEMENTS(SSL_VERIFY_HOST) gt 0 then self.SSL_VERIFY_HOST=SSL_VERIFY_HOST
+IF N_ELEMENTS(SSL_VERIFY_PEER) gt 0 then self.SSL_VERIFY_PEER=SSL_VERIFY_PEER
+IF N_ELEMENTS(SSL_VERSION) gt 0 then self.SSL_VERSION=SSL_VERSION
+IF N_ELEMENTS(TIMEOUT) gt 0 then self.TIMEOUT=TIMEOUT
 ;
 end
 
-pro idlneturl__define, struct
-struct = {idlneturl, $
-          IDLNETURL_TOP : 0l, $
-          CURLPTR       : 0L, $
-          URL_SCHEME    : 'http' , $
-          URL_HOSTNAME  : '',$
-          URL_PATH      : '',$
-          URL_PORT      : '80',$
-          URL_QUERY     : '',$
-          URL_USERNAME  : '',$
-          URL_PASSWORD  : '',$
-          IDLNETURL_BOTTOM: 0L}
+pro idlneturl::GetProperty,$
+   URL_SCHEME = URL_SCHEME, $
+   URL_HOSTNAME = URL_HOSTNAME, $
+   URL_PATH = URL_PATH, $
+   URL_PORT = URL_PORT, $
+   URL_QUERY= URL_QUERY, $
+   URL_USERNAME =  URL_USERNAME, $
+   VERBOSE=VERBOSE, $
+   AUTHENTICATION=AUTHENTICATION,$
+   CALLBACK_DATA=CALLBACK_DATA,$
+   CALLBACK_FUNCTION=CALLBACK_FUNCTION,$
+   CONNECT_TIMEOUT=CONNECT_TIMEOUT,$
+   ENCODE=ENCODE,$
+   FTP_CONNECTION_MODE=FTP_CONNECTION_MODE,$
+   HEADERS=HEADERS,$
+   PROXY_AUTHENTICATION=PROXY_AUTHENTICATION,$
+   PROXY_HOSTNAME=PROXY_HOSTNAME,$
+   PROXY_PORT=PROXY_PORT,$
+   PROXY_USERNAME=PROXY_USERNAME,$
+   SSL_CERTIFICATE_FILE=SSL_CERTIFICATE_FILE,$
+   SSL_VERIFY_HOST=SSL_VERIFY_HOST,$
+   SSL_VERIFY_PEER=SSL_VERIFY_PEER,$
+   SSL_VERSION=SSL_VERSION,$
+   TIMEOUT=TIMEOUT, $
+   CONTENT_TYPE=CONTENT_TYPE, $
+   RESPONSE_CODE=RESPONSE_CODE,$
+   RESPONSE_FILENAME=RESPONSE_FILENAME,$
+   RESPONSE_HEADER=RESPONSE_HEADER,_extra=extra
+;
+IF ARG_PRESENT(URL_SCHEME) then URL_SCHEME=self.URL_SCHEME
+IF ARG_PRESENT(URL_HOSTNAME) then URL_HOSTNAME=self.URL_HOSTNAME
+IF ARG_PRESENT(URL_PATH) then URL_PATH=self.URL_PATH
+IF ARG_PRESENT(URL_PORT) then URL_PORT=self.URL_PORT
+IF ARG_PRESENT(URL_QUERY) then URL_QUERY=self.URL_QUERY
+IF ARG_PRESENT(URL_USERNAME) then URL_USERNAME=self.URL_USERNAME
+IF ARG_PRESENT(VERBOSE) then VERBOSE=self.VERBOSE
+IF ARG_PRESENT(AUTHENTICATION) then AUTHENTICATION=self.AUTHENTICATION
+
+IF ARG_PRESENT(CALLBACK_DATA) and ptr_valid(self.callback_data) then CALLBACK_DATA=*(self.CALLBACK_DATA)
+
+IF ARG_PRESENT(CALLBACK_FUNCTION) then CALLBACK_FUNCTION=self.CALLBACK_FUNCTION
+IF ARG_PRESENT(CONNECT_TIMEOUT) then CONNECT_TIMEOUT=self.CONNECT_TIMEOUT
+IF ARG_PRESENT(ENCODE) then ENCODE=self.ENCODE
+IF ARG_PRESENT(FTP_CONNECTION_MODE) then FTP_CONNECTION_MODE=self.FTP_CONNECTION_MODE
+IF ARG_PRESENT(HEADERS) then begin
+  if ptr_valid(self.headers) then HEADERS=*(self.HEADERS)
+  if n_elements(HEADERS) LE 1 then HEADERS=HEADERS[0] ; return a
+                                ; single value
+  endif
+IF ARG_PRESENT(PROXY_AUTHENTICATION) then PROXY_AUTHENTICATION=self.PROXY_AUTHENTICATION
+IF ARG_PRESENT(PROXY_HOSTNAME) then PROXY_HOSTNAME=self.PROXY_HOSTNAME
+IF ARG_PRESENT(PROXY_PORT) then PROXY_PORT=self.PROXY_PORT
+IF ARG_PRESENT(PROXY_USERNAME) then PROXY_USERNAME=self.PROXY_USERNAME
+IF ARG_PRESENT(SSL_CERTIFICATE_FILE) then SSL_CERTIFICATE_FILE=self.SSL_CERTIFICATE_FILE
+IF ARG_PRESENT(SSL_VERIFY_HOST) then SSL_VERIFY_HOST=self.SSL_VERIFY_HOST
+IF ARG_PRESENT(SSL_VERIFY_PEER) then SSL_VERIFY_PEER=self.SSL_VERIFY_PEER
+IF ARG_PRESENT(SSL_VERSION) then SSL_VERSION=self.SSL_VERSION
+IF ARG_PRESENT(TIMEOUT) then TIMEOUT=self.TIMEOUT
+IF ARG_PRESENT(CONTENT_TYPE) then CONTENT_TYPE=self.CONTENT_TYPE
+IF ARG_PRESENT(RESPONSE_CODE) then RESPONSE_CODE=self.RESPONSE_CODE
+IF ARG_PRESENT(RESPONSE_FILENAME) then RESPONSE_FILENAME=self.RESPONSE_FILENAME
+IF ARG_PRESENT(RESPONSE_HEADER) then RESPONSE_HEADER=self.RESPONSE_HEADER
+;
+end
+;
+; --------------------------
+;
+function idlneturl::Init,$
+   URL_SCHEME = URL_SCHEME, $
+   URL_HOSTNAME = URL_HOSTNAME, $
+   URL_PATH = URL_PATH, $
+   URL_PORT = URL_PORT, $
+   URL_QUERY= URL_QUERY, $
+   URL_USERNAME =  URL_USERNAME, $
+   URL_PASSWORD =  URL_PASSWORD, $
+   VERBOSE=VERBOSE, $
+   AUTHENTICATION=AUTHENTICATION,$
+   CALLBACK_DATA=CALLBACK_DATA,$
+   CALLBACK_FUNCTION=CALLBACK_FUNCTION,$
+   CONNECT_TIMEOUT=CONNECT_TIMEOUT,$
+   ENCODE=ENCODE,$
+   FTP_CONNECTION_MODE=FTP_CONNECTION_MODE,$
+   HEADERS=HEADERS,$
+   PROXY_AUTHENTICATION=PROXY_AUTHENTICATION,$
+   PROXY_HOSTNAME=PROXY_HOSTNAME,$
+   PROXY_PASSWORD=PROXY_PASSWORD,$
+   PROXY_PORT=PROXY_PORT,$
+   PROXY_USERNAME=PROXY_USERNAME,$
+   SSL_CERTIFICATE_FILE=SSL_CERTIFICATE_FILE,$
+   SSL_VERIFY_HOST=SSL_VERIFY_HOST,$
+   SSL_VERIFY_PEER=SSL_VERIFY_PEER,$
+   SSL_VERSION=SSL_VERSION,$
+   TIMEOUT=TIMEOUT,_extra=extra
+  
+IF ~KEYWORD_SET(URL_SCHEME) then URL_SCHEME='http'
+IF ~KEYWORD_SET(URL_PORT) then URL_PORT=80
+IF ~KEYWORD_SET(VERBOSE) then VERBOSE=0b
+IF ~KEYWORD_SET(CONNECT_TIMEOUT) then CONNECT_TIMEOUT=180
+IF ~KEYWORD_SET(ENCODE) then ENCODE=3
+IF ~KEYWORD_SET(FTP_CONNECTION_MODE) then FTP_CONNECTION_MODE=1
+IF ~KEYWORD_SET(PROXY_AUTHENTICATION) then PROXY_AUTHENTICATION=0
+IF ~KEYWORD_SET(PROXY_PORT) then PROXY_PORT=80
+;IF ~KEYWORD_SET(SSL_CERTIFICATE_FILE) then SSL_CERTIFICATE_FILE='/usr/share/openvpn/sample-keys/client.crt'
+IF ~KEYWORD_SET(SSL_VERIFY_HOST) then SSL_VERIFY_HOST=1
+IF ~KEYWORD_SET(SSL_VERIFY_PEER) then SSL_VERIFY_PEER=1
+IF ~KEYWORD_SET(SSL_VERSION) then SSL_VERSION=0
+IF ~KEYWORD_SET(TIMEOUT) then TIMEOUT=1800
+IF ~KEYWORD_SET(HEADERS) then HEADERS=''
+  
+;
+  self->idlneturl::SetProperty,URL_SCHEME = URL_SCHEME, $
+                    URL_HOSTNAME = URL_HOSTNAME, $
+                    URL_PATH = URL_PATH, $
+                    URL_PORT = URL_PORT, $
+                    URL_QUERY= URL_QUERY, $
+                    URL_USERNAME =  URL_USERNAME, $
+                    URL_PASSWORD =  URL_PASSWORD, $
+                    VERBOSE=VERBOSE, $
+                    AUTHENTICATION=AUTHENTICATION,$
+                    CALLBACK_DATA=CALLBACK_DATA,$
+                    CALLBACK_FUNCTION=CALLBACK_FUNCTION,$
+                    CONNECT_TIMEOUT=CONNECT_TIMEOUT,$
+                    ENCODE=ENCODE,$
+                    FTP_CONNECTION_MODE=FTP_CONNECTION_MODE,$
+                    HEADERS=HEADERS,$
+                    PROXY_AUTHENTICATION=PROXY_AUTHENTICATION,$
+                    PROXY_HOSTNAME=PROXY_HOSTNAME,$
+                    PROXY_PASSWORD=PROXY_PASSWORD,$
+                    PROXY_PORT=PROXY_PORT,$
+                    PROXY_USERNAME=PROXY_USERNAME,$
+                    SSL_CERTIFICATE_FILE=SSL_CERTIFICATE_FILE,$
+                    SSL_VERIFY_HOST=SSL_VERIFY_HOST,$
+                    SSL_VERIFY_PEER=SSL_VERIFY_PEER,$
+                    SSL_VERSION=SSL_VERSION,$
+                    TIMEOUT=TIMEOUT,_extra=extra
+return, 1
+
+end
+
+pro idlneturl__define
+  struct = {IDLNETURL, $
+            IDLNETURL_TOP : 0ll, $
+            CURLPTR       : 0Ll, $
+            URL_SCHEME: 'http',$
+            URL_HOSTNAME: '',$
+            URL_PATH: '',$
+            URL_PORT: '80',$
+            URL_QUERY: '',$
+            URL_USERNAME: '',$
+            IDLNETURL_BOTTOM : 0Ll,$
+            URL_PASSWORD  : '',$
+            AUTHENTICATION: 3,$
+            CALLBACK_DATA: ptr_new(/allo),$
+            CALLBACK_FUNCTION: '',$
+            CONNECT_TIMEOUT: 180,$
+            CONTENT_TYPE: '',$
+            ENCODE: 0,$
+            FTP_CONNECTION_MODE: 1,$
+            HEADERS : ptr_new(/ALLO),$   ;HEADERS: '',$
+            PROXY_AUTHENTICATION: 3,$
+            PROXY_HOSTNAME: '',$
+            PROXY_PASSWORD : '',$
+            PROXY_PORT: '80',$
+            PROXY_USERNAME: '',$
+            RESPONSE_CODE: 0,$
+            RESPONSE_FILENAME: '',$
+            RESPONSE_HEADER: '',$
+            SSL_CERTIFICATE_FILE: '',$
+            SSL_VERIFY_HOST: 1,$
+            SSL_VERIFY_PEER: 1,$
+            SSL_VERSION: 0,$
+            TIMEOUT: 1800,$
+            VERBOSE: 0}
 end
 

@@ -28,7 +28,7 @@ if (STRLEN(resu) EQ 0) then ++nb_pbs
 ; check if we might be in position to do the next checks.
 ;
 filetest='gdl'
-;
+if !version.os_family eq 'Windows' then filetest='gdl.exe'
 cantest = file_test('../src/'+filetest)
 ;
 if(cantest) then begin

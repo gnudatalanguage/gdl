@@ -743,6 +743,7 @@ const string EnvBaseT::GetString( BaseGDL*& p, bool calledFromHELP)
 	  (p != NULL && env.Loc( ix) == p) 
 	  )
 	{
+          if (p == NullGDL::GetSingleInstance()) std::cerr<<"NULL pointer: uncertain name"<<std::endl;
 	  if( subUD != NULL) {return subUD->GetVarName(ix);}
 
 	  string callerName = Default;

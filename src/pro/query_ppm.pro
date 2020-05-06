@@ -2,6 +2,9 @@
 ; by Sylwester Arabas <slayoo (at) igf.fuw.edu.pl>
 function QUERY_PPM, filename, info
 ;
+
+compile_opt idl2, hidden
+
 ON_ERROR, 2
 ;
 ; Do we have access to ImageMagick functionnalities ??

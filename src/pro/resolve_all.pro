@@ -16,6 +16,10 @@ pro RESOLVE_ALL, RESOLVE_EITHER=resolve_either, $
                  help=help, test=test
 ;
 
+compile_opt hidden, idl2
+
+ON_ERROR, 2
+
 if KEYWORD_SET(help) then begin
     print, 'pro RESOLVE_ALL, RESOLVE_EITHER=resolve_either, $'
     print, '                 RESOLVE_FUNCTION=res_fun, RESOLVE_PROCEDURE=res_pro, $'

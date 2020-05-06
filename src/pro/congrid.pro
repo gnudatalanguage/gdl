@@ -49,6 +49,8 @@ function CONGRID, t, mx, my, mz, $
                   MINUS_ONE=minus_one, $
                   HELP=help, test=test
 
+compile_opt idl2, hidden
+
 npar=N_PARAMS()
 if (npar lt 2) or (npar gt 4) or KEYWORD_SET(help) then begin
     print,' Shrink or expands an array (any dimensions) to any size,'

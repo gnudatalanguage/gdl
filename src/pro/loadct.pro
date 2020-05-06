@@ -60,6 +60,9 @@ pro LOADCT, table, GET_NAMES=names, FILE=file,$
             NCOLORS=mynColors, BOTTOM=mybottom, $
             SILENT=silent, RGB_TABLE=rgb_table
 
+
+compile_opt idl2, hidden
+
 ON_ERROR, 2
 ;
 common colors, r_orig, g_orig, b_orig, r_curr, g_curr, b_curr

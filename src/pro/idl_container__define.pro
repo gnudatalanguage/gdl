@@ -14,7 +14,8 @@
 ;---------------------------------------------------------------------------
 PRO IDL_CONTAINER__Define, class
 
-   Compile_Opt hidden
+   compile_opt idl2, hidden
+
    class = { IDL_CONTAINER, $
               INHERITS GDL_CONTAINER $
            }

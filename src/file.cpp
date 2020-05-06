@@ -3019,20 +3019,15 @@ void file_move( EnvT* e)
             }
         } // (ndest == 1)
 
-    if(nsrc != ndest && !dest_is_directory) { // Throw replaced by do-nothing & print.
-//      e->Throw(" destination array must be same size as source ");
-        cout << " FILE_MOVE:  destination array must be same size as source " << std::endl;
-        return;
+    if(nsrc != ndest && !dest_is_directory) { 
+        e->Throw("Requested operation requires arguments to have same number of elements.");
     }
     for(int k=0; k < nsrc; k++) { 
         srctmp = (*p0S)[k];
         FileListT fileList;
         PathSearch( fileList, srctmp, noexpand_path );
         SizeT nmove=fileList.size();
-        if(nmove == 0) {
-            cout << " FILE_MOVE: Invalid source file to move:"+srctmp<<endl;
-            continue;
-        }
+        if(nmove == 0) e->Throw("Unable to obtain file status. File: "+srctmp);
         bool dst_isadir = true;
         int dstStat = 0;
         if(dest_is_directory)
@@ -3047,19 +3042,30 @@ void file_move( EnvT* e)
         result = 1;
         if(!dst_isadir) {
             if(require_directory && !verbose) continue;
-            if(nmove > 1) {
-                cout << " FILE_MOVE: target for "<<nmove<<" multiple sources ("
-                <<srctmp<<") is not a directory:"+dsttmp<<endl;
-                continue;
-            }
-// Single file rename: rename(source, destination)
+            if(nmove > 1) e->Throw("Destination must be a directory. File: "+dsttmp);
+// Single file rename: rename(source, destination). Some rename() will not work, e.g., cross-device links.
+// to avoid this, if rename returns -1 (error) then we try silently a copy + delete.
             if(!require_directory && ((dstStat != 0) || overwrite)) {
                 result = rename(fileList[0].c_str(),dsttmp.c_str());
+                if(result != 0) 
+                {
+                  std::string initial_reason=std::string(strerror(errno)); 
+                  //try a copy
+                  try {
+                    std::ifstream  src(fileList[0], std::ios::binary);
+                    std::ofstream  dst(dsttmp,   std::ios::binary);
+                    dst << src.rdbuf();
+                  } catch( ... ) {
+                    e->Throw("Unable to move file "+srctmp+", reason: "+std::string(strerror(errno)));
+                  }
+                  if( remove(fileList[0].c_str()) != 0 ) {
+                    std::string further_reason=std::string(strerror(errno)); 
+                    Warning("Unable to delete file "+fileList[0]+", reason: "+std::string(strerror(errno)));
+                  }
+                }
                 if(verbose && result==0) cout << " FILE_MOVE: moved "
                         << srctmp+" to "<< dsttmp << endl;
-                if(result != 0) cout << " FILE_MOVE: FAILED to move "
-                        << srctmp+" to "<< dsttmp << endl;
-                }
+            }
             continue;
             }
 //

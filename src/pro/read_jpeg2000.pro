@@ -1,6 +1,10 @@
 function READ_JPEG2000, filename, red, green, blue, order=order
 ;
+
+compile_opt hidden, idl2
+
 ON_ERROR, 2
+
 ;+
 ;
 ; NAME: READ_JPEG2000

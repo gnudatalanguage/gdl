@@ -3,6 +3,9 @@
 ; libtiff version by Remi A. Solås <remi (at) edinsights.no>
 ;
 function QUERY_TIFF, filename, info, geotiff=geotiff, image_index=image_index
+
+compile_opt idl2, hidden
+
 ON_ERROR, 2
 
 if TIFF_EXISTS() eq 0 then begin

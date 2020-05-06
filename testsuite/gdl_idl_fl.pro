@@ -20,12 +20,22 @@
 ;               using undocument trick in FL
 ; 2018-Sep-06 : AC. adding /title 
 ; 2019-Nov-19 : AC. Since FL 0.79.46, we do have a !FL :)
+; 2020-Mar-24 : AC. why not the list ?! (for cross test)
 ;
 ; ----------------------------------------------------
 ;-
-function GDL_IDL_FL, uppercase=uppercase, prefix=prefix, $
-                     lowercase=lowercase, title=title, $
-                     verbose=verbose, test=test
+function GDL_IDL_FL, uppercase=uppercase, lowercase=lowercase, $
+                     prefix=prefix, list=list, title=title, $
+                     verbose=verbose, test=test, help=help
+;
+if KEYWORD_SET(help) then begin
+   print, 'function GDL_IDL_FL, uppercase=uppercase, lowercase=lowercase, $'
+   print, '                     prefix=prefix, list=list, title=title, $'
+   print, '                     verbose=verbose, test=test, help=help'
+   return, -1
+endif
+;
+if KEYWORD_SET(list) then return, ['GDL', 'IDL', 'FL']
 ;
 DEFSYSV, '!gdl', exists=isGDL
 ;

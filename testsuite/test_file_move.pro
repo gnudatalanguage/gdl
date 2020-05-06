@@ -12,11 +12,11 @@ if KEYWORD_SET(help) then begin
    return
 endif
 ;
-chkfiles = file_search('titi*',count=nf)
-if nf ne 0 then begin
-	print," leftover 'titi*' files in directory.  TEST_FILE_MOVE won't proceed"
-	return
-	endif
+chkfiles = FILE_SEARCH('titi*',count=nf)
+if (nf NE 0) then begin
+   print," leftover 'titi*' files in directory.  TEST_FILE_MOVE won't proceed"
+   return
+endif
 ;Errors count is 0 at the beginning
 total_errors = 0
 ;
@@ -34,28 +34,38 @@ tfile4to='titifgf'
 ; replaced SPAWN for Win32 compatibility
 tfiles=[tfile,tfile1,tfile2,tfile3,tfile4]
 ;SPAWN, 'touch '+tfile+' '+tfile1+' '+tfile2+' '+tfile3+' '+tfile4;
-get_lun,lun
-for k=0,4 do begin & openw,lun, tfiles(k) & close,lun & endfor
-free_lun,lun
+GET_LUN, lun
+for k=0,4 do BEGIN 
+   OPENW, lun, tfiles(k)
+   CLOSE, lun
+endfor
+FREE_LUN, lun
 
 ;move files
-file_move,tfile,tfileto
-file_move,[tfile1,tfile2],[tfile1to,tfile2to]
+FILE_MOVE, tfile,tfileto
+FILE_MOVE, [tfile1,tfile2], [tfile1to,tfile2to]
 ;	file_move,"toto*",[tfile3to,tfile4to]		; this is illegal
-file_move,file_search("toto*"),[tfile3to,tfile4to]
+FILE_MOVE, FILE_SEARCH("toto*"), [tfile3to,tfile4to]
 ;Test if exists new files and old is removed
-
-if ((FILE_TEST(tfile) eq 1) or (FILE_TEST(tfileto) eq 0)) then ERRORS_ADDS, total_errors,   'file_move,source,dest                                 not worked!'
-if ((FILE_TEST(tfile1) eq 1) or (FILE_TEST(tfile1to) eq 0)) then ERRORS_ADDS, total_errors, 'file_move,[tfile1,tfile2],[tfile1to,tfile2to]         not worked!'
-if ((FILE_TEST(tfile2) eq 1) or (FILE_TEST(tfile2to) eq 0)) then ERRORS_ADDS, total_errors, 'file_move,[tfile1,tfile2],[tfile1to,tfile2to]         not worked!'
-if ((FILE_TEST(tfile3) eq 1) or (FILE_TEST(tfile3to) eq 0)) then ERRORS_ADDS, total_errors, 'file_move,"toto*",[tfile3to,tfile4to]                 not worked!'
-if ((FILE_TEST(tfile4) eq 1) or (FILE_TEST(tfile4to) eq 0)) then ERRORS_ADDS, total_errors, 'file_move,"toto*",[tfile3to,tfile4to]                 not worked!'
-
+;
+txt1='FILE_MOVE, '
+txt2='  not worked!'
+;
+if ((FILE_TEST(tfile) eq 1) or (FILE_TEST(tfileto) eq 0)) then $
+   ERRORS_ADD, total_errors, txt1+'source, dest'+txt2
+if ((FILE_TEST(tfile1) eq 1) or (FILE_TEST(tfile1to) eq 0)) then $
+   ERRORS_ADD, total_errors, txt1+'[tfile1,tfile2],[tfile1to,tfile2to]'+txt2
+if ((FILE_TEST(tfile2) eq 1) or (FILE_TEST(tfile2to) eq 0)) then $
+   ERRORS_ADD, total_errors, txt1+'[tfile1,tfile2],[tfile1to,tfile2to]'+txt2
+if ((FILE_TEST(tfile3) eq 1) or (FILE_TEST(tfile3to) eq 0)) then $
+   ERRORS_ADD, total_errors, txt1+'"toto*",[tfile3to,tfile4to] '+txt2
+if ((FILE_TEST(tfile4) eq 1) or (FILE_TEST(tfile4to) eq 0)) then $
+   ERRORS_ADD, total_errors, txt1+'"toto*",[tfile3to,tfile4to]'+txt2
 ;
 if KEYWORD_SET(test) then STOP
 ;
 ;
-file_delete,tfileto,tfile1to,tfile2to,tfile3to,tfile4to
+FILE_DELETE, tfileto, tfile1to, tfile2to, tfile3to, tfile4to
 ;
 ;SPAWN, 'rm '+tfileto+' '+tfile1to+' '+tfile2to+' '+tfile3to+' '+tfile4to;
 ;

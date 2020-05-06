@@ -116,9 +116,10 @@ void LibInit()
   const string cpuKey[]={ "RESET","RESTORE","TPOOL_MAX_ELTS", "TPOOL_MIN_ELTS",
 					"TPOOL_NTHREADS","VECTOR_ENABLE",KLISTEND};
   new DLibPro(lib::cpu_pro,string("CPU"),0,cpuKey);
-
-  const string gdlconfigKey[]={"MAP_QUALITY","GDL_NO_DSFMT","GDL_USE_WX",KLISTEND};
-  new DLibPro(lib::gdl_config_pro,string("GDL_CONFIG"),0,gdlconfigKey);
+  
+// removed, see comments in basic_pro.cpp 
+//  const string gdlconfigKey[]={"MAP_QUALITY","GDL_NO_DSFMT","GDL_USE_WX",KLISTEND};
+//  new DLibPro(lib::gdl_config_pro,string("GDL_CONFIG"),0,gdlconfigKey);
 
   const string get_kbrdKey[]={"ESCAPE","KEY_NAME",KLISTEND};
   new DLibFunRetNew(lib::get_kbrd,string("GET_KBRD"),1,NULL,get_kbrdKey);
@@ -127,6 +128,8 @@ void LibInit()
   new DLibPro(lib::svdc,string("SVDC"),4,svdcKey);
 
   new DLibFunRetNew(lib::temporary,string("TEMPORARY"),1);
+  
+  new DLibFunRetNew(lib::terminal_size_fun,string("TERMINAL_SIZE"),0);
 
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
 				  "PARAMETERS","SOURCE", KLISTEND};
@@ -136,14 +139,13 @@ void LibInit()
   new DLibFunRetNew(lib::routine_dir_fun,string("ROUTINE_DIR"),1);
 
 
+  const string spawnKey[]={ "COUNT","EXIT_STATUS","NOSHELL","NULL_STDIN","PID","STDERR","UNIT", //All platforms
 #ifdef _WIN32
-//Please note that NOWAIT and HIDE are WINDOWS-Reserved Keywords.
-  const string spawnKey[] = { "COUNT", "EXIT_STATUS", "PID",
-	  "SH", "NOSHELL", "UNIT", "HIDE", "NOWAIT", KLISTEND };
+	  "HIDE", "LOG_OUTPUT", "NOWAIT",};
 #else
-  const string spawnKey[]={ "COUNT","EXIT_STATUS","PID",
-			    "SH","NOSHELL","UNIT",KLISTEND};
+  "NOTTYRESET","SH",
 #endif
+  KLISTEND};
  
   new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
 

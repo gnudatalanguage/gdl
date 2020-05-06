@@ -28,6 +28,8 @@
 #include "terminfo.hpp" 
 #include "gdljournal.hpp"
 #include "dinterpreter.hpp"
+#include <sys/stat.h>
+#include <errno.h>
 
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0x2000
@@ -68,6 +70,16 @@ namespace lib {
     ostringstream oss;
 
     bool stdLun = check_lun( e, lun);
+    
+    // the following (isatty=> os = stdout) should probably be changed to something more clever when the /MORE option of OPENW  is supported .
+    bool isatty=stdLun;
+    if (!isatty) {
+      //check lun is disguized tty as in scrn = filepath(/TERMINAL) & openw,lun,scrn,/more,/get_lun
+      struct stat buffer;
+      int status = stat((fileUnits[ lun-1].Name()).c_str(), &buffer);
+      if (status==0) isatty=((buffer.st_mode & S_IFMT) == S_IFCHR);
+      }
+    
     SizeT width;
 
     int sockNum = -1; 
@@ -81,7 +93,11 @@ namespace lib {
 	
 	width = TermWidth();
       }
-    else
+    else if (isatty) {	
+        os = &cout;
+	width = TermWidth();
+      }
+    else 
       {
 	if( fileUnits[ lun-1].F77())
 	  e->Throw( "Formatted IO not allowed with F77_UNFORMATTED "
@@ -118,7 +134,7 @@ namespace lib {
       if (status != oss.rdbuf()->str().size())
 	e->Throw( "SEND error Unit: "+i2s( lun)+":"+oss.rdbuf()->str());
     }
-  
+    
     if( stdLun)
       {
 	GDLInterpreter* ip = e->Interpreter();

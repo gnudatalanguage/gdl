@@ -45,7 +45,7 @@ FUNCTION POLY_FIT, x, y, ndegree, $
     YERROR=yerror, $
     YFIT=yfit
 
-  COMPILE_OPT strictarr
+  COMPILE_OPT strictarr, hidden
   
   if (ndegree lt 1) then message,"polynomial degree should be > 0" 
   farg={DEGREE:ndegree}

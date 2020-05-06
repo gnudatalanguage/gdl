@@ -55,6 +55,7 @@ header {
 #include "accessdesc.hpp"
 #include "initsysvar.hpp"
 #include "gdljournal.hpp"
+#include "nullgdl.hpp"
 
 //class ProgNode;
 //typedef ProgNode* ProgNodeP;
@@ -300,9 +301,7 @@ public:
     {
         BaseGDL* del = (*it).second.get();
         objHeap.erase( id); 
-        delete del;
-        // delete (*it).second.get();
-        // objHeap.erase( id);
+        if (!NullGDL::IsNULLorNullGDL(del)) delete del; //avoid destroying !NULL
     }
     static void FreeObjHeap( DObj id)
     {
@@ -312,8 +311,6 @@ public:
             if  ( it != objHeap.end()) 
             { 
                 FreeObjHeapDirect( id, it);
-                // delete (*it).second.get();
-                // objHeap.erase( id);
             }
         }
     }
@@ -321,10 +318,7 @@ public:
     {
         BaseGDL* del = (*it).second.get();
         heap.erase( id); 
-        delete del;
-        // delete (*it).second.get();
-        // // useless because of next: (*it).second.get() = NULL;
-        // heap.erase( id); 
+        if (!NullGDL::IsNULLorNullGDL(del)) delete del; //avoid destroying !NULL
     }
     static void FreeHeap( DPtr id)
     {
@@ -334,8 +328,6 @@ public:
                 if( it != heap.end()) 
                     { 
                         FreeHeapDirect( id, it);
-                        // delete (*it).second.get();
-                        // heap.erase( id); 
                     }
             }
     }
@@ -767,13 +759,15 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
     {
         for( HeapT::iterator it=heap.begin(); it != heap.end(); ++it)
         {
-           delete (*it).second.get();
+           BaseGDL* del = (*it).second.get();
+           if (!NullGDL::IsNULLorNullGDL(del)) delete del; //avoid destroying !NULL
            heap.erase( it->first); 
         }
         for( ObjHeapT::iterator it=objHeap.begin(); it != objHeap.end(); ++it)
         {
-            delete (*it).second.get();
-            objHeap.erase( it->first); 
+           BaseGDL* del = (*it).second.get();
+           if (!NullGDL::IsNULLorNullGDL(del)) delete del; //avoid destroying !NULL
+           heap.erase( it->first);
         }
 // The counters are reset for easier human readability.
        heapIx = 1;

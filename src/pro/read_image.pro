@@ -58,6 +58,9 @@ function READ_IMAGE, filename, red, green, blue, $
                      image_index=image_index, $
                      help=help, test=test
 ;
+
+compile_opt hidden, idl2
+
 ON_ERROR, 2
 ;
 ; this line allows to compile also in IDL ...

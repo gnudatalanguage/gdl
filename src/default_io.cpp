@@ -61,8 +61,13 @@ void SkipWS( istream& is)
 	is.clear();
 	return ;
       }
-  } while( c == ' ' || c == '\t' || c == '\n');
-
+  } while( c == ' ' || c == '\t' || c == '\n' || c == '\r' ); //special check if line is terminated with <CR><LF>:
+#ifndef _WIN32
+  if (c == '\r') {
+      char next=is.get();
+      if (next!='\n') is.unget(); //CRLF case: gobble the \cr of crlf if not WIN32 
+    }
+#endif
   is.unget();
 }
 
@@ -238,7 +243,7 @@ istream& operator>>(istream& i, Data_<Sp>& data_)
       if( cEnd == cStart)
 	{
 	  data_[ assignIx]= -1;
-	  Warning("Input conversion error.");
+	  ThrowGDLException("Input conversion error.");
 	}
 	  
       assignIx++;
@@ -248,7 +253,7 @@ istream& operator>>(istream& i, Data_<Sp>& data_)
   return i;
 }
 
-// float
+// float : uses StrToD (character D in string)
 template<> 
 istream& operator>>(istream& i, Data_<SpDFloat>& data_) 
 {
@@ -264,7 +269,7 @@ istream& operator>>(istream& i, Data_<SpDFloat>& data_)
       if( cEnd == cStart)
 	{
 	  data_[ assignIx]= -1;
-	  Warning("Input conversion error.");
+	  ThrowGDLException("Input conversion error.");
 	}
 	  
       assignIx++;
@@ -273,7 +278,7 @@ istream& operator>>(istream& i, Data_<SpDFloat>& data_)
 
   return i;
 }
-// double
+// double : uses StrToD (character D in string)
 template<> 
 istream& operator>>(istream& i, Data_<SpDDouble>& data_) 
 {
@@ -289,7 +294,7 @@ istream& operator>>(istream& i, Data_<SpDDouble>& data_)
       if( cEnd == cStart)
 	{
 	  data_[ assignIx]= -1;
-	  Warning("Input conversion error.");
+	  ThrowGDLException("Input conversion error.");
 	}
       
       assignIx++;
@@ -298,6 +303,7 @@ istream& operator>>(istream& i, Data_<SpDDouble>& data_)
 
   return i;
 }
+
 // complex
 template<> 
 istream& operator>>(istream& i, Data_<SpDComplex>& data_) 
@@ -326,8 +332,11 @@ istream& operator>>(istream& i, Data_<SpDComplex>& data_)
 
 	  if( last <= next)
 	    {
-	      data_[ assignIx]= DComplex(0.0,0.0);
-	      Warning("Imaginary part of complex missing.");
+	      char* cEnd1;
+	      const char* c1=seg1.c_str();
+	      double re = StrToD( c1, &cEnd1);
+	      data_[ assignIx]= DComplex(re,0.0); //this is what IDL does
+//	      Warning("Imaginary part of complex missing."); no warning for IDL
 	    } 
 	  else
 	    {
@@ -342,7 +351,7 @@ istream& operator>>(istream& i, Data_<SpDComplex>& data_)
 	      if( cEnd1 == c1 || cEnd2 == c2)
 		{
 		  data_[ assignIx]= DComplex(0.0,0.0);
-		  Warning("Input conversion error.");
+		  ThrowGDLException("Input conversion error.");
 		}
 	      else
 		{
@@ -362,7 +371,7 @@ istream& operator>>(istream& i, Data_<SpDComplex>& data_)
 	  if( cEnd == cStart)
 	    {
 	      data_[ assignIx]= DComplex(0.0,0.0);
-	      Warning("Input conversion error.");
+	      ThrowGDLException("Input conversion error.");
 	    }
 	  
 	  for( long int c=assignIx; c<nTrans; c++)
@@ -409,7 +418,7 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
 	  if( last <= next)
 	    {
 	      data_[ assignIx]= DComplexDbl(0.0,0.0);
-	      Warning("Imaginary part of complex missing.");
+//	      Warning("Imaginary part of complex missing.");
 	    } 
 	  else
 	    {
@@ -424,7 +433,7 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
 	      if( cEnd1 == c1 || cEnd2 == c2)
 		{
 		  data_[ assignIx]= DComplexDbl(0.0,0.0);
-		  Warning("Input conversion error.");
+		  ThrowGDLException("Input conversion error.");
 		}
 	      else
 		{
@@ -444,7 +453,7 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
 	  if( cEnd == cStart)
 	    {
 	      data_[ assignIx]= DComplexDbl(0.0,0.0);
-	      Warning("Input conversion error.");
+	      ThrowGDLException("Input conversion error.");
 	    }
 	  
 	  for( long int c=assignIx; c<nTrans; c++)

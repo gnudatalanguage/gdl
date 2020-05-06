@@ -2,6 +2,8 @@
 ; depends on the UNIX 'cal' utility 
 ;
 pro CALENDAR, p1, p2, test=test
+
+compile_opt idl2, hidden
 ;
 ON_ERROR, 2
 ;

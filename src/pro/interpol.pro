@@ -17,6 +17,9 @@
 function INTERPOL, p0, p1, p2, lsquadratic=lsquadratic, $
                    quadratic=quadratic, spline=spline, $
                    test=test, help=help, debug=debug
+
+compile_opt idl2, hidden
+
 ;
 ON_ERROR, 2
 ;

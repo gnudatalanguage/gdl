@@ -736,3 +736,40 @@
             - added READ_CVS, SCOPE_VARNAME
             - fixes in CONGRID, FILE_MKDIR, FX_ROOT, INTRPOLATE, LINFIT, MAKE_ARRAY, RESTORE, TAG_NAMES, ...
             - numerous other fixes and performance improvements and increased test coverage 
+1.0.0-rc.2
+            - fixed linestyle +psym problem when NaN in data (#678)
+            - fixes for path separators on Windows
+            - cleanup of map projections resource files (much reduced tarball size)
+            - cleanup of GSHHS leftovers (GDL no longer depends on GSHHS)
+            - clarification of projection resource licensing information
+            - fix for SMOOTH() making it work correctly with complex arrays (#685)
+            - fix for SMOOTH() curing segfault condition with large arrays (#682)
+            - fix for POLYFILL and log axes (#674)
+            - fixing build failures on s390x (#676)
+            - fix for segmentation fault on total(,/double) (#680)
+            - removed confusing message about graphic magick compiled only with 8 BPP
+            - improved management of input to RANDOM( ... poisson=)
+            - fixed WRITE_JPEG so it creates 2-dim jpg by default instead of 3-dim (#710)
+            - fix in HELP so it does not free memory twice when used like help,/obj,out=xxx
+            - corrected behaviour of '...' in string truncation in HELP
+            - fixed OBJ_CLASS so it does not include structures in the list of objects (#173)
+            - added "compile_opt idl2, hidden" to numerous GDL-written library routines
+            - VALUE_LOCATE: speedup + better error message
+            - XMANAGER: many new features supported
+            - improved IDL compatibility in the idlneturl class
+            - added FILE_CHMOD
+            - improvements in PRT_VALID and OBJ_VALID (e.g. correct support of /CAST)
+            - new implementation of WordExp for use in path expansion
+            - better integration of !NULL type (#589)
+            - added WIDGET_INFO(/display) and WIDGET_INFO(/map)
+            - SPAWN modified to allow immediate return when background job
+            - multiple choice support in list widget
+            - better HELP,/HEAP
+            - FILE_MOVE improvements
+            - FSTAT() improvements
+            - fixed HDF_VD_READ segfault issue (#664)
+            - fixed FindXdr.cmake
+            - support for SORT()-ing pointers (#698)
+            - STRUCT_ASSIGN fixed so it assigns correctly parts of structs that were themselves structs
+            - some compiler warnings eliminated
+            - fixed crash in REPLICATE_INPLACE (#574)

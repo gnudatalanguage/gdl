@@ -19,7 +19,11 @@
 #include "datatypes.hpp"
 #include "envt.hpp"
 #include "dinterpreter.hpp"
+#include "nullgdl.hpp"
 #include <queue>
+
+//Useful for debugging...
+#define DEBUG_SAVERESTORE 0
 
 using namespace std;
 
@@ -38,17 +42,39 @@ const string rectypes[] = {"START_MARKER", //0
   "", "NOTICE", //19
   "DESCRIPTION", //20
   "UNKNOWN", "UNKNOWN", "UNKNOWN"};
-const string codes[] = {"Undefined", "BYTE", "INT", "LONG", "FLOAT", "DOUBLE", "COMPLEX", "String", "Structure", "DCOMPLEX",
-  "Heap Pointer", "Object Reference", "UINT", "ULONG", "LONG64", "ULONG64"};
+
 const int sizeOfType[] = {0, 1, 2, 4, 4, 8, 8, 0, 0, 16,0,0,2,4,8,8};
 
 namespace lib {
 
   using namespace std;
+enum {
+  START_MARKER=0, // Start of SAVE file
+  COMMONBLOCK=1, // Block contains a common block definition
+  VARIABLE=2, // Block contains variable data
+  SYSTEM_VARIABLE=3, // Block contains system variable data
+  END_MARKER=6, // End of SAVE file
+  VARSTART=7, //start of variable data
+  ARRAYSTART=8,
+  STRUCTSTART=9,
+  TIMESTAMP=10, //Block contains time stamp information
+  COMPILED=12, // Block contains compiled procedure or function
+  IDENTIFICATION=13, // Block contains author information
+  VERSION_MARKER=14, // Block contains IDL version information
+  HEAP_HEADER=15, // Block contains heap index information
+  HEAP_DATA=16, // Block contains heap data
+  PROMOTE64=17, // Flags start of 64-bit record file offsets
+  ARRAYSTART64=18,
+  NOTICE=19, // Disclaimer notice
+  DESCRIPTION_MARKER=20 //description ?
+} Markers;
 
-  static std::map<long, DPtr> heapIndexMapSave; //list of [heap index , heap pointer] used when saving.
+  typedef std::map<DPtr, SizeT> heapT;
+  static heapT heapIndexMapSave; //std::map<DPtr, long> heapIndexMapSave; //list of [ heap pointer, heap index ] used when saving.
+  static heapT heapObjIndexMapSave; 
   static std::map<long, std::pair<BaseGDL*,DPtr>> heapIndexMapRestore; //list of [heap index , [variable,heap pointer]] used when reading.
-  static long heapIndexSave;
+  static SizeT heapIndexSave;
+  static SizeT heapObjIndexSave;
   static std::vector<std::string> predeflist;
   static char* saveFileAuthor;
   static char* saveFileDatestring;
@@ -89,7 +115,7 @@ namespace lib {
   bool_t xdr_dcomplex(XDR *xdrs, DComplexDbl *p) {
     return (xdr_double(xdrs, reinterpret_cast<double *> (p)) && xdr_double(xdrs, reinterpret_cast<double *> (p) + 1));
   }
-
+  
   void getTimeUserHost(XDR *xdrs) {
     int32_t UnknownLong;
     for (int i = 0; i < 256; ++i) if (!xdr_int32_t(xdrs, &UnknownLong)) break;
@@ -153,7 +179,7 @@ namespace lib {
   }
   
   uint32_t writeTimeUserHost(XDR *xdrs, char* FileDatestring, char* FileUser, char* FileHost) {
-    uint32_t cur=writeNewRecordHeader(xdrs, 10);
+    uint32_t cur=writeNewRecordHeader(xdrs, TIMESTAMP);
     int32_t UnknownLong=0;
     for (int i = 0; i < 256; ++i) if (!xdr_int32_t(xdrs, &UnknownLong)) cerr << "write error" << endl;
     if (!xdr_string(xdrs, &FileDatestring, strlen(FileDatestring))) cerr << "write error" << endl;
@@ -164,7 +190,7 @@ namespace lib {
   }
   
   uint32_t writeEnd(XDR *xdrs) {
-    uint32_t cur=writeNewRecordHeader(xdrs, 6);
+    uint32_t cur=writeNewRecordHeader(xdrs, END_MARKER);
     return cur;
   }
 
@@ -184,7 +210,7 @@ namespace lib {
   }
   
   uint32_t writeVersion(XDR* xdrs, int32_t *format, char* arch, char* os , char* release) {
-    uint32_t cur=writeNewRecordHeader(xdrs, 14);
+    uint32_t cur=writeNewRecordHeader(xdrs, VERSION_MARKER);
     xdr_int32_t(xdrs, format);
     xdr_string(xdrs, &arch, strlen(arch));
     xdr_string(xdrs, &os, strlen(os));
@@ -201,12 +227,11 @@ namespace lib {
   }
   
   uint32_t writeNotice(XDR* xdrs, char* notice) {
-    uint32_t cur=writeNewRecordHeader(xdrs, 19);
+    uint32_t cur=writeNewRecordHeader(xdrs, NOTICE);
     xdr_string(xdrs, &notice, strlen(notice));
     uint32_t next=updateNewRecordHeader(xdrs, cur);
     return next;
   }
-
 
   char* getDescription(XDR *xdrs) {
     int32_t length = 0;
@@ -220,7 +245,7 @@ namespace lib {
   }
 
   uint32_t writeDescription(XDR *xdrs, char* descr) {
-    uint32_t cur=writeNewRecordHeader(xdrs, 20);
+    uint32_t cur=writeNewRecordHeader(xdrs, DESCRIPTION_MARKER);
     int32_t length = strlen(descr);
     if (!xdr_int32_t(xdrs, &length)) cerr << "error writing description string length" << endl;
     if (!xdr_string(xdrs, &descr, length)) cerr << "error writing string" << endl;
@@ -243,7 +268,7 @@ namespace lib {
   }
   
   uint32_t writeIdentification(XDR *xdrs, char *saveFileAuthor, char* title, char* otherinfo ) {
-    uint32_t cur=writeNewRecordHeader(xdrs, 13);
+    uint32_t cur=writeNewRecordHeader(xdrs, IDENTIFICATION);
     xdr_string(xdrs, &saveFileAuthor, strlen(saveFileAuthor));
     xdr_string(xdrs, &title, strlen(title) );
     xdr_string(xdrs, &otherinfo, strlen(otherinfo) );
@@ -252,6 +277,7 @@ namespace lib {
   }
   
   dimension* getArrDesc64(XDR* xdrs) {
+    if (DEBUG_SAVERESTORE) cerr << "get 64-Bits Array descriptor ," ;
     int64_t UnknownLong;
     if (!xdr_int64_t(xdrs, &UnknownLong)) return NULL;
     int64_t nbytes;
@@ -261,7 +287,7 @@ namespace lib {
     int32_t nDims;
     if (!xdr_int32_t(xdrs, &nDims)) return NULL; //on 32 bits
     if (!xdr_int64_t(xdrs, &UnknownLong)) return NULL; //ignored as we ignore the 2x32 bits integers in the other version.
-    //cerr << "nbytes:" << nbytes << " ,nEl:" << nEl << ", nDims:" << nDims<<" ";
+    if (DEBUG_SAVERESTORE) cerr << "nbytes:" << nbytes << " ,nEl:" << nEl << ", nDims:" << nDims<<" ";
     int64_t dims[8];
     if (!xdr_vector(xdrs, (char*) dims, 8, sizeof (int64_t), (xdrproc_t) xdr_int64_t)) return NULL;
     SizeT k = dims[0];
@@ -272,20 +298,21 @@ namespace lib {
       *theDim << k;
     }
     theDim->Purge();
-    cerr<<*theDim<<endl;
+    if (DEBUG_SAVERESTORE) cerr<<*theDim<<endl;
     return theDim;
   }
 
   dimension* getArrDesc(XDR* xdrs) {
+    if (DEBUG_SAVERESTORE) cerr << "get standard 32-Bits Array descriptor ," ;
     int32_t arrstart;
     int32_t UnknownLong;
     if (!xdr_int32_t(xdrs, &arrstart)) return NULL;
-    if (arrstart != 8 && arrstart !=18) //'10'o and '22'o
+    if (arrstart != ARRAYSTART && arrstart != ARRAYSTART64) //'10'o and '22'o
     {
       cerr << "array is not a array! abort." << endl;
       return 0;
     }
-    if (arrstart == 18) return getArrDesc64(xdrs); //as the rest is specially coded on 8 bytes.
+    if (arrstart == ARRAYSTART64) return getArrDesc64(xdrs); //as the rest is specially coded on 8 bytes.
     
     if (!xdr_int32_t(xdrs, &UnknownLong)) return NULL;
     int32_t nbytes;
@@ -298,7 +325,7 @@ namespace lib {
     if (!xdr_int32_t(xdrs, &UnknownLong)) return NULL;
     int32_t nmax;
     if (!xdr_int32_t(xdrs, &nmax)) return NULL;
-    //    cerr << "nbytes:" << nbytes << " ,nEl:" << nEl << ", nDims:" << nDims<<" ";
+    if (DEBUG_SAVERESTORE) cerr << "nbytes:" << nbytes << " ,nEl:" << nEl << ", nDims:" << nDims<<" ";
     int32_t dims[nmax];
     if (!xdr_vector(xdrs, (char*) dims, nmax, sizeof (int32_t), (xdrproc_t) xdr_int32_t)) return NULL;
     SizeT k = dims[0];
@@ -309,61 +336,69 @@ namespace lib {
       *theDim << k;
     }
     theDim->Purge();
-    //    cerr<<*theDim<<endl;
+    if (DEBUG_SAVERESTORE)    cerr<<*theDim<<endl;
     return theDim;
   }
 
   void writeArrDesc64(XDR* xdrs, BaseGDL* var) {
-    int32_t arrstart=18;
+    int32_t arrstart=ARRAYSTART64;
     xdr_int32_t(xdrs, &arrstart);
     //very important:
-    int64_t typeLength=sizeOfType[var->Type()];if (var->Type()==GDL_STRING) typeLength=(var->NBytes()/var->N_Elements())-1;
+    int64_t typeLength=sizeOfType[var->Type()];
+    if (var->Type()==GDL_STRING) typeLength=(var->NBytes()/var->N_Elements())-1;
+    if (typeLength==0) typeLength=(var->NBytes());
     xdr_int64_t(xdrs, &typeLength);
     int64_t nbytes=var->NBytes();
     xdr_int64_t(xdrs, &nbytes);
     int64_t nEl=var->N_Elements();
     xdr_int64_t(xdrs, &nEl);
     int32_t nDims=var->Rank();
+    if (nDims==0 && var->Type()==GDL_STRUCT ) nDims=1;
     xdr_int32_t(xdrs, &nDims);
     int32_t UnknownLong=0;
     xdr_int32_t(xdrs, &UnknownLong);
     xdr_int32_t(xdrs, &UnknownLong);
-    int32_t nmax=8;
-    // not written xdr_int32_t(xdrs, &nmax);
+    int64_t nmax=8;
     int64_t dims[nmax];
-    int i=0;
-    for (; i < nDims; ++i) dims[i]=var->Dim(i);
-    for (; i < nmax; ++i) dims[i]=1; //yes.
+    for (int i=0; i < nmax; ++i) dims[i]=1; //yes.
+    // not written xdr_int32_t(xdrs, &nmax);
+    for (int i=0; i < nDims; ++i) if (var->Dim(i) > 0) dims[i]=var->Dim(i);
+    if (DEBUG_SAVERESTORE) std::cerr<<var->Dim()<<std::endl;
     xdr_vector(xdrs, (char*) dims, nmax, sizeof (int64_t), (xdrproc_t) xdr_int64_t);
   }
 
   void writeArrDesc32(XDR* xdrs, BaseGDL* var) {
-    int32_t arrstart=8;
+    int32_t arrstart=ARRAYSTART;
     xdr_int32_t(xdrs, &arrstart);
     //very important:
-    int32_t typeLength=sizeOfType[var->Type()];if (var->Type()==GDL_STRING) typeLength=(var->NBytes()/var->N_Elements())-1;
+    int32_t typeLength=sizeOfType[var->Type()];
+    if (var->Type()==GDL_STRING) typeLength=(var->NBytes()/var->N_Elements())-1;
+    if (typeLength==0) typeLength=(var->NBytes());
     xdr_int32_t(xdrs, &typeLength);
     int32_t nbytes=var->NBytes();
     xdr_int32_t(xdrs, &nbytes);
     int32_t nEl=var->N_Elements();
     xdr_int32_t(xdrs, &nEl);
     int32_t nDims=var->Rank();
+    if (nDims==0 && var->Type()==GDL_STRUCT ) nDims=1;
     xdr_int32_t(xdrs, &nDims);
     int32_t UnknownLong=0;
     xdr_int32_t(xdrs, &UnknownLong);
     xdr_int32_t(xdrs, &UnknownLong);
     int32_t nmax=8;
-    xdr_int32_t(xdrs, &nmax);
     int32_t dims[nmax];
-    int i=0;
-    for (; i < nDims; ++i) dims[i]=var->Dim(i);
-    for (; i < nmax; ++i) dims[i]=1; //yes.
+    for (int i=0; i < nmax; ++i) dims[i]=1; //yes.
+    xdr_int32_t(xdrs, &nmax);
+    for (int i=0; i < nDims; ++i) if (var->Dim(i) > 0) dims[i]=var->Dim(i);
+    if (DEBUG_SAVERESTORE) std::cerr<<var->Dim()<<std::endl;
     xdr_vector(xdrs, (char*) dims, nmax, sizeof (int32_t), (xdrproc_t) xdr_int32_t);
   }
   
   void writeArrDesc(XDR* xdrs, BaseGDL* var) {
-    //very important check total size and switch if size is >2GO
-    SizeT typeLength=sizeOfType[var->Type()];if (var->Type()==GDL_STRING) typeLength=(var->NBytes()/var->N_Elements())-1;
+    //very important check total size and switch if size is >2GO. 
+    //Warning do not use a SizeT as typelength as this does not like negative values returned by for 0 length strings
+    DLong64 typeLength=sizeOfType[var->Type()];
+    if (var->Type()==GDL_STRING) typeLength=(var->NBytes()/var->N_Elements()); 
     SizeT nEl=var->N_Elements();
     if (nEl*typeLength > 2000000000ULL) writeArrDesc64(xdrs,var); else writeArrDesc32(xdrs,var);
   }
@@ -425,7 +460,7 @@ namespace lib {
     isObjStruct=false;
     int32_t structstart;
     if (!xdr_int32_t(xdrs, &structstart)) return NULL;
-    if (structstart != 9)
+    if (structstart != STRUCTSTART)
     {
       cerr << "structure is not a structure! abort." << endl;
       return NULL;
@@ -439,27 +474,37 @@ namespace lib {
     {
       ispredef = true;
     }
+    bool unknown_flag = false;
+    bool is_super = false;
+    bool inherits = false;
+    if (structure_def_flags & 0x08)
+    {
+      unknown_flag = true;
+    }
     if (structure_def_flags & 0x02)
     {
-      isObjStruct = true;
+      inherits = true;
     }
-    bool is_super = false;
     if (structure_def_flags & 0x04)
     {
       is_super = true;
     }
+    
+    if (is_super || inherits) isObjStruct=true;
+    if (DEBUG_SAVERESTORE) {
+     if (isObjStruct) {
+       cerr<<std::hex<<structure_def_flags<<std::dec<<std::endl;
+       cerr << "Object name:\"" << structname << "\"";
+       if (inherits) cerr << ", inherits";
+       if (is_super) cerr << ", is a Superclass";
+     } else {
+       cerr << "Structure name:\"" << structname << "\"";
+     }
+     if (unknown_flag) cerr << ", is tagged by unknown flag 0x08";
+     if (ispredef) cerr << ", is already defined";
+     cerr<<endl;
+    }
 
-//     if (ispredef || isObjStruct || is_super) cerr << "Structure name:\"" << structname << "\"";
-//     if (ispredef) cerr << ", Predef";
-//     if (isObjStruct) cerr << ", is an Object";
-//     if (is_super) cerr << ", Is_Super";
-//     cerr<<endl;
-
-    //    if (structure_def_flags & 0x8)
-    //    {
-    //      cerr << ", unknown 0x08 flag for structure_def_flags";
-    //    }
-    //    cerr << endl;
     int32_t ntags;
     if (!xdr_int32_t(xdrs, &ntags)) return NULL;
     int32_t struct_nbytes;
@@ -544,54 +589,54 @@ namespace lib {
         }
 
         switch (tag_typecode[i]) {
-          case 1: //	Byte
+          case GDL_BYTE: //	Byte
           {
             SpDByte entry(pardim);
             stru_desc->AddTag(tag_name[i], &entry);
           }
             break;
 
-          case 2: //	16-bit Integer 
+          case GDL_INT: //	16-bit Integer 
           {
             SpDInt entry(pardim);
             stru_desc->AddTag(tag_name[i], &entry);
           }
             break;
 
-          case 3: //	32-bit Long Integer 
+          case GDL_LONG: //	32-bit Long Integer 
           {
             SpDLong entry(pardim);
             stru_desc->AddTag(tag_name[i], &entry);
           }
             break;
 
-          case 4: //	32-bit Floating Point Number 
+          case GDL_FLOAT: //	32-bit Floating Point Number 
           {
             SpDFloat entry(pardim);
             stru_desc->AddTag(tag_name[i], &entry);
           }
             break;
 
-          case 5: //	64-bit Floating Point Number 
+          case GDL_DOUBLE: //	64-bit Floating Point Number 
           {
             SpDDouble entry(pardim);
             stru_desc->AddTag(tag_name[i], &entry);
           }
             break;
 
-          case 6: //	Complex Floating Point Number (32-bits each) 
+          case GDL_COMPLEX: //	Complex Floating Point Number (32-bits each) 
           {
             SpDComplex entry(pardim);
             stru_desc->AddTag(tag_name[i], &entry);
           }
             break;
-          case 7: //	String
+          case GDL_STRING: //	String
           {
             SpDString entry(pardim);
             stru_desc->AddTag(tag_name[i], &entry);
           }
             break;
-          case 8: //	Structure (never a scalar)
+          case GDL_STRUCT: //	Structure (never a scalar)
           {
             bool dummy;
             DStructGDL* parStruct = getDStruct(e, xdrs, &pardim, dummy);
@@ -600,47 +645,47 @@ namespace lib {
           }
             break;
 
-          case 9: //	Complex Floating Point Number (64-bits each) 
+          case GDL_COMPLEXDBL: //	Complex Floating Point Number (64-bits each) 
           {
             SpDComplexDbl entry(pardim);
             stru_desc->AddTag(tag_name[i], &entry);
           }
             break;
 
-          case 10: //	Heap Pointer 
+          case GDL_PTR: //	Heap Pointer 
           {
             DPtrGDL entry(pardim);
             stru_desc->AddTag(tag_name[i], &entry);
           }
             break;
-          case 11: //	Object Reference (not supported by CMSVLIB)
+          case GDL_OBJ: //	Object Reference (not supported by CMSVLIB)
           {
             DObjGDL entry(pardim);
             stru_desc->AddTag(tag_name[i], &entry);
           }
             break;
-          case 12: //	16-bit Unsigned Integer 
+          case GDL_UINT: //	16-bit Unsigned Integer 
           {
             SpDUInt entry(pardim);
             stru_desc->AddTag(tag_name[i], &entry);
           }
             break;
 
-          case 13: //	32-bit Unsigned Integer 
+          case GDL_ULONG: //	32-bit Unsigned Integer 
           {
             SpDULong entry(pardim);
             stru_desc->AddTag(tag_name[i], &entry);
           }
             break;
 
-          case 14: //	64-bit Integer 
+          case GDL_LONG64: //	64-bit Integer 
           {
             SpDLong64 entry(pardim);
             stru_desc->AddTag(tag_name[i], &entry);
           }
             break;
 
-          case 15: //	64-bit Unsigned Integer 
+          case GDL_ULONG64: //	64-bit Unsigned Integer 
           {
             SpDULong64 entry(pardim);
             stru_desc->AddTag(tag_name[i], &entry);
@@ -662,18 +707,18 @@ namespace lib {
       {
         char* classname = 0;
         if (!xdr_string(xdrs, &classname, 2048)) return NULL;
-        //cerr << "CLASSNAME: \"" << classname << "\"" << endl;
+        if (DEBUG_SAVERESTORE) cerr << "CLASSNAME: \"" << classname << "\"" << endl;
         //NSUPCLASSES:
         int32_t nsupclasses = 0;
         if (!xdr_int32_t(xdrs, &nsupclasses)) return NULL;
-        //cerr << "NSUPCLASSES=" << nsupclasses << endl;
+        if (DEBUG_SAVERESTORE)  cerr << "NSUPCLASSES=" << nsupclasses << endl;
         if (nsupclasses > 0)
         {
           for (int i = 0; i < nsupclasses; ++i)
           {
             char* supclassname = 0;
             if (!xdr_string(xdrs, &supclassname, 2048)) return NULL;
-            //cerr << "SUPCLASSNAME " << i << ": " << supclassname << endl;
+            if (DEBUG_SAVERESTORE) cerr << "SUPCLASSNAME " << i << ": " << supclassname << endl;
           }
           for (int i = 0; i < nsupclasses; ++i)
           {
@@ -700,11 +745,13 @@ namespace lib {
     }
   }
   
-  void writeStructDesc(XDR* xdrs, DStructGDL* var, bool isObject=false) {
+  void writeStructDesc(XDR* xdrs, DStructGDL* var, bool isObject=false, bool is_super=false) {
     DStructDesc* str=var->Desc();
-    int32_t structstart=9;
+    int32_t structstart=STRUCTSTART;
     xdr_int32_t(xdrs, &structstart);
     const char* structname = str->Name().c_str();
+    if (DEBUG_SAVERESTORE && isObject) cerr << "Writing Object \""<< str->Name() <<"\" @"<< var << endl;
+    if (DEBUG_SAVERESTORE && !isObject) cerr << "Writing Structure \""<< str->Name() <<"\" @"<< var << endl;
     //predef: struct name is known
     bool ispredef = (str->Name() != "$truct"); // named struct
     //void name if anonymous struct!
@@ -713,8 +760,8 @@ namespace lib {
       xdr_string(xdrs,(char**)&voidchar, 0);
       }
     else xdr_string(xdrs, (char**) &structname, str->Name().size());
-    //now, did we already define this nemed structure in the file?
-    //if no, add name to list of defined (for furtehr use) and remove is_predef (to write it).
+    //now, did we already define this named structure in the file?
+    //if no, add name to list of defined (for further use) and remove is_predef (to write it).
     if (ispredef) {
       bool found=false;
       for (SizeT i=0; i<predeflist.size(); ++i)
@@ -728,14 +775,15 @@ namespace lib {
     }
     //flags.
 
-//    bool is_super = false; //FIXME: OBJ  
     int32_t structure_def_flags=0;
     if (ispredef) structure_def_flags |= 0x01;
-    if (isObject) structure_def_flags |= 0x02; //it is a CLASS
+    if (isObject) structure_def_flags |= 0x08; //it is a CLASS
+    if (isObject) structure_def_flags |= 0x02;
+    if (is_super) structure_def_flags |= 0x04;
     xdr_int32_t(xdrs, &structure_def_flags);
     int32_t ntags=str->NTags();
     xdr_int32_t(xdrs, &ntags);
-    int32_t struct_nbytes=str->NBytes();
+    int32_t struct_nbytes=(ispredef)?str->NBytes():0;
     xdr_int32_t(xdrs, &struct_nbytes);
     //if predef == 1  this ends the Struct_desc, meaning that we have already presented this structure.
     if (ispredef) return;
@@ -752,39 +800,10 @@ namespace lib {
       tag_flag[i]=0;
       if (var->GetTag(i,0)->Rank()> 0) tag_flag[i]|=0x04;
       switch (var->GetTag(i,0)->Type()) {
-        case GDL_BYTE: tag_typecode[i] = 1;
-          break;
-        case GDL_INT: tag_typecode[i] = 2;
-          break;
-        case GDL_LONG: tag_typecode[i] = 3;
-          break;
-        case GDL_FLOAT: tag_typecode[i] = 4;
-          break;
-        case GDL_DOUBLE: tag_typecode[i] = 5;
-          break;
-        case GDL_COMPLEX: tag_typecode[i] = 6;
-          break;
-        case GDL_STRING: tag_typecode[i] = 7;
-          break;
-        case GDL_STRUCT: tag_typecode[i] = 8;
+        case GDL_STRUCT: 
           tag_flag[i] |=0x20;
-          break;
-        case GDL_COMPLEXDBL: tag_typecode[i] = 9;
-          break;
-        case GDL_PTR: tag_typecode[i] = 10;
-          break;
-        case GDL_OBJ: tag_typecode[i] = 11;
-          break;
-        case GDL_UINT: tag_typecode[i] = 12;
-          break;
-        case GDL_ULONG: tag_typecode[i] = 13;
-          break;
-        case GDL_LONG64: tag_typecode[i] = 14;
-          break;
-        case GDL_ULONG64: tag_typecode[i] = 15;
-          break;
-        default: tag_typecode[i] = 0;
-          break;
+        default: 
+          tag_typecode[i] = var->GetTag(i,0)->Type();
       }
     }
     for (int i = 0; i < ntags; ++i)
@@ -812,23 +831,41 @@ namespace lib {
     //TBD: CLASSES
     if (isObject) {
       xdr_string(xdrs, (char**) &structname, str->Name().size()); //CLASSNAME
+      if (DEBUG_SAVERESTORE) std::cerr << "Object CLASS is \""<< str->Name() << std::endl;
       std::vector< std::string> pNames;
       str->GetParentNames(pNames);
-//TBD: get super classes and write structs accordingly.      
-      int32_t nsupclasses=pNames.size();
-      xdr_int32_t(xdrs, &nsupclasses);
-      char* pnames[nsupclasses];
-      for (int i=0 ; i< nsupclasses;++i) pnames[i]=(char*)pNames[i].data();
-      for (int i=0 ; i< nsupclasses;++i) xdr_string(xdrs, &pnames[i], pNames[i].size());
+//TBD: get super classes and write structs accordingly. 
+      int32_t nsupclasses=pNames.size(); //do they exist???
       for (int i=0 ; i< nsupclasses;++i) {
-        DStructGDL* parent = new DStructGDL( pNames[i]);
-        if (parent != NULL) {
-	      Guard<DStructGDL> parent_guard(parent);
-          writeStructDesc(xdrs, parent, true);
+          DStructGDL* parent = new DStructGDL( pNames[i]);
+          if (parent == NULL) nsupclasses--;
+          GDLDelete(parent);
+        }      
+      xdr_int32_t(xdrs, &nsupclasses);
+      if (nsupclasses > 0) {
+        DStructGDL* parents[nsupclasses];
+        // AC not OK on OSX12: std::string pnames[nsupclasses];
+	string *pnames = new string[nsupclasses];
+        int k=0;
+        for (int i=0 ; i< pNames.size();++i) {
+          DStructGDL* parent = new DStructGDL( pNames[i]);
+          if (parent != NULL) {
+            pnames[k]=pNames[i];
+            parents[k]=parent;
+            if (DEBUG_SAVERESTORE) std::cerr << "     SUPCLASS:  \""<< pNames[k] << std::endl;
+            k++;
+          }
         }
-      }
+        for (int i=0 ; i< nsupclasses;++i) {char* str=(char*)(pnames[i].c_str()); xdr_string(xdrs, &str,pnames[i].size());}
+        for (int i=0 ; i< nsupclasses;++i) {
+            DStructGDL* parent = parents[i];
+            Guard<DStructGDL> parent_guard(parent);
+            writeStructDesc(xdrs, parent, true, true);
+          }
+	delete [] pnames;       
+	}
     }
- }
+  }
   
   
   BaseGDL* getVariable(EnvT* e, XDR* xdrs, int &isSysVar, bool &isObjStruct) {
@@ -843,10 +880,12 @@ namespace lib {
     int32_t varflags;
     if (!xdr_int32_t(xdrs, &varflags)) return NULL;
 
+    if (varflags & 0x40) return NullGDL::GetSingleInstance(); //special !NULL variable, no variable content follows.
+
     if (varflags & 0x02) //defines a system variable.
     {
       isSysVar |= 0x02;
-//            cerr << " system " << endl;
+//           cerr << " system " << endl;
     }
     if (varflags & 0x01)
     {
@@ -884,56 +923,56 @@ namespace lib {
     {
       if (isArray)
       { //and NOT a structure...
-        dims = getArrDesc(xdrs);
+        dims = getArrDesc(xdrs); 
         if (dims == NULL) return NULL;
       } else
       { //normal plain variable
         dims = new dimension();
       }
       switch (typecode) {
-        case 1: //	Byte
+        case GDL_BYTE: //	Byte
           var = new DByteGDL(*dims);
           break;
-        case 2: //	16-bit Integer 
+        case GDL_INT: //	16-bit Integer 
           var = new DIntGDL(*dims);
           break;
-        case 3: //	32-bit Long Integer 
+        case GDL_LONG: //	32-bit Long Integer 
           var = new DLongGDL(*dims);
           break;
-        case 4: //	32-bit Floating Point Number 
+        case GDL_FLOAT: //	32-bit Floating Point Number 
           var = new DFloatGDL(*dims);
           break;
-        case 5: //	64-bit Floating Point Number 
+        case GDL_DOUBLE: //	64-bit Floating Point Number 
           var = new DDoubleGDL(*dims);
           break;
-        case 6: //	Complex Floating Point Number (32-bits each) 
+        case GDL_COMPLEX: //	Complex Floating Point Number (32-bits each) 
           var = new DComplexGDL(*dims);
           break;
-        case 7: //	String
+        case GDL_STRING: //	String
           var = new DStringGDL(*dims);
           break;
-        case 8: //	Structure (never a scalar)
+        case GDL_STRUCT: //	Structure (never a scalar)
           cerr << "Should not happen: struct" << endl;
           break;
-        case 9: //	Complex Floating Point Number (64-bits each) 
+        case GDL_COMPLEXDBL: //	Complex Floating Point Number (64-bits each) 
           var = new DComplexDblGDL(*dims);
           break;
-        case 10: //	Heap Pointer 
+        case GDL_PTR: //	Heap Pointer 
           var = new DPtrGDL(*dims);
           break;
-        case 11: //	Object Reference (not supported by CMSVLIB) 
+        case GDL_OBJ: //	Object Reference (not supported by CMSVLIB) 
           var = new DObjGDL(*dims);
           break;
-        case 12: //	16-bit Unsigned Integer 
+        case GDL_UINT: //	16-bit Unsigned Integer 
           var = new DUIntGDL(*dims);
           break;
-        case 13: //	32-bit Unsigned Integer 
+        case GDL_ULONG: //	32-bit Unsigned Integer 
           var = new DULongGDL(*dims);
           break;
-        case 14: //	64-bit Integer 
+        case GDL_LONG64: //	64-bit Integer 
           var = new DLong64GDL(*dims);
           break;
-        case 15: //	64-bit Unsigned Integer 
+        case GDL_ULONG64: //	64-bit Unsigned Integer 
           var = new DULong64GDL(*dims);
           break;
         default: //	0 ? Undefined (not allowed) 
@@ -1137,13 +1176,15 @@ namespace lib {
         for (SizeT ix = 0; ix < nEl; ++ix) for (SizeT t = 0; t < nTags; ++t) writeVariableData(xdrs, str->GetTag(t, ix));
         break;
       }
-      case GDL_PTR:
+      case GDL_PTR:  //we must translate PTRs as they may have been scrambled in the writing of the heap indexes.
       {
         uint32_t heapNumber[nEl];
         for (SizeT i = 0; i < nEl; ++i)
         {
+          heapNumber[i]=0;
           DPtr ptr = (*static_cast<DPtrGDL*>(var))[i];
-          heapNumber[i]=ptr;
+          heapT::iterator it=heapIndexMapSave.find(ptr);
+          if (it!=heapIndexMapSave.end()) heapNumber[i]=(*it).second;
         }
         if (!xdr_vector(xdrs, (char*) &heapNumber, nEl, sizeof (int32_t), (xdrproc_t) xdr_uint32_t)) cerr << "error PTR" << endl;
         break;
@@ -1153,8 +1194,10 @@ namespace lib {
         uint32_t heapNumber[nEl];
         for (SizeT i = 0; i < nEl; ++i)
         {
+          heapNumber[i]=0;
           DObj ptr = (*static_cast<DObjGDL*>(var))[i];
-          heapNumber[i]=ptr;
+          heapT::iterator it=heapObjIndexMapSave.find(ptr);
+          if (it!=heapObjIndexMapSave.end()) heapNumber[i]=(*it).second+heapIndexSave; //see coding in writeHeapvariable
         }
         if (!xdr_vector(xdrs, (char*) &heapNumber, nEl, sizeof (int32_t), (xdrproc_t) xdr_uint32_t)) cerr << "error OBJ" << endl;
         break;
@@ -1164,6 +1207,7 @@ namespace lib {
   }
 
   void writeVariableHeader(XDR* xdrs, BaseGDL* var, bool isSysVar=false, bool readonly=false, bool isObject=false) {
+    if (DEBUG_SAVERESTORE)  std::cerr<<"Writing normal Variable Header, isObject="<<isObject<<std::endl;
     int32_t varflags=0;
     bool isStructure = (var->Type()==GDL_STRUCT);
     bool isArray = (var->Rank() > 0);
@@ -1171,35 +1215,18 @@ namespace lib {
     // common for VARIABLE, SYSTEM_VARIABLE and HEAP_DATA:
     // 1) TYPECODE
     int32_t typecode=0;
-    switch(var->Type())
-      {
-      case GDL_BYTE:       typecode=1; break;
-      case GDL_INT:        typecode=2; break;
-      case GDL_LONG:       typecode=3; break;
-      case GDL_FLOAT:      typecode=4; break;
-      case GDL_DOUBLE:     typecode=5; break;
-      case GDL_COMPLEX:    typecode=6; break;
-      case GDL_STRING:     typecode=7; break;
-      case GDL_STRUCT:     typecode=8; break;
-      case GDL_COMPLEXDBL: typecode=9; break;
-      case GDL_PTR:        typecode=10; break;
-      case GDL_OBJ:        typecode=11; break;
-      case GDL_UINT:       typecode=12; break;
-      case GDL_ULONG:      typecode=13; break;
-      case GDL_LONG64:     typecode=14; break;
-      case GDL_ULONG64:    typecode=15; break;
-      default: 
-        cerr<<"error"<<endl;
-        return;
-      }
+    // special case for !NULL
+    bool nullsize=false;
+    if ( var->N_Elements() == 0 ) nullsize=true;
+    typecode=var->Type(); //these are the same.
     xdr_int32_t(xdrs, &typecode);
     // 2) VARFLAGS
     if (isSysVar) varflags |= 0x02;
     if (readonly) varflags |= 0x01;
-    if (isStructure) varflags |= 0x24; else if (isArray) varflags |= 0x04;   
-    
+    if (isObject) varflags |= 0x34; if (isStructure) varflags |= 0x24; else if (isArray) varflags |= 0x04;   
+    if (nullsize) varflags=0x40; 
     xdr_int32_t(xdrs, &varflags);
-
+    if (nullsize) return;
     //This is not signaled in C. Marqwardt doc: a system variable has two supplemental int32 (0x04 and 0x02).
     if (isSysVar)
     {
@@ -1225,48 +1252,66 @@ namespace lib {
       readonly = true;
     }
     const char* varname=varName.c_str();
-    uint32_t cur=writeNewRecordHeader(xdrs, isSysVar?3:2);
-    xdr_string(xdrs, (char**)&varname, 2048);
+    uint32_t cur=writeNewRecordHeader(xdrs, isSysVar?SYSTEM_VARIABLE:VARIABLE);
+    xdr_string(xdrs, (char**)&varname, 2048); 
+    if (var==NULL) return updateNewRecordHeader(xdrs, cur); //unexistent var
+    if (DEBUG_SAVERESTORE)  std::cerr<<"Writing normal Variable "<<varName<<std::endl;
     writeVariableHeader(xdrs, var, isSysVar, readonly); 
+    // !NULL variable stops here since no data
+    if (var->N_Elements() == 0) return updateNewRecordHeader(xdrs, cur);
     // varstat=7 to read data
-    int32_t varstart = 7;
+    int32_t varstart = VARSTART;
     xdr_int32_t(xdrs, &varstart);
     writeVariableData(xdrs, var);
-    uint32_t next=updateNewRecordHeader(xdrs, cur);
-    return next;
+    return updateNewRecordHeader(xdrs, cur);
   }
-  uint32_t writeHeapVariable(EnvT* e, XDR *xdrs, std::pair<long,DPtr> ptr, int varflags=0x0) {
-    assert (ptr.first != 0);
+  
+    uint32_t writeHeapVariable(EnvT* e, XDR *xdrs, DPtr ptr, bool isObject=false) {
+    //what is passed is the list of existent heap positions occupied.
+    //we  write only the ones that are actuall in , depending, the 
+    heapT::iterator itheap;
+    bool unknown=false;
+    if (isObject) {
+      itheap=heapObjIndexMapSave.find(ptr);
+      if ( itheap==heapObjIndexMapSave.end() ) unknown=true;
+    } else {
+      itheap=heapIndexMapSave.find(ptr);
+      if ( itheap==heapIndexMapSave.end() ) unknown=true;
+    }
+    if (unknown) {
+      if (DEBUG_SAVERESTORE) std::cerr<<"ignoring unused heap_index "<<ptr<<std::endl;
+      return xdr_getpos(xdrs); //do nothing.
+    }
+    
     bool isSysVar=false;
     bool readonly=false;
-    bool isObject=(ptr.first<0);
-    if (varflags & 0x02) //defines a system variable.
-    {
-      isSysVar = true;
-    }
-    if (varflags & 0x01)
-    {
-      readonly = true;
-    }
-    uint32_t cur=writeNewRecordHeader(xdrs, 16); //HEAP_DATA
-    int32_t heap_index=abs(ptr.first); //TRICK!
+    uint32_t cur=writeNewRecordHeader(xdrs, HEAP_DATA); //HEAP_DATA
+    int32_t heap_index=ptr; //see comment @ writeHeapList about how to manage a strictly positive list of heap indexes with 2 heap lists, one for ObJs and the other for PTRs 
+    //if Object, displace the Ptr value after the end of the PTRs list, as done in writeHeapList, using the fact that heapIndexSave is strictly increasing:
+    if (isObject) {
+           heap_index+=heapIndexSave;
+           if (DEBUG_SAVERESTORE) std::cerr<<"write OBJ at heap_index "<<heap_index<<std::endl;
+    } else if (DEBUG_SAVERESTORE) std::cerr<<"write PTR at heap_index "<<heap_index<<std::endl;
+
+    //rest is normally the same as for any other variable
     xdr_int32_t(xdrs, &heap_index);
     int32_t heap_type = 0x02;
     if (isObject) heap_type = 0x04;
     xdr_int32_t(xdrs, &heap_type); 
 
-    // start of TYPEDESC. Structures may be objects, in which case ptr.first is negative.
+    // start of TYPEDESC. Structures may be objects, in which case ptr.second is negative.
     BaseGDL* var;
-    if (isObject) var=e->GetObjHeap(ptr.second); //TRICK!
-    else var=e->GetHeap(ptr.second);
-
-    writeVariableHeader(xdrs, var, isSysVar, readonly, isObject ); 
+    if (isObject) var=e->GetObjHeap(ptr);else var=e->GetHeap(ptr); //TRICK!
+    if (var==NULL) return updateNewRecordHeader(xdrs, cur); //unexistent var
+    if (DEBUG_SAVERESTORE) std::cerr<<var->TypeStr()<<" @ "<<std::hex<<var<<std::dec<<std::endl;
+    writeVariableHeader(xdrs, var, isSysVar, readonly, isObject );
+    // !NULL variable stops here since no data
+    if (var->N_Elements() == 0) return updateNewRecordHeader(xdrs, cur);
     // varstat=7 to read data
-    int32_t varstart = 7;
+    int32_t varstart = VARSTART;
     xdr_int32_t(xdrs, &varstart);
     writeVariableData(xdrs, var);
-    uint32_t next=updateNewRecordHeader(xdrs, cur);
-    return next;
+    return updateNewRecordHeader(xdrs, cur);
   }   
   void restoreNormalVariable(EnvT* e, std::string varName, BaseGDL* ret) {
     //write variable back
@@ -1427,17 +1472,17 @@ namespace lib {
     }
     //if testSafety is correct, DLong and int32_t , DInt and int16_t etc have the same meaning.
 
+    static int FILENAME = e->KeywordIx("FILENAME");
 
     static int VERBOSE = e->KeywordIx("VERBOSE");
-    static int FILENAME = e->KeywordIx("FILENAME");
-    static int DESCRIPTION = e->KeywordIx("DESCRIPTION");
-
     bool verbose = e->KeywordSet(VERBOSE);
-    bool debug=false;
     DLong verboselevel=(verbose?1:0);
     if (verbose) e->AssureLongScalarKW(VERBOSE,verboselevel);
-    if (verboselevel>1) debug=true;
+
+    static int DESCRIPTION = e->KeywordIx("DESCRIPTION");
     bool hasDescription = e->KeywordPresent(DESCRIPTION);
+    // AC 20200323 : we may have this keyword set but no value in the file : should return "" 
+    if (hasDescription)	e->SetKW(DESCRIPTION, new DStringGDL(""));
 
     //empty heap map by security.
     heapIndexMapRestore.clear();
@@ -1509,7 +1554,7 @@ namespace lib {
       if (fseek(fid, nextptr, SEEK_SET)) break;
       if (!xdr_int32_t(xdrs, &rectype)) break;
 
-      if (debug) cerr << "Offset " << nextptr << ": record type " << rectypes[rectype] << endl;
+      if (DEBUG_SAVERESTORE) cerr << "Offset " << nextptr << ": record type " << rectypes[rectype] << endl;
 
       if (rectype == 6)
       {
@@ -1544,7 +1589,7 @@ namespace lib {
       currentptr = ftell(fid);
 
       switch ((int) rectype) {
-        case 10: //timestamp
+        case TIMESTAMP: 
           if (nextptr < 1024)
           {
             //            cerr << "version offset < 1024... probably a compressed file" << endl;
@@ -1560,7 +1605,7 @@ namespace lib {
             Message("Save file written by " + std::string(saveFileUser) + "@" + std::string(saveFileHost) + ", " + std::string(saveFileDatestring));
           }
           break;
-        case 14:
+        case VERSION_MARKER:
           if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
           if (!getVersion(xdrs))
           {
@@ -1568,10 +1613,10 @@ namespace lib {
             break;
           }
           break;
-        case 17: //PROMOTE64
+      case PROMOTE64:
           isHdr64 = true;
           break;
-        case 13: //IDENTIFICATION
+      case IDENTIFICATION:
           if (verbose)
           {
             if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
@@ -1582,7 +1627,7 @@ namespace lib {
             }
           }
           break;
-        case 19: //NOTICE
+      case NOTICE:
           if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
           if (!getNotice(xdrs))
           {
@@ -1590,16 +1635,17 @@ namespace lib {
             break;
           }
           break;
-        case 20: //description
+        case DESCRIPTION_MARKER:
           if (verbose || hasDescription)
           {
             if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
             std::string descr(getDescription(xdrs));
             if (verbose) Message("Description: " + descr);
+	    // AC 20200323 no "else" possible here, see above
             if (hasDescription) e->SetKW(DESCRIPTION, new DStringGDL(descr));
           }
           break;
-        case 1: //COMMONBLOCK
+      case COMMONBLOCK:
           if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
           if (!defineCommonBlock(e, xdrs, verboselevel))
           {
@@ -1607,14 +1653,14 @@ namespace lib {
             break;
           }
           break;
-        case 15: //HEAP_HEADER. IS IN PREAMBLE since version 5. BEFORE ANY REFERENCE TO HEAP.
+      case HEAP_HEADER: // IS IN PREAMBLE since version 5. BEFORE ANY REFERENCE TO HEAP.
           if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
         {
           int32_t elementcount;
           if (!xdr_int32_t(xdrs, &elementcount)) break;
           int32_t indices[elementcount];
           if (!xdr_vector(xdrs, (char*) indices, elementcount, sizeof (int32_t), (xdrproc_t) xdr_int32_t)) break;
-          if (debug)
+          if (DEBUG_SAVERESTORE)
           {
             cerr << "Heap indexes, " << elementcount << " elements: ";
             for (int i = 0; i < elementcount; ++i) cerr << indices[i] << ",";
@@ -1623,7 +1669,7 @@ namespace lib {
 
           break;
         }
-        case 16: //define all HEAP_DATA variable but do not fill them yet
+        case HEAP_DATA: //define all HEAP_DATA variable but do not fill them yet
           if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
         {
           int32_t heap_index = 0;
@@ -1639,10 +1685,21 @@ namespace lib {
             delete xdrsfile;
             e->Throw("error reading heap variable definition.");
           }
-          // should be at varstat=7 to read data
+
+         //allocate corresponding heap entries and store gdl variable and heap entry in heapIndexMapRestore:
+          //if ret is a struct defining an object, use ObjHeap.
+          DPtr ptr;
+          if (isObjStruct) ptr = e->NewObjHeap(1, static_cast<DStructGDL*> (ret)); else ptr = e->NewHeap(1, ret);
+          heapIndexMapRestore.insert(std::pair<long, std::pair<BaseGDL*,DPtr>>(heap_index, std::make_pair(ret,ptr)));
+          //we skip filling the gdl variable, as we wait until all heap variables in heapIndexMapRestore are completely defined.
+          //This has proven to be way safer as the order of variables in the save file is strange.
+
+          if (ret == NullGDL::GetSingleInstance()) break; //no data follows
+
+          // should be at varstat=VARSTAT to read data
           int32_t varstart = 0;
           if (!xdr_int32_t(xdrs, &varstart)) break;
-          if (varstart != 7)
+          if (varstart != VARSTART)
           {
             fclose(fid);
             delete xdrsmem;
@@ -1650,15 +1707,6 @@ namespace lib {
             e->Throw("Lost track in HEAP_DATA definition at offset " + i2s(nextptr));
 
           }
-
-          //allocate corresponding heap entries and store gdl variable and heap entry in heapIndexMapRestore:
-          //if ret is a struct defining an object, use ObjHeap.
-          DPtr ptr;
-          if (isObjStruct) ptr = e->NewObjHeap(1, static_cast<DStructGDL*>(ret));
-          else ptr = e->NewHeap(1, ret);
-          heapIndexMapRestore.insert(std::pair<long, std::pair<BaseGDL*,DPtr>>(heap_index, std::make_pair(ret,ptr)));
-          //we skip filling the gdl variable, as we wait until all heap variables in heapIndexMapRestore are copmletely defined.
-          //This has proven to be way safer as the order of variables in the save file is strange.
         }
           break;
         default:
@@ -1678,7 +1726,7 @@ namespace lib {
 
     //Then on second pass, define normal variables that may be pointers to heap.
     rewind(fid);
-    if (debug) cerr << "Second Pass"<<endl;
+    if (DEBUG_SAVERESTORE) cerr << "Second Pass"<<endl;
     currentptr = 0;
     nextptr = LONG;
     SomethingFussyHappened = true;
@@ -1690,7 +1738,7 @@ namespace lib {
       if (fseek(fid, nextptr, SEEK_SET)) break;
       if (!xdr_int32_t(xdrs, &rectype)) break;
 
-      if (debug) cerr << "Offset " << nextptr << ": record type " << rectypes[rectype] << endl;
+      if (DEBUG_SAVERESTORE) cerr << "Offset " << nextptr << ": record type " << rectypes[rectype] << endl;
 
       if (rectype == 6)
       {
@@ -1725,26 +1773,28 @@ namespace lib {
       currentptr = ftell(fid);
 
       switch ((int) rectype) {
-        case 3: //SYSTEM VARIABLE
+      case SYSTEM_VARIABLE:
+        if (DEBUG_SAVERESTORE) cerr<<"SYSTEM ";
           isSysVar = 0x02; //see? no break. defines a read-write system variable (default)
-        case 2: //VARIABLE
+      case VARIABLE:
+        if (DEBUG_SAVERESTORE) cerr<<"Variable\n";
           if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
         {
           char* varname = 0;
           if (!xdr_string(xdrs, &varname, 2048)) break;
           string varName(varname);
-          bool dummy=false;
-          BaseGDL* ret = getVariable(e, xdrs, isSysVar, dummy);
+          bool isObjStruct=false;
+          BaseGDL* ret = getVariable(e, xdrs, isSysVar, isObjStruct);
           if (ret == NULL)
           {
             Message("Unable to restore " + varName +".");
             break;
           }
-
-          // should be at varstat=7 to read data
+          if (isObjStruct) std::cerr<<"Problem: found an Object in normal variable processing -- should not happen.\n";
+          // should be at varstat=VARSTAT to read data
           int32_t varstart = 0;
           if (!xdr_int32_t(xdrs, &varstart)) break;
-          if (varstart != 7)
+          if (varstart != VARSTART)
           {
             fclose(fid);
             delete xdrsmem;
@@ -1762,7 +1812,8 @@ namespace lib {
           guardVector.push_back(guard);
         }
           break;
-      case 16: //HEAP_DATA: use previous variable, now that the list of heap pointers is complete.
+      case HEAP_DATA: //use previous variable, now that the list of heap pointers is complete.
+          if (DEBUG_SAVERESTORE) cerr<<"Heap Data (get dummy variable, as already defined above)\n";
           if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
         {
           int32_t heap_index = 0;
@@ -1771,17 +1822,20 @@ namespace lib {
           if (!xdr_int32_t(xdrs, &heap_unknown)) break; // start of TYPEDESC
           bool isObjStruct=false;
           BaseGDL* dummy = getVariable(e, xdrs, isSysVar, isObjStruct); //obliged to read all that infortunately.
-          // we are at varstat=7 since this has already been seen above
+          // we are at varstat=VARSTAT since this has already been seen above
           int32_t varstart = 0;
-          if (!xdr_int32_t(xdrs, &varstart)) break;
+          if (!xdr_int32_t(xdrs, &varstart)) break; 
           GDLDelete(dummy); //get rid of variable that may have wrong pointers and restore the good one:
           if (heapIndexMapRestore.find(heap_index) == heapIndexMapRestore.end()) {
             e->Throw("Lost track in HEAP VARIABLE definition at offset " + i2s(nextptr));
           } else {
-            if (debug) std::cerr<<"success restore Heap var"<<std::endl;
+            if (DEBUG_SAVERESTORE) std::cerr<<"success restore Heap var"<<std::endl;
             BaseGDL* ret = heapIndexMapRestore.find(heap_index)->second.first;
+            if (ret == NullGDL::GetSingleInstance()) break; //no data follows as this is a !NULL
             fillVariableData(xdrs, ret);
           }
+
+
         }
           break;
       default:
@@ -1827,73 +1881,47 @@ namespace lib {
     }
 
   }
-  
-  void addToHeapList(EnvT* e, BaseGDL* var) {
-    if (var->Type() == GDL_PTR)
-    {
-      for (SizeT ielem = 0; ielem < var->N_Elements(); ++ielem)
-      {
+//this adds in heaplist map:: all the OBJ or normal HEAP adresses of variables that are part of any named variable that are to be SAVEd.
+// As GDL has 2 heaplists, one for OBJ and the other for normal pointers, this is a bit complicated, since IDL has only one heap.
+// we use two heap index lists, one for OBJs one for PTRs.
+  void addToHeapList(EnvT* e, BaseGDL* var)
+  {
+    if (var->Type() == GDL_PTR) {
+      for (SizeT ielem = 0; ielem < var->N_Elements(); ++ielem) {
         DPtr subptr = (*static_cast<DPtrGDL*> (var))[ielem];
-        if (subptr)
-        {
-          heapIndexMapSave.insert(std::pair<long, DPtr>(++heapIndexSave, subptr));
-          BaseGDL* v = e->GetHeap(subptr);
-          if (v) addToHeapList(e, v);
-        }
-      }
-    }
-    else if (var->Type() == GDL_OBJ)
-    {
-      for (SizeT ielem = 0; ielem < var->N_Elements(); ++ielem)
-      {
-        DObj subptr = (*static_cast<DObjGDL*> (var))[ielem];
-        if (subptr)
-        {
-          heapIndexMapSave.insert(std::pair<long, DPtr>(-1*(++heapIndexSave), subptr));
-          BaseGDL* v = e->GetObjHeap(subptr);
-          if (v) addToHeapList(e, v);
-        }
-      }
-    }
-    else if (var->Type() == GDL_STRUCT)
-    {
-      DStructGDL* str = static_cast<DStructGDL*> (var);
-      for (SizeT ielem = 0; ielem < var->N_Elements(); ++ielem)
-      {
-        for (int itag = 0; itag < str->NTags(); ++itag)
-        {
-          BaseGDL* subvar = str->GetTag(itag, ielem);
-          switch (subvar->Type()) {
-            case GDL_STRUCT:
-              addToHeapList(e, subvar);
-              break;
-            case GDL_PTR:
-              for (SizeT i = 0; i < subvar->N_Elements(); ++i)
-              {
-                DPtr subptr = (*static_cast<DPtrGDL*> (subvar))[i];
-                if (subptr)
-                {
-                  heapIndexMapSave.insert(std::pair<long, DPtr>(++heapIndexSave, subptr));
-                  BaseGDL* v = e->GetHeap(subptr);
-                  if (v) addToHeapList(e, v);
-                }
-              }
-              break;
-            case GDL_OBJ:
-              for (SizeT i = 0; i < subvar->N_Elements(); ++i)
-              {
-                DObj subptr = (*static_cast<DObjGDL*> (subvar))[i];
-                if (subptr)
-                {
-                  heapIndexMapSave.insert(std::pair<long, DPtr>(-1*(++heapIndexSave), subptr));
-                  BaseGDL* v = e->GetObjHeap(subptr);
-                  if (v) addToHeapList(e, v);
-                }
-              }
-              break;
-            default:
-              break;
+        if (subptr > 0) {
+          heapT::iterator itheap=heapIndexMapSave.find(subptr);
+          if ( itheap==heapIndexMapSave.end() ) {
+            heapIndexMapSave.insert(std::pair<DPtr, SizeT>(subptr, subptr));
+            heapIndexSave=max(heapIndexSave, subptr); 
+            if (DEBUG_SAVERESTORE)   std::cerr<<"Adding Heaplist PTR: HeapIndex="<<subptr<<std::endl;
+            BaseGDL* v = e->GetHeap(subptr);
+            if (DEBUG_SAVERESTORE)  std::cerr<<std::hex<<v<<std::dec<<std::endl;
+            if (v && v!=NullGDL::GetSingleInstance()) addToHeapList(e, v);
           }
+        }
+      }
+    } else if (var->Type() == GDL_OBJ) {
+      for (SizeT ielem = 0; ielem < var->N_Elements(); ++ielem) {
+        DObj subptr = (*static_cast<DObjGDL*> (var))[ielem];
+        if (subptr) {
+          heapT::iterator itheap=heapObjIndexMapSave.find(subptr);
+          if ( itheap==heapObjIndexMapSave.end() ) {
+            heapObjIndexMapSave.insert(std::pair<DPtr, SizeT>(subptr, subptr));
+            heapObjIndexSave=max(heapObjIndexSave,subptr); 
+            if (DEBUG_SAVERESTORE)   std::cerr<<"Adding Heaplist OBJ: ObjIndex="<<subptr<<std::endl;
+            BaseGDL* v = e->GetObjHeap(subptr);
+            if (DEBUG_SAVERESTORE)  std::cerr<<std::hex<<v<<std::dec<<std::endl;
+            if (v && v!=NullGDL::GetSingleInstance() ) addToHeapList(e, v);
+          }
+        }
+      }
+    } else if (var->Type() == GDL_STRUCT) {
+      DStructGDL* str = static_cast<DStructGDL*> (var);
+      for (SizeT ielem = 0; ielem < var->N_Elements(); ++ielem) {
+        for (int itag = 0; itag < str->NTags(); ++itag) {
+          BaseGDL* v = str->GetTag(itag, ielem);
+          if (v && v!=NullGDL::GetSingleInstance() ) addToHeapList(e, v);
         }
       }
     }
@@ -1901,43 +1929,51 @@ namespace lib {
   }
 
   uint32_t writeHeapList(XDR* xdrs) {
-    int32_t elementcount = heapIndexMapSave.size();
+// writing heap list for IDL compatiblilty implies to "mimic" the single heap list of IDL.
+//We write the PTRs first, then the OBJs after. OBJ ptrs will thus start at the last value held by PTRs plus one.
+    int32_t elementcount = heapIndexMapSave.size()+heapObjIndexMapSave.size();
     if (elementcount < 1) return xdr_getpos(xdrs);
-    uint32_t cur = writeNewRecordHeader(xdrs, 15); //HEAP_HEADER
+    uint32_t cur = writeNewRecordHeader(xdrs, HEAP_HEADER); //HEAP_HEADER
     xdr_int32_t(xdrs, &elementcount);
     int32_t indices[elementcount];
-    std::map<long,DPtr>::iterator itheap;
     SizeT i = 0;
-    for (itheap = heapIndexMapSave.begin(); itheap != heapIndexMapSave.end(); ++itheap) indices[i++] = 
-      ((*itheap).first>0)?(*itheap).first:-1*(*itheap).first;
+    heapT::iterator it;
+    for (it = heapIndexMapSave.begin(); it != heapIndexMapSave.end(); ++it) indices[i++] = (*it).second;
+    for (it = heapObjIndexMapSave.begin(); it != heapObjIndexMapSave.end(); ++it) indices[i++] = (*it).second+heapIndexSave;
+    
     xdr_vector(xdrs, (char*) indices, elementcount, sizeof (int32_t), (xdrproc_t) xdr_int32_t);
-//    {
-//      cerr << "Heap indexes, " << elementcount << " elements: ";
-//      for (int i = 0; i < elementcount; ++i) cerr << indices[i] << ",";
-//      cerr << endl;
-//    }
+    if (DEBUG_SAVERESTORE) {
+      cerr << "Heap indexes, " << elementcount << " elements: ";
+      for (int i = 0; i < elementcount; ++i) cerr << indices[i] << ",";
+      cerr << endl;
+    }
     uint32_t next = updateNewRecordHeader(xdrs, cur);
     return next;
   }
 
   uint32_t writeCommonList(EnvT*e, XDR* xdrs, std::string commonname) {
+   if (DEBUG_SAVERESTORE) std::cerr<<"Writing Common "<<commonname<<std::endl;
     EnvStackT& callStack = e->Interpreter()->CallStack();
     int32_t curlevnum = callStack.size();
     DSubUD* pro = static_cast<DSubUD*> (callStack[curlevnum - 1]->GetPro());
     DCommon* c=pro->Common(commonname);
     int32_t ncommonvars = c->NVar();
     if (ncommonvars < 1) return xdr_getpos(xdrs);
-    uint32_t cur = writeNewRecordHeader(xdrs, 1); //COMMON
+    uint32_t cur = writeNewRecordHeader(xdrs, COMMONBLOCK); //COMMON
     xdr_int32_t(xdrs, &ncommonvars);
     char* name = (char*)commonname.c_str();
     u_int len=c->Name().size();
     xdr_string(xdrs, &name, len);
     char* varnames[ncommonvars];
     u_int lens[ncommonvars];
-    for (int i = 0; i < ncommonvars; ++i) varnames[i] = (char*)c->VarName(i).c_str();
+    for (int i = 0; i < ncommonvars; ++i) {
+      varnames[i] = (char*)c->VarName(i).c_str();
+     if (DEBUG_SAVERESTORE)     std::cerr<<"        Name   "<<c->VarName(i)<<std::endl;
+     }
     for (int i = 0; i < ncommonvars; ++i) lens[i] = c->VarName(i).size();
     for (int i = 0; i < ncommonvars; ++i) xdr_string(xdrs, &varnames[i], lens[i]);    
     uint32_t next = updateNewRecordHeader(xdrs, cur);
+    if (DEBUG_SAVERESTORE) std::cerr<<std::endl;
     return next;
   } 
           
@@ -1958,17 +1994,17 @@ namespace lib {
     }
     //if testSafety is correct, DLong and int32_t , DInt and int16_t etc have the same meaning.
   
-    //empty maps by security.
+    //empty maps etc by security.
     heapIndexMapSave.clear();
+    heapObjIndexMapSave.clear();
     heapIndexSave=0;
+    heapObjIndexSave=0;
     predeflist.clear();
     
-    bool debug; //unused
     static int VERBOSE = e->KeywordIx("VERBOSE");
     bool verbose = e->KeywordSet(VERBOSE);
     DLong verboselevel=(verbose?1:0);
     if (verbose) e->AssureLongScalarKW(VERBOSE,verboselevel);
-    if (verboselevel>1) debug=true;
 
 
     static int VARIABLES = e->KeywordIx("VARIABLES");
@@ -2003,7 +2039,7 @@ namespace lib {
 
 //Variables
     std::queue<std::pair<std::string, BaseGDL*> >varNameList;
-    
+
     long nparam=e->NParam();
     if (!doComm && !doSys) doVars=(doVars||(nparam==0)); 
 
@@ -2090,16 +2126,19 @@ namespace lib {
       std::string varName = varNameList.front().first;
       BaseGDL* var = varNameList.front().second;
       varNameList.pop();
-      //sytem variables are saved with /SYSTEM. This is a special case, test: try "SAVE,!P" with IDL:
-      //<Expression> xxx generates an error.
-      if (varName.substr(0, 1) == "<") e->Throw("Expression must be named variable in this context:" + varName);
-      else
-      {
-        //examine variable. Cases: in common, normal. remove common name if necessary.
-        std::size_t pos = varName.find("(", 0);
-        if (pos != std::string::npos) varName = varName.substr(0, pos - 1); //one Blank.
-        variableVector.push_back(make_pair(varName, var)); 
-      }
+      if (var->N_Elements()==0) Message("Undefined item not saved: "+varName+".");
+      else {
+          //sytem variables are saved with /SYSTEM. This is a special case, test: try "SAVE,!P" with IDL:
+          //<Expression> xxx generates an error.
+          if (varName.substr(0, 1) == "<") e->Throw("Expression must be named variable in this context:" + varName);
+          else
+          {
+            //examine variable. Cases: in common, normal. remove common name if necessary.
+            std::size_t pos = varName.find("(", 0);
+            if (pos != std::string::npos) varName = varName.substr(0, pos - 1); //one Blank.
+            variableVector.push_back(make_pair(varName, var)); 
+          }
+        }
     }
     
     //Now, do we have heap variables in the variableVector (pointers)? If yes, we add these BaseGDL* to the heaplist unique list.
@@ -2118,7 +2157,6 @@ namespace lib {
     for (itvar=systemReadonlyVariableVector.begin(); itvar!=systemReadonlyVariableVector.end(); ++itvar) {
       addToHeapList(e, itvar->second);
     }    
-   
 
     DString name;
     if (e->KeywordPresent(FILENAME))
@@ -2180,7 +2218,7 @@ namespace lib {
     //VERSION
     nextptr=writeVersion(xdrs, &format, (char*)arch.c_str(), (char*) os.c_str() , (char*) release.c_str());
     //HEAPLIST
-    if (heapIndexMapSave.size() > 0) nextptr=writeHeapList(xdrs);
+    if (heapIndexMapSave.size() > 0 || heapObjIndexMapSave.size() > 0 ) nextptr=writeHeapList(xdrs);
     // promote64: NO!
 //    //notice:
 //    std::string notice="Made by GDL, a free software program that you can redistribute and/or modify"
@@ -2195,19 +2233,29 @@ namespace lib {
       if (verboselevel>0) Message("Saved common block: " + *itcommon);
     }
     //HEAP Variables: all terminal variables
-    std::map<long, DPtr>::iterator itheap;
-    for (itheap=heapIndexMapSave.begin(); itheap!=heapIndexMapSave.end(); ++itheap) {      
-      nextptr=writeHeapVariable(e, xdrs, *itheap);
+    //see comment @ writeHeapList about how to manage a strictly positive list of heap indexes with 2 heap lists, one for ObJs and the other for PTRs
+    if (heapObjIndexMapSave.size() > 0) { //there is some objheap...
+      DObjGDL* heapPtrList=e->Interpreter( )->GetAllObjHeap( );
+      for (SizeT i=0; i<heapPtrList->N_Elements(); ++i) nextptr=writeHeapVariable(e, xdrs, (*heapPtrList)[i], true);
+      GDLDelete(heapPtrList);
     }
+
+    if (heapIndexMapSave.size() > 0) { //there is some heap...
+      DPtrGDL* heapPtrList=e->Interpreter( )->GetAllHeap( );
+      for (SizeT i=0; i<heapPtrList->N_Elements(); ++i) nextptr=writeHeapVariable(e, xdrs, (*heapPtrList)[i], false);
+      GDLDelete(heapPtrList);
+    }
+
+
     while (!systemReadonlyVariableVector.empty())
     {
-      nextptr = writeNormalVariable(xdrs, systemReadonlyVariableVector.back().first, (systemReadonlyVariableVector.back()).second, 0x21);
+      nextptr = writeNormalVariable(xdrs, systemReadonlyVariableVector.back().first, (systemReadonlyVariableVector.back()).second, 0x3);
       if (verboselevel > 0) Message("Saved variable: " + (systemReadonlyVariableVector.back()).first + ".");
       systemReadonlyVariableVector.pop_back();
     }
     while (!systemVariableVector.empty())
     {
-      nextptr = writeNormalVariable(xdrs, systemVariableVector.back().first, (systemVariableVector.back()).second, 0x20);
+      nextptr = writeNormalVariable(xdrs, systemVariableVector.back().first, (systemVariableVector.back()).second, 0x2);
       if (verboselevel > 0) Message("Saved variable: " + (systemVariableVector.back()).first + ".");
       systemVariableVector.pop_back();
     }
