@@ -141,11 +141,10 @@ void LibInit()
 
   const string spawnKey[]={ "COUNT","EXIT_STATUS","NOSHELL","NULL_STDIN","PID","STDERR","UNIT", //All platforms
 #ifdef _WIN32
-	  "HIDE", "LOG_OUTPUT", "NOWAIT",};
+	  "HIDE", "LOG_OUTPUT", "NOWAIT",KLISTEND};
 #else
-  "NOTTYRESET","SH",
+  "NOTTYRESET","SH", KLISTEND};
 #endif
-  KLISTEND};
  
   new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
 
