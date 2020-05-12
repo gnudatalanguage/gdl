@@ -1,4 +1,4 @@
-/***************************************************************************
+ /***************************************************************************
                           basic_fun.cpp  -  basic GDL library function
                              -------------------
     begin                : July 22 2002
@@ -7915,7 +7915,7 @@ BaseGDL* routine_filepath( EnvT* e)
     //      }
   }
 
-  BaseGDL* temporary( EnvT* e)
+  BaseGDL* temporary_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
 
@@ -7926,8 +7926,8 @@ BaseGDL* routine_filepath( EnvT* e)
     *p0 = NULL; // make parameter undefined
     return ret;
   }
-  
-  BaseGDL* memory( EnvT* e)
+
+  BaseGDL* memory_fun( EnvT* e)
   {
     SizeT nParam=e->NParam( 0); 
 

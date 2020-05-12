@@ -37,7 +37,7 @@ using namespace std;
 #if PY_MAJOR_VERSION >= 3
 int PythonInit()
 {
-  if( Py_IsInitialized()) return NULL;
+  if( Py_IsInitialized()) return 0;
 #else
 void PythonInit()
 {
@@ -58,7 +58,7 @@ void PythonInit()
   // http://docs.scipy.org/doc/numpy/reference/c-api.array.html#miscellaneous
   import_array();
 #if PY_MAJOR_VERSION >= 3
-  return NULL;
+  return 0;
 #endif
 }
 
