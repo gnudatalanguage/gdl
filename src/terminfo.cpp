@@ -58,7 +58,7 @@ int TermHeight()
 #elif defined(HAVE_LIBREADLINE) && defined(RL_GET_SCREEN_SIZE)
 
 #include <readline/readline.h>
-#include <readline/history.h>
+//#include <readline/history.h>
 
 
 // AC 2020-05-05 : <<found on the Internet>> Unclear for me :((
@@ -163,7 +163,6 @@ int TermHeight()
 
 #endif
 
-
 namespace lib {
   using namespace std;
 
@@ -245,18 +244,12 @@ namespace lib {
     rl_deprep_terminal ();
 #endif
 
-    DStringGDL* res = new DStringGDL( DString( i2s( c))); 
-
-    return res;
- 
   }
-
-
-  // get or change Terminal Size   
+  
   BaseGDL* terminal_size_fun( EnvT* e ) {
 
     SizeT nParam = e->NParam();
-    cout << nParam << endl;
+    //    cout << nParam << endl;
 
     // Just returning the size of the Terminal
     if (nParam == 0) {

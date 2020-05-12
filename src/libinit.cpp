@@ -129,7 +129,7 @@ void LibInit()
   const string svdcKey[]={"COLUMN","ITMAX","DOUBLE",KLISTEND};
   new DLibPro(lib::svdc,string("SVDC"),4,svdcKey);
 
-  new DLibFunRetNew(lib::temporary,string("TEMPORARY"),1);
+  new DLibFunRetNew(lib::temporary_fun,string("TEMPORARY"),1);
   
   new DLibFunRetNew(lib::terminal_size_fun,string("TERMINAL_SIZE"),2);
 
@@ -143,9 +143,10 @@ void LibInit()
 
   const string spawnKey[]={ "COUNT","EXIT_STATUS","NOSHELL","NULL_STDIN","PID","STDERR","UNIT", //All platforms
 #ifdef _WIN32
-	  "HIDE", "LOG_OUTPUT", "NOWAIT",KLISTEND};
+	  "HIDE", "LOG_OUTPUT", "NOWAIT",  KLISTEND};
+
 #else
-  "NOTTYRESET","SH", KLISTEND};
+  "NOTTYRESET","SH",  KLISTEND};
 #endif
  
   new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
@@ -319,7 +320,7 @@ void LibInit()
   
   const string memoryKey[]={"CURRENT","HIGHWATER","NUM_ALLOC",
     "NUM_FREE","STRUCTURE","L64",KLISTEND};
-  new DLibFunRetNew(lib::memory, string("MEMORY"), 1, memoryKey, NULL);
+  new DLibFunRetNew(lib::memory_fun, string("MEMORY"), 1, memoryKey, NULL);
 
   // printKey, readKey and stringKey are closely associated
   // as the same functions are called "FORMAT" till "MONTH"

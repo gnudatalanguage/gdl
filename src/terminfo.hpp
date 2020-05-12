@@ -19,6 +19,11 @@
 
 #ifndef TERMINFO_HPP_
 #define TERMINFO_HPP_
+#include "envt.hpp"
+
+#if defined(HAVE_LIBREADLINE)
+void SetTermSize(int rows, int cols);
+#endif
 
 #include "envt.hpp"
 
@@ -28,6 +33,13 @@ void SetTermSize(int rows, int cols);
 
 int TermWidth();
 int TermHeight();
+namespace lib {
+  using namespace std;
+
+  BaseGDL* terminal_size_fun( EnvT* e );
+
+  BaseGDL* get_kbrd( EnvT* e);
+}
 
 namespace lib {
   using namespace std;
