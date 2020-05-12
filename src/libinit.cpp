@@ -49,6 +49,8 @@
 #include "linearprogramming.hpp"
 #include "saverestore.hpp"
 
+#include "terminfo.hpp"
+
 #ifdef USE_PYTHON
 #  include "gdlpython.hpp"
 #endif
@@ -129,7 +131,7 @@ void LibInit()
 
   new DLibFunRetNew(lib::temporary,string("TEMPORARY"),1);
   
-  new DLibFunRetNew(lib::terminal_size_fun,string("TERMINAL_SIZE"),0);
+  new DLibFunRetNew(lib::terminal_size_fun,string("TERMINAL_SIZE"),2);
 
   const string routine_infoKey[]={"FUNCTIONS","SYSTEM","DISABLED","ENABLED",
 				  "PARAMETERS","SOURCE", KLISTEND};

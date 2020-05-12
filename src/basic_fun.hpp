@@ -25,8 +25,6 @@ namespace lib {
   SizeT HASH_count( DStructGDL* oStructGDL);
   SizeT LIST_count( DStructGDL* oStructGDL);
 
-  BaseGDL* get_kbrd( EnvT* e);
-
   BaseGDL* bytarr( EnvT* e);
   BaseGDL* intarr( EnvT* e);
   BaseGDL* uintarr( EnvT* e);
@@ -146,8 +144,6 @@ namespace lib {
   BaseGDL* routine_name_fun( EnvT* e);
 
   BaseGDL* temporary( EnvT* e);
-
-  BaseGDL* terminal_size_fun( EnvT* e );
 
   BaseGDL* memory(EnvT* e);
 

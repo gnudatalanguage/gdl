@@ -1147,17 +1147,16 @@ void help_help(EnvT* e)
 	  ctmp=my_get_kbrd(); 
 	  nb_lines=TermHeight();
 	  if ((tolower(ctmp) == 'h') || (ctmp == '?')) {
-	   *ostrp << "---------------------------------------------------    " << endl;
-	   *ostrp << "<space>		Display next page of text." << endl;
-	   *ostrp << "<return>	Display next line of text." << endl;
-	   *ostrp << "q or Q		Quit" << endl;
-	   *ostrp << "h, H, or ?	Display this message." << endl;
-	   *ostrp << "---------------------------------------------------" << endl;
+	    *ostrp << "---------------------------------------------------    " << endl;
+	    *ostrp << "<space>		Display next page of text." << endl;
+	    *ostrp << "<return>	Display next line of text. (TBD)" << endl;
+	    *ostrp << "q or Q		Quit" << endl;
+	    *ostrp << "h, H, or ?	Display this message." << endl;
+	    *ostrp << "---------------------------------------------------" << endl;
 	    ctmp=my_get_kbrd(); 
 	    nb_lines=TermHeight();
 	  }
-	  if (tolower(ctmp) == 'q') break;
-
+	  if (tolower(ctmp) == 'q') break;	  
 	}
       }
 

@@ -35,10 +35,8 @@
 
 #include "includefirst.hpp"
 
-// get_kbrd patch
-// http://sourceforge.net/forum/forum.php?thread_id=3292183&forum_id=338691
 #ifndef _WIN32
-#include <termios.h> 
+//#include <termios.h> 
 #include <unistd.h> 
 #endif
 
@@ -68,7 +66,7 @@ extern "C" char **environ;
 #include "dpro.hpp"
 #include "dinterpreter.hpp"
 #include "basic_pro.hpp"
-#include "terminfo.hpp"
+//#include "terminfo.hpp"
 #include "typedefs.hpp"
 #include "base64.hpp"
 #include "objects.hpp"
@@ -7917,89 +7915,6 @@ BaseGDL* routine_filepath( EnvT* e)
     //      }
   }
 
-  BaseGDL* get_kbrd( EnvT* e)
-  {
-#if defined(HAVE_LIBREADLINE)
-#include <readline/readline.h>
-    rl_prep_terminal (0);
-#endif
-#if defined(HAVE_EDITLINE)
-#include <editline/readline.h>
-    rl_prep_terminal (0);
-#endif
-      
-      
-    SizeT nParam=e->NParam();
-
-    bool doWait = true;
-    if( nParam > 0)
-      {
-    doWait = false;
-    DLong waitArg = 0;
-    e->AssureLongScalarPar( 0, waitArg);
-    if( waitArg != 0)
-      {
-        doWait = true;
-      }
-      }
-
-    // https://sourceforge.net/forum/forum.php?thread_id=3292183&forum_id=338691
-    // DONE: Implement proper SCALAR parameter handling (doWait variable)
-    // which is/was not blocking in the original program. 
-    // note: multi-byte input is not supported here.
-    
-    char c='\0'; //initialize is never a bad idea...
-
-    int fd=fileno(stdin);
-#ifndef _WIN32
-    struct termios orig, get; 
-#endif
-    // Get terminal setup to revert to it at end. 
-#ifndef _WIN32
-    (void)tcgetattr(fd, &orig); 
-    // New terminal setup, non-canonical.
-    get.c_lflag = ISIG; 
-#endif
-    if (doWait)
-      {
-    // will wait for a character
-#ifndef _WIN32
-    get.c_cc[VTIME]=0;
-    get.c_cc[VMIN]=1;
-    (void)tcsetattr(fd, TCSANOW, &get); 
-#endif
-    cin.get(c);
-      }
-    else 
-      {
-    // will not wait, but return EOF or next character in terminal buffer if present
-#ifndef _WIN32
-    get.c_cc[VTIME]=0;
-    get.c_cc[VMIN]=0;
-    (void)tcsetattr(fd, TCSANOW, &get); 
-#endif
-    //the trick is *not to use C++ functions here. cin.get would wait.*
-    c=std::fgetc(stdin);
-    //and to convert EOF to null (otherwise GDL may exit if not compiled with
-    //[lib][n]curses)
-    if(c==EOF) c='\0';
-      }
-    
-    // Restore original terminal settings. 
-#ifndef _WIN32
-    (void)tcsetattr(fd, TCSANOW, &orig); 
-#endif
-#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
-    rl_deprep_terminal ();
-#endif
-
-    DStringGDL* res = new DStringGDL( DString( i2s( c))); 
-
-    return res;
- 
-  }
-
-
   BaseGDL* temporary( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
@@ -8011,17 +7926,6 @@ BaseGDL* routine_filepath( EnvT* e)
     *p0 = NULL; // make parameter undefined
     return ret;
   }
-  
-  
-    BaseGDL* terminal_size_fun( EnvT* e ) {
-        // TODO: Also allow setting width/height
-        SizeT nParam = e->NParam(0);
-        DLongGDL* ret = new DLongGDL( dimension(2) );
-        (*ret)[0] = TermWidth();
-        (*ret)[1] = TermHeight();
-        return ret;
-    }
-
   
   BaseGDL* memory( EnvT* e)
   {
