@@ -143,9 +143,9 @@ namespace lib {
   //AC 2019
   BaseGDL* routine_name_fun( EnvT* e);
 
-  BaseGDL* temporary( EnvT* e);
+  BaseGDL* temporary_fun( EnvT* e);
 
-  BaseGDL* memory(EnvT* e);
+  BaseGDL* memory_fun(EnvT* e);
 
   // the following by Peter Messmer 
   // (messmer@users.sourceforge.net)
