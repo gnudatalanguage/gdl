@@ -41,11 +41,4 @@ namespace lib {
   BaseGDL* get_kbrd( EnvT* e);
 }
 
-namespace lib {
-  using namespace std;
-  
-  BaseGDL* terminal_size_fun( EnvT* e );
-  
-  BaseGDL* get_kbrd( EnvT* e);
-}
 #endif

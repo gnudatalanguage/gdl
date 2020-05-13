@@ -58,24 +58,6 @@ int TermHeight()
 #elif defined(HAVE_LIBREADLINE) && defined(RL_GET_SCREEN_SIZE)
 
 #include <readline/readline.h>
-//#include <readline/history.h>
-
-
-// AC 2020-05-05 : <<found on the Internet>> Unclear for me :((
-
-void SetTermSize(int rows, int cols)
-{
-  //  std::cout << "hello" << std::endl;
-  rl_set_screen_size (rows, cols);
-#if defined(HAVE_READLINE) && defined(RL_ISSTATE) && defined(RL_INITIALIZED)
-  if (RL_ISSTATE(RL_INITIALIZED)) {
-    rl_resize_terminal();
-  }else {  std::cout << "Please report" << std::endl;
-  }
-#else
-std::cout << "Not ready for no Readline libs." << std::endl;
-#endif
-}
 
 int TermWidth()
 {
@@ -89,10 +71,8 @@ int TermWidth()
 int TermHeight()
 {
 
-  //  std::cout << "hello" << std::endl;
   int cols;
   int rows;
-  //  rl_reset_screen_size ();
   rl_get_screen_size(&rows, &cols);
   return rows;
 }
@@ -111,9 +91,6 @@ int TermWidth()
   SCREEN *screen;
 
   if( cols != 0) return cols;
-
-  // original line follows:
-  // initscr();
 
   screen = newterm((char *) NULL, stdout, stdin);
   if((void *)screen == NULL)
@@ -163,12 +140,60 @@ int TermHeight()
 
 #endif
 
+ // AC 2020-05-05 : <<found on the Internet>> Unclear for me :((
+#if defined(HAVE_LIBREADLINE) && defined(RL_GET_SCREEN_SIZE)
+
+#include <readline/readline.h>
+#include <readline/history.h>
+
+void SetTermSize(int rows, int cols)
+{
+  rl_set_screen_size (rows, cols);
+#if defined(HAVE_READLINE) && defined(RL_ISSTATE) && defined(RL_INITIALIZED)
+  if (RL_ISSTATE(RL_INITIALIZED)) {
+    rl_resize_terminal();
+  }else {  std::cout << "Please report" << std::endl;
+  }
+#else
+std::cout << "Not ready for no Readline libs." << std::endl;
+#endif
+}
+#endif
 namespace lib {
   using namespace std;
+#ifdef _WIN32
+  BaseGDL* get_kbrd( EnvT* e)
+  {
+      
+    SizeT nParam=e->NParam();
 
+    bool doWait = true;
+    if( nParam > 0)      {
+		doWait = false;
+		DLong waitArg = 0;
+		e->AssureLongScalarPar( 0, waitArg);
+		if( waitArg != 0)
+			doWait = true;
+      }
+    
+    char c='\0'; 
+
+    if (doWait)
+      {    cin.get(c);      }
+    else 
+      {    c=std::fgetc(stdin);
+		      if(c==EOF) c='\0';
+      }
+
+    DStringGDL* res = new DStringGDL( DString( i2s( c))); 
+
+    return res;
+ 
+  }
+
+#else
   // get_kbrd patch
   // http://sourceforge.net/forum/forum.php?thread_id=3292183&forum_id=338691
-
   BaseGDL* get_kbrd( EnvT* e)
   {
 #if defined(HAVE_LIBREADLINE)
@@ -202,33 +227,33 @@ namespace lib {
     char c='\0'; //initialize is never a bad idea...
 
     int fd=fileno(stdin);
-#ifndef _WIN32
+
     struct termios orig, get; 
-#endif
+
     // Get terminal setup to revert to it at end. 
-#ifndef _WIN32
+
     (void)tcgetattr(fd, &orig); 
     // New terminal setup, non-canonical.
     get.c_lflag = ISIG; 
-#endif
+
     if (doWait)
       {
 	// will wait for a character
-#ifndef _WIN32
+
 	get.c_cc[VTIME]=0;
 	get.c_cc[VMIN]=1;
 	(void)tcsetattr(fd, TCSANOW, &get); 
-#endif
+
 	cin.get(c);
       }
     else 
       {
 	// will not wait, but return EOF or next character in terminal buffer if present
-#ifndef _WIN32
+
 	get.c_cc[VTIME]=0;
 	get.c_cc[VMIN]=0;
 	(void)tcsetattr(fd, TCSANOW, &get); 
-#endif
+
 	//the trick is *not to use C++ functions here. cin.get would wait.*
 	c=std::fgetc(stdin);
 	//and to convert EOF to null (otherwise GDL may exit if not compiled with
@@ -237,14 +262,17 @@ namespace lib {
       }
     
     // Restore original terminal settings. 
-#ifndef _WIN32
+
     (void)tcsetattr(fd, TCSANOW, &orig); 
-#endif
 #if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
     rl_deprep_terminal ();
 #endif
 
+    DStringGDL* res = new DStringGDL( DString( i2s( c))); 
+
+    return res;
   }
+#endif
   
   BaseGDL* terminal_size_fun( EnvT* e ) {
 
