@@ -56,9 +56,11 @@ void PythonInit()
   PySys_SetArgv(argc, argv);
 
   // http://docs.scipy.org/doc/numpy/reference/c-api.array.html#miscellaneous
-  import_array();
 #if PY_MAJOR_VERSION >= 3
-  return 0;
+  return  import_array();
+  #else
+    import_array();
+    return NULL;
 #endif
 }
 

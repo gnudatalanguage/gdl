@@ -20,6 +20,8 @@
 
 #if PY_MAJOR_VERSION >= 3
 int PythonInit();
+#undef  NUMPY_IMPORT_ARRAY_RETVAL
+#define NUMPY_IMPORT_ARRAY_RETVAL 0
 #else
 void PythonInit();
 #endif
