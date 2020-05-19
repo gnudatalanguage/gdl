@@ -57,7 +57,7 @@ Packaged versions of GDL are available for several Linux distributions, BSD and 
 Please note that several features of GDL depend on compile-time configuration, and might not 
   be available in pre-built or pre-configured packages. 
 GDL has numerous dependencies, most of the optional (buth highly recommended):
-- [readline](http://thrysoee.dk/editline/)/[editline](http://thrysoee.dk/editline/)
+- [readline](https://tiswww.cwru.edu/php/chet/readline/rltop.html)
 - [\[n\]curses](https://www.gnu.org/software/ncurses/)
 - [zlib](https://zlib.net/)
 - [GSL](https://www.gnu.org/software/gsl/)

@@ -184,18 +184,14 @@ static void help_files(ostream& os, EnvT* e) {
 }
 
 // AC 2020-04-28 derivated work from get_kbrd().
-// Not sure what happen without ReadLine/EditLine
+// Not sure what happen without ReadLine
 char my_get_kbrd()
 {
 #if defined(HAVE_LIBREADLINE)
 #include <readline/readline.h>
   rl_prep_terminal (0);
 #endif
-#if defined(HAVE_EDITLINE)
-#include <editline/readline.h>
-  rl_prep_terminal (0);
-#endif
-  
+
   char c='\0'; //initialize is never a bad idea...
   
   int fd=fileno(stdin);
@@ -220,7 +216,7 @@ char my_get_kbrd()
 #ifndef _WIN32
     (void)tcsetattr(fd, TCSANOW, &orig); 
 #endif
-#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
+#if defined(HAVE_LIBREADLINE)
     rl_deprep_terminal ();
 #endif
     return c; 
@@ -580,17 +576,10 @@ static void help_lastmsg(EnvT* e)
 	  }
   }
     
-
   static DStringGDL* recall_commands_internal()
   {
-    // maybe obsolete ??? to be check 
-    // AC 24 Oct 2016 if defined(HAVE_LIBREADLINE) && !defined(__APPLE__)
-      //int status=0;
-      DStringGDL* retVal;
-      retVal = new DStringGDL(1, BaseGDL::NOZERO);
-      (*retVal)[ 0] ="";
-#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
-    //status=1;
+
+#if defined(HAVE_LIBREADLINE)
     // http://cnswww.cns.cwru.edu/php/chet/readline/history.html#IDX14
     HIST_ENTRY **the_list;
     //    cout << "history_length" << history_length << endl;
@@ -606,7 +595,6 @@ static void help_lastmsg(EnvT* e)
     Message("RECALL_COMMANDS: nothing done, because compiled without READLINE");
     return new DStringGDL("");
 #endif
-      return retVal;
   }
 
 namespace lib {

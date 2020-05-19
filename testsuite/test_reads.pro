@@ -6,10 +6,149 @@
 ; First Bug found thanks to the MIRIM simulator
 ;
 ; -------------------------------------
+; 
+; Modifications history :
+;
+; - 2020-April-02 : AC.
+;   * as mentionned in #701, READS is in error with complex
+;   * adding more tests on arrays (basic & mixing types)
+;
+; -------------------------------------
+;
+pro TEST_READS_ARRAYS, cumul_errors, verbose=verbose, test=test
+;
+errors=0
+;
+input1= '100,800,600'
+input2= '100 800 600 400'
+;
+ok=EXECUTE('READS, input1, x,y,z')
+;
+if ~ok then ERRORS_ADD, errors, 'EXECUTE failed, first case !'
+;
+if ~ARRAY_EQUAL(x, 100) then ERRORS_ADD, errors, 'c1 bad value X !'
+if ~ARRAY_EQUAL(y, 800) then ERRORS_ADD, errors, 'c1 bad value Y !'
+if ~ARRAY_EQUAL(z, 600) then ERRORS_ADD, errors, 'c1 bad value Z !'
+;
+; we provide only 3 variables for an input with 4 values ...
+;
+ok=EXECUTE('READS, input2, x,y,z')
+;
+if ~ok then ERRORS_ADD, errors, 'EXECUTE failed, second case !'
+;
+if ~ARRAY_EQUAL(x, 100) then ERRORS_ADD, errors, 'c2 bad value X !'
+if ~ARRAY_EQUAL(y, 800) then ERRORS_ADD, errors, 'c2 bad value Y !'
+if ~ARRAY_EQUAL(z, 600) then ERRORS_ADD, errors, 'c2 bad value Z !'
+;
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_READS_ARRAYS', errors, /status
+ERRORS_CUMUL, cumul_errors, errors
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+; -------------------------------------
+;
+function ICI_ARRAY_EQUAL, x, y, debug=debug
+if KEYWORD_SET(debug) then begin
+   print, 'expected     :', x
+   print, 'what we have :', y
+endif
+return, ARRAY_EQUAL(x,y)
+end
+;
+pro TEST_READS_COMPLEX, cumul_errors, verbose=verbose, test=test, debug=debug
+;
+errors=0
+;
+; basic case, one value
+;
+input= '(1,2)'
+var=COMPLEX(0,0)
+ok=EXECUTE('READS, input, var')
+if ~ok then ERRORS_ADD, errors, 'EXECUTE 1 failed !'
+;
+expected=COMPLEX(1,2)
+if ~ICI_ARRAY_EQUAL(expected, var, debug=debug) then $
+   ERRORS_ADD, errors, 'basic complex 1 val, bad values !'
+;
+;----- multiple inputs, same size  Case 1 in #701
+;
+input= '(1,-1) (2,-2) (3,-3)'
+var=COMPLEXARR(3)
+ok=EXECUTE('READS, input, var')
+if ~ok then ERRORS_ADD, errors, 'EXECUTE 2 failed !'
+;
+tmp=INDGEN(3)+1
+expected=COMPLEX(tmp, -tmp)
+if ~ICI_ARRAY_EQUAL(expected, var, debug=debug) then $
+ ERRORS_ADD, errors, 'basic complex 3 val, bad values !'
+;
+;----- multiple inputs, different size
+input= '(1,-1) (2,-2) (3,-3)'
+var=COMPLEXARR(2)
+ok=EXECUTE('READS, input, var')
+if ~ok then ERRORS_ADD, errors, 'EXECUTE 2 failed !'
+;
+tmp=INDGEN(2)+1
+expected=COMPLEX(tmp, -tmp)
+if ~ICI_ARRAY_EQUAL(expected, var, debug=debug) then $
+ ERRORS_ADD, errors, 'basic complex 3 val (bis), bad values !'
+;
+;----- should resist to excess of commas & spaces 
+input= '(1,-1) (2,-2),,,,,   (3,-3)'
+var=COMPLEXARR(3)
+ok=EXECUTE('READS, input, var')
+;
+if ~ok then ERRORS_ADD, errors, 'EXECUTE failed !'
+;
+tmp=INDGEN(3)+1
+expected=COMPLEX(tmp, -tmp)
+if ~ICI_ARRAY_EQUAL(expected, var, debug=debug) then $
+ ERRORS_ADD, errors, 'bad format, extra commas, complex bad values !'
+;
+;----- should resist to missing braces too !!
+; case 3 reported in #701 by GD
+;
+input= '12 , 13'
+var=COMPLEXARR(2)
+ok=EXECUTE('READS, input, var')
+if ~ok then ERRORS_ADD, errors, 'EXECUTE failed !'
+;
+tmp=INDGEN(2)+12
+expected=COMPLEX(tmp, 0)
+if ~ICI_ARRAY_EQUAL(expected, var, debug=debug) then $
+ ERRORS_ADD, errors, 'bad format, no brace, complex bad values !'
+;
+;----- should resist to mixed format : case 2 reported in #701 by GD
+;
+input='  ( 12,13) 18 19'
+var=COMPLEXARR(3)
+ok=EXECUTE('READS, input, var')
+if ~ok then ERRORS_ADD, errors, 'EXECUTE failed !'
+;
+expected=COMPLEXARR(3)
+expected[0]=COMPLEX(12,13)
+expected[1]=18
+expected[2]=19
+if ~ICI_ARRAY_EQUAL(expected, var, debug=debug) then $
+ ERRORS_ADD, errors, 'mixed format, complex bad values !'
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_READS_COMPLEX', errors, /status
+ERRORS_CUMUL, cumul_errors, errors
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; -------------------------------------
 ;
 pro TEST_READS_STRING, cumul_errors, verbose=verbose, test=test
 ;
-functionname='TEST_READS_STRING'
 errors=0
 ;
 input= '1000,800,600'
@@ -24,7 +163,7 @@ if ~ARRAY_EQUAL(expected, var) then $
 ;
 ; ----- final ----
 ;
-BANNER_FOR_TESTSUITE, functionname, errors, /status
+BANNER_FOR_TESTSUITE, 'TEST_READS_STRING', errors, /status
 ERRORS_CUMUL, cumul_errors, errors
 ;
 if KEYWORD_SET(test) then STOP
@@ -40,7 +179,6 @@ end
 ;
 pro TEST_READS_MIXED, cumul_errors, verbose=verbose, test=test
 ;
-functionname='TEST_READS_MIXED'
 errors=0
 ;
 ; derived from http://www.iac.es/sieinvens/SINFIN/CursoIDL/idlpp3.php
@@ -104,7 +242,7 @@ errors=errors1+errors2
 ;; 
 ; ----- final ----
 ;
-BANNER_FOR_TESTSUITE, functionname, errors, /status
+BANNER_FOR_TESTSUITE, 'TEST_READS_MIXED', errors, /status
 ERRORS_CUMUL, cumul_errors, errors
 ;
 if KEYWORD_SET(test) then STOP
@@ -115,14 +253,18 @@ end
 ;
 pro TEST_READS, help=help, verbose=verbose, no_exit=no_exit, test=test
 ;
-functionname='TEST_READS'
-;
 if KEYWORD_SET(help) then begin
-    print, 'pro '+functionname+', help=help, verbose=verbose, $'
+    print, 'pro '+'TEST_READS_'+', help=help, verbose=verbose, $'
     print, '                no_exit=no_exit, test=test'
     return
 endif
 ;
+errors=0
+;
+TEST_READS_ARRAYS, errors, verbose=verbose, test=test
+;
+print, 'AC 2020 may 18 not ready in read.cpp'
+TEST_READS_COMPLEX, errors, verbose=verbose, test=test
 errors=0
 ;
 TEST_READS_STRING, errors, verbose=verbose, test=test
@@ -131,7 +273,7 @@ TEST_READS_MIXED, errors, verbose=verbose, test=test
 ;
 ; ----------------- final message ----------
 ;
-BANNER_FOR_TESTSUITE, functionname, errors
+BANNER_FOR_TESTSUITE, 'TEST_READS', errors, /status
 ;
 if (errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;

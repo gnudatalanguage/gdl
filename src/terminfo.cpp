@@ -19,21 +19,28 @@
   #include <config.h>
   #endif
 */
+
 #include "includefirst.hpp"
 #include "stdio.h"
 #include <iostream>
+
+#include "terminfo.hpp"
 
 #ifndef _WIN32
 #include <termios.h> 
 #include <unistd.h> 
 #endif
 
+#if defined(HAVE_LIBREADLINE)
+#include <readline/readline.h>
+#endif
+
+/* AC 2020 mai : it is useful ?!
 // used to defined GDL_TMPDIR: may have trouble on MSwin, help welcome
 #ifndef _WIN32
 #include <paths.h>
 #endif
-
-#include "terminfo.hpp"
+*/
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
@@ -57,20 +64,16 @@ int TermHeight()
 
 #elif defined(HAVE_LIBREADLINE) && defined(RL_GET_SCREEN_SIZE)
 
-#include <readline/readline.h>
-
 int TermWidth()
 {
   int cols;
   int rows;
-
   rl_get_screen_size(&rows, &cols);
   return cols;
 }
 
 int TermHeight()
 {
-
   int cols;
   int rows;
   rl_get_screen_size(&rows, &cols);
@@ -140,27 +143,28 @@ int TermHeight()
 
 #endif
 
- // AC 2020-05-05 : <<found on the Internet>> Unclear for me :((
+// AC 2020-05-05 : <<found on the Internet>> Unclear for me :((
 #if defined(HAVE_LIBREADLINE) && defined(RL_GET_SCREEN_SIZE)
-
-#include <readline/readline.h>
-#include <readline/history.h>
 
 void SetTermSize(int rows, int cols)
 {
   rl_set_screen_size (rows, cols);
-#if defined(HAVE_READLINE) && defined(RL_ISSTATE) && defined(RL_INITIALIZED)
+#if defined(RL_ISSTATE) && defined(RL_INITIALIZED)
   if (RL_ISSTATE(RL_INITIALIZED)) {
     rl_resize_terminal();
-  }else {  std::cout << "Please report" << std::endl;
+  } else {
+    std::cout << "Please report" << std::endl;
   }
 #else
-std::cout << "Not ready for no Readline libs." << std::endl;
+  std::cout << "Not ready due to RL_ISSTATE/RL_INITIALIZED (please report)" << std::endl;
 #endif
 }
+
 #endif
+
 namespace lib {
   using namespace std;
+
 #ifdef _WIN32
   BaseGDL* get_kbrd( EnvT* e)
   {
@@ -168,27 +172,26 @@ namespace lib {
     SizeT nParam=e->NParam();
 
     bool doWait = true;
-    if( nParam > 0)      {
-		doWait = false;
-		DLong waitArg = 0;
-		e->AssureLongScalarPar( 0, waitArg);
-		if( waitArg != 0)
-			doWait = true;
-      }
+    if( nParam > 0) {
+      doWait = false;
+      DLong waitArg = 0;
+      e->AssureLongScalarPar( 0, waitArg);
+      if( waitArg != 0)
+	doWait = true;
+    }
     
     char c='\0'; 
+    
+    if (doWait) {
+      cin.get(c);
+    }
+    else {
+      c=std::fgetc(stdin);
+      if(c==EOF) c='\0';
+    }
 
-    if (doWait)
-      {    cin.get(c);      }
-    else 
-      {    c=std::fgetc(stdin);
-		      if(c==EOF) c='\0';
-      }
-
-    DStringGDL* res = new DStringGDL( DString( i2s( c))); 
-
+    DStringGDL* res = new DStringGDL( DString( i2s( c)));
     return res;
- 
   }
 
 #else
@@ -197,23 +200,18 @@ namespace lib {
   BaseGDL* get_kbrd( EnvT* e)
   {
 #if defined(HAVE_LIBREADLINE)
-#include <readline/readline.h>
     rl_prep_terminal (0);
 #endif
-#if defined(HAVE_EDITLINE)
-#include <editline/readline.h>
-    rl_prep_terminal (0);
-#endif
-  
+    
     SizeT nParam=e->NParam();
   
     bool doWait = true;
-    if( nParam > 0)
+    if (nParam > 0)
       {
 	doWait = false;
 	DLong waitArg = 0;
 	e->AssureLongScalarPar( 0, waitArg);
-	if( waitArg != 0)
+	if (waitArg != 0)
 	  {
 	    doWait = true;
 	  }
@@ -239,7 +237,6 @@ namespace lib {
     if (doWait)
       {
 	// will wait for a character
-
 	get.c_cc[VTIME]=0;
 	get.c_cc[VMIN]=1;
 	(void)tcsetattr(fd, TCSANOW, &get); 
@@ -264,12 +261,12 @@ namespace lib {
     // Restore original terminal settings. 
 
     (void)tcsetattr(fd, TCSANOW, &orig); 
-#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
+
+#if defined(HAVE_LIBREADLINE)
     rl_deprep_terminal ();
 #endif
 
     DStringGDL* res = new DStringGDL( DString( i2s( c))); 
-
     return res;
   }
 #endif
@@ -301,16 +298,18 @@ namespace lib {
 
     //    cout << nb_lines << " "<< nb_cols << endl;
 
-#if defined(HAVE_LIBREADLINE)
+#if defined(HAVE_LIBREADLINE) && defined(RL_GET_SCREEN_SIZE)
     SetTermSize(nb_lines, nb_cols);
 #else 
-    Message("Setting Terminal Size not ready (OK only with Readline)");
+    Message("Setting Terminal Size not ready (OK only with recent Readline (5.2+))");
 #endif
+
     // reading again the new size 
     DLongGDL* ret = new DLongGDL( dimension(2) );
     (*ret)[0] = TermWidth();
     (*ret)[1] = TermHeight();
     return ret;
   }
+
 } // namespace
 
