@@ -16,7 +16,7 @@ endif else begin
    ;; do we have the X11 (or Win) mode ON ??
    if ~CHECK_IF_DEVICE_IS_OK('PLOT_ALL_BENCHMARK', /force) then $
       MESSAGE, "X11 not ready/operational on this computer (see /SVG mode ;)"
-endif
+endelse
 ;
 ; we do these "EXECUTE()" below to compile the plotting functions 
 ; which are inside the various associated benchmark codes ... 
