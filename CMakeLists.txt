@@ -53,12 +53,9 @@ set(PYTHON_MODULE OFF CACHE BOOL "GDL: Build GDL as a Python module ?")
 set(X11 ON CACHE BOOL "GDL: Enable X11 ?") 
 set(X11DIR "" CACHE PATH "GDL: Specify X11 directory tree")
 
-# GNU Readline or BSD Editline ? if Readline OK, we don't look for Editline.
+# Only GNU Readline since May 2020 (too complex to manage BSD Editline. See #754)
 set(READLINE ON CACHE BOOL "GDL: Enable GNU Readline ?")
 set(READLINEDIR "" CACHE PATH "GDL: Specify the GNU Readline directory tree")
-
-set(EDITLINE ON CACHE BOOL "GDL: Enable BSD Editline ?")
-set(EDITLINEDIR "" CACHE PATH "GDL: Specify the BSD Editline directory tree")
 
 set(PLPLOTDIR "" CACHE PATH "GDL: Specify the plplot directory tree")
 
@@ -241,10 +238,8 @@ if (NOT WIN32)
     endif(CURSES_FOUND)
 endif (NOT WIN32)
 
-# GNU Readline (GNU/Linux or OSX) or BSD Editline (OSX)
-
 # -DREADLINE=ON|OFF
-# -DREADLINEDIR=DIR or -DEDITLINEDIR=DIR
+# -DREADLINEDIR=DIR
 if(READLINE)
   set(CMAKE_PREFIX_PATH ${READLINEDIR})
   find_package(Readline QUIET)
@@ -264,50 +259,12 @@ if(READLINE)
     include_directories(${READLINE_INCLUDE_DIR})
     set(CMAKE_REQUIRED_LIBRARIES)
   else(READLINE_FOUND)
-    if(EDITLINE)
-      message(STATUS "WARNING: GNU readline was not found, now looking for BSD Editline.\n")
-    else(EDITLINE)
-      message(FATAL_ERROR "GNU readline was not found.\n"
-    "Use -DREADLINEDIR=no to explicitely disable it.\n"
-    "(suitable Debian/Ubuntu package: libreadline-gplv2-dev)\n"
-    "(suitable Fedora/CentOS package: readline-devel)")
-    endif(EDITLINE)    
+    message(FATAL_ERROR "GNU readline was not found.\n"
+      "Use -DREADLINEDIR=no to explicitely disable it.\n"
+      "(suitable Debian/Ubuntu package: libreadline-gplv2-dev or libreadline-dev)\n"
+      "(suitable Fedora/CentOS package: readline-devel)")
   endif(READLINE_FOUND)
 endif(READLINE)
-#
-# if Readline found, we do not look for Editline
-#
-if(READLINE_FOUND)
-  if (EDITLINE)
-    message(STATUS "INFO: We prefer to use Readline than Editline.\n"
-      "Feedback welcome on OSX Readline ...")
-    set(EDITLINE OFF)
-  endif(EDITLINE)
-endif(READLINE_FOUND)
-
-# BSD Editline (a BSD clone of GNU Readline, present by default on OSX)
-# -DEDITLINE=ON|OFF
-# -DEDITLINEDIR=DIR
-if(EDITLINE)
-  set(CMAKE_PREFIX_PATH ${EDITLINEDIR})
-  find_package(Editline CONFIG)
-    if(NOT EDITLINE_FOUND)
-      find_package(Editline QUIET)
-    endif(NOT EDITLINE_FOUND)
-  set(HAVE_LIBEDITLINE ${EDITLINE_FOUND})
-  if(EDITLINE_FOUND)
-    if(NOT WIN32)
-      # readline needs (n)curses (not on Windows)
-      set(CMAKE_REQUIRED_LIBRARIES ${CURSES_LIBRARIES})
-    endif(NOT WIN32)
-    set(LIBRARIES ${LIBRARIES} ${EDITLINE_LIBRARIES})
-    include_directories(${EDITLINE_INCLUDE_DIR})
-    set(CMAKE_REQUIRED_LIBRARIES)
-  else(EDITLINE_FOUND)
-    message(FATAL_ERROR "requested BSD Editline was not found.\n"
-      "Use -DEDITLINE=no to explicitely disable it.\n")
-  endif(EDITLINE_FOUND)
-endif(EDITLINE)
 
 # zlib MANDATORY
 # -DZLIBDIR=DIR
@@ -937,9 +894,10 @@ if(EIGEN3)
   if(EIGEN3_TOO_OLD)
     # on iCore 3/5/7 we must have Eigen >=3.2.4 to avoid fatal error in "test_matrix_multiply.pro"
     message(FATAL_ERROR "\nEIGEN3 is required but the version found is TOO OLD."
-          " Please download a recent version (>=3.2.4) in a local directory."
-      " Then use -DEIGEN3DIR=DIR to specify the Eigen3 local directory tree.\n")
-      else(EIGEN3_TOO_OLD)   
+      " Please download a recent version (>=3.2.4) in a local directory."
+      " Then use -DEIGEN3DIR=DIR to specify the Eigen3 local directory tree.\n"
+      "Use -DEIGEN3=OFF to not use it.\n")
+  else(EIGEN3_TOO_OLD)   
     set(USE_EIGEN ${EIGEN3_FOUND})
     if(EIGEN3_FOUND)
       include_directories(${EIGEN3_INCLUDE_DIR})
@@ -1235,7 +1193,6 @@ if(NOT WIN32)
 endif(NOT WIN32)
 module(PLPLOT    "Plplot        ")
 module(READLINE  "GNU Readline  ")
-module(EDITLINE  "BSD Editline  ")
 module(GSL       "GSL           ")
 module(ZLIB      "Zlib          ")
 module(RPC       "RPC           ")
