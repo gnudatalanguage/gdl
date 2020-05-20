@@ -6,7 +6,7 @@ matrix:
 #    - os: linux
 #      env: COMPILER=icc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
     - os: linux
-      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI
+      env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI  ANTLR=yes
     - os: osx
       env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=MINI
 
@@ -32,39 +32,17 @@ matrix:
       env: COMPILER=clang CMAKE_BUILD_TYPE=Release  DEPS=FULL
 
 before_install:
-    # TEMPORARILY disabling tests that did not work at "day zero" (i.e. SF -> github migration)
-    - if [ $TRAVIS_OS_NAME == osx ]; then export SEDCMD="sed -i ''"; fi 
-    - if [ $TRAVIS_OS_NAME == linux ]; then export SEDCMD="sed -i"; fi 
-    - $SEDCMD '/test_bytscl.pro/d'           testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_dicom.pro/d'            testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_container.pro/d'        testsuite/Makefile.am # TODO! not ready
-    - $SEDCMD '/test_fft_leak.pro/d'         testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_file_delete.pro/d'      testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_file_search.pro/d'      testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_file_test.pro/d'        testsuite/Makefile.am # TODO! 2 errors on Dangling 
-    - $SEDCMD '/test_fix.pro/d'              testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_formats.pro/d'          testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_image_statistics.pro/d' testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_make_dll.pro/d'         testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_n_tags.pro/d'           testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_obj_isa.pro/d'          testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_obj_new.pro/d'          testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_plot_ranges.pro/d'      testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_resolve_routine.pro/d'  testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_rounding.pro/d'         testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_simplex.pro/d'          testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_step.pro/d'             testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_typename.pro/d'         testsuite/Makefile.am # TODO!
-    - $SEDCMD '/test_wait.pro/d'             testsuite/Makefile.am # TODO!
-
     # https://github.com/travis-ci/travis-ci/issues/8613
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export LD_LIBRARY_PATH=/usr/local/clang/lib:$LD_LIBRARY_PATH; fi
 
     # OSX stuff
     - if [ $TRAVIS_OS_NAME == osx ]; then brew update-reset; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then brew unlink python@2; fi
-    - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade numpy; fi
+#    - if [ $TRAVIS_OS_NAME == osx ]; then brew upgrade numpy; fi
     - if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_CXX_FLAGS="-Wdeprecated-register"; fi
+
+    - if [ $TRAVIS_OS_NAME == osx ]; then export SEDCMD="sed -i ''"; fi 
+    - if [ $TRAVIS_OS_NAME == linux ]; then export SEDCMD="sed -i"; fi 
 
 install:
     ##
@@ -93,6 +71,9 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python3-pytest"; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install pytest; fi 
 
+    # antlr
+    - if [ -v ANTLR ]; then export APT_PACKAGES="${APT_PACKAGES} antlr"; fi
+
     # CMake 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} cmake"; fi
 
@@ -118,17 +99,15 @@ install:
     ## OPTIONAL DEPENDENCIES
     ##
 
-    # readline (OSX) / editline (Linux) - just to try both - TODO
+    # readline (OSX & Linux) / no more editline (May 2020)
     #TODO! - see https://github.com/gnudatalanguage/gdl/issues/227
-    # - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libeditline-dev"; fi
-    # - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=ON -DREADLINE=OFF"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libreadline-gplv2-dev"; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=ON"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=ON"; fi
 
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} readline"; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=ON -DREADLINEDIR=/usr/local/opt/readline"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=ON -DREADLINEDIR=/usr/local/opt/readline"; fi
 
-    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=OFF"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=OFF"; fi 
 
     # pnglib
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libpng-dev"; fi
@@ -200,11 +179,11 @@ install:
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=OFF"; fi 
 
-    # udunits
+    # udunits2
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libudunits2-dev"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} udunits"; fi
-    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DUDUNITS=ON"; fi 
-    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DUDUNITS=OFF"; fi 
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DUDUNITS2=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DUDUNITS2=OFF"; fi 
 
     # eigen
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then wget http://bitbucket.org/eigen/eigen/get/3.3.2.zip; fi
@@ -278,9 +257,42 @@ install:
 
     # apt-get/brew invocation
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -y $APT_PACKAGES; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install $BREW_PACKAGES; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then for pkg in $BREW_PACKAGES; do echo brew \"$pkg\" >> Brewfile; done; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat Brewfile; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew bundle; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install --upgrade --no-deps --force-reinstall numpy; fi
 
 script:
+    # antlr
+    - if [ -v ANTLR ]; then cd src; fi
+    - if [ -v ANTLR ]; then for i in *.g; do runantlr $i; done; fi;
+    - if [ -v ANTLR ]; then git diff -G '(^[ANTLR 2.7.7 (])' | tee diff.log; fi
+    - if [ -v ANTLR -a `cat diff.log | wc -l` -gt 0 ]; then travis_terminate 1; fi;
+    - if [ -v ANTLR ]; then cd ..; fi
+
+    # TEMPORARILY disabling tests that did not work at "day zero" (i.e. SF -> github migration)
+    - $SEDCMD '/test_bytscl.pro/d'           testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_dicom.pro/d'            testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_container.pro/d'        testsuite/Makefile.am # TODO! not ready
+    - $SEDCMD '/test_fft_leak.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_file_delete.pro/d'      testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_file_search.pro/d'      testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_file_test.pro/d'        testsuite/Makefile.am # TODO! 2 errors on Dangling 
+    - $SEDCMD '/test_fix.pro/d'              testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_formats.pro/d'          testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_image_statistics.pro/d' testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_make_dll.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_n_tags.pro/d'           testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_obj_isa.pro/d'          testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_obj_new.pro/d'          testsuite/Makefile.am # TODO!
+## AC 20200430    - $SEDCMD '/test_plot_ranges.pro/d'      testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_resolve_routine.pro/d'  testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_rounding.pro/d'         testsuite/Makefile.am # TODO!
+## AC 20200427   - $SEDCMD '/test_simplex.pro/d'          testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_step.pro/d'             testsuite/Makefile.am # TODO!
+## AC 20200430    - $SEDCMD '/test_typename.pro/d'         testsuite/Makefile.am # TODO!
+    - $SEDCMD '/test_wait.pro/d'             testsuite/Makefile.am # TODO!
+
     - mkdir build
     - cd build
     - cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ../

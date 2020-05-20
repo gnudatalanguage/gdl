@@ -75,12 +75,6 @@ extern int __cdecl __MINGW_NOTHROW fetestexcept (int excepts);
 #include <readline/history.h>
 #endif
 
-#ifdef HAVE_LIBEDITLINE
-#include <editline/readline.h>
-extern int (*rl_event_hook)();   /* missing from editline/readline.h */
-// see https://sourceforge.net/p/ngspice/ngspice/ci/master/tree/src/main.c
-#endif
-
 #include <fstream>
 #include <vector>
 
@@ -125,7 +119,7 @@ private:
 public:
   ~DInterpreter() 
   {
-#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
+#if defined(HAVE_LIBREADLINE)
     // seems to cause valgrind to complain
     clear_history(); // for testing of memory leaks (in GDL)
 #endif

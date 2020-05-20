@@ -23,7 +23,6 @@
  ***************************************************************************/
 
 #include "includefirst.hpp"
-#include "terminfo.hpp" 
 
 #include <sys/types.h>
 
@@ -40,6 +39,16 @@
 
 #else
 #include <shlwapi.h>
+#endif
+
+#ifndef _WIN32
+#include <termios.h> 
+#include <unistd.h> 
+#endif
+
+// used to defined GDL_TMPDIR: may have trouble on MSwin, help welcome
+#ifndef _WIN32
+#include <paths.h>
 #endif
 
 
@@ -113,6 +122,8 @@ extern "C" {
 
 #include "gdlhelp.hpp"
 #include "nullgdl.hpp"
+#include "terminfo.hpp"
+
 
 // for sorting compiled pro/fun lists by name
 struct CompFunName: public std::binary_function< DFun*, DFun*, bool>
@@ -156,16 +167,60 @@ extern GDLFileListT  fileUnits;
     using namespace std;
 // (static = internal) helper routines serving the lib:: routines called out in 
 // gdlhelper.hpp
-static void help_files(ostream& os,
-					EnvT* e) {
+
+
+static void help_files(ostream& os, EnvT* e) {
+  // AC 2020-04-28
+  // see https://github.com/gnudatalanguage/gdl/issues/743
+  // pb1 : why maxUserLun ?? pb2 : no return for -1, 0, 1
+  cout << " maxUserLun : " << maxUserLun << " fileUnits.size() : " << fileUnits.size() << endl;
+
   for( DLong lun=maxUserLun+1; lun <= fileUnits.size(); ++lun)
     if( fileUnits[ lun-1].InUse() || fileUnits[ lun-1].GetGetLunLock())
-    {
-		os << 
-	    "	 lun "<< lun << ": "+fileUnits[lun-1].Name() << endl;
-    }
-     return;
+      {
+	os << "	 lun "<< lun << ": "+fileUnits[lun-1].Name() << endl;
+      }
+  return;
 }
+
+// AC 2020-04-28 derivated work from get_kbrd().
+// Not sure what happen without ReadLine
+char my_get_kbrd()
+{
+#if defined(HAVE_LIBREADLINE)
+#include <readline/readline.h>
+  rl_prep_terminal (0);
+#endif
+
+  char c='\0'; //initialize is never a bad idea...
+  
+  int fd=fileno(stdin);
+#ifndef _WIN32
+  struct termios orig, get; 
+#endif
+  // Get terminal setup to revert to it at end. 
+#ifndef _WIN32
+  (void)tcgetattr(fd, &orig); 
+  // New terminal setup, non-canonical.
+  get.c_lflag = ISIG; 
+#endif
+    // will wait for a character
+#ifndef _WIN32
+    get.c_cc[VTIME]=0;
+    get.c_cc[VMIN]=1;
+    (void)tcsetattr(fd, TCSANOW, &get); 
+#endif
+    cin.get(c);
+
+    // Restore original terminal settings. 
+#ifndef _WIN32
+    (void)tcsetattr(fd, TCSANOW, &orig); 
+#endif
+#if defined(HAVE_LIBREADLINE)
+    rl_deprep_terminal ();
+#endif
+    return c; 
+  }
 
 static void help_keys(ostream& ostr)
   { 
@@ -521,33 +576,25 @@ static void help_lastmsg(EnvT* e)
 	  }
   }
     
-
   static DStringGDL* recall_commands_internal()
   {
-    // maybe obsolete ??? to be check 
-    // AC 24 Oct 2016 if defined(HAVE_LIBREADLINE) && !defined(__APPLE__)
-      //int status=0;
-      DStringGDL* retVal;
-      retVal = new DStringGDL(1, BaseGDL::NOZERO);
-      (*retVal)[ 0] ="";
-#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
-    //status=1;
+
+#if defined(HAVE_LIBREADLINE)
     // http://cnswww.cns.cwru.edu/php/chet/readline/history.html#IDX14
     HIST_ENTRY **the_list;
     //    cout << "history_length" << history_length << endl;
     the_list = history_list();
 
     if (the_list) {
-      DStringGDL* retVal = new DStringGDL(history_length - 1, BaseGDL::NOZERO);
-      for (SizeT i = 0; i < history_length - 1; ++i)
-        (*retVal)[i] = the_list[i]->line;
+      DStringGDL* retVal = new DStringGDL(history_length, BaseGDL::NOZERO);
+      for (SizeT i = 0; i < history_length; ++i)
+        (*retVal)[history_length-i-1] = the_list[i]->line;
       return retVal;
     } else return new DStringGDL("");
 #else
     Message("RECALL_COMMANDS: nothing done, because compiled without READLINE");
     return new DStringGDL("");
 #endif
-      return retVal;
   }
 
 namespace lib {
@@ -1075,11 +1122,32 @@ void help_help(EnvT* e)
       previous_commands = recall_commands_internal();
       SizeT nEl2 = previous_commands->N_Elements();
       cout << "Recall buffer length: " << nEl2 << endl;
+
+      char ctmp;
+      int nb_lines=TermHeight();
+
       for (SizeT i = 0; i < nEl2; ++i) {
         if (isKWSetNames and
           !CompareWithJokers(names, (*previous_commands)[i])) continue;
         *ostrp << i + 1 << "  " << (*previous_commands)[i] << endl;
+	if (( i > 0) && (i % (nb_lines-4)) == 0) {
+	  *ostrp << "      < Press q or Q to quit, any key to continue, ? for help >" << endl; 
+	  ctmp=my_get_kbrd(); 
+	  nb_lines=TermHeight();
+	  if ((tolower(ctmp) == 'h') || (ctmp == '?')) {
+	    *ostrp << "---------------------------------------------------    " << endl;
+	    *ostrp << "<space>		Display next page of text." << endl;
+	    *ostrp << "<return>	Display next line of text. (TBD)" << endl;
+	    *ostrp << "q or Q		Quit" << endl;
+	    *ostrp << "h, H, or ?	Display this message." << endl;
+	    *ostrp << "---------------------------------------------------" << endl;
+	    ctmp=my_get_kbrd(); 
+	    nb_lines=TermHeight();
+	  }
+	  if (tolower(ctmp) == 'q') break;	  
+	}
       }
+
       GDLDelete(previous_commands);
       if (doOutput) (*outputKW) = StreamToGDLString(ostr);
       else cout << ostr.str();
@@ -1190,7 +1258,7 @@ void help_help(EnvT* e)
       for (it = commonList.begin(); it != commonList.end(); ++it) {
         SizeT nVar = (*it)->NVar();
         if (nVar == 0) continue;
-        *ostrp << " Common block (" << (*it)->Name() <<
+	*ostrp << " Common block (" << (*it)->Name() <<
           ") listed in internal order:" << endl;
         for (SizeT vIx = 0; vIx < nVar; ++vIx) {
           DString parString = (*it)->VarName(vIx) + " (" + (*it)->Name() + ')';

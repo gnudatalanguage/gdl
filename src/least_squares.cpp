@@ -62,7 +62,7 @@ namespace lib {
     static int methodIx=e->KeywordIx("METHOD");
     e->AssureLongScalarKWIfPresent(methodIx , method);
     static int doubleIx=e->KeywordIx("DOUBLE");
-    if (e->KeywordSet(doubleIx)) isDouble = methodIx;
+    if (e->KeywordSet(doubleIx)) isDouble = 1;
     
     BaseGDL* p0 = e->GetParDefined( 0);
     BaseGDL* p1 = e->GetParDefined( 1);
@@ -92,8 +92,6 @@ namespace lib {
     
     long NbCol1,NbRow1,NbCol2,NbRow2;
 	
-
-
     /**********************Variables************************/
     DDoubleGDL* p0D = static_cast<DDoubleGDL*>
       (p0->Convert2( GDL_DOUBLE, BaseGDL::COPY));

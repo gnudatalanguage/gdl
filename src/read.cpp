@@ -186,7 +186,7 @@ namespace lib {
 			  {
 			    (*par)->ToStream( oss);
 			    actualPrompt = oss.str();
-#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
+#if defined(HAVE_LIBREADLINE)
 			    cout << flush;
 #else
 			    cout << oss.str() << flush;
@@ -213,7 +213,7 @@ namespace lib {
 		  {
 		    prompt->ToStream( oss);
 		    actualPrompt = oss.str();
-#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
+#if defined(HAVE_LIBREADLINE)
 		    cout << flush;
 #else
 		    cout << oss.str() << flush;
@@ -222,7 +222,7 @@ namespace lib {
 		else
 		  {
 		    actualPrompt = ": ";
-#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
+#if defined(HAVE_LIBREADLINE)
 		    cout << flush;
 #else
 		    cout << ": " << flush;
@@ -230,7 +230,7 @@ namespace lib {
 		  }
 	      }
 		
-#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
+#if defined(HAVE_LIBREADLINE)
 	    if( is == &cin  && isatty(0))
 	      {
 		string line;

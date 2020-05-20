@@ -18,13 +18,13 @@ tableau=BINDGEN(8)
 ;
 expected=tableau*2^3
 result=ISHFT(tableau, 3)  
-if ~ARRAY_EQUAL(expected, result) then ERRORS_ADDS, nb_errors, 'error 1 2^3'
+if ~ARRAY_EQUAL(expected, result) then ERRORS_ADD, nb_errors, 'error 1 2^3'
 ;
 ; bug reported by Bill D., Mai 30, 2015 
 ;
 expected=2^tableau
 result=ISHFT(1b, tableau)
-if ~ARRAY_EQUAL(expected, result) then ERRORS_ADDS, nb_errors, 'error 2 BD'
+if ~ARRAY_EQUAL(expected, result) then ERRORS_ADD, nb_errors, 'error 2 BD'
 ;
 ; ----------------- final message ----------
 ;

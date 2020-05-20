@@ -26,7 +26,7 @@ errors=0
 ;
 res=EXECUTE("a = STRJOIN(STRSPLIT((['a'])[1],'a'),'a')")
 ;
-if (res EQ 1) then ERRORS_ADDS, errors, 'Case STRJOIN'
+if (res EQ 1) then ERRORS_ADD, errors, 'Case STRJOIN'
 ;
 BANNER_FOR_TESTSUITE, 'TEST_BUG_3441031', errors, /short
 ERRORS_CUMUL, cumul_errors, errors
@@ -45,7 +45,7 @@ errors=0
 res=EXECUTE('print, EXECUTE([''''])')
 ;
 txt='EXECUTE should not accept array arguments'
-if (res EQ 1) then ERRORS_ADDS, errors, txt
+if (res EQ 1) then ERRORS_ADD, errors, txt
 ;
 BANNER_FOR_TESTSUITE, 'TEST_EXECUTE_OLD', errors, /short
 ERRORS_CUMUL, cumul_errors, errors
@@ -108,8 +108,8 @@ com='a=COS(!pi)'
 expected=-1.
 status=EXECUTE(com)
 ;
-if (status NE 1) then ERRORS_ADDS, errors, 'Cos Status'
-if (ABS(a-expected) GT tolerance)  then ERRORS_ADDS, errors, 'Cos value'
+if (status NE 1) then ERRORS_ADD, errors, 'Cos Status'
+if (ABS(a-expected) GT tolerance)  then ERRORS_ADD, errors, 'Cos value'
 if KEYWORD_SET(verbose) then print, com, status, a, expected
 ;
 ; internal intrinsic function, array
@@ -118,9 +118,9 @@ com='a=COS(REPLICATE(!pi,10))'
 expected=REPLICATE(-1.,10)
 status=EXECUTE(com)
 ;
-if (status NE 1) then ERRORS_ADDS, errors, 'Cos Status (arr)'
+if (status NE 1) then ERRORS_ADD, errors, 'Cos Status (arr)'
 if (TOTAL(ABS(a-expected)) GT tolerance) then $
-   ERRORS_ADDS, errors, 'Cos Value (arr)'
+   ERRORS_ADD, errors, 'Cos Value (arr)'
 if KEYWORD_SET(verbose) then print, com, status, a, expected
 ;
 ; internal intrinsic procedure (better idea welcome !)
@@ -128,7 +128,7 @@ if KEYWORD_SET(verbose) then print, com, status, a, expected
 com='plot, SIN(!pi*findgen(100)/10.)'
 status=EXECUTE(com)
 ;
-if (status NE 1) then ERRORS_ADDS, errors, 'Sin Status'
+if (status NE 1) then ERRORS_ADD, errors, 'Sin Status'
 WDELETE
 ;
 ; external function, single element
@@ -137,9 +137,9 @@ com='a=FUNC_MY_FUNC(12.)'
 expected=17.
 status=EXECUTE(com)
 ;
-if (status NE 1) then ERRORS_ADDS, errors, 'FUNC_MY_FUNC Status'
+if (status NE 1) then ERRORS_ADD, errors, 'FUNC_MY_FUNC Status'
 if (ABS(a-expected) GT tolerance) then $
-   ERRORS_ADDS, errors, 'FUNC_MY_FUNC valeur 12'
+   ERRORS_ADD, errors, 'FUNC_MY_FUNC valeur 12'
 if KEYWORD_SET(verbose) then print, com, status, a, expected
 ;
 ; external function, value 2D array
@@ -148,9 +148,9 @@ com='a=FUNC_MY_FUNC(REPLICATE(-5,12,3))'
 expected=REPLICATE(0.,12,3)
 status=EXECUTE(com)
 ;
-if (status NE 1) then ERRORS_ADDS, errors, 'FUNC_MY_FUNC Status (arr)'
+if (status NE 1) then ERRORS_ADD, errors, 'FUNC_MY_FUNC Status (arr)'
 if (TOTAL(ABS(a-expected)) GT tolerance) then $
-   ERRORS_ADDS, errors, 'FUNC_MY_FUNC valeur (arr)'
+   ERRORS_ADD, errors, 'FUNC_MY_FUNC valeur (arr)'
 if KEYWORD_SET(verbose) then print, com, status, a, expected
 ;
 ; external function, named' 2D array
@@ -160,9 +160,9 @@ com='a=FUNC_MY_FUNC(input)'
 expected=input+5.
 status=EXECUTE(com)
 ;
-if (status NE 1) then ERRORS_ADDS, errors, 'FUNC_MY_FUNC Status (input)'
+if (status NE 1) then ERRORS_ADD, errors, 'FUNC_MY_FUNC Status (input)'
 if (TOTAL(ABS(a-expected)) GT tolerance) then $
-   ERRORS_ADDS, errors, 'FUNC_MY_FUNC valeur (input)'
+   ERRORS_ADD, errors, 'FUNC_MY_FUNC valeur (input)'
 if KEYWORD_SET(verbose) then print, com, status, a, expected
 ;
 ; ----- final ----

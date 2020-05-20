@@ -168,7 +168,7 @@ namespace lib {
   
   void exitgdl(EnvT* e) {
 
-#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
+#if defined(HAVE_LIBREADLINE)
 
     // we manage the ASCII "history" file (located in ~/.gdl/)
     // we do not manage NOW the number of lines we save,
@@ -178,9 +178,8 @@ namespace lib {
       // Create eventually the ".gdl" path in user $HOME
       int result, debug = 0;
       char *homeDir = getenv("HOME");
-	  
-	  if( homeDir == NULL) homeDir = getenv("HOMEPATH"); 
-	  
+      if( homeDir == NULL) homeDir = getenv("HOMEPATH"); 
+
       if (homeDir != NULL) {
         string pathToGDL_history = homeDir;
         AppendIfNeeded(pathToGDL_history, "/");

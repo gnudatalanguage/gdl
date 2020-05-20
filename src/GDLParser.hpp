@@ -2,7 +2,7 @@
 #define INC_GDLParser_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.7 (2006-11-01): "gdlc.g" -> "GDLParser.hpp"$ */
+/* $ANTLR 2.7.7 (20190904): "gdlc.g" -> "GDLParser.hpp"$ */
 #include <antlr/TokenStream.hpp>
 #include <antlr/TokenBuffer.hpp>
 #include "GDLTokenTypes.hpp"
@@ -43,8 +43,8 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
         LOGICAL_PREDICATE=16, // *** functionality not implemeted yet
         IDL2=DEFINT32 | STRICTARR,
         STRICTARRSUBS=32,
-	STATIC=64,
-	NOSAVE=128
+        STATIC=64,
+        NOSAVE=128
     };
 
     void SetCompileOpt( unsigned int cOpt)
@@ -62,8 +62,8 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
         else if( opt == "LOGICAL_PREDICATE") compileOpt |= LOGICAL_PREDICATE;
         else if( opt == "IDL2")              compileOpt |= IDL2;
         else if( opt == "STRICTARRSUBS")     compileOpt |= STRICTARRSUBS;
-        else if( opt == "STATIC")	     compileOpt |= STATIC;
-        else if( opt == "NOSAVE")	     compileOpt |= NOSAVE;
+        else if( opt == "STATIC")            compileOpt |= STATIC;
+        else if( opt == "NOSAVE")            compileOpt |= NOSAVE;
         else throw GDLException("Unrecognised COMPILE_OPT option: "+opt);
 //        SetActualCompileOpt( compileOpt);
     }

@@ -7,6 +7,14 @@
 ;
 ; Help welcome (MSwin ... BSD ...)
 ;
+; ----------------------------------------------------
+; Modifications history :
+;
+; AC 2020-April-21 : This failed on CentOS 7 then I read
+; http://0pointer.de/blog/projects/os-release.html &
+; https://www.freedesktop.org/software/systemd/man/os-release.html
+; and try to find a solution ! (the version= input is optional !)
+;
 ; ----------------------------------------
 ;
 function BENCHMARK_INFO_OS, test=test, verbose=verbose, help=help
@@ -42,14 +50,14 @@ if (os_name EQ 'linux') then begin
    ok=WHERE(STRPOS(txt,'NAME=') EQ 0, nbp_ok)
    if (nbp_ok GE 1) then begin
       tmp=txt[ok]
-      tmp=strmid(tmp, STRLEN('NAME='))
+      tmp=STRMID(tmp, STRLEN('NAME='))
       info_os.family_osname=STRJOIN(STRSPLIT(tmp,'"', /EXTRACT),'')
    endif else info_os.family_osname=os_name+' (unknown)'
    ;;
-   ok=WHERE(STRPOS(txt,'VERSION=') GE 0, nbp_ok)
+   ok=WHERE(STRPOS(txt,'VERSION=') EQ 0, nbp_ok)
    if (nbp_ok GE 1) then begin
       tmp=txt[ok]
-      tmp=strmid(tmp, STRLEN('VERSION='))
+      tmp=STRMID(tmp, STRLEN('VERSION='))
       info_os.accurate_osname=STRJOIN(STRSPLIT(tmp,'"', /EXTRACT),'')
    endif else info_os.accurate_osname=os_name+' (unknown)'
    ;;
@@ -61,7 +69,7 @@ if (os_name EQ 'darwin') then begin
    ;;
    SPAWN, 'sw_vers', txt
    tmp=txt[1]
-   tmp=strmid(tmp, STRLEN('ProductVersion:'))
+   tmp=STRMID(tmp, STRLEN('ProductVersion:'))
    info_os.accurate_osname=tmp
    ;;
 endif

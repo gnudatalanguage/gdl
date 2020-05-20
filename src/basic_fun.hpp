@@ -25,8 +25,6 @@ namespace lib {
   SizeT HASH_count( DStructGDL* oStructGDL);
   SizeT LIST_count( DStructGDL* oStructGDL);
 
-  BaseGDL* get_kbrd( EnvT* e);
-
   BaseGDL* bytarr( EnvT* e);
   BaseGDL* intarr( EnvT* e);
   BaseGDL* uintarr( EnvT* e);
@@ -145,9 +143,9 @@ namespace lib {
   //AC 2019
   BaseGDL* routine_name_fun( EnvT* e);
 
-  BaseGDL* temporary( EnvT* e);
+  BaseGDL* temporary_fun( EnvT* e);
 
-  BaseGDL* memory(EnvT* e);
+  BaseGDL* memory_fun(EnvT* e);
 
   // the following by Peter Messmer 
   // (messmer@users.sourceforge.net)
