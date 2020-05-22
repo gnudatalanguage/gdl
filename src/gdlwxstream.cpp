@@ -97,8 +97,8 @@ void GDLWXStream::DefaultCharSize() {
   DLong chy = (*static_cast<DLongGDL*> (d->GetTag(Y_CH_SIZE, 0)))[0];
   DFloat xpxcm = (*static_cast<DFloatGDL*> (d->GetTag(X_PX_CM, 0)))[0];
   DFloat ypxcm = (*static_cast<DFloatGDL*> (d->GetTag(Y_PX_CM, 0)))[0];
-  DFloat xchsizemm = 1.8 * chx * CM_IN_MM / xpxcm;
-  DFloat linespacingmm = 1.8 * chy * CM_IN_MM / ypxcm;
+  DFloat xchsizemm = GetPlplotFudge() * chx * CM_IN_MM / xpxcm;
+  DFloat linespacingmm = GetPlplotFudge() * chy * CM_IN_MM / ypxcm;
   schr(xchsizemm, 1.0, linespacingmm);
 }
 void GDLWXStream::SetGDLDrawPanel(GDLDrawPanel* w)
@@ -397,25 +397,30 @@ DByteGDL* GDLWXStream::GetBitmapData() {
     return bitmap;
 }
 
+bool GDLWXStream::streamIsNotAWidget(){ 
+  WidgetIDT i=this->GetGDLDrawPanel()->GetGDLWidgetDraw()->GetParentID();
+  return this->GetGDLDrawPanel()->GetGDLWidgetDraw()->GetBaseWidget(i)->IsGraphicWindowFrame();
+}
 void GDLWXStream::Raise() {
-  static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Raise();
+ if (this->streamIsNotAWidget()) static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Raise();
 }
 
 void GDLWXStream::Lower() {
-  static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Lower();
+ if (this->streamIsNotAWidget()) static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Lower();
 }
 
 void GDLWXStream::Iconic() {
-  static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Iconize(true);
+ if (this->streamIsNotAWidget()) static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Iconize(true);
 }
 
 void GDLWXStream::DeIconic() {
-  static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Iconize(false);
+ if (this->streamIsNotAWidget())  static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Iconize(false);
 }
 
-//bool GDLWXStream::UnsetFocus(){  //UnsetFocus is dangerous: it prevents using wxEvents correctly.
-//  return static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Disable();
-//}
+bool GDLWXStream::UnsetFocus(){  //UnsetFocus is dangerous: it prevents using wxEvents correctly.
+ if (this->streamIsNotAWidget()) return static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Disable();
+ else return false;
+}
 
 bool GDLWXStream::GetGin(PLGraphicsIn *gin, int mode) {
 
