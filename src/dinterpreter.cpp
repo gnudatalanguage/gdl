@@ -1871,7 +1871,9 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
       }
     }    catch (exception& e) {
       cerr << "InterpreterLoop: Exception: " << e.what() << endl;
-    }    catch (...) {
+    }    catch (GDLException &e ) {
+      Warning(e.getMessage());
+    }   catch (...) {
       cerr << "InterpreterLoop: Unhandled Error." << endl;
     }
   }
