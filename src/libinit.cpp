@@ -377,9 +377,9 @@ void LibInit()
   new DLibFunRetNew(lib::complexarr,string("COMPLEXARR"),MAXRANK,arrKey,NULL,true);
   new DLibFunRetNew(lib::dcomplexarr,string("DCOMPLEXARR"),MAXRANK,arrKey,NULL,true);
 
-  const string ptrArrKey[]={"NOZERO","ALLOCATE_HEAP",KLISTEND};
+  const string ptrArrKey[]={"ALLOCATE_HEAP",KLISTEND};
   new DLibFunRetNew(lib::ptrarr,string("PTRARR"),MAXRANK,ptrArrKey);
-  new DLibFunRetNew(lib::objarr,string("OBJARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::objarr,string("OBJARR"),MAXRANK);
 
   const string ptr_newKey[]={"NO_COPY","ALLOCATE_HEAP",KLISTEND};
   new DLibFunRetNew(lib::ptr_new,string("PTR_NEW"),1,ptr_newKey);
