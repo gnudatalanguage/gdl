@@ -230,7 +230,7 @@ before_build:
   # test_contour: % DEVICE: Keyword GET_DECOMPOSED not allowed for call to: DEVICE
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_contour.pro' -NotMatch)
   # AC 20200430 should be ok now
-  #  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_correlate.pro' -NotMatch)
+   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_correlate.pro' -NotMatch)
   # test_delvarrnew: needs a permissive shell environment that Windows won't give it.
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_delvarrnew.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_device.pro' -NotMatch)
