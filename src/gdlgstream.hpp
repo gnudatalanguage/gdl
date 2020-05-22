@@ -751,6 +751,7 @@ public:
   void RenewPlplotDefaultCharsize(PLFLT newMmSize);
   
   void GetPlplotDefaultCharSize();
+  virtual float GetPlplotFudge(){return 1.0;};
 
   // SA: overloading plplot methods in order to handle IDL-plplot extended
   // text formating syntax conversion
