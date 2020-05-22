@@ -167,6 +167,7 @@ static std::string internalFontCodes[] = {
     PLFLT ndsy; // idem y
     PLFLT dsx; // size of char in device units, x direction
     PLFLT dsy; // idem y
+    PLFLT fudge; //a correction factor to reported sizes, useful with wxWidgets plplot driver (?) for which it is 1.8 . go figure.
     DDouble mmsx; //in mm
     DDouble mmsy; //
     PLFLT wsx;  //in current world coordinates
@@ -369,97 +370,97 @@ public:
   inline PLFLT xSubPageSize(){return thePage.subpage.dxsize;} //size in units
   inline PLFLT ySubPageSize(){return thePage.subpage.dysize;}
 
-  // bunch of conversion functions that should be used in the future now that pls is here!
-  // (normed) device coords to physical coords (x,y) 0..1 -> 0->32768
-  inline PLFLT nd2px(PLFLT x){ return ( pls->phyxmi + pls->phyxlen * x  );}
-  inline PLFLT nd2py(PLFLT y){ return ( pls->phyymi + pls->phyylen * y  );}
-  inline void norm2physical(PLFLT devx, PLFLT devy, PLFLT &physx, PLFLT &physy)
-  { physx=nd2px(devx); physy=nd2py(devy);}
-  // (normed) device to mm
-  inline PLFLT nd2mx(PLFLT x){ return (PLFLT) ( x * abs( pls->phyxma - pls->phyxmi ) / pls->xpmm ) ;}
-  inline PLFLT nd2my(PLFLT y){ return (PLFLT) ( y * abs( pls->phyyma - pls->phyymi ) / pls->ypmm ) ;}
-  inline void norm2mm(PLFLT devx, PLFLT devy, PLFLT &mmx, PLFLT &mmy)
-  { mmx=nd2mx(devx); mmy=nd2my(devy);}
-  //(normed) device to world
+//  // bunch of conversion functions that should be used in the future now that pls is here!
+//  // (normed) device coords to physical coords (x,y) 0..1 -> 0->32768
+//  inline PLFLT nd2px(PLFLT x){ return ( pls->phyxmi + pls->phyxlen * x  );}
+//  inline PLFLT nd2py(PLFLT y){ return ( pls->phyymi + pls->phyylen * y  );}
+//  inline void norm2physical(PLFLT devx, PLFLT devy, PLFLT &physx, PLFLT &physy)
+//  { physx=nd2px(devx); physy=nd2py(devy);}
+//  // (normed) device to mm
+//  inline PLFLT nd2mx(PLFLT x){ return (PLFLT) ( x * abs( pls->phyxma - pls->phyxmi ) / pls->xpmm ) ;}
+//  inline PLFLT nd2my(PLFLT y){ return (PLFLT) ( y * abs( pls->phyyma - pls->phyymi ) / pls->ypmm ) ;}
+//  inline void norm2mm(PLFLT devx, PLFLT devy, PLFLT &mmx, PLFLT &mmy)
+//  { mmx=nd2mx(devx); mmy=nd2my(devy);}
+//  //(normed) device to world
   inline PLFLT nd2wx(PLFLT x){return (PLFLT) ( (x- pls->wdxoff) / pls->wdxscl );}
   inline PLFLT nd2wy(PLFLT y){return (PLFLT) ( (y- pls->wdyoff) / pls->wdyscl );}
-  inline void norm2world(PLFLT devx, PLFLT devy, PLFLT &wx, PLFLT &wy)
-  { wx=nd2wx(devx); wy=nd2wy(devy);}
-  // (normed) device coords to subpage coords
-  inline PLFLT nd2spx(PLFLT x){ return (PLFLT) ( ( x - pls->spdxmi ) / ( pls->spdxma - pls->spdxmi ) ) ;}
-  inline PLFLT nd2spy(PLFLT y){ return (PLFLT) ( ( y - pls->spdymi ) / ( pls->spdyma - pls->spdymi ) ) ;}
-  inline void norm2subpage(PLFLT devx, PLFLT devy, PLFLT &spx, PLFLT &spy)
-  { spx=nd2spx(devx); spy=nd2spy(devy);}
-
-  // millimeters to physical coords (x,y)
-  inline PLFLT mm2px(PLFLT x){ return ( pls->phyxmi + pls->xpmm * x  );}
-  inline PLFLT mm2py(PLFLT y){ return ( pls->phyymi + pls->ypmm * y  );}
-  inline void mm2physical(PLFLT mmx, PLFLT mmy, PLFLT &physx, PLFLT &physy)
-  { physx=mm2px(mmx); physy=mm2py(mmy);}
-  // mm to (absolute) device
+//  inline void norm2world(PLFLT devx, PLFLT devy, PLFLT &wx, PLFLT &wy)
+//  { wx=nd2wx(devx); wy=nd2wy(devy);}
+//  // (normed) device coords to subpage coords
+//  inline PLFLT nd2spx(PLFLT x){ return (PLFLT) ( ( x - pls->spdxmi ) / ( pls->spdxma - pls->spdxmi ) ) ;}
+//  inline PLFLT nd2spy(PLFLT y){ return (PLFLT) ( ( y - pls->spdymi ) / ( pls->spdyma - pls->spdymi ) ) ;}
+//  inline void norm2subpage(PLFLT devx, PLFLT devy, PLFLT &spx, PLFLT &spy)
+//  { spx=nd2spx(devx); spy=nd2spy(devy);}
+//
+//  // millimeters to physical coords (x,y)
+//  inline PLFLT mm2px(PLFLT x){ return ( pls->phyxmi + pls->xpmm * x  );}
+//  inline PLFLT mm2py(PLFLT y){ return ( pls->phyymi + pls->ypmm * y  );}
+//  inline void mm2physical(PLFLT mmx, PLFLT mmy, PLFLT &physx, PLFLT &physy)
+//  { physx=mm2px(mmx); physy=mm2py(mmy);}
+//  // mm to (absolute) device
   inline PLFLT mm2adx(PLFLT x){ return (PLFLT) ( ( x * pls->xpmm ) / abs( pls->phyxma - pls->phyxmi )*thePage.length);}
   inline PLFLT mm2ady(PLFLT y){ return (PLFLT) ( ( y * pls->ypmm ) / abs( pls->phyyma - pls->phyymi )*thePage.height);}
   inline void mm2device(PLFLT mmx, PLFLT mmy, PLFLT &devx, PLFLT &devy)
   { devx=mm2adx(mmx); devy=mm2ady(mmy);}
-  // mm to (normed) device
+//  // mm to (normed) device
   inline PLFLT mm2ndx(PLFLT x){ return (PLFLT) ( ( x * pls->xpmm ) / abs( pls->phyxma - pls->phyxmi ));}
   inline PLFLT mm2ndy(PLFLT y){ return (PLFLT) ( ( y * pls->ypmm ) / abs( pls->phyyma - pls->phyymi ));}
-  inline void mm2norm(PLFLT mmx, PLFLT mmy, PLFLT &devx, PLFLT &devy)
-  { devx=mm2ndx(mmx); devy=mm2ndy(mmy);}
-  // mm to world
+//  inline void mm2norm(PLFLT mmx, PLFLT mmy, PLFLT &devx, PLFLT &devy)
+//  { devx=mm2ndx(mmx); devy=mm2ndy(mmy);}
+//  // mm to world
   inline PLFLT mm2wx(PLFLT x){ x=mm2ndx(x); return nd2wx(x);}
   inline PLFLT mm2wy(PLFLT y){ y=mm2ndy(y); return nd2wy(y);}
-  inline void mm2world(PLFLT mmx, PLFLT mmy, PLFLT &wx, PLFLT &wy)
-  { wx=mm2wx(mmx); wy=mm2wy(mmy);}
-  // mm to subpage coord
-  inline PLFLT mm2spx(PLFLT x){ x=mm2ndx(x); return nd2spx(x);}
-  inline PLFLT mm2spy(PLFLT y){ y=mm2ndy(y); return nd2spy(y);}
-  inline void mm2subpage(PLFLT mmx, PLFLT mmy, PLFLT &spx, PLFLT &spy)
-  { spx=mm2spx(mmx); spy=mm2spy(mmy);}
-
-  // world to physical coords
-  inline PLFLT w2px(PLFLT x){ return ( pls->wpxoff + pls->wpxscl * x  );}
-  inline PLFLT w2py(PLFLT y){ return ( pls->wpyoff + pls->wpyscl * y  );}
-  inline void world2physical(PLFLT wx, PLFLT wy, PLFLT &physx, PLFLT &physy)
-  { physx=w2px(wx); physy=w2py(wy);}
-  // world to (normed) device
-  inline PLFLT w2ndx(PLFLT x){ return (PLFLT) ( pls->wdxoff + pls->wdxscl * x );}
-  inline PLFLT w2ndy(PLFLT y){ return (PLFLT) ( pls->wdyoff + pls->wdyscl * y );}
-  inline void world2norm(PLFLT wx, PLFLT wy, PLFLT &devx, PLFLT &devy)
-  { devx=w2ndx(wx); devy=w2ndy(wy);}
-   // world to (absolute) device
+//  inline void mm2world(PLFLT mmx, PLFLT mmy, PLFLT &wx, PLFLT &wy)
+//  { wx=mm2wx(mmx); wy=mm2wy(mmy);}
+//  // mm to subpage coord
+//  inline PLFLT mm2spx(PLFLT x){ x=mm2ndx(x); return nd2spx(x);}
+//  inline PLFLT mm2spy(PLFLT y){ y=mm2ndy(y); return nd2spy(y);}
+//  inline void mm2subpage(PLFLT mmx, PLFLT mmy, PLFLT &spx, PLFLT &spy)
+//  { spx=mm2spx(mmx); spy=mm2spy(mmy);}
+//
+//  // world to physical coords
+//  inline PLFLT w2px(PLFLT x){ return ( pls->wpxoff + pls->wpxscl * x  );}
+//  inline PLFLT w2py(PLFLT y){ return ( pls->wpyoff + pls->wpyscl * y  );}
+//  inline void world2physical(PLFLT wx, PLFLT wy, PLFLT &physx, PLFLT &physy)
+//  { physx=w2px(wx); physy=w2py(wy);}
+//  // world to (normed) device
+//  inline PLFLT w2ndx(PLFLT x){ return (PLFLT) ( pls->wdxoff + pls->wdxscl * x );}
+//  inline PLFLT w2ndy(PLFLT y){ return (PLFLT) ( pls->wdyoff + pls->wdyscl * y );}
+//  inline void world2norm(PLFLT wx, PLFLT wy, PLFLT &devx, PLFLT &devy)
+//  { devx=w2ndx(wx); devy=w2ndy(wy);}
+//   // world to (absolute) device
   inline PLFLT w2adx(PLFLT x){ return (PLFLT) ( pls->wdxoff + pls->wdxscl * x )*thePage.length;}
   inline PLFLT w2ady(PLFLT y){ return (PLFLT) ( pls->wdyoff + pls->wdyscl * y )*thePage.height;}
   inline void world2device(PLFLT wx, PLFLT wy, PLFLT &devx, PLFLT &devy)
   { devx=w2adx(wx); devy=w2ady(wy);}
-  //world to mm
-  inline PLFLT w2mmx(PLFLT x){ return (PLFLT) ( pls->wmxoff + pls->wmxscl * x );}
-  inline PLFLT w2mmy(PLFLT y){ return (PLFLT) ( pls->wmyoff + pls->wmyscl * y );}
-  inline void world2mm(PLFLT wx, PLFLT wy, PLFLT &mmx, PLFLT &mmy)
-  { mmx=w2mmx(wx); mmy=w2mmy(wy);}
-  //world to subpage coord
-  inline PLFLT w2spx(PLFLT x){ x=w2ndx(x) ; return nd2spx(x);}
-  inline PLFLT w2spy(PLFLT y){ y=w2ndy(y) ; return nd2spy(y);}
-  inline void world2subpage(PLFLT wx, PLFLT wy, PLFLT &spx, PLFLT &spy)
-  { spx=w2spx(wx); spy=w2spy(spy);}
-
-  // physical to (normed) device
-  inline PLFLT p2ndx(PLFLT x){ return (PLFLT) ( ( x - pls->phyxmi ) / (double) pls->phyxlen );}
-  inline PLFLT p2ndy(PLFLT y){ return (PLFLT) ( ( y - pls->phyymi ) / (double) pls->phyylen );}
-  inline void physical2device(PLFLT physx, PLFLT physy, PLFLT &devx, PLFLT &devy)
-  { devx=p2ndx(physx); devy=p2ndy(physy);}
-  //physical to world
-  //physical to mm
-  //physical to subpage coord
-
-  // subpage coords to (normed) device coords
-  inline PLFLT sp2ndx(PLFLT x){ return (PLFLT) ( pls->spdxmi + ( pls->spdxma - pls->spdxmi ) * x ) ;}
-  inline PLFLT sp2ndy(PLFLT y){ return (PLFLT) ( pls->spdymi + ( pls->spdyma - pls->spdymi ) * y ) ;}
-  inline void subpage2norm(PLFLT spx, PLFLT spy, PLFLT &devx, PLFLT &devy)
-  { devx=sp2ndx(spx); devy=sp2ndy(spy);}
-  //subpage to world
-  //subpage to mm
-  //subpage to physical
+//  //world to mm
+//  inline PLFLT w2mmx(PLFLT x){ return (PLFLT) ( pls->wmxoff + pls->wmxscl * x );}
+//  inline PLFLT w2mmy(PLFLT y){ return (PLFLT) ( pls->wmyoff + pls->wmyscl * y );}
+//  inline void world2mm(PLFLT wx, PLFLT wy, PLFLT &mmx, PLFLT &mmy)
+//  { mmx=w2mmx(wx); mmy=w2mmy(wy);}
+//  //world to subpage coord
+//  inline PLFLT w2spx(PLFLT x){ x=w2ndx(x) ; return nd2spx(x);}
+//  inline PLFLT w2spy(PLFLT y){ y=w2ndy(y) ; return nd2spy(y);}
+//  inline void world2subpage(PLFLT wx, PLFLT wy, PLFLT &spx, PLFLT &spy)
+//  { spx=w2spx(wx); spy=w2spy(spy);}
+//
+//  // physical to (normed) device
+//  inline PLFLT p2ndx(PLFLT x){ return (PLFLT) ( ( x - pls->phyxmi ) / (double) pls->phyxlen );}
+//  inline PLFLT p2ndy(PLFLT y){ return (PLFLT) ( ( y - pls->phyymi ) / (double) pls->phyylen );}
+//  inline void physical2device(PLFLT physx, PLFLT physy, PLFLT &devx, PLFLT &devy)
+//  { devx=p2ndx(physx); devy=p2ndy(physy);}
+//  //physical to world
+//  //physical to mm
+//  //physical to subpage coord
+//
+//  // subpage coords to (normed) device coords
+//  inline PLFLT sp2ndx(PLFLT x){ return (PLFLT) ( pls->spdxmi + ( pls->spdxma - pls->spdxmi ) * x ) ;}
+//  inline PLFLT sp2ndy(PLFLT y){ return (PLFLT) ( pls->spdymi + ( pls->spdyma - pls->spdymi ) * y ) ;}
+//  inline void subpage2norm(PLFLT spx, PLFLT spy, PLFLT &devx, PLFLT &devy)
+//  { devx=sp2ndx(spx); devy=sp2ndy(spy);}
+//  //subpage to world
+//  //subpage to mm
+//  //subpage to physical
 
 #if PLPLOT_PRIVATE_NOT_HIDDEN
   //use simple internal function
