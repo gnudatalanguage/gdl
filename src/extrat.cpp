@@ -56,8 +56,13 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
 	  KeyVarListT::iterator f=find_if(pro->key.begin(),
 				     pro->key.end(),
 				     String_abbref_eq( tName));
-      if (f != pro->key.end())
+        if (f != pro->key.end()) 
       { // found, _EXTRA always overrides explicit keywords
+          // continue search and throw if ambiguity:
+          KeyVarListT::iterator ff = find_if(f + 1,
+            pro->key.end(),
+            String_abbref_eq(tName));
+          if (ff != pro->key.end()) throw GDLException("Ambiguous keyword abbreviation: " + tName);
         SizeT varIx = distance(pro->key.begin(), f);
 
         thisEnv->env.Reset(varIx, extraStruct->Get(t)); // local
@@ -119,8 +124,12 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
 		      KeyVarListT::iterator f=find_if(pro->key.begin(),
 						 pro->key.end(),
 						 String_abbref_eq( kName));
-		      if( f != pro->key.end())
-			{ // found, _EXTRA always overrides
+              if (f != pro->key.end()) { // found, _EXTRA always overrides
+                // continue search and throw if ambiguity:
+                KeyVarListT::iterator ff = find_if(f + 1,
+                  pro->key.end(),
+                  String_abbref_eq(kName));
+                if (ff != pro->key.end()) throw GDLException("Ambiguous keyword abbreviation: " + kName);
 			  SizeT varIx=distance(pro->key.begin(),f);
 			  
 			  // global, caller is owner
