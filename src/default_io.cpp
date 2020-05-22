@@ -20,7 +20,7 @@
 
 #include "nullgdl.hpp"
 #include "typedefs.hpp"
-#include "datatypes.hpp" // for friend declaration
+//#include "datatypes.hpp" // for friend declaration
 
 #include "dstructgdl.hpp"
 #include "arrayindexlistt.hpp"
@@ -1243,8 +1243,8 @@ ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   SizeT length;
   if( this->dim.Rank() == 0)
     {
-      length = (*this)[0].length();
-      o << CheckNL( w, actPosPtr, length) << (*this)[0];
+      length = (*this)[0].length();  //app
+      if (length ==0) o << '\n'; else  o << CheckNL( w, actPosPtr, length) << (*this)[0];
       return o;
     }
 
