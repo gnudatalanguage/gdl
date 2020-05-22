@@ -189,9 +189,9 @@ void InitStructs()
 
 
   DStructDesc* gdl_object = new DStructDesc( GDL_OBJECT_NAME);
-  gdl_object->AddTag("GDL_OBJ_TOP", &aLong64);
+  gdl_object->AddTag("IDL_OBJECT_TOP", &aLong64);
   gdl_object->AddTag("__OBJ__", &aObjRef);
-  gdl_object->AddTag("GDL_OBJ_BOTTOM", &aLong64);
+  gdl_object->AddTag("IDL_OBJECT_BOTTOM", &aLong64);
   // special for GDL_OBJECT ony
   gdl_object->InitOperatorList();
   // insert into structList
@@ -220,12 +220,12 @@ void InitStructs()
   structDesc::GDL_CONTAINER_NODE = gdlContainerNode;
 
   DStructDesc* gdlContainer = new DStructDesc( GDL_CONTAINER_NAME);
-  gdlContainer->AddTag("GDL_CONTAINER_TOP", &aLong64);
-  gdlContainer->AddTag("GDLCONTAINERVERSION", &aInt);
+  gdlContainer->AddTag("IDL_CONTAINER_TOP", &aLong64);
+  gdlContainer->AddTag("IDLCONTAINERVERSION", &aInt);
   gdlContainer->AddTag("PHEAD", &aPtrRef);
   gdlContainer->AddTag("PTAIL", &aPtrRef);
   gdlContainer->AddTag("NLIST", &aLong);
-  gdlContainer->AddTag("GDL_CONTAINER_BOTTOM", &aLong64);
+  gdlContainer->AddTag("IDL_CONTAINER_BOTTOM", &aLong64);
 //  gdlContainer->AddParent(gdl_object);// no operator overloading
   structList.push_back(gdlContainer);
   structDesc::GDL_CONTAINER = gdlContainer;
