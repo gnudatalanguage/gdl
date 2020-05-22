@@ -14,7 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#include "datatypes.hpp" // for friend declaration
+//#include "datatypes.hpp" // for friend declaration
 #include "dstructgdl.hpp"
 #include "real2int.hpp"
 #include "calendar.hpp"
