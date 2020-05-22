@@ -450,7 +450,6 @@ void InitStructs()
   widgdestroy->AddTag("ID", &aLong);
   widgdestroy->AddTag("TOP", &aLong);
   widgdestroy->AddTag("HANDLER", &aLong);
-  widgdestroy->AddTag("MESSAGE", &aLong);
   // insert into structList
   structList.push_back( widgdestroy);
   
@@ -459,9 +458,18 @@ void InitStructs()
   toplevelISdestroyed->AddTag("ID", &aLong);
   toplevelISdestroyed->AddTag("TOP", &aLong);
   toplevelISdestroyed->AddTag("HANDLER", &aLong);
-  toplevelISdestroyed->AddTag("MESSAGE", &aLong);
   // insert into structList
   structList.push_back( toplevelISdestroyed);
+
+  //for internal usage: event structure used to pass any catched "C++" event (as in ThrowGDLException)
+  //back to $MAIN$ to process as a normal error like in e->Throw();
+  DStructDesc* WidRunTimeError = new DStructDesc( "*WIDGET_RUNTIME_ERROR*");
+  WidRunTimeError->AddTag("ID", &aLong);
+  WidRunTimeError->AddTag("TOP", &aLong);
+  WidRunTimeError->AddTag("HANDLER", &aLong);
+  WidRunTimeError->AddTag("MESSAGE", &aString);
+  // insert into structList
+  structList.push_back( WidRunTimeError);
   
   DStructDesc* widgbut = new DStructDesc( "WIDGET_BUTTON");
   widgbut->AddTag("ID", &aLong);
