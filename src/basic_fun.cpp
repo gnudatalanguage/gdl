@@ -36,7 +36,6 @@
 #include "includefirst.hpp"
 
 #ifndef _WIN32
-//#include <termios.h> 
 #include <unistd.h> 
 #endif
 
@@ -66,7 +65,6 @@ extern "C" char **environ;
 #include "dpro.hpp"
 #include "dinterpreter.hpp"
 #include "basic_pro.hpp"
-//#include "terminfo.hpp"
 #include "typedefs.hpp"
 #include "base64.hpp"
 #include "objects.hpp"
@@ -419,32 +417,20 @@ namespace lib {
 
     DPtrGDL* ret;
 
-    //       if( e->KeywordSet(0))
-    //         ret= new DPtrGDL(dim);//, BaseGDL::NOZERO);
-    //       else
-    //     if( e->KeywordSet(1))
-    //  ret= new DPtrGDL(dim, BaseGDL::NOZERO);
-    //       else
-    //  return new DPtrGDL(dim);
-    if( !e->KeywordSet(1))
+    if( !e->KeywordSet(0))
       return new DPtrGDL(dim);
-
+    
+    // ALLOCATE_HEAP
     ret= new DPtrGDL(dim, BaseGDL::NOZERO);
 
     SizeT nEl=ret->N_Elements();
-    SizeT sIx=e->NewHeap(nEl);
+    SizeT sIx=e->NewHeap(nEl, NullGDL::GetSingleInstance());
     // not a thread pool function #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
       // #pragma omp for
-      for( SizeT i=0; i<nEl; i++)
-    (*ret)[i]=sIx+i;
+      for( SizeT i=0; i<nEl; i++)  (*ret)[i]=sIx+i;
     }
     return ret;
-    /*    }
-      catch( GDLException& ex)
-      {
-      e->Throw( "PTRARR: "+ex.getMessage());
-      }*/
   }
   BaseGDL* objarr( EnvT* e)
   {
@@ -456,12 +442,7 @@ namespace lib {
 
     // reference counting      if( e->KeywordSet(0)) return new DObjGDL(dim, BaseGDL::NOZERO);
     return new DObjGDL(dim);
-    /*  }
-    catch( GDLException& ex)
-    {
-    e->Throw( "OBJARR: "+ex.getMessage());
-    }
-    */ }
+  }
 
   BaseGDL* ptr_new( EnvT* e)
   {
@@ -483,9 +464,6 @@ namespace lib {
     if (e->KeywordSet(no_copyIx)) // NO_COPY
       {
         BaseGDL** p= &e->GetPar( 0);
-        //      if( *p == NULL)
-        //        e->Throw( "Parameter undefined: "+
-        //                e->GetParString(0));
 
         DPtr heapID= e->NewHeap( 1, *p);
         *p=NULL;
@@ -812,7 +790,7 @@ namespace lib {
        objName = GDL_CONTAINER_NAME;
     DStructDesc* objDesc=e->Interpreter()->GetStruct( objName, e->CallingNode());
 
-    DStructGDL* objStruct= new DStructGDL( objDesc, dimension());
+    DStructGDL* objStruct= new DStructGDL( objDesc, dimension(1));
 
     DObj objID= e->NewObjHeap( 1, objStruct); // owns objStruct
 
