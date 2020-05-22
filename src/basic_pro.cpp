@@ -2076,7 +2076,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         e->Throw("UNIT kw. relies on GNU extensions to the std C++ library (that were not available during compilation?)");
 #endif
       } else {
-        FILE *coutF, *cerrF;
+        FILE *coutF=NULL, *cerrF=NULL;
         if (nParam > 1) {
           coutF = fdopen(coutP[0], "r");
           if (coutF == NULL) close(coutP[0]);
@@ -2561,7 +2561,7 @@ void delvar_pro( EnvT* e)
 			sort(delvar.begin(), delvar.end());
         	int ndel=0;
 			for (std::vector<int>::iterator ix=delvar.begin();
-			                           ix< delvar.end(); ix++) todel[ndel++] = (*ix);
+			                           ix< delvar.end(); ++ix) todel[ndel++] = (*ix);
 			if(trace_me) std::cout << " ** delvar x-"<< ndel;
 			todel[ndel] = -1;
 			caller->Remove(todel);
@@ -2574,7 +2574,7 @@ void delvar_pro( EnvT* e)
 	DSubUD* proUD   = dynamic_cast<DSubUD*>(caller->GetPro());
 	proUD->commonPtrs(c);
 	for (std::vector<int>::iterator ix=delcommon.begin();
-			                           ix< delcommon.end(); ix++) {
+			                           ix< delcommon.end(); ++ix) {
 		int i;
 		BaseGDL*& par=e->GetPar(*ix);
 		for( i=0; i < c.size(); i++) {

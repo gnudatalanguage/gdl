@@ -560,8 +560,8 @@ enum {
       std::string stru_name = std::string(structname);
       if( stru_name == "IDL_OBJECT") stru_name = GDL_OBJECT_NAME; // replacement also done in GDLParser
       if( stru_name == "IDL_CONTAINER") stru_name = GDL_CONTAINER_NAME; // replacement also done in GDLParser
-      DStructDesc* stru_desc;
-      DStructDesc* ref_desc;
+      DStructDesc* stru_desc=NULL;
+      DStructDesc* ref_desc=NULL;
       bool checkStruct=false;
       //take care of named structures. Here is also where one should try to create an object, since, if it exists, its structure must be
       //compared with the current one.

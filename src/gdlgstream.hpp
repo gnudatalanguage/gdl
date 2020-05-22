@@ -464,7 +464,7 @@ public:
 
 #if PLPLOT_PRIVATE_NOT_HIDDEN
   //use simple internal function
-  PLFLT gdlGetStringLength(const std::string s)
+  PLFLT gdlGetStringLength(const std::string &s)
   {
     return plstrl(s.c_str());
   }

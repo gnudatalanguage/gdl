@@ -1088,9 +1088,9 @@ public:
                long style = wxTR_DEFAULT_STYLE,
                const wxValidator &validator = wxDefaultValidator,
                const wxString& name = wxTreeCtrlNameStr)
-          :wxTreeCtrl( parent, id, pos, size, style, wxDefaultValidator , name )
+          :wxTreeCtrl( parent, id, pos, size, style, wxDefaultValidator , name ),
+           GDLWidgetTableID(id)
           {
-            GDLWidgetTableID=id;
             Connect(id, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, wxTreeEventHandler(gdlTreeCtrl::OnItemActivated));
             Connect(id, wxEVT_COMMAND_TREE_ITEM_ACTIVATED,wxTreeEventHandler(gdlTreeCtrl::OnItemActivated));
             Connect(id, wxEVT_COMMAND_TREE_BEGIN_DRAG,wxTreeEventHandler(gdlTreeCtrl::OnBeginDrag));
@@ -1196,7 +1196,7 @@ public:
 		   DLong minimum_, DLong maximum_,
 		   bool vertical,
 		   bool suppressValue,
-		   DString title
+		   DString &title
  		);
 
   ~GDLWidgetSlider();

@@ -3004,7 +3004,7 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
 , DLong maximum_
 , bool vertical
 , bool suppressValue
-, DString title_ )
+, DString &title_ )
 : GDLWidget( p, e, NULL, eventFlags_ )
 , value( value_ ) //should disappear , duplicates vValue!
 , minimum( minimum_ )
