@@ -1244,7 +1244,8 @@ ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   if( this->dim.Rank() == 0)
     {
       length = (*this)[0].length();  //app
-      if (length ==0) o << '\n'; else  o << CheckNL( w, actPosPtr, length) << (*this)[0];
+      // this is correct but gives bug #2876161 : if (length ==0) o << '\n'; else  
+        o << CheckNL( w, actPosPtr, length) << (*this)[0];
       return o;
     }
 
