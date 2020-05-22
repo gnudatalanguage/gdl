@@ -406,9 +406,13 @@ namespace lib
                    PLFLT& yMT)
   {
     PLFLT sclx=actStream->dCharLength()/actStream->xSubPageSize(); //current char length/subpage size
+//eventually correct if there is a probem with supposed char sizes:
+    sclx/=actStream->GetPlplotFudge();
     xML=xMarginL*sclx; //margin as percentage of subpage
     xMR=xMarginR*sclx;
     PLFLT scly=actStream->dLineSpacing()/actStream->ySubPageSize(); //current char length/subpage size
+//eventually correct if there is a probem with supposed char sizes:
+    scly/=actStream->GetPlplotFudge();
     yMB=(yMarginB)*scly;
     yMT=(yMarginT)*scly; //to allow subscripts and superscripts (as in IDL)
 
