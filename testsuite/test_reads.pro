@@ -4,7 +4,13 @@
 ; READS should work with space or comma as separators.
 ;
 ; First Bug found thanks to the MIRIM simulator
+; Major problem on Complex input see #701
 ;
+; Please notice that, yes, maybe some cases we test here may seems to be redundant,
+; but by the way we process now the input, we need to carrefully check
+; we process well all space, comma, braces ...
+;
+; Yes, all the cases here give same results with IDL 8.4
 ; -------------------------------------
 ; 
 ; Modifications history :
@@ -12,6 +18,82 @@
 ; - 2020-April-02 : AC.
 ;   * as mentionned in #701, READS is in error with complex
 ;   * adding more tests on arrays (basic & mixing types)
+;
+; -------------------------------------
+;
+function ICI_ARRAY_EQUAL, x, y, debug=debug
+if KEYWORD_SET(debug) then begin
+   print, 'expected     :', x
+   print, 'what we have :', y
+endif
+return, ARRAY_EQUAL(x,y)
+end
+; -------------------------------------
+;
+pro TEST_READS_BASIC, cumul_errors, decimal=decimal, complex=complex, basic=basic, $
+                      verbose=verbose, test=test, debug=debug
+;
+errors=0
+;
+if KEYWORD_SET(decimal) then begin
+   inputs=['12.1    13.4',' 12.1, 13.4, 5, 6'' 12.1,13.4   ',' 12.1,13.4,   ']
+endif else begin
+   inputs=['12 13','  12 13','12,13.', '12,13.   ',' 12,13.   '] 
+   inputs=[inputs,['12 13  6   7','  12 13 6 7','12,13.,6.,7.', '12,13.   6 7',' 12,13.  ,6,7 '] ]
+endelse
+;
+types=[1,2,3,4,5,6,9]
+;
+if KEYWORD_SET(complex) then begin
+   MESSAGE, /Continue, 'Only Complex types tested'
+   types=[6,9]
+endif
+if KEYWORD_SET(basic) then begin
+   MESSAGE, /Continue, 'Only basic types tested (B, I, L, F, D)'
+   types=[1,2,3,4,5]
+endif
+;
+exp_B=[12b, 13b]
+exp_I=[12, 13]
+exp_L=[12L, 13]
+;
+if KEYWORD_SET(decimal) then exp_F=[12.1, 13.4] else exp_F=[12., 13.]
+exp_D=DOUBLE(exp_F)
+exp_C=Complexarr(2)+exp_F
+exp_DC=DComplexarr(2)+exp_F
+;
+eps=1.e-6
+;
+for ii=0, N_ELEMENTS(inputs)-1 do begin
+   inarray=inputs[ii]
+   for jj=0, N_ELEMENTS(types)-1 do begin
+      res=INDGEN(2, type=types[jj]) 
+      READS, inarray, res
+      if types[jj] EQ 1 then if ~ICI_ARRAY_EQUAL(exp_B, res, debug=debug) then $
+         ERRORS_ADD, errors, 'basic BYTE bad values !'
+      if types[jj] EQ 2 then if ~ICI_ARRAY_EQUAL(exp_I, res, debug=debug) then $
+         ERRORS_ADD, errors, 'basic INT bad values !'
+      if types[jj] EQ 3 then if ~ICI_ARRAY_EQUAL(exp_L, res, debug=debug) then $
+         ERRORS_ADD, errors, 'basic LONG bad values !'
+      if types[jj] EQ 4 then if ~ICI_ARRAY_EQUAL(exp_F, res, debug=debug) then $
+         if (TOTAL(ABS(exp_F-res)) GT eps) then ERRORS_ADD, errors, 'basic FLOAT bad values !'
+      if types[jj] EQ 5 then if ~ICI_ARRAY_EQUAL(exp_D, res, debug=debug) then $
+         if (TOTAL(ABS(exp_F-res)) GT eps) then ERRORS_ADD, errors, 'basic DOUBLE bad values !'
+      if types[jj] EQ 6 then if ~ICI_ARRAY_EQUAL(exp_C, res, debug=debug) then $
+         if (TOTAL(ABS(exp_F-res)) GT eps) then ERRORS_ADD, errors, 'basic COMPLEX bad values !'
+      if types[jj] EQ 9 then if ~ICI_ARRAY_EQUAL(exp_DC, res, debug=debug) then $
+         if (TOTAL(ABS(exp_F-res)) GT eps) then ERRORS_ADD, errors, 'basic DOUBLE COMPLEX bad values !'
+   endfor
+endfor
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_READS_BASIC', errors, /status
+ERRORS_CUMUL, cumul_errors, errors
+;
+if KEYWORD_SET(test) then STOP
+;
+end
 ;
 ; -------------------------------------
 ;
@@ -49,15 +131,8 @@ ERRORS_CUMUL, cumul_errors, errors
 if KEYWORD_SET(test) then STOP
 ;
 end
-; -------------------------------------
 ;
-function ICI_ARRAY_EQUAL, x, y, debug=debug
-if KEYWORD_SET(debug) then begin
-   print, 'expected     :', x
-   print, 'what we have :', y
-endif
-return, ARRAY_EQUAL(x,y)
-end
+; -------------------------------------
 ;
 pro TEST_READS_COMPLEX, cumul_errors, verbose=verbose, test=test, debug=debug
 ;
@@ -200,7 +275,8 @@ year=0
 todaystring1=''
 todaystring2=''
 ;
-MESSAGE, /continue, 'Case 1 : separator is a space >> <<'
+if KEYWORD_SET(verbose) then $
+   MESSAGE, /continue, 'Case 1 : separator is a space >> <<'
 errors1=0
 ;
 ok1=EXECUTE('READS, thisisheader, day, month, year, todaystring1')
@@ -210,9 +286,11 @@ if ~ARRAY_EQUAL(expected1, res1) then $
    ERRORS_ADD, errors1, '(1) bad numerical values D/M/Y !'
 if ~ARRAY_EQUAL(expected2a, todaystring1) then   $
    ERRORS_ADD, errors1, '(1) bad string value !'
-if (errors1 EQ 0) then MESSAGE, /continue, 'Case 1 : succesfully done'
+if KEYWORD_SET(verbose) then $
+   if (errors1 EQ 0) then MESSAGE, /continue, 'Case 1 : succesfully done'
 ;
-MESSAGE, /continue, 'Case 2 : separator is a comma >>,<<'
+if KEYWORD_SET(verbose) then $
+   MESSAGE, /continue, 'Case 2 : separator is a comma >>,<<'
 errors2=0
 ;
 ok2=EXECUTE('READS, thisisheader2, day, month, year, todaystring2')
@@ -222,27 +300,163 @@ if ~ARRAY_EQUAL(expected1, res2) then $
    ERRORS_ADD, errors2, '(2) bad numerical values D/M/Y !'
 if ~ARRAY_EQUAL(expected2b, todaystring2) then  $
    ERRORS_ADD, errors2, '(2) bad string value !'
-if (errors2 EQ 0) then MESSAGE, /continue, 'Case 2 : succesfully done'
+;
+if KEYWORD_SET(verbose) then $
+   if (errors2 EQ 0) then MESSAGE, /continue, 'Case 2 : succesfully done'
 ;
 errors=errors1+errors2
 ;
-; special case for complex. Not yet ready for GDL
-;; f1=complex(12,13) & f2=complex(18,19)
-;; f=complexarr(2) & inarray=' ( 12,13) (18,19) ' & reads,inarray,f ; 2 complex written correctly: real and imaginary part readable
-;; if total(atan(f-[f1,f2],/phas)) ne 0.0 then errors++
-;; ;
-;; ; special case for complex:
-;; f1=complex(12,13) & f2=complex(18,0) & f3=complex(19,0)
-;; f=complexarr(3) & inarray=' ( 12,13) 18 19' & reads,inarray,f ; 3 complex mixed writing: 1st real and imaginary part, rest is real only
-;; if total(atan(f-[f1,f2,f3],/phas)) ne 0.0 then errors++
-;; ;
-;; f1=complex(12,0) & f2=complex(13,0)
-;; f=complexarr(2) & inarray=' 12,13 ' & reads,inarray,f
-;; if total(atan(f-[f1,f2],/phas)) ne 0.0 then errors++
-;; 
 ; ----- final ----
 ;
 BANNER_FOR_TESTSUITE, 'TEST_READS_MIXED', errors, /status
+ERRORS_CUMUL, cumul_errors, errors
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; -------------------------------------
+; as mentionned in https://github.com/gnudatalanguage/gdl/issues/701
+;
+pro TEST_READS_COMPLEX2, cumul_errors, verbose=verbose, test=test
+;
+errors=0
+;
+expected=[complex(12,13),complex(18,19)]
+;
+; Du to the way we process the input, we may fail due to extra space(s)
+;
+f=COMPLEXARR(2) & inarray=' ( 12,13) (18,19) '
+READS, inarray, f
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 1 : '+inarray
+;
+f=COMPLEXARR(2) & inarray='( 12,13) (18,19) '
+READS, inarray, f
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 1 : '+inarray
+;
+f=COMPLEXARR(2) & inarray='(12,13) (18,19) '
+READS, inarray, f
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 1 : '+inarray
+;
+f=COMPLEXARR(2) & inarray=' ( 12 13) (18,19) '
+READS, inarray, f
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 1 : '+inarray
+;
+f=COMPLEXARR(2) & inarray=' (12 13) (18,19) '
+READS, inarray, f
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 1 : '+inarray
+;
+f=COMPLEXARR(2) & inarray='(12 13) (18,19) '
+READS, inarray, f
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 1 : '+inarray
+;
+f=COMPLEXARR(2) & inarray='(12 13 ) (18,19) '
+READS, inarray, f
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 1 : '+inarray
+;
+f=COMPLEXARR(2) & inarray=' (12 13 ) ( 18,19) '
+READS, inarray, f
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 1 : '+inarray
+;
+; ------ some complex without imaginary parts ...
+;
+expected=[COMPLEX(12,13),COMPLEX(18,0),COMPLEX(19,0)]
+;
+f=COMPLEXARR(3) & inarray=' ( 12,13) 18 19'
+READS,inarray,f 
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 2 : '+inarray
+;
+f=COMPLEXARR(3) & inarray=' ( 12,13) 18, 19'
+READS,inarray,f 
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 2 : '+inarray
+;
+f=COMPLEXARR(3) & inarray=' ( 12,13   ) 18 19'
+READS,inarray,f 
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 2 : '+inarray
+;
+; ------ all complex without imaginary parts ...
+;
+expected=[COMPLEX(12,0),COMPLEX(13,0)]
+;
+f=COMPLEXARR(2) & inarray='12,13'
+READS,inarray,f 
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 3 : '+inarray
+;
+f=COMPLEXARR(2) & inarray='12,13 ,,,,'
+READS,inarray,f 
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 3 : '+inarray
+;
+f=COMPLEXARR(2) & inarray=' 12, 13'
+READS,inarray,f 
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 3 : '+inarray
+;
+f=COMPLEXARR(2) & inarray=' ( 12,) 13'
+READS,inarray,f 
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 3 : '+inarray
+;
+f=COMPLEXARR(2) & inarray=' ( 12) 13'
+READS,inarray,f 
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 3 : '+inarray
+;
+f=COMPLEXARR(2) & inarray='  12 13'
+READS,inarray,f 
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 3 : '+inarray
+;
+f=COMPLEXARR(2) & inarray='  (12) ( 13 )'
+READS,inarray,f 
+if ~ARRAY_EQUAL(expected, f) then ERRORS_ADD, errors, 'case 3 : '+inarray
+;
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_READS_COMPLEX2', errors, /status
+ERRORS_CUMUL, cumul_errors, errors
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; -------------------------------------
+;
+pro TEST_READS_MIXING_TYPES, cumul_errors, verbose=verbose, test=test, debug=debug
+;
+errors=0
+;
+expected_c=[COMPLEX(12,13),COMPLEX(18,19),COMPLEX(-1)]
+expected_f=[6.,-5.]
+;
+c=COMPLEXARR(3) & f=FLTARR(2) & inarray=' ( 12,13   ) (18 19) (-1 0) 6, -5 '
+READS,inarray, c, f 
+if ~ICI_ARRAY_EQUAL(expected_c, c, debug=debug) then ERRORS_ADD, errors, 'case mix C : '+inarray
+if ~ICI_ARRAY_EQUAL(expected_f, f, debug=debug) then ERRORS_ADD, errors, 'case mix F : '+inarray
+;
+c=COMPLEXARR(3) & f=FLTARR(2) & inarray=' ( 12,13   ) (18 19) -1 6, -5 '
+READS,inarray, c, f 
+if ~ICI_ARRAY_EQUAL(expected_c, c, debug=debug) then ERRORS_ADD, errors, 'case mix C : '+inarray
+if ~ICI_ARRAY_EQUAL(expected_f, f, debug=debug) then ERRORS_ADD, errors, 'case mix F : '+inarray
+;
+c=COMPLEXARR(3) & f=FLTARR(2) & inarray=' (12 13) (18, 19) -1, 6, -5 '
+READS,inarray, c, f 
+if ~ICI_ARRAY_EQUAL(expected_c, c, debug=debug) then ERRORS_ADD, errors, 'case mix C : '+inarray
+if ~ICI_ARRAY_EQUAL(expected_f, f, debug=debug) then ERRORS_ADD, errors, 'case mix F : '+inarray
+;
+c=COMPLEXARR(3) & f=FLTARR(2) & inarray=' (12 13) (18, 19) -1, 6  -5'
+READS,inarray, c, f 
+if ~ICI_ARRAY_EQUAL(expected_c, c, debug=debug) then ERRORS_ADD, errors, 'case mix C : '+inarray
+if ~ICI_ARRAY_EQUAL(expected_f, f, debug=debug) then ERRORS_ADD, errors, 'case mix F : '+inarray
+;
+c=COMPLEXARR(3) & f=FLTARR(2) & inarray=' (12 13) (18, 19) -1, 6  -5, 56, 7'
+READS,inarray, c, f 
+if ~ICI_ARRAY_EQUAL(expected_c, c, debug=debug) then ERRORS_ADD, errors, 'case mix C : '+inarray
+if ~ICI_ARRAY_EQUAL(expected_f, f, debug=debug) then ERRORS_ADD, errors, 'case mix F : '+inarray
+
+
+;f=complexarr(3) & a=intarr(2) & inarray=' (  12,),,, 14,13,5,7' & reads,inarray,f,a & print, f, a
+
+
+
+; ----- final ----
+;
+BANNER_FOR_TESTSUITE, 'TEST_READS_MIXING_TYPES', errors, /status
 ERRORS_CUMUL, cumul_errors, errors
 ;
 if KEYWORD_SET(test) then STOP
@@ -261,15 +475,19 @@ endif
 ;
 errors=0
 ;
+TEST_READS_BASIC, errors, verbose=verbose, test=test
+TEST_READS_BASIC, errors, /decimal, verbose=verbose, test=test
+;
 TEST_READS_ARRAYS, errors, verbose=verbose, test=test
 ;
-print, 'AC 2020 may 18 not ready in read.cpp'
 TEST_READS_COMPLEX, errors, verbose=verbose, test=test
-errors=0
+TEST_READS_COMPLEX2, errors, verbose=verbose, test=test
 ;
 TEST_READS_STRING, errors, verbose=verbose, test=test
 ;
 TEST_READS_MIXED, errors, verbose=verbose, test=test
+;
+TEST_READS_MIXING_TYPES, errors, verbose=verbose, test=test
 ;
 ; ----------------- final message ----------
 ;
