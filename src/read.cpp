@@ -348,31 +348,70 @@ void reads( EnvT* e ) {
       } else { // undefined
         if ( e->LocalPar( i ) )
           throw GDLException( e->CallingNode( ),
-        "Internal error: Input: UNDEF is local." );
-
+			      "Internal error: Input: UNDEF is local." );
+	
         (*par) = new DFloatGDL( 0.0 );
         parIn = *par;
       }
+
+      bool debug=false;
+      if (debug) cout << "the raw full input :" << is.str() << endl;
+
+      // for Complex, compting cases is complex since (12) eq (12,12) eq 12 ... count 1
+      int flag_cplx=0;
+      if (((*par)->Type() == GDL_COMPLEX) || ((*par)->Type() == GDL_COMPLEXDBL)) flag_cplx=1;
+      //      int open_brace=0;
+      //int loop=0;
+
       if ((*par)->Type()!=GDL_STRING) { //special treatment for decoding commas
         stringstream temp;
         char c;
-        for (SizeT ielem=0; ielem<(*par)->N_Elements(); ++ielem ) { //repeat as many elements necessary, but no more!
-          while ( is.get( c ) ) { //remove starting blanks, commas, tabs, newlines
-            if ( c != ',' && c != ' ' && c != '\t' && c != '\n' ) {
+	int loop=0;
+	int open_brace=0;
+	//repeat as many elements necessary, but no more!
+        //for (SizeT ielem=0; ielem < (*par)->N_Elements(); ++ielem ) {
+	if (debug) cout << "nb elems : " << (*par)->N_Elements() << endl;
+
+        for (int ielem=0; ielem < (*par)->N_Elements(); ++ielem ) {
+  
+	  loop++;
+	  while ( is.get( c ) ) { //remove starting blanks, commas, tabs, newlines
+	    if ( c == '(') open_brace++;
+	    if ( c == ')') open_brace--;
+            if ( c != ',' && c != ' ' && c != '\t' && c != '\n') {
               temp.put( c );
               break;
             }
           }
+	  if (debug) cout << "after first while : " << temp.str() << endl;
+
           while ( is.get( c ) ) { //copy until new separator appears.
             if ( c != ',' && c != ' ' && c != '\t' && c != '\n' ) {
+ 	    if ( c == '(') open_brace++;
+	    if ( c == ')') open_brace--;
               temp.put( c );
             } else {
               is.unget( );
               break;
             }
           }
-          temp.put( ' ' ); //put a spearator between values
-        }
+	  if (debug) cout << "after second while : " << temp.str() << endl;
+	  if (flag_cplx && (open_brace > 0)) ielem--;
+	  if (debug) cout << "ielem : " << ielem << endl;
+ 	  
+	  //	  if ((ielem > 10) || (ielem < -10)) break;
+
+	  temp.put( ' ' ); //put a spearator between values
+
+	  // this is a security if the input is really badly formatted 
+	  if (loop > 5*(*par)->N_Elements()) break;
+
+        } // for loop
+
+	// the way to output the content of "temp" :
+	if (debug) cout << "what is transmitted to processing : " << temp.str() << endl;
+	//	cout << "what remaind to be processed : " << is.str() << endl;
+
         parIn->FromStream( temp );
       } else { //so much simpler
         parIn->FromStream( is );

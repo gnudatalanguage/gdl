@@ -144,6 +144,9 @@ const string ReadElement(istream& is)
 // no skip of WS
 const string ReadComplexElement(istream& is)
 {
+
+  //  cout << " hello ReadComplexElement : " << endl;
+
   SkipWS( is);
   
   string buf;
@@ -316,9 +319,11 @@ istream& operator>>(istream& i, Data_<SpDComplex>& data_)
       const string& actLine = ReadComplexElement( i);
       SizeT strLen = actLine.length();
 
+      // cout << "Processing : " << actLine <<endl;
+      // AC 2020 May : since now, always a space between "(" and digit
       if( actLine[ 0] == '(')
-	{
-	  SizeT mid  = actLine.find_first_of(" \t,",1);
+	{	  
+	  SizeT mid  = actLine.find_first_of(" \t,",2);
 	  if( mid >= strLen) mid = strLen;
 	      
 	  string seg1 = actLine.substr( 1, mid-1);
@@ -373,19 +378,18 @@ istream& operator>>(istream& i, Data_<SpDComplex>& data_)
 	      data_[ assignIx]= DComplex(0.0,0.0);
 	      ThrowGDLException("Input conversion error.");
 	    }
+	  //	  cout << val << endl;
+	  //	  for( long int c=assignIx; c<nTrans; c++)
+	  data_[assignIx] = DComplex(val,0.0);
 	  
-	  for( long int c=assignIx; c<nTrans; c++)
-	    data_[ c] = DComplex(val,0.0);
-	  
-	  // i.seekg( pos); // rewind stream
-	  
-	  return i;
+	  // AC 2020 May unclear why we need that ... 
+	  // i.seekg( pos); // rewind stream	  
+	  //	  return i;
 	}
 	  
       assignIx++;
       nTrans--;
     }
-
 
   return i;
 }
@@ -401,9 +405,10 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
       const string& actLine = ReadComplexElement( i);
       SizeT strLen = actLine.length();
 
+      // AC 2020 May : since now, always a space between "(" and digit
       if( actLine[ 0] == '(')
 	{
-	  SizeT mid  = actLine.find_first_of(" \t,",1);
+	  SizeT mid  = actLine.find_first_of(" \t,",2);
 	  if( mid >= strLen) mid = strLen;
 	      
 	  string seg1 = actLine.substr( 1, mid-1);
@@ -456,18 +461,17 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
 	      ThrowGDLException("Input conversion error.");
 	    }
 	  
-	  for( long int c=assignIx; c<nTrans; c++)
-	    data_[ c] = DComplexDbl(val,0.0);
+	  //	  for( long int c=assignIx; c<nTrans; c++)
+	  data_[ assignIx] = DComplexDbl(val,0.0);
 	  
+	  // AC 2020 May unclear why we need that ... 
 	  // i.seekg( pos); // rewind stream
-	  
-	  return i;
+	  //	  return i;
 	}
-	  
+
       assignIx++;
       nTrans--;
     }
-
 
   return i;
 }
