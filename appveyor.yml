@@ -41,10 +41,10 @@ install:
         $env:GCC="x86_64-7.2.0-posix-seh-rt_v5-rev1"
         $env:MSYSTEM="MINGW64" ;  $env:mname="mingw64" ; $env:arch="x86_64"
       }
-       elseif ($env:platform -Match "mingw64810x8664") 
+      elseif ($env:platform -Match "mingw64810x8664")
       {
         #"x86_64-8.1.0-posix-seh-rt_v6-rev0"
-        $env:GCC="x86_64-8.1.0-posix-seh-rt_v5-rev0"
+        $env:GCC="x86_64-8.1.0-posix-seh-rt_v6-rev0"
         $env:MSYSTEM="MINGW64" ; $env:mname="mingw64" ; $env:arch="x86_64"
       }
      elseif ($env:platform -Match "mingw64730x8664") 
