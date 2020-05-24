@@ -196,7 +196,6 @@ protected:
     static ObjHeapT  objHeap; 
 
     // index for newly allocated heap variables
-    static SizeT objHeapIx;
     static SizeT heapIx;
 
     static EnvStackT  callStack; 
@@ -248,7 +247,7 @@ public:
     {
         BaseGDL* del = (*it).second.get();
         objHeap.erase( id); 
-        if (!NullGDL::IsNULLorNullGDL(del)) delete del;
+        if (!NullGDL::IsNULLorNullGDL(del)) delete del; //avoid destroying !NULL
     }
     static void FreeObjHeap( DObj id)
     {

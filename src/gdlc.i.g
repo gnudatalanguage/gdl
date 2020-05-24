@@ -55,6 +55,7 @@ header {
 #include "accessdesc.hpp"
 #include "initsysvar.hpp"
 #include "gdljournal.hpp"
+#include "nullgdl.hpp"
 
 //class ProgNode;
 //typedef ProgNode* ProgNodeP;
@@ -248,7 +249,6 @@ protected:
     static ObjHeapT  objHeap; 
 
     // index for newly allocated heap variables
-    static SizeT objHeapIx;
     static SizeT heapIx;
 
     static EnvStackT  callStack; 
@@ -770,7 +770,6 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         }
 // The counters are reset for easier human readability.
        heapIx = 1;
-       objHeapIx = 1;
     }
 
     // name of data
