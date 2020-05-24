@@ -10,7 +10,7 @@ environment:
   matrix:
   # #- platform: mingw64720x8664
   - platform: mingw64630x8664
-  - platform: mingw64630i686
+ git pull - platform: mingw64630i686
   # #- platform: mingw64730x8664
    
 matrix:
@@ -36,7 +36,7 @@ install:
        $env:GCC="i686-8.1.0-posix-dwarf-rt_v6-rev0"
         $env:MSYSTEM="MINGW32" ; $env:mname="mingw32" ; $env:arch="i686"
       }
-     elseif ($env:platform -Match "mingw64630x8664") 
+      elseif ($env:platform -Match "mingw64630x8664") 
       {
         #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
         $env:GCC="x86_64-6.3.0-posix-seh-rt_v5-rev1"
