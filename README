@@ -9,7 +9,7 @@ IDL is a registered trademark of Harris Geospatial (see: http://harrisgeospatial
 HOMEPAGE:
 =========
 
-http://gnudatalanguage.sourceforge.net
+http://github.com/gnudatalanguage/gdl
 
 
 FEATURES:
@@ -105,12 +105,6 @@ numpy          http://numpy.scipy.org/
 
 COMPILING:
 ----------
-  At least g++ 3.2 (or a similar C++ standard conforming
-  compiler) is needed for compiling GDL.
-  Note that due to problems with static casts g++ 3.3.1
-  does NOT compile GDL, but 3.3.2 and 3.4.1 work fine again.
-  GDL compiles under Mac OS X (10.2, 10.3) with g++ 3.3 . 
-   
   If you install the libraries as precompiled
   packages rather than compiling them from sources, please note that
   depending on your distribution, you may need development packages
@@ -154,14 +148,12 @@ GRAPHICS AND DEPENDENCIES:
   (and the options -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' for efficiency), install it somewhere
   (so add also the with option -DCMAKE_INSTALL_PREFIX="somewhere"), and provide -DPLPLOTDIR="somewhere" while cmaking GDL.
 
-MATCH FUNCTIONS & MORE:
+MATH FUNCTIONS & MORE:
 -----------------------
   GDL uses the GNU Scientific Library (GSL).
   Please see file HACKING if you want to write functions extending GDL (i. e.
   add a library subroutine) which use GSL for proper handling of GSL
   obects in GDL.
-  (Minimal version is 1.7, which is now checked via "gsl.m4".
-  Note that version 1.1.1 was reported to NOT work with GDL)
   You find it at:
   http://www.gnu.org/software/gsl
 
@@ -175,34 +167,23 @@ MAKE GDL FASTER:
 
   The simpliest way to compile with it is to copy all the header files
   under sub-directory src/Eigen. Another solution is to provide full path
-  to the include files (e.g. --with-eigen=/home/toto/Eigen3.1.4/include/eigen3/
-  in that case Eigen would have been prepared using:
+  to the include files (i.e. using:
   cmake . -DCMAKE_INSTALL_PREFIX=/home/toto/Eigen3.1.4/ )
 
   The FFTW library is (optionally) used for the FFT function.
   It is available at: http://www.fftw.org/download.html
-  It is NOT used by default.
-  If you want to use it, use --with-fftw=DIR 
-  as a command line option to 'configure', where DIR denotes the
-  directory into which FFTW was installed
-  ('/lib' is appended for the library, '/include' for the include files).
   Using FFTW results in an about double as fast FFT function.
   Take care that you have to compile the "normal" and the "single"
   version of the library (resp. libfftw3.a and libfftw3f.a).
   First one is the default. You have to activate the single flag
   (./configure --enable-single) when recompiling FFTw3.
-  Please also notice that the test when runnig GDL configure
-  "checking for fftw_malloc in -lfftw3... yes"
-  will failed if libfftw3f.a is missing.
-  As mentionned in the log. of ./configure,
-  if FFTw is not used, the default (GSL) fft routine is used instead.
+  If FFTw is not used, the default (GSL) fft routine is used instead.
 
 WIDGETS:
 --------
   GDL supports GUI (widget) programming (initial effort by Joel Gales rewritten by Gilles Duvert)
   using the wxWidgets library. It is required by default.
-  If you don't want to use it, use
-  --with-wxWidgets=no (configure) or -DWXWIDGETS=off (CMake)
+  If you don't want to use it, use -DWXWIDGETS=off (CMake)
   wxWidgets can be obtained from:
   http://www.wxwidgets.org/downloads
   
@@ -231,7 +212,7 @@ DATA FORMATS:
     install HDF4 before netCDF due to same named but different header
     files which are overwritten by the HDF4 version otherwise.
     HDF4 is required by default. If you don't want to use it, use 
-    --with-hdf=no (configure) or -DHDF=off (CMake)
+    -DHDF=off (CMake)
     Note that HDF in turn needs other libraries. Check out the
     homepage for more information:
     http://hdf.ncsa.uiuc.edu/
@@ -243,7 +224,7 @@ DATA FORMATS:
     Basic support for HDF5 is now provided (thanks to Peter Messmer).
     If you want to use it, you need the HDF5 library.
     It is required by default. If you don't want to use it, use 
-    --with-hdf5=no (configure) or -DHDF5=off (CMake)
+    -DHDF5=off (CMake)
     Note that HDF5 in turn needs other libraries. Check out the
     homepage for more information:
     http://hdf.ncsa.uiuc.edu/HDF5
@@ -259,11 +240,11 @@ DATA FORMATS:
     to install netCDF after HDF4 due to same named, but different header
     files. If the header files of HDF4 and netCDF are in different directories 
     make sure, that the directory containing netCDF's version gets searched first,
-    ie. put an explicit path for netCDF even if it is in the default include path,
-    eg: --with-netcdf=/usr (configure) or -DNETCDFDIR=/usr (CMake)) 
+    i.e. put an explicit path for netCDF even if it is in the default include path,
+    i.e.: -DNETCDFDIR=/usr (CMake)) 
     netCDF is used by default. If you don't want to use it, use 
-    --with-netcdf=no (configure) or -DNETCDF=off (CMake)
-    as a command line option to 'configure'.
+    -DNETCDF=off (CMake)
+    as a command line option to 'cmake'.
     netCDF is available from:
     ftp://ftp.unidata.ucar.edu/pub/netcdf
 
@@ -279,8 +260,7 @@ DATA FORMATS:
   --------------
     In order to read and write images in several formats
     (e.g. JPEG, PNG), GDL uses ImageMagick.
-    It is required by default. If you don't want to use it, use 
-    --with-Magick=no
+    It is required by default. 
     ImageMagick can be obtained from:
     http://www.imagemagick.org/www/download.html
 
@@ -289,7 +269,6 @@ MAP PROJECTIONS and GEOPHYSICS:
   GDL contains now a complete support to MAP projection,
   using the proj4 or libproj library. Please see MAP_INSTALL file.
   It is NOT used by default.
-  If you want to use it, use --with-libproj4=DIR
 
   GDL uses libshp (shapelib) to implement MAP_CONTINENTS - see MAP_INSTALL (optional)
 
@@ -301,14 +280,12 @@ PYTHON INTERFACE:
   As so far there are only two example GDL extensions written in python its
   use is optional for now but required by default. If you don't want to use
   it, use  
-  --with-python=no
-  as a command line option to 'configure'.
+  --DPYTHON=no
+  as a command line option to 'cmake'.
   If you want to use it you need python and the python package Numpy.
   (http://numpy.scipy.org/).
-  The GDL configure script will determine the installed python version
+  The GDL cmake script will determine the installed python version
   automatically. For this the python executable must be installed.
-  The python version can be explictely set with 
-  --enable-python_version=VERSION# (eg. --enable-python_version=2.3).
   Note: For embedding python as it is done by GDL, the python dynamic
   library is needed which is *not* build by default. You need to run
   'configure' for python with the '--enable-shared' option. Please see
