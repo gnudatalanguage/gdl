@@ -271,7 +271,7 @@ script:
     - if [ -v ANTLR ]; then cd ..; fi
 
     # TEMPORARILY disabling tests that did not work at "day zero" (i.e. SF -> github migration)
-    - $SEDCMD '/test_bytscl.pro/d'           testsuite/Makefile.am # TODO!
+#    - $SEDCMD '/test_bytscl.pro/d'           testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_dicom.pro/d'            testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_container.pro/d'        testsuite/Makefile.am # TODO! not ready
     - $SEDCMD '/test_fft_leak.pro/d'         testsuite/Makefile.am # TODO!
