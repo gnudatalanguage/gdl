@@ -227,7 +227,8 @@ before_build:
   # test_contour: % DEVICE: Keyword GET_DECOMPOSED not allowed for call to: DEVICE
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_contour.pro' -NotMatch)
   # AC 20200430 should be ok now
-  #  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_correlate.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_constants.pro' -NotMatch)
+  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_correlate.pro' -NotMatch)
   # test_delvarrnew: needs a permissive shell environment that Windows won't give it.
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_delvarrnew.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_device.pro' -NotMatch)
@@ -235,40 +236,40 @@ before_build:
 
   # AC 20200430 should be ok now
   #  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_execute.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_extra_keywords.pro' -NotMatch)
+  #- ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_extra_keywords.pro' -NotMatch)
   # AC 20200430 should be ok now
   # - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_fft_dim.pro' -NotMatch)
   # test_file_move hangs appveyor
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_file_move.pro' -NotMatch)
+  #- ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_file_move.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_fix.pro' -NotMatch)
   # 1 error in test_fix
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_finite.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_fixprint.pro' -NotMatch)
+  #- ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_fixprint.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_formats.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_fx_root.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_fz_roots.pro' -NotMatch)
+  #- ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_fx_root.pro' -NotMatch)
+  #- ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_fz_roots.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_gc.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_get_lun.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_get_screen_size.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_gh00178.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_hist_2d.pro' -NotMatch)
+  #- ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_hist_2d.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_idlneturl.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_indgen.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_interpol.pro' -NotMatch)
+ # - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_interpol.pro' -NotMatch)
   # make_dll hangs up 64-bit appveyor build.
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_make_dll.pro' -NotMatch)
   # matrix_muiltiply: passes (?), but long.
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_matrix_multiply.pro' -NotMatch)
+  #- ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_matrix_multiply.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_memory.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_message.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_moment.pro' -NotMatch)
+ # - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_moment.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_multiroots.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_obj_isa.pro' -NotMatch)
   # obj_new fails -hangs- because the object example is too big for win32
   # then, after replacement with a smaller definition, fails on appveyor
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_obj_new.pro' -NotMatch)
+ # - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_obj_new.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_plot_oo.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_plot_ranges.pro' -NotMatch)
+#  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_plot_ranges.pro' -NotMatch)
   #AC 2018 : should be OK now (plot_usersym)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_plot_usersym.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_plotting_ranges.pro' -NotMatch)
@@ -293,8 +294,8 @@ before_build:
   #% Execution halted at: TEST_RANDOM_POISSON   229
 #AC20200430 solved ? - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_random.pro' -NotMatch)
   #% Execution halted at: TESTREADF          192
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_readf.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_resolve_routine.pro' -NotMatch)
+  #- ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_readf.pro' -NotMatch)
+  #- ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_resolve_routine.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_same_name.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_simplex.pro' -NotMatch)
   #% SPAWN: UNIT keyword is not implemented yet!
@@ -303,14 +304,14 @@ before_build:
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_step.pro' -NotMatch)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_systime.pro' -NotMatch)
   # systime not finished
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_tic_toc.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_total.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_rounding.pro' -NotMatch)
+  #- ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_tic_toc.pro' -NotMatch)
+ # - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_total.pro' -NotMatch)
+ # - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_rounding.pro' -NotMatch)
   #AC 2018 : should be OK now? N (test_tv)
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_tv.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_typename.pro' -NotMatch)
   # test_typename is probably using a dicom dictionary, too large for win32/
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_wait.pro' -NotMatch)
+ # - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_wait.pro' -NotMatch)
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_wavelet.pro' -NotMatch)
   # test_window_background will hang the 64-bit build up in appveyor.
   - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_window_background.pro' -NotMatch)
@@ -318,7 +319,7 @@ before_build:
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_wordexp.pro' -NotMatch)
   # test_xdr gives a segfault
   # ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_xdr.pro' -NotMatch)
-  - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_zip.pro' -NotMatch)
+ # - ps: Set-Content -Path "Makefile.am" -Value (get-content -Path "Makefile.am" | Select-String -Pattern 'test_zip.pro' -NotMatch)
 
   - ps: cd  C:\projects\gdl
 build_script:
