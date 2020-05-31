@@ -189,9 +189,9 @@ void InitStructs()
 
 
   DStructDesc* gdl_object = new DStructDesc( GDL_OBJECT_NAME);
-  gdl_object->AddTag("GDL_OBJ_TOP", &aLong64);
+  gdl_object->AddTag("IDL_OBJECT_TOP", &aLong64);
   gdl_object->AddTag("__OBJ__", &aObjRef);
-  gdl_object->AddTag("GDL_OBJ_BOTTOM", &aLong64);
+  gdl_object->AddTag("IDL_OBJECT_BOTTOM", &aLong64);
   // special for GDL_OBJECT ony
   gdl_object->InitOperatorList();
   // insert into structList
@@ -220,12 +220,12 @@ void InitStructs()
   structDesc::GDL_CONTAINER_NODE = gdlContainerNode;
 
   DStructDesc* gdlContainer = new DStructDesc( GDL_CONTAINER_NAME);
-  gdlContainer->AddTag("GDL_CONTAINER_TOP", &aLong64);
-  gdlContainer->AddTag("GDLCONTAINERVERSION", &aInt);
+  gdlContainer->AddTag("IDL_CONTAINER_TOP", &aLong64);
+  gdlContainer->AddTag("IDLCONTAINERVERSION", &aInt);
   gdlContainer->AddTag("PHEAD", &aPtrRef);
   gdlContainer->AddTag("PTAIL", &aPtrRef);
   gdlContainer->AddTag("NLIST", &aLong);
-  gdlContainer->AddTag("GDL_CONTAINER_BOTTOM", &aLong64);
+  gdlContainer->AddTag("IDL_CONTAINER_BOTTOM", &aLong64);
 //  gdlContainer->AddParent(gdl_object);// no operator overloading
   structList.push_back(gdlContainer);
   structDesc::GDL_CONTAINER = gdlContainer;
@@ -450,7 +450,6 @@ void InitStructs()
   widgdestroy->AddTag("ID", &aLong);
   widgdestroy->AddTag("TOP", &aLong);
   widgdestroy->AddTag("HANDLER", &aLong);
-  widgdestroy->AddTag("MESSAGE", &aLong);
   // insert into structList
   structList.push_back( widgdestroy);
   
@@ -459,9 +458,18 @@ void InitStructs()
   toplevelISdestroyed->AddTag("ID", &aLong);
   toplevelISdestroyed->AddTag("TOP", &aLong);
   toplevelISdestroyed->AddTag("HANDLER", &aLong);
-  toplevelISdestroyed->AddTag("MESSAGE", &aLong);
   // insert into structList
   structList.push_back( toplevelISdestroyed);
+
+  //for internal usage: event structure used to pass any catched "C++" event (as in ThrowGDLException)
+  //back to $MAIN$ to process as a normal error like in e->Throw();
+  DStructDesc* WidRunTimeError = new DStructDesc( "*WIDGET_RUNTIME_ERROR*");
+  WidRunTimeError->AddTag("ID", &aLong);
+  WidRunTimeError->AddTag("TOP", &aLong);
+  WidRunTimeError->AddTag("HANDLER", &aLong);
+  WidRunTimeError->AddTag("MESSAGE", &aString);
+  // insert into structList
+  structList.push_back( WidRunTimeError);
   
   DStructDesc* widgbut = new DStructDesc( "WIDGET_BUTTON");
   widgbut->AddTag("ID", &aLong);

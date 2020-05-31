@@ -446,8 +446,11 @@ void GraphicsMultiDevice::TidyWindowsList() {
         GDLWidgetBase* container = NULL;
         container = static_cast<GDLWidgetBase*> (draw->GetTopLevelBaseWidget(draw->WidgetID()));
         if (container && container->IsGraphicWindowFrame()) container->SelfDestroy();
-        else delete draw;
-      } else delete winList[i];
+      } else {
+        delete winList[i];
+        winList[i] = NULL;
+        oList[i] = 0;
+      }
     } else
 #endif     
     delete winList[i];

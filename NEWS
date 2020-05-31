@@ -765,6 +765,7 @@
             - SPAWN modified to allow immediate return when background job
             - multiple choice support in list widget
             - better HELP,/HEAP
+            - better HELP,/OBJ
             - FILE_MOVE improvements
             - FSTAT() improvements
             - fixed HDF_VD_READ segfault issue (#664)
@@ -773,3 +774,6 @@
             - STRUCT_ASSIGN fixed so it assigns correctly parts of structs that were themselves structs
             - some compiler warnings eliminated
             - fixed crash in REPLICATE_INPLACE (#574)
+            - transparent reading of windows text files (terminated with <CR><LF>)
+            - save/restore of OBJECTS complete.
+            - speedup of TRISOL

@@ -57,7 +57,7 @@ end
 
 function idlneturl::Get, buffer=buffer, filename=filename, string_array=string_array, ftp_explicit_ssl=ftp_explicit_ssl, url=url, test=test, verbose=verbose
 
-  if ~KEYWORD_SET(filename) then filename='idl.dat'
+  if n_elements(filename) eq 0  then filename='idl.dat'
   if (STRLEN(self.URL_QUERY) GT 0) then filename=self.URL_QUERY
 
 
@@ -121,44 +121,44 @@ function idlneturl::Get, buffer=buffer, filename=filename, string_array=string_a
 ; timeout
   curl_cmd+='--max-time '+strtrim(self.timeout,2)+' '
 
-  
-  if strlen(self.CALLBACK_FUNCTION) gt 0 then begin
-     if ptr_valid(self.Callback_Data) then callback_data= *(self.Callback_Data)
 ; GD:
-; in the presence of a callback function:
 ; first, get the response header and treat it, eventually sending some
 ; data to the callback. This because we cannot send the headers
 ; asynchronously, we would have to wait until the entire file has
 ; been downloaded. When we write this function directly in GDL using
 ; libcurl, things will be way esaier.
-     curl_asyn_get_headers='curl -LI --silent --include ' ; will get only headers
-     curl_asyn_get_headers+="--write-out '\n%{size_header}\n%{content_type}\n%{response_code}\n%{size_download}' " ; we get some useful values
-     cmd=curl_asyn_get_headers+id_cmd
-if KEYWORD_SET(verbose) then print, cmd
-     SPAWN, cmd, result, blahblah
+  curl_asyn_get_headers='curl -LI --silent --show-error --include '                                                             ; will get only headers
+  curl_asyn_get_headers+="--write-out '\n%{size_header}\n%{content_type}\n%{response_code}\n%{size_download}' "    ; we get some useful values
+  cmd=curl_asyn_get_headers+id_cmd
+  if KEYWORD_SET(verbose) then print, cmd
+  SPAWN, cmd, result, blahblah
 ; last 4 lines of result are the header size, the content_type, response_code and size_download respectively
-     response_header_size=result[-4]
-     if response_header_size eq 0 then begin ; in error and blahblah is curl's error, throw on it
-        message,blahblah
-     endif
-     self.content_type=result[-3]
-     self.response_code=fix(result[-2])
-     downloaded=long64(result[-1]) ; should be zero as this is the data downloaded, not the header.
+  response_header_size=result[-4]
+  if response_header_size eq 0 then begin ; in error and blahblah is curl's error, throw on it
+     message,"CCurlException:  Error: Http Get Request Failed. Error ="+blahblah
+  endif
+  self.content_type=result[-3]
+  self.response_code=fix(result[-2])
+  downloaded=long64(result[-1]) ; should be zero as this is the data downloaded, not the header.
                                 ; header of query is response without the last 4 lines
-     if n_elements(result) gt 4 then headers=result[0:-5] else headers=''     
+  if n_elements(result) gt 4 then headers=result[0:-5] else headers=''     
                                 ; set response header property
-     response=self->idlneturl::format_response_header(result,response_header_size)
-     
+  response=self->idlneturl::format_response_header(result,response_header_size)
+  
 ; retrieve content_length if present in headers
-     content_length_str=STREGEX(self.response_header, 'Content-Length: *[0-9]+', length=len, /extra)
-     if (len gt 0) then begin
-        content_length_substr=strsplit(content_length_str,":",/extr)
-        content_length=long(content_length_substr[1])
-     endif else content_length=0
-
+  content_length_str=STREGEX(self.response_header, 'Content-Length: *[0-9]+', length=len, /extra)
+  if (len gt 0) then begin
+     content_length_substr=strsplit(content_length_str,":",/extr)
+     content_length=long(content_length_substr[1])
+  endif else content_length=0
+  
 ;if content length is zero, it will be impossible to mimic the
-;callback by looking at the "progessbar"
-     if content_length eq 0 then goto, no_callback
+;callback by looking at the "progressbar"
+  if content_length eq 0 then goto, no_callback
+  
+  
+  if strlen(self.CALLBACK_FUNCTION) gt 0 then begin
+     if ptr_valid(self.Callback_Data) then callback_data= *(self.Callback_Data)
 
 ;set progressinfo and pass to callback, it's up to it to
 ;continue or not, we have downloaded 0
@@ -181,8 +181,7 @@ if KEYWORD_SET(verbose) then print, cmd
      
      cmd=curl_asyn_get_all+id_cmd+" 2>/tmp/pb &"
 ; will send data to filename and have the progressbar in /tmp/pb
-                                ;if KEYWORD_SET(verbose) then
-;     print, cmd
+if KEYWORD_SET(verbose) then  print, cmd
      
      SPAWN, cmd 
      StatusInfo="Downloading..."
@@ -201,62 +200,34 @@ if KEYWORD_SET(verbose) then print, cmd
         if  percent ge 1 then break                                                                        ;
      end
 done:
-; clear headers property as specified in documentation
-     self->idlneturl::SetProperty,HEADERS = ''
-     
-; order of Keywords is : STRING, BUFFER, FILENAME
-; filename exists, so the filename case is easy.
-     if ~KEYWORD_SET(string_array) and ~KEYWORD_SET(buffer) then return,FILE_SEARCH(filename, /full)
-; else, read, convert, delete          
-     if KEYWORD_SET(string_array) or KEYWORD_SET(buffer) then begin
-        openr,lun,filename,/get
-        sz=(fstat(lun)).size
-        response=bytarr(sz)
-        readu, lun, response
-        free_lun,lun
-     endif
-     if KEYWORD_SET(buffer) then return,response
-     return,fix(response,type=7) ;as string array
   endif else begin
 no_callback:
 ; GD:
 ; if there is no callback function, directly get the file as we do not
-; need to be asynchronous.
+; need to be asynchronous. Best is to create the 'filename' directly.
 
-; for content_type, response code, downloaded size
-     curl_cmd+="--write-out '\n%{size_header}\n%{content_type}\n%{response_code}\n%{size_download}' "
-     curl_syn='curl -L --silent --show-error --include ' ; include http header, disable progress meter but keeps error messages!
+     curl_syn='curl -L --silent --show-error -o '+filename+' ' 
      cmd=curl_syn+curl_cmd+id_cmd
-if KEYWORD_SET(verbose) then print, cmd
+     if KEYWORD_SET(verbose) then print, cmd
      SPAWN, cmd, result, blahblah
-; last 4 lines of result are the header size, the content_type, response_code and size_download respectively
-     response_header_size=fix(result[-4])
-     self.content_type=result[-3]
-     self.response_code=fix(result[-2])
-     response=self->idlneturl::format_response_header(result,response_header_size)
   endelse
-  
-  if KEYWORD_SET(test) then STOP
   
 ; clear headers property as specified in documentation
   self->idlneturl::SetProperty,HEADERS = ''
-  
+     
 ; order of Keywords is : STRING, BUFFER, FILENAME
-  if KEYWORD_SET(string_array) then return,response
-  if KEYWORD_SET(buffer) then begin
-     if n_elements(response) gt 0 then begin
-        b=bytes(response)
-        return,reform(b,n_bytes(b))
-     endif else return,0b
+; filename exists, so the filename case is easy.
+  if ~KEYWORD_SET(string_array) and ~KEYWORD_SET(buffer) then return,FILE_SEARCH(filename, /full)
+; else, read, convert, delete          
+  if KEYWORD_SET(string_array) or KEYWORD_SET(buffer) then begin
+     openr,lun,filename,/get
+     sz=(fstat(lun)).size
+     response=bytarr(sz)
+     readu, lun, response
+     free_lun,lun
   endif
-  
-; makes default: filename
-  if ~KEYWORD_SET(filename) then filename='idl.dat'
-  if (STRLEN(self.URL_QUERY) GT 0) then filename='XXXXXXXXXXXXXXXXXXXX'
-  openw, lun, filename, /GET_LUN
-  printf,lun,response
-  free_lun,lun
-  return, FILE_SEARCH(filename, /full)
+  if KEYWORD_SET(buffer) then return,response
+  return,fix(response,type=7)   ;as string array
 ;
 end
 ;
@@ -447,7 +418,7 @@ function idlneturl::Init,$
    SSL_VERIFY_PEER=SSL_VERIFY_PEER,$
    SSL_VERSION=SSL_VERSION,$
    TIMEOUT=TIMEOUT,_extra=extra
-  
+
 IF ~KEYWORD_SET(URL_SCHEME) then URL_SCHEME='http'
 IF ~KEYWORD_SET(URL_PORT) then URL_PORT=80
 IF ~KEYWORD_SET(VERBOSE) then VERBOSE=0b
@@ -527,5 +498,6 @@ pro idlneturl__define
             SSL_VERSION: 0,$
             TIMEOUT: 1800,$
             VERBOSE: 0}
+  return
 end
 

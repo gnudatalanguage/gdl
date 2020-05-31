@@ -69,10 +69,12 @@ public:
     bool SetBackingStore(int value){return true;}
     void Clear();
     void Clear( DLong bColor);
+    bool streamIsNotAWidget();
     void Raise();
     void Lower();
     void Iconic();
     void DeIconic();
+    bool UnsetFocus();
     bool GetGin(PLGraphicsIn *gin, int mode);
     //bool GetExtendedGin(PLGraphicsIn *gin, int mode);
     void WarpPointer(DLong x, DLong y);
@@ -94,6 +96,7 @@ public:
     DString GetVisualName();
     bool GetScreenResolution(double& resx, double& resy);
     DByteGDL* GetBitmapData();
+    float GetPlplotFudge(){return 1.8;}; //correction factor see gdlwxStream.cpp
 };
 
 

@@ -16,7 +16,8 @@
  *                                                                         *
  ***************************************************************************/
 
-// basic_op.cpp
+#ifndef SPECIALIZATIONS_DATATYPES_HPP_
+#define SPECIALIZATIONS_DATATYPES_HPP_
 
 template<>
 SizeT Data_<SpDObj>::N_Elements() const; 
@@ -696,4 +697,6 @@ template<>
 PyObject* Data_<SpDComplexDbl>::ToPythonScalar();
 template<> 
 PyObject* Data_<SpDString>::ToPythonScalar();
+#endif
+
 #endif

@@ -749,7 +749,9 @@ if(LIBPROJ4)
 
                 message(FATAL_ERROR "Libproj4 is required but was not found.\n"
                 "Use -DLIBPROJ4DIR=DIR to specify the Libproj4 directory tree.\n"
-                "Use -DLIBPROJ4=OFF to not use it.")
+                "Use -DLIBPROJ4=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libproj-dev)\n"
+                "(suitable Fedora/CentOS package: proj-devel)")
 
             endif(NOT USE_LIBPROJ4)
         endif(USE_LIBPROJ4_NEW)

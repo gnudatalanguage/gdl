@@ -271,6 +271,17 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
 
   DLong actID = (*static_cast<DLongGDL*> (ev->GetTag( idIx, 0 )))[0];
   
+  //run-time errors (throws by interpreter etc but in widget's loop)
+  if (ev->Desc( )->Name( ) == "*WIDGET_RUNTIME_ERROR*" ) {
+#ifdef GDL_DEBUG_WIDGETS
+    std::cout << "CallEventHandler: *WIDGET_RUNTIME_ERROR*" << std::endl;
+#endif
+    static int messIx = ev->Desc( )->TagIndex( "MESSAGE" );
+    std::string mess = (*static_cast<DStringGDL*> (ev->GetTag( messIx, 0 )))[0];
+    GDLDelete(ev);
+    EnvUDT* e = GDLInterpreter::CallStackBack(); e->Throw(mess);
+    return NULL;
+  }
   if (ev->Desc( )->Name( ) == "*TOPLEVEL_DESTROYED*" ) {
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "CallEventHandler: *TOPLEVEL_DESTROYED*: TLB Widget: "+i2s(actID)+" has been destroyed."<< std::endl;
@@ -295,12 +306,12 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
       return NULL;
     }
 
-    static int messageIx = ev->Desc( )->TagIndex( "MESSAGE" );
-    DLong message = (*static_cast<DLongGDL*> (ev->GetTag( messageIx, 0 )))[0];
+    static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" );
+    DLong handlerCode = (*static_cast<DLongGDL*> (ev->GetTag( handlerIx, 0 )))[0];
 
     GDLDelete( ev );
 
-    assert( message == 0 ); // only '0' -> Destroy for now
+    assert( handlerCode == 0 ); // only '0' -> Destroy for now
 
     assert( widget->IsBase( ) );
 #ifdef GDL_DEBUG_WIDGETS
@@ -817,6 +828,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   if ( nParam == 1 ) // no TLB
     e->AssureLongScalarPar( 0, parentID );
 
+  if (e->KeywordPresent("FONT")) e->Throw("FONT keyword not accepted by WIDGET_BASE.");  //forbidden for widget_base 
   // handle some more keywords over widget
   
   static int mbarIx = e->KeywordIx( "MBAR" );
@@ -881,7 +893,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   if ( e->KeywordPresent( mapIx ) ) if ( !e->KeywordSet( mapIx ) )  mapWid = false;
   //    std::cout << "Map in widget_base: " << mapWid << std::endl;
 
-  //     bool scroll = e->KeywordSet( scrollIx);
+  //     bool scroll = e->KeywordSet( scrollIx); //in getcommonkw.
 //  bool tlb_frame_attr = e->KeywordSet( tlb_frame_attrIx );
   bool tlb_iconify_events = e->KeywordSet( tlb_iconify_eventsIx );
   bool tlb_kill_request_events = e->KeywordSet( tlb_kill_request_eventsIx );
@@ -953,6 +965,7 @@ BaseGDL* widget_draw( EnvT* e ) {
     if ( p == NULL )
       e->Throw( "Invalid widget identifier: " + i2s( parentID ) );
     if ( !IsContextMenu && !p->IsBase( ) && !p->IsTab( ) ) e->Throw( "Parent is of incorrect type." );
+    if ( IsContextMenu && ( p->IsButton() || p->IsComboBox() || p->IsDropList() || p->IsLabel() || p->IsSlider() || p->IsTab()) ) e->Throw( "Parent is of incorrect type." );
   }
   //...
 
@@ -1104,14 +1117,11 @@ BaseGDL* widget_draw( EnvT* e ) {
       } else  e->Throw( "Value must be string or byte." );
     }
   }
-  //    cout << value << ",  ParentID : "<<  parentID <<  endl;
+  DStringGDL* tooltipgdl=NULL;
 
   GDLWidgetButton* button;
-  if (e->KeywordPresent(TOOLTIP)) {
-   DStringGDL* tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP) ;
+  if (e->KeywordPresent(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP) ;
    button = new GDLWidgetButton( parentID, e, value, eventFlags, isMenu, hasSeparatorAbove, bitmap, tooltipgdl);
-  }
-  else button = new GDLWidgetButton( parentID, e, value, eventFlags, isMenu, hasSeparatorAbove, bitmap);
   
   if (button->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) button->SetWidgetType( GDLWidget::WIDGET_BUTTON );
   if (dynres) button->authorizeDynamicResize();
@@ -1739,7 +1749,7 @@ BaseGDL* widget_info( EnvT* e ) {
   if (isdisplayed) return new DLongGDL(1); 
   
   if (is_mapped) {
-    //must return 1 if the widget is visble, which is normally beacuse the grand parent is mapped.
+    //must return 1 if the widget is visible, which is normally because the grand parent is mapped.
     if ( rank == 0 ) {
       // Scalar Input
       WidgetIDT widgetID = (*p0L)[0];
@@ -1788,7 +1798,7 @@ BaseGDL* widget_info( EnvT* e ) {
         else if (eventfun) return new DStringGDL(widget->GetEventFun());
         else if (eventpro) return new DStringGDL(widget->GetEventPro());
         else if (fontname) { wxWindow* ww=static_cast<wxWindow*>(widget->GetWxWidget()); 
-          if (ww) return new DStringGDL( std::string(ww->GetFont().GetNativeFontInfoDesc().mb_str()) );}
+          if (ww) return new DStringGDL( std::string(ww->GetFont().GetNativeFontInfoUserDesc().mb_str()) );}
       }
     } else {
       // Array Input
@@ -1895,14 +1905,7 @@ BaseGDL* widget_info( EnvT* e ) {
       GDLWidget *widget = GDLWidget::GetWidget( widgetID );
       if ( widget == NULL )
         e->Throw("Invalid widget identifier:"+i2s(widgetID));
-      else {
-        if (widget->IsText()) return static_cast<GDLWidgetText*>(widget)->GetGeometry( fact );
-        else if (widget->IsDraw()) return static_cast<GDLWidgetDraw*>(widget)->GetGeometry( fact );
-        else if (widget->IsBase()) return static_cast<GDLWidgetBase*>(widget)->GetGeometry( fact );
-        else if (widget->IsList()) return static_cast<GDLWidgetList*>(widget)->GetGeometry( fact );
-        else if (widget->IsTable()) return static_cast<GDLWidgetTable*>(widget)->GetGeometry( fact );
         else return widget->GetGeometry( fact );
-      }
     } else {
       // Array Input
       DStructDesc* dWidgeomDesc = FindInStructList( structList, "WIDGET_GEOMETRY");
@@ -1920,13 +1923,7 @@ BaseGDL* widget_info( EnvT* e ) {
         GDLWidget *widget = GDLWidget::GetWidget( widgetID );
         if ( widget != NULL ) {
           atLeastOneFound=TRUE;
-          DStructGDL* ret;
-          if (widget->IsText()) ret=static_cast<GDLWidgetText*>(widget)->GetGeometry( fact );
-          else if (widget->IsDraw()) ret=static_cast<GDLWidgetDraw*>(widget)->GetGeometry( fact );
-          else if (widget->IsBase()) ret=static_cast<GDLWidgetBase*>(widget)->GetGeometry( fact );
-          else if (widget->IsList()) ret=static_cast<GDLWidgetList*>(widget)->GetGeometry( fact );
-          else if (widget->IsTable()) ret=static_cast<GDLWidgetTable*>(widget)->GetGeometry( fact );
-          else ret=widget->GetGeometry( fact );
+          DStructGDL* ret=widget->GetGeometry( fact );
           for (SizeT itag=0; itag<ret->Desc()->NTags(); ++itag) (*static_cast<DFloatGDL*>(ex->GetTag(itag, i)))[0]=(*static_cast<DFloatGDL*>(ret->GetTag(itag, 0)))[0];
         }
       }
@@ -3315,7 +3312,7 @@ void widget_control( EnvT* e ) {
     static int SET_LIST_SELECT = e->KeywordIx( "SET_LIST_SELECT" );
     if (e->KeywordPresent(SET_LIST_SELECT)) {
       DLongGDL* listSelection =  e->GetKWAs<DLongGDL>(SET_LIST_SELECT);
-      for (int i=0; i<listSelection->N_Elements() ; ++i) list->SelectEntry((*listSelection)[i]); //mots probably not the right thing to do.
+      for (int i=0; i<listSelection->N_Elements() ; ++i) list->SelectEntry((*listSelection)[i]); //most probably not the right thing to do.
     }
   }
   

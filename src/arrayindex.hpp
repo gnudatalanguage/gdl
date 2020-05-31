@@ -343,7 +343,8 @@ public:
 
   // grabs c
   CArrayIndexScalar( BaseGDL* c)
-  : rawData(c)
+  : rawData(c),
+  sInit(c->LoopIndex())
   {
 //     if( c->Type() == GDL_STRING)
 //     {
@@ -370,7 +371,8 @@ public:
 //       }
 //     }
 //     else
-      sInit = c->LoopIndex(); // non STRING throw if not allowed
+   // ccpchek says: (performance) Variable 'sInit' is assigned in constructor body. Consider performing initialization in initialization list.
+   //      sInit = c->LoopIndex(); // non STRING throw if not allowed
       s = sInit;
   }
 

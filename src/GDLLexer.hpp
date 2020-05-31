@@ -2,7 +2,7 @@
 #define INC_GDLLexer_hpp_
 
 #include <antlr/config.hpp>
-/* $ANTLR 2.7.7 (20190904): "gdlc.g" -> "GDLLexer.hpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "gdlc.g" -> "GDLLexer.hpp"$ */
 #include <antlr/CommonToken.hpp>
 #include <antlr/InputBuffer.hpp>
 #include <antlr/BitSet.hpp>

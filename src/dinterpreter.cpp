@@ -59,7 +59,6 @@ bool historyIntialized = false;
 // instantiation of static data
 GDLInterpreter::HeapT     GDLInterpreter::heap; 
 GDLInterpreter::ObjHeapT  GDLInterpreter::objHeap; 
-SizeT                     GDLInterpreter::objHeapIx;
 SizeT                     GDLInterpreter::heapIx;
 EnvStackT                 GDLInterpreter::callStack;
 DLong                     GDLInterpreter::stepCount;
@@ -76,7 +75,6 @@ DInterpreter::DInterpreter(): GDLInterpreter()
   //    heap.push_back(NULL); // init heap index 0 (used as NULL ptr)
   //    objHeap.push_back(NULL); // init heap index 0 (used as NULL ptr)
   interruptEnable = true;
-  objHeapIx=1; // map version (0 is NULL ptr)
   heapIx=1;    // map version (0 is NULL ptr)
   returnValue  = NULL;
   returnValueL = NULL;
@@ -1873,7 +1871,9 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
       }
     }    catch (exception& e) {
       cerr << "InterpreterLoop: Exception: " << e.what() << endl;
-    }    catch (...) {
+    }    catch (GDLException &e ) {
+      Warning(e.getMessage());
+    }   catch (...) {
       cerr << "InterpreterLoop: Unhandled Error." << endl;
     }
   }
