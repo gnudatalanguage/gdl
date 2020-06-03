@@ -3254,7 +3254,7 @@ namespace lib {
       if (!cumulative) {
         switch (p0->Type()) {
         case GDL_DOUBLE: return total_over_dim_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0), srcDim, sumDim - 1, nan);
-        case GDL_COMPLEXDBL: return total_over_dim_template<DComplexGDL>(static_cast<DComplexGDL*> (p0), srcDim, sumDim - 1, nan);
+	case GDL_COMPLEXDBL: return total_over_dim_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0), srcDim, sumDim - 1, nan);
           // We use GDL_DOUBLE for others
         case GDL_FLOAT:
           // Conver to Double
