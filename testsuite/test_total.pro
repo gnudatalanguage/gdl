@@ -139,7 +139,7 @@ end
 ; -----------------------------------------------------------------
 ;
 ; related to bug report #775 on Github
-pro TEST_TOTAL_DIM, cumul_errors, test=test, verbose=verbose
+pro TEST_TOTAL_DIM, cumul_errors, test=test, verbose=verbose, debug=debug
 ;
 errors=0
 ;
@@ -150,14 +150,12 @@ for ii=0, N_ELEMENTS(liste_type)-1 do begin
    tab=MAKE_ARRAY(2, 3, 4, 5, type=liste_type[ii], /index)
    if KEYWORD_SET(verbose) then print, ' Running type :'+TYPENAME(tab)
    ;;
-;if liste_type[ii] EQ 9 then continue
-   ;;
    res0=TOTAL(TOTAL(tab, 2, /int))
-print, 'after res0'+TYPENAME(tab)
+   if KEYWORD_SET(debug) then print, 'after res0'+TYPENAME(tab)
    res1=TOTAL(TOTAL(tab, 2))
-print, 'after res1'+TYPENAME(tab)
+   if KEYWORD_SET(debug) then print, 'after res1'+TYPENAME(tab)
    res2=TOTAL(TOTAL(tab, 2, /double))
-print, 'after res2'+TYPENAME(tab)
+   if KEYWORD_SET(debug) then print, 'after res2'+TYPENAME(tab)
    ;;
    txt='for type '+TYPENAME(tab)
    if res0 NE 7140 then ERRORS_ADD, errors, 'pb RES0 (/int) '+txt
