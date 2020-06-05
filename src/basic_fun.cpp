@@ -3037,7 +3037,7 @@ namespace lib {
         } else {
           switch (p0->Type()) {
           case GDL_DOUBLE: return total_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0->Dup()), nan);
-          case GDL_COMPLEXDBL: return total_cu_template<DComplexGDL>(static_cast<DComplexGDL*> (p0->Dup()), nan);
+          case GDL_COMPLEXDBL: return total_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0->Dup()), nan);
             // We use GDL_DOUBLE for others
           case GDL_FLOAT:
             // Conver to Double
@@ -3287,7 +3287,7 @@ namespace lib {
       } else {
         switch (p0->Type()) {
         case GDL_DOUBLE: return total_over_dim_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0->Dup()), sumDim - 1, nan);
-        case GDL_COMPLEXDBL: return total_over_dim_cu_template<DComplexGDL>(static_cast<DComplexGDL*> (p0->Dup()), sumDim - 1, nan);
+        case GDL_COMPLEXDBL: return total_over_dim_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0->Dup()), sumDim - 1, nan);
           // We use GDL_DOUBLE for others
         case GDL_FLOAT:
           // Conver to Double
