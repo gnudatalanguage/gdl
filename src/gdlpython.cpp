@@ -35,7 +35,8 @@
 using namespace std;
 
 #if PY_MAJOR_VERSION >= 3
-int PythonInit()
+#include <cstddef>
+std::nullptr_t PythonInit()
 {
   if( Py_IsInitialized()) return 0;
 #else
