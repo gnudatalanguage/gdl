@@ -99,17 +99,15 @@ install:
     ## OPTIONAL DEPENDENCIES
     ##
 
-    # readline (OSX) / editline (Linux) - just to try both - TODO
+    # readline (OSX & Linux) / no more editline (May 2020)
     #TODO! - see https://github.com/gnudatalanguage/gdl/issues/227
-    # - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libeditline-dev"; fi
-    # - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=ON -DREADLINE=OFF"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libreadline-gplv2-dev"; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=ON"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=ON"; fi
 
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} readline"; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=ON -DREADLINEDIR=/usr/local/opt/readline"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=ON -DREADLINEDIR=/usr/local/opt/readline"; fi
 
-    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEDITLINE=OFF -DREADLINE=OFF"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=OFF"; fi 
 
     # pnglib
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libpng-dev"; fi
@@ -273,7 +271,7 @@ script:
     - if [ -v ANTLR ]; then cd ..; fi
 
     # TEMPORARILY disabling tests that did not work at "day zero" (i.e. SF -> github migration)
-    - $SEDCMD '/test_bytscl.pro/d'           testsuite/Makefile.am # TODO!
+#    - $SEDCMD '/test_bytscl.pro/d'           testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_dicom.pro/d'            testsuite/Makefile.am # TODO!
     - $SEDCMD '/test_container.pro/d'        testsuite/Makefile.am # TODO! not ready
     - $SEDCMD '/test_fft_leak.pro/d'         testsuite/Makefile.am # TODO!

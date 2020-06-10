@@ -12,6 +12,8 @@
 ;   of byte ... large rewriting, trying to automatic
 ;   and to have numerical cases at the limits ...
 ;
+; - 2020-JUN-03 : AC. Add a test to trigged bug report #775
+;
 ; ---------------------------------------
 ; Script : regression-total
 pro regression, a
@@ -134,6 +136,40 @@ DEFSYSV, '!gdl', exists=isGDL
  
 end
 ;
+; -----------------------------------------------------------------
+;
+; related to bug report #775 on Github
+pro TEST_TOTAL_DIM, cumul_errors, test=test, verbose=verbose, debug=debug
+;
+errors=0
+;
+GIVE_LIST_NUMERIC, liste_type
+;
+for ii=0, N_ELEMENTS(liste_type)-1 do begin
+   ;;
+   tab=MAKE_ARRAY(2, 3, 4, 5, type=liste_type[ii], /index)
+   if KEYWORD_SET(verbose) then print, ' Running type :'+TYPENAME(tab)
+   ;;
+   res0=TOTAL(TOTAL(tab, 2, /int))
+   if KEYWORD_SET(debug) then print, 'after res0'+TYPENAME(tab)
+   res1=TOTAL(TOTAL(tab, 2))
+   if KEYWORD_SET(debug) then print, 'after res1'+TYPENAME(tab)
+   res2=TOTAL(TOTAL(tab, 2, /double))
+   if KEYWORD_SET(debug) then print, 'after res2'+TYPENAME(tab)
+   ;;
+   txt='for type '+TYPENAME(tab)
+   if res0 NE 7140 then ERRORS_ADD, errors, 'pb RES0 (/int) '+txt
+   if res1 NE 7140 then ERRORS_ADD, errors, 'pb RES1 (default) '+txt
+   if res2 NE 7140 then ERRORS_ADD, errors, 'pb RES2 (/double) '+txt
+endfor
+;
+; --------------
+;
+BANNER_FOR_TESTSUITE, "TEST_TOTAL_DIM", errors, /short, verb=verbose
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_SET(test) then STOP
+;
+end
 ; -----------------------------------------------------------------
 ;
 pro TEST_TOTAL_LARGE, cumul_errors, test=test, verbose=verbose
@@ -332,6 +368,8 @@ TEST_TOTAL_NAN_INF, cumul_errors, test=test, verbose=verbose
 TEST_TOTAL_LARGE, cumul_errors, test=test, verbose=verbose
 ;
 TEST_TOTAL_INT, cumul_errors, test=test, verbose=verbose
+;
+TEST_TOTAL_DIM, cumul_errors, test=test, verbose=verbose
 ;
 ; ----------------- final message ----------
 ;

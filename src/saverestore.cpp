@@ -70,11 +70,8 @@ enum {
 } Markers;
 
   typedef std::map<DPtr, SizeT> heapT;
-  static heapT heapIndexMapSave; //std::map<DPtr, long> heapIndexMapSave; //list of [ heap pointer, heap index ] used when saving.
-  static heapT heapObjIndexMapSave; 
+  static heapT heapIndexMapSave;  //list of [ heap pointer, heap index ] used when saving.
   static std::map<long, std::pair<BaseGDL*,DPtr>> heapIndexMapRestore; //list of [heap index , [variable,heap pointer]] used when reading.
-  static SizeT heapIndexSave;
-  static SizeT heapObjIndexSave;
   static std::vector<std::string> predeflist;
   static char* saveFileAuthor;
   static char* saveFileDatestring;
@@ -469,7 +466,8 @@ enum {
     if (!xdr_string(xdrs, &structname, 2048)) return NULL;
     int32_t structure_def_flags;
     if (!xdr_int32_t(xdrs, &structure_def_flags)) return NULL;
-    bool ispredef = false;
+    bool ispredef = false; //ispredef means that this struct has been already defined inside the save file,
+    // but its definition may clash with an existing definition already made in GDL previous to the RESTORE command.
     if (structure_def_flags & 0x01)
     {
       ispredef = true;
@@ -509,21 +507,25 @@ enum {
     if (!xdr_int32_t(xdrs, &ntags)) return NULL;
     int32_t struct_nbytes;
     if (!xdr_int32_t(xdrs, &struct_nbytes)) return NULL;
-    //    cerr << "ntags=" << ntags << ",nbytes=" << struct_nbytes << endl;
     //if predef == 1 this ends the Struct_desc, meaning that the definition of such a
     //structure has already been presented and we should reuse it.
     // otherwise, we define the structure using the following entries:
-    if (ispredef)
-    {
+    if (ispredef) {
       std::string name = std::string(structname);
-      if (name != "$truct") // named struct
+      //beautify
+      assert(name != "$truct") ; // named struct
         name = StrUpCase(name);
-      DStructDesc* desc =
-        e->Interpreter()->GetStruct(name, e->CallingNode()); //will throw if does not exist.
-
+      if( name == "IDL_OBJECT") name = GDL_OBJECT_NAME; // replacement also done in GDLParser
+      if( name == "IDL_CONTAINER") name = GDL_CONTAINER_NAME; // replacement also done in GDLParser
+      DStructDesc* desc = e->Interpreter()->GetStruct(name, e->CallingNode()); //will throw if does not exist.
       return new DStructGDL(desc, *inputdims);
-    } else
-    {
+
+    } else {
+
+      //definition of a new structure or class. Structure, if named, may be different from already existing (prior to RESTORE): clash!
+      //this is why the "RELAXED" option of RESTORE exists.
+      // Besides, if we create an Object, (a named structure) it is necessary to check wether it can be defined using XXXX__define.pro
+      // and if this definition is in accordance with the structure defined here, i.e., in the save file.
       //TAG_DESC repated ntags times:
       int32_t tag_typecode[ntags];
       char* tag_name[ntags];
@@ -548,7 +550,6 @@ enum {
       for (int i = 0; i < ntags; ++i) if (tag_flag[i] & 0x20) nstructs++;
       for (int i = 0; i < ntags; ++i) if (tag_flag[i] & 0x04) narrays++;
       dimension * tagdimensions[narrays + 1]; //Always >0: FIXME IF MEMORY LEAK!
-      //      cerr<<"reading "<<nstructs<<" structs and "<<narrays<<" arrays."<<endl;
       //if there are any tag flags indicating the tag is an array, read the ARRDESC
       for (int i = 0; i < narrays; ++i)
       {
@@ -557,12 +558,44 @@ enum {
       }
 
       std::string stru_name = std::string(structname);
-      DStructDesc* stru_desc;
-      DStructDesc* ref_desc;
+      if( stru_name == "IDL_OBJECT") stru_name = GDL_OBJECT_NAME; // replacement also done in GDLParser
+      if( stru_name == "IDL_CONTAINER") stru_name = GDL_CONTAINER_NAME; // replacement also done in GDLParser
+      DStructDesc* stru_desc=NULL;
+      DStructDesc* ref_desc=NULL;
       bool checkStruct=false;
-      //take care of named structures
+      //take care of named structures. Here is also where one should try to create an object, since, if it exists, its structure must be
+      //compared with the current one.
       if (stru_name.length() > 0 && stru_name[0] != '$')
       {
+        if (isObjStruct) { //create a dummy object of this name, remove it.
+          DString objName=StrUpCase(stru_name);
+          DStructDesc* objDesc;
+          try {
+            objDesc = e->Interpreter()->GetStruct(objName, e->CallingNode());
+            DStructGDL* objStruct = new DStructGDL(objDesc, dimension(1));
+            DObj objID = e->NewObjHeap(1, objStruct); // owns objStruct
+            DObjGDL* newObj = new DObjGDL(objID); // the object
+            //calling the INIT function seems to intrusive.
+//            try {
+//              // call INIT function
+//              DFun* objINIT = objDesc->GetFun("INIT");
+//              if (objINIT != NULL) {
+//                StackGuard<EnvStackT> guard(e->Interpreter()->CallStack());
+//
+//                // morph to obj environment and push it onto the stack again
+//                e->PushNewEnvUD(objINIT, 1, &newObj);
+//
+//                BaseGDL* res = e->Interpreter()->call_fun(objINIT->GetTree());
+//                GDLDelete(res);
+//              }
+//            } catch (...) {
+//            }
+            e->FreeObjHeap(objID); // delete objStruct
+            GDLDelete(newObj);
+          } catch (...) {
+            if (DEBUG_SAVERESTORE) std::cerr << stru_name<<": is NOT a known Object."<<endl;
+          }
+        }
         stru_desc = FindInStructList(structList, stru_name);
 
         if (stru_desc == NULL)
@@ -570,6 +603,7 @@ enum {
           stru_desc = new DStructDesc(stru_name);
           structList.push_back(stru_desc);
         } else {
+          if (DEBUG_SAVERESTORE) cerr<<stru_name<<": is a known Object."<<endl;
           checkStruct=true;
           ref_desc=stru_desc;
           stru_desc=new DStructDesc("$truct"); //make it anonymous, test if equality at end!
@@ -585,7 +619,6 @@ enum {
         {
           // modify pardim and push index;
           pardim = *(tagdimensions[j++]); //memory leak?
-          //          cerr << " " << pardim << endl;
         }
 
         switch (tag_typecode[i]) {
@@ -693,13 +726,12 @@ enum {
             break;
 
           default: //	0 ? Undefined (not allowed) 
-            //            cerr << "Should not happen" << endl;
+            if (DEBUG_SAVERESTORE) cerr << "Should not happen: undefined typecode tag in getDStruct()." << endl;
             break;
         }
 
 
 
-        //        cerr << endl;
       }
 
       //Then there should be CLASSNAME if INHERITS or IS_SUPER 
@@ -723,10 +755,13 @@ enum {
           for (int i = 0; i < nsupclasses; ++i)
           {
             //define all parent classes in objheap.
-            DStructGDL* superclass = getDStruct(e, xdrs, new dimension(1), isObjStruct); // will define the class as an object.
-            if (isObjStruct)  {
-              DPtr ptr= e->NewObjHeap(1, static_cast<DStructGDL*>(superclass));
-            }
+            DStructGDL* superclass = NULL;
+            bool dummy=false;
+            superclass = getDStruct(e, xdrs, new dimension(1), dummy); // will define the class as an object.
+            if (superclass) stru_desc->AddParentListOnly(superclass->Desc());
+//            if (isObjStruct)  {
+//             DPtr ptr= e->NewObjHeap(1, static_cast<DStructGDL*>(superclass));
+//            }
           }
         }
       }
@@ -738,6 +773,7 @@ enum {
           stru_desc=ref_desc; //OK, switch back.
         }        catch (GDLException& ex)
         {
+          e->Throw("Structure not restored due to conflict with existing definition: "+stru_name);
           return NULL;
         }
       }
@@ -976,7 +1012,7 @@ enum {
           var = new DULong64GDL(*dims);
           break;
         default: //	0 ? Undefined (not allowed) 
-          //          cerr <<"Should not happen"<<endl;
+          var = NullGDL::GetSingleInstance(); //          cerr <<"Should not happen"<<endl;
           break;
       }
     }
@@ -1077,6 +1113,8 @@ enum {
         {
           DPtr heapptr = heapIndexMapRestore.find(heapNumber[ix])->second.second;
            (*ptr)[ix] = heapptr;
+           GDLInterpreter::IncRef(heapptr);
+          if (DEBUG_SAVERESTORE) std::cerr<<"PTR at #"<<heapNumber[ix]<<" restored at "<<heapptr<<std::endl;
         }
         break;
       }
@@ -1089,6 +1127,8 @@ enum {
         {
           DObj heapptr = heapIndexMapRestore.find(heapNumber[ix])->second.second;
             (*ptr)[ix] = heapptr;
+           GDLInterpreter::IncRefObj(heapptr);
+          if (DEBUG_SAVERESTORE) std::cerr<<"OBJ at #"<<heapNumber[ix]<<" restored at "<<heapptr<<std::endl;
         }
         break;
       }
@@ -1196,8 +1236,8 @@ enum {
         {
           heapNumber[i]=0;
           DObj ptr = (*static_cast<DObjGDL*>(var))[i];
-          heapT::iterator it=heapObjIndexMapSave.find(ptr);
-          if (it!=heapObjIndexMapSave.end()) heapNumber[i]=(*it).second+heapIndexSave; //see coding in writeHeapvariable
+          heapT::iterator it=heapIndexMapSave.find(ptr);
+          if (it!=heapIndexMapSave.end()) heapNumber[i]=(*it).second; 
         }
         if (!xdr_vector(xdrs, (char*) &heapNumber, nEl, sizeof (int32_t), (xdrproc_t) xdr_uint32_t)) cerr << "error OBJ" << endl;
         break;
@@ -1271,13 +1311,8 @@ enum {
     //we  write only the ones that are actuall in , depending, the 
     heapT::iterator itheap;
     bool unknown=false;
-    if (isObject) {
-      itheap=heapObjIndexMapSave.find(ptr);
-      if ( itheap==heapObjIndexMapSave.end() ) unknown=true;
-    } else {
       itheap=heapIndexMapSave.find(ptr);
       if ( itheap==heapIndexMapSave.end() ) unknown=true;
-    }
     if (unknown) {
       if (DEBUG_SAVERESTORE) std::cerr<<"ignoring unused heap_index "<<ptr<<std::endl;
       return xdr_getpos(xdrs); //do nothing.
@@ -1286,12 +1321,9 @@ enum {
     bool isSysVar=false;
     bool readonly=false;
     uint32_t cur=writeNewRecordHeader(xdrs, HEAP_DATA); //HEAP_DATA
-    int32_t heap_index=ptr; //see comment @ writeHeapList about how to manage a strictly positive list of heap indexes with 2 heap lists, one for ObJs and the other for PTRs 
-    //if Object, displace the Ptr value after the end of the PTRs list, as done in writeHeapList, using the fact that heapIndexSave is strictly increasing:
-    if (isObject) {
-           heap_index+=heapIndexSave;
-           if (DEBUG_SAVERESTORE) std::cerr<<"write OBJ at heap_index "<<heap_index<<std::endl;
-    } else if (DEBUG_SAVERESTORE) std::cerr<<"write PTR at heap_index "<<heap_index<<std::endl;
+    int32_t heap_index=ptr; 
+    if (isObject) if (DEBUG_SAVERESTORE) std::cerr<<"write OBJ at heap_index "<<heap_index<<std::endl;
+    else if (DEBUG_SAVERESTORE) std::cerr<<"write PTR at heap_index "<<heap_index<<std::endl;
 
     //rest is normally the same as for any other variable
     xdr_int32_t(xdrs, &heap_index);
@@ -1301,7 +1333,12 @@ enum {
 
     // start of TYPEDESC. Structures may be objects, in which case ptr.second is negative.
     BaseGDL* var;
+    try{
     if (isObject) var=e->GetObjHeap(ptr);else var=e->GetHeap(ptr); //TRICK!
+    } catch( GDLInterpreter::HeapException& hEx)
+    {
+      e->Throw("ID <"+i2s(ptr)+"> not found.");      
+    }
     if (var==NULL) return updateNewRecordHeader(xdrs, cur); //unexistent var
     if (DEBUG_SAVERESTORE) std::cerr<<var->TypeStr()<<" @ "<<std::hex<<var<<std::dec<<std::endl;
     writeVariableHeader(xdrs, var, isSysVar, readonly, isObject );
@@ -1329,6 +1366,8 @@ enum {
     {
       s = xI;
       //      cout << "Found Already existing Var \""<< varName <<" s=" << s << endl;
+      //the existing var is deleted (including heap if it pointed to heap values), and restored anew.
+     GDLDelete( ((EnvT*) (callStack[curlevnum - 1]))->GetPar(s - nKey));
       ((EnvT*) (callStack[curlevnum - 1]))->GetPar(s - nKey) = ret;
 
     } else
@@ -1691,8 +1730,6 @@ enum {
           DPtr ptr;
           if (isObjStruct) ptr = e->NewObjHeap(1, static_cast<DStructGDL*> (ret)); else ptr = e->NewHeap(1, ret);
           heapIndexMapRestore.insert(std::pair<long, std::pair<BaseGDL*,DPtr>>(heap_index, std::make_pair(ret,ptr)));
-          //we skip filling the gdl variable, as we wait until all heap variables in heapIndexMapRestore are completely defined.
-          //This has proven to be way safer as the order of variables in the save file is strange.
 
           if (ret == NullGDL::GetSingleInstance()) break; //no data follows
 
@@ -1777,12 +1814,13 @@ enum {
         if (DEBUG_SAVERESTORE) cerr<<"SYSTEM ";
           isSysVar = 0x02; //see? no break. defines a read-write system variable (default)
       case VARIABLE:
-        if (DEBUG_SAVERESTORE) cerr<<"Variable\n";
+        if (DEBUG_SAVERESTORE) cerr<<"Variable ";
           if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
         {
           char* varname = 0;
           if (!xdr_string(xdrs, &varname, 2048)) break;
           string varName(varname);
+          if (DEBUG_SAVERESTORE) cerr<<varname<<endl;
           bool isObjStruct=false;
           BaseGDL* ret = getVariable(e, xdrs, isSysVar, isObjStruct);
           if (ret == NULL)
@@ -1813,7 +1851,6 @@ enum {
         }
           break;
       case HEAP_DATA: //use previous variable, now that the list of heap pointers is complete.
-          if (DEBUG_SAVERESTORE) cerr<<"Heap Data (get dummy variable, as already defined above)\n";
           if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
         {
           int32_t heap_index = 0;
@@ -1826,13 +1863,14 @@ enum {
           int32_t varstart = 0;
           if (!xdr_int32_t(xdrs, &varstart)) break; 
           GDLDelete(dummy); //get rid of variable that may have wrong pointers and restore the good one:
+          if (DEBUG_SAVERESTORE) cerr<<"Restoring Heap Data initially at #"<<heap_index<<"...";
           if (heapIndexMapRestore.find(heap_index) == heapIndexMapRestore.end()) {
             e->Throw("Lost track in HEAP VARIABLE definition at offset " + i2s(nextptr));
           } else {
-            if (DEBUG_SAVERESTORE) std::cerr<<"success restore Heap var"<<std::endl;
             BaseGDL* ret = heapIndexMapRestore.find(heap_index)->second.first;
             if (ret == NullGDL::GetSingleInstance()) break; //no data follows as this is a !NULL
             fillVariableData(xdrs, ret);
+            if (DEBUG_SAVERESTORE) std::cerr<<"at offset #"<<heapIndexMapRestore.find(heap_index)->second.second<<std::endl;
           }
 
 
@@ -1873,6 +1911,14 @@ enum {
       variableVector.pop_back();
     }
 
+    //heap variables have one more reference that necessary (1 at creation of the heap variable + 1 each time somthing points to it).
+    //decrease each of them by 1:
+    std::map<long, std::pair<BaseGDL*,DPtr>>::iterator imap;
+    for (imap=heapIndexMapRestore.begin(); imap!=heapIndexMapRestore.end(); ++imap) {
+      DPtr ptr=(*imap).second.second;
+      GDLInterpreter::DecRef(ptr);
+      GDLInterpreter::DecRefObj(ptr); //if not PTR then try Obj --- will always decrement the good one now that ptr is unique between Obj and Ptr.
+    }
     //everything ok, remove guards and exit
     while (!guardVector.empty())
     {
@@ -1881,9 +1927,9 @@ enum {
     }
 
   }
-//this adds in heaplist map:: all the OBJ or normal HEAP adresses of variables that are part of any named variable that are to be SAVEd.
-// As GDL has 2 heaplists, one for OBJ and the other for normal pointers, this is a bit complicated, since IDL has only one heap.
-// we use two heap index lists, one for OBJs one for PTRs.
+// This adds in heaplist map:: all the OBJ or normal HEAP adresses of variables that are part of any named variable that are to be SAVEd.
+// GDL has 2 heaplists, one for OBJ and the other for normal pointers, but I've insured that the index in these maps is common, so
+// it is just as if there was only one heap list, as in IDL.
   void addToHeapList(EnvT* e, BaseGDL* var)
   {
     if (var->Type() == GDL_PTR) {
@@ -1892,27 +1938,33 @@ enum {
         if (subptr > 0) {
           heapT::iterator itheap=heapIndexMapSave.find(subptr);
           if ( itheap==heapIndexMapSave.end() ) {
+            try {
+              BaseGDL* v = e->GetHeap(subptr);  //this pointed-to heap value MAY NOT EXIST. It may have been destroyed.
             heapIndexMapSave.insert(std::pair<DPtr, SizeT>(subptr, subptr));
-            heapIndexSave=max(heapIndexSave, subptr); 
-            if (DEBUG_SAVERESTORE)   std::cerr<<"Adding Heaplist PTR: HeapIndex="<<subptr<<std::endl;
-            BaseGDL* v = e->GetHeap(subptr);
-            if (DEBUG_SAVERESTORE)  std::cerr<<std::hex<<v<<std::dec<<std::endl;
+              if (DEBUG_SAVERESTORE)   std::cerr<<"Adding Heaplist PTR: HeapIndex="<<subptr<<", id="<<std::hex<<v<<std::dec<<std::endl;
             if (v && v!=NullGDL::GetSingleInstance()) addToHeapList(e, v);
+            } catch( GDLInterpreter::HeapException& hEx)
+            {
+              if (DEBUG_SAVERESTORE) std::cerr<<"PTR ID<"<<subptr<<"> not found."<<std::endl;      
+            }
           }
         }
       }
     } else if (var->Type() == GDL_OBJ) {
       for (SizeT ielem = 0; ielem < var->N_Elements(); ++ielem) {
         DObj subptr = (*static_cast<DObjGDL*> (var))[ielem];
-        if (subptr) {
-          heapT::iterator itheap=heapObjIndexMapSave.find(subptr);
-          if ( itheap==heapObjIndexMapSave.end() ) {
-            heapObjIndexMapSave.insert(std::pair<DPtr, SizeT>(subptr, subptr));
-            heapObjIndexSave=max(heapObjIndexSave,subptr); 
-            if (DEBUG_SAVERESTORE)   std::cerr<<"Adding Heaplist OBJ: ObjIndex="<<subptr<<std::endl;
-            BaseGDL* v = e->GetObjHeap(subptr);
-            if (DEBUG_SAVERESTORE)  std::cerr<<std::hex<<v<<std::dec<<std::endl;
+        if (subptr > 0) {
+          heapT::iterator itheap=heapIndexMapSave.find(subptr);
+          if ( itheap==heapIndexMapSave.end() ) {
+            try {
+              BaseGDL* v = e->GetObjHeap(subptr); //remember subptr IS uniquely increasing between OBJ and PTR Heaps indexes, but v is to be found in OBJ.
+              heapIndexMapSave.insert(std::pair<DPtr, SizeT>(subptr, subptr));
+              if (DEBUG_SAVERESTORE)   std::cerr<<"Adding Heaplist OBJ: HeapIndex="<<subptr<<", id="<<std::hex<<v<<std::dec<<std::endl;
             if (v && v!=NullGDL::GetSingleInstance() ) addToHeapList(e, v);
+            } catch( GDLInterpreter::HeapException& hEx)
+            {
+              if (DEBUG_SAVERESTORE) std::cerr<<"OBJ ID <"<<subptr<<"> not found."<<std::endl;      
+            }
           }
         }
       }
@@ -1931,7 +1983,7 @@ enum {
   uint32_t writeHeapList(XDR* xdrs) {
 // writing heap list for IDL compatiblilty implies to "mimic" the single heap list of IDL.
 //We write the PTRs first, then the OBJs after. OBJ ptrs will thus start at the last value held by PTRs plus one.
-    int32_t elementcount = heapIndexMapSave.size()+heapObjIndexMapSave.size();
+    int32_t elementcount = heapIndexMapSave.size();
     if (elementcount < 1) return xdr_getpos(xdrs);
     uint32_t cur = writeNewRecordHeader(xdrs, HEAP_HEADER); //HEAP_HEADER
     xdr_int32_t(xdrs, &elementcount);
@@ -1939,7 +1991,6 @@ enum {
     SizeT i = 0;
     heapT::iterator it;
     for (it = heapIndexMapSave.begin(); it != heapIndexMapSave.end(); ++it) indices[i++] = (*it).second;
-    for (it = heapObjIndexMapSave.begin(); it != heapObjIndexMapSave.end(); ++it) indices[i++] = (*it).second+heapIndexSave;
     
     xdr_vector(xdrs, (char*) indices, elementcount, sizeof (int32_t), (xdrproc_t) xdr_int32_t);
     if (DEBUG_SAVERESTORE) {
@@ -1996,9 +2047,6 @@ enum {
   
     //empty maps etc by security.
     heapIndexMapSave.clear();
-    heapObjIndexMapSave.clear();
-    heapIndexSave=0;
-    heapObjIndexSave=0;
     predeflist.clear();
     
     static int VERBOSE = e->KeywordIx("VERBOSE");
@@ -2218,7 +2266,7 @@ enum {
     //VERSION
     nextptr=writeVersion(xdrs, &format, (char*)arch.c_str(), (char*) os.c_str() , (char*) release.c_str());
     //HEAPLIST
-    if (heapIndexMapSave.size() > 0 || heapObjIndexMapSave.size() > 0 ) nextptr=writeHeapList(xdrs);
+    if (heapIndexMapSave.size() > 0) nextptr=writeHeapList(xdrs);
     // promote64: NO!
 //    //notice:
 //    std::string notice="Made by GDL, a free software program that you can redistribute and/or modify"
@@ -2232,18 +2280,15 @@ enum {
       nextptr=writeCommonList(e, xdrs, *itcommon);
       if (verboselevel>0) Message("Saved common block: " + *itcommon);
     }
-    //HEAP Variables: all terminal variables
-    //see comment @ writeHeapList about how to manage a strictly positive list of heap indexes with 2 heap lists, one for ObJs and the other for PTRs
-    if (heapObjIndexMapSave.size() > 0) { //there is some objheap...
-      DObjGDL* heapPtrList=e->Interpreter( )->GetAllObjHeap( );
-      for (SizeT i=0; i<heapPtrList->N_Elements(); ++i) nextptr=writeHeapVariable(e, xdrs, (*heapPtrList)[i], true);
-      GDLDelete(heapPtrList);
-    }
+    //HEAP Variables: all terminal variables pointed by, OBJs or PTRs
 
     if (heapIndexMapSave.size() > 0) { //there is some heap...
       DPtrGDL* heapPtrList=e->Interpreter( )->GetAllHeap( );
       for (SizeT i=0; i<heapPtrList->N_Elements(); ++i) nextptr=writeHeapVariable(e, xdrs, (*heapPtrList)[i], false);
       GDLDelete(heapPtrList);
+      DObjGDL* heapObjPtrList=e->Interpreter( )->GetAllObjHeap( );
+      for (SizeT i=0; i<heapObjPtrList->N_Elements(); ++i) nextptr=writeHeapVariable(e, xdrs, (*heapObjPtrList)[i], true);
+      GDLDelete(heapObjPtrList);
     }
 
 

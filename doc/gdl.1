@@ -1,4 +1,4 @@
-.TH GDL 1 "2017-01-06" "The GDL Team"
+.TH GDL 1 "2020-05-19" "The GDL Team"
 .SH NAME
 gdl \- GNU Data Language incremental compiler
 .SH SYNOPSIS
@@ -30,10 +30,11 @@ batch_file ...
 .B gdl
 is an incremental compiler for the GNU Data Language (GDL).  GDL is
 being developed with the aim of providing an open\-source drop\-in
-replacement for ITTVIS Interactive Data Language (IDL). It is also
+replacement for Interactive Data Language (IDL) (RSI then ITTVIS then
+Exelis and now Harris Geospatial Solutions, Inc.). It is also
 partially compatible with Visual Numerics (VN) PV\-WAVE. IDL and
-PV\-WAVE are registered trademarks of ITTVIS and VN, respectively.  GDL
-and its library routines are designed as a tool for numerical data
+PV\-WAVE are registered trademarks of L3Harris and VN, respectively.
+GDL and its library routines are designed as a tool for numerical data
 analysis and visualisation.  GDL is dynamically typed, vectorized and
 has object\-oriented programming capabilities.  The library routines
 handle numerical calculations, data visualisation, signal/image
@@ -44,7 +45,7 @@ OS.
 Information on GDL/IDL/PV\-WAVE syntax and library routines can be
 found in e.g.:
 
-\- GDL documentation draft at: http://gnudatalanguage.sf.net/gdl.pdf
+\- GDL documentation draft at: http://aramis.obspm.fr/~coulais/GDL/gdl.pdf
 
 \- IDL manual on\-line @ NASA.gov:
 http://idlastro.gsfc.nasa.gov/idl_html_help/home.html
@@ -90,7 +91,7 @@ variables including default preferences (e.g. X11 Windows Size)
 setting !VERSION.RELASE to that value. !VERSION.RELASE is often tested by
 procedures to decide whether some function or option should be used. It is
 sometimes possible to use this option to fool a procedure that request a
-specific value of !VERSION.RELEASE
+specific value of !VERSION.RELEASE (e.g. atv.pro)
 .TP
 .B \-\-fussy
 signals that all used procedures will adhere with modern IDL, 
@@ -98,6 +99,9 @@ where "()" are for functions and "[]" are for arrays.
 This speeds up (sometimes terribly) compilation but choke on every use of "()" with arrays.
 Conversion of procedures to modern IDL can be done with D. Landsman's idlv4_to_v5 procedure.
 Use enviromnment variable "GDL_IS_FUSSY" to set up permanently this feature.
+
+Incidentally "being fussy" can help find all places in a procedure 
+that need to be corrected to have it in the modern IDL format.
 .TP
 .B \-\-sloppy
 inverse of fussy above.
@@ -112,8 +116,12 @@ Also enabled by setting the environment variable GDL_USE_WX to a non-null value.
 Tells GDL no to use WxWidgets graphics, even if env. var. "GDL_USE_WX" is set.
 .TP
 .B \-\-no-dSFMT
-Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random doubles.
+Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random values.
 Also disabled by setting the environment variable GDL_NO_DSFMT to a non-null value.
+
+With dSFMT, although the Mersenne Twister algorithm is the same as in modern IDL, the values are
+computed in parallel (hence a speed gain) but the output order is not the same as IDL. Also, the seed is different.
+Theses differences should not be a problem as it is discouraged to interfere with seed values.
 
 
 The \-demo, \-em, \-novm, \-queue, \-rt, \-ulicense and \-vm options
@@ -132,7 +140,7 @@ or IDL_PATH env. variables are set (see below).
 .TP
 .B $HOME/.gdl/history
 A file used for storing the history of commands issued in the
-interactive mode
+interactive mode (if GDL compiled within ReadLine)
 .SH ENVIRONMENT
 The following environment variables have special meaning to
 .BR gdl .
@@ -204,7 +212,7 @@ If not automatically found, tells GDL where the maps files (coasts rivers, etc, 
 These are in Shapefile format and newer versions can possibly be present on naturalearthdata.com
 .SH BUGS
 Please report bugs, comments, patches or feature requests at
-http://sf.net/projects/gnudatalanguage/
+https://github.com/gnudatalanguage/gdl/
 .SH AUTHOR
 The primary author of GDL is Marc Schellens
 <m_schellens@users.sourceforge.net>.  A list of contributors is
@@ -215,4 +223,4 @@ The original version of this manual page was written by Sergio Gelato
 <Sergio.Gelato@astro.su.se>.  It is currently a part of the GDL
 package, and is maintained by the GDL Team.
 .SH SEE ALSO
-netcdf(3), hdf(1), gsl(3)
+netcdf(3), hdf(1), gsl(3), eigen3, plplot, fftw

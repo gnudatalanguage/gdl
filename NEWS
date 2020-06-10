@@ -654,7 +654,7 @@
 	     release is 6.2 by setting !VERSION.RELASE to that value. !VERSION.RELASE is often tested by
 	     procedures to decide whether some function or option should be used. It is sometimes possible to
 	     use this option to fool a procedure that request a specific value of !VERSION.RELEASE
-0.9.7
+0.9.7:
            - Huge gains in plotting speed for X device by bypassing plplot's X11 color handling. Especially
              noticeable for remote X11 displays.
            - Widget numbering scheme aligned to IDL's.
@@ -675,7 +675,7 @@
              enforces the STRICTARR compiling scheme (array index always between "[]"). This generally speeds up
              procedure compilation.
 
-0.9.8
+0.9.8:
           - internal SAVE and RESTORE. CMSVLIB not required anymore, and references to it removed in the documentation.
           - better L64 support (N_ELEMENTS, SIZE)
           - better TOTAL for large numbers or special types
@@ -685,7 +685,7 @@
           - support of DEVICE,SET_CHARACTER_SIZE, and consequently a better positioning and sizes of plots.
           - TRIANGULATE and TRIGRID complete (including spherical triangulation) using Renka's legacy algorithms.
   
-0.9.9
+0.9.9:
           - build requirements and development hosting changes:
             - development hosting moved from SourceForge to Github
             - introduction of continuous integration services with Linux, OSX and Windows builds
@@ -729,13 +729,14 @@
             - new tests, test cleanups
 
   
-1.0.0-rc.1
+1.0.0-rc.1:
             - entirely rewritten mapping support 
             - major improvements on the Windows compatibility
             - shift to Python 3
             - added READ_CVS, SCOPE_VARNAME
             - fixes in CONGRID, FILE_MKDIR, FX_ROOT, INTRPOLATE, LINFIT, MAKE_ARRAY, RESTORE, TAG_NAMES, ...
             - numerous other fixes and performance improvements and increased test coverage 
+
 1.0.0-rc.2
             - fixed linestyle +psym problem when NaN in data (#678)
             - fixes for path separators on Windows
@@ -773,3 +774,24 @@
             - STRUCT_ASSIGN fixed so it assigns correctly parts of structs that were themselves structs
             - some compiler warnings eliminated
             - fixed crash in REPLICATE_INPLACE (#574)
+
+1.0.0-rc.3:
+            - transparent reading of windows text files (terminated with <CR><LF>)
+            - speedup of TRISOL
+            - SAVE/RESTORE correctly handling complicated objects and heap nested structures
+            - TERMINAL_SIZE() added
+            - adding HANNING() and GAUSSIAN_FUNCTION() (thanks J. Tappin) 
+            - SIGMA() added
+            - fixes in SIMPLEX(), PTRARR() and IDLNETURL
+            - correction dim. in POLYWARP() (thanks Igor Ch.)
+            - reworked help,/obj and help,/path_cache and help,/sys
+            - complex inputs in READS
+            - removing EditLine from dependencies
+            - fixed OpenMP-related bug in MAX/MIN
+            - revised test_hash() and test_list()
+            - added test_widgets()
+            - numerous small fixes (CMake, typos, cleanups, compilation issues...)
+            - Windows compilation issues
+            - numerous updates in plotting and widget infrastructure
+            - updated manpage
+

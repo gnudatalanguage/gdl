@@ -60,14 +60,14 @@
 
 #define GDL_CONTAINER_STRUCT()          \
   static unsigned GDLContainerVersionTag = \
-        structDesc::GDL_CONTAINER->TagIndex( "GDLCONTAINERVERSION"); \
+        structDesc::GDL_CONTAINER->TagIndex( "IDLCONTAINERVERSION"); \
   static unsigned pHeadTag = structDesc::GDL_CONTAINER->TagIndex( "PHEAD"); \
   static unsigned pTailTag = structDesc::GDL_CONTAINER->TagIndex( "PTAIL"); \
   static unsigned nListTag = structDesc::GDL_CONTAINER->TagIndex( "NLIST");
 
 #define GDL_LIST_STRUCT()           \
   static unsigned GDLContainerVersionTag = \
-        structDesc::GDL_CONTAINER->TagIndex( "GDLCONTAINERVERSION"); \
+        structDesc::GDL_CONTAINER->TagIndex( "IDLCONTAINERVERSION"); \
   static unsigned pHeadTag = structDesc::LIST->TagIndex( "PHEAD");  \
   static unsigned pTailTag = structDesc::LIST->TagIndex( "PTAIL");  \
   static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");

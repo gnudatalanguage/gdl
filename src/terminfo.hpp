@@ -15,30 +15,24 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
 #ifndef TERMINFO_HPP_
 #define TERMINFO_HPP_
+
+#include "includefirst.hpp"
 #include "envt.hpp"
 
-#if defined(HAVE_LIBREADLINE)
-void SetTermSize(int rows, int cols);
-#endif
-
-#include "envt.hpp"
-
-#if defined(HAVE_LIBREADLINE)
+#if defined(HAVE_LIBREADLINE) && defined(RL_GET_SCREEN_SIZE)
 void SetTermSize(int rows, int cols);
 #endif
 
 int TermWidth();
 int TermHeight();
+
 namespace lib {
-  using namespace std;
+  // AC useful ?  using namespace std;
 
   BaseGDL* terminal_size_fun( EnvT* e );
-
   BaseGDL* get_kbrd( EnvT* e);
-}
 
+}
 #endif

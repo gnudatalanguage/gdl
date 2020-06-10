@@ -3,7 +3,7 @@
 
 #include <antlr/config.hpp>
 #include "GDLInterpreterTokenTypes.hpp"
-/* $ANTLR 2.7.7 (20190904): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
+/* $ANTLR 2.7.7 (2006-11-01): "gdlc.i.g" -> "GDLInterpreter.hpp"$ */
 #include <antlr/TreeParser.hpp>
 
 
@@ -196,7 +196,6 @@ protected:
     static ObjHeapT  objHeap; 
 
     // index for newly allocated heap variables
-    static SizeT objHeapIx;
     static SizeT heapIx;
 
     static EnvStackT  callStack; 
@@ -230,10 +229,10 @@ public:
     // the New... functions 'own' their BaseGDL*
     SizeT NewObjHeap( SizeT n=1, DStructGDL* var=NULL)
     {
-        SizeT tmpIx=objHeapIx;
+        SizeT tmpIx=heapIx;
         for( SizeT i=0; i<n; i++)
         objHeap.insert( objHeap.end(),
-            std::pair<SizeT, RefDStructGDL>( objHeapIx++, (DStructGDL*)var));
+            std::pair<SizeT, RefDStructGDL>( heapIx++, (DStructGDL*)var));
         return tmpIx;
     }
     SizeT NewHeap( SizeT n=1, BaseGDL* var=NULL)
@@ -718,7 +717,6 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         }
 // The counters are reset for easier human readability.
        heapIx = 1;
-       objHeapIx = 1;
     }
 
     // name of data

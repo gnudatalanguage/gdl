@@ -25,60 +25,16 @@
 #include <fstream>
 #include <csignal>
 
-#ifdef __cplusplus
-  extern "C" {
-#if defined(__OpenBSD__)
-// SA: based on http://ftp2.cz.freesbie.org/pub/FreeBSD-cvs/gnats/i386/75862
-#  include <ieeefp.h>
-#  define feclearexcept(e)	(void)fpsetsticky(~((fp_except)(e)))
-#  define fetestexcept(e)	((int)(fpgetsticky() & (fp_except)(e)))
-#  define FE_ALL_EXCEPT 	(FP_X_INV | FP_X_DNML | FP_X_DZ | FP_X_OFL | FP_X_UFL | FP_X_IMP)
-#  define FE_DIVBYZERO		FP_X_DZ
-#  define FE_INEXACT		FP_X_IMP
-#  define FE_INVALID		FP_X_INV
-#  define FE_OVERFLOW		FP_X_OFL
-#  define FE_UNDERFLOW		FP_X_UFL
-#elif defined(_MSC_VER) && _MSC_VER < 1800
-#  include <float.h>
-#  pragma fenv_access(on)
-#else
-#  ifdef __MINGW32__ // hack for MINGW
-#    define FE_INVALID		0x01
-#    define FE_DENORMAL		0x02
-#    define FE_DIVBYZERO	0x04
-#    define FE_OVERFLOW		0x08
-#    define FE_UNDERFLOW	0x10
-#    define FE_INEXACT		0x20
-#    define FE_ALL_EXCEPT (FE_INVALID | FE_DENORMAL | FE_DIVBYZERO \
-		           | FE_OVERFLOW | FE_UNDERFLOW | FE_INEXACT)
-extern int __cdecl __MINGW_NOTHROW feclearexcept (int);	  	
-extern int __cdecl __MINGW_NOTHROW fetestexcept (int excepts);
-#  endif
-#  include <fenv.h>
-#endif
-#  if defined(__FreeBSD__)
-#    pragma STDC FENV_ACCESS ON
-#  endif
-}
-#endif
+#include <cfenv>
 
-//#include "initsysvar.hpp"
-//#include "objects.hpp"
 #include "GDLLexer.hpp"
 #include "GDLParser.hpp"
 #include "GDLTreeParser.hpp"
 #include "GDLInterpreter.hpp"
-//#include "gdleventhandler.hpp"
 
 #ifdef HAVE_LIBREADLINE
 #include <readline/readline.h>
 #include <readline/history.h>
-#endif
-
-#ifdef HAVE_LIBEDITLINE
-#include <editline/readline.h>
-extern int (*rl_event_hook)();   /* missing from editline/readline.h */
-// see https://sourceforge.net/p/ngspice/ngspice/ci/master/tree/src/main.c
 #endif
 
 #include <fstream>
@@ -125,7 +81,7 @@ private:
 public:
   ~DInterpreter() 
   {
-#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
+#if defined(HAVE_LIBREADLINE)
     // seems to cause valgrind to complain
     clear_history(); // for testing of memory leaks (in GDL)
 #endif

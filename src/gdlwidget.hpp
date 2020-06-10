@@ -204,6 +204,7 @@ public:
   static GDLEventQueue eventQueue;
   static GDLEventQueue readlineEventQueue;
   static void PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev);
+  static void InformAuthorities(const std::string& message);
 
   static WidgetIDT HandleEvents();
   static const WidgetIDT NullID;
@@ -355,7 +356,7 @@ public:
   wxRealPoint GetRequestedUnitConversionFactor( EnvT* e);
   wxRealPoint GetCurrentUnitConversionFactor(){return unitConversionFactor;}
   void SetCurrentUnitConversionFactor(wxRealPoint value){unitConversionFactor = value;}
-  DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
+  virtual DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
   GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV=NULL, DULong eventFlags_=0);
 
   virtual ~GDLWidget();
@@ -367,7 +368,7 @@ public:
   // this is called from the main thread on (before) Realize()
   // for latest initialzation (like allocating the plplot stream)
   // calls NOTIFY_REALIZE procedure
-  virtual void OnRealize() 
+  virtual void OnRealize() //virtuas as redefined in gdlwidget container
   {
     if( notifyRealize != "") { //insure it is called once only for this.
       std::string note=notifyRealize;
@@ -375,16 +376,20 @@ public:
       CallEventPro( note, new DLongGDL( widgetID));
     }
   }
-  virtual void OnKill()
+  void OnKill()
   {
-    if( killNotify != ""){ //remove kill notify for this widget BEFORE calling it (avoid infinite recursal)
         std::string RIP=killNotify;
-        killNotify.clear();
+    killNotify.clear(); //remove kill notify for this widget BEFORE calling it (avoid infinite recursal)
+    if( RIP != ""){ 
+        try {
       CallEventPro( RIP, new DLongGDL( widgetID));
+        } catch (GDLException& e) {
+         GDLWidget::InformAuthorities(e.getMessage());
     }
   }
+  }
   virtual void ReorderWidgets(){} //do Nothing, only for Base.
-  virtual void AddToFollowers(WidgetIDT him)
+  void AddToFollowers(WidgetIDT him)
   {
     followers.insert( followers.end( ), him );
   }
@@ -1083,9 +1088,9 @@ public:
                long style = wxTR_DEFAULT_STYLE,
                const wxValidator &validator = wxDefaultValidator,
                const wxString& name = wxTreeCtrlNameStr)
-          :wxTreeCtrl( parent, id, pos, size, style, wxDefaultValidator , name )
+          :wxTreeCtrl( parent, id, pos, size, style, wxDefaultValidator , name ),
+           GDLWidgetTableID(id)
           {
-            GDLWidgetTableID=id;
             Connect(id, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, wxTreeEventHandler(gdlTreeCtrl::OnItemActivated));
             Connect(id, wxEVT_COMMAND_TREE_ITEM_ACTIVATED,wxTreeEventHandler(gdlTreeCtrl::OnItemActivated));
             Connect(id, wxEVT_COMMAND_TREE_BEGIN_DRAG,wxTreeEventHandler(gdlTreeCtrl::OnBeginDrag));
@@ -1191,7 +1196,7 @@ public:
 		   DLong minimum_, DLong maximum_,
 		   bool vertical,
 		   bool suppressValue,
-		   DString title
+		   DString &title
  		);
 
   ~GDLWidgetSlider();

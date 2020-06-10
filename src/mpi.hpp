@@ -2,7 +2,7 @@
 //#include "datatypes.hpp"
 //#include "envt.hpp"
 
-#include <config.h>
+//#include <config.h>
 
 namespace lib {
   

@@ -171,16 +171,29 @@ void gdlTextCtrl::OnChar(wxKeyEvent& event ) {
       widg->InitTag( "OFFSET", DLongGDL( this->GetInsertionPoint() ) );
       widg->InitTag( "CH", DByteGDL( 10 ) );
       GDLWidget::PushEvent( baseWidgetID, widg );
+      return;
       }
       event.Skip( );
       return;
     }
-  } else { //report ALL (text) events, editable or not
+  } else { //report ALL (text) events, editable or not but skip on <TAB>
     int sign = 1;
     long from, to;
     this->GetSelection( &from, &to );
     long oldpos = this->GetInsertionPoint( ), newpos;
     switch ( event.GetKeyCode( ) ) {
+      case WXK_TAB:
+        event.Skip();
+        return;
+        break;
+      case WXK_END:
+        newpos = this->GetLastPosition( );
+        this->SetInsertionPoint( newpos );
+        break;
+      case WXK_HOME:
+        newpos = 0;
+        this->SetInsertionPoint( newpos );
+        break;
       case WXK_LEFT:
         sign = -1;
       case WXK_RIGHT:
@@ -196,7 +209,14 @@ void gdlTextCtrl::OnChar(wxKeyEvent& event ) {
         GDLWidget::PushEvent( baseWidgetID, widg );
         return;
         break;
+      case WXK_UP: //these two, I cannot compute the next line (or preceding line) postion with the methods provided 
+                   //by wxWidgets. So I Skip(). At least most of the job is done.
+      case WXK_DOWN:
+        event.Skip();
+        return;
+        break;
       case WXK_BACK:
+      case WXK_DELETE: //perform identically on idl/linux.
         if ( oldpos > 0 ) {
           widg = new DStructGDL( "WIDGET_TEXT_DEL" );
           widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
@@ -205,20 +225,6 @@ void gdlTextCtrl::OnChar(wxKeyEvent& event ) {
           widg->InitTag( "TYPE", DIntGDL( 2 ) ); // selection
           widg->InitTag( "OFFSET", DLongGDL( from - 1 ) );
           widg->InitTag( "LENGTH", DLongGDL( to - from + 1 ) );
-          GDLWidget::PushEvent( baseWidgetID, widg );
-        }
-        if (edit) event.Skip( ); //do it!
-        return;
-        break;
-      case WXK_DELETE:
-        if ( oldpos <= this->GetLastPosition() ) {
-          widg = new DStructGDL( "WIDGET_TEXT_DEL" );
-          widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
-          widg->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-          widg->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
-          widg->InitTag( "TYPE", DIntGDL( 2 ) ); // selection
-          widg->InitTag( "OFFSET", DLongGDL( from ) );
-          widg->InitTag( "LENGTH", DLongGDL( to - from ) );
           GDLWidget::PushEvent( baseWidgetID, widg );
         }
         if (edit) event.Skip( ); //do it!

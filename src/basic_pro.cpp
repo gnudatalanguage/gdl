@@ -168,7 +168,7 @@ namespace lib {
   
   void exitgdl(EnvT* e) {
 
-#if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDITLINE)
+#if defined(HAVE_LIBREADLINE)
 
     // we manage the ASCII "history" file (located in ~/.gdl/)
     // we do not manage NOW the number of lines we save,
@@ -178,9 +178,8 @@ namespace lib {
       // Create eventually the ".gdl" path in user $HOME
       int result, debug = 0;
       char *homeDir = getenv("HOME");
-	  
-	  if( homeDir == NULL) homeDir = getenv("HOMEPATH"); 
-	  
+      if( homeDir == NULL) homeDir = getenv("HOMEPATH"); 
+
       if (homeDir != NULL) {
         string pathToGDL_history = homeDir;
         AppendIfNeeded(pathToGDL_history, "/");
@@ -1581,10 +1580,19 @@ namespace lib {
   
   void struct_assign_pro(EnvT* e) {
     SizeT nParam = e->NParam(2);
+    BaseGDL* p0=e->GetPar(0);
+    BaseGDL* p1=e->GetPar(1);
+    DStructGDL* source=NULL;
+    DStructGDL* dest = NULL;
 
-    DStructGDL* source = e->GetParAs<DStructGDL>(0);
-    DStructGDL* dest = e->GetParAs<DStructGDL>(1);
-
+    if (p0->Type()==GDL_STRUCT) source=e->GetParAs<DStructGDL>(0);
+    else if (p0->Type()==GDL_OBJ) source=e->GetObjectPar(0);
+    else e->Throw("Expression must be a structure in this context: "+e->GetParString(0));
+    
+    if (p1->Type()==GDL_STRUCT) dest=e->GetParAs<DStructGDL>(1);
+    else if (p1->Type()==GDL_OBJ) dest=e->GetObjectPar(1);
+    else e->Throw("Expression must be a structure in this context: "+e->GetParString(1));
+        
     static int nozeroIx = e->KeywordIx("NOZERO");
     bool nozero = e->KeywordSet(nozeroIx);
 
@@ -2068,7 +2076,7 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         e->Throw("UNIT kw. relies on GNU extensions to the std C++ library (that were not available during compilation?)");
 #endif
       } else {
-        FILE *coutF, *cerrF;
+        FILE *coutF=NULL, *cerrF=NULL;
         if (nParam > 1) {
           coutF = fdopen(coutP[0], "r");
           if (coutF == NULL) close(coutP[0]);
@@ -2553,7 +2561,7 @@ void delvar_pro( EnvT* e)
 			sort(delvar.begin(), delvar.end());
         	int ndel=0;
 			for (std::vector<int>::iterator ix=delvar.begin();
-			                           ix< delvar.end(); ix++) todel[ndel++] = (*ix);
+			                           ix< delvar.end(); ++ix) todel[ndel++] = (*ix);
 			if(trace_me) std::cout << " ** delvar x-"<< ndel;
 			todel[ndel] = -1;
 			caller->Remove(todel);
@@ -2566,7 +2574,7 @@ void delvar_pro( EnvT* e)
 	DSubUD* proUD   = dynamic_cast<DSubUD*>(caller->GetPro());
 	proUD->commonPtrs(c);
 	for (std::vector<int>::iterator ix=delcommon.begin();
-			                           ix< delcommon.end(); ix++) {
+			                           ix< delcommon.end(); ++ix) {
 		int i;
 		BaseGDL*& par=e->GetPar(*ix);
 		for( i=0; i < c.size(); i++) {
