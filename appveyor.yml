@@ -8,10 +8,9 @@ configuration:
   - Debug
 environment:
   matrix:
-  # #- platform: mingw64720x8664
-  - platform: mingw64630x8664
-  - platform: mingw64630i686
-  # #- platform: mingw64730x8664
+  # #- platform: mingw64630x8664
+  - platform: mingw64810i686
+  - platform: mingw64810x8664
    
 matrix:
   fast_finish: true
@@ -24,12 +23,20 @@ install:
   - ps: |
       if ($env:platform -Match "mingw64630i686") 
       {
-        #"i686-6.3.0-posix-dwarf-rt_v5-rev1"
-        #"i686-5.3.0-posix-dwarf-rt_v4-rev0"
         $env:GCC="i686-6.3.0-posix-dwarf-rt_v5-rev1"
         $env:MSYSTEM="MINGW32" ; $env:mname="mingw32" ; $env:arch="i686"
       }
-      elseif ($env:platform -Match "mingw64630x8664") 
+      elseif ($env:platform -Match "mingw64810i686")
+      {
+        $env:GCC="i686-8.1.0-posix-dwarf-rt_v6-rev0"
+        $env:MSYSTEM="MINGW32" ; $env:mname="mingw32" ; $env:arch="i686"
+      }
+      elseif ($env:platform -Match "mingw64810x8664")
+      {
+        $env:GCC="x86_64-8.1.0-posix-seh-rt_v6-rev0"
+        $env:MSYSTEM="MINGW64" ;  $env:mname="mingw64" ; $env:arch="x86_64"
+      }
+      elseif ($env:platform -Match "mingw64630x8664")
       {
         #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
         $env:GCC="x86_64-6.3.0-posix-seh-rt_v5-rev1"
@@ -47,7 +54,7 @@ install:
         $env:GCC="x86_64-7.3.0-posix-seh-rt_v5-rev0"
         $env:MSYSTEM="MINGW64" ; $env:mname="mingw64" ; $env:arch="x86_64"
       }
-      #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
+  #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
   #- ps: $env:allmsys=$true ; $env:domingw=$false  ineffective!     
   - ps: |
       if ($true)
