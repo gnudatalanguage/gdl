@@ -8,9 +8,9 @@ configuration:
   - Debug
 environment:
   matrix:
-  # #- platform: mingw64630x8664
-  - platform: mingw64810i686
+  # #- platform: mingw64810i686
   - platform: mingw64810x8664
+  - platform: mingw64630i686
    
 matrix:
   fast_finish: true
