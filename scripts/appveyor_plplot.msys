@@ -30,10 +30,13 @@ if [ "x${WXNAME}" = "x" ] ; then
 cd /c/projects/gdl
 mkdir -p ./mingw/$mname/bin
 cd ./mingw
+pream="http://repo.msys2.org"
+pream="https://sourceforge.net/projects/msys2/files/REPOS"
+pream="https://mirror.selfnet.de/msys2"
 if [[ -f "mingw-w64-${arch}-${WXNAME}-any.pkg.tar.xz" ]] ; then
     echo " wxWidgets distro has been loaded"
     else
-    curl -O -s http://repo.msys2.org/mingw/${arch}/mingw-w64-${arch}-${WXNAME}-any.pkg.tar.xz
+    curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-${WXNAME}-any.pkg.tar.xz
     echo " mingw-w64-${arch}-${WXNAME}-any.pkg.tar.xz downloaded to <>/mingw. "
     fi
     
