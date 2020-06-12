@@ -178,15 +178,6 @@ namespace lib {
 #endif
   }
 
-  BaseGDL* pslib_exists( EnvT* e )
-  {
-#if defined(USE_PSLIB)
-    return new DIntGDL(1);
-#else
-    return new DIntGDL(0);
-#endif
-  }
-
   BaseGDL* python_exists( EnvT* e )
   {
 #if defined(USE_PYTHON)
