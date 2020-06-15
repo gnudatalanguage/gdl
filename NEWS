@@ -786,7 +786,7 @@
             - correction dim. in POLYWARP() (thanks Igor Ch.)
             - reworked help,/obj and help,/path_cache and help,/sys
             - complex inputs in READS
-            - removing EditLine from dependencies
+            - removing EditLine and PSlib from dependencies
             - fixed OpenMP-related bug in MAX/MIN
             - revised test_hash() and test_list()
             - added test_widgets()

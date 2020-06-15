@@ -360,7 +360,7 @@ $CmakeEXE .. \
    -DGSLDIR=$GSL_PATH -DOPENMP=$flag_openmp \
    -DPLPLOTDIR=$RACINE/$PLPLOT_DIR/Compilation/ \
    -DWXWIDGETS=off -DMAGICK=OFF -DNETCDF=OFF -DHDF=OFF \
-   -DHDF5=off -DFFTW=OFF -DEIGEN3=OFF -DPSLIB=OFF -DPYTHON=OFF
+   -DHDF5=off -DFFTW=OFF -DEIGEN3=OFF -DPYTHON=OFF
 make -s -j $cpus
 #
 if [ "$gdl_check" -eq 1 ] ; then
