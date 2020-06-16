@@ -389,8 +389,8 @@ public:
     , stride( stride_)
     , acRank( acRank_)
     , nIx( nIx_)
+    , add(0)
   {
-    add = 0;
 	assert( varStride[0] == 1);
 	for( SizeT i=0; i<acRank;++i)
 		{
@@ -444,8 +444,8 @@ public:
     , nIterLimit( nIterLimit_)
     , stride( stride_)
     , nIx( nIx_)
+    , add(0)
   {
-    add = 0;
 	if( !(*ixList)[0]->Indexed())
 	{
 		assert( varStride[0] == 1);

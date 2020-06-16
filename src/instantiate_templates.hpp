@@ -15,6 +15,8 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#ifndef INSTANTIATE_TEMPLATES_HPP_
+#define INSTANTIATE_TEMPLATES_HPP_
 
 template class Data_< SpDByte>;
 template class Data_< SpDInt>;
@@ -32,3 +34,4 @@ template class Data_< SpDComplex>;
 template class Data_< SpDComplexDbl>;
 
 
+#endif

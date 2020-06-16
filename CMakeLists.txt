@@ -72,9 +72,6 @@ set(UDUNITS2DIR "" CACHE PATH "GDL: Specify the UDUNITS-2 directory tree")
 set(EIGEN3 ON CACHE BOOL "GDL: Enable Eigen3 ?")
 set(EIGEN3DIR "" CACHE PATH "GDL: Specify the Eigen3 directory tree")
 
-set(PSLIB ON CACHE BOOL "GDL: Enable pslib ?")
-set(PSLIBDIR "" CACHE PATH "GDL: Specify the pslib directory tree")
-
 set(PNGLIB ON CACHE BOOL "GDL: Enable libpng ?")
 set(PNGLIBDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
 
@@ -749,7 +746,9 @@ if(LIBPROJ4)
 
                 message(FATAL_ERROR "Libproj4 is required but was not found.\n"
                 "Use -DLIBPROJ4DIR=DIR to specify the Libproj4 directory tree.\n"
-                "Use -DLIBPROJ4=OFF to not use it.")
+                "Use -DLIBPROJ4=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libproj-dev)\n"
+                "(suitable Fedora/CentOS package: proj-devel)")
 
             endif(NOT USE_LIBPROJ4)
         endif(USE_LIBPROJ4_NEW)
@@ -913,26 +912,6 @@ if(EIGEN3)
     endif(EIGEN3_FOUND)
       endif(EIGEN3_TOO_OLD)
 endif(EIGEN3)
-
-# pslib
-# -DPSLIB=ON|OFF
-# -DPSLIBDIR=DIR
-if(PSLIB)
-    set(CMAKE_PREFIX_PATH ${PSLIBDIR})
-    find_package(libps QUIET)
-    set(USE_PSLIB ${PSLIB_FOUND})
-    if(PSLIB_FOUND)
-        set(LIBRARIES ${LIBRARIES} ${PSLIB_LIBRARIES})
-        #set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${PSLIB_LIBRARY_DIRS})
-        include_directories(${PSLIB_INCLUDE_DIR})
-    else(PSLIB_FOUND)
-        message(FATAL_ERROR "pslib is required but was not found.\n"
-        "Use -DPSLIBDIR=DIR to specify the pslib directory tree.\n"
-        "Use -DPSLIB=OFF to not use it.\n"
-                "(suitable Debian/Ubuntu package: pslib-dev)\n"
-                "(suitable Fedora/CentOS package: pslib-devel)")
-    endif(PSLIB_FOUND)
-endif(PSLIB)
 
 # grib
 # -DGRIB=ON|OFF
@@ -1174,7 +1153,6 @@ set(SHAPELIB_LIBRARIES ${SHAPELIB_LIBRARIES})
 module(SHAPELIB   "SHAPELIB      ")
 set(EXPAT_LIBRARIES ${EXPAT_LIBRARIES})
 module(EXPAT     "EXPAT         ")
-module(PSLIB	 "pslib         ")
 if(WIN32 AND NOT CYGWIN)
   module(XPORTMINGW  "XPortMinGW (Win32 Xlib)       ")
 else(WIN32 AND NOT CYGWIN)

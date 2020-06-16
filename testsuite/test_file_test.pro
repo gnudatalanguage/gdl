@@ -12,6 +12,7 @@
 ;     * Splitting code in various topics.
 ;     * Adding tests on Dangling Symlinks ...
 ;     * Adding new tests on Unix files (get_mode=, special type ...)
+; - 2020-06-03 : small change for *BSD 
 ;
 ; -----------------------------------------------
 ;
@@ -240,6 +241,9 @@ nb_errors=0
 ; testing /char file
 ;
 special_file='/dev/urandom'
+; see discussion in #764
+if (STRPOS(STRlowCASE(!version.os), 'bsd') GE 0) then special_file='/dev/random'
+;
 mess='This special file '+special_file+' '
 ;
 ; Test if it exists

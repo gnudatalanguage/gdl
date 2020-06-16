@@ -20,7 +20,7 @@
 
 #include "nullgdl.hpp"
 #include "typedefs.hpp"
-#include "datatypes.hpp" // for friend declaration
+//#include "datatypes.hpp" // for friend declaration
 
 #include "dstructgdl.hpp"
 #include "arrayindexlistt.hpp"
@@ -144,6 +144,9 @@ const string ReadElement(istream& is)
 // no skip of WS
 const string ReadComplexElement(istream& is)
 {
+
+  //  cout << " hello ReadComplexElement : " << endl;
+
   SkipWS( is);
   
   string buf;
@@ -316,9 +319,11 @@ istream& operator>>(istream& i, Data_<SpDComplex>& data_)
       const string& actLine = ReadComplexElement( i);
       SizeT strLen = actLine.length();
 
+      // cout << "Processing : " << actLine <<endl;
+      // AC 2020 May : since now, always a space between "(" and digit
       if( actLine[ 0] == '(')
-	{
-	  SizeT mid  = actLine.find_first_of(" \t,",1);
+	{	  
+	  SizeT mid  = actLine.find_first_of(" \t,",2);
 	  if( mid >= strLen) mid = strLen;
 	      
 	  string seg1 = actLine.substr( 1, mid-1);
@@ -373,19 +378,18 @@ istream& operator>>(istream& i, Data_<SpDComplex>& data_)
 	      data_[ assignIx]= DComplex(0.0,0.0);
 	      ThrowGDLException("Input conversion error.");
 	    }
+	  //	  cout << val << endl;
+	  //	  for( long int c=assignIx; c<nTrans; c++)
+	  data_[assignIx] = DComplex(val,0.0);
 	  
-	  for( long int c=assignIx; c<nTrans; c++)
-	    data_[ c] = DComplex(val,0.0);
-	  
-	  // i.seekg( pos); // rewind stream
-	  
-	  return i;
+	  // AC 2020 May unclear why we need that ... 
+	  // i.seekg( pos); // rewind stream	  
+	  //	  return i;
 	}
 	  
       assignIx++;
       nTrans--;
     }
-
 
   return i;
 }
@@ -401,9 +405,10 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
       const string& actLine = ReadComplexElement( i);
       SizeT strLen = actLine.length();
 
+      // AC 2020 May : since now, always a space between "(" and digit
       if( actLine[ 0] == '(')
 	{
-	  SizeT mid  = actLine.find_first_of(" \t,",1);
+	  SizeT mid  = actLine.find_first_of(" \t,",2);
 	  if( mid >= strLen) mid = strLen;
 	      
 	  string seg1 = actLine.substr( 1, mid-1);
@@ -456,18 +461,17 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
 	      ThrowGDLException("Input conversion error.");
 	    }
 	  
-	  for( long int c=assignIx; c<nTrans; c++)
-	    data_[ c] = DComplexDbl(val,0.0);
+	  //	  for( long int c=assignIx; c<nTrans; c++)
+	  data_[ assignIx] = DComplexDbl(val,0.0);
 	  
+	  // AC 2020 May unclear why we need that ... 
 	  // i.seekg( pos); // rewind stream
-	  
-	  return i;
+	  //	  return i;
 	}
-	  
+
       assignIx++;
       nTrans--;
     }
-
 
   return i;
 }
@@ -1243,8 +1247,9 @@ ostream& Data_<SpDString>::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   SizeT length;
   if( this->dim.Rank() == 0)
     {
-      length = (*this)[0].length();
-      o << CheckNL( w, actPosPtr, length) << (*this)[0];
+      length = (*this)[0].length();  //app
+      // this is correct but gives bug #2876161 : if (length ==0) o << '\n'; else  
+        o << CheckNL( w, actPosPtr, length) << (*this)[0];
       return o;
     }
 
@@ -1746,7 +1751,7 @@ istream& Data_<SpDByte>::Read( istream& os, bool swapEndian, bool compress, XDR 
     os.read( buf, 4 );
     xdrmem_create( xdrs, &buf[0], 4, XDR_DECODE );
     short int length = 0;
-    if ( !xdr_short( xdrs, &length ) ) throw GDLIOException( "Problem reading XDR file." );
+    if ( !xdr_short( xdrs, &length ) ) {free( buf ); throw GDLIOException( "Problem reading XDR file." );}
     xdr_destroy( xdrs );
     free( buf );
     if ( length <= 0 ) return os;
@@ -1754,7 +1759,7 @@ istream& Data_<SpDByte>::Read( istream& os, bool swapEndian, bool compress, XDR 
     int bufsize = 4 * ((length - 1) / 4 + 1);
     buf = (char *) calloc( length, sizeof (char) );
     os.read( &buf[0], bufsize );
-    if ( !os.good( ) ) throw GDLIOException( "Problem reading XDR file." ); //else we are correctly aligned for next read!
+    if ( !os.good( ) ) {free( buf ); throw GDLIOException( "Problem reading XDR file." );} //else we are correctly aligned for next read!
     //do it by ourselves, faster and surer!
     if ( bufsize < nChar ) nChar = bufsize; //truncate eventually
     for ( SizeT i = 0; i < nChar; i++ ) ( *this )[i] = buf[i];

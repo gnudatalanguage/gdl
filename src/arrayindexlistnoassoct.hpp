@@ -365,11 +365,12 @@ public:
 
   // called after structure is fixed
   ArrayIndexListOneScalarNoAssocT( ArrayIndexVectorT* aIV)
-//     : allIx( NULL)
+      : varIx (static_cast<ArrayIndexScalar*>((*aIV)[0])->GetVarIx())
+//    allIx( NULL)
   {
     nParam = 0;
-    
-    varIx = static_cast<ArrayIndexScalar*>((*aIV)[0])->GetVarIx();
+   // cppchek says: (performance) Variable 'varIx' is assigned in constructor body. Consider performing initialization in initialization list
+//    varIx = static_cast<ArrayIndexScalar*>((*aIV)[0])->GetVarIx();
 
     // ArrayIndexListOneScalarT will do the cleanup
 //     delete (*aIV)[0];

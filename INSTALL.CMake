@@ -27,7 +27,7 @@ features can be enabled or disabled using CMake options.
 
 Most of the optional features have a flag that controls
 enabling/disabling the feature (e.g. EIGEN3, FFTW, HDF5, 
-MAGICK, PSLIB, GRAPHICSMAGICK, GRIB, HDF, ...) 
+MAGICK, GRAPHICSMAGICK, GRIB, HDF, ...) 
 and a flag that allows to specify a custom location of a
 given package (e.g. EIGEN3DIR, FFTWDIR, HDF5DIR, ...). 
 Both the on/off and the path-spec options are passed 

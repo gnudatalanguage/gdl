@@ -19,7 +19,8 @@
 #define GDLPYTHON_HPP_
 
 #if PY_MAJOR_VERSION >= 3
-int PythonInit();
+#include <cstddef>
+std::nullptr_t PythonInit();
 #else
 void PythonInit();
 #endif

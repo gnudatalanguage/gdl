@@ -96,9 +96,14 @@ void InitOpenMP() {
     static unsigned NTHREADSTag = cpu->Desc()->TagIndex( "TPOOL_NTHREADS");
     (*static_cast<DLongGDL*>( cpu->GetTag( NTHREADSTag, 0)))[0] =suggested_num_threads;
 
-    // effective gloabl change of num of treads using omp_set_num_threads()
+    // effective global change of num of treads using omp_set_num_threads()
+    CpuTPOOL_NTHREADS=suggested_num_threads;
     omp_set_num_threads(suggested_num_threads);
+  } else {
+    CpuTPOOL_NTHREADS=omp_get_num_procs();
+    omp_set_num_threads(CpuTPOOL_NTHREADS);
   }
+  //  cout << CpuTPOOL_NTHREADS <<endl;
 #endif
 }
 

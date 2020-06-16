@@ -402,10 +402,11 @@ public:
   // called after structure is fixed
   ArrayIndexListOneScalarT( ArrayIndexVectorT* aIV)
 //     : allIx( NULL)
+  : varIx(static_cast<ArrayIndexScalar*>((*aIV)[0])->GetVarIx())
   {
     nParam = 0;
-    
-    varIx = static_cast<ArrayIndexScalar*>((*aIV)[0])->GetVarIx();
+//    
+//    varIx = static_cast<ArrayIndexScalar*>((*aIV)[0])->GetVarIx();
 
     delete (*aIV)[0];
   }    
@@ -679,11 +680,11 @@ public:
 
   // called after structure is fixed
   ArrayIndexListOneConstScalarT( ArrayIndexVectorT* aIV)
+  :sInit((*aIV)[0]->GetS())
 //     : allIx( NULL)
   {
-    sInit = (*aIV)[0]->GetS();
-    if( sInit >= 0)
-      s = sInit;
+//    sInit = (*aIV)[0]->GetS();
+    if( sInit >= 0) s = sInit;
     nParam = 0;
 
     delete (*aIV)[0];

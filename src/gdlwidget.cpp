@@ -353,6 +353,15 @@ void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) {
   } else cerr << "NULL baseWidget (possibly Destroyed?) found in GDLWidget::PushEvent( WidgetIDT baseWidgetID=" << baseWidgetID << ", DStructGDL* ev=" << ev << "), please report!\n";
 }
 
+void GDLWidget::InformAuthorities(const std::string& message){
+        // create GDL event struct
+        DStructGDL* ev = new DStructGDL( "*WIDGET_RUNTIME_ERROR*" );
+        ev->InitTag( "ID", DLongGDL( 0) );
+        ev->InitTag( "TOP", DLongGDL( 0 ) );
+        ev->InitTag( "HANDLER", DLongGDL( 0 ) );
+        ev->InitTag( "MESSAGE", DStringGDL(message) );
+          readlineEventQueue.PushFront( ev ); // push front (will be handled next)
+}
 bool GDLWidget::GetXmanagerBlock() 
 {
   bool xmanBlock = false;
@@ -1233,7 +1242,6 @@ GDLWidgetBase::~GDLWidgetBase()
         ev->InitTag( "ID", DLongGDL( widgetID ) );
         ev->InitTag( "TOP", DLongGDL( widgetID ) );
         ev->InitTag( "HANDLER", DLongGDL( 0 ) );
-        ev->InitTag( "MESSAGE", DLongGDL( 0 ) );
         if ( this->GetXmanagerActiveCommand( ) || !this->GetManaged() ){
           readlineEventQueue.PushFront( ev ); // push front (will be handled next)
         } else {
@@ -1254,7 +1262,6 @@ void GDLWidgetBase::SelfDestroy()
   ev->InitTag( "ID", DLongGDL( widgetID ) );
   ev->InitTag( "TOP", DLongGDL( widgetID ) );
   ev->InitTag( "HANDLER", DLongGDL( 0 ) );
-  ev->InitTag( "MESSAGE", DLongGDL( 0 ) );
   if ( this->GetXmanagerActiveCommand( ) || !this->GetManaged() ){
     readlineEventQueue.PushFront( ev ); // push front (will be handled next)
   } else {
@@ -1306,7 +1313,7 @@ void GDLWidgetBase::SelfDestroy()
 // for WIDGET_TAB
 /*********************************************************/
 GDLWidgetTab::GDLWidgetTab( WidgetIDT p, EnvT* e, ULong eventFlags_, DLong location, DLong multiline )
-: GDLWidgetContainer( p, e, eventFlags ) {
+: GDLWidgetContainer( p, e, eventFlags_ ) {
 
   GDLWidget* gdlParent = GetWidget( parentID );
 
@@ -2997,7 +3004,7 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
 , DLong maximum_
 , bool vertical
 , bool suppressValue
-, DString title_ )
+, DString &title_ )
 : GDLWidget( p, e, NULL, eventFlags_ )
 , value( value_ ) //should disappear , duplicates vValue!
 , minimum( minimum_ )

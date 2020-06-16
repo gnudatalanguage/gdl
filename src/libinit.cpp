@@ -377,9 +377,9 @@ void LibInit()
   new DLibFunRetNew(lib::complexarr,string("COMPLEXARR"),MAXRANK,arrKey,NULL,true);
   new DLibFunRetNew(lib::dcomplexarr,string("DCOMPLEXARR"),MAXRANK,arrKey,NULL,true);
 
-  const string ptrArrKey[]={"NOZERO","ALLOCATE_HEAP",KLISTEND};
+  const string ptrArrKey[]={"ALLOCATE_HEAP",KLISTEND};
   new DLibFunRetNew(lib::ptrarr,string("PTRARR"),MAXRANK,ptrArrKey);
-  new DLibFunRetNew(lib::objarr,string("OBJARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::objarr,string("OBJARR"),MAXRANK);
 
   const string ptr_newKey[]={"NO_COPY","ALLOCATE_HEAP",KLISTEND};
   new DLibFunRetNew(lib::ptr_new,string("PTR_NEW"),1,ptr_newKey);
@@ -639,7 +639,7 @@ void LibInit()
       "SET_GRAPHICS_FUNCTION", "CURSOR_STANDARD", "CURSOR_ORIGINAL",
       "CURSOR_CROSSHAIR","RETAIN", "BITS_PER_PIXEL", 
       "GET_WINDOW_POSITION","GET_PIXEL_DEPTH","GET_VISUAL_DEPTH","GET_VISUAL_NAME",
-      "GET_WRITE_MASK", "COPY","GET_FONTNAMES","SET_FONT","GET_CURRENT_FONT","GET_FONTNUM",
+      "GET_WRITE_MASK", "COPY","GET_FONTNAMES","SET_FONT","FONT","GET_CURRENT_FONT","GET_FONTNUM", //"FONT" is idem SET_FONT before IDL5.3
       "SET_PIXEL_DEPTH", //Z
       "SET_CHARACTER_SIZE", //(all)
       KLISTEND

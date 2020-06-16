@@ -68,6 +68,11 @@ inline void StrTrim(std::string& s)
       return;
     }
   long last=s.find_last_not_of(" \t");
+  if( last == s.npos)
+    {
+      s=s.substr(first);
+      return;
+    }
   s=s.substr(first,last-first+1);
 }
 

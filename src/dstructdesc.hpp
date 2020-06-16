@@ -264,14 +264,82 @@ public:
   }
 
   void AddParent( DStructDesc*);
+  void AddParentListOnly( DStructDesc*); //for restore
 
-  void GetParentNames( std::vector< std::string>& pNames) const
-  {
-    SizeT nParents=parent.size();
-    for( SizeT i=0; i<nParents; ++i)
-      {
-	pNames.push_back( parent[i]->Name());
-      }
+  /**
+  *  @brief  fills a std::vector of strings with all the object's direct ancestors names
+  *  @param  pNames the std::vector of strings returned filled.
+  *
+  *  fills the @pNames std::vector of strings with all the object's direct ancestors names
+  */
+  void GetParentNames(std::vector< std::string>& pNames) const {
+   SizeT nParents = parent.size();
+   for (SizeT i = 0; i < nParents; ++i) {
+    pNames.push_back(parent[i]->Name());
+   }
+ }
+   /**
+  *  @brief  fills a std::set of strings with all the object's direct ancestors names
+  *  @param  pNames the std::set of strings returned filled.
+  *
+  *  fills the @pNames std::set (ordered) of strings with all the object's direct ancestors names
+  */
+  void GetParentNames(std::set< std::string>& pNames) const {
+   SizeT nParents = parent.size();
+   for (SizeT i = 0; i < nParents; ++i) {
+    pNames.insert(parent[i]->Name());
+   }
+ }
+  /**
+  *  @brief  fills a std::vector of strings with all the object's ancestors names (direct, inherited)
+  *  @param  aaNames the vector of strings returned filled.
+  *
+  *  fills the @aaNames vector of strings with all the object's parents names
+  */  
+  void GetAllAncestorsNames(std::vector< std::string>& aaNames) const {
+   SizeT nParents = parent.size();
+   for (SizeT i = 0; i < nParents; ++i) {
+    aaNames.push_back(parent[i]->Name());
+   }
+   //parents of parents...
+   for (SizeT i = 0; i < nParents; ++i) {
+      parent[i]->GetAllAncestorsNames(aaNames);
+   }
+   //remove dupes?
+  }
+  
+ /**
+  *  @brief  fills a std::set of strings with all the object's ancestors names (direct, inherited)
+  *  @param  aaNames the vector of strings returned filled.
+  *
+  *  fills the @aaNames vector of strings with all the object's parents names
+  */  
+  void GetAllAncestorsNames(std::set< std::string>& aaNames) const {
+   SizeT nParents = parent.size();
+   for (SizeT i = 0; i < nParents; ++i) {
+    aaNames.insert(parent[i]->Name());
+   }
+   //parents of parents...
+   for (SizeT i = 0; i < nParents; ++i) {
+      parent[i]->GetAllAncestorsNames(aaNames);
+   }
+  }
+  /**
+  *  @brief  fills a std::set of strings with all the object's non-direct ancestors
+  *  @param  aNames the vector of strings returned filled.
+  *
+  *  fills the @aNames std::set of strings with all the object's non-direct ancestors
+  */  
+  void GetAncestorsNames(std::set< std::string>& aNames) const {
+   std::vector<DStructDesc*>direct;
+   SizeT nParents = parent.size();
+   for (SizeT i = 0; i < nParents; ++i) {
+    direct.push_back(parent[i]);
+   }
+   //parents of parents...
+   for (SizeT i = 0; i < nParents; ++i) {
+      direct[i]->GetAllAncestorsNames(aNames);
+   }
   }
   
   int GetNumberOfParents(){

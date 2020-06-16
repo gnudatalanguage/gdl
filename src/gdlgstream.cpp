@@ -215,6 +215,7 @@ void GDLGStream::DefaultCharSize() {
     theDefaultChar.scale=1.0;
     theDefaultChar.mmsx=pls->chrht; //millimeter
     theDefaultChar.mmsy=pls->chrht;
+    theDefaultChar.fudge=GetPlplotFudge();
     theDefaultChar.ndsx=mm2ndx(theDefaultChar.mmsx); //normalized device
     theDefaultChar.ndsy=mm2ndy(theDefaultChar.mmsy);
     theDefaultChar.dsy=theDefaultChar.ndsy*thePage.height;
