@@ -14,9 +14,9 @@ fi
 echo "Appveyor_1: Architecture =  ${arch}"
 mkdir -p ./mingw/$mname/bin
 cd ./mingw
-pream="http://repo.msys2.org"
 pream="https://sourceforge.net/projects/msys2/files/REPOS"
 pream="https://mirror.selfnet.de/msys2"
+pream="http://repo.msys2.org"
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-gsl-2.5-1-any.pkg.tar.xz
 #
 #curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-readline-6.3.008-1-any.pkg.tar.xz
@@ -24,10 +24,14 @@ readline=readline-6.3.008
 # A later version of readline, under suspicion but so far vindicated:
 #readline=readline-7.0.005 This was used in build 593. back to 6.3
 gettext=gettext-0.19.6
-curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-${readline}-1-any.pkg.tar.xz
-curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-${gettext}-1-any.pkg.tar.xz
-tar xf mingw-w64-${arch}-${readline}-1-any.pkg.tar.xz
-tar xf mingw-w64-${arch}-${gettext}-1-any.pkg.tar.xz
+# That was for 6.3. for gcc 7.x (30-jun-2017 thru 29-jul-2018:
+readline=readline-7.0.005-1
+gettext=gettext-0.19.8.1-3
+
+curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-${readline}-any.pkg.tar.xz
+curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-${gettext}-any.pkg.tar.xz
+tar xf mingw-w64-${arch}-${readline}-any.pkg.tar.xz
+tar xf mingw-w64-${arch}-${gettext}-any.pkg.tar.xz
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-libiconv-1.15-3-any.pkg.tar.xz
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-termcap-1.3.1-3-any.pkg.tar.xz
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-libsystre-1.0.1-4-any.pkg.tar.xz
