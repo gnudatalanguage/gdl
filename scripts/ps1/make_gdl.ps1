@@ -4,6 +4,7 @@
   # evidently, the appveyor PS environment is carried through:
     echo $env:WXNAME $env:GMNAME
   # those two env. variables determine how the build proceeds.
+  # normally $env:platform is blanked out at top of appveyor.yml
       if ( $env:platform -Match "mingw64630x8664") 
       {
       $env:WXNAME=""
