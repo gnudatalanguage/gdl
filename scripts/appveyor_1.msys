@@ -27,7 +27,8 @@ gettext=gettext-0.19.6
 # That was for 6.3. for gcc 7.x (30-jun-2017 thru 29-jul-2018:
 readline=readline-7.0.005-1
 gettext=gettext-0.19.8.1-3
-
+readline=readline-8.0.004-1  # 17-Feb-2020 (gcc9)
+gettext=gettext-0.19.8.1-8  # 14-May-2019 (gcc8)
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-${readline}-any.pkg.tar.xz
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-${gettext}-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-${readline}-any.pkg.tar.xz
