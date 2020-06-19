@@ -19,7 +19,7 @@
 #              flag for OpenMP (OSX)
 # 2018-08-07 : force cmake 3+, force plplot 5.12 or 5.13
 # 2018-12-19 : move to 0.9.9
-# 2020-06-17 : move to 1.0.0rc2
+# 2020-06-19 : move to 1.0.0rc3
 #
 # The purpose of this shell script is to automaticaly compile a minimum GDL
 # as a basic user even if mandatory packages are not available
@@ -90,7 +90,7 @@ GSL_URL="ftp://ftp.gnu.org/gnu/gsl/gsl-1.16.tar.gz"
 PLPLOT_URL512="https://sourceforge.net/projects/plplot/files/plplot/5.12.0%20Source/plplot-5.12.0.tar.gz/download?use_mirror=autoselect"
 PLPLOT_URL513="https://sourceforge.net/projects/plplot/files/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz/download?use_mirror=autoselect"
 #
-GDL_VANILLA_URL="https://github.com/gnudatalanguage/gdl/archive/v1.0.0-rc.2.tar.gz"
+GDL_VANILLA_URL="https://github.com/gnudatalanguage/gdl/archive/v1.0.0-rc.3.tar.gz"
 GDL_GIT_URL="https://codeload.github.com/gnudatalanguage/gdl/zip/master"
 #
 step=$1
@@ -319,8 +319,8 @@ echo "** preparing GDL"
 cd $RACINE
 #
 if [ "$gdl_git" -eq 1 ] ; then
-    echo "preparing to compiled GDL 1.0.0rc2 Git version"
-    gdl_path='gdl-1.0.0rc2_git'`date +%y%m%d`
+    echo "preparing to compiled GDL 1.0.0rc3 Git version"
+    gdl_path='gdl-1.0.0rc3_git'`date +%y%m%d`
     gdl_name=${gdl_path}'.tgz'
     if [ ! -e $gdl_name ] ; then
 	run_wget_or_curl_v2 $use_curl $GDL_GIT_URL $gdl_name
@@ -328,8 +328,8 @@ if [ "$gdl_git" -eq 1 ] ; then
     unzip $gdl_name
     mv gdl-master $gdl_path
 else 
-    echo "preparing to compiled GDL 1.0.0rc2 VANILLA version"
-    gdl_path='gdl-1.0.0-rc.2'
+    echo "preparing to compiled GDL 1.0.0rc3 VANILLA version"
+    gdl_path='gdl-1.0.0-rc.3'
     gdl_name=${gdl_path}'.tgz'
     if [ ! -e $gdl_name ] ; then
 	run_wget_or_curl_v2 $use_curl $GDL_VANILLA_URL $gdl_name
@@ -361,7 +361,7 @@ $CmakeEXE .. \
    -DGSLDIR=$GSL_PATH -DOPENMP=$flag_openmp \
    -DPLPLOTDIR=$RACINE/$PLPLOT_DIR/Compilation/ \
    -DWXWIDGETS=off -DMAGICK=OFF -DNETCDF=OFF -DHDF=OFF \
-   -DHDF5=off -DFFTW=OFF -DEIGEN3=OFF -DPSLIB=OFF -DPYTHON=OFF \
+   -DHDF5=off -DFFTW=OFF -DEIGEN3=OFF -DPYTHON=OFF \
    -DSHAPELIB=OFF -DUDUNITS2=OFF -DGRIB=off -DGLPK=off
 make -s -j $cpus
 #
