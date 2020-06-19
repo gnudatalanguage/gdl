@@ -1187,8 +1187,8 @@ message("")
 if ((DEFINED ENV{CONDA_PREFIX}) OR (DEFINED ENV{CONDA_EXE}))
   message("=========================================================================="\n
           "== WARNING !!        {Ana|mini|}conda activated env. detected !         =="\n
-	  "== To avoid possible conflict between locale libs. and the sytem libs,  =="\n
-          "== we advice you to removed Conda related paths om you $PATH            =="\n
+	  "== To avoid possible conflicts between local libs. and the sytem libs,  =="\n
+          "== we advice you to remove Conda related paths from you $PATH           =="\n
           "== or run this CMake file in a clean terminal without Conda Env.        =="\n
           "=========================================================================="\n)
 endif()
