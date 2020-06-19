@@ -96,13 +96,13 @@ mkdir -p build/plplot/msys
 # $env:CC and $env:CXX are defined in appveyor.yml to swap out compiler
 plplot=/c/projects/gdl/mingw/plplot-5.13
 cd /c/projects/gdl/build/plplot/msys 
-
+# 18-jun-2020 swirch to OLD_WXWIDGETS=OFF (Appveyor build > 1321)
 cmake /c/projects/gdl/win32libs/plplot-5.13.0 -G"MSYS Makefiles" \
  -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' \
  -DCMAKE_INSTALL_PREFIX=$plplot \
  -DPL_HAVE_QHULL=OFF -DHAVE_SHAPELIB=OFF \
  -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON \
- -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets=ON \
+ -DENABLE_cxx=ON -DOLD_WXWIDGETS=OFF  -DENABLE_wxwidgets=ON \
  -DENABLE_DYNDRIVERS=ON -DwxWidgets_USE_PREFIX=$WXROOT \
  -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON \
  -DCMAKE_SYSTEM_PREFIX_PATH=$LOCALM32 | tee cmake.out
