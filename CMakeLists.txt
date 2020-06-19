@@ -48,6 +48,8 @@ include(TestBigEndian)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 
 #### Default cached values
+set(GDLDEV OFF CACHE BOOL "GDL: Enable GDL developer mode (includes work-in-progress tests)")
+
 set(PYTHON_MODULE OFF CACHE BOOL "GDL: Build GDL as a Python module ?")
 
 set(X11 ON CACHE BOOL "GDL: Enable X11 ?") 
@@ -1177,4 +1179,6 @@ module(RPC       "RPC           ")
 if(NOT WIN32)
   module(CURSES    "(N)curses     ")
 endif(NOT WIN32)
+message("")
+message("GDLDEV mode: ${GDLDEV} (use -DGDLDEV=ON to enable work-in-progress tests)")
 message("")
