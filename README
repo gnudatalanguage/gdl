@@ -26,7 +26,7 @@ common blocks, assoc variables,
 all operators, all datatypes,
 _EXTRA, _STRICT_EXTRA and _REF_EXTRA keywords...
 
-GDL provides all of the GUI support (widgets) of IDL (see below). 
+GDL provides all of the GUI support (widgets) of IDL (see below) but none of the Compound Widgets. 
 
 Supported IDL 8.0 language elements:
 
@@ -44,9 +44,7 @@ simplified property access on objects (e. g. object.aProperty = value & print,ob
 In general GDL should run correctly an IDL procedure, even one from the /lib folder of an IDL distribution.
 (Note that most of theses procedures---some can be found on the web---have not yet been rewritten for GDL, help is welcome.).
 
-
-The file input output system is fully implemented including full support of
-F77_UNFORMATTED.
+The file input output system is fully implemented including full support of F77_UNFORMATTED.
 
 netCDF files are fully supported.
 HDF4 files are supported.
@@ -55,7 +53,7 @@ Basic support for HDF5 files.
 DICOM files are supported via the GDLffDICOM object (http://idl.barnett.id.au/idl-projects)
 (files in the src/pro/dicom subdirectory).
 
-Overall more than 400 library routines are implemented.
+Overall nearly 500 library routines are implemented.
 For a list enter HELP,/LIB at the command prompt and look for
 library routines written in GDL in the src/pro subdirectory.
 
@@ -79,24 +77,29 @@ In short:
 Mandatory libraries:
 plplot      http://plplot.sourceforge.net/source/index.html
 gsl         http://www.gnu.org/software/gsl
-readline    http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
 zlib        http://www.zlib.net/
 
-Optional libraries:
-Eigen       http://eigen.tuxfamily.org
-ImageMagick http://www.imagemagick.org/www/download.html
+Optional libraries (ON by default) :
+X11 (on unix)
+pnglib
+readline    http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
+Eigen3       http://eigen.tuxfamily.org
+GraphicsMagick http://www.graphicsmagick.org  (preferably to ImageMagick http://www.imagemagick.org)
 netCDF *)   ftp://ftp.unidata.ucar.edu/pub/netcdf
 HDF4 *)     ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
 HDF5        ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
 FFTW        http://www.fftw.org/download.html
 python      http://www.python.org
 libproj4    (consult the MAP_INSTALL file)
-UDUNITS-2   http://www.unidata.ucar.edu/software/udunits/
+UDUNITS2    http://www.unidata.ucar.edu/software/udunits/
 GRIB API    http://www.ecmwf.int/products/data/software/grib_api.html        
-shp         http://shapelib.maptools.org/ (consult the MAP_INSTALL file)
+shapelib    http://shapelib.maptools.org/ (consult the MAP_INSTALL file)
 wxWidgets   http://www.wxwidgets.org/
-pslib       http://pslib.sourceforge.net/
 glpk        https://www.gnu.org/software/glpk/  : only to have the linear programming function SIMPLEX() available.
+libTiff
+
+Optional libraries (OFF by default) :
+MPI
 
 Only with python:
 numpy          http://numpy.scipy.org/
@@ -110,8 +113,8 @@ COMPILING:
   depending on your distribution, you may need development packages
   as well. Examples are (for Fedora):
   plplot-devel
-  ImageMagick-devel
-  ImageMagick-c++-devel
+  GraphicsMagick-devel
+  GraphicsMagick-c++-devel
 
   Look at the *INSTALL* files.
 
@@ -126,28 +129,10 @@ LINE EDITING:
   
 GRAPHICS AND DEPENDENCIES:
 --------------------------
-  For the graphics support of GDL, the plplot library version >5.9.6 is necessary. 
-  PLplot >= 5.9.9 is recommended, but plplot > 10 is tricky (see below).
+  For the graphics support of GDL, we use the plplot library.
   To download plplot please look here:
   http://plplot.sourceforge.net/source/index.html
-  
-  A possible problem was reported:
-  On opening more than one window, plplot causes a segmentation fault
-  if GDL is compiled with ImageMagick. This happens if plplot uses 
-  dynamic drivers.
-  The current solution is to disable dynamic drivers for plplot
-  (-DENABLE_DYNDRIVERS=OFF option for cmake).
-  Current ubuntu/debian distributions are using dynamic drivers, so plplot
-  needs to be compiled from source there. Disabling dyndrivers apparently is not necessary anymore.
-  
-  plplot > 5.11 needs absolutely to be compiled with its "old" wxWidgets driver,
-  using the Cmake switch -DOLD_WXWIDGETS:BOOL=ON . Otherwise the WIDGET_DRAW and possibly the graphics window *will not work*.
-  Plplot is not flexible enough to provide both drivers, and the new driver insists on making its own windows!
-  Distributions that provide plplot and plplot-devel have probably not used -DOLD_WXWIDGETS:BOOL=ON
-  so you'll need to compile plplot yourself with this option
-  (and the options -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' for efficiency), install it somewhere
-  (so add also the with option -DCMAKE_INSTALL_PREFIX="somewhere"), and provide -DPLPLOTDIR="somewhere" while cmaking GDL.
-
+ 
 MATH FUNCTIONS & MORE:
 -----------------------
   GDL uses the GNU Scientific Library (GSL).
@@ -164,6 +149,7 @@ MAKE GDL FASTER:
   The Eigen library version 3.1 or later is highly recommended for a performance
   boost, expecially on multi-cores. To be found at: http://eigen.tuxfamily.org, 
   but is probably installed on your computer and will be found by the installer.
+  Of course, acceleration is only visible when optimisation (-O3) is turned on.
 
   The simpliest way to compile with it is to copy all the header files
   under sub-directory src/Eigen. Another solution is to provide full path
@@ -178,6 +164,8 @@ MAKE GDL FASTER:
   First one is the default. You have to activate the single flag
   (./configure --enable-single) when recompiling FFTw3.
   If FFTw is not used, the default (GSL) fft routine is used instead.
+  
+  
 
 WIDGETS:
 --------
@@ -268,9 +256,9 @@ MAP PROJECTIONS and GEOPHYSICS:
 ----------------
   GDL contains now a complete support to MAP projection,
   using the proj4 or libproj library. Please see MAP_INSTALL file.
-  It is NOT used by default.
 
-  GDL uses libshp (shapelib) to implement MAP_CONTINENTS - see MAP_INSTALL (optional)
+  GDL uses libshp (shapelib) to implement MAP_CONTINENTS - see MAP_INSTALL.
+  A valid GDL install should provide map files in <installation_directory>/resources/maps.
 
 PYTHON INTERFACE:
 -----------------
@@ -301,8 +289,6 @@ library (http://www.unidata.ucar.edu/software/udunits/)
 If you want to use it, use --with-udunits=DIR
 
 GDL supports the GRIB file format - see README_GRIB (optional)
-
-GDL uses pslib for fine-tuning PostScript output. (optional)
 
 GDL 0.9 was developed using ANTLR 2.7,   
 but unless you want to change the grammar (*.g files) you don't need
