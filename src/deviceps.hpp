@@ -25,15 +25,6 @@
 
 #include "objects.hpp"
 
-
-#  ifdef USE_PSLIB
-#    include <stdio.h> // tmpnam
-#    if !defined(_WIN32) || defined(__CYGWIN__)
-#        include <sys/utsname.h> // uname
-#    endif
-#    include <libps/pslib.h>
-#  endif
-
 #ifdef _MSC_VER
 #define CM2IN (.01 / GSL_CONST_MKSA_INCH) // This is not good, but works
 #define in2cm ( GSL_CONST_MKSA_INCH * 100)
@@ -91,8 +82,8 @@ class DevicePS: public GraphicsDevice
 
     // as setting the offsets and sizes with plPlot is (extremely) tricky, and some of these setting
     // are hardcoded into plplot (like EPS header, and offsets in older versions of plplot)
-    // here we play only with the aspect ratio - size and offset are handled by pslib when device,/close is called
-
+    // here we play only with the aspect ratio 
+    
     // patch 3611949 by Joanna, 29 Avril 2013
     PLFLT pageRatio=XPageSize/YPageSize;
     std::string as = i2s( pageRatio);
@@ -147,214 +138,6 @@ class DevicePS: public GraphicsDevice
 //    actStream->RenewPlplotDefaultCharsize(defhmm * charScale);
   }
     
-private:
-  void pslibHacks()
-  {
-#  ifndef USE_PSLIB
-    Warning("Warning: pslib support is mandatory for the PostScript driver to handle correctly the following");
-    Warning("         keywords:  [X,Y]OFFSET, [X,Y]SIZE, SCALE_FACTOR");
-#  else
-    PSDoc *ps = PS_new(); 
-    GDLGuard<PSDoc> psGuard( ps, PS_delete);
-    
-    if (ps == NULL)
-    {
-      Warning("Warning: pslib failed to allocate memory.");
-      return;
-    }
-    
-    FILE *fp = tmpfile(); // this creates a file which should be deleted automaticaly when it is closed
-    FILEGuard fpGuard( fp, fclose);
-    
-    if (fp == NULL) 
-    {
-      Warning("Warning: failed to create temporary PostScript file.");
-      return;
-    }
-    if (PS_open_fp(ps, fp) == -1) 
-    { 
-      Warning("Warning: pslib failed to open a new PostScript file.");
-      goto cleanup;
-    }
-    
-    PS_set_parameter(ps, "imagereuse", "false");
-    PS_set_info(ps, "Title", "Graphics produced by GDL"); 
-    PS_set_info(ps, "Orientation", orient_portrait ? "Portrait" : "Landscape"); 
-    {
-      string tmp;
-#if !defined(_WIN32) || defined(__CYGWIN__)
-      struct utsname uts;
-      uname(&uts);
-      tmp = "GDL Version " + string(VERSION) + ", " + string(uts.sysname) + " " + string(uts.machine);
-      PS_set_info(ps, "Creator", tmp.c_str()); 
-      char* login = getlogin();
-      if (login == NULL) Warning("Warning: getlogin() failed!");
-      tmp = (login == NULL ? "?" : login) + string("@") + uts.nodename;
-      PS_set_info(ps, "Author", tmp.c_str());
-#else
-      tmp = "GDL Version " + string(VERSION) + ", Microsoft Windows x32";
-      PS_set_info(ps, "Creator", tmp.c_str());
-
-      WCHAR username[257];
-      char cusername[257];
-      DWORD username_len = 257;
-      GetUserNameW(username, &username_len);
-
-      WideCharToMultiByte(CP_ACP, 0, username, username_len, cusername, username_len, NULL, NULL);
-
-      PS_set_info(ps, "Author", cusername);
-#endif
-    }
-    //bug: PSLIB does not return the correct boundingbox, it forgets offx and offy. Try to get it
-    //back (using pslib own code!)!
-        char *bb;
-        FILE *feps;
-        char buffer[1024]; //largely sufficient
-        int nbytes;
-        feps=fopen(fileName.c_str(), "r");
-        nbytes=fread(buffer,sizeof(char),1023,feps);
-        fclose(feps);
-        buffer[1023]=0;
-	bb = strstr(buffer, "%%BoundingBox:");
-        float offx, offy, width, height;
-	if(bb) {
-            bb += 15;
-            sscanf(bb, "%f %f %f %f", &offx, &offy, &width, &height);
-	} else {
-            offx=0;
-            offy=0;
-            width=500;
-            height=500; //silly values, will be replaced afterwards hopefully.
-        }
-
-    // TODO
-    //psfont = PS_findfont(ps, "Helvetica", "", 0); 
-    //PS_setfont(ps, psfont, 8.0); 
-
-      char bbstr [20], offstr [20];
-      int bbXSize, bbYSize;
-    {
-
-      int bbXoff = XOffset*CM2IN*DPI;
-      int bbYoff = YOffset*CM2IN*DPI;
-      bbXSize = orient_portrait ? bbXoff + XPageSize*CM2IN*DPI*scale : bbXoff + YPageSize*CM2IN*DPI*scale;
-      bbYSize = orient_portrait ? bbYoff + YPageSize*CM2IN*DPI*scale : bbYoff + XPageSize*CM2IN*DPI*scale;
-      sprintf(bbstr,"%i %i %i %i",bbXoff,bbYoff,bbXSize,bbYSize);
-      sprintf(offstr,"%i %i",bbXoff,bbYoff);
-    
-      PS_set_info(ps,"BoundingBox",bbstr);
-      PS_begin_page(ps, bbXSize, bbYSize);
-      {
-        int psimage = PS_open_image_file(ps, "eps", fileName.c_str(), NULL, 0);
-        if (psimage == 0)
-        {
-          Warning("Warning: pslib failed to load plPlot output file.");
-          goto cleanup;
-        }
-	
-        float scl = 0.98*min((bbXSize-bbXoff) / (width-offx), (bbYSize-bbYoff) / (height-offy) );
-	int margx = ((bbXSize-bbXoff) - scl*(width-offx))/2;
-	int margy = ((bbYSize-bbYoff) - scl*(height-offy))/2;
-        PS_place_image(ps, psimage, 
-		       bbXoff-offx*scl + margx,
-		       bbYoff-offy*scl + margy,
-		       scl
-        );
-        PS_close_image(ps, psimage); 
-      }
-      PS_end_page(ps);
-      PS_close(ps);
-    }
-    // Replace PageBoundingBox and CropBox and write contents to fileName
-    // To do that we need to remove a few chars of the line of 21 "%" at the begining of the plplot file,
-    // since we ADD characters and that appears to be unsafe (? version dependent? compiler?).
-    // if 21 "%" are not found, it's best to DO NOTHING!
-    // the "%%%%%%%%%%%%%%%%%%%%%" is largely before offset 12000, thus in the first fread.  
-    {
-      rewind(fp);
-      FILE *fp_plplot = fopen(fileName.c_str(), "w");
-      FILEGuard fp_plplotGuard( fp_plplot, fclose);
-      if (fp_plplot == NULL)
-      {
-        Warning("Warning: failed to open plPlot-generated file");
-        goto cleanup;
-      }
-
-      // When multiple pages are supported, PageBoundingBox and the cropbox
-      // will appear more than once. Then this section will need to be redone.
-
-      // Edit: change the two 0's after the PageBoundingBox
-      string pbstr=string("%%PageBoundingBox: ")+offstr;
-      long added=pbstr.length()-22; //number of chars to replace, compensated by
-      //removal of equivalent number of "%" elsewhere. 
-      const size_t buflen=12000;
-#ifdef _MSC_VER
-      char *buff = (char*)alloca(sizeof(char)*buflen);
-#else      
-      char buff[buflen];
-#endif
-
-      //do the first read:
-      size_t cnt = fread(&buff, 1, buflen, fp);
-      std::string sbuff;
-      sbuff.assign(buff,cnt);
-      //if "%%%%%%%%%%%%%%%%%%%%%" is not found, or 21 chars too small, do nothing:
-      size_t junkbufferloc=sbuff.find("%%%%%%%%%%%%%%%%%%%%%");
-      bool doIt=((junkbufferloc != string::npos) && (added < 22) );
-      
-      // find the PageBoundingBox statement
-      size_t pos = sbuff.find("%%PageBoundingBox: 0 0");
-      if (doIt && pos != string::npos) { 
-        //shrink "%%%..." by the amount of added chars...
-        sbuff.erase(junkbufferloc,added);
-        //replace, adding some chars:
-        sbuff.replace(pos,22,pbstr); 
-      }
-      pos = sbuff.find("0 setlinecap");
-      if (doIt && pos != string::npos) { 
-        sbuff.replace(pos,1,"1"); 
-      }
-      pos = sbuff.find("0 setlinejoin");
-      if (doIt && pos != string::npos) { 
-        sbuff.replace(pos,1,"1"); 
-      }
-      // PSlib outputs pdfmarks which resize the PDF to the size of the boundingbox
-      // this is nice, but not IDL behaviour (and anyway, the two 0's are wrong)
-      char mychar[60];
-      sprintf(mychar,"[ /CropBox [0 0 %i.00 %i.00] /PAGE pdfmark",bbXSize,bbYSize);
-      string pdfstr=string(mychar); 
-      pos = sbuff.find(pdfstr);
-      // this replacement will shrink only the size of sbuff and is thus safe
-      if (pos != string::npos) sbuff.erase(pos,pdfstr.length());
-
-      // write the first buflen to file
-      strcpy(buff,sbuff.c_str());
-      if (fwrite(&buff, 1, sbuff.size(), fp_plplot) < sbuff.size()) //and NOT buflen!
-        {
-          Warning("Warning: failed to overwrite the plPlot-generated file with pslib output");
-        }
-
-      // read the rest of fp and write to file
-      while (true)
-      {
-       cnt = fread(&buff, 1, buflen, fp);
-         if (!cnt) break;
-        if (fwrite(&buff, 1, cnt, fp_plplot) < cnt)
-        {
-          Warning("Warning: failed to overwrite the plPlot-generated file with pslib output");
-        }
-      }
-//       fclose(fp_plplot);
-    }
-
-    cleanup: //all closing done by FileGuard now!
-    // PSlib changes locale - bug no. 3428043
-#    ifdef HAVE_LOCALE_H
-    setlocale(LC_ALL, "C");
-#    endif
-#  endif
-  }
-
 private:
   void epsHacks()
   {
@@ -467,7 +250,7 @@ private:
     	if (!cnt) break;
         if (fwrite(&buffer, 1, cnt, fp_plplot) < cnt)
     	  {
-    	    Warning("Warning: failed to overwrite the plPlot-generated file with pslib output");
+    	    Warning("Warning: failed to overwrite the plPlot-generated file");
     	  }
       }
 
@@ -505,26 +288,11 @@ public:
     dStruct->InitTag("ZOOM",       zoom);
 
     SetPortrait();
-
-#  ifdef USE_PSLIB
-    PS_boot();
-    // PSlib changes locale - bug no. 3428043
-#    ifdef HAVE_LOCALE_H
-    setlocale(LC_ALL, "C");
-#    endif
-#  endif
   }
   
   ~DevicePS()
   {
     delete actStream;
-#  ifdef USE_PSLIB
-    PS_shutdown();
-    // PSlib changes locale - bug no. 3428043
-#    ifdef HAVE_LOCALE_H
-    setlocale(LC_ALL, "C");
-#    endif
-#  endif
   }
 
   GDLGStream* GetStream( bool open=true)
@@ -556,7 +324,7 @@ public:
 
       delete actStream;
       actStream = NULL;
-      if (!encapsulated) pslibHacks(); else epsHacks(); // needs to be called after the plPlot-generated file is closed
+      if (encapsulated) epsHacks(); // needs to be called after the plPlot-generated file is closed
     }
     return true;
   }

@@ -843,7 +843,7 @@ TRACEOMP( __FILE__, __LINE__)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
-      	    (*dest)[i]=strtol(cStart,&cEnd,10);
+      	    (*dest)[i]=strtoll(cStart,&cEnd,10);
       	    if( cEnd == cStart && (*this)[i] != "")
       	      {
 StringConversionError( errorFlag, mode, "Type conversion error: "
@@ -872,7 +872,7 @@ TRACEOMP( __FILE__, __LINE__)
       	  {
       	    const char* cStart=(*this)[i].c_str();
       	    char* cEnd;
-      	    (*dest)[i]=strtoul(cStart,&cEnd,10);
+      	    (*dest)[i]=strtoull(cStart,&cEnd,10);
       	    if( cEnd == cStart && (*this)[i] != "")
       	      {
 StringConversionError( errorFlag, mode, "Type conversion error: "

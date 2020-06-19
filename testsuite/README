@@ -1,7 +1,6 @@
 The list of GDL routines to be executed during the make-check run is 
-defined in the testsuite/Makefile.am file. After adding a new item 
-(filename) to the list, please rerun "automake" being in the root 
-folder of the source tree. CMake also uses the list in Makefile.am.
+defined in the testsuite/LIST file. After adding a new item 
+(filename) to the list, please rerun cmake.
 
 Each test routine is invoked using the GDL "-e" command-line option 
 by the "try" shell script in the testsuite directory (and in an
@@ -46,6 +45,5 @@ not the one installed in the system. The "try" script also sets
 appropriate env. variables so that the GDL-written library routines 
 are taken from the source tree as well (e.g. src/pro/mean.pro).
 
-Regardless if the autotools or the CMake/CTest configuration 
-mechanism, the testsuite run is invoked by "make check" (not the 
-default CMakes's "make test").
+The testsuite run is invoked by "make check" (not the default 
+CMakes's "make test").

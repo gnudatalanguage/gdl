@@ -42,6 +42,8 @@
 ; MODIFICATION HISTORY:
 ; -- 01-March-2013: creation by Alain Coulais, 
 ; -- 18-April-2013: managing the book= keyword, with/out /full_path
+; -- 17-June-2020: AC : better management of "xdg-open"; success to
+; overpass Firefox unsetting MOZ_NO_REMOTE
 ; 
 ; LICENCE: This code is under GNU GPL v2 or later.
 ;
@@ -75,12 +77,12 @@ ON_ERROR, 2
 if ~KEYWORD_SET(test) then ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro ONLINE_HELP, name, book=book, context=context, full_path=full_path, title=title, $'
-    print, '                 nopdf=nopdf, nohtml=nohtml, nokey=nokey, browser=browser, $'
-    print, '                 path2pdf=path2pdf, path2key=path2key, link2html=link2htlm, $'
-    print, '                 test=test, debug=debug, help=help, verbose=verbose'
-    print, ''
-    return
+   print, 'pro ONLINE_HELP, name, book=book, context=context, full_path=full_path, title=title, $'
+   print, '                 nopdf=nopdf, nohtml=nohtml, nokey=nokey, browser=browser, $'
+   print, '                 path2pdf=path2pdf, path2key=path2key, link2html=link2htlm, $'
+   print, '                 test=test, debug=debug, help=help, verbose=verbose'
+   print, ''
+   return
 endif
 ;
 if N_PARAMS() EQ 0 then name=''
@@ -97,7 +99,7 @@ if (status EQ 0) then begin
 endif
 ;
 if KEYWORD_SET(context) then begin
-    MESSAGE, /continue, 'This option (only MSwin) is not available'
+   MESSAGE, /continue, 'This option (only MSwin) is not available'
 endif
 ;
 ; setting a default browser if not provided
@@ -122,64 +124,66 @@ endif
 SPAWN, 'which '+browser, ok, error
 ;
 if (STRLEN(ok) EQ 0) then begin
-    MESSAGE, /continue, 'WEB Browser not found : '+browser
-    MESSAGE, 'Please provide the name (+path) to the browser you want to use'
+   MESSAGE, /continue, 'WEB Browser not found : '+browser
+   MESSAGE, 'Please provide the name (+path) to the browser you want to use'
 endif
 ;
 space=' '
+quote="'"                       ;'
+qsq=quote+space+quote
 background=' &'
 ;
 if KEYWORD_SET(book) then begin
-    ;;
-    ;; when the document is a PDF file, we try to use a PDF viewer
-    ;;
-    idx_suffixe=STRPOS(book, '.', /reverse_search)
-    ;; when the suffixe is not found we need "browser"
-    if (idx_suffixe GE 0) then begin
-        suffixe=STRMID(book, idx_suffixe+1)
-        if STRLOWCASE(suffixe) EQ 'pdf' then begin
-            ;; don't hesitate to complete this list
-            list_of_pdf_viewers=['xpdf','evince','atril','acroread']
-            ;; if we don't locate a PDF viewer, we will use the default (web) Brower
-            for ii=0, N_ELEMENTS(list_of_pdf_viewers)-1 do begin
-                SPAWN, 'which '+list_of_pdf_viewers[ii], ok, error
-                if (STRLEN(ok) NE 0) then begin
-                    browser=list_of_pdf_viewers[ii]
-                    break
-                endif
-            endfor
-        endif
-    endif
-    if ~KEYWORD_SET(full_path) then begin
-        ;;message, /continue, 'ToDo : managing !HELP_PATH'
-        DEFSYSV, '!HELP_PATH', exist=exist
-        if exist then begin
-            book=FILE_WHICH(!HELP_PATH,book)
-            if (STRLEN(book) EQ 0) then MESSAGE, 'no file found, please check !HELP_PATH and book name'
-        endif else begin
-            ;; falling back to standard multi-tab help
-            MESSAGE, /continue, '!HELP_PATH not set !'
-        endelse
-    endif
-    ;; we have to check whether the file exist or not !!
-    if FILE_TEST(book) then begin
-        command=browser+space+book+background
-        goto, execute_command
-    endif
+   ;;
+   ;; when the document is a PDF file, we try to use a PDF viewer
+   ;;
+   idx_suffixe=STRPOS(book, '.', /reverse_search)
+   ;; when the suffixe is not found we need "browser"
+   if (idx_suffixe GE 0) then begin
+      suffixe=STRMID(book, idx_suffixe+1)
+      if STRLOWCASE(suffixe) EQ 'pdf' then begin
+         ;; don't hesitate to complete this list
+         list_of_pdf_viewers=['xpdf','evince','atril','acroread']
+         ;; if we don't locate a PDF viewer, we will use the default (web) Brower
+         for ii=0, N_ELEMENTS(list_of_pdf_viewers)-1 do begin
+            SPAWN, 'which '+list_of_pdf_viewers[ii], ok, error
+            if (STRLEN(ok) NE 0) then begin
+               browser=list_of_pdf_viewers[ii]
+               break
+            endif
+         endfor
+      endif
+   endif
+   if ~KEYWORD_SET(full_path) then begin
+      ;;message, /continue, 'ToDo : managing !HELP_PATH'
+      DEFSYSV, '!HELP_PATH', exist=exist
+      if exist then begin
+         book=FILE_WHICH(!HELP_PATH,book)
+         if (STRLEN(book) EQ 0) then MESSAGE, 'no file found, please check !HELP_PATH and book name'
+      endif else begin
+         ;; falling back to standard multi-tab help
+         MESSAGE, /continue, '!HELP_PATH not set !'
+      endelse
+   endif
+   ;; we have to check whether the file exist or not !!
+   if FILE_TEST(book) then begin
+      command=browser+space+book+background
+      goto, execute_command
+   endif
 endif
 ;
 ; link to IDL exelis in-line documentation
 ;
 link1=''
 if ~KEYWORD_SET(nohtml) then begin
-    if ~KEYWORD_SET(link2html) then link2html='http://www.exelisvis.com/docs/'
-    suffixe='.html'
-    ;;
-    if STRLEN(name) GT 0 then begin
-        link1=space+link2html+STRUPCASE(name)+suffixe
-    endif else begin
-        link1=space+link2html
-    endelse
+   if ~KEYWORD_SET(link2html) then link2html='http://www.exelisvis.com/docs/'
+   suffixe='.html'
+   ;;
+   if STRLEN(name) GT 0 then begin
+      link1=link2html+STRUPCASE(name)+suffixe
+   endif else begin
+      link1=link2html
+   endelse
 endif
 ;
 ; link to PDF 
@@ -187,74 +191,93 @@ endif
 ;
 link2=''
 if ~KEYWORD_SET(nopdf) then begin
-    path2pdf='http://gnudatalanguage.sourceforge.net/'
-    local_pdf=FILE_WHICH(!path, 'gdl.pdf',/include_current_dir)
-    ;;
-    ;; if no "gdl.pdf" in the !Path, trying to download it
-    if STRLEN(local_pdf) EQ 0 then begin
-        script=''
-        SPAWN, 'which wget', res
-        if STRLEN(res) GT 0 then begin
-            script='wget '
-        endif else begin
-            SPAWN, 'which curl', res
-            if STRLEN(res) GT 0 then script='curl -O '
-        endelse
-        if (STRLEN(script) GT 0) then begin
-            SPAWN, script+path2pdf+'gdl.pdf', ok, pb
-        endif
-        local_pdf=FILE_WHICH(!path, 'gdl.pdf',/include_current_dir)
-    endif
-    ;;
-    if (STRLEN(local_pdf) GT 0) then begin
-        if STRLEN(name) GT 0 then begin
-            ;; activating the search capability inside PDF, 
-            ;; worked on Acroread pluging
-            ;; should worked withing 
-            link2='file://'+FILE_EXPAND_PATH(local_pdf)+'#search="'+name+'"'
-        endif else begin
-            link2='file://'+FILE_EXPAND_PATH(local_pdf)
-        endelse
-    endif else begin
-        MESSAGE, /continue, 'GDL pdf documentaion not found :('
-    endelse
+   path2pdf='http://aramis.obspm.fr/~coulais/GDL/' ;gdl.pdfhttp://gnudatalanguage.sourceforge.net/'
+   local_pdf=FILE_WHICH(!path, 'gdl.pdf',/include_current_dir)
+   ;;
+   ;; if no "gdl.pdf" in the !Path, trying to download it
+   if STRLEN(local_pdf) EQ 0 then begin
+      script=''
+      SPAWN, 'which wget', res
+      if STRLEN(res) GT 0 then begin
+         script='wget '
+      endif else begin
+         SPAWN, 'which curl', res
+         if STRLEN(res) GT 0 then script='curl -O '
+      endelse
+      if (STRLEN(script) GT 0) then begin
+         SPAWN, script+path2pdf+'gdl.pdf', ok, pb
+      endif
+      local_pdf=FILE_WHICH(!path, 'gdl.pdf',/include_current_dir)
+   endif
+   ;;
+   if (STRLEN(local_pdf) GT 0) then begin
+      if STRLEN(name) GT 0 then begin
+         ;; activating the search capability inside PDF, 
+         ;; worked on Acroread pluging
+         ;; should worked withing 
+         link2='file://'+FILE_EXPAND_PATH(local_pdf)+'#search="'+name+'"'
+      endif else begin
+         link2='file://'+FILE_EXPAND_PATH(local_pdf)
+      endelse
+   endif else begin
+      MESSAGE, /continue, 'GDL pdf documentaion not found :('
+   endelse
 endif
 ;
 link3=''
+link3bis=''
 if ~KEYWORD_SET(nokey) then begin
-    path2key='http://aramis.obspm.fr/~coulais/IDL_et_GDL/'
-    ;;
-    if (STRLEN(name) GT 0) then begin
-       ;; is it a .PRO file ??
-       pro_file=FILE_WHICH(name+'.pro')
-       if STRLEN(pro_file) GT 0 then begin
-          link3='file://'+pro_file+space
-          link3=link3+path2key+'Matrice_IDLvsGDL.html#'+STRUPCASE(STRMID(name,0,1))
-       endif else begin
-          link3=path2key+'known_keywords.html#GDL_'+STRUPCASE(name)
-       endelse
-    endif else begin
-       link3=path2key+'Matrice_IDLvsGDL.html'
-    endelse
+   path2key='http://aramis.obspm.fr/~coulais/IDL_et_GDL/'
+   ;;
+   if (STRLEN(name) GT 0) then begin
+      ;; is it a .PRO file ??
+      pro_file=FILE_WHICH(name+'.pro')
+      if STRLEN(pro_file) GT 0 then begin
+         link3='file://'+pro_file
+         link3bis=path2key+'Matrice_IDLvsGDL.html#'+STRUPCASE(STRMID(name,0,1))
+      endif else begin
+         link3=path2key+'known_keywords.html#GDL_'+STRUPCASE(name)
+      endelse
+   endif else begin
+      link3=path2key+'Matrice_IDLvsGDL.html'
+   endelse
 endif
+;
+if (browser EQ 'firefox') then begin
+   if STRLEN(link3bis) GT 0 then l3l=link3+qsq+link3bis else l3l=link3
+   command=browser+space+quote+link1+qsq+link2+qsq+l3l+quote+background
+endif else begin
+   bsq=browser+space+quote
+   qcs="'; " 
+   command=bsq+link1+qcs
+   command=command+bsq+link2+qcs
+   if STRLEN(link3bis) GT 0 then command=command+bsq+link3bis+qcs
+   command=command+bsq+link3+quote+background
+endelse
 ;
 ; line by line the command used by browser
 ;
 if keyword_set(verbose) then begin
-    MESSAGE, /continue, 'link2html= : '+link2html
-    MESSAGE, /continue, 'path2pdf = : '+path2pdf
-    MESSAGE, /continue, 'path2key = : '+path2key
+   MESSAGE, /continue, 'link2html= : '+link2html
+   MESSAGE, /continue, 'path2pdf = : '+path2pdf
+   MESSAGE, /continue, 'path2key = : '+path2key
+   MESSAGE, /continue, ''
+   MESSAGE, /continue, 'link1 = : '+link1
+   MESSAGE, /continue, 'link2 = : '+link2
+   MESSAGE, /continue, 'link3 = : '+link3
+   if STRLEN(link3bis) GT 0 then MESSAGE, /continue, 'link3bis = : '+link3bis
+   MESSAGE, /continue, ''
+   MESSAGE, /continue, 'the whole command : '+command
 endif
-;
-command=browser+space+link1+space+link2+space+link3+background
 ;
 execute_command:
 ;
 if KEYWORD_SET(debug) then begin
-    print, command
-    STOP
+   print, command
+   STOP
 endif
-SPAWN, command
+
+SPAWN, 'unset MOZ_NO_REMOTE; '+command
 ;
 if KEYWORD_SET(test) then stop
 ;

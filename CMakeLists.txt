@@ -28,7 +28,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # X.X.X git becomes release X.X.X+1
-set(VERSION "1.0.0-rc.2 git")
+set(VERSION "1.0.0-rc.3 git")
 enable_testing()
 
 # cf issue 511, managing MultiArch on Debian ...
@@ -48,6 +48,8 @@ include(TestBigEndian)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 
 #### Default cached values
+set(GDLDEV OFF CACHE BOOL "GDL: Enable GDL developer mode (includes work-in-progress tests)")
+
 set(PYTHON_MODULE OFF CACHE BOOL "GDL: Build GDL as a Python module ?")
 
 set(X11 ON CACHE BOOL "GDL: Enable X11 ?") 
@@ -71,9 +73,6 @@ set(UDUNITS2DIR "" CACHE PATH "GDL: Specify the UDUNITS-2 directory tree")
 
 set(EIGEN3 ON CACHE BOOL "GDL: Enable Eigen3 ?")
 set(EIGEN3DIR "" CACHE PATH "GDL: Specify the Eigen3 directory tree")
-
-set(PSLIB ON CACHE BOOL "GDL: Enable pslib ?")
-set(PSLIBDIR "" CACHE PATH "GDL: Specify the pslib directory tree")
 
 set(PNGLIB ON CACHE BOOL "GDL: Enable libpng ?")
 set(PNGLIBDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
@@ -916,26 +915,6 @@ if(EIGEN3)
       endif(EIGEN3_TOO_OLD)
 endif(EIGEN3)
 
-# pslib
-# -DPSLIB=ON|OFF
-# -DPSLIBDIR=DIR
-if(PSLIB)
-    set(CMAKE_PREFIX_PATH ${PSLIBDIR})
-    find_package(libps QUIET)
-    set(USE_PSLIB ${PSLIB_FOUND})
-    if(PSLIB_FOUND)
-        set(LIBRARIES ${LIBRARIES} ${PSLIB_LIBRARIES})
-        #set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${PSLIB_LIBRARY_DIRS})
-        include_directories(${PSLIB_INCLUDE_DIR})
-    else(PSLIB_FOUND)
-        message(FATAL_ERROR "pslib is required but was not found.\n"
-        "Use -DPSLIBDIR=DIR to specify the pslib directory tree.\n"
-        "Use -DPSLIB=OFF to not use it.\n"
-                "(suitable Debian/Ubuntu package: pslib-dev)\n"
-                "(suitable Fedora/CentOS package: pslib-devel)")
-    endif(PSLIB_FOUND)
-endif(PSLIB)
-
 # grib
 # -DGRIB=ON|OFF
 # -DGRIBDIR=DIR
@@ -1176,7 +1155,6 @@ set(SHAPELIB_LIBRARIES ${SHAPELIB_LIBRARIES})
 module(SHAPELIB   "SHAPELIB      ")
 set(EXPAT_LIBRARIES ${EXPAT_LIBRARIES})
 module(EXPAT     "EXPAT         ")
-module(PSLIB	 "pslib         ")
 if(WIN32 AND NOT CYGWIN)
   module(XPORTMINGW  "XPortMinGW (Win32 Xlib)       ")
 else(WIN32 AND NOT CYGWIN)
@@ -1201,4 +1179,6 @@ module(RPC       "RPC           ")
 if(NOT WIN32)
   module(CURSES    "(N)curses     ")
 endif(NOT WIN32)
+message("")
+message("GDLDEV mode: ${GDLDEV} (use -DGDLDEV=ON to enable work-in-progress tests)")
 message("")

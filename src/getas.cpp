@@ -343,7 +343,7 @@ template<>
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
-    Data_<SpDLong64>::Ty result =strtol(cStart,&cEnd,10);
+    Data_<SpDLong64>::Ty result =strtoll(cStart,&cEnd,10);
     if( cEnd == cStart && (*this)[i] != "")
     {
       StringConversionErrorGetAs( "Type conversion error: "
@@ -357,7 +357,7 @@ template<>
   {
     const char* cStart=(*this)[i].c_str();
     char* cEnd;
-    Data_<SpDULong64>::Ty result =strtoul(cStart,&cEnd,10);
+    Data_<SpDULong64>::Ty result =strtoull(cStart,&cEnd,10);
     if( cEnd == cStart && (*this)[i] != "")
     {
       StringConversionErrorGetAs( "Type conversion error: "
