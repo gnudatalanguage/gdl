@@ -17,12 +17,10 @@ cd ./mingw
 pream="https://sourceforge.net/projects/msys2/files/REPOS"
 pream="https://mirror.selfnet.de/msys2"
 pream="http://repo.msys2.org"
+
+echo pream=$pream
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-gsl-2.5-1-any.pkg.tar.xz
 #
-#curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-readline-6.3.008-1-any.pkg.tar.xz
-readline=readline-6.3.008
-# A later version of readline, under suspicion but so far vindicated:
-#readline=readline-7.0.005 This was used in build 593. back to 6.3
 gettext=gettext-0.19.6
 # That was for 6.3. for gcc 7.x (30-jun-2017 thru 29-jul-2018:
 readline=readline-7.0.005-1
@@ -43,8 +41,7 @@ curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-libsystre-1.0.1-4-any.pkg.tar.
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-libtre-git-r128.6fb7206-2-any.pkg.tar.xz
 # later versions of libpng were found to link badly.
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-eigen3-3.3.5-1-any.pkg.tar.xz
-#curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-zlib-1.2.8-9-any.pkg.tar.xz
-#$pream/mingw/x86_64/mingw-w64-x86_64-zlib-1.2.11-4-any.pkg.tar.xz
+
 zlib=zlib-1.2.11-4 # 20-Sep-2018
 zlib=zlib-1.2.11-3 # 19-Jul-2018
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-${zlib}-any.pkg.tar.xz
@@ -53,6 +50,7 @@ libpng=libpng-1.6.18-1
 libpng=libpng-1.6.35-1
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-${libpng}-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-${libpng}-any.pkg.tar.xz
+echo zlib=$zlib libpng=$libpng
 # fftw-3.3.8 from 29-May-2018 (gcc 7.2)
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-fftw-3.3.8-1-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-fftw-3.3.8-1-any.pkg.tar.xz
@@ -67,7 +65,7 @@ tar xf mingw-w64-${arch}-${shapelib}-any.pkg.tar.xz
 expat=expat-2.2.6-1
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-${expat}-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-${expat}-any.pkg.tar.xz
-
+echo shapelib=$shapelib expat=$expat
 path=`cygpath -u . -a`
 echo $path
 tar xf mingw-w64-${arch}-gsl-2.5-1-any.pkg.tar.xz
