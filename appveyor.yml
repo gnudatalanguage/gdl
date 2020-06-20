@@ -353,7 +353,7 @@ on_failure:
 after_build:
   - cd c:\projects\gdl
   - ps: |
-      if ( $env:platform -Match "mingw64630x8664") # in make_gdl.ps1, this is done before make check.
+      if ($false) # ( $env:platform -Match "mingw64630x8664") # in appveyor_gdl.msys, this is done before make check.
       {
       C:\msys64\usr\bin\bash.exe -lc "mkdir -p /c/projects/gdl/install/gdl/bin"
       copy $env:LOCALM32\bin\*.dll c:\projects\gdl\install\gdl\bin
@@ -382,8 +382,6 @@ after_build:
   - ps: copy scripts/rungdl.bat c:/projects/gdl/install/rungdl.bat
   - ps: copy -r src/pro install/gdl/gdllib
   - 7z a gdl_build.zip install build
-  # -  C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl/build/gdl/msys  && make check"
-  - C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl &&. scripts/rungdl.msys"
   
 artifacts:
   - path: gdl_build.zip
