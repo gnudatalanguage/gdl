@@ -382,7 +382,8 @@ after_build:
   - ps: copy scripts/rungdl.bat c:/projects/gdl/install/rungdl.bat
   - ps: copy -r src/pro install/gdl/gdllib
   - 7z a gdl_build.zip install build
-
+  -  cmd /c C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl/build/gdl/msys 
+ && make check"
 
 artifacts:
   - path: gdl_build.zip
