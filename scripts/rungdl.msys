@@ -1,0 +1,12 @@
+. /etc/profile
+
+echo "MSYSTEM=$MSYSTEM && . /etc/profile: now ready to run make check
+# LOCALM32=/c/projects/gdl/mingw/$mname
+# ----------		this is needed to find bin/wx-config
+# export PATH=$LOCALM32/bin:$PATH
+plplot=/c/projects/gdl/mingw/plplot-5.13
+cd /c/projects/gdl/build/gdl/msys 
+export PLPLOT_DRV_DIR=$plplot/lib/plplot5.13/drivers
+export PLPLOT_LIB=$plplot/share/plplot5.13.0
+export PATH=/c/projects/gdl/install/gdl/bin:$PATH
+make check
