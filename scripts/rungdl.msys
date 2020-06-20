@@ -1,6 +1,6 @@
 . /etc/profile
 
-echo "MSYSTEM=$MSYSTEM && . /etc/profile: now ready to run make check
+echo MSYSTEM=$MSYSTEM && . /etc/profile: now ready to run make check
 # LOCALM32=/c/projects/gdl/mingw/$mname
 # ----------		this is needed to find bin/wx-config
 # export PATH=$LOCALM32/bin:$PATH
