@@ -88,4 +88,7 @@ cp $plplot/bin/lib*.dll /c/projects/gdl/install/gdl/bin
 cp /c/mingw-w64/$GCC/$mname/bin/*.dll /c/projects/gdl/install/gdl/bin
 export PATH=/c/projects/gdl/install/gdl/bin:$PATH
 make check
+checkerr=$?
+echo $checkerr is the exit code from appveyor_gdl.
 rm src/CMakeFiles/gdl.dir/*.obj
+exit $checkerr

@@ -21,7 +21,7 @@
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_readf_with_crlf.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_routine_filepath.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_scope_varfetch.pro' -NotMatch)
-  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_xdr.pro' -NotMatch)
+#  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_xdr.pro' -NotMatch)
       }
       elseif ($env:platform -Match "mingw64630i686")
       {
@@ -39,7 +39,7 @@
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_routine_filepath.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_scope_varfetch.pro' -NotMatch)
 #extras
-  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_angles.pro' -NotMatch)
+ # Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_angles.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_base64.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_binfmt.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bytscl.pro' -NotMatch)
