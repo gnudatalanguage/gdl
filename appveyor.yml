@@ -66,8 +66,8 @@ install:
         $env:DOTIFF="ON"
         $env:DOGEOTIFF="ON"
        }
- - PowerShell c:\projects\gdl\scripts\ps1\appveyor_skip_tests.ps1
- - ps:   $env:platform=""
+  - PowerShell c:\projects\gdl\scripts\ps1\appveyor_skip_tests.ps1
+  - ps:   $env:platform=""
   - ps: |
       if ($true)   # MSYS mode
       {
