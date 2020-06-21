@@ -2,10 +2,10 @@
   # normally $env:platform is blanked out at top of appveyor.yml
 
    echo "Skipped tests for $env:platform  are found in scripts/appveyor_skip_tests.ps1"
-      if ( $env:platform -Match "mingw64630x8664") 
+    cd C:\projects\gdl\testsuite
+       if ( $env:platform -Match "mingw64630x8664") 
       {
-      cd C:\projects\gdl\testsuite
-#    memory, wordexp fail
+ #    memory, wordexp fail
 #% TEST_MEMORY: reported memory consumption should increase after allocating a big array!
     Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_memory.pro' -NotMatch)
 # % TEST_WORDEXP: Error on operation : basic FILE_DIRNAME
@@ -26,7 +26,6 @@
       }
       elseif ($env:platform -Match "mingw64630i686")
       {
-     cd C:\projects\gdl\testsuite
       # routines common with mingw64630x8664
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_memory.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_wordexp.pro' -NotMatch)
@@ -44,11 +43,13 @@
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_base64.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_binfmt.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bytscl.pro' -NotMatch)
+  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_byte_conversion.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_common.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_congrid.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_dilate.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_erfinv.pro' -NotMatch)
-  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_execute.pro' -NotMatch)  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_fft_dim.pro' -NotMatch)
+  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_execute.pro' -NotMatch) 
+   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_fft_dim.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_file_copy.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_file_move.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_finite.pro' -NotMatch)
@@ -87,5 +88,15 @@
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_wavelet.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_xmlsax.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_zeropoly.pro' -NotMatch)
-     }
+      }
+      elseif ($env:platform -Match "mingw64810i686")
+      {
+   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_angles.pro' -NotMatch)
+   echo $env:platform has been attempted before and has not worked out
+      }
+      elseif ($env:platform -Match "mingw64810x8664")
+      {
+  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_angles.pro' -NotMatch)
+   echo $env:platform has been attempted before and has not worked out
+    }
  
