@@ -275,8 +275,8 @@ class   BaseGDL;
 class   ArrayIndexListT;
 //class   ExprListT;
 
-struct SpDULong;
-template<class> class Data_;
+//struct SpDULong;
+//template<class> class Data_;
 
 struct ForLoopInfoT;
 
