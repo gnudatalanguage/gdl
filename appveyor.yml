@@ -65,8 +65,9 @@ install:
         $env:CXX="C:/mingw-w64/$env:GCC/$env:mname/bin/g++"
         $env:DOTIFF="ON"
         $env:DOGEOTIFF="ON"
-        $env:platform=""
        }
+ - PowerShell c:\projects\gdl\scripts\ps1\appveyor_skip_tests.ps1
+ - ps:   $env:platform=""
   - ps: |
       if ($true)   # MSYS mode
       {
@@ -343,7 +344,10 @@ build_script:
   # in the appveyor_gdl build: The distribution is created in appveyor_1.msys from the repo.
   #- set GMNAME=GraphicsMagick-1.3.27
   - set GMNAME=GraphicsMagick-1.3.29-1
-  - PowerShell c:\projects\gdl\scripts\ps1\make_gdl.ps1
+  # - PowerShell c:\projects\gdl\scripts\ps1\make_gdl.ps1
+  
+  - C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl &&. scripts/appveyor_gdl.msys"
+
   # Any message sent to stderr in appeyor.yml can be counted as an error, unless it is generated in 
   # a script.  Hence make_gdl.ps1, and only real hang-ups are failures.
   
