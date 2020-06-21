@@ -3,7 +3,7 @@
    echo  $env:platform 
       if ( $env:platform -Match "mingw64630x8664") 
       {
-      cd c:\projects\gdl
+      cd C:\projects\gdl\testsuite
 #    memory, wordexp fail
 #% TEST_MEMORY: reported memory consumption should increase after allocating a big array!
     Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_memory.pro' -NotMatch)
@@ -25,7 +25,7 @@
       }
       elseif ($env:platform -Match "mingw64630i686")
       {
-     cd c:\projects\gdl
+     cd C:\projects\gdl\testsuite
       # routines common with mingw64630x8664
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_memory.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_wordexp.pro' -NotMatch)

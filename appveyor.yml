@@ -87,7 +87,7 @@ install:
         $env:WXROOT="C:\projects\gdl\mingw\$env:WXNAME"
       }
    # MINGW mode build wxWidgets 3.0.4
-   # if ($env:platform -Match "mingw64630x8664")
+   #
   - ps: |
       if ($false)
       {
