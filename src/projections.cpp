@@ -1681,7 +1681,7 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
     SizeT num = 0;
     while (index < currentConn->N_Elements()) {
       size = (*currentConn)[index];
-      if (size > (fill) ? 2 : 1) { //two or 3 points I hope.
+      if (size > ( (fill) ? 2 : 1) ) { //two or 3 points I hope.
         start = index + 1; //start new chunk...
         num++;
         currentVertexList.clear();
