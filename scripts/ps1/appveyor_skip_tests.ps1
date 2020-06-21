@@ -86,6 +86,7 @@
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_trisol.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_typename.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_wavelet.pro' -NotMatch)
+  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_xdr.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_xmlsax.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_zeropoly.pro' -NotMatch)
       }
