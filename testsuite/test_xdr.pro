@@ -90,11 +90,11 @@ dataw.finalbytesum=N_TAGS(dataw)
 ;
 filename='idl.xdr'
 list_of_dirs=STRSPLIT(!PATH, PATH_SEP(/SEARCH_PATH), /EXTRACT)
-file_idl_xdr=FILE_SEARCH(list_of_dirs+PATH_SEP()+filename)
+file_idl_xdr=(FILE_SEARCH(list_of_dirs+PATH_SEP()+filename))[0]
 ;
 if ~FILE_TEST(file_idl_xdr) then begin
    ;; just in case, testing the current dir.
-   file_idl_xdr=FILE_SEARCH(GETENV('PWD')+PATH_SEP()+filename)
+   file_idl_xdr=(FILE_SEARCH(GETENV('PWD')+PATH_SEP()+filename))[0]
 endif
 ;
 if ~FILE_TEST(file_idl_xdr) then begin
