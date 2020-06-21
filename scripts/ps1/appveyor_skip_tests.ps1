@@ -1,6 +1,7 @@
   # powershell script called from appveyor.yml 
   # normally $env:platform is blanked out at top of appveyor.yml
-   echo  $env:platform 
+
+   echo "Skipped tests for $env:platform  are found in scripts/appveyor_skip_tests.ps1"
       if ( $env:platform -Match "mingw64630x8664") 
       {
       cd C:\projects\gdl\testsuite
@@ -21,7 +22,7 @@
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_readf_with_crlf.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_routine_filepath.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_scope_varfetch.pro' -NotMatch)
-#  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_xdr.pro' -NotMatch)
+  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_xdr.pro' -NotMatch)
       }
       elseif ($env:platform -Match "mingw64630i686")
       {
@@ -39,7 +40,7 @@
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_routine_filepath.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_scope_varfetch.pro' -NotMatch)
 #extras
- # Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_angles.pro' -NotMatch)
+  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_angles.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_base64.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_binfmt.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bytscl.pro' -NotMatch)
@@ -47,16 +48,20 @@
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_congrid.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_dilate.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_erfinv.pro' -NotMatch)
-  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_fft_dim.pro' -NotMatch)
+  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_execute.pro' -NotMatch)  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_fft_dim.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_file_copy.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_file_move.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_finite.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_fixprint.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_fx_root.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_fz_roots.pro' -NotMatch)
+  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_gh00716.pro' -NotMatch)
+   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_hist_2d.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_interpol.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_l64.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_linfit.pro' -NotMatch)
+  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_message.pro' -NotMatch)
+
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_modulo.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_moment.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_nans_in_sort_and_median.pro' -NotMatch)
@@ -69,7 +74,8 @@
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_ptr_valid.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_random.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_same_name.pro' -NotMatch)
-   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_xdr.pro' -NotMatch)
+    Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_simplex.pro' -NotMatch)
+  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_spl_init.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_str_sep.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_stregex.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_strmatch.pro' -NotMatch)
@@ -81,5 +87,5 @@
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_wavelet.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_xmlsax.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_zeropoly.pro' -NotMatch)
-      }
+     }
  
