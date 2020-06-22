@@ -11,9 +11,6 @@
 ; 
 pro TEST_PYTHON_MODULE_1, no_exit=no_exit, $
                           help=help, test=test, verbose=verbose
- 
-  has_python = ~ (execute("python, 'numpy'") eq 0)  
-  if ~ has_python then exit, status=77
 ;
 if (STRlowCase(!version.os_family) EQ 'windows') then begin
    MESSAGE, /continue, 'Not ready for MSwin, please contribute (!fixme!)'
