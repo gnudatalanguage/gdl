@@ -1182,3 +1182,13 @@ endif(NOT WIN32)
 message("")
 message("GDLDEV mode: ${GDLDEV} (use -DGDLDEV=ON to enable work-in-progress tests)")
 message("")
+
+# do we have a Conda env. around ? see issues #780
+if ((DEFINED ENV{CONDA_PREFIX}) OR (DEFINED ENV{CONDA_EXE}))
+  message("=========================================================================="\n
+          "== WARNING !!        {Ana|mini|}conda activated env. detected !         =="\n
+	  "== To avoid possible conflicts between local libs. and the sytem libs,  =="\n
+          "== we advice you to remove Conda related paths from you $PATH           =="\n
+          "== or run this CMake file in a clean terminal without Conda Env.        =="\n
+          "=========================================================================="\n)
+endif()

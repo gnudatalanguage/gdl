@@ -32,7 +32,7 @@ int rtn = system(tmp);
 
 if (rtn == 77) {
     printf(\"TEST SKIPPED\");
-    exit(0);
+    exit(77);
 } if (rtn == -1 || rtn == 127) {
     printf(\"LAUNCH PROCESS FAILED\");
     exit(1);
@@ -74,7 +74,7 @@ if(child_pid == 0) {
   waitpid(child_pid, &child_status, 0);
   if (WEXITSTATUS(child_status) == 77) {
     printf(\"TEST SKIPPED\");
-    exit(0);
+    exit(77);
   } else if (WIFSIGNALED(child_status)) {
     printf(\"TEST EXITED FROM SIGNAL %d\", WTERMSIG(child_status));
     exit(1);
