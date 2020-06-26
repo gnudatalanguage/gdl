@@ -161,9 +161,6 @@ test_ps_decomposed.pro
 test_ptrarr.pro
 test_ptr_valid.pro
 test_python.pro
-test_python_module_0.pro
-test_python_module_1.pro
-test_python_module_2.pro
 test_qromb.pro
 test_qromo.pro
 test_random.pro
