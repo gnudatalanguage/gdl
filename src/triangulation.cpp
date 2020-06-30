@@ -43,8 +43,6 @@ namespace lib {
     if (wantsTriangles)  e->AssureGlobalPar(2); //since we return values in it?  
     if (wantsEdge)  e->AssureGlobalPar(3); //since we return values in it?  
 
-//    static int tolIx=e->KeywordIx( "TOLERANCE"); //we do not use tolerance, we just insure that the first 3 points are not colinear by moving
-    //the first one by a small amount, the default tolerance of IDL, fixed at 1e-12*maxval (see IDL doc).
     static int sphereIx=e->KeywordIx( "SPHERE");
     static int degreeIx=e->KeywordIx( "DEGREES");
     static int fvalueIx=e->KeywordIx( "FVALUE");
@@ -55,14 +53,23 @@ namespace lib {
       doDegree=false;
       reorderFvalue=false;
     }
+    bool wantsDupes=false;
+    static int dupesIx=e->KeywordIx( "REPEATS");
+    if( e->KeywordPresent( dupesIx)) wantsDupes=true;
     
-    if (isSphere)  e->AssureGlobalKW(sphereIx); //since we return values in it 
-    if (reorderFvalue)  e->AssureGlobalKW(fvalueIx); //since we return values in it 
-    
-    bool doConnectivity=false;
+    bool wantsConnectivity=false;
     static int connIx=e->KeywordIx( "CONNECTIVITY");
-    if( e->KeywordPresent( connIx)) doConnectivity=true;
+    if( e->KeywordPresent( connIx)) wantsConnectivity=true;
     
+    //check since we return values in them 
+    if (isSphere)  e->AssureGlobalKW(sphereIx); 
+    if (reorderFvalue)  e->AssureGlobalKW(fvalueIx);
+    if (wantsDupes)  e->AssureGlobalKW(dupesIx); 
+    if (wantsConnectivity)  e->AssureGlobalKW(connIx);
+    
+    //some things depend on X and Y being doubles of not
+    bool isDouble=false;
+    if ( e->GetParDefined(0)->Type()==GDL_DOUBLE &&  e->GetParDefined(1)->Type()==GDL_DOUBLE )  isDouble=true;
     xVal = e->GetParAs< DDoubleGDL > (0);
     if (xVal->Rank() == 0) e->Throw("Expression must be an array in this context: " + e->GetParString(0));
     npts = xVal->N_Elements();
@@ -74,34 +81,81 @@ namespace lib {
       if (fvalue->Rank() == 0) e->Throw("Expression must be an array in this context: " +  e->GetString( fvalueIx)+".");
       if (fvalue->N_Elements() != npts) e->Throw("X & Y arrays must have same number of points."); //yes yes.
     }
-    if (npts<3)  e->Throw("Not enough valid and unique points specified.");
     //compute default tol
     DLong maxEl, minEl;
     DDouble maxVal;
     xVal->MinMax(&minEl,&maxEl,NULL,NULL,false);
     maxVal=(*xVal)[maxEl];
     yVal->MinMax(&minEl,&maxEl,NULL,NULL,false);
-    maxVal=max(maxVal,(*yVal)[maxEl]);
-    DDouble tol=1e-12*maxVal;;
-// TOLERANCE KW not useful.
-//    if (e->KeywordPresent(tolIx)) e->AssureDoubleScalarKW(tolIx,tol); if (tol<=0.0) tol=1e-12*maxVal;
-
-    //Insure first triangle is not colinear. If it is, move first point infinitesimally. Revert to initial value at end of triangulation...
-    bool revertToInitialPoint=false;
-    DDouble x[3];
-    DDouble y[3];
-    DDouble rot=0;
-    SizeT k=0;
-    for (k=0; k<3 ; ++k) {x[k]=(*xVal)[k];y[k]=(*yVal)[k];} 
-    rot=(((x[2]-x[0])*(y[1]-y[0]))-((x[1]-x[0])*(y[2]-y[0])));
-    if (abs(rot)<tol) {
-      revertToInitialPoint=true;
-      (*xVal)[0]+=tol;
-      (*yVal)[0]-=tol;
+    maxVal=abs(max(maxVal,(*yVal)[maxEl])); //maximum ABSOLUTE VALUE
+    
+    //default value for dtol
+    DDouble dtol = isDouble ? 1e-12 : 1e-6;
+    if (maxVal>0.0) dtol*=maxVal; //we may have maxval=0 exactly...
+    DDouble naturalTol=dtol; //an internal 'standard' tolerance that can be used in cas of identical points...
+    //use passed value if any
+    DDouble tol=dtol;
+    static int tolIx = e->KeywordIx("TOLERANCE");
+    if (e->KeywordPresent(tolIx)) {
+      e->AssureDoubleScalarKW(tolIx, tol);
+      if (tol > 0.0) dtol = tol;
     }
     
-    //TODO remove duplicate points and store their indices in repeats if optioN is present.
+    //Renka's algorithm imposes the 3 first points to be uncolinear. We have to deal with this.
+    DDouble* xx=&(*xVal)[0];
+    DDouble* yy=&(*yVal)[0];    
 
+    bool exchangeBack=false;
+    bool colinear = false;
+    DLong Offset = 0;
+
+    // Insure first triangle is not colinear. Skip as many colinear points as necessary to start with something not colinear by inverting the 3rd point
+    // with the first point making a non-colinear triangle.
+    // I write this because TRIPACK has no notion of 'tol', and IDL has a very strange notion of 'tol': it will easily complain that points are colinear
+    // when they are obviously not, when tol is relatively high. I suspect a bug. Anyway, the following is an attempt to define a colinarity within 'tol'.
+    // given at least 2 points, find a regression line, do the next point lie > tol from it, and the next, etc?
+    colinear=true;
+    DDouble sx=xx[0];
+    DDouble sx2=xx[0]*xx[0];
+    DDouble sy=yy[0];
+    DDouble sxy=xx[0]*yy[0];
+    DDouble a,b;
+    Offset=1;
+    while (colinear && Offset < (npts-1) ) {
+      DLong n=Offset+1;
+    //compute best line 
+      sx += xx[Offset];
+      sx2 += (xx[Offset] * xx[Offset]);
+      sy += yy[Offset];
+      sxy += xx[Offset] * yy[Offset];
+      // linear coeff of y=a*x+b
+      b = (n * sxy - (sx * sy)) / (n * sx2 - (sx * sx) );
+      a = (sy - b * sx) / n;
+      // distance of next point wrt previous regression line: (a+b*x-y)/sqrt(1+b^2)
+      Offset++;
+      DDouble dist=(a+b*xx[Offset]-yy[Offset])/sqrt(1+(b*b));
+//      std::cerr<<a<<","<<b<<":"<<abs(dist)<<":"<<dtol<<std::endl;
+      if (abs(dist) > dtol ) colinear = false;
+    }
+//    std::cerr<<Offset<<std::endl;
+    if (Offset > 2 ) exchangeBack=true;
+    
+    if (colinear) e->Throw("Points are co-linear, no solution.");
+    //if exchange 2 and Offset:
+    if (exchangeBack) {
+      DDouble tmp = xx[2];
+      xx[2] = xx[Offset];
+      xx[Offset] = tmp;
+      tmp = yy[2];
+      yy[2] = yy[Offset];
+      yy[Offset] = tmp;
+    }
+
+    //for duplicates
+    std::vector<std::pair<DLong,DLong>> dupes;
+    //TRIPACK has its own way to say 2 points are identical. 
+
+    
     if (isSphere) {
       DDoubleGDL *sc_xVal=xVal;
       DDoubleGDL *sc_yVal=yVal;
@@ -110,10 +164,10 @@ namespace lib {
       if (doDegree) {
         static DDouble DToR=double(3.1415926535897932384626433832795)/180.0;
         sc_xVal=new DDoubleGDL(npts,BaseGDL::NOZERO);
-        for (SizeT i=0; i<npts; ++i) (*sc_xVal)[i]=(*xVal)[i]*DToR;
+        for (DLong i=0; i<npts; ++i) (*sc_xVal)[i]=(*xVal)[i]*DToR;
         xguard.reset(sc_xVal);
         sc_yVal=new DDoubleGDL(npts,BaseGDL::NOZERO);
-        for (SizeT i=0; i<npts; ++i) (*sc_yVal)[i]=(*yVal)[i]*DToR;
+        for (DLong i=0; i<npts; ++i) (*sc_yVal)[i]=(*yVal)[i]*DToR;
         yguard.reset(sc_yVal);
       }
       DDoubleGDL* x=new DDoubleGDL(npts,BaseGDL::NOZERO);
@@ -121,7 +175,7 @@ namespace lib {
       DDoubleGDL* z=new DDoubleGDL(npts,BaseGDL::NOZERO);
       //Stripack is lat, lon and IDL lon,lat
       DLong ret0=stripack::trans_(&npts, (DDouble*)sc_yVal->DataAddr(), (DDouble*)sc_xVal->DataAddr(),(DDouble*)x->DataAddr(),(DDouble*)y->DataAddr(),(DDouble*)z->DataAddr()); 
-      SizeT listsize=6*npts-12;
+      DLong listsize=6*npts-12;
       DLongGDL* list=new DLongGDL(listsize,BaseGDL::NOZERO);
       DLongGDL* lptr=new DLongGDL(listsize,BaseGDL::NOZERO);
       DLongGDL* lend=new DLongGDL(npts,BaseGDL::NOZERO);
@@ -234,27 +288,76 @@ namespace lib {
       DDouble* dist=(DDouble*)malloc(npts*sizeof(DDouble));
       DLong ier=0;
       DLong lnew=0;
+      DLong l_npts=npts;
+      DLong* originalIndex=(DLong*)malloc(npts*sizeof(DLong));
+      for (DLong i = 0; i < npts; ++i) originalIndex[i]=i;
+      if (exchangeBack) originalIndex[2]=Offset;
+      if (exchangeBack) originalIndex[Offset]=2;
 
-      DLong ret1=tripack::trmesh_(&npts, (DDouble*)xVal->DataAddr() , (DDouble*)yVal->DataAddr(), list, lptr, lend, &lnew, near__, next, dist, &ier);
+      DLong ret1=tripack::trmesh_(&l_npts, xx , yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
+      // At this point, only positive ier are expected (duplicates).
+      if (ier!=0) {
+        if (ier > 0) { //duplicate nodes exist. We have to remove all of them and keep track of their index
+            //we will work on a copy. To hell with speed, this is not optimized.
+          DDouble* l_xx=(DDouble*)malloc(l_npts*sizeof(DDouble));
+          DDouble* l_yy=(DDouble*)malloc(l_npts*sizeof(DDouble));
+          memcpy(l_xx,&(*xVal)[0],l_npts*sizeof(DDouble));
+          memcpy(l_yy,&(*yVal)[0],l_npts*sizeof(DDouble));
+          // if ndupes > 0 we have to take into account that several returned indexes in the list have been changed wrt the original because of the list shortening
+          // by elimination of the duplicates. So we have to create a table of correspondence.
+          while (ier > 0) { 
+            ier--;
+            DLong m = 0;
+            for (DLong i = 0; i < lnew -1 ; ++i) if (list[i] > m) m = list[i]; //simple way to compute where we are
+            dupes.push_back(make_pair(ier, originalIndex[m])); // value at index 'm' is identical to the one at 'ier'
+            //remove node "m" and add +1 to originalIndex starting at 'm'
+            for (DLong i=m; i< l_npts-1; ++i) {l_xx[i]=l_xx[i+1]; l_yy[i]=l_yy[i+1];originalIndex[i]=originalIndex[i+1];}
+            l_npts--;
+            ret1 = tripack::trmesh_(&l_npts, l_xx, l_yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
+            if (ier < 0)  e->Throw("Internal Error, please report."); //Should not happen
+            }
+          free (l_xx);
+          free (l_yy);
+        } 
+        else if (ier == -2)  e->Throw("Points are co-linear, no solution."); //Should not happen
+        else if (ier == -1)  e->Throw("Not enough valid and unique points specified."); //ier==-1 impossible (npoints < 3)
+        //ier==-4 internal error should be reported! -- never happened in 40 years
+          else if (ier == -4) e->Throw("Congratulations, you found the impossible: a set of points that triggers an internal error in TRMESH, please report!");
+          else e->Throw("Congratulations, you found an impossible error code of the TRIPACK package.");
+      }
+      DLong ndupes=dupes.size();
       free(near__);
       free(next);
-      free(dist);
-      if (ier !=0) {
-        free(list);
-        free(lptr);
-        free(lend);
-        if (ier == -2) e->Throw("The first 3 nodes are collinear.");
-        else e->Throw("Duplicate nodes encountered.");
+      free(dist); 
+      
+      //Dupes indexing is the original one.
+      if (wantsDupes) {
+        if (dupes.size() ==0) {
+          DLongGDL* nothing=new DLongGDL(dimension(2),BaseGDL::ZERO); 
+          nothing->Dec();
+          e->SetKW(dupesIx, nothing);
+        }
+        else {
+          DLongGDL* returned_dupes = new DLongGDL(dimension(2,dupes.size()), BaseGDL::NOZERO);
+          for (DLong i = 0; i < dupes.size(); ++i) {
+            (*returned_dupes)[2*i+0]=dupes[i].first;
+            (*returned_dupes)[2*i+1]=dupes[i].second;
+          } 
+          e->SetKW(dupesIx, returned_dupes);
+        }
       }
+      
+      //All indexes in the returned arrays must be replaced by those of originalIndex.
+
       if (wantsTriangles) {
         //convert to triangle list
-        DLong nocontraints = 0;
-        DLong dummylistofcontraints = 0;
+        DLong noconstraints = 0;
+        DLong dummylistofconstraints = 0;
         DLong nrow = 6; //no arcs.
-        DLong* ltri = (DLong*) malloc((12 * npts) * sizeof (DLong));
+        DLong* ltri = (DLong*) malloc((12 * l_npts) * sizeof (DLong));
         DLong lct = 0;
         DLong ntriangles = 0;
-        DLong ret2 = tripack::trlist_(&nocontraints, &dummylistofcontraints, &npts, list, lptr, lend, &nrow, &ntriangles, ltri, &lct, &ier);
+        DLong ret2 = tripack::trlist_(&noconstraints, &dummylistofconstraints, &l_npts, list, lptr, lend, &nrow, &ntriangles, ltri, &lct, &ier);
         if (ier != 0)
         {
           free(ltri);
@@ -267,11 +370,11 @@ namespace lib {
         d[1] = ntriangles;
         d[0] = 3;
         DLongGDL* returned_triangles = new DLongGDL(dimension(d, 2), BaseGDL::NOZERO);
-        for (SizeT j = 0; j < ntriangles; ++j)
+        for (DLong j = 0; j < ntriangles; ++j)
         {
           for (int i = 0; i < 3; ++i)
           {
-            (*returned_triangles)[3 * j + i] = (ltri[6 * j + i] - 1); //nubering starts a 0.
+            (*returned_triangles)[3 * j + i] = originalIndex[ltri[6 * j + i] - 1]; //our nubering starts a 0.
           }
         }
         free(ltri);
@@ -279,48 +382,63 @@ namespace lib {
         e->SetPar(2, returned_triangles);
       }
       if (wantsEdge) {
-        DLong* nodes=(DLong*)malloc(npts*sizeof(DLong));
+        DLong* nodes=(DLong*)malloc(l_npts*sizeof(DLong));
         DLong nb=0;
         DLong na=0;
         DLong nt=0;
-        DLong ret3=tripack::bnodes_(&npts, list, lptr, lend, nodes, &nb, &na, &nt);
+        DLong ret3=tripack::bnodes_(&l_npts, list, lptr, lend, nodes, &nb, &na, &nt);
         DLongGDL* returned_edges = new DLongGDL(nb, BaseGDL::NOZERO);
-        for (SizeT j = 0; j < nb; ++j) (*returned_edges)[j]=nodes[j]-1;
+        for (DLong j = 0; j < nb; ++j) (*returned_edges)[j]=originalIndex[nodes[j]-1];
         free(nodes);
         e->SetPar(3, returned_edges);
       }
-      if (doConnectivity) {
+      if (wantsConnectivity) {
         //remove 1 to get C array indexes.
-        for (SizeT i = 0; i < lnew-1; ++i) lptr[i]--; 
-        for (SizeT i = 0; i < npts; ++i) lend[i]--;
-        DLong array[2*(lnew-1)];
-        SizeT runningindex=npts+1;
-        SizeT startindex=0;
-        array[startindex++]=npts+1;
-        for (SizeT i = 0; i < npts; ++i) {
+        for (DLong i = 0; i < lnew-1; ++i) lptr[i]--; 
+        for (DLong i = 0; i < l_npts; ++i) lend[i]--;
+        //in connectivity we MUST have all the points, even the duplicated ones. But connectivity of duplicated points will break IDL.
+        // we could avoid this easily as I believe this is an IDL bug. We just have to reproduce the connectivity of the first encounter
+        // of the duplicated point.
+        DLong* array=(DLong*)malloc((npts*npts+npts+1)*sizeof(DLong)); // size > max possible connectivity 
+        DLong runningindex = npts+1; // and not l_npts: we report for all points 
+        DLong startindex=0;
+        array[startindex++]= npts+1;
+        DLong* effective_index=(DLong*)malloc(npts*sizeof(DLong));//this is the list of npts vertexes for which we want the neighbour. It must be
+        // the  list of l_npts (returned) indexes, with indexes of the first instance of duplicated points for the duplicated points.
+        if (ndupes == 0) for (DLong i=0; i< npts; ++i) effective_index[i]=i; //easy
+        else { //piecewise index construction, each time dupes.second is encountered, insert dupes.first instead of increasing index:
+          DLong i=0; DLong k=0; //i:index from 0 to l_npts-1., k running index of 0 to npts-1
+          for (DLong idup=0; idup< ndupes; ++idup) {
+            DLong encounter=dupes[idup].second;
+            while (k<encounter) effective_index[k++]=i++;
+            effective_index[k++]=dupes[idup].first;
+          }
+          while (k<npts) effective_index[k++]=i++;
+        }
+        for (DLong k = 0; k < npts; ++k) { 
+          DLong i=effective_index[k]; 
           //is it an exterior point? Yes if the termination of the connectivity list is exterior.
           DLong lpl=lend[i];
-          if (list[lpl]<0) array[runningindex++]=i; //exterior - we write it
+          if (list[lpl]<0) array[runningindex++]=originalIndex[i]; //exterior - we write it
           //write all points until nfin=lend[i] is found again using lptr connectivity pointers:
           DLong lp=lpl; //see nbcnt_()
           do {
             lp=lptr[lp];
-            array[runningindex++]=(list[lp]>0)?list[lp]-1:(-list[lp])-1;
+            array[runningindex]=(list[lp]>0)?list[lp]-1:(-list[lp])-1;
+            array[runningindex]=originalIndex[array[runningindex]];
+            runningindex++;
           } while (lp!=lpl);
           array[startindex++]=runningindex;
         }
         DLongGDL* connections = new DLongGDL(runningindex, BaseGDL::NOZERO);
-        for (SizeT i = 0; i < runningindex; ++i) (*connections)[i]=array[i];
+        for (DLong i = 0; i < runningindex; ++i) (*connections)[i]=array[i];
         e->SetKW(connIx,connections);
+        free(array);
       }
       //cleanup
       free(list);
       free(lptr);
       free(lend);
-    }
-    if (revertToInitialPoint) {
-      (*xVal)[0]-=tol;
-      (*yVal)[0]+=tol;
     }
   }
 
