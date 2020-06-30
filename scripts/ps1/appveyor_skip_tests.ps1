@@ -25,7 +25,8 @@
       # routines common with mingw64630x8664
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_memory.pro' -NotMatch)
   # do not fail on a live system
- Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_call_procedure.pro' -NotMatch)
+     Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_wordexp.pro' -NotMatch)
+Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_call_procedure.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_extra_keywords.pro' -NotMatch)
  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_la_least_squares.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_math_function_dim.pro' -NotMatch)

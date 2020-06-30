@@ -1218,21 +1218,13 @@ static string Dirname( const string& in, bool mark_dir=false ) {
     char unix_sep = '/';
     char path_sep = unix_sep;
 
-#if defined (_WIN32) && !defined(__CYGWIN__)
-    path_sep = win_sep;
-    DString dname(in);
-
-    std::replace( dname.begin(), dname.end(), unix_sep, win_sep );  // replace separators in input
-    DString::size_type pos = dname.find_last_of( path_sep );        // strip filename if present
-
-    if( pos != DString::npos ) {
-        dname.erase(pos);
-    } else dname = ".";
-#else
     char buf[ PATH_MAX+1];
     strncpy( buf, in.c_str(), PATH_MAX+1 );
     std::replace( buf, buf+in.length(), win_sep, unix_sep );        // replace separators in input
     string dname = dirname( buf );                                  // strip filename if present
+#if defined (_WIN32)
+    path_sep = win_sep;
+    std::replace( dname.begin(), dname.end(), unix_sep, win_sep );  // replace separators in input
 #endif
 
     while( !dname.empty() && (dname.back() == path_sep) ) {         // strip trailing separator(s)
