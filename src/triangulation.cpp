@@ -134,13 +134,19 @@ namespace lib {
       // distance of next point wrt previous regression line: (a+b*x-y)/sqrt(1+b^2)
       Offset++;
       DDouble dist=(a+b*xx[Offset]-yy[Offset])/sqrt(1+(b*b));
-//      std::cerr<<a<<","<<b<<":"<<abs(dist)<<":"<<dtol<<std::endl;
       if (abs(dist) > dtol ) colinear = false;
     }
-//    std::cerr<<Offset<<std::endl;
     if (Offset > 2 ) exchangeBack=true;
     
-    if (colinear) e->Throw("Points are co-linear, no solution.");
+    if (colinear) {
+      //Dupes indexing is the original one.
+      if (wantsDupes) {
+          DLongGDL* nothing=new DLongGDL(dimension(2),BaseGDL::ZERO); 
+          nothing->Dec();
+          e->SetKW(dupesIx, nothing);
+      }
+      e->Throw("Points are co-linear, no solution.");
+    }
     //if exchange 2 and Offset:
     if (exchangeBack) {
       DDouble tmp = xx[2];
@@ -155,6 +161,8 @@ namespace lib {
     std::vector<std::pair<DLong,DLong>> dupes;
     //TRIPACK has its own way to say 2 points are identical. 
 
+    //IN SPHERE MODE, xVal and yVal ARE RETURNED, ARE DOUBLE PRECISION and their ORDER is MODIFIED. It is not the case here.
+    //SPHERE does not support duplicate points yet.
     
     if (isSphere) {
       DDoubleGDL *sc_xVal=xVal;
@@ -176,6 +184,7 @@ namespace lib {
       //Stripack is lat, lon and IDL lon,lat
       DLong ret0=stripack::trans_(&npts, (DDouble*)sc_yVal->DataAddr(), (DDouble*)sc_xVal->DataAddr(),(DDouble*)x->DataAddr(),(DDouble*)y->DataAddr(),(DDouble*)z->DataAddr()); 
       DLong listsize=6*npts-12;
+      //we use GDL objects as they will be visible outside at GDL level.
       DLongGDL* list=new DLongGDL(listsize,BaseGDL::NOZERO);
       DLongGDL* lptr=new DLongGDL(listsize,BaseGDL::NOZERO);
       DLongGDL* lend=new DLongGDL(npts,BaseGDL::NOZERO);
@@ -201,18 +210,18 @@ namespace lib {
       //Structure returned in SPHERE is not the same as IDL (although it must be possible to write
       //something identical, but for what use? The structure will be passed to the TRIGRID function
       //that uses SRFPACK, which in turn uses this structure, containing x,y,z,list,lptr,lend
-        // creating the output anonymous structure
-        DStructDesc* sphere_desc = new DStructDesc("$truct");
-        SpDDouble aDbleArr(dimension((SizeT)npts));
-        SpDLong aLongArr1(dimension((SizeT)listsize));
-        SpDLong aLongArr2(dimension((SizeT)npts));
-        sphere_desc->AddTag("X", &aDbleArr);
-        sphere_desc->AddTag("Y", &aDbleArr);
-        sphere_desc->AddTag("Z", &aDbleArr);
-        sphere_desc->AddTag("LIST", &aLongArr1);
-        sphere_desc->AddTag("LPTR", &aLongArr1);
-        sphere_desc->AddTag("LEND", &aLongArr2);
-        DStructGDL* sphere = new DStructGDL(sphere_desc, dimension());
+      // creating the output anonymous structure
+      DStructDesc* sphere_desc = new DStructDesc("$truct");
+      SpDDouble aDbleArr(dimension((SizeT)npts));
+      SpDLong aLongArr1(dimension((SizeT)listsize));
+      SpDLong aLongArr2(dimension((SizeT)npts));
+      sphere_desc->AddTag("X", &aDbleArr);
+      sphere_desc->AddTag("Y", &aDbleArr);
+      sphere_desc->AddTag("Z", &aDbleArr);
+      sphere_desc->AddTag("LIST", &aLongArr1);
+      sphere_desc->AddTag("LPTR", &aLongArr1);
+      sphere_desc->AddTag("LEND", &aLongArr2);
+      DStructGDL* sphere = new DStructGDL(sphere_desc, dimension());
 
       sphere->InitTag("X", *x); 
       sphere->InitTag("Y", *y); 
@@ -276,7 +285,31 @@ namespace lib {
 //        }
 //        e->SetKW(fvalueIx,ret);
       }
-       //no connectivity in SPHERE mode
+       //no connectivity in SPHERE mode in IDL, but yes we can!
+      if (wantsConnectivity) {
+        //remove 1 to get C array indexes.
+        for (SizeT i = 0; i < lnew-1; ++i) (*lptr)[i]--; 
+        for (SizeT i = 0; i < npts; ++i) (*lend)[i]--;
+        DLong array[2*(lnew-1)];
+        SizeT runningindex=npts+1;
+        SizeT startindex=0;
+        array[startindex++]=npts+1;
+        for (SizeT i = 0; i < npts; ++i) {
+          //is it an exterior point? Yes if the termination of the connectivity list is exterior.
+          DLong lpl=(*lend)[i];
+          if ((*list)[lpl]<0) array[runningindex++]=i; //exterior - we write it
+          //write all points until nfin=lend[i] is found again using lptr connectivity pointers:
+          DLong lp=lpl; //see nbcnt_()
+          do {
+            lp=(*lptr)[lp];
+            array[runningindex++]=((*list)[lp]>0)?(*list)[lp]-1:(-(*list)[lp])-1;
+          } while (lp!=lpl);
+          array[startindex++]=runningindex;
+        }
+        DLongGDL* connections = new DLongGDL(runningindex, BaseGDL::NOZERO);
+        for (SizeT i = 0; i < runningindex; ++i) (*connections)[i]=array[i];
+        e->SetKW(connIx,connections);
+      }
       //no more cleanup, x,y,z,and list,lptr,lend are in the returned structure!
     } else {
       SizeT listsize=6*npts-12;
@@ -305,6 +338,7 @@ namespace lib {
           memcpy(l_yy,&(*yVal)[0],l_npts*sizeof(DDouble));
           // if ndupes > 0 we have to take into account that several returned indexes in the list have been changed wrt the original because of the list shortening
           // by elimination of the duplicates. So we have to create a table of correspondence.
+          // and, yes, it would be more efficient to use tripack::addnod_()
           while (ier > 0) { 
             ier--;
             DLong m = 0;
