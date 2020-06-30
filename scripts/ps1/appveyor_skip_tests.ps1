@@ -8,11 +8,7 @@
  #    memory, wordexp fail
 #% TEST_MEMORY: reported memory consumption should increase after allocating a big array!
     Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_memory.pro' -NotMatch)
-# % TEST_WORDEXP: Error on operation : basic FILE_DIRNAME
-   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_wordexp.pro' -NotMatch)
 # The next category are failures that fail on Appveyor, but are auccessful with the downloaded artifact
-  # test_xdr gives a segfault
-#  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_xdr.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_byte_conversion.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_call_procedure.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_extra_keywords.pro' -NotMatch)
@@ -28,7 +24,6 @@
       {
       # routines common with mingw64630x8664
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_memory.pro' -NotMatch)
-  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_wordexp.pro' -NotMatch)
   # do not fail on a live system
  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_call_procedure.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_extra_keywords.pro' -NotMatch)
@@ -88,7 +83,11 @@
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_xdr.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_xmlsax.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_zeropoly.pro' -NotMatch)
-      }
+  # The following should be skipped (exit, status=77) but do not skip for i686
+   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_netcdf.pro' -NotMatch)
+  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_python.pro' -NotMatch)
+  Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_simplex.pro' -NotMatch)
+     }
       elseif ($env:platform -Match "mingw64810i686")
       {
    Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_angles.pro' -NotMatch)
