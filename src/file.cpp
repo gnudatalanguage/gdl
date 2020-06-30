@@ -1227,7 +1227,7 @@ static string Dirname( const string& in, bool mark_dir=false ) {
 
     if( pos != DString::npos ) {
         dname.erase(pos);
-    }
+    } else dname = ".";
 #else
     char buf[ PATH_MAX+1];
     strncpy( buf, in.c_str(), PATH_MAX+1 );
