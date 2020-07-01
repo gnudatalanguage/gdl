@@ -112,7 +112,7 @@
       SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
       if (!useAbs)
       {
-#pragma omp parallel
+#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
         {
           int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
@@ -138,7 +138,7 @@
 #ifdef ABSFUNC
       else
       {
-#pragma omp parallel
+#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
         {
           int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
@@ -225,7 +225,7 @@
       SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
       if (!useAbs)
       {
-#pragma omp parallel
+#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
         {
           int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
@@ -251,7 +251,7 @@
 #ifdef ABSFUNC
       else
       {
-#pragma omp parallel
+#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
         {
           int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
@@ -347,7 +347,7 @@
       SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
       if (!useAbs)
       {
-#pragma omp parallel
+#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
         {
           int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
@@ -377,7 +377,7 @@
 #ifdef ABSFUNC
       else
       {
-#pragma omp parallel
+#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
         {
           int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;

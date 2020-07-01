@@ -3832,7 +3832,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , DU
 
   wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
   wxStaticText* label = new wxStaticText( widgetPanel, widgetID, valueWxString,
-  wxPoint( xOffset, yOffset ), computeWidgetSize(), textAlignment()|wxST_NO_AUTORESIZE|(sunken)?wxBORDER_SUNKEN:0 );
+  wxPoint( xOffset, yOffset ), computeWidgetSize(), (textAlignment()|wxST_NO_AUTORESIZE)|((sunken)?wxBORDER_SUNKEN:0) );
   this->wxWidget = label;
   widgetStyle=widgetAlignment();
   widgetSizer->Add(label,0,widgetStyle, 0);

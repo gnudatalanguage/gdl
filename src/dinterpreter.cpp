@@ -1580,8 +1580,10 @@ void DInterpreter::ExecuteFile( const string& file)
 	}
       catch( RetAllException& retAllEx)
 	{
-	  runCmd = (retAllEx.Code() == RetAllException::RUN);
-	  if( !runCmd) throw;
+        
+        //Do nothing, as we are at Main. A RETALL or RESET etc shoul not be harmful. 
+//	  runCmd = (retAllEx.Code() == RetAllException::RUN );
+//	  if( !runCmd) throw;
 	}
       //       catch( exception& e)
       // 	{

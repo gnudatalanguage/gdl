@@ -32,7 +32,7 @@ int rtn = system(tmp);
 
 if (rtn == 77) {
     printf(\"TEST SKIPPED\");
-    exit(0);
+    exit(77);
 } if (rtn == -1 || rtn == 127) {
     printf(\"LAUNCH PROCESS FAILED\");
     exit(1);
@@ -74,7 +74,7 @@ if(child_pid == 0) {
   waitpid(child_pid, &child_status, 0);
   if (WEXITSTATUS(child_status) == 77) {
     printf(\"TEST SKIPPED\");
-    exit(0);
+    exit(77);
   } else if (WIFSIGNALED(child_status)) {
     printf(\"TEST EXITED FROM SIGNAL %d\", WTERMSIG(child_status));
     exit(1);
@@ -93,15 +93,12 @@ endif()
 add_library(test_ce SHARED EXCLUDE_FROM_ALL libtest_ce.cpp)
 add_custom_target(check COMMAND ${CMAKE_BUILD_TOOL} test DEPENDS launchtest test_ce gdl)
 get_target_property(LAUNCHTESTLOCATION launchtest LOCATION)
-if(WIN32 AND NOT CYGWIN)
-  file(READ "${BASE_SOURCE}/testsuite/Makefile.am" MAKEFILEAM)
-  string(REGEX MATCHALL "test[_a-zA-Z0-9]+\\.pro" TESTS ${MAKEFILEAM})
-else(WIN32 AND NOT CYGWIN)
-  execute_process(
-    COMMAND "fgrep" ".pro" "${BASE_SOURCE}/testsuite/Makefile.am" 
-    COMMAND "awk" "{printf(\"%s;\",$1)}" 
-    OUTPUT_VARIABLE TESTS)
-endif(WIN32 AND NOT CYGWIN)
+if (GDLDEV)
+  file(GLOB TESTLIST "${BASE_SOURCE}/testsuite/test_*.pro")
+else()
+  file(READ "${BASE_SOURCE}/testsuite/LIST" TESTLIST)
+endif()
+string(REGEX MATCHALL "test[_a-zA-Z0-9]+\\.pro" TESTS ${TESTLIST})
 foreach(TEST ${TESTS})
 	add_test(${TEST} ${LAUNCHTESTLOCATION} ${TEST})
 	set_tests_properties(${TEST} PROPERTIES SKIP_RETURN_CODE 77) # autoconf's setting

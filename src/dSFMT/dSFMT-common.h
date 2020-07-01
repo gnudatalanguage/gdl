@@ -44,25 +44,25 @@ static const union X128I_T sse2_param_mask = {{DSFMT_MSK1, DSFMT_MSK2}};
 #if defined(HAVE_ALTIVEC)
 inline static void do_recursion(w128_t *r, w128_t *a, w128_t * b,
 				w128_t *lung) {
-    const vector unsigned char sl1 = ALTI_SL1;
-    const vector unsigned char sl1_perm = ALTI_SL1_PERM;
-    const vector unsigned int sl1_msk = ALTI_SL1_MSK;
-    const vector unsigned char sr1 = ALTI_SR;
-    const vector unsigned char sr1_perm = ALTI_SR_PERM;
-    const vector unsigned int sr1_msk = ALTI_SR_MSK;
-    const vector unsigned char perm = ALTI_PERM;
-    const vector unsigned int msk1 = ALTI_MSK;
-    vector unsigned int w, x, y, z;
+    const __vector unsigned char sl1 = ALTI_SL1;
+    const __vector unsigned char sl1_perm = ALTI_SL1_PERM;
+    const __vector unsigned int sl1_msk = ALTI_SL1_MSK;
+    const __vector unsigned char sr1 = ALTI_SR;
+    const __vector unsigned char sr1_perm = ALTI_SR_PERM;
+    const __vector unsigned int sr1_msk = ALTI_SR_MSK;
+    const __vector unsigned char perm = ALTI_PERM;
+    const __vector unsigned int msk1 = ALTI_MSK;
+    __vector unsigned int w, x, y, z;
 
     z = a->s;
     w = lung->s;
-    x = vec_perm(w, (vector unsigned int)perm, perm);
-    y = vec_perm(z, (vector unsigned int)sl1_perm, sl1_perm);
+    x = vec_perm(w, (__vector unsigned int)perm, perm);
+    y = vec_perm(z, (__vector unsigned int)sl1_perm, sl1_perm);
     y = vec_sll(y, sl1);
     y = vec_and(y, sl1_msk);
     w = vec_xor(x, b->s);
     w = vec_xor(w, y);
-    x = vec_perm(w, (vector unsigned int)sr1_perm, sr1_perm);
+    x = vec_perm(w, (__vector unsigned int)sr1_perm, sr1_perm);
     x = vec_srl(x, sr1);
     x = vec_and(x, sr1_msk);
     y = vec_and(w, msk1);

@@ -28,7 +28,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # X.X.X git becomes release X.X.X+1
-set(VERSION "1.0.0-rc.2 git")
+set(VERSION "1.0.0-rc.3 git")
 enable_testing()
 
 # cf issue 511, managing MultiArch on Debian ...
@@ -48,6 +48,8 @@ include(TestBigEndian)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 
 #### Default cached values
+set(GDLDEV OFF CACHE BOOL "GDL: Enable GDL developer mode (includes work-in-progress tests)")
+
 set(PYTHON_MODULE OFF CACHE BOOL "GDL: Build GDL as a Python module ?")
 
 set(X11 ON CACHE BOOL "GDL: Enable X11 ?") 
@@ -1178,3 +1180,15 @@ if(NOT WIN32)
   module(CURSES    "(N)curses     ")
 endif(NOT WIN32)
 message("")
+message("GDLDEV mode: ${GDLDEV} (use -DGDLDEV=ON to enable work-in-progress tests)")
+message("")
+
+# do we have a Conda env. around ? see issues #780
+if ((DEFINED ENV{CONDA_PREFIX}) OR (DEFINED ENV{CONDA_EXE}))
+  message("=========================================================================="\n
+          "== WARNING !!        {Ana|mini|}conda activated env. detected !         =="\n
+	  "== To avoid possible conflicts between local libs. and the sytem libs,  =="\n
+          "== we advice you to remove Conda related paths from you $PATH           =="\n
+          "== or run this CMake file in a clean terminal without Conda Env.        =="\n
+          "=========================================================================="\n)
+endif()
