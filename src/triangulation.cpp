@@ -48,10 +48,10 @@ namespace lib {
     static int fvalueIx=e->KeywordIx( "FVALUE");
     bool isSphere=(e->KeywordPresent(sphereIx));
     bool doDegree=(e->KeywordPresent(degreeIx));
-    bool reorderFvalue=(e->KeywordPresent(fvalueIx));
+    bool hasFvalue=(e->KeywordPresent(fvalueIx));
     if (!isSphere) {
       doDegree=false;
-      reorderFvalue=false;
+      hasFvalue=false;
     }
     bool wantsDupes=false;
     static int dupesIx=e->KeywordIx( "REPEATS");
@@ -63,7 +63,7 @@ namespace lib {
     
     //check since we return values in them 
     if (isSphere)  e->AssureGlobalKW(sphereIx); 
-    if (reorderFvalue)  e->AssureGlobalKW(fvalueIx);
+    if (hasFvalue)  e->AssureGlobalKW(fvalueIx);
     if (wantsDupes)  e->AssureGlobalKW(dupesIx); 
     if (wantsConnectivity)  e->AssureGlobalKW(connIx);
     
@@ -76,92 +76,102 @@ namespace lib {
     yVal = e->GetParAs< DDoubleGDL > (1);
     if (yVal->Rank() == 0) e->Throw("Expression must be an array in this context: " + e->GetParString(1));
     if (yVal->N_Elements() != npts) e->Throw("X & Y arrays must have same number of points.");
-    if (reorderFvalue) {
+    if (hasFvalue) {
       fvalue=e->GetKWAs<DDoubleGDL>(fvalueIx);
       if (fvalue->Rank() == 0) e->Throw("Expression must be an array in this context: " +  e->GetString( fvalueIx)+".");
       if (fvalue->N_Elements() != npts) e->Throw("X & Y arrays must have same number of points."); //yes yes.
     }
-    //compute default tol
+   
     DLong maxEl, minEl;
     DDouble maxVal;
     xVal->MinMax(&minEl,&maxEl,NULL,NULL,false);
     maxVal=(*xVal)[maxEl];
     yVal->MinMax(&minEl,&maxEl,NULL,NULL,false);
-    maxVal=abs(max(maxVal,(*yVal)[maxEl])); //maximum ABSOLUTE VALUE
+    //maximum ABSOLUTE VALUE
+    maxVal=abs(max(maxVal,(*yVal)[maxEl]));
     
-    //default value for dtol
+ 
+
     DDouble dtol = isDouble ? 1e-12 : 1e-6;
-    if (maxVal>0.0) dtol*=maxVal; //we may have maxval=0 exactly...
-    DDouble naturalTol=dtol; //an internal 'standard' tolerance that can be used in cas of identical points...
-    //use passed value if any
-    DDouble tol=dtol;
-    static int tolIx = e->KeywordIx("TOLERANCE");
-    if (e->KeywordPresent(tolIx)) {
-      e->AssureDoubleScalarKW(tolIx, tol);
-      if (tol > 0.0) dtol = tol;
-    }
+//    //Tol is irrelevant in our implementation, as (s)tripack work with tol=machine precision. I keep however code below in comments as at some
+//    // point it may be useful to reintroduce TOL 
+//    if (maxVal>0.0) dtol*=maxVal; //we may have maxval=0 exactly...
+//    DDouble naturalTol=dtol; //an internal 'standard' tolerance that can be used in cas of identical points...
+//    //use passed value if any
+//    DDouble tol=dtol;
+//    static int tolIx = e->KeywordIx("TOLERANCE");
+//    if (e->KeywordPresent(tolIx)) {
+//      e->AssureDoubleScalarKW(tolIx, tol);
+//      if (tol > 0.0) dtol = tol;
+//    }
+
+
     
-    //Renka's algorithm imposes the 3 first points to be uncolinear. We have to deal with this.
     DDouble* xx=&(*xVal)[0];
     DDouble* yy=&(*yVal)[0];    
 
-    bool exchangeBack=false;
     bool colinear = false;
-    DLong Offset = 0;
 
-    // Insure first triangle is not colinear. Skip as many colinear points as necessary to start with something not colinear by inverting the 3rd point
-    // with the first point making a non-colinear triangle.
-    // I write this because TRIPACK has no notion of 'tol', and IDL has a very strange notion of 'tol': it will easily complain that points are colinear
-    // when they are obviously not, when tol is relatively high. I suspect a bug. Anyway, the following is an attempt to define a colinarity within 'tol'.
-    // given at least 2 points, find a regression line, do the next point lie > tol from it, and the next, etc?
-    colinear=true;
-    DDouble sx=xx[0];
-    DDouble sx2=xx[0]*xx[0];
-    DDouble sy=yy[0];
-    DDouble sxy=xx[0]*yy[0];
-    DDouble a,b;
-    Offset=1;
-    while (colinear && Offset < (npts-1) ) {
-      DLong n=Offset+1;
-    //compute best line 
-      sx += xx[Offset];
-      sx2 += (xx[Offset] * xx[Offset]);
-      sy += yy[Offset];
-      sxy += xx[Offset] * yy[Offset];
-      // linear coeff of y=a*x+b
-      b = (n * sxy - (sx * sy)) / (n * sx2 - (sx * sx) );
-      a = (sy - b * sx) / n;
-      // distance of next point wrt previous regression line: (a+b*x-y)/sqrt(1+b^2)
-      Offset++;
-      DDouble dist=(a+b*xx[Offset]-yy[Offset])/sqrt(1+(b*b));
-      if (abs(dist) > dtol ) colinear = false;
-    }
-    if (Offset > 2 ) exchangeBack=true;
-    
-    if (colinear) {
-      //Dupes indexing is the original one.
-      if (wantsDupes) {
-          DLongGDL* nothing=new DLongGDL(dimension(2),BaseGDL::ZERO); 
-          nothing->Dec();
-          e->SetKW(dupesIx, nothing);
-      }
-      e->Throw("Points are co-linear, no solution.");
-    }
-    //if exchange 2 and Offset:
-    if (exchangeBack) {
-      DDouble tmp = xx[2];
-      xx[2] = xx[Offset];
-      xx[Offset] = tmp;
-      tmp = yy[2];
-      yy[2] = yy[Offset];
-      yy[Offset] = tmp;
-    }
+
+//    // Following code was to insure points were not colinear within 'tol'. 
+//    // TRIPACK has no notion of 'tol', and IDL has a very strange notion of 'tol': it will easily complain that points are colinear
+//    // when they are obviously not, when tol is relatively high. I suspect a bug. Anyway, the following is an attempt to define a colinarity within 'tol'.
+//    // given at least 2 points, find a regression line, do the next point lie > tol from it, and the next, etc?
+//    // this is pretty irrelevant and just to mimic IDL, since to make the 3 first points not colinear it suffices to add a tiny offset to the 3rd point.
+//    // The following code is kept for its generality in case one would want to use it to check a series of points are colnear within 'tol', but actually this
+//    // adds just a small jitter to the 3rd point.
+//
+//    bool exchangeBack=false;
+//    DLong Offset = 0;
+//
+//    colinear=true;
+//    DDouble sx=xx[0];
+//    DDouble sx2=xx[0]*xx[0];
+//    DDouble sy=yy[0];
+//    DDouble sxy=xx[0]*yy[0];
+//    DDouble a,b;
+//    Offset=1;
+//    while (colinear && Offset < (npts-1) ) {
+//      DLong n=Offset+1;
+//    //compute best line 
+//      sx += xx[Offset];
+//      sx2 += (xx[Offset] * xx[Offset]);
+//      sy += yy[Offset];
+//      sxy += xx[Offset] * yy[Offset];
+//      // linear coeff of y=a*x+b
+//      b = (n * sxy - (sx * sy)) / (n * sx2 - (sx * sx) );
+//      a = (sy - b * sx) / n;
+//      // distance of next point wrt previous regression line: (a+b*x-y)/sqrt(1+b^2)
+//      Offset++;
+//      DDouble dist=(a+b*xx[Offset]-yy[Offset])/sqrt(1+(b*b));
+//      if (abs(dist) > dtol ) colinear = false;
+//    }
+//    if (Offset > 2 ) exchangeBack=true;
+//    
+//    if (colinear) {
+//      //Dupes indexing is the original one.
+//      if (wantsDupes) {
+//          DLongGDL* nothing=new DLongGDL(dimension(2),BaseGDL::ZERO); 
+//          nothing->Dec();
+//          e->SetKW(dupesIx, nothing);
+//      }
+//      e->Throw("Points are co-linear, no solution.");
+//    }
+//    //if exchange 2 and Offset:
+//    if (exchangeBack) {
+//      DDouble tmp = xx[2];
+//      xx[2] = xx[Offset];
+//      xx[Offset] = tmp;
+//      tmp = yy[2];
+//      yy[2] = yy[Offset];
+//      yy[Offset] = tmp;
+//    }
 
     //for duplicates
     std::vector<std::pair<DLong,DLong>> dupes;
-    //TRIPACK has its own way to say 2 points are identical. 
 
-    //IN SPHERE MODE, xVal and yVal ARE RETURNED, ARE DOUBLE PRECISION and their ORDER is MODIFIED. It is not the case here.
+    //IN SPHERE MODE, xVal and yVal ARE RETURNED, ARE DOUBLE PRECISION and their ORDER is MODIFIED,
+    //the input points are sorted using the coordinate (x or y) covering max range (y prefeered). It is not the case here.
     //SPHERE does not support duplicate points yet.
     
     if (isSphere) {
@@ -270,7 +280,7 @@ namespace lib {
         } else e->SetPar(3, new DLongGDL(-1));
         free(nodes);
       }
-      if (reorderFvalue) {
+      if (hasFvalue) {
         //No need to reorder whatever.
 //        //create a dummy array of same size
 //        DDoubleGDL* ret=new DDoubleGDL(npts,BaseGDL::NOZERO);
@@ -312,6 +322,14 @@ namespace lib {
       }
       //no more cleanup, x,y,z,and list,lptr,lend are in the returned structure!
     } else {
+      
+      // for PLANE triangulation, everything must be scaled in order to have triangulation independent of range,
+      // as the triangulation code IS sensitive to the values of X and Y.
+      if (maxVal > 0) {
+        for (DLong i = 0; i < npts; ++i) (*xVal)[i] /= maxVal;
+        for (DLong i = 0; i < npts; ++i) (*yVal)[i] /= maxVal;
+      }
+      
       SizeT listsize=6*npts-12;
       DLong* list=(DLong*)malloc(listsize*sizeof(DLong));
       DLong* lptr=(DLong*)malloc(listsize*sizeof(DLong));
@@ -324,9 +342,14 @@ namespace lib {
       DLong l_npts=npts;
       DLong* originalIndex=(DLong*)malloc(npts*sizeof(DLong));
       for (DLong i = 0; i < npts; ++i) originalIndex[i]=i;
-      if (exchangeBack) originalIndex[2]=Offset;
-      if (exchangeBack) originalIndex[Offset]=2;
-
+      //TRIPACK may say that the first 3 points are colinear. If this is the case, subtly modify the 3rd point: 
+      if (tripack::colin_(xx[1], yy[1], xx[2], yy[2],	xx[0], yy[0])) {
+        colinear = true;
+        xx[1]+=dtol;
+        yy[1]-=dtol;
+      }
+        
+        
       DLong ret1=tripack::trmesh_(&l_npts, xx , yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
       // At this point, only positive ier are expected (duplicates).
       if (ier!=0) {
@@ -343,7 +366,7 @@ namespace lib {
             ier--;
             DLong m = 0;
             for (DLong i = 0; i < lnew -1 ; ++i) if (list[i] > m) m = list[i]; //simple way to compute where we are
-            dupes.push_back(make_pair(ier, originalIndex[m])); // value at index 'm' is identical to the one at 'ier'
+            dupes.push_back(make_pair(originalIndex[ier], originalIndex[m])); // value at index 'm' is identical to the one at 'ier'
             //remove node "m" and add +1 to originalIndex starting at 'm'
             for (DLong i=m; i< l_npts-1; ++i) {l_xx[i]=l_xx[i+1]; l_yy[i]=l_yy[i+1];originalIndex[i]=originalIndex[i+1];}
             l_npts--;
@@ -412,6 +435,13 @@ namespace lib {
           }
         }
         free(ltri);
+//        //swap 2 and Offset if exchangeBack=true
+//        if (exchangeBack) {
+//          for (DLong j = 0; j < 3 * ntriangles; ++j) {
+//            if ((*returned_triangles)[j] == Offset) (*returned_triangles)[j] = 2;
+//            else if ((*returned_triangles)[j] == 2) (*returned_triangles)[j] = Offset;
+//          }
+//        }
         //pass back to GDL env:
         e->SetPar(2, returned_triangles);
       }
@@ -424,6 +454,12 @@ namespace lib {
         DLongGDL* returned_edges = new DLongGDL(nb, BaseGDL::NOZERO);
         for (DLong j = 0; j < nb; ++j) (*returned_edges)[j]=originalIndex[nodes[j]-1];
         free(nodes);
+//        if (exchangeBack) {
+//          for (DLong j = 0; j < nb; ++j) {
+//            if ((*returned_edges)[j] == Offset) (*returned_edges)[j] = 2;
+//            else if ((*returned_edges)[j] == 2) (*returned_edges)[j] = Offset;
+//          }
+//        }
         e->SetPar(3, returned_edges);
       }
       if (wantsConnectivity) {
@@ -473,6 +509,15 @@ namespace lib {
       free(list);
       free(lptr);
       free(lend);
+      // give back X and Y
+      if (colinear) {
+        xx[1]-=dtol;
+        yy[1]+=dtol;
+      }
+       if (maxVal > 0) {
+        for (DLong i = 0; i < npts; ++i) (*xVal)[i] *= maxVal;
+        for (DLong i = 0; i < npts; ++i) (*yVal)[i] *= maxVal;
+      }
     }
   }
 
@@ -699,12 +744,19 @@ namespace lib {
     // Loop through all triangles
     for (SizeT i = 0; i < ntri; ++i)
     {
+      //find rotation such as delx10 is not NULL, as THIS HAPPENS for REGULAR-GRIDDED DATA.
+      //Note that, A,B,C coefficients of the plane do not depend on the order of the triangle,
+      //provided the triangle orientation is kept.
+      DLong tri0 , tri1 , tri2;
+      int k=0;
+      for (; k<2; ++k) {
+        tri0 = (*tri)[3 * i + k%3];
+        tri1 = (*tri)[3 * i + (k+1)%3];
+        tri2 = (*tri)[3 * i + (k+2)%3];
+        delx10 = (*xVal)[tri1] - (*xVal)[tri0];
+        if (abs(delx10) > 10 * std::numeric_limits<DDouble>::epsilon()) break;
+      }
 
-      DLong tri0 = (*tri)[3 * i + 0];
-      DLong tri1 = (*tri)[3 * i + 1];
-      DLong tri2 = (*tri)[3 * i + 2];
-
-      delx10 = (*xVal)[tri1] - (*xVal)[tri0];
       delx21 = (*xVal)[tri2] - (*xVal)[tri1];
 
       dely10 = (*yVal)[tri1] - (*yVal)[tri0];
@@ -712,6 +764,11 @@ namespace lib {
 
       delz10 = (*zVal)[tri1] - (*zVal)[tri0];
       delz21 = (*zVal)[tri2] - (*zVal)[tri1];
+
+      C = (delx21 * delz10 - delx10 * delz21) /
+        (delx21 * dely10 - delx10 * dely21);
+      B = (delz10 - C * dely10) / delx10;
+      A = (*zVal)[tri0] - B * (*xVal)[tri0] - C * (*yVal)[tri0];
 
       // Compute grid array
       for (SizeT j = 0; j < 3; ++j)
@@ -721,12 +778,6 @@ namespace lib {
         edge[j][0] = (*xVal)[ktri] - (*xVal)[itri];
         edge[j][1] = (*yVal)[ktri] - (*yVal)[itri];
       }
-
-      C = (delx21 * delz10 - delx10 * delz21) /
-        (delx21 * dely10 - delx10 * dely21);
-      B = (delz10 - C * dely10) / delx10;
-      A = (*zVal)[tri0] - B * (*xVal)[tri0] - C * (*yVal)[tri0];
-
 
       // *** LOOP THROUGH GRID POINTS *** //
       if (domaxvalue || dominvalue)
@@ -879,12 +930,19 @@ namespace lib {
     // Loop through all triangles
     for (SizeT i = 0; i < ntri; ++i)
     {
+      //find rotation such as delx10 is not NULL, as THIS HAPPENS for REGULAR-GRIDDED DATA.
+      //Note that, A,B,C coefficients of the plane do not depend on the order of the triangle,
+      //provided the triangle orientation is kept.
+      DLong tri0 , tri1 , tri2;
+      int k=0;
+      for (; k<2; ++k) {
+        tri0 = (*tri)[3 * i + k%3];
+        tri1 = (*tri)[3 * i + (k+1)%3];
+        tri2 = (*tri)[3 * i + (k+2)%3];
+        delx10 = (*xVal)[tri1] - (*xVal)[tri0];
+        if (abs(delx10) > 10 * std::numeric_limits<DDouble>::epsilon()) break;
+      }
 
-      DLong tri0 = (*tri)[3 * i + 0];
-      DLong tri1 = (*tri)[3 * i + 1];
-      DLong tri2 = (*tri)[3 * i + 2];
-
-      delx10 = (*xVal)[tri1] - (*xVal)[tri0];
       delx21 = (*xVal)[tri2] - (*xVal)[tri1];
 
       dely10 = (*yVal)[tri1] - (*yVal)[tri0];
@@ -895,15 +953,6 @@ namespace lib {
       delz21r = (*zVal)[tri2].real() - (*zVal)[tri1].real();
       delz21i = (*zVal)[tri2].imag() - (*zVal)[tri1].imag();
 
-      // Compute grid array
-      for (SizeT j = 0; j < 3; ++j)
-      {
-        DLong itri = (*tri)[3 * i + j];
-        DLong ktri = (*tri)[3 * i + ((j + 1) % 3)];
-        edge[j][0] = (*xVal)[ktri] - (*xVal)[itri];
-        edge[j][1] = (*yVal)[ktri] - (*yVal)[itri];
-      }
-
       Cr = (delx21 * delz10r - delx10 * delz21r) /  (delx21 * dely10 - delx10 * dely21);
       Br = (delz10r - Cr * dely10) / delx10;
       Ar = (*zVal)[tri0].real() - Br * (*xVal)[tri0] - Cr * (*yVal)[tri0];
@@ -911,6 +960,13 @@ namespace lib {
       Bi = (delz10i - Ci * dely10) / delx10;
       Ai = (*zVal)[tri0].imag() - Bi * (*xVal)[tri0] - Ci * (*yVal)[tri0];
 
+      // Compute grid array
+      for (SizeT j = 0; j < 3; ++j) {
+        DLong itri = (*tri)[3 * i + j];
+        DLong ktri = (*tri)[3 * i + ((j + 1) % 3)];
+        edge[j][0] = (*xVal)[ktri] - (*xVal)[itri];
+        edge[j][1] = (*yVal)[ktri] - (*yVal)[itri];
+      }
 
       // *** LOOP THROUGH GRID POINTS *** //
       if (domaxvalue || dominvalue)
