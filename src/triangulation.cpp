@@ -85,10 +85,11 @@ namespace lib {
     DLong maxEl, minEl;
     DDouble maxVal;
     xVal->MinMax(&minEl,&maxEl,NULL,NULL,false);
-    maxVal=(*xVal)[maxEl];
+    //maximum ABSOLUTE value
+    maxVal=abs((*xVal)[maxEl]);
     yVal->MinMax(&minEl,&maxEl,NULL,NULL,false);
-    //maximum ABSOLUTE VALUE
-    maxVal=abs(max(maxVal,(*yVal)[maxEl]));
+    //maximum ABSOLUTE value
+    maxVal=max(maxVal,abs((*yVal)[maxEl]));
     
  
 
@@ -110,9 +111,6 @@ namespace lib {
     DDouble* xx=&(*xVal)[0];
     DDouble* yy=&(*yVal)[0];    
 
-    bool colinear = false;
-
-
 //    // Following code was to insure points were not colinear within 'tol'. 
 //    // TRIPACK has no notion of 'tol', and IDL has a very strange notion of 'tol': it will easily complain that points are colinear
 //    // when they are obviously not, when tol is relatively high. I suspect a bug. Anyway, the following is an attempt to define a colinarity within 'tol'.
@@ -123,6 +121,7 @@ namespace lib {
 //
 //    bool exchangeBack=false;
 //    DLong Offset = 0;
+//    bool colinear = false;
 //
 //    colinear=true;
 //    DDouble sx=xx[0];
@@ -326,8 +325,8 @@ namespace lib {
       // for PLANE triangulation, everything must be scaled in order to have triangulation independent of range,
       // as the triangulation code IS sensitive to the values of X and Y.
       if (maxVal > 0) {
-        for (DLong i = 0; i < npts; ++i) (*xVal)[i] /= maxVal;
-        for (DLong i = 0; i < npts; ++i) (*yVal)[i] /= maxVal;
+        for (DLong i = 0; i < npts; ++i) xx[i] /= maxVal;
+        for (DLong i = 0; i < npts; ++i) yy[i] /= maxVal;
       }
       
       SizeT listsize=6*npts-12;
@@ -342,45 +341,77 @@ namespace lib {
       DLong l_npts=npts;
       DLong* originalIndex=(DLong*)malloc(npts*sizeof(DLong));
       for (DLong i = 0; i < npts; ++i) originalIndex[i]=i;
-      //TRIPACK may say that the first 3 points are colinear. If this is the case, subtly modify the 3rd point: 
-      if (tripack::colin_(xx[1], yy[1], xx[2], yy[2],	xx[0], yy[0])) {
-        colinear = true;
-        xx[1]+=dtol;
-        yy[1]-=dtol;
-      }
-        
-        
-      DLong ret1=tripack::trmesh_(&l_npts, xx , yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
-      // At this point, only positive ier are expected (duplicates).
-      if (ier!=0) {
-        if (ier > 0) { //duplicate nodes exist. We have to remove all of them and keep track of their index
-            //we will work on a copy. To hell with speed, this is not optimized.
-          DDouble* l_xx=(DDouble*)malloc(l_npts*sizeof(DDouble));
-          DDouble* l_yy=(DDouble*)malloc(l_npts*sizeof(DDouble));
-          memcpy(l_xx,&(*xVal)[0],l_npts*sizeof(DDouble));
-          memcpy(l_yy,&(*yVal)[0],l_npts*sizeof(DDouble));
-          // if ndupes > 0 we have to take into account that several returned indexes in the list have been changed wrt the original because of the list shortening
-          // by elimination of the duplicates. So we have to create a table of correspondence.
-          // and, yes, it would be more efficient to use tripack::addnod_()
-          while (ier > 0) { 
-            ier--;
-            DLong m = 0;
-            for (DLong i = 0; i < lnew -1 ; ++i) if (list[i] > m) m = list[i]; //simple way to compute where we are
-            dupes.push_back(make_pair(originalIndex[ier], originalIndex[m])); // value at index 'm' is identical to the one at 'ier'
-            //remove node "m" and add +1 to originalIndex starting at 'm'
-            for (DLong i=m; i< l_npts-1; ++i) {l_xx[i]=l_xx[i+1]; l_yy[i]=l_yy[i+1];originalIndex[i]=originalIndex[i+1];}
-            l_npts--;
-            ret1 = tripack::trmesh_(&l_npts, l_xx, l_yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
-            if (ier < 0)  e->Throw("Internal Error, please report."); //Should not happen
+
+      //Try first with the simple case of all points OK, if perchance the list of points is OK we gain time:
+      DLong ret1 = tripack::trmesh_(&l_npts, xx, yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
+      DLong Offset=2;
+      if (ier != 0) {
+        //OK, complicated case.
+
+        //The first 3 points passed to TriPack must NOT be colinear (according to Tripack).
+        //In many cases the points are on a grid, so we need to find the first noncolinear 3 points and start the triangulation there.
+        //The N first colinear points can be added afterwards.
+        //Test colinearity:
+
+        bool colinear = true;
+        while (Offset < npts && colinear) {
+          if (!tripack::colin_(xx[Offset-2], yy[Offset-2], xx[Offset - 1], yy[Offset - 1], xx[Offset], yy[Offset])) {
+            colinear = false;
+            break;
+          }
+          Offset++;
+        }
+        if (colinear) e->Throw("Points are co-linear, no solution.");
+
+        //At this point, either there were duplicates (colinear) or colinear points.
+
+        //we will work on a copy. To hell with speed, this is not optimized.
+        DDouble* l_xx = (DDouble*) malloc(l_npts * sizeof (DDouble));
+        DDouble* l_yy = (DDouble*) malloc(l_npts * sizeof (DDouble));
+        //start with Offset and add the points before Offset at the end. 
+        memcpy(l_xx, xx, l_npts * sizeof (DDouble));
+        memcpy(l_yy, yy, l_npts * sizeof (DDouble));
+        if (Offset != 2) { // exchange Offset and position 0. It is fundamental that it is position 0 and not 1 or 2.
+          l_xx[Offset] = xx[0];
+          l_xx[0] = xx[Offset];
+          l_yy[Offset] = yy[0];
+          l_yy[0] = yy[Offset];
+          originalIndex[0] = Offset;
+          originalIndex[Offset] = 0;
+        }
+        // if ndupes > 0 we have to take into account that several returned indexes in the list have been changed wrt the original because of the list shortening
+        // by elimination of the duplicates. So we have to create a table of correspondence.
+
+        // redo triangulation, hope it works:
+        ret1 = tripack::trmesh_(&l_npts, l_xx, l_yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
+        if (ier != 0) {
+          if (ier > 0) { //this can happen.
+            // and, yes, it would be more efficient to use tripack::addnod_()
+            while (ier > 0) {
+              ier--;
+              DLong m = 0;
+              for (DLong i = 0; i < lnew - 1; ++i) if (list[i] > m) m = list[i]; //simple way to compute where we are
+              dupes.push_back(make_pair(originalIndex[ier], originalIndex[m])); // value at index 'm' is identical to the one at 'ier'
+              //remove node "m" and add +1 to originalIndex starting at 'm'
+              for (DLong i = m; i < l_npts - 1; ++i) {
+                l_xx[i] = l_xx[i + 1];
+                l_yy[i] = l_yy[i + 1];
+                originalIndex[i] = originalIndex[i + 1];
+              }
+              l_npts--;
+              ret1 = tripack::trmesh_(&l_npts, l_xx, l_yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
+              if (ier < 0) e->Throw("Internal Error, please report."); //Should not happen
             }
-          free (l_xx);
-          free (l_yy);
-        } 
-        else if (ier == -2)  e->Throw("Points are co-linear, no solution."); //Should not happen
-        else if (ier == -1)  e->Throw("Not enough valid and unique points specified."); //ier==-1 impossible (npoints < 3)
-        //ier==-4 internal error should be reported! -- never happened in 40 years
+            free(l_xx);
+            free(l_yy);
+          }
+          //the rest SHOULD NOT HAPPEN:
+          else if (ier == -2) e->Throw("Internal Error, points are co-linear, no solution, please report."); //Should not happen
+          else if (ier == -1) e->Throw("Internal Error, not enough valid and unique points specified, please report."); //ier==-1 impossible (npoints < 3)
+            //ier==-4 internal error should be reported! -- never happened in 40 years
           else if (ier == -4) e->Throw("Congratulations, you found the impossible: a set of points that triggers an internal error in TRMESH, please report!");
-          else e->Throw("Congratulations, you found an impossible error code of the TRIPACK package.");
+          else e->Throw("Congratulations, you found an impossible error code of the TRIPACK package, please report.");
+          }
       }
       DLong ndupes=dupes.size();
       free(near__);
@@ -509,14 +540,9 @@ namespace lib {
       free(list);
       free(lptr);
       free(lend);
-      // give back X and Y
-      if (colinear) {
-        xx[1]-=dtol;
-        yy[1]+=dtol;
-      }
-       if (maxVal > 0) {
-        for (DLong i = 0; i < npts; ++i) (*xVal)[i] *= maxVal;
-        for (DLong i = 0; i < npts; ++i) (*yVal)[i] *= maxVal;
+      if (maxVal > 0) {
+        for (DLong i = 0; i < npts; ++i) xx[i] *= maxVal;
+        for (DLong i = 0; i < npts; ++i) yy[i] *= maxVal;
       }
     }
   }
@@ -754,9 +780,14 @@ namespace lib {
         tri1 = (*tri)[3 * i + (k+1)%3];
         tri2 = (*tri)[3 * i + (k+2)%3];
         delx10 = (*xVal)[tri1] - (*xVal)[tri0];
-        if (abs(delx10) > 10 * std::numeric_limits<DDouble>::epsilon()) break;
-      }
+      delx21 = (*xVal)[tri2] - (*xVal)[tri1];
 
+      dely10 = (*yVal)[tri1] - (*yVal)[tri0];
+      dely21 = (*yVal)[tri2] - (*yVal)[tri1];
+
+      if (( abs(delx10) > 10 * std::numeric_limits<DDouble>::epsilon()) && (abs(delx21 * dely10 - delx10 * dely21) > 10 * std::numeric_limits<DDouble>::epsilon() )) break;
+      }
+      delx10 = (*xVal)[tri1] - (*xVal)[tri0];
       delx21 = (*xVal)[tri2] - (*xVal)[tri1];
 
       dely10 = (*yVal)[tri1] - (*yVal)[tri0];
@@ -764,7 +795,7 @@ namespace lib {
 
       delz10 = (*zVal)[tri1] - (*zVal)[tri0];
       delz21 = (*zVal)[tri2] - (*zVal)[tri1];
-
+      
       C = (delx21 * delz10 - delx10 * delz21) /
         (delx21 * dely10 - delx10 * dely21);
       B = (delz10 - C * dely10) / delx10;
