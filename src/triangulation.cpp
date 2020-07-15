@@ -90,87 +90,17 @@ namespace lib {
     yVal->MinMax(&minEl,&maxEl,NULL,NULL,false);
     //maximum ABSOLUTE value
     maxVal=max(maxVal,abs((*yVal)[maxEl]));
-    
- 
 
     DDouble dtol = isDouble ? 1e-12 : 1e-6;
-//    //Tol is irrelevant in our implementation, as (s)tripack work with tol=machine precision. I keep however code below in comments as at some
-//    // point it may be useful to reintroduce TOL 
-//    if (maxVal>0.0) dtol*=maxVal; //we may have maxval=0 exactly...
-//    DDouble naturalTol=dtol; //an internal 'standard' tolerance that can be used in cas of identical points...
-//    //use passed value if any
-//    DDouble tol=dtol;
-//    static int tolIx = e->KeywordIx("TOLERANCE");
-//    if (e->KeywordPresent(tolIx)) {
-//      e->AssureDoubleScalarKW(tolIx, tol);
-//      if (tol > 0.0) dtol = tol;
-//    }
-
-
+    //Tol is irrelevant in our implementation, as (s)tripack work with tol=machine precision. 
     
     DDouble* xx=&(*xVal)[0];
     DDouble* yy=&(*yVal)[0];    
 
-//    // Following code was to insure points were not colinear within 'tol'. 
-//    // TRIPACK has no notion of 'tol', and IDL has a very strange notion of 'tol': it will easily complain that points are colinear
-//    // when they are obviously not, when tol is relatively high. I suspect a bug. Anyway, the following is an attempt to define a colinarity within 'tol'.
-//    // given at least 2 points, find a regression line, do the next point lie > tol from it, and the next, etc?
-//    // this is pretty irrelevant and just to mimic IDL, since to make the 3 first points not colinear it suffices to add a tiny offset to the 3rd point.
-//    // The following code is kept for its generality in case one would want to use it to check a series of points are colnear within 'tol', but actually this
-//    // adds just a small jitter to the 3rd point.
-//
-//    bool exchangeBack=false;
-//    DLong Offset = 0;
-//    bool colinear = false;
-//
-//    colinear=true;
-//    DDouble sx=xx[0];
-//    DDouble sx2=xx[0]*xx[0];
-//    DDouble sy=yy[0];
-//    DDouble sxy=xx[0]*yy[0];
-//    DDouble a,b;
-//    Offset=1;
-//    while (colinear && Offset < (npts-1) ) {
-//      DLong n=Offset+1;
-//    //compute best line 
-//      sx += xx[Offset];
-//      sx2 += (xx[Offset] * xx[Offset]);
-//      sy += yy[Offset];
-//      sxy += xx[Offset] * yy[Offset];
-//      // linear coeff of y=a*x+b
-//      b = (n * sxy - (sx * sy)) / (n * sx2 - (sx * sx) );
-//      a = (sy - b * sx) / n;
-//      // distance of next point wrt previous regression line: (a+b*x-y)/sqrt(1+b^2)
-//      Offset++;
-//      DDouble dist=(a+b*xx[Offset]-yy[Offset])/sqrt(1+(b*b));
-//      if (abs(dist) > dtol ) colinear = false;
-//    }
-//    if (Offset > 2 ) exchangeBack=true;
-//    
-//    if (colinear) {
-//      //Dupes indexing is the original one.
-//      if (wantsDupes) {
-//          DLongGDL* nothing=new DLongGDL(dimension(2),BaseGDL::ZERO); 
-//          nothing->Dec();
-//          e->SetKW(dupesIx, nothing);
-//      }
-//      e->Throw("Points are co-linear, no solution.");
-//    }
-//    //if exchange 2 and Offset:
-//    if (exchangeBack) {
-//      DDouble tmp = xx[2];
-//      xx[2] = xx[Offset];
-//      xx[Offset] = tmp;
-//      tmp = yy[2];
-//      yy[2] = yy[Offset];
-//      yy[Offset] = tmp;
-//    }
-
-    //for duplicates
     std::vector<std::pair<DLong,DLong>> dupes;
 
     //IN SPHERE MODE, xVal and yVal ARE RETURNED, ARE DOUBLE PRECISION and their ORDER is MODIFIED,
-    //the input points are sorted using the coordinate (x or y) covering max range (y prefeered). It is not the case here.
+    //the input points are sorted using the coordinate (x or y) covering max range (y prefered). It is not the case here.
     //SPHERE does not support duplicate points yet.
     
     if (isSphere) {
@@ -466,16 +396,10 @@ namespace lib {
           }
         }
         free(ltri);
-//        //swap 2 and Offset if exchangeBack=true
-//        if (exchangeBack) {
-//          for (DLong j = 0; j < 3 * ntriangles; ++j) {
-//            if ((*returned_triangles)[j] == Offset) (*returned_triangles)[j] = 2;
-//            else if ((*returned_triangles)[j] == 2) (*returned_triangles)[j] = Offset;
-//          }
-//        }
         //pass back to GDL env:
         e->SetPar(2, returned_triangles);
       }
+      
       if (wantsEdge) {
         DLong* nodes=(DLong*)malloc(l_npts*sizeof(DLong));
         DLong nb=0;
@@ -485,19 +409,14 @@ namespace lib {
         DLongGDL* returned_edges = new DLongGDL(nb, BaseGDL::NOZERO);
         for (DLong j = 0; j < nb; ++j) (*returned_edges)[j]=originalIndex[nodes[j]-1];
         free(nodes);
-//        if (exchangeBack) {
-//          for (DLong j = 0; j < nb; ++j) {
-//            if ((*returned_edges)[j] == Offset) (*returned_edges)[j] = 2;
-//            else if ((*returned_edges)[j] == 2) (*returned_edges)[j] = Offset;
-//          }
-//        }
         e->SetPar(3, returned_edges);
       }
+      
       if (wantsConnectivity) {
         //remove 1 to get C array indexes.
         for (DLong i = 0; i < lnew-1; ++i) lptr[i]--; 
         for (DLong i = 0; i < l_npts; ++i) lend[i]--;
-        //in connectivity we MUST have all the points, even the duplicated ones. But connectivity of duplicated points will break IDL.
+        //in connectivity we MUST have all the points, even the duplicated ones. Connectivity of duplicated points is wrong with IDL (intentional?).
         // we could avoid this easily as I believe this is an IDL bug. We just have to reproduce the connectivity of the first encounter
         // of the duplicated point.
         DLong* array=(DLong*)malloc((npts*npts+npts+1)*sizeof(DLong)); // size > max possible connectivity 
@@ -516,6 +435,13 @@ namespace lib {
           }
           while (k<npts) effective_index[k++]=i++;
         }
+        //nice except that we may have exchanged Offset and 0 in the first place, so effective_index should reflect this
+        if (Offset != 2) {
+          DLong tmp=effective_index[Offset];
+          effective_index[Offset] = effective_index[0];
+          effective_index[0] = tmp;
+        }
+        
         for (DLong k = 0; k < npts; ++k) { 
           DLong i=effective_index[k]; 
           //is it an exterior point? Yes if the termination of the connectivity list is exterior.
@@ -775,17 +701,17 @@ namespace lib {
       //provided the triangle orientation is kept.
       DLong tri0 , tri1 , tri2;
       int k=0;
-      for (; k<2; ++k) {
-        tri0 = (*tri)[3 * i + k%3];
-        tri1 = (*tri)[3 * i + (k+1)%3];
-        tri2 = (*tri)[3 * i + (k+2)%3];
+      for (; k < 2; ++k) {
+        tri0 = (*tri)[3 * i + k % 3];
+        tri1 = (*tri)[3 * i + (k + 1) % 3];
+        tri2 = (*tri)[3 * i + (k + 2) % 3];
         delx10 = (*xVal)[tri1] - (*xVal)[tri0];
-      delx21 = (*xVal)[tri2] - (*xVal)[tri1];
+        delx21 = (*xVal)[tri2] - (*xVal)[tri1];
 
-      dely10 = (*yVal)[tri1] - (*yVal)[tri0];
-      dely21 = (*yVal)[tri2] - (*yVal)[tri1];
+        dely10 = (*yVal)[tri1] - (*yVal)[tri0];
+        dely21 = (*yVal)[tri2] - (*yVal)[tri1];
 
-      if (( abs(delx10) > 10 * std::numeric_limits<DDouble>::epsilon()) && (abs(delx21 * dely10 - delx10 * dely21) > 10 * std::numeric_limits<DDouble>::epsilon() )) break;
+        if ((abs(delx10) > 10 * std::numeric_limits<DDouble>::epsilon()) && (abs(delx21 * dely10 - delx10 * dely21) > 10 * std::numeric_limits<DDouble>::epsilon())) break;
       }
       delx10 = (*xVal)[tri1] - (*xVal)[tri0];
       delx21 = (*xVal)[tri2] - (*xVal)[tri1];
@@ -1135,8 +1061,11 @@ namespace lib {
 
     DType type=GDL_FLOAT;
     bool isComplex=(p2->Type()==GDL_COMPLEX || p2->Type()==GDL_COMPLEXDBL);
+    //Double output is not only defined by z but also by x and y.
     if (p2->Type()==GDL_DOUBLE || p2->Type()==GDL_COMPLEXDBL) type=GDL_DOUBLE;
-
+    else if (p1->Type()==GDL_DOUBLE || p1->Type()==GDL_COMPLEXDBL) type=GDL_DOUBLE;
+    else if (p0->Type()==GDL_DOUBLE || p0->Type()==GDL_COMPLEXDBL) type=GDL_DOUBLE;
+    
     BaseGDL* p3 = e->GetParDefined(3); //triangles
 
     if (p0->N_Elements() != p1->N_Elements() ||
