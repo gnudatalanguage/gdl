@@ -22,17 +22,18 @@
 #include "dinterpreter.hpp"
 
 namespace lib {
-#define INSERTION_SORT_THRESHOLD 9
-#define QUICK_SORT_THRESHOLD 100
-#define RADIX_SORT_THRESHOLD_USUAL 2000000 //for Adaptive value, non floats
-#define RADIX_SORT_THRESHOLD_USUAL_FLOAT 600000 //for Adaptive value, floats (but we do not use Radix in adaptive mode due to the -NaN feature)
-#define RADIX_SORT_THRESHOLD_FOR_FLOAT 30000000 //on my machine radix vs. idl 
-#define RADIX_SORT_THRESHOLD_FOR_DOUBLE 6000000
+#define INSERTION_SORT_THRESHOLD 256  //after, merge is better (floats)
+#define QUICK_SORT_THRESHOLD 0 //never better
+#define RADIX_SORT_THRESHOLD_ADAPT 2000000 //for Adaptive value, non floats
+#define RADIX_SORT_THRESHOLD_ADAPT_FLOAT 600000 //NOT USED for Adaptive value, floats (but we do not use Radix or floats in adaptive mode due to the -NaN feature)
+#define RADIX_SORT_THRESHOLD_FOR_FLOAT 30000000 //NOT USED radix vs. idl (but we do not use Radix for floats due to the -NaN feature)
+#define RADIX_SORT_THRESHOLD_FOR_DOUBLE 6000000 //idem
+//radix is better than anything from 0 to this value for all integer types
 #define RADIX_SORT_THRESHOLD_FOR_LONG 3000000
 #define RADIX_SORT_THRESHOLD_FOR_ULONG 3000000
 #define RADIX_SORT_THRESHOLD_FOR_LONG64 2000000
 #define RADIX_SORT_THRESHOLD_FOR_ULONG64 1000000
-#define MERGESORT_PARALLEL_THRESHOLD 1E6
+#define MERGESORT_PARALLEL_THRESHOLD 1000000
 
 // The following GDL version of SORT() is a complete rewriting using modern methods for a faster sort. 
 // It provides a noticeable, sometimes even huge, speed gain, depending on array sizes and types. 
@@ -1473,8 +1474,10 @@ template <typename T, typename IndexT>
       insertionSortIndex(val, index, low, high);
       memcpy(&(aux[low]), &(index[low]), length*sizeof(IndexT));
       return;
-    } 
-
+    }
+    
+// else MERGESORT:
+    
 //    SizeT mid = low + (high - low) / 2;
 //    MergeSortIndexAux(index, aux, low, mid, val);
 //    MergeSortIndexAux(index, aux, mid+1, high, val);
@@ -1508,6 +1511,7 @@ template <typename T, typename IndexT>
     MergeNoCopyIndexAux(aux, index, low, mid, high, val);
   }
 
+  //This should not be used for FLOATS and DOUBLES as the sorting order is (better) but different from IDL.
   template< typename T, typename IndexT>
    static void AdaptiveSortIndexAux(IndexT* aux, IndexT* index, SizeT low, SizeT high, T* val)
   {
@@ -1524,15 +1528,12 @@ template <typename T, typename IndexT>
       //  Quicksort should not be permitted for the default sorting algorithms, but since IDL says that
       //  "If Array contains any identical elements, the order in which the identical elements
       //  are sorted is arbitrary and may vary between operating systems.", I permit it.
-    else if (length < QUICK_SORT_THRESHOLD) {
-      QuickSortIndex(val, index, low, high);
-      return;
-    }
-    else if (length < RADIX_SORT_THRESHOLD_USUAL) { //could be faster if alloc/dealloc was not performed in RadixSort...
+
+    else if (length < RADIX_SORT_THRESHOLD_ADAPT) { //could be faster if alloc/dealloc was not performed in RadixSort...
       RadixSortIndex(val, index, low, high);
       return;
     }
-
+// else MERGESORT
     //    SizeT mid = low + (high - low) / 2;
     //    AdaptiveSortIndexAux(index, aux, low, mid, val);
     //    AdaptiveSortIndexAux(index, aux, mid+1, high, val);
@@ -1576,10 +1577,7 @@ template <typename T, typename IndexT>
       insertionSortIndex(val, index, low, high);
       return;
     }
-    else if (length < QUICK_SORT_THRESHOLD) {
-      QuickSortIndex(val, index, low, high);
-      return;
-    }
+    //ONLY MERGESORT
 
 //        SizeT mid = low + (high - low) / 2;
 //        AdaptiveSortIndexAuxWithNaN(index, aux, low, mid, val);
@@ -1956,7 +1954,7 @@ template <typename T, typename IndexT>
       res->SetBufferSize(nEl);
       res->SetDim(dimension(nEl));
       return res;
-    } else if (p0->Type() == GDL_FLOAT) {
+    } else if (p0->Type() == GDL_FLOAT) { //adaptive, due to the -NaN different sorting
       DFloat* val = (DFloat*)(static_cast<DFloatGDL*>(p0)->DataAddr());
       GDLIndexT* res = new GDLIndexT(dimension(nEl), BaseGDL::INDGEN);
       IndexT *hh = static_cast<IndexT*> (res->DataAddr());
@@ -1964,7 +1962,7 @@ template <typename T, typename IndexT>
       SizeT high=nEl-1;
       AdaptiveSortIndexWithNaN<DFloat, IndexT>( val, hh, low, high);
       return res;
-    } else if (p0->Type() == GDL_DOUBLE) {
+    } else if (p0->Type() == GDL_DOUBLE) { //adaptive, due to the -NaN different sorting
       DDouble* val = (DDouble*)(static_cast<DDoubleGDL*>(p0)->DataAddr());
       GDLIndexT* res = new GDLIndexT(dimension(nEl), BaseGDL::INDGEN);
       IndexT *hh = static_cast<IndexT*> (res->DataAddr());
@@ -1972,7 +1970,7 @@ template <typename T, typename IndexT>
       SizeT high=nEl-1; 
       AdaptiveSortIndexWithNaN<DDouble, IndexT>( val, hh, low, high);
       return res;
-    } else if (p0->Type() == GDL_COMPLEX) {
+    } else if (p0->Type() == GDL_COMPLEX) {//adaptive, due to the -NaN different sorting
       DComplexGDL* p0F = static_cast<DComplexGDL*> (p0);
       DComplex *ff=(DComplex*)p0F->DataAddr();
       // create temp values for magnitude of complex
@@ -1985,7 +1983,7 @@ template <typename T, typename IndexT>
       AdaptiveSortIndexWithNaN<DFloat, IndexT>( magnitude, hh, low, high);
       delete[] magnitude;
       return res;
-    } else if (p0->Type() == GDL_COMPLEXDBL) {
+    } else if (p0->Type() == GDL_COMPLEXDBL) {//adaptive, due to the -NaN different sorting
       DComplexDblGDL* p0F = static_cast<DComplexDblGDL*> (p0);
       DComplexDbl *ff=(DComplexDbl*)p0F->DataAddr();
       // create temp values for magnitude of complex
@@ -1998,7 +1996,7 @@ template <typename T, typename IndexT>
       AdaptiveSortIndexWithNaN<DDouble, IndexT>( magnitude, hh, low, high);
       delete[] magnitude;
       return res;
-    } else if (p0->Type() == GDL_LONG) {
+    } else if (p0->Type() == GDL_LONG && nEl > RADIX_SORT_THRESHOLD_FOR_LONG) {
       DLong* val = (DLong*)(static_cast<DLongGDL*>(p0)->DataAddr());
       GDLIndexT* res = new GDLIndexT(dimension(nEl), BaseGDL::INDGEN);
       IndexT *hh = static_cast<IndexT*> (res->DataAddr());
@@ -2006,7 +2004,16 @@ template <typename T, typename IndexT>
       SizeT high=nEl-1; 
       AdaptiveSortIndex<DLong, IndexT>( val, hh, low, high);
       return res;
-    } else if (p0->Type() == GDL_ULONG) {
+    } else if (p0->Type() == GDL_LONG && nEl <= RADIX_SORT_THRESHOLD_FOR_LONG) {
+      DLong* val = (DLong*)(static_cast<DLongGDL*>(p0)->DataAddr());
+      GDLIndexT* res = new GDLIndexT(dimension(nEl), BaseGDL::NOALLOC);
+      IndexT *index;
+      index=RadixSort<IndexT>( val, nEl);
+      res->SetBuffer(index);
+      res->SetBufferSize(nEl);
+      res->SetDim(dimension(nEl));
+      return res;
+    } else if (p0->Type() == GDL_ULONG && nEl > RADIX_SORT_THRESHOLD_FOR_ULONG) {
       DULong* val = (DULong*)(static_cast<DULongGDL*>(p0)->DataAddr());
       GDLIndexT* res = new GDLIndexT(dimension(nEl), BaseGDL::INDGEN);
       IndexT *hh = static_cast<IndexT*> (res->DataAddr());
@@ -2014,7 +2021,16 @@ template <typename T, typename IndexT>
       SizeT high=nEl-1; 
       AdaptiveSortIndex<DULong, IndexT>( val, hh, low, high);
       return res;
-    } else if (p0->Type() == GDL_LONG64) {
+    } else if (p0->Type() == GDL_ULONG && nEl <= RADIX_SORT_THRESHOLD_FOR_ULONG) {
+      DULong* val = (DULong*)(static_cast<DULongGDL*>(p0)->DataAddr());
+      GDLIndexT* res = new GDLIndexT(dimension(nEl), BaseGDL::NOALLOC);
+      IndexT *index;
+      index=RadixSort<IndexT>( val, nEl);
+      res->SetBuffer(index);
+      res->SetBufferSize(nEl);
+      res->SetDim(dimension(nEl));
+      return res;
+    } else if (p0->Type() == GDL_LONG64 && nEl > RADIX_SORT_THRESHOLD_FOR_LONG64) {
       DLong64* val = (DLong64*)(static_cast<DLong64GDL*>(p0)->DataAddr());
       GDLIndexT* res = new GDLIndexT(dimension(nEl), BaseGDL::INDGEN);
       IndexT *hh = static_cast<IndexT*> (res->DataAddr());
@@ -2022,13 +2038,31 @@ template <typename T, typename IndexT>
       SizeT high=nEl-1; 
       AdaptiveSortIndex<DLong64, IndexT>( val, hh, low, high);
       return res;
-    } else if (p0->Type() == GDL_ULONG64) {
+    } else if (p0->Type() == GDL_LONG64 && nEl <= RADIX_SORT_THRESHOLD_FOR_LONG64) {
+      DLong64* val = (DLong64*)(static_cast<DLong64GDL*>(p0)->DataAddr());
+      GDLIndexT* res = new GDLIndexT(dimension(nEl), BaseGDL::NOALLOC);
+      IndexT *index;
+      index=RadixSort<IndexT>( val, nEl);
+      res->SetBuffer(index);
+      res->SetBufferSize(nEl);
+      res->SetDim(dimension(nEl));
+      return res;
+    } else if (p0->Type() == GDL_ULONG64 && nEl > RADIX_SORT_THRESHOLD_FOR_ULONG64) {
       DULong64* val = (DULong64*)(static_cast<DULong64GDL*>(p0)->DataAddr());
       GDLIndexT* res = new GDLIndexT(dimension(nEl), BaseGDL::INDGEN);
       IndexT *hh = static_cast<IndexT*> (res->DataAddr());
       SizeT low=0; 
       SizeT high=nEl-1; 
       AdaptiveSortIndex<DULong64, IndexT>( val, hh, low, high);
+      return res;
+    } else if (p0->Type() == GDL_ULONG64 && nEl <= RADIX_SORT_THRESHOLD_FOR_ULONG64) {
+      DULong64* val = (DULong64*)(static_cast<DULong64GDL*>(p0)->DataAddr());
+      GDLIndexT* res = new GDLIndexT(dimension(nEl), BaseGDL::NOALLOC);
+      IndexT *index;
+      index=RadixSort<IndexT>( val, nEl);
+      res->SetBuffer(index);
+      res->SetBufferSize(nEl);
+      res->SetDim(dimension(nEl));
       return res;
     } else if (p0->Type() == GDL_STRING) {
       DString* val = (DString*)(static_cast<DStringGDL*>(p0)->DataAddr());
