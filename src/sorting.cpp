@@ -24,7 +24,14 @@
 namespace lib {
 #define INSERTION_SORT_THRESHOLD 9
 #define QUICK_SORT_THRESHOLD 100
-#define RADIX_SORT_THRESHOLD 1E5
+#define RADIX_SORT_THRESHOLD_USUAL 2000000 //for Adaptive value, non floats
+#define RADIX_SORT_THRESHOLD_USUAL_FLOAT 600000 //for Adaptive value, floats (but we do not use Radix in adaptive mode due to the -NaN feature)
+#define RADIX_SORT_THRESHOLD_FOR_FLOAT 30000000 //on my machine radix vs. idl 
+#define RADIX_SORT_THRESHOLD_FOR_DOUBLE 6000000
+#define RADIX_SORT_THRESHOLD_FOR_LONG 3000000
+#define RADIX_SORT_THRESHOLD_FOR_ULONG 3000000
+#define RADIX_SORT_THRESHOLD_FOR_LONG64 2000000
+#define RADIX_SORT_THRESHOLD_FOR_ULONG64 1000000
 #define MERGESORT_PARALLEL_THRESHOLD 1E6
 
 // The following GDL version of SORT() is a complete rewriting using modern methods for a faster sort. 
@@ -166,7 +173,7 @@ namespace lib {
 		/* Create histograms without the previous overhead */								\
 		h0[*p++]++;	h1[*p++]++;	                       										\
     }
-
+ 
 #define CREATE_HISTOGRAMS4(type, buffer)													\
 	/* Clear counters/histograms */															\
 	memset(Histogram, 0, 256*4*sizeof(T));                                             	\
@@ -192,7 +199,7 @@ namespace lib {
 			/* Read input buffer in previous sorted order */								\
 			const type Val = *Running++;													\
 			/* Check whether already sorted or not */										\
-			if(Val<PrevVal)	{ AlreadySorted = false; break; } /* Early out */				\
+      if(Val<PrevVal)	{ AlreadySorted = false; break; } /* Early out */				\
 			/* Update for next iteration */													\
 			PrevVal = Val;																	\
 																							\
@@ -270,6 +277,35 @@ namespace lib {
 			/* Read input buffer in previous sorted order */								\
 			const type Val = *Running++;													\
 			/* Check whether already sorted or not */										\
+      if(Val<PrevVal)	{ AlreadySorted = false; break; } /* Early out */				\
+			/* Update for next iteration */													\
+			PrevVal = Val;																	\
+																							\
+			/* Create histograms */															\
+			h0[*p++]++;	h1[*p++]++;	h2[*p++]++;	h3[*p++]++;									\
+			h4[*p++]++;	h5[*p++]++;	h6[*p++]++;	h7[*p++]++;									\
+		}																					\
+																							\
+		/* If all input values are already sorted, we just have to return and leave the */	\
+		/* previous list unchanged. That way the routine may take advantage of temporal */	\
+		/* coherence, for example when used to sort transparent faces.					*/	\
+		if(AlreadySorted)																	\
+		{																					\
+			for(SizeT i=0;i<nb;++i)	mRanks[i] = i;										    \
+			 return mRanks;															        \
+		}																					\
+	}																						\
+	else																					\
+	{																						\
+		/* Prepare for temporal coherence */												\
+		const T* Indices = mRanks;                                                          \
+		type PrevVal = (type)buffer[*Indices];												\
+																							\
+		while(p!=pe)																		\
+		{																					\
+			/* Read input buffer in previous sorted order */								\
+			const type Val = (type)buffer[*Indices++];										\
+			/* Check whether already sorted or not */										\
 			if(Val<PrevVal)	{ AlreadySorted = false; break; } /* Early out */				\
 			/* Update for next iteration */													\
 			PrevVal = Val;																	\
@@ -279,6 +315,134 @@ namespace lib {
 			h4[*p++]++;	h5[*p++]++;	h6[*p++]++;	h7[*p++]++;									\
 		}																					\
 																							\
+		/* If all input values are already sorted, we just have to return and leave the */	\
+		/* previous list unchanged. That way the routine may take advantage of temporal */	\
+		/* coherence, for example when used to sort transparent faces.					*/	\
+		if(AlreadySorted)  return mRanks;                  									\
+	}																						\
+																							\
+	/* Else there has been an early out and we must finish computing the histograms */  \
+  while(p!=pe)                   \
+  {                      \
+    /* Create histograms without the previous overhead */        \
+      h0[*p++]++; h1[*p++]++; h2[*p++]++; h3[*p++]++;         \
+      h4[*p++]++; h5[*p++]++; h6[*p++]++; h7[*p++]++;         \
+    }
+  // the optimization in case of 'already sorted (sub)array' cannot hold for floats and double
+  // as the NaNs do NOT compare to anything, and the 'already sorted' would be wrong.
+  
+#define CREATE_HISTOGRAMSFLOAT(type, buffer)													\
+	/* Clear counters/histograms */															\
+	memset(Histogram, 0, 256*4*sizeof(T));                                             	\
+																							\
+	/* Prepare to count */																	\
+	const DByte* p = (const DByte*)input;													\
+	const DByte* pe = &p[nb*4];																\
+	T* h0 = &Histogram[H0_OFFSET4];	/* Histogram for first pass (LSB)	*/                  \
+	T* h1 = &Histogram[H1_OFFSET4];	/* Histogram for second pass		*/              	\
+	T* h2 = &Histogram[H2_OFFSET4];	/* Histogram for third pass			*/              	\
+	T* h3 = &Histogram[H3_OFFSET4];	/* Histogram for last pass (MSB)	*/                	\
+																							\
+	bool AlreadySorted = true;	/* Optimism... */											\
+																							\
+	if(ranksUnInitialized)																    \
+	{																						\
+		/* Prepare for temporal coherence */												\
+		const type* Running = (type*)buffer;												\
+		type PrevVal = *Running;															\
+		if (std::isnan(PrevVal)) {AlreadySorted=false;} else {						\
+		while(p!=pe)																		\
+		{																					\
+			/* Read input buffer in previous sorted order */								\
+			const type Val = *Running++;													\
+			/* Check whether already sorted or not, care of Nans if necessary*/										\
+      if(Val<PrevVal||std::isnan(Val))	{ AlreadySorted = false; break; } /* Early out */				\
+			/* Update for next iteration */													\
+			PrevVal = Val;																	\
+																							\
+			/* Create histograms */															\
+			h0[*p++]++;	h1[*p++]++;	h2[*p++]++;	h3[*p++]++;									\
+		}																					\
+		}																					\
+		/* If all input values are already sorted, we just have to return and leave the */	\
+		/* previous list unchanged. That way the routine may take advantage of temporal */	\
+		/* coherence, for example when used to sort transparent faces.					*/	\
+		if(AlreadySorted)																	\
+		{																					\
+			for(SizeT i=0;i<nb;++i)	mRanks[i] = i;										    \
+			return mRanks;															        \
+		}																					\
+	}																						\
+	else																					\
+	{																						\
+		/* Prepare for temporal coherence */												\
+		const T* Indices = mRanks;                                                        	\
+		type PrevVal = (type)buffer[*Indices];												\
+																							\
+		while(p!=pe)																		\
+		{																					\
+			/* Read input buffer in previous sorted order */								\
+			const type Val = (type)buffer[*Indices++];										\
+			/* Check whether already sorted or not */										\
+			if(Val<PrevVal)	{ AlreadySorted = false; break; } /* Early out */				\
+			/* Update for next iteration */													\
+			PrevVal = Val;																	\
+																							\
+			/* Create histograms */															\
+			h0[*p++]++;	h1[*p++]++;	h2[*p++]++;	h3[*p++]++;									\
+		}																					\
+																							\
+		/* If all input values are already sorted, we just have to return and leave the */	\
+		/* previous list unchanged. That way the routine may take advantage of temporal */	\
+		/* coherence, for example when used to sort transparent faces.					*/	\
+		if(AlreadySorted) return mRanks;                   									\
+	}																						\
+																							\
+	/* Else there has been an early out and we must finish computing the histograms */		\
+	while(p!=pe)																			\
+	{																						\
+		/* Create histograms without the previous overhead */								\
+		h0[*p++]++;	h1[*p++]++;	h2[*p++]++;	h3[*p++]++;										\
+    }
+
+#define CREATE_HISTOGRAMSDOUBLE(type, buffer)													\
+	/* Clear counters/histograms */															\
+	memset(Histogram, 0, 256*8*sizeof(T));                                                  \
+																							\
+	/* Prepare to count */																	\
+	const DByte* p = (const DByte*)input;													\
+	const DByte* pe = &p[nb*8];																\
+	T* h0 = &Histogram[H0_OFFSET8];	/* Histogram for first pass (LSB)	*/                  \
+	T* h1 = &Histogram[H1_OFFSET8];	/*                                  */                  \
+	T* h2 = &Histogram[H2_OFFSET8];	/*                                  */                  \
+          T* h3 = &Histogram[H3_OFFSET8];	/*                                  */			\
+          T* h4 = &Histogram[H4_OFFSET8];	/*                                  */			\
+          T* h5 = &Histogram[H5_OFFSET8];	/*                                  */			\
+          T* h6 = &Histogram[H6_OFFSET8];	/*                                  */			\
+          T* h7 = &Histogram[H7_OFFSET8];	/* Histogram for last pass (MSB)	*/			\
+																							\
+	bool AlreadySorted = true;	/* Optimism... */											\
+																							\
+	if(ranksUnInitialized)																    \
+	{																						\
+		/* Prepare for temporal coherence */												\
+		const type* Running = (type*)buffer;												\
+		type PrevVal = *Running;															\
+		if (std::isnan(PrevVal)) {AlreadySorted=false;} else {						\
+		while(p!=pe)																		\
+		{																					\
+			/* Read input buffer in previous sorted order */								\
+			const type Val = *Running++;													\
+			/* Check whether already sorted or not, care of Nans if necessary */										\
+			if (Val<PrevVal||std::isnan(Val))	{ AlreadySorted = false; break; } /* Early out */\
+			/* Update for next iteration */													\
+			PrevVal = Val;																	\
+																							\
+			/* Create histograms */															\
+			h0[*p++]++;	h1[*p++]++;	h2[*p++]++;	h3[*p++]++;									\
+			h4[*p++]++;	h5[*p++]++;	h6[*p++]++;	h7[*p++]++;									\
+		}																					\
+		}																					\
 		/* If all input values are already sorted, we just have to return and leave the */	\
 		/* previous list unchanged. That way the routine may take advantage of temporal */	\
 		/* coherence, for example when used to sort transparent faces.					*/	\
@@ -354,7 +518,7 @@ namespace lib {
 	T* Link[256];
     bool ranksUnInitialized=true;
     
-	{ CREATE_HISTOGRAMS8(double, inputDouble); }
+	{ CREATE_HISTOGRAMSDOUBLE(double, inputDouble); }
 
 	// Radix sort, j is the pass number (0=LSB, 7=MSB)
 	for(int j=0;j<8;++j)
@@ -495,7 +659,7 @@ template<typename T>
 	// is dreadful, this is surprisingly not such a performance hit - well, I suppose that's a big one on first
 	// generation Pentiums....We can't make comparison on integer representations because, as Chris said, it just
 	// wouldn't work with mixed positive/negative values....
-	{ CREATE_HISTOGRAMS4(float, inputFloat); }
+	{ CREATE_HISTOGRAMSFLOAT(float, inputFloat); }
 
 	// Radix sort, j is the pass number (0=LSB, 3=MSB)
 	for(int j=0;j<4;++j)
@@ -1151,6 +1315,25 @@ inline bool leq (DDouble &v, DDouble &w)
 {
     return (v <= w || std::isnan(w) );
 }
+
+template<typename T>
+inline bool geq (T &v, T &w)
+{
+    return (v >= w);
+}
+
+template<>
+inline bool geq (DFloat &v, DFloat &w)
+{
+    return (v >= w || std::isnan(v) );
+}
+
+template<>
+inline bool geq (DDouble &v, DDouble &w)
+{
+    return (v >= w || std::isnan(v) );
+}
+
 template<typename T>
 inline bool eq (T &v, T &w)
 {
@@ -1324,8 +1507,8 @@ template <typename T, typename IndexT>
 
     MergeNoCopyIndexAux(aux, index, low, mid, high, val);
   }
-  
-    template< typename T, typename IndexT>
+
+  template< typename T, typename IndexT>
    static void AdaptiveSortIndexAux(IndexT* aux, IndexT* index, SizeT low, SizeT high, T* val)
   {
     SizeT length = high - low + 1;
@@ -1335,24 +1518,24 @@ template <typename T, typename IndexT>
       return;
     }
     //  RadixSort is stable and differentiates -0 and +0.
-    //  InsertionSort and Mergesort are stable but do not differentiate -0 and +0
-    //  Quicksort is not stable https://en.wikipedia.org/wiki/Sorting_algorithm#Stability (does not keep temporal coherence) 
-    //  and do not differentiate -0 and +0
-    //  Quicksort should not be permitted for the default sorting algorithms, but since IDL says that
-    //  "If Array contains any identical elements, the order in which the identical elements
-    //  are sorted is arbitrary and may vary between operating systems.", I permit it.
+      //  InsertionSort and Mergesort are stable but do not differentiate -0 and +0
+      //  Quicksort is not stable https://en.wikipedia.org/wiki/Sorting_algorithm#Stability (does not keep temporal coherence) 
+      //  and do not differentiate -0 and +0
+      //  Quicksort should not be permitted for the default sorting algorithms, but since IDL says that
+      //  "If Array contains any identical elements, the order in which the identical elements
+      //  are sorted is arbitrary and may vary between operating systems.", I permit it.
     else if (length < QUICK_SORT_THRESHOLD) {
       QuickSortIndex(val, index, low, high);
       return;
     }
-    else if (length < RADIX_SORT_THRESHOLD) { //could be faster if alloc/dealloc was not performed in RadixSort...
+    else if (length < RADIX_SORT_THRESHOLD_USUAL) { //could be faster if alloc/dealloc was not performed in RadixSort...
       RadixSortIndex(val, index, low, high);
       return;
     }
 
-//    SizeT mid = low + (high - low) / 2;
-//    AdaptiveSortIndexAux(index, aux, low, mid, val);
-//    AdaptiveSortIndexAux(index, aux, mid+1, high, val);
+    //    SizeT mid = low + (high - low) / 2;
+    //    AdaptiveSortIndexAux(index, aux, low, mid, val);
+    //    AdaptiveSortIndexAux(index, aux, mid+1, high, val);
 
     // same with parallelism
     SizeT mid = low + (high - low) / 2;
@@ -1362,14 +1545,62 @@ template <typename T, typename IndexT>
     for (int i = 0; i < 2; i++) AdaptiveSortIndexAux(index, aux, Left[i], Right[i], val);
 
     // If arrays are already sorted, finished.  This is an
-    // optimization that results in faster sorts for nearly ordered lists.
+    // optimization that results in faster sorts for nearly ordered lists. No need to care about NaNs
     if (val[aux[mid + 1]] >= val[aux[mid]]) {
       memcpy(&(index[low]), &(aux[low]), length * sizeof (IndexT)); //give back sub
       return;
     }
 
+    // If arrays are inverted just swap. No need to care about NaNs
+    if (val[aux[high]] <= val[aux[low]]) {
+      SizeT left = mid - low + 1;
+      SizeT right = high - mid;
+      // swap parts:
+      memmove(&(index[low]), &(aux[low]), left * sizeof (IndexT)); //copy 'left' values in aux
+      memmove(&(aux[low]), &(aux[mid + 1]), right * sizeof (IndexT)); //copy 'right' values starting at low
+      memmove(&(aux[low + right]), &(index[low]), left * sizeof (IndexT)); //give back aux
+      memcpy(&(index[low]), &(aux[low]), length * sizeof (IndexT)); //give back sub
+      return;
+    }
+
+    MergeNoCopyIndexAux(aux, index, low, mid, high, val);
+  }
+
+  // the only difference is that sue to -NaN, RadixSort is forbidden for Floats and Doubles as the ranking with Radix() is not
+  // the same as for other sorting alogorithms. Pity, as actually it is Better!
+  template< typename T, typename IndexT>
+  static void AdaptiveSortIndexAuxWithNaN(IndexT* aux, IndexT* index, SizeT low, SizeT high, T* val) {
+    SizeT length = high - low + 1;
+    if (length < 2) return;
+    if (length < INSERTION_SORT_THRESHOLD) {
+      insertionSortIndex(val, index, low, high);
+      return;
+    }
+    else if (length < QUICK_SORT_THRESHOLD) {
+      QuickSortIndex(val, index, low, high);
+      return;
+    }
+
+//        SizeT mid = low + (high - low) / 2;
+//        AdaptiveSortIndexAuxWithNaN(index, aux, low, mid, val);
+//        AdaptiveSortIndexAuxWithNaN(index, aux, mid+1, high, val);
+
+    // same with parallelism
+    SizeT mid = low + (high - low) / 2;
+    SizeT Left[2] = {low, mid + 1};
+    SizeT Right[2] = {mid, high};
+#pragma omp parallel for num_threads(2) if (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1)
+    for (int i = 0; i < 2; i++) AdaptiveSortIndexAuxWithNaN(index, aux, Left[i], Right[i], val);
+
+    // If arrays are already sorted, finished.  This is an
+    // optimization that results in faster sorts for nearly ordered lists.
+    if (geq(val[aux[mid + 1]] ,val[aux[mid]])) {
+      memcpy(&(index[low]), &(aux[low]), length * sizeof (IndexT)); //give back sub
+      return;
+    }
+
     // If arrays are inverted just swap.
-    if (leq(val[aux[high]] ,val[aux[low]])) {
+    if (leq(val[aux[high]], val[aux[low]])) {
       SizeT left = mid - low + 1;
       SizeT right = high - mid;
       // swap parts:
@@ -1401,6 +1632,14 @@ template <typename T, typename IndexT>
     delete[] aux;
   }
   
+  template< typename T, typename IndexT>
+  inline void AdaptiveSortIndexWithNaN(T* val, IndexT* index, SizeT low, SizeT high)
+  {
+    IndexT* aux = new IndexT[high - low + 1];
+    for (SizeT i = 0; i < high - low + 1; ++i) aux[i] = i;
+    AdaptiveSortIndexAuxWithNaN(aux, index, low, high, val);
+    delete[] aux;
+  } 
 //--------------------------------------------------------------------------------------------------------------------
 // Sorting algos: The "private" GDL_SORT enables keywords QUICK,MERGE,RADIX,INSERT. Those are not there to for the user
 // to choose the algo (s)he wants. They are primarily to test the relative speed of each of them and find, for a given machine,
@@ -1438,213 +1677,251 @@ template <typename T, typename IndexT>
     if (!(radix || quick ||merge|| insert || doauto)) e->Throw("I need one of QUICK, MERGE, RADIX, INSERT or AUTO keyword set.");
 
     SizeT nEl = p0->N_Elements();
-    
+    if (insert && nEl > 50000) e->Throw("INSERT would take forever on "+i2s(nEl)+" elements");
     //Radix sort is special in that it is not obvious ---due to shortcuts--- which of the 2 internal storage
     //arrays is returned as sorted index.
     if (radix) {
-        DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::NOALLOC);
-        DLong* index;
-        if (p0->Type() == GDL_DOUBLE) {
-        DDouble* val = (DDouble*)(static_cast<DDoubleGDL*> (p0)->DataAddr());
-        index=(DLong*)RadixSort<DULong>(val, nEl);
+      DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::NOALLOC);
+      DLong* index;
+      if (p0->Type() == GDL_DOUBLE) {
+        DDouble* val = (DDouble*) (static_cast<DDoubleGDL*> (p0)->DataAddr());
+        index = (DLong*) RadixSort<DULong>(val, nEl);
       } else if (p0->Type() == GDL_FLOAT) {
-	DFloat* val = (DFloat*)(static_cast<DFloatGDL*> (p0)->DataAddr());
-        index=(DLong*)RadixSort<DULong>(val, nEl);
+        DFloat* val = (DFloat*) (static_cast<DFloatGDL*> (p0)->DataAddr());
+        index = (DLong*) RadixSort<DULong>(val, nEl);
       } else if (p0->Type() == GDL_LONG) {
-	DLong* val = ( DLong*)(static_cast<DLongGDL*> (p0)->DataAddr());
-        index=(DLong*)RadixSort<DULong>( val, nEl);
+        DLong* val = (DLong*) (static_cast<DLongGDL*> (p0)->DataAddr());
+        index = (DLong*) RadixSort<DULong>(val, nEl);
       } else if (p0->Type() == GDL_ULONG) {
-	DULong* val = (DULong*)(static_cast<DULongGDL*> (p0)->DataAddr());
-        index=(DLong*)RadixSort<DULong>( val, nEl);
+        DULong* val = (DULong*) (static_cast<DULongGDL*> (p0)->DataAddr());
+        index = (DLong*) RadixSort<DULong>(val, nEl);
+      } else if (p0->Type() == GDL_LONG64) {
+        DLong64* val = (DLong64*) (static_cast<DLong64GDL*> (p0)->DataAddr());
+        index = (DLong*) RadixSort<DULong>(val, nEl);
+      } else if (p0->Type() == GDL_ULONG64) {
+        DULong64* val = (DULong64*) (static_cast<DULong64GDL*> (p0)->DataAddr());
+        index = (DLong*) RadixSort<DULong>(val, nEl);
       } else if (p0->Type() == GDL_INT) {
-	DInt* val = (DInt*)(static_cast<DIntGDL*> (p0)->DataAddr());
-        index=(DLong*)RadixSort<DULong>( val, nEl);
+        DInt* val = (DInt*) (static_cast<DIntGDL*> (p0)->DataAddr());
+        index = (DLong*) RadixSort<DULong>(val, nEl);
       } else if (p0->Type() == GDL_UINT) {
-	DUInt* val = (DUInt*)(static_cast<DUIntGDL*> (p0)->DataAddr());
-        index=(DLong*)RadixSort<DULong>( val, nEl);
+        DUInt* val = (DUInt*) (static_cast<DUIntGDL*> (p0)->DataAddr());
+        index = (DLong*) RadixSort<DULong>(val, nEl);
       } else if (p0->Type() == GDL_BYTE) {
-	  DByte* val = (DByte*)(static_cast<DByteGDL*> (p0)->DataAddr());
-        index=(DLong*)RadixSort<DULong>( val,nEl);
+        DByte* val = (DByte*) (static_cast<DByteGDL*> (p0)->DataAddr());
+        index = (DLong*) RadixSort<DULong>(val, nEl);
       } else if (p0->Type() == GDL_COMPLEX) {
         DComplexGDL* p0F = static_cast<DComplexGDL*> (p0);
-        DComplex *ff=(DComplex*)p0F->DataAddr();
+        DComplex *ff = (DComplex*) p0F->DataAddr();
         // create temp values for magnitude of complex
-        DFloat* magnitude=new DFloat[nEl];
-        for (SizeT i=0; i< nEl; ++i) magnitude[i]=std::norm(ff[i]);
-        index=(DLong*)RadixSort<DULong>(magnitude, nEl);
+        DFloat* magnitude = new DFloat[nEl];
+        for (SizeT i = 0; i < nEl; ++i) magnitude[i] = std::norm(ff[i]);
+        index = (DLong*) RadixSort<DULong>(magnitude, nEl);
         delete[] magnitude;
       } else if (p0->Type() == GDL_COMPLEXDBL) {
         DComplexDblGDL* p0F = static_cast<DComplexDblGDL*> (p0);
-        DComplexDbl *ff=(DComplexDbl*)p0F->DataAddr();
+        DComplexDbl *ff = (DComplexDbl*) p0F->DataAddr();
         // create temp values for magnitude of complex
-        DDouble* magnitude=new DDouble[nEl];
-        for (SizeT i=0; i< nEl; ++i) magnitude[i]=std::norm(ff[i]);
-        index=(DLong*)RadixSort<DULong>(magnitude, nEl);
+        DDouble* magnitude = new DDouble[nEl];
+        for (SizeT i = 0; i < nEl; ++i) magnitude[i] = std::norm(ff[i]);
+        index = (DLong*) RadixSort<DULong>(magnitude, nEl);
         delete[] magnitude;
       }
       res->SetBuffer(index);
       res->SetBufferSize(nEl);
       res->SetDim(dimension(nEl));
       return res;
-    } else  {
+    } else {
       if (p0->Type() == GDL_DOUBLE) {
-        DDouble* val = (DDouble*)(static_cast<DDoubleGDL*> (p0)->DataAddr());
+        DDouble* val = (DDouble*) (static_cast<DDoubleGDL*> (p0)->DataAddr());
         DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
         // NaNs are not well handled by the other sorts...
         DLong *hh = static_cast<DLong*> (res->DataAddr());
-        SizeT low=0; 
-        SizeT high=nEl-1;
+        SizeT low = 0;
+        SizeT high = nEl - 1;
         if (merge) {
           MergeSortIndex(val, hh, low, high);
         } else if (quick) {
           QuickSortIndex(val, hh, low, high);
         } else if (insert) {
-          insertionSortIndex( val, hh, low, high);
+          insertionSortIndex(val, hh, low, high);
         } else {
-                AdaptiveSortIndex( val, hh, low, high);
+          AdaptiveSortIndexWithNaN(val, hh, low, high);
         }
         return res;
-    } else if (p0->Type() == GDL_FLOAT) {
-        DFloat* val = (DFloat*)(static_cast<DFloatGDL*>(p0)->DataAddr());
+      } else if (p0->Type() == GDL_FLOAT) {
+        DFloat* val = (DFloat*) (static_cast<DFloatGDL*> (p0)->DataAddr());
         DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
         // NaNs are not well handled by the other sorts...
         DLong *hh = static_cast<DLong*> (res->DataAddr());
-        SizeT low=0; 
-        SizeT high=nEl-1;
+        SizeT low = 0;
+        SizeT high = nEl - 1;
         if (merge) {
-          MergeSortIndex( val, hh, low, high);
+          MergeSortIndex(val, hh, low, high);
         } else if (quick) {
-          QuickSortIndex( val, hh, low, high);
+          QuickSortIndex(val, hh, low, high);
         } else if (insert) {
-          insertionSortIndex( val, hh, low, high);
+          insertionSortIndex(val, hh, low, high);
         } else {
-                AdaptiveSortIndex( val, hh, low, high);
+          AdaptiveSortIndexWithNaN(val, hh, low, high);
         }
         return res;
-    } else if (p0->Type() == GDL_LONG) {
-      DLong* val = (DLong*)(static_cast<DLongGDL*>(p0)->DataAddr());
-      DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
-      DLong *hh = static_cast<DLong*> (res->DataAddr());
-      SizeT low=0; 
-      SizeT high=nEl-1;
-      if (merge) {
-        MergeSortIndex( val, hh, low, high);
-      } else if (quick) {
-        QuickSortIndex( val, hh, low, high);
-      } else if (insert) {
-          insertionSortIndex( val, hh, low, high);
-      } else {
-              AdaptiveSortIndex( val, hh, low, high);
-      }
-      return res;
-    } else if (p0->Type() == GDL_ULONG) {
-      DULong* val = (DULong*)(static_cast<DULongGDL*>(p0)->DataAddr());
-      DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
-      DLong *hh = static_cast<DLong*> (res->DataAddr());
-      SizeT low=0; 
-      SizeT high=nEl-1;
-      if (merge) {
-        MergeSortIndex( val, hh, low, high);
-      } else if (quick) {
-        QuickSortIndex( val, hh, low, high);
-      } else if (insert) {
-          insertionSortIndex( val, hh, low, high);
-      } else {
-              AdaptiveSortIndex( val, hh, low, high);
-      }
-      return res;
-    } else if (p0->Type() == GDL_INT) {
-      DInt* val = (DInt*)(static_cast<DIntGDL*>(p0)->DataAddr());
-      DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
-      DLong *hh = static_cast<DLong*> (res->DataAddr());
-      SizeT low=0; 
-      SizeT high=nEl-1;
-      if (merge) {
-        MergeSortIndex( val, hh, low, high);
-      } else if (quick) {
-        QuickSortIndex( val, hh, low, high);
-      } else if (insert) {
-          insertionSortIndex( val, hh, low, high);
-      } else {
-              AdaptiveSortIndex( val, hh, low, high);
-      }
-      return res;
-    } else if (p0->Type() == GDL_UINT) {
-      DUInt* val = (DUInt*)(static_cast<DUIntGDL*>(p0)->DataAddr());
-      DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
-      DLong *hh = static_cast<DLong*> (res->DataAddr());
-      SizeT low=0; 
-      SizeT high=nEl-1;
-      if (merge) {
-        MergeSortIndex( val, hh, low, high);
-      } else if (quick) {
-        QuickSortIndex( val, hh, low, high);
-      } else if (insert) {
-          insertionSortIndex( val, hh, low, high);
-      } else {
-              AdaptiveSortIndex( val, hh, low, high);
-      }
-      return res;
-    } else if (p0->Type() == GDL_BYTE) {
-      DByte* val = (DByte*)(static_cast<DByteGDL*>(p0)->DataAddr());
-      DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
-      DLong *hh = static_cast<DLong*> (res->DataAddr());
-      SizeT low=0; 
-      SizeT high=nEl-1;
-      if (merge) {
-        MergeSortIndex( val, hh, low, high);
-      } else if (quick) {
-        QuickSortIndex( val, hh, low, high);
-      } else if (insert) {
-          insertionSortIndex( val, hh, low, high);
-      } else {
-              AdaptiveSortIndex( val, hh, low, high);
-      }
-      return res;
-    } else if (p0->Type() == GDL_COMPLEX) {
-      DComplexGDL* p0F = static_cast<DComplexGDL*> (p0);
-      DComplex *ff=(DComplex*)p0F->DataAddr();
-      // create temp values for magnitude of complex
-      DFloat* magnitude=new DFloat[nEl];
-      for (SizeT i=0; i< nEl; ++i) magnitude[i]=std::norm(ff[i]);
-      DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
-      DLong *hh = static_cast<DLong*> (res->DataAddr());
-      SizeT low=0; 
-      SizeT high=nEl-1;
-      if (merge) {
-        MergeSortIndex( magnitude, hh, low, high);
-      } else if (quick) {
-        QuickSortIndex( magnitude, hh, low, high);
-      } else if (insert) {
-          insertionSortIndex( magnitude, hh, low, high);
-      } else {
-              AdaptiveSortIndex( magnitude, hh, low, high);
-      }
-      delete[] magnitude;
-      return res;
-    } else if (p0->Type() == GDL_COMPLEXDBL) {
-      DComplexDblGDL* p0F = static_cast<DComplexDblGDL*> (p0);
-      DComplexDbl *ff=(DComplexDbl*)p0F->DataAddr();
-      // create temp values for magnitude of complex
-      DDouble* magnitude=new DDouble[nEl];
-      for (SizeT i=0; i< nEl; ++i) magnitude[i]=std::norm(ff[i]);
-      DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
-      DLong *hh = static_cast<DLong*> (res->DataAddr());
-      SizeT low=0; 
-      SizeT high=nEl-1;
-      if (merge) {
-        MergeSortIndex( magnitude, hh, low, high);
-      } else if (quick) {
-        QuickSortIndex( magnitude, hh, low, high);
-      } else if (insert) {
-          insertionSortIndex( magnitude, hh, low, high);
-      } else {
-              AdaptiveSortIndex( magnitude, hh, low, high);
-      }
-      delete[] magnitude;
-      return res;
-    } else e->Throw("FIXME."); 
-   }
+      } else if (p0->Type() == GDL_LONG) {
+        DLong* val = (DLong*) (static_cast<DLongGDL*> (p0)->DataAddr());
+        DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
+        DLong *hh = static_cast<DLong*> (res->DataAddr());
+        SizeT low = 0;
+        SizeT high = nEl - 1;
+        if (merge) {
+          MergeSortIndex(val, hh, low, high);
+        } else if (quick) {
+          QuickSortIndex(val, hh, low, high);
+        } else if (insert) {
+          insertionSortIndex(val, hh, low, high);
+        } else {
+          AdaptiveSortIndex(val, hh, low, high);
+        }
+        return res;
+      } else if (p0->Type() == GDL_ULONG) {
+        DULong* val = (DULong*) (static_cast<DULongGDL*> (p0)->DataAddr());
+        DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
+        DLong *hh = static_cast<DLong*> (res->DataAddr());
+        SizeT low = 0;
+        SizeT high = nEl - 1;
+        if (merge) {
+          MergeSortIndex(val, hh, low, high);
+        } else if (quick) {
+          QuickSortIndex(val, hh, low, high);
+        } else if (insert) {
+          insertionSortIndex(val, hh, low, high);
+        } else {
+          AdaptiveSortIndex(val, hh, low, high);
+        }
+        return res;
+      } else if (p0->Type() == GDL_LONG64) {
+        DLong64* val = (DLong64*) (static_cast<DLong64GDL*> (p0)->DataAddr());
+        DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
+        DLong *hh = static_cast<DLong*> (res->DataAddr());
+        SizeT low = 0;
+        SizeT high = nEl - 1;
+        if (merge) {
+          MergeSortIndex(val, hh, low, high);
+        } else if (quick) {
+          QuickSortIndex(val, hh, low, high);
+        } else if (insert) {
+          insertionSortIndex(val, hh, low, high);
+        } else {
+          AdaptiveSortIndex(val, hh, low, high);
+        }
+        return res;
+      } else if (p0->Type() == GDL_ULONG64) {
+        DULong64* val = (DULong64*) (static_cast<DULong64GDL*> (p0)->DataAddr());
+        DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
+        DLong *hh = static_cast<DLong*> (res->DataAddr());
+        SizeT low = 0;
+        SizeT high = nEl - 1;
+        if (merge) {
+          MergeSortIndex(val, hh, low, high);
+        } else if (quick) {
+          QuickSortIndex(val, hh, low, high);
+        } else if (insert) {
+          insertionSortIndex(val, hh, low, high);
+        } else {
+          AdaptiveSortIndex(val, hh, low, high);
+        }
+        return res;
+      } else if (p0->Type() == GDL_INT) {
+        DInt* val = (DInt*) (static_cast<DIntGDL*> (p0)->DataAddr());
+        DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
+        DLong *hh = static_cast<DLong*> (res->DataAddr());
+        SizeT low = 0;
+        SizeT high = nEl - 1;
+        if (merge) {
+          MergeSortIndex(val, hh, low, high);
+        } else if (quick) {
+          QuickSortIndex(val, hh, low, high);
+        } else if (insert) {
+          insertionSortIndex(val, hh, low, high);
+        } else {
+          AdaptiveSortIndex(val, hh, low, high);
+        }
+        return res;
+      } else if (p0->Type() == GDL_UINT) {
+        DUInt* val = (DUInt*) (static_cast<DUIntGDL*> (p0)->DataAddr());
+        DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
+        DLong *hh = static_cast<DLong*> (res->DataAddr());
+        SizeT low = 0;
+        SizeT high = nEl - 1;
+        if (merge) {
+          MergeSortIndex(val, hh, low, high);
+        } else if (quick) {
+          QuickSortIndex(val, hh, low, high);
+        } else if (insert) {
+          insertionSortIndex(val, hh, low, high);
+        } else {
+          AdaptiveSortIndex(val, hh, low, high);
+        }
+        return res;
+      } else if (p0->Type() == GDL_BYTE) {
+        DByte* val = (DByte*) (static_cast<DByteGDL*> (p0)->DataAddr());
+        DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
+        DLong *hh = static_cast<DLong*> (res->DataAddr());
+        SizeT low = 0;
+        SizeT high = nEl - 1;
+        if (merge) {
+          MergeSortIndex(val, hh, low, high);
+        } else if (quick) {
+          QuickSortIndex(val, hh, low, high);
+        } else if (insert) {
+          insertionSortIndex(val, hh, low, high);
+        } else {
+          AdaptiveSortIndex(val, hh, low, high);
+        }
+        return res;
+      } else if (p0->Type() == GDL_COMPLEX) {
+        DComplexGDL* p0F = static_cast<DComplexGDL*> (p0);
+        DComplex *ff = (DComplex*) p0F->DataAddr();
+        // create temp values for magnitude of complex
+        DFloat* magnitude = new DFloat[nEl];
+        for (SizeT i = 0; i < nEl; ++i) magnitude[i] = std::norm(ff[i]);
+        DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
+        DLong *hh = static_cast<DLong*> (res->DataAddr());
+        SizeT low = 0;
+        SizeT high = nEl - 1;
+        if (merge) {
+          MergeSortIndex(magnitude, hh, low, high);
+        } else if (quick) {
+          QuickSortIndex(magnitude, hh, low, high);
+        } else if (insert) {
+          insertionSortIndex(magnitude, hh, low, high);
+        } else {
+          AdaptiveSortIndexWithNaN(magnitude, hh, low, high);
+        }
+        delete[] magnitude;
+        return res;
+      } else if (p0->Type() == GDL_COMPLEXDBL) {
+        DComplexDblGDL* p0F = static_cast<DComplexDblGDL*> (p0);
+        DComplexDbl *ff = (DComplexDbl*) p0F->DataAddr();
+        // create temp values for magnitude of complex
+        DDouble* magnitude = new DDouble[nEl];
+        for (SizeT i = 0; i < nEl; ++i) magnitude[i] = std::norm(ff[i]);
+        DLongGDL* res = new DLongGDL(dimension(nEl), BaseGDL::INDGEN);
+        DLong *hh = static_cast<DLong*> (res->DataAddr());
+        SizeT low = 0;
+        SizeT high = nEl - 1;
+        if (merge) {
+          MergeSortIndex(magnitude, hh, low, high);
+        } else if (quick) {
+          QuickSortIndex(magnitude, hh, low, high);
+        } else if (insert) {
+          insertionSortIndex(magnitude, hh, low, high);
+        } else {
+          AdaptiveSortIndexWithNaN(magnitude, hh, low, high);
+        }
+        delete[] magnitude;
+        return res;
+      } else e->Throw("FIXME.");
+    }
    return NULL;
   }
   
@@ -1685,7 +1962,7 @@ template <typename T, typename IndexT>
       IndexT *hh = static_cast<IndexT*> (res->DataAddr());
       SizeT low=0; 
       SizeT high=nEl-1;
-      AdaptiveSortIndex<DFloat, IndexT>( val, hh, low, high);
+      AdaptiveSortIndexWithNaN<DFloat, IndexT>( val, hh, low, high);
       return res;
     } else if (p0->Type() == GDL_DOUBLE) {
       DDouble* val = (DDouble*)(static_cast<DDoubleGDL*>(p0)->DataAddr());
@@ -1693,7 +1970,7 @@ template <typename T, typename IndexT>
       IndexT *hh = static_cast<IndexT*> (res->DataAddr());
       SizeT low=0; 
       SizeT high=nEl-1; 
-      AdaptiveSortIndex<DDouble, IndexT>( val, hh, low, high);
+      AdaptiveSortIndexWithNaN<DDouble, IndexT>( val, hh, low, high);
       return res;
     } else if (p0->Type() == GDL_COMPLEX) {
       DComplexGDL* p0F = static_cast<DComplexGDL*> (p0);
@@ -1705,7 +1982,7 @@ template <typename T, typename IndexT>
       IndexT *hh = static_cast<IndexT*> (res->DataAddr());
       SizeT low=0; 
       SizeT high=nEl-1;
-      AdaptiveSortIndex<DFloat, IndexT>( magnitude, hh, low, high);
+      AdaptiveSortIndexWithNaN<DFloat, IndexT>( magnitude, hh, low, high);
       delete[] magnitude;
       return res;
     } else if (p0->Type() == GDL_COMPLEXDBL) {
@@ -1718,7 +1995,7 @@ template <typename T, typename IndexT>
       IndexT *hh = static_cast<IndexT*> (res->DataAddr());
       SizeT low=0; 
       SizeT high=nEl-1;
-      AdaptiveSortIndex<DDouble, IndexT>( magnitude, hh, low, high);
+      AdaptiveSortIndexWithNaN<DDouble, IndexT>( magnitude, hh, low, high);
       delete[] magnitude;
       return res;
     } else if (p0->Type() == GDL_LONG) {
