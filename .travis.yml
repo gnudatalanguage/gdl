@@ -43,6 +43,9 @@ before_install:
 
     - if [ $TRAVIS_OS_NAME == osx ]; then export SEDCMD="sed -i ''"; fi 
     - if [ $TRAVIS_OS_NAME == linux ]; then export SEDCMD="sed -i"; fi 
+    
+    - if [ $TRAVIS_OS_NAME == osx ]; then export PYTHONCMD="/usr/local/bin/python3"; fi 
+    - if [ $TRAVIS_OS_NAME == linux ]; then export PYTHONCMD="python3"; fi
 
 install:
     ##
@@ -69,7 +72,7 @@ install:
 
     # pytest
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python3-pytest"; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install pytest; fi 
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then $PYTHONCMD -m pip install pytest; fi 
 
     # antlr
     - if [ -v ANTLR ]; then export APT_PACKAGES="${APT_PACKAGES} antlr"; fi
@@ -253,7 +256,7 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then for pkg in $BREW_PACKAGES; do echo brew \"$pkg\" >> Brewfile; done; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat Brewfile; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew bundle; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install --upgrade --no-deps --force-reinstall numpy; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then $PYTHONCMD -m pip install --upgrade --no-deps --force-reinstall numpy; fi
 
 script:
     # antlr
@@ -272,7 +275,7 @@ script:
 
     - cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DPYTHON_MODULE=ON ../ 
     - travis_wait 60 make -j 2 # travis_wait needed for icc
-    - PYTHONPATH=$PYTHONPATH:`find . -name GDL.so | xargs dirname` python3 -m pytest ../testsuite/python/test-GDL.py 
+    - PYTHONPATH=$PYTHONPATH:`find . -name GDL.so | xargs dirname` $PYTHONCMD -m pytest ../testsuite/python/test-GDL.py 
 
 after_script:
     - if [ $COMPILER == icc ]; then '[[ ! -z "${INTEL_INSTALL_PATH}" ]] && uninstall_intel_software'; fi
