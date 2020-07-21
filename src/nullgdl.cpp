@@ -287,9 +287,10 @@ bool NullGDL::ArrayEqual( BaseGDL*)
 }
 
 // for statement compliance (int types , float types scalar only)
-void NullGDL::ForCheck( BaseGDL**, BaseGDL**)
+bool NullGDL::ForCheck( BaseGDL**, BaseGDL**)
 {
   throw GDLException("Operation not defined for !NULL 7.");
+  return false;
 }
 
 bool NullGDL::ForCondUp( BaseGDL*)

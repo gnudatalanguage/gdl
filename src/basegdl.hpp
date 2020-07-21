@@ -516,7 +516,7 @@ public:
   virtual BaseGDL* CShift( DLong d) const; // circular shift
   virtual BaseGDL* CShift( DLong d[MAXRANK]) const; // circular shift multi dim
 
-  virtual bool OutOfRangeOfInt() const;
+//  virtual bool OutOfRangeOfInt() const;
 
   virtual bool Scalar() const;
   virtual bool StrictScalar() const;
@@ -555,7 +555,7 @@ public:
   virtual bool ArrayNeverEqual( BaseGDL*);
   
   // for statement compliance (int types , float types scalar only)
-  virtual void ForCheck( BaseGDL**, BaseGDL** = NULL);
+  virtual bool ForCheck( BaseGDL**, BaseGDL** = NULL);
   virtual bool ForCondUp( BaseGDL*);
   virtual bool ForCondDown( BaseGDL*);
   virtual bool ForAddCondUp( BaseGDL* loopInfo);
