@@ -229,7 +229,7 @@ namespace lib {
         //remove 1 to get C array indexes.
         for (SizeT i = 0; i < lnew-1; ++i) (*lptr)[i]--; 
         for (SizeT i = 0; i < npts; ++i) (*lend)[i]--;
-        DLong array[2*(lnew-1)];
+        DLong* array=(DLong*)malloc((2*(lnew-1))*sizeof(DLong)); // size > max possible connectivity 
         SizeT runningindex=npts+1;
         SizeT startindex=0;
         array[startindex++]=npts+1;
@@ -248,6 +248,7 @@ namespace lib {
         DLongGDL* connections = new DLongGDL(runningindex, BaseGDL::NOZERO);
         for (SizeT i = 0; i < runningindex; ++i) (*connections)[i]=array[i];
         e->SetKW(connIx,connections);
+        free(array);
       }
       //no more cleanup, x,y,z,and list,lptr,lend are in the returned structure!
     } else {
