@@ -21,7 +21,7 @@
 #include "dinterpreter.hpp"
 
 using namespace std;
-#include <include/delaunator.hpp>
+#include "delaunator_patched.hpp"
 #include "tripack.c"
 #include "stripack.c"
 #include "ssrfpack.c"
@@ -280,7 +280,14 @@ namespace lib {
         }
         e->SetPar(2, returned_triangles);
        }
-     
+      
+//      if (maxVal > 0) {
+//        for (DLong i = 0; i < npts; ++i) xx[i] *= maxVal;
+//        for (DLong i = 0; i < npts; ++i) yy[i] *= maxVal;
+//      }      
+
+// ************ TO BE REMOVED ************      
+      
 //      SizeT listsize=6*npts-12;
 //      DLong* list=(DLong*)malloc(listsize*sizeof(DLong));
 //      DLong* lptr=(DLong*)malloc(listsize*sizeof(DLong));
