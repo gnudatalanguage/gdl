@@ -21,7 +21,7 @@
 #include "dinterpreter.hpp"
 
 using namespace std;
-
+#include <include/delaunator.hpp>
 #include "tripack.c"
 #include "stripack.c"
 #include "ssrfpack.c"
@@ -253,224 +253,245 @@ namespace lib {
       //no more cleanup, x,y,z,and list,lptr,lend are in the returned structure!
     } else {
       
-      // for PLANE triangulation, everything must be scaled in order to have triangulation independent of range,
-      // as the triangulation code IS sensitive to the values of X and Y.
-      if (maxVal > 0) {
-        for (DLong i = 0; i < npts; ++i) xx[i] /= maxVal;
-        for (DLong i = 0; i < npts; ++i) yy[i] /= maxVal;
-      }
+//      // for PLANE triangulation, everything must be scaled in order to have triangulation independent of range,
+//      // as the triangulation code IS sensitive to the values of X and Y.
+//      if (maxVal > 0) {
+//        for (DLong i = 0; i < npts; ++i) xx[i] /= maxVal;
+//        for (DLong i = 0; i < npts; ++i) yy[i] /= maxVal;
+//      }
+
+      std::vector<double> coords;
+      for (DLong i = 0; i < npts; ++i) {coords.push_back(xx[i]);coords.push_back(yy[i]);}
+      delaunator::Delaunator tri(coords);
       
-      SizeT listsize=6*npts-12;
-      DLong* list=(DLong*)malloc(listsize*sizeof(DLong));
-      DLong* lptr=(DLong*)malloc(listsize*sizeof(DLong));
-      DLong* lend=(DLong*)malloc(npts*sizeof(DLong));
-      DLong* near__=(DLong*)malloc(npts*sizeof(DLong)); //"near" is reserved in Windows C.
-      DLong* next=(DLong*)malloc(npts*sizeof(DLong));
-      DDouble* dist=(DDouble*)malloc(npts*sizeof(DDouble));
-      DLong ier=0;
-      DLong lnew=0;
-      DLong l_npts=npts;
-      DLong* originalIndex=(DLong*)malloc(npts*sizeof(DLong));
-      for (DLong i = 0; i < npts; ++i) originalIndex[i]=i;
-
-      //Try first with the simple case of all points OK, if perchance the list of points is OK we gain time:
-      DLong ret1 = tripack::trmesh_(&l_npts, xx, yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
-      DLong Offset=2;
-      if (ier != 0) {
-        //OK, complicated case.
-
-        //The first 3 points passed to TriPack must NOT be colinear (according to Tripack).
-        //In many cases the points are on a grid, so we need to find the first noncolinear 3 points and start the triangulation there.
-        //The N first colinear points can be added afterwards.
-        //Test colinearity:
-
-        bool colinear = true;
-        while (Offset < npts && colinear) {
-          if (!tripack::colin_(xx[Offset-2], yy[Offset-2], xx[Offset - 1], yy[Offset - 1], xx[Offset], yy[Offset])) {
-            colinear = false;
-            break;
-          }
-          Offset++;
-        }
-        if (colinear) e->Throw("Points are co-linear, no solution.");
-
-        //At this point, either there were duplicates (colinear) or colinear points.
-
-        //we will work on a copy. To hell with speed, this is not optimized.
-        DDouble* l_xx = (DDouble*) malloc(l_npts * sizeof (DDouble));
-        DDouble* l_yy = (DDouble*) malloc(l_npts * sizeof (DDouble));
-        //start with Offset and add the points before Offset at the end. 
-        memcpy(l_xx, xx, l_npts * sizeof (DDouble));
-        memcpy(l_yy, yy, l_npts * sizeof (DDouble));
-        if (Offset != 2) { // exchange Offset and position 0. It is fundamental that it is position 0 and not 1 or 2.
-          l_xx[Offset] = xx[0];
-          l_xx[0] = xx[Offset];
-          l_yy[Offset] = yy[0];
-          l_yy[0] = yy[Offset];
-          originalIndex[0] = Offset;
-          originalIndex[Offset] = 0;
-        }
-        // if ndupes > 0 we have to take into account that several returned indexes in the list have been changed wrt the original because of the list shortening
-        // by elimination of the duplicates. So we have to create a table of correspondence.
-
-        // redo triangulation, hope it works:
-        ret1 = tripack::trmesh_(&l_npts, l_xx, l_yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
-        if (ier != 0) {
-          if (ier > 0) { //this can happen.
-            // and, yes, it would be more efficient to use tripack::addnod_()
-            while (ier > 0) {
-              ier--;
-              DLong m = 0;
-              for (DLong i = 0; i < lnew - 1; ++i) if (list[i] > m) m = list[i]; //simple way to compute where we are
-              dupes.push_back(make_pair(originalIndex[ier], originalIndex[m])); // value at index 'm' is identical to the one at 'ier'
-              //remove node "m" and add +1 to originalIndex starting at 'm'
-              for (DLong i = m; i < l_npts - 1; ++i) {
-                l_xx[i] = l_xx[i + 1];
-                l_yy[i] = l_yy[i + 1];
-                originalIndex[i] = originalIndex[i + 1];
-              }
-              l_npts--;
-              ret1 = tripack::trmesh_(&l_npts, l_xx, l_yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
-              if (ier < 0) e->Throw("Internal Error, please report."); //Should not happen
-            }
-            free(l_xx);
-            free(l_yy);
-          }
-          //the rest SHOULD NOT HAPPEN:
-          else if (ier == -2) e->Throw("Internal Error, points are co-linear, no solution, please report."); //Should not happen
-          else if (ier == -1) e->Throw("Internal Error, not enough valid and unique points specified, please report."); //ier==-1 impossible (npoints < 3)
-            //ier==-4 internal error should be reported! -- never happened in 40 years
-          else if (ier == -4) e->Throw("Congratulations, you found the impossible: a set of points that triggers an internal error in TRMESH, please report!");
-          else e->Throw("Congratulations, you found an impossible error code of the TRIPACK package, please report.");
-          }
-      }
-      DLong ndupes=dupes.size();
-      free(near__);
-      free(next);
-      free(dist); 
-      
-      //Dupes indexing is the original one.
-      if (wantsDupes) {
-        if (dupes.size() ==0) {
-          DLongGDL* nothing=new DLongGDL(dimension(2),BaseGDL::ZERO); 
-          nothing->Dec();
-          e->SetKW(dupesIx, nothing);
-        }
-        else {
-          DLongGDL* returned_dupes = new DLongGDL(dimension(2,dupes.size()), BaseGDL::NOZERO);
-          for (DLong i = 0; i < dupes.size(); ++i) {
-            (*returned_dupes)[2*i+0]=dupes[i].first;
-            (*returned_dupes)[2*i+1]=dupes[i].second;
-          } 
-          e->SetKW(dupesIx, returned_dupes);
-        }
-      }
-      
-      //All indexes in the returned arrays must be replaced by those of originalIndex.
-
-      if (wantsTriangles) {
-        //convert to triangle list
-        DLong noconstraints = 0;
-        DLong dummylistofconstraints = 0;
-        DLong nrow = 6; //no arcs.
-        DLong* ltri = (DLong*) malloc((12 * l_npts) * sizeof (DLong));
-        DLong lct = 0;
-        DLong ntriangles = 0;
-        DLong ret2 = tripack::trlist_(&noconstraints, &dummylistofconstraints, &l_npts, list, lptr, lend, &nrow, &ntriangles, ltri, &lct, &ier);
-        if (ier != 0)
-        {
-          free(ltri);
-          free(list);
-          free(lptr);
-          free(lend);
-          e->Throw("Unexpected Error in TRIPACK, TRLIST routine. Please report.");
-        }
+       if (wantsTriangles) {
+         DLong ntriangles=tri.triangles.size()/3;
+         //convert to triangle list
         SizeT d[2];
         d[1] = ntriangles;
         d[0] = 3;
-        DLongGDL* returned_triangles = new DLongGDL(dimension(d, 2), BaseGDL::NOZERO);
+        DLongGDL* returned_triangles = new DLongGDL(dimension(d, 2), BaseGDL::NOZERO);        
         for (DLong j = 0; j < ntriangles; ++j)
         {
           for (int i = 0; i < 3; ++i)
           {
-            (*returned_triangles)[3 * j + i] = originalIndex[ltri[6 * j + i] - 1]; //our nubering starts a 0.
+            (*returned_triangles)[3 * j + i] = tri.triangles[3*j+i]; 
           }
         }
-        free(ltri);
-        //pass back to GDL env:
         e->SetPar(2, returned_triangles);
-      }
-      
-      if (wantsEdge) {
-        DLong* nodes=(DLong*)malloc(l_npts*sizeof(DLong));
-        DLong nb=0;
-        DLong na=0;
-        DLong nt=0;
-        DLong ret3=tripack::bnodes_(&l_npts, list, lptr, lend, nodes, &nb, &na, &nt);
-        DLongGDL* returned_edges = new DLongGDL(nb, BaseGDL::NOZERO);
-        for (DLong j = 0; j < nb; ++j) (*returned_edges)[j]=originalIndex[nodes[j]-1];
-        free(nodes);
-        e->SetPar(3, returned_edges);
-      }
-      
-      if (wantsConnectivity) {
-        //remove 1 to get C array indexes.
-        for (DLong i = 0; i < lnew-1; ++i) lptr[i]--; 
-        for (DLong i = 0; i < l_npts; ++i) lend[i]--;
-        //in connectivity we MUST have all the points, even the duplicated ones. Connectivity of duplicated points is wrong with IDL (intentional?).
-        // we could avoid this easily as I believe this is an IDL bug. We just have to reproduce the connectivity of the first encounter
-        // of the duplicated point.
-        DLong* array=(DLong*)malloc((npts*npts+npts+1)*sizeof(DLong)); // size > max possible connectivity 
-        DLong runningindex = npts+1; // and not l_npts: we report for all points 
-        DLong startindex=0;
-        array[startindex++]= npts+1;
-        DLong* effective_index=(DLong*)malloc(npts*sizeof(DLong));//this is the list of npts vertexes for which we want the neighbour. It must be
-        // the  list of l_npts (returned) indexes, with indexes of the first instance of duplicated points for the duplicated points.
-        if (ndupes == 0) for (DLong i=0; i< npts; ++i) effective_index[i]=i; //easy
-        else { //piecewise index construction, each time dupes.second is encountered, insert dupes.first instead of increasing index:
-          DLong i=0; DLong k=0; //i:index from 0 to l_npts-1., k running index of 0 to npts-1
-          for (DLong idup=0; idup< ndupes; ++idup) {
-            DLong encounter=dupes[idup].second;
-            while (k<encounter) effective_index[k++]=i++;
-            effective_index[k++]=dupes[idup].first;
-          }
-          while (k<npts) effective_index[k++]=i++;
-        }
-        //nice except that we may have exchanged Offset and 0 in the first place, so effective_index should reflect this
-        if (Offset != 2) {
-          DLong tmp=effective_index[Offset];
-          effective_index[Offset] = effective_index[0];
-          effective_index[0] = tmp;
-        }
-        
-        for (DLong k = 0; k < npts; ++k) { 
-          DLong i=effective_index[k]; 
-          //is it an exterior point? Yes if the termination of the connectivity list is exterior.
-          DLong lpl=lend[i];
-          if (list[lpl]<0) array[runningindex++]=originalIndex[i]; //exterior - we write it
-          //write all points until nfin=lend[i] is found again using lptr connectivity pointers:
-          DLong lp=lpl; //see nbcnt_()
-          do {
-            lp=lptr[lp];
-            array[runningindex]=(list[lp]>0)?list[lp]-1:(-list[lp])-1;
-            array[runningindex]=originalIndex[array[runningindex]];
-            runningindex++;
-          } while (lp!=lpl);
-          array[startindex++]=runningindex;
-        }
-        DLongGDL* connections = new DLongGDL(runningindex, BaseGDL::NOZERO);
-        for (DLong i = 0; i < runningindex; ++i) (*connections)[i]=array[i];
-        e->SetKW(connIx,connections);
-        free(array);
-      }
-      //cleanup
-      free(list);
-      free(lptr);
-      free(lend);
-      if (maxVal > 0) {
-        for (DLong i = 0; i < npts; ++i) xx[i] *= maxVal;
-        for (DLong i = 0; i < npts; ++i) yy[i] *= maxVal;
-      }
+       }
+     
+//      SizeT listsize=6*npts-12;
+//      DLong* list=(DLong*)malloc(listsize*sizeof(DLong));
+//      DLong* lptr=(DLong*)malloc(listsize*sizeof(DLong));
+//      DLong* lend=(DLong*)malloc(npts*sizeof(DLong));
+//      DLong* near__=(DLong*)malloc(npts*sizeof(DLong)); //"near" is reserved in Windows C.
+//      DLong* next=(DLong*)malloc(npts*sizeof(DLong));
+//      DDouble* dist=(DDouble*)malloc(npts*sizeof(DDouble));
+//      DLong ier=0;
+//      DLong lnew=0;
+//      DLong l_npts=npts;
+//      DLong* originalIndex=(DLong*)malloc(npts*sizeof(DLong));
+//      for (DLong i = 0; i < npts; ++i) originalIndex[i]=i;
+//
+//      //Try first with the simple case of all points OK, if perchance the list of points is OK we gain time:
+//      DLong ret1 = tripack::trmesh_(&l_npts, xx, yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
+//      DLong Offset=2;
+//      if (ier != 0) {
+//        //OK, complicated case.
+//
+//        //The first 3 points passed to TriPack must NOT be colinear (according to Tripack).
+//        //In many cases the points are on a grid, so we need to find the first noncolinear 3 points and start the triangulation there.
+//        //The N first colinear points can be added afterwards.
+//        //Test colinearity:
+//
+//        bool colinear = true;
+//        while (Offset < npts && colinear) {
+//          if (!tripack::colin_(xx[Offset-2], yy[Offset-2], xx[Offset - 1], yy[Offset - 1], xx[Offset], yy[Offset])) {
+//            colinear = false;
+//            break;
+//          }
+//          Offset++;
+//        }
+//        if (colinear) e->Throw("Points are co-linear, no solution.");
+//
+//        //At this point, either there were duplicates (colinear) or colinear points.
+//
+//        //we will work on a copy. To hell with speed, this is not optimized.
+//        DDouble* l_xx = (DDouble*) malloc(l_npts * sizeof (DDouble));
+//        DDouble* l_yy = (DDouble*) malloc(l_npts * sizeof (DDouble));
+//        //start with Offset and add the points before Offset at the end. 
+//        memcpy(l_xx, xx, l_npts * sizeof (DDouble));
+//        memcpy(l_yy, yy, l_npts * sizeof (DDouble));
+//        if (Offset != 2) { // exchange Offset and position 0. It is fundamental that it is position 0 and not 1 or 2.
+//          l_xx[Offset] = xx[0];
+//          l_xx[0] = xx[Offset];
+//          l_yy[Offset] = yy[0];
+//          l_yy[0] = yy[Offset];
+//          originalIndex[0] = Offset;
+//          originalIndex[Offset] = 0;
+//        }
+//        // if ndupes > 0 we have to take into account that several returned indexes in the list have been changed wrt the original because of the list shortening
+//        // by elimination of the duplicates. So we have to create a table of correspondence.
+//
+//        // redo triangulation, hope it works:
+//        ret1 = tripack::trmesh_(&l_npts, l_xx, l_yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
+//        if (ier != 0) {
+//          if (ier > 0) { //this can happen.
+//            // and, yes, it would be more efficient to use tripack::addnod_()
+//            while (ier > 0) {
+//              ier--;
+//              DLong m = 0;
+//              for (DLong i = 0; i < lnew - 1; ++i) if (list[i] > m) m = list[i]; //simple way to compute where we are
+//              dupes.push_back(make_pair(originalIndex[ier], originalIndex[m])); // value at index 'm' is identical to the one at 'ier'
+//              //remove node "m" and add +1 to originalIndex starting at 'm'
+//              for (DLong i = m; i < l_npts - 1; ++i) {
+//                l_xx[i] = l_xx[i + 1];
+//                l_yy[i] = l_yy[i + 1];
+//                originalIndex[i] = originalIndex[i + 1];
+//              }
+//              l_npts--;
+//              ret1 = tripack::trmesh_(&l_npts, l_xx, l_yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
+//              if (ier < 0) e->Throw("Internal Error, please report."); //Should not happen
+//            }
+//            free(l_xx);
+//            free(l_yy);
+//          }
+//          //the rest SHOULD NOT HAPPEN:
+//          else if (ier == -2) e->Throw("Internal Error, points are co-linear, no solution, please report."); //Should not happen
+//          else if (ier == -1) e->Throw("Internal Error, not enough valid and unique points specified, please report."); //ier==-1 impossible (npoints < 3)
+//            //ier==-4 internal error should be reported! -- never happened in 40 years
+//          else if (ier == -4) e->Throw("Congratulations, you found the impossible: a set of points that triggers an internal error in TRMESH, please report!");
+//          else e->Throw("Congratulations, you found an impossible error code of the TRIPACK package, please report.");
+//          }
+//      }
+//      DLong ndupes=dupes.size();
+//      free(near__);
+//      free(next);
+//      free(dist); 
+//      
+//      //Dupes indexing is the original one.
+//      if (wantsDupes) {
+//        if (dupes.size() ==0) {
+//          DLongGDL* nothing=new DLongGDL(dimension(2),BaseGDL::ZERO); 
+//          nothing->Dec();
+//          e->SetKW(dupesIx, nothing);
+//        }
+//        else {
+//          DLongGDL* returned_dupes = new DLongGDL(dimension(2,dupes.size()), BaseGDL::NOZERO);
+//          for (DLong i = 0; i < dupes.size(); ++i) {
+//            (*returned_dupes)[2*i+0]=dupes[i].first;
+//            (*returned_dupes)[2*i+1]=dupes[i].second;
+//          } 
+//          e->SetKW(dupesIx, returned_dupes);
+//        }
+//      }
+//      
+//      //All indexes in the returned arrays must be replaced by those of originalIndex.
+//
+//      if (wantsTriangles) {
+//        //convert to triangle list
+//        DLong noconstraints = 0;
+//        DLong dummylistofconstraints = 0;
+//        DLong nrow = 6; //no arcs.
+//        DLong* ltri = (DLong*) malloc((12 * l_npts) * sizeof (DLong));
+//        DLong lct = 0;
+//        DLong ntriangles = 0;
+//        DLong ret2 = tripack::trlist_(&noconstraints, &dummylistofconstraints, &l_npts, list, lptr, lend, &nrow, &ntriangles, ltri, &lct, &ier);
+//        if (ier != 0)
+//        {
+//          free(ltri);
+//          free(list);
+//          free(lptr);
+//          free(lend);
+//          e->Throw("Unexpected Error in TRIPACK, TRLIST routine. Please report.");
+//        }
+//        SizeT d[2];
+//        d[1] = ntriangles;
+//        d[0] = 3;
+//        DLongGDL* returned_triangles = new DLongGDL(dimension(d, 2), BaseGDL::NOZERO);
+//        for (DLong j = 0; j < ntriangles; ++j)
+//        {
+//          for (int i = 0; i < 3; ++i)
+//          {
+//            (*returned_triangles)[3 * j + i] = originalIndex[ltri[6 * j + i] - 1]; //our nubering starts a 0.
+//          }
+//        }
+//        free(ltri);
+//        //pass back to GDL env:
+//        e->SetPar(2, returned_triangles);
+//      }
+//      
+//      if (wantsEdge) {
+//        DLong* nodes=(DLong*)malloc(l_npts*sizeof(DLong));
+//        DLong nb=0;
+//        DLong na=0;
+//        DLong nt=0;
+//        DLong ret3=tripack::bnodes_(&l_npts, list, lptr, lend, nodes, &nb, &na, &nt);
+//        DLongGDL* returned_edges = new DLongGDL(nb, BaseGDL::NOZERO);
+//        for (DLong j = 0; j < nb; ++j) (*returned_edges)[j]=originalIndex[nodes[j]-1];
+//        free(nodes);
+//        e->SetPar(3, returned_edges);
+//      }
+//      
+//      if (wantsConnectivity) {
+//        //remove 1 to get C array indexes.
+//        for (DLong i = 0; i < lnew-1; ++i) lptr[i]--; 
+//        for (DLong i = 0; i < l_npts; ++i) lend[i]--;
+//        //in connectivity we MUST have all the points, even the duplicated ones. Connectivity of duplicated points is wrong with IDL (intentional?).
+//        // we could avoid this easily as I believe this is an IDL bug. We just have to reproduce the connectivity of the first encounter
+//        // of the duplicated point.
+//        DLong* array=(DLong*)malloc((npts*npts+npts+1)*sizeof(DLong)); // size > max possible connectivity 
+//        DLong runningindex = npts+1; // and not l_npts: we report for all points 
+//        DLong startindex=0;
+//        array[startindex++]= npts+1;
+//        DLong* effective_index=(DLong*)malloc(npts*sizeof(DLong));//this is the list of npts vertexes for which we want the neighbour. It must be
+//        // the  list of l_npts (returned) indexes, with indexes of the first instance of duplicated points for the duplicated points.
+//        if (ndupes == 0) for (DLong i=0; i< npts; ++i) effective_index[i]=i; //easy
+//        else { //piecewise index construction, each time dupes.second is encountered, insert dupes.first instead of increasing index:
+//          DLong i=0; DLong k=0; //i:index from 0 to l_npts-1., k running index of 0 to npts-1
+//          for (DLong idup=0; idup< ndupes; ++idup) {
+//            DLong encounter=dupes[idup].second;
+//            while (k<encounter) effective_index[k++]=i++;
+//            effective_index[k++]=dupes[idup].first;
+//          }
+//          while (k<npts) effective_index[k++]=i++;
+//        }
+//        //nice except that we may have exchanged Offset and 0 in the first place, so effective_index should reflect this
+//        if (Offset != 2) {
+//          DLong tmp=effective_index[Offset];
+//          effective_index[Offset] = effective_index[0];
+//          effective_index[0] = tmp;
+//        }
+//        
+//        for (DLong k = 0; k < npts; ++k) { 
+//          DLong i=effective_index[k]; 
+//          //is it an exterior point? Yes if the termination of the connectivity list is exterior.
+//          DLong lpl=lend[i];
+//          if (list[lpl]<0) array[runningindex++]=originalIndex[i]; //exterior - we write it
+//          //write all points until nfin=lend[i] is found again using lptr connectivity pointers:
+//          DLong lp=lpl; //see nbcnt_()
+//          do {
+//            lp=lptr[lp];
+//            array[runningindex]=(list[lp]>0)?list[lp]-1:(-list[lp])-1;
+//            array[runningindex]=originalIndex[array[runningindex]];
+//            runningindex++;
+//          } while (lp!=lpl);
+//          array[startindex++]=runningindex;
+//        }
+//        DLongGDL* connections = new DLongGDL(runningindex, BaseGDL::NOZERO);
+//        for (DLong i = 0; i < runningindex; ++i) (*connections)[i]=array[i];
+//        e->SetKW(connIx,connections);
+//        free(array);
+//      }
+//      //cleanup
+//      free(list);
+//      free(lptr);
+//      free(lend);
+//      if (maxVal > 0) {
+//        for (DLong i = 0; i < npts; ++i) xx[i] *= maxVal;
+//        for (DLong i = 0; i < npts; ++i) yy[i] *= maxVal;
+//      }
     }
   }
 
@@ -659,395 +680,446 @@ namespace lib {
     return res->Transpose(NULL);
   }
 
+  struct triAccel {
+    DDouble y23, x32, y31, x13, x3, y3; //vertex coordinates accelerators
+    DDouble denom; //accelerator for barycentric coordinates
+    DDouble zac, zbc, zc; //accelerators heights
+    int pxmin, pxmax, pymin, pymax; //boundingBox
+  };
+  struct triAccelCpx {
+    DDouble y23, x32, y31, x13, x3, y3; //vertex coordinates accelerators
+    DDouble denom; //accelerator for barycentric coordinates
+    DComplexDbl zac, zbc, zc; //accelerators heights
+    int pxmin, pxmax, pymin, pymax; //boundingBox
+  };  
+void barycentricCoord(const triAccel &v, const DDouble xx, const DDouble yy, DDouble &val) {
+    DDouble a, b, c;
+    //NOTE: v.denom negative as triangles are clockwise with our triangulation.
+    //already done in calling program! DDouble xx = (x - v.x3);  DDouble yy = (y - v.y3);
+    a = (v.y23 * xx + v.x32 * yy); // for sign, no need to // * v.denom;
+    if (a > 0) return; //since must be negative
+    b = (v.y31 * xx + v.x13 * yy); // idem // * v.denom;
+    if (b > 0) return; //idem
+    c = (a + b) * v.denom;
+    if (c > 1) return;
+    val = (a * (v.zac) + b * (v.zbc)) * v.denom + v.zc;
+  }
+void barycentricCoordCpx(const triAccelCpx &v, const DDouble xx, const DDouble yy, DComplexDbl &val) {
+    DDouble a, b, c;
+    //NOTE: v.denom negative as triangles are clockwise with our triangulation.
+    //already done in calling program! DDouble xx = (x - v.x3);  DDouble yy = (y - v.y3);
+    a = (v.y23 * xx + v.x32 * yy); // for sign, no need to // * v.denom;
+    if (a > 0) return; //since must be negative
+    b = (v.y31 * xx + v.x13 * yy); // idem // * v.denom;
+    if (b > 0) return; //idem
+    c = (a + b) * v.denom;
+    if (c > 1) return;
+    DDouble valbisR = (a * (v.zac.real()) + b * (v.zbc.real())) * v.denom + v.zc.real();
+    DDouble valbisI = (a * (v.zac.imag()) + b * (v.zbc.imag())) * v.denom + v.zc.imag();
+    val = std::complex<double>(valbisR,valbisI);
+  }
+template< typename T2>
+void barycentricCoordMinMax(const triAccel &v, const DDouble xx, const DDouble yy, DDouble &val, bool domaxvalue, bool dominvalue, T2 maxVal, T2 minVal ) {
+    DDouble a, b, c;
+    //NOTE: v.denom negative as triangles are clockwise with our triangulation.
+    //already done in calling program! DDouble xx = (x - v.x3);  DDouble yy = (y - v.y3);
+    a = (v.y23 * xx + v.x32 * yy); // for sign, no need to // * v.denom;
+    if (a > 0) return; //since must be negative
+    b = (v.y31 * xx + v.x13 * yy); // idem // * v.denom;
+    if (b > 0) return; //idem
+    c = (a + b) * v.denom;
+    if (c > 1) return;
+    DDouble valbis = (a * (v.zac) + b * (v.zbc)) * v.denom + v.zc;
+    if ((dominvalue && valbis < minVal) || (domaxvalue && valbis > maxVal)) {} else val = valbis;
+}
+void barycentricCoordMinMaxCpx(const triAccelCpx &v, const DDouble xx, const DDouble yy, DComplexDbl &val, bool domaxvalue, bool dominvalue, DComplexDbl maxVal, DComplexDbl minVal ) {
+    DDouble a, b, c;
+    //NOTE: v.denom negative as triangles are clockwise with our triangulation.
+    //already done in calling program! DDouble xx = (x - v.x3);  DDouble yy = (y - v.y3);
+    a = (v.y23 * xx + v.x32 * yy); // for sign, no need to // * v.denom;
+    if (a > 0) return; //since must be negative
+    b = (v.y31 * xx + v.x13 * yy); // idem // * v.denom;
+    if (b > 0) return; //idem
+    c = (a + b) * v.denom;
+    if (c > 1) return;
+    DDouble valbisR = (a * (v.zac.real()) + b * (v.zbc.real())) * v.denom + v.zc.real();
+    DDouble valbisI = (a * (v.zac.imag()) + b * (v.zbc.imag())) * v.denom + v.zc.imag();
+    if ((dominvalue && valbisR < minVal.real()) || (domaxvalue && valbisR > maxVal.real())) { valbisR = val.real(); }
+    if ((dominvalue && valbisI < minVal.imag()) || (domaxvalue && valbisI > maxVal.imag())) { valbisI = val.imag(); }
+    val = std::complex<double>(valbisR,valbisI);
+}
+
+template< typename T1>
+vector <triAccel> getTriAccelUniform(const DLong ntri, const DLongGDL* tri, const DDoubleGDL* xVal, const DDoubleGDL* yVal, const T1* zVal,
+  const DLong nx, const DLong xref, const DDouble xval, const DDouble xinc, const DLong ny, const DLong yref, const DDouble yval, const DDouble yinc) {
+    // Loop through all triangles and create properties
+    vector <triAccel> triVect;
+
+    for (SizeT triIndex = 0; triIndex < ntri; ++triIndex) {
+      triAccel v = triAccel();
+      DDouble xmin;
+      DDouble xmax;
+      DDouble ymin;
+      DDouble ymax;
+      DDouble x1, y1;
+      xmax = xmin = x1 = (*xVal)[(*tri)[3 * triIndex]];
+      ymax = ymin = y1 = (*yVal)[(*tri)[3 * triIndex]];
+      DDouble x2 = (*xVal)[(*tri)[3 * triIndex + 1]];
+      DDouble y2 = (*yVal)[(*tri)[3 * triIndex + 1]];
+      v.x3 = (*xVal)[(*tri)[3 * triIndex + 2]];
+      v.y3 = (*yVal)[(*tri)[3 * triIndex + 2]];
+      v.zc = (*zVal)[(*tri)[3 * triIndex + 2]];
+      v.zac = (*zVal)[(*tri)[3 * triIndex]] - v.zc;
+      v.zbc = (*zVal)[(*tri)[3 * triIndex + 1]] - v.zc;
+      v.y23 = (y2 - v.y3);
+      v.x32 = (v.x3 - x2);
+      v.y31 = (v.y3 - y1);
+      v.x13 = (x1 - v.x3);
+
+      v.denom = ((y2 - v.y3)*(x1 - v.x3) + (v.x3 - x2)*(y1 - v.y3));
+      v.denom = 1.0 / v.denom;
+      //finish boundingbox
+      for (int k = 1; k < 3; ++k) {
+        DDouble z = (*xVal)[(*tri)[3 * triIndex + k]];
+        xmin = (z < xmin) ? z : xmin;
+        xmax = (z > xmax) ? z : xmax;
+        z = (*yVal)[(*tri)[3 * triIndex + k]];
+        ymin = (z < ymin) ? z : ymin;
+        ymax = (z > ymax) ? z : ymax;
+      }
+      // x=(i-xref)*xinc+xval; -> i=(x-xval)/xinc+xref
+      v.pxmin = floor((xmin - xval) / xinc) + xref;
+      v.pxmin = (v.pxmin < 0) ? 0 : v.pxmin;
+      v.pxmax = ceil((xmax - xval) / xinc) + xref;
+      v.pxmax = (v.pxmax > nx - 1) ? nx - 1 : v.pxmax;
+      v.pymin = floor((ymin - yval) / yinc) + yref;
+      v.pymin = (v.pymin < 0) ? 0 : v.pymin;
+      v.pymax = ceil((ymax - yval) / yinc) + yref;
+      v.pymax = (v.pymax > ny - 1) ? ny - 1 : v.pymax;
+      triVect.push_back(v);
+    }
+    return triVect;
+}
+
+vector <triAccelCpx> getTriAccelUniformCpx(const DLong ntri, const DLongGDL* tri, const DDoubleGDL* xVal, const DDoubleGDL* yVal, const DComplexDblGDL* zVal,
+  const DLong nx, const DLong xref, const DDouble xval, const DDouble xinc, const DLong ny, const DLong yref, const DDouble yval, const DDouble yinc) {
+    // Loop through all triangles and create properties
+    vector <triAccelCpx> triVect;
+
+    for (SizeT triIndex = 0; triIndex < ntri; ++triIndex) {
+      triAccelCpx v = triAccelCpx();
+      DDouble xmin;
+      DDouble xmax;
+      DDouble ymin;
+      DDouble ymax;
+      DDouble x1, y1;
+      xmax = xmin = x1 = (*xVal)[(*tri)[3 * triIndex]];
+      ymax = ymin = y1 = (*yVal)[(*tri)[3 * triIndex]];
+      DDouble x2 = (*xVal)[(*tri)[3 * triIndex + 1]];
+      DDouble y2 = (*yVal)[(*tri)[3 * triIndex + 1]];
+      v.x3 = (*xVal)[(*tri)[3 * triIndex + 2]];
+      v.y3 = (*yVal)[(*tri)[3 * triIndex + 2]];
+      v.zc = (*zVal)[(*tri)[3 * triIndex + 2]];
+      v.zac =  std::complex<double>( (*zVal)[(*tri)[3 * triIndex]].real() - v.zc.real() , (*zVal)[(*tri)[3 * triIndex]].imag() - v.zc.imag() ) ;
+      v.zbc =  std::complex<double>( (*zVal)[(*tri)[3 * triIndex +1]].real() - v.zc.real() , (*zVal)[(*tri)[3 * triIndex +1]].imag() - v.zc.imag() ) ;
+      v.y23 = (y2 - v.y3);
+      v.x32 = (v.x3 - x2);
+      v.y31 = (v.y3 - y1);
+      v.x13 = (x1 - v.x3);
+
+      v.denom = ((y2 - v.y3)*(x1 - v.x3) + (v.x3 - x2)*(y1 - v.y3));
+      v.denom = 1.0 / v.denom;
+      //finish boundingbox
+      for (int k = 1; k < 3; ++k) {
+        DDouble z = (*xVal)[(*tri)[3 * triIndex + k]];
+        xmin = (z < xmin) ? z : xmin;
+        xmax = (z > xmax) ? z : xmax;
+        z = (*yVal)[(*tri)[3 * triIndex + k]];
+        ymin = (z < ymin) ? z : ymin;
+        ymax = (z > ymax) ? z : ymax;
+      }
+      // x=(i-xref)*xinc+xval; -> i=(x-xval)/xinc+xref
+      v.pxmin = floor((xmin - xval) / xinc) + xref;
+      v.pxmin = (v.pxmin < 0) ? 0 : v.pxmin;
+      v.pxmax = ceil((xmax - xval) / xinc) + xref;
+      v.pxmax = (v.pxmax > nx - 1) ? nx - 1 : v.pxmax;
+      v.pymin = floor((ymin - yval) / yinc) + yref;
+      v.pymin = (v.pymin < 0) ? 0 : v.pymin;
+      v.pymax = ceil((ymax - yval) / yinc) + yref;
+      v.pymax = (v.pymax > ny - 1) ? ny - 1 : v.pymax;
+      triVect.push_back(v);
+    }
+    return triVect;
+}
+
+template< typename T1>
+vector <triAccel> getTriAccelRandom( const DLong ntri,  const DLongGDL* tri , const DDoubleGDL* xVal , const DDoubleGDL* yVal ,  const T1* zVal ,
+  const DLong nx, const DDouble* x , const DLong ny, const DDouble* y) {
+    // Loop through all triangles and create properties
+    vector <triAccel> triVect;
+    for (SizeT triIndex = 0; triIndex < ntri; ++triIndex) {
+      triAccel v = triAccel();
+      DDouble xmin;
+      DDouble xmax;
+      DDouble ymin;
+      DDouble ymax;
+      DDouble x1, y1;
+      xmax = xmin = x1 = (*xVal)[(*tri)[3 * triIndex]];
+      ymax = ymin = y1 = (*yVal)[(*tri)[3 * triIndex]];
+      DDouble x2 = (*xVal)[(*tri)[3 * triIndex + 1]];
+      DDouble y2 = (*yVal)[(*tri)[3 * triIndex + 1]];
+      v.x3 = (*xVal)[(*tri)[3 * triIndex + 2]];
+      v.y3 = (*yVal)[(*tri)[3 * triIndex + 2]];
+      v.zc = (*zVal)[(*tri)[3 * triIndex + 2]];
+      v.zac = (*zVal)[(*tri)[3 * triIndex]] - v.zc;
+      v.zbc = (*zVal)[(*tri)[3 * triIndex + 1]] - v.zc;
+      v.y23 = (y2 - v.y3);
+      v.x32 = (v.x3 - x2);
+      v.y31 = (v.y3 - y1);
+      v.x13 = (x1 - v.x3);
+
+      v.denom = ((y2 - v.y3)*(x1 - v.x3) + (v.x3 - x2)*(y1 - v.y3));
+      v.denom = 1.0 / v.denom;
+      //finish boundingbox
+      for (int k = 1; k < 3; ++k) {
+        DDouble z = (*xVal)[(*tri)[3 * triIndex + k]];
+        xmin = (z < xmin) ? z : xmin;
+        xmax = (z > xmax) ? z : xmax;
+        z = (*yVal)[(*tri)[3 * triIndex + k]];
+        ymin = (z < ymin) ? z : ymin;
+        ymax = (z > ymax) ? z : ymax;
+      }
+      // find first and last index of x and y that will intersect this BBox
+      DLong k = 0;
+      while (k < (nx - 1) && x[k + 1] < xmin) {
+        k++;
+      }
+      v.pxmin = k;
+      while (k < (nx - 1) && x[k + 1] < xmax) {
+        k++;
+      }
+      v.pxmax = k;
+      k = 0;
+      while (k < (ny - 1) && y[k + 1] < ymin) {
+        k++;
+      }
+      v.pymin = k;
+      while (k < (ny - 1) && y[k + 1] < ymax) {
+        k++;
+      }
+      v.pymax = k;
+
+      triVect.push_back(v);
+      //      std::cerr<<triIndex<<":"<<v.pxmin<<","<<v.pymin<<"->"<<v.pxmax<<","<<v.pymax<<std::endl;
+    }
+    
+    return triVect;
+}
+
+  vector <triAccelCpx> getTriAccelRandomCpx(const DLong ntri,  const DLongGDL* tri , const DDoubleGDL* xVal , const DDoubleGDL* yVal ,  const DComplexDblGDL* zVal ,
+  const DLong nx, const DDouble* x , const DLong ny, const DDouble* y) {
+    // Loop through all triangles and create properties
+    vector <triAccelCpx> triVect;
+    for (SizeT triIndex = 0; triIndex < ntri; ++triIndex) {
+      triAccelCpx v = triAccelCpx();
+      DDouble xmin;
+      DDouble xmax;
+      DDouble ymin;
+      DDouble ymax;
+      DDouble x1, y1;
+      xmax = xmin = x1 = (*xVal)[(*tri)[3 * triIndex]];
+      ymax = ymin = y1 = (*yVal)[(*tri)[3 * triIndex]];
+      DDouble x2 = (*xVal)[(*tri)[3 * triIndex + 1]];
+      DDouble y2 = (*yVal)[(*tri)[3 * triIndex + 1]];
+      v.x3 = (*xVal)[(*tri)[3 * triIndex + 2]];
+      v.y3 = (*yVal)[(*tri)[3 * triIndex + 2]];
+      v.zc = (*zVal)[(*tri)[3 * triIndex + 2]];
+      v.zac =  std::complex<double>( (*zVal)[(*tri)[3 * triIndex]].real() - v.zc.real() , (*zVal)[(*tri)[3 * triIndex]].imag() - v.zc.imag() ) ;
+      v.zbc =  std::complex<double>( (*zVal)[(*tri)[3 * triIndex +1]].real() - v.zc.real() , (*zVal)[(*tri)[3 * triIndex +1]].imag() - v.zc.imag() ) ;
+      v.y23 = (y2 - v.y3);
+      v.x32 = (v.x3 - x2);
+      v.y31 = (v.y3 - y1);
+      v.x13 = (x1 - v.x3);
+
+      v.denom = ((y2 - v.y3)*(x1 - v.x3) + (v.x3 - x2)*(y1 - v.y3));
+      v.denom = 1.0 / v.denom;
+      //finish boundingbox
+      for (int k = 1; k < 3; ++k) {
+        DDouble z = (*xVal)[(*tri)[3 * triIndex + k]];
+        xmin = (z < xmin) ? z : xmin;
+        xmax = (z > xmax) ? z : xmax;
+        z = (*yVal)[(*tri)[3 * triIndex + k]];
+        ymin = (z < ymin) ? z : ymin;
+        ymax = (z > ymax) ? z : ymax;
+      }
+      // find first and last index of x and y that will intersect this BBox
+      DLong k = 0;
+      while (k < (nx - 1) && x[k + 1] < xmin) {
+        k++;
+      }
+      v.pxmin = k;
+      while (k < (nx - 1) && x[k + 1] < xmax) {
+        k++;
+      }
+      v.pxmax = k;
+      k = 0;
+      while (k < (ny - 1) && y[k + 1] < ymin) {
+        k++;
+      }
+      v.pymin = k;
+      while (k < (ny - 1) && y[k + 1] < ymax) {
+        k++;
+      }
+      v.pymax = k;
+
+      triVect.push_back(v);
+      //      std::cerr<<triIndex<<":"<<v.pxmin<<","<<v.pymin<<"->"<<v.pxmax<<","<<v.pymax<<std::endl;
+    }
+
+    return triVect;
+  }
+  
   template< typename T1, typename T2>
+  void gdlGrid2DData(DLong nx, DDouble* x, DLong xref, DDouble xval, DDouble xinc, DLong ny, DDouble* y, DLong yref, DDouble yval, DDouble yinc, DLong ntri, DLongGDL* tri, 
+      DDoubleGDL* xVal, DDoubleGDL* yVal, T1* zVal, bool domaxvalue, 
+      bool dominvalue, T2 maxVal, T2 minVal, T1* res, bool input) {
+    
+    vector <triAccel> triVect = getTriAccelUniform(ntri, tri, xVal, yVal, zVal, nx, xref, xval, xinc, ny, yref, yval, yinc);
+
+    if (dominvalue || domaxvalue) {
+      for (std::vector<triAccel>::iterator triIndex = triVect.begin(); triIndex != triVect.end(); ++triIndex) {
+        for (SizeT iy = (*triIndex).pymin; iy <= (*triIndex).pymax; ++iy) {
+          DDouble yy = (y[iy] - (*triIndex).y3);
+          DLong start = iy*ny;
+          for (SizeT ix = (*triIndex).pxmin; ix <= (*triIndex).pxmax; ++ix) {
+            DDouble xx = (x[ix] - (*triIndex).x3);
+            barycentricCoordMinMax((*triIndex), xx, yy, (*res)[start + ix], domaxvalue, dominvalue, maxVal, minVal) ;
+          } //ix loop
+        } // iy
+      } //tri
+      return;
+    } else {
+      for (std::vector<triAccel>::iterator triIndex = triVect.begin(); triIndex != triVect.end(); ++triIndex) {
+        for (SizeT iy = (*triIndex).pymin; iy <= (*triIndex).pymax; ++iy) {
+          DDouble yy = (y[iy] - (*triIndex).y3);
+          DLong start = iy*ny;
+          for (SizeT ix = (*triIndex).pxmin; ix <= (*triIndex).pxmax; ++ix) {
+            DDouble xx = (x[ix] - (*triIndex).x3);
+            barycentricCoord((*triIndex), xx, yy, (*res)[start + ix]);
+          } //ix loop
+        } // iy
+      } //tri
+      return;
+    }
+  }
+
+//version for non-uniform grids (waaaay slower)
+template< typename T1, typename T2>
   void gdlGrid2DData(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, DLongGDL* tri, 
       DDoubleGDL* xVal, DDoubleGDL* yVal, T1* zVal, bool domaxvalue, 
-      bool dominvalue, T2 maxVal, T2 minVal, T2 missVal, T1* res, bool input) {
-    //   Compute plane parameters A,B,C given 3 points on plane.
-    //
-    //   z = A + Bx + Cy
-    //
-    //       (^x21^z10 - ^x10^z21)
-    //   C = --------------------- 
-    //       (^x21^y10 - ^x10^y21)
-    //
-    //       (^z10 - C*^y10)
-    //   B = ---------------
-    //            ^x10
-    //
-    //   A = z - Bx -Cy
-    //
-    //   where ^x21 = x2 - x1, etc.
+      bool dominvalue, T2 maxVal, T2 minVal, T1* res, bool input) {
+    
+      // Loop through all triangles and create properties
+    vector <triAccel> triVect = getTriAccelRandom(ntri, tri, xVal, yVal, zVal, nx, x, ny, y);
 
-    bool *found = new bool [nx * ny];
-    for (SizeT i = 0; i < nx * ny; ++i) found[i] = false;
-
-    // *** LOOP THROUGH TRIANGLES *** //
-    DDouble diff[3][2];
-    DDouble edge[3][3];
-
-    DDouble delx10;
-    DDouble delx21;
-    DDouble dely10;
-    DDouble dely21;
-    DDouble delz10;
-    DDouble delz21;
-    DDouble A, B, C;
-
-    // Loop through all triangles
-    for (SizeT i = 0; i < ntri; ++i)
-    {
-      //find rotation such as delx10 is not NULL, as THIS HAPPENS for REGULAR-GRIDDED DATA.
-      //Note that, A,B,C coefficients of the plane do not depend on the order of the triangle,
-      //provided the triangle orientation is kept.
-      DLong tri0 , tri1 , tri2;
-      int k=0;
-      for (; k < 2; ++k) {
-        tri0 = (*tri)[3 * i + k % 3];
-        tri1 = (*tri)[3 * i + (k + 1) % 3];
-        tri2 = (*tri)[3 * i + (k + 2) % 3];
-        delx10 = (*xVal)[tri1] - (*xVal)[tri0];
-        delx21 = (*xVal)[tri2] - (*xVal)[tri1];
-
-        dely10 = (*yVal)[tri1] - (*yVal)[tri0];
-        dely21 = (*yVal)[tri2] - (*yVal)[tri1];
-
-        if ((abs(delx10) > 10 * std::numeric_limits<DDouble>::epsilon()) && (abs(delx21 * dely10 - delx10 * dely21) > 10 * std::numeric_limits<DDouble>::epsilon())) break;
-      }
-      delx10 = (*xVal)[tri1] - (*xVal)[tri0];
-      delx21 = (*xVal)[tri2] - (*xVal)[tri1];
-
-      dely10 = (*yVal)[tri1] - (*yVal)[tri0];
-      dely21 = (*yVal)[tri2] - (*yVal)[tri1];
-
-      delz10 = (*zVal)[tri1] - (*zVal)[tri0];
-      delz21 = (*zVal)[tri2] - (*zVal)[tri1];
-      
-      C = (delx21 * delz10 - delx10 * delz21) /
-        (delx21 * dely10 - delx10 * dely21);
-      B = (delz10 - C * dely10) / delx10;
-      A = (*zVal)[tri0] - B * (*xVal)[tri0] - C * (*yVal)[tri0];
-
-      // Compute grid array
-      for (SizeT j = 0; j < 3; ++j)
-      {
-        DLong itri = (*tri)[3 * i + j];
-        DLong ktri = (*tri)[3 * i + ((j + 1) % 3)];
-        edge[j][0] = (*xVal)[ktri] - (*xVal)[itri];
-        edge[j][1] = (*yVal)[ktri] - (*yVal)[itri];
-      }
-
-      // *** LOOP THROUGH GRID POINTS *** //
-      if (domaxvalue || dominvalue)
-      {
-        // Loop through all y-grid values
-        for (SizeT iy = 0; iy < ny; ++iy)
-        {
-          // Loop through all x-grid values
-          for (SizeT ix = 0; ix < nx; ++ix)
-          {
-            if (found[iy * nx + ix]) continue;
-
-            bool inside = true;
-
-            // *** PLANE INTERPOLATION *** //
-
-            // Compute diff array for xy-values
-            for (SizeT j = 0; j < 3; ++j)
-            {
-              DLong itri = (*tri)[3 * i + j];
-              diff[j][0] = (*xVal)[itri] - x[ix];
-              diff[j][1] = (*yVal)[itri] - y[iy];
-            }
-
-
-            // Determine if inside triangle
-            for (SizeT ivert = 0; ivert < 3; ++ivert)
-            {
-              DLong kvert = (ivert + 1) % 3;
-
-              DDouble crs1;
-              DDouble crs2;
-              crs1 = diff[ivert][0] * edge[ivert][1] - diff[ivert][1] * edge[ivert][0];
-              crs2 = edge[kvert][0] * edge[ivert][1] - edge[kvert][1] * edge[ivert][0];
-              if (crs1 * crs2 > 0)
-              {
-                inside = false;
-                break;
-              }
-            }
-
-            if (inside == true)
-            {
-              found[iy * nx + ix] = true;
-              DDouble dres = A + B * x[ix] + C * y[iy];
-              if ((dominvalue && dres < minVal) || (domaxvalue && dres > maxVal))
-              {
-                if (!input) (*res)[iy * nx + ix] = missVal;
-              } else
-              {
-                (*res)[iy * nx + ix] = dres;
-              }
-            }
-
-          } // ix loop
-        } // iy loop
-      }//if minmax
-      else
-      {
-        // Loop through all y-grid values
-        for (SizeT iy = 0; iy < ny; ++iy)
-        {
-          // Loop through all x-grid values
-          for (SizeT ix = 0; ix < nx; ++ix)
-          {
-            if (found[iy * nx + ix]) continue;
-
-            bool inside = true;
-
-            // *** PLANE INTERPOLATION *** //
-
-            // Compute diff array for xy-values
-            for (SizeT j = 0; j < 3; ++j)
-            {
-              DLong itri = (*tri)[3 * i + j];
-              diff[j][0] = (*xVal)[itri] - x[ix];
-              diff[j][1] = (*yVal)[itri] - y[iy];
-            }
-
-
-            // Determine if inside triangle
-            for (SizeT ivert = 0; ivert < 3; ++ivert)
-            {
-              DLong kvert = (ivert + 1) % 3;
-
-              DDouble crs1;
-              DDouble crs2;
-              crs1 = diff[ivert][0] * edge[ivert][1] - diff[ivert][1] * edge[ivert][0];
-              crs2 = edge[kvert][0] * edge[ivert][1] - edge[kvert][1] * edge[ivert][0];
-              if (crs1 * crs2 > 0)
-              {
-                inside = false;
-                break;
-              }
-            }
-
-            if (inside == true)
-            {
-              found[iy * nx + ix] = true;
-              (*res)[iy * nx + ix] = A + B * x[ix] + C * y[iy];
-            }
-
-          } // ix loop
-        }
-      }
-    } // i (triangle) loop
-
-    delete[] found;
-
+    //loop on triangles:
+    if (dominvalue || domaxvalue) {
+      for (std::vector<triAccel>::iterator triIndex = triVect.begin(); triIndex != triVect.end(); ++triIndex) {
+        for (SizeT iy = (*triIndex).pymin; iy <= (*triIndex).pymax; ++iy) {
+          DDouble yy = (y[iy] - (*triIndex).y3);
+          DLong start = iy*ny;
+          for (SizeT ix = (*triIndex).pxmin; ix <= (*triIndex).pxmax; ++ix) {
+            DDouble xx = (x[ix] - (*triIndex).x3);
+            barycentricCoordMinMax((*triIndex), xx, yy, (*res)[start + ix], domaxvalue, dominvalue, maxVal, minVal) ;
+          } //ix loop
+        } // iy
+      }//tri
+      return;
+    } else {
+      //loop on triangles:
+      for (std::vector<triAccel>::iterator triIndex = triVect.begin(); triIndex != triVect.end(); ++triIndex) {
+        for (SizeT iy = (*triIndex).pymin; iy <= (*triIndex).pymax; ++iy) {
+          DDouble yy = (y[iy] - (*triIndex).y3);
+          DLong start = iy*ny;
+          for (SizeT ix = (*triIndex).pxmin; ix <= (*triIndex).pxmax; ++ix) {
+            DDouble xx = (x[ix] - (*triIndex).x3);
+            barycentricCoord((*triIndex), xx, yy, (*res)[start + ix]);
+          } //ix loop
+        } // iy
+      }//tri
+      return;
+    }
   }
-//version for Complex Values.
-  template<>
-  void gdlGrid2DData(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, 
-    DLongGDL* tri, DDoubleGDL* xVal, DDoubleGDL* yVal, 
-    DComplexDblGDL* zVal, bool domaxvalue, bool dominvalue, DComplexDbl maxVal,
-    DComplexDbl minVal, DComplexDbl missVal, DComplexDblGDL* res, bool input) {
-    //   Compute plane parameters A,B,C given 3 points on plane.
-    //
-    //   z = A + Bx + Cy
-    //
-    //       (^x21^z10 - ^x10^z21)
-    //   C = --------------------- 
-    //       (^x21^y10 - ^x10^y21)
-    //
-    //       (^z10 - C*^y10)
-    //   B = ---------------
-    //            ^x10
-    //
-    //   A = z - Bx -Cy
-    //
-    //   where ^x21 = x2 - x1, etc.
-
-    bool *found = new bool [nx * ny];
-    for (SizeT i = 0; i < nx * ny; ++i) found[i] = false;
-
-    // *** LOOP THROUGH TRIANGLES *** //
-    DDouble diff[3][2];
-    DDouble edge[3][3];
-
-    DDouble delx10;
-    DDouble delx21;
-    DDouble dely10;
-    DDouble dely21;
-    DDouble delz10r;
-    DDouble delz10i;
-    DDouble delz21r;
-    DDouble delz21i;
-    DDouble Ar, Br, Cr, Ai, Bi, Ci;
-
-    // Loop through all triangles
-    for (SizeT i = 0; i < ntri; ++i)
-    {
-      //find rotation such as delx10 is not NULL, as THIS HAPPENS for REGULAR-GRIDDED DATA.
-      //Note that, A,B,C coefficients of the plane do not depend on the order of the triangle,
-      //provided the triangle orientation is kept.
-      DLong tri0 , tri1 , tri2;
-      int k=0;
-      for (; k<2; ++k) {
-        tri0 = (*tri)[3 * i + k%3];
-        tri1 = (*tri)[3 * i + (k+1)%3];
-        tri2 = (*tri)[3 * i + (k+2)%3];
-        delx10 = (*xVal)[tri1] - (*xVal)[tri0];
-        if (abs(delx10) > 10 * std::numeric_limits<DDouble>::epsilon()) break;
-      }
-
-      delx21 = (*xVal)[tri2] - (*xVal)[tri1];
-
-      dely10 = (*yVal)[tri1] - (*yVal)[tri0];
-      dely21 = (*yVal)[tri2] - (*yVal)[tri1];
-
-      delz10r = (*zVal)[tri1].real() - (*zVal)[tri0].real();
-      delz10i = (*zVal)[tri1].imag() - (*zVal)[tri0].imag();
-      delz21r = (*zVal)[tri2].real() - (*zVal)[tri1].real();
-      delz21i = (*zVal)[tri2].imag() - (*zVal)[tri1].imag();
-
-      Cr = (delx21 * delz10r - delx10 * delz21r) /  (delx21 * dely10 - delx10 * dely21);
-      Br = (delz10r - Cr * dely10) / delx10;
-      Ar = (*zVal)[tri0].real() - Br * (*xVal)[tri0] - Cr * (*yVal)[tri0];
-      Ci = (delx21 * delz10r - delx10 * delz21r) /  (delx21 * dely10 - delx10 * dely21);
-      Bi = (delz10i - Ci * dely10) / delx10;
-      Ai = (*zVal)[tri0].imag() - Bi * (*xVal)[tri0] - Ci * (*yVal)[tri0];
-
-      // Compute grid array
-      for (SizeT j = 0; j < 3; ++j) {
-        DLong itri = (*tri)[3 * i + j];
-        DLong ktri = (*tri)[3 * i + ((j + 1) % 3)];
-        edge[j][0] = (*xVal)[ktri] - (*xVal)[itri];
-        edge[j][1] = (*yVal)[ktri] - (*yVal)[itri];
-      }
-
-      // *** LOOP THROUGH GRID POINTS *** //
-      if (domaxvalue || dominvalue)
-      {
-        // Loop through all y-grid values
-        for (SizeT iy = 0; iy < ny; ++iy)
-        {
-          // Loop through all x-grid values
-          for (SizeT ix = 0; ix < nx; ++ix)
-          {
-            if (found[iy * nx + ix]) continue;
-
-            bool inside = true;
-
-            // *** PLANE INTERPOLATION *** //
-
-            // Compute diff array for xy-values
-            for (SizeT j = 0; j < 3; ++j)
-            {
-              DLong itri = (*tri)[3 * i + j];
-              diff[j][0] = (*xVal)[itri] - x[ix];
-              diff[j][1] = (*yVal)[itri] - y[iy];
-            }
 
 
-            // Determine if inside triangle
-            for (SizeT ivert = 0; ivert < 3; ++ivert)
-            {
-              DLong kvert = (ivert + 1) % 3;
+//for complex values 
+  void gdlGrid2DDataCpx(DLong nx, DDouble* x, DLong xref, DDouble xval, DDouble xinc, DLong ny, DDouble* y, DLong yref, DDouble yval, DDouble yinc, DLong ntri, DLongGDL* tri,
+    DDoubleGDL* xVal, DDoubleGDL* yVal, DComplexDblGDL* zVal, bool domaxvalue,
+    bool dominvalue, DComplexDbl maxVal, DComplexDbl minVal, DComplexDblGDL* res, bool input) {
 
-              DDouble crs1;
-              DDouble crs2;
-              crs1 = diff[ivert][0] * edge[ivert][1] - diff[ivert][1] * edge[ivert][0];
-              crs2 = edge[kvert][0] * edge[ivert][1] - edge[kvert][1] * edge[ivert][0];
-              if (crs1 * crs2 > 0)
-              {
-                inside = false;
-                break;
-              }
-            }
+    vector <triAccelCpx> triVect = getTriAccelUniformCpx(ntri, tri, xVal, yVal, zVal, nx, xref, xval, xinc, ny, yref, yval, yinc);
 
-            if (inside == true)
-            {
-              found[iy * nx + ix] = true;
-              DDouble dres = Ar + Br * x[ix] + Cr * y[iy];
-              if ((dominvalue && dres < minVal.real()) || (domaxvalue && dres > maxVal.real()))
-              {
-                if (!input)
-                {
-                  (*res)[iy * nx + ix].real(missVal.real());
-                } else
-                {
-                  ((*res)[iy * nx + ix]).real(dres);
-                }
-              }
-              dres = Ai + Bi * x[ix] + Ci * y[iy];
-              if ((dominvalue && dres < minVal.imag()) || (domaxvalue && dres > maxVal.imag()))
-              {
-                if (!input)
-                {
-                  (*res)[iy * nx + ix].imag(missVal.imag());
-                } else
-                {
-                  ((*res)[iy * nx + ix]).imag(dres);
-                }
-              }
-            }
-          } // ix loop
-        } // iy loop
-      }//if minmax
-      else
-      {
-        // Loop through all y-grid values
-        for (SizeT iy = 0; iy < ny; ++iy)
-        {
-          // Loop through all x-grid values
-          for (SizeT ix = 0; ix < nx; ++ix)
-          {
-            if (found[iy * nx + ix]) continue;
+    if (dominvalue || domaxvalue) {
+      for (std::vector<triAccelCpx>::iterator triIndex = triVect.begin(); triIndex != triVect.end(); ++triIndex) {
+        for (SizeT iy = (*triIndex).pymin; iy <= (*triIndex).pymax; ++iy) {
+          DDouble yy = (y[iy] - (*triIndex).y3);
+          DLong start = iy*ny;
+          for (SizeT ix = (*triIndex).pxmin; ix <= (*triIndex).pxmax; ++ix) {
+            DDouble xx = (x[ix] - (*triIndex).x3);
+            barycentricCoordMinMaxCpx((*triIndex), xx, yy, (*res)[start + ix], domaxvalue, dominvalue, maxVal, minVal);
+          } //ix loop
+        } // iy
+      } //tri
+      return;
+    } else {
+      for (std::vector<triAccelCpx>::iterator triIndex = triVect.begin(); triIndex != triVect.end(); ++triIndex) {
+        for (SizeT iy = (*triIndex).pymin; iy <= (*triIndex).pymax; ++iy) {
+          DDouble yy = (y[iy] - (*triIndex).y3);
+          DLong start = iy*ny;
+          for (SizeT ix = (*triIndex).pxmin; ix <= (*triIndex).pxmax; ++ix) {
+            DDouble xx = (x[ix] - (*triIndex).x3);
+            barycentricCoordCpx((*triIndex), xx, yy, (*res)[start + ix]);
+          } //ix loop
+        } // iy
+      } //tri
+      return;
+    }
+  }
 
-            bool inside = true;
+  void gdlGrid2DDataCpx(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, DLongGDL* tri,
+    DDoubleGDL* xVal, DDoubleGDL* yVal, DComplexDblGDL* zVal, bool domaxvalue,
+    bool dominvalue, DComplexDbl maxVal, DComplexDbl minVal, DComplexDblGDL* res, bool input) {
 
-            // *** PLANE INTERPOLATION *** //
+    // Loop through all triangles and create properties
+    vector <triAccelCpx> triVect = getTriAccelRandomCpx(ntri, tri, xVal, yVal, zVal, nx, x, ny, y);
 
-            // Compute diff array for xy-values
-            for (SizeT j = 0; j < 3; ++j)
-            {
-              DLong itri = (*tri)[3 * i + j];
-              diff[j][0] = (*xVal)[itri] - x[ix];
-              diff[j][1] = (*yVal)[itri] - y[iy];
-            }
-
-
-            // Determine if inside triangle
-            for (SizeT ivert = 0; ivert < 3; ++ivert)
-            {
-              DLong kvert = (ivert + 1) % 3;
-
-              DDouble crs1;
-              DDouble crs2;
-              crs1 = diff[ivert][0] * edge[ivert][1] - diff[ivert][1] * edge[ivert][0];
-              crs2 = edge[kvert][0] * edge[ivert][1] - edge[kvert][1] * edge[ivert][0];
-              if (crs1 * crs2 > 0)
-              {
-                inside = false;
-                break;
-              }
-            }
-
-            if (inside == true)
-            {
-              found[iy * nx + ix] = true;
-              (*res)[iy * nx + ix].real(Ar + Br * x[ix] + Cr * y[iy]);
-              (*res)[iy * nx + ix].imag(Ai + Bi * x[ix] + Ci * y[iy]);
-            }
-
-          } // ix loop
-        }
-      }
-    } // i (triangle) loop
-
-    delete[] found;
-
+    //loop on triangles:
+    if (dominvalue || domaxvalue) {
+      for (std::vector<triAccelCpx>::iterator triIndex = triVect.begin(); triIndex != triVect.end(); ++triIndex) {
+        for (SizeT iy = (*triIndex).pymin; iy <= (*triIndex).pymax; ++iy) {
+          DDouble yy = (y[iy] - (*triIndex).y3);
+          DLong start = iy*ny;
+          for (SizeT ix = (*triIndex).pxmin; ix <= (*triIndex).pxmax; ++ix) {
+            DDouble xx = (x[ix] - (*triIndex).x3);
+            barycentricCoordMinMaxCpx((*triIndex), xx, yy, (*res)[start + ix], domaxvalue, dominvalue, maxVal, minVal);
+          } //ix loop
+        } // iy
+      }//tri
+      return;
+    } else {
+      //loop on triangles:
+      for (std::vector<triAccelCpx>::iterator triIndex = triVect.begin(); triIndex != triVect.end(); ++triIndex) {
+        for (SizeT iy = (*triIndex).pymin; iy <= (*triIndex).pymax; ++iy) {
+          DDouble yy = (y[iy] - (*triIndex).y3);
+          DLong start = iy*ny;
+          for (SizeT ix = (*triIndex).pxmin; ix <= (*triIndex).pxmax; ++ix) {
+            DDouble xx = (x[ix] - (*triIndex).x3);
+            barycentricCoordCpx((*triIndex), xx, yy, (*res)[start + ix]);
+          } //ix loop
+        } // iy
+      }//tri
+      return;
+    }
   }
 
   BaseGDL* trigrid_fun_plane(EnvT* e) {
@@ -1160,12 +1232,12 @@ namespace lib {
     if (GS != NULL && canUseLimitsx)
     {
       xinc = (*GS)[0];
-      nx = (DLong) (xrange / xinc) +1;
+      nx = (DLong) ceil(xrange / xinc) +1;
     }
     if (GS != NULL && canUseLimitsy)
     {
       yinc = (*GS)[1];
-      ny = (DLong) (yrange / yinc) +1;
+      ny = (DLong) ceil(yrange / yinc) +1;
     }
 
     DDouble *x, *y;
@@ -1235,19 +1307,23 @@ namespace lib {
       if (domaxvalue) maxValG=e->GetKWAs<DComplexDblGDL>(maxvalueIx);
       DComplexDblGDL* missValG=NULL;
       static int missvalueIx=e->KeywordIx( "MISSING");
-      if (e->KeywordPresent(missvalueIx)) missValG=e->GetKWAs<DComplexDblGDL>(missvalueIx);
+      bool doMiss=e->KeywordPresent(missvalueIx);
+      if (doMiss) missValG=e->GetKWAs<DComplexDblGDL>(missvalueIx);
       DComplexDblGDL* zVal = static_cast<DComplexDblGDL*>(p2->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
       DComplexDblGDL* res;
       if (inputArrayPresent) res=static_cast<DComplexDblGDL*>(inputKwData->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
-      else res= new DComplexDblGDL(dim, BaseGDL::ZERO);
+      else if (doMiss) {
+        res = missValG->New(dim, BaseGDL::INIT);
+      } else {
+        res= new DComplexDblGDL(dim, BaseGDL::ZERO);
+      }
 
       DComplexDbl minVal=std::complex<double>(0,0);
       if (minValG!=NULL) minVal=std::complex<double>((*minValG)[0].real(),(*minValG)[0].imag());
       DComplexDbl maxVal=std::complex<double>(0,0);
       if (maxValG!=NULL) maxVal=std::complex<double>((*maxValG)[0].real(),(*maxValG)[0].imag());
-      DComplexDbl missVal=std::complex<double>(0,0);
-      if (missValG!=NULL) missVal=std::complex<double>((*missValG)[0].real(),(*missValG)[0].imag());
-      gdlGrid2DData< DComplexDblGDL, DComplexDbl>(nx, x, ny, y, ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, missVal, res, inputArrayPresent);
+      if (doXout) gdlGrid2DDataCpx(nx, x, ny, y, ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, res, inputArrayPresent);
+      else gdlGrid2DDataCpx(nx, x, xref,xval,xinc, ny, y, yref,yval,yinc,ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, res, inputArrayPresent);
       if (type==GDL_FLOAT) return res->Convert2(GDL_COMPLEX,BaseGDL::CONVERT); else return res;
     }else{
       DDouble minVal=0;
@@ -1258,14 +1334,21 @@ namespace lib {
       static int maxvalueIx=e->KeywordIx( "MAX_VALUE");
       bool domaxvalue=(e->KeywordPresent(maxvalueIx));
       if (domaxvalue) e->AssureDoubleScalarKW(maxvalueIx, maxVal);
-      DDouble missVal=0.0;
+      DDoubleGDL* missVal=NULL;
       static int missvalueIx=e->KeywordIx( "MISSING");
-      e->AssureDoubleScalarKWIfPresent(missvalueIx, missVal);
+      bool doMiss=e->KeywordPresent(missvalueIx);
+      if (doMiss) missVal=e->GetKWAs<DDoubleGDL>(missvalueIx);
       DDoubleGDL* zVal = static_cast<DDoubleGDL*>(p2->Convert2(GDL_DOUBLE, BaseGDL::COPY));
       DDoubleGDL* res;
-      if (inputArrayPresent) res = res=static_cast<DDoubleGDL*>(inputKwData->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-      else res =new DDoubleGDL(dim, BaseGDL::ZERO);
-      gdlGrid2DData< DDoubleGDL, DDouble>(nx, x, ny, y, ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, missVal, res, inputArrayPresent);
+      if (inputArrayPresent) {
+        res = static_cast<DDoubleGDL*> (inputKwData->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+      } else if (doMiss) {
+        res = missVal->New(dim, BaseGDL::INIT);
+      } else {
+        res = new DDoubleGDL(dim, BaseGDL::ZERO);
+      }
+      if (doXout) gdlGrid2DData< DDoubleGDL, DDouble>(nx, x, ny, y, ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, res, inputArrayPresent);
+      else gdlGrid2DData< DDoubleGDL, DDouble>(nx, x, xref,xval,xinc, ny, y, yref,yval,yinc,ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, res, inputArrayPresent);
       if (type==GDL_FLOAT) return res->Convert2(GDL_FLOAT,BaseGDL::CONVERT); else return res;
     }
   }
