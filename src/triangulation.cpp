@@ -260,8 +260,9 @@ namespace lib {
 //        for (DLong i = 0; i < npts; ++i) yy[i] /= maxVal;
 //      }
 
+      // for PLANE triangulation, everything must be scaled in order to have triangulation independent of range
       std::vector<double> coords;
-      for (DLong i = 0; i < npts; ++i) {coords.push_back(xx[i]);coords.push_back(yy[i]);}
+      for (DLong i = 0; i < npts; ++i) {coords.push_back(xx[i]/maxVal);coords.push_back(yy[i]/maxVal);}
       delaunator::Delaunator tri(coords);
       
        if (wantsTriangles) {
@@ -280,6 +281,13 @@ namespace lib {
         }
         e->SetPar(2, returned_triangles);
        }
+      
+      if (wantsEdge) {
+        DLong nb=tri.hull_tri.size();
+        DLongGDL* returned_edges = new DLongGDL(nb, BaseGDL::NOZERO);
+        for (DLong j = 0; j < nb-1;) (*returned_edges)[j++]=tri.triangles[tri.hull_tri[j]];
+        e->SetPar(3, returned_edges);
+      }
       
 //      if (maxVal > 0) {
 //        for (DLong i = 0; i < npts; ++i) xx[i] *= maxVal;
@@ -735,7 +743,7 @@ namespace lib {
         DDouble maxD = (det>0)?det:0;
         for (SizeT iy = pymin; iy < pymax; ++iy) {
           DDouble dy = y[iy] - y3;
-          DLong start = iy*ny;
+          DLong start = iy*nx;
           for (SizeT ix = pxmin; ix < pxmax; ++ix) {
             DDouble dx = x[ix] - x3;
             DDouble a = y23 * dx + x32 * dy;
@@ -793,7 +801,7 @@ namespace lib {
         DDouble maxD = (det>0)?det:0;
         for (SizeT iy = pymin; iy < pymax; ++iy) {
           DDouble dy = y[iy]-y3;
-          DLong start = iy*ny;
+          DLong start = iy*nx;
           for (SizeT ix = pxmin; ix < pxmax; ++ix) {
             DDouble dx = x[ix]-x3; 
             DDouble a = y23 * dx + x32 * dy;
@@ -856,7 +864,7 @@ namespace lib {
         DDouble maxD = (det>0)?det:0;
         for (SizeT iy = pymin; iy < pymax; ++iy) {
           DDouble dy = y[iy] - y3;
-          DLong start = iy*ny;
+          DLong start = iy*nx;
           for (SizeT ix = pxmin; ix < pxmax; ++ix) {
             DDouble dx = x[ix] - x3;
             DDouble a = y23 * dx + x32 * dy;
@@ -916,7 +924,7 @@ namespace lib {
         DDouble maxD = (det>0)?det:0;
         for (SizeT iy = pymin; iy < pymax; ++iy) {
           DDouble dy = y[iy] - y3;
-          DLong start = iy*ny;
+          DLong start = iy*nx;
           for (SizeT ix = pxmin; ix < pxmax; ++ix) {
             DDouble dx = x[ix] - x3;
             DDouble a = y23 * dx + x32 * dy;
@@ -990,7 +998,7 @@ namespace lib {
         DDouble maxD = (det>0)?det:0;
         for (SizeT iy = pymin; iy <= pymax; ++iy) {
           DDouble dy = y[iy] - y3;
-          DLong start = iy*ny;
+          DLong start = iy*nx;
           for (SizeT ix = pxmin; ix <= pxmax; ++ix) {
             DDouble dx = x[ix] - x3;
             DDouble a = y23 * dx + x32 * dy;
@@ -1056,7 +1064,7 @@ namespace lib {
         DDouble maxD = (det>0)?det:0;
         for (SizeT iy = pymin; iy <= pymax; ++iy) {
           DDouble dy = y[iy]-y3;
-          DLong start = iy*ny;
+          DLong start = iy*nx;
           for (SizeT ix = pxmin; ix <= pxmax; ++ix) {
             DDouble dx = x[ix]-x3; 
             DDouble a = y23 * dx + x32 * dy;
@@ -1127,7 +1135,7 @@ namespace lib {
         DDouble maxD = (det>0)?det:0;
         for (SizeT iy = pymin; iy <= pymax; ++iy) {
           DDouble dy = y[iy] - y3;
-          DLong start = iy*ny;
+          DLong start = iy*nx;
           for (SizeT ix = pxmin; ix <= pxmax; ++ix) {
             DDouble dx = x[ix] - x3;
             DDouble a = y23 * dx + x32 * dy;
@@ -1199,7 +1207,7 @@ namespace lib {
         DDouble maxD = (det>0)?det:0;
         for (SizeT iy = pymin; iy <= pymax; ++iy) {
           DDouble dy = y[iy] - y3;
-          DLong start = iy*ny;
+          DLong start = iy*nx;
           for (SizeT ix = pxmin; ix <= pxmax; ++ix) {
             DDouble dx = x[ix] - x3;
             DDouble a = y23 * dx + x32 * dy;
