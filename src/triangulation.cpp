@@ -21,7 +21,7 @@
 #include "dinterpreter.hpp"
 
 using namespace std;
-#include "delaunator_patched.hpp"
+#include "delaunator/delaunator-header-only.hpp"
 #include "tripack.c"
 #include "stripack.c"
 #include "ssrfpack.c"
