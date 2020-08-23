@@ -14,6 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#include <unordered_set>
 
 #include "includefirst.hpp"
 #include "datatypes.hpp"
@@ -31,7 +32,11 @@ using namespace std;
 namespace lib {
 
   using namespace std;
-
+  
+  inline size_t nextHalfedge(size_t e) { return (e % 3 == 2) ? e - 2 : e + 1; }  
+  inline size_t prevHalfedge(size_t e) { return (e % 3 == 0) ? e + 2 : e - 1; }  
+  inline size_t triangleOfEdge(size_t e)  { return floor(e / 3); }
+  
   void GDL_Triangulate(EnvT* e) {
 
     DDoubleGDL *xVal, *yVal, *fvalue;
@@ -265,6 +270,23 @@ namespace lib {
       for (DLong i = 0; i < npts; ++i) {coords.push_back(xx[i]/maxVal);coords.push_back(yy[i]/maxVal);}
       delaunator::Delaunator tri(coords);
       
+      DLong ndupes=tri.dupes.size();
+      if (wantsDupes) {
+        if (ndupes ==0) {
+          DLongGDL* nothing=new DLongGDL(dimension(2),BaseGDL::ZERO); 
+          nothing->Dec();
+          e->SetKW(dupesIx, nothing);
+        }
+        else {
+          DLongGDL* returned_dupes = new DLongGDL(dimension(2,ndupes), BaseGDL::NOZERO);
+          for (DLong i = 0; i < ndupes; ++i) {
+            (*returned_dupes)[2*i+0]=tri.dupes[i].first;
+            (*returned_dupes)[2*i+1]=tri.dupes[i].second;
+          } 
+          e->SetKW(dupesIx, returned_dupes);
+        }
+      }
+      
        if (wantsTriangles) {
          DLong ntriangles=tri.triangles.size()/3;
          //convert to triangle list
@@ -274,239 +296,112 @@ namespace lib {
         DLongGDL* returned_triangles = new DLongGDL(dimension(d, 2), BaseGDL::NOZERO);        
         for (DLong j = 0; j < ntriangles; ++j)
         {
-          for (int i = 0; i < 3; ++i)
-          {
-            (*returned_triangles)[3 * j + i] = tri.triangles[3*j+i]; 
-          }
+          (*returned_triangles)[3 * j + 0] = tri.triangles[3*j+0]; 
+          (*returned_triangles)[3 * j + 2] = tri.triangles[3*j+1]; 
+          (*returned_triangles)[3 * j + 1] = tri.triangles[3*j+2]; //write it counterclockwise as IDL does.
         }
         e->SetPar(2, returned_triangles);
        }
-      
+      // get Hull values needed at two places.
+      std::vector<size_t> hull;
+      if (wantsEdge || wantsConnectivity) {
+        size_t index = tri.hull_start;
+        hull.push_back(index);
+        index = tri.hull_next[index];
+        while (index != tri.hull_start) {
+          hull.push_back(index);
+          index = tri.hull_next[index];
+        };
+      }
       if (wantsEdge) {
-        DLong nb=tri.hull_tri.size();
+        DLong nb=hull.size();
         DLongGDL* returned_edges = new DLongGDL(nb, BaseGDL::NOZERO);
-        for (DLong j = 0; j < nb-1;) (*returned_edges)[j++]=tri.triangles[tri.hull_tri[j]];
+        for (DLong j = 0; j < nb; ++j) (*returned_edges)[j]=hull[nb-1-j]; //write it counterclockwise as IDL does.
         e->SetPar(3, returned_edges);
       }
-      
-//      if (maxVal > 0) {
-//        for (DLong i = 0; i < npts; ++i) xx[i] *= maxVal;
-//        for (DLong i = 0; i < npts; ++i) yy[i] *= maxVal;
-//      }      
+      if (wantsConnectivity) {
+        const std::size_t INVALID_INDEX = (std::numeric_limits<std::size_t>::max)();
+       // as described in https://mapbox.github.io/delaunator/ it is not straightforward as there is no direct link points<->half-edges.
+       // let's build a map with a half-edge for each point, which will be a starting half-edge for connectivity.
+       //*** NOTE: CONNECTIVITY is oriented as in IDL 'naturally' ***
+        std::map<size_t,size_t>accel; //key is point, value is the out half-edge.
+        for (size_t e=0; e<tri.triangles.size();++e) {
+           size_t endpoint = tri.triangles[nextHalfedge(e)];
+           if (accel.find(endpoint)==accel.end() || tri.halfedges[e]==INVALID_INDEX ) accel.insert(std::pair<size_t,size_t>(endpoint,e));
+        }
+        // Now, points on hull will need a special treatment, as we must start the connectivity exploration at the previous hull position
+        // otherwise the connectivity search will end prematurely on a INVALID_INDEX
+        // We have computed the hull point list: for each hull point, find the halfedge that goes from the previous hull point to it.
+        //This is the halfedge to start with in accel:
+        for (int i=0; i< hull.size(); ++i) {
+          size_t point=hull[i]; //this is an existing point by construction, not a duplicate in dupes.
+          size_t nextpt=(i==0)?hull[hull.size()-1]:hull[i-1]; //idem.
+          std::map<size_t, size_t>::iterator iter = accel.find(nextpt);
+          size_t start = (*iter).second; //one of the halfedges starting with current point
+          size_t incoming=start;
+          //get adjacent halfedges until point is encountered.
+          size_t outgoing;
+          do {
+            outgoing = nextHalfedge(incoming); //the ougoing halfegde -> the point k in fact:  assert(tri.triangles[outgoing]==effective_index[k]);
+            incoming = tri.halfedges[outgoing]; //the following incoming half-edge
+          } while (incoming!=INVALID_INDEX); //stop when halfedge going to 'point' is found. 
+          iter = accel.find(point);
+          accel.erase(iter);
+          accel.insert(std::pair<size_t,size_t>(point,outgoing));
+        }
+        
+        //in connectivity we MUST have all the points, even the duplicated ones. Connectivity of duplicated points is wrong with IDL (intentional?).
+        // we could avoid this easily as I believe this is an IDL bug. We just have to reproduce the connectivity of the first encounter
+        // of the duplicated point.
+        DLong* array=(DLong*)malloc((npts*npts+npts+1)*sizeof(DLong)); // size > max possible connectivity 
+        DLong runningindex = npts+1; // we report for all points 
+        DLong startindex=0;
+        array[startindex++]= npts+1;
+        DLong* effective_index=(DLong*)malloc(npts*sizeof(DLong));//this is the list of npts vertexes for which we want the neighbour. It must be
+        // the  list of l_npts (returned) indexes, with indexes of the first instance of duplicated points for the duplicated points.
+        if (ndupes == 0) for (DLong i=0; i< npts; ++i) effective_index[i]=i; //easy
+        else { //piecewise index construction, each time dupes.second is encountered, insert dupes.first instead of increasing index:
+          DLong i=0; DLong k=0; //i:index from 0 to l_npts-1., k running index of 0 to npts-1
+          for (DLong idup=0; idup< ndupes; ++idup) {
+            DLong encounter=dupes[idup].second;
+            while (k<encounter) effective_index[k++]=i++;
+            effective_index[k++]=dupes[idup].first;
+          }
+          while (k<npts) effective_index[k++]=i++;
+        }
+        
+        for (DLong k = 0; k < npts; ++k) { 
+          //find the triangle in accel:
+          size_t point=effective_index[k];
 
-// ************ TO BE REMOVED ************      
-      
-//      SizeT listsize=6*npts-12;
-//      DLong* list=(DLong*)malloc(listsize*sizeof(DLong));
-//      DLong* lptr=(DLong*)malloc(listsize*sizeof(DLong));
-//      DLong* lend=(DLong*)malloc(npts*sizeof(DLong));
-//      DLong* near__=(DLong*)malloc(npts*sizeof(DLong)); //"near" is reserved in Windows C.
-//      DLong* next=(DLong*)malloc(npts*sizeof(DLong));
-//      DDouble* dist=(DDouble*)malloc(npts*sizeof(DDouble));
-//      DLong ier=0;
-//      DLong lnew=0;
-//      DLong l_npts=npts;
-//      DLong* originalIndex=(DLong*)malloc(npts*sizeof(DLong));
-//      for (DLong i = 0; i < npts; ++i) originalIndex[i]=i;
-//
-//      //Try first with the simple case of all points OK, if perchance the list of points is OK we gain time:
-//      DLong ret1 = tripack::trmesh_(&l_npts, xx, yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
-//      DLong Offset=2;
-//      if (ier != 0) {
-//        //OK, complicated case.
-//
-//        //The first 3 points passed to TriPack must NOT be colinear (according to Tripack).
-//        //In many cases the points are on a grid, so we need to find the first noncolinear 3 points and start the triangulation there.
-//        //The N first colinear points can be added afterwards.
-//        //Test colinearity:
-//
-//        bool colinear = true;
-//        while (Offset < npts && colinear) {
-//          if (!tripack::colin_(xx[Offset-2], yy[Offset-2], xx[Offset - 1], yy[Offset - 1], xx[Offset], yy[Offset])) {
-//            colinear = false;
-//            break;
-//          }
-//          Offset++;
-//        }
-//        if (colinear) e->Throw("Points are co-linear, no solution.");
-//
-//        //At this point, either there were duplicates (colinear) or colinear points.
-//
-//        //we will work on a copy. To hell with speed, this is not optimized.
-//        DDouble* l_xx = (DDouble*) malloc(l_npts * sizeof (DDouble));
-//        DDouble* l_yy = (DDouble*) malloc(l_npts * sizeof (DDouble));
-//        //start with Offset and add the points before Offset at the end. 
-//        memcpy(l_xx, xx, l_npts * sizeof (DDouble));
-//        memcpy(l_yy, yy, l_npts * sizeof (DDouble));
-//        if (Offset != 2) { // exchange Offset and position 0. It is fundamental that it is position 0 and not 1 or 2.
-//          l_xx[Offset] = xx[0];
-//          l_xx[0] = xx[Offset];
-//          l_yy[Offset] = yy[0];
-//          l_yy[0] = yy[Offset];
-//          originalIndex[0] = Offset;
-//          originalIndex[Offset] = 0;
-//        }
-//        // if ndupes > 0 we have to take into account that several returned indexes in the list have been changed wrt the original because of the list shortening
-//        // by elimination of the duplicates. So we have to create a table of correspondence.
-//
-//        // redo triangulation, hope it works:
-//        ret1 = tripack::trmesh_(&l_npts, l_xx, l_yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
-//        if (ier != 0) {
-//          if (ier > 0) { //this can happen.
-//            // and, yes, it would be more efficient to use tripack::addnod_()
-//            while (ier > 0) {
-//              ier--;
-//              DLong m = 0;
-//              for (DLong i = 0; i < lnew - 1; ++i) if (list[i] > m) m = list[i]; //simple way to compute where we are
-//              dupes.push_back(make_pair(originalIndex[ier], originalIndex[m])); // value at index 'm' is identical to the one at 'ier'
-//              //remove node "m" and add +1 to originalIndex starting at 'm'
-//              for (DLong i = m; i < l_npts - 1; ++i) {
-//                l_xx[i] = l_xx[i + 1];
-//                l_yy[i] = l_yy[i + 1];
-//                originalIndex[i] = originalIndex[i + 1];
-//              }
-//              l_npts--;
-//              ret1 = tripack::trmesh_(&l_npts, l_xx, l_yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
-//              if (ier < 0) e->Throw("Internal Error, please report."); //Should not happen
-//            }
-//            free(l_xx);
-//            free(l_yy);
-//          }
-//          //the rest SHOULD NOT HAPPEN:
-//          else if (ier == -2) e->Throw("Internal Error, points are co-linear, no solution, please report."); //Should not happen
-//          else if (ier == -1) e->Throw("Internal Error, not enough valid and unique points specified, please report."); //ier==-1 impossible (npoints < 3)
-//            //ier==-4 internal error should be reported! -- never happened in 40 years
-//          else if (ier == -4) e->Throw("Congratulations, you found the impossible: a set of points that triggers an internal error in TRMESH, please report!");
-//          else e->Throw("Congratulations, you found an impossible error code of the TRIPACK package, please report.");
-//          }
-//      }
-//      DLong ndupes=dupes.size();
-//      free(near__);
-//      free(next);
-//      free(dist); 
-//      
-//      //Dupes indexing is the original one.
-//      if (wantsDupes) {
-//        if (dupes.size() ==0) {
-//          DLongGDL* nothing=new DLongGDL(dimension(2),BaseGDL::ZERO); 
-//          nothing->Dec();
-//          e->SetKW(dupesIx, nothing);
-//        }
-//        else {
-//          DLongGDL* returned_dupes = new DLongGDL(dimension(2,dupes.size()), BaseGDL::NOZERO);
-//          for (DLong i = 0; i < dupes.size(); ++i) {
-//            (*returned_dupes)[2*i+0]=dupes[i].first;
-//            (*returned_dupes)[2*i+1]=dupes[i].second;
-//          } 
-//          e->SetKW(dupesIx, returned_dupes);
-//        }
-//      }
-//      
-//      //All indexes in the returned arrays must be replaced by those of originalIndex.
-//
-//      if (wantsTriangles) {
-//        //convert to triangle list
-//        DLong noconstraints = 0;
-//        DLong dummylistofconstraints = 0;
-//        DLong nrow = 6; //no arcs.
-//        DLong* ltri = (DLong*) malloc((12 * l_npts) * sizeof (DLong));
-//        DLong lct = 0;
-//        DLong ntriangles = 0;
-//        DLong ret2 = tripack::trlist_(&noconstraints, &dummylistofconstraints, &l_npts, list, lptr, lend, &nrow, &ntriangles, ltri, &lct, &ier);
-//        if (ier != 0)
-//        {
-//          free(ltri);
-//          free(list);
-//          free(lptr);
-//          free(lend);
-//          e->Throw("Unexpected Error in TRIPACK, TRLIST routine. Please report.");
-//        }
-//        SizeT d[2];
-//        d[1] = ntriangles;
-//        d[0] = 3;
-//        DLongGDL* returned_triangles = new DLongGDL(dimension(d, 2), BaseGDL::NOZERO);
-//        for (DLong j = 0; j < ntriangles; ++j)
-//        {
-//          for (int i = 0; i < 3; ++i)
-//          {
-//            (*returned_triangles)[3 * j + i] = originalIndex[ltri[6 * j + i] - 1]; //our nubering starts a 0.
-//          }
-//        }
-//        free(ltri);
-//        //pass back to GDL env:
-//        e->SetPar(2, returned_triangles);
-//      }
-//      
-//      if (wantsEdge) {
-//        DLong* nodes=(DLong*)malloc(l_npts*sizeof(DLong));
-//        DLong nb=0;
-//        DLong na=0;
-//        DLong nt=0;
-//        DLong ret3=tripack::bnodes_(&l_npts, list, lptr, lend, nodes, &nb, &na, &nt);
-//        DLongGDL* returned_edges = new DLongGDL(nb, BaseGDL::NOZERO);
-//        for (DLong j = 0; j < nb; ++j) (*returned_edges)[j]=originalIndex[nodes[j]-1];
-//        free(nodes);
-//        e->SetPar(3, returned_edges);
-//      }
-//      
-//      if (wantsConnectivity) {
-//        //remove 1 to get C array indexes.
-//        for (DLong i = 0; i < lnew-1; ++i) lptr[i]--; 
-//        for (DLong i = 0; i < l_npts; ++i) lend[i]--;
-//        //in connectivity we MUST have all the points, even the duplicated ones. Connectivity of duplicated points is wrong with IDL (intentional?).
-//        // we could avoid this easily as I believe this is an IDL bug. We just have to reproduce the connectivity of the first encounter
-//        // of the duplicated point.
-//        DLong* array=(DLong*)malloc((npts*npts+npts+1)*sizeof(DLong)); // size > max possible connectivity 
-//        DLong runningindex = npts+1; // and not l_npts: we report for all points 
-//        DLong startindex=0;
-//        array[startindex++]= npts+1;
-//        DLong* effective_index=(DLong*)malloc(npts*sizeof(DLong));//this is the list of npts vertexes for which we want the neighbour. It must be
-//        // the  list of l_npts (returned) indexes, with indexes of the first instance of duplicated points for the duplicated points.
-//        if (ndupes == 0) for (DLong i=0; i< npts; ++i) effective_index[i]=i; //easy
-//        else { //piecewise index construction, each time dupes.second is encountered, insert dupes.first instead of increasing index:
-//          DLong i=0; DLong k=0; //i:index from 0 to l_npts-1., k running index of 0 to npts-1
-//          for (DLong idup=0; idup< ndupes; ++idup) {
-//            DLong encounter=dupes[idup].second;
-//            while (k<encounter) effective_index[k++]=i++;
-//            effective_index[k++]=dupes[idup].first;
-//          }
-//          while (k<npts) effective_index[k++]=i++;
-//        }
-//        //nice except that we may have exchanged Offset and 0 in the first place, so effective_index should reflect this
-//        if (Offset != 2) {
-//          DLong tmp=effective_index[Offset];
-//          effective_index[Offset] = effective_index[0];
-//          effective_index[0] = tmp;
-//        }
-//        
-//        for (DLong k = 0; k < npts; ++k) { 
-//          DLong i=effective_index[k]; 
-//          //is it an exterior point? Yes if the termination of the connectivity list is exterior.
-//          DLong lpl=lend[i];
-//          if (list[lpl]<0) array[runningindex++]=originalIndex[i]; //exterior - we write it
-//          //write all points until nfin=lend[i] is found again using lptr connectivity pointers:
-//          DLong lp=lpl; //see nbcnt_()
-//          do {
-//            lp=lptr[lp];
-//            array[runningindex]=(list[lp]>0)?list[lp]-1:(-list[lp])-1;
-//            array[runningindex]=originalIndex[array[runningindex]];
-//            runningindex++;
-//          } while (lp!=lpl);
-//          array[startindex++]=runningindex;
-//        }
-//        DLongGDL* connections = new DLongGDL(runningindex, BaseGDL::NOZERO);
-//        for (DLong i = 0; i < runningindex; ++i) (*connections)[i]=array[i];
-//        e->SetKW(connIx,connections);
-//        free(array);
-//      }
-//      //cleanup
-//      free(list);
-//      free(lptr);
-//      free(lend);
-//      if (maxVal > 0) {
-//        for (DLong i = 0; i < npts; ++i) xx[i] *= maxVal;
-//        for (DLong i = 0; i < npts; ++i) yy[i] *= maxVal;
-//      }
+          //if point is in the hull, make provision to add point itself at start and next point at end.
+          size_t nextpt;
+          bool isHull=false;
+          for (int i = 0; i < hull.size(); ++i) {
+            if (hull[i] == point) {
+              isHull=true;
+              nextpt = ((i + 1) >= hull.size()) ? hull[0] : hull[i + 1];
+              array[runningindex++] = point;
+              break;
+            }
+          }
+          std::map<size_t, size_t>::iterator iter = accel.find(point);
+          size_t start = (*iter).second; //one of the halfedges starting with current point
+          size_t incoming=start;
+          //get adjacent halfedges and write their end points to connectivity until all encountered.
+          do {
+            array[runningindex++]=tri.triangles[incoming]; //the point outgoing halfedge ends. 
+            size_t outgoing = nextHalfedge(incoming); //the ougoing halfegde -> the point k in fact:  assert(tri.triangles[outgoing]==effective_index[k]);
+            incoming = tri.halfedges[outgoing]; //the following incoming half-edge
+          } while (incoming!=INVALID_INDEX && incoming != start); //stop when start halfedge is found.
+          if (isHull) array[runningindex++] = nextpt;
+          array[startindex++]=runningindex;
+        }
+        DLongGDL* connections = new DLongGDL(runningindex, BaseGDL::NOZERO);
+        for (DLong i = 0; i < runningindex; ++i) (*connections)[i]=array[i];
+        e->SetKW(connIx,connections);
+        free(array);
+      }
     }
   }
 

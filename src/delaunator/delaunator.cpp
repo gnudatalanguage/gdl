@@ -1,3 +1,8 @@
+/***************************************************************************
+ see LICENSE
+ * This is a modified version of delaunator-cpp https://github.com/abellgithub/delaunator-cpp
+ * We have just added the delaunator.dupes list that lists the points wich are repeated (if any).
+ ***************************************************************************/
 
 #include "delaunator.hpp"
 
@@ -339,7 +344,7 @@ Delaunator::Delaunator(std::vector<double> const& in_coords)
     add_triangle(i0, i1, i2, INVALID_INDEX, INVALID_INDEX, INVALID_INDEX);
     double xp = std::numeric_limits<double>::quiet_NaN();
     double yp = std::numeric_limits<double>::quiet_NaN();
-
+    ssize_t kp=-1;
     // Go through points based on distance from the center.
     for (std::size_t k = 0; k < n; k++) {
         const std::size_t i = ids[k];
@@ -347,11 +352,13 @@ Delaunator::Delaunator(std::vector<double> const& in_coords)
         const double y = coords[2 * i + 1];
 
         // skip near-duplicate points
-        if (k > 0 && check_pts_equal(x, y, xp, yp))
-            continue;
+        if (k > 0 && check_pts_equal(x, y, xp, yp)) {
+          dupes.push_back(std::make_pair(kp, i));
+          continue;
+        }
         xp = x;
         yp = y;
-
+        kp = i;
         //ABELL - This is dumb.  We have the indices.  Use them.
         // skip seed triangle points
         if (check_pts_equal(x, y, i0x, i0y) ||

@@ -1,3 +1,9 @@
+/***************************************************************************
+ see LICENSE
+ ***************************************************************************/
+
+namespace lib {
+} // namespace
 #pragma once
 
 #ifdef DELAUNATOR_HEADER_ONLY
@@ -115,7 +121,7 @@ public:
 
     std::vector<std::size_t> hull_prev;
     std::vector<std::size_t> hull_next;
-
+    std::vector< std::pair<std::size_t,std::size_t> > dupes;
     // This contains indexes into the triangles array.
     std::vector<std::size_t> hull_tri;
     std::size_t hull_start;
