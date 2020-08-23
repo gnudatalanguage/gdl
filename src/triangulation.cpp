@@ -14,7 +14,6 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#include <unordered_set>
 
 #include "includefirst.hpp"
 #include "datatypes.hpp"
@@ -31,7 +30,7 @@ using namespace std;
 
 namespace lib {
 
-  using namespace std;
+//  using namespace std;
   
   inline size_t nextHalfedge(size_t e) { return (e % 3 == 2) ? e - 2 : e + 1; }  
   inline size_t prevHalfedge(size_t e) { return (e % 3 == 0) ? e + 2 : e - 1; }  
@@ -94,7 +93,7 @@ namespace lib {
     maxVal=abs((*xVal)[maxEl]);
     yVal->MinMax(&minEl,&maxEl,NULL,NULL,false);
     //maximum ABSOLUTE value
-    maxVal=max(maxVal,abs((*yVal)[maxEl]));
+    maxVal=std::max(maxVal,abs((*yVal)[maxEl]));
 
     DDouble dtol = isDouble ? 1e-12 : 1e-6;
     //Tol is irrelevant in our implementation, as (s)tripack work with tol=machine precision. 
