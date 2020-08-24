@@ -2763,142 +2763,170 @@ bool DStructGDL::ArrayNeverEqual( BaseGDL* r)
 }
 
 
-
-template<class Sp>
-bool Data_<Sp>::OutOfRangeOfInt() const 
-{
-  assert( this->StrictScalar());
-  return (*this)[0] > std::numeric_limits< DInt>::max() || (*this)[0] < std::numeric_limits< DInt>::min();
-}
-
-template<>
-bool Data_<SpDString>::OutOfRangeOfInt() const 
-{
-  return false;
-}
-template<>
-bool Data_<SpDByte>::OutOfRangeOfInt() const 
-{
-  return false;
-}
-template<>
-bool Data_<SpDComplex>::OutOfRangeOfInt() const 
-{
-  return false;
-}
-template<>
-bool Data_<SpDComplexDbl>::OutOfRangeOfInt() const 
-{
-  return false;
-}
+//Not used
+//template<class Sp>
+//bool Data_<Sp>::OutOfRangeOfInt() const 
+//{
+//  assert( this->StrictScalar());
+//  return (*this)[0] > std::numeric_limits< DInt>::max() || (*this)[0] < std::numeric_limits< DInt>::min();
+//}
+//
+//template<>
+//bool Data_<SpDString>::OutOfRangeOfInt() const 
+//{
+//  return false;
+//}
+//template<>
+//bool Data_<SpDByte>::OutOfRangeOfInt() const 
+//{
+//  return false;
+//}
+//template<>
+//bool Data_<SpDComplex>::OutOfRangeOfInt() const 
+//{
+//  return false;
+//}
+//template<>
+//bool Data_<SpDComplexDbl>::OutOfRangeOfInt() const 
+//{
+//  return false;
+//}
 
 // for statement compliance (int types , float types scalar only)
 // (convert strings to floats here (not for first argument)
+
 template<class Sp>
-void Data_<Sp>::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
-{
+bool Data_<Sp>::ForCheck(BaseGDL** lEnd, BaseGDL** lStep) {
   // all scalars?
-  if( !StrictScalar())
+  if (!StrictScalar())
     throw GDLException("Loop INIT must be a scalar in this context.");
 
-  if( !(*lEnd)->StrictScalar())
+  if (!(*lEnd)->StrictScalar())
     throw GDLException("Loop LIMIT must be a scalar in this context.");
 
-  if( lStep != NULL && !(*lStep)->StrictScalar())
+  if (lStep != NULL && !(*lStep)->StrictScalar())
     throw GDLException("Loop INCREMENT must be a scalar in this context.");
-  
+
   // only proper types?
-  if( this->t== GDL_UNDEF)
+  if (this->t == GDL_UNDEF)
     throw GDLException("Expression is undefined.");
-  if( this->t== GDL_COMPLEX || this->t == GDL_COMPLEXDBL)
+  if (this->t == GDL_COMPLEX || this->t == GDL_COMPLEXDBL)
     throw GDLException("Complex expression not allowed in this context.");
-  if( this->t== GDL_PTR)
+  if (this->t == GDL_PTR)
     throw GDLException("Pointer expression not allowed in this context.");
-  if( this->t== GDL_OBJ)
+  if (this->t == GDL_OBJ)
     throw GDLException("Object expression not allowed in this context.");
-  if( this->t== GDL_STRING)
+  if (this->t == GDL_STRING)
     throw GDLException("String expression not allowed in this context.");
 
-  // check for promotion of this (only GDL_INT) // and GDL_LONG ???
   DType lType = (*lEnd)->Type();
-  if( this->t == GDL_INT && lType != GDL_INT)
-    {
-      if( lType == GDL_COMPLEX || lType == GDL_COMPLEXDBL)
-	throw GDLException("Complex expression not allowed in this context.");  
-    
-      if( lType == GDL_STRING)
-	{
-	  *lEnd=(*lEnd)->Convert2( GDL_LONG);  // try with long
-	  if( !(*lEnd)->OutOfRangeOfInt())
-	    {
-	      *lEnd=(*lEnd)->Convert2( GDL_INT); // back to GDL_INT if within range     
-	    }
-	}
-      else if( !(*lEnd)->OutOfRangeOfInt())
-	{
-	  *lEnd=(*lEnd)->Convert2( GDL_INT);  // regular conversion    
-	}  
+  if (lType == GDL_COMPLEX || lType == GDL_COMPLEXDBL)
+    throw GDLException("Complex expression not allowed in this context.");
 
-      // if the GDL_INT range is exceeded, lEnd is NOT changed
-      
-      if( lStep != NULL) *lStep=(*lStep)->Convert2( (*lEnd)->Type());
-      return; // finished for GDL_INT
-    }
+  //ForCheck() is donce only once so the penalty is minimal for these complicated tests.
+  //BYTE is quite special and (see #816) there are dubious cases. The following code
+  //avoids all traps at the expense of being complicated and promote to INT in a case where IDL does not:
+  //"for i=255b,255,1 do help,i"
+  if (this->t == GDL_BYTE) {
+    //early exit with simple check is needed for Bytes beacuse the arithmetic is not the same as for other types.
+    // simple check: end vs. start
+    (*lEnd) = (*lEnd)->Convert2(GDL_BYTE); //convert to byte!
+    DByte* endval = static_cast<DByte*> ((*lEnd)->DataAddr());
+    DByte* startval = static_cast<DByte*> (this->DataAddr());
+
+    if (lStep != NULL) { //overflow case NOT handled in forAddCondUp
+      (*lStep) = (*lStep)->Convert2(GDL_LONG); //check a few things with a long argument
+      //now what if end+step > 255 ? 
+      DLong* step = static_cast<DLong*> ((*lStep)->DataAddr());
+      if (std::signbit(step[0])) {
+        // 1) check lEnd is not already smaller than lStart
+        if (endval[0] > startval[0]) return false;
+        // 2) We must convert to INTs, but this may be a problem.
+        (*lEnd) = (*lEnd)->Convert2(GDL_INT);
+      } else { //step >= 0
+        if (endval[0] < startval[0]) return false;
+        int final = endval[0] + step[0];
+        if (final > 255) { //whatever the start value, the end value must be 255 when the final step is reached.
+          //We must convert to INTs, but this may be a problem.
+          (*lEnd) = (*lEnd)->Convert2(GDL_INT);
+        }
+      }
+      //Must have lStep always as LEnd
+      (*lStep) = (*lStep)->Convert2((*lEnd)->Type());
+    } else if (endval[0] < startval[0]) return false; //lStep==NULL case
+    return true;
+  }
+
+  // Check for promotion as we have to be robust to lEnd==std::numeric_limits< DInt>::max() and lEnd+Step > numeric limit. (bug #816)
+  // (*lend)+/-(*lstep) must not overflow an INT numeric limit, else the loop will fail.If (*lStep) is not defined, 
+  // forAddCondUp is used and will save the day as the test is made in the right order. this is not the general case, where the
+  //addition (or substraction) is made in the prognode Run() loop. In that case we *NEED* to promote the loop variable correctly.
+
+  (*lEnd) = (*lEnd)->Convert2(GDL_LONG64); // upgrade to safe encoding
+  DLong64* endval = static_cast<DLong64*> ((*lEnd)->DataAddr());
   
-  if( this->t == GDL_LONG)
-    {
-      if( lType == GDL_COMPLEX || lType == GDL_COMPLEXDBL)
-	throw GDLException("Complex expression not allowed in this context.");        
-    }
+  DLong64 testVal=endval[0];
   
-  // no promotion happened
-  *lEnd=(*lEnd)->Convert2( this->t);
-  if( lStep != NULL) *lStep=(*lStep)->Convert2( this->t);
+  if (lStep != NULL) (*lStep) = (*lStep)->Convert2(GDL_LONG64); //idem
+  DLong64* step = NULL;
+  if (lStep != NULL) {
+    step = static_cast<DLong64*> ((*lStep)->DataAddr());
+    testVal+=step[0];
+  }
+  
+  if (this->t == GDL_INT) {
+    if (testVal < std::numeric_limits< DInt>::max() && testVal > std::numeric_limits< DInt>::min()) *lEnd = (*lEnd)->Convert2(GDL_INT);
+    else if (testVal < std::numeric_limits< DLong>::max() && testVal > std::numeric_limits< DLong>::min()) *lEnd = (*lEnd)->Convert2(GDL_LONG);
+    //Must have lStep always as LEnd
+    if (lStep != NULL) (*lStep) = (*lStep)->Convert2((*lEnd)->Type());
+    return true; // finished for GDL_INT
+  }
+  if (this->t == GDL_LONG) {
+    if (testVal < std::numeric_limits< DLong>::max() && testVal > std::numeric_limits< DLong>::min()) *lEnd = (*lEnd)->Convert2(GDL_LONG);
+    //Must have lStep always as LEnd
+    if (lStep != NULL) (*lStep) = (*lStep)->Convert2((*lEnd)->Type());
+    return true; // finished for GDL_LONG
+  }
+  // other cases: no promotion
+  *lEnd = (*lEnd)->Convert2(this->t);
+  if (lStep != NULL) *lStep = (*lStep)->Convert2(this->t);
+  return true;
 }
 
-void DStructGDL::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
+bool DStructGDL::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
 {
   throw GDLException("Struct expression not allowed in this context.");
+  return false;
 }
 
 // ForCheck must have been called before
 template<class Sp>
 bool Data_<Sp>::ForAddCondUp( BaseGDL* endLoopVar)
-// bool Data_<Sp>::ForAddCondUp( ForLoopInfoT& loopInfo)
 {
-  (*this)[0] += 1;
-  //   Data_* lEnd=static_cast<Data_*>(lEndIn);
-  if( endLoopVar->Type() != this->t)
-    throw GDLException("Type of FOR index variable changed.");
+  if( endLoopVar->Type() != this->t) throw GDLException("Type of FOR index variable changed.");
   Data_* lEnd=static_cast<Data_*>(endLoopVar);
-  /*  Data_* lEnd=dynamic_cast<Data_*>(endLoopVar);
-      if( lEnd == NULL)
-      throw GDLException("Type of FOR index variable changed.");*/
-  return (*this)[0] <= (*lEnd)[0]; 
+  bool what=true;
+  if ((*this)[0] == (*lEnd)[0]) //This way, loop will stop on good end value and loop index will be incremented... 
+    //but only afterwards as to avoid bug #816
+  {
+    what=false;
+  } else what=((*this)[0] < (*lEnd)[0]); 
+  (*this)[0] += 1;
+  return what; 
 }
 // ForCheck must have been called before
 template<class Sp>
 bool Data_<Sp>::ForCondUp( BaseGDL* lEndIn)
 {
-  //   Data_* lEnd=static_cast<Data_*>(lEndIn);
-  if( lEndIn->Type() != this->t)
-    throw GDLException("Type of FOR index variable changed.");
+  if( lEndIn->Type() != this->t) throw GDLException("Type of FOR index variable changed.");
   Data_* lEnd=static_cast<Data_*>(lEndIn);
-  /*  Data_* lEnd=dynamic_cast<Data_*>(lEndIn);
-      if( lEnd == NULL)
-      throw GDLException("Type of FOR index variable changed.");*/
   return (*this)[0] <= (*lEnd)[0];
 }
 template<class Sp>
 bool Data_<Sp>::ForCondDown( BaseGDL* lEndIn)
 {
-  //   Data_* lEnd=static_cast<Data_*>(lEndIn);
-  if( lEndIn->Type() != this->t)
-    throw GDLException("Type of FOR index variable changed.");
+  if( lEndIn->Type() != this->t) throw GDLException("Type of FOR index variable changed.");
   Data_* lEnd=static_cast<Data_*>(lEndIn);
-  /*  Data_* lEnd=dynamic_cast<Data_*>(lEndIn);
-      if( lEnd == NULL)
-      throw GDLException("Type of FOR index variable changed.");*/
   return (*this)[0] >= (*lEnd)[0];
 }
 
@@ -2970,14 +2998,16 @@ void Data_<Sp>::ForAdd( BaseGDL* addIn)
 // cannnot be called, just to make the compiler shut-up
 void DStructGDL::ForAdd( BaseGDL* addIn) {}
 
-// normal (+1) version
-template<class Sp>
-void Data_<Sp>::ForAdd()
-{
-  (*this)[0] += 1;
-}
+
+//NOT USED (GD)
+//// normal (+1) version
+//template<class Sp>
+//void Data_<Sp>::ForAdd()
+//{
+//  (*this)[0] += 1;
+//}
 // cannnot be called, just to make the compiler shut-up
-void DStructGDL::ForAdd() {}
+//void DStructGDL::ForAdd() {}
 
 template<class Sp>
 void Data_<Sp>::AssignAtIx( RangeT ixR, BaseGDL* srcIn)
