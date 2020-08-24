@@ -214,7 +214,7 @@ static	void operator delete( void *ptr);
 //   // make a duplicate at loc
 //   Data_* Dup( void* loc) const { return ::new ( loc) Data_(*this);}
 
-  bool OutOfRangeOfInt() const;
+//  bool OutOfRangeOfInt() const;
   
   bool Scalar() const { return (dd.size() == 1);}
   bool StrictScalar() const { return (this->Rank() == 0);}
@@ -280,7 +280,7 @@ static	void operator delete( void *ptr);
   bool EqualNoDelete( const BaseGDL*) const;
   bool ArrayEqual( BaseGDL*);
   bool ArrayNeverEqual( BaseGDL*);
-  void ForCheck( BaseGDL**, BaseGDL** =NULL);
+  bool ForCheck( BaseGDL**, BaseGDL** =NULL);
   bool ForCondUp( BaseGDL*);
   bool ForCondDown( BaseGDL*);
   bool ForAddCondUp( BaseGDL* loopInfo);

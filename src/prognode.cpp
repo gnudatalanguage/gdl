@@ -1341,26 +1341,28 @@ RetCode   FORNode::Run()//for_statement(ProgNodeP _t) {
   GDLDelete(loopInfo.endLoopVar);
   loopInfo.endLoopVar=this->GetFirstChild()->GetNextSibling()->Eval();
 //   loopInfo.endLoopVar=ProgNode::interpreter->expr(this->GetFirstChild()->GetNextSibling());
-  
-  s->ForCheck( &loopInfo.endLoopVar);
-  
-  if( loopInfo.endLoopVar->Type() != s->Type()) // promote s
+
+  if (s->ForCheck(&loopInfo.endLoopVar)) {
+
+    if (loopInfo.endLoopVar->Type() != s->Type()) // promote s
     {
       BaseGDL* sPromote = s->Convert2(loopInfo.endLoopVar->Type(), BaseGDL::COPY);
-      s_guard.Reset( sPromote);
+      s_guard.Reset(sPromote);
     }
-  
-  // ASSIGNMENT used here also
-  GDLDelete((*v));
-  (*v)= s_guard.release(); // s held in *v after this
-  
-  if( (*v)->ForCondUp( loopInfo.endLoopVar))
-  {
-    ProgNode::interpreter->_retTree = vP->GetNextSibling();
-    return RC_OK;
-  }
-  else
-  {
+
+    // ASSIGNMENT used here also
+    GDLDelete((*v));
+    (*v) = s_guard.release(); // s held in *v after this
+
+    if ((*v)->ForCondUp(loopInfo.endLoopVar)) {
+      ProgNode::interpreter->_retTree = vP->GetNextSibling();
+      return RC_OK;
+    } else {
+      // skip if initial test fails
+      ProgNode::interpreter->_retTree = this->GetNextSibling()->GetNextSibling();
+      return RC_OK;
+    }
+  } else {
     // skip if initial test fails
     ProgNode::interpreter->_retTree = this->GetNextSibling()->GetNextSibling();
     return RC_OK;
@@ -1426,38 +1428,38 @@ RetCode   FOR_STEPNode::Run()//for_statement(ProgNodeP _t) {
   loopInfo.loopStepVar=this->GetFirstChild()->GetNextSibling()->GetNextSibling()->Eval();
 //   loopInfo.loopStepVar=ProgNode::interpreter->expr(this->GetFirstChild()->GetNextSibling()->GetNextSibling());
 
-  s->ForCheck( &loopInfo.endLoopVar, &loopInfo.loopStepVar);
+  if (s->ForCheck(&loopInfo.endLoopVar, &loopInfo.loopStepVar)) {
 
-  if( loopInfo.endLoopVar->Type() != s->Type()) // promote s
+    if (loopInfo.endLoopVar->Type() != s->Type()) // promote s
     {
       BaseGDL* sPromote = s->Convert2(loopInfo.endLoopVar->Type(), BaseGDL::COPY);
-      s_guard.Reset( sPromote);
-      assert( loopInfo.loopStepVar->Type() == s_guard.get()->Type());
+      s_guard.Reset(sPromote);
+      assert(loopInfo.loopStepVar->Type() == s_guard.get()->Type());
     }
 
-  // ASSIGNMENT used here also
-  GDLDelete((*v));
-  (*v)= s_guard.release(); // s held in *v after this
+    // ASSIGNMENT used here also
+    GDLDelete((*v));
+    (*v) = s_guard.release(); // s held in *v after this
 
-  if( loopInfo.loopStepVar->Sgn() == -1)
-  {
-    if( (*v)->ForCondDown( loopInfo.endLoopVar))
-    {
-	    ProgNode::interpreter->_retTree = vP->GetNextSibling();
-	    return RC_OK;
+    if (loopInfo.loopStepVar->Sgn() == -1) {
+      if ((*v)->ForCondDown(loopInfo.endLoopVar)) {
+        ProgNode::interpreter->_retTree = vP->GetNextSibling();
+        return RC_OK;
+      }
+    } else {
+      if ((*v)->ForCondUp(loopInfo.endLoopVar)) {
+        ProgNode::interpreter->_retTree = vP->GetNextSibling();
+        return RC_OK;
+      }
     }
+    // skip if initial test fails
+    ProgNode::interpreter->_retTree = this->GetNextSibling()->GetNextSibling();
+    return RC_OK;
+  } else {
+    // skip if initial test fails
+    ProgNode::interpreter->_retTree = this->GetNextSibling()->GetNextSibling();
+    return RC_OK;
   }
-  else
-  {
-    if( (*v)->ForCondUp( loopInfo.endLoopVar))
-    {
-	    ProgNode::interpreter->_retTree = vP->GetNextSibling();
-	    return RC_OK;
-    }
-  }
-  // skip if initial test fails
-  ProgNode::interpreter->_retTree = this->GetNextSibling()->GetNextSibling();
-  return RC_OK;
 }
 	
 RetCode   FOR_STEP_LOOPNode::Run()

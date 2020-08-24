@@ -142,7 +142,7 @@ std::istream& BaseGDL::FromStream(std::istream& i)
   return i;
 }
 
-bool BaseGDL::OutOfRangeOfInt() const { return false;}
+//bool BaseGDL::OutOfRangeOfInt() const { return false;}
 
 bool BaseGDL::Scalar() const { return false;}
 bool BaseGDL::StrictScalar() const { return false;}
@@ -291,9 +291,10 @@ bool BaseGDL::ArrayNeverEqual( BaseGDL*)
 }
 
 // for statement compliance (int types , float types scalar only)
-void BaseGDL::ForCheck( BaseGDL**, BaseGDL**)
+bool BaseGDL::ForCheck( BaseGDL**, BaseGDL**)
 {
   throw GDLException("Operation not defined for UNDEF 7.");
+  return false;
 }
 
 bool BaseGDL::ForCondUp( BaseGDL*)
