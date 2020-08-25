@@ -1,9 +1,9 @@
 /***************************************************************************
-                          |FILENAME|  -  description
+                          sorting.hpp  -  all things sortlike
                              -------------------
-    begin                : |DATE|
-    copyright            : (C) |YEAR| by |AUTHOR|
-    email                : |EMAIL|
+    begin                : Nove 2018
+    copyright            : (C) 2018 by G. Duvert and Others
+    email                : gilles dot duvert at free dot fr
  ***************************************************************************/
 
 /***************************************************************************
@@ -15,9 +15,11 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifndef SORT_HPP_
+#define SORT_HPP_
 namespace lib {
 
   BaseGDL* sort_fun( EnvT* e);
   BaseGDL* gdl_sort_fun( EnvT* e);
-} // namespace
-
+} 
+#endif

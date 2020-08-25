@@ -33,10 +33,35 @@ static struct {
 
 static struct {
     doublereal swtol;
+    int initialized=0;
 } swpcom_;
 
 #define swpcom_1 swpcom_
 
+void init_swtol(doublereal eps) {
+    swpcom_1.swtol = eps;
+    swpcom_1.initialized=1;
+}
+
+void insure_swtol()
+{
+/* Compute a tolerance for function SWPTST:  SWTOL = 10* */
+/*   (machine precision) */
+    doublereal eps,d;
+  if (swpcom_1.initialized==0) {
+    eps = 1.;
+L1:
+    eps /= 2.;
+    d = eps + 1.;
+    swpcom_1.swtol = d;
+    if (swpcom_1.swtol > 1.) {
+	goto L1;
+    }
+    swpcom_1.swtol = eps * 20.;
+    swpcom_1.initialized=1;
+  }
+}    
+    
 /*      ALGORITHM 751, COLLECTED ALGORITHMS FROM ACM. */
 /*      THIS WORK PUBLISHED IN TRANSACTIONS ON MATHEMATICAL SOFTWARE, */
 /*      VOL. 22, NO. 1, March, 1996, P.  1--8. */
@@ -3594,6 +3619,62 @@ logical left_(doublereal *x1, doublereal *y1, doublereal *x2, doublereal *y2,
     return ret_val;
 } /* left_ */
 
+logical colin_(doublereal x1, doublereal y1, doublereal x2, doublereal y2, 
+	doublereal x0, doublereal y0)
+{
+    /* System generated locals */
+    logical ret_val;
+
+    /* Local variables */
+    doublereal dx1, dy1, dx2, dy2;
+
+
+/* *********************************************************** */
+
+/* added by GD                                               */
+/*   This function determines whether node N0 is colinear with */
+/*   the line through N1-N2 within tolerance */
+
+
+/* On input: */
+
+/*       X1,Y1 = Coordinates of N1. */
+
+/*       X2,Y2 = Coordinates of N2. */
+
+/*       X0,Y0 = Coordinates of N0. */
+
+/* Input parameters are not altered by this function. */
+
+/* On output: */
+
+/*       COLIN = .TRUE. if (X0,Y0) is colinear with  line N1->N2 */
+/*                within tolerance tol. */
+
+/* Modules required by LEFT:  None */
+
+/* *********************************************************** */
+
+
+/* Local parameters: */
+
+/* DX1,DY1 = X,Y components of the vector N1->N2 */
+/* DX2,DY2 = X,Y components of the vector N1->N0 */
+
+    dx1 = x2 - x1;
+    dy1 = y2 - y1;
+    dx2 = x0 - x1;
+    dy2 = y0 - y1;
+
+/* If the absolute value of vector cross product of N1->N2 and */
+/*   N1->N0 is less than swtol, we are colinear */
+    
+    insure_swtol();
+    
+    ret_val = (abs(dx1 * dy2 - dx2 * dy1) < swpcom_1.swtol) ;
+    return ret_val;
+} /* left_ */
+
 integer lstptr_(integer *lpl, integer *nb, integer *list, integer *lptr)
 {
     /* System generated locals */
@@ -5327,7 +5408,6 @@ L13:
     integer i__, j, k;
     doublereal d1, d2, d3;
     integer i0, lp, nn, km1, lcc[1], ncc, lpl;
-    doublereal eps;
     extern logical left_(doublereal *, doublereal *, doublereal *, doublereal 
 	    *, doublereal *, doublereal *);
     integer nexti;
@@ -5576,19 +5656,8 @@ L13:
 	return 0;
     }
 
-/* Compute a tolerance for function SWPTST:  SWTOL = 10* */
-/*   (machine precision) */
-
-    eps = 1.;
-L1:
-    eps /= 2.;
-    d__1 = eps + 1.;
-    swpcom_1.swtol = store_(&d__1);
-    if (swpcom_1.swtol > 1.) {
-	goto L1;
-    }
-    swpcom_1.swtol = eps * 20.;
-
+    insure_swtol();
+    
 /* Store the first triangle in the linked list. */
 
     if (! left_(&x[1], &y[1], &x[2], &y[2], &x[3], &y[3])) {
@@ -5827,7 +5896,6 @@ L6:
     /* Local variables */
     integer i__, j, k, m1, m2, m3, m4, n0, n1, n2, n3, n4, ni, nj, lp, nn, 
 	    kp1, nm1, nnb, lpf, lpk, lpl;
-    doublereal eps;
     integer lpp;
     logical tst;
     extern logical left_(doublereal *, doublereal *, doublereal *, doublereal 
@@ -5973,18 +6041,8 @@ L6:
     }
     *ier = 0;
 
-/* Compute a tolerance for function SWPTST:  SWTOL = 10* */
-/*   (machine precision) */
-
-    eps = 1.;
-L1:
-    eps /= 2.;
-    d__1 = eps + 1.;
-    swpcom_1.swtol = store_(&d__1);
-    if (swpcom_1.swtol > 1.) {
-	goto L1;
-    }
-    swpcom_1.swtol = eps * 20.;
+/* Insure tolerance on identical positions is set */
+    insure_swtol();
 
 /* Loop on grid points (I,J) corresponding to nodes K = */
 /*   (J-1)*NI + I.  TST = TRUE iff diagonals are to be */

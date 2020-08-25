@@ -114,11 +114,11 @@ void DNode::Text2Byte(int base)
 {
   // cout << "byte" << endl;
   DByte val;
-  Text2Number( val, base);
+  if (Text2Number( val, base)==false) throw GDLException( "Byte constant must be less than 256.");
   cData=new DByteGDL(val);
 }
 
-// promote: make Long (Long64) if number is to large
+// promote: make Long (Long64) if number is to large, 1 if overflow
 void DNode::Text2Int(int base, bool promote)
 {
   static const DLong64 maxDInt=
@@ -129,7 +129,7 @@ void DNode::Text2Int(int base, bool promote)
   if( promote)
     {
       DLong64 ll;
-      Text2Number( ll, base);
+      if (Text2Number( ll, base)==false) { cData=new DLong64GDL(-1); return;}
       
       if( ll <= maxDInt)
 	{
@@ -149,7 +149,7 @@ void DNode::Text2Int(int base, bool promote)
   else
     {
       DInt val;
-      Text2Number( val, base);
+      if (Text2Number( val, base)==false) throw GDLException( "Integer constant must be less than 32768.");
       cData=new DIntGDL(val);
     }
 }
@@ -183,7 +183,7 @@ void DNode::Text2UInt(int base, bool promote)
   else
     {
       DUInt val;
-      Text2Number( val, base);
+      if (Text2Number( val, base)==false) throw GDLException( "Unsigned integer constant must be less than 65536.");
       cData=new DUIntGDL(val);
     }
 }
@@ -219,7 +219,7 @@ void DNode::Text2Long(int base, bool promote)
 			    i2s(sizeof( DLong)*2)+" digits.");
 
       DLong val;
-      Text2Number( val, base);
+      if (Text2Number( val, base)==false) throw GDLException( "Long integer constant must be less than 2147483648.");
       cData=new DLongGDL(val);
       return;
     }
@@ -228,8 +228,7 @@ void DNode::Text2Long(int base, bool promote)
   bool noOverFlow = Text2Number( val, base);
 
   if( !noOverFlow || val > std::numeric_limits< DLong>::max())
-    throw GDLException( "Long constant must be smaller than or equal to "+
-			i2s(std::numeric_limits< DLong>::max()));
+    throw GDLException( "Long integer constant must be less than 2147483648.");
 
   cData=new DLongGDL(val);
 }
@@ -261,7 +260,7 @@ void DNode::Text2ULong(int base, bool promote)
   if( base == 16)
     {
       if( text.size() > sizeof(DULong)*2)
-	throw GDLException( "ULong hexadecimal constant can only have "+
+	throw GDLException( "Unsigned long hexadecimal constant can only have "+
 			    i2s(sizeof( DLong)*2)+" digits.");
 
       DULong val;
@@ -274,8 +273,7 @@ void DNode::Text2ULong(int base, bool promote)
   bool noOverFlow = Text2Number( val, base);
 
   if( !noOverFlow || val > std::numeric_limits< DULong>::max())
-    throw GDLException( "ULong constant must be smaller than or equal to "+
-			i2s(std::numeric_limits< DULong>::max()));
+    throw GDLException( "Unsigned long integer constant must be less than 4294967296.");
 
   cData=new DULongGDL(val);
 }

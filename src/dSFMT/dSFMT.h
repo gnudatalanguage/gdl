@@ -143,7 +143,7 @@ extern "C" {
 
 /** 128-bit data structure */
  union W128_T {
-  vector unsigned int s;
+  __vector unsigned int s;
   uint64_t u[2];
   uint32_t u32[4];
   double d[2];

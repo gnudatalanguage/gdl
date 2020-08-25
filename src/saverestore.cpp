@@ -1321,10 +1321,14 @@ enum {
     bool isSysVar=false;
     bool readonly=false;
     uint32_t cur=writeNewRecordHeader(xdrs, HEAP_DATA); //HEAP_DATA
-    int32_t heap_index=ptr; 
-    if (isObject) if (DEBUG_SAVERESTORE) std::cerr<<"write OBJ at heap_index "<<heap_index<<std::endl;
-    else if (DEBUG_SAVERESTORE) std::cerr<<"write PTR at heap_index "<<heap_index<<std::endl;
-
+    int32_t heap_index=ptr;
+    if (DEBUG_SAVERESTORE) {
+      if (isObject) {
+        std::cerr << "write OBJ at heap_index " << heap_index << std::endl;
+      } else {
+        std::cerr << "write PTR at heap_index " << heap_index << std::endl;
+      }
+    }
     //rest is normally the same as for any other variable
     xdr_int32_t(xdrs, &heap_index);
     int32_t heap_type = 0x02;
@@ -1334,7 +1338,7 @@ enum {
     // start of TYPEDESC. Structures may be objects, in which case ptr.second is negative.
     BaseGDL* var;
     try{
-    if (isObject) var=e->GetObjHeap(ptr);else var=e->GetHeap(ptr); //TRICK!
+    if (isObject) var=e->GetObjHeap(ptr); else var=e->GetHeap(ptr); //TRICK!
     } catch( GDLInterpreter::HeapException& hEx)
     {
       e->Throw("ID <"+i2s(ptr)+"> not found.");      

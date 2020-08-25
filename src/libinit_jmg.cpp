@@ -176,9 +176,8 @@ void LibInit_jmg()
   const string grid_inputKey[]={"SPHERE", "POLAR", "DEGREES", "DUPLICATES", "EPSILON", "EXCLUDE", KLISTEND};
   new DLibPro(lib::grid_input,string("GRID_INPUT"),6,grid_inputKey);
   
-  const string triangulateKey[]={"CONNECTIVITY", "SPHERE", "DEGREES", "FVALUE",KLISTEND};
-  const string triangulateWarnKey[]={"REPEATS", "TOLERANCE",KLISTEND};
-  new DLibPro(lib::GDL_Triangulate,string("TRIANGULATE"),4,triangulateKey,triangulateWarnKey);
+  const string triangulateKey[]={"CONNECTIVITY", "SPHERE", "DEGREES", "FVALUE","REPEATS", "TOLERANCE",KLISTEND};
+  new DLibPro(lib::GDL_Triangulate,string("TRIANGULATE"),4,triangulateKey);
 
 //to be written and do not forget to uncomment QHULL in CMakeLists and config.h.cmake  
 #ifdef HAVE_QHULL
