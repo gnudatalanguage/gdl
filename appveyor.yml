@@ -253,10 +253,7 @@ before_build:
   #- ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_python.pro' -NotMatch)
   # % TEST_IMAGE_STATISTICS: Image for test (Saturn.jpg) not found, test aborted
   - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_image_statistics.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_python_module_0.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_python_module_1.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_python_module_2.pro' -NotMatch)
-  #% SPAWN: UNIT keyword is not implemented yet!
+   #% SPAWN: UNIT keyword is not implemented yet!
   - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_spawn_unit.pro' -NotMatch)
   - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_systime.pro' -NotMatch)
   #AC 2018 : should be OK now? N (test_tv)

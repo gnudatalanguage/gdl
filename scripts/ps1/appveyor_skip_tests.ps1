@@ -42,6 +42,7 @@ Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Patte
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_byte_conversion.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_common.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_congrid.pro' -NotMatch)
+ Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_correlate.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_dilate.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_erfinv.pro' -NotMatch)
   Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_execute.pro' -NotMatch) 
