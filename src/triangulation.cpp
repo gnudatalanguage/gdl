@@ -264,9 +264,11 @@ namespace lib {
 //        for (DLong i = 0; i < npts; ++i) yy[i] /= maxVal;
 //      }
 
-      // for PLANE triangulation, everything must be scaled in order to have triangulation independent of range
+      // for PLANE triangulation, it is possible that everything must be scaled in order to have triangulation independent of range.
+      // unfortunately this may have dire consequences. At the meoment I pass unscaled X and Y
       std::vector<double> coords;
-      for (DLong i = 0; i < npts; ++i) {coords.push_back(xx[i]/maxVal);coords.push_back(yy[i]/maxVal);}
+//      for (DLong i = 0; i < npts; ++i) {coords.push_back(xx[i]/maxVal);coords.push_back(yy[i]/maxVal);}
+      for (DLong i = 0; i < npts; ++i) {coords.push_back(xx[i]);coords.push_back(yy[i]);}
       delaunator::Delaunator tri(coords);
       
       DLong ndupes=tri.dupes.size();
