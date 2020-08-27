@@ -310,7 +310,7 @@ Delaunator::Delaunator(std::vector<double> const& in_coords)
             { return dists[i] < dists[j]; });
 
     // initialize a hash table for storing edges of the advancing convex hull
-    m_hash_size = static_cast<std::size_t>(std::ceil(std::sqrt(n)));
+    m_hash_size = static_cast<std::size_t>(std::ceil(1.618*std::sqrt(n))); //golden ratio
     m_hash.resize(m_hash_size);
     std::fill(m_hash.begin(), m_hash.end(), INVALID_INDEX);
 
