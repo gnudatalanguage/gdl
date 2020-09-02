@@ -101,8 +101,6 @@ namespace lib {
     DDouble* xx=&(*xVal)[0];
     DDouble* yy=&(*yVal)[0];    
 
-    std::vector<std::pair<DLong,DLong>> dupes;
-
     //IN SPHERE MODE, xVal and yVal ARE RETURNED, ARE DOUBLE PRECISION and their ORDER is MODIFIED,
     //the input points are sorted using the coordinate (x or y) covering max range (y prefered). It is not the case here.
     //SPHERE does not support duplicate points yet.
@@ -360,15 +358,12 @@ namespace lib {
         array[startindex++]= npts+1;
         DLong* effective_index=(DLong*)malloc(npts*sizeof(DLong));//this is the list of npts vertexes for which we want the neighbour. It must be
         // the  list of l_npts (returned) indexes, with indexes of the first instance of duplicated points for the duplicated points.
-        if (ndupes == 0) for (DLong i=0; i< npts; ++i) effective_index[i]=i; //easy
-        else { //piecewise index construction, each time dupes.second is encountered, insert dupes.first instead of increasing index:
-          DLong i=0; DLong k=0; //i:index from 0 to l_npts-1., k running index of 0 to npts-1
+        for (DLong i=0; i< npts; ++i) effective_index[i]=i;
+        if (ndupes != 0) { 
           for (DLong idup=0; idup< ndupes; ++idup) {
-            DLong encounter=dupes[idup].second;
-            while (k<encounter) effective_index[k++]=i++;
-            effective_index[k++]=dupes[idup].first;
+            DLong encounter=tri.dupes[idup].second;
+            effective_index[encounter]=tri.dupes[idup].first;
           }
-          while (k<npts) effective_index[k++]=i++;
         }
         
         for (DLong k = 0; k < npts; ++k) { 
