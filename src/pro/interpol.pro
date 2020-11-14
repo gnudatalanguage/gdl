@@ -11,9 +11,11 @@
 ; revised 18-Feb-2013 by Alain C. after bug report 3602770
 ; We have to manage NaN and Infinity ...
 ;
-; resived 29-Oct-2013 by Alain C. thanks to Gael mixing
+; revised 29-Oct-2013 by Alain C. thanks to Gael mixing
 ; of Double/Long64 types in HFI Planck Monte Carlo pipeline.
-;
+; revised 02-Nov-2020 by GD, FINDEX returns (erroneously) integers when called
+; with integers. Instead of correcting FINDEX, simply convert locally to floats.
+
 function INTERPOL, p0, p1, p2, lsquadratic=lsquadratic, $
                    quadratic=quadratic, spline=spline, $
                    test=test, help=help, debug=debug
@@ -119,11 +121,11 @@ endif else if ~KEYWORD_SET(spline) then begin
         inside_OK=WHERE((p2 GE p1_min) AND (p2 LE p1_max), nbp_inside)
         if (nbp_inside GT 0) then begin
             p2_inside=p2[inside_OK]
-            ind = FINDEX(p1, p2_inside)
+            ind = isint ? FINDEX(float(p1), float(p2_inside)) : FINDEX(p1, p2_inside)
         endif      
     endif else begin
         ;; if we are here, all the points in "p2" are inside "p1" range
-        ind=FINDEX(p1,p2)
+        ind = isint ? FINDEX(float(p1), float(p2)) : FINDEX(p1,p2)
     endelse
 endif
 ;

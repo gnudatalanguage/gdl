@@ -21,7 +21,7 @@
 #include "dinterpreter.hpp"
 
 using namespace std;
-
+#include "delaunator/delaunator-header-only.hpp"
 #include "tripack.c"
 #include "stripack.c"
 #include "ssrfpack.c"
@@ -30,8 +30,12 @@ using namespace std;
 
 namespace lib {
 
-  using namespace std;
-
+//  using namespace std;
+  
+  inline size_t nextHalfedge(size_t e) { return (e % 3 == 2) ? e - 2 : e + 1; }  
+  inline size_t prevHalfedge(size_t e) { return (e % 3 == 0) ? e + 2 : e - 1; }  
+  inline size_t triangleOfEdge(size_t e)  { return floor(e / 3); }
+  
   void GDL_Triangulate(EnvT* e) {
 
     DDoubleGDL *xVal, *yVal, *fvalue;
@@ -89,15 +93,13 @@ namespace lib {
     maxVal=abs((*xVal)[maxEl]);
     yVal->MinMax(&minEl,&maxEl,NULL,NULL,false);
     //maximum ABSOLUTE value
-    maxVal=max(maxVal,abs((*yVal)[maxEl]));
+    maxVal=std::max(maxVal,abs((*yVal)[maxEl]));
 
     DDouble dtol = isDouble ? 1e-12 : 1e-6;
     //Tol is irrelevant in our implementation, as (s)tripack work with tol=machine precision. 
     
     DDouble* xx=&(*xVal)[0];
     DDouble* yy=&(*yVal)[0];    
-
-    std::vector<std::pair<DLong,DLong>> dupes;
 
     //IN SPHERE MODE, xVal and yVal ARE RETURNED, ARE DOUBLE PRECISION and their ORDER is MODIFIED,
     //the input points are sorted using the coordinate (x or y) covering max range (y prefered). It is not the case here.
@@ -229,7 +231,7 @@ namespace lib {
         //remove 1 to get C array indexes.
         for (SizeT i = 0; i < lnew-1; ++i) (*lptr)[i]--; 
         for (SizeT i = 0; i < npts; ++i) (*lend)[i]--;
-        DLong array[2*(lnew-1)];
+        DLong* array=(DLong*)malloc((2*(lnew-1))*sizeof(DLong)); // size > max possible connectivity 
         SizeT runningindex=npts+1;
         SizeT startindex=0;
         array[startindex++]=npts+1;
@@ -248,227 +250,153 @@ namespace lib {
         DLongGDL* connections = new DLongGDL(runningindex, BaseGDL::NOZERO);
         for (SizeT i = 0; i < runningindex; ++i) (*connections)[i]=array[i];
         e->SetKW(connIx,connections);
+        free(array);
       }
       //no more cleanup, x,y,z,and list,lptr,lend are in the returned structure!
     } else {
       
-      // for PLANE triangulation, everything must be scaled in order to have triangulation independent of range,
-      // as the triangulation code IS sensitive to the values of X and Y.
-      if (maxVal > 0) {
-        for (DLong i = 0; i < npts; ++i) xx[i] /= maxVal;
-        for (DLong i = 0; i < npts; ++i) yy[i] /= maxVal;
-      }
+//      // for PLANE triangulation, everything must be scaled in order to have triangulation independent of range,
+//      // as the triangulation code IS sensitive to the values of X and Y.
+//      if (maxVal > 0) {
+//        for (DLong i = 0; i < npts; ++i) xx[i] /= maxVal;
+//        for (DLong i = 0; i < npts; ++i) yy[i] /= maxVal;
+//      }
+
+      // for PLANE triangulation, it is possible that everything must be scaled in order to have triangulation independent of range.
+      // unfortunately this may have dire consequences. At the meoment I pass unscaled X and Y
+      std::vector<double> coords;
+//      for (DLong i = 0; i < npts; ++i) {coords.push_back(xx[i]/maxVal);coords.push_back(yy[i]/maxVal);}
+      for (DLong i = 0; i < npts; ++i) {coords.push_back(xx[i]);coords.push_back(yy[i]);}
+      delaunator::Delaunator tri(coords);
       
-      SizeT listsize=6*npts-12;
-      DLong* list=(DLong*)malloc(listsize*sizeof(DLong));
-      DLong* lptr=(DLong*)malloc(listsize*sizeof(DLong));
-      DLong* lend=(DLong*)malloc(npts*sizeof(DLong));
-      DLong* near__=(DLong*)malloc(npts*sizeof(DLong)); //"near" is reserved in Windows C.
-      DLong* next=(DLong*)malloc(npts*sizeof(DLong));
-      DDouble* dist=(DDouble*)malloc(npts*sizeof(DDouble));
-      DLong ier=0;
-      DLong lnew=0;
-      DLong l_npts=npts;
-      DLong* originalIndex=(DLong*)malloc(npts*sizeof(DLong));
-      for (DLong i = 0; i < npts; ++i) originalIndex[i]=i;
-
-      //Try first with the simple case of all points OK, if perchance the list of points is OK we gain time:
-      DLong ret1 = tripack::trmesh_(&l_npts, xx, yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
-      DLong Offset=2;
-      if (ier != 0) {
-        //OK, complicated case.
-
-        //The first 3 points passed to TriPack must NOT be colinear (according to Tripack).
-        //In many cases the points are on a grid, so we need to find the first noncolinear 3 points and start the triangulation there.
-        //The N first colinear points can be added afterwards.
-        //Test colinearity:
-
-        bool colinear = true;
-        while (Offset < npts && colinear) {
-          if (!tripack::colin_(xx[Offset-2], yy[Offset-2], xx[Offset - 1], yy[Offset - 1], xx[Offset], yy[Offset])) {
-            colinear = false;
-            break;
-          }
-          Offset++;
-        }
-        if (colinear) e->Throw("Points are co-linear, no solution.");
-
-        //At this point, either there were duplicates (colinear) or colinear points.
-
-        //we will work on a copy. To hell with speed, this is not optimized.
-        DDouble* l_xx = (DDouble*) malloc(l_npts * sizeof (DDouble));
-        DDouble* l_yy = (DDouble*) malloc(l_npts * sizeof (DDouble));
-        //start with Offset and add the points before Offset at the end. 
-        memcpy(l_xx, xx, l_npts * sizeof (DDouble));
-        memcpy(l_yy, yy, l_npts * sizeof (DDouble));
-        if (Offset != 2) { // exchange Offset and position 0. It is fundamental that it is position 0 and not 1 or 2.
-          l_xx[Offset] = xx[0];
-          l_xx[0] = xx[Offset];
-          l_yy[Offset] = yy[0];
-          l_yy[0] = yy[Offset];
-          originalIndex[0] = Offset;
-          originalIndex[Offset] = 0;
-        }
-        // if ndupes > 0 we have to take into account that several returned indexes in the list have been changed wrt the original because of the list shortening
-        // by elimination of the duplicates. So we have to create a table of correspondence.
-
-        // redo triangulation, hope it works:
-        ret1 = tripack::trmesh_(&l_npts, l_xx, l_yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
-        if (ier != 0) {
-          if (ier > 0) { //this can happen.
-            // and, yes, it would be more efficient to use tripack::addnod_()
-            while (ier > 0) {
-              ier--;
-              DLong m = 0;
-              for (DLong i = 0; i < lnew - 1; ++i) if (list[i] > m) m = list[i]; //simple way to compute where we are
-              dupes.push_back(make_pair(originalIndex[ier], originalIndex[m])); // value at index 'm' is identical to the one at 'ier'
-              //remove node "m" and add +1 to originalIndex starting at 'm'
-              for (DLong i = m; i < l_npts - 1; ++i) {
-                l_xx[i] = l_xx[i + 1];
-                l_yy[i] = l_yy[i + 1];
-                originalIndex[i] = originalIndex[i + 1];
-              }
-              l_npts--;
-              ret1 = tripack::trmesh_(&l_npts, l_xx, l_yy, list, lptr, lend, &lnew, near__, next, dist, &ier);
-              if (ier < 0) e->Throw("Internal Error, please report."); //Should not happen
-            }
-            free(l_xx);
-            free(l_yy);
-          }
-          //the rest SHOULD NOT HAPPEN:
-          else if (ier == -2) e->Throw("Internal Error, points are co-linear, no solution, please report."); //Should not happen
-          else if (ier == -1) e->Throw("Internal Error, not enough valid and unique points specified, please report."); //ier==-1 impossible (npoints < 3)
-            //ier==-4 internal error should be reported! -- never happened in 40 years
-          else if (ier == -4) e->Throw("Congratulations, you found the impossible: a set of points that triggers an internal error in TRMESH, please report!");
-          else e->Throw("Congratulations, you found an impossible error code of the TRIPACK package, please report.");
-          }
-      }
-      DLong ndupes=dupes.size();
-      free(near__);
-      free(next);
-      free(dist); 
-      
-      //Dupes indexing is the original one.
+      DLong ndupes=tri.dupes.size();
       if (wantsDupes) {
-        if (dupes.size() ==0) {
+        if (ndupes ==0) {
           DLongGDL* nothing=new DLongGDL(dimension(2),BaseGDL::ZERO); 
           nothing->Dec();
           e->SetKW(dupesIx, nothing);
         }
         else {
-          DLongGDL* returned_dupes = new DLongGDL(dimension(2,dupes.size()), BaseGDL::NOZERO);
-          for (DLong i = 0; i < dupes.size(); ++i) {
-            (*returned_dupes)[2*i+0]=dupes[i].first;
-            (*returned_dupes)[2*i+1]=dupes[i].second;
+          DLongGDL* returned_dupes = new DLongGDL(dimension(2,ndupes), BaseGDL::NOZERO);
+          for (DLong i = 0; i < ndupes; ++i) {
+            (*returned_dupes)[2*i+0]=tri.dupes[i].first;
+            (*returned_dupes)[2*i+1]=tri.dupes[i].second;
           } 
           e->SetKW(dupesIx, returned_dupes);
         }
       }
       
-      //All indexes in the returned arrays must be replaced by those of originalIndex.
-
-      if (wantsTriangles) {
-        //convert to triangle list
-        DLong noconstraints = 0;
-        DLong dummylistofconstraints = 0;
-        DLong nrow = 6; //no arcs.
-        DLong* ltri = (DLong*) malloc((12 * l_npts) * sizeof (DLong));
-        DLong lct = 0;
-        DLong ntriangles = 0;
-        DLong ret2 = tripack::trlist_(&noconstraints, &dummylistofconstraints, &l_npts, list, lptr, lend, &nrow, &ntriangles, ltri, &lct, &ier);
-        if (ier != 0)
-        {
-          free(ltri);
-          free(list);
-          free(lptr);
-          free(lend);
-          e->Throw("Unexpected Error in TRIPACK, TRLIST routine. Please report.");
-        }
+       if (wantsTriangles) {
+         DLong ntriangles=tri.triangles.size()/3;
+         //convert to triangle list
         SizeT d[2];
         d[1] = ntriangles;
         d[0] = 3;
-        DLongGDL* returned_triangles = new DLongGDL(dimension(d, 2), BaseGDL::NOZERO);
+        DLongGDL* returned_triangles = new DLongGDL(dimension(d, 2), BaseGDL::NOZERO);        
         for (DLong j = 0; j < ntriangles; ++j)
         {
-          for (int i = 0; i < 3; ++i)
-          {
-            (*returned_triangles)[3 * j + i] = originalIndex[ltri[6 * j + i] - 1]; //our nubering starts a 0.
-          }
+          (*returned_triangles)[3 * j + 0] = tri.triangles[3*j+0]; 
+          (*returned_triangles)[3 * j + 2] = tri.triangles[3*j+1]; 
+          (*returned_triangles)[3 * j + 1] = tri.triangles[3*j+2]; //write it counterclockwise as IDL does.
         }
-        free(ltri);
-        //pass back to GDL env:
         e->SetPar(2, returned_triangles);
+       }
+      // get Hull values needed at two places.
+      std::vector<size_t> hull;
+      if (wantsEdge || wantsConnectivity) {
+        size_t index = tri.hull_start;
+        hull.push_back(index);
+        index = tri.hull_next[index];
+        while (index != tri.hull_start) {
+          hull.push_back(index);
+          index = tri.hull_next[index];
+        };
       }
-      
       if (wantsEdge) {
-        DLong* nodes=(DLong*)malloc(l_npts*sizeof(DLong));
-        DLong nb=0;
-        DLong na=0;
-        DLong nt=0;
-        DLong ret3=tripack::bnodes_(&l_npts, list, lptr, lend, nodes, &nb, &na, &nt);
+        DLong nb=hull.size();
         DLongGDL* returned_edges = new DLongGDL(nb, BaseGDL::NOZERO);
-        for (DLong j = 0; j < nb; ++j) (*returned_edges)[j]=originalIndex[nodes[j]-1];
-        free(nodes);
+        for (DLong j = 0; j < nb; ++j) (*returned_edges)[j]=hull[nb-1-j]; //write it counterclockwise as IDL does.
         e->SetPar(3, returned_edges);
       }
-      
       if (wantsConnectivity) {
-        //remove 1 to get C array indexes.
-        for (DLong i = 0; i < lnew-1; ++i) lptr[i]--; 
-        for (DLong i = 0; i < l_npts; ++i) lend[i]--;
+        const std::size_t INVALID_INDEX = (std::numeric_limits<std::size_t>::max)();
+       // as described in https://mapbox.github.io/delaunator/ it is not straightforward as there is no direct link points<->half-edges.
+       // let's build a map with a half-edge for each point, which will be a starting half-edge for connectivity.
+       //*** NOTE: CONNECTIVITY is oriented as in IDL 'naturally' ***
+        std::map<size_t,size_t>accel; //key is point, value is the out half-edge.
+        for (size_t e=0; e<tri.triangles.size();++e) {
+           size_t endpoint = tri.triangles[nextHalfedge(e)];
+           if (accel.find(endpoint)==accel.end() || tri.halfedges[e]==INVALID_INDEX ) accel.insert(std::pair<size_t,size_t>(endpoint,e));
+        }
+        // Now, points on hull will need a special treatment, as we must start the connectivity exploration at the previous hull position
+        // otherwise the connectivity search will end prematurely on a INVALID_INDEX
+        // We have computed the hull point list: for each hull point, find the halfedge that goes from the previous hull point to it.
+        //This is the halfedge to start with in accel:
+        for (int i=0; i< hull.size(); ++i) {
+          size_t point=hull[i]; //this is an existing point by construction, not a duplicate in dupes.
+          size_t nextpt=(i==0)?hull[hull.size()-1]:hull[i-1]; //idem.
+          std::map<size_t, size_t>::iterator iter = accel.find(nextpt);
+          size_t start = (*iter).second; //one of the halfedges starting with current point
+          size_t incoming=start;
+          //get adjacent halfedges until point is encountered.
+          size_t outgoing;
+          do {
+            outgoing = nextHalfedge(incoming); //the ougoing halfegde -> the point k in fact:  assert(tri.triangles[outgoing]==effective_index[k]);
+            incoming = tri.halfedges[outgoing]; //the following incoming half-edge
+          } while (incoming!=INVALID_INDEX); //stop when halfedge going to 'point' is found. 
+          iter = accel.find(point);
+          accel.erase(iter);
+          accel.insert(std::pair<size_t,size_t>(point,outgoing));
+        }
+        
         //in connectivity we MUST have all the points, even the duplicated ones. Connectivity of duplicated points is wrong with IDL (intentional?).
         // we could avoid this easily as I believe this is an IDL bug. We just have to reproduce the connectivity of the first encounter
         // of the duplicated point.
         DLong* array=(DLong*)malloc((npts*npts+npts+1)*sizeof(DLong)); // size > max possible connectivity 
-        DLong runningindex = npts+1; // and not l_npts: we report for all points 
+        DLong runningindex = npts+1; // we report for all points 
         DLong startindex=0;
         array[startindex++]= npts+1;
         DLong* effective_index=(DLong*)malloc(npts*sizeof(DLong));//this is the list of npts vertexes for which we want the neighbour. It must be
         // the  list of l_npts (returned) indexes, with indexes of the first instance of duplicated points for the duplicated points.
-        if (ndupes == 0) for (DLong i=0; i< npts; ++i) effective_index[i]=i; //easy
-        else { //piecewise index construction, each time dupes.second is encountered, insert dupes.first instead of increasing index:
-          DLong i=0; DLong k=0; //i:index from 0 to l_npts-1., k running index of 0 to npts-1
+        for (DLong i=0; i< npts; ++i) effective_index[i]=i;
+        if (ndupes != 0) { 
           for (DLong idup=0; idup< ndupes; ++idup) {
-            DLong encounter=dupes[idup].second;
-            while (k<encounter) effective_index[k++]=i++;
-            effective_index[k++]=dupes[idup].first;
+            DLong encounter=tri.dupes[idup].second;
+            effective_index[encounter]=tri.dupes[idup].first;
           }
-          while (k<npts) effective_index[k++]=i++;
-        }
-        //nice except that we may have exchanged Offset and 0 in the first place, so effective_index should reflect this
-        if (Offset != 2) {
-          DLong tmp=effective_index[Offset];
-          effective_index[Offset] = effective_index[0];
-          effective_index[0] = tmp;
         }
         
         for (DLong k = 0; k < npts; ++k) { 
-          DLong i=effective_index[k]; 
-          //is it an exterior point? Yes if the termination of the connectivity list is exterior.
-          DLong lpl=lend[i];
-          if (list[lpl]<0) array[runningindex++]=originalIndex[i]; //exterior - we write it
-          //write all points until nfin=lend[i] is found again using lptr connectivity pointers:
-          DLong lp=lpl; //see nbcnt_()
+          //find the triangle in accel:
+          size_t point=effective_index[k];
+
+          //if point is in the hull, make provision to add point itself at start and next point at end.
+          size_t nextpt;
+          bool isHull=false;
+          for (int i = 0; i < hull.size(); ++i) {
+            if (hull[i] == point) {
+              isHull=true;
+              nextpt = ((i + 1) >= hull.size()) ? hull[0] : hull[i + 1];
+              array[runningindex++] = point;
+              break;
+            }
+          }
+          std::map<size_t, size_t>::iterator iter = accel.find(point);
+          size_t start = (*iter).second; //one of the halfedges starting with current point
+          size_t incoming=start;
+          //get adjacent halfedges and write their end points to connectivity until all encountered.
           do {
-            lp=lptr[lp];
-            array[runningindex]=(list[lp]>0)?list[lp]-1:(-list[lp])-1;
-            array[runningindex]=originalIndex[array[runningindex]];
-            runningindex++;
-          } while (lp!=lpl);
+            array[runningindex++]=tri.triangles[incoming]; //the point outgoing halfedge ends. 
+            size_t outgoing = nextHalfedge(incoming); //the ougoing halfegde -> the point k in fact:  assert(tri.triangles[outgoing]==effective_index[k]);
+            incoming = tri.halfedges[outgoing]; //the following incoming half-edge
+          } while (incoming!=INVALID_INDEX && incoming != start); //stop when start halfedge is found.
+          if (isHull) array[runningindex++] = nextpt;
           array[startindex++]=runningindex;
         }
         DLongGDL* connections = new DLongGDL(runningindex, BaseGDL::NOZERO);
         for (DLong i = 0; i < runningindex; ++i) (*connections)[i]=array[i];
         e->SetKW(connIx,connections);
         free(array);
-      }
-      //cleanup
-      free(list);
-      free(lptr);
-      free(lend);
-      if (maxVal > 0) {
-        for (DLong i = 0; i < npts; ++i) xx[i] *= maxVal;
-        for (DLong i = 0; i < npts; ++i) yy[i] *= maxVal;
       }
     }
   }
@@ -659,394 +587,533 @@ namespace lib {
   }
 
   template< typename T1, typename T2>
-  void gdlGrid2DData(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, DLongGDL* tri, 
-      DDoubleGDL* xVal, DDoubleGDL* yVal, T1* zVal, bool domaxvalue, 
-      bool dominvalue, T2 maxVal, T2 minVal, T2 missVal, T1* res, bool input) {
-    //   Compute plane parameters A,B,C given 3 points on plane.
-    //
-    //   z = A + Bx + Cy
-    //
-    //       (^x21^z10 - ^x10^z21)
-    //   C = --------------------- 
-    //       (^x21^y10 - ^x10^y21)
-    //
-    //       (^z10 - C*^y10)
-    //   B = ---------------
-    //            ^x10
-    //
-    //   A = z - Bx -Cy
-    //
-    //   where ^x21 = x2 - x1, etc.
+  void gdlGrid2DData(DLong nx, DDouble* x, DLong xref, DDouble xval, DDouble xinc, DLong ny, DDouble* y, DLong yref, DDouble yval, DDouble yinc, DLong ntri, DLongGDL* tri,
+    DDoubleGDL* xVal, DDoubleGDL* yVal, T1* zVal, bool domaxvalue,
+    bool dominvalue, T2 maxVal, T2 minVal, T1* res, bool input) {
 
-    bool *found = new bool [nx * ny];
-    for (SizeT i = 0; i < nx * ny; ++i) found[i] = false;
+    if (dominvalue || domaxvalue) {
+      for (SizeT triIndex = 0; triIndex < ntri; ++triIndex) {
+        // first, find whose region of grid is concerned by this triangle: boundingBox.
+        DDouble xmin;
+        DDouble xmax;
+        DDouble ymin;
+        DDouble ymax;
+        DDouble x1, y1, x2, y2, x3, y3;
+        x1 = (*xVal)[(*tri)[3 * triIndex]];
+        y1 = (*yVal)[(*tri)[3 * triIndex]];
+        x2 = (*xVal)[(*tri)[3 * triIndex + 1]];
+        y2 = (*yVal)[(*tri)[3 * triIndex + 1]];
+        x3 = (*xVal)[(*tri)[3 * triIndex + 2]];
+        y3 = (*yVal)[(*tri)[3 * triIndex + 2]];
+        xmin = x1 < x2 ? (x1 < x3 ? x1 : x3) : (x2 < x3 ? x2 : x3);
+        ymin = y1 < y2 ? (y1 < y3 ? y1 : y3) : (y2 < y3 ? y2 : y3);
+        xmax = x1 > x2 ? (x1 > x3 ? x1 : x3) : (x2 > x3 ? x2 : x3);
+        ymax = y1 > y2 ? (y1 > y3 ? y1 : y3) : (y2 > y3 ? y2 : y3);
 
-    // *** LOOP THROUGH TRIANGLES *** //
-    DDouble diff[3][2];
-    DDouble edge[3][3];
+        // x=(i-xref)*xinc+xval; -> i=(x-xval)/xinc+xref
+        int pxmin = ((xmin - xval) / xinc) + xref;
+        pxmin = (pxmin < 0) ? 0 : pxmin;
+        int pxmax = ((xmax - xval) / xinc) + xref + 1;
+        pxmax = (pxmax > nx) ? nx : pxmax;
+        pxmax = (pxmax < pxmin) ? pxmin : pxmax;
+        int pymin = ((ymin - yval) / yinc) + yref;
+        pymin = (pymin < 0) ? 0 : pymin;
+        int pymax = ((ymax - yval) / yinc) + yref + 1;
+        pymax = (pymax > ny) ? ny : pymax;
+        pymax = (pymax < pymin) ? pymin : pymax;
 
-    DDouble delx10;
-    DDouble delx21;
-    DDouble dely10;
-    DDouble dely21;
-    DDouble delz10;
-    DDouble delz21;
-    DDouble A, B, C;
+        DDouble zc = (*zVal)[(*tri)[3 * triIndex + 2]];
+        DDouble zac = (*zVal)[(*tri)[3 * triIndex]] - zc;
+        DDouble zbc = (*zVal)[(*tri)[3 * triIndex + 1]] - zc;
+        DDouble y23 = (y2 - y3);
+        DDouble x32 = (x3 - x2);
+        DDouble y31 = (y3 - y1);
+        DDouble x13 = (x1 - x3);
+        DDouble det = (y23 * x13 - x32 * y31);
+        DDouble minD = (det<0)?det:0 ; // we MUST be agnostic as to the orientation of the triangle, even if TRIANGULATE is clockwise.
+        DDouble maxD = (det>0)?det:0;
+        for (SizeT iy = pymin; iy < pymax; ++iy) {
+          DDouble dy = y[iy] - y3;
+          DLong start = iy*nx;
+          for (SizeT ix = pxmin; ix < pxmax; ++ix) {
+            DDouble dx = x[ix] - x3;
+            DDouble a = y23 * dx + x32 * dy;
+            if (a < minD || a > maxD) continue;
+            DDouble b = y31 * dx + x13 * dy;
+            if (b < minD || b > maxD) continue;
+            DDouble c = det - a - b;
+            if (c < minD || c > maxD) continue;
+            DDouble valbis = (a * zac + b * zbc) / det + zc;
+            if ((dominvalue && valbis < minVal) || (domaxvalue && valbis > maxVal)) {
+            } else (*res)[start + ix] = valbis;            
+          } //ix loop
+        } // iy
+      } //tri
+    } else {
+        for (SizeT triIndex = 0; triIndex < ntri; ++triIndex) {
+        // first, find whose region of grid is concerned by this triangle: boundingBox.
+        DDouble xmin;
+        DDouble xmax;
+        DDouble ymin;
+        DDouble ymax;
+        DDouble x1, y1, x2, y2, x3, y3;
+        x1 = (*xVal)[(*tri)[3 * triIndex]];
+        y1 = (*yVal)[(*tri)[3 * triIndex]];
+        x2 = (*xVal)[(*tri)[3 * triIndex + 1]];
+        y2 = (*yVal)[(*tri)[3 * triIndex + 1]];
+        x3 = (*xVal)[(*tri)[3 * triIndex + 2]];
+        y3 = (*yVal)[(*tri)[3 * triIndex + 2]];
+        xmin = x1 < x2 ? (x1 < x3 ? x1 : x3) : (x2 < x3 ? x2 : x3);
+        ymin = y1 < y2 ? (y1 < y3 ? y1 : y3) : (y2 < y3 ? y2 : y3);
+        xmax = x1 > x2 ? (x1 > x3 ? x1 : x3) : (x2 > x3 ? x2 : x3);
+        ymax = y1 > y2 ? (y1 > y3 ? y1 : y3) : (y2 > y3 ? y2 : y3);
 
-    // Loop through all triangles
-    for (SizeT i = 0; i < ntri; ++i)
-    {
-      //find rotation such as delx10 is not NULL, as THIS HAPPENS for REGULAR-GRIDDED DATA.
-      //Note that, A,B,C coefficients of the plane do not depend on the order of the triangle,
-      //provided the triangle orientation is kept.
-      DLong tri0 , tri1 , tri2;
-      int k=0;
-      for (; k < 2; ++k) {
-        tri0 = (*tri)[3 * i + k % 3];
-        tri1 = (*tri)[3 * i + (k + 1) % 3];
-        tri2 = (*tri)[3 * i + (k + 2) % 3];
-        delx10 = (*xVal)[tri1] - (*xVal)[tri0];
-        delx21 = (*xVal)[tri2] - (*xVal)[tri1];
+        // x=(i-xref)*xinc+xval; -> i=(x-xval)/xinc+xref
+        int pxmin = ((xmin - xval) / xinc) + xref;
+        pxmin = (pxmin < 0) ? 0 : pxmin;
+        int pxmax = ((xmax - xval) / xinc) + xref + 1 ;
+        pxmax = (pxmax > nx ) ? nx : pxmax;
+        pxmax = (pxmax < pxmin) ? pxmin : pxmax;
+        int pymin = ((ymin - yval) / yinc) + yref;
+        pymin = (pymin < 0) ? 0 : pymin;
+        int pymax = ((ymax - yval) / yinc) + yref + 1;
+        pymax = (pymax > ny) ? ny : pymax;
+        pymax = (pymax < pymin) ? pymin : pymax;
 
-        dely10 = (*yVal)[tri1] - (*yVal)[tri0];
-        dely21 = (*yVal)[tri2] - (*yVal)[tri1];
-
-        if ((abs(delx10) > 10 * std::numeric_limits<DDouble>::epsilon()) && (abs(delx21 * dely10 - delx10 * dely21) > 10 * std::numeric_limits<DDouble>::epsilon())) break;
-      }
-      delx10 = (*xVal)[tri1] - (*xVal)[tri0];
-      delx21 = (*xVal)[tri2] - (*xVal)[tri1];
-
-      dely10 = (*yVal)[tri1] - (*yVal)[tri0];
-      dely21 = (*yVal)[tri2] - (*yVal)[tri1];
-
-      delz10 = (*zVal)[tri1] - (*zVal)[tri0];
-      delz21 = (*zVal)[tri2] - (*zVal)[tri1];
-      
-      C = (delx21 * delz10 - delx10 * delz21) /
-        (delx21 * dely10 - delx10 * dely21);
-      B = (delz10 - C * dely10) / delx10;
-      A = (*zVal)[tri0] - B * (*xVal)[tri0] - C * (*yVal)[tri0];
-
-      // Compute grid array
-      for (SizeT j = 0; j < 3; ++j)
-      {
-        DLong itri = (*tri)[3 * i + j];
-        DLong ktri = (*tri)[3 * i + ((j + 1) % 3)];
-        edge[j][0] = (*xVal)[ktri] - (*xVal)[itri];
-        edge[j][1] = (*yVal)[ktri] - (*yVal)[itri];
-      }
-
-      // *** LOOP THROUGH GRID POINTS *** //
-      if (domaxvalue || dominvalue)
-      {
-        // Loop through all y-grid values
-        for (SizeT iy = 0; iy < ny; ++iy)
-        {
-          // Loop through all x-grid values
-          for (SizeT ix = 0; ix < nx; ++ix)
-          {
-            if (found[iy * nx + ix]) continue;
-
-            bool inside = true;
-
-            // *** PLANE INTERPOLATION *** //
-
-            // Compute diff array for xy-values
-            for (SizeT j = 0; j < 3; ++j)
-            {
-              DLong itri = (*tri)[3 * i + j];
-              diff[j][0] = (*xVal)[itri] - x[ix];
-              diff[j][1] = (*yVal)[itri] - y[iy];
-            }
-
-
-            // Determine if inside triangle
-            for (SizeT ivert = 0; ivert < 3; ++ivert)
-            {
-              DLong kvert = (ivert + 1) % 3;
-
-              DDouble crs1;
-              DDouble crs2;
-              crs1 = diff[ivert][0] * edge[ivert][1] - diff[ivert][1] * edge[ivert][0];
-              crs2 = edge[kvert][0] * edge[ivert][1] - edge[kvert][1] * edge[ivert][0];
-              if (crs1 * crs2 > 0)
-              {
-                inside = false;
-                break;
-              }
-            }
-
-            if (inside == true)
-            {
-              found[iy * nx + ix] = true;
-              DDouble dres = A + B * x[ix] + C * y[iy];
-              if ((dominvalue && dres < minVal) || (domaxvalue && dres > maxVal))
-              {
-                if (!input) (*res)[iy * nx + ix] = missVal;
-              } else
-              {
-                (*res)[iy * nx + ix] = dres;
-              }
-            }
-
-          } // ix loop
-        } // iy loop
-      }//if minmax
-      else
-      {
-        // Loop through all y-grid values
-        for (SizeT iy = 0; iy < ny; ++iy)
-        {
-          // Loop through all x-grid values
-          for (SizeT ix = 0; ix < nx; ++ix)
-          {
-            if (found[iy * nx + ix]) continue;
-
-            bool inside = true;
-
-            // *** PLANE INTERPOLATION *** //
-
-            // Compute diff array for xy-values
-            for (SizeT j = 0; j < 3; ++j)
-            {
-              DLong itri = (*tri)[3 * i + j];
-              diff[j][0] = (*xVal)[itri] - x[ix];
-              diff[j][1] = (*yVal)[itri] - y[iy];
-            }
-
-
-            // Determine if inside triangle
-            for (SizeT ivert = 0; ivert < 3; ++ivert)
-            {
-              DLong kvert = (ivert + 1) % 3;
-
-              DDouble crs1;
-              DDouble crs2;
-              crs1 = diff[ivert][0] * edge[ivert][1] - diff[ivert][1] * edge[ivert][0];
-              crs2 = edge[kvert][0] * edge[ivert][1] - edge[kvert][1] * edge[ivert][0];
-              if (crs1 * crs2 > 0)
-              {
-                inside = false;
-                break;
-              }
-            }
-
-            if (inside == true)
-            {
-              found[iy * nx + ix] = true;
-              (*res)[iy * nx + ix] = A + B * x[ix] + C * y[iy];
-            }
-
-          } // ix loop
-        }
-      }
-    } // i (triangle) loop
-
-    delete[] found;
-
+        DDouble zc  = (*zVal)[(*tri)[3 * triIndex + 2]];
+        DDouble zac = (*zVal)[(*tri)[3 * triIndex]] - zc;
+        DDouble zbc = (*zVal)[(*tri)[3 * triIndex + 1]] - zc;
+        DDouble y23 = (y2 - y3);
+        DDouble x32 = (x3 - x2);
+        DDouble y31 = (y3 - y1);
+        DDouble x13 = (x1 - x3);
+        DDouble det = (y23 * x13 - x32 * y31);
+        DDouble minD = (det<0)?det:0 ; // we MUST be agnostic as to the orientation of the triangle, even if TRIANGULATE is clockwise.
+        DDouble maxD = (det>0)?det:0;
+        for (SizeT iy = pymin; iy < pymax; ++iy) {
+          DDouble dy = y[iy]-y3;
+          DLong start = iy*nx;
+          for (SizeT ix = pxmin; ix < pxmax; ++ix) {
+            DDouble dx = x[ix]-x3; 
+            DDouble a = y23 * dx + x32 * dy;
+            if (a < minD || a > maxD) continue;
+            DDouble b = y31 * dx + x13 * dy;
+            if (b < minD || b > maxD) continue;
+            DDouble c = det - a - b;
+            if (c < minD || c > maxD) continue;
+            (*res)[start + ix] = (a * zac + b * zbc)/det + zc;
+          } //ix loop
+        } // iy
+      } //tri
+    }
   }
-//version for Complex Values.
-  template<>
-  void gdlGrid2DData(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, 
-    DLongGDL* tri, DDoubleGDL* xVal, DDoubleGDL* yVal, 
-    DComplexDblGDL* zVal, bool domaxvalue, bool dominvalue, DComplexDbl maxVal,
-    DComplexDbl minVal, DComplexDbl missVal, DComplexDblGDL* res, bool input) {
-    //   Compute plane parameters A,B,C given 3 points on plane.
-    //
-    //   z = A + Bx + Cy
-    //
-    //       (^x21^z10 - ^x10^z21)
-    //   C = --------------------- 
-    //       (^x21^y10 - ^x10^y21)
-    //
-    //       (^z10 - C*^y10)
-    //   B = ---------------
-    //            ^x10
-    //
-    //   A = z - Bx -Cy
-    //
-    //   where ^x21 = x2 - x1, etc.
 
-    bool *found = new bool [nx * ny];
-    for (SizeT i = 0; i < nx * ny; ++i) found[i] = false;
+  void gdlGrid2DDataCpx(DLong nx, DDouble* x, DLong xref, DDouble xval, DDouble xinc, DLong ny, DDouble* y, DLong yref, DDouble yval, DDouble yinc, DLong ntri, DLongGDL* tri,
+    DDoubleGDL* xVal, DDoubleGDL* yVal, DComplexDblGDL* zVal, bool domaxvalue,
+    bool dominvalue, DComplexDbl maxVal, DComplexDbl minVal, DComplexDblGDL* res, bool input) {
 
-    // *** LOOP THROUGH TRIANGLES *** //
-    DDouble diff[3][2];
-    DDouble edge[3][3];
+    if (dominvalue || domaxvalue) {
+      for (SizeT triIndex = 0; triIndex < ntri; ++triIndex) {
+        // first, find whose region of grid is concerned by this triangle: boundingBox.
+        DDouble xmin;
+        DDouble xmax;
+        DDouble ymin;
+        DDouble ymax;
+        DDouble x1, y1, x2, y2, x3, y3;
+        x1 = (*xVal)[(*tri)[3 * triIndex]];
+        y1 = (*yVal)[(*tri)[3 * triIndex]];
+        x2 = (*xVal)[(*tri)[3 * triIndex + 1]];
+        y2 = (*yVal)[(*tri)[3 * triIndex + 1]];
+        x3 = (*xVal)[(*tri)[3 * triIndex + 2]];
+        y3 = (*yVal)[(*tri)[3 * triIndex + 2]];
+        xmin = x1 < x2 ? (x1 < x3 ? x1 : x3) : (x2 < x3 ? x2 : x3);
+        ymin = y1 < y2 ? (y1 < y3 ? y1 : y3) : (y2 < y3 ? y2 : y3);
+        xmax = x1 > x2 ? (x1 > x3 ? x1 : x3) : (x2 > x3 ? x2 : x3);
+        ymax = y1 > y2 ? (y1 > y3 ? y1 : y3) : (y2 > y3 ? y2 : y3);
 
-    DDouble delx10;
-    DDouble delx21;
-    DDouble dely10;
-    DDouble dely21;
-    DDouble delz10r;
-    DDouble delz10i;
-    DDouble delz21r;
-    DDouble delz21i;
-    DDouble Ar, Br, Cr, Ai, Bi, Ci;
+        // x=(i-xref)*xinc+xval; -> i=(x-xval)/xinc+xref
+        int pxmin = ((xmin - xval) / xinc) + xref;
+        pxmin = (pxmin < 0) ? 0 : pxmin;
+        int pxmax = ((xmax - xval) / xinc) + xref + 1;
+        pxmax = (pxmax > nx) ? nx : pxmax;
+        pxmax = (pxmax < pxmin) ? pxmin : pxmax;
+        int pymin = ((ymin - yval) / yinc) + yref;
+        pymin = (pymin < 0) ? 0 : pymin;
+        int pymax = ((ymax - yval) / yinc) + yref + 1;
+        pymax = (pymax > ny) ? ny : pymax;
+        pymax = (pymax < pymin) ? pymin : pymax;
 
-    // Loop through all triangles
-    for (SizeT i = 0; i < ntri; ++i)
-    {
-      //find rotation such as delx10 is not NULL, as THIS HAPPENS for REGULAR-GRIDDED DATA.
-      //Note that, A,B,C coefficients of the plane do not depend on the order of the triangle,
-      //provided the triangle orientation is kept.
-      DLong tri0 , tri1 , tri2;
-      int k=0;
-      for (; k<2; ++k) {
-        tri0 = (*tri)[3 * i + k%3];
-        tri1 = (*tri)[3 * i + (k+1)%3];
-        tri2 = (*tri)[3 * i + (k+2)%3];
-        delx10 = (*xVal)[tri1] - (*xVal)[tri0];
-        if (abs(delx10) > 10 * std::numeric_limits<DDouble>::epsilon()) break;
-      }
+        DComplexDbl zc = (*zVal)[(*tri)[3 * triIndex + 2]];
+        DComplexDbl zac = std::complex<double>((*zVal)[(*tri)[3 * triIndex]].real() - zc.real(), (*zVal)[(*tri)[3 * triIndex]].imag() - zc.imag());
+        DComplexDbl zbc = std::complex<double>((*zVal)[(*tri)[3 * triIndex + 1]].real() - zc.real(), (*zVal)[(*tri)[3 * triIndex + 1]].imag() - zc.imag());
+        DDouble y23 = (y2 - y3);
+        DDouble x32 = (x3 - x2);
+        DDouble y31 = (y3 - y1);
+        DDouble x13 = (x1 - x3);
+        DDouble det = (y23 * x13 - x32 * y31);
+        DDouble minD = (det<0)?det:0 ; // we MUST be agnostic as to the orientation of the triangle, even if TRIANGULATE is clockwise.
+        DDouble maxD = (det>0)?det:0;
+        for (SizeT iy = pymin; iy < pymax; ++iy) {
+          DDouble dy = y[iy] - y3;
+          DLong start = iy*nx;
+          for (SizeT ix = pxmin; ix < pxmax; ++ix) {
+            DDouble dx = x[ix] - x3;
+            DDouble a = y23 * dx + x32 * dy;
+            if (a < minD || a > maxD) continue;
+            DDouble b = y31 * dx + x13 * dy;
+            if (b < minD || b > maxD) continue;
+            DDouble c = det - a - b;
+            if (c < minD || c > maxD) continue;
+            DDouble valbisR = (a * zac.real() + b * zbc.real())/det + zc.real();
+            DDouble valbisI = (a * zac.imag() + b * zbc.imag())/det + zc.imag();
+            if ((dominvalue && valbisR < minVal.real()) || (domaxvalue && valbisR > maxVal.real())) { valbisR = (*res)[start + ix].real(); }
+            if ((dominvalue && valbisI < minVal.imag()) || (domaxvalue && valbisI > maxVal.imag())) { valbisI = (*res)[start + ix].imag(); }
+            (*res)[start + ix] = std::complex<double>(valbisR,valbisI);
+          } //ix loop
+        } // iy
+      } //tri
+    } else {
+      for (SizeT triIndex = 0; triIndex < ntri; ++triIndex) {
+        // first, find whose region of grid is concerned by this triangle: boundingBox.
+        DDouble xmin;
+        DDouble xmax;
+        DDouble ymin;
+        DDouble ymax;
+        DDouble x1, y1, x2, y2, x3, y3;
+        x1 = (*xVal)[(*tri)[3 * triIndex]];
+        y1 = (*yVal)[(*tri)[3 * triIndex]];
+        x2 = (*xVal)[(*tri)[3 * triIndex + 1]];
+        y2 = (*yVal)[(*tri)[3 * triIndex + 1]];
+        x3 = (*xVal)[(*tri)[3 * triIndex + 2]];
+        y3 = (*yVal)[(*tri)[3 * triIndex + 2]];
+        xmin = x1 < x2 ? (x1 < x3 ? x1 : x3) : (x2 < x3 ? x2 : x3);
+        ymin = y1 < y2 ? (y1 < y3 ? y1 : y3) : (y2 < y3 ? y2 : y3);
+        xmax = x1 > x2 ? (x1 > x3 ? x1 : x3) : (x2 > x3 ? x2 : x3);
+        ymax = y1 > y2 ? (y1 > y3 ? y1 : y3) : (y2 > y3 ? y2 : y3);
 
-      delx21 = (*xVal)[tri2] - (*xVal)[tri1];
+        // x=(i-xref)*xinc+xval; -> i=(x-xval)/xinc+xref
+        int pxmin = ((xmin - xval) / xinc) + xref;
+        pxmin = (pxmin < 0) ? 0 : pxmin;
+        int pxmax = ((xmax - xval) / xinc) + xref + 1;
+        pxmax = (pxmax > nx) ? nx : pxmax;
+        pxmax = (pxmax < pxmin) ? pxmin : pxmax;
+        int pymin = ((ymin - yval) / yinc) + yref;
+        pymin = (pymin < 0) ? 0 : pymin;
+        int pymax = ((ymax - yval) / yinc) + yref + 1;
+        pymax = (pymax > ny) ? ny : pymax;
+        pymax = (pymax < pymin) ? pymin : pymax;
 
-      dely10 = (*yVal)[tri1] - (*yVal)[tri0];
-      dely21 = (*yVal)[tri2] - (*yVal)[tri1];
+        DComplexDbl zc = (*zVal)[(*tri)[3 * triIndex + 2]];
+        DComplexDbl zac = std::complex<double>((*zVal)[(*tri)[3 * triIndex]].real() - zc.real(), (*zVal)[(*tri)[3 * triIndex]].imag() - zc.imag());
+        DComplexDbl zbc = std::complex<double>((*zVal)[(*tri)[3 * triIndex + 1]].real() - zc.real(), (*zVal)[(*tri)[3 * triIndex + 1]].imag() - zc.imag());
+        DDouble y23 = (y2 - y3);
+        DDouble x32 = (x3 - x2);
+        DDouble y31 = (y3 - y1);
+        DDouble x13 = (x1 - x3);
+        DDouble det = (y23 * x13 - x32 * y31);
+        DDouble minD = (det<0)?det:0 ; // we MUST be agnostic as to the orientation of the triangle, even if TRIANGULATE is clockwise.
+        DDouble maxD = (det>0)?det:0;
+        for (SizeT iy = pymin; iy < pymax; ++iy) {
+          DDouble dy = y[iy] - y3;
+          DLong start = iy*nx;
+          for (SizeT ix = pxmin; ix < pxmax; ++ix) {
+            DDouble dx = x[ix] - x3;
+            DDouble a = y23 * dx + x32 * dy;
+            if (a < minD || a > maxD) continue;
+            DDouble b = y31 * dx + x13 * dy;
+            if (b < minD || b > maxD) continue;
+            DDouble c = det - a - b;
+            if (c < minD || c > maxD) continue;
+            DDouble valbisR = (a * zac.real() + b * zbc.real())/det + zc.real();
+            DDouble valbisI = (a * zac.imag() + b * zbc.imag())/det + zc.imag();
+            (*res)[start + ix] = std::complex<double>(valbisR,valbisI);
+          } //ix loop
+        } // iy
+      } //tri
+    }
+  }
+  
+  template< typename T1, typename T2>
+  void gdlGrid2DData(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, DLongGDL* tri,
+    DDoubleGDL* xVal, DDoubleGDL* yVal, T1* zVal, bool domaxvalue,
+    bool dominvalue, T2 maxVal, T2 minVal, T1* res, bool input){
 
-      delz10r = (*zVal)[tri1].real() - (*zVal)[tri0].real();
-      delz10i = (*zVal)[tri1].imag() - (*zVal)[tri0].imag();
-      delz21r = (*zVal)[tri2].real() - (*zVal)[tri1].real();
-      delz21i = (*zVal)[tri2].imag() - (*zVal)[tri1].imag();
+    if (dominvalue || domaxvalue) {
+      for (SizeT triIndex = 0; triIndex < ntri; ++triIndex) {
+        // first, find whose region of grid is concerned by this triangle: boundingBox.
+        DDouble xmin;
+        DDouble xmax;
+        DDouble ymin;
+        DDouble ymax;
+        DDouble x1, y1, x2, y2, x3, y3;
+        x1 = (*xVal)[(*tri)[3 * triIndex]];
+        y1 = (*yVal)[(*tri)[3 * triIndex]];
+        x2 = (*xVal)[(*tri)[3 * triIndex + 1]];
+        y2 = (*yVal)[(*tri)[3 * triIndex + 1]];
+        x3 = (*xVal)[(*tri)[3 * triIndex + 2]];
+        y3 = (*yVal)[(*tri)[3 * triIndex + 2]];
+        xmin = x1 < x2 ? (x1 < x3 ? x1 : x3) : (x2 < x3 ? x2 : x3);
+        ymin = y1 < y2 ? (y1 < y3 ? y1 : y3) : (y2 < y3 ? y2 : y3);
+        xmax = x1 > x2 ? (x1 > x3 ? x1 : x3) : (x2 > x3 ? x2 : x3);
+        ymax = y1 > y2 ? (y1 > y3 ? y1 : y3) : (y2 > y3 ? y2 : y3);
 
-      Cr = (delx21 * delz10r - delx10 * delz21r) /  (delx21 * dely10 - delx10 * dely21);
-      Br = (delz10r - Cr * dely10) / delx10;
-      Ar = (*zVal)[tri0].real() - Br * (*xVal)[tri0] - Cr * (*yVal)[tri0];
-      Ci = (delx21 * delz10r - delx10 * delz21r) /  (delx21 * dely10 - delx10 * dely21);
-      Bi = (delz10i - Ci * dely10) / delx10;
-      Ai = (*zVal)[tri0].imag() - Bi * (*xVal)[tri0] - Ci * (*yVal)[tri0];
-
-      // Compute grid array
-      for (SizeT j = 0; j < 3; ++j) {
-        DLong itri = (*tri)[3 * i + j];
-        DLong ktri = (*tri)[3 * i + ((j + 1) % 3)];
-        edge[j][0] = (*xVal)[ktri] - (*xVal)[itri];
-        edge[j][1] = (*yVal)[ktri] - (*yVal)[itri];
-      }
-
-      // *** LOOP THROUGH GRID POINTS *** //
-      if (domaxvalue || dominvalue)
-      {
-        // Loop through all y-grid values
-        for (SizeT iy = 0; iy < ny; ++iy)
-        {
-          // Loop through all x-grid values
-          for (SizeT ix = 0; ix < nx; ++ix)
-          {
-            if (found[iy * nx + ix]) continue;
-
-            bool inside = true;
-
-            // *** PLANE INTERPOLATION *** //
-
-            // Compute diff array for xy-values
-            for (SizeT j = 0; j < 3; ++j)
-            {
-              DLong itri = (*tri)[3 * i + j];
-              diff[j][0] = (*xVal)[itri] - x[ix];
-              diff[j][1] = (*yVal)[itri] - y[iy];
-            }
-
-
-            // Determine if inside triangle
-            for (SizeT ivert = 0; ivert < 3; ++ivert)
-            {
-              DLong kvert = (ivert + 1) % 3;
-
-              DDouble crs1;
-              DDouble crs2;
-              crs1 = diff[ivert][0] * edge[ivert][1] - diff[ivert][1] * edge[ivert][0];
-              crs2 = edge[kvert][0] * edge[ivert][1] - edge[kvert][1] * edge[ivert][0];
-              if (crs1 * crs2 > 0)
-              {
-                inside = false;
-                break;
-              }
-            }
-
-            if (inside == true)
-            {
-              found[iy * nx + ix] = true;
-              DDouble dres = Ar + Br * x[ix] + Cr * y[iy];
-              if ((dominvalue && dres < minVal.real()) || (domaxvalue && dres > maxVal.real()))
-              {
-                if (!input)
-                {
-                  (*res)[iy * nx + ix].real(missVal.real());
-                } else
-                {
-                  ((*res)[iy * nx + ix]).real(dres);
-                }
-              }
-              dres = Ai + Bi * x[ix] + Ci * y[iy];
-              if ((dominvalue && dres < minVal.imag()) || (domaxvalue && dres > maxVal.imag()))
-              {
-                if (!input)
-                {
-                  (*res)[iy * nx + ix].imag(missVal.imag());
-                } else
-                {
-                  ((*res)[iy * nx + ix]).imag(dres);
-                }
-              }
-            }
-          } // ix loop
-        } // iy loop
-      }//if minmax
-      else
-      {
-        // Loop through all y-grid values
-        for (SizeT iy = 0; iy < ny; ++iy)
-        {
-          // Loop through all x-grid values
-          for (SizeT ix = 0; ix < nx; ++ix)
-          {
-            if (found[iy * nx + ix]) continue;
-
-            bool inside = true;
-
-            // *** PLANE INTERPOLATION *** //
-
-            // Compute diff array for xy-values
-            for (SizeT j = 0; j < 3; ++j)
-            {
-              DLong itri = (*tri)[3 * i + j];
-              diff[j][0] = (*xVal)[itri] - x[ix];
-              diff[j][1] = (*yVal)[itri] - y[iy];
-            }
-
-
-            // Determine if inside triangle
-            for (SizeT ivert = 0; ivert < 3; ++ivert)
-            {
-              DLong kvert = (ivert + 1) % 3;
-
-              DDouble crs1;
-              DDouble crs2;
-              crs1 = diff[ivert][0] * edge[ivert][1] - diff[ivert][1] * edge[ivert][0];
-              crs2 = edge[kvert][0] * edge[ivert][1] - edge[kvert][1] * edge[ivert][0];
-              if (crs1 * crs2 > 0)
-              {
-                inside = false;
-                break;
-              }
-            }
-
-            if (inside == true)
-            {
-              found[iy * nx + ix] = true;
-              (*res)[iy * nx + ix].real(Ar + Br * x[ix] + Cr * y[iy]);
-              (*res)[iy * nx + ix].imag(Ai + Bi * x[ix] + Ci * y[iy]);
-            }
-
-          } // ix loop
+        // find first and last index of x and y that will intersect this BBox
+        DLong k = 0;
+        while (k < (nx - 1) && x[k + 1] < xmin) {
+          k++;
         }
-      }
-    } // i (triangle) loop
+        int pxmin = k;
+        while (k < (nx - 1) && x[k + 1] < xmax) {
+          k++;
+        }
+        int pxmax = k;
+        k = 0;
+        while (k < (ny - 1) && y[k + 1] < ymin) {
+          k++;
+        }
+        int pymin = k;
+        while (k < (ny - 1) && y[k + 1] < ymax) {
+          k++;
+        }
+        int pymax = k;
+        
+        DDouble zc = (*zVal)[(*tri)[3 * triIndex + 2]];
+        DDouble zac = (*zVal)[(*tri)[3 * triIndex]] - zc;
+        DDouble zbc = (*zVal)[(*tri)[3 * triIndex + 1]] - zc;
+        DDouble y23 = (y2 - y3);
+        DDouble x32 = (x3 - x2);
+        DDouble y31 = (y3 - y1);
+        DDouble x13 = (x1 - x3);
+        DDouble det = (y23 * x13 - x32 * y31);
+        DDouble minD = (det<0)?det:0 ; // we MUST be agnostic as to the orientation of the triangle, even if TRIANGULATE is clockwise.
+        DDouble maxD = (det>0)?det:0;
+        for (SizeT iy = pymin; iy <= pymax; ++iy) {
+          DDouble dy = y[iy] - y3;
+          DLong start = iy*nx;
+          for (SizeT ix = pxmin; ix <= pxmax; ++ix) {
+            DDouble dx = x[ix] - x3;
+            DDouble a = y23 * dx + x32 * dy;
+            if (a < minD || a > maxD) continue;
+            DDouble b = y31 * dx + x13 * dy;
+            if (b < minD || b > maxD) continue;
+            DDouble c = det - a - b;
+            if (c < minD || c > maxD) continue;
+            DDouble valbis = (a * zac + b * zbc) / det + zc;
+            if ((dominvalue && valbis < minVal) || (domaxvalue && valbis > maxVal)) {
+            } else (*res)[start + ix] = valbis;            
+          } //ix loop
+        } // iy
+      } //tri
+    } else {
+        for (SizeT triIndex = 0; triIndex < ntri; ++triIndex) {
+        // first, find whose region of grid is concerned by this triangle: boundingBox.
+        DDouble xmin;
+        DDouble xmax;
+        DDouble ymin;
+        DDouble ymax;
+        DDouble x1, y1, x2, y2, x3, y3;
+        x1 = (*xVal)[(*tri)[3 * triIndex]];
+        y1 = (*yVal)[(*tri)[3 * triIndex]];
+        x2 = (*xVal)[(*tri)[3 * triIndex + 1]];
+        y2 = (*yVal)[(*tri)[3 * triIndex + 1]];
+        x3 = (*xVal)[(*tri)[3 * triIndex + 2]];
+        y3 = (*yVal)[(*tri)[3 * triIndex + 2]];
+        xmin = x1 < x2 ? (x1 < x3 ? x1 : x3) : (x2 < x3 ? x2 : x3);
+        ymin = y1 < y2 ? (y1 < y3 ? y1 : y3) : (y2 < y3 ? y2 : y3);
+        xmax = x1 > x2 ? (x1 > x3 ? x1 : x3) : (x2 > x3 ? x2 : x3);
+        ymax = y1 > y2 ? (y1 > y3 ? y1 : y3) : (y2 > y3 ? y2 : y3);
 
-    delete[] found;
+        // find first and last index of x and y that will intersect this BBox
+        DLong k = 0;
+        while (k < (nx - 1) && x[k + 1] < xmin) {
+          k++;
+        }
+        int pxmin = k;
+        while (k < (nx - 1) && x[k + 1] < xmax) {
+          k++;
+        }
+        int pxmax = k;
+        k = 0;
+        while (k < (ny - 1) && y[k + 1] < ymin) {
+          k++;
+        }
+        int pymin = k;
+        while (k < (ny - 1) && y[k + 1] < ymax) {
+          k++;
+        }
+        int pymax = k;
 
+        DDouble zc  = (*zVal)[(*tri)[3 * triIndex + 2]];
+        DDouble zac = (*zVal)[(*tri)[3 * triIndex]] - zc;
+        DDouble zbc = (*zVal)[(*tri)[3 * triIndex + 1]] - zc;
+        DDouble y23 = (y2 - y3);
+        DDouble x32 = (x3 - x2);
+        DDouble y31 = (y3 - y1);
+        DDouble x13 = (x1 - x3);
+        DDouble det = (y23 * x13 - x32 * y31);
+        DDouble minD = (det<0)?det:0 ; // we MUST be agnostic as to the orientation of the triangle, even if TRIANGULATE is clockwise.
+        DDouble maxD = (det>0)?det:0;
+        for (SizeT iy = pymin; iy <= pymax; ++iy) {
+          DDouble dy = y[iy]-y3;
+          DLong start = iy*nx;
+          for (SizeT ix = pxmin; ix <= pxmax; ++ix) {
+            DDouble dx = x[ix]-x3; 
+            DDouble a = y23 * dx + x32 * dy;
+            if (a < minD || a > maxD) continue;
+            DDouble b = y31 * dx + x13 * dy;
+            if (b < minD || b > maxD) continue;
+            DDouble c = det - a - b;
+            if (c < minD || c > maxD) continue;
+            (*res)[start + ix] = (a * zac + b * zbc)/det + zc;
+          } //ix loop
+        } // iy
+      } //tri
+    }
+  }  
+  
+  void gdlGrid2DDataCpx(DLong nx, DDouble* x, DLong ny, DDouble* y, DLong ntri, DLongGDL* tri,
+    DDoubleGDL* xVal, DDoubleGDL* yVal, DComplexDblGDL* zVal, bool domaxvalue,
+    bool dominvalue, DComplexDbl maxVal, DComplexDbl minVal, DComplexDblGDL* res, bool input) {
+
+    if (dominvalue || domaxvalue) {
+      for (SizeT triIndex = 0; triIndex < ntri; ++triIndex) {
+        // first, find whose region of grid is concerned by this triangle: boundingBox.
+        DDouble xmin;
+        DDouble xmax;
+        DDouble ymin;
+        DDouble ymax;
+        DDouble x1, y1, x2, y2, x3, y3;
+        x1 = (*xVal)[(*tri)[3 * triIndex]];
+        y1 = (*yVal)[(*tri)[3 * triIndex]];
+        x2 = (*xVal)[(*tri)[3 * triIndex + 1]];
+        y2 = (*yVal)[(*tri)[3 * triIndex + 1]];
+        x3 = (*xVal)[(*tri)[3 * triIndex + 2]];
+        y3 = (*yVal)[(*tri)[3 * triIndex + 2]];
+        xmin = x1 < x2 ? (x1 < x3 ? x1 : x3) : (x2 < x3 ? x2 : x3);
+        ymin = y1 < y2 ? (y1 < y3 ? y1 : y3) : (y2 < y3 ? y2 : y3);
+        xmax = x1 > x2 ? (x1 > x3 ? x1 : x3) : (x2 > x3 ? x2 : x3);
+        ymax = y1 > y2 ? (y1 > y3 ? y1 : y3) : (y2 > y3 ? y2 : y3);
+
+        // find first and last index of x and y that will intersect this BBox
+        DLong k = 0;
+        while (k < (nx - 1) && x[k + 1] < xmin) {
+          k++;
+        }
+        int pxmin = k;
+        while (k < (nx - 1) && x[k + 1] < xmax) {
+          k++;
+        }
+        int pxmax = k;
+        k = 0;
+        while (k < (ny - 1) && y[k + 1] < ymin) {
+          k++;
+        }
+        int pymin = k;
+        while (k < (ny - 1) && y[k + 1] < ymax) {
+          k++;
+        }
+        int pymax = k;
+  
+        DComplexDbl zc = (*zVal)[(*tri)[3 * triIndex + 2]];
+        DComplexDbl zac = std::complex<double>((*zVal)[(*tri)[3 * triIndex]].real() - zc.real(), (*zVal)[(*tri)[3 * triIndex]].imag() - zc.imag());
+        DComplexDbl zbc = std::complex<double>((*zVal)[(*tri)[3 * triIndex + 1]].real() - zc.real(), (*zVal)[(*tri)[3 * triIndex + 1]].imag() - zc.imag());
+        DDouble y23 = (y2 - y3);
+        DDouble x32 = (x3 - x2);
+        DDouble y31 = (y3 - y1);
+        DDouble x13 = (x1 - x3);
+        DDouble det = (y23 * x13 - x32 * y31);
+        DDouble minD = (det<0)?det:0 ; // we MUST be agnostic as to the orientation of the triangle, even if TRIANGULATE is clockwise.
+        DDouble maxD = (det>0)?det:0;
+        for (SizeT iy = pymin; iy <= pymax; ++iy) {
+          DDouble dy = y[iy] - y3;
+          DLong start = iy*nx;
+          for (SizeT ix = pxmin; ix <= pxmax; ++ix) {
+            DDouble dx = x[ix] - x3;
+            DDouble a = y23 * dx + x32 * dy;
+            if (a < minD || a > maxD) continue;
+            DDouble b = y31 * dx + x13 * dy;
+            if (b < minD || b > maxD) continue;
+            DDouble c = det - a - b;
+            if (c < minD || c > maxD) continue;
+            DDouble valbisR = (a * zac.real() + b * zbc.real()) / det + zc.real();
+            DDouble valbisI = (a * zac.imag() + b * zbc.imag()) / det + zc.imag();
+            if ((dominvalue && valbisR < minVal.real()) || (domaxvalue && valbisR > maxVal.real())) {
+              valbisR = (*res)[start + ix].real();
+            }
+            if ((dominvalue && valbisI < minVal.imag()) || (domaxvalue && valbisI > maxVal.imag())) {
+              valbisI = (*res)[start + ix].imag();
+            }
+            (*res)[start + ix] = std::complex<double>(valbisR, valbisI);
+          } //ix loop
+        } // iy
+      } //tri
+    } else {
+      for (SizeT triIndex = 0; triIndex < ntri; ++triIndex) {
+        // first, find whose region of grid is concerned by this triangle: boundingBox.
+        DDouble xmin;
+        DDouble xmax;
+        DDouble ymin;
+        DDouble ymax;
+        DDouble x1, y1, x2, y2, x3, y3;
+        x1 = (*xVal)[(*tri)[3 * triIndex]];
+        y1 = (*yVal)[(*tri)[3 * triIndex]];
+        x2 = (*xVal)[(*tri)[3 * triIndex + 1]];
+        y2 = (*yVal)[(*tri)[3 * triIndex + 1]];
+        x3 = (*xVal)[(*tri)[3 * triIndex + 2]];
+        y3 = (*yVal)[(*tri)[3 * triIndex + 2]];
+        xmin = x1 < x2 ? (x1 < x3 ? x1 : x3) : (x2 < x3 ? x2 : x3);
+        ymin = y1 < y2 ? (y1 < y3 ? y1 : y3) : (y2 < y3 ? y2 : y3);
+        xmax = x1 > x2 ? (x1 > x3 ? x1 : x3) : (x2 > x3 ? x2 : x3);
+        ymax = y1 > y2 ? (y1 > y3 ? y1 : y3) : (y2 > y3 ? y2 : y3);
+
+        // find first and last index of x and y that will intersect this BBox
+        DLong k = 0;
+        while (k < (nx - 1) && x[k + 1] < xmin) {
+          k++;
+        }
+        int pxmin = k;
+        while (k < (nx - 1) && x[k + 1] < xmax) {
+          k++;
+        }
+        int pxmax = k;
+        k = 0;
+        while (k < (ny - 1) && y[k + 1] < ymin) {
+          k++;
+        }
+        int pymin = k;
+        while (k < (ny - 1) && y[k + 1] < ymax) {
+          k++;
+        }
+        int pymax = k;
+
+        DComplexDbl zc = (*zVal)[(*tri)[3 * triIndex + 2]];
+        DComplexDbl zac = std::complex<double>((*zVal)[(*tri)[3 * triIndex]].real() - zc.real(), (*zVal)[(*tri)[3 * triIndex]].imag() - zc.imag());
+        DComplexDbl zbc = std::complex<double>((*zVal)[(*tri)[3 * triIndex + 1]].real() - zc.real(), (*zVal)[(*tri)[3 * triIndex + 1]].imag() - zc.imag());
+        DDouble y23 = (y2 - y3);
+        DDouble x32 = (x3 - x2);
+        DDouble y31 = (y3 - y1);
+        DDouble x13 = (x1 - x3);
+        DDouble det = (y23 * x13 - x32 * y31);
+        DDouble minD = (det<0)?det:0 ; // we MUST be agnostic as to the orientation of the triangle, even if TRIANGULATE is clockwise.
+        DDouble maxD = (det>0)?det:0;
+        for (SizeT iy = pymin; iy <= pymax; ++iy) {
+          DDouble dy = y[iy] - y3;
+          DLong start = iy*nx;
+          for (SizeT ix = pxmin; ix <= pxmax; ++ix) {
+            DDouble dx = x[ix] - x3;
+            DDouble a = y23 * dx + x32 * dy;
+            if (a < minD || a > maxD) continue;
+            DDouble b = y31 * dx + x13 * dy;
+            if (b < minD || b > maxD) continue;
+            DDouble c = det - a - b;
+            if (c < minD || c > maxD) continue;
+            DDouble valbisR = (a * zac.real() + b * zbc.real()) / det + zc.real();
+            DDouble valbisI = (a * zac.imag() + b * zbc.imag()) / det + zc.imag();
+            (*res)[start + ix] = std::complex<double>(valbisR, valbisI);
+          } //ix loop
+        } // iy
+      } //tri
+    }
   }
 
   BaseGDL* trigrid_fun_plane(EnvT* e) {
@@ -1159,12 +1226,12 @@ namespace lib {
     if (GS != NULL && canUseLimitsx)
     {
       xinc = (*GS)[0];
-      nx = (DLong) (xrange / xinc) +1;
+      nx = (DLong) ceil(xrange / xinc) +1;
     }
     if (GS != NULL && canUseLimitsy)
     {
       yinc = (*GS)[1];
-      ny = (DLong) (yrange / yinc) +1;
+      ny = (DLong) ceil(yrange / yinc) +1;
     }
 
     DDouble *x, *y;
@@ -1234,19 +1301,23 @@ namespace lib {
       if (domaxvalue) maxValG=e->GetKWAs<DComplexDblGDL>(maxvalueIx);
       DComplexDblGDL* missValG=NULL;
       static int missvalueIx=e->KeywordIx( "MISSING");
-      if (e->KeywordPresent(missvalueIx)) missValG=e->GetKWAs<DComplexDblGDL>(missvalueIx);
+      bool doMiss=e->KeywordPresent(missvalueIx);
+      if (doMiss) missValG=e->GetKWAs<DComplexDblGDL>(missvalueIx);
       DComplexDblGDL* zVal = static_cast<DComplexDblGDL*>(p2->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
       DComplexDblGDL* res;
       if (inputArrayPresent) res=static_cast<DComplexDblGDL*>(inputKwData->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
-      else res= new DComplexDblGDL(dim, BaseGDL::ZERO);
+      else if (doMiss) {
+        res = missValG->New(dim, BaseGDL::INIT);
+      } else {
+        res= new DComplexDblGDL(dim, BaseGDL::ZERO);
+      }
 
       DComplexDbl minVal=std::complex<double>(0,0);
       if (minValG!=NULL) minVal=std::complex<double>((*minValG)[0].real(),(*minValG)[0].imag());
       DComplexDbl maxVal=std::complex<double>(0,0);
       if (maxValG!=NULL) maxVal=std::complex<double>((*maxValG)[0].real(),(*maxValG)[0].imag());
-      DComplexDbl missVal=std::complex<double>(0,0);
-      if (missValG!=NULL) missVal=std::complex<double>((*missValG)[0].real(),(*missValG)[0].imag());
-      gdlGrid2DData< DComplexDblGDL, DComplexDbl>(nx, x, ny, y, ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, missVal, res, inputArrayPresent);
+      if (doXout) gdlGrid2DDataCpx(nx, x, ny, y, ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, res, inputArrayPresent);
+      else gdlGrid2DDataCpx(nx, x, xref,xval,xinc, ny, y, yref,yval,yinc,ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, res, inputArrayPresent);
       if (type==GDL_FLOAT) return res->Convert2(GDL_COMPLEX,BaseGDL::CONVERT); else return res;
     }else{
       DDouble minVal=0;
@@ -1257,14 +1328,21 @@ namespace lib {
       static int maxvalueIx=e->KeywordIx( "MAX_VALUE");
       bool domaxvalue=(e->KeywordPresent(maxvalueIx));
       if (domaxvalue) e->AssureDoubleScalarKW(maxvalueIx, maxVal);
-      DDouble missVal=0.0;
+      DDoubleGDL* missVal=NULL;
       static int missvalueIx=e->KeywordIx( "MISSING");
-      e->AssureDoubleScalarKWIfPresent(missvalueIx, missVal);
+      bool doMiss=e->KeywordPresent(missvalueIx);
+      if (doMiss) missVal=e->GetKWAs<DDoubleGDL>(missvalueIx);
       DDoubleGDL* zVal = static_cast<DDoubleGDL*>(p2->Convert2(GDL_DOUBLE, BaseGDL::COPY));
       DDoubleGDL* res;
-      if (inputArrayPresent) res = res=static_cast<DDoubleGDL*>(inputKwData->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-      else res =new DDoubleGDL(dim, BaseGDL::ZERO);
-      gdlGrid2DData< DDoubleGDL, DDouble>(nx, x, ny, y, ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, missVal, res, inputArrayPresent);
+      if (inputArrayPresent) {
+        res = static_cast<DDoubleGDL*> (inputKwData->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+      } else if (doMiss) {
+        res = missVal->New(dim, BaseGDL::INIT);
+      } else {
+        res = new DDoubleGDL(dim, BaseGDL::ZERO);
+      }
+      if (doXout) gdlGrid2DData< DDoubleGDL, DDouble>(nx, x, ny, y, ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, res, inputArrayPresent);
+      else gdlGrid2DData< DDoubleGDL, DDouble>(nx, x, xref,xval,xinc, ny, y, yref,yval,yinc,ntri, tri, xVal, yVal, zVal, domaxvalue, dominvalue, maxVal, minVal, res, inputArrayPresent);
       if (type==GDL_FLOAT) return res->Convert2(GDL_FLOAT,BaseGDL::CONVERT); else return res;
     }
   }
