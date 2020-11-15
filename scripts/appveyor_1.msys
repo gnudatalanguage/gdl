@@ -70,7 +70,7 @@ shapelib=shapelib-1.5.0-1 # 14-Mar-2019
 echo shapelib=$shapelib
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-${shapelib}-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-${shapelib}-any.pkg.tar.xz
-
+eigen3=eigen3-3.3.7-2
 #expat 
 expat=expat-2.2.6-1
 expat=expat-2.2.9-1 # 2019-10-09
@@ -82,6 +82,7 @@ echo $path
 tar xf mingw-w64-${arch}-gsl-2.6-1-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-libiconv-1.16-1-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-termcap-1.3.1-5-any.pkg.tar.xz
+echo expat=$expat
 tar xf mingw-w64-${arch}-libsystre-1.0.1-4-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-libtre-git-r128.6fb7206-2-any.pkg.tar.xz
 # 3.3.4-1 gave multiple compile errors using gcc7.3, 7.2 (do does 3.3.5)
@@ -97,6 +98,7 @@ tar xf mingw-w64-${arch}-eigen3-3.3.7-2-any.pkg.tar.xz
     # this is magic sauce that allows wxwidgets to meld into GDL:
     # sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ./$mname/bin/wx-config
     # mv $mname ../mingw/${wxname}
+echo expat=$expat
 xz=xz-5.2.4-1   
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-${xz}-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-${xz}-any.pkg.tar.xz
