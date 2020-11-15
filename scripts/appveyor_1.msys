@@ -85,7 +85,7 @@ tar xf mingw-w64-${arch}-termcap-1.3.1-5-any.pkg.tar.xz
 echo expat=$expat
 tar xf mingw-w64-${arch}-libsystre-1.0.1-4-any.pkg.tar.xz
 tar xf mingw-w64-${arch}-libtre-git-r128.6fb7206-2-any.pkg.tar.xz
-# 3.3.4-1 gave multiple compile errors using gcc7.3, 7.2 (do does 3.3.5)
+echo expat=$expat
 tar xf mingw-w64-${arch}-eigen3-3.3.7-2-any.pkg.tar.xz
 # that is the minimum set of libraries to build GDL
 # wxwidgets 3.0.4 is the latest, made 18-Apr-2018. Earlier was made 17-sep-2017.
@@ -108,7 +108,7 @@ if [ "x${GMNAME}" = "x" ] ; then
    exit
    fi
 libjpeg=libjpeg-turbo-1.5.3-1
-libjpeg-turbo-2.0.5=1
+libjpeg=libjpeg-turbo-2.0.5-1
 libtiff=libtiff-4.0.9-1
 libtiff=libtiff-4.1.0-1
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-${libjpeg}-any.pkg.tar.xz
