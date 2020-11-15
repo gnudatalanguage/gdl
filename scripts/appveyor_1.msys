@@ -44,7 +44,7 @@ curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-libsystre-1.0.1-4-any.pkg.tar.
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-libtre-git-r128.6fb7206-2-any.pkg.tar.xz
 #curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-eigen3-3.3.5-1-any.pkg.tar.xz
 curl -O -s $pream/mingw/${arch}/mingw-w64-${arch}-eigen3-3.3.7-2-any.pkg.tar.xz
-
+ls
 #zlib=zlib-1.2.11-3 # 19-Jul-2018
 #zlib=zlib-1.2.11-4 # 20-Sep-2018
 zlib=zlib-1.2.11-7 # 22-May-2019
