@@ -74,7 +74,7 @@ install:
         $env:LOCALM32="c:/projects/gdl/mingw/$env:mname"
         appveyor DownloadFile `
           https://raw.githubusercontent.com/horta/zstd.install/main/install
-        c:/msys64/usr/bin/bash.exe -lc "install)"
+        c:/msys64/usr/bin/bash.exe -lc 'install'
         c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
         cd c:/projects/gdl/mingw
         rm mingw-w64-*tar.xz
