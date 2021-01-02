@@ -9,7 +9,8 @@
 #   - readline, zlib, libpng, libpcre
 
 ME="appveyor_1.msys"
-MINGW_DIR="/c/projects/gdl/mingw"
+GDL_DIR="/c/projects/gdl"
+MINGW_DIR="${GDL_DIR}/mingw"
 PLPLOT_URL="http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz"
 BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
 
@@ -156,7 +157,7 @@ function build_plplot {
     patch -p3 -i ../../scripts/patch/drivers_wingdi.c.patch
     patch -p3 -i ../../scripts/patch/Findwx.cmake.debug.patch
 
-    cp ${PLPLOT_SRC_DIR}/cmake/modules/FindwxWidgets.cmake ../CMakeModules/
+    cp ${PLPLOT_SRC_DIR}/cmake/modules/FindwxWidgets.cmake ${GDL_DIR}/CMakeModules/
 
     # this is magic sauce that allows wxwidgets to meld into GDL:
     #sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ${WXNAME}/bin/wx-config
