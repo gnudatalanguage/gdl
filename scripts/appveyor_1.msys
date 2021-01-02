@@ -31,11 +31,12 @@ function download_package {
 
 function decompress_package {
     log "Decompressing ${package_file}..."
-    if [ ${package_file: -4} == ".zst" ]; then
-        tar -I zstd -xf $package_file $@
-    else
-        tar xf $package_file $@
-    fi
+    #if [ ${package_file: -4} == ".zst" ]; then
+    #    tar -I zstd -xf $package_file $@
+    #else
+    #    tar xf $package_file $@
+    #fi
+    tar xf $package_file $@
     if [ $? -eq 1 ]; then
         log "Failed to decompress ${package_file}!"
         exit 1
@@ -64,7 +65,7 @@ else
     zstd_zip=zstd-${zstd_version}-win64.zip
 fi
 curl -LOs https://github.com/facebook/zstd/releases/download/${zstd_version}/${zstd_zip}
-unzip ${zstd_zip}
+7z x ${zstd_zip}
 mv zstd.exe /usr/bin/
 popd
 
