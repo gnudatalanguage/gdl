@@ -55,6 +55,19 @@ fi
 
 log "Architecture = ${arch}"
 
+mkdir zstd
+pushd zstd
+zstd_version="v1.4.8"
+if [ $arch == "i686" ]; then
+    zstd_zip=zstd-${zstd_version}-win32.zip
+else
+    zstd_zip=zstd-${zstd_version}-win64.zip
+fi
+curl -LOs https://github.com/facebook/zstd/releases/download/${zstd_version}/${zstd_zip}
+unzip ${zstd_zip}
+mv zstd.exe /usr/bin/
+popd
+
 mkdir -p mingw
 cd mingw
 
