@@ -1,20 +1,36 @@
 #!/bin/bash
 #
-# Script to download some files needed for mingw32.
+# script to download some files needed for mingw32.
 #
 # JP:
-#  Since old packages are not available from msys2 repo, let's try the latest versions here.
+#  Since old packages are not available from msys2 repo anymore, let's try the latest versions here.
 #  If they doesn't work (especially readline), we need to keep them in another location.
-#  Here are the list of libraries had to be 'reversioned' in the previous version of this script:
+#  Below is the list of libraries had to be 'reversioned' in the previous version of this script:
 #   - readline, zlib, libpng, libpcre
 
-me="appveyor_1.msys"
+ME="appveyor_1.msys"
+MINGW_DIR="/c/projects/gdl/mingw"
+PLPLOT_URL="http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz"
+BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
 
 function log {
-    echo "[${me}] $1"
+    echo "[${ME}] $1"
+}
+
+declare -A msys2_libs
+function prep_msys2_repo {
+    log "Downloading MSYS2 repository file..."
+    curl -LOs http://repo.msys2.org/mingw/${arch}/${mname}.files # This file has the version strings of the latest libraries.
+
+    eval `tar --wildcards -xOf ${mname}.files \*/desc | awk '/%FILENAME%/{getline;fn=$0;getline;getline;getline;print "msys2_libs[\"" $0 "\"]+=\"" fn "\"";}'`
 }
 
 function set_package {
+    package_file=`basename $1`
+    package_url=$1
+}
+
+function set_msys2_package {
     package_fullname="mingw-w64-${arch}-$1"
     package_file="${msys2_libs[$package_fullname]}"
     package_url="https://repo.msys2.org/mingw/${arch}/${package_file}"
@@ -22,115 +38,169 @@ function set_package {
 
 function download_package {
     log "Downloading ${package_file}..."
-    curl -O -s $package_url
-    if [ $? -eq 1 ]; then
-        log "Failed to download ${package_file}!"
-        exit 1
+    if [ -f $package_file ]; then
+       log "File exists! Skipping..."
+    else
+        curl -LOs $package_url
+        if [ $? -eq 1 ]; then
+            log "Failed to download ${package_file}!"
+            exit 1
+        fi
     fi
 }
 
 function decompress_package {
     log "Decompressing ${package_file}..."
-    #if [ ${package_file: -4} == ".zst" ]; then
-    #    tar -I zstd -xf $package_file $@
-    #else
-    #    tar xf $package_file $@
-    #fi
-    tar xf $package_file $@
+    if [ ${package_file: -4} == ".zst" ]; then
+        tar -I zstd -xf $package_file $@
+    else
+        tar xf $package_file $@
+    fi
     if [ $? -eq 1 ]; then
         log "Failed to decompress ${package_file}!"
         exit 1
     fi
 }
 
-cd /c/projects/gdl
-
-mname="mingw32"
-arch="i686"
-if [ -n "$MSYSTEM" ] ; then
-  if [ "$MSYSTEM" = "MINGW64" ] ; then
-    arch="x86_64"
-    mname="mingw64"
-  fi
-fi
-
-log "Architecture = ${arch}"
-
-mkdir zstd
-pushd zstd
-zstd_version="v1.4.8"
-if [ $arch == "i686" ]; then
-    zstd_zip=zstd-${zstd_version}-win32.zip
-else
-    zstd_zip=zstd-${zstd_version}-win64.zip
-fi
-curl -LOs https://github.com/facebook/zstd/releases/download/${zstd_version}/${zstd_zip}
-7z x ${zstd_zip}
-mv zstd.exe /usr/bin/
-popd
-
-mkdir -p mingw
-cd mingw
-
-log "Downloading MSYS2 repository file..."
-curl -O -s http://repo.msys2.org/mingw/${arch}/${mname}.files # This file has the version strings of the latest libraries.
-
-declare -A msys2_libs
-eval `tar --wildcards -xOf ${mname}.files \*/desc | awk '/%FILENAME%/{getline;fn=$0;getline;getline;getline;print "msys2_libs[\"" $0 "\"]+=\"" fn "\"";}'`
-
-required=(
-    "gsl"
-    "readline"
-    "gettext"
-    "libiconv"
-    "termcap"
-    "libsystre"
-    "libtre-git"
-    "eigen3"
-    "zlib"
-    "libpng"
-    "fftw"
-    "shapelib"
-    "expat"
-    "xz"
-    "libjpeg-turbo"
-    "libtiff"
-    "graphicsmagick"
-    "bzip2"
-    "fontconfig"
-    "freetype"
-    "lcms2"
-    "libtool"
-    "harfbuzz"
-    "graphite2"
-    "glib2"
-    "pcre"
-)
-
-for package_name in ${required[@]}; do
-    set_package $package_name
-    download_package
-
-    tar_options=""
-    if [ $package_name == "graphicsmagick" ]; then
-        mkdir -p gm
-        tar_options="-C gm"
+function find_architecture {
+    mname="mingw32"
+    arch="i686"
+    if [ -n "$MSYSTEM" ] ; then
+        if [ "$MSYSTEM" = "MINGW64" ] ; then
+            arch="x86_64"
+            mname="mingw64"
+        fi
     fi
+    log "Architecture: ${arch}"
+}
 
-    decompress_package $tar_options
-
-    if [ $package_name == "graphicsmagick" ]; then
-        mv gm/${mname} ${package_name}-Q8
+function install_zstd {
+    mkdir -p /c/projects/zstd
+    cd /c/projects/zstd
+    zstd_version="v1.4.8"
+    if [ $arch == "i686" ]; then
+        zstd_zip=zstd-${zstd_version}-win32.zip
+    else
+        zstd_zip=zstd-${zstd_version}-win64.zip
     fi
-done
+    curl -LOs https://github.com/facebook/zstd/releases/download/${zstd_version}/${zstd_zip}
+    7z x ${zstd_zip}
+    mv zstd.exe /usr/bin/
+}
 
-if [ ! "x${DOTIFF}" = "x" ] ; then
-    set_package "proj"
-    download_package
-    decompress_package
-    if [ ! "x${DOGEOTIFF}" = "x" ] ; then
-        set_package "libgeotiff"
+function install_msys2_packages {
+    required_libs_msys2=(
+        "gsl"
+        "readline"
+        "gettext"
+        "libiconv"
+        "termcap"
+        "libsystre"
+        "libtre-git"
+        "eigen3"
+        "zlib"
+        "libpng"
+        "fftw"
+        "shapelib"
+        "expat"
+        "xz"
+        "libjpeg-turbo"
+        "libtiff"
+        "graphicsmagick"
+        "bzip2"
+        "fontconfig"
+        "freetype"
+        "lcms2"
+        "libtool"
+        "harfbuzz"
+        "graphite2"
+        "glib2"
+        "pcre"
+        "wxWidgets"
+    )
+
+    mkdir -p ${MINGW_DIR}
+    cd ${MINGW_DIR}
+
+    prep_msys2_repo
+
+    for package_name in ${required_libs_msys2[@]}; do
+        set_msys2_package $package_name
         download_package
         decompress_package
+    done
+
+    if [ ! "x${DOTIFF}" = "x" ] ; then
+        set_msys2_package "proj"
+        download_package
+        decompress_package
+        if [ ! "x${DOGEOTIFF}" = "x" ] ; then
+            set_msys2_package "libgeotiff"
+            download_package
+            decompress_package
+        fi
     fi
-fi
+}
+
+function build_plplot {
+    mkdir -p ${MINGW_DIR}/plplot
+    cd ${MINGW_DIR}/plplot
+
+    PLPLOT_SRC_DIR="${MINGW_DIR}/plplot/plplot-5.13.0"
+    set_package $PLPLOT_URL
+    download_package
+    decompress_package
+
+    patch -p3 -i ../../scripts/patch/Findwx.cmake.patch
+    patch -p3 -i ../../scripts/patch/drivers_wingcc.c.patch
+    patch -p3 -i ../../scripts/patch/drivers_wingdi.c.patch
+    patch -p3 -i ../../scripts/patch/Findwx.cmake.debug.patch
+
+    cp ${PLPLOT_SRC_DIR}/cmake/modules/FindwxWidgets.cmake ../CMakeModules/
+
+    # this is magic sauce that allows wxwidgets to meld into GDL:
+    #sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i ${WXNAME}/bin/wx-config
+    # locate wx-config so that wxWidgets_USE_PREFIX can work.
+    #cp ${WXNAME}/bin/wx-config /c/projects/gdl/mingw/$mname/bin/
+    # Copy over the shareable images for the test runs and installation.
+    #cp ${WXNAME}/bin/*.dll /c/projects/gdl/mingw/$mname/bin/
+    mkdir -p build
+    cd build
+
+    cmake ${PLPLOT_SRC_DIR} -G"MSYS Makefiles" \
+    -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE='-O3' \
+    -DCMAKE_INSTALL_PREFIX=${MINGW_DIR}/plplot-5.13 \
+    -DPL_HAVE_QHULL=OFF -DHAVE_SHAPELIB=OFF \
+    -DDEFAULT_NO_CAIRO_DEVICES=ON -DDEFAULT_NO_QT_DEVICES=ON -DDEFAULT_NO_BINDINGS=ON \
+    -DENABLE_cxx=ON -DOLD_WXWIDGETS=ON  -DENABLE_wxwidgets=ON \
+    -DENABLE_DYNDRIVERS=ON -DwxWidgets_USE_PREFIX=${MINGW_DIR}/${mname} \
+    -DWITH_FREETYPE=OFF -DPLD_wxwidgets=ON -DPLD_pdf=OFF -DPLD_psttf=OFF -DPLD_wingdi=ON \
+    -DCMAKE_SYSTEM_PREFIX_PATH=${MINGW_DIR}/${mname} | tee cmake.out
+
+    # -DCMAKE_CXX_FLAGS='-std=c++11' Cannot be used
+
+    make -j2
+    make install
+
+    if [[ -d "${MINGW_DIR}/plplot-5.13/share/plplot5.13.0/examples" ]] ; then
+        rm -r ${MINGW_DIR}/plplot-5.13/share/plplot5.13.0/examples
+    else
+        echo "Msys make appears not to have succeeded."
+    fi
+    if [[ -d "${MINGW_DIR}/plplot-5.13/share/plplot5.13.0/ss" ]] ; then 
+        rm -r ${MINGW_DIR}/plplot-5.13/share/plplot5.13.0/ss
+    fi
+    if [[ -d "${MINGW_DIR}/plplot-5.13/lib/plplot5.13.0/drivers" ]] ; then
+        cp ${MINGW_DIR}/plplot-5.13/lib/plplot5.13.0/drivers/*.dll ${MINGW_DIR}/plplot-5.13/bin
+    else
+        echo "plplot5.13.0/drivers is not present"
+    fi
+}
+
+find_architecture
+
+#install_zstd
+
+#install_msys2_packages
+
+build_plplot
