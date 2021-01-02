@@ -8,7 +8,7 @@
 #  Here are the list of libraries had to be 'reversioned' in the previous version of this script:
 #   - readline, zlib, libpng, libpcre
 
-me=${0##*/}
+me="appveyor_1.msys"
 
 function log {
     echo "[${me}] $1"
