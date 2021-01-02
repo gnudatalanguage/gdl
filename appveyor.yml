@@ -72,7 +72,6 @@ install:
         $env:GMNAME="GraphicsMagick-1.3.30"
         $env:WXNAME="wxWidgets-3.0.2-17"
         $env:LOCALM32="c:/projects/gdl/mingw/$env:mname"
-        c:/msys64/usr/bin/bash.exe -lc 'curl -O -s https://raw.githubusercontent.com/horta/zstd.install/main/install && chmod +x ./install && ./install'
         c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
         cd c:/projects/gdl/mingw
         rm mingw-w64-*tar.xz
