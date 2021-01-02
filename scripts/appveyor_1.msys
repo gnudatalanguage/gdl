@@ -132,6 +132,5 @@ if [ ! "x${DOTIFF}" = "x" ] ; then
         set_package "libgeotiff"
         download_package
         decompress_package
-        fi
     fi
 fi
