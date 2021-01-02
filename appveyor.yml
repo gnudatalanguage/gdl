@@ -56,7 +56,7 @@ install:
       $env:DOGEOTIFF="ON"
   - ps: |
       cd c:/projects/gdl
-      c:/msys64/usr/bin/bash.exe -lc './scripts/appveyor_1.msys'
+      c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD && ./scripts/appveyor_1.msys'
       $env:LIB_DIR="\c\projects\gdl\win32libs\$env:WXNAME\lib\gcc_dll" 
 
 before_build:
