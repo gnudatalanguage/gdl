@@ -48,153 +48,16 @@ install:
         $env:MSYSTEM="MINGW64" ; $env:mname="mingw64" ; $env:arch="x86_64"
       }
       #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
-  #- ps: $env:allmsys=$true ; $env:domingw=$false  ineffective!     
   - ps: |
-      if ($true)
-      {
-        $env:Begin_path="$env:PATH"
-        $env:PATH="C:\mingw-w64\$env:GCC\$env:mname\bin;$env:PATH"
-        md c:\projects\gdl\win32libs
-        md c:\projects\gdl\mingw
-        md c:\projects\gdl\build ;  $env:BLDDIR="c:\projects\gdl\build"
-        cd c:\projects\gdl\win32libs
-        $env:CC="C:/mingw-w64/$env:GCC/$env:mname/bin/gcc"
-        $env:CXX="C:/mingw-w64/$env:GCC/$env:mname/bin/g++"
-        $env:DOTIFF="ON"
-        $env:DOGEOTIFF="ON"
-        $env:platform=""
-       }
+      $env:PATH="C:\mingw-w64\$env:GCC\$env:mname\bin;$env:PATH"
+      $env:CC="C:/mingw-w64/$env:GCC/$env:mname/bin/gcc"
+      $env:CXX="C:/mingw-w64/$env:GCC/$env:mname/bin/g++"
+      $env:DOTIFF="ON"
+      $env:DOGEOTIFF="ON"
   - ps: |
-      if ($true)   # MSYS mode
-      {
-        # scripts/XXX.msys make gdl/mingw/mingw32 and load it.
-        cd c:/projects/gdl
-        $env:GMNAME="GraphicsMagick-1.3.30"
-        $env:WXNAME="wxWidgets-3.0.2-17"
-        $env:LOCALM32="c:/projects/gdl/mingw/$env:mname"
-        c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD &&. ./scripts/appveyor_1.msys'
-        cd c:/projects/gdl/mingw
-        rm mingw-w64-*tar.xz
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile `
-          http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
-        c:/msys64/usr/bin/bash.exe -lc 'cd /c/projects/gdl &&. ./scripts/appveyor_plplot.msys'
-        $env:PLPLOTDIR="C:\projects\gdl\mingw\plplot-5.13"
-        $env:WXROOT="C:\projects\gdl\mingw\$env:WXNAME"
-      }
-   # MINGW mode build wxWidgets 3.0.4
-   # if ($env:platform -Match "mingw64630x8664")
-  - ps: |
-      if ($false)
-      {
-        # wxWidgets
-        $env:WX_TOP="c:\projects\gdl\win32libs\wxWidgets-3.0.4"
-        appveyor DownloadFile `
-          https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.4/wxWidgets-3.0.4.7z
-        7z x wxWidgets-3.0.4.7z -y -o"wxWidgets-3.0.4"
-        cd c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw
-        mingw32-make SHELL=cmd -f makefile.gcc setup_h BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1 > $env:BLDDIR/makewx.out
-        echo "$env:WX_TOP mingw32-make (1) finished" >>  $env:BLDDIR/makewx.out
-        echo "$env:WX_TOP mingw32-make (1) finished" 
-        mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1 >> $env:BLDDIR/makewx.out
-        echo "$env:WX_TOP mingw32-make (2) finished" >>  $env:BLDDIR/makewx.out
-        echo "$env:WX_TOP mingw32-make (2) finished" 
-        # Below 2 lines are required for wxWidgets-3.0.4, don't know why
-        copy c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlg.o c:\projects\gdl\win32libs\wxWidgets-3.0.4\build\msw\gcc_mswudll\coredll_headerctrlgo
-        mingw32-make SHELL=cmd -f makefile.gcc -j4 BUILD=release SHARED=1 USE_GUI=1 USE_XRC=0 USE_HTML=0 USE_WEBVIEW=0 USE_MEDIA=0 USE_AUI=0 USE_RIBBON=0 USE_PROPGRID=0 USE_RICHTEXT=0 USE_STC=0 USE_OPENGL=0 VENDOR=gdl DEBUG_FLAG=1
-        # for mingw usage we need to define wxWidgets_ROOT_DIR
-        #
-        $env:wxWidgets_ROOT_DIR=$env:WX_TOP
-        # The above builds ok but does not link with plplot build.
-        # PLplot
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile `
-          http://downloads.sourceforge.net/project/plplot/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz
-        tar zxf plplot-5.13.0.tar.gz
-        md plplot-5.13.0/build -ErrorAction silentlycontinue
-        cd plplot-5.13.0/build ; rm * -Recurse  -ErrorAction silentlycontinue
-        cd c:\projects\gdl\win32libs
-        #
-        C:\msys64\usr\bin\bash.exe -lc "mkdir -p /c/projects/gdl/mingw/plplot-5.13"
-        $env:PLPLOTDIR="C:\projects\gdl\mingw\plplot-5.13"
-        #
-        # previously, plplot failed to bring in the wxwidgets build because the version is not recognized in the
-        # cmake module findwxwidgets.cmake (customized in plplot). The "win32" portion of the patch
-        # scripts/patch/Findwx.cmake.patch corrects this
-        #
-        c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs && . /c/projects/gdl/scripts/patch/patch_plplot.sh'
-        echo "mingw build of plplot is done via dos commands scripts/appveyor_plplot.bat"
-        #
-        # Yet still, the plplot test does not work 'cause wxwidgets.dll is not loaded.
-        # Same situation occurs when msys is used to compile.
-        }
-       else #
-       {
-       C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl && . scripts/convert_wx.msys"
-       $env:WX_TOP="C:\projects\gdl\win32libs\$env:WXNAME"
-       $env:LIB_DIR="\c\projects\gdl\win32libs\$env:WXNAME\lib\gcc_dll" 
-       }
-  #
-  #- cmd /K /E:ON ..\scripts\appveyor_plplot.bat This leaves wxWidgets driver behind !!  - ps: |
-  # BSD-XDR
-  - ps: cd c:\projects\gdl\win32libs
-  - ps: appveyor DownloadFile `
-          https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz
-  - C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl &&. scripts/appveyor_bsdxdr.msys"
-
-  - ps: |
-      if ($false) # MINGW mode
-      { 
-        # GNUWin32 (GNU Readline, Zlib, libPNG, PCRE, libtiff)
-        # TODO: Find appropriate libtiff with TIFFField, TIFFFieldWithTag and TIFFFieldName (and libgeotiff?)
-        #       (Remember to remove -DTIFF=OFF -DGEOTIFF=OFF from build_script when done)
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-lib.zip
-        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/tiff/3.8.2-1/tiff-3.8.2-1-lib.zip
-        7z x readline-5.0-1-lib.zip
-        7z x zlib-1.2.3-lib.zip
-        7z x libpng-1.2.37-lib.zip
-        7z x pcre-7.0-lib.zip
-        #7z x tiff-3.8.2-1-lib.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/readline/5.0-1/readline-5.0-1-bin.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/zlib/1.2.3/zlib-1.2.3-bin.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/libpng/1.2.37/libpng-1.2.37-bin.zip
-        appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/pcre/7.0/pcre-7.0-bin.zip
-        #appveyor DownloadFile https://downloads.sourceforge.net/project/gnuwin32/tiff/3.8.2-1/tiff-3.8.2-1-bin.zip
-        7z x readline-5.0-1-bin.zip -y
-        7z x zlib-1.2.3-bin.zip -y
-        7z x libpng-1.2.37-bin.zip -y
-        7z x pcre-7.0-bin.zip -y
-        #7z x tiff-3.8.2-1-bin.zip -y
-        mv mingw\libxdr.dll.a c:\projects\gdl\win32libs\lib
-        mv rpc c:\projects\gdl\win32libs\include
-        mv mingw\mgwxdr-0.dll c:\projects\gdl\win32libs\bin
-       }
-  - ps: |
-      if ($false)  # MINGW mode
-      {
-       # Eigen
-        cd c:\projects\gdl\win32libs
-        appveyor DownloadFile `
-          https://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2 -FileName eigen-eigen-5a0156e40feb.tar.bz2
-        tar jxf eigen-eigen-5a0156e40feb.tar.bz2
-        md eigen-eigen-5a0156e40feb/build
-        # cmake is generating PS error, plain make seems to do alright.
-        #cmake "eigen-eigen-5a0156e40feb" "-Beigen-eigen-5a0156e40feb/build" -G "MinGW Makefiles" "-DCMAKE_BUILD_TYPE=$($env:CONFIGURATION)" -DCMAKE_INSTALL_PREFIX=c:\projects\gdl\win32libs > $env:BLDDIR/eigen3.out
-        cd eigen-eigen-5a0156e40feb/build
-        echo " eigen3 (eigen-eigen-5a0156e40feb) to be made " 
-        #echo " eigen3 (eigen-eigen-5a0156e40feb) to be made "  >> $env:BLDDIR/eigen3.out
-        mingw32-make install >> $env:BLDDIR/eigen3.out
-        }
-  - ps: |
-      if  ($false)  # MINGW mode # gsl is downloaded in appveyor_1.msys
-      {
-        # GSL
-        c:\msys64\usr\bin\bash.exe -lc 'cd /c/projects/gdl/win32libs && . /c/projects/gdl/scripts/appveyor_gsl.msys'
-        }
+      cd c:/projects/gdl
+      c:/msys64/usr/bin/bash.exe -lc './scripts/appveyor_1.msys'
+      $env:LIB_DIR="\c\projects\gdl\win32libs\$env:WXNAME\lib\gcc_dll" 
 
 before_build:
   # disabling tests that failed from the get-go on Windows (temporarily!)
@@ -322,27 +185,7 @@ before_build:
 
   - ps: cd  C:\projects\gdl
 build_script:
-  - ps: $env:GMNAME=""
-  # the MSYS script in win32 will build a 32-bit GraphicsMagick distro on a healthy MSYS system
-  # but it won't for appveyor.  So, GMNAME="" to quash it and move on, the repo distribution created by
-  # appveyor_1.msys will be there for 8-bit images. 
-  - ps: |
-      if ( "x$env:GMNAME" -eq "x")
-      {
-      echo "No graphicsmagick build attempted "
-      }
-      else
-      {
-      echo " $env:GMNAME: 32-bit Quantum GraphicsMagick "
-      echo " $env:GMNAME "
-      cmd /c C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl && ./scripts/win32/bld_gm32.msys" 2>$null
-      }
-  # Given that a GM-Q32 directory will not be present in mingw/, GMNAME can be anything to trigger inclusion
-  # in the appveyor_gdl build: The distribution is created in appveyor_1.msys from the repo.
-  - set GMNAME=GraphicsMagick-1.3.27
   - PowerShell c:\projects\gdl\scripts\ps1\make_gdl.ps1
-  # Any message sent to stderr in appeyor.yml can be counted as an error, unless it is generated in 
-  # a script.  Hence make_gdl.ps1, and only real hang-ups are failures.
   
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
