@@ -12,7 +12,45 @@ ME="appveyor_1.msys"
 GDL_DIR="/c/projects/gdl"
 MINGW_DIR="${GDL_DIR}/mingw"
 BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
-
+REQUIRED_LIBS_MSYS2=(
+    "gsl"
+    "readline"
+    "gettext"
+    "libiconv"
+    "termcap"
+    "libsystre"
+    "libtre-git"
+    "eigen3"
+    "zlib"
+    "libpng"
+    "fftw"
+    "shapelib"
+    "expat"
+    "xz"
+    "libjpeg-turbo"
+    "libtiff"
+    "graphicsmagick"
+    "bzip2"
+    "fontconfig"
+    "freetype"
+    "lcms2"
+    "libtool"
+    "harfbuzz"
+    "graphite2"
+    "glib2"
+    "pcre"
+    "wxWidgets"
+    "plplot"
+    "proj"
+    "libgeotiff"
+    "netcdf"
+    "hdf5"
+    "curl"
+    "libharu"
+    "szip"
+    "libgd"
+)
+    
 function log {
     echo "[${ME}] $1"
 }
@@ -90,41 +128,6 @@ function install_zstd {
 }
 
 function download_msys2_packages {
-    required_libs_msys2=(
-        "gsl"
-        "readline"
-        "gettext"
-        "libiconv"
-        "termcap"
-        "libsystre"
-        "libtre-git"
-        "eigen3"
-        "zlib"
-        "libpng"
-        "fftw"
-        "shapelib"
-        "expat"
-        "xz"
-        "libjpeg-turbo"
-        "libtiff"
-        "graphicsmagick"
-        "bzip2"
-        "fontconfig"
-        "freetype"
-        "lcms2"
-        "libtool"
-        "harfbuzz"
-        "graphite2"
-        "glib2"
-        "pcre"
-        "wxWidgets"
-        "plplot"
-        "proj"
-        "libgeotiff"
-        "netcdf"
-        "hdf5"
-    )
-
     mkdir -p ${MINGW_DIR}
     cd ${MINGW_DIR}
 
@@ -132,7 +135,7 @@ function download_msys2_packages {
 
     # JP:
     #   The reason why not `pacman` here; some libs conflict with MSYS2 utils.
-    for package_name in ${required_libs_msys2[@]}; do
+    for package_name in ${REQUIRED_LIBS_MSYS2[@]}; do
         set_msys2_package $package_name
         download_package
         decompress_package
