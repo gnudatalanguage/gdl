@@ -49,6 +49,18 @@ REQUIRED_LIBS_MSYS2=(
     "libharu"
     "szip"
     "libgd"
+    "libdeflate"
+    "libwebp"
+    "qhull"
+    "brotli"
+    "libidn2"
+    "nghttp2"
+    "libpsl"
+    "libssh2"
+    "openssl"
+    "libimagequant"
+    "xpm-nox"
+    "libunistring"
 )
     
 function log {
