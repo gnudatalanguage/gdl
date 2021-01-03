@@ -18,11 +18,6 @@
 #ifndef INCLUDEFIRST_HPP_
 #define INCLUDEFIRST_HPP_
 
-#ifdef wxUSE_UNICODE
-    #define _UNICODE
-    #define UNICODE
-#endif
-
 #ifdef __CYGWIN__
 //  std::cerr is  broken in gcc/cygwin64 - for gdl, anyways.
 #define cerr cout
@@ -44,6 +39,12 @@
 
 #include <cstddef>
 #include <cstdlib>
+
+#ifdef HAVE_LIBWXWIDGETS
+  // Assume that we use unicode version of wxWidgets
+  #define _UNICODE
+  #define UNICODE
+#endif
 
 #if defined(USE_EIGEN)
 #include <Eigen/Core>
