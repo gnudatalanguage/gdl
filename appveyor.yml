@@ -8,10 +8,8 @@ configuration:
   - Debug
 environment:
   matrix:
-  # #- platform: mingw64720x8664
-  - platform: mingw64630x8664
-  - platform: mingw64630i686
-  # #- platform: mingw64730x8664
+  - platform: x86_64
+  - platform: i686
    
 matrix:
   fast_finish: true
@@ -22,36 +20,20 @@ init:
 install:
   - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
   - ps: |
-      if ($env:platform -Match "mingw64630i686") 
+      C:\msys64\usr\bin\bash.exe -lc 'sed -i s/^CheckSpace/#CheckSpace/g /etc/pacman.conf && pacman --noconfirm -Syuu --overwrite *'
+      C:\windows\system32\taskkill.exe /F /FI "MODULES eq msys-2.0.dll"
+      C:\msys64\usr\bin\bash.exe -lc 'pacman --noconfirm -Suu --overwrite *'
+  - ps: |
+      if ($env:platform -Match "i686") 
       {
-        #"i686-6.3.0-posix-dwarf-rt_v5-rev1"
-        #"i686-5.3.0-posix-dwarf-rt_v4-rev0"
-        $env:GCC="i686-6.3.0-posix-dwarf-rt_v5-rev1"
+        C:\msys64\usr\bin\bash.exe -lc 'pacman --noconfirm -S --needed --overwrite * git base-devel binutils mingw-w64-i686-toolchain'
         $env:MSYSTEM="MINGW32" ; $env:mname="mingw32" ; $env:arch="i686"
       }
-      elseif ($env:platform -Match "mingw64630x8664") 
+      elseif ($env:platform -Match "x86_64") 
       {
-        #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
-        $env:GCC="x86_64-6.3.0-posix-seh-rt_v5-rev1"
+        C:\msys64\usr\bin\bash.exe -lc 'pacman --noconfirm -S --needed --overwrite * git base-devel binutils mingw-w64-x86_64-toolchain'
         $env:MSYSTEM="MINGW64" ;  $env:mname="mingw64" ; $env:arch="x86_64"
       }
-      elseif ($env:platform -Match "mingw64720x8664") 
-      {
-        #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
-        $env:GCC="x86_64-7.2.0-posix-seh-rt_v5-rev1"
-        $env:MSYSTEM="MINGW64" ;  $env:mname="mingw64" ; $env:arch="x86_64"
-      }
-      elseif ($env:platform -Match "mingw64730x8664") 
-      {
-        #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
-        $env:GCC="x86_64-7.3.0-posix-seh-rt_v5-rev0"
-        $env:MSYSTEM="MINGW64" ; $env:mname="mingw64" ; $env:arch="x86_64"
-      }
-      #"x86_64-7.3.0-posix-seh-rt_v5-rev0"
-  - ps: |
-      $env:PATH="C:\mingw-w64\$env:GCC\$env:mname\bin;$env:PATH"
-      $env:CC="C:/mingw-w64/$env:GCC/$env:mname/bin/gcc"
-      $env:CXX="C:/mingw-w64/$env:GCC/$env:mname/bin/g++"
   - ps: |
       cd c:/projects/gdl
       c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD && ./scripts/appveyor_1.msys'
