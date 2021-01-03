@@ -16,9 +16,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#define _UNICODE
-#define UNICODE
-
 #include "datatypes.hpp"
 #include "dinterpreter.hpp"
 
