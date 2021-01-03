@@ -122,6 +122,12 @@ function install_msys2_packages {
         "libgeotiff"
         "netcdf"
         "hdf5"
+        "curl"
+        "szip"
+        "gd"
+        "libharu"
+        "tcl"
+        "sqlite3"
     )
 
     mkdir -p ${MINGW_DIR}
