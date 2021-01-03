@@ -154,6 +154,7 @@ function install_msys2_packages {
 }
 
 function build_gdl {
+    log "Building GDL..."
     mkdir -p ${GDL_DIR}/build
     cd ${GDL_DIR}/build
     #-DCMAKE_BUILD_TYPE=%CONFIGURATION% \
@@ -168,7 +169,10 @@ function build_gdl {
       -DFFTW=ON -DPYTHON=OFF -DUDUNITS2=OFF -DGLPK=OFF -DGRIB=OFF \
       -DUSE_WINGDI_NOT_WINGCC=ON
     
-    make -j2 && make install
+    make -j2
+    
+    log "Installing GDL..."
+    make install
 }
 
 find_architecture
