@@ -174,11 +174,11 @@ function build_gdl {
     log "Installing GDL..."
     make install
 }
-
+   
+find_architecture
 if [ $1 == "build" ]; then
     build_gdl
 else
-    find_architecture
     install_zstd
     install_msys2_packages
 done
