@@ -175,13 +175,12 @@ after_build:
       copy mingw\$env:mname\bin\*.dll install\gdl\bin\
       copy mingw\bsd-xdr-1.0.0\mingw\*.dll install\gdl\bin\
   - ps: |
-      mkdir install\share
-      copy -r mingw\$env:mname\share\plplot* install\share\
+      copy -r mingw\$env:mname\share\plplot* install\gdl\share\
       copy INSTALL.plplot install\
   - ps: copy scripts\rungdl.bat install\
   - ps: copy -r src\pro install\gdl\pro\
   #- 7z a gdl_build.zip install build
-  - 7z a gdl_build.zip install
+  - 7z a gdl_build.zip install\gdl
 
 artifacts:
   - path: gdl_build.zip
@@ -199,5 +198,5 @@ deploy:
     branch: master                 # release from master branch only
     appveyor_repo_tag: true        # deploy on tag push only
 
-#on_finish:
-#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+on_finish:
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
