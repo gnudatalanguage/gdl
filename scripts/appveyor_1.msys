@@ -170,11 +170,11 @@ function download_msys2_packages {
 }
 
 function build_gdl {
-    log "Building GDL (${CONFIGURATION})..."
+    log "Building GDL (${configuration})..."
     mkdir -p ${GDL_DIR}/build
     cd ${GDL_DIR}/build
     cmake .. -G"MSYS Makefiles" \
-      -DCMAKE_BUILD_TYPE=${CONFIGURATION} \
+      -DCMAKE_BUILD_TYPE=${configuration} \
       -DCMAKE_PREFIX_PATH=${MINGW_DIR}/${mname} \
       -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
       -DCMAKE_INSTALL_PREFIX:PATH=${GDL_DIR}/install \
