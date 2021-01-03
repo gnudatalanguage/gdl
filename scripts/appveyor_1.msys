@@ -71,6 +71,7 @@ function find_architecture {
             mname="mingw64"
         fi
     fi
+    export PATH=$PATH:/$mname/bin
     log "Architecture: ${arch}"
 }
 
@@ -88,7 +89,7 @@ function install_zstd {
     mv zstd.exe /usr/bin/
 }
 
-function install_msys2_packages {
+function download_msys2_packages {
     required_libs_msys2=(
         "gsl"
         "readline"
@@ -122,12 +123,6 @@ function install_msys2_packages {
         "libgeotiff"
         "netcdf"
         "hdf5"
-        "curl"
-        "szip"
-        "gd"
-        "libharu"
-        "tcl"
-        "sqlite3"
     )
 
     mkdir -p ${MINGW_DIR}
@@ -185,6 +180,6 @@ find_architecture
 if [ "$1" == "build" ]; then
     build_gdl
 else
-    install_zstd
-    install_msys2_packages
+    #install_zstd
+    download_msys2_packages
 fi
