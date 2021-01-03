@@ -176,7 +176,7 @@ function build_gdl {
 }
    
 find_architecture
-if [ $1 == "build" ]; then
+if [ "$1" == "build" ]; then
     build_gdl
 else
     install_zstd
