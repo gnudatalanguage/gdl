@@ -181,4 +181,4 @@ if [ $1 == "build" ]; then
 else
     install_zstd
     install_msys2_packages
-done
+fi
