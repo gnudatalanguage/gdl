@@ -18,6 +18,11 @@
 #ifndef INCLUDEFIRST_HPP_
 #define INCLUDEFIRST_HPP_
 
+#ifdef wxUSE_UNICODE
+    #define _UNICODE
+    #define UNICODE
+#endif
+
 #ifdef __CYGWIN__
 //  std::cerr is  broken in gcc/cygwin64 - for gdl, anyways.
 #define cerr cout
