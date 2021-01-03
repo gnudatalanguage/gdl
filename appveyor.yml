@@ -172,15 +172,16 @@ on_failure:
 after_build:
   - cd c:\projects\gdl
   - ps: |
-      copy C:\projects\gdl\mingw\$env:mname\bin\*.dll C:\projects\gdl\install\gdl\bin
-      copy C:\projects\gdl\mingw\bsd-xdr-1.0.0\mingw\*.dll C:\projects\gdl\install\gdl\bin
-      copy C:\mingw-w64\$env:GCC\$env:mname\bin\*.dll C:\projects\gdl\install\gdl\bin
+      copy mingw\$env:mname\bin\*.dll install\gdl\bin\
+      copy mingw\bsd-xdr-1.0.0\mingw\*.dll install\gdl\bin\
   - ps: |
-      copy -r c:\projects\gdl\mingw\$env:mname\share\plplot* c:\projects\gdl\install\
-      copy INSTALL.plplot c:/projects/gdl/install
-  - ps: copy scripts/rungdl.bat c:/projects/gdl/install/rungdl.bat
-  - ps: copy -r src/pro install/gdl/gdllib
-  - 7z a gdl_build.zip install build
+      mkdir install\share
+      copy -r mingw\$env:mname\share\plplot* install\share\
+      copy INSTALL.plplot install\
+  - ps: copy scripts\rungdl.bat install\
+  - ps: copy -r src\pro install\gdl\pro\
+  #- 7z a gdl_build.zip install build
+  - 7z a gdl_build.zip install
 
 artifacts:
   - path: gdl_build.zip
