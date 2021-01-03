@@ -4,7 +4,7 @@
 #
 # JP:
 #  Since old packages are not available from msys2 repo anymore, let's try the latest versions here.
-#  If they doesn't work (especially readline), we need to keep them in another location.
+#  If they don't work (especially readline), we need to store the old ones in another location.
 #  Below is the list of libraries had to be 'reversioned' in the previous version of this script:
 #   - readline, zlib, libpng, libpcre
 
@@ -173,9 +173,8 @@ function build_gdl {
     log "Building GDL..."
     mkdir -p ${GDL_DIR}/build
     cd ${GDL_DIR}/build
-    #-DCMAKE_BUILD_TYPE=%CONFIGURATION% \
     cmake .. -G"MSYS Makefiles" \
-      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_BUILD_TYPE=%CONFIGURATION% \
       -DCMAKE_PREFIX_PATH=${MINGW_DIR}/${mname} \
       -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
       -DCMAKE_INSTALL_PREFIX:PATH=${GDL_DIR}/install \
@@ -195,6 +194,6 @@ find_architecture
 if [ "$1" == "build" ]; then
     build_gdl
 else
-    #install_zstd
+    #install_zstd # not required for visual studio 2019 image
     download_msys2_packages
 fi
