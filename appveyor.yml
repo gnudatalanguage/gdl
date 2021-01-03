@@ -190,36 +190,14 @@ on_failure:
 after_build:
   - cd c:\projects\gdl
   - ps: |
-      if ( $env:platform -Match "mingw64630x8664") # in make_gdl.ps1, this is done before make check.
-      {
-      C:\msys64\usr\bin\bash.exe -lc "mkdir -p /c/projects/gdl/install/gdl/bin"
-      copy $env:LOCALM32\bin\*.dll c:\projects\gdl\install\gdl\bin
-      copy $env:PLPLOTDIR\bin\lib*.dll c:\projects\gdl\install\gdl\bin
+      copy c:\projects\gdl\mingw\$env:mname\bin\*.dll c:\projects\gdl\install\gdl\bin
       copy C:\mingw-w64\$env:GCC\$env:mname\bin\*.dll c:\projects\gdl\install\gdl\bin
-      }
-  # bring in the driver's dll to the installation directory.
-  # there are also .driver_info files here the plplot needs to find.
-  # also in share/plplot-5.13.0 there are mapping and color files.
-  - ps: $dyndrivers = Test-path -Path  "$env:PLPLOTDIR/lib/plplot5.13.0"
   - ps: |
-      if ( $dyndrivers -eq $true )
-      {
-       copy $env:PLPLOTDIR/lib/plplot5.13.0/drivers/*.dll c:/projects/gdl/install/gdl/bin
-       copy -r $env:PLPLOTDIR/lib/plplot5.13.0 c:/projects/gdl/install/plplot5.13
-      }               # evidently, the -erroraction wasn't sufficient to protect this.
-      else
-      {
-      echo "No dynamic driver directory, assumed no dynamic drivers."
-      }
-  
-  - ps: copy -r $env:PLPLOTDIR/share/plplot5.13.0 c:/projects/gdl/install/plplot5.13/lib
-  - ps: copy INSTALL.plplot c:/projects/gdl/install
-
-  - cd c:\projects\gdl
+      copy -r c:\projects\gdl\mingw\$env:mname\share\plplot* c:/projects/gdl/install/plplot5.13/lib
+      copy INSTALL.plplot c:/projects/gdl/install
   - ps: copy scripts/rungdl.bat c:/projects/gdl/install/rungdl.bat
   - ps: copy -r src/pro install/gdl/gdllib
   - 7z a gdl_build.zip install build
-
 
 artifacts:
   - path: gdl_build.zip
