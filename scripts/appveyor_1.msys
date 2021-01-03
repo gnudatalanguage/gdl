@@ -14,7 +14,7 @@ MINGW_DIR="${GDL_DIR}/mingw"
 BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
 REQUIRED_LIBS_MSYS2=(
     "gsl"
-    "readline"
+    "wineditline"
     "gettext"
     "libiconv"
     "termcap"
