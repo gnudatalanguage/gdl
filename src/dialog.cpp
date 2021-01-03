@@ -23,8 +23,8 @@
 //#include <wx/msgdlg.h>
 #endif
 
-#include "dialog.hpp"
 #include "envt.hpp"
+#include "dialog.hpp"
 #include "file.hpp"
 #include "gdlwidget.hpp"
 
