@@ -52,12 +52,9 @@ install:
       $env:PATH="C:\mingw-w64\$env:GCC\$env:mname\bin;$env:PATH"
       $env:CC="C:/mingw-w64/$env:GCC/$env:mname/bin/gcc"
       $env:CXX="C:/mingw-w64/$env:GCC/$env:mname/bin/g++"
-      $env:DOTIFF="ON"
-      $env:DOGEOTIFF="ON"
   - ps: |
       cd c:/projects/gdl
       c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD && ./scripts/appveyor_1.msys'
-      $env:LIB_DIR="\c\projects\gdl\win32libs\$env:WXNAME\lib\gcc_dll" 
 
 before_build:
   # disabling tests that failed from the get-go on Windows (temporarily!)
@@ -240,5 +237,5 @@ deploy:
     branch: master                 # release from master branch only
     appveyor_repo_tag: true        # deploy on tag push only
 
-on_finish:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+#on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
