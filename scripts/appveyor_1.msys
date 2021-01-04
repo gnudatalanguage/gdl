@@ -102,10 +102,10 @@ function download_package {
 
 function decompress_package {
     log "Decompressing ${package_file}..."
-    if [ ${package_file: -4} == ".zst" ]; then
-        tar -I zstd -xf $package_file $@
+    if [ ${package_file: -4} == ".zip" ]; then
+        unzip $package_file
     else
-        tar xf $package_file $@
+        tar xf $package_file
     fi
     if [ $? -eq 1 ]; then
         log "Failed to decompress ${package_file}!"
