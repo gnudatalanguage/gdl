@@ -40,6 +40,12 @@
 #include <cstddef>
 #include <cstdlib>
 
+#if defined(HAVE_LIBWXWIDGETS) && defined(_WIN32)
+  // JP: Assume that we only use unicode version of wxWidgets on Windows
+  #define _UNICODE
+  #define UNICODE
+#endif
+
 #if defined(USE_EIGEN)
 #include <Eigen/Core>
 #endif

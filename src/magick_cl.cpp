@@ -57,15 +57,20 @@ namespace lib {
   using namespace std;
   using namespace antlr;
   using namespace Magick;
-
-  Image gImage[40];
+// patch by pjb
+  Image *gImage;
   unsigned int gValid[40];
   unsigned int gCount = 0;
   static bool notInitialized = true;
 
   __attribute__((constructor)) static void init(void) {
     START_MAGICK;
+      gImage = new Image[40];
   }
+
+  __attribute__((destructor)) static void destroy(void) {
+    delete[] gImage;
+    }
 
   void magick_setup() {
     int i;
