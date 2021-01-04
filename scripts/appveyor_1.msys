@@ -12,9 +12,10 @@ ME="appveyor_1.msys"
 GDL_DIR="/c/projects/gdl"
 MINGW_DIR="${GDL_DIR}/mingw"
 BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
+READLINE_X32_URL="https://sourceforge.net/projects/gnuwin32/files/readline/5.0-1/readline-5.0-1-bin.zip"
+READLINE_X64_URL="https://github.com/pjb7687/gnuwin32-readline5-mingw64/releases/download/auto_build/gnuwin32-readline5-mingw64-x86_64.zip"
 REQUIRED_LIBS_MSYS2=(
     "gsl"
-    "readline"
     "gettext"
     "libiconv"
     "termcap"
@@ -139,7 +140,7 @@ function install_zstd {
     mv zstd.exe /usr/bin/
 }
 
-function download_msys2_packages {
+function download_packages {
     mkdir -p ${MINGW_DIR}
     cd ${MINGW_DIR}
 
@@ -167,6 +168,17 @@ function download_msys2_packages {
 
     log "Patching wx-config..."
     sed -ie "s;-/${mname};-${MINGW_DIR}/${mname};g" ${MINGW_DIR}/${mname}/bin/wx-config
+    
+    log "Downloading readline binary..."
+    if [ $arch == "i686" ]; then
+        READLINE_URL=${READLINE_X32_URL}
+    else
+        READLINE_URL=${READLINE_X64_URL}
+    fi
+    cd ${MINGW_DIR}/${mname}
+    set_package ${READLINE_URL}
+    download_package
+    decompress_package
 }
 
 function build_gdl {
@@ -195,5 +207,6 @@ if [ "$1" == "build" ]; then
     build_gdl
 else
     #install_zstd # not required for visual studio 2019 image
-    download_msys2_packages
+    download_packages
+    if 
 fi
