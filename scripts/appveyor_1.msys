@@ -93,7 +93,7 @@ function download_package {
        log "File exists! Skipping..."
     else
         curl -LOs $package_url
-        if [ $? -eq 1 ]; then
+        if [ ! $? -eq 0 ]; then
             log "Failed to download ${package_file}!"
             exit 1
         fi
@@ -107,7 +107,7 @@ function decompress_package {
     else
         tar xf $package_file
     fi
-    if [ $? -eq 1 ]; then
+    if [ ! $? -eq 0 ]; then
         log "Failed to decompress ${package_file}!"
         exit 1
     fi
@@ -161,8 +161,7 @@ function download_packages {
     log "Building bsd-xdr..."
     pushd bsd-xdr-1.0.0
     sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -i Makefile
-    sed -i 's/%hh/%/g' src/test/test_data.c
-    make
+    make || exit 1
     mv mingw/libxdr.dll.a ${MINGW_DIR}/${mname}/lib
     mv rpc ${MINGW_DIR}/${mname}/include
 
@@ -194,12 +193,12 @@ function build_gdl {
       -DNETCDF=ON -DHDF=OFF -DHDF5=ON \
       -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ4=ON \
       -DFFTW=ON -DPYTHON=OFF -DUDUNITS2=OFF -DGLPK=OFF -DGRIB=OFF \
-      -DUSE_WINGDI_NOT_WINGCC=ON
+      -DUSE_WINGDI_NOT_WINGCC=ON || exit 1
     
-    make -j2
+    make -j2 || exit 1
     
     log "Installing GDL..."
-    make install
+    make install || exit 1
 }
    
 find_architecture
