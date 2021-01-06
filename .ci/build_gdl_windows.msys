@@ -8,6 +8,8 @@
 #  Below is the list of libraries had to be 'reversioned' in the previous version of this script:
 #   - readline, zlib, libpng, libpcre
 
+set -x
+
 ME="windows_build.msys"
 GDL_DIR="/c/projects/gdl"
 MINGW_DIR="${GDL_DIR}/../mingw"
@@ -160,7 +162,7 @@ function download_packages {
 
     log "Building bsd-xdr..."
     pushd bsd-xdr-1.0.0
-    sed -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -i Makefile
+    sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -i Makefile
     make || exit 1
     mv mingw/libxdr.dll.a ${MINGW_DIR}/${mname}/lib
     mv rpc ${MINGW_DIR}/${mname}/include
@@ -196,8 +198,6 @@ function test_gdl {
 }
 
 find_architecture
-echo "Environment variables:"
-env
 if [ "$1" == "build" ]; then
     build_gdl
 elif [ "$1" == "test" ]; then
