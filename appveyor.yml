@@ -23,27 +23,21 @@ install:
       C:\msys64\usr\bin\bash.exe -lc "sed -i s/^CheckSpace/#CheckSpace/g /etc/pacman.conf && pacman --noconfirm -Syuu --overwrite *"
       C:\windows\system32\taskkill.exe /F /FI "MODULES eq msys-2.0.dll"
       C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Suu --overwrite *"
-  - ps: |	
-      if ($env:platform -Match "i686") 	
-      {	
-        C:\msys64\usr\bin\bash.exe -lc 'pacman --noconfirm -S --needed --overwrite * git base-devel binutils mingw-w64-i686-toolchain'	
-        $env:MSYSTEM="MINGW32" ; $env:mname="mingw32" ; $env:arch="i686"	
-      }	
-      elseif ($env:platform -Match "x86_64") 	
-      {	
-        C:\msys64\usr\bin\bash.exe -lc 'pacman --noconfirm -S --needed --overwrite * git base-devel binutils mingw-w64-x86_64-toolchain'	
-        $env:MSYSTEM="MINGW64" ;  $env:mname="mingw64" ; $env:arch="x86_64"	
-      }
+  - cmd: |
+      if %platform% == i686 (
+        C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S --needed --overwrite * git base-devel binutils mingw-w64-i686-toolchain"
+      )
+      if %platform%" == x86_64 (
+        C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S --needed --overwrite * git base-devel binutils mingw-w64-x86_64-toolchain"
+      )
   - cmd: |
       cd c:/projects/gdl
       c:/msys64/usr/bin/bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys"
-      if %errorlevel% neq 0 exit /b %errorlevel%
 
 build_script:
   - cmd: |
       cd c:/projects/gdl
       c:/msys64/usr/bin/bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys build"
-      if %errorlevel% neq 0 exit /b %errorlevel%
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
