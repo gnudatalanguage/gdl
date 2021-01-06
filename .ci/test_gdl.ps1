@@ -2,4 +2,4 @@
 # This is needed because any write to stderr, which is used by gcc and cmake,
 # will invoke a powershell error.
 
-C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl &&. bash ./scripts/build_gdl_windows.msys test"
+C:\msys64\usr\bin\bash.exe -lc "cd /c/projects/gdl &&. bash ./.ci/build_gdl_windows.msys test"

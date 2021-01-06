@@ -25,18 +25,18 @@ install:
       C:\msys64\usr\bin\bash.exe -lc 'pacman --noconfirm -Suu --overwrite *'
   - ps: |
       cd c:/projects/gdl
-      c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD && ./scripts/build_gdl_windows.msys'
+      c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD && ./.ci/build_gdl_windows.msys'
 
 build_script:
   - ps: |
       cd c:/projects/gdl
-      c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD && ./scripts/build_gdl_windows.msys build'
+      c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD && ./.ci/build_gdl_windows.msys build'
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
 
 after_build:
-  - ps: c:\projects\gdl\scripts\ps1\test_gdl.ps1
+  - ps: c:\projects\gdl\.ci\ps1\test_gdl.ps1
   - ps: |
       copy C:\msys64\$env:mname\bin\*.dll install\bin\
       copy mingw\$env:mname\bin\*.dll install\bin\
