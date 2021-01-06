@@ -19,7 +19,7 @@ init:
 
 install:
   - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
-  - ps: |
+  - cmd: |
       C:\msys64\usr\bin\bash.exe -lc 'sed -i s/^CheckSpace/#CheckSpace/g /etc/pacman.conf && pacman --noconfirm -Syuu --overwrite *'
       C:\windows\system32\taskkill.exe /F /FI "MODULES eq msys-2.0.dll"
       C:\msys64\usr\bin\bash.exe -lc 'pacman --noconfirm -Suu --overwrite *'
@@ -34,25 +34,26 @@ install:
         C:\msys64\usr\bin\bash.exe -lc 'pacman --noconfirm -S --needed --overwrite * git base-devel binutils mingw-w64-x86_64-toolchain'	
         $env:MSYSTEM="MINGW64" ;  $env:mname="mingw64" ; $env:arch="x86_64"	
       }
-  - ps: |
+  - cmd: |
       cd c:/projects/gdl
       c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD && ./.ci/build_gdl_windows.msys'
+      if %errorlevel% neq 0 exit /b %errorlevel%
 
 build_script:
-  - ps: |
+  - cmd: |
       cd c:/projects/gdl
       c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD && ./.ci/build_gdl_windows.msys build'
+      if %errorlevel% neq 0 exit /b %errorlevel%
 
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
 
 after_build:
-  - ps: c:\projects\gdl\.ci\ps1\test_gdl.ps1
+  - cmd: c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD && ./.ci/build_gdl_windows.msys test'
   - ps: |
       copy C:\msys64\$env:mname\bin\*.dll install\bin\
       copy mingw\$env:mname\bin\*.dll install\bin\
       copy mingw\bsd-xdr-1.0.0\mingw\*.dll install\bin\
-  - ps: |
       copy -r mingw\$env:mname\share\plplot* install\share\
       copy INSTALL.plplot install\
   - ps: copy -r src\pro install\pro\
