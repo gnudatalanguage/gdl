@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# script to download some files needed for mingw32.
+# script to download some files needed for mingw32, and build GDL.
 #
 # JP:
 #  Since old packages are not available from msys2 repo anymore, let's try the latest versions here.
@@ -8,7 +8,7 @@
 #  Below is the list of libraries had to be 'reversioned' in the previous version of this script:
 #   - readline, zlib, libpng, libpcre
 
-ME="appveyor_1.msys"
+ME="windows_build.msys"
 GDL_DIR="/c/projects/gdl"
 MINGW_DIR="${GDL_DIR}/mingw"
 BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
@@ -189,10 +189,17 @@ function build_gdl {
     log "Installing GDL..."
     make install || exit 1
 }
-   
+
+function test_gdl {
+    cd ${GDL_DIR}/build
+    make test
+}
+
 find_architecture
 if [ "$1" == "build" ]; then
     build_gdl
+elif [ "$1" == "test" ]; then
+    test_gdl
 else
     #install_zstd # not required for visual studio 2019 image
     download_packages

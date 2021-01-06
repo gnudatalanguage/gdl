@@ -24,153 +24,19 @@ install:
       C:\windows\system32\taskkill.exe /F /FI "MODULES eq msys-2.0.dll"
       C:\msys64\usr\bin\bash.exe -lc 'pacman --noconfirm -Suu --overwrite *'
   - ps: |
-      if ($env:platform -Match "i686") 
-      {
-        C:\msys64\usr\bin\bash.exe -lc 'pacman --noconfirm -S --needed --overwrite * git base-devel binutils mingw-w64-i686-toolchain'
-        $env:MSYSTEM="MINGW32" ; $env:mname="mingw32" ; $env:arch="i686"
-      }
-      elseif ($env:platform -Match "x86_64") 
-      {
-        C:\msys64\usr\bin\bash.exe -lc 'pacman --noconfirm -S --needed --overwrite * git base-devel binutils mingw-w64-x86_64-toolchain'
-        $env:MSYSTEM="MINGW64" ;  $env:mname="mingw64" ; $env:arch="x86_64"
-      }
+      cd c:/projects/gdl
+      c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD && ./scripts/build_gdl_windows.msys'
+
+build_script:
   - ps: |
       cd c:/projects/gdl
-      c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD && ./scripts/appveyor_1.msys'
+      c:/msys64/usr/bin/bash.exe -lc 'cd $OLDPWD && ./scripts/build_gdl_windows.msys build'
 
-before_build:
-  # disabling tests that failed from the get-go on Windows (temporarily!)
-  # Now that make check is being run from a powershell script, errors in these tests do not
-  # produce an overall failure.  Hang-ups will occur, however, so the exclusion list moves it along.
-  - ps: cd C:\projects\gdl\testsuite
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_binfmt.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_3300626.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_3275334.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_3104214.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_2876161.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_2610174.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_1779553.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_3376577.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_3394430.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_3595172.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_635.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_709.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_719.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_n000587.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_n000608.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_bug_n000720.pro' -NotMatch)
-
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_call_external.pro' -NotMatch)
-
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_clip.pro' -NotMatch)
-  # test_clip fails.
-  # test_container triggers an assertion failure: File: C:/projects/gdl/src/envt.cpp, Line 1368
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_container.pro' -NotMatch)
-  # test_contour: % DEVICE: Keyword GET_DECOMPOSED not allowed for call to: DEVICE
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_contour.pro' -NotMatch)
-  # AC 20200430 should be ok now
-  #  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_correlate.pro' -NotMatch)
-  # test_delvarrnew: needs a permissive shell environment that Windows won't give it.
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_delvarrnew.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_device.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_dicom.pro' -NotMatch)
-
-  # AC 20200430 should be ok now
-  #  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_execute.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_extra_keywords.pro' -NotMatch)
-  # AC 20200430 should be ok now
-  # - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_fft_dim.pro' -NotMatch)
-  # test_file_move hangs appveyor
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_file_move.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_fix.pro' -NotMatch)
-  # 1 error in test_fix
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_finite.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_fixprint.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_formats.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_fx_root.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_fz_roots.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_gc.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_get_lun.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_get_screen_size.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_gh00178.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_hist_2d.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_idlneturl.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_indgen.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_interpol.pro' -NotMatch)
-  # make_dll hangs up 64-bit appveyor build.
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_make_dll.pro' -NotMatch)
-  # matrix_muiltiply: passes (?), but long.
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_matrix_multiply.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_memory.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_message.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_moment.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_multiroots.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_obj_isa.pro' -NotMatch)
-  # obj_new fails -hangs- because the object example is too big for win32
-  # then, after replacement with a smaller definition, fails on appveyor
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_obj_new.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_plot_oo.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_plot_ranges.pro' -NotMatch)
-  #AC 2018 : should be OK now (plot_usersym)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_plot_usersym.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_plotting_ranges.pro' -NotMatch)
-  # pmulti can hang 64-bit build.% TEST_PMULTI: Error opening file.
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_pmulti.pro' -NotMatch)
-  # test_point_lun: does not exit after: % Execution halted at: READ_4B_FILE       120 F:
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_point_lun.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_postscript.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_product.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_ps_decomposed.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_python.pro' -NotMatch)
-  # % TEST_IMAGE_STATISTICS: Image for test (Saturn.jpg) not found, test aborted
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_image_statistics.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_n_tags.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_nans_in_sort_and_median.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_nestedloop.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_netcdf.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_parse_url.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_python_module_0.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_python_module_1.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_python_module_2.pro' -NotMatch)
-  #% Execution halted at: TEST_RANDOM_POISSON   229
-#AC20200430 solved ? - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_random.pro' -NotMatch)
-  #% Execution halted at: TESTREADF          192
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_readf.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_resolve_routine.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_same_name.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_simplex.pro' -NotMatch)
-  #% SPAWN: UNIT keyword is not implemented yet!
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_spawn_unit.pro' -NotMatch)
-  #% Type conversion error: Unable to convert given STRING: '"
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_step.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_systime.pro' -NotMatch)
-  # systime not finished
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_tic_toc.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_total.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_rounding.pro' -NotMatch)
-  #AC 2018 : should be OK now? N (test_tv)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_tv.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_typename.pro' -NotMatch)
-  # test_typename is probably using a dicom dictionary, too large for win32/
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_wait.pro' -NotMatch)
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_wavelet.pro' -NotMatch)
-  # test_window_background will hang the 64-bit build up in appveyor.
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_window_background.pro' -NotMatch)
-
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_wordexp.pro' -NotMatch)
-  # test_xdr gives a segfault
-  # ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_xdr.pro' -NotMatch)
-  - ps: Set-Content -Path "LIST" -Value (get-content -Path "LIST" | Select-String -Pattern 'test_zip.pro' -NotMatch)
-
-  - ps: cd  C:\projects\gdl
-build_script:
-  - PowerShell c:\projects\gdl\scripts\ps1\make_gdl.ps1
-  
 on_failure:
   - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
 
 after_build:
-  - cd c:\projects\gdl
+  - ps: c:\projects\gdl\scripts\ps1\test_gdl.ps1
   - ps: |
       copy C:\msys64\$env:mname\bin\*.dll install\bin\
       copy mingw\$env:mname\bin\*.dll install\bin\
