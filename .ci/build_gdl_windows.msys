@@ -114,13 +114,13 @@ function decompress_package {
 
 function find_architecture {
     if [ ${Platform:-x86_64} == "x86_64" ]; then
-        export mname=mingw64
-        export MSYSTEM=MINGW64
-        export arch=x86_64
+        export mname="mingw64"
+        export MSYSTEM="MINGW64"
+        export arch="x86_64"
     else
         export mname="mingw32"
-        export MSYSTEM=MINGW32
-        export arch=i686
+        export MSYSTEM="MINGW32"
+        export arch="i686"
     fi
     export PATH=$PATH:/$mname/bin
     log "Architecture: ${arch}"
@@ -170,15 +170,14 @@ function download_packages {
 }
 
 function build_gdl {
-    set -x
     log "Building GDL (${Configuration:-Debug})..."
     mkdir -p ${GDL_DIR}/build
     cd ${GDL_DIR}/build
     cmake .. -G"MSYS Makefiles" \
       -DCMAKE_BUILD_TYPE=${Configuration} \
-      -DCMAKE_PREFIX_PATH=${MINGW_DIR}/${mname} \
+      -DCMAKE_PREFIX_PATH="${MINGW_DIR}/${mname}" \
       -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-      -DCMAKE_INSTALL_PREFIX:PATH=${GDL_DIR}/install \
+      -DCMAKE_INSTALL_PREFIX:PATH="${GDL_DIR}/install" \
       -DWXWIDGETS=ON -DGRAPHICSMAGICK=ON -DMAGICK=ON \
       -DNETCDF=ON -DHDF=OFF -DHDF5=ON \
       -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ4=ON \
