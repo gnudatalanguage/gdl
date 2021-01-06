@@ -12,7 +12,7 @@ set -x
 
 ME="windows_build.msys"
 GDL_DIR="/c/projects/gdl"
-MINGW_DIR="${GDL_DIR}/../mingw"
+MINGW_DIR=`readlink -f "${GDL_DIR}/../mingw"`
 BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
 REQUIRED_LIBS_MSYS2=(
     "gsl"
