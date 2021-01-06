@@ -12,10 +12,9 @@ ME="appveyor_1.msys"
 GDL_DIR="/c/projects/gdl"
 MINGW_DIR="${GDL_DIR}/mingw"
 BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
-READLINE_X32_URL="https://github.com/pjb7687/readline-mingw/releases/download/auto_build/readline-8.0-i686-w64-mingw32.zip"
-READLINE_X64_URL="https://github.com/pjb7687/readline-mingw/releases/download/auto_build/readline-8.0-x86_64-w64-mingw32.zip"
 REQUIRED_LIBS_MSYS2=(
     "gsl"
+    "readline"
     "gettext"
     "libiconv"
     "termcap"
@@ -114,13 +113,14 @@ function decompress_package {
 }
 
 function find_architecture {
-    mname="mingw32"
-    arch="i686"
-    if [ -n "$MSYSTEM" ] ; then
-        if [ "$MSYSTEM" = "MINGW64" ] ; then
-            arch="x86_64"
-            mname="mingw64"
-        fi
+    arch=`uname -m`
+    if [ $arch == "x86_64" ]; then
+        mname="mingw64"
+	export MSYSTEM=MINGW64
+    else
+	arch="i686"
+        mname="mingw32"
+	export MSYSTEM=MINGW32
     fi
     export PATH=$PATH:/$mname/bin
     log "Architecture: ${arch}"
@@ -166,22 +166,11 @@ function download_packages {
     mv rpc ${MINGW_DIR}/${mname}/include
 
     log "Patching wx-config..."
-    sed -ie "s;-/${mname};-${MINGW_DIR}/${mname};g" ${MINGW_DIR}/${mname}/bin/wx-config
-    
-    log "Downloading readline binary..."
-    if [ $arch == "i686" ]; then
-        READLINE_URL=${READLINE_X32_URL}
-    else
-        READLINE_URL=${READLINE_X64_URL}
-    fi
-    cd ${MINGW_DIR}/${mname}
-    set_package ${READLINE_URL}
-    download_package
-    decompress_package
+    sed -e "s;-/${mname};-${MINGW_DIR}/${mname};g" -e "s;-Wl,--subsystem,windows -mwindows;;" -i ${MINGW_DIR}/${mname}/bin/wx-config
 }
 
 function build_gdl {
-    log "Building GDL (${Configuration})..."
+    log "Building GDL (${Configuration:-Debug})..."
     mkdir -p ${GDL_DIR}/build
     cd ${GDL_DIR}/build
     cmake .. -G"MSYS Makefiles" \
