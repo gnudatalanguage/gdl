@@ -8,8 +8,6 @@
 #  Below is the list of libraries had to be 'reversioned' in the previous version of this script:
 #   - readline, zlib, libpng, libpcre
 
-set -x
-
 ME="windows_build.msys"
 GDL_DIR="/c/projects/gdl"
 MINGW_DIR=`readlink -f "${GDL_DIR}/../mingw"`
@@ -172,6 +170,7 @@ function download_packages {
 }
 
 function build_gdl {
+    set -x
     log "Building GDL (${Configuration:-Debug})..."
     mkdir -p ${GDL_DIR}/build
     cd ${GDL_DIR}/build
