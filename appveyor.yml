@@ -19,6 +19,15 @@ init:
 
 install:
   - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
+  - ps: |
+      if ($env:platform -Match "i686") 
+      {
+        $env:MSYSTEM="MINGW32" ; $env:mname="mingw32" ; $env:arch="i686"
+      }
+      elseif ($env:platform -Match "x86_64") 
+      {
+        $env:MSYSTEM="MINGW64" ;  $env:mname="mingw64" ; $env:arch="x86_64"
+      }
   - cmd: |
       C:\msys64\usr\bin\bash.exe -lc "sed -i s/^CheckSpace/#CheckSpace/g /etc/pacman.conf && pacman --noconfirm -Syuu --overwrite \*"
       C:\windows\system32\taskkill.exe /F /FI "MODULES eq msys-2.0.dll"
