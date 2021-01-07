@@ -56,8 +56,12 @@ after_build:
       copy -r ..\mingw\$env:mname\share\plplot* share\
 #      copy INSTALL.plplot install\
   - ps: copy -r ..\gdl\src\pro .
-  - cmd: C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys check" & exit 0
-  - 7z a ..\gdl\gdl_build.zip *
+  - cmd: |
+      cd C:\projects\gdl
+      C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys check" & exit 0
+  - cmd: |
+      cd C:\projects\install
+      7z a ..\gdl\gdl_build.zip *
 
 artifacts:
   - path: gdl_build.zip
