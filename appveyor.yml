@@ -25,7 +25,7 @@ install:
       C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Suu --overwrite *"
   - cmd: |
       if %platform% == i686 C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S --needed --overwrite git base-devel binutils mingw-w64-i686-toolchain"
-      if %platform%" == x86_64 C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S --needed --overwrite git base-devel binutils mingw-w64-x86_64-toolchain"
+      if %platform% == x86_64 C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S --needed --overwrite git base-devel binutils mingw-w64-x86_64-toolchain"
   - cmd: |
       cd C:\projects\gdl
       C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys"
