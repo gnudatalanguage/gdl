@@ -2,7 +2,7 @@ image: Visual Studio 2019
 branches:
   only:
     - master
-clone_folder: c:\projects\gdl
+clone_folder: C:\projects\gdl
 configuration:
   - Release
   - Debug
@@ -31,27 +31,28 @@ install:
         C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S --needed --overwrite * git base-devel binutils mingw-w64-x86_64-toolchain"
       )
   - cmd: |
-      cd c:/projects/gdl
-      c:/msys64/usr/bin/bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys"
+      cd C:\projects\gdl
+      C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys"
 
 build_script:
   - cmd: |
-      cd c:/projects/gdl
-      c:/msys64/usr/bin/bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys build"
+      cd C:\projects\gdl
+      C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys build"
 
 on_failure:
-  - ps: cat c:\projects\gdl\build\testsuite\Testing\Temporary\LastTest.log
+  - ps: cat C:\projects\build\testsuite\Testing\Temporary\LastTest.log
 
 after_build:
-  - cmd: c:/msys64/usr/bin/bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys test"
+  - cmd: C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys check" & exit 0
   - ps: |
-      copy C:\msys64\$env:mname\bin\*.dll install\bin\
-      copy mingw\$env:mname\bin\*.dll install\bin\
-      copy mingw\bsd-xdr-1.0.0\mingw\*.dll install\bin\
-      copy -r mingw\$env:mname\share\plplot* install\share\
-      copy INSTALL.plplot install\
-  - ps: copy -r src\pro install\pro\
-  - 7z a gdl_build.zip install
+      cd C:\projects\install
+      copy C:\msys64\$env:mname\bin\*.dll bin\
+      copy ..\mingw\$env:mname\bin\*.dll bin\
+      copy ..\mingw\bsd-xdr-1.0.0\mingw\*.dll bin\
+      copy -r ..\mingw\$env:mname\share\plplot* share\
+#      copy INSTALL.plplot install\
+  - ps: copy -r ..\gdl\src\pro .
+  - 7z a ..\gdl\gdl_build.zip *
 
 artifacts:
   - path: gdl_build.zip

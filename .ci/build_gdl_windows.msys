@@ -8,9 +8,10 @@
 #  Below is the list of libraries had to be 'reversioned' in the previous version of this script:
 #   - readline, zlib, libpng, libpcre
 
-ME="windows_build.msys"
-GDL_DIR="/c/projects/gdl"
-MINGW_DIR=`readlink -f "${GDL_DIR}/../mingw"`
+ME="build_gdl_windows.msys"
+ROOT_DIR=${ROOT_DIR:-"/c/projects"}
+GDL_DIR="${ROOT_DIR}/gdl"
+MINGW_DIR="${ROOT_DIR}/mingw"
 BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
 REQUIRED_LIBS_MSYS2=(
     "gsl"
@@ -71,7 +72,6 @@ declare -A msys2_libs
 function prep_msys2_repo {
     log "Downloading MSYS2 repository file..."
     curl -LOs http://repo.msys2.org/mingw/${arch}/${mname}.files # This file has the version strings of the latest libraries.
-
     eval `tar --wildcards -xOf ${mname}.files \*/desc | awk '/%FILENAME%/{getline;fn=$0;getline;getline;getline;print "msys2_libs[\"" $0 "\"]+=\"" fn "\"";}'`
 }
 
@@ -113,7 +113,7 @@ function decompress_package {
 }
 
 function find_architecture {
-    if [ ${Platform:-x86_64} == "x86_64" ]; then
+    if [ ${Platform:-`uname -m`} == "x86_64" ]; then
         export mname="mingw64"
         export MSYSTEM="MINGW64"
         export arch="x86_64"
@@ -171,13 +171,13 @@ function download_packages {
 
 function build_gdl {
     log "Building GDL (${Configuration:-Debug})..."
-    mkdir -p ${GDL_DIR}/build
-    cd ${GDL_DIR}/build
-    cmake .. -G"MSYS Makefiles" \
+    mkdir -p ${ROOT_DIR}/build
+    cd ${ROOT_DIR}/build
+    cmake ${GDL_DIR} -G"MSYS Makefiles" \
       -DCMAKE_BUILD_TYPE=${Configuration} \
       -DCMAKE_PREFIX_PATH="${MINGW_DIR}/${mname}" \
       -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-      -DCMAKE_INSTALL_PREFIX:PATH="${GDL_DIR}/install" \
+      -DCMAKE_INSTALL_PREFIX:PATH="${ROOT_DIR}/install" \
       -DWXWIDGETS=ON -DGRAPHICSMAGICK=ON -DMAGICK=ON \
       -DNETCDF=ON -DHDF=OFF -DHDF5=ON \
       -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ4=ON \
@@ -191,14 +191,14 @@ function build_gdl {
 }
 
 function test_gdl {
-    cd ${GDL_DIR}/build
-    make test
+    cd ${ROOT_DIR}/build
+    make check # JP: why check not test? it's confusing..
 }
 
 find_architecture
 if [ "$1" == "build" ]; then
     build_gdl
-elif [ "$1" == "test" ]; then
+elif [ "$1" == "check" ]; then
     test_gdl
 else
     #install_zstd # not required for visual studio 2019 image
