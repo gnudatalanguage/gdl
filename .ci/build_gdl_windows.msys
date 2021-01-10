@@ -11,8 +11,10 @@
 ME="build_gdl_windows.msys"
 ROOT_DIR=${ROOT_DIR:-"/c/projects"}
 GDL_DIR="${ROOT_DIR}/gdl"
+NSIS_SCRIPT="${GDL_DIR}/.ci/gdlsetup.nsi"
 MINGW_DIR="${ROOT_DIR}/mingw"
 BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
+GDLDE_URL="https://github.com/gnudatalanguage/gdlde/releases/download/untagged-edb83d05cdb4f13194d6/gdlde.product-win32.win32.x86_64.zip"
 REQUIRED_LIBS_MSYS2=(
     "gsl"
     "readline"
@@ -102,9 +104,9 @@ function download_package {
 function decompress_package {
     log "Decompressing ${package_file}..."
     if [ ${package_file: -4} == ".zip" ]; then
-        unzip $package_file
+        unzip $@ $package_file
     else
-        tar xf $package_file
+        tar xf $@ $package_file
     fi
     if [ ! $? -eq 0 ]; then
         log "Failed to decompress ${package_file}!"
@@ -164,6 +166,7 @@ function download_packages {
     make || exit 1
     mv mingw/libxdr.dll.a ${MINGW_DIR}/${mname}/lib
     mv rpc ${MINGW_DIR}/${mname}/include
+    popd
 
     log "Patching wx-config..."
     sed -e "s;-/${mname};-${MINGW_DIR}/${mname};g" -e "s;-Wl,--subsystem,windows -mwindows;;" -i ${MINGW_DIR}/${mname}/bin/wx-config
@@ -188,19 +191,47 @@ function build_gdl {
     
     log "Installing GDL..."
     make install || exit 1
+
+    cd ${ROOT_DIR}/install
+
+    # Copy dlls and libraries to install directory
+    cp -r ${MINGW_DIR}/${mname}/bin/*.dll bin/
+    cp -r /${mname}/bin/*.dll bin/
+    cp -r ${MINGW_DIR}/bsd-xdr-1.0.0/mingw/*.dll bin/
+    cp ${GDL_DIR}/COPYING .
+    cp -r ${MINGW_DIR}/${mname}/share/plplot* share/
 }
 
 function test_gdl {
     cd ${ROOT_DIR}/build
-    make check # JP: why check not test? it's confusing..
+    make check
 }
 
-find_architecture
-if [ "$1" == "build" ]; then
-    build_gdl
-elif [ "$1" == "check" ]; then
-    test_gdl
+function pack_gdl {
+    cd ${ROOT_DIR}
+    set_package $GDLDE_URL
+    download_package
+    decompress_package -o -d gdlde
+
+    mkdir -p ${ROOT_DIR}/package
+    cd ${ROOT_DIR}/package
+
+    export GDL_INSTALL_DIR=`cygpath -w ${ROOT_DIR}/install`
+    makensis -V4 ${GDL_DIR}/.ci/gdlsetup.nsi && mv ${GDL_DIR}/.ci/gdlsetup.exe .
+}
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: build_gdl_windows.msys prep|build|check|pack"
 else
-    #install_zstd # not required for visual studio 2019 image
-    download_packages
+    find_architecture
+    if [ "$1" == "prep" ]; then
+        #install_zstd # not required for visual studio 2019 image
+        download_packages
+    elif [ "$1" == "build" ]; then
+        build_gdl
+    elif [ "$1" == "check" ]; then
+        test_gdl
+    elif [ "$1" == "pack" ]; then
+        pack_gdl
+    fi
 fi

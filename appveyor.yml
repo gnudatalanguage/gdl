@@ -33,11 +33,11 @@ install:
       C:\windows\system32\taskkill.exe /F /FI "MODULES eq msys-2.0.dll"
       C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Suu --overwrite \*"
   - cmd: |
-      if %platform% == i686 C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S --needed --overwrite \* git base-devel binutils mingw-w64-i686-toolchain"
-      if %platform% == x86_64 C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S --needed --overwrite \* git base-devel binutils mingw-w64-x86_64-toolchain"
+      if %platform% == i686 C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S --needed --overwrite \* mingw-w64-i686-nsis base-devel binutils mingw-w64-i686-toolchain"
+      if %platform% == x86_64 C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S --needed --overwrite \* mingw-w64-x86_64-nsis base-devel binutils mingw-w64-x86_64-toolchain"
   - cmd: |
       cd C:\projects\gdl
-      C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys"
+      C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys prep"
 
 build_script:
   - cmd: |
@@ -48,25 +48,21 @@ on_failure:
   - ps: cat C:\projects\build\testsuite\Testing\Temporary\LastTest.log
 
 after_build:
-  - ps: |
-      cd C:\projects\install
-      copy C:\msys64\$env:mname\bin\*.dll bin\
-      copy ..\mingw\$env:mname\bin\*.dll bin\
-      copy ..\mingw\bsd-xdr-1.0.0\mingw\*.dll bin\
-      copy -r ..\mingw\$env:mname\share\plplot* share\
-#      copy INSTALL.plplot install\
-  - ps: copy -r ..\gdl\src\pro .
   - cmd: |
       cd C:\projects\gdl
       C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys check" & exit 0
   - cmd: |
       cd C:\projects\install
       7z a ..\gdl\gdl_build.zip *
+      cd C:\projects\gdl
+      copy C:\projects\package\gdlsetup.exe .
 
 artifacts:
   - path: gdl_build.zip
     name: GDL
-  
+  - path: gdlsetup.exe
+    name: GDL installer
+
 deploy:
   release: gdl-master-build$(appveyor_build_version)
   description: 'Test release'
