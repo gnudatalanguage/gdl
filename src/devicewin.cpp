@@ -341,7 +341,7 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 
 	// Currently Plplot ignores to update window title on Windows. it should be done manually..
 	((GDLWINStream *)winList[wIx])->SetWindowTitle(buf);
-
+    BringWindowToTop(((GDLWINStream *)winList[wIx])->GetHwnd());
 	// HACK: setup hook for redrawing/validating windows
 	p_this = this;
 	if (!hHook[0])
