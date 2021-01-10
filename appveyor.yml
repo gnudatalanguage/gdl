@@ -54,6 +54,7 @@ after_build:
   - cmd: |
       cd C:\projects\install
       7z a ..\gdl\gdl_build.zip *
+      C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys pack" & exit 0
       cd C:\projects\gdl
       copy C:\projects\package\gdlsetup.exe .
 
