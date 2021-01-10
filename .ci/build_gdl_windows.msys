@@ -1,0 +1,206 @@
+#!/bin/bash
+#
+# script to download some files needed for mingw32, and build GDL.
+#
+# JP:
+#  Since old packages are not available from msys2 repo anymore, let's try the latest versions here.
+#  If they don't work (especially readline), we need to store the old ones in another location.
+#  Below is the list of libraries had to be 'reversioned' in the previous version of this script:
+#   - readline, zlib, libpng, libpcre
+
+ME="build_gdl_windows.msys"
+ROOT_DIR=${ROOT_DIR:-"/c/projects"}
+GDL_DIR="${ROOT_DIR}/gdl"
+MINGW_DIR="${ROOT_DIR}/mingw"
+BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
+REQUIRED_LIBS_MSYS2=(
+    "gsl"
+    "readline"
+    "gettext"
+    "libiconv"
+    "termcap"
+    "libsystre"
+    "libtre-git"
+    "eigen3"
+    "zlib"
+    "libpng"
+    "fftw"
+    "shapelib"
+    "expat"
+    "xz"
+    "libjpeg-turbo"
+    "libtiff"
+    "graphicsmagick"
+    "bzip2"
+    "fontconfig"
+    "freetype"
+    "lcms2"
+    "libtool"
+    "harfbuzz"
+    "graphite2"
+    "glib2"
+    "pcre"
+    "wxWidgets"
+    "plplot"
+    "proj"
+    "libgeotiff"
+    "netcdf"
+    "hdf5"
+    "curl"
+    "libharu"
+    "szip"
+    "libgd"
+    "libdeflate"
+    "libwebp"
+    "qhull"
+    "brotli"
+    "libidn2"
+    "nghttp2"
+    "libpsl"
+    "libssh2"
+    "openssl"
+    "libimagequant"
+    "xpm-nox"
+    "libunistring"
+)
+    
+function log {
+    echo "[${ME}] $1"
+}
+
+declare -A msys2_libs
+function prep_msys2_repo {
+    log "Downloading MSYS2 repository file..."
+    curl -LOs http://repo.msys2.org/mingw/${arch}/${mname}.files # This file has the version strings of the latest libraries.
+    eval `tar --wildcards -xOf ${mname}.files \*/desc | awk '/%FILENAME%/{getline;fn=$0;getline;getline;getline;print "msys2_libs[\"" $0 "\"]+=\"" fn "\"";}'`
+}
+
+function set_package {
+    package_file=`basename $1`
+    package_url=$1
+}
+
+function set_msys2_package {
+    package_fullname="mingw-w64-${arch}-$1"
+    package_file="${msys2_libs[$package_fullname]}"
+    package_url="https://repo.msys2.org/mingw/${arch}/${package_file}"
+}
+
+function download_package {
+    log "Downloading ${package_file}..."
+    if [ -f $package_file ]; then
+       log "File exists! Skipping..."
+    else
+        curl -LOs $package_url
+        if [ ! $? -eq 0 ]; then
+            log "Failed to download ${package_file}!"
+            exit 1
+        fi
+    fi
+}
+
+function decompress_package {
+    log "Decompressing ${package_file}..."
+    if [ ${package_file: -4} == ".zip" ]; then
+        unzip $package_file
+    else
+        tar xf $package_file
+    fi
+    if [ ! $? -eq 0 ]; then
+        log "Failed to decompress ${package_file}!"
+        exit 1
+    fi
+}
+
+function find_architecture {
+    if [ ${Platform:-`uname -m`} == "x86_64" ]; then
+        export mname="mingw64"
+        export MSYSTEM="MINGW64"
+        export arch="x86_64"
+    else
+        export mname="mingw32"
+        export MSYSTEM="MINGW32"
+        export arch="i686"
+    fi
+    export PATH=$PATH:/$mname/bin
+    log "Architecture: ${arch}"
+}
+
+function install_zstd {
+    mkdir -p /c/projects/zstd
+    cd /c/projects/zstd
+    zstd_version="v1.4.8"
+    if [ $arch == "i686" ]; then
+        zstd_zip=zstd-${zstd_version}-win32.zip
+    else
+        zstd_zip=zstd-${zstd_version}-win64.zip
+    fi
+    curl -LOs https://github.com/facebook/zstd/releases/download/${zstd_version}/${zstd_zip}
+    7z x ${zstd_zip}
+    mv zstd.exe /usr/bin/
+}
+
+function download_packages {
+    mkdir -p ${MINGW_DIR}
+    cd ${MINGW_DIR}
+
+    prep_msys2_repo
+
+    # JP:
+    #   The reason why not `pacman` here; some libs conflict with MSYS2 utils.
+    for package_name in ${REQUIRED_LIBS_MSYS2[@]}; do
+        set_msys2_package $package_name
+        download_package
+        decompress_package
+    done
+
+    set_package ${BSDXDR_URL}
+    download_package
+    decompress_package
+
+    log "Building bsd-xdr..."
+    pushd bsd-xdr-1.0.0
+    sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -i Makefile
+    make || exit 1
+    mv mingw/libxdr.dll.a ${MINGW_DIR}/${mname}/lib
+    mv rpc ${MINGW_DIR}/${mname}/include
+
+    log "Patching wx-config..."
+    sed -e "s;-/${mname};-${MINGW_DIR}/${mname};g" -e "s;-Wl,--subsystem,windows -mwindows;;" -i ${MINGW_DIR}/${mname}/bin/wx-config
+}
+
+function build_gdl {
+    log "Building GDL (${Configuration:-Debug})..."
+    mkdir -p ${ROOT_DIR}/build
+    cd ${ROOT_DIR}/build
+    cmake ${GDL_DIR} -G"MSYS Makefiles" \
+      -DCMAKE_BUILD_TYPE=${Configuration} \
+      -DCMAKE_PREFIX_PATH="${MINGW_DIR}/${mname}" \
+      -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
+      -DCMAKE_INSTALL_PREFIX:PATH="${ROOT_DIR}/install" \
+      -DWXWIDGETS=ON -DGRAPHICSMAGICK=ON -DMAGICK=ON \
+      -DNETCDF=ON -DHDF=OFF -DHDF5=ON \
+      -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ4=ON \
+      -DFFTW=ON -DPYTHON=OFF -DUDUNITS2=OFF -DGLPK=OFF -DGRIB=OFF \
+      -DUSE_WINGDI_NOT_WINGCC=ON || exit 1
+    
+    make -j2 || exit 1
+    
+    log "Installing GDL..."
+    make install || exit 1
+}
+
+function test_gdl {
+    cd ${ROOT_DIR}/build
+    make check # JP: why check not test? it's confusing..
+}
+
+find_architecture
+if [ "$1" == "build" ]; then
+    build_gdl
+elif [ "$1" == "check" ]; then
+    test_gdl
+else
+    #install_zstd # not required for visual studio 2019 image
+    download_packages
+fi
