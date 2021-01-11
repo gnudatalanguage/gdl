@@ -71,10 +71,6 @@ install:
     - if [ -v CODECOV ]; then rm $TMPFILE; fi
     - if [ -v CODECOV ]; then echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} check)" >> testsuite/CMakeLists.txt; fi
 
-    # pytest
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python3-pytest"; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install pytest; fi 
-
     # antlr
     - if [ -v ANTLR ]; then export APT_PACKAGES="${APT_PACKAGES} antlr"; fi
 
@@ -258,6 +254,10 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat Brewfile; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew bundle --verbose; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install --upgrade --no-deps --force-reinstall numpy; fi
+
+    # pytest
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python3-pytest"; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install pytest; fi 
 
 script:
     # antlr
