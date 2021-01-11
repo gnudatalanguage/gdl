@@ -256,7 +256,7 @@ install:
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install --upgrade --no-deps --force-reinstall numpy; fi
 
     # pytest
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export sudo apt-get install --no-install-recommends -y python3-pytest; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -y python3-pytest; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install pytest; fi
 
 script:
