@@ -58,7 +58,7 @@ after_build:
       $env:rawpwd = [System.Web.Security.Membership]::GeneratePassword(100, 50)
       $cert = New-SelfSignedCertificate -DnsName gnudatalanguage.github.io -CertStoreLocation cert:\LocalMachine\My -type CodeSigning
       $pwd = ConvertTo-SecureString -String "$env:rawpwd" -Force -AsPlainText
-      Export-PfxCertificate -cert $cert -FilePath C:\projects\gdlcert.pfx
+      Export-PfxCertificate -cert $cert -Password $pwd -FilePath C:\projects\gdlcert.pfx
   - cmd: |
       cd C:\projects\install
       "%SIGNTOOL%" sign /f C:\projects\gdlcert.pfx /p "%rawpwd%" gdl.exe
