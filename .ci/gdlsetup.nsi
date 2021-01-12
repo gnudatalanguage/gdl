@@ -5,13 +5,14 @@
 Unicode True
 
 !define PRODUCT_NAME "GNU Data Language"
-!define PRODUCT_VERSION "$%APPVEYOR_BUILD_VERSION%"
+!define PRODUCT_VERSION "$%GDL_VERSION%"
 !define PRODUCT_PUBLISHER "GNU Data Language Project"
 !define PRODUCT_WEB_SITE "http://gnudatalanguage.github.io/"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\gdl.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
+!define ARCH "$%arch%"
 !define GDL_INSTALL_DIR "$%GDL_INSTALL_DIR%"
 
 ; MUI 1.67 compatible ------
@@ -36,7 +37,9 @@ Unicode True
 ; License page
 !insertmacro MUI_PAGE_LICENSE "..\COPYING"
 ; Components pages
+!if ${ARCH} != "i686"
 !insertmacro MUI_PAGE_COMPONENTS
+!endif
 ; Directory page
 !insertmacro MUI_PAGE_DIRECTORY
 ; Instfiles page
@@ -119,7 +122,7 @@ Unicode True
 
 ; MUI end ------
 
-Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
+Name "${PRODUCT_NAME} (${ARCH}) ${PRODUCT_VERSION}"
 OutFile "gdlsetup.exe"
 InstallDir "$PROGRAMFILES\gnudatalanguage"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
@@ -143,6 +146,7 @@ Section "GNU Data Language (GDL)" SEC01
   CreateShortCut "$DESKTOP\GDL (command line).lnk" "$INSTDIR\bin\gdl.exe"
 SectionEnd
 
+!if ${ARCH} != "i686"
 Section "GDL Workbench" SEC02
   SectionIn 1
   SetOutPath "$INSTDIR\gdlde"
@@ -152,11 +156,14 @@ Section "GDL Workbench" SEC02
   CreateShortCut "$SMPROGRAMS\GNU Data Language\GDL Workbench.lnk" "$INSTDIR\gdlde\gdlde.exe"
   CreateShortCut "$DESKTOP\GDL Workbench.lnk" "$INSTDIR\gdlde\gdlde.exe"
 SectionEnd
+!endif
 
+!if ${ARCH} != "i686"
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC01} "This will install GNU Data Language (GDL)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC02} "This will install GDL Workbench, an IDE for GDL."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
+!endif
 
 Section -AdditionalIcons
   SetOutPath $INSTDIR
