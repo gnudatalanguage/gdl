@@ -181,9 +181,12 @@ Section -Post
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
-  ; set variable
+  ; set variables
   WriteRegExpandStr ${env_hklm} GDL_PATH "+$INSTDIR\share\gnudatalanguage\lib"
   WriteRegExpandStr ${env_hklm} GDL_HOME "$INSTDIR"
+  ; set variables for GDL launched from installer
+  System::Call 'Kernel32::SetEnvironmentVariable(t "GDL_PATH",t "+$INSTDIR\share\gnudatalanguage\lib")i'
+  System::Call 'Kernel32::SetEnvironmentVariable(t "GDL_HOME",t "$INSTDIR")i'
   ; make sure windows knows about the change
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 SectionEnd
