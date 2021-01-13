@@ -7,52 +7,35 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest]
         deps: [FULL, MINI]
-        arch: [x86_64, i686]
+        platform: [x86_64, i686]
     env:
       deps: ${{ matrix.deps }}
-      arch: ${{ matrix.arch }}
+      platform: ${{ matrix.platform }}
     steps:
       - name: Setup MSYS2
-        if: matrix.os == 'windows-latest'
         uses: msys2/setup-msys2@v2
         with:
           msystem: MSYS
           update: true
       - name: Checkout GDL
         uses: actions/checkout@v2
-      - name: Build GDL (x86_64)
-        if: matrix.os == 'windows-latest' && matrix.arch == 'x86_64'
+      - name: Build GDL
         shell: msys2 {0}
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-toolchain
+          export ROOT_DIR=`readlink -f ${GITHUB_WORKSPACE}/..`
           ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys prep
           ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys build
         env:
-          MSYSTEM: MINGW64
-          mname: mingw64
-          ROOT_DIR: ${{ env.GITHUB_WORKSPACE }}/..
-      - name: Build GDL (i686)
-        if: matrix.os == 'windows-latest' && matrix.arch == 'i686'
-        shell: msys2 {0}
-        run: |
-          pacman --noconfirm -S --needed mingw-w64-i686-toolchain
-          ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys prep
-          ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys build
-        env:
-          MSYSTEM: MINGW32
-          mname: mingw32
-          ROOT_DIR: ${{ env.GITHUB_WORKSPACE }}/..
+          Platform: ${{ matrix.platform }}
       - name: Check GDL
-        if: matrix.os == 'windows-latest'
         shell: msys2 {0}
         run: ./.ci/build-gdl-windows.msys check
       - name: Package GDL
-        if: matrix.os == 'windows-latest'
         shell: msys2 {0}
         run: ./.ci/build-gdl-windows.msys pack
