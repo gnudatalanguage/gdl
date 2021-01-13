@@ -23,6 +23,8 @@
 //#include <list>
 #if defined(__CYGWIN__) || defined(_WIN32)
 #  include <rpc/xdr.h>
+#else
+#  include <rpc/rpc.h>
 #endif
 
 #include <algorithm>
