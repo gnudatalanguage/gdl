@@ -17,7 +17,6 @@ jobs:
     env:
       deps: ${{ matrix.deps }}
       arch: ${{ matrix.arch }}
-      ROOT_DIR: ${{ env.GITHUB_WORKSPACE }}
     steps:
       - name: Setup MSYS2
         if: matrix.os == 'windows-latest'
@@ -32,21 +31,23 @@ jobs:
         shell: msys2 {0}
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-toolchain
-          ./.ci/build-gdl-windows.msys prep
-          ./.ci/build-gdl-windows.msys build
+          ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys prep
+          ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys build
         env:
           MSYSTEM: MINGW64
           mname: mingw64
+          ROOT_DIR: ${{ env.GITHUB_WORKSPACE }}/..
       - name: Build GDL (i686)
         if: matrix.os == 'windows-latest' && matrix.arch == 'i686'
         shell: msys2 {0}
         run: |
           pacman --noconfirm -S --needed mingw-w64-i686-toolchain
-          ./.ci/build-gdl-windows.msys prep
-          ./.ci/build-gdl-windows.msys build
+          ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys prep
+          ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys build
         env:
           MSYSTEM: MINGW32
           mname: mingw32
+          ROOT_DIR: ${{ env.GITHUB_WORKSPACE }}/..
       - name: Check GDL
         if: matrix.os == 'windows-latest'
         shell: msys2 {0}
