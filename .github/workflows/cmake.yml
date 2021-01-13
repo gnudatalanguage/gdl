@@ -17,7 +17,7 @@ jobs:
     env:
       deps: ${{ matrix.deps }}
       arch: ${{ matrix.arch }}
-      ROOT_DIR: ${{ GITHUB_WORKSPACE }}
+      ROOT_DIR: ${{ env.GITHUB_WORKSPACE }}
     steps:
       - name: Setup MSYS2
         if: matrix.os == 'windows-latest'
