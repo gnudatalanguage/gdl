@@ -16,6 +16,7 @@ jobs:
     env:
       deps: ${{ matrix.deps }}
       platform: ${{ matrix.platform }}
+      root_dir: ${{ github.workspace }}\\..
     steps:
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
@@ -24,21 +25,22 @@ jobs:
           update: true
       - name: Checkout GDL
         uses: actions/checkout@v2
-      - name: Build GDL
+      - name: Build and Check GDL
         shell: msys2 {0}
         run: |
-          if [ "${{ matrix.arch }}" == "i686" ]; then
-            export MSYSTEM="MINGW32"; export mname="mingw32"; export arch="i686"
-            export SIGNTOOL="C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x86\signtool.exe"
-          elif [ "${{ matrix.arch }}" == "x86_64" ]; then
-            export MSYSTEM="MINGW64"; export mname="mingw64"; export arch="x86_64"
-            export SIGNTOOL="C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64\signtool.exe"
-          fi
-          export ROOT_DIR=`cygpath ${{ github.workspace }}\\..`
+          export arch=${{ matrix.arch }}
+          export ROOT_DIR=`cygpath ${{ env.root_dir }}`
           pacman --noconfirm -S --needed mingw-w64-${{ matrix.arch }}-toolchain
           ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys prep
           ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys build
       - name: Check GDL
-        run: msys2 ./.ci/build-gdl-windows.msys check
+        shell: msys2 {0}
+        run: |
+          export arch=${{ matrix.arch }}
+          export ROOT_DIR=`cygpath ${{ env.root_dir }}`
+          ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys check
       - name: Package GDL
-        run: msys2 ./.ci/build-gdl-windows.msys pack
+        run: |
+          export arch=${{ matrix.arch }}
+          export ROOT_DIR=`cygpath ${{ env.root_dir }}`
+          ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys pack
