@@ -74,16 +74,21 @@ void GDLWINStream::Init()
 {
 	this->plstream::init();
 	plgpls(&pls);
-#ifdef USE_WINGDI_NOT_WINGCC
-#else
-	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
-	dev->waiting = 1;
-#endif
-	UnsetFocus();
+    SetState(1);
 	tv_buf.has_data = false;
 
     HINSTANCE hInstance = (HINSTANCE)GetModuleHandle(NULL);
     CrosshairCursor = CreateCursor(hInstance, 15, 14, 32, 32, ANDmaskCursor, XORmaskCursor);
+}
+
+void GDLWINStream::SetState(char state) {
+#ifdef USE_WINGDI_NOT_WINGCC
+	wingdi_Dev* dev = (wingdi_Dev *)pls->dev;
+	dev->state = (enum _dev_state)state;
+#else
+	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
+	dev->waiting = state;
+#endif
 }
 
 void GDLWINStream::SetWindowTitle(char* buf) {
@@ -354,7 +359,7 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 		} // for() outer
 		SetDIBitsToDevice(GetHdc(), 0, 0, rt.right + 1, rt.bottom + 1, 0, 0, 0, rt.bottom + 1, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
 
-		BringWindowToTop(GetHwnd()); UnsetFocus();
+		UnsetFocus();
 		tv_buf.has_data = true;
 	}
 	return true;
@@ -362,7 +367,12 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 
 void GDLWINStream::Raise()
 {
-  BringWindowToTop(GetHwnd());
+    HWND window = GetHwnd();
+    // Set the plot window the topmost without focus
+    SetWindowPos(window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    // and again, set it isn't the topmost without focus
+    SetWindowPos(window, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    // and finally the plot windows is on top, but not activated!
 	return;
 }
 void GDLWINStream::GetGeometry(long& xSize, long& ySize) {
@@ -447,7 +457,9 @@ unsigned long  GDLWINStream::GetWindowDepth(){
 
 bool GDLWINStream::UnsetFocus()
 {
-	SetFocus(this->refocus);
+	SetForegroundWindow(this->refocus); // Makes console window focused, and bring it on top.
+                                        // SetFocus, etc. doesn't work since the console window is not part of the main thread.
+    Raise();                            // Brings again the plot window on top, but not focused
 	return true;
 }
 
@@ -474,13 +486,14 @@ HWND GDLWINStream::GetHwnd()
 
 	if (pls) {
        #ifdef USE_WINGDI_NOT_WINGCC
-        	wingdi_Dev *dev = (wingdi_Dev *)pls->dev;
+            wingdi_Dev *dev = (wingdi_Dev *)pls->dev;
+            if (dev)
+                return dev->plot;
         #else
         	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
+            if (dev)
+                return dev->hwnd;
         #endif
-
-		if (dev)
-			return dev->hwnd;
 	}
     return NULL;
 }
@@ -489,7 +502,7 @@ HDC GDLWINStream::GetHdc()
 
 	if (pls) {
         #ifdef USE_WINGDI_NOT_WINGCC
-        	wingdi_Dev *dev = (wingdi_Dev *)pls->dev;
+            wingdi_Dev *dev = (wingdi_Dev *)pls->dev;
         #else
         	wingcc_Dev* dev = (wingcc_Dev *)pls->dev;
         #endif

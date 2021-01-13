@@ -44,74 +44,77 @@ LRESULT CALLBACK DeviceWIN::_GetMsgProc(int nCode, WPARAM wParam, LPARAM lParam)
 	return p_this->GetMsgProc(nCode, wParam, lParam);
 }
 
+bool DeviceWIN::ProcessMessages(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	int i;
+	BOOL windowfound = false;
+	GDLWINStream* winstream;
+	for (i = 0; i < winList.size(); i++) {
+		if (winList[i] && winList[i]->GetValid() && hwnd == (winstream = (GDLWINStream *)winList[i])->GetHwnd()) {
+			windowfound = true;
+			break;
+		}
+	}
+	if (!windowfound) return true;
+
+	msghookiter iter_msg;
+	for (iter_msg = winstream->msghooks.begin(); iter_msg != winstream->msghooks.end(); ++iter_msg)
+	{
+		if ((*iter_msg).first == message)
+			(winstream->*(*iter_msg).second)(message, wParam, lParam);
+	}
+
+	switch (message)
+	{
+		case WM_PAINT:
+		{
+			// Redraw image while resizing/moving/etc..
+			winstream->RedrawTV();
+			#ifdef USE_WINGDI_NOT_WINGCC
+			winstream->SetState(DEV_DRAWING);
+			#endif
+			break;
+		}
+		case WM_DESTROY:
+		{
+			winstream->SetValid(false);
+			break;
+		}
+		#ifdef USE_WINGDI_NOT_WINGCC
+		case WM_ERASEBKGND:
+		{
+			winstream->SetState(1);
+			break;
+		}
+		case WM_MOUSEMOVE:
+		{
+			winstream->SetState(1);
+			break;
+		}
+		#endif
+	}
+
+	return true;
+}
 
 LRESULT DeviceWIN::CallWndProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	CWPSTRUCT* lpWp = (CWPSTRUCT*)lParam;
-	int i;
-	BOOL windowfound = false;
+	bool rtn;
 	if (nCode >= 0) {
-		for (i = 0; i < winList.size(); i++) {
-			if (winList[i] && winList[i]->GetValid() && lpWp->hwnd == ((GDLWINStream *)winList[i])->GetHwnd()) {
-				windowfound = true;
-				break;
-			}
-		}
-		if (windowfound) {
-			switch (lpWp->message)
-			{
-				case WM_PAINT:
-				{
-					// Redraw image while resizing/moving/etc..
-					PAINTSTRUCT ps;
-					BeginPaint(lpWp->hwnd, &ps);
-					((GDLWINStream *)winList[i])->RedrawTV();
-					EndPaint(lpWp->hwnd, &ps);
-					break;
-				}
-				case WM_DESTROY:
-				{
-					winList[i]->SetValid(false);
-					break;
-				}
-			}
-		}
+		CWPSTRUCT* lpWp = (CWPSTRUCT*)lParam;
+		rtn = ProcessMessages(lpWp->hwnd, lpWp->message, wParam, lParam);
 	}
-	return CallNextHookEx(NULL, nCode, wParam, lParam);
+	return rtn?CallNextHookEx(NULL, nCode, wParam, lParam):0;
 }
 
 LRESULT DeviceWIN::GetMsgProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	LRESULT retCode = CallNextHookEx(NULL, nCode, wParam, lParam);
-
-	MSG* lpWp = (MSG*)lParam;
-	int i;
-	BOOL windowfound = false;
+	bool rtn;
 	if (nCode >= 0) {
-		for (i = 0; i < winList.size(); i++) {
-			if (winList[i] && winList[i]->GetValid() && lpWp->hwnd == ((GDLWINStream *)winList[i])->GetHwnd()) {
-				windowfound = true;
-				break;
-			}
-		}
-        if (windowfound) {
-            if (lpWp->message == WM_PAINT) {
-		    	// Redraw image after the window is finally reactivated.
-			    //PAINTSTRUCT ps;
-			    //BeginPaint(lpWp->hwnd, &ps);
-			    ((GDLWINStream *)winList[i])->RedrawTV();
-			    //EndPaint(lpWp->hwnd, &ps);
-		    }
-            msghookiter iter_msg;
-            GDLWINStream* winstream = (GDLWINStream *)winList[i];
-            for (iter_msg = winstream->msghooks.begin(); iter_msg != winstream->msghooks.end(); ++iter_msg)
-            {
-                if ((*iter_msg).first == lpWp->message)
-                    (winstream->*(*iter_msg).second)(lpWp->message, lpWp->wParam, lpWp->lParam);
-            }
-        }
+		MSG* lpWp = (MSG*)lParam;
+		rtn = ProcessMessages(lpWp->hwnd, lpWp->message, wParam, lParam);
 	}
-	return retCode;
+	return rtn?CallNextHookEx(NULL, nCode, wParam, lParam):0;
 }
 // HACK end
 
@@ -341,7 +344,10 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 
 	// Currently Plplot ignores to update window title on Windows. it should be done manually..
 	((GDLWINStream *)winList[wIx])->SetWindowTitle(buf);
-    BringWindowToTop(((GDLWINStream *)winList[wIx])->GetHwnd());
+
+	// Unset focus, and bring the plot window to top
+	UnsetFocus();
+
 	// HACK: setup hook for redrawing/validating windows
 	p_this = this;
 	if (!hHook[0])
@@ -394,12 +400,12 @@ bool DeviceWIN::WShow(int ix, bool show, int iconic)
 	int wLSize = winList.size();
 	if (ix >= wLSize || ix < 0 || winList[ix] == NULL) return false;
 
+	UnsetFocus();
   if (iconic!=-1) { //iconic asked. do nothing else.
 		if (iconic==1) IconicWin(ix); else DeIconicWin(ix);
 	} else {
 		if (show) RaiseWin(ix);  else LowerWin(ix);
   }
-	UnsetFocus();
 
 	return true;
 }
