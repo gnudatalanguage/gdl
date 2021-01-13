@@ -113,7 +113,7 @@ function download_package {
 function decompress_package {
     log "Decompressing ${package_file}..."
     if [ ${package_file: -4} == ".zip" ]; then
-        unzip $@ $package_file
+        unzip -q $@ $package_file
     else
         tar xf $@ $package_file
     fi
@@ -241,7 +241,7 @@ function pack_gdl {
 
     export GDL_INSTALL_DIR=`cygpath -w ${ROOT_DIR}/install`
     export GDL_VERSION=`grep -oP 'set\(VERSION "\K.+(?="\))' ${GDL_DIR}/CMakeLists.txt`
-    makensis -V4 ${GDL_DIR}/.ci/gdlsetup.nsi && mv ${GDL_DIR}/.ci/gdlsetup.exe .
+    makensis -V3 ${GDL_DIR}/.ci/gdlsetup.nsi && mv ${GDL_DIR}/.ci/gdlsetup.exe .
 }
 
 if [ "$#" -ne 1 ]; then
