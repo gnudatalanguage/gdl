@@ -24,7 +24,6 @@ jobs:
         with:
           msystem: MSYS
           update: true
-          install: base-devel binutils zip
       - name: Checkout GDL
         uses: actions/checkout@v2
       - name: Build GDL (x86_64)
