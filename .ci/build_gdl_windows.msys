@@ -71,6 +71,7 @@ REQUIRED_LIBS_MSYS2=(
     "glpk"
     "python"
     "python-numpy"
+    "openblas"
     #"eccodes"
 )
     
