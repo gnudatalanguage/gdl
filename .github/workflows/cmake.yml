@@ -30,20 +30,19 @@ jobs:
         run: |
           export arch=${{ matrix.arch }}
           export ROOT_DIR=`cygpath ${workspace}`/..
-          echo ${ROOT_DIR}
           pacman --noconfirm -S --needed mingw-w64-${{ matrix.arch }}-gcc \
                                          mingw-w64-${{ matrix.arch }}-cmake \
                                          mingw-w64-${{ matrix.arch }}-make
-          ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys prep
-          ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys build
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys build
       - name: Check GDL
         shell: msys2 {0}
         run: |
           export arch=${{ matrix.arch }}
           export ROOT_DIR=`cygpath ${workspace}`/..
-          ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys check
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys check
       - name: Package GDL
         run: |
           export arch=${{ matrix.arch }}
           export ROOT_DIR=`cygpath ${workspace}`/..
-          ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys pack
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys pack
