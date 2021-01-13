@@ -165,7 +165,9 @@ namespace lib {
        const char *format="%a %h %d %T %Y";//my IDL date format.
        DStringGDL *S;
 #ifdef _WIN32
-	S = new DStringGDL(asctime(tstruct));
+  char *at = asctime(tstruct); // https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/asctime-wasctime
+  at[strlen(at) - 1] = 0;      // On Windows, asctime appends a newline at the end of string.
+	S = new DStringGDL(at);
 #else
        SizeT res=strftime(st,MAX_DATE_STRING_LENGTH,format,tstruct);
 

@@ -1341,7 +1341,7 @@ char* DInterpreter::NoReadline( const string& prompt)
           th.join();
           return NULL;
         }
-#ifdef WIN32
+#ifdef _WIN32
         Sleep(10);
 #else
         usleep(10);

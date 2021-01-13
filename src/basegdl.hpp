@@ -23,8 +23,6 @@
 //#include <list>
 #if defined(__CYGWIN__) || defined(_WIN32)
 #  include <rpc/xdr.h>
-#else
-#  include <rpc/rpc.h>
 #endif
 
 #include <algorithm>
@@ -365,15 +363,16 @@ public:
     static char* EndOfMemory;
     EndOfMemory = (char*)sbrk(0);
     Current = EndOfMemory - StartOfMemory;
+#elif defined(_WIN32)
+    // a draft of Windows version (for neccesarry includes consult the LLVM source): 
+    _HEAPINFO hinfo;
+    hinfo._pentry = NULL;
+    Current = 0;
+    while (_heapwalk(&hinfo) == _HEAPOK)
+        if (hinfo._useflag == _USEDENTRY)
+            Current += hinfo._size;
 #else
-  /*
-   * // a draft of Windows version (for neccesarry includes consult the LLVM source): 
-   *  _HEAPINFO hinfo;
-   *  hinfo._pentry = NULL;
-   *  Current = 0;
-   *  while (_heapwalk(&hinfo) == _HEAPOK) Current += hinfo._size;
-   */ 
-   // Warning("Cannot get dynamic memory information on this platform (FIXME)");
+    Warning("Cannot get dynamic memory information on this platform (FIXME)");
 #endif
 
     HighWater = std::max(HighWater, Current);

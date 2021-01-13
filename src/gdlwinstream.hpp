@@ -37,7 +37,6 @@
 #  endif
 #endif
 
-#include <windows.h>
 #include <map>
 
 #ifdef USE_WINGDI_NOT_WINGCC
