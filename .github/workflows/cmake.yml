@@ -26,17 +26,17 @@ jobs:
         uses: actions/checkout@v2
       - name: Build GDL
         run: |
-          if (${{ matrix.arch }} -Match "i686") 
+          if ("${{ matrix.arch }}" -Match "i686") 
           {
             $env:MSYSTEM="MINGW32" ; $env:mname="mingw32" ; $env:arch="i686"
             $env:SIGNTOOL="C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x86\signtool.exe"
           }
-          elseif (${{ matrix.arch }} -Match "x86_64") 
+          elseif ("${{ matrix.arch }}" -Match "x86_64") 
           {
             $env:MSYSTEM="MINGW64" ;  $env:mname="mingw64" ; $env:arch="x86_64"
             $env:SIGNTOOL="C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64\signtool.exe"
           }
-          ${env:ROOT_DIR} = ${GITHUB_WORKSPACE}\..
+          ${env:ROOT_DIR} = "${{ env.GITHUB_WORKSPACE }}\.."
           msys2 pacman --noconfirm -S --needed mingw-w64-${{ matrix.arch }}-toolchain
           msys2 ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys prep
           msys2 ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys build
