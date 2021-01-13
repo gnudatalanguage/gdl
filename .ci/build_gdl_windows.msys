@@ -65,6 +65,14 @@ REQUIRED_LIBS_MSYS2=(
     "libimagequant"
     "xpm-nox"
     "libunistring"
+    "hdf4"
+    "szip"
+    "udunits"
+    "msmpi"
+    "glpk"
+    "python"
+    "python-numpy"
+    #"eccodes"
 )
     
 function log {
@@ -140,7 +148,7 @@ function install_zstd {
     fi
     curl -LOs https://github.com/facebook/zstd/releases/download/${zstd_version}/${zstd_zip}
     7z x ${zstd_zip}
-    mv zstd.exe /usr/bin/
+    cp zstd.exe /usr/bin/
 }
 
 function download_packages {
@@ -165,8 +173,9 @@ function download_packages {
     pushd bsd-xdr-1.0.0
     sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -i Makefile
     make || exit 1
-    mv mingw/libxdr.dll.a ${MINGW_DIR}/${mname}/lib
-    mv rpc ${MINGW_DIR}/${mname}/include
+    cp mingw/libxdr.dll ${MINGW_DIR}/${mname}/bin
+    cp mingw/libxdr.dll.a ${MINGW_DIR}/${mname}/lib
+    cp rpc ${MINGW_DIR}/${mname}/include
     popd
 
     log "Patching wx-config..."
@@ -175,17 +184,21 @@ function download_packages {
 
 function build_gdl {
     log "Building GDL (${Configuration:-Debug})..."
+    rm -f ${ROOT_DIR}/build/CMakeCache.txt
     mkdir -p ${ROOT_DIR}/build
     cd ${ROOT_DIR}/build
+
+    export CFLAGS="-I${MINGW_DIR}/${mname}/include" 
+    export CXXFLAGS="-I${MINGW_DIR}/${mname}/include" 
     cmake ${GDL_DIR} -G"MSYS Makefiles" \
       -DCMAKE_BUILD_TYPE=${Configuration} \
       -DCMAKE_PREFIX_PATH="${MINGW_DIR}/${mname}" \
       -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-      -DCMAKE_INSTALL_PREFIX:PATH="${ROOT_DIR}/install" \
+      -DCMAKE_INSTALL_PREFIX="${ROOT_DIR}/install" \
       -DWXWIDGETS=ON -DGRAPHICSMAGICK=ON -DMAGICK=ON \
-      -DNETCDF=ON -DHDF=OFF -DHDF5=ON \
-      -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ4=ON \
-      -DFFTW=ON -DPYTHON=OFF -DUDUNITS2=OFF -DGLPK=OFF -DGRIB=OFF \
+      -DNETCDF=ON -DHDF=ON -DHDF5=ON -DMPI=ON \
+      -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ4=ON -DPYTHON=ON \
+      -DFFTW=ON -DUDUNITS2=ON -DGLPK=ON -DGRIB=OFF \
       -DUSE_WINGDI_NOT_WINGCC=ON || exit 1
     
     make -j2 || exit 1
@@ -198,7 +211,6 @@ function build_gdl {
     # Copy dlls and libraries to install directory
     cp -r ${MINGW_DIR}/${mname}/bin/*.dll bin/
     cp -r /${mname}/bin/*.dll bin/
-    cp -r ${MINGW_DIR}/bsd-xdr-1.0.0/mingw/*.dll bin/
     cp ${GDL_DIR}/COPYING .
     cp -r ${MINGW_DIR}/${mname}/share/plplot* share/
 }
