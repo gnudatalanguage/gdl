@@ -14,6 +14,9 @@ jobs:
         os: [windows-latest]
         deps: [FULL, MINI]
         arch: [x86_64, i686]
+    env:
+      deps: ${{ matrix.deps }}
+      arch: ${{ matrix.arch }}
     steps:
       - name: Setup MSYS2
         if: matrix.os == 'windows-latest'
@@ -22,36 +25,28 @@ jobs:
           msystem: MSYS
           update: true
           install: base-devel binutils zip
-      - name: Install Toolchain (x86_64)
+      - name: Checkout GDL
+        uses: actions/checkout@v2
+      - name: Build GDL (x86_64)
         if: matrix.os == 'windows-latest' && matrix.arch == 'x86_64'
         shell: msys2 {0}
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-toolchain
+          ./.ci/build-gdl-windows.msys prep
+          ./.ci/build-gdl-windows.msys build
         env:
           MSYSTEM: MINGW64
           mname: mingw64
-          SIGNTOOL: C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64\signtool.exe
-      - name: Install Toolchain (i686)
+      - name: Build GDL (i686)
         if: matrix.os == 'windows-latest' && matrix.arch == 'x86_64'
         shell: msys2 {0}
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-toolchain
+          ./.ci/build-gdl-windows.msys prep
+          ./.ci/build-gdl-windows.msys build
         env:
           MSYSTEM: MINGW32
           mname: mingw32
-          SIGNTOOL: C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x86\signtool.exe
-      - name: Set Environment Variables
-        env:
-          deps: ${{ matrix.deps }}
-          arch: ${{ matrix.arch }}
-      - name: Checkout GDL
-        uses: actions/checkout@v2
-      - name: Build GDL
-        if: matrix.os == 'windows-latest'
-        shell: msys2 {0}
-        run: |
-         ./.ci/build-gdl-windows.msys prep
-         ./.ci/build-gdl-windows.msys build
       - name: Check GDL
         if: matrix.os == 'windows-latest'
         shell: msys2 {0}
