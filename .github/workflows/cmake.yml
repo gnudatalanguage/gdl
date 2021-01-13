@@ -30,6 +30,7 @@ jobs:
         run: |
           export arch=${{ matrix.arch }}
           export ROOT_DIR=`cygpath ${workspace}`/..
+          echo ${ROOT_DIR}
           pacman --noconfirm -S --needed mingw-w64-${{ matrix.arch }}-gcc \
                                          mingw-w64-${{ matrix.arch }}-cmake \
                                          mingw-w64-${{ matrix.arch }}-make
