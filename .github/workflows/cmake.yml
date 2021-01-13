@@ -16,7 +16,7 @@ jobs:
     env:
       deps: ${{ matrix.deps }}
       platform: ${{ matrix.platform }}
-      ROOT_DIR: ${{ github.workspace }}/..
+      workspace: ${{ github.workspace }}
     steps:
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
@@ -25,11 +25,11 @@ jobs:
           update: true
       - name: Checkout GDL
         uses: actions/checkout@v2
-      - name: Build and Check GDL
+      - name: Build GDL
         shell: msys2 {0}
         run: |
           export arch=${{ matrix.arch }}
-          export ROOT_DIR=`cygpath ${ROOT_DIR}`
+          export ROOT_DIR=`cygpath ${workspace}/..`
           pacman --noconfirm -S --needed mingw-w64-${{ matrix.arch }}-toolchain
           ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys prep
           ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys build
@@ -37,10 +37,10 @@ jobs:
         shell: msys2 {0}
         run: |
           export arch=${{ matrix.arch }}
-          export ROOT_DIR=`cygpath ${ROOT_DIR}`
+          export ROOT_DIR=`cygpath ${workspace}/..`
           ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys check
       - name: Package GDL
         run: |
           export arch=${{ matrix.arch }}
-          export ROOT_DIR=`cygpath ${ROOT_DIR}`
+          export ROOT_DIR=`cygpath ${workspace}/..`
           ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys pack
