@@ -66,7 +66,6 @@ REQUIRED_LIBS_MSYS2=(
     "xpm-nox"
     "libunistring"
     "hdf4"
-    "szip"
     "udunits"
     "msmpi"
     "glpk"
@@ -189,6 +188,7 @@ function build_gdl {
     mkdir -p ${ROOT_DIR}/build
     cd ${ROOT_DIR}/build
     
+    export PYTHONHOME=${MINGW_DIR}/${mname}
     export PATH=${MINGW_DIR}/${mname}/bin:${PATH}
     export CFLAGS="-I${MINGW_DIR}/${mname}/include" 
     export CXXFLAGS="-I${MINGW_DIR}/${mname}/include" 
