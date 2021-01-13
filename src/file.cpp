@@ -276,7 +276,7 @@ static void rewinddir(DIR *dir)
     #endif
 
     // trailing seperator makes stat fail on Windows
-    static inline int lstat64(const char *path, struct stat *buf) {
+    static inline int lstat64(const char *path, struct stat64 *buf) {
       size_t l_path = strlen(path);
       if (path[l_path-1]=='\\') {
         char newpath[l_path]; memcpy(newpath, path, l_path); newpath[l_path-1] = 0;
