@@ -165,6 +165,7 @@ function download_packages {
         decompress_package
     done
 
+    rm -fr bsd-xdr-1.0.0
     set_package ${BSDXDR_URL}
     download_package
     decompress_package
@@ -173,7 +174,7 @@ function download_packages {
     pushd bsd-xdr-1.0.0
     sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -i Makefile
     make || exit 1
-    cp -f mingw/libxdr.dll ${MINGW_DIR}/${mname}/bin/
+    cp -f mingw/*.dll ${MINGW_DIR}/${mname}/bin/
     cp -f mingw/libxdr.dll.a ${MINGW_DIR}/${mname}/lib/
     cp -rf rpc ${MINGW_DIR}/${mname}/include/
     popd
@@ -187,7 +188,8 @@ function build_gdl {
     rm -f ${ROOT_DIR}/build/CMakeCache.txt
     mkdir -p ${ROOT_DIR}/build
     cd ${ROOT_DIR}/build
-
+    
+    export PATH=${MINGW_DIR}/${mname}/bin:${PATH}
     export CFLAGS="-I${MINGW_DIR}/${mname}/include" 
     export CXXFLAGS="-I${MINGW_DIR}/${mname}/include" 
     cmake ${GDL_DIR} -G"MSYS Makefiles" \
@@ -202,21 +204,26 @@ function build_gdl {
       -DUSE_WINGDI_NOT_WINGCC=ON || exit 1
     
     make -j2 || exit 1
-    
+    # Copy dlls and libraries to src directory
+    cp -f ${MINGW_DIR}/${mname}/bin/*.dll src/
+    cp -f /${mname}/bin/*.dll src/
+    mkdir -p share
+    cp -rf ${MINGW_DIR}/${mname}/share/plplot* share/
+
     log "Installing GDL..."
     make install || exit 1
 
     cd ${ROOT_DIR}/install
 
     # Copy dlls and libraries to install directory
-    cp -r ${MINGW_DIR}/${mname}/bin/*.dll bin/
-    cp -r /${mname}/bin/*.dll bin/
-    cp ${GDL_DIR}/COPYING .
-    cp -r ${MINGW_DIR}/${mname}/share/plplot* share/
+    cp -f ${ROOT_DIR}/build/src/*.dll bin/
+    cp -rf ${ROOT_DIR}/build/share .
+    cp -f ${GDL_DIR}/COPYING .
 }
 
 function test_gdl {
     cd ${ROOT_DIR}/build
+    export PYTHONHOME=${MINGW_DIR}/${mname}
     make check
 }
 
