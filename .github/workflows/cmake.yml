@@ -27,7 +27,7 @@ jobs:
       - name: Build GDL
         shell: msys2 {0}
         run: |
-          pacman --noconfirm -S --needed mingw-w64-x86_64-toolchain
+          pacman --noconfirm -S --needed mingw-w64-${Platform}-toolchain
           export ROOT_DIR=`readlink -f ${GITHUB_WORKSPACE}/..`
           ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys prep
           ${ROOT_DIR}/gdl/.ci/build-gdl-windows.msys build
