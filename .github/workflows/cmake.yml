@@ -16,7 +16,7 @@ jobs:
     env:
       deps: ${{ matrix.deps }}
       platform: ${{ matrix.platform }}
-      root_dir: ${{ github.workspace }}\\..
+      root_dir: ${{ github.workspace }}/..
     steps:
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
