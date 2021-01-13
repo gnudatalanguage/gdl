@@ -49,9 +49,6 @@ build_script:
       cd C:\projects\gdl
       C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys build"
 
-on_failure:
-  - ps: cat C:\projects\build\testsuite\Testing\Temporary\LastTest.log
-
 after_build:
   - cmd: |
       cd C:\projects\gdl
@@ -63,10 +60,12 @@ after_build:
       Export-PfxCertificate -cert $cert -Password $pwd -FilePath C:\projects\gdlcert.pfx
   - cmd: |
       cd C:\projects\install
-      "%SIGNTOOL%" sign /f C:\projects\gdlcert.pfx /p "12345LongDummyPassword54321" gdl.exe
+      "%SIGNTOOL%" sign /f C:\projects\gdlcert.pfx /p "12345LongDummyPassword54321" bin\gdl.exe
       7z a ..\gdl\gdl_build.zip *
+  - cmd: |
       cd C:\projects\gdl
-      copy C:\projects\package\gdlsetup.exe .
+      C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys pack"
+      move C:\projects\package\gdlsetup.exe .
       "%SIGNTOOL%" sign /f C:\projects\gdlcert.pfx /p "12345LongDummyPassword54321" gdlsetup.exe
 
 artifacts:
