@@ -173,9 +173,9 @@ function download_packages {
     pushd bsd-xdr-1.0.0
     sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -i Makefile
     make || exit 1
-    cp mingw/libxdr.dll ${MINGW_DIR}/${mname}/bin
-    cp mingw/libxdr.dll.a ${MINGW_DIR}/${mname}/lib
-    cp rpc ${MINGW_DIR}/${mname}/include
+    cp -f mingw/libxdr.dll ${MINGW_DIR}/${mname}/bin/
+    cp -f mingw/libxdr.dll.a ${MINGW_DIR}/${mname}/lib/
+    cp -rf rpc ${MINGW_DIR}/${mname}/include/
     popd
 
     log "Patching wx-config..."
