@@ -52,7 +52,6 @@
 #   include <glob.h> // glob in MinGW ok for mingw >=3.21 11/2014
 #else
 #   include <shlwapi.h>
-#       include <windows.h>
 #    if !defined(S_IFLNK)
 #   define S_IFLNK 0xA000
 #   define S_ISLNK(mode) (((mode) & S_IFLNK) == S_IFLNK)
@@ -60,6 +59,7 @@
 #   if !defined(S_ISLNK)
 #   define S_ISLNK(mode) (((mode) & S_IFLNK) == S_IFLNK)
 #   endif
+#   define u_int64_t uint64_t
 #endif
 
 #ifndef _MSC_VER
@@ -268,13 +268,22 @@ static void rewinddir(DIR *dir)
 #   define stat64 stat
 #   define lstat64(x,y) stat(x,y) 
 #else
-      // Patch by Greg Jung: Using _stati64 is acceptable down to winXP version and will
-      // result in a 64-bit st_size for both mingw-org and for mingw-w64.
-      // The times st_atime, st_mtime, etc. will be 32-bit in mingw-org.
-      #ifndef stat64 /* case of mingw-org .vs. mingw-w64 */
-      # define stat64 _stati64
-      #endif
-#    define lstat64(x,y) stat64(x,y)
+    // Patch by Greg Jung: Using _stati64 is acceptable down to winXP version and will
+    // result in a 64-bit st_size for both mingw-org and for mingw-w64.
+    // The times st_atime, st_mtime, etc. will be 32-bit in mingw-org.
+    #ifndef stat64 /* case of mingw-org .vs. mingw-w64 */
+    # define stat64 _stati64
+    #endif
+
+    // trailing seperator makes stat fail on Windows
+    static inline int lstat64(const char *path, struct stat *buf) {
+      size_t l_path = strlen(path);
+      if (path[l_path-1]=='\\') {
+        char newpath[l_path]; memcpy(newpath, path, l_path); newpath[l_path-1] = 0;
+        return stat64(newpath, buf);
+      }
+      return stat64(path, buf);
+    }
 #endif
 
 //     modifications        : 2014, 2015 by Greg Jung
@@ -1213,38 +1222,26 @@ static void FileSearch( FileListT& fileList, const DString& pathSpec,
 
 
 static string Dirname( const string& in, bool mark_dir=false ) {
-
-    char win_sep = '\\';
-    char unix_sep = '/';
-    char path_sep = unix_sep;
-
 #if defined (_WIN32) && !defined(__CYGWIN__)
-    path_sep = win_sep;
-    DString dname(in);
-
-    std::replace( dname.begin(), dname.end(), unix_sep, win_sep );  // replace separators in input
-    DString::size_type pos = dname.find_last_of( path_sep );        // strip filename if present
-
-    if( pos != DString::npos ) {
-        dname.erase(pos);
-    }
+    char path_sep = '\\';
+    char path_sep_diffos = '/';
 #else
-    char buf[ PATH_MAX+1];
-    strncpy( buf, in.c_str(), PATH_MAX+1 );
-    std::replace( buf, buf+in.length(), win_sep, unix_sep );        // replace separators in input
-    string dname = dirname( buf );                                  // strip filename if present
+    char path_sep = '/';
+    char path_sep_diffos = '\\';
 #endif
 
-    while( !dname.empty() && (dname.back() == path_sep) ) {         // strip trailing separator(s)
+    char buf[ PATH_MAX+1];
+    strncpy( buf, in.c_str(), PATH_MAX+1 );
+    std::replace( buf, buf+in.length(), path_sep_diffos, path_sep ); // replace separators in input
+    string dname = dirname( buf );                                   // strip filename if present
+
+    while( !dname.empty() && (dname.back() == path_sep) ) {          // strip trailing separator(s)
         dname.pop_back();
     }
 
-    if( mark_dir ) dname.push_back( path_sep );                     // append separator if requested
-#if defined (_WIN32)
-      if (lib::posixpaths) std::replace( dname.begin(), dname.end(), win_sep, unix_sep);
-#endif
+    if( mark_dir ) dname.push_back( path_sep );                      // append separator if requested
+
     return dname;
-    
 }
 
 

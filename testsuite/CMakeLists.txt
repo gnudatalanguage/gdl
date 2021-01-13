@@ -2,7 +2,6 @@ set(BASE_SOURCE ${CMAKE_SOURCE_DIR})
 set(BASE_BINARY ${CMAKE_BINARY_DIR})
 # write the test launcher
 if(WIN32 AND NOT CYGWIN)
-set(BASE_BINARY ${CMAKE_INSTALL_PREFIX})
 set(LAUNCH
 "#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
@@ -23,11 +22,11 @@ _putenv(\"GDL_PATH=${BASE_SOURCE}/testsuite/;${BASE_SOURCE}/src/pro/\");
 _putenv(\"GDL_STARTUP=\");
 _putenv(\"IDL_STARTUP=\");
 
-char *tmp = (char *)malloc( sizeof(char) * (strlen(\"${BASE_BINARY}/bin/gdl -quiet -e \") + strlen(v[1]) + 1));
+char *tmp = (char *)malloc( sizeof(char) * (strlen(\"${BASE_BINARY}/src/gdl -quiet -e \") + strlen(v[1]) + 1));
 //PROCESS_INFORMATION processInformation = {0};
 //STARTUPINFO startupInfo                = {0};
 //startupInfo.cb                         = sizeof(startupInfo);
-sprintf(tmp, \"${BASE_BINARY}/bin/gdl.exe -quiet -e %s\", v[1]);
+sprintf(tmp, \"${BASE_BINARY}/src/gdl.exe -quiet -e %s\", v[1]);
 //int rtn = CreateProcess(NULL, tmp, NULL, NULL, TRUE, 0, NULL, NULL, &startupInfo, &processInformation);
 int rtn = system(tmp);
 

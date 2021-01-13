@@ -20,13 +20,18 @@ init:
 install:
   - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
   - ps: |
+      Start-FileDownload 'https://download.microsoft.com/download/B/2/E/B2EB83FE-98C2-4156-834A-E1711E6884FB/MSMpiSetup.exe'
+  - MSMpiSetup.exe -unattend
+  - ps: |
       if ($env:platform -Match "i686") 
       {
         $env:MSYSTEM="MINGW32" ; $env:mname="mingw32" ; $env:arch="i686"
+        $env:SIGNTOOL="C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x86\signtool.exe"
       }
       elseif ($env:platform -Match "x86_64") 
       {
         $env:MSYSTEM="MINGW64" ;  $env:mname="mingw64" ; $env:arch="x86_64"
+        $env:SIGNTOOL="C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64\signtool.exe"
       }
   - cmd: |
       C:\msys64\usr\bin\bash.exe -lc "sed -i s/^CheckSpace/#CheckSpace/g /etc/pacman.conf && pacman --noconfirm -Syuu --overwrite \*"
@@ -51,12 +56,20 @@ after_build:
   - cmd: |
       cd C:\projects\gdl
       C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys check" & exit 0
+  - ps: |
+      Add-Type -AssemblyName 'System.Web'
+      $cert = New-SelfSignedCertificate -DnsName gnudatalanguage.github.io -CertStoreLocation cert:\LocalMachine\My -type CodeSigning
+      $pwd = ConvertTo-SecureString -String "12345LongDummyPassword54321" -Force -AsPlainText
+      Export-PfxCertificate -cert $cert -Password $pwd -FilePath C:\projects\gdlcert.pfx
   - cmd: |
       cd C:\projects\install
+      "%SIGNTOOL%" sign /f C:\projects\gdlcert.pfx /p "12345LongDummyPassword54321" bin\gdl.exe
       7z a ..\gdl\gdl_build.zip *
+  - cmd: |
       cd C:\projects\gdl
       C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys pack" & exit 0
-      copy C:\projects\package\gdlsetup.exe .
+      move C:\projects\package\gdlsetup.exe .
+      "%SIGNTOOL%" sign /f C:\projects\gdlcert.pfx /p "12345LongDummyPassword54321" gdlsetup.exe
 
 artifacts:
   - path: gdl_build.zip
