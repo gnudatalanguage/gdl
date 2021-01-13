@@ -58,17 +58,16 @@ after_build:
       C:\msys64\usr\bin\bash.exe -lc "cd $OLDPWD && ./.ci/build_gdl_windows.msys check" & exit 0
   - ps: |
       Add-Type -AssemblyName 'System.Web'
-      $env:rawpwd = [System.Web.Security.Membership]::GeneratePassword(100, 50)
       $cert = New-SelfSignedCertificate -DnsName gnudatalanguage.github.io -CertStoreLocation cert:\LocalMachine\My -type CodeSigning
-      $pwd = ConvertTo-SecureString -String "$env:rawpwd" -Force -AsPlainText
+      $pwd = ConvertTo-SecureString -String "12345LongDummyPassword54321" -Force -AsPlainText
       Export-PfxCertificate -cert $cert -Password $pwd -FilePath C:\projects\gdlcert.pfx
   - cmd: |
       cd C:\projects\install
-      "%SIGNTOOL%" sign /f C:\projects\gdlcert.pfx /p "%rawpwd%" gdl.exe
+      "%SIGNTOOL%" sign /f C:\projects\gdlcert.pfx /p "12345LongDummyPassword54321" gdl.exe
       7z a ..\gdl\gdl_build.zip *
       cd C:\projects\gdl
       copy C:\projects\package\gdlsetup.exe .
-      "%SIGNTOOL%" sign /f C:\projects\gdlcert.pfx /p "%rawpwd%" gdlsetup.exe
+      "%SIGNTOOL%" sign /f C:\projects\gdlcert.pfx /p "12345LongDummyPassword54321" gdlsetup.exe
 
 artifacts:
   - path: gdl_build.zip

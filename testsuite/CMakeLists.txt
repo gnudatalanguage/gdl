@@ -21,7 +21,6 @@ _putenv(\"LC_COLLATE=C\");
 _putenv(\"GDL_PATH=${BASE_SOURCE}/testsuite/;${BASE_SOURCE}/src/pro/\");
 _putenv(\"GDL_STARTUP=\");
 _putenv(\"IDL_STARTUP=\");
-_putenv(\"PLPLOT_HOME=${BASE_SOURCE}/../mingw/mingw64/\");
 
 char *tmp = (char *)malloc( sizeof(char) * (strlen(\"${BASE_BINARY}/src/gdl -quiet -e \") + strlen(v[1]) + 1));
 //PROCESS_INFORMATION processInformation = {0};
