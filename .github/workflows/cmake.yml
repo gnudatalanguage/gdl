@@ -23,18 +23,34 @@ jobs:
         with:
           msystem: MSYS
           update: true
+          install: >-
+            mingw-w64-${{ matrix.arch }}-toolchain
+            mingw-w64-${{ matrix.arch }}-cmake
+            tar
+            zstd
+            make
       - name: Checkout GDL
         uses: actions/checkout@v2
+      - name: Cache MSYS2 Packages
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/../mingw
+          key: cache-msys2-gdl-${{ matrix.arch }}-${{ matrix.deps }}
+      - name: Prepere MSYS2 Packages
+        if: steps.cache.outputs.cache-hit != 'true'
+        shell: msys2 {0}
+        run: |
+          export Platform=${{ matrix.arch }}
+          export ROOT_DIR=`cygpath ${workspace}`/..
+          export DEPS=${{ matrix.deps }}
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep
       - name: Build GDL
         shell: msys2 {0}
         run: |
           export Platform=${{ matrix.arch }}
           export ROOT_DIR=`cygpath ${workspace}`/..
           export DEPS=${{ matrix.deps }}
-          pacman --noconfirm -S --needed mingw-w64-${{ matrix.arch }}-toolchain \
-                                         mingw-w64-${{ matrix.arch }}-cmake \
-                                         tar zstd make
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys build
       - name: Check GDL
         shell: msys2 {0}
