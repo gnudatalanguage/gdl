@@ -26,7 +26,7 @@ jobs:
           install: >-
             mingw-w64-${{ matrix.arch }}-toolchain
             mingw-w64-${{ matrix.arch }}-cmake
-            mingw-w64-${{ matrix.arch }}-makensis
+            mingw-w64-${{ matrix.arch }}-nsis
             zip
             tar
             zstd
