@@ -292,6 +292,7 @@ function prep_deploy {
     mv ../package/gdlsetup.exe gdlsetup-${arch}-${DEPS}.exe
     cd ${ROOT_DIR}/install
     zip -qr ../gdl/gdl-${arch}-${DEPS}.zip *
+    cd ${ROOT_DIR}/gdl && ls *.zip *.exe
 }
 
 if [ "$#" -ne 1 ]; then
