@@ -289,8 +289,8 @@ function pack_gdl {
 
 function prep_deploy {
     cd ${ROOT_DIR}/gdl
-    mv ../package/gdlsetup.exe gdlsetup-${arch}-${DEPS,,}.exe
-    zip -qr gdl-${arch}-${DEPS,,}.zip ../install/*
+    mv ../package/gdlsetup.exe gdlsetup-${arch}-${DEPS}.exe
+    zip -qr gdl-${arch}-${DEPS}.zip ../install/*
 }
 
 if [ "$#" -ne 1 ]; then
