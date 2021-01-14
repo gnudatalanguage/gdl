@@ -64,3 +64,14 @@ jobs:
           export Platform=${{ matrix.arch }}
           export ROOT_DIR=`cygpath ${workspace}`/..
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys pack
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep_deploy
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v2.2.1
+        with:
+          name: GDL Installer (${{ matrix.deps }}, ${{ matrix.arch }})
+          path: gdlsetup-${{ matrix.arch }}-${{ matrix.deps }}.exe
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v2.2.1
+        with:
+          name: GDL (${{ matrix.deps }}, ${{ matrix.arch }})
+          path: gdl-${{ matrix.arch }}-${{ matrix.deps }}.zip
