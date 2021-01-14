@@ -18,6 +18,8 @@ BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code
 # 32bit Eclipse is no longer supported: https://www.eclipse.org/forums/index.php/m/1826215/
 GDLDE_URL="https://github.com/gnudatalanguage/gdlde/releases/download/untagged-edb83d05cdb4f13194d6/gdlde.product-win32.win32.x86_64.zip"
 REQUIRED_LIBS_MSYS2=(
+    "gcc-libs"
+    "libwinpthread-git"
     "plplot"
     "brotli"
     "bzip2"
@@ -234,9 +236,9 @@ function build_gdl {
     fi
     
     make -j2 || exit 1
+    
     # Copy dlls and libraries to src directory
     cp -f ${MINGW_DIR}/${mname}/bin/*.dll src/
-    cp -f /${mname}/bin/*.dll src/
     mkdir -p share
     cp -rf ${MINGW_DIR}/${mname}/share/plplot* share/
 
