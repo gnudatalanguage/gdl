@@ -79,6 +79,8 @@ OPTIONAL_LIBS_MSYS2=(
     "readline"
     "termcap"
     "udunits"
+    "szip"
+    "sqlite3"
     #"eccodes"
 )
     
