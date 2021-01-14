@@ -287,14 +287,14 @@ function pack_gdl {
     makensis -V3 ${GDL_DIR}/.ci/gdlsetup.nsi && mv ${GDL_DIR}/.ci/gdlsetup.exe .
 }
 
-function prepare_deploy {
+function prep_deploy {
     cd ${ROOT_DIR}/gdl
     mv ../package/gdlsetup.exe gdlsetup-${arch}-${DEPS,,}.exe
     zip -qr gdl-${arch}-${DEPS,,}.zip ../install/*
 }
 
 if [ "$#" -ne 1 ]; then
-    echo "Usage: build_gdl_windows.msys prep|build|check|pack"
+    echo "Usage: build_gdl_windows.msys prep|build|check|pack|prep_deploy"
 else
     find_architecture
     if [ "$1" == "prep" ]; then
@@ -306,5 +306,7 @@ else
         test_gdl
     elif [ "$1" == "pack" ]; then
         pack_gdl
+    elif [ "$1" == "prep_deploy" ]; then
+        prep_deploy
     fi
 fi
