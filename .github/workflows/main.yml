@@ -38,7 +38,7 @@ jobs:
         id: cache
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/../mingw
+          path: ${{ github.workspace }}\..\mingw
           key: cache-msys2-gdl-${{ matrix.arch }}-${{ matrix.deps }}
       - name: Prepere MSYS2 Packages
         if: steps.cache.outputs.cache-hit != 'true'
@@ -60,12 +60,14 @@ jobs:
         run: |
           export Platform=${{ matrix.arch }}
           export ROOT_DIR=`cygpath ${workspace}`/..
+          export DEPS=${{ matrix.deps }}
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys check || exit 0
       - name: Package GDL
         shell: msys2 {0}
         run: |
           export Platform=${{ matrix.arch }}
           export ROOT_DIR=`cygpath ${workspace}`/..
+          export DEPS=${{ matrix.deps }}
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys pack
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep_deploy
       - name: Upload Build Artifacts
