@@ -23,7 +23,7 @@ REQUIRED_LIBS_MSYS2=(
     "bzip2"
     "expat"
     "fontconfig"
-    "freetype2"
+    "freetype"
     "gettext"
     "glib2"
     "graphite2"
