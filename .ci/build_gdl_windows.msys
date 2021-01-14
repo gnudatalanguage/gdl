@@ -287,6 +287,12 @@ function pack_gdl {
     makensis -V3 ${GDL_DIR}/.ci/gdlsetup.nsi && mv ${GDL_DIR}/.ci/gdlsetup.exe .
 }
 
+function prepare_deploy {
+    cd ${ROOT_DIR}/gdl
+    mv ../package/gdlsetup.exe gdlsetup-${arch}-${DEPS,,}.exe
+    zip -qr gdl-${arch}-${DEPS,,}.zip ../install/*
+}
+
 if [ "$#" -ne 1 ]; then
     echo "Usage: build_gdl_windows.msys prep|build|check|pack"
 else
