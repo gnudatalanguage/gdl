@@ -13,10 +13,12 @@ jobs:
       matrix:
         deps: [full, mini]
         arch: [x86_64, i686]
+        configuration: [Release, Debug]
     env:
-      deps: ${{ matrix.deps }}
-      platform: ${{ matrix.platform }}
-      workspace: ${{ github.workspace }}
+      DEPS: ${{ matrix.deps }}
+      WORKSPACE: ${{ github.workspace }}
+      Platform: ${{ matrix.arch }}
+      Configuration: ${{ matrix.configuration }}
     steps:
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
@@ -44,30 +46,22 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         shell: msys2 {0}
         run: |
-          export Platform=${{ matrix.arch }}
-          export ROOT_DIR=`cygpath ${workspace}`/..
-          export DEPS=${{ matrix.deps }}
+          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep
       - name: Build GDL
         shell: msys2 {0}
         run: |
-          export Platform=${{ matrix.arch }}
-          export ROOT_DIR=`cygpath ${workspace}`/..
-          export DEPS=${{ matrix.deps }}
+          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys build
       - name: Check GDL
         shell: msys2 {0}
         run: |
-          export Platform=${{ matrix.arch }}
-          export ROOT_DIR=`cygpath ${workspace}`/..
-          export DEPS=${{ matrix.deps }}
+          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys check || exit 0
       - name: Package GDL
         shell: msys2 {0}
         run: |
-          export Platform=${{ matrix.arch }}
-          export ROOT_DIR=`cygpath ${workspace}`/..
-          export DEPS=${{ matrix.deps }}
+          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys pack
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep_deploy
       - name: Upload Build Artifacts
