@@ -30,10 +30,8 @@ jobs:
         run: |
           export Platform=${{ matrix.arch }}
           export ROOT_DIR=`cygpath ${workspace}`/..
-          pacman --noconfirm -S --needed mingw-w64-${{ matrix.arch }}-gcc \
-                                         mingw-w64-${{ matrix.arch }}-cmake \
-                                         mingw-w64-${{ matrix.arch }}-make \
-                                         tar zstd
+          export DEPS=${{ matrix.deps }}
+          pacman --noconfirm -S --needed mingw-w64-${{ matrix.arch }}-toolchain tar zstd make
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys build
       - name: Check GDL
