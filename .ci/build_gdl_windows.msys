@@ -91,6 +91,7 @@ function prep_msys2_repo {
     log "Downloading MSYS2 repository file..."
     curl -LOs http://repo.msys2.org/mingw/${arch}/${mname}.files # This file has the version strings of the latest libraries.
     eval `tar --wildcards -xOf ${mname}.files \*/desc | awk '/%FILENAME%/{getline;fn=$0;getline;getline;getline;print "msys2_libs[\"" $0 "\"]+=\"" fn "\"";}'`
+    rm -f ${mname}.files
 }
 
 function set_package {
@@ -185,7 +186,6 @@ function download_packages {
     log "Patching wx-config..."
     sed -e "s;-/${mname};-${MINGW_DIR}/${mname};g" -e "s;-Wl,--subsystem,windows -mwindows;;" -i ${MINGW_DIR}/${mname}/bin/wx-config
 
-    rm -fr bsd-xdr-1.0.0
     set_package ${BSDXDR_URL}
     download_package
     decompress_package
@@ -198,6 +198,14 @@ function download_packages {
     cp -f mingw/libxdr.dll.a ${MINGW_DIR}/${mname}/lib/
     cp -rf rpc ${MINGW_DIR}/${mname}/include/
     popd
+
+    # Clean up for caching
+    rm -fr bsd-xdr-1.0.0
+    rm -f *.tar.xz
+    rm -f *.tar.xz
+    rm -f *.tar.gz
+    rm -f *.tar.zst
+    rm -f .*
 }
 
 function build_gdl {
