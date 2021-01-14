@@ -9,7 +9,7 @@
 #   - readline, zlib, libpng, libpcre
 
 ME="build_gdl_windows.msys"
-DEPS=${DEPS:-"FULL"}
+DEPS=${DEPS:-"full"}
 ROOT_DIR=${ROOT_DIR:-"/c/projects"}
 GDL_DIR="${ROOT_DIR}/gdl"
 NSIS_SCRIPT="${GDL_DIR}/.ci/gdlsetup.nsi"
@@ -175,7 +175,7 @@ function download_packages {
         decompress_package
     done
 
-    if [ ${DEPS} == "FULL" ]; then
+    if [ ${DEPS} == "full" ]; then
         for package_name in ${OPTIONAL_LIBS_MSYS2[@]}; do
             set_msys2_package $package_name
             download_package
@@ -216,7 +216,7 @@ function build_gdl {
     mkdir -p ${ROOT_DIR}/build
     cd ${ROOT_DIR}/build
     
-    if [ ${DEPS} == "FULL" ]; then
+    if [ ${DEPS} == "full" ]; then
         export PYTHONHOME=${MINGW_DIR}/${mname}
         export PATH=${MINGW_DIR}/${mname}/bin:${PATH}
         export CFLAGS="-I${MINGW_DIR}/${mname}/include" 
@@ -290,7 +290,8 @@ function pack_gdl {
 function prep_deploy {
     cd ${ROOT_DIR}/gdl
     mv ../package/gdlsetup.exe gdlsetup-${arch}-${DEPS}.exe
-    zip -qr gdl-${arch}-${DEPS}.zip ../install/*
+    cd ${ROOT_DIR}/install
+    zip -qr ../gdl/gdl-${arch}-${DEPS}.zip *
 }
 
 if [ "$#" -ne 1 ]; then
