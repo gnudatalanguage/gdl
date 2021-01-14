@@ -193,7 +193,7 @@ function download_packages {
     log "Building bsd-xdr..."
     pushd bsd-xdr-1.0.0
     sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -i Makefile
-    make || exit 1
+    make
     cp -f mingw/*.dll ${MINGW_DIR}/${mname}/bin/
     cp -f mingw/libxdr.dll.a ${MINGW_DIR}/${mname}/lib/
     cp -rf rpc ${MINGW_DIR}/${mname}/include/
@@ -202,10 +202,12 @@ function download_packages {
     # Clean up for caching
     rm -fr bsd-xdr-1.0.0
     rm -f *.tar.xz
-    rm -f *.tar.xz
     rm -f *.tar.gz
     rm -f *.tar.zst
-    rm -f .*
+    rm -f .BUILDINFO
+    rm -f .INSTALL
+    rm -f .MTREE
+    rm -f .PKGINFO
 }
 
 function build_gdl {
@@ -228,7 +230,7 @@ function build_gdl {
           -DNETCDF=ON -DHDF=ON -DHDF5=ON -DMPI=ON \
           -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ4=ON -DPYTHON=ON \
           -DFFTW=ON -DUDUNITS2=ON -DGLPK=ON -DGRIB=OFF \
-          -DUSE_WINGDI_NOT_WINGCC=ON || exit 1
+          -DUSE_WINGDI_NOT_WINGCC=ON
     else
         cmake ${GDL_DIR} -G"MSYS Makefiles" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
@@ -240,10 +242,10 @@ function build_gdl {
           -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF \
           -DLIBPROJ4=OFF -DMPI=OFF -DPYTHON=OFF -DUDUNITS2=OFF \
           -DEIGEN3=OFF -DGRIB=OFF -DGLPK=OFF -DTIFF=OFF \
-          -DGEOTIFF=OFF -DSHAPELIB=OFF -DEXPAT=OFF || exit 1
+          -DGEOTIFF=OFF -DSHAPELIB=OFF -DEXPAT=OFF
     fi
     
-    make -j2 || exit 1
+    make -j2
     
     # Copy dlls and libraries to src directory
     cp -f ${MINGW_DIR}/${mname}/bin/*.dll src/
@@ -251,7 +253,7 @@ function build_gdl {
     cp -rf ${MINGW_DIR}/${mname}/share/plplot* share/
 
     log "Installing GDL..."
-    make install || exit 1
+    make install
 
     cd ${ROOT_DIR}/install
 
