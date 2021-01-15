@@ -67,10 +67,10 @@ jobs:
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v2.2.1
         with:
-          name: GDL Installer (${{ matrix.deps }}, ${{ matrix.arch }})
+          name: GDL Installer (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
           path: gdlsetup-${{ matrix.arch }}-${{ matrix.deps }}.exe
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v2.2.1
         with:
-          name: GDL (${{ matrix.deps }}, ${{ matrix.arch }})
+          name: GDL (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
           path: gdl-${{ matrix.arch }}-${{ matrix.deps }}.zip
