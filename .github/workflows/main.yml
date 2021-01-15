@@ -1,4 +1,4 @@
-name: GDL CI
+name: build
 
 on:
   push:
