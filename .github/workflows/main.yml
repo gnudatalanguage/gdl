@@ -46,7 +46,7 @@ jobs:
         if: ${{ matrix.deps }} == "full"
         run: |
           Invoke-WebRequest -Uri https://download.microsoft.com/download/B/2/E/B2EB83FE-98C2-4156-834A-E1711E6884FB/MSMpiSetup.exe -OutFile MSMpiSetup.exe
-          MSMpiSetup.exe -unattend
+          .\MSMpiSetup.exe -unattend
       - name: Prepere MSYS2 Packages
         if: steps.cache.outputs.cache-hit != 'true'
         shell: msys2 {0}
