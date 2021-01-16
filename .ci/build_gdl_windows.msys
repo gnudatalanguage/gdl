@@ -282,12 +282,11 @@ function test_gdl {
 
 function pack_gdl {
     log "Packaging GDL..."
-    GDLDE_URL="https://github.com/gnudatalanguage/gdlde/releases/download/${GDLDE_VERSION}/gdlde.product-win32.win32.x86_64.zip"
     if [ $arch == "x86_64" ]; then
-      cd ${ROOT_DIR}
-      set_package $GDLDE_URL
-      download_package
-      decompress_package -o -d gdlde
+        cd ${ROOT_DIR}
+        set_package "https://github.com/gnudatalanguage/gdlde/releases/download/${GDLDE_VERSION}/gdlde.product-win32.win32.x86_64.zip"
+        download_package
+        decompress_package -o -d gdlde
     fi
 
     mkdir -p ${ROOT_DIR}/package
