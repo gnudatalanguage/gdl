@@ -199,7 +199,7 @@ function download_packages {
     log "Building bsd-xdr..."
     pushd bsd-xdr-1.0.0
     sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -i Makefile
-    make
+    make || exit 1
     cp -f mingw/*.dll ${MINGW_DIR}/${mname}/bin/
     cp -f mingw/libxdr.dll.a ${MINGW_DIR}/${mname}/lib/
     cp -rf rpc ${MINGW_DIR}/${mname}/include/
@@ -256,7 +256,7 @@ function build_gdl {
           -DGEOTIFF=OFF -DSHAPELIB=OFF -DEXPAT=OFF
     fi
     
-    make -j2
+    make -j2 || exit 1
     
     # Copy dlls and libraries to src directory
     cp -f ${MINGW_DIR}/${mname}/bin/*.dll src/
@@ -264,7 +264,7 @@ function build_gdl {
     cp -rf ${MINGW_DIR}/${mname}/share/plplot* share/
 
     log "Installing GDL..."
-    make install
+    make install || exit 1
 
     cd ${ROOT_DIR}/install
 

@@ -52,23 +52,23 @@ jobs:
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep || exit 1
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep
       - name: Build GDL
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys build || exit 1
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys build
       - name: Check GDL
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys check
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys check || exit 0
       - name: Package GDL
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys pack || exit 1
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep_deploy || exit 1
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys pack
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep_deploy
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v2.2.1
         with:
