@@ -43,6 +43,12 @@ jobs:
         with:
           path: D:\a\gdl\mingw
           key: cache-msys2-packages-gdl-${{ matrix.arch }}-${{ matrix.deps }}
+      - name: Check Version of Latest GDL Workbench
+        if: matrix.arch == 'x86_64'
+        id: gdl_workbench
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          repository: gnudatalanguage/gdlde
       - name: Install MSMPI
         if: matrix.deps == 'full-msmpi'
         run: |
@@ -59,7 +65,7 @@ jobs:
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys build
-      - name: Check GDL
+      - name: Test GDL
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
@@ -68,6 +74,7 @@ jobs:
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
+          export GDLDE_VERSION=${{ steps.gdl_workbench.outputs.release }}
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys pack
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep_deploy
       - name: Upload Build Artifacts
