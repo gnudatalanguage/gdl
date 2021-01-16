@@ -79,7 +79,7 @@ OPTIONAL_LIBS_MSYS2=(
     "udunits"
     "szip"
     "sqlite3"
-    #"eccodes"
+    "eccodes"
 )
     
 function log {
@@ -239,7 +239,7 @@ function build_gdl {
           -DWXWIDGETS=ON -DGRAPHICSMAGICK=ON -DMAGICK=ON \
           -DNETCDF=ON -DHDF=ON -DHDF5=ON -DMPI=${WITH_MPI} \
           -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ4=ON -DPYTHON=ON \
-          -DFFTW=ON -DUDUNITS2=ON -DGLPK=ON -DGRIB=OFF \
+          -DFFTW=ON -DUDUNITS2=ON -DGLPK=ON -DGRIB=ON \
           -DUSE_WINGDI_NOT_WINGCC=ON
     else
         cmake ${GDL_DIR} -G"MSYS Makefiles" \
@@ -252,7 +252,8 @@ function build_gdl {
           -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF \
           -DLIBPROJ4=OFF -DMPI=OFF -DPYTHON=OFF -DUDUNITS2=OFF \
           -DEIGEN3=OFF -DGRIB=OFF -DGLPK=OFF -DTIFF=OFF \
-          -DGEOTIFF=OFF -DSHAPELIB=OFF -DEXPAT=OFF
+          -DGEOTIFF=OFF -DSHAPELIB=OFF -DEXPAT=OFF \
+          -DUSE_WINGDI_NOT_WINGCC=ON
     fi
     
     make -j2 || exit 1
