@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        deps: [full, mini]
+        deps: [full-msmpi, full, mini]
         arch: [x86_64, i686]
         configuration: [Release, Debug]
     env:
@@ -43,7 +43,7 @@ jobs:
           path: D:\a\gdl\mingw
           key: cache-msys2-gdl-${{ matrix.arch }}-${{ matrix.deps }}
       - name: Install MSMPI
-        if: matrix.deps == 'full'
+        if: matrix.deps == 'full-msmpi'
         run: |
           Invoke-WebRequest -Uri https://download.microsoft.com/download/B/2/E/B2EB83FE-98C2-4156-834A-E1711E6884FB/MSMpiSetup.exe -OutFile MSMpiSetup.exe
           .\MSMpiSetup.exe -unattend
