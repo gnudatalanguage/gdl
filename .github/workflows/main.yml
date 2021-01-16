@@ -42,7 +42,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: D:\a\gdl\mingw
-          key: cache-msys2-packages-gdl-${{ matrix.arch }}-${{ matrix.deps }}
+          key: msys2-packages-gdl-${{ matrix.arch }}-${{ matrix.deps }}
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench
@@ -52,7 +52,7 @@ jobs:
       - name: Install MSMPI
         if: matrix.deps == 'full-msmpi'
         run: |
-          Invoke-WebRequest -Uri https://download.microsoft.com/download/B/2/E/B2EB83FE-98C2-4156-834A-E1711E6884FB/MSMpiSetup.exe -OutFile MSMpiSetup.exe
+          Invoke-WebRequest -Uri https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe -OutFile MSMpiSetup.exe
           .\MSMpiSetup.exe -unattend
       - name: Prepere MSYS2 Packages
         if: steps.cache.outputs.cache-hit != 'true'
