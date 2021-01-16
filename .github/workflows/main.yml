@@ -25,6 +25,7 @@ jobs:
         with:
           msystem: MSYS
           update: true
+          release: false
           install: >-
             mingw-w64-${{ matrix.arch }}-toolchain
             mingw-w64-${{ matrix.arch }}-cmake
