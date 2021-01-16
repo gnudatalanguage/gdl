@@ -42,7 +42,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: D:\a\gdl\mingw
-          key: cache-msys2-gdl-${{ matrix.arch }}-${{ matrix.deps }}
+          key: cache-msys2-packages-gdl-${{ matrix.arch }}-${{ matrix.deps }}
       - name: Install MSMPI
         if: matrix.deps == 'full-msmpi'
         run: |
