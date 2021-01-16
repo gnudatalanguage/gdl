@@ -176,13 +176,13 @@ function download_packages {
         decompress_package
     done
 
-    if [[ ${DEPS} == *"full" ]]; then
+    if [[ ${DEPS} == *"full"* ]]; then
         for package_name in ${OPTIONAL_LIBS_MSYS2[@]}; do
             set_msys2_package $package_name
             download_package
             decompress_package
         done
-        if [[ ${DEPS} == *"msmpi" ]]; then
+        if [[ ${DEPS} == *"msmpi"* ]]; then
             set_msys2_package "msmpi"
             download_package
             decompress_package
@@ -222,8 +222,8 @@ function build_gdl {
     mkdir -p ${ROOT_DIR}/build
     cd ${ROOT_DIR}/build
     
-    if [[ ${DEPS} == *"full" ]]; then
-        if [[ ${DEPS} == *"msmpi" ]]; then
+    if [[ ${DEPS} == *"full"* ]]; then
+        if [[ ${DEPS} == *"msmpi"* ]]; then
             WITH_MPI="ON"
         else
             WITH_MPI="OFF"
