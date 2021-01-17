@@ -80,6 +80,9 @@ OPTIONAL_LIBS_MSYS2=(
     "szip"
     "sqlite3"
     "eccodes"
+    "jasper"
+    "libaec"
+    "openjpeg2"
 )
     
 function log {
