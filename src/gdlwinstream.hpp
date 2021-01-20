@@ -210,7 +210,6 @@ public:
 	DLong GetVisualDepth();
 	//  DString GetVisualName();
 
-	bool UnsetFocus();
 	//  bool SetBackingStore(int value);
 	//  bool SetGraphicsFunction(long value );
 	bool GetWindowPosition(long& xpos, long& ypos);

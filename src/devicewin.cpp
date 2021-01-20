@@ -66,6 +66,11 @@ bool DeviceWIN::ProcessMessages(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
 	switch (message)
 	{
+		case WM_WINDOWPOSCHANGING:
+		{
+			SendMessage(hwnd, WM_PAINT, 0, 0);
+			break;
+		}
 		case WM_PAINT:
 		{
 			// Redraw image while resizing/moving/etc..
@@ -81,12 +86,8 @@ bool DeviceWIN::ProcessMessages(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 			break;
 		}
 		#ifdef USE_WINGDI_NOT_WINGCC
+		case WM_WINDOWPOSCHANGED:
 		case WM_ERASEBKGND:
-		{
-			winstream->SetState(1);
-			break;
-		}
-		case WM_MOUSEMOVE:
 		{
 			winstream->SetState(1);
 			break;
@@ -345,8 +346,8 @@ bool DeviceWIN::WOpen(int wIx, const std::string& title,
 	// Currently Plplot ignores to update window title on Windows. it should be done manually..
 	((GDLWINStream *)winList[wIx])->SetWindowTitle(buf);
 
-	// Unset focus, and bring the plot window to top
-	UnsetFocus();
+	// Bring the plot on top
+	RaiseWin(wIx);
 
 	// HACK: setup hook for redrawing/validating windows
 	p_this = this;
@@ -400,12 +401,12 @@ bool DeviceWIN::WShow(int ix, bool show, int iconic)
 	int wLSize = winList.size();
 	if (ix >= wLSize || ix < 0 || winList[ix] == NULL) return false;
 
-	UnsetFocus();
   if (iconic!=-1) { //iconic asked. do nothing else.
 		if (iconic==1) IconicWin(ix); else DeIconicWin(ix);
 	} else {
 		if (show) RaiseWin(ix);  else LowerWin(ix);
   }
+	UnsetFocus();
 
 	return true;
 }

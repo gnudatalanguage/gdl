@@ -359,7 +359,7 @@ bool GDLWINStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny,
 		} // for() outer
 		SetDIBitsToDevice(GetHdc(), 0, 0, rt.right + 1, rt.bottom + 1, 0, 0, 0, rt.bottom + 1, tv_buf.lpbitmap, &tv_buf.bi, DIB_RGB_COLORS);
 
-		UnsetFocus();
+		UnsetFocus(); // JP: This doesn't work. Raise instead?
 		tv_buf.has_data = true;
 	}
 	return true;
@@ -454,15 +454,6 @@ DLong GDLWINStream::GetVisualDepth(){
 unsigned long  GDLWINStream::GetWindowDepth(){
 	return GetVisualDepth();
 }
-
-bool GDLWINStream::UnsetFocus()
-{
-	SetForegroundWindow(this->refocus); // Makes console window focused, and bring it on top.
-                                        // SetFocus, etc. doesn't work since the console window is not part of the main thread.
-    Raise();                            // Brings again the plot window on top, but not focused
-	return true;
-}
-
 
 void GDLWINStream::Clear()
 {
