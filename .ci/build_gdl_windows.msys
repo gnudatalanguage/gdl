@@ -9,6 +9,7 @@
 #   - readline, zlib, libpng, libpcre
 
 ME="build_gdl_windows.msys"
+Configuration=${Configuration:-"Debug"}
 DEPS=${DEPS:-"full-msmpi"}
 ROOT_DIR=${ROOT_DIR:-"/c/projects"}
 GDL_DIR="${ROOT_DIR}/gdl"
@@ -219,7 +220,7 @@ function download_packages {
 }
 
 function build_gdl {
-    log "Building GDL (${Configuration:-Debug})..."
+    log "Building GDL (${Configuration})..."
     rm -f ${ROOT_DIR}/build/CMakeCache.txt
     mkdir -p ${ROOT_DIR}/build
     cd ${ROOT_DIR}/build
