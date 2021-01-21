@@ -9,9 +9,9 @@ GDL - GNU Data Language
 
 GDL is a free/libre/open source incremental compiler compatible with IDL (Interactive Data Language) and to some extent with PV-WAVE. 
 Together with its library routines it serves as a tool for data analysis and visualization in such disciplines 
-  as astronomy, geosciences and medical imaging. 
+as astronomy, geosciences and medical imaging. 
 GDL development had been started by **Marc Schellens** back in early noughties and has since continued 
-  with help of a team of maintainers, developers, packagers and thanks to feedback from users.
+with help of a team of maintainers, developers, packagers and thanks to feedback from users.
 
 IDL is a registered trademark of [Harris Geospatial Solutions](https://www.harrisgeospatial.com).
 PV-WAVE is a product of [Rogue Wave Software](https://www.roguewave.com).
@@ -21,12 +21,12 @@ Overview
 
 GDL is a domain-specific programming language and a data analysis environment.
 As a language, it is dynamically-typed, array-oriented, vectorised and has 
-  object-oriented programming capabilities. 
+object-oriented programming capabilities. 
 GDL library routines handle numerical calculations, data visualisation, signal/image processing, 
-  interaction with host OS and data input/output. 
+interaction with host OS and data input/output. 
 GDL supports several data formats such as netCDF, HDF4, HDF5, GRIB, PNG, TIFF, DICOM, etc. 
 Graphical output is handled by X11, PostScript, SVG or z-buffer terminals, the last one allowing 
-  output graphics (plots) to be saved in a variety of raster graphics formats. 
+output graphics (plots) to be saved in a variety of raster graphics formats. 
 GDL features integrated debugging facilities. 
 The built-in widget functionality enables development of GUI-based software.
 GDL has also a Python bridge (Python code can be called from GDL; GDL can be compiled as a Python module). 
@@ -55,7 +55,7 @@ Dependencies
 
 Packaged versions of GDL are available for several Linux distributions, BSD and Mac OS X. 
 Please note that several features of GDL depend on compile-time configuration, and might not 
-  be available in pre-built or pre-configured packages. 
+be available in pre-built or pre-configured packages. 
 GDL has numerous dependencies, most of the optional (buth highly recommended):
 - [readline](https://tiswww.cwru.edu/php/chet/readline/rltop.html)
 - [\[n\]curses](https://www.gnu.org/software/ncurses/)
@@ -85,7 +85,7 @@ Build-time dependencies
 Build and test automation is carried out using [CMake](http://cmake.org/).
 
 GDL interpreter has been developed using [ANTLR v2](http://www.antlr2.org) but unless you want 
-  to change the grammar (\*.g files) you don't need ANTLR. 
+to change the grammar (\*.g files) you don't need ANTLR. 
 All relevant ANTLR files are included in the source tree.
 
 Support, feedback and contributions
@@ -94,11 +94,11 @@ Support, feedback and contributions
 Your comments are welcome! Let us know what you use GDL for. Or if you don't, why not. 
 Which functionality are you missing/would appreciate most for coming versions. 
 Please use the github issue-tracking system to report 
-  bugs, complaints, suggestions and comments.
+bugs, complaints, suggestions and comments.
 
 Code enhancements in the form of pull requests are very welcome!
 Note that contributions can be made in C++, IDL/GDL or Python, as well as
-  by providing enhancements and extensions of the README files, diagnostic messages, etc.
+by providing enhancements and extensions of the README files, diagnostic messages, etc.
 
 Among the major challenges GDL development is facing currently, there are:
 - [enhancing test coverage](https://codecov.io/github/gnudatalanguage/gdl?branch=master) by writing test programs in GDL
@@ -112,7 +112,7 @@ Information resources
 ---------------------
 
 As GDL is aimed as a drop-in replacement for IDL,
-  resources for IDL constitute valuable sources of information for GDL users as well.
+resources for IDL constitute valuable sources of information for GDL users as well.
 These include:
 - the [official IDL documentation](https://www.harrisgeospatial.com/docs/)
 - the [idl-pvwave Google Group](https://groups.google.com/forum/#!forum/idl-pvwave)
@@ -135,7 +135,7 @@ There are several open source packages compatible or interoperable with GDL, inc
 Alain Coulais maintains the [GDL-accounces mailing list](https://sympa.obspm.fr/wws/info/gdl-announces).
 
 There have been quite some [mentions of GDL in scientific literature](https://scholar.google.com/scholar?q="gnu+data+language") 
-  which also provide example use cases.
+which also provide example use cases.
 The Coulais et al. papers from the ADASS conferences are the best way to cite GDL as of now.
 
 Acknowledgements
