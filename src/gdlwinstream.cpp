@@ -413,26 +413,18 @@ bool GDLWINStream::GetWindowPosition(long& xpos, long& ypos) {
 
 void GDLWINStream::Lower()
 {
-
-  SetWindowPos(GetHwnd(), HWND_BOTTOM,
-    0,0,0,0, (SWP_NOMOVE | SWP_NOSIZE));
-
+    SetWindowPos(GetHwnd(), HWND_BOTTOM, 0,0,0,0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 	return;
 }
 
 void GDLWINStream::Iconic() {
-
-
-  SetWindowPos(GetHwnd(), HWND_BOTTOM,
-    0,0,0,0, (SWP_NOMOVE | SWP_NOSIZE |SWP_HIDEWINDOW));
-  return;
+    ShowWindow(GetHwnd(), SW_SHOWMINNOACTIVE);
+    return;
 }
 
 void GDLWINStream::DeIconic() {
-
-  SetWindowPos(GetHwnd(), HWND_BOTTOM,
-    0,0,0,0, (SWP_NOMOVE | SWP_NOSIZE |SWP_SHOWWINDOW));  return;
-
+    ShowWindow(GetHwnd(), SW_SHOWNOACTIVATE);
+    return;
 }
 void GDLWINStream::CheckValid() {
   if(!IsWindow(GetHwnd())) this->SetValid(false);
