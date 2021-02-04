@@ -197,7 +197,7 @@ public:
   virtual int  WAddFree()                                 { return false;}
 
   // for WIDGET_DRAW
-  virtual bool GUIOpen( int wIx, int xSize, int ySize) { return false;} 
+  virtual GDLGStream* GUIOpen( int wIx, int xSize, int ySize, void* draw){ return NULL;} 
 
   // for plot windows
   virtual bool WOpen( int ix, const std::string& title,
@@ -209,7 +209,7 @@ public:
   virtual bool WState( int ix)                        { return false;}
   virtual bool WDelete( int ix)                       { return false;}
   virtual int  MaxWin()                               { return 0;}
-  virtual void TidyWindowsList()                      {}
+  virtual void TidyWindowsList(bool d=true){}
   virtual int  MaxNonFreeWin()                        { return MaxWin();}
   virtual int  ActWin()                               { return -1;}
   virtual int  GetNonManagedWidgetActWin(bool doTidy=true)            {return -1;}
@@ -344,7 +344,7 @@ public:
   bool WState( int ix);
   int  MaxWin();
   void SetActWin(int wIx);
-  void TidyWindowsList();
+  void TidyWindowsList(bool d=true);
   void RaiseWin(int wIx);
   void LowerWin(int wIx);
   void IconicWin(int wIx);

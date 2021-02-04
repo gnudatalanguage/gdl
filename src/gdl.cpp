@@ -217,7 +217,11 @@ int main(int argc, char *argv[])
   bool syntaxOptionSet=false;
 
   //start with a default value:
-  useWxWidgetsForGraphics = false;
+#ifdef HAVE_LIBWXWIDGETS
+  useWxWidgetsForGraphics = true;
+#else
+  useWxWidgetsForGraphics = true;
+#endif
   bool force_no_wxgraphics = false;
   useDSFMTAcceleration = true;
 #ifdef _WIN32
@@ -225,40 +229,39 @@ int main(int argc, char *argv[])
 #endif
   for( SizeT a=1; a< argc; ++a)
     {
-      if( string( argv[a]) == "--help" | string( argv[a]) == "-h")
-	{
-	  cerr << "Usage: gdl [ OPTIONS ] [ batch_file ... ]" << endl;
-	  cerr << "Start the GDL interpreter (incremental compiler)" << endl;
-	  cerr << endl;
-	  cerr << "GDL options:" << endl;
-	  cerr << "  --help (-h)        display this message" << endl;
-	  cerr << "  --version (-V, -v) show version information" << endl;
-	  cerr << "  --fakerelease X.y  pretend that !VERSION.RELEASE is X.y" << endl;
-	  cerr << "  --fussy            implies that procedures adhere with modern IDL, where \"()\" are for functions and \"[]\" are for arrays." <<endl;
+      if( string( argv[a]) == "--help" | string( argv[a]) == "-h") {
+      cerr << "Usage: gdl [ OPTIONS ] [ batch_file ... ]" << endl;
+      cerr << "Start the GDL interpreter (incremental compiler)" << endl;
+      cerr << endl;
+      cerr << "GDL options:" << endl;
+      cerr << "  --help (-h)        display this message" << endl;
+      cerr << "  --version (-V, -v) show version information" << endl;
+      cerr << "  --fakerelease X.y  pretend that !VERSION.RELEASE is X.y" << endl;
+      cerr << "  --fussy            implies that procedures adhere with modern IDL, where \"()\" are for functions and \"[]\" are for arrays." << endl;
       cerr << "                     This speeds up (sometimes terribly) compilation but choke on every use of \"()\" with arrays." << endl;
       cerr << "                     Conversion of procedures to modern IDL can be done with D. Landsman's idlv4_to_v5 procedure." << endl;
       cerr << "                     Use enviromnment variable \"GDL_IS_FUSSY\" to set up permanently this feature." << endl;
-	  cerr << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
+      cerr << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
       cerr << "                     Needed to counteract temporarily the effect of the enviromnment variable \"GDL_IS_FUSSY\"." << endl;
-      cerr << "  --use-wx           Tells GDL to use WxWidgets graphics instead of X11 or Windows. (nicer plots)." << endl;
-      cerr << "                     Also enabled by setting the environment variable GDL_USE_WX to a non-null value." << endl;
-      cerr << "  --no-use-wx        Tells GDL no to use WxWidgets graphics, even if env. var. \"GDL_USE_WX\" is set." << endl;
+      cerr << "  --use-wx (default if GDL is linked with wxWidgets): Tells GDL to use WxWidgets graphics instead of X11 or Windows. (nicer plots)." << endl;
+      cerr << "  --no-use-wx        Tells GDL not to use WxWidgets graphics." << endl;
+      cerr << "                     Also enabled by setting the environment variable GDL_DISABLE_WX_PLOTS to a non-null value." << endl;
       cerr << "  --no-dSFMT         Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random doubles." << endl;
       cerr << "                     Also disable by setting the environment variable GDL_NO_DSFMT to a non-null value." << endl;
       cerr << endl;
-	  cerr << "IDL-compatible options:" << endl;
-	  cerr << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
-          cerr << "             the following argument (may be specified more than once)" << endl;
-	  cerr << "  -args ...  tells COMMAND_LINE_ARGS() to report " << endl;
-          cerr << "             all following arguments" << endl;
-          cerr << "  -e value   execute given statement and exit (last occurrence taken into account only," << endl;
-          cerr << "             executed after startup file, may not be specified together with batch files)" << endl;
-	  cerr << "  -pref=/path/to/params_file  loads the specified preference file" << endl;
-	  cerr << "  -quiet (--quiet, -q) suppress welcome messages" << endl;
-	  cerr << endl;
-	  cerr << "Homepage: http://gnudatalanguage.sf.net" << endl;
-	  return 0;
-	}
+      cerr << "IDL-compatible options:" << endl;
+      cerr << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
+      cerr << "             the following argument (may be specified more than once)" << endl;
+      cerr << "  -args ...  tells COMMAND_LINE_ARGS() to report " << endl;
+      cerr << "             all following arguments" << endl;
+      cerr << "  -e value   execute given statement and exit (last occurrence taken into account only," << endl;
+      cerr << "             executed after startup file, may not be specified together with batch files)" << endl;
+      cerr << "  -pref=/path/to/params_file  loads the specified preference file" << endl;
+      cerr << "  -quiet (--quiet, -q) suppress welcome messages" << endl;
+      cerr << endl;
+      cerr << "Homepage: http://gnudatalanguage.sf.net" << endl;
+      return 0;
+    }
       else if (string(argv[a])=="--version" | string(argv[a])=="-v" | string(argv[a])=="-V")
 	{
 	  cerr << "GDL - GNU Data Language, Version " << VERSION << endl;
@@ -347,7 +350,8 @@ int main(int argc, char *argv[])
 #endif
       else if (string(argv[a]) == "--no-use-wx")
       {
-           force_no_wxgraphics = true;
+         useWxWidgetsForGraphics = false;
+         force_no_wxgraphics = true;
       }
       else if (string(argv[a]) == "--fakerelease")
       {
@@ -376,8 +380,8 @@ int main(int argc, char *argv[])
   }
   
   //before InitGDL() as InitGDL() starts graphic!
-  std::string useWX=GetEnvString("GDL_USE_WX");
-  if ( useWX.length() > 0) useWxWidgetsForGraphics=true; //not necessary "YES".
+  std::string disableWXPlots=GetEnvString("GDL_DISABLE_WX_PLOTS");
+  if ( disableWXPlots.length() > 0) useWxWidgetsForGraphics=false; //not necessary "YES".
   if (force_no_wxgraphics) useWxWidgetsForGraphics=false; //this has the last answer, whatever the setup.
   
   

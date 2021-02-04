@@ -195,13 +195,13 @@ protected:
   int gdlDefaultCharInitialized;
   gdlbox theBox;
   gdlpage thePage;
-  PLStream* pls;
   DFloat thickFactor;
   PLFLT theCurrentSymSize;
   PLFLT theLineSpacing_in_mm;
   bool usedAsPixmap; //for WINDOW,/PIXMAP retains the fact that this is a pixmap (invisible) window.
   int activeFontCodeNum; //simplex Roman by default.
 public:
+  PLStream* pls;
 
    GDLGStream( int nx, int ny, const char *driver, const char *file=NULL)
     : plstream( nx, ny, driver, file), valid( true), thickFactor(1.0), usedAsPixmap(false), activeFontCodeNum(3)
@@ -304,14 +304,14 @@ public:
   virtual void Clear( DLong chan)          {}
   virtual bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan){return false;}
   virtual bool HasCrossHair() {return false;}
-  virtual void UnMapWindow() {usedAsPixmap=true;} 
+  virtual void UnMapWindowAndSetPixmapProperty() {usedAsPixmap=true;} 
   bool IsPixmapWindow() {return usedAsPixmap;}
+  virtual bool IsPlot() {return true;} //except some wxWidgets
   virtual BaseGDL* GetBitmapData(){return NULL;}
   virtual void SetCurrentFont(std::string fontname){}//do nothing
   bool GetRegion(DLong& xs, DLong& ys, DLong& nx, DLong& ny);//{return false;}
   bool SetRegion(DLong& xd, DLong& yd, DLong& nx, DLong& ny);//{return false;}
 
-  virtual void CheckValid() {}
   void SetValid( bool v) { valid = v;}
   bool GetValid() { return valid;}
   bool validWorldBox()

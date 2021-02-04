@@ -334,7 +334,7 @@ void GDLXStream::DeIconic() {
   XMapWindow(dev->xwd->display, dev->window);
 }
 
-void GDLXStream::UnMapWindow() {
+void GDLXStream::UnMapWindowAndSetPixmapProperty() {
   //Used for /PIXMAP windows: 1) insure write_to_pixmap and not write_to_window, and 2) hide the window.
   XwDev *dev = (XwDev *) pls->dev;
   dev->write_to_pixmap=1;
