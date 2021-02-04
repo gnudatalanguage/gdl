@@ -195,7 +195,7 @@ void GraphicsDevice::Init()
     DString os = (*static_cast<DStringGDL*>( version->GetTag( osTag, 0)))[0];
     GDLWidget::Init();
 #endif
-  // if GDL_DISABLE_WX_PLOTS (or switch --use-wx) , and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
+  // if GDL_DISABLE_WX_PLOTS (or switch --no-use-wx ) IS NOT PRESENT , and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
   // no other device is defined.
   if (useWxWidgetsForGraphics) {
 #ifdef HAVE_LIBWXWIDGETS
@@ -215,9 +215,9 @@ void GraphicsDevice::Init()
 #endif
 #endif
   } else {
-//#ifdef HAVE_LIBWXWIDGETS
-//    deviceList.push_back( new DeviceWX()); //traditional use, device will be called "MAC"
-//#endif
+#ifdef HAVE_LIBWXWIDGETS
+    deviceList.push_back( new DeviceWX()); //traditional use, device will be called "MAC"
+#endif
 #ifdef HAVE_X
     deviceList.push_back( new DeviceX());
 #endif
