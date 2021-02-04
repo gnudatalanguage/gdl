@@ -195,13 +195,13 @@ protected:
   int gdlDefaultCharInitialized;
   gdlbox theBox;
   gdlpage thePage;
+  PLStream* pls;
   DFloat thickFactor;
   PLFLT theCurrentSymSize;
   PLFLT theLineSpacing_in_mm;
   bool usedAsPixmap; //for WINDOW,/PIXMAP retains the fact that this is a pixmap (invisible) window.
   int activeFontCodeNum; //simplex Roman by default.
 public:
-  PLStream* pls;
 
    GDLGStream( int nx, int ny, const char *driver, const char *file=NULL)
     : plstream( nx, ny, driver, file), valid( true), thickFactor(1.0), usedAsPixmap(false), activeFontCodeNum(3)
@@ -312,6 +312,7 @@ public:
   bool GetRegion(DLong& xs, DLong& ys, DLong& nx, DLong& ny);//{return false;}
   bool SetRegion(DLong& xd, DLong& yd, DLong& nx, DLong& ny);//{return false;}
 
+  virtual void CheckValid() {}
   void SetValid( bool v) { valid = v;}
   bool GetValid() { return valid;}
   bool validWorldBox()
