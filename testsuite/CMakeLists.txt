@@ -29,7 +29,7 @@ char *tmp = (char *)malloc( sizeof(char) * (strlen(\"${BASE_BINARY}/src/gdl -qui
 sprintf(tmp, \"${BASE_BINARY}/src/gdl.exe -quiet -e %s\", v[1]);
 //int rtn = CreateProcess(NULL, tmp, NULL, NULL, TRUE, 0, NULL, NULL, &startupInfo, &processInformation);
 int rtn = system(tmp);
-
+free((void *)tmp);
 if (rtn == 77) {
     printf(\"TEST SKIPPED\");
     exit(77);
