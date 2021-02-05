@@ -183,6 +183,8 @@ void GraphicsDevice::Init()
 
   DefineDStructDesc();
 
+  GraphicsDevice* current_device;
+  
   // 4 devices types without surprise !
   deviceList.push_back( new DeviceNULL());
   deviceList.push_back( new DevicePS());
@@ -199,46 +201,48 @@ void GraphicsDevice::Init()
   // no other device is defined.
   if (useWxWidgetsForGraphics) {
 #ifdef HAVE_LIBWXWIDGETS
-    deviceList.push_back( new DeviceWX("X"));
-#else
 #ifdef HAVE_X
-    deviceList.push_back( new DeviceX());
+    current_device=new DeviceWX("X");    //define wxWidgets 'plot' as either X..
+#elif _WIN32
+    current_device=new DeviceWX("WIN");  //.. or WIN
 #endif
-#ifdef _WIN32
-    deviceList.push_back( new DeviceWIN());
+     actGUIDevice =current_device;      // GuiDevice is same as X or WIN in this case
+#else //not linked with wxWidgets: plot is either X or WIN depending on platform
+#ifdef HAVE_X
+    current_device=new DeviceX();
+#elif _WIN32
+    current_device=new DeviceWIN();
 #endif
+    actGUIDevice = NULL; //no wxWidgets at all!
 #endif
-  } else {
+    deviceList.push_back(current_device); //push the 'PLOT' device.
+  } else {  //wxWidgets will *NOT*be used for plot windows...
 #ifdef HAVE_LIBWXWIDGETS
-    deviceList.push_back( new DeviceWX()); //traditional use, device will be called "MAC"
+    actGUIDevice = new DeviceWX();  //even if wx is not used for plots, it will be used for widget_draw. But set_plot,"MAC" will exist.
+    deviceList.push_back(actGUIDevice); // do not forget to add it to list!
 #endif
 #ifdef HAVE_X
     deviceList.push_back( new DeviceX());
-#endif
-#ifdef _WIN32
+#elif _WIN32
     deviceList.push_back( new DeviceWIN());
 #endif
   }
-  // we try to set X, WIN or WX as default 
-  // (and NULL if X11 system (Linux, OSX, Sun) but without X11 at compilation)
-#if defined(HAVE_X) // Check X11 first
-  if( !SetDevice( "X")) 
-#elif defined(_WIN32) // If Windows enable WinGCC driver 
-    if( !SetDevice( "WIN")) 
-#elif defined (HAVE_LIBWXWIDGETS) // Finally check WX
-      if (!SetDevice("MAC"))
-#else
-    if( !SetDevice( "NULL")) 
+
+//recapitulate:    
+// we try to set X, or WIN as default, even if they are actually WX. You follow? There is no 'WX' device in IDL. 
+// (and NULL if X11 system (Linux, OSX, Sun) but without X11 at compilation)
+#ifdef HAVE_X // Check X11 or wx mimicking X11
+  if( !SetDevice("X") ) 
+#elif _WIN32 // If Windows enable WinGCC driver or its  wx alter ego
+  if( !SetDevice( "WIN")) 
+#else //nothing else...
+  if( !SetDevice( "NULL")) 
 #  endif
-#  if !defined (HAVE_X) && !defined (HAVE_LIBWXWIDGETS) && !defined (_WIN32)
-      {
-      }
-#  else
   {
     cerr << "Error initializing graphics." << endl;
     exit( EXIT_FAILURE);
   }
-#  endif
+
 // GDL (at least with device X and Wx) handle equally any types of screens,
 // with an equivalent depth of 24 (tested and true). So there is no
 // need to return any depth, color number etc that would be anything
@@ -250,21 +254,6 @@ void GraphicsDevice::Init()
     unsigned bckTag=pStruct->Desc()->TagIndex("BACKGROUND");
     (*static_cast<DLongGDL*>(pStruct->GetTag(colorTag, 0)))[0]=16777215;
     (*static_cast<DLongGDL*>(pStruct->GetTag(bckTag, 0)))[0]=0;
-#ifdef HAVE_LIBWXWIDGETS
-  // some X error message suggested this call
-#ifdef HAVE_X
-  //  XInitThreads();
-#endif
-#endif
-  int index=0;
-  // setting the GUI dev. There is only ONE possibility: the wxWidgets.
-
-  // depending on how we build GDL, wxWidgets may replace X and WIN entirely, or not.
-  // If not, it will be called "MAC" (temporarily).
-  // If yes (replaces either X or WIN) it will be called 'X' or 'WIN' accordingly.
-  if (ExistDevice( "MAC", index)) { //wxWidgets present, in concurrence with others.
-    actGUIDevice = deviceList[index];
-  } else   actGUIDevice = new DeviceWX(); //
 }
 
 void GraphicsDevice::DestroyDevices()
