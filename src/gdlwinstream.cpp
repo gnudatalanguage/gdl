@@ -425,7 +425,7 @@ void GDLWINStream::DeIconic() {
 
 }
 void GDLWINStream::CheckValid() {
-  if(!IsWindow(GetHwnd())) this->SetValid(false); TidyWindowsList();
+  if(!IsWindow(GetHwnd())) this->SetValid(false);
 }
 
 void GDLWINStream::Flush() {
