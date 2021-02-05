@@ -1717,10 +1717,6 @@ GDLWidget* gdlParent = GetWidget( parentID );
     assert( parentWindow != NULL);
   //get default value: a menu. May be NULL here
     wxMenu *menu = new wxMenu();
-#ifdef __WXMSW__
-  //only available for the wxMSW port:
-  menu->SetFont(font);
-#endif
   theWxContainer = menu; //is not a window
   theWxWidget = menu;
   buttonType = MENU;
@@ -3991,10 +3987,6 @@ GDLWidgetSubMenu::GDLWidgetSubMenu(WidgetIDT p, EnvT* e,
   menuItem = new wxMenuItem(menu, widgetID, valueWxString, wxEmptyString, wxITEM_NORMAL, submenu );
   if (bitmap_) menuItem->SetBitmap(*bitmap_);
   menu->Append(menuItem);
-#ifdef __WXMSW__
-  //only available for the wxMSW port:
-  menuItem->SetFont(font);
-#endif
   menu->Enable(menuItem->GetId(), sensitive);
   theWxContainer = menu; //is not a window: special treatment
   theWxWidget = submenu; 
@@ -4056,10 +4048,6 @@ GDLWidgetMenuEntry::GDLWidgetMenuEntry(WidgetIDT p, EnvT* e,
   if (addSeparatorAbove) the_sep=menu->AppendSeparator();
   menuItem = new wxMenuItem(menu, widgetID, valueWxString);
   if (bitmap_) menuItem->SetBitmap(*bitmap_);
-#ifdef __WXMSW__
-  //only available for the wxMSW port:
-  menuItem->SetFont(font);
-#endif
   menu->Append(menuItem);
   menu->Enable(menuItem->GetId(), sensitive);
   theWxContainer = menu; //is not a window
