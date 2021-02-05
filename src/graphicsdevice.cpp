@@ -199,13 +199,7 @@ void GraphicsDevice::Init()
   // no other device is defined.
   if (useWxWidgetsForGraphics) {
 #ifdef HAVE_LIBWXWIDGETS
-#ifdef HAVE_X
     deviceList.push_back( new DeviceWX("X"));
-#else
-#ifdef _WIN32
-    deviceList.push_back( new DeviceWX("WIN"));
-#endif
-#endif  
 #else
 #ifdef HAVE_X
     deviceList.push_back( new DeviceX());
