@@ -125,6 +125,7 @@ if KEYWORD_SET(verbose) then print, com, status, a, expected
 ;
 ; internal intrinsic procedure (better idea welcome !)
 ;
+; DANGER: MAY STOP OR CRASH TESTS!
 com='plot, SIN(!pi*findgen(100)/10.)'
 status=EXECUTE(com)
 ;

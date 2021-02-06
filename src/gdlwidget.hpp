@@ -1901,7 +1901,7 @@ public:
 
 
  void RepaintGraphics(bool doClear = false) {
-  wxPaintDC dc(this); //is a scrolled window: needed
+  wxClientDC dc(this); //is a scrolled window: needed
   DoPrepareDC(dc); //you probably do not want to call wxScrolled::PrepareDC() on wxAutoBufferedPaintDC as it already does this internally for the real underlying wxPaintDC.
   if (doClear) dc.Clear();
  // dc.SetDeviceClippingRegion(GetUpdateRegion());
