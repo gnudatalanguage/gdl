@@ -201,12 +201,8 @@ void GraphicsDevice::Init()
   // no other device is defined.
   if (useWxWidgetsForGraphics) {
 #ifdef HAVE_LIBWXWIDGETS
-#ifdef HAVE_X
     current_device=new DeviceWX("X");    //define wxWidgets 'plot' as either X..
-#elif _WIN32
-    current_device=new DeviceWX("WIN");  //.. or WIN
-#endif
-     actGUIDevice =current_device;      // GuiDevice is same as X or WIN in this case
+    actGUIDevice =current_device;      // GuiDevice is same as X or WIN in this case
 #else //not linked with wxWidgets: plot is either X or WIN depending on platform
 #ifdef HAVE_X
     current_device=new DeviceX();
@@ -231,7 +227,9 @@ void GraphicsDevice::Init()
 //recapitulate:    
 // we try to set X, or WIN as default, even if they are actually WX. You follow? There is no 'WX' device in IDL. 
 // (and NULL if X11 system (Linux, OSX, Sun) but without X11 at compilation)
-#ifdef HAVE_X // Check X11 or wx mimicking X11
+#ifdef HAVE_LIBWXWIDGETS
+  if( !SetDevice("X") ) 
+#elif HAVE_X // Check X11 or wx mimicking X11
   if( !SetDevice("X") ) 
 #elif _WIN32 // If Windows enable WinGCC driver or its  wx alter ego
   if( !SetDevice( "WIN")) 
