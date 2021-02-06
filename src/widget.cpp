@@ -1304,7 +1304,7 @@ BaseGDL* widget_list( EnvT* e ) {
   bool contextevents = e->KeywordSet( CONTEXT_EVENTS );
   if (contextevents) eventFlags |= GDLWidget::EV_CONTEXT;
 
-  DLong style = multiple ? wxLB_EXTENDED|wxLB_MULTIPLE : wxLB_SINGLE;
+  DLong style = multiple ? wxLB_EXTENDED : wxLB_SINGLE;  //|wxLB_MULTIPLE crash in windows.
   GDLWidgetList* list = new GDLWidgetList( parentID, e, value, style, eventFlags );
   if (list->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN )   list->SetWidgetType( GDLWidget::WIDGET_LIST );
 #ifdef GDL_DEBUG_WIDGETS

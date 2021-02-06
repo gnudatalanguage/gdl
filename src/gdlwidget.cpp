@@ -705,9 +705,12 @@ void GDLWidget::Init()
     return;
   }
   //set default font to something sensible now that wx is ON:
-//  defaultFont = *wxNORMAL_FONT; 
+#if defined(_WIN32) 
+  defaultFont = *wxNORMAL_FONT;
+#else
   defaultFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ;
 //  identical for me to GDLWidget::setDefaultFont(wxFont("Monospace 8"));
+#endif
   SetWxStarted();
 }
 // UnInit
