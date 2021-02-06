@@ -6,14 +6,26 @@ on:
   workflow_dispatch:
 
 jobs:
+  prelude:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - name: Create Build Matrix
+      id: set-matrix
+      run: |
+        if [[ '${{ github.ref }}' == *pull* ]]; then 
+            matrix="{deps: ['full'], arch: ['x86_64'], configuration: ['Debug']}"
+        else
+            matrix="{deps: ['full-msmpi', 'full', 'mini'], arch: ['x86_64', 'i686'], configuration: ['Release', 'Debug']}"
+        fi
+        echo "::set-output name=matrix::$matrix"
   build:
     runs-on: windows-latest
+    needs: prelude
     strategy:
       fail-fast: false
-      matrix:
-        deps: [full-msmpi, full, mini]
-        arch: [x86_64, i686]
-        configuration: [Release, Debug]
+      matrix: ${{ fromJson(needs.prelude.outputs.matrix) }}
     env:
       DEPS: ${{ matrix.deps }}
       WORKSPACE: ${{ github.workspace }}
