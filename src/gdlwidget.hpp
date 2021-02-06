@@ -38,7 +38,7 @@
 #include <wx/artprov.h>
 #include <wx/popupwin.h>
 #include <wx/notebook.h>
-
+#include <wx/dcbuffer.h>
 #include <deque>
 #include <map>
 
@@ -1901,10 +1901,10 @@ public:
 
 
  void RepaintGraphics(bool doClear = false) {
-  wxPaintDC dc(this);
-  PrepareDC(dc);
+  wxAutoBufferedPaintDC dc(this); //is a scrolled window: needed
+//  DoPrepareDC(dc); you probably do not want to call wxScrolled::PrepareDC() on wxAutoBufferedPaintDC as it already does this internally for the real underlying wxPaintDC.
   if (doClear) dc.Clear();
-  dc.SetDeviceClippingRegion(GetUpdateRegion());
+ // dc.SetDeviceClippingRegion(GetUpdateRegion());
   dc.Blit(0, 0, drawSize.x, drawSize.y, m_dc, 0, 0);
  }
  virtual void RaisePanel()  {}

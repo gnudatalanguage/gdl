@@ -1294,7 +1294,7 @@ void gdlwxGraphicsPanel::OnPaint(wxPaintEvent& event)
   wxMessageOutputStderr().Printf(_T("in gdlwxGraphicsPanel::OnPaint: %d (%d,%d)\n"),event.GetId(),drawSize.x, drawSize.y);
 #endif
   this->RepaintGraphics();
-//  event.Skip();
+  event.Skip();
 }
 
 void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {

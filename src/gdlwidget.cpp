@@ -88,7 +88,7 @@ if (frameWidth > 0) {\
   }\
   widgetPanel->FitInside();
 
-#define UPDATE_WINDOW { UpdateGui();}
+#define UPDATE_WINDOW { /*UpdateGui();*/}
 #define REALIZE_IF_NEEDED { if (this->GetRealized()) this->OnRealize();  }
 
 const WidgetIDT GDLWidget::NullID = 0;
@@ -1930,7 +1930,6 @@ DStructGDL* GDLWidgetBase::GetGeometry(wxRealPoint fact)
     windowlist.push_back(w);
     wxSizerItem* s=widgetSizer->GetItem(w);
     if (s==NULL) { //this is a new window that has not yet been added (the widget is Realized) : use passed values
-      std::cerr<<".";
       proportionlist.push_back(code);
       flaglist.push_back(style);
       borderlist.push_back(border);
@@ -5453,14 +5452,25 @@ void gdlwxPlotFrame::Realize() {
   this->SetTheApp(myGDLApp);
 }
 
-
+//version using wxBG_STYLE_PAINT and blit to an AutoBufferedPaintDC, will this improve speed?
 gdlwxGraphicsPanel::gdlwxGraphicsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
-: wxScrolled<wxPanel>( parent, id, pos, size, style, name )
+: wxScrolled<wxPanel>() // Use default ctor here!
 , pstreamIx( -1 )
 , pstreamP( NULL )
 , m_dc( NULL)
 , drawSize(size)
-{ }
+{ 
+        // Do this first:
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+  Create( parent, id, pos, size, style, name );
+}
+//gdlwxGraphicsPanel::gdlwxGraphicsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
+//: wxScrolled<wxPanel>( parent, id, pos, size, style, name )
+//, pstreamIx( -1 )
+//, pstreamP( NULL )
+//, m_dc( NULL)
+//, drawSize(size)
+//{ }
 GDLWXStream* gdlwxGraphicsPanel::GetStream(){return pstreamP;};
 void gdlwxGraphicsPanel::DeleteUsingWindowNumber(){
   pstreamP->SetValid(false);
