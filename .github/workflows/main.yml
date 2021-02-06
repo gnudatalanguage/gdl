@@ -66,7 +66,7 @@ jobs:
         run: |
           Invoke-WebRequest -Uri https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe -OutFile MSMpiSetup.exe
           .\MSMpiSetup.exe -unattend
-      - name: Prepere MSYS2 Packages
+      - name: Prepare MSYS2 Packages
         if: steps.cache.outputs.cache-hit != 'true'
         shell: msys2 {0}
         run: |
@@ -77,11 +77,6 @@ jobs:
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys build
-      - name: Test GDL
-        shell: msys2 {0}
-        run: |
-          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys check || exit 0
       - name: Package GDL
         shell: msys2 {0}
         run: |
@@ -99,3 +94,8 @@ jobs:
         with:
           name: GDL (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
           path: gdl-${{ matrix.arch }}-${{ matrix.deps }}.zip
+      - name: Test GDL
+        shell: msys2 {0}
+        run: |
+          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys check || exit 0
