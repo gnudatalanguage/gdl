@@ -5609,7 +5609,8 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex,
   draw->SetBackgroundColour(wxColour(0,255,255));
 #endif
   draw->SetMinSize(wScrollSize);
-  draw->SetClientSize(wSize);
+  draw->SetClientSize(wScrollSize);
+  draw->SetVirtualSize(wSize);
   draw->SetSize(wScrollSize);
   draw->InitDrawSize(wSize);
   

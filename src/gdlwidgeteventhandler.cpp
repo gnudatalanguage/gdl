@@ -1327,6 +1327,7 @@ void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
     this->SetMinClientSize(newSize);
     this->SetClientSize(newSize);
   }
+  event.Skip();
 }
 void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)
 {
@@ -1344,6 +1345,7 @@ void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)
     wxMessageOutputStderr().Printf(_T("in gdlwxGraphicsPanel::OnPlotWindowSize: (%d,%d)\n"),newSize.x,newSize.y );
 #endif
   this->ResizeDrawArea(newSize);
+  event.Skip();
 }
 
 void gdlwxDrawPanel::OnMouseMove( wxMouseEvent &event ) {
@@ -1796,6 +1798,7 @@ void wxTreeCtrlGDL::OnItemActivated(wxTreeEvent & event){
     treeselect->InitTag("CLICKS",DLongGDL(2));
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeselect );
+    event.Skip();
 }
 
 
@@ -1821,11 +1824,12 @@ void wxTreeCtrlGDL::OnItemSelected(wxTreeEvent & event){
     treeselect->InitTag("CLICKS",DLongGDL(1));
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeselect );
+    event.Skip();
 }
 
 void wxTreeCtrlGDL::OnBeginDrag(wxTreeEvent & event){
   //largely useful protection!!!
-  if (!event.GetItem().IsOk()) return;
+  if (!event.GetItem().IsOk()) {    event.Skip(); return;}
 
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnBeginDrag: %d\n"),event.GetId());
@@ -1837,10 +1841,12 @@ void wxTreeCtrlGDL::OnBeginDrag(wxTreeEvent & event){
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
     GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID));
     if (item->IsDraggable()) event.Allow();
+        event.Skip();
+
 }
 
 void wxTreeCtrlGDL::OnItemDropped(wxTreeEvent & event){
-  if (!event.GetItem().IsOk()) return;
+  if (!event.GetItem().IsOk()) {    event.Skip(); return;}
 
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemDropped: %d\n"),event.GetId());
@@ -1864,9 +1870,11 @@ void wxTreeCtrlGDL::OnItemDropped(wxTreeEvent & event){
       // insert into structList
       GDLWidget::PushEvent( baseWidgetID, treedrop );
   }
+  event.Skip();
+
 }
 void wxTreeCtrlGDL::OnItemExpanded(wxTreeEvent & event){
-  if (!event.GetItem().IsOk()) return;
+  if (!event.GetItem().IsOk()) {    event.Skip(); return;}
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemExpanded: %d\n"),event.GetId());
 #endif
@@ -1883,9 +1891,10 @@ void wxTreeCtrlGDL::OnItemExpanded(wxTreeEvent & event){
     treeexpand->InitTag("EXPAND",DLongGDL(1)); //1 expand
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeexpand );
+    event.Skip();
 }
 void wxTreeCtrlGDL::OnItemCollapsed(wxTreeEvent & event){
-  if (!event.GetItem().IsOk()) return;
+  if (!event.GetItem().IsOk()) {    event.Skip(); return;}
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemCollapsed: %d\n"),event.GetId());
 #endif
@@ -1902,6 +1911,7 @@ void wxTreeCtrlGDL::OnItemCollapsed(wxTreeEvent & event){
     treeexpand->InitTag("EXPAND",DLongGDL(0)); //0 collapse
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeexpand );
+    event.Skip();
 }
   
 #endif

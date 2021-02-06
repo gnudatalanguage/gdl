@@ -424,8 +424,8 @@ void GDLWXStream::DeIconic() {
  this->GetMyContainer()->DeIconicPanel();
 }
 
-bool GDLWXStream::UnsetFocus(){  //UnsetFocus is dangerous: it prevents using wxEvents correctly.
- return this->GetMyContainer()->UnsetFocusPanel();
+bool GDLWXStream::UnsetFocus(){  
+ return false; //UnsetFocus is dangerous: it prevents using wxEvents correctly.
 }
 
 bool GDLWXStream::GetGin(PLGraphicsIn *gin, int mode) {

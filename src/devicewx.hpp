@@ -92,9 +92,14 @@ public:
   bool scrolled = false;
   if (xSize > xMaxSize || ySize > yMaxSize) scrolled = true;
 
-  x_scroll_size = min(xSize, xMaxSize);
+  if (scrolled) {
+   x_scroll_size = min(xSize, xMaxSize/2);
+   y_scroll_size = min(ySize, yMaxSize/2);
+  } else {
+   x_scroll_size = min(xSize, xMaxSize);
+   y_scroll_size = min(ySize, yMaxSize);
+  }
   if (xPos + x_scroll_size > xMaxSize) xPos = xMaxSize - x_scroll_size - 1;
-  y_scroll_size = min(ySize, yMaxSize);
   if (yPos + y_scroll_size > yMaxSize) yPos = yMaxSize - y_scroll_size - 1;
   // dynamic allocation needed!    
   PLINT Quadx[4] = {xMaxSize - x_scroll_size - 1, xMaxSize - x_scroll_size - 1, 1, 1};
@@ -131,7 +136,7 @@ public:
    plot->SetMinClientSize(wScrollSize);
    plot->SetClientSize(wScrollSize);
   } else {
-   plot->SetMinSize(wSize);
+   plot->SetMinClientSize(wSize);
    plot->SetSize(wSize);
   }
   plot->SetVirtualSize(wSize);
@@ -162,7 +167,7 @@ public:
    plotFrame->Hide();
    winList[ wIx]->UnMapWindowAndSetPixmapProperty(); //needed: will set the "pixmap" property
   } else {
-   plotFrame->ShowWithoutActivating();
+    plotFrame->ShowWithoutActivating();
   }
   plotFrame->Realize();
   // these widget specific events are always set:
