@@ -176,14 +176,14 @@ if ~keyword_set(fontname) then begin
    fontname=(isgdl)?"Die Nasty Bold 10":'-altsys-die nasty-bold-r-normal--0-100-94-0-p-0-ascii-0'
    title+=' (Using Fixed Font Monospace)'
 endif else title+=' (Using '+fontname+')'
-if (isGDL) then widget_control,default_font='DejaVu Sans Mono Book 8' else  widget_control,default_font="courier*12"
 if ~keyword_set(block) then block=0
 if keyword_set(help) then begin
-print,"useage: table,help=help,block=block,fontname=fontname,present=present"
+print,"useage: test_widgets[,table][,/help][,/nocanvas][,/notree]"
 print,"Will display some examples of currently available widgets"
-print,"Widget positioning will vary depending on how you call this test file:"
-print,"for example 'test_widgets,/col,/base_align_center' will align widget in 1 column, center aligned"
-print,"while 'test_widgets' will not position any widget at all"
+print,"if table is passed as argument and is a structure, TABLE tab will show the"
+print,"elements of the structure as buttons in a scrolled panel"
+print,"options: /nocanvas removes the widget_draw"
+print,"              /notree remove the tree widget"
 print,"              fontname=""Helvetica Narrow 32"" to change a test text font."
 
 return
@@ -452,7 +452,6 @@ if total(strcmp('LABEL',present,/fold)) then begin
    label_base = widget_base( tabbed_base, TITLE="LABELs",_extra=extra) & offy=0
    label=widget_label(yoff=offy,label_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
 ;
-   print,"LABEL"
    label1=widget_label(yoff=offy,label_base,VALUE="Sunken-frame label, inherits centering",/align_center) & offy+=10                   ;
    label1=widget_label(yoff=offy,label_base,VALUE="Sunken-frame label",uvalue={vEv,'lll',[1,-1]},/sunken_frame,frame=33) & offy+=10                   ;
    label2=widget_label(yoff=offy,label_base,VALUE="Framed 33 pix Fancy label, inherits centering",/align_center) & offy+=100                  ;

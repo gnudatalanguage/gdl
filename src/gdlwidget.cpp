@@ -74,6 +74,7 @@ if (frameWidth > 0) {\
     }
 
 #define TIDY_WIDGET(xxx) \
+  this->setFont();\
   if (widgetSizer) {\
     /*if we create a widget after the topwidget has been realized, insure the insertion is IDL-compliant for multicolumns, using the following; */\
     /* 1) recompute the base siser taking into account the additional widget to be inserted */\
@@ -224,11 +225,11 @@ inline int GDLWidget::widgetAlignment()
 
  void GDLWidget::setFont() {
    wxWindow* w = dynamic_cast<wxWindow*> (this->GetWxWidget());
-   if (w != NULL) w->SetOwnFont(font);
+   if (w != NULL) w->SetFont(font); //may be menu: this is ok
  }
  void GDLWidget::setFont(wxObject* o) {
    wxWindow* w = dynamic_cast<wxWindow*> (o);
-   if (w != NULL) w->SetOwnFont(font);
+   if (w != NULL) w->SetFont(font);
 }
 
 inline wxSizer* AddABaseSizer(DLong col, DLong row, bool grid, long space)
@@ -850,7 +851,7 @@ void GDLWidget::SetSensitive(bool value)
 {
     sensitive = value;
     wxWindow *me=dynamic_cast<wxWindow*>(theWxWidget); 
-    if (me) if (value) me->Enable(); else me->Disable();
+    if (me) {if (value) me->Enable(); else me->Disable();}
 }
 
 void GDLWidget::SetFocus() //gives focus to the CHILD of the panel.
@@ -4258,9 +4259,9 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style,
   }
   wxListBox * list=new wxListBox();
   theWxContainer = theWxWidget = list;
-  this->setFont(); //set fancy font before computing sizes!
   //ok now size can be computed
   list->Create(widgetPanel, widgetID, wOffset, wxDefaultSize , choices, style|wxLB_NEEDED_SB); //|wxLB_MULTIPLE );
+  this->setFont(); //set fancy font before computing sizes!
   wSize=computeWidgetSize();
   list->SetSize(wSize);
   list->SetMinSize(wSize);
@@ -4720,7 +4721,6 @@ bool editable_ )
   
   widgetStyle = widgetAlignment();
   bool report=((eventFlags & GDLWidget::EV_ALL)==1);
-  this->setFont();
   
  //for text, apparently, if   wxTE_MULTILINE is in effect, the font handler is probably RichText 
  //and the text SIZE is OK only if imposed by a wxTextAttr. (go figure).
@@ -4741,6 +4741,7 @@ bool editable_ )
   // above, permits to a procedure (cw_field.pro for example) to filter the editing of text fields.
   // so wxTextCtrl::OnChar is overwritten in gdlwidgeteventhandler.cpp just for this reason.
   theWxContainer = theWxWidget = text;
+  this->setFont();
   if ((textStyle & wxTE_MULTILINE)==0) text->SetMargins(wxPoint(gdlTEXT_XMARGIN,gdlTEXT_YMARGIN)); //without the if clause, provokes: GLib-GObject-WARNING **: 23:04:21.080: invalid cast from 'GtkTextView' to 'GtkEntry' (and does not work)
   text->SetDefaultStyle(attr);
   text->SetValue(valueWxString);
