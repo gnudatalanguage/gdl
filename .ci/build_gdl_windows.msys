@@ -247,8 +247,7 @@ function build_gdl {
           -DNETCDF=ON -DHDF=ON -DHDF5=ON -DMPI=${WITH_MPI} \
           -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ4=ON -DPYTHON=ON \
           -DFFTW=ON -DUDUNITS2=ON -DGLPK=ON -DGRIB=ON \
-          -DUSE_WINGDI_NOT_WINGCC=ON \
-          -DPYTHONDIR=${PYTHONHOME}
+          -DUSE_WINGDI_NOT_WINGCC=ON
     else
         cmake ${GDL_DIR} -G"MSYS Makefiles" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
