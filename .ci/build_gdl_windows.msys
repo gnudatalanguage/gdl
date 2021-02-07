@@ -229,10 +229,15 @@ function build_gdl {
         else
             WITH_MPI="OFF"
         fi
-        export PYTHONHOME=${MINGW_DIR}/${mname}
+        if [[ $arch == "i686" ]]; then
+            export PYTHONHOME=/c/hostedtoolcache/windows/Python/3.9.1/x86
+        else
+            export PYTHONHOME=/c/hostedtoolcache/windows/Python/3.9.1/x64
+        fi
         export PATH=${MINGW_DIR}/${mname}/bin:${PATH}
         export CFLAGS="-I${MINGW_DIR}/${mname}/include" 
-        export CXXFLAGS="-I${MINGW_DIR}/${mname}/include" 
+        export CXXFLAGS="-I${MINGW_DIR}/${mname}/include"
+
         cmake ${GDL_DIR} -G"MSYS Makefiles" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
           -DCMAKE_PREFIX_PATH="${MINGW_DIR}/${mname}" \
@@ -243,7 +248,7 @@ function build_gdl {
           -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ4=ON -DPYTHON=ON \
           -DFFTW=ON -DUDUNITS2=ON -DGLPK=ON -DGRIB=ON \
           -DUSE_WINGDI_NOT_WINGCC=ON \
-          --trace
+          -DPYTHONDIR=${PYTHONHOME}
     else
         cmake ${GDL_DIR} -G"MSYS Makefiles" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
