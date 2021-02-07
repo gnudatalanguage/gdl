@@ -229,11 +229,6 @@ function build_gdl {
         else
             WITH_MPI="OFF"
         fi
-        if [[ $arch == "i686" ]]; then
-            export PYTHONHOME=/c/hostedtoolcache/windows/Python/3.9.1/x86
-        else
-            export PYTHONHOME=/c/hostedtoolcache/windows/Python/3.9.1/x64
-        fi
         export PATH=${MINGW_DIR}/${mname}/bin:${PATH}
         export CFLAGS="-I${MINGW_DIR}/${mname}/include" 
         export CXXFLAGS="-I${MINGW_DIR}/${mname}/include"
