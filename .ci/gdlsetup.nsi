@@ -181,10 +181,11 @@ Section -Post
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
-  ; set variables
+  ; set env. variables in the system registry
   WriteRegExpandStr ${env_hklm} GDL_PATH "+$INSTDIR\share\gnudatalanguage\lib"
+  WriteRegExpandStr ${env_hklm} GDL_MAPS_DIR "+$INSTDIR\share\gnudatalanguage\resource\maps"
   WriteRegExpandStr ${env_hklm} GDL_HOME "$INSTDIR"
-  ; set variables for GDL launched from installer
+  ; set env. variables manually for GDL launched from installer
   System::Call 'Kernel32::SetEnvironmentVariable(t "GDL_PATH",t "+$INSTDIR\share\gnudatalanguage\lib")i'
   System::Call 'Kernel32::SetEnvironmentVariable(t "GDL_MAPS_DIR",t "+$INSTDIR\share\gnudatalanguage\resource\maps")i'
   System::Call 'Kernel32::SetEnvironmentVariable(t "GDL_HOME",t "$INSTDIR")i'
