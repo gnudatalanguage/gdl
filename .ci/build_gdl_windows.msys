@@ -266,6 +266,10 @@ function build_gdl {
     cp -f ${MINGW_DIR}/${mname}/bin/*.dll src/
     mkdir -p share
     cp -rf ${MINGW_DIR}/${mname}/share/plplot* share/
+    if [[ ${DEPS} == *"full"* ]]; then
+        mkdir -p lib
+        cp -rf ${MINGW_DIR}/${mname}/lib/GraphicsMagick-* lib/ # copy GraphicsMagick dlls
+    fi
 
     log "Installing GDL..."
     make install || exit 1
@@ -275,6 +279,9 @@ function build_gdl {
     # Copy dlls and libraries to install directory
     cp -f ${ROOT_DIR}/build/src/*.dll bin/
     cp -rf ${ROOT_DIR}/build/share .
+    if [[ ${DEPS} == *"full"* ]]; then
+        cp -rf ${ROOT_DIR}/build/lib . # copy GraphicsMagick dlls
+    fi
     cp -f ${GDL_DIR}/COPYING .
 }
 
