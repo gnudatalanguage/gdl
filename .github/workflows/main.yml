@@ -86,6 +86,7 @@ jobs:
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
+          pacman -R --noconfirm python
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep
       - name: Build GDL
         shell: msys2 {0}
