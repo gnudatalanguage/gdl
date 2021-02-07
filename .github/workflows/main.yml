@@ -55,10 +55,10 @@ jobs:
           architecture: x64
       - name: Setup Python (32 bit)
         uses: actions/setup-python@v2
-        if: matrix.arch == 'x86_64' && (matrix.deps == 'full-msmpi' || matrix.deps == 'full')
+        if: matrix.arch == 'i686' && (matrix.deps == 'full-msmpi' || matrix.deps == 'full')
         with:
           python-version: '3.x'
-          architecture: x32
+          architecture: x86
       - name: Install Numpy
         if: matrix.deps == 'full-msmpi' || matrix.deps == 'full'
         run: pip install numpy
