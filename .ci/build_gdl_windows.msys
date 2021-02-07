@@ -243,7 +243,7 @@ function build_gdl {
           -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ4=ON -DPYTHON=ON \
           -DFFTW=ON -DUDUNITS2=ON -DGLPK=ON -DGRIB=ON \
           -DUSE_WINGDI_NOT_WINGCC=ON \
-          -DPYBIND11_FINDPYTHON=ON
+          --trace
     else
         cmake ${GDL_DIR} -G"MSYS Makefiles" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
