@@ -1009,6 +1009,8 @@ GDLWidgetTabbedBase::~GDLWidgetTabbedBase()
   GDLWidgetTab* parentTab=static_cast<GDLWidgetTab*>(this->GetMyParent());
   if (parentTab) { //may be already destroyed.
     wxNotebook* wxParent = static_cast<wxNotebook*> (parentTab->GetWxWidget( ));
+    //whereAmI?
+    myPage=wxParent->FindPage(static_cast<wxWindow*>(theWxContainer));
     if (wxParent) wxParent->RemovePage(myPage); //do not delete the page, GDL will delete the contents itself, widget per widget.
   }
 #ifdef GDL_DEBUG_WIDGETS
@@ -1178,7 +1180,7 @@ GDLWidget::~GDLWidget()
   if (gdlParent) { //not the TLB
     gdlParent->RemoveIfFollower(widgetID);
 
-    UpdateGui();
+//    UpdateGui();
 
   } else {
     static_cast<GDLWidgetTopBase*>(this)->GetTopFrame()->Hide();
