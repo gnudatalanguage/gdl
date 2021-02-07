@@ -39,7 +39,7 @@ jobs:
           update: false
           release: false
           install: >-
-            mingw-w64-${{ matrix.arch }}-toolchain
+            mingw-w64-${{ matrix.arch }}-gcc
             mingw-w64-${{ matrix.arch }}-cmake
             mingw-w64-${{ matrix.arch }}-nsis
             zip
