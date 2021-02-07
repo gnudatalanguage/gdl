@@ -73,8 +73,6 @@ OPTIONAL_LIBS_MSYS2=(
     "openblas"
     "openssl"
     "proj"
-    "python"
-    "python-numpy"
     "readline"
     "termcap"
     "udunits"
