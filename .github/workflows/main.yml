@@ -36,8 +36,8 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           msystem: MSYS
-          update: false
-          release: false
+          update: true
+          release: true
           install: >-
             mingw-w64-${{ matrix.arch }}-gcc
             mingw-w64-${{ matrix.arch }}-cmake
@@ -86,7 +86,6 @@ jobs:
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          pacman -R --noconfirm python
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep
       - name: Build GDL
         shell: msys2 {0}
