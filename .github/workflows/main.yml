@@ -59,9 +59,6 @@ jobs:
         with:
           python-version: '3.x'
           architecture: x86
-      - name: Locate Python
-        id: locate-python
-        run: echo "::set-output name=python-binary::$((get-command python).Path)"
       - name: Install Numpy
         if: matrix.deps == 'full-msmpi' || matrix.deps == 'full'
         run: pip install numpy
@@ -94,7 +91,7 @@ jobs:
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          export PATH=`cygpath "${{ steps.locate-python.outputs.python-binary }}" | xargs dirname`:$PATH
+          export PATH=`cygpath "${pythonLocation}"`:$PATH
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys build
       - name: Package GDL
         shell: msys2 {0}
