@@ -835,22 +835,6 @@ if(PYTHON OR PYTHON_MODULE)
         endif()
         find_package(PythonInterp ${PYTHONVERSION})
         find_package(PythonLibs ${PYTHONVERSION})
-        if (REPLACE_PYTHON_ARCH_GA)
-            # JP: This is a temporary solution - currently waiting for fix. See https://github.com/actions/setup-python/issues/186
-            string(REGEX REPLACE "x64" "x86" PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}")
-            string(REGEX REPLACE "x64" "x86" PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIRS}")
-            string(REGEX REPLACE "x64" "x86" PYTHON_LIBRARIES "${PYTHON_LIBRARIES}")
-        endif()
-        if (PYTHON_VERSION_STRING STREQUAL "" AND NOT PYTHON_EXECUTABLE STREQUAL "" AND MSYS)
-            execute_process(COMMAND cygpath.exe -m "${PYTHON_EXECUTABLE}" OUTPUT_VARIABLE PYTHON_EXECUTABLE_CYGPATH)
-            execute_process(COMMAND "${PYTHON_EXECUTABLE_CYGPATH}" -c "import sys; sys.stdout.write(sys.version)"
-                            OUTPUT_VARIABLE _VERSION
-                            RESULT_VARIABLE _PYTHON_VERSION_RESULT
-                            ERROR_QUIET)
-            if(NOT _PYTHON_VERSION_RESULT)
-                string(REGEX REPLACE " .*" "" PYTHON_VERSION_STRING "${_VERSION}")
-            endif()
-        endif()
         if (NOT PYTHON_VERSION_STRING VERSION_EQUAL PYTHONLIBS_VERSION_STRING)
             message(STATUS "PYTHON_EXECUTABLE: " ${PYTHON_EXECUTABLE})
             message(STATUS "PYTHON_VERSION: " ${PYTHON_VERSION_STRING})
