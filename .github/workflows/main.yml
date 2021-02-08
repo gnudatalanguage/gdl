@@ -69,7 +69,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: D:\a\gdl\mingw
-          key: msys2-packages-gdl-${{ matrix.arch }}-${{ matrix.deps }}-cache
+          key: msys2-packages-gdl-nopython-${{ matrix.arch }}-${{ matrix.deps }}-cache
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench
