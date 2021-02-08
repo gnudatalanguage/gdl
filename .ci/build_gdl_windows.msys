@@ -229,6 +229,11 @@ function build_gdl {
         else
             WITH_MPI="OFF"
         fi
+        if [[ ${arch} == "i686" ]]; then
+            REPLACE_PYTHON_ARCH_GA=ON
+        else
+            REPLACE_PYTHON_ARCH_GA=OFF
+        fi
         
         export PATH=${MINGW_DIR}/${mname}/bin:${PATH}
         export CFLAGS="-I${MINGW_DIR}/${mname}/include" 
@@ -243,7 +248,8 @@ function build_gdl {
           -DNETCDF=ON -DHDF=ON -DHDF5=ON -DMPI=${WITH_MPI} \
           -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ4=ON -DPYTHON=ON \
           -DFFTW=ON -DUDUNITS2=ON -DGLPK=ON -DGRIB=ON \
-          -DUSE_WINGDI_NOT_WINGCC=ON --trace
+          -DUSE_WINGDI_NOT_WINGCC=ON \
+          -DREPLACE_PYTHON_ARCH_GA=${REPLACE_PYTHON_ARCH_GA}
     else
         cmake ${GDL_DIR} -G"MSYS Makefiles" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
