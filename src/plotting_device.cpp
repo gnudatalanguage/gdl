@@ -54,7 +54,7 @@ namespace lib {
         if (!actDevice->SetFont((*pattern)[0])) e->Throw( "Keyword SET_FONT not allowed for call to: DEVICE" ) ;
       }
     }
-    static int fontIx = e->KeywordIx( "FONT" );
+    static int fontIx = e->KeywordIx( "FONT" ); //font is OLD keyword  for SET_FONT still accepted.
     if ( e->KeywordPresent(fontIx ))
       {
 	    DStringGDL* pattern = e->GetKWAs<DStringGDL>(fontIx);

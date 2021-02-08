@@ -67,7 +67,8 @@ extern volatile bool sigControlC;
 
 // tells if wxwidgets backend for graphics is to be used...
 extern volatile bool useWxWidgetsForGraphics;
-
+// do we force fonts to be the ugly IDL fonts?
+extern volatile bool forceWxWidgetsUglyFonts;
 //do we favor SIMD-accelerated random number generation?
 extern volatile bool useDSFMTAcceleration;
 

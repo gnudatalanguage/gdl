@@ -97,6 +97,8 @@ antlr::ASTFactory DNodeFactory("DNode",DNode::factory);
 
 //do we use WxWidgets for graphics?
 volatile bool useWxWidgetsForGraphics;
+// do we force fonts to be the ugly IDL fonts?
+volatile bool forceWxWidgetsUglyFonts;
 
 //do we favor SIMD-accelerated random number generation?
 volatile bool useDSFMTAcceleration;

@@ -219,8 +219,10 @@ int main(int argc, char *argv[])
   //start with a default value:
 #ifdef HAVE_LIBWXWIDGETS
   useWxWidgetsForGraphics = true;
+  forceWxWidgetsUglyFonts=true; //compatibilty mode
 #else
   useWxWidgetsForGraphics = true;
+  forceWxWidgetsUglyFonts=false;
 #endif
   bool force_no_wxgraphics = false;
   useDSFMTAcceleration = true;
@@ -246,6 +248,9 @@ int main(int argc, char *argv[])
       cerr << "  --use-wx (default if GDL is linked with wxWidgets): Tells GDL to use WxWidgets graphics instead of X11 or Windows. (nicer plots)." << endl;
       cerr << "  --no-use-wx        Tells GDL not to use WxWidgets graphics." << endl;
       cerr << "                     Also enabled by setting the environment variable GDL_DISABLE_WX_PLOTS to a non-null value." << endl;
+      cerr << "  --widget-free      Tells GDL not to use a default (rather ugly) fixed pitch font for compatiblity with IDL widgets." << endl;
+      cerr << "                     Also enabled by setting the environment variable GDL_WIDGET_FREE to a non-null value." << endl;
+      cerr << "                     Using this option may render some historical widgets unworkable (as they are based on fixed sizes)." << endl;
       cerr << "  --no-dSFMT         Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random doubles." << endl;
       cerr << "                     Also disable by setting the environment variable GDL_NO_DSFMT to a non-null value." << endl;
       cerr << endl;
@@ -344,6 +349,10 @@ int main(int argc, char *argv[])
       else if (string(argv[a]) == "--use-wx")
       {
           useWxWidgetsForGraphics = true;
+      }
+      else if (string(argv[a]) == "--widget-free")
+      {
+          forceWxWidgetsUglyFonts = false;
       }      
 #ifdef _WIN32
       else if (string(argv[a]) == "--posix") lib::posixpaths=true;
@@ -383,7 +392,8 @@ int main(int argc, char *argv[])
   std::string disableWXPlots=GetEnvString("GDL_DISABLE_WX_PLOTS");
   if ( disableWXPlots.length() > 0) useWxWidgetsForGraphics=false; //not necessary "YES".
   if (force_no_wxgraphics) useWxWidgetsForGraphics=false; //this has the last answer, whatever the setup.
-  
+  std::string useNiceGUIFonts=GetEnvString("GDL_WIDGETS_FREE");
+  if ( useNiceGUIFonts.length() > 0) forceWxWidgetsUglyFonts=false; 
   
   InitGDL();
 

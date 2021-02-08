@@ -122,8 +122,6 @@ public:
   wxString titleWxString = wxString(title.c_str(), wxConvUTF8);
   long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);
   gdlwxPlotFrame* plotFrame = new gdlwxPlotFrame(titleWxString, wxDefaultPosition, wxDefaultSize, style, scrolled);
-  //Base Frame inherits default font -- then each widget will possibly get its own font when /FONT is possible    
-  //topFrame->SetFont(defaultFont);
   // Associate a sizer immediately
   wxSizer* tfSizer = new wxBoxSizer(wxVERTICAL);
   plotFrame->SetSizer(tfSizer);
