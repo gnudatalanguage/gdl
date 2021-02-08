@@ -2350,14 +2350,14 @@ void widget_control( EnvT* e ) {
     //    if (inputfont.length() > 0)   
     if (inputfont.length() > 0) {
 #ifdef _WIN32
-      wxFont f=wxFont(wxFontInfo(24).FaceName("inputfont"));GDLWidget::setDefaultFont(f);
+      wxFont f=wxFont(wxFontInfo(8).FaceName(inputfont));GDLWidget::setDefaultFont(f);
 #else
       wxFont f=*wxNORMAL_FONT;
 //      std::cerr << f.GetNativeFontInfoDesc() << std::endl;
       bool ok = f.SetNativeFontInfo(wxString(inputfont.c_str(), wxConvLibc));
       if (ok) {
-        f = wxFont(wxString(inputfont.c_str(), wxConvLibc));
-//        std::cerr << f.GetNativeFontInfoDesc() << std::endl;
+//        f = wxFont(wxString(inputfont.c_str(), wxConvLibc));
+        std::cerr << f.GetNativeFontInfoDesc() << std::endl;
         GDLWidget::setDefaultFont(f);
       }
 #endif
