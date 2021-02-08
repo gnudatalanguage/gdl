@@ -326,8 +326,8 @@ inline wxSize GDLWidgetList::computeWidgetSize()
   wxSize fontSize = defaultFont.GetPixelSize();
   if (!font.IsSameAs(wxNullFont)) fontSize = font.GetPixelSize();
   // under Windows, as of today: problem getting sizes
-  if (fontSize.x < 1 || fontSize.y < 1) fontSize=wxSize(8,12);
   //  std::cerr<<fontSize.x<<","<<fontSize.y<<std::endl;
+  if (fontSize.x < 1 || fontSize.y < 1) fontSize=wxSize(8,12);
   //based on experience, actual line height is 1.2 times font y size for fonts > 20 but 1.5 for smaller fonts
   int lineHeight=(fontSize.y<20)?fontSize.y*1.5:fontSize.y*1.2;
   if (wSize.x > 0) {
@@ -361,6 +361,7 @@ inline wxSize GDLWidgetLabel::computeWidgetSize()
   wxSize fontSize = defaultFont.GetPixelSize();
   if (!font.IsSameAs(wxNullFont)) fontSize = font.GetPixelSize();
   // under Windows, as of today: problem getting sizes
+    std::cerr<<fontSize.x<<","<<fontSize.y<<std::endl;
   if (fontSize.x < 1 || fontSize.y < 1) fontSize=wxSize(8,12);
   //based on experience, actual line height is 1.2 times font y size for fonts > 20 but 1.5 for smaller fonts
   int lineHeight = fontSize.y+2*gdlLABEL_SPACE ; //(fontSize.y < 20) ? fontSize.y * 1.2 : fontSize.y * 1.2;  

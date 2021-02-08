@@ -99,13 +99,17 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   std::string inputfont="";
   e->AssureStringScalarKWIfPresent( FONT, inputfont );
   if (inputfont.length() > 0) {
-    
+#ifdef _WIN32
+      wxFont font=wxFont(wxFontInfo(8).FaceName(inputfont));
+      std::cerr << font.GetNativeFontInfoDesc() << std::endl;
+#else
     font=*wxNORMAL_FONT;
     bool ok = font.SetNativeFontInfo(wxString(inputfont.c_str(), wxConvLibc));
     if (ok) {
       font = wxFont(wxString(inputfont.c_str(), wxConvLibc));
       std::cerr << font.GetNativeFontInfoDesc() << std::endl;
     }
+#endif
   }
   alignment=gdlwALIGN_NOT;
   if (e->KeywordSet(ALIGN_LEFT)) alignment|=gdlwALIGN_LEFT;
