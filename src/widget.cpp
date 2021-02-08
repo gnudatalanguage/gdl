@@ -2349,6 +2349,9 @@ void widget_control( EnvT* e ) {
     e->AssureStringScalarKWIfPresent(deffontIx, inputfont);
     //    if (inputfont.length() > 0)   
     if (inputfont.length() > 0) {
+#ifdef _WIN32
+      wxFont f=wxFont(wxFontInfo(24).FaceName("inputfont"));GDLWidget::setDefaultFont(f);
+#else
       wxFont f=*wxNORMAL_FONT;
 //      std::cerr << f.GetNativeFontInfoDesc() << std::endl;
       bool ok = f.SetNativeFontInfo(wxString(inputfont.c_str(), wxConvLibc));
@@ -2357,6 +2360,7 @@ void widget_control( EnvT* e ) {
 //        std::cerr << f.GetNativeFontInfoDesc() << std::endl;
         GDLWidget::setDefaultFont(f);
       }
+#endif
     }
     return;
   }
