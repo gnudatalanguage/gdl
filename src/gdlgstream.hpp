@@ -281,7 +281,7 @@ public:
   virtual DLong GetVisualDepth() {return -1;}
   virtual DString GetVisualName() {return "";}
   virtual BaseGDL* GetFontnames(DString pattern) {return NULL;}
-  virtual DLong GetFontnum(DString pattern) {return -1;}
+  virtual DLong GetFontnum(DString pattern) {return 0;}
   virtual bool UnsetFocus(){return false;}
   virtual bool SetBackingStore(int value){return false;}
   virtual bool SetGraphicsFunction(long value ){return false;}

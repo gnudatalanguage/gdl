@@ -229,8 +229,7 @@ BaseGDL* GDLXStream::GetFontnames(DString pattern) {
   return myList;
 }
 DLong GDLXStream::GetFontnum(DString pattern){
-  // never occurs ...  if (pattern.length()<0) return -1;
-  if (this->GetFontnames(pattern) == NULL) return -1;
+  if (this->GetFontnames(pattern) == NULL) return 0;
   if (pattern.length()==0) return 0;
   return this->GetFontnames(pattern)->N_Elements();
 }

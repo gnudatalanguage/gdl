@@ -68,7 +68,7 @@ namespace lib {
       {
         BaseGDL* value = actDevice->GetFontnames( );
         if ( value != NULL )  e->SetKW( get_fontnamesIx, value->Dup() ); 
-        else e->SetKW( get_fontnamesIx, NullGDL::GetSingleInstance() ); //protected from Throw
+        else e->SetKW( get_fontnamesIx, new DStringGDL("") );
       }
     }
     //GET_FONTNUM? 
@@ -77,8 +77,7 @@ namespace lib {
     if ( e->KeywordPresent( get_fontnumIx ) )
       {
         DLong value = actDevice->GetFontnum( );
-        if ( value >= 0 ) e->SetKW( get_fontnumIx, new DLongGDL( value) ); 
-        else e->SetKW( get_fontnumIx, NullGDL::GetSingleInstance() ); //protected from Throw
+        e->SetKW( get_fontnumIx, new DLongGDL( value) ); //will return 0
       }
     }
     //GET_CURRENT_FONT? 

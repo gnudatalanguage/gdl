@@ -358,12 +358,20 @@ BaseGDL* GDLWXStream::GetFontnames(DString pattern) {
   wxFontEnumerator fontEnumerator;
   fontEnumerator.EnumerateFacenames();
   int nFacenames = fontEnumerator.GetFacenames().GetCount();
-  DStringGDL* myList=new DStringGDL(dimension(nFacenames));
-  for (int i=0; i< nFacenames; ++i) (*myList)[i].assign(fontEnumerator.GetFacenames().Item(i).mb_str(wxConvUTF8));
+  // we are supposed to select only entries lexically corresponding to 'pattern'.
+  //first check who passes (ugly)
+  wxString wxPattern(pattern);
+  wxPattern=wxPattern.Upper();
+  std::vector<int> good;
+  for (int i=0; i< nFacenames; ++i) if (fontEnumerator.GetFacenames().Item(i).Upper().Matches(wxPattern)) { good.push_back(i); }
+  if (good.size() == 0) return NULL;
+  //then get them
+  DStringGDL* myList=new DStringGDL(dimension(good.size()));
+  for (int i=0; i< good.size(); ++i) (*myList)[i].assign(fontEnumerator.GetFacenames().Item(good[i]).mb_str(wxConvUTF8));
   return myList;
 }
 DLong GDLWXStream::GetFontnum(DString pattern){
-  if (this->GetFontnames(pattern) == NULL) return -1;
+  if (this->GetFontnames(pattern) == NULL) return 0;
   if (pattern.length()==0) return 0;
   return this->GetFontnames(pattern)->N_Elements();
 }
