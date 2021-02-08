@@ -94,7 +94,7 @@ jobs:
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          export PYTHON_BINARY=${{ steps.locate-python.outputs.python-binary }}
+          export PATH=`cygpath "${{ steps.locate-python.outputs.python-binary }}" | xargs dirname`:$PATH
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys build
       - name: Package GDL
         shell: msys2 {0}
