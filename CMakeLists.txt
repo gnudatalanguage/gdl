@@ -836,6 +836,7 @@ if(PYTHON OR PYTHON_MODULE)
         find_package(PythonInterp ${PYTHONVERSION})
         find_package(PythonLibs ${PYTHONVERSION})
         if (REPLACE_PYTHON_ARCH_GA)
+            # JP: This is a temporary solution - currently waiting for fix. See https://github.com/actions/setup-python/issues/186
             string(REGEX REPLACE "x64" "x86" PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}")
             string(REGEX REPLACE "x64" "x86" PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIRS}")
             string(REGEX REPLACE "x64" "x86" PYTHON_LIBRARIES "${PYTHON_LIBRARIES}")
