@@ -1904,7 +1904,7 @@ BaseGDL* widget_info( EnvT* e ) {
           else if (eventfun) result = widget->GetEventFun();
           else if (eventpro) result = widget->GetEventPro();
           else if (fontname)  { wxWindow* ww=dynamic_cast<wxWindow*>(widget->GetWxWidget()); 
-          if (ww) result = std::string(ww->GetFont().GetNativeFontInfoDesc().mb_str());}
+          if (ww) result = std::string(ww->GetFont().GetNativeFontInfoUserDesc().mb_str());}
         }
         (*res)[i] = result;
       }
