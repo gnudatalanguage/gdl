@@ -1768,7 +1768,7 @@ BaseGDL* widget_info( EnvT* e ) {
 
   static int COMBOBOX_GETTEXT = e->KeywordIx( "COMBOBOX_GETTEXT");
   bool comboboxgettext = e->KeywordSet(COMBOBOX_GETTEXT);
-
+  
   static int TAB_NUMBER = e->KeywordIx( "TAB_NUMBER");
   bool tabnumber = e->KeywordSet(TAB_NUMBER);
   static int TAB_CURRENT = e->KeywordIx( "TAB_CURRENT");
@@ -1792,6 +1792,9 @@ BaseGDL* widget_info( EnvT* e ) {
   static int tlb_size_eventsIx = e->KeywordIx( "TLB_SIZE_EVENTS" );
   bool tlb_size_events=e->KeywordSet(tlb_size_eventsIx);
 
+  
+  static int STRING_SIZE=e->KeywordIx("STRING_SIZE"); bool getStringSize=e->KeywordPresent(STRING_SIZE);
+    
   //find a string, return a long
   if (findbyuname) {
     DStringGDL* myUname = e->GetKWAs<DStringGDL>(findbyunameIx);
@@ -1965,6 +1968,56 @@ BaseGDL* widget_info( EnvT* e ) {
       if (atLeastOneFound) return res; else e->Throw("Invalid widget identifier:"+i2s((*p0L)[0]));
     }
   }
+
+    if (getStringSize) {
+      DStringGDL* gs = e->GetKWAs<DStringGDL>(STRING_SIZE);
+      if (gs->N_Elements()> 2) e->Throw("Keyword array parameter STRING_SIZE must have from 1 to 2 elements.");
+      DString s=(*gs)[0];
+      DString font("");
+      if (gs->N_Elements()>1) font=((*gs)[1]);
+      if (rank == 0) {
+        // Scalar Input
+        WidgetIDT widgetID = (*p0L)[0];
+        GDLWidget *widget = GDLWidget::GetWidget(widgetID);
+        if (widget == NULL) {
+          e->Throw("Invalid widget identifier:" + i2s(widgetID));
+        } else {
+          DLongGDL* res = new DLongGDL(dimension(2));
+          wxFont myFont=widget->getFont();
+          if (font.size() > 0) {
+            bool ok = myFont.SetNativeFontInfoUserDesc(wxString(font.c_str(), wxConvLibc));
+            if (!ok) myFont=widget->getFont(); //will not provide the same result as IDL as IDL return [0,0] when font is not known.
+          }
+          wxSize val=widget->calculateTextScreenSize(s,myFont);
+          (*res)[0]=val.x;
+          (*res)[1]=val.y;
+          return res;
+        }
+      } 
+        else {    // Array Input
+        for (SizeT i = 0; i < nEl; i++) { //this is IDL behaviour.
+          WidgetIDT widgetID = (*p0L)[i];
+          GDLWidget *widget = GDLWidget::GetWidget(widgetID);
+          if (widget == NULL) e->Throw("Invalid widget identifier:" + i2s(widgetID));
+        }
+        DLongGDL* res = new DLongGDL(dimension(2,p0L->N_Elements()), BaseGDL::NOZERO);
+        for (SizeT i = 0, k=0; i < nEl; i++) {
+          WidgetIDT widgetID = (*p0L)[i];
+          GDLWidget *widget = GDLWidget::GetWidget(widgetID);
+          wxFont myFont=widget->getFont();
+          if (font.size() > 0) {
+            bool ok = myFont.SetNativeFontInfoUserDesc(wxString(font.c_str(), wxConvLibc));
+            if (!ok) myFont=widget->getFont(); //will not provide the same result as IDL as IDL return [0,0] when font is not known.
+          }
+          wxSize val=widget->calculateTextScreenSize(s,myFont);
+          (*res)[k++]=val.x;
+          (*res)[k++]=val.y;
+        }
+        return res;
+      }
+    }
+
+  
   if ( allchildren) {
       // Scalar Input only
       WidgetIDT widgetID = (*p0L)[0];

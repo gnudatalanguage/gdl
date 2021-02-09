@@ -288,6 +288,16 @@ inline wxSize GDLWidget::getFontSize() {
   }
   return fontSize;
 }
+
+// return the size of text (pixels) as it will take if displayed with current or given font
+inline wxSize GDLWidget::calculateTextScreenSize(std::string &s, wxFont testFont) {
+  wxFont f=font; //current font
+  if (testFont!=wxNullFont) f = testFont;
+  wxScreenDC dc;
+  dc.SetFont(f);
+  return dc.GetTextExtent(wxString(s.c_str( ), wxConvUTF8));
+}
+
 inline wxSize GDLWidgetText::computeWidgetSize()
 {
   //widget text size is in LINES in Y and CHARACTERS in X. But overridden by scr_xsize et if present
@@ -298,10 +308,10 @@ inline wxSize GDLWidgetText::computeWidgetSize()
     widgetSize.x = (wSize.x) * fontSize.x;
   } else {
     //if (scrolled || noNewLine) widgetSize.x =  20 * fontSize.x; else 
-      widgetSize.x =  std::max<int>(20,maxlinelength) * fontSize.x;
+      widgetSize.x =  calculateTextScreenSize(lastValue).x+2*fontSize.x;//add 2 char wide for border.
   }
   
-  if (nlines < 2 && !( wrapped || scrolled ) ) widgetSize.x+=2*gdlTEXT_XMARGIN;
+//  if (nlines < 2 && !( wrapped || scrolled ) ) widgetSize.x+=2*gdlTEXT_XMARGIN;
   
   if (nlines > 1 || scrolled ) widgetSize.x +=  gdlSCROLL_WIDTH_Y;
   
@@ -313,7 +323,7 @@ inline wxSize GDLWidgetText::computeWidgetSize()
     widgetSize.y = lineHeight;
   }
 
-   if (scrolled || (wSize.x < 1 && (widgetSize.x < maxlinelength * fontSize.x)))  widgetSize.y +=  gdlSCROLL_HEIGHT_X; 
+   if (scrolled /* || (wSize.x < 1 && (widgetSize.x < maxlinelength * fontSize.x)) */)  widgetSize.y += gdlSCROLL_HEIGHT_X; 
    else if (nlines < 2 && !( wrapped || scrolled ) ) widgetSize.y+=2*gdlTEXT_YMARGIN;
    
   //but..
@@ -366,7 +376,7 @@ inline wxSize GDLWidgetLabel::computeWidgetSize()
   //based on experience, actual line height is 1.2 times font y size for fonts > 20 but 1.5 for smaller fonts
   int lineHeight = fontSize.y+2*gdlLABEL_SPACE ; //(fontSize.y < 20) ? fontSize.y * 1.2 : fontSize.y * 1.2;  
   
-  if (wSize.x < 0) widgetSize.x = fontSize.x*(value.size());
+  if (wSize.x < 0) widgetSize.x =  calculateTextScreenSize(value).x+2*fontSize.x;//add 2 char wide for border. //fontSize.x*(value.size());
   if (wSize.y < 0) widgetSize.y = lineHeight;
 
   if (wScreenSize.x > 0) widgetSize.x = wScreenSize.x;

@@ -134,7 +134,6 @@ widget_control,ev.id,get_uvalue=uv
   print, "(unhandled event: ok)"
 end
 pro doMbar,mbar,fontname
-  print,fontname
   menu = widget_button(mbar,VALUE="Simple Menu",font=fontname,tooltip='TOOOLTIP!') ; 3
 ex = widget_button(menu,VALUE="Exit",EVENT_PRO="exit_gui") ; 4
 siz= widget_button(menu,VALUE="Resize (error)",EVENT_PRO="resize_gui") ; 5

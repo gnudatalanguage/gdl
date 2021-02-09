@@ -689,6 +689,8 @@ public:
   
   virtual wxSize computeWidgetSize(); 
   wxSize getFontSize();
+  wxFont getFont(){return font;};
+  wxSize calculateTextScreenSize(std::string &s, wxFont testFont=wxNullFont);
   void ConnectToDesiredEvents();
 
   void AddToDesiredEvents(wxEventType t, wxObjectEventFunction f, wxWindow* w) {
