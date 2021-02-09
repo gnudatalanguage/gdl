@@ -101,7 +101,8 @@ GDLEventQueue GDLWidget::eventQueue; // the event queue
 GDLEventQueue GDLWidget::readlineEventQueue; // for process at command line level
 bool GDLWidget::wxIsOn=false;
 bool GDLWidget::handlersOk=false;
-wxFont GDLWidget::defaultFont=wxNullFont;
+wxFont GDLWidget::defaultFont=wxNullFont; //the font defined by widget_control,default_font.
+wxFont GDLWidget::systemFont=wxNullFont;  //the initial system font. This to behave as IDL
 
 void InsureWxIsStarted(){} //if (!GDLWidget::wxIsStarted()) GDLWidget::Init();}
 
@@ -275,16 +276,23 @@ inline wxSizer* AddABaseSizer(DLong col, DLong row, bool grid, long space)
   return NULL;
 }
 
-
+//returns the current (widget or default) fontSize, taking care a typical width is returned instead of 0 as it is the case for variable pitch fonts, at least under windows
+inline wxSize GDLWidget::getFontSize() {
+  wxSize fontSize = defaultFont.GetPixelSize();
+  if (!font.IsSameAs(wxNullFont)) fontSize = font.GetPixelSize();
+  // under Windows, as of today: problem getting sizes
+  if (fontSize.x < 1 || fontSize.y < 1 ) { //do it ourselves
+    wxScreenDC dc;
+    dc.SetFont(font);
+    fontSize=dc.GetTextExtent(wxString('M'));
+  }
+  return fontSize;
+}
 inline wxSize GDLWidgetText::computeWidgetSize()
 {
   //widget text size is in LINES in Y and CHARACTERS in X. But overridden by scr_xsize et if present
   wxRealPoint widgetSize = wxRealPoint(-1,-1);
-  wxSize fontSize = defaultFont.GetPixelSize();
-  if (!font.IsSameAs(wxNullFont)) fontSize = font.GetPixelSize(); 
-  // under Windows, as of today: problem getting sizes
-  if (fontSize.x < 1 || fontSize.y < 1) fontSize=wxSize(8,12);
-  //based on experience, actual line height is 1.2 times font y size for fonts > 20 but 1.5 for smaller fonts
+  wxSize fontSize = getFontSize();
   int lineHeight=1.19*fontSize.y;
   if (wSize.x > 0) {
     widgetSize.x = (wSize.x) * fontSize.x;
@@ -323,11 +331,7 @@ inline wxSize GDLWidgetList::computeWidgetSize()
   
   //widget text size is in LINES in Y and CHARACTERS in X. But overridden by scr_xsize et if present
   wxRealPoint widgetSize = wxRealPoint(-1,-1);
-  wxSize fontSize = defaultFont.GetPixelSize();
-  if (!font.IsSameAs(wxNullFont)) fontSize = font.GetPixelSize();
-  // under Windows, as of today: problem getting sizes
-  //  std::cerr<<fontSize.x<<","<<fontSize.y<<std::endl;
-  if (fontSize.x < 1 || fontSize.y < 1) fontSize=wxSize(8,12);
+  wxSize fontSize = getFontSize();
   //based on experience, actual line height is 1.2 times font y size for fonts > 20 but 1.5 for smaller fonts
   int lineHeight=(fontSize.y<20)?fontSize.y*1.5:fontSize.y*1.2;
   if (wSize.x > 0) {
@@ -358,11 +362,7 @@ inline wxSize GDLWidgetLabel::computeWidgetSize()
   if (wSize.x > 0 || wSize.y > 0 || wScreenSize.x > 0 || wScreenSize.y > 0) dynamicResize=-1;
   //widget label size is in pixels.
   wxSize widgetSize = wSize; //start with wanted values.
-  wxSize fontSize = defaultFont.GetPixelSize();
-  if (!font.IsSameAs(wxNullFont)) fontSize = font.GetPixelSize();
-  // under Windows, as of today: problem getting sizes
-    std::cerr<<fontSize.x<<","<<fontSize.y<<std::endl;
-  if (fontSize.x < 1 || fontSize.y < 1) fontSize=wxSize(8,12);
+  wxSize fontSize = getFontSize();
   //based on experience, actual line height is 1.2 times font y size for fonts > 20 but 1.5 for smaller fonts
   int lineHeight = fontSize.y+2*gdlLABEL_SPACE ; //(fontSize.y < 20) ? fontSize.y * 1.2 : fontSize.y * 1.2;  
   
@@ -712,9 +712,11 @@ void GDLWidget::Init()
     std::cerr << "WARNING: wxWidgets not initializing" << std::endl;
     return;
   }
-  //set default font to something sensible now that wx is ON:
-  if (forceWxWidgetsUglyFonts) defaultFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ;//  identical for me to GDLWidget::setDefaultFont(wxFont("Monospace 8"));
-  else defaultFont = *wxNORMAL_FONT;
+  //set system font to something sensible now that wx is ON:
+  if (forceWxWidgetsUglyFonts) systemFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ;//  identical for me to GDLWidget::setDefaultFont(wxFont("Monospace 8"));
+  else systemFont = *wxNORMAL_FONT; //the system GUI default font apparently.
+  //initially defaultFont and systemFont are THE SAME.
+  defaultFont=systemFont;
   SetWxStarted();
 }
 // UnInit
@@ -4301,9 +4303,7 @@ void GDLWidgetList::SetWidgetSize(DLong sizex, DLong sizey)
 
   //widget text size is in LINES in Y and CHARACTERS in X.
   wxRealPoint widgetSize = wxRealPoint(-1,-1);
-  wxSize fontSize = defaultFont.GetPixelSize();
-  if (!font.IsSameAs(wxNullFont)) fontSize = font.GetPixelSize();
-//  std::cerr<<fontSize.x<<","<<fontSize.y<<std::endl;
+  wxSize fontSize = getFontSize();
   //based on experience, actual line height is 1.2 times font y size for fonts > 20 but 1.5 for smaller fonts
   int lineHeight=(fontSize.y<20)?fontSize.y*1.5:fontSize.y*1.2;
   if (sizex > 0) {
@@ -4395,47 +4395,6 @@ BaseGDL* GDLWidgetList::GetSelectedEntries(){
  return liste;
 }
 
-//DStructGDL* GDLWidgetList::GetGeometry(wxRealPoint fact) 
-//{
-//  int ixs=0, iys=0, ixscr=0, iyscr=0;
-//  float xs, ys, xscr, yscr, xoff, yoff, margin;
-//  wxPoint position;
-//  wxSize fontSize = defaultFont.GetPixelSize();
-//  if (!font.IsSameAs(wxNullFont)) fontSize = font.GetPixelSize();
-//  wxListBox* test = dynamic_cast<wxListBox*> (theWxWidget);
-//  assert( test != NULL);
-//  if ( test != NULL ) {
-//    test->GetClientSize( &ixs, &iys );
-//    ixscr=ixs;
-//    iyscr=iys;
-//    position = test->GetPosition( );
-//    fontSize = test->GetFont().GetPixelSize(); 
-//  }
-//  //Apparently Windows may return 0 for fontsize.x (probably if too small)?
-//  if (fontSize.x == 0) fontSize.x=0.65*fontSize.y; //last chance to get a correct value
-//  if (fontSize.x == 0) fontSize.x=1;
-//  if (fontSize.y == 0) fontSize.y=1;
-//  
-//  if (frameSizer != NULL) {framePanel->GetSize(&ixscr,&iyscr);  margin = gdlFRAME_MARGIN / fact.x;}
-//  if (scrollSizer != NULL) {scrollPanel->GetSize(&ixscr,&iyscr);ixs=ixscr-gdlSCROLL_HEIGHT_X;iys=iyscr-gdlSCROLL_WIDTH_Y;}
-//  //size is in pixels, pass in requested units (1.0 default)
-//  xs = ixs / fontSize.x;
-//  ys = iys / fontSize.y;
-//  xscr = ixscr / fact.x;
-//  yscr = iyscr / fact.y; 
-//  xoff = position.x / fact.x;
-//  yoff = position.y / fact.y;
-//
-//  DStructGDL* ex = new DStructGDL( "WIDGET_GEOMETRY" );
-//  ex->InitTag( "XOFFSET", DFloatGDL( xoff) );
-//  ex->InitTag( "YOFFSET", DFloatGDL( yoff ) );
-//  ex->InitTag( "XSIZE", DFloatGDL( xs ) );
-//  ex->InitTag( "YSIZE", DFloatGDL( ys ) );
-//  ex->InitTag( "SCR_XSIZE", DFloatGDL( xscr ) );
-//  ex->InitTag( "SCR_YSIZE", DFloatGDL( yscr ) );
-//  ex->InitTag( "MARGIN", DFloatGDL( margin ) );
-//  return ex;
-//}
 GDLWidgetList::~GDLWidgetList(){
 #ifdef GDL_DEBUG_WIDGETS
   std::cout << "~GDLWidgetList(" << widgetID << ")" << std::endl;
@@ -4796,9 +4755,7 @@ void GDLWidgetText::SetWidgetSize(DLong sizex, DLong sizey)
 
   //widget text size is in LINES in Y and CHARACTERS in X.
   wxRealPoint widgetSize = wxRealPoint(-1,-1);
-  wxSize fontSize = defaultFont.GetPixelSize();
-  if (!font.IsSameAs(wxNullFont)) fontSize = font.GetPixelSize();
-//  std::cerr<<fontSize.x<<","<<fontSize.y<<std::endl;
+  wxSize fontSize = getFontSize();
   //based on experience, actual line height is 1.2 times font y size for fonts > 20 but 1.5 for smaller fonts
   int lineHeight=(fontSize.y<20)?fontSize.y*1.5:fontSize.y*1.2;
   if (sizex > 0) {
@@ -5146,8 +5103,7 @@ DStructGDL* GDLWidgetText::GetGeometry(wxRealPoint fact)
   DFloat xoff=0;
   DFloat yoff=0;
   DFloat margin=0;
-  wxSize fontSize = defaultFont.GetPixelSize();
-  if (!font.IsSameAs(wxNullFont)) fontSize = font.GetPixelSize();
+  wxSize fontSize = getFontSize();
   wxTextCtrl* txt = dynamic_cast<wxTextCtrl*> (theWxWidget);
   
   assert( txt != NULL);
@@ -5170,13 +5126,6 @@ DStructGDL* GDLWidgetText::GetGeometry(wxRealPoint fact)
     }
 
     //size is in pixels, pass in requested units (1.0 default)
-
-    fontSize = txt->GetFont().GetPixelSize();
-    //Apparently Windows may return 0 for fontsize.x (probably if too small)?
-    if (fontSize.x == 0) fontSize.x = 0.65 * fontSize.y; //last chance to get a correct value
-    if (fontSize.x == 0) fontSize.x = 1;
-    if (fontSize.y == 0) fontSize.y = 1;
-    
     xs = ixs / fontSize.x;
     ys = iys / fontSize.y;
     xscr = ixscr / fact.x;

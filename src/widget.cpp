@@ -99,17 +99,26 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   std::string inputfont="";
   e->AssureStringScalarKWIfPresent( FONT, inputfont );
   if (inputfont.length() > 0) {
-#ifdef _WIN32
-      wxFont font=wxFont(wxFontInfo(8).FaceName(inputfont));
-      std::cerr << font.GetNativeFontInfoDesc() << std::endl;
-#else
-    font=*wxNORMAL_FONT;
-    bool ok = font.SetNativeFontInfo(wxString(inputfont.c_str(), wxConvLibc));
-    if (ok) {
-      font = wxFont(wxString(inputfont.c_str(), wxConvLibc));
-      std::cerr << font.GetNativeFontInfoDesc() << std::endl;
-    }
-#endif
+     font=GDLWidget::defaultFont;
+//      std::cerr <<"DEFAULT BEFORE: "<< font.GetNativeFontInfoUserDesc() << std::endl;
+      bool ok = font.SetNativeFontInfoUserDesc(wxString(inputfont.c_str(), wxConvLibc));
+//      std::cerr <<"DEFAULT AFTER: "<< font.GetNativeFontInfoUserDesc() << std::endl;
+      if (ok) { //it seems to be always OK with wxWidgets, that gives back its defaultFont in bad cases.Thus: behaviuor not as IDL.
+//        std::cerr <<"FINAL DESC: "<< font.GetNativeFontInfoDesc() << std::endl;
+      } else font=GDLWidget::systemFont;  //defining a bad font goes back to the system font.
+      
+//#ifdef _WIN32
+////hFont = CreateFont(-points, 0, 0, 0, FW_NORMAL, 0, 0, 0, 0, 0, 0, 0, 0, L"Courier New");
+//      wxFont font=wxFont(wxFontInfo(8).FaceName(inputfont));
+//      std::cerr << font.GetNativeFontInfoDesc() << std::endl;
+//#else
+//    font=*wxNORMAL_FONT;
+//    bool ok = font.SetNativeFontInfo(wxString(inputfont.c_str(), wxConvLibc));
+//    if (ok) {
+//      font = wxFont(wxString(inputfont.c_str(), wxConvLibc));
+//      std::cerr << font.GetNativeFontInfoDesc() << std::endl;
+//    }
+//#endif
   }
   alignment=gdlwALIGN_NOT;
   if (e->KeywordSet(ALIGN_LEFT)) alignment|=gdlwALIGN_LEFT;
@@ -2351,20 +2360,19 @@ void widget_control( EnvT* e ) {
   if (doDefFont) {
     std::string inputfont = "";
     e->AssureStringScalarKWIfPresent(deffontIx, inputfont);
-    //    if (inputfont.length() > 0)   
     if (inputfont.length() > 0) {
-#ifdef _WIN32
-      wxFont f=wxFont(wxFontInfo(8).FaceName(inputfont));GDLWidget::setDefaultFont(f);
-#else
-      wxFont f=*wxNORMAL_FONT;
-//      std::cerr << f.GetNativeFontInfoDesc() << std::endl;
-      bool ok = f.SetNativeFontInfo(wxString(inputfont.c_str(), wxConvLibc));
-      if (ok) {
-//        f = wxFont(wxString(inputfont.c_str(), wxConvLibc));
-        std::cerr << f.GetNativeFontInfoDesc() << std::endl;
+//#ifdef _WIN32
+//      wxFont f=wxFont(wxFontInfo(8).FaceName(inputfont));GDLWidget::setDefaultFont(f);
+//#else
+      wxFont f=GDLWidget::defaultFont;
+//      std::cerr <<"DEFAULT BEFORE: "<< f.GetNativeFontInfoUserDesc() << std::endl;
+      bool ok = f.SetNativeFontInfoUserDesc(wxString(inputfont.c_str(), wxConvLibc));
+//      std::cerr <<"DEFAULT AFTER: "<< f.GetNativeFontInfoUserDesc() << std::endl;
+      if (ok) { //it seems to be always OK with wxWidgets, that gives back its defaultFont in bad cases.Thus: behaviuor not as IDL.
+//        std::cerr <<"FINAL DESC: "<< f.GetNativeFontInfoDesc() << std::endl;
         GDLWidget::setDefaultFont(f);
-      }
-#endif
+      } else GDLWidget::setDefaultFont(GDLWidget::systemFont);  //defining a bad font goes back to the system font.
+//#endif
     }
     return;
   }

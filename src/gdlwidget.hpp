@@ -345,6 +345,7 @@ private:
   static WidgetListT widgetList;
 public:
   static wxFont defaultFont;
+  static wxFont systemFont;
   static GDLEventQueue eventQueue;
   static GDLEventQueue readlineEventQueue;
   static void PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev);
@@ -687,7 +688,7 @@ public:
   void SetFuncValue( const DString& funcvalue){funcValue = StrUpCase(funcvalue);}
   
   virtual wxSize computeWidgetSize(); 
-  
+  wxSize getFontSize();
   void ConnectToDesiredEvents();
 
   void AddToDesiredEvents(wxEventType t, wxObjectEventFunction f, wxWindow* w) {
