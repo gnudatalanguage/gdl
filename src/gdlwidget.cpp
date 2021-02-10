@@ -723,7 +723,12 @@ void GDLWidget::Init()
     return;
   }
   //set system font to something sensible now that wx is ON:
-  if (forceWxWidgetsUglyFonts) systemFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ;//  identical for me to GDLWidget::setDefaultFont(wxFont("Monospace 8"));
+  if (forceWxWidgetsUglyFonts)
+    systemFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ;//  identical for me to GDLWidget::setDefaultFont(wxFont("Monospace 8"));
+#if _WIN32 //update for windows:
+    bool ok=systemFont.SetNativeFontInfoUserDesc(wxString("consolas 8"));  //consolas 8 is apparently the one most identical to linux courier 8 and IDL X11 default font.
+    if (!ok) systemFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ; 
+#endif
   else systemFont = *wxNORMAL_FONT; //the system GUI default font apparently.
   //initially defaultFont and systemFont are THE SAME.
   defaultFont=systemFont;
@@ -1787,9 +1792,11 @@ GDLWidgetTabbedBase::GDLWidgetTabbedBase(WidgetIDT parentID, EnvT* e, ULong even
 //
 //  theWxWidget = p;
   wxWindow* w=static_cast<wxWindow*>(theWxContainer); //defined in CreateBase.
-  parentTab->AddPage(w, titleWxString);
-  myPage=parentTab->FindPage(w);
-
+  myPage=parentTab->GetPageCount();
+//  parentTab->AddPage(w, titleWxString);
+  parentTab->InsertPage(myPage, w, titleWxString);
+//  myPage=parentTab->FindPage(w);
+  
   UPDATE_WINDOW
   REALIZE_IF_NEEDED
 }
@@ -2072,8 +2079,8 @@ GDLWidgetTab::GDLWidgetTab( WidgetIDT p, EnvT* e, ULong eventFlags_, DLong locat
     if (parentSizer) parentSizer->Add(notebook,DONOTALLOWSTRETCH,widgetAlignment()|wxALL, gdlSPACE);
   }
   //wxNotebook is a Container, so uses a sizer.
-  widgetSizer=new wxBoxSizer(wxVERTICAL);
-  notebook->SetSizer(widgetSizer);
+//  widgetSizer=new wxBoxSizer(wxVERTICAL);
+//  notebook->SetSizer(widgetSizer);
   this->AddToDesiredEvents(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,wxNotebookEventHandler(gdlwxFrame::OnPageChanged),notebook);
 }
 GDLWidgetTab::~GDLWidgetTab() {
@@ -3614,7 +3621,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     if ( wSize.x <= 0 ) wSize.x = 200; //yes, has a default value!
     if ( wSize.y <= 0 ) wSize.y = 200;
 
-    long style = wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_HAS_VARIABLE_ROW_HEIGHT; //(wxTR_HIDE_ROOT|wxTR_DEFAULT_STYLE| wxTR_HAS_BUTTONS | wxSUNKEN_BORDER | wxTR_TWIST_BUTTONS)    ;
+    long style = wxTR_DEFAULT_STYLE|wxTR_HIDE_ROOT; //wxTR_HAS_BUTTONS|wxTR_TWIST_BUTTONS|wxTR_HIDE_ROOT|wxTR_HAS_VARIABLE_ROW_HEIGHT; //(wxTR_HIDE_ROOT|wxTR_DEFAULT_STYLE| wxTR_HAS_BUTTONS | wxSUNKEN_BORDER | wxTR_TWIST_BUTTONS)    ;
     // should be as of 2.9.0:  wxDataViewTreeCtrl* tree = new gdlTreeCtrl( widgetPanel, widgetID,
     wxTreeCtrlGDL* tree = new wxTreeCtrlGDL( widgetPanel, widgetID,
     wOffset,
@@ -4699,7 +4706,6 @@ bool editable_ )
  //for text, apparently, if   wxTE_MULTILINE is in effect, the font handler is probably RichText 
  //and the text SIZE is OK only if imposed by a wxTextAttr. (go figure).
  //note that computeWidgetSize() above returns sizes "compatible" with the font size, without any trouble.
-  if (font.IsSameAs(wxNullFont)) font=defaultFont;
   wxTextAttr attr= wxTextAttr ();
   attr.SetFont(font, 	wxTEXT_ATTR_FONT);
   wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
