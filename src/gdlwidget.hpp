@@ -39,6 +39,9 @@
 #include <wx/popupwin.h>
 #include <wx/notebook.h>
 #include <wx/dcbuffer.h>
+#if __WXMSW__
+#include <wx/msw/wx.rc>  //should provide manifest, but is linker OK?
+#endif
 #include <deque>
 #include <map>
 
@@ -48,11 +51,9 @@
 #include "widget.hpp"
 
 #define gdlSCROLL_RATE 20
-#define gdlSCROLL_SYS_X wxSystemSettings::GetMetric(wxSYS_VSCROLL_X) //25
-#define gdlSCROLL_SYS_Y wxSystemSettings::GetMetric(wxSYS_HSCROLL_Y) //25 
-#define gdlSCROLL_HEIGHT_X 25 //wxSystemSettings::GetMetric(wxSYS_VSCROLL_X) //25
-#define gdlSCROLL_WIDTH_Y  25 //wxSystemSettings::GetMetric(wxSYS_HSCROLL_Y) //25 
-#define gdlSCROLL_ADJUST 16 //-wxSystemSettings::GetMetric(wxSYS_VSCROLL_X)+1 //difference wrt. IDL's 25 pix --- This to be confirmed. Permits to respect SCREEN_SIZES
+#define gdlSCROLL_HEIGHT_X  sysScrollHeight //wxSystemSettings::GetMetric(wxSYS_VSCROLL_X,xxx) //25 
+#define gdlSCROLL_WIDTH_Y sysScrollWidth //wxSystemSettings::GetMetric(wxSYS_HSCROLL_Y,xxx) //25
+#define gdlSCROLL_ADJUST  (25-sysScrollWidth)  //difference wrt. IDL's 25 pix --- This to be confirmed. Permits to respect SCREEN_SIZES
 #define gdlDEFAULT_XSIZE 1 //100
 #define gdlDEFAULT_YSIZE 1 //100
 #define gdlDEFAULT_SCROLL_SIZE 100 //gdlDEFAULT_XSIZE+gdlSCROLL_HEIGHT_X
@@ -71,7 +72,7 @@
 #define DONOTALLOWSTRETCH 0
 #define ALLOWSTRETCH 1
 #define FRAME_ALLOWSTRETCH 1
-#ifdef _WIN32
+#ifdef __WXMSW__
   #define NEWLINECHARSIZE 2  //length of <cr><nl>
 #else
   #define NEWLINECHARSIZE 1  //length of <nl> 
@@ -330,7 +331,10 @@ private:
  void OnListBoxDo(wxCommandEvent& event, DLong clicks);
  DECLARE_EVENT_TABLE()
 };
-
+  
+static int sysScrollHeight=25;
+static int sysScrollWidth=25;
+  
 class GDLWidget
 { 
   // static part is used for the abstraction
@@ -403,7 +407,6 @@ protected:
   wxSizer* widgetSizer; // the sizer (possibly NULL) that governs the widget size & position. 
                         // Usually the widgetSizer of the parent widget, a Base.
   wxScrolled<wxPanel>* widgetPanel; // the wxPanel in which the widget is placed, i.e. the parentBase's theWxWidget, as a base is mostly a wxPanel.
-  wxScrolled<wxPanel>* scrollPanel; // Panel with scrollBars in which the widget may be shown
   wxPanel* framePanel; // Panel with frame in which the widget may be shown
 
   wxObject* theWxWidget; //the active wxWidget, the one that sends and gets events and subjects to widget_control actions. Note this is mostly a wxWindow,
@@ -521,7 +524,6 @@ public:
   int buttonTextAlignment();
   int labelTextAlignment();
   virtual int widgetAlignment();
-//  int widgetStretch();
   void EnableWidgetUpdate(bool update);
   void ChangeUnitConversionFactor( EnvT* e);
   wxRealPoint GetRequestedUnitConversionFactor( EnvT* e);
@@ -592,10 +594,6 @@ public:
   
   wxObject* GetWxWidget() const { return theWxWidget;}
   wxObject* GetWxContainer() const { return theWxContainer;}
-  void AddFrame(int specialized_space=gdlSPACE);
-  void AddScrollBars(DLong x_scroll_size,  DLong y_scroll_size); //only for widget_draw
-//  void RemoveFrame();
-//  void RemoveScrollBars();
 
   BaseGDL* GetUvalue() const { return uValue;}
   BaseGDL* GetVvalue() const { return vValue;}
@@ -779,8 +777,6 @@ public:
   int ypad;
   bool doMap;
   wxSize wScrollSize; //to be used everywhere
-  bool stretchX;
-  bool stretchY;
 
   GDLWidgetBase( WidgetIDT parentID, EnvT* e, ULong eventFlags_,
 		 bool mapWid,
@@ -799,8 +795,6 @@ public:
   virtual bool IsNormalBase() const { return false;} 
   virtual bool IsTabbedBase() const { return false;} 
   void SetWidgetSize(DLong sizex, DLong sizey) final;
-  bool fixedX(){return stretchX==false;}
-  bool fixedY(){return stretchY==false;}
   void ClearEvents()
   {
   if (!this->GetXmanagerActiveCommand( ))  eventQueue.Purge();
@@ -815,9 +809,6 @@ public:
   bool IsBase() const { return true;} 
   bool IsContainer() const final { return true;} 
   bool IsScrolled() const { return scrolled;}
-//  bool IsStretchable() {return stretchX||stretchY;}
-//  void SetStretchX(bool stretch) {stretchX=stretch;}
-//  void SetStretchY(bool stretch) {stretchY=stretch;}
   long getChildrenAlignment(){return childrenAlignment;}
   long getSpace(){return space;}
   long getXPad(){return xpad;}
@@ -843,7 +834,6 @@ public:
   dynamic_cast<wxWindow*>(theWxContainer)->Show(doMap);
  }
 };
-
 
 class GDLWidgetTopBase : public GDLWidgetBase {
  WidgetIDT mbarID;
@@ -1833,9 +1823,16 @@ public:
 //  bool IsPropertySheet() const { return true;}
 //};
 #endif
+//phantom window used to find exactly the size of scrollbars, as wxWidgets does not coorectly report them
+class gdlwxPhantomFrame : public wxFrame {
+ public:
+ wxAppGDL* myGDLApp;
+ gdlwxPhantomFrame();
+ void Realize();
+};
+
 
 // basic for (completely separated from widgets) plot windows done with wxWidgets driver.
-
 class gdlwxPlotFrame : public wxFrame {
  wxTimer * m_resizeTimer;
  wxSize frameSize;

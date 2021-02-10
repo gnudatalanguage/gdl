@@ -107,7 +107,7 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
 //        std::cerr <<"FINAL DESC: "<< font.GetNativeFontInfoDesc() << std::endl;
       } else font=GDLWidget::systemFont;  //defining a bad font goes back to the system font.
       
-//#ifdef _WIN32
+//#ifdef __WXMSW__
 ////hFont = CreateFont(-points, 0, 0, 0, FW_NORMAL, 0, 0, 0, 0, 0, 0, 0, 0, L"Courier New");
 //      wxFont font=wxFont(wxFontInfo(8).FaceName(inputfont));
 //      std::cerr << font.GetNativeFontInfoDesc() << std::endl;
@@ -2414,7 +2414,7 @@ void widget_control( EnvT* e ) {
     std::string inputfont = "";
     e->AssureStringScalarKWIfPresent(deffontIx, inputfont);
     if (inputfont.length() > 0) {
-//#ifdef _WIN32
+//#ifdef __WXMSW__
 //      wxFont f=wxFont(wxFontInfo(8).FaceName(inputfont));GDLWidget::setDefaultFont(f);
 //#else
       wxFont f=GDLWidget::defaultFont;

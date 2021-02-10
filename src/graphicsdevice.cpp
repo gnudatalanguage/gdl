@@ -192,9 +192,9 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DeviceZ());
   
 #ifdef HAVE_LIBWXWIDGETS
-    DStructGDL* version = SysVar::Version();
-    static unsigned osTag = version->Desc()->TagIndex( "OS");
-    DString os = (*static_cast<DStringGDL*>( version->GetTag( osTag, 0)))[0];
+//    DStructGDL* version = SysVar::Version();
+//    static unsigned osTag = version->Desc()->TagIndex( "OS");
+//    DString os = (*static_cast<DStringGDL*>( version->GetTag( osTag, 0)))[0];
     GDLWidget::Init();
 #endif
   // if GDL_DISABLE_WX_PLOTS (or switch --no-use-wx ) IS NOT PRESENT , and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
