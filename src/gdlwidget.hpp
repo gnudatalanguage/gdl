@@ -39,9 +39,6 @@
 #include <wx/popupwin.h>
 #include <wx/notebook.h>
 #include <wx/dcbuffer.h>
-#if __WXMSW__
-#include <wx/msw/wx.rc>  //should provide manifest, but is linker OK?
-#endif
 #include <deque>
 #include <map>
 
