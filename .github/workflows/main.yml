@@ -42,7 +42,6 @@ jobs:
             mingw-w64-${{ matrix.arch }}-toolchain
             mingw-w64-${{ matrix.arch }}-cmake
             mingw-w64-${{ matrix.arch }}-nsis
-            mingw-w64-cross-binutils
             zip
             unzip
             tar

@@ -45,10 +45,6 @@ include(FindPkgConfig)
 include(FindPackageHandleStandardArgs)
 include(TestBigEndian)
 
-if(MINGW)
-SET(CMAKE_RC_COMPILER x86_64-w64-mingw32-windres)
-endif(MINGW)
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 
 #### Default cached values
@@ -1116,9 +1112,6 @@ Files generated        ${CMAKE_GENERATOR}
 GDL output             ${GDLLOCATION}
 Installation prefix    ${CMAKE_INSTALL_PREFIX}
 C++ compiler           ${CMAKE_CXX_COMPILER} ${FLAGS}")
-if(WIN32)
-message(STATUS "RC compiler           ${CMAKE_RC_COMPILER} ${FLAGS}")
-endif(WIN32)
 message("")
 message(STATUS "Options")
 if(OPENMP AND OPENMP_FOUND)
