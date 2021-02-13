@@ -1112,6 +1112,9 @@ Files generated        ${CMAKE_GENERATOR}
 GDL output             ${GDLLOCATION}
 Installation prefix    ${CMAKE_INSTALL_PREFIX}
 C++ compiler           ${CMAKE_CXX_COMPILER} ${FLAGS}")
+if(WIN32)
+message("RC compiler           ${CMAKE_RC_COMPILER} ${FLAGS}")
+endif(WIN32)
 message("")
 message(STATUS "Options")
 if(OPENMP AND OPENMP_FOUND)
