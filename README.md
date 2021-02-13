@@ -1,4 +1,4 @@
-[![Linux/OSX Build Status](https://travis-ci.org/gnudatalanguage/gdl.svg?branch=master)](https://travis-ci.org/gnudatalanguage/gdl/branches) 
+[![Linux/OSX Build Status](https://travis-ci.com/gnudatalanguage/gdl.svg?branch=master)](https://travis-ci.com/gnudatalanguage/gdl/branches) 
 [![Windows Build status](https://github.com/gnudatalanguage/gdl/workflows/build/badge.svg)](https://github.com/gnudatalanguage/gdl/actions)
 [![Coverage Status](https://img.shields.io/codecov/c/github/gnudatalanguage/gdl/master.svg)](https://codecov.io/github/gnudatalanguage/gdl?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/e5de1c1571c649279dad18d5d8590789)](https://www.codacy.com/app/slayoo/gdl?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=gnudatalanguage/gdl&amp;utm_campaign=Badge_Grade)
