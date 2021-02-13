@@ -1757,7 +1757,7 @@ istream& Data_<SpDByte>::Read( istream& os, bool swapEndian, bool compress, XDR 
     if ( length <= 0 ) return os;
 
     int bufsize = 4 * ((length - 1) / 4 + 1);
-    buf = (char *) calloc( length, sizeof (char) );
+    buf = (char *) calloc( bufsize, sizeof (char) );
     os.read( &buf[0], bufsize );
     if ( !os.good( ) ) {free( buf ); throw GDLIOException( "Problem reading XDR file." );} //else we are correctly aligned for next read!
     //do it by ourselves, faster and surer!
@@ -1807,7 +1807,7 @@ bool compress, XDR *xdrs ) {
         (*this)[i].clear();
       } else {
         int bufsize = 4 + 4 * ((length - 1) / 4 + 1) ;
-        buf = (char *) calloc( length, sizeof (char) );
+        buf = (char *) calloc( bufsize, sizeof (char) );
         os.read( &buf[0], bufsize );
         if ( !os.good( ) ) throw GDLIOException( "Problem reading XDR file." ); //else we are correctly aligned for next read!
         (*this)[i].assign( &buf[4], length );

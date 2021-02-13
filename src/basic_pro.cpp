@@ -1822,6 +1822,8 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     DStringGDL* command = e->GetParAs<DStringGDL>(0);
     DString cmd = (*command)[0];
 
+    std::replace(cmd.begin(), cmd.end(), '/', '\\');
+
     const int bufSize = 1024;
     char buf[bufSize];
 
