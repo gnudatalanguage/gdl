@@ -61,7 +61,7 @@ full compatibility with the official IDL compiler so that the IDL scripts can be
 modifications. GDL supports full IDL 7.1 language specifications, also partially supports IDL 8.0 and above. Not only
 IDL, GDL is also capable to run some [please be more specific here - instead of saying 'some'] PV-Wave, another data
 analysis language similar to IDL [better if we can include more explanation of PV-Wave here]. [status of Widgets, etc].
-Also, GDL supports Python - 1) GDL can directly run Python codes with GDL, and 2) GDL can be compiled as a Python
+Also, GDL supports Python: 1) GDL can directly run Python codes with GDL, and 2) GDL can be compiled as a Python
 module.
 
 GDL is fast, [how fast? do we have recent benchmarks?].
