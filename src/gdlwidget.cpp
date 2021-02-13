@@ -291,7 +291,7 @@ inline wxSize GDLWidget::getFontSize() {
 }
 
 // return the size of text (pixels) as it will take if displayed with current or given font
-inline wxSize GDLWidget::calculateTextScreenSize(std::string &s, wxFont testFont) {
+wxSize GDLWidget::calculateTextScreenSize(std::string &s, wxFont testFont) {
   wxFont f=font; //current font
   if (testFont!=wxNullFont) f = testFont;
   wxScreenDC dc;
