@@ -185,6 +185,13 @@ ${SOURCES}
 sax.cpp
 )
 endif(USE_EXPAT)
+if(HAVE_LIBWXWIDGETS AND WIN32)
+find_file(WX_RC wx.rc HINTS ${wxWidgets_INCLUDE_DIRS} PATH_SUFFIXES wx/msw)
+set(SOURCES
+${SOURCES}
+${WX_RC}
+)
+endif(HAVE_LIBWXWIDGETS AND WIN32)
 
 add_subdirectory(antlr)
 
@@ -202,6 +209,10 @@ else(PYTHON_MODULE) #GDL.so
 	set(SOURCES ${SOURCES} gdl.cpp)
 	add_executable(gdl ${SOURCES})
 endif(PYTHON_MODULE)
+
+if(USE_OPENMP)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif(USE_OPENMP)
 
 add_dependencies(gdl antlr) # be sure that antlr is built before gdl
 target_link_libraries(gdl antlr) # link antlr against gdl
