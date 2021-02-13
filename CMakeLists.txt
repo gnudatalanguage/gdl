@@ -45,6 +45,10 @@ include(FindPkgConfig)
 include(FindPackageHandleStandardArgs)
 include(TestBigEndian)
 
+if(MINGW)
+SET(CMAKE_RC_COMPILER x86_64-w64-mingw32-windres)
+endif(MINGW)
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 
 #### Default cached values
