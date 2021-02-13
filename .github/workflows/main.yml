@@ -36,13 +36,13 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           msystem: MSYS
-          update: true
-          release: true
+          update: false
+          release: false
           install: >-
-            mingw-w64-${{ matrix.arch }}-gcc
-            mingw-w64-${{ matrix.arch }}-binutils
+            mingw-w64-${{ matrix.arch }}-toolchain
             mingw-w64-${{ matrix.arch }}-cmake
             mingw-w64-${{ matrix.arch }}-nsis
+            mingw-w64-cross-binutils
             zip
             unzip
             tar
