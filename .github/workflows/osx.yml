@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  ssh:
+  build-macos:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
@@ -20,7 +20,7 @@ jobs:
         export CC_FOR_BUILD=${CC_FOR_BUILD:-gcc}
         export TRAVIS_OS_NAME=osx
         if [ $TRAVIS_OS_NAME == osx ]; then brew update-reset; fi
-        if [ $TRAVIS_OS_NAME == osx ]; then brew unlink python@2; fi
+        #if [ $TRAVIS_OS_NAME == osx ]; then brew unlink python@2; fi
         if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_CXX_FLAGS="-Wdeprecated-register"; fi
         if [ $TRAVIS_OS_NAME == osx ]; then export SEDCMD="sed -i ''"; fi
         if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} gsl"; fi
@@ -90,7 +90,7 @@ jobs:
         cd build
         cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ../
         make -j2
-        make check || exit 0
+        make check || echo Test failed!
         make DESTDIR=`pwd`/install install
         cd install
         zip gdl-debug-full-macos.zip -r .
