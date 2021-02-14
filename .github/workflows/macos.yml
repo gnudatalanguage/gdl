@@ -6,14 +6,18 @@ on:
 jobs:
   build-macos:
     runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        deps: [FULL, MINI]
+        configuration: [Debug, Release]
+    env:
+      DEPS: ${{ matrix.deps }}
+      CMAKE_BUILD_TYPE: ${{ matrix.configuration }}
     steps:
     - uses: actions/checkout@v2
     - name: Build GDL
       run: |
-        export COMPILER=clang
-        export CMAKE_BUILD_TYPE=Debug
-        export DEPS=MINI
-        export TRAVIS_COMPILER=g++
         export CXX=${CXX:-g++}
         export CXX_FOR_BUILD=${CXX_FOR_BUILD:-g++}
         export CC=${CC:-gcc}
