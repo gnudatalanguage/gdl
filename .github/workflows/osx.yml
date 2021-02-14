@@ -1,0 +1,101 @@
+name: Build on macOS (experimental)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ssh:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build GDL
+      run: |
+        export COMPILER=clang
+        export CMAKE_BUILD_TYPE=Debug
+        export DEPS=MINI
+        export TRAVIS_COMPILER=g++
+        export CXX=${CXX:-g++}
+        export CXX_FOR_BUILD=${CXX_FOR_BUILD:-g++}
+        export CC=${CC:-gcc}
+        export CC_FOR_BUILD=${CC_FOR_BUILD:-gcc}
+        export TRAVIS_OS_NAME=osx
+        if [ $TRAVIS_OS_NAME == osx ]; then brew update-reset; fi
+        if [ $TRAVIS_OS_NAME == osx ]; then brew unlink python@2; fi
+        if [ $TRAVIS_OS_NAME == osx ]; then export CMAKE_CXX_FLAGS="-Wdeprecated-register"; fi
+        if [ $TRAVIS_OS_NAME == osx ]; then export SEDCMD="sed -i ''"; fi
+        if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} gsl"; fi
+        if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} plplot"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} readline"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=ON -DREADLINEDIR=/usr/local/opt/readline"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=OFF"; fi
+        if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPNGLIB=ON"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPNGLIB=OFF"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DOPENMP=OFF"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} llvm libomp"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} graphicsmagick"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=ON -DMAGICK=OFF"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=OFF"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} wxwidgets"; fi
+        if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=ON"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=OFF"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} netcdf"; fi
+        if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DNETCDF=ON"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DNETCDF=OFF"; fi
+        if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=OFF"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF=OFF"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} hdf5"; fi
+        if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF5=ON"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DHDF5=OFF"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} fftw"; fi
+        if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DFFTW=ON"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DFFTW=OFF"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DLIBPROJ4=OFF"; fi
+        if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DMPI=OFF"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DMPI=OFF"; fi
+        if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=ON"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPYTHON=OFF"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} udunits"; fi
+        if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DUDUNITS2=ON"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DUDUNITS2=OFF"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} eigen"; fi
+        if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEIGEN3=ON"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEIGEN3=OFF"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} eccodes"; fi
+        if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=ON"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRIB=OFF"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} glpk"; fi
+        if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGLPK=ON"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGLPK=OFF"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} libx11"; fi
+        if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=ON"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=OFF"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} libgeotiff"; fi
+        if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DTIFF=ON -DGEOTIFF=ON"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DTIFF=OFF -DGEOTIFF=OFF"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} shapelib"; fi
+        if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DSHAPELIB=ON"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DSHAPELIB=OFF"; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} expat"; fi
+        if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEXPAT=ON"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEXPAT=OFF"; fi
+        if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo BREW_PACKAGES $BREW_PACKAGES; fi
+        if [[ $TRAVIS_OS_NAME == 'osx' ]]; then for pkg in $BREW_PACKAGES; do echo brew \"$pkg\" >> Brewfile; done; fi
+        if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat Brewfile; fi
+        if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew bundle --verbose; fi
+        if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install --upgrade --no-deps --force-reinstall numpy; fi
+        if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install pytest; fi
+        mkdir -p build
+        cd build
+        cmake $CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ../
+        make -j2
+        make check || exit 0
+        make DESTDIR=`pwd`/install install
+        cd install
+        zip gdl-debug-full-macos.zip -r .
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2.2.1
+      with:
+        name: GDL macOS build (experimental)
+        path: build/install/gdl-debug-full-macos.zip
