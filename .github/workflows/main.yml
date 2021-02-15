@@ -54,7 +54,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: D:\a\gdl\mingw
-          key: msys2-packages-gdl-${{ matrix.arch }}-${{ matrix.deps }}-cache
+          key: msys2-packages-${{ matrix.arch }}-${{ matrix.deps }}
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench
@@ -72,6 +72,7 @@ jobs:
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys tidy_mingw_cache
       - name: Build GDL
         shell: msys2 {0}
         run: |
