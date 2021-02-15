@@ -47,6 +47,7 @@ jobs:
             tar
             zstd
             make
+            git
       - name: Checkout GDL
         uses: actions/checkout@v2
       - name: Cache MSYS2 Packages
