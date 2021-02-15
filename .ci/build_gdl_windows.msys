@@ -157,7 +157,7 @@ function download_package {
     if [ -f $package_file ]; then
        log "File exists! Skipping..."
     else
-        curl -LOs $package_url
+        curl -LOs --retry 5 $package_url
         if [ ! $? -eq 0 ]; then
             log "Failed to download ${package_file}!"
             exit 1
