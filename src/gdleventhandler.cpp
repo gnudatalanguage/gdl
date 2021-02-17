@@ -23,9 +23,6 @@
 #ifdef __APPLE__
 #include <time.h>
 #endif
-#ifdef _WIN32
-#include <winsock2.h>
-#endif
 
 #include "gdleventhandler.hpp"
 #include "graphicsdevice.hpp"

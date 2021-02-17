@@ -61,6 +61,7 @@ bool CompleteFileName(std::string& fn);
 // Strip whitespace from the start and end of a string.
 inline void StrTrim(std::string& s)
 {
+  if (s.length() == 0) return;
   unsigned long first=s.find_first_not_of(" \t");
   if( first == s.npos)
     {

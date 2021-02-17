@@ -139,7 +139,7 @@ namespace SysVar
     tstruct= localtime(&ttime);
 
     char st[MAX_STIME_STRING_LENGTH];
-    const char *format="%d-%h-%Y %T.00";// !STIME format.
+    const char *format="%d-%b-%Y %H:%M:%S.00";// !STIME format.
     SizeT res=strftime( st, MAX_STIME_STRING_LENGTH, format, tstruct);
 
     stime = st;

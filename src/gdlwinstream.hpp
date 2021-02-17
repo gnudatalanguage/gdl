@@ -37,20 +37,77 @@
 #  endif
 #endif
 
-#include <windows.h>
 #include <map>
 
 #ifdef USE_WINGDI_NOT_WINGCC
+// Copied from wingdi.c
+// Driver viewer types
+enum _dev_viewer
+{
+    VIEWER_MINIMAL = 0,       // Display just a plot area window
+    VIEWER_FULL,              // Display the full function window
+    VIEWER_PLOT               // A child only plot area
+};
 
+// Enumerated type for the device states
+enum _dev_state
+{
+    DEV_WAITING = 0,  // Device is idle
+    DEV_ACTIVE,       // Device is ready for next plot
+    DEV_SIZEMOVE,     // Device might be sizing or moving the window
+    DEV_RESIZE,       // Device is resizing the window
+    DEV_DRAWING       // Device is actively drawing
+};
+
+// Enumerated type used to indicate the device type
+// for updating page metrics
+enum _dev_type
+{
+    DEV_WINDOW,          // Setup page metrics for a window
+    DEV_PRINTER          // Setup page metrics for a printer
+};
+// Struct to hold device-specific info.
 struct wingdi_Dev
 {
     //
+    // Members that are common to interactive GUI devices
+    //
+    PLFLT            xdpmm;  // Device x pixel per mm
+    PLFLT            ydpmm;  // Device y pixel per mm
+    PLFLT            xscale; // Virtual x pixels to device pixel scaling
+    PLFLT            yscale; // Virtual y pixels to device pixel scaling
+    PLINT            width;  // Window Width (which can change)
+    PLINT            height; // Window Height
+
+    enum _dev_viewer viewer;
+    enum _dev_type   type;
+    enum _dev_state  state;             // Current state of the device
+    enum _dev_state  prev_state;        // Previous state of the device
+    // Used to restore after redraw
+    union
+    {
+        unsigned int status_bar : 1;
+        unsigned int menu_bar   : 1;
+    } feature;
+
+    //
     // WIN32 API variables
     //
-	HWND     	  hwnd;       // Handle for the plot area
-	HDC               hdc;        // Plot window device context
-};
+    HDC      hdc;                 // Plot window device context
+    HPEN     pen;                 // Current pen used for drawing
+    COLORREF color;               // Current color
+    HDC      hdc_bmp;             // Bitmap device context
+    HBITMAP  bitmap;              // Bitmap of current display
+    HWND     frame;               // Handle for the main window.
+    HWND     plot;                // Handle for the plot area
+    HWND     status_bar;          // Handle for the status bar
 
+    //
+    // Image rasterization variables
+    HDC     save_hdc;                          // Save the original plot window DC
+    HBITMAP raster_bmp;                        // Bitmap for the raster image
+    RECT    raster_rect;                       // Location of the image
+};
 #else
 // Copied from wingcc.c
 // Struct to hold device-specific info.
@@ -144,6 +201,8 @@ public:
 
 	//	  static int   GetImageErrorHandler(Display *display, XErrorEvent *error);
 
+	void SetState(char);
+
 	void GetGeometry(long& xSize, long& ySize);
 	bool GetGin(PLGraphicsIn *gin, int mode);
 
@@ -151,7 +210,6 @@ public:
 	DLong GetVisualDepth();
 	//  DString GetVisualName();
 
-	bool UnsetFocus();
 	//  bool SetBackingStore(int value);
 	//  bool SetGraphicsFunction(long value );
 	bool GetWindowPosition(long& xpos, long& ypos);

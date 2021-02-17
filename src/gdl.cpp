@@ -216,14 +216,6 @@ int main(int argc, char *argv[])
   bool strict_syntax=false;
   bool syntaxOptionSet=false;
 
-  //start with a default value:
-#ifdef HAVE_LIBWXWIDGETS
-  useWxWidgetsForGraphics = true;
-  forceWxWidgetsUglyFonts=true; //compatibilty mode
-#else
-  useWxWidgetsForGraphics = true;
-  forceWxWidgetsUglyFonts=false;
-#endif
   bool force_no_wxgraphics = false;
   useDSFMTAcceleration = true;
 #ifdef _WIN32
@@ -346,9 +338,8 @@ int main(int argc, char *argv[])
       {
            useDSFMTAcceleration = false;
       }
-      else if (string(argv[a]) == "--use-wx")
+      else if (string(argv[a]) == "--use-wx") //obsoleted
       {
-          useWxWidgetsForGraphics = true;
       }
       else if (string(argv[a]) == "--widget-free")
       {
@@ -359,7 +350,6 @@ int main(int argc, char *argv[])
 #endif
       else if (string(argv[a]) == "--no-use-wx")
       {
-         useWxWidgetsForGraphics = false;
          force_no_wxgraphics = true;
       }
       else if (string(argv[a]) == "--fakerelease")
@@ -389,9 +379,15 @@ int main(int argc, char *argv[])
   }
   
   //before InitGDL() as InitGDL() starts graphic!
+  
+  // default is wx Graphics...
+  useWxWidgetsForGraphics=true;
+#ifdef HAVE_X
+  // unless we have X and want to see it for plots
   std::string disableWXPlots=GetEnvString("GDL_DISABLE_WX_PLOTS");
   if ( disableWXPlots.length() > 0) useWxWidgetsForGraphics=false; //not necessary "YES".
   if (force_no_wxgraphics) useWxWidgetsForGraphics=false; //this has the last answer, whatever the setup.
+#endif  
   std::string useNiceGUIFonts=GetEnvString("GDL_WIDGETS_FREE");
   if ( useNiceGUIFonts.length() > 0) forceWxWidgetsUglyFonts=false; 
   

@@ -1,0 +1,336 @@
+#!/bin/bash
+#
+# script to download some files needed for mingw32, and build GDL.
+#
+# JP:
+#  Since old packages are not available from msys2 repo anymore, let's try the latest versions here.
+#  If they don't work (especially readline), we need to store the old ones in another location.
+#  Below is the list of libraries had to be 'reversioned' in the previous version of this script:
+#   - readline, zlib, libpng, libpcre
+
+ME="build_gdl_windows.msys"
+Configuration=${Configuration:-"Debug"}
+DEPS=${DEPS:-"full-msmpi"}
+ROOT_DIR=${ROOT_DIR:-"/c/projects"}
+GDL_DIR="${ROOT_DIR}/gdl"
+NSIS_SCRIPT="${GDL_DIR}/.ci/gdlsetup.nsi"
+MINGW_DIR="${ROOT_DIR}/mingw"
+BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
+# 32bit Eclipse is no longer supported: https://www.eclipse.org/forums/index.php/m/1826215/
+REQUIRED_LIBS_MSYS2=(
+    "gcc-libs"
+    "libwinpthread-git"
+    "plplot"
+    "brotli"
+    "bzip2"
+    "expat"
+    "fontconfig"
+    "freetype"
+    "gettext"
+    "glib2"
+    "graphite2"
+    "harfbuzz"
+    "libdeflate"
+    "libgd"
+    "libharu"
+    "libiconv"
+    "libimagequant"
+    "libjpeg-turbo"
+    "libpng"
+    "libtiff"
+    "libwebp"
+    "pcre"
+    "qhull"
+    "shapelib"
+    "tcl"
+    "tk"
+    "wxWidgets"
+    "xpm-nox"
+    "xz"
+    "zlib"
+    "zstd"
+    "gsl"
+)
+OPTIONAL_LIBS_MSYS2=(
+    "curl"
+    "eigen3"
+    "fftw"
+    "glpk"
+    "graphicsmagick"
+    "hdf4"
+    "hdf5"
+    "lcms2"
+    "libgeotiff"
+    "libidn2"
+    "libpsl"
+    "libssh2"
+    "libsystre"
+    "libtool"
+    "libtre-git"
+    "libunistring"
+    "netcdf"
+    "nghttp2"
+    "openblas"
+    "openssl"
+    "proj"
+    "python"
+    "python-numpy"
+    "readline"
+    "termcap"
+    "udunits"
+    "szip"
+    "sqlite3"
+    "eccodes"
+    "jasper"
+    "libaec"
+    "openjpeg2"
+)
+    
+function log {
+    echo "[${ME}] $1"
+}
+
+declare -A msys2_libs
+function prep_msys2_repo {
+    log "Downloading MSYS2 repository file..."
+    curl -LOs http://repo.msys2.org/mingw/${arch}/${mname}.files # This file has the version strings of the latest libraries.
+    eval `tar --wildcards -xOf ${mname}.files \*/desc | awk '/%FILENAME%/{getline;fn=$0;getline;getline;getline;print "msys2_libs[\"" $0 "\"]+=\"" fn "\"";}'`
+    rm -f ${mname}.files
+}
+
+function set_package {
+    package_file=`basename $1`
+    package_url=$1
+}
+
+function set_msys2_package {
+    package_fullname="mingw-w64-${arch}-$1"
+    package_file="${msys2_libs[$package_fullname]}"
+    package_url="https://repo.msys2.org/mingw/${arch}/${package_file}"
+}
+
+function download_package {
+    log "Downloading ${package_file}..."
+    if [ -f $package_file ]; then
+       log "File exists! Skipping..."
+    else
+        curl -LOs $package_url
+        if [ ! $? -eq 0 ]; then
+            log "Failed to download ${package_file}!"
+            exit 1
+        fi
+    fi
+}
+
+function decompress_package {
+    log "Decompressing ${package_file}..."
+    if [ ${package_file: -4} == ".zip" ]; then
+        unzip -q $@ $package_file
+    else
+        tar xf $@ $package_file
+    fi
+    if [ ! $? -eq 0 ]; then
+        log "Failed to decompress ${package_file}!"
+        exit 1
+    fi
+}
+
+function find_architecture {
+    if [ ${Platform:-`uname -m`} == "x86_64" ]; then
+        export mname="mingw64"
+        export MSYSTEM="MINGW64"
+        export arch="x86_64"
+    else
+        export mname="mingw32"
+        export MSYSTEM="MINGW32"
+        export arch="i686"
+    fi
+    export PATH=$PATH:/$mname/bin
+    log "Architecture: ${arch}"
+}
+
+function install_zstd {
+    mkdir -p /c/projects/zstd
+    cd /c/projects/zstd
+    zstd_version="v1.4.8"
+    if [ $arch == "i686" ]; then
+        zstd_zip=zstd-${zstd_version}-win32.zip
+    else
+        zstd_zip=zstd-${zstd_version}-win64.zip
+    fi
+    curl -LOs https://github.com/facebook/zstd/releases/download/${zstd_version}/${zstd_zip}
+    7z x ${zstd_zip}
+    cp zstd.exe /usr/bin/
+}
+
+function download_packages {
+    mkdir -p ${MINGW_DIR}/${mname}/bin
+    mkdir -p ${MINGW_DIR}/${mname}/lib
+    mkdir -p ${MINGW_DIR}/${mname}/include
+    cd ${MINGW_DIR}
+
+    prep_msys2_repo
+
+    # JP:
+    #   The reason why not `pacman` here; some libs conflict with MSYS2 utils.
+    for package_name in ${REQUIRED_LIBS_MSYS2[@]}; do
+        set_msys2_package $package_name
+        download_package
+        decompress_package
+    done
+
+    if [[ ${DEPS} == *"full"* ]]; then
+        for package_name in ${OPTIONAL_LIBS_MSYS2[@]}; do
+            set_msys2_package $package_name
+            download_package
+            decompress_package
+        done
+        if [[ ${DEPS} == *"msmpi"* ]]; then
+            set_msys2_package "msmpi"
+            download_package
+            decompress_package
+        fi
+    fi
+
+    log "Patching wx-config..."
+    sed -e "s;-/${mname};-${MINGW_DIR}/${mname};g" -e "s;-Wl,--subsystem,windows -mwindows;;" -i ${MINGW_DIR}/${mname}/bin/wx-config
+
+    set_package ${BSDXDR_URL}
+    download_package
+    decompress_package
+
+    log "Building bsd-xdr..."
+    pushd bsd-xdr-1.0.0
+    sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -i Makefile
+    make || exit 1
+    cp -f mingw/*.dll ${MINGW_DIR}/${mname}/bin/
+    cp -f mingw/libxdr.dll.a ${MINGW_DIR}/${mname}/lib/
+    cp -rf rpc ${MINGW_DIR}/${mname}/include/
+    popd
+
+    # Clean up for caching
+    rm -fr bsd-xdr-1.0.0
+    rm -f *.tar.xz
+    rm -f *.tar.gz
+    rm -f *.tar.zst
+    rm -f .BUILDINFO
+    rm -f .INSTALL
+    rm -f .MTREE
+    rm -f .PKGINFO
+}
+
+function build_gdl {
+    log "Building GDL (${Configuration})..."
+    rm -f ${ROOT_DIR}/build/CMakeCache.txt
+    mkdir -p ${ROOT_DIR}/build
+    cd ${ROOT_DIR}/build
+    
+    if [[ ${DEPS} == *"full"* ]]; then
+        if [[ ${DEPS} == *"msmpi"* ]]; then
+            WITH_MPI="ON"
+        else
+            WITH_MPI="OFF"
+        fi
+        export PYTHONHOME=${MINGW_DIR}/${mname}
+        export PATH=${MINGW_DIR}/${mname}/bin:${PATH}
+        export CFLAGS="-I${MINGW_DIR}/${mname}/include" 
+        export CXXFLAGS="-I${MINGW_DIR}/${mname}/include" 
+        cmake ${GDL_DIR} -G"MSYS Makefiles" \
+          -DCMAKE_BUILD_TYPE=${Configuration} \
+          -DCMAKE_PREFIX_PATH="${MINGW_DIR}/${mname}" \
+          -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
+          -DCMAKE_INSTALL_PREFIX="${ROOT_DIR}/install" \
+          -DWXWIDGETS=ON -DGRAPHICSMAGICK=ON -DMAGICK=ON \
+          -DNETCDF=ON -DHDF=ON -DHDF5=ON -DMPI=${WITH_MPI} \
+          -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ4=ON -DPYTHON=ON \
+          -DFFTW=ON -DUDUNITS2=ON -DGLPK=ON -DGRIB=ON \
+          -DUSE_WINGDI_NOT_WINGCC=ON
+    else
+        cmake ${GDL_DIR} -G"MSYS Makefiles" \
+          -DCMAKE_BUILD_TYPE=${Configuration} \
+          -DCMAKE_PREFIX_PATH="${MINGW_DIR}/${mname}" \
+          -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
+          -DCMAKE_INSTALL_PREFIX="${ROOT_DIR}/install" \
+          -DREADLINE=OFF -DPNGLIB=OFF -DOPENMP=OFF \
+          -DGRAPHICSMAGICK=OFF -DMAGICK=OFF -DWXWIDGETS=OFF \
+          -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF \
+          -DLIBPROJ4=OFF -DMPI=OFF -DPYTHON=OFF -DUDUNITS2=OFF \
+          -DEIGEN3=OFF -DGRIB=OFF -DGLPK=OFF -DTIFF=OFF \
+          -DGEOTIFF=OFF -DSHAPELIB=OFF -DEXPAT=OFF \
+          -DUSE_WINGDI_NOT_WINGCC=ON
+    fi
+    
+    make -j2 || exit 1
+    
+    # Copy dlls and libraries to src directory
+    cp -f ${MINGW_DIR}/${mname}/bin/*.dll src/
+    mkdir -p share
+    cp -rf ${MINGW_DIR}/${mname}/share/plplot* share/
+    if [[ ${DEPS} == *"full"* ]]; then
+        mkdir -p lib
+        cp -rf ${MINGW_DIR}/${mname}/lib/GraphicsMagick-* lib/ # copy GraphicsMagick dlls
+    fi
+
+    log "Installing GDL..."
+    make install || exit 1
+
+    cd ${ROOT_DIR}/install
+
+    # Copy dlls and libraries to install directory
+    cp -f ${ROOT_DIR}/build/src/*.dll bin/
+    cp -rf ${ROOT_DIR}/build/share .
+    if [[ ${DEPS} == *"full"* ]]; then
+        cp -rf ${ROOT_DIR}/build/lib . # copy GraphicsMagick dlls
+    fi
+    cp -f ${GDL_DIR}/COPYING .
+}
+
+function test_gdl {
+    log "Testing GDL..."
+    cd ${ROOT_DIR}/build
+    export PYTHONHOME=${MINGW_DIR}/${mname}
+    make check
+}
+
+function pack_gdl {
+    log "Packaging GDL..."
+    if [ $arch == "x86_64" ]; then
+        cd ${ROOT_DIR}
+        set_package "https://github.com/gnudatalanguage/gdlde/releases/download/${GDLDE_VERSION}/gdlde.product-win32.win32.x86_64.zip"
+        download_package
+        decompress_package -o -d gdlde
+    fi
+
+    mkdir -p ${ROOT_DIR}/package
+    cd ${ROOT_DIR}/package
+
+    export GDL_INSTALL_DIR=`cygpath -w ${ROOT_DIR}/install`
+    export GDL_VERSION=`grep -oP 'set\(VERSION "\K.+(?="\))' ${GDL_DIR}/CMakeLists.txt`
+    makensis -V3 ${GDL_DIR}/.ci/gdlsetup.nsi && mv ${GDL_DIR}/.ci/gdlsetup.exe .
+}
+
+function prep_deploy {
+    cd ${ROOT_DIR}/gdl
+    mv ../package/gdlsetup.exe gdlsetup-${arch}-${DEPS}.exe
+    cd ${ROOT_DIR}/install
+    zip -qr ../gdl/gdl-${arch}-${DEPS}.zip *
+    cd ${ROOT_DIR}/gdl && ls *.zip *.exe
+}
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: build_gdl_windows.msys prep|build|check|pack|prep_deploy"
+else
+    find_architecture
+    if [ "$1" == "prep" ]; then
+        #install_zstd # not required for visual studio 2019 image
+        download_packages
+    elif [ "$1" == "build" ]; then
+        build_gdl
+    elif [ "$1" == "check" ]; then
+        test_gdl
+    elif [ "$1" == "pack" ]; then
+        pack_gdl
+    elif [ "$1" == "prep_deploy" ]; then
+        prep_deploy
+    fi
+fi

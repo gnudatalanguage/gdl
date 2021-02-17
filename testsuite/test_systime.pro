@@ -204,7 +204,10 @@ endif
 ;
 cumul_errors=0
 ;
-TEST_SYSTIME_LOCALE, cumul_errors, verbose=verbose, test=test
+if(!version.os_family ne 'Windows') then begin
+    ; This test is not valid on Windows
+    TEST_SYSTIME_LOCALE, cumul_errors, verbose=verbose, test=test 
+endif
 ;
 TEST_SYSTIME_ZERO, cumul_errors, verbose=verbose, test=test
 ;
