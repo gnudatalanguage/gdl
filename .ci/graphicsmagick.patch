@@ -1,0 +1,12 @@
+--- PKGBUILD	2021-02-15 15:59:01.997243300 +0100
++++ PKGBUILD.q16	2021-02-15 15:59:57.702553700 +0100
+@@ -94,7 +94,8 @@
+     --without-fpx \
+     --without-dps \
+     --without-perl \
+-    --without-x
++    --without-x \
++    --with-quantum-depth=16
+ 
+   make
+ }

@@ -85,9 +85,20 @@ OPTIONAL_LIBS_MSYS2=(
     "libaec"
     "openjpeg2"
 )
-    
+REBUILD_LIBS_MSYS2=(
+    "graphicsmagick"
+)
 function log {
-    echo "[${ME}] $1"
+    echo "[${ME}] $@"
+}
+
+function check_rebuild {
+    for pn in ${REBUILD_LIBS_MSYS2[@]}; do
+        if [[ $pn == $1 ]]; then
+            return 0
+        fi
+    done
+    return 1
 }
 
 declare -A msys2_libs
@@ -109,12 +120,44 @@ function set_msys2_package {
     package_url="https://repo.msys2.org/mingw/${arch}/${package_file}"
 }
 
+function build_msys2_package {
+    log "Building package $1..."
+    if [[ ! -d "MINGW-packages" ]]; then
+        git clone \
+            --depth 1  \
+            --filter=blob:none  \
+            --sparse \
+            https://github.com/msys2/MINGW-packages \
+            ;
+    fi
+    cd MINGW-packages
+    git sparse-checkout init --cone
+    rm -fr mingw-w64-$1
+    git sparse-checkout set mingw-w64-$1
+    git checkout mingw-w64-$1
+    cd mingw-w64-$1
+    patch="${GDL_DIR}/.ci/$1.patch"
+    if [[ -f $patch ]]; then
+        patch -p0 -i $patch
+    fi
+    if [[ ${arch} == "x86_64" ]]; then
+        makepkg_conf=/etc/makepkg_mingw64.conf
+    else
+        makepkg_conf=/etc/makepkg_mingw32.conf
+    fi
+    eval `cat ${makepkg_conf} | grep PKGEXT=`
+    makepkg --config ${makepkg_conf} --noconfirm --syncdeps --rmdeps
+    package_file=`ls mingw-w64-${arch}-${1}-*${PKGEXT}`
+    mv ${package_file} ${MINGW_DIR}
+    cd ${MINGW_DIR}
+}
+
 function download_package {
     log "Downloading ${package_file}..."
     if [ -f $package_file ]; then
        log "File exists! Skipping..."
     else
-        curl -LOs $package_url
+        curl -LOs --retry 5 $package_url
         if [ ! $? -eq 0 ]; then
             log "Failed to download ${package_file}!"
             exit 1
@@ -174,15 +217,23 @@ function download_packages {
     # JP:
     #   The reason why not `pacman` here; some libs conflict with MSYS2 utils.
     for package_name in ${REQUIRED_LIBS_MSYS2[@]}; do
-        set_msys2_package $package_name
-        download_package
+        if check_rebuild $package_name; then
+            build_msys2_package $package_name
+        else
+            set_msys2_package $package_name
+            download_package
+        fi
         decompress_package
     done
 
     if [[ ${DEPS} == *"full"* ]]; then
         for package_name in ${OPTIONAL_LIBS_MSYS2[@]}; do
-            set_msys2_package $package_name
-            download_package
+            if check_rebuild $package_name; then
+                build_msys2_package $package_name
+            else
+                set_msys2_package $package_name
+                download_package
+            fi
             decompress_package
         done
         if [[ ${DEPS} == *"msmpi"* ]]; then
@@ -207,12 +258,15 @@ function download_packages {
     cp -f mingw/libxdr.dll.a ${MINGW_DIR}/${mname}/lib/
     cp -rf rpc ${MINGW_DIR}/${mname}/include/
     popd
+}
 
-    # Clean up for caching
+function tidy_mingw_cache {
+    cd ${MINGW_DIR}
+
+    # Tidy up MinGW cache
+    rm -fr MINGW-packages
     rm -fr bsd-xdr-1.0.0
-    rm -f *.tar.xz
-    rm -f *.tar.gz
-    rm -f *.tar.zst
+    rm -f *.tar.*
     rm -f .BUILDINFO
     rm -f .INSTALL
     rm -f .MTREE
@@ -221,7 +275,6 @@ function download_packages {
 
 function build_gdl {
     log "Building GDL (${Configuration})..."
-    rm -f ${ROOT_DIR}/build/CMakeCache.txt
     mkdir -p ${ROOT_DIR}/build
     cd ${ROOT_DIR}/build
     
@@ -268,7 +321,7 @@ function build_gdl {
     cp -rf ${MINGW_DIR}/${mname}/share/plplot* share/
     if [[ ${DEPS} == *"full"* ]]; then
         mkdir -p lib
-        cp -rf ${MINGW_DIR}/${mname}/lib/GraphicsMagick-* lib/ # copy GraphicsMagick dlls
+        cp -rf ${MINGW_DIR}/${mname}/lib/GraphicsMagick* lib/ # copy GraphicsMagick dlls
     fi
 
     log "Installing GDL..."
@@ -280,7 +333,7 @@ function build_gdl {
     cp -f ${ROOT_DIR}/build/src/*.dll bin/
     cp -rf ${ROOT_DIR}/build/share .
     if [[ ${DEPS} == *"full"* ]]; then
-        cp -rf ${ROOT_DIR}/build/lib . # copy GraphicsMagick dlls
+        cp -rf ${ROOT_DIR}/build/lib .
     fi
     cp -f ${GDL_DIR}/COPYING .
 }
@@ -318,12 +371,14 @@ function prep_deploy {
 }
 
 if [ "$#" -ne 1 ]; then
-    echo "Usage: build_gdl_windows.msys prep|build|check|pack|prep_deploy"
+    echo "Usage: build_gdl_windows.msys prep|tidy_mingw_cache|build|check|pack|prep_deploy"
 else
     find_architecture
     if [ "$1" == "prep" ]; then
         #install_zstd # not required for visual studio 2019 image
         download_packages
+    elif [ "$1" == "tidy_mingw_cache" ]; then
+        tidy_mingw_cache
     elif [ "$1" == "build" ]; then
         build_gdl
     elif [ "$1" == "check" ]; then
