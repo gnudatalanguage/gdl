@@ -217,6 +217,7 @@ int main(int argc, char *argv[])
   bool syntaxOptionSet=false;
 
   bool force_no_wxgraphics = false;
+  forceWxWidgetsUglyFonts = false;
   useDSFMTAcceleration = true;
 #ifdef _WIN32
   lib::posixpaths = false;
@@ -240,8 +241,8 @@ int main(int argc, char *argv[])
       cerr << "  --use-wx (default if GDL is linked with wxWidgets): Tells GDL to use WxWidgets graphics instead of X11 or Windows. (nicer plots)." << endl;
       cerr << "  --no-use-wx        Tells GDL not to use WxWidgets graphics." << endl;
       cerr << "                     Also enabled by setting the environment variable GDL_DISABLE_WX_PLOTS to a non-null value." << endl;
-      cerr << "  --widget-free      Tells GDL not to use a default (rather ugly) fixed pitch font for compatiblity with IDL widgets." << endl;
-      cerr << "                     Also enabled by setting the environment variable GDL_WIDGET_FREE to a non-null value." << endl;
+      cerr << "  --widget-compat    Tells GDL to use a default (rather ugly) fixed pitch font for compatiblity with IDL widgets." << endl;
+      cerr << "                     Also enabled by setting the environment variable GDL_WIDGET_COMPAT to a non-null value." << endl;
       cerr << "                     Using this option may render some historical widgets unworkable (as they are based on fixed sizes)." << endl;
       cerr << "  --no-dSFMT         Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random doubles." << endl;
       cerr << "                     Also disable by setting the environment variable GDL_NO_DSFMT to a non-null value." << endl;
@@ -341,9 +342,9 @@ int main(int argc, char *argv[])
       else if (string(argv[a]) == "--use-wx") //obsoleted
       {
       }
-      else if (string(argv[a]) == "--widget-free")
+      else if (string(argv[a]) == "--widget-compat")
       {
-          forceWxWidgetsUglyFonts = false;
+          forceWxWidgetsUglyFonts = true;
       }      
 #ifdef _WIN32
       else if (string(argv[a]) == "--posix") lib::posixpaths=true;
@@ -388,8 +389,8 @@ int main(int argc, char *argv[])
   if ( disableWXPlots.length() > 0) useWxWidgetsForGraphics=false; //not necessary "YES".
   if (force_no_wxgraphics) useWxWidgetsForGraphics=false; //this has the last answer, whatever the setup.
 #endif  
-  std::string useNiceGUIFonts=GetEnvString("GDL_WIDGETS_FREE");
-  if ( useNiceGUIFonts.length() > 0) forceWxWidgetsUglyFonts=false; 
+  std::string doUseUglyFonts=GetEnvString("GDL_WIDGETS_COMPAT");
+  if ( doUseUglyFonts.length() > 0) forceWxWidgetsUglyFonts=true; 
   
   InitGDL();
 

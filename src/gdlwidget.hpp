@@ -21,7 +21,7 @@
 
 #ifdef HAVE_LIBWXWIDGETS
 // #define GDL_DEBUG_WIDGETS
-// #define GDL_DEBUG_WIDGETS_COLORIZE
+ #define GDL_DEBUG_WIDGETS_COLORIZE
 
 #include <wx/wx.h>
 #include <wx/app.h>
@@ -50,9 +50,9 @@
 #define gdlSCROLL_RATE 20
 #define gdlSCROLL_HEIGHT_X  sysScrollHeight //wxSystemSettings::GetMetric(wxSYS_VSCROLL_X,xxx) //25 
 #define gdlSCROLL_WIDTH_Y sysScrollWidth //wxSystemSettings::GetMetric(wxSYS_HSCROLL_Y,xxx) //25
-#define gdlSCROLL_ADJUST  (25-sysScrollWidth)  //difference wrt. IDL's 25 pix --- This to be confirmed. Permits to respect SCREEN_SIZES
-#define gdlDEFAULT_XSIZE 1 //100
-#define gdlDEFAULT_YSIZE 1 //100
+#define gdlDEFAULT_XSIZE 100
+#define gdlDEFAULT_YSIZE 100
+#define gdlCOMBOBOX_ARROW_WIDTH sysComboboxArrow 
 #define gdlDEFAULT_SCROLL_SIZE 100 //gdlDEFAULT_XSIZE+gdlSCROLL_HEIGHT_X
 #define gdlFRAME_MARGIN 0
 #define gdlPAD 0 //3 //default padding
@@ -62,7 +62,7 @@
 #define gdlBUTTON_SPACE 4
 #define gdlSMALL_SPACE 1
 #define gdlBORDER_SPACE 2
-#define gdlBORDER_EXT wxBORDER_SUNKEN //wxBORDER_RAISED//wxBORDER_SIMPLE //wxBORDER_RAISED
+#define gdlBORDER_EXT wxBORDER_THEME // wxBORDER_SUNKEN //wxBORDER_RAISED//wxBORDER_SIMPLE //wxBORDER_RAISED
 #define gdlBORDER_INT wxBORDER_NONE //wxBORDER_SUNKEN 
 #define gdlTEXT_XMARGIN 4
 #define gdlTEXT_YMARGIN 4
@@ -82,7 +82,7 @@ static int    widgetTypeList[]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
 static bool handlersInited=false; //handlers of graphic formats for bitmaps (magick).
 
 enum { WINDOW_TIMER = -2*wxID_HIGHEST, RESIZE_TIMER, RESIZE_PLOT_TIMER }; //negative values, should not clash with our (positive) widget ids.
- 
+
 class DStructGDL;
 
 class wxAppGDL;
@@ -328,9 +328,10 @@ private:
  void OnListBoxDo(wxCommandEvent& event, DLong clicks);
  DECLARE_EVENT_TABLE()
 };
-  
+
 static int sysScrollHeight=25;
 static int sysScrollWidth=25;
+static int sysComboboxArrow=25;
   
 class GDLWidget
 { 
@@ -618,6 +619,7 @@ public:
   virtual bool IsMenuBar() const {return false;}
   virtual bool IsPropertySheet() const { return false;}
   virtual bool IsModal() const { return false;}
+  virtual bool IsInCharacters() const {return false;} //measurements are not in characters
 
   virtual WidgetIDT GetChild( DLong) const {return NullID;}
   virtual DLong NChildren() const { return 0;}
@@ -811,7 +813,7 @@ public:
   long getXPad(){return xpad;}
   long getYPad(){return ypad;}
   virtual void mapBase(bool val);
-  DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
+  DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0)) final;
 //  wxScrolled<wxPanel>* AddBaseFrame(wxScrolled<wxPanel>* wxParent, int width=0);
   wxScrolled<wxPanel>* AddXYPad(wxScrolled<wxPanel>* wxParent, int xpad=0, int ypad=0);
 //Apparently children of a base are plotted in reverse order in IDL (last first)
@@ -1240,6 +1242,7 @@ public:
   GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style, DULong eventflags);
   ~GDLWidgetList();
   bool IsList() const final { return true;} 
+  bool IsInCharacters() const final {return true;} //measurements are in characters
   void SetValue(BaseGDL *value);
   void SelectEntry(DLong entry_number);
   BaseGDL* GetSelectedEntries();
@@ -1291,12 +1294,11 @@ public:
   void AppendTextValue( DStringGDL* value, bool noNewLine);
   
   bool IsText() const final { return true;} 
-  
+  bool IsInCharacters() const final {return true;} //measurements are in characters  
   void SetLastValue( const std::string& v) { lastValue = v;}
   std::string GetLastValue() { return lastValue;}
   wxSize computeWidgetSize() final;
   void SetWidgetSize(DLong sizex, DLong sizey) final;
-  DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
 };
 
 
@@ -1330,7 +1332,6 @@ public:
   bool IsDraw() const final { return true;}
   void AddEventType( DULong evType) final; //specific for draw widgets
   void RemoveEventType( DULong evType) final;
-  DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0)) final;
   void SetWidgetSize(DLong sizex, DLong sizey) final; 
   void SetWidgetVirtualSize(DLong sizex, DLong sizey) final; 
   void SetWidgetScreenSize(DLong sizex, DLong sizey) final;
@@ -1528,7 +1529,7 @@ public:
   bool IsUpdating(){return updating;}
   void ClearUpdating(){updating=false;}
   void SetUpdating(){updating=true;}
-//  DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
+  DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0)) final;
   void setFont();
 };
 

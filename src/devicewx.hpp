@@ -246,6 +246,32 @@ public:
         } else return NULL;
     }
 
+ BaseGDL* GetWxFontnames(DString pattern) {
+  if (pattern.length() <= 0) return NULL;
+  wxFontEnumerator fontEnumerator;
+  fontEnumerator.EnumerateFacenames();
+  int nFacenames = fontEnumerator.GetFacenames().GetCount();
+  // we are supposed to select only entries lexically corresponding to 'pattern'.
+  //first check who passes (ugly)
+  wxString wxPattern(pattern);
+  wxPattern = wxPattern.Upper();
+  std::vector<int> good;
+  for (int i = 0; i < nFacenames; ++i) if (fontEnumerator.GetFacenames().Item(i).Upper().Matches(wxPattern)) {
+    good.push_back(i);
+   }
+  if (good.size() == 0) return NULL;
+  //then get them
+  DStringGDL* myList = new DStringGDL(dimension(good.size()));
+  for (int i = 0; i < good.size(); ++i) (*myList)[i].assign(fontEnumerator.GetFacenames().Item(good[i]).mb_str(wxConvUTF8));
+  return myList;
+ }
+
+ DLong GetWxFontnum(DString pattern) {
+  if (GetWxFontnames(pattern) == NULL) return 0;
+  if (pattern.length() == 0) return 0;
+  return this->GetWxFontnames(pattern)->N_Elements();
+ }
+ 
 //    DLong GetVisualDepth() {
 //        this->GetStream(); //to open a window if none opened.
 //        return winList[actWin]->GetVisualDepth();
@@ -263,49 +289,48 @@ public:
 //        this->GetStream(); //to open a window if none opened.
 //        return winList[actWin]->GetFontnum(fontname);
 //    } 
-        DLong GetVisualDepth() {
-        TidyWindowsList();
-        if (actWin == -1) {
-          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
-          DLong val=winList[actWin]->GetVisualDepth();
-          WDelete(actWin);
-          return val;
-        } else {
-          return winList[actWin]->GetVisualDepth();
-        }
-    }
+    
+        DLong GetVisualDepth() {return 24;} //no use opening a window, the answer is 24!
+//        TidyWindowsList();
+//        if (actWin == -1) {
+//          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
+//          DLong val=winList[actWin]->GetVisualDepth();
+//          WDelete(actWin);
+//          return val;
+//        } else {
+//          return winList[actWin]->GetVisualDepth();
+//        }
 
-    DString GetVisualName() {
-        TidyWindowsList();
-        if (actWin == -1) {
-          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
-          DString val=winList[actWin]->GetVisualName();
-          WDelete(actWin);
-          return val;
-        } else {
-          return winList[actWin]->GetVisualName();
-        }
-    }
-    BaseGDL* GetFontnames(){
-        TidyWindowsList();
-        if (actWin == -1) {
-          this->GetStream();
-          BaseGDL* val=winList[actWin]->GetFontnames(fontname);
-          return val;
-        } else {
-          return winList[actWin]->GetFontnames(fontname);
-        }
-    }
-    DLong GetFontnum(){
-        TidyWindowsList();
-        if (actWin == -1) {
-          this->GetStream(); 
-          DLong val=winList[actWin]->GetFontnum(fontname);
-          return val;
-        } else {
-          return winList[actWin]->GetFontnum(fontname);
-        }
-    } 
+    DString GetVisualName() {return DString("TrueColor");}
+//        TidyWindowsList();
+//        if (actWin == -1) {
+//          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
+//          DString val=winList[actWin]->GetVisualName();
+//          WDelete(actWin);
+//          return val;
+//        } else {
+//          return winList[actWin]->GetVisualName();
+//        }
+    
+    BaseGDL* GetFontnames(){return GetWxFontnames(fontname);}
+//        TidyWindowsList();
+//        if (actWin == -1) {
+//          this->GetStream();
+//          BaseGDL* val=winList[actWin]->GetFontnames(fontname);
+//          return val;
+//        } else {
+//          return winList[actWin]->GetFontnames(fontname);
+//        }
+    
+    DLong GetFontnum(){return GetWxFontnum(fontname);}
+//        TidyWindowsList();
+//        if (actWin == -1) {
+//          this->GetStream(); 
+//          DLong val=winList[actWin]->GetFontnum(fontname);
+//          return val;
+//        } else {
+//          return winList[actWin]->GetFontnum(fontname);
+//        }
     
     bool CursorStandard(int cursorNumber) {
         cursorId = cursorNumber;
@@ -377,7 +402,7 @@ bool SetCharacterSize( DLong x, DLong y)     {
    GDLGStream* actStream=GetStream(false);
    if( actStream != NULL) {actStream->setLineSpacing(newSpacing); actStream->RenewPlplotDefaultCharsize(newsize);}
    return true;
-  }
+}
 
 };
 #endif
