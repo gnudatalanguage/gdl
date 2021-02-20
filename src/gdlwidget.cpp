@@ -1613,7 +1613,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignm
   
   // All bases can receive events: EV_CONTEXT, EV_KBRD_FOCUS, EV_TRACKING
 
-  long style=wxDEFAULT_FRAME_STYLE;
+  long style=wxDEFAULT_FRAME_STYLE|wxFRAME_TOOL_WINDOW; //wxFRAME_TOOL_WINDOW to NOT get focus. See behaviour of 'P' (photometry) while using ATV (atv.pro). 
   if (frame_attr) {
     style=0;
     if (!(frame_attr & 1)) style |= (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER| wxCAPTION);
