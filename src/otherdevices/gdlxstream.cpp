@@ -19,7 +19,7 @@
 #include <iostream>
 
 #include "graphicsdevice.hpp"
-#include "gdlxstream.hpp"
+#include "otherdevices/gdlxstream.hpp"
 #include "devicex.hpp"
 
 #ifndef HAVE_X

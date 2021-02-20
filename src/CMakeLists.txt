@@ -31,7 +31,6 @@ basic_fun.cpp
 basic_fun_cl.cpp
 basic_fun_jmg.cpp
 calendar.cpp
-#cformat.g
 color.cpp
 convert2.cpp
 dcommon.cpp
@@ -50,12 +49,6 @@ exists_fun.cpp
 fftw.cpp
 file.cpp
 fmtnode.cpp
-#format.g
-#format.in.g
-#format.out.g
-#gdlc.g
-#gdlc.i.g
-#gdlc.tree.g
 gdleventhandler.cpp
 gdlexception.cpp
 gdlgstream.cpp
@@ -65,14 +58,14 @@ dSFMT/dSFMT.c
 if(WIN32)
 set(SOURCES
 ${SOURCES}
-gdlwinstream.cpp
+otherdevices/gdlwinstream.cpp
 gtdhelper.cpp
-devicewin.cpp
+otherdevices/devicewin.cpp
 )
 else(WIN32)
 set(SOURCES
 ${SOURCES}
-gdlxstream.cpp
+otherdevices/gdlxstream.cpp
 )
 endif(WIN32)
 

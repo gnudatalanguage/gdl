@@ -21,7 +21,7 @@
 
 #ifdef HAVE_LIBWXWIDGETS
 // #define GDL_DEBUG_WIDGETS
- #define GDL_DEBUG_WIDGETS_COLORIZE
+// #define GDL_DEBUG_WIDGETS_COLORIZE
 
 #include <wx/wx.h>
 #include <wx/app.h>

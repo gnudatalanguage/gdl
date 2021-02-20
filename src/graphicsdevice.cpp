@@ -23,9 +23,18 @@
 #include "objects.hpp"
 #include "graphicsdevice.hpp"
 
-#include "devicewin.hpp"
+#if _WIN32
+#include "otherdevices/devicewin.hpp"
+#endif
+  
+#ifdef HAVE_LIBWXWIDGETS 
 #include "devicewx.hpp"
-#include "devicex.hpp"
+#endif
+  
+#ifdef HAVE_X
+#include "otherdevices/devicex.hpp"
+#endif
+  
 #include "deviceps.hpp"
 #include "devicesvg.hpp"
 #include "devicez.hpp"
@@ -183,13 +192,21 @@ void GraphicsDevice::Init()
 
   DefineDStructDesc();
 
-  GraphicsDevice* current_device;
+  GraphicsDevice* current_device=NULL;
   
   // 4 devices types without surprise !
   deviceList.push_back( new DeviceNULL());
   deviceList.push_back( new DevicePS());
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
+  
+#ifdef _WIN32
+  std::string defaultDeviceName=std::string("WIN");
+#elif __APPLE__
+  std::string defaultDeviceName=std::string("WIN");
+#else
+  std::string defaultDeviceName=std::string("X"); //what we expect the plot device to be
+#endif
   
 #ifdef HAVE_LIBWXWIDGETS
 //    DStructGDL* version = SysVar::Version();
@@ -201,46 +218,43 @@ void GraphicsDevice::Init()
   // no other device is defined.
   if (useWxWidgetsForGraphics) {
 #ifdef HAVE_LIBWXWIDGETS
-    current_device=new DeviceWX("X");    //define wxWidgets 'plot' as either X..
+    current_device=new DeviceWX(defaultDeviceName);    //define wxWidgets 'plot' as either X..
     actGUIDevice =current_device;      // GuiDevice is same as X or WIN in this case
 #else //not linked with wxWidgets: plot is either X or WIN depending on platform
 #ifdef HAVE_X
-    current_device=new DeviceX();
+    current_device=new DeviceX(defaultDeviceName); /X on unix, MAC on mac... is it necessary ?
 #elif _WIN32
-    current_device=new DeviceWIN();
+    current_device=new DeviceWIN(defaultDeviceName);
 #endif
     actGUIDevice = NULL; //no wxWidgets at all!
 #endif
-    deviceList.push_back(current_device); //push the 'PLOT' device.
-  } else {  //wxWidgets will *NOT*be used for plot windows...
+  } else {  //wxWidgets will *NOT*be used for plot windows, unless there is nothing else left.
 #ifdef HAVE_LIBWXWIDGETS
     actGUIDevice = new DeviceWX();  //even if wx is not used for plots, it will be used for widget_draw. But set_plot,"MAC" will exist.
     deviceList.push_back(actGUIDevice); // do not forget to add it to list!
-#endif
+#endif   
 #ifdef HAVE_X
-    deviceList.push_back( new DeviceX());
+    current_device= new DeviceX(defaultDeviceName);
 #elif _WIN32
-    deviceList.push_back( new DeviceWIN());
+    current_device= new DeviceWIN(defaultDeviceName);
+#else //may be wxWidgets is here?
+#ifdef HAVE_LIBWXWIDGETS
+    current_device= new DeviceWX(defaultDeviceName);    //define wxWidgets 'plot' as either X..
+#endif 
 #endif
   }
 
-//recapitulate:    
-// we try to set X, or WIN as default, even if they are actually WX. You follow? There is no 'WX' device in IDL. 
-// (and NULL if X11 system (Linux, OSX, Sun) but without X11 at compilation)
-#ifdef HAVE_LIBWXWIDGETS
-  if( !SetDevice("X") ) 
-#elif HAVE_X // Check X11 or wx mimicking X11
-  if( !SetDevice("X") ) 
-#elif _WIN32 // If Windows enable WinGCC driver or its  wx alter ego
-  if( !SetDevice( "WIN")) 
-#else //nothing else...
-  if( !SetDevice( "NULL")) 
-#  endif
-  {
+  if (current_device == NULL) {
     cerr << "Error initializing graphics." << endl;
-    exit( EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
-
+//ok :   
+  deviceList.push_back(current_device); //push the 'PLOT' device.
+  if( !SetDevice(defaultDeviceName) ){
+    cerr << "Error initializing graphics." << endl;
+    exit(EXIT_FAILURE);
+  }
+  
 // GDL (at least with device X and Wx) handle equally any types of screens,
 // with an equivalent depth of 24 (tested and true). So there is no
 // need to return any depth, color number etc that would be anything
