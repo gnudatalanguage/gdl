@@ -22,7 +22,7 @@
 #include "graphicsdevice.hpp"
 using namespace std;
 #include "otherdevices/gdlwinstream.hpp"
-#include "therdevices/devicewin.hpp"
+#include "otherdevices/devicewin.hpp"
 #include "gdleventhandler.hpp"
 #ifndef PLESC_TELLME
 #define PLESC_TELLME  41

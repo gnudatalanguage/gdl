@@ -203,7 +203,7 @@ void GraphicsDevice::Init()
 #ifdef _WIN32
   std::string defaultDeviceName=std::string("WIN");
 #elif __APPLE__
-  std::string defaultDeviceName=std::string("WIN");
+  std::string defaultDeviceName=std::string("MAC");
 #else
   std::string defaultDeviceName=std::string("X"); //what we expect the plot device to be
 #endif

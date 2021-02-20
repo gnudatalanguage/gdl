@@ -39,8 +39,8 @@ class DeviceWX : public GraphicsMultiDevice {
   
 public:
 
-    DeviceWX(string name_="MAC") : GraphicsMultiDevice( 1, 3, 3, 0) { //force decomposed=true until we find a better way (::wxDispayDepth() crashes)
-        name = name_; //temporary hack to avoid coyoteGraphics crash in ATV.PRO
+    DeviceWX(std::string name_="MAC") : GraphicsMultiDevice( 1, 3, 3, 0) { //force decomposed=true until we find a better way (::wxDispayDepth() crashes)
+        name = name_; 
         DLongGDL origin(dimension(2));
         DLongGDL zoom(dimension(2));
         zoom[0] = 1;

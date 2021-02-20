@@ -40,8 +40,8 @@ class DeviceX : public GraphicsMultiDevice {
     
 public:
     
-    DeviceX() : GraphicsMultiDevice( -1, XC_crosshair, 3, 0) {
-        name = "X";
+    DeviceX(std::string name_="MAC") : GraphicsMultiDevice( -1, XC_crosshair, 3, 0) {
+        name = name_;
         DLongGDL origin(dimension(2));
         DLongGDL zoom(dimension(2));
         zoom[0] = 1;
