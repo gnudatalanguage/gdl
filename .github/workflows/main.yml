@@ -15,7 +15,7 @@ jobs:
       id: set-matrix
       run: |
         if [[ '${{ github.ref }}' == *pull* ]]; then 
-            matrix="{deps: ['full'], arch: ['x86_64'], configuration: ['Debug']}"
+            matrix="{deps: ['full'], arch: ['x86_64'], configuration: ['Release']}"
         else
             matrix="{deps: ['full-msmpi', 'full', 'mini'], arch: ['x86_64', 'i686'], configuration: ['Release', 'Debug']}"
         fi
