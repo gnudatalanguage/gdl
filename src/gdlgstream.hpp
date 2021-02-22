@@ -228,40 +228,22 @@ public:
 	  if (GDL_DEBUG_PLSTREAM) printf(" retire GDLGstream:pls=0x%p \n", (void *)pls);
   }
 
-  static bool checkPlplotDriver(const char *driver)
-  {
-    int numdevs_plus_one = 64;
-    const char **devlongnames = NULL;
-    const char **devnames = NULL;
-
-    static std::vector<std::string> devNames;
-
-    // do only once
-    if( devNames.empty())
-    {
-      // acquireing a list of drivers from plPlot
-      for (int maxnumdevs = numdevs_plus_one;; numdevs_plus_one = maxnumdevs += 16)
-      {
-        //handles gracefully the improbable failure of realloc
-        void* tmp = realloc(devlongnames, maxnumdevs * sizeof(char*));
-        if (tmp) devlongnames = static_cast<const char**>(tmp); else return false;
-        tmp = realloc(devnames, maxnumdevs * sizeof(char*));
-        if (tmp) devnames = static_cast<const char**>(tmp); else return false;
-        plgDevs(&devlongnames, &devnames, &numdevs_plus_one);
-        numdevs_plus_one++;
-        if (numdevs_plus_one < maxnumdevs) break;
-        else Message("The above PLPlot warning message, if any, can be ignored");
-      } 
-      free(devlongnames); // we do not need this information
-
-      for( int i = 0; i < numdevs_plus_one - 1; ++i)
-        devNames.push_back(std::string(devnames[ i]));
-    
-      free(devnames);
+  static bool checkPlplotDriver(const char *driver) {
+  int numdevs = 128;
+  const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
+  const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
+  plgDevs(&devlongnames, &devnames, &numdevs);
+  bool found = false;
+  for (int i = 0; i < numdevs; ++i) {
+   if (strcmp(driver, devnames[i])==0){
+     found = true;
+     break;
     }
-
-    return std::find( devNames.begin(), devNames.end(), std::string( driver)) != devNames.end();
   }
+    free(devlongnames);
+    free(devnames);
+    return found;
+ }
    std::string getActiveFontCode(){
    return internalFontCodes[activeFontCodeNum];
   }
