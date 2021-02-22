@@ -219,6 +219,8 @@ int main(int argc, char *argv[])
   bool force_no_wxgraphics = false;
   forceWxWidgetsUglyFonts = false;
   useDSFMTAcceleration = true;
+  iAmANotebook=false; //option --notebook
+  
 #ifdef _WIN32
   lib::posixpaths = false;
 #endif
@@ -241,6 +243,7 @@ int main(int argc, char *argv[])
       cerr << "  --use-wx (default if GDL is linked with wxWidgets): Tells GDL to use WxWidgets graphics instead of X11 or Windows. (nicer plots)." << endl;
       cerr << "  --no-use-wx        Tells GDL not to use WxWidgets graphics." << endl;
       cerr << "                     Also enabled by setting the environment variable GDL_DISABLE_WX_PLOTS to a non-null value." << endl;
+      cerr << "  --notebook         Force SVG-only device, used only when GDL is a Python Notebook Kernel." << endl;
       cerr << "  --widget-compat    Tells GDL to use a default (rather ugly) fixed pitch font for compatiblity with IDL widgets." << endl;
       cerr << "                     Also enabled by setting the environment variable GDL_WIDGET_COMPAT to a non-null value." << endl;
       cerr << "                     Using this option may render some historical widgets unworkable (as they are based on fixed sizes)." << endl;
@@ -353,6 +356,10 @@ int main(int argc, char *argv[])
       {
          force_no_wxgraphics = true;
       }
+      else if (string(argv[a]) == "--notebook")
+      {
+         iAmANotebook = true;
+      }
       else if (string(argv[a]) == "--fakerelease")
       {
         if (a == argc - 1)
@@ -381,8 +388,12 @@ int main(int argc, char *argv[])
   
   //before InitGDL() as InitGDL() starts graphic!
   
+#ifdef HAVE_LIBWXWIDGETS
   // default is wx Graphics...
   useWxWidgetsForGraphics=true;
+#else
+  useWxWidgetsForGraphics=false;
+#endif
 #ifdef HAVE_X
   // unless we have X and want to see it for plots
   std::string disableWXPlots=GetEnvString("GDL_DISABLE_WX_PLOTS");

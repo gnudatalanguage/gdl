@@ -89,7 +89,7 @@ namespace structDesc {
 DLong CpuTPOOL_NTHREADS;
 DLong64 CpuTPOOL_MIN_ELTS;
 DLong64 CpuTPOOL_MAX_ELTS;
-const DLong64 CpuTPOOL_MAX_ELTS_max = numeric_limits<DLong64>::max();
+//const DULong64 CpuTPOOL_MAX_ELTS_max = numeric_limits<DLong64>::max();
 
 // instantiate own AST factory
 //_DNodeFactory DNodeFactory;
@@ -97,6 +97,9 @@ antlr::ASTFactory DNodeFactory("DNode",DNode::factory);
 
 //do we use WxWidgets for graphics?
 volatile bool useWxWidgetsForGraphics;
+//do we use SVG for graphics in python notebook use?
+volatile bool iAmANotebook;
+
 // do we force fonts to be the ugly IDL fonts?
 volatile bool forceWxWidgetsUglyFonts;
 

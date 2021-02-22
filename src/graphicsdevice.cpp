@@ -240,16 +240,14 @@ void GraphicsDevice::Init()
 #else //may be wxWidgets is here?
 #ifdef HAVE_LIBWXWIDGETS
     current_device= new DeviceWX(defaultDeviceName);    //define wxWidgets 'plot' as either X..
-#endif 
+#endif
 #endif
   }
-
+//nothing should prevent gdl to be used without 'direct' graphics ?
   if (current_device == NULL) {
-    cerr << "Error initializing graphics." << endl;
-    exit(EXIT_FAILURE);
-  }
-//ok :   
-  deviceList.push_back(current_device); //push the 'PLOT' device.
+    defaultDeviceName.assign("NULL");
+  } else deviceList.push_back(current_device); //push the 'PLOT' device.
+  if (iAmANotebook) defaultDeviceName.assign("SVG"); 
   if( !SetDevice(defaultDeviceName) ){
     cerr << "Error initializing graphics." << endl;
     exit(EXIT_FAILURE);
