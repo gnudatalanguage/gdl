@@ -539,16 +539,6 @@ endif(USE_MAGICK AND NOT WIN32)
 set(wxWidgets_USE_DEBUG OFF) # Use release build
 if(WXWIDGETS)
     #
-    # we check whether plplot was compiled within wxwidgets
-    #
-# AC 2015/04/07 this is not working well, just on few cases :( 
-#   check_library_exists("${PLPLOT_LIBRARIES}" plD_DEVICE_INFO_wxwidgets "" HAVE_PLPLOT_WXWIDGETS)
-#   if(NOT HAVE_PLPLOT_WXWIDGETS)
-#          message(FATAL_ERROR  "wxWidgets are required but PLplot wxWidgets NOT found.\n"
-#          "If -DWXWIDGETS=ON (default) then PLplot must have be compiled with -DPLD_wxwidgets=ON\n"
-#          "use -DWXWIDGETS=OFF to not use wxWidgets since it is not available here in PLplot")
-#        endif(NOT HAVE_PLPLOT_WXWIDGETS)
-    #
     set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
     find_package(wxWidgets COMPONENTS base core adv)
     set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
@@ -566,6 +556,24 @@ if(WXWIDGETS)
                 "(suitable Debian/Ubuntu package: libwxgtk2.8-dev)\n"
                 "(suitable Fedora/CentOS package: wxGTK-devel)")
     endif(wxWidgets_FOUND)
+    #
+    # we check whether plplot was compiled within wxwidgets
+    #
+    check_c_source_runs("
+    #include <plplot/plplot.h>
+    #include<string.h>
+    int main(int argc, char **argv) {
+  int numdevs = 128;
+  const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
+  const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
+  plgDevs(&devlongnames, &devnames, &numdevs);
+  for (int i = 0; i < numdevs; ++i) {if (strcmp(\"wxwidgets\", devnames[i])==0) exit(EXIT_SUCCESS);}
+  exit(EXIT_FAILURE);
+}" HAVE_PLPLOT_WXWIDGETS_DRIVER)
+if (NOT HAVE_PLPLOT_WXWIDGETS_DRIVER) 
+message(FATAL_ERROR "PlPlot wxWidgets driver not found, please check your plplot installation")
+endif (NOT HAVE_PLPLOT_WXWIDGETS_DRIVER) 
+
 endif(WXWIDGETS)
 
 # libtiff
