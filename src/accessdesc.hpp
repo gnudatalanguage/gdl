@@ -389,7 +389,7 @@ public:
  void ADAssign(BaseGDL* r) {
   SetupDim();
 
-  SizeT lRank = dim.Rank();
+//  SizeT lRank = dim.Rank();
   SizeT rRank = r->Rank();
 
   //     if( rRank > lRank)
