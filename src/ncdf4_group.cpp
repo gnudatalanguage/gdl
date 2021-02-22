@@ -44,7 +44,7 @@ namespace lib {
 
   BaseGDL* ncdf_groupsinq(EnvT* e)
   {
-    size_t nParam=e->NParam(1);
+//    size_t nParam=e->NParam(1);
      
     DLong grpid;
     e->AssureLongScalarPar( 0, grpid);
@@ -77,7 +77,7 @@ namespace lib {
 
   BaseGDL* ncdf_groupdef(EnvT* e)
   {
-    size_t nParam=e->NParam(2);
+//    size_t nParam=e->NParam(2);
 
     DLong grpid;
     e->AssureLongScalarPar( 0, grpid);
@@ -97,7 +97,7 @@ namespace lib {
 
   BaseGDL* ncdf_groupname(EnvT* e)
   {
-    size_t nParam=e->NParam(1);
+//    size_t nParam=e->NParam(1);
 
     DLong grpid;
     e->AssureLongScalarPar( 0, grpid);
@@ -114,7 +114,7 @@ namespace lib {
 
   BaseGDL* ncdf_fullgroupname(EnvT* e)
   {
-    size_t nParam=e->NParam(1);
+//    size_t nParam=e->NParam(1);
     
     DLong grpid;
     e->AssureLongScalarPar( 0, grpid);
@@ -130,7 +130,7 @@ namespace lib {
 
   BaseGDL* ncdf_groupparent(EnvT* e)
   {
-    size_t nParam=e->NParam(1);
+//    size_t nParam=e->NParam(1);
     
     DLong grpid;
     e->AssureLongScalarPar( 0, grpid);
@@ -170,7 +170,7 @@ namespace lib {
   {
  
     // it is mandatory to have 2 parameters !
-    size_t nParam=e->NParam(2);
+//    size_t nParam=e->NParam(2);
 
     // in fact, we can use the "grpid" to check the file format it-self.
     DLong grpid;

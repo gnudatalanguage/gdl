@@ -289,11 +289,11 @@ namespace lib {
 
   void ncdf_attput(EnvT* e) // {{{
   { 
-    size_t N_Params=e->NParam(3);
+//    size_t N_Params=e->NParam(3);
     int status, val_num;
     nc_type xtype;
     
-    BaseGDL* at;//name
+//    BaseGDL* at;//name
     DString attname;
     BaseGDL* val;//value;
 
@@ -430,7 +430,7 @@ return;
 
     int status,add;
     //incdf
-    DLong integer,incdf,outcdf,invar,outvar;
+    DLong incdf,outcdf,invar,outvar;
     e->AssureLongScalarPar(0, incdf);
 
     add=0;
@@ -546,9 +546,9 @@ return;
     size_t nParam=e->NParam(2);
     int status;
     
-    BaseGDL* at;//name
+//    BaseGDL* at;//name
     DString attname;
-    BaseGDL* val;//value;
+//    BaseGDL* val;//value;
 
 
     //get the cdfid, which must be given.
@@ -599,10 +599,10 @@ return;
     size_t nParam=e->NParam(3);
     int status;
     
-    BaseGDL* at;//name
+//    BaseGDL* at;//name
     DString attname;
     DString newname;
-    BaseGDL* val;//value;
+//    BaseGDL* val;//value;
 
 
     //get the cdfid, which must be given.

@@ -65,7 +65,7 @@ namespace lib {
 
   void negzero_message(const char * name,int index, int set)
   {
-    int mema=3;
+//    int mema=3;
     string mess;
     mess=name;
     mess+="Value of index "+i2s(index);
@@ -93,14 +93,14 @@ namespace lib {
 
   BaseGDL* ncdf_varinq(EnvT* e)
   {
-    size_t nParam=e->NParam(2);
+//    size_t nParam=e->NParam(2);
 
 
     int status,var_ndims,var_dims[NC_MAX_VAR_DIMS],var_natts;
     nc_type var_type;
     char var_name[NC_MAX_NAME];
 
-    BaseGDL* n;
+//    BaseGDL* n;
 
     DLong cdfid, varid;
     e->AssureLongScalarPar(0, cdfid);
@@ -161,7 +161,7 @@ namespace lib {
 
   BaseGDL* ncdf_varid(EnvT* e)
   {
-    size_t nParam=e->NParam(2);
+//    size_t nParam=e->NParam(2);
 
 
     int status, var_id;
@@ -184,17 +184,17 @@ namespace lib {
 
   void ncdf_varget1(EnvT* e)
   {
-    size_t nParam=e->NParam(3);
+//    size_t nParam=e->NParam(3);
      
     int status,var_ndims,var_dims[NC_MAX_VAR_DIMS],var_natts;
     size_t index[NC_MAX_VAR_DIMS];
-    size_t reverse_index[NC_MAX_VAR_DIMS];
+//    size_t reverse_index[NC_MAX_VAR_DIMS];
     size_t dim_length[NC_MAX_VAR_DIMS];
 
 
     nc_type var_type;
-    char var_name[NC_MAX_NAME], *n;
-    size_t i,mema;
+    char var_name[NC_MAX_NAME];
+    size_t i;
 
     DLong cdfid, varid;
     e->AssureLongScalarPar(0, cdfid);
@@ -223,7 +223,7 @@ namespace lib {
       {
 	status=nc_inq_dimlen(cdfid,var_dims[i],&dim_length[i]);
 	ncdf_handle_error(e,status,"NCDF_VARGET1");
-	reverse_index[var_dims[i]]=i;
+//	reverse_index[var_dims[i]]=i;
       }
     
     for (i=0;i<var_ndims;++i)index[i]=0;//defaults
@@ -246,7 +246,7 @@ namespace lib {
 	      {
 		index[nEl-(i+1)]=0;
 
-		string mess;
+//		string mess;
 		negzero_message("NCDF_VARGET1: Offset on",i,0);
 	      }
 	    else
@@ -348,10 +348,11 @@ else if(var_type == NC_LONG)
   void ncdf_varget(EnvT* e)
   {
 
-    size_t nParam=e->NParam(3);
+//    size_t nParam=e->NParam(3);
    
     int status,var_ndims,var_dims[NC_MAX_VAR_DIMS],var_natts;
-    size_t index[NC_MAX_VAR_DIMS], dim_length[NC_MAX_VAR_DIMS];
+//    size_t index[NC_MAX_VAR_DIMS];
+      size_t dim_length[NC_MAX_VAR_DIMS];
     DLong transposed_dim_length[NC_MAX_VAR_DIMS];
     long trans[NC_MAX_VAR_DIMS];
 
@@ -388,7 +389,7 @@ else if(var_type == NC_LONG)
       ncdf_handle_error(e, status, "NCDF_VARGET");
     }
     
-    for (int i = 0; i < var_ndims; ++i) index[i]=0;//defaults
+//    for (int i = 0; i < var_ndims; ++i) index[i]=0;//defaults
 
     /*Here we have the minimum required details for getting any kind of data
 
@@ -479,7 +480,7 @@ else if(var_type == NC_LONG)
     else  
     {
       //OFFSET AND/OR COUNT and NOT/ STRIDE
-      BaseGDL *offset,*count;
+//      BaseGDL *offset,*count;
       size_t off[NC_MAX_VAR_DIMS], cou[NC_MAX_VAR_DIMS];
       for (int i = 0; i < NC_MAX_VAR_DIMS; ++i)
       {
@@ -601,7 +602,7 @@ else if(var_type == NC_LONG)
       {
         //STRIDE
         ptrdiff_t stri[NC_MAX_VAR_DIMS];
-        BaseGDL * stride;
+//        BaseGDL * stride;
         DIntGDL *s=e->GetKWAs<DIntGDL>(2);
         for (int i = 0; i < var_ndims; ++i) stri[i]=1;
         int nstri=s->N_Elements();
@@ -630,7 +631,7 @@ else if(var_type == NC_LONG)
             //silent if there is no COUNT keyword
             if(e->GetKW(0) !=NULL)
             {
-              int mema=3;
+//              int mema=3;
               string mess;
               mess = "NCDF_VARGET: Requested read is larget than data in dimension ";
               mess+=i2s(i);
@@ -777,12 +778,12 @@ else if(var_type == NC_LONG)
 
   void ncdf_varrename(EnvT* e)
   {
-    size_t nParam=e->NParam(3);
+//    size_t nParam=e->NParam(3);
     int status;
     
 
     //get the cdfid, which must be given.
-    BaseGDL* n;
+//    BaseGDL* n;
 
     DLong cdfid, varid;
     e->AssureLongScalarPar(0, cdfid);
@@ -818,10 +819,10 @@ else if(var_type == NC_LONG)
   {
 
     //definitions
-    int status, status_tr;
+    int status;
 
     size_t value_nelem, dim_length[MAXRANK];
-    long trans[NC_MAX_VAR_DIMS], retrans[NC_MAX_VAR_DIMS];
+    long trans[NC_MAX_VAR_DIMS]; //retrans[NC_MAX_VAR_DIMS];
 
     int var_dims[NC_MAX_VAR_DIMS], var_natts;
     char var_name[NC_MAX_NAME];
@@ -864,14 +865,14 @@ else if(var_type == NC_LONG)
     if (var_ndims == 0)//scalar
     {
       trans[0] = 0;
-      retrans[0] = 0;
+//      retrans[0] = 0;
     }
     else
     {
       for (int i=0; i < var_ndims; ++i)
       {
         trans[i] = var_ndims - i - 1;
-        retrans[i] = i;
+//        retrans[i] = i;
       }
     }
 

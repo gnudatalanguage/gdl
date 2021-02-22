@@ -698,7 +698,7 @@ namespace lib {
 
     DDoubleGDL* Xpos = e->GetParAs<DDoubleGDL>(0);
     SizeT nElpXpos = Xpos->N_Elements();
-    DType t0 = e->GetParDefined(0)->Type();
+//    DType t0 = e->GetParDefined(0)->Type();
 
     DDoubleGDL* Ypos = e->GetParAs<DDoubleGDL>(1);
     SizeT nElpYpos = Ypos->N_Elements();
@@ -1032,28 +1032,32 @@ namespace lib {
 
     DByteGDL* res = new DByteGDL(p0->Dim(), BaseGDL::NOZERO);
 
-    if (e->GetKW(preserveix) != NULL)
+    
+    //WRONG, see DILATE: rewrite, following is false (deos not redefine res, exist ony if /GRAY ...)
+    if (e->GetKW(preserveix) != NULL) {
+      switch (p0->Type()) {
+      case GDL_BYTE:
       {
-	switch (p0->Type())
-	  {
-	  case GDL_BYTE:{
-	    DByteGDL* res = new DByteGDL(p0->Dim(), BaseGDL::NOZERO);
-	    break;
-	  }
-	  case GDL_UINT:{
-	    DUIntGDL* res = new DUIntGDL(p0->Dim(), BaseGDL::NOZERO);
-	    break;
-	  }
-	  case GDL_ULONG:{
-	    DULongGDL* res = new DULongGDL(p0->Dim(), BaseGDL::NOZERO);
-	    break;
-	  }
-	  default:{
-	    e->Throw( "PRESERVE_TYPE valid only with BYTE, UINT, and ULONG.");
-	    break;
-	  }
-	  }
+        //	    DByteGDL* res = new DByteGDL(p0->Dim(), BaseGDL::NOZERO);
+        break;
       }
+      case GDL_UINT:
+      {
+        //	    DUIntGDL* res = new DUIntGDL(p0->Dim(), BaseGDL::NOZERO);
+        break;
+      }
+      case GDL_ULONG:
+      {
+        //	    DULongGDL* res = new DULongGDL(p0->Dim(), BaseGDL::NOZERO);
+        break;
+      }
+      default:
+      {
+        //	    e->Throw( "PRESERVE_TYPE valid only with BYTE, UINT, and ULONG.");
+        break;
+      }
+      }
+    }
 
     long int nbX = p0->Dim(0);
     long int nbY = p0->Dim(1);
@@ -1190,28 +1194,31 @@ namespace lib {
 
     DByteGDL* res = new DByteGDL(p0->Dim(), BaseGDL::NOZERO);
 
-    if (e->GetKW(preserveix) != NULL)
+    //WRONG! see ERODE same problem
+    if (e->GetKW(preserveix) != NULL) {
+      switch (p0->Type()) {
+      case GDL_BYTE:
       {
-	switch (p0->Type())
-	  {
-	  case GDL_BYTE:{
-	    DByteGDL* res = new DByteGDL(p0->Dim(), BaseGDL::NOZERO);
-	    break;
-	  }
-	  case GDL_UINT:{
-	    DUIntGDL* res = new DUIntGDL(p0->Dim(), BaseGDL::NOZERO);
-	    break;
-	  }
-	  case GDL_ULONG:{
-	    DULongGDL* res = new DULongGDL(p0->Dim(), BaseGDL::NOZERO);
-	    break;
-	  }
-	  default:{
-	    e->Throw( "PRESERVE_TYPE valid only with BYTE, UINT, and ULONG.");
-	    break;
-	  }
-	  }
+//        DByteGDL* res = new DByteGDL(p0->Dim(), BaseGDL::NOZERO);
+        break;
       }
+      case GDL_UINT:
+      {
+//        DUIntGDL* res = new DUIntGDL(p0->Dim(), BaseGDL::NOZERO);
+        break;
+      }
+      case GDL_ULONG:
+      {
+//        DULongGDL* res = new DULongGDL(p0->Dim(), BaseGDL::NOZERO);
+        break;
+      }
+      default:
+      {
+//        e->Throw("PRESERVE_TYPE valid only with BYTE, UINT, and ULONG.");
+        break;
+      }
+      }
+    }
 
     long int nbX = p0->Dim(0);
     long int nbY = p0->Dim(1);
