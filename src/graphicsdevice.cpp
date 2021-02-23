@@ -222,7 +222,7 @@ void GraphicsDevice::Init()
     actGUIDevice =current_device;      // GuiDevice is same as X or WIN in this case
 #else //not linked with wxWidgets: plot is either X or WIN depending on platform
 #ifdef HAVE_X
-    current_device=new DeviceX(defaultDeviceName); /X on unix, MAC on mac... is it necessary ?
+    current_device=new DeviceX(defaultDeviceName); //X on unix, MAC on mac... is it necessary ?
 #elif _WIN32
     current_device=new DeviceWIN(defaultDeviceName);
 #endif
