@@ -85,9 +85,6 @@ enum { WINDOW_TIMER = -2*wxID_HIGHEST, RESIZE_TIMER, RESIZE_PLOT_TIMER }; //nega
 
 class DStructGDL;
 
-class wxAppGDL;
-//static GDLApp *theGDLApp=NULL;
-
 // thread safe deque
 class GDLEventQueue
 {
@@ -199,23 +196,6 @@ public:
  }
 };
 
-// main App class
-class wxAppGDL: public wxApp
-{
-public:
-//  virtual int OnRun(); 
-  virtual int OnExit();
- virtual int MainLoop();
-// virtual int OneLoop();
- virtual bool OnInit();
-// bool Pending(); //Returns true if unprocessed events are in the window system event queue.
-// int FilterEvent(wxEvent& event) //This function is called before processing any event and 
-//allows the application to preempt the processing of some events. If this method returns -1
-//the event is processed normally, otherwise either true or false should be returned and 
-//the event processing stops immediately considering that the event had been already processed
-//(for the former return value) or that it is not going to be processed at all (for the latter one).
-};
-wxDECLARE_APP(wxAppGDL);
 
 // GDL versions of wxWidgets controls =======================================
 DECLARE_LOCAL_EVENT_TYPE(wxEVT_SHOW_REQUEST, -1)
@@ -231,7 +211,6 @@ class gdlwxFrame : public wxFrame {
 
  bool mapped;
  wxSize frameSize;
- wxAppGDL* appOwner;
  wxTimer * m_resizeTimer;
  GDLWidgetTopBase* gdlOwner;
 
@@ -243,13 +222,6 @@ public:
  // called from ~GDLWidgetBase
  void NullGDLOwner() {
   gdlOwner = NULL;
- }
- wxAppGDL* GetTheApp() {
-  return appOwner;
- }
-
- void SetTheApp(wxAppGDL* myApp) {
-  appOwner = myApp;
  }
 
  GDLWidgetTopBase* GetGDLOwner() {
@@ -836,11 +808,11 @@ public:
 
 class GDLWidgetTopBase : public GDLWidgetBase {
  WidgetIDT mbarID;
- wxAppGDL* myGDLApp;
 public:
  bool xmanActCom; //set by /XMANAGER_ACTIVE_COMMAND (GDL's) aka NO_BLOCK . indirectly used in pushEvent, selfDestroy, ~GDLWidgetContainer, ClearEvents
  gdlwxFrame* topFrame;
  bool modal;
+ bool realized;
  GDLWidgetTopBase(EnvT* e, ULong eventFlags_,
    bool mapWid,
    WidgetIDT& mBarIDInOut, bool modal_, DLong frame_attr,
@@ -863,9 +835,7 @@ public:
  bool IsTopBase() const final{
   return true;
  }
- wxAppGDL* GetTopApp(){
-  return myGDLApp;
- }
+ bool IsRealized() { return realized; }
  gdlwxFrame* GetTopFrame() {
   return topFrame;
  }
@@ -1824,7 +1794,6 @@ public:
 //phantom window used to find exactly the size of scrollbars, as wxWidgets does not coorectly report them
 class gdlwxPhantomFrame : public wxFrame {
  public:
- wxAppGDL* myGDLApp;
  gdlwxPhantomFrame();
  void Realize();
 };
@@ -1836,15 +1805,10 @@ class gdlwxPlotFrame : public wxFrame {
  wxSize frameSize;
  bool scrolled;
 public:
- wxAppGDL* myGDLApp;
  // ctor(s)
  gdlwxPlotFrame(const wxString& title, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_FRAME_STYLE, bool scrolled=false);
  ~gdlwxPlotFrame();
-  wxAppGDL* GetTopApp(){
-  return myGDLApp;
- }
   bool IsScrolled(){return scrolled;}
- void SetTheApp(wxAppGDL* app){myGDLApp=app;} 
  void Realize();
 // event handlers (these functions should _not_ be virtual)
 // void OnClosePlotFrame(wxCloseEvent & event);

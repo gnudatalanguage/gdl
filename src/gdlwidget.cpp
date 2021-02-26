@@ -598,10 +598,7 @@ void GDLWidget::RefreshDynamicWidget() {
 void GDLWidget::HandleWidgetEvents()
 {
   //make one loop for wxWidgets Events...
-//  	if ( ! wxIsStarted() ) Init();
-  // This kills OSX gdl; Instead call init() from graphicsdevice.cpp
-//  if ( wxTheApp) {
-    wxGetApp().OnRun(); //wxTheApp may not be started
+    wxTheApp->Yield();
   //treat our GDL events...
     DStructGDL* ev = NULL;
     while( (ev = GDLWidget::readlineEventQueue.Pop()) != NULL)
@@ -1050,23 +1047,17 @@ void GDLWidgetTopBase::Realize(bool map, bool use_default) {
 #endif
   if (use_default) map = GetMap();
 
-  myGDLApp = new wxAppGDL;
-  myGDLApp->OnInit();
-  // add an idle event seems necessary for Linux (wxGTK2) and does not harm Windows either
-  wxIdleEvent idlevent;
-  myGDLApp->AddPendingEvent(idlevent);
-  myGDLApp->OnRun();
-  topFrame->SetTheApp(myGDLApp);
   OnRealize();
   
  if (map) topFrame->Show() ; //endShowRequestEvent();
   else topFrame->Hide(); //SendHideRequestEvent();
+  realized=true;
 }
 
 bool GDLWidget::GetRealized() {
     GDLWidgetTopBase *tlb = GetMyTopLevelBaseWidget();
     gdlwxFrame* topFrame = tlb->GetTopFrame();
-    return (topFrame->GetTheApp()!=NULL);
+    return (tlb->IsRealized());
   }
   void GDLWidgetContainer::OnRealize() {
 #ifdef GDL_DEBUG_WIDGETS
@@ -1606,9 +1597,9 @@ int xpad_, int ypad_,
 DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignment, int space_)
 : GDLWidgetBase( GDLWidget::NullID, e, eventFlags_, mapWid, col, row, exclusiveMode_, resource_name, rname_mbar, title_, display_name, xpad_, ypad_, x_scroll_size, y_scroll_size, grid_layout, children_alignment, space_)
 , mbarID(mBarIDInOut)
-, myGDLApp(NULL)
 , xmanActCom(false)
 , modal(modal_)
+, realized(false)
 {
   
   // All bases can receive events: EV_CONTEXT, EV_KBRD_FOCUS, EV_TRACKING
@@ -5232,7 +5223,6 @@ gdlwxFrame::gdlwxFrame( wxWindow* parent, GDLWidgetTopBase* gdlOwner_, wxWindowI
 , mapped( false )
 , frameSize(size)
 , gdlOwner( gdlOwner_)
-, appOwner(NULL)
 {
   Create ( parent, id, title, pos, size, style );
   m_resizeTimer = new wxTimer(this,RESIZE_TIMER);
@@ -5263,8 +5253,6 @@ gdlwxPhantomFrame::gdlwxPhantomFrame()
 }
 
 void gdlwxPhantomFrame::Realize() {
-  myGDLApp = new wxAppGDL;
-  myGDLApp->OnInit();
   wxWindow* c=this->GetChildren()[0];
   //retrieve toolkit's width and height of scrollbars (useful to calculate sizes for widgets)
   wxSize s=c->GetSize();
@@ -5273,10 +5261,6 @@ void gdlwxPhantomFrame::Realize() {
 //  std::cerr<<w.x<<","<<w.y<<std::endl;
   sysScrollHeight=w.y;
   sysScrollWidth=w.x;
-  // add an idle event seems necessary for Linux (wxGTK2) and does not harm Windows either
-  wxIdleEvent idlevent;
-  myGDLApp->AddPendingEvent(idlevent);
-  myGDLApp->OnRun();
 }
 
 // Frame for Plots ========================================================
@@ -5303,13 +5287,6 @@ void gdlwxPlotFrame::Realize() {
 #ifdef GDL_DEBUG_WIDGETS
     wxMessageOutputStderr().Printf(_T("gdlwxPlotFrame:Realize\n"));
 #endif
-  myGDLApp = new wxAppGDL;
-  myGDLApp->OnInit();
-   // add an idle event seems necessary for Linux (wxGTK2) and does not harm Windows either
-  wxIdleEvent idlevent;
-  myGDLApp->AddPendingEvent(idlevent);
-  myGDLApp->OnRun();
-  this->SetTheApp(myGDLApp);
 }
 
 //version using wxBG_STYLE_PAINT and blit to an AutoBufferedPaintDC, will this improve speed?
@@ -5663,37 +5640,6 @@ void GDLWidgetDraw::SetWidgetScreenSize(DLong sizex, DLong sizey) {
 #endif
   UpdateGui();
   END_CHANGESIZE_NOEVENT
-}
-// GDLApp =================================================
-
-#include "wx/evtloop.h"
-#include "wx/ptr_scpd.h"
-
-wxDEFINE_TIED_SCOPED_PTR_TYPE(wxEventLoop);
-
-bool wxAppGDL::OnInit()
-{ 
-  wxDISABLE_DEBUG_SUPPORT();
-    return true;
-}
-   int wxAppGDL::MainLoop()
-{
-    wxEventLoopTiedPtr mainLoop((wxEventLoop **)&m_mainLoop, new wxEventLoop);
-    m_mainLoop->SetActive(m_mainLoop);
-     wxEventLoop * const loop = (wxEventLoop *)wxEventLoop::GetActive();
-        while(loop->Pending()) // Unprocessed events in queue
-        { 
-          loop->Dispatch(); // Dispatch next event in queue
-        }
-     return 0;
-}
-
-int wxAppGDL::OnExit()
-{
-  std::cout << " In GDLApp::OnExit()" << std::endl;
-  // Defined in guiThread::OnExit() in gdlwidget.cpp
-  //  std::cout << "Exiting thread (GDLApp::OnExit): " << thread << std::endl;
-  return 0;
 }
 
 

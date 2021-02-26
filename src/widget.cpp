@@ -2354,9 +2354,7 @@ BaseGDL* widget_info( EnvT* e ) {
 
     do { // outer while loop, will run once if NOWAIT
       while (1) { //inner loop, catch controlC, default return if no event trapped in nowait mode
-        wxAppGDL* theGDLApp = new wxAppGDL;
-        theGDLApp->OnInit();
-        theGDLApp->MainLoop();
+        wxTheApp->Yield();
         if (!all) { //specific widget(s)
             // note: when a widgetId is passed, all the other events in IDL block until the good one is found (or ^C).
             // Apparently this behaviour is not dependent on GetXmanagerActiveCommand( ) status, so I check both eventLists.

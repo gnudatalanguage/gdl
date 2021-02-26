@@ -75,8 +75,6 @@ BEGIN_EVENT_TABLE(gdlwxPlotFrame, wxFrame)
   EVT_TIMER(RESIZE_PLOT_TIMER, gdlwxPlotFrame::OnTimerPlotResize) 
 END_EVENT_TABLE()
 
-wxIMPLEMENT_APP_NO_MAIN( wxAppGDL);
-
 void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_KBRD_EVENTS )
   wxMessageOutputStderr().Printf(_T("in gdlTextCtrl::OnChar: %d Keycode:%d\n"),event.GetId(),event.GetKeyCode( ));

@@ -208,12 +208,6 @@ void GraphicsDevice::Init()
   std::string defaultDeviceName=std::string("X"); //what we expect the plot device to be
 #endif
   
-#ifdef HAVE_LIBWXWIDGETS
-//    DStructGDL* version = SysVar::Version();
-//    static unsigned osTag = version->Desc()->TagIndex( "OS");
-//    DString os = (*static_cast<DStringGDL*>( version->GetTag( osTag, 0)))[0];
-    GDLWidget::Init();
-#endif
   // if GDL_DISABLE_WX_PLOTS (or switch --no-use-wx ) IS NOT PRESENT , and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
   // no other device is defined.
   if (useWxWidgetsForGraphics) {

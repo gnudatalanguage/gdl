@@ -62,6 +62,12 @@
 // GDLDATADIR
 #include "config.h"
 
+//initialize wxWidgets system
+#ifdef HAVE_LIBWXWIDGETS
+#include "gdlwidget.hpp"
+wxIMPLEMENT_APP_NO_MAIN( wxApp);
+#endif
+
 using namespace std;
 
 static void StartupMessage()
@@ -147,11 +153,10 @@ void InitGDL()
   //when editing the command line with ARROW keys. (bug 562). (used also in dinterpreted.cpp )
   //but... without it we have no graphics event handler! FIXME!!! 
   rl_event_hook = GDLEventHandler;
-  // SA: history is now stifled in the interpreter.InterpreterLoop( startup),
-  //     enabling one to set the history-file length via the !EDIT_INPUT sysvar
-  // stifle_history( 20);
 #endif
-
+#ifdef HAVE_LIBWXWIDGETS
+    GDLWidget::Init();
+#endif
   // ncurses blurs the output, initialize TermWidth here
   TermWidth();
 
