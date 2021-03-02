@@ -1185,7 +1185,11 @@ BaseGDL* widget_draw( EnvT* e ) {
   if (isMenu) button = new GDLWidgetMenuButton( parentID, e, value, eventFlags, bitmap, tooltipgdl);
     else button = new GDLWidgetNormalButton( parentID, e, value, eventFlags, bitmap, tooltipgdl);
   } else if (parent->IsMenuBar()) {
-    button = new GDLWidgetMbarButton( parentID, e, value, eventFlags, tooltipgdl);
+#ifdef PREFERS_MENUBAR
+    button = new GDLWidgetMenuBarButton( parentID, e, value, eventFlags, tooltipgdl);
+#else
+    button = new GDLWidgetMenuBarButton( parentID, e, value, eventFlags, bitmap, tooltipgdl);
+#endif
   } else if (parent->IsMenu()) {    
     if (e->KeywordPresent(TOOLTIP)) e->Throw("Tooltips are not available for menu items.");
     if (isMenu)  button = new GDLWidgetSubMenu( parentID, e, value, eventFlags, hasSeparatorAbove, bitmap);
@@ -2354,7 +2358,11 @@ BaseGDL* widget_info( EnvT* e ) {
 
     do { // outer while loop, will run once if NOWAIT
       while (1) { //inner loop, catch controlC, default return if no event trapped in nowait mode
+#if __WXMSW__ 
+        wxTheApp->MainLoop();
+#else
         wxTheApp->Yield();
+#endif
         if (!all) { //specific widget(s)
             // note: when a widgetId is passed, all the other events in IDL block until the good one is found (or ^C).
             // Apparently this behaviour is not dependent on GetXmanagerActiveCommand( ) status, so I check both eventLists.
@@ -2938,7 +2946,9 @@ void widget_control( EnvT* e ) {
 
         if (isBitmap && isString) {
           GDLWidgetButton *bb = (GDLWidgetButton *) widget;
-          if (dynamic_cast<GDLWidgetMbarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
+#ifdef PREFERS_MENUBAR
+          if (dynamic_cast<GDLWidgetMenuBarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
+#endif
           //try loading file
           {
             if (!GDLWidget::AreWxHandlersOk()) {
@@ -2977,7 +2987,9 @@ void widget_control( EnvT* e ) {
               bitmap = new wxBitmap(*tryImage);
             }
             GDLWidgetButton *bb = (GDLWidgetButton *) widget;
-            if (dynamic_cast<GDLWidgetMbarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
+#ifdef PREFERS_MENUBAR
+            if (dynamic_cast<GDLWidgetMenuBarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
+#endif
             bb->SetButtonWidgetBitmap(bitmap);
           } else e->Throw("Value must be string or byte.");
         }

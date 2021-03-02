@@ -39,6 +39,7 @@
 #include <wx/popupwin.h>
 #include <wx/notebook.h>
 #include <wx/dcbuffer.h>
+#include <wx/toolbar.h>
 #include <deque>
 #include <map>
 
@@ -195,7 +196,26 @@ public:
  WidgetEventInfo(wxEventType t_, wxObjectEventFunction f_, wxWindow* w_) : t(t_), f(f_), w(w_) {
  }
 };
-
+#if __WXMSW__ 
+// main App class
+class wxAppGDL: public wxApp
+{
+ wxEventLoopBase* loop;
+public:
+ int OnRun(){return 0;}
+ int OnExit();
+ int MainLoop();
+// virtual int OneLoop();
+ bool OnInit();
+// bool Pending(); //Returns true if unprocessed events are in the window system event queue.
+// int FilterEvent(wxEvent& event) //This function is called before processing any event and 
+//allows the application to preempt the processing of some events. If this method returns -1
+//the event is processed normally, otherwise either true or false should be returned and 
+//the event processing stops immediately considering that the event had been already processed
+//(for the former return value) or that it is not going to be processed at all (for the latter one).
+};
+//wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
+#endif
 
 // GDL versions of wxWidgets controls =======================================
 DECLARE_LOCAL_EVENT_TYPE(wxEVT_SHOW_REQUEST, -1)
@@ -1100,11 +1120,15 @@ public:
  void SetButtonWidgetLabelText( const DString& value_ );
 } ;
 
-class GDLWidgetMbarButton: public GDLWidgetMenu {
+class GDLWidgetMenuBarButton: public GDLWidgetMenu {
  int entry;
 public:
- GDLWidgetMbarButton(WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, DStringGDL* buttonTooltip = NULL);
- ~GDLWidgetMbarButton();
+#ifdef PREFERS_MENUBAR
+ GDLWidgetMenuBarButton(WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, DStringGDL* buttonTooltip = NULL);
+#else
+ GDLWidgetMenuBarButton(WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, wxBitmap* bitmap_=NULL, DStringGDL* buttonTooltip = NULL);
+#endif
+ ~GDLWidgetMenuBarButton();
  void SetSensitive(bool value);
  void SetButtonWidgetLabelText( const DString& value_ );
 };
@@ -1309,15 +1333,16 @@ public:
   void UnrefTheWxWidget(){theWxWidget=NULL;} 
 };
 
-
+// menubar is best done with a toolbar at the moment, see below
+#ifdef PREFERS_MENUBAR
 // menu bar widget **************************************************
-class GDLWidgetMBar: public GDLWidget
+class GDLWidgetMenuBar: public GDLWidget
 {
 protected:
   std::deque<WidgetIDT> children;
-  ~GDLWidgetMBar();
+  ~GDLWidgetMenuBar();
 public:
-  GDLWidgetMBar( WidgetIDT p, EnvT* e): 
+  GDLWidgetMenuBar( WidgetIDT p, EnvT* e): 
   GDLWidget( p, NULL) //NULL because MBar must not re-read env Values of e
   {
     theWxWidget = theWxContainer = new wxMenuBar(wxMB_DOCKABLE);
@@ -1357,7 +1382,60 @@ public:
   }
   bool IsMenuBar() const final { return true;}
 };
-
+#else
+// tool bar widget **************************************************
+//this widget is preferred to GDLWidgetMenuBar since 1) it can have any kind of buttons and 2) the menuBar is a problem on Apple OSX (too far from IDL rendering on Window
+class GDLWidgetMenuBar: public GDLWidget
+{
+protected:
+  std::deque<WidgetIDT> children;
+  ~GDLWidgetMenuBar();
+public:
+  GDLWidgetMenuBar( wxFrame* frame, WidgetIDT p, EnvT* e): 
+  GDLWidget( p, NULL) //NULL because MBar must not re-read env Values of e
+  { 
+   long style=wxTB_HORIZONTAL|wxTB_DOCKABLE|wxTB_FLAT;
+   wxToolBar* t= frame->CreateToolBar(style, wxID_ANY);
+    theWxWidget = theWxContainer = t;
+    widgetSizer=new wxBoxSizer(wxHORIZONTAL);
+    t->SetSizer(widgetSizer);
+    this->SetWidgetType(WIDGET_MBAR);
+  }
+  //same as containers
+  void AddChildID( WidgetIDT c) { children.push_back( c);}
+  void RemoveChild( WidgetIDT  c) {
+      std::deque<WidgetIDT>::iterator it = find(children.begin(), children.end(), c); // Find first,
+      if (it != children.end()) children.erase(it);                                   // ... and remove.
+      }
+  DLong NChildren() const
+  {
+    return children.size( );
+  }
+  WidgetIDT GetChild( DLong childIx) const final
+  {
+    assert( childIx >= 0 );
+    assert( childIx < children.size( ) );
+    return children[childIx];
+  }
+ 
+  DLongGDL* GetChildrenList() const
+  {
+    DLong size=children.size( );
+    if (size<1) return new DLongGDL(0);
+    DLongGDL* ret=new DLongGDL(dimension(size),BaseGDL::ZERO);
+    for (SizeT i=0; i< size; ++i) (*ret)[i]=children[i];
+    return ret;   
+  } 
+  int GetChildrenPos(WidgetIDT c)
+  {
+    DLong size=children.size( );
+    if (size<1) return -1;
+    for (SizeT i=0; i< size; ++i) if (children[i]==c) return i;
+    return -1;   
+  }
+  bool IsMenuBar() const final { return true;}
+};
+#endif
 // tab widget **************************************************
 class GDLWidgetTab: public GDLWidgetContainer
 {

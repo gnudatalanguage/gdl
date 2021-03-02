@@ -38,6 +38,44 @@ function myBitmap
         [000B, 000B, 000B, 000B]            $
         ]
 end
+pro myplot,tr,x,y,b,conn,poly,tag=tag, list=list
+  if n_elements(poly) eq 0 then poly=0
+  if n_elements(conn) gt 0 then doconn=1 else doconn=0
+  if n_elements(b) gt 0 then dob=1 else dob=0
+; colors
+  n=n_elements(tr)/3
+
+  p=randomu(seed,n,/long)
+
+  PLOT, x, y,psym=1,/NODATA,/iso,xst=1,yst=1
+
+  for i=0,n-1 do polyfill,[x[tr[0,i]],x[tr[1,i]],x[tr[2,i]],x[tr[0,i]]],[y[tr[0,i]],y[tr[1,i]],y[tr[2,i]],y[tr[0,i]]],color=p[i]
+
+  if (dob) then begin plots, x[b],y[b],thick=4 & plots, x[b[0]],y[b[0]],thick=4,/cont & end
+
+  if (doconn) then begin
+     i=poly                     ;,n_elements(x)-(n_elements(r)/2)-1 do begin
+     sub=conn[conn[i] : conn[i+1]-1]
+     polyfill,x[sub],y[sub],color=0,/line_fill,spacing=0.2,ori=33,thick=2
+  endif
+
+  nn=n_elements(x)
+  if (keyword_set(list)) then begin
+     for i=0,nn-1 do begin
+        print,i
+        sub=conn[conn[i] : conn[i+1]-1]
+        ns=n_elements(sub)
+        for j=0,ns-3 do begin
+           print,sub[0],sub[(j+1) mod ns],sub[(j+2) mod ns]
+        endfor
+     endfor
+     
+  endif
+
+  if (keyword_set(tag)) then for i=0,n_elements(x)-1 do xyouts,x[i],y[i],i,ali=1,chars=2
+
+end
+
 
 pro exit_gui,ev
   widget_control,ev.top,/DESTROY
@@ -90,10 +128,8 @@ pro handle_Event,ev
 common mycount,count
 help,ev,/str
 if tag_names(ev, /structure_name) eq 'WIDGET_KILL_REQUEST' then begin
-   a=widget_base(/modal,group_leader=ev.id,/col)
    widget_control,ev.id,tlb_kill_request_events=0 ; remove blocking kill
-   b=widget_label(a,value="Click Again to Kill the basewidget number "+strtrim(ev.id,2))
-   widget_control,a,/realize
+   a=dialog_message(title="Blocking removed!","You are now able to close the basewidget number "+strtrim(ev.id,2))
 endif
 
 widget_control,ev.id,get_uvalue=uv 
@@ -182,12 +218,13 @@ print,"Will display some examples of currently available widgets"
 print,"if table is passed as argument and is a structure, TABLE tab will show the"
 print,"elements of the structure as buttons in a scrolled panel"
 print,"options: /nocanvas removes the widget_draw"
-print,"              /notree remove the tree widget"
-print,"              fontname=""Helvetica Narrow 32"" to change a test text font."
-
+print,"         /notree remove the tree widget"
+print,"         fontname=""Helvetica Narrow 32"" to change a test text font."
+print,"         present=[XXX,YYY] where XXX and YY are one or more of the panel types below:"
+print,"         'TEXT','LIST','DRAW','SLIDER','BUTTON','TABLE','TREE','LABEL','DROPLIST','COMBOBOX','BASE' "
 return
 endif
-
+   
 ;base for listing contents of tables and to show selected files
 nrows=n_elements(table)         ; passed table
 if ( n_elements(table) eq 0 or size(table,/type) ne 8 ) then begin
@@ -204,13 +241,16 @@ ev = {vEv,type:'',pos:[0,0]}
  
 base = WIDGET_BASE(/col,MBAR=mbar,title=title,event_pro='base_event_nok',kill_notify='cleanup',/tlb_kill_request_events,/tlb_size_events) ; ---> PROBLEM: ,/tlb_size_events) ;,/scroll)
 doMbar,mbar,fontname
+;mysize=widget_info(base,string_size='012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234')
 
 ; define a tabbed base that contains everything:
-label=widget_label(base,value='base contains a frame=12, tabbed base at (8,7)')
-label=widget_label(base,value='Please note text sizes are OK only if font is of fixed width')
+label=widget_label(base,value='to best mimic IDL`s widgets, call GDL with option "--widget-compat" ',/align_left)
+label=widget_label(base,value='Test calling me with options like "test_widgets,/col,font="Arial 32",/base_align_right" ',/align_left)
+label=widget_label(base,value='                          or like "test_widgets,/col,x_scroll=400,y_scroll=400" ',/align_left)
+label=widget_label(base,value='                          or like "test_widgets,/col,select="TEXT" (see test_widgets,/help) ',/align_left)
 
-tabbed_base = widget_tab( base, xoff=8, yoff=7);, frame=12) ;, scr_xsize=400, scr_ysize=400);, multiline=6)
-;tabbed_base = widget_base( base, col=3, xoff=8, yoff=7, frame=12) ;, scr_xsize=400, scr_ysize=400);, multiline=6)
+tabbed_base = widget_tab( base, frame=12) ;, scr_xsize=400, scr_ysize=400);, multiline=6)
+
 offy=0
 ; TEST: empty base to play with. use with option " present='test' "
 if total(strcmp('TEST',present,/fold)) then begin
@@ -496,7 +536,7 @@ endif
 if total(strcmp('BASE',present,/fold)) then begin
  ;MISC. BASES
  bases_base0 = widget_base( tabbed_base , TITLE="BASEs",event_pro='base_event_ok',_extra=extra) & offy=0
- label=widget_label(yoff=offy,bases_base0,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789,font=fontname') & offy+=10;
+ label=widget_label(yoff=offy,bases_base0,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10;
  tmp=widget_label(yoff=offy,bases_base0,value="below a tab-based base with frame=30",font=fontname) & offy+=10;
  tmp=widget_label(yoff=offy,bases_base0,value="containing a base, frame=100, with 2 buttons; ",font=fontname) & offy+=10;
  tmp=widget_label(yoff=offy,bases_base0,value="another with a label and a text; ",font=fontname) & offy+=10;
@@ -575,17 +615,15 @@ print,"Draw widgets:",draw,draw2
     ;;
     ;; Set the new widget to be the current graphics window 
  print,"window indexes",index,index2
- ;   file='~/gdl/testsuite/Saturn.jpg'
- image=dist(128); read_image(file)
+ image=dist(128)
  WSET,index
- plot,findgen(100)
- tv,image,10,10,/data; ,/true
+ n=100 & x=randomu(seed,n)& y=randomu(seed,n) &p=randomu(seed,10)*n & x[p]=x[3] &y[p]=y[22]& TRIANGULATE, x, y, tr,b,rep=r,conn=conn &myplot,tr,x,y,b,conn,1
 
     ;;
  WSET, index2 
  f=findgen(1000)/100.
  contour,cos(dist(100,100)/10.)
-
+ tv,image,10,10,/data; ,/true
 endif
 
 xmanager,"handle",base,cleanup="cleanup_xmanager",no_block=~block

@@ -598,7 +598,11 @@ void GDLWidget::RefreshDynamicWidget() {
 void GDLWidget::HandleWidgetEvents()
 {
   //make one loop for wxWidgets Events...
+#if __WXMSW__ 
+    wxTheApp->MainLoop(); //central loop for wxEvents!
+#else
     wxTheApp->Yield();
+#endif
   //treat our GDL events...
     DStructGDL* ev = NULL;
     while( (ev = GDLWidget::readlineEventQueue.Pop()) != NULL)
@@ -719,14 +723,15 @@ void GDLWidget::Init()
     std::cerr << "WARNING: wxWidgets not initializing" << std::endl;
     return;
   }
-  //set system font to something sensible now that wx is ON:
+ //set system font to something sensible now that wx is ON:
   if (forceWxWidgetsUglyFonts)
     systemFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ;//  identical for me to GDLWidget::setDefaultFont(wxFont("Monospace 8"));
 #if __WXMSW__ //update for windows:
     bool ok=systemFont.SetNativeFontInfoUserDesc(wxString("consolas 8"));  //consolas 8 is apparently the one most identical to linux courier 8 and IDL X11 default font.
     if (!ok) systemFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ; 
 #endif
-  else systemFont = *wxNORMAL_FONT; //the system GUI default font apparently.
+    else systemFont = *wxSMALL_FONT; // close to IDL in size, but nicer (not fixed).
+
   //initially defaultFont and systemFont are THE SAME.
   defaultFont=systemFont;
   SetWxStarted();
@@ -849,7 +854,7 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV, DULong eventFlags_)
     }
     else if ( gdlParent->IsMenuBar( ) )
     { 
-       GDLWidgetMBar* mb = dynamic_cast<GDLWidgetMBar*> (gdlParent);
+       GDLWidgetMenuBar* mb = dynamic_cast<GDLWidgetMenuBar*> (gdlParent);
        mb->AddChildID( widgetID );
     }
 //    else if ( gdlParent->IsTree( ) )
@@ -1331,10 +1336,11 @@ GDLWidgetContainer::GDLWidgetContainer( WidgetIDT parentID, EnvT* e, ULong event
     
   if (theWxContainer) static_cast<wxWindow*>(theWxContainer)->Destroy(); //which is the panel.
 }
-// 
-   GDLWidgetMBar::~GDLWidgetMBar() {
+
+#ifdef PREFERS_MENUBAR  
+   GDLWidgetMenuBar::~GDLWidgetMenuBar() {
 #ifdef GDL_DEBUG_WIDGETS
-  std::cout << "~GDLWidgetMbar(" << widgetID << ")" << std::endl;
+  std::cout << "~GDLWidgetMenuBar(" << widgetID << ")" << std::endl;
 #endif
 
   // delete all children (in reverse order ?)
@@ -1342,7 +1348,7 @@ GDLWidgetContainer::GDLWidgetContainer( WidgetIDT parentID, EnvT* e, ULong event
     GDLWidget* child=GetWidget(children.back()); children.pop_back();
     if (child) {
 #ifdef GDL_DEBUG_WIDGETS
-      std::cout << "~GDLWidgetMBar, deleting child ID #" << child->GetWidgetID() << " of container  #" << widgetID << std::endl;
+      std::cout << "~GDLWidgetMenuBar, deleting child ID #" << child->GetWidgetID() << " of container  #" << widgetID << std::endl;
 #endif
       delete child;
     }
@@ -1350,7 +1356,27 @@ GDLWidgetContainer::GDLWidgetContainer( WidgetIDT parentID, EnvT* e, ULong event
   //remove wxWidgets MBAR from wxFrame container otherwise wxFrame will attempt to destroy it again and segfault
   dynamic_cast<wxMenuBar*> (theWxWidget)->GetFrame()->SetMenuBar(NULL);
  }
-/*********************************************************/
+#else
+   GDLWidgetMenuBar::~GDLWidgetMenuBar() {
+#ifdef GDL_DEBUG_WIDGETS
+  std::cout << "~GDLWidgetMenuBar(" << widgetID << ")" << std::endl;
+#endif
+
+  // delete all children (in reverse order ?)
+  while (!children.empty()) {
+    GDLWidget* child=GetWidget(children.back()); children.pop_back();
+    if (child) {
+#ifdef GDL_DEBUG_WIDGETS
+      std::cout << "~GDLWidgetMenuBar, deleting child ID #" << child->GetWidgetID() << " of container  #" << widgetID << std::endl;
+#endif
+      delete child;
+    }
+  }
+  //toolbar can be removed
+  dynamic_cast<wxToolBar*> (theWxWidget)->Destroy();
+ }
+#endif  
+ /*********************************************************/
 // for WIDGET_BASE
 /*********************************************************/
 GDLWidgetBase::GDLWidgetBase(WidgetIDT parentID, EnvT* e, ULong eventFlags_,
@@ -1638,12 +1664,18 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignm
   topFrame->SetFont(defaultFont);
 
   if (mbarID != 0) {
-    GDLWidgetMBar* mBar = new GDLWidgetMBar(widgetID, e);
+#if PREFERS_MENUBAR
+    GDLWidgetMenuBar* mBar = new GDLWidgetMenuBar(widgetID, e);
     mbarID = mBar->GetWidgetID();
     mBarIDInOut = mbarID;
     wxMenuBar* me = dynamic_cast<wxMenuBar*> (mBar->GetWxWidget());
     if (me) topFrame->SetMenuBar(me);
     else cerr << "Warning: GDLWidgetBase::GDLWidgetBase: Non-existent menubar widget!\n";
+#else    
+    GDLWidgetMenuBar* mBar = new GDLWidgetMenuBar(topFrame, widgetID, e);
+    mbarID = mBar->GetWidgetID();
+    mBarIDInOut = mbarID;
+#endif
   }
   wxSizer* tfSizer=new wxBoxSizer(wxVERTICAL);
   topFrame->SetSizer(tfSizer);
@@ -4169,11 +4201,12 @@ GDLWidgetMenuEntry::~GDLWidgetMenuEntry() {
 
 //Mbar buttons are pulldown MENUS, so container
 
-GDLWidgetMbarButton::GDLWidgetMbarButton(WidgetIDT p, EnvT* e,
+#ifdef PREFERS_MENUBAR
+GDLWidgetMenuBarButton::GDLWidgetMenuBarButton(WidgetIDT p, EnvT* e,
   DStringGDL* value, DULong eventflags, DStringGDL* buttonToolTip)
 : GDLWidgetMenu(p, e, value, eventflags, NULL)
 , entry(-1) {
-  GDLWidgetMBar* gdlParent = dynamic_cast<GDLWidgetMBar*> (GetWidget(parentID));
+  GDLWidgetMenuBar* gdlParent = dynamic_cast<GDLWidgetMenuBar*> (GetWidget(parentID));
   if (gdlParent) {
     wxMenuBar *menuBar = dynamic_cast<wxMenuBar*> (gdlParent->GetWxWidget());
     assert(menuBar != NULL);
@@ -4188,25 +4221,79 @@ GDLWidgetMbarButton::GDLWidgetMbarButton(WidgetIDT p, EnvT* e,
     //MBAR menus cannot have a tooltip due to 
 
 //    UPDATE_WINDOW; REALIZE_IF_NEEDED; //made on the fly, non need.
-  } else e->Throw("Internal GDL error on GDLWidgetMbarButton(), please report!");
+  }
 }
 
-void GDLWidgetMbarButton::SetSensitive(bool value) {
+#else
+GDLWidgetMenuBarButton::GDLWidgetMenuBarButton(WidgetIDT p, EnvT* e,
+  DStringGDL* value, DULong eventflags, wxBitmap* bitmap_,  DStringGDL* buttonToolTip)
+: GDLWidgetMenu(p, e, value, eventflags, NULL)
+, entry(-1) {
+    entry = widgetID;
+
+  GDLWidgetMenuBar* gdlParent = dynamic_cast<GDLWidgetMenuBar*> (GetWidget(parentID));
+  assert(gdlParent->IsMenuBar());
+  
+  wxToolBar *toolBar = dynamic_cast<wxToolBar*> (gdlParent->GetWxWidget());
+    assert(toolBar != NULL);
+
+    if (bitmap_ == NULL) {
+    wxButtonGDL *button = new wxButtonGDL(font, toolBar, widgetID, valueWxString,
+      wOffset, wxDefaultSize,  wxBU_EXACTFIT|wxBORDER_NONE);
+    buttonType = POPUP_NORMAL; //gdlMenuButton is a wxButton --> normal. Bitmaps will be supported starting from 2.9.1 
+    theWxContainer = button;
+    theWxWidget = button->GetPopupMenu(); //a menu
+    button->Enable(sensitive);
+    toolBar->AddControl(button);
+    toolBar->Realize();
+    } else {
+    wxBitmapButtonGDL *button = new wxBitmapButtonGDL(toolBar, widgetID, *bitmap_,
+      wOffset, wxDefaultSize,  wxBU_EXACTFIT|wxBORDER_NONE);
+    buttonType = POPUP_BITMAP; //
+    theWxContainer = button;
+    theWxWidget = button->GetPopupMenu(); //a menu
+    button->Enable(sensitive);
+    toolBar->AddControl(button);
+    toolBar->Realize();
+    }
+    
+  wxWindow *win = dynamic_cast<wxWindow*> (theWxContainer);
+  if (win) {
+    if (buttonToolTip) win->SetToolTip(wxString((*buttonToolTip)[0].c_str(), wxConvUTF8));
+    if (widgetSizer) widgetSizer->Add(win, DONOTALLOWSTRETCH, widgetStyle|wxALL, gdlSPACE); //|wxALL, gdlSPACE_BUTTON);
+  } else cerr << "Warning GDLWidgetMenuButton::GDLWidgetMenuButton(): widget type confusion.\n";
+
+//    UPDATE_WINDOW; REALIZE_IF_NEEDED;
+}
+#endif
+
+void GDLWidgetMenuBarButton::SetSensitive(bool value) {
+#ifdef PREFERS_MENUBAR
   sensitive = value;
   wxMenuBar *menuBar = dynamic_cast<wxMenuBar*> (theWxContainer);
   menuBar->EnableTop(entry, value);
+#else
+  GDLWidget::SetSensitive(value)  ;
+#endif
 }
 
-void GDLWidgetMbarButton::SetButtonWidgetLabelText( const DString& value_ ) {
+void GDLWidgetMenuBarButton::SetButtonWidgetLabelText( const DString& value_ ) {
+#ifdef PREFERS_MENUBAR
   wxMenuBar *menuBar = dynamic_cast<wxMenuBar*> (theWxContainer);
   menuBar->SetMenuLabel(entry, wxString( value_.c_str( ), wxConvUTF8 ));
+#else
+  wxButton* m=dynamic_cast<wxButton*>(theWxWidget);
+  if (m) m->SetLabelText(wxString( value_.c_str( ), wxConvUTF8 ));
+  this->RefreshDynamicWidget();
+#endif
 }
 
-GDLWidgetMbarButton::~GDLWidgetMbarButton() {
+GDLWidgetMenuBarButton::~GDLWidgetMenuBarButton() {
 #ifdef GDL_DEBUG_WIDGETS
-  std::cout << "~GDLWidgetMbarButton(" << widgetID << ")" << std::endl;
+  std::cout << "~GDLWidgetMenuBarButton(" << widgetID << ")" << std::endl;
 #endif
-  GDLWidgetMBar* gdlParent = dynamic_cast<GDLWidgetMBar*>(GetWidget(parentID));
+#ifdef PREFERS_MENUBAR
+  GDLWidgetMenuBar* gdlParent = dynamic_cast<GDLWidgetMenuBar*>(GetWidget(parentID));
   //which pos?
   if (gdlParent) {
     int pos=gdlParent->GetChildrenPos(widgetID);
@@ -4215,7 +4302,14 @@ GDLWidgetMbarButton::~GDLWidgetMbarButton() {
       wxMenuBar *menuBar = dynamic_cast<wxMenuBar*> (theWxContainer);
       menuBar->Remove(pos);
     }
-  } 
+  }
+#else
+ GDLWidgetMenuBar* gdlParent = dynamic_cast<GDLWidgetMenuBar*> (GetWidget(parentID));
+  assert(gdlParent->IsMenuBar());
+  wxToolBar *toolBar = dynamic_cast<wxToolBar*> (gdlParent->GetWxWidget());
+  assert(toolBar != NULL);
+  toolBar->RemoveTool(widgetID);
+#endif
 }
 
 //a MenuButton Widget is an otherwise normal button in a Base that activates a pulldown menu and is a container
@@ -5642,6 +5736,48 @@ void GDLWidgetDraw::SetWidgetScreenSize(DLong sizex, DLong sizey) {
   END_CHANGESIZE_NOEVENT
 }
 
+//for windows, it seems necessary to define our own wxApp and run it manually
+// for linux, it is NOT necessary, but thos works OK
+// for MacOS /COCOA port, the following code does not work and the widgets are not created.
+// (tied_scoped_ptr problem?)
+#if __WXMSW__ 
+
+#include "wx/evtloop.h"
+#include "wx/ptr_scpd.h"
+wxDEFINE_TIED_SCOPED_PTR_TYPE(wxEventLoop);
+
+bool wxAppGDL::OnInit()
+{ 
+    return true;
+}
+   
+  int wxAppGDL::MainLoop() {
+    wxEventLoopTiedPtr mainLoop((wxEventLoop **)&m_mainLoop, new wxEventLoop);
+    m_mainLoop->SetActive(m_mainLoop);
+//    loop = (wxEventLoop *)wxEventLoop::GetActive();
+    loop = this->GetMainLoop();
+    if (loop) {
+    std::cerr << ".";
+    if (loop->IsRunning()) {
+      std::cerr << "+";
+      while (loop->Pending()) // Unprocessed events in queue
+      {
+        std::cerr << "!";
+        loop->Dispatch(); // Dispatch next event in queue
+      }
+    }
+  }
+  return 0;
+}
+
+int wxAppGDL::OnExit()
+{
+  std::cout << " In GDLApp::OnExit()" << std::endl;
+  // Defined in guiThread::OnExit() in gdlwidget.cpp
+  //  std::cout << "Exiting thread (GDLApp::OnExit): " << thread << std::endl;
+  return 0;
+}
+#endif
 
 #endif
 

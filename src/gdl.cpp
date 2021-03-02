@@ -65,7 +65,11 @@
 //initialize wxWidgets system
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
+#if __WXMSW__ 
+wxIMPLEMENT_APP_NO_MAIN( wxAppGDL);
+#else
 wxIMPLEMENT_APP_NO_MAIN( wxApp);
+#endif
 #endif
 
 using namespace std;
