@@ -856,6 +856,7 @@ void gdlwxFrame::OnPageChanged( wxNotebookEvent& event)
   widg->InitTag("TAB", DLongGDL( event.GetSelection()));
   
   GDLWidget::PushEvent( baseWidgetID, widg);
+  event.Skip();
 }
 
 //Timer-filtered resizing for graphics.
@@ -948,8 +949,7 @@ void gdlwxFrame::OnTimerResize(wxTimerEvent& event)
     widgbase->InitTag("X", DLongGDL(frameSize.x));
     widgbase->InitTag("Y", DLongGDL(frameSize.y));
     GDLWidget::PushEvent(baseWidgetID, widgbase);
-  }
-  event.Skip();
+  } else event.Skip();
 }
  
 //The idea is to avoid redraw as long as the user has not released the mouse (doing a resize of the window).
@@ -1010,8 +1010,7 @@ void gdlwxFrame::OnSizeWithTimer(wxSizeEvent& event)
     widgbase->InitTag("X", DLongGDL(frameSize.x));
     widgbase->InitTag("Y", DLongGDL(frameSize.y));
     GDLWidget::PushEvent(baseWidgetID, widgbase);
-  }
-  event.Skip(); //important, pass to others!
+  } else event.Skip(); //important, pass to others!
  #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
    wxMessageOutputStderr().Printf(_T("Processed.\n"));
  #endif
@@ -1100,8 +1099,7 @@ void gdlwxFrame::OnEnterWindow( wxMouseEvent &event ) {
     widgtracking->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgtracking->InitTag( "ENTER", DIntGDL( 1 ) ); 
     GDLWidget::PushEvent( baseWidgetID, widgtracking );
-  } //normal end of event processing!
-  event.Skip();
+  } else event.Skip();
 }
 
 void gdlwxFrame::OnLeaveWindow( wxMouseEvent &event ) {
@@ -1121,8 +1119,7 @@ void gdlwxFrame::OnLeaveWindow( wxMouseEvent &event ) {
     widgtracking->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgtracking->InitTag( "ENTER", DIntGDL( 0 ) ); 
     GDLWidget::PushEvent( baseWidgetID, widgtracking );
-  } //normal end of event processing!
-  event.Skip();
+  } else event.Skip();
 }
 
 void gdlwxFrame::OnKBRDFocusChange( wxFocusEvent &event ) {
@@ -1140,8 +1137,7 @@ void gdlwxFrame::OnKBRDFocusChange( wxFocusEvent &event ) {
     int enter=(event.GetEventType()==wxEVT_SET_FOCUS);
     widgkbrdfocus->InitTag( "ENTER", DIntGDL( enter ) ); 
     GDLWidget::PushEvent( baseWidgetID, widgkbrdfocus );
-  } //normal end of event processing!
-  event.Skip(); //"The focus event handlers should almost invariably call wxEvent::Skip() on their event argument to allow the default handling to take place. Failure to do this may result in incorrect behaviour of the native controls."
+  } else event.Skip(); //"The focus event handlers should almost invariably call wxEvent::Skip() on their event argument to allow the default handling to take place. Failure to do this may result in incorrect behaviour of the native controls."
 }
 
 void gdlwxFrame::OnContextEvent( wxContextMenuEvent& event) {
@@ -1187,7 +1183,7 @@ void gdlwxFrame::OnContextEvent( wxContextMenuEvent& event) {
       widgcontext->InitTag( "ROW", DLongGDL( col ) );
     }
     GDLWidget::PushEvent( baseWidgetID, widgcontext );
-  } //normal end of event processing!
+  } else event.Skip();//normal end of event processing!
 }
 
 void gdlwxFrame::OnIconize( wxIconizeEvent & event)
@@ -1209,7 +1205,7 @@ void gdlwxFrame::OnIconize( wxIconizeEvent & event)
     widgtlb_iconify_events->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgtlb_iconify_events->InitTag( "ICONIFIED", DIntGDL( event.IsIconized() ) ); 
     GDLWidget::PushEvent( baseWidgetID, widgtlb_iconify_events );
-  } //normal end of event processing!
+  } else event.Skip();
 }
 
 void gdlwxFrame::OnMove( wxMoveEvent & event)
@@ -1233,24 +1229,29 @@ void gdlwxFrame::OnMove( wxMoveEvent & event)
     widgtlb_move_events->InitTag( "X", DLongGDL( event.GetPosition().x ) );
     widgtlb_move_events->InitTag( "Y", DLongGDL( event.GetPosition().y ) );
     GDLWidget::PushEvent( baseWidgetID, widgtlb_move_events );
-  } //normal end of event processing!
+  } else event.Skip();
 }
 
-void gdlwxFrame::OnCloseFrame( wxCloseEvent & event)
-{
+void gdlwxFrame::OnCloseFrame( wxCloseEvent & event) {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_VISIBILITY_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlwxFrame::OnCloseFrame: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in gdlwxFrame::OnCloseFrame: %d\n"), event.GetId());
 #endif
-  GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
-  if( widget == NULL) {event.Skip(); return;} 
-  if (!gdlOwner) {event.Skip(); return;}
-  GDLWidget* owner=static_cast<GDLWidget*>(gdlOwner);
-    WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
-    DStructGDL* widgtlb_kill_request_events = new DStructGDL( "WIDGET_KILL_REQUEST" );
-    widgtlb_kill_request_events->InitTag( "ID", DLongGDL( event.GetId( ) ) );
-    widgtlb_kill_request_events->InitTag( "TOP", DLongGDL( baseWidgetID ) );
-    widgtlb_kill_request_events->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
-    GDLWidget::PushEvent( baseWidgetID, widgtlb_kill_request_events );
+  GDLWidget* widget = GDLWidget::GetWidget(event.GetId());
+  if (widget == NULL) {
+    event.Skip();
+    return;
+  }
+  if (!gdlOwner) {
+    event.Skip();
+    return;
+  }
+  GDLWidget* owner = static_cast<GDLWidget*> (gdlOwner);
+  WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase(event.GetId());
+  DStructGDL* widgtlb_kill_request_events = new DStructGDL("WIDGET_KILL_REQUEST");
+  widgtlb_kill_request_events->InitTag("ID", DLongGDL(event.GetId()));
+  widgtlb_kill_request_events->InitTag("TOP", DLongGDL(baseWidgetID));
+  widgtlb_kill_request_events->InitTag("HANDLER", DLongGDL(baseWidgetID));
+  GDLWidget::PushEvent(baseWidgetID, widgtlb_kill_request_events);
 }
 
 void gdlwxFrame::OnUnhandledCloseFrame( wxCloseEvent & event)
@@ -1362,7 +1363,7 @@ void gdlwxDrawPanel::OnMouseMove( wxMouseEvent &event ) {
     widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
     widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
     GDLWidget::PushEvent( baseWidgetID, widgdraw );
-  } //normal end of event processing!
+  }  else event.Skip(); //normal end of event processing!
 }
 
 void gdlwxDrawPanel::OnMouseDown( wxMouseEvent &event ) {
@@ -1388,7 +1389,7 @@ void gdlwxDrawPanel::OnMouseDown( wxMouseEvent &event ) {
     widgdraw->InitTag( "CH", DByteGDL( 0 ) );
     widgdraw->InitTag( "KEY", DLongGDL( 0 ) );
     GDLWidget::PushEvent( baseWidgetID, widgdraw );
-  } //normal end of event processing!
+  } else event.Skip(); //normal end of event processing!
 }
 
 void gdlwxDrawPanel::OnMouseUp( wxMouseEvent &event ) {
@@ -1414,7 +1415,7 @@ void gdlwxDrawPanel::OnMouseUp( wxMouseEvent &event ) {
     widgdraw->InitTag( "CH", DByteGDL( 0 ) );
     widgdraw->InitTag( "KEY", DLongGDL( 0 ) );
     GDLWidget::PushEvent( baseWidgetID, widgdraw );
-  } //normal end of event processing!
+  } else event.Skip();//normal end of event processing!
 }
 
 void gdlwxDrawPanel::OnMouseWheel( wxMouseEvent &event ) {
@@ -1439,7 +1440,7 @@ void gdlwxDrawPanel::OnMouseWheel( wxMouseEvent &event ) {
     widgdraw->InitTag( "CH", DByteGDL( 0 ) );
     widgdraw->InitTag( "KEY", DLongGDL( 0 ) );
     GDLWidget::PushEvent( baseWidgetID, widgdraw );
-  }
+  }  else event.Skip();
 }
 
 void gdlwxDrawPanel::OnKey( wxKeyEvent &event ) {
@@ -1506,7 +1507,7 @@ void gdlwxDrawPanel::OnKey( wxKeyEvent &event ) {
         widgdraw->InitTag( "MODIFIERS", DLongGDL( event.GetModifiers() ) );
         GDLWidget::PushEvent( baseWidgetID, widgdraw );
     }
-  }
+  } else event.Skip();
 }
 
 void wxGridGDL::OnTableRowResizing(wxGridSizeEvent & event){
@@ -1526,8 +1527,7 @@ void wxGridGDL::OnTableRowResizing(wxGridSizeEvent & event){
     widgtablerowheight->InitTag("HEIGHT",DLongGDL( this->GetRowSize(event.GetRowOrCol())));
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, widgtablerowheight );
-  }
-  event.Skip();
+  } else event.Skip();
 }
 
 void wxGridGDL::OnTableColResizing(wxGridSizeEvent & event){
@@ -1547,8 +1547,7 @@ void wxGridGDL::OnTableColResizing(wxGridSizeEvent & event){
     widgtablerowheight->InitTag("WIDTH",DLongGDL( this->GetColSize(event.GetRowOrCol())));
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, widgtablerowheight );
-  }
-  event.Skip();
+  } else event.Skip();
 }
 void  wxGridGDL::OnTableRangeSelection(wxGridRangeSelectEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
@@ -1605,7 +1604,7 @@ void  wxGridGDL::OnTableRangeSelection(wxGridRangeSelectEvent & event){
       }
     }
 }
-  event.Skip();
+  else event.Skip();
 }
 
  void  wxGridGDL::OnTableCellSelection(wxGridEvent & event){
@@ -1647,7 +1646,7 @@ void  wxGridGDL::OnTableRangeSelection(wxGridRangeSelectEvent & event){
 //    widgtablecelsel->InitTag("SEL_BOTTOM",  DLongGDL( event.Selecting()?event.GetCol():-1 ));
 //    GDLWidget::PushEvent( baseWidgetID, widgtablecelsel );
 //  }
-//  event.Skip();
+//  else event.Skip();
 ////For compatibility with idl, we should force to select the current table entry.
 ////  this->SelectBlock(event.GetRow(),event.GetCol(),event.GetRow(),event.GetCol(),FALSE);
 //  if (table->IsUpdating()) {cerr<<"cleared"<<endl; table->ClearUpdating();}

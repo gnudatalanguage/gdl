@@ -128,8 +128,12 @@ pro handle_Event,ev
 common mycount,count
 help,ev,/str
 if tag_names(ev, /structure_name) eq 'WIDGET_KILL_REQUEST' then begin
-   widget_control,ev.id,tlb_kill_request_events=0 ; remove blocking kill
-   a=dialog_message(title="Blocking removed!","You are now able to close the basewidget number "+strtrim(ev.id,2))
+   acceptance=dialog_message(dialog_parent=ev.id,"I Do want to close the window", /CANCEL, /DEFAULT_NO,/QUESTION) ; +strtrim(ev.id,2))
+   if acceptance eq "Yes" then begin
+      widget_control,ev.id,tlb_kill_request_events=0 ; remove blocking kill
+      widget_control,ev.id,/destroy
+   endif
+   
 endif
 
 widget_control,ev.id,get_uvalue=uv 

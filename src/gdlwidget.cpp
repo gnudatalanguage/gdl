@@ -105,8 +105,6 @@ wxFont GDLWidget::defaultFont=wxNullFont; //the font defined by widget_control,d
 wxFont GDLWidget::systemFont=wxNullFont;  //the initial system font. This to behave as IDL
 
 
-void InsureWxIsStarted(){} //if (!GDLWidget::wxIsStarted()) GDLWidget::Init();}
-
 void GDLEventQueue::Purge()
 {
   for ( SizeT i = 0; i < dq.size( ); ++i )
@@ -387,6 +385,23 @@ inline wxSize GDLWidgetLabel::computeWidgetSize()
   return widgetSize;
 }
 
+inline wxSize GDLWidgetMenuBarButton::computeWidgetSize()
+{
+  if (wSize.x > 0 || wSize.y > 0 || wScreenSize.x > 0 || wScreenSize.y > 0) dynamicResize=-1;
+  //widget label size is in pixels.
+  wxSize widgetSize = wSize; //start with wanted values.
+  wxSize fontSize = getFontSize();
+  //based on experience, actual line height is 1.2 times font y size for fonts > 20 but 1.5 for smaller fonts
+  int lineHeight = 2*fontSize.y; 
+  std::string s=valueWxString.ToStdString();
+  if (wSize.x < 0) widgetSize.x =  calculateTextScreenSize(s).x+2*fontSize.x;//add 2 char wide for border. //fontSize.x*(value.size());
+  if (wSize.y < 0) widgetSize.y = lineHeight;
+
+  if (wScreenSize.x > 0) widgetSize.x = wScreenSize.x;
+  if (wScreenSize.y > 0) widgetSize.y = wScreenSize.y;
+
+  return widgetSize;
+}
 inline wxSize GDLWidget::computeWidgetSize()
 {
 //here is a good place to make dynamic widgets static, since dynamic_resize is permitted only if size is not given.
@@ -773,6 +788,8 @@ void GDLWidget::ConnectToDesiredEvents(){
   for (int i = 0; i < desiredEventsList.size(); ++i) {
       desiredEventsList[i]->w->Connect(widgetID, desiredEventsList[i]->t, desiredEventsList[i]->f);
   }
+// useful to have no event yet produced at this stage?
+//  w->DeletePendingEvents();
 }
 
  bool GDLWidget::DisableSizeEvents(gdlwxFrame* &tlbFrame,WidgetIDT &id) {
@@ -880,6 +897,10 @@ void GDLWidget::SetSensitive(bool value)
     if (me) {if (value) me->Enable(); else me->Disable();}
 }
 
+bool GDLWidget::GetSensitive()
+{
+  return sensitive;
+}
 void GDLWidget::SetFocus() //gives focus to the CHILD of the panel.
 {
   wxWindow *me=dynamic_cast<wxWindow*>(this->GetWxWidget()); if (me!=NULL) me->SetFocus(); else cerr<<"Setting Focus for unknown widget!\n";
@@ -937,9 +958,9 @@ void GDLWidget::SetWidgetSize(DLong sizex, DLong sizey) //in pixels. Always.
   }
   wSize.x = sizex;
   wSize.y = sizey;
-  me->SetClientSize(wSize);
+  me->SetSize(wSize);
   //the sizer takes care of the eventual frame
-  me->SetMinClientSize(wSize);
+  me->SetMinSize(wSize);
   //framed bases may have a complicated frame around, to be resized:
   if (theWxContainer != theWxWidget) {
     wxWindow* container = dynamic_cast<wxWindow*> (theWxContainer);
@@ -1270,8 +1291,8 @@ DStructGDL* GDLWidget::GetGeometry(wxRealPoint fact)
   iscr_xsize = z.width;
   iscr_ysize = z.height;
   wxSize s=w->GetClientSize();
-  ixsize = s.x;
-  iysize = s.y;
+  ixsize = s.x; if (ixsize < 1) ixsize=iscr_xsize; //Patch for OSX where s.x is 0
+  iysize = s.y; if (iysize < 1) iysize=iscr_ysize; //Patch for OSX where s.y is 0
   
   if (theWxWidget == theWxContainer) margin=0; else {
     margin=(r.width-z.width)/2; //Rect is about the container, which is the widgetPanel and not the frame depending on case.
@@ -3731,8 +3752,8 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     draggable=(dragability == 1);
     droppable=(dropability == 1);
 //    tree->Expand(treeItemID); //do not expand root if hidden  
-    tree->SetClientSize(wSize);
-    tree->SetMinClientSize(wSize);
+    tree->SetSize(wSize);
+    tree->SetMinSize(wSize);
     END_ADD_EVENTUAL_FRAME
     TIDY_WIDGET(gdlBORDER_SPACE)
       
@@ -3893,8 +3914,8 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
     comboPanel->GetTextExtent(s,&w,&h,&d,&lead,&font);
     slidersize=(vertical)?wxSize(-1,wSize.y-h-3*gdlSPACE):wxSize(max(wSize.x,w),-1);
     slider= new wxSlider( comboPanel, widgetID, value, minimum, maximum, wxDefaultPosition, wxDefaultSize, style);
-    slider->SetClientSize(slidersize);
-    slider->SetMinClientSize(slidersize);
+    slider->SetSize(slidersize);
+    slider->SetMinSize(slidersize);
     combosz->Add(slider,DONOTALLOWSTRETCH,wxEXPAND) ; //wxALL|(vertical)?wxALIGN_CENTRE_HORIZONTAL:widgetStyle,gdlSPACE);
     wxStaticText *theTitle=new wxStaticText(comboPanel,wxID_ANY,s);
     combosz->Add(theTitle,DONOTALLOWSTRETCH,widgetStyle|wxALL,gdlSPACE);
@@ -3903,8 +3924,8 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
     theWxWidget=comboPanel; //to trick ADD EVENTUAL FRAME 
   } else {
     slider= new wxSlider( widgetPanel, widgetID, value, minimum, maximum, wxDefaultPosition, wxDefaultSize, style);
-    slider->SetClientSize(slidersize);
-    slider->SetMinClientSize(slidersize);
+    slider->SetSize(slidersize);
+    slider->SetMinSize(slidersize);
     theWxContainer = theWxWidget=slider;
     widgetPanel->Fit();
   }
@@ -4021,8 +4042,8 @@ GDLWidgetNormalButton::GDLWidgetNormalButton(WidgetIDT p, EnvT* e,
 
   END_ADD_EVENTUAL_FRAME
     
-  win->SetClientSize(wSize);
-  win->SetMinClientSize(wSize);
+  win->SetSize(wSize);
+  win->SetMinSize(wSize);
 
   TIDY_WIDGET(gdlBORDER_SPACE)
   UPDATE_WINDOW
@@ -4228,23 +4249,25 @@ GDLWidgetMenuBarButton::GDLWidgetMenuBarButton(WidgetIDT p, EnvT* e,
 GDLWidgetMenuBarButton::GDLWidgetMenuBarButton(WidgetIDT p, EnvT* e,
   DStringGDL* value, DULong eventflags, wxBitmap* bitmap_,  DStringGDL* buttonToolTip)
 : GDLWidgetMenu(p, e, value, eventflags, NULL)
-, entry(-1) {
-    entry = widgetID;
+, entry(NULL) {
+
 
   GDLWidgetMenuBar* gdlParent = dynamic_cast<GDLWidgetMenuBar*> (GetWidget(parentID));
   assert(gdlParent->IsMenuBar());
   
   wxToolBar *toolBar = dynamic_cast<wxToolBar*> (gdlParent->GetWxWidget());
     assert(toolBar != NULL);
-
     if (bitmap_ == NULL) {
+    wSize=computeWidgetSize();
+    wxSize tbSize=toolBar->GetSize();
     wxButtonGDL *button = new wxButtonGDL(font, toolBar, widgetID, valueWxString,
-      wOffset, wxDefaultSize,  wxBU_EXACTFIT|wxBORDER_NONE);
+      wOffset, wSize,  wxBORDER_NONE);
     buttonType = POPUP_NORMAL; //gdlMenuButton is a wxButton --> normal. Bitmaps will be supported starting from 2.9.1 
     theWxContainer = button;
     theWxWidget = button->GetPopupMenu(); //a menu
     button->Enable(sensitive);
-    toolBar->AddControl(button);
+    entry=toolBar->AddControl(button);
+    if (tbSize.y < wSize.y) toolBar->SetSize(wxSize(-1,wSize.y));
     toolBar->Realize();
     } else {
     wxBitmapButtonGDL *button = new wxBitmapButtonGDL(toolBar, widgetID, *bitmap_,
@@ -4253,7 +4276,7 @@ GDLWidgetMenuBarButton::GDLWidgetMenuBarButton(WidgetIDT p, EnvT* e,
     theWxContainer = button;
     theWxWidget = button->GetPopupMenu(); //a menu
     button->Enable(sensitive);
-    toolBar->AddControl(button);
+    entry=toolBar->AddControl(button);
     toolBar->Realize();
     }
     
@@ -4329,8 +4352,8 @@ GDLWidgetMenuButton::GDLWidgetMenuButton(WidgetIDT p, EnvT* e,
   if (bitmap_ == NULL) {
     wxButtonGDL *button = new wxButtonGDL(font, widgetPanel, widgetID, valueWxString,
       wOffset, wxDefaultSize, buttonTextAlignment());
-    button->SetClientSize(wSize);
-    button->SetMinClientSize(wSize);
+    button->SetSize(wSize);
+    button->SetMinSize(wSize);
     buttonType = POPUP_NORMAL; //gdlMenuButton is a wxButton --> normal. Bitmaps will be supported starting from 2.9.1 
     theWxContainer = button;
     theWxWidget = button->GetPopupMenu(); //a menu
@@ -4338,8 +4361,8 @@ GDLWidgetMenuButton::GDLWidgetMenuButton(WidgetIDT p, EnvT* e,
   } else {
     wxBitmapButtonGDL *button = new wxBitmapButtonGDL(widgetPanel, widgetID, *bitmap_,
       wOffset, wxDefaultSize, buttonTextAlignment());
-    button->SetClientSize(wSize);
-    button->SetMinClientSize(wSize);
+    button->SetSize(wSize);
+    button->SetMinSize(wSize);
     buttonType = POPUP_BITMAP; //
     theWxContainer = button;
     theWxWidget = button->GetPopupMenu(); //a menu
@@ -4431,7 +4454,7 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style,
   wxListBox * list=new wxListBox();
   theWxContainer = theWxWidget = list;
   //ok now size can be computed
-  list->Create(widgetPanel, widgetID, wxDefaultPosition, wxDefaultSize , choices, style|wxLB_NEEDED_SB); //|wxLB_MULTIPLE );
+  list->Create(widgetPanel, widgetID, wxDefaultPosition, wxDefaultSize , choices, style|wxLB_NEEDED_SB|wxLB_SINGLE); //|wxLB_MULTIPLE );
   this->setFont(); //set fancy font before computing sizes!
   wSize=computeWidgetSize();
   list->SetClientSize(wSize);
@@ -4490,8 +4513,8 @@ void GDLWidgetList::SetWidgetSize(DLong sizex, DLong sizey)
   sizey=ceil(widgetSize.y);
   wSize.x = sizex;
   wSize.y = sizey;
-  me->SetClientSize(wSize);
-  me->SetMinClientSize(wSize);
+  me->SetSize(wSize);
+  me->SetMinSize(wSize);
   
   if (!widgetSizer) { if (framePanel) framePanel->Fit();}
   
@@ -4532,8 +4555,10 @@ void GDLWidgetList::SetValue(BaseGDL *value){
 }
 
 void GDLWidgetList::SelectEntry(DLong entry_number){
+  if (entry_number < 0 ) return;
  wxListBox * list=dynamic_cast<wxListBox*>(theWxWidget);
   assert( list != NULL);
+  if (entry_number > list->GetCount()-1) return;
  list->Select(entry_number); 
 }
 
@@ -4610,22 +4635,22 @@ const DString& title_, DLong style_ )
     combosz->Add(theTitle,DONOTALLOWSTRETCH, wxALIGN_CENTER|wxALL,gdlSPACE);
     combosz->AddSpacer(5);
     droplist = new wxChoice( comboPanel, widgetID, wxDefaultPosition, wxDefaultSize, choices, style );
-    droplist->SetClientSize(wSize);
-    droplist->SetMinClientSize(wSize);
+    droplist->SetSize(wSize);
+    droplist->SetMinSize(wSize);
     theWxWidget = droplist;
     combosz->Add(droplist,DONOTALLOWSTRETCH,wxALIGN_CENTER|wxALL,gdlSPACE);
     combosz->Fit(droplist);
     comboPanel->Fit();
     } else {
     droplist = new wxChoice( theWindow, widgetID, wxDefaultPosition, wxDefaultSize, choices, style );
-    droplist->SetClientSize(wSize);
-    droplist->SetMinClientSize(wSize);
+    droplist->SetSize(wSize);
+    droplist->SetMinSize(wSize);
     theWxWidget = droplist;
     if (!theWxContainer) theWxContainer = droplist;
   }
   if (framePanel) framePanel->Fit();
   if (widgetSizer) {
-    widgetSizer->Add(dynamic_cast<wxWindow*>(theWxContainer), DONOTALLOWSTRETCH, widgetStyle|wxALL|wxEXPAND, gdlTEXT_SPACE); 
+    widgetSizer->Add(dynamic_cast<wxWindow*>(theWxContainer), DONOTALLOWSTRETCH, widgetStyle|wxALL, gdlTEXT_SPACE); 
     widgetSizer->Fit(dynamic_cast<wxWindow*>(theWxContainer));
   } else {
     widgetPanel->Fit();
@@ -4659,8 +4684,8 @@ void GDLWidgetDropList::SetValue(BaseGDL *value){
   //IDL behaviour  with DynamicResize is identical
   if (this->IsDynamicResize()) {
     wSize=droplist->GetSizeFromTextSize(droplist->GetTextExtent(newchoices[0]).GetWidth());
-    droplist->SetMinClientSize(wSize);
-    droplist->SetClientSize(wSize);
+    droplist->SetMinSize(wSize);
+    droplist->SetSize(wSize);
    }
   RefreshDynamicWidget();
 }
@@ -4716,8 +4741,8 @@ GDLWidgetComboBox::GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value, DULo
   if (widgetSizer==NULL) {
     if (wSize.x < 1) wSize.x=gdlDEFAULT_XSIZE+gdlCOMBOBOX_ARROW_WIDTH;
   }
-  combobox->SetClientSize(wSize);
-  combobox->SetMinClientSize(wSize);
+  combobox->SetSize(wSize);
+  combobox->SetMinSize(wSize);
   
   END_ADD_EVENTUAL_FRAME
   TIDY_WIDGET(gdlBORDER_SPACE)
@@ -4746,8 +4771,8 @@ void GDLWidgetComboBox::SetValue(BaseGDL *value){
   //this would plead to have a new wInitialSize for which wSize cannot be smaller her, but is reset to new values with SetSize. Oh well.
   if (this->IsDynamicResize()) {
     wSize=combo->GetSizeFromTextSize(combo->GetTextExtent(newchoices[0]).GetWidth());
-    combo->SetMinClientSize(wSize);
-    combo->SetClientSize(wSize);
+    combo->SetMinSize(wSize);
+    combo->SetSize(wSize);
   }
   RefreshDynamicWidget();
   }
@@ -4902,7 +4927,7 @@ void GDLWidgetText::SetWidgetSize(DLong sizex, DLong sizey)
     return;
   }
   //a graphic window cannot be larger than the base widget it is in, if the base widget size has been fixed
-  wxSize currentSize=me->GetSize();
+  wxSize currentSize=me->GetClientSize();
   wxSize currentBestSize=me->GetBestSize();
 #ifdef GDL_DEBUG_WIDGETS
   wxMessageOutputStderr( ).Printf( _T( "GDLWidgetText::SetSize currentSize=%d,%d\n"),currentSize.x,currentSize.y);
@@ -5130,8 +5155,8 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , DU
   if (simplelabel) {
     wxStaticText* label = new wxStaticText( widgetPanel, widgetID, wxT(""), wOffset, wxDefaultSize, wxST_NO_AUTORESIZE|widgetStyle);
     label->SetLabelText(valueWxString);
-    label->SetClientSize(wSize);
-    label->SetMinClientSize(wSize);
+    label->SetSize(wSize);
+    label->SetMinSize(wSize);
     label->Wrap(-1);
     theWxContainer = theWxWidget = label;
     if (widgetSizer) widgetSizer->Add(label, DONOTALLOWSTRETCH, widgetStyle|wxALL, gdlSPACE);
@@ -5154,8 +5179,8 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , DU
     //the inside panel, framed
     wxPanel* hiddenPanel = new wxPanel(framePanel);
     frameSizer->Add(hiddenPanel, DONOTALLOWSTRETCH, wxALL | wxEXPAND, frameWidth);
-    hiddenPanel->SetClientSize(wSize);
-    hiddenPanel->SetMinClientSize(wSize);
+    hiddenPanel->SetSize(wSize);
+    hiddenPanel->SetMinSize(wSize);
     wxSizer* sz = new wxBoxSizer(wxVERTICAL);
     hiddenPanel->SetSizer(sz);
     //the label, with special style inside
@@ -5168,8 +5193,8 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , DU
     frameSizer->Fit(hiddenPanel);
     framePanel->Fit();
   } else {
-    framePanel->SetClientSize(wSize);
-    framePanel->SetMinClientSize(wSize);
+    framePanel->SetSize(wSize);
+    framePanel->SetMinSize(wSize);
     //the label, with special style inside
     int style= labelTextAlignment();
   //create and position label in panel
@@ -5218,9 +5243,9 @@ void GDLWidgetLabel::SetWidgetSize(DLong sizex, DLong sizey) //in pixels. Always
   }
   wSize.x = sizex;
   wSize.y = sizey;
-  me->SetClientSize(wSize);
+  me->SetSize(wSize);
   //the sizer takes care of the eventual frame
-  me->SetMinClientSize(wSize);
+  me->SetMinSize(wSize);
 
   UPDATE_WINDOW
 
@@ -5246,8 +5271,8 @@ void GDLWidgetLabel::SetLabelValue(const DString& value_) {
       if (this->IsDynamicResize()) {
         wSize = wxSize(-1, -1);
         wSize = computeWidgetSize();
-        label->SetMinClientSize(wSize);
-        label->SetClientSize(wSize);
+        label->SetMinSize(wSize);
+        label->SetSize(wSize);
         //special for labels:
         if (theWxContainer && theWxContainer != theWxWidget) {
           wxPanel* p = static_cast<wxPanel*> (theWxContainer);
@@ -5353,6 +5378,8 @@ void gdlwxPhantomFrame::Realize() {
   wxSize e=c->GetClientSize();
   wxSize w=s-e;
 //  std::cerr<<w.x<<","<<w.y<<std::endl;
+  if (w.x <= 0) w.x=gdlABSENT_SIZE_VALUE;
+  if (w.y <= 0) w.y=gdlABSENT_SIZE_VALUE;
   sysScrollHeight=w.y;
   sysScrollWidth=w.x;
 }
@@ -5692,8 +5719,8 @@ void GDLWidgetDraw::SetWidgetSize(DLong sizex, DLong sizey) {
     if (sizex < 1) sizex = wSize.x;
     if (sizey < 1) sizey = wSize.y;
     wSize=wxSize(sizex,sizey);
-    me->SetClientSize(wSize);
-    me->SetMinClientSize(wSize);
+    me->SetSize(wSize);
+    me->SetMinSize(wSize);
     me->ResizeDrawArea(wSize); //changes draw area
   } else { //value asked is for CLIENT size
     if (sizex < 1) sizex = wScrollSize.x;
@@ -5754,15 +5781,11 @@ bool wxAppGDL::OnInit()
   int wxAppGDL::MainLoop() {
     wxEventLoopTiedPtr mainLoop((wxEventLoop **)&m_mainLoop, new wxEventLoop);
     m_mainLoop->SetActive(m_mainLoop);
-//    loop = (wxEventLoop *)wxEventLoop::GetActive();
     loop = this->GetMainLoop();
     if (loop) {
-    std::cerr << ".";
     if (loop->IsRunning()) {
-      std::cerr << "+";
       while (loop->Pending()) // Unprocessed events in queue
       {
-        std::cerr << "!";
         loop->Dispatch(); // Dispatch next event in queue
       }
     }
@@ -5780,4 +5803,3 @@ int wxAppGDL::OnExit()
 #endif
 
 #endif
-

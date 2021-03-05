@@ -106,19 +106,6 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
       if (ok) { //it seems to be always OK with wxWidgets, that gives back its defaultFont in bad cases.Thus: behaviuor not as IDL.
 //        std::cerr <<"FINAL DESC: "<< font.GetNativeFontInfoDesc() << std::endl;
       } else font=GDLWidget::systemFont;  //defining a bad font goes back to the system font.
-      
-//#ifdef __WXMSW__
-////hFont = CreateFont(-points, 0, 0, 0, FW_NORMAL, 0, 0, 0, 0, 0, 0, 0, 0, L"Courier New");
-//      wxFont font=wxFont(wxFontInfo(8).FaceName(inputfont));
-//      std::cerr << font.GetNativeFontInfoDesc() << std::endl;
-//#else
-//    font=*wxNORMAL_FONT;
-//    bool ok = font.SetNativeFontInfo(wxString(inputfont.c_str(), wxConvLibc));
-//    if (ok) {
-//      font = wxFont(wxString(inputfont.c_str(), wxConvLibc));
-//      std::cerr << font.GetNativeFontInfoDesc() << std::endl;
-//    }
-//#endif
   }
   alignment=gdlwALIGN_NOT;
   if (e->KeywordSet(ALIGN_LEFT)) alignment|=gdlwALIGN_LEFT;
@@ -1660,7 +1647,8 @@ BaseGDL* widget_info( EnvT* e ) {
   
   static int activeIx = e->KeywordIx( "ACTIVE" );
   bool active = e->KeywordSet( activeIx );
-
+  static int sensIx = e->KeywordIx( "SENSITIVE" );
+  bool sens = e->KeywordSet( sensIx );
   static int debugIx = e->KeywordIx( "DEBUG" );
   bool debug = e->KeywordSet( debugIx );
   
@@ -1921,7 +1909,7 @@ BaseGDL* widget_info( EnvT* e ) {
 
   // returns a long where 0 is "no info"
   // PARENT, CHILD keyword
-  if ( child || parent || type || nchildren) {
+  if ( child || parent || type || nchildren || sens) {
     if ( rank == 0 ) {
       // Scalar Input
       WidgetIDT widgetID = (*p0L)[0];
@@ -1932,6 +1920,7 @@ BaseGDL* widget_info( EnvT* e ) {
         DLong result=0;
         if (parent)  result = widget->GetParentID( ); //but parent is always defined...
         else if (type)  result = widget->GetWidgetType( ); 
+        else if (sens)  result = widget->GetSensitive( ); 
         else {
         if (child) {
             if (widget->IsContainer()) { DLong nchild = static_cast<GDLWidgetContainer*>(widget)->NChildren( ); 
@@ -1957,6 +1946,7 @@ BaseGDL* widget_info( EnvT* e ) {
           DLong result=0;
           if (parent)  result = widget->GetParentID( ); //but parent is always defined...
           else if (type)  result = widget->GetWidgetType( );
+          else if (sens)  result = widget->GetSensitive( ); 
           else {
           if (child) {
               if (widget->IsContainer()) { DLong nchild = static_cast<GDLWidgetContainer*>(widget)->NChildren( ); 
@@ -3296,7 +3286,6 @@ void widget_control( EnvT* e ) {
     WidgetIDT id;
     gdlwxFrame* local_topFrame;
     bool reconnect = widget->DisableSizeEvents(local_topFrame, id);
-    //necessary since we have removed Tidy(...) from eventloop (too time consuming).
     if (widget->IsDraw()) {
       GDLWidgetDraw* d=static_cast<GDLWidgetDraw*>(widget);
       gdlwxGraphicsPanel* draw=static_cast<gdlwxGraphicsPanel*>(d->GetWxWidget());

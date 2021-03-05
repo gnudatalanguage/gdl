@@ -255,6 +255,8 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then for pkg in $BREW_PACKAGES; do echo brew \"$pkg\" >> Brewfile; done; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat Brewfile; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew bundle --verbose; fi
+    # plplot comes without wxwidget driver: change formula and recompile plplot.
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then zsh ./scripts/brew_enable_wxwidgets; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install --upgrade --no-deps --force-reinstall numpy; fi
 
     # pytest

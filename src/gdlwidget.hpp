@@ -40,6 +40,7 @@
 #include <wx/notebook.h>
 #include <wx/dcbuffer.h>
 #include <wx/toolbar.h>
+#include <wx/listbox.h>
 #include <deque>
 #include <map>
 
@@ -51,6 +52,7 @@
 #define gdlSCROLL_RATE 20
 #define gdlSCROLL_HEIGHT_X  sysScrollHeight //wxSystemSettings::GetMetric(wxSYS_VSCROLL_X,xxx) //25 
 #define gdlSCROLL_WIDTH_Y sysScrollWidth //wxSystemSettings::GetMetric(wxSYS_HSCROLL_Y,xxx) //25
+#define gdlABSENT_SIZE_VALUE 15; 
 #define gdlDEFAULT_XSIZE 100
 #define gdlDEFAULT_YSIZE 100
 #define gdlCOMBOBOX_ARROW_WIDTH sysComboboxArrow 
@@ -651,6 +653,7 @@ public:
   bool GetRealized(); 
   void SetManaged( bool manval){managed = manval;}
   virtual void SetSensitive( bool value);
+  bool GetSensitive();
   virtual void SetFocus();
 
   int  GetExclusiveMode() const { return exclusiveMode;}
@@ -1121,16 +1124,19 @@ public:
 } ;
 
 class GDLWidgetMenuBarButton: public GDLWidgetMenu {
- int entry;
 public:
 #ifdef PREFERS_MENUBAR
+ int entry;
  GDLWidgetMenuBarButton(WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, DStringGDL* buttonTooltip = NULL);
 #else
+ wxToolBarToolBase* entry;
  GDLWidgetMenuBarButton(WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, wxBitmap* bitmap_=NULL, DStringGDL* buttonTooltip = NULL);
+ wxSize computeWidgetSize(); //not a real menubar: buttons may have a different fontsize.
 #endif
  ~GDLWidgetMenuBarButton();
  void SetSensitive(bool value);
  void SetButtonWidgetLabelText( const DString& value_ );
+
 };
 
 class GDLWidgetNormalButton: public GDLWidgetButton
@@ -1174,12 +1180,6 @@ public:
  bool IsContextBase() const final {
   return true;
  }
- //Same as Container except that we have to reorder widgets in some cases
-//
-// void OnRealize() {
-//  GDLWidgetContainer::OnRealize();
-// }
-
 };
 
 
@@ -1242,7 +1242,7 @@ public:
   BaseGDL* GetSelectedEntries();
   wxSize computeWidgetSize() final;
   void SetWidgetSize(DLong sizex, DLong sizey) final;
-//  DStructGDL* GetGeometry(wxRealPoint fact=wxRealPoint(1.0,1.0));
+//  void OnRealize(){wxListBox* b=static_cast<wxListBox*> (theWxWidget); if(b) b->SetSelection(0,false); GDLWidget::OnRealize(); }
 };
 
 // text widget : overloading some wxTextCtrl basics fotr our purposes
@@ -1322,7 +1322,6 @@ public:
 
   ~GDLWidgetDraw();
 
-//  void OnRealize();
   bool IsDraw() const final { return true;}
   void AddEventType( DULong evType) final; //specific for draw widgets
   void RemoveEventType( DULong evType) final;
@@ -1397,8 +1396,8 @@ public:
    long style=wxTB_HORIZONTAL|wxTB_DOCKABLE|wxTB_FLAT;
    wxToolBar* t= frame->CreateToolBar(style, wxID_ANY);
     theWxWidget = theWxContainer = t;
-    widgetSizer=new wxBoxSizer(wxHORIZONTAL);
-    t->SetSizer(widgetSizer);
+//    widgetSizer=new wxBoxSizer(wxHORIZONTAL);
+//    t->SetSizer(widgetSizer);
     this->SetWidgetType(WIDGET_MBAR);
   }
   //same as containers

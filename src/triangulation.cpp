@@ -386,6 +386,7 @@ namespace lib {
           size_t incoming=start;
           //get adjacent halfedges and write their end points to connectivity until all encountered.
           do {
+            /*THE FOLLOWING LINE IS KNOWN TO HAVE CRASHED ON UNREPRODUCTIBLE CIRCUMSTANCES ??? */
             array[runningindex++]=tri.triangles[incoming]; //the point outgoing halfedge ends. 
             size_t outgoing = nextHalfedge(incoming); //the ougoing halfegde -> the point k in fact:  assert(tri.triangles[outgoing]==effective_index[k]);
             incoming = tri.halfedges[outgoing]; //the following incoming half-edge
