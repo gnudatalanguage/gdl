@@ -50,6 +50,8 @@ SET(CMAKE_RC_COMPILER x86_64-w64-mingw32-windres)
 endif(MINGW)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
+#### GDL is an interactive tool. Normally INTERACTIVE_GRAPHICS must be set
+set(INTERACTIVE_GRAPHICS ON)
 
 #### Default cached values
 set(GDLDEV OFF CACHE BOOL "GDL: Enable GDL developer mode (includes work-in-progress tests)")
@@ -400,6 +402,60 @@ elseif (WIN32)
     endif() 
 endif()
 
+
+# wxWidgets: should be the one graphics library. Presence test is 'wxWidgets_FOUND'
+#
+#    I suggest to have wxWidgets a 'main' dependency. 
+#    thus removing the need of X11 for unix/linux/MacOS, as well as xwin and wingcc/wingdi.
+#    Behavior of plots, either in a WIDGET_DRAW or in a WINDOW, will be identical.
+#    Provided wxWidgets library exist, the graphic device will be 'X' on all platforms.
+#
+# -DWXWIDGETS=ON|OFF
+# -DWXWIDGETSDIR=DIR
+set(wxWidgets_USE_DEBUG OFF) # Use release build
+if(WXWIDGETS)
+    set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
+    find_package(wxWidgets COMPONENTS base core adv)
+    set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
+    if(wxWidgets_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
+        set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${wxWidgets_LIBRARY_DIRS})
+        foreach(WXDEF ${wxWidgets_DEFINITIONS})
+            add_definitions(-D${WXDEF})
+        endforeach(WXDEF ${wxWidgets_DEFINITIONS})
+        include_directories(${wxWidgets_INCLUDE_DIRS})
+    else(wxWidgets_FOUND)
+        message(FATAL_ERROR "wxWidgets are required but were not found.\n"
+        "Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
+        "Use -DWXWIDGETS=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libwxgtk2.8-dev)\n"
+                "(suitable Fedora/CentOS package: wxGTK-devel)")
+    endif(wxWidgets_FOUND)
+endif(WXWIDGETS)
+
+# X11 : OFF by default since wxWidgets SHOULD take preference in ALL builds.
+# Note that X11 is not present under native WIN32. Presence test is 'X11_FOUND'
+if(CYGWIN OR NOT WIN32)
+    if(X11)
+        set(CMAKE_PREFIX_PATH ${X11DIR})
+        find_package(X11 QUIET)
+        set(HAVE_X ${X11_FOUND})
+        if(X11_FOUND)
+            set(LIBRARIES ${LIBRARIES} ${X11_LIBRARIES})
+            include_directories(${X11_INCLUDE_DIR})
+        else(X11_FOUND)
+            message(FATAL_ERROR "X11 is required but was not found.\n"
+            "Use -DX11DIR=DIR to specify the X11 directory tree.\n"
+            "Use -DX11=OFF to not use it.\n"
+	    "(suitable Fedora/CentOS package xorg-x11-devel)\n")
+        endif(X11_FOUND)
+    endif(X11)
+    if (X11_FOUND AND NOT wxWidgets_FOUND) 
+      message(STATUS "WARNING: GDL is BEST with wxWidgets instead of X11, please consider installing wxWidgets")
+    endif (X11_FOUND AND NOT wxWidgets_FOUND) 
+endif(CYGWIN OR NOT WIN32)
+
+
 # PLplot MANDATORY
 # -DPLPLOTDIR=DIR
 set(CMAKE_PREFIX_PATH ${PLPLOTDIR})
@@ -453,6 +509,63 @@ if(PLPLOT_FOUND)
     if(PLPLOT_HAS_PLCALLBACK)
       set(PLPLOT_HAS_PLCALLBACK 1)
     endif(PLPLOT_HAS_PLCALLBACK)
+    if (INTERACTIVE_GRAPHICS)
+      # if wxWidgets found, we check whether plplot was compiled within wxwidgets
+      # if plplot's wxwidgets driver is not in the distribution, and if X11 is not present either (or winggc under WIN32) then
+      # it will be a STOP unless INTERACTIVE_GRAPHICS=OFF. Totally noninteractive graphics apps (such as Jupyter GDL kernel)
+      # must be compiled with -DINTERACTIVE_GRAPHICS=OFF .
+      if (wxWidgets_FOUND)
+          check_c_source_runs("
+          #include <plplot/plplot.h>
+          #include<string.h>
+          int main(int argc, char **argv) {
+          int numdevs = 128;
+          const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
+          const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
+          plgDevs(&devlongnames, &devnames, &numdevs);
+          for (int i = 0; i < numdevs; ++i) {if (strcmp(\"wxwidgets\", devnames[i])==0) exit(EXIT_SUCCESS);}
+          exit(EXIT_FAILURE);
+          }" HAVE_PLPLOT_WXWIDGETS_DRIVER)
+       endif (wxWidgets_FOUND)
+      #idem for X11
+      if(CYGWIN OR NOT WIN32)
+         if (X11_FOUND)
+            check_c_source_runs("
+            #include <plplot/plplot.h>
+            #include<string.h>
+            int main(int argc, char **argv) {
+            int numdevs = 128;
+            const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
+            const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
+            plgDevs(&devlongnames, &devnames, &numdevs);
+            for (int i = 0; i < numdevs; ++i) {if (strcmp(\"xwin\", devnames[i])==0) exit(EXIT_SUCCESS);}
+            exit(EXIT_FAILURE);
+            }" HAVE_PLPLOT_X11_DRIVER)
+         endif (X11_FOUND)
+         if (NOT HAVE_PLPLOT_WXWIDGETS_DRIVER AND NOT HAVE_PLPLOT_X11_DRIVER ) 
+           if (wxWidgets_FOUND) 
+             message(FATAL_ERROR "PlPlot was compiled without wxWidgets driver, aborting. See use of -DX11 or -DINTERACTIVE_GRAPHICS=OFF .")
+           else (wxWidgets_FOUND)
+             message(FATAL_ERROR "PlPlot was compiled without wxwin driver, aborting. Consider using wxWidgets. See use of -DX11 or -DINTERACTIVE_GRAPHICS=OFF .")
+           endif (wxWidgets_FOUND)
+         endif (NOT HAVE_PLPLOT_WXWIDGETS_DRIVER)
+      else (CYGWIN OR NOT WIN32)  #WIN32: check wingcc
+            check_c_source_runs("
+            #include <plplot/plplot.h>
+            #include<string.h>
+            int main(int argc, char **argv) {
+            int numdevs = 128;
+            const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
+            const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
+            plgDevs(&devlongnames, &devnames, &numdevs);
+            for (int i = 0; i < numdevs; ++i) {if (strcmp(\"wingcc\", devnames[i])==0) exit(EXIT_SUCCESS);}
+            exit(EXIT_FAILURE);
+            }" HAVE_PLPLOT_WINGCC_DRIVER)
+            if (NOT HAVE_PLPLOT_WINGCC_DRIVER)
+              message(FATAL_ERROR "PlPlot was compiled without wingcc driver, aborting. See use of -DINTERACTIVE_GRAPHICS=OFF .")
+            endif (NOT HAVE_PLPLOT_WINGCC_DRIVER)
+      endif(CYGWIN OR NOT WIN32)
+    endif (INTERACTIVE_GRAPHICS)
 endif(PLPLOT_FOUND)
     
 # GraphicsMagick (GM) is an alternative to the classical ImageMagick Lib (IM).
@@ -533,48 +646,6 @@ if(USE_MAGICK AND NOT WIN32)
   endif(HAVE_PLGETDRVDIR)
 endif(USE_MAGICK AND NOT WIN32)
 
-# wxWidgets
-# -DWXWIDGETS=ON|OFF
-# -DWXWIDGETSDIR=DIR
-set(wxWidgets_USE_DEBUG OFF) # Use release build
-if(WXWIDGETS)
-    #
-    set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
-    find_package(wxWidgets COMPONENTS base core adv)
-    set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
-    if(wxWidgets_FOUND)
-        set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
-        set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${wxWidgets_LIBRARY_DIRS})
-        foreach(WXDEF ${wxWidgets_DEFINITIONS})
-            add_definitions(-D${WXDEF})
-        endforeach(WXDEF ${wxWidgets_DEFINITIONS})
-        include_directories(${wxWidgets_INCLUDE_DIRS})
-    else(wxWidgets_FOUND)
-        message(FATAL_ERROR "wxWidgets are required but were not found.\n"
-        "Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
-        "Use -DWXWIDGETS=OFF to not use it.\n"
-                "(suitable Debian/Ubuntu package: libwxgtk2.8-dev)\n"
-                "(suitable Fedora/CentOS package: wxGTK-devel)")
-    endif(wxWidgets_FOUND)
-    #
-    # we check whether plplot was compiled within wxwidgets
-    #
-    check_c_source_runs("
-    #include <plplot/plplot.h>
-    #include<string.h>
-    int main(int argc, char **argv) {
-  int numdevs = 128;
-  const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
-  const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
-  plgDevs(&devlongnames, &devnames, &numdevs);
-  for (int i = 0; i < numdevs; ++i) {if (strcmp(\"wxwidgets\", devnames[i])==0) exit(EXIT_SUCCESS);}
-  exit(EXIT_FAILURE);
-}" HAVE_PLPLOT_WXWIDGETS_DRIVER)
-if (NOT HAVE_PLPLOT_WXWIDGETS_DRIVER) 
-message(FATAL_ERROR "PlPlot wxWidgets driver not found, please check your plplot installation")
-endif (NOT HAVE_PLPLOT_WXWIDGETS_DRIVER) 
-
-endif(WXWIDGETS)
 
 # libtiff
 # -DTIFF=ON|OFF
@@ -1026,24 +1097,9 @@ if(EXPAT)
       "(suitable Fedora/CentOS package: expat-devel)\n")
   endif(EXPAT_FOUND)
 endif(EXPAT)
-# X11
-if(CYGWIN OR NOT WIN32)
-    if(X11)
-        set(CMAKE_PREFIX_PATH ${X11DIR})
-        find_package(X11 QUIET)
-        set(HAVE_X ${X11_FOUND})
-        if(X11_FOUND)
-            set(LIBRARIES ${LIBRARIES} ${X11_LIBRARIES})
-            include_directories(${X11_INCLUDE_DIR})
-        else(X11_FOUND)
-            message(FATAL_ERROR "X11 is required but was not found.\n"
-            "Use -DX11DIR=DIR to specify the X11 directory tree.\n"
-            "Use -DX11=OFF to not use it.\n"
-	    "(suitable Fedora/CentOS package xorg-x11-devel)\n")
-        endif(X11_FOUND)
-    endif(X11)
-endif(CYGWIN OR NOT WIN32)
+
 add_subdirectory(src)
+
 if(NOT PYTHON_MODULE)
     add_subdirectory(testsuite)
 endif(NOT PYTHON_MODULE)
@@ -1127,6 +1183,11 @@ message(STATUS "RC compiler           ${CMAKE_RC_COMPILER} ${FLAGS}")
 endif(WIN32)
 message("")
 message(STATUS "Options")
+message("")
+message("Interactive plots: ${INTERACTIVE_GRAPHICS}")
+message("Widgets support: ${wxWidgets_FOUND}")
+message("")
+
 if(OPENMP AND OPENMP_FOUND)
     message("OpenMP support         ON (flag: ${OpenMP_CXX_FLAGS})")
 else(OPENMP AND OPENMP_FOUND)
@@ -1134,7 +1195,11 @@ else(OPENMP AND OPENMP_FOUND)
 endif(OPENMP AND OPENMP_FOUND)
 set(WXWIDGETS_LIBRARIES ${wxWidgets_LIBRARIES})
 module(WXWIDGETS "WxWidgets     ")
-module(MAGICK    "ImageMagick   ")
+if (GRAPHICSMAGICK_FOUND)
+  module(GRAPHICSMAGICK "GRAPHICSMAGICK")
+else (GRAPHICSMAGICK_FOUND)
+  module(MAGICK    "ImageMagick   ")
+endif (GRAPHICSMAGICK_FOUND)
 module(TIFF      "TIFF          ")
 module(GEOTIFF   "GeoTIFF       ")
 module(NETCDF    "NetCDF        ")
@@ -1147,7 +1212,7 @@ module(MPI       "MPI           ")
 module(PYTHON    "Python        ")
 module(UDUNITS2  "UDUNITS-2     ")
 module(EIGEN3    "EIGEN3        ")
-module(GRAPHICSMAGICK "GRAPHICSMAGICK")
+
 module(GRIB      "GRIB          ")
 # set(QHULL_LIBRARIES ${QHULL_LIBRARIES})
 # module(QHULL     "QHULL         ")
@@ -1157,9 +1222,11 @@ set(SHAPELIB_LIBRARIES ${SHAPELIB_LIBRARIES})
 module(SHAPELIB   "SHAPELIB      ")
 set(EXPAT_LIBRARIES ${EXPAT_LIBRARIES})
 module(EXPAT     "EXPAT         ")
-if(CYGWIN OR NOT WIN32)
+if (INTERACTIVE_GRAPHICS AND NOT wxWidgets_FOUND) 
+if( CYGWIN OR NOT WIN32  )
   module(X11     "Xlib          ")
-endif(CYGWIN OR NOT WIN32)
+endif( CYGWIN OR NOT WIN32)
+endif ( INTERACTIVE_GRAPHICS AND NOT wxWidgets_FOUND)
 module(PNGLIB    "libpng        ")
 message("")
 message(STATUS "Mandatory modules")
