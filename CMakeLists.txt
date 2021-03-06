@@ -484,15 +484,19 @@ if(PLPLOT_FOUND)
 #the following does not work with clang (???)
     check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
 
-
+set(_test_plplot
+"
+#include <plplot/plstream.h>
+int main(int argc, char **argv) {
+  plstream *p = new plstream();
+  PLFLT w = 0.5;
+  p->width(w);
+}
+"
+)
 #give it a 2nd try...
         if(NOT HAVE_PLPLOT_WIDTH)
-    check_cxx_source_compiles("#include <plplot/plstream.h>
-                                    int main(int argc, char **argv) {
-                                      plstream *p = new plstream();
-                                      PLFLT w = 0.5;
-                                      p->width(w);
-                                    }" HAVE_PLPLOT_WIDTH)
+    check_cxx_source_compiles("${_test_plplot}" HAVE_PLPLOT_WIDTH)
 
             if(HAVE_PLPLOT_WIDTH)
               set(HAVE_PLPLOT_WIDTH 1)
@@ -510,37 +514,59 @@ if(PLPLOT_FOUND)
       set(PLPLOT_HAS_PLCALLBACK 1)
     endif(PLPLOT_HAS_PLCALLBACK)
     if (INTERACTIVE_GRAPHICS)
+set (_test_wxwidgets
+"
+#include <plplot/plplot.h>
+#include<string.h>
+int main(int argc, char **argv) {
+int numdevs = 128;
+const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
+const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
+plgDevs(&devlongnames, &devnames, &numdevs);
+for (int i = 0; i < numdevs; ++i) {if (strcmp(\"wxwidgets\", devnames[i])==0) exit(EXIT_SUCCESS);}
+exit(EXIT_FAILURE);
+}
+"
+)
+set (_test_xwin
+"
+#include <plplot/plplot.h>
+#include<string.h>
+int main(int argc, char **argv) {
+int numdevs = 128;
+const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
+const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
+plgDevs(&devlongnames, &devnames, &numdevs);
+for (int i = 0; i < numdevs; ++i) {if (strcmp(\"xwin\", devnames[i])==0) exit(EXIT_SUCCESS);}
+exit(EXIT_FAILURE);
+}
+"
+)
+set (_test_wingcc
+"
+#include <plplot/plplot.h>
+#include<string.h>
+int main(int argc, char **argv) {
+int numdevs = 128;
+const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
+const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
+plgDevs(&devlongnames, &devnames, &numdevs);
+for (int i = 0; i < numdevs; ++i) {if ( strcmp(\"wingcc\", devnames[i])==0 || strcmp(\"wingdi\", devnames[i])==0 ) exit(EXIT_SUCCESS);}
+exit(EXIT_FAILURE);
+}
+"
+)
       # if wxWidgets found, we check whether plplot was compiled within wxwidgets
       # if plplot's wxwidgets driver is not in the distribution, and if X11 is not present either (or winggc under WIN32) then
       # it will be a STOP unless INTERACTIVE_GRAPHICS=OFF. Totally noninteractive graphics apps (such as Jupyter GDL kernel)
       # must be compiled with -DINTERACTIVE_GRAPHICS=OFF .
       if (wxWidgets_FOUND)
-          check_c_source_runs("
-          #include <plplot/plplot.h>
-          #include<string.h>
-          int main(int argc, char **argv) {
-          int numdevs = 128;
-          const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
-          const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
-          plgDevs(&devlongnames, &devnames, &numdevs);
-          for (int i = 0; i < numdevs; ++i) {if (strcmp(\"wxwidgets\", devnames[i])==0) exit(EXIT_SUCCESS);}
-          exit(EXIT_FAILURE);
-          }" HAVE_PLPLOT_WXWIDGETS_DRIVER)
+          check_c_source_runs("${_test_wxwidgets}" HAVE_PLPLOT_WXWIDGETS_DRIVER)
        endif (wxWidgets_FOUND)
       #idem for X11
       if(CYGWIN OR NOT WIN32)
          if (X11_FOUND)
-            check_c_source_runs("
-            #include <plplot/plplot.h>
-            #include<string.h>
-            int main(int argc, char **argv) {
-            int numdevs = 128;
-            const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
-            const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
-            plgDevs(&devlongnames, &devnames, &numdevs);
-            for (int i = 0; i < numdevs; ++i) {if (strcmp(\"xwin\", devnames[i])==0) exit(EXIT_SUCCESS);}
-            exit(EXIT_FAILURE);
-            }" HAVE_PLPLOT_X11_DRIVER)
+            check_c_source_runs("${_test_xwin}" HAVE_PLPLOT_X11_DRIVER)
          endif (X11_FOUND)
          if (NOT HAVE_PLPLOT_WXWIDGETS_DRIVER AND NOT HAVE_PLPLOT_X11_DRIVER ) 
            if (wxWidgets_FOUND) 
@@ -550,19 +576,9 @@ if(PLPLOT_FOUND)
            endif (wxWidgets_FOUND)
          endif (NOT HAVE_PLPLOT_WXWIDGETS_DRIVER)
       else (CYGWIN OR NOT WIN32)  #WIN32: check wingcc
-            check_c_source_runs("
-            #include <plplot/plplot.h>
-            #include<string.h>
-            int main(int argc, char **argv) {
-            int numdevs = 128;
-            const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
-            const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
-            plgDevs(&devlongnames, &devnames, &numdevs);
-            for (int i = 0; i < numdevs; ++i) {if (strcmp(\"wingcc\", devnames[i])==0) exit(EXIT_SUCCESS);}
-            exit(EXIT_FAILURE);
-            }" HAVE_PLPLOT_WINGCC_DRIVER)
+            check_c_source_runs("${_test_wingcc}" HAVE_PLPLOT_WINGCC_DRIVER)
             if (NOT HAVE_PLPLOT_WINGCC_DRIVER)
-              message(FATAL_ERROR "PlPlot was compiled without wingcc driver, aborting. See use of -DINTERACTIVE_GRAPHICS=OFF .")
+              message(FATAL_ERROR "PlPlot was compiled without wingcc or wingdi driver, aborting. See use of -DINTERACTIVE_GRAPHICS=OFF .")
             endif (NOT HAVE_PLPLOT_WINGCC_DRIVER)
       endif(CYGWIN OR NOT WIN32)
     endif (INTERACTIVE_GRAPHICS)
