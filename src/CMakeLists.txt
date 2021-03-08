@@ -160,7 +160,6 @@ sorting.cpp
 str.cpp
 terminfo.cpp
 tiff.cxx
-topython.cpp
 triangulation.cpp
 typetraits.cpp
 where.cpp
@@ -192,7 +191,6 @@ include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_D
 link_directories(${LINK_DIRECTORIES})
 
 if(PYTHON_MODULE) #GDL.so
-	set(SOURCES ${SOURCES} pythongdl.cpp)
 	add_library(gdl SHARED ${SOURCES})
 	SET_TARGET_PROPERTIES(gdl PROPERTIES PREFIX "")
 	SET_TARGET_PROPERTIES(gdl PROPERTIES OUTPUT_NAME GDL)
