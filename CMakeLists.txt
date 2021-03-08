@@ -51,7 +51,7 @@ endif(MINGW)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 #### GDL is an interactive tool. Normally INTERACTIVE_GRAPHICS must be set
-set(INTERACTIVE_GRAPHICS ON)
+set(INTERACTIVE_GRAPHICS ON CACHE BOOL "GDL: Disable check of existence of a suited graphics driver in plplot.)")
 
 #### Default cached values
 set(GDLDEV OFF CACHE BOOL "GDL: Enable GDL developer mode (includes work-in-progress tests)")
