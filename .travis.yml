@@ -107,7 +107,7 @@ install:
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} readline"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=ON -DREADLINEDIR=/usr/local/opt/readline"; fi
 
-    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=OFF"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DINTERACTIVE_GRAPHICS=OFF -DREADLINE=OFF"; fi 
 
     # pnglib
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libpng-dev"; fi
