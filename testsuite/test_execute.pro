@@ -130,7 +130,6 @@ com='plot, SIN(!pi*findgen(100)/10.)'
 status=EXECUTE(com)
 ;
 if (status NE 1) then ERRORS_ADD, errors, 'Sin Status'
-WDELETE
 ;
 ; external function, single element
 ;
