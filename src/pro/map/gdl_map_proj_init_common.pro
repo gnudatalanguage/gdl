@@ -1,10 +1,10 @@
 ; the purpose of all this is to translate IDL-like commands to define
-; a specific projection to the osgeo/proj4 equivalent commandline,
+; a specific projection to the osgeo/PROJ equivalent commandline,
 ; e.g., translate
 ; proj=map_proj_init(127,CENTER_LON=28.1336,FALSE_EASTING=-70,FALSE_NORTHING=12,SPHERE_RADIUS=1)
 ; into
 ; "+proj=hammer +R=1 +lon_0=28.1336 +x_0=-70 +y_0=12"
-; passing this expression to proj4 will set up all the projections
+; passing this expression to PROJ will set up all the projections
 ; parameters and thus the coordinates transformation.
 ; This is not finished however. One has to define ancillary values
 ; such as the limits in lat,lon  and u,v of the projection and the
@@ -28,8 +28,8 @@ doInitMapProjectionCommon=1b;
 ; find either system or (eventually) current file. impotant to keep
 ; this as is for easy use of program updating the file projection definition.
 if file_test("projDefinitions.sav") then restore,"projDefinitions.sav" else begin
-proj4definitionFile=FILEPATH("projDefinitions.sav", ROOT_DIR=!GDL_MAPS_DIR)
-restore,proj4definitionFile
+projdefinitionFile=FILEPATH("projDefinitions.sav", ROOT_DIR=!GDL_MAPS_DIR)
+restore,projdefinitionFile
 endelse
 
 ; create compressed uppercase namestring for easy comparison:
@@ -46,7 +46,7 @@ ellipsoid_proj=['clrk66','clrk80','bessel','new_intl','intl','WGS72','evrst30','
 ; the options that need to be translated
 ;; IS_ZONES=  +n=4 +m=  zone num see https://modis-land.gsfc.nasa.gov/MODLAND_grid.html
 ;; IS_JUSTIFY=i++              ;see above
-;; SOM_INCLINATION=i++         ; unknown with proj4
+;; SOM_INCLINATION=i++         ; unknown with PROJ
 ;; SOM_LONGITUDE=i++           ;
 ;; SOM_PERIOD=i++              ;
 ;; SOM_RATIO=i++               ;
@@ -78,7 +78,7 @@ dictionary=hash($
 "SOM_LANDSAT_PATH","+path=",$
 "OEA_SHAPEM","+m=",$
 "OEA_SHAPEN","+n=",$
-"OEA_ANGLE","+theta=",$ ; and all the proj4 equivalent keywords:
+"OEA_ANGLE","+theta=",$ ; and all the PROJ equivalent keywords:
 "LAT_1","+lat_1=",$
 "LON_1","+lon_1=",$
 "LAT_2","+lat_2=",$

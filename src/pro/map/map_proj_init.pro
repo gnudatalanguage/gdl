@@ -1,7 +1,7 @@
 ; MAP_PROJ_INIT
 ; Documentation in progress
 ; equivalent to the original procedure, except that instead of 40 or
-; so projections here we give access to all the proj4 projections (120+)
+; so projections here we give access to all the PROJ projections (120+)
 ; Note: the structure of the resulting mapstruct is not compatible with
 ; IDL, i.e., one cannot use a GDL-defined mapstruct in IDL (if passed
 ; within a save file), (but one can use an IDL-defined mapstruct in GDL).
@@ -53,8 +53,8 @@ pro gdl_compute_map_limits, myMap
   lonmin=-180.0d & lonmax=180.0d & latmin=-90.0d & latmax=90.0d
   lonrange = lonmax - lonmin
   latrange = latmax - latmin
-; is there another way (proj4) to get ranges except brute force on a grid of possible points?
-; epsilon useful as projections are not precise (see #define EPS in proj4 c files: apparently < 1e-6)
+; is there another way (PROJ) to get ranges except brute force on a grid of possible points?
+; epsilon useful as projections are not precise (see #define EPS in PROJ c files: apparently < 1e-6)
   epsx = 1d-6*ABS(lonrange)
   epsy = 1d-6*ABS(latrange)
 
@@ -103,7 +103,7 @@ function map_proj_init, pindex, p4number=p4number, relaxed=relaxed, rotation=rot
     ON_ERROR, 2  ; return to caller
 
 ; NOTE: We are always "relaxed".
-; p4num bool indicates pindex is a number and refers to the internal proj4 table of proj4 properties line and not an IDL number for which an equivalent must be found 
+; p4num bool indicates pindex is a number and refers to the internal PROJ table of PROJ properties line and not an IDL number for which an equivalent must be found 
 
 ; define limit
 if n_elements(passed_limit) lt 4 then limit=dblarr(4) else limit=double(passed_limit)
@@ -121,7 +121,7 @@ nproj=n_elements(proj)
 sindex=pindex
 ; find projection index, by index:
 if (N_ELEMENTS(pindex) le 0) then begin 
-   index=where(proj.proj4name eq 'stere') ; stereo is default
+   index=where(proj.projname eq 'stere') ; stereo is default
 ; this is a drawback: projection number is always an IDL number 
 endif else if (SIZE(pindex, /TYPE) ne 7) then begin
    if keyword_set(p4number) then sindex=proj[pindex].fullname else sindex=idl_ids[pindex]
@@ -135,9 +135,9 @@ w = strcmp(idl_ids,shortname,strlen(shortname)) & count=total(w)
 if count gt 1 then message, /noname, 'Ambiguous Projection abbreviation: ' + sindex
 if count eq 1 then begin
    name4=idl_equiv[(where(w eq 1))[0]]
-   index=where(proj.proj4name eq name4, count) & if count eq 0 then message, 'Projection ' + sindex + ' apparently does not exist in Proj4 library, fixme.' 
+   index=where(proj.projname eq name4, count) & if count eq 0 then message, 'Projection ' + sindex + ' apparently does not exist in PROJ library, fixme.' 
 endif else begin
-   ; next, proj4 projections
+   ; next, PROJ projections
    w = strcmp(compressed_ids1,shortname,strlen(shortname)) & count=total(w)
    if count eq 0 then begin w = strcmp(compressed_ids2,shortname,strlen(shortname)) & count=total(w) & end ; alternative
    if count eq 0 then message, /noname, 'Invalid Projection name: ' + sindex
@@ -158,9 +158,9 @@ endelse
 if index ge nproj then message, /noname,   'Invalid Projection number: ' + strtrim(sindex)
 
 ; useful strings:
-; get base proj4 name!
-p4n=proj[index].proj4name
-; need to keep ony the real proj4 name if perchance there was additional commands already set in the name
+; get base PROJ name!
+p4n=proj[index].projname
+; need to keep ony the real PROJ name if perchance there was additional commands already set in the name
 p4n=(strsplit(strtrim(p4n,2),' ',/extract))[0] 
 
 ; required parameters, filled.
@@ -226,8 +226,8 @@ if n_elements(extra) gt 0 then begin
       w = strcmp(possible_params,passed_params[i],strlen(passed_params[i])) & count=total(w) & j=(where(w eq 1))[0]
       if count eq 1 then begin
          passed_params[i]=possible_params[j] ; make passed_params normalized.
-         proj4kw=dictionary[possible_params[j]]
-         list_of_passed_params= (n_elements(list_of_passed_params) eq 0)? proj4kw : [list_of_passed_params,proj4kw]
+         projkw=dictionary[possible_params[j]]
+         list_of_passed_params= (n_elements(list_of_passed_params) eq 0)? projkw : [list_of_passed_params,projkw]
          passed_values= (n_elements(passed_values) eq 0)? strtrim(extra.(i),2) : [passed_values,strtrim(extra.(i),2)]
       endif else if count gt 1 then message,"Ambiguous keyword abbreviation: "+passed_params[i]
    endfor
@@ -237,7 +237,7 @@ endif
 if n_passed gt 0 and n_passed ge n_required then begin
 ; do we have required values for projection?
    if n_required gt 0 then begin
-; needed params: get individual proj4 keywords, find if equivalent is
+; needed params: get individual PROJ keywords, find if equivalent is
 ; existing in passed_params. Based on equivalence list above.
 
 ; sort in alphabetic order
@@ -295,17 +295,17 @@ if n_passed gt 0 and n_passed ge n_required then begin
       endif
    endif
 endif else begin                ; or not...
-   if strlen(required_opt) gt 0 then  message, "Absent (proj4) parameter(s): "+required_opt
+   if strlen(required_opt) gt 0 then  message, "Absent (PROJ) parameter(s): "+required_opt
 endelse
 
 ; main string (will need special treatment for rotation etc.)
-proj4command="+proj="+proj[index].proj4name+" "
+projcommand="+proj="+proj[index].projname+" "
 
-proj4options=filled_required_parameter_string+filled_optional_parameter_string
+projoptions=filled_required_parameter_string+filled_optional_parameter_string
 
-; ok, proj4options contains all relevant AND permitted parameters. Try to assemble
+; ok, projoptions contains all relevant AND permitted parameters. Try to assemble
 ; all these into valid elements of !map. Up to now we have only
-; translated from idl to proj4. now is time to interpret things a bit.
+; translated from idl to PROJ. now is time to interpret things a bit.
 
 ; define useful defaults values
 p0lon = 0d                      ; center longitude
@@ -317,9 +317,9 @@ satheight=0
 alpha=90 ; 
 lonc=0 ; see f.e. oblique mercator in proj.org 
 
-if strlen(proj4options) gt 0 then begin
-; convert proj4options to hash
-   s=strsplit(strtrim(proj4options,2),"= ",/extract)
+if strlen(projoptions) gt 0 then begin
+; convert projoptions to hash
+   s=strsplit(strtrim(projoptions,2),"= ",/extract)
    x=where(strpos(s,'+') eq 0, comp=y)
    a=hash(s[x],s[y])
 ; if a contains "+lon_0" this is p0lon, etc.
@@ -350,14 +350,14 @@ if (rotPossible) then begin
       if count gt 0 then begin  ; try general oblique
          p0lat=extra.(w[0])
          if p0lat ne 0 then begin 
-            if p0lat gt 89.9 then p0lat = 89.9 ;take some precautions as PROJ.4 is not protected!!! 
+            if p0lat gt 89.9 then p0lat = 89.9 ;take some precautions as PROJ is not protected!!! 
             if p0lat lt -89.9 then p0lat = -89.9 ;
             ; compute pole of transformed projection
-            proj4command="+proj=ob_tran +o_proj="+proj[index].proj4name
-            ; remove '+lat_0=xxx +lon_0=xxx' from proj4options
-            a=strsplit(proj4options,"\+lat_0=[0-9.]*",/regex,/extract)
-            a=strsplit(proj4options,"\+lon_0=[0-9.]*",/regex,/extract)
-            proj4options=strjoin(a)
+            projcommand="+proj=ob_tran +o_proj="+proj[index].projname
+            ; remove '+lat_0=xxx +lon_0=xxx' from projoptions
+            a=strsplit(projoptions,"\+lat_0=[0-9.]*",/regex,/extract)
+            a=strsplit(projoptions,"\+lon_0=[0-9.]*",/regex,/extract)
+            projoptions=strjoin(a)
          endif else rotPossible=0B
       endif
    endif else rotPossible=0B
@@ -372,7 +372,7 @@ if noRot eq 1 then p0lat=0 else begin
       if count gt 0 then begin
          val=passed_values[w[0]]
          p0lat=double(val)
-         proj4options+=" +lat_0="+val
+         projoptions+=" +lat_0="+val
       endif
    endif
 endelse
@@ -433,8 +433,8 @@ myMap.pole=[pole_lon*deg2rad,pole_lat*deg2rad,psinlat,pcoslat,xyzpole] ; need to
 ; now that pole is computed correctly, add pole position to
 ; generalized oblique
 if rotPossible then begin
-   proj4command+=" +o_alpha=90 +o_lat_c="+strtrim(p0lat,2)+" +o_lon_c=180"
-   if (p0lat gt 0) then proj4command+=" +lon_0="+strtrim(p0lon,2) else  proj4command+=" +lon_0="+strtrim(180+p0lon,2)
+   projcommand+=" +o_alpha=90 +o_lat_c="+strtrim(p0lat,2)+" +o_lon_c=180"
+   if (p0lat gt 0) then projcommand+=" +lon_0="+strtrim(p0lon,2) else  projcommand+=" +lon_0="+strtrim(180+p0lon,2)
 endif
 
 
@@ -513,7 +513,7 @@ if (interrupted or p4n eq 'bipc' or p4n eq "bertin1953" or p4n eq "qsc" ) then b
           theta = deg2rad * splits[i]
           MAP_CLIP_SET, map=myMap, SPLIT=[splits[i], 0, -sin(theta), cos(theta), 0., 0.]
        endfor 
-       myMap.up_flags=1000 ; redefine "epsilon" due to precision problems in proj4!!!!
+       myMap.up_flags=1000 ; redefine "epsilon" due to precision problems in PROJ!!!!
 
          END
 
@@ -537,7 +537,7 @@ if (interrupted or p4n eq 'bipc' or p4n eq "bertin1953" or p4n eq "qsc" ) then b
        endfor 
        map_clip_set, map=myMap, SPLIT=[0,90,0,0,1d,-2d/3d]
        map_clip_set, map=myMap, SPLIT=[0,-90,0,0,-1d,-2d/3d]
-       myMap.up_flags=10000 ; redefine "epsilon" due to precision problems in proj4!!!!
+       myMap.up_flags=10000 ; redefine "epsilon" due to precision problems in PROJ!!!!
     END
 
     "healpix": BEGIN
@@ -547,7 +547,7 @@ if (interrupted or p4n eq 'bipc' or p4n eq "bertin1953" or p4n eq "qsc" ) then b
           theta = deg2rad * splits[i]
           MAP_CLIP_SET, map=myMap, SPLIT=[splits[i], 0, -sin(theta), cos(theta), 0., 0.]
        endfor 
-       myMap.up_flags=10000 ; redefine "epsilon" due to precision problems in proj4!!!!
+       myMap.up_flags=10000 ; redefine "epsilon" due to precision problems in PROJ!!!!
     END
  ELSE: print,"Interrupted projection "+p4n+" is not yet properly taken into account in map_proj_init, please FIXME!"
  endcase
@@ -597,10 +597,10 @@ endif else begin ; not interrupted
    endelse                      ; end azim projs
 endelse                         ; not interrupted
 
-if ellipticalusagerequired then proj4Options+=' +ellps=GRS80 '
-if south then proj4Options+=' +south'
+if ellipticalusagerequired then projOptions+=' +ellps=GRS80 '
+if south then projOptions+=' +south'
 ; finalize projection to be used in finding limits:
-myMap.up_name=proj4command+" "+proj4Options
+myMap.up_name=projcommand+" "+projOptions
 
 if (hasDefinedEll) then begin
 myMap.up_name+=" +a="+strtrim(SEMIMAJOR_AXIS[0],2)+" +b="+strtrim(SEMIMINOR_AXIS[0],2)
@@ -628,7 +628,7 @@ pro map_proj_auxiliary_read_csv
     ON_ERROR, 2  ; return to caller
  restore,"csv.sav"
  nproj=n_elements(csv_proj.field1)
- names={PROJ4NAME:"",FULLNAME:"",OTHERNAME:""}
+ names={PROJNAME:"",FULLNAME:"",OTHERNAME:""}
  proj_property={EXIST:1B,SPH:0B,CONIC:0B,AZI:0B,ELL:0B,CYL:0B,MISC:0B,NOINV:0B,NOROT:0B,INTER:0b} ; note uppercase
 ; fill the sorted, uniq, list of REQUIRED values
  t=strtrim(csv_proj.field5,2) & s=strjoin(t) & t=strsplit(s,"= ",/extract) 
@@ -636,7 +636,7 @@ pro map_proj_auxiliary_read_csv
  for i=0,n_elements(required_template_list)-1 do map_struct_append, required_template, required_template_list[i], 0b
 
  proj=replicate(names,nproj)
- proj.PROJ4NAME=csv_proj.FIELD1
+ proj.PROJNAME=csv_proj.FIELD1
  proj.FULLNAME=csv_proj.FIELD2
  proj.OTHERNAME=csv_proj.FIELD3
 
@@ -679,7 +679,7 @@ save,filen="projDefinitions.sav",proj,proj_properties,required,optional,proj_sca
 for i=0,nproj-1 do begin
    catch,absent
    if absent ne 0 then begin
-      print,'i was',i,' projection was ',proj[i].PROJ4NAME
+      print,'i was',i,' projection was ',proj[i].PROJNAME
       proj_properties[i].exist=0b
       continue
    endif
@@ -690,7 +690,7 @@ endfor
 for i=0,nproj-1 do begin
    catch,absent
    if absent ne 0 then begin
-      print,'(known?) problem with projection '+proj[i].PROJ4NAME
+      print,'(known?) problem with projection '+proj[i].PROJNAME
       continue
    endif
 

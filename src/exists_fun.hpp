@@ -32,8 +32,7 @@ namespace lib {
  BaseGDL* ncdf4_exists(EnvT *e);
  BaseGDL* openmp_exists(EnvT *e);
  BaseGDL* pnglib_exists(EnvT *e);
- BaseGDL* proj4_exists(EnvT *e);
- BaseGDL* proj4new_exists(EnvT *e);
+ BaseGDL* proj_exists(EnvT *e);
  BaseGDL* pslib_exists(EnvT *e);
  BaseGDL* python_exists(EnvT *e);
  BaseGDL* tiff_exists(EnvT *e);

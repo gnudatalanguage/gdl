@@ -2,7 +2,7 @@
 ; Documentation in progress
 ; One major difference with IDL's one is that, using
 ; name="xxxx", one can use any of the ~120 currently defined
-; projections in proj.4 library
+; projections in PROJ library
 ; The structure of the !MAP system variable is not compatible with
 ; IDL, i.e., one cannot use a GDL-defined !MAP in IDL, but one can use
 ; and IDL-defined !MAP (or mapstruct) in GDL.

@@ -68,7 +68,7 @@ GDL has numerous dependencies, most of the optional (buth highly recommended):
 - [HDF4](https://support.hdfgroup.org/products/hdf4/) 
 - [HDF5](https://support.hdfgroup.org/HDF5/)  
 - [FFTW](http://www.fftw.org/) 
-- [PROJ.4](http://proj4.org/)
+- [PROJ](https://proj.org/)
 - [Shapelib](http://shapelib.maptools.org/) 
 - [Expat](https://libexpat.github.io/)
 - [MPI](https://en.wikipedia.org/wiki/Message_Passing_Interface) 

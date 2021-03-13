@@ -160,24 +160,15 @@ namespace lib {
 #endif
   }
 
-  BaseGDL* proj4_exists( EnvT* e )
+  BaseGDL* proj_exists( EnvT* e )
   {
-#if defined(USE_LIBPROJ4)
+#if defined(USE_LIBPROJ)
     return new DIntGDL(1);
 #else
     return new DIntGDL(0);
 #endif
   }
   
-  BaseGDL* proj4new_exists( EnvT* e )
-  {
-#if defined(USE_LIBPROJ4_NEW)
-    return new DIntGDL(1);
-#else
-    return new DIntGDL(0);
-#endif
-  }
-
   BaseGDL* python_exists( EnvT* e )
   {
 #if defined(USE_PYTHON)

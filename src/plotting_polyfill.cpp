@@ -206,7 +206,7 @@ namespace lib
       restorelayout=true;
 
       mapSet=false;
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       get_mapset(mapSet);
       mapSet=(mapSet && coordinateSystem==DATA);
       if ( mapSet )
@@ -380,7 +380,7 @@ namespace lib
         
         ///TODO: Get proper USerSymSize in 3D.
         
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
         if (mapSet) 
           GDLgrProjectedPolygonPlot(actStream, ref, NULL, xVal, yVal, false, true, NULL);
         else  actStream->fill(xEl, static_cast<PLFLT*>(&(*xValou)[0]), static_cast<PLFLT*>(&(*yValou)[0]));
