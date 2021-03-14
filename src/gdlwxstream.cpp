@@ -192,7 +192,7 @@ void GDLWXStream::Clear() {
       blue0=GraphicsDevice::GetDevice()->BackgroundB();
       plstream::scolbg(red0,green0,blue0); //overwrites col[0]
       ::c_plbop();
-//      ::c_plclear();
+      ::c_plclear();
       plstream::scolbg(red,green,blue); //resets col[0]
 }
 
