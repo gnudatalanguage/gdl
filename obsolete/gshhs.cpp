@@ -24,7 +24,7 @@
 #define USE_GSHHG 1
 #endif
 
-#if defined(USE_LIBPROJ4)||defined(USE_LIBPROJ4_NEW)
+#if defined(USE_LIBPROJ)||defined(USE_LIBPROJ_NEW)
 
 #include "includefirst.hpp"
 #include "plotting.hpp"
@@ -81,7 +81,7 @@ namespace lib {
       if ( ref == NULL ) {
 	e->Throw( "Projection initialization failed." );
       }
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       LPTYPE idata;
       XYTYPE odata;
 #endif
@@ -344,7 +344,7 @@ namespace lib {
   }; // class definition
 
   void map_continents( EnvT* e ) {
-#if defined(USE_LIBPROJ4) || defined(USE_LIBPROJ4_NEW)
+#if defined(USE_LIBPROJ) || defined(USE_LIBPROJ_NEW)
     map_continents_call map_continents;
     map_continents.call( e, 0 );
 #else

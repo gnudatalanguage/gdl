@@ -31,7 +31,7 @@ namespace lib {
   BaseGDL* map_proj_forward_fun( EnvT* e);
   BaseGDL* map_proj_inverse_fun( EnvT* e);
 
-#if defined(USE_LIBPROJ4) || defined(USE_LIBPROJ4_NEW) 
+#if defined(USE_LIBPROJ)
 
   //dummy functions for compatibility support of GCTP projections 
   void map_proj_gctp_forinit (EnvT* e);
@@ -39,56 +39,48 @@ namespace lib {
 
 #define GDL_COMPLEX COMPLEX2
 
-#ifdef USE_LIBPROJ4_NEW
   extern "C" {
-    //#include "projects.h"
-   #define ACCEPT_USE_OF_DEPRECATED_PROJ_API_H 1
+#if LIBPROJ_MAJOR_VERSION >= 5
+#include "proj.h"
+#else
 #include "proj_api.h"
+#endif
   }
+#if LIBPROJ_MAJOR_VERSION >= 5
+#define LPTYPE PJ_LP
+#define XYTYPE PJ_XY
+#define PROJTYPE PJ*
+#define PROJDATA PJ_UV
+
+  PJ_XY protect_proj_fwd_lp (PJ_LP idata, PJ *proj);
+  PJ_XY protect_proj_fwd_xy (PJ_XY idata, PJ *proj);
+  PJ_LP protect_proj_inv_xy (XYTYPE idata, PJ *proj);
+  static PJ_XY badProjXY={sqrt(-1),sqrt(-1)};
+  static PJ_LP badProjLP={sqrt(-1),sqrt(-1)};
+
+  static PJ *ref;
+  static PJ *prev_ref;
+
+#define DEG_TO_RAD   .017453292519943296
+#define RAD_TO_DEG    57.295779513082321
+#else
 #define LPTYPE projLP
 #define XYTYPE projXY
-
 #define PROJTYPE projPJ
 #define PROJDATA projUV
-#define PJ_INIT pj_init
 
   PROJDATA protect_proj_fwd (PROJDATA idata, PROJTYPE proj);
   PROJDATA protect_proj_inv (PROJDATA idata, PROJTYPE proj);
+  static PROJDATA badProj={sqrt(-1),sqrt(-1)};
 
 #define PJ_FWD protect_proj_fwd
 #define LIB_PJ_FWD pj_fwd
 #define PJ_INV protect_proj_inv 
 #define LIB_PJ_INV pj_inv
-  PROJTYPE map_init(DStructGDL *map=SysVar::Map());
   static volatile PROJTYPE ref;
   static volatile PROJTYPE prev_ref;
-  static PROJDATA badProj={sqrt(-1),sqrt(-1)};
-#else
-  extern "C" {
-    //adding this removes the problem with lam,phi vs. x,y and make no diffs between old an new lib proj.4    
-#define PROJ_UV_TYPE 1
-#include "lib_proj.h"
-  }
-#define LPTYPE PROJ_LP
-#define XYTYPE PROJ_XY
-
-#define PROJTYPE PROJ*
-#define PROJDATA PROJ_UV
-#define PJ_INIT proj_init
-
-  PROJDATA protect_proj_fwd (PROJDATA idata, PROJTYPE proj);
-  PROJDATA protect_proj_inv (PROJDATA idata, PROJTYPE proj);
-
-#define PJ_FWD protect_proj_fwd
-#define LIB_PJ_FWD proj_fwd
-#define PJ_INV protect_proj_inv
-#define LIB_PJ_INV proj_inv
-  PROJTYPE map_init(DStructGDL *map=SysVar::Map());
-  static PROJTYPE ref;
-  static PROJTYPE prev_ref;
-  static PROJDATA badProj={sqrt(-1),sqrt(-1)};
-  //general reprojecting function
 #endif
+  PROJTYPE map_init(DStructGDL *map=SysVar::Map());
 
   //general reprojecting functions
   DDoubleGDL* gdlApplyFullProjection(PROJTYPE ref, DStructGDL* map,
@@ -102,10 +94,10 @@ namespace lib {
   DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap); //not static since KW is at same place for all uses.
 
 #define COMPLEX2 GDL_COMPLEX
-#else //NOT USE_LIBPROJ4 : define some more or less dummy values:
+#else //NOT USE_LIBPROJ : define some more or less dummy values:
 #define PROJTYPE void*
 #define DEG_TO_RAD 0.017453292
-#endif //USE_LIBPROJ4
+#endif //USE_LIBPROJ
 
 } // namespace
 

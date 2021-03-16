@@ -62,8 +62,7 @@ void LibInit_exists()
   new DLibFunRetNew(lib::ncdf4_exists,string("NCDF4_EXISTS"));
   new DLibFunRetNew(lib::openmp_exists,string("OPENMP_EXISTS"));
   new DLibFunRetNew(lib::pnglib_exists,string("PNGLIB_EXISTS"));
-  new DLibFunRetNew(lib::proj4_exists,string("PROJ4_EXISTS"));
-  new DLibFunRetNew(lib::proj4new_exists,string("PROJ4NEW_EXISTS"));
+  new DLibFunRetNew(lib::proj_exists,string("PROJ_EXISTS"));
   new DLibFunRetNew(lib::python_exists,string("PYTHON_EXISTS"));
   new DLibFunRetNew(lib::tiff_exists,string("TIFF_EXISTS"));
   new DLibFunRetNew(lib::geotiff_exists,string("GEOTIFF_EXISTS"));

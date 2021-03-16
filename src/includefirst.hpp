@@ -24,8 +24,13 @@
 #endif
 // #undef cerr if you want to try it.
 
-#ifdef WIN32
+#ifdef _WIN32
 #  define WIN32_LEAN_AND_MEAN 1
+// JP: Assume that we only use unicode on Windows.
+#  define _UNICODE
+#  define UNICODE
+#  include <windows.h>
+#  include <winsock2.h> // mandatory - at least for gethostname
 #endif
 
 #ifdef HAVE_CONFIG_H

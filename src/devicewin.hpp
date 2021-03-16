@@ -38,10 +38,11 @@
 class DeviceWIN : public GraphicsDevice
 {
 private:
-	static LRESULT CALLBACK _CallWndProc(int nCode, WPARAM wParam, LPARAM lParam);
-	LRESULT CallWndProc(int nCode, WPARAM wParam, LPARAM lParam);
-	static LRESULT CALLBACK _GetMsgProc(int nCode, WPARAM wParam, LPARAM lParam);
-	LRESULT GetMsgProc(int nCode, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK _CallWndProc(int, WPARAM, LPARAM);
+	static LRESULT CALLBACK _GetMsgProc(int, WPARAM, LPARAM);
+	LRESULT CallWndProc(int, WPARAM, LPARAM);
+	LRESULT GetMsgProc(int, WPARAM, LPARAM);
+    bool ProcessMessages(HWND, UINT, WPARAM, LPARAM);
 
 	std::vector<GDLGStream*> winList;
 	std::vector<long>        oList;
