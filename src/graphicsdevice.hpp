@@ -197,7 +197,7 @@ public:
   virtual int  WAddFree()                                 { return false;}
 
   // for WIDGET_DRAW
-  virtual bool GUIOpen( int wIx, int xSize, int ySize) { return false;} 
+  virtual GDLGStream* GUIOpen( int wIx, int xSize, int ySize, void* draw){ return NULL;} 
 
   // for plot windows
   virtual bool WOpen( int ix, const std::string& title,
@@ -209,7 +209,7 @@ public:
   virtual bool WState( int ix)                        { return false;}
   virtual bool WDelete( int ix)                       { return false;}
   virtual int  MaxWin()                               { return 0;}
-  virtual void TidyWindowsList()                      {}
+  virtual void TidyWindowsList(bool d=true){}
   virtual int  MaxNonFreeWin()                        { return MaxWin();}
   virtual int  ActWin()                               { return -1;}
   virtual int  GetNonManagedWidgetActWin(bool doTidy=true)            {return -1;}
@@ -221,7 +221,7 @@ public:
 							*xsize=1200, *ysize=800; return;}
   virtual DLong GetDecomposed()                       { return -1;}
   virtual BaseGDL* GetFontnames()                     { ThrowGDLException("DEVICE: Keyword GET_FONTNAMES not allowed for call to: DEVICE" ); return NULL;}
-  virtual DLong GetFontnum()                          { ThrowGDLException("DEVICE: Keyword GET_FONTNUM not allowed for call to: DEVICE" ); return -1;}
+  virtual DLong GetFontnum()                          { ThrowGDLException("DEVICE: Keyword GET_FONTNUM not allowed for call to: DEVICE" ); return 0;}
   virtual bool SetFont(DString &f)                 {static int warning_sent=1; if (warning_sent) {Warning("SET_FONT not active for this device (FIXME)."); warning_sent=0;} return true;}
   virtual DString GetCurrentFont()                 {return NULL;}
   virtual DLong GetGraphicsFunction()                 { return -1;}
@@ -344,7 +344,7 @@ public:
   bool WState( int ix);
   int  MaxWin();
   void SetActWin(int wIx);
-  void TidyWindowsList();
+  void TidyWindowsList(bool d=true);
   void RaiseWin(int wIx);
   void LowerWin(int wIx);
   void IconicWin(int wIx);
@@ -361,7 +361,7 @@ public:
   bool Decomposed(bool value);
   DLong GetDecomposed();
   BaseGDL* GetFontnames(){ ThrowGDLException("DEVICE: Keyword GET_FONTNAMES not allowed for call to: DEVICE" );return NULL;}
-  DLong GetFontnum(){ ThrowGDLException("DEVICE: Keyword GET_FONTNUM not allowed for call to: DEVICE" );return -1;}
+  DLong GetFontnum(){ ThrowGDLException("DEVICE: Keyword GET_FONTNUM not allowed for call to: DEVICE" );return 0;}
   bool SetFont(DString &f) {fontname=f; return true;}
   DString GetCurrentFont() {return fontname;}
   bool SetBackingStore(int value);

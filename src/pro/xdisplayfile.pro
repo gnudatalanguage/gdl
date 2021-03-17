@@ -157,15 +157,13 @@ if KEYWORD_SET(text) then begin
         done_button = 'Done with XDisplayFile'
     endif
 endif else begin
-    if FILE_TEST(filename, /READ) then begin        
+   if FILE_TEST(filename, /READ) then begin
+        n = FILE_LINES(filename)     
         OPENR, lun, filename, /GET_LUN
-        line = ''
-        while not EOF(lun) do begin
-            READF, lun, line
-            if KEYWORD_SET(debug) then print, STRLEN(line)
-            WIDGET_CONTROL, wtext, SET_VALUE=line, /APPEND
-        endwhile
+        line = strarr(n)
+        READF, lun, line
         FREE_LUN, lun
+        WIDGET_CONTROL, wtext, SET_VALUE=line
     endif else begin
         ;;WIDGET_CONTROL, wtext, SET_VALUE='FILE_LINES: Error opening file.   
         ;; File: ' + filename, /APPEND

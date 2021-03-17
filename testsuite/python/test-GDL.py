@@ -209,4 +209,4 @@ def test_invalid_code():
     '''
     with GDLFile(code) as name:
         with pytest.raises(GDL.error):
-            GDL.pro(name)
+            GDL.pro(name,ret)

@@ -15,8 +15,7 @@
 ;
 ; KEYWORD PARAMETERS: 
 ;   original ones: book=, context=, full_path=, title=
-;   extensions : nopdf=nopdf, nohtml=nohtml, nokey=nokey, browser=browser, $
-;                 path2pdf=path2pdf, path2key=path2key, link2html=link2htlm, $
+;   extensions : ourPdf=ourPdf, nohtml=nohtml, ourTable=ourTable, browser=browser, $
 ;                 test=test, debug=debug, help=help, verbose=verbose 
 ;
 ; OUTPUTS: none
@@ -68,18 +67,21 @@
 ;
 ;-
 pro ONLINE_HELP, name, book=book, context=context, full_path=full_path, title=title, $
-                 nopdf=nopdf, nohtml=nohtml, nokey=nokey, browser=browser, $
-                 path2pdf=path2pdf, path2key=path2key, link2html=link2htlm, $
+                 ourPdf=ourPdf, nohtml=nohtml, ourTable=ourTable, browser=browser, $
+                 path2pdf=path2pdf, path2ourTable=path2ourTable, link2html=link2htlm, $
                  test=test, debug=debug, help=help, verbose=verbose
 ;
 ON_ERROR, 2
 ;
+path2pdf='http://aramis.obspm.fr/~coulais/GDL/' ;gdl.pdfhttp://gnudatalanguage.sourceforge.net/'
+path2ourTable='http://aramis.obspm.fr/~coulais/IDL_et_GDL/'
+link2html='http://www.exelisvis.com/docs/'
+
 if ~KEYWORD_SET(test) then ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro ONLINE_HELP, name, book=book, context=context, full_path=full_path, title=title, $'
-   print, '                 nopdf=nopdf, nohtml=nohtml, nokey=nokey, browser=browser, $'
-   print, '                 path2pdf=path2pdf, path2key=path2key, link2html=link2htlm, $'
+   print, '                 ourPdf=ourPdf, nohtml=nohtml, ourTable=ourTable, browser=browser, $'
    print, '                 test=test, debug=debug, help=help, verbose=verbose'
    print, ''
    return
@@ -174,24 +176,21 @@ endif
 ;
 ; link to IDL exelis in-line documentation
 ;
-link1=''
+link=''
 if ~KEYWORD_SET(nohtml) then begin
-   if ~KEYWORD_SET(link2html) then link2html='http://www.exelisvis.com/docs/'
    suffixe='.html'
    ;;
    if STRLEN(name) GT 0 then begin
-      link1=link2html+STRUPCASE(name)+suffixe
+      link=link2html+STRUPCASE(name)+suffixe
    endif else begin
-      link1=link2html
+      link=link2html
    endelse
 endif
 ;
 ; link to PDF 
 ; if not found in the !PATH, this file is downloaded the first time
 ;
-link2=''
-if ~KEYWORD_SET(nopdf) then begin
-   path2pdf='http://aramis.obspm.fr/~coulais/GDL/' ;gdl.pdfhttp://gnudatalanguage.sourceforge.net/'
+if KEYWORD_SET(ourPdf) then begin
    local_pdf=FILE_WHICH(!path, 'gdl.pdf',/include_current_dir)
    ;;
    ;; if no "gdl.pdf" in the !Path, trying to download it
@@ -215,44 +214,38 @@ if ~KEYWORD_SET(nopdf) then begin
          ;; activating the search capability inside PDF, 
          ;; worked on Acroread pluging
          ;; should worked withing 
-         link2='file://'+FILE_EXPAND_PATH(local_pdf)+'#search="'+name+'"'
+         link='file://'+FILE_EXPAND_PATH(local_pdf)+'#search="'+name+'"'
       endif else begin
-         link2='file://'+FILE_EXPAND_PATH(local_pdf)
+         link='file://'+FILE_EXPAND_PATH(local_pdf)
       endelse
    endif else begin
       MESSAGE, /continue, 'GDL pdf documentaion not found :('
    endelse
 endif
 ;
-link3=''
-link3bis=''
-if ~KEYWORD_SET(nokey) then begin
-   path2key='http://aramis.obspm.fr/~coulais/IDL_et_GDL/'
+if KEYWORD_SET(ourTable) then begin
    ;;
    if (STRLEN(name) GT 0) then begin
       ;; is it a .PRO file ??
       pro_file=FILE_WHICH(name+'.pro')
       if STRLEN(pro_file) GT 0 then begin
-         link3='file://'+pro_file
-         link3bis=path2key+'Matrice_IDLvsGDL.html#'+STRUPCASE(STRMID(name,0,1))
+         link='file://'+pro_file
+         link=path2ourTable+'Matrice_IDLvsGDL.html#'+STRUPCASE(STRMID(name,0,1))
       endif else begin
-         link3=path2key+'known_keywords.html#GDL_'+STRUPCASE(name)
+         link=path2ourTable+'known_keywords.html#GDL_'+STRUPCASE(name)
       endelse
    endif else begin
-      link3=path2key+'Matrice_IDLvsGDL.html'
+      link=path2ourTable+'Matrice_IDLvsGDL.html'
    endelse
 endif
 ;
 if (browser EQ 'firefox') then begin
-   if STRLEN(link3bis) GT 0 then l3l=link3+qsq+link3bis else l3l=link3
-   command=browser+space+quote+link1+qsq+link2+qsq+l3l+quote+background
+
+   command=browser+space+quote+link+quote+background
 endif else begin
    bsq=browser+space+quote
    qcs="'; " 
-   command=bsq+link1+qcs
-   command=command+bsq+link2+qcs
-   if STRLEN(link3bis) GT 0 then command=command+bsq+link3bis+qcs
-   command=command+bsq+link3+quote+background
+   command=bsq+link+qcs
 endelse
 ;
 ; line by line the command used by browser
@@ -260,12 +253,9 @@ endelse
 if keyword_set(verbose) then begin
    MESSAGE, /continue, 'link2html= : '+link2html
    MESSAGE, /continue, 'path2pdf = : '+path2pdf
-   MESSAGE, /continue, 'path2key = : '+path2key
+   MESSAGE, /continue, 'path2ourTable = : '+path2ourTable
    MESSAGE, /continue, ''
-   MESSAGE, /continue, 'link1 = : '+link1
-   MESSAGE, /continue, 'link2 = : '+link2
-   MESSAGE, /continue, 'link3 = : '+link3
-   if STRLEN(link3bis) GT 0 then MESSAGE, /continue, 'link3bis = : '+link3bis
+   MESSAGE, /continue, 'link = : '+link
    MESSAGE, /continue, ''
    MESSAGE, /continue, 'the whole command : '+command
 endif

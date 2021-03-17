@@ -350,10 +350,8 @@ public:
        }
    }
    static void EnableAllGC() {
-        SizeT nEl = heap.size();
         for( HeapT::iterator it=heap.begin(); it != heap.end(); ++it)
 			it->second.EnableGC(true);
-        nEl = objHeap.size();
         for( ObjHeapT::iterator it=objHeap.begin(); it != objHeap.end(); ++it)
 			it->second.EnableGC(true);
    }

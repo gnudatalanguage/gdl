@@ -17,11 +17,6 @@
  ***************************************************************************/
 #include "includefirst.hpp"
 
-#ifdef HAVE_LIBWXWIDGETS
-//following includes are 1) not necessary and 2) create a problem with gcc6
-//#include <wx/filedlg.h>
-//#include <wx/msgdlg.h>
-#endif
 
 #include "envt.hpp"
 #include "dialog.hpp"
@@ -37,12 +32,7 @@ namespace lib {
     return new DIntGDL(1);
   }
 
-  BaseGDL* dialog_pickfile_wxwidgets(EnvT* e)
-  {
-    if (!GDLWidget::wxIsStarted()){
-      if( ! wxInitialize( ) ) e->Throw("Unable to initialize wxWidgets");
-      GDLWidget::SetWxStarted();
-    }
+  BaseGDL* dialog_pickfile_wxwidgets(EnvT* e) {
     /*
       results = DIALOG_PICKFILE_WXWIDGETS(DEFAULT_EXTENSION=default_extension, $
       DIRECTORY=directory, DIALOG_PARENT=dialog_parent, $
@@ -351,13 +341,7 @@ namespace lib {
     return res;
   }
 
-  BaseGDL* dialog_message_wxwidgets(EnvT* e)
-  {
-    
-    if (!GDLWidget::wxIsStarted()){
-      if( ! wxInitialize( ) ) e->Throw("Unable to initialize wxWidgets");
-      GDLWidget::SetWxStarted();
-    }
+  BaseGDL* dialog_message_wxwidgets(EnvT* e) {
 
 #ifdef HAVE_LOCALE_H
     setlocale(LC_ALL, "C");

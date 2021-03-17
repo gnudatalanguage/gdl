@@ -84,7 +84,7 @@ public:
   bool HasSafeDoubleBuffering();
   bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
   virtual bool HasCrossHair() {return true;}
-  void UnMapWindow();
+  void UnMapWindowAndSetPixmapProperty();
   DByteGDL* GetBitmapData();
   void Color( ULong color, DLong decomposed);
 //  void Update(){plstream::cmd(PLESC_EXPOSE, NULL);}

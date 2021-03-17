@@ -106,9 +106,9 @@ private:
 	void TidyWindowsList();
 
 public:
-	DeviceWIN() : GraphicsDevice(), oIx(1), actWin(-1), decomposed(-1)
+	DeviceWIN(std::string name_="WIN") : GraphicsDevice(), oIx(1), actWin(-1), decomposed(-1)
 	{
-		name = "WIN";
+		name = name_;
 
 		DLongGDL origin(dimension(2));
 		DLongGDL zoom(dimension(2));

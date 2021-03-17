@@ -28,7 +28,7 @@
 #include <plplot/drivers.h>
 
 #include "graphicsdevice.hpp"
-#include "gdlxstream.hpp"
+#include "otherdevices/gdlxstream.hpp"
 #include "initsysvar.hpp"
 #include "gdlexception.hpp"
 
@@ -40,8 +40,8 @@ class DeviceX : public GraphicsMultiDevice {
     
 public:
     
-    DeviceX() : GraphicsMultiDevice( -1, XC_crosshair, 3, 0) {
-        name = "X";
+    DeviceX(std::string name_="MAC") : GraphicsMultiDevice( -1, XC_crosshair, 3, 0) {
+        name = name_;
         DLongGDL origin(dimension(2));
         DLongGDL zoom(dimension(2));
         zoom[0] = 1;
@@ -103,9 +103,7 @@ public:
 
     if( wIx >= winList.size() || wIx < 0) return false;
 
-    if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false);
-
-    TidyWindowsList();
+    if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false); TidyWindowsList();
 
     // set initial window size
     PLFLT xp; PLFLT yp; 
@@ -162,7 +160,7 @@ public:
     //otherwise our direct X11 color commands work well and are faster than plplot's.
     if (!this->isStatic()){
      PLINT r[ctSize], g[ctSize], b[ctSize];
-     GDLCT* myCT=GraphicsDevice::GetGUIDevice( )->GetCT();
+     GDLCT* myCT=GraphicsDevice::GetDevice( )->GetCT();
      myCT->Get( r, g, b);
      winList[ wIx]->scmap0( r, g, b, ctSize); //set colormap 0 to 256 values
     }

@@ -228,40 +228,22 @@ public:
 	  if (GDL_DEBUG_PLSTREAM) printf(" retire GDLGstream:pls=0x%p \n", (void *)pls);
   }
 
-  static bool checkPlplotDriver(const char *driver)
-  {
-    int numdevs_plus_one = 64;
-    const char **devlongnames = NULL;
-    const char **devnames = NULL;
-
-    static std::vector<std::string> devNames;
-
-    // do only once
-    if( devNames.empty())
-    {
-      // acquireing a list of drivers from plPlot
-      for (int maxnumdevs = numdevs_plus_one;; numdevs_plus_one = maxnumdevs += 16)
-      {
-        //handles gracefully the improbable failure of realloc
-        void* tmp = realloc(devlongnames, maxnumdevs * sizeof(char*));
-        if (tmp) devlongnames = static_cast<const char**>(tmp); else return false;
-        tmp = realloc(devnames, maxnumdevs * sizeof(char*));
-        if (tmp) devnames = static_cast<const char**>(tmp); else return false;
-        plgDevs(&devlongnames, &devnames, &numdevs_plus_one);
-        numdevs_plus_one++;
-        if (numdevs_plus_one < maxnumdevs) break;
-        else Message("The above PLPlot warning message, if any, can be ignored");
-      } 
-      free(devlongnames); // we do not need this information
-
-      for( int i = 0; i < numdevs_plus_one - 1; ++i)
-        devNames.push_back(std::string(devnames[ i]));
-    
-      free(devnames);
+  static bool checkPlplotDriver(const char *driver) {
+  int numdevs = 128;
+  const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
+  const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
+  plgDevs(&devlongnames, &devnames, &numdevs);
+  bool found = false;
+  for (int i = 0; i < numdevs; ++i) {
+   if (strcmp(driver, devnames[i])==0){
+     found = true;
+     break;
     }
-
-    return std::find( devNames.begin(), devNames.end(), std::string( driver)) != devNames.end();
   }
+    free(devlongnames);
+    free(devnames);
+    return found;
+ }
    std::string getActiveFontCode(){
    return internalFontCodes[activeFontCodeNum];
   }
@@ -281,7 +263,7 @@ public:
   virtual DLong GetVisualDepth() {return -1;}
   virtual DString GetVisualName() {return "";}
   virtual BaseGDL* GetFontnames(DString pattern) {return NULL;}
-  virtual DLong GetFontnum(DString pattern) {return -1;}
+  virtual DLong GetFontnum(DString pattern) {return 0;}
   virtual bool UnsetFocus(){return false;}
   virtual bool SetBackingStore(int value){return false;}
   virtual bool SetGraphicsFunction(long value ){return false;}
@@ -304,8 +286,9 @@ public:
   virtual void Clear( DLong chan)          {}
   virtual bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan){return false;}
   virtual bool HasCrossHair() {return false;}
-  virtual void UnMapWindow() {usedAsPixmap=true;} 
+  virtual void UnMapWindowAndSetPixmapProperty() {usedAsPixmap=true;} 
   bool IsPixmapWindow() {return usedAsPixmap;}
+  virtual bool IsPlot() {return true;} //except some wxWidgets
   virtual BaseGDL* GetBitmapData(){return NULL;}
   virtual void SetCurrentFont(std::string fontname){}//do nothing
   bool GetRegion(DLong& xs, DLong& ys, DLong& nx, DLong& ny);//{return false;}

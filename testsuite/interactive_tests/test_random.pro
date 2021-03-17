@@ -279,7 +279,7 @@ res_l10=HISTOGRAM(RANDOMN(seed, nbps, poisson=10))/nbps_f
 indices=20
 xranges=[-0.5, MAX(indices)+0.5]
 ;
-if ((!d.name EQ 'X') or (!d.name EQ 'WIN')) then begin 
+if ((!d.name EQ 'X') or (!d.name EQ 'WIN') or (!d.name EQ 'MAC')) then begin 
    WINDOW, 0
    ;;
    DEVICE, get_decomposed=old_decomposed
@@ -318,7 +318,7 @@ ERRORS_CUMUL, errors, nb_pbs
 ;
 if KEYWORD_SET(test) then STOP
 ;
-if ((!d.name EQ 'X') or (!d.name EQ 'WIN')) then begin
+if ((!d.name EQ 'X') or (!d.name EQ 'WIN') or (!d.name EQ '')) then begin
    DEVICE, decomposed=old_decomposed
 endif
 ;
@@ -350,7 +350,7 @@ pro TEST_RANDOM_ALL_GAMMA, verbose=verbose
 ;
 init_device_mode=!d.name
 ;
-list_device_mode=['NULL', 'PS', 'X', 'SVG', 'Z', 'WIN']
+list_device_mode=['NULL', 'PS', 'X', 'SVG', 'Z', 'WIN', 'MAC']
 ;
 for ii=0, N_ELEMENTS(list_device_mode)-1 do begin
    ;;
@@ -365,7 +365,7 @@ for ii=0, N_ELEMENTS(list_device_mode)-1 do begin
       CONTINUE
    endif
    ;;
-   if ((!d.name EQ 'X') or (!d.name EQ 'WIN')) then WINDOW, 1
+   if ((!d.name EQ 'X') or (!d.name EQ 'WIN') or (!d.name EQ 'MAC')) then WINDOW, 1
    ;;
    if (!d.name EQ 'SVG') OR (!d.name EQ 'PS') then begin
       file='output_test_random_gamma.'+STRLOWCASE(!d.name)

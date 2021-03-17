@@ -687,6 +687,8 @@ namespace lib {
     double f64[2];
 
     // Determine if radix2
+//[gsl_fun.cpp:692]: (error) Shifting signed 32-bit value by 31 bits is undefined behaviour
+//[gsl_fun.cpp:692]: (error) Signed integer overflow for expression '2<<i'.
     SizeT radix2 = 0;
     for( SizeT i=0; i<32; ++i) {
       if (nEl == (2 << i)) {
@@ -3953,7 +3955,7 @@ namespace lib {
 #ifdef USE_UDUNITS
 	  e->AssureScalarPar<DStringGDL>(1, tmpunit);    
 	  unit.reserve(tmpunit.length());
-	  for (string::iterator it = tmpunit.begin(); it < tmpunit.end(); it++) 
+	  for (string::iterator it = tmpunit.begin(); it < tmpunit.end(); ++it) 
 	    if (*it != ' ') unit.append(1, *it);
 #else
 	  e->Throw("GDL was compiled without support for UDUNITS");

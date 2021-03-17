@@ -1,0 +1,3 @@
+FUNCTION NR_FULSTR , A
+ RETURN, FULSTR( A ) 
+end
