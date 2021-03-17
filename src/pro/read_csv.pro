@@ -179,14 +179,14 @@ ON_ERROR, 2
   numbersigns='^[+-]?[0-9]*[.]?[0-9]*[DdEd]?[+-]?[0-9]*$'
   coltype=bytarr(ncols)
   for i=0,ncols-1 do begin
-    w=where(strlen(*ptrCols[i]) gt 0, nbOk) 
-      coltype[i]=(total(stregex((*ptrCols[i])[w],numbersigns,/BOOL)) eq nbOk)
+     w=where(strlen(*ptrCols[i]) gt 0, nbOk)
+     coltype[i]=(total(stregex((*ptrCols[i])[w],numbersigns,/BOOL)) eq nbOk)
   endfor
   
   w=where(coltype eq 1, n) & if (n gt 0) then begin
     intcoltype=bytarr(ncols)
     for i=0,n-1 do begin
-      w2=where(strlen(*ptrCols[i]) gt 0, nbOk)
+      w2=where(strlen(*ptrCols[w[i]]) gt 0, nbOk)
       intcoltype[w[i]]=(total(stregex((*ptrCols[w[i]])[w2],'^[+-]?[0-9]+$',/BOOL))  eq nbOk)
     endfor
     coltype+=intcoltype

@@ -54,7 +54,7 @@ namespace lib {
         if (!actDevice->SetFont((*pattern)[0])) e->Throw( "Keyword SET_FONT not allowed for call to: DEVICE" ) ;
       }
     }
-    static int fontIx = e->KeywordIx( "FONT" );
+    static int fontIx = e->KeywordIx( "FONT" ); //font is OLD keyword  for SET_FONT still accepted.
     if ( e->KeywordPresent(fontIx ))
       {
 	    DStringGDL* pattern = e->GetKWAs<DStringGDL>(fontIx);
@@ -68,7 +68,7 @@ namespace lib {
       {
         BaseGDL* value = actDevice->GetFontnames( );
         if ( value != NULL )  e->SetKW( get_fontnamesIx, value->Dup() ); 
-        else e->SetKW( get_fontnamesIx, NullGDL::GetSingleInstance() ); //protected from Throw
+        else e->SetKW( get_fontnamesIx, new DStringGDL("") );
       }
     }
     //GET_FONTNUM? 
@@ -77,8 +77,7 @@ namespace lib {
     if ( e->KeywordPresent( get_fontnumIx ) )
       {
         DLong value = actDevice->GetFontnum( );
-        if ( value >= 0 ) e->SetKW( get_fontnumIx, new DLongGDL( value) ); 
-        else e->SetKW( get_fontnumIx, NullGDL::GetSingleInstance() ); //protected from Throw
+        e->SetKW( get_fontnumIx, new DLongGDL( value) ); //will return 0
       }
     }
     //GET_CURRENT_FONT? 

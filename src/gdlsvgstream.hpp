@@ -39,6 +39,7 @@ public:
 //cairo is nice but buffering prevents TV to work...
 //    GDLGStream( nx, ny, checkPlplotDriver("svgcairo") ? "svgcairo" : "svg")
   {
+//    plsetopt( "debug", "1");
   }
 
   ~GDLSVGStream()
@@ -50,6 +51,8 @@ public:
   }
 
   void Init();
+  //logically close the svg each time an update is made, then rollback to the last graphic section for further graphics.
+  void Update(){plstream::cmd(PLESC_EXPOSE, NULL);fprintf(pls->OutFile,"</g>\n</svg>\n");fseek(pls->OutFile,-12, SEEK_END);} 
 };
 
 #endif

@@ -81,6 +81,5 @@
 #cmakedefine USE_UDUNITS 1
 #cmakedefine USE_EIGEN 1
 #cmakedefine USE_PNGLIB 1
-#cmakedefine USE_X 1
 #cmakedefine USE_WINGDI_NOT_WINGCC 1
 #endif

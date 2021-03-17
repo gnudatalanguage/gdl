@@ -343,8 +343,8 @@ public:
 
   // grabs c
   CArrayIndexScalar( BaseGDL* c)
-  : rawData(c),
-  sInit(c->LoopIndex())
+  : sInit(c->LoopIndex()),
+  rawData(c)
   {
 //     if( c->Type() == GDL_STRING)
 //     {

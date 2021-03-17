@@ -424,7 +424,7 @@ static void help_object(std::ostream* ostrp, DStructDesc* objDesc, bool verbose 
     }
 	}
 
-static void help_ListLib(DString names, ostream& ostr, bool internal=true)
+static void help_ListLib(const DString names, ostream& ostr, bool internal=true)
   {
 	bool searchbyname;
 	  searchbyname = (names != "");
