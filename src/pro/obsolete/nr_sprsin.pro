@@ -1,0 +1,3 @@
+FUNCTION NR_SPRSYN, x, _EXTRA=extra
+ RETURN, SPRSIN(x, _EXTRA=extra , /COLUMN)
+end

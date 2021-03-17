@@ -249,7 +249,7 @@ using std::isnan;
     if (nParam == 2) {
       GM_CheckComplex_P1(0);
       p1 = e->GetParAs<DDoubleGDL>(1);
-      SizeT nElp1 = p1->N_Elements();
+//      SizeT nElp1 = p1->N_Elements();
       tmp1=new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);
       t1bis = e->GetParDefined(1)->Type();
       //cout << "type : "<< t1 << endl;

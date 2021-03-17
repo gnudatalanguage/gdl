@@ -351,6 +351,8 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
 {
   bool debug = false;
   static char errmsg[] = "No such font:   ";
+  static std::string begin_unicode="#[";
+  static std::string end_unicode="]";
   static const size_t errmsglen = strlen(errmsg);
   static double fact[]={1.,0.9,0.666,0.5,0.45,0.33,0.2};
   double base=1.0;
@@ -670,8 +672,8 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
             case 'C' : // tick sign
               out += " "; break;
               break;
-            default : 
-              out.append(in, i, 1);
+            default :
+              if ((unsigned char)in[i] > 127) { out+=begin_unicode; out+=to_string((unsigned char)in[i]); out+=end_unicode; } else out.append(in, i, 1); //use unicode
               break;
           }
           break;
@@ -775,7 +777,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
             case 'z' : out += "#(2305)"; break; // ?
             case 'm' : out += "#(899)";  break; // smallest circle - dot
             default : 
-              out.append(in, i, 1);
+              if ((unsigned char)in[i] > 127) { out+=begin_unicode; out+=to_string((unsigned char)in[i]); out+=end_unicode; } else out.append(in, i, 1); //use unicode
               break;
           }
           break;
@@ -815,7 +817,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
             case '"' : out += "#(2831)"; break; case '^' : case '~' : out += "#(2931)"; break; // [yu]
             case 127u : case '_' : out += "#(2832)"; break; case ';' : out += "#(2932)"; break; // [ya]
             default : 
-              out.append(in, i, 1);
+              if ((unsigned char)in[i] > 127) { out+=begin_unicode; out+=to_string((unsigned char)in[i]); out+=end_unicode; } else out.append(in, i, 1); //use unicode
               break;
           }
           break;
@@ -851,9 +853,9 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
             case 'I' : case 'i' :
             case 'O' : case 'o' :
             case 'P' : case 'p' :
-              out += "#g";
+              out += "#g"; out.append(in, i, 1); break;
             default : 
-              out.append(in, i, 1);
+              if ((unsigned char)in[i] > 127) { out+=begin_unicode; out+=to_string((unsigned char)in[i]); out+=end_unicode; } else out.append(in, i, 1); //use unicode
               break;
           }
           break;
@@ -877,13 +879,13 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
             case 190u : out += "#(271)"; break; // 3/4
             case 215u : out += "#(846)"; break; // cross sign
             case 223u : out += "#fs#gb"; out += internalFontCodes[curr_fnt]; break; // beta script
-            default : 
-              out.append(in, i, 1);
+            default :
+              if ((unsigned char)in[i] > 127) { out+=begin_unicode; out+=to_string((unsigned char)in[i]); out+=end_unicode; } else out.append(in, i, 1); //use unicode
               break;
           }
           break;
         default : // simply pass the char
-          out.append(in, i, 1);
+          if ((unsigned char)in[i] > 127) { out+=begin_unicode; out+=to_string((unsigned char)in[i]); out+=end_unicode; } else out.append(in, i, 1); //use unicode
           break;
       }
       curr_fnt = next_fnt;
@@ -898,7 +900,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
 retrn:
   activeFontCodeNum = curr_fnt;
   if (stringLength) *stringLength=0;
-  if (debug) cout << "GDLGStream::TranslateFormatCodes(\"" << in << "\") = \"" << out << "\"" << endl;  
+  cout << "ERROR: GDLGStream::TranslateFormatCodes(\"" << in << "\") = \"" << out << "\"" << endl;  
   return ""; 
 }
 

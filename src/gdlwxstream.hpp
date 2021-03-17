@@ -28,9 +28,7 @@
 
 #include <wx/fontenum.h>
 #include <wx/fontmap.h>
-//#include <wx/dc.h>
-//#include <wx/rawbmp.h>
-class GDLDrawPanel;
+class gdlwxDrawPanel;
 
 class GDLWXStream: public GDLGStream 
 {
@@ -41,24 +39,28 @@ private:
 //     wxDC* m_dc;   //!< Pointer to wxDC to plot into.
     int m_width;   //!< Width of dc/plot area.
     int m_height;   //!< Height of dc/plot area.
-
-    GDLDrawPanel* gdlWindow; // for Update()
+    bool isplot; //precise the status of associated widget: plot (true) or widget_draw (false)
 public:
-    GDLWXStream( int width, int height );  //!< Constructor.
-    ~GDLWXStream();  //!< Constructor.
+    gdlwxGraphicsPanel* container; // for Update()
+
+    GDLWXStream( int width, int height );  
+    ~GDLWXStream(); 
     
     wxMemoryDC* GetDC() const { return m_dc;}
 
 //     void set_stream();   //!< Calls some code before every PLplot command.
-//    void SetSize( int width, int height );   //!< Set new size of plot area.
+    void SetSize( const wxSize s );   //!< Set new size of plot area.
     void RenewPlot();   //!< Redo plot.
     void Update();
     void DefaultCharSize();
-    void SetGDLDrawPanel(GDLDrawPanel* w);
-    GDLDrawPanel* GetGDLDrawPanel(){return gdlWindow;}
-
+    void SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot=true);
+    gdlwxGraphicsPanel* GetMyContainer(){return container;}
+    void DestroyContainer(){delete container; container=NULL;}
+    
+    bool IsPlot() {return isplot;}
+    
     void Init();
-    //void EventHandler(); //    
+    void EventHandler();
     
     //static int   GetImageErrorHandler(Display *display, XErrorEvent *error); //
 
@@ -69,7 +71,6 @@ public:
     bool SetBackingStore(int value){return true;}
     void Clear();
     void Clear( DLong bColor);
-    bool streamIsNotAWidget();
     void Raise();
     void Lower();
     void Iconic();

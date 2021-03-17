@@ -22,7 +22,7 @@
 
 #include "graphicsdevice.hpp"
 #include "gdlwinstream.hpp"
-#include "devicewin.hpp"
+#include "otherdevices/devicewin.hpp"
 
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwxstream.hpp"

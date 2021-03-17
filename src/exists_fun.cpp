@@ -216,7 +216,7 @@ namespace lib {
 
   BaseGDL* x11_exists( EnvT* e )
   {
-#if defined(USE_X)
+#if defined(HAVE_X)
     return new DIntGDL(1);
 #else
     return new DIntGDL(0);

@@ -15,7 +15,7 @@ jobs:
       id: set-matrix
       run: |
         if [[ '${{ github.ref }}' == *pull* ]]; then 
-            matrix="{deps: ['full'], arch: ['x86_64'], configuration: ['Debug']}"
+            matrix="{deps: ['full'], arch: ['x86_64'], configuration: ['Release']}"
         else
             matrix="{deps: ['full-msmpi', 'full', 'mini'], arch: ['x86_64', 'i686'], configuration: ['Release', 'Debug']}"
         fi
@@ -87,6 +87,7 @@ jobs:
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
           ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys tidy_mingw_cache
       - name: Build GDL
         shell: msys2 {0}
         run: |

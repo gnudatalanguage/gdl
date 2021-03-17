@@ -6,6 +6,7 @@
 ; -----------------------------------------------
 ;
 pro TEST_FILE_MOVE, test=test, no_exit=no_exit, help=help
+FORWARD_FUNCTION ERRORS_ADD,BANNER_FOR_TESTSUITE
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro TEST_FILE_MOVE, test=test, no_exit=no_exit, help=help'
@@ -31,9 +32,7 @@ tfile1to='titii'
 tfile2to='titis'
 tfile3to='tititi'
 tfile4to='titifgf'
-; replaced SPAWN for Win32 compatibility
 tfiles=[tfile,tfile1,tfile2,tfile3,tfile4]
-;SPAWN, 'touch '+tfile+' '+tfile1+' '+tfile2+' '+tfile3+' '+tfile4;
 GET_LUN, lun
 for k=0,4 do BEGIN 
    OPENW, lun, tfiles(k)
@@ -66,8 +65,6 @@ if KEYWORD_SET(test) then STOP
 ;
 ;
 FILE_DELETE, tfileto, tfile1to, tfile2to, tfile3to, tfile4to
-;
-;SPAWN, 'rm '+tfileto+' '+tfile1to+' '+tfile2to+' '+tfile3to+' '+tfile4to;
 ;
 ; final message
 ;

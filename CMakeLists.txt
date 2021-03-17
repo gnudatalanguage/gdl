@@ -46,13 +46,15 @@ include(FindPackageHandleStandardArgs)
 include(TestBigEndian)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
+#### GDL is an interactive tool. Normally INTERACTIVE_GRAPHICS must be set
+set(INTERACTIVE_GRAPHICS ON CACHE BOOL "GDL: Disable check of existence of a suited graphics driver in plplot.)")
 
 #### Default cached values
 set(GDLDEV OFF CACHE BOOL "GDL: Enable GDL developer mode (includes work-in-progress tests)")
 
 set(PYTHON_MODULE OFF CACHE BOOL "GDL: Build GDL as a Python module ?")
 
-set(X11 ON CACHE BOOL "GDL: Enable X11 ?") 
+set(X11 OFF CACHE BOOL "GDL: Enable X11 ?") 
 set(X11DIR "" CACHE PATH "GDL: Specify X11 directory tree")
 
 # Only GNU Readline since May 2020 (too complex to manage BSD Editline. See #754)
@@ -78,10 +80,10 @@ set(PNGLIB ON CACHE BOOL "GDL: Enable libpng ?")
 set(PNGLIBDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
 
 set(GRIB ON CACHE BOOL "GDL: Enable GRIB ?")
-set(GRIBDIR "" CACHE PATH "GDL: Specifiy the ECMWF ecCodes or GRIB API directory tree")
+set(GRIBDIR "" CACHE PATH "GDL: Specify the ECMWF ecCodes or GRIB API directory tree")
 
 # set(QHULL OFF CACHE BOOL "GDL: Enable Qhull ?")
-# set(QHULLDIR "" CACHE PATH "GDL: Specifiy the QHULL directory tree")
+# set(QHULLDIR "" CACHE PATH "GDL: Specify the QHULL directory tree")
 
 set(GLPK ON CACHE BOOL "GDL: Enable GLPK (for function SIMPLEX) ?")
 set(GLPKDIR "" CACHE PATH "GDL: Specify the GLPK directory tree")
@@ -91,7 +93,7 @@ set(GRAPHICSMAGICK ON CACHE BOOL "GDL: Enable GraphicsMagick ?")
 set(GRAPHICSMAGICKDIR "" CACHE PATH "GDL: Specify the GraphicsMagick directory tree")
 
 set(MAGICK ON CACHE BOOL "GDL: Enable ImageMagick ?")
-set(MAGICKDIR "" CACHE PATH "GDL: Specifiy the ImageMagick directory tree")
+set(MAGICKDIR "" CACHE PATH "GDL: Specify the ImageMagick directory tree")
 
 set(TIFF ON CACHE BOOL "GDL: Enable libtiff ?")
 set(TIFFDIR "" CACHE PATH "GDL: Specify the libtiff directory tree")
@@ -102,25 +104,25 @@ if(TIFF)
 endif(TIFF)
 
 set(NETCDF ON CACHE BOOL "GDL: Enable NetCDF ?")
-set(NETCDFDIR "" CACHE PATH "GDL: Specifiy the netCDF directory tree")
+set(NETCDFDIR "" CACHE PATH "GDL: Specify the netCDF directory tree")
 
-set(HDF ON CACHE BOOL "GDL: Enable Hdf ?")
-set(HDFDIR "" CACHE PATH "GDL: Specifiy the HDF directory tree")
+set(HDF ON CACHE BOOL "GDL: Enable HDF ?")
+set(HDFDIR "" CACHE PATH "GDL: Specify the HDF directory tree")
 
-set(HDF5 ON CACHE BOOL "GDL: Enable Hdf5 ?")
-set(HDF5DIR "" CACHE PATH "GDL: Specifiy the HDF5 directory tree")
+set(HDF5 ON CACHE BOOL "GDL: Enable HDF5 ?")
+set(HDF5DIR "" CACHE PATH "GDL: Specify the HDF5 directory tree")
 
 set(FFTW ON CACHE BOOL "GDL: Enable FFTW ?")
-set(FFTWDIR "" CACHE PATH "GDL: Specifiy the FFTW directory tree")
+set(FFTWDIR "" CACHE PATH "GDL: Specify the FFTW directory tree")
 
 set(LIBPROJ4 ON CACHE BOOL "GDL: Enable LIBPROJ4 ?")
-set(LIBPROJ4DIR "" CACHE PATH "GDL: Specifiy the LIBPROJ4 directory tree")
+set(LIBPROJ4DIR "" CACHE PATH "GDL: Specify the LIBPROJ4 directory tree")
 
 set(MPI OFF CACHE BOOL "GDL: Enable MPI ?")
 set(MPIDIR "" CACHE PATH "GDL: Specify the MPI (experimental) directory tree")
 
 set(PYTHON ON CACHE BOOL "GDL: Enable Python ?")
-set(PYTHONDIR "" CACHE PATH "GDL: Specifiy the use Python directory tree")
+set(PYTHONDIR "" CACHE PATH "GDL: Specify the use Python directory tree")
 set(PYTHONVERSION "" CACHE STRING "GDL: Specify the Python version to use")
 
 set(SHAPELIB ON CACHE BOOL "GDL: Enable SHAPELIB (for IDLffShape, MAP_CONTINENTS and all geographic data?)")
@@ -259,7 +261,7 @@ if(READLINE)
     set(CMAKE_REQUIRED_LIBRARIES)
   else(READLINE_FOUND)
     message(FATAL_ERROR "GNU readline was not found.\n"
-      "Use -DREADLINEDIR=no to explicitely disable it.\n"
+      "Use -DREADLINE=no to explicitely disable it.\n"
       "(suitable Debian/Ubuntu package: libreadline-gplv2-dev or libreadline-dev)\n"
       "(suitable Fedora/CentOS package: readline-devel)")
   endif(READLINE_FOUND)
@@ -306,7 +308,6 @@ if(OPENMP)
   find_package(OpenMP QUIET)
   set(USE_OPENMP ${OPENMP_FOUND})
   if(OPENMP_FOUND)
-    add_definitions(${OpenMP_CXX_FLAGS})
     if(MSVC)
       set(LIBRARIES ${LIBRARIES} vcomp)
     elseif(WIN32)
@@ -397,6 +398,60 @@ elseif (WIN32)
     endif() 
 endif()
 
+
+# wxWidgets: should be the one graphics library. Presence test is 'wxWidgets_FOUND'
+#
+#    I suggest to have wxWidgets a 'main' dependency. 
+#    thus removing the need of X11 for unix/linux/MacOS, as well as xwin and wingcc/wingdi.
+#    Behavior of plots, either in a WIDGET_DRAW or in a WINDOW, will be identical.
+#    Provided wxWidgets library exist, the graphic device will be 'X' on all platforms.
+#
+# -DWXWIDGETS=ON|OFF
+# -DWXWIDGETSDIR=DIR
+set(wxWidgets_USE_DEBUG OFF) # Use release build
+if(WXWIDGETS)
+    set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
+    find_package(wxWidgets COMPONENTS base core adv)
+    set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
+    if(wxWidgets_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
+        set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${wxWidgets_LIBRARY_DIRS})
+        foreach(WXDEF ${wxWidgets_DEFINITIONS})
+            add_definitions(-D${WXDEF})
+        endforeach(WXDEF ${wxWidgets_DEFINITIONS})
+        include_directories(${wxWidgets_INCLUDE_DIRS})
+    else(wxWidgets_FOUND)
+        message(FATAL_ERROR "wxWidgets are required but were not found.\n"
+        "Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
+        "Use -DWXWIDGETS=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libwxgtk2.8-dev)\n"
+                "(suitable Fedora/CentOS package: wxGTK-devel)")
+    endif(wxWidgets_FOUND)
+endif(WXWIDGETS)
+
+# X11 : OFF by default since wxWidgets SHOULD take preference in ALL builds.
+# Note that X11 is not present under native WIN32. Presence test is 'X11_FOUND'
+if(CYGWIN OR NOT WIN32)
+    if(X11)
+        set(CMAKE_PREFIX_PATH ${X11DIR})
+        find_package(X11 QUIET)
+        set(HAVE_X ${X11_FOUND})
+        if(X11_FOUND)
+            set(LIBRARIES ${LIBRARIES} ${X11_LIBRARIES})
+            include_directories(${X11_INCLUDE_DIR})
+        else(X11_FOUND)
+            message(FATAL_ERROR "X11 is required but was not found.\n"
+            "Use -DX11DIR=DIR to specify the X11 directory tree.\n"
+            "Use -DX11=OFF to not use it.\n"
+	    "(suitable Fedora/CentOS package xorg-x11-devel)\n")
+        endif(X11_FOUND)
+    endif(X11)
+    if (X11_FOUND AND NOT wxWidgets_FOUND) 
+      message(STATUS "WARNING: GDL is BEST with wxWidgets instead of X11, please consider installing wxWidgets")
+    endif (X11_FOUND AND NOT wxWidgets_FOUND) 
+endif(CYGWIN OR NOT WIN32)
+
+
 # PLplot MANDATORY
 # -DPLPLOTDIR=DIR
 set(CMAKE_PREFIX_PATH ${PLPLOTDIR})
@@ -422,34 +477,116 @@ if(PLPLOT_FOUND)
     set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
     set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
 
-#the following does not work with clang (???)
-    check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
-
-
-#give it a 2nd try...
-        if(NOT HAVE_PLPLOT_WIDTH)
-    check_cxx_source_compiles("#include <plplot/plstream.h>
-                                    int main(int argc, char **argv) {
-                                      plstream *p = new plstream();
-                                      PLFLT w = 0.5;
-                                      p->width(w);
-                                    }" HAVE_PLPLOT_WIDTH)
-
-            if(HAVE_PLPLOT_WIDTH)
-              set(HAVE_PLPLOT_WIDTH 1)
-            endif(HAVE_PLPLOT_WIDTH)
-        endif(NOT HAVE_PLPLOT_WIDTH)
+    #the following does not work with clang (???)
+        check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
+    
+    #give it a 2nd try...
+    if(NOT HAVE_PLPLOT_WIDTH)
+       set(_test_plplot
+       "
+       #include <plplot/plstream.h>
+       int main(int argc, char **argv) {
+         plstream *p = new plstream();
+         PLFLT w = 0.5;
+         p->width(w);
+       }
+       "
+       )
+       check_cxx_source_compiles("${_test_plplot}" HAVE_PLPLOT_WIDTH)
+       if(HAVE_PLPLOT_WIDTH)
+         set(HAVE_PLPLOT_WIDTH 1)
+       endif(HAVE_PLPLOT_WIDTH)
+    endif(NOT HAVE_PLPLOT_WIDTH)
+    
     check_library_exists("${PLPLOT_LIBRARIES}" plstrl "" PLPLOT_PRIVATE_NOT_HIDDEN)
     if(PLPLOT_PRIVATE_NOT_HIDDEN)
       set(PLPLOT_PRIVATE_NOT_HIDDEN 1)
     else(PLPLOT_PRIVATE_NOT_HIDDEN)
       message(STATUS "Using a plplot library without private functions - workarounds will be used.")
     endif(PLPLOT_PRIVATE_NOT_HIDDEN)
-    check_cxx_source_compiles("#include <plplot/plstream.h>
-                   int main(){PLINT n; PLFLT x,y;plcallback::fill(n,&x,&y);}" PLPLOT_HAS_PLCALLBACK)
+
+    set(_test_plplot2
+        "
+        #include <plplot/plstream.h>
+        int main(){
+        PLINT n; 
+        PLFLT x,y;
+        plcallback::fill(n,&x,&y);
+        }
+        "
+        )    
+    check_cxx_source_compiles("${_test_plplot2}" PLPLOT_HAS_PLCALLBACK)
     if(PLPLOT_HAS_PLCALLBACK)
       set(PLPLOT_HAS_PLCALLBACK 1)
     endif(PLPLOT_HAS_PLCALLBACK)
+ 
+    if (INTERACTIVE_GRAPHICS)
+      set (_test_wxwidgets
+      "
+      #include <plplot/plplot.h>
+      #include<string.h>
+      int main(int argc, char **argv) {
+      int numdevs = 128;
+      const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
+      const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
+      plgDevs(&devlongnames, &devnames, &numdevs);
+      for (int i = 0; i < numdevs; ++i) {if (strcmp(\"wxwidgets\", devnames[i])==0) exit(EXIT_SUCCESS);}
+      exit(EXIT_FAILURE);
+      }
+      "
+      )
+      set (_test_xwin
+      "
+      #include <plplot/plplot.h>
+      #include<string.h>
+      int main(int argc, char **argv) {
+      int numdevs = 128;
+      const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
+      const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
+      plgDevs(&devlongnames, &devnames, &numdevs);
+      for (int i = 0; i < numdevs; ++i) {if (strcmp(\"xwin\", devnames[i])==0) exit(EXIT_SUCCESS);}
+      exit(EXIT_FAILURE);
+      }
+      "
+      )
+      set (_test_wingcc
+      "
+      #include <plplot/plplot.h>
+      #include<string.h>
+      int main(int argc, char **argv) {
+      int numdevs = 128;
+      const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
+      const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
+      plgDevs(&devlongnames, &devnames, &numdevs);
+      for (int i = 0; i < numdevs; ++i) {if ( strcmp(\"wingcc\", devnames[i])==0 || strcmp(\"wingdi\", devnames[i])==0 ) exit(EXIT_SUCCESS);}
+      exit(EXIT_FAILURE);
+      }
+      "
+      )
+      # if wxWidgets found, we check whether plplot was compiled within wxwidgets
+      # if plplot's wxwidgets driver is not in the distribution, and if X11 is not present either (or winggc under WIN32) then
+      # it will be a STOP unless INTERACTIVE_GRAPHICS=OFF. Totally noninteractive graphics apps (such as Jupyter GDL kernel)
+      # must be compiled with -DINTERACTIVE_GRAPHICS=OFF .
+      if (wxWidgets_FOUND)
+          check_c_source_runs("${_test_wxwidgets}" HAVE_PLPLOT_WXWIDGETS_DRIVER)
+      endif (wxWidgets_FOUND)
+      #idem for X11
+      if(CYGWIN OR NOT WIN32)
+         if (X11_FOUND)
+            check_c_source_runs("${_test_xwin}" HAVE_PLPLOT_X11_DRIVER)
+         endif (X11_FOUND)
+      else (CYGWIN OR NOT WIN32)  #WIN32: check wingcc
+          check_c_source_runs("${_test_wingcc}" HAVE_PLPLOT_X11_DRIVER) #same env var different meaning
+      endif(CYGWIN OR NOT WIN32)
+
+      if (NOT HAVE_PLPLOT_WXWIDGETS_DRIVER AND NOT HAVE_PLPLOT_X11_DRIVER ) 
+           if (wxWidgets_FOUND) 
+             message(FATAL_ERROR "PlPlot was compiled without needed wxwidgets driver, aborting. Do you mean -DINTERACTIVE_GRAPHICS=OFF ?")
+           else (wxWidgets_FOUND)
+             message(FATAL_ERROR "PlPlot was compiled without xwin (or wingcc on Windows) driver, aborting. Do you mean -DINTERACTIVE_GRAPHICS=OFF ?")
+           endif (wxWidgets_FOUND)
+      endif (NOT HAVE_PLPLOT_WXWIDGETS_DRIVER AND NOT HAVE_PLPLOT_X11_DRIVER)
+    endif (INTERACTIVE_GRAPHICS)
 endif(PLPLOT_FOUND)
     
 # GraphicsMagick (GM) is an alternative to the classical ImageMagick Lib (IM).
@@ -530,40 +667,6 @@ if(USE_MAGICK AND NOT WIN32)
   endif(HAVE_PLGETDRVDIR)
 endif(USE_MAGICK AND NOT WIN32)
 
-# wxWidgets
-# -DWXWIDGETS=ON|OFF
-# -DWXWIDGETSDIR=DIR
-set(wxWidgets_USE_DEBUG OFF) # Use release build
-if(WXWIDGETS)
-    #
-    # we check whether plplot was compiled within wxwidgets
-    #
-# AC 2015/04/07 this is not working well, just on few cases :( 
-#   check_library_exists("${PLPLOT_LIBRARIES}" plD_DEVICE_INFO_wxwidgets "" HAVE_PLPLOT_WXWIDGETS)
-#   if(NOT HAVE_PLPLOT_WXWIDGETS)
-#          message(FATAL_ERROR  "wxWidgets are required but PLplot wxWidgets NOT found.\n"
-#          "If -DWXWIDGETS=ON (default) then PLplot must have be compiled with -DPLD_wxwidgets=ON\n"
-#          "use -DWXWIDGETS=OFF to not use wxWidgets since it is not available here in PLplot")
-#        endif(NOT HAVE_PLPLOT_WXWIDGETS)
-    #
-    set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
-    find_package(wxWidgets COMPONENTS base core adv)
-    set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
-    if(wxWidgets_FOUND)
-        set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
-        set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${wxWidgets_LIBRARY_DIRS})
-        foreach(WXDEF ${wxWidgets_DEFINITIONS})
-            add_definitions(-D${WXDEF})
-        endforeach(WXDEF ${wxWidgets_DEFINITIONS})
-        include_directories(${wxWidgets_INCLUDE_DIRS})
-    else(wxWidgets_FOUND)
-        message(FATAL_ERROR "wxWidgets are required but were not found.\n"
-        "Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
-        "Use -DWXWIDGETS=OFF to not use it.\n"
-                "(suitable Debian/Ubuntu package: libwxgtk2.8-dev)\n"
-                "(suitable Fedora/CentOS package: wxGTK-devel)")
-    endif(wxWidgets_FOUND)
-endif(WXWIDGETS)
 
 # libtiff
 # -DTIFF=ON|OFF
@@ -1015,25 +1118,9 @@ if(EXPAT)
       "(suitable Fedora/CentOS package: expat-devel)\n")
   endif(EXPAT_FOUND)
 endif(EXPAT)
-# X11
-if(CYGWIN OR NOT WIN32)
-    if(X11)
-        set(CMAKE_PREFIX_PATH ${X11DIR})
-        find_package(X11 QUIET)
-        set(HAVE_X ${X11_FOUND})
-        set(USE_X ${X11_FOUND})
-        if(X11_FOUND)
-            set(LIBRARIES ${LIBRARIES} ${X11_LIBRARIES})
-            include_directories(${X11_INCLUDE_DIR})
-        else(X11_FOUND)
-            message(FATAL_ERROR "X11 is required but was not found.\n"
-            "Use -DX11DIR=DIR to specify the X11 directory tree.\n"
-            "Use -DX11=OFF to not use it.\n"
-	    "(suitable Fedora/CentOS package xorg-x11-devel)\n")
-        endif(X11_FOUND)
-    endif(X11)
-endif(CYGWIN OR NOT WIN32)
+
 add_subdirectory(src)
+
 if(NOT PYTHON_MODULE)
     add_subdirectory(testsuite)
 endif(NOT PYTHON_MODULE)
@@ -1114,6 +1201,11 @@ Installation prefix    ${CMAKE_INSTALL_PREFIX}
 C++ compiler           ${CMAKE_CXX_COMPILER} ${FLAGS}")
 message("")
 message(STATUS "Options")
+message("")
+message("Interactive plots: ${INTERACTIVE_GRAPHICS}")
+message("Widgets support: ${wxWidgets_FOUND}")
+message("")
+
 if(OPENMP AND OPENMP_FOUND)
     message("OpenMP support         ON (flag: ${OpenMP_CXX_FLAGS})")
 else(OPENMP AND OPENMP_FOUND)
@@ -1121,7 +1213,11 @@ else(OPENMP AND OPENMP_FOUND)
 endif(OPENMP AND OPENMP_FOUND)
 set(WXWIDGETS_LIBRARIES ${wxWidgets_LIBRARIES})
 module(WXWIDGETS "WxWidgets     ")
-module(MAGICK    "ImageMagick   ")
+if (GRAPHICSMAGICK_FOUND)
+  module(GRAPHICSMAGICK "GRAPHICSMAGICK")
+else (GRAPHICSMAGICK_FOUND)
+  module(MAGICK    "ImageMagick   ")
+endif (GRAPHICSMAGICK_FOUND)
 module(TIFF      "TIFF          ")
 module(GEOTIFF   "GeoTIFF       ")
 module(NETCDF    "NetCDF        ")
@@ -1134,7 +1230,7 @@ module(MPI       "MPI           ")
 module(PYTHON    "Python        ")
 module(UDUNITS2  "UDUNITS-2     ")
 module(EIGEN3    "EIGEN3        ")
-module(GRAPHICSMAGICK "GRAPHICSMAGICK")
+
 module(GRIB      "GRIB          ")
 # set(QHULL_LIBRARIES ${QHULL_LIBRARIES})
 # module(QHULL     "QHULL         ")
@@ -1144,9 +1240,11 @@ set(SHAPELIB_LIBRARIES ${SHAPELIB_LIBRARIES})
 module(SHAPELIB   "SHAPELIB      ")
 set(EXPAT_LIBRARIES ${EXPAT_LIBRARIES})
 module(EXPAT     "EXPAT         ")
-if(CYGWIN OR NOT WIN32)
+if (INTERACTIVE_GRAPHICS) 
+if( CYGWIN OR NOT WIN32  )
   module(X11     "Xlib          ")
-endif(CYGWIN OR NOT WIN32)
+endif( CYGWIN OR NOT WIN32)
+endif (INTERACTIVE_GRAPHICS)
 module(PNGLIB    "libpng        ")
 message("")
 message(STATUS "Mandatory modules")

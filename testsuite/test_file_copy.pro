@@ -18,8 +18,6 @@ for ii=0, N_ELEMENTS(to_delete)-1 do begin
       print, 'Interpreted as: >>'+ESCAPE_SPECIAL_CHAR(to_delete[ii])+'<<'
    endif
    if (FILE_TEST(to_delete[ii]) eq 1) then begin
-;      SPAWN , 'rm -rf '+ESCAPE_SPECIAL_CHAR(to_delete[ii])
-
 	file_delete,to_delete[ii],/recursive
 
       ;; we don't check whether the file is deleted or not

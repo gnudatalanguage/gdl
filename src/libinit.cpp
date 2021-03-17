@@ -191,8 +191,10 @@ void LibInit()
                                  "TEST_SYMLINK",
                                  "DIRECTORY","SYMLINK","REGULAR","ZERO_LENGTH",
                                  KLISTEND};
-  new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),3,file_searchKey);
-
+  new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),2,file_searchKey); //was 3: is NOT IDL, check this special GDL possibilty ? still useful?
+  const string findfileKey[]={"COUNT",KLISTEND}; //Obsolete but very much used version of file_search! Use C++ code ABSOLUTELY!!
+  new DLibFunRetNew(lib::file_search,string("FINDFILE"),1,findfileKey);
+  
   const string file_expand_pathKey[]={KLISTEND};
   new DLibFunRetNew(lib::file_expand_path,string("FILE_EXPAND_PATH"),1,file_expand_pathKey);
 

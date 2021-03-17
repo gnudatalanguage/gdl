@@ -19,7 +19,7 @@
 #include <iostream>
 
 #include "graphicsdevice.hpp"
-#include "gdlxstream.hpp"
+#include "otherdevices/gdlxstream.hpp"
 #include "devicex.hpp"
 
 #ifndef HAVE_X
@@ -229,8 +229,7 @@ BaseGDL* GDLXStream::GetFontnames(DString pattern) {
   return myList;
 }
 DLong GDLXStream::GetFontnum(DString pattern){
-  // never occurs ...  if (pattern.length()<0) return -1;
-  if (this->GetFontnames(pattern) == NULL) return -1;
+  if (this->GetFontnames(pattern) == NULL) return 0;
   if (pattern.length()==0) return 0;
   return this->GetFontnames(pattern)->N_Elements();
 }
@@ -334,7 +333,7 @@ void GDLXStream::DeIconic() {
   XMapWindow(dev->xwd->display, dev->window);
 }
 
-void GDLXStream::UnMapWindow() {
+void GDLXStream::UnMapWindowAndSetPixmapProperty() {
   //Used for /PIXMAP windows: 1) insure write_to_pixmap and not write_to_window, and 2) hide the window.
   XwDev *dev = (XwDev *) pls->dev;
   dev->write_to_pixmap=1;

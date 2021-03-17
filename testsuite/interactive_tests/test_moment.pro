@@ -201,8 +201,8 @@ pro TEST_MOMENT, force_dim=force_dim, $
 TEST_NUMERICAL_MOMENT, force_dim=force_dim, help=help, $
                        test=test, no_exit=no_exit, verbose=verbose
 ;
-CHECK_VISUAL_MOMENT, force_dim=force_dim, help=help, $
-                     test=test, no_exit=no_exit, verbose=verbose
+;CHECK_VISUAL_MOMENT, force_dim=force_dim, help=help, $
+;                     test=test, no_exit=no_exit, verbose=verbose
 ;
 end
 

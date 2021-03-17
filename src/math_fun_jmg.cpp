@@ -652,8 +652,8 @@ namespace lib {
 
       DFloat xmin = -0.5 * (nx-1);
       DFloat ymin = -0.5 * (ny-1);
-      DFloat xmax = +0.5 * (nx-1);
-      DFloat ymax = +0.5 * (ny-1);
+//      DFloat xmax = +0.5 * (nx-1);
+//      DFloat ymax = +0.5 * (ny-1);
 
       if( e->KeywordSet( YMINIx))
 	e->AssureFloatScalarKWIfPresent( XMINIx, xmin);	

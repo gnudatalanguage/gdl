@@ -406,13 +406,9 @@ namespace lib
                    PLFLT& yMT)
   {
     PLFLT sclx=actStream->dCharLength()/actStream->xSubPageSize(); //current char length/subpage size
-//eventually correct if there is a probem with supposed char sizes:
-    sclx/=actStream->GetPlplotFudge();
     xML=xMarginL*sclx; //margin as percentage of subpage
     xMR=xMarginR*sclx;
     PLFLT scly=actStream->dLineSpacing()/actStream->ySubPageSize(); //current char length/subpage size
-//eventually correct if there is a probem with supposed char sizes:
-    scly/=actStream->GetPlplotFudge();
     yMB=(yMarginB)*scly;
     yMT=(yMarginT)*scly; //to allow subscripts and superscripts (as in IDL)
 
@@ -708,21 +704,21 @@ namespace lib
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"draw_polyline()\n");
     SizeT plotIndex=0;
     bool line=false;
-    DLong psym_=0;
+    DLong local_psym=0;
 
     if ( psym<0 )
     {
       line=true;
-      psym_= -psym;
+      local_psym= -psym;
     }
     else if ( psym==0 )
     {
       line=true;
-      psym_=psym;
+      local_psym=psym;
     }
     else
     {
-      psym_=psym;
+      local_psym=psym;
     }
 
     //usersym and other syms as well!
@@ -737,7 +733,7 @@ namespace lib
     DLong *usymColor;
     DFloat *usymThick;
     static DInt nofill=0;
-    if ( psym_==8 )
+    if ( local_psym==8 )
     {
       GetUsym(&userSymArrayDim, &do_fill, &userSymX, &userSymY, &usersymhascolor, &usymColor , &usersymhasthick, &usymThick );
       if ( *userSymArrayDim==0 )
@@ -745,11 +741,11 @@ namespace lib
         ThrowGDLException("No user symbol defined.");
       }
     }
-    else if ( (psym_>0&&psym_<8))
+    else if ( (local_psym>0&&local_psym<8))
     {
       do_fill=&nofill;
-      userSymArrayDim=&(syml[psym_-1]);
-      switch(psym_)
+      userSymArrayDim=&(syml[local_psym-1]);
+      switch(local_psym)
       {
         case 1:
           userSymX=sym1x;
@@ -780,6 +776,19 @@ namespace lib
           userSymY=sym7y;
           break;
      }
+    }
+    //accelerate: define a localUsymArray where the computations that were previously in the loop are already done
+    DFloat *localUserSymX=NULL;
+    Guard<DFloat> guardlux;
+    DFloat *localUserSymY=NULL;
+    Guard<DFloat> guardluy;
+    if (local_psym > 0) { //since userSymArrayDim is not defined
+      localUserSymX=(DFloat*)malloc(*userSymArrayDim*sizeof(DFloat));guardlux.Reset(localUserSymX);
+      localUserSymY=(DFloat*)malloc(*userSymArrayDim*sizeof(DFloat));guardluy.Reset(localUserSymY);
+      for (int kk = 0; kk < *userSymArrayDim; kk++) {
+        localUserSymX[kk] = userSymX[kk] * a->getPsymConvX() / a->GetPlplotFudge();
+        localUserSymY[kk] = userSymY[kk] * a->getPsymConvY() / a->GetPlplotFudge();
+      }
     }
 
     DLong minEl=(xVal->N_Elements()<yVal->N_Elements())?
@@ -856,7 +865,7 @@ namespace lib
             }
             else a->line(i_buff, x_buff, y_buff);
           }
-          if (psym_>0&&psym_<8)
+          if (local_psym>0&&local_psym<8)
           {
             DLong oldStyl=gdlGetCurrentStyle();
             a->styl(0, NULL, NULL); //symbols drawn in continuous lines
@@ -864,8 +873,8 @@ namespace lib
             {
               for ( int kk=0; kk < *userSymArrayDim; kk++ )
               {
-                xSym[kk]=x_buff[j]+userSymX[kk]*a->getPsymConvX();
-                ySym[kk]=y_buff[j]+userSymY[kk]*a->getPsymConvY();
+                xSym[kk]=x_buff[j]+localUserSymX[kk];
+                ySym[kk]=y_buff[j]+localUserSymY[kk];
               }
               if (docolor)
               {
@@ -883,7 +892,7 @@ namespace lib
             }
             gdlLineStyle(a,oldStyl);
           }
-        else if ( psym_==8 )
+        else if ( local_psym==8 )
         {
           DLong oldStyl=gdlGetCurrentStyle();
           a->styl(0, NULL, NULL); //symbols drawn in continuous lines
@@ -899,8 +908,8 @@ namespace lib
           {
             for (int kk = 0; kk < *userSymArrayDim; kk++)
             {
-              xSym[kk] = x_buff[j] + userSymX[kk] * a->getPsymConvX();
-              ySym[kk] = y_buff[j] + userSymY[kk] * a->getPsymConvY();
+              xSym[kk] = x_buff[j] + localUserSymX[kk];
+              ySym[kk] = y_buff[j] + localUserSymY[kk];
             }
             if (*do_fill == 1)
             {
@@ -912,7 +921,7 @@ namespace lib
           }
           gdlLineStyle(a,oldStyl);
         }
-        else if ( psym_==10 )
+        else if ( local_psym==10 )
           {
             ac_histo(a, i_buff, x_buff, y_buff, xLog);
           }
@@ -939,7 +948,7 @@ namespace lib
             }
             else a->line(i_buff, x_buff, y_buff);
         }
-        if ( psym_>0&&psym_<8 )
+        if ( local_psym>0&&local_psym<8 )
         {
           DLong oldStyl=gdlGetCurrentStyle();
           a->styl(0, NULL, NULL); //symbols drawn in continuous lines
@@ -947,8 +956,8 @@ namespace lib
           {
             for ( int kk=0; kk < *userSymArrayDim; kk++ )
             {
-              xSym[kk]=x_buff[j]+userSymX[kk]*a->getPsymConvX();
-              ySym[kk]=y_buff[j]+userSymY[kk]*a->getPsymConvY();
+              xSym[kk]=x_buff[j]+localUserSymX[kk];
+              ySym[kk]=y_buff[j]+localUserSymY[kk];
             }
             if (docolor)
             {
@@ -966,7 +975,7 @@ namespace lib
           }
           gdlLineStyle(a,oldStyl);
         }
-        else if ( psym_==8 )
+        else if ( local_psym==8 )
         {
           DLong oldStyl=gdlGetCurrentStyle();
           a->styl(0, NULL, NULL); //symbols drawn in continuous lines
@@ -982,8 +991,8 @@ namespace lib
           {
             for (int kk = 0; kk < *userSymArrayDim; kk++)
             {
-              xSym[kk] = x_buff[j] + userSymX[kk] * a->getPsymConvX();
-              ySym[kk] = y_buff[j] + userSymY[kk] * a->getPsymConvY();
+              xSym[kk] = x_buff[j] + localUserSymX[kk];
+              ySym[kk] = y_buff[j] + localUserSymY[kk];
             }
             if (*do_fill == 1)
             {
@@ -995,7 +1004,7 @@ namespace lib
           }
           gdlLineStyle(a,oldStyl);
         }
-        else if ( psym_==10 )
+        else if ( local_psym==10 )
         {
           ac_histo(a, i_buff, x_buff, y_buff, xLog);
         }

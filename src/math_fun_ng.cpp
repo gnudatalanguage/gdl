@@ -261,13 +261,13 @@ namespace lib {
 	
 
     // Differentiate User's Function string name 
-    DStringGDL* init = e->GetParAs<DStringGDL>(4);
+//    DStringGDL* init = e->GetParAs<DStringGDL>(4);
     if(e->GetParDefined(4)->Type() != GDL_STRING )
       e->Throw(" Fifth value must be a function name string ");
 
 
     //-------------------------------- Allocation -----------------------------------//
-    BaseGDL *Steptwo,*Stepthree,*Stepfour;
+//    BaseGDL *Steptwo,*Stepthree,*Stepfour;
     DDoubleGDL *HH,*H6,*XplusH,*Ytampon,*XH,*Yout,*dym,*dyt;
 
     Ytampon = new DDoubleGDL(Yvals->Dim(),BaseGDL::NOZERO);
