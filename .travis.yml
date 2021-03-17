@@ -105,7 +105,10 @@ install:
     ##
     ## OPTIONAL DEPENDENCIES
     ##
-
+    
+    # MINI = NO GRAPHICS = INTERACTIVE_GRAPHICS=OFF
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DINTERACTIVE_GRAPHICS=OFF"; fi 
+    
     # readline
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libreadline-gplv2-dev"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=ON"; fi
@@ -113,7 +116,7 @@ install:
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} readline"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=ON -DREADLINEDIR=/usr/local/opt/readline"; fi
 
-    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DINTERACTIVE_GRAPHICS=OFF -DREADLINE=OFF"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=OFF"; fi 
 
     # pnglib
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libpng-dev"; fi
@@ -255,10 +258,12 @@ install:
     # apt-get/brew invocation
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -y $APT_PACKAGES; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then for pkg in $BREW_PACKAGES; do echo brew \"$pkg\" >> Brewfile; done; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat Brewfile; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew bundle --verbose; fi
     # plplot comes without wxwidget driver: change formula and recompile plplot.
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then zsh ./scripts/brew_enable_wxwidgets; fi
+    # does not work. Do no test drivers, they are not there. 
+    # - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then zsh ./scripts/brew_enable_wxwidgets; fi
+    # nothing else to do than this:
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DINTERACTIVE_GRAPHICS=OFF" ; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install --upgrade --no-deps --force-reinstall numpy; fi
 
     # pytest
