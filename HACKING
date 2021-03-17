@@ -19,7 +19,7 @@ left. In it's destructor it frees the heap memory of the heap object or more
 general, it performs a proper cleanup of the newly created object.
 Of course the guard must be informed when some other entity takes care of the
 new heap object (e. g. it is returned from a function).
-GDL provides serveral kinds of such guards:
+GDL provides several kinds of such guards:
 for normal objects Guard<> is used (to set the guarded object free
 Release() must be called). For array objects (destroyed by "delete[]" instead
 of "delete") GDL provides the templated ArrayGuard<> class.
@@ -28,7 +28,7 @@ GDLGuard is recommended. Please see the source code for examples.
 
 As this is not a proper place to discuss exception save programming in detail,
 here are just some rules of thumb, when this might concern a code contributor:
-- you need almost always a guard when using (operator) new somwhere in 
+- you need almost always a guard when using (operator) new somewhere in 
   your code
 - objects returned from Convert2(..., COPY) methods are to be guarded as well
 - same for objects created with Dup() methods.
@@ -88,9 +88,9 @@ new DLibFun( subroutine name ...) for functions which might return an existing v
 For the keyword list look at libinit.cpp for examples.
 
 
-Using GSL (the Gnu Scinetific Library)
+Using GSL (the Gnu Scientific Library)
 Since 0.9.3: When you write routines utilizing the GSL, all GSL objects allocated with the
-paricular gsl_..._alloc(...) functions should be guarded, using GSLGuard. Please look
+particular gsl_..._alloc(...) functions should be guarded, using GSLGuard. Please look
 in src/gsl_fun.cpp for examples. GDL sets its own error handler for GSL. This way, errors in GSL
 functions are properly handled and do not crash (via a call to abort()) GDL anymore.
 
@@ -118,8 +118,8 @@ namespace lib {
 }
 
 
-returns the actual number of paramters passed to a library function
-minPar is the minimal number of paramters the function needs
+returns the actual number of parameters passed to a library function
+minPar is the minimal number of parameters the function needs
 (if less it throws)
 
 
@@ -135,12 +135,12 @@ function name. 's' should be set to the 'raw' error message:
 
 Within our example function the call would look like:
 
-  e->Throw( "An error occured.");
+  e->Throw( "An error occurred.");
   
 
 'guards' a newly created variable which should be deleted
 upon library routines exit (normal or on error)
-elimates the need of auto_ptr
+eliminates the need of auto_ptr
 
   void Guard( BaseGDL* toGuard);
 
@@ -156,7 +156,7 @@ ArrayGuard<> class).
 
 
 New since GDL 0.9.4: In the rare case that a library function returns an
-existing variable (as opposed to a new one), it must notify the interprefer
+existing variable (as opposed to a new one), it must notify the interpreter
 about it by calling EnvBaseT::SetPtrToReturnValue( BaseGDL** ptrToRetVal).
 Such a function must be a declared (in libinit.cpp) as a DLibFun, never as 
 DLibFunRetNew. While any other library function should be declared as
@@ -211,7 +211,7 @@ throws if not global (might be NULL), for assigning a new variable to
 next are some variations of GetKW() or GetPar() with perform a
 conversion into an desired type:
 
-get the pIx'th paramter and converts it to T if necessary
+get the pIx'th parameter and converts it to T if necessary
 implies that the parameter must be defined
 if it converts it cares for the destruction of the copy
 CAUTION: this is for *read only* data, as the returned data might
@@ -270,7 +270,7 @@ keyword present (but might be an undefined variable)
   bool KeywordPresent( SizeT ix);
 
 
-local/global keyword/paramter
+local/global keyword/parameter
 global -> passed in GDL by reference
 local -> passes in GDL by value
 
@@ -280,11 +280,11 @@ local -> passes in GDL by value
   bool GlobalPar( SizeT ix);
 
 
-next two to set keywords/paramters
+next two to set keywords/parameters
 note that the value MUST be created in the library function
 with operator new
 Before it must be tested with KeywordPresent() or NParam() if
-the keyword/paramter is present 
+the keyword/parameter is present 
 this is not done automatically because its more effective, to 
 create the data (newVal) only if its necessary
 if the functions throw, they delete newVal before -> no
@@ -295,7 +295,7 @@ guarding of newVal is needed
 
 
 Assure functions:
-if name contains "Par" they must be used for paramters, else for keywords
+if name contains "Par" they must be used for parameters, else for keywords
 (the error messages are defined for this usage and the indexing is 
 done respectively)
 
@@ -381,11 +381,11 @@ it has to be created newly with new).
 
 Note that if there is already an instance elsewhere,
 DStructDesc must not be changed anymore. Within GDL this is checked
-(it is not allowed for a named struct to be redefiend after defiened
+(it is not allowed for a named struct to be redefined after defined
 once), but from C++ its the programmers responsibility.
 
 Generally: For defining a system variable NewTag should be used,
-for returning a named struct, its descritor should be defined in
+for returning a named struct, its descriptor should be defined in
 'InitStructs()' and in the library function 'var = new DstructGDL(...)'
 and 'var->InitTag(...)' should be used.
 ('should' means here 'I cannot think of any other usage so far')
@@ -397,10 +397,10 @@ Short overview of how GDL works internally
 Programs (*.pro files) or command line input is parsed (GDLLexer.cpp,
 GDLParser.cpp generated with ANTLR from gdlc.g). These results in an
 abstract syntax tree (AST) consisting of 'DNode' (dnode.hpp).
-This systax tree is further manipulated (compiled) with a tree parser
+This syntax tree is further manipulated (compiled) with a tree parser
 (GDLTreeParser.cpp generated with ANTLR from gdlc.tree.g,
 dcompiler.hpp). 
-Here the AST is splitted into the different functions/procedures and
+Here the AST is split into the different functions/procedures and
 the DNode(s) are annotated with further information and converted to
 ProgNode(s).
 Then these compiled (ProgNode) ASTs are interpreted 
