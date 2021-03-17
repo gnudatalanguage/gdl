@@ -45,10 +45,6 @@ include(FindPkgConfig)
 include(FindPackageHandleStandardArgs)
 include(TestBigEndian)
 
-if(MINGW)
-SET(CMAKE_RC_COMPILER x86_64-w64-mingw32-windres)
-endif(MINGW)
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 #### GDL is an interactive tool. Normally INTERACTIVE_GRAPHICS must be set
 set(INTERACTIVE_GRAPHICS ON CACHE BOOL "GDL: Disable check of existence of a suited graphics driver in plplot.)")
@@ -84,10 +80,10 @@ set(PNGLIB ON CACHE BOOL "GDL: Enable libpng ?")
 set(PNGLIBDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
 
 set(GRIB ON CACHE BOOL "GDL: Enable GRIB ?")
-set(GRIBDIR "" CACHE PATH "GDL: Specifiy the ECMWF ecCodes or GRIB API directory tree")
+set(GRIBDIR "" CACHE PATH "GDL: Specify the ECMWF ecCodes or GRIB API directory tree")
 
 # set(QHULL OFF CACHE BOOL "GDL: Enable Qhull ?")
-# set(QHULLDIR "" CACHE PATH "GDL: Specifiy the QHULL directory tree")
+# set(QHULLDIR "" CACHE PATH "GDL: Specify the QHULL directory tree")
 
 set(GLPK ON CACHE BOOL "GDL: Enable GLPK (for function SIMPLEX) ?")
 set(GLPKDIR "" CACHE PATH "GDL: Specify the GLPK directory tree")
@@ -97,7 +93,7 @@ set(GRAPHICSMAGICK ON CACHE BOOL "GDL: Enable GraphicsMagick ?")
 set(GRAPHICSMAGICKDIR "" CACHE PATH "GDL: Specify the GraphicsMagick directory tree")
 
 set(MAGICK ON CACHE BOOL "GDL: Enable ImageMagick ?")
-set(MAGICKDIR "" CACHE PATH "GDL: Specifiy the ImageMagick directory tree")
+set(MAGICKDIR "" CACHE PATH "GDL: Specify the ImageMagick directory tree")
 
 set(TIFF ON CACHE BOOL "GDL: Enable libtiff ?")
 set(TIFFDIR "" CACHE PATH "GDL: Specify the libtiff directory tree")
@@ -108,25 +104,25 @@ if(TIFF)
 endif(TIFF)
 
 set(NETCDF ON CACHE BOOL "GDL: Enable NetCDF ?")
-set(NETCDFDIR "" CACHE PATH "GDL: Specifiy the netCDF directory tree")
+set(NETCDFDIR "" CACHE PATH "GDL: Specify the netCDF directory tree")
 
-set(HDF ON CACHE BOOL "GDL: Enable Hdf ?")
-set(HDFDIR "" CACHE PATH "GDL: Specifiy the HDF directory tree")
+set(HDF ON CACHE BOOL "GDL: Enable HDF ?")
+set(HDFDIR "" CACHE PATH "GDL: Specify the HDF directory tree")
 
-set(HDF5 ON CACHE BOOL "GDL: Enable Hdf5 ?")
-set(HDF5DIR "" CACHE PATH "GDL: Specifiy the HDF5 directory tree")
+set(HDF5 ON CACHE BOOL "GDL: Enable HDF5 ?")
+set(HDF5DIR "" CACHE PATH "GDL: Specify the HDF5 directory tree")
 
 set(FFTW ON CACHE BOOL "GDL: Enable FFTW ?")
-set(FFTWDIR "" CACHE PATH "GDL: Specifiy the FFTW directory tree")
+set(FFTWDIR "" CACHE PATH "GDL: Specify the FFTW directory tree")
 
 set(LIBPROJ4 ON CACHE BOOL "GDL: Enable LIBPROJ4 ?")
-set(LIBPROJ4DIR "" CACHE PATH "GDL: Specifiy the LIBPROJ4 directory tree")
+set(LIBPROJ4DIR "" CACHE PATH "GDL: Specify the LIBPROJ4 directory tree")
 
 set(MPI OFF CACHE BOOL "GDL: Enable MPI ?")
 set(MPIDIR "" CACHE PATH "GDL: Specify the MPI (experimental) directory tree")
 
 set(PYTHON ON CACHE BOOL "GDL: Enable Python ?")
-set(PYTHONDIR "" CACHE PATH "GDL: Specifiy the use Python directory tree")
+set(PYTHONDIR "" CACHE PATH "GDL: Specify the use Python directory tree")
 set(PYTHONVERSION "" CACHE STRING "GDL: Specify the Python version to use")
 
 set(SHAPELIB ON CACHE BOOL "GDL: Enable SHAPELIB (for IDLffShape, MAP_CONTINENTS and all geographic data?)")
@@ -265,7 +261,7 @@ if(READLINE)
     set(CMAKE_REQUIRED_LIBRARIES)
   else(READLINE_FOUND)
     message(FATAL_ERROR "GNU readline was not found.\n"
-      "Use -DREADLINEDIR=no to explicitely disable it.\n"
+      "Use -DREADLINE=no to explicitely disable it.\n"
       "(suitable Debian/Ubuntu package: libreadline-gplv2-dev or libreadline-dev)\n"
       "(suitable Fedora/CentOS package: readline-devel)")
   endif(READLINE_FOUND)
@@ -1203,9 +1199,6 @@ Files generated        ${CMAKE_GENERATOR}
 GDL output             ${GDLLOCATION}
 Installation prefix    ${CMAKE_INSTALL_PREFIX}
 C++ compiler           ${CMAKE_CXX_COMPILER} ${FLAGS}")
-if(WIN32)
-message(STATUS "RC compiler           ${CMAKE_RC_COMPILER} ${FLAGS}")
-endif(WIN32)
 message("")
 message(STATUS "Options")
 message("")

@@ -59,6 +59,7 @@ Dependencies
 Packaged versions of GDL are available for several Linux distributions, BSD and Mac OS X. 
 Please note that several features of GDL depend on compile-time configuration, and might not 
 be available in pre-built or pre-configured packages. 
+
 GDL has numerous dependencies, most of the optional but highly recommended if you want it to be areally useful tool.
 - [readline](https://tiswww.cwru.edu/php/chet/readline/rltop.html) mandatory. For easy command line editing, recalling, history. 
 - [\[n\]curses](https://www.gnu.org/software/ncurses/) mandatory. Terminal management.
@@ -72,7 +73,7 @@ GDL has numerous dependencies, most of the optional but highly recommended if yo
 - [HDF4](https://support.hdfgroup.org/products/hdf4/)  optional, but useful for reading this kind of data.
 - [HDF5](https://support.hdfgroup.org/HDF5/)   optional, but useful for reading this kind of data.
 - [FFTW](http://www.fftw.org/) optional, but don't you need a fast fft at times?
-- [PROJ.4](http://proj4.org/) optional but forget about mapping capabilities if absent.
+- [PROJ](http://proj.org/) optional but forget about mapping capabilities if absent.
 - [Shapelib](http://shapelib.maptools.org/) optional but forget about mapping capabilities if absent.
 - [Expat](https://libexpat.github.io/) optional but helps implement IDLffXMLSAX parser objects. 
 - [MPI](https://en.wikipedia.org/wiki/Message_Passing_Interface) optional but provides clustering facilities.
@@ -113,7 +114,7 @@ by providing enhancements and extensions of the README files, diagnostic message
 
 Among the major challenges GDL development is facing currently, there are:
 - [enhancing test coverage](https://codecov.io/github/gnudatalanguage/gdl?branch=master) by writing test programs in GDL
-- streamlining development and maintainance of GDL reference docs and examples (using the [Jupyter kernel](https://github.com/gnudatalanguage/idl_kernel)?)
+- streamlining development and maintenance of GDL reference docs and examples (using the [Jupyter kernel](https://github.com/gnudatalanguage/idl_kernel)?)
 - bringing in into the team the needed know-how to address the [backlog of ANTLR-related issues](https://github.com/gnudatalanguage/gdl/labels/antlr)
 - increasing presence within and interoperability with the Python ecosystem, including adding support for Python 3 (calling GDL from Python 2 and calling Python 2 from GDL is already implemented!)
 
@@ -143,7 +144,7 @@ There are several open source packages compatible or interoperable with GDL, inc
 - IDL [syntax highlighting module for Vim](https://github.com/vim/vim/blob/master/runtime/syntax/idlang.vim)
 - the [SingleCompile extension for Vim](https://github.com/vim-scripts/SingleCompile)
 
-Alain Coulais maintains the [GDL-accounces mailing list](https://sympa.obspm.fr/wws/info/gdl-announces).
+Alain Coulais maintains the [GDL-announces mailing list](https://sympa.obspm.fr/wws/info/gdl-announces).
 
 There have been quite some [mentions of GDL in scientific literature](https://scholar.google.com/scholar?q="gnu+data+language") 
 which also provide example use cases.
