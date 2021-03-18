@@ -32,14 +32,14 @@
 ;
 function INTERNAL_GDL_MAP_LIBS
 ;
-FORWARD_FUNCTION PROJ4_EXISTS, PROJ4NEW_EXISTS
+FORWARD_FUNCTION PROJ_EXISTS
 ;
 status=0
 ;
 ;
-if PROJ4_EXISTS() or PROJ4NEW_EXISTS() then return, 10
+if PROJ_EXISTS() then return, 10
 
-print, 'Unfortunalty, GDL was compiled without LibProj4 or libProj4New support !'
+print, 'Unfortunalty, GDL was compiled without PROJ support !'
 return,0
 
 end
@@ -125,7 +125,7 @@ MAP_SET, 40,-105, /satellite, /grid, /cont,limit=[20,-130,70,-70], $
          sat_p=[2.22, 0, 0], title='Satellite Projection, North America'
 if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
 ;
-print, 'Exemple 6: Should plot World centered on Crozon peninsula using (GDL ONY) eckert1 projection -- Checking proj4 equivalent command used in the background'
+print, 'Exemple 6: Should plot World centered on Crozon peninsula using (GDL ONY) eckert1 projection -- Checking PROJ equivalent command used in the background'
 map_set,name="eckert1",48.3,-4.5,/iso,e_cont={cont:1,fill:1,color:'33e469'x,hires:1},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:1,color:'1260E2'x,glinethick:1,glinestyle:0,latdel:10,londel:15},/check
 if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
 ;

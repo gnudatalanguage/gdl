@@ -33,7 +33,7 @@ p4name=p4n ; special for GDL
 
    name = proj[index].fullname
    p4n=proj[index].proj4name
-   ; need to keep ony the real proj4 name if perchance there was additional commands already set in the name
+   ; need to keep ony the real PROJ name if perchance there was additional commands already set in the name
    p4n=(strsplit(strtrim(p4n,2),' ',/extract))[0] 
    property=proj_properties[index]
    conic=(property.CONIC eq 1 and property.ELL eq 0 and property.SPH eq 0) ; only true conics (ex: not Bonne)

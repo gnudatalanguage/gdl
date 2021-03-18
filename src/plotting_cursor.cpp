@@ -82,17 +82,28 @@ void tvcrs( EnvT* e)
     get_mapset(mapSet);
     if (mapSet)
     {
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       if (ref == NULL) e->Throw("Projection initialization failed.");
       LPTYPE idataN;
+#if LIBPROJ_MAJOR_VERSION >= 5
+      idataN.lam = tempx* DEG_TO_RAD;
+      idataN.phi = tempy* DEG_TO_RAD;
+      XYTYPE odata = protect_proj_fwd_lp(idataN, ref);
+#else
       idataN.u = tempx* DEG_TO_RAD;
       idataN.v = tempy* DEG_TO_RAD;
       XYTYPE odata = PJ_FWD(idataN, ref);
+#endif
       // norm to world invalid since projection. use !x.s and !y.s directly
       DDouble *sx, *sy;
       GetSFromPlotStructs( &sx, &sy );
+#if LIBPROJ_MAJOR_VERSION >= 5
+      tempx= sx[0] +odata.x * sx[1];
+      tempy= sy[0] +odata.y * sy[1]; //normed values
+#else
       tempx= sx[0] +odata.u * sx[1];
       tempy= sy[0] +odata.v * sy[1]; //normed values
+#endif
       actStream->NormedDeviceToDevice(tempx,tempy,ix,iy);
       DLong iix=ix;
       DLong iiy=iy;
@@ -217,31 +228,44 @@ void cursor(EnvT* e){
     else
     { // default (/data)
       DDouble tempx,tempy;
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       bool mapSet = false;
       get_mapset(mapSet);
       if (!mapSet)
       {
 #endif
         actStream->NormToWorld((DDouble)gin.dX, (DDouble)gin.dY, tempx, tempy);
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       }
       else
       {
         ref = map_init();
         if (ref == NULL) e->Throw("Projection initialization failed.");
         XYTYPE idata, idataN;
+#if LIBPROJ_MAJOR_VERSION >= 5
+        idataN.x = gin.dX;
+        idataN.y = gin.dY;
+#else
         idataN.u = gin.dX;
         idataN.v = gin.dY;
+#endif
         DDouble *sx, *sy;
         // norm to world invalid since projection. use !x.s and !y.s directly
         // was: actStream->NormToWorld(idataN.u, idataN.v, idata.u, idata.v);
         GetSFromPlotStructs( &sx, &sy );
+#if LIBPROJ_MAJOR_VERSION >= 5
+        idata.x = (idataN.x - sx[0])/sx[1];
+        idata.y = (idataN.y - sy[0])/sy[1];
+        LPTYPE odata = protect_proj_inv_xy(idata, ref);
+        tempx = odata.lam * RAD_TO_DEG;
+        tempy = odata.phi * RAD_TO_DEG;
+#else
         idata.u = (idataN.u - sx[0])/sx[1];
         idata.v = (idataN.v - sy[0])/sy[1];
         LPTYPE odata = PJ_INV(idata, ref);
         tempx = odata.u * RAD_TO_DEG;
         tempy = odata.v * RAD_TO_DEG;
+#endif
       }
 #endif
       bool xLog, yLog;

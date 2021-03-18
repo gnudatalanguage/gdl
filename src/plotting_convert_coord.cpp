@@ -106,7 +106,7 @@ namespace lib {
     
     //projection?
       bool mapSet=false;
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       static LPTYPE idata;
       static XYTYPE odata;
       get_mapset ( mapSet );
@@ -122,7 +122,7 @@ namespace lib {
     {
       case DATA:
         // to u,v
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       if ( mapSet )
       {
 #ifdef PROJ_IS_THREADSAFE
@@ -131,11 +131,19 @@ namespace lib {
 #pragma omp for private(idata,odata)
 #endif
             for (SizeT i = 0; i < nrows; i++) {
+#if LIBPROJ_MAJOR_VERSION >= 5
+              idata.lam = (*xVal)[i] * DEG_TO_RAD;
+              idata.phi = (*yVal)[i] * DEG_TO_RAD;
+              odata = protect_proj_fwd_lp(idata, ref);
+              (*xVal)[i] = odata.x;
+              (*yVal)[i] = odata.y;
+#else
               idata.u = (*xVal)[i] * DEG_TO_RAD;
               idata.v = (*yVal)[i] * DEG_TO_RAD;
               odata = PJ_FWD(idata, ref);
               (*xVal)[i] = odata.u;
               (*yVal)[i] = odata.v;
+#endif
             }
 #ifdef PROJ_IS_THREADSAFE
           }
@@ -183,7 +191,7 @@ namespace lib {
       }
       
       // from u,v
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       if ( mapSet )
       {
 #ifdef PROJ_IS_THREADSAFE
@@ -192,11 +200,19 @@ namespace lib {
 #pragma omp for private(idata,odata)
 #endif
             for (SizeT i = 0; i < nrows; i++) {
+#if LIBPROJ_MAJOR_VERSION >= 5
+              odata.x = (*xVal)[i];
+              odata.y = (*yVal)[i];
+              idata = protect_proj_inv_xy(odata, ref);
+              (*xVal)[i] = idata.lam * RAD_TO_DEG;
+              (*yVal)[i] = idata.phi * RAD_TO_DEG;
+#else
               odata.u = (*xVal)[i];
               odata.v = (*yVal)[i];
               idata = PJ_INV(odata, ref);
               (*xVal)[i] = idata.u * RAD_TO_DEG;
               (*yVal)[i] = idata.v * RAD_TO_DEG;
+#endif
             }
 #ifdef PROJ_IS_THREADSAFE
           }

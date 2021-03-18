@@ -9,8 +9,8 @@ To provide map projections support your first need to make sure the
 proj library available at https://proj.org (formerly proj4.org)
 It is probably already installed on your computer.
 
-If GDL does not find (lib)proj4 files automatically, use 
-"-DLIBPROJ4=YES" "-DLIBPROJ4DIR=DIR" as arguments for cmake. 
+If GDL does not find (lib)PROJ files automatically, use 
+"-DLIBPROJ=YES" "-DLIBPROJDIR=DIR" as arguments for cmake. 
 (were 'DIR' is the location of the compiled library.
 
 ==============================MAP_* COMMANDS in GDL=======================
@@ -18,13 +18,13 @@ If GDL does not find (lib)proj4 files automatically, use
 The complete suite of projection-related commands is available with GDL
 (map_set, map_proj_init, map_horizon, map_continents...). The main difference
 with IDL is that GDL provides the same interface, but for all of the 150 or so projections
-of the proj library!
+of the PROJ library!
 
 This is done, at a cost: projections are internally represented in a compact(!) 
 form in IDL via the !MAP structure. We maintain a minimum compatibility with
 the original IDL structure, that is, a !MAP structure made with IDL that would
 be passed 'as is' in GDL using, e.g., a save file, would still "work". The contrary
-is impossible, as the GDL structure encodes more projections. Proj4 aficionados will quickly
+is impossible, as the GDL structure encodes more projections. PROJ aficionados will quickly
 realize that they can define projections in GDL as easily as with the 'proj' program.
 
 MAP_CONTINENTS is now implemented in GDL as a procedure using maintly the Natural Earth 
@@ -51,15 +51,15 @@ see "test_map.pro" in the testsuite/
 
 ============================TWEAKING NEW PROJECTIONS==========================
 
-The file resource/map/projections.ods is made to keep all the info about proj's projections needed by
+The file resource/map/projections.ods is made to keep all the info about PROJ's projections needed by
 GDL, however GDL procedures use a digested version of this file, "projDefinitions.sav" also present in
 resource/map/.
 
-projections.ods is the file to update to add more projections when they are available in proj.
-the format is very simple: proj4 little name, commonly accepted name, one possible alias,
+projections.ods is the file to update to add more projections when they are available in PROJ.
+the format is very simple: PROJ little name, commonly accepted name, one possible alias,
 hints about projection type, required parameters, accepted parameters.
 Pay attention to the hints. the general projection type (conic, cylindric ...) is used to guess the horizons.
-noRot is crucial to avoid problems with the rare projections that crashes when used with proj4's general oblique
+noRot is crucial to avoid problems with the rare projections that crashes when used with PROJ's general oblique
 transformation (the way GDL copes with non-null center latitude when the projection does not accept lat_0 keyword. aitoff is an example). 
  
 Once projections.ods has been updated, make a copy as a CSV file (projections.csv) and use the following commands:
@@ -71,5 +71,5 @@ done using the "map_proj_auxiliary_read_csv" procedure hidden in the map_proj_in
 The procedure produces a new "projDefinitions.sav" that must be installed in resource/map/. 
 The new projections.ods should be reported here (GitHub). the csv files can be deleted.
 
-Incidentally, this projections.ods file is apparently also the one and only place on the Net where all the proj4 projections
+Incidentally, this projections.ods file is apparently also the one and only place on the Net where all the PROJ projections
 and their associated parameters happens to be available at a glance...

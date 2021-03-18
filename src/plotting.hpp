@@ -61,7 +61,7 @@
 #include "graphicsdevice.hpp"
 #include "initsysvar.hpp"
 
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
 #include "projections.hpp"
 #endif 
 
@@ -207,7 +207,7 @@ namespace lib {
   // Map stuff
   void get_mapset(bool &mapset);
   void set_mapset(bool mapset);
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
   void GDLgrProjectedPolygonPlot(GDLGStream * a, PROJTYPE ref, DStructGDL* map, 
 				 DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians,
 				 bool const doFill, DLongGDL *conn=NULL);

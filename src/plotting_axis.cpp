@@ -229,7 +229,7 @@ namespace lib {
     else //DATA
     {
 
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       // Map Stuff (xtype = 3)
       LPTYPE idata;
       XYTYPE odata;
@@ -243,11 +243,19 @@ namespace lib {
         {
           e->Throw("Projection initialization failed.");
         }
+#if PROJ_VERSION_MAJOR >= 5
+        idata.lam=xVal * DEG_TO_RAD;
+        idata.phi=yVal * DEG_TO_RAD;
+        odata=protect_proj_fwd_lp(idata, ref);
+        xVal=odata.x;
+        yVal=odata.y;
+#else
         idata.u=xVal * DEG_TO_RAD;
         idata.v=yVal * DEG_TO_RAD;
         odata=PJ_FWD(idata, ref);
         xVal=odata.u;
         yVal=odata.v;
+#endif
         DDouble *sx, *sy;
         GetSFromPlotStructs( &sx, &sy );
 

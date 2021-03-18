@@ -115,8 +115,8 @@ set(HDF5DIR "" CACHE PATH "GDL: Specify the HDF5 directory tree")
 set(FFTW ON CACHE BOOL "GDL: Enable FFTW ?")
 set(FFTWDIR "" CACHE PATH "GDL: Specify the FFTW directory tree")
 
-set(LIBPROJ4 ON CACHE BOOL "GDL: Enable LIBPROJ4 ?")
-set(LIBPROJ4DIR "" CACHE PATH "GDL: Specify the LIBPROJ4 directory tree")
+set(LIBPROJ ON CACHE BOOL "GDL: Enable PROJ ?")
+set(LIBPROJDIR "" CACHE PATH "GDL: Specifiy the PROJ directory tree")
 
 set(MPI OFF CACHE BOOL "GDL: Enable MPI ?")
 set(MPIDIR "" CACHE PATH "GDL: Specify the MPI (experimental) directory tree")
@@ -820,55 +820,26 @@ if(FFTW)
     endif(FFTW_FOUND)
 endif(FFTW)
 
-# libproj4
-# -DLIBPROJ4=ON|OFF
-# -DLIBPROJ4DIR=DIR
-if(LIBPROJ4)
-    set(CMAKE_PREFIX_PATH ${LIBPROJ4DIR})
-    find_package(Libproj4)
-    if(LIBPROJ4_FOUND)  
-    else(LIBPROJ4_FOUND)
-    find_package(Libproj4new)
-    endif(LIBPROJ4_FOUND)   
+# PROJ
+# -DLIBPROJ=ON|OFF
+# -DLIBPROJDIR=DIR
+if(LIBPROJ)
+    set(CMAKE_PREFIX_PATH ${LIBPROJDIR})
+    find_package(LIBPROJ)
+    set(USE_LIBPROJ ${LIBPROJ_FOUND})
 
-    if(LIBPROJ4_FOUND)  
-        set(CMAKE_REQUIRED_LIBRARIES ${LIBPROJ4_LIBRARIES} ${GSL_LIBRARIES} m)
-
-        check_library_exists("${LIBPROJ4_LIBRARIES}" pj_init "" USE_LIBPROJ4_NEW)
-        if(USE_LIBPROJ4_NEW)
-#       check_library_exists("${LIBPROJ4_LIBRARIES}" proj_init "" USE_LIBPROJ4)
-#       if(USE_LIBPROJ4)
-
-                        # define USE_LIB_PROJ4 in any case
-            set(USE_LIBPROJ4 1)
-
-        else(USE_LIBPROJ4_NEW)
-            check_library_exists("${LIBPROJ4_LIBRARIES}" proj_init "" USE_LIBPROJ4)
-            if(NOT USE_LIBPROJ4)
-#       else(USE_LIBPROJ4)
-#           check_library_exists("${LIBPROJ4_LIBRARIES}" pj_init "" USE_LIBPROJ4_NEW)
-#           if(NOT USE_LIBPROJ4_NEW)
-
-                message(FATAL_ERROR "Libproj4 is required but was not found.\n"
-                "Use -DLIBPROJ4DIR=DIR to specify the Libproj4 directory tree.\n"
-                "Use -DLIBPROJ4=OFF to not use it.\n"
-                "(suitable Debian/Ubuntu package: libproj-dev)\n"
-                "(suitable Fedora/CentOS package: proj-devel)")
-
-            endif(NOT USE_LIBPROJ4)
-        endif(USE_LIBPROJ4_NEW)
-#           endif(NOT USE_LIBPROJ4_NEW)
-#       endif(USE_LIBPROJ4)
-
-        include_directories(${LIBPROJ4_INCLUDE_DIR})
-        set(LIBRARIES ${LIBRARIES} ${LIBPROJ4_LIBRARIES})
-        set(CMAKE_REQUIRED_LIBRARIES)
-    else(LIBPROJ4_FOUND)
-        message(FATAL_ERROR "Libproj4 is required but was not found.\n"
-        "Use -DLIBPROJ4DIR=DIR to specify the Libproj4 directory tree.\n"
-        "Use -DLIBPROJ4=OFF to not use it.")
-    endif(LIBPROJ4_FOUND)   
-endif(LIBPROJ4)
+    if(LIBPROJ_FOUND)  
+        set(LIBRARIES ${LIBRARIES} ${LIBPROJ_LIBRARIES})
+        include_directories(${LIBPROJ_INCLUDE_DIR})
+        set(LIBPROJ_MAJOR_VERSION ${LIBPROJ_MAJOR_VERSION})
+    else(LIBPROJ_FOUND)
+        message(FATAL_ERROR "PROJ is required but was not found.\n"
+        "Use -DLIBPROJDIR=DIR to specify the PROJ directory tree.\n"
+        "Use -DLIBPROJ=OFF to not use it.\n"
+        "(suitable Debian/Ubuntu package: libproj-dev)\n"
+        "(suitable Fedora/CentOS package: proj-devel)")
+    endif(LIBPROJ_FOUND)   
+endif(LIBPROJ)
 
 # MPI (experimental)
 # -DMPI=ON|OFF
@@ -1224,9 +1195,9 @@ module(NETCDF    "NetCDF        ")
 module(HDF       "HDF4          ")
 module(HDF5      "HDF5          ")
 module(FFTW      "FFTW          ")
-module(LIBPROJ4  "Libproj4      ")
 set(MPI_LIBRARIES ${MPI_LIBRARIES})
 module(MPI       "MPI           ")
+module(LIBPROJ   "PROJ          ")
 module(PYTHON    "Python        ")
 module(UDUNITS2  "UDUNITS-2     ")
 module(EIGEN3    "EIGEN3        ")

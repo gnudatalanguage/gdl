@@ -1629,7 +1629,7 @@ namespace lib
     }    
     SetUsym(n, do_fill, x, y, do_color, thecolor, do_thick, thethick);
   }
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
 void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map,
   DDoubleGDL *lons_donottouch, DDoubleGDL *lats_donottouch, bool isRadians, bool const doFill, DLongGDL *conn ) {
     DDoubleGDL *lons,*lats;
