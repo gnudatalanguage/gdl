@@ -28,7 +28,7 @@ GDLWXStream::GDLWXStream( int width, int height )
   , m_dc(NULL)
   , m_bitmap(NULL)
   , m_width(width), m_height(height)
-  , gdlWindow(NULL)
+  , container(NULL)
 {
   m_dc = new wxMemoryDC();
   m_bitmap = new wxBitmap( width, height, 32);
@@ -40,7 +40,7 @@ GDLWXStream::GDLWXStream( int width, int height )
     delete m_dc;
     throw GDLException("GDLWXStream: Failed to create DC.");
   }
-  setopt("drvopt", "hrshsym=0,text=1" ); //no hershey; WE USE TT fonts (antialiasing very nice and readable).
+  setopt("drvopt", "hrshsym=0,text=1" ); //no hershey; WE USE TT fonts (antialiasing very nice and readable. Moreover, big bug somewhere with hershey fonts).
 
   PLFLT XDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_PX_CM"))))[0]*2.5;
   PLFLT YDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_PX_CM"))))[0]*2.5;
@@ -80,11 +80,21 @@ GDLWXStream::GDLWXStream( int width, int height )
 
 GDLWXStream::~GDLWXStream()
 {
+  //all WXStreams are in a wxWidget, either alone (plot window) or widget architecture (widget_draw)
+  // destroying the stream must destroy the widget or the plot window.
+  // we delete the bitmaps
   m_dc->SelectObject( wxNullBitmap );
   delete m_bitmap;
   delete m_dc;
+  DestroyContainer();
 }
 
+void GDLWXStream::EventHandler() {
+  if (!valid) return;
+// GraphicsDevice::GetDevice()->TidyWindowsList(); //necessary since we removed TidyWindowList() from GraphicsMultiDevice::EventHandler()
+  // plplot event handler
+  plstream::cmd(PLESC_EH, NULL);
+}
 //special DefaultCharZise() to compensate a (plplot?) problem in reporting size of TT fonts: rescale by ~1.8 seems OK.
 void GDLWXStream::DefaultCharSize() {
       DStructGDL* d = SysVar::D();
@@ -101,45 +111,46 @@ void GDLWXStream::DefaultCharSize() {
   DFloat linespacingmm = GetPlplotFudge() * chy * CM_IN_MM / ypxcm;
   schr(xchsizemm, 1.0, linespacingmm);
 }
-void GDLWXStream::SetGDLDrawPanel(GDLDrawPanel* w)
+void GDLWXStream::SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot)
 {
-  gdlWindow = w;
+  container = w;
+  isplot=isPlot;
 }
 
 void GDLWXStream::Update()
 {
-  if( this->valid && gdlWindow != NULL)
-    gdlWindow->Update();
+  if( this->valid && container != NULL)
+    container->RepaintGraphics();
 }
 
 ////should be used when one does not recreate a wxstream each time size changes...
-//void GDLWXStream::SetSize( int width, int height )
-//{
-//  if ( width<1 || height <1) return;
-//  m_dc->SelectObject( wxNullBitmap );
-//  delete m_bitmap;
-//  m_bitmap = new wxBitmap( width, height, 32 );
-//  m_dc->SelectObject( *m_bitmap);
-//  if( !m_dc->IsOk())
-//  {
-//    m_dc->SelectObject( wxNullBitmap );
-//    delete m_bitmap;
-//    delete m_dc;
-//    throw GDLException("GDLWXStream: Failed to resize DC.");
-//  }
-//  //  wxSize screenPPM = m_dc->GetPPI(); //integer. Loss of precision if converting to PPM using wxSize operators.
-//  wxSize size = wxSize( width, height);
-//
-//  plstream::cmd(PLESC_RESIZE, (void*)&size );
-//  m_width = width;
-//  m_height = height;
-//}
+void GDLWXStream::SetSize( wxSize s )
+{
+  if ( s.x<1 || s.y <1) return;
+  m_dc->SelectObject( wxNullBitmap );
+  delete m_bitmap;
+  m_bitmap = new wxBitmap( s.x, s.y, 32 );
+  m_dc->SelectObject( *m_bitmap);
+  if( !m_dc->IsOk())
+  {
+    m_dc->SelectObject( wxNullBitmap );
+    delete m_bitmap;
+    delete m_dc;
+    throw GDLException("GDLWXStream: Failed to resize DC.");
+  }
+  //  wxSize screenPPM = m_dc->GetPPI(); //integer. Loss of precision if converting to PPM using wxSize operators.
+  plstream::cmd(PLESC_RESIZE, (void*)&s );
+  m_width = s.x;
+  m_height = s.y;
+}
 
 void GDLWXStream::WarpPointer(DLong x, DLong y) {
-  int xx=x;
-  int yy=y;
-  wxPanel *p = static_cast<wxPanel*>(gdlWindow);
-  p->WarpPointer(xx,gdlWindow->GetSize().y-yy);
+  if (container) {
+    int xx=x;
+    int yy=y;
+    wxPanel *p = static_cast<wxPanel*>(container);
+    p->WarpPointer(xx,container->GetSize().y-yy);
+  }
 }
 
 void GDLWXStream::Init()
@@ -181,7 +192,7 @@ void GDLWXStream::Clear() {
       blue0=GraphicsDevice::GetDevice()->BackgroundB();
       plstream::scolbg(red0,green0,blue0); //overwrites col[0]
       ::c_plbop();
-//      ::c_plclear();
+      ::c_plclear();
       plstream::scolbg(red,green,blue); //resets col[0]
 }
 
@@ -347,12 +358,20 @@ BaseGDL* GDLWXStream::GetFontnames(DString pattern) {
   wxFontEnumerator fontEnumerator;
   fontEnumerator.EnumerateFacenames();
   int nFacenames = fontEnumerator.GetFacenames().GetCount();
-  DStringGDL* myList=new DStringGDL(dimension(nFacenames));
-  for (int i=0; i< nFacenames; ++i) (*myList)[i].assign(fontEnumerator.GetFacenames().Item(i).mb_str(wxConvUTF8));
+  // we are supposed to select only entries lexically corresponding to 'pattern'.
+  //first check who passes (ugly)
+  wxString wxPattern(pattern);
+  wxPattern=wxPattern.Upper();
+  std::vector<int> good;
+  for (int i=0; i< nFacenames; ++i) if (fontEnumerator.GetFacenames().Item(i).Upper().Matches(wxPattern)) { good.push_back(i); }
+  if (good.size() == 0) return NULL;
+  //then get them
+  DStringGDL* myList=new DStringGDL(dimension(good.size()));
+  for (int i=0; i< good.size(); ++i) (*myList)[i].assign(fontEnumerator.GetFacenames().Item(good[i]).mb_str(wxConvUTF8));
   return myList;
 }
 DLong GDLWXStream::GetFontnum(DString pattern){
-  if (this->GetFontnames(pattern) == NULL) return -1;
+  if (this->GetFontnames(pattern) == NULL) return 0;
   if (pattern.length()==0) return 0;
   return this->GetFontnames(pattern)->N_Elements();
 }
@@ -397,33 +416,28 @@ DByteGDL* GDLWXStream::GetBitmapData() {
     return bitmap;
 }
 
-bool GDLWXStream::streamIsNotAWidget(){ 
-  WidgetIDT i=this->GetGDLDrawPanel()->GetGDLWidgetDraw()->GetParentID();
-  return this->GetGDLDrawPanel()->GetGDLWidgetDraw()->GetBaseWidget(i)->IsGraphicWindowFrame();
-}
 void GDLWXStream::Raise() {
- if (this->streamIsNotAWidget()) static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Raise();
+this->GetMyContainer()->RaisePanel();
 }
 
 void GDLWXStream::Lower() {
- if (this->streamIsNotAWidget()) static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Lower();
+this->GetMyContainer()->LowerPanel();
 }
 
 void GDLWXStream::Iconic() {
- if (this->streamIsNotAWidget()) static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Iconize(true);
+ this->GetMyContainer()->IconicPanel();
 }
 
 void GDLWXStream::DeIconic() {
- if (this->streamIsNotAWidget())  static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Iconize(false);
+ this->GetMyContainer()->DeIconicPanel();
 }
 
-bool GDLWXStream::UnsetFocus(){  //UnsetFocus is dangerous: it prevents using wxEvents correctly.
- if (this->streamIsNotAWidget()) return static_cast<wxTopLevelWindow*>(this->GetGDLDrawPanel()->GetGrandParent())->Disable();
- else return false;
+bool GDLWXStream::UnsetFocus(){  
+ return false; //UnsetFocus is dangerous: it prevents using wxEvents correctly.
 }
 
 bool GDLWXStream::GetGin(PLGraphicsIn *gin, int mode) {
-
+  if (container==NULL) return false;
   enum CursorOpt {
     NOWAIT = 0,
     WAIT, //1
@@ -455,7 +469,7 @@ bool GDLWXStream::GetGin(PLGraphicsIn *gin, int mode) {
     goto end; //else wait below for a down...
   }
   while (1) { //poll repeatedly -- waiting for event would be better but needs start locally the wx eventloop.
-     if (gdlWindow->GetScreenRect().Contains(wxGetMousePosition())) { //if cursor is in the window...
+     if (container->GetScreenRect().Contains(wxGetMousePosition())) { //if cursor is in the window...
        mouse=wxGetMouseState();
        x = mouse.GetX();
        y = mouse.GetY();
@@ -495,11 +509,11 @@ bool GDLWXStream::GetGin(PLGraphicsIn *gin, int mode) {
   }
 end:
   //convert screen to client coord
-  gdlWindow->ScreenToClient(&x,&y); //now in coordinates
+  container->ScreenToClient(&x,&y); //now in coordinates
   gin->pX = x;
-  gin->pY = gdlWindow->GetSize().y - y;
-  gin->dX = (PLFLT) gin->pX / ( gdlWindow->GetSize().x - 1);
-  gin->dY = (PLFLT) gin->pY / ( gdlWindow->GetSize().y - 1);
+  gin->pY = container->GetSize().y - y;
+  gin->dX = (PLFLT) gin->pX / ( container->GetSize().x - 1);
+  gin->dY = (PLFLT) gin->pY / ( container->GetSize().y - 1);
   gin->string[0] = '\0';
   gin->keysym = 0x20;
   gin->button = button;

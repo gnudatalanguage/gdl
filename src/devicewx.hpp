@@ -29,8 +29,6 @@
 
 #include "graphicsdevice.hpp"
 #include "gdlwxstream.hpp"
-#include <wx/settings.h>
-#include <wx/gdicmn.h> 
 #include "initsysvar.hpp"
 #include "gdlexception.hpp"
 
@@ -41,8 +39,8 @@ class DeviceWX : public GraphicsMultiDevice {
   
 public:
 
-    DeviceWX(string name_="MAC") : GraphicsMultiDevice( 1, 3, 3, 0) { //force decomposed=true until we find a better way (::wxDispayDepth() crashes)
-        name = name_; //temporary hack to avoid coyoteGraphics crash in ATV.PRO
+    DeviceWX(std::string name_="MAC") : GraphicsMultiDevice( 1, 3, 3, 0) { //force decomposed=true until we find a better way (::wxDispayDepth() crashes)
+        name = name_; 
         DLongGDL origin(dimension(2));
         DLongGDL zoom(dimension(2));
         zoom[0] = 1;
@@ -78,8 +76,8 @@ public:
   TidyWindowsList();
 
   // set initial window size
-  int xleng;
-  int yleng;
+  int x_scroll_size;
+  int y_scroll_size;
   int xoff;
   int yoff;
 
@@ -91,34 +89,90 @@ public:
   xPos = max(1, xPos); //starts at 1 to avoid problems plplot!
   yPos = max(1, yPos);
 
-  xleng = min(xSize, xMaxSize);
-  if (xPos + xleng > xMaxSize) xPos = xMaxSize - xleng - 1;
-  yleng = min(ySize, yMaxSize);
-  if (yPos + yleng > yMaxSize) yPos = yMaxSize - yleng - 1;
+  bool scrolled = false;
+  if (xSize > xMaxSize || ySize > yMaxSize) scrolled = true;
+
+  if (scrolled) {
+   x_scroll_size = min(xSize, xMaxSize/2);
+   y_scroll_size = min(ySize, yMaxSize/2);
+  } else {
+   x_scroll_size = min(xSize, xMaxSize);
+   y_scroll_size = min(ySize, yMaxSize);
+  }
+  if (xPos + x_scroll_size > xMaxSize) xPos = xMaxSize - x_scroll_size - 1;
+  if (yPos + y_scroll_size > yMaxSize) yPos = yMaxSize - y_scroll_size - 1;
   // dynamic allocation needed!    
-  PLINT Quadx[4] = {xMaxSize - xleng - 1, xMaxSize - xleng - 1, 1, 1};
-  PLINT Quady[4] = {1, yMaxSize - yleng - 1, 1, yMaxSize - yleng - 1};
+  PLINT Quadx[4] = {xMaxSize - x_scroll_size - 1, xMaxSize - x_scroll_size - 1, 1, 1};
+  PLINT Quady[4] = {1, yMaxSize - y_scroll_size - 1, 1, yMaxSize - y_scroll_size - 1};
   if (noPosx && noPosy) { //no init given, use 4 quadrants:
    xoff = Quadx[wIx % 4];
    yoff = Quady[wIx % 4];
   } else if (noPosx) {
    xoff = Quadx[wIx % 4];
-   yoff = yMaxSize - yPos - yleng;
+   yoff = yMaxSize - yPos - y_scroll_size;
   } else if (noPosy) {
    xoff = xPos;
    yoff = Quady[wIx % 4];
   } else {
    xoff = xPos;
-   yoff = yMaxSize - yPos - yleng;
+   yoff = yMaxSize - yPos - y_scroll_size;
   }
 
-  WidgetIDT mbarID = 0;
-  GDLWidgetGraphicWindowBase* base = new GDLWidgetGraphicWindowBase(mbarID, xoff, yoff, title);
-  GDLWidgetDraw* draw = new GDLWidgetDraw(base->WidgetID(), NULL, wIx, xleng, yleng, -1, -1, false, 0);
-  base->setWindow(static_cast<GDLDrawPanel*>(draw->GetWxWidget()));
-  base->Realize(!hide); //just avoid to map the widget.
-  if(hide) winList[ wIx]->UnMapWindow();   //needed: will set the "pixmap" property
- // else { winList[ wIx]->UnsetFocus(); winList[wIx]->Raise();}
+  //1) a frame
+  wxString titleWxString = wxString(title.c_str(), wxConvUTF8);
+  long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);
+  gdlwxPlotFrame* plotFrame = new gdlwxPlotFrame(titleWxString, wxDefaultPosition, wxDefaultSize, style, scrolled);
+  // Associate a sizer immediately
+  wxSizer* tfSizer = new wxBoxSizer(wxVERTICAL);
+  plotFrame->SetSizer(tfSizer);
+
+  // 3) Sizes:
+  wxSize wSize = wxSize(xSize, ySize);
+  wxSize wScrollSize = wxSize(x_scroll_size, y_scroll_size);
+  gdlwxPlotPanel* plot = new gdlwxPlotPanel(plotFrame);
+  if (scrolled) {
+   plot->SetMinClientSize(wScrollSize);
+   plot->SetClientSize(wScrollSize);
+  } else {
+   plot->SetMinClientSize(wSize);
+   plot->SetSize(wSize);
+  }
+  plot->SetVirtualSize(wSize);
+  plot->InitDrawSize(wSize);
+
+  if (scrolled) {
+   plot->SetScrollbars(gdlSCROLL_RATE, gdlSCROLL_RATE, wSize.x / gdlSCROLL_RATE, wSize.y / gdlSCROLL_RATE);
+   plot->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
+  }
+
+  plot->SetCursor(wxCURSOR_CROSS);
+  tfSizer->Add(plot, DONOTALLOWSTRETCH, wxALL, 0);
+
+  //create stream
+  GDLWXStream* me = new GDLWXStream(xSize, ySize);
+  me->SetCurrentFont(fontname);
+  winList[ wIx] = me;
+  oList[ wIx] = oIx++;
+  // sets actWin and updates !D
+  SetActWin(wIx);
+  //associate stream with plot panel both ways:
+  me->SetGdlxwGraphicsPanel(plot, true);
+  plot->SetStream(me);
+  plot->SetPStreamIx(wIx);
+
+  plotFrame->Fit();
+  if (hide) {
+   plotFrame->Hide();
+   winList[ wIx]->UnMapWindowAndSetPixmapProperty(); //needed: will set the "pixmap" property
+  } else {
+    plotFrame->ShowWithoutActivating();
+  }
+  plotFrame->Realize();
+  // these widget specific events are always set:
+  plot->Connect(wxEVT_PAINT, wxPaintEventHandler(gdlwxGraphicsPanel::OnPaint));
+  plotFrame->Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(gdlwxPlotFrame::OnUnhandledClosePlotFrame));
+  plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
+  plotFrame->Raise();
   return true;
  }
 
@@ -193,6 +247,32 @@ public:
         } else return NULL;
     }
 
+ BaseGDL* GetWxFontnames(DString pattern) {
+  if (pattern.length() <= 0) return NULL;
+  wxFontEnumerator fontEnumerator;
+  fontEnumerator.EnumerateFacenames();
+  int nFacenames = fontEnumerator.GetFacenames().GetCount();
+  // we are supposed to select only entries lexically corresponding to 'pattern'.
+  //first check who passes (ugly)
+  wxString wxPattern(pattern);
+  wxPattern = wxPattern.Upper();
+  std::vector<int> good;
+  for (int i = 0; i < nFacenames; ++i) if (fontEnumerator.GetFacenames().Item(i).Upper().Matches(wxPattern)) {
+    good.push_back(i);
+   }
+  if (good.size() == 0) return NULL;
+  //then get them
+  DStringGDL* myList = new DStringGDL(dimension(good.size()));
+  for (int i = 0; i < good.size(); ++i) (*myList)[i].assign(fontEnumerator.GetFacenames().Item(good[i]).mb_str(wxConvUTF8));
+  return myList;
+ }
+
+ DLong GetWxFontnum(DString pattern) {
+  if (GetWxFontnames(pattern) == NULL) return 0;
+  if (pattern.length() == 0) return 0;
+  return this->GetWxFontnames(pattern)->N_Elements();
+ }
+ 
 //    DLong GetVisualDepth() {
 //        this->GetStream(); //to open a window if none opened.
 //        return winList[actWin]->GetVisualDepth();
@@ -210,49 +290,48 @@ public:
 //        this->GetStream(); //to open a window if none opened.
 //        return winList[actWin]->GetFontnum(fontname);
 //    } 
-        DLong GetVisualDepth() {
-        TidyWindowsList();
-        if (actWin == -1) {
-          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
-          DLong val=winList[actWin]->GetVisualDepth();
-          WDelete(actWin);
-          return val;
-        } else {
-          return winList[actWin]->GetVisualDepth();
-        }
-    }
+    
+        DLong GetVisualDepth() {return 24;} //no use opening a window, the answer is 24!
+//        TidyWindowsList();
+//        if (actWin == -1) {
+//          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
+//          DLong val=winList[actWin]->GetVisualDepth();
+//          WDelete(actWin);
+//          return val;
+//        } else {
+//          return winList[actWin]->GetVisualDepth();
+//        }
 
-    DString GetVisualName() {
-        TidyWindowsList();
-        if (actWin == -1) {
-          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
-          DString val=winList[actWin]->GetVisualName();
-          WDelete(actWin);
-          return val;
-        } else {
-          return winList[actWin]->GetVisualName();
-        }
-    }
-    BaseGDL* GetFontnames(){
-        TidyWindowsList();
-        if (actWin == -1) {
-          this->GetStream();
-          BaseGDL* val=winList[actWin]->GetFontnames(fontname);
-          return val;
-        } else {
-          return winList[actWin]->GetFontnames(fontname);
-        }
-    }
-    DLong GetFontnum(){
-        TidyWindowsList();
-        if (actWin == -1) {
-          this->GetStream(); 
-          DLong val=winList[actWin]->GetFontnum(fontname);
-          return val;
-        } else {
-          return winList[actWin]->GetFontnum(fontname);
-        }
-    } 
+    DString GetVisualName() {return DString("TrueColor");}
+//        TidyWindowsList();
+//        if (actWin == -1) {
+//          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
+//          DString val=winList[actWin]->GetVisualName();
+//          WDelete(actWin);
+//          return val;
+//        } else {
+//          return winList[actWin]->GetVisualName();
+//        }
+    
+    BaseGDL* GetFontnames(){return GetWxFontnames(fontname);}
+//        TidyWindowsList();
+//        if (actWin == -1) {
+//          this->GetStream();
+//          BaseGDL* val=winList[actWin]->GetFontnames(fontname);
+//          return val;
+//        } else {
+//          return winList[actWin]->GetFontnames(fontname);
+//        }
+    
+    DLong GetFontnum(){return GetWxFontnum(fontname);}
+//        TidyWindowsList();
+//        if (actWin == -1) {
+//          this->GetStream(); 
+//          DLong val=winList[actWin]->GetFontnum(fontname);
+//          return val;
+//        } else {
+//          return winList[actWin]->GetFontnum(fontname);
+//        }
     
     bool CursorStandard(int cursorNumber) {
         cursorId = cursorNumber;
@@ -289,22 +368,22 @@ public:
         *xSize = wxSystemSettings::GetMetric(wxSYS_SCREEN_X);
         *ySize = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y);
     }
-    
-    bool GUIOpen( int wIx, int xSize, int ySize)//, int xPos, int yPos)
+
+   GDLGStream* GUIOpen( int wIx, int xSize, int ySize, void* draw)
   {
-    if( wIx >= winList.size() || wIx < 0) return false;
+    if( wIx >= winList.size() || wIx < 0) return NULL;
 
-    if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false);
-    TidyWindowsList();
-
-    winList[ wIx] = new GDLWXStream( xSize, ySize);
+    if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false); TidyWindowsList();
+    GDLWXStream* me=new GDLWXStream( xSize, ySize);
+    me->SetCurrentFont(fontname);
+    me->SetGdlxwGraphicsPanel( static_cast<gdlwxGraphicsPanel*>(draw), false );
+    winList[ wIx] = me;
     oList[ wIx]   = oIx++;
-    winList[ wIx]->SetCurrentFont(fontname);
     // sets actWin and updates !D
     SetActWin( wIx);
-    return true; 
-  } // GUIOpen
-    
+    return winList[ wIx]; 
+  } // GUIOpen  
+   
 bool SetCharacterSize( DLong x, DLong y)     {
    DStructGDL* dStruct=SysVar::D();
    int tagx = dStruct->Desc()->TagIndex( "X_CH_SIZE");
@@ -324,39 +403,8 @@ bool SetCharacterSize( DLong x, DLong y)     {
    GDLGStream* actStream=GetStream(false);
    if( actStream != NULL) {actStream->setLineSpacing(newSpacing); actStream->RenewPlplotDefaultCharsize(newsize);}
    return true;
-  }
+}
 
-//Please find how to specialize TidyWindowsList for wx and x11 widgets when this function is called
-//as GraphicsDevice::GetDevice()->TidyWindowsList(); which does not return a specialized version.
-// Util then, do not uncomment the following.
-// void TidyWindowsList() {
-//  int wLSize = winList.size();
-//  for (int i = 0; i < wLSize; i++) if (winList[i] != NULL && !winList[i]->GetValid()) {
-//    if (dynamic_cast<GDLWXStream*> (winList[i]) != NULL) {
-//     GDLDrawPanel* panel = NULL;
-//     panel = dynamic_cast<GDLDrawPanel*> (static_cast<GDLWXStream*> (winList[i])->GetGDLDrawPanel());
-//     //test if stream is associated to graphic window or widget_draw. If graphic, destroy directly TLB widget.
-//     GDLWidgetDraw *draw = panel->GetGDLWidgetDraw();
-//     if (draw) {
-//      //parent of panel may be a GDLFrame. If frame is actually made by the WOpen function, destroy everything.
-//      GDLWidgetBase* container = NULL;
-//      container = static_cast<GDLWidgetBase*> (draw->GetTopLevelBaseWidget(draw->WidgetID()));
-//      if (container && container->IsGraphicWindowFrame()) container->SelfDestroy();
-//      else delete draw;
-//     } else delete winList[i];
-//    } else delete winList[i];
-//    winList[i] = NULL;
-//    oList[i] = 0;
-//   }
-//  // set new actWin IF NOT VALID ANY MORE
-//  if (actWin < 0 || actWin >= wLSize || winList[actWin] == NULL || !winList[actWin]->GetValid()) {
-//   // set to most recently created
-//   std::vector< long>::iterator mEl = std::max_element(oList.begin(), oList.end());
-//   if (*mEl == 0) { // no window open
-//    SetActWin(-1); //sets    oIx = 1;
-//   } else SetActWin(GraphicsDevice::GetDevice()->GetNonManagedWidgetActWin(false)); //get first non-managed window. false is needed. 
-//  }
-// }
 };
 #endif
 

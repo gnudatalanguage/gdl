@@ -23,9 +23,6 @@
 #ifdef __APPLE__
 #include <time.h>
 #endif
-#ifdef _WIN32
-#include <winsock2.h>
-#endif
 
 #include "gdleventhandler.hpp"
 #include "graphicsdevice.hpp"
@@ -41,7 +38,7 @@ int GDLEventHandler()
   GraphicsDevice::HandleEvents();
 
 #ifdef HAVE_LIBWXWIDGETS
-  GDLWidget::HandleEvents();
+  GDLWidget::HandleWidgetEvents();
 #endif
   const long OS_X_DELAY_NS = 20000000; // 20ms
 //ONLY APPLE? or WIN? Why? (GD)

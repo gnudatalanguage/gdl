@@ -1,0 +1,103 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prelude:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - name: Create Build Matrix
+      id: set-matrix
+      run: |
+        if [[ '${{ github.ref }}' == *pull* ]]; then 
+            matrix="{deps: ['full'], arch: ['x86_64'], configuration: ['Release']}"
+        else
+            matrix="{deps: ['full-msmpi', 'full', 'mini'], arch: ['x86_64', 'i686'], configuration: ['Release', 'Debug']}"
+        fi
+        echo "::set-output name=matrix::$matrix"
+  build:
+    runs-on: windows-latest
+    needs: prelude
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prelude.outputs.matrix) }}
+    env:
+      DEPS: ${{ matrix.deps }}
+      WORKSPACE: ${{ github.workspace }}
+      Platform: ${{ matrix.arch }}
+      Configuration: ${{ matrix.configuration }}
+    steps:
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MSYS
+          update: false
+          release: false
+          install: >-
+            mingw-w64-${{ matrix.arch }}-toolchain
+            mingw-w64-${{ matrix.arch }}-cmake
+            mingw-w64-${{ matrix.arch }}-nsis
+            zip
+            unzip
+            tar
+            zstd
+            make
+            git
+      - name: Checkout GDL
+        uses: actions/checkout@v2
+      - name: Cache MSYS2 Packages
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: D:\a\gdl\mingw
+          key: msys2-packages-${{ matrix.arch }}-${{ matrix.deps }}
+      - name: Check Version of Latest GDL Workbench
+        if: matrix.arch == 'x86_64'
+        id: gdl_workbench
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          repository: gnudatalanguage/gdlde
+      - name: Install MSMPI
+        if: matrix.deps == 'full-msmpi'
+        run: |
+          Invoke-WebRequest -Uri https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe -OutFile MSMpiSetup.exe
+          .\MSMpiSetup.exe -unattend
+      - name: Prepare MSYS2 Packages
+        if: steps.cache.outputs.cache-hit != 'true'
+        shell: msys2 {0}
+        run: |
+          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys tidy_mingw_cache
+      - name: Build GDL
+        shell: msys2 {0}
+        run: |
+          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys build
+      - name: Package GDL
+        shell: msys2 {0}
+        run: |
+          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
+          export GDLDE_VERSION=${{ steps.gdl_workbench.outputs.release }}
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys pack
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep_deploy
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v2.2.1
+        with:
+          name: GDL Installer (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
+          path: gdlsetup-${{ matrix.arch }}-${{ matrix.deps }}.exe
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v2.2.1
+        with:
+          name: GDL (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
+          path: gdl-${{ matrix.arch }}-${{ matrix.deps }}.zip
+      - name: Test GDL
+        shell: msys2 {0}
+        run: |
+          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
+          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys check || exit 0

@@ -1,6 +1,5 @@
 ; test_help: a prototype everything goes collection of compiled routines
-; and common blocks, and help calls.  If os_family ne "Windows" then
-; we can invoke another set of test routines via spawn and run: that hasn't worked for windows yet.
+; and common blocks, and help calls. 
 pro holdacommon, a,b,outhelp=outhelp, test=test
 common acommon,  acom_a,acom_b
 help,acom_a,acom_b,out=outstrb

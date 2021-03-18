@@ -58,13 +58,18 @@ namespace lib {
   using namespace antlr;
   using namespace Magick;
 
-  Image gImage[40];
+  Image *gImage;
   unsigned int gValid[40];
   unsigned int gCount = 0;
   static bool notInitialized = true;
 
   __attribute__((constructor)) static void init(void) {
     START_MAGICK;
+    gImage = new Image[40];
+  }
+
+  __attribute__((destructor)) static void destroy(void) {
+    delete[] gImage;
   }
 
   void magick_setup() {
@@ -207,7 +212,7 @@ namespace lib {
       // Despite Type is NOT useful without a a.read(), it is OK for Palette !
       // This should be reliable (OK with ImageMagick AND GraphicsMagick)
       DInt has_palette = 0;
-      if (a.type() == PaletteType | a.type() == PaletteMatteType) has_palette = 1;
+      if ( (a.type() == PaletteType) || (a.type() == PaletteMatteType) ) has_palette = 1;
 
       // TODO: 
       // - JP2->JPEG2000 ?      
@@ -378,9 +383,9 @@ namespace lib {
         dimension dim(c, 2);
         DByteGDL *bImage = new DByteGDL(dim, BaseGDL::NOZERO);
 
-        const PixelPacket* pixel;
+//        const PixelPacket* pixel;
         const IndexPacket* index;
-        pixel = image.getPixels(0, 0, columns, rows);
+//        pixel = image.getPixels(0, 0, columns, rows);
         index = image.getIndexes();
 
         if (index == NULL) {
@@ -986,14 +991,14 @@ namespace lib {
 
       Image image = magick_image(e, mid);
 
-      const PixelPacket* pixels;
+//      const PixelPacket* pixels;
       IndexPacket* index;
 
       unsigned int columns, rows;
       columns = image.columns();
       rows = image.rows();
 
-      pixels = image.setPixels(0, 0, columns, rows);
+//      pixels = image.setPixels(0, 0, columns, rows);
       index = image.getIndexes();
 
       SizeT nEl = columns*rows;
@@ -1024,8 +1029,8 @@ namespace lib {
       Image image = magick_image(e, mid);
       SizeT nparam = e->NParam();
       if (nparam != 1 && nparam != 4) e->Throw("invalid number of parameters for MAGICK_WRITECOLORTABLE Procedure.");
-      unsigned int scale;
-      scale = 255;
+//      unsigned int scale;
+//      scale = 255;
       //these would be Palette type images I bet.
       image.type(PaletteType);
 

@@ -167,7 +167,7 @@ namespace lib {
 
       bool mapSet = false;
       
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       // Map Stuff (xtype = 3)
 
       get_mapset(mapSet);

@@ -211,7 +211,7 @@ namespace lib {
 
 
     // Determine type of first field to read
-    DLong type;
+    DLong type=-1;
     DByte diffType = 0;
     for( SizeT i=0; i<VFnfields(vd_id); i++) {
       if (fieldindex[i]) {

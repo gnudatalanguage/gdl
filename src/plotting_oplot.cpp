@@ -203,7 +203,7 @@ private:
     actStream->setSymbolSizeConversionFactors();
 
     bool mapSet=false;
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
     get_mapset(mapSet);
     if ( mapSet )
     {
@@ -272,7 +272,7 @@ private:
         }
         actStream->stransform(gdl3dTo2dTransform, &Data3d);
     }
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
         if ( mapSet && psym < 1) {
           GDLgrProjectedPolygonPlot(actStream, ref, NULL, xVal, yVal, false, false, NULL);
           psym=-psym;

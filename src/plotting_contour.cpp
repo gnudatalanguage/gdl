@@ -340,7 +340,7 @@ namespace lib
 
       //projection: would work only with 2D X and Y.
       bool mapSet=false;
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       static LPTYPE idata;
       static XYTYPE odata;
       get_mapset ( mapSet );
@@ -672,18 +672,26 @@ namespace lib
           //This is going to work in a very restricted case.
           //One MUST instead plot the contours as for map_continents, i.e., using gdlPolygonPlot.
           //this will be feasible as soon as we use our  own contour-making algorithm, not plplot's.
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
 	      if ( mapSet )
 		{
 		  for ( SizeT i=0; i<xEl; i++ )
 		    {
 		      for ( SizeT j=0; j<yEl; j++ )
 			{
+#if LIBPROJ_MAJOR_VERSION >= 5
+			  idata.lam= cgrid2.xg[i][j] * DEG_TO_RAD;
+			  idata.phi= cgrid2.yg[i][j] * DEG_TO_RAD;
+			  odata=protect_proj_fwd_lp( idata, ref );
+			  cgrid2.xg[i][j]=odata.x;
+			  cgrid2.yg[i][j]=odata.y;
+#else
 			  idata.u= cgrid2.xg[i][j] * DEG_TO_RAD;
 			  idata.v= cgrid2.yg[i][j] * DEG_TO_RAD;
 			  odata=PJ_FWD ( idata, ref );
 			  cgrid2.xg[i][j]=odata.u;
 			  cgrid2.yg[i][j]=odata.v;
+#endif
 			}
 		    }
 		}

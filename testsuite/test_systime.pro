@@ -82,9 +82,7 @@ end
 pro TEST_SYSTIME_ZERO, cumul_errors, verbose=verbose, test=test, help=help
 ;
 if KEYWORD_SET(help) then begin
-    print, 'pro TEST_SYSTIME_LOCALE, nb_pbs_locale, help=help, test=test, verbose=verbose'
-    print, ''
-    print, 'we test whether we use C locale, as internaly needed in GDL'
+    print, 'pro TEST_SYSTIME_ZERO, cumul_errors, verbose=verbose, test=test, help=help
     return
  endif
 ;
@@ -204,7 +202,10 @@ endif
 ;
 cumul_errors=0
 ;
-TEST_SYSTIME_LOCALE, cumul_errors, verbose=verbose, test=test
+if(!version.os_family ne 'Windows') then begin
+    ; This test is not valid on Windows
+    TEST_SYSTIME_LOCALE, cumul_errors, verbose=verbose, test=test 
+endif
 ;
 TEST_SYSTIME_ZERO, cumul_errors, verbose=verbose, test=test
 ;

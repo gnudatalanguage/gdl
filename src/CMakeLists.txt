@@ -31,7 +31,6 @@ basic_fun.cpp
 basic_fun_cl.cpp
 basic_fun_jmg.cpp
 calendar.cpp
-#cformat.g
 color.cpp
 convert2.cpp
 dcommon.cpp
@@ -50,12 +49,6 @@ exists_fun.cpp
 fftw.cpp
 file.cpp
 fmtnode.cpp
-#format.g
-#format.in.g
-#format.out.g
-#gdlc.g
-#gdlc.i.g
-#gdlc.tree.g
 gdleventhandler.cpp
 gdlexception.cpp
 gdlgstream.cpp
@@ -65,14 +58,14 @@ dSFMT/dSFMT.c
 if(WIN32)
 set(SOURCES
 ${SOURCES}
-gdlwinstream.cpp
+otherdevices/gdlwinstream.cpp
 gtdhelper.cpp
-devicewin.cpp
+otherdevices/devicewin.cpp
 )
 else(WIN32)
 set(SOURCES
 ${SOURCES}
-gdlxstream.cpp
+otherdevices/gdlxstream.cpp
 )
 endif(WIN32)
 
@@ -167,7 +160,6 @@ sorting.cpp
 str.cpp
 terminfo.cpp
 tiff.cxx
-topython.cpp
 triangulation.cpp
 typetraits.cpp
 where.cpp
@@ -185,6 +177,13 @@ ${SOURCES}
 sax.cpp
 )
 endif(USE_EXPAT)
+if(HAVE_LIBWXWIDGETS AND WIN32)
+find_file(WX_RC wx.rc HINTS ${wxWidgets_INCLUDE_DIRS} PATH_SUFFIXES wx/msw)
+set(SOURCES
+${SOURCES}
+${WX_RC}
+)
+endif(HAVE_LIBWXWIDGETS AND WIN32)
 
 add_subdirectory(antlr)
 
@@ -192,7 +191,6 @@ include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_D
 link_directories(${LINK_DIRECTORIES})
 
 if(PYTHON_MODULE) #GDL.so
-	set(SOURCES ${SOURCES} pythongdl.cpp)
 	add_library(gdl SHARED ${SOURCES})
 	SET_TARGET_PROPERTIES(gdl PROPERTIES PREFIX "")
 	SET_TARGET_PROPERTIES(gdl PROPERTIES OUTPUT_NAME GDL)
@@ -202,6 +200,10 @@ else(PYTHON_MODULE) #GDL.so
 	set(SOURCES ${SOURCES} gdl.cpp)
 	add_executable(gdl ${SOURCES})
 endif(PYTHON_MODULE)
+
+if(USE_OPENMP)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif(USE_OPENMP)
 
 add_dependencies(gdl antlr) # be sure that antlr is built before gdl
 target_link_libraries(gdl antlr) # link antlr against gdl

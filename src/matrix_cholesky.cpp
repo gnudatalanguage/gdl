@@ -566,7 +566,7 @@ void la_choldc_pro( EnvT* e)
     //BaseGDL* p0 = e->GetParDefined( 0);
 
     SizeT nParam=e->NParam(2);
-    long singular=0;
+//    long singular=0;
     SizeT nEl = p0->N_Elements();
     //cout<<"rank is"<<p0->Rank()<<endl;
 

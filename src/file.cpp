@@ -52,7 +52,6 @@
 #   include <glob.h> // glob in MinGW ok for mingw >=3.21 11/2014
 #else
 #   include <shlwapi.h>
-#       include <windows.h>
 #    if !defined(S_IFLNK)
 #   define S_IFLNK 0xA000
 #   define S_ISLNK(mode) (((mode) & S_IFLNK) == S_IFLNK)
@@ -60,6 +59,7 @@
 #   if !defined(S_ISLNK)
 #   define S_ISLNK(mode) (((mode) & S_IFLNK) == S_IFLNK)
 #   endif
+#   define u_int64_t uint64_t
 #endif
 
 #ifndef _MSC_VER
@@ -268,13 +268,22 @@ static void rewinddir(DIR *dir)
 #   define stat64 stat
 #   define lstat64(x,y) stat(x,y) 
 #else
-      // Patch by Greg Jung: Using _stati64 is acceptable down to winXP version and will
-      // result in a 64-bit st_size for both mingw-org and for mingw-w64.
-      // The times st_atime, st_mtime, etc. will be 32-bit in mingw-org.
-      #ifndef stat64 /* case of mingw-org .vs. mingw-w64 */
-      # define stat64 _stati64
-      #endif
-#    define lstat64(x,y) stat64(x,y)
+    // Patch by Greg Jung: Using _stati64 is acceptable down to winXP version and will
+    // result in a 64-bit st_size for both mingw-org and for mingw-w64.
+    // The times st_atime, st_mtime, etc. will be 32-bit in mingw-org.
+    #ifndef stat64 /* case of mingw-org .vs. mingw-w64 */
+    # define stat64 _stati64
+    #endif
+
+    // trailing seperator makes stat fail on Windows
+    static inline int lstat64(const char *path, struct stat64 *buf) {
+      size_t l_path = strlen(path);
+      if (path[l_path-1]=='\\') {
+        char newpath[l_path]; memcpy(newpath, path, l_path); newpath[l_path-1] = 0;
+        return stat64(newpath, buf);
+      }
+      return stat64(path, buf);
+    }
 #endif
 
 //     modifications        : 2014, 2015 by Greg Jung
@@ -1213,38 +1222,26 @@ static void FileSearch( FileListT& fileList, const DString& pathSpec,
 
 
 static string Dirname( const string& in, bool mark_dir=false ) {
-
-    char win_sep = '\\';
-    char unix_sep = '/';
-    char path_sep = unix_sep;
-
 #if defined (_WIN32) && !defined(__CYGWIN__)
-    path_sep = win_sep;
-    DString dname(in);
-
-    std::replace( dname.begin(), dname.end(), unix_sep, win_sep );  // replace separators in input
-    DString::size_type pos = dname.find_last_of( path_sep );        // strip filename if present
-
-    if( pos != DString::npos ) {
-        dname.erase(pos);
-    }
+    char path_sep = '\\';
+    char path_sep_diffos = '/';
 #else
-    char buf[ PATH_MAX+1];
-    strncpy( buf, in.c_str(), PATH_MAX+1 );
-    std::replace( buf, buf+in.length(), win_sep, unix_sep );        // replace separators in input
-    string dname = dirname( buf );                                  // strip filename if present
+    char path_sep = '/';
+    char path_sep_diffos = '\\';
 #endif
 
-    while( !dname.empty() && (dname.back() == path_sep) ) {         // strip trailing separator(s)
+    char buf[ PATH_MAX+1];
+    strncpy( buf, in.c_str(), PATH_MAX+1 );
+    std::replace( buf, buf+in.length(), path_sep_diffos, path_sep ); // replace separators in input
+    string dname = dirname( buf );                                   // strip filename if present
+
+    while( !dname.empty() && (dname.back() == path_sep) ) {          // strip trailing separator(s)
         dname.pop_back();
     }
 
-    if( mark_dir ) dname.push_back( path_sep );                     // append separator if requested
-#if defined (_WIN32)
-      if (lib::posixpaths) std::replace( dname.begin(), dname.end(), win_sep, unix_sep);
-#endif
+    if( mark_dir ) dname.push_back( path_sep );                      // append separator if requested
+
     return dname;
-    
 }
 
 
@@ -1419,7 +1416,7 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
     }
     return res;
   }
-  /*
+/*
     Result = FILE_SEARCH(Path_Specification) (Standard)
     or for recursive searching,
     Result = FILE_SEARCH(Dir_Specification, Recur_Pattern)
@@ -1441,11 +1438,33 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
     when called with two arguments the Dir_specification argument could itself be a pattern-search;
     hence the dance below where, for Nparam > 1, first duty is to search on the 1st parameter for directories.
 //     modifications        : 2014, 2015 by Greg Jung
-    */
-  BaseGDL* file_search( EnvT* e)
-  {
-       enum { testregular=3, testdir, testzero, testsymlink };
-//    trace_me = trace_arg(); // set trace
+   */
+  BaseGDL* file_search(EnvT* e) {
+    enum {
+        testregular = 3, testdir, testzero, testsymlink
+      };
+      
+    bool tests[NTEST_SEARCH];
+    for (SizeT i = 0; i < NTEST_SEARCH; i++) tests[i] = false;
+    // keywords
+    bool tilde = true;
+    bool fold_case = false;
+    bool environment = true;
+    bool noexpand_path = false;
+    bool accErr = false;
+    bool mark = false;
+    bool noSort = false;
+    bool quote = false;
+    bool match_dot = false;
+    bool match_all_dot = false;
+    bool forceAbsPath = false;
+
+    // common with FINDFILE
+    static int countIx = e->KeywordIx("COUNT");
+    bool countKW = e->KeywordPresent(countIx);
+    bool isFindFile=(e->GetProName() == "FINDFILE");
+
+    if (!isFindFile) {
       static int TEST_READIx = e->KeywordIx("TEST_READ");
       static int TEST_WRITEIx = e->KeywordIx("TEST_WRITE");
       static int TEST_EXECUTABLEIx = e->KeywordIx("TEST_EXECUTABLE");
@@ -1457,107 +1476,107 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
       static int DIRECTORYIx = e->KeywordIx("DIRECTORY");
       static int ZERO_LENGTHIx = e->KeywordIx("ZERO_LENGTH");
       static int SYMLINKIx = e->KeywordIx("SYMLINK");
-    const int test_kwIx[]={
-      TEST_READIx, TEST_WRITEIx, TEST_EXECUTABLEIx,
-      TEST_REGULARIx, TEST_DIRECTORYIx, TEST_ZERO_LENGTHIx,
-      TEST_SYMLINKIx};
-    bool tests[NTEST_SEARCH];
-    static int keyindex;
-    for( SizeT i=0; i < NTEST_SEARCH; i++) {
-      if (e->KeywordPresent(test_kwIx[i])) tests[i] = e->KeywordSet(test_kwIx[i]);
-                                        else tests[i] = false;
-    }
-// extra options for convenience:
-   if( e->KeywordSet( DIRECTORYIx )) tests[testdir]=true;
-   if( e->KeywordSet( SYMLINKIx )) tests[testsymlink]=true;
-   if( e->KeywordSet( REGULARIx )) tests[testregular]=true;
-   if( e->KeywordSet( ZERO_LENGTHIx )) tests[testzero]=true;
-    // keywords
-    bool tilde = true;
-    bool fold_case = false;
-    // next three have default behaviour
-    static int tildeIx = e->KeywordIx( "EXPAND_TILDE");
-    bool tildeKW = e->KeywordPresent( tildeIx);
-    if( tildeKW) tilde = e->KeywordSet( tildeIx);
+      const int test_kwIx[] = {
+        TEST_READIx, TEST_WRITEIx, TEST_EXECUTABLEIx,
+        TEST_REGULARIx, TEST_DIRECTORYIx, TEST_ZERO_LENGTHIx,
+        TEST_SYMLINKIx
+      };
 
-    bool environment = true;
-    static int environmentIx = e->KeywordIx( "EXPAND_ENVIRONMENT");
-    bool environmentKW = e->KeywordPresent( environmentIx);
-    if( environmentKW) 
-      {
-    bool Set = e->KeywordSet( environmentIx);
-    if( Set) {
-        environment = true; ;}
-    else environment = false;
+      for (SizeT i = 0; i < NTEST_SEARCH; i++) {
+        if (e->KeywordPresent(test_kwIx[i])) tests[i] = e->KeywordSet(test_kwIx[i]);
+        else tests[i] = false;
+      }
+
+      // extra options for convenience:
+      if (e->KeywordSet(DIRECTORYIx)) tests[testdir] = true;
+      if (e->KeywordSet(SYMLINKIx)) tests[testsymlink] = true;
+      if (e->KeywordSet(REGULARIx)) tests[testregular] = true;
+      if (e->KeywordSet(ZERO_LENGTHIx)) tests[testzero] = true;
+
+      // next three have default behaviour
+      static int tildeIx = e->KeywordIx("EXPAND_TILDE");
+      bool tildeKW = e->KeywordPresent(tildeIx);
+      if (tildeKW) tilde = e->KeywordSet(tildeIx);
+
+      static int environmentIx = e->KeywordIx("EXPAND_ENVIRONMENT");
+      bool environmentKW = e->KeywordPresent(environmentIx);
+      if (environmentKW) {
+        bool Set = e->KeywordSet(environmentIx);
+        if (Set) {
+          environment = true;}
+         else environment = false;
       }
 
     bool noexpand_path = !environment;
 
-    static int fold_caseIx = e->KeywordIx( "FOLD_CASE");
-    bool fold_caseKW = e->KeywordPresent( fold_caseIx);
-    if( fold_caseKW) fold_case = e->KeywordSet( fold_caseIx);
+      static int fold_caseIx = e->KeywordIx("FOLD_CASE");
+      bool fold_caseKW = e->KeywordPresent(fold_caseIx);
+      if (fold_caseKW) fold_case = e->KeywordSet(fold_caseIx);
 
-    // 
-    static int countIx = e->KeywordIx( "COUNT");
-    bool countKW = e->KeywordPresent( countIx);
 
-    static int accerrIx = e->KeywordIx( "ISSUE_ACCESS_ERROR");
-    bool accErr = e->KeywordSet( accerrIx);
+      static int accerrIx = e->KeywordIx("ISSUE_ACCESS_ERROR");
+    accErr = e->KeywordSet( accerrIx);
 
-    static int markIx = e->KeywordIx( "MARK_DIRECTORY");
-    bool mark = e->KeywordSet( markIx);
+      static int markIx = e->KeywordIx("MARK_DIRECTORY");
+    mark = e->KeywordSet( markIx);
 
-    static int nosortIx = e->KeywordIx( "NOSORT");
-    bool noSort = e->KeywordSet( nosortIx);
+      static int nosortIx = e->KeywordIx("NOSORT");
+    noSort = e->KeywordSet( nosortIx);
 
-    static int quoteIx = e->KeywordIx( "QUOTE");
-    bool quote = e->KeywordSet( quoteIx);
+      static int quoteIx = e->KeywordIx("QUOTE");
+    quote = e->KeywordSet( quoteIx);
 
-    static int match_dotIx = e->KeywordIx( "MATCH_INITIAL_DOT");
-    bool match_dot = e->KeywordSet( match_dotIx);
+      static int match_dotIx = e->KeywordIx("MATCH_INITIAL_DOT");
+    match_dot = e->KeywordSet( match_dotIx);
 
-    static int match_all_dotIx = e->KeywordIx( "MATCH_ALL_INITIAL_DOT");
-    bool match_all_dot = e->KeywordSet( match_all_dotIx);
+      static int match_all_dotIx = e->KeywordIx("MATCH_ALL_INITIAL_DOT");
+    match_all_dot = e->KeywordSet( match_all_dotIx);
 
-    static int fully_qualified_pathIx = e->KeywordIx( "FULLY_QUALIFY_PATH");
-    bool forceAbsPath = e->KeywordSet( fully_qualified_pathIx);
+      static int fully_qualified_pathIx = e->KeywordIx("FULLY_QUALIFY_PATH");
+    forceAbsPath = e->KeywordSet( fully_qualified_pathIx);
 
-    if( match_all_dot)
-      Warning( "FILE_SEARCH: MATCH_ALL_INITIAL_DOT keyword ignored (not supported).");
-// SYNTAX:
-//  Result = FILE_SEARCH(Path_Specification)
-//      or for recursive searching,
-//  Result = FILE_SEARCH(Dir_Specification, Recur_Pattern)
-    SizeT nParam=e->NParam(); // 0 -> "*"
+      if (match_all_dot)
+        Warning("FILE_SEARCH: MATCH_ALL_INITIAL_DOT keyword ignored (not supported).");
+
+    } else {
+#ifndef _WIN32
+      //Under Windows, FINDFILE appends a "\" character to the end of the returned file name if the file is a directory.
+      mark=true;
+#endif
+    }
+    // SYNTAX:
+    //  Result = FILE_SEARCH(Path_Specification)
+    //      or for recursive searching,
+    //  Result = FILE_SEARCH(Dir_Specification, Recur_Pattern)
+    SizeT nParam = e->NParam(); // 0 -> "*"
 
     DStringGDL* pathSpec;
     SizeT nPath = 0;
     bool recursive_dirsearch = true;
-        bool leading_nullst = true;
-    DString     Pattern = "";
-    if( nParam > 0)
-      {
-        BaseGDL* p0 = e->GetParDefined( 0);
-        pathSpec = dynamic_cast<DStringGDL*>( p0);
-        if( pathSpec == NULL)
-            e->Throw( "String expression required in this context.");
+    bool leading_nullst = true;
+    DString Pattern = "";
+    if (nParam > 0) {
+      BaseGDL* p0 = e->GetParDefined(0);
+      pathSpec = dynamic_cast<DStringGDL*> (p0);
+      if (pathSpec == NULL)
+        e->Throw("String expression required in this context.");
 
-        nPath = pathSpec->N_Elements();
-        leading_nullst = ((*pathSpec)[0] == "");
-        if( leading_nullst ) Pattern = "*";
-// Path_Specification A scalar or array variable of string type, containing file paths to match.
-// If Path_Specification is not supplied, or if it is supplied as an empty string, 
-// FILE_SEARCH uses a default pattern of '*', which matches all files in the current directory       
-        if( nParam > 1)  {
-             e->AssureScalarPar< DStringGDL>( 1, Pattern);
-// Dir_Specification A scalar or array variable of string type, containing directory paths
-// within which FILE_SEARCH will perform recursive searching for files matching the 
-// Recur_Pattern argument. FILE_SEARCH examines Dir_Specification, and any directory found below it,
-// and returns the paths of any files in those directories that match Recur_Pattern.
-// 'If Dir_Specification is supplied as an empty string, FILE_SEARCH searches the current directory.'
-            if( (nPath == 1) && leading_nullst ) recursive_dirsearch = false;
-            } 
-      } 
+      nPath = pathSpec->N_Elements();
+      leading_nullst = ((*pathSpec)[0] == "");
+      if (leading_nullst) Pattern = "*";
+      // Path_Specification A scalar or array variable of string type, containing file paths to match.
+      // If Path_Specification is not supplied, or if it is supplied as an empty string, 
+      // FILE_SEARCH uses a default pattern of '*', which matches all files in the current directory       
+      if (nParam > 1) {
+        e->AssureScalarPar< DStringGDL>(1, Pattern);
+        // Dir_Specification A scalar or array variable of string type, containing directory paths
+        // within which FILE_SEARCH will perform recursive searching for files matching the 
+        // Recur_Pattern argument. FILE_SEARCH examines Dir_Specification, and any directory found below it,
+        // and returns the paths of any files in those directories that match Recur_Pattern.
+        // 'If Dir_Specification is supplied as an empty string, FILE_SEARCH searches the current directory.'
+        if ((nPath == 1) && leading_nullst) recursive_dirsearch = false;
+      }
+    }
 
     bool onlyDir = nParam > 1;
 
@@ -1565,40 +1584,40 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 
     DLong count;
 #ifndef _WIN32
- // The alternative can be used in Linux, also. 
- // replace above with #if 0 to unify methods.
- //  Differences? please notify me (GVJ)
-//#if 0
-    if( nPath == 0)
-      FileSearch( fileList, "",
-          environment, tilde, 
-            accErr, mark, noSort, quote, 
-          match_dot, forceAbsPath, fold_case,
-            onlyDir, tests);
+    // The alternative can be used in Linux, also. 
+    // replace above with #if 0 to unify methods.
+    //  Differences? please notify me (GVJ)
+    //#if 0
+    if (nPath == 0)
+      FileSearch(fileList, "",
+      environment, tilde,
+      accErr, mark, noSort, quote,
+      match_dot, forceAbsPath, fold_case,
+      onlyDir, tests);
     else
-        if( !recursive_dirsearch ) fileList.push_back(string("./"));
-        else  // it appears glob is incapable of returning a symlink.!
-      for( SizeT f=0; f < nPath; ++f) 
-          FileSearch( fileList, (*pathSpec)[f],
-            environment, tilde, 
-                accErr, mark, noSort, quote,
-            match_dot, forceAbsPath, fold_case,
-                onlyDir, tests);
+      if (!recursive_dirsearch) fileList.push_back(string("./"));
+    else // it appears glob is incapable of returning a symlink.!
+      for (SizeT f = 0; f < nPath; ++f)
+        FileSearch(fileList, (*pathSpec)[f],
+        environment, tilde,
+        accErr, mark, noSort, quote,
+        match_dot, forceAbsPath, fold_case,
+        onlyDir, tests);
 #else
-//       if(trace_me) std::cout << "file_search: nPath=" << nPath <<" nParam="
-//           << nParam << std::endl;
-    if(nPath == 0 or (leading_nullst and nParam==1))
-//      PathSearch(  fileList, "./*",   true, false,
-        PatternSearch(  fileList, "./", "*",  false,
-                      accErr, mark,   quote,  match_dot,  forceAbsPath,fold_case,
-                            onlyDir,   tests);
-      else if( !recursive_dirsearch ) fileList.push_back(string("./"));
+    //       if(trace_me) std::cout << "file_search: nPath=" << nPath <<" nParam="
+    //           << nParam << std::endl;
+    if (nPath == 0 or (leading_nullst and nParam == 1))
+      //      PathSearch(  fileList, "./*",   true, false,
+      PatternSearch(fileList, "./", "*", false,
+      accErr, mark, quote, match_dot, forceAbsPath, fold_case,
+      onlyDir, tests);
+    else if (!recursive_dirsearch) fileList.push_back(string("./"));
     else
-      for( SizeT f=0; f < nPath; ++f) {
-        PathSearch(  fileList, (*pathSpec)[f],   true, false,
-//      PatternSearch(  fileList, "", (*pathSpec)[f],  false,
-                      accErr, mark,   quote,  match_dot,  forceAbsPath,fold_case,
-                            onlyDir,   tests);
+      for (SizeT f = 0; f < nPath; ++f) {
+        PathSearch(fileList, (*pathSpec)[f], true, false,
+          //      PatternSearch(  fileList, "", (*pathSpec)[f],  false,
+          accErr, mark, quote, match_dot, forceAbsPath, fold_case,
+          onlyDir, tests);
       }
 #endif
     onlyDir = false;
@@ -1606,42 +1625,70 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 
 
     FileListT fileOut;
-    for( SizeT f=0; f<count; ++f) 
-      {
-        if( nParam > 1)
-            PatternSearch( fileOut, fileList[f], Pattern, recursive_dirsearch,
-              accErr,   mark,   quote, 
-               match_dot,  forceAbsPath,fold_case,
-                onlyDir ,   tests);
-        else
-            fileOut.push_back(fileList[f]);
-      } 
+    for (SizeT f = 0; f < count; ++f) {
+      if (nParam > 1)
+        PatternSearch(fileOut, fileList[f], Pattern, recursive_dirsearch,
+        accErr, mark, quote,
+        match_dot, forceAbsPath, fold_case,
+        onlyDir, tests);
+      else
+        fileOut.push_back(fileList[f]);
+    }
 
     DLong pCount = fileOut.size();
-    
-    if( countKW)
-      e->SetKW( countIx, new DLongGDL( pCount));
 
-    if(nParam > 2) {  // provision for a third parameter = filecount return.
-        e->AssureGlobalPar(2);
-        e->SetPar(2, new DLongGDL(pCount));
-    } // use this only for interactive sessions: not an IDL feature.
+    //special trick for findfile returning a single directory: list contents
+    if (isFindFile && pCount == 1) {
+      struct stat64 statStruct;
+      bool isaDir, isaSymLink;
+      int actStat = filestat(fileList[0].c_str(), statStruct, isaDir, isaSymLink);
+      if (actStat == 0 && isaDir) {
+        DIR* dir = opendir(fileList[0].c_str());
+        if (dir != NULL) {
+          pCount = 0;
+          struct dirent* entry;
+          fileOut.clear();
+          while ((entry = readdir(dir)) != NULL) {
+            //avoid copying twice in a string, first in entryStr, then in fileOut //small speedup?
+//            DString entryStr( entry->d_name);
+//            if( entryStr == "." || entryStr == "..") continue;
+//            pCount++;
+//            fileOut.push_back(entryStr);
+            char* name=entry->d_name; //note d_name is supposedly 256 chars max, but this is not really true..
+            size_t len=strlen(name);
+            if ((len==1 && (strncmp(name,".",1)==0)) || (len==2 && (strncmp(name,"..",2)==0) ))  continue;
+            pCount++;
+            fileOut.push_back(name);
+          }
+        }
+        closedir(dir);
+      }
+    }
     
-    if( pCount == 0)
+    if (countKW)
+      e->SetKW(countIx, new DLongGDL(pCount));
+    
+    if (pCount == 0) {
       return new DStringGDL("");
+    }
+//bad idea:
+//    if (nParam > 2) { // provision for a third parameter = filecount return.
+//      e->AssureGlobalPar(2);
+//      e->SetPar(2, new DLongGDL(pCount));
+//    } // use this only for interactive sessions: not an IDL feature.
 
-    if( !noSort)
-      sort( fileOut.begin(), fileOut.end());
-    
+
+
+    if (!noSort)
+      sort(fileOut.begin(), fileOut.end());
+
     // fileOut -> res
-    DStringGDL* res = new DStringGDL( dimension( pCount), BaseGDL::NOZERO);
-    for( SizeT r=0; r<pCount; ++r)
+    DStringGDL* res = new DStringGDL(dimension(pCount), BaseGDL::NOZERO);
+    for (SizeT r = 0; r < pCount; ++r)
       (*res)[r] = fileOut[ r];
 
     return res;
-      }
-
-
+  }
 
   BaseGDL* file_basename( EnvT* e)
   {

@@ -28,8 +28,8 @@ pro gdl_set_map_limits, myMap, limits
 ; range of values
        lonrange = lonmax - lonmin
        latrange = latmax - latmin
-; is there another way (proj4) to get ranges except brute force on a grid of possible points?
-; epsilon useful as projections are not precise (see #define EPS in proj4 c files: apparently < 1e-6)
+; is there another way (PROJ) to get ranges except brute force on a grid of possible points?
+; epsilon useful as projections are not precise (see #define EPS in PROJ c files: apparently < 1e-6)
        epsx = 1d-6*ABS(lonrange)
        epsy = 1d-6*ABS(latrange)
        

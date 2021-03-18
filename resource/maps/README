@@ -1,7 +1,7 @@
 This folder contains projections.ods and projDefinitions.sav
 low/ and high/ subfolders contain Shapefiles used by, e.g., MAP_CONTINENTS.
 
-projection.ods describes the projections currently known by proj4 (https://proj4.org/operations/projections) with their short name, full name, peculiarities, required parameters, optional parameters, projection scale.
+projection.ods describes the projections currently known by PROJ (https://proj.org/operations/projections) with their short name, full name, peculiarities, required parameters, optional parameters, projection scale.
 
 One can update projections.ods each time a new projection comes available, and submit a PR for GDL at Github.
 
@@ -20,7 +20,7 @@ the csv.sav file is then converted to adequate structures with  'map_proj_auxili
 
 At that moment, projDefintions.sav has been updated and all the projection related procedures (map_set, etc) are aware of the new projection(s). Of course, these files should be installed properly (by a "make install"), in gnudatalanguage/resource/maps.
 
-It is important to note in the "hints" column the type of projection (for correct clips or horizon) and also if they support rotation of coordinates (some do not and that would probably result in a crash of the proj4 library.)
+It is important to note in the "hints" column the type of projection (for correct clips or horizon) and also if they support rotation of coordinates (some do not and that would probably result in a crash of the PROJ library.)
 
 Specifics for interrupted projections (where are the splits) must be added in map_proj_init.pro and map_horizon.pro (nothing is ever easy). 
 

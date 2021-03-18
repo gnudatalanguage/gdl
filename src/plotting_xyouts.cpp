@@ -206,7 +206,7 @@ namespace lib
       restorelayout=true;
       
       bool mapSet=false;
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       get_mapset(mapSet);
       mapSet=(mapSet && coordinateSystem==DATA);
       if ( mapSet )
@@ -371,16 +371,24 @@ namespace lib
         x=static_cast<PLFLT>((*xVal)[i%xVal->N_Elements ( )]); //insure even 1 parameter, string array
         y=static_cast<PLFLT>((*yVal)[i%xVal->N_Elements ( )]);
 
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
         if ( mapSet )
         {
           LPTYPE idata;
           XYTYPE odata;
+#if LIBPROJ_MAJOR_VERSION >= 5
+          idata.lam=x * DEG_TO_RAD;
+          idata.phi=y * DEG_TO_RAD;
+          odata=protect_proj_fwd_lp(idata, ref);
+          x=odata.x;
+          y=odata.y;
+#else
           idata.u=x * DEG_TO_RAD;
           idata.v=y * DEG_TO_RAD;
           odata=PJ_FWD(idata, ref);
           x=odata.u;
           y=odata.v;
+#endif
         }
 #endif
  

@@ -49,7 +49,7 @@ namespace lib {
   
   BaseGDL* map_proj_forward_fun(EnvT* e)
   {
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
     BaseGDL* p0;
     BaseGDL* p1;
 
@@ -155,7 +155,7 @@ namespace lib {
 
   BaseGDL* map_proj_inverse_fun(EnvT* e)
   {
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
     // xy -> lonlat
     SizeT nParam = e->NParam();
     if (nParam < 1 || nParam > 2)
@@ -201,12 +201,12 @@ namespace lib {
         res = new DDoubleGDL(dim, BaseGDL::NOZERO);
       }
       
-      //protect against projections that have no inverse in proj.4 (and inverse in libproj) (silly, is'nt it?) (I guess I'll copy all
+      //protect against projections that have no inverse in PROJ (and inverse in libproj) (silly, is'nt it?) (I guess I'll copy all
       //this code one day and make our own certified version!
       if (noInv) {
         //return Nans --- hoping it is sufficient 
         for (OMPInt i = 0; i < p0->N_Elements() ; ++i) (*res)[i]=std::numeric_limits<double>::quiet_NaN();
-        return res; //e->Throw("The proj4 library version you use unfortunately defines no inverse for this projection!");
+        return res; //e->Throw("The PROJ library version you use unfortunately defines no inverse for this projection!");
       }
       
       SizeT nEl = p0->N_Elements() / 2;
@@ -216,11 +216,19 @@ namespace lib {
 #pragma omp for
 #endif
         for (OMPInt i = 0; i < nEl; ++i) {
+#if LIBPROJ_MAJOR_VERSION >= 5
+          idata.x = (*xy)[2 * i];
+          idata.y = (*xy)[2 * i + 1];
+          odata = protect_proj_inv_xy(idata, ref);
+          (*res)[2 * i] = odata.lam * ((radians) ? 1.0 : RAD_TO_DEG);
+          (*res)[2 * i + 1] = odata.phi * ((radians) ? 1.0 : RAD_TO_DEG);
+#else
           idata.u = (*xy)[2 * i];
           idata.v = (*xy)[2 * i + 1];
           odata = PJ_INV(idata, ref);
           (*res)[2 * i] = odata.u * ((radians) ? 1.0 : RAD_TO_DEG);
           (*res)[2 * i + 1] = odata.v * ((radians) ? 1.0 : RAD_TO_DEG);
+#endif
         }
 #ifdef PROJ_IS_THREADSAFE
       }
@@ -242,12 +250,12 @@ namespace lib {
       dims[1] = nEl;
       dimension dim((DLong *) dims, 2);
       res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-      //protect against projections that have no inverse in proj.4 (and inverse in libproj) (silly, is'nt it?) (I guess I'll copy all
+      //protect against projections that have no inverse in PROJ (and inverse in libproj) (silly, is'nt it?) (I guess I'll copy all
       //this code one day and make our own certified version!
       if (noInv) {
         //return Nans --- hoping it is sufficient 
         for (OMPInt i = 0; i < p0->N_Elements() ; ++i) (*res)[i]=std::numeric_limits<double>::quiet_NaN();
-        return res; //e->Throw("The proj4 library version you use unfortunately defines no inverse for this projection!");
+        return res; //e->Throw("The PROJ library version you use unfortunately defines no inverse for this projection!");
       }
 #ifdef PROJ_IS_THREADSAFE
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -255,11 +263,19 @@ namespace lib {
 #pragma omp for 
 #endif
         for (OMPInt i = 0; i < nEl; ++i) {
+#if LIBPROJ_MAJOR_VERSION >= 5
+          idata.x = (*x)[i];
+          idata.y = (*y)[i];
+          odata = protect_proj_inv_xy(idata, ref);
+          (*res)[2 * i] = odata.lam * ((radians) ? 1.0 : RAD_TO_DEG);
+          (*res)[2 * i + 1] = odata.phi * ((radians) ? 1.0 : RAD_TO_DEG);
+#else
           idata.u = (*x)[i];
           idata.v = (*y)[i];
           odata = PJ_INV(idata, ref);
           (*res)[2 * i] = odata.u * ((radians) ? 1.0 : RAD_TO_DEG);
           (*res)[2 * i + 1] = odata.v * ((radians) ? 1.0 : RAD_TO_DEG);
+#endif
         }
 #ifdef PROJ_IS_THREADSAFE
       }
@@ -275,7 +291,7 @@ namespace lib {
 #endif
   }
 
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
     //enum all the projections
 
     enum {
@@ -365,7 +381,7 @@ namespace lib {
       HOM_LATITUDE1,           //+lat_1
       HOM_LATITUDE2,           //+lat_2
       OEA_ANGLE,               //+theta
-//      SOM_INCLINATION,         // unknown with proj4
+//      SOM_INCLINATION,         // unknown with PROJ
 //      SOM_LONGITUDE,           //
 //      SOM_PERIOD,              //
 //      SOM_RATIO,               //
@@ -399,8 +415,8 @@ namespace lib {
     } projCoding;
 
     static projCoding projectionOptions[] = {
-      // pidx, proj. Number as in doc, Name, Proj.4 litle name, number of projElements to read, 
-      // Values as index in projElements (options for proj.4), idem for variant.
+      // pidx, proj. Number as in doc, Name, PROJ litle name, number of projElements to read, 
+      // Values as index in projElements (options for PROJ), idem for variant.
       //pidx|pnum|ptyp|pnam                          |p4nam         |nopt|                     code                           |vcode
       { 0, 0, 0, "Invalid Projection", "none", 0,
         {0},
@@ -460,11 +476,7 @@ namespace lib {
         {SEMIMAJOR_AXIS, SEMIMINOR_AXIS, STANDARD_PAR1, STANDARD_PAR2, CENTER_LONGITUDE, CENTER_LATITUDE, 0},
         {0}},
       { 19, 19, 4, "GoodesHomolosine",
-#ifdef USE_LIBPROJ4_NEW
         "igh"
-#else
-        "goode"
-#endif
         , 5,
         {SPHERE_RADIUS, 0, 0, 0, CENTER_LONGITUDE, 0, 0},
         {0}},
@@ -534,7 +546,7 @@ namespace lib {
       {41, 121, 4, "GCTP_Robinson", "robin", 9,
         {SPHERE_RADIUS, 0, 0, 0, CENTER_LONGITUDE, 0, FALSE_EASTING, FALSE_NORTHING,0},
         {0}},
-      {42, 122, 2, "GCTP_SpaceObliqueMercator", "lsat", 13,  //only variant implemented in proj4.
+      {42, 122, 2, "GCTP_SpaceObliqueMercator", "lsat", 13,  //only variant implemented in PROJ.
         //{SEMIMAJOR_AXIS, SEMIMINOR_AXIS, 0, SOM_INCLINATION, SOM_LONGITUDE, 0, FALSE_EASTING, FALSE_NORTHING, SOM_PERIOD, SOM_RATIO, SOM_FLAG},
         {SEMIMAJOR_AXIS, SEMIMINOR_AXIS, SOM_LANDSAT_NUMBER, SOM_LANDSAT_PATH, 0, 0, FALSE_EASTING, FALSE_NORTHING, 0, 0, 0, 0, 0},
         {SEMIMAJOR_AXIS, SEMIMINOR_AXIS, SOM_LANDSAT_NUMBER, SOM_LANDSAT_PATH, 0, 0, FALSE_EASTING, FALSE_NORTHING, 0, 0, 0, 0, 1}},
@@ -620,19 +632,20 @@ static double epsilon = std::numeric_limits<float>::epsilon(); //say, 5e-7
     unsigned epsilonTag = map->Desc()->TagIndex("UP_FLAGS");
     DLong epsilonvalue = (*static_cast<DLongGDL*> (map->GetTag(epsilonTag, 0)))[0];
     if (epsilonvalue != 0) epsilon=1.0/double(epsilonvalue); else epsilon=std::numeric_limits<float>::epsilon();
-    //Trick for using ALL the libproj.4 projections.
+    //Trick for using ALL the PROJ projections.
     if (map_projection == 999) { //our special code
-#ifdef USE_LIBPROJ4_NEW
-      prev_ref = pj_init_plus(projName.c_str());
-      if (!prev_ref) {
-        ThrowGDLException("LIBPROJ.4 returned error message: "+std::string(pj_strerrno(pj_errno)));
-      }
+#if LIBPROJ_MAJOR_VERSION >= 5
+      prev_ref = proj_create(PJ_DEFAULT_CTX, projName.c_str());
 #else
-      prev_ref = proj_initstr((char*) projName.c_str());
-      if (!prev_ref) {
-        ThrowGDLException("LIBPROJ.4 returned error message: "+std::string(proj_strerrno(proj_errno)));
-      }
+      prev_ref = pj_init_plus(projName.c_str());
 #endif
+      if (!prev_ref) {
+#if LIBPROJ_MAJOR_VERSION >= 5
+        ThrowGDLException("PROJ returned error message: "+std::string(proj_errno_string(proj_context_errno(PJ_DEFAULT_CTX))));
+#else
+        ThrowGDLException("PROJ returned error message: "+std::string(pj_strerrno(pj_errno)));
+#endif
+      }
       noInv=false ; //((void*)(static_cast<PJ*>(prev_ref)->inv) == NULL);
       return prev_ref;
     }    
@@ -750,24 +763,25 @@ static double epsilon = std::numeric_limits<float>::epsilon(); //say, 5e-7
          break;
         }
       cout<<projCommand<<endl;
-#ifdef USE_LIBPROJ4_NEW
-        prev_ref = pj_init_plus(projCommand.c_str());
-        if (!prev_ref) {
-          ThrowGDLException("LIBPROJ.4 returned error message: " + std::string(pj_strerrno(pj_errno)));
-        }
+#if LIBPROJ_MAJOR_VERSION >= 5
+        prev_ref = proj_create(PJ_DEFAULT_CTX, projCommand.c_str());
 #else
-        prev_ref = proj_initstr((char*) projCommand.c_str());
-      if (!prev_ref) {
-        ThrowGDLException("LIBPROJ.4 returned error message: "+std::string(proj_strerrno(proj_errno)));
-      }
+        prev_ref = pj_init_plus(projCommand.c_str());
 #endif
+        if (!prev_ref) {
+#if LIBPROJ_MAJOR_VERSION >= 5
+          ThrowGDLException("PROJ returned error message: " + std::string(proj_errno_string(proj_context_errno(PJ_DEFAULT_CTX))));
+#else
+          ThrowGDLException("PROJ returned error message: " + std::string(pj_strerrno(pj_errno)));
+#endif
+        }
         return prev_ref;
       }
 
       //for classical projections here [1..19] we still use an older way to call pj_init (and not projcommand). This is probably bad... 
       if (trans) { //use rotation variant, a killer with some projections
         //        if (map_p0lon==180.0) map_p0lon=179.999992;
-        if (map_p0lat > 89.999) map_p0lat = 89.999; //take some precautions as PROJ.4 is not proetected!!! 
+        if (map_p0lat > 89.999) map_p0lat = 89.999; //take some precautions as PROJ is not proetected!!! 
         if (map_p0lat < -89.999) map_p0lat = -89.999;
         sprintf(ob_lon, "o_lon_p=%lf", proj_p0lon);
         proj_p0lat = 90.0 - map_p0lat; //ADD CENTRAL_AZIMUTH!!
@@ -792,13 +806,11 @@ static double epsilon = std::numeric_limits<float>::epsilon(); //say, 5e-7
 
       if (trans //CHECK THIS FOR GCTP projections!
           //      && map_projection != Satellite
-          && map_projection != GCTP_WagnerVII //no invert in old and new libproj4.
-#ifdef USE_LIBPROJ4_NEW
+          && map_projection != GCTP_WagnerVII //no invert in old and new PROJ.
           //      && map_projection != Mercator  //crashes with map_grid!!!
           && map_projection != TransverseMercator //idem!!
           //      && map_projection != Orthographic //idem!!
           //      && map_projection != Aitoff //idem!!
-#endif
           ) {
         strcpy(ob_proj, "proj=ob_tran");
         parms[nparms++] = &ob_proj[0];
@@ -848,23 +860,82 @@ static double epsilon = std::numeric_limits<float>::epsilon(); //say, 5e-7
 //      fprintf(stderr, "nparms=%d:", nparms);
 //      for (SizeT i = 0; i < nparms; ++i) fprintf(stderr, "+%s ", parms[i]);
 //      fprintf(stderr, "\n");
-#ifdef USE_LIBPROJ4_NEW
-      prev_ref = PJ_INIT(nparms, parms);
-      if (!prev_ref) {
-        ThrowGDLException("LIBPROJ.4 returned error message: " + std::string(pj_strerrno(pj_errno)));
-      }
+#if PROJ_VERSION_MAJOR >= 5
+      prev_ref = proj_create_argv(PJ_DEFAULT_CTX, nparms, parms);
 #else
-      prev_ref = PJ_INIT(nparms, parms);
+      prev_ref = pj_init(nparms, parms);
+#endif
       if (!prev_ref) {
-        ThrowGDLException("LIBPROJ.4 returned error message: "+std::string(proj_strerrno(proj_errno)));
+#if LIBPROJ_MAJOR_VERSION >= 5
+        ThrowGDLException("PROJ returned error message: " + std::string(proj_errno_string(proj_context_errno(PJ_DEFAULT_CTX))));
+#else
+        ThrowGDLException("PROJ returned error message: " + std::string(pj_strerrno(pj_errno)));
+#endif
       }
-#endif      
     }
     return prev_ref;
   }
 
-#ifdef USE_LIBPROJ4_NEW
+#if LIBPROJ_MAJOR_VERSION >= 5
+  PJ_XY protect_proj_fwd_lp(PJ_LP idata, PJ *proj)
+  {
+    PJ_COORD c, c_out;
+    DDouble x, y;
+    if (isfinite((idata.lam)*(idata.phi))) {
+      c.lp = idata;
+      c_out = proj_trans(proj, PJ_FWD, c);
+      if (isfinite(c_out.xy.x) && c_out.xy.y != HUGE_VAL) {
+        if (isRot) {
+          x = c_out.xy.x;
+          y = c_out.xy.y;
+          c_out.xy.x = x * cRot + y*sRot;
+          c_out.xy.y = -x * sRot + y*cRot;
+        }
+        return c_out.xy;
+      }
+    }
+    return badProjXY;
+  }
 
+  PJ_XY protect_proj_fwd_xy(PJ_XY idata, PJ *proj)
+  {
+    PJ_COORD c, c_out;
+    DDouble x, y;
+    if (isfinite((idata.x)*(idata.y))) {
+      c.xy = idata;
+      c_out = proj_trans(proj, PJ_FWD, c);
+      if (isfinite(c_out.xy.x) && c_out.xy.x != HUGE_VAL) {
+        if (isRot) {
+          x = c_out.xy.x;
+          y = c_out.xy.y;
+          c_out.xy.x = x * cRot + y*sRot;
+          c_out.xy.y = -x * sRot + y*cRot;
+        }
+        return c_out.xy;
+      }
+    }
+    return badProjXY;
+  }
+
+  PJ_LP protect_proj_inv_xy(PJ_XY idata, PJ *proj)
+  {
+    if (noInv) return badProjLP;
+    //  throw GDLException("The PROJ library version you use unfortunately defines no inverse for this projection!");
+    PJ_COORD c, c_out;
+    DDouble x, y;
+    if (isRot) {
+      x = idata.x;
+      y = idata.y;
+      c.xy.x = x * cRot - y*sRot;
+      c.xy.y = x * sRot + y*cRot;
+    }
+    if (isfinite((c.xy.x)*(c.xy.y))) {
+      c_out = proj_trans(proj, PJ_INV, c);
+      return c_out.lp;
+    }
+    return badProjLP;
+  }
+#else
   PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
   {
     XYTYPE odata;
@@ -887,7 +958,7 @@ static double epsilon = std::numeric_limits<float>::epsilon(); //say, 5e-7
   PROJDATA protect_proj_inv(PROJDATA idata, PROJTYPE proj)
   {
     if (noInv) return badProj;
-    //  throw GDLException("The proj4 library version you use unfortunately defines no inverse for this projection!");
+    //  throw GDLException("The PROJ library version you use unfortunately defines no inverse for this projection!");
     LPTYPE odata;
     DDouble u, v;
     if (isRot) {
@@ -899,46 +970,6 @@ static double epsilon = std::numeric_limits<float>::epsilon(); //say, 5e-7
     if (isfinite((idata.u)*(idata.v))) {
       odata = LIB_PJ_INV(idata, proj);
       return odata;
-    }
-    return badProj;
-  }
-#else
-
-PROJDATA protect_proj_fwd(PROJDATA idata, PROJTYPE proj)
-  {
-    XYTYPE odata;
-    DDouble u, v;
-    if (isfinite((idata.u)*(idata.v))) {
-      odata = LIB_PJ_FWD(idata, proj);
-      if (isfinite(odata.u) && odata.u != HUGE_VAL) {
-        if (isRot) {
-          u = odata.u;
-          v = odata.v;
-          odata.u = u * cRot + v*sRot;
-          odata.v = -u * sRot + v*cRot;
-        }
-        return odata;
-      }
-    }
-    return badProj;
-  }
-
-  PROJDATA protect_proj_inv(PROJDATA idata, PROJTYPE proj)
-  {
-    if (noInv) return badProj;
-    XYTYPE odata;
-    DDouble u, v;
-    if (isfinite((idata.u)*(idata.v))) {
-      odata = LIB_PJ_INV(idata, proj);
-      if (isfinite(odata.u) && odata.u != HUGE_VAL) {
-        if (isRot) {
-          u = odata.u;
-          v = odata.v;
-          odata.u = u * cRot - v*sRot;
-          odata.v = u * sRot + v*cRot;
-        }
-        return odata;
-      }
     }
     return badProj;
   }
@@ -1440,11 +1471,19 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
 #pragma omp for
 #endif
       for (OMPInt i = 0; i < nEl; ++i) {
+#if LIBPROJ_MAJOR_VERSION >= 5
+        idata.lam = lons[i];
+        idata.phi = lats[i];
+        odata = protect_proj_fwd_lp(idata, ref);
+        (*res)[2 * i] = odata.x;
+        (*res)[2 * i + 1] = odata.y;
+#else
         idata.u = lons[i];
         idata.v = lats[i];
         odata = PJ_FWD(idata, ref);
         (*res)[2 * i] = odata.u;
         (*res)[2 * i + 1] = odata.v;
+#endif
       }
 #ifdef PROJ_IS_THREADSAFE
     }
@@ -1563,11 +1602,19 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
       case TRANSFORM:
         for (OMPInt i = 0; i < nEl; ++i) {
           if (isfinite(lons[i])) {
+#if LIBPROJ_MAJOR_VERSION >= 5
+            idata.lam = lons[i];
+            idata.phi = lats[i];
+            odata = protect_proj_fwd_lp(idata, ref);
+            lons[i] = odata.x;
+            lats[i] = odata.y;
+#else
             idata.u = lons[i];
             idata.v = lats[i];
             odata = PJ_FWD(idata, ref);
             lons[i] = odata.u;
             lats[i] = odata.v;
+#endif
           }
         }
       }
@@ -1588,7 +1635,7 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
   {
 
     //DATA MUST BE IN RADIANS
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
     LPTYPE idata;
     XYTYPE odata;
 #endif
@@ -1958,17 +2005,25 @@ done:             aliasList->remove_if(isInvalid);
       case TRANSFORM:
         if (PolygonList.empty()) break;
 
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
         for (std::list<Polygon>::iterator p = PolygonList.begin(); p != PolygonList.end(); ++p) {
           for (std::list<Vertex>::iterator v = p->VertexList.begin(); v != p->VertexList.end(); ++v) {
+#if LIBPROJ_MAJOR_VERSION >= 5
+            idata.lam = v->lon;
+            idata.phi = v->lat;
+            odata = protect_proj_fwd_lp(idata, ref);
+            v->lon = odata.x;
+            v->lat = odata.y;
+#else
             idata.u = v->lon;
             idata.v = v->lat;
             odata = PJ_FWD(idata, ref);
             v->lon = odata.u;
             v->lat = odata.v;
+#endif
           }
         }
-#endif   //USE_LIBPROJ4 
+#endif   //USE_LIBPROJ 
         break;
       case CLIP_UV:
         //TO BE DONE (really useful?)

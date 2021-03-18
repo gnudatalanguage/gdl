@@ -481,9 +481,9 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
 
     //eliminate the simple case
     if (proIx != -1) return proIx;
+#ifdef 	AUTO_PRINT_EXPR
     //noInteractive: throw
     if (noInteractive) throw GDLException(f, "Procedure not found: " + subName, true, false);
-
     //attempts an implied print. All this should be done in the ANTLR stuff of course.
     //We are here because the text is interpreted as a procedure. It is not (otherwise it would have been found),
     //but it could just be one or a series of variable names, such as in "a=dist(3) & b=findgen(2) & a,b"
@@ -530,6 +530,9 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
         throw GDLException(f, "Procedure not found: " + subName, true, false);
       }
     } else throw GDLException(f, "Procedure not found: " + subName, true, false);
+#else      
+      throw GDLException(f, "Procedure not found: " + subName, true, false);
+#endif    
   }
   return proIx;
 }
@@ -1341,7 +1344,7 @@ char* DInterpreter::NoReadline( const string& prompt)
           th.join();
           return NULL;
         }
-#ifdef WIN32
+#ifdef _WIN32
         Sleep(10);
 #else
         usleep(10);

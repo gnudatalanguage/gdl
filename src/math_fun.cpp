@@ -1666,7 +1666,7 @@ namespace lib {
   // by medericboquien@users.sourceforge.net
   BaseGDL* gauss_pdf(EnvT* e)
   {
-    SizeT nParam = e->NParam(1);
+//    SizeT nParam = e->NParam(1);
     DDoubleGDL* v = static_cast<DDoubleGDL*>(e->GetParDefined(0)->
 					     Convert2(GDL_DOUBLE,BaseGDL::COPY));
     SizeT nv = v->N_Elements();
@@ -1684,7 +1684,7 @@ namespace lib {
   // by medericboquien@users.sourceforge.net
   BaseGDL* gauss_cvf(EnvT* e)
   {
-    SizeT nParam = e->NParam(1);
+//    SizeT nParam = e->NParam(1);
     DDoubleGDL* p = static_cast<DDoubleGDL*>(e->GetParDefined(0)->
 					     Convert2(GDL_DOUBLE,BaseGDL::COPY));
      
@@ -1706,7 +1706,7 @@ namespace lib {
   // by medericboquien@users.sourceforge.net
   BaseGDL* t_pdf(EnvT* e)
   {
-    SizeT nParam = e->NParam(2);
+//    SizeT nParam = e->NParam(2);
     DDoubleGDL* v = e->GetParAs<DDoubleGDL>(0);
     DDoubleGDL* df = e->GetParAs<DDoubleGDL>(1);
     DDoubleGDL* res;
@@ -1839,7 +1839,7 @@ namespace lib {
   BaseGDL* ll_arc_distance(EnvT* e)
   {
     // sanity check (for number of parameters)
-    SizeT nParam = e->NParam();
+//    SizeT nParam = e->NParam();
 
     // 1-st argument : longitude/latitude values pair (in radians unless DEGREE kw. present)
     BaseGDL* p0 = e->GetNumericParDefined(0);

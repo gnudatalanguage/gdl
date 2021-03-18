@@ -8,6 +8,7 @@ matrix:
     - os: linux
       env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=MINI  ANTLR=yes
     - os: osx
+      osx_image: xcode11.3
       env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=MINI
 
 #    - os: linux
@@ -15,6 +16,7 @@ matrix:
     - os: linux
       env: COMPILER=gcc   CMAKE_BUILD_TYPE=Debug    DEPS=FULL  CODECOV=yes
     - os: osx
+      osx_image: xcode11.3
       env: COMPILER=clang CMAKE_BUILD_TYPE=Debug    DEPS=FULL
 
 #    - os: linux
@@ -22,6 +24,7 @@ matrix:
     - os: linux
       env: COMPILER=gcc   CMAKE_BUILD_TYPE=Release  DEPS=MINI
     - os: osx
+      osx_image: xcode11.3
       env: COMPILER=clang CMAKE_BUILD_TYPE=Release  DEPS=MINI
 
     - os: linux
@@ -29,6 +32,7 @@ matrix:
 #    - os: linux
 #      env: COMPILER=icc   CMAKE_BUILD_TYPE=Release  DEPS=FULL
     - os: osx
+      osx_image: xcode11.3
       env: COMPILER=clang CMAKE_BUILD_TYPE=Release  DEPS=FULL
 
 before_install:
@@ -67,10 +71,6 @@ install:
     - if [ -v CODECOV ]; then rm $TMPFILE; fi
     - if [ -v CODECOV ]; then echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} check)" >> testsuite/CMakeLists.txt; fi
 
-    # pytest
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} python3-pytest"; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install pytest; fi 
-
     # antlr
     - if [ -v ANTLR ]; then export APT_PACKAGES="${APT_PACKAGES} antlr"; fi
 
@@ -91,14 +91,24 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgsl0-dev"; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} gsl"; fi
 
+    # wx
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libwxgtk3.0-dev"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} wxwidgets"; fi
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=OFF"; fi 
+    
     # plplot
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libplplot-dev"; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} plplot12-driver-wxwidgets"; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} plplot"; fi
 
     ##
     ## OPTIONAL DEPENDENCIES
     ##
-
+    
+    # MINI = NO GRAPHICS = INTERACTIVE_GRAPHICS=OFF
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DINTERACTIVE_GRAPHICS=OFF"; fi 
+    
     # readline
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libreadline-gplv2-dev"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=ON"; fi
@@ -117,6 +127,7 @@ install:
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DOPENMP=OFF"; fi 
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} llvm libomp"; fi 
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang"; fi 
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib; fi
 
     # ImageMagick (Linux) / GraphicsMagick (OSX) - just to try both
     #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libmagick++-dev"; fi
@@ -128,12 +139,6 @@ install:
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=ON -DMAGICK=OFF"; fi 
 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGRAPHICSMAGICK=OFF -DMAGICK=OFF"; fi 
-
-    # wx
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libwxgtk3.0-dev"; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} wxwidgets"; fi
-    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=ON"; fi 
-    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DWXWIDGETS=OFF"; fi 
 
     # netcdf
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libnetcdf-dev"; fi
@@ -163,8 +168,8 @@ install:
 
     # proj4 (only for Linux - TODO)
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libproj-dev"; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DLIBPROJ4=ON"; fi 
-    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DLIBPROJ4=OFF"; fi 
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DLIBPROJ=ON"; fi 
+    - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DLIBPROJ=OFF"; fi 
 
     # MPI
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libmpich-dev"; fi
@@ -185,9 +190,9 @@ install:
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DUDUNITS2=OFF"; fi 
 
     # eigen
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then wget http://bitbucket.org/eigen/eigen/get/3.3.2.zip; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then unzip 3.3.2.zip; fi
-    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEIGEN3DIR=../eigen-eigen-da9b4e14c255"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then wget https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.zip; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then unzip eigen-3.3.7.zip; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEIGEN3DIR=../eigen-3.3.7"; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} eigen"; fi
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEIGEN3=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DEIGEN3=OFF"; fi 
@@ -214,14 +219,16 @@ install:
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGLPK=ON"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DGLPK=OFF"; fi 
 
-    # X11
-    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=ON"; fi 
+    # X11 : removed need of X11 since we inforce wxWidgets.
+    # - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} libx11"; fi
+    # - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=ON"; fi 
+    - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=OFF"; fi 
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DX11=OFF"; fi 
 
 
     # TIFF/GeoTIFF - TODO: find appropriate libgeotiff package for linux
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'linux' ]]; then export APT_PACKAGES="${APT_PACKAGES} libgeotiff-dev"; fi
-    #- if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} libgeotiff"; fi
+    - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} libgeotiff"; fi
     - if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DTIFF=ON -DGEOTIFF=ON"; fi
     - if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DTIFF=OFF -DGEOTIFF=OFF"; fi
 
@@ -251,9 +258,17 @@ install:
     # apt-get/brew invocation
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -y $APT_PACKAGES; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then for pkg in $BREW_PACKAGES; do echo brew \"$pkg\" >> Brewfile; done; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat Brewfile; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew bundle; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew bundle --verbose; fi
+    # plplot comes without wxwidget driver: change formula and recompile plplot.
+    # does not work. Do no test drivers, they are not there. 
+    # - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then zsh ./scripts/brew_enable_wxwidgets; fi
+    # nothing else to do than this:
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DINTERACTIVE_GRAPHICS=OFF" ; fi
     - if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install --upgrade --no-deps --force-reinstall numpy; fi
+
+    # pytest
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -y python3-pytest; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python3 -m pip install pytest; fi
 
 script:
     # antlr
