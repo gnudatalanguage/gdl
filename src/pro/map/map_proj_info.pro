@@ -32,7 +32,7 @@ p4name=p4n ; special for GDL
    if rindex lt 1 or rindex gt nproj then message, 'Projection number must be within range of 1 to'+ strtrim(nproj-1,2)
 
    name = proj[index].fullname
-   p4n=proj[index].projname
+   p4n=proj[index].proj4name
    ; need to keep ony the real PROJ name if perchance there was additional commands already set in the name
    p4n=(strsplit(strtrim(p4n,2),' ',/extract))[0] 
    property=proj_properties[index]

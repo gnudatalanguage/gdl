@@ -5,7 +5,7 @@
 ; Note: the structure of the resulting mapstruct is not compatible with
 ; IDL, i.e., one cannot use a GDL-defined mapstruct in IDL (if passed
 ; within a save file), (but one can use an IDL-defined mapstruct in GDL).
-
+; March 2021: changed 'proj4...' to 'proj...' everywhere in GDL, except here where the structure tag is still 'proj4name'
 ;rotates vector p1 around vector a by angle theta (degrees) 
 function map_rotate3d, p1, a, theta
     compile_opt idl2, hidden
@@ -121,7 +121,7 @@ nproj=n_elements(proj)
 sindex=pindex
 ; find projection index, by index:
 if (N_ELEMENTS(pindex) le 0) then begin 
-   index=where(proj.projname eq 'stere') ; stereo is default
+   index=where(proj.proj4name eq 'stere') ; stereo is default
 ; this is a drawback: projection number is always an IDL number 
 endif else if (SIZE(pindex, /TYPE) ne 7) then begin
    if keyword_set(p4number) then sindex=proj[pindex].fullname else sindex=idl_ids[pindex]
@@ -135,7 +135,7 @@ w = strcmp(idl_ids,shortname,strlen(shortname)) & count=total(w)
 if count gt 1 then message, /noname, 'Ambiguous Projection abbreviation: ' + sindex
 if count eq 1 then begin
    name4=idl_equiv[(where(w eq 1))[0]]
-   index=where(proj.projname eq name4, count) & if count eq 0 then message, 'Projection ' + sindex + ' apparently does not exist in PROJ library, fixme.' 
+   index=where(proj.proj4name eq name4, count) & if count eq 0 then message, 'Projection ' + sindex + ' apparently does not exist in Proj4 library, fixme.' 
 endif else begin
    ; next, PROJ projections
    w = strcmp(compressed_ids1,shortname,strlen(shortname)) & count=total(w)
@@ -158,9 +158,9 @@ endelse
 if index ge nproj then message, /noname,   'Invalid Projection number: ' + strtrim(sindex)
 
 ; useful strings:
-; get base PROJ name!
-p4n=proj[index].projname
-; need to keep ony the real PROJ name if perchance there was additional commands already set in the name
+; get base projection name!
+p4n=proj[index].proj4name
+; need to keep ony the real projection (PROJ) name if perchance there was additional commands already set in the name
 p4n=(strsplit(strtrim(p4n,2),' ',/extract))[0] 
 
 ; required parameters, filled.
@@ -299,7 +299,7 @@ endif else begin                ; or not...
 endelse
 
 ; main string (will need special treatment for rotation etc.)
-projcommand="+proj="+proj[index].projname+" "
+projcommand="+proj="+proj[index].proj4name+" "
 
 projoptions=filled_required_parameter_string+filled_optional_parameter_string
 
@@ -353,7 +353,7 @@ if (rotPossible) then begin
             if p0lat gt 89.9 then p0lat = 89.9 ;take some precautions as PROJ is not protected!!! 
             if p0lat lt -89.9 then p0lat = -89.9 ;
             ; compute pole of transformed projection
-            projcommand="+proj=ob_tran +o_proj="+proj[index].projname
+            projcommand="+proj=ob_tran +o_proj="+proj[index].proj4name
             ; remove '+lat_0=xxx +lon_0=xxx' from projoptions
             a=strsplit(projoptions,"\+lat_0=[0-9.]*",/regex,/extract)
             a=strsplit(projoptions,"\+lon_0=[0-9.]*",/regex,/extract)
@@ -628,7 +628,7 @@ pro map_proj_auxiliary_read_csv
     ON_ERROR, 2  ; return to caller
  restore,"csv.sav"
  nproj=n_elements(csv_proj.field1)
- names={PROJNAME:"",FULLNAME:"",OTHERNAME:""}
+ names={PROJ4NAME:"",FULLNAME:"",OTHERNAME:""}
  proj_property={EXIST:1B,SPH:0B,CONIC:0B,AZI:0B,ELL:0B,CYL:0B,MISC:0B,NOINV:0B,NOROT:0B,INTER:0b} ; note uppercase
 ; fill the sorted, uniq, list of REQUIRED values
  t=strtrim(csv_proj.field5,2) & s=strjoin(t) & t=strsplit(s,"= ",/extract) 
@@ -636,7 +636,7 @@ pro map_proj_auxiliary_read_csv
  for i=0,n_elements(required_template_list)-1 do map_struct_append, required_template, required_template_list[i], 0b
 
  proj=replicate(names,nproj)
- proj.PROJNAME=csv_proj.FIELD1
+ proj.PROJ4NAME=csv_proj.FIELD1
  proj.FULLNAME=csv_proj.FIELD2
  proj.OTHERNAME=csv_proj.FIELD3
 
@@ -679,7 +679,7 @@ save,filen="projDefinitions.sav",proj,proj_properties,required,optional,proj_sca
 for i=0,nproj-1 do begin
    catch,absent
    if absent ne 0 then begin
-      print,'i was',i,' projection was ',proj[i].PROJNAME
+      print,'i was',i,' projection was ',proj[i].PROJ4NAME
       proj_properties[i].exist=0b
       continue
    endif
@@ -690,7 +690,7 @@ endfor
 for i=0,nproj-1 do begin
    catch,absent
    if absent ne 0 then begin
-      print,'(known?) problem with projection '+proj[i].PROJNAME
+      print,'(known?) problem with projection '+proj[i].PROJ4NAME
       continue
    endif
 
