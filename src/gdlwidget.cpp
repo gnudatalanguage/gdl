@@ -1351,7 +1351,11 @@ GDLWidgetContainer::GDLWidgetContainer( WidgetIDT parentID, EnvT* e, ULong event
 #ifdef GDL_DEBUG_WIDGETS
       std::cout << "~GDLWidgetContainer, deleting child ID #" << child->GetWidgetID() << " of container  #" << widgetID << std::endl;
 #endif
-      delete child;
+      //special case for WIDGET_DRAW: delete from 'wdelete' command-like:
+      if (child->IsDraw()) {
+        gdlwxGraphicsPanel* draw=static_cast<gdlwxGraphicsPanel*>(child->GetWxWidget());
+        draw->DeleteUsingWindowNumber(); //just emit quivalent to "wdelete,winNum".
+      } else delete child;
      }
   }
     
@@ -5480,8 +5484,7 @@ void gdlwxGraphicsPanel::ResizeDrawArea(wxSize s)
   {
 // comment out if it is better to recreate a wxstream!    
    pstreamP->SetSize(drawSize);
-////The following should not be necessary . It is a bad idea to create a new stream, but font size handling
-////with plplot's wx implementation that is too awkward to do anything else now.
+////The following should not be necessary, use only in case font sizez etc are not good.
 //
 //    //get a new stream with good dimensions. Only possibility (better than resize) to have correct size of fonts and symbols.
 //    GDLWXStream * newStream =  new GDLWXStream(s.x,s.y);
@@ -5507,15 +5510,17 @@ gdlwxPlotPanel::~gdlwxPlotPanel()
 gdlwxDrawPanel::~gdlwxDrawPanel() 
 { 
  //widget_control,this,/dest actually calls wdelete. So the only case where we are not 'deleted' with a wdelete or widget_control command is during the detetion of a container.
- // in which case, we avoid reentrance because on the first pass the strem has been invalidated.
+ // in which case, we avoid reentrance because on the first pass the stream has been invalidated.
+ // if associated stream is invalid, do nothing : 'this' has already been called. Normally, should not happen...
+ if (pstreamP->GetValid()) return;
+ 
+  //invalidate stream in any case, but do not have TidyWindowsList() re-deleting it, as whatever call us, gdlwxDrawPanel is going to die.
+  pstreamP->SetValid(false);
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "~gdlwxDrawPanel() :" << this << "pstreamP="<<GetStream()<< " is now invalid."<<std::endl;
 #endif
-  // if associated stream is invalid, do nothing : 'this' has already been called.
-  if (pstreamP->GetValid()) return;
-  //invalidate stream in any case, but do not have TidyWindowsList() re-deleting it, as whatever call us, gdlwxDrawPanel is going to die.
-  pstreamP->SetValid(false);
-  GraphicsDevice::GetGUIDevice()->TidyWindowsList(false);
+    
+    GraphicsDevice::GetGUIDevice()->TidyWindowsList(false);
   // get WIDGET_DRAW
   GDLWidgetDraw* d = GetMyWidget();
   // at exit from here, widget_draw is either destroyed because I ask for it or because it was already being destroyed. To prevent reentrance, NULL the reference to it.
