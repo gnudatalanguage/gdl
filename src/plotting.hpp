@@ -127,18 +127,20 @@ static const std::string axisName[6]={"X","Y","Z","X","Y","Z"};
   struct GDL_TICKNAMEDATA
   {
     GDLGStream *a;
-    SizeT counter;
-    SizeT nTickName;
-    DStringGDL* TickName;
     bool isLog;
     DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
     double nchars; //length of string *returned* after formatting. Can be non-integer.
+    SizeT counter;
+    SizeT nTickName;
+    DStringGDL* TickName;
   };
 
   struct GDL_MULTIAXISTICKDATA
   {
-    EnvT *e;
     GDLGStream *a;
+    bool isLog;
+    DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
+    double nchars; //length of string *returned* after formatting. Can be non-integer.
     SizeT counter;
     int what;
     SizeT nTickFormat;
@@ -147,9 +149,7 @@ static const std::string axisName[6]={"X","Y","Z","X","Y","Z"};
     DStringGDL* TickFormat;
     SizeT nTickUnits;
     DStringGDL* TickUnits;
-    bool isLog;
-    DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
-    double nchars; //length of string *returned* after formatting. Can be non-integer.
+    EnvT *e;
   };
   
   typedef struct GDL_SAVEBOX {
@@ -1668,19 +1668,21 @@ namespace lib {
     static bool gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log,
     DLong modifierCode=0, DDouble NormedLength=0)
   {
-    static GDL_TICKNAMEDATA data;
-    static GDL_MULTIAXISTICKDATA muaxdata;
-
     static GDL_TICKDATA tdata;
     tdata.a=a;
     tdata.isLog=Log;
     tdata.axisrange=abs(End-Start);
 
+    static GDL_TICKNAMEDATA data;
     data.a=a;
-    data.nTickName=0;
+    data.isLog=Log;
     data.axisrange=abs(End-Start);
+    data.nTickName=0;
+
+    static GDL_MULTIAXISTICKDATA muaxdata;
     muaxdata.e=e;
     muaxdata.a=a;
+    muaxdata.isLog=Log;
     muaxdata.what=GDL_NONE;
     muaxdata.nTickFormat=0;
     muaxdata.nTickUnits=0;
@@ -1935,26 +1937,29 @@ namespace lib {
     if(zAxisCode==1 || zAxisCode==4) addCode="cm";
     bool doZ=(zAxisCode>=0);
 
-    //
-    static GDL_TICKNAMEDATA data;
-    static GDL_MULTIAXISTICKDATA muaxdata;
-
     static GDL_TICKDATA tdata;
     tdata.a=a;
     tdata.isLog=Log;
     tdata.axisrange=abs(End-Start);
 
+    static GDL_TICKNAMEDATA data;
     data.a=a;
-    data.nTickName=0;
+    data.isLog=Log;
     data.axisrange=abs(End-Start);
-    muaxdata.e=e;
+
+    data.nTickName=0;
+
+    static GDL_MULTIAXISTICKDATA muaxdata;
     muaxdata.a=a;
+    muaxdata.isLog=Log;
+    muaxdata.axisrange=abs(End-Start);
+
     muaxdata.what=GDL_NONE;
     muaxdata.nTickFormat=0;
     muaxdata.nTickUnits=0;
     muaxdata.axismin=Start;
     muaxdata.axismax=End;
-    muaxdata.axisrange=abs(End-Start);
+    muaxdata.e=e;
     
     //special values
     PLFLT OtherAxisSizeInMm;
