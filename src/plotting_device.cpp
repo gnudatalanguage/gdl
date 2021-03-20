@@ -26,7 +26,7 @@ namespace lib {
 
   void device( EnvT* e)
   {
-
+    bool setfontpresent=false;
     GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
     //GET functions are examined BEFORE setting functions.
     
@@ -43,13 +43,14 @@ namespace lib {
       }
     }
 
-//The font-related commands will not really work in graphic widgets unitil the plplot-related part is taken into account (PLESC font).
+//The font-related commands will not really work in graphic widgets until the plplot-related part is taken into account (PLESC font).
 //But all the elements are there.    
-    //SET_FONT?  //must be before GET_FONTNAME if in same commandline.
+    //SET_FONT?  //must be before GET_FONTNAME if in same commandline. Otherwise GET_FONTXXX will return NULL
     {
     static int set_fontIx = e->KeywordIx( "SET_FONT" );
     if ( e->KeywordPresent( set_fontIx ) )
       {
+      setfontpresent=true;
 	    DStringGDL* pattern = e->GetKWAs<DStringGDL>( set_fontIx);
         if (!actDevice->SetFont((*pattern)[0])) e->Throw( "Keyword SET_FONT not allowed for call to: DEVICE" ) ;
       }
@@ -57,6 +58,7 @@ namespace lib {
     static int fontIx = e->KeywordIx( "FONT" ); //font is OLD keyword  for SET_FONT still accepted.
     if ( e->KeywordPresent(fontIx ))
       {
+      setfontpresent=true;
 	    DStringGDL* pattern = e->GetKWAs<DStringGDL>(fontIx);
         if (!actDevice->SetFont((*pattern)[0])) e->Throw( "(Obsolete) Keyword FONT not allowed for call to: DEVICE" ) ;
       }
@@ -66,6 +68,7 @@ namespace lib {
     static int get_fontnamesIx = e->KeywordIx( "GET_FONTNAMES" );
     if ( e->KeywordPresent( get_fontnamesIx ) )
       {
+      if (!setfontpresent) return;
         BaseGDL* value = actDevice->GetFontnames( );
         if ( value != NULL )  e->SetKW( get_fontnamesIx, value->Dup() ); 
         else e->SetKW( get_fontnamesIx, new DStringGDL("") );
@@ -76,6 +79,7 @@ namespace lib {
     static int get_fontnumIx = e->KeywordIx( "GET_FONTNUM" );
     if ( e->KeywordPresent( get_fontnumIx ) )
       {
+      if (!setfontpresent) return;
         DLong value = actDevice->GetFontnum( );
         e->SetKW( get_fontnumIx, new DLongGDL( value) ); //will return 0
       }
