@@ -332,9 +332,9 @@ bool GDLWXStream::SetGraphicsFunction( long value) {
 }
 
 bool GDLWXStream::GetWindowPosition(long& xpos, long& ypos ) {
-  cerr<<"Get Window Position not ready for wxWindow draw panel, please contribute."<<endl;
-  xpos=0;
-  ypos=0;
+  wxRect r=container->GetScreenRect();
+  xpos=r.x;
+  ypos=r.y;
  return true;
 }
 
