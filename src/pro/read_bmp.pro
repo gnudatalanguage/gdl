@@ -78,20 +78,8 @@ if (MAGICK_INDEXEDCOLOR(mid)) then begin
    data=MAGICK_READINDEXES(mid)
    MAGICK_READCOLORMAPRGB, mid, red, green, blue
    ;;
-   ;; flip image
-   sz  = SIZE( data, /DIM)
-   rev = sz[1] - 1L - LINDGEN( sz[1])
-   data = data[ *, rev]
-   ;;
 endif else begin
-   ;;
    data=MAGICK_READ(mid,rgb=rgb)
-   ;;
-   ;; flip image
-   sz  = SIZE( data, /DIM)
-   rev = sz[2] - 1L - LINDGEN( sz[2])
-   data = data[ *, rev, *]
-   ;;
 endelse
 ;
 MAGICK_CLOSE, mid
