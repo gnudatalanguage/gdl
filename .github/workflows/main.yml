@@ -37,7 +37,7 @@ jobs:
     needs: prelude
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.prelude.outputs.matrix-windows) }}
+      matrix: ${{ fromJson(needs.prelude.outputs.matrix-others) }}
     env:
       DEPS: ${{ matrix.deps }}
       Configuration: ${{ matrix.configuration }}
@@ -57,7 +57,7 @@ jobs:
     needs: prelude
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.prelude.outputs.matrix-others) }}
+      matrix: ${{ fromJson(needs.prelude.outputs.matrix-windows) }}
     env:
       DEPS: ${{ matrix.deps }}
       WORKSPACE: ${{ github.workspace }}
