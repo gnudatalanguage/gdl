@@ -2,6 +2,8 @@ name: build
 
 on:
   push:
+    branches:
+      - master
   pull_request:
   workflow_dispatch:
 
@@ -15,13 +17,36 @@ jobs:
       id: set-matrix
       run: |
         if [[ '${{ github.ref }}' == *pull* ]]; then 
-            matrix="{deps: ['full'], arch: ['x86_64'], configuration: ['Release']}"
+            matrix="{os: ['ubuntu-latest', 'macos-latest', 'windows-latest'], deps: ['full'], arch: ['x86_64'], configuration: ['Release']}"
         else
-            matrix="{deps: ['full-msmpi', 'full', 'mini'], arch: ['x86_64', 'i686'], configuration: ['Release', 'Debug']}"
+            matrix="{os: ['ubuntu-latest', 'macos-latest', 'windows-latest'], deps: ['full', 'mini'], arch: ['x86_64'], configuration: ['Release', 'Debug']," \
+                   "include: {os: 'windows-latest', deps: 'full-msmpi'}, {os: 'windows-latest', arch: 'i386'}}"
         fi
         echo "::set-output name=matrix::$matrix"
-  build:
-    runs-on: windows-latest
+  build-linux-macos:
+    runs-on: ${{ matrix.os }}
+    if: matrix.os != 'windows-latest'
+    needs: prelude
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prelude.outputs.matrix) }}
+    env:
+      DEPS: ${{ matrix.deps }}
+      Configuration: ${{ matrix.configuration }}
+      ROOT_DIR: ${{ github.workspace }}/..
+    steps:
+      - name: Install Dependencies
+        run: |
+          .ci/build_gdl.sh prep
+      - name: Build GDL
+        run: |
+          .ci/build_gdl.sh build
+      - name: Test GDL
+        run: |
+          .ci/build_gdl.sh check || exit 0
+  build-windows:
+    runs-on: ${{ matrix.os }}
+    if: matrix.os == 'windows-latest'
     needs: prelude
     strategy:
       fail-fast: false
@@ -50,42 +75,41 @@ jobs:
             git
       - name: Checkout GDL
         uses: actions/checkout@v2
-      - name: Cache MSYS2 Packages
-        id: cache
-        uses: actions/cache@v2
-        with:
-          path: D:\a\gdl\mingw
-          key: msys2-packages-${{ matrix.arch }}-${{ matrix.deps }}
+      #- name: Cache MSYS2 Packages
+      #  id: cache
+      #  uses: actions/cache@v2
+      #  with:
+      #    path: D:\a\gdl\mingw
+      #    key: msys2-packages-${{ matrix.arch }}-${{ matrix.deps }}
       - name: Check Version of Latest GDL Workbench
-        if: matrix.arch == 'x86_64'
+        if: matrix.arch == 'x86_64' && matrix.os == 'windows-latest'
         id: gdl_workbench
         uses: pozetroninc/github-action-get-latest-release@master
         with:
           repository: gnudatalanguage/gdlde
       - name: Install MSMPI
-        if: matrix.deps == 'full-msmpi'
+        if: matrix.deps == 'full-msmpi' && matrix.os == 'windows-latest'
         run: |
           Invoke-WebRequest -Uri https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe -OutFile MSMpiSetup.exe
           .\MSMpiSetup.exe -unattend
-      - name: Prepare MSYS2 Packages
-        if: steps.cache.outputs.cache-hit != 'true'
+      - name: Install Dependencies
+        #if: steps.cache.outputs.cache-hit != 'true'
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys tidy_mingw_cache
+          .ci/build_gdl.sh prep
       - name: Build GDL
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys build
+          .ci/build_gdl.sh build
       - name: Package GDL
-        shell: msys2 {0}
+        shell: msys2 {0}  
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
           export GDLDE_VERSION=${{ steps.gdl_workbench.outputs.release }}
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys pack
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep_deploy
+          .ci/build_gdl.sh pack
+          .ci/build_gdl.sh prep_deploy
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v2.2.1
         with:
@@ -100,4 +124,4 @@ jobs:
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys check || exit 0
+          .ci/build_gdl.sh check || exit 0
