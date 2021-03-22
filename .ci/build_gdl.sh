@@ -234,15 +234,21 @@ function build_gdl {
         else
             WITH_MPI="OFF"
         fi
+        if [[ ${BUILD_OS} == "macOS" ]]; then
+            WITH_HDF4="OFF"
+        else
+            WITH_HDF4="ON"
+        fi
         cmake ${GDL_DIR} -G"${GENERATOR}" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
           -DCMAKE_PREFIX_PATH="${MINGW_DIR}/${mname}" \
           -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
           -DCMAKE_INSTALL_PREFIX="${ROOT_DIR}/install" \
           -DWXWIDGETS=ON -DGRAPHICSMAGICK=ON \
-          -DNETCDF=ON -DHDF=ON -DHDF5=ON -DMPI=${WITH_MPI} \
-          -DTIFF=ON -DGEOTIFF=ON -DLIBPROJ=ON -DPYTHON=ON \
-          -DFFTW=ON -DUDUNITS2=ON -DGLPK=ON -DGRIB=ON \
+          -DNETCDF=ON -DHDF=${WITH_HDF4} -DHDF5=ON \
+          -DMPI=${WITH_MPI} -DTIFF=ON -DGEOTIFF=ON
+          -DLIBPROJ=ON -DPYTHON=ON -DFFTW=ON \
+          -DUDUNITS2=ON -DGLPK=ON -DGRIB=ON \
           -DUSE_WINGDI_NOT_WINGCC=ON
     else
         cmake ${GDL_DIR} -G"MSYS Makefiles" \
