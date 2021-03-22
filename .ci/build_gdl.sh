@@ -54,8 +54,8 @@ elif [ ${BUILD_OS} == "Linux" ]; then
     ) # JP 2021 Mar 21: SuSE lacks udunits2 and eccodes
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
-        llvm libomp ncurses readline zlib libpng gsl wxmac plplot graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi numpy
-        udunits eigen eccodes glpk shapelib expat
+        llvm libomp ncurses readline zlib libpng gsl wxmac graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi numpy udunits eigen
+        eccodes glpk shapelib expat
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
 else
     log "Fatal error! Unknown OS: ${BUILD_OS}. This script only supports one of: Windows, Linux, macOS."
@@ -264,9 +264,7 @@ function build_gdl {
         fi
         if [[ ${BUILD_OS} == "macOS" ]]; then
             WITH_HDF4="OFF"
-            CMAKE_ADDITIONAL_ARGS="-DREADLINEDIR=/usr/local/opt/readline" \
-                                  "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++" \
-                                  "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang"
+            CMAKE_ADDITIONAL_ARGS="-DREADLINEDIR=/usr/local/opt/readline -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang"
         else
             WITH_HDF4="ON"
         fi
