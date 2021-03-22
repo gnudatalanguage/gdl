@@ -28,7 +28,7 @@ fi
 if [ ${BUILD_OS} == "Windows" ]; then
     BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
     MSYS2_PACKAGES=(
-        readline zlib libpng gsl wxWidgets plplot libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi python-numpy udunits
+        readline zlib libpng gsl wxWidgets plplot libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi python-numpy udunits
         eigen3 eccodes glpk shapelib expat
     )
     MSYS2_PACKAGES_REBUILD=(
@@ -132,7 +132,7 @@ function find_architecture {
         export MSYSTEM="MINGW32"
         export arch="i686"
     fi
-    export PATH=$PATH:/$mname/bin
+    export PATH=/$mname/bin:$PATH
     log "Architecture: ${arch}"
 }
 
@@ -259,9 +259,11 @@ function build_gdl {
     
     if [[ ${BUILD_OS} == "macOS" ]]; then
         export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
-        CMAKE_ADDITIONAL_ARGS="-DREADLINEDIR=/usr/local/opt/readline -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang  -DINTERACTIVE_GRAPHICS=OFF"
+        CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/usr/local/opt/readline"
+                                "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
+                                "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
     fi
-
+    echo $PATH
     if [[ ${DEPS} == *"full"* ]]; then
         if [[ ${DEPS} == *"msmpi"* || ! ${BUILD_OS} == "Windows" ]]; then
             WITH_MPI="ON"
@@ -282,7 +284,7 @@ function build_gdl {
           -DMPI=${WITH_MPI} -DTIFF=ON -DGEOTIFF=ON \
           -DLIBPROJ=ON -DPYTHON=ON -DFFTW=ON \
           -DUDUNITS2=ON -DGLPK=ON -DGRIB=ON \
-          -DUSE_WINGDI_NOT_WINGCC=ON ${CMAKE_ADDITIONAL_ARGS}
+          -DUSE_WINGDI_NOT_WINGCC=ON ${CMAKE_ADDITIONAL_ARGS[@]}
     else
         cmake ${GDL_DIR} -G"MSYS Makefiles" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
@@ -290,11 +292,12 @@ function build_gdl {
           -DCMAKE_INSTALL_PREFIX="${ROOT_DIR}/install" \
           -DREADLINE=OFF -DPNGLIB=OFF -DOPENMP=OFF \
           -DGRAPHICSMAGICK=OFF -DWXWIDGETS=OFF \
+          -DINTERACTIVE_GRAPHICS=OFF \
           -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF \
           -DLIBPROJ=OFF -DMPI=OFF -DPYTHON=OFF -DUDUNITS2=OFF \
           -DEIGEN3=OFF -DGRIB=OFF -DGLPK=OFF -DTIFF=OFF \
           -DGEOTIFF=OFF -DSHAPELIB=OFF -DEXPAT=OFF \
-          -DUSE_WINGDI_NOT_WINGCC=ON ${CMAKE_ADDITIONAL_ARGS}
+          -DUSE_WINGDI_NOT_WINGCC=ON ${CMAKE_ADDITIONAL_ARGS[@]}
     fi
     
     make -j2 || exit 1
