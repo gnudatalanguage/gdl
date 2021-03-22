@@ -43,6 +43,8 @@ jobs:
       Configuration: ${{ matrix.configuration }}
       ROOT_DIR: ${{ github.workspace }}/..
     steps:
+      - name: Checkout GDL
+        uses: actions/checkout@v2
       - name: Install Dependencies
         run: |
           .ci/build_gdl.sh prep
