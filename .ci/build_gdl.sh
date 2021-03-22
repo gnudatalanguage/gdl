@@ -182,7 +182,8 @@ function prep_packages {
                 exit 1
             fi
         fi
-        echo "Found package manager: $PKGMGR"
+        log "Found package manager: $PKGMGR"
+        log "Checking package availabilities..."
         for pkgnamecandidates in ${PACKAGES[@]}; do
             for pkgname in $(echo $pkgnamecandidates | tr ',' ' '); do
                 if query_package $pkgname; then
@@ -191,6 +192,8 @@ function prep_packages {
                 fi
             done
         done
+        log "Installing packages:"
+        log "${INSTALL_PACKAGES}"
         eval "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
     elif [ ${BUILD_OS} == "macOS" ]; then
         if ! command -v brew >/dev/null 2>&1; then
@@ -199,7 +202,9 @@ function prep_packages {
         fi
         brew update-reset
         brew unlink python@2
+        log "Installing packages: ${BREW_PACKAGES[@]}"
         eval "brew install ${BREW_PACKAGES[@]}"
+        log "Installing plplot..."
         brew --cache plplot
         bash $GDL_DIR/scripts/brew_enable_wxwidgets
     fi
