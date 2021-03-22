@@ -7,6 +7,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Tip: Use this action to debug with SSH.
+#      - name: Setup upterm session
+#        uses: lhotari/action-upterm@v1
+ 
 jobs:
   prelude:
     runs-on: ubuntu-latest
@@ -48,6 +52,9 @@ jobs:
       - name: Install Dependencies
         run: |
           .ci/build_gdl.sh prep
+      - name: Setup upterm session
+        if: ${{ matrix.os == 'macos-latest' }}
+        uses: lhotari/action-upterm@v1
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
