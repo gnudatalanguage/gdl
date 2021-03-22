@@ -49,7 +49,25 @@ jobs:
     steps:
       - name: Checkout GDL
         uses: actions/checkout@v2
+      - name: Cache Dependencies (macOS, Homebrew)
+        if: matrix.os == 'macos-latest'
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: /usr/local
+          key: msys2-packages-${{ matrix.os }}
+      - name: Cache Dependencies (Linux, Apt)
+        if: matrix.os == 'ubuntu-latest'
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            /usr/lib
+            /usr/include
+            /usr/share
+          key: msys2-packages-${{ matrix.os }}
       - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           .ci/build_gdl.sh prep
       - name: Build GDL
@@ -88,12 +106,22 @@ jobs:
             git
       - name: Checkout GDL
         uses: actions/checkout@v2
-      #- name: Cache MSYS2 Packages
-      #  id: cache
-      #  uses: actions/cache@v2
-      #  with:
-      #    path: D:\a\gdl\mingw
-      #    key: msys2-packages-${{ matrix.arch }}-${{ matrix.deps }}
+      - name: Cache Dependencies (Windows, MSYS, 64bit)
+        if: matrix.arch == x86_64
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            C:\msys64\mingw64
+          key: msys2-packages-${{ matrix.arch }}-${{ matrix.deps }}
+      - name: Cache Dependencies (Windows, MSYS, 32bit)
+        if: matrix.arch == i686
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            C:\msys64\mingw32
+          key: msys2-packages-${{ matrix.arch }}-${{ matrix.deps }}
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench
@@ -106,7 +134,7 @@ jobs:
           Invoke-WebRequest -Uri https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe -OutFile MSMpiSetup.exe
           .\MSMpiSetup.exe -unattend
       - name: Install Dependencies
-        #if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
