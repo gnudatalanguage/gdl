@@ -13,7 +13,10 @@
 ME="build_gdl.sh"
 Configuration=${Configuration:-"Debug"}
 DEPS=${DEPS:-"full"}
-GDL_DIR="$(dirname $0)/.."
+real_path() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+GDL_DIR=$(real_path "$(dirname $0)/..")
 ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}/.."}
 BUILD_OS=$(uname)
 if [[ ${BUILD_OS} == *"MSYS"* ]]; then
