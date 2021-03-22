@@ -183,6 +183,10 @@ function prep_packages {
             fi
         fi
         log "Found package manager: $PKGMGR"
+        if [ ${PKGMGR} == "apt" ]; then
+            log "Updating apt package cache..."
+            sudo apt update
+        fi
         log "Checking package availabilities..."
         for pkgnamecandidates in ${PACKAGES[@]}; do
             for pkgname in $(echo $pkgnamecandidates | tr ',' ' '); do
