@@ -255,6 +255,10 @@ function build_gdl {
         GENERATOR="Unix Makefiles"
     fi
     
+    if [[ ${BUILD_OS} == "macOS" ]]; then
+        CMAKE_ADDITIONAL_ARGS="-DREADLINEDIR=/usr/local/opt/readline -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang"
+    fi
+
     if [[ ${DEPS} == *"full"* ]]; then
         if [[ ${DEPS} == *"msmpi"* || ! ${BUILD_OS} == "Windows" ]]; then
             WITH_MPI="ON"
@@ -263,7 +267,6 @@ function build_gdl {
         fi
         if [[ ${BUILD_OS} == "macOS" ]]; then
             WITH_HDF4="OFF"
-            CMAKE_ADDITIONAL_ARGS="-DREADLINEDIR=/usr/local/opt/readline -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang"
         else
             WITH_HDF4="ON"
         fi
