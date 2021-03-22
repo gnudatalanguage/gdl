@@ -286,7 +286,7 @@ function build_gdl {
           -DUDUNITS2=ON -DGLPK=ON -DGRIB=ON \
           -DUSE_WINGDI_NOT_WINGCC=ON ${CMAKE_ADDITIONAL_ARGS[@]}
     else
-        cmake ${GDL_DIR} -G"MSYS Makefiles" \
+        cmake ${GDL_DIR} -G"${GENERATOR}" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
           -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
           -DCMAKE_INSTALL_PREFIX="${ROOT_DIR}/install" \
