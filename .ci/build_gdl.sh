@@ -256,7 +256,8 @@ function build_gdl {
     fi
     
     if [[ ${BUILD_OS} == "macOS" ]]; then
-        CMAKE_ADDITIONAL_ARGS="-DREADLINEDIR=/usr/local/opt/readline -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang"
+        export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
+        CMAKE_ADDITIONAL_ARGS="-DREADLINEDIR=/usr/local/opt/readline -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang  -DINTERACTIVE_GRAPHICS=OFF"
     fi
 
     if [[ ${DEPS} == *"full"* ]]; then
