@@ -67,7 +67,7 @@ jobs:
             /usr/share
           key: msys2-packages-${{ matrix.os }}
       - name: Install Dependencies
-        if: (matrix.os == 'macos-latest'  && steps.cache-macos.outputs.cache-hit != 'true') || \
+        if: (matrix.os == 'macos-latest'  && steps.cache-macos.outputs.cache-hit != 'true') ||
             (matrix.os == 'ubuntu-latest' && steps.cache-ubuntu.outputs.cache-hit != 'true')
         run: |
           .ci/build_gdl.sh prep
@@ -135,7 +135,7 @@ jobs:
           Invoke-WebRequest -Uri https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe -OutFile MSMpiSetup.exe
           .\MSMpiSetup.exe -unattend
       - name: Install Dependencies
-        if: (matrix.arch == 'x86_64' && steps.cache-64.outputs.cache-hit != 'true') || \
+        if: (matrix.arch == 'x86_64' && steps.cache-64.outputs.cache-hit != 'true') ||
             (matrix.arch == 'i686'   && steps.cache-32.outputs.cache-hit != 'true')
         shell: msys2 {0}
         run: |
