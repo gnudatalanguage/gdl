@@ -137,7 +137,6 @@ jobs:
       - name: Install Dependencies
         if: (matrix.arch == 'x86_64' && steps.cache-64.outputs.cache-hit != 'true') || \
             (matrix.arch == 'i686'   && steps.cache-32.outputs.cache-hit != 'true')
-        if: steps.cache.outputs.cache-hit != 'true'
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
