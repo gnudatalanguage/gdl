@@ -317,22 +317,23 @@ function prep_deploy {
     cd ${ROOT_DIR}/gdl && ls *.zip *.exe
 }
 
-declare -A AVAILABLE_OPTIONS
-AVAILABLE_OPTIONS[prep]=prep_packages
-AVAILABLE_OPTIONS[build]=build_gdl
-AVAILABLE_OPTIONS[check]=test_gdl
-AVAILABLE_OPTIONS[pack]=pack_gdl
-AVAILABLE_OPTIONS[prep_deploy]=prep_deploy
+AVAILABLE_OPTIONS="prep build check pack prep_deploy"
+AVAILABLE_OPTIONS_prep=prep_packages
+AVAILABLE_OPTIONS_build=build_gdl
+AVAILABLE_OPTIONS_check=test_gdl
+AVAILABLE_OPTIONS_pack=pack_gdl
+AVAILABLE_OPTIONS_prep_deploy=prep_deploy
 
 if [ "$#" -ne 1 ]; then
-    echo "Usage: $ME `echo ${!AVAILABLE_OPTIONS[@]} | tr ' ' '|'`"
+    echo "Usage: $ME `echo ${AVAILABLE_OPTIONS} | tr ' ' '|'`"
 else
-    for optkey in ${!AVAILABLE_OPTIONS[@]}; do
+    for optkey in ${AVAILABLE_OPTIONS}; do
         if [ $optkey == "$1" ]; then
             if [ ${BUILD_OS} == "Windows" ]; then
                 find_architecture
             fi
-            eval ${AVAILABLE_OPTIONS[$optkey]}
+            cmd=AVAILABLE_OPTIONS_$optkey
+            eval ${!cmd}
             break
         fi
     done
