@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # script to download some files needed for mingw32, and build GDL.
 #
