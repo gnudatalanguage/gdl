@@ -236,6 +236,9 @@ function build_gdl {
         fi
         if [[ ${BUILD_OS} == "macOS" ]]; then
             WITH_HDF4="OFF"
+            CMAKE_ADDITIONAL_ARGS="-DREADLINEDIR=/usr/local/opt/readline" \
+                                  "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++" \
+                                  "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang"
         else
             WITH_HDF4="ON"
         fi
@@ -249,7 +252,7 @@ function build_gdl {
           -DMPI=${WITH_MPI} -DTIFF=ON -DGEOTIFF=ON
           -DLIBPROJ=ON -DPYTHON=ON -DFFTW=ON \
           -DUDUNITS2=ON -DGLPK=ON -DGRIB=ON \
-          -DUSE_WINGDI_NOT_WINGCC=ON
+          -DUSE_WINGDI_NOT_WINGCC=ON ${CMAKE_ADDITIONAL_ARGS}
     else
         cmake ${GDL_DIR} -G"MSYS Makefiles" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
@@ -262,7 +265,7 @@ function build_gdl {
           -DLIBPROJ=OFF -DMPI=OFF -DPYTHON=OFF -DUDUNITS2=OFF \
           -DEIGEN3=OFF -DGRIB=OFF -DGLPK=OFF -DTIFF=OFF \
           -DGEOTIFF=OFF -DSHAPELIB=OFF -DEXPAT=OFF \
-          -DUSE_WINGDI_NOT_WINGCC=ON
+          -DUSE_WINGDI_NOT_WINGCC=ON ${CMAKE_ADDITIONAL_ARGS}
     fi
     
     make -j2 || exit 1
