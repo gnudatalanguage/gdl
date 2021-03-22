@@ -26,7 +26,6 @@ elif [[ ${BUILD_OS} == "Darwin" ]]; then
 fi
 
 if [ ${BUILD_OS} == "Windows" ]; then
-    MINGW_DIR="${ROOT_DIR}/mingw"
     BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
     MSYS2_PACKAGES=(
         readline zlib libpng gsl wxWidgets plplot libtiff libgeotiff netcdf hdf4 hdf5 fftw proj mpi python-numpy udunits
@@ -121,9 +120,6 @@ function build_msys2_package {
     fi
     eval `cat ${makepkg_conf} | grep PKGEXT=`
     makepkg --config ${makepkg_conf} --noconfirm --syncdeps --install
-    package_file=`ls mingw-w64-${arch}-${1}-*${PKGEXT}`
-    mv ${package_file} ${MINGW_DIR}
-    cd ${MINGW_DIR}
 }
 
 function find_architecture {
@@ -180,7 +176,10 @@ function prep_packages {
             build_msys2_package $package_name
         done
 
-        pacman -Syyu ${MSYS2_PACKAGES[@]}
+        for pkgname in ${MSYS2_PACKAGES[@]}; do
+            msys2_packages="${msys2_packages} mingw-w64-${arch}-${pkgname}"
+        done
+        eval "pacman -Syyu ${msys2_packages}"
 
         log "Patching wx-config..."
         sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i /${mname}/bin/wx-config
@@ -270,7 +269,6 @@ function build_gdl {
         fi
         cmake ${GDL_DIR} -G"${GENERATOR}" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
-          -DCMAKE_PREFIX_PATH="${MINGW_DIR}/${mname}" \
           -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
           -DCMAKE_INSTALL_PREFIX="${ROOT_DIR}/install" \
           -DWXWIDGETS=ON -DGRAPHICSMAGICK=ON \
@@ -282,7 +280,6 @@ function build_gdl {
     else
         cmake ${GDL_DIR} -G"MSYS Makefiles" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
-          -DCMAKE_PREFIX_PATH="${MINGW_DIR}/${mname}" \
           -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
           -DCMAKE_INSTALL_PREFIX="${ROOT_DIR}/install" \
           -DREADLINE=OFF -DPNGLIB=OFF -DOPENMP=OFF \
@@ -298,12 +295,12 @@ function build_gdl {
     
     if [ ${BUILD_OS} == "Windows" ]; then
         # Copy dlls and libraries to src directory
-        cp -f ${MINGW_DIR}/${mname}/bin/*.dll src/
+        #cp -f /${mname}/bin/*.dll src/ # TODO: this has to be based on ldd
         mkdir -p share
-        cp -rf ${MINGW_DIR}/${mname}/share/plplot* share/
+        cp -rf /${mname}/share/plplot* share/
         if [[ ${DEPS} == *"full"* ]]; then
             mkdir -p lib
-            cp -rf ${MINGW_DIR}/${mname}/lib/GraphicsMagick* lib/ # copy GraphicsMagick dlls
+            cp -rf /${mname}/lib/GraphicsMagick* lib/ # copy GraphicsMagick dlls
         fi
     fi
 
@@ -326,7 +323,6 @@ function build_gdl {
 function test_gdl {
     log "Testing GDL..."
     cd ${ROOT_DIR}/build
-    export PYTHONHOME=${MINGW_DIR}/${mname}
     make check
 }
 
