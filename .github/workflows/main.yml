@@ -108,7 +108,7 @@ jobs:
       - name: Checkout GDL
         uses: actions/checkout@v2
       - name: Cache Dependencies (Windows, MSYS, 64bit)
-        if: matrix.arch == x86_64
+        if: matrix.arch == 'x86_64'
         id: cache-64
         uses: actions/cache@v2
         with:
@@ -116,7 +116,7 @@ jobs:
             C:\msys64\mingw64
           key: msys2-packages-${{ matrix.arch }}
       - name: Cache Dependencies (Windows, MSYS, 32bit)
-        if: matrix.arch == i686
+        if: matrix.arch == 'i686'
         id: cache-32
         uses: actions/cache@v2
         with:
