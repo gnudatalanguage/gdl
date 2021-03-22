@@ -11,25 +11,33 @@ jobs:
   prelude:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix-windows: ${{ steps.set-matrix-windows.outputs.matrix-windows }}
+      matrix-others: ${{ steps.set-matrix-others.outputs.matrix-others }}
     steps:
-    - name: Create Build Matrix
-      id: set-matrix
+    - name: Create Build Matrix (Windows)
+      id: set-matrix-windows
       run: |
         if [[ '${{ github.ref }}' == *pull* ]]; then 
-            matrix="{os: ['ubuntu-latest', 'macos-latest', 'windows-latest'], deps: ['full'], arch: ['x86_64'], configuration: ['Release']}"
+            matrix="{deps: ['full'], arch: ['x86_64'], configuration: ['Release']}"
         else
-            matrix="{os: ['ubuntu-latest', 'macos-latest', 'windows-latest'], deps: ['full', 'mini'], arch: ['x86_64'], configuration: ['Release', 'Debug']," \
-                   "include: {os: 'windows-latest', deps: 'full-msmpi'}, {os: 'windows-latest', arch: 'i386'}}"
+            matrix="{deps: ['full-msmpi', 'full', 'mini'], arch: ['x86_64', 'i686'], configuration: ['Release', 'Debug']}"
         fi
-        echo "::set-output name=matrix::$matrix"
+        echo "::set-output name=matrix-windows::$matrix"
+    - name: Create Build Matrix (Linux/macOS)
+      id: set-matrix-others
+      run: |
+        if [[ '${{ github.ref }}' == *pull* ]]; then 
+            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full'], configuration: ['Release']}"
+        else
+            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full', 'mini'], configuration: ['Release', 'Debug']}"
+        fi
+        echo "::set-output name=matrix-others::$matrix"
   build-linux-macos:
     runs-on: ${{ matrix.os }}
-    if: ${{ matrix.os != 'windows-latest' }}
     needs: prelude
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.prelude.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.prelude.outputs.matrix-windows) }}
     env:
       DEPS: ${{ matrix.deps }}
       Configuration: ${{ matrix.configuration }}
@@ -45,12 +53,11 @@ jobs:
         run: |
           .ci/build_gdl.sh check || exit 0
   build-windows:
-    runs-on: ${{ matrix.os }}
-    if: ${{ matrix.os == 'windows-latest' }}
+    runs-on: windows-latest
     needs: prelude
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.prelude.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.prelude.outputs.matrix-others) }}
     env:
       DEPS: ${{ matrix.deps }}
       WORKSPACE: ${{ github.workspace }}
