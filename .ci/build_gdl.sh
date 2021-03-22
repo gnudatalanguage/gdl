@@ -13,8 +13,8 @@
 ME="build_gdl.sh"
 Configuration=${Configuration:-"Debug"}
 DEPS=${DEPS:-"full"}
-GDL_DIR="$(echo \"$(dirname $0)/..\" | xargs readlink -m)"
-ROOT_DIR=${ROOT_DIR:-"$(echo \"$GDL_DIR/..\" | xargs readlink -m)"}
+GDL_DIR="$(dirname $0)/.."
+ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}/.."}
 BUILD_OS=$(uname)
 if [[ ${BUILD_OS} == *"MSYS"* ]]; then
     BUILD_OS="Windows"
