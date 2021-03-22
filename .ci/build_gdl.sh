@@ -172,14 +172,16 @@ function query_package {
 
 function prep_packages {
     if [ ${BUILD_OS} == "Windows" ]; then
-        for package_name in ${MSYS2_PACKAGES_REBUILD[@]}; do
-            build_msys2_package $package_name
-        done
-
         for pkgname in ${MSYS2_PACKAGES[@]}; do
             msys2_packages="${msys2_packages} mingw-w64-${arch}-${pkgname}"
         done
+        
+        log "Installing dependencies: ${msys2_packages}"
         eval "pacman -Syyu ${msys2_packages}"
+
+        for package_name in ${MSYS2_PACKAGES_REBUILD[@]}; do
+            build_msys2_package $package_name
+        done
 
         log "Patching wx-config..."
         sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i /${mname}/bin/wx-config
