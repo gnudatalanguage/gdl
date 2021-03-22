@@ -66,6 +66,34 @@ function log {
     echo "[${ME}] $@"
 }
 
+function download_file {
+    package_url=$1
+    package_file=$(basename $package_url)
+    log "Downloading ${package_file}..."
+    if [ -f $package_file ]; then
+       log "File exists! Skipping..."
+    else
+        curl -LOs --retry 5 $package_url
+        if [ ! $? -eq 0 ]; then
+            log "Failed to download ${package_file}!"
+            exit 1
+        fi
+    fi
+}
+
+function decompress_file {
+    log "Decompressing ${package_file}..."
+    if [ ${package_file: -4} == ".zip" ]; then
+        unzip -q $@ $package_file
+    else
+        tar xf $@ $package_file
+    fi
+    if [ ! $? -eq 0 ]; then
+        log "Failed to decompress ${package_file}!"
+        exit 1
+    fi
+}
+
 function build_msys2_package {
     log "Building package $1..."
     if [[ ! -d "MINGW-packages" ]]; then
@@ -92,7 +120,7 @@ function build_msys2_package {
         makepkg_conf=/etc/makepkg_mingw32.conf
     fi
     eval `cat ${makepkg_conf} | grep PKGEXT=`
-    makepkg --config ${makepkg_conf} --noconfirm --syncdeps --rmdeps --install
+    makepkg --config ${makepkg_conf} --noconfirm --syncdeps --install
     package_file=`ls mingw-w64-${arch}-${1}-*${PKGEXT}`
     mv ${package_file} ${MINGW_DIR}
     cd ${MINGW_DIR}
@@ -157,8 +185,8 @@ function prep_packages {
         log "Patching wx-config..."
         sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i /${mname}/bin/wx-config
 
-        download_package ${BSDXDR_URL}
-        decompress_package
+        download_file ${BSDXDR_URL}
+        decompress_file
 
         log "Building bsd-xdr..."
         pushd bsd-xdr-1.0.0
@@ -308,9 +336,8 @@ function pack_gdl {
     log "Packaging GDL..."
     if [ $arch == "x86_64" ]; then
         cd ${ROOT_DIR}
-        set_package "https://github.com/gnudatalanguage/gdlde/releases/download/${GDLDE_VERSION}/gdlde.product-win32.win32.x86_64.zip"
-        download_package
-        decompress_package -o -d gdlde
+        download_file "https://github.com/gnudatalanguage/gdlde/releases/download/${GDLDE_VERSION}/gdlde.product-win32.win32.x86_64.zip"
+        decompress_file -o -d gdlde
     fi
 
     mkdir -p ${ROOT_DIR}/package
