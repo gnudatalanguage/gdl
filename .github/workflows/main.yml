@@ -51,10 +51,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Install Dependencies
         run: |
-          .ci/build_gdl.sh prep
-      - name: Setup upterm session
-        if: ${{ matrix.os == 'macos-latest' }}
-        uses: lhotari/action-upterm@v1
+          .ci/build_gdl.sh prepS
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
