@@ -177,7 +177,7 @@ function prep_packages {
         done
         
         log "Installing dependencies: ${msys2_packages}"
-        eval "pacman -Syyu ${msys2_packages}"
+        eval "pacman --noconfirm -S ${msys2_packages}"
 
         for package_name in ${MSYS2_PACKAGES_REBUILD[@]}; do
             build_msys2_package $package_name
