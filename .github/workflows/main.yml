@@ -94,7 +94,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit == 'true'
         run: |
           cd ${{ runner.temp }}/cache
-          rsync -av . /usr
+          sudo rsync -av . /usr
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
