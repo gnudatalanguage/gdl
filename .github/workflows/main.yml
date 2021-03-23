@@ -66,7 +66,7 @@ jobs:
           echo "Setting up cache..."
           mkdir -p ${{ runner.temp }}/cache
           for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            ditto ${fn} ${{ runner.temp }}/cache
+            rsync -aR ${fn} ${{ runner.temp }}/cache
           done
       - name: Restore cache (macOS, Homebrew)
         if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit == 'true'
@@ -84,12 +84,12 @@ jobs:
           mkdir -p ${{ runner.temp }}/cache
           for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
             for fn in $(dpkg -L ${package}); do
-              if test -f $fn; then
-                cp --parents ${fn} ${{ runner.temp }}/cache
+              if test -f $fn; then # file or symlink
+                rsync -aR ${fn} ${{ runner.temp }}/cache
               fi
             done
           done
-      - name: Restore cache (Linux)
+      - name: Restore cache (Linux, Apt)
         if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit == 'true'
         run: |
           sudo rsync -av ${{ runner.temp }}/cache /usr
