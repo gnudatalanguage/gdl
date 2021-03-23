@@ -88,11 +88,8 @@ jobs:
       - name: Restore cache
         if: steps.cache.outputs.cache-hit == 'true'
         run: |
-          cd ${{ runner.temp }}/cache
-          for fn in $(find . -type l -or -type f); do
-            sudo mkdir -p $(dirname ${fn:1})
-            sudo cp -f ${fn} ${fn:1}
-          done
+          cd ${{ runner.temp }}/cache && tar cf ${{ runner.temp }}/cache.tar
+          cd / && sudo tar xf ${{ runner.temp }}/cache.tar
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
