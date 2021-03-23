@@ -89,6 +89,7 @@ jobs:
         if: steps.cache.outputs.cache-hit == 'true'
         run: |
           sudo rsync -a ${{ runner.temp }}/cache/ /
+          ls /
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
