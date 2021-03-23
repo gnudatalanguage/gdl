@@ -30,6 +30,8 @@
 #include <wx/fontmap.h>
 class gdlwxDrawPanel;
 
+static std::vector<wxCursor> gdlwxCursors;
+
 class GDLWXStream: public GDLGStream 
 {
 private:
@@ -98,6 +100,7 @@ public:
     bool GetScreenResolution(double& resx, double& resy);
     DByteGDL* GetBitmapData();
     float GetPlplotFudge(){return 1.8;}; //correction factor see gdlwxStream.cpp
+    static void DefineSomeWxCursors(); //global initialisation of 77 X11-like cursors.
 };
 
 

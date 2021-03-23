@@ -345,9 +345,38 @@ bool GDLWXStream::GetScreenResolution(double& resx, double& resy) {
   resy = reso.y/2.54;
   return true;
 }
+void GDLWXStream::DefineSomeWxCursors(){
+
+#include "otherdevices/gdlcursors.h"
+  for (int cnum=0; cnum<nglyphs; cnum++) {
+  char* glyph=(char*)&(glyphs[glyphs_offset[cnum]]);
+  char* glyph_mask=(char*)&(glyphs_mask[glyphs_mask_offset[cnum]]);
+  int nx=glyphs_dims[cnum*2];
+  int ny=glyphs_dims[cnum*2+1];
+  int hotspot_x=glyphs_hotspot[cnum*2];
+  int hotspot_y=glyphs_hotspot[cnum*2+1];
+#ifdef __WXMSW__
+    wxBitmap glyph_bitmap(glyph, nx,ny);
+    wxBitmap glyph_mask_bitmap(glyph_mask, nx,ny);
+    glyph_bitmap.SetMask(new wxMask(glyph_mask_bitmap));
+    wxImage glyph_image = glyph_bitmap.ConvertToImage();
+    glyph_image.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_X, hotspot_x);
+    glyph_image.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_Y, hotspot_y);
+    wxCursor glyph_cursor = wxCursor(glyph_image);
+    gdlwxCursors.push_back(glyph_cursor);
+#elif defined(__WXGTK__) or defined(__WXMOTIF__)
+    wxCursor glyph_cursor= wxCursor(glyph,nx,ny,hotspot_x,hotspot_y,glyph_mask); //, wxWHITE, wxBLACK);
+    gdlwxCursors.push_back(glyph_cursor);
+#endif
+  }
+}
 bool GDLWXStream::CursorStandard(int cursorNumber)
 {
- cerr<<"Cursor Setting not ready for wxWindow draw panel, please contribute."<<endl;
+  if (gdlwxCursors.size() < 1) DefineSomeWxCursors();
+  int cnum=cursorNumber/2;
+  if (cnum < 0) cnum=0;
+  if (cnum > (gdlwxCursors.size()-1) ) cnum=gdlwxCursors.size()-1;
+  container->SetCursor(gdlwxCursors[cnum]);
  return true;
 }
 DLong GDLWXStream::GetVisualDepth() {
