@@ -90,7 +90,8 @@ jobs:
         run: |
           cd ${{ runner.temp }}/cache
           for fn in $(find . -type l -or -type f); do
-            sudo install ${fn} ${fn:1}
+            sudo mkdir -p $(dirname ${fn:1})
+            sudo cp -f ${fn} ${fn:1}
           done
       - name: Build GDL
         run: |
