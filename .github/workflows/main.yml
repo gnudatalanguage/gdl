@@ -88,8 +88,9 @@ jobs:
       - name: Restore cache
         if: steps.cache.outputs.cache-hit == 'true'
         run: |
-          sudo rsync -a ${{ runner.temp }}/cache/ /
-          ls /
+          sudo su
+          rsync -og -a ${{ runner.temp }}/cache/ /
+          ls -al /
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
