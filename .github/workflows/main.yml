@@ -49,6 +49,8 @@ jobs:
     steps:
       - name: Checkout GDL
         uses: actions/checkout@v2
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
       - name: Cache Dependencies (macOS, Homebrew)
         if: matrix.os == 'macos-latest'
         id: cache-macos
