@@ -55,6 +55,8 @@ jobs:
         with:
           path: ${{ runner.temp }}/cache
           key: cache-${{ matrix.os }}
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
       - name: Install Dependencies (macOS, Homebrew)
         if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
