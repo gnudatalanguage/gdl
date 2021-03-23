@@ -49,8 +49,6 @@ jobs:
     steps:
       - name: Checkout GDL
         uses: actions/checkout@v2
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
       - name: Cache Dependencies
         id: cache
         uses: actions/cache@v2
@@ -60,23 +58,27 @@ jobs:
       - name: Install Dependencies (macOS, Homebrew)
         if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
-          echo "Setting up Homebrew..."
-          alias realpath="perl -MCwd -e 'print Cwd::realpath(\$ARGV[0]),qq<\n>'"
-          pushd ${{ runner.temp }}
-          mkdir cache && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C cache
-          export PATH=$(realpath cache)/bin:$PATH
-          popd
+          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
-          echo "Installing libraries..."
-          rsync -av ${{ runner.temp }}/cache /usr/local/
+          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot2.txt
+          mkdir -p ${{ runner.temp }}/cache
+          ditto $(comm -13 ~/snapshot1.txt ~/snapshot2.txt) ${{ runner.temp }}/cache
+      - name: Restore cache (macOS, Homebrew)
+        if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit == 'true'
+        run: |
+          rsync -av ${{ runner.temp }}/cache /usr/local
       - name: Install Dependencies (Linux, Apt)
-        if: matrix.os == 'ubuntu-latest' && steps.cache-ubuntu.outputs.cache-hit != 'true'
+        if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
           find /usr -type l -or -type f | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
           find /usr -type l -or -type f | sort > ~/snapshot2.txt
           mkdir -p ${{ runner.temp }}/cache
-          cp --parents $(comm -13 ~/snapshot1.txt ~/snapshot2.txt)
+          cp --parents $(comm -13 ~/snapshot1.txt ~/snapshot2.txt) ${{ runner.temp }}/cache
+      - name: Restore cache (Linux)
+        if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit == 'true'
+        run: |
+          sudo rsync -av ${{ runner.temp }}/cache /usr
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
