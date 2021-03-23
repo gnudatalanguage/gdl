@@ -51,29 +51,32 @@ jobs:
         uses: actions/checkout@v2
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
-      - name: Cache Dependencies (macOS, Homebrew)
-        if: matrix.os == 'macos-latest'
-        id: cache-macos
+      - name: Cache Dependencies
+        id: cache
         uses: actions/cache@v2
         with:
-          path: /usr/local
+          path: ${{ runner.temp }}/cache
           key: cache-${{ matrix.os }}
-      - name: Cache Dependencies (Linux, Apt)
-        if: matrix.os == 'ubuntu-latest'
-        id: cache-ubuntu
-        uses: actions/cache@v2
-        with:
-          path: |
-            /usr/bin
-            /usr/lib
-            /usr/include
-            /usr/share
-          key: cache-${{ matrix.os }}
-      - name: Install Dependencies
-        if: (matrix.os == 'macos-latest'  && steps.cache-macos.outputs.cache-hit != 'true') ||
-            (matrix.os == 'ubuntu-latest' && steps.cache-ubuntu.outputs.cache-hit != 'true')
+      - name: Install Dependencies (macOS, Homebrew)
+        if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
+          echo "Setting up Homebrew..."
+          alias realpath="perl -MCwd -e 'print Cwd::realpath(\$ARGV[0]),qq<\n>'"
+          pushd ${{ runner.temp }}
+          mkdir cache && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C cache
+          export PATH=$(realpath cache)/bin:$PATH
+          popd
           .ci/build_gdl.sh prep
+          echo "Installing libraries..."
+          rsync -av ${{ runner.temp }}/cache /usr/local/
+      - name: Install Dependencies (Linux, Apt)
+        if: matrix.os == 'ubuntu-latest' && steps.cache-ubuntu.outputs.cache-hit != 'true'
+        run: |
+          find /usr -type l -or -type f | sort > ~/snapshot1.txt
+          .ci/build_gdl.sh prep
+          find /usr -type l -or -type f | sort > ~/snapshot2.txt
+          mkdir -p ${{ runner.temp }}/cache
+          cp --parents $(comm -13 ~/snapshot1.txt ~/snapshot2.txt)
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
