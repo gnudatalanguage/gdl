@@ -88,8 +88,10 @@ jobs:
       - name: Restore cache
         if: steps.cache.outputs.cache-hit == 'true'
         run: |
-          ls -alh /
-          sudo cp -Rf ${{ runner.temp }}/cache/* /
+          cd ${{ runner.temp }}/cache
+          for fn in $(find . -type l -or -type f); do
+            sudo cp -f ${fn} ${fn:1}
+          done
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
