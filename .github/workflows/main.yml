@@ -68,11 +68,6 @@ jobs:
           for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
             rsync -aR ${fn} ${{ runner.temp }}/cache
           done
-      - name: Restore cache (macOS, Homebrew)
-        if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit == 'true'
-        run: |
-          cd ${{ runner.temp }}/cache
-          rsync -av . /usr/local
       - name: Install Dependencies (Linux, Apt)
         if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -90,11 +85,11 @@ jobs:
               fi
             done
           done
-      - name: Restore cache (Linux, Apt)
-        if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit == 'true'
+      - name: Restore cache
+        if: steps.cache.outputs.cache-hit == 'true'
         run: |
           cd ${{ runner.temp }}/cache
-          sudo rsync -av . /usr
+          sudo rsync -a . /
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
