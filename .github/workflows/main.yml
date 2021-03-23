@@ -76,14 +76,18 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
           echo "Taking package snapshot..."
-          find /usr -type l -or -type f | sort > ~/snapshot1.txt
+          dpkg -l | grep ^ii | awk '{print $2}' | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
           echo "Taking package snapshot after installing dependencies..."
-          find /usr -type l -or -type f | sort > ~/snapshot2.txt
+          dpkg -l | grep ^ii | awk '{print $2}' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p ${{ runner.temp }}/cache
-          for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            cp --parents ${fn} ${{ runner.temp }}/cache
+          for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
+            for fn in $(dpkg -L ${package}); do
+              if test -f $fn; then
+                cp --parents ${fn} ${{ runner.temp }}/cache
+              fi
+            done
           done
       - name: Restore cache (Linux)
         if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit == 'true'
