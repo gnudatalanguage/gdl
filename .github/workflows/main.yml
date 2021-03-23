@@ -71,7 +71,8 @@ jobs:
       - name: Restore cache (macOS, Homebrew)
         if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit == 'true'
         run: |
-          rsync -av ${{ runner.temp }}/cache /usr/local
+          cd ${{ runner.temp }}/cache
+          rsync -av . /usr/local
       - name: Install Dependencies (Linux, Apt)
         if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -92,7 +93,8 @@ jobs:
       - name: Restore cache (Linux, Apt)
         if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit == 'true'
         run: |
-          sudo rsync -av ${{ runner.temp }}/cache /usr
+          cd ${{ runner.temp }}/cache
+          rsync -av . /usr
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
