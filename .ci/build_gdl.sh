@@ -306,7 +306,6 @@ function build_gdl {
     
     if [ ${BUILD_OS} == "Windows" ]; then
         # Copy dlls and libraries to src directory
-        #cp -f /${mname}/bin/*.dll src/ # TODO: this has to be based on ldd
         mkdir -p share
         cp -rf /${mname}/share/plplot* share/
         if [[ ${DEPS} == *"full"* ]]; then
@@ -322,7 +321,9 @@ function build_gdl {
 
     if [ ${BUILD_OS} == "Windows" ]; then
         # Copy dlls and libraries to install directory
-        cp -f ${ROOT_DIR}/build/src/*.dll bin/
+        for f in $(ldd ${ROOT_DIR}/build/src/gdl.exe | grep "/mingw" | awk '{print $3}'); do
+            cp -f $f bin/
+        done
         cp -rf ${ROOT_DIR}/build/share .
         if [[ ${DEPS} == *"full"* ]]; then
             cp -rf ${ROOT_DIR}/build/lib .
