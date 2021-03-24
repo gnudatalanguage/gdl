@@ -372,11 +372,38 @@ void GDLWXStream::DefineSomeWxCursors(){
 }
 bool GDLWXStream::CursorStandard(int cursorNumber)
 {
+  if (cursorNumber == -1) { //device,/CURSOR_ORIGINAL
+    container->SetCursor(wxNullCursor); //back to default
+    return true;
+  }
+  if (cursorNumber == -2) { //device,/CURSOR_CROSS
+    container->SetCursor(wxCursor(wxCURSOR_CROSS));
+    return true;
+  }
   if (gdlwxCursors.size() < 1) DefineSomeWxCursors();
   int cnum=cursorNumber/2;
   if (cnum < 0) cnum=0;
   if (cnum > (gdlwxCursors.size()-1) ) cnum=gdlwxCursors.size()-1;
   container->SetCursor(gdlwxCursors[cnum]);
+ return true;
+}
+bool GDLWXStream::CursorImage(char* v, int x, int y, char* m)
+{
+#ifdef __WXMSW__
+    wxBitmap bitmap(v, 16, 16);
+    if (m) {
+      wxBitmap mask_bitmap(m, 16,16);
+      bitmap.SetMask(new wxMask(mask_bitmap));
+    }
+    wxImage image = bitmap.ConvertToImage();
+    image.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_X, x);
+    image.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_Y, y);
+    wxCursor cursor = wxCursor(image);
+    container->SetCursor(cursor);
+#elif defined(__WXGTK__) or defined(__WXMOTIF__)
+    wxCursor cursor= wxCursor(v,16,16,x,y,m); //, wxWHITE, wxBLACK);
+   container->SetCursor(cursor);
+#endif
  return true;
 }
 DLong GDLWXStream::GetVisualDepth() {

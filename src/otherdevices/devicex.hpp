@@ -354,9 +354,10 @@ public:
     return true;
   }
   
-  bool CursorCrosshair()
+  bool CursorCrosshair(bool standard)
   {
-    return CursorStandard(XC_crosshair);
+   if (standard) return CursorStandard(XC_arrow);
+   else return CursorStandard(XC_crosshair);
   }
   
   void DefaultXYSize(DLong *xSize, DLong *ySize) {

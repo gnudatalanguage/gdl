@@ -290,24 +290,36 @@ public:
  }
 
     
-    bool CursorStandard(int cursorNumber) {
-        cursorId = cursorNumber;
-        this->GetStream(); //to open a window if none opened.
-        bool ret;
-        for (int i = 0; i < winList.size(); i++) {
-            if (winList[i] != NULL) {
-              ret = winList[i]->CursorStandard(cursorNumber);
-              if (ret == false) return ret;
-            }
-        }
-        return true;
-    }
-
-  bool CursorCrosshair()
-  {
-    return CursorStandard(33);
+  bool CursorStandard(int cursorNumber) {
+      cursorId = cursorNumber;
+      this->GetStream(); //to open a window if none opened.
+      bool ret;
+      for (int i = 0; i < winList.size(); i++) {
+          if (winList[i] != NULL) {
+            ret = winList[i]->CursorStandard(cursorNumber);
+            if (ret == false) return ret;
+          }
+      }
+      return true;
   }
 
+  bool CursorCrosshair(bool standard)
+  {
+    if (standard) return CursorStandard(-1);
+    else return CursorStandard(-2);
+ }
+
+ bool CursorImage(char* v, int x, int y, char* m) {
+     this->GetStream(); //to open a window if none opened.
+     bool ret;
+     for (int i = 0; i < winList.size(); i++) {
+         if (winList[i] != NULL) {
+           ret = winList[i]->CursorImage(v,x,y,m);
+           if (ret == false) return ret;
+         }
+     }
+  return true;
+ }
     void DefaultXYSize(DLong *xSize, DLong *ySize) {
         *xSize = wxSystemSettings::GetMetric(wxSYS_SCREEN_X) / 2;
         *ySize = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y) / 2;

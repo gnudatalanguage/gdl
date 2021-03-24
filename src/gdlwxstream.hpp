@@ -92,6 +92,7 @@ public:
     bool SetGraphicsFunction( long value);
     bool GetWindowPosition(long& xpos, long& ypos );
     bool CursorStandard(int cursorNumber);
+    bool CursorImage(char* v, int x, int y, char* m);
     DLong GetVisualDepth();
     BaseGDL* GetFontnames(DString pattern);
     DLong GetFontnum(DString pattern);
