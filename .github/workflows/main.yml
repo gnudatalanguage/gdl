@@ -176,6 +176,7 @@ jobs:
           done
       - name: Restore Cache
         if: steps.cache.outputs.cache-hit == 'true'
+        shell: msys2 {0}
         run: |
           rsync -rt --no-t --inplace /cache/ /
       - name: Build GDL
