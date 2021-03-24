@@ -161,7 +161,7 @@ jobs:
           echo "Setting up cache..."
           mkdir -p /cache
           for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            tar xf /var/cache/pacman/pkg/*.tar.* -C /cache
+            tar xf /var/cache/pacman/pkg/${package}-*.tar.* -C /cache
           done
           tar xf ../MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-x86_64-graphicsmagick-*.tar.* -C /cache
           ADDTIONAL_FILES=( /mingw*/bin/mgwxdr-0.dll
