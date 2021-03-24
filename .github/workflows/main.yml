@@ -66,8 +66,10 @@ jobs:
           echo "Setting up cache..."
           mkdir -p ${{ runner.temp }}/cache
           for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            rsync -aR --copy-unsafe-links ${fn} ${{ runner.temp }}/cache
+            rsync -aR ${fn} ${{ runner.temp }}/cache
           done
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
       - name: Install Dependencies (Linux, Apt)
         if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -81,7 +83,7 @@ jobs:
           for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
             for fn in $(dpkg -L ${package}); do
               if test -f $fn; then # file or symlink
-                rsync -aR --copy-unsafe-links ${fn} ${{ runner.temp }}/cache
+                rsync -aR ${fn} ${{ runner.temp }}/cache
               fi
             done
           done
@@ -96,7 +98,7 @@ jobs:
                             /usr/bin/mpifort /etc/alternatives/mpifort
                             /usr/bin/mpirun /etc/alternatives/mpirun )
           for fn in ${ADDTIONAL_FILES[@]}; do
-            rsync -aR --copy-unsafe-links ${fn} ${{ runner.temp }}/cache
+            rsync -aR ${fn} ${{ runner.temp }}/cache
           done
       - name: Restore cache
         if: steps.cache.outputs.cache-hit == 'true'
