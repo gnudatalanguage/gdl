@@ -64,7 +64,7 @@ jobs:
           echo "Setting up cache..."
           mkdir -p ${{ runner.temp }}/cache
           for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            rsync -aR --ignore-errors ${fn} ${{ runner.temp }}/cache
+            rsync -aR ${fn} ${{ runner.temp }}/cache || true
           done
       - name: Install Dependencies (Linux, Apt)
         if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
@@ -172,7 +172,7 @@ jobs:
                             /mingw*/include/rpc/types.h
                             /mingw*/include/rpc/xdr.h )
           for fn in ${ADDTIONAL_FILES[@]}; do
-            cp --parents ${fn} ${{ runner.temp }}/cache
+            cp --parents ${fn} /cache
           done
       - name: Restore Cache
         if: steps.cache.outputs.cache-hit == 'true'
