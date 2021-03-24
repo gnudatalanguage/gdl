@@ -356,6 +356,7 @@ void GDLWXStream::DefineSomeWxCursors(){
   int hotspot_x=glyphs_hotspot[cnum*2];
   int hotspot_y=glyphs_hotspot[cnum*2+1];
 #ifdef __WXMSW__
+    for(int i=0; i< (nx/8+1)*ny; ++i) {glyph[i]=~glyph[i]; glyph_mask[i]=~glyph_mask[i];}
     wxBitmap glyph_bitmap(glyph, nx,ny);
     wxBitmap glyph_mask_bitmap(glyph_mask, nx,ny);
     glyph_bitmap.SetMask(new wxMask(glyph_mask_bitmap));
@@ -390,8 +391,10 @@ bool GDLWXStream::CursorStandard(int cursorNumber)
 bool GDLWXStream::CursorImage(char* v, int x, int y, char* m)
 {
 #ifdef __WXMSW__
+  for(int i=0; i< 31; ++i) v[i]=~v[i];
     wxBitmap bitmap(v, 16, 16);
     if (m) {
+     for(int i=0; i< 31; ++i) m[i]=~m[i];
       wxBitmap mask_bitmap(m, 16,16);
       bitmap.SetMask(new wxMask(mask_bitmap));
     }
