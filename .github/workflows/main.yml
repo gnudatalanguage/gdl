@@ -64,9 +64,7 @@ jobs:
           echo "Setting up cache..."
           mkdir -p ${{ runner.temp }}/cache
           for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            if test -f $fn; then
-              rsync -aR ${fn} ${{ runner.temp }}/cache
-            fi
+            rsync -aR --ignore-errors ${fn} ${{ runner.temp }}/cache
           done
       - name: Install Dependencies (Linux, Apt)
         if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
@@ -159,13 +157,13 @@ jobs:
         run: |
           pacman -Q | tr ' ' '-' | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
+          mv ../MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-x86_64-graphicsmagick-*.tar.* /var/cache/pacman/pkg
           pacman -Q | tr ' ' '-' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p /cache
           for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
             tar xf /var/cache/pacman/pkg/${package}-*.tar.* -C /cache
           done
-          tar xf ../MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-x86_64-graphicsmagick-*.tar.* -C /cache
           ADDTIONAL_FILES=( /mingw*/bin/mgwxdr-0.dll
                             /mingw*/lib/libxdr.*
                             /mingw*/include/rpc/types.h
