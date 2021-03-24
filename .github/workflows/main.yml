@@ -68,8 +68,6 @@ jobs:
           for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
             rsync -aR ${fn} ${{ runner.temp }}/cache
           done
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
       - name: Install Dependencies (Linux, Apt)
         if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -87,16 +85,10 @@ jobs:
               fi
             done
           done
-          ADDTIONAL_FILES=( /usr/bin/wx-config /etc/alternatives/wx-config
-                            /usr/bin/mpicc /etc/alternatives/mpicc
-                            /usr/bin/mpiCC /etc/alternatives/mpiCC
-                            /usr/bin/mpic++ /etc/alternatives/mpic++
-                            /usr/bin/mpicxx /etc/alternatives/mpicxx
-                            /usr/bin/mpiexec /etc/alternatives/mpiexec
-                            /usr/bin/mpif77 /etc/alternatives/mpif77
-                            /usr/bin/mpif90 /etc/alternatives/mpif90
-                            /usr/bin/mpifort /etc/alternatives/mpifort
-                            /usr/bin/mpirun /etc/alternatives/mpirun )
+          ADDTIONAL_FILES=( /usr/bin/wx-config
+                            $(readlink /usr/bin/wx-config)
+                            $(find /usr/bin/mpi*)
+                            $(find /etc/alternatives/mpi*) )
           for fn in ${ADDTIONAL_FILES[@]}; do
             rsync -aR ${fn} ${{ runner.temp }}/cache
           done
