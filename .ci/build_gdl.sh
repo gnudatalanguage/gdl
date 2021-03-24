@@ -95,6 +95,7 @@ function decompress_file {
 
 function build_msys2_package {
     log "Building package $1..."
+    pushd ${ROOT_DIR}
     if [[ ! -d "MINGW-packages" ]]; then
         git clone \
             --depth 1  \
@@ -120,6 +121,7 @@ function build_msys2_package {
     fi
     eval `cat ${makepkg_conf} | grep PKGEXT=`
     makepkg --config ${makepkg_conf} --noconfirm --syncdeps --install
+    popd
 }
 
 function find_architecture {

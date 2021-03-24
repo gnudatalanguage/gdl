@@ -54,17 +54,17 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ runner.temp }}/cache
-          key: cache-deps-${{ matrix.os }}
+          key: cache-gdl-deps-${{ matrix.os }}
       - name: Install Dependencies (macOS, Homebrew)
         if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
-          find /usr/local -type d \( -path /usr/local/miniconda -o -path /usr/local/Cellar \) -prune -false -or -type l -or -type f | sort > ~/snapshot1.txt
+          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
-          find /usr/local -type d \( -path /usr/local/miniconda -o -path /usr/local/Cellar \) -prune -false -or -type l -or -type f | sort > ~/snapshot2.txt
+          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p ${{ runner.temp }}/cache
           for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            rsync -aR ${fn} ${{ runner.temp }}/cache
+            rsync -aR --ignore-missing-args ${fn} ${{ runner.temp }}/cache
           done
       - name: Install Dependencies (Linux, Apt)
         if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
@@ -139,7 +139,7 @@ jobs:
         with:
           path: |
             C:\msys64\cache
-          key: cache-msys2-${{ matrix.arch }}
+          key: cache-gdl-deps-msys2-${{ matrix.arch }}
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench
@@ -155,18 +155,21 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         shell: msys2 {0}
         run: |
-          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          pacman -Q | awk '{print $1}' | sort > ~/snapshot1.txt
+          pacman -Q | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
-          pacman -Q | awk '{print $1}' | sort > ~/snapshot2.txt
+          pacman -Q | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p /cache
           for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            for fn in $(pacman -Ql ${package} | awk '{print $2}'); do
-              if test -f $fn; then # file
-                cp --parents ${fn} /cache
-              fi
-            done
+            tar x /var/cache/pacman/pkg/*.tar.* -C /cache
+          done
+          tar x ../MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-x86_64-graphicsmagick-*.tar.* -C /cache
+          ADDTIONAL_FILES=( /mingw*/bin/mgwxdr-0.dll
+                            /mingw*/lib/libxdr.*
+                            /mingw*/include/rpc/types.h
+                            /mingw*/include/rpc/xdr.h )
+          for fn in ${ADDTIONAL_FILES[@]}; do
+            cp --parents ${fn} ${{ runner.temp }}/cache
           done
       - name: Restore Cache
         if: steps.cache.outputs.cache-hit == 'true'
@@ -175,12 +178,10 @@ jobs:
       - name: Build GDL
         shell: msys2 {0}
         run: |
-          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
           .ci/build_gdl.sh build
       - name: Package GDL
         shell: msys2 {0}  
         run: |
-          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
           export GDLDE_VERSION=${{ steps.gdl_workbench.outputs.release }}
           .ci/build_gdl.sh pack
           .ci/build_gdl.sh prep_deploy
@@ -197,5 +198,4 @@ jobs:
       - name: Test GDL
         shell: msys2 {0}
         run: |
-          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
           .ci/build_gdl.sh check || exit 0
