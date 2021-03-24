@@ -54,17 +54,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ runner.temp }}/cache
-          key: cache-${{ matrix.os }}
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
+          key: cache-deps-${{ matrix.os }}
       - name: Install Dependencies (macOS, Homebrew)
         if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
           echo "Taking package snapshot..."
-          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot1.txt
+          find /usr/local -type d \( -path /usr/local/miniconda -o -path /usr/local/Cellar \) -prune -false -or -type l -or -type f | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
           echo "Taking package snapshot after installing dependencies..."
-          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot2.txt
+          find /usr/local -type d \( -path /usr/local/miniconda -o -path /usr/local/Cellar \) -prune -false -or -type l -or -type f | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p ${{ runner.temp }}/cache
           for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
@@ -87,11 +85,26 @@ jobs:
               fi
             done
           done
+          ADDTIONAL_FILES=( /usr/bin/wx-config /etc/alternatives/wx-config
+                            /usr/bin/mpicc /etc/alternatives/mpicc
+                            /usr/bin/mpiCC /etc/alternatives/mpiCC
+                            /usr/bin/mpic++ /etc/alternatives/mpic++
+                            /usr/bin/mpicxx /etc/alternatives/mpicxx
+                            /usr/bin/mpiexec /etc/alternatives/mpiexec
+                            /usr/bin/mpif77 /etc/alternatives/mpif77
+                            /usr/bin/mpif90 /etc/alternatives/mpif90
+                            /usr/bin/mpifort /etc/alternatives/mpifort
+                            /usr/bin/mpirun /etc/alternatives/mpirun )
+          for fn in ${ADDTIONAL_FILES[@]}; do
+            rsync -aR ${fn} ${{ runner.temp }}/cache
+          done
       - name: Restore cache
         if: steps.cache.outputs.cache-hit == 'true'
         run: |
-          cd ${{ runner.temp }}/cache && tar cf ${{ runner.temp }}/cache.tar .
-          cd / && sudo tar xvf ${{ runner.temp }}/cache.tar
+          cd ${{ runner.temp }}
+          for d in `ls cache`; do
+            sudo rsync -rt --no-t --inplace cache/$d/ /$d
+          done
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
