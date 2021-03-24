@@ -133,23 +133,16 @@ jobs:
             zstd
             make
             git
+            rsync
       - name: Checkout GDL
         uses: actions/checkout@v2
-      - name: Cache Dependencies (Windows, MSYS, 64bit)
+      - name: Cache Dependencies
         if: matrix.arch == 'x86_64'
-        id: cache-64
+        id: cache
         uses: actions/cache@v2
         with:
           path: |
-            C:\msys64\mingw64
-          key: cache-msys2-${{ matrix.arch }}
-      - name: Cache Dependencies (Windows, MSYS, 32bit)
-        if: matrix.arch == 'i686'
-        id: cache-32
-        uses: actions/cache@v2
-        with:
-          path: |
-            C:\msys64\mingw32
+            C:\msys64\cache
           key: cache-msys2-${{ matrix.arch }}
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
@@ -163,12 +156,26 @@ jobs:
           Invoke-WebRequest -Uri https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe -OutFile MSMpiSetup.exe
           .\MSMpiSetup.exe -unattend
       - name: Install Dependencies
-        if: (matrix.arch == 'x86_64' && steps.cache-64.outputs.cache-hit != 'true') ||
-            (matrix.arch == 'i686'   && steps.cache-32.outputs.cache-hit != 'true')
+        if: steps.cache.outputs.cache-hit != 'true'
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
+          pacman -Q | awk '{ print $1 }' | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
+          pacman -Q | awk '{ print $1 }' | sort > ~/snapshot2.txt
+          echo "Setting up cache..."
+          mkdir -p /cache
+          for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
+            for fn in $(pacman -Ql ${package} | awk '{ print $2 }'); do
+              if test -f $fn; then # file
+                rsync -aR ${fn} /cache
+              fi
+            done
+          done
+      - name: Restore Cache
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: |
+          rsync -rt --no-t --inplace /cache/ /
       - name: Build GDL
         shell: msys2 {0}
         run: |
