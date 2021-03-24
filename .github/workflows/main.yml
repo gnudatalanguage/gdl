@@ -58,10 +58,8 @@ jobs:
       - name: Install Dependencies (macOS, Homebrew)
         if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
-          echo "Taking package snapshot..."
           find /usr/local -type d \( -path /usr/local/miniconda -o -path /usr/local/Cellar \) -prune -false -or -type l -or -type f | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
-          echo "Taking package snapshot after installing dependencies..."
           find /usr/local -type d \( -path /usr/local/miniconda -o -path /usr/local/Cellar \) -prune -false -or -type l -or -type f | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p ${{ runner.temp }}/cache
@@ -71,10 +69,8 @@ jobs:
       - name: Install Dependencies (Linux, Apt)
         if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
-          echo "Taking package snapshot..."
           dpkg -l | grep ^ii | awk '{print $2}' | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
-          echo "Taking package snapshot after installing dependencies..."
           dpkg -l | grep ^ii | awk '{print $2}' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p ${{ runner.temp }}/cache
@@ -97,7 +93,7 @@ jobs:
         run: |
           cd ${{ runner.temp }}
           for d in `ls cache`; do
-            sudo rsync -rt --no-t --inplace cache/$d/ /$d
+            sudo rsync -rt --links --no-t --inplace cache/$d/ /$d
           done
       - name: Build GDL
         run: |
@@ -160,15 +156,15 @@ jobs:
         shell: msys2 {0}
         run: |
           export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          pacman -Q | awk '{ print $1 }' | sort > ~/snapshot1.txt
+          pacman -Q | awk '{print $1}' | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
-          pacman -Q | awk '{ print $1 }' | sort > ~/snapshot2.txt
+          pacman -Q | awk '{print $1}' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p /cache
           for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            for fn in $(pacman -Ql ${package} | awk '{ print $2 }'); do
+            for fn in $(pacman -Ql ${package} | awk '{print $2}'); do
               if test -f $fn; then # file
-                rsync -aR ${fn} /cache
+                cp --parents ${fn} /cache
               fi
             done
           done
