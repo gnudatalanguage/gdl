@@ -64,7 +64,9 @@ jobs:
           echo "Setting up cache..."
           mkdir -p ${{ runner.temp }}/cache
           for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            rsync -aR --ignore-missing-args ${fn} ${{ runner.temp }}/cache
+            if test -f $fn; then
+              rsync -aR ${fn} ${{ runner.temp }}/cache
+            fi
           done
       - name: Install Dependencies (Linux, Apt)
         if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
@@ -155,9 +157,9 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         shell: msys2 {0}
         run: |
-          pacman -Q | sort > ~/snapshot1.txt
+          pacman -Q | tr ' ' '-' | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
-          pacman -Q | sort > ~/snapshot2.txt
+          pacman -Q | tr ' ' '-' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p /cache
           for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
