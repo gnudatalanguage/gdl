@@ -31,6 +31,7 @@ jobs:
         if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} plplot"; fi
         if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export BREW_PACKAGES="${BREW_PACKAGES} readline"; fi
         if [[ $DEPS == 'FULL' && $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=ON -DREADLINEDIR=/usr/local/opt/readline"; fi
+        if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DINTERACTIVE_GRAPHICS=OFF"; fi
         if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DREADLINE=OFF"; fi
         if [[ $DEPS == 'FULL' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPNGLIB=ON"; fi
         if [[ $DEPS == 'MINI' ]]; then export CMAKE_ARGS="${CMAKE_ARGS} -DPNGLIB=OFF"; fi

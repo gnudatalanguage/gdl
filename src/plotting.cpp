@@ -1388,6 +1388,7 @@ namespace lib
     struct GDL_MULTIAXISTICKDATA *ptr = (GDL_MULTIAXISTICKDATA* )multiaxisdata;
     tdata.a=ptr->a;
     tdata.isLog=ptr->isLog;
+ 
     if (ptr->counter != lastUnits)
     {
       lastUnits=ptr->counter;
@@ -1400,7 +1401,10 @@ namespace lib
         doOurOwnFormat(axis, value, label, length, &tdata);
       }
       else
-      {
+      { //must pass the value, not the log, to the formatter?
+        DDouble v=value;
+        if (tdata.isLog) v=pow(10.,v);
+        std::cerr<<v<<std::endl;
         if (((*ptr->TickFormat)[ptr->counter]).substr(0,1) == "(")
         { //internal format, call internal func "STRING"
           EnvT *e=ptr->e;
@@ -1409,7 +1413,7 @@ namespace lib
           EnvT* newEnv= new EnvT(e, libFunList[stringIx], NULL);
           Guard<EnvT> guard( newEnv);
           // add parameters
-          newEnv->SetNextPar( new DDoubleGDL(value));
+          newEnv->SetNextPar( new DDoubleGDL(v));
           newEnv->SetNextPar( new DStringGDL(((*ptr->TickFormat)[ptr->counter]).c_str()));
           // make the call
           BaseGDL* res = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
@@ -1432,7 +1436,7 @@ namespace lib
           // add parameters
           newEnv->SetNextPar( new DLongGDL(axis));
           newEnv->SetNextPar( new DLongGDL(internalIndex));
-          newEnv->SetNextPar( new DDoubleGDL(value));
+          newEnv->SetNextPar( new DDoubleGDL(v));
           if (ptr->what==GDL_TICKFORMAT_AND_UNITS) newEnv->SetNextPar( new DLongGDL(ptr->counter));
           // guard *before* pushing new env
           StackGuard<EnvStackT> guard1 ( e->Interpreter()->CallStack());

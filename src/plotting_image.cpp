@@ -323,12 +323,18 @@ namespace lib {
 
       //pass physical position of image
       DLong devicebox[4] = {botLeftPixelX, xSize, botLeftPixelY, ySize};
-//  cout << devicebox[0] << "," << devicebox[1] << "," << devicebox[2] << ","<< devicebox[3] << endl;
 
       Guard<BaseGDL> chan_guard;
-//      actStream->flush();
+      bool tidy=false;
+      DByte* im=&(*byteImage)[0];
+      if (byteImage->Rank()==3 && byteImage->Dim(0)==4) {
+        SizeT s=imageWidth*imageWidth*3;
+        im=(DByte*)malloc(s);
+        for (SizeT i = 0, k=0; i<s;) {im[i++]=(*byteImage)[k++];im[i++]=(*byteImage)[k++];im[i++]=(*byteImage)[k++];k++;}
+        tidy=true;
+      }
       if (channel == 0) {
-        if (!actStream->PaintImage(&(*byteImage)[0], imageWidth, imageHeight, devicebox, trueColor, channel)) e->Throw("device does not support Paint");
+        if (!actStream->PaintImage(im, imageWidth, imageHeight, devicebox, trueColor, channel)) e->Throw("device does not support Paint");
       } else if (rank == 3) {
         // Rank == 3 w/channel
         SizeT dims[2];
@@ -337,15 +343,16 @@ namespace lib {
         dimension dim(dims, 2);
         DByteGDL* byteImage_chan = new DByteGDL(dim, BaseGDL::ZERO);
         for (SizeT i = (channel - 1); i < byteImage->N_Elements(); i += 3) {
-          (*byteImage_chan)[i / 3] = (*byteImage)[i];
+          (*byteImage_chan)[i / 3] = im[i];
         }
         // Send just single channel
-        if (!actStream->PaintImage(&(*byteImage_chan)[0], imageWidth, imageHeight, devicebox, trueColor, channel)) e->Throw("device does not support Paint");
+        if (!actStream->PaintImage(im, imageWidth, imageHeight, devicebox, trueColor, channel)) e->Throw("device does not support Paint");
         chan_guard.Init(byteImage_chan); // delete upon exit
       } else if (rank == 2) {
         // Rank = 2 w/channel
-        if (!actStream->PaintImage(&(*byteImage)[0], imageWidth, imageHeight, devicebox, trueColor, channel)) e->Throw("device does not support Paint");
+        if (!actStream->PaintImage(im, imageWidth, imageHeight, devicebox, trueColor, channel)) e->Throw("device does not support Paint");
       }
+      if (tidy) free(im);
     }
 
 

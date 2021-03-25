@@ -901,6 +901,15 @@ bool GDLWidget::GetSensitive()
 {
   return sensitive;
 }
+DLong GDLWidget::GetSibling()
+{
+  if ( parentID == GDLWidget::NullID ) {return 0;}
+  GDLWidget * parent=GetWidget(parentID);
+  if (parent->IsContainer() || parent->IsMenuBar() || parent->IsMenu() ) {
+    return parent->GetTheSibling(widgetID);
+  }
+  return 0;
+}
 void GDLWidget::SetFocus() //gives focus to the CHILD of the panel.
 {
   wxWindow *me=dynamic_cast<wxWindow*>(this->GetWxWidget()); if (me!=NULL) me->SetFocus(); else cerr<<"Setting Focus for unknown widget!\n";

@@ -272,85 +272,54 @@ public:
   if (pattern.length() == 0) return 0;
   return this->GetWxFontnames(pattern)->N_Elements();
  }
- 
-//    DLong GetVisualDepth() {
-//        this->GetStream(); //to open a window if none opened.
-//        return winList[actWin]->GetVisualDepth();
-//    }
-//
-//    DString GetVisualName() {
-//        this->GetStream(); //to open a window if none opened.
-//        return winList[actWin]->GetVisualName();
-//    }
-//    BaseGDL* GetFontnames(){
-//        this->GetStream(); //to open a window if none opened.
-//        return winList[actWin]->GetFontnames(fontname);
-//    }
-//    DLong GetFontnum(){
-//        this->GetStream(); //to open a window if none opened.
-//        return winList[actWin]->GetFontnum(fontname);
-//    } 
-    
-        DLong GetVisualDepth() {return 24;} //no use opening a window, the answer is 24!
-//        TidyWindowsList();
-//        if (actWin == -1) {
-//          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
-//          DLong val=winList[actWin]->GetVisualDepth();
-//          WDelete(actWin);
-//          return val;
-//        } else {
-//          return winList[actWin]->GetVisualDepth();
-//        }
 
-    DString GetVisualName() {return DString("TrueColor");}
-//        TidyWindowsList();
-//        if (actWin == -1) {
-//          this->GetStream(true); //this command SHOULD NOT open a window if none opened, but how to do it?
-//          DString val=winList[actWin]->GetVisualName();
-//          WDelete(actWin);
-//          return val;
-//        } else {
-//          return winList[actWin]->GetVisualName();
-//        }
-    
-    BaseGDL* GetFontnames(){return GetWxFontnames(fontname);}
-//        TidyWindowsList();
-//        if (actWin == -1) {
-//          this->GetStream();
-//          BaseGDL* val=winList[actWin]->GetFontnames(fontname);
-//          return val;
-//        } else {
-//          return winList[actWin]->GetFontnames(fontname);
-//        }
-    
-    DLong GetFontnum(){return GetWxFontnum(fontname);}
-//        TidyWindowsList();
-//        if (actWin == -1) {
-//          this->GetStream(); 
-//          DLong val=winList[actWin]->GetFontnum(fontname);
-//          return val;
-//        } else {
-//          return winList[actWin]->GetFontnum(fontname);
-//        }
-    
-    bool CursorStandard(int cursorNumber) {
-        cursorId = cursorNumber;
-        this->GetStream(); //to open a window if none opened.
-        bool ret;
-        for (int i = 0; i < winList.size(); i++) {
-            if (winList[i] != NULL) {
-              ret = winList[i]->CursorStandard(cursorNumber);
-              if (ret == false) return ret;
-            }
-        }
-        return true;
-    }
+ DLong GetVisualDepth() {
+  return 24;
+ } //no use opening a window, the answer is 24!
 
-  bool CursorCrosshair()
-  {
-    return CursorStandard(33);
+ DString GetVisualName() {
+  return DString("TrueColor");
+ }
+
+ BaseGDL* GetFontnames() {
+  return GetWxFontnames(fontname);
+ }
+
+ DLong GetFontnum() {
+  return GetWxFontnum(fontname);
+ }
+
+    
+  bool CursorStandard(int cursorNumber) {
+      cursorId = cursorNumber;
+      this->GetStream(); //to open a window if none opened.
+      bool ret;
+      for (int i = 0; i < winList.size(); i++) {
+          if (winList[i] != NULL) {
+            ret = winList[i]->CursorStandard(cursorNumber);
+            if (ret == false) return ret;
+          }
+      }
+      return true;
   }
 
+  bool CursorCrosshair(bool standard)
+  {
+    if (standard) return CursorStandard(-1);
+    else return CursorStandard(-2);
+ }
+
+ bool CursorImage(char* v, int x, int y, char* m) {
+     this->GetStream(); //to open a window if none opened.
+     bool ret;
+     for (int i = 0; i < winList.size(); i++) {
+         if (winList[i] != NULL) {
+           ret = winList[i]->CursorImage(v,x,y,m);
+           if (ret == false) return ret;
+         }
+     }
+  return true;
+ }
     void DefaultXYSize(DLong *xSize, DLong *ySize) {
         *xSize = wxSystemSettings::GetMetric(wxSYS_SCREEN_X) / 2;
         *ySize = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y) / 2;
