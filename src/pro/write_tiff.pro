@@ -18,8 +18,8 @@
 ;           
 ;
 ; OPTIONAL INPUTS:
-;        bits_per_sample: bits per sample
-;        compression: compression method
+;        bits_per_sample: bits per sample (not done)
+;        compression: compression method (not done)
 ;        For pseudocolor only
 ;        red  : the Red colormap vector (for PseudoColor images)
 ;        green: the Green colormap vector (for PseudoColor images)
@@ -48,8 +48,12 @@
 ;-
 ;
 pro WRITE_TIFF, filename, image, bits_per_sample, red=red, green=green, blue=blue, $
-                compression=compreesion, verbose=verbose, help=help, test=test, $
+                compression=compression, verbose=verbose, help=help, test=test, $
                 debug=debug
+; lacks: /APPEND, /BIGTIFF,  /CMYK, DESCRIPTION=, DOCUMENT_NAME=, DOT_RANGE=, GEOTIFF=,
+;        /COMPLEX, /DCOMPLEX , /DOUBLE , /L64, /LONG, /SHORT , /FLOAT, ICC_PROFILE=, 
+;         ORIENTATION=, PHOTOSHOP=, PLANARCONFIG=, /SIGNED, UNITS=, XPOSITION=, XRESOL,
+;         YPOSITION=, YRESOL=
 ;
 ; this line allows to compile also in IDL ...
 FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ

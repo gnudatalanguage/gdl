@@ -255,7 +255,8 @@ public:
   virtual bool Decomposed( bool value)                { return false;}
   virtual bool SetGraphicsFunction( DLong value)      { return false;}
   virtual bool CursorStandard( int value)             { return false;}
-  virtual bool CursorCrosshair()                      { return false;}
+  virtual bool CursorCrosshair(bool standard=false)   { return false;}
+  virtual bool CursorImage(char* v, int x=0, int y=0, char* mask=NULL)   { return false;}
   virtual int  getCursorId()                             { return -1;}
   virtual bool UnsetFocus()                           { return false;}
   virtual bool SetBackingStore(int value)             { return false;}

@@ -209,7 +209,7 @@ void LibInit_jmg()
 
   new DLibPro(lib::point_lun,string("POINT_LUN"),2);
 
-  const string linkimageKey[]={"FUNCT", "KEYWORDS", "MAX_ARGS", "MIN_ARGS", KLISTEND};
+  const string linkimageKey[]={"FUNCT", "KEYWORDS", "MAX_ARGS", "MIN_ARGS", "DEFAULT", KLISTEND}; //DEFAULT is VMS obsolete
   new DLibPro( lib::linkimage, string("LINKIMAGE"), 4, linkimageKey, NULL, 2 );
   const string unlinkimageKey[]={"FORCE", KLISTEND};
   new DLibPro( lib::unlinkimage, string("UNLINKIMAGE"), 1, unlinkimageKey );
@@ -319,7 +319,9 @@ void LibInit_jmg()
   const string call_externalKey[] = {"VALUE", "ALL_VALUE", "RETURN_TYPE",
                "B_VALUE", "I_VALUE", "L_VALUE", "F_VALUE", "D_VALUE",
                "UI_VALUE", "UL_VALUE", "L64_VALUE", "UL64_VALUE", "S_VALUE",
-               "UNLOAD", "ALL_GDL", "STRUCT_ALIGN_BYTES", KLISTEND };
+               "UNLOAD", "ALL_GDL", "STRUCT_ALIGN_BYTES"
+    , "DEFAULT", "PORTABLE", "VAX_FLOAT" // obsoleted VMS
+    , KLISTEND };
   new DLibFunRetNew(lib::call_external, string("CALL_EXTERNAL"), -1, call_externalKey);
 
 // WIDGET_ functions
@@ -380,7 +382,10 @@ void LibInit_jmg()
   "X_BITMAP_EXTRA","DEFAULT_FONT","FONT","EDITABLE","BASE_SET_TITLE",KLISTEND};
   const string widget_WarnControlKey[] ={"SET_TREE_SELECT","SET_TREE_EXPANDED","SET_TREE_INDEX",
   "SET_TREE_BITMAP","DELAY_DESTROY",
-  "PUSHBUTTON_EVENTS","TABLE_BLANK","TAB_MODE","SET_TAB_MULTILINE","ICONIFY",KLISTEND}; //LIST NOT CLOSE!!!  
+  "PUSHBUTTON_EVENTS","TABLE_BLANK","TAB_MODE","SET_TAB_MULTILINE","ICONIFY"
+  ,"CANCEL_BUTTON" //obsoleted in 6.2
+  ,"DEFAULT_BUTTON" //obsoleted in 6.2
+    ,KLISTEND}; //LIST NOT CLOSE!!!  
   //IMPORTANT :   
   new DLibPro(lib::widget_control,string("WIDGET_CONTROL"),1, 
 	      widget_ControlKey,widget_WarnControlKey);
@@ -529,6 +534,7 @@ void LibInit_jmg()
   , "DROP_EVENTS"
   , "DRAGGABLE"
   , "INDEX"
+  , "TOP" //obsolete in 6.4, use INDEX=0 instead
   , KLISTEND}; 
   new DLibFunRetNew(lib::widget_tree,string("WIDGET_TREE"),1,widget_treeKey,widget_treeWarnKey);
 //TREE_MOVE  

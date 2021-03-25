@@ -617,6 +617,7 @@ public:
 
   virtual WidgetIDT GetChild( DLong) const {return NullID;}
   virtual DLong NChildren() const { return 0;}
+  DLong GetSibling();
   virtual DLongGDL* GetChildrenList() const {return new DLongGDL(0);}
   virtual void SetXmanagerActiveCommand() {}
   virtual bool GetXmanagerActiveCommand() const { return false;}
@@ -654,6 +655,7 @@ public:
   void SetManaged( bool manval){managed = manval;}
   virtual void SetSensitive( bool value);
   bool GetSensitive();
+  virtual DLong GetTheSibling(DLong){return 0;}
   virtual void SetFocus();
 
   int  GetExclusiveMode() const { return exclusiveMode;}
@@ -750,6 +752,20 @@ public:
     if (size<1) return new DLongGDL(0);
     DLongGDL* ret=new DLongGDL(dimension(size),BaseGDL::ZERO);
     for (SizeT i=0; i< size; ++i) (*ret)[i]=children[i];
+    return ret;   
+  }
+  //returns next in list or 0
+  DLong GetTheSibling(DLong childIx)
+  {
+    DLong size=children.size( );
+    if (size<1) return 0;
+    DLong ret=0;
+    for (int i=0; i< size-1; ++i) {
+     if (children[i] == childIx) {
+      ret=children[i+1];
+      break;
+     }
+    }
     return ret;   
   }
 };
@@ -1097,7 +1113,20 @@ public:
     for (SizeT i=0; i< size; ++i) (*ret)[i]=children[i];
     return ret;   
   }
-
+  //returns next in list or 0
+  DLong GetTheSibling(DLong childIx)
+  {
+    DLong size=children.size( );
+    if (size<1) return 0;
+    DLong ret=0;
+    for (int i=0; i< size-1; ++i) {
+     if (children[i] == childIx) {
+      ret=children[i+1];
+      break;
+     }
+    }
+    return ret;   
+  }
 
 };
 
@@ -1425,6 +1454,20 @@ public:
     for (SizeT i=0; i< size; ++i) (*ret)[i]=children[i];
     return ret;   
   } 
+  //returns next in list or 0
+  DLong GetTheSibling(DLong childIx)
+  {
+    DLong size=children.size( );
+    if (size<1) return 0;
+    DLong ret=0;
+    for (int i=0; i< size-1; ++i) {
+     if (children[i] == childIx) {
+      ret=children[i+1];
+      break;
+     }
+    }
+    return ret;   
+  }
   int GetChildrenPos(WidgetIDT c)
   {
     DLong size=children.size( );

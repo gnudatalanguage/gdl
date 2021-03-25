@@ -270,6 +270,7 @@ public:
   virtual bool GetWindowPosition(long& xpos, long& ypos ){return false;}
   virtual bool GetScreenResolution(double& resx, double& resy){return false;}
   virtual bool CursorStandard(int cursorNumber){return false;}
+  virtual bool CursorImage(char* v, int x, int y, char* m) {return false;}
   virtual void eop()          { plstream::eop();}
   virtual void SetDoubleBuffering() {}
   virtual void UnSetDoubleBuffering() {}

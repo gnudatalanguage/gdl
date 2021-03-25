@@ -85,7 +85,8 @@ pro MAKE_DLL, input_files, output_file, Exported_Routine_Names, $
               INPUT_DIRECTORY=INPUT_DIRECTORY, $
               NOCLEANUP=NOCLEANUP, OUTPUT_DIRECTORY=OUTPUT_DIRECTORY, $
               REUSE_EXISTING=REUSE_EXISTING, SHOW_ALL_OUTPUT=SHOW_ALL_OUTPUT, $
-              verbose=verbose, test=test, help=help, debug=debug
+              verbose=verbose, test=test, help=help, debug=debug,$
+              vax_float=zzz     ; vax_float is obsolete
 ;
 if KEYWORD_SET(help) then begin
    print, 'pro MAKE_DLL, input_files, output_file, Exported_Routine_Names, $'
