@@ -34,7 +34,9 @@
 ; LICENCE:
 ;       This code in under GNU GPL v2 or later
 ;
-pro DOC_LIBRARY, proc, directory=directory, print = print, test=test, nowait=nowait
+pro DOC_LIBRARY, proc, directory=directory, print = print, $
+                 test=test, nowait=nowait, $
+                 path=p, outputs=o , file=f ; those 3 are obsolete vms
 ;-
 
 if ~KEYWORD_SET(test) then ON_ERROR, 2

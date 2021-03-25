@@ -605,6 +605,7 @@ BaseGDL* widget_tree( EnvT* e)
   static int EXPANDED = e->KeywordIx( "EXPANDED" );
   static int FOLDER = e->KeywordIx( "FOLDER" );
   static int INDEX = e->KeywordIx( "INDEX" );
+  static int TOP = e->KeywordIx( "TOP" ); //obsoleted in 6.4 use INDEX=0
 //  static int MASK = e->KeywordIx( "MASK" );
 //  static int MULTIPLE = e->KeywordIx( "MULTIPLE" );
 //  static int NO_BITMAPS = e->KeywordIx( "NO_BITMAPS" );
@@ -616,7 +617,10 @@ BaseGDL* widget_tree( EnvT* e)
 //  bool alignTop = e->KeywordSet( ALIGN_TOP );
 //  bool checkbox = e->KeywordSet( CHECKBOX );
   DLong treeindex=-1;
-  if (e->KeywordPresent( INDEX )) e->AssureLongScalarKWIfPresent( INDEX, treeindex );
+  if (e->KeywordPresent( INDEX )) {
+    e->AssureLongScalarKWIfPresent( INDEX, treeindex );
+  } else if (e->KeywordSet( TOP )) { treeindex=0; }
+   
   DLong draggability=-1;
   if (e->KeywordPresent( DRAGGABLE )) e->AssureLongScalarKWIfPresent( DRAGGABLE, draggability );
   bool expanded = e->KeywordSet( EXPANDED );

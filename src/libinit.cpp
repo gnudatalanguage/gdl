@@ -92,7 +92,9 @@ void LibInit()
   const string restoreWarnKey[]={"NO_COMPILE", "RELAXED_STRUCTURE_ASSIGNMENT", "RESTORED_OBJECTS" , KLISTEND};
   new DLibPro(lib::gdl_restore,string("RESTORE"),1,restoreKey,restoreWarnKey);
   
-  const string saveKey[]={ "FILENAME","DESCRIPTION","VERBOSE","VARIABLES", "ALL", "COMM", "COMPRESS", "SYSTEM_VARIABLES",KLISTEND};
+  const string saveKey[]={ "FILENAME","DESCRIPTION","VERBOSE","VARIABLES", "ALL", "COMM", "COMPRESS", "SYSTEM_VARIABLES"
+    ,"XDR" //obsolete
+    ,KLISTEND};
   const string saveWarnKey[]={"EMBEDDED","ROUTINES", KLISTEND};
   new DLibPro(lib::gdl_save,string("SAVE"),-1,saveKey,saveWarnKey);
 
@@ -142,6 +144,7 @@ void LibInit()
 
 
   const string spawnKey[]={ "COUNT","EXIT_STATUS","NOSHELL","NULL_STDIN","PID","STDERR","UNIT", //All platforms
+  "FORCE", "MACCREATOR", "NOCLISYM", "NOLOGNAME", "NOTIFY", //obsoleted and silently ignored.  
 #ifdef _WIN32
 	  "HIDE", "LOG_OUTPUT", "NOWAIT",  KLISTEND};
 
@@ -162,6 +165,7 @@ void LibInit()
 			       "SWAP_IF_LITTLE_ENDIAN",
 			       "NTOHL","NTOHS","HTONL","HTONS",
 			       "FTOXDR","DTOXDR","XDRTOF","XDRTOD",
+             "DTOGFLOAT","GFLOATTOD", // obsoleted 2  keywords only on the VMS platform
 			       KLISTEND};
   new DLibPro(lib::byteorder,string("BYTEORDER"),-1,byteorderKey);
 
@@ -331,7 +335,7 @@ void LibInit()
   //implied print is a feature introduced in idl8.3 and shared by print/printf, string and fix(type=7)
   #define COMMONKEYWORDSFORSTRINGFORMATTING "FORMAT","AM_PM","DAYS_OF_WEEK","MONTHS"
   const string printKey[]={COMMONKEYWORDSFORSTRINGFORMATTING, "STDIO_NON_FINITE",KLISTEND};
-  const string impliedprintKey[]={COMMONKEYWORDSFORSTRINGFORMATTING, "STDIO_NON_FINITE","IMPLIED_PRINT",KLISTEND};
+  const string impliedprintKey[]={COMMONKEYWORDSFORSTRINGFORMATTING, "STDIO_NON_FINITE","IMPLIED_PRINT","REWRITE"/*obsoleted in 5.3*/,KLISTEND};
   //At the moment, print accepts silently "IMPLIED_PRINT" as this is used in autoprint feature.
   new DLibPro(lib::print,string("PRINT"),-1,impliedprintKey);
   //but PRINTF issues a warning, as it is not yet supported
@@ -341,7 +345,9 @@ void LibInit()
   // (easier to implement this way)
   new DLibPro(lib::stop,string("STOP"),-1,printKey); 
 
-  const string readKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"PROMPT",KLISTEND};
+  const string readKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"PROMPT"
+    ,"KEY_ID","KEY_MATCH","KEY_VALUE" //obsoleted in 5.3
+    ,KLISTEND};
   new DLibPro(lib::read,string("READ"),-1,readKey);
   new DLibPro(lib::readf,string("READF"),-1,readKey);
 
@@ -428,12 +434,15 @@ void LibInit()
 			  "SWAP_ENDIAN","SWAP_IF_BIG_ENDIAN",
 			  "SWAP_IF_LITTLE_ENDIAN" /*12*/,
 			  "VAX_FLOAT","WIDTH","XDR", "BLOCK",
-			  "NOAUTOMODE","BINARY","STREAM",
-			  KLISTEND};
-  const string openWarnKey[]={"INITIALSIZE","EXTENDSIZE",KLISTEND}; // VAX only
-  new DLibPro(lib::openr,string("OPENR"),3,openKey,openWarnKey);
-  new DLibPro(lib::openw,string("OPENW"),3,openKey,openWarnKey);
-  new DLibPro(lib::openu,string("OPENU"),3,openKey,openWarnKey);
+			  "NOAUTOMODE","BINARY"
+       ,"STREAM"// obsolete VMS only
+       ,"DEFAULT","INITIALSIZE","EXTENDSIZE","FIXED","FORTRAN"// obsolete VMS only
+       ,"KEYED","LIST","NONE","PRINT","SEGMENTED","SHARED","SUBMIT","SUPERSED"// obsolete VMS only
+       ,"TRUNCATE_ON_CLOSE","UDF_BLOCK","VARIABLE"// obsolete VMS only
+       ,KLISTEND};
+  new DLibPro(lib::openr,string("OPENR"),3,openKey); //3 as a third arg, "record_length", VMS only, was once possible.
+  new DLibPro(lib::openw,string("OPENW"),3,openKey);
+  new DLibPro(lib::openu,string("OPENU"),3,openKey);
   new DLibPro(lib::get_lun,string("GET_LUN"),1);
 
   const string socketKey[]={"ERROR","GET_LUN","STDIO",
@@ -454,9 +463,12 @@ void LibInit()
   const string free_lunWarnKey[]={"EXIT_STATUS",KLISTEND};
   new DLibPro(lib::free_lun,string("FREE_LUN"),-1,free_lunKey,free_lunWarnKey);
 
-  const string writeuKey[]={"TRANSFER_COUNT",KLISTEND};
+  const string writeuKey[]={"TRANSFER_COUNT","REWRITE"/*obsolete*/,KLISTEND};
+  const string readuKey[]={"TRANSFER_COUNT"
+    ,"KEY_ID", "KAY_MATCH", "KEY_VALUE" // obsoleted in 5.3
+    ,KLISTEND};
   new DLibPro(lib::writeu,string("WRITEU"),-1,writeuKey);
-  new DLibPro(lib::readu,string("READU"),-1,writeuKey);
+  new DLibPro(lib::readu,string("READU"),-1,readuKey);
 
   const string resolve_routineWarnKey[]={"SKIP_EXISTING",KLISTEND};
   const string resolve_routineKey[]={"NO_RECOMPILE","IS_FUNCTION","EITHER","COMPILE_FULL_FILE","QUIET",KLISTEND};
@@ -659,6 +671,7 @@ void LibInit()
   "BYPASS_TRANSLATION", //(WIN,X)
   "CMYK", //PS
   "DIRECT_COLOR", //X
+  "DEPTH", //VMS OBSOLETE
   //"EJECT", (HP)
   //"ENCODING", (CGM)
   "FLOYD", //(PCL,X)
