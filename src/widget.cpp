@@ -605,6 +605,7 @@ BaseGDL* widget_tree( EnvT* e)
   static int EXPANDED = e->KeywordIx( "EXPANDED" );
   static int FOLDER = e->KeywordIx( "FOLDER" );
   static int INDEX = e->KeywordIx( "INDEX" );
+  static int TOP = e->KeywordIx( "TOP" ); //obsoleted in 6.4 use INDEX=0
 //  static int MASK = e->KeywordIx( "MASK" );
 //  static int MULTIPLE = e->KeywordIx( "MULTIPLE" );
 //  static int NO_BITMAPS = e->KeywordIx( "NO_BITMAPS" );
@@ -616,7 +617,10 @@ BaseGDL* widget_tree( EnvT* e)
 //  bool alignTop = e->KeywordSet( ALIGN_TOP );
 //  bool checkbox = e->KeywordSet( CHECKBOX );
   DLong treeindex=-1;
-  if (e->KeywordPresent( INDEX )) e->AssureLongScalarKWIfPresent( INDEX, treeindex );
+  if (e->KeywordPresent( INDEX )) {
+    e->AssureLongScalarKWIfPresent( INDEX, treeindex );
+  } else if (e->KeywordSet( TOP )) { treeindex=0; }
+   
   DLong draggability=-1;
   if (e->KeywordPresent( DRAGGABLE )) e->AssureLongScalarKWIfPresent( DRAGGABLE, draggability );
   bool expanded = e->KeywordSet( EXPANDED );
@@ -1786,7 +1790,8 @@ BaseGDL* widget_info( EnvT* e ) {
 
   
   static int STRING_SIZE=e->KeywordIx("STRING_SIZE"); bool getStringSize=e->KeywordPresent(STRING_SIZE);
-    
+  static int SIBLING=e->KeywordIx("SIBLING"); bool sibling=e->KeywordPresent(SIBLING);
+
   //find a string, return a long
   if (findbyuname) {
     DStringGDL* myUname = e->GetKWAs<DStringGDL>(findbyunameIx);
@@ -1909,7 +1914,7 @@ BaseGDL* widget_info( EnvT* e ) {
 
   // returns a long where 0 is "no info"
   // PARENT, CHILD keyword
-  if ( child || parent || type || nchildren || sens) {
+  if ( child || parent || type || nchildren || sens || sibling ) {
     if ( rank == 0 ) {
       // Scalar Input
       WidgetIDT widgetID = (*p0L)[0];
@@ -1921,6 +1926,7 @@ BaseGDL* widget_info( EnvT* e ) {
         if (parent)  result = widget->GetParentID( ); //but parent is always defined...
         else if (type)  result = widget->GetWidgetType( ); 
         else if (sens)  result = widget->GetSensitive( ); 
+        else if (sibling)  result = widget->GetSibling( ); 
         else {
         if (child) {
             if (widget->IsContainer()) { DLong nchild = static_cast<GDLWidgetContainer*>(widget)->NChildren( ); 
@@ -1947,6 +1953,7 @@ BaseGDL* widget_info( EnvT* e ) {
           if (parent)  result = widget->GetParentID( ); //but parent is always defined...
           else if (type)  result = widget->GetWidgetType( );
           else if (sens)  result = widget->GetSensitive( ); 
+          else if (sibling)  result = widget->GetSibling( ); 
           else {
           if (child) {
               if (widget->IsContainer()) { DLong nchild = static_cast<GDLWidgetContainer*>(widget)->NChildren( ); 

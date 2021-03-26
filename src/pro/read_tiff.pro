@@ -5,9 +5,9 @@
 function READ_TIFF, filename, r, g, b, channels=channels, $
                     dot_range=dot_range, geotiff=geotiff, $
                     icc_profile=icc_profile, image_index=image_index, $
-                    interleave=interleave, orientation=orientation, $
+                    interleave=interleave, orientation=orientation, order=order, $ ; order is obsolete
                     photoshop=photoshop, planarconfig=planarconfig, $
-                    sub_rect=sub_rect, verbose=verbose
+                    sub_rect=sub_rect, verbose=verbose, unsigned=unsigned ; unsigned is obsolete
 
 
 compile_opt hidden, idl2
@@ -28,6 +28,9 @@ image = TIFF_READ(filename, red=r, green=g, blue=b, image_index=image_index, $
                   dot_range=dot_range, geotiff=geotiff, icc_profile=icc_profile, $
                   orientation=orientation, photoshop=photoshop, $
                   planarconfig=planarconfig, sub_rect=sub_rect, verbose=verbose)
+
+; in case obsoleted 'order' exists 
+order=orientation 
 
 dims = size(image, /dimensions)
 ndims = size(dims, /n_elements)
