@@ -49,10 +49,6 @@ jobs:
     steps:
       - name: Checkout GDL
         uses: actions/checkout@v2
-      - name: Link Cache Root
-        run: | 
-          mkdir -p ${{ runner.temp }}/cache
-          sudo mount --bind / ${{ runner.temp }}/cache
       - name: Cache Dependencies
         id: cache
         uses: actions/cache@v2
@@ -66,7 +62,7 @@ jobs:
           .ci/build_gdl.sh prep
           find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot2.txt
           echo "Setting up cache..."
-          sudo umount ${{ runner.temp }}/cache
+          mkdir -p ${{ runner.temp }}/cache
           for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
             rsync -aR ${fn} ${{ runner.temp }}/cache || true
           done
@@ -77,7 +73,7 @@ jobs:
           .ci/build_gdl.sh prep
           dpkg -l | grep ^ii | awk '{print $2}' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
-          sudo umount ${{ runner.temp }}/cache
+          mkdir -p ${{ runner.temp }}/cache
           for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
             for fn in $(dpkg -L ${package}); do
               if test -f $fn; then # file or symlink
@@ -92,13 +88,13 @@ jobs:
           for fn in ${ADDTIONAL_FILES[@]}; do
             rsync -aR ${fn} ${{ runner.temp }}/cache
           done
-      #- name: Restore cache
-      #  if: steps.cache.outputs.cache-hit == 'true'
-      #  run: |
-      #    cd ${{ runner.temp }}
-      #    for d in `ls cache`; do
-      #      sudo rsync -rt --links --no-t --inplace cache/$d/ /$d
-      #    done
+      - name: Restore cache
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: |
+          cd ${{ runner.temp }}
+          for d in `ls cache`; do
+            sudo rsync -rt --links --no-t --inplace cache/$d/ /$d
+          done
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
