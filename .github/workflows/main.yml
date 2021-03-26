@@ -50,7 +50,9 @@ jobs:
       - name: Checkout GDL
         uses: actions/checkout@v2
       - name: Link Cache Root
-        run: ln -s / ${{ runner.temp }}/cache
+        run: | 
+          mkdir -p ${{ runner.temp }}/cache
+          sudo mount --bind / ${{ runner.temp }}/cache
       - name: Cache Dependencies
         id: cache
         uses: actions/cache@v2
@@ -64,8 +66,7 @@ jobs:
           .ci/build_gdl.sh prep
           find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot2.txt
           echo "Setting up cache..."
-          rm -f ${{ runner.temp }}/cache
-          mkdir -p ${{ runner.temp }}/cache
+          sudo umount ${{ runner.temp }}/cache
           for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
             rsync -aR ${fn} ${{ runner.temp }}/cache || true
           done
@@ -76,8 +77,7 @@ jobs:
           .ci/build_gdl.sh prep
           dpkg -l | grep ^ii | awk '{print $2}' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
-          rm -f ${{ runner.temp }}/cache
-          mkdir -p ${{ runner.temp }}/cache
+          sudo umount ${{ runner.temp }}/cache
           for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
             for fn in $(dpkg -L ${package}); do
               if test -f $fn; then # file or symlink
