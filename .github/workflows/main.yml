@@ -33,7 +33,7 @@ jobs:
         if [[ '${{ github.ref }}' == *pull* ]]; then 
             matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full'], configuration: ['Release']}"
         else
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full', 'mini'], configuration: ['Release', 'Debug']}"
+            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full', 'mini'], configuration: ['Release', 'Debug'], include: {os: 'ubuntu-latest', deps: 'full', configuration: 'Debug', codecov: true}}"
         fi
         echo "::set-output name=matrix-others::$matrix"
   build-linux-macos:
@@ -95,6 +95,19 @@ jobs:
           for d in `ls cache`; do
             sudo rsync -rt --links --no-t --inplace cache/$d/ /$d
           done
+      - name: Prepare Codecov
+        if: matrix.codecov
+        run: |
+          sudo apt install -y lcov
+          wget -O CMakeModules/CodeCoverage.cmake https://raw.githubusercontent.com/bilke/cmake-modules/master/CodeCoverage.cmake
+          sed 's/--output-file ${Coverage_NAME}/--output-file ${PROJECT_BINARY_DIR}\/${Coverage_NAME}/g' CMakeModules/CodeCoverage.cmake
+          TMPFILE=`tempfile`
+          tac src/CMakeLists.txt > $TMPFILE
+          echo "set(CMAKE_CXX_FLAGS \${CMAKE_CXX_FLAGS_COVERAGE})" >> $TMPFILE
+          echo "INCLUDE(CodeCoverage)" >> $TMPFILE
+          tac $TMPFILE > src/CMakeLists.txt
+          rm $TMPFILE
+          echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} check)" >> testsuite/CMakeLists.txt
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
@@ -109,6 +122,9 @@ jobs:
       - name: Test GDL
         run: |
           .ci/build_gdl.sh check || exit 0
+      - name: Submit Codecov
+        if: matrix.codecov
+        run: bash <(curl -s https://codecov.io/bash) -f codecov.info
   build-windows:
     runs-on: windows-latest
     needs: prelude
