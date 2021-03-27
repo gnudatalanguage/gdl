@@ -33,7 +33,7 @@ jobs:
         if [[ '${{ github.ref }}' == *pull* ]]; then 
             matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full'], configuration: ['Release']}"
         else
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full', 'mini'], configuration: ['Release', 'Debug'], include: {os: 'ubuntu-latest', deps: 'full', configuration: 'Debug', codecov: true}}"
+            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full', 'mini'], configuration: ['Release', 'Debug'], include: [{os: 'ubuntu-latest', deps: 'full', configuration: 'Debug', codecov: true}]}"
         fi
         echo "::set-output name=matrix-others::$matrix"
   build-linux-macos:
