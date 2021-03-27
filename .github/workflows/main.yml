@@ -124,7 +124,7 @@ jobs:
           .ci/build_gdl.sh check || exit 0
       - name: Submit Codecov
         if: matrix.codecov
-        run: bash <(curl -s https://codecov.io/bash) -f codecov.info
+        run: bash <(curl -s https://codecov.io/bash) -f ../build/codecov.info
   build-windows:
     runs-on: windows-latest
     needs: prelude
