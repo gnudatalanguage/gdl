@@ -104,7 +104,7 @@ jobs:
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v2.2.1
         with:
-          path: gdl-*-${{ matrix.arch }}-${{ matrix.deps }}.zip
+          path: gdl-*-${{ matrix.deps }}.zip
       - name: Test GDL
         run: |
           .ci/build_gdl.sh check || exit 0
