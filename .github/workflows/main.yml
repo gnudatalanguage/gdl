@@ -98,6 +98,13 @@ jobs:
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
+      - name: Package GDL
+        run: |
+          .ci/build_gdl.sh prep_deploy
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v2.2.1
+        with:
+          path: gdl-*-${{ matrix.arch }}-${{ matrix.deps }}.zip
       - name: Test GDL
         run: |
           .ci/build_gdl.sh check || exit 0
@@ -198,7 +205,7 @@ jobs:
         uses: actions/upload-artifact@v2.2.1
         with:
           name: GDL (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
-          path: gdl-${{ matrix.arch }}-${{ matrix.deps }}.zip
+          path: gdl-*-${{ matrix.arch }}-${{ matrix.deps }}.zip
       - name: Test GDL
         shell: msys2 {0}
         run: |

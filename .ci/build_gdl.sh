@@ -340,26 +340,30 @@ function test_gdl {
 
 function pack_gdl {
     log "Packaging GDL..."
-    if [ $arch == "x86_64" ]; then
-        cd ${ROOT_DIR}
-        download_file "https://github.com/gnudatalanguage/gdlde/releases/download/${GDLDE_VERSION}/gdlde.product-win32.win32.x86_64.zip"
-        decompress_file -o -d gdlde
+    if [ ${BUILD_OS} == "Windows" ]; then
+        if [ $arch == "x86_64" ]; then
+            cd ${ROOT_DIR}
+            download_file "https://github.com/gnudatalanguage/gdlde/releases/download/${GDLDE_VERSION}/gdlde.product-win32.win32.x86_64.zip"
+            decompress_file -o -d gdlde
+        fi
+
+        mkdir -p ${ROOT_DIR}/package
+        cd ${ROOT_DIR}/package
+
+        export GDL_INSTALL_DIR=`cygpath -w ${ROOT_DIR}/install`
+        export GDL_VERSION=`grep -oP 'set\(VERSION "\K.+(?="\))' ${GDL_DIR}/CMakeLists.txt`
+        makensis -V3 ${GDL_DIR}/.ci/gdlsetup.nsi && mv ${GDL_DIR}/.ci/gdlsetup.exe .
     fi
-
-    mkdir -p ${ROOT_DIR}/package
-    cd ${ROOT_DIR}/package
-
-    export GDL_INSTALL_DIR=`cygpath -w ${ROOT_DIR}/install`
-    export GDL_VERSION=`grep -oP 'set\(VERSION "\K.+(?="\))' ${GDL_DIR}/CMakeLists.txt`
-    makensis -V3 ${GDL_DIR}/.ci/gdlsetup.nsi && mv ${GDL_DIR}/.ci/gdlsetup.exe .
 }
 
 function prep_deploy {
-    cd ${ROOT_DIR}/gdl
-    mv ../package/gdlsetup.exe gdlsetup-${arch}-${DEPS}.exe
+    if [ ${BUILD_OS} == "Windows" ]; then
+        cd ${ROOT_DIR}/gdl
+        mv ../package/gdlsetup.exe gdlsetup-${BUILD_OS}-${arch}-${DEPS}.exe
+    fi
     cd ${ROOT_DIR}/install
-    zip -qr ../gdl/gdl-${arch}-${DEPS}.zip *
-    cd ${ROOT_DIR}/gdl && ls *.zip *.exe
+    zip -qr ../gdl/gdl-${BUILD_OS}-${arch}-${DEPS}.zip *
+    cd ${ROOT_DIR}/gdl
 }
 
 AVAILABLE_OPTIONS="prep build check pack prep_deploy"
@@ -376,6 +380,8 @@ else
         if [ $optkey == "$1" ]; then
             if [ ${BUILD_OS} == "Windows" ]; then
                 find_architecture
+            else
+                export arch="x86_64"
             fi
             cmd=AVAILABLE_OPTIONS_$optkey
             eval ${!cmd}
