@@ -100,7 +100,7 @@ jobs:
         run: |
           sudo apt install -y lcov
           wget -O CMakeModules/CodeCoverage.cmake https://raw.githubusercontent.com/bilke/cmake-modules/master/CodeCoverage.cmake
-          sed 's/--output-file ${Coverage_NAME}/--output-file ${PROJECT_BINARY_DIR}\/${Coverage_NAME}/g' CMakeModules/CodeCoverage.cmake
+          sed -i 's/--output-file ${Coverage_NAME}/--output-file ${PROJECT_BINARY_DIR}\/${Coverage_NAME}/g' CMakeModules/CodeCoverage.cmake
           TMPFILE=`tempfile`
           tac src/CMakeLists.txt > $TMPFILE
           echo "set(CMAKE_CXX_FLAGS \${CMAKE_CXX_FLAGS_COVERAGE})" >> $TMPFILE
