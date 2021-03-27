@@ -166,7 +166,7 @@ jobs:
           pacman -Q | tr ' ' '-' | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
           ls ../MINGW-packages/mingw-w64-graphicsmagick/
-          mv ../MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-x86_64-graphicsmagick-*.tar.* /var/cache/pacman/pkg
+          mv ../MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-*-graphicsmagick-*.tar.* /var/cache/pacman/pkg
           pacman -Q | tr ' ' '-' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p /cache
