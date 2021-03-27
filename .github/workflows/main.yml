@@ -105,6 +105,7 @@ jobs:
         uses: actions/upload-artifact@v2.2.1
         with:
           path: gdl-*-${{ matrix.deps }}.zip
+          name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
       - name: Test GDL
         run: |
           .ci/build_gdl.sh check || exit 0
@@ -200,12 +201,12 @@ jobs:
         uses: actions/upload-artifact@v2.2.1
         with:
           name: GDL Installer (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
-          path: gdlsetup-${{ matrix.arch }}-${{ matrix.deps }}.exe
+          path: gdlsetup-*-${{ matrix.deps }}.exe
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v2.2.1
         with:
-          name: GDL (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
-          path: gdl-*-${{ matrix.arch }}-${{ matrix.deps }}.zip
+          name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
+          path: gdl-*-${{ matrix.deps }}.zip
       - name: Test GDL
         shell: msys2 {0}
         run: |
