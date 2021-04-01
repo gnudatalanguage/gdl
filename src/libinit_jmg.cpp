@@ -36,6 +36,8 @@
 #include "basic_pro_jmg.hpp"
 
 #include "gsl_fun.hpp"
+#include "interpolate.hpp"
+#include "interpol.hpp"
 #include "image.hpp"
 #include "plotting.hpp"
 #include "projections.hpp"
@@ -132,8 +134,11 @@ void LibInit_jmg()
 			       "LOCATIONS","NAN",KLISTEND};
   const string histogramWarnKey[]={"L64",KLISTEND};
   new DLibFunRetNew(lib::histogram_fun,string("HISTOGRAM"),1,histogramKey,histogramWarnKey);
-
+  const string interpolKey[]={ "LSQUADRATIC","NAN", "QUADRATIC", "SPLINE" ,KLISTEND};
+  
+  new DLibFunRetNew(lib::interpol_fun,string("INTERPOL"),3,interpolKey);
   const string interpolateKey[]={"CUBIC","DOUBLE","GRID","MISSING","NEAREST_NEIGHBOUR",KLISTEND};
+  
   new DLibFunRetNew(lib::interpolate_fun,string("INTERPOLATE"),4,interpolateKey);
 
   const string la_triredKey[]={"DOUBLE","UPPER",KLISTEND};

@@ -58,10 +58,6 @@
 #include "grib.hpp"
 #include "semshm.hpp"
 
-// for extensions
-#include "new.hpp"
-
-
 using namespace std;
 
 // declare here other library init functions
