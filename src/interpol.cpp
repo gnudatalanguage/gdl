@@ -38,9 +38,9 @@ inline double linConv(double d, double x0, double x1) {
 typedef struct {
     const char* name;
     unsigned int min_size;
-    void* (*alloc)(size_t size);
-    int (*init)(void*, const double xa[], const double ta[], size_t xsize);
-    int (*eval)(const void*, const double xa[], const double ta[], size_t xsize, double x, gsl_interp_accel*, double* t);
+    void* (*alloc)(ssize_t size);
+    int (*init)(void*, const double xa[], const double ta[], ssize_t xsize);
+    int (*eval)(const void*, const double xa[], const double ta[], ssize_t xsize, double x, gsl_interp_accel*, ssize_t *lastval, double* lastCoefs, double *t);
     void (*free)(void*);
   } gdl_interpol_type;
  
@@ -48,15 +48,17 @@ typedef struct {
     const gdl_interpol_type* type;
     double xmin;
     double xmax;
-    size_t xsize;
+    ssize_t xsize;
     void* state;
+    ssize_t * lastval;
+    double * lastCoefs; //if last index is same, use last coefs
   } gdl_interpol; 
   
-size_t gdl_interpol_type_min_size(const gdl_interpol_type* T) {
+ssize_t gdl_interpol_type_min_size(const gdl_interpol_type* T) {
     return T->min_size;
 }
 
-size_t gdl_interpol_min_size(const gdl_interpol* interp) {
+ssize_t gdl_interpol_min_size(const gdl_interpol* interp) {
   return interp->type->min_size;
 }
 
@@ -66,12 +68,11 @@ const char* gdl_interpol_name(const gdl_interpol* interp) {
 
 GSL_VAR const gdl_interpol_type* gdl_interpol_linear;
 GSL_VAR const gdl_interpol_type* gdl_interpol_quadratic;
-//GSL_VAR const gdl_interpol_type* gdl_interpol_lsquadratic;
-//GSL_VAR const gdl_interpol_type* gdl_interpol_spline;
+GSL_VAR const gdl_interpol_type* gdl_interpol_spline;
 
 double gdl_interpol_eval(const gdl_interpol* interp, const double xarr[], const double tarr[], const double x, gsl_interp_accel* xa);
 
-gdl_interpol* gdl_interpol_alloc(const gdl_interpol_type* T, size_t xsize) {
+gdl_interpol* gdl_interpol_alloc(const gdl_interpol_type* T, ssize_t xsize) {
     gdl_interpol* interp;
     interp = (gdl_interpol*) malloc(sizeof (gdl_interpol));
     if (interp == NULL) {
@@ -91,8 +92,8 @@ gdl_interpol* gdl_interpol_alloc(const gdl_interpol_type* T, size_t xsize) {
     return interp;
   }
 
-  int gdl_interpol_init(gdl_interpol* interp, const double xarr[], const double tarr[], size_t xsize) {
-    size_t i;
+  int gdl_interpol_init(gdl_interpol* interp, const double xarr[], const double tarr[], ssize_t xsize) {
+    ssize_t i;
     if (xsize != interp->xsize) {
       GSL_ERROR("data must match size of interpolation object", GSL_EINVAL);
     }
@@ -106,6 +107,10 @@ gdl_interpol* gdl_interpol_alloc(const gdl_interpol_type* T, size_t xsize) {
     interp->xmin = xarr[0];
     interp->xmax = xarr[xsize - 1];
     int status = interp->type->init(interp->state, xarr, tarr, xsize);
+    //allocate lastCoefs and set lastval to -1:
+    interp->lastval=(ssize_t*)malloc(1*sizeof(ssize_t));
+    interp->lastval[0]=-1;
+    interp->lastCoefs=(double*)malloc(2*interp->type->min_size*sizeof(double));
     return status;
   }
   void gdl_interpol_free(gdl_interpol* interp) {
@@ -115,6 +120,8 @@ gdl_interpol* gdl_interpol_alloc(const gdl_interpol_type* T, size_t xsize) {
     if (interp->type->free) {
       interp->type->free(interp->state);
     }
+    free(interp->lastval);
+    free(interp->lastCoefs);
     free(interp);
   }
   
@@ -122,55 +129,49 @@ gdl_interpol* gdl_interpol_alloc(const gdl_interpol_type* T, size_t xsize) {
     double xx, t;
     xx = x;
     int status;
-    status = interp->type->eval(interp->state, xarr, tarr, interp->xsize, xx, xa, &t);
+    status = interp->type->eval(interp->state, xarr, tarr, interp->xsize, xx, xa, interp->lastval, interp->lastCoefs, &t);
     if ((status) != GSL_SUCCESS) GSL_ERROR_VAL("interpolation error", (status), GSL_NAN);
 
     return t;
   }
-  static int linear_init(void* state, const double xa[], const double ta[], size_t xsize) {
+  static int linear_init(void* state, const double xa[], const double ta[], ssize_t xsize) {
     return GSL_SUCCESS;
   }
-  static int quadratic_init(void* state, const double xa[], const double ta[], size_t xsize) {
-    return GSL_SUCCESS;
-  }  
-  static int linear_eval(const void* state, const double xarr[], const double tarr[], size_t xsize, double x, gsl_interp_accel* xa, double* t) {
-    double xmin, xmax;
-    double dx;
-    double u;
-    size_t xi, xp;
-    double kern[2];
-    xi = gsl_interp_accel_find(xa, xarr, xsize, x);//xa must be ALWAYS defined for GDL
-    xp = (xi + 1 < xsize) ? xi + 1 : xi;
-
-    kern[0] = tarr[xi];
-    kern[1] = tarr[xp];
-
-    xmin = xarr[xi];
-    xmax = xarr[xp];
-    dx = xmax - xmin;
-    u = (dx > 0.0) ? (x - xmin) / dx : 0.0;
-
-    *t = linConv(u, kern[0], kern[1]);
-
+  static int quadratic_init(void* state, const double xa[], const double ta[], ssize_t xsize) {
     return GSL_SUCCESS;
   }
-    static int quadratic_eval(const void* state, const double xarr[], const double tarr[], size_t xsize, double x, gsl_interp_accel* xa, double* t) {
-    double x0, x1, x2;
-    double y0, y1, y2;
-    size_t xi, xp, xm;
-    xi = gsl_interp_accel_find(xa, xarr, xsize, x);//xa must be ALWAYS defined for GDL
-    xp = (xi + 1 < xsize) ? xi + 1 : xi;
-    xm = (xi > 0) ? xi - 1 : xi;
 
-    y0 = tarr[xm];
-    y1 = tarr[xi];
-    y2 = tarr[xp];
+  static int linear_eval(const void* state, const double xarr[], const double tarr[], ssize_t xsize, double x, gsl_interp_accel* xa, ssize_t* lastval, double* C, double *t) {
+    ssize_t xi = gsl_interp_accel_find(xa, xarr, xsize, x); //xa must be ALWAYS defined for GDL
+    if (xi != *lastval) {
+      *lastval = xi;
+      ssize_t xp = (xi + 1 < xsize) ? xi + 1 : xi;
+      C[0] = tarr[xi];
+      C[1] = tarr[xp];
+      C[2] = xarr[xi];
+      C[3] = xarr[xp]-xarr[xi];
+    }
+    double u = (C[3] > 0.0) ? (x - C[2]) / C[3] : 0.0;
+    *t = linConv(u, C[0], C[1]);
+    return GSL_SUCCESS;
+  }
 
-    x0 = xarr[xm];
-    x1 = xarr[xi];
-    x2 = xarr[xp];
-    *t = (y0 * (x-x1) * (x-x2) / ((x0-x1) * (x0-x2))) + (y1 * (x-x0) * (x-x2) / ((x1-x0) * (x1-x2)))+ (y2 * (x-x0) * (x-x1) / ((x2-x0) * (x2-x1)));
-
+  static int quadratic_eval(const void* state, const double xarr[], const double tarr[], ssize_t xsize, double x, gsl_interp_accel* xa, ssize_t* lastval, double* C, double *t) {
+    ssize_t xi = gsl_interp_accel_find(xa, xarr, xsize, x);//xa must be ALWAYS defined for GDL
+    if (xi != *lastval) {
+      *lastval = xi;
+      ssize_t xp, xm;
+      if ( xi+1 >= xsize ) { xp = xsize-1; xi = xsize-2; xm=xsize-3;}
+      else if ( xi-1 < 0 ) { xm = 0; xi = 1; xp=2; }
+      else { xm=xi-1; xp=xi+1;}
+      C[3] = tarr[xm];
+      C[4] = tarr[xi];
+      C[5] = tarr[xp];
+      C[0] = xarr[xm];
+      C[1] = xarr[xi];
+      C[2] = xarr[xp];
+    }
+    *t = (C[3] * (x-C[1]) * (x-C[2]) / ((C[0]-C[1]) * (C[0]-C[2]))) + (C[4] * (x-C[0]) * (x-C[2]) / ((C[1]-C[0]) * (C[1]-C[2])))+ (C[5] * (x-C[0]) * (x-C[1]) / ((C[2]-C[0]) * (C[2]-C[1])));
     return GSL_SUCCESS;
   }
     
@@ -189,10 +190,102 @@ gdl_interpol* gdl_interpol_alloc(const gdl_interpol_type* T, size_t xsize) {
     &quadratic_init,
     &quadratic_eval
   };
-  
+
  const gdl_interpol_type* gdl_interpol_linear = &linear_type; 
- const gdl_interpol_type* gdl_interpol_quadratic = &quadratic_type; 
-  
+ const gdl_interpol_type* gdl_interpol_quadratic = &quadratic_type;
+ 
+#if defined(USE_EIGEN)
+ GSL_VAR const gdl_interpol_type* gdl_interpol_lsquadratic;
+ static int lsquadratic_init(void* state, const double xa[], const double ta[], ssize_t xsize) {
+    return GSL_SUCCESS;
+  }
+
+#include <Eigen/LU>
+#include <Eigen/Eigenvalues>
+#include <Eigen/Core>
+ //no need to use another complicated general GSL solution -- just the same as IDL's procedure.
+  static int lsquadratic_eval(const void* state, const double xarr[], const double tarr[], ssize_t xsize, double pos, gsl_interp_accel* xa, ssize_t* lastval, double* C, double *t) {
+    ssize_t xi = gsl_interp_accel_find(xa, xarr, xsize, pos);//xa must be ALWAYS defined for GDL
+    if (xi != *lastval) {
+      *lastval = xi;
+      ssize_t x[4];
+      //make in range
+      if ( xi+2 >= xsize ) {  x[0]=xsize-4;  x[1]=xsize-3;  x[2] = xsize-2; x[3] = xsize-1;}
+      else if ( xi-1 < 0 ) { x[0] = 0; x[1] = 1; x[2]=2; x[3]=3;}
+      else { x[0]=xi-1; x[1]= xi; x[2]=xi+1; x[3]=xi+2;}
+     // least_square fit of a 2nd degree polynomial on these 4 points:
+      double matrix[]={xarr[x[0]]*xarr[x[0]],xarr[x[0]],1.0,xarr[x[1]]*xarr[x[1]],xarr[x[1]],
+      1.0,xarr[x[2]]*xarr[x[2]],xarr[x[2]],1.0,xarr[x[3]]*xarr[x[3]],xarr[x[3]],1.0};
+      Eigen::MatrixXd A(4,3) ; //<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > A(matrix, 3,4);
+      for (int i=0; i< 3; ++i) for (int j=0; j<4; ++j) A(j,i)=matrix[j*3+i];
+      Eigen::Vector4d b(tarr[x[0]],tarr[x[1]],tarr[x[2]],tarr[x[3]]);
+      Eigen::MatrixXd r=(A.transpose() * A).ldlt().solve(A.transpose() * b);
+      C[0] = r.coeff(0);
+      C[1] = r.coeff(1);
+      C[2] = r.coeff(2);
+    }
+   *t= C[2] + C[1]* pos + C[0] * pos*pos;
+   return GSL_SUCCESS;
+  }
+  static const gdl_interpol_type lsquadratic_type = {
+    "lsquadratic",
+    4,
+    NULL,
+    &lsquadratic_init,
+    &lsquadratic_eval
+  }; 
+ const gdl_interpol_type* gdl_interpol_lsquadratic = &lsquadratic_type; 
+#endif
+ 
+  static int spline_init(void* state, const double xa[], const double ta[], ssize_t xsize) {
+    return GSL_SUCCESS;
+  }
+  static int spline_eval(const void* state, const double xarr[], const double tarr[], ssize_t xsize, double pos, gsl_interp_accel* xa, ssize_t* lastval, double* C, double *t) {
+    static DIntGDL One=DIntGDL(1);
+    ssize_t xi = gsl_interp_accel_find(xa, xarr, xsize, pos);//xa must be ALWAYS defined for GDL
+//    if (xi != *lastval) {
+      DDoubleGDL* P=new DDoubleGDL(pos);
+      DDoubleGDL* X;
+      DDoubleGDL* Y;
+      
+      *lastval = xi;
+      ssize_t x[4];
+      //make in range
+      if ( xi+2 >= xsize ) {  x[0]=xsize-4;  x[1]=xsize-3;  x[2] = xsize-2; x[3] = xsize-1;}
+      else if ( xi-1 < 0 ) { x[0] = 0; x[1] = 1; x[2]=2; x[3]=3;}
+      else { x[0]=xi-1; x[1]= xi; x[2]=xi+1; x[3]=xi+2;}
+      C[0]=xarr[x[0]];C[1]=xarr[x[1]];C[2]=xarr[x[2]];C[3]=xarr[x[3]];
+      C[4]=tarr[x[0]];C[5]=tarr[x[1]];C[6]=tarr[x[2]];C[7]=tarr[x[3]];
+      X=new DDoubleGDL(dimension(4),BaseGDL::NOZERO); for(int i=0; i<4; ++i) (*X)[i]=C[i];
+      Y=new DDoubleGDL(dimension(4),BaseGDL::NOZERO); for(int i=0; i<4; ++i) (*Y)[i]=C[i+4]; 
+
+      static int splinitIx = LibFunIx( "SPL_INIT" );
+      EnvT* newEnv = new EnvT(NULL, libFunList[ splinitIx]);
+      newEnv->SetNextPar( X ); // pass as local
+      newEnv->SetNextPar( Y ); // pass as local
+      newEnv->SetKeyword("DOUBLE",&One);
+      DDoubleGDL* Q = static_cast<DDoubleGDL*>(static_cast<DLibFun*>(newEnv->GetPro())->Fun()(static_cast<EnvT*>(newEnv)));
+
+      static int splinterpIx = LibFunIx( "SPL_INTERP" );
+      EnvT* newEnv1 = new EnvT(NULL, libFunList[ splinterpIx]);
+      newEnv1->SetNextPar( X ); // pass as local
+      newEnv1->SetNextPar( Y ); // pass as local
+      newEnv1->SetNextPar( Q ); // pass as local
+      newEnv1->SetNextPar( P ); // pass as local
+      newEnv1->SetKeyword("DOUBLE",&One);
+      DDoubleGDL* res =static_cast<DDoubleGDL*>( static_cast<DLibFun*>(newEnv1->GetPro())->Fun()(static_cast<EnvT*>(newEnv1)));
+      *t=(*res)[0];
+    return GSL_SUCCESS;
+  }
+  static const gdl_interpol_type spline_type = {
+    "spline",
+    4,
+    NULL,
+    &spline_init,
+    &spline_eval
+  }; 
+ const gdl_interpol_type* gdl_interpol_spline = &spline_type; 
+ 
 namespace lib {
   
   BaseGDL* interpol_fun(EnvT* e){
@@ -202,11 +295,15 @@ namespace lib {
     const gdl_interpol_type* interpol=gdl_interpol_linear;
     // options
     static int LSQUADRATIC = e->KeywordIx("LSQUADRATIC");
-//    if (e->KeywordSet(LSQUADRATIC)) interpol=gdl_interpol_lsquadratic;
+#if defined(USE_EIGEN)
+    if (e->KeywordSet(LSQUADRATIC)) interpol=gdl_interpol_lsquadratic;
+#else
+    if (e->KeywordSet(LSQUADRATIC)) interpol=gdl_interpol_quadratic;
+#endif
     static int QUADRATIC = e->KeywordIx("QUADRATIC");
     if (e->KeywordSet(QUADRATIC)) interpol=gdl_interpol_quadratic;
     static int SPLINE = e->KeywordIx("SPLINE");
-//    if (e->KeywordSet(SPLINE)) interpol=gdl_interpol_spline;
+    if (e->KeywordSet(SPLINE)) interpol=gdl_interpol_spline;
     static int NANIx = e->KeywordIx("NAN");
     bool noNan=e->KeywordSet(NANIx);
     unsigned int nmin=gdl_interpol_type_min_size(interpol);
@@ -270,167 +367,5 @@ namespace lib {
       GDLDelete(res);
       return resf;
     }
-//
-//
-//      //think about boundaries...
-//      DLong minEl, maxEl;
-//      X->MinMax( &minEl, &maxEl, NULL, NULL, true);
-//      DDouble minX=(*X)[minEl];
-//      DDouble maxX=(*X)[maxEl];
-//      //trouble if values are asked at position that X does not sample: gsl will hang on an error. IDL is way cooler.
-//      Xout->MinMax( &minEl, &maxEl, NULL, NULL, true);
-//      DDouble minXout=(*Xout)[minEl];
-//      DDouble maxXout=(*Xout)[maxEl];
-//      bool good=((( minXout >= minX) && (minXout <= maxX)) && ((maxXout >= minX) && (maxXout <= maxX)));
-//      if (good) {
-//        for (SizeT i = 0; i < n2; ++i) {
-//          (*res)[i] = gsl_interp_eval(myinterp, (const double*) X->DataAddr(), (const double*) V->DataAddr(), (*Xout)[i], acc);
-//        }
-//      } else {
-//        for (SizeT i = 0; i < n2; ++i) {
-//          DDouble pos = (*Xout)[i];
-//          if ((pos >= minX) && (pos <= maxX)) { //still good
-//            (*res)[i] = gsl_interp_eval(myinterp, (const double*) X->DataAddr(), (const double*) V->DataAddr(), pos, acc);
-//          } else {
-//            if (interpol == gsl_interp_linear) {
-//                double  xb0 = (*X)[0];
-//                double  yb0 = (*V)[0];
-//                double ybinc = (*V)[1]-yb0;
-//                double dbx = (*X)[1] - xb0;
-//                double  xe0 = (*X)[nV-1];
-//                double  ye0 = (*V)[nV-1];
-//                double yeinc = (*V)[nV-2]-ye0;
-//                double dex = (*X)[nV-2] - xe0;
-//                if (pos < minX) {
-//                  (*res)[i]=yb0 + (pos - xb0) / dbx * ybinc;
-//              } else {
-//                  (*res)[i]=ye0 + (pos - xe0) / dex * yeinc;
-//              }
-//            }
-//          }
-//        }
-//      }
-
   }
-
-//    BaseGDL* interpol_fun(EnvT* e){
-//    SizeT nParam = e->NParam();
-//    if (nParam < 2 || nParam > 3) e->Throw("Incorrect number of arguments.");
-//
-//    const gdl_interp_type* interp=gdl_interp_linear;
-//    // options
-////    static int LSQUADRATIC = e->KeywordIx("LSQUADRATIC");
-////    if (e->KeywordSet(LSQUADRATIC)) interp=gsl_interp_polynomial;
-////    static int QUADRATIC = e->KeywordIx("QUADRATIC");
-////    if (e->KeywordSet(QUADRATIC)) interp=gsl_interp_polynomial;
-////    static int SPLINE = e->KeywordIx("SPLINE");
-////    if (e->KeywordSet(SPLINE)) interp=gsl_interp_cspline;
-//    static int NANIx = e->KeywordIx("NAN");
-//    bool noNan=e->KeywordSet(NANIx);
-//    unsigned int nmin=dll_interp_type_min_size(interp);
-//    
-//    //dimensions
-//    BaseGDL* p0 = e->GetParDefined(0);
-//    DType type=p0->Type();
-//    SizeT nx=p0->N_Elements();
-//    if (nx <nmin) e->Throw("V has too few elements for this kind of interpolation.");
-//    DDoubleGDL* V=e->GetParAs<DDoubleGDL>(0);
-//      if (nParam==2) {
-////      BaseGDL* p1 = e->GetParDefined(1);
-////      if (p1->N_Elements() >1) e->Throw("N must be one positive integer");
-////      DLongGDL* n1gdl=e->GetParAs<DLongGDL>(1);
-////      DLong n=(*n1gdl)[0];
-////      if (n < 1) e->Throw("N must be one positive integer");
-////
-////      DDoubleGDL* X=new DDoubleGDL(dimension(nx),BaseGDL::INDGEN); Guard<BaseGDL> guardX;guardX.Reset(X);
-////      //alloc interpolant object
-////      gsl_interp * myinterp=gsl_interp_alloc (interp,nx);
-////      //init source arrays 
-////      int status=gsl_interp_init (myinterp, (const double*)X->DataAddr(), (const double*)V->DataAddr() , nx);
-////      //acceleration
-////      gsl_interp_accel * acc=gsl_interp_accel_alloc ();
-////      //allocate result
-////      DDoubleGDL* res=new DDoubleGDL(n,BaseGDL::NOZERO);
-////      for (SizeT i=0; i< n; ++i) {
-////        double x = i*(nx-1)/(n-1);
-////       (*res)[i]=gsl_interp_eval(myinterp, (const double*)X->DataAddr() , (const double*) V->DataAddr(), x, acc);
-////      }
-////      gsl_interp_accel_free(acc);
-////      gsl_interp_free(myinterp);
-////      if (p0->Type() == GDL_DOUBLE) return res;
-////      else {
-////        BaseGDL* resf=res->Convert2(GDL_FLOAT, BaseGDL::COPY);
-////        GDLDelete(res);
-////        return resf;
-////      }
-//    } else {
-//      BaseGDL* p1 = e->GetParDefined(1);
-//      if (p1->N_Elements() != nx) e->Throw("V and X arrays must have same # of elements");
-//      DDoubleGDL* X=e->GetParAs<DDoubleGDL>(1);
-//      BaseGDL* p2 = e->GetParDefined(2);
-//      SizeT n2=p2->N_Elements();
-//      DType t = (DTypeOrder[ p0->Type()] > DTypeOrder[ p1->Type()]) ? p0->Type() : p1->Type();
-//      t=(DTypeOrder[t] > DTypeOrder[ p2->Type()]) ? t : p2->Type();
-//      DDoubleGDL* Xout=e->GetParAs<DDoubleGDL>(2);
-//     //alloc interpolant object
-//      gsl_interp * myinterp=gdl_interp_alloc (interp,nx);
-//      //init source arrays 
-//      int status=gdl_interp_init (myinterp, (const double*)X->DataAddr(), (const double*)V->DataAddr() , nx);
-//      //acceleration
-//      gdl_interp_accel * acc=gsl_interp_accel_alloc ();
-//      //allocate result
-//      DDoubleGDL* res=new DDoubleGDL(n2,BaseGDL::NOZERO);
-//      //think about boundaries...
-//      DLong minEl, maxEl;
-//      X->MinMax( &minEl, &maxEl, NULL, NULL, true);
-//      DDouble minX=(*X)[minEl];
-//      DDouble maxX=(*X)[maxEl];
-//      //trouble if values are asked at position that X does not sample: gsl will hang on an error. IDL is way cooler.
-//      Xout->MinMax( &minEl, &maxEl, NULL, NULL, true);
-//      DDouble minXout=(*Xout)[minEl];
-//      DDouble maxXout=(*Xout)[maxEl];
-////      bool good=((( minXout >= minX) && (minXout <= maxX)) && ((maxXout >= minX) && (maxXout <= maxX)));
-////      if (good) {
-//////          res=interpolate_1dim(e,gdl_interp1d_linear,V,X,false,0.0,0.0);
-////
-////        for (SizeT i = 0; i < n2; ++i) {
-////          (*res)[i] = gsl_interp_eval(myinterp, (const double*) X->DataAddr(), (const double*) V->DataAddr(), (*Xout)[i], acc);
-////        }
-////      } else {
-//        for (SizeT i = 0; i < n2; ++i) {
-//          DDouble pos = (*Xout)[i];
-//          if ((pos >= minX) && (pos <= maxX)) { //still good
-//            (*res)[i] = gsl_interp_eval(myinterp, (const double*) X->DataAddr(), (const double*) V->DataAddr(), pos, acc);
-//          } else {
-//            if (interp == gsl_interp_linear) {
-//                double  xb0 = (*X)[0];
-//                double  yb0 = (*V)[0];
-//                double ybinc = (*V)[1]-yb0;
-//                double dbx = (*X)[1] - xb0;
-//                double  xe0 = (*X)[nx-1];
-//                double  ye0 = (*V)[nx-1];
-//                double yeinc = (*V)[nx-2]-ye0;
-//                double dex = (*X)[nx-2] - xe0;
-//                if (pos < minX) {
-//                  (*res)[i]=yb0 + (pos - xb0) / dbx * ybinc;
-//              } else {
-//                  (*res)[i]=ye0 + (pos - xe0) / dex * yeinc;
-//              }
-//            }
-//          }
-////        }
-//      }
-//      gsl_interp_accel_free(acc);
-//      gsl_interp_free(myinterp);
-//      if (t == GDL_DOUBLE) return res;
-//      else {
-//        BaseGDL* resf=res->Convert2(t, BaseGDL::COPY);
-//        GDLDelete(res);
-//        return resf;
-//      }
-//    }
-//    e->Throw("Impossible.");
-//    return NULL;
-//  }
-
 }
