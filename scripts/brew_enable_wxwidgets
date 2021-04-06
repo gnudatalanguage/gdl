@@ -1,7 +1,6 @@
 BREW_INSTALL=`brew config | grep HOMEBREW_PREFIX| cut -d' ' -f2`
 FORMULA=$BREW_INSTALL/Homebrew/Library/Taps/homebrew/homebrew-core/Formula/plplot.rb
-sed -i old -e 's%_wxwidgets=OFF%_wxwidgets=ON%g' $FORMULA
-cat $FORMULA
-wx-config --cppflags 
+sed -i old -e 's%_wxwidgets=OFF%_wxwidgets=ON%g' -e 's%depends_on "pango"%&\
+  depends_on "wxmac"%' $FORMULA
+#cat $FORMULA
 brew reinstall --build-from-source plplot
-

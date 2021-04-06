@@ -2,30 +2,135 @@ name: build
 
 on:
   push:
+    branches:
+      - master
   pull_request:
   workflow_dispatch:
 
+# Tip: Use this action to debug with SSH.
+#      - name: Setup upterm session
+#        uses: lhotari/action-upterm@v1
+ 
 jobs:
   prelude:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix-windows: ${{ steps.set-matrix-windows.outputs.matrix-windows }}
+      matrix-others: ${{ steps.set-matrix-others.outputs.matrix-others }}
     steps:
-    - name: Create Build Matrix
-      id: set-matrix
+    - name: Create Build Matrix (Windows)
+      id: set-matrix-windows
       run: |
         if [[ '${{ github.ref }}' == *pull* ]]; then 
             matrix="{deps: ['full'], arch: ['x86_64'], configuration: ['Release']}"
         else
             matrix="{deps: ['full-msmpi', 'full', 'mini'], arch: ['x86_64', 'i686'], configuration: ['Release', 'Debug']}"
         fi
-        echo "::set-output name=matrix::$matrix"
-  build:
+        echo "::set-output name=matrix-windows::$matrix"
+    - name: Create Build Matrix (Linux/macOS)
+      id: set-matrix-others
+      run: |
+        if [[ '${{ github.ref }}' == *pull* ]]; then 
+            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full'], configuration: ['Release']}"
+        else
+            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full', 'mini'], configuration: ['Release', 'Debug'], include: [{os: 'ubuntu-latest', deps: 'full', configuration: 'Debug', codecov: true}]}"
+        fi
+        echo "::set-output name=matrix-others::$matrix"
+  build-linux-macos:
+    runs-on: ${{ matrix.os }}
+    needs: prelude
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prelude.outputs.matrix-others) }}
+    env:
+      DEPS: ${{ matrix.deps }}
+      Configuration: ${{ matrix.configuration }}
+      ROOT_DIR: ${{ github.workspace }}/..
+    steps:
+      - name: Checkout GDL
+        uses: actions/checkout@v2
+      - name: Cache Dependencies
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ runner.temp }}/cache
+          key: cache-gdl-deps-${{ matrix.os }}
+      - name: Install Dependencies (macOS, Homebrew)
+        if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
+        run: |
+          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot1.txt
+          .ci/build_gdl.sh prep
+          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot2.txt
+          echo "Setting up cache..."
+          mkdir -p ${{ runner.temp }}/cache
+          for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
+            rsync -aR ${fn} ${{ runner.temp }}/cache || true
+          done
+      - name: Install Dependencies (Linux, Apt)
+        if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
+        run: |
+          dpkg -l | grep ^ii | awk '{print $2}' | sort > ~/snapshot1.txt
+          .ci/build_gdl.sh prep
+          dpkg -l | grep ^ii | awk '{print $2}' | sort > ~/snapshot2.txt
+          echo "Setting up cache..."
+          mkdir -p ${{ runner.temp }}/cache
+          for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
+            for fn in $(dpkg -L ${package}); do
+              if test -f $fn; then # file or symlink
+                rsync -aR ${fn} ${{ runner.temp }}/cache
+              fi
+            done
+          done
+          ADDTIONAL_FILES=( /usr/bin/wx-config
+                            $(readlink /usr/bin/wx-config)
+                            $(find /usr/bin/mpi*)
+                            $(find /etc/alternatives/mpi*) )
+          for fn in ${ADDTIONAL_FILES[@]}; do
+            rsync -aR ${fn} ${{ runner.temp }}/cache
+          done
+      - name: Restore cache
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: |
+          cd ${{ runner.temp }}
+          for d in `ls cache`; do
+            sudo rsync -rt --links --no-t --inplace cache/$d/ /$d
+          done
+      - name: Prepare Codecov
+        if: matrix.codecov
+        run: |
+          sudo apt install -y lcov
+          wget -O CMakeModules/CodeCoverage.cmake https://raw.githubusercontent.com/bilke/cmake-modules/master/CodeCoverage.cmake
+          sed -i 's/--output-file ${Coverage_NAME}/--output-file ${PROJECT_BINARY_DIR}\/${Coverage_NAME}/g' CMakeModules/CodeCoverage.cmake
+          TMPFILE=`tempfile`
+          tac src/CMakeLists.txt > $TMPFILE
+          echo "set(CMAKE_CXX_FLAGS \${CMAKE_CXX_FLAGS_COVERAGE})" >> $TMPFILE
+          echo "INCLUDE(CodeCoverage)" >> $TMPFILE
+          tac $TMPFILE > src/CMakeLists.txt
+          rm $TMPFILE
+          echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} check)" >> testsuite/CMakeLists.txt
+      - name: Build GDL
+        run: |
+          .ci/build_gdl.sh build
+      - name: Package GDL
+        run: |
+          .ci/build_gdl.sh prep_deploy
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v2.2.1
+        with:
+          path: gdl-*-${{ matrix.deps }}.zip
+          name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
+      - name: Test GDL
+        run: |
+          .ci/build_gdl.sh check || exit 0
+      - name: Submit Codecov
+        if: matrix.codecov
+        run: bash <(curl -s https://codecov.io/bash) -f ../build/codecov.info
+  build-windows:
     runs-on: windows-latest
     needs: prelude
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.prelude.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.prelude.outputs.matrix-windows) }}
     env:
       DEPS: ${{ matrix.deps }}
       WORKSPACE: ${{ github.workspace }}
@@ -48,14 +153,17 @@ jobs:
             zstd
             make
             git
+            rsync
       - name: Checkout GDL
         uses: actions/checkout@v2
-      - name: Cache MSYS2 Packages
+      - name: Cache Dependencies
+        if: matrix.arch == 'x86_64'
         id: cache
         uses: actions/cache@v2
         with:
-          path: D:\a\gdl\mingw
-          key: msys2-packages-${{ matrix.arch }}-${{ matrix.deps }}
+          path: |
+            C:\msys64\cache
+          key: cache-gdl-deps-msys2-${{ matrix.arch }}
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench
@@ -67,37 +175,55 @@ jobs:
         run: |
           Invoke-WebRequest -Uri https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe -OutFile MSMpiSetup.exe
           .\MSMpiSetup.exe -unattend
-      - name: Prepare MSYS2 Packages
+      - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         shell: msys2 {0}
         run: |
-          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys tidy_mingw_cache
+          pacman -Q | tr ' ' '-' | sort > ~/snapshot1.txt
+          .ci/build_gdl.sh prep
+          ls ../MINGW-packages/mingw-w64-graphicsmagick/
+          mv ../MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-*-graphicsmagick-*.tar.* /var/cache/pacman/pkg
+          pacman -Q | tr ' ' '-' | sort > ~/snapshot2.txt
+          echo "Setting up cache..."
+          mkdir -p /cache
+          ls /var/cache/pacman/pkg/
+          for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
+            echo ${package}
+            tar xf /var/cache/pacman/pkg/${package}-*.tar.* -C /cache
+          done
+          ADDTIONAL_FILES=( /mingw*/bin/mgwxdr-0.dll
+                            /mingw*/lib/libxdr.*
+                            /mingw*/include/rpc/types.h
+                            /mingw*/include/rpc/xdr.h )
+          for fn in ${ADDTIONAL_FILES[@]}; do
+            cp --parents ${fn} /cache
+          done
+      - name: Restore Cache
+        if: steps.cache.outputs.cache-hit == 'true'
+        shell: msys2 {0}
+        run: |
+          rsync -rt --no-t --inplace /cache/ /
       - name: Build GDL
         shell: msys2 {0}
         run: |
-          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys build
+          .ci/build_gdl.sh build
       - name: Package GDL
-        shell: msys2 {0}
+        shell: msys2 {0}  
         run: |
-          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
           export GDLDE_VERSION=${{ steps.gdl_workbench.outputs.release }}
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys pack
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys prep_deploy
+          .ci/build_gdl.sh pack
+          .ci/build_gdl.sh prep_deploy
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v2.2.1
         with:
           name: GDL Installer (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
-          path: gdlsetup-${{ matrix.arch }}-${{ matrix.deps }}.exe
+          path: gdlsetup-*-${{ matrix.deps }}.exe
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v2.2.1
         with:
-          name: GDL (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
-          path: gdl-${{ matrix.arch }}-${{ matrix.deps }}.zip
+          name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
+          path: gdl-*-${{ matrix.deps }}.zip
       - name: Test GDL
         shell: msys2 {0}
         run: |
-          export ROOT_DIR=`cygpath ${WORKSPACE}`/..
-          ${ROOT_DIR}/gdl/.ci/build_gdl_windows.msys check || exit 0
+          .ci/build_gdl.sh check || exit 0
