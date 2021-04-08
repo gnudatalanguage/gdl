@@ -363,16 +363,22 @@ namespace lib {
     if (e->KeywordSet(SPLINE)) interpol=gdl_interpol_spline;
 #endif
     static int NANIx = e->KeywordIx("NAN");
-    bool noNan=e->KeywordSet(NANIx);
+    bool doNan=e->KeywordSet(NANIx);
     unsigned int nmin=gdl_interpol_type_min_size(interpol);
     
     //dimensions
     BaseGDL* p0 = e->GetParDefined(0);
     DType type=p0->Type();
     SizeT nV=p0->N_Elements();
+    SizeT orig_nV=nV;
     if (nV <nmin) e->Throw("V has too few elements for this kind of interpolation.");
 
-    DDoubleGDL* V=e->GetParAs<DDoubleGDL>(0);
+    DDoubleGDL* V; Guard<BaseGDL> guardV; //used when noNan
+    if (doNan) {
+      V=e->GetParAs<DDoubleGDL>(0)->Dup();guardV.Reset(V);
+    } else {
+      V=e->GetParAs<DDoubleGDL>(0);
+    }
     //X and its guard
     DDoubleGDL* X; Guard<BaseGDL> guardX;
     //Xout and its guard
@@ -382,23 +388,50 @@ namespace lib {
     //size of the out value
     SizeT nout=0;
     
-    if (nParam==2) {       // we make X
+    if (nParam==2) {       // we make X, only V has to be chacked for Nan
       BaseGDL* p1 = e->GetParDefined(1);
       if (p1->N_Elements() >1) e->Throw("N must be one positive integer");
       DLongGDL* n1gdl=e->GetParAs<DLongGDL>(1);
       nout=(*n1gdl)[0];
       if (nout < 1) e->Throw("N must be one positive integer");
-      X=new DDoubleGDL(dimension(nV),BaseGDL::INDGEN);
+      // check V for Nans, error if size is not good eno
+      X=new DDoubleGDL(dimension(nV),BaseGDL::INDGEN); //easy
       guardX.Reset(X);//X will be destroyed on exit
+      if (doNan) {
+        SizeT k =0;
+        for (SizeT i = 0; i < nV; i++) {
+          if (isfinite((*V)[i])) {
+            (*V)[k] = (*V)[i];
+            (*X)[k++] = (*X)[i];
+          }
+        }
+        nV=k;
+        if (nV <nmin) e->Throw("too few non-NAN elements left for this kind of interpolation.");
+      }
       Xout=new DDoubleGDL(dimension(nout),BaseGDL::INDGEN);
       guardXout.Reset(Xout);//Xout will be destroyed on exit
       for (SizeT i = 0; i < nout; ++i) {
-        (*Xout)[i] = double(i)*(nV - 1) / (nout - 1);
+        (*Xout)[i] = double(i)*(orig_nV - 1) / (nout - 1);
       }
     } else {
       BaseGDL* p1 = e->GetParDefined(1);
       if (p1->N_Elements() != nV) e->Throw("V and X arrays must have same # of elements");
-      X = e->GetParAs<DDoubleGDL>(1);
+      
+      // check V and X for Nans, error if size is not good enough
+      if (doNan) {
+        X = e->GetParAs<DDoubleGDL>(1)->Dup(); guardX.Reset(X);//X will be destroyed on exit
+        SizeT k =0;
+        for (SizeT i = 0; i < nV; i++) {
+          if (isfinite((*V)[i]) && isfinite((*X)[i])) {
+            (*V)[k] = (*V)[i];
+            (*X)[k++] = (*X)[i];
+          }
+        }
+        nV=k;
+        if (nV <nmin) e->Throw("too few non-NAN elements left for this kind of interpolation.");
+      } else {
+        X = e->GetParAs<DDoubleGDL>(1);
+      }
       BaseGDL* p2 = e->GetParDefined(2);
       nout = p2->N_Elements();
       DType t = (DTypeOrder[ p0->Type()] > DTypeOrder[ p1->Type()]) ? p0->Type() : p1->Type();
