@@ -540,141 +540,141 @@ namespace lib {
   // SPLINE
   // what does not work like IDL : warning messages when Inf/Nan or Zero/Negative X steps, X and Y not same size
 
-  BaseGDL* spl_init_fun( EnvT* e)
-  {
-    static int HELPIx=e->KeywordIx("HELP");
+  BaseGDL* spl_init_fun(EnvT* e) {
+    static int HELPIx = e->KeywordIx("HELP");
     if (e->KeywordSet(HELPIx)) {
-      string inline_help[]={
-	"Usage: y2a=SPL_INIT(xa, ya, yp0=yp0, ypn_1= ypn_1, double=double)",
-	" -- xa is a N elements *ordered* array",
-	" -- ya is a N elements array containing values of the function",
-	" -- yp0 is the value of derivate of YA function at first point",
-	" -- ypN_1 is the value of derivate of YA function at last point",
-	"If X or Y contain NaN or Inf, output is NaN"};
-      int size_of_s = sizeof(inline_help) / sizeof(inline_help[0]);
+      string inline_help[] = {
+        "Usage: y2a=SPL_INIT(xa, ya, yp0=yp0, ypn_1= ypn_1, double=double)",
+        " -- xa is a N elements *ordered* array",
+        " -- ya is a N elements array containing values of the function",
+        " -- yp0 is the value of derivate of YA function at first point",
+        " -- ypN_1 is the value of derivate of YA function at last point",
+        "If X or Y contain NaN or Inf, output is NaN"
+      };
+      int size_of_s = sizeof (inline_help) / sizeof (inline_help[0]);
       e->Help(inline_help, size_of_s);
     }
 
     DDoubleGDL* Xpos = e->GetParAs<DDoubleGDL>(0);
     SizeT nElpXpos = Xpos->N_Elements();
+    DDouble* X=(DDouble*)Xpos->DataAddr();
 
     DDoubleGDL* Ypos = e->GetParAs<DDoubleGDL>(1);
     SizeT nElpYpos = Ypos->N_Elements();
+    DDouble* Y=(DDouble*)Ypos->DataAddr();
+
+    //definition ported here as the (ugly but useful) gotos below would otherwise create problems.
+    int flag_skip = 0;
+    // may be we will have to check the size of these arrays ?
+    static int yp0Ix = e->KeywordIx("YP0");
+    BaseGDL* Yderiv0 = e->GetKW(yp0Ix);
+    DDoubleGDL* YP0;
+    static int ypn_1Ix = e->KeywordIx("YPN_1");
+    BaseGDL* YderivN = e->GetKW(ypn_1Ix);
+    DDoubleGDL* YPN;
 
     // we only issue a message
     if (nElpXpos != nElpYpos) {
       cout << "SPL_INIT (warning): X and Y arrays do not have same lengths !" << endl;
       // all next computations to be done on MIN(nElpXpos,nElpYpos) (except NaN/Inf checks)
       if (nElpXpos > nElpYpos)
-	nElpXpos=nElpYpos;
+        nElpXpos = nElpYpos;
     }
 
     // creating result array
-    DDoubleGDL* res;  // the "res" array;
+    DDoubleGDL* res; // the "res" array;
     res = new DDoubleGDL(nElpXpos, BaseGDL::NOZERO);
 
     SizeT count, count1;
 
     // before all, we check wether inputs arrays does contains NaN or Inf
-    DStructGDL *Values =  SysVar::Values();   //MUST NOT BE STATIC, due to .reset
-    DDouble d_nan=(*static_cast<DDoubleGDL*>(Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
+    DStructGDL *Values = SysVar::Values(); //MUST NOT BE STATIC, due to .reset
+    DDouble d_nan = (*static_cast<DDoubleGDL*> (Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
 
     for (count = 0; count < nElpXpos; ++count) {
-      if (!isfinite((*Xpos)[count])) {
-	cout << "SPL_INIT (fatal): at least one value in X input array is NaN or Inf ..." << endl;
-	for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] =d_nan;
-	return res;
+      if (!isfinite(X[count])) {
+        cout << "SPL_INIT (fatal): at least one value in X input array is NaN or Inf ..." << endl;
+        for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] = d_nan;
+        goto givebackres;
       }
     }
     for (count = 0; count < nElpYpos; ++count) {
-      if (!isfinite((*Ypos)[count])) {
-	cout << "SPL_INIT (fatal): at least one value in Y input array is NaN or Inf ..." << endl;
-	for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] =d_nan;
-	return res;
+      if (!isfinite(Y[count])) {
+        cout << "SPL_INIT (fatal): at least one value in Y input array is NaN or Inf ..." << endl;
+        for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] = d_nan;
+        goto givebackres;
       }
     }
 
     // we also check wether X input array is well ordered ...
     double step;
-    int flag_skip=0;
     for (count = 1; count < nElpXpos; ++count) {
-      step=(*Xpos)[count]-(*Xpos)[count-1];
+      step = X[count]-X[count - 1];
       if (step < 0.0) {
-	if (flag_skip == 0) {
-	  cout << "SPL_INIT (warning): at least one x[n+1]-x[n] step is negative: X is assumed to be ordered" << endl;
-	  flag_skip = 1;
-	}
+        if (flag_skip == 0) {
+          cout << "SPL_INIT (warning): at least one x[n+1]-x[n] step is negative: X is assumed to be ordered" << endl;
+          flag_skip = 1;
+        }
       }
       if (abs(step) == 0.0) {
-	cout << "SPL_INIT (fatal): at least two consecutive X values are identical" << endl;
- 	for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] =d_nan;
-	return res;
+        cout << "SPL_INIT (fatal): at least two consecutive X values are identical" << endl;
+        for (count1 = 0; count1 < nElpXpos; ++count1) (*res)[count1] = d_nan;
+        goto givebackres;
       }
     }
 
-    Guard<BaseGDL> U_guard;
-    DDoubleGDL* U;
-    U = new DDoubleGDL(nElpXpos, BaseGDL::NOZERO);
-    U_guard.Reset(U); // delete upon exit
+    double* U; //avoded using a GDL variable as these objects are inherently slower.
+    U = (double*) malloc(nElpXpos * sizeof (double));
 
-    // may be we will have to check the size of these arrays ?
-    static int yp0Ix=e->KeywordIx("YP0");
-    BaseGDL* Yderiv0=e->GetKW(yp0Ix);
-    DDoubleGDL* YP0;
-
-    if(Yderiv0 !=NULL && !isinf((*(YP0=e->GetKWAs<DDoubleGDL>(yp0Ix)))[0] )){
+    if (Yderiv0 != NULL && !isinf((*(YP0 = e->GetKWAs<DDoubleGDL>(yp0Ix)))[0])) {
       // first derivative at the point X0 is defined and different to Inf
-      (*res)[0]=-0.5;
-      (*U)[0] = ( 3. / ((*Xpos)[1]-(*Xpos)[0])) * (((*Ypos)[1]-(*Ypos)[0]) /
-						   ((*Xpos)[1]-(*Xpos)[0]) - (*YP0)[0] );
+      (*res)[0] = -0.5;
+      U[0] = (3. / (X[1]-X[0])) * ((Y[1]-Y[0]) / (X[1]-X[0]) - (*YP0)[0]);
 
-    }else{
+    } else {
       // YP0 is omitted or equal to Inf
-      (*res)[0]=0.;
-      (*U)[0]=0.;
+      (*res)[0] = 0.;
+      U[0] = 0.;
     }
 
     double psig, pu, x, xm, xp, y, ym, yp, p, dx, qn;
 
-    for (count = 1; count < nElpXpos-1; ++count) {
-      x=(*Xpos)[count];
-      xm=(*Xpos)[count-1];
-      xp=(*Xpos)[count+1];
-      psig=(x-xm)/(xp-xm);
+    for (count = 1; count < nElpXpos - 1; ++count) {
+      x = X[count];
+      xm = X[count - 1];
+      xp = X[count + 1];
+      psig = (x - xm) / (xp - xm);
 
-      y=(*Ypos)[count];
-      ym=(*Ypos)[count-1];
-      yp=(*Ypos)[count+1];
-      pu=((ym-y)/(xm-x)-(y-yp)/(x-xp))/(xm-xp);
+      y = Y[count];
+      ym = Y[count - 1];
+      yp = Y[count + 1];
+      pu = ((ym - y) / (xm - x)-(y - yp) / (x - xp)) / (xm - xp);
 
-      p=psig*(*res)[count-1]+2.;
-      (*res)[count]=(psig-1.)/p;
-      (*U)[count]=(6.00*pu-psig*(*U)[count-1])/p;
+      p = psig * (*res)[count - 1] + 2.;
+      (*res)[count] = (psig - 1.) / p;
+      U[count] = (6.00 * pu - psig * U[count - 1]) / p;
     }
-    static int ypn_1Ix=e->KeywordIx("YPN_1");
-    BaseGDL* YderivN=e->GetKW(ypn_1Ix);
-    DDoubleGDL* YPN;
 
-    if(YderivN !=NULL && !isinf((*(YPN=e->GetKWAs<DDoubleGDL>(ypn_1Ix)))[0] )){
+    if (YderivN != NULL && !isinf((*(YPN = e->GetKWAs<DDoubleGDL>(ypn_1Ix)))[0])) {
       // first derivative at the point XN-1 is defined and different to Inf
-      (*res)[nElpXpos-1] =0.;
-      qn=0.5;
+      (*res)[nElpXpos - 1] = 0.;
+      qn = 0.5;
 
-      dx=((*Xpos)[nElpXpos-1]-(*Xpos)[nElpXpos-2]);
-      (*U)[nElpXpos-1]= (3./dx)*((*YPN)[0]-((*Ypos)[nElpXpos-1]-(*Ypos)[nElpXpos-2])/dx);
+      dx = (X[nElpXpos - 1]-X[nElpXpos - 2]);
+      U[nElpXpos - 1] = (3. / dx)*((*YPN)[0]-(Y[nElpXpos - 1]-Y[nElpXpos - 2]) / dx);
 
-    }else{
+    } else {
       // YPN_1 is omitted or equal to Inf
-      qn=0.;
-      (*U)[nElpXpos-1]=0.;
+      qn = 0.;
+      U[nElpXpos - 1] = 0.;
     }
 
-    (*res)[nElpXpos-1] =((*U)[nElpXpos-1]-qn*(*U)[nElpXpos-2])/(qn*(*res)[nElpXpos-2]+ 1.);
+    (*res)[nElpXpos - 1] = (U[nElpXpos - 1] - qn * U[nElpXpos - 2]) / (qn * (*res)[nElpXpos - 2] + 1.);
 
-    for (count = nElpXpos-2; count != -1; --count){
-      (*res)[count] =(*res)[count]*(*res)[count+1]+(*U)[count];
+    for (count = nElpXpos - 2; count != -1; --count) {
+      (*res)[count] = (*res)[count]*(*res)[count + 1] + U[count];
     }
-
+  givebackres:
     GM_CV0();
 
   }
@@ -698,10 +698,20 @@ namespace lib {
 
     DDoubleGDL* Xpos = e->GetParAs<DDoubleGDL>(0);
     SizeT nElpXpos = Xpos->N_Elements();
-//    DType t0 = e->GetParDefined(0)->Type();
+    DDouble* X=(DDouble*)Xpos->DataAddr();
 
+    //    DType t0 = e->GetParDefined(0)->Type();
+//Speed: check bad values here
+    for (SizeT i = 1; i < nElpXpos; ++i) {
+      if (X[i - 1] >= X[i]) {
+        Message ("X values are not strictly increasing, SPL_INTERP may give incorrect results");
+        break;
+      }
+    }
+    
     DDoubleGDL* Ypos = e->GetParAs<DDoubleGDL>(1);
     SizeT nElpYpos = Ypos->N_Elements();
+    DDouble* Y=(DDouble*)Ypos->DataAddr();
 
     DDoubleGDL* Yderiv2 = e->GetParAs<DDoubleGDL>(2);
     SizeT nElpYderiv2 = Yderiv2->N_Elements();
@@ -724,20 +734,18 @@ namespace lib {
       xcur=(*Xnew)[count];
       ilo=0;
       ihi=nElpXpos-1;
-      while ((ihi-ilo) > 1){
-	imiddle=(ilo+ihi)/2;
-	xposcur=(*Xpos)[imiddle];
-	if (xposcur > xcur) ihi=imiddle;
-	else ilo=imiddle;
+      while ((ihi-ilo) > 1) {
+        imiddle = (ilo + ihi) / 2;
+        xposcur = X[imiddle];
+        if (xposcur > xcur) ihi = imiddle;
+        else ilo = imiddle;
       }
-      h=(*Xpos)[ihi]-(*Xpos)[ilo];
-      if (abs(h) == 0.0)  e->Throw("SPL_INTERP: Bad XA input (XA not ordered or zero step in XA).");
-
-      if (debug == 1) cout << "h " << h << " lo/hi" << ilo << " " <<ihi<< endl;
-      aa=((*Xpos)[ihi]-xcur)/h;
-      bb=(xcur-(*Xpos)[ilo])/h;
-      (*res)[count]=aa*(*Ypos)[ilo]+bb*(*Ypos)[ihi];
-      (*res)[count]=(*res)[count]+((aa*aa*aa-aa)*(*Yderiv2)[ilo]+(bb*bb*bb-bb)*(*Yderiv2)[ihi])*(h*h)/6.;
+      h=X[ihi]-X[ilo];
+//      if (abs(h) == 0.0)  e->Throw("SPL_INTERP: Bad XA input (XA not ordered or zero step in XA)."); //replaced by test at beginning
+//      if (debug == 1) cout << "h " << h << " lo/hi" << ilo << " " <<ihi<< endl; //avoid an if in an optimisable loop
+      aa=(X[ihi]-xcur)/h;
+      bb=(xcur-X[ilo])/h;
+      (*res)[count]=aa*Y[ilo]+bb*Y[ihi]+((aa*aa*aa-aa)*(*Yderiv2)[ilo]+(bb*bb*bb-bb)*(*Yderiv2)[ihi])*(h*h)/6.;
     }
 
     GM_CV0();
