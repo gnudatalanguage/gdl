@@ -539,7 +539,7 @@ namespace lib {
 
   // SPLINE
   // what does not work like IDL : warning messages when Inf/Nan or Zero/Negative X steps, X and Y not same size
-
+#define SPL_INIT_BIG double(1.0E30) 
   BaseGDL* spl_init_fun(EnvT* e) {
     static int HELPIx = e->KeywordIx("HELP");
     if (e->KeywordSet(HELPIx)) {
@@ -567,12 +567,36 @@ namespace lib {
     int flag_skip = 0;
     // may be we will have to check the size of these arrays ?
     static int yp0Ix = e->KeywordIx("YP0");
-    BaseGDL* Yderiv0 = e->GetKW(yp0Ix);
+    static int yp1Ix = e->KeywordIx("YP1"); //old KW for YP0
+    int firstderiv;
+    BaseGDL* Yderiv0=NULL;
+    if (e->KeywordPresent(yp0Ix)) {
+      firstderiv = yp0Ix;
+      Yderiv0 = e->GetKW(firstderiv);
+    } else if (e->KeywordPresent(yp1Ix)) {
+      firstderiv = yp1Ix;
+      Yderiv0 = e->GetKW(firstderiv);
+    }
     DDoubleGDL* YP0;
-    static int ypn_1Ix = e->KeywordIx("YPN_1");
-    BaseGDL* YderivN = e->GetKW(ypn_1Ix);
-    DDoubleGDL* YPN;
+    bool Yderiv0ok=false;
+    if (Yderiv0 != NULL && !isinf((*(YP0 = e->GetKWAs<DDoubleGDL>(firstderiv)))[0])) {
+      Yderiv0ok=(fabs((*YP0)[0])<SPL_INIT_BIG); //apparently IDL stops considering second derivative if > SPL_INIT_BIG;
+    }
 
+// follow same template even if there is only 1 KW?    
+    int secondderiv;
+    static int ypn_1Ix = e->KeywordIx("YPN_1");
+    BaseGDL* YderivN = NULL;
+    if (e->KeywordPresent(ypn_1Ix)) {
+      secondderiv=ypn_1Ix;
+      YderivN = e->GetKW(secondderiv);
+    } 
+    DDoubleGDL* YPN;
+    bool YderivNok=false;
+    if (YderivN != NULL && !isinf((*(YPN = e->GetKWAs<DDoubleGDL>(secondderiv)))[0])) {
+      YderivNok=(fabs((*YPN)[0])<SPL_INIT_BIG); //apparently IDL stops considering second derivative if > SPL_INIT_BIG;
+      }
+    
     // we only issue a message
     if (nElpXpos != nElpYpos) {
       cout << "SPL_INIT (warning): X and Y arrays do not have same lengths !" << endl;
@@ -626,7 +650,7 @@ namespace lib {
     double* U; //avoded using a GDL variable as these objects are inherently slower.
     U = (double*) malloc(nElpXpos * sizeof (double));
 
-    if (Yderiv0 != NULL && !isinf((*(YP0 = e->GetKWAs<DDoubleGDL>(yp0Ix)))[0])) {
+    if (Yderiv0ok) { 
       // first derivative at the point X0 is defined and different to Inf
       (*res)[0] = -0.5;
       U[0] = (3. / (X[1]-X[0])) * ((Y[1]-Y[0]) / (X[1]-X[0]) - (*YP0)[0]);
@@ -655,7 +679,7 @@ namespace lib {
       U[count] = (6.00 * pu - psig * U[count - 1]) / p;
     }
 
-    if (YderivN != NULL && !isinf((*(YPN = e->GetKWAs<DDoubleGDL>(ypn_1Ix)))[0])) {
+    if (YderivNok) {
       // first derivative at the point XN-1 is defined and different to Inf
       (*res)[nElpXpos - 1] = 0.;
       qn = 0.5;
