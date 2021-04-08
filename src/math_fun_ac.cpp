@@ -579,8 +579,9 @@ namespace lib {
     }
     DDoubleGDL* YP0;
     bool Yderiv0ok=false;
-    if (Yderiv0 != NULL && !isinf((*(YP0 = e->GetKWAs<DDoubleGDL>(firstderiv)))[0])) {
-      Yderiv0ok=(fabs((*YP0)[0])<SPL_INIT_BIG); //apparently IDL stops considering second derivative if > SPL_INIT_BIG;
+    if (Yderiv0 != NULL ) {
+      YP0 = e->GetKWAs<DDoubleGDL>(firstderiv);
+      Yderiv0ok=(fabs((*YP0)[0])<SPL_INIT_BIG || isnan((*YP0)[0])); //apparently IDL stops considering second derivative if > SPL_INIT_BIG, but lets NaN pass.
     }
 
 // follow same template even if there is only 1 KW?    
@@ -593,9 +594,10 @@ namespace lib {
     } 
     DDoubleGDL* YPN;
     bool YderivNok=false;
-    if (YderivN != NULL && !isinf((*(YPN = e->GetKWAs<DDoubleGDL>(secondderiv)))[0])) {
-      YderivNok=(fabs((*YPN)[0])<SPL_INIT_BIG); //apparently IDL stops considering second derivative if > SPL_INIT_BIG;
-      }
+    if (YderivN != NULL) {
+      YPN = e->GetKWAs<DDoubleGDL>(secondderiv);
+      YderivNok=(fabs((*YPN)[0])<SPL_INIT_BIG || isnan((*YPN)[0]) ); //apparently IDL stops considering second derivative if > SPL_INIT_BIG, but lets NaN pass.
+    }
     
     // we only issue a message
     if (nElpXpos != nElpYpos) {
