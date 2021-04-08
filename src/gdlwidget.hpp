@@ -1963,16 +1963,6 @@ public:
  wxSize GetDrawSize() {return drawSize;}
  
  void ResizeDrawArea(const wxSize s);
-
- void SendPaintEvent() {
-  wxPaintEvent* event;
-  event = new wxPaintEvent(GetId());
-  event->SetEventObject(this);
-  // only for wWidgets > 2.9 (takes ownership of event)
-  //     this->QueueEvent( event);
-  this->AddPendingEvent(*event); // copies event
-  delete event;
- }
  void DeleteUsingWindowNumber();
  void SetStream(GDLWXStream* s);
 
