@@ -110,7 +110,7 @@ gdl_interpol* gdl_interpol_alloc(const gdl_interpol_type* T, ssize_t xsize) {
     //allocate lastCoefs and set lastval to -1:
     interp->lastval=(ssize_t*)malloc(1*sizeof(ssize_t));
     interp->lastval[0]=-1;
-    interp->lastCoefs=(double*)malloc(2*interp->type->min_size*sizeof(double));
+    interp->lastCoefs=(double*)malloc(2*interp->type->min_size*sizeof(double)); //overkill in most cases.
     return status;
   }
   void gdl_interpol_free(gdl_interpol* interp) {
