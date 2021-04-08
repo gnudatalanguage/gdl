@@ -237,13 +237,67 @@ gdl_interpol* gdl_interpol_alloc(const gdl_interpol_type* T, ssize_t xsize) {
  const gdl_interpol_type* gdl_interpol_lsquadratic = &lsquadratic_type; 
 #endif
  
+#if defined(USE_EIGEN)
+ GSL_VAR const gdl_interpol_type* gdl_interpol_cspline;
+ static int cspline_init(void* state, const double xa[], const double ta[], ssize_t xsize) {
+    return GSL_SUCCESS;
+  }
+
+#include <Eigen/LU>
+#include <Eigen/Eigenvalues>
+#include <Eigen/Core>
+static int cspline_eval(const void* state, const double xarr[], const double tarr[], ssize_t xsize, double pos, gsl_interp_accel* xa, ssize_t* lastval, double* C, double *t) {
+  ssize_t xii = gsl_interp_accel_find(xa, xarr, xsize, pos); //xa must be ALWAYS defined for GDL
+  //xii in range [0: xsize-2]--> the real index, produces 4 derivatives C[0..3], but we save the 2 to be used.
+  //use xi to select the good 4 points on either end, and the good C[] to be used afterwards.
+  ssize_t xi=xii;
+  if ( xi == xsize-2 ) xi=xsize-3; else if ( xi == 0 ) xi=1;
+  double dx=xarr[xii+1]-xarr[xii];
+  //acceleration: do not recompute.
+  if (xii != *lastval) {
+    *lastval = xii;
+    double dx0 = 1 / (xarr[xi] - xarr[xi-1]);
+    double dx1 = 1 / (xarr[xi+1] - xarr[xi]);
+    double dx2 = 1 / (xarr[xi + 2] - xarr[xi + 1]);
+    double b0 = 3 * dx0 * dx0 * (tarr[xi] - tarr[xi-1]);
+    double b1 = 3 * dx1 * dx1 * (tarr[xi+1] - tarr[xi]);
+    double b2 = 3 * dx2 * dx2 * (tarr[xi + 2] - tarr[xi + 1]);
+    // cspline solution on these 4 points:
+    double matrix[] = {2 * dx0, dx0, 0, 0, dx0, 2 * (dx0 + dx1), dx1, 0, 0, dx1, 2 * (dx1+dx2),dx2,0,0,dx2,2*dx2};
+    Eigen::MatrixXd A(4, 4);
+    for (int i = 0; i < 4; ++i) for (int j = 0; j < 4; ++j) A(j, i) = matrix[j * 4 + i];
+    Eigen::Vector4d b(b0, b0+b1, b1+b2, b2);
+    Eigen::MatrixXd r = (A.transpose() * A).ldlt().solve(A.transpose() * b);
+    if (xii == 0) {C[0] = r.coeff(0); C[1] = r.coeff(1); }
+    else if (xii == xsize-2) {C[0] = r.coeff(2); C[1] = r.coeff(3); }
+    else {C[0] = r.coeff(1); C[1] = r.coeff(2); }
+    double dy=tarr[xii+1]-tarr[xii];
+    C[0] = C[0]*dx-dy;
+    C[1] = C[1]*-dx+dy;
+  }
+   double dpos=(pos-xarr[xii])/dx;
+   *t= (1-dpos)*tarr[xii]+dpos*tarr[xii+1]+dpos*(1-dpos)*((1-dpos)*C[0]+dpos*C[1]);
+//   double dpos=pos-xarr[xii]; double dpos3=dpos*dpos*dpos; double dpos2=dpos*dpos;
+//  *t=(2*dpos3-3*dpos2+1)*tarr[xii]+(dpos3-2*dpos2+dpos)*C[0]+(-2*dpos3+3*dpos2)*tarr[xii+1]+(dpos3-dpos2)*C[1];
+//Catmull-Rom Spline (not the good one!) : double u=pos-xarr[xi]; *t=0.5*(((-tarr[xi-1]+3*tarr[xi]-3*tarr[xi+1]+tarr[xi+2])*u+(2*tarr[xi-1]-5*tarr[xi]+4*tarr[xi+1]-tarr[xi+2]))*u+(-tarr[xi-1]+tarr[xi+1]))*u+tarr[xi];
+  return GSL_SUCCESS;
+}
+static const gdl_interpol_type cspline_type = {
+  "cspline",
+  4,
+  NULL,
+  &cspline_init,
+  &cspline_eval
+};
+const gdl_interpol_type* gdl_interpol_cspline = &cspline_type;
+#endif
+ 
   static int spline_init(void* state, const double xa[], const double ta[], ssize_t xsize) {
     return GSL_SUCCESS;
   }
   static int spline_eval(const void* state, const double xarr[], const double tarr[], ssize_t xsize, double pos, gsl_interp_accel* xa, ssize_t* lastval, double* C, double *t) {
     static DIntGDL One=DIntGDL(1);
     ssize_t xi = gsl_interp_accel_find(xa, xarr, xsize, pos);//xa must be ALWAYS defined for GDL
-//    if (xi != *lastval) {
       DDoubleGDL* P=new DDoubleGDL(pos);
       DDoubleGDL* X;
       DDoubleGDL* Y;
@@ -303,7 +357,11 @@ namespace lib {
     static int QUADRATIC = e->KeywordIx("QUADRATIC");
     if (e->KeywordSet(QUADRATIC)) interpol=gdl_interpol_quadratic;
     static int SPLINE = e->KeywordIx("SPLINE");
+#if defined(USE_EIGEN)
+    if (e->KeywordSet(SPLINE)) interpol=gdl_interpol_cspline;
+#else
     if (e->KeywordSet(SPLINE)) interpol=gdl_interpol_spline;
+#endif
     static int NANIx = e->KeywordIx("NAN");
     bool noNan=e->KeywordSet(NANIx);
     unsigned int nmin=gdl_interpol_type_min_size(interpol);
@@ -313,13 +371,7 @@ namespace lib {
     DType type=p0->Type();
     SizeT nV=p0->N_Elements();
     if (nV <nmin) e->Throw("V has too few elements for this kind of interpolation.");
-    //alloc interpolant object & guard
-    gdl_interpol * myinterp=gdl_interpol_alloc (interpol,nV);
-    GDLGuard<gdl_interpol> ginterpol(myinterp, gdl_interpol_free);
-    //alloc accelerator & guard
-    gsl_interp_accel * acc=gsl_interp_accel_alloc ();
-    GDLGuard<gsl_interp_accel> g1( acc, gsl_interp_accel_free);
-    
+
     DDoubleGDL* V=e->GetParAs<DDoubleGDL>(0);
     //X and its guard
     DDoubleGDL* X; Guard<BaseGDL> guardX;
@@ -353,6 +405,12 @@ namespace lib {
       t = (DTypeOrder[t] > DTypeOrder[ p2->Type()]) ? t : p2->Type();      
       Xout=e->GetParAs<DDoubleGDL>(2);
     }
+    //alloc interpolant object & guard NOW that everything is fine with Arrays!
+    gdl_interpol * myinterp = gdl_interpol_alloc(interpol, nV);
+    GDLGuard<gdl_interpol> ginterpol(myinterp, gdl_interpol_free);
+    //alloc accelerator & guard
+    gsl_interp_accel * acc = gsl_interp_accel_alloc();
+    GDLGuard<gsl_interp_accel> g1(acc, gsl_interp_accel_free);
     int status=gdl_interpol_init (myinterp, (const double*)X->DataAddr(), (const double*)V->DataAddr() , nV);
     //allocate result
     DDoubleGDL* res=new DDoubleGDL(nout,BaseGDL::NOZERO);
