@@ -22,7 +22,9 @@
 #include "envt.hpp"
 #include "dinterpreter.hpp"
 
-
+#ifdef _MSC_VER
+#define isfinite _finite
+#endif
 
 //interpolate
 #include <gsl/gsl_errno.h>
