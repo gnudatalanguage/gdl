@@ -177,11 +177,11 @@ extern "C" {
     size_t xm, xi, xp, xp2;
     double kern[4];
 
-    if (xa != NULL) {
+//    if (xa != NULL) {
       xi = gsl_interp_accel_find(xa, xarr, xsize, x);
-    } else {
-      xi = gsl_interp_bsearch(xarr, x, 0, xsize - 1);
-    }
+//    } else {
+//      xi = gsl_interp_bsearch(xarr, x, 0, xsize - 1);
+//    }
     xm = (xi > 0) ? xi - 1 : xi;
     xp = (xi + 1 < xsize) ? xi + 1 : xi;
     xp2 = (xp + 1 < xsize) ? xp + 1 : xp;
@@ -206,11 +206,11 @@ extern "C" {
     double u;
     size_t xi, xp;
     double kern[2];
-    if (xa != NULL) {
+//    if (xa != NULL) {
       xi = gsl_interp_accel_find(xa, xarr, xsize, x);
-    } else {
-      xi = gsl_interp_bsearch(xarr, x, 0, xsize - 1);
-    }
+//    } else {
+//      xi = gsl_interp_bsearch(xarr, x, 0, xsize - 1);
+//    }
     xp = (xi + 1 < xsize) ? xi + 1 : xi;
 
     kern[0] = tarr[xi];
@@ -423,19 +423,19 @@ extern "C" {
     double kern[4][4];
     double t1, t2, t3, t4;
 
-    if (xa != NULL) {
+//    if (xa != NULL) {
       xi = gsl_interp_accel_find(xa, xarr, xsize, x);
-    } else {
-      xi = gsl_interp_bsearch(xarr, x, 0, xsize - 1);
-    }
+//    } else {
+//      xi = gsl_interp_bsearch(xarr, x, 0, xsize - 1);
+//    }
     xm = (xi > 0) ? xi - 1 : xi;
     xp = (xi + 1 < xsize) ? xi + 1 : xi;
     xp2 = (xp + 1 < xsize) ? xp + 1 : xp;
-    if (ya != NULL) {
+//    if (ya != NULL) {
       yi = gsl_interp_accel_find(ya, yarr, ysize, y);
-    } else {
-      yi = gsl_interp_bsearch(yarr, y, 0, ysize - 1);
-    }
+//    } else {
+//      yi = gsl_interp_bsearch(yarr, y, 0, ysize - 1);
+//    }
     ym = (yi > 0) ? yi - 1 : yi;
     yp = (yi + 1 < ysize) ? yi + 1 : yi;
     yp2 = (yp + 1 < ysize) ? yp + 1 : yp;
@@ -486,18 +486,18 @@ extern "C" {
     double kern[2][2];
     double t1, t2;
 
-    if (xa != NULL) {
+//    if (xa != NULL) {
       xi = gsl_interp_accel_find(xa, xarr, xsize, x);
-    } else {
-      xi = gsl_interp_bsearch(xarr, x, 0, xsize - 1);
-    }
+//    } else {
+//      xi = gsl_interp_bsearch(xarr, x, 0, xsize - 1);
+//    }
     xp = (xi + 1 < xsize) ? xi + 1 : xi;
 
-    if (ya != NULL) {
+//    if (ya != NULL) {
       yi = gsl_interp_accel_find(ya, yarr, ysize, y);
-    } else {
-      yi = gsl_interp_bsearch(yarr, y, 0, ysize - 1);
-    }
+//    } else {
+//      yi = gsl_interp_bsearch(yarr, y, 0, ysize - 1);
+//    }
     yp = (yi + 1 < ysize) ? yi + 1 : yi;
 
     kern[0][0] = tarr[INDEX_2D(xi, yi, xsize, ysize)];
@@ -727,24 +727,24 @@ extern "C" {
     size_t xi, xp, yi, yp, zi, zp;
     double kern[2][2];
     double t1, t2, t12, t21;
-    if (xa != NULL) {
+//    if (xa != NULL) {
       xi = gsl_interp_accel_find(xa, xarr, xsize, x);
-    } else {
-      xi = gsl_interp_bsearch(xarr, x, 0, xsize - 1);
-    }
+//    } else {
+//      xi = gsl_interp_bsearch(xarr, x, 0, xsize - 1);
+//    }
     xp = (xi + 1 < xsize) ? xi + 1 : xi;
 
-    if (ya != NULL) {
+//    if (ya != NULL) {
       yi = gsl_interp_accel_find(ya, yarr, ysize, y);
-    } else {
-      yi = gsl_interp_bsearch(yarr, y, 0, ysize - 1);
-    }
+//    } else {
+//      yi = gsl_interp_bsearch(yarr, y, 0, ysize - 1);
+//    }
     yp = (yi + 1 < ysize) ? yi + 1 : yi;
-    if (za != NULL) {
+//    if (za != NULL) {
       zi = gsl_interp_accel_find(za, zarr, zsize, z);
-    } else {
-      zi = gsl_interp_bsearch(zarr, z, 0, zsize - 1);
-    }
+//    } else {
+//      zi = gsl_interp_bsearch(zarr, z, 0, zsize - 1);
+//    }
     zp = (zi + 1 < zsize) ? zi + 1 : zi;
 
     xmin = xarr[xi];

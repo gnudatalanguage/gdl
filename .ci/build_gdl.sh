@@ -115,12 +115,11 @@ function build_msys2_package {
         patch -p0 -i $patch
     fi
     if [[ ${arch} == "x86_64" ]]; then
-        makepkg_conf=/etc/makepkg_mingw64.conf
+        export MINGW_ARCH=mingw64
     else
-        makepkg_conf=/etc/makepkg_mingw32.conf
+        export MINGW_ARCH=mingw32
     fi
-    eval `cat ${makepkg_conf} | grep PKGEXT=`
-    makepkg --config ${makepkg_conf} --noconfirm --syncdeps --install
+    makepkg-mingw --noconfirm --syncdeps --install
     popd
 }
 
