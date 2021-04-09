@@ -119,7 +119,7 @@ function build_msys2_package {
     else
         export MINGW_ARCH=mingw32
     fi
-    makepkg --noconfirm --syncdeps --install
+    makepkg-mingw --noconfirm --syncdeps --install
     popd
 }
 
