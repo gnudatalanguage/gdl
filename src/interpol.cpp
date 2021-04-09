@@ -32,6 +32,8 @@
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_nan.h>
 
+using std::isfinite;
+
 /* convolutions available */
 inline double linConv(double d, double x0, double x1) {
   return (1. - d)*x0 + d*x1;
