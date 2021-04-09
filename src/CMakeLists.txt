@@ -95,6 +95,8 @@ hdf_pro.cpp
 image.cpp
 initct.cpp
 initsysvar.cpp
+interpolate.cpp
+interpol.cpp
 io.cpp
 lapack.cpp
 least_squares.cpp

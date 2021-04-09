@@ -1,9 +1,10 @@
 /***************************************************************************
-                          |FILENAME|  -  description
+     interpolate.hpp  -  all things related to interpol command
                              -------------------
-    begin                : |DATE|
-    copyright            : (C) |YEAR| by |AUTHOR|
-    email                : |EMAIL|
+    begin                : Mar 30 2021
+    copyright            : (C) 2004 by Joel Gales
+                         : (C) 2018 G. Duvert 
+    email                : see https://github.com/gnudatalanguage/gdl
  ***************************************************************************/
 
 /***************************************************************************
@@ -15,14 +16,19 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_cdf.h>
+#if defined(HAVE_LIBGSL)
 
 #include "datatypes.hpp"
 #include "envt.hpp"
-#include "dinterpreter.hpp"
 
 namespace lib {
-}
+
+  BaseGDL* interpol_fun( EnvT* e);
+
+} // namespace
+
+#endif
