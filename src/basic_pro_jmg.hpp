@@ -27,6 +27,9 @@
 namespace lib {
 
   void point_lun( EnvT* e );
+  void skip_lun( EnvT* e );
+  void copy_lun( EnvT* e );
+  void truncate_lun( EnvT* e );
   void linkimage( EnvT* e );
   void unlinkimage( EnvT* e );
   void unlinksymbol( EnvT* e );

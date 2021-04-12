@@ -213,7 +213,12 @@ void LibInit_jmg()
   new DLibFun(lib::reform,string("REFORM"),MAXRANK+1,reformKey);
 
   new DLibPro(lib::point_lun,string("POINT_LUN"),2);
+  new DLibPro(lib::truncate_lun,string("TRUNCATE_LUN"),-1);
 
+  const string skip_or_copy_lunKey[]={"EOF","LINES","TRANSFER_COUNT",KLISTEND};
+  new DLibPro(lib::skip_lun,string("SKIP_LUN"),2,skip_or_copy_lunKey);
+  new DLibPro(lib::copy_lun,string("COPY_LUN"),3,skip_or_copy_lunKey);
+  
   const string linkimageKey[]={"FUNCT", "KEYWORDS", "MAX_ARGS", "MIN_ARGS", "DEFAULT", KLISTEND}; //DEFAULT is VMS obsolete
   new DLibPro( lib::linkimage, string("LINKIMAGE"), 4, linkimageKey, NULL, 2 );
   const string unlinkimageKey[]={"FORCE", KLISTEND};
