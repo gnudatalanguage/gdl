@@ -295,7 +295,7 @@ static BaseGDL* GetNodeData(DPtr &Node)
       if( data == NULL) data = NullGDL::GetSingleInstance();
       
       data->ToStream( o, w, actPosPtr);
-      if( (i+1) < nList) o << std::endl;
+      if( (i+1) < nList) o << '\n';
 
       pActNode = (*static_cast<DPtrGDL*>(actNode->GetTag( pNextTag, 0)))[0];
     }

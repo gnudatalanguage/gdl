@@ -90,7 +90,7 @@ class DevicePS: public GraphicsDevice
     actStream->setopt( "a", as.c_str());
     
     // plot orientation
-    //std::cout  << "orientation : " << orient_portrait<< std::endl;
+    //std::cout  << "orientation : " << orient_portrait<< '\n';
     
     actStream->sdiori(orient_portrait ? 1 : 2);
     
@@ -191,9 +191,9 @@ private:
 
     //replace the values of linecap and linejoin to nice round butts (sic!) more pleasing to the eye.
     searchstr.str("");
-    searchstr << "0 setlinecap" << endl << "    0 setlinejoin";
+    searchstr << "0 setlinecap" << '\n' << "    0 setlinejoin";
     replstr.str("");
-    replstr << "1 setlinecap" << endl << "    1 setlinejoin";
+    replstr << "1 setlinecap" << '\n' << "    1 setlinejoin";
     pos = sbuff.find(searchstr.str());
     if (pos != string::npos) {
       sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
@@ -204,7 +204,7 @@ private:
     if (!orient_portrait) {
     searchstr.str("%%Page: 1 1");
     replstr.str("");
-    replstr << "%%Page: 1 1" << endl << "%%PageOrientation: Landscape" << endl;
+    replstr << "%%Page: 1 1" << '\n' << "%%PageOrientation: Landscape" << '\n';
     pos = sbuff.find(searchstr.str());
     if (pos != string::npos) {
       sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
