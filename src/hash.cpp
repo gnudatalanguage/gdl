@@ -672,7 +672,7 @@ void HASH__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* ac
     o << ":";
     value->ToStream( o, w, actPosPtr);
     if( (i+1) < nCount)
-      o << std::endl;
+      o << '\n';
   }
 }
 
