@@ -814,13 +814,13 @@ void GDLStream::Truncate() {
   anyStream->Seek(0);
   anyStream->Read(buffer, currentPos);
   anyStream->Close();
-  anyStream->Open(name, fstream::in | fstream::out | fstream::trunc, compress);
+  anyStream->Open(name, fstream::out | fstream::trunc, compress);
   lastSeekPos = 0;
   lastRecord = 0;
   lastRecordStart = 0;
   anyStream->Write(buffer, currentPos);
   anyStream->Close();
-  anyStream->Open(name, mode, compress);
+  anyStream->Open(name, mode & ~fstream::trunc, compress); //write again but not trunc!
   anyStream->Seek(currentPos);
   lastSeekPos = anyStream->Tell();
   free(buffer);
