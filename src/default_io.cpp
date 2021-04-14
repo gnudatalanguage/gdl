@@ -1834,7 +1834,9 @@ bool compress, XDR *xdrs ) {
         } else {
           os.read( &vbuf[0], nChar );
         }
-        (*this)[i].assign( &vbuf[0], nChar );
+        //we have read nChar but this (a std::string) may be filled with ASCII NULL chars. These MUST be removed if we want the rest of GDL behave correctly on string manipulations (strlen, where etc...)
+        while (vbuf[nChar-1]==0 && nChar>1) {nChar--;}
+	(*this)[i].assign( &vbuf[0], nChar );
       }
     }
   }
