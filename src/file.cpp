@@ -657,7 +657,7 @@ static void ExpandPathN( FileListT& result,
 
     DString s;
     e->AssureStringScalarPar( 0, s);
-
+    WordExp(s);
     FileListT sArr;
     
 
