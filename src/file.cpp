@@ -42,6 +42,7 @@
 #include <zlib.h>
 
 #include <climits> // PATH_MAX
+#include <list> //unique path elements
 //patch #90
 #ifndef PATH_MAX
 #define PATH_MAX 4096
