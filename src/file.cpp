@@ -42,6 +42,7 @@
 #include <zlib.h>
 
 #include <climits> // PATH_MAX
+#include <list> //unique path elements
 //patch #90
 #ifndef PATH_MAX
 #define PATH_MAX 4096
@@ -655,9 +656,9 @@ static void ExpandPathN( FileListT& result,
   {
     e->NParam( 1);
 
-    DString s;
-    e->AssureStringScalarPar( 0, s);
-
+    DString pathString;
+    e->AssureStringScalarPar( 0, pathString);
+    WordExp(pathString);
     FileListT sArr;
     
 
@@ -683,16 +684,21 @@ static void ExpandPathN( FileListT& result,
 #else
     char pathsep[]=":";
 #endif
-    do
-      {
-    d=s.find(pathsep[0],sPos);
-    string act = s.substr(sPos,d-sPos);
+
+    //correct bug #832 by eliminating duplicates
+    std::list<std::string> pathList;
+    do {
+      d=pathString.find(pathsep[0], sPos);
+      string act = pathString.substr(sPos, d - sPos);
+      pathList.push_back(act);
+      sPos = d + 1;
+    }    while (d != pathString.npos);
+    pathList.sort();
+    pathList.unique();
     
-    ExpandPath( sArr, act, pattern, all_dirs);
-    
-    sPos=d+1;
-      }
-    while( d != s.npos);
+    for (std::list<std::string>::iterator it = pathList.begin(); it != pathList.end(); it++)  {
+      ExpandPath( sArr, *it, pattern, all_dirs);
+    }
 
     SizeT nArr = sArr.size();
 
