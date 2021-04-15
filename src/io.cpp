@@ -283,6 +283,7 @@ std::streamsize AnyStream::Gcount() {
   } else if (igzStream != NULL) {
     return igzStream->gcount();
   } else assert(0);
+    throw; // getting rid of compiler warning
 }
 
 bool AnyStream::Good() {
