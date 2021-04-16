@@ -61,7 +61,8 @@ namespace SysVar
   // the index of some obsolete system variables
   UInt xdottitleIx,ydottitleIx,xdotticksIx,ydotticksIx,cxminIx,cxmaxIx,cyminIx,cymaxIx,
     xminIx,xmaxIx,yminIx,ymaxIx,pdotnoclipIx,pdotlinestyleIx,pdottitleIx,pdotnoeraseIx,pdotnsumIx,
-    pdotpsymIx,errorstatedoterrorIx,errorstatedotmsgprefixIx,errorstatesyscodeIx; 
+    pdotpsymIx,errorstatedoterrorIx,errorstatedotmsgprefixIx,errorstatesyscodeIx,pdotticklenIx,
+    fancyIx,gridIx,typeIx,sc1Ix,sc2Ix,sc3Ix,sc4Ix; 
   // !D structs
   const int nDevices = 5;
   DStructGDL* devices[ 5]; // NULL, PS, Z, SVG, (X or WIN or nothing)
@@ -539,7 +540,41 @@ namespace SysVar
     DVar *pdottitle = new DVar("MTITLE", gdlpdottitle);
     pdottitleIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(pdottitle);
-
+    //FANCY --> must be interpreted it looks like: !P.CHARSIZE = 0.206 * !FANCY + 0.73 (probably it's just 0.2)
+    DIntGDL *fancyData = new DIntGDL( 0 );
+    DVar *fancy = new DVar( "FANCY", fancyData);
+    fancyIx     = sysVarList.size();
+    obsoleteSysVarList.push_back( fancy);
+    //GRID --> must be interpreted (ticklen >0)
+    DIntGDL *gridData = new DIntGDL(0);
+    DVar *grid = new DVar("GRID", gridData);
+    gridIx = sysVarList.size();
+    obsoleteSysVarList.push_back(grid);
+    //TYPE --> must be interpreted !X.TYPE, !X.STYLE, !Y.TYPE, !Y.STYLE, !P.TICKLEN 
+    DIntGDL *typeData = new DIntGDL(0);
+    DVar *type = new DVar("TYPE", typeData);
+    typeIx = sysVarList.size();
+    obsoleteSysVarList.push_back(type);
+    //SC1 --> must be interpreted !P.POSITION[0] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !X.WINDOW[0] * !D.X_VSIZE otherwise. 
+    DFloatGDL *sc1Data = new DFloatGDL(0);
+    DVar *sc1 = new DVar("SC1", sc1Data);
+    sc1Ix = sysVarList.size();
+    obsoleteSysVarList.push_back(sc1);
+    //SC2 --> must be interpreted !P.POSITION[2] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !X.WINDOW[1] * !D.X_VSIZE otherwise.  
+    DFloatGDL *sc2Data = new DFloatGDL(0);
+    DVar *sc2 = new DVar("SC2", sc2Data);
+    sc2Ix = sysVarList.size();
+    obsoleteSysVarList.push_back(sc2);
+    //SC3 --> must be interpreted !P.POSITION[1] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !Y.WINDOW[0] * !D.X_VSIZE otherwise. 
+    DFloatGDL *sc3Data = new DFloatGDL(0);
+    DVar *sc3 = new DVar("SC3", sc3Data);
+    sc3Ix = sysVarList.size();
+    obsoleteSysVarList.push_back(sc3);
+    //SC4 --> must be interpreted !P.POSITION[3] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !Y.WINDOW[1] * !D.X_VSIZE otherwise. 
+    DFloatGDL *sc4Data = new DFloatGDL(0);
+    DVar *sc4 = new DVar("SC4", sc4Data);
+    sc4Ix = sysVarList.size();
+    obsoleteSysVarList.push_back(sc4);
     // some constants
 
     // !ORDER
