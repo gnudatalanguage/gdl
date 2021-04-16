@@ -40,7 +40,9 @@ const std::string GDL_OBJECT_NAME("GDL_OBJECT");
 const std::string GDL_CONTAINER_NAME("GDL_CONTAINER");
 
 extern VarListT      sysVarList;
+extern VarListT      obsoleteSysVarList;
 extern VarListT      sysVarRdOnlyList;
+extern VarListT      sysVarNoSaveList;
 
 extern FunListT      funList;
 extern ProListT      proList;
