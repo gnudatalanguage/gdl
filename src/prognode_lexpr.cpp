@@ -230,6 +230,7 @@ BaseGDL** SYSVARNode::LExpr( BaseGDL* right)
 			this->getText(),true,false);
 	}
 	(*res)->AssignAt( rConv); // linear copy
+  this->var->DoCallback();
 	return res;
 	}
 // default ...Grab version
@@ -525,7 +526,7 @@ BaseGDL** DOTNode::LExpr( BaseGDL* right)
       }
       interpreter->SetRootL( _t, aD.get(), *rP, NULL);
   }
-
+  ProgNodeP left=_t;
   _t = _t->getNextSibling();
   for( int d=0; d<nDot; ++d)
   {
@@ -539,6 +540,8 @@ BaseGDL** DOTNode::LExpr( BaseGDL* right)
       //       }
   }
   aD->ADAssign( right);
+      // case SYSVAR: sysvar is now updated, run callback.
+   if( left->getType() == GDLTokenTypes::SYSVAR) left->var->DoCallback();
   //res=NULL;
   //SetRetTree( tIn->getNextSibling());
   return NULL;

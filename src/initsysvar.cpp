@@ -69,7 +69,7 @@ namespace SysVar
 
   // !STIME
   const SizeT MAX_STIME_STRING_LENGTH=80;
-
+  
   bool IsSTime( DVar* var)
   { 
 // due to .RESET_SESSION we cannot use static here
@@ -264,7 +264,12 @@ namespace SysVar
     DVar& pSysVar = *sysVarList[ pIx];
     return static_cast<DStructGDL*>(pSysVar.Data());
   }
-
+  void PFancyCallBack(){
+    DIntGDL* fancy=GetFancy();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset
+    DFloat charsizePos=(*static_cast<DFloatGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0];
+    (*fancy)[0]=charsizePos*5-4;
+  }
   DLongGDL* GetPMulti()
   {
     DStructGDL* pStruct = SysVar::P();   //MUST NOT BE STATIC, due to .reset 
@@ -328,7 +333,44 @@ namespace SysVar
     DVar& var = *sysVarList[ mapIx];
     return static_cast<DStructGDL*>(var.Data());
   }
-  
+  DIntGDL* GetFancy()
+  {
+    DVar& var = *obsoleteSysVarList[ fancyIx];
+    return static_cast<DIntGDL*>(var.Data());
+  }
+  void CBGridToTicklen(){
+    DVar& var = *obsoleteSysVarList[ gridIx];
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset
+    DFloat* ticklen=&((*static_cast<DFloatGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("TICKLEN"), 0)))[0]);
+    *ticklen=((*static_cast<DIntGDL*>(var.Data()))[0] > 0)?1.0:0.02;    
+  }
+  void CBFancyToCharsize(){  //makes connection between !FANCY and !P.CHARSIZE
+    DIntGDL* fancy=GetFancy();
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset
+    DFloat* charsize=&((*static_cast<DFloatGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0]);
+    *charsize=(*fancy)[0]*0.2+0.8;
+  }
+  void CBTypeToXandY(){
+    DStructGDL* xStruct=SysVar::X();   //MUST NOT BE STATIC, due to .reset 
+    DStructGDL* yStruct=SysVar::Y();   //MUST NOT BE STATIC, due to .reset 
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset
+    unsigned xtypeTag=xStruct->Desc()->TagIndex("TYPE");
+    unsigned ytypeTag=yStruct->Desc()->TagIndex("TYPE");
+    unsigned xstyleTag=xStruct->Desc()->TagIndex("STYLE");
+    unsigned ystyleTag=yStruct->Desc()->TagIndex("STYLE");
+    DLong    *xtype= &(*static_cast<DLongGDL*>(xStruct->GetTag(xtypeTag, 0)))[0];
+    DLong    *ytype= &(*static_cast<DLongGDL*>(yStruct->GetTag(ytypeTag, 0)))[0];
+    DLong   *xstyle= &(*static_cast<DLongGDL*>(xStruct->GetTag(xstyleTag, 0)))[0];
+    DLong   *ystyle= &(*static_cast<DLongGDL*>(yStruct->GetTag(ystyleTag, 0)))[0];
+    DFloat* ticklen= &((*static_cast<DFloatGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("TICKLEN"), 0)))[0]);
+    DVar& var = *obsoleteSysVarList[ typeIx];
+    DInt value=(*static_cast<DIntGDL*>(var.Data()))[0];
+    *xtype=(value & 0x01 )?1:0;
+    *ytype=(value & 0x02 )?1:0;
+    *xstyle=(value & 0x04 )?1:0;
+    *ystyle=(value & 0x08 )?1:0;
+    *ticklen=( value & 0x16 )?1.0:0.02; 
+  }
   DStructGDL* Mouse()
   {
     DVar& var = *sysVarList[ MouseIx];
@@ -492,7 +534,7 @@ namespace SysVar
     plt->NewTag("TITLE", new DStringGDL( ""));  //tag 19 for obsolete !MTITLE
     plt->NewTag("TICKLEN", new DFloatGDL( 0.02)); 
     plt->NewTag("CHANNEL", new DLongGDL( 0)); 
-    DVar *p=new DVar( "P", plt);
+    DVar *p=new DVar( "P", plt); p->SetCallback(PFancyCallBack);
     pIx=sysVarList.size();
     sysVarList.push_back(p);
 
@@ -541,39 +583,39 @@ namespace SysVar
     pdottitleIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(pdottitle);
     //FANCY --> must be interpreted it looks like: !P.CHARSIZE = 0.206 * !FANCY + 0.73 (probably it's just 0.2)
-    DIntGDL *fancyData = new DIntGDL( 0 );
-    DVar *fancy = new DVar( "FANCY", fancyData);
-    fancyIx     = sysVarList.size();
+    DIntGDL *fancyData = new DIntGDL( 1 );
+    DVar *fancy = new DVar( "FANCY", fancyData);fancy->SetCallback(CBFancyToCharsize);
+    fancyIx     = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back( fancy);
     //GRID --> must be interpreted (ticklen >0)
     DIntGDL *gridData = new DIntGDL(0);
-    DVar *grid = new DVar("GRID", gridData);
-    gridIx = sysVarList.size();
+    DVar *grid = new DVar("GRID", gridData);grid->SetCallback(CBGridToTicklen);
+    gridIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(grid);
     //TYPE --> must be interpreted !X.TYPE, !X.STYLE, !Y.TYPE, !Y.STYLE, !P.TICKLEN 
     DIntGDL *typeData = new DIntGDL(0);
-    DVar *type = new DVar("TYPE", typeData);
-    typeIx = sysVarList.size();
+    DVar *type = new DVar("TYPE", typeData);type->SetCallback(CBTypeToXandY);
+    typeIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(type);
     //SC1 --> must be interpreted !P.POSITION[0] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !X.WINDOW[0] * !D.X_VSIZE otherwise. 
     DFloatGDL *sc1Data = new DFloatGDL(0);
     DVar *sc1 = new DVar("SC1", sc1Data);
-    sc1Ix = sysVarList.size();
+    sc1Ix = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(sc1);
     //SC2 --> must be interpreted !P.POSITION[2] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !X.WINDOW[1] * !D.X_VSIZE otherwise.  
     DFloatGDL *sc2Data = new DFloatGDL(0);
     DVar *sc2 = new DVar("SC2", sc2Data);
-    sc2Ix = sysVarList.size();
+    sc2Ix = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(sc2);
     //SC3 --> must be interpreted !P.POSITION[1] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !Y.WINDOW[0] * !D.X_VSIZE otherwise. 
     DFloatGDL *sc3Data = new DFloatGDL(0);
     DVar *sc3 = new DVar("SC3", sc3Data);
-    sc3Ix = sysVarList.size();
+    sc3Ix = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(sc3);
     //SC4 --> must be interpreted !P.POSITION[3] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !Y.WINDOW[1] * !D.X_VSIZE otherwise. 
     DFloatGDL *sc4Data = new DFloatGDL(0);
     DVar *sc4 = new DVar("SC4", sc4Data);
-    sc4Ix = sysVarList.size();
+    sc4Ix = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(sc4);
     // some constants
 

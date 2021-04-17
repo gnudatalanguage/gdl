@@ -421,11 +421,19 @@ namespace lib {
   {
     PLFLT charsize;
     DDouble pmultiscale=1.0;
-    // get !P preference
-    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
-    charsize=(*static_cast<DFloatGDL*>
-              (pStruct->GetTag
-               (pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0];
+    // get !P preference or !FANCY ... they should agree as charsize = 0.2*FANCY+0.8 
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset
+    DFloat* charsizePos=&((*static_cast<DFloatGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0]);
+    charsize=charsizePos[0];
+//    //if charsize==0 see if !FANCY is set to something above 1 or below 1
+//    DIntGDL* fancy= SysVar::GetFancy();
+//    if ((*fancy)[0] > -4) { //negative values are a mess
+//     PLFLT fancySize = 0.2 * (*fancy)[0] + 0.8;
+//     if (fancySize != charsize) { //make them agree
+//      charsize = fancySize;
+//      charsizePos[0] = charsize;
+//     }
+//    }
     //overload with command preference. Charsize may be a vector now in some gdl commands, take care of it:
     if (accept_sizeKw) //XYOUTS specials!
     {

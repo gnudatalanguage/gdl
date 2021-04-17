@@ -67,7 +67,8 @@ namespace SysVar
 
   // returns !MAP
   DStructGDL* Map();
-
+  // returns !FANCY
+  DIntGDL* GetFancy();
   // returns !GDL
   DStructGDL* GDLconfig();
 
