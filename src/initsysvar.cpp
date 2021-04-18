@@ -50,8 +50,12 @@ namespace SysVar
 {
 
   using namespace std;
-
-
+  //a static float[4] holding !SC[1..4] values
+  static DFloat sc[4];
+  DFloat* GetSC()
+  {
+    return sc;
+  }
   // the index of some system variables
   UInt nullIx, trueIx, falseIx, pathIx, helppathIx, promptIx, edit_inputIx, quietIx, moreIx,
     dIx, pIx, xIx, yIx, zIx, vIx, gdlWarningIx, gdlIx, cIx, MouseIx,
@@ -178,34 +182,32 @@ namespace SysVar
 //  }
 
   // returns array of path strings
-  const StrArr& GDLPath()
-  {
+
+  const StrArr& GDLPath() {
     static StrArr sArr;
-  
+
     // clear whatever old value is stored
     sArr.clear();
-  
-    // get the path
-    DVar& pathSysVar=*sysVarList[pathIx];
-    DString& path=static_cast<DStringGDL&>(*pathSysVar.Data())[0];
-    
-    if( path == "") return sArr;
-  
-    SizeT d;
-    long   sPos=0;
-   #ifdef _WIN32
-      char pathsep[]=";";
-    #else
-      char pathsep[]=":";
-    #endif
 
-    do
-      {
-	d=path.find(pathsep[0],sPos);
-	sArr.push_back(path.substr(sPos,d-sPos));
-	sPos=d+1;
-      }
-    while( d != path.npos);
+    // get the path
+    DVar& pathSysVar = *sysVarList[pathIx];
+    DString& path = static_cast<DStringGDL&> (*pathSysVar.Data())[0];
+
+    if (path == "") return sArr;
+
+    SizeT d;
+    long sPos = 0;
+#ifdef _WIN32
+    char pathsep[] = ";";
+#else
+    char pathsep[] = ":";
+#endif
+
+    do {
+      d = path.find(pathsep[0], sPos);
+      sArr.push_back(path.substr(sPos, d - sPos));
+      sPos = d + 1;
+    }    while (d != path.npos);
 
     return sArr;
   }
@@ -365,11 +367,15 @@ namespace SysVar
     DFloat* ticklen= &((*static_cast<DFloatGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("TICKLEN"), 0)))[0]);
     DVar& var = *obsoleteSysVarList[ typeIx];
     DInt value=(*static_cast<DIntGDL*>(var.Data()))[0];
-    *xtype=(value & 0x01 )?1:0;
-    *ytype=(value & 0x02 )?1:0;
-    *xstyle=(value & 0x04 )?1:0;
-    *ystyle=(value & 0x08 )?1:0;
-    *ticklen=( value & 0x16 )?1.0:0.02; 
+    *xtype=(value & 1 );
+    *ytype=(value & 2 )>>1;
+    *xstyle=(value & 4 )>>2;
+    *ystyle=(value & 8 )>>3;
+    *ticklen=( value & 16 )>>4; 
+    *xstyle|=(value & 32 )>>3;
+    *ystyle|=(value & 64 )>>4;
+  }
+  void CBPath() { //could be interesting to know if path has changed. may be used to speedup procedures fining & compilation?
   }
   DStructGDL* Mouse()
   {
@@ -450,7 +456,7 @@ namespace SysVar
     // !PATH
     //    DString initPath(""); // set here the initial path
     DStringGDL* pathData=new DStringGDL( "");
-    DVar *path=new DVar( "PATH", pathData);
+    DVar *path=new DVar( "PATH", pathData);path->SetCallback(CBPath);
     pathIx=sysVarList.size();
     sysVarList.push_back(path);
     // !HELP_PATH
@@ -597,23 +603,36 @@ namespace SysVar
     DVar *type = new DVar("TYPE", typeData);type->SetCallback(CBTypeToXandY);
     typeIx = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(type);
-    //SC1 --> must be interpreted !P.POSITION[0] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !X.WINDOW[0] * !D.X_VSIZE otherwise. 
-    DFloatGDL *sc1Data = new DFloatGDL(0);
+    //SC1 --> must be interpreted !P.POSITION[0] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !X.WINDOW[0] * !D.X_VSIZE otherwise.
+    
+    DFloatGDL *sc1Data = new DFloatGDL(dimension(1), BaseGDL::NOALLOC);
+    sc1Data->SetBuffer((void*) &(sc[0]));
+    sc1Data->SetBufferSize(1);
+    sc1Data->SetDim(dimension(1));
     DVar *sc1 = new DVar("SC1", sc1Data);
     sc1Ix = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(sc1);
     //SC2 --> must be interpreted !P.POSITION[2] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !X.WINDOW[1] * !D.X_VSIZE otherwise.  
-    DFloatGDL *sc2Data = new DFloatGDL(0);
+    DFloatGDL *sc2Data = new DFloatGDL(dimension(1), BaseGDL::NOALLOC);
+    sc2Data->SetBuffer((void*) &(sc[1]));
+    sc2Data->SetBufferSize(1);
+    sc2Data->SetDim(dimension(1));
     DVar *sc2 = new DVar("SC2", sc2Data);
     sc2Ix = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(sc2);
     //SC3 --> must be interpreted !P.POSITION[1] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !Y.WINDOW[0] * !D.X_VSIZE otherwise. 
-    DFloatGDL *sc3Data = new DFloatGDL(0);
+    DFloatGDL *sc3Data = new DFloatGDL(dimension(1), BaseGDL::NOALLOC);
+    sc3Data->SetBuffer((void*) &(sc[2]));
+    sc3Data->SetBufferSize(1);
+    sc3Data->SetDim(dimension(1));
     DVar *sc3 = new DVar("SC3", sc3Data);
     sc3Ix = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(sc3);
     //SC4 --> must be interpreted !P.POSITION[3] * !D.X_VSIZE if !P.POSITION[2] is nonzero, or !Y.WINDOW[1] * !D.X_VSIZE otherwise. 
-    DFloatGDL *sc4Data = new DFloatGDL(0);
+    DFloatGDL *sc4Data = new DFloatGDL(dimension(1), BaseGDL::NOALLOC);
+    sc4Data->SetBuffer((void*) &(sc[3]));
+    sc4Data->SetBufferSize(1);
+    sc4Data->SetDim(dimension(1));
     DVar *sc4 = new DVar("SC4", sc4Data);
     sc4Ix = obsoleteSysVarList.size();
     obsoleteSysVarList.push_back(sc4);
