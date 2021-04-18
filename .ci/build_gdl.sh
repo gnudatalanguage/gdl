@@ -334,7 +334,7 @@ function build_gdl {
 function test_gdl {
     log "Testing GDL..."
     cd ${ROOT_DIR}/build
-    if [ -f CMakeModules/CodeCoverage.cmake ]; then
+    if [ -f ${GDL_DIR}/CMakeModules/CodeCoverage.cmake ]; then
         make codecov
     else
         make check
