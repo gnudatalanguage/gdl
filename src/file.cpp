@@ -686,18 +686,24 @@ static void ExpandPathN( FileListT& result,
 #endif
 
     //correct bug #832 by eliminating duplicates
-    std::list<std::string> pathList;
+    std::vector<std::string> pathList;
     do {
       d=pathString.find(pathsep[0], sPos);
-      string act = pathString.substr(sPos, d - sPos);
-      pathList.push_back(act);
+      std::string act = pathString.substr(sPos, d - sPos);
+      //add only if not already present -- clumsy
+      bool notPresent=true;
+      for (unsigned i = 0; i < pathList.size(); i++) {
+        if (pathList[i] == act) {
+          notPresent = false;
+          break;
+        }
+      }
+      if (notPresent) pathList.push_back(act);
       sPos = d + 1;
     }    while (d != pathString.npos);
-    pathList.sort();
-    pathList.unique();
     
-    for (std::list<std::string>::iterator it = pathList.begin(); it != pathList.end(); it++)  {
-      ExpandPath( sArr, *it, pattern, all_dirs);
+    for (unsigned i = 0; i < pathList.size(); i++)  {
+      ExpandPath( sArr, pathList[i], pattern, all_dirs);
     }
 
     SizeT nArr = sArr.size();
