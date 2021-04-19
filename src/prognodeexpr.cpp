@@ -474,12 +474,14 @@ BaseGDL* CONSTANTNode::Eval()
 
 BaseGDL* SYSVARNode::EvalNC()
 {
+  //GD: explore also obsoleteSysVarList (costs nothing)
   if( this->var == NULL) 
     {
       this->var=FindInVarList(sysVarList,this->getText());
-      if( this->var == NULL)		    
-		throw GDLException( this, "Not a legal system variable: !"+
-			    this->getText(),true,false);
+      if( this->var == NULL)	{	  
+        this->var=FindInVarList(obsoleteSysVarList,this->getText());
+        if( this->var == NULL) throw GDLException( this, "Not a legal system variable: !"+this->getText(),true,false);
+      }
     }
 
   // we have these two variables which need to be updated before returning
@@ -502,9 +504,12 @@ BaseGDL** SYSVARNode::LEval()
   if( sysVar->var == NULL) 
   {
     sysVar->var=FindInVarList(sysVarList,sysVar->getText());
-    if( sysVar->var == NULL)		    
-      throw GDLException( sysVar, "Not a legal system variable: !"+
-	  sysVar->getText(),true,false);
+    if( sysVar->var == NULL) {
+      sysVar->var = FindInVarList(obsoleteSysVarList, sysVar->getText());
+      if (sysVar->var == NULL) {
+         throw GDLException( sysVar, "Not a legal system variable: !"+sysVar->getText(),true,false);
+      }
+    }
     
     // note: this works, because system variables are never 
     //       passed by reference
