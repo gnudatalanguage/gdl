@@ -446,7 +446,7 @@ int main(int argc, char *argv[])
   unsigned  useWXTAG= gdlconfig->Desc()->TagIndex("GDL_USE_WX");
   (*static_cast<DByteGDL*> (gdlconfig->GetTag(useWXTAG, 0)))[0]=useWxWidgetsForGraphics;
   
-  SysVar::SetGDLPath( gdlPath);
+  SysVar::SetGDLPath( gdlPath); //probably duplicate with the one in initobjects!
   
   if (!pretendRelease.empty()) SysVar::SetFakeRelease(pretendRelease);
   //fussyness setup and change if switch at start

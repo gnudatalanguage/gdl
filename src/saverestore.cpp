@@ -2031,7 +2031,7 @@ enum {
     if (DEBUG_SAVERESTORE) std::cerr<<std::endl;
     return next;
   } 
-          
+  bool myfunctionToSortStringsInPair (std::pair<std::string, BaseGDL*> i, std::pair<std::string, BaseGDL*> j) { return (i.first>j.first); }      
   // new fast save.
   void gdl_save(EnvT* e) {
 
@@ -2086,7 +2086,7 @@ enum {
 
     std::vector<std::pair<std::string, BaseGDL*> > variableVector;
     std::vector<std::pair<std::string, BaseGDL*> > systemVariableVector;
-    std::vector<std::pair<std::string, BaseGDL*> > systemReadonlyVariableVector; //for readonly variables
+//    std::vector<std::pair<std::string, BaseGDL*> > systemReadonlyVariableVector; //for readonly variables //not used
     set<string> commonList;
 
 //Variables
@@ -2102,12 +2102,11 @@ enum {
       {
         DVar* var = sysVarList[v];
         DString sysVarName = var->Name();
-        if (sysVarName != "NULL") {  //avoid !NULL
-          DVar* sysVarRdOnly = FindInVarList(sysVarRdOnlyList, sysVarName);
-          if (sysVarRdOnly != NULL) systemReadonlyVariableVector.push_back(make_pair("!" + sysVarName, sysVarRdOnly->Data()));
-          else systemVariableVector.push_back(make_pair("!" + sysVarName, var->Data()));
-        }
+        if (FindInVarList(sysVarRdOnlyList, sysVarName) != NULL) continue; //systemReadonlyVariableVector.push_back(make_pair("!" + sysVarName, sysVarRdOnly->Data()));
+        if (FindInVarList(sysVarNoSaveList, sysVarName) != NULL) continue; 
+        systemVariableVector.push_back(make_pair("!" + sysVarName, var->Data()));
       }
+      std::sort (systemVariableVector.begin(), systemVariableVector.end(),  myfunctionToSortStringsInPair);
     }
 
     if (doVars) 
@@ -2206,9 +2205,9 @@ enum {
     for (itvar=systemVariableVector.begin(); itvar!=systemVariableVector.end(); ++itvar) {
       addToHeapList(e, itvar->second);
     }
-    for (itvar=systemReadonlyVariableVector.begin(); itvar!=systemReadonlyVariableVector.end(); ++itvar) {
-      addToHeapList(e, itvar->second);
-    }    
+//    for (itvar=systemReadonlyVariableVector.begin(); itvar!=systemReadonlyVariableVector.end(); ++itvar) {
+//      addToHeapList(e, itvar->second);
+//    }    
 
     DString name;
     if (e->KeywordPresent(FILENAME))
@@ -2295,24 +2294,24 @@ enum {
       GDLDelete(heapObjPtrList);
     }
 
-
-    while (!systemReadonlyVariableVector.empty())
-    {
-      nextptr = writeNormalVariable(xdrs, systemReadonlyVariableVector.back().first, (systemReadonlyVariableVector.back()).second, 0x3);
-      if (verboselevel > 0) Message("Saved variable: " + (systemReadonlyVariableVector.back()).first + ".");
-      systemReadonlyVariableVector.pop_back();
-    }
+//
+//    while (!systemReadonlyVariableVector.empty())
+//    {
+//      nextptr = writeNormalVariable(xdrs, systemReadonlyVariableVector.back().first, (systemReadonlyVariableVector.back()).second, 0x3);
+//      if (verboselevel > 0) Message("Saved variable: " + (systemReadonlyVariableVector.back()).first + ".");
+//      systemReadonlyVariableVector.pop_back();
+//    }
     while (!systemVariableVector.empty())
     {
       nextptr = writeNormalVariable(xdrs, systemVariableVector.back().first, (systemVariableVector.back()).second, 0x2);
-      if (verboselevel > 0) Message("Saved variable: " + (systemVariableVector.back()).first + ".");
+      if (verboselevel > 0) Message("SAVE: Saved system variable: " + (systemVariableVector.back()).first + ".");
       systemVariableVector.pop_back();
     }
     
     while (!variableVector.empty())
     { 
       nextptr=writeNormalVariable(xdrs, variableVector.back().first, (variableVector.back()).second);
-      if (verboselevel>0) Message("Saved variable: " + (variableVector.back()).first+".");
+      if (verboselevel>0) Message("SAVE: Saved variable: " + (variableVector.back()).first+".");
       variableVector.pop_back();
     }
 

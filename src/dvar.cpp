@@ -24,10 +24,10 @@
 using namespace std;
 
 DVar::DVar(const string& n, BaseGDL* data) :
-  name(n), d(data)
+  name(n), d(data),callback(defaultDVarCallback)
 {}
 
-DVar::DVar() : name(), d(0) 
+DVar::DVar() : name(), d(0) ,callback(defaultDVarCallback)
 {}
 
 DVar::~DVar() 

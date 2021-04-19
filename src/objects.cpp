@@ -49,7 +49,9 @@ using namespace std;
 
 // instantiate the global lists
 VarListT      sysVarList;
+VarListT      obsoleteSysVarList; //spceial case of very very old sysvar, some point to [parts of] values in sysVar (e.g. !CXMAX): cannot be destroyed in a .RESET (double free())
 VarListT      sysVarRdOnlyList;
+VarListT      sysVarNoSaveList;
 
 FunListT      funList;
 ProListT      proList;
