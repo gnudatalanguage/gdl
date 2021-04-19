@@ -1,6 +1,8 @@
 name: build
 
 on:
+  schedule:
+    - cron: "0 0 * * 2"
   push:
     branches:
       - master
@@ -21,19 +23,19 @@ jobs:
     - name: Create Build Matrix (Windows)
       id: set-matrix-windows
       run: |
-        if [[ '${{ github.ref }}' == *pull* ]]; then 
-            matrix="{deps: ['full'], arch: ['x86_64'], configuration: ['Release']}"
+        if [[ '${{ github.event_name }}' == "schedule" ]]; then 
+            matrix="{deps: ['full-msmpi', 'full', 'mini'], arch: ['x86_64', 'i686'], configuration: ['Release']}"
         else
-            matrix="{deps: ['full-msmpi', 'full', 'mini'], arch: ['x86_64', 'i686'], configuration: ['Release', 'Debug']}"
+            matrix="{deps: ['full-msmpi'], arch: ['x86_64'], configuration: ['Debug']}"
         fi
         echo "::set-output name=matrix-windows::$matrix"
     - name: Create Build Matrix (Linux/macOS)
       id: set-matrix-others
       run: |
-        if [[ '${{ github.ref }}' == *pull* ]]; then 
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full'], configuration: ['Release']}"
+        if [[ '${{ github.event_name }}' == "schedule" ]]; then 
+            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full', 'mini'], configuration: ['Release'], include: [{os: 'ubuntu-latest', deps: 'full', configuration: 'Debug', codecov: true}]}"
         else
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full', 'mini'], configuration: ['Release', 'Debug'], include: [{os: 'ubuntu-latest', deps: 'full', configuration: 'Debug', codecov: true}]}"
+            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full'], configuration: ['Debug']}"
         fi
         echo "::set-output name=matrix-others::$matrix"
   build-linux-macos:
