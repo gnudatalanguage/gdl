@@ -78,6 +78,12 @@ extern "C" char **environ;
 /* max regexp error message length */
 #define MAX_REGEXPERR_LENGTH 80
 
+#ifdef _OPENMP
+#define THREAD_NUM omp_get_thread_num()
+#else
+#define THREAD_NUM 0
+#endif
+
 #ifdef _MSC_VER
 #if _MSC_VER < 1800
 #define std::isfinite _finite
@@ -6499,15 +6505,149 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
       }
     }
   }
+  template<typename T> void pos_ishft_s(const T* in, T* out, const SizeT n, const char s) {
+// parallelization is marginally useful as the loop is well paralleized by compiler.
+#pragma omp parallel for if ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
+      for (SizeT i = 0; i < n; ++i) out[i] = in[i] * s;
+  }
+
+  template<typename T> void neg_ishft_s(const T* in, T* out, const SizeT n, const char s) {
+// parallelization is marginally useful as the loop is well paralleized by compiler.
+#pragma omp parallel for if ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
+      for (SizeT i = 0; i < n; ++i) out[i] = in[i] >> s;
+  }
   
-  BaseGDL* ishft_fun(EnvT* e) {
+  template<typename T> void ishft_m(const T* in, T* out, const SizeT n, const DLong* s) {
+#pragma omp parallel for if ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
+      for (SizeT i = 0; i < n; ++i) {
+          out[i] = (s[i] >= 0 )? in[i] << s[i] : in[i] >> -s[i];
+      }
+  }
+  BaseGDL* local_ishft_single(BaseGDL* in, SizeT n, char s, bool pos) {
+    BaseGDL* out = in->New(n, BaseGDL::INIT);
+    switch (in->Type()) {
+    case GDL_BYTE:
+    {
+      DByte* _in = static_cast<DByte*> (in->DataAddr());
+      DByte* _out = static_cast<DByte*> (out->DataAddr());
+      if (pos) pos_ishft_s(_in, _out, n, s); else neg_ishft_s(_in, _out, n, s);
+    }
+      break;
+    case GDL_UINT:
+    {
+      DUInt* _in = static_cast<DUInt*> (in->DataAddr());
+      DUInt* _out = static_cast<DUInt*> (out->DataAddr());
+      if (pos) pos_ishft_s(_in, _out, n, s); else neg_ishft_s(_in, _out, n, s);
+    }
+      break;
+    case GDL_INT:
+    {
+      DInt* _in = static_cast<DInt*> (in->DataAddr());
+      DInt* _out = static_cast<DInt*> (out->DataAddr());
+      if (pos) pos_ishft_s(_in, _out, n, s); else neg_ishft_s(_in, _out, n, s);
+    }
+      break;
+    case GDL_LONG:
+    {
+      DLong* _in = static_cast<DLong*> (in->DataAddr());
+      DLong* _out = static_cast<DLong*> (out->DataAddr());
+      if (pos) pos_ishft_s(_in, _out, n, s); else neg_ishft_s(_in, _out, n, s);
+    }
+      break;
+    case GDL_ULONG:
+    {
+      DULong* _in = static_cast<DULong*> (in->DataAddr());
+      DULong* _out = static_cast<DULong*> (out->DataAddr());
+      if (pos) pos_ishft_s(_in, _out, n, s); else neg_ishft_s(_in, _out, n, s);
+    }
+      break;
+    case GDL_LONG64:
+    {
+      DULong64* _in = static_cast<DULong64*> (in->DataAddr());
+      DULong64* _out = static_cast<DULong64*> (out->DataAddr());
+      if (pos) pos_ishft_s(_in, _out, n, s); else neg_ishft_s(_in, _out, n, s);
+    }
+      break;
+    case GDL_ULONG64:
+    {
+      DLong64* _in = static_cast<DLong64*> (in->DataAddr());
+      DLong64* _out = static_cast<DLong64*> (out->DataAddr());
+      if (pos) pos_ishft_s(_in, _out, n, s); else neg_ishft_s(_in, _out, n, s);
+    }
+      break;
+    default:
+      throw;
+    }
+    return out;
+  }
+
+  BaseGDL* local_ishft_multiple(BaseGDL* in, DLongGDL* _s, SizeT n) {
+    BaseGDL* out = in->New(n, BaseGDL::INIT);
+    DLong* s=static_cast<DLong*> (_s->DataAddr());
+    switch (in->Type()) {
+    case GDL_BYTE:
+    {
+      DByte* _in = static_cast<DByte*> (in->DataAddr());
+      DByte* _out = static_cast<DByte*> (out->DataAddr());
+      ishft_m(_in, _out, n, s);
+    }
+      break;
+    case GDL_UINT:
+    {
+      DUInt* _in = static_cast<DUInt*> (in->DataAddr());
+      DUInt* _out = static_cast<DUInt*> (out->DataAddr());
+      ishft_m(_in, _out, n, s);
+    }
+      break;
+    case GDL_INT:
+    {
+      DInt* _in = static_cast<DInt*> (in->DataAddr());
+      DInt* _out = static_cast<DInt*> (out->DataAddr());
+      ishft_m(_in, _out, n, s);
+    }
+      break;
+    case GDL_LONG:
+    {
+      DLong* _in = static_cast<DLong*> (in->DataAddr());
+      DLong* _out = static_cast<DLong*> (out->DataAddr());
+      ishft_m(_in, _out, n, s);
+    }
+      break;
+    case GDL_ULONG:
+    {
+      DULong* _in = static_cast<DULong*> (in->DataAddr());
+      DULong* _out = static_cast<DULong*> (out->DataAddr());
+      ishft_m(_in, _out, n, s);
+    }
+      break;
+    case GDL_LONG64:
+    {
+      DULong64* _in = static_cast<DULong64*> (in->DataAddr());
+      DULong64* _out = static_cast<DULong64*> (out->DataAddr());
+      ishft_m(_in, _out, n, s);
+    }
+      break;
+    case GDL_ULONG64:
+    {
+      DLong64* _in = static_cast<DLong64*> (in->DataAddr());
+      DLong64* _out = static_cast<DLong64*> (out->DataAddr());
+      ishft_m(_in, _out, n, s);
+    }
+      break;
+    default:
+      throw;
+    }
+    return out;
+  }
+
+    BaseGDL* ishft_fun(EnvT* e) {
     Guard<BaseGDL>ga;
     Guard<BaseGDL>gb;
     
-    DType typ = (e->GetParDefined(0))->Type();
-    //types are norally correct, so do not loose time looking for wrong types
-    if ((typ == GDL_BYTE) || (typ == GDL_UINT) || (typ == GDL_INT) || (typ == GDL_LONG) ||
-      (typ == GDL_ULONG) || (typ == GDL_LONG64) || (typ == GDL_ULONG64)) {
+    BaseGDL* in=(e->GetParDefined(0));
+    DType typ = in->Type();
+    //types are normally correct, so do not loose time looking for wrong types
+    if (IntType(typ)) {
       dimension finalDim;
       //behaviour: minimum set of dimensions of arrays. singletons expanded to dimension,
       //keep array trace.
@@ -6528,121 +6668,29 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
           finalN = minEl;
           finalDim = e->GetPar(i)->Dim();
         }
-      } 
-      //now get pointers to a and b, and increment (0 if b is singleton)
-      switch (typ) {
-        case GDL_BYTE:
-        {
-          DByteGDL* ret = new     DByteGDL(finalDim, BaseGDL::NOZERO);
-          DByteGDL* a=e->GetParAs<DByteGDL>(0);
-          DByteGDL* b=e->GetParAs<DByteGDL>(1);
-          if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
-          if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
-#pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
-          {
-#pragma omp for
-            for (SizeT i=0 ; i < finalN; ++i) (*ret)[i] = ((*b)[i]>=0)? (*a)[i] << (*b)[i]: (*a)[i] >> -(*b)[i];
-          }
-          return ret;
-        }
-        break;
-        case GDL_UINT:
-        {
-          DUIntGDL* ret = new     DUIntGDL(finalDim, BaseGDL::NOZERO);
-          DUIntGDL* a=e->GetParAs<DUIntGDL>(0);
-          DIntGDL* b=e->GetParAs<DIntGDL>(1);
-          if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
-          if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
-#pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
-          {
-#pragma omp for
-            for (SizeT i=0 ; i < finalN; ++i) (*ret)[i] = ((*b)[i]>=0)? (*a)[i] << (*b)[i]: (*a)[i] >> -(*b)[i];
-          }
-          return ret;
-        }
-        break;
-        case GDL_INT:
-        {
-          DIntGDL* ret = new     DIntGDL(finalDim, BaseGDL::NOZERO);
-          DIntGDL* a=e->GetParAs<DIntGDL>(0);
-          DIntGDL* b=e->GetParAs<DIntGDL>(1);
-          if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
-          if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
-#pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
-          {
-#pragma omp for
-            for (SizeT i=0 ; i < finalN; ++i) (*ret)[i] = ((*b)[i]>=0)? (*a)[i] << (*b)[i]: (*a)[i] >> -(*b)[i];
-          }
-          return ret;
-        }
-        break;
-        case GDL_LONG:
-        {
-          DLongGDL* ret = new     DLongGDL(finalDim, BaseGDL::NOZERO);
-          DLongGDL* a=e->GetParAs<DLongGDL>(0);
-          DLongGDL* b=e->GetParAs<DLongGDL>(1);
-          if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
-          if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
-#pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
-          {
-#pragma omp for
-            for (SizeT i=0 ; i < finalN; ++i) (*ret)[i] = ((*b)[i]>=0)? (*a)[i] << (*b)[i]: (*a)[i] >> -(*b)[i];
-          }
-          return ret;
-        }
-        break;
-        case GDL_ULONG:
-        {
-          DULongGDL* ret = new     DULongGDL(finalDim, BaseGDL::NOZERO);
-          DULongGDL* a=e->GetParAs<DULongGDL>(0);
-          DLongGDL* b=e->GetParAs<DLongGDL>(1);
-          if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
-          if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
-#pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
-          {
-#pragma omp for
-            for (SizeT i=0 ; i < finalN; ++i) (*ret)[i] = ((*b)[i]>=0)? (*a)[i] << (*b)[i]: (*a)[i] >> -(*b)[i];
-          }
-          return ret;
-        }
-        break;
-        case GDL_LONG64:
-        {
-          DLong64GDL* ret = new     DLong64GDL(finalDim, BaseGDL::NOZERO);
-          DLong64GDL* a=e->GetParAs<DLong64GDL>(0);
-          DLong64GDL* b=e->GetParAs<DLong64GDL>(1);
-          if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
-          if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
-#pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
-          {
-#pragma omp for
-            for (SizeT i=0 ; i < finalN; ++i) (*ret)[i] = ((*b)[i]>=0)? (*a)[i] << (*b)[i]: (*a)[i] >> -(*b)[i];
-          }
-          return ret;
-        }
-        break;
-        case GDL_ULONG64:
-        {
-          DULong64GDL* ret = new     DULong64GDL(finalDim, BaseGDL::NOZERO);
-          DULong64GDL* a=e->GetParAs<DULong64GDL>(0);
-          DLong64GDL* b=e->GetParAs<DLong64GDL>(1);
-          if (a->Scalar()) {a=a->New( finalN, BaseGDL::INIT); ga.Reset(a);} //expand to return element size, for parallel processing
-          if (b->Scalar()) {b=b->New( finalN, BaseGDL::INIT); gb.Reset(b);}//expand to return element size, for parallel processing
-#pragma omp parallel if (finalN >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= finalN))
-          {
-#pragma omp for
-            for (SizeT i=0 ; i < finalN; ++i) (*ret)[i] = ((*b)[i]>=0)? (*a)[i] << (*b)[i]: (*a)[i] >> -(*b)[i];
-          }
-          return ret;
-        }
-        break;
-        default:
-          cerr<<"Internal Error, please report"<<endl;
       }
 
+      //consider that res is always 0's type:
+
+      //fill shift, using a large type Long as apparently IDL does
+      DLongGDL* sss=e->GetParAs<DLongGDL>(1);
+      //if sss is a singleton, or not:
+      if (sss->N_Elements() == 1) {
+        char shift;
+        if ((*sss)[0] ==0) return in->Dup(); 
+        else if ((*sss)[0] > 0) {
+          if ((*sss)[0] > 254) shift = 255; else shift = (*sss)[0];
+          return local_ishft_single(in, finalN, shift, true);
+        } else {
+          if ( (*sss)[0] < -254 ) shift = 255; else shift = -(*sss)[0];
+          return local_ishft_single(in, finalN, shift, false);
+        }
+      } else {
+        return local_ishft_multiple(in, sss, finalN);
+      }
     } else e->Throw("Operand must be integer:" + e->GetParString(0));
     return NULL; //pacify dumb compilers.
-  }
+    }
   
   BaseGDL* shift_fun( EnvT* e) {
     SizeT nParam = e->NParam(2);
@@ -7032,7 +7080,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     bool omitNaN = e->KeywordPresent(nanIx);
 
     //the following is going to be wrong in cases where TOP is so negative that a Long does not suffice.
-    //Besides, a template version for each different tyep would be faster and probably the only solution to get the
+    //Besides, a template version for each different type would be faster and probably the only solution to get the
     //correct behavior in all cases.
     DLong topL = 255;
     if (e->GetKW(topIx) != NULL)
