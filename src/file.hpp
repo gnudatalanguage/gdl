@@ -30,6 +30,8 @@ namespace lib {
   BaseGDL* routine_dir_fun( EnvT* e);
 
   std::string PathSeparator();
+  std::string SearchPathSeparator();
+  std::string ParentDirectoryIndicator();
   void cd_pro( EnvT* e);
 
   BaseGDL* expand_path( EnvT* e);
@@ -41,6 +43,7 @@ namespace lib {
 
   BaseGDL* file_info( EnvT* e);
 
+  BaseGDL* path_sep( EnvT* e);
   BaseGDL* file_basename( EnvT* e);
   BaseGDL* file_dirname( EnvT* e);
   BaseGDL* file_readlink( EnvT* e);

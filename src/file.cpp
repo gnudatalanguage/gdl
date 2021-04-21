@@ -358,9 +358,33 @@ namespace lib {
 #else
     return string ("/");
 #endif
-
   }
-
+  
+  string SearchPathSeparator()
+  {
+#ifdef _WIN32
+    return string (";");
+#else
+    return string (":");
+#endif
+  }
+  
+  string ParentDirectoryIndicator()
+  {
+    return string ("..");
+  }
+  
+  BaseGDL* path_sep( EnvT* e)
+  {
+    static int PARENT_DIRECTORY=e->KeywordIx("PARENT_DIRECTORY");
+    static int SEARCH_PATH=e->KeywordIx("SEARCH_PATH");
+    if (e->KeywordSet(PARENT_DIRECTORY) && e->KeywordSet(SEARCH_PATH) )
+      e->Throw("Conflicting keywords.");
+    if (e->KeywordSet(PARENT_DIRECTORY)) return new DStringGDL(ParentDirectoryIndicator());
+    else if (e->KeywordSet(SEARCH_PATH)) return new DStringGDL(SearchPathSeparator());
+    return new DStringGDL(PathSeparator());
+  }
+  
   DString GetCWD()
   {
     SizeT bufSize = PATH_MAX;
