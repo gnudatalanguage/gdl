@@ -35,19 +35,12 @@
 #include <fstream>
 #include <memory>
 
-#include <gsl/gsl_sys.h>
-#include <gsl/gsl_linalg.h>
 #include <gsl/gsl_sf.h>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_spline.h>
 
 #include "initsysvar.hpp"
 #include "datatypes.hpp"
 #include "envt.hpp"
-//#include "dpro.hpp"
-//#include "dinterpreter.hpp"
 #include "basic_fun_cl.hpp"
-//#include "terminfo.hpp"
 
 #define MAX_DATE_STRING_LENGTH 80
 

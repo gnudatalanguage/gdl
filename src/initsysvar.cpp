@@ -90,17 +90,11 @@ namespace SysVar
   void SetGDLPath( const DString& newPath)
   {
     FileListT sArr;
-    #ifdef _WIN32
-      char pathsep[]=";";
-    #else
-      char pathsep[]=":";
-    #endif
-
     SizeT d;
     long   sPos=0;
     do
       {
-	d=newPath.find(pathsep[0],sPos);
+	d=newPath.find(lib::SearchPathSeparator(),sPos);
 	string act = newPath.substr(sPos,d-sPos);
 	
 	lib::ExpandPath( sArr, act, "*.pro");
@@ -119,7 +113,7 @@ namespace SysVar
     // set the path
     path = sArr[0];
     for( SizeT i=1; i<nArr; ++i)
-      path += pathsep + sArr[i];
+      path += lib::SearchPathSeparator() + sArr[i];
     // GJ version    path = sArr[nArr-1];
     // GJ version for( SizeT i=1; i<nArr; ++i)
     // GJ version  path += pathsep + sArr[nArr-i-1];
@@ -197,14 +191,9 @@ namespace SysVar
 
     SizeT d;
     long sPos = 0;
-#ifdef _WIN32
-    char pathsep[] = ";";
-#else
-    char pathsep[] = ":";
-#endif
 
     do {
-      d = path.find(pathsep[0], sPos);
+      d = path.find(lib::SearchPathSeparator(), sPos);
       sArr.push_back(path.substr(sPos, d - sPos));
       sPos = d + 1;
     }    while (d != path.npos);

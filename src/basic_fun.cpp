@@ -7404,11 +7404,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
           (*env)[i] = _PATH_TMP ;
 #endif
         }
-#ifdef _WIN32
-          AppendIfNeeded( (*env)[i], "\\");
-#else
-          AppendIfNeeded( (*env)[i], "/");
-#endif
+        AppendIfNeeded( (*env)[i], lib::PathSeparator());
         }
       else // normal environment variables
         if( (resPtr = getenv((*name)[i].c_str())) ) 
