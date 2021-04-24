@@ -199,7 +199,7 @@ namespace lib {
 
 	if( nParam == parOffset) 
 	  {
-	    (*os) << endl;
+	    (*os) << '\n';
 	    return;
 	  }
       
@@ -217,7 +217,7 @@ namespace lib {
 	    par=e->GetPar( i);
 	    if( par == NULL) // allowed here: NullGDL::GetSingleInstance())
 	      e->Throw("Variable is undefined: "+e->GetParString( i));
-            if (lastParScalar && anyArrayBefore && par->Rank() != 0) (*os) << endl; // e.g. print,[1],1,[1] 
+            if (lastParScalar && anyArrayBefore && par->Rank() != 0) (*os) << '\n'; // e.g. print,[1],1,[1] 
             anyArrayBefore |= par->Rank() != 0;
 	    par->ToStream( *os, width, &actPos);
 // debug	  
@@ -230,7 +230,7 @@ namespace lib {
 // 	}
 	if( (par->Dim().Rank() == 0  && !singleNullChar) || par->Type() == GDL_STRUCT)
 	{
-		(*os) << endl;
+		(*os) << '\n';
 	}
       }
   }

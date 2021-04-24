@@ -1132,15 +1132,39 @@ namespace lib
       wEnd=(*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1];
     }
   }
+  void gdlStoreSC() {
+    //save corresponding SCxx values:
+    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+    static unsigned positionTag = pStruct->Desc()->TagIndex("POSITION");
+    DFloat* position = &(*static_cast<DFloatGDL*> (pStruct->GetTag(positionTag, 0)))[0];
+    DStructGDL* dStruct = SysVar::D(); //MUST NOT BE STATIC, due to .reset
+    static unsigned dxvsizeTag = dStruct->Desc()->TagIndex("X_VSIZE");
+    static unsigned dyvsizeTag = dStruct->Desc()->TagIndex("Y_VSIZE");
 
+    DLong x_vsize = (*static_cast<DLongGDL*> (dStruct->GetTag(dxvsizeTag, 0)))[0];
+    DLong y_vsize = (*static_cast<DLongGDL*> (dStruct->GetTag(dyvsizeTag, 0)))[0];
+    DFloat* sc = SysVar::GetSC();
+    DStructGDL* xStruct = SysVar::X(); 
+    static unsigned xwindowTag = xStruct->Desc()->TagIndex("WINDOW");
+    DStructGDL* yStruct = SysVar::Y(); 
+    static unsigned ywindowTag = yStruct->Desc()->TagIndex("WINDOW");
+    DFloat* xwindow=&(*static_cast<DFloatGDL*> (xStruct->GetTag(xwindowTag, 0)))[0];
+    DFloat* ywindow=&(*static_cast<DFloatGDL*> (yStruct->GetTag(ywindowTag, 0)))[0];
+    sc[0] = (position[2] != 0) ? position[0] * x_vsize : xwindow[0]*x_vsize;
+    sc[1] = (position[2] != 0) ? position[2] * x_vsize : xwindow[1]*x_vsize;
+    sc[2] = (position[2] != 0) ? position[1] * y_vsize : ywindow[0]*y_vsize;
+    sc[3] = (position[2] != 0) ? position[3] * y_vsize : ywindow[1]*y_vsize;
+
+  }
   //Stores [XYZ].WINDOW, .REGION and .S
   void gdlStoreAxisSandWINDOW(GDLGStream* actStream, int axisId, DDouble Start, DDouble End, bool log)
   {
     PLFLT p_xmin, p_xmax, p_ymin, p_ymax, norm_min, norm_max, charDim;
+    bool savesc=false;
     actStream->gvpd(p_xmin, p_xmax, p_ymin, p_ymax); //viewport normalized coords
     DStructGDL* Struct=NULL;
-    if ( axisId==XAXIS ) {Struct=SysVar::X(); norm_min=p_xmin; norm_max=p_xmax; charDim=actStream->nCharLength();}
-    if ( axisId==YAXIS ) {Struct=SysVar::Y(); norm_min=p_ymin; norm_max=p_ymax; charDim=actStream->nCharHeight();}
+    if ( axisId==XAXIS ) {Struct=SysVar::X(); savesc=true; norm_min=p_xmin; norm_max=p_xmax; charDim=actStream->nCharLength();}
+    if ( axisId==YAXIS ) {Struct=SysVar::Y(); savesc=true; norm_min=p_ymin; norm_max=p_ymax; charDim=actStream->nCharHeight();}
     if ( axisId==ZAXIS ) {Struct=SysVar::Z(); norm_min=0; norm_max=1; charDim=actStream->nCharLength();}
     if ( Struct!=NULL )
     {
@@ -1161,6 +1185,7 @@ namespace lib
       (norm_min*End-norm_max*Start)/(End-Start);
       (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=
       (norm_max-norm_min)/(End-Start);
+      if (savesc) gdlStoreSC();
     }
   }
 

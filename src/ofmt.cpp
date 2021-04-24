@@ -959,7 +959,7 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f, int code, Base
   switch ( cMode ) {
     case BaseGDL::WRITE:
         for (SizeT i=0, j=0; j<r; j++){
-          if (i >= repeat) {i=0; (*os)<<endl;}
+          if (i >= repeat) {i=0; (*os)<<'\n';}
           (*os)<<(local_os[j]->str()).c_str();
           i++;
           delete local_os[j];

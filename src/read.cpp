@@ -253,7 +253,7 @@ namespace lib {
 		  if( !cline)
 		    {
 		      // 						if (isatty(0))
-		      cout << endl;
+		      cout << '\n';
 		      e->Throw("Error encountered reading from: Unit: 0, <stdin> (redirected).");
 		    }
 		  else

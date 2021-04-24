@@ -1,9 +1,9 @@
 /***************************************************************************
-                          basic_fun.hpp  -  basic GDL library functions
+                          |FILENAME|  -  description
                              -------------------
-    begin                : March 14 2004
-    copyright            : (C) 2004 by Christopher Lee
-    email                : leec_gdl@publius.co.uk
+    begin                : |DATE|
+    copyright            : (C) |YEAR| by |AUTHOR|
+    email                : |EMAIL|
  ***************************************************************************/
 
 /***************************************************************************
@@ -15,15 +15,10 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef BASIC_FUN_HPP_CL
-#define BASIC_FUN_HPP_CL
+#include "includefirst.hpp"
+#include "datatypes.hpp"
+#include "envt.hpp"
+#include "dinterpreter.hpp"
 
 namespace lib {
-
-  BaseGDL* systime(EnvT* e);
-  BaseGDL* legendre(EnvT* e);
-  BaseGDL* gsl_exp(EnvT* e);
-
-} // namespace
-
-#endif
+}

@@ -23,15 +23,16 @@
 #include <functional>
 
 #include "basegdl.hpp"
+#include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 
-
+static void defaultDVarCallback(){} //nothing
 // variable type
 class DVar
 {
 private:
   std::string     name; // the name
   BaseGDL* d;
-
+  void (*callback)();
 public:
   DVar();
   DVar(const std::string& n, BaseGDL* = 0); 
@@ -50,6 +51,8 @@ public:
     return d;
   }
   void SetData(BaseGDL* val){d=val;}
+  void SetCallback(void (*func)()){callback=func;}
+  void DoCallback(){(*callback)();}
 };
 
 typedef std::vector<DVar*>        VarListT;
@@ -70,5 +73,14 @@ public:
 
 DVar* FindInVarList(VarListT&, const std::string& name);
 DVar* FindInVarList(VarListT&, BaseGDL* p);
-
+  
+//// assignment. 
+//  DVar& operator=(const BaseGDL& right)
+//  {
+//   std::cerr<<mtime<<std::endl;
+//    assert( &right != this);
+//    if( &right == this) return *this; // self assignment
+//    d=right;
+//    return *this;
+//  }
 #endif

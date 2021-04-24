@@ -115,12 +115,11 @@ function build_msys2_package {
         patch -p0 -i $patch
     fi
     if [[ ${arch} == "x86_64" ]]; then
-        makepkg_conf=/etc/makepkg_mingw64.conf
+        export MINGW_ARCH=mingw64
     else
-        makepkg_conf=/etc/makepkg_mingw32.conf
+        export MINGW_ARCH=mingw32
     fi
-    eval `cat ${makepkg_conf} | grep PKGEXT=`
-    makepkg --config ${makepkg_conf} --noconfirm --syncdeps --install
+    makepkg-mingw --noconfirm --syncdeps --install
     popd
 }
 
@@ -294,7 +293,7 @@ function build_gdl {
           -DCMAKE_INSTALL_PREFIX="${ROOT_DIR}/install" \
           -DREADLINE=OFF -DPNGLIB=OFF -DOPENMP=OFF \
           -DGRAPHICSMAGICK=OFF -DWXWIDGETS=OFF \
-          -DINTERACTIVE_GRAPHICS=OFF \
+          -DINTERACTIVE_GRAPHICS=OFF -DMAGICK=OFF \
           -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF \
           -DLIBPROJ=OFF -DMPI=OFF -DPYTHON=OFF -DUDUNITS2=OFF \
           -DEIGEN3=OFF -DGRIB=OFF -DGLPK=OFF -DTIFF=OFF \
@@ -337,7 +336,11 @@ function build_gdl {
 function test_gdl {
     log "Testing GDL..."
     cd ${ROOT_DIR}/build
-    make check
+    if [ -f ${GDL_DIR}/CMakeModules/CodeCoverage.cmake ]; then
+        make codecov
+    else
+        make check
+    fi
 }
 
 function pack_gdl {

@@ -762,7 +762,7 @@ static double epsilon = std::numeric_limits<float>::epsilon(); //say, 5e-7
          ThrowGDLException("GCTP StatePlane projection unsupported (FIXME!).");
          break;
         }
-      cout<<projCommand<<endl;
+//      cout<<projCommand<<endl;
 #if LIBPROJ_MAJOR_VERSION >= 5
         prev_ref = proj_create(PJ_DEFAULT_CTX, projCommand.c_str());
 #else

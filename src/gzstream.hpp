@@ -78,6 +78,7 @@ public:
     void setPosition(long pos){position=pos;} 
     void incrementPosition(long pos=1){position+=pos;}
     void decrementPosition(long pos=1){position-=pos;}
+    std::streampos seeknext(int_type __delim);
 };
 
 class gzstreambase : virtual public std::ios {
@@ -109,7 +110,9 @@ public:
     }
     igzstream& seekg(std::streampos); 
     igzstream& seekg(std::streamoff, std::ios_base::seekdir);
-
+    igzstream& ignore(std::streamsize __n);
+    igzstream& ignore(std::streamsize __n, int_type __delim);
+    std::streampos tellg();
 };
 
 class ogzstream : public gzstreambase, public std::ostream {
@@ -123,6 +126,7 @@ public:
     }
     ogzstream& seekp(std::streampos); 
     ogzstream& seekp(std::streamoff, std::ios_base::seekdir);
+    std::streampos tellp();
 };
 
 #ifdef GZSTREAM_NAMESPACE

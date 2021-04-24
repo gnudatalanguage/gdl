@@ -246,8 +246,127 @@ namespace lib {
       actUnit.Seek( pos);
     }
   }
+  void truncate_lun( EnvT* e) 
+  {
+    SizeT nPar=e->NParam();
+    
+    DLong lun;
+    for (SizeT ix=0; ix < nPar; ++ix) {
+    e->AssureLongScalarPar( ix, lun);
 
-  void linkimage( EnvT* e ) {
+      if( lun > maxLun || lun < 0)
+        throw GDLException( e->CallingNode(), 
+            "TRUNCATE_LUN:  File unit is not within allowed range.");
+      if( lun == 0)
+        throw GDLException( e->CallingNode(), 
+            "TRUNCATE_LUN: Operation is invalid on a terminal. Unit: 0, File: <stdin>");
+      GDLStream& actUnit = fileUnits[ abs(lun)-1];
+      if( !actUnit.IsWriteable()) throw GDLException( e->CallingNode(), 
+            "TRUNCATE_LUN:  File unit is not open for output. Unit: " +i2s(abs(lun)));
+      if( !actUnit.IsOpen()) 
+        throw GDLException( e->CallingNode(), 
+            "TRUNCATE_LUN:  File unit is not open. Unit: " +i2s(abs(lun)));
+      if ( actUnit.Compress()) throw GDLException( e->CallingNode(), 
+            "TRUNCATE_LUN:  Not available for Compressed files, please complain!");
+      
+      actUnit.Truncate();
+    }
+  }
+
+  void copy_lun(EnvT* e) {
+    SizeT nPar = e->NParam(2);
+
+    DLong lun1;
+    e->AssureLongScalarPar(0, lun1);
+
+    if (lun1 > maxLun || lun1 < 0) throw GDLException(e->CallingNode(), "COPY_LUN:  File unit is not within allowed range.");
+    if (lun1 == 0) throw GDLException(e->CallingNode(), "COPY_LUN: Operation is invalid on a terminal. Unit: 0, File: <stdin>");
+
+    GDLStream& actUnit1 = fileUnits[ abs(lun1) - 1];
+    if (!actUnit1.IsOpen()) throw GDLException(e->CallingNode(), "COPY_LUN:  File unit is not open. Unit: " + i2s(abs(lun1)));
+
+    DLong lun2;
+    e->AssureLongScalarPar(1, lun2);
+
+    if (lun2 > maxLun || lun2 < 0) throw GDLException(e->CallingNode(), "COPY_LUN:  File unit is not within allowed range.");
+    if (lun2 == 0) throw GDLException(e->CallingNode(), "COPY_LUN: Operation is invalid on a terminal. Unit: 0, File: <stdin>");
+    GDLStream& actUnit2 = fileUnits[ abs(lun2) - 1];
+
+    if (!actUnit2.IsOpen()) throw GDLException(e->CallingNode(), "COPY_LUN:  File unit is not open. Unit: " + i2s(abs(lun2)));
+    if (!actUnit2.IsWriteable()) throw GDLException(e->CallingNode(), "COPY_LUN:  File unit is not open for Write. Unit: " + i2s(abs(lun2)));
+
+    static int tcIx = e->KeywordIx("TRANSFER_COUNT");
+    bool docount = e->KeywordPresent(tcIx);
+    static int ixLINES = e->KeywordIx("LINES");
+    bool doline = e->KeywordSet(ixLINES);
+    static int ixEOF = e->KeywordIx("EOF");
+    bool doeof = e->KeywordSet(ixEOF);
+    if (nPar == 2) doeof = true;
+    // if docount, set param to zero beforehand in case of early return on error.
+    DLong64GDL* returnedCount;
+    std::streamoff currentPos = actUnit1.Tell();
+    if (docount) {
+      returnedCount = new DLong64GDL(0);
+      e->SetKW(tcIx, returnedCount);
+    }
+    bool doThrow = !doeof;
+    if (doline) {
+      DLong nlines;
+      if (doeof) nlines = std::numeric_limits<DLong>::max(); //copy until the end: read a big number, but do not throw on EOF
+      else e->AssureLongScalarPar(2, nlines);
+      DLong ret = actUnit1.CopySomeLinesTo(nlines, actUnit2, doThrow);
+      if (docount) (*returnedCount)[0] = ret;
+    } else {
+      DLong64 pos;
+      if (doeof) pos = std::numeric_limits<DLong64>::max(); //copy until the end: read a big number, but do not throw on EOF 
+      else e->AssureLongScalarPar(2, pos);
+      DLong64 ret = actUnit1.CopySomeTo(pos, actUnit2, doThrow);
+      if (docount) (*returnedCount)[0] = ret;
+    }
+  }
+
+  void skip_lun(EnvT* e) {
+    SizeT nPar = e->NParam(1);
+
+    DLong lun;
+    e->AssureLongScalarPar(0, lun);
+
+    if (lun > maxLun || lun < 0) throw GDLException(e->CallingNode(), "COPY_LUN:  File unit is not within allowed range.");
+    if (lun == 0) throw GDLException(e->CallingNode(), "COPY_LUN: Operation is invalid on a terminal. Unit: 0, File: <stdin>");
+
+    GDLStream& actUnit = fileUnits[ abs(lun) - 1];
+    if (!actUnit.IsOpen()) throw GDLException(e->CallingNode(), "COPY_LUN:  File unit is not open. Unit: " + i2s(abs(lun)));
+
+    static int tcIx = e->KeywordIx("TRANSFER_COUNT");
+    bool docount = e->KeywordPresent(tcIx);
+    static int ixLINES = e->KeywordIx("LINES");
+    bool doline = e->KeywordSet(ixLINES);
+    static int ixEOF = e->KeywordIx("EOF");
+    bool doeof = e->KeywordSet(ixEOF);
+    if (nPar == 1) doeof = true;
+    // if docount, set param to zero beforehand in case of early return on error.
+    DLong64GDL* returnedCount;
+    std::streamoff currentPos = actUnit.Tell();
+    if (docount) {
+      returnedCount = new DLong64GDL(0);
+      e->SetKW(tcIx, returnedCount);
+    }
+    bool doThrow = !doeof;
+    if (doline) {
+      DLong nlines;
+      if (doeof) nlines = std::numeric_limits<DLong>::max(); //copy until the end: read a big number, but do not throw on EOF
+      else e->AssureLongScalarPar(1, nlines);
+      DLong ret = actUnit.SkipLines(nlines, doThrow);
+      if (docount) (*returnedCount)[0] = ret;
+    } else {
+      DLong64 pos;
+      if (doeof) pos = std::numeric_limits<DLong64>::max(); //copy until the end: read a big number, but do not throw on EOF 
+      else e->AssureLongScalarPar(1, pos);
+      DLong64 ret = actUnit.Skip(pos,  doThrow);
+      if (docount) (*returnedCount)[0] = ret;
+    }
+  }
+    void linkimage( EnvT* e ) {
 
     SizeT nP = e->NParam(2);
  

@@ -182,7 +182,7 @@ namespace lib {
 
       if (homeDir != NULL) {
         string pathToGDL_history = homeDir;
-        AppendIfNeeded(pathToGDL_history, "/");
+        AppendIfNeeded(pathToGDL_history,lib::PathSeparator());
         pathToGDL_history += ".gdl";
         // Create eventially the ".gdl" path in Home
 #ifdef _WIN32
@@ -197,7 +197,7 @@ namespace lib {
 
         // (over)write the history file in ~/.gdl PATH
 
-        AppendIfNeeded(pathToGDL_history, "/");
+        AppendIfNeeded(pathToGDL_history, lib::PathSeparator());
         string history_filename = pathToGDL_history + "history";
         if (debug) cout << "History file name: " << history_filename << endl;
         result = write_history(history_filename.c_str());
@@ -211,6 +211,12 @@ namespace lib {
 
     sem_onexit();
 
+    //flush still opened files.
+    
+    for (int p = 0; p < maxUserLun; ++p) {
+      fileUnits[p].Flush();
+    }
+    
     BaseGDL* status = e->GetKW(1);
     if (status == NULL) exit(EXIT_SUCCESS);
 
@@ -464,27 +470,13 @@ namespace lib {
 
   void open_lun(EnvT* e, fstream::openmode mode) {
     int nParam = e->NParam(2);
-
-    DLong lun;
-    static int getlunIx=e->KeywordIx("GET_LUN"); //works because index of GET_LUN is same for all 3 functions using it. 
-    bool getlunIsSet=e->KeywordSet(getlunIx);
-    if (getlunIsSet) {
-      //     get_lun( e);
-      // not using SetPar later gives a better error message
-      e->AssureGlobalPar(0);
-
-      // here lun is the GDL lun, not the internal one
-      lun = GetLUN();
-
-      if (lun == 0)
-        e->Throw("All available logical units are currently in use.");
-    } else {
-      e->AssureLongScalarPar(0, lun);
+    // compress ? first since it can throw.
+    bool compress = false;
+    static int compressIx = e->KeywordIx("COMPRESS");
+    if (e->KeywordSet(compressIx)) {
+      if ( ((mode & fstream::in) && (mode & fstream::out)) && ((mode & fstream::trunc)==0) ) e->Throw("Compressed files cannot be open for both input and output simultaneously.");
+      compress = true;
     }
-
-    bool stdLun = check_lun(e, lun);
-    if (stdLun)
-      e->Throw("Unit already open. Unit: " + i2s(lun));
 
     DString name;
     // IDL allows here also arrays of length 1
@@ -508,12 +500,6 @@ namespace lib {
       swapEndian = e->KeywordSet(swapIfBigIx);
     else
       swapEndian = e->KeywordSet(swapIfLittleIx);
-
-    // compress
-    bool compress = false;
-    static int compressIx = e->KeywordIx("COMPRESS");
-    if (e->KeywordSet(compressIx))
-      compress = true;
 
     // xdr
     static int xdrIx = e->KeywordIx("XDR");
@@ -566,6 +552,28 @@ namespace lib {
     if (widthKeyword != NULL) {
       e->AssureLongScalarKW(widthIx, width);
     }
+
+    
+    DLong lun;
+    static int getlunIx=e->KeywordIx("GET_LUN"); //works because index of GET_LUN is same for all 3 functions using it. 
+    bool getlunIsSet=e->KeywordSet(getlunIx);
+    if (getlunIsSet) {
+      //     get_lun( e);
+      // not using SetPar later gives a better error message
+      e->AssureGlobalPar(0);
+
+      // here lun is the GDL lun, not the internal one
+      lun = GetLUN();
+
+      if (lun == 0)
+        e->Throw("All available logical units are currently in use.");
+    } else {
+      e->AssureLongScalarPar(0, lun);
+    }
+
+    bool stdLun = check_lun(e, lun);
+    if (stdLun)
+      e->Throw("Unit already open. Unit: " + i2s(lun));
 
     // Assume variable-length VMS file initially
     // fileUnits[ lun-1].PutVarLenVMS( true);

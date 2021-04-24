@@ -161,18 +161,17 @@ public:
   plot->SetPStreamIx(wIx);
 
   plotFrame->Fit();
-  if (hide) {
-   plotFrame->Hide();
-   winList[ wIx]->UnMapWindowAndSetPixmapProperty(); //needed: will set the "pixmap" property
-  } else {
-    plotFrame->ShowWithoutActivating();
-  }
   plotFrame->Realize();
   // these widget specific events are always set:
   plot->Connect(wxEVT_PAINT, wxPaintEventHandler(gdlwxGraphicsPanel::OnPaint));
   plotFrame->Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(gdlwxPlotFrame::OnUnhandledClosePlotFrame));
   plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
-  plotFrame->Raise();
+  if (hide) {
+   winList[ wIx]->UnMapWindowAndSetPixmapProperty(); //needed: will set the "pixmap" property
+  } else {
+    plotFrame->ShowWithoutActivating();
+    plotFrame->Raise();
+  }  
   return true;
  }
 

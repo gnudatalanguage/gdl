@@ -36,6 +36,8 @@
 #include "basic_pro_jmg.hpp"
 
 #include "gsl_fun.hpp"
+#include "interpolate.hpp"
+#include "interpol.hpp"
 #include "image.hpp"
 #include "plotting.hpp"
 #include "projections.hpp"
@@ -132,8 +134,11 @@ void LibInit_jmg()
 			       "LOCATIONS","NAN",KLISTEND};
   const string histogramWarnKey[]={"L64",KLISTEND};
   new DLibFunRetNew(lib::histogram_fun,string("HISTOGRAM"),1,histogramKey,histogramWarnKey);
-
+  const string interpolKey[]={ "LSQUADRATIC","NAN", "QUADRATIC", "SPLINE" ,KLISTEND};
+  
+  new DLibFunRetNew(lib::interpol_fun,string("INTERPOL"),3,interpolKey);
   const string interpolateKey[]={"CUBIC","DOUBLE","GRID","MISSING","NEAREST_NEIGHBOUR",KLISTEND};
+  
   new DLibFunRetNew(lib::interpolate_fun,string("INTERPOLATE"),4,interpolateKey);
 
   const string la_triredKey[]={"DOUBLE","UPPER",KLISTEND};
@@ -208,7 +213,12 @@ void LibInit_jmg()
   new DLibFun(lib::reform,string("REFORM"),MAXRANK+1,reformKey);
 
   new DLibPro(lib::point_lun,string("POINT_LUN"),2);
+  new DLibPro(lib::truncate_lun,string("TRUNCATE_LUN"),-1);
 
+  const string skip_or_copy_lunKey[]={"EOF","LINES","TRANSFER_COUNT",KLISTEND};
+  new DLibPro(lib::skip_lun,string("SKIP_LUN"),2,skip_or_copy_lunKey);
+  new DLibPro(lib::copy_lun,string("COPY_LUN"),3,skip_or_copy_lunKey);
+  
   const string linkimageKey[]={"FUNCT", "KEYWORDS", "MAX_ARGS", "MIN_ARGS", "DEFAULT", KLISTEND}; //DEFAULT is VMS obsolete
   new DLibPro( lib::linkimage, string("LINKIMAGE"), 4, linkimageKey, NULL, 2 );
   const string unlinkimageKey[]={"FORCE", KLISTEND};

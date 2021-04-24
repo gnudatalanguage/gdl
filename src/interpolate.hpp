@@ -1,9 +1,10 @@
 /***************************************************************************
-                          basic_fun.hpp  -  basic GDL library functions
+     interpolate.hpp  -  all things related to interpolate command
                              -------------------
-    begin                : March 14 2004
-    copyright            : (C) 2004 by Christopher Lee
-    email                : leec_gdl@publius.co.uk
+    begin                : Mar 30 2021
+    copyright            : (C) 2004 by Joel Gales
+                         : (C) 2018 G. Duvert 
+    email                : see https://github.com/gnudatalanguage/gdl
  ***************************************************************************/
 
 /***************************************************************************
@@ -15,14 +16,18 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef BASIC_FUN_HPP_CL
-#define BASIC_FUN_HPP_CL
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#if defined(HAVE_LIBGSL)
+
+#include "datatypes.hpp"
+#include "envt.hpp"
 
 namespace lib {
 
-  BaseGDL* systime(EnvT* e);
-  BaseGDL* legendre(EnvT* e);
-  BaseGDL* gsl_exp(EnvT* e);
+  BaseGDL* interpolate_fun( EnvT* e);
 
 } // namespace
 
