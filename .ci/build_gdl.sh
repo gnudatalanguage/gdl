@@ -321,6 +321,8 @@ function build_gdl {
 
     if [ ${BUILD_OS} == "Windows" ]; then
         # Copy dlls and libraries to install directory
+        echo "DLLs copied:"
+        ldd ${ROOT_DIR}/build/src/gdl.exe | grep "/mingw" | awk '{print $3}
         for f in $(ldd ${ROOT_DIR}/build/src/gdl.exe | grep "/mingw" | awk '{print $3}'); do
             cp -f $f bin/
         done
