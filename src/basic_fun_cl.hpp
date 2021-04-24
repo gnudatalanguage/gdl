@@ -20,10 +20,8 @@
 
 namespace lib {
 
-  double Gregorian2Julian(struct tm ts);
   BaseGDL* systime(EnvT* e);
   BaseGDL* legendre(EnvT* e);
-  BaseGDL* interpol(EnvT* e);
   BaseGDL* gsl_exp(EnvT* e);
 
 } // namespace

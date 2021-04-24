@@ -19,17 +19,12 @@
 #define FILE_HPP_
 
 namespace lib {
-#ifdef _WIN32
-  extern bool posixpaths;
-#endif
-
   // library functions
   BaseGDL* file_test( EnvT* e);
   BaseGDL* file_lines( EnvT* e);
 
   BaseGDL* routine_dir_fun( EnvT* e);
 
-  std::string PathSeparator();
   void cd_pro( EnvT* e);
 
   BaseGDL* expand_path( EnvT* e);
@@ -41,6 +36,7 @@ namespace lib {
 
   BaseGDL* file_info( EnvT* e);
 
+  BaseGDL* path_sep( EnvT* e);
   BaseGDL* file_basename( EnvT* e);
   BaseGDL* file_dirname( EnvT* e);
   BaseGDL* file_readlink( EnvT* e);
