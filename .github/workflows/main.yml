@@ -197,6 +197,8 @@ jobs:
           export GDLDE_VERSION=${{ steps.gdl_workbench.outputs.release }}
           .ci/build_gdl.sh pack
           .ci/build_gdl.sh prep_deploy
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v2.2.1
         with:
