@@ -1257,236 +1257,186 @@ namespace lib {
       return new DLongGDL( p0->N_Elements()); 
   }
 
-  // JAdZ 20150506: This is now only for nParam=2, complex_fun_template redefined several lines below instead
-  template< typename ComplexGDL, typename Complex, typename Float>
-  BaseGDL* complex_fun_template_twopar( EnvT* e)
-  {
-    SizeT nParam=e->NParam( 1);
-    // JAdZ 20150506: This should now only be called when nParam=2, see below
-    if( nParam != 2)
-      {
-    e->Throw( "Exception: You should never have been able to get here! Please report this.");
-      }
-
-    BaseGDL* p0=e->GetParDefined( 0);
-    BaseGDL* p1=e->GetParDefined( 1);
-
-    Float* p0Float = static_cast<Float*>
-      (p0->Convert2( Float::t,BaseGDL::COPY));
-    Guard<Float> p0FloatGuard(p0Float);
-    Float* p1Float = static_cast<Float*>
-      (p1->Convert2( Float::t,BaseGDL::COPY));
-    Guard<Float> p1FloatGuard(p1Float);
-    if( p0Float->Rank() == 0)
-      {
-    ComplexGDL* res = new ComplexGDL( p1Float->Dim(), 
-                      BaseGDL::NOZERO);
-        
-    SizeT nE=p1Float->N_Elements();
-    // #pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
-    {
-      // #pragma omp for
-      for( SizeT i=0; i<nE; i++)
-        {
-          (*res)[i]=Complex( (*p0Float)[0], (*p1Float)[i]);
-        }
+// GD Rewrote complex_fun_template_twopar for gain speed > 10.
+// compiler optimization, including openmp inner loops, depends terribly on the knowledge at the compilation time
+// of the exact nature of every value --- typenames do not help if they do not quickly resolve to known PODs.
+// the following construction has speeds on par with IDL's C . Note the test to avoid completely the openmp loop,
+// and the use of decltype() in std::complex.
+  template< typename TypOutGDL, typename TypInGDL>
+  BaseGDL* complex_fun_template_twopar(EnvT* e) {
+    TypInGDL* re=e->GetParAs<TypInGDL>(0);
+    TypInGDL* im=e->GetParAs<TypInGDL>(1);
+    auto t=(*re)[0]; //a Float or Double
+    if (re->Rank() == 0) {
+      TypOutGDL* res = new TypOutGDL(im->Dim(), BaseGDL::NOZERO);
+      SizeT nE = im->N_Elements();
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE));
+      if (parallelize) {
+        SizeT i;
+#pragma omp parallel for private(i)
+        for (i = 0; i < nE; ++i)  (*res)[i] = std::complex<decltype(t)>((*re)[0], (*im)[i]);
+      } else 
+        for (SizeT i = 0; i < nE; i++)  (*res)[i] = std::complex<decltype(t)>((*re)[0], (*im)[i]);
+      return res;
+    } else if (im->Rank() == 0) {
+      TypOutGDL* res = new TypOutGDL(re->Dim(), BaseGDL::NOZERO);
+      SizeT nE = re->N_Elements();
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE));
+      if (parallelize) {
+        SizeT i;
+#pragma omp parallel for private(i)
+        for (i = 0; i < nE; ++i) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[0]);
+      } else
+        for (SizeT i = 0; i < nE; i++) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[0]);
+      return res; 
+    } else if (re->N_Elements() >= im->N_Elements()) {
+      TypOutGDL* res = new TypOutGDL(im->Dim(), BaseGDL::NOZERO);
+      SizeT nE = im->N_Elements();
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE));
+      if (parallelize) {
+        SizeT i;
+#pragma omp parallel for private(i)
+        for (i = 0; i < nE; ++i)  (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[i]);
+      } else 
+        for (SizeT i = 0; i < nE; i++)  (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[i]);
+      return res;
+    } else {
+      TypOutGDL* res = new TypOutGDL(re->Dim(), BaseGDL::NOZERO);
+      SizeT nE = re->N_Elements();
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE));
+      if (parallelize) {
+        SizeT i;
+#pragma omp parallel for private(i)
+        for (i = 0; i < nE; ++i) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[i]);
+      } else
+        for (SizeT i = 0; i < nE; i++) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[i]);
+      return res;
     }
-    return res;
-      }
-    else if( p1Float->Rank() == 0)
-      {
-    ComplexGDL* res = new ComplexGDL( p0Float->Dim(), 
-                      BaseGDL::NOZERO);
-        
-    SizeT nE=p0Float->N_Elements();
-    // #pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
-    {
-      // #pragma omp for
-      for( SizeT i=0; i<nE; i++)
-        {
-          (*res)[i]=Complex( (*p0Float)[i], (*p1Float)[0]);
-        }
-    }
-    return res;
-      }
-    else if( p0Float->N_Elements() >= p1Float->N_Elements())
-      {
-    ComplexGDL* res = new ComplexGDL( p1Float->Dim(), 
-                      BaseGDL::NOZERO);
-
-    SizeT nE=p1Float->N_Elements();
-    // #pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
-    {
-      // #pragma omp for
-      for( SizeT i=0; i<nE; i++)
-        {
-          (*res)[i]=Complex( (*p0Float)[i], (*p1Float)[i]);
-        }
-    }
-    return res;
-      }
-    else
-      {
-    ComplexGDL* res = new ComplexGDL( p0Float->Dim(), 
-                      BaseGDL::NOZERO);
-        
-    SizeT nE=p0Float->N_Elements();
-    // #pragma omp parallel if (nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE))
-    {
-      // #pragma omp for
-      for( SizeT i=0; i<nE; i++)
-        {
-          (*res)[i]=Complex( (*p0Float)[i], (*p1Float)[i]);
-        }
-    }
-    return res;
-      }
   }
 
-  // JAdZ 20150506: New functions below
-  /*BaseGDL* complex_fun( EnvT* e)
-    BaseGDL* complex_fun( EnvT* e)
-    {
-    if (e->KeywordSet("DOUBLE")) {
-    return complex_fun_template< DComplexDblGDL, DComplexDbl, DDoubleGDL>( e);
-    } else {
-    return complex_fun_template< DComplexGDL, DComplex, DFloatGDL>( e);
-    }      
-    }
-    BaseGDL* dcomplex_fun( EnvT* e)
-    {
-    return complex_fun_template< DComplexDblGDL, DComplexDbl, DDoubleGDL>( e);
-    }
-  */
-  // END JAdZ 20150506
-
   template< class TargetClass>
-  BaseGDL* type_fun( EnvT* e)
-  {
-    SizeT nParam=e->NParam(1);
-
-    if( nParam == 1)
-      {
-    BaseGDL* p0=e->GetParDefined( 0);
-
-    assert( dynamic_cast< EnvUDT*>( e->Caller()) != NULL);
-
-    // type_fun( expr) just convert
-    if( static_cast< EnvUDT*>( e->Caller())->GetIOError() != NULL) 
-      return p0->Convert2( TargetClass::t, 
-                   BaseGDL::COPY_THROWIOERROR);
-        // SA: see tracker item no. 3151760 
-        else if (TargetClass::t == p0->Type() && e->GlobalPar(0)) 
-      // HERE THE INPUT VARIABLE IS RETURNED
-      {
-        e->SetPtrToReturnValue( &e->GetPar(0));
-        return p0;
-      }
-    else
-      return p0->Convert2( TargetClass::t, BaseGDL::COPY);
-      }
-    
-    BaseGDL* p0=e->GetNumericParDefined( 0);
+  BaseGDL* type_fun(EnvT* e) { //nParam > 1
+    SizeT nParam = e->NParam(1);
+    BaseGDL* p0 = e->GetNumericParDefined(0);
 
     // GDL_BYTE( expr, offs, dim1,..,dim8)
     DLong offs;
-    e->AssureLongScalarPar( 1, offs);
+    e->AssureLongScalarPar(1, offs);
 
     dimension dim;
 
-    if( nParam > 2)
-      arr( e, dim, 2);
-    
-    TargetClass* res=new TargetClass( dim, BaseGDL::NOZERO);
+    if (nParam > 2)  arr(e, dim, 2);
 
-    SizeT nByteCreate=res->NBytes(); // net size of new data
-      
-    SizeT nByteSource=p0->NBytes(); // net size of src
-      
-    if( offs < 0 || (offs+nByteCreate) > nByteSource)
-      {
-    GDLDelete(res);
-    e->Throw( "Specified offset to"
-          " expression is out of range: "+e->GetParString(0));
-      }
+    TargetClass* res = new TargetClass(dim, BaseGDL::NOZERO);
 
-    //*** POSSIBLE ERROR because of alignment here
-    void* srcAddr = static_cast<void*>( static_cast<char*>(p0->DataAddr()) + 
-                    offs);
-    void* dstAddr = static_cast<void*>(&(*res)[0]);
-    memcpy( dstAddr, srcAddr, nByteCreate);
+    SizeT nByteCreate = res->NBytes(); // net size of new data
 
-    //     char* srcAddr = reinterpret_cast<char*>(p0->DataAddr());
-    //     char* dstAddr = reinterpret_cast<char*>(&(*res)[0]);
-    //     copy( srcAddr, srcAddr+nByteCreate, dstAddr);
+    SizeT nByteSource = p0->NBytes(); // net size of src
+
+    if (offs < 0 || (offs + nByteCreate) > nByteSource) {
+      GDLDelete(res);
+      e->Throw("Specified offset to"
+        " expression is out of range: " + e->GetParString(0));
+    }
+
+    //*** POSSIBLE ERROR because of alignment here -- probably no?
+    void* srcAddr = static_cast<void*> (static_cast<char*> (p0->DataAddr()) +
+      offs);
+    void* dstAddr = static_cast<void*> (&(*res)[0]);
+    memcpy(dstAddr, srcAddr, nByteCreate);
 
     return res;
   }
 
+  template< class TargetClass>
+  BaseGDL* type_fun_single(EnvT* e) { //nParam=1
+    BaseGDL* p0 = e->GetParDefined(0);
+
+//    assert(dynamic_cast<EnvUDT*> (e->Caller()) != NULL);
+//
+//    // type_fun( expr) just convert
+//    if (static_cast<EnvUDT*> (e->Caller())->GetIOError() != NULL)
+//      return p0->Convert2(TargetClass::t,
+//      BaseGDL::COPY_THROWIOERROR);
+      // SA: see tracker item no. 3151760 
+//    else 
+      if (TargetClass::t == p0->Type() && e->GlobalPar(0))
+      // HERE THE INPUT VARIABLE IS RETURNED
+    {
+      e->SetPtrToReturnValue(&e->GetPar(0));
+      return p0;
+    } else
+      return p0->Convert2(TargetClass::t, BaseGDL::COPY);
+    throw;
+  } 
+
   BaseGDL* byte_fun( EnvT* e)
   {
+    if (e->NParam()==1) return type_fun_single<DByteGDL>( e);
     return type_fun<DByteGDL>( e);
+  }
+  BaseGDL* int_fun( EnvT* e) //not registered, use FIX instead.
+  {
+    if (e->NParam()==1) return type_fun_single<DIntGDL>( e);
+    return type_fun<DIntGDL>( e);
   }
   BaseGDL* uint_fun( EnvT* e)
   {
+    if (e->NParam()==1) return type_fun_single<DUIntGDL>( e);
     return type_fun<DUIntGDL>( e);
   }
   BaseGDL* long_fun( EnvT* e)
   {
+    if (e->NParam()==1) return type_fun_single<DLongGDL>( e);
     return type_fun<DLongGDL>( e);
   }
   BaseGDL* ulong_fun( EnvT* e)
   {
+    if (e->NParam()==1) return type_fun_single<DULongGDL>( e);
     return type_fun<DULongGDL>( e);
   }
   BaseGDL* long64_fun( EnvT* e)
   {
+    if (e->NParam()==1) return type_fun_single<DLong64GDL>( e);
     return type_fun<DLong64GDL>( e);
   }
   BaseGDL* ulong64_fun( EnvT* e)
   {
+    if (e->NParam()==1) return type_fun_single<DULong64GDL>( e);
     return type_fun<DULong64GDL>( e);
   }
   BaseGDL* float_fun( EnvT* e)
   {
+    if (e->NParam()==1) return type_fun_single<DFloatGDL>( e);
     return type_fun<DFloatGDL>( e);
   }
   BaseGDL* double_fun( EnvT* e)
   {
+    if (e->NParam()==1) return type_fun_single<DDoubleGDL>( e);
     return type_fun<DDoubleGDL>( e);
   }
-  // JAdZ 20150506: I defined complex_fun and dcomplex_fun here instead, based on
-  //                complex_fun_template_twopar when nParam=2
-  BaseGDL* complex_fun( EnvT* e)
-  {
-    SizeT nParam=e->NParam( 1);
-    if( nParam == 2)
-      {
-      static int doubleIx=e->KeywordIx("DOUBLE");
-    if (e->KeywordSet(doubleIx)) {
-      return complex_fun_template_twopar< DComplexDblGDL, DComplexDbl, DDoubleGDL>( e);
+
+  BaseGDL* complex_fun(EnvT* e) {
+    SizeT nParam = e->NParam(1);
+    static int doubleIx = e->KeywordIx("DOUBLE");
+    bool noDouble=(!e->KeywordSet(doubleIx));
+    if (noDouble) {
+      if (nParam==1) return type_fun_single<DComplexGDL>( e);
+      if (nParam == 2) return complex_fun_template_twopar< DComplexGDL, DFloatGDL>(e); 
+      return type_fun<DComplexGDL>( e);
     } else {
-      return complex_fun_template_twopar< DComplexGDL, DComplex, DFloatGDL>( e);
-    }      
-      }
-    else
-      {
-    return type_fun<DComplexGDL>( e);
-      }
+      if (nParam==1) return type_fun_single<DComplexDblGDL>( e);
+      if (nParam == 2) return complex_fun_template_twopar< DComplexDblGDL, DDoubleGDL>(e);
+      return type_fun<DComplexDblGDL>( e);      
+    }
   }
-  BaseGDL* dcomplex_fun( EnvT* e)
-  {
-    SizeT nParam=e->NParam( 1);
-    if( nParam == 2)
-      {
-    return complex_fun_template_twopar< DComplexDblGDL, DComplexDbl, DDoubleGDL>( e);
-      }
-    else
-      {
-    return type_fun<DComplexDblGDL>( e);
-      }
+  
+  BaseGDL* dcomplex_fun(EnvT* e) {
+    SizeT nParam = e->NParam(1);
+    if (nParam==1) return type_fun_single<DComplexDblGDL>( e);
+    if (nParam == 2) return complex_fun_template_twopar< DComplexDblGDL, DDoubleGDL>(e);
+    return type_fun<DComplexDblGDL>(e);
   }
-  // END JAdZ 20150506
   // STRING function behaves different
 
   BaseGDL* string_fun(EnvT* e)
@@ -1602,47 +1552,46 @@ namespace lib {
   }
 
   BaseGDL* fix_fun( EnvT* e)
-  {
-    DIntGDL* type = e->IfDefGetKWAs<DIntGDL>( 0);
+{
+    SizeT np=e->NParam(1);
+
+    DIntGDL* type = e->IfDefGetKWAs<DIntGDL>(0); //"TYPE" keyword
     if (type != NULL) {
       int typ = (*type)[0];
-      if (typ == GDL_BYTE)
-    {
-      // SA: slow yet simple solution using GDL_BYTE->GDL_INT->GDL_BYTE conversion
-      return (e->KeywordSet(1) && e->GetPar(0)->Type() == GDL_STRING)
-        ? type_fun<DIntGDL>( e)->Convert2(GDL_BYTE, BaseGDL::CONVERT) 
-        : type_fun<DByteGDL>( e);
-    }
-      if (typ == 0 || typ == GDL_INT) return type_fun<DIntGDL>( e);
-      if (typ == GDL_UINT) return type_fun<DUIntGDL>( e);
-      if (typ == GDL_LONG) return type_fun<DLongGDL>( e);
-      if (typ == GDL_ULONG) return type_fun<DULongGDL>( e);
-      if (typ == GDL_LONG64) return type_fun<DLong64GDL>( e);
-      if (typ == GDL_ULONG64) return type_fun<DULong64GDL>( e);
-      if (typ == GDL_FLOAT) return type_fun<DFloatGDL>( e);
-      if (typ == GDL_DOUBLE) return type_fun<DDoubleGDL>( e);
-      if (typ == GDL_COMPLEX) return type_fun<DComplexGDL>( e);
-      if (typ == GDL_COMPLEXDBL) return type_fun<DComplexDblGDL>( e);
-      if (typ == GDL_STRING) 
-    {
-      // SA: calling GDL_STRING() with correct parameters
-      static int stringIx = LibFunIx("STRING");
+      if (typ == GDL_BYTE) return byte_fun(e);
+      if (typ == 0 || typ == GDL_INT) return int_fun(e);
+      if (typ == GDL_UINT) return uint_fun(e);
+      if (typ == GDL_LONG) return long_fun(e);
+      if (typ == GDL_ULONG) return ulong_fun(e);
+      if (typ == GDL_LONG64) return long64_fun(e);
+      if (typ == GDL_ULONG64) return ulong64_fun(e);
+      if (typ == GDL_FLOAT) return float_fun(e);
+      if (typ == GDL_DOUBLE) return double_fun(e);
+      if (typ == GDL_COMPLEX) { //avoid problem with unexisting keyword "DOUBLE" in FIX's list of kws.
+        if (np == 1) return type_fun_single<DComplexGDL>(e);
+        return type_fun<DComplexGDL>(e);
+      }
+      if (typ == GDL_COMPLEXDBL) return dcomplex_fun(e);
+      if (typ == GDL_STRING) {
+        // SA: calling GDL_STRING() with correct parameters
+        static int stringIx = LibFunIx("STRING");
 
-      assert( stringIx >= 0);
-    
-      EnvT* newEnv= new EnvT(e, libFunList[stringIx], NULL);
+        assert(stringIx >= 0);
 
-      Guard<EnvT> guard( newEnv);
+        EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
 
-      newEnv->SetNextPar(&e->GetPar(0)); // pass as global
-      if (e->KeywordSet(1) && e->GetPar(0)->Type() == GDL_BYTE)
-        newEnv->SetKeyword("PRINT", new DIntGDL(1));
-      //         e->Interpreter()->CallStack().push_back( newEnv); 
-      return static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
+        Guard<EnvT> guard(newEnv);
+
+        newEnv->SetNextPar(&e->GetPar(0)); // pass as global
+        if (e->KeywordSet(1) && e->GetPar(0)->Type() == GDL_BYTE)
+          newEnv->SetKeyword("PRINT", new DIntGDL(1));
+        //         e->Interpreter()->CallStack().push_back( newEnv); 
+        return static_cast<DLibFun*> (newEnv->GetPro())->Fun()(newEnv);
+      }
+      e->Throw("Improper TYPE value.");
     }
-      e->Throw( "Improper TYPE value.");
-    }
-    return type_fun<DIntGDL>( e);
+    //no keyword type.
+    if (np == 1) return type_fun_single<DIntGDL>(e); else  return type_fun<DIntGDL>(e);
   }
 
   BaseGDL* call_function( EnvT* e)
@@ -1949,7 +1898,7 @@ namespace lib {
         return new Data_<SpDByte>( e1->Dim());
       }
       }
-    else if( nEl2 < nEl1) 
+    else if( nEl2 <= nEl1) 
       {
     res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
     // #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
@@ -1959,7 +1908,7 @@ namespace lib {
         (*res)[i] = (e1->LogTrue( i) && e2->LogTrue( i)) ? 1 : 0;
     }
       }
-    else // ( nEl2 >= nEl1)
+    else // ( nEl2 > nEl1)
       {
     res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
     // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
@@ -2630,23 +2579,27 @@ namespace lib {
   template<class T>
   BaseGDL* total_template_generic(T* src, bool omitNaN)
   {
-    //   std::cerr<<" total_template_generic "<<std::endl;
     SizeT nEl = src->N_Elements();
     typename T::Ty sum = 0;
-    if (!omitNaN) {
-#pragma omp  parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) reduction(+:sum)
-      for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
-    } else {
-#pragma omp  parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-      {
-        typename T::Ty localsum = 0;
+    bool parallelize=(CpuTPOOL_NTHREADS> 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    if (parallelize) {
+      SizeT i;
+      if (!omitNaN) {
+#pragma omp  parallel for reduction(+:sum) private(i)
+      for (i = 0; i < nEl; ++i) sum += (*src)[ i];
+      } else {
+#pragma omp  parallel
+        {
+          typename T::Ty localsum = 0;
 #pragma omp for nowait
-        for (SizeT i = 0; i < nEl; ++i) {
-          if (isfinite((*src)[i])) localsum += (*src)[ i];
-        }
+          for (SizeT i = 0; i < nEl; ++i) if (isfinite((*src)[i])) localsum += (*src)[ i];
 #pragma omp atomic
-        sum += localsum;
+          sum += localsum;
+        }
       }
+    } else {
+      if (!omitNaN) for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+      else for (SizeT i = 0; i < nEl; ++i) if (isfinite((*src)[i])) sum += (*src)[ i];
     }
     return new T(sum);
   }
@@ -3439,14 +3392,14 @@ namespace lib {
 
   // product over all elements
   template<class T>
-  BaseGDL* product_template( T* src, bool omitNaN) {
+  BaseGDL* product_template(T* src, bool omitNaN) {
     typename T::Ty prod = 1;
     SizeT nEl = src->N_Elements();
     if (!omitNaN) {
 
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(prod)
-      {
+        {
 #pragma omp for reduction(*:prod)
         for (OMPInt i = 0; i < nEl; ++i) {
           prod *= (*src)[ i];
@@ -3460,12 +3413,12 @@ namespace lib {
 #pragma omp for reduction(*:prod)
         for (OMPInt i = 0; i < nEl; ++i) {
           MultOmitNaN(prod, (*src)[ i]);
-        }
       }
+    }
     }
     return new T(prod);
   }
-
+  
   template<>
   BaseGDL* product_template( DComplexGDL* src, bool omitNaN) {
     DComplexGDL::Ty prod = 1;
