@@ -109,10 +109,7 @@ DDoubleGDL* interpolate_1dim(EnvT* e, const gdl_interp1d_type* interp_type,
 	//here we use a padded temp array (1D only):
 	for (SizeT k = 0; k < nxa-1; ++k) temp[k]=(*array)[k*ninterp+iterate]; temp[nxa-1]=temp[nxa-2]; //pad!
 	gdl_interp1d_init(interpolant, xa, temp, nxa, use_missing?missing_GIVEN:missing_NEAREST, missing, gamma);
-#ifndef __PATHCC__
-#pragma omp parallel if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
-#pragma omp for
-#endif
+#pragma omp parallel for if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
 	for (OMPInt i = 0; i < chunksize; ++i)
 	  {
 	    double x = xval[i];
@@ -237,10 +234,7 @@ DDoubleGDL* interpolate_1dim(EnvT* e, const gdl_interp1d_type* interp_type,
 
 	for (SizeT k = 0; k < nxa * nya; ++k) temp[k] = (*array)[k * ninterp + iterate];
 	gdl_interp2d_init(interpolant, xa, ya, temp, nxa, nya, use_missing ? missing_GIVEN : missing_NEAREST, missing, gamma);
-#ifndef __PATHCC__
-#pragma omp parallel if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
-#pragma omp for
-#endif
+#pragma omp parallel for if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
 	for (OMPInt i = 0; i < chunksize; ++i)
 	  {
 	    double x = xval[i];
@@ -383,10 +377,7 @@ DDoubleGDL* interpolate_1dim(EnvT* e, const gdl_interp1d_type* interp_type,
       {
 	for (SizeT k = 0; k < nxa*nya*nza; ++k) temp[k]=(*array)[k*ninterp+iterate];
 	gdl_interp3d_init(interpolant, xa, ya, za, temp, nxa, nya, nza, use_missing?missing_GIVEN:missing_NEAREST, missing);
-#ifndef __PATHCC__
-#pragma omp parallel if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
-#pragma omp for
-#endif
+#pragma omp parallel for if (chunksize >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= chunksize))
 	for (OMPInt i = 0; i < chunksize; ++i)
 	  {
 	    double x = xval[i];
@@ -483,8 +474,7 @@ namespace lib {
       DComplexGDL* c0 = static_cast<DComplexGDL*> (p0);
       p0D[0] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard00.Init(p0D[0]);
       p0D[1] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard01.Init(p0D[1]);
-#pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
-#pragma omp for
+#pragma omp parallel for if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
       for (OMPInt i = 0; i < c0->N_Elements(); ++i) {
 	(*p0D[0])[i] = (*c0)[i].real();
 	(*p0D[1])[i] = (*c0)[i].imag();
@@ -495,8 +485,7 @@ namespace lib {
       DComplexDblGDL* c0 = static_cast<DComplexDblGDL*> (p0);
       p0D[0] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard00.Init(p0D[0]);
       p0D[1] = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO); guard01.Init(p0D[1]);
-#pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
-#pragma omp for
+#pragma omp parallel for if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
       for (OMPInt i = 0; i < c0->N_Elements(); ++i) {
 	(*p0D[0])[i] = (*c0)[i].real();
 	(*p0D[1])[i] = (*c0)[i].imag();
@@ -637,8 +626,7 @@ namespace lib {
       }
     else if (p0->Type() == GDL_COMPLEX) {
       DComplexGDL* res1 = new DComplexGDL(res[0]->Dim(), BaseGDL::NOZERO);
-#pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
-#pragma omp for
+#pragma omp parallel for if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
       for (OMPInt i = 0; i < res1->N_Elements(); ++i) {
 	(*res1)[ i] = DComplex((*res[0])[i],(*res[1])[i]);
 	//             (*res1)[i].real() = (*res[0])[i];
@@ -649,8 +637,7 @@ namespace lib {
     }
     else if (p0->Type() == GDL_COMPLEXDBL) {
       DComplexDblGDL* res1 = new DComplexDblGDL(res[0]->Dim(), BaseGDL::NOZERO);
-#pragma omp parallel if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
-#pragma omp for
+#pragma omp parallel for if ( p0->N_Elements() >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= p0->N_Elements()))
       for (OMPInt i = 0; i < res1->N_Elements(); ++i) {
 	(*res1)[ i] = DComplexDbl((*res[0])[i],(*res[1])[i]);
 	// 	    (*res1)[i].real() = (*res[0])[i];
