@@ -78,12 +78,6 @@ extern "C" char **environ;
 /* max regexp error message length */
 #define MAX_REGEXPERR_LENGTH 80
 
-#ifdef _OPENMP
-#define THREAD_NUM omp_get_thread_num()
-#else
-#define THREAD_NUM 0
-#endif
-
 #ifdef _MSC_VER
 #if _MSC_VER < 1800
 #define std::isfinite _finite
@@ -1556,10 +1550,15 @@ namespace lib {
     SizeT np=e->NParam(1);
 
     DIntGDL* type = e->IfDefGetKWAs<DIntGDL>(0); //"TYPE" keyword
-    if (type != NULL) {
-      int typ = (*type)[0];
+    int typ=0;
+    if (type != NULL) { //see IDL's behaviour.
+      typ = (*type)[0];
+      if (typ > 15) typ=0;
+      if (typ < 0) typ=0;
+    }
+    if (typ > 0) {
       if (typ == GDL_BYTE) return byte_fun(e);
-      if (typ == 0 || typ == GDL_INT) return int_fun(e);
+      if (typ == GDL_INT) return int_fun(e);
       if (typ == GDL_UINT) return uint_fun(e);
       if (typ == GDL_LONG) return long_fun(e);
       if (typ == GDL_ULONG) return ulong_fun(e);
@@ -1588,10 +1587,8 @@ namespace lib {
         //         e->Interpreter()->CallStack().push_back( newEnv); 
         return static_cast<DLibFun*> (newEnv->GetPro())->Fun()(newEnv);
       }
-      e->Throw("Improper TYPE value.");
     }
-    //no keyword type.
-    if (np == 1) return type_fun_single<DIntGDL>(e); else  return type_fun<DIntGDL>(e);
+    return int_fun(e);
   }
 
   BaseGDL* call_function( EnvT* e)
@@ -6460,8 +6457,12 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
   }
   template<typename T> void pos_ishft_s(const T* in, T* out, const SizeT n, const char s) {
 // parallelization is marginally useful as the loop is well paralleized by compiler.
-#pragma omp parallel for if ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
-      for (SizeT i = 0; i < n; ++i) out[i] = in[i] << s;
+#pragma omp parallel if ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
+    {
+      SizeT i=0;
+#pragma omp for private(i)
+      for (i=0; i < n; ++i) out[i] = in[i] << s;
+  }
   }
 
   template<typename T> void neg_ishft_s(const T* in, T* out, const SizeT n, const char s) {
@@ -6476,8 +6477,8 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
           out[i] = (s[i] >= 0 )? in[i] << s[i] : in[i] >> -s[i];
       }
   }
-  BaseGDL* local_ishft_single(BaseGDL* in, SizeT n, char s, bool pos) {
-    BaseGDL* out = in->New(n, BaseGDL::INIT);
+  BaseGDL* ishft_single(BaseGDL* in, SizeT n, char s, bool pos) {
+    BaseGDL* out = in->New(n, BaseGDL::NOZERO);
     switch (in->Type()) {
     case GDL_BYTE:
     {
@@ -6534,8 +6535,8 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     return out;
   }
 
-  BaseGDL* local_ishft_multiple(BaseGDL* in, DLongGDL* _s, SizeT n) {
-    BaseGDL* out = in->New(n, BaseGDL::INIT);
+  BaseGDL* ishft_multiple(BaseGDL* in, DLongGDL* _s, SizeT n) {
+    BaseGDL* out = in->New(n, BaseGDL::NOZERO);
     DLong* s=static_cast<DLong*> (_s->DataAddr());
     switch (in->Type()) {
     case GDL_BYTE:
@@ -6594,8 +6595,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
   }
 
     BaseGDL* ishft_fun(EnvT* e) {
-    Guard<BaseGDL>ga;
-    Guard<BaseGDL>gb;
+    Guard<BaseGDL>guard;
     
     BaseGDL* in=(e->GetParDefined(0));
     DType typ = in->Type();
@@ -6622,9 +6622,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
           finalDim = e->GetPar(i)->Dim();
         }
       }
-
-      //consider that res is always 0's type:
-
+      //note: res is always 0's type:
       //fill shift, using a large type Long as apparently IDL does
       DLongGDL* sss=e->GetParAs<DLongGDL>(1);
       //if sss is a singleton, or not:
@@ -6633,13 +6631,14 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
         if ((*sss)[0] ==0) return in->Dup(); 
         else if ((*sss)[0] > 0) {
           if ((*sss)[0] > 254) shift = 255; else shift = (*sss)[0];
-          return local_ishft_single(in, finalN, shift, true);
+          return ishft_single(in, finalN, shift, true);
         } else {
           if ( (*sss)[0] < -254 ) shift = 255; else shift = -(*sss)[0];
-          return local_ishft_single(in, finalN, shift, false);
+          return ishft_single(in, finalN, shift, false);
         }
       } else {
-        return local_ishft_multiple(in, sss, finalN);
+        if (in->Scalar()) {in=in->New( finalN, BaseGDL::INIT); guard.Reset(in);} //expand to return element size, for parallel processing
+        return ishft_multiple(in, sss, finalN);
       }
     } else e->Throw("Operand must be integer:" + e->GetParString(0));
     return NULL; //pacify dumb compilers.
