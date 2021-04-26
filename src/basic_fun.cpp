@@ -1255,7 +1255,7 @@ namespace lib {
 // compiler optimization, including openmp inner loops, depends terribly on the knowledge at the compilation time
 // of the exact nature of every value --- typenames do not help if they do not quickly resolve to known PODs.
 // the following construction has speeds on par with IDL's C . Note the test to avoid completely the openmp loop,
-// and the use of decltype() in std::complex.
+// which seems to gain some time (?) and the use of auto and decltype() in std::complex.
   template< typename TypOutGDL, typename TypInGDL>
   BaseGDL* complex_fun_template_twopar(EnvT* e) {
     TypInGDL* re=e->GetParAs<TypInGDL>(0);
