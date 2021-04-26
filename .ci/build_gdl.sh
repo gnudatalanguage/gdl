@@ -247,6 +247,16 @@ function prep_packages {
     fi
 }
 
+function find_dlls {
+  for dll in $(strings $1 | grep -i '[a-zA-Z0-9]\.dll$' | grep -v " " | grep -v $(basename $1)); do
+    dll="/mingw64/bin/$dll"
+    if [ -f "$dll" ] && [[ ! ${found_dlls[@]} =~ (^|[[:space:]])"$dll"($|[[:space:]]) ]]; then
+      found_dlls+=("$dll")
+      find_dlls "$dll";
+    fi
+  done
+}
+
 function build_gdl {
     log "Building GDL (${Configuration})..."
     mkdir -p ${ROOT_DIR}/build
@@ -319,11 +329,12 @@ function build_gdl {
     cd ${ROOT_DIR}/install
 
     if [ ${BUILD_OS} == "Windows" ]; then
+        log "Copying DLLs to install directory..."
+        found_dlls=()
+	find_dlls ${ROOT_DIR}/build/src/gdl.exe
         # Copy dlls and libraries to install directory
-        echo "DLLs copied:"
-        ldd ${ROOT_DIR}/build/src/gdl.exe | grep "/mingw" | awk '{print $3}'
-        for f in $(ldd ${ROOT_DIR}/build/src/gdl.exe | grep "/mingw" | awk '{print $3}'); do
-            cp -f $f bin/
+        for f in ${found_dlls[@]}; do
+            cp -f "$f" bin/
         done
         cp -rf ${ROOT_DIR}/build/share .
         if [[ ${DEPS} == *"full"* ]]; then
