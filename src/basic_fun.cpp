@@ -2744,7 +2744,7 @@ namespace lib {
       (*res)[i] += (*res)[ii];
     return res;
   }
-
+  
   // total over one dim
 
   template< typename T>
@@ -3076,7 +3076,7 @@ namespace lib {
               return (p0Double)->Convert2(GDL_FLOAT, BaseGDL::COPY);
             } else
               return total_cu_template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0->Dup()), nan);
-          }
+            }
           case GDL_COMPLEX: return total_cu_template<DComplexGDL>(static_cast<DComplexGDL*> (p0->Dup()), nan);
           case GDL_COMPLEXDBL: if (downgradeDoubleResult) {
               DComplexGDL* p0Cpx = static_cast<DComplexGDL*> (total_cu_template<DComplexDblGDL>(static_cast<DComplexDblGDL*> (p0->Dup()), nan));
@@ -6455,78 +6455,68 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
       }
     }
   }
-  template<typename T> void pos_ishft_s(const T* in, T* out, const SizeT n, const char s) {
+  template<typename T> void pos_ishft_s(T* out, const SizeT n, const char s) {
 // parallelization is marginally useful as the loop is well paralleized by compiler.
-#pragma omp parallel if ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
-    {
-      SizeT i=0;
-#pragma omp for private(i)
-      for (i=0; i < n; ++i) out[i] = in[i] << s;
-  }
+#pragma omp parallel for if ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
+      for (SizeT i=0; i < n; ++i) out[i] <<= s;
   }
 
-  template<typename T> void neg_ishft_s(const T* in, T* out, const SizeT n, const char s) {
+  template<typename T> void neg_ishft_s(T* out, const SizeT n, const char s) {
 // parallelization is marginally useful as the loop is well paralleized by compiler.
 #pragma omp parallel for if ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
-      for (SizeT i = 0; i < n; ++i) out[i] = in[i] >> s;
+      for (SizeT i = 0; i < n; ++i) out[i] >>= s;
   }
   
-  template<typename T> void ishft_m(const T* in, T* out, const SizeT n, const DLong* s) {
+  template<typename T> void ishft_m(T* out, const SizeT n, const DLong* s) {
 #pragma omp parallel for if ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
       for (SizeT i = 0; i < n; ++i) {
-          out[i] = (s[i] >= 0 )? in[i] << s[i] : in[i] >> -s[i];
+        if (s[i] >= 0 ) out[i] <<= s[i]; else out[i] >>= s[i];
       }
   }
+  
   BaseGDL* ishft_single(BaseGDL* in, SizeT n, char s, bool pos) {
-    BaseGDL* out = in->New(n, BaseGDL::NOZERO);
+    BaseGDL* out = in->Dup();
     switch (in->Type()) {
     case GDL_BYTE:
     {
-      DByte* _in = static_cast<DByte*> (in->DataAddr());
       DByte* _out = static_cast<DByte*> (out->DataAddr());
-      if (pos) pos_ishft_s(_in, _out, n, s); else neg_ishft_s(_in, _out, n, s);
+      if (pos) pos_ishft_s(_out, n, s); else neg_ishft_s(_out, n, s);
     }
       break;
     case GDL_UINT:
     {
-      DUInt* _in = static_cast<DUInt*> (in->DataAddr());
       DUInt* _out = static_cast<DUInt*> (out->DataAddr());
-      if (pos) pos_ishft_s(_in, _out, n, s); else neg_ishft_s(_in, _out, n, s);
+      if (pos) pos_ishft_s(_out, n, s); else neg_ishft_s( _out, n, s);
     }
       break;
     case GDL_INT:
     {
-      DInt* _in = static_cast<DInt*> (in->DataAddr());
       DInt* _out = static_cast<DInt*> (out->DataAddr());
-      if (pos) pos_ishft_s(_in, _out, n, s); else neg_ishft_s(_in, _out, n, s);
+      if (pos) pos_ishft_s(_out, n, s); else neg_ishft_s(_out, n, s);
     }
       break;
     case GDL_LONG:
     {
-      DLong* _in = static_cast<DLong*> (in->DataAddr());
       DLong* _out = static_cast<DLong*> (out->DataAddr());
-      if (pos) pos_ishft_s(_in, _out, n, s); else neg_ishft_s(_in, _out, n, s);
+      if (pos) pos_ishft_s(_out, n, s); else neg_ishft_s(_out, n, s);
     }
       break;
     case GDL_ULONG:
     {
-      DULong* _in = static_cast<DULong*> (in->DataAddr());
       DULong* _out = static_cast<DULong*> (out->DataAddr());
-      if (pos) pos_ishft_s(_in, _out, n, s); else neg_ishft_s(_in, _out, n, s);
+      if (pos) pos_ishft_s(_out, n, s); else neg_ishft_s(_out, n, s);
     }
       break;
     case GDL_LONG64:
     {
-      DULong64* _in = static_cast<DULong64*> (in->DataAddr());
       DULong64* _out = static_cast<DULong64*> (out->DataAddr());
-      if (pos) pos_ishft_s(_in, _out, n, s); else neg_ishft_s(_in, _out, n, s);
+      if (pos) pos_ishft_s(_out, n, s); else neg_ishft_s(_out, n, s);
     }
       break;
     case GDL_ULONG64:
     {
-      DLong64* _in = static_cast<DLong64*> (in->DataAddr());
       DLong64* _out = static_cast<DLong64*> (out->DataAddr());
-      if (pos) pos_ishft_s(_in, _out, n, s); else neg_ishft_s(_in, _out, n, s);
+      if (pos) pos_ishft_s(_out, n, s); else neg_ishft_s(_out, n, s);
     }
       break;
     default:
@@ -6536,56 +6526,49 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
   }
 
   BaseGDL* ishft_multiple(BaseGDL* in, DLongGDL* _s, SizeT n) {
-    BaseGDL* out = in->New(n, BaseGDL::NOZERO);
+    BaseGDL* out = in->Dup(); //New(n, BaseGDL::NOZERO);
     DLong* s=static_cast<DLong*> (_s->DataAddr());
     switch (in->Type()) {
     case GDL_BYTE:
     {
-      DByte* _in = static_cast<DByte*> (in->DataAddr());
       DByte* _out = static_cast<DByte*> (out->DataAddr());
-      ishft_m(_in, _out, n, s);
+      ishft_m(_out, n, s);
     }
       break;
     case GDL_UINT:
     {
-      DUInt* _in = static_cast<DUInt*> (in->DataAddr());
       DUInt* _out = static_cast<DUInt*> (out->DataAddr());
-      ishft_m(_in, _out, n, s);
+      ishft_m( _out, n, s);
     }
       break;
     case GDL_INT:
     {
-      DInt* _in = static_cast<DInt*> (in->DataAddr());
       DInt* _out = static_cast<DInt*> (out->DataAddr());
-      ishft_m(_in, _out, n, s);
+      ishft_m(_out, n, s);
     }
       break;
     case GDL_LONG:
     {
-      DLong* _in = static_cast<DLong*> (in->DataAddr());
       DLong* _out = static_cast<DLong*> (out->DataAddr());
-      ishft_m(_in, _out, n, s);
+      ishft_m(_out, n, s);
     }
       break;
     case GDL_ULONG:
     {
-      DULong* _in = static_cast<DULong*> (in->DataAddr());
       DULong* _out = static_cast<DULong*> (out->DataAddr());
-      ishft_m(_in, _out, n, s);
+      ishft_m(_out, n, s);
     }
       break;
     case GDL_LONG64:
     {
-      DULong64* _in = static_cast<DULong64*> (in->DataAddr());
       DULong64* _out = static_cast<DULong64*> (out->DataAddr());
-      ishft_m(_in, _out, n, s);
+      ishft_m(_out, n, s);
     }
       break;
     case GDL_ULONG64:
     {
-      DLong64* _in = static_cast<DLong64*> (in->DataAddr());
       DLong64* _out = static_cast<DLong64*> (out->DataAddr());
-      ishft_m(_in, _out, n, s);
+      ishft_m(_out, n, s);
     }
       break;
     default:
