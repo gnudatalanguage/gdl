@@ -1,6 +1,8 @@
 GDL can embed python as well as being
 embedded in python.
 
+//TEST de modif
+
 1. Writing GDL extensions in python
 2. Calling GDL from python
 
