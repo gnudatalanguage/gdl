@@ -6519,9 +6519,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
   
   template<typename T> void ishft_m(const T* in, T* out, const SizeT n, const DLong* s) {
 #pragma omp parallel for if ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
-      for (SizeT i = 0; i < n; ++i) {
-          out[i] = (s[i] >= 0 )? in[i] << s[i] : in[i] >> -s[i];
-      }
+      for (SizeT i = 0; i < n; ++i) out[i] = (s[i] >= 0 )? in[i] << s[i] : in[i] >> -s[i];
   }
   BaseGDL* local_ishft_single(BaseGDL* in, SizeT n, char s, bool pos) {
     BaseGDL* out = in->New(n, BaseGDL::INIT);
@@ -6686,6 +6684,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
           return local_ishft_single(in, finalN, shift, false);
         }
       } else {
+        if (in->Scalar()) {in=in->New( finalN, BaseGDL::INIT); gb.Reset(in);}
         return local_ishft_multiple(in, sss, finalN);
       }
     } else e->Throw("Operand must be integer:" + e->GetParString(0));
