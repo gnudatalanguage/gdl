@@ -23,7 +23,7 @@
 #define CALL_INTERPOLATE_1D(G1,T1,G2,T2)\
 {\
   G2* p1D=e->GetParAs<G2>(1);\
-  G1* res = new G1(dim, BaseGDL::NOZERO);\
+  G1* res = new G1(outdim, BaseGDL::NOZERO);\
   if (cubic)  interpolate_1d_cubic<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T1*>(res->DataAddr()),ncontiguous, use_missing, missing);\
   else if (nnbor) interpolate_1d_nearest<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T1*>(res->DataAddr()),ncontiguous);\
   else  interpolate_1d_linear<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T1*>(res->DataAddr()),ncontiguous, use_missing, missing);\
@@ -33,7 +33,7 @@
 #define CALL_INTERPOLATE_1D_SINGLE(G1,T1,G2,T2)\
 {\
   G2* p1D=e->GetParAs<G2>(1);\
-  G1* res = new G1(dim, BaseGDL::NOZERO);\
+  G1* res = new G1(outdim, BaseGDL::NOZERO);\
   if (cubic)  interpolate_1d_cubic_single<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T1*>(res->DataAddr()), use_missing, missing);\
   else if (nnbor) interpolate_1d_nearest_single<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T1*>(res->DataAddr()));\
   else  interpolate_1d_linear_single<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T1*>(res->DataAddr()), use_missing, missing);\
@@ -43,7 +43,7 @@
 #define CALL_INTERPOLATE_1D_COMPLEX(G1,T1,G2,T2)\
 {\
   G2* p1D=e->GetParAs<G2>(1);\
-  G1* res = new G1(dim, BaseGDL::NOZERO);\
+  G1* res = new G1(outdim, BaseGDL::NOZERO);\
   ncontiguous *= 2;\
   if (cubic)  interpolate_1d_cubic<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T1*>(res->DataAddr()),ncontiguous, use_missing, missing);\
   else if (nnbor) interpolate_1d_nearest<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T1*>(res->DataAddr()),ncontiguous);\
@@ -56,11 +56,11 @@
 {\
   G2* p1D=e->GetParAs<G2>(1);\
   G2* p2D=e->GetParAs<G2>(2);\
-  G1* res = new G1(dim, BaseGDL::NOZERO);\
+  G1* res = new G1(outdim, BaseGDL::NOZERO);\
   /* if (cubic)  interpolate_1d_cubic<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T1*>(res->DataAddr()),ncontiguous, use_missing, missing);\
   else if (nnbor) interpolate_1d_nearest<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T1*>(res->DataAddr()),ncontiguous);\
   else  */\
-  interpolate_2d_linear<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),ny,static_cast<T1*>(res->DataAddr()),ncontiguous, use_missing, missing);\
+  interpolate_2d_linear<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),static_cast<T1*>(res->DataAddr()),ncontiguous, use_missing, missing);\
   return res;\
   break;\
 }
@@ -68,7 +68,7 @@
 {\
   G2* p1D=e->GetParAs<G2>(1);\
   G2* p2D=e->GetParAs<G2>(2);\
-  G1* res = new G1(dim, BaseGDL::NOZERO);\
+  G1* res = new G1(outdim, BaseGDL::NOZERO);\
   /* if (cubic)  interpolate_1d_cubic<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T1*>(res->DataAddr()),ncontiguous, use_missing, missing);\
   else if (nnbor) interpolate_1d_nearest<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T1*>(res->DataAddr()),ncontiguous);\
   else  */\
@@ -429,84 +429,7 @@ void interpolate_1d_cubic_single(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res
 }
 
 template <typename T1, typename T2>
-void interpolate_2d_linear(T1* array, SizeT un1,  SizeT un2, T2* xx, SizeT nx, T2* yy, SizeT ny, T1* res, SizeT ncontiguous, bool use_missing, DDouble missing) {
-
-  T1 *vx0, *vx1, *vy0, *vy1, *vres;
-  double dx, dy; //"In either case, the actual interpolation is always done using double-precision arithmetic."
-  double x, y;
-  ssize_t ix=0;
-  ssize_t iy=0;  //operations on unsigned are not what you think, signed are ok
-  ssize_t xi[2], yi[2];  //operations on unsigned are not what you think, signed are ok
-  ssize_t n1 = un1;
-  ssize_t n2 = un2;
-  if (use_missing) {
-    for (SizeT j = 0; j < nx; ++j) { //nb output points
-      vres = &(res[ncontiguous * j]);
-      x = xx[j];
-      if (x < 0) {
-        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-      } else if (x < n1) {
-        y = yy[j];
-        if (y < 0) {
-          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-        }
-        else if (y < n2 ) {
-          ix = floor(x);
-          xi[0] = ix;
-          xi[1] = ix + 1;
-          //make in range
-          if (xi[0] < 0) xi[0] = 0; else if (xi[0] > n1 - 1) xi[0] = n1 - 1;
-          if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-          dx = (x - xi[0]);
-          iy = floor(y);
-          yi[0] = iy;
-          yi[1] = iy + 1;
-          //make in range
-          if (yi[0] < 0) yi[0] = 0; else if (yi[0] > n2 - 1) yi[0] = n2 - 1;
-          if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-          dy = (y - yi[0]);
-          vx0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
-          vx1 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
-          vy0 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
-          vy1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
-          for (SizeT i = 0; i < ncontiguous; ++i) {
-            T1 x12 = (1. - dx) * vx0[i] + dx * vx1[i];
-            T1 x34 = (1. - dx) * vy0[i] + dx * vy1[i];
-            vres[i] = (1. - dy) * x12 + dy * x34;
-          }
-        } else {
-          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-        }
-      } else {
-        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-      }
-    }
-  } else {
-//    for (SizeT j = 0; j < nx; ++j) {
-//      vres = &(res[ncontiguous * j]);
-//      x = xx[j];
-//      if (x < 0) {
-//        vx0 = &(array[0]);
-//        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = vx0[i];
-//      } else if (x < n1 - 1) {
-//        ix = floor(x); //floor  ix is [0 .. n1[
-//        d = (x - ix);
-//        vx0 = &(array[ncontiguous * ix]);
-//        vx1 = &(array[ncontiguous * (ix + 1)]);
-//        for (SizeT i = 0; i < ncontiguous; ++i) {
-//          vres[i] = (1. - d) * vx0[i] + d * vx1[i];
-//        }
-//      } else {
-//        vx0 = &(array[ncontiguous * (n1 - 1)]);
-//        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = vx0[i];
-//      }
-//    }
-  }
-}
-
-template <typename T1, typename T2>
-void interpolate_2d_linear_grid(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT nx, T2* yy, SizeT ny, T1* res, SizeT ncontiguous, bool use_missing, DDouble missing) {
-
+void interpolate_2d_linear(T1* array, SizeT un1,  SizeT un2, T2* xx, SizeT n, T2* yy, T1* res, SizeT ncontiguous, bool use_missing, DDouble missing) {
   T1 *vx0, *vx1, *vy0, *vy1, *vres;
   double dx, dy; //"In either case, the actual interpolation is always done using double-precision arithmetic."
   double x, y;
@@ -515,75 +438,186 @@ void interpolate_2d_linear_grid(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT n
   ssize_t xi[2], yi[2]; //operations on unsigned are not what you think, signed are ok
   ssize_t n1 = un1;
   ssize_t n2 = un2;
-  SizeT l=0;
-//  if (use_missing) {
-    for (SizeT k = 0; k < ny; ++k) {
-    for (SizeT j = 0; j < nx; ++j) { //nb output points
-      vres = &(res[ncontiguous * l++]);
-      x = xx[j];
-      if (x < 0) {
-        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-      } else if (x < n1) {
-        y = yy[k];
-        if (y < 0) {
+  if (use_missing) { //following behaviour validated.
+      for (SizeT j = 0; j < n; ++j) { //nb output points
+        vres = &(res[ncontiguous * j ]);
+        x = xx[j];
+        if (x < 0) {
           for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-        } else if (y < n2) {
-          ix = floor(x);
-          xi[0] = ix;
-          xi[1] = ix + 1;
-          //make in range
-          if (xi[0] < 0) xi[0] = 0;
-          else if (xi[0] > n1 - 1) xi[0] = n1 - 1;
-          if (xi[1] < 0) xi[1] = 0;
-          else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-          dx = (x - xi[0]);
-          iy = floor(y);
-          yi[0] = iy;
-          yi[1] = iy + 1;
-          //make in range
-          if (yi[0] < 0) yi[0] = 0;
-          else if (yi[0] > n2 - 1) yi[0] = n2 - 1;
-          if (yi[1] < 0) yi[1] = 0;
-          else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-          dy = (y - yi[0]);
-          vx0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
-          vx1 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
-          vy0 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
-          vy1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
-          for (SizeT i = 0; i < ncontiguous; ++i) {
-            T1 x12 = (1. - dx) * vx0[i] + dx * vx1[i];
-            T1 x34 = (1. - dx) * vy0[i] + dx * vy1[i];
-            vres[i] = (1. - dy) * x12 + dy * x34;
+        } else if (x < n1 - 1) {
+          y = yy[j];
+          if (y < 0) {
+            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+          } else if (y < n2 - 1) {
+            ix = floor(x);
+            xi[0] = ix;
+            xi[1] = ix + 1;
+            //make in range
+            if (xi[1] < 0) xi[1] = 0;
+            else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
+            dx = (x - xi[0]);
+            iy = floor(y);
+            yi[0] = iy;
+            yi[1] = iy + 1;
+            //make in range
+            if (yi[1] < 0) yi[1] = 0;
+            else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
+            dy = (y - yi[0]);
+            vx0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
+            vx1 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
+            vy0 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
+            vy1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
+            for (SizeT i = 0; i < ncontiguous; ++i) {
+              double dxdy = dx*dy;
+              double c0 = (1 - dy - dx + dxdy);
+              double c1 = (dy - dxdy);
+              double c2 = (dx - dxdy);
+              vres[i] = vx0[i] * c0 + vy0[i] * c1 + vx1[i] * c2 + vy1[i] * dxdy;
+            }
+          } else {
+            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
           }
         } else {
           for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
         }
-      } else {
-        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+      }
+  } else { //following behaviour validated.
+      for (SizeT j = 0; j < n; ++j) { //nb output points
+        vres = &(res[ncontiguous * j ]);
+        x = xx[j];
+        if (x < 0) {
+          xi[0] = 0;
+          xi[1] = 0;
+        } else if (x >= n1 - 1) {
+          xi[0] = n1 - 1;
+          xi[1] = n1 - 1;
+        } else {
+          ix = floor(x);
+          xi[0] = ix;
+          xi[1] = ix + 1;
+        }
+        y = yy[j];
+        if (y < 0) {
+          yi[0] = 0;
+          yi[1] = 0;
+        } else if (y >= n2 - 1) {
+          yi[0] = n2 - 1;
+          yi[1] = n2 - 1;
+        } else {
+          iy = floor(y);
+          yi[0] = iy;
+          yi[1] = iy + 1;
+        }
+        dx = (x - xi[0]);
+        dy = (y - yi[0]);
+        vx0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
+        vx1 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
+        vy0 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
+        vy1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
+        for (SizeT i = 0; i < ncontiguous; ++i) {
+          double dxdy = dx*dy;
+          double c0 = (1 - dy - dx + dxdy);
+          double c1 = (dy - dxdy);
+          double c2 = (dx - dxdy);
+          vres[i] = vx0[i] * c0 + vy0[i] * c1 + vx1[i] * c2 + vy1[i] * dxdy;
+        }
+      }
+  }
+}
+
+template <typename T1, typename T2>
+void interpolate_2d_linear_grid(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT nx, T2* yy, SizeT ny, T1* res, SizeT ncontiguous, bool use_missing, DDouble missing) {
+  T1 *vx0, *vx1, *vy0, *vy1, *vres;
+  double dx, dy; //"In either case, the actual interpolation is always done using double-precision arithmetic."
+  double x, y;
+  ssize_t ix = 0;
+  ssize_t iy = 0; //operations on unsigned are not what you think, signed are ok
+  ssize_t xi[2], yi[2]; //operations on unsigned are not what you think, signed are ok
+  ssize_t n1 = un1;
+  ssize_t n2 = un2;
+  if (use_missing) {  //following behaviour validated.
+    for (SizeT k = 0; k < ny; ++k) {
+      for (SizeT j = 0; j < nx; ++j) { //nb output points
+        vres = &(res[ncontiguous * (k * nx + j) ]);
+        x = xx[j];
+        if (x < 0) {
+          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+        } else if (x < n1 - 1) {
+          y = yy[k];
+          if (y < 0) {
+            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+          } else if (y < n2 - 1) {
+            ix = floor(x);
+            xi[0] = ix;
+            xi[1] = ix + 1;
+            //make in range
+            if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
+            dx = (x - xi[0]);
+            iy = floor(y);
+            yi[0] = iy;
+            yi[1] = iy + 1;
+            //make in range
+            if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
+            dy = (y - yi[0]);
+            vx0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
+            vx1 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
+            vy0 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
+            vy1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
+            for (SizeT i = 0; i < ncontiguous; ++i) {
+              double dxdy=dx*dy;
+              double c0=(1-dy-dx+dxdy);
+              double c1=(dy-dxdy);
+              double c2=(dx-dxdy);
+              vres[i] = vx0[i] * c0 + vy0[i] * c1 + vx1[i] * c2 + vy1[i]*dxdy;
+            }
+          } else {
+            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+          }
+        } else {
+          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+        }
       }
     }
+  } else { //following behaviour validated.
+    for (SizeT k = 0; k < ny; ++k) {
+      for (SizeT j = 0; j < nx; ++j) { //nb output points
+        vres = &(res[ncontiguous * (k * nx + j) ]);
+        x = xx[j];
+        if (x < 0) {
+          xi[0] = 0; xi[1] = 0;
+        } else if (x >= n1-1 ) {
+          xi[0] = n1-1; xi[1] = n1-1;
+        } else {
+          ix = floor(x);
+          xi[0] = ix;
+          xi[1] = ix + 1;
+        }
+        y = yy[k];
+        if (y < 0) {
+          yi[0] = 0; yi[1] = 0;
+        } else if (y >= n2-1 ) {
+          yi[0] = n2-1; yi[1] = n2-1;
+        } else {
+          iy = floor(y);
+          yi[0] = iy;
+          yi[1] = iy + 1;
+        }
+        dx = (x - xi[0]);
+        dy = (y - yi[0]);
+        vx0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
+        vx1 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
+        vy0 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
+        vy1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
+        for (SizeT i = 0; i < ncontiguous; ++i) {
+          double dxdy=dx*dy;
+          double c0=(1-dy-dx+dxdy);
+          double c1=(dy-dxdy);
+          double c2=(dx-dxdy);
+          vres[i] = vx0[i] * c0 + vy0[i] * c1 + vx1[i] * c2 + vy1[i]*dxdy;
+        }
+      }
     }
-//  } else {
-    //    for (SizeT j = 0; j < nx; ++j) {
-    //      vres = &(res[ncontiguous * j]);
-    //      x = xx[j];
-    //      if (x < 0) {
-    //        vx0 = &(array[0]);
-    //        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = vx0[i];
-    //      } else if (x < n1 - 1) {
-    //        ix = floor(x); //floor  ix is [0 .. n1[
-    //        d = (x - ix);
-    //        vx0 = &(array[ncontiguous * ix]);
-    //        vx1 = &(array[ncontiguous * (ix + 1)]);
-    //        for (SizeT i = 0; i < ncontiguous; ++i) {
-    //          vres[i] = (1. - d) * vx0[i] + d * vx1[i];
-    //        }
-    //      } else {
-    //        vx0 = &(array[ncontiguous * (n1 - 1)]);
-    //        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = vx0[i];
-    //      }
-    //    }
-//  }
+  }
 }
 
 namespace lib {
@@ -620,59 +654,39 @@ namespace lib {
     if (p0->Rank() < nParam - 1)
       e->Throw("Number of parameters must agree with dimensions of argument.");
 
-    //Ok, Ranks are compatible, but check if last parameter(s) have dimension 1.
-    //interpol is unable to interpolate on a zero-size dimension. We will downgrade the number
-    //of dimensions to be interpolated, and duplicate the result to the size of the last parameter(s).
-    SizeT lastDim = 0;
-    bool needsLastDims = false;
-    dimension dimIni = p0->Dim();
-    dimension dimEnd = p0->Dim();
-    dimEnd.Purge();
-    SizeT RankDiff = dimIni.Rank() - dimEnd.Rank(); //number of 1-sized dimensions consecutive at end
-    SizeT resDimInit[ MAXRANK];
-    SizeT iAddRank = 0;
-    for (iAddRank = 0; iAddRank < dimEnd.Rank(); ++iAddRank) resDimInit[iAddRank] = dimEnd[iAddRank];
-    //All of the above not useful if grid is not set!
-    if (grid && RankDiff > 0) {
-      for (SizeT i = RankDiff; i >= 1; --i) {
-        lastDim = (e->GetParDefined(nParam - i))->Dim(0);
-        if (lastDim > 1) needsLastDims = true; //correct behaviour: last dim=1 is trimmed anyway.
-        resDimInit[iAddRank] = (lastDim == 0) ? 1 : lastDim;
-        iAddRank++;
-      }
-      nParam -= RankDiff;
-    }
-
 
     // 1D Interpolation
     if (nParam == 2) {
-      //// the interpolant type used depends on the number of bytes of p0.    
       BaseGDL* p1 = e->GetParDefined(1);
 
       SizeT nx = p1->N_Elements();
 
-      // Determine number and value of input points along x-axis and y-axis
       if (p0->Rank() < 1) e->Throw("Number of parameters must agree with dimensions of argument.");
-      SizeT rankLeft = p0->Rank() - 1;
+      dimension d0=p0->Dim();
+      d0.Purge(); //remove last dims equal to 1 if any
+      dimension d1=p1->Dim();
+      d1.Purge(); //remove last dims equal to 1 if any
+      SizeT rankLeft = d0.Rank() - 1;
 
-      //initialize output array with correct dimensions
+      //initialize output array with correct dimensions, remove last dimensions 1 if any.
       SizeT outRank = rankLeft;
-      DLong dims[MAXRANK];
+      DLong outdims[MAXRANK];
       SizeT i = 0;
-      for (; i < outRank; ++i) dims[i] = p0->Dim(i);
-      for (; i < MAXRANK; ++i) dims[i] = 0;
-      for (SizeT i = 0; i < p1->Rank(); ++i) {
-        dims[outRank++] = p1->Dim(i);
+      for (; i < outRank; ++i) outdims[i] = d0[i];
+      for (; i < MAXRANK; ++i) outdims[i] = 0;
+      for (SizeT i = 0; i < d1.Rank(); ++i) {
+        outdims[outRank++] = d1[i];
         if (outRank > MAXRANK)
           e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
       }
-      dimension dim((DLong *) dims, outRank);
+      
+      dimension outdim((DLong *) outdims, outRank);
 
       // Determine number of (contiguous) points in remaining dimensions
       SizeT ncontiguous = 1;
-      for (SizeT i = 0; i < rankLeft; ++i) ncontiguous *= p0->Dim(i);
+      for (SizeT i = 0; i < rankLeft; ++i) ncontiguous *= d0[i];
       
-      SizeT un1=p0->Dim(p0->Rank()-1);
+      SizeT un1=p0->Dim(d0.Rank()-1);
       if (un1<3 && cubic) cubic=false;
       if (un1<2) nnbor=true;
       
@@ -750,7 +764,8 @@ namespace lib {
           throw GDLException(p0->TypeStr() + " expression not allowed in this context: " + e->GetParString(0));
         }
       }
-    } else if (nParam == 3) {
+    } 
+     else if (nParam == 3) {
       //// the interpolant type used depends on the number of bytes of p0.    
       BaseGDL* p1 = e->GetParDefined(1);
       BaseGDL* p2 = e->GetParDefined(2);
@@ -760,20 +775,19 @@ namespace lib {
 
       if (nx == 1 && ny == 1) grid = false;
 
-      // Determine number and value of input points along x-axis and y-axis
-      if (p0->Rank() < 2) e->Throw("Number of parameters must agree with dimensions of argument.");
-      SizeT rankLeft = p0->Rank() - 2;
+      dimension d0=p0->Dim();
+      d0.Purge(); //remove last dims equal to 1 if any
+      if (d0.Rank() < 2) e->Throw("Number of parameters must agree with dimensions of argument.");
+      dimension d1=p1->Dim();
+      d1.Purge(); //remove last dims equal to 1 if any
+      dimension d2=p2->Dim();
+      d2.Purge(); //remove last dims equal to 1 if any
+      SizeT rankLeft = d0.Rank() - 2;
 
-      // If not GRID then check that rank and dims match
+      // If not GRID then check that length match, the rank will be the rank of d1.
       if (!grid) {
-        if (p1->Rank() != p2->Rank())
-          e->Throw("Coordinate arrays must have same rank if Grid not set.");
-        else {
-          for (SizeT i = 0; i < p1->Rank(); ++i) {
-            if (p1->Dim(i) != p2->Dim(i))
-              e->Throw("Coordinate arrays must have same shape if Grid not set.");
-          }
-        }
+        if (d1.NDimElements() != d2.NDimElements())
+          e->Throw("Coordinate arrays must have same length if Grid not set.");
       }
 
       //initialize output array with correct dimensions
@@ -781,36 +795,35 @@ namespace lib {
 
       DLong dims[MAXRANK];
       SizeT i = 0;
-      for (; i < outRank; ++i) dims[i] = p0->Dim(i);
+      for (; i < outRank; ++i) dims[i] = d0[i];
       for (; i < MAXRANK; ++i) dims[i] = 0;
 
-      SizeT chunksize;
       if (grid) {
         dims[outRank++] = nx;
         if (outRank > MAXRANK - 1)
           e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
         dims[outRank++] = ny;
-        chunksize = nx*ny;
       } else {
-        for (SizeT i = 0; i < p1->Rank(); ++i) {
-          dims[outRank++] = p1->Dim(i);
+        for (SizeT i = 0; i < d1.Rank(); ++i) {
+          dims[outRank++] = d1[i];
           if (outRank > MAXRANK)
             e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
         }
-        chunksize = nx;
       }
-      dimension dim((DLong *) dims, outRank);
+      
+      dimension outdim((DLong *) dims, outRank);
       DDoubleGDL *res;
-      res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+      res = new DDoubleGDL(outdim, BaseGDL::NOZERO);
 
       // Determine number of interpolations for remaining dimensions
       SizeT ncontiguous = 1;
-      for (SizeT i = 0; i < rankLeft; ++i) ncontiguous *= p0->Dim(i);
+      for (SizeT i = 0; i < rankLeft; ++i) ncontiguous *= d0[i];
 
-      SizeT un1 = p0->Dim(p0->Rank() - 2);
+      SizeT un1 = d0[d0.Rank() - 2];
       if (un1 < 3 && cubic) cubic = false;
       if (un1 < 2) nnbor = true;
-      SizeT un2 = p0->Dim(p0->Rank() - 1);
+      SizeT un2 = d0[d0.Rank() - 1];
+
       if (grid) {
         switch (p0->Type()) {
         case GDL_FLOAT:
