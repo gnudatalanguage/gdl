@@ -15,10 +15,9 @@
 ;       mx, my, mz = new (output) array size.  in
 ;       t2 = resulting array.                  out
 ; KEYWORD PARAMETERS:
-;       /INTERPOLATE means do bilinear interpolation. Kept for
-;        compatibility but unused: interpolation IS linear.
-;       CUBIC=cubic: use a cubic interpolation. Currently limited by
-;       the availability of cubic interpolation in GDL's INTERPOLATE.
+;       /INTERPOLATE means do bilinear interpolation for 1D or 2D (3D is always linear).
+;       By default, 1D and 2D interpolation is NEAREST_NEIGHBOUR (IDL idiosyncrasy).
+;       CUBIC=cubic: use a cubic interpolation. -0 to -1. -0.5 is recommended
 ;       /CENTER means assume pixels centered.  This means
 ;         the pixel at (0,[0,[0]]) is clipped to 1/4 size.
 ;         Default is that pixel start (not center) is at index.'
@@ -61,12 +60,12 @@ if (npar lt 2) or (npar gt 4) or KEYWORD_SET(help) then begin
     print,'   mx, my, mz = new (output) array size.  in'
     print,'   t2 = resulting array.                  out'
     print,' Keywords:'
-    print,'   /INTERPOLATE means do bilinear interpolation. Kept for'
-    print,'    compatibility but unused: interpolation IS linear.'
+    print,'   /INTERPOLATE means do bilinear interpolation for 1D or 2D (3D is always linear).'
+    print,'    By default, 1D and 2D interpolation is NEAREST_NEIGHBOUR (IDL idiosyncrasy).'
     print,'   /CENTER means assume pixels centered.  This means'
     print,'   the pixel at (0,[0,[0]]) is clipped to 1/4 size.'
     print,'   Default is that pixel start (not center) is at index.'
-    print,'   CUBIC=cubic: use a cubic interpolation.'
+    print,'   CUBIC=cubic: use a cubic interpolation. -0 to -1. -0.5 is recommended.'
     print,'   /MINUS_ONE: option will be ignored. MISSING can be used instead.'
     print, '  /HELP gives this help.'
     print,' NOTE: CONGRID performs a resampling. Does not conserve Fluxes.'
@@ -119,7 +118,7 @@ IF (nopt lt ndim) THEN BEGIN
     CASE nopt OF
         3: temp2 = INTERPOLATE(temp,x,y,z,/grid,cubic=cubic)
         2: temp2 = INTERPOLATE(temp,x,y,/grid,nearest_neighbour=nnbor,cubic=cubic)
-        1: temp2 = INTERPOLATE(temp,x,/grid,nearest_neighbour=nnbor,cubic=cubic)
+        1: temp2 = INTERPOLATE(temp,x,nearest_neighbour=nnbor,cubic=cubic)
     ENDCASE
     p=SHIFT(INDGEN(ndim),nopt)
     t2=TRANSPOSE(temp2,p)
@@ -127,7 +126,7 @@ ENDIF ELSE BEGIN
     CASE nopt OF
         3: t2 = INTERPOLATE(t,x,y,z,/grid,cubic=cubic)
         2: t2 = INTERPOLATE(t,x,y,/grid,nearest_neighbour=nnbor,cubic=cubic)
-        1: t2 = INTERPOLATE(t,x,/grid,nearest_neighbour=nnbor,cubic=cubic)
+        1: t2 = INTERPOLATE(t,x,nearest_neighbour=nnbor,cubic=cubic)
     ENDCASE
 ENDELSE
 ;

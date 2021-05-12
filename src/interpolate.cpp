@@ -58,7 +58,6 @@
   G2* p2D=e->GetParAs<G2>(2);\
   G1* res = new G1(outdim, BaseGDL::NOZERO);\
   if (cubic) interpolate_2d_cubic<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),static_cast<T1*>(res->DataAddr()),ncontiguous, use_missing, missing);\
-  else if (nnbor) interpolate_2d_nearest<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),static_cast<T1*>(res->DataAddr()),ncontiguous);\
   else interpolate_2d_linear<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),static_cast<T1*>(res->DataAddr()),ncontiguous, use_missing, missing);\
   return res;\
   break;\
@@ -70,7 +69,6 @@
   G1* res = new G1(outdim, BaseGDL::NOZERO);\
   ncontiguous *= 2;\
   if (cubic) interpolate_2d_cubic<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),static_cast<T1*>(res->DataAddr()),ncontiguous, use_missing, missing);\
-  else if (nnbor) interpolate_2d_nearest<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),static_cast<T1*>(res->DataAddr()),ncontiguous);\
   else interpolate_2d_linear<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),static_cast<T1*>(res->DataAddr()),ncontiguous, use_missing, missing);\
   return res;\
   break;\
@@ -98,6 +96,18 @@
   return res;\
   break;\
 }
+
+#define CALL_INTERPOLATE_3D(G1,T1,G2,T2)\
+{\
+  G2* p1D=e->GetParAs<G2>(1);\
+  G2* p2D=e->GetParAs<G2>(2);\
+  G2* p3D=e->GetParAs<G2>(2);\
+  G1* res = new G1(outdim, BaseGDL::NOZERO);\
+  interpolate_3d_linear<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, un3, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),static_cast<T2*>(p3D->DataAddr()),static_cast<T1*>(res->DataAddr()),ncontiguous, use_missing, missing);\
+  return res;\
+  break;\
+}
+
 static double gdl_cubic_gamma = -1.0;
 
 void gdl_update_cubic_interpolation_coeff(double gammaValue) {
@@ -485,46 +495,6 @@ void interpolate_1d_cubic_single(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res
       }
     }
     }
-  }
-}
-
-template <typename T1, typename T2>
-void interpolate_2d_nearest(T1* array, SizeT un1,  SizeT un2, T2* xx, SizeT n, T2* yy, T1* res, SizeT ncontiguous) {
-  T1 *vx0, *vres;
-  double x, y;
-  ssize_t ix = 0;
-  ssize_t iy = 0; //operations on unsigned are not what you think, signed are ok
-  ssize_t xi, yi; //operations on unsigned are not what you think, signed are ok
-  ssize_t n1 = un1;
-  ssize_t n2 = un2;
-#pragma omp parallel private(xi,yi,ix,iy,x,y,vx0,vres) if (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
-  {
-#pragma omp for
-    for (SizeT j = 0; j < n; ++j) { //nb output points
-    vres = &(res[ncontiguous * j ]);
-    x = xx[j];
-    if (x < 0) {
-      xi = 0;
-    } else if (x >= n1 - 1) {
-      xi = n1 - 1;
-    } else {
-      ix = floor(x);
-      xi = ix;
-    }
-    y = yy[j];
-    if (y < 0) {
-      yi = 0;
-    } else if (y >= n2 - 1) {
-      yi = n2 - 1;
-    } else {
-      iy = floor(y);
-      yi = iy;
-    }
-    vx0 = &(array[ncontiguous * (yi* n1 + xi)]);
-    for (SizeT i = 0; i < ncontiguous; ++i) {
-      vres[i] = vx0[i];
-    }
-  }
   }
 }
 
@@ -1201,6 +1171,134 @@ void interpolate_2d_cubic_grid(T1* array, SizeT un1, SizeT un2, T2* xx, const Si
     }
 }
 
+template <typename T1, typename T2>
+void interpolate_3d_linear(T1* array, SizeT un1,  SizeT un2, SizeT un3, T2* xx, SizeT n, T2* yy, T2* zz, T1* res, SizeT ncontiguous, bool use_missing, DDouble missing) {
+  T1 *vx0y0z0,*vx1y0z0, *vx0y1z0,*vx1y1z0, *vx0y0z1,*vx1y0z1, *vx0y1z1,*vx1y1z1, *vres;
+  double dx, dy, dz; //"In either case, the actual interpolation is always done using double-precision arithmetic."
+  double x, y, z;
+  ssize_t ix = 0;
+  ssize_t iy = 0; //operations on unsigned are not what you think, signed are ok
+  ssize_t iz = 0; 
+  ssize_t xi[2], yi[2], zi[2]; //operations on unsigned are not what you think, signed are ok
+  ssize_t n1 = un1;
+  ssize_t n2 = un2;
+  ssize_t n3 = un3;
+//  if (use_missing) { //following behaviour validated.
+#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) if (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
+    {
+#pragma omp for 
+      for (SizeT j = 0; j < n; ++j) { //nb output points
+        vres = &(res[ncontiguous * j ]);
+        x = xx[j];
+        if (x < 0) {
+          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+        } else if (x < n1 - 1) {
+          y = yy[j];
+          if (y < 0) {
+            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+          } else if (y < n2 - 1) {
+            z = zz[j];
+            if (z < 0) {
+              for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+            } else if (z < n3 - 1) {
+              ix = floor(x);
+              xi[0] = ix;
+              xi[1] = ix + 1;
+              //make in range
+              if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
+              dx = (x - xi[0]);
+              
+              iy = floor(y);
+              yi[0] = iy;
+              yi[1] = iy + 1;
+              //make in range
+              if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
+              dy = (y - yi[0]);
+              
+              iz = floor(z);
+              zi[0] = iz;
+              zi[1] = iz + 1;
+              //make in range
+              if (zi[1] < 0) zi[1] = 0; else if (zi[1] > n3 - 1) zi[1] = n3 - 1;
+              dz = (z - zi[0]);
+              
+              vx0y0z0 = &( array[ncontiguous * ( zi[0]*n1*n2+ yi[0]*n1 + xi[0])] );
+              vx1y0z0 = &( array[ncontiguous * ( zi[0]*n1*n2+ yi[0]*n1 + xi[1])] );
+              vx0y1z0 = &( array[ncontiguous * ( zi[0]*n1*n2+ yi[1]*n1 + xi[0])] );
+              vx1y1z0 = &( array[ncontiguous * ( zi[0]*n1*n2+ yi[1]*n1 + xi[1])] );
+              vx0y0z1 = &( array[ncontiguous * ( zi[1] * n1 * n2 + yi[0] * n1 + xi[0])] );
+              vx1y0z1 = &( array[ncontiguous * ( zi[1] * n1 * n2 + yi[0] * n1 + xi[1])] );
+              vx0y1z1 = &( array[ncontiguous * ( zi[1] * n1 * n2 + yi[1] * n1 + xi[0])] );
+              vx1y1z1 = &( array[ncontiguous * ( zi[1] * n1 * n2 + yi[1] * n1 + xi[1])] );
+              for (SizeT i = 0; i < ncontiguous; ++i) {
+                double dxdy = dx*dy;
+                double c0 = (1 - dy - dx + dxdy);
+                double c1 = (dy - dxdy);
+                double c2 = (dx - dxdy);
+                double t0 = vx0y0z0[i] * c0 + vx1y0z0[i] * c1 + vx0y1z0[i] * c2 + vx1y1z0[i] * dxdy;
+                double t1 = vx0y0z1[i] * c0 + vx1y0z1[i] * c1 + vx0y1z1[i] * c2 + vx1y1z1[i] * dxdy;
+                vres[i] = (1-dz)*t0+dz*t1; 
+              }
+            } else {
+              for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+            }
+          } else {
+            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+          }
+        } else {
+          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
+        }
+      }
+    }
+//  } 
+//  else { //following behaviour validated.
+//#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) if (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
+//    {
+//#pragma omp for 
+//      for (SizeT j = 0; j < n; ++j) { //nb output points
+//        vres = &(res[ncontiguous * j ]);
+//        x = xx[j];
+//        if (x < 0) {
+//          xi[0] = 0;
+//          xi[1] = 0;
+//        } else if (x >= n1 - 1) {
+//          xi[0] = n1 - 1;
+//          xi[1] = n1 - 1;
+//        } else {
+//          ix = floor(x);
+//          xi[0] = ix;
+//          xi[1] = ix + 1;
+//        }
+//        y = yy[j];
+//        if (y < 0) {
+//          yi[0] = 0;
+//          yi[1] = 0;
+//        } else if (y >= n2 - 1) {
+//          yi[0] = n2 - 1;
+//          yi[1] = n2 - 1;
+//        } else {
+//          iy = floor(y);
+//          yi[0] = iy;
+//          yi[1] = iy + 1;
+//        }
+//        dx = (x - xi[0]);
+//        dy = (y - yi[0]);
+//        vx0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
+//        vx1 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
+//        vy0 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
+//        vy1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
+//        for (SizeT i = 0; i < ncontiguous; ++i) {
+//          double dxdy = dx*dy;
+//          double c0 = (1 - dy - dx + dxdy);
+//          double c1 = (dy - dxdy);
+//          double c2 = (dx - dxdy);
+//          vres[i] = vx0[i] * c0 + vy0[i] * c1 + vx1[i] * c2 + vy1[i] * dxdy;
+//        }
+//      }
+//    }
+//  }
+}
+
 namespace lib {
 
   BaseGDL* interpolate_fun(EnvT* e) {
@@ -1480,8 +1578,147 @@ namespace lib {
           throw GDLException(p0->TypeStr() + " expression not allowed in this context: " + e->GetParString(0));
         }
       }
-    }
+    } else if (nParam == 4) {
+      //// the interpolant type used depends on the number of bytes of p0.    
+      BaseGDL* p1 = e->GetParDefined(1);
+      BaseGDL* p2 = e->GetParDefined(2);
+      BaseGDL* p3 = e->GetParDefined(3);
 
+      SizeT nx = p1->N_Elements();
+      SizeT ny = p2->N_Elements();
+      SizeT nz = p3->N_Elements();
+
+      if (nx == 1 && ny == 1 && nz == 1) grid = false;
+
+      dimension d0 = p0->Dim();
+      d0.Purge(); //remove last dims equal to 1 if any
+      if (d0.Rank() < 3) e->Throw("Number of parameters must agree with dimensions of argument.");
+      dimension d1 = p1->Dim();
+      d1.Purge(); //remove last dims equal to 1 if any
+      dimension d2 = p2->Dim();
+      d2.Purge(); //remove last dims equal to 1 if any
+      dimension d3 = p3->Dim();
+      d3.Purge(); //remove last dims equal to 1 if any
+      SizeT rankLeft = d0.Rank() - 3;
+
+      // If not GRID then check that length match, the rank will be the rank of d1.
+      if (!grid) {
+        if (d1.NDimElements() != d2.NDimElements() || d1.NDimElements() != d3.NDimElements() || d2.NDimElements() != d3.NDimElements() )
+          e->Throw("Coordinate arrays must have same length if Grid not set.");
+      }
+
+      //initialize output array with correct dimensions
+      SizeT outRank = rankLeft;
+
+      DLong dims[MAXRANK];
+      SizeT i = 0;
+      for (; i < outRank; ++i) dims[i] = d0[i];
+      for (; i < MAXRANK; ++i) dims[i] = 0;
+
+      if (grid) {
+        dims[outRank++] = nx;
+        if (outRank > MAXRANK - 1)
+          e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
+        dims[outRank++] = ny;
+        if (outRank > MAXRANK - 1)
+          e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
+        dims[outRank++] = nz;
+        if (outRank > MAXRANK - 1)
+          e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
+      } else {
+        for (SizeT i = 0; i < d1.Rank(); ++i) {
+          dims[outRank++] = d1[i];
+          if (outRank > MAXRANK)
+            e->Throw("Rank of resulting array is currently limited to " + i2s(MAXRANK) + ".");
+        }
+      }
+
+      dimension outdim((DLong *) dims, outRank);
+
+      // Determine number of interpolations for remaining dimensions
+      SizeT ncontiguous = 1;
+      for (SizeT i = 0; i < rankLeft; ++i) ncontiguous *= d0[i];
+
+      SizeT un1 = d0[d0.Rank() - 3];
+      if (un1 < 3 && cubic) cubic = false;
+      if (un1 < 2) nnbor = true;
+      SizeT un2 = d0[d0.Rank() - 2];
+      SizeT un3 = d0[d0.Rank() - 1];
+
+//      if (grid) {
+//        switch (p0->Type()) {
+//        case GDL_FLOAT:
+//          if (dbl) CALL_INTERPOLATE_2D_GRID(DFloatGDL, DFloat, DDoubleGDL, DDouble)
+//          else CALL_INTERPOLATE_2D_GRID(DFloatGDL, DFloat, DFloatGDL, DFloat)
+//          case GDL_DOUBLE:
+//            if (dbl) CALL_INTERPOLATE_2D_GRID(DDoubleGDL, DDouble, DDoubleGDL, DDouble)
+//          else CALL_INTERPOLATE_2D_GRID(DDoubleGDL, DDouble, DFloatGDL, DFloat)
+//          case GDL_LONG:
+//            CALL_INTERPOLATE_2D_GRID(DLongGDL, DLong, DDoubleGDL, DDouble)
+//          case GDL_BYTE:
+//            CALL_INTERPOLATE_2D_GRID(DByteGDL, DByte, DFloatGDL, DFloat)
+//          case GDL_INT:
+//            CALL_INTERPOLATE_2D_GRID(DIntGDL, DInt, DFloatGDL, DFloat)
+//          case GDL_COMPLEX:
+//            // A complex is just a double array with 1 dimension more and first dim is 2.
+//            CALL_INTERPOLATE_2D_GRID_COMPLEX(DComplexGDL, DFloat, DFloatGDL, DFloat) //Complex as a series of Floats
+//          case GDL_COMPLEXDBL:
+//            // A complex is just a double array with 1 dimension more and first dim is 2.
+//            CALL_INTERPOLATE_2D_GRID_COMPLEX(DComplexDblGDL, DDouble, DDoubleGDL, DDouble) //ComplexDbl as a serie of Doubles
+//          case GDL_UINT:
+//            CALL_INTERPOLATE_2D_GRID(DUIntGDL, DUInt, DFloatGDL, DFloat)
+//          case GDL_ULONG:
+//            CALL_INTERPOLATE_2D_GRID(DULongGDL, DULong, DDoubleGDL, DDouble)
+//          case GDL_LONG64:
+//            CALL_INTERPOLATE_2D_GRID(DLong64GDL, DLong64, DDoubleGDL, DDouble)
+//          case GDL_ULONG64:
+//            CALL_INTERPOLATE_2D_GRID(DULong64GDL, DULong64, DDoubleGDL, DDouble)
+//          default:
+//            //  case GDL_STRING:
+//            //  case GDL_PTR:
+//            //  case GDL_OBJ:
+//            //  case GDL_STRUCT:
+//            //  case GDL_UNDEF:
+//            throw GDLException(p0->TypeStr() + " expression not allowed in this context: " + e->GetParString(0));
+//        }
+//      } else {
+        switch (p0->Type()) {
+        case GDL_FLOAT:
+          if (dbl) CALL_INTERPOLATE_3D(DFloatGDL, DFloat, DDoubleGDL, DDouble)
+          else CALL_INTERPOLATE_3D(DFloatGDL, DFloat, DFloatGDL, DFloat)
+          case GDL_DOUBLE:
+            if (dbl) CALL_INTERPOLATE_3D(DDoubleGDL, DDouble, DDoubleGDL, DDouble)
+          else CALL_INTERPOLATE_3D(DDoubleGDL, DDouble, DFloatGDL, DFloat)
+          case GDL_LONG:
+            CALL_INTERPOLATE_3D(DLongGDL, DLong, DDoubleGDL, DDouble)
+          case GDL_BYTE:
+            CALL_INTERPOLATE_3D(DByteGDL, DByte, DFloatGDL, DFloat)
+          case GDL_INT:
+            CALL_INTERPOLATE_3D(DIntGDL, DInt, DFloatGDL, DFloat)
+//          case GDL_COMPLEX:
+//            // A complex is just a double array with 1 dimension more and first dim is 2.
+//            CALL_INTERPOLATE_3D_COMPLEX(DComplexGDL, DFloat, DFloatGDL, DFloat) //Complex as a series of Floats
+//          case GDL_COMPLEXDBL:
+//            // A complex is just a double array with 1 dimension more and first dim is 2.
+//            CALL_INTERPOLATE_3D_COMPLEX(DComplexDblGDL, DDouble, DDoubleGDL, DDouble) //ComplexDbl as a serie of Doubles
+          case GDL_UINT:
+            CALL_INTERPOLATE_3D(DUIntGDL, DUInt, DFloatGDL, DFloat)
+          case GDL_ULONG:
+            CALL_INTERPOLATE_3D(DULongGDL, DULong, DDoubleGDL, DDouble)
+          case GDL_LONG64:
+            CALL_INTERPOLATE_3D(DLong64GDL, DLong64, DDoubleGDL, DDouble)
+          case GDL_ULONG64:
+            CALL_INTERPOLATE_3D(DULong64GDL, DULong64, DDoubleGDL, DDouble)
+          default:
+            //  case GDL_STRING:
+            //  case GDL_PTR:
+            //  case GDL_OBJ:
+            //  case GDL_STRUCT:
+            //  case GDL_UNDEF:
+            throw GDLException(p0->TypeStr() + " expression not allowed in this context: " + e->GetParString(0));
+        }
+//      }
+    }
     throw;
   }
 }
