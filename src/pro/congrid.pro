@@ -116,7 +116,7 @@ IF (nopt lt ndim) THEN BEGIN
     p=SHIFT(INDGEN(ndim),-nopt)
     temp=TRANSPOSE(t,p)
     CASE nopt OF
-        3: temp2 = INTERPOLATE(temp,x,y,z,/grid,cubic=cubic)
+        3: temp2 = INTERPOLATE(temp,x,y,z,/grid)
         2: temp2 = INTERPOLATE(temp,x,y,/grid,nearest_neighbour=nnbor,cubic=cubic)
         1: temp2 = INTERPOLATE(temp,x,nearest_neighbour=nnbor,cubic=cubic)
     ENDCASE
@@ -124,7 +124,7 @@ IF (nopt lt ndim) THEN BEGIN
     t2=TRANSPOSE(temp2,p)
 ENDIF ELSE BEGIN
     CASE nopt OF
-        3: t2 = INTERPOLATE(t,x,y,z,/grid,cubic=cubic)
+        3: t2 = INTERPOLATE(t,x,y,z,/grid)
         2: t2 = INTERPOLATE(t,x,y,/grid,nearest_neighbour=nnbor,cubic=cubic)
         1: t2 = INTERPOLATE(t,x,nearest_neighbour=nnbor,cubic=cubic)
     ENDCASE

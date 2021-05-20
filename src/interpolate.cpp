@@ -89,6 +89,19 @@
   break;\
 }
 
+// optimization for GRID only (probably heavier stuff, used in CONGRID)
+#define CALL_INTERPOLATE_2D_GRID_SINGLE(G1,T1,G2,T2)\
+{\
+  G2* p1D=e->GetParAs<G2>(1);\
+  G2* p2D=e->GetParAs<G2>(2);\
+  G1* res = new G1(outdim, BaseGDL::NOZERO);\
+  if (cubic) interpolate_2d_cubic_grid_single<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),ny,static_cast<T1*>(res->DataAddr()), use_missing, missing);\
+  else if (nnbor) interpolate_2d_nearest_grid_single<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),ny,static_cast<T1*>(res->DataAddr()));\
+  else interpolate_2d_linear_grid_single<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),ny,static_cast<T1*>(res->DataAddr()), use_missing, missing);\
+  return res;\
+  break;\
+}
+//complex is not 'single' by definition
 #define CALL_INTERPOLATE_2D_GRID_COMPLEX(G1,T1,G2,T2)\
 {\
   G2* p1D=e->GetParAs<G2>(1);\
@@ -112,6 +125,17 @@
   return res;\
   break;\
 }
+#define CALL_INTERPOLATE_3D_COMPLEX(G1,T1,G2,T2)\
+{\
+  G2* p1D=e->GetParAs<G2>(1);\
+  G2* p2D=e->GetParAs<G2>(2);\
+  G2* p3D=e->GetParAs<G2>(3);\
+  G1* res = new G1(outdim, BaseGDL::NOZERO);\
+  ncontiguous *= 2;\
+  interpolate_3d_linear<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, un3, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),static_cast<T2*>(p3D->DataAddr()),static_cast<T1*>(res->DataAddr()),ncontiguous, use_missing, missing);\
+  return res;\
+  break;\
+}
 
 #define CALL_INTERPOLATE_3D_GRID(G1,T1,G2,T2)\
 {\
@@ -123,6 +147,30 @@
   return res;\
   break;\
 }
+// optimization for GRID only (probably heavier stuff, used in CONGRID)
+#define CALL_INTERPOLATE_3D_GRID_SINGLE(G1,T1,G2,T2)\
+{\
+  G2* p1D=e->GetParAs<G2>(1);\
+  G2* p2D=e->GetParAs<G2>(2);\
+  G2* p3D=e->GetParAs<G2>(3);\
+  G1* res = new G1(outdim, BaseGDL::NOZERO);\
+  interpolate_3d_linear_grid_single<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, un3, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),ny,static_cast<T2*>(p3D->DataAddr()),nz,static_cast<T1*>(res->DataAddr()), use_missing, missing);\
+  return res;\
+  break;\
+}
+
+#define CALL_INTERPOLATE_3D_GRID_COMPLEX(G1,T1,G2,T2)\
+{\
+  G2* p1D=e->GetParAs<G2>(1);\
+  G2* p2D=e->GetParAs<G2>(2);\
+  G2* p3D=e->GetParAs<G2>(3);\
+  G1* res = new G1(outdim, BaseGDL::NOZERO);\
+  ncontiguous *= 2;\
+  interpolate_3d_linear_grid<T1,T2>(static_cast<T1*>(p0->DataAddr()), un1, un2, un3, static_cast<T2*>(p1D->DataAddr()),nx,static_cast<T2*>(p2D->DataAddr()),ny,static_cast<T2*>(p3D->DataAddr()),nz,static_cast<T1*>(res->DataAddr()),ncontiguous, use_missing, missing);\
+  return res;\
+  break;\
+}
+
 static double gdl_cubic_gamma = -1.0;
 
 void gdl_update_cubic_interpolation_coeff(double gammaValue) {
@@ -517,12 +565,10 @@ template <typename T1, typename T2>
 void interpolate_2d_nearest_grid(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT nx, T2* yy, SizeT ny, T1* res, SizeT ncontiguous) {
   T1 *vx0, *vres;
   double x, y;
-  ssize_t ix = 0;
-  ssize_t iy = 0; //operations on unsigned are not what you think, signed are ok
   ssize_t xi, yi; //operations on unsigned are not what you think, signed are ok
   ssize_t n1 = un1;
   ssize_t n2 = un2;
-#pragma omp parallel private(xi,yi,ix,iy,x,y,vx0,vres) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
+#pragma omp parallel private(xi,yi,x,y,vx0,vres) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
   {
 #pragma omp for collapse(2)
   for (SizeT k = 0; k < ny; ++k) {
@@ -534,8 +580,7 @@ void interpolate_2d_nearest_grid(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT 
       } else if (x >= n1-1 ) {
         xi = n1-1;
       } else {
-        ix = floor(x);
-        xi = ix;
+        xi = floor(x);
       }
       y = yy[k];
       if (y < 0) {
@@ -543,13 +588,45 @@ void interpolate_2d_nearest_grid(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT 
       } else if (y >= n2-1 ) {
         yi = n2-1; 
       } else {
-        iy = floor(y);
-        yi = iy;
+        yi = floor(y);
       }
       vx0 = &(array[ncontiguous * (yi * n1 + xi)]);
       for (SizeT i = 0; i < ncontiguous; ++i) {
         vres[i] = vx0[i];
       }
+    }
+  }
+  }
+}
+
+template <typename T1, typename T2>
+void interpolate_2d_nearest_grid_single(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT nx, T2* yy, SizeT ny, T1* res) {
+  double x, y;
+  ssize_t xi, yi; //operations on unsigned are not what you think, signed are ok
+  ssize_t n1 = un1;
+  ssize_t n2 = un2;
+#pragma omp parallel private(xi,yi,x,y) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
+  {
+#pragma omp for collapse(2)
+  for (SizeT k = 0; k < ny; ++k) {
+    for (SizeT j = 0; j < nx; ++j) { //nb output points
+      x = xx[j];
+      if (x < 0) {
+        xi = 0;
+      } else if (x >= n1-1 ) {
+        xi = n1-1;
+      } else {
+        xi = floor(x);
+      }
+      y = yy[k];
+      if (y < 0) {
+        yi = 0; 
+      } else if (y >= n2-1 ) {
+        yi = n2-1; 
+      } else {
+        yi = floor(y);
+      }
+      res[k * nx + j] = array[yi * n1 + xi];
     }
   }
   }
@@ -755,6 +832,93 @@ void interpolate_2d_linear_grid(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT n
           double c2=(dx-dxdy);
           vres[i] = vx0[i] * c0 + vy0[i] * c1 + vx1[i] * c2 + vy1[i]*dxdy;
         }
+      }
+    }
+    }
+  }
+}
+template <typename T1, typename T2>
+void interpolate_2d_linear_grid_single(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT nx, T2* yy, SizeT ny, T1* res, bool use_missing, DDouble missing) {
+  double dx, dy; //"In either case, the actual interpolation is always done using double-precision arithmetic."
+  double x, y;
+  ssize_t ix = 0;
+  ssize_t iy = 0; //operations on unsigned are not what you think, signed are ok
+  ssize_t xi[2], yi[2]; //operations on unsigned are not what you think, signed are ok
+  ssize_t n1 = un1;
+  ssize_t n2 = un2;
+  if (use_missing) {  //following behaviour validated.
+#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
+    {
+#pragma omp for collapse(2)
+    for (SizeT k = 0; k < ny; ++k) {
+      for (SizeT j = 0; j < nx; ++j) { //nb output points
+        x = xx[j];
+        if (x < 0) {
+          res[k * nx + j] = missing;
+        } else if (x <= n1 - 1) {
+          y = yy[k];
+          if (y < 0) {
+            res[k * nx + j] = missing;
+          } else if (y <= n2 - 1) {
+            ix = floor(x);
+            xi[0] = ix;
+            xi[1] = ix + 1;
+            //make in range
+            if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
+            dx = (x - xi[0]);
+            iy = floor(y);
+            yi[0] = iy;
+            yi[1] = iy + 1;
+            //make in range
+            if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
+            dy = (y - yi[0]);
+            double dxdy=dx*dy;
+            double c0=(1-dy-dx+dxdy);
+            double c1=(dy-dxdy);
+            double c2=(dx-dxdy);
+            res[k * nx + j] = array[yi[0] * n1 + xi[0]] * c0 + array[yi[1] * n1 + xi[0]] * c1 + array[yi[0] * n1 + xi[1]] * c2 + array[yi[1] * n1 + xi[1]] * dxdy;
+          } else {
+            res[k * nx + j] = missing;
+          }
+        } else {
+          res[k * nx + j] = missing;
+        }
+      }
+    }
+    }
+  } else {
+#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
+    {
+#pragma omp for collapse(2)
+    for (SizeT k = 0; k < ny; ++k) {
+      for (SizeT j = 0; j < nx; ++j) { 
+        x = xx[j];
+        if (x < 0) {
+          xi[0] = 0; xi[1] = 0;
+        } else if (x >= n1-1 ) {
+          xi[0] = n1-1; xi[1] = n1-1;
+        } else {
+          ix = floor(x);
+          xi[0] = ix;
+          xi[1] = ix + 1;
+        }
+        y = yy[k];
+        if (y < 0) {
+          yi[0] = 0; yi[1] = 0;
+        } else if (y >= n2-1 ) {
+          yi[0] = n2-1; yi[1] = n2-1;
+        } else {
+          iy = floor(y);
+          yi[0] = iy;
+          yi[1] = iy + 1;
+        }
+        dx = (x - xi[0]);
+        dy = (y - yi[0]);
+        double dxdy=dx*dy;
+        double c0=(1-dy-dx+dxdy);
+        double c1=(dy-dxdy);
+        double c2=(dx-dxdy);
+        res[k * nx + j] = array[yi[0] * n1 + xi[0]] * c0 + array[yi[1] * n1 + xi[0]] * c1 + array[yi[0] * n1 + xi[1]] * c2 + array[yi[1] * n1 + xi[1]] * dxdy;
       }
     }
     }
@@ -1187,6 +1351,169 @@ void interpolate_2d_cubic_grid(T1* array, SizeT un1, SizeT un2, T2* xx, const Si
 }
 
 template <typename T1, typename T2>
+void interpolate_2d_cubic_grid_single(T1* array, SizeT un1, SizeT un2, T2* xx, const SizeT nx, T2* yy, const SizeT ny, T1* res, bool use_missing, DDouble missing) {
+  const double g = gdl_cubic_gamma;
+  double dx, dy; //"In either case, the actual interpolation is always done using double-precision arithmetic."
+  double x, y;
+  ssize_t ix = 0;
+  ssize_t iy = 0; //operations on unsigned are not what you think, signed are ok
+  ssize_t xi[4], yi[4]; //operations on unsigned are not what you think, signed are ok
+  const ssize_t n1 = un1;
+  const ssize_t n2 = un2;
+  if (use_missing) {
+#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
+    {
+#pragma omp for collapse(2)
+    for (SizeT k = 0; k < ny; ++k) {
+      for (SizeT j = 0; j < nx; ++j) { //nb output points
+        x = xx[j];
+        if (x < 0) {
+          res[k * nx + j] = missing;
+        } else if (x <= n1 - 1) {
+          y = yy[k];
+          if (y < 0) {
+            res[k * nx + j] = missing;
+          } else if (y <= n2 - 1) {
+            ix = floor(x); //floor  ix is [0 .. n1[
+            xi[0] = ix - 1;
+            xi[1] = ix;
+            xi[2] = ix + 1;
+            xi[3] = ix + 2;
+            //make in range
+            if (xi[0] < 0) xi[0] = 0; else if (xi[0] > n1 - 1) xi[0] = n1 - 1;
+            if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
+            if (xi[2] < 0) xi[2] = 0; else if (xi[2] > n1 - 1) xi[2] = n1 - 1;
+            if (xi[3] < 0) xi[3] = 0; else if (xi[3] > n1 - 1) xi[3] = n1 - 1;
+            dx = (x - xi[1]);
+            double dx2 = dx*dx;
+            double dx3 = dx2*dx;
+            double omdx = 1 - dx;
+            double omdx2 = omdx*omdx;
+            double omdx3 = omdx2*omdx;
+            double opdx = 1 + dx;
+            double opdx2 = opdx*opdx;
+            double opdx3 = opdx2*opdx;
+            double dmdx = 2 - dx;
+            double dmdx2 = dmdx*dmdx;
+            double dmdx3 = dmdx2*dmdx;
+            double cx1 = ((g + 2) * dx3 - (g + 3) * dx2 + 1);
+            double cx2 = ((g + 2) * omdx3 - (g + 3) * omdx2 + 1);
+            double cx0 = (g * opdx3 - 5 * g * opdx2 + 8 * g * opdx - 4 * g);
+            double cx3 = (g * dmdx3 - 5 * g * dmdx2 + 8 * g * dmdx - 4 * g);
+
+            iy = floor(y);
+            yi[0] = iy - 1;
+            yi[1] = iy;
+            yi[2] = iy + 1;
+            yi[3] = iy + 2;
+            //make in range
+            if (yi[0] < 0) yi[0] = 0; else if (yi[0] > n2 - 1) yi[0] = n2 - 1;
+            if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
+            if (yi[2] < 0) yi[2] = 0; else if (yi[2] > n2 - 1) yi[2] = n2 - 1;
+            if (yi[3] < 0) yi[3] = 0; else if (yi[3] > n2 - 1) yi[3] = n2 - 1;
+            dy = (y - yi[1]);
+            double dy2 = dy*dy;
+            double dy3 = dy2*dy;
+            double omdy = 1 - dy;
+            double omdy2 = omdy*omdy;
+            double omdy3 = omdy2*omdy;
+            double opdy = 1 + dy;
+            double opdy2 = opdy*opdy;
+            double opdy3 = opdy2*opdy;
+            double dmdy = 2 - dy;
+            double dmdy2 = dmdy*dmdy;
+            double dmdy3 = dmdy2*dmdy;
+            double cy1 = ((g + 2) * dy3 - (g + 3) * dy2 + 1);
+            double cy2 = ((g + 2) * omdy3 - (g + 3) * omdy2 + 1);
+            double cy0 = (g * opdy3 - 5 * g * opdy2 + 8 * g * opdy - 4 * g);
+            double cy3 = (g * dmdy3 - 5 * g * dmdy2 + 8 * g * dmdy - 4 * g);
+            double r0=cx1*array[yi[0] * n1 + xi[1]]+cx2*array[yi[0] * n1 + xi[2]]+cx0*array[yi[0] * n1 + xi[0]]+cx3*array[yi[0] * n1 + xi[3]];
+            double r1=cx1*array[yi[1] * n1 + xi[1]]+cx2*array[yi[1] * n1 + xi[2]]+cx0*array[yi[1] * n1 + xi[0]]+cx3*array[yi[1] * n1 + xi[3]];
+            double r2=cx1*array[yi[2] * n1 + xi[1]]+cx2*array[yi[2] * n1 + xi[2]]+cx0*array[yi[2] * n1 + xi[0]]+cx3*array[yi[2] * n1 + xi[3]];
+            double r3=cx1*array[yi[3] * n1 + xi[1]]+cx2*array[yi[3] * n1 + xi[2]]+cx0*array[yi[3] * n1 + xi[0]]+cx3*array[yi[3] * n1 + xi[3]];
+            res[k * nx + j] = cy1*r1+cy2*r2+cy0*r0+cy3*r3;
+          } else {
+            res[k * nx + j] = missing;
+          }
+        } else {
+          res[k * nx + j] = missing;
+        }
+      }
+    }
+    }
+  } else { 
+#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
+    {
+#pragma omp for collapse(2)
+    for (SizeT k = 0; k < ny; ++k) {
+      for (SizeT j = 0; j < nx; ++j) { //nb output points
+        x = xx[j]; if (x<0)x=0; if(x>n1-1)x=n1-1;
+        ix = floor(x); //floor  ix is [0 .. n1[
+        xi[0] = ix - 1;
+        xi[1] = ix;
+        xi[2] = ix + 1;
+        xi[3] = ix + 2;
+        //make in range
+        if (xi[0] < 0) xi[0] = 0; else if (xi[0] > n1 -1 ) xi[0] = n1 - 1;
+        if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 -1 ) xi[1] = n1 - 1;
+        if (xi[2] < 0) xi[2] = 0; else if (xi[2] > n1 -1 ) xi[2] = n1 - 1;
+        if (xi[3] < 0) xi[3] = 0; else if (xi[3] > n1 -1 ) xi[3] = n1 - 1;
+        dx = (x - xi[1]);
+        double dx2 = dx*dx;
+        double dx3 = dx2*dx;
+        double omdx = 1 - dx;
+        double omdx2 = omdx*omdx;
+        double omdx3 = omdx2*omdx;
+        double opdx = 1 + dx;
+        double opdx2 = opdx*opdx;
+        double opdx3 = opdx2*opdx;
+        double dmdx = 2 - dx;
+        double dmdx2 = dmdx*dmdx;
+        double dmdx3 = dmdx2*dmdx;
+        double cx1 = ((g + 2) * dx3 - (g + 3) * dx2 + 1);
+        double cx2 = ((g + 2) * omdx3 - (g + 3) * omdx2 + 1);
+        double cx0 = (g * opdx3 - 5 * g * opdx2 + 8 * g * opdx - 4 * g);
+        double cx3 = (g * dmdx3 - 5 * g * dmdx2 + 8 * g * dmdx - 4 * g);
+
+        y = yy[k]; if (y<0)y=0; if(y>n2-1)y=n2-1;
+        iy = floor(y);
+        yi[0] = iy - 1;
+        yi[1] = iy;
+        yi[2] = iy + 1;
+        yi[3] = iy + 2;
+        //make in range
+        if (yi[0] < 0) yi[0] = 0; else if (yi[0] > n2-1 ) yi[0] = n2 - 1;
+        if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2-1 ) yi[1] = n2 - 1;
+        if (yi[2] < 0) yi[2] = 0; else if (yi[2] > n2-1 ) yi[2] = n2 - 1;
+        if (yi[3] < 0) yi[3] = 0; else if (yi[3] > n2-1 ) yi[3] = n2 - 1;
+        dy = (y - yi[1]);
+        double dy2 = dy*dy;
+        double dy3 = dy2*dy;
+        double omdy = 1 - dy;
+        double omdy2 = omdy*omdy;
+        double omdy3 = omdy2*omdy;
+        double opdy = 1 + dy;
+        double opdy2 = opdy*opdy;
+        double opdy3 = opdy2*opdy;
+        double dmdy = 2 - dy;
+        double dmdy2 = dmdy*dmdy;
+        double dmdy3 = dmdy2*dmdy;
+        double cy1 = ((g + 2) * dy3 - (g + 3) * dy2 + 1);
+        double cy2 = ((g + 2) * omdy3 - (g + 3) * omdy2 + 1);
+        double cy0 = (g * opdy3 - 5 * g * opdy2 + 8 * g * opdy - 4 * g);
+        double cy3 = (g * dmdy3 - 5 * g * dmdy2 + 8 * g * dmdy - 4 * g);
+        double r0 = cx1 * array[yi[0] * n1 + xi[1]] + cx2 * array[yi[0] * n1 + xi[2]] + cx0 * array[yi[0] * n1 + xi[0]] + cx3 * array[yi[0] * n1 + xi[3]];
+        double r1 = cx1 * array[yi[1] * n1 + xi[1]] + cx2 * array[yi[1] * n1 + xi[2]] + cx0 * array[yi[1] * n1 + xi[0]] + cx3 * array[yi[1] * n1 + xi[3]];
+        double r2 = cx1 * array[yi[2] * n1 + xi[1]] + cx2 * array[yi[2] * n1 + xi[2]] + cx0 * array[yi[2] * n1 + xi[0]] + cx3 * array[yi[2] * n1 + xi[3]];
+        double r3 = cx1 * array[yi[3] * n1 + xi[1]] + cx2 * array[yi[3] * n1 + xi[2]] + cx0 * array[yi[3] * n1 + xi[0]] + cx3 * array[yi[3] * n1 + xi[3]];
+        res[k * nx + j] = cy1 * r1 + cy2 * r2 + cy0 * r0 + cy3*r3;
+      }
+    }
+  }
+  }
+}
+
+template <typename T1, typename T2>
 void interpolate_3d_linear(T1* array, SizeT un1,  SizeT un2, SizeT un3, T2* xx, SizeT n, T2* yy, T2* zz, T1* res, SizeT ncontiguous, bool use_missing, DDouble missing) {
   T1 *vx0y0z0,*vx1y0z0, *vx0y1z0,*vx1y1z0, *vx0y0z1,*vx1y0z1, *vx0y1z1,*vx1y1z1, *vres;
   double dx, dy, dz; //"In either case, the actual interpolation is always done using double-precision arithmetic."
@@ -1201,7 +1528,7 @@ void interpolate_3d_linear(T1* array, SizeT un1,  SizeT un2, SizeT un3, T2* xx, 
   ssize_t n3 = un3;
   ssize_t n1n2=n1*n2;
   if (use_missing) { 
-#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) if (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
+#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,x,y,z,umdx,umdy,umdz,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) if (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
     {
 #pragma omp for
       for (SizeT j = 0; j < n; ++j) { //nb output points
@@ -1268,14 +1595,14 @@ void interpolate_3d_linear(T1* array, SizeT un1,  SizeT un2, SizeT un3, T2* xx, 
       }
     }
   } else {
-#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) if (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
+#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) if (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
     {
 #pragma omp for
       for (SizeT j = 0; j < n; ++j) { //nb output points
         vres = &(res[ncontiguous * j ]);
-        x = xx[j]; if (x<0)x=0; if(x>n1-1)x=n1-1;
-        y = yy[j]; if (y<0)y=0; if(y>n2-1)y=n2-1;
-        z = zz[j]; if (z<0)z=0; if(z>n3-1)z=n3-1;
+        x = xx[j]; if (x<0) x=0; if (x>n1-1) x=n1-1;
+        y = yy[j]; if (y<0) y=0; if (y>n2-1) y=n2-1;
+        z = zz[j]; if (z<0) z=0; if (z>n3-1) z=n3-1;
 
         ix = floor(x); 
         xi[0] = ix;
@@ -1335,7 +1662,7 @@ void interpolate_3d_linear_grid(T1* array, SizeT un1, SizeT un2, SizeT un3, T2* 
   ssize_t n3 = un3;
   ssize_t n1n2 = n1*n2;
   if (use_missing) {
-#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) if (CpuTPOOL_NTHREADS> 1 && nx*ny*nz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny*nz))
+#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) if (CpuTPOOL_NTHREADS> 1 && nx*ny*nz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny*nz))
     {
 #pragma omp for collapse(3)
       for (SizeT l = 0; l < nz; ++l) {
@@ -1358,8 +1685,7 @@ void interpolate_3d_linear_grid(T1* array, SizeT un1, SizeT un2, SizeT un3, T2* 
                   xi[0] = ix;
                   xi[1] = ix + 1;
                   //make in range
-                  if (xi[1] < 0) xi[1] = 0;
-                  else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
+                  if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
                   dx = (x - xi[0]);
                   umdx = 1 - dx;
 
@@ -1367,8 +1693,7 @@ void interpolate_3d_linear_grid(T1* array, SizeT un1, SizeT un2, SizeT un3, T2* 
                   yi[0] = iy;
                   yi[1] = iy + 1;
                   //make in range
-                  if (yi[1] < 0) yi[1] = 0;
-                  else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
+                  if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
                   dy = (y - yi[0]);
                   umdy = 1 - dy;
 
@@ -1376,8 +1701,7 @@ void interpolate_3d_linear_grid(T1* array, SizeT un1, SizeT un2, SizeT un3, T2* 
                   zi[0] = iz;
                   zi[1] = iz + 1;
                   //make in range
-                  if (zi[1] < 0) zi[1] = 0;
-                  else if (zi[1] > n3 - 1) zi[1] = n3 - 1;
+                  if (zi[1] < 0) zi[1] = 0; else if (zi[1] > n3 - 1) zi[1] = n3 - 1;
                   dz = (z - zi[0]);
                   umdz = 1 - dz;
 
@@ -1412,24 +1736,13 @@ void interpolate_3d_linear_grid(T1* array, SizeT un1, SizeT un2, SizeT un3, T2* 
       }
     }
   } else {
-#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) if (CpuTPOOL_NTHREADS> 1 && nx*ny*nz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny*nz))
+#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) if (CpuTPOOL_NTHREADS> 1 && nx*ny*nz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny*nz))
     {
 #pragma omp for collapse(2)   //2 is a good compromise as some values (yi and zi) are not computed nx times. 
       for (SizeT l = 0; l < nz; ++l) {
         for (SizeT k = 0; k < ny; ++k) {
-          y = yy[k];
-          if (y < 0)y = 0;
-          if (y > n2 - 1) y = n2 - 1;
-          iy = floor(y);
-          yi[0] = iy;
-          yi[1] = iy + 1;
-          //make in range
-          if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-          dy = (y - yi[0]);
-          umdy = 1 - dy;
           z = zz[l];
-          if (z < 0)z = 0;
-          if (z > n3 - 1) z = n3 - 1;
+          if (z < 0) z = 0; if (z > n3 - 1) z = n3 - 1;
           iz = floor(z);
           zi[0] = iz;
           zi[1] = iz + 1;
@@ -1437,10 +1750,21 @@ void interpolate_3d_linear_grid(T1* array, SizeT un1, SizeT un2, SizeT un3, T2* 
           if (zi[1] < 0) zi[1] = 0; else if (zi[1] > n3 - 1) zi[1] = n3 - 1;
           dz = (z - zi[0]);
           umdz = 1 - dz;
-            for (SizeT j = 0; j < nx; ++j) { //nb output points
+
+          y = yy[k];
+          if (y < 0) y = 0; if (y > n2 - 1) y = n2 - 1;
+          iy = floor(y);
+          yi[0] = iy;
+          yi[1] = iy + 1;
+          //make in range
+          if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
+          dy = (y - yi[0]);
+          umdy = 1 - dy;
+
+          for (SizeT j = 0; j < nx; ++j) { //nb output points
             vres = &(res[ncontiguous * ( l*nx*ny + k * nx + j) ]);
             x = xx[j];
-            if (x < 0)x = 0; if (x > n1 - 1)x = n1 - 1;
+            if (x < 0) x = 0; if (x > n1 - 1) x = n1 - 1;
             ix = floor(x);
             xi[0] = ix;
             xi[1] = ix + 1;
@@ -1466,6 +1790,132 @@ void interpolate_3d_linear_grid(T1* array, SizeT un1, SizeT un2, SizeT un3, T2* 
               double z1 = umdy * y0z1 + dy*y1z1;
               vres[i] = umdz * z0 + dz*z1;
             }
+          }
+        }
+      }
+    }
+  }
+}
+
+template <typename T1, typename T2>
+void interpolate_3d_linear_grid_single(T1* array, SizeT un1, SizeT un2, SizeT un3, T2* xx, SizeT nx, T2* yy, SizeT ny, T2* zz, SizeT nz, T1* res, bool use_missing, DDouble missing) {
+  double dx, dy, dz; //"In either case, the actual interpolation is always done using double-precision arithmetic."
+  double umdx, umdy, umdz;
+  double x, y, z;
+  ssize_t ix = 0;
+  ssize_t iy = 0; //operations on unsigned are not what you think, signed are ok
+  ssize_t iz = 0;
+  ssize_t xi[2], yi[2], zi[2]; //operations on unsigned are not what you think, signed are ok
+  ssize_t n1 = un1;
+  ssize_t n2 = un2;
+  ssize_t n3 = un3;
+  ssize_t n1n2 = n1*n2;
+  if (use_missing) {
+#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z) if (CpuTPOOL_NTHREADS> 1 && nx*ny*nz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny*nz))
+    {
+#pragma omp for collapse(3)
+      for (SizeT l = 0; l < nz; ++l) {
+        for (SizeT k = 0; k < ny; ++k) {
+          for (SizeT j = 0; j < nx; ++j) { //nb output points
+            x = xx[j];
+            if (x < 0) {
+              res[l*nx*ny + k * nx + j ] = missing;
+            } else if (x <= n1 - 1) {
+              y = yy[k];
+              if (y < 0) {
+                res[l*nx*ny + k * nx + j ] = missing;
+              } else if (y <= n2 - 1) {
+                z = zz[l];
+                if (z < 0) {
+                  res[l*nx*ny + k * nx + j ] = missing;
+                } else if (z <= n3 - 1) {
+                  ix = floor(x);
+                  xi[0] = ix;
+                  xi[1] = ix + 1;
+                  //make in range
+                  if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
+                  dx = (x - xi[0]);
+                  umdx = 1 - dx;
+
+                  iy = floor(y);
+                  yi[0] = iy;
+                  yi[1] = iy + 1;
+                  //make in range
+                  if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
+                  dy = (y - yi[0]);
+                  umdy = 1 - dy;
+
+                  iz = floor(z);
+                  zi[0] = iz;
+                  zi[1] = iz + 1;
+                  //make in range
+                  if (zi[1] < 0) zi[1] = 0; else if (zi[1] > n3 - 1) zi[1] = n3 - 1;
+                  dz = (z - zi[0]);
+                  umdz = 1 - dz;
+                  double y0z0 = umdx * array[zi[0] * n1n2 + yi[0] * n1 + xi[0]] + dx * array[zi[0] * n1n2 + yi[0] * n1 + xi[1]];
+                  double y1z0 = umdx * array[zi[0] * n1n2 + yi[1] * n1 + xi[0]] + dx * array[zi[0] * n1n2 + yi[1] * n1 + xi[1]];
+                  double y0z1 = umdx * array[zi[1] * n1n2 + yi[0] * n1 + xi[0]] + dx * array[zi[1] * n1n2 + yi[0] * n1 + xi[1]];
+                  double y1z1 = umdx * array[zi[1] * n1n2 + yi[1] * n1 + xi[0]] + dx * array[zi[1] * n1n2 + yi[1] * n1 + xi[1]];
+                  double z0 = umdy * y0z0 + dy*y1z0;
+                  double z1 = umdy * y0z1 + dy*y1z1;
+                  res[l*nx*ny + k * nx + j ] = umdz * z0 + dz*z1;
+                } else {
+                  res[l*nx*ny + k * nx + j ] = missing;
+                }
+              } else {
+                res[l*nx*ny + k * nx + j ] = missing;
+              }
+            } else {
+              res[l*nx*ny + k * nx + j ] = missing;
+            }
+          }
+        }
+      }
+    }
+  } else {
+#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z) if (CpuTPOOL_NTHREADS> 1 && nx*ny*nz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny*nz))
+    {
+#pragma omp for collapse(2)   //2 is a good compromise as some values (yi and zi) are not computed nx times. 
+      for (SizeT l = 0; l < nz; ++l) {
+        for (SizeT k = 0; k < ny; ++k) {
+          z = zz[l];
+          if (z < 0) z = 0; if (z > n3 - 1) z = n3 - 1;
+          iz = floor(z);
+          zi[0] = iz;
+          zi[1] = iz + 1;
+          //make in range
+          if (zi[1] < 0) zi[1] = 0; else if (zi[1] > n3 - 1) zi[1] = n3 - 1;
+          dz = (z - zi[0]);
+          umdz = 1 - dz;
+
+          y = yy[k];
+          if (y < 0) y = 0; if (y > n2 - 1) y = n2 - 1;
+          iy = floor(y);
+          yi[0] = iy;
+          yi[1] = iy + 1;
+          //make in range
+          if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
+          dy = (y - yi[0]);
+          umdy = 1 - dy;
+
+          for (SizeT j = 0; j < nx; ++j) { //nb output points
+            x = xx[j];
+            if (x < 0) x = 0; if (x > n1 - 1) x = n1 - 1;
+            ix = floor(x);
+            xi[0] = ix;
+            xi[1] = ix + 1;
+            //make in range
+            if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
+            dx = (x - xi[0]);
+            umdx = 1 - dx;
+
+            double y0z0 = umdx * array[zi[0] * n1n2 + yi[0] * n1 + xi[0]] + dx * array[zi[0] * n1n2 + yi[0] * n1 + xi[1]];
+            double y1z0 = umdx * array[zi[0] * n1n2 + yi[1] * n1 + xi[0]] + dx * array[zi[0] * n1n2 + yi[1] * n1 + xi[1]];
+            double y0z1 = umdx * array[zi[1] * n1n2 + yi[0] * n1 + xi[0]] + dx * array[zi[1] * n1n2 + yi[0] * n1 + xi[1]];
+            double y1z1 = umdx * array[zi[1] * n1n2 + yi[1] * n1 + xi[0]] + dx * array[zi[1] * n1n2 + yi[1] * n1 + xi[1]];
+            double z0 = umdy * y0z0 + dy*y1z0;
+            double z1 = umdy * y0z1 + dy*y1z1;
+            res[l*nx*ny + k * nx + j ] = umdz * z0 + dz*z1;
           }
         }
       }
@@ -1680,40 +2130,78 @@ namespace lib {
       SizeT un2 = d0[d0.Rank() - 1];
 
       if (grid) {
-        switch (p0->Type()) {
-        case GDL_FLOAT:
-          if (dbl) CALL_INTERPOLATE_2D_GRID(DFloatGDL, DFloat, DDoubleGDL, DDouble)
-          else CALL_INTERPOLATE_2D_GRID(DFloatGDL, DFloat, DFloatGDL, DFloat)
-        case GDL_DOUBLE:
-          if (dbl) CALL_INTERPOLATE_2D_GRID(DDoubleGDL, DDouble, DDoubleGDL, DDouble)
-          else CALL_INTERPOLATE_2D_GRID(DDoubleGDL, DDouble, DFloatGDL, DFloat)
-        case GDL_LONG:
-          CALL_INTERPOLATE_2D_GRID(DLongGDL, DLong, DDoubleGDL, DDouble)
-        case GDL_BYTE:
-          CALL_INTERPOLATE_2D_GRID(DByteGDL, DByte, DFloatGDL, DFloat)
-        case GDL_INT:
-          CALL_INTERPOLATE_2D_GRID(DIntGDL, DInt, DFloatGDL, DFloat)
-        case GDL_COMPLEX:
-          // A complex is just a double array with 1 dimension more and first dim is 2.
-          CALL_INTERPOLATE_2D_GRID_COMPLEX(DComplexGDL, DFloat, DFloatGDL, DFloat) //Complex as a series of Floats
-        case GDL_COMPLEXDBL:
-          // A complex is just a double array with 1 dimension more and first dim is 2.
-          CALL_INTERPOLATE_2D_GRID_COMPLEX(DComplexDblGDL, DDouble, DDoubleGDL, DDouble) //ComplexDbl as a serie of Doubles
-        case GDL_UINT:
-          CALL_INTERPOLATE_2D_GRID(DUIntGDL, DUInt, DFloatGDL, DFloat)
-        case GDL_ULONG:
-          CALL_INTERPOLATE_2D_GRID(DULongGDL, DULong, DDoubleGDL, DDouble)
-        case GDL_LONG64:
-          CALL_INTERPOLATE_2D_GRID(DLong64GDL, DLong64, DDoubleGDL, DDouble)
-        case GDL_ULONG64:
-          CALL_INTERPOLATE_2D_GRID(DULong64GDL, DULong64, DDoubleGDL, DDouble)
-        default:
-          //  case GDL_STRING:
-          //  case GDL_PTR:
-          //  case GDL_OBJ:
-          //  case GDL_STRUCT:
-          //  case GDL_UNDEF:
-          throw GDLException(p0->TypeStr() + " expression not allowed in this context: " + e->GetParString(0));
+        if (ncontiguous == 1) { //optimisation for this particular case: twice the speed.
+          switch (p0->Type()) {
+          case GDL_FLOAT:
+            if (dbl) CALL_INTERPOLATE_2D_GRID_SINGLE(DFloatGDL, DFloat, DDoubleGDL, DDouble)
+            else CALL_INTERPOLATE_2D_GRID_SINGLE(DFloatGDL, DFloat, DFloatGDL, DFloat)
+            case GDL_DOUBLE:
+              if (dbl) CALL_INTERPOLATE_2D_GRID_SINGLE(DDoubleGDL, DDouble, DDoubleGDL, DDouble)
+            else CALL_INTERPOLATE_2D_GRID_SINGLE(DDoubleGDL, DDouble, DFloatGDL, DFloat)
+            case GDL_LONG:
+              CALL_INTERPOLATE_2D_GRID_SINGLE(DLongGDL, DLong, DDoubleGDL, DDouble)
+            case GDL_BYTE:
+              CALL_INTERPOLATE_2D_GRID_SINGLE(DByteGDL, DByte, DFloatGDL, DFloat)
+            case GDL_INT:
+              CALL_INTERPOLATE_2D_GRID_SINGLE(DIntGDL, DInt, DFloatGDL, DFloat)
+            case GDL_COMPLEX:
+              // A complex is just a double array with 1 dimension more and first dim is 2.
+              CALL_INTERPOLATE_2D_GRID_COMPLEX(DComplexGDL, DFloat, DFloatGDL, DFloat) //Complex as a series of Floats
+            case GDL_COMPLEXDBL:
+              // A complex is just a double array with 1 dimension more and first dim is 2.
+              CALL_INTERPOLATE_2D_GRID_COMPLEX(DComplexDblGDL, DDouble, DDoubleGDL, DDouble) //ComplexDbl as a serie of Doubles
+            case GDL_UINT:
+              CALL_INTERPOLATE_2D_GRID_SINGLE(DUIntGDL, DUInt, DFloatGDL, DFloat)
+            case GDL_ULONG:
+              CALL_INTERPOLATE_2D_GRID_SINGLE(DULongGDL, DULong, DDoubleGDL, DDouble)
+            case GDL_LONG64:
+              CALL_INTERPOLATE_2D_GRID_SINGLE(DLong64GDL, DLong64, DDoubleGDL, DDouble)
+            case GDL_ULONG64:
+              CALL_INTERPOLATE_2D_GRID_SINGLE(DULong64GDL, DULong64, DDoubleGDL, DDouble)
+            default:
+              //  case GDL_STRING:
+              //  case GDL_PTR:
+              //  case GDL_OBJ:
+              //  case GDL_STRUCT:
+              //  case GDL_UNDEF:
+              throw GDLException(p0->TypeStr() + " expression not allowed in this context: " + e->GetParString(0));
+          }          
+        } else {
+          switch (p0->Type()) {
+          case GDL_FLOAT:
+            if (dbl) CALL_INTERPOLATE_2D_GRID(DFloatGDL, DFloat, DDoubleGDL, DDouble)
+            else CALL_INTERPOLATE_2D_GRID(DFloatGDL, DFloat, DFloatGDL, DFloat)
+            case GDL_DOUBLE:
+              if (dbl) CALL_INTERPOLATE_2D_GRID(DDoubleGDL, DDouble, DDoubleGDL, DDouble)
+            else CALL_INTERPOLATE_2D_GRID(DDoubleGDL, DDouble, DFloatGDL, DFloat)
+            case GDL_LONG:
+              CALL_INTERPOLATE_2D_GRID(DLongGDL, DLong, DDoubleGDL, DDouble)
+            case GDL_BYTE:
+              CALL_INTERPOLATE_2D_GRID(DByteGDL, DByte, DFloatGDL, DFloat)
+            case GDL_INT:
+              CALL_INTERPOLATE_2D_GRID(DIntGDL, DInt, DFloatGDL, DFloat)
+            case GDL_COMPLEX:
+              // A complex is just a double array with 1 dimension more and first dim is 2.
+              CALL_INTERPOLATE_2D_GRID_COMPLEX(DComplexGDL, DFloat, DFloatGDL, DFloat) //Complex as a series of Floats
+            case GDL_COMPLEXDBL:
+              // A complex is just a double array with 1 dimension more and first dim is 2.
+              CALL_INTERPOLATE_2D_GRID_COMPLEX(DComplexDblGDL, DDouble, DDoubleGDL, DDouble) //ComplexDbl as a serie of Doubles
+            case GDL_UINT:
+              CALL_INTERPOLATE_2D_GRID(DUIntGDL, DUInt, DFloatGDL, DFloat)
+            case GDL_ULONG:
+              CALL_INTERPOLATE_2D_GRID(DULongGDL, DULong, DDoubleGDL, DDouble)
+            case GDL_LONG64:
+              CALL_INTERPOLATE_2D_GRID(DLong64GDL, DLong64, DDoubleGDL, DDouble)
+            case GDL_ULONG64:
+              CALL_INTERPOLATE_2D_GRID(DULong64GDL, DULong64, DDoubleGDL, DDouble)
+            default:
+              //  case GDL_STRING:
+              //  case GDL_PTR:
+              //  case GDL_OBJ:
+              //  case GDL_STRUCT:
+              //  case GDL_UNDEF:
+              throw GDLException(p0->TypeStr() + " expression not allowed in this context: " + e->GetParString(0));
+          }
         }
       } else {
         switch (p0->Type()) {
@@ -1752,7 +2240,8 @@ namespace lib {
           throw GDLException(p0->TypeStr() + " expression not allowed in this context: " + e->GetParString(0));
         }
       }
-    } else if (nParam == 4) {
+    } 
+     else if (nParam == 4) {
       //// the interpolant type used depends on the number of bytes of p0.    
       BaseGDL* p1 = e->GetParDefined(1);
       BaseGDL* p2 = e->GetParDefined(2);
@@ -1820,40 +2309,78 @@ namespace lib {
       SizeT un3 = d0[d0.Rank() - 1];
 
       if (grid) {
-        switch (p0->Type()) {
-        case GDL_FLOAT:
-          if (dbl) CALL_INTERPOLATE_3D_GRID(DFloatGDL, DFloat, DDoubleGDL, DDouble)
-          else CALL_INTERPOLATE_3D_GRID(DFloatGDL, DFloat, DFloatGDL, DFloat)
-          case GDL_DOUBLE:
-            if (dbl) CALL_INTERPOLATE_3D_GRID(DDoubleGDL, DDouble, DDoubleGDL, DDouble)
-          else CALL_INTERPOLATE_3D_GRID(DDoubleGDL, DDouble, DFloatGDL, DFloat)
-          case GDL_LONG:
-            CALL_INTERPOLATE_3D_GRID(DLongGDL, DLong, DDoubleGDL, DDouble)
-          case GDL_BYTE:
-            CALL_INTERPOLATE_3D_GRID(DByteGDL, DByte, DFloatGDL, DFloat)
-          case GDL_INT:
-            CALL_INTERPOLATE_3D_GRID(DIntGDL, DInt, DFloatGDL, DFloat)
-//          case GDL_COMPLEX:
-//            // A complex is just a double array with 1 dimension more and first dim is 2.
-//            CALL_INTERPOLATE_3D_GRID_COMPLEX(DComplexGDL, DFloat, DFloatGDL, DFloat) //Complex as a series of Floats
-//          case GDL_COMPLEXDBL:
-//            // A complex is just a double array with 1 dimension more and first dim is 2.
-//            CALL_INTERPOLATE_3D_GRID_COMPLEX(DComplexDblGDL, DDouble, DDoubleGDL, DDouble) //ComplexDbl as a serie of Doubles
-          case GDL_UINT:
-            CALL_INTERPOLATE_3D_GRID(DUIntGDL, DUInt, DFloatGDL, DFloat)
-          case GDL_ULONG:
-            CALL_INTERPOLATE_3D_GRID(DULongGDL, DULong, DDoubleGDL, DDouble)
-          case GDL_LONG64:
-            CALL_INTERPOLATE_3D_GRID(DLong64GDL, DLong64, DDoubleGDL, DDouble)
-          case GDL_ULONG64:
-            CALL_INTERPOLATE_3D_GRID(DULong64GDL, DULong64, DDoubleGDL, DDouble)
-          default:
-            //  case GDL_STRING:
-            //  case GDL_PTR:
-            //  case GDL_OBJ:
-            //  case GDL_STRUCT:
-            //  case GDL_UNDEF:
-            throw GDLException(p0->TypeStr() + " expression not allowed in this context: " + e->GetParString(0));
+        if (ncontiguous == 1) { //optimisation for this particular case: twice the speed.
+          switch (p0->Type()) {
+          case GDL_FLOAT:
+            if (dbl) CALL_INTERPOLATE_3D_GRID_SINGLE(DFloatGDL, DFloat, DDoubleGDL, DDouble)
+            else CALL_INTERPOLATE_3D_GRID_SINGLE(DFloatGDL, DFloat, DFloatGDL, DFloat)
+            case GDL_DOUBLE:
+              if (dbl) CALL_INTERPOLATE_3D_GRID_SINGLE(DDoubleGDL, DDouble, DDoubleGDL, DDouble)
+            else CALL_INTERPOLATE_3D_GRID_SINGLE(DDoubleGDL, DDouble, DFloatGDL, DFloat)
+            case GDL_LONG:
+              CALL_INTERPOLATE_3D_GRID_SINGLE(DLongGDL, DLong, DDoubleGDL, DDouble)
+            case GDL_BYTE:
+              CALL_INTERPOLATE_3D_GRID_SINGLE(DByteGDL, DByte, DFloatGDL, DFloat)
+            case GDL_INT:
+              CALL_INTERPOLATE_3D_GRID_SINGLE(DIntGDL, DInt, DFloatGDL, DFloat)
+            case GDL_COMPLEX:
+              // A complex is just a double array with 1 dimension more and first dim is 2.
+              CALL_INTERPOLATE_3D_GRID_COMPLEX(DComplexGDL, DFloat, DFloatGDL, DFloat) //Complex as a series of Floats
+            case GDL_COMPLEXDBL:
+              // A complex is just a double array with 1 dimension more and first dim is 2.
+              CALL_INTERPOLATE_3D_GRID_COMPLEX(DComplexDblGDL, DDouble, DDoubleGDL, DDouble) //ComplexDbl as a serie of Doubles
+            case GDL_UINT:
+              CALL_INTERPOLATE_3D_GRID_SINGLE(DUIntGDL, DUInt, DFloatGDL, DFloat)
+            case GDL_ULONG:
+              CALL_INTERPOLATE_3D_GRID_SINGLE(DULongGDL, DULong, DDoubleGDL, DDouble)
+            case GDL_LONG64:
+              CALL_INTERPOLATE_3D_GRID_SINGLE(DLong64GDL, DLong64, DDoubleGDL, DDouble)
+            case GDL_ULONG64:
+              CALL_INTERPOLATE_3D_GRID_SINGLE(DULong64GDL, DULong64, DDoubleGDL, DDouble)
+            default:
+              //  case GDL_STRING:
+              //  case GDL_PTR:
+              //  case GDL_OBJ:
+              //  case GDL_STRUCT:
+              //  case GDL_UNDEF:
+              throw GDLException(p0->TypeStr() + " expression not allowed in this context: " + e->GetParString(0));
+          }
+        } else {
+          switch (p0->Type()) {
+          case GDL_FLOAT:
+            if (dbl) CALL_INTERPOLATE_3D_GRID(DFloatGDL, DFloat, DDoubleGDL, DDouble)
+            else CALL_INTERPOLATE_3D_GRID(DFloatGDL, DFloat, DFloatGDL, DFloat)
+            case GDL_DOUBLE:
+              if (dbl) CALL_INTERPOLATE_3D_GRID(DDoubleGDL, DDouble, DDoubleGDL, DDouble)
+            else CALL_INTERPOLATE_3D_GRID(DDoubleGDL, DDouble, DFloatGDL, DFloat)
+            case GDL_LONG:
+              CALL_INTERPOLATE_3D_GRID(DLongGDL, DLong, DDoubleGDL, DDouble)
+            case GDL_BYTE:
+              CALL_INTERPOLATE_3D_GRID(DByteGDL, DByte, DFloatGDL, DFloat)
+            case GDL_INT:
+              CALL_INTERPOLATE_3D_GRID(DIntGDL, DInt, DFloatGDL, DFloat)
+            case GDL_COMPLEX:
+              // A complex is just a double array with 1 dimension more and first dim is 2.
+              CALL_INTERPOLATE_3D_GRID_COMPLEX(DComplexGDL, DFloat, DFloatGDL, DFloat) //Complex as a series of Floats
+            case GDL_COMPLEXDBL:
+              // A complex is just a double array with 1 dimension more and first dim is 2.
+              CALL_INTERPOLATE_3D_GRID_COMPLEX(DComplexDblGDL, DDouble, DDoubleGDL, DDouble) //ComplexDbl as a serie of Doubles
+            case GDL_UINT:
+              CALL_INTERPOLATE_3D_GRID(DUIntGDL, DUInt, DFloatGDL, DFloat)
+            case GDL_ULONG:
+              CALL_INTERPOLATE_3D_GRID(DULongGDL, DULong, DDoubleGDL, DDouble)
+            case GDL_LONG64:
+              CALL_INTERPOLATE_3D_GRID(DLong64GDL, DLong64, DDoubleGDL, DDouble)
+            case GDL_ULONG64:
+              CALL_INTERPOLATE_3D_GRID(DULong64GDL, DULong64, DDoubleGDL, DDouble)
+            default:
+              //  case GDL_STRING:
+              //  case GDL_PTR:
+              //  case GDL_OBJ:
+              //  case GDL_STRUCT:
+              //  case GDL_UNDEF:
+              throw GDLException(p0->TypeStr() + " expression not allowed in this context: " + e->GetParString(0));
+          }
         }
       } else {
         switch (p0->Type()) {
@@ -1869,12 +2396,12 @@ namespace lib {
             CALL_INTERPOLATE_3D(DByteGDL, DByte, DFloatGDL, DFloat)
           case GDL_INT:
             CALL_INTERPOLATE_3D(DIntGDL, DInt, DFloatGDL, DFloat)
-//          case GDL_COMPLEX:
-//            // A complex is just a double array with 1 dimension more and first dim is 2.
-//            CALL_INTERPOLATE_3D_COMPLEX(DComplexGDL, DFloat, DFloatGDL, DFloat) //Complex as a series of Floats
-//          case GDL_COMPLEXDBL:
-//            // A complex is just a double array with 1 dimension more and first dim is 2.
-//            CALL_INTERPOLATE_3D_COMPLEX(DComplexDblGDL, DDouble, DDoubleGDL, DDouble) //ComplexDbl as a serie of Doubles
+          case GDL_COMPLEX:
+            // A complex is just a double array with 1 dimension more and first dim is 2.
+            CALL_INTERPOLATE_3D_COMPLEX(DComplexGDL, DFloat, DFloatGDL, DFloat) //Complex as a series of Floats
+          case GDL_COMPLEXDBL:
+            // A complex is just a double array with 1 dimension more and first dim is 2.
+            CALL_INTERPOLATE_3D_COMPLEX(DComplexDblGDL, DDouble, DDoubleGDL, DDouble) //ComplexDbl as a serie of Doubles
           case GDL_UINT:
             CALL_INTERPOLATE_3D(DUIntGDL, DUInt, DFloatGDL, DFloat)
           case GDL_ULONG:
