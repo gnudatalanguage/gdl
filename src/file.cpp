@@ -350,17 +350,18 @@ static void fstat_win32(const DString& DSpath, int& st_mode, DWORD &dwattrib)
 #endif
 
 namespace lib {
-  string PathSeparator()
+  
+  BaseGDL* path_sep( EnvT* e)
   {
-#ifdef _WIN32
-    if (lib::posixpaths) return string ("/");
-    return string ("\\");
-#else
-    return string ("/");
-#endif
-
+    static int PARENT_DIRECTORY=e->KeywordIx("PARENT_DIRECTORY");
+    static int SEARCH_PATH=e->KeywordIx("SEARCH_PATH");
+    if (e->KeywordSet(PARENT_DIRECTORY) && e->KeywordSet(SEARCH_PATH) )
+      e->Throw("Conflicting keywords.");
+    if (e->KeywordSet(PARENT_DIRECTORY)) return new DStringGDL(ParentDirectoryIndicator());
+    else if (e->KeywordSet(SEARCH_PATH)) return new DStringGDL(SearchPathSeparator());
+    return new DStringGDL(PathSeparator());
   }
-
+  
   DString GetCWD()
   {
     SizeT bufSize = PATH_MAX;
@@ -425,7 +426,7 @@ namespace lib {
     if( homeDir == NULL) homeDir = getenv("HOMEPATH");
 
     if( homeDir != NULL){
-      dir = string( homeDir) + "/" + dir.substr(1);
+      dir = string( homeDir) + lib::PathSeparator() + dir.substr(1);
           size_t pp; 
           pp=0;
         if (lib::posixpaths) for(;;)
@@ -2928,7 +2929,7 @@ void file_link( EnvT* e)
             dest_is_directory = (S_ISDIR(statStruct.st_mode) != 0);
 
             if(dest_is_directory) 
-                 AppendIfNeeded(dstdir,"/");
+                 AppendIfNeeded(dstdir,lib::PathSeparator());
             else
                  e->Throw(" destination (arg #2) is not a directory, /REQUIRE_DIRECTORY specified");
             
@@ -2989,7 +2990,7 @@ void file_link( EnvT* e)
             continue;
             }
 
-        AppendIfNeeded(dsttmp,"/");
+        AppendIfNeeded(dsttmp,lib::PathSeparator());
         for(SizeT isrc = 0; isrc < nmove; isrc++) {
             fileC = fileList[isrc].c_str();
 //
@@ -3043,7 +3044,7 @@ void file_move( EnvT* e)
         char* homeDir = getenv( "HOME");
         if( homeDir == NULL) homeDir = getenv("HOMEPATH");
         if( homeDir != NULL)
-            dstdir = string( homeDir) + "/" + dstdir.substr(1);
+            dstdir = string( homeDir) + lib::PathSeparator() + dstdir.substr(1);
        }
     bool dest_is_directory= false;
     int actStat, result, dststat;
@@ -3064,7 +3065,7 @@ void file_move( EnvT* e)
             #endif
                 } // (dlen >= 2 && dstdir[1]='.')
             }// dstdir[0] == '.'
-            size_t pp = dstdir.rfind( "/"); //remove and back if last
+            size_t pp = dstdir.rfind( lib::PathSeparator());//remove and back if last
             if (pp!=string::npos && pp==dstdir.size()-1) dstdir.erase(pp);
                 #ifdef _WIN32
                 pp = dstdir.rfind("\\");
@@ -3077,7 +3078,7 @@ void file_move( EnvT* e)
              if(require_directory && !dest_is_directory)
                  e->Throw(" destination (arg #2) is not a directory, /REQUIRE_DIRECTORY specified");
              if(dest_is_directory) 
-                 AppendIfNeeded(dstdir,"/");
+                 AppendIfNeeded(dstdir,lib::PathSeparator());
             }
         } // (ndest == 1)
 
@@ -3131,7 +3132,7 @@ void file_move( EnvT* e)
             continue;
             }
 //
-        AppendIfNeeded(dsttmp,"/");
+        AppendIfNeeded(dsttmp,lib::PathSeparator());
         for(SizeT isrc = 0; isrc < nmove; isrc++) {
         #ifdef _WIN32
             char drive[_MAX_DRIVE];

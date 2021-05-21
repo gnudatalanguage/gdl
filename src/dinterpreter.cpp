@@ -1739,10 +1739,10 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
   if (homeDir != NULL) {
     string pathToGDL_history;
     pathToGDL_history = homeDir;
-    AppendIfNeeded(pathToGDL_history, "/");
+    AppendIfNeeded(pathToGDL_history, lib::PathSeparator());
     pathToGDL_history = pathToGDL_history + ".gdl";
     string history_filename;
-    AppendIfNeeded(pathToGDL_history, "/");
+    AppendIfNeeded(pathToGDL_history, lib::PathSeparator());
     history_filename = pathToGDL_history + "history";
     if (debug) cout << "History file name: " << history_filename << endl;
 

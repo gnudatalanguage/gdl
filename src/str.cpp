@@ -41,25 +41,49 @@
 #include "str.hpp"
 #include "gdlexception.hpp"
 #include "initsysvar.hpp" // GDLPath();
-
-using namespace std;
+namespace lib {
+  std::string PathSeparator()
+  {
+#ifdef _WIN32
+    if (lib::posixpaths) return std::string ("/");
+    return std::string ("\\");
+#else
+    return std::string ("/");
+#endif
+  }
+  
+  std::string SearchPathSeparator()
+  {
+#ifdef _WIN32
+    return std::string (";");
+#else
+    return std::string (":");
+#endif
+  }
+  
+  std::string ParentDirectoryIndicator()
+  {
+    return std::string ("..");
+  }
+}
+//using namespace std;
 //namespace lib {
 //bool trace_arg();
 //}
-string GetEnvString(const char* env)
+std::string GetEnvString(const char* env)
 {
   char* c=getenv(env);
-  if( !c) return string("");
-  return string(c);
+  if( !c) return std::string("");
+  return std::string(c);
 }
 
-DLong StrPos(const string& s, const string& searchStr, long pos, 
+DLong StrPos(const std::string& s, const std::string& searchStr, long pos, 
 	     bool reverseOffset, bool reverseSearch)
 {
   if( s == "") return -1;
 
   long strLen = s.length();
-  if( pos == string::npos)
+  if( pos == std::string::npos)
     {
       if( reverseSearch || reverseOffset)
 	pos = strLen - 1;
@@ -85,57 +109,57 @@ DLong StrPos(const string& s, const string& searchStr, long pos,
     }
   if( pos < 0) return -1;
 
-  string::size_type res;
+  std::string::size_type res;
   if( reverseSearch)
     {
       res = s.rfind( searchStr, pos);
-      if( res == string::npos) return -1;
+      if( res == std::string::npos) return -1;
     }
   else
     {
       res = s.find( searchStr, pos);
-      if( res == string::npos) return -1;
+      if( res == std::string::npos) return -1;
     }
 
   return res;
 }
 //#define STRMID_DEBUG 
-string StrMid(const string& s, long first, long len, bool reverse)
+std::string StrMid(const std::string& s, long first, long len, bool reverse)
 {
 #ifdef STRMID_DEBUG
-  cout << "DebugInfo: StrMid(\"" << s << "\"," << first <<","<<len<<","<<reverse<<") = ";//<<endl
+  std::cout << "DebugInfo: StrMid(\"" << s << "\"," << first <<","<<len<<","<<reverse<<") = ";//<<std::endl
 #endif
 
-  // (long)string::npos == -1
-  if( len != string::npos && len <= 0)
+  // (long)std::string::npos == -1
+  if( len != std::string::npos && len <= 0)
     {
 #ifdef STRMID_DEBUG
-      cout << "." << endl;
+      std::cout << "." << std::endl;
 #endif
-      return string("");
+      return std::string("");
     }
   long strLen = s.length();
   if( reverse)
     {
-      if( first < 0) return string("");
+      if( first < 0) return std::string("");
       first = strLen - first -1;
     }
 
-  if( first >= strLen) return string("");
+  if( first >= strLen) return std::string("");
   if( first < 0) first = 0; 
 
 #ifdef STRMID_DEBUG
-  cout << s.substr( first, len)<<"." << endl;
+  std::cout << s.substr( first, len)<<"." << std::endl;
 #endif
   return s.substr( first, len);
 }
 
-string StrCompress(const string& s, bool removeAll)
+std::string StrCompress(const std::string& s, bool removeAll)
 {
   SizeT strLen = s.length();
-  if( strLen == 0) return string("");
+  if( strLen == 0) return std::string("");
 
-  string res;
+  std::string res;
 
   if( removeAll)
     {
@@ -175,7 +199,7 @@ void StrPut(std::string& s1, const std::string& s2, DLong pos)
 //twice slower than above:  s1.replace( pos, n, s2, 0, n);
 }
 
-string StrUpCase(const string& s)
+std::string StrUpCase(const std::string& s)
 {
   unsigned len=s.length();
   char const *sCStr=s.c_str();
@@ -183,14 +207,10 @@ string StrUpCase(const string& s)
   ArrayGuard<char> guard( r);
   r[len]=0;
   for(unsigned i=0;i<len;i++)
-#ifdef _MSC_VER
-    r[i]=toupper(sCStr[i]);
-#else
   r[i]=std::toupper(sCStr[i]);
-#endif
-  return string(r);
+  return std::string(r);
 }
-void StrUpCaseInplace( string& s)
+void StrUpCaseInplace( std::string& s)
 {
   unsigned len=s.length();
   //   char const *sCStr=s.c_str();
@@ -198,15 +218,10 @@ void StrUpCaseInplace( string& s)
   //   ArrayGuard<char> guard( r);
   //   r[len]=0;
   for(unsigned i=0;i<len;i++)
-#ifdef _MSC_VER
-    s[i]=toupper(s[i]);
-#else
   s[i]=std::toupper(s[i]);
-#endif
-  //   return string(r);
 }
 
-string StrLowCase(const string& s)
+std::string StrLowCase(const std::string& s)
 {
   unsigned len=s.length();
   char const *sCStr=s.c_str();
@@ -214,24 +229,15 @@ string StrLowCase(const string& s)
   ArrayGuard<char> guard( r);
   r[len]=0;
   for(unsigned i=0;i<len;i++)
-#ifdef _MSC_VER
-    r[i]=tolower(sCStr[i]);
-#else
   r[i]=std::tolower(sCStr[i]);
-#endif
-  return string(r);
+  return std::string(r);
 }
-void StrLowCaseInplace(string& s)
+void StrLowCaseInplace(std::string& s)
 {
   unsigned len=s.length();
   //   char const *sCStr=s.c_str();
   for(unsigned i=0;i<len;i++)
-#ifdef _MSC_VER
-    s[i]=tolower(s[i]);
-#else
   s[i]=std::tolower(s[i]);
-#endif
-  //     s[i]=std::tolower(sCStr[i]);
 }
 
 // replacement for library routine 
@@ -251,7 +257,7 @@ double StrToD( const char* cStart, char** cEnd)
       // I have not investigated further, but I assume this is because processor specific
       // optimizations are used. So it might be ok to copy the string here as in the regular
       // case the optimzed strtod function will make up for the loss.
-      string cStr( cStart);
+      std::string cStr( cStart);
 
       // replace d by e and D by E
       cStr[dPos] = (**cEnd == 'd')? 'e':'E';
@@ -275,7 +281,7 @@ double Str2D( const char* cStart)
   if( cEnd == cStart)
     {
       Warning("Type conversion error: "
-	      "Unable to convert given STRING: '"+string(cStart)+"' to DOUBLE.");
+	      "Unable to convert given STRING: '"+std::string(cStart)+"' to DOUBLE.");
     }
   return ret;
 }
@@ -286,7 +292,7 @@ long int Str2L( const char* cStart, int base)
   if( cEnd == cStart)
     {
       Warning("Type conversion error: "
-	      "Unable to convert given STRING: '"+string(cStart)+"' to LONG.");
+	      "Unable to convert given STRING: '"+std::string(cStart)+"' to LONG.");
     }
   return ret;
 }
@@ -297,22 +303,22 @@ unsigned long int Str2UL( const char* cStart, int base)
   if( cEnd == cStart)
     {
       Warning("Type conversion error: "
-	      "Unable to convert given STRING: '"+string(cStart)+"' to ULONG.");
+	      "Unable to convert given STRING: '"+std::string(cStart)+"' to ULONG.");
     }
   return ret;
 }
 
-double Str2D( const string& s)
+double Str2D( const std::string& s)
 {
   const char* cStart = s.c_str();
   return Str2D( cStart);
 }
-long int Str2L( const string& s, int base)
+long int Str2L( const std::string& s, int base)
 {
   const char* cStart = s.c_str();
   return Str2L( cStart, base);
 }
-unsigned long int Str2UL( const string& s, int base)
+unsigned long int Str2UL( const std::string& s, int base)
 {
   const char* cStart = s.c_str();
   return Str2UL( cStart, base);
@@ -324,7 +330,7 @@ void WordExp(std::string& s)
   if (s.length() == 0) return;
   bool trace_me = false;
 
-  string sEsc = "";
+  std::string sEsc = "";
   int ipos = 0;
   if (s[ipos] == '~') {
     char* homeDir = getenv("HOME");
@@ -332,13 +338,13 @@ void WordExp(std::string& s)
     if (homeDir == NULL) homeDir = getenv("HOMEPATH");
 
     if (homeDir != NULL)
-      sEsc = string(homeDir) + "/";
+      sEsc = std::string(homeDir) + "/";
   }
   for (int i = ipos; i < s.length(); ++i) {
     char achar = s[i];
     if (achar != '$') sEsc.push_back(achar);
     else { // $
-      string name = "";
+      std::string name = "";
       for (int ind = i + 1; i < s.length(); ++ind) {
         char tchar = s[ind];
         if (tchar == ' ' or tchar == '/' or
@@ -347,12 +353,12 @@ void WordExp(std::string& s)
       }
       char* subst = getenv(name.c_str());
       if (subst != NULL) {
-        sEsc += string(subst);
+        sEsc += std::string(subst);
         i += name.length();
       } else sEsc.push_back(achar);
     }
   }
-  if (trace_me) cout << "WordExp  in: " << s << " -(modified original)- WordExp esc: " << sEsc << endl;
+  if (trace_me) std::cout << "WordExp  in: " << s << " -(modified original)- WordExp esc: " << sEsc << std::endl;
   s = sEsc;
 }
 #endif
@@ -365,16 +371,16 @@ void WordExp(std::string& s)
   if (s.length() == 0) return;
   bool trace_me = false; //lib::trace_arg();
 
-  string sEsc = "";
+  std::string sEsc = "";
   int ipos = 0;
   // escape blanks
   for (int i = ipos; i < s.length(); ++i) {
     char achar = s[i];
-    if (achar == ' ') sEsc += string("\\ ");
+    if (achar == ' ') sEsc += std::string("\\ ");
     else if (achar == '\\') {
       if ((i + 1) < s.length()) {
         if (s[i + 1] == ' ') {
-          sEsc += string("\\ ");
+          sEsc += std::string("\\ ");
           ++i;
         }
       }
@@ -383,7 +389,7 @@ void WordExp(std::string& s)
       //in the case of OpenBSD, try to expand at least simple things like $HOME as we do not have wordexp() available.
     else if (achar != '$') sEsc.push_back(achar);
     else { // $
-      string name = "";
+      std::string name = "";
       for (int ind = i + 1; i < s.length(); ++ind) {
         char tchar = s[ind];
         if (tchar == ' ' or tchar == '/' or tchar == '\\' or tchar == ':') break;
@@ -391,7 +397,7 @@ void WordExp(std::string& s)
       }
       char* subst = getenv(name.c_str());
       if (subst != NULL) {
-        sEsc += string(subst);
+        sEsc += std::string(subst);
         i += name.length();
       } else sEsc.push_back(achar);
     }
@@ -411,7 +417,7 @@ void WordExp(std::string& s)
     wordfree(&p);
   }
 #endif
-  if (trace_me) cout << "WordExp  in: " << s << " -(modified original)- WordExp esc: " << sEsc << endl;
+  if (trace_me) std::cout << "WordExp  in: " << s << " -(modified original)- WordExp esc: " << sEsc << std::endl;
 }
 
 #endif //not def WIN32
@@ -430,10 +436,10 @@ void WordExp(std::string& s)
 #ifndef PATH_MAX
 #define PATH_MAX 4096
 #endif
-string FullPathFileName(string in_file)
+std::string FullPathFileName(std::string in_file)
 {
   
-  string AbsolutePath;
+  std::string AbsolutePath;
 
   char *symlinkpath =const_cast<char*> (in_file.c_str());
   char actualpath [PATH_MAX+1];
@@ -441,17 +447,15 @@ string FullPathFileName(string in_file)
 
   ptr = realpath(symlinkpath, actualpath);
   if( ptr != NULL ){
-    AbsolutePath =string(ptr);
+    AbsolutePath =std::string(ptr);
   }else {
     AbsolutePath = in_file;
   }
  
-  int debug=0;
-  if (debug) {
-    cout << in_file << endl;
-    cout << AbsolutePath << endl;
-  }
-
+#ifdef GDL_DEBUG
+    std::cout << in_file << std::endl;
+    std::cout << AbsolutePath << std::endl;
+#endif
   return AbsolutePath;
 
 }
@@ -466,7 +470,7 @@ string FullPathFileName(string in_file)
 // GDL> HELP, /source  ou HELP, /traceback
 // GDL> print, ROUTINE_INFO('dist',/function,/source)
 
-bool CompleteFileName(string& fn)
+bool CompleteFileName(std::string& fn)
 {
   WordExp( fn);
 
@@ -482,34 +486,34 @@ bool CompleteFileName(string& fn)
   if( PathGiven(fn)) return false;
 
   StrArr path=SysVar::GDLPath();
-  if( path.size() == 0)
-    {
-      string act="./pro/"; // default path if no path is given
-	
+  if( path.size() == 0) 
+  {
+    std::string act = "./pro/"; // default path if no path is given
+
 #ifdef GDL_DEBUG
-      cout << "Looking in:" << endl;
-      cout << act << endl;
+    std::cout << "Looking in:" << std::endl;
+    std::cout << act << std::endl;
 #endif
 
-      act=act+fn;
-      fp = fopen(act.c_str(),"r");
-      if(fp) {
-	fclose(fp);
-	fn=act;
-	fn=FullPathFileName(fn);
-	return true;
-      }
+    act = act + fn;
+    fp = fopen(act.c_str(), "r");
+    if (fp) {
+      fclose(fp);
+      fn = act;
+      fn = FullPathFileName(fn);
+      return true;
     }
+  }
   else
     for(unsigned p=0; p<path.size(); p++)
       {
-	string act=path[p];
+	std::string act=path[p];
 	
-	AppendIfNeeded(act,"/");
+	AppendIfNeeded(act,lib::PathSeparator());
 	
 #ifdef GDL_DEBUG
-	if( p == 0) cout << "Looking in:" << endl;
-	cout << act << endl;
+	if( p == 0) std::cout << "Looking in:" << std::endl;
+	std::cout << act << std::endl;
 #endif
 
 	act=act+fn;

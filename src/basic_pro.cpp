@@ -182,7 +182,7 @@ namespace lib {
 
       if (homeDir != NULL) {
         string pathToGDL_history = homeDir;
-        AppendIfNeeded(pathToGDL_history, "/");
+        AppendIfNeeded(pathToGDL_history,lib::PathSeparator());
         pathToGDL_history += ".gdl";
         // Create eventially the ".gdl" path in Home
 #ifdef _WIN32
@@ -197,7 +197,7 @@ namespace lib {
 
         // (over)write the history file in ~/.gdl PATH
 
-        AppendIfNeeded(pathToGDL_history, "/");
+        AppendIfNeeded(pathToGDL_history, lib::PathSeparator());
         string history_filename = pathToGDL_history + "history";
         if (debug) cout << "History file name: " << history_filename << endl;
         result = write_history(history_filename.c_str());
