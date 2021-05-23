@@ -489,8 +489,23 @@ template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDo
 }
 
 // c-i
+//template<class Sp>
+//Data_<Sp>::Data_(const Data_& d_): Sp(d_.dim), dd(d_.dd) { }
+
+//faster, C++ initializer is probably too shy. 
 template<class Sp>
-Data_<Sp>::Data_(const Data_& d_): Sp(d_.dim), dd(d_.dd) {}
+Data_<Sp>::Data_(const Data_& d_) : Sp(d_.dim), dd(this->dim.NDimElements(), false) {
+  this->dim.Purge(); //useful?
+  SizeT sz = dd.size();
+#pragma omp parallel if (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
+  {
+#pragma omp for
+    for (SizeT i = 0; i < sz; i++) {
+      dd[i] = d_.dd[i];
+    }
+  }
+}
+
 template<>
 Data_<SpDPtr>::Data_(const Data_& d_): SpDPtr(d_.dim), dd(d_.dd)
 {

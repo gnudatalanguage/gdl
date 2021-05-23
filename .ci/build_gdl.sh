@@ -29,7 +29,7 @@ if [ ${BUILD_OS} == "Windows" ]; then
     BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
     MSYS2_PACKAGES=(
         readline zlib libpng gsl wxWidgets plplot libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi python-numpy udunits
-        eigen3 eccodes glpk shapelib expat
+        eigen3 eccodes glpk shapelib expat openssl
     )
     MSYS2_PACKAGES_REBUILD=(
         graphicsmagick
@@ -247,6 +247,16 @@ function prep_packages {
     fi
 }
 
+function find_dlls {
+  for dll in $(strings $1 | grep -i '[a-zA-Z0-9]\.dll$' | grep -v " " | grep -v $(basename $1)); do
+    dll="/mingw64/bin/$dll"
+    if [ -f "$dll" ] && [[ ! ${found_dlls[@]} =~ (^|[[:space:]])"$dll"($|[[:space:]]) ]]; then
+      found_dlls+=("$dll")
+      find_dlls "$dll";
+    fi
+  done
+}
+
 function build_gdl {
     log "Building GDL (${Configuration})..."
     mkdir -p ${ROOT_DIR}/build
@@ -319,9 +329,12 @@ function build_gdl {
     cd ${ROOT_DIR}/install
 
     if [ ${BUILD_OS} == "Windows" ]; then
+        log "Copying DLLs to install directory..."
+        found_dlls=()
+	find_dlls ${ROOT_DIR}/build/src/gdl.exe
         # Copy dlls and libraries to install directory
-        for f in $(ldd ${ROOT_DIR}/build/src/gdl.exe | grep "/mingw" | awk '{print $3}'); do
-            cp -f $f bin/
+        for f in ${found_dlls[@]}; do
+            cp -f "$f" bin/
         done
         cp -rf ${ROOT_DIR}/build/share .
         if [[ ${DEPS} == *"full"* ]]; then

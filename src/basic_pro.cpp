@@ -391,8 +391,8 @@ namespace lib {
     int proIx = LibProIx(callP);
     if (proIx != -1) {
       // 	e->PushNewEnv( libProList[ proIx], 1);
-      // make the call
-      // 	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
+//       make the call
+//       	EnvT* newEnv = static_cast<EnvT*>(e->Interpreter()->CallStack().back());
       EnvT* newEnv = e->NewEnv(libProList[proIx], 1);
       Guard<EnvT> guard(newEnv);
       static_cast<DLibPro*> (newEnv->GetPro())->Pro()(newEnv);
@@ -1160,14 +1160,12 @@ namespace lib {
     }
 
     SizeT nEl = dest->N_Elements();
-
-    TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for (OMPInt i = 0; i < nEl; ++i)
-        StrPut((*dest)[i], source, pos);
-    }
+//too much overhead for parallelizing a complicated function, IDL does not attempt it neither.    
+//#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+//    {
+//#pragma omp for
+      for (OMPInt i = 0; i < nEl; ++i) StrPut((*dest)[i], source, pos);
+//    }
   }
 
   void retall(EnvT* e) {
