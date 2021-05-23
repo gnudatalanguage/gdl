@@ -195,7 +195,8 @@ void StrPut(std::string& s1, const std::string& s2, DLong pos)
   unsigned len2=s2.length();
   if( pos >= len1) return;
   unsigned n = (len1 > pos+len2) ? len2 : len1-pos;
-  s1.replace( pos, n, s2, 0, n);
+  memcpy(&s1[pos], &s2[0], n); //without problem since C++11 
+//twice slower than above:  s1.replace( pos, n, s2, 0, n);
 }
 
 std::string StrUpCase(const std::string& s)
