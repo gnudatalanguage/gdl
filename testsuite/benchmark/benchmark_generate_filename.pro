@@ -16,10 +16,13 @@ endif
 ;
 name=''
 ;
+os_name=STRLOWACSE(!version.os)
 if KEYWORD_set(short) then begin
    commande_date="date ""+y%Ym%md%d"""
+   if(os_name EQ 'windows') then commande_date = "powershell -command "+'"'+"[datetime]::now.tostring('yyyy-MM-dd')"+'"'
 endif else begin
-    commande_date="date ""+y%Ym%md%d_%H:%M:%S"""  
+    commande_date="date ""+y%Ym%md%d_%H:%M:%S"""
+    if(os_name EQ 'windows') then commande_date = "powershell -command "+'"'+"[datetime]::now.tostring('yyyy-MM-dd_hh.mm.ss')"+'"'
 endelse
 SPAWN, commande_date, result, status
 ;

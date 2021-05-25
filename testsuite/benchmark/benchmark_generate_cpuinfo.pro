@@ -31,7 +31,7 @@ if (os_name EQ 'linux') then begin
    ;;
 endif
 ;
-if (os_name EQ 'darwin') then begin
+if (os_name EQ 'windows') then begin
    ;;
    SPAWN, 'sysctl -n hw.cpufrequency', resu_Hz
    resu_Mhz=resu_Hz/1.e6
