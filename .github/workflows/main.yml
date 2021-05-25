@@ -56,7 +56,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ runner.temp }}/cache
-          key: cache-gdl-deps-${{ matrix.os }}
+          key: cache-gdl-deps-${{ matrix.os }}-v2
       - name: Install Dependencies (macOS, Homebrew)
         if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -110,8 +110,6 @@ jobs:
           tac $TMPFILE > src/CMakeLists.txt
           rm $TMPFILE
           echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} check)" >> testsuite/CMakeLists.txt
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1 
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
