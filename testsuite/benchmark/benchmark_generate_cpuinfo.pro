@@ -31,7 +31,7 @@ if (os_name EQ 'linux') then begin
    ;;
 endif
 ;
-if (os_name EQ 'darwin' || os_name EQ 'windows') then begin
+if (os_name EQ 'darwin') then begin
    ;;
    SPAWN, 'sysctl -n hw.cpufrequency', resu_Hz
    resu_Mhz=resu_Hz/1.e6
@@ -40,6 +40,19 @@ if (os_name EQ 'darwin' || os_name EQ 'windows') then begin
    resu_bogo=-1
    ;;
    SPAWN, 'sysctl -n machdep.cpu.brand_string', model_name
+   ;;
+endif
+;
+if (os_name EQ 'windows') then begin
+   ;;
+   SPAWN, 'wmic cpu get maxclockspeed', resu_Mhz
+   resu_Mhz=FLOAT(resu_Mhz[1])
+   ;;
+   ;; no known equivalent of BogoMIPS on MSWin either :(
+   resu_bogo=-1
+   ;;
+   SPAWN, 'wmic cpu get name', model_name
+   model_name=model_name[1]
    ;;
 endif
 ;
