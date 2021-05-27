@@ -16,9 +16,10 @@ endif
 ;
 name=''
 ;
-date_length = 19
-if KEYWORD_set(short) then date_length = 10
-date = strjoin(strsplit( strmid(timestamp(), 0, date_length) , ':', /extract), path_sep(/search))
+date=strsplit(cgtimestamp(2), '_', /extract)
+date='d'+date[0]+'m'+date[1]+'y'+date[2]+'_'+date[3]
+date=repstr(date, ':', path_sep(/search))
+if KEYWORD_set(short) then date=strmid(date, 0, 11)
 ;
 machine=GET_LOGIN_INFO()
 ;
