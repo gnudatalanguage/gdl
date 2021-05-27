@@ -16,15 +16,9 @@ endif
 ;
 name=''
 ;
-os_name=STRLOWACSE(!version.os)
-if KEYWORD_set(short) then begin
-   commande_date="date ""+y%Ym%md%d"""
-   if(os_name EQ 'windows') then commande_date = "powershell -command "+'"'+"[datetime]::now.tostring('yyyy-MM-dd')"+'"'
-endif else begin
-    commande_date="date ""+y%Ym%md%d_%H:%M:%S"""
-    if(os_name EQ 'windows') then commande_date = "powershell -command "+'"'+"[datetime]::now.tostring('yyyy-MM-dd_hh.mm.ss')"+'"'
-endelse
-SPAWN, commande_date, result, status
+date_length = 19
+if KEYWORD_set(short) then date_length = 10
+date = strjoin(strsplit( strmid(timestamp(), 0, date_length) , ':', /extract), path_sep(/search))
 ;
 machine=GET_LOGIN_INFO()
 ;
