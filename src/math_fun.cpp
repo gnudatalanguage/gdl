@@ -567,19 +567,64 @@ namespace lib {
 // GDL Direct functions (no new environment created because the function has no keywords and only one parameter-->no overheads)
 //RETURNS: float (all 32 bits + strings), double, complex, double complex outputs.
 
+  //SQRT
+  template< typename T>
+  BaseGDL* sqrt_fun_template(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*res)[0] = sqrt((*p0C)[0]);
+      return res;
+    }
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sqrt((*p0C)[ i]);
+    return res;
+  }
+
+  template< typename T>
+  BaseGDL* sqrt_fun_template_grab(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*p0C)[0] = sqrt((*p0C)[0]);
+      return p0;
+    }
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sqrt((*p0C)[ i]);
+    return p0;
+  }
+
+  BaseGDL* sqrt_fun(BaseGDL* p0, bool isReference) {
+    SizeT nEl = p0->N_Elements();
+    DType p0Type = p0->Type();
+    if (p0Type == GDL_COMPLEX)
+      if (isReference) return sqrt_fun_template< DComplexGDL>(p0);
+      else return sqrt_fun_template_grab< DComplexGDL>(p0);
+    else if (p0Type == GDL_COMPLEXDBL)
+      if (isReference) return sqrt_fun_template< DComplexDblGDL>(p0);
+      else return sqrt_fun_template_grab< DComplexDblGDL>(p0);
+    else if (p0Type == GDL_DOUBLE)
+      if (isReference) return sqrt_fun_template< DDoubleGDL>(p0);
+      else return sqrt_fun_template_grab< DDoubleGDL>(p0);
+    else if (p0Type == GDL_FLOAT)
+      if (isReference) return sqrt_fun_template< DFloatGDL>(p0);
+      else return sqrt_fun_template_grab< DFloatGDL>(p0);
+    else {
+      DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sqrt((*res)[ i]);
+      return res;
+    }
+  }
+
+  //SIN
   template< typename T>
   BaseGDL* sin_fun_template (BaseGDL* p0)
   {
     T* p0C = static_cast<T*> (p0);
     T* res = new T (p0C->Dim (), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements ();
-    // eigen is much faster only for floats and if -march=native and/or SSE2, AVX etc are authorized by the compiler. not so useful...
-    //#if USE_EIGEN
-    //       Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m1(&(*p0C)[0], nEl);
-    //       Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> m2(&(*res)[0], nEl);
-    //       m2 = m1.sin();
-    //       return res;
-    //     #else
     if (nEl == 1)
       {
         (*res)[0] = sin ((*p0C)[0]);
@@ -588,21 +633,35 @@ namespace lib {
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sin ((*p0C)[ i]);
     return res;
-    //    #endif    
   }
-
+  
+  template< typename T>
+  BaseGDL* sin_fun_template_grab (BaseGDL* p0)
+  {
+    T* p0C = static_cast<T*> (p0);
+    SizeT nEl = p0->N_Elements ();
+    if (nEl == 1)
+      {
+        (*p0C)[0] = sin ((*p0C)[0]);
+        return p0;
+      }
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sin ((*p0C)[ i]);
+    return p0;
+  }
+  
   BaseGDL* sin_fun (BaseGDL* p0, bool isReference)
   {
     SizeT nEl = p0->N_Elements ();
     DType p0Type = p0->Type ();
     if (p0Type == GDL_COMPLEX)
-      return sin_fun_template< DComplexGDL>(p0);
+      if (isReference) return sin_fun_template< DComplexGDL>(p0); else return sin_fun_template_grab< DComplexGDL>(p0);
     else if (p0Type == GDL_COMPLEXDBL)
-      return sin_fun_template< DComplexDblGDL>(p0);
+      if (isReference) return sin_fun_template< DComplexDblGDL>(p0); else return sin_fun_template_grab< DComplexDblGDL>(p0);
     else if (p0Type == GDL_DOUBLE)
-      return sin_fun_template< DDoubleGDL>(p0);
+      if (isReference) return sin_fun_template< DDoubleGDL>(p0); else return sin_fun_template_grab< DDoubleGDL>(p0);
     else if (p0Type == GDL_FLOAT)
-      return sin_fun_template< DFloatGDL>(p0);
+      if (isReference) return sin_fun_template< DFloatGDL>(p0); else return sin_fun_template_grab< DFloatGDL>(p0);
     else
       {
         DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
@@ -612,343 +671,408 @@ namespace lib {
       }
   }
 
+  //COS
   template< typename T>
-  BaseGDL* cos_fun_template (BaseGDL* p0)
-  {
+  BaseGDL* cos_fun_template(BaseGDL* p0) {
     T* p0C = static_cast<T*> (p0);
-    T* res = new T (p0C->Dim (), BaseGDL::NOZERO);
-    SizeT nEl = p0->N_Elements ();
-    if (nEl == 1)
-      {
-        (*res)[0] = cos ((*p0C)[0]);
-        return res;
-      }
+    T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*res)[0] = cos((*p0C)[0]);
+      return res;
+    }
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = cos ((*p0C)[ i]);
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = cos((*p0C)[ i]);
     return res;
-  }
-
-  BaseGDL* cos_fun (BaseGDL* p0, bool isReference)
-  {
-    SizeT nEl = p0->N_Elements ();
-    if (p0->Type () == GDL_COMPLEX)
-      return cos_fun_template< DComplexGDL>(p0);
-    else if (p0->Type () == GDL_COMPLEXDBL)
-      return cos_fun_template< DComplexDblGDL>(p0);
-    else if (p0->Type () == GDL_DOUBLE)
-      return cos_fun_template< DDoubleGDL>(p0);
-    else if (p0->Type () == GDL_FLOAT)
-      return cos_fun_template< DFloatGDL>(p0);
-    else
-      {
-        DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = cos ((*res)[ i]);
-        return res;
-      }
   }
 
   template< typename T>
-  BaseGDL* tan_fun_template (BaseGDL* p0)
-  {
+  BaseGDL* cos_fun_template_grab(BaseGDL* p0) {
     T* p0C = static_cast<T*> (p0);
-    T* res = new T (p0C->Dim (), BaseGDL::NOZERO);
-    SizeT nEl = p0->N_Elements ();
-    if (nEl == 1)
-      {
-        (*res)[0] = tan ((*p0C)[0]);
-        return res;
-      }
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*p0C)[0] = cos((*p0C)[0]);
+      return p0;
+    }
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tan ((*p0C)[ i]);
-    return res;
+    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = cos((*p0C)[ i]);
+    return p0;
   }
 
-  template<>
-  BaseGDL* tan_fun_template< DComplexGDL>(BaseGDL* p0)
-  {
-    typedef DComplexGDL T;
-    T* p0C = static_cast<T*> (p0);
-    T* res = new T (p0C->Dim (), BaseGDL::NOZERO);
-    SizeT nEl = p0->N_Elements ();
-    if (nEl == 1)
-      {
-        (*res)[0] = tan (static_cast<DComplexDbl> ((*p0C)[0]));
-        return res;
-      }
+  BaseGDL* cos_fun(BaseGDL* p0, bool isReference) {
+    SizeT nEl = p0->N_Elements();
+    DType p0Type = p0->Type();
+    if (p0Type == GDL_COMPLEX)
+      if (isReference) return cos_fun_template< DComplexGDL>(p0);
+      else return cos_fun_template_grab< DComplexGDL>(p0);
+    else if (p0Type == GDL_COMPLEXDBL)
+      if (isReference) return cos_fun_template< DComplexDblGDL>(p0);
+      else return cos_fun_template_grab< DComplexDblGDL>(p0);
+    else if (p0Type == GDL_DOUBLE)
+      if (isReference) return cos_fun_template< DDoubleGDL>(p0);
+      else return cos_fun_template_grab< DDoubleGDL>(p0);
+    else if (p0Type == GDL_FLOAT)
+      if (isReference) return cos_fun_template< DFloatGDL>(p0);
+      else return cos_fun_template_grab< DFloatGDL>(p0);
+    else {
+      DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tan (static_cast<DComplexDbl> ((*p0C)[ i]));
-    return res;
+      for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = cos((*res)[ i]);
+      return res;
+    }
   }
 
-  BaseGDL* tan_fun (BaseGDL* p0, bool isReference)
-  {
-    SizeT nEl = p0->N_Elements ();
-    if (p0->Type () == GDL_COMPLEX)
-      return tan_fun_template< DComplexGDL>(p0);
-    else if (p0->Type () == GDL_COMPLEXDBL)
-      return tan_fun_template< DComplexDblGDL>(p0);
-    else if (p0->Type () == GDL_DOUBLE)
-      return tan_fun_template< DDoubleGDL>(p0);
-    else if (p0->Type () == GDL_FLOAT)
-      return tan_fun_template< DFloatGDL>(p0);
-    else
-      {
-        DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
+  //TAN
+  template< typename T>
+  BaseGDL* tan_fun_template(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*res)[0] = tan((*p0C)[0]);
+      return res;
+    }
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tan ((*res)[ i]);
-        return res;
-      }
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tan((*p0C)[ i]);
+    return res;
   }
 
   template< typename T>
-  BaseGDL* sinh_fun_template (BaseGDL* p0)
-  {
+  BaseGDL* tan_fun_template_grab(BaseGDL* p0) {
     T* p0C = static_cast<T*> (p0);
-    T* res = new T (p0C->Dim (), BaseGDL::NOZERO);
-    SizeT nEl = p0->N_Elements ();
-    if (nEl == 1)
-      {
-        (*res)[0] = sinh ((*p0C)[0]);
-        return res;
-      }
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*p0C)[0] = tan((*p0C)[0]);
+      return p0;
+    }
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sinh ((*p0C)[ i]);
-    return res;
+    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tan((*p0C)[ i]);
+    return p0;
   }
 
-  BaseGDL* sinh_fun (BaseGDL* p0, bool isReference)
-  {
-    SizeT nEl = p0->N_Elements ();
-    if (p0->Type () == GDL_COMPLEX)
-      return sinh_fun_template< DComplexGDL>(p0);
-    else if (p0->Type () == GDL_COMPLEXDBL)
-      return sinh_fun_template< DComplexDblGDL>(p0);
-    else if (p0->Type () == GDL_DOUBLE)
-      return sinh_fun_template< DDoubleGDL>(p0);
-    else if (p0->Type () == GDL_FLOAT)
-      return sinh_fun_template< DFloatGDL>(p0);
-    else
-      {
-        DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
+  BaseGDL* tan_fun(BaseGDL* p0, bool isReference) {
+    SizeT nEl = p0->N_Elements();
+    DType p0Type = p0->Type();
+    if (p0Type == GDL_COMPLEX)
+      if (isReference) return tan_fun_template< DComplexGDL>(p0);
+      else return tan_fun_template_grab< DComplexGDL>(p0);
+    else if (p0Type == GDL_COMPLEXDBL)
+      if (isReference) return tan_fun_template< DComplexDblGDL>(p0);
+      else return tan_fun_template_grab< DComplexDblGDL>(p0);
+    else if (p0Type == GDL_DOUBLE)
+      if (isReference) return tan_fun_template< DDoubleGDL>(p0);
+      else return tan_fun_template_grab< DDoubleGDL>(p0);
+    else if (p0Type == GDL_FLOAT)
+      if (isReference) return tan_fun_template< DFloatGDL>(p0);
+      else return tan_fun_template_grab< DFloatGDL>(p0);
+    else {
+      DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sinh ((*res)[ i]);
-        return res;
-      }
+      for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = tan((*res)[ i]);
+      return res;
+    }
+  }
+
+  //SINH
+  template< typename T>
+  BaseGDL* sinh_fun_template(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*res)[0] = sinh((*p0C)[0]);
+      return res;
+    }
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sinh((*p0C)[ i]);
+    return res;
   }
 
   template< typename T>
-  BaseGDL* cosh_fun_template (BaseGDL* p0)
-  {
+  BaseGDL* sinh_fun_template_grab(BaseGDL* p0) {
     T* p0C = static_cast<T*> (p0);
-    T* res = new T (p0C->Dim (), BaseGDL::NOZERO);
-    SizeT nEl = p0->N_Elements ();
-    if (nEl == 1)
-      {
-        (*res)[0] = cosh ((*p0C)[0]);
-        return res;
-      }
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*p0C)[0] = sinh((*p0C)[0]);
+      return p0;
+    }
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = cosh ((*p0C)[ i]);
-    return res;
+    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sinh((*p0C)[ i]);
+    return p0;
   }
 
-  BaseGDL* cosh_fun (BaseGDL* p0, bool isReference)
-  {
-    SizeT nEl = p0->N_Elements ();
-    if (p0->Type () == GDL_COMPLEX)
-      return cosh_fun_template< DComplexGDL>(p0);
-    else if (p0->Type () == GDL_COMPLEXDBL)
-      return cosh_fun_template< DComplexDblGDL>(p0);
-    else if (p0->Type () == GDL_DOUBLE)
-      return cosh_fun_template< DDoubleGDL>(p0);
-    else if (p0->Type () == GDL_FLOAT)
-      return cosh_fun_template< DFloatGDL>(p0);
-    else
-      {
-        DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
+  BaseGDL* sinh_fun(BaseGDL* p0, bool isReference) {
+    SizeT nEl = p0->N_Elements();
+    DType p0Type = p0->Type();
+    if (p0Type == GDL_COMPLEX)
+      if (isReference) return sinh_fun_template< DComplexGDL>(p0);
+      else return sinh_fun_template_grab< DComplexGDL>(p0);
+    else if (p0Type == GDL_COMPLEXDBL)
+      if (isReference) return sinh_fun_template< DComplexDblGDL>(p0);
+      else return sinh_fun_template_grab< DComplexDblGDL>(p0);
+    else if (p0Type == GDL_DOUBLE)
+      if (isReference) return sinh_fun_template< DDoubleGDL>(p0);
+      else return sinh_fun_template_grab< DDoubleGDL>(p0);
+    else if (p0Type == GDL_FLOAT)
+      if (isReference) return sinh_fun_template< DFloatGDL>(p0);
+      else return sinh_fun_template_grab< DFloatGDL>(p0);
+    else {
+      DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = cosh ((*res)[ i]);
-        return res;
-      }
+      for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sinh((*res)[ i]);
+      return res;
+    }
+  }
+
+  //COSH
+  template< typename T>
+  BaseGDL* cosh_fun_template(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*res)[0] = cosh((*p0C)[0]);
+      return res;
+    }
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = cosh((*p0C)[ i]);
+    return res;
   }
 
   template< typename T>
-  BaseGDL* tanh_fun_template (BaseGDL* p0)
-  {
+  BaseGDL* cosh_fun_template_grab(BaseGDL* p0) {
     T* p0C = static_cast<T*> (p0);
-    T* res = new T (p0C->Dim (), BaseGDL::NOZERO);
-    SizeT nEl = p0->N_Elements ();
-    if (nEl == 1)
-      {
-        (*res)[0] = tanh ((*p0C)[0]);
-        return res;
-      }
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*p0C)[0] = cosh((*p0C)[0]);
+      return p0;
+    }
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tanh ((*p0C)[ i]);
+    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = cosh((*p0C)[ i]);
+    return p0;
+  }
+
+  BaseGDL* cosh_fun(BaseGDL* p0, bool isReference) {
+    SizeT nEl = p0->N_Elements();
+    DType p0Type = p0->Type();
+    if (p0Type == GDL_COMPLEX)
+      if (isReference) return cosh_fun_template< DComplexGDL>(p0);
+      else return cosh_fun_template_grab< DComplexGDL>(p0);
+    else if (p0Type == GDL_COMPLEXDBL)
+      if (isReference) return cosh_fun_template< DComplexDblGDL>(p0);
+      else return cosh_fun_template_grab< DComplexDblGDL>(p0);
+    else if (p0Type == GDL_DOUBLE)
+      if (isReference) return cosh_fun_template< DDoubleGDL>(p0);
+      else return cosh_fun_template_grab< DDoubleGDL>(p0);
+    else if (p0Type == GDL_FLOAT)
+      if (isReference) return cosh_fun_template< DFloatGDL>(p0);
+      else return cosh_fun_template_grab< DFloatGDL>(p0);
+    else {
+      DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = cosh((*res)[ i]);
+      return res;
+    }
+  }
+
+  //TANH
+  template< typename T>
+  BaseGDL* tanh_fun_template(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*res)[0] = tanh((*p0C)[0]);
+      return res;
+    }
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tanh((*p0C)[ i]);
     return res;
   }
 
-  BaseGDL* tanh_fun (BaseGDL* p0, bool isReference)
-  {
-    if (p0->Type () == GDL_COMPLEX)
-      return tanh_fun_template< DComplexGDL>(p0);
-    else if (p0->Type () == GDL_COMPLEXDBL)
-      return tanh_fun_template< DComplexDblGDL>(p0);
-    else if (p0->Type () == GDL_DOUBLE)
-      return tanh_fun_template< DDoubleGDL>(p0);
-    else if (p0->Type () == GDL_FLOAT)
-      return tanh_fun_template< DFloatGDL>(p0);
-    else
-      {
-        DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
-        SizeT nEl = p0->N_Elements ();
+  template< typename T>
+  BaseGDL* tanh_fun_template_grab(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*p0C)[0] = tanh((*p0C)[0]);
+      return p0;
+    }
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tanh ((*res)[ i]);
-        return res;
-      }
+    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tanh((*p0C)[ i]);
+    return p0;
   }
 
-//ASIN MUST BE WRITTEN FOR COMPLEX AS IN IDL!
+  BaseGDL* tanh_fun(BaseGDL* p0, bool isReference) {
+    SizeT nEl = p0->N_Elements();
+    DType p0Type = p0->Type();
+    if (p0Type == GDL_COMPLEX)
+      if (isReference) return tanh_fun_template< DComplexGDL>(p0);
+      else return tanh_fun_template_grab< DComplexGDL>(p0);
+    else if (p0Type == GDL_COMPLEXDBL)
+      if (isReference) return tanh_fun_template< DComplexDblGDL>(p0);
+      else return tanh_fun_template_grab< DComplexDblGDL>(p0);
+    else if (p0Type == GDL_DOUBLE)
+      if (isReference) return tanh_fun_template< DDoubleGDL>(p0);
+      else return tanh_fun_template_grab< DDoubleGDL>(p0);
+    else if (p0Type == GDL_FLOAT)
+      if (isReference) return tanh_fun_template< DFloatGDL>(p0);
+      else return tanh_fun_template_grab< DFloatGDL>(p0);
+    else {
+      DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = tanh((*res)[ i]);
+      return res;
+    }
+  }
+  
+  template< typename T>
+  BaseGDL* asin_fun_template(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*res)[0] = asin((*p0C)[0]);
+      return res;
+    }
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = asin((*p0C)[ i]);
+    return res;
+  }
+
+  template< typename T>
+  BaseGDL* asin_fun_template_grab(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*p0C)[0] = asin((*p0C)[0]);
+      return p0;
+    }
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sin((*p0C)[ i]);
+    return p0;
+  }
 
   BaseGDL* asin_fun (BaseGDL* p0, bool isReference)
   {
     SizeT nEl = p0->N_Elements ();
-    if (p0->Type () == GDL_COMPLEX)
-      {
-        DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
-        DComplexGDL* res = new DComplexGDL (p0->Dim (), BaseGDL::NOZERO);
-        if (nEl == 1)
-          {
-            (*res)[0] = asin ((*p0C)[0]);
-            return res;
-          }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = asin ((*p0C)[ i]);
-        return res;
-      }
-    else if (p0->Type () == GDL_COMPLEXDBL)
-      {
-        DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (p0);
-        DComplexDblGDL* res = new DComplexDblGDL (p0->Dim (), BaseGDL::NOZERO);
-        if (nEl == 1)
-          {
-            (*res)[0] = asin ((*p0C)[0]);
-            return res;
-          }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = asin ((*p0C)[ i]);
-        return res;
-      }
-    else if (p0->Type () == GDL_DOUBLE)
-      {
-        DDoubleGDL* p0D = static_cast<DDoubleGDL*> (p0);
-        DDoubleGDL* res = new DDoubleGDL (p0->Dim (), BaseGDL::NOZERO);
-        if (nEl == 1)
-          {
-            (*res)[0] = asin ((*p0D)[0]);
-            return res;
-          }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = asin ((*p0D)[ i]);
-        return res;
-      }
-    else if (p0->Type () == GDL_FLOAT)
-      {
-        DFloatGDL* p0F = static_cast<DFloatGDL*> (p0);
-        DFloatGDL* res = new DFloatGDL (p0->Dim (), BaseGDL::NOZERO);
-        if (nEl == 1)
-          {
-            (*res)[0] = asin ((*p0F)[0]);
-            return res;
-          }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = asin ((*p0F)[ i]);
-        return res;
-      }
+    DType p0Type = p0->Type ();
+    if (p0Type == GDL_COMPLEX)
+      if (isReference) return asin_fun_template< DComplexGDL>(p0); else return asin_fun_template_grab< DComplexGDL>(p0);
+    else if (p0Type == GDL_COMPLEXDBL)
+      if (isReference) return asin_fun_template< DComplexDblGDL>(p0); else return asin_fun_template_grab< DComplexDblGDL>(p0);
+    else if (p0Type == GDL_DOUBLE)
+      if (isReference) return asin_fun_template< DDoubleGDL>(p0); else return asin_fun_template_grab< DDoubleGDL>(p0);
+    else if (p0Type == GDL_FLOAT)
+      if (isReference) return asin_fun_template< DFloatGDL>(p0); else return asin_fun_template_grab< DFloatGDL>(p0);
     else
       {
         DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
-        if (nEl == 1)
-          {
-            (*res)[0] = asin ((*res)[0]);
-            return res;
-          }
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = asin ((*res)[ i]);
+        for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = asin ((*res)[ i]);
         return res;
       }
+  }
+  
+  template< typename T>
+  BaseGDL* acos_fun_template(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*res)[0] = acos((*p0C)[0]);
+      return res;
+    }
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = acos((*p0C)[ i]);
+    return res;
   }
 
-//ACOS MUST BE WRITTEN FOR COMPLEX AS IN IDL!
-  BaseGDL* acos_fun( BaseGDL* p0, bool isReference)
+  template< typename T>
+  BaseGDL* acos_fun_template_grab(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*p0C)[0] = acos((*p0C)[0]);
+      return p0;
+    }
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sin((*p0C)[ i]);
+    return p0;
+  }
+
+  BaseGDL* acos_fun (BaseGDL* p0, bool isReference)
   {
     SizeT nEl = p0->N_Elements ();
-    if (p0->Type () == GDL_COMPLEX)
-      {
-        DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
-        DComplexGDL* res = new DComplexGDL (p0->Dim (), BaseGDL::NOZERO);
-        if (nEl == 1)
-          {
-            (*res)[0] = acos ((*p0C)[0]);
-            return res;
-          }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = acos ((*p0C)[ i]);
-        return res;
-      }
-    else if (p0->Type () == GDL_COMPLEXDBL)
-      {
-        DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (p0);
-        DComplexDblGDL* res = new DComplexDblGDL (p0->Dim (), BaseGDL::NOZERO);
-        if (nEl == 1)
-          {
-            (*res)[0] = acos ((*p0C)[0]);
-            return res;
-          }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = acos ((*p0C)[ i]);
-        return res;
-      }
-    else if (p0->Type () == GDL_DOUBLE)
-      {
-        DDoubleGDL* p0D = static_cast<DDoubleGDL*> (p0);
-        DDoubleGDL* res = new DDoubleGDL (p0->Dim (), BaseGDL::NOZERO);
-        if (nEl == 1)
-          {
-            (*res)[0] = acos ((*p0D)[0]);
-            return res;
-          }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = acos ((*p0D)[ i]);
-        return res;
-      }
-    else if (p0->Type () == GDL_FLOAT)
-      {
-        DFloatGDL* p0F = static_cast<DFloatGDL*> (p0);
-        DFloatGDL* res = new DFloatGDL (p0->Dim (), BaseGDL::NOZERO);
-        if (nEl == 1)
-          {
-            (*res)[0] = acos ((*p0F)[0]);
-            return res;
-          }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = acos ((*p0F)[ i]);
-        return res;
-      }
+    DType p0Type = p0->Type ();
+    if (p0Type == GDL_COMPLEX)
+      if (isReference) return acos_fun_template< DComplexGDL>(p0); else return acos_fun_template_grab< DComplexGDL>(p0);
+    else if (p0Type == GDL_COMPLEXDBL)
+      if (isReference) return acos_fun_template< DComplexDblGDL>(p0); else return acos_fun_template_grab< DComplexDblGDL>(p0);
+    else if (p0Type == GDL_DOUBLE)
+      if (isReference) return acos_fun_template< DDoubleGDL>(p0); else return acos_fun_template_grab< DDoubleGDL>(p0);
+    else if (p0Type == GDL_FLOAT)
+      if (isReference) return acos_fun_template< DFloatGDL>(p0); else return acos_fun_template_grab< DFloatGDL>(p0);
     else
       {
         DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
-        if (nEl == 1)
-          {
-            (*res)[0] = acos ((*res)[0]);
-            return res;
-          }
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = acos ((*res)[ i]);
+        for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = acos ((*res)[ i]);
         return res;
       }
   }
+  
+  //EXP
+  template< typename T>
+  BaseGDL* exp_fun_template(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*res)[0] = exp((*p0C)[0]);
+      return res;
+    }
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = exp((*p0C)[ i]);
+    return res;
+  }
+
+  template< typename T>
+  BaseGDL* exp_fun_template_grab(BaseGDL* p0) {
+    T* p0C = static_cast<T*> (p0);
+    SizeT nEl = p0->N_Elements();
+    if (nEl == 1) {
+      (*p0C)[0] = exp((*p0C)[0]);
+      return p0;
+    }
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = exp((*p0C)[ i]);
+    return p0;
+  }
+
+  BaseGDL* exp_fun(BaseGDL* p0, bool isReference) {
+    SizeT nEl = p0->N_Elements();
+    DType p0Type = p0->Type();
+    if (p0Type == GDL_COMPLEX)
+      if (isReference) return exp_fun_template< DComplexGDL>(p0);
+      else return exp_fun_template_grab< DComplexGDL>(p0);
+    else if (p0Type == GDL_COMPLEXDBL)
+      if (isReference) return exp_fun_template< DComplexDblGDL>(p0);
+      else return exp_fun_template_grab< DComplexDblGDL>(p0);
+    else if (p0Type == GDL_DOUBLE)
+      if (isReference) return exp_fun_template< DDoubleGDL>(p0);
+      else return exp_fun_template_grab< DDoubleGDL>(p0);
+    else if (p0Type == GDL_FLOAT)
+      if (isReference) return exp_fun_template< DFloatGDL>(p0);
+      else return exp_fun_template_grab< DFloatGDL>(p0);
+    else {
+      DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = exp((*res)[ i]);
+      return res;
+    }
+  }
+
 
   //   BaseGDL* alog_fun( EnvT* e)
   BaseGDL* alog_fun( BaseGDL* p0, bool isReference)
@@ -965,7 +1089,6 @@ namespace lib {
   {
     assert( p0 != NULL);
     assert( p0->N_Elements() > 0);
-    
     if( !isReference) //e->StealLocalPar( 0))
       {
 	return p0->Log10This();
@@ -973,108 +1096,8 @@ namespace lib {
     return p0->Log10();
   }
 
-  // original by joel gales
-
-  template< typename T>
-  BaseGDL* sqrt_fun_template (BaseGDL* p0)
-  {
-    T* p0C = static_cast<T*> (p0);
-    T* res = new T (p0C->Dim (), BaseGDL::NOZERO);
-    SizeT nEl = p0->N_Elements ();
-    if (nEl == 1)
-      {
-        (*res)[ 0] = sqrt ((*p0C)[ 0]);
-        return res;
-      }
-    // eigen is not faster here
-    //#ifdef USE_EIGEN
-    //
-    //    Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mP0C(&(*p0C)[0], nEl);
-    //    Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
-    //    mRes = mP0C.sqrt();
-    //    return res;
-    //#else
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sqrt ((*p0C)[ i]);
-    return res;
-    //#endif
-
-  }
-
-  template< typename T>
-  BaseGDL* sqrt_fun_template_grab (BaseGDL* p0)
-  {
-    T* p0C = static_cast<T*> (p0);
-    SizeT nEl = p0->N_Elements ();
-    if (nEl == 1)
-      {
-        (*p0C)[ 0] = sqrt ((*p0C)[ 0]);
-        return p0C;
-      }
-    // eigen is not faster here
-    //#ifdef USE_EIGEN
-    //
-    //    Eigen::Map<Eigen::Array<typename T::Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mP0C(&(*p0C)[0], nEl);
-    //    mP0C = mP0C.sqrt();
-    //    return p0C;
-    //#else
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sqrt ((*p0C)[ i]);
-    return p0C;
-    //#endif
-  }
-
-  BaseGDL* sqrt_fun (BaseGDL* p0, bool isReference)//( EnvT* e)
-  {
-    assert (p0 != NULL);
-    assert (p0->N_Elements () > 0);
-
-    DType p0Type = p0->Type ();
-    if (isReference)
-      {
-        if (p0Type == GDL_COMPLEX)
-          return sqrt_fun_template< DComplexGDL>(p0);
-        else if (p0Type == GDL_COMPLEXDBL)
-          return sqrt_fun_template< DComplexDblGDL>(p0);
-        else if (p0Type == GDL_DOUBLE)
-          return sqrt_fun_template< DDoubleGDL>(p0);
-        else if (p0Type == GDL_FLOAT)
-          return sqrt_fun_template< DFloatGDL>(p0);
-      }
-    else
-      {
-        if (p0Type == GDL_COMPLEX)
-          return sqrt_fun_template_grab< DComplexGDL>(p0);
-        else if (p0Type == GDL_COMPLEXDBL)
-          return sqrt_fun_template_grab< DComplexDblGDL>(p0);
-        else if (p0Type == GDL_DOUBLE)
-          return sqrt_fun_template_grab< DDoubleGDL>(p0);
-        else if (p0Type == GDL_FLOAT)
-          return sqrt_fun_template_grab< DFloatGDL>(p0);
-      }
-    {
-      DFloatGDL* res = static_cast<DFloatGDL*>
-              (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
-      SizeT nEl = p0->N_Elements ();
-      if (nEl == 1)
-        {
-          (*res)[ 0] = sqrt ((*res)[ 0]);
-          return res;
-        }
-      // eigen is not faster here
-      //#ifdef USE_EIGEN
-      //
-      //      Eigen::Map<Eigen::Array<DFloat,Eigen::Dynamic,1> ,Eigen::Aligned> mRes(&(*res)[0], nEl);
-      //      mRes = mRes.sqrt();
-      //      return res;
-      //#else
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-      for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sqrt ((*res)[ i]);
-      return res;
-      //#endif  
-    }
-  }
-
+  //Following produce Float or doubles for complex.
+  
   template< typename T>
   BaseGDL* abs_fun_template (BaseGDL* p0)
   {
@@ -1166,92 +1189,15 @@ namespace lib {
     return res;
   }
 
-  BaseGDL* exp_fun (BaseGDL* p0, bool isReference)
-  {
-    SizeT nEl = p0->N_Elements ();
-
-    DType t = p0->Type ();
-    if (t == GDL_COMPLEXDBL)
-      {
-        DComplexDblGDL *c0 = static_cast<DComplexDblGDL*> (p0);
-        DComplexDblGDL *res = c0->New (c0->Dim (), BaseGDL::NOZERO);
-        if (nEl == 1)
-          {
-            (*res)[ 0] = exp ((*c0)[ 0]);
-            return res;
-          }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = exp ((*c0)[ i]);
-        return res;
-      }
-    else if (t == GDL_COMPLEX)
-      {
-        DComplexGDL *c0 = static_cast<DComplexGDL*> (p0);
-        DComplexGDL *res = c0->New (c0->Dim (), BaseGDL::NOZERO);
-        if (nEl == 1)
-          {
-            (*res)[ 0] = exp ((*c0)[ 0]);
-            return res;
-          }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = exp ((*c0)[ i]);
-        return res;
-      }
-    else if (t == GDL_DOUBLE)
-      {
-        DDoubleGDL *c0 = static_cast<DDoubleGDL*> (p0);
-        DDoubleGDL *res = c0->New (c0->Dim (), BaseGDL::NOZERO);
-        if (nEl == 1)
-          {
-            (*res)[ 0] = exp ((*c0)[ 0]);
-            return res;
-          }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = exp ((*c0)[ i]);
-        return res;
-      }
-    else if (t == GDL_FLOAT)
-      {
-        DFloatGDL *c0 = static_cast<DFloatGDL*> (p0);
-        DFloatGDL *res = c0->New (c0->Dim (), BaseGDL::NOZERO);
-        if (nEl == 1)
-          {
-            (*res)[ 0] = exp ((*c0)[ 0]);
-            return res;
-          }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = exp ((*c0)[ i]);
-        return res;
-      }
-    else if (t == GDL_PTR)
-      throw GDLException ("Pointer not allowed in this context.");
-    else if (t == GDL_OBJ)
-      throw GDLException ("Object references not allowed in this context.");
-    else if (t == GDL_STRUCT)
-      throw GDLException ("Struct expression not allowed in this context.");
-    else
-      {
-        DFloatGDL *res =
-                static_cast<DFloatGDL*> (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
-
-        if (nEl == 1)
-          {
-            (*res)[ 0] = exp ((*res)[ 0]);
-            return res;
-          }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = exp ((*res)[ i]);
-        return res;
-      }
-  }
-
+//COMPLEX SPECIALS
   BaseGDL* conj_fun (BaseGDL* p0, bool isReference)//( EnvT* e)
   {
     SizeT nEl = p0->N_Elements ();
 
     if (p0->Type () == GDL_COMPLEX)
       {
-        DComplexGDL* res = static_cast<DComplexGDL*> (p0)->NewResult ();
+        DComplexGDL* res;
+        if (isReference) res = static_cast<DComplexGDL*> (p0)->NewResult (); else res=static_cast<DComplexGDL*>(p0);
         DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = std::conj ((*p0C)[i]);
@@ -1259,7 +1205,8 @@ namespace lib {
       }
     if (p0->Type () == GDL_COMPLEXDBL)
       {
-        DComplexDblGDL* res = static_cast<DComplexDblGDL*> (p0)->NewResult (); //static_cast<DComplexDblGDL*>(p0->Dup());
+        DComplexDblGDL* res;
+        if (isReference) res = static_cast<DComplexDblGDL*> (p0)->NewResult (); else res=res=static_cast<DComplexDblGDL*>(p0);
         DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (p0);
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = std::conj ((*p0C)[i]);
@@ -1276,7 +1223,7 @@ namespace lib {
     // all other types
     return static_cast<DComplexGDL*> (p0->Convert2 (GDL_COMPLEX, BaseGDL::COPY));
   }
-
+//returns Double or floats
   BaseGDL* imaginary_fun (BaseGDL* p0, bool isReference)//( EnvT* e)
   {
     SizeT nEl = p0->N_Elements ();
@@ -1343,9 +1290,9 @@ namespace lib {
     if (t == GDL_OBJ)
       throw GDLException ("Object reference not allowed in this context.");
     // Doubles to double, copy
-    if (t == GDL_DOUBLE) return p0->Dup ();
+    if (t == GDL_DOUBLE) if (isReference) return p0->Dup (); else return p0;
     // Floats to float, copy
-    if (t == GDL_FLOAT) return p0->Dup ();
+    if (t == GDL_FLOAT) if (isReference) return p0->Dup (); else return p0;
     // all other types to float
     return static_cast<DFloatGDL*> (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
   }

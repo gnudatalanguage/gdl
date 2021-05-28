@@ -140,9 +140,7 @@
   SizeT nElp = res->N_Elements();					\
 
 #define GM_CV0()					\
-  static DInt doubleKWIx = e->KeywordIx("DOUBLE");	\
-							\
-  if (e->KeywordSet(doubleKWIx))			\
+  if (isDouble)			\
     return res;						\
   else							\
     return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);
@@ -541,6 +539,10 @@ namespace lib {
   // what does not work like IDL : warning messages when Inf/Nan or Zero/Negative X steps, X and Y not same size
 #define SPL_INIT_BIG double(1.0E30) 
   BaseGDL* spl_init_fun(EnvT* e) {
+    static DInt doubleKWIx = e->KeywordIx("DOUBLE");
+    bool isDouble = (e->GetParDefined(0)->Type() == GDL_DOUBLE || e->GetParDefined(1)->Type() == GDL_DOUBLE);
+    if (e->KeywordSet(doubleKWIx)) isDouble = true;
+
     static int HELPIx = e->KeywordIx("HELP");
     if (e->KeywordSet(HELPIx)) {
       string inline_help[] = {
@@ -707,6 +709,11 @@ namespace lib {
 
   BaseGDL* spl_interp_fun( EnvT* e)
   {
+    static DInt doubleKWIx = e->KeywordIx("DOUBLE");
+    bool isDouble = (e->GetParDefined(0)->Type() == GDL_DOUBLE || e->GetParDefined(1)->Type() == GDL_DOUBLE || 
+        e->GetParDefined(2)->Type() == GDL_DOUBLE || e->GetParDefined(3)->Type() == GDL_DOUBLE);
+    if (e->KeywordSet(doubleKWIx)) isDouble = true;
+
     static int HELPIx=e->KeywordIx("HELP");
     if (e->KeywordSet(HELPIx)) {
       //  string inline_help[]={};

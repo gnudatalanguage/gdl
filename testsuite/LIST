@@ -159,7 +159,7 @@ test_simplex.pro
 test_size.pro
 test_sort.pro
 test_spher_harm.pro
-test_spl_init.pro
+test_spl.pro
 test_standardize.pro
 test_str_functions.pro
 test_str_sep.pro
