@@ -45,19 +45,6 @@ if (os_name EQ 'darwin') then begin
    ;;
 endif
 ;
-if (os_name EQ 'windows') then begin
-   ;;
-   SPAWN, 'wmic cpu get maxclockspeed', resu_Mhz
-   resu_Mhz=FLOAT(resu_Mhz[1])
-   ;;
-   ;; apparently no known equivalent of BogoMIPS on MSWin either...
-   resu_bogo=-1
-   ;;
-   SPAWN, 'wmic cpu get name', model_name
-   model_name=model_name[1]
-   ;;
-endif
-;
 info_cpu={MHz : resu_Mhz, $
           Bogo : resu_bogo, $
           model : model_name, $

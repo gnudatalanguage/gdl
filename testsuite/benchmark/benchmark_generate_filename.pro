@@ -16,10 +16,12 @@ endif
 ;
 name=''
 ;
-date=strsplit(cgtimestamp(2), '_', /extract)
-date='d'+date[0]+'m'+date[1]+'y'+date[2]+'_'+date[3]
-date=repstr(date, ':', path_sep(/search))
-if KEYWORD_set(short) then date=strmid(date, 0, 11)
+if KEYWORD_set(short) then begin
+   commande_date="date ""+y%Ym%md%d"""
+endif else begin
+    commande_date="date ""+y%Ym%md%d_%H:%M:%S"""  
+endelse
+SPAWN, commande_date, result, status
 ;
 machine=GET_LOGIN_INFO()
 ;

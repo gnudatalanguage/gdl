@@ -454,12 +454,11 @@ namespace lib {
     // new ptr from undefined variable is allowed as well
     // this case was discovered by chance by Leva, July 16, 2014
     // p=ptr_new(), p=ptr_new(!null), p=ptr_new(undef_var) should work
-    // May 31, 2021, correction: ptr_new(!null) and ptr_new(undef_var) now both return a pointer to a !NULL var
 
         if ((p == NULL) || (p->Type() == GDL_UNDEF))
       {
-        DPtr heapID= e->NewHeap(1, NullGDL::GetSingleInstance()); //allocate a !NULL
-        return new DPtrGDL(heapID);
+        DPtr heapID= e->NewHeap();
+        return new DPtrGDL( heapID);
       } 
     static int no_copyIx=e->KeywordIx("NO_COPY");
     if (e->KeywordSet(no_copyIx)) // NO_COPY
