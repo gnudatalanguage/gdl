@@ -453,11 +453,11 @@ namespace lib {
 
     // new ptr from undefined variable is allowed as well
     // this case was discovered by chance by Leva, July 16, 2014
-    // p=ptr_new(), p=ptr_new(!null), p=ptr_new(undef_var) should work
+    // p=ptr_new()p=ptr_new(!null), p=ptr_new(undef_var) should work
 
         if ((p == NULL) || (p->Type() == GDL_UNDEF))
       {
-        DPtr heapID= e->NewHeap();
+        DPtr heapID= e->NewHeap(1, NullGDL::GetSingleInstance()); //same as /ALLOCATE_HEAP
         return new DPtrGDL( heapID);
       } 
     static int no_copyIx=e->KeywordIx("NO_COPY");
