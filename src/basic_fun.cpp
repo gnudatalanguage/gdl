@@ -457,7 +457,7 @@ namespace lib {
 
         if ((p == NULL) || (p->Type() == GDL_UNDEF))
       {
-        DPtr heapID= e->NewHeap();
+        DPtr heapID= e->NewHeap(1, NullGDL::GetSingleInstance()); //same as /ALLOCATE_HEAP
         return new DPtrGDL( heapID);
       } 
     static int no_copyIx=e->KeywordIx("NO_COPY");
