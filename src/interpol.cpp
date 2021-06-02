@@ -391,6 +391,8 @@ namespace lib {
     DType t=type; //V's type by default.
     //size of the out value
     SizeT nout=0;
+    //type of output
+    bool isDouble = false;
     
     if (nParam==2) {       // we make X, only V has to be chacked for Nan
       BaseGDL* p1 = e->GetParDefined(1);
@@ -398,8 +400,8 @@ namespace lib {
       DLongGDL* n1gdl=e->GetParAs<DLongGDL>(1);
       nout=(*n1gdl)[0];
       if (nout < 1) e->Throw("N must be one positive integer");
-      // check V for Nans, error if size is not good eno
-      X=new DDoubleGDL(dimension(nV),BaseGDL::INDGEN); //easy
+      // check V for Nans, error if size is not good enough
+      X=new DDoubleGDL(nV,BaseGDL::INDGEN); //easy
       guardX.Reset(X);//X will be destroyed on exit
       if (doNan) {
         SizeT k =0;
@@ -412,11 +414,15 @@ namespace lib {
         nV=k;
         if (nV <nmin) e->Throw("too few non-NAN elements left for this kind of interpolation.");
       }
-      Xout=new DDoubleGDL(dimension(nout),BaseGDL::INDGEN);
+      Xout=new DDoubleGDL(nout,BaseGDL::INDGEN);
       guardXout.Reset(Xout);//Xout will be destroyed on exit
-      for (SizeT i = 0; i < nout; ++i) {
+      (*Xout)[0]=0; //to not divide by 0  in following loop if nout=1
+
+      for (SizeT i = 1; i < nout; ++i) {
         (*Xout)[i] = double(i)*(orig_nV - 1) / (nout - 1);
       }
+       //is any arg DOUBLE ?
+      isDouble = (p0->Type() == GDL_DOUBLE);
     } else {
       BaseGDL* p1 = e->GetParDefined(1);
       if (p1->N_Elements() != nV) e->Throw("V and X arrays must have same # of elements");
@@ -441,6 +447,8 @@ namespace lib {
       DType t = (DTypeOrder[ p0->Type()] > DTypeOrder[ p1->Type()]) ? p0->Type() : p1->Type();
       t = (DTypeOrder[t] > DTypeOrder[ p2->Type()]) ? t : p2->Type();      
       Xout=e->GetParAs<DDoubleGDL>(2);
+       //is any arg DOUBLE ?
+      isDouble = (p0->Type() == GDL_DOUBLE || p1->Type() == GDL_DOUBLE || p2->Type() == GDL_DOUBLE);
     }
     //alloc interpolant object & guard NOW that everything is fine with Arrays!
     gdl_interpol * myinterp = gdl_interpol_alloc(interpol, nV);
@@ -451,16 +459,15 @@ namespace lib {
     int status=gdl_interpol_init (myinterp, (const double*)X->DataAddr(), (const double*)V->DataAddr() , nV);
     //allocate result
     DDoubleGDL* res=new DDoubleGDL(nout,BaseGDL::NOZERO);
+
     //compute
     for (SizeT i=0; i< nout; ++i)  {
       (*res)[i]=gdl_interpol_eval(myinterp, (const double*)X->DataAddr() , (const double*) V->DataAddr(), (*Xout)[i] , acc);
     }
+    // if we generated only 1 value, return a scalar instead of an array (IDL behaviour) 
+    if(nout == 1) res = new DDoubleGDL((*res)[0]);
     
-    if (p0->Type() == GDL_DOUBLE) return res;
-    else {
-      BaseGDL* resf=res->Convert2(GDL_FLOAT, BaseGDL::COPY);
-      GDLDelete(res);
-      return resf;
-    }
+    if (isDouble) return res;
+    else return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);
   }
 }
