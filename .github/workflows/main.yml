@@ -38,6 +38,14 @@ jobs:
             matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full'], configuration: ['Debug']}"
         fi
         echo "::set-output name=matrix-others::$matrix"
+    - name: Remove Release (scheduled build only)
+      if: github.event_name == 'workflow_dispatch'
+      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      with:
+        delete_release: true
+        tag_name: weekly-release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-linux-macos:
     runs-on: ${{ matrix.os }}
     needs: prelude
