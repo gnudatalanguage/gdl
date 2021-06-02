@@ -225,6 +225,17 @@ jobs:
         with:
           name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
           path: gdl-*-${{ matrix.deps }}.zip
+      - name: Upload Release Assets
+        if: ${{ github.event_name }} == 'schedule'
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "gdlsetup-*-${{ matrix.deps }}.exe,gdl-*-${{ matrix.deps }}.zip"
+          name: Weekly Release (unstable)
+          prerelease: true
+          allowUpdates: true
+          replacesArtifacts: true
+          tag: weekly-release
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test GDL
         shell: msys2 {0}
         run: |
