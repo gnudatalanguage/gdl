@@ -122,7 +122,7 @@ jobs:
           path: gdl-*-${{ matrix.deps }}.zip
           name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
       - name: Upload Release Assets
-        if: ${{ github.event_name }} == 'workflow_dispatch' && ${{ matrix.os }} == 'macos-latest'
+        if: github.event_name == 'workflow_dispatch' && matrix.os == 'macos-latest'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "gdl-*-${{ matrix.deps }}.zip"
@@ -131,6 +131,7 @@ jobs:
           prerelease: true
           allowUpdates: true
           replacesArtifacts: true
+          commit: ${{ github.sha }}
           tag: weekly-release
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test GDL
@@ -238,7 +239,7 @@ jobs:
           name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
           path: gdl-*-${{ matrix.deps }}.zip
       - name: Upload Release Assets
-        if: ${{ github.event_name }} == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "gdlsetup-*-${{ matrix.deps }}.exe,gdl-*-${{ matrix.deps }}.zip"
