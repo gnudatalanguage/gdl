@@ -77,8 +77,9 @@ namespace lib {
     gettimeofday(&tv, NULL);
    
     // convert to time to 'struct tm' for use with strftime
-    struct tm *tm_local=localtime(&tv.tv_sec);
-    struct tm *tm_utc=gmtime(&tv.tv_sec);
+    time_t time_sec=tv.tv_sec;
+    struct tm *tm_local=localtime(&time_sec);
+    struct tm *tm_utc=gmtime(&time_sec);
     
     if(isUTC){
       tm_local=tm_utc;
@@ -96,8 +97,11 @@ namespace lib {
       int valueIx = e->KeywordIx(values_str[i]);
       isValue[i]=e->KeywordSet(valueIx);
       if(isValue[i]){
-        isAnyValue=true;
-        if(i==6) noOffset = false;
+        if(i==6){
+          noOffset=false;
+        } else {
+          isAnyValue=true;
+        }
         values[i] = (*e->GetKWAs<DFloatGDL>(valueIx))[0];
         if(values[i]<values_min[i] || values[i]>values_max[i]){
           //the value is out of its range, throw error
