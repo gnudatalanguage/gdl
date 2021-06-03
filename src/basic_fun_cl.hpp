@@ -20,6 +20,7 @@
 
 namespace lib {
 
+  BaseGDL* timestamp(EnvT* e);
   BaseGDL* systime(EnvT* e);
   BaseGDL* legendre(EnvT* e);
   BaseGDL* gsl_exp(EnvT* e);
