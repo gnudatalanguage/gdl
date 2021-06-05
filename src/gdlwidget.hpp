@@ -372,6 +372,7 @@ public:
   void RefreshDynamicWidget();
   void UpdateGui();
   
+  static bool InitWx(); // global start of wxWidgets
   static void Init(); // global GUI intialization upon GDL startup
   static void UnInit(); // global GUI desinitialization in case it is useful (?)
   static bool wxIsStarted(){return (wxIsOn);}

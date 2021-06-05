@@ -731,13 +731,18 @@ BaseGDL* GDLWidget::GetManagedWidgetsList() {
   }
   return result;
 }
+//
+bool GDLWidget::InitWx()
+{
+  if (!wxInitialize()) {
+    std::cerr << "WARNING: wxWidgets not initializing, widget-related commands will not be available." << std::endl;
+    return false;
+  }
+  return true;
+}
 // Init
 void GDLWidget::Init()
 {
-  if (!wxInitialize()) {
-    std::cerr << "WARNING: wxWidgets not initializing" << std::endl;
-    return;
-  }
  //set system font to something sensible now that wx is ON:
   if (forceWxWidgetsUglyFonts)
     systemFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ;//  identical for me to GDLWidget::setDefaultFont(wxFont("Monospace 8"));

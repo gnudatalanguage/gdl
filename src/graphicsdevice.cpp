@@ -224,8 +224,10 @@ void GraphicsDevice::Init()
 #endif
   } else {  //wxWidgets will *NOT*be used for plot windows, unless there is nothing else left.
 #ifdef HAVE_LIBWXWIDGETS
+    if (useWxWidgets) {
     actGUIDevice = new DeviceWX();  //even if wx is not used for plots, it will be used for widget_draw. But set_plot,"MAC" will exist.
     deviceList.push_back(actGUIDevice); // do not forget to add it to list!
+    }
 #endif   
 #ifdef HAVE_X
     current_device= new DeviceX(defaultDeviceName);
@@ -233,7 +235,7 @@ void GraphicsDevice::Init()
     current_device= new DeviceWIN(defaultDeviceName);
 #else //may be wxWidgets is here?
 #ifdef HAVE_LIBWXWIDGETS
-    current_device= new DeviceWX(defaultDeviceName);    //define wxWidgets 'plot' as either X..
+    if (useWxWidgets) current_device= new DeviceWX(defaultDeviceName);    //define wxWidgets 'plot' as either X..
 #endif
 #endif
   }
@@ -264,7 +266,7 @@ void GraphicsDevice::DestroyDevices()
 {
     
 #ifdef HAVE_LIBWXWIDGETS
-  GDLWidget::UnInit();    // un-initialize widget system
+  if (useWxWidgets) GDLWidget::UnInit();    // un-initialize widget system
 #endif
   PurgeContainer( deviceList);
   actDevice = NULL;
