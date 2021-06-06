@@ -1309,7 +1309,6 @@ void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
   if (p->IsScrolled()) {
     bool enlarge = false;
     wxSize oldVirtualSize = this->GetVirtualSize();
-    std::cerr << oldVirtualSize.y << std::endl;
     if (oldVirtualSize.x < newSize.x) {
       enlarge = true;
       oldVirtualSize.x = newSize.x;
@@ -1326,6 +1325,12 @@ void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
     this->SetMinClientSize(newSize);
     this->SetClientSize(newSize);
   }
+// insure this is really done (? useful?)  
+#if __WXMSW__ 
+    wxTheApp->MainLoop(); //central loop for wxEvents!
+#else
+    wxTheApp->Yield();
+#endif
   event.Skip();
 }
 void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)
