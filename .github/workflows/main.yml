@@ -186,7 +186,7 @@ jobs:
         with:
           path: |
             C:\msys64\cache
-          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}
+          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v2
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench
