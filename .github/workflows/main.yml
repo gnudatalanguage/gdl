@@ -229,7 +229,6 @@ jobs:
       - name: Build GDL
         shell: msys2 {0}
         run: |
-          cat /mingw64/bin/wx-config
           .ci/build_gdl.sh build
       - name: Package GDL
         shell: msys2 {0}  
