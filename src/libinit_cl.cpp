@@ -52,6 +52,9 @@ void LibInit_cl()
 
   new DLibPro(lib::journal,string("JOURNAL"),1);
 
+  const string timestampKey[]={"DAY","HOUR","MINUTE","MONTH","OFFSET","SECOND","UTC","YEAR","ZERO",KLISTEND};
+  new DLibFunRetNew(lib::timestamp,string("TIMESTAMP"),2,timestampKey);
+
   const string systimeKey[]={"JULIAN","SECONDS","UTC",KLISTEND};
   new DLibFunRetNew(lib::systime,string("SYSTIME"),2,systimeKey);
 
