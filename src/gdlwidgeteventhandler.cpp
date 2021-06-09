@@ -1326,11 +1326,11 @@ void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
     this->SetClientSize(newSize);
   }
 // insure this is really done (? useful?)  
-#if __WXMSW__ 
-    wxTheApp->MainLoop(); //central loop for wxEvents!
-#else
+//#if __WXMSW__ 
+//    wxTheApp->MainLoop(); //central loop for wxEvents!
+//#else
     wxTheApp->Yield();
-#endif
+//#endif
   event.Skip();
 }
 void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)

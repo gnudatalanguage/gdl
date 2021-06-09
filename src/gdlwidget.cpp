@@ -436,11 +436,11 @@ void GDLWidget::UpdateGui()
   }
   this->GetMyTopLevelFrame()->Fit();
   END_CHANGESIZE_NOEVENT 
-#if __WXMSW__ 
-    wxTheApp->MainLoop(); //central loop for wxEvents!
-#else
-    wxTheApp->Yield();
-#endif
+//#if __WXMSW__ 
+//    wxTheApp->MainLoop(); //central loop for wxEvents!
+//#else
+  wxTheApp->Yield();
+//#endif
 }
 
 //Alternate version if there were sizing problems with the one above.
@@ -618,11 +618,11 @@ void GDLWidget::RefreshDynamicWidget() {
 void GDLWidget::HandleWidgetEvents()
 {
   //make one loop for wxWidgets Events...
-#if __WXMSW__ 
-    wxTheApp->MainLoop(); //central loop for wxEvents!
-#else
-    wxTheApp->Yield();
-#endif
+//#if __WXMSW__ 
+//    wxTheApp->MainLoop(); //central loop for wxEvents!
+//#else
+   wxTheApp->Yield();
+//#endif
   //treat our GDL events...
     DStructGDL* ev = NULL;
     while( (ev = GDLWidget::readlineEventQueue.Pop()) != NULL)
@@ -5791,39 +5791,39 @@ void GDLWidgetDraw::SetWidgetScreenSize(DLong sizex, DLong sizey) {
 // for linux, it is NOT necessary, but thos works OK
 // for MacOS /COCOA port, the following code does not work and the widgets are not created.
 // (tied_scoped_ptr problem?)
-#if __WXMSW__ 
-
-#include "wx/evtloop.h"
-#include "wx/ptr_scpd.h"
-wxDEFINE_TIED_SCOPED_PTR_TYPE(wxEventLoop);
-
-bool wxAppGDL::OnInit()
-{ 
-    return true;
-}
-   
-  int wxAppGDL::MainLoop() {
-    wxEventLoopTiedPtr mainLoop((wxEventLoop **)&m_mainLoop, new wxEventLoop);
-    m_mainLoop->SetActive(m_mainLoop);
-    loop = this->GetMainLoop();
-    if (loop) {
-    if (loop->IsRunning()) {
-      while (loop->Pending()) // Unprocessed events in queue
-      {
-        loop->Dispatch(); // Dispatch next event in queue
-      }
-    }
-  }
-  return 0;
-}
-
-int wxAppGDL::OnExit()
-{
-  std::cout << " In GDLApp::OnExit()" << std::endl;
-  // Defined in guiThread::OnExit() in gdlwidget.cpp
-  //  std::cout << "Exiting thread (GDLApp::OnExit): " << thread << std::endl;
-  return 0;
-}
-#endif
+//#if __WXMSW__ 
+//
+//#include "wx/evtloop.h"
+//#include "wx/ptr_scpd.h"
+//wxDEFINE_TIED_SCOPED_PTR_TYPE(wxEventLoop);
+//
+//bool wxAppGDL::OnInit()
+//{ 
+//    return true;
+//}
+//   
+//  int wxAppGDL::MainLoop() {
+//    wxEventLoopTiedPtr mainLoop((wxEventLoop **)&m_mainLoop, new wxEventLoop);
+//    m_mainLoop->SetActive(m_mainLoop);
+//    loop = this->GetMainLoop();
+//    if (loop) {
+//    if (loop->IsRunning()) {
+//      while (loop->Pending()) // Unprocessed events in queue
+//      {
+//        loop->Dispatch(); // Dispatch next event in queue
+//      }
+//    }
+//  }
+//  return 0;
+//}
+//
+//int wxAppGDL::OnExit()
+//{
+//  std::cout << " In GDLApp::OnExit()" << std::endl;
+//  // Defined in guiThread::OnExit() in gdlwidget.cpp
+//  //  std::cout << "Exiting thread (GDLApp::OnExit): " << thread << std::endl;
+//  return 0;
+//}
+//#endif
 
 #endif

@@ -173,11 +173,11 @@ public:
     plotFrame->Raise();
   }
   //really show by letting the loop do its magic.
-#if __WXMSW__ 
-    wxTheApp->MainLoop(); //central loop for wxEvents!
-#else
+//#if __WXMSW__ 
+//    wxTheApp->MainLoop(); //central loop for wxEvents!
+//#else
     wxTheApp->Yield();
-#endif
+//#endif
   return true;
  }
 
