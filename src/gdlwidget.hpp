@@ -198,26 +198,26 @@ public:
  WidgetEventInfo(wxEventType t_, wxObjectEventFunction f_, wxWindow* w_) : t(t_), f(f_), w(w_) {
  }
 };
-//#if __WXMSW__ 
+#if __WXMSW__ 
 // main App class
-//class wxAppGDL: public wxApp
-//{
-// wxEventLoopBase* loop;
-//public:
-// int OnRun(){return 0;}
-// int OnExit();
-// int MainLoop();
-//// virtual int OneLoop();
-// bool OnInit();
-//// bool Pending(); //Returns true if unprocessed events are in the window system event queue.
-//// int FilterEvent(wxEvent& event) //This function is called before processing any event and 
-////allows the application to preempt the processing of some events. If this method returns -1
-////the event is processed normally, otherwise either true or false should be returned and 
-////the event processing stops immediately considering that the event had been already processed
-////(for the former return value) or that it is not going to be processed at all (for the latter one).
-//};
-////wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
-//#endif
+class wxAppGDL: public wxApp
+{
+ wxEventLoopBase* loop;
+public:
+ int OnRun(){return 0;}
+ int OnExit();
+ int MainLoop();
+// virtual int OneLoop();
+ bool OnInit();
+// bool Pending(); //Returns true if unprocessed events are in the window system event queue.
+// int FilterEvent(wxEvent& event) //This function is called before processing any event and 
+//allows the application to preempt the processing of some events. If this method returns -1
+//the event is processed normally, otherwise either true or false should be returned and 
+//the event processing stops immediately considering that the event had been already processed
+//(for the former return value) or that it is not going to be processed at all (for the latter one).
+};
+//wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
+#endif
 
 // GDL versions of wxWidgets controls =======================================
 DECLARE_LOCAL_EVENT_TYPE(wxEVT_SHOW_REQUEST, -1)
