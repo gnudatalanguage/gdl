@@ -90,7 +90,7 @@ if (frameWidth > 0) {\
   widgetPanel->FitInside();
 
 #define UPDATE_WINDOW { if (this->GetRealized()) UpdateGui(); }
-#define REALIZE_IF_NEEDED { if (this->GetRealized()) this->OnRealize();  }
+#define REALIZE_IF_NEEDED { if (this->GetRealized()) this->OnRealize(); UpdateGui(); }
 
 const WidgetIDT GDLWidget::NullID = 0;
 
@@ -436,6 +436,11 @@ void GDLWidget::UpdateGui()
   }
   this->GetMyTopLevelFrame()->Fit();
   END_CHANGESIZE_NOEVENT 
+#if __WXMSW__ 
+    wxTheApp->MainLoop(); //central loop for wxEvents!
+#else
+    wxTheApp->Yield();
+#endif
 }
 
 //Alternate version if there were sizing problems with the one above.
@@ -731,13 +736,18 @@ BaseGDL* GDLWidget::GetManagedWidgetsList() {
   }
   return result;
 }
+//
+bool GDLWidget::InitWx()
+{
+  if (!wxInitialize()) {
+    std::cerr << "WARNING: wxWidgets not initializing, widget-related commands will not be available." << std::endl;
+    return false;
+  }
+  return true;
+}
 // Init
 void GDLWidget::Init()
 {
-  if (!wxInitialize()) {
-    std::cerr << "WARNING: wxWidgets not initializing" << std::endl;
-    return;
-  }
  //set system font to something sensible now that wx is ON:
   if (forceWxWidgetsUglyFonts)
     systemFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ;//  identical for me to GDLWidget::setDefaultFont(wxFont("Monospace 8"));

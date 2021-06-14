@@ -81,9 +81,9 @@ public:
   int xoff;
   int yoff;
 
-  DLong xMaxSize, yMaxSize;
+  DLong xMaxSize=640;
+  DLong yMaxSize=512;
   DeviceWX::MaxXYSize(&xMaxSize, &yMaxSize);
-
   bool noPosx = (xPos == -1);
   bool noPosy = (yPos == -1);
   xPos = max(1, xPos); //starts at 1 to avoid problems plplot!
@@ -121,7 +121,7 @@ public:
   //1) a frame
   wxString titleWxString = wxString(title.c_str(), wxConvUTF8);
   long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);
-  gdlwxPlotFrame* plotFrame = new gdlwxPlotFrame(titleWxString, wxDefaultPosition, wxDefaultSize, style, scrolled);
+  gdlwxPlotFrame* plotFrame = new gdlwxPlotFrame(titleWxString, wxPoint(xoff,yoff), wxDefaultSize, style, scrolled);
   // Associate a sizer immediately
   wxSizer* tfSizer = new wxBoxSizer(wxVERTICAL);
   plotFrame->SetSizer(tfSizer);
@@ -161,40 +161,47 @@ public:
   plot->SetPStreamIx(wIx);
 
   plotFrame->Fit();
-  plotFrame->Realize();
   // these widget specific events are always set:
   plot->Connect(wxEVT_PAINT, wxPaintEventHandler(gdlwxGraphicsPanel::OnPaint));
   plotFrame->Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(gdlwxPlotFrame::OnUnhandledClosePlotFrame));
   plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
+  plotFrame->Realize();
   if (hide) {
    winList[ wIx]->UnMapWindowAndSetPixmapProperty(); //needed: will set the "pixmap" property
   } else {
     plotFrame->ShowWithoutActivating();
     plotFrame->Raise();
-  }  
+  }
+  //really show by letting the loop do its magic.
+#if __WXMSW__ 
+    wxTheApp->MainLoop(); //central loop for wxEvents!
+#else
+    wxTheApp->Yield();
+#endif
   return true;
  }
 
     // should check for valid streams
-     
-    GDLGStream* GetStream(bool open = true) {
-        TidyWindowsList();
-        if (actWin == -1) {
-            if (!open) return NULL;
 
-            DString title = "GDL 0";
-            DLong xSize, ySize;
-            DefaultXYSize(&xSize, &ySize);
-            bool success = WOpen(0, title, xSize, ySize, -1, -1, false);
-            if (!success)
-                return NULL;
-            if (actWin == -1) {
-                std::cerr << "Internal error: plstream not set." << std::endl;
-                exit(EXIT_FAILURE);
-            }
-        }
-        return winList[actWin];
-    }
+ GDLGStream* GetStream(bool open = true) {
+  TidyWindowsList();
+  if (actWin == -1) {
+   if (!open) return NULL;
+
+   DString title = "GDL 0";
+   DLong xSize = 640;
+   DLong ySize = 512;
+   DefaultXYSize(&xSize, &ySize);
+   bool success = WOpen(0, title, xSize, ySize, -1, -1, false);
+   if (!success)
+    return NULL;
+   if (actWin == -1) {
+    std::cerr << "Internal error: plstream not set." << std::endl;
+    exit(EXIT_FAILURE);
+   }
+  }
+  return winList[actWin];
+}
 
     bool SetGraphicsFunction(DLong value) {
         gcFunction = max(0, min(value, 15));
@@ -319,23 +326,24 @@ public:
      }
   return true;
  }
-    void DefaultXYSize(DLong *xSize, DLong *ySize) {
-        *xSize = wxSystemSettings::GetMetric(wxSYS_SCREEN_X) / 2;
-        *ySize = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y) / 2;
 
-        bool noQscreen = true;
-        string gdlQscreen = GetEnvString("GDL_GR_X_QSCREEN");
-        if (gdlQscreen == "1") noQscreen = false;
-        string gdlXsize = GetEnvString("GDL_GR_X_WIDTH");
-        if (gdlXsize != "" && noQscreen) *xSize = atoi(gdlXsize.c_str());
-        string gdlYsize = GetEnvString("GDL_GR_X_HEIGHT");
-        if (gdlYsize != "" && noQscreen) *ySize = atoi(gdlYsize.c_str());
-    }
+ void DefaultXYSize(DLong *xSize, DLong *ySize) {
+  *xSize = wxSystemSettings::GetMetric(wxSYS_SCREEN_X) / 2;
+  *ySize = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y) / 2;
 
-    void MaxXYSize(DLong *xSize, DLong *ySize) {
-        *xSize = wxSystemSettings::GetMetric(wxSYS_SCREEN_X);
-        *ySize = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y);
-    }
+  bool noQscreen = true;
+  string gdlQscreen = GetEnvString("GDL_GR_X_QSCREEN");
+  if (gdlQscreen == "1") noQscreen = false;
+  string gdlXsize = GetEnvString("GDL_GR_X_WIDTH");
+  if (gdlXsize != "" && noQscreen) *xSize = atoi(gdlXsize.c_str());
+  string gdlYsize = GetEnvString("GDL_GR_X_HEIGHT");
+  if (gdlYsize != "" && noQscreen) *ySize = atoi(gdlYsize.c_str());
+ }
+
+ void MaxXYSize(DLong *xSize, DLong *ySize) {
+  *xSize = wxSystemSettings::GetMetric(wxSYS_SCREEN_X);
+  *ySize = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y);
+ }
 
    GDLGStream* GUIOpen( int wIx, int xSize, int ySize, void* draw)
   {

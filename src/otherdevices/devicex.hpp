@@ -110,9 +110,9 @@ public:
     PLINT xleng; PLINT yleng;
     PLINT xoff; PLINT yoff;
 
-    DLong xMaxSize, yMaxSize;
+    DLong xMaxSize=640;
+    DLong yMaxSize=512;
     DeviceX::MaxXYSize(&xMaxSize, &yMaxSize);
-
     bool noPosx=(xPos==-1);
     bool noPosy=(yPos==-1);
     xPos=max(1,xPos); //starts at 1 to avoid problems plplot!
@@ -214,7 +214,8 @@ public:
             if (!open) return NULL;
 
             DString title = "GDL 0";
-            DLong xSize, ySize;
+            DLong xSize=640;
+            DLong ySize=512;
             DefaultXYSize(&xSize, &ySize);
             bool success = WOpen(0, title, xSize, ySize, -1, -1, false);
             if (!success)
@@ -359,62 +360,32 @@ public:
    if (standard) return CursorStandard(XC_arrow);
    else return CursorStandard(XC_crosshair);
   }
-  
-  void DefaultXYSize(DLong *xSize, DLong *ySize) {
-    *xSize = 640;
-    *ySize = 512;
 
-    Display* display = XOpenDisplay(NULL);
-    if (display != NULL)
-      {   
-	*xSize = DisplayWidth(display, DefaultScreen(display)) / 2; 
-	*ySize = DisplayHeight(display, DefaultScreen(display)) / 2;
-	XCloseDisplay(display);
-      }   
-
-    bool noQscreen=true;
-    string gdlQscreen=GetEnvString("GDL_GR_X_QSCREEN");
-    if( gdlQscreen == "1") noQscreen=false;
-    string gdlXsize=GetEnvString("GDL_GR_X_WIDTH");
-    if( gdlXsize != "" && noQscreen ) *xSize=atoi(gdlXsize.c_str()); 
-    string gdlYsize=GetEnvString("GDL_GR_X_HEIGHT");
-    if( gdlYsize != "" && noQscreen) *ySize=atoi(gdlYsize.c_str()); 
+ void DefaultXYSize(DLong *xSize, DLong *ySize) {
+  Display* display = XOpenDisplay(NULL);
+  if (display != NULL) {
+   *xSize = DisplayWidth(display, DefaultScreen(display)) / 2;
+   *ySize = DisplayHeight(display, DefaultScreen(display)) / 2;
+   XCloseDisplay(display);
   }
-  
-  void MaxXYSize(DLong *xSize, DLong *ySize) {
-    *ySize = 640;
-    *ySize = 512;
 
-    Display* display = XOpenDisplay(NULL);
-    if (display != NULL)
-      {
-	*xSize = DisplayWidth(display, DefaultScreen(display));
-	*ySize = DisplayHeight(display, DefaultScreen(display));
-	XCloseDisplay(display);
-      }
-    }
-//Please find how to specialize TidyWindowsList for wx and x11 widgets when this function is called
-//as GraphicsDevice::GetDevice()->TidyWindowsList(); which does not return a specialized version.
-// Util then, do not uncomment the following.
-//void TidyWindowsList() {
-//  int wLSize = winList.size();
-//  for (int i = 0; i < wLSize; i++) if (winList[i] != NULL && !winList[i]->GetValid()) {
-//    
-//    //general purpose winlist cleaning with destruction of "closed" plstreams and (eventually) associated widgets:
-//    //X11 case only. For some bad programming reason, sometimes the parent classe (graphicmultidevice) version is 
-//   // used.
-//    delete winList[i];
-//    winList[i] = NULL;
-//    oList[i] = 0;
-//  }
-//  // set new actWin IF NOT VALID ANY MORE
-//  if (actWin < 0 || actWin >= wLSize || winList[actWin] == NULL || !winList[actWin]->GetValid()) {
-//    std::vector< long>::iterator mEl = std::max_element(oList.begin(), oList.end()); // set to most recently created
-//    if (*mEl == 0) { // no window open
-//      SetActWin(-1); //sets   oIx = 1;
-//    } else SetActWin(GraphicsDevice::GetDevice()->GetNonManagedWidgetActWin(false)); //get first non-managed window. false is needed. 
-//  }
-//}  
+  bool noQscreen = true;
+  string gdlQscreen = GetEnvString("GDL_GR_X_QSCREEN");
+  if (gdlQscreen == "1") noQscreen = false;
+  string gdlXsize = GetEnvString("GDL_GR_X_WIDTH");
+  if (gdlXsize != "" && noQscreen) *xSize = atoi(gdlXsize.c_str());
+  string gdlYsize = GetEnvString("GDL_GR_X_HEIGHT");
+  if (gdlYsize != "" && noQscreen) *ySize = atoi(gdlYsize.c_str());
+  }
+
+ void MaxXYSize(DLong *xSize, DLong *ySize) {
+  Display* display = XOpenDisplay(NULL);
+  if (display != NULL) {
+   *xSize = DisplayWidth(display, DefaultScreen(display));
+   *ySize = DisplayHeight(display, DefaultScreen(display));
+   XCloseDisplay(display);
+  }
+ }  
 };
 
 //#undef MAX_WIN

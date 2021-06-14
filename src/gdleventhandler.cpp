@@ -38,7 +38,7 @@ int GDLEventHandler()
   GraphicsDevice::HandleEvents();
 
 #ifdef HAVE_LIBWXWIDGETS
-  GDLWidget::HandleWidgetEvents();
+  if (useWxWidgets) GDLWidget::HandleWidgetEvents();
 #endif
   const long OS_X_DELAY_NS = 20000000; // 20ms
 //ONLY APPLE? or WIN? Why? (GD)
