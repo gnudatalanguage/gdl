@@ -446,9 +446,6 @@ return visual;
 }
 
 DByteGDL* GDLWXStream::GetBitmapData() {
-//    plstream::cmd( PLESC_FLUSH, NULL );
-    wxMemoryDC temp_dc;
-    temp_dc.SelectObject(*m_bitmap);
     wxImage image=m_bitmap->ConvertToImage();
     unsigned char* mem=image.GetData();
     if ( mem == NULL ) return NULL;    
