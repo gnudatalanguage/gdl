@@ -61,6 +61,10 @@
 #include "matrix_invert.hpp"
 #include "triangulation.hpp"
 
+#ifdef HAVE_QHULL
+#include "qhull.hpp"
+#endif
+
 using namespace std;
 
 void LibInit_jmg()
