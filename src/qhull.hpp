@@ -33,6 +33,7 @@
 
 namespace lib {
   void qhull ( EnvT* e);
+  
   BaseGDL* qgrid3_fun ( EnvT* e);
 }
 #endif
