@@ -525,11 +525,14 @@ if(PLPLOT_FOUND)
       "
       #include <plplot/plplot.h>
       #include<string.h>
+      #include <stdio.h>
       int main(int argc, char **argv) {
       int numdevs = 128;
       const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
       const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
       plgDevs(&devlongnames, &devnames, &numdevs);
+      fprintf(stderr,\"PLPLOT Devices Found: \");
+      for (int i = 0; i < numdevs; ++i) {fprintf(stderr,\" - %s \", devnames[i]);}
       for (int i = 0; i < numdevs; ++i) {if (strcmp(\"wxwidgets\", devnames[i])==0) exit(EXIT_SUCCESS);}
       exit(EXIT_FAILURE);
       }
