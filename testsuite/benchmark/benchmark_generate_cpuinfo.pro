@@ -43,7 +43,20 @@ if (os_name EQ 'darwin') then begin
    ;;
 endif
 ;
-cpu_info={MHz : resu_Mhz, $
+if (os_name EQ 'windows') then begin
+   ;;
+   SPAWN, 'wmic cpu get maxclockspeed', resu_Mhz
+   resu_Mhz=FLOAT(resu_Mhz[1])
+   ;;
+   ;; no known equivalent of BogoMIPS on MSWin eiter :(
+   resu_bogo=-1
+   ;;
+   SPAWN, 'wmic cpu get name', model_name
+   model_name=model_name[1]
+   ;;
+endif
+;
+cpu_info={MHz : resu_Mhz, $bench
           Bogo : resu_bogo, $
           model : model_name, $
           used_cores : !cpu.TPOOL_NTHREADS, $
