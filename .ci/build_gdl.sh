@@ -21,9 +21,15 @@ ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}/.."}
 BUILD_OS=$(uname)
 if [[ ${BUILD_OS} == *"MSYS"* ]]; then
     BUILD_OS="Windows"
+elif [[ ${BUILD_OS} == *"MINGW"* ]]; then
+    BUILD_OS="Windows"
 elif [[ ${BUILD_OS} == "Darwin" ]]; then
     BUILD_OS="macOS"
 fi
+
+function log {  #log is needded just below!
+    echo "[${ME}] $@"
+}
 
 if [ ${BUILD_OS} == "Windows" ]; then
     BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
@@ -61,10 +67,6 @@ else
     log "Fatal error! Unknown OS: ${BUILD_OS}. This script only supports one of: Windows, Linux, macOS."
     exit 1
 fi
-
-function log {
-    echo "[${ME}] $@"
-}
 
 function download_file {
     package_url=$1
@@ -179,7 +181,7 @@ function prep_packages {
         done
         
         log "Installing dependencies: ${msys2_packages}"
-        eval "pacman --noconfirm -S ${msys2_packages}"
+        eval "pacman --noconfirm -S ${msys2_packages} "
 
         for package_name in ${MSYS2_PACKAGES_REBUILD[@]}; do
             build_msys2_package $package_name
@@ -311,8 +313,11 @@ function build_gdl {
           -DGEOTIFF=OFF -DSHAPELIB=OFF -DEXPAT=OFF \
           -DUSE_WINGDI_NOT_WINGCC=ON ${CMAKE_ADDITIONAL_ARGS[@]}
     fi
-    
-    make -j2 || exit 1
+
+    #find nthreads for make -j
+    NTHREADS=`getconf _NPROCESSORS_ONLN`
+
+    make -j${NTHREADS} || exit 1
     
     if [ ${BUILD_OS} == "Windows" ]; then
         # Copy dlls and libraries to src directory
