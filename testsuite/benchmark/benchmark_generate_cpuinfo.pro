@@ -56,7 +56,7 @@ if (os_name EQ 'windows') then begin
    ;;
 endif
 ;
-cpu_info={MHz : resu_Mhz, $bench
+cpu_info={MHz : resu_Mhz, $
           Bogo : resu_bogo, $
           model : model_name, $
           used_cores : !cpu.TPOOL_NTHREADS, $
