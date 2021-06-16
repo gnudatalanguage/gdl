@@ -136,8 +136,9 @@ void GDLSetLimits()
 struct rlimit* gdlstack=new struct rlimit;
   int r=getrlimit(RLIMIT_STACK,gdlstack); 
 //  cerr <<"Current rlimit = "<<gdlstack->rlim_cur<<endl;
-//  cerr<<"Max rlimit = "<<  gdlstack->rlim_max<<endl;     
-  if (gdlstack->rlim_max > GDL_PREFERED_STACKSIZE ) gdlstack->rlim_cur=GDL_PREFERED_STACKSIZE;
+//  cerr<<"Max rlimit = "<<  gdlstack->rlim_max<<endl;
+  if (gdlstack->rlim_cur >= GDL_PREFERED_STACKSIZE ) return; //the bigger the better.
+  if (gdlstack->rlim_max > GDL_PREFERED_STACKSIZE ) gdlstack->rlim_cur=GDL_PREFERED_STACKSIZE; //not completely satisfactory.
   r=setrlimit(RLIMIT_STACK,gdlstack);
 }
 #endif
@@ -159,7 +160,7 @@ void InitGDL()
   rl_event_hook = GDLEventHandler;
 #endif
 #ifdef HAVE_LIBWXWIDGETS
-    GDLWidget::Init();
+    if (useWxWidgets) GDLWidget::Init();
 #endif
   // ncurses blurs the output, initialize TermWidth here
   TermWidth();
@@ -229,7 +230,11 @@ int main(int argc, char *argv[])
   forceWxWidgetsUglyFonts = false;
   useDSFMTAcceleration = true;
   iAmANotebook=false; //option --notebook
-  
+ #ifdef HAVE_LIBWXWIDGETS 
+  useWxWidgets=true;
+#else
+  useWxWidgets=false;
+#endif  
 #ifdef _WIN32
   lib::posixpaths = false;
 #endif
@@ -398,8 +403,10 @@ int main(int argc, char *argv[])
   //before InitGDL() as InitGDL() starts graphic!
   
 #ifdef HAVE_LIBWXWIDGETS
+  //tells if wxWidgets is working (may not be the case if DISPLAY is not set) by setting useWxWidgets to false
+  useWxWidgets=GDLWidget::InitWx();
   // default is wx Graphics...
-  useWxWidgetsForGraphics=true;
+  useWxWidgetsForGraphics=useWxWidgets;
 #else
   useWxWidgetsForGraphics=false;
 #endif
@@ -412,7 +419,7 @@ int main(int argc, char *argv[])
   std::string doUseUglyFonts=GetEnvString("GDL_WIDGETS_COMPAT");
   if ( doUseUglyFonts.length() > 0) forceWxWidgetsUglyFonts=true; 
   
-  InitGDL();
+  InitGDL(); 
 
   // must be after !cpu initialisation
   InitOpenMP();

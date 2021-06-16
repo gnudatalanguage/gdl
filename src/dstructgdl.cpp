@@ -28,8 +28,8 @@ vector< void*> DStructGDL::freeList;
 #ifdef HAVE_LIBWXWIDGETS
 #include <wx/wx.h>
 wxMutex mutexNewDelete;
-#define LOCK_MUTEXNEWDELETE	mutexNewDelete.Lock();
-#define UNLOCK_MUTEXNEWDELETE	mutexNewDelete.Unlock();
+#define LOCK_MUTEXNEWDELETE	if (useWxWidgets) mutexNewDelete.Lock();
+#define UNLOCK_MUTEXNEWDELETE	if (useWxWidgets) mutexNewDelete.Unlock();
 #else
 #define LOCK_MUTEXNEWDELETE	;
 #define UNLOCK_MUTEXNEWDELETE	;
