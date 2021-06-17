@@ -23,6 +23,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 //Qhull libraries
 
@@ -35,6 +36,7 @@
 #include <libqhullcpp/QhullFacetSet.h>
 #include <libqhullcpp/QhullLinkedList.h>
 #include <libqhullcpp/QhullPoint.h>
+#include <libqhullcpp/QhullRidge.h>
 #include <libqhullcpp/QhullVertex.h>
 #include <libqhullcpp/QhullVertexSet.h>
 #include <libqhullcpp/Qhull.h>
@@ -52,6 +54,8 @@ using orgQhull::QhullPoint;
 using orgQhull::QhullPoints;
 using orgQhull::QhullPointsIterator;
 using orgQhull::QhullQh;
+using orgQhull::QhullRidge;
+using orgQhull::QhullRidgeSet;
 using orgQhull::QhullVertex;
 using orgQhull::QhullVertexList;
 using orgQhull::QhullVertexListIterator;
@@ -67,12 +71,20 @@ using std::endl;
 using std::string;
 
 namespace lib {
+  bool sameRidge2d(vector<QhullVertex> r1, vector<QhullVertex> r2)
+  {
+      if(r1.at(0).point().id() == r2.at(0).point().id() && r1.at(1).point().id() == r2.at(1).point().id())
+      {
+        return true;
+      } else if(r1.at(0).point().id() == r2.at(1).point().id() && r1.at(1).point().id() == r2.at(0).point().id()){
+        return true;
+      }
+      return false;
+  }
+
   void qhull ( EnvT* e)
   {
     // There might be a simpler/cleaner way to do this...
-    static int delaunayIx=e->KeywordIx("DELAUNAY");
-    bool isDelaunay=e->KeywordSet(delaunayIx);
-
     static int connIx=e->KeywordIx("CONNECTIVITY");
     bool isConn=e->KeywordPresent(connIx);
 
@@ -88,8 +100,13 @@ namespace lib {
     static int vvertIx=e->KeywordIx("VVERTICES");
     bool isVvert=e->KeywordPresent(vvertIx);
 
+    bool isVoronoi= isVnorm || isVdiag || isVvert;
+
     static int sphereIx=e->KeywordIx("SPHERE");
     bool isSphere=e->KeywordPresent(sphereIx);
+
+    static int delaunayIx=e->KeywordIx("DELAUNAY");
+    bool isDelaunay= ( e->KeywordSet(delaunayIx) || isVoronoi); //switch to delaunay if a voronoi keyword is set
 
     if(isConn & !isDelaunay) e->Throw("Keyword CONNECTIVITY requires the presence of keyword DELAUNAY/SPHERE.\nSPHERE is not implemented yet.");        
     
@@ -112,7 +129,7 @@ namespace lib {
           DDoubleGDL* par=e->GetParAs<DDoubleGDL>(i);
           if(par->Dim(0) != inDim || par->Dim(1) != 0 )
           {
-            e->Throw("qhull input error: input arrays must have same length and be 1 dimensional");
+            e->Throw("qhull input error: separated input arrays must have same length and be 1 dimensional");
           }
           for(int j=0; j<inDim; j++) (*p0)[i+j*(nParam-1)] = (*par)[j];
         }
@@ -145,12 +162,11 @@ namespace lib {
     }
 
     mPoints->append(allPoints);
-
     int ndRes;
 
     if(isDelaunay)
     {
-        //QJ option prevents not triangulated facets in the first place, it seems to be the option IDL uses
+        //QJ option prevents non-simplicial facets, it seems to be the option IDL uses
         //While Qt option triangulates facets afterwards, which gives somewhat different results in some cases
         qhull.runQhull( mPoints->comment().c_str(), nd, np, mPoints->coordinates(), "QJ d");
         ndRes=nd+1;
@@ -217,11 +233,11 @@ namespace lib {
       vector<vector<long>>connV(qhull.vertexCount());
 
       qhull.defineVertexNeighborFacets();
-      QhullVertexList vertexes = qhull.vertexList();
+      QhullVertexList vertices = qhull.vertexList();
 
       long connCount=0;
 
-      for(QhullVertexList::iterator vIt = vertexes.begin(); vIt != vertexes.end(); vIt++)
+      for(QhullVertexList::iterator vIt = vertices.begin(); vIt != vertices.end(); vIt++)
       {
         QhullVertex vertex = *vIt;
 
@@ -232,13 +248,9 @@ namespace lib {
 
         for(QhullFacetSet::iterator nIt = neighbors.begin(); nIt != neighbors.end(); ++nIt)
         {
-          if(!(*nIt).isGood())
-          {
-              continue;
-          }
+          if(!(*nIt).isGood()) continue;
           QhullFacet neighbor = *nIt;
           QhullVertexSet neighborVSet = neighbor.vertices();
-
           for (QhullVertexSet::iterator nVIt = neighborVSet.begin(); nVIt != neighborVSet.end(); ++nVIt)
           {
               QhullVertex v = *nVIt;
@@ -253,17 +265,6 @@ namespace lib {
         }
         connV.at(vertexId) = neighborsV;
       }
-
-      //printing
-      /*
-      for(int i=0; i < connV.size(); i++)
-      {
-        cout << endl << "Point: "<< i << endl;
-        for (int j=0; j < connV.at(i).size(); j++){
-            cout << connV.at(i).at(j) << "   ";
-        }
-      }
-      */
 
       //creating the result connectivity array
       DLongGDL* conn = new DLongGDL(*(new dimension( np + 1 + connCount )), BaseGDL::ZERO);
@@ -281,6 +282,116 @@ namespace lib {
           writeIx += neighborsV.size();
       }
       e->SetKW(connIx, conn);
+    }
+
+    if(isVoronoi)
+    {
+      //prepare voronoi
+      bool isLower;            //not used
+      int voronoiVertexCount;  //not used
+      qhull.prepareVoronoi(&isLower, &voronoiVertexCount);
+    }
+
+    //voronoi vertices
+    if(isVvert)
+    {
+      vector<vector<double> > vVertices;
+
+      for(QhullFacetList::iterator it = facets.begin(); it != facets.end(); ++it)
+      {
+        if (!(*it).isGood()) continue;
+        QhullFacet f = *it;
+        vVertices.push_back(f.getCenter().toStdVector());
+      }
+
+      DDoubleGDL* vvert=new DDoubleGDL( *(new dimension(nd, vVertices.size())), BaseGDL::ZERO);
+
+      int nvVert=vVertices.size();
+      for(int i=0; i < nvVert; ++i)
+      {
+        for(int j=0; j<nd; ++j)
+        {
+            (*vvert)[nd*i+j]=vVertices.at(i).at(j);
+        }
+      }
+      e->SetKW(vvertIx, vvert);
+    }
+
+    //voronoi diagrams A FAIRE DEMAIN
+    if(isVdiag)
+    {
+      if(nd==2)
+      {
+        vector<vector<double> > vVertices;
+
+        for(QhullFacetList::iterator it = facets.begin(); it != facets.end(); ++it)
+        {
+          if (!(*it).isGood()) continue;
+          QhullFacet f = *it;
+          QhullFacetSet neighbors = f.neighborFacets();
+          cout << "Neighbor facets: "<<neighbors.count() << endl;
+
+          QhullRidgeSet fRidges = f.ridges();
+          cout << "Ridges: "<<f.ridges().count() << endl;
+
+          vector<vector<QhullVertex>> fRidgesVector; //segment de la face parente
+          for(QhullRidgeSet::iterator frIt = fRidges.begin(); frIt != fRidges.end(); ++frIt)
+          {
+            fRidgesVector.push_back( (*frIt).vertices().toStdVector() );
+          }
+
+          for(QhullFacetSet::iterator nIt = neighbors.begin(); nIt != neighbors.end(); nIt++)
+          {
+            if (!(*nIt).isGood()) continue;
+            QhullFacet neighbor = *nIt;
+            QhullRidgeSet nRidges = neighbor.ridges();
+
+            vector<vector<QhullVertex>> nRidgesVector; //segments de la face voisine
+            for(QhullRidgeSet::iterator nrIt = fRidges.begin(); nrIt != fRidges.end(); ++nrIt)
+            {
+              nRidgesVector.push_back( (*nrIt).vertices().toStdVector() );
+            }
+
+            // nRidges.at(0).vertices().at(0).point().id();
+
+            for(int i=0; i<fRidgesVector.size(); ++i)
+            {
+              for(int j=0; j<nRidgesVector.size(); ++j)
+              {
+                  if(sameRidge2d(fRidgesVector.at(i), nRidgesVector.at(j)) )
+                  {
+                      int id1 = fRidgesVector.at(i).at(0).point().id();
+                      int id2 = fRidgesVector.at(i).at(1).point().id();
+                      double x1=f.getCenter().toStdVector()[0];
+                      double y1=f.getCenter().toStdVector()[1];
+                      double x2=neighbor.getCenter().toStdVector()[0];
+                      double y2=neighbor.getCenter().toStdVector()[1];
+
+                      cout << "Points: " << id1 <<" - "<< id2<< endl;
+                      cout << "Centre 1: " << x1 <<" - "<< y1<< endl;
+                      cout << "Centre 2: " << x2 <<" - "<< y2<< endl;
+                      
+                  }
+              }
+            }
+          }
+
+          //vVertices.push_back(f.getCenter().toStdVector());
+        }
+      } else {
+
+        //Dimension > 2
+      }
+      
+
+
+    }
+
+
+    //voronoi normals
+    if(isVnorm)
+    {
+
     }
 
     e->SetPar(outIx, res);
