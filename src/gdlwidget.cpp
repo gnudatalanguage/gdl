@@ -738,11 +738,12 @@ BaseGDL* GDLWidget::GetManagedWidgetsList() {
 }
 //
 bool GDLWidget::InitWx()
-{
+{ if (wxTheApp == NULL) { //not already initialized
   if (!wxInitialize()) {
     std::cerr << "WARNING: wxWidgets not initializing, widget-related commands will not be available." << std::endl;
     return false;
   }
+} else {std::cerr << "INFO: wxWidgets already initialized (in 3rd party library?), pursue with fingers crossed" << std::endl; }
   return true;
 }
 // Init
