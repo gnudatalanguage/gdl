@@ -82,8 +82,8 @@ set(PNGLIBDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
 set(GRIB ON CACHE BOOL "GDL: Enable GRIB ?")
 set(GRIBDIR "" CACHE PATH "GDL: Specify the ECMWF ecCodes or GRIB API directory tree")
 
-# set(QHULL OFF CACHE BOOL "GDL: Enable Qhull ?")
-# set(QHULLDIR "" CACHE PATH "GDL: Specify the QHULL directory tree")
+set(QHULL ON CACHE BOOL "GDL: Enable Qhull ?")
+set(QHULLDIR "" CACHE PATH "GDL: Specify the QHULL directory tree")
 
 set(GLPK ON CACHE BOOL "GDL: Enable GLPK (for function SIMPLEX) ?")
 set(GLPKDIR "" CACHE PATH "GDL: Specify the GLPK directory tree")
@@ -525,14 +525,11 @@ if(PLPLOT_FOUND)
       "
       #include <plplot/plplot.h>
       #include<string.h>
-      #include <stdio.h>
       int main(int argc, char **argv) {
       int numdevs = 128;
       const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
       const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
       plgDevs(&devlongnames, &devnames, &numdevs);
-      fprintf(stderr,\"PLPLOT Devices Found: \");
-      for (int i = 0; i < numdevs; ++i) {fprintf(stderr,\" - %s \", devnames[i]);}
       for (int i = 0; i < numdevs; ++i) {if (strcmp(\"wxwidgets\", devnames[i])==0) exit(EXIT_SUCCESS);}
       exit(EXIT_FAILURE);
       }
@@ -1014,24 +1011,24 @@ if(GRIB)
     endif(GRIB_FOUND)
 endif(GRIB)
 
-# QHULL IS NOT NEEDED YET!
-# # Qhull (enable TRIANGULATE and QHULL commands)
-# # -DQHULL=ON|OFF
-# # -DQHULLDIR=DIR
-# if(QHULL)
-#   set(CMAKE_PREFIX_PATH ${QHULLDIR})
-#   find_package(QHULL QUIET)
-#   set(PL_HAVE_QHULL ${QHULL_FOUND})
-#   if(QHULL_FOUND)
-#       set(LIBRARIES ${LIBRARIES} ${QHULL_LIBRARIES})
-#       include_directories(${QHULL_INCLUDE_DIR})
-#   else(QHULL_FOUND)
-#       message(FATAL_ERROR "QHULL is required but was not found.\n"
-#       "Use -DQHULLDIR=DIR to specify the QHULL directory tree.\n"
-#       "Use -DQHULL=OFF to not use it.\n"
-#                 "(suitable Fedora/CentOS package libqhull-devel)")
-#   endif(QHULL_FOUND)
-# endif(QHULL)
+# Qhull (enable TRIANGULATE and QHULL commands)
+# -DQHULL=ON|OFF
+# -DQHULLDIR=DIR
+if(QHULL)
+  set(CMAKE_PREFIX_PATH ${QHULLDIR})
+  find_package(QHULL QUIET)
+  set(HAVE_QHULL ${QHULL_FOUND})
+  if(QHULL_FOUND)
+      set(LIBRARIES ${LIBRARIES} ${QHULL_LIBRARIES})
+      include_directories(${QHULL_INCLUDE_DIR})
+  else(QHULL_FOUND)
+      message(FATAL_ERROR "QHULL is required but was not found.\n"
+      "Use -DQHULLDIR=DIR to specify the QHULL directory tree.\n"
+      "Use -DQHULL=OFF to not use it.\n"
+                "(suitable Fedora/CentOS package libqhull-devel)")
+  endif(QHULL_FOUND)
+endif(QHULL)
+
 
 # GLPK for Simplex ( Linear programming )
 # GLPK (enable SIMPLEX command)
@@ -1206,8 +1203,8 @@ module(UDUNITS2  "UDUNITS-2     ")
 module(EIGEN3    "EIGEN3        ")
 
 module(GRIB      "GRIB          ")
-# set(QHULL_LIBRARIES ${QHULL_LIBRARIES})
-# module(QHULL     "QHULL         ")
+set(QHULL_LIBRARIES ${QHULL_LIBRARIES})
+module(QHULL     "QHULL         ")
 set(GLPK_LIBRARIES ${GLPK_LIBRARIES})
 module(GLPK      "GLPK          ")
 set(SHAPELIB_LIBRARIES ${SHAPELIB_LIBRARIES})
