@@ -84,6 +84,7 @@ public:
   DLong xMaxSize=640;
   DLong yMaxSize=512;
   DeviceWX::MaxXYSize(&xMaxSize, &yMaxSize);
+
   bool noPosx = (xPos == -1);
   bool noPosy = (yPos == -1);
   xPos = max(1, xPos); //starts at 1 to avoid problems plplot!
@@ -103,7 +104,11 @@ public:
   if (yPos + y_scroll_size > yMaxSize) yPos = yMaxSize - y_scroll_size - 1;
   // dynamic allocation needed!    
   PLINT Quadx[4] = {xMaxSize - x_scroll_size - 1, xMaxSize - x_scroll_size - 1, 1, 1};
-  PLINT Quady[4] = {1, yMaxSize - y_scroll_size - 1, 1, yMaxSize - y_scroll_size - 1};
+#ifdef __APPLE__
+  PLINT Quady[4] = {24, yMaxSize - y_scroll_size - 1, 24, yMaxSize - y_scroll_size - 1}; //do not cover 24 pix taskbar.
+#else
+  PLINT Quady[4] = {1, yMaxSize - y_scroll_size - 1, 1, yMaxSize - y_scroll_size - 1}; //IDL covers the linux (bottom) taskbar too
+#endif
   if (noPosx && noPosy) { //no init given, use 4 quadrants:
    xoff = Quadx[wIx % 4];
    yoff = Quady[wIx % 4];

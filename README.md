@@ -43,7 +43,7 @@ Other open-source numerical data analysis tools similar to GDL include
 [R](http://www.r-project.org/),
 [Yorick](http://yorick.sourceforge.net/).
 
-Package availability
+Getting GDL
 -------------------------------------
 
 See:

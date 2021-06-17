@@ -121,6 +121,11 @@ void GDLWXStream::Update()
 {
   if( this->valid && container != NULL)
     container->RepaintGraphics();
+#if __WXMSW__ 
+    wxTheApp->MainLoop(); //central loop for wxEvents!
+#else
+    wxTheApp->Yield();
+#endif
 }
 
 ////should be used when one does not recreate a wxstream each time size changes...

@@ -179,12 +179,6 @@ ${SOURCES}
 sax.cpp
 )
 endif(USE_EXPAT)
-if(HAVE_QHULL)
-set (SOURCES
-${SOURCES}
-qhull.cpp
-)
-endif(HAVE_QHULL)
 if(HAVE_LIBWXWIDGETS AND WIN32)
 find_file(WX_RC wx.rc HINTS ${wxWidgets_INCLUDE_DIRS} PATH_SUFFIXES wx/msw)
 set(SOURCES
@@ -215,11 +209,9 @@ endif(USE_OPENMP)
 
 add_dependencies(gdl antlr) # be sure that antlr is built before gdl
 target_link_libraries(gdl antlr) # link antlr against gdl
-
 if (MINGW)
 target_link_libraries(gdl ws2_32)
 endif (MINGW)
-
 target_link_libraries(gdl ${LIBRARIES})
 add_definitions(-DHAVE_CONFIG_H)
 

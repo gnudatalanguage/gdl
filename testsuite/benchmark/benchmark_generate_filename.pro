@@ -16,12 +16,12 @@ endif
 ;
 name=''
 ;
+date=timestamp()
 if KEYWORD_set(short) then begin
-   commande_date="date ""+y%Ym%md%d"""
+   result='y'+strmid(date,0,4)+'m'+strmid(date,5,2)+'d'+strmid(date,8,2)
 endif else begin
-    commande_date="date ""+y%Ym%md%d_%H:%M:%S"""  
+    result='y'+strmid(date,0,4)+'m'+strmid(date,5,2)+'d'+strmid(date,8,2)+'_'+strjoin( strsplit( strmid(date,11,8) , /extract, ':'), path_sep(/search))
 endelse
-SPAWN, commande_date, result, status
 ;
 machine=GET_LOGIN_INFO()
 ;
