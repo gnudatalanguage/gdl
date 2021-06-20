@@ -351,52 +351,8 @@ public:
   }
 
   // returns current memory usage and updates the highwater mark
-  static void UpdateCurrent() 
-  { 
-    // ---------------------------------------------------------------------
-    // based on the codes from:
-    // - the LLVM project (lib/System/Unix/Process.inc) see http://llvm.org/
-    // - the Squid cache project (src/tools.cc) see http://squid-cache.org/
-    // TODO (TOCHECK): Squid considers also gnumalloc.h - ?
-#if defined(HAVE_MALLINFO)
-    // Linux case for example
-    static struct mallinfo mi;
-    mi = mallinfo();
-//         printf("Total non-mmapped bytes (arena):       %d\n", mi.arena);
-//           printf("# of free chunks (ordblks):            %d\n", mi.ordblks);
-//           printf("# of free fastbin blocks (smblks):     %d\n", mi.smblks);
-//           printf("# of mapped regions (hblks):           %d\n", mi.hblks);
-//           printf("Bytes in mapped regions (hblkhd):      %d\n", mi.hblkhd);
-//           printf("Max. total allocated space (usmblks):  %d\n", mi.usmblks);
-//           printf("Free bytes held in fastbins (fsmblks): %d\n", mi.fsmblks);
-//           printf("Total allocated space (uordblks):      %d\n", mi.uordblks);
-//           printf("Total free space (fordblks):           %d\n", mi.fordblks);
-//           printf("Topmost releasable block (keepcost):   %d\n", mi.keepcost);
-      Current = mi.arena+mi.hblkhd; //was mi.uordblks;
-#elif defined(HAVE_MALLOC_ZONE_STATISTICS) && defined(HAVE_MALLOC_MALLOC_H)
-    // Mac OS X case for example
-    static malloc_statistics_t stats;
-    malloc_zone_statistics(malloc_default_zone(), &stats);
-    Current = stats.size_in_use;
-#elif defined(HAVE_SBRK)
-    // Open Solaris case for example
-    static char* EndOfMemory;
-    EndOfMemory = (char*)sbrk(0);
-    Current = EndOfMemory - StartOfMemory;
-#elif defined(_WIN32)
-    // a draft of Windows version (for neccesarry includes consult the LLVM source): 
-    _HEAPINFO hinfo;
-    hinfo._pentry = NULL;
-    Current = 0;
-    while (_heapwalk(&hinfo) == _HEAPOK)
-        if (hinfo._useflag == _USEDENTRY)
-            Current += hinfo._size;
-#else
-    Warning("Cannot get dynamic memory information on this platform (FIXME)");
-#endif
+  static void UpdateCurrent() ;
 
-    HighWater = std::max(HighWater, Current);
-  }
 
 };
 
