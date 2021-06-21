@@ -320,78 +320,13 @@ namespace lib {
     //voronoi diagrams A FAIRE DEMAIN
     if(isVdiag)
     {
-      if(nd==2)
-      {
-        vector<vector<double> > vVertices;
-
-        for(QhullFacetList::iterator it = facets.begin(); it != facets.end(); ++it)
-        {
-          if (!(*it).isGood()) continue;
-          QhullFacet f = *it;
-          QhullFacetSet neighbors = f.neighborFacets();
-          cout << "Neighbor facets: "<<neighbors.count() << endl;
-
-          QhullRidgeSet fRidges = f.ridges();
-          cout << "Ridges: "<<f.ridges().count() << endl;
-
-          vector<vector<QhullVertex>> fRidgesVector; //segment de la face parente
-          for(QhullRidgeSet::iterator frIt = fRidges.begin(); frIt != fRidges.end(); ++frIt)
-          {
-            fRidgesVector.push_back( (*frIt).vertices().toStdVector() );
-          }
-
-          for(QhullFacetSet::iterator nIt = neighbors.begin(); nIt != neighbors.end(); nIt++)
-          {
-            if (!(*nIt).isGood()) continue;
-            QhullFacet neighbor = *nIt;
-            QhullRidgeSet nRidges = neighbor.ridges();
-
-            vector<vector<QhullVertex>> nRidgesVector; //segments de la face voisine
-            for(QhullRidgeSet::iterator nrIt = fRidges.begin(); nrIt != fRidges.end(); ++nrIt)
-            {
-              nRidgesVector.push_back( (*nrIt).vertices().toStdVector() );
-            }
-
-            // nRidges.at(0).vertices().at(0).point().id();
-
-            for(int i=0; i<fRidgesVector.size(); ++i)
-            {
-              for(int j=0; j<nRidgesVector.size(); ++j)
-              {
-                  if(sameRidge2d(fRidgesVector.at(i), nRidgesVector.at(j)) )
-                  {
-                      int id1 = fRidgesVector.at(i).at(0).point().id();
-                      int id2 = fRidgesVector.at(i).at(1).point().id();
-                      double x1=f.getCenter().toStdVector()[0];
-                      double y1=f.getCenter().toStdVector()[1];
-                      double x2=neighbor.getCenter().toStdVector()[0];
-                      double y2=neighbor.getCenter().toStdVector()[1];
-
-                      cout << "Points: " << id1 <<" - "<< id2<< endl;
-                      cout << "Centre 1: " << x1 <<" - "<< y1<< endl;
-                      cout << "Centre 2: " << x2 <<" - "<< y2<< endl;
-                      
-                  }
-              }
-            }
-          }
-
-          //vVertices.push_back(f.getCenter().toStdVector());
-        }
-      } else {
-
-        //Dimension > 2
-      }
-      
-
-
+      e->Throw("vdiagrams option not available yet.");
     }
-
 
     //voronoi normals
     if(isVnorm)
     {
-
+      e->Throw("vnorms option not available yet.");
     }
 
     e->SetPar(outIx, res);
