@@ -5439,7 +5439,7 @@ gdlwxGraphicsPanel::gdlwxGraphicsPanel( wxWindow* parent, wxWindowID id, const w
 : wxScrolled<wxPanel>() // Use default ctor here!
 , pstreamIx( -1 )
 , pstreamP( NULL )
-, m_dc( NULL)
+, wx_dc( NULL)
 , drawSize(size)
 { 
         // Do this first:
@@ -5460,7 +5460,7 @@ void gdlwxGraphicsPanel::DeleteUsingWindowNumber(){
 }
 void gdlwxGraphicsPanel::SetStream(GDLWXStream* s) {
   pstreamP = s;
-  m_dc = pstreamP->GetDC();
+  wx_dc = pstreamP->GetStreamDC();
 }
 gdlwxPlotPanel::gdlwxPlotPanel( gdlwxPlotFrame* parent) //, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
 : gdlwxGraphicsPanel::gdlwxGraphicsPanel(parent)
@@ -5471,6 +5471,16 @@ gdlwxPlotPanel::gdlwxPlotPanel( gdlwxPlotFrame* parent) //, wxWindowID id, const
 #endif
     this->SetBackgroundColour(*wxBLACK);
 }
+
+void gdlwxGraphicsPanel::RepaintGraphics(bool doClear) {
+  wxPaintDC dc(this); //is a scrolled window: needed
+  DoPrepareDC(dc); //you probably do not want to call wxScrolled::PrepareDC() on wxAutoBufferedPaintDC as it already does this internally for the real underlying wxPaintDC.
+  dc.SetBackground(*wxYELLOW_BRUSH);
+  dc.SetDeviceClippingRegion(GetUpdateRegion());
+  if (doClear) dc.Clear();
+  dc.Blit(0, 0, drawSize.x, drawSize.y, wx_dc, 0, 0);
+}
+
 gdlwxDrawPanel::gdlwxDrawPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
 : gdlwxGraphicsPanel::gdlwxGraphicsPanel(parent, id, pos, size, style, name )
 , myWidgetDraw(static_cast<GDLWidgetDraw*>(GDLWidget::GetWidget(id)))
@@ -5490,7 +5500,7 @@ void gdlwxDrawPanel::InitStream(int wIx)
   {
     throw GDLException( "Failed to open GUI stream: " + i2s( pstreamIx ) );
   }
-  m_dc = pstreamP->GetDC( );
+  wx_dc = pstreamP->GetStreamDC( );
 }
 
 void gdlwxGraphicsPanel::ResizeDrawArea(wxSize s)
@@ -5511,11 +5521,11 @@ void gdlwxGraphicsPanel::ResizeDrawArea(wxSize s)
 //  // replace old by new, called function destroys old:
 //    GraphicsDevice::GetGUIDevice( )->ChangeStreamAt( pstreamIx, newStream );   //deletes old stream!
 //    pstreamP = static_cast<GDLWXStream*> (GraphicsDevice::GetGUIDevice( )->GetStreamAt( pstreamIx ));
-//    pstreamP->SetGdlwxGraphicsPanel( this );
-//    m_dc = pstreamP->GetDC( );
+//    pstreamP->SetGdlxwGraphicsPanel( this );
+//    wx_dc = pstreamP->GetStreamDC( );
 //    pstreamP->Clear();
   }
-  RepaintGraphics(doClear);
+  this->RepaintGraphics(doClear);
 } 
 
 gdlwxPlotPanel::~gdlwxPlotPanel()

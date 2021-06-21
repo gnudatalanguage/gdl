@@ -1295,7 +1295,7 @@ void gdlwxGraphicsPanel::OnPaint(wxPaintEvent& event)
   this->RepaintGraphics();
   event.Skip();
 }
-
+ 
 void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
 
   wxSize newSize = event.GetSize(); //size returned by the external frame
@@ -1309,7 +1309,6 @@ void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
   if (p->IsScrolled()) {
     bool enlarge = false;
     wxSize oldVirtualSize = this->GetVirtualSize();
-    std::cerr << oldVirtualSize.y << std::endl;
     if (oldVirtualSize.x < newSize.x) {
       enlarge = true;
       oldVirtualSize.x = newSize.x;
@@ -1318,13 +1317,13 @@ void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
       enlarge = true;
       oldVirtualSize.y = newSize.y;
     }
-    if (enlarge) this->ResizeDrawArea(oldVirtualSize);
     this->SetMinSize(newSize);
     this->SetSize(newSize);
+    if (enlarge) this->ResizeDrawArea(oldVirtualSize);
   } else {
-    this->ResizeDrawArea(newSize);
     this->SetMinClientSize(newSize);
     this->SetClientSize(newSize);
+    this->ResizeDrawArea(newSize);
   }
   event.Skip();
 }
