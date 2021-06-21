@@ -284,13 +284,14 @@ namespace lib {
       e->SetKW(connIx, conn);
     }
 
-    if(isVoronoi)
+    /*if(isVoronoi)
     {
       //prepare voronoi
       bool isLower;            //not used
       int voronoiVertexCount;  //not used
       qhull.prepareVoronoi(&isLower, &voronoiVertexCount);
-    }
+    }*/
+
 
     //voronoi vertices
     if(isVvert)
