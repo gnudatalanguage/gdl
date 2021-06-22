@@ -5,33 +5,23 @@
 # QHULL_INCLUDE_DIRS - Directories containing the QHULL include files.
 # QHULL_LIBRARIES - Libraries needed to use QHULL.
 
-find_path(
-        QHULL_INCLUDE_DIR
-        libqhullcpp/Qhull.h
-        PATHS /usr/local/include /usr/include
+find_path(QHULL_INCLUDE_DIR NAMES libqhullcpp/Qhull.h
+        HINTS ${CMAKE_PREFIX_PATH}/src /usr/local/include /usr/include
+        PATH_SUFFIXES qhull src/libqhull libqhull include
         )
 
 if(QHULL_INCLUDE_DIR)
-    find_library(
-        QHULL_R_LIBRARY
-        qhull_r
-        PATHS /usr/lib64 /usr/local/lib /usr/lib
-        )
-
-    find_library(
-        QHULL_CPP_LIBRARY
-        qhullcpp
-        PATHS /usr/lib64 /usr/local/lib /usr/lib
-        )
+    find_library(QHULL_R_LIBRARY NAMES qhull_r HINTS ${CMAKE_PREFIX_PATH})
+    find_library(QHULL_CPP_LIBRARY NAMES qhullcpp HINTS ${CMAKE_PREFIX_PATH})
 
     include(FindPackageHandleStandardArgs)
     find_package_handle_standard_args(
         QHULL
-        REQUIRED_VARS QHULL_R_LIBRARY QHULL_INCLUDE_DIR
+        REQUIRED_VARS QHULL_R_LIBRARY QHULL_CPP_LIBRARY QHULL_INCLUDE_DIR
         )
 
     if(QHULL_R_LIBRARY AND QHULL_CPP_LIBRARY)
-        SET(QHULL_FOUND ON)
+        SET(QHULL_FOUND TRUE)
         SET(QHULL_INCLUDE_DIRS ${QHULL_INCLUDE_DIR})
         SET(QHULL_LIBRARIES ${QHULL_R_LIBRARY} ${QHULL_CPP_LIBRARY})
     endif()
