@@ -1339,9 +1339,6 @@ void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)
 #endif
     return;
   }
-#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
-    wxMessageOutputStderr().Printf(_T("in gdlwxGraphicsPanel::OnPlotWindowSize: (%d,%d)\n"),newSize.x,newSize.y );
-#endif
   this->ResizeDrawArea(newSize);
   event.Skip();
 }

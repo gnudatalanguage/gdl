@@ -47,12 +47,9 @@ GDLWXStream::GDLWXStream( int width, int height )
   spage( XDPI, YDPI, width, height, 0, 0 ); //width and height have importance. 90 dpi is what is in the driver code.
   
   //plplot switched from PLESC_DEVINIT to dev_data for wxwidgets around version 5.11
-#define PLPLOT_TEST_VERSION_NUMBER PLPLOT_VERSION_MAJOR*1000+PLPLOT_VERSION_MINOR
-#if (PLPLOT_TEST_VERSION_NUMBER > 5010)
-  this->pls->dev_data=(void*)streamDC;
-#endif
-  this->plstream::init();
-  plstream::cmd(PLESC_DEVINIT, (void*)streamDC );
+  
+  sdevdata( (void *) streamDC );
+  init();
 
    // no pause on win destruction
     spause( false);
@@ -132,11 +129,14 @@ void GDLWXStream::Update()
 void GDLWXStream::SetSize( wxSize s )
 {
   if ( s.x<1 || s.y <1) return;
-  //resize streamDC by destroying it and getting a better one
+  //Due to a 'bug' in PLPLOT, we need to resize streamDC by destroying it and getting a better one, instead of just using PLESC_RESIZE.
   streamDC->SelectObject( wxNullBitmap );
   delete streamBitmap;
+  delete streamDC; //only solution to have it work with plplot-5.15 
+  streamDC = new wxMemoryDC;
+  container->SetStream(this); //act change of streamDC
   streamBitmap = new wxBitmap( s.x, s.y, 32 );
-  streamDC->SelectObject( *streamBitmap);
+  streamDC->SelectObject( *streamBitmap );
   if( !streamDC->IsOk())
   {
     streamDC->SelectObject( wxNullBitmap );
@@ -144,8 +144,9 @@ void GDLWXStream::SetSize( wxSize s )
     delete streamDC;
     throw GDLException("GDLWXStream: Failed to resize DC.");
   }
-  //  wxSize screenPPM = m_dc->GetPPI(); //integer. Loss of precision if converting to PPM using wxSize operators.
-  plstream::cmd(PLESC_RESIZE, (void*)&s );
+  this->set_stream();
+  this->cmd( PLESC_DEVINIT, (void *) streamDC );
+  this->cmd(PLESC_RESIZE, (void*)&s );
   m_width = s.x;
   m_height = s.y;
 }

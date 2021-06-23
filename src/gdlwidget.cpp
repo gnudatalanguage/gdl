@@ -5475,7 +5475,6 @@ gdlwxPlotPanel::gdlwxPlotPanel( gdlwxPlotFrame* parent) //, wxWindowID id, const
 void gdlwxGraphicsPanel::RepaintGraphics(bool doClear) {
   wxPaintDC dc(this); //is a scrolled window: needed
   DoPrepareDC(dc); //you probably do not want to call wxScrolled::PrepareDC() on wxAutoBufferedPaintDC as it already does this internally for the real underlying wxPaintDC.
-  dc.SetBackground(*wxYELLOW_BRUSH);
   dc.SetDeviceClippingRegion(GetUpdateRegion());
   if (doClear) dc.Clear();
   dc.Blit(0, 0, drawSize.x, drawSize.y, wx_dc, 0, 0);
@@ -5509,23 +5508,8 @@ void gdlwxGraphicsPanel::ResizeDrawArea(wxSize s)
   if (drawSize.x > s.x || drawSize.y > s.y ) doClear=true; 
   drawSize=s;
   this->SetVirtualSize(drawSize);
-  
-  if (pstreamP != NULL)
-  {
-// comment out if it is better to recreate a wxstream!    
-   pstreamP->SetSize(drawSize);
-////The following should not be necessary, use only in case font sizez etc are not good.
-//
-//    //get a new stream with good dimensions. Only possibility (better than resize) to have correct size of fonts and symbols.
-//    GDLWXStream * newStream =  new GDLWXStream(s.x,s.y);
-//  // replace old by new, called function destroys old:
-//    GraphicsDevice::GetGUIDevice( )->ChangeStreamAt( pstreamIx, newStream );   //deletes old stream!
-//    pstreamP = static_cast<GDLWXStream*> (GraphicsDevice::GetGUIDevice( )->GetStreamAt( pstreamIx ));
-//    pstreamP->SetGdlxwGraphicsPanel( this );
-//    wx_dc = pstreamP->GetStreamDC( );
-//    pstreamP->Clear();
-  }
-  this->RepaintGraphics(doClear);
+  pstreamP->SetSize(drawSize);
+  RepaintGraphics(doClear);
 } 
 
 gdlwxPlotPanel::~gdlwxPlotPanel()
