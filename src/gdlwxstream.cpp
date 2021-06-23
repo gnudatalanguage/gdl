@@ -73,6 +73,7 @@ GDLWXStream::GDLWXStream( int width, int height )
     vpor(0,1,0,1);
     wind(0,1,0,1);
     DefaultCharSize();
+    clear();
 }
 
 GDLWXStream::~GDLWXStream()
