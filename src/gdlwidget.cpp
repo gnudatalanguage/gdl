@@ -147,10 +147,10 @@ inline wxColour RandomWxColour() {
 inline int GDLWidget::labelTextAlignment()
 {//this concerns only how the thext is written in the label. 
   // Top and bottom are not allowed in IDL.
-      if ( alignment & gdlwALIGN_RIGHT ) return (wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL|wxST_NO_AUTORESIZE);
-      if ( alignment & gdlwALIGN_CENTER ) return (wxALIGN_CENTRE_HORIZONTAL|wxALIGN_CENTRE_VERTICAL|wxST_NO_AUTORESIZE);
-      if ( alignment & gdlwALIGN_LEFT ) return (wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL|wxST_NO_AUTORESIZE); 
-      return wxALIGN_CENTRE_HORIZONTAL|wxALIGN_CENTRE_VERTICAL|wxST_NO_AUTORESIZE;
+   if ( alignment & gdlwALIGN_RIGHT ) return (wxALIGN_RIGHT|wxST_NO_AUTORESIZE);
+   if ( alignment & gdlwALIGN_CENTER ) return (wxALIGN_CENTRE_HORIZONTAL|wxST_NO_AUTORESIZE);
+   if ( alignment & gdlwALIGN_LEFT ) return (wxALIGN_LEFT|wxST_NO_AUTORESIZE); 
+   return wxALIGN_CENTRE_HORIZONTAL|wxST_NO_AUTORESIZE;
 }
 
 inline int GDLWidget::buttonTextAlignment()
@@ -3755,23 +3755,22 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     wxTreeCtrlGDL* tree = new wxTreeCtrlGDL( widgetPanel, widgetID, wxDefaultPosition, wxDefaultSize, style );
     theWxContainer = theWxWidget = tree;
 
-    //our widget will ALWAYS have an image list...
-    wxImageList* images=new wxImageList();
-    images->Add(wxArtProvider::GetBitmap(wxART_FOLDER)); //0
-    images->Add(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN)); //1
-    images->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE)); //2
-////    images->Add(wxArtProvider::GetBitmap(wxART_FILE_OPEN)); //3 //no use: a selected entry is highlighted and there is no specific wxArt pixmap to do more (visually).
-
-    tree->AssignImageList(images);
+    //our widget will ALWAYS have an image list... But this crashes GDL with wxWidgets 3.1.5 . FIXME
+//    wxImageList* images=new wxImageList();
+//    images->Add(wxArtProvider::GetBitmap(wxART_FOLDER)); //0
+//    images->Add(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN)); //1
+//    images->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE)); //2
+//////    images->Add(wxArtProvider::GetBitmap(wxART_FILE_OPEN)); //3 //no use: a selected entry is highlighted and there is no specific wxArt pixmap to do more (visually).
+//    tree->AssignImageList(images);
     folder=true;
     rootID=widgetID;
     treeItemData=new wxTreeItemDataGDL(widgetID);
-    if (bitmap) {
-      int index=images->Add(*bitmap);
-      treeItemID = tree->AddRoot(wxString( (*value)[0].c_str( ), wxConvUTF8 ),  index ,-1, treeItemData);
-    } else { //use open and closed folder icons
+//    if (bitmap) {
+//      int index=images->Add(*bitmap);
+//      treeItemID = tree->AddRoot(wxString( (*value)[0].c_str( ), wxConvUTF8 ),  index ,-1, treeItemData);
+//    } else { //use open and closed folder icons
       treeItemID = tree->AddRoot(wxString( (*value)[0].c_str( ), wxConvUTF8 ),  0 ,1, treeItemData);
-    }    
+//    }    
     widgetStyle=widgetAlignment( );
     draggable=(dragability == 1);
     droppable=(dropability == 1);
@@ -3802,20 +3801,20 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     assert( tree != NULL);
     theWxContainer=NULL; //this is not a widget
 
-    wxImageList* images=tree->GetImageList();
+//    wxImageList* images=tree->GetImageList();
     //if image is provided use it otherwise (since no image is a bit disappointing) use an internal wxWigdets icon
-    if (bitmap) {
-      int imindex=images->Add(*bitmap);
-      if (treeindex > -1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) , imindex ,-1, treeItemData);
-      else treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) , imindex ,-1, treeItemData);
-    } else { //use open and closed folder icons
+//    if (bitmap) {
+//      int imindex=images->Add(*bitmap);
+//      if (treeindex > -1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) , imindex ,-1, treeItemData);
+//      else treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) , imindex ,-1, treeItemData);
+//    } else { //use open and closed folder icons
       if (folder) {
         if (treeindex>-1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,0,1, treeItemData);
         else treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,0,1, treeItemData);
       }
       else if (treeindex>-1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,2, treeItemData);
       else  treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,2, treeItemData);
-    }
+//    }
     if ( parentTree->IsFolder() && parentTree->IsExpanded())  parentTree->DoExpand();
     //dragability inheritance.
     if (dragability == -1) draggable=parentTree->IsDraggable(); else draggable=(dragability == 1);
