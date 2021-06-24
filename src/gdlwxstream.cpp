@@ -117,13 +117,14 @@ void GDLWXStream::SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot)
 
 void GDLWXStream::Update()
 {
-  if( this->valid && container != NULL)
+  if( this->valid && container != NULL) {
     container->RepaintGraphics();
 #if __WXMSW__ 
     wxTheApp->MainLoop(); //central loop for wxEvents!
 #else
     wxTheApp->Yield();
 #endif
+  }
 }
 
 ////should be used when one does not recreate a wxstream each time size changes...
@@ -281,7 +282,7 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
   image.Destroy();
   temp_dc.SelectObject( wxNullBitmap);
   *streamBitmap = streamDC->GetAsBitmap();
-  Update();
+//  Update();
   return true;
 }
 

@@ -913,7 +913,18 @@ void gdlwxPlotFrame::OnPlotSizeWithTimer(wxSizeEvent& event) {
     m_resizeTimer->StartOnce(1);
   }
 }
+void gdlwxPlotFrame::OnPlotWindowSize(wxSizeEvent &event) {
 
+  wxSize newSize = event.GetSize(); //size returned by the external frame
+  gdlwxGraphicsPanel* w = dynamic_cast<gdlwxGraphicsPanel*> (this->GetChildren().GetFirst()->GetData());
+   if (w==NULL)     {
+      event.Skip();
+      std::cerr<<"No wxWidget!"<<std::endl; return; // happens on construction 
+    }
+   wxSizeEvent sizeEvent(frameSize, w->GetId());
+   w->OnPlotWindowSize(sizeEvent);
+   event.Skip();
+}
 
 //same for widget_draw
 // mouse.LeftIsDown() is not present before wxWidgets  2.8.12 , find an alternative.
