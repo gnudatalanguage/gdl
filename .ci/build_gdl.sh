@@ -11,7 +11,7 @@
 # 2021-03-20: Script has been updated to support Linux and macOS
 LANG=C #script works only in english
 ME="build_gdl.sh"
-Configuration=${Configuration:-"Debug"}
+Configuration=${Configuration:-"Release"}
 DEPS=${DEPS:-"full"}
 real_path() {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
