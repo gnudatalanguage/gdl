@@ -1331,11 +1331,24 @@ void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
     this->SetMinSize(newSize);
     this->SetSize(newSize);
     if (enlarge) this->ResizeDrawArea(oldVirtualSize);
+  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0]
+      = oldVirtualSize.x;
+  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0]
+      = oldVirtualSize.y;
   } else {
     this->SetMinClientSize(newSize);
     this->SetClientSize(newSize);
     this->ResizeDrawArea(newSize);
+  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0]
+      = newSize.x;
+  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0]
+      = newSize.y;
   }
+
+  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_VSIZE"), 0)))[0]
+      = newSize.x;
+  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_VSIZE"), 0)))[0]
+      = newSize.y;
   event.Skip();
 }
 void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)
