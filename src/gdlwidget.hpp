@@ -1937,6 +1937,7 @@ public:
  void OnTimerPlotResize(wxTimerEvent& event);
  void OnUnhandledClosePlotFrame(wxCloseEvent & event);
  void OnPlotSizeWithTimer(wxSizeEvent& event);
+ void OnPlotWindowSize(wxSizeEvent& event);
  DECLARE_EVENT_TABLE()
 };
 class GDLWXStream;

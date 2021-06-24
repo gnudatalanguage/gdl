@@ -5472,9 +5472,9 @@ gdlwxPlotPanel::gdlwxPlotPanel( gdlwxPlotFrame* parent) //, wxWindowID id, const
 }
 
 void gdlwxGraphicsPanel::RepaintGraphics(bool doClear) {
-  wxPaintDC dc(this); //is a scrolled window: needed
+  wxClientDC dc(this); //is a scrolled window: needed
   DoPrepareDC(dc); //you probably do not want to call wxScrolled::PrepareDC() on wxAutoBufferedPaintDC as it already does this internally for the real underlying wxPaintDC.
-  dc.SetDeviceClippingRegion(GetUpdateRegion());
+//  dc.SetDeviceClippingRegion(GetUpdateRegion());
   if (doClear) dc.Clear();
   dc.Blit(0, 0, drawSize.x, drawSize.y, wx_dc, 0, 0);
 }
