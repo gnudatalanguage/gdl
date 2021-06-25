@@ -25,19 +25,19 @@
 
 GDLWXStream::GDLWXStream( int width, int height )
 : GDLGStream( width, height, "wxwidgets")
-  , m_dc(NULL)
-  , m_bitmap(NULL)
+  , streamDC(NULL)
+  , streamBitmap(NULL)
   , m_width(width), m_height(height)
   , container(NULL)
 {
-  m_dc = new wxMemoryDC();
-  m_bitmap = new wxBitmap( width, height, 32);
-  m_dc->SelectObject( *m_bitmap);
-  if( !m_dc->IsOk())
+  streamDC = new wxMemoryDC();
+  streamBitmap = new wxBitmap( width, height, 32);
+  streamDC->SelectObject( *streamBitmap);
+  if( !streamDC->IsOk())
   {
-    m_dc->SelectObject( wxNullBitmap );
-    delete m_bitmap;
-    delete m_dc;
+    streamDC->SelectObject( wxNullBitmap );
+    delete streamBitmap;
+    delete streamDC;
     throw GDLException("GDLWXStream: Failed to create DC.");
   }
   setopt("drvopt", "hrshsym=0,text=1" ); //no hershey; WE USE TT fonts (antialiasing very nice and readable. Moreover, big bug somewhere with hershey fonts).
@@ -47,12 +47,9 @@ GDLWXStream::GDLWXStream( int width, int height )
   spage( XDPI, YDPI, width, height, 0, 0 ); //width and height have importance. 90 dpi is what is in the driver code.
   
   //plplot switched from PLESC_DEVINIT to dev_data for wxwidgets around version 5.11
-#define PLPLOT_TEST_VERSION_NUMBER PLPLOT_VERSION_MAJOR*1000+PLPLOT_VERSION_MINOR
-#if (PLPLOT_TEST_VERSION_NUMBER > 5010)
-  this->pls->dev_data=(void*)m_dc;
-#endif
-  this->plstream::init();
-  plstream::cmd(PLESC_DEVINIT, (void*)m_dc );
+  
+  sdevdata( (void *) streamDC );
+  init();
 
    // no pause on win destruction
     spause( false);
@@ -76,6 +73,7 @@ GDLWXStream::GDLWXStream( int width, int height )
     vpor(0,1,0,1);
     wind(0,1,0,1);
     DefaultCharSize();
+    clear();
 }
 
 GDLWXStream::~GDLWXStream()
@@ -83,9 +81,9 @@ GDLWXStream::~GDLWXStream()
   //all WXStreams are in a wxWidget, either alone (plot window) or widget architecture (widget_draw)
   // destroying the stream must destroy the widget or the plot window.
   // we delete the bitmaps
-  m_dc->SelectObject( wxNullBitmap );
-  delete m_bitmap;
-  delete m_dc;
+  streamDC->SelectObject( wxNullBitmap );
+  delete streamBitmap;
+  delete streamDC;
   DestroyContainer();
 }
 
@@ -119,32 +117,38 @@ void GDLWXStream::SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot)
 
 void GDLWXStream::Update()
 {
-  if( this->valid && container != NULL)
+  if( this->valid && container != NULL) {
     container->RepaintGraphics();
 #if __WXMSW__ 
     wxTheApp->MainLoop(); //central loop for wxEvents!
 #else
     wxTheApp->Yield();
 #endif
+  }
 }
 
 ////should be used when one does not recreate a wxstream each time size changes...
 void GDLWXStream::SetSize( wxSize s )
 {
   if ( s.x<1 || s.y <1) return;
-  m_dc->SelectObject( wxNullBitmap );
-  delete m_bitmap;
-  m_bitmap = new wxBitmap( s.x, s.y, 32 );
-  m_dc->SelectObject( *m_bitmap);
-  if( !m_dc->IsOk())
+  //Due to a 'bug' in PLPLOT, we need to resize streamDC by destroying it and getting a better one, instead of just using PLESC_RESIZE.
+  streamDC->SelectObject( wxNullBitmap );
+  delete streamBitmap;
+  delete streamDC; //only solution to have it work with plplot-5.15 
+  streamDC = new wxMemoryDC;
+  container->SetStream(this); //act change of streamDC
+  streamBitmap = new wxBitmap( s.x, s.y, 32 );
+  streamDC->SelectObject( *streamBitmap );
+  if( !streamDC->IsOk())
   {
-    m_dc->SelectObject( wxNullBitmap );
-    delete m_bitmap;
-    delete m_dc;
+    streamDC->SelectObject( wxNullBitmap );
+    delete streamBitmap;
+    delete streamDC;
     throw GDLException("GDLWXStream: Failed to resize DC.");
   }
-  //  wxSize screenPPM = m_dc->GetPPI(); //integer. Loss of precision if converting to PPM using wxSize operators.
-  plstream::cmd(PLESC_RESIZE, (void*)&s );
+  this->set_stream();
+  this->cmd( PLESC_DEVINIT, (void *) streamDC );
+  this->cmd(PLESC_RESIZE, (void*)&s );
   m_width = s.x;
   m_height = s.y;
 }
@@ -212,8 +216,8 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
 //  Update();
   DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
   wxMemoryDC temp_dc;
-  temp_dc.SelectObject(*m_bitmap);
-  wxImage image=m_bitmap->ConvertToImage();
+  temp_dc.SelectObject(*streamBitmap);
+  wxImage image=streamBitmap->ConvertToImage();
   unsigned char* mem=image.GetData();
   PLINT xoff = (PLINT) pos[0]; //(pls->wpxoff / 32767 * dev->width + 1);
   PLINT yoff = (PLINT) pos[2]; //(pls->wpyoff / 24575 * dev->height + 1);
@@ -274,11 +278,11 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
       p = rowStart - (xsize*3);  
     }
   }
-  m_dc->DrawBitmap(image,0,0);
+  streamDC->DrawBitmap(image,0,0);
   image.Destroy();
   temp_dc.SelectObject( wxNullBitmap);
-  *m_bitmap = m_dc->GetAsBitmap();
-  Update();
+  *streamBitmap = streamDC->GetAsBitmap();
+//  Update();
   return true;
 }
 
@@ -287,50 +291,50 @@ bool GDLWXStream::SetGraphicsFunction( long value) {
   value=(value<0)?0:(value>15)?15:value;
   switch ( value ) {
     case 0: //wxCLEAR:
-      m_dc->SetLogicalFunction( wxCLEAR);
+      streamDC->SetLogicalFunction( wxCLEAR);
       break;
     case 1: //wxAND:
-      m_dc->SetLogicalFunction( wxAND);
+      streamDC->SetLogicalFunction( wxAND);
       break;
     case 2: //wxAND_REVERSE:
-      m_dc->SetLogicalFunction( wxAND_REVERSE);
+      streamDC->SetLogicalFunction( wxAND_REVERSE);
       break;
     default:
     case 3: //wxCOPY:
-      m_dc->SetLogicalFunction( wxCOPY);
+      streamDC->SetLogicalFunction( wxCOPY);
       break;
     case 4: //wxAND_INVERT:
-      m_dc->SetLogicalFunction( wxAND_INVERT);
+      streamDC->SetLogicalFunction( wxAND_INVERT);
       break;
     case 5: //wxNO_OP:
-      m_dc->SetLogicalFunction( wxNO_OP);
+      streamDC->SetLogicalFunction( wxNO_OP);
       break;
     case 6: //wxXOR:
-      m_dc->SetLogicalFunction( wxXOR);
+      streamDC->SetLogicalFunction( wxXOR);
       break;
     case 7: //wxNOR:
-      m_dc->SetLogicalFunction( wxNOR);
+      streamDC->SetLogicalFunction( wxNOR);
       break;
     case 8: //wxEQUIV:
-      m_dc->SetLogicalFunction( wxEQUIV);
+      streamDC->SetLogicalFunction( wxEQUIV);
       break;
     case 9: //wxINVERT:
-      m_dc->SetLogicalFunction( wxINVERT);
+      streamDC->SetLogicalFunction( wxINVERT);
       break;
     case 10: //wxOR_REVERSE:
-      m_dc->SetLogicalFunction( wxOR_REVERSE);
+      streamDC->SetLogicalFunction( wxOR_REVERSE);
       break;
     case 11: //wxSRC_INVERT:
-      m_dc->SetLogicalFunction( wxSRC_INVERT);
+      streamDC->SetLogicalFunction( wxSRC_INVERT);
       break;
     case 12: //wxOR_INVERT:
-      m_dc->SetLogicalFunction( wxOR_INVERT);
+      streamDC->SetLogicalFunction( wxOR_INVERT);
       break;
     case 13: //wxNAND:
-      m_dc->SetLogicalFunction( wxNAND);
+      streamDC->SetLogicalFunction( wxNAND);
       break;
     case 14: //wxSET:
-      m_dc->SetLogicalFunction( wxSET);
+      streamDC->SetLogicalFunction( wxSET);
       break;
   }
  return true;
@@ -442,7 +446,7 @@ DLong GDLWXStream::GetFontnum(DString pattern){
 void GDLWXStream::SetCurrentFont(std::string fontname){
   if (fontname.size() > 0) {
    wxFont font=wxFont(wxString(fontname.c_str( ), wxConvLibc));
-   if (!font.IsSameAs(wxNullFont)) m_dc->SetFont(font);
+   if (!font.IsSameAs(wxNullFont)) streamDC->SetFont(font);
   }
 }
 DString GDLWXStream::GetVisualName() {
@@ -451,12 +455,12 @@ return visual;
 }
 
 DByteGDL* GDLWXStream::GetBitmapData() {
-    wxImage image=m_bitmap->ConvertToImage();
+    wxImage image=streamBitmap->ConvertToImage();
     unsigned char* mem=image.GetData();
     if ( mem == NULL ) return NULL;    
 
-    unsigned int nx = m_bitmap->GetWidth();
-    unsigned int ny = m_bitmap->GetHeight();
+    unsigned int nx = streamBitmap->GetWidth();
+    unsigned int ny = streamBitmap->GetHeight();
 
     SizeT datadims[3];
     datadims[0] = nx;
