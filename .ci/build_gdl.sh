@@ -158,24 +158,36 @@ function install_zstd {
 function query_package {
     if [ ${PKGMGR} == "apt" ]; then
         test_package=( `apt-cache policy $1 | grep Installed:` )
-        if [[ ${test_package[1]} == "(none)" ]]; then
-            true
+        if [ ! -n "$test_package" ]; then
+            query_result=0 # invalid package name
+        elif [[ ${test_package[1]} == "(none)" ]]; then
+            query_result=1 # the package exists, but not installed
         else
-	    false
+            query_result=2 # the package is already installed
         fi
     elif [ ${PKGMGR} == "yum" ]; then
         test_package=`yum info -C --available $1 2>&1 | grep Error`
         if [ ! -n "$test_package" ]; then
-            false
+            # the package exists
+            test_package2=`yum info -C --installed $1 2>&1 | grep Error`
+            if [ ! -n "$test_package2" ]; then
+                query_result=2 # the package is already installed
+            else
+                query_result=1 # the package exists, but not installed
+            fi
         else
-            true
+            query_result=0 # invalid package name
         fi
     elif [ ${PKGMGR} == "zypper" ]; then
-        test_package=`zypper info $1 | grep "not found"`
-        if [ ! -n "$test_package" ]; then
-            false
-	else
-            true
+        test_package=`zypper info $1`
+        if [[ ${test_package} == *"not found"* ]]; then
+            if [[ ${test_package} == *"Information"* ]]; then
+                query_result=1 # the package exists, but not installed
+            else
+                query_result=0 # invalid package name
+            fi
+        else
+            query_result=2 # the package is already installed
         fi
     fi
 }
@@ -232,15 +244,22 @@ function prep_packages {
         log "Checking package availabilities..."
         for pkgnamecandidates in ${PACKAGES[@]}; do
             for pkgname in $(echo $pkgnamecandidates | tr ',' ' '); do
-                if query_package $pkgname ; then
+                query_package $pkgname
+                if [[ ${query_result} == "1" ]] ; then
                     INSTALL_PACKAGES="${INSTALL_PACKAGES} $pkgname"
-                    break #use only one
+                    break # install only one package
+                elif [[ ${query_result} == "2" ]] ; then
+                    break # the package is already installed
                 fi
             done
         done
-        log "Installing packages:"
-        log "${INSTALL_PACKAGES}"
-        eval "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
+        if [[ -z ${INSTALL_PACKAGES} ]]; then
+            log "All required packages are already installed on your system."
+	else
+            log "Installing packages:"
+            log "${INSTALL_PACKAGES}"
+            eval "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
+        fi
     elif [ ${BUILD_OS} == "macOS" ]; then
         if ! command -v brew >/dev/null 2>&1; then
             log "Fatal error! Homebrew not found."
