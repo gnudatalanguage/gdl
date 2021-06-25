@@ -47,10 +47,10 @@ void LibInit_mes()
 
 
   const char KLISTEND[] = "";
-  
-  // general procedures/functions 
+
+  // general procedures/functions
   const string strtokKey[]={"EXTRACT","ESCAPE","LENGTH",
-			    "PRESERVE_NULL","REGEX","COUNT","FOLD_CASE",KLISTEND};
+                            "PRESERVE_NULL","REGEX","COUNT","FOLD_CASE",KLISTEND};
   new DLibFunRetNew(lib::strtok_fun, string("STRTOK"), 2, strtokKey);
 
 
@@ -58,14 +58,14 @@ void LibInit_mes()
 
   const string getenvKey[]={"ENVIRONMENT", KLISTEND};
   new DLibFunRetNew(lib::getenv_fun, string("GETENV"), 1, getenvKey);
-  
+
   const string tagNamesKey[] = {"STRUCTURE_NAME", KLISTEND};
   new DLibFunRetNew(lib::tag_names_fun, string("TAG_NAMES"), 1, tagNamesKey);
 
   const string stregexKey[] = {"BOOLEAN", "EXTRACT", "LENGTH",
          "SUBEXPR", "FOLD_CASE", KLISTEND};
   new DLibFunRetNew(lib::stregex_fun, string("STREGEX"), 2, stregexKey);
- 
+
   const string structAssignKey[] = {"NOZERO", "VERBOSE", KLISTEND};
   new DLibPro(lib::struct_assign_pro, string("STRUCT_ASSIGN"), 2, structAssignKey);
 
@@ -91,14 +91,14 @@ void LibInit_mes()
 #endif
 
 #ifdef USE_HDF5
-  // hdf5 procedures/functions 
+  // hdf5 procedures/functions
   new DLibFunRetNew(lib::h5f_create_fun, string("H5F_CREATE"), 1);
   new DLibFunRetNew(lib::h5f_open_fun, string("H5F_OPEN"), 1);
   new DLibFunRetNew(lib::h5d_open_fun, string("H5D_OPEN"), 2);
   new DLibFunRetNew(lib::h5d_read_fun, string("H5D_READ"), 1); // TODO: 2nd argument & keywords
   new DLibFunRetNew(lib::h5d_get_space_fun, string("H5D_GET_SPACE"), 1);
   new DLibFunRetNew(lib::h5s_get_simple_extent_dims_fun,
-	       string("H5S_GET_SIMPLE_EXTENT_DIMS"), 1);
+               string("H5S_GET_SIMPLE_EXTENT_DIMS"), 1);
   new DLibPro(lib::h5f_close_pro,string("H5F_CLOSE"),1);
   new DLibPro(lib::h5d_close_pro,string("H5D_CLOSE"),1);
   new DLibPro(lib::h5s_close_pro,string("H5S_CLOSE"),1);
@@ -123,6 +123,6 @@ void LibInit_mes()
   // SA: disabling the default HDF5 error handler (error handling in hdf5_fun.cpp)
   H5Eset_auto(NULL, NULL);
 #endif
-  
+
 }
 
