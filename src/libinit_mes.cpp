@@ -97,6 +97,8 @@ void LibInit_mes()
   new DLibFunRetNew(lib::h5d_open_fun, string("H5D_OPEN"), 2);
   new DLibFunRetNew(lib::h5d_read_fun, string("H5D_READ"), 1); // TODO: 2nd argument & keywords
   new DLibFunRetNew(lib::h5d_get_space_fun, string("H5D_GET_SPACE"), 1);
+  new DLibFunRetNew(lib::h5s_get_simple_extent_ndims_fun,
+               string("H5S_GET_SIMPLE_EXTENT_NDIMS"), 1);
   new DLibFunRetNew(lib::h5s_get_simple_extent_dims_fun,
                string("H5S_GET_SIMPLE_EXTENT_DIMS"), 1);
   new DLibPro(lib::h5f_close_pro,string("H5F_CLOSE"),1);
