@@ -59,7 +59,8 @@ jobs:
     steps:
       - name: Checkout GDL
         uses: actions/checkout@v2
-      - name: Cache Dependencies
+      - name: Cache Dependencies (macOS, Homebrew)
+        if: matrix.os == 'macos-latest'
         id: cache
         uses: actions/cache@v2
         with:
@@ -77,29 +78,11 @@ jobs:
             rsync -aR ${fn} ${{ runner.temp }}/cache || true
           done
       - name: Install Dependencies (Linux, Apt)
-        if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          dpkg -l | grep ^ii | awk '{print $2}' | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
-          dpkg -l | grep ^ii | awk '{print $2}' | sort > ~/snapshot2.txt
-          echo "Setting up cache..."
-          mkdir -p ${{ runner.temp }}/cache
-          for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            for fn in $(dpkg -L ${package}); do
-              if test -f $fn; then # file or symlink
-                rsync -aR ${fn} ${{ runner.temp }}/cache
-              fi
-            done
-          done
-          ADDTIONAL_FILES=( /usr/bin/wx-config
-                            $(readlink /usr/bin/wx-config)
-                            $(find /usr/bin/mpi*)
-                            $(find /etc/alternatives/mpi*) )
-          for fn in ${ADDTIONAL_FILES[@]}; do
-            rsync -aR ${fn} ${{ runner.temp }}/cache
-          done
-      - name: Restore cache
-        if: steps.cache.outputs.cache-hit == 'true'
+      - name: Restore cache (macOS, Homebrew)
+        if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit == 'true'
         run: |
           cd ${{ runner.temp }}
           for d in `ls cache`; do
@@ -209,10 +192,9 @@ jobs:
           pacman -Q | tr ' ' '-' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p /cache
-          ls /var/cache/pacman/pkg/
           for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            echo ${package}
-            tar xf /var/cache/pacman/pkg/${package}-*.tar.* -C /cache
+            echo "Caching ${package}..."
+            tar xf /var/cache/pacman/pkg/${package}-*.tar.{gz,bz2,xz,zst} -C /cache
           done
           ADDTIONAL_FILES=( /mingw*/bin/mgwxdr-0.dll
                             /mingw*/lib/libxdr.*
