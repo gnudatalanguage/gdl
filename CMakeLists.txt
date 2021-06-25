@@ -7,7 +7,7 @@
 #  (at your option) any later version.
 #
 
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR) #required for finding numpy
 
 # requirement for CMAKE_CXX_STANDARD (3.2 for Apple, 3.1 for non-Apple: https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355)
 if (${CMAKE_VERSION} VERSION_LESS "3.2")
@@ -915,21 +915,21 @@ if(PYTHON OR PYTHON_MODULE)
     endif()
     set(USE_PYTHON ${PYTHONLIBS_FOUND})
     if(PYTHONLIBS_FOUND)
-        find_package(Numpy QUIET)
-        if(NOT PYTHON_NUMPY_FOUND)
+        find_package(Python COMPONENTS Interpreter Development NumPy)
+        if(NOT Python_NumPy_FOUND)
             message(FATAL_ERROR "Python numpy package was not found.\n"
             "${PYTHONMSG} ${PYTHON_MODULEMSG}")
-        endif(NOT PYTHON_NUMPY_FOUND)
+        endif()
         set(LIBRARIES ${LIBRARIES} ${PYTHON_LIBRARIES})
-        include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_NUMPY_INCLUDE_DIR}) 
-    else(PYTHONLIBS_FOUND)
+        include_directories(${PYTHON_INCLUDE_DIRS} ${Python_NumPy_INCLUDE_DIRS}) 
+    else()
         message(FATAL_ERROR "Python is required but was not found.\n"
         "Use -DPYTHONDIR=DIR to specify the Python directory tree.\n"
                 "Use -DPYTHONVERSION=VERSION to help searching for the right version.\n"
                 "(suitable Debian/Ubuntu package: python-dev)\n"
                 "(suitable Fedora/CentOS package: python-devel)\n"
         "${PYTHONMSG} ${PYTHON_MODULEMSG}")
-    endif(PYTHONLIBS_FOUND)
+    endif()
 endif(PYTHON OR PYTHON_MODULE)
 
 # udunits-2
