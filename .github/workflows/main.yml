@@ -64,7 +64,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ runner.temp }}/cache
-          key: cache-gdl-deps-${{ matrix.os }}-v2
+          key: cache-gdl-deps-${{ matrix.os }}-v3
       - name: Install Dependencies (macOS, Homebrew)
         if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -186,7 +186,7 @@ jobs:
         with:
           path: |
             C:\msys64\cache
-          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v2
+          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v3
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench

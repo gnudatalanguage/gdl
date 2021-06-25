@@ -9,9 +9,9 @@
 #   - readline, zlib, libpng, libpcre
 #
 # 2021-03-20: Script has been updated to support Linux and macOS
-
+LANG=C #script works only in english
 ME="build_gdl.sh"
-Configuration=${Configuration:-"Debug"}
+Configuration=${Configuration:-"Release"}
 DEPS=${DEPS:-"full"}
 real_path() {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
@@ -51,12 +51,13 @@ elif [ ${BUILD_OS} == "Linux" ]; then
     )
     # Redhat, Fedora, Scientific Linux, CentOS, openSuSE, SLES, etc.
     RPM_PACKAGES=(
-        ncurses-devel readline-devel zlib-devel libpng-devel,libpng16-devel gsl-devel wxGTK3-devel,wxGTK-devel,wxWidgets-3_2-devel,wxWidgets-3_0-devel
-        plplot-wxGTK-devel,plplotwxwidgets-devel GraphicsMagick-c++-devel,libGraphicsMagick++-devel libtiff-devel libgeotiff-devel,libgeotiff5-devel
-        netcdf-devel hdf-devel hdf5-devel fftw-devel,fftw3-devel proj-devel openmpi-devel python3-devel,python-devel
-        python3-numpy-devel,python3-numpy,python-numpy udunits2-devel eigen3-devel eccodes-devel,grib_api-devel glpk-devel shapelib-devel,shapelib
+        libtirpc-devel ncurses-devel readline-devel zlib-devel libpng-devel,libpng16-devel gsl-devel wxGTK3-devel,wxGTK-devel,wxWidgets-3_2-devel,wxWidgets-3_0-devel
+        plplot-wxGTK-devel,plplotwxwidgets-devel plplot-driver-xwin plplot-driver-wxwidgets plplot-driver-svg plplot-driver-ps 
+        GraphicsMagick-c++-devel,libGraphicsMagick++-devel libtiff-devel libgeotiff-devel,libgeotiff5-devel,geotiff-devel 
+        netcdf-devel hdf-devel hdf5-devel fftw-devel,fftw3-devel proj-devel openmpi-devel,openmpi4-devel,openmpi3-devel python39-devel python38-devel,python3-devel,python-devel
+        python39-numpy-devel,python39-numpy python38-numpy-devel,python38-numpy,python3-numpy-devel,python3-numpy,python-numpy udunits2-devel eigen3-devel eccodes-devel,grib_api-devel glpk-devel libshp-devel,shapelib-devel
         expat-devel,libexpat-devel
-    ) # JP 2021 Mar 21: SuSE lacks udunits2 and eccodes
+    ) # JP 2021 Mar 21: SuSE lacks eccodes
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
         llvm libomp ncurses readline zlib libpng gsl wxmac graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi numpy udunits eigen
@@ -163,15 +164,15 @@ function query_package {
     elif [ ${PKGMGR} == "yum" ]; then
         test_package=`yum info -C --available $1 2>&1 | grep Error`
         if [ ! -n "$test_package" ]; then
-            return 1
+            return 0
         fi
     elif [ ${PKGMGR} == "zypper" ]; then
         test_package=`zypper info $1 | grep "not found"`
         if [ ! -n "$test_package" ]; then
-            return 1
+            return 0
         fi
     fi
-    return 0 # not found
+    return 1 # not found
 }
 
 function prep_packages {
@@ -226,9 +227,9 @@ function prep_packages {
         log "Checking package availabilities..."
         for pkgnamecandidates in ${PACKAGES[@]}; do
             for pkgname in $(echo $pkgnamecandidates | tr ',' ' '); do
-                if query_package $pkgname; then
+                if query_package $pkgname ; then
                     INSTALL_PACKAGES="${INSTALL_PACKAGES} $pkgname"
-                    break
+                    break #use only one
                 fi
             done
         done
@@ -286,9 +287,18 @@ function build_gdl {
         fi
         if [[ ${BUILD_OS} == "macOS" ]]; then
             WITH_HDF4="OFF"
-        else
-            WITH_HDF4="ON"
+        else 
+            zz=`grep -i opensuse /etc/*-release`
+            if [ -n zz ] ; then 
+                WITH_HDF4="OFF"
+                WITH_GRIB="OFF"
+            else
+                WITH_HDF4="ON"
+                WITH_GRIB="ON"
+            fi
         fi
+        #interactive graphics added as we do not want the compilation to fail on systems where plplot is not correctly installed. The intent was to
+        #force distro packagers to include the plplot drivers in the dependency of the GDL package, not annoy the users of this script.
         cmake ${GDL_DIR} -G"${GENERATOR}" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
           -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
@@ -297,8 +307,8 @@ function build_gdl {
           -DNETCDF=ON -DHDF=${WITH_HDF4} -DHDF5=ON \
           -DMPI=${WITH_MPI} -DTIFF=ON -DGEOTIFF=ON \
           -DLIBPROJ=ON -DPYTHON=ON -DFFTW=ON \
-          -DUDUNITS2=ON -DGLPK=ON -DGRIB=ON \
-          -DUSE_WINGDI_NOT_WINGCC=ON ${CMAKE_ADDITIONAL_ARGS[@]}
+          -DUDUNITS2=ON -DGLPK=ON -DGRIB=${WITH_GRIB} \
+          -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
     else
         cmake ${GDL_DIR} -G"${GENERATOR}" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
@@ -311,7 +321,7 @@ function build_gdl {
           -DLIBPROJ=OFF -DMPI=OFF -DPYTHON=OFF -DUDUNITS2=OFF \
           -DEIGEN3=OFF -DGRIB=OFF -DGLPK=OFF -DTIFF=OFF \
           -DGEOTIFF=OFF -DSHAPELIB=OFF -DEXPAT=OFF \
-          -DUSE_WINGDI_NOT_WINGCC=ON ${CMAKE_ADDITIONAL_ARGS[@]}
+          -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
     fi
 
     #find nthreads for make -j

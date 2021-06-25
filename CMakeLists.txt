@@ -7,7 +7,7 @@
 #  (at your option) any later version.
 #
 
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR) #required for finding numpy
 
 # requirement for CMAKE_CXX_STANDARD (3.2 for Apple, 3.1 for non-Apple: https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355)
 if (${CMAKE_VERSION} VERSION_LESS "3.2")
@@ -659,16 +659,16 @@ if(MAGICK)
   endif(ImageMagick_FOUND)
 endif(MAGICK)
 
-# if GM or IM activated, we check whether Plplot is OK for that
-if(USE_MAGICK AND NOT WIN32)
-  check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
-  if(HAVE_PLGETDRVDIR)
-    message(STATUS "WARNING: Dynamic drivers may have to be disabled in plplot.\n"
-      "To make plplot work with ImageMagick:\n"
-      "use -DENABLE_DYNDRIVERS=OFF cmake option when compiling plplot or\n"
-      "use -DMAGICK=OFF here to not use ImageMagick in GDL.")
-  endif(HAVE_PLGETDRVDIR)
-endif(USE_MAGICK AND NOT WIN32)
+## not valid anymore I bet ## if GM or IM activated, we check whether Plplot is OK for that
+## not valid anymore I bet #if(USE_MAGICK AND NOT WIN32)
+## not valid anymore I bet #  check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
+## not valid anymore I bet #  if(HAVE_PLGETDRVDIR)
+## not valid anymore I bet #    message(STATUS "WARNING: Dynamic drivers may have to be disabled in plplot.\n"
+## not valid anymore I bet #      "To make plplot work with ImageMagick:\n"
+## not valid anymore I bet #      "use -DENABLE_DYNDRIVERS=OFF cmake option when compiling plplot or\n"
+## not valid anymore I bet #      "use -DMAGICK=OFF here to not use ImageMagick in GDL.")
+## not valid anymore I bet #  endif(HAVE_PLGETDRVDIR)
+## not valid anymore I bet #endif(USE_MAGICK AND NOT WIN32)
 
 
 # libtiff
@@ -907,36 +907,29 @@ if(PYTHON OR PYTHON_MODULE)
                   message("-- Found Python executable: ${PYTHON_EXECUTABLE}")
                 endif()
     else()
-        if(NOT PYTHONVERSION)
-            set(PYTHONVERSION 3)
-        endif()
+#        if(NOT PYTHONVERSION)
+#            set(PYTHONVERSION 3)
+#        endif()
         find_package(PythonInterp ${PYTHONVERSION})
         find_package(PythonLibs ${PYTHONVERSION})
-        if (NOT PYTHON_VERSION_STRING VERSION_EQUAL PYTHONLIBS_VERSION_STRING)
-            message(STATUS "PYTHON_EXECUTABLE: " ${PYTHON_EXECUTABLE})
-            message(STATUS "PYTHON_VERSION: " ${PYTHON_VERSION_STRING})
-            message(STATUS "PYTHON_LIBRARIES: " ${PYTHON_LIBRARIES})
-            message(STATUS "PYTHONLIBS_VERSION: " ${PYTHONLIBS_VERSION_STRING})
-            message(FATAL_ERROR "Version mismatch between python interpreter and libraries")
-        endif()
     endif()
     set(USE_PYTHON ${PYTHONLIBS_FOUND})
     if(PYTHONLIBS_FOUND)
-        find_package(Numpy QUIET)
-        if(NOT PYTHON_NUMPY_FOUND)
+        find_package(Python COMPONENTS Interpreter Development NumPy)
+        if(NOT Python_NumPy_FOUND)
             message(FATAL_ERROR "Python numpy package was not found.\n"
             "${PYTHONMSG} ${PYTHON_MODULEMSG}")
-        endif(NOT PYTHON_NUMPY_FOUND)
+        endif()
         set(LIBRARIES ${LIBRARIES} ${PYTHON_LIBRARIES})
-        include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_NUMPY_INCLUDE_DIR}) 
-    else(PYTHONLIBS_FOUND)
+        include_directories(${PYTHON_INCLUDE_DIRS} ${Python_NumPy_INCLUDE_DIRS}) 
+    else()
         message(FATAL_ERROR "Python is required but was not found.\n"
         "Use -DPYTHONDIR=DIR to specify the Python directory tree.\n"
                 "Use -DPYTHONVERSION=VERSION to help searching for the right version.\n"
                 "(suitable Debian/Ubuntu package: python-dev)\n"
                 "(suitable Fedora/CentOS package: python-devel)\n"
         "${PYTHONMSG} ${PYTHON_MODULEMSG}")
-    endif(PYTHONLIBS_FOUND)
+    endif()
 endif(PYTHON OR PYTHON_MODULE)
 
 # udunits-2

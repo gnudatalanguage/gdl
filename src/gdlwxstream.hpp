@@ -35,10 +35,9 @@ static std::vector<wxCursor> gdlwxCursors;
 class GDLWXStream: public GDLGStream 
 {
 private:
-    wxMemoryDC*  	m_dc;
-    wxBitmap*    	m_bitmap;
+    wxMemoryDC*  	streamDC;
+    wxBitmap*    	streamBitmap;
 
-//     wxDC* m_dc;   //!< Pointer to wxDC to plot into.
     int m_width;   //!< Width of dc/plot area.
     int m_height;   //!< Height of dc/plot area.
     bool isplot; //precise the status of associated widget: plot (true) or widget_draw (false)
@@ -48,7 +47,7 @@ public:
     GDLWXStream( int width, int height );  
     ~GDLWXStream(); 
     
-    wxMemoryDC* GetDC() const { return m_dc;}
+    wxMemoryDC* GetStreamDC() const { return streamDC;}
 
 //     void set_stream();   //!< Calls some code before every PLplot command.
     void SetSize( const wxSize s );   //!< Set new size of plot area.
@@ -85,7 +84,7 @@ public:
     //void SetDoubleBuffering();
     //void UnSetDoubleBuffering();
     bool HasDoubleBuffering(){return true;}
-    bool HasSafeDoubleBuffering(){return ( m_dc->GetLogicalFunction() == wxCOPY);};
+    bool HasSafeDoubleBuffering(){return ( streamDC->GetLogicalFunction() == wxCOPY);};
     bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
 		   DLong trueColorOrder, DLong channel);
     virtual bool HasCrossHair() {return true;}
