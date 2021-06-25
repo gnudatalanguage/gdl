@@ -194,7 +194,8 @@ jobs:
           mkdir -p /cache
           for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
             echo "Caching ${package}..."
-            tar xf /var/cache/pacman/pkg/${package}-*.tar.{gz,bz2,xz,zst} -C /cache
+            fn=`ls /var/cache/pacman/pkg/${package}-*.tar.{gz,bz2,xz,zst} 2> /dev/null`
+            tar xf $fn -C /cache
           done
           ADDTIONAL_FILES=( /mingw*/bin/mgwxdr-0.dll
                             /mingw*/lib/libxdr.*
