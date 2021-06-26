@@ -158,21 +158,26 @@ function install_zstd {
 function query_package {
     if [ ${PKGMGR} == "apt" ]; then
         test_package=( `apt-cache policy $1 | grep Installed:` )
-        if [ test_package[1] == "(none)" ]; then
-            return 1
+        if [[ ${test_package[1]} == "(none)" ]]; then
+            true
+        else
+	    false
         fi
     elif [ ${PKGMGR} == "yum" ]; then
         test_package=`yum info -C --available $1 2>&1 | grep Error`
         if [ ! -n "$test_package" ]; then
-            return 0
+            false
+        else
+            true
         fi
     elif [ ${PKGMGR} == "zypper" ]; then
         test_package=`zypper info $1 | grep "not found"`
         if [ ! -n "$test_package" ]; then
-            return 0
+            false
+	else
+            true
         fi
     fi
-    return 1 # not found
 }
 
 function prep_packages {
