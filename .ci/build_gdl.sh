@@ -302,7 +302,6 @@ function build_gdl {
                                 "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
                                 "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
     fi
-    echo $PATH
     if [[ ${DEPS} == *"full"* ]]; then
         if [[ ${DEPS} == *"msmpi"* || ! ${BUILD_OS} == "Windows" ]]; then
             WITH_MPI="ON"
@@ -312,11 +311,13 @@ function build_gdl {
         if [[ ${BUILD_OS} == "macOS" ]]; then
             WITH_HDF4="OFF"
         else 
-            zz=`grep -i opensuse /etc/*-release`
-            if [ -n zz ] ; then 
+            zz=`grep -i opensuse /etc/*-release 2> /dev/null`
+            if [[ -n $zz ]]; then
+                # in case of openSUSE
                 WITH_HDF4="OFF"
                 WITH_GRIB="OFF"
             else
+                # other distros
                 WITH_HDF4="ON"
                 WITH_GRIB="ON"
             fi
