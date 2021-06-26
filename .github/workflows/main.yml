@@ -210,14 +210,14 @@ jobs:
         run: |
           rsync -rt --no-t --inplace /cache/ /
       - name: Setup Python (64 bit)
-        id: setup-python
+        id: setup-python-64
         uses: actions/setup-python@v2
         if: matrix.arch == 'x86_64' && (matrix.deps == 'full-msmpi' || matrix.deps == 'full')
         with:
           python-version: '3.x'
           architecture: x64
       - name: Setup Python (32 bit)
-        id: setup-python
+        id: setup-python-32
         uses: actions/setup-python@v2
         if: matrix.arch == 'i686' && (matrix.deps == 'full-msmpi' || matrix.deps == 'full')
         with:
@@ -230,7 +230,11 @@ jobs:
         shell: msys2 {0}
         run: |
           export PATH=`cygpath "${pythonLocation}"`:$PATH
-          export PYTHONVERSION="${{ steps.setup-python.outputs.python-version }}"
+          if [[ -n "${{ steps.setup-python-32.outputs.python-version }}" ]]; then
+            export PYTHONVERSION="${{ steps.setup-python-32.outputs.python-version }}"
+          else
+            export PYTHONVERSION="${{ steps.setup-python-64.outputs.python-version }}"
+          fi
           .ci/build_gdl.sh build
       - name: Package GDL
         shell: msys2 {0}  
