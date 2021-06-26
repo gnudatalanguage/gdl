@@ -12,11 +12,11 @@
 find_package(PkgConfig QUIET)
 pkg_check_modules(NETCDF netcdf)
 if(NETCDF_FOUND) # no netcdf.pc file
-	find_package_handle_standard_args(NETCDF DEFAULT_MSG NETCDF_LIBRARIES)
+	find_package_handle_standard_args(NetCDF DEFAULT_MSG NETCDF_LIBRARIES)
 else(NETCDF_FOUND) # no netcdf.pc file
 	find_library(NETCDF_LIBRARIES NAMES netcdf)
 	find_path(NETCDF_INCLUDE_DIRS NAMES netcdf.h PATH_SUFFIXES netcdf-3)
-	find_package_handle_standard_args(NETCDF DEFAULT_MSG NETCDF_LIBRARIES NETCDF_INCLUDE_DIRS)
+	find_package_handle_standard_args(NetCDF DEFAULT_MSG NETCDF_LIBRARIES NETCDF_INCLUDE_DIRS)
 endif(NETCDF_FOUND)
 
 mark_as_advanced(
