@@ -34,7 +34,7 @@ function log {  #log is needded just below!
 if [ ${BUILD_OS} == "Windows" ]; then
     BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
     MSYS2_PACKAGES=(
-        readline zlib libpng gsl wxWidgets plplot libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi python-numpy udunits
+        readline zlib libpng gsl wxWidgets plplot libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
         eigen3 eccodes glpk shapelib expat openssl
     )
     MSYS2_PACKAGES_REBUILD=(
