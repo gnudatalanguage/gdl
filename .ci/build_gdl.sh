@@ -18,6 +18,7 @@ real_path() {
 }
 GDL_DIR=$(real_path "$(dirname $0)/..")
 ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}/.."}
+PYTHONVERSION=${PYTHONVERSION:-"3"}
 BUILD_OS=$(uname)
 if [[ ${BUILD_OS} == *"MSYS"* ]]; then
     BUILD_OS="Windows"
@@ -331,7 +332,7 @@ function build_gdl {
           -DWXWIDGETS=ON -DGRAPHICSMAGICK=ON \
           -DNETCDF=ON -DHDF=${WITH_HDF4} -DHDF5=ON \
           -DMPI=${WITH_MPI} -DTIFF=ON -DGEOTIFF=ON \
-          -DLIBPROJ=ON -DPYTHON=ON -DPYTHONVERSION=3 -DFFTW=ON \
+          -DLIBPROJ=ON -DPYTHON=ON -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=ON \
           -DUDUNITS2=ON -DGLPK=ON -DGRIB=${WITH_GRIB} \
           -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
     else
