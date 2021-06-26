@@ -876,6 +876,7 @@ if(PYTHON OR PYTHON_MODULE)
             message(FATAL_ERROR "Python NumPy package was not found.\n"
             "${PYTHONMSG} ${PYTHON_MODULEMSG}")
         endif()
+        set(USE_PYTHON ${Python_NumPy_FOUND})
         set(LIBRARIES ${LIBRARIES} ${PYTHON_LIBRARIES})
         include_directories(${PYTHON_INCLUDE_DIRS} ${Python_NumPy_INCLUDE_DIRS}) 
     else()
