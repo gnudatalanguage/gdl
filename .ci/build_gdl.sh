@@ -18,6 +18,7 @@ real_path() {
 }
 GDL_DIR=$(real_path "$(dirname $0)/..")
 ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}/.."}
+PYTHONVERSION=${PYTHONVERSION:-"3"}
 BUILD_OS=$(uname)
 if [[ ${BUILD_OS} == *"MSYS"* ]]; then
     BUILD_OS="Windows"
@@ -34,7 +35,7 @@ function log {  #log is needded just below!
 if [ ${BUILD_OS} == "Windows" ]; then
     BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
     MSYS2_PACKAGES=(
-        readline zlib libpng gsl wxWidgets plplot libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi python-numpy udunits
+        readline zlib libpng gsl wxWidgets plplot libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
         eigen3 eccodes glpk shapelib expat openssl
     )
     MSYS2_PACKAGES_REBUILD=(
@@ -60,7 +61,7 @@ elif [ ${BUILD_OS} == "Linux" ]; then
     ) # JP 2021 Mar 21: SuSE lacks eccodes
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
-        llvm libomp ncurses readline zlib libpng gsl wxmac graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi numpy udunits eigen
+        llvm libomp ncurses readline zlib libpng gsl wxmac graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
         eccodes glpk shapelib expat gcc@10
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
@@ -158,24 +159,36 @@ function install_zstd {
 function query_package {
     if [ ${PKGMGR} == "apt" ]; then
         test_package=( `apt-cache policy $1 | grep Installed:` )
-        if [[ ${test_package[1]} == "(none)" ]]; then
-            true
+        if [ ! -n "$test_package" ]; then
+            query_result=0 # invalid package name
+        elif [[ ${test_package[1]} == "(none)" ]]; then
+            query_result=1 # the package exists, but not installed
         else
-	    false
+            query_result=2 # the package is already installed
         fi
     elif [ ${PKGMGR} == "yum" ]; then
         test_package=`yum info -C --available $1 2>&1 | grep Error`
         if [ ! -n "$test_package" ]; then
-            false
+            # the package exists
+            test_package2=`yum info -C --installed $1 2>&1 | grep Error`
+            if [ ! -n "$test_package2" ]; then
+                query_result=2 # the package is already installed
+            else
+                query_result=1 # the package exists, but not installed
+            fi
         else
-            true
+            query_result=0 # invalid package name
         fi
     elif [ ${PKGMGR} == "zypper" ]; then
-        test_package=`zypper info $1 | grep "not found"`
-        if [ ! -n "$test_package" ]; then
-            false
-	else
-            true
+        test_package=`zypper info $1`
+        if [[ ${test_package} == *"not found"* ]]; then
+            if [[ ${test_package} == *"Information"* ]]; then
+                query_result=1 # the package exists, but not installed
+            else
+                query_result=0 # invalid package name
+            fi
+        else
+            query_result=2 # the package is already installed
         fi
     fi
 }
@@ -187,7 +200,7 @@ function prep_packages {
         done
         
         log "Installing dependencies: ${msys2_packages}"
-        eval "pacman --noconfirm -S ${msys2_packages} "
+        eval "pacman --noconfirm --needed -S ${msys2_packages} "
 
         for package_name in ${MSYS2_PACKAGES_REBUILD[@]}; do
             build_msys2_package $package_name
@@ -232,15 +245,22 @@ function prep_packages {
         log "Checking package availabilities..."
         for pkgnamecandidates in ${PACKAGES[@]}; do
             for pkgname in $(echo $pkgnamecandidates | tr ',' ' '); do
-                if query_package $pkgname ; then
+                query_package $pkgname
+                if [[ ${query_result} == "1" ]] ; then
                     INSTALL_PACKAGES="${INSTALL_PACKAGES} $pkgname"
-                    break #use only one
+                    break # install only one package
+                elif [[ ${query_result} == "2" ]] ; then
+                    break # the package is already installed
                 fi
             done
         done
-        log "Installing packages:"
-        log "${INSTALL_PACKAGES}"
-        eval "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
+        if [[ -z ${INSTALL_PACKAGES} ]]; then
+            log "All required packages are already installed on your system."
+	else
+            log "Installing packages:"
+            log "${INSTALL_PACKAGES}"
+            eval "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
+        fi
     elif [ ${BUILD_OS} == "macOS" ]; then
         if ! command -v brew >/dev/null 2>&1; then
             log "Fatal error! Homebrew not found."
@@ -283,7 +303,6 @@ function build_gdl {
                                 "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
                                 "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
     fi
-    echo $PATH
     if [[ ${DEPS} == *"full"* ]]; then
         if [[ ${DEPS} == *"msmpi"* || ! ${BUILD_OS} == "Windows" ]]; then
             WITH_MPI="ON"
@@ -293,11 +312,13 @@ function build_gdl {
         if [[ ${BUILD_OS} == "macOS" ]]; then
             WITH_HDF4="OFF"
         else 
-            zz=`grep -i opensuse /etc/*-release`
-            if [ -n zz ] ; then 
+            zz=`grep -i opensuse /etc/*-release 2> /dev/null`
+            if [[ -n $zz ]]; then
+                # in case of openSUSE
                 WITH_HDF4="OFF"
                 WITH_GRIB="OFF"
             else
+                # other distros
                 WITH_HDF4="ON"
                 WITH_GRIB="ON"
             fi
@@ -311,7 +332,7 @@ function build_gdl {
           -DWXWIDGETS=ON -DGRAPHICSMAGICK=ON \
           -DNETCDF=ON -DHDF=${WITH_HDF4} -DHDF5=ON \
           -DMPI=${WITH_MPI} -DTIFF=ON -DGEOTIFF=ON \
-          -DLIBPROJ=ON -DPYTHON=ON -DFFTW=ON \
+          -DLIBPROJ=ON -DPYTHON=ON -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=ON \
           -DUDUNITS2=ON -DGLPK=ON -DGRIB=${WITH_GRIB} \
           -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
     else
