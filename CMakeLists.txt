@@ -19,8 +19,6 @@ else()
   set(CMAKE_CXX_STANDARD 11)
 endif()
 
-#cmake_policy(SET CMP0026 OLD) # LOCATION property
-
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
 
@@ -1101,8 +1099,7 @@ configure_file(${CMAKE_SOURCE_DIR}/config.h.cmake ${CMAKE_BINARY_DIR}/config.h)
 # create a link src/gdl -> ${BUILD}/.../gdl
 # for windows, just copy the file
 if(NOT PYTHON_MODULE)
-    #get_target_property(GDLLOCATION gdl LOCATION)
-    set(GDLLOCATION $<TARGET_FILE:gdl>)
+    set(GDLLOCATION $<TARGET_FILE_DIR:gdl>)
     if(WIN32)
     add_custom_target(copy_gdl ALL ${CMAKE_COMMAND} -E copy ${GDLLOCATION} ${CMAKE_SOURCE_DIR}/src/gdl DEPENDS gdl)
     else(WIN32)
@@ -1164,7 +1161,6 @@ message(STATUS
 GDL - GNU DATA LANGUAGE [${BUILDTYPE}]
 System                 ${CMAKE_HOST_SYSTEM}
 Files generated        ${CMAKE_GENERATOR}
-GDL output             ${GDLLOCATION}
 Installation prefix    ${CMAKE_INSTALL_PREFIX}
 C++ compiler           ${CMAKE_CXX_COMPILER} ${FLAGS}")
 message("")
