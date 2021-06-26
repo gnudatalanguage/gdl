@@ -101,8 +101,6 @@ jobs:
           tac $TMPFILE > src/CMakeLists.txt
           rm $TMPFILE
           echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} check)" >> testsuite/CMakeLists.txt
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
