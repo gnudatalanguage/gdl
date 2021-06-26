@@ -7,7 +7,7 @@
 #  (at your option) any later version.
 #
 
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR) #required for finding numpy
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR) # 3.14: required for finding numpy, 3.16: required for using generator expressions
 
 # requirement for CMAKE_CXX_STANDARD (3.2 for Apple, 3.1 for non-Apple: https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355)
 if (${CMAKE_VERSION} VERSION_LESS "3.2")
@@ -877,8 +877,8 @@ if(PYTHON OR PYTHON_MODULE)
             "${PYTHONMSG} ${PYTHON_MODULEMSG}")
         endif()
         set(USE_PYTHON ${Python_NumPy_FOUND})
-        set(LIBRARIES ${LIBRARIES} ${PYTHON_LIBRARIES})
-        include_directories(${PYTHON_INCLUDE_DIRS} ${Python_NumPy_INCLUDE_DIRS}) 
+        set(LIBRARIES ${LIBRARIES} ${Python_LIBRARIES})
+        include_directories(${Python_INCLUDE_DIRS} ${Python_NumPy_INCLUDE_DIRS}) 
     else()
         message(FATAL_ERROR "Python is required but was not found.\n"
         "Use -DPYTHONDIR=DIR to specify the Python directory tree.\n"
