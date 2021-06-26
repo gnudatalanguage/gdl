@@ -7,7 +7,7 @@
 #  (at your option) any later version.
 #
 
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR) #required for finding numpy
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR) #required for finding numpy
 
 # requirement for CMAKE_CXX_STANDARD (3.2 for Apple, 3.1 for non-Apple: https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355)
 if (${CMAKE_VERSION} VERSION_LESS "3.2")
@@ -935,7 +935,7 @@ endif(PYTHON OR PYTHON_MODULE)
 # -DUDUNITS2DIR=DIR
 if(UDUNITS2)
     set(CMAKE_PREFIX_PATH ${UDUNITS2DIR})
-    find_package(Udunits2 QUIET)
+    find_package(UDUNITS2 QUIET)
     set(USE_UDUNITS ${UDUNITS2_FOUND})
     if(UDUNITS2_FOUND)
         set(LIBRARIES ${LIBRARIES} ${UDUNITS2_LIBRARIES})

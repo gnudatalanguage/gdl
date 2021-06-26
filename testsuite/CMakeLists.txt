@@ -100,6 +100,6 @@ else()
 endif()
 string(REGEX MATCHALL "test[_a-zA-Z0-9]+\\.pro" TESTS ${TESTLIST})
 foreach(TEST ${TESTS})
-	add_test(${TEST} ${LAUNCHTESTLOCATION} ${TEST})
+	add_test(NAME ${TEST} COMMAND ${LAUNCHTESTLOCATION} ${TEST} COMMAND_EXPAND_LISTS)
 	set_tests_properties(${TEST} PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 3600) # autoconf's setting
 endforeach(TEST TESTS)
