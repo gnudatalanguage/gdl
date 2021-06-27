@@ -182,13 +182,13 @@ function query_package {
     elif [ ${PKGMGR} == "zypper" ]; then
         test_package=`zypper info $1`
         if [[ ${test_package} == *"not found"* ]]; then
-            if [[ ${test_package} == *"Information"* ]]; then
+            query_result=0 # invalid package name
+        else
+            if [[ ${test_package} == *"not installed"* ]]; then
                 query_result=1 # the package exists, but not installed
             else
-                query_result=0 # invalid package name
+                query_result=2 # the package is already installed
             fi
-        else
-            query_result=2 # the package is already installed
         fi
     fi
 }
