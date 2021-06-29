@@ -36,7 +36,7 @@ if [ ${BUILD_OS} == "Windows" ]; then
     BSDXDR_URL="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsd-xdr/bsd-xdr-1.0.0.tar.gz"
     MSYS2_PACKAGES=(
         readline zlib libpng gsl wxWidgets plplot libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
-        eigen3 eccodes glpk shapelib expat openssl
+        eigen3 eccodes glpk shapelib expat openssl qhull
     )
     MSYS2_PACKAGES_REBUILD=(
         graphicsmagick
@@ -45,27 +45,25 @@ elif [ ${BUILD_OS} == "Linux" ]; then
     # JP: Note the seperator ',' between the package name candidates below. The leftmost one has the highest priority.
     # Debian, Ubuntu, Linux Mint, Elementary OS, etc.
     APT_PACKAGES=(
-        libncurses-dev libreadline-dev,libreadline-gplv2-dev zlib1g-dev libpng-dev libgsl-dev,libgsl0-dev
+        libncurses-dev libreadline-dev,libreadline-gplv2-dev zlib1g-dev libpng-dev libgsl-dev,libgsl0-dev libqhull-dev
         libwxgtk3.0-gtk3-dev,libwxgtk3.0-dev,libwxgtk2.8-dev libplplot-dev libgraphicsmagick++1-dev,libgraphicsmagick++-dev libtiff-dev
-        libgeotiff-dev libnetcdf-dev libhdf4-alt-dev libhdf5-dev libfftw3-dev libproj-dev libopenmpi-dev libpython3-dev,libpython-dev python3-dev,python-dev
+        libgeotiff-dev libnetcdf-dev libhdf4-alt-dev libhdf5-dev libfftw3-dev libproj-dev libopenmpi-dev libpython3-dev,libpython-dev
         python3-numpy,python-numpy libudunits2-dev libeigen3-dev libeccodes-dev,libgrib-api-dev libglpk-dev shapelib libexpat1-dev
     )
     # Redhat, Fedora, Scientific Linux, CentOS, openSuSE, SLES, etc.
     RPM_PACKAGES=(
-        libtirpc-devel ncurses-devel readline-devel zlib-devel libpng-devel,libpng16-devel gsl-devel
-	wxGTK3-devel,wxGTK-devel,wxWidgets-3_2-devel,wxWidgets-3_0-devel
+        libtirpc-devel ncurses-devel readline-devel zlib-devel libpng-devel,libpng16-devel gsl-devel wxGTK3-devel,wxGTK-devel,wxWidgets-3_2-devel,wxWidgets-3_0-devel
         plplot-wxGTK-devel,plplotwxwidgets-devel plplot-driver-xwin plplot-driver-wxwidgets plplot-driver-svg plplot-driver-ps 
         GraphicsMagick-c++-devel,libGraphicsMagick++-devel libtiff-devel libgeotiff-devel,libgeotiff5-devel,geotiff-devel 
-        netcdf-devel hdf-devel hdf5-devel fftw-devel,fftw3-devel proj-devel openmpi-devel,openmpi4-devel,openmpi3-devel
-	python39-devel,python38-devel,python3-devel,python-devel
-        python39-numpy-devel,python38-numpy-devel,python3-numpy-devel,python-numpy-devel,python39-numpy,python38-numpy,python3-numpy,python-numpy
-	udunits2-devel eigen3-devel eccodes-devel,grib_api-devel glpk-devel libshp-devel,shapelib-devel
+        netcdf-devel hdf-devel hdf5-devel fftw-devel,fftw3-devel proj-devel openmpi-devel,openmpi4-devel,openmpi3-devel python39-devel python38-devel,python3-devel,python-devel
+        python39-numpy-devel,python39-numpy python38-numpy-devel,python38-numpy,python3-numpy-devel,python3-numpy,python-numpy udunits2-devel
+        eigen3-devel eccodes-devel,grib_api-devel glpk-devel libshp-devel,shapelib-devel qhull-devel,qhull
         expat-devel,libexpat-devel
     ) # JP 2021 Mar 21: SuSE lacks eccodes
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
         llvm libomp ncurses readline zlib libpng gsl wxmac graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
-        eccodes glpk shapelib expat gcc@10
+        eccodes glpk shapelib expat gcc@10 qhull
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
 else
@@ -185,13 +183,13 @@ function query_package {
     elif [ ${PKGMGR} == "zypper" ]; then
         test_package=`zypper info $1`
         if [[ ${test_package} == *"not found"* ]]; then
-            query_result=0 # invalid package name
-        else
-            if [[ ${test_package} == *"not installed"* ]]; then
+            if [[ ${test_package} == *"Information"* ]]; then
                 query_result=1 # the package exists, but not installed
             else
-                query_result=2 # the package is already installed
+                query_result=0 # invalid package name
             fi
+        else
+            query_result=2 # the package is already installed
         fi
     fi
 }
