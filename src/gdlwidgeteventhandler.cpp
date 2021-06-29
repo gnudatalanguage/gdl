@@ -913,7 +913,18 @@ void gdlwxPlotFrame::OnPlotSizeWithTimer(wxSizeEvent& event) {
     m_resizeTimer->StartOnce(1);
   }
 }
+void gdlwxPlotFrame::OnPlotWindowSize(wxSizeEvent &event) {
 
+  wxSize newSize = event.GetSize(); //size returned by the external frame
+  gdlwxGraphicsPanel* w = dynamic_cast<gdlwxGraphicsPanel*> (this->GetChildren().GetFirst()->GetData());
+   if (w==NULL)     {
+      event.Skip();
+      std::cerr<<"No wxWidget!"<<std::endl; return; // happens on construction 
+    }
+   wxSizeEvent sizeEvent(frameSize, w->GetId());
+   w->OnPlotWindowSize(sizeEvent);
+   event.Skip();
+}
 
 //same for widget_draw
 // mouse.LeftIsDown() is not present before wxWidgets  2.8.12 , find an alternative.
@@ -1295,7 +1306,7 @@ void gdlwxGraphicsPanel::OnPaint(wxPaintEvent& event)
   this->RepaintGraphics();
   event.Skip();
 }
-
+ 
 void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
 
   wxSize newSize = event.GetSize(); //size returned by the external frame
@@ -1309,7 +1320,6 @@ void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
   if (p->IsScrolled()) {
     bool enlarge = false;
     wxSize oldVirtualSize = this->GetVirtualSize();
-    std::cerr << oldVirtualSize.y << std::endl;
     if (oldVirtualSize.x < newSize.x) {
       enlarge = true;
       oldVirtualSize.x = newSize.x;
@@ -1318,14 +1328,27 @@ void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
       enlarge = true;
       oldVirtualSize.y = newSize.y;
     }
-    if (enlarge) this->ResizeDrawArea(oldVirtualSize);
     this->SetMinSize(newSize);
     this->SetSize(newSize);
+    if (enlarge) this->ResizeDrawArea(oldVirtualSize);
+  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0]
+      = oldVirtualSize.x;
+  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0]
+      = oldVirtualSize.y;
   } else {
-    this->ResizeDrawArea(newSize);
     this->SetMinClientSize(newSize);
     this->SetClientSize(newSize);
+    this->ResizeDrawArea(newSize);
+  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0]
+      = newSize.x;
+  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0]
+      = newSize.y;
   }
+
+  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_VSIZE"), 0)))[0]
+      = newSize.x;
+  (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_VSIZE"), 0)))[0]
+      = newSize.y;
   event.Skip();
 }
 void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)
@@ -1340,9 +1363,6 @@ void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)
 #endif
     return;
   }
-#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
-    wxMessageOutputStderr().Printf(_T("in gdlwxGraphicsPanel::OnPlotWindowSize: (%d,%d)\n"),newSize.x,newSize.y );
-#endif
   this->ResizeDrawArea(newSize);
   event.Skip();
 }

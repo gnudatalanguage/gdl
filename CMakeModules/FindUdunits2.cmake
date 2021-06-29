@@ -43,6 +43,6 @@ find_library (UDUNITS2_LIBRARIES
   HINTS ${UDUNITS2_LIB_HINT})
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(UDUNITS2 DEFAULT_MSG UDUNITS2_LIBRARIES UDUNITS2_INCLUDE_DIR)
+find_package_handle_standard_args(Udunits2 DEFAULT_MSG UDUNITS2_LIBRARIES UDUNITS2_INCLUDE_DIR)
 
 mark_as_advanced(UDUNITS2_LIBRARIES UDUNITS2_INCLUDE_DIR)
