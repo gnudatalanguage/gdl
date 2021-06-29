@@ -7,7 +7,7 @@
 #  (at your option) any later version.
 #
 
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR) # 3.14: required for finding numpy.
 
 # requirement for CMAKE_CXX_STANDARD (3.2 for Apple, 3.1 for non-Apple: https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355)
 if (${CMAKE_VERSION} VERSION_LESS "3.2")
@@ -18,8 +18,6 @@ if (${CMAKE_VERSION} VERSION_LESS "3.2")
 else()
   set(CMAKE_CXX_STANDARD 11)
 endif()
-
-cmake_policy(SET CMP0026 OLD) # LOCATION property
 
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
@@ -656,16 +654,16 @@ if(MAGICK)
   endif(ImageMagick_FOUND)
 endif(MAGICK)
 
-# if GM or IM activated, we check whether Plplot is OK for that
-if(USE_MAGICK AND NOT WIN32)
-  check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
-  if(HAVE_PLGETDRVDIR)
-    message(STATUS "WARNING: Dynamic drivers may have to be disabled in plplot.\n"
-      "To make plplot work with ImageMagick:\n"
-      "use -DENABLE_DYNDRIVERS=OFF cmake option when compiling plplot or\n"
-      "use -DMAGICK=OFF here to not use ImageMagick in GDL.")
-  endif(HAVE_PLGETDRVDIR)
-endif(USE_MAGICK AND NOT WIN32)
+## not valid anymore I bet ## if GM or IM activated, we check whether Plplot is OK for that
+## not valid anymore I bet #if(USE_MAGICK AND NOT WIN32)
+## not valid anymore I bet #  check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
+## not valid anymore I bet #  if(HAVE_PLGETDRVDIR)
+## not valid anymore I bet #    message(STATUS "WARNING: Dynamic drivers may have to be disabled in plplot.\n"
+## not valid anymore I bet #      "To make plplot work with ImageMagick:\n"
+## not valid anymore I bet #      "use -DENABLE_DYNDRIVERS=OFF cmake option when compiling plplot or\n"
+## not valid anymore I bet #      "use -DMAGICK=OFF here to not use ImageMagick in GDL.")
+## not valid anymore I bet #  endif(HAVE_PLGETDRVDIR)
+## not valid anymore I bet #endif(USE_MAGICK AND NOT WIN32)
 
 
 # libtiff
@@ -853,6 +851,7 @@ if(MPI)
 		set(LIBRARIES ${LIBRARIES} ${MPI_LIBRARIES})
 	else(MPI_FOUND)
 		message(FATAL_ERROR "MPI is required but was not found.\n"
+		"(on Fedora, running `module load mpi` is required prior to run CMake)\n"
 		"Use -DMPIDIR=DIR to specify the MPI directory tree.\n"
 		"Use -DMPI=OFF to not use it.")
 	endif(MPI_FOUND)	
@@ -869,71 +868,23 @@ if(PYTHON OR PYTHON_MODULE)
     if(PYTHON_MODULE)
         set(PYTHON_MODULEMSG "Use -DPYTHON_MODULE=OFF to disable Python module.\n")
     endif(PYTHON_MODULE)
-    if(PYTHONDIR)
-        find_library(PYTHONLIBS 
-                  NAMES python${PYTHONVERSION}
-                  PATHS ${PYTHONDIR} 
-                  PATH_SUFFIXES lib lib/python${PYTHONVERSION}/config 
-                  NO_DEFAULT_PATH NO_CMAKE_PATH
-                )
-                string(COMPARE NOTEQUAL "${PYTHONLIBS}" "PYTHONLIBS-NOTFOUND" PYTHONLIBS_FOUND) 
-                if (NOT PYTHONLIBS_FOUND)
-                  message(FATAL_ERROR "Python libraries not found in ${PYTHONDIR}.")
-                else()
-                  set(PYTHON_LIBRARIES "${PYTHONLIBS}")
-                  message("-- Found Python libs: ${PYTHONLIBS}")
-                endif()
-                find_path(PYTHON_INCLUDE_DIRS 
-                  NAMES Python.h 
-                  PATHS ${PYTHONDIR}
-                  PATH_SUFFIXES include include/python${PYTHONVERSION}
-                  NO_DEFAULT_PATH NO_CMAKE_PATH
-                )
-                string(COMPARE NOTEQUAL "${PYTHONLIBS}" "PYTHON_INCLUDE_DIRS-NOTFOUND" PYTHONHEADERS_FOUND) 
-                if (PYTHONHEADERS_FOUND)
-                  message("-- Found Python headers: ${PYTHON_INCLUDE_DIRS}")
-                  set(PYTHON_INCLUDES "${PYTHON_INCLUDE_DIRS}")
-                else()
-                  message(FATAL_ERROR "Python headers not found in ${PYTHONDIR}.")
-                endif()
-                find_program(PYTHON_EXECUTABLE NAMES python${PYTHONVERSION} PATHS ${PYTHONDIR} PATH_SUFFIXES bin NO_DEFAULT_PATH NO_CMAKE_PATH)
-                string(COMPARE NOTEQUAL "${PYTHON_EXECUTABLE}" "PYTHON_EXECUTABLE-NOTFOUND" PYTHON_EXECUTABLE_FOUND) 
-                if(NOT PYTHON_EXECUTABLE_FOUND)
-                  message(FATAL_ERROR "Python executable not found in ${PYTHONDIR}.")
-                else()
-                  message("-- Found Python executable: ${PYTHON_EXECUTABLE}")
-                endif()
-    else()
-        if(NOT PYTHONVERSION)
-            set(PYTHONVERSION 3)
-        endif()
-        find_package(PythonInterp ${PYTHONVERSION})
-        find_package(PythonLibs ${PYTHONVERSION})
-        if (NOT PYTHON_VERSION_STRING VERSION_EQUAL PYTHONLIBS_VERSION_STRING)
-            message(STATUS "PYTHON_EXECUTABLE: " ${PYTHON_EXECUTABLE})
-            message(STATUS "PYTHON_VERSION: " ${PYTHON_VERSION_STRING})
-            message(STATUS "PYTHON_LIBRARIES: " ${PYTHON_LIBRARIES})
-            message(STATUS "PYTHONLIBS_VERSION: " ${PYTHONLIBS_VERSION_STRING})
-            message(FATAL_ERROR "Version mismatch between python interpreter and libraries")
-        endif()
-    endif()
-    set(USE_PYTHON ${PYTHONLIBS_FOUND})
-    if(PYTHONLIBS_FOUND)
-        find_package(Numpy QUIET)
-        if(NOT PYTHON_NUMPY_FOUND)
-            message(FATAL_ERROR "Python numpy package was not found.\n"
+    find_package(Python ${PYTHONVERSION} COMPONENTS Interpreter Development NumPy)
+    if(PYTHON_FOUND)
+        if(NOT Python_NumPy_FOUND)
+            message(FATAL_ERROR "Python NumPy package was not found.\n"
             "${PYTHONMSG} ${PYTHON_MODULEMSG}")
-        endif(NOT PYTHON_NUMPY_FOUND)
-        set(LIBRARIES ${LIBRARIES} ${PYTHON_LIBRARIES})
-        include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_NUMPY_INCLUDE_DIR}) 
-    else(PYTHONLIBS_FOUND)
+        endif()
+        set(USE_PYTHON ${Python_NumPy_FOUND})
+        set(LIBRARIES ${LIBRARIES} ${Python_LIBRARIES})
+        include_directories(${Python_INCLUDE_DIRS} ${Python_NumPy_INCLUDE_DIRS}) 
+    else()
         message(FATAL_ERROR "Python is required but was not found.\n"
         "Use -DPYTHONDIR=DIR to specify the Python directory tree.\n"
                 "Use -DPYTHONVERSION=VERSION to help searching for the right version.\n"
                 "(suitable Debian/Ubuntu package: python-dev)\n"
                 "(suitable Fedora/CentOS package: python-devel)\n"
         "${PYTHONMSG} ${PYTHON_MODULEMSG}")
-    endif(PYTHONLIBS_FOUND)
+    endif()
 endif(PYTHON OR PYTHON_MODULE)
 
 # udunits-2
@@ -941,7 +892,7 @@ endif(PYTHON OR PYTHON_MODULE)
 # -DUDUNITS2DIR=DIR
 if(UDUNITS2)
     set(CMAKE_PREFIX_PATH ${UDUNITS2DIR})
-    find_package(UdUnits2 QUIET)
+    find_package(Udunits2 QUIET)
     set(USE_UDUNITS ${UDUNITS2_FOUND})
     if(UDUNITS2_FOUND)
         set(LIBRARIES ${LIBRARIES} ${UDUNITS2_LIBRARIES})
@@ -1105,7 +1056,7 @@ configure_file(${CMAKE_SOURCE_DIR}/config.h.cmake ${CMAKE_BINARY_DIR}/config.h)
 # create a link src/gdl -> ${BUILD}/.../gdl
 # for windows, just copy the file
 if(NOT PYTHON_MODULE)
-    get_target_property(GDLLOCATION gdl LOCATION)
+    set(GDLLOCATION $<TARGET_FILE_DIR:gdl>)
     if(WIN32)
     add_custom_target(copy_gdl ALL ${CMAKE_COMMAND} -E copy ${GDLLOCATION} ${CMAKE_SOURCE_DIR}/src/gdl DEPENDS gdl)
     else(WIN32)
@@ -1167,7 +1118,6 @@ message(STATUS
 GDL - GNU DATA LANGUAGE [${BUILDTYPE}]
 System                 ${CMAKE_HOST_SYSTEM}
 Files generated        ${CMAKE_GENERATOR}
-GDL output             ${GDLLOCATION}
 Installation prefix    ${CMAKE_INSTALL_PREFIX}
 C++ compiler           ${CMAKE_CXX_COMPILER} ${FLAGS}")
 message("")
