@@ -7,7 +7,7 @@
 #  (at your option) any later version.
 #
 
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR) # 3.14: required for finding numpy, 3.16: required for using generator expressions
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR) # 3.14: required for finding numpy.
 
 # requirement for CMAKE_CXX_STANDARD (3.2 for Apple, 3.1 for non-Apple: https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355)
 if (${CMAKE_VERSION} VERSION_LESS "3.2")
