@@ -266,4 +266,5 @@ jobs:
       - name: Test GDL
         shell: msys2 {0}
         run: |
+          export PATH=`cygpath "${pythonLocation}"`:$PATH
           .ci/build_gdl.sh check || exit 0
