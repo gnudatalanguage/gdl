@@ -1074,7 +1074,7 @@ configure_file(${CMAKE_SOURCE_DIR}/config.h.cmake ${CMAKE_BINARY_DIR}/config.h)
 # create a link src/gdl -> ${BUILD}/.../gdl
 # for windows, just copy the file
 if(NOT PYTHON_MODULE)
-    set(GDLLOCATION $<TARGET_FILE_DIR:gdl>)
+    set(GDLLOCATION $<TARGET_FILE:gdl>)
     if(WIN32)
     add_custom_target(copy_gdl ALL ${CMAKE_COMMAND} -E copy ${GDLLOCATION} ${CMAKE_SOURCE_DIR}/src/gdl DEPENDS gdl)
     else(WIN32)
