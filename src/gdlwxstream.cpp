@@ -47,10 +47,13 @@ GDLWXStream::GDLWXStream( int width, int height )
   spage( XDPI, YDPI, width, height, 0, 0 ); //width and height have importance. 90 dpi is what is in the driver code.
   
   //plplot switched from PLESC_DEVINIT to dev_data for wxwidgets around version 5.11
-  
-  sdevdata( (void *) streamDC );
+#define PLPLOT_TEST_VERSION_NUMBER PLPLOT_VERSION_MAJOR*1000+PLPLOT_VERSION_MINOR
+#if (PLPLOT_TEST_VERSION_NUMBER > 5010)
+  this->pls->dev_data=(void*)streamDC;
+#endif
   init();
-
+  plstream::cmd(PLESC_DEVINIT, (void*)streamDC );
+  
    // no pause on win destruction
     spause( false);
 
