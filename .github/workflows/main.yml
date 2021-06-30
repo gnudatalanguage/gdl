@@ -230,6 +230,7 @@ jobs:
         shell: msys2 {0}
         run: |
           export PATH=`cygpath "${pythonLocation}"`:$PATH
+          export PYTHON_EXECUTABLE=`cygpath "${pythonLocation}"`/python
           if [[ -n "${{ steps.setup-python-32.outputs.python-version }}" ]]; then
             export PYTHONVERSION="${{ steps.setup-python-32.outputs.python-version }}"
           else
@@ -266,4 +267,5 @@ jobs:
       - name: Test GDL
         shell: msys2 {0}
         run: |
+          export PATH=`cygpath "${pythonLocation}"`:$PATH
           .ci/build_gdl.sh check || exit 0
