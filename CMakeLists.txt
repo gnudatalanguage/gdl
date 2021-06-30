@@ -7,18 +7,7 @@
 #  (at your option) any later version.
 #
 
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-
-# requirement for CMAKE_CXX_STANDARD (3.2 for Apple, 3.1 for non-Apple: https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355)
-if (${CMAKE_VERSION} VERSION_LESS "3.2")
-  string(FIND "${CMAKE_CXX_FLAGS}" "-std=c++11" tmp)
-  if(tmp LESS 0)
-    #message(FATAL_ERROR "please upgrade CMake to a version 3.2 or higher OR rerun cmake with -DCMAKE_CXX_FLAGS=\"-std=c++11\"")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  endif()
-else()
-  set(CMAKE_CXX_STANDARD 11)
-endif()
+cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
 
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
