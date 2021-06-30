@@ -43,7 +43,12 @@
 function json_serialize,value,tagname=tagname,lowercase=lowercase
 
 COMPILE_OPT idl2, HIDDEN
-ON_ERROR, 2
+   CATCH, Error_status
+   IF Error_status NE 0 THEN BEGIN
+      CATCH, /CANCEL
+      MESSAGE, /REISSUE_LAST
+      RETALL
+   ENDIF
 
   ret=size(value)
   ndim=ret[0]
@@ -55,7 +60,7 @@ ON_ERROR, 2
 
   ; unfortunately lists etc are seen as arrays by 'size', so:
   mytype=typename(value)
-  if (mytype eq 'LIST' or mytype eq 'HASH' or mytype eq 'ORDEREDHASH' or mytype eq 'DICTIONARY')  then n=1 ; else 'OBJREF' 
+  if (mytype eq 'LIST' or mytype eq 'HASH' or mytype eq 'ORDEREDHASH' or mytype eq 'DICTIONARY' or mytype eq 'UNDEFINED' or mytype eq 'POINTER' or mytype eq 'COMPLEX' or mytype eq 'DCOMPLEX')  then n=1 ; else 'OBJREF' 
 
   if (n eq 1 ) then begin
       case type of
@@ -98,47 +103,67 @@ ON_ERROR, 2
      0:  message,"Type UNDEFINED not allowed with JSON."
      6: message,"Type COMPLEX not allowed with JSON."
      9: message,"Type DCOMPLEX not allowed with JSON."     
-     ELSE: tmpstr+=string(value)
+     ELSE: tmpstr+=strtrim(value,2)
   endcase
 
 
   endif else begin
-     tmpstr+="["
-     for i=0,n-1 do begin
+  s=size(value)
+  ndim=s[0]
+  odim=8-ndim
+  dims=s[1:ndim]
+  if (odim gt 0) then begin & oval=intarr(odim)+1 & dims=[dims,oval] & end
+  dims-- ; superfluous sizes==0
+    tmpstr+="["
+    for i6=0,dims[6] do begin
+     if (dims[6] gt 0) then tmpstr+="["
+    for i5=0,dims[5] do begin
+     if (dims[5] gt 0) then tmpstr+="["
+    for i4=0,dims[4] do begin
+     if (dims[4] gt 0) then tmpstr+="["
+    for i3=0,dims[3] do begin
+     if (dims[3] gt 0) then tmpstr+="["
+    for i2=0,dims[2] do begin
+     if (dims[2] gt 0) then tmpstr+="["
+     for i1=0,dims[1] do begin
+       if (dims[1] gt 0) then tmpstr+="["
+       thisval=value[*,i1,i2,i3,i4,i5,i6]
+       nel=n_elements(thisval)
+       for i=0,nel-1 do begin
         case type of
            8: begin
-              tagn=tag_names((value[i]))
+              tagn=tag_names((thisval[i]))
               tmpstr+='{'
-              for j=0,n_tags((value[i]))-1 do begin
-                 tmpstr+=json_serialize(tagname=tagn[j],(value[i]).(j))
-                 if (j lt n_tags((value[i]))-1 ) then tmpstr+=","
+              for j=0,n_tags((thisval[i]))-1 do begin
+                 tmpstr+=json_serialize(tagname=tagn[j],(thisval[i]).(j))
+                 if (j lt n_tags((thisval[i]))-1 ) then tmpstr+=","
               end
               tmpstr+='}'
            end
            
-           11: begin            ; more tricky depending on single value of array
-              mytype=typename((value[i]))
+           11: begin            ; more tricky depending on single thisval of array
+              mytype=typename((thisval[i]))
               if (mytype eq 'LIST') then begin
                  tmpstr+='['
-                 nn=(value[i]).Count()
+                 nn=(thisval[i]).Count()
                  for j=0,nn-1 do begin
-                    tmpstr+=json_serialize((value[i])[j])
+                    tmpstr+=json_serialize((thisval[i])[j])
                     if (j lt nn-1) then tmpstr+=","
                  endfor
                  tmpstr+=']'
               endif else begin
                  tmpstr+='{'
-                 nn=(value[i]).Count()
-                 keys=(value[i]).Keys()
+                 nn=(thisval[i]).Count()
+                 keys=(thisval[i]).Keys()
                  for j=0,nn-1 do begin
-                    tmpstr+=json_serialize(tagname=keys[j],(value[i])[j])
+                    tmpstr+=json_serialize(tagname=keys[j],(thisval[i])[j])
                        if (j lt nn-1) then tmpstr+=","
                     endfor
                  tmpstr+='}'
               endelse
            end
 
-           7:  tmpstr+='"'+(value[i])+'"'
+           7:  tmpstr+='"'+(thisval[i])+'"'
            
            10:  message,"Type POINTER not allowed with JSON."
            0:  message,"Type UNDEFINED not allowed with JSON."
@@ -146,42 +171,29 @@ ON_ERROR, 2
            9: message,"Type DCOMPLEX not allowed with JSON."
            
            
-           ELSE: tmpstr+=string((value[i])[i])
+           ELSE: tmpstr+=strtrim(thisval[i],2)
         endcase
-        if (i lt n-1) then tmpstr+=","
+        if (i lt nel-1) then tmpstr+=","
+       endfor
+       if (dims[1] gt 0) then tmpstr+="]"
+       if (i1 lt dims[1]) then tmpstr+=","
      endfor
-     tmpstr+="]"
-  endelse
+     if (dims[2] gt 0) then tmpstr+="]"
+     if (i2 lt dims[2]) then tmpstr+=","
+     endfor
+     if (dims[3] gt 0) then tmpstr+="]"
+     if (i3 lt dims[3]) then tmpstr+=","
+     endfor
+     if (dims[4] gt 0) then tmpstr+="]"
+     if (i4 lt dims[4]) then tmpstr+=","
+     endfor
+     if (dims[5] gt 0) then tmpstr+="]"
+     if (i5 lt dims[5]) then tmpstr+=","
+     endfor
+     if (dims[6] gt 0) then tmpstr+="]"
+     if (i6 lt dims[6]) then tmpstr+=","
+     endfor
+   tmpstr+="]"
+ endelse
   return,tmpstr
 end
-
-;function json_serialize_sub_list,value
-;  print,"LIST"
-;  return,'!'
-;end
-;
-;
-;function json_serialize,value,lowercase=lowercase
-;
-;  ret=size(value)
-;  ndim=ret[0]
-;  if (ndim gt 1) then message,'aaaaaaaaa pas booooooonn'
-;  type=ret[ndim+1]
-;  mytype=typename(value)
-;  if (type ne 11 and type ne 8) then message,'aaaaaaaaa pas booooooonn'
-;  if (type eq 11 and (mytype ne 'LIST' and mytype ne 'HASH' and mytype NE 'ORDEREDHASH' and mytype ne 'DICTIONARY'))  then message,'aaaaaaaaa pas booooooonn'
-;  if type eq 8 then begin
-;    tagn=tag_names(value)
-;    tmpstr="{"
-;    for i=0,n_tags(value)-1 do begin
-;       tmpstr+=json_serialize_sub_struct_or_hash(tagn[i],value.(i))
-;       if (i lt n_tags(value)-1) then tmpstr+=","
-;    end
-;    tmpstr+="}"
-;    return, tmpstr
-;  endif
-;;  if mytype eq 
-;;  if mytype eq LIST then begin
-;;  endif else if mytype eq  then begin
-;  return, 0
-;end
