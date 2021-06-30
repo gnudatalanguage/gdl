@@ -7,19 +7,18 @@
 #  (at your option) any later version.
 #
 
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR) #required for finding numpy
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 # requirement for CMAKE_CXX_STANDARD (3.2 for Apple, 3.1 for non-Apple: https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355)
 if (${CMAKE_VERSION} VERSION_LESS "3.2")
   string(FIND "${CMAKE_CXX_FLAGS}" "-std=c++11" tmp)
   if(tmp LESS 0)
-    message(FATAL_ERROR "please upgrade CMake to a version 3.2 or higher OR rerun cmake with -DCMAKE_CXX_FLAGS=\"-std=c++11\"")
+    #message(FATAL_ERROR "please upgrade CMake to a version 3.2 or higher OR rerun cmake with -DCMAKE_CXX_FLAGS=\"-std=c++11\"")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   endif()
 else()
   set(CMAKE_CXX_STANDARD 11)
 endif()
-
-cmake_policy(SET CMP0026 OLD) # LOCATION property
 
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
@@ -856,6 +855,7 @@ if(MPI)
 		set(LIBRARIES ${LIBRARIES} ${MPI_LIBRARIES})
 	else(MPI_FOUND)
 		message(FATAL_ERROR "MPI is required but was not found.\n"
+		"(on Fedora, running `module load mpi` is required prior to run CMake)\n"
 		"Use -DMPIDIR=DIR to specify the MPI directory tree.\n"
 		"Use -DMPI=OFF to not use it.")
 	endif(MPI_FOUND)	
@@ -872,56 +872,29 @@ if(PYTHON OR PYTHON_MODULE)
     if(PYTHON_MODULE)
         set(PYTHON_MODULEMSG "Use -DPYTHON_MODULE=OFF to disable Python module.\n")
     endif(PYTHON_MODULE)
-    if(PYTHONDIR)
-        find_library(PYTHONLIBS 
-                  NAMES python${PYTHONVERSION}
-                  PATHS ${PYTHONDIR} 
-                  PATH_SUFFIXES lib lib/python${PYTHONVERSION}/config 
-                  NO_DEFAULT_PATH NO_CMAKE_PATH
-                )
-                string(COMPARE NOTEQUAL "${PYTHONLIBS}" "PYTHONLIBS-NOTFOUND" PYTHONLIBS_FOUND) 
-                if (NOT PYTHONLIBS_FOUND)
-                  message(FATAL_ERROR "Python libraries not found in ${PYTHONDIR}.")
-                else()
-                  set(PYTHON_LIBRARIES "${PYTHONLIBS}")
-                  message("-- Found Python libs: ${PYTHONLIBS}")
-                endif()
-                find_path(PYTHON_INCLUDE_DIRS 
-                  NAMES Python.h 
-                  PATHS ${PYTHONDIR}
-                  PATH_SUFFIXES include include/python${PYTHONVERSION}
-                  NO_DEFAULT_PATH NO_CMAKE_PATH
-                )
-                string(COMPARE NOTEQUAL "${PYTHONLIBS}" "PYTHON_INCLUDE_DIRS-NOTFOUND" PYTHONHEADERS_FOUND) 
-                if (PYTHONHEADERS_FOUND)
-                  message("-- Found Python headers: ${PYTHON_INCLUDE_DIRS}")
-                  set(PYTHON_INCLUDES "${PYTHON_INCLUDE_DIRS}")
-                else()
-                  message(FATAL_ERROR "Python headers not found in ${PYTHONDIR}.")
-                endif()
-                find_program(PYTHON_EXECUTABLE NAMES python${PYTHONVERSION} PATHS ${PYTHONDIR} PATH_SUFFIXES bin NO_DEFAULT_PATH NO_CMAKE_PATH)
-                string(COMPARE NOTEQUAL "${PYTHON_EXECUTABLE}" "PYTHON_EXECUTABLE-NOTFOUND" PYTHON_EXECUTABLE_FOUND) 
-                if(NOT PYTHON_EXECUTABLE_FOUND)
-                  message(FATAL_ERROR "Python executable not found in ${PYTHONDIR}.")
-                else()
-                  message("-- Found Python executable: ${PYTHON_EXECUTABLE}")
-                endif()
-    else()
-#        if(NOT PYTHONVERSION)
-#            set(PYTHONVERSION 3)
-#        endif()
+    if (${CMAKE_VERSION} VERSION_LESS "3.14")
         find_package(PythonInterp ${PYTHONVERSION})
         find_package(PythonLibs ${PYTHONVERSION})
+        execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import numpy as np; print(np.get_include())" RESULT_VARIABLE ret OUTPUT_VARIABLE Python_NumPy_INCLUDE_DIRS ERROR_QUIET)
+        if (PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)
+            set(Python_LIBRARIES ${PYTHON_LIBRARIES})
+            set(Python_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS})
+            set(PYTHON_FOUND ${PYTHONLIBS_FOUND})
+        endif()
+        if (ret EQUAL 0)
+            set(Python_NumPy_FOUND TRUE)
+        endif()
+    else()
+        find_package(Python ${PYTHONVERSION} COMPONENTS Interpreter Development NumPy)
     endif()
-    set(USE_PYTHON ${PYTHONLIBS_FOUND})
-    if(PYTHONLIBS_FOUND)
-        find_package(Python COMPONENTS Interpreter Development NumPy)
+    if(PYTHON_FOUND)
         if(NOT Python_NumPy_FOUND)
-            message(FATAL_ERROR "Python numpy package was not found.\n"
+            message(FATAL_ERROR "Python NumPy package was not found.\n"
             "${PYTHONMSG} ${PYTHON_MODULEMSG}")
         endif()
-        set(LIBRARIES ${LIBRARIES} ${PYTHON_LIBRARIES})
-        include_directories(${PYTHON_INCLUDE_DIRS} ${Python_NumPy_INCLUDE_DIRS}) 
+        set(USE_PYTHON ${Python_NumPy_FOUND})
+        set(LIBRARIES ${LIBRARIES} ${Python_LIBRARIES})
+        include_directories(${Python_INCLUDE_DIRS} ${Python_NumPy_INCLUDE_DIRS}) 
     else()
         message(FATAL_ERROR "Python is required but was not found.\n"
         "Use -DPYTHONDIR=DIR to specify the Python directory tree.\n"
@@ -937,7 +910,7 @@ endif(PYTHON OR PYTHON_MODULE)
 # -DUDUNITS2DIR=DIR
 if(UDUNITS2)
     set(CMAKE_PREFIX_PATH ${UDUNITS2DIR})
-    find_package(UdUnits2 QUIET)
+    find_package(Udunits2 QUIET)
     set(USE_UDUNITS ${UDUNITS2_FOUND})
     if(UDUNITS2_FOUND)
         set(LIBRARIES ${LIBRARIES} ${UDUNITS2_LIBRARIES})
@@ -1101,7 +1074,7 @@ configure_file(${CMAKE_SOURCE_DIR}/config.h.cmake ${CMAKE_BINARY_DIR}/config.h)
 # create a link src/gdl -> ${BUILD}/.../gdl
 # for windows, just copy the file
 if(NOT PYTHON_MODULE)
-    get_target_property(GDLLOCATION gdl LOCATION)
+    set(GDLLOCATION $<TARGET_FILE:gdl>)
     if(WIN32)
     add_custom_target(copy_gdl ALL ${CMAKE_COMMAND} -E copy ${GDLLOCATION} ${CMAKE_SOURCE_DIR}/src/gdl DEPENDS gdl)
     else(WIN32)
@@ -1163,7 +1136,6 @@ message(STATUS
 GDL - GNU DATA LANGUAGE [${BUILDTYPE}]
 System                 ${CMAKE_HOST_SYSTEM}
 Files generated        ${CMAKE_GENERATOR}
-GDL output             ${GDLLOCATION}
 Installation prefix    ${CMAKE_INSTALL_PREFIX}
 C++ compiler           ${CMAKE_CXX_COMPILER} ${FLAGS}")
 message("")
