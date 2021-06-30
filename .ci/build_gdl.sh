@@ -395,7 +395,7 @@ function test_gdl {
     if [ -f ${GDL_DIR}/CMakeModules/CodeCoverage.cmake ]; then
         make codecov
     else
-        make check
+        make test
     fi
 }
 
