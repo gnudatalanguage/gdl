@@ -7,13 +7,14 @@
 #  (at your option) any later version.
 #
 
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR) # 3.14: required for finding numpy, 3.16: required for using generator expressions
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 # requirement for CMAKE_CXX_STANDARD (3.2 for Apple, 3.1 for non-Apple: https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355)
 if (${CMAKE_VERSION} VERSION_LESS "3.2")
   string(FIND "${CMAKE_CXX_FLAGS}" "-std=c++11" tmp)
   if(tmp LESS 0)
-    message(FATAL_ERROR "please upgrade CMake to a version 3.2 or higher OR rerun cmake with -DCMAKE_CXX_FLAGS=\"-std=c++11\"")
+    #message(FATAL_ERROR "please upgrade CMake to a version 3.2 or higher OR rerun cmake with -DCMAKE_CXX_FLAGS=\"-std=c++11\"")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   endif()
 else()
   set(CMAKE_CXX_STANDARD 11)
@@ -867,7 +868,21 @@ if(PYTHON OR PYTHON_MODULE)
     if(PYTHON_MODULE)
         set(PYTHON_MODULEMSG "Use -DPYTHON_MODULE=OFF to disable Python module.\n")
     endif(PYTHON_MODULE)
-    find_package(Python ${PYTHONVERSION} COMPONENTS Interpreter Development NumPy)
+    if (${CMAKE_VERSION} VERSION_LESS "3.14")
+        find_package(PythonInterp ${PYTHONVERSION})
+        find_package(PythonLibs ${PYTHONVERSION})
+        execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import numpy as np; print(np.get_include())" RESULT_VARIABLE ret OUTPUT_VARIABLE Python_NumPy_INCLUDE_DIRS ERROR_QUIET)
+        if (PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)
+            set(Python_LIBRARIES ${PYTHON_LIBRARIES})
+            set(Python_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS})
+            set(PYTHON_FOUND ${PYTHONLIBS_FOUND})
+        endif()
+        if (ret EQUAL 0)
+            set(Python_NumPy_FOUND TRUE)
+        endif()
+    else()
+        find_package(Python ${PYTHONVERSION} COMPONENTS Interpreter Development NumPy)
+    endif()
     if(PYTHON_FOUND)
         if(NOT Python_NumPy_FOUND)
             message(FATAL_ERROR "Python NumPy package was not found.\n"
@@ -1055,7 +1070,7 @@ configure_file(${CMAKE_SOURCE_DIR}/config.h.cmake ${CMAKE_BINARY_DIR}/config.h)
 # create a link src/gdl -> ${BUILD}/.../gdl
 # for windows, just copy the file
 if(NOT PYTHON_MODULE)
-    set(GDLLOCATION $<TARGET_FILE_DIR:gdl>)
+    set(GDLLOCATION $<TARGET_FILE:gdl>)
     if(WIN32)
     add_custom_target(copy_gdl ALL ${CMAKE_COMMAND} -E copy ${GDLLOCATION} ${CMAKE_SOURCE_DIR}/src/gdl DEPENDS gdl)
     else(WIN32)
