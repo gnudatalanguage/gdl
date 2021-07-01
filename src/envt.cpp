@@ -1306,7 +1306,7 @@ bool EnvBaseT::Removeall()
 {
 	DSubUD* proD=dynamic_cast<DSubUD*>(pro);
 	int osz = env.size();
-	for( SizeT ix=0; ix < osz; ix++) {
+	for( SizeT ix=osz-1; ix--; ) {
 		if( env[ix] != NULL) GDLDelete( env[ix]);
 		env.pop_back();
 	}
