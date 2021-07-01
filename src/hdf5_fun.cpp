@@ -694,10 +694,15 @@ hid_t
    */
   BaseGDL* h5d_read_fun(EnvT* e) {
 
+    /* Jul 2021, Oliver Gressel <ogressel@gmail.com>
+       - add support for attributes of type 'H5T_ARRAY'
+    */
+
     bool debug = false;
 
     SizeT nParam = e->NParam(1);
     hsize_t dims_out[MAXRANK];
+    hsize_t elem_dims[MAXRANK];
 
     hid_t h5d_id = hdf5_input_conversion(e,0);
 
@@ -718,16 +723,44 @@ hid_t
 
     hdf5_type_guard datatype_guard = hdf5_type_guard(datatype);
 
+    // for array datatypes, determine the rank and dimension of the element
+    int elem_rank=0;
+    if (H5Tget_class(datatype)==H5T_ARRAY ) {
+
+       if ((elem_rank=H5Tget_array_ndims(datatype)) <0)
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+       if (debug) cout << "array datatype of rank " << elem_rank << endl;
+
+       if (H5Tget_array_dims2(datatype, elem_dims) <0)
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+
+       if (debug && elem_rank>0) {
+          cout << "dimensions are: ";
+          for(int i=0; i<elem_rank; i++) cout << elem_dims[i] << ",";
+          cout << endl;
+       }
+       hid_t elem_datatype = H5Tget_super(datatype);
+       H5Tclose(datatype);
+       datatype = elem_datatype;
+    }
+
     // determine the rank and dimension of the dataset
     int rank = H5Sget_simple_extent_ndims(h5s_id);
     if (rank < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
+    if (debug) cout << "data rank is " << rank << endl;
 
     if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
+    }
+
+    if (debug && rank>0) {
+       cout << "dimensions are: ";
+       for(int i=0; i<rank; i++) cout << dims_out[i] << ",";
+       cout << endl;
     }
 
     // define hyperslab in dataset
@@ -774,18 +807,21 @@ hid_t
     SizeT count_s[MAXRANK];
     SizeT rank_s;
 
-    rank_s = (SizeT) rank;
+    rank_s = (SizeT) (elem_rank + rank);
+
     // need to reverse indices for column major format
-    for (int i = 0; i < rank; i++)
-      count_s[i] = (SizeT) count_out[rank - 1 - i ];
+    for(int i=0; i<elem_rank; i++)
+      count_s[i] = (SizeT)elem_dims[elem_rank - 1  - i ];
+
+    for(int i=elem_rank; i<elem_rank+rank; i++)
+      count_s[i] = (SizeT)dims_out[elem_rank+rank - 1  - i ];
 
     // create the IDL datatypes
     dimension dim(count_s, rank_s);
-    //std::cout << dim << std::endl;
+
     BaseGDL *res;
 
     if (debug) cout << "datatype : " << datatype << endl;
-
 
     DLong ourType = mapH5DatatypesToGDL(datatype);
     hsize_t type;
@@ -874,10 +910,15 @@ hid_t
 
     if (debug) cout << "here 5" <<endl;
 
+    if (elem_rank>0) type = H5Tarray_create2( type, elem_rank, elem_dims );
+
     if (H5Dread(h5d_id, type, memspace, h5s_id, H5P_DEFAULT, res->DataAddr()) < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
+
+    H5Tclose(datatype);
+    if (elem_rank>0) H5Tclose(type);
 
     return res;
   }
