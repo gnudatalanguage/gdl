@@ -16,7 +16,7 @@
  ***************************************************************************/
 
 // the following stuff needs some cleanup in order to make it nicely fit
-// into the distribution. 
+// into the distribution.
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -47,15 +47,15 @@ namespace lib {
   {
     // getting something better than "Inappropriate type" message
 #if (H5_VERS_MAJOR < 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR <= 6))
-    if (err_desc->min_num == H5E_BADTYPE) 
+    if (err_desc->min_num == H5E_BADTYPE)
       *static_cast<string*>(msg) = H5Eget_major(err_desc->maj_num);
-    else 
+    else
       *static_cast<string*>(msg) = H5Eget_minor(err_desc->min_num);
 #else
     char* tmp;
-    if (err_desc->min_num == H5E_BADTYPE) 
+    if (err_desc->min_num == H5E_BADTYPE)
       tmp = H5Eget_major(err_desc->maj_num);
-    else 
+    else
       tmp = H5Eget_minor(err_desc->min_num);
     *static_cast<string*>(msg) = tmp;
     free(tmp);
@@ -64,40 +64,40 @@ namespace lib {
   }
 
   // returns a meaningful message describing last HDF5 error
-  // usual usege: 
+  // usual usege:
   //   if (H5X_xxx(...) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   string hdf5_error_message(string &msg)
   {
-    H5Ewalk(H5E_WALK_UPWARD, hdf5_error_message_helper, &msg); 
+    H5Ewalk(H5E_WALK_UPWARD, hdf5_error_message_helper, &msg);
     return msg;
   }
 
   // auto_ptr-like class for guarding HDF5 spaces
-  // usage: 
+  // usage:
   //   hid_t h5s_id = H5Dget_space(h5d_id);
   //   if (h5s_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   //   hdf5_space_guard h5s_id_guard = hdf5_space_guard(h5s_id);
-  class hdf5_space_guard 
+  class hdf5_space_guard
   {
     hid_t space;
-  public: 
+  public:
     hdf5_space_guard(hid_t space_) { space = space_; }
     ~hdf5_space_guard() { H5Sclose(space); }
   };
 
   // auto_ptr-like class for guarding HDF5 types
-  // usage: 
+  // usage:
   //   hid_t datatype = H5Dget_type(h5d_id);
   //   if (datatype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   //   hdf5_type_guard datatype_guard = hdf5_type_guard(datatype);
-  class hdf5_type_guard 
+  class hdf5_type_guard
   {
     hid_t type;
-  public: 
+  public:
     hdf5_type_guard(hid_t type_) { type = type_; }
     ~hdf5_type_guard() { H5Tclose(type); }
   };
-  
+
   // --------------------------------------------------------------------
 
   DLong mapH5DatatypesToGDL(hid_t h5type){
@@ -259,14 +259,14 @@ changes in behavior in the transition from HDF5 Release 1.8.16 to
 Release 1.10.0.  Changed Type
 
 hid_t
-    Changed from a 32-bit to a 64-bit value. 
+    Changed from a 32-bit to a 64-bit value.
   */
 
   hid_t hdf5_input_conversion( EnvT* e, int position)
   {
-    
+
     hid_t hdf5_id;
-    
+
 #if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
     e->AssureLongScalarPar(position, (DLong64&)hdf5_id);
 #else
@@ -283,7 +283,7 @@ hid_t
 #else
     return new DLongGDL(h5type);
 #endif
-    
+
   }
 
   BaseGDL* h5f_is_hdf5_fun( EnvT* e)
@@ -299,26 +299,26 @@ hid_t
 
   BaseGDL* h5f_create_fun( EnvT* e)
   {
-    
+
     DString h5fFilename;
     e->AssureScalarPar<DStringGDL>( 0, h5fFilename);
     WordExp( h5fFilename);
 
     hid_t h5f_id;
     h5f_id = H5Fcreate( h5fFilename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
-    
-    if (h5f_id < 0) 
-      { 
-	string msg; 
-	e->Throw(hdf5_error_message(msg)); 
+
+    if (h5f_id < 0)
+      {
+        string msg;
+        e->Throw(hdf5_error_message(msg));
       }
-   
-    return hdf5_output_conversion( h5f_id ); 
+
+    return hdf5_output_conversion( h5f_id );
   }
-  
+
   BaseGDL* h5f_open_fun( EnvT* e)
   {
-    
+
     DString h5fFilename;
     e->AssureScalarPar<DStringGDL>( 0, h5fFilename);
     WordExp( h5fFilename);
@@ -326,13 +326,13 @@ hid_t
     hid_t h5f_id;
     h5f_id = H5Fopen(h5fFilename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 
-    if (h5f_id < 0) 
-      { 
-	string msg; 
-	e->Throw(hdf5_error_message(msg)); 
+    if (h5f_id < 0)
+      {
+        string msg;
+        e->Throw(hdf5_error_message(msg));
       }
 
-    return hdf5_output_conversion( h5f_id ); 
+    return hdf5_output_conversion( h5f_id );
   }
 
   BaseGDL* h5g_open_fun( EnvT* e)
@@ -347,11 +347,11 @@ hid_t
     hid_t h5g_id;
     h5g_id = H5Gopen(h5f_id, h5gGroupname.c_str());
     if (h5g_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-    
-    return hdf5_output_conversion( h5g_id ); 
+
+    return hdf5_output_conversion( h5g_id );
 
   }
-  
+
   BaseGDL* h5d_open_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(2);
@@ -365,7 +365,7 @@ hid_t
 
     if (h5d_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
 
-    return hdf5_output_conversion( h5d_id ); 
+    return hdf5_output_conversion( h5d_id );
 
   }
 
@@ -398,11 +398,11 @@ hid_t
     len++;
     char* name = static_cast<char*>(malloc(len * sizeof(char)));
     if (name == NULL) e->Throw("Failed to allocate memory!");
-    if (H5Aget_name(h5a_id, len, name) < 0) 
-      { 
-	free(name);
-	{ string msg; e->Throw(hdf5_error_message(msg)); }
-	return NULL;
+    if (H5Aget_name(h5a_id, len, name) < 0)
+      {
+        free(name);
+        { string msg; e->Throw(hdf5_error_message(msg)); }
+        return NULL;
       }
     DStringGDL* ret = new DStringGDL(name);
     free(name);
@@ -413,13 +413,13 @@ hid_t
   BaseGDL* h5a_get_type_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
-    
+
     hid_t h5a_id = hdf5_input_conversion(e,0);
 
     hid_t h5a_type_id;
     h5a_type_id = H5Aget_type( h5a_id );
     if (h5a_type_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-    
+
     return hdf5_output_conversion( h5a_type_id);
   }
 
@@ -435,27 +435,27 @@ hid_t
 
     hid_t h5a_id = H5Aopen_name(h5f_id, h5aAttrname.c_str());
     if (h5a_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-    
+
     return hdf5_output_conversion( h5a_id);
   }
-  
+
 
   BaseGDL* h5d_get_space_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
-    
+
     hid_t h5d_id = hdf5_input_conversion(e,0);
-    
+
     hid_t h5d_space_id = H5Dget_space( h5d_id );
     if (h5d_space_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-    
+
     return hdf5_output_conversion( h5d_space_id );
   }
 
   BaseGDL* h5a_get_space_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
-    
+
     hid_t h5a_id=hdf5_input_conversion(e,0);
 
     hid_t h5a_space_id = H5Aget_space( h5a_id );
@@ -468,12 +468,12 @@ hid_t
   BaseGDL* h5a_get_num_attrs_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
-    
+
     hid_t loc_id=hdf5_input_conversion(e,0);
-    
+
     int num = H5Aget_num_attrs( loc_id );
     if (num < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-    
+
     // following the doc., should return a "int"
     return new DLongGDL( num );
   }
@@ -484,10 +484,10 @@ hid_t
     SizeT nParam=e->NParam(1);
 
     hid_t h5d_id=hdf5_input_conversion(e,0);
-        
+
     hid_t h5d_type_id = H5Dget_type( h5d_id );
     if (h5d_type_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-    
+
     return hdf5_output_conversion( h5d_type_id );
   }
 
@@ -495,15 +495,15 @@ hid_t
   BaseGDL* h5t_get_size_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
-    
+
     hid_t h5t_id=hdf5_input_conversion(e,0);
-    
+
     // following the doc., should return a "size_t"
     size_t size = H5Tget_size( h5t_id );
     if (size == 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-    
+
     return new DLongGDL( size );
-    
+
   }
 
 
@@ -511,18 +511,18 @@ hid_t
   {
     SizeT nParam=e->NParam(1);
     hsize_t dims_out[MAXRANK];
-    
+
     hid_t h5s_id=hdf5_input_conversion(e,0);
-    
+
     int rank = H5Sget_simple_extent_ndims(h5s_id);
     if (rank < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-    
+
     if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0)
       { string msg; e->Throw(hdf5_error_message(msg)); }
-    
+
     dimension dim(rank);
     DLongGDL* d = new DLongGDL(dim);
-    
+
     for(int i=0; i<rank; i++)
       (*d)[i] = dims_out[rank - 1 - i];
     return d;
@@ -531,10 +531,16 @@ hid_t
 
   BaseGDL* h5a_read_fun( EnvT* e)
   {
+
+     /* Jun 2021, Oliver Gressel <ogressel@gmail.com>
+        - add support for attributes of type 'H5T_ARRAY'
+     */
+
     bool debug = false;
 
     SizeT nParam=e->NParam(1);
     hsize_t dims_out[MAXRANK];
+    hsize_t elem_dims[MAXRANK];
 
     hid_t h5a_id = hdf5_input_conversion(e,0);
 
@@ -547,20 +553,52 @@ hid_t
     if (datatype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     hdf5_type_guard datatype_guard = hdf5_type_guard(datatype);
 
+    // for array datatypes, determine the rank and dimension of the element
+    int elem_rank=0;
+    if (H5Tget_class(datatype)==H5T_ARRAY ) {
+
+       if ((elem_rank=H5Tget_array_ndims(datatype)) <0)
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+       if (debug) cout << "array datatype of rank " << elem_rank << endl;
+
+       if (H5Tget_array_dims2(datatype, elem_dims) <0)
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+
+       if (debug && elem_rank>0) {
+          cout << "dimensions are: ";
+          for(int i=0; i<elem_rank; i++) cout << elem_dims[i] << ",";
+          cout << endl;
+       }
+       hid_t elem_datatype = H5Tget_super(datatype);
+       H5Tclose(datatype);
+       datatype = elem_datatype;
+    }
+
     // determine the rank and dimension of the dataset
     int rank = H5Sget_simple_extent_ndims(h5s_id);
     if (rank < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
 
-    if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0) 
+    if (debug) cout << "attribute data rank is " << rank << endl;
+
+    if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0)
       { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    if (debug && rank>0) {
+       cout << "dimensions are: ";
+       for(int i=0; i<rank; i++) cout << dims_out[i] << ",";
+       cout << endl;
+    }
 
     // need to reverse indices for column major format
     SizeT count_s[MAXRANK];
-    for(int i=0; i<rank; i++) 
-      count_s[i] = (SizeT)dims_out[rank - 1  - i ];
+    for(int i=0; i<elem_rank; i++)
+      count_s[i] = (SizeT)elem_dims[elem_rank - 1  - i ];
+
+    for(int i=elem_rank; i<elem_rank+rank; i++)
+      count_s[i] = (SizeT)dims_out[elem_rank+rank - 1  - i ];
 
     // create the IDL datatypes
-    dimension dim(count_s, rank);
+    dimension dim(count_s, rank+elem_rank);
 
     BaseGDL *res;
     if (debug) cout << "datatype : " << datatype << endl;
@@ -595,9 +633,9 @@ hid_t
       res = new DDoubleGDL(dim);
       type = H5T_NATIVE_DOUBLE;
     } else if (ourType == GDL_STRING) {
-      
+
       ///******* BELOW CODE IS NOT TESTED! ********///
-      
+
       // a bit special, lets follow the example on h5 site:
       res = new DStringGDL(dim);
       type = H5T_C_S1;
@@ -623,6 +661,7 @@ hid_t
        */
       hid_t memtype = H5Tcopy(H5T_C_S1);
       hid_t status = H5Tset_size(memtype, sdim);
+
       if (H5Aread(h5a_id, type, rdata[0]) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
       for (int i = 0; i < count_s[0]; i++)
         (*(static_cast<DStringGDL*> (res)))[i] = rdata[i];
@@ -633,14 +672,20 @@ hid_t
     } else {
       e->Throw("Unsupported data format" + i2s(datatype));
     }
+
+    if (elem_rank>0) type = H5Tarray_create2( type, elem_rank, elem_dims );
+
     if (H5Aread(h5a_id, type, res->DataAddr()) < 0)
       { string msg; e->Throw(hdf5_error_message(msg)); }
-    
+
+    H5Tclose(datatype);
+    if (elem_rank>0) H5Tclose(type);
+
     return res;
 
     return new DIntGDL(-1);
   }
-  
+
 
   /**
    * h5d_read_fun
@@ -649,10 +694,15 @@ hid_t
    */
   BaseGDL* h5d_read_fun(EnvT* e) {
 
+    /* Jul 2021, Oliver Gressel <ogressel@gmail.com>
+       - add support for attributes of type 'H5T_ARRAY'
+    */
+
     bool debug = false;
 
     SizeT nParam = e->NParam(1);
     hsize_t dims_out[MAXRANK];
+    hsize_t elem_dims[MAXRANK];
 
     hid_t h5d_id = hdf5_input_conversion(e,0);
 
@@ -670,8 +720,29 @@ hid_t
     }
 
     if (debug) cout << "here 1" <<endl;
-    
+
     hdf5_type_guard datatype_guard = hdf5_type_guard(datatype);
+
+    // for array datatypes, determine the rank and dimension of the element
+    int elem_rank=0;
+    if (H5Tget_class(datatype)==H5T_ARRAY ) {
+
+       if ((elem_rank=H5Tget_array_ndims(datatype)) <0)
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+       if (debug) cout << "array datatype of rank " << elem_rank << endl;
+
+       if (H5Tget_array_dims2(datatype, elem_dims) <0)
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+
+       if (debug && elem_rank>0) {
+          cout << "dimensions are: ";
+          for(int i=0; i<elem_rank; i++) cout << elem_dims[i] << ",";
+          cout << endl;
+       }
+       hid_t elem_datatype = H5Tget_super(datatype);
+       H5Tclose(datatype);
+       datatype = elem_datatype;
+    }
 
     // determine the rank and dimension of the dataset
     int rank = H5Sget_simple_extent_ndims(h5s_id);
@@ -679,10 +750,17 @@ hid_t
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
+    if (debug) cout << "data rank is " << rank << endl;
 
     if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
+    }
+
+    if (debug && rank>0) {
+       cout << "dimensions are: ";
+       for(int i=0; i<rank; i++) cout << dims_out[i] << ",";
+       cout << endl;
     }
 
     // define hyperslab in dataset
@@ -693,20 +771,24 @@ hid_t
 #endif
     hsize_t count[MAXRANK];
 
-    for (int i = 0; i < rank; i++) offset[i] = 0;
-    for (int i = 0; i < rank; i++) count[i] = dims_out[i];
+    if (rank>0) {
 
-    if (H5Sselect_hyperslab(h5s_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0) {
-      string msg;
-      e->Throw(hdf5_error_message(msg));
+       for (int i = 0; i < rank; i++) offset[i] = 0;
+       for (int i = 0; i < rank; i++) count[i] = dims_out[i];
+
+       if (H5Sselect_hyperslab(h5s_id, H5S_SELECT_SET,
+                               offset, NULL, count, NULL) < 0) {
+          string msg;
+          e->Throw(hdf5_error_message(msg));
+       }
     }
     if (debug) cout << "here 2" <<endl;
 
     // define memory dataspace
     hid_t memspace = H5Screate_simple(rank, count, NULL);
     if (memspace < 0) {
-      string msg;
-      e->Throw(hdf5_error_message(msg));
+       string msg;
+       e->Throw(hdf5_error_message(msg));
     }
     hdf5_space_guard memspace_guard = hdf5_space_guard(memspace);
 
@@ -717,37 +799,45 @@ hid_t
     hsize_t offset_out[MAXRANK];
 #endif
     hsize_t count_out[MAXRANK];
-    for (int i = 0; i < rank; i++) offset_out[i] = 0;
-    for (int i = 0; i < rank; i++) count_out[i] = dims_out[i];
-    if (H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset_out, NULL, count_out, NULL) < 0) {
-      string msg;
-      e->Throw(hdf5_error_message(msg));
-    }
 
+    if (rank>0) {
+
+       for (int i = 0; i < rank; i++) offset_out[i] = 0;
+       for (int i = 0; i < rank; i++) count_out[i] = dims_out[i];
+
+       if (H5Sselect_hyperslab(memspace, H5S_SELECT_SET,
+                               offset_out, NULL, count_out, NULL) < 0) {
+          string msg;
+          e->Throw(hdf5_error_message(msg));
+       }
+    }
     if (debug) cout << "here 3" <<endl;
 
     SizeT count_s[MAXRANK];
     SizeT rank_s;
 
-    rank_s = (SizeT) rank;
+    rank_s = (SizeT) (elem_rank + rank);
+
     // need to reverse indices for column major format
-    for (int i = 0; i < rank; i++)
-      count_s[i] = (SizeT) count_out[rank - 1 - i ];
+    for(int i=0; i<elem_rank; i++)
+      count_s[i] = (SizeT)elem_dims[elem_rank - 1  - i ];
+
+    for(int i=elem_rank; i<elem_rank+rank; i++)
+      count_s[i] = (SizeT)dims_out[elem_rank+rank - 1  - i ];
 
     // create the IDL datatypes
     dimension dim(count_s, rank_s);
-    //std::cout << dim << std::endl;
+
     BaseGDL *res;
 
     if (debug) cout << "datatype : " << datatype << endl;
 
-    
     DLong ourType = mapH5DatatypesToGDL(datatype);
     hsize_t type;
 
     if (debug)  cout << "ourType : " << ourType  << endl;
     if (debug) cout << "GDL_STRING : " << GDL_STRING << endl;
-    
+
     if (ourType == GDL_BYTE) {
       res = new DByteGDL(dim);
       type = H5T_NATIVE_UINT8;
@@ -816,7 +906,7 @@ hid_t
         e->Throw(hdf5_error_message(msg));
       }
       if (debug) cout << "here 4d" <<endl;
-      
+
       for (int i = 0; i < count_s[0]; i++)
         (*(static_cast<DStringGDL*> (res)))[i] = rdata[i];
       free (rdata); //but not rdata[0]
@@ -828,35 +918,40 @@ hid_t
     }
 
     if (debug) cout << "here 5" <<endl;
- 
+
+    if (elem_rank>0) type = H5Tarray_create2( type, elem_rank, elem_dims );
+
     if (H5Dread(h5d_id, type, memspace, h5s_id, H5P_DEFAULT, res->DataAddr()) < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
 
+    H5Tclose(datatype);
+    if (elem_rank>0) H5Tclose(type);
+
     return res;
   }
 
-  
+
   void h5s_close_pro( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
 
     hid_t h5s_id = hdf5_input_conversion(e,0);
-    
+
     if (H5Sclose(h5s_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
-  
+
 
   void h5d_close_pro( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
 
     hid_t h5d_id = hdf5_input_conversion(e,0);
-    
+
     if (H5Dclose(h5d_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
-  
+
 
   void h5f_close_pro( EnvT* e)
   {
@@ -877,7 +972,7 @@ hid_t
     if (H5Tclose(h5t_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
-  
+
   void h5g_close_pro( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
