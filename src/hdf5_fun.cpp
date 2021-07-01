@@ -771,20 +771,24 @@ hid_t
 #endif
     hsize_t count[MAXRANK];
 
-    for (int i = 0; i < rank; i++) offset[i] = 0;
-    for (int i = 0; i < rank; i++) count[i] = dims_out[i];
+    if (rank>0) {
 
-    if (H5Sselect_hyperslab(h5s_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0) {
-      string msg;
-      e->Throw(hdf5_error_message(msg));
+       for (int i = 0; i < rank; i++) offset[i] = 0;
+       for (int i = 0; i < rank; i++) count[i] = dims_out[i];
+
+       if (H5Sselect_hyperslab(h5s_id, H5S_SELECT_SET,
+                               offset, NULL, count, NULL) < 0) {
+          string msg;
+          e->Throw(hdf5_error_message(msg));
+       }
     }
     if (debug) cout << "here 2" <<endl;
 
     // define memory dataspace
     hid_t memspace = H5Screate_simple(rank, count, NULL);
     if (memspace < 0) {
-      string msg;
-      e->Throw(hdf5_error_message(msg));
+       string msg;
+       e->Throw(hdf5_error_message(msg));
     }
     hdf5_space_guard memspace_guard = hdf5_space_guard(memspace);
 
@@ -795,13 +799,18 @@ hid_t
     hsize_t offset_out[MAXRANK];
 #endif
     hsize_t count_out[MAXRANK];
-    for (int i = 0; i < rank; i++) offset_out[i] = 0;
-    for (int i = 0; i < rank; i++) count_out[i] = dims_out[i];
-    if (H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset_out, NULL, count_out, NULL) < 0) {
-      string msg;
-      e->Throw(hdf5_error_message(msg));
-    }
 
+    if (rank>0) {
+
+       for (int i = 0; i < rank; i++) offset_out[i] = 0;
+       for (int i = 0; i < rank; i++) count_out[i] = dims_out[i];
+
+       if (H5Sselect_hyperslab(memspace, H5S_SELECT_SET,
+                               offset_out, NULL, count_out, NULL) < 0) {
+          string msg;
+          e->Throw(hdf5_error_message(msg));
+       }
+    }
     if (debug) cout << "here 3" <<endl;
 
     SizeT count_s[MAXRANK];
