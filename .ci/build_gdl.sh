@@ -19,6 +19,7 @@ real_path() {
 GDL_DIR=$(real_path "$(dirname $0)/..")
 ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}/.."}
 PYTHONVERSION=${PYTHONVERSION:-"3"}
+GDLDE_VERSION=${GDLDE_VERSION:-"v1.0.0"}  #needed by 'pack' (at the moment Windows only)
 BUILD_OS=$(uname)
 if [[ ${BUILD_OS} == *"MSYS"* ]]; then
     BUILD_OS="Windows"
