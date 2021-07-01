@@ -7,7 +7,7 @@
 #  (at your option) any later version.
 #
 
-cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)

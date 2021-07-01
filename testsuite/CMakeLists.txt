@@ -17,7 +17,7 @@ add_test(test_build_libtest_ce
   --config "$<CONFIG>"
   --target test_ce
 )
-set_tests_properties(test_build_libtest_ce PROPERTIES FIXTURES_SETUP test_ce_fixture) # Requires cMake >= 3.7
+file(COPY ${CMAKE_SOURCE_DIR}/testsuite/example.grib DESTINATION ${CMAKE_BINARY_DIR}/testsuite/)
 
 set(GDL_BINARY ${BASE_BINARY}/src/gdl)
 set(PATH_SEP ":")
@@ -31,7 +31,7 @@ foreach(TEST ${TESTS})
   string(REGEX REPLACE "\\.pro$" "" TESTNAME ${TEST})
   add_test(NAME ${TEST} COMMAND ${GDL_BINARY} -quiet -e ${TESTNAME})
   if (${TESTNAME} EQUAL "test_call_external")
-    set_tests_properties(${TEST} PROPERTIES FIXTURES_REQUIRED test_ce_fixture)
+    set_tests_properties(${TEST} PROPERTIES DEPEND test_build_libtest_ce)
   endif()
 endforeach(TEST TESTS)
 
