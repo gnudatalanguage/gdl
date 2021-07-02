@@ -103,7 +103,8 @@ volatile bool useWxWidgets;
 volatile bool useWxWidgetsForGraphics;
 //do we use SVG for graphics in python notebook use?
 volatile bool iAmANotebook;
-
+//do we use name Devices differently among platforms?
+volatile bool usePlatformDeviceNames;
 // do we force fonts to be the ugly IDL fonts?
 volatile bool forceWxWidgetsUglyFonts;
 

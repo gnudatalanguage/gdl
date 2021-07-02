@@ -200,12 +200,11 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
   
-#ifdef _WIN32
-  std::string defaultDeviceName=std::string("WIN");
-#elif __APPLE__
-  std::string defaultDeviceName=std::string("MAC");
-#else
   std::string defaultDeviceName=std::string("X"); //what we expect the plot device to be
+#ifdef _WIN32
+  if (usePlatformDeviceNames) defaultDeviceName=std::string("WIN");
+#elif __APPLE__
+  if (usePlatformDeviceNames) defaultDeviceName=std::string("MAC");
 #endif
   
   // if GDL_DISABLE_WX_PLOTS (or switch --no-use-wx ) IS NOT PRESENT , and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,

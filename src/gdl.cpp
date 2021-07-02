@@ -227,6 +227,7 @@ int main(int argc, char *argv[])
   bool syntaxOptionSet=false;
 
   bool force_no_wxgraphics = false;
+  usePlatformDeviceNames=false;
   forceWxWidgetsUglyFonts = false;
   useDSFMTAcceleration = true;
   iAmANotebook=false; //option --notebook
@@ -254,7 +255,7 @@ int main(int argc, char *argv[])
       cerr << "                     Use enviromnment variable \"GDL_IS_FUSSY\" to set up permanently this feature." << endl;
       cerr << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
       cerr << "                     Needed to counteract temporarily the effect of the enviromnment variable \"GDL_IS_FUSSY\"." << endl;
-      cerr << "  --use-wx (default if GDL is linked with wxWidgets): Tells GDL to use WxWidgets graphics instead of X11 or Windows. (nicer plots)." << endl;
+      cerr << "  --true-device-names        Device will be 'X' on unix, 'WIN' on Windows and 'MAC' on macs." << endl;
       cerr << "  --no-use-wx        Tells GDL not to use WxWidgets graphics." << endl;
       cerr << "                     Also enabled by setting the environment variable GDL_DISABLE_WX_PLOTS to a non-null value." << endl;
       cerr << "  --notebook         Force SVG-only device, used only when GDL is a Python Notebook Kernel." << endl;
@@ -263,6 +264,9 @@ int main(int argc, char *argv[])
       cerr << "                     Using this option may render some historical widgets unworkable (as they are based on fixed sizes)." << endl;
       cerr << "  --no-dSFMT         Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random doubles." << endl;
       cerr << "                     Also disable by setting the environment variable GDL_NO_DSFMT to a non-null value." << endl;
+#ifdef _WIN32
+      cerr << "  --posix (Windows only): paths will be posix paths (experimental)." << endl;
+#endif
       cerr << endl;
       cerr << "IDL-compatible options:" << endl;
       cerr << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
@@ -356,9 +360,6 @@ int main(int argc, char *argv[])
       {
            useDSFMTAcceleration = false;
       }
-      else if (string(argv[a]) == "--use-wx") //obsoleted
-      {
-      }
       else if (string(argv[a]) == "--widget-compat")
       {
           forceWxWidgetsUglyFonts = true;
@@ -366,6 +367,10 @@ int main(int argc, char *argv[])
 #ifdef _WIN32
       else if (string(argv[a]) == "--posix") lib::posixpaths=true;
 #endif
+      else if (string(argv[a]) == "--true-device-names")
+      {
+         usePlatformDeviceNames = true;
+      }
       else if (string(argv[a]) == "--no-use-wx")
       {
          force_no_wxgraphics = true;

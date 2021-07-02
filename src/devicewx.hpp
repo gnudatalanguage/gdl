@@ -38,8 +38,8 @@
 class DeviceWX : public GraphicsMultiDevice {
   
 public:
-
-    DeviceWX(std::string name_="MAC") : GraphicsMultiDevice( 1, 3, 3, 0) { //force decomposed=true until we find a better way (::wxDispayDepth() crashes)
+//is called "WIN" as there is no other choice on WINDOWS, and "WIN" is still ok on linux and macOSX
+    DeviceWX(std::string name_="WIN") : GraphicsMultiDevice( 1, 3, 3, 0) { //force decomposed=true until we find a better way (::wxDispayDepth() crashes)
         name = name_; 
         DLongGDL origin(dimension(2));
         DLongGDL zoom(dimension(2));
