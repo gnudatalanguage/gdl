@@ -218,7 +218,8 @@ function prep_packages {
 
         log "Building bsd-xdr..."
         pushd bsd-xdr-1.0.0
-        sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -i Makefile
+        sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -e 's/libxdr/libbsdxdr/' -i Makefile
+        mv lib/libxdr.def.in lib/libbsdxdr.def.in
         make || exit 1
         cp -f mingw/*.dll /${mname}/bin/
         cp -f mingw/libxdr.dll.a /${mname}/lib/
