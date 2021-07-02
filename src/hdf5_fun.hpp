@@ -21,7 +21,7 @@
 #include "datatypes.hpp"
 #include "envt.hpp"
 
-/** 
+/**
  * needs the hdf5 library, obtainable from http://hdf.ncsa.uiuc.edu/HDF5/
  */
 #define H5_USE_16_API 1
@@ -48,6 +48,7 @@ namespace lib {
   BaseGDL* h5d_open_fun( EnvT* e);
   BaseGDL* h5d_read_fun( EnvT* e);
   BaseGDL* h5d_get_space_fun( EnvT* e);
+  BaseGDL* h5s_get_simple_extent_ndims_fun( EnvT* e);
   BaseGDL* h5s_get_simple_extent_dims_fun( EnvT* e);
   void h5f_close_pro( EnvT* e);
   void h5d_close_pro( EnvT* e);

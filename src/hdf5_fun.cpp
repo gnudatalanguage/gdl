@@ -507,6 +507,19 @@ hid_t
   }
 
 
+  BaseGDL* h5s_get_simple_extent_ndims_fun( EnvT* e)
+  {
+    SizeT nParam=e->NParam(1);
+
+    hid_t h5s_id=hdf5_input_conversion(e,0);
+
+    int rank = H5Sget_simple_extent_ndims(h5s_id);
+    if (rank < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return new DLongGDL(rank);
+  }
+
+
   BaseGDL* h5s_get_simple_extent_dims_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
