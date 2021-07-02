@@ -169,7 +169,7 @@ jobs:
         with:
           path: |
             C:\msys64\cache
-          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v4
+          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v5
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench
@@ -198,7 +198,7 @@ jobs:
             tar xf $fn -C /cache
           done
           ADDTIONAL_FILES=( /mingw*/bin/mgwxdr-0.dll
-                            /mingw*/lib/libxdr.*
+                            /mingw*/lib/libbsdxdr.*
                             /mingw*/include/rpc/types.h
                             /mingw*/include/rpc/xdr.h )
           for fn in ${ADDTIONAL_FILES[@]}; do
