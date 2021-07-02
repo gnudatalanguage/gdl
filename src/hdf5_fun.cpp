@@ -568,6 +568,8 @@ hid_t
 
     // for array datatypes, determine the rank and dimension of the element
     int elem_rank=0;
+    hid_t elem_dtype;
+
     if (H5Tget_class(datatype)==H5T_ARRAY ) {
 
        if ((elem_rank=H5Tget_array_ndims(datatype)) <0)
@@ -582,9 +584,17 @@ hid_t
           for(int i=0; i<elem_rank; i++) cout << elem_dims[i] << ",";
           cout << endl;
        }
-       hid_t elem_datatype = H5Tget_super(datatype);
-       H5Tclose(datatype);
-       datatype = elem_datatype;
+
+       elem_dtype = H5Tget_super(datatype);
+       if (elem_dtype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+       hdf5_type_guard elem_dtype_guard = hdf5_type_guard(elem_dtype);
+
+    } else {
+
+       elem_dtype = H5Tcopy(datatype);
+       if (elem_dtype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+       hdf5_type_guard elem_dtype_guard = hdf5_type_guard(elem_dtype);
+
     }
 
     // determine the rank and dimension of the dataset
@@ -614,8 +624,8 @@ hid_t
     dimension dim(count_s, rank+elem_rank);
 
     BaseGDL *res;
-    if (debug) cout << "datatype : " << datatype << endl;
-    DLong ourType = mapH5DatatypesToGDL(datatype);
+    if (debug) cout << "datatype : " << elem_dtype << endl;
+    DLong ourType = mapH5DatatypesToGDL(elem_dtype);
     hsize_t type;
 
     if (ourType == GDL_BYTE) {
@@ -683,7 +693,7 @@ hid_t
       status = H5Tclose (memtype);
       return res;
     } else {
-      e->Throw("Unsupported data format" + i2s(datatype));
+      e->Throw("Unsupported data format" + i2s(elem_dtype));
     }
 
     if (elem_rank>0) type = H5Tarray_create2( type, elem_rank, elem_dims );
@@ -691,7 +701,6 @@ hid_t
     if (H5Aread(h5a_id, type, res->DataAddr()) < 0)
       { string msg; e->Throw(hdf5_error_message(msg)); }
 
-    H5Tclose(datatype);
     if (elem_rank>0) H5Tclose(type);
 
     return res;
@@ -738,6 +747,8 @@ hid_t
 
     // for array datatypes, determine the rank and dimension of the element
     int elem_rank=0;
+    hid_t elem_dtype;
+
     if (H5Tget_class(datatype)==H5T_ARRAY ) {
 
        if ((elem_rank=H5Tget_array_ndims(datatype)) <0)
@@ -752,9 +763,17 @@ hid_t
           for(int i=0; i<elem_rank; i++) cout << elem_dims[i] << ",";
           cout << endl;
        }
-       hid_t elem_datatype = H5Tget_super(datatype);
-       H5Tclose(datatype);
-       datatype = elem_datatype;
+
+       elem_dtype = H5Tget_super(datatype);
+       if (elem_dtype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+       hdf5_type_guard elem_dtype_guard = hdf5_type_guard(elem_dtype);
+
+    } else {
+
+       elem_dtype = H5Tcopy(datatype);
+       if (elem_dtype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+       hdf5_type_guard elem_dtype_guard = hdf5_type_guard(elem_dtype);
+
     }
 
     // determine the rank and dimension of the dataset
@@ -843,9 +862,9 @@ hid_t
 
     BaseGDL *res;
 
-    if (debug) cout << "datatype : " << datatype << endl;
+    if (debug) cout << "datatype : " << elem_dtype << endl;
 
-    DLong ourType = mapH5DatatypesToGDL(datatype);
+    DLong ourType = mapH5DatatypesToGDL(elem_dtype);
     hsize_t type;
 
     if (debug)  cout << "ourType : " << ourType  << endl;
@@ -927,19 +946,19 @@ hid_t
       status = H5Tclose (memtype);
       return res;
     } else {
-      e->Throw("Unsupported data format" + i2s(datatype));
+      e->Throw("Unsupported data format" + i2s(elem_dtype));
     }
 
     if (debug) cout << "here 5" <<endl;
 
     if (elem_rank>0) type = H5Tarray_create2( type, elem_rank, elem_dims );
 
-    if (H5Dread(h5d_id, type, memspace, h5s_id, H5P_DEFAULT, res->DataAddr()) < 0) {
+    if (H5Dread(h5d_id, type, memspace, h5s_id,
+                H5P_DEFAULT, res->DataAddr()) < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
 
-    H5Tclose(datatype);
     if (elem_rank>0) H5Tclose(type);
 
     return res;
