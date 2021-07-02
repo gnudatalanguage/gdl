@@ -222,7 +222,7 @@ function prep_packages {
         mv lib/libxdr.def.in lib/libbsdxdr.def.in
         make || exit 1
         cp -f mingw/*.dll /${mname}/bin/
-        cp -f mingw/libxdr.dll.a /${mname}/lib/
+        cp -f mingw/libbsdxdr.dll.a /${mname}/lib/
         cp -rf rpc /${mname}/include/
         popd
     elif [ ${BUILD_OS} == "Linux" ]; then
