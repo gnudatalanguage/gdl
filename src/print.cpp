@@ -160,7 +160,7 @@ namespace lib {
     static int IMPLIEDix= e->KeywordIx("IMPLIED_PRINT");
     if (e->KeywordSet(IMPLIEDix)) {
       SizeT proIx = GDLInterpreter::GetProIx("GDL_IMPLIED_PRINT");
-      if (proIx == 0) goto no_implied; //bad practice, but I'm on a hurry
+      if (proIx < 0) goto no_implied; //bad practice, but I'm on a hurry
         int nParam = e->NParam();
       for (SizeT i = 0; i < nParam; ++i) {
           EnvUDT* newEnv = new EnvUDT( e->CallingNode(), proList[ proIx], (DObjGDL**)NULL);
