@@ -155,84 +155,95 @@ namespace lib {
     write_journal_comment( e, parOffset, width);
   }
 
-  void print_os( ostream* os, EnvT* e, int parOffset, SizeT width)
-  {
+  void print_os(ostream* os, EnvT* e, int parOffset, SizeT width) {
+    //IMPLIED_PRINT
+    static int IMPLIEDix= e->KeywordIx("IMPLIED_PRINT");
+    if (e->KeywordSet(IMPLIEDix)) {
+      SizeT proIx = GDLInterpreter::GetProIx("GDL_IMPLIED_PRINT");
+      if (proIx == 0) goto no_implied; //bad practice, but I'm on a hurry
+        int nParam = e->NParam();
+      for (SizeT i = 0; i < nParam; ++i) {
+          EnvUDT* newEnv = new EnvUDT( e->CallingNode(), proList[ proIx], (DObjGDL**)NULL);
+          Guard< EnvUDT> guard( newEnv);
+          // add parameters
+          newEnv->SetNextPar(e->GetPar(i)->Dup());
+          // guard *before* pushing new env
+          StackGuard<EnvStackT> guard1 ( e->Interpreter()->CallStack());
+          e->Interpreter()->CallStack().push_back(newEnv);
+          guard.release();
+          e->Interpreter()->call_pro(static_cast<DSubUD*>(newEnv->GetPro())->GetTree());
+      }
+        return;
+    } 
     // FORMAT keyword
-    if( e->GetKW( 0) != NULL)
-      {
-	DString fmtString;
-	e->AssureScalarKW<DStringGDL>( 0, fmtString);
+no_implied:    
+    if (e->GetKW(0) != NULL) {
+      DString fmtString;
+      e->AssureScalarKW<DStringGDL>(0, fmtString);
 
-	if( fmtString != "")
-	{
-	  try {
-	  RefFMTNode fmtAST = GetFMTAST( fmtString);
+      if (fmtString != "") {
+        try {
+          RefFMTNode fmtAST = GetFMTAST(fmtString);
 #ifdef GDL_DEBUG
-	  antlr::print_tree pt;
-	  cout << "Format parser output:" << endl;
-	  pt.pr_tree(static_cast<antlr::RefAST>(fmtAST));
-	  cout << "Format Parser end." << endl;
+          antlr::print_tree pt;
+          cout << "Format parser output:" << endl;
+          pt.pr_tree(static_cast<antlr::RefAST> (fmtAST));
+          cout << "Format Parser end." << endl;
 #endif
 
-	  // formatted output ignores WIDTH
-	  FMTOut Formatter( fmtAST, os, e, parOffset); 
-	  return;
-	  }
-	  catch( antlr::ANTLRException& ex)
-	  {
-        //Authorize the format to be "new" C format. Should better be handled in the parser, FIXME!
-      try {
-        DString fmtSTring2="(%\""+fmtString+"\")";
-	    RefFMTNode fmtAST = GetFMTAST( fmtSTring2);
-	    FMTOut Formatter( fmtAST, os, e, parOffset); 
-	    return;
-	  } 
-      catch ( antlr::ANTLRException& ex)  {
-	    e->Throw( ex.getMessage());
-       }
-	  }
-	}
+          // formatted output ignores WIDTH
+          FMTOut Formatter(fmtAST, os, e, parOffset);
+          return;
+        } catch (antlr::ANTLRException& ex) {
+          //Authorize the format to be "new" C format. Should better be handled in the parser, FIXME!
+          try {
+            DString fmtSTring2 = "(%\"" + fmtString + "\")";
+            RefFMTNode fmtAST = GetFMTAST(fmtSTring2);
+            FMTOut Formatter(fmtAST, os, e, parOffset);
+            return;
+          } catch (antlr::ANTLRException& ex) {
+            e->Throw(ex.getMessage());
+          }
+        }
       }
+    }
     //else // default-format output. can be implied print (to be written: FIXME)
-      {
-	int nParam = e->NParam();
+    {
+      int nParam = e->NParam();
 
-	if( nParam == parOffset) 
-	  {
-	    (*os) << '\n';
-	    return;
-	  }
-      
-	BaseGDL* par;
-	bool lastParScalar = false;
-	BaseGDL* parOffsetPar = e->GetPar( parOffset);
-        bool anyArrayBefore = false;
-	if( parOffsetPar != NULL)
-	  anyArrayBefore = parOffsetPar->Rank() > 0;
-
-	SizeT actPos = 0;
-	for( SizeT i=parOffset; i<nParam; i++)
-	  {
-	    if( i > parOffset) lastParScalar = /*par->Type() == GDL_STRING &&*/ par->Scalar();
-	    par=e->GetPar( i);
-	    if( par == NULL) // allowed here: NullGDL::GetSingleInstance())
-	      e->Throw("Variable is undefined: "+e->GetParString( i));
-            if (lastParScalar && anyArrayBefore && par->Rank() != 0) (*os) << '\n'; // e.g. print,[1],1,[1] 
-            anyArrayBefore |= par->Rank() != 0;
-	    par->ToStream( *os, width, &actPos);
-// debug	  
-// 		(*os) << flush;
-	  }
-        bool singleNullChar = (par->Type() == GDL_STRING &&
-				!lastParScalar &&
-				(nParam-parOffset)>1 &&
-			       (*static_cast<DStringGDL*>(par))[0] == "");
-// 	}
-	if( (par->Dim().Rank() == 0  && !singleNullChar) || par->Type() == GDL_STRUCT)
-	{
-		(*os) << '\n';
-	}
+      if (nParam == parOffset) {
+        (*os) << '\n';
+        return;
       }
+
+      BaseGDL* par;
+      bool lastParScalar = false;
+      BaseGDL* parOffsetPar = e->GetPar(parOffset);
+      bool anyArrayBefore = false;
+      if (parOffsetPar != NULL)
+        anyArrayBefore = parOffsetPar->Rank() > 0;
+
+      SizeT actPos = 0;
+      for (SizeT i = parOffset; i < nParam; i++) {
+        if (i > parOffset) lastParScalar = /*par->Type() == GDL_STRING &&*/ par->Scalar();
+        par = e->GetPar(i);
+        if (par == NULL) // allowed here: NullGDL::GetSingleInstance())
+          e->Throw("Variable is undefined: " + e->GetParString(i));
+        if (lastParScalar && anyArrayBefore && par->Rank() != 0) (*os) << '\n'; // e.g. print,[1],1,[1] 
+        anyArrayBefore |= par->Rank() != 0;
+        par->ToStream(*os, width, &actPos);
+        // debug	  
+        // 		(*os) << flush;
+      }
+      bool singleNullChar = (par->Type() == GDL_STRING &&
+        !lastParScalar &&
+        (nParam - parOffset) > 1 &&
+        (*static_cast<DStringGDL*> (par))[0] == "");
+      // 	}
+      if ((par->Dim().Rank() == 0 && !singleNullChar) || par->Type() == GDL_STRUCT) {
+        (*os) << '\n';
+      }
+    }
   }
 
   // SA: we're better than IDL! - we accept more than 20 parameters ;)

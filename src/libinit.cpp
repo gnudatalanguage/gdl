@@ -333,13 +333,11 @@ void LibInit()
   //NOTE THAT AM_PM, DAYS_OF_WEEK and MONTHS are silently ignored!!!
   //implied print is a feature introduced in idl8.3 and shared by print/printf, string and fix(type=7)
   #define COMMONKEYWORDSFORSTRINGFORMATTING "FORMAT","AM_PM","DAYS_OF_WEEK","MONTHS"
-  const string printKey[]={COMMONKEYWORDSFORSTRINGFORMATTING, "STDIO_NON_FINITE",KLISTEND};
+  const string printKey[]={COMMONKEYWORDSFORSTRINGFORMATTING, "STDIO_NON_FINITE","IMPLIED_PRINT",KLISTEND};
   const string impliedprintKey[]={COMMONKEYWORDSFORSTRINGFORMATTING, "STDIO_NON_FINITE","IMPLIED_PRINT","REWRITE"/*obsoleted in 5.3*/,KLISTEND};
   //At the moment, print accepts silently "IMPLIED_PRINT" as this is used in autoprint feature.
   new DLibPro(lib::print,string("PRINT"),-1,impliedprintKey);
-  //but PRINTF issues a warning, as it is not yet supported
-  const string printfWarnKey[]={"IMPLIED_PRINT",KLISTEND};
-  new DLibPro(lib::printf,string("PRINTF"),-1,printKey,printfWarnKey);
+  new DLibPro(lib::printf,string("PRINTF"),-1,printKey);
   // allow printing (of expressions) with all keywords 
   // (easier to implement this way)
   new DLibPro(lib::stop,string("STOP"),-1,printKey); 
