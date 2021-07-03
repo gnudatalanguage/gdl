@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
   bool syntaxOptionSet=false;
 
   bool force_no_wxgraphics = false;
-  usePlatformDeviceNames=false;
+  usePlatformDeviceName=false;
   forceWxWidgetsUglyFonts = false;
   useDSFMTAcceleration = true;
   iAmANotebook=false; //option --notebook
@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
       cerr << "                     Use enviromnment variable \"GDL_IS_FUSSY\" to set up permanently this feature." << endl;
       cerr << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
       cerr << "                     Needed to counteract temporarily the effect of the enviromnment variable \"GDL_IS_FUSSY\"." << endl;
-      cerr << "  --true-device-names        Device will be 'X' on unix, 'WIN' on Windows and 'MAC' on macs." << endl;
+      cerr << "  --MAC              Graphic device will be called 'MAC' on MacOSX. (default: 'X')" << endl;
       cerr << "  --no-use-wx        Tells GDL not to use WxWidgets graphics." << endl;
       cerr << "                     Also enabled by setting the environment variable GDL_DISABLE_WX_PLOTS to a non-null value." << endl;
       cerr << "  --notebook         Force SVG-only device, used only when GDL is a Python Notebook Kernel." << endl;
@@ -367,9 +367,9 @@ int main(int argc, char *argv[])
 #ifdef _WIN32
       else if (string(argv[a]) == "--posix") lib::posixpaths=true;
 #endif
-      else if (string(argv[a]) == "--true-device-names")
+      else if (string(argv[a]) == "--MAC")
       {
-         usePlatformDeviceNames = true;
+         usePlatformDeviceName = true;
       }
       else if (string(argv[a]) == "--no-use-wx")
       {

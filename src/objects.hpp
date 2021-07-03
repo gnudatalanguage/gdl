@@ -76,7 +76,7 @@ extern volatile bool useWxWidgetsForGraphics;
 extern volatile bool forceWxWidgetsUglyFonts;
 //do we favor SIMD-accelerated random number generation?
 extern volatile bool useDSFMTAcceleration;
-extern volatile bool usePlatformDeviceNames;
+extern volatile bool usePlatformDeviceName;
 extern          int  debugMode;
 
 enum DebugCode {
