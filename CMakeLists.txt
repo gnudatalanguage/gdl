@@ -412,7 +412,7 @@ if(WXWIDGETS)
         message(FATAL_ERROR "wxWidgets are required but were not found.\n"
         "Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
         "Use -DWXWIDGETS=OFF to not use it.\n"
-                "(suitable Debian/Ubuntu package: libwxgtk2.8-dev)\n"
+                "(suitable Debian/Ubuntu package: libwxgtk3.0-gtk3-dev)\n"
                 "(suitable Fedora/CentOS package: wxGTK-devel)")
     endif(wxWidgets_FOUND)
 endif(WXWIDGETS)
