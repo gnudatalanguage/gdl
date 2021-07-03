@@ -149,8 +149,21 @@ type=size(value,/type)
 if (type eq 0) then return
 w=where(type eq types, count)
 if (count gt 0) then begin
-   print,value
-   return
+  ret=size(value)
+  ndim=ret[0]
+  type=ret[ndim+1]
+  n=n_elements(value)
+  case type of
+  7: BEGIN
+    for i=0,n-1 do print,value[i]
+  END
+  4: print,value,format='(G16.8)'
+  5: print,value,format='(G25.17)'
+  6: print,value,format='("(",G16.8,",",G16.8,")")'
+  9: print,value,format='("(",G25.17,",",G25.17,")")'
+  ELSE: print,value
+  endcase
+  return
 endif
 
 text=pretty_serialize(value)

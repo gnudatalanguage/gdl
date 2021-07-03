@@ -331,16 +331,16 @@ void LibInit()
   // as the same functions are called "FORMAT" till "MONTH"
   // must be the first four keywords. The inner print_os function is BASED on this ORDER!
   //NOTE THAT AM_PM, DAYS_OF_WEEK and MONTHS are silently ignored!!!
-  //implied print is a feature introduced in idl8.3 and shared by print/printf, string and fix(type=7)
   #define COMMONKEYWORDSFORSTRINGFORMATTING "FORMAT","AM_PM","DAYS_OF_WEEK","MONTHS"
-  const string printKey[]={COMMONKEYWORDSFORSTRINGFORMATTING, "STDIO_NON_FINITE","IMPLIED_PRINT",KLISTEND};
-  const string impliedprintKey[]={COMMONKEYWORDSFORSTRINGFORMATTING, "STDIO_NON_FINITE","IMPLIED_PRINT","REWRITE"/*obsoleted in 5.3*/,KLISTEND};
-  //At the moment, print accepts silently "IMPLIED_PRINT" as this is used in autoprint feature.
-  new DLibPro(lib::print,string("PRINT"),-1,impliedprintKey);
-  new DLibPro(lib::printf,string("PRINTF"),-1,printKey);
+  //implied print is a feature introduced in idl8.3 and shared by print/printf, string and fix(type=7) and used in print_os()
+  #define COMMONKEYWORDSFORSTRINGFORMATTINGWITHIMPLIEDPRINT COMMONKEYWORDSFORSTRINGFORMATTING,"IMPLIED_PRINT"
+  const string printOsKey[]={COMMONKEYWORDSFORSTRINGFORMATTINGWITHIMPLIEDPRINT, "STDIO_NON_FINITE",KLISTEND};
+  const string printKey[]={COMMONKEYWORDSFORSTRINGFORMATTINGWITHIMPLIEDPRINT, "STDIO_NON_FINITE","REWRITE"/*obsoleted in 5.3*/,KLISTEND};
+  new DLibPro(lib::print,string("PRINT"),-1,printKey);
+  new DLibPro(lib::printf,string("PRINTF"),-1,printOsKey);
   // allow printing (of expressions) with all keywords 
   // (easier to implement this way)
-  new DLibPro(lib::stop,string("STOP"),-1,printKey); 
+  new DLibPro(lib::stop,string("STOP"),-1,printOsKey); 
 
   const string readKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"PROMPT"
     ,"KEY_ID","KEY_MATCH","KEY_VALUE" //obsoleted in 5.3
@@ -351,9 +351,8 @@ void LibInit()
   const string readsKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,	   KLISTEND}; // no PROMPT
   new DLibPro(lib::reads,string("READS"),-1,readsKey);
 
-  const string stringKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"PRINT",KLISTEND};
-  const string stringWarnKey[]={"IMPLIED_PRINT",KLISTEND};
-  new DLibFun(lib::string_fun,string("STRING"),-1,stringKey,stringWarnKey);
+  const string stringKey[]={COMMONKEYWORDSFORSTRINGFORMATTINGWITHIMPLIEDPRINT,"PRINT",KLISTEND};
+  new DLibFun(lib::string_fun,string("STRING"),-1,stringKey);
 
   const string defsysvKey[]={"EXISTS",KLISTEND};
   new DLibPro(lib::defsysv,string("DEFSYSV"),3,defsysvKey); 
@@ -494,9 +493,8 @@ void LibInit()
   new DLibFunRetNew(lib::dcomplex_fun,string("DCOMPLEX"),MAXRANK+2,NULL,NULL,true);
 */
 // that's apparently the desired bahaviour, see bug no. 3151760
-  const string fixKey[]={"TYPE","PRINT",KLISTEND};
-  const string fixWarnKey[]={"IMPLIED_PRINT",KLISTEND};
-  new DLibFun(lib::fix_fun,string("FIX"),10,fixKey,fixWarnKey);
+  const string fixKey[]={"TYPE","PRINT","IMPLIED_PRINT",KLISTEND}; //Fix never uses IMPLIED_PRINT, but called print_os does.
+  new DLibFun(lib::fix_fun,string("FIX"),10,fixKey);
 
   new DLibFun(lib::uint_fun,string("UINT"),10,NULL,NULL);
   new DLibFun(lib::long_fun,string("LONG"),10,NULL,NULL);
