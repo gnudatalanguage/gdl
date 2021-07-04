@@ -163,10 +163,14 @@ namespace lib {
       if (proIx < 0) goto no_implied; //bad practice, but I'm on a hurry
         int nParam = e->NParam();
       for (SizeT i = 0; i < nParam; ++i) {
+          BaseGDL* par;
+          par = e->GetPar(i);
+          if (par == NULL) // allowed here: NullGDL::GetSingleInstance())
+          e->Throw("Variable is undefined: " + e->GetParString(i));
           EnvUDT* newEnv = new EnvUDT( e->CallingNode(), proList[ proIx], (DObjGDL**)NULL);
           Guard< EnvUDT> guard( newEnv);
           // add parameters
-          newEnv->SetNextPar(e->GetPar(i)->Dup());
+          newEnv->SetNextPar(par->Dup());
           // guard *before* pushing new env
           StackGuard<EnvStackT> guard1 ( e->Interpreter()->CallStack());
           e->Interpreter()->CallStack().push_back(newEnv);
