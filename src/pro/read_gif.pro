@@ -54,7 +54,7 @@ pro READ_GIF, filename, image, Red, Green, Blue, $
 
 compile_opt hidden, idl2
 
-ON_ERROR, 2
+;ON_ERROR, 2
 ;
 ; this line allows to compile also in IDL ...
 FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ
@@ -129,7 +129,7 @@ sz = SIZE(image)
 if (sz[0] EQ 2) then begin
    image=ROTATE(image,7)
 endif
-if (sz[0] EQ 3) then begin
+if (sz[0] EQ 3 and sz[1] eq 3) then begin
    ;; "rotate" image to agree with IDL (JMG 08/18/04)
    tmp = image[0,*,*]
    image[0,*,*] = image[2,*,*]

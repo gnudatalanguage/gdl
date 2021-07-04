@@ -109,6 +109,13 @@ case info.type of
    end
    'PNG' : READ_PNG, filename, image, red, green, blue
    'GIF' : READ_GIF, filename, image, red, green, blue
+   'PICT' : READ_PICT, filename, image, red, green, blue
+   'XBM' : READ_X11_BITMAP, filename, image
+   'BMP' : image=READ_BMP(filename, red, green, blue)
+   'DICOM' : image=READ_DICOM(filename, red, green, blue,image_index=image_index)
+   'JP2' : image=READ_JPEG2000(filename, red, green, blue)
+   'TIFF' : image=READ_TIFF(filename, red, green, blue,image_index=image_index)
+   'XWD' : image=READ_XWD(filename, image, red, green, blue)
    else: MESSAGE, 'This format is not managed today, please contribute'
 endcase
 ;
