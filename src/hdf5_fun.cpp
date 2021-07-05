@@ -741,8 +741,6 @@ hid_t
       e->Throw(hdf5_error_message(msg));
     }
 
-    if (debug) cout << "here 1" <<endl;
-
     hdf5_type_guard datatype_guard = hdf5_type_guard(datatype);
 
     // for array datatypes, determine the rank and dimension of the element
@@ -814,7 +812,6 @@ hid_t
           e->Throw(hdf5_error_message(msg));
        }
     }
-    if (debug) cout << "here 2" <<endl;
 
     // define memory dataspace
     hid_t memspace = H5Screate_simple(rank, count, NULL);
@@ -843,7 +840,6 @@ hid_t
           e->Throw(hdf5_error_message(msg));
        }
     }
-    if (debug) cout << "here 3" <<endl;
 
     SizeT count_s[MAXRANK];
     SizeT rank_s;
@@ -868,7 +864,6 @@ hid_t
     hsize_t type;
 
     if (debug)  cout << "ourType : " << ourType  << endl;
-    if (debug) cout << "GDL_STRING : " << GDL_STRING << endl;
 
     if (ourType == GDL_BYTE) {
       res = new DByteGDL(dim);
@@ -899,8 +894,6 @@ hid_t
       type = H5T_NATIVE_DOUBLE;
     } else if (ourType == GDL_STRING) {
 
-      if (debug) cout << "here 4a" <<endl;
-
       // a bit special, lets follow the example on h5 site:
       res = new DStringGDL(dim);
       type = H5T_C_S1;
@@ -927,17 +920,12 @@ hid_t
       hid_t memtype = H5Tcopy(H5T_C_S1);
       hid_t status = H5Tset_size(memtype, sdim);
 
-      if (debug) cout << "here 4b" <<endl;
-
       status = H5Dread(h5d_id, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, rdata[0]);
-
-      if (debug) cout << "here 4c" <<endl;
 
       if (status < 0) {
         string msg;
         e->Throw(hdf5_error_message(msg));
       }
-      if (debug) cout << "here 4d" <<endl;
 
       for (int i = 0; i < count_s[0]; i++)
         (*(static_cast<DStringGDL*> (res)))[i] = rdata[i];
@@ -948,8 +936,6 @@ hid_t
     } else {
       e->Throw("Unsupported data format" + i2s(elem_dtype));
     }
-
-    if (debug) cout << "here 5" <<endl;
 
     if (elem_rank>0) type = H5Tarray_create2( type, elem_rank, elem_dims );
 
