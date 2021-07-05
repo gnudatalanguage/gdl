@@ -1557,7 +1557,6 @@ namespace lib {
       if (typ < 0) typ=0;
     }
     if (typ > 0) {
-      if (typ == GDL_BYTE) return byte_fun(e);
       if (typ == GDL_INT) return int_fun(e);
       if (typ == GDL_UINT) return uint_fun(e);
       if (typ == GDL_LONG) return long_fun(e);
@@ -1571,6 +1570,21 @@ namespace lib {
         return type_fun<DComplexGDL>(e);
       }
       if (typ == GDL_COMPLEXDBL) return dcomplex_fun(e);
+      // 2 cases where PRINT has to be taken into account
+      if (typ == GDL_BYTE) {
+        if (e->KeywordSet(1) && e->GetPar(0)->Type() == GDL_STRING) {
+        DLong64GDL* temp=static_cast<DLong64GDL*>(e->GetPar(0)->Convert2(GDL_LONG64,BaseGDL::COPY));
+        SizeT nEl=temp->N_Elements();
+        DByteGDL* ret=new DByteGDL(dimension(nEl));
+        for (SizeT i=0; i< nEl; ++i) {
+            (*ret)[i]=(*temp)[i];
+        }
+        (static_cast<BaseGDL*>(ret))->SetDim(e->GetPar(0)->Dim());
+        GDLDelete(temp);
+        return ret;
+        } else return byte_fun(e);
+      }
+
       if (typ == GDL_STRING) {
         // SA: calling GDL_STRING() with correct parameters
         static int stringIx = LibFunIx("STRING");
