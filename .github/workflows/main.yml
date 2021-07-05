@@ -169,7 +169,7 @@ jobs:
         with:
           path: |
             C:\msys64\cache
-          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v3
+          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v5
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench
@@ -198,7 +198,7 @@ jobs:
             tar xf $fn -C /cache
           done
           ADDTIONAL_FILES=( /mingw*/bin/mgwxdr-0.dll
-                            /mingw*/lib/libxdr.*
+                            /mingw*/lib/libbsdxdr.*
                             /mingw*/include/rpc/types.h
                             /mingw*/include/rpc/xdr.h )
           for fn in ${ADDTIONAL_FILES[@]}; do
@@ -230,6 +230,7 @@ jobs:
         shell: msys2 {0}
         run: |
           export PATH=`cygpath "${pythonLocation}"`:$PATH
+          export PYTHON_EXECUTABLE=`cygpath "${pythonLocation}"`/python
           if [[ -n "${{ steps.setup-python-32.outputs.python-version }}" ]]; then
             export PYTHONVERSION="${{ steps.setup-python-32.outputs.python-version }}"
           else
@@ -266,4 +267,5 @@ jobs:
       - name: Test GDL
         shell: msys2 {0}
         run: |
+          export PATH=`cygpath "${pythonLocation}"`:$PATH
           .ci/build_gdl.sh check || exit 0
