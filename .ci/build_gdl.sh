@@ -19,6 +19,7 @@ real_path() {
 GDL_DIR=$(real_path "$(dirname $0)/..")
 ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}/.."}
 PYTHONVERSION=${PYTHONVERSION:-"3"}
+GDLDE_VERSION=${GDLDE_VERSION:-"v1.0.0"}  #needed by 'pack' (at the moment Windows only)
 BUILD_OS=$(uname)
 if [[ ${BUILD_OS} == *"MSYS"* ]]; then
     BUILD_OS="Windows"
@@ -48,7 +49,7 @@ elif [ ${BUILD_OS} == "Linux" ]; then
         libncurses-dev libreadline-dev,libreadline-gplv2-dev zlib1g-dev libpng-dev libgsl-dev,libgsl0-dev
         libwxgtk3.0-gtk3-dev,libwxgtk3.0-dev,libwxgtk2.8-dev libplplot-dev libgraphicsmagick++1-dev,libgraphicsmagick++-dev libtiff-dev
         libgeotiff-dev libnetcdf-dev libhdf4-alt-dev libhdf5-dev libfftw3-dev libproj-dev libopenmpi-dev libpython3-dev,libpython-dev python3-dev,python-dev
-        python3-numpy,python-numpy libudunits2-dev libeigen3-dev libeccodes-dev,libgrib-api-dev libglpk-dev shapelib libexpat1-dev
+        python3-numpy,python-numpy libudunits2-dev libeigen3-dev libeccodes-dev,libgrib-api-dev libglpk-dev libshp-dev,shapelib libexpat1-dev
     )
     # Redhat, Fedora, Scientific Linux, CentOS, openSuSE, SLES, etc.
     RPM_PACKAGES=(
@@ -217,10 +218,11 @@ function prep_packages {
 
         log "Building bsd-xdr..."
         pushd bsd-xdr-1.0.0
-        sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -i Makefile
+        sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -e 's/libxdr/libbsdxdr/' -i Makefile
+        mv lib/libxdr.def.in lib/libbsdxdr.def.in
         make || exit 1
         cp -f mingw/*.dll /${mname}/bin/
-        cp -f mingw/libxdr.dll.a /${mname}/lib/
+        cp -f mingw/libbsdxdr.dll.a /${mname}/lib/
         cp -rf rpc /${mname}/include/
         popd
     elif [ ${BUILD_OS} == "Linux" ]; then
@@ -395,7 +397,7 @@ function test_gdl {
     if [ -f ${GDL_DIR}/CMakeModules/CodeCoverage.cmake ]; then
         make codecov
     else
-        make check
+        make test
     fi
 }
 
