@@ -721,7 +721,7 @@ hid_t
   BaseGDL* h5d_read_fun(EnvT* e) {
 
     /* Jul 2021, Oliver Gressel <ogressel@gmail.com>
-       - add support for attributes of type 'H5T_ARRAY'
+       - add support for datasets of type 'H5T_ARRAY'
     */
 
     bool debug = false;
