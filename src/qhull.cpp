@@ -896,7 +896,6 @@ namespace lib {
 
   BaseGDL* qgrid3_fun ( EnvT* e)
   {
-    return qgrid3_fun_backup(e);
     //check and get parameters...
     int nParam = e->NParam(3);
   
