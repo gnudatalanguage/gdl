@@ -724,6 +724,14 @@ namespace lib
     //usersym and other syms as well!
     DFloat *userSymX, *userSymY;
     DLong *userSymArrayDim;
+    //accelerate: define a localUsymArray where the computations that were previously in the loop are already done
+    DFloat *localUserSymX=NULL;
+    Guard<DFloat> guardlux;
+    DFloat *localUserSymY=NULL;
+    Guard<DFloat> guardluy;
+    
+    bool useLocalPsymAccelerator=false;
+    
     //initialize symbol vertex list
     static PLFLT xSym[49];
     static PLFLT ySym[49];
@@ -740,11 +748,13 @@ namespace lib
       {
         ThrowGDLException("No user symbol defined.");
       }
+      useLocalPsymAccelerator=true;
     }
     else if ( (local_psym>0&&local_psym<8))
     {
       do_fill=&nofill;
       userSymArrayDim=&(syml[local_psym-1]);
+      useLocalPsymAccelerator=true;
       switch(local_psym)
       {
         case 1:
@@ -777,12 +787,8 @@ namespace lib
           break;
      }
     }
-    //accelerate: define a localUsymArray where the computations that were previously in the loop are already done
-    DFloat *localUserSymX=NULL;
-    Guard<DFloat> guardlux;
-    DFloat *localUserSymY=NULL;
-    Guard<DFloat> guardluy;
-    if (local_psym > 0) { //since userSymArrayDim is not defined
+
+    if (useLocalPsymAccelerator) { //since userSymArrayDim is not defined
       localUserSymX=(DFloat*)malloc(*userSymArrayDim*sizeof(DFloat));guardlux.Reset(localUserSymX);
       localUserSymY=(DFloat*)malloc(*userSymArrayDim*sizeof(DFloat));guardluy.Reset(localUserSymY);
       for (int kk = 0; kk < *userSymArrayDim; kk++) {
