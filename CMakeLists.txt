@@ -7,11 +7,19 @@
 #  (at your option) any later version.
 #
 
-cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
-<<<<<<< HEAD
-=======
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
->>>>>>> 882bbe9c73b86bd5fa8508a762fda878e968b7e6
+# requirement for CMAKE_CXX_STANDARD (3.2 for Apple, 3.1 for non-Apple: https://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=15355)
+if (${CMAKE_VERSION} VERSION_LESS "3.2")
+  string(FIND "${CMAKE_CXX_FLAGS}" "-std=c++11" tmp)
+  if(tmp LESS 0)
+    message(FATAL_ERROR "please upgrade CMake to a version 3.2 or higher OR rerun cmake with -DCMAKE_CXX_FLAGS=\"-std=c++11\"")
+  endif()
+else()
+  set(CMAKE_CXX_STANDARD 11)
+endif()
+
+cmake_policy(SET CMP0026 OLD) # LOCATION property
 
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
@@ -1168,8 +1176,7 @@ module(PYTHON    Python    "Python        ")
 module(UDUNITS2  UDUNITS2  "UDUNITS-2     ")
 module(EIGEN3    EIGEN3    "EIGEN3        ")
 module(GRIB      GRIB      "GRIB          ")
-set(QHULL_LIBRARIES ${QHULL_LIBRARIES})
-module(QHULL     "QHULL         ")
+module(QHULL     QHULL     "QHULL         ")
 module(GLPK      GLPK      "GLPK          ")
 module(SHAPELIB  SHAPELIB  "SHAPELIB      ")
 module(EXPAT     EXPAT     "EXPAT         ")
