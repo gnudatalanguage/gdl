@@ -8,6 +8,10 @@
 #
 
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 882bbe9c73b86bd5fa8508a762fda878e968b7e6
 
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
