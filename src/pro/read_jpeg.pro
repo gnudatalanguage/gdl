@@ -1,14 +1,3 @@
-;$Id: read_jpeg.pro,v 1.17 2013-10-08 19:56:40 gilles-duvert Exp $
-
-pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $
-               colors=colors, dither=dither, grayscale=grayscale, order=order, $
-               true=true, two_pass_quantize=two_pass_quantize, $
-               help=help, test=test, debug=debug
-;
-
-compile_opt hidden, idl2
-
-ON_ERROR, 2
 ;+
 ;
 ; NAME: READ_JPEG
@@ -72,9 +61,18 @@ ON_ERROR, 2
 ;
 ;-
 ;
+
+pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $
+               colors=ncolors, dither=dither, grayscale=grayscale, order=order, $
+               true=true, two_pass_quantize=two_pass_quantize, $
+               help=help, test=test, debug=debug
+
+compile_opt hidden, idl2
+
+ON_ERROR, 2
 if KEYWORD_SET(help) then begin
     print, 'pro READ_JPEG, filename, unit=unit, image, colortable, buffer=buffer, $'
-    print, '               colors=colors, dither=dither, grayscale=grayscale, order=order, $'
+    print, '               colors=ncolors, dither=dither, grayscale=grayscale, order=order, $'
     print, '               true=true, two_pass_quantize=two_pass_quantize, $'
     print, '               help=help, test=test, debug=debug'
     return
@@ -89,6 +87,9 @@ endif
 ;
 ; AC 2011-Aug-18: this test will be wrong when UNIT will be available
 if (N_PARAMS() EQ 0) then MESSAGE, "Incorrect number of arguments."
+; Cannot proceed further if:
+if KEYWORD_SET(unit) then MESSAGE, "Keyword UNIT not supported"
+if KEYWORD_SET(buffer) then MESSAGE, "Keyword BUFFER not supported"
 ;
 if (N_ELEMENTS(filename) GT 1) then MESSAGE, "Only one file at once !"
 if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
@@ -99,93 +100,11 @@ if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+fil
 ; testing whether the format is as expected
 ;
 if ( ~MAGICK_PING(filename, 'JPEG') and ~MAGICK_PING(filename, 'JNG') )then begin
-   MESSAGE, /continue, "JPEG error: Not a JPEG file:"
-   if MAGICK_PING(filename, 'PNG') then MESSAGE, "seems to be a PNG file"
-   if MAGICK_PING(filename, 'GIF') then MESSAGE, "seems to be a GIF file"
-   if MAGICK_PING(filename, 'PDF') then MESSAGE, "seems to be a PDF file"
-   MESSAGE, "unknown/untested format file"   
+   MESSAGE, "JPEG error: Not a JPEG file."
 endif
-;
-if KEYWORD_SET(unit) then MESSAGE, "Keyword UNIT not supported"
-if KEYWORD_SET(buffer) then MESSAGE, "Keyword BUFFER not supported"
-;
-if (not KEYWORD_SET(unit)) then mid=MAGICK_OPEN(filename)
-;
-;;DITHER if necessary
-if (KEYWORD_SET(grayscale)) then begin
-    MAGICK_QUANTIZE, mid, /GRAYSCALE
-endif else begin
-   if (KEYWORD_SET(colors)) then begin
-      if ((colors LT 8) OR (colors GT 256)) then MESSAGE, "COLORS must be in the range 8 to 256"
-      if (KEYWORD_SET(two_pass_quantize)) then MESSAGE, "TWO_PASS_QUANTIZE not supported by ImageMagick."
-      MAGICK_QUANTIZE, mid, colors, dither=dither
-   endif
-endelse
-;
-;;flip if order is set
-if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
-;
-if (MAGICK_INDEXEDCOLOR(mid)) then begin
-    image=MAGICK_READINDEXES(mid)
-    MAGICK_READCOLORMAPRGB, mid, red, green, blue
-    colortable=[[red],[green],[blue]]
-    ;;
-    ;; try to catch a problem in ImageMagick
-    ;; (should be renormalized in, but not, as is on 28/01/2012)
-    ;; bug report 3471918 (see min/max)
-    if (KEYWORD_SET(grayscale)) then begin
-       temp=image
-       for ii=0, N_ELEMENTS(red)-1 do begin
-          ok=WHERE(image EQ ii, nbp)
-          if nbp GT 0 then temp[OK]=red[ii]
-       endfor
-       image=temp
-    endif
-endif else begin
-    image=MAGICK_READ(mid)
-endelse
-;
-if KEYWORD_SET(debug) then STOP
-;
-; if 16-bit (unsigned short int) image convert to byte
-sz = SIZE(image)
-type = sz[sz[0]+1]
-if ((type EQ 2) OR (type EQ 12)) then begin
-    print, 'Converting 16-bit image to byte'
-    image = image / 256
-    image = BYTE(image)
-endif
-;
-if (not KEYWORD_SET(unit)) then MAGICK_CLOSE, mid
-;
-; this is no more need, code changed in MAGICK_READINDEXES
-;if (sz[0] EQ 2) then begin
-;   image=ROTATE(image,7)
-;endif
-if (sz[0] EQ 3) then begin
-   ;; "rotate" image to agree with IDL (JMG 08/18/04)
-   tmp = image[0,*,*]
-   image[0,*,*] = image[2,*,*]
-   image[2,*,*] = tmp
-   ;;
-   if KEYWORD_SET(TRUE) then begin
-      if (TRUE eq 1) then t=[0,1,2]
-      if (TRUE eq 2) then t=[1,0,2]
-      if (TRUE eq 3) then t=[1,2,0]
-      ;;
-      image=TRANSPOSE(image, t)
-      ;;  image=transpose(image[[2,1,0],*,*], t)
-   endif
-endif
-if (sz[0] GT 3) then begin
-    MESSAGE, /continue, $
-             "Dimensions of image > 3 : we don't know how to process now"
-endif
-;else begin
-;    image = image[[2,1,0],*,*]
-;endelse
-;
-if KEYWORD_SET(test) then STOP
+READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, colors=ncolors, $
+                                dither=dither, grayscale=grayscale, order=order, $
+                                true=true
 ;
 end
 
