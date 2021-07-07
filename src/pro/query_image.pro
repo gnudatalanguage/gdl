@@ -49,7 +49,9 @@ if total (what[0:3] eq ['49'x, '49'x, '2a'x, '00'x]) eq 4 then  return, MAGICK_P
 ;if total (what[0:3] eq ['00'x, '00'x, '01'x, '00'x]) eq 4 then return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'ICO' UNSOUPPORTED
 if total (what[0:3] eq ['59'x, 'a6'x, '6a'x, '95'x]) eq 4 then  return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'SRF'
 if total (what[0:3] eq ['44'x, '49'x, '43'x, '4D'x]) eq 4 then  return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'DICOM'
-if total (what[0:2] eq ['50'x, '35'x, '0A'x]) eq 3 then  return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'PGM'
+if total (what[0:3] eq ['FF'x, '4F'x, 'FF'x, '51'x]) eq 4 then return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'JPEG2000 Codestream'
+if total (what[0:2] eq ['50'x, '35'x, '0A'x]) eq 3 then  return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'PPM'
+if total (what[0:2] eq ['50'x, '36'x, '0A'x]) eq 3 then  return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'PPM'
 
 
 if total (what[0:1] eq ['42'x, '4D'x]) eq 2 then  return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'BMP'
@@ -60,9 +62,9 @@ if total (what[1:3] eq ['00'x, '00'x]) eq 2 then begin
   if total (what[5:7] eq ['00'x, '00'x, '07'x]) eq 3 then return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'XWD'
 endif
 
-if total (what[0:1] eq ['FF'x, 'FB'x]) eq 2 then  return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'MPEG1'
-if total (what[0:1] eq ['FF'x, 'F3'x]) eq 2 then  return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'MPEG1'
-if total (what[0:1] eq ['FF'x, 'F2'x]) eq 2 then  return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'MPEG1'
+;if total (what[0:1] eq ['FF'x, 'FB'x]) eq 2 then  return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'MPEG1'
+;if total (what[0:1] eq ['FF'x, 'F3'x]) eq 2 then  return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'MPEG1'
+;if total (what[0:1] eq ['FF'x, 'F2'x]) eq 2 then  return, MAGICK_PING(filename, info=info, _strict_extra=ex) ; 'MPEG1'
 
 return,0
 ;

@@ -54,30 +54,19 @@
 ;
 ;-
 ;
-function READ_IMAGE, filename, red, green, blue, $
-                     image_index=image_index, $
-                     help=help, test=test
-;
+function READ_IMAGE, filename, red, green, blue, image_index=image_index
 
 compile_opt hidden, idl2
 
 ON_ERROR, 2
-;
-; this line allows to compile also in IDL ...
-FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ
-;
-if KEYWORD_SET(help) then begin
-   print, 'function READ_IMAGE, filename, red, green, blue, $'
-   print, '                    image_index=image_index, $'
-   print, '                    help=help, test=test'
-   return, -1
-endif
-;
+
+; if !MAGIC_EXIST, these procedures should not be present in the !PATH
+; at all (not installed)
 ; Do we have access to ImageMagick functionnalities ??
 ;
 if (MAGICK_EXISTS() EQ 0) then begin
     MESSAGE, /continue, "GDL was compiled without ImageMagick support."
-    MESSAGE, "You must have ImageMagick support to use this functionaly."
+    MESSAGE, "You must have ImageMagick support to use this functionality."
  endif
 ;
 if ((N_PARAMS() EQ 0) OR (N_PARAMS() GT 4)) then $
@@ -95,31 +84,14 @@ status=QUERY_IMAGE(filename, info)
 if (status EQ 0) then begin
    MESSAGE, 'Not a valid image file: '+filename
 endif
-;
-case info.type of
-   'JPEG' : begin
-      if (info.has_palette EQ 1) then begin
-         READ_JPEG, filename, image, colortable, colors=256
-         red=REFORM(colortable[*,0])
-         green=REFORM(colortable[*,1])
-         blue=REFORM(colortable[*,2])
-      endif else begin
-         READ_JPEG, filename, image
-      endelse
-   end
-   'PNG' : READ_PNG, filename, image, red, green, blue
-   'GIF' : READ_GIF, filename, image, red, green, blue
-   'PICT' : READ_PICT, filename, image, red, green, blue
-   'XBM' : READ_X11_BITMAP, filename, image
-   'BMP' : image=READ_BMP(filename, red, green, blue)
-   'DICOM' : image=READ_DICOM(filename, red, green, blue,image_index=image_index)
-   'JP2' : image=READ_JPEG2000(filename, red, green, blue)
-   'TIFF' : image=READ_TIFF(filename, red, green, blue,image_index=image_index)
-   'XWD' : image=READ_XWD(filename, image, red, green, blue)
-   else: MESSAGE, 'This format is not managed today, please contribute'
-endcase
-;
-if KEYWORD_SET(test) then STOP
+; if query_image said it's OK, just use read_anything:
+READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, /order
+if n_elements(colortable) gt 0 then begin
+  red=colortable[*,0]
+  green=colortable[*,1]
+  blue=colortable[*,2]
+endif
+
 ;
 return, image
 ;
