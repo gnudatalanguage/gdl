@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <cmath>
+#include <regex>
 
 #include <gsl/gsl_sf.h>
 
@@ -58,6 +59,152 @@ namespace lib {
 
   using namespace std;
   using namespace antlr;
+
+  void timestamptovalues(EnvT* e) {
+    DStringGDL* timestamps;
+
+    timestamps = e->GetParAs<DStringGDL>(0);
+
+    SizeT time_size = timestamps->N_Elements();
+
+    int valueYEAR = e->KeywordIx("YEAR");
+    bool hasYear = e->KeywordPresent(valueYEAR);
+
+    int valueMONTH = e->KeywordIx("MONTH");
+    bool hasMonth = e->KeywordPresent(valueMONTH);
+
+    int valueDAY = e->KeywordIx("DAY");
+    bool hasDay = e->KeywordPresent(valueDAY);
+
+    int valueHOUR = e->KeywordIx("HOUR");
+    bool hasHour = e->KeywordPresent(valueHOUR);
+
+    int valueMINUTE = e->KeywordIx("MINUTE");
+    bool hasMinute = e->KeywordPresent(valueMINUTE);
+
+    int valueSECOND = e->KeywordIx("SECOND");
+    bool hasSecond = e->KeywordPresent(valueSECOND);
+
+    int valueOFFSET = e->KeywordIx("OFFSET");
+    bool hasOffset = e->KeywordPresent(valueOFFSET);
+
+    unsigned int year[time_size];
+    DIntGDL* year_gdl = new DIntGDL(*(new dimension(time_size)));
+
+    unsigned int month[time_size];
+    DIntGDL* month_gdl = new DIntGDL(*(new dimension(time_size)));
+
+    unsigned int day[time_size];
+    DIntGDL* day_gdl = new DIntGDL(*(new dimension(time_size)));
+
+    unsigned int hour[time_size];
+    DIntGDL* hour_gdl = new DIntGDL(*(new dimension(time_size)));
+
+    unsigned int minute[time_size];
+    DIntGDL* minute_gdl = new DIntGDL(*(new dimension(time_size)));
+
+    double second[time_size];
+    DDoubleGDL* second_gdl = new DDoubleGDL(*(new dimension(time_size)));
+
+    double offset[time_size];
+    DDoubleGDL* offset_gdl = new DDoubleGDL(*(new dimension(time_size)));
+    
+    for(int i = 0 ; i<time_size ; i++) {
+      string timestamp = (*timestamps)[i];
+      
+      if (hasYear) {
+        year[i] = stoi(timestamp.substr(0,4));
+        (*year_gdl)[i] = year[i];
+      }
+
+      if (hasMonth) {
+        month[i] = stoi(timestamp.substr(5,2));
+        (*month_gdl)[i] = month[i];
+      }
+
+      if (hasDay) {
+        day[i] = stoi(timestamp.substr(8,2));
+        (*day_gdl)[i] = day[i];
+      }
+
+      if (hasHour) {
+        if (timestamp.length() > 10) {  
+          hour[i] = stoi(timestamp.substr(11,2));
+        } else { 
+          hour[i] = 0; 
+        }
+        (*hour_gdl)[i] = hour[i];
+      }
+
+      if (hasMinute) {
+        if (timestamp.length() > 10) {  
+          minute[i] = stoi(timestamp.substr(14,2));
+        } else { 
+          minute[i] = 0; 
+        }
+        (*minute_gdl)[i] = minute[i];
+      }
+
+      if (hasSecond) {
+        if (timestamp.length() > 10) {  
+          second[i] = stoi(timestamp.substr(17,2));
+          if (timestamp.substr(19,1) == ".") {
+            if (timestamp.substr(timestamp.length()-1,1) == "Z") {
+              second[i] += stod(timestamp.substr(20, timestamp.length()-21))/pow(10,(timestamp.length()-21));
+            } else {
+              second[i] += stod(timestamp.substr(20, timestamp.length()-26))/pow(10,(timestamp.length()-26));
+            }
+          }
+        } else { 
+          second[i] = 0; 
+        }
+        (*second_gdl)[i] = second[i];
+      }
+
+      if (hasOffset) {
+        if (timestamp.length() > 10) {  
+          string offset_string;
+          if (timestamp.substr(timestamp.length()-1,1) == "Z") {
+            offset_string = "+00:00";
+          } else {
+            offset_string = timestamp.substr(timestamp.length()-6,7);
+          }
+          offset[i] = stod(offset_string.substr(0,3)) + stod(offset_string.substr(4,2))/60;
+        } else { 
+        offset[i] = 0; 
+        }
+        (*offset_gdl)[i] = offset[i];
+      }
+    }
+
+    if(hasYear) {
+      e->SetKW(valueYEAR, year_gdl);
+    }
+
+    if(hasMonth) {
+      e->SetKW(valueMONTH, month_gdl);
+    }
+
+    if(hasDay) {
+      e->SetKW(valueDAY, day_gdl);
+    }
+
+    if(hasHour) {
+      e->SetKW(valueHOUR, hour_gdl);
+    }
+
+    if(hasMinute) {
+      e->SetKW(valueMINUTE, minute_gdl);
+    }
+
+    if(hasSecond) {
+      e->SetKW(valueSECOND, second_gdl);
+    }
+
+    if(hasOffset) {
+      e->SetKW(valueOFFSET, offset_gdl);
+    }
+  }
 
   // Timestamp implemented by Eloi R. de Linage in June of 2021
   BaseGDL* timestamp(EnvT* e)
@@ -169,7 +316,7 @@ namespace lib {
     }
 
     return new DStringGDL(ts);
-}
+  }
 
   BaseGDL* systime(EnvT* e)
   {

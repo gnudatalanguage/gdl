@@ -55,6 +55,9 @@ void LibInit_cl()
   const string timestampKey[]={"DAY","HOUR","MINUTE","MONTH","OFFSET","SECOND","UTC","YEAR","ZERO",KLISTEND};
   new DLibFunRetNew(lib::timestamp,string("TIMESTAMP"),2,timestampKey);
 
+  const string timestamptovaluesKey[]={"DAY","HOUR","MINUTE","MONTH","OFFSET","SECOND","YEAR",KLISTEND};
+  new DLibPro (lib::timestamptovalues,string("TIMESTAMPTOVALUES"),1,timestamptovaluesKey);
+
   const string systimeKey[]={"JULIAN","SECONDS","UTC",KLISTEND};
   new DLibFunRetNew(lib::systime,string("SYSTIME"),2,systimeKey);
 
