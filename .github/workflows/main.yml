@@ -59,12 +59,13 @@ jobs:
     steps:
       - name: Checkout GDL
         uses: actions/checkout@v2
-      - name: Cache Dependencies
+      - name: Cache Dependencies (macOS, Homebrew)
+        if: matrix.os == 'macos-latest'
         id: cache
         uses: actions/cache@v2
         with:
           path: ${{ runner.temp }}/cache
-          key: cache-gdl-deps-${{ matrix.os }}-v2
+          key: cache-gdl-deps-${{ matrix.os }}-v3
       - name: Install Dependencies (macOS, Homebrew)
         if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -77,29 +78,11 @@ jobs:
             rsync -aR ${fn} ${{ runner.temp }}/cache || true
           done
       - name: Install Dependencies (Linux, Apt)
-        if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          dpkg -l | grep ^ii | awk '{print $2}' | sort > ~/snapshot1.txt
           .ci/build_gdl.sh prep
-          dpkg -l | grep ^ii | awk '{print $2}' | sort > ~/snapshot2.txt
-          echo "Setting up cache..."
-          mkdir -p ${{ runner.temp }}/cache
-          for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            for fn in $(dpkg -L ${package}); do
-              if test -f $fn; then # file or symlink
-                rsync -aR ${fn} ${{ runner.temp }}/cache
-              fi
-            done
-          done
-          ADDTIONAL_FILES=( /usr/bin/wx-config
-                            $(readlink /usr/bin/wx-config)
-                            $(find /usr/bin/mpi*)
-                            $(find /etc/alternatives/mpi*) )
-          for fn in ${ADDTIONAL_FILES[@]}; do
-            rsync -aR ${fn} ${{ runner.temp }}/cache
-          done
-      - name: Restore cache
-        if: steps.cache.outputs.cache-hit == 'true'
+      - name: Restore cache (macOS, Homebrew)
+        if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit == 'true'
         run: |
           cd ${{ runner.temp }}
           for d in `ls cache`; do
@@ -186,7 +169,7 @@ jobs:
         with:
           path: |
             C:\msys64\cache
-          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v2
+          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v5
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench
@@ -209,13 +192,13 @@ jobs:
           pacman -Q | tr ' ' '-' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p /cache
-          ls /var/cache/pacman/pkg/
           for package in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            echo ${package}
-            tar xf /var/cache/pacman/pkg/${package}-*.tar.* -C /cache
+            echo "Caching ${package}..."
+            fn=`ls /var/cache/pacman/pkg/${package}-*.tar.{gz,bz2,xz,zst} 2> /dev/null || true`
+            tar xf $fn -C /cache
           done
           ADDTIONAL_FILES=( /mingw*/bin/mgwxdr-0.dll
-                            /mingw*/lib/libxdr.*
+                            /mingw*/lib/libbsdxdr.*
                             /mingw*/include/rpc/types.h
                             /mingw*/include/rpc/xdr.h )
           for fn in ${ADDTIONAL_FILES[@]}; do
@@ -226,9 +209,33 @@ jobs:
         shell: msys2 {0}
         run: |
           rsync -rt --no-t --inplace /cache/ /
+      - name: Setup Python (64 bit)
+        id: setup-python-64
+        uses: actions/setup-python@v2
+        if: matrix.arch == 'x86_64' && (matrix.deps == 'full-msmpi' || matrix.deps == 'full')
+        with:
+          python-version: '3.x'
+          architecture: x64
+      - name: Setup Python (32 bit)
+        id: setup-python-32
+        uses: actions/setup-python@v2
+        if: matrix.arch == 'i686' && (matrix.deps == 'full-msmpi' || matrix.deps == 'full')
+        with:
+          python-version: '3.x'
+          architecture: x86
+      - name: Install Numpy
+        if: matrix.deps == 'full-msmpi' || matrix.deps == 'full'
+        run: pip install numpy
       - name: Build GDL
         shell: msys2 {0}
         run: |
+          export PATH=`cygpath "${pythonLocation}"`:$PATH
+          export PYTHON_EXECUTABLE=`cygpath "${pythonLocation}"`/python
+          if [[ -n "${{ steps.setup-python-32.outputs.python-version }}" ]]; then
+            export PYTHONVERSION="${{ steps.setup-python-32.outputs.python-version }}"
+          else
+            export PYTHONVERSION="${{ steps.setup-python-64.outputs.python-version }}"
+          fi
           .ci/build_gdl.sh build
       - name: Package GDL
         shell: msys2 {0}  
@@ -260,4 +267,5 @@ jobs:
       - name: Test GDL
         shell: msys2 {0}
         run: |
+          export PATH=`cygpath "${pythonLocation}"`:$PATH
           .ci/build_gdl.sh check || exit 0

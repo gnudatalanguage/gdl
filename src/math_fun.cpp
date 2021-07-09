@@ -949,7 +949,7 @@ namespace lib {
       return p0;
     }
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sin((*p0C)[ i]);
+    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = asin((*p0C)[ i]);
     return p0;
   }
 
@@ -997,7 +997,7 @@ namespace lib {
       return p0;
     }
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sin((*p0C)[ i]);
+    for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = acos((*p0C)[ i]);
     return p0;
   }
 

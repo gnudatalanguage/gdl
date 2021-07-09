@@ -200,12 +200,11 @@ void GraphicsDevice::Init()
   deviceList.push_back( new DeviceSVG());
   deviceList.push_back( new DeviceZ());
   
-#ifdef _WIN32
-  std::string defaultDeviceName=std::string("WIN");
-#elif __APPLE__
-  std::string defaultDeviceName=std::string("MAC");
-#else
   std::string defaultDeviceName=std::string("X"); //what we expect the plot device to be
+#ifdef _WIN32
+  defaultDeviceName=std::string("WIN"); //ALWAYS WIN on WINDOWS!
+#elif __APPLE__
+  if (usePlatformDeviceName) defaultDeviceName=std::string("MAC");
 #endif
   
   // if GDL_DISABLE_WX_PLOTS (or switch --no-use-wx ) IS NOT PRESENT , and has wxWidgets, the wxWidgets device becomes 'X' or 'WIN' depending on machine,
@@ -218,28 +217,30 @@ void GraphicsDevice::Init()
 #ifdef HAVE_X
     current_device=new DeviceX(defaultDeviceName); //X on unix, MAC on mac... is it necessary ?
 #elif _WIN32
-    current_device=new DeviceWIN(defaultDeviceName);
+    current_device=NULL; 
 #endif
-    actGUIDevice = NULL; //no wxWidgets at all!
+    actGUIDevice = NULL; //no wxWidgets at all, because on Windows without wX, or everywhere else without wX and X11.
 #endif
   } else {  //wxWidgets will *NOT*be used for plot windows, unless there is nothing else left.
 #ifdef HAVE_LIBWXWIDGETS
-    actGUIDevice = new DeviceWX();  //even if wx is not used for plots, it will be used for widget_draw. But set_plot,"MAC" will exist.
+    if (useWxWidgets) { //wxWidgets is present but not as default plot system.
+    actGUIDevice = new DeviceWX();  //even if wx is not used for plots, it will be used for widget_draw. The corresponding name will be (unsupported) "WX".
     deviceList.push_back(actGUIDevice); // do not forget to add it to list!
+    }
 #endif   
 #ifdef HAVE_X
-    current_device= new DeviceX(defaultDeviceName);
-#elif _WIN32
-    current_device= new DeviceWIN(defaultDeviceName);
-#else //may be wxWidgets is here?
+    current_device= new DeviceX(defaultDeviceName); //X on unix & Mac , MAC on mac if --MAC switch asked for.
+#else 
+    current_device=NULL; //prepare to the worst..
+    //but, hey, may be wxWidgets is here?
 #ifdef HAVE_LIBWXWIDGETS
-    current_device= new DeviceWX(defaultDeviceName);    //define wxWidgets 'plot' as either X..
+    if (useWxWidgets) current_device= new DeviceWX(defaultDeviceName);    //define wxWidgets 'plot' as either X or WIN and use it despite the orders.
 #endif
 #endif
   }
 //nothing should prevent gdl to be used without 'direct' graphics ?
   if (current_device == NULL) {
-    defaultDeviceName.assign("NULL");
+    defaultDeviceName.assign("NULL"); //the NULL device. handy.
   } else deviceList.push_back(current_device); //push the 'PLOT' device.
   if (iAmANotebook) defaultDeviceName.assign("SVG"); 
   if( !SetDevice(defaultDeviceName) ){
@@ -264,7 +265,7 @@ void GraphicsDevice::DestroyDevices()
 {
     
 #ifdef HAVE_LIBWXWIDGETS
-  GDLWidget::UnInit();    // un-initialize widget system
+  if (useWxWidgets) GDLWidget::UnInit();    // un-initialize widget system
 #endif
   PurgeContainer( deviceList);
   actDevice = NULL;

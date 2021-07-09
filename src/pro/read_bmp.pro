@@ -79,7 +79,8 @@ if (MAGICK_INDEXEDCOLOR(mid)) then begin
    MAGICK_READCOLORMAPRGB, mid, red, green, blue
    ;;
 endif else begin
-   data=MAGICK_READ(mid,rgb=rgb)
+   myrgb=fix(rgb,type=2) ; must be short
+   data=MAGICK_READ(mid,rgb=myrgb)
 endelse
 ;
 MAGICK_CLOSE, mid

@@ -372,6 +372,7 @@ public:
   void RefreshDynamicWidget();
   void UpdateGui();
   
+  static bool InitWx(); // global start of wxWidgets
   static void Init(); // global GUI intialization upon GDL startup
   static void UnInit(); // global GUI desinitialization in case it is useful (?)
   static bool wxIsStarted(){return (wxIsOn);}
@@ -1936,6 +1937,7 @@ public:
  void OnTimerPlotResize(wxTimerEvent& event);
  void OnUnhandledClosePlotFrame(wxCloseEvent & event);
  void OnPlotSizeWithTimer(wxSizeEvent& event);
+ void OnPlotWindowSize(wxSizeEvent& event);
  DECLARE_EVENT_TABLE()
 };
 class GDLWXStream;
@@ -1947,7 +1949,7 @@ protected:
 public:
  int pstreamIx;
  wxSize drawSize;
- wxMemoryDC* m_dc;
+ wxMemoryDC* wx_dc; //pointer on plplot's stream DC
 
  gdlwxGraphicsPanel(wxWindow* parent, wxWindowID id = wxID_ANY,
    const wxPoint& pos = wxDefaultPosition,
@@ -1972,13 +1974,7 @@ public:
 // virtual bool isPlot() const {return false;}
 
 
- void RepaintGraphics(bool doClear = false) {
-  wxClientDC dc(this); //is a scrolled window: needed
-  DoPrepareDC(dc); //you probably do not want to call wxScrolled::PrepareDC() on wxAutoBufferedPaintDC as it already does this internally for the real underlying wxPaintDC.
-  if (doClear) dc.Clear();
- // dc.SetDeviceClippingRegion(GetUpdateRegion());
-  dc.Blit(0, 0, drawSize.x, drawSize.y, m_dc, 0, 0);
- }
+ void RepaintGraphics(bool doClear = false);
  virtual void RaisePanel()  {}
  virtual void LowerPanel()  {}
  virtual void IconicPanel()    {}

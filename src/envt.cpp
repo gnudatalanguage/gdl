@@ -1304,9 +1304,9 @@ SizeT EnvT::NParam( SizeT minPar)
 
 bool EnvBaseT::Removeall() 
 {
-	DSubUD* proD=dynamic_cast<DSubUD*>(pro);
+DSubUD* proD=dynamic_cast<DSubUD*>(pro);
 	int osz = env.size();
-	for( SizeT ix=0; ix < osz; ix++) {
+	for( ssize_t ix=osz-1; ix >= 0; ix--) {
 		if( env[ix] != NULL) GDLDelete( env[ix]);
 		env.pop_back();
 	}

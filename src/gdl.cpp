@@ -136,8 +136,9 @@ void GDLSetLimits()
 struct rlimit* gdlstack=new struct rlimit;
   int r=getrlimit(RLIMIT_STACK,gdlstack); 
 //  cerr <<"Current rlimit = "<<gdlstack->rlim_cur<<endl;
-//  cerr<<"Max rlimit = "<<  gdlstack->rlim_max<<endl;     
-  if (gdlstack->rlim_max > GDL_PREFERED_STACKSIZE ) gdlstack->rlim_cur=GDL_PREFERED_STACKSIZE;
+//  cerr<<"Max rlimit = "<<  gdlstack->rlim_max<<endl;
+  if (gdlstack->rlim_cur >= GDL_PREFERED_STACKSIZE ) return; //the bigger the better.
+  if (gdlstack->rlim_max > GDL_PREFERED_STACKSIZE ) gdlstack->rlim_cur=GDL_PREFERED_STACKSIZE; //not completely satisfactory.
   r=setrlimit(RLIMIT_STACK,gdlstack);
 }
 #endif
@@ -159,7 +160,7 @@ void InitGDL()
   rl_event_hook = GDLEventHandler;
 #endif
 #ifdef HAVE_LIBWXWIDGETS
-    GDLWidget::Init();
+    if (useWxWidgets) GDLWidget::Init();
 #endif
   // ncurses blurs the output, initialize TermWidth here
   TermWidth();
@@ -226,10 +227,15 @@ int main(int argc, char *argv[])
   bool syntaxOptionSet=false;
 
   bool force_no_wxgraphics = false;
+  usePlatformDeviceName=false;
   forceWxWidgetsUglyFonts = false;
   useDSFMTAcceleration = true;
   iAmANotebook=false; //option --notebook
-  
+ #ifdef HAVE_LIBWXWIDGETS 
+  useWxWidgets=true;
+#else
+  useWxWidgets=false;
+#endif  
 #ifdef _WIN32
   lib::posixpaths = false;
 #endif
@@ -249,7 +255,7 @@ int main(int argc, char *argv[])
       cerr << "                     Use enviromnment variable \"GDL_IS_FUSSY\" to set up permanently this feature." << endl;
       cerr << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
       cerr << "                     Needed to counteract temporarily the effect of the enviromnment variable \"GDL_IS_FUSSY\"." << endl;
-      cerr << "  --use-wx (default if GDL is linked with wxWidgets): Tells GDL to use WxWidgets graphics instead of X11 or Windows. (nicer plots)." << endl;
+      cerr << "  --MAC              Graphic device will be called 'MAC' on MacOSX. (default: 'X')" << endl;
       cerr << "  --no-use-wx        Tells GDL not to use WxWidgets graphics." << endl;
       cerr << "                     Also enabled by setting the environment variable GDL_DISABLE_WX_PLOTS to a non-null value." << endl;
       cerr << "  --notebook         Force SVG-only device, used only when GDL is a Python Notebook Kernel." << endl;
@@ -258,6 +264,9 @@ int main(int argc, char *argv[])
       cerr << "                     Using this option may render some historical widgets unworkable (as they are based on fixed sizes)." << endl;
       cerr << "  --no-dSFMT         Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random doubles." << endl;
       cerr << "                     Also disable by setting the environment variable GDL_NO_DSFMT to a non-null value." << endl;
+#ifdef _WIN32
+      cerr << "  --posix (Windows only): paths will be posix paths (experimental)." << endl;
+#endif
       cerr << endl;
       cerr << "IDL-compatible options:" << endl;
       cerr << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
@@ -351,9 +360,6 @@ int main(int argc, char *argv[])
       {
            useDSFMTAcceleration = false;
       }
-      else if (string(argv[a]) == "--use-wx") //obsoleted
-      {
-      }
       else if (string(argv[a]) == "--widget-compat")
       {
           forceWxWidgetsUglyFonts = true;
@@ -361,6 +367,10 @@ int main(int argc, char *argv[])
 #ifdef _WIN32
       else if (string(argv[a]) == "--posix") lib::posixpaths=true;
 #endif
+      else if (string(argv[a]) == "--MAC")
+      {
+         usePlatformDeviceName = true;
+      }
       else if (string(argv[a]) == "--no-use-wx")
       {
          force_no_wxgraphics = true;
@@ -398,8 +408,10 @@ int main(int argc, char *argv[])
   //before InitGDL() as InitGDL() starts graphic!
   
 #ifdef HAVE_LIBWXWIDGETS
+  //tells if wxWidgets is working (may not be the case if DISPLAY is not set) by setting useWxWidgets to false
+  useWxWidgets=GDLWidget::InitWx();
   // default is wx Graphics...
-  useWxWidgetsForGraphics=true;
+  useWxWidgetsForGraphics=useWxWidgets;
 #else
   useWxWidgetsForGraphics=false;
 #endif
@@ -412,7 +424,7 @@ int main(int argc, char *argv[])
   std::string doUseUglyFonts=GetEnvString("GDL_WIDGETS_COMPAT");
   if ( doUseUglyFonts.length() > 0) forceWxWidgetsUglyFonts=true; 
   
-  InitGDL();
+  InitGDL(); 
 
   // must be after !cpu initialisation
   InitOpenMP();

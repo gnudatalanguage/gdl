@@ -72,10 +72,18 @@ function filepath, filename, root_dir=root_dir, subdirectory=subdirectory, termi
  
  if keyword_set(tmp) then begin
     ; IDL uses IDL_TMPDIR but in GDL, IDL_TMPDIR is an alias for GDL_TMPDIR
-    root_dir = getenv('GDL_TMPDIR')
-    ;XXXpch well atm, GDL_TMPDIR and IDL_TMPDIR are not yet aliases.
-    ;next line should be removed when getenv will correctly handle GDL_TMPDIR
-    root_dir = '/tmp/'
+    iswin=(!version.os eq 'Windows')
+    root_dir = getenv('IDL_TMPDIR')
+    if (root_dir eq '') then begin
+      if (iswin) then begin
+        root_dir = getenv('TMP')
+        if (root_dir eq '') then  root_dir = getenv('TEMP')
+        if (root_dir eq '') then  root_dir = getenv('WINDIR')
+        if (root_dir eq '') then  root_dir = '\TMP'
+      endif else begin
+        root_dir = '/tmp'
+      endelse
+    endif
     path = root_dir
  endif else begin
     if n_elements(root_dir) eq 0 then root_dir = !dir

@@ -90,7 +90,7 @@ if (frameWidth > 0) {\
   widgetPanel->FitInside();
 
 #define UPDATE_WINDOW { if (this->GetRealized()) UpdateGui(); }
-#define REALIZE_IF_NEEDED { if (this->GetRealized()) this->OnRealize();  }
+#define REALIZE_IF_NEEDED { if (this->GetRealized()) this->OnRealize(); UpdateGui(); }
 
 const WidgetIDT GDLWidget::NullID = 0;
 
@@ -147,10 +147,10 @@ inline wxColour RandomWxColour() {
 inline int GDLWidget::labelTextAlignment()
 {//this concerns only how the thext is written in the label. 
   // Top and bottom are not allowed in IDL.
-      if ( alignment & gdlwALIGN_RIGHT ) return (wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL|wxST_NO_AUTORESIZE);
-      if ( alignment & gdlwALIGN_CENTER ) return (wxALIGN_CENTRE_HORIZONTAL|wxALIGN_CENTRE_VERTICAL|wxST_NO_AUTORESIZE);
-      if ( alignment & gdlwALIGN_LEFT ) return (wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL|wxST_NO_AUTORESIZE); 
-      return wxALIGN_CENTRE_HORIZONTAL|wxALIGN_CENTRE_VERTICAL|wxST_NO_AUTORESIZE;
+   if ( alignment & gdlwALIGN_RIGHT ) return (wxALIGN_RIGHT|wxST_NO_AUTORESIZE);
+   if ( alignment & gdlwALIGN_CENTER ) return (wxALIGN_CENTRE_HORIZONTAL|wxST_NO_AUTORESIZE);
+   if ( alignment & gdlwALIGN_LEFT ) return (wxALIGN_LEFT|wxST_NO_AUTORESIZE); 
+   return wxALIGN_CENTRE_HORIZONTAL|wxST_NO_AUTORESIZE;
 }
 
 inline int GDLWidget::buttonTextAlignment()
@@ -436,6 +436,11 @@ void GDLWidget::UpdateGui()
   }
   this->GetMyTopLevelFrame()->Fit();
   END_CHANGESIZE_NOEVENT 
+#if __WXMSW__ 
+    wxTheApp->MainLoop(); //central loop for wxEvents!
+#else
+    wxTheApp->Yield();
+#endif
 }
 
 //Alternate version if there were sizing problems with the one above.
@@ -731,13 +736,19 @@ BaseGDL* GDLWidget::GetManagedWidgetsList() {
   }
   return result;
 }
+//
+bool GDLWidget::InitWx()
+{ if (wxTheApp == NULL) { //not already initialized
+  if (!wxInitialize()) {
+    std::cerr << "WARNING: wxWidgets not initializing, widget-related commands will not be available." << std::endl;
+    return false;
+  }
+} else {std::cerr << "INFO: wxWidgets already initialized (in 3rd party library?), pursue with fingers crossed" << std::endl; }
+  return true;
+}
 // Init
 void GDLWidget::Init()
 {
-  if (!wxInitialize()) {
-    std::cerr << "WARNING: wxWidgets not initializing" << std::endl;
-    return;
-  }
  //set system font to something sensible now that wx is ON:
   if (forceWxWidgetsUglyFonts)
     systemFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ;//  identical for me to GDLWidget::setDefaultFont(wxFont("Monospace 8"));
@@ -3744,23 +3755,22 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     wxTreeCtrlGDL* tree = new wxTreeCtrlGDL( widgetPanel, widgetID, wxDefaultPosition, wxDefaultSize, style );
     theWxContainer = theWxWidget = tree;
 
-    //our widget will ALWAYS have an image list...
-    wxImageList* images=new wxImageList();
-    images->Add(wxArtProvider::GetBitmap(wxART_FOLDER)); //0
-    images->Add(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN)); //1
-    images->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE)); //2
-////    images->Add(wxArtProvider::GetBitmap(wxART_FILE_OPEN)); //3 //no use: a selected entry is highlighted and there is no specific wxArt pixmap to do more (visually).
-
-    tree->AssignImageList(images);
+    //our widget will ALWAYS have an image list... But this crashes GDL with wxWidgets 3.1.5 . FIXME
+//    wxImageList* images=new wxImageList();
+//    images->Add(wxArtProvider::GetBitmap(wxART_FOLDER)); //0
+//    images->Add(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN)); //1
+//    images->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE)); //2
+//////    images->Add(wxArtProvider::GetBitmap(wxART_FILE_OPEN)); //3 //no use: a selected entry is highlighted and there is no specific wxArt pixmap to do more (visually).
+//    tree->AssignImageList(images);
     folder=true;
     rootID=widgetID;
     treeItemData=new wxTreeItemDataGDL(widgetID);
-    if (bitmap) {
-      int index=images->Add(*bitmap);
-      treeItemID = tree->AddRoot(wxString( (*value)[0].c_str( ), wxConvUTF8 ),  index ,-1, treeItemData);
-    } else { //use open and closed folder icons
+//    if (bitmap) {
+//      int index=images->Add(*bitmap);
+//      treeItemID = tree->AddRoot(wxString( (*value)[0].c_str( ), wxConvUTF8 ),  index ,-1, treeItemData);
+//    } else { //use open and closed folder icons
       treeItemID = tree->AddRoot(wxString( (*value)[0].c_str( ), wxConvUTF8 ),  0 ,1, treeItemData);
-    }    
+//    }    
     widgetStyle=widgetAlignment( );
     draggable=(dragability == 1);
     droppable=(dropability == 1);
@@ -3791,20 +3801,20 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     assert( tree != NULL);
     theWxContainer=NULL; //this is not a widget
 
-    wxImageList* images=tree->GetImageList();
+//    wxImageList* images=tree->GetImageList();
     //if image is provided use it otherwise (since no image is a bit disappointing) use an internal wxWigdets icon
-    if (bitmap) {
-      int imindex=images->Add(*bitmap);
-      if (treeindex > -1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) , imindex ,-1, treeItemData);
-      else treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) , imindex ,-1, treeItemData);
-    } else { //use open and closed folder icons
+//    if (bitmap) {
+//      int imindex=images->Add(*bitmap);
+//      if (treeindex > -1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) , imindex ,-1, treeItemData);
+//      else treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) , imindex ,-1, treeItemData);
+//    } else { //use open and closed folder icons
       if (folder) {
         if (treeindex>-1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,0,1, treeItemData);
         else treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,0,1, treeItemData);
       }
       else if (treeindex>-1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,2, treeItemData);
       else  treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,2, treeItemData);
-    }
+//    }
     if ( parentTree->IsFolder() && parentTree->IsExpanded())  parentTree->DoExpand();
     //dragability inheritance.
     if (dragability == -1) draggable=parentTree->IsDraggable(); else draggable=(dragability == 1);
@@ -5428,7 +5438,7 @@ gdlwxGraphicsPanel::gdlwxGraphicsPanel( wxWindow* parent, wxWindowID id, const w
 : wxScrolled<wxPanel>() // Use default ctor here!
 , pstreamIx( -1 )
 , pstreamP( NULL )
-, m_dc( NULL)
+, wx_dc( NULL)
 , drawSize(size)
 { 
         // Do this first:
@@ -5449,7 +5459,7 @@ void gdlwxGraphicsPanel::DeleteUsingWindowNumber(){
 }
 void gdlwxGraphicsPanel::SetStream(GDLWXStream* s) {
   pstreamP = s;
-  m_dc = pstreamP->GetDC();
+  wx_dc = pstreamP->GetStreamDC();
 }
 gdlwxPlotPanel::gdlwxPlotPanel( gdlwxPlotFrame* parent) //, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
 : gdlwxGraphicsPanel::gdlwxGraphicsPanel(parent)
@@ -5460,6 +5470,15 @@ gdlwxPlotPanel::gdlwxPlotPanel( gdlwxPlotFrame* parent) //, wxWindowID id, const
 #endif
     this->SetBackgroundColour(*wxBLACK);
 }
+
+void gdlwxGraphicsPanel::RepaintGraphics(bool doClear) {
+  wxClientDC dc(this); //is a scrolled window: needed
+  DoPrepareDC(dc); //you probably do not want to call wxScrolled::PrepareDC() on wxAutoBufferedPaintDC as it already does this internally for the real underlying wxPaintDC.
+//  dc.SetDeviceClippingRegion(GetUpdateRegion());
+  if (doClear) dc.Clear();
+  dc.Blit(0, 0, drawSize.x, drawSize.y, wx_dc, 0, 0);
+}
+
 gdlwxDrawPanel::gdlwxDrawPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
 : gdlwxGraphicsPanel::gdlwxGraphicsPanel(parent, id, pos, size, style, name )
 , myWidgetDraw(static_cast<GDLWidgetDraw*>(GDLWidget::GetWidget(id)))
@@ -5479,7 +5498,7 @@ void gdlwxDrawPanel::InitStream(int wIx)
   {
     throw GDLException( "Failed to open GUI stream: " + i2s( pstreamIx ) );
   }
-  m_dc = pstreamP->GetDC( );
+  wx_dc = pstreamP->GetStreamDC( );
 }
 
 void gdlwxGraphicsPanel::ResizeDrawArea(wxSize s)
@@ -5488,22 +5507,7 @@ void gdlwxGraphicsPanel::ResizeDrawArea(wxSize s)
   if (drawSize.x > s.x || drawSize.y > s.y ) doClear=true; 
   drawSize=s;
   this->SetVirtualSize(drawSize);
-  
-  if (pstreamP != NULL)
-  {
-// comment out if it is better to recreate a wxstream!    
-   pstreamP->SetSize(drawSize);
-////The following should not be necessary, use only in case font sizez etc are not good.
-//
-//    //get a new stream with good dimensions. Only possibility (better than resize) to have correct size of fonts and symbols.
-//    GDLWXStream * newStream =  new GDLWXStream(s.x,s.y);
-//  // replace old by new, called function destroys old:
-//    GraphicsDevice::GetGUIDevice( )->ChangeStreamAt( pstreamIx, newStream );   //deletes old stream!
-//    pstreamP = static_cast<GDLWXStream*> (GraphicsDevice::GetGUIDevice( )->GetStreamAt( pstreamIx ));
-//    pstreamP->SetGdlwxGraphicsPanel( this );
-//    m_dc = pstreamP->GetDC( );
-//    pstreamP->Clear();
-  }
+  pstreamP->SetSize(drawSize);
   RepaintGraphics(doClear);
 } 
 

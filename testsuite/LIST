@@ -173,6 +173,7 @@ test_systime.pro
 test_tag_names.pro
 test_tic_toc.pro
 test_tiff.pro
+test_timestamp.pro
 test_total.pro
 test_triangulate.pro
 test_trisol.pro
