@@ -453,404 +453,60 @@ namespace lib {
 
   // sub_functions for qgrid3
 
-  // Basic vector operations
+  // 3D vector struct
 
-  template<typename T>
-  vector<T> cross_prod(vector<T> a, vector<T> b)
+  struct Vec3{ double x, y, z; };
+
+  inline Vec3 cross_prod(Vec3 a, Vec3 b)
   {
-    return vector<T> {a[1]*b[2] - a[2]*b[1], b[0]*a[2] - a[0]*b[2] ,  a[0]*b[1] - a[1]*b[0] };
+    return {a.y*b.z - a.z*b.y, b.x*a.z - a.x*b.z ,  a.x*b.y - a.y*b.x };
   }
 
-  template<typename T>
-  T dot_prod3d(vector<T> a, vector<T> b)
+  inline double dot_prod3d(Vec3 a, Vec3 b)
   {
-    return (a[0]*b[0] + a[1]*b[1] + a[2]*b[2]);
+    return (a.x*b.x + a.y*b.y + a.z*b.z);
   }
 
-  template<typename T>
-  T scalar_triple_prod(vector<T> a, vector<T> b, vector<T> c)
+  inline double scalar_triple_prod(Vec3 a, Vec3 b, Vec3 c)
   {
     return dot_prod3d(a, cross_prod(b,c));
   }
 
-  template<typename T>
-  vector<T> vector_substract(vector<T> a, vector<T> b)
+  inline Vec3 vec3_substract(Vec3 a, Vec3 b)
   {
-    return vector<T> {a[0]-b[0], a[1]-b[1], a[2]-b[2]};
+    return {a.x-b.x, a.y-b.y, a.z-b.z};
   }
 
-  template<typename T>
-  vector<vector<T>> box_limits(vector<vector<T>> points)
-  { 
-    vector<T> min_coord = points[0];
-    vector<T> max_coord = points[0];
-    for(int i=0; i<points.size(); i++){
-        for(int j=0; j< 3; j++){
-          if(points[i][j] < min_coord[j])  min_coord[j] = points[i][j];
-          if(points[i][j] > max_coord[j])  max_coord[j] = points[i][j];
-        }
-    }
-    return vector<vector<T>> {min_coord, max_coord};
-  }
-
-  // bary_tet returns the normalized barycentric coordinates of point p within the simplex abcd
-
-  template<typename T>
-  vector<T> bary_tet(vector<T> a, vector<T> b, vector<T> c, vector<T> d, vector<T> p)
+  Vec3 box_upper_limit(vector<Vec3> *points)
   {
-    vector<T> vap = vector_substract(p, a);
-    vector<T> vbp = vector_substract(p, b);
-
-    vector<T> vab = vector_substract(b, a);
-    vector<T> vac = vector_substract(c, a);
-    vector<T> vad = vector_substract(d, a);
-
-    vector<T> vbc = vector_substract(c, b);
-    vector<T> vbd = vector_substract(d, b);
-
-    T va6 = scalar_triple_prod(vbp, vbd, vbc);
-    T vb6 = scalar_triple_prod(vap, vac, vad);
-    T vc6 = scalar_triple_prod(vap, vad, vab);
-    T vd6 = scalar_triple_prod(vap, vab, vac);
-    T v6 = 1 / scalar_triple_prod(vab, vac, vad);
-
-    return vector<T> {va6*v6, vb6*v6, vc6*v6, vd6*v6};
+    Vec3 max_coord = (*points)[0];
+    for(int i=0; i<(*points).size(); i++){
+      max_coord.x = max(max_coord.x, (*points)[i].x);
+      max_coord.y = max(max_coord.y, (*points)[i].y);
+      max_coord.z = max(max_coord.z, (*points)[i].z);
+    }
+    return max_coord;
   }
 
-  // inside_outside_tet returns :
-  //  - 0 if the given point p is inside the abcd tetrahedron
-  //  - if not, it means that *at least* one of the barycentric coordinates of p with respect to abcd is negative
-  //       so it finds the first point of abcd which coordinate is < 0, and returns, depending on the point :
-  //       a->1 ; b->2 ; c->3 ; d-> 4
-  //       qgrid3 uses this info to look for a neighbor tetrahedron (supposedly) closer to our point p
-
-  template<typename T>
-  int inside_outside_tet(vector<T> a, vector<T> b, vector<T> c, vector<T> d, vector<T> p)
+  Vec3 box_lower_limit(vector<Vec3> *points)
   {
-    vector<T> vap = vector_substract(p, a);
-    vector<T> vbp = vector_substract(p, b);
-
-    vector<T> vab = vector_substract(b, a);
-    vector<T> vac = vector_substract(c, a);
-    vector<T> vad = vector_substract(d, a);
-
-    vector<T> vbc = vector_substract(c, b);
-    vector<T> vbd = vector_substract(d, b);
-
-    T v6 = scalar_triple_prod(vab, vac, vad);
-
-    T va6 = scalar_triple_prod(vbp, vbd, vbc);
-    if(va6*v6 < 0) return 1;
-    T vb6 = scalar_triple_prod(vap, vac, vad);
-    if(vb6*v6 < 0) return 2;
-    T vc6 = scalar_triple_prod(vap, vad, vab);
-    if(vc6*v6 < 0) return 3;
-    T vd6 = scalar_triple_prod(vap, vab, vac);
-    if(vd6*v6 < 0) return 4;
-    return 0;
+    Vec3 min_coord = (*points)[0];
+    for(int i=0; i<(*points).size(); i++){
+      min_coord.x = min(min_coord.x, (*points)[i].x);
+      min_coord.y = min(min_coord.y, (*points)[i].y);
+      min_coord.z = min(min_coord.z, (*points)[i].z);
+    }
+    return min_coord;
   }
-
-
-  template<typename T>
-  bool is_outside_of_box(vector<T> min_coord, vector<T> max_coord, vector<T> point)
-  {
-    return (point[0] < min_coord[0] || point[0] > max_coord[0]) || (point[1] < min_coord[1] || point[1] > max_coord[1]) || (point[2] < min_coord[2] || point[2] > max_coord[2]);
-  }
-
-// BACKUP -------------------------------------------------------------------------------------------
-
-  BaseGDL* qgrid3_fun_backup ( EnvT* e)
-  {
-    //check and get parameters...
-    int nParam = e->NParam(3);
-  
-    DDoubleGDL* p0;
-    DDoubleGDL * func;
-    DLongGDL * tetra_list;
-
-    if(nParam == 3)
-    {
-        p0 = e->GetParAs<DDoubleGDL>(0);         //input points
-        func = e->GetParAs<DDoubleGDL>(1);       //input function
-        tetra_list = e->GetParAs<DLongGDL>(2);   //indices of tetrahedra vertices from qhull
-    } else { // if input coordinates are in separate arrays
-        e->NParam(5);
-        if (nParam>5) e->Throw("Incorrect number of arguments.");
-
-        func = e->GetParAs<DDoubleGDL>(3);     //input function
-        tetra_list = e->GetParAs<DLongGDL>(4); //indices of tetrahedra vertices from qhull
-
-        int inDim = e->GetParAs<DDoubleGDL>(0)->Dim(0);
-        p0 = new DDoubleGDL( *(new dimension(3, inDim)), BaseGDL::ZERO ); //concatenation of the 3 separate inputs arrays
-
-        for(int i=0; i<3; i++)
-        {
-          DDoubleGDL* par=e->GetParAs<DDoubleGDL>(i);
-          if(par->Dim(0) != inDim || par->Dim(1) != 0 )
-          {
-            e->Throw("separated input arrays must have same length and be 1 dimensional");
-          }
-          for(int j=0; j<inDim; j++) (*p0)[i+j*3] = (*par)[j];
-        }
-    }
-
-    int n_tetra = tetra_list->Dim(1);
-    int nd=p0->Dim(0);
-    int np=p0->Dim(1);
-
-    // x,y,z dimensions of grid
-    dimension* res_dim;
-    vector<int>res_dim_vec = {25,25,25}; // array caring dims
-    static int dimensionIx=e->KeywordIx("DIMENSION");
-    if(e->KeywordPresent(dimensionIx)){
-      DLongGDL * dimPar = e->GetKWAs<DLongGDL>(dimensionIx);
-      int dimNelem = dimPar->N_Elements();
-      if(dimNelem <= 3 && dimNelem >0){
-        res_dim_vec={(*dimPar)[0], (*dimPar)[(dimNelem>1)], (*dimPar)[2*(dimNelem>1)]};
-      } else {
-        e->Throw("Keyword array parameter DIMENSION must have from 1 to 3 elements.");
-      }
-    }
-    res_dim = new dimension(res_dim_vec[0], res_dim_vec[1], res_dim_vec[2]);
-
-    // putting input points in a vector...
-    vector<vector<double>> points(np);
-    for (int i =0; i < np; i++)
-          for(int j = 0; j<nd; j++)
-            points.at(i).push_back(  (*p0)[3*i+j]  );
-
-    // creating vectors holding delaunay triangulation infos:
-    //                      tetra_vertices contains the 4 indices of a simplex in (points) 
-    //                      tetra_neigh contains the indices of the neighbours of this partiular simplex in tetra_vertices (-1 if no neighbour opposite a vertex)
-    vector<vector<int>> tetra_vertices(n_tetra);
-    vector<vector<int>> tetra_neigh(n_tetra);
-    vector<vector<vector<double>>> tetra_coord(n_tetra);
-    for(int i=0; i<n_tetra; ++i){
-      vector<int> vertices = {(*tetra_list)[4*i],(*tetra_list)[4*i+1], (*tetra_list)[4*i+2], (*tetra_list)[4*i+3]};
-      tetra_vertices[i] = vertices;
-      tetra_coord[i] = {points[vertices[0]], points[vertices[1]],points[vertices[2]],points[vertices[3]]};
-    }
-
-      
-    for(int i=0; i<n_tetra; ++i)
-    {
-      for(int j=0; j<4; ++j)
-      {
-        int index=-1;
-        vector<int> common_vertices;
-        for(int k=0; k<4; k++) if(k != j) common_vertices.push_back(tetra_vertices[i][k]);
-        
-        //for(int z=0; z<common_vertices.size(); z++) cout << common_vertices[z] << "  ";
-        //cout << endl;
-
-        for(int k=0; k<n_tetra;k++)
-        {
-          if(k != i)
-          {
-            bool find_a=( find(tetra_vertices[k].begin(), tetra_vertices[k].end(), common_vertices[0]) !=  tetra_vertices[k].end());
-            bool find_b=( find(tetra_vertices[k].begin(), tetra_vertices[k].end(), common_vertices[1]) !=  tetra_vertices[k].end());
-            bool find_c=( find(tetra_vertices[k].begin(), tetra_vertices[k].end(), common_vertices[2]) !=  tetra_vertices[k].end());
-            if(find_a && find_b && find_c)
-            {
-              index = k;
-              break;
-            }
-          }
-        }
-        tetra_neigh[i].push_back(index);
-      }
-    }
-
-    //debug
-    /*
-    for(int i=0; i<n_tetra; i++){
-      cout << i << " neigh ! ";
-      for(int j=0; j<4; ++j) cout << tetra_neigh[i][j] << "  ";
-      cout << endl;
-
-      cout << i << " vert ! ";
-      for(int j=0; j<4; ++j) cout << tetra_vertices[i][j] << "  ";
-      cout << endl;
-    }
-
-    return NULL;
-    */
-
-    // we need to get max and min x, y and z...
-    vector<vector<double>> points_box_limits = box_limits(points);
-    vector<double> min_coord = points_box_limits[0];
-    vector<double> max_coord = points_box_limits[1];
-
-    // start of grid
-    vector<double> start_coord = min_coord;
-    static int startIx=e->KeywordIx("START");
-    if(e->KeywordPresent(startIx)){
-      DDoubleGDL * startPar = e->GetKWAs<DDoubleGDL>(startIx);
-      int startNelem = startPar->N_Elements();
-      if(startNelem <= 3 && startNelem >0){
-        start_coord = {(*startPar)[0], (*startPar)[ (startNelem>1) ], (*startPar)[ 2*(startNelem>2) ]};
-      } else {
-        e->Throw("Keyword array parameter START must have from 1 to 3 elements.");
-      }
-    }
-
-    // grid spacing
-    vector<double> delta;
-    // default grid spacing is determined using max values of point set
-    for(int i=0; i<3; i++) delta.push_back( (max_coord[i] - start_coord[i] )/ double(res_dim_vec[i]));
-    static int deltaIx=e->KeywordIx("DELTA");
-    if(e->KeywordPresent(deltaIx)){
-      DDoubleGDL * deltaPar = e->GetKWAs<DDoubleGDL>(deltaIx);
-      int deltaNelem = deltaPar->N_Elements();
-      if(deltaNelem <= 3 && deltaNelem >0){
-        delta = {(*deltaPar)[0], (*deltaPar)[(deltaNelem>1)], (*deltaPar)[2*(deltaNelem>2)]};
-      } else {
-        e->Throw("Keyword array parameter DELTA must have from 1 to 3 elements.");
-      }
-    }
-
-    double missing = 0;
-    static int missingIx=e->KeywordIx("MISSING");
-    if(e->KeywordPresent(missingIx)) missing = (*e->GetKWAs<DDoubleGDL>(missingIx))[0];
-
-    DDoubleGDL * res = new DDoubleGDL(*res_dim, BaseGDL::ZERO);
-    vector<double> coord(3);
-
-    int last_tetraId=0;        // index of tetrahedron where the last point was found
-    int tot_walk_count=0;
-
-    //DEBUG
-    double tot_function_time=0;
-    
-    for(int i=0; i < res_dim_vec[2]; i++ ){
-      coord[2] = start_coord[2]+i*delta[2]; // Z coord
-      
-      for(int j=0; j<res_dim_vec[1]; j++){
-        coord[1] = start_coord[1] + j*delta[1]; // Y coord
-        
-        for(int k=0; k<res_dim_vec[0]; k++){
-          coord[0]=start_coord[0]+k*delta[0]; // X coord
-          
-          int res_index = k + j*res_dim_vec[0] + i*res_dim_vec[0]*res_dim_vec[1];
-          
-          /*if( is_outside_of_box(min_coord, max_coord, coord) )
-          {
-            (*res)[res_index] = missing;
-            continue;
-          }*/
-
-          // walk through simplices smarlty, starting from the simplex the last point was found in
-
-          bool bruteforce=false; // start by assuming we need to bruteforce
-
-          double interp_value = missing;
-          int step_count = 0;
-          int tetraId = last_tetraId;
-
-          // debugging...
-          //cout << endl << "Interpolating at point: " << coord[0] << "  "<<coord[1] << "  "<<coord[2]<<endl;
-          //bool out_of_hull=false;
-
-          //start debug - time section 1
-            auto t1 = high_resolution_clock::now();
-            //end debug - time section 1
-
-          while(true)
-          {
-            //cout << "Walking... at tetrahedron: "<<tetraId << endl;
-            vector<int> vertices = tetra_vertices[tetraId];
-            // jouer avec ça... pré-ordonner les données ?
-            vector<vector<double>> tetrahedron = tetra_coord[tetraId];
-            int io_res = inside_outside_tet(tetrahedron[0],tetrahedron[1],tetrahedron[2],tetrahedron[3],coord);
-            //int io_res=0;
-
-            if(io_res == 0){
-              // we found our simplex
-              vector<vector<double>> tetrahedron = tetra_coord[tetraId];
-              vector<double> bary_coord = bary_tet(tetrahedron[0],tetrahedron[1],tetrahedron[2],tetrahedron[3],coord);
-              //vector<double> bary_coord = {0.2,0.2,0.2,0.20};
-              interp_value=0;
-              for(int vIx=0; vIx<4; vIx++) interp_value += bary_coord[vIx]*(*func)[ vertices[vIx] ];
-              last_tetraId=tetraId;
-              break;
-            } else {
-              // it's the wrong simplex but we know where to look next, thx to inside_outside_tet info
-              int next_tetraId=tetra_neigh[tetraId][io_res-1];
-              if(next_tetraId==-1){
-                // we are outside of the convex hull
-                //out_of_hull=true; //for debugging
-                last_tetraId=tetraId;
-                break;
-              } else {
-                // we walk to the next simplex
-                tetraId=next_tetraId;
-              }
-            }
-            step_count ++;
-            // if we iterated too much, we likely got caught in a loop for some reason, now we break and bruteforce
-            if(step_count > n_tetra)
-            {
-              bruteforce = true;
-              break;
-            }
-          }
-
-
-          //start debug - time section 2
-            auto t2 = high_resolution_clock::now();
-            duration<double, std::milli> ms_double = t2 - t1;
-            tot_function_time += ms_double.count();
-            // end debug - time section 2
-          
-          // debugging...
-          //if(out_of_hull) cout << "Simplex found (out of hull) after "<<step_count+1 <<" steps in hull."<<endl;
-          //else if(!bruteforce) cout << "Simplex found (in) after "<<step_count+1 <<" steps in hull."<<endl;
-          tot_walk_count+=step_count+1;
-
-          // bruteforce everything (stupid idea really), if walking the 'smart' way went nowhere
-          if(bruteforce)
-          {
-              for(int tIx=0; tIx<n_tetra; tIx++)
-              {
-                  vector<int> vertices = tetra_vertices[tIx];
-                  vector<vector<double>> tetrahedron = tetra_coord[tIx];
-                  int io_res = inside_outside_tet(tetrahedron[0],tetrahedron[1],tetrahedron[2],tetrahedron[3],coord);
-
-                  // check if point is inside
-                  if( io_res == 0 )
-                  {
-                    vector<double> bary_coord = bary_tet(tetrahedron[0],tetrahedron[1],tetrahedron[2],tetrahedron[3],coord);
-                    interp_value=0;
-                    for(int vIx=0; vIx<4; vIx++) interp_value += bary_coord[vIx]*(*func)[ vertices[vIx] ];
-                    (*res)[res_index] = interp_value;
-                    last_tetraId=tIx;
-                    break;
-                  }
-                }
-            }
-          (*res)[res_index] = interp_value;
-        }
-      }
-    }
-
-    cout <<"Total walk count: " << tot_walk_count << endl;
-    cout <<"Time spent in section (seconds): " << tot_function_time/1000 << endl;
-    
-    return res;
-  }
-
-// END BACKUP ---------------------------------------------------------------------------------------------
 
   // Tetrahedron Struct
 
   struct Tetra{
-    vector<double> a,b,c,d;
-    vector<double> vab, vac, vad, vbc, vbd;
-    double v6;
-    vector<int> vertices;   //ids of vertices in points vector
-    vector<int> neighbours; //neighbour[0] holds the id of the simplex opposite a (sharing bcd facet)
+    Vec3 a,b,c,d;
+    array<int,4> vertices;   //ids of vertices in points vector
+    array<int,4> neighbours; //neighbour[0] holds the id of the simplex opposite a (sharing bcd facet)
   };
-
+/*
   Tetra TetraConstr(vector<double> a, vector<double> b, vector<double> c, vector<double> d, vector<int> vertices)
   {
     vector<double>vab = vector_substract(b, a),
@@ -862,36 +518,56 @@ namespace lib {
     Tetra tet = {a, b, c, d, vab, vac, vad, vbc, vbd, v6, vertices};
     return tet;
   }
+   */
 
     // tet struct methods
 
-  int inside_outside_tet(Tetra tet, vector<double> p)
+  int inside_outside_tet(Tetra *tet, Vec3* p)
   {
-    vector<double> vap = vector_substract(p, tet.a);
-    vector<double> vbp = vector_substract(p, tet.b);
+    Vec3 vap = vec3_substract(*p, tet->a);
+    Vec3 vbp = vec3_substract(*p, tet->b);
 
-    double va6 = scalar_triple_prod(vbp, tet.vbd, tet.vbc);
-    if(va6*tet.v6 < 0) return 1;
-    double vb6 = scalar_triple_prod(vap, tet.vac, tet.vad);
-    if(vb6*tet.v6 < 0) return 2;
-    double vc6 = scalar_triple_prod(vap, tet.vad, tet.vab);
-    if(vc6*tet.v6 < 0) return 3;
-    double vd6 = scalar_triple_prod(vap, tet.vab, tet.vac);
-    if(vd6*tet.v6 < 0) return 4;
+    Vec3 vab = vec3_substract(tet->b, tet->a);
+    Vec3 vac = vec3_substract(tet->c, tet->a);
+    Vec3 vad = vec3_substract(tet->d, tet->a);
+
+    Vec3 vbc = vec3_substract(tet->c, tet->b);
+    Vec3 vbd = vec3_substract(tet->d, tet->b);
+
+    double v6 = 1/scalar_triple_prod(vab, vac, vad);
+
+    double va6 = scalar_triple_prod(vbp, vbd, vbc);
+    if(va6*v6 < 0) return 1;
+    double vb6 = scalar_triple_prod(vap, vac, vad);
+    if(vb6*v6 < 0) return 2;
+    double vc6 = scalar_triple_prod(vap, vad, vab);
+    if(vc6*v6 < 0) return 3;
+    double vd6 = scalar_triple_prod(vap, vab, vac);
+    if(vd6*v6 < 0) return 4;
     return 0;
   }
+ 
 
-  vector<double> bary_tet(Tetra tet, vector<double> p)
+  inline array<double, 4> bary_tet(Tetra *tet, Vec3* p)
   {
-    vector<double> vap = vector_substract(p, tet.a);
-    vector<double> vbp = vector_substract(p, tet.b);
+    Vec3 vap = vec3_substract(*p, tet->a);
+    Vec3 vbp = vec3_substract(*p, tet->b);
 
-    double va6 = scalar_triple_prod(vbp, tet.vbd, tet.vbc);
-    double vb6 = scalar_triple_prod(vap, tet.vac, tet.vad);
-    double vc6 = scalar_triple_prod(vap, tet.vad, tet.vab);
-    double vd6 = scalar_triple_prod(vap, tet.vab, tet.vac);
+    Vec3 vab = vec3_substract(tet->b, tet->a);
+    Vec3 vac = vec3_substract(tet->c, tet->a);
+    Vec3 vad = vec3_substract(tet->d, tet->a);
 
-    return vector<double> {va6*tet.v6, vb6*tet.v6, vc6*tet.v6, vd6*tet.v6};
+    Vec3 vbc = vec3_substract(tet->c, tet->b);
+    Vec3 vbd = vec3_substract(tet->d, tet->b);
+
+    double va6 = scalar_triple_prod(vbp, vbd, vbc);
+    double vb6 = scalar_triple_prod(vap, vac, vad);
+    double vc6 = scalar_triple_prod(vap, vad, vab);
+    double vd6 = scalar_triple_prod(vap, vab, vac);
+
+    double v6 = 1/scalar_triple_prod(vab, vac, vad);
+
+    return array<double,4> {va6*v6, vb6*v6, vc6*v6, vd6*v6};
   }
 
   BaseGDL* qgrid3_fun ( EnvT* e)
@@ -931,11 +607,11 @@ namespace lib {
 
     int n_tetra = tetra_list->Dim(1);
     int nd=p0->Dim(0);
-    int np=p0->Dim(1);
+    size_t np=p0->Dim(1);
 
     // x,y,z dimensions of grid
     dimension* res_dim;
-    vector<int>res_dim_vec = {25,25,25}; // array caring dims
+    array<int, 3> res_dim_vec = {25,25,25}; // array caring dims
     static int dimensionIx=e->KeywordIx("DIMENSION");
     if(e->KeywordPresent(dimensionIx)){
       DLongGDL * dimPar = e->GetKWAs<DLongGDL>(dimensionIx);
@@ -949,27 +625,104 @@ namespace lib {
     res_dim = new dimension(res_dim_vec[0], res_dim_vec[1], res_dim_vec[2]);
 
     // putting input points in a vector...
-    vector<vector<double>> points(np);
-    for (int i =0; i < np; i++)
-          for(int j = 0; j<nd; j++)
-            points.at(i).push_back(  (*p0)[3*i+j]  );
+    vector<Vec3> points;
+    points.reserve(np);
 
-    // vector holding all necessary info on the triangulation
-    vector<Tetra> tetra_data(n_tetra);
-    
-    // directly available info
-    for(int i=0; i<n_tetra; ++i){
-      vector<int> vertices = {(*tetra_list)[4*i],(*tetra_list)[4*i+1], (*tetra_list)[4*i+2], (*tetra_list)[4*i+3]};
-      tetra_data[i] = TetraConstr(points[vertices[0]], points[vertices[1]],points[vertices[2]],points[vertices[3]], vertices);
+    for (int i =0; i < np; i++)
+    {
+      points[i] = { (*p0)[3*i], (*p0)[3*i+1], (*p0)[3*i+2] };
+      //TODO handle not finite values
     }
 
+    // vector holding all necessary info on the triangulation
+    vector<Tetra> tetra_data;
+    tetra_data.reserve(n_tetra);
+    
+    // directly available info
+    array<int,4> empty_neighbours {-1,-1,-1,-1};
+    for(int i=0; i<n_tetra; ++i){
+      //TODO handle out of bounds vertices
+      array<int,4> vertices = {(*tetra_list)[4*i],(*tetra_list)[4*i+1], (*tetra_list)[4*i+2], (*tetra_list)[4*i+3]};
+      sort(vertices.begin(), vertices.end());
+      tetra_data[i] = { points[vertices[0]], points[vertices[1]],points[vertices[2]],points[vertices[3]], vertices, empty_neighbours};
+    }
+
+     //start debug - time section 1
+    auto t3 = high_resolution_clock::now();
+    //end debug - time section 1
+
     // find the neighbours of each simplex
+    // TOO SLOW, FIND ANOTHER METHOD
+
+    vector<int> tetra_neigh_count(n_tetra, 0);
+    tetra_neigh_count.reserve(n_tetra);
+    
     for(int i=0; i<n_tetra; ++i)
     {
-      vector<int> neighbours;
+      if(tetra_neigh_count[i] == 4) continue;
+      for(int j=i+1; j<n_tetra; ++j)
+      {
+        int diff[4] = {0,0,0,0};
+        set_difference(tetra_data[i].vertices.begin(), tetra_data[i].vertices.end(), tetra_data[j].vertices.begin(), tetra_data[j].vertices.end(), diff);
+        if(diff[1] == 0)
+        {          
+          int diff_neigh[4] = {0,0,0,0};
+          set_difference(tetra_data[j].vertices.begin(), tetra_data[j].vertices.end(), tetra_data[i].vertices.begin(), tetra_data[i].vertices.end(), diff_neigh);
+
+          int neigh_vert_Id=find(tetra_data[j].vertices.begin(), tetra_data[j].vertices.end(), diff_neigh[0]) - tetra_data[j].vertices.begin();
+          tetra_data[j].neighbours[neigh_vert_Id] = i;
+
+          int tet_vert_Id=find(tetra_data[i].vertices.begin(), tetra_data[i].vertices.end(), diff[0]) - tetra_data[i].vertices.begin();
+          tetra_data[i].neighbours[tet_vert_Id] = j;
+
+          tetra_neigh_count[i]++;
+          tetra_neigh_count[j]++;
+
+          if(tetra_neigh_count[i] == 4) break;
+        }
+      }
+    }
+    
+    /*
+    vector<short> neighbours_count(n_tetra, 0);
+
+    for(size_t i=0; i<n_tetra; ++i)
+    {
+      for(size_t j=i+1; j<n_tetra; ++j)
+      {
+          int commonVertCount=0;
+          int tetVertId=6;
+          int neighVertId=6;
+          for(int k=0; k<4; ++k)
+          {
+            for(int l=0; l<4; ++l)
+            {
+              if(tetra_data[j].vertices[l] == tetra_data[i].vertices[k])
+              {
+                neighVertId = neighVertId-l;
+                tetVertId = tetVertId-k;
+                commonVertCount++;
+                break;
+              }
+            }
+          }
+          if(commonVertCount == 3)
+          {
+            tetra_data[i].neighbours[tetVertId] = j;
+            tetra_data[j].neighbours[neighVertId] = i;
+            neighbours_count[i]++;
+          }
+          if(neighbours_count[i] == 4) break;
+      }
+    }
+    */
+
+    // find the neighbours of each simplex (not optimal at all)
+    /*
+    for(int i=0; i<n_tetra; ++i)
+    {
       for(int j=0; j<4; ++j)
       {
-        int index=-1;
         vector<int> common_vertices;
         for(int k=0; k<4; k++) if(k != j) common_vertices.push_back(tetra_data[i].vertices[k]);
 
@@ -982,23 +735,27 @@ namespace lib {
             bool find_c=( find(tetra_data[k].vertices.begin(), tetra_data[k].vertices.end(), common_vertices[2]) !=  tetra_data[k].vertices.end());
             if(find_a && find_b && find_c)
             {
-              index = k;
+              tetra_data[i].neighbours[j] = k;
               break;
             }
           }
         }
-        neighbours.push_back(index);
       }
-      tetra_data[i].neighbours = neighbours;
     }
+    */
+
+    //start debug - time section 2
+    auto t4 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double2 = t4 - t3;
+    double tot_function_time2 = ms_double2.count();
+    // end debug - time section 2
 
     // we need to get max and min x, y and z...
-    vector<vector<double>> points_box_limits = box_limits(points);
-    vector<double> min_coord = points_box_limits[0];
-    vector<double> max_coord = points_box_limits[1];
+    Vec3 min_coord = box_lower_limit(&points);
+    Vec3 max_coord = box_upper_limit(&points);
 
     // start of grid
-    vector<double> start_coord = min_coord;
+    Vec3 start_coord = min_coord;
     static int startIx=e->KeywordIx("START");
     if(e->KeywordPresent(startIx)){
       DDoubleGDL * startPar = e->GetKWAs<DDoubleGDL>(startIx);
@@ -1011,9 +768,12 @@ namespace lib {
     }
 
     // grid spacing
-    vector<double> delta;
+    Vec3 delta;
     // default grid spacing is determined using max values of point set
-    for(int i=0; i<3; i++) delta.push_back( (max_coord[i] - start_coord[i] )/ double(res_dim_vec[i]));
+    delta.x = (max_coord.x - start_coord.x) / double(res_dim_vec[0]);
+    delta.y = (max_coord.y - start_coord.y) / double(res_dim_vec[1]);
+    delta.z = (max_coord.z - start_coord.z) / double(res_dim_vec[2]);
+
     static int deltaIx=e->KeywordIx("DELTA");
     if(e->KeywordPresent(deltaIx)){
       DDoubleGDL * deltaPar = e->GetKWAs<DDoubleGDL>(deltaIx);
@@ -1030,9 +790,9 @@ namespace lib {
     if(e->KeywordPresent(missingIx)) missing = (*e->GetKWAs<DDoubleGDL>(missingIx))[0];
 
     DDoubleGDL * res = new DDoubleGDL(*res_dim, BaseGDL::ZERO);
-    vector<double> coord(3);
+    Vec3 coord;
 
-    int last_tetraId=0;        // index of tetrahedron where the last point was found
+    size_t last_tetraId=0;        // index of tetrahedron where the last point was found
     int tot_walk_count=0;
 
     //DEBUG
@@ -1041,45 +801,40 @@ namespace lib {
     //start debug - time section 1
     auto t1 = high_resolution_clock::now();
     //end debug - time section 1
-    
-    // Loop to find tetrahedron for each point, and interpolate if it was found
 
-    for(int i=0; i < res_dim_vec[2]; i++ ){
-      coord[2] = start_coord[2]+i*delta[2];     // Z coord
-      
-      for(int j=0; j<res_dim_vec[1]; j++){
-        coord[1] = start_coord[1] + j*delta[1]; // Y coord
-        
-        for(int k=0; k<res_dim_vec[0]; k++){
-          coord[0]=start_coord[0]+k*delta[0];   // X coord
+    // Loop to find container simplex for each point, and interpolate if it is found
 
-          int res_index = k + j*res_dim_vec[0] + i*res_dim_vec[0]*res_dim_vec[1];
+    for(size_t i=0; i < res_dim_vec[2]; i++ ){
+      coord.z = start_coord.z+i*delta.z;     // Z coord
+      for(size_t j=0; j<res_dim_vec[1]; j++){
+        coord.y = start_coord.y + j*delta.y; // Y coord
+        for(size_t k=0; k<res_dim_vec[0]; k++){
+          coord.x=start_coord.x+k*delta.x;   // X coord
 
+          size_t res_index = k + j*res_dim_vec[0] + i*res_dim_vec[0]*res_dim_vec[1];
           double interp_value=missing;
           int step_count = 0;
-          int tetraId = last_tetraId;
+          size_t tetraId = last_tetraId;
 
-    
-
+          // cout << "Point: " << res_index << " "<< coord.x << " " <<coord.y << " " << coord.z <<endl;
 
           // walk through simplices smarlty, starting from the simplex the last point was found in
-          for(int l=0; l<n_tetra; l++)
+          for(size_t l=0; l<n_tetra; l++)
           {
-            //vector<int> vertices = tetra_vertices[tetraId];
-            //vector<vector<double>> tetrahedron = tetra_coord[tetraId];
             Tetra tet = tetra_data[tetraId];
-            int io_res = inside_outside_tet(tet,coord);
+            //int io_res = inside_outside_tet(&tet,&coord);
 
-            if(io_res == 0){
+            array<double,4> bary_coord = bary_tet(&tet,&coord);
+            int minCoordIndex = min_element(bary_coord.begin(),bary_coord.end()) - bary_coord.begin();
+
+            if(bary_coord[minCoordIndex] >= 0){
               // we found our simplex
               last_tetraId=tetraId;
-              vector<double> bary_coord = bary_tet(tet,coord);
-              interp_value=0;
-              for(int vIx=0; vIx<4; vIx++) interp_value += bary_coord[vIx]*(*func)[ tet.vertices[vIx] ];
+              interp_value = bary_coord[0]*(*func)[tet.vertices[0]] + bary_coord[1]*(*func)[tet.vertices[1]] + bary_coord[2]*(*func)[tet.vertices[2]] + bary_coord[3]*(*func)[tet.vertices[3]];
               break;
             } else {
               // it's the wrong simplex but we know where to look next, thx to inside_outside_tet info
-              int next_tetraId=tet.neighbours[io_res-1];
+              size_t next_tetraId=tet.neighbours[minCoordIndex];
               if(next_tetraId==-1){
                 // we are outside of the convex hull
                 last_tetraId=tetraId;
@@ -1105,7 +860,8 @@ namespace lib {
 
     
     cout <<"Total walk count: " << tot_walk_count << endl;
-    cout <<"Time spent in section (seconds): " << tot_function_time/1000 << endl;
+    cout <<"Time spent in section 1 (seconds): " << tot_function_time/1000 << endl;
+    cout <<"Time spent in section 2 (seconds): " << tot_function_time2/1000 << endl;
     
     return res;
   }
