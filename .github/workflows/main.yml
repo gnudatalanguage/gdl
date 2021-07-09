@@ -100,7 +100,7 @@ jobs:
           echo "INCLUDE(CodeCoverage)" >> $TMPFILE
           tac $TMPFILE > src/CMakeLists.txt
           rm $TMPFILE
-          echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} check)" >> testsuite/CMakeLists.txt
+          echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} test)" >> testsuite/CMakeLists.txt
       - name: Build GDL
         run: |
           .ci/build_gdl.sh build
