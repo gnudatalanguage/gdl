@@ -62,7 +62,8 @@ void LibInit_gm()
   new DLibFunRetNew(lib::beta_fun,string("BETA"),2,betaKey);
 
   const string ibetaKey[]={"DOUBLE","EPS","ITER", "IT_MAX",KLISTEND};
-  new DLibFunRetNew(lib::ibeta_fun,string("IBETA"),3,betaKey);
+  const string ibetaWarnKey[]={"EPS","ITER","ITMAX",KLISTEND};
+  new DLibFunRetNew(lib::ibeta_fun,string("IBETA"),3,betaKey, ibetaWarnKey);
 
   const string expintKey[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::expint_fun,string("EXPINT"),2,expintKey);

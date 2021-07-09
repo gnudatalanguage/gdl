@@ -92,23 +92,22 @@
     throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0));	\
 
 #define GM_5P0(a)							\
-  e->NParam(a);								\
-  									\
-  DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);				\
+  e->NParam(a);													\
+  DDoubleGDL* p0 = e->IfDefGetParAs<DDoubleGDL>(0);				\
   SizeT nElp0 = p0->N_Elements();					\
   									\
   if (nElp0 == 0)							\
     throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(0)); \
 
 #define GM_5P1()							\
-  DDoubleGDL* p1 = e->GetParAs<DDoubleGDL>(1);				\
+  DDoubleGDL* p1 = e->IfDefGetParAs<DDoubleGDL>(1);				\
   SizeT nElp1 = p1->N_Elements();					\
   									\
   if (nElp1 == 0)							\
     throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(1));	\
 
 #define GM_5P2()							\
-  DDoubleGDL* p2 = e->GetParAs<DDoubleGDL>(2);				\
+  DDoubleGDL* p2 = e->IfDefGetParAs<DDoubleGDL>(2);				\
   SizeT nElp2 = p2->N_Elements();					\
   									\
   if (nElp2 == 0)							\
@@ -143,13 +142,12 @@
 // Use this macro to define Inf and NaN, number of elements and result in a function with three parameters.
 #define GM_DF3()							\
   DDoubleGDL* res;							\
-                                                    \
-  dimension* dim = new dimension((SizeT)0,(SizeT)0);                      \
-  if(p0->N_Elements() > dim->NDimElements() ) *dim=p0->Dim(); \
-  if(p1->N_Elements() > dim->NDimElements() ) *dim=p1->Dim();  \
-  if(p2->N_Elements() > dim->NDimElements() ) *dim=p2->Dim();  \
-  res = new DDoubleGDL(*dim, BaseGDL::NOZERO);                                  \
-                        \
+  if (p0->N_Elements() <= p1->N_Elements() && p0->N_Elements() <= p2->N_Elements()) \
+    res = new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);           \
+  else if (p1->N_Elements() <= p0->N_Elements() && p1->N_Elements() <= p2->N_Elements())                        \
+    res = new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);                      \
+  else if (p2->N_Elements() <= p0->N_Elements() && p2->N_Elements() <= p1->N_Elements())                        \
+    res = new DDoubleGDL(p2->Dim(), BaseGDL::NOZERO);                      \
   SizeT nElp = res->N_Elements();					\
 
 
@@ -550,23 +548,22 @@ using std::isnan;
     GM_CheckComplex_P0(1);
     GM_CheckComplex_P1(1);
     GM_CheckComplex_P2(1);
-    GM_5P0(2);
+    GM_5P0(3);
     GM_5P1();
     GM_5P2();
     GM_DF3();
     GM_NaN_Inf();
 
-
     for (SizeT c = 0; c < nElp; ++c)
     {
-            if(isfinite((*p2)[c]) && ( (*p2)[c]<0 || (*p2)[c]>1))
-                e->Throw("Argument Z must be in the range [0,1]");
-            if (isfinite((*p0)[c]) == 0 || isfinite((*p1)[c]) == 0 || isfinite((*p1)[c]) == 0)
-                (*res)[c] = d_nan;
-            else if (((int)(*p0)[c] == (*p0)[c] && (*p0)[c] <= 0.0) || ((int)(*p1)[c] == (*p1)[c] && (*p1)[c] <= 0.0))
-                (*res)[c] = d_infinity;
-            else
-                (*res)[c] = gsl_sf_beta_inc((*p0)[c], (*p1)[c], (*p2)[c]);
+        if(isfinite((*p2)[c]) && ( (*p2)[c]<0 || (*p2)[c]>1))
+            e->Throw("Argument Z must be in the range [0,1]");
+        else if (isfinite((*p0)[c]) == 0 || isfinite((*p1)[c]) == 0  || isfinite((*p2)[c]) == 0)
+            (*res)[c] = d_nan;
+        else if (((int)(*p0)[c] == (*p0)[c] && (*p0)[c] <= 0.0) || ((int)(*p1)[c] == (*p1)[c] && (*p1)[c] <= 0.0))
+            (*res)[c] = d_infinity;
+        else
+            (*res)[c] = gsl_sf_beta_inc((*p0)[c], (*p1)[c], (*p2)[c]);
     }
 
     GM_CV2();
