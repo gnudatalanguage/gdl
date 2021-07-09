@@ -247,11 +247,24 @@ namespace lib {
       
       if (type == (*p1Str)[0]) res = true; else res = false;
 
-      debug=0;
-      if (debug) cout << type << " " << (*p1Str)[0] << " " << res << endl;
-	
+      if(type == "INT"){ if((*p1Str)[0] == "IDL_INT" || (*p1Str)[0] =="IDL_NUMBER" || (*p1Str)[0] == "IDL_VARIABLE" || (*p1Str)[0] == "IDL_INTEGER") res = true;}
+      if(type == "BYTE"){ if((*p1Str)[0] == "IDL_BYTE" || (*p1Str)[0] == "IDL_INTEGER" || (*p1Str)[0] == "IDL_NUMBER" || (*p1Str)[0] == "IDL_VARIABLE") res = true;}
+      if(type == "LONG"){ if ((*p1Str)[0] ==  "IDL_LONG" || (*p1Str)[0] == "IDL_INTEGER" || (*p1Str)[0] == "IDL_NUMBER" || (*p1Str)[0] == "IDL_VARIABLE") res = true;}
+      if(type == "FLOAT"){ if((*p1Str)[0] == "IDL_FLOAT" || (*p1Str)[0] == "IDL_NUMBER" || (*p1Str)[0] == "IDL_VARIABLE") res = true;}
+      if(type == "DOUBLE"){ if((*p1Str)[0] == "IDL_DOUBLE" || (*p1Str)[0] == "IDL_NUMBER" || (*p1Str)[0] == "IDL_VARIABLE") res = true;}
+      if(type == "STRING"){ if((*p1Str)[0] == "IDL_STRING" || (*p1Str)[0] == "IDL_VARIBALE") res = true;}
+      if(type == "DCOMPLEX"){ if((*p1Str)[0] == "IDL_DCOMPLEX" || (*p1Str)[0] == "IDL_NUMBER" || (*p1Str)[0] == "IDL_VARIABLE") res = true;}
+      if(type == "POINTER"){if((*p1Str)[0] == "IDL_POINTER" || (*p1Str)[0] == "IDL_VARIABLE") res = true;}
+      if(type == "UINT"){if((*p1Str)[0] == "IDL_UINT" || (*p1Str)[0] == "IDL_INTEGER" || (*p1Str)[0] == "IDL_NUMBER" || (*p1Str)[0] == "IDL_VARIABLE") res = true;}
+      if(type == "ULONG"){if((*p1Str)[0] == "IDL_ULONG" || (*p1Str)[0] == "IDL_INTEGER" || (*p1Str)[0] == "IDL_NUMBER" || (*p1Str)[0] == "IDL_VARIABLE") res = true;}
+      if(type == "LONG64"){if((*p1Str)[0] == "IDL_LONG64" || (*p1Str)[0] == "IDL_INTEGER" || (*p1Str)[0] == "IDL_NUMBER" || (*p1Str)[0] == "IDL_VARIABLE") res = true;}
+      if(type == "ULONG64"){if((*p1Str)[0] == "IDL_ULONG64" || (*p1Str)[0] == "IDL_INTEGER" || (*p1Str)[0] == "IDL_NUMBER" || (*p1Str)[0] == "IDL_VARIABLE") res = true;}
+
       if(type == "STRUCT"){ if(structName == (*p1Str)[0]) res = true;}
       if(type == "OBJREF"){ if(objectName == (*p1Str)[0]) res = true;}
+
+      debug=1;
+      if (debug) cout << type << " " << (*p1Str)[0] << " " << res << endl;
     }
 	
     if(type != "UNDEFINED"){
