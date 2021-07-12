@@ -354,8 +354,8 @@ void LibInit()
   const string stringKey[]={COMMONKEYWORDSFORSTRINGFORMATTINGWITHIMPLIEDPRINT,"PRINT",KLISTEND};
   new DLibFun(lib::string_fun,string("STRING"),-1,stringKey);
 
-  const string defsysvKey[]={"EXISTS",KLISTEND};
-  new DLibPro(lib::defsysv,string("DEFSYSV"),3,defsysvKey); 
+  const string defsysvKey[]={"EXISTS","TEST",KLISTEND};
+  new DLibPro(lib::defsysv,string("DEFSYSV"),4,defsysvKey); 
 
   const string heap_gcKey[]={"PTR","OBJ","VERBOSE",KLISTEND};
   new DLibPro(lib::heap_gc,string("HEAP_GC"),0,heap_gcKey); 
