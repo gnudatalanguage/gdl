@@ -1,7 +1,7 @@
 ;
 ; by Sylwester Arabas <slayoo (at) igf.fuw.edu.pl>
 ;
-function QUERY_JPEG, filename, info
+function QUERY_JPEG, filename, info, image_index=image_index
 ;
 
 compile_opt idl2, hidden

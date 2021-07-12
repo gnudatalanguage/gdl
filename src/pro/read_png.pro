@@ -115,7 +115,7 @@ if (magick_IndexedColor(mid)) then begin
 endif else begin
    ;; AC 2012-Feb-02 the effective order of reading was bad ...
    ;; now it is OK on all tested PNG images, including images with transparency
-   image=MAGICK_READ(mid, rgb=1)
+   image=MAGICK_READ(mid, rgb=1s) ; must be short
 endelse
 ;
 MAGICK_CLOSE, mid

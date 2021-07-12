@@ -42,6 +42,7 @@ namespace lib {
  BaseGDL* x11_exists(EnvT *e);
  BaseGDL* dsfmt_exists(EnvT *e);
  BaseGDL* expat_exists(EnvT *e);
+ BaseGDL* mpi_exists(EnvT* e);
 
 } // namespace
 

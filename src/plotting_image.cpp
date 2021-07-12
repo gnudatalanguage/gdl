@@ -328,7 +328,7 @@ namespace lib {
       bool tidy=false;
       DByte* im=&(*byteImage)[0];
       if (byteImage->Rank()==3 && byteImage->Dim(0)==4) {
-        SizeT s=imageWidth*imageWidth*3;
+        SizeT s=imageWidth*imageHeight*3;
         im=(DByte*)malloc(s);
         for (SizeT i = 0, k=0; i<s;) {im[i++]=(*byteImage)[k++];im[i++]=(*byteImage)[k++];im[i++]=(*byteImage)[k++];k++;}
         tidy=true;

@@ -65,12 +65,12 @@ IPRINT, i, 'DSFMT ?  : ', DSFMT_EXISTS(), skip
 IPRINT, i, 'Eigen3 ? : ', EIGEN_EXISTS(), skip
 IPRINT, i, 'Expat ?  : ', EXPAT_EXISTS(), skip
 IPRINT, i, 'FFTw ?   : ', FFTW_EXISTS(), skip
-IPRINT, i, 'GEOTIFF ?: ', GEOTIFF_EXISTS(), skip
 IPRINT, i, 'GLPK ?   : ', GLPK_EXISTS(), skip
 IPRINT, i, 'GRIB ?   : ', GRIB_EXISTS(), skip
 IPRINT, i, 'HDF ?    : ', HDF_EXISTS(), skip
 IPRINT, i, 'HDF5 ?   : ', HDF5_EXISTS(), skip
 IPRINT, i, 'Magick ? : ', MAGICK_EXISTS(), skip
+IPRINT, i, 'MPI ?    : ', MPI_EXISTS(), skip
 IPRINT, i, 'NetCDF ? : ', NCDF_EXISTS(), skip
 IPRINT, i, 'NetCDF4 ?: ', NCDF4_EXISTS(), skip
 IPRINT, i, 'OpenMP ? : ', OPENMP_EXISTS(), skip
@@ -79,6 +79,7 @@ IPRINT, i, 'PROJ ?   : ', PROJ_EXISTS(), skip
 IPRINT, i, 'Python ? : ', PYTHON_EXISTS(), skip
 IPRINT, i, 'ShapeLib : ', SHAPELIB_EXISTS(), skip
 IPRINT, i, 'TIFF ?   : ', TIFF_EXISTS(), skip
+IPRINT, i, 'GEOTIFF ?: ', GEOTIFF_EXISTS(), skip
 IPRINT, i, 'UDUNITS  : ', UDUNITS_EXISTS(), skip
 IPRINT, i, 'WxWidgets: ', WXWIDGETS_EXISTS(), skip
 IPRINT, i, 'X11      : ', X11_EXISTS(), skip
