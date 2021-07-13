@@ -422,7 +422,7 @@ namespace lib {
         diff = (float) tm_local->tm_hour-tm_utc->tm_hour+(tm_local->tm_min-tm_utc->tm_min)/60.0;
       } else {
         //if hour offset is specified
-        diff = values_vec[6][(isParScalar[6]) * i];
+        diff = values_vec[6][(!isParScalar[6]) * i];
       }
       long int h_diff, m_diff;
       h_diff=(long int) diff;
