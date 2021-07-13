@@ -231,5 +231,14 @@ namespace lib {
     return new DIntGDL(0);
 #endif
   }
+
+  BaseGDL* mpi_exists(EnvT* e)
+  {
+#ifdef USE_MPI
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
+  }  
 }
  // namespace
