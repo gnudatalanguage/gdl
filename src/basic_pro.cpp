@@ -1183,6 +1183,14 @@ namespace lib {
     DString sysVarNameFull;
     e->AssureStringScalarPar(0, sysVarNameFull);
 
+    static int testIx = e->KeywordIx("TEST");
+    if(e->KeywordSet(testIx)){
+      DVar* sysVar = FindInVarList(sysVarList,
+        StrUpCase(sysVarNameFull.substr(1)));
+      if (sysVar != NULL) // the variable already exists
+        return;
+    }
+
     static int existIx = e->KeywordIx("EXIST");
     if (e->KeywordPresent(existIx)) {
       if (sysVarNameFull.length() < 2 || sysVarNameFull[0] != '!') {

@@ -214,11 +214,13 @@ namespace lib {
       DInt has_palette = 0;
       if ( (a.type() == PaletteType) || (a.type() == PaletteMatteType) ) has_palette = 1;
 
-      // TODO: 
-      // - JP2->JPEG2000 ?      
       DString type;
       type = a.magick() == "PNM" ? "PPM" :
+        a.magick() == "PGM" ? "PPM" :
         a.magick() == "DCM" ? "DICOM" :
+        a.magick() == "JPC" ? "JPEG2000" :
+        a.magick() == "JP2" ? "JPEG2000" :
+        a.magick() == "JNG" ? "JPEG2000" :
         a.magick();
 
       if (debug == 1) cout << "Type (via a.magick()) : " << type << endl;
@@ -397,12 +399,6 @@ namespace lib {
           image.write(0, 0, columns, rows, map, CharPixel, &(*bImage)[0]);
           return bImage;
         }
-        unsigned int cx, cy;
-        for (cy = 0; cy < rows; ++cy)
-          for (cx = 0; cx < columns; ++cx)
-            // note by AC, 07Feb2012: why this transpose here ??
-            // (*bImage)[cx+(rows-cy-1)*columns]= index[cx+(cy)*columns];
-            (*bImage)[cx + cy * columns] = index[cx + cy * columns];
         return bImage;
       } else {
         // we do have to manage an extra channel for transparency
@@ -449,7 +445,7 @@ namespace lib {
 #endif
         {
 
-          scale = 255;
+          scale = MaxRGB;
           DByteGDL *R, *G, *B;
 
           R = new DByteGDL(cmap, BaseGDL::NOZERO);
@@ -458,9 +454,9 @@ namespace lib {
 
           for (i = 0; i < cmapsize; ++i) {
             col = image.colorMap(i);
-            (*R)[i] = (col.redQuantum()) * scale / Quant;
-            (*G)[i] = (col.greenQuantum()) * scale / Quant;
-            (*B)[i] = (col.blueQuantum()) * scale / Quant;
+            (*R)[i] = (col.redQuantum()) ; //* scale / Quant;
+            (*G)[i] = (col.greenQuantum()) ; // * scale / Quant;
+            (*B)[i] = (col.blueQuantum()) ; //* scale / Quant;
           }
           if (nParam > 1) e->SetPar(1, R);
           if (nParam > 2) e->SetPar(2, G);
@@ -472,7 +468,7 @@ namespace lib {
         else if (image.depth() <= 16)
 #endif
         {
-          scale = 65536;
+          scale = MaxRGB;
           DUIntGDL *R, *G, *B;
           R = new DUIntGDL(cmap, BaseGDL::NOZERO);
           G = new DUIntGDL(cmap, BaseGDL::NOZERO);
@@ -480,9 +476,9 @@ namespace lib {
 
           for (i = 0; i < cmapsize; ++i) {
             col = image.colorMap(i);
-            (*R)[i] = (col.redQuantum()) * scale / Quant;
-            (*G)[i] = (col.greenQuantum()) * scale / Quant;
-            (*B)[i] = (col.blueQuantum()) * scale / Quant;
+            (*R)[i] = (col.redQuantum()) ; //* scale / Quant;
+            (*G)[i] = (col.greenQuantum()) ; //* scale / Quant;
+            (*B)[i] = (col.blueQuantum()) ; //* scale / Quant;
           }
           if (nParam > 1) e->SetPar(1, R);
           if (nParam > 2) e->SetPar(2, G);
@@ -513,7 +509,9 @@ namespace lib {
       columns = image.columns();
       rows = image.rows();
       if ((rows * columns) == 0) e->Throw("Error reading image dimensions!");
-      string map = "BGR";
+      string map = "RGB";
+      if (image.matte()) map = map + "A";
+
       if (e->GetKW(0) != NULL)//RGB
       {
         DInt rgb;
@@ -527,16 +525,13 @@ namespace lib {
         else {
           string s = "MAGICK_READ: RGB order type not supported (";
           s += i2s(rgb);
-          s += "), using BGR ordering.";
+          s += "), using RGB ordering.";
           Message(s);
-          map = "BGR";
+          map = "RGB";
         }
       }
 
-      if (image.matte()) map = map + "A";
-
-      if (e->KeywordSet(2)) //MAP
-        e->AssureScalarPar<DStringGDL>(0, map);
+      e->AssureStringScalarKWIfPresent(2, map);
 
       lx = 0;
       ly = 0;
@@ -560,11 +555,11 @@ namespace lib {
           e->Throw("Requested height exceeds number of rows. Either reduce the height or the Y origin.");
       }
 
-      SizeT c[3];
-      c[0] = map.length();
-      c[1] = wx;
-      c[2] = wy;
-      dimension dim(c, 3);
+      dimension dim;
+      if (map.length() > 1) dim << map.length();
+      dim << wx;
+      dim << wy;
+
       if (image.depth() == 8) {
         DByteGDL *bImage = new DByteGDL(dim, BaseGDL::NOZERO);
         image.write(lx, ly, wx, wy, map, CharPixel, &(*bImage)[0]);
@@ -663,7 +658,7 @@ namespace lib {
         image.readPixels(IndexQuantum,(unsigned char*)bImage->DataAddr());
         image.syncPixels();
       }
-      image.flip();
+//      image.flip();
       magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());
@@ -714,7 +709,7 @@ namespace lib {
 
       return new DLongGDL(image.colorMapSize());
     } catch (Exception &error_) {
-      e->Throw(error_.what());
+      return new DLongGDL(-1);
     }
     return NULL; //pacify -Wreturn-type
   }
@@ -933,37 +928,31 @@ namespace lib {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
       Image image = magick_image(e, mid);
-
       //set the number of colors;
       DLong ncol = 256;
       if (nParam > 1) e->AssureLongScalarPar(1, ncol);
-      image.quantizeColors(ncol);
 
       static int TRUECOLORIx = e->KeywordIx("TRUECOLOR");
       static int DITHERIx = e->KeywordIx("DITHER");
+      bool dither=true;
+      if (e->GetKW(DITHERIx) !=NULL) dither=e->KeywordSet(DITHERIx);
       static int YUVIx = e->KeywordIx("YUV");
       static int GRAYSCALEIx = e->KeywordIx("GRAYSCALE");
-
-      if (e->KeywordSet(TRUECOLORIx)) {
-        image.quantizeColorSpace(RGBColorspace);
-        image.quantizeColors((long) 256 * (long) 256 * (long) 256 - 1);
-        if (e->KeywordSet(DITHERIx))
-          image.quantizeDither(true);
-        image.quantize();
-        image.classType(DirectClass);
-      } else {
+      
         if (e->KeywordSet(YUVIx)) //YUV
           image.quantizeColorSpace(YUVColorspace);
         else if (e->KeywordSet(GRAYSCALEIx)) //Grayscale
           image.quantizeColorSpace(GRAYColorspace);
         else
           image.quantizeColorSpace(RGBColorspace);
-        if (e->KeywordSet(DITHERIx))
-          image.quantizeDither(true);
-        image.quantize();
-        image.classType(PseudoClass);
-      }
 
+//      image.colorMapSize(ncol);
+//      image.classType(PseudoClass);
+//      image.type(PaletteType);
+      image.quantizeColors(ncol);
+      image.quantizeDither(dither);
+      image.quantize();
+//      image.syncPixels();
       magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());

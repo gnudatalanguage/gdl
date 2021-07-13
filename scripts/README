@@ -1,25 +1,28 @@
-Alain C. and Ilia N., July 2015
+Alain C. and Ilia N., July 2015. Updated 2021.
 
 Nov. 2017 : CVS discontinued at SourceForge, force move to SVN.
+2018 : move to GitHub. No more use of SourceForge.
 
-
-Please post improvments on the Discussion
-http://sourceforge.net/p/gnudatalanguage/discussion/338691/
-or here http://sourceforge.net/p/gnudatalanguage/patches/
+Please post improvments here around :
+Bug reports here : https://github.com/gnudatalanguage/gdl/issues
+Discussions here : https://github.com/gnudatalanguage/gdl/discussions
 
 Just collecting few useful scripts :
 
-* The SVN side :
+* The GIT side :
 
-** init_gdl_SVN.sh : How to do the first checkout of the SVN of GDL
-** update_gdl_SVN.sh : How to uptade the SVN
+** init_gdl_GIT.sh : How to do the first full copy of GDL from GitHub
+** update_gdl_GIT.sh : How to uptade the Git clone
 
-** same for GDLDE, an IDE for GDL: gdlde_init_SVN.sh and gdlde_update_SVN.sh
+** same for GDLDE, an IDE for GDL: gdlde_init_GIT.sh and gdlde_update_GIT.sh
 
 * The packages side
 
-Which packages you need for a given distro, the mandatory ones
-and some optional ones. This is convenient on a new machine
+Since we do have the script `build_gdl.sh` with the `prep` option, those scripts
+are no more useful (and may deseaper soon).
+
+Thoses scripts will help you to know which packages you need for a given distro, 
+the mandatory ones and some optional ones. This is convenient on a new machine
 before running the first "cmake" to avoid install in N times
 the various packages we need. These scripts are not perfect
 (e.g. it is not that easy to manage non LSB systems,

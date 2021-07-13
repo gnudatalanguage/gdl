@@ -21,6 +21,7 @@
 namespace lib {
 
   BaseGDL* timestamp(EnvT* e);
+  void timestamptovalues(EnvT* e);
   BaseGDL* systime(EnvT* e);
   BaseGDL* legendre(EnvT* e);
   BaseGDL* gsl_exp(EnvT* e);
