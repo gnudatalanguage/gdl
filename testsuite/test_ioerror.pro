@@ -30,7 +30,7 @@ L2 : success++
 ;
 ; ----------------- final message ----------
 ;
-BANNER_FOR_TESTSUITE, 'TEST_FIX', errors
+BANNER_FOR_TESTSUITE, 'TEST_IOERROR', errors
 ;
 if (errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
