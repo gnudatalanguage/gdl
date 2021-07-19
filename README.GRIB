@@ -1,5 +1,4 @@
-GRIB file format support in GDL is implemented using the ECMWF ecCodes library
-(the legacy ECMWF GRIB_API library is supported as well). 
+GRIB file format support in GDL is implemented using the ECMWF ecCodes library.
 
 Naming of GDL routines resembles the one from F90 GRIB API interface 
 (it was developed prior to appearance of GRIB support in IDL).

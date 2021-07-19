@@ -68,7 +68,7 @@ set(PNGLIB ON CACHE BOOL "GDL: Enable libpng ?")
 set(PNGLIBDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
 
 set(GRIB ON CACHE BOOL "GDL: Enable GRIB ?")
-set(GRIBDIR "" CACHE PATH "GDL: Specify the ECMWF ecCodes or GRIB API directory tree")
+set(GRIBDIR "" CACHE PATH "GDL: Specify the ECMWF ecCodes directory tree")
 
 # set(QHULL OFF CACHE BOOL "GDL: Enable Qhull ?")
 # set(QHULLDIR "" CACHE PATH "GDL: Specify the QHULL directory tree")
@@ -965,13 +965,13 @@ if(GRIB)
         set(LIBRARIES ${LIBRARIES} ${GRIB_LIBRARIES})
         include_directories(${GRIB_INCLUDE_DIR})
     else(GRIB_FOUND)
-        message(FATAL_ERROR "ECMWF ecCodes or GRIB API is required but was not found.\n"
+        message(FATAL_ERROR "ECMWF ecCodes is required but was not found.\n"
         "Use -DGRIBDIR=DIR to specify the ecCodes or GRIB API directory tree.\n"
         "Use -DGRIB=OFF to not use it.\n"
         "Use -DJASPERDIR=DIR and|or -DJPEGDIR=DIR to specify "
         "the directory trees of JasPer and openJPEG libraries.\n"
-                "(suitable Debian/Ubuntu package: libeccodes-dev or libgrib-api-dev)\n"
-                "(suitable Fedora/CentOS package: grib_api-devel)\n"
+                "(suitable Debian/Ubuntu package: libeccodes-dev)\n"
+                "(suitable Fedora/CentOS package: eccodes-devel)\n"
         "(suitable Homebrew package: eccodes)\n")
     endif(GRIB_FOUND)
 endif(GRIB)

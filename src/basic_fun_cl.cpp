@@ -335,87 +335,117 @@ namespace lib {
     string values_str[]={"YEAR","MONTH","DAY","HOUR","MINUTE","SECOND","OFFSET"};
     int values_min[7]={1000,1,1,0,0,0,-14};
     int values_max[7]={9999,12,31,23,59,59,12};
-    float values[7];
+
+    vector<vector<float>> values_vec(7);
+    values_vec.reserve(7);
+
+    bool isParScalar[7];
     bool isValue[7];
+
     bool isAnyValue=false;
     bool noOffset=true;
+
+    DStringGDL* res = new DStringGDL("");
+
+    int minListNelem = -1;
 
     for(int i=0; i < 7; ++i){
       int valueIx = e->KeywordIx(values_str[i]);
       isValue[i]=e->KeywordSet(valueIx);
+
       if(isValue[i]){
         if(i==6){
           noOffset=false;
         } else {
           isAnyValue=true;
         }
-        values[i] = (*e->GetKWAs<DFloatGDL>(valueIx))[0];
-        if(values[i]<values_min[i] || values[i]>values_max[i]){
-          //the value is out of its range, throw error
-          stringstream ss_min, ss_max;
-          ss_min << values_min[i];
-          ss_max << values_max[i];
-          e->Throw(values_str[i]+" must contain numbers between "+ss_min.str()+" and "+ss_max.str()+".");
-          values[i]=0;
+
+        DFloatGDL * par = e->GetKWAs<DFloatGDL>(valueIx);
+        isParScalar[i] = par->Rank() == 0;
+
+        if(!isParScalar[i])
+        {
+          if(minListNelem == -1) minListNelem = par->N_Elements();
+          if(par->N_Elements() <= minListNelem) res = new DStringGDL(par->Dim());
+        }
+
+        for(int j=0; j < par->N_Elements(); ++j)
+        {
+          values_vec[i].push_back((*par)[j]);
+
+          if(values_vec[i][j] < values_min[i] || values_vec[i][j] > values_max[i]){
+            //the value is out of its range, throw error
+            stringstream ss_min, ss_max;
+            ss_min << values_min[i];
+            ss_max << values_max[i];
+            e->Throw(values_str[i]+" must contain numbers between "+ss_min.str()+" and "+ss_max.str()+".");
+          }
         }
       } else {
-        values[i]=0;
+        values_vec[i].push_back(0);
+        isParScalar[i] = true;
       }
     }
 
-    string ts; //result string
+    for(int i=0; i<res->N_Elements(); ++i)
+    {
+      string ts; //result string
 
-    if(isAnyValue){
-      //feed input values in time struct tm_local (default 0 if not set)
-      if(isValue[0]) tm_local->tm_year = values[0]-1900;
-      if(isValue[1]) tm_local->tm_mon = values[1]-1;
-      if(isValue[2]) tm_local->tm_mday = values[2];
-      tm_local->tm_hour = values[3];
-      tm_local->tm_min = values[4];
-      tm_local->tm_sec = values[5];
+      if(isAnyValue){
+        //feed input values in time struct tm_local (default 0 if not set)
 
-      char timestamp[] = "YYYY-MM-ddTHH:mm:ss";
-      //format the time
-      strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%S", tm_local);
-      ts=timestamp;
-    } else {
-      char timestamp[] = "YYYY-MM-ddTHH:mm:ss.000";
-      //format the time
-      strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%S.000", tm_local);
-      //puttinf in milliseconds
-      char milli[50]; //size of 50 to avoid buffer overload (not optimal)
-      sprintf(milli, "%03ld", tv.tv_usec/1000);
-      sprintf(timestamp + 20, "%.3s", milli);
-      ts=timestamp;
-    }
-    
-    float diff = 0;
-    if(noOffset){ 
-      //compute difference in hours of local time to UTC time
-      diff = (float) tm_local->tm_hour-tm_utc->tm_hour+(tm_local->tm_min-tm_utc->tm_min)/60.0;
-    } else {
-      //if hour offset is specified
-      diff = values[6];
-    }
-    long int h_diff, m_diff;
-    h_diff=(long int) diff;
-    m_diff=round(abs(60*(diff-h_diff)));
-    
-    if(isUTC){
-        ts+="Z";
-    } else if(h_diff > 0) {
-        char diff[50];  //size of 50 to avoid buffer overload (not optimal)
-        sprintf(diff,"%s%02ld:%02ld", "+", h_diff, m_diff);
-        ts += diff;
-    } else if(h_diff < 0) {
-        char diff[50];  //size of 50 to avoid buffer overload (not optimal)
-        sprintf(diff,"%s%02ld:%02ld", "-", -h_diff, m_diff);
-        ts += diff;
-    } else {
-        ts+="Z";
+        if(isValue[0]) tm_local->tm_year = values_vec[0][(!isParScalar[0]) * i]-1900;
+        if(isValue[1]) tm_local->tm_mon = values_vec[1][(!isParScalar[1]) * i]-1;
+        if(isValue[2]) tm_local->tm_mday = values_vec[2][(!isParScalar[2]) * i];
+        tm_local->tm_hour = values_vec[3][(!isParScalar[3]) * i];
+        tm_local->tm_min = values_vec[4][(!isParScalar[4]) * i];
+        tm_local->tm_sec = values_vec[5][(!isParScalar[5]) * i];
+
+        char timestamp[] = "YYYY-MM-ddTHH:mm:ss";
+        //format the time
+        strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%S", tm_local);
+        ts=timestamp;
+      } else {
+        char timestamp[] = "YYYY-MM-ddTHH:mm:ss.000";
+        //format the time
+        strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%S.000", tm_local);
+        //puttinf in milliseconds
+        char milli[50]; //size of 50 to avoid buffer overload (not optimal)
+        sprintf(milli, "%03ld", tv.tv_usec/1000);
+        sprintf(timestamp + 20, "%.3s", milli);
+        ts=timestamp;
+      }
+
+      float diff = 0;
+      if(noOffset){ 
+        //compute difference in hours of local time to UTC time
+        diff = (float) tm_local->tm_hour-tm_utc->tm_hour+(tm_local->tm_min-tm_utc->tm_min)/60.0;
+      } else {
+        //if hour offset is specified
+        diff = values_vec[6][(!isParScalar[6]) * i];
+      }
+      long int h_diff, m_diff;
+      h_diff=(long int) diff;
+      m_diff=round(abs(60*(diff-h_diff)));
+
+      if(isUTC){
+          ts+="Z";
+      } else if(h_diff > 0) {
+          char diff[50];  //size of 50 to avoid buffer overload (not optimal)
+          sprintf(diff,"%s%02ld:%02ld", "+", h_diff, m_diff);
+          ts += diff;
+      } else if(h_diff < 0) {
+          char diff[50];  //size of 50 to avoid buffer overload (not optimal)
+          sprintf(diff,"%s%02ld:%02ld", "-", -h_diff, m_diff);
+          ts += diff;
+      } else {
+          ts+="Z";
+      }
+
+      (*res)[i] = ts;
     }
 
-    return new DStringGDL(ts);
+    return res;
   }
 
   BaseGDL* systime(EnvT* e)
