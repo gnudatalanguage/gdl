@@ -109,6 +109,7 @@ test_idlneturl.pro
 test_indgen.pro
 test_interpol.pro
 test_interpolate.pro
+test_ioerror.pro
 test_isa.pro
 test_ishft.pro
 test_keyword_set_but_null.pro
