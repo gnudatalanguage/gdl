@@ -859,10 +859,11 @@ namespace lib {
     tot_function_time += ms_double.count();
     // end debug - time section 2
 
-    
+    /*
     cout <<"Total walk count: " << tot_walk_count << endl;
     cout <<"Time spent in section 1 (seconds): " << tot_function_time/1000 << endl;
     cout <<"Time spent in section 2 (seconds): " << tot_function_time2/1000 << endl;
+    */
     
     return res;
   }
