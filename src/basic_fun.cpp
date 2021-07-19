@@ -1346,15 +1346,14 @@ namespace lib {
   BaseGDL* type_fun_single(EnvT* e) { //nParam=1
     BaseGDL* p0 = e->GetParDefined(0);
 
-//    assert(dynamic_cast<EnvUDT*> (e->Caller()) != NULL);
-//
-//    // type_fun( expr) just convert
-//    if (static_cast<EnvUDT*> (e->Caller())->GetIOError() != NULL)
-//      return p0->Convert2(TargetClass::t,
-//      BaseGDL::COPY_THROWIOERROR);
+    assert(dynamic_cast<EnvUDT*> (e->Caller()) != NULL);
+ 
+    // type_fun( expr) just convert
+    if (static_cast<EnvUDT*> (e->Caller())->GetIOError() != NULL)
+      return p0->Convert2(TargetClass::t,
+      BaseGDL::COPY_THROWIOERROR);
       // SA: see tracker item no. 3151760 
-//    else 
-      if (TargetClass::t == p0->Type() && e->GlobalPar(0))
+    else if (TargetClass::t == p0->Type() && e->GlobalPar(0))
       // HERE THE INPUT VARIABLE IS RETURNED
     {
       e->SetPtrToReturnValue(&e->GetPar(0));
