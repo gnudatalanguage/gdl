@@ -1545,10 +1545,11 @@ namespace lib {
   }
 
   BaseGDL* fix_fun( EnvT* e)
-{
+  {
     SizeT np=e->NParam(1);
 
     DIntGDL* type = e->IfDefGetKWAs<DIntGDL>(0); //"TYPE" keyword
+    
     int typ=0;
     if (type != NULL) { //see IDL's behaviour.
       typ = (*type)[0];
@@ -1571,33 +1572,43 @@ namespace lib {
       if (typ == GDL_COMPLEXDBL) return dcomplex_fun(e);
       // 2 cases where PRINT has to be taken into account
       if (typ == GDL_BYTE) {
-        if (e->KeywordSet(1) && e->GetPar(0)->Type() == GDL_STRING) {
-        DLong64GDL* temp=static_cast<DLong64GDL*>(e->GetPar(0)->Convert2(GDL_LONG64,BaseGDL::COPY));
-        SizeT nEl=temp->N_Elements();
-        DByteGDL* ret=new DByteGDL(dimension(nEl));
-        for (SizeT i=0; i< nEl; ++i) {
-            (*ret)[i]=(*temp)[i];
-        }
-        (static_cast<BaseGDL*>(ret))->SetDim(e->GetPar(0)->Dim());
-        GDLDelete(temp);
-        return ret;
-        } else return byte_fun(e);
+        static int printIx = e->KeywordIx("PRINT");
+        if (e->KeywordSet(printIx) && e->GetPar(0)->Type() == GDL_STRING) {
+          DLong64GDL* temp=static_cast<DLong64GDL*>(e->GetPar(0)->Convert2(GDL_LONG64,BaseGDL::COPY));
+          SizeT nEl=temp->N_Elements();
+          DByteGDL* ret=new DByteGDL(dimension(nEl));
+          for (SizeT i=0; i< nEl; ++i) {
+              (*ret)[i]=(*temp)[i];
+          }
+          (static_cast<BaseGDL*>(ret))->SetDim(e->GetPar(0)->Dim());
+          GDLDelete(temp);
+          return ret;
+          } else
+              return byte_fun(e);
       }
+      if(typ == GDL_STRUCT) e->Throw("Unable to convert variable to type struct.");
+      if(typ == GDL_PTR) e->Throw("Unable to convert variable to type pointer.");
+      if(typ == GDL_OBJ) e->Throw("Unable to convert variable to type object reference.");
 
       if (typ == GDL_STRING) {
         // SA: calling GDL_STRING() with correct parameters
         static int stringIx = LibFunIx("STRING");
-
-        assert(stringIx >= 0);
+        //assert(stringIx >= 0);
 
         EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
 
         Guard<EnvT> guard(newEnv);
 
         newEnv->SetNextPar(&e->GetPar(0)); // pass as global
-        if (e->KeywordSet(1) && e->GetPar(0)->Type() == GDL_BYTE)
-          newEnv->SetKeyword("PRINT", new DIntGDL(1));
-        //         e->Interpreter()->CallStack().push_back( newEnv); 
+
+        static int printIx = e->KeywordIx("PRINT");
+        //cout << "GOING HERE" << endl;
+        if (e->KeywordSet(printIx) && e->GetPar(0)->Type() == GDL_BYTE){
+            //cout << "GOING HERE" << endl;
+            newEnv->SetKeyword("PRINT", new DIntGDL(1));
+            //cout << "GOING HERE" << endl;
+        }
+
         return static_cast<DLibFun*> (newEnv->GetPro())->Fun()(newEnv);
       }
     }
