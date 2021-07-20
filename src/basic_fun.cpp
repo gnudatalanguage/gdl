@@ -1602,11 +1602,9 @@ namespace lib {
         newEnv->SetNextPar(&e->GetPar(0)); // pass as global
 
         static int printIx = e->KeywordIx("PRINT");
-        //cout << "GOING HERE" << endl;
+
         if (e->KeywordSet(printIx) && e->GetPar(0)->Type() == GDL_BYTE){
-            //cout << "GOING HERE" << endl;
             newEnv->SetKeyword("PRINT", new DIntGDL(1));
-            //cout << "GOING HERE" << endl;
         }
 
         return static_cast<DLibFun*> (newEnv->GetPro())->Fun()(newEnv);
