@@ -279,9 +279,9 @@ namespace lib {
     {
       // prepare voronoi
 
-      bool isLower;            //not used
-      int voronoiVertexCount;  //not used
-      qhull.prepareVoronoi(&isLower, &voronoiVertexCount);
+      // bool isLower;            //not used
+      // int voronoiVertexCount;  //not used
+      // qhull.prepareVoronoi(&isLower, &voronoiVertexCount); // useful ?
 
       // retrieve voronoi vertices
 
