@@ -31,7 +31,7 @@
   static const PLFLT DPI = 72.0 ; //in dpi;
   static const PLFLT DPICM = 72.0/2.54 ; //dpi/cm;
   static const float RESOL = 1000.0;
-  static const PLFLT PlplotInternalPageRatioXoverY=float(PIXELS_X)/float(PIXELS_Y); //1.3333333
+  static const PLFLT PlplotInternalPageRatioXoverY=4./3. ; //Some machines do not know PRIVATE values stored in plplotP.h 4/3=PlplotInternalPageRatioXoverY=float(PIXELS_X)/float(PIXELS_Y)
 
 class DevicePS: public GraphicsDevice
 {
