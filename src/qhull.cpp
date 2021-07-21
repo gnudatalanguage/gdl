@@ -38,7 +38,7 @@
 #include <libqhullcpp/QhullLinkedList.h>
 #include <libqhullcpp/QhullPoint.h>
 #include <libqhullcpp/QhullRidge.h>
-#include <libqhullcpp/QhullUser.h>
+// #include <libqhullcpp/QhullUser.h>
 #include <libqhullcpp/QhullVertex.h>
 #include <libqhullcpp/QhullVertexSet.h>
 #include <libqhullcpp/Qhull.h>
@@ -67,7 +67,7 @@ using orgQhull::QhullPointsIterator;
 using orgQhull::QhullQh;
 using orgQhull::QhullRidge;
 using orgQhull::QhullRidgeSet;
-using orgQhull::QhullUser;
+//using orgQhull::QhullUser;
 using orgQhull::QhullVertex;
 using orgQhull::QhullVertexList;
 using orgQhull::QhullVertexListIterator;
@@ -304,11 +304,44 @@ namespace lib {
       }
 
       // retrieve voronoi normals
+      
+      // QhullUser only appeared in latest versions of qhull, so we avoid using it
 
-      QhullUser results((&qhull)->qh());
-      (&qhull)->outputQhull("Fo");
-      vector<vector<double>> normsPars= results.doublesVector();
-      vector<vector<int>> normsVertId = results.intsVector();
+      // QhullUser results((&qhull)->qh());
+      // (&qhull)->outputQhull("Fo");
+      // vector<vector<double>> normsPars= results.doublesVector();
+      // vector<vector<int>> normsVertId = results.intsVector();
+      
+
+      stringbuf strbuf;
+      ostream os(&strbuf);
+      qhull.setOutputStream( &os );
+      qhull.outputQhull("Fo");
+      qhull.clearQhullMessage(); // to prevent qhull printing in console
+      stringstream ss;
+      ss << os.rdbuf();
+
+      int n_lines;
+      ss >> n_lines;
+
+      vector<vector<double>> normsPars;
+      vector<vector<int>> normsVertId;
+
+      // Temp variables
+      vector<double> normsPars_line(nd+1);
+      double n_coeffs, vert1_id, vert2_id;
+
+      for(int l = 0; l < n_lines; ++l)
+      {
+        ss >> n_coeffs;
+
+        ss >> vert1_id;
+        ss >> vert2_id;
+        normsVertId.push_back({(int) vert1_id, (int) vert2_id});
+
+        for(int i=0; i<nd+1; ++i) ss >> normsPars_line[i];
+        normsPars.push_back(normsPars_line);
+      }
 
       if(isVnorm)
       {
@@ -325,16 +358,20 @@ namespace lib {
 
       if(isVdiag){
 
-        // Weirdly enough, QhullUser class 'hack' (ex. in qhull user_eg3.cpp) cant be used with the option Fv (works for Fo, see above)
-        // to get the voronoi diagram, so i give an ostream to qhull and reformat the data from there
+        // stringbuf strbuf;
+        // ostream os(&strbuf);
+        os.clear();
+        ss.clear();
 
-        stringbuf strbuf;
-        ostream os(&strbuf);
         qhull.setOutputStream( &os );
         qhull.outputQhull("Fv");
         qhull.clearQhullMessage(); // to prevent qhull printing in console
-        stringstream ss;
+
+        // stringstream ss;
         ss << os.rdbuf();
+
+        int useless_first_int;
+        ss >> useless_first_int;
         
         if(nd==2) // 2D case
         {
