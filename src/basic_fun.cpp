@@ -6653,10 +6653,10 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
         char shift;
         if ((*sss)[0] ==0) return in->Dup(); 
         else if ((*sss)[0] > 0) {
-          if ((*sss)[0] > 254) shift = 255; else shift = (*sss)[0];
+          if ((*sss)[0] > 254) shift = -1; else shift = (*sss)[0];
           return ishft_single(in, finalN, shift, true);
         } else {
-          if ( (*sss)[0] < -254 ) shift = 255; else shift = -(*sss)[0];
+          if ( (*sss)[0] < -254 ) shift = -1; else shift = -(*sss)[0];
           return ishft_single(in, finalN, shift, false);
         }
       } else {
