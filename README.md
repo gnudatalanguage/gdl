@@ -79,7 +79,7 @@ GDL has numerous dependencies, most of the optional but highly recommended if yo
 - [Python](https://www.python.org/)/[NumPy](http://www.numpy.org/) optional but add python bridge and jupyter notebook.
 - [udunits](https://www.unidata.ucar.edu/software/udunits/) optional, units conversion
 - [Eigen](https://eigen.tuxfamily.org/) optional but provides inordinate speed enhancements...
-- [ecCodes](https://software.ecmwf.int/wiki/display/ECC/ecCodes+Home)/[GRIB](https://software.ecmwf.int/wiki/display/GRIB) optional, for GRIB API support.
+- [ecCodes](https://software.ecmwf.int/wiki/display/ECC/ecCodes+Home) optional, for GRIB support.
 - [GLPK](https://www.gnu.org/software/glpk/) optional, provides the SIMPLEX command.
 
 Besides, for optimal use (speed mainly), GDL incorporates slightly edited code of

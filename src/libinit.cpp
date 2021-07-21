@@ -354,8 +354,8 @@ void LibInit()
   const string stringKey[]={COMMONKEYWORDSFORSTRINGFORMATTINGWITHIMPLIEDPRINT,"PRINT",KLISTEND};
   new DLibFun(lib::string_fun,string("STRING"),-1,stringKey);
 
-  const string defsysvKey[]={"EXISTS",KLISTEND};
-  new DLibPro(lib::defsysv,string("DEFSYSV"),3,defsysvKey); 
+  const string defsysvKey[]={"EXISTS","TEST",KLISTEND};
+  new DLibPro(lib::defsysv,string("DEFSYSV"),4,defsysvKey); 
 
   const string heap_gcKey[]={"PTR","OBJ","VERBOSE",KLISTEND};
   new DLibPro(lib::heap_gc,string("HEAP_GC"),0,heap_gcKey); 
@@ -1035,8 +1035,7 @@ void LibInit()
   const string binomialcoefKey[] = {"DOUBLE", KLISTEND };
   new DLibFunRetNew(lib::binomialcoef, string("IMSL_BINOMIALCOEF"), 2, binomialcoefKey);
 
-  // SA: GRIB format support based on the ECMWF GRIB_API package (IDL does not support it yet)
-  // GRIBAPI_ prefix is used in order to (hopefully) prevent future incompatibilities with IDL
+  // SA: GRIB format support using ECMWF ECCODES package (developed prior to IDL GRIB support)
   // -----------------------------------------------------------------------------------------
   // GRIB: file related
   new DLibFunRetNew(lib::grib_open_file_fun, string("GRIBAPI_OPEN_FILE"), 1); 
