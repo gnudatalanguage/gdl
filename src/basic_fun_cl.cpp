@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <cmath>
+#include <regex>
 
 #include <gsl/gsl_sf.h>
 
@@ -58,6 +59,252 @@ namespace lib {
 
   using namespace std;
   using namespace antlr;
+
+  void timestamptovalues(EnvT* e) {
+
+    try {
+
+      DStringGDL* timestamps;
+
+      timestamps = e->GetParAs<DStringGDL>(0);
+
+      SizeT time_size = timestamps->N_Elements();
+
+      long dim = timestamps->Dim(0);
+
+      long valueYEAR = e->KeywordIx("YEAR");
+      bool hasYear = e->KeywordPresent(valueYEAR);
+
+      long valueMONTH = e->KeywordIx("MONTH");
+      bool hasMonth = e->KeywordPresent(valueMONTH);
+
+      long valueDAY = e->KeywordIx("DAY");
+      bool hasDay = e->KeywordPresent(valueDAY);
+
+      long valueHOUR = e->KeywordIx("HOUR");
+      bool hasHour = e->KeywordPresent(valueHOUR);
+
+      long valueMINUTE = e->KeywordIx("MINUTE");
+      bool hasMinute = e->KeywordPresent(valueMINUTE);
+
+      long valueSECOND = e->KeywordIx("SECOND");
+      bool hasSecond = e->KeywordPresent(valueSECOND);
+
+      long valueOFFSET = e->KeywordIx("OFFSET");
+      bool hasOffset = e->KeywordPresent(valueOFFSET);
+
+      if (dim >= 1) {
+
+        unsigned long year[time_size];
+        DLongGDL* year_gdl = new DLongGDL(*(new dimension(time_size)));
+
+        unsigned long month[time_size];
+        DLongGDL* month_gdl = new DLongGDL(*(new dimension(time_size)));
+
+        unsigned long day[time_size];
+        DLongGDL* day_gdl = new DLongGDL(*(new dimension(time_size)));
+
+        unsigned long hour[time_size];
+        DLongGDL* hour_gdl = new DLongGDL(*(new dimension(time_size)));
+
+        unsigned long minute[time_size];
+        DLongGDL* minute_gdl = new DLongGDL(*(new dimension(time_size)));
+
+        double second[time_size];
+        DDoubleGDL* second_gdl = new DDoubleGDL(*(new dimension(time_size)));
+
+        double offset[time_size];
+        DDoubleGDL* offset_gdl = new DDoubleGDL(*(new dimension(time_size)));
+      
+        for(int i = 0 ; i<time_size ; i++) {
+          string timestamp = (*timestamps)[i];
+        
+          if (hasYear) {
+            year[i] = stoi(timestamp.substr(0,4));
+            (*year_gdl)[i] = year[i];
+          }
+
+          if (hasMonth) {
+            month[i] = stoi(timestamp.substr(5,2));
+            (*month_gdl)[i] = month[i];
+          }
+
+          if (hasDay) {
+            day[i] = stoi(timestamp.substr(8,2));
+            (*day_gdl)[i] = day[i];
+          }
+
+          if (hasHour) {
+            if (timestamp.length() > 10) {  
+              hour[i] = stoi(timestamp.substr(11,2));
+            } else { 
+              hour[i] = 0; 
+            }
+            (*hour_gdl)[i] = hour[i];
+          }
+
+          if (hasMinute) {
+            if (timestamp.length() > 10) {  
+              minute[i] = stoi(timestamp.substr(14,2));
+            } else { 
+              minute[i] = 0; 
+            }
+            (*minute_gdl)[i] = minute[i];
+          }
+
+          if (hasSecond) {
+            if (timestamp.length() > 10) {  
+              second[i] = stoi(timestamp.substr(17,2));
+              if (timestamp.substr(19,1) == ".") {
+                if (timestamp.substr(timestamp.length()-1,1) == "Z") {
+                  second[i] += stod(timestamp.substr(20, timestamp.length()-21))/pow(10,(timestamp.length()-21));
+                } else {
+                  second[i] += stod(timestamp.substr(20, timestamp.length()-26))/pow(10,(timestamp.length()-26));
+                }
+              }
+            } else { 
+              second[i] = 0; 
+            }
+            (*second_gdl)[i] = second[i];
+          }
+
+          if (hasOffset) {
+            if (timestamp.length() > 10) {  
+              string offset_string;
+              if (timestamp.substr(timestamp.length()-1,1) == "Z") {
+                offset_string = "+00:00";
+              } else {
+                offset_string = timestamp.substr(timestamp.length()-6,7);
+              }
+              offset[i] = stod(offset_string.substr(0,3)) + stod(offset_string.substr(4,2))/60;
+            } else { 
+            offset[i] = 0; 
+            }
+            (*offset_gdl)[i] = offset[i];
+          }
+        }
+
+        if(hasYear) {
+          e->SetKW(valueYEAR, year_gdl);
+        }
+
+        if(hasMonth) {
+          e->SetKW(valueMONTH, month_gdl);
+        }
+
+        if(hasDay) {
+          e->SetKW(valueDAY, day_gdl);
+        }
+
+        if(hasHour) {
+          e->SetKW(valueHOUR, hour_gdl);
+        }
+
+        if(hasMinute) {
+          e->SetKW(valueMINUTE, minute_gdl);
+        }
+
+        if(hasSecond) {
+          e->SetKW(valueSECOND, second_gdl);
+        }
+
+        if(hasOffset) {
+          e->SetKW(valueOFFSET, offset_gdl);
+        }
+      } else {
+
+        string timestamp = (*e->GetParAs<DStringGDL>(0))[0];
+
+        unsigned long year;
+
+        unsigned long month;
+
+        unsigned long day;
+
+        unsigned long hour;
+
+
+        unsigned long minute;
+
+        double second;
+
+        double offset;
+
+        if (hasYear) {
+          year = stoi(timestamp.substr(0,4));
+          DLongGDL* year_gdl = new DLongGDL(year);
+          e->SetKW(valueYEAR, year_gdl);
+        }
+
+        if (hasMonth) {
+          month = stoi(timestamp.substr(5,2));
+          DLongGDL* month_gdl = new DLongGDL(month);
+          e->SetKW(valueMONTH, month_gdl);
+        }
+
+        if (hasDay) {
+          day = stoi(timestamp.substr(8,2));
+          DLongGDL* day_gdl = new DLongGDL(day);
+          e->SetKW(valueDAY, day_gdl);
+        }
+
+        if (hasHour) {
+          if (timestamp.length() > 10) {  
+            hour = stoi(timestamp.substr(11,2));
+          } else { 
+            hour = 0; 
+          }
+          DLongGDL* hour_gdl = new DLongGDL(hour);
+          e->SetKW(valueHOUR, hour_gdl);
+        }
+
+        if (hasMinute) {
+          if (timestamp.length() > 10) {  
+            minute = stoi(timestamp.substr(14,2));
+          } else { 
+            minute = 0; 
+          }
+          DLongGDL* minute_gdl = new DLongGDL(minute);
+          e->SetKW(valueMINUTE, minute_gdl);
+        }
+
+        if (hasSecond) {
+          if (timestamp.length() > 10) {  
+            second = stoi(timestamp.substr(17,2));
+            if (timestamp.substr(19,1) == ".") {
+              if (timestamp.substr(timestamp.length()-1,1) == "Z") {
+                second += stod(timestamp.substr(20, timestamp.length()-21))/pow(10,(timestamp.length()-21));
+              } else {
+                second += stod(timestamp.substr(20, timestamp.length()-26))/pow(10,(timestamp.length()-26));
+              }
+            }
+          } else { 
+            second = 0; 
+          }
+          DDoubleGDL* second_gdl = new DDoubleGDL(second);
+          e->SetKW(valueSECOND, second_gdl);
+        }
+
+        if (hasOffset) {
+          if (timestamp.length() > 10) {  
+            string offset_string;
+            if (timestamp.substr(timestamp.length()-1,1) == "Z") {
+              offset_string = "+00:00";
+            } else {
+              offset_string = timestamp.substr(timestamp.length()-6,7);
+            }
+            offset = stod(offset_string.substr(0,3)) + stod(offset_string.substr(4,2))/60;
+          } else { 
+          offset = 0; 
+          }
+          DDoubleGDL* offset_gdl = new DDoubleGDL(offset);
+          e->SetKW(valueOFFSET, offset_gdl);
+        }
+      }
+    } catch(...) {
+      e->Throw("Input is invalid.");
+    }
+  }
 
   // Timestamp implemented by Eloi R. de Linage in June of 2021
   BaseGDL* timestamp(EnvT* e)
@@ -88,88 +335,118 @@ namespace lib {
     string values_str[]={"YEAR","MONTH","DAY","HOUR","MINUTE","SECOND","OFFSET"};
     int values_min[7]={1000,1,1,0,0,0,-14};
     int values_max[7]={9999,12,31,23,59,59,12};
-    float values[7];
+
+    vector<vector<float>> values_vec(7);
+    values_vec.reserve(7);
+
+    bool isParScalar[7];
     bool isValue[7];
+
     bool isAnyValue=false;
     bool noOffset=true;
+
+    DStringGDL* res = new DStringGDL("");
+
+    int minListNelem = -1;
 
     for(int i=0; i < 7; ++i){
       int valueIx = e->KeywordIx(values_str[i]);
       isValue[i]=e->KeywordSet(valueIx);
+
       if(isValue[i]){
         if(i==6){
           noOffset=false;
         } else {
           isAnyValue=true;
         }
-        values[i] = (*e->GetKWAs<DFloatGDL>(valueIx))[0];
-        if(values[i]<values_min[i] || values[i]>values_max[i]){
-          //the value is out of its range, throw error
-          stringstream ss_min, ss_max;
-          ss_min << values_min[i];
-          ss_max << values_max[i];
-          e->Throw(values_str[i]+" must contain numbers between "+ss_min.str()+" and "+ss_max.str()+".");
-          values[i]=0;
+
+        DFloatGDL * par = e->GetKWAs<DFloatGDL>(valueIx);
+        isParScalar[i] = par->Rank() == 0;
+
+        if(!isParScalar[i])
+        {
+          if(minListNelem == -1) minListNelem = par->N_Elements();
+          if(par->N_Elements() <= minListNelem) res = new DStringGDL(par->Dim());
+        }
+
+        for(int j=0; j < par->N_Elements(); ++j)
+        {
+          values_vec[i].push_back((*par)[j]);
+
+          if(values_vec[i][j] < values_min[i] || values_vec[i][j] > values_max[i]){
+            //the value is out of its range, throw error
+            stringstream ss_min, ss_max;
+            ss_min << values_min[i];
+            ss_max << values_max[i];
+            e->Throw(values_str[i]+" must contain numbers between "+ss_min.str()+" and "+ss_max.str()+".");
+          }
         }
       } else {
-        values[i]=0;
+        values_vec[i].push_back(0);
+        isParScalar[i] = true;
       }
     }
 
-    string ts; //result string
+    for(int i=0; i<res->N_Elements(); ++i)
+    {
+      string ts; //result string
 
-    if(isAnyValue){
-      //feed input values in time struct tm_local (default 0 if not set)
-      if(isValue[0]) tm_local->tm_year = values[0]-1900;
-      if(isValue[1]) tm_local->tm_mon = values[1]-1;
-      if(isValue[2]) tm_local->tm_mday = values[2];
-      tm_local->tm_hour = values[3];
-      tm_local->tm_min = values[4];
-      tm_local->tm_sec = values[5];
+      if(isAnyValue){
+        //feed input values in time struct tm_local (default 0 if not set)
 
-      char timestamp[] = "YYYY-MM-ddTHH:mm:ss";
-      //format the time
-      strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%S", tm_local);
-      ts=timestamp;
-    } else {
-      char timestamp[] = "YYYY-MM-ddTHH:mm:ss.000";
-      //format the time
-      strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%S.000", tm_local);
-      //puttinf in milliseconds
-      char milli[50]; //size of 50 to avoid buffer overload (not optimal)
-      sprintf(milli, "%03ld", tv.tv_usec/1000);
-      sprintf(timestamp + 20, "%.3s", milli);
-      ts=timestamp;
-    }
-    
-    float diff = 0;
-    if(noOffset){ 
-      //compute difference in hours of local time to UTC time
-      diff = (float) tm_local->tm_hour-tm_utc->tm_hour+(tm_local->tm_min-tm_utc->tm_min)/60.0;
-    } else {
-      //if hour offset is specified
-      diff = values[6];
-    }
-    long int h_diff, m_diff;
-    h_diff=(long int) diff;
-    m_diff=round(abs(60*(diff-h_diff)));
-    
-    if(isUTC){
-        ts+="Z";
-    } else if(h_diff > 0) {
-        char diff[50];  //size of 50 to avoid buffer overload (not optimal)
-        sprintf(diff,"%s%02ld:%02ld", "+", h_diff, m_diff);
-        ts += diff;
-    } else if(h_diff < 0) {
-        char diff[50];  //size of 50 to avoid buffer overload (not optimal)
-        sprintf(diff,"%s%02ld:%02ld", "-", -h_diff, m_diff);
-        ts += diff;
-    } else {
-        ts+="Z";
+        if(isValue[0]) tm_local->tm_year = values_vec[0][(!isParScalar[0]) * i]-1900;
+        if(isValue[1]) tm_local->tm_mon = values_vec[1][(!isParScalar[1]) * i]-1;
+        if(isValue[2]) tm_local->tm_mday = values_vec[2][(!isParScalar[2]) * i];
+        tm_local->tm_hour = values_vec[3][(!isParScalar[3]) * i];
+        tm_local->tm_min = values_vec[4][(!isParScalar[4]) * i];
+        tm_local->tm_sec = values_vec[5][(!isParScalar[5]) * i];
+
+        char timestamp[] = "YYYY-MM-ddTHH:mm:ss";
+        //format the time
+        strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%S", tm_local);
+        ts=timestamp;
+      } else {
+        char timestamp[] = "YYYY-MM-ddTHH:mm:ss.000";
+        //format the time
+        strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%S.000", tm_local);
+        //puttinf in milliseconds
+        char milli[50]; //size of 50 to avoid buffer overload (not optimal)
+        sprintf(milli, "%03ld", (long) tv.tv_usec/1000);
+        sprintf(timestamp + 20, "%.3s", milli);
+        ts=timestamp;
+      }
+
+      float diff = 0;
+      if(noOffset){ 
+        //compute difference in hours of local time to UTC time
+        diff = (float) tm_local->tm_hour-tm_utc->tm_hour+(tm_local->tm_min-tm_utc->tm_min)/60.0;
+      } else {
+        //if hour offset is specified
+        diff = values_vec[6][(!isParScalar[6]) * i];
+      }
+      long int h_diff, m_diff;
+      h_diff=(long int) diff;
+      m_diff=round(abs(60*(diff-h_diff)));
+
+      if(isUTC){
+          ts+="Z";
+      } else if(h_diff > 0) {
+          char diff[50];  //size of 50 to avoid buffer overload (not optimal)
+          sprintf(diff,"%s%02ld:%02ld", "+", h_diff, m_diff);
+          ts += diff;
+      } else if(h_diff < 0) {
+          char diff[50];  //size of 50 to avoid buffer overload (not optimal)
+          sprintf(diff,"%s%02ld:%02ld", "-", -h_diff, m_diff);
+          ts += diff;
+      } else {
+          ts+="Z";
+      }
+
+      (*res)[i] = ts;
     }
 
-    return new DStringGDL(ts);
-}
+    return res;
+  }
 
   BaseGDL* systime(EnvT* e)
   {

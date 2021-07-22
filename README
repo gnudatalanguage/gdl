@@ -93,7 +93,7 @@ FFTW        http://www.fftw.org/download.html
 python      http://www.python.org
 PROJ        (consult the MAP_INSTALL file)
 UDUNITS2    http://www.unidata.ucar.edu/software/udunits/
-GRIB API    http://www.ecmwf.int/products/data/software/grib_api.html        
+ECCODES     https://github.com/ecmwf/eccodes
 shapelib    http://shapelib.maptools.org/ (consult the MAP_INSTALL file)
 wxWidgets   http://www.wxwidgets.org/
 glpk        https://www.gnu.org/software/glpk/  : only to have the linear programming function SIMPLEX() available.

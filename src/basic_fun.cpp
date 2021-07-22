@@ -1346,15 +1346,14 @@ namespace lib {
   BaseGDL* type_fun_single(EnvT* e) { //nParam=1
     BaseGDL* p0 = e->GetParDefined(0);
 
-//    assert(dynamic_cast<EnvUDT*> (e->Caller()) != NULL);
-//
-//    // type_fun( expr) just convert
-//    if (static_cast<EnvUDT*> (e->Caller())->GetIOError() != NULL)
-//      return p0->Convert2(TargetClass::t,
-//      BaseGDL::COPY_THROWIOERROR);
+    assert(dynamic_cast<EnvUDT*> (e->Caller()) != NULL);
+ 
+    // type_fun( expr) just convert
+    if (static_cast<EnvUDT*> (e->Caller())->GetIOError() != NULL)
+      return p0->Convert2(TargetClass::t,
+      BaseGDL::COPY_THROWIOERROR);
       // SA: see tracker item no. 3151760 
-//    else 
-      if (TargetClass::t == p0->Type() && e->GlobalPar(0))
+    else if (TargetClass::t == p0->Type() && e->GlobalPar(0))
       // HERE THE INPUT VARIABLE IS RETURNED
     {
       e->SetPtrToReturnValue(&e->GetPar(0));
@@ -1546,10 +1545,11 @@ namespace lib {
   }
 
   BaseGDL* fix_fun( EnvT* e)
-{
+  {
     SizeT np=e->NParam(1);
 
     DIntGDL* type = e->IfDefGetKWAs<DIntGDL>(0); //"TYPE" keyword
+    
     int typ=0;
     if (type != NULL) { //see IDL's behaviour.
       typ = (*type)[0];
@@ -1572,33 +1572,41 @@ namespace lib {
       if (typ == GDL_COMPLEXDBL) return dcomplex_fun(e);
       // 2 cases where PRINT has to be taken into account
       if (typ == GDL_BYTE) {
-        if (e->KeywordSet(1) && e->GetPar(0)->Type() == GDL_STRING) {
-        DLong64GDL* temp=static_cast<DLong64GDL*>(e->GetPar(0)->Convert2(GDL_LONG64,BaseGDL::COPY));
-        SizeT nEl=temp->N_Elements();
-        DByteGDL* ret=new DByteGDL(dimension(nEl));
-        for (SizeT i=0; i< nEl; ++i) {
-            (*ret)[i]=(*temp)[i];
-        }
-        (static_cast<BaseGDL*>(ret))->SetDim(e->GetPar(0)->Dim());
-        GDLDelete(temp);
-        return ret;
-        } else return byte_fun(e);
+        static int printIx = e->KeywordIx("PRINT");
+        if (e->KeywordSet(printIx) && e->GetPar(0)->Type() == GDL_STRING) {
+          DLong64GDL* temp=static_cast<DLong64GDL*>(e->GetPar(0)->Convert2(GDL_LONG64,BaseGDL::COPY));
+          SizeT nEl=temp->N_Elements();
+          DByteGDL* ret=new DByteGDL(dimension(nEl));
+          for (SizeT i=0; i< nEl; ++i) {
+              (*ret)[i]=(*temp)[i];
+          }
+          (static_cast<BaseGDL*>(ret))->SetDim(e->GetPar(0)->Dim());
+          GDLDelete(temp);
+          return ret;
+          } else
+              return byte_fun(e);
       }
+      if(typ == GDL_STRUCT) e->Throw("Unable to convert variable to type struct.");
+      if(typ == GDL_PTR) e->Throw("Unable to convert variable to type pointer.");
+      if(typ == GDL_OBJ) e->Throw("Unable to convert variable to type object reference.");
 
       if (typ == GDL_STRING) {
         // SA: calling GDL_STRING() with correct parameters
         static int stringIx = LibFunIx("STRING");
-
-        assert(stringIx >= 0);
+        //assert(stringIx >= 0);
 
         EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
 
         Guard<EnvT> guard(newEnv);
 
         newEnv->SetNextPar(&e->GetPar(0)); // pass as global
-        if (e->KeywordSet(1) && e->GetPar(0)->Type() == GDL_BYTE)
-          newEnv->SetKeyword("PRINT", new DIntGDL(1));
-        //         e->Interpreter()->CallStack().push_back( newEnv); 
+
+        static int printIx = e->KeywordIx("PRINT");
+
+        if (e->KeywordSet(printIx) && e->GetPar(0)->Type() == GDL_BYTE){
+            newEnv->SetKeyword("PRINT", new DIntGDL(1));
+        }
+
         return static_cast<DLibFun*> (newEnv->GetPro())->Fun()(newEnv);
       }
     }
@@ -6645,10 +6653,10 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
         char shift;
         if ((*sss)[0] ==0) return in->Dup(); 
         else if ((*sss)[0] > 0) {
-          if ((*sss)[0] > 254) shift = 255; else shift = (*sss)[0];
+          if ((*sss)[0] > 254) shift = -1; else shift = (*sss)[0];
           return ishft_single(in, finalN, shift, true);
         } else {
-          if ( (*sss)[0] < -254 ) shift = 255; else shift = -(*sss)[0];
+          if ( (*sss)[0] < -254 ) shift = -1; else shift = -(*sss)[0];
           return ishft_single(in, finalN, shift, false);
         }
       } else {
