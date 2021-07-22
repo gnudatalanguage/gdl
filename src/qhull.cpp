@@ -28,6 +28,10 @@
 
 //Qhull libraries
 
+extern "C" {
+    #include "libqhull_r/qhull_ra.h"
+}
+
 #include <libqhullcpp/PointCoordinates.h>
 #include <libqhullcpp/RboxPoints.h>
 #include <libqhullcpp/QhullError.h>
@@ -47,10 +51,10 @@
 #include <chrono>
 
  //DEBUGGING
-          using std::chrono::high_resolution_clock;
-          using std::chrono::duration_cast;
-          using std::chrono::duration;
-          using std::chrono::milliseconds;
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
 
 using namespace std;
 
@@ -83,6 +87,167 @@ using std::endl;
 using std::string;
 
 namespace lib {
+
+// qh_eachvoronoi_local() :
+//    Local corrected version of qh_each_voronoi() which has a bad line 
+//    in older versions of qhull, preventing the user from getting 
+//    voronoi vertices in a custom output stream
+
+int qh_eachvoronoi_local(qhT *qh, FILE *fp, printvridgeT printvridge, vertexT *atvertex, boolT visitall, qh_RIDGE innerouter, boolT inorder)
+{
+  boolT unbounded;
+  int count;
+  facetT *neighbor, **neighborp, *neighborA, **neighborAp;
+  setT *centers;
+  setT *tricenters= qh_settemp(qh, qh->TEMPsize);
+
+  vertexT *vertex, **vertexp;
+  boolT firstinf;
+  unsigned int numfacets= (unsigned int)qh->num_facets;
+  int totridges= 0;
+
+  qh->vertex_visit++;
+  atvertex->seen= True;
+  if (visitall) {
+    FORALLvertices
+      vertex->seen= False;
+  }
+  FOREACHneighbor_(atvertex) {
+    if (neighbor->visitid < numfacets)
+      neighbor->seen= True;
+  }
+  FOREACHneighbor_(atvertex) {
+    if (neighbor->seen) {
+      FOREACHvertex_(neighbor->vertices) {
+        if (vertex->visitid != qh->vertex_visit && !vertex->seen) {
+          vertex->visitid= qh->vertex_visit;
+          count= 0;
+          firstinf= True;
+          qh_settruncate(qh, tricenters, 0);
+          FOREACHneighborA_(vertex) {
+            if (neighborA->seen) {
+              if (neighborA->visitid) {
+                if (!neighborA->tricoplanar || qh_setunique(qh, &tricenters, neighborA->center))
+                  count++;
+              }else if (firstinf) {
+                count++;
+                firstinf= False;
+              }
+            }
+          }
+          if (count >= qh->hull_dim - 1) {  /* e.g., 3 for 3-d Voronoi */
+            if (firstinf) {
+              if (innerouter == qh_RIDGEouter)
+                continue;
+              unbounded= False;
+            }else {
+              if (innerouter == qh_RIDGEinner)
+                continue;
+              unbounded= True;
+            }
+            totridges++;
+            trace4((qh, qh->ferr, 4017, "qh_eachvoronoi: Voronoi ridge of %d vertices between sites %d and %d\n",
+                  count, qh_pointid(qh, atvertex->point), qh_pointid(qh, vertex->point)));
+            /*if (printvridge && fp) {     --    this was the bad line, corrected below */ 
+            if (printvridge) {
+              if (inorder && qh->hull_dim == 3+1) /* 3-d Voronoi diagram */
+                centers= qh_detvridge3(qh, atvertex, vertex);
+              else
+                centers= qh_detvridge(qh, vertex);
+              (*printvridge)(qh, fp, atvertex, vertex, centers, unbounded);
+              qh_settempfree(qh, &centers);
+            }
+          }
+        }
+      }
+    }
+  }
+  FOREACHneighbor_(atvertex)
+    neighbor->seen= False;
+  qh_settempfree(qh, &tricenters);
+  return totridges;
+} /* eachvoronoi */
+
+// output_qhull_local() :
+//    Local conversion of Qhull::outputQhull() method
+//    for using local qh_eachvoronoi_local() function
+
+int output_qhull_voronoi_local(Qhull* qhull, ostream* out, const char *outputflags)
+{
+      qhull->enableOutputStream();
+      qhull->setOutputStream( out );
+      
+      //qhull.outputQhull("Fo");
+      //qhull.clearQhullMessage(); // to prevent qhull printing in console
+
+      const char s_not_output_options[]= " Fd TI A C d E H P Qb QbB Qbb Qc Qf Qg Qi Qm QJ Qr QR Qs Qt Qv Qx Qz Q0 Q1 Q2 Q3 Q4 Q5 Q6 Q7 Q8 Q9 Q10 Q11 R Tc TC TM TP TR Tv TV TW U v V W ";
+
+      QhullQh* qh = qhull->qh();
+
+      string cmd(" "); // qh_checkflags skips first word
+      cmd += outputflags;
+      char *command= const_cast<char*>(cmd.c_str());
+
+      int totcount = 0;
+
+      QH_TRY_(qh){
+        qh_clear_outputflags(qh);
+        char *s = qh->qhull_command + strlen(qh->qhull_command) + 1; //space
+        strncat(qh->qhull_command, command, sizeof(qh->qhull_command)-strlen(qh->qhull_command)-1);
+        qh_checkflags(qh, command, const_cast<char *>(s_not_output_options));
+        qh_initflags(qh, s);
+        qh_initqhull_outputflags(qh);
+
+        qh->old_randomdist= qh->RANDOMdist;
+        qh->RANDOMdist= False;
+
+        // for (int i=0; i < qh_PRINTEND; i++){
+        //   //qh_printfacets(qh, qh->fout, qh->PRINTout[i], qh->facet_list, NULL, !qh_ALL);
+          
+        //   //qh_printvdiagram(qh, qh->fout, qh->PRINTout[i], qh->facet_list, NULL, !qh_ALL);
+        // }
+
+        setT *vertices;
+        int numcenters;
+        boolT isLower;
+        qh_RIDGE innerouter= qh_RIDGEall;
+        printvridgeT printvridge= qh_printvnorm;
+
+        if(cmd == " Fo") innerouter = qh_RIDGEouter;
+        else if (cmd == " Fi") innerouter = qh_RIDGEinner;
+        else if (cmd == " Fv") printvridge= qh_printvridge;
+
+        vertices= qh_markvoronoi(qh, qh->facet_list, NULL, !qh_ALL, &isLower, &numcenters);
+
+        vertexT *vertex;
+        int vertex_i, vertex_n;
+
+        FORALLvertices
+          vertex->seen = False;
+        FOREACHvertex_i_(qh, vertices) {
+          if (vertex) {
+          if (qh->GOODvertex > 0 && qh_pointid(qh, vertex->point)+1 != qh->GOODvertex)
+          continue;
+          totcount += qh_eachvoronoi_local(qh, qh->fout, printvridge, vertex, !qh_ALL, innerouter, True);
+          }
+        }
+
+        /*
+        totcount= qh_printvdiagram2(qh, NULL, NULL, vertices, innerouter, False);
+        qh_fprintf(qh, qh->fout, 9231, "%d\n", totcount);
+        totcount= qh_printvdiagram2(qh, qh->fout, printvridge, vertices, innerouter, True);
+        */
+        
+        qh_settempfree(qh, &vertices);
+        qh->RANDOMdist= qh->old_randomdist;
+      }
+      qh->NOerrexit= true;
+      qh->maybeThrowQhullMessage(QH_TRY_status);
+
+      return totcount;
+}
+
+  // QHULL procedure
 
   void qhull ( EnvT* e)
   {
@@ -311,19 +476,15 @@ namespace lib {
       // (&qhull)->outputQhull("Fo");
       // vector<vector<double>> normsPars= results.doublesVector();
       // vector<vector<int>> normsVertId = results.intsVector();
-      
 
       stringbuf strbuf;
       ostream os(&strbuf);
-      qhull.setOutputStream( &os );
-      qhull.outputQhull("Fo");
-      qhull.clearQhullMessage(); // to prevent qhull printing in console
+
+      int n_lines = output_qhull_voronoi_local(&qhull, &os, "Fo");
+
       stringstream ss;
       ss << os.rdbuf();
-
-      int n_lines;
-      ss >> n_lines;
-
+  
       vector<vector<double>> normsPars;
       vector<vector<int>> normsVertId;
 
@@ -334,10 +495,9 @@ namespace lib {
       for(int l = 0; l < n_lines; ++l)
       {
         ss >> n_coeffs;
-
         ss >> vert1_id;
         ss >> vert2_id;
-        normsVertId.push_back({(int) vert1_id, (int) vert2_id});
+        normsVertId.push_back({(int) n_coeffs, (int) vert1_id, (int) vert2_id});
 
         for(int i=0; i<nd+1; ++i) ss >> normsPars_line[i];
         normsPars.push_back(normsPars_line);
@@ -358,20 +518,15 @@ namespace lib {
 
       if(isVdiag){
 
-        // stringbuf strbuf;
-        // ostream os(&strbuf);
         os.clear();
         ss.clear();
 
-        qhull.setOutputStream( &os );
-        qhull.outputQhull("Fv");
-        qhull.clearQhullMessage(); // to prevent qhull printing in console
+        //qhull.setOutputStream( &os );
+        //qhull.outputQhull("Fv");
+        //qhull.clearQhullMessage(); // to prevent qhull printing in console
 
-        // stringstream ss;
+        int nvdiag_result = output_qhull_voronoi_local(&qhull, &os, "Fv");
         ss << os.rdbuf();
-
-        int useless_first_int;
-        ss >> useless_first_int;
         
         if(nd==2) // 2D case
         {
@@ -831,14 +986,15 @@ namespace lib {
     Vec3 coord;
 
     size_t last_tetraId=0;        // index of tetrahedron where the last point was found
-    int tot_walk_count=0;
-
+    //int tot_walk_count=0;
+    /*
     //DEBUG
     double tot_function_time=0;
 
     //start debug - time section 1
     auto t1 = high_resolution_clock::now();
     //end debug - time section 1
+    */
 
     // Loop to find container simplex for each point, and interpolate if it is found
 
@@ -851,7 +1007,7 @@ namespace lib {
 
           size_t res_index = k + j*res_dim_vec[0] + i*res_dim_vec[0]*res_dim_vec[1];
           double interp_value=missing;
-          int step_count = 0;
+          //int step_count = 0;
           size_t tetraId = last_tetraId;
 
           // cout << "Point: " << res_index << " "<< coord.x << " " <<coord.y << " " << coord.z <<endl;
@@ -882,19 +1038,21 @@ namespace lib {
                 tetraId=next_tetraId;
               }
             }
-            step_count++;
+            //step_count++;
           }
           (*res)[res_index] = interp_value;
-          tot_walk_count+=step_count+1;
+          //tot_walk_count+=step_count+1;
         }
       }
     }
 
+    /*
     //start debug - time section 2
     auto t2 = high_resolution_clock::now();
     duration<double, std::milli> ms_double = t2 - t1;
     tot_function_time += ms_double.count();
     // end debug - time section 2
+    */
 
     /*
     cout <<"Total walk count: " << tot_walk_count << endl;
