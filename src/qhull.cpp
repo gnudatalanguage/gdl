@@ -286,17 +286,17 @@ int output_qhull_voronoi_local(Qhull* qhull, ostream* out, const char *outputfla
     if(nParam == 2){
         p0 = e->GetParAs<DDoubleGDL>(0);
     } else {
-        int inDim = e->GetParAs<DDoubleGDL>(0)->Dim(0);
-        p0 = new DDoubleGDL( *(new dimension(nParam-1, inDim)), BaseGDL::ZERO );
+        int nElem = e->GetParAs<DDoubleGDL>(0)->N_Elements();
+        p0 = new DDoubleGDL( *(new dimension(nParam-1, nElem)), BaseGDL::ZERO );
 
         for(int i=0; i<nParam-1; i++)
         {
           DDoubleGDL* par=e->GetParAs<DDoubleGDL>(i);
-          if(par->Dim(0) != inDim || par->Dim(1) != 0 )
+          if(par->N_Elements() != nElem || par->Rank() > 1 )
           {
             e->Throw("qhull input error: separated input arrays must have same length and be 1 dimensional");
           }
-          for(int j=0; j<inDim; j++) (*p0)[i+j*(nParam-1)] = (*par)[j];
+          for(int j=0; j<nElem; j++) (*p0)[i+j*(nParam-1)] = (*par)[j];
         }
     }
 
