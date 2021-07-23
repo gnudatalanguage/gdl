@@ -685,6 +685,7 @@ public:
   //if create a colormap1 with a black to white ramp.
   void SetColorMap1Ramp(DLong decomposed=0, PLFLT minlight=0.0);
   virtual void DefaultCharSize();
+  virtual float GetPlplotFudge(){return 1;}; //correction factor 
   void NextPlot( bool erase=true); // handles multi plots
 
   void NoSub(); // no subwindows (/NORM, /DEVICE)
@@ -735,7 +736,6 @@ public:
   void RenewPlplotDefaultCharsize(PLFLT newMmSize);
   
   void GetPlplotDefaultCharSize();
-  virtual float GetPlplotFudge(){return 1.0;};
 
   // SA: overloading plplot methods in order to handle IDL-plplot extended
   // text formating syntax conversion
