@@ -53,7 +53,6 @@ public:
     void SetSize( const wxSize s );   //!< Set new size of plot area.
     void RenewPlot();   //!< Redo plot.
     void Update();
-    void DefaultCharSize();
     void SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot=true);
     gdlwxGraphicsPanel* GetMyContainer(){return container;}
     void DestroyContainer(){delete container; container=NULL;}
@@ -99,7 +98,7 @@ public:
     DString GetVisualName();
     bool GetScreenResolution(double& resx, double& resy);
     DByteGDL* GetBitmapData();
-    float GetPlplotFudge(){return 1.8;}; //correction factor see gdlwxStream.cpp
+    float GetPlplotFudge(){return 1.8;}; //correction factor
     static void DefineSomeWxCursors(); //global initialisation of 77 X11-like cursors.
 };
 
