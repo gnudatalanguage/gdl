@@ -75,8 +75,8 @@ class DevicePS: public GraphicsDevice
     // for the offsets to be taken into account by spage(), works with plplot >= 5.9.9)
     PLINT XSIZE=ceil(XPageSize*DPICM);
     PLINT YSIZE=ceil(YPageSize*DPICM);
-    PLINT XOFF=ceil(XOffset*DPICM);
-    PLINT YOFF=ceil(YOffset*DPICM);
+    PLINT XOFF=encapsulated?0:ceil(XOffset*DPICM);
+    PLINT YOFF=encapsulated?0:ceil(YOffset*DPICM);
 
     // as setting the offsets and sizes with plPlot is (extremely) tricky, and some of these setting
     // are hardcoded into plplot (like EPS header, and offsets in older versions of plplot)
@@ -151,28 +151,28 @@ private:
     int extralen=0;
 
 // Do not change bonding box. It is good now.
-//    int offx, offy, width, height;
-//    bb += 15;
-//    sscanf(bb, "%i %i %i %i", &offx, &offy, &width, &height);
-//    float hsize = XPageSize*CM2IN*DPI*scale;
-//    float vsize = YPageSize*CM2IN*DPI*scale;
-//    float newwidth = (width - offx), newheight = (height - offy);
-//    float hscale = (orient_portrait ? hsize : vsize)/newwidth/5.0;
-//    float vscale = (orient_portrait ? vsize : hsize)/newheight/5.0;
-////    hscale = min(hscale,vscale)*0.98;
-//    hscale = min(hscale,vscale);
-//    vscale = hscale;
-//    float hoff = -5.*offx*hscale + ((orient_portrait ? hsize : vsize) - 5.0*hscale*newwidth)*0.5;
-//    float voff = -5.*offy*vscale + ((orient_portrait ? vsize : hsize) - 5.0*vscale*newheight)*0.5;
-//
-//    //replace with a more sensible boundingbox
-//    searchstr << "BoundingBox: " << offx << " " << offy << " " << width << " " << height;
-//    replstr << "BoundingBox: 0 0 " << floor((orient_portrait ? hsize : vsize)+0.5) << " " << floor((orient_portrait ? vsize : hsize)+0.5);
-//      pos = sbuff.find(searchstr.str());
-//    if (pos != string::npos) {
-//      sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
-//      extralen = replstr.str().length()-searchstr.str().length();
-//    }
+    int offx, offy, width, height;
+    bb += 15;
+    sscanf(bb, "%i %i %i %i", &offx, &offy, &width, &height);
+    float hsize = XPageSize*CM2IN*DPI*scale;
+    float vsize = YPageSize*CM2IN*DPI*scale;
+    float newwidth = (width - offx), newheight = (height - offy);
+    float hscale = (orient_portrait ? hsize : vsize)/newwidth/5.0;
+    float vscale = (orient_portrait ? vsize : hsize)/newheight/5.0;
+//    hscale = min(hscale,vscale)*0.98;
+    hscale = min(hscale,vscale);
+    vscale = hscale;
+    float hoff = -5.*offx*hscale + ((orient_portrait ? hsize : vsize) - 5.0*hscale*newwidth)*0.5;
+    float voff = -5.*offy*vscale + ((orient_portrait ? vsize : hsize) - 5.0*vscale*newheight)*0.5;
+
+    //replace with a more sensible boundingbox
+    searchstr << "BoundingBox: " << offx << " " << offy << " " << width << " " << height;
+    replstr << "BoundingBox: 0 0 " << floor((orient_portrait ? hsize : vsize)+0.5) << " " << floor((orient_portrait ? vsize : hsize)+0.5);
+      pos = sbuff.find(searchstr.str());
+    if (pos != string::npos) {
+      sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
+      extralen = replstr.str().length()-searchstr.str().length();
+    }
 
     //replace the values of linecap and linejoin to nice round butts (sic!) more pleasing to the eye.
     searchstr.str("");
@@ -309,8 +309,7 @@ public:
 
       delete actStream;
       actStream = NULL;
-      //always : if (encapsulated) 
-       epsHacks(); // needs to be called after the plPlot-generated file is closed
+      if (encapsulated) epsHacks(); // needs to be called after the plPlot-generated file is closed
     }
     return true;
   }
