@@ -60,7 +60,7 @@ class DevicePS: public GraphicsDevice
 
     if( nx <= 0) nx = 1;
     if( ny <= 0) ny = 1;
-    actStream = new GDLPSStream( nx, ny, (int)SysVar::GetPFont(), encapsulated, color, bitsPerPix);
+    actStream = new GDLPSStream( nx, ny, (int)SysVar::GetPFont(), encapsulated, color, bitsPerPix, orient_portrait);
 
     actStream->sfnam( fileName.c_str());
 
@@ -88,9 +88,8 @@ class DevicePS: public GraphicsDevice
      actStream->setopt( "portrait",NULL);
      actStream->sdidev( PL_NOTSET, PlplotInternalPageRatioXoverY, PL_NOTSET, PL_NOTSET ); //only OK if page ratio is 540x720 
      actStream->spage(DPI, DPI, XSIZE, YSIZE, YOFF, XOFF);
-
     } else {
-     actStream->spage(DPI, DPI, YSIZE, XSIZE, YOFF-YSIZE, XOFF); //invert axes, displace as does IDL..
+     actStream->spage(DPI, DPI, YSIZE, XSIZE, YOFF-XSIZE, XOFF); //invert axes, displace as does IDL..
      actStream->sdiori(2);
     }
 

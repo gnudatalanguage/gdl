@@ -26,10 +26,10 @@ class GDLPSStream: public GDLGStream
 private:
   int page;
   bool encapsulated;
+  bool portrait;
   long bitsPerPix;
-  bool firstTime; //to enable a PS hack on correspondence postscript pixels - plplot position. 
 public:
-  GDLPSStream( int nx, int ny, int pfont, bool encaps, int color, int bpp):
+  GDLPSStream( int nx, int ny, int pfont, bool encaps, int color, int bpp, bool orient_portrait):
 #ifdef _MSC_VER
     GDLGStream( nx, ny, /*pfont == 1 ? "psttf" :*/ (color==0)?"ps":"psc")
 #else
@@ -38,7 +38,7 @@ public:
   {
     encapsulated = encaps;
     page = 0;
-    firstTime=true;
+    portrait = orient_portrait;
     bitsPerPix=bpp;
   }
 
@@ -52,7 +52,6 @@ public:
   //logically close the svg each time an update is made, then rollback to the last graphic section for further graphics.
   void Update(){plstream::cmd(PLESC_EXPOSE, NULL);fprintf(pls->OutFile," S\neop\n");fseek(pls->OutFile,-7, SEEK_END);} 
   float GetPlplotFudge(){return 1;}; //correction factor 
-  void DefaultCharSize();
 };
 
 #endif
