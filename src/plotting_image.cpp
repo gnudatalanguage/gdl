@@ -184,7 +184,6 @@ namespace lib {
 
       DLong xPageSize = actStream->xPageSize();
       DLong yPageSize = actStream->yPageSize();
-
       DLong positionOnPage = 0;
       botLeftPixelX = 0;
       botLeftPixelY = 0;
@@ -198,7 +197,7 @@ namespace lib {
       devy = 0;
       bool xSizeGiven, ySizeGiven;
       double aspect=static_cast<double>(imageWidth)/static_cast<double>(imageHeight);
-
+        
         xSizeGiven=e->KeywordPresent(XSIZE);
         if (xSizeGiven) e->AssureDoubleScalarKWIfPresent(XSIZE, devx);
         ySizeGiven=e->KeywordPresent(YSIZE);
@@ -207,25 +206,37 @@ namespace lib {
         //interpret size:
         if (xSizeGiven || ySizeGiven) {
           PLFLT x1,y1, x2 ,y2;
-          if (coordinateSystem == DATA) {
+          if (coordinateSystem == DATA) { //devx and devy interpreted as floats
             actStream->world2device(0, 0, x1,y1);
             actStream->world2device(devx, devy, x2,y2);
             devx=x2-x1; 
             devy=y2-y1;
-          } else if (coordinateSystem == NORMAL) {
+          } else if (coordinateSystem == NORMAL) { //devx and devy interpreted as floats
             actStream->NormedDeviceToDevice(0, 0, x1,y1);
             actStream->NormedDeviceToDevice(devx, devy, x2,y2);
             devx=(x2-x1); 
             devy=(y2-y1);
-          } else if (coordinateSystem == DEVICE) {
+          } else if (coordinateSystem == DEVICE) { //devx and devy must be interpreted as ints to mimic IDL . test all cases with xsize=0.5 to check. 
+            //devx and devy must be interpreted as ints to mimic IDL in the DEVICE mode. 
+            // if this mode is set, then devx < 1 (resp devy) will be as if the xsize (resp. ysize) option was a /NORM value.
+            if (xSizeGiven && devx < 1) {
+              actStream->NormedDeviceToDevice(0, 0, x1,y1);
+              actStream->NormedDeviceToDevice(1, 0, x2,y2);
+              devx=(x2-x1); 
+            } 
+            if (ySizeGiven && devy < 1) {
+              actStream->NormedDeviceToDevice(0, 0, x1,y1);
+              actStream->NormedDeviceToDevice(0, 1, x2,y2);
+              devy=(y2-y1); 
+            }             
           } else {
-            if (e->KeywordSet(INCHES)) {
+            if (e->KeywordSet(INCHES)) { //devx and devy interpreted as floats
               devx *= (10 * 2.54);
               devy *= (10 * 2.54);
               actStream->mm2device(devx, devy, x,y);
               devx=x;
               devy=y;
-            } else if (e->KeywordSet(CENTIMETERS)) {
+            } else if (e->KeywordSet(CENTIMETERS)) { //devx and devy interpreted as floats
               devx *= (10.);
               devy *= (10.);
               actStream->mm2device(devx, devy, x,y);
@@ -238,10 +249,10 @@ namespace lib {
         } else {
           double pageaspect=xPageSize/yPageSize;
           if (aspect>pageaspect){
-            devx=xPageSize*0.9; //10% margin 
+            devx=xPageSize;
             devy=devx/aspect;
           } else {
-            devy=yPageSize*0.9; //10% margin
+            devy=yPageSize;
             devx=devy*aspect;
           }
         }
