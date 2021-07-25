@@ -18,6 +18,7 @@ real_path() {
 }
 GDL_DIR=$(real_path "$(dirname $0)/..")
 ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}"}
+INSTALL_PREFIX=${INSTALL_PREFIX:-"${ROOT_DIR}/install"}
 PYTHONVERSION=${PYTHONVERSION:-"3"}
 GDLDE_VERSION=${GDLDE_VERSION:-"v1.0.0"}  #needed by 'pack' (at the moment Windows only)
 BUILD_OS=$(uname)
@@ -381,7 +382,7 @@ function configure_gdl {
         cmake ${GDL_DIR} -G"${GENERATOR}" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
           -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-          -DCMAKE_INSTALL_PREFIX="${ROOT_DIR}/install" \
+          -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DWXWIDGETS=ON -DGRAPHICSMAGICK=ON \
           -DNETCDF=ON -DHDF=${WITH_HDF4} -DHDF5=ON \
           -DMPI=${WITH_MPI} -DTIFF=ON -DGEOTIFF=ON \
@@ -392,7 +393,7 @@ function configure_gdl {
         cmake ${GDL_DIR} -G"${GENERATOR}" \
           -DCMAKE_BUILD_TYPE=${Configuration} \
           -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-          -DCMAKE_INSTALL_PREFIX="${ROOT_DIR}/install" \
+          -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DREADLINE=OFF -DPNGLIB=OFF -DOPENMP=OFF \
           -DGRAPHICSMAGICK=OFF -DWXWIDGETS=OFF \
           -DINTERACTIVE_GRAPHICS=OFF -DMAGICK=OFF \
