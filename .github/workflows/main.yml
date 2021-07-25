@@ -90,7 +90,9 @@ jobs:
           done
       - name: Build GDL
         run: |
+          .ci/build_gdl.sh configure
           .ci/build_gdl.sh build
+          .ci/build_gdl.sh install
       - name: Package GDL
         run: |
           .ci/build_gdl.sh prep_deploy
@@ -220,7 +222,9 @@ jobs:
           else
             export PYTHONVERSION="${{ steps.setup-python-64.outputs.python-version }}"
           fi
+          .ci/build_gdl.sh configure
           .ci/build_gdl.sh build
+          .ci/build_gdl.sh install
       - name: Package GDL
         shell: msys2 {0}  
         run: |

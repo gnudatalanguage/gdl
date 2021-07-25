@@ -17,10 +17,11 @@ real_path() {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
 }
 GDL_DIR=$(real_path "$(dirname $0)/..")
-ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}/.."}
+ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}"}
 PYTHONVERSION=${PYTHONVERSION:-"3"}
 GDLDE_VERSION=${GDLDE_VERSION:-"v1.0.0"}  #needed by 'pack' (at the moment Windows only)
 BUILD_OS=$(uname)
+DRY_RUN=false
 if [[ ${BUILD_OS} == *"MSYS"* ]]; then
     BUILD_OS="Windows"
 elif [[ ${BUILD_OS} == *"MINGW"* ]]; then
@@ -197,6 +198,51 @@ function query_package {
     fi
 }
 
+function find_pkgmgr {
+    PKGINSTALLARG="install"
+    if command -v apt >/dev/null 2>&1; then
+        PACKAGES=( ${APT_PACKAGES[@]} )
+        PKGMGR="apt"
+    else
+        PACKAGES=( ${RPM_PACKAGES[@]} )
+        if command -v yum >/dev/null 2>&1; then
+            PKGMGR="yum"
+        elif command -v zypper >/dev/null 2>&1; then
+            PKGMGR="zypper"
+        else
+            log "Fatal error! Cannot determine package manager on your system."
+            exit 1
+        fi
+    fi
+    log "Found package manager: $PKGMGR"
+    if [ ${PKGMGR} == "apt" ]; then
+        log "Updating apt package cache..."
+        sudo apt update
+    fi
+}
+
+function install_toolchain {
+    log "Installing toolchain..."
+    
+    find_pkgmgr
+
+    if [ ${BUILD_OS} == "Windows" ]; then
+        pacman -S --noconfirm --needed mingw-w64-${arch}-toolchain mingw-w64-${arch}-cmake mingw-w64-${arch}-nsis unzip tar zstd make
+    elif [ ${BUILD_OS} == "Linux" ]; then
+        if [ ${PKGMGR} == "apt" ]; then
+            INSTALL_PACKAGES="g++ cmake make"
+        elif [ ${PKGMGR} == "yum" ]; then
+            INSTALL_PACKAGES="gcc-c++ cmake make"
+        elif [ ${PKGMGR} == "zypper" ]; then
+            INSTALL_PACKAGES="gcc-c++ cmake make"
+        else
+            log "Fatal error! Cannot determine package manager on your system."
+            exit 1
+        fi
+        eval "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
+    fi
+}
+
 function prep_packages {
     if [ ${BUILD_OS} == "Windows" ]; then
         for pkgname in ${MSYS2_PACKAGES[@]}; do
@@ -204,7 +250,12 @@ function prep_packages {
         done
         
         log "Installing dependencies: ${msys2_packages}"
-        eval "pacman --noconfirm --needed -S ${msys2_packages} "
+        if [ ${DRY_RUN} == "true"]; then
+            log "Please run below command to install required packages to build GDL."
+            echo "pacman --noconfirm --needed -S ${msys2_packages}"
+        else
+            eval "pacman --noconfirm --needed -S ${msys2_packages}"
+        fi
 
         for package_name in ${MSYS2_PACKAGES_REBUILD[@]}; do
             build_msys2_package $package_name
@@ -227,26 +278,7 @@ function prep_packages {
         popd
     elif [ ${BUILD_OS} == "Linux" ]; then
         # JP: This part is based on `aptget4gdl.sh` and `rpm4gdl.sh` by Alain C. and Ilia N.
-        PKGINSTALLARG="install"
-        if command -v apt >/dev/null 2>&1; then
-            PACKAGES=( ${APT_PACKAGES[@]} )
-            PKGMGR="apt"
-        else
-            PACKAGES=( ${RPM_PACKAGES[@]} )
-            if command -v yum >/dev/null 2>&1; then
-                PKGMGR="yum"
-            elif command -v zypper >/dev/null 2>&1; then
-                PKGMGR="zypper"
-            else
-                log "Fatal error! Cannot determine package manager on your system."
-                exit 1
-            fi
-        fi
-        log "Found package manager: $PKGMGR"
-        if [ ${PKGMGR} == "apt" ]; then
-            log "Updating apt package cache..."
-            sudo apt update
-        fi
+        find_pkgmgr
         log "Checking package availabilities..."
         for pkgnamecandidates in ${PACKAGES[@]}; do
             for pkgname in $(echo $pkgnamecandidates | tr ',' ' '); do
@@ -264,7 +296,12 @@ function prep_packages {
 	else
             log "Installing packages:"
             log "${INSTALL_PACKAGES}"
-            eval "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
+            if [ ${DRY_RUN} == "true"]; then
+                log "Please run below command to install required packages to build GDL."
+                echo "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
+            else
+                eval "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
+            fi
         fi
     elif [ ${BUILD_OS} == "macOS" ]; then
         if ! command -v brew >/dev/null 2>&1; then
@@ -274,11 +311,21 @@ function prep_packages {
         brew update-reset
         brew unlink python@2
         log "Installing packages: ${BREW_PACKAGES[@]}"
-        eval "brew install ${BREW_PACKAGES[@]}"
+        if [ ${DRY_RUN} == "true"]; then
+            log "Please run below command to install required packages to build GDL."
+            echo "brew install ${BREW_PACKAGES[@]}"
+        else
+            eval "brew install ${BREW_PACKAGES[@]}"
+        fi
         log "Installing plplot..."
         brew --cache plplot
         bash $GDL_DIR/scripts/brew_enable_wxwidgets
     fi
+}
+
+function prep_packages_dryrun {
+    DRY_RUN=true
+    prep_packages
 }
 
 function find_dlls {
@@ -291,8 +338,9 @@ function find_dlls {
   done
 }
 
-function build_gdl {
-    log "Building GDL (${Configuration})..."
+function configure_gdl {
+    log "Configuring GDL (${Configuration})..."
+
     mkdir -p ${ROOT_DIR}/build
     cd ${ROOT_DIR}/build
 
@@ -354,6 +402,17 @@ function build_gdl {
           -DGEOTIFF=OFF -DSHAPELIB=OFF -DEXPAT=OFF \
           -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
     fi
+}
+
+function build_gdl {
+    if [ ! -d "${ROOT_DIR}/build" ]; then 
+        log "Fatal error! Build directory not found."
+        exit 1
+    fi
+
+    cd ${ROOT_DIR}/build
+
+    log "Building GDL..."
 
     #find nthreads for make -j
     NTHREADS=`getconf _NPROCESSORS_ONLN`
@@ -369,6 +428,16 @@ function build_gdl {
             cp -rf /${mname}/lib/GraphicsMagick* lib/ # copy GraphicsMagick dlls
         fi
     fi
+}
+
+
+function install_gdl {
+    if [ ! -d "${ROOT_DIR}/build" ]; then 
+        log "Fatal error! Build directory not found."
+        exit 1
+    fi
+
+    cd ${ROOT_DIR}/build
 
     log "Installing GDL..."
     make install || exit 1
@@ -378,7 +447,7 @@ function build_gdl {
     if [ ${BUILD_OS} == "Windows" ]; then
         log "Copying DLLs to install directory..."
         found_dlls=()
-	find_dlls ${ROOT_DIR}/build/src/gdl.exe
+        find_dlls ${ROOT_DIR}/build/src/gdl.exe
         # Copy dlls and libraries to install directory
         for f in ${found_dlls[@]}; do
             cp -f "$f" bin/
@@ -429,9 +498,12 @@ function prep_deploy {
     cd ${ROOT_DIR}/gdl
 }
 
-AVAILABLE_OPTIONS="prep build check pack prep_deploy"
+AVAILABLE_OPTIONS="prep prep_dryrun configure build install check pack prep_deploy"
 AVAILABLE_OPTIONS_prep=prep_packages
+AVAILABLE_OPTIONS_prep_dryrun=prep_packages_dryrun
+AVAILABLE_OPTIONS_configure=configure_gdl
 AVAILABLE_OPTIONS_build=build_gdl
+AVAILABLE_OPTIONS_install=install_gdl
 AVAILABLE_OPTIONS_check=test_gdl
 AVAILABLE_OPTIONS_pack=pack_gdl
 AVAILABLE_OPTIONS_prep_deploy=prep_deploy
