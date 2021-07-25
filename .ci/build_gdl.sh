@@ -488,12 +488,12 @@ function pack_gdl {
 
 function prep_deploy {
     if [ ${BUILD_OS} == "Windows" ]; then
-        cd ${ROOT_DIR}/gdl
-        mv ../package/gdlsetup.exe gdlsetup-${BUILD_OS}-${arch}-${DEPS}.exe
+        cd ${GDL_DIR}
+        mv ${ROOT_DIR}/package/gdlsetup.exe gdlsetup-${BUILD_OS}-${arch}-${DEPS}.exe
     fi
     cd ${ROOT_DIR}/install
-    zip -qr ../gdl/gdl-${BUILD_OS}-${arch}-${DEPS}.zip *
-    cd ${ROOT_DIR}/gdl
+    zip -qr ${GDL_DIR}/gdl-${BUILD_OS}-${arch}-${DEPS}.zip *
+    cd ${GDL_DIR}
 }
 
 AVAILABLE_OPTIONS="prep prep_dryrun configure build install check pack prep_deploy"
