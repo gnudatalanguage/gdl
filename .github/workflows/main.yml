@@ -24,18 +24,18 @@ jobs:
       id: set-matrix-windows
       run: |
         if [[ '${{ github.event_name }}' == "schedule" ]]; then 
-            matrix="{deps: ['full-msmpi', 'full', 'mini'], arch: ['x86_64', 'i686'], configuration: ['Release']}"
+            matrix="{deps: ['standard', 'headless'], arch: ['x86_64'], configuration: ['Release']}"
         else
-            matrix="{deps: ['full-msmpi'], arch: ['x86_64'], configuration: ['Debug']}"
+            matrix="{deps: ['debug'], arch: ['x86_64'], configuration: ['Debug']}"
         fi
         echo "::set-output name=matrix-windows::$matrix"
     - name: Create Build Matrix (Linux/macOS)
       id: set-matrix-others
       run: |
         if [[ '${{ github.event_name }}' == "schedule" ]]; then 
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full', 'mini'], configuration: ['Release']}"
+            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['standard', 'headless'], configuration: ['Release']}"
         else
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full'], configuration: ['Debug']}"
+            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['debug'], configuration: ['Debug']}"
         fi
         echo "::set-output name=matrix-others::$matrix"
     - name: Remove Release (scheduled build only)

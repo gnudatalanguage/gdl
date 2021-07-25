@@ -12,7 +12,7 @@
 LANG=C #script works only in english
 ME="build_gdl.sh"
 Configuration=${Configuration:-"Release"}
-DEPS=${DEPS:-"full"}
+DEPS=${DEPS:-"standard"}
 real_path() {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
 }
@@ -342,6 +342,11 @@ function find_dlls {
 function configure_gdl {
     log "Configuring GDL (${Configuration})..."
 
+    if [[ ${DEPS} != "standard" && ${DEPS} != "headless" && ${DEPS} != "debug" ]]; then
+        log "Fatal error! Unknown DEPS: ${DEPS}"
+        exit 1
+    fi
+
     mkdir -p ${ROOT_DIR}/build
     cd ${ROOT_DIR}/build
 
@@ -357,52 +362,44 @@ function configure_gdl {
                                 "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
                                 "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
     fi
-    if [[ ${DEPS} == *"full"* ]]; then
-        if [[ ${DEPS} == *"msmpi"* || ! ${BUILD_OS} == "Windows" ]]; then
-            WITH_MPI="ON"
-        else
-            WITH_MPI="OFF"
-        fi
-        if [[ ${BUILD_OS} == "macOS" ]]; then
-            WITH_HDF4="OFF"
-        else 
-            zz=`grep -i opensuse /etc/*-release 2> /dev/null`
-            if [[ -n $zz ]]; then
-                # in case of openSUSE
-                WITH_HDF4="OFF"
-                WITH_GRIB="OFF"
-            else
-                # other distros
-                WITH_HDF4="ON"
-                WITH_GRIB="ON"
-            fi
-        fi
-        #interactive graphics added as we do not want the compilation to fail on systems where plplot is not correctly installed. The intent was to
-        #force distro packagers to include the plplot drivers in the dependency of the GDL package, not annoy the users of this script.
-        cmake ${GDL_DIR} -G"${GENERATOR}" \
-          -DCMAKE_BUILD_TYPE=${Configuration} \
-          -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-          -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
-          -DWXWIDGETS=ON -DGRAPHICSMAGICK=ON \
-          -DNETCDF=ON -DHDF=${WITH_HDF4} -DHDF5=ON \
-          -DMPI=${WITH_MPI} -DTIFF=ON -DGEOTIFF=ON \
-          -DLIBPROJ=ON -DPYTHON=ON -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=ON \
-          -DUDUNITS2=ON -DGLPK=ON -DGRIB=${WITH_GRIB} \
-          -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
-    else
-        cmake ${GDL_DIR} -G"${GENERATOR}" \
-          -DCMAKE_BUILD_TYPE=${Configuration} \
-          -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-          -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
-          -DREADLINE=OFF -DPNGLIB=OFF -DOPENMP=OFF \
-          -DGRAPHICSMAGICK=OFF -DWXWIDGETS=OFF \
-          -DINTERACTIVE_GRAPHICS=OFF -DMAGICK=OFF \
-          -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF \
-          -DLIBPROJ=OFF -DMPI=OFF -DPYTHON=OFF -DUDUNITS2=OFF \
-          -DEIGEN3=OFF -DGRIB=OFF -DGLPK=OFF -DTIFF=OFF \
-          -DGEOTIFF=OFF -DSHAPELIB=OFF -DEXPAT=OFF \
-          -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
+    
+    WITH_MPI="ON"
+    if [[ ${DEPS} == "standard" ]]; then
+        WITH_MPI="OFF"
     fi
+
+    WITH_WXWIDGETS="ON"
+    if [[ ${DEPS} == "headless" ]]; then
+        WITH_WXWIDGETS="OFF"
+    fi
+
+    if [[ ${BUILD_OS} == "macOS" ]]; then
+        WITH_HDF4="OFF"
+    else 
+        zz=`grep -i opensuse /etc/*-release 2> /dev/null`
+        if [[ -n $zz ]]; then
+            # in case of openSUSE
+            WITH_HDF4="OFF"
+            WITH_GRIB="OFF"
+        else
+            # other distros
+            WITH_HDF4="ON"
+            WITH_GRIB="ON"
+        fi
+    fi
+
+    #interactive graphics added as we do not want the compilation to fail on systems where plplot is not correctly installed. The intent was to
+    #force distro packagers to include the plplot drivers in the dependency of the GDL package, not annoy the users of this script.
+    cmake ${GDL_DIR} -G"${GENERATOR}" \
+        -DCMAKE_BUILD_TYPE=${Configuration} \
+        -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
+        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
+        -DWXWIDGETS=${WITH_WXWIDGETS} -DGRAPHICSMAGICK=ON \
+        -DNETCDF=ON -DHDF=${WITH_HDF4} -DHDF5=ON \
+        -DMPI=${WITH_MPI} -DTIFF=ON -DGEOTIFF=ON \
+        -DLIBPROJ=ON -DPYTHON=ON -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=ON \
+        -DUDUNITS2=ON -DGLPK=ON -DGRIB=${WITH_GRIB} \
+        -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
 }
 
 function build_gdl {
