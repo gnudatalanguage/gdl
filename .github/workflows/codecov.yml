@@ -10,7 +10,7 @@ jobs:
   codecov:
     runs-on: ubuntu-latest
     env:
-      DEPS: full
+      DEPS: debug
       Configuration: Debug
       ROOT_DIR: ${{ github.workspace }}/..
     steps:
