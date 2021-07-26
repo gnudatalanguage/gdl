@@ -979,6 +979,9 @@ void GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
 void GDLGStream::wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
 {
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"wind(): setting x[%f:%f],y[%f:%f] (world) \n",xmin,xmax,ymin,ymax);
+  //silly test to protect against plplot warnings ... side effects unkonwn.
+  if (xmin==xmax) {xmin=0; xmax=1;}
+  if (ymin==ymax) {ymin=0; ymax=1;}
   plstream::wind(xmin, xmax, ymin, ymax);
   theBox.wx1=xmin;
   theBox.wx2=xmax;
