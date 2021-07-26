@@ -195,15 +195,20 @@ namespace lib {
     
     DDouble yVal, xVal;
     //in absence of arguments we will have:
+    bool ynodef=true;
+    bool xnodef=true;
     yVal=(standardNumPos)?oyStart:oyEnd;
     xVal=(standardNumPos)?oxStart:oxEnd;
     //read arguments 
     if (nParam() == 1) {
       e->AssureDoubleScalarPar( 0, xVal);
+      xnodef=false;
     }
     if (nParam() == 2) {
       e->AssureDoubleScalarPar( 0, xVal);
+      xnodef=false;
       e->AssureDoubleScalarPar( 1, yVal);
+      ynodef=false;
     }
     if (nParam() == 3) {
       e->Throw( "Sorry, we do not yet support the 3D case");
@@ -277,17 +282,17 @@ namespace lib {
 #define ADDEPSILON 0.1
     if ( standardNumPos )
     {
-      vpXL=(xAxis)?ovpXL       :vpX;
-      vpXR=(xAxis)?ovpXR       :vpX+ovpSizeY;
-      vpYB=(xAxis)?vpY         :ovpYB;
-      vpYT=(xAxis)?vpY+ovpSizeX:ovpYT;
+      vpXL=(xAxis || xnodef )?ovpXL       :vpX;
+      vpXR=(xAxis || xnodef )?ovpXR       :vpX+ovpSizeY;
+      vpYB=(yAxis || ynodef )?ovpYB       :vpY         ;
+      vpYT=(yAxis || ynodef )?ovpYT       :vpY+ovpSizeX;
     }
     else
     {
-      vpXL=(xAxis)?ovpXL:vpX-ovpSizeY;
-      vpXR=(xAxis)?ovpXR:vpX;
-      vpYB=(xAxis)?vpY-ovpSizeX:ovpYB;
-      vpYT=(xAxis)?vpY:ovpYT;
+      vpXL=(xAxis || xnodef )?ovpXL  :vpX-ovpSizeY;
+      vpXR=(xAxis || xnodef )?ovpXR  :vpX;
+      vpYB=(yAxis || ynodef )?ovpYB  :vpY-ovpSizeX;
+      vpYT=(yAxis || ynodef )?ovpYT  :vpY;
     }
      
     actStream->OnePageSaveLayout(); // one page
@@ -295,6 +300,8 @@ namespace lib {
     actStream->vpor(vpXL, vpXR, vpYB, vpYT);
     if (xLog) {xStart=log10(xStart);xEnd=log10(xEnd);}
     if (yLog) {yStart=log10(yStart);yEnd=log10(yEnd);}
+    
+    //insure 'wind' arguments are 
     actStream->wind(xStart, xEnd, yStart, yEnd);
 
     if ( xAxis )
