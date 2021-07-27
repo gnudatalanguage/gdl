@@ -404,7 +404,7 @@ function configure_gdl {
 
 function build_gdl {
     if [ ! -d "${ROOT_DIR}/build" ]; then 
-        log "Fatal error! Build directory not found."
+        log "Fatal error! Build directory not found. Did you run <<.ci/build_gdl.sh configure>> before ?"
         exit 1
     fi
 
