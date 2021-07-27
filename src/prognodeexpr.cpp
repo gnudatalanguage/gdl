@@ -3121,7 +3121,7 @@ BaseGDL* FCALL_LIB_N_ELEMENTSNode::Eval()
               throw GDLException(this,"Keyword parameters not allowed in call.");
     try
     {
-        BaseGDL* param;
+        BaseGDL* param=NULL;
         bool isReference =
             static_cast<ParameterNode*>(this->getFirstChild())->ParameterDirect( param);
         Guard<BaseGDL> guard;
