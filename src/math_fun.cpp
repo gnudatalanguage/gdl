@@ -1290,9 +1290,13 @@ namespace lib {
     if (t == GDL_OBJ)
       throw GDLException ("Object reference not allowed in this context.");
     // Doubles to double, copy
-    if (t == GDL_DOUBLE) if (isReference) return p0->Dup (); else return p0;
+    if (t == GDL_DOUBLE){
+      if (isReference) return p0->Dup (); else return p0;
+    }
     // Floats to float, copy
-    if (t == GDL_FLOAT) if (isReference) return p0->Dup (); else return p0;
+    if (t == GDL_FLOAT){
+      if (isReference) return p0->Dup (); else return p0;
+    }
     // all other types to float
     return static_cast<DFloatGDL*> (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
   }

@@ -411,7 +411,7 @@ namespace lib {
         strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%S.000", tm_local);
         //puttinf in milliseconds
         char milli[50]; //size of 50 to avoid buffer overload (not optimal)
-        sprintf(milli, "%03ld", tv.tv_usec/1000);
+        sprintf(milli, "%03ld", (long) tv.tv_usec/1000);
         sprintf(timestamp + 20, "%.3s", milli);
         ts=timestamp;
       }

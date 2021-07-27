@@ -758,7 +758,7 @@ void GDLStream::F77ReadEnd() {
 
   std::streampos actPos = Tell();
   if (actPos > (lastRecordStart + lastRecord))
-    throw GDLIOException("Read past end of Record of F77_UNFORAMTTED file.");
+    throw GDLIOException("Read past end of Record of F77_UNFORMATTED file.");
 
   if (actPos < (lastRecordStart + lastRecord))
     Seek(lastRecordStart + lastRecord);
@@ -781,7 +781,7 @@ void GDLStream::F77ReadEnd() {
   }
 
   if (lastRecord != static_cast<std::streampos> (tCountRd))
-    throw GDLIOException("Logical error in F77_UNFORAMTTED file.");
+    throw GDLIOException("Logical error in F77_UNFORMATTED file.");
 
 }
 

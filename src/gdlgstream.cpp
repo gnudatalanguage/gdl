@@ -194,8 +194,8 @@ void GDLGStream::DefaultCharSize() {
   DLong chy = (*static_cast<DLongGDL*> (d->GetTag(Y_CH_SIZE, 0)))[0];
   DFloat xpxcm = (*static_cast<DFloatGDL*> (d->GetTag(X_PX_CM, 0)))[0];
   DFloat ypxcm = (*static_cast<DFloatGDL*> (d->GetTag(Y_PX_CM, 0)))[0];
-  DFloat xchsizemm = chx * CM_IN_MM / xpxcm;
-  DFloat linespacingmm = chy * CM_IN_MM / ypxcm;
+  DFloat xchsizemm = GetPlplotFudge() * chx * CM_IN_MM / xpxcm;
+  DFloat linespacingmm = GetPlplotFudge() * chy * CM_IN_MM / ypxcm;
   schr(xchsizemm, 1.0, linespacingmm);
 }
   void GDLGStream::RenewPlplotDefaultCharsize(PLFLT newMmSize)
@@ -332,8 +332,8 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
     xSize = (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0];
     ySize = (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0];
   } else {
-    xSize = xleng;
-    ySize = yleng;
+  xSize = xleng;
+  ySize = yleng;
   }
   if (xSize<1.0||ySize<1) //plplot gives back crazy values! z-buffer for example!
   {
@@ -979,6 +979,9 @@ void GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
 void GDLGStream::wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
 {
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"wind(): setting x[%f:%f],y[%f:%f] (world) \n",xmin,xmax,ymin,ymax);
+  //silly test to protect against plplot warnings ... side effects unkonwn.
+  if (xmin==xmax) {xmin=0; xmax=1;}
+  if (ymin==ymax) {ymin=0; ymax=1;}
   plstream::wind(xmin, xmax, ymin, ymax);
   theBox.wx1=xmin;
   theBox.wx2=xmax;

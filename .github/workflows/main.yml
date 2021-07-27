@@ -24,18 +24,18 @@ jobs:
       id: set-matrix-windows
       run: |
         if [[ '${{ github.event_name }}' == "schedule" ]]; then 
-            matrix="{deps: ['full-msmpi', 'full', 'mini'], arch: ['x86_64', 'i686'], configuration: ['Release']}"
+            matrix="{deps: ['standard', 'headless'], arch: ['x86_64'], configuration: ['Release']}"
         else
-            matrix="{deps: ['full-msmpi'], arch: ['x86_64'], configuration: ['Debug']}"
+            matrix="{deps: ['debug'], arch: ['x86_64'], configuration: ['Debug']}"
         fi
         echo "::set-output name=matrix-windows::$matrix"
     - name: Create Build Matrix (Linux/macOS)
       id: set-matrix-others
       run: |
         if [[ '${{ github.event_name }}' == "schedule" ]]; then 
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full', 'mini'], configuration: ['Release']}"
+            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['standard', 'headless'], configuration: ['Release']}"
         else
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['full'], configuration: ['Debug']}"
+            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['debug'], configuration: ['Debug']}"
         fi
         echo "::set-output name=matrix-others::$matrix"
     - name: Remove Release (scheduled build only)
@@ -90,7 +90,9 @@ jobs:
           done
       - name: Build GDL
         run: |
+          .ci/build_gdl.sh configure
           .ci/build_gdl.sh build
+          .ci/build_gdl.sh install
       - name: Package GDL
         run: |
           .ci/build_gdl.sh prep_deploy
@@ -161,7 +163,7 @@ jobs:
         with:
           repository: gnudatalanguage/gdlde
       - name: Install MSMPI
-        if: matrix.deps == 'full-msmpi'
+        if: matrix.deps == 'debug' || matrix.deps == 'headless'
         run: |
           Invoke-WebRequest -Uri https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe -OutFile MSMpiSetup.exe
           .\MSMpiSetup.exe -unattend
@@ -196,19 +198,18 @@ jobs:
       - name: Setup Python (64 bit)
         id: setup-python-64
         uses: actions/setup-python@v2
-        if: matrix.arch == 'x86_64' && (matrix.deps == 'full-msmpi' || matrix.deps == 'full')
+        if: matrix.arch == 'x86_64'
         with:
           python-version: '3.x'
           architecture: x64
       - name: Setup Python (32 bit)
         id: setup-python-32
         uses: actions/setup-python@v2
-        if: matrix.arch == 'i686' && (matrix.deps == 'full-msmpi' || matrix.deps == 'full')
+        if: matrix.arch == 'i686'
         with:
           python-version: '3.x'
           architecture: x86
       - name: Install Numpy
-        if: matrix.deps == 'full-msmpi' || matrix.deps == 'full'
         run: pip install numpy
       - name: Build GDL
         shell: msys2 {0}
@@ -220,7 +221,9 @@ jobs:
           else
             export PYTHONVERSION="${{ steps.setup-python-64.outputs.python-version }}"
           fi
+          .ci/build_gdl.sh configure
           .ci/build_gdl.sh build
+          .ci/build_gdl.sh install
       - name: Package GDL
         shell: msys2 {0}  
         run: |
