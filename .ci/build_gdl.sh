@@ -251,7 +251,7 @@ function prep_packages {
         done
         
         log "Installing dependencies: ${msys2_packages}"
-        if [ ${DRY_RUN} == "true"]; then
+        if [ ${DRY_RUN} == "true" ]; then
             log "Please run below command to install required packages to build GDL."
             echo "pacman --noconfirm --needed -S ${msys2_packages}"
         else
@@ -297,7 +297,7 @@ function prep_packages {
 	else
             log "Installing packages:"
             log "${INSTALL_PACKAGES}"
-            if [ ${DRY_RUN} == "true"]; then
+            if [ ${DRY_RUN} == "true" ]; then
                 log "Please run below command to install required packages to build GDL."
                 echo "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
             else
@@ -312,7 +312,7 @@ function prep_packages {
         brew update-reset
         brew unlink python@2
         log "Installing packages: ${BREW_PACKAGES[@]}"
-        if [ ${DRY_RUN} == "true"]; then
+        if [ ${DRY_RUN} == "true" ]; then
             log "Please run below command to install required packages to build GDL."
             echo "brew install ${BREW_PACKAGES[@]}"
         else
