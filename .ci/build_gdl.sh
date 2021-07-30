@@ -228,7 +228,7 @@ function install_toolchain {
     find_pkgmgr
 
     if [ ${BUILD_OS} == "Windows" ]; then
-        pacman -S --noconfirm --needed mingw-w64-${arch}-toolchain mingw-w64-${arch}-cmake mingw-w64-${arch}-nsis unzip tar zstd make
+        pacman -S --noconfirm --needed mingw-w64-${arch}-toolchain mingw-w64-${arch}-cmake mingw-w64-${arch}-nsis unzip tar zstd make patch
     elif [ ${BUILD_OS} == "Linux" ]; then
         if [ ${PKGMGR} == "apt" ]; then
             INSTALL_PACKAGES="g++ cmake make"
