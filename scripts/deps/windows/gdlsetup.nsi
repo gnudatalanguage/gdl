@@ -35,7 +35,7 @@ Unicode True
 ; Welcome page
 !insertmacro MUI_PAGE_WELCOME
 ; License page
-!insertmacro MUI_PAGE_LICENSE "..\COPYING"
+!insertmacro MUI_PAGE_LICENSE "$%GDL_DIR%\COPYING"
 ; Components pages
 !if ${ARCH} != "i686"
 !insertmacro MUI_PAGE_COMPONENTS
@@ -123,7 +123,7 @@ Unicode True
 ; MUI end ------
 
 Name "${PRODUCT_NAME} (${ARCH}) ${PRODUCT_VERSION}"
-OutFile "gdlsetup.exe"
+OutFile "$%GDL_DIR%\gdlsetup.exe"
 InstallDir "$PROGRAMFILES\gnudatalanguage"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show

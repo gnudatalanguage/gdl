@@ -16,8 +16,8 @@ DEPS=${DEPS:-"standard"}
 real_path() {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
 }
-GDL_DIR=$(real_path "$(dirname $0)/..")
-ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}"}
+export GDL_DIR=$(real_path "$(dirname $0)/..")
+export ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}"}
 INSTALL_PREFIX=${INSTALL_PREFIX:-"${ROOT_DIR}/install"}
 PYTHONVERSION=${PYTHONVERSION:-"3"}
 GDLDE_VERSION=${GDLDE_VERSION:-"v1.0.0"}  #needed by 'pack' (at the moment Windows only)
@@ -480,7 +480,7 @@ function pack_gdl {
 
         export GDL_INSTALL_DIR=`cygpath -w ${ROOT_DIR}/install`
         export GDL_VERSION=`grep -oP 'set\(VERSION "\K.+(?="\))' ${GDL_DIR}/CMakeLists.txt`
-        makensis -V3 ${GDL_DIR}/scripts/deps/windows/gdlsetup.nsi && mv ${GDL_DIR}/scripts/deps/windows/gdlsetup.exe .
+        makensis -V3 ${GDL_DIR}/scripts/deps/windows/gdlsetup.nsi
     fi
 }
 
