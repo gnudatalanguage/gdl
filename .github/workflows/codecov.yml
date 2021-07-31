@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Install Dependencies
         run: |
-          .ci/build_gdl.sh prep
+          scripts/build_gdl.sh prep
       - name: Prepare Codecov
         run: |
           sudo apt install -y lcov
@@ -33,9 +33,9 @@ jobs:
           echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} test)" >> testsuite/CMakeLists.txt
       - name: Build GDL
         run: |
-          .ci/build_gdl.sh build
+          scripts/build_gdl.sh build
       - name: Test GDL
         run: |
-          .ci/build_gdl.sh check || exit 0
+          scripts/build_gdl.sh check || exit 0
       - name: Submit Codecov
         run: bash <(curl -s https://codecov.io/bash) -f ../build/codecov.info

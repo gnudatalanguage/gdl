@@ -70,7 +70,7 @@ jobs:
         if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
         run: |
           find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot1.txt
-          .ci/build_gdl.sh prep
+          scripts/build_gdl.sh prep
           find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p ${{ runner.temp }}/cache
@@ -80,7 +80,7 @@ jobs:
       - name: Install Dependencies (Linux, Apt)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          .ci/build_gdl.sh prep
+          scripts/build_gdl.sh prep
       - name: Restore cache (macOS, Homebrew)
         if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit == 'true'
         run: |
@@ -90,12 +90,12 @@ jobs:
           done
       - name: Build GDL
         run: |
-          .ci/build_gdl.sh configure
-          .ci/build_gdl.sh build
-          .ci/build_gdl.sh install
+          scripts/build_gdl.sh configure
+          scripts/build_gdl.sh build
+          scripts/build_gdl.sh install
       - name: Package GDL
         run: |
-          .ci/build_gdl.sh prep_deploy
+          scripts/build_gdl.sh prep_deploy
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v2.2.1
         with:
@@ -116,7 +116,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test GDL
         run: |
-          .ci/build_gdl.sh check || exit 0
+          scripts/build_gdl.sh check || exit 0
   build-windows:
     runs-on: windows-latest
     needs: prelude
@@ -172,7 +172,7 @@ jobs:
         shell: msys2 {0}
         run: |
           pacman -Q | tr ' ' '-' | sort > ~/snapshot1.txt
-          .ci/build_gdl.sh prep
+          scripts/build_gdl.sh prep
           ls ../MINGW-packages/mingw-w64-graphicsmagick/
           mv ../MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-*-graphicsmagick-*.tar.* /var/cache/pacman/pkg
           pacman -Q | tr ' ' '-' | sort > ~/snapshot2.txt
@@ -221,15 +221,15 @@ jobs:
           else
             export PYTHONVERSION="${{ steps.setup-python-64.outputs.python-version }}"
           fi
-          .ci/build_gdl.sh configure
-          .ci/build_gdl.sh build
-          .ci/build_gdl.sh install
+          scripts/build_gdl.sh configure
+          scripts/build_gdl.sh build
+          scripts/build_gdl.sh install
       - name: Package GDL
         shell: msys2 {0}  
         run: |
           export GDLDE_VERSION=${{ steps.gdl_workbench.outputs.release }}
-          .ci/build_gdl.sh pack
-          .ci/build_gdl.sh prep_deploy
+          scripts/build_gdl.sh pack
+          scripts/build_gdl.sh prep_deploy
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v2.2.1
         with:
@@ -255,4 +255,4 @@ jobs:
         shell: msys2 {0}
         run: |
           export PATH=`cygpath "${pythonLocation}"`:$PATH
-          .ci/build_gdl.sh check || exit 0
+          scripts/build_gdl.sh check || exit 0
