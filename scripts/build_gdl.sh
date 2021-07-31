@@ -487,7 +487,7 @@ function pack_gdl {
 function prep_deploy {
     if [ ${BUILD_OS} == "Windows" ]; then
         cd ${GDL_DIR}
-        mv ${ROOT_DIR}/package/gdlsetup.exe gdlsetup-${BUILD_OS}-${arch}-${DEPS}.exe
+        mv gdlsetup.exe gdlsetup-${BUILD_OS}-${arch}-${DEPS}.exe
     fi
     cd ${ROOT_DIR}/install
     zip -qr ${GDL_DIR}/gdl-${BUILD_OS}-${arch}-${DEPS}.zip *
