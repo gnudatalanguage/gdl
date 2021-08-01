@@ -408,6 +408,8 @@ if(WXWIDGETS)
             add_definitions(-D${WXDEF})
         endforeach(WXDEF ${wxWidgets_DEFINITIONS})
         include_directories(${wxWidgets_INCLUDE_DIRS})
+        string(REPLACE "-Wl,--subsystem,windows" "" wxWidgets_LIBRARIES "${wxWidgets_LIBRARIES}")
+        string(REPLACE "-mwindows" "" wxWidgets_LIBRARIES "${wxWidgets_LIBRARIES}")
     else(wxWidgets_FOUND)
         message(FATAL_ERROR "wxWidgets are required but were not found.\n"
         "Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"

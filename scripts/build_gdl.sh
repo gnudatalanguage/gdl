@@ -252,7 +252,7 @@ function prep_packages {
         done
         
         log "Installing dependencies: ${msys2_packages}"
-        if [ ${DRY_RUN} == "true"]; then
+        if [ ${DRY_RUN} == "true" ]; then
             log "Please run below command to install required packages to build GDL."
             echo "pacman --noconfirm --needed -S ${msys2_packages}"
         else
@@ -263,9 +263,6 @@ function prep_packages {
             build_msys2_package $package_name
         done
 
-        log "Patching wx-config..."
-        sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i /${mname}/bin/wx-config
-
         download_file ${BSDXDR_URL}
         decompress_file
 
@@ -274,9 +271,16 @@ function prep_packages {
         sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -e 's/libxdr/libbsdxdr/' -i Makefile
         mv lib/libxdr.def.in lib/libbsdxdr.def.in
         make || exit 1
-        cp -f mingw/*.dll /${mname}/bin/
-        cp -f mingw/libbsdxdr.dll.a /${mname}/lib/
-        cp -rf rpc /${mname}/include/
+        if [ ${DRY_RUN} == "true" ]; then
+            log "Please run below command to install bsd-xdr prior to build GDL."
+            echo cp -f mingw/*.dll /${mname}/bin/
+            echo cp -f mingw/libbsdxdr.dll.a /${mname}/lib/
+            echo cp -rf rpc /${mname}/include/
+        else
+            cp -f mingw/*.dll /${mname}/bin/
+            cp -f mingw/libbsdxdr.dll.a /${mname}/lib/
+            cp -rf rpc /${mname}/include/
+        fi
         popd
     elif [ ${BUILD_OS} == "Linux" ]; then
         # JP: This part is based on `aptget4gdl.sh` and `rpm4gdl.sh` by Alain C. and Ilia N.
@@ -298,7 +302,7 @@ function prep_packages {
 	else
             log "Installing packages:"
             log "${INSTALL_PACKAGES}"
-            if [ ${DRY_RUN} == "true"]; then
+            if [ ${DRY_RUN} == "true" ]; then
                 log "Please run below command to install required packages to build GDL."
                 echo "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
             else
@@ -313,7 +317,7 @@ function prep_packages {
         brew update-reset
         brew unlink python@2
         log "Installing packages: ${BREW_PACKAGES[@]}"
-        if [ ${DRY_RUN} == "true"]; then
+        if [ ${DRY_RUN} == "true" ]; then
             log "Please run below command to install required packages to build GDL."
             echo "brew install ${BREW_PACKAGES[@]}"
         else
