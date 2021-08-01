@@ -394,6 +394,9 @@ function configure_gdl {
         fi
     fi
 
+    if [ ${BUILD_OS} == "Windows" ]; then
+        export WX_CONFIG=${GDL_DIR}/scripts/deps/windows/wx-config-wrapper
+    fi
     #interactive graphics added as we do not want the compilation to fail on systems where plplot is not correctly installed. The intent was to
     #force distro packagers to include the plplot drivers in the dependency of the GDL package, not annoy the users of this script.
     cmake ${GDL_DIR} -G"${GENERATOR}" \
