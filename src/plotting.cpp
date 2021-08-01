@@ -39,11 +39,11 @@ namespace lib
   static DDouble savedPointX=0.0;
   static DDouble savedPointY=0.0;
   static gdlSavebox saveBox;
-  static DFloat sym1x[5]={1, -1, 0, 0, 0}; // +
-  static DFloat sym1y[5]={0, 0, 0, -1, 1}; // +
-  static DFloat sym2x[11]= {1, -1, 0, 0, 0, 0,1,-1,0,1,-1}; //*
-  static DFloat sym2y[11]= {0, 0, 0, -1, 1,0,1,-1,0,-1,1}; // *
-  static DFloat sym3x[2]={0,0}; // .
+  static DFloat sym1x[6]={1, -1, 0, 0, 0, 0}; // +
+  static DFloat sym1y[6]={0, 0, 0, -1, 1, 0}; // +
+  static DFloat sym2x[12]= {1, -1, 0, 0, 0, 0,1,-1,0,1,-1, 0}; //*
+  static DFloat sym2y[12]= {0, 0, 0, -1, 1,0,1,-1,0,-1,1, 0}; // *
+  static DFloat sym3x[2]={0,0}; // dot. On PostScript device, x1=x1 and y2=1 creates a round dot.
   static DFloat sym3y[2]={0,0}; // .
   static DFloat sym4x[5]={ 0, 1, 0, -1, 0 }; //diamond.
   static DFloat sym4y[5]={ 1, 0, -1, 0, 1 }; //diamond.
@@ -51,9 +51,12 @@ namespace lib
   static DFloat sym5y[4]={ -1, 1, -1, -1 }; // triangle up.
   static DFloat sym6x[5]={ -1, 1, 1, -1, -1 }; //square
   static DFloat sym6y[5]={ 1, 1, -1, -1, 1 }; //square
-  static DFloat sym7x[5]= {1,-1,0,1,-1}; //x
-  static DFloat sym7y[5]= {1,-1,0,-1,1}; //x
-  DLong syml[7]={5,11,2,5,4,5,5};
+  static DFloat sym7x[6]= {1,-1,0,1,-1,0}; //x
+  static DFloat sym7y[6]= {1,-1,0,-1,1,0}; //x
+  DLong syml[7]={6,12,2,5,4,5,6};
+  static DFloat sym3xalt[6]={-0.2,-0.2,0.2,0.2,-0.2,0}; // big dot.
+  static DFloat sym3yalt[6]={-0.2,0.2,0.2,-0.2,-0.2,0}; // .
+  DLong syml_alt=6;
 
   struct LOCALUSYM {
     DLong nusym;
@@ -766,8 +769,16 @@ namespace lib
           userSymY=sym2y;
           break;
         case 3:
-          userSymX=sym3x;
-          userSymY=sym3y;
+    
+          //if device does not (bug?) draw single points (vector of 2 same coordinates as plplot does normally) then use special point psym=3.
+          if (GraphicsDevice::GetDevice()->DoesNotDrawSinglePoints()) {
+            userSymX = sym3xalt;
+            userSymY = sym3yalt;
+            userSymArrayDim=&syml_alt;
+          } else {
+            userSymX=sym3x;
+            userSymY=sym3y;
+          }
           break;
         case 4:
           userSymX=sym4x;
@@ -789,11 +800,20 @@ namespace lib
     }
 
     if (useLocalPsymAccelerator) { //since userSymArrayDim is not defined
-      localUserSymX=(DFloat*)malloc(*userSymArrayDim*sizeof(DFloat));guardlux.Reset(localUserSymX);
-      localUserSymY=(DFloat*)malloc(*userSymArrayDim*sizeof(DFloat));guardluy.Reset(localUserSymY);
-      for (int kk = 0; kk < *userSymArrayDim; kk++) {
-        localUserSymX[kk] = userSymX[kk] * a->getPsymConvX() / a->GetPlplotFudge();
-        localUserSymY[kk] = userSymY[kk] * a->getPsymConvY() / a->GetPlplotFudge();
+      localUserSymX = (DFloat*) malloc(*userSymArrayDim * sizeof (DFloat));
+      guardlux.Reset(localUserSymX);
+      localUserSymY = (DFloat*) malloc(*userSymArrayDim * sizeof (DFloat));
+      guardluy.Reset(localUserSymY);
+      if (local_psym == 3 && GraphicsDevice::GetDevice()->DoesNotDrawSinglePoints()) {
+        for (int kk = 0; kk < *userSymArrayDim; kk++) {
+          localUserSymX[kk] = userSymX[kk] * a->getPsymConvX() / a->GetPlplotFudge() / a->getSymbolSize();
+          localUserSymY[kk] = userSymY[kk] * a->getPsymConvY() / a->GetPlplotFudge() / a->getSymbolSize();
+        }
+      } else {
+        for (int kk = 0; kk < *userSymArrayDim; kk++) {
+          localUserSymX[kk] = userSymX[kk] * a->getPsymConvX() / a->GetPlplotFudge();
+          localUserSymY[kk] = userSymY[kk] * a->getPsymConvY() / a->GetPlplotFudge();
+        }
       }
     }
 
