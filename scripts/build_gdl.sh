@@ -20,7 +20,8 @@ export GDL_DIR=$(real_path "$(dirname $0)/..")
 export ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}"}
 INSTALL_PREFIX=${INSTALL_PREFIX:-"${ROOT_DIR}/install"}
 PYTHONVERSION=${PYTHONVERSION:-"3"}
-GDLDE_VERSION=${GDLDE_VERSION:-"v1.0.0"}  #needed by 'pack' (at the moment Windows only)
+GDLDE_VERSION=${GDLDE_VERSION:-"v1.0.0"} # needed by 'pack' (at the moment Windows only)
+NTHREADS=${NTHREADS:-$(getconf _NPROCESSORS_ONLN)} # find nthreads for make -j
 BUILD_OS=$(uname)
 DRY_RUN=false
 if [[ ${BUILD_OS} == *"MSYS"* ]]; then
@@ -31,7 +32,7 @@ elif [[ ${BUILD_OS} == "Darwin" ]]; then
     BUILD_OS="macOS"
 fi
 
-function log {  #log is needded just below!
+function log {  # log is needded just below!
     echo "[${ME}] $@"
 }
 
@@ -330,11 +331,13 @@ function prep_packages_dryrun {
 }
 
 function find_dlls {
+  log "Analyzing DLL dependency of $1..."
   for dll in $(strings $1 | grep -i '[a-zA-Z0-9]\.dll$' | grep -v " " | grep -v $(basename $1)); do
     dll="/mingw64/bin/$dll"
     if [ -f "$dll" ] && [[ ! ${found_dlls[@]} =~ (^|[[:space:]])"$dll"($|[[:space:]]) ]]; then
       found_dlls+=("$dll")
       find_dlls "$dll";
+        log "Found DLL dependency: $dll"
     fi
   done
 }
@@ -411,21 +414,7 @@ function build_gdl {
     cd ${ROOT_DIR}/build
 
     log "Building GDL..."
-
-    #find nthreads for make -j
-    NTHREADS=`getconf _NPROCESSORS_ONLN`
-
     make -j${NTHREADS} || exit 1
-    
-    if [ ${BUILD_OS} == "Windows" ]; then
-        # Copy dlls and libraries to src directory
-        mkdir -p share
-        cp -rf /${mname}/share/plplot* share/
-        if [[ ${DEPS} == *"full"* ]]; then
-            mkdir -p lib
-            cp -rf /${mname}/lib/GraphicsMagick* lib/ # copy GraphicsMagick dlls
-        fi
-    fi
 }
 
 
@@ -446,12 +435,15 @@ function install_gdl {
         log "Copying DLLs to install directory..."
         found_dlls=()
         find_dlls ${ROOT_DIR}/build/src/gdl.exe
-        # Copy dlls and libraries to install directory
         for f in ${found_dlls[@]}; do
             cp -f "$f" bin/
         done
-        cp -rf ${ROOT_DIR}/build/share .
-        cp -rf ${ROOT_DIR}/build/lib .
+        log "Copying plplot drivers to install directory..."
+        mkdir -p share
+        cp -rf /${mname}/share/plplot* share/
+        log "Copying GraphicsMagick drivers to install directory..."
+        mkdir -p lib
+        cp -rf /${mname}/lib/GraphicsMagick* lib/ # copy GraphicsMagick dlls
         cp -f ${GDL_DIR}/COPYING .
     fi
 }
