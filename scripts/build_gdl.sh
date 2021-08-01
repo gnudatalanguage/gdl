@@ -331,14 +331,13 @@ function prep_packages_dryrun {
 }
 
 function find_dlls {
-  log "Analyzing DLL dependency of $1..."
-  for dll in $(strings $1 | grep -i '[a-zA-Z0-9]\.dll$' | grep -v " " | grep -v $(basename $1)); do
-    dll="/mingw64/bin/$dll"
-    if [ -f "$dll" ] && [[ ! ${found_dlls[@]} =~ (^|[[:space:]])"$dll"($|[[:space:]]) ]]; then
-      found_dlls+=("$dll")
-      find_dlls "$dll";
-        log "Found DLL dependency: $dll"
-    fi
+    for dll in $(strings $1 | grep -i '[a-zA-Z0-9]\.dll$' | grep -v " " | grep -v $(basename $1)); do
+        dll="/mingw64/bin/$dll"
+        if [ -f "$dll" ] && [[ ! ${found_dlls[@]} =~ (^|[[:space:]])"$dll"($|[[:space:]]) ]]; then
+            log "Found DLL dependency: $dll"
+            found_dlls+=("$dll")
+            find_dlls "$dll"
+        fi
   done
 }
 
@@ -438,9 +437,11 @@ function install_gdl {
         for f in ${found_dlls[@]}; do
             cp -f "$f" bin/
         done
+        
         log "Copying plplot drivers to install directory..."
         mkdir -p share
         cp -rf /${mname}/share/plplot* share/
+
         log "Copying GraphicsMagick drivers to install directory..."
         mkdir -p lib
         cp -rf /${mname}/lib/GraphicsMagick* lib/ # copy GraphicsMagick dlls
