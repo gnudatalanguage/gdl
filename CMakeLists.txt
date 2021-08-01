@@ -152,6 +152,7 @@ endif(HAVE_DL)
 check_function_exists(malloc_zone_statistics HAVE_MALLOC_ZONE_STATISTICS)
 check_function_exists(sbrk HAVE_SBRK)
 check_function_exists(mallinfo HAVE_MALLINFO)
+check_function_exists(mallinfo2 HAVE_MALLINFO2)
 
 # mallocs
 check_include_file(malloc.h HAVE_MALLOC_H)
