@@ -331,7 +331,7 @@ function prep_packages_dryrun {
 }
 
 function find_dlls {
-    for dll in $(strings $1 | grep -i '[a-zA-Z0-9]\.dll$' | grep -v " " | grep -v $(basename $1)); do
+    for dll in $(strings $1 | grep -i '[a-zA-Z0-9]\.dll' | grep -v " " | grep -v $(basename $1)); do
         dll="/mingw64/bin/$dll"
         if [ -f "$dll" ] && [[ ! ${found_dlls[@]} =~ (^|[[:space:]])"$dll"($|[[:space:]]) ]]; then
             log "Found DLL dependency: $dll"
