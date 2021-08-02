@@ -38,6 +38,8 @@
 class DeviceWX : public GraphicsMultiDevice {
   
 public:
+ 
+ bool DoesNotDrawSinglePoints() {return true;}
 //is called "WIN" as there is no other choice on WINDOWS, and "WIN" is still ok on linux and macOSX
     DeviceWX(std::string name_="WX") : GraphicsMultiDevice( 1, 3, 3, 0) { //force decomposed=true until we find a better way (::wxDispayDepth() crashes)
         name = name_; 
