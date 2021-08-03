@@ -36,12 +36,12 @@ namespace lib
         struct Directory
         {
             tdir_t index                = 0;
-            uint32 width                = 0;
-            uint32 height               = 0;
-            uint32 tileWidth            = 0;
-            uint32 tileHeight           = 0;
-            uint16 samplesPerPixel      = 1;
-            uint16 bitsPerSample        = 1;
+            uint32_t width              = 0;
+            uint32_t height             = 0;
+            uint32_t tileWidth          = 0;
+            uint32_t tileHeight         = 0;
+            uint16_t samplesPerPixel    = 1;
+            uint16_t bitsPerSample      = 1;
 
             struct Position
             {
@@ -54,7 +54,7 @@ namespace lib
                 float x                 = 1.f;
                 float y                 = 1.f;
 
-                enum class Unit : uint16
+                enum class Unit : uint16_t
                 {
                     None                = 1,
                     Inches              = 2,
@@ -62,7 +62,7 @@ namespace lib
                 } unit                  = Unit::Inches;
             } resolution;
 
-            enum class Orientation : uint16
+            enum class Orientation : uint16_t
             {
                 LeftToRightTopToBottom  = 1,
                 RightToLeftTopToBottom  = 2,
@@ -74,7 +74,7 @@ namespace lib
                 BottomToTopLeftToRight  = 8,
             } orientation               = Orientation::LeftToRightTopToBottom;
 
-            enum class SampleFormat : uint16
+            enum class SampleFormat : uint16_t
             {
                 UnsignedInteger         = 1,
                 SignedInteger           = 2,
@@ -84,13 +84,13 @@ namespace lib
                 ComplexFloatingPoint    = 6,
             } sampleFormat              = SampleFormat::UnsignedInteger;
 
-            enum class PlanarConfig : uint16
+            enum class PlanarConfig : uint16_t
             {
                 Contiguous              = 1,
                 Separate                = 2,
             } planarConfig              = PlanarConfig::Contiguous;
 
-            enum class Photometric : uint16
+            enum class Photometric : uint16_t
             {
                 MinIsWhite              = 0,
                 MinIsBlack              = 1,
@@ -109,9 +109,9 @@ namespace lib
 
             struct ColorMap
             {
-                uint16* red;
-                uint16* green;
-                uint16* blue;
+                uint16_t* red;
+                uint16_t* green;
+                uint16_t* blue;
             } colorMap                  = { 0 };
 
             const char* description     = "";
@@ -148,8 +148,8 @@ namespace lib
 
         struct Rectangle
         {
-            uint32 x, y;
-            uint32 w, h;
+            uint32_t x, y;
+            uint32_t w, h;
         };
 
         class Handler
@@ -161,8 +161,8 @@ namespace lib
             bool        Open(const char* file, const char* mode);
             void        Close();
             bool        GetDirectory(tdir_t, Directory&) const;
-            uint16      DirectoryCount() const;
-            uint16      FileVersion() const;
+            uint16_t    DirectoryCount() const;
+            uint16_t    FileVersion() const;
             BaseGDL*    ReadImage(const Directory&, const Rectangle& = { 0 });
 
             template<typename... Ts>
@@ -193,8 +193,8 @@ namespace lib
             #endif
             TIFFErrorHandler    defEH_  = nullptr;
             TIFFErrorHandler    defWH_  = nullptr;
-            uint16              nDirs_  = 1;
-            uint16              verNum_ = 0;
+            uint16_t            nDirs_  = 1;
+            uint16_t            verNum_ = 0;
         };
     }
 
