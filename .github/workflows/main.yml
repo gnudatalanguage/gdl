@@ -14,9 +14,12 @@ on:
         default: 'debug'
         required: true
 
-# Tip: Use this action to debug with SSH.
+# Tip: Use below action to debug with SSH.
 #      - name: Setup upterm session
 #        uses: lhotari/action-upterm@v1
+# On Windows:
+#      - name: Setup tmate session
+#        uses: mxschmitt/action-tmate@v3
  
 jobs:
   prelude:
