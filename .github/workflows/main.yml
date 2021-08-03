@@ -104,6 +104,9 @@ jobs:
         run: |
           scripts/build_gdl.sh install
           scripts/build_gdl.sh prep_deploy
+      - name: Fix permission for upterm
+        run: sudo chown -R $(whoami) /usr/local/share/man/man4
+        if: matrix.os == 'macos-latest'
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
         if: matrix.os == 'macos-latest'
