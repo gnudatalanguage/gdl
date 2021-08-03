@@ -38,7 +38,7 @@ jobs:
       id: set-matrix-others
       run: |
         if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" ]]; then 
-            matrix="{os: ['ubuntu-latest', 'macos-latest', 'macos-11'], deps: ['standard', 'headless'], configuration: ['Release']}"
+            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['standard', 'headless'], configuration: ['Release']}"
         else
             matrix="{os: ['ubuntu-latest', 'macos-latest', 'macos-11'], deps: ['debug'], configuration: ['Debug']}"
         fi
@@ -107,7 +107,7 @@ jobs:
           path: gdl-*-${{ matrix.deps }}.zip
           name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
       - name: Upload Release Assets
-        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && contains(matrix.os, 'macos')
+        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && matrix.os == 'macos-latest'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "gdl-*-${{ matrix.deps }}.zip"
