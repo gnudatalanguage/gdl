@@ -304,6 +304,9 @@ if(OPENMP)
     else()
       set(LIBRARIES ${LIBRARIES} ${OpenMP_CXX_FLAGS})
     endif()
+    if(APPLE)
+      link_directories(/usr/local/lib)
+    endif()
   else(OPENMP_FOUND)
     message(FATAL_ERROR "Your compiler does not support OpenMP or OpenMP was not found"
     "note that disabling OpenMP will incur significant performance penalty !\n"
