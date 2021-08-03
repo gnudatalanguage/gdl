@@ -65,14 +65,14 @@ jobs:
       - name: Checkout GDL
         uses: actions/checkout@v2
       - name: Cache Dependencies (macOS, Homebrew)
-        if: matrix.os == 'macos-latest'
+        if: contains(matrix.os, 'macos')
         id: cache
         uses: actions/cache@v2
         with:
           path: ${{ runner.temp }}/cache
           key: cache-gdl-deps-${{ matrix.os }}-v3
       - name: Install Dependencies (macOS, Homebrew)
-        if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
+        if: contains(matrix.os, 'macos') && steps.cache.outputs.cache-hit != 'true'
         run: |
           find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot1.txt
           scripts/build_gdl.sh prep
@@ -87,7 +87,7 @@ jobs:
         run: |
           scripts/build_gdl.sh prep
       - name: Restore cache (macOS, Homebrew)
-        if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit == 'true'
+        if: contains(matrix.os, 'macos') && steps.cache.outputs.cache-hit == 'true'
         run: |
           cd ${{ runner.temp }}
           for d in `ls cache`; do
@@ -107,7 +107,7 @@ jobs:
           path: gdl-*-${{ matrix.deps }}.zip
           name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
       - name: Upload Release Assets
-        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && matrix.os == 'macos-latest'
+        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && contains(matrix.os, 'macos')
         uses: ncipollo/release-action@v1
         with:
           artifacts: "gdl-*-${{ matrix.deps }}.zip"
