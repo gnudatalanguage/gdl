@@ -38,9 +38,9 @@ jobs:
       id: set-matrix-others
       run: |
         if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" ]]; then 
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['standard', 'headless'], configuration: ['Release']}"
+            matrix="{os: ['ubuntu-latest', 'macos-latest', 'macos-11'], deps: ['standard', 'headless'], configuration: ['Release']}"
         else
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['debug'], configuration: ['Debug']}"
+            matrix="{os: ['ubuntu-latest', 'macos-latest', 'macos-11'], deps: ['debug'], configuration: ['Debug']}"
         fi
         echo "::set-output name=matrix-others::$matrix"
     - name: Remove Release (scheduled build only)
