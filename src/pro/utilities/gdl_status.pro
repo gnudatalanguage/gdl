@@ -19,6 +19,9 @@
 ; 2020-Mar-30 : AC. 
 ; -- I clearly prefer keyword /missing ! (more nmemonic)
 ;
+; 2021-Aug-03 : AC.
+; -- it was not a good idea to use GDL_IDL_FL() here, removing it.
+;
 ; ---------------------------------------------------
 ;
 pro IPRINT, ii, txt, status, skip
@@ -38,10 +41,12 @@ end
 pro GDL_STATUS, missing=missing, only_off=only_off, $
                 test=test, verbose=verbose, help=help
 ;
-FORWARD_FUNCTION DSFMT_EXISTS, EIGEN_EXISTS, FFTW_EXISTS, GEOTIFF_EXISTS, $
+FORWARD_FUNCTION DSFMT_EXISTS, EIGEN_EXISTS, EXPAT_EXISTS, $
+   FFTW_EXISTS, GEOTIFF_EXISTS, $
    GLPK_EXISTS, GRIB_EXISTS, GSHHG_EXISTS, HDF5_EXISTS, HDF_EXISTS, $
-   MAGICK_EXISTS, NCDF4_EXISTS, NCDF_EXISTS, OPENMP_EXISTS, PNGLIB_EXISTS, $
-   PROJ_EXISTS, PYTHON_EXISTS, $
+   MAGICK_EXISTS, MPI_EXISTS, NCDF4_EXISTS, NCDF_EXISTS, $
+   OPENMP_EXISTS, PNGLIB_EXISTS, $
+   PROJ_EXISTS, PYTHON_EXISTS, SHAPELIB_EXISTS, $
    TIFF_EXISTS, UDUNITS_EXISTS, WXWIDGETS_EXISTS, X11_EXISTS
 ;
 ON_ERROR, 2
@@ -52,8 +57,8 @@ if KEYWORD_SET(help) then begin
    return
 endif
 ;
-if GDL_IDL_FL(/uppercase) NE 'GDL' then $
-   MESSAGE, 'This code can be run only under GDL !'
+DEFSYSV, '!gdl', exist=exist
+if ~exist then MESSAGE, 'This code can be run only under GDL !'
 ;
 ; counting ...
 i=1
