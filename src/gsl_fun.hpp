@@ -37,6 +37,8 @@ namespace lib {
 
   void la_trired_pro( EnvT* e);
 
+  void la_svd(EnvT* e);
+
 //  int fft_1d( BaseGDL*, void*, SizeT, SizeT, //SizeT, 
 //	      double, SizeT);
   int fft_1d( BaseGDL* p0, void* data, SizeT nEl, SizeT offset, SizeT stride, 

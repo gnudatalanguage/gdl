@@ -133,6 +133,9 @@ void LibInit_jmg()
 
   const string la_triredKey[]={"DOUBLE","UPPER",KLISTEND};
   new DLibPro(lib::la_trired_pro,string("LA_TRIRED"),3,la_triredKey);
+
+  const string la_svdKey[]={"DOUBLE","DIVIDE_CONQUER","STATUS",KLISTEND};
+  new DLibPro(lib::la_svd,string("LA_SVD"),4,la_svdKey);
 #endif
 
   const string macharKey[]={"DOUBLE",KLISTEND};

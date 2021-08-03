@@ -3932,7 +3932,107 @@ namespace lib {
     res_guard.release();
     return res;
   }
-  
+
+  void la_svd(EnvT* e) {
+
+    long valueDouble = e->KeywordIx("DOUBLE");
+    bool hasDouble = e->KeywordPresent(valueDouble);
+
+    long valueDivide = e->KeywordIx("DIVIDE_CONQUER");
+    if (e->KeywordPresent(valueDivide)) {
+      cout << "DIVIDE_CONQUER not implemented yet. CONTRIBUTE !!!" << endl;
+    }
+
+    long valueStatus = e->KeywordIx("STATUS");
+    bool hasStatus = e->KeywordPresent(valueStatus);
+    if (hasStatus) {
+      cout << "STATUS not implemented yet. I know, you want to have STATUS. Then, contribute ;)" << endl;
+    }
+
+
+    if (hasDouble) {
+      DDoubleGDL* M;
+      M = e->GetParAs<DDoubleGDL>(0);
+      SizeT mat_size[2] = {M->Dim(0),M->Dim(1)};
+      SizeT min_mat_size = min(mat_size[1],mat_size[2]);
+
+      gsl_matrix* A_m = gsl_matrix_alloc(mat_size[0],mat_size[1]);
+      gsl_vector* W = gsl_vector_alloc(mat_size[1]);
+      gsl_matrix* V = gsl_matrix_alloc(mat_size[1],mat_size[1]);
+      gsl_vector* work = gsl_vector_alloc(mat_size[1]);
+
+      for(int i = 0 ; i < mat_size[1] ; i++) {
+        for(int k = 0 ; k < mat_size[1] ; k++) {
+          gsl_matrix_set(A_m,i,k,(*M)[mat_size[0]*i+k]);
+        }
+      }
+
+      gsl_linalg_SV_decomp(A_m, V, W, work);
+
+      dimension dim1(mat_size[1], (SizeT) 1);
+
+      SizeT min_dim[2] = {mat_size[1],mat_size[1]};
+      dimension dim2(min_dim, (SizeT) 2);
+
+      DDoubleGDL* W_output = new DDoubleGDL(dim1, BaseGDL::ZERO);
+      DDoubleGDL* U_output = new DDoubleGDL(dim2, BaseGDL::ZERO);
+      DDoubleGDL* V_output = new DDoubleGDL(dim2, BaseGDL::ZERO);
+
+      for(int i = 0 ; i < mat_size[1] ; i++) {
+        (*W_output)[i] = gsl_vector_get(W,i);
+        for(int k = 0 ; k < mat_size[1] ; k++) {
+          (*V_output)[mat_size[1]*i+k] = gsl_matrix_get(V,i,k);
+          (*U_output)[mat_size[1]*i+k] = gsl_matrix_get(A_m,i,k);
+        }
+      }
+
+      e->SetPar(3, V_output);
+      e->SetPar(2, U_output);
+      e->SetPar(1, W_output);
+
+    } else {
+      DFloatGDL* M;
+      M = e->GetParAs<DFloatGDL>(0);
+      SizeT mat_size[2] = {M->Dim(0),M->Dim(1)};
+      SizeT min_mat_size = min(mat_size[1],mat_size[2]);
+
+      gsl_matrix* A_m = gsl_matrix_alloc(mat_size[0],mat_size[1]);
+      gsl_vector* W = gsl_vector_alloc(mat_size[1]);
+      gsl_matrix* V = gsl_matrix_alloc(mat_size[1],mat_size[1]);
+      gsl_vector* work = gsl_vector_alloc(mat_size[1]);
+
+      for(int i = 0 ; i < mat_size[1] ; i++) {
+        for(int k = 0 ; k < mat_size[1] ; k++) {
+          gsl_matrix_set(A_m,i,k,(*M)[mat_size[0]*i+k]);
+        }
+      }
+
+      gsl_linalg_SV_decomp(A_m, V, W, work);
+
+      dimension dim1(mat_size[1], (SizeT) 1);
+
+      SizeT min_dim[2] = {mat_size[1],mat_size[1]};
+      dimension dim2(min_dim, (SizeT) 2);
+
+      DFloatGDL* W_output = new DFloatGDL(dim1, BaseGDL::ZERO);
+      DFloatGDL* U_output = new DFloatGDL(dim2, BaseGDL::ZERO);
+      DFloatGDL* V_output = new DFloatGDL(dim2, BaseGDL::ZERO);
+
+      for(int i = 0 ; i < mat_size[1] ; i++) {
+        (*W_output)[i] = gsl_vector_get(W,i);
+        for(int k = 0 ; k < mat_size[1] ; k++) {
+          (*V_output)[mat_size[1]*i+k] = gsl_matrix_get(V,i,k);
+          (*U_output)[mat_size[1]*i+k] = gsl_matrix_get(A_m,i,k);
+        }
+      }
+
+      e->SetPar(3, V_output);
+      e->SetPar(2, U_output);
+      e->SetPar(1, W_output);
+
+    }
+  }
+
 } // namespace
 
 
