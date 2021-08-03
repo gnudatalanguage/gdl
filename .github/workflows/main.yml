@@ -100,10 +100,13 @@ jobs:
         run: |
           scripts/build_gdl.sh configure
           scripts/build_gdl.sh build
-          scripts/build_gdl.sh install
       - name: Package GDL
         run: |
+          scripts/build_gdl.sh install
           scripts/build_gdl.sh prep_deploy
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        if: matrix.os == 'macos-latest'
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v2.2.1
         with:
