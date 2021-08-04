@@ -22,6 +22,7 @@
 #cmakedefine HAVE_LOCALE_H 1
 #cmakedefine HAVE_SBRK 1
 #cmakedefine HAVE_MALLINFO 1
+#cmakedefine HAVE_MALLINFO2 1
 #cmakedefine HAVE_MALLOC_H 1
 #cmakedefine HAVE_MALLOC_MALLOC_H 1
 #cmakedefine HAVE_MALLOC_ZONE_STATISTICS 1

@@ -37,7 +37,7 @@
 #ifdef HAVE_MALLOC_MALLOC_H
 #  include <malloc/malloc.h>
 #endif
-#if !defined(HAVE_MALLINFO) 
+#if (!defined(HAVE_MALLINFO) && !defined(HAVE_MALLINFO2))
 #  if (!defined(HAVE_MALLOC_ZONE_STATISTICS) || !defined(HAVE_MALLOC_MALLOC_H))
 #    if defined(HAVE_SBRK)
 #      include <unistd.h>
@@ -310,7 +310,7 @@ private:
   // SizeT has architecture-dependant size (32/64 bit)
   static SizeT NumAlloc, NumFree, HighWater, Current;
 
-#if !defined(HAVE_MALLINFO) 
+#if (!defined(HAVE_MALLINFO) && !defined(HAVE_MALLINFO2))
 #  if (!defined(HAVE_MALLOC_ZONE_STATISTICS) || !defined(HAVE_MALLOC_MALLOC_H))
 #    if defined(HAVE_SBRK)
   static char* StartOfMemory;

@@ -52,7 +52,7 @@ elif [ ${BUILD_OS} == "Linux" ]; then
         libncurses-dev libreadline-dev,libreadline-gplv2-dev zlib1g-dev libpng-dev libgsl-dev,libgsl0-dev
         libwxgtk3.0-gtk3-dev,libwxgtk3.0-dev,libwxgtk2.8-dev libplplot-dev libgraphicsmagick++1-dev,libgraphicsmagick++-dev libtiff-dev
         libgeotiff-dev libnetcdf-dev libhdf4-alt-dev libhdf5-dev libfftw3-dev libproj-dev libopenmpi-dev libpython3-dev,libpython-dev python3-dev,python-dev
-        python3-numpy,python-numpy libudunits2-dev libeigen3-dev libeccodes-dev,libgrib-api-dev libglpk-dev libshp-dev,shapelib libexpat1-dev
+        python3-numpy,python-numpy libudunits2-dev libeigen3-dev libeccodes-dev libglpk-dev libshp-dev,shapelib libexpat1-dev
     )
     # Redhat, Fedora, Scientific Linux, CentOS, openSuSE, SLES, etc.
     RPM_PACKAGES=(
@@ -63,7 +63,7 @@ elif [ ${BUILD_OS} == "Linux" ]; then
         netcdf-devel hdf-devel hdf5-devel fftw-devel,fftw3-devel proj-devel openmpi-devel,openmpi4-devel,openmpi3-devel
 	python39-devel,python38-devel,python3-devel,python-devel
         python39-numpy-devel,python38-numpy-devel,python3-numpy-devel,python-numpy-devel,python39-numpy,python38-numpy,python3-numpy,python-numpy
-	udunits2-devel eigen3-devel eccodes-devel,grib_api-devel glpk-devel libshp-devel,shapelib-devel
+	udunits2-devel eigen3-devel eccodes-devel glpk-devel libshp-devel,shapelib-devel
         expat-devel,libexpat-devel
     ) # JP 2021 Mar 21: SuSE lacks eccodes
 elif [ ${BUILD_OS} == "macOS" ]; then
