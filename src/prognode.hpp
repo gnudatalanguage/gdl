@@ -1108,6 +1108,8 @@ public:
     assert( down != NULL);
 	
     ProgNodeP statementList = this->GetStatementList();
+    if( statementList == NULL) return; // we say nothing at the compilation
+
     statementList->SetAllBreak( right);
 
     // down is expr

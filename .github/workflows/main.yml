@@ -8,10 +8,18 @@ on:
       - master
   pull_request:
   workflow_dispatch:
+    inputs:
+      type:
+        description: 'Build type (`debug` or `release`)'
+        default: 'debug'
+        required: true
 
-# Tip: Use this action to debug with SSH.
+# Tip: Use below action to debug with SSH.
 #      - name: Setup upterm session
 #        uses: lhotari/action-upterm@v1
+# On Windows:
+#      - name: Setup tmate session
+#        uses: mxschmitt/action-tmate@v3
  
 jobs:
   prelude:
@@ -23,7 +31,7 @@ jobs:
     - name: Create Build Matrix (Windows)
       id: set-matrix-windows
       run: |
-        if [[ '${{ github.event_name }}' == "schedule" ]]; then 
+        if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" ]]; then 
             matrix="{deps: ['standard', 'headless'], arch: ['x86_64'], configuration: ['Release']}"
         else
             matrix="{deps: ['debug'], arch: ['x86_64'], configuration: ['Debug']}"
@@ -32,14 +40,14 @@ jobs:
     - name: Create Build Matrix (Linux/macOS)
       id: set-matrix-others
       run: |
-        if [[ '${{ github.event_name }}' == "schedule" ]]; then 
+        if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" ]]; then 
             matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['standard', 'headless'], configuration: ['Release']}"
         else
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['debug'], configuration: ['Debug']}"
+            matrix="{os: ['ubuntu-latest', 'macos-latest', 'macos-11'], deps: ['debug'], configuration: ['Debug']}"
         fi
         echo "::set-output name=matrix-others::$matrix"
     - name: Remove Release (scheduled build only)
-      if: github.event_name == 'schedule'
+      if: github.event_name == 'schedule' || github.event.inputs.type == 'release'
       uses: dev-drprasad/delete-tag-and-release@v0.2.0
       with:
         delete_release: true
@@ -60,14 +68,14 @@ jobs:
       - name: Checkout GDL
         uses: actions/checkout@v2
       - name: Cache Dependencies (macOS, Homebrew)
-        if: matrix.os == 'macos-latest'
+        if: contains(matrix.os, 'macos')
         id: cache
         uses: actions/cache@v2
         with:
           path: ${{ runner.temp }}/cache
           key: cache-gdl-deps-${{ matrix.os }}-v3
       - name: Install Dependencies (macOS, Homebrew)
-        if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
+        if: contains(matrix.os, 'macos') && steps.cache.outputs.cache-hit != 'true'
         run: |
           find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot1.txt
           scripts/build_gdl.sh prep
@@ -82,7 +90,7 @@ jobs:
         run: |
           scripts/build_gdl.sh prep
       - name: Restore cache (macOS, Homebrew)
-        if: matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit == 'true'
+        if: contains(matrix.os, 'macos') && steps.cache.outputs.cache-hit == 'true'
         run: |
           cd ${{ runner.temp }}
           for d in `ls cache`; do
@@ -102,7 +110,7 @@ jobs:
           path: gdl-*-${{ matrix.deps }}.zip
           name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
       - name: Upload Release Assets
-        if: github.event_name == 'schedule' && matrix.os == 'macos-latest'
+        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && matrix.os == 'macos-latest'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "gdl-*-${{ matrix.deps }}.zip"
@@ -241,7 +249,7 @@ jobs:
           name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
           path: gdl-*-${{ matrix.deps }}.zip
       - name: Upload Release Assets
-        if: github.event_name == 'schedule'
+        if: github.event_name == 'schedule' || github.event.inputs.type == 'release'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "gdlsetup-*-${{ matrix.deps }}.exe,gdl-*-${{ matrix.deps }}.zip"
