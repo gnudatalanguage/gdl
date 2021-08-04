@@ -3940,99 +3940,193 @@ namespace lib {
 
     long valueDivide = e->KeywordIx("DIVIDE_CONQUER");
     if (e->KeywordPresent(valueDivide)) {
-      cout << "DIVIDE_CONQUER not implemented yet. CONTRIBUTE !!!" << endl;
+      cout << "DIVIDE_CONQUER not implemented yet. Normal implementation will be used.";
+      cout << "Do not hesitate to contribute :)" << endl;
     }
 
     long valueStatus = e->KeywordIx("STATUS");
     bool hasStatus = e->KeywordPresent(valueStatus);
     if (hasStatus) {
-      cout << "STATUS not implemented yet. I know, you want to have STATUS. Then, contribute ;)" << endl;
+      cout << "STATUS not implemented yet. The variable will be set to 0." << endl;
+      cout << "Do not hesitate to contribute !" << endl;
+      e->SetKW(valueStatus, new DIntGDL(0));
     }
+    bool isCplx = (e->GetParDefined(0)->Type() == GDL_COMPLEX || e->GetParDefined(0)->Type() == GDL_COMPLEXDBL);
 
+    if (!(isCplx)) {
 
-    if (hasDouble) {
-      DDoubleGDL* M;
-      M = e->GetParAs<DDoubleGDL>(0);
-      SizeT mat_size[2] = {M->Dim(0),M->Dim(1)};
-      SizeT min_mat_size = min(mat_size[1],mat_size[2]);
+      if (hasDouble) {
+        DDoubleGDL* M;
+        M = e->GetParAs<DDoubleGDL>(0);
+        SizeT mat_size[2] = {M->Dim(0),M->Dim(1)};
+        SizeT min_mat_size = min(mat_size[1],mat_size[2]);
 
-      gsl_matrix* A_m = gsl_matrix_alloc(mat_size[0],mat_size[1]);
-      gsl_vector* W = gsl_vector_alloc(mat_size[1]);
-      gsl_matrix* V = gsl_matrix_alloc(mat_size[1],mat_size[1]);
-      gsl_vector* work = gsl_vector_alloc(mat_size[1]);
+        gsl_matrix* A_m = gsl_matrix_alloc(mat_size[0],mat_size[1]);
+        gsl_vector* W = gsl_vector_alloc(mat_size[1]);
+        gsl_matrix* V = gsl_matrix_alloc(mat_size[1],mat_size[1]);
+        gsl_vector* work = gsl_vector_alloc(mat_size[1]);
 
-      for(int i = 0 ; i < mat_size[1] ; i++) {
-        for(int k = 0 ; k < mat_size[1] ; k++) {
-          gsl_matrix_set(A_m,i,k,(*M)[mat_size[0]*i+k]);
+        for(int i = 0 ; i < mat_size[1] ; i++) {
+          for(int k = 0 ; k < mat_size[1] ; k++) {
+            gsl_matrix_set(A_m,i,k,(*M)[mat_size[0]*i+k]);
+          }
         }
-      }
 
-      gsl_linalg_SV_decomp(A_m, V, W, work);
+        gsl_linalg_SV_decomp(A_m, V, W, work);
 
-      dimension dim1(mat_size[1], (SizeT) 1);
+        dimension dim1(mat_size[1], (SizeT) 1);
 
-      SizeT min_dim[2] = {mat_size[1],mat_size[1]};
-      dimension dim2(min_dim, (SizeT) 2);
+        SizeT min_dim[2] = {mat_size[1],mat_size[1]};
+        dimension dim2(min_dim, (SizeT) 2);
 
-      DDoubleGDL* W_output = new DDoubleGDL(dim1, BaseGDL::ZERO);
-      DDoubleGDL* U_output = new DDoubleGDL(dim2, BaseGDL::ZERO);
-      DDoubleGDL* V_output = new DDoubleGDL(dim2, BaseGDL::ZERO);
+        DDoubleGDL* W_output = new DDoubleGDL(dim1, BaseGDL::ZERO);
+        DDoubleGDL* U_output = new DDoubleGDL(dim2, BaseGDL::ZERO);
+        DDoubleGDL* V_output = new DDoubleGDL(dim2, BaseGDL::ZERO);
 
-      for(int i = 0 ; i < mat_size[1] ; i++) {
-        (*W_output)[i] = gsl_vector_get(W,i);
-        for(int k = 0 ; k < mat_size[1] ; k++) {
-          (*V_output)[mat_size[1]*i+k] = gsl_matrix_get(V,i,k);
-          (*U_output)[mat_size[1]*i+k] = gsl_matrix_get(A_m,i,k);
+        for(int i = 0 ; i < mat_size[1] ; i++) {
+          (*W_output)[i] = gsl_vector_get(W,i);
+          for(int k = 0 ; k < mat_size[1] ; k++) {
+            (*V_output)[mat_size[1]*i+k] = gsl_matrix_get(V,i,k);
+            (*U_output)[mat_size[1]*i+k] = gsl_matrix_get(A_m,i,k);
+          }
         }
-      }
 
-      e->SetPar(3, V_output);
-      e->SetPar(2, U_output);
-      e->SetPar(1, W_output);
+        e->SetPar(3, V_output);
+        e->SetPar(2, U_output);
+        e->SetPar(1, W_output);
+
+      } else {
+        DFloatGDL* M;
+        M = e->GetParAs<DFloatGDL>(0);
+        SizeT mat_size[2] = {M->Dim(0),M->Dim(1)};
+        SizeT min_mat_size = min(mat_size[1],mat_size[2]);
+
+        gsl_matrix* A_m = gsl_matrix_alloc(mat_size[0],mat_size[1]);
+        gsl_vector* W = gsl_vector_alloc(mat_size[1]);
+        gsl_matrix* V = gsl_matrix_alloc(mat_size[1],mat_size[1]);
+        gsl_vector* work = gsl_vector_alloc(mat_size[1]);
+
+        for(int i = 0 ; i < mat_size[1] ; i++) {
+          for(int k = 0 ; k < mat_size[1] ; k++) {
+            gsl_matrix_set(A_m,i,k,(*M)[mat_size[0]*i+k]);
+          }
+        }
+
+        gsl_linalg_SV_decomp(A_m, V, W, work);
+
+        dimension dim1(mat_size[1], (SizeT) 1);
+
+        SizeT min_dim[2] = {mat_size[1],mat_size[1]};
+        dimension dim2(min_dim, (SizeT) 2);
+
+        DFloatGDL* W_output = new DFloatGDL(dim1, BaseGDL::ZERO);
+        DFloatGDL* U_output = new DFloatGDL(dim2, BaseGDL::ZERO);
+        DFloatGDL* V_output = new DFloatGDL(dim2, BaseGDL::ZERO);
+
+        for(int i = 0 ; i < mat_size[1] ; i++) {
+          (*W_output)[i] = gsl_vector_get(W,i);
+          for(int k = 0 ; k < mat_size[1] ; k++) {
+            (*V_output)[mat_size[1]*i+k] = gsl_matrix_get(V,i,k);
+            (*U_output)[mat_size[1]*i+k] = gsl_matrix_get(A_m,i,k);
+          }
+        }
+
+        e->SetPar(3, V_output);
+        e->SetPar(2, U_output);
+        e->SetPar(1, W_output);
+
+      }
 
     } else {
-      DFloatGDL* M;
-      M = e->GetParAs<DFloatGDL>(0);
-      SizeT mat_size[2] = {M->Dim(0),M->Dim(1)};
-      SizeT min_mat_size = min(mat_size[1],mat_size[2]);
 
-      gsl_matrix* A_m = gsl_matrix_alloc(mat_size[0],mat_size[1]);
-      gsl_vector* W = gsl_vector_alloc(mat_size[1]);
-      gsl_matrix* V = gsl_matrix_alloc(mat_size[1],mat_size[1]);
-      gsl_vector* work = gsl_vector_alloc(mat_size[1]);
+//
+//      WHAT FOLLOWS DOES NOT WORK BECAUSE GSL DOES NOT SUPPPORT COMPLEX MATRICES
+//
 
-      for(int i = 0 ; i < mat_size[1] ; i++) {
-        for(int k = 0 ; k < mat_size[1] ; k++) {
-          gsl_matrix_set(A_m,i,k,(*M)[mat_size[0]*i+k]);
+/*      if (hasDouble) {
+        DComplexDblGDL* M;
+        M = e->GetParAs<DComplexDblGDL>(0);
+        SizeT mat_size[2] = {M->Dim(0),M->Dim(1)};
+        SizeT min_mat_size = min(mat_size[1],mat_size[2]);
+
+        gsl_matrix* A_m = gsl_matrix_alloc(mat_size[0],mat_size[1]);
+        gsl_vector* W = gsl_vector_alloc(mat_size[1]);
+        gsl_matrix* V = gsl_matrix_alloc(mat_size[1],mat_size[1]);
+        gsl_vector* work = gsl_vector_alloc(mat_size[1]);
+
+        for(int i = 0 ; i < mat_size[1] ; i++) {
+          for(int k = 0 ; k < mat_size[1] ; k++) {
+            gsl_matrix_set(A_m,i,k,(*M)[mat_size[0]*i+k]);
+          }
         }
-      }
 
-      gsl_linalg_SV_decomp(A_m, V, W, work);
+        gsl_linalg_SV_decomp(A_m, V, W, work);
 
-      dimension dim1(mat_size[1], (SizeT) 1);
+        dimension dim1(mat_size[1], (SizeT) 1);
 
-      SizeT min_dim[2] = {mat_size[1],mat_size[1]};
-      dimension dim2(min_dim, (SizeT) 2);
+        SizeT min_dim[2] = {mat_size[1],mat_size[1]};
+        dimension dim2(min_dim, (SizeT) 2);
 
-      DFloatGDL* W_output = new DFloatGDL(dim1, BaseGDL::ZERO);
-      DFloatGDL* U_output = new DFloatGDL(dim2, BaseGDL::ZERO);
-      DFloatGDL* V_output = new DFloatGDL(dim2, BaseGDL::ZERO);
+        DComplexDblGDL* W_output = new DComplexDblGDL(dim1, BaseGDL::ZERO);
+        DComplexDblGDL* U_output = new DComplexDblGDL(dim2, BaseGDL::ZERO);
+        DComplexDblGDL* V_output = new DComplexDblGDL(dim2, BaseGDL::ZERO);
 
-      for(int i = 0 ; i < mat_size[1] ; i++) {
-        (*W_output)[i] = gsl_vector_get(W,i);
-        for(int k = 0 ; k < mat_size[1] ; k++) {
-          (*V_output)[mat_size[1]*i+k] = gsl_matrix_get(V,i,k);
-          (*U_output)[mat_size[1]*i+k] = gsl_matrix_get(A_m,i,k);
+        for(int i = 0 ; i < mat_size[1] ; i++) {
+          (*W_output)[i] = gsl_vector_get(W,i);
+          for(int k = 0 ; k < mat_size[1] ; k++) {
+            (*V_output)[mat_size[1]*i+k] = gsl_matrix_get(V,i,k);
+            (*U_output)[mat_size[1]*i+k] = gsl_matrix_get(A_m,i,k);
+          }
         }
-      }
 
-      e->SetPar(3, V_output);
-      e->SetPar(2, U_output);
-      e->SetPar(1, W_output);
+        e->SetPar(3, V_output);
+        e->SetPar(2, U_output);
+        e->SetPar(1, W_output);
 
+      } else {
+        DComplexGDL* M;
+        M = e->GetParAs<DComplexGDL>(0);
+        SizeT mat_size[2] = {M->Dim(0),M->Dim(1)};
+        SizeT min_mat_size = min(mat_size[1],mat_size[2]);
+
+        gsl_matrix* A_m = gsl_matrix_alloc(mat_size[0],mat_size[1]);
+        gsl_vector* W = gsl_vector_alloc(mat_size[1]);
+        gsl_matrix* V = gsl_matrix_alloc(mat_size[1],mat_size[1]);
+        gsl_vector* work = gsl_vector_alloc(mat_size[1]);
+
+        for(int i = 0 ; i < mat_size[1] ; i++) {
+          for(int k = 0 ; k < mat_size[1] ; k++) {
+            gsl_matrix_set(A_m,i,k,(*M)[mat_size[0]*i+k]);
+          }
+        }
+
+        gsl_linalg_SV_decomp(A_m, V, W, work);
+
+        dimension dim1(mat_size[1], (SizeT) 1);
+
+        SizeT min_dim[2] = {mat_size[1],mat_size[1]};
+        dimension dim2(min_dim, (SizeT) 2);
+
+        DComplexGDL* W_output = new DComplexGDL(dim1, BaseGDL::ZERO);
+        DComplexGDL* U_output = new DComplexGDL(dim2, BaseGDL::ZERO);
+        DComplexGDL* V_output = new DComplexGDL(dim2, BaseGDL::ZERO);
+
+        for(int i = 0 ; i < mat_size[1] ; i++) {
+          (*W_output)[i] = gsl_vector_get(W,i);
+          for(int k = 0 ; k < mat_size[1] ; k++) {
+            (*V_output)[mat_size[1]*i+k] = gsl_matrix_get(V,i,k);
+            (*U_output)[mat_size[1]*i+k] = gsl_matrix_get(A_m,i,k);
+          }
+        }
+
+        e->SetPar(3, V_output);
+        e->SetPar(2, U_output);
+        e->SetPar(1, W_output);
+      } */
+
+      e->Throw("Complex SVD not implemented yet. Contribute :)");
     }
   }
-
 } // namespace
 
 
