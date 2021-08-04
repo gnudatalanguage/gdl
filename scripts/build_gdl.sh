@@ -481,6 +481,32 @@ function pack_gdl {
         export GDL_INSTALL_DIR=`cygpath -w ${ROOT_DIR}/install`
         export GDL_VERSION=`grep -oP 'set\(VERSION "\K.+(?="\))' ${GDL_DIR}/CMakeLists.txt`
         makensis -V3 ${GDL_DIR}/scripts/deps/windows/gdlsetup.nsi
+    elif [ ${BUILD_OS} == "macOS" ]; then
+        mkdir -p "${ROOT_DIR}/package/GNU Data Language.app/Contents"
+        cd "${ROOT_DIR}/package/GNU Data Language.app/Contents"
+
+        mkdir MacOS
+        echo "#!/bin/bash" > MacOS/gdl
+        echo "../Resources/bin/gdl" >> MacOS/gdl
+        chmod +x MacOS/gdl
+
+        mkdir Frameworks
+        otool -L ${ROOT_DIR}/install/bin/gdl | grep local | sed 's; \(.*\);;' | xargs -I{} cp {} Frameworks/
+
+        mkdir Resources
+        cp -r ${ROOT_DIR}/install/* Resources/
+        cp ${GDL_DIR}/resource/gdl.icns Resources/
+
+        echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist
+        echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> Info.plist
+        echo '<plist version="1.0">' >> Info.plist
+        echo '  <dict>' >> Info.plist
+        echo '    <key>CFBundleExecutable</key>' >> Info.plist
+        echo '    <string>gdl</string>' >> Info.plist
+        echo '    <key>CFBundleIconFile</key>' >> Info.plist
+        echo '    <string>gdl</string>' >> Info.plist
+        echo '  </dict>' >> Info.plist
+        echo '</plist>' >> Info.plist
     fi
 }
 
