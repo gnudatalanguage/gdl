@@ -30,6 +30,8 @@ if typename(U) NE "DOUBLE" then ERRORS_ADD, errors, "Type error"
 
 la_svd,A,W,U,V,STATUS=status
 
-if status GT 0.0001 then ERRORS_ADD, errors, "Status error"   
+if status GT 0.0001 then ERRORS_ADD, errors, "Status error"
 
-if errors GT 0 then EXIT, status=1
+BANNER_FOR_TESTSUITE, 'TEST_TIMESTAMP', errors
+if (errors GT 0) then EXIT, status=1
+end   
