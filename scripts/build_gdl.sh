@@ -494,13 +494,13 @@ function pack_gdl {
         chmod +x MacOS/gdl
 
         mkdir Frameworks        
-        cp -r ${dylibs} Frameworks/
+        cp -LR ${dylibs} Frameworks/
 
         mkdir Resources
-        cp -r ${ROOT_DIR}/install/* Resources/
+        cp -R ${ROOT_DIR}/install/* Resources/
         cp ${GDL_DIR}/resource/gdl.icns Resources/
 
-        install_name_tool -add_rpath @executable_path/../Frameworks Resources/bin/gdl
+        install_name_tool -add_rpath @executable_path/../../Frameworks Resources/bin/gdl
         for dylib in ${dylibs}; do
             install_name_tool -change $dylib @rpath/$(basename ${dylib}) Resources/bin/gdl
         done
