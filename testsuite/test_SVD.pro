@@ -32,6 +32,6 @@ la_svd,A,W,U,V,STATUS=status
 
 if status GT 0.0001 then ERRORS_ADD, errors, "Status error"
 
-BANNER_FOR_TESTSUITE, 'TEST_TIMESTAMP', errors
+BANNER_FOR_TESTSUITE, 'TEST_SVD', errors
 if (errors GT 0) then EXIT, status=1
 end   
