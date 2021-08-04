@@ -482,6 +482,8 @@ function pack_gdl {
         export GDL_VERSION=`grep -oP 'set\(VERSION "\K.+(?="\))' ${GDL_DIR}/CMakeLists.txt`
         makensis -V3 ${GDL_DIR}/scripts/deps/windows/gdlsetup.nsi
     elif [ ${BUILD_OS} == "macOS" ]; then
+        dylibs=$(otool -L ${ROOT_DIR}/install/bin/gdl | grep local | sed 's; \(.*\);;' | xargs)
+
         mkdir -p "${ROOT_DIR}/package/GNU Data Language.app/Contents"
         cd "${ROOT_DIR}/package/GNU Data Language.app/Contents"
 
@@ -491,12 +493,17 @@ function pack_gdl {
         echo 'open -a Terminal "file://${SCRIPTPATH}/../Resources/bin/gdl"' >> MacOS/gdl
         chmod +x MacOS/gdl
 
-        mkdir Frameworks
-        otool -L ${ROOT_DIR}/install/bin/gdl | grep local | sed 's; \(.*\);;' | xargs -I{} cp {} Frameworks/
+        mkdir Frameworks        
+        cp -r ${dylibs} Frameworks/
 
         mkdir Resources
         cp -r ${ROOT_DIR}/install/* Resources/
         cp ${GDL_DIR}/resource/gdl.icns Resources/
+
+        install_name_tool -add_rpath @executable_path/../Frameworks Resources/bin/gdl
+        for dylib in ${dylibs}; do
+            install_name_tool -change $dylib @rpath/$(basename ${dylib}) Resources/bin/gdl
+        done
 
         echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist
         echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> Info.plist
