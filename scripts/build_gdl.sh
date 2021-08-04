@@ -515,17 +515,26 @@ function pack_gdl {
         echo '    <string>gdl</string>' >> Info.plist
         echo '  </dict>' >> Info.plist
         echo '</plist>' >> Info.plist
+
+        cd "${ROOT_DIR}/package"
+        download_file "https://github.com/gnudatalanguage/gdlde/releases/download/${GDLDE_VERSION}/gdlde.product-macosx.cocoa.x86_64.zip"
+        decompress_file
+        rm gdlde.product-macosx.cocoa.x86_64.zip
+        mv Eclipse.app "GDL Workbench.app" # TODO: this should not be necessary
     fi
 }
 
 function prep_deploy {
-    if [ ${BUILD_OS} == "Windows" ]; then
-        cd ${GDL_DIR}
-        mv gdlsetup.exe gdlsetup-${BUILD_OS}-${arch}-${DEPS}.exe
-    fi
-    cd ${ROOT_DIR}/install
-    zip -qr ${GDL_DIR}/gdl-${BUILD_OS}-${arch}-${DEPS}.zip *
     cd ${GDL_DIR}
+    if [ ${BUILD_OS} == "macOS" ]; then
+        hdiutil create "gdl-${BUILD_OS}-${arch}-${DEPS}.dmg" -ov -volname "GNU Data Language" -fs HFS+ -srcfolder "${ROOT_DIR}/package"
+    else
+        if [ ${BUILD_OS} == "Windows" ]; then
+            mv gdlsetup.exe gdlsetup-${BUILD_OS}-${arch}-${DEPS}.exe
+        fi
+        cd ${ROOT_DIR}/install
+        zip -qr ${GDL_DIR}/gdl-${BUILD_OS}-${arch}-${DEPS}.zip *
+    fi
 }
 
 AVAILABLE_OPTIONS="prep prep_dryrun configure build install check pack prep_deploy"
