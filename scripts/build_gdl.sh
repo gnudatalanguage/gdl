@@ -487,7 +487,7 @@ function pack_gdl {
 
         mkdir MacOS
         echo "#!/bin/bash" > MacOS/gdl
-        echo 'SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )' >> MacOS/gdl
+        echo 'SCRIPTPATH=$( cd -- $(dirname "$0") >/dev/null 2>&1 ; pwd -P )' >> MacOS/gdl
         echo 'open -a Terminal "file://${SCRIPTPATH}/../Resources/bin/gdl"' >> MacOS/gdl
         chmod +x MacOS/gdl
 
