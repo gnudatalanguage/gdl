@@ -15,6 +15,11 @@
  *                                                                         *
  ***************************************************************************/
 
+#include <fstream>
+#include <algorithm>
+#include <chrono>
+#include <iostream>
+#include<vector>
 #include "includefirst.hpp"
 
 #ifndef _MSC_VER
@@ -2050,8 +2055,29 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
       }
     return res;
   }
+/*
+*/
+
+using namespace std::chrono;
+
+  unsigned int FileRead( istream & is, vector <char> & buff ) {
+    is.read( &buff[0], buff.size() );
+    return is.gcount();
+  }
+
+  unsigned int CountLines( const vector <char> & buff, int sz ) {
+    int newlines = 0;
+    const char * p = &buff[0];
+    for ( int i = 0; i < sz; i++ ) {
+        if ( p[i] == '\n' ) {
+            newlines++;
+        }
+    }
+    return newlines;
+  }
 
   BaseGDL* file_lines( EnvT* e) {
+
     SizeT nParam = e->NParam(1); //, "FILE_LINES");
     DStringGDL* p0S = e->GetParAs<DStringGDL>(0); //, "FILE_LINES");
 
@@ -2063,12 +2089,13 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
     bool compressed = e->KeywordSet(compressIx); // we actually don't use it. zlib does it all for us!
     static int noExpIx = e->KeywordIx("NOEXPAND_PATH");
     bool noExp = e->KeywordSet(noExpIx);
-    
+
     DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
 
-    gzFile gfd = NULL;
-    char newinput, lastchar = 0;
     SizeT lines;
+
+    long size;
+    size = 1024 * 1024;
 
       for( SizeT i=0; i<nEl; ++i)
     {
@@ -2076,20 +2103,17 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 
           if (!noExp) WordExp(fname);
 
-          if ((gfd = gzopen(fname.c_str(), "rb")) == NULL) {
-              e->Throw("Could not open file for reading ");// + p0[i]);
-          }
-          lines = 0;
-          while (gzread(gfd, &newinput, 1) == 1) {
-              if (newinput == '\r') lines++;
-              if (newinput == '\n') lines++;
-//                  if (newinput == '\r' && lastchar == '\n') length--;
-              if (newinput == '\n' && lastchar == '\r') lines--;
-              lastchar = newinput;
-          }
-          gzclose(gfd);
-      if (lastchar != '\n' && lastchar != '\r') lines++;
+	  std::vector <char> buff(size);
 
+  	  ifstream ifs(fname.c_str());
+
+          //e->Throw("Could not open file for reading ");
+
+          lines = 0;
+	  while(int cc = FileRead(ifs, buff)) {
+            lines += CountLines(buff, cc);
+          }
+          ifs.close();
       (*res)[ i] = lines;
     }
 
