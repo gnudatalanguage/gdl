@@ -9,6 +9,10 @@
 
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
+# Set some policies to fix warnings in newer versions of cmake
+cmake_policy(SET CMP0075 NEW)
+cmake_policy(SET CMP0077 NEW)
+
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
 
