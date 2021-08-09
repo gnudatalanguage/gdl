@@ -5,3 +5,4 @@ build/
 install/
 gdlde/
 gdlde*.zip
+.vscode
