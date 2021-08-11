@@ -6,6 +6,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - v*
   pull_request:
   workflow_dispatch:
     inputs:
@@ -31,7 +33,7 @@ jobs:
     - name: Create Build Matrix (Windows)
       id: set-matrix-windows
       run: |
-        if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" ]]; then 
+        if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" || '${{ github.ref }}' == "refs/tags/v"* ]]; then 
             matrix="{deps: ['standard', 'headless'], arch: ['x86_64'], configuration: ['Release']}"
         else
             matrix="{deps: ['debug'], arch: ['x86_64'], configuration: ['Debug']}"
@@ -40,7 +42,7 @@ jobs:
     - name: Create Build Matrix (Linux/macOS)
       id: set-matrix-others
       run: |
-        if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" ]]; then 
+        if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" || '${{ github.ref }}' == "refs/tags/v"* ]]; then 
             matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['standard', 'headless'], configuration: ['Release']}"
         else
             matrix="{os: ['ubuntu-latest', 'macos-latest', 'macos-11'], deps: ['debug'], configuration: ['Debug']}"
@@ -109,7 +111,7 @@ jobs:
         with:
           path: gdl-*-${{ matrix.deps }}.zip
           name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
-      - name: Upload Release Assets
+      - name: Upload Release Assets (unstable)
         if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && matrix.os == 'macos-latest'
         uses: ncipollo/release-action@v1
         with:
@@ -121,6 +123,17 @@ jobs:
           replacesArtifacts: true
           commit: ${{ github.sha }}
           tag: weekly-release
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Release Assets (stable)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "gdl-*-${{ matrix.deps }}.zip"
+          name: ${{ github.event.release.tag_name }}
+          prerelease: false
+          allowUpdates: true
+          replacesArtifacts: true
+          commit: ${{ github.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test GDL
         run: |
@@ -248,7 +261,7 @@ jobs:
         with:
           name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
           path: gdl-*-${{ matrix.deps }}.zip
-      - name: Upload Release Assets
+      - name: Upload Release Assets (unstable)
         if: github.event_name == 'schedule' || github.event.inputs.type == 'release'
         uses: ncipollo/release-action@v1
         with:
@@ -258,6 +271,17 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           tag: weekly-release
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Release Assets (stable)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "gdlsetup-*-${{ matrix.deps }}.exe,gdl-*-${{ matrix.deps }}.zip"
+          name: ${{ github.event.release.tag_name }}
+          prerelease: false
+          allowUpdates: true
+          replacesArtifacts: true
+          commit: ${{ github.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test GDL
         shell: msys2 {0}
