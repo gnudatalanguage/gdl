@@ -117,8 +117,7 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   scrolled = e->KeywordSet( scrollIx );
 //  if (scrolled && this->IsLabel()) e->Throw("Keyword SCROLL not allowed in call to: WIDGET_LABEL"); //does not work: next: remove SCROLL from CommonKW.
 
-  sensitive=true;
-  if (e->KeywordPresent( sensitiveIx )) sensitive=e->KeywordSet( sensitiveIx);
+  sensitive=e->BooleanKeywordAbsentOrSet( sensitiveIx); //defaults to true if absent
 
   groupLeader = 0;
   if (e->KeywordPresent( group_leaderIx )){
