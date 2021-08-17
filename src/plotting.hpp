@@ -1042,7 +1042,7 @@ namespace lib {
     if(!(test1==0.0 && test2==0.0)) return TRUE;
     static int YRANGEIx=e->KeywordIx( "YRANGE"); 
 
-    if ( e->KeywordSet( YRANGEIx)) return TRUE;
+    if ( e->KeywordPresent( YRANGEIx)) return TRUE;
     //Style contains 1?
     DLong ystyle;
     gdlGetDesiredAxisStyle(e, YAXIS, ystyle);

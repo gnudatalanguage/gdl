@@ -1368,9 +1368,6 @@ void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)
 }
 
 void gdlwxDrawPanel::OnMouseMove( wxMouseEvent &event ) {
-#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_MOVE_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlwxDrawPanel::OnMouseMove: %d\n"),event.GetId());
-#endif
   DULong eventFlags=myWidgetDraw->GetEventFlags();
 
   if ( eventFlags & GDLWidget::EV_MOTION ) {
@@ -1383,7 +1380,10 @@ void gdlwxDrawPanel::OnMouseMove( wxMouseEvent &event ) {
     widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
     widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
     GDLWidget::PushEvent( baseWidgetID, widgdraw );
-  }  else event.Skip(); //normal end of event processing!
+  } else event.Skip(); //normal end of event processing!
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_MOVE_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlwxDrawPanel::OnMouseMove: ID=%d, coords=(%d,%d)\n"),event.GetId(),event.GetX(),event.GetY());
+#endif
 }
 
 void gdlwxDrawPanel::OnMouseDown( wxMouseEvent &event ) {

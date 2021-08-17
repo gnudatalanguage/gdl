@@ -108,7 +108,7 @@ public:
     return front;
   }
   // for all regular events
-  void Push( DStructGDL* ev)
+  void PushBack( DStructGDL* ev)
   {
     dq.push_back( ev);
   }
@@ -620,8 +620,13 @@ public:
   virtual DLong NChildren() const { return 0;}
   DLong GetSibling();
   virtual DLongGDL* GetChildrenList() const {return new DLongGDL(0);}
-  virtual void SetXmanagerActiveCommand() {}
-  virtual bool GetXmanagerActiveCommand() const { return false;}
+  
+  //returns a list of IDs of all the widgets starting at me and below.
+  DLongGDL* GetAllHeirs();
+  
+  virtual void SetXmanagerActiveCommand() {std::cerr<<"XMANAGER ACTIVE COMMAND on a not-top widget, please report."<<std::endl;}
+  
+  bool GetXmanagerActiveCommand();
 
   void SetEventPro( const DString& ePro) { eventPro = StrUpCase( ePro);}
   const DString& GetEventPro() const { return eventPro;};
@@ -697,22 +702,9 @@ public:
   bool DisableSizeEvents(gdlwxFrame* &tlbFrame,WidgetIDT &id);
   static void EnableSizeEvents(gdlwxFrame* &tlbFrame,WidgetIDT &id);
 
-  void SendWidgetTimerEvent(DDouble secs) {
-  WidgetIDT* id = new WidgetIDT(widgetID);
-  int millisecs = floor(secs * 1000.0);
-  if (theWxWidget) { //we nee a handle on a wxWindow object...
-   wxWindow* w=dynamic_cast<wxWindow*>(theWxWidget);
-   assert (w!=NULL);
-   w->GetEventHandler()->SetClientData(id);
-   if (m_windowTimer==NULL) {
-    m_windowTimer=new wxTimer(w->GetEventHandler(),widgetID);
-   }
-#ifdef GDL_DEBUG_WIDGETS
-   std::cerr<<"sending event,"<<widgetID<<","<<m_windowTimer<<std::endl;
-#endif
-   m_windowTimer->StartOnce(millisecs);
-  }
- }
+  void SendWidgetTimerEvent(DDouble secs);
+
+  void ClearEvents();
 };
 
 class GDLWidgetContainer: public GDLWidget
@@ -806,12 +798,7 @@ public:
   virtual bool IsNormalBase() const { return false;} 
   virtual bool IsTabbedBase() const { return false;} 
   void SetWidgetSize(DLong sizex, DLong sizey) final;
-  void ClearEvents()
-  {
-  if (!this->GetXmanagerActiveCommand( ))  eventQueue.Purge();
-  else readlineEventQueue.Purge(); 
-  }
-  
+ 
   void NullWxWidget() { theWxWidget = NULL;}
   
   WidgetIDT GetLastRadioSelection() const { return lastRadioSelection;}                         

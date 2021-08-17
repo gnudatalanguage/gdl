@@ -113,21 +113,25 @@ void GDLEventQueue::Purge()
   //   isEmpty = true;
 }
 
-// removes all events for TLB 'topID'
-void GDLEventQueue::Purge( WidgetIDT topID)
-{
-  for( long i=dq.size()-1; i>=0;--i)
-  {
+// removes all events for hierarchy staring at 'parentID' and below
+void GDLEventQueue::Purge( WidgetIDT parentID) {
+  //establish a list of children:
+  GDLWidget* w = GDLWidget::GetWidget(parentID);
+  DLongGDL* list = w->GetAllHeirs();
+  for (long i = dq.size() - 1; i >= 0; --i) {
     DStructGDL* ev = dq[i];
-    static int topIx = ev->Desc( )->TagIndex( "TOP" );
-    assert( topIx == 1 );
-    DLong top = (*static_cast<DLongGDL*> (ev->GetTag( topIx, 0 )))[0];
-    if( top == topID)
-    {
-      delete ev;
-      dq.erase( dq.begin( ) + i );
+    static int idIx = 0; // ev->Desc( )->TagIndex( "ID" ); //always 0
+    DLong id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0];
+    //all events pertaining to any heirs of 'parentID' including 'parentID' are removed:
+    for (DLong testid = 0; testid < list->N_Elements(); ++testid) {
+      if (id == (*list)[testid]) {
+//        std::cerr<<"event "<<id<<" purged."<<std::endl;
+        delete ev;
+        dq.erase(dq.begin() + i);
+      }
     }
   }
+  GDLDelete(list);
   //   isEmpty = true;
 }
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
@@ -615,9 +619,31 @@ void GDLWidget::RefreshDynamicWidget() {
     }
 }
 
+void GDLWidget::SendWidgetTimerEvent(DDouble secs) {
+  WidgetIDT* id = new WidgetIDT(widgetID);
+  int millisecs = floor(secs * 1000.0);
+  if (theWxWidget) { //we nee a handle on a wxWindow object...
+    wxWindow* w = dynamic_cast<wxWindow*> (theWxWidget);
+    assert(w != NULL);
+    w->GetEventHandler()->SetClientData(id);
+    if (m_windowTimer == NULL) {
+      m_windowTimer = new wxTimer(w->GetEventHandler(), widgetID);
+    }
+#ifdef GDL_DEBUG_WIDGETS
+    std::cerr << "sending event," << widgetID << "," << m_windowTimer << std::endl;
+#endif
+    m_windowTimer->StartOnce(millisecs);
+  }
+}
+
+void GDLWidget::ClearEvents() {
+  if (!this->GetXmanagerActiveCommand()) eventQueue.Purge(this->GetWidgetID());
+  else readlineEventQueue.Purge(this->GetWidgetID());
+}
+
 void GDLWidget::HandleWidgetEvents()
 {
-  //make one loop for wxWidgets Events...
+  //make one loop for wxWidgets Events. Forcibly, as HandleWidgetEvents() is called by the readline eventLoop, we are in a non-blocked case.
 #if __WXMSW__ 
     wxTheApp->MainLoop(); //central loop for wxEvents!
 #else
@@ -627,25 +653,26 @@ void GDLWidget::HandleWidgetEvents()
     DStructGDL* ev = NULL;
     while( (ev = GDLWidget::readlineEventQueue.Pop()) != NULL)
     {
-      static int idIx = ev->Desc( )->TagIndex( "ID" ); // 0
-      static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
-      static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" ); // 2
-      assert( idIx == 0 );
-      assert( topIx == 1 );
-      assert( handlerIx == 2 );
+//        static int idIx = ev->Desc( )->TagIndex( "ID" ); // 0
+//        static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
+//        static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" ); // 2
+//        assert( idIx == 0 );
+//        assert( topIx == 1 );
+//        assert( handlerIx == 2 );
 
       ev = CallEventHandler( ev );
 
       if( ev != NULL)
       {
+        int idIx = ev->Desc( )->TagIndex( "ID" );
+        assert( idIx == 0 );
         WidgetIDT id = (*static_cast<DLongGDL*> (ev->GetTag( idIx, 0 )))[0];
         Warning( "Unhandled event. ID: " + i2s( id ) );
         GDLDelete( ev );
         ev = NULL;
-      } 
+      }
     }
     if (wxIsBusy()) wxEndBusyCursor( );
-//  }
 }
 
 void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) {
@@ -655,10 +682,10 @@ void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) {
     bool xmanActCom = baseWidget->GetXmanagerActiveCommand( );
     if ( !xmanActCom ) { //blocking: events in eventQueue.
       //     wxMessageOutputStderr().Printf(_T("eventQueue.Push: %d\n"),baseWidgetID);
-      eventQueue.Push( ev );
+      eventQueue.PushBack( ev );
     } else { //non-Blocking: events in readlineeventQueue.
       //     wxMessageOutputStderr().Printf(_T("readLineEventQueue.Push: %d\n"),baseWidgetID);
-      readlineEventQueue.Push( ev );
+      readlineEventQueue.PushBack( ev );
     }
   } else cerr << "NULL baseWidget (possibly Destroyed?) found in GDLWidget::PushEvent( WidgetIDT baseWidgetID=" << baseWidgetID << ", DStructGDL* ev=" << ev << "), please report!\n";
 }
@@ -671,7 +698,7 @@ void GDLWidget::InformAuthorities(const std::string& message){
         ev->InitTag( "HANDLER", DLongGDL( 0 ) );
         ev->InitTag( "MESSAGE", DStringGDL(message) );
           readlineEventQueue.PushFront( ev ); // push front (will be handled next)
-}
+    }
 
 bool GDLWidget::GetXmanagerBlock() 
 {
@@ -736,6 +763,36 @@ BaseGDL* GDLWidget::GetManagedWidgetsList() {
   }
   return result;
 }
+
+DLongGDL* GDLWidget::GetAllHeirs(){
+  std::vector<WidgetIDT> widgetIDList;
+  std::vector<bool> has_children;
+  widgetIDList.push_back(this->widgetID);
+  if (this->NChildren() > 0) has_children.push_back(true);
+  else has_children.push_back(false);
+  //loop on this list, and add recursively all children when widget is a container.
+  SizeT currentVectorSize = widgetIDList.size();
+  while (1) {
+    for (SizeT i = 0; i < currentVectorSize; i++) {
+      if (has_children.at(i)) {
+        has_children.at(i) = false;
+        GDLWidget *widget = GDLWidget::GetWidget(widgetIDList.at(i));
+        DLongGDL* list = static_cast<GDLWidgetContainer*> (widget)->GetChildrenList();
+        for (SizeT j = 0; j < list->N_Elements(); j++) {
+          widgetIDList.push_back((*list)[j]);
+          if (GDLWidget::GetWidget((*list)[j])->NChildren() > 0) has_children.push_back(true);
+          else has_children.push_back(false);
+        }
+      }
+    }
+    if (widgetIDList.size() == currentVectorSize) break; //no changes
+    currentVectorSize = widgetIDList.size();
+  }
+  DLongGDL* result = new DLongGDL(currentVectorSize, BaseGDL::NOZERO);
+  for (SizeT i = 0; i < currentVectorSize ; ++i) (*result)[i] = widgetIDList[i];
+  return result;
+}
+
 //
 bool GDLWidget::InitWx()
 { if (wxTheApp == NULL) { //not already initialized
@@ -912,6 +969,12 @@ bool GDLWidget::GetSensitive()
 {
   return sensitive;
 }
+
+bool GDLWidget::GetXmanagerActiveCommand() {
+  GDLWidgetTopBase* w = GetMyTopLevelBaseWidget();
+  return w->GetXmanagerActiveCommand();
+}
+  
 DLong GDLWidget::GetSibling()
 {
   if ( parentID == GDLWidget::NullID ) {return 0;}

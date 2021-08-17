@@ -95,12 +95,12 @@ end
 pro i_am_realized, id
   print,"Widget "+string(id)+" is realized now."
 end
-pro base_event_ok, id
-  print,"event in base Authorized"
+pro base_event_base, id
+  print,"event in bases base"
   help,id
 end
-pro base_event_nok, id
-  print,"FATAL: event in base Not Authorized"
+pro base_event, id
+  print,"event in top base"
   help,id
 end
 pro slider_killed,id
@@ -275,7 +275,7 @@ if total(strcmp('TEXT',present,/fold)) then begin
    text1=widget_text(yoff=offy,text_base,VALUE=["idem but with scr_xsize=200,scr_ysize=50"," a non editable LONG line using /wrap option..."],$
                      scr_xsize=200,scr_ysize=50,/wrap) & offy+=20                                                                                 ;
    label=widget_label(yoff=offy,text_base,/align_center,value='Various Positioning, no event should be issued') & offy+=20      ;
-   text3=widget_text(yoff=offy,text_base,VALUE=["Caratères Accentués ça ü û, frame=10,left"],frame=10,/align_left)  & offy+=50  ;
+   text3=widget_text(yoff=offy,text_base,VALUE=["Caractères Accentués ça ü û, frame=10,left"],frame=10,/align_left)  & offy+=50  ;
    text3=widget_text(yoff=offy,text_base,VALUE=["fancy center aligned, frame=10"],/align_center,frame=10,font=fontname) & offy+=50 ;
    text3=widget_text(yoff=offy,text_base,VALUE=["follows alignment, frame=10"],frame=10) & offy+=50                                ;
    
@@ -539,7 +539,7 @@ combo=widget_combobox(yoff=offy,combobox_base,VALUE=["Same, centered combobox","
 endif
 if total(strcmp('BASE',present,/fold)) then begin
  ;MISC. BASES
- bases_base0 = widget_base( tabbed_base , TITLE="BASEs",event_pro='base_event_ok',_extra=extra) & offy=0
+ bases_base0 = widget_base( tabbed_base , TITLE="BASEs",event_pro='base_event_base',_extra=extra) & offy=0
  label=widget_label(yoff=offy,bases_base0,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10;
  tmp=widget_label(yoff=offy,bases_base0,value="below a tab-based base with frame=30",font=fontname) & offy+=10;
  tmp=widget_label(yoff=offy,bases_base0,value="containing a base, frame=100, with 2 buttons; ",font=fontname) & offy+=10;
