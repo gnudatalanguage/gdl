@@ -59,7 +59,7 @@ namespace lib {
   using namespace Magick;
 
   vector<Image> gImage(40);
-  vector<int> gValid(40);
+  vector<unsigned int> gValid(40);
   unsigned int gCount = 0;
   static bool notInitialized = true;
 
