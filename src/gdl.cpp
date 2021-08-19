@@ -65,7 +65,7 @@
 //initialize wxWidgets system
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
-#if __WXMSW__ 
+#ifndef __WXMAC__ 
 wxIMPLEMENT_APP_NO_MAIN( wxAppGDL);
 #else
 wxIMPLEMENT_APP_NO_MAIN( wxApp);
@@ -148,6 +148,12 @@ void InitGDL()
 #ifndef _WIN32
   GDLSetLimits();
 #endif
+
+//rl_event_hook (defined below) uses a wxwidgets event loop, so wxWidgets must be started
+#ifdef HAVE_LIBWXWIDGETS
+    if (useWxWidgets) GDLWidget::Init();
+#endif
+
 #if defined(HAVE_LIBREADLINE)
   // initialize readline (own version - not pythons one)
   // in includefirst.hpp readline is disabled for python_module
@@ -159,9 +165,7 @@ void InitGDL()
   //but... without it we have no graphics event handler! FIXME!!! 
   rl_event_hook = GDLEventHandler;
 #endif
-#ifdef HAVE_LIBWXWIDGETS
-    if (useWxWidgets) GDLWidget::Init();
-#endif
+
   // ncurses blurs the output, initialize TermWidth here
   TermWidth();
 

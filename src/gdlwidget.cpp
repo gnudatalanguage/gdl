@@ -439,11 +439,11 @@ void GDLWidget::UpdateGui()
     actID = widget->parentID;
   }
   this->GetMyTopLevelFrame()->Fit();
-  END_CHANGESIZE_NOEVENT 
-#if __WXMSW__ 
-    wxTheApp->MainLoop(); //central loop for wxEvents!
+  END_CHANGESIZE_NOEVENT
+#ifdef __WXMAC__
+  wxTheApp->Yield();
 #else
-    wxTheApp->Yield();
+  wxGetApp().MainLoop(); //central loop for wxEvents!
 #endif
 }
 
@@ -644,10 +644,10 @@ void GDLWidget::ClearEvents() {
 void GDLWidget::HandleWidgetEvents()
 {
   //make one loop for wxWidgets Events. Forcibly, as HandleWidgetEvents() is called by the readline eventLoop, we are in a non-blocked case.
-#if __WXMSW__ 
-    wxTheApp->MainLoop(); //central loop for wxEvents!
+#ifdef __WXMAC__
+  wxTheApp->Yield();
 #else
-    wxTheApp->Yield();
+  wxGetApp().MainLoop(); //central loop for wxEvents!
 #endif
   //treat our GDL events...
     DStructGDL* ev = NULL;
@@ -796,7 +796,7 @@ DLongGDL* GDLWidget::GetAllHeirs(){
 //
 bool GDLWidget::InitWx()
 { if (wxTheApp == NULL) { //not already initialized
-  if (!wxInitialize()) {
+if (!wxInitialize()) {
     std::cerr << "WARNING: wxWidgets not initializing, widget-related commands will not be available." << std::endl;
     return false;
   }
@@ -818,11 +818,11 @@ void GDLWidget::Init()
   //initially defaultFont and systemFont are THE SAME.
   defaultFont=systemFont;
   SetWxStarted();
-  //use a phantom window to retrieve th exact size of scrollBars wxWidget give wrong values.
-   gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
-   test->Hide();
-   test->Realize();
-   test->Destroy();
+//  //use a phantom window to retrieve th exact size of scrollBars wxWidget give wrong values.
+//   gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
+//   test->Hide();
+//   test->Realize();
+//   test->Destroy();
 }
 // UnInit
 void GDLWidget::UnInit() {
@@ -5848,7 +5848,7 @@ void GDLWidgetDraw::SetWidgetScreenSize(DLong sizex, DLong sizey) {
 // for linux, it is NOT necessary, but thos works OK
 // for MacOS /COCOA port, the following code does not work and the widgets are not created.
 // (tied_scoped_ptr problem?)
-#if __WXMSW__ 
+#ifndef __WXMAC__ 
 
 #include "wx/evtloop.h"
 #include "wx/ptr_scpd.h"
@@ -5858,12 +5858,12 @@ bool wxAppGDL::OnInit()
 { 
     return true;
 }
-   
-  int wxAppGDL::MainLoop() {
-    wxEventLoopTiedPtr mainLoop((wxEventLoop **)&m_mainLoop, new wxEventLoop);
-    m_mainLoop->SetActive(m_mainLoop);
-    loop = this->GetMainLoop();
-    if (loop) {
+
+int wxAppGDL::MainLoop() {
+  wxEventLoopTiedPtr mainLoop((wxEventLoop **) & m_mainLoop, new wxEventLoop);
+  m_mainLoop->SetActive(m_mainLoop);
+  loop = this->GetMainLoop();
+  if (loop) {
     if (loop->IsRunning()) {
       while (loop->Pending()) // Unprocessed events in queue
       {

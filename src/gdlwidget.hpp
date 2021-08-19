@@ -198,7 +198,7 @@ public:
  WidgetEventInfo(wxEventType t_, wxObjectEventFunction f_, wxWindow* w_) : t(t_), f(f_), w(w_) {
  }
 };
-#if __WXMSW__ 
+#ifndef __WXMAC__
 // main App class
 class wxAppGDL: public wxApp
 {
@@ -216,7 +216,7 @@ public:
 //the event processing stops immediately considering that the event had been already processed
 //(for the former return value) or that it is not going to be processed at all (for the latter one).
 };
-//wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
+wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
 #endif
 
 // GDL versions of wxWidgets controls =======================================

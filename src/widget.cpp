@@ -2372,10 +2372,10 @@ BaseGDL* widget_info( EnvT* e ) {
 
     do { // outer while loop, will run once if NOWAIT
    while (1) { //inner loop, catch controlC, default return if no event trapped in nowait mode
-#if __WXMSW__ 
-        wxTheApp->MainLoop();
+#ifdef __WXMAC__
+  wxTheApp->Yield();
 #else
-        wxTheApp->Yield();
+  wxGetApp().MainLoop(); //central loop for wxEvents!
 #endif
         if (!all) {
           //specific widget(s)

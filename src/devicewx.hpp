@@ -181,10 +181,10 @@ public:
     plotFrame->Raise();
   }
   //really show by letting the loop do its magic.
-#if __WXMSW__ 
-    wxTheApp->MainLoop(); //central loop for wxEvents!
+#ifdef __WXMAC__
+  wxTheApp->Yield();
 #else
-    wxTheApp->Yield();
+  wxGetApp().MainLoop(); //central loop for wxEvents!
 #endif
   return true;
  }
