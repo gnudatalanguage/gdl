@@ -1157,7 +1157,7 @@ void GDLWidgetTopBase::Realize(bool map, bool use_default) {
   if (use_default) map = GetMap();
 
   OnRealize();
-  
+ 
  if (map) topFrame->Show() ; //endShowRequestEvent();
   else topFrame->Hide(); //SendHideRequestEvent();
   realized=true;
@@ -1738,6 +1738,10 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignm
   
   // All bases can receive events: EV_CONTEXT, EV_KBRD_FOCUS, EV_TRACKING
 
+//on wxMAC, frame will not appear if style is not exactly this (!!!)
+#ifdef __WXMAC__
+long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);
+#else
   long style=wxDEFAULT_FRAME_STYLE|wxFRAME_TOOL_WINDOW; //wxFRAME_TOOL_WINDOW to NOT get focus. See behaviour of 'P' (photometry) while using ATV (atv.pro). 
   if (frame_attr) {
     style=0;
@@ -1751,6 +1755,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignm
     if (this->GetWidget(groupLeader)==NULL) e->Throw("FLOATING top level bases must have a group leader specified.");
     style |= wxFRAME_TOOL_WINDOW|wxSTAY_ON_TOP ; //wxFRAME_FLOAT_ON_PARENT will destroy the parent widget!!
   }
+#endif
 
   // Top Level Base Widget: can receive special events: tlb_size, tlb_move, tlb_icon and tlb_kill. cannot be framed.
   wxString titleWxString;
