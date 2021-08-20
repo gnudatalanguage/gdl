@@ -69,7 +69,7 @@ elif [ ${BUILD_OS} == "Linux" ]; then
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
         llvm libomp ncurses readline zlib libpng gsl wxmac graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
-        eccodes glpk shapelib expat gcc@10
+        eccodes glpk shapelib expat gcc@10 qhull
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
 else
@@ -263,6 +263,14 @@ function prep_packages {
             build_msys2_package $package_name
         done
 
+        download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
+        decompress_file
+
+        log "Building qhull..."
+        pushd qhull-2020.2
+        make SO=dll || exit 1
+        popd
+
         download_file ${BSDXDR_URL}
         decompress_file
 
@@ -297,9 +305,18 @@ function prep_packages {
                 fi
             done
         done
+
+        download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
+        decompress_file
+
+        log "Building qhull..."
+        pushd qhull-2020.2
+        make || exit 1
+        popd
+
         if [[ -z ${INSTALL_PACKAGES} ]]; then
             log "All required packages are already installed on your system."
-	else
+	    else
             log "Installing packages:"
             log "${INSTALL_PACKAGES}"
             if [ ${DRY_RUN} == "true" ]; then
@@ -394,6 +411,12 @@ function configure_gdl {
         fi
     fi
 
+    if [[ ${BUILD_OS} != "macOS" ]]; then
+        CMAKE_QHULLDIR_OPT="-DQHULLDIR="${ROOT_DIR}"/qhull-2020.2"
+    else
+        CMAKE_QHULLDIR_OPT=""
+    fi
+
     if [ ${BUILD_OS} == "Windows" ]; then
         export WX_CONFIG=${GDL_DIR}/scripts/deps/windows/wx-config-wrapper
     fi
@@ -408,7 +431,7 @@ function configure_gdl {
         -DMPI=${WITH_MPI} -DTIFF=ON -DGEOTIFF=ON \
         -DLIBPROJ=ON -DPYTHON=ON -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=ON \
         -DUDUNITS2=ON -DGLPK=ON -DGRIB=${WITH_GRIB} \
-        -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
+        -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]} ${CMAKE_QHULLDIR_OPT}
 }
 
 function build_gdl {
