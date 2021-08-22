@@ -502,6 +502,7 @@ function pack_gdl {
 
         install_name_tool -add_rpath @executable_path/../../Frameworks Resources/bin/gdl
         for dylib in ${dylibs}; do
+            echo "Setting rpath for library ${dylib}..."
             install_name_tool -change $dylib @rpath/$(basename ${dylib}) Resources/bin/gdl
         done
 
