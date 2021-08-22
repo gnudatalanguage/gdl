@@ -173,7 +173,7 @@ namespace lib {
       n_elem = p0->N_Elements();
       rank = p0->Rank();
       if (debug) cout << "type : "<< p0->Type() << ", Rank : "<< rank << endl;
-      
+
       switch (p0->Type())
 	{
 	case GDL_UNDEF: type="UNDEFINED"; isNUMBER=false; res=false; break; 
@@ -263,10 +263,10 @@ namespace lib {
       if(type == "STRUCT"){ if(structName == (*p1Str)[0]) res = true;}
       if(type == "OBJREF"){ if(objectName == (*p1Str)[0]) res = true;}
 
-      debug=1;
+      debug=0;
       if (debug) cout << type << " " << (*p1Str)[0] << " " << res << endl;
     }
-	
+
     if(type != "UNDEFINED"){
 
       if (sub_type == 1) isBOOLEAN = true;

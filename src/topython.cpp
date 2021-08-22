@@ -19,6 +19,7 @@
 #ifdef INCLUDE_TOPYTHON_CPP
 
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #endif
 
@@ -68,12 +69,12 @@ PyObject* Data_<Sp>::ToPython()
   //  (PyArray_SimpleNewFromData( n_dim, dimArr, item_type, DataAddr()));
 
   PyObject* ret = PyArray_SimpleNew(n_dim, dimArr, item_type);
-  if (!PyArray_CHKFLAGS(ret, NPY_C_CONTIGUOUS))
+  if (!PyArray_CHKFLAGS((PyArrayObject*)ret, NPY_ARRAY_C_CONTIGUOUS))
   {
     // TODO: free the memory:  PyArray_Free(PyObject* op, void* ptr) ?
     throw GDLException("Failed to convert array to python.");
   }
-  memcpy(PyArray_DATA(ret), DataAddr(), this->NBytes());
+  memcpy(PyArray_DATA((PyArrayObject*)ret), DataAddr(), this->NBytes());
   return ret;
 }
 

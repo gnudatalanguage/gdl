@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
       cerr << "  -pref=/path/to/params_file  loads the specified preference file" << endl;
       cerr << "  -quiet (--quiet, -q) suppress welcome messages" << endl;
       cerr << endl;
-      cerr << "Homepage: http://gnudatalanguage.sf.net" << endl;
+      cerr << "Homepage: https://gnudatalanguage.github.io" << endl;
       return 0;
     }
       else if (string(argv[a])=="--version" | string(argv[a])=="-v" | string(argv[a])=="-V")
