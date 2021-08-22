@@ -39,10 +39,10 @@ bibliography: paper.bib
 
 # Summary
 
-Interactive Data Language (IDL) is a computer language widely used for scientific data analysis, especially in the field of
-Astronomy, Geoscience, and Biology. We present GNU Data Language (GDL), an open-source free incremental compiler for the
-scripts written in IDL. GDL 1.0 is fully compatible with IDL 7.1 language specification, and including partial supports of
-the IDL 8.0 specification and above. GDL also partially supports PV-WAVE, another data analysis language that shares some
+We present GNU Data Language (GDL), an open-source free incremental compiler for the scripts written in Interactive Data
+Language (IDL), a computer language widely used for scientific data analysis, especially in the field of Astronomy,
+Geoscience, and Biology. GDL 1.0 is fully compatible with IDL 7.1 language specification, including partial supports
+of the IDL 8.0 specification and above. GDL also partially supports PV-WAVE, another data analysis language that shares some
 similarities to IDL. GDL has been developed to perfectly mimic the behavior of the official IDL compiler distributed by
 Harris Geospatial Solutions, so that the existing IDL scripts to be compatible with GDL without any modifications. GDL
 also comes with an integrated development environment (IDE), GDL Workbench, based on Eclipse Rich Client Platform (RCP),
