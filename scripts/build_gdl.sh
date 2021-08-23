@@ -466,6 +466,19 @@ function test_gdl {
     fi
 }
 
+function copy_dylibs_recursive {
+    install_name_tool -add_rpath $2 $1
+    for dylib in $(otool -L $1 | grep local | sed 's; \(.*\);;' | xargs); do
+        install_name_tool -change $dylib @rpath/$(basename ${dylib}) $1
+        if [[ ! ${found_dylibs[@]} =~ (^|[[:space:]])"$dylib"($|[[:space:]]) ]]; then
+            found_dylibs+=("${dylib}")
+            echo "Copying $(basename ${dylib})..."
+            cp $dylib $3/
+            copy_dylibs_recursive $3/$(basename ${dylib}) @executable_path/. $3
+        fi
+    done
+}
+
 function pack_gdl {
     log "Packaging GDL..."
     if [ ${BUILD_OS} == "Windows" ]; then
@@ -482,8 +495,6 @@ function pack_gdl {
         export GDL_VERSION=`grep -oP 'set\(VERSION "\K.+(?="\))' ${GDL_DIR}/CMakeLists.txt`
         makensis -V3 ${GDL_DIR}/scripts/deps/windows/gdlsetup.nsi
     elif [ ${BUILD_OS} == "macOS" ]; then
-        dylibs=$(otool -L ${ROOT_DIR}/install/bin/gdl | grep local | sed 's; \(.*\);;' | xargs)
-
         mkdir -p "${ROOT_DIR}/package/GNU Data Language.app/Contents"
         cd "${ROOT_DIR}/package/GNU Data Language.app/Contents"
 
@@ -493,18 +504,13 @@ function pack_gdl {
         echo 'open -a Terminal "file://${SCRIPTPATH}/../Resources/bin/gdl"' >> MacOS/gdl
         chmod +x MacOS/gdl
 
-        mkdir Frameworks        
-        cp -LR ${dylibs} Frameworks/
-
         mkdir Resources
         cp -R ${ROOT_DIR}/install/* Resources/
         cp ${GDL_DIR}/resource/gdl.icns Resources/
 
-        install_name_tool -add_rpath @executable_path/../../Frameworks Resources/bin/gdl
-        for dylib in ${dylibs}; do
-            echo "Setting rpath for library ${dylib}..."
-            install_name_tool -change $dylib @rpath/$(basename ${dylib}) Resources/bin/gdl
-        done
+        mkdir Frameworks
+        found_dylibs=()
+        copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
 
         echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist
         echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> Info.plist
