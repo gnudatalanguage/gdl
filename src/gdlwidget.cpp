@@ -1582,7 +1582,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
       if (xpad > 1) sz->Add(0, 0, wxGBPosition(1, 2));
       if (ypad > 1) sz->Add(0, 0, wxGBPosition(2, 1));
 
-      widgetPanel = new wxScrolledWindow(padxpady, wxID_ANY, wOffset, wxDefaultSize); 
+      widgetPanel = new wxScrolledWindow(padxpady, widgetID, wOffset, wxDefaultSize); 
       sz->Add(widgetPanel, wxGBPosition(1, 1));
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
@@ -1598,7 +1598,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
       panelsz->Add(padxpady, FRAME_ALLOWSTRETCH, wxALL | wxEXPAND, frameWidth);//gdlFRAME_MARGIN);
       panelsz->Fit(padxpady);
     } else {
-      widgetPanel = new wxScrolledWindow(frame, wxID_ANY, wOffset, wxDefaultSize); 
+      widgetPanel = new wxScrolledWindow(frame, widgetID, wOffset, wxDefaultSize); 
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
 #endif
@@ -1627,7 +1627,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
       if (xpad > 1) sz->Add(0, 0, wxGBPosition(1, 2));
       if (ypad > 1) sz->Add(0, 0, wxGBPosition(2, 1));
 
-      widgetPanel = new wxScrolledWindow(padxpady, wxID_ANY, wOffset, wxDefaultSize); 
+      widgetPanel = new wxScrolledWindow(padxpady, widgetID, wOffset, wxDefaultSize); 
       sz->Add(widgetPanel, wxGBPosition(1, 1));     
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
@@ -1641,7 +1641,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
         padxpady->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
       }
     } else {
-      widgetPanel = new wxScrolledWindow(parent, wxID_ANY, wOffset, wxDefaultSize); 
+      widgetPanel = new wxScrolledWindow(parent, widgetID, wOffset, wxDefaultSize); 
       theWxContainer = widgetPanel;
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
@@ -1666,7 +1666,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
 
   wxSizer* parentSizer = parent->GetSizer();
   if (parentSizer) parentSizer->Add(static_cast<wxWindow*>(theWxContainer), DONOTALLOWSTRETCH, wxALL | widgetAlignment(), gdlSPACE);
-}
+  }
 
  void GDLWidgetBase::SetWidgetSize(DLong sizex, DLong sizey) 
 {
@@ -1954,7 +1954,7 @@ GDLWidgetNormalBase::GDLWidgetNormalBase(WidgetIDT parentID, EnvT* e, ULong even
   wxWindow* wxParent = dynamic_cast<wxWindow*> (GetParentPanel());
   assert(wxParent != NULL);
   CreateBase(wxParent);
-
+  
   UPDATE_WINDOW
   REALIZE_IF_NEEDED
 }
@@ -5390,7 +5390,7 @@ void GDLWidgetLabel::SetLabelValue(const DString& value_) {
 //  widgetSizer = GetParentSizer( );
 //  topWidgetSizer = this->GetTopLevelBaseWidget(parentID)->GetSizer();
 // // Construct wxPropertyGrid control
-//  wxPropertyGrid* pg = new wxPropertyGrid(gdlParent,wxID_ANY,wxDefaultPosition,wxDefaultSize,
+//  wxPropertyGrid* pg = new wxPropertyGrid(gdlParent,widgetID,wxDefaultPosition,wxDefaultSize,
 //  // Here are just some of the supported window styles
 //  wxPG_AUTO_SORT | // Automatic sorting after items added
 //  wxPG_SPLITTER_AUTO_CENTER | // Automatically center splitter until user manually adjusts it
@@ -5684,7 +5684,8 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex,
   //these widget specific events are always set:
    this->AddToDesiredEvents( wxEVT_PAINT, wxPaintEventHandler(gdlwxDrawPanel::OnPaint),draw);
 //   this->AddToDesiredEvents( wxEVT_SIZE,  wxSizeEventHandler(gdlwxDrawPanel::OnSize),draw);
-//   this->AddToDesiredEvents( wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(gdlwxDrawPanel::OnErase),draw);
+   //disable flicker see https://wiki.wxwidgets.org/Flicker-Free_Drawing
+   this->AddToDesiredEvents( wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(gdlwxDrawPanel::OnErase),draw);
 
   //other set event handling according to flags
   if (eventFlags & GDLWidget::EV_MOTION) this->AddToDesiredEvents( wxEVT_MOTION, wxMouseEventHandler(gdlwxDrawPanel::OnMouseMove),draw);

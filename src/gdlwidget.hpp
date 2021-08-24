@@ -260,7 +260,7 @@ public:
   event->SetEventObject(this);
   // only for wWidgets > 2.9 (takes ownership of event)
   //     this->QueueEvent( event);
-  //this->AddPendingEvent( *event); // copies event
+//  this->AddPendingEvent(*event); // copies event
   this->OnShowRequest(*event); // JP Apr 2015: Should block the main thread until the window opens,
   //              so that the following WIDGET_INFO can properly read
   //              the window's properties.

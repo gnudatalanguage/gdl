@@ -1101,7 +1101,7 @@ void gdlwxFrame::OnEnterWindow( wxMouseEvent &event ) {
   if( widget == NULL) {
      event.Skip();
      return;
-  }
+    }
   if ( widget->GetEventFlags() & GDLWidget::EV_TRACKING ) {
     WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
     DStructGDL* widgtracking = new DStructGDL( "WIDGET_TRACKING" );

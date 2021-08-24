@@ -3326,7 +3326,7 @@ void widget_control( EnvT* e ) {
     else widget->SetSensitive( false );
   }
   
-  if ( inputfocus && (widget->IsDraw()||widget->IsButton()||widget->IsText())) widget->SetFocus();
+  if ( inputfocus /*&& (widget->IsDraw()||widget->IsButton()||widget->IsText())*/) widget->SetFocus();
 
   if (doTimer) {
     DDouble seconds=0;
