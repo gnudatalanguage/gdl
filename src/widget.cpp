@@ -145,12 +145,12 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   if (the_units==1) unitConversionFactor=wxRealPoint(sx*25.4,sy*25.4);
   if (the_units==2) unitConversionFactor=wxRealPoint(sx*10.0,sy*10.0);
 
-  e->AssureLongScalarKWIfPresent( scr_xsizeIx, wScreenSize.x );
-  e->AssureLongScalarKWIfPresent( xsizeIx, wSize.x );
-  e->AssureLongScalarKWIfPresent( scr_ysizeIx, wScreenSize.y );
-  e->AssureLongScalarKWIfPresent( ysizeIx, wSize.y );
-  e->AssureLongScalarKWIfPresent( xoffsetIx, wOffset.x );
-  e->AssureLongScalarKWIfPresent( yoffsetIx, wOffset.y );
+  e->AssureLongScalarKWIfPresent( scr_xsizeIx, wScreenSize.x ); if (wScreenSize.x<=0) wScreenSize.x=wxDefaultSize.x;
+  e->AssureLongScalarKWIfPresent( xsizeIx, wSize.x );           if (wSize.x<=0) wSize.x=wxDefaultSize.y;
+  e->AssureLongScalarKWIfPresent( scr_ysizeIx, wScreenSize.y ); if (wScreenSize.y<=0) wScreenSize.y=wxDefaultSize.x;
+  e->AssureLongScalarKWIfPresent( ysizeIx, wSize.y );           if (wSize.y<=0) wSize.y=wxDefaultSize.y;
+  e->AssureLongScalarKWIfPresent( xoffsetIx, wOffset.x );       if (wOffset.x<=0) wOffset.x=wxDefaultPosition.x;
+  e->AssureLongScalarKWIfPresent( yoffsetIx, wOffset.y );       if (wOffset.y<=0) wOffset.y=wxDefaultPosition.y;
 
   uValue = e->GetKW( uvalueIx );
   if ( uValue != NULL ) {
@@ -1648,7 +1648,11 @@ BaseGDL* widget_info( EnvT* e ) {
   if ( nParam > 1 ) {
     e->Throw("Incorrect number of arguments.");
   }
-  
+  static int TAB_MODE = e->KeywordIx( "TAB_MODE" );
+  if (e->KeywordSet(TAB_MODE)) return new DLongGDL(1); //pretend that tab_mode works
+  static int UPDATE = e->KeywordIx( "UPDATE" );
+  if (e->KeywordSet(UPDATE)) return new DLongGDL(1); //pretend that update works always (fixme: yet another property to add, get,set to GDLWidget::)
+
   static int activeIx = e->KeywordIx( "ACTIVE" );
   bool active = e->KeywordSet( activeIx );
   static int sensIx = e->KeywordIx( "SENSITIVE" );
@@ -1775,9 +1779,6 @@ BaseGDL* widget_info( EnvT* e ) {
   static int unitsIx = e->KeywordIx( "UNITS" );
   bool unitsGiven = e->KeywordPresent ( unitsIx );
   
-  static int UPDATE = e->KeywordIx( "UPDATE" );
-  bool update=e->KeywordSet(UPDATE);
-  if (update) return new DLongGDL(1); //pretend that update works always (fixme: yet another property to add, get,set to GDLWidget::)
 
   static int tlb_iconify_eventsIx = e->KeywordIx( "TLB_ICONIFY_EVENTS" );
   bool tlb_iconify_events=e->KeywordSet(tlb_iconify_eventsIx);

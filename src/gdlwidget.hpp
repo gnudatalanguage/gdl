@@ -23,6 +23,9 @@
 // #define GDL_DEBUG_WIDGETS
 // #define GDL_DEBUG_WIDGETS_COLORIZE
 
+// use "plain menubars" instead of 'taskbars used as menubars'. taskbars permit to change font in bar, put pixmaps instead of text, and will work
+// on OSX. So we choose normally to undefine this 
+// #define PREFERS_MENUBAR 1
 #include <wx/wx.h>
 #include <wx/app.h>
 #include <wx/panel.h>
@@ -711,13 +714,16 @@ class GDLWidgetContainer: public GDLWidget
 {
 protected:
   std::deque<WidgetIDT> children;
+  bool xfree;
+  bool yfree;
 public:
   GDLWidgetContainer( WidgetIDT parentID, EnvT* e, ULong eventFlags_=0);
 
   ~GDLWidgetContainer();
   
   virtual bool IsContainer() const { return true;}
-  
+  bool xFree() {return xfree;}
+  bool yFree() {return yfree;}
 //Realize a Container==> realise first all children. Vertically-stored widgets in a base widget must be reordered, done in overriding GDLWidgetBase::OnRealize.
   void OnRealize();
 
@@ -969,6 +975,7 @@ public:
 class wxButtonGDL: public wxButton
 {
   wxMenu* popupMenu;
+  wxPoint position;
 public: 
   wxButtonGDL(wxFont font, wxWindow *parent, 
           wxWindowID id, 
@@ -981,6 +988,7 @@ public:
       wxButton(parent,id,label,pos,size,style,validator,name){
       this->SetFont(font);
       popupMenu=new wxMenu();
+      position=this->GetClientRect().GetBottomLeft();
       Connect(id, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(wxButtonGDL::OnButton));
       Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(wxButtonGDL::OnButton));
     }
@@ -1148,8 +1156,8 @@ public:
 #else
  wxToolBarToolBase* entry;
  GDLWidgetMenuBarButton(WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, wxBitmap* bitmap_=NULL, DStringGDL* buttonTooltip = NULL);
- wxSize computeWidgetSize(); //not a real menubar: buttons may have a different fontsize.
 #endif
+ wxSize computeWidgetSize(); //not a real menubar: buttons may have a different fontsize.
  ~GDLWidgetMenuBarButton();
  void SetSensitive(bool value);
  void SetButtonWidgetLabelText( const DString& value_ );

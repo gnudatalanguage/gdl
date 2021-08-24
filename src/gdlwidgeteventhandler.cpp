@@ -277,7 +277,7 @@ void wxButtonGDL::OnButton( wxCommandEvent& event)
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_BUTTON_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlMenuButton::OnButton: %d\n"),event.GetId());
 #endif
- this->PopupMenu(dynamic_cast<wxMenu*>(popupMenu));
+ this->PopupMenu(dynamic_cast<wxMenu*>(popupMenu),position);
  event.Skip();
 }
 
