@@ -277,7 +277,7 @@ void wxButtonGDL::OnButton( wxCommandEvent& event)
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_BUTTON_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlMenuButton::OnButton: %d\n"),event.GetId());
 #endif
- this->PopupMenu(dynamic_cast<wxMenu*>(popupMenu));
+ this->PopupMenu(dynamic_cast<wxMenu*>(popupMenu),position);
  event.Skip();
 }
 
@@ -1101,7 +1101,7 @@ void gdlwxFrame::OnEnterWindow( wxMouseEvent &event ) {
   if( widget == NULL) {
      event.Skip();
      return;
-  }
+    }
   if ( widget->GetEventFlags() & GDLWidget::EV_TRACKING ) {
     WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
     DStructGDL* widgtracking = new DStructGDL( "WIDGET_TRACKING" );
@@ -1368,9 +1368,6 @@ void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)
 }
 
 void gdlwxDrawPanel::OnMouseMove( wxMouseEvent &event ) {
-#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_MOVE_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlwxDrawPanel::OnMouseMove: %d\n"),event.GetId());
-#endif
   DULong eventFlags=myWidgetDraw->GetEventFlags();
 
   if ( eventFlags & GDLWidget::EV_MOTION ) {
@@ -1383,7 +1380,10 @@ void gdlwxDrawPanel::OnMouseMove( wxMouseEvent &event ) {
     widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
     widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
     GDLWidget::PushEvent( baseWidgetID, widgdraw );
-  }  else event.Skip(); //normal end of event processing!
+  } else event.Skip(); //normal end of event processing!
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_MOVE_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlwxDrawPanel::OnMouseMove: ID=%d, coords=(%d,%d)\n"),event.GetId(),event.GetX(),event.GetY());
+#endif
 }
 
 void gdlwxDrawPanel::OnMouseDown( wxMouseEvent &event ) {
@@ -1523,7 +1523,7 @@ void gdlwxDrawPanel::OnKey( wxKeyEvent &event ) {
       default:
         widgdraw->InitTag( "TYPE", DIntGDL( 5 ) ); //normal key
         widgdraw->InitTag( "KEY", DLongGDL( 0 ) );
-        widgdraw->InitTag( "CH", DByteGDL( event.GetRawKeyCode() & 0xFF ) );
+        widgdraw->InitTag( "CH", DByteGDL( event.GetKeyCode() & 0xFF ) );
         widgdraw->InitTag( "MODIFIERS", DLongGDL( event.GetModifiers() ) );
         GDLWidget::PushEvent( baseWidgetID, widgdraw );
     }

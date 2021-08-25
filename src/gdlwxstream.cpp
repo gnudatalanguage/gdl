@@ -94,7 +94,7 @@ void GDLWXStream::EventHandler() {
   if (!valid) return;
 // GraphicsDevice::GetDevice()->TidyWindowsList(); //necessary since we removed TidyWindowList() from GraphicsMultiDevice::EventHandler()
   // plplot event handler
-  plstream::cmd(PLESC_EH, NULL);
+//  plstream::cmd(PLESC_EH, NULL);
 }
 
 void GDLWXStream::SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot)
@@ -107,11 +107,12 @@ void GDLWXStream::Update()
 {
   if( this->valid && container != NULL) {
     container->RepaintGraphics();
-#if __WXMSW__ 
-    wxTheApp->MainLoop(); //central loop for wxEvents!
-#else
-    wxTheApp->Yield();
-#endif
+    //will be updated by eventloop.
+//#ifdef __WXMAC__
+//  wxTheApp->Yield();
+//#else
+//  wxGetApp().MainLoop(); //central loop for wxEvents!
+//#endif
   }
 }
 
@@ -217,53 +218,102 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
   if (nx < kxLimit) kxLimit = nx;
   if (ny < kyLimit) kyLimit = ny;
 
-  if ( nx > 0 && ny > 0 ) {
-    SizeT p = (ysize - yoff - 1)*3*xsize;
-    for ( int iy = 0; iy < kyLimit; ++iy ) {
-      SizeT rowStart = p;
-      p += xoff*3;
-      for ( int ix = 0; ix < kxLimit; ++ix ) {
-        if ( trueColorOrder == 0 && chan == 0 ) {
-          if (decomposed == 1){
+  if (nx > 0 && ny > 0) {
+    SizeT p = (ysize - yoff - 1)*3 * xsize;
+    if (trueColorOrder == 0 && chan == 0) {
+      if (decomposed == 1) {
+        for (int iy = 0; iy < kyLimit; ++iy) {
+          SizeT rowStart = p;
+          p += xoff * 3;
+          for (int ix = 0; ix < kxLimit; ++ix) {
             mem[p++] = idata[iy * nx + ix];
             mem[p++] = idata[iy * nx + ix];
             mem[p++] = idata[iy * nx + ix];
-          } else {
+          }
+          p = rowStart - (xsize * 3);
+        }
+      } else {
+        for (int iy = 0; iy < kyLimit; ++iy) {
+          SizeT rowStart = p;
+          p += xoff * 3;
+          for (int ix = 0; ix < kxLimit; ++ix) {
             mem[p++] = pls->cmap0[idata[iy * nx + ix]].r;
             mem[p++] = pls->cmap0[idata[iy * nx + ix]].g;
             mem[p++] = pls->cmap0[idata[iy * nx + ix]].b;
           }
-        } else {
-          if ( chan == 0 ) {
-            if ( trueColorOrder == 1 ) {
-              mem[p++] = idata[3 * (iy * nx + ix) + 0]; 
+          p = rowStart - (xsize * 3);
+        }
+      }
+    } else {
+      if (chan == 0) {
+        if (trueColorOrder == 1) {
+          for (int iy = 0; iy < kyLimit; ++iy) {
+            SizeT rowStart = p;
+            p += xoff * 3;
+            for (int ix = 0; ix < kxLimit; ++ix) {
+              mem[p++] = idata[3 * (iy * nx + ix) + 0];
               mem[p++] = idata[3 * (iy * nx + ix) + 1];
               mem[p++] = idata[3 * (iy * nx + ix) + 2];
-            } else if ( trueColorOrder == 2 ) {
+            }
+            p = rowStart - (xsize * 3);
+          }
+        } else if (trueColorOrder == 2) {
+          for (int iy = 0; iy < kyLimit; ++iy) {
+            SizeT rowStart = p;
+            p += xoff * 3;
+            for (int ix = 0; ix < kxLimit; ++ix) {
               mem[p++] = idata[nx * (iy * 3 + 0) + ix];
               mem[p++] = idata[nx * (iy * 3 + 1) + ix];
               mem[p++] = idata[nx * (iy * 3 + 2) + ix];
-            } else if ( trueColorOrder == 3 ) {
+            }
+            p = rowStart - (xsize * 3);
+          }
+        } else if (trueColorOrder == 3) {
+          for (int iy = 0; iy < kyLimit; ++iy) {
+            SizeT rowStart = p;
+            p += xoff * 3;
+            for (int ix = 0; ix < kxLimit; ++ix) {
               mem[p++] = idata[nx * (0 * ny + iy) + ix];
               mem[p++] = idata[nx * (1 * ny + iy) + ix];
               mem[p++] = idata[nx * (2 * ny + iy) + ix];
             }
-          } else { //1 byte bitmap passed.
-            if ( chan == 1 ) {
+            p = rowStart - (xsize * 3);
+          }
+        }
+      } else { //1 byte bitmap passed.
+        if (chan == 1) {
+          for (int iy = 0; iy < kyLimit; ++iy) {
+            SizeT rowStart = p;
+            p += xoff * 3;
+            for (int ix = 0; ix < kxLimit; ++ix) {
               mem[p++] = idata[1 * (iy * nx + ix) + 0];
               p += 2;
-            } else if ( chan == 2 ) {
-              p ++;
+            }
+            p = rowStart - (xsize * 3);
+          }
+        } else if (chan == 2) {
+          for (int iy = 0; iy < kyLimit; ++iy) {
+            SizeT rowStart = p;
+            p += xoff * 3;
+            for (int ix = 0; ix < kxLimit; ++ix) {
+              p++;
               mem[p++] = idata[1 * (iy * nx + ix) + 0];
-              p ++;
-            } else if ( chan == 3 ) {
+              p++;
+            }
+            p = rowStart - (xsize * 3);
+          }
+        } else if (chan == 3) {
+          for (int iy = 0; iy < kyLimit; ++iy) {
+            SizeT rowStart = p;
+            p += xoff * 3;
+            for (int ix = 0; ix < kxLimit; ++ix) {
               p += 2;
               mem[p++] = idata[1 * (iy * nx + ix) + 0];
             }
+            p = rowStart - (xsize * 3);
           }
         }
       }
-      p = rowStart - (xsize*3);  
     }
   }
   streamDC->DrawBitmap(image,0,0);
