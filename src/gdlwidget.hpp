@@ -1298,11 +1298,13 @@ class GDLWidgetText: public GDLWidget
   int maxlinelength;
   int nlines;
   bool wrapped;
+  bool multiline;
 public:
   GDLWidgetText( WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, bool noNewLine,
 		 bool editable);
   ~GDLWidgetText();
   
+  bool IsMultiline(){return multiline;}
   bool IsEditable(){return editable;}
   void SetEditable(bool v){ editable=v;}
   void ChangeText( DStringGDL* value, bool noNewLine=false);

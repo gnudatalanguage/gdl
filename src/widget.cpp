@@ -2799,11 +2799,43 @@ void widget_control( EnvT* e ) {
           GDLWidgetText* txt= static_cast<GDLWidgetText*>(widget);
 //          v = widget->GetVvalue( );
           v = new DStringGDL(txt->GetLastValue());
-        }
-        if ( v != NULL ) {
-          if (valueKW) GDLDelete( (*valueKW) );
-          *valueKW = v->Dup( );
-        }
+          }
+          if (v != NULL) {
+            if (valueKW) GDLDelete((*valueKW));
+            DStringGDL *s = static_cast<DStringGDL *> (v);
+#ifdef _WIN32
+            std::string crlf("\r\n");
+            int crlfSize = 2;
+#else
+            std::string crlf("\n");
+            int crlfSize = 1;
+#endif
+            int nlines = 1; //text in widgets has no ending return.
+            size_t opos = 0;
+            size_t pos = ((*s)[0]).find(crlf);
+            while ((pos != std::string::npos)) {
+              nlines++;
+              opos = pos + crlfSize;
+              pos = ((*s)[0]).find(crlf, opos);
+            }
+
+            if (nlines == 1) *valueKW = v;
+            else {
+              DStringGDL* res = new DStringGDL(dimension(nlines), BaseGDL::NOZERO);
+              int index = 0;
+              opos=0;
+              pos = ((*s)[0]).find(crlf);
+              while ((pos != std::string::npos)) {
+                (*res)[index] = ((*s)[0]).substr(opos, pos - opos);
+                index++;
+                opos = pos + crlfSize;
+                pos = ((*s)[0]).find(crlf, opos);
+              }
+              (*res)[index] = ((*s)[0]).substr(opos); //text in widgets has no ending return.
+              GDLDelete(v);
+              *valueKW = res;
+            }
+          }
       } else {
         e->Throw("Class of specified widget has no value: "+i2s(widget->GetWidgetType()));
       }

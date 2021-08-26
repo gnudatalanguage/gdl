@@ -307,25 +307,26 @@ inline wxSize GDLWidgetText::computeWidgetSize()
   //widget text size is in LINES in Y and CHARACTERS in X. But overridden by scr_xsize et if present
   wxRealPoint widgetSize = wxRealPoint(-1,-1);
   wxSize fontSize = getFontSize();
+  wxSize totalExtent=calculateTextScreenSize(lastValue);
   int lineHeight=1.19*fontSize.y;
   if (wSize.x > 0) {
     widgetSize.x = (wSize.x) * fontSize.x;
   } else {
     //if (scrolled || noNewLine) widgetSize.x =  20 * fontSize.x; else
-      widgetSize.x =  calculateTextScreenSize(lastValue).x+2*fontSize.x;//add 2 char wide for border.
+      widgetSize.x =  totalExtent.x+2*fontSize.x;//add 2 char wide for border.
   }
   
   if (nlines > 1 || scrolled ) widgetSize.x +=  gdlSCROLL_WIDTH_Y;
   
   //if xsize is not enough, wxWidget will add an X-direction scrollbar. Y must be higher
   
-  if (wSize.y > 0) {
+  if (wSize.y > 1) {
     widgetSize.y = wSize.y * lineHeight;
   } else {
     widgetSize.y = lineHeight;
   }
 
-   if (scrolled)  widgetSize.y += gdlSCROLL_HEIGHT_X; 
+   if (scrolled || (widgetSize.x <= totalExtent.x ) )  widgetSize.y += gdlSCROLL_HEIGHT_X; 
    else if (nlines < 2 && !( wrapped || scrolled ) ) widgetSize.y+=2*gdlTEXT_YMARGIN;
    
   //but..
@@ -4965,6 +4966,7 @@ bool editable_ )
 : GDLWidget( p, e, valueStr, eventflags )
 , noNewLine( noNewLine_ )
 , editable(editable_)
+, multiline(false)
 {
   static int wrapIx=e->KeywordIx("WRAP");
   wrapped=(e->KeywordSet(wrapIx));
@@ -4973,7 +4975,7 @@ bool editable_ )
   nlines=1;
   
   //reform entries into one string, with eventual \n . If noNewLines, do not insert a \n . If ysize=1 and no scroll, idem.
-  bool doNotAddNl=(noNewLine || (!scrolled && wSize.y==-1) );
+  bool doNotAddNl=(noNewLine || (!scrolled && wSize.y<=1) );
   
   if( vValue != NULL)
   {
@@ -5020,9 +5022,9 @@ bool editable_ )
   wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
   long textStyle = wxTE_RICH2|wxTE_NOHIDESEL;
 
-  if (nlines>1) textStyle |= wxTE_MULTILINE;
-  if (wSize.y >1) textStyle |= wxTE_MULTILINE;
-  if (!scrolled) textStyle |= wxTE_NO_VSCROLL;
+  if (nlines>1) textStyle |= wxTE_MULTILINE; 
+  if (wSize.y >1) {textStyle |= wxTE_MULTILINE; multiline=true;}
+  if (!scrolled) {textStyle |= wxTE_NO_VSCROLL;} else {textStyle |= wxHSCROLL; multiline=true;}
   if (wrapped) textStyle |= wxTE_WORDWRAP; else textStyle |= wxTE_DONTWRAP;
   if (!editable && !report ) textStyle |= wxTE_READONLY;
 
@@ -5054,6 +5056,7 @@ bool editable_ )
   if (report) this->AddToDesiredEvents( wxEVT_COMMAND_TEXT_PASTE, wxClipboardTextEventHandler(gdlwxFrame::OnTextPaste),text);
   if (report) this->AddToDesiredEvents( wxEVT_COMMAND_TEXT_CUT, wxClipboardTextEventHandler(gdlwxFrame::OnTextCut),text);
   if (report) this->AddToDesiredEvents( wxEVT_LEFT_DOWN, wxMouseEventHandler(gdlwxFrame::OnTextMouseEvents),text); 
+  if (report) this->AddToDesiredEvents( wxEVT_LEFT_UP, wxMouseEventHandler(gdlwxFrame::OnTextMouseEvents),text); 
   if (report) this->AddToDesiredEvents( wxEVT_MIDDLE_DOWN, wxMouseEventHandler(gdlwxFrame::OnTextMouseEvents),text); 
 
 //  UPDATE_WINDOW
@@ -5163,7 +5166,7 @@ void GDLWidgetText::ChangeText( DStringGDL* valueStr, bool noNewLine_)
   if ( theWxWidget != NULL ) {
     wxTextCtrl* txt=dynamic_cast<wxTextCtrl*> (theWxWidget);
     assert( txt != NULL);
-    txt->ChangeValue( valueWxString ); //by contrast with SetValue, does not generate an EVENT -- IDL does not either.    
+    txt->ChangeValue( valueWxString ); //by contrast with SetValue, does not generate an EVENT -- IDL does not either.
   }  else std::cerr << "Null widget in GDLWidgetText::SetTextValue(), please report!" << std::endl;
 }
 
