@@ -1932,11 +1932,11 @@ BaseGDL* widget_info( EnvT* e ) {
         else if (sens) result = widget->GetSensitive();
         else if (sibling) result = widget->GetSibling();
         else { // child || nchildren
-          DLong nchild = static_cast<GDLWidgetContainer*> (widget)->NChildren();
+          DLong nchild = widget->NChildren();
           if (nchildren) {
             result = nchild;
           } else if (child) {
-            if (nchild > 0) result = static_cast<GDLWidgetContainer*> (widget)->GetChild(0);
+            if (nchild > 0) result = widget->GetChild(0);
             else result = 0;
           }
         }
@@ -1959,11 +1959,11 @@ BaseGDL* widget_info( EnvT* e ) {
           else if (sens)  result = widget->GetSensitive( ); 
           else if (sibling)  result = widget->GetSibling( );
           else { // child || nchildren
-            DLong nchild = static_cast<GDLWidgetContainer*> (widget)->NChildren();
+            DLong nchild = widget->NChildren();
             if (nchildren) {
               result = nchild;
             } else if (child) {
-              if (nchild > 0) result = static_cast<GDLWidgetContainer*> (widget)->GetChild(0);
+              if (nchild > 0) result = widget->GetChild(0);
               else result = 0;
             }
           }
