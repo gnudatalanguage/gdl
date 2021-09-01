@@ -23,6 +23,9 @@
 // #define GDL_DEBUG_WIDGETS
 // #define GDL_DEBUG_WIDGETS_COLORIZE
 
+// use "plain menubars" instead of 'taskbars used as menubars'. taskbars permit to change font in bar, put pixmaps instead of text, and will work
+// on OSX. So we choose normally to undefine this 
+// #define PREFERS_MENUBAR 1
 #include <wx/wx.h>
 #include <wx/app.h>
 #include <wx/panel.h>
@@ -108,7 +111,7 @@ public:
     return front;
   }
   // for all regular events
-  void Push( DStructGDL* ev)
+  void PushBack( DStructGDL* ev)
   {
     dq.push_back( ev);
   }
@@ -198,7 +201,7 @@ public:
  WidgetEventInfo(wxEventType t_, wxObjectEventFunction f_, wxWindow* w_) : t(t_), f(f_), w(w_) {
  }
 };
-#if __WXMSW__ 
+#ifndef __WXMAC__
 // main App class
 class wxAppGDL: public wxApp
 {
@@ -216,7 +219,7 @@ public:
 //the event processing stops immediately considering that the event had been already processed
 //(for the former return value) or that it is not going to be processed at all (for the latter one).
 };
-//wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
+wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
 #endif
 
 // GDL versions of wxWidgets controls =======================================
@@ -260,7 +263,7 @@ public:
   event->SetEventObject(this);
   // only for wWidgets > 2.9 (takes ownership of event)
   //     this->QueueEvent( event);
-  //this->AddPendingEvent( *event); // copies event
+//  this->AddPendingEvent(*event); // copies event
   this->OnShowRequest(*event); // JP Apr 2015: Should block the main thread until the window opens,
   //              so that the following WIDGET_INFO can properly read
   //              the window's properties.
@@ -620,8 +623,13 @@ public:
   virtual DLong NChildren() const { return 0;}
   DLong GetSibling();
   virtual DLongGDL* GetChildrenList() const {return new DLongGDL(0);}
-  virtual void SetXmanagerActiveCommand() {}
-  virtual bool GetXmanagerActiveCommand() const { return false;}
+  
+  //returns a list of IDs of all the widgets starting at me and below.
+  DLongGDL* GetAllHeirs();
+  
+  virtual void SetXmanagerActiveCommand() {std::cerr<<"XMANAGER ACTIVE COMMAND on a not-top widget, please report."<<std::endl;}
+  
+  bool GetXmanagerActiveCommand();
 
   void SetEventPro( const DString& ePro) { eventPro = StrUpCase( ePro);}
   const DString& GetEventPro() const { return eventPro;};
@@ -697,35 +705,25 @@ public:
   bool DisableSizeEvents(gdlwxFrame* &tlbFrame,WidgetIDT &id);
   static void EnableSizeEvents(gdlwxFrame* &tlbFrame,WidgetIDT &id);
 
-  void SendWidgetTimerEvent(DDouble secs) {
-  WidgetIDT* id = new WidgetIDT(widgetID);
-  int millisecs = floor(secs * 1000.0);
-  if (theWxWidget) { //we nee a handle on a wxWindow object...
-   wxWindow* w=dynamic_cast<wxWindow*>(theWxWidget);
-   assert (w!=NULL);
-   w->GetEventHandler()->SetClientData(id);
-   if (m_windowTimer==NULL) {
-    m_windowTimer=new wxTimer(w->GetEventHandler(),widgetID);
-   }
-#ifdef GDL_DEBUG_WIDGETS
-   std::cerr<<"sending event,"<<widgetID<<","<<m_windowTimer<<std::endl;
-#endif
-   m_windowTimer->StartOnce(millisecs);
-  }
- }
+  void SendWidgetTimerEvent(DDouble secs);
+
+  void ClearEvents();
 };
 
 class GDLWidgetContainer: public GDLWidget
 {
 protected:
   std::deque<WidgetIDT> children;
+  bool xfree;
+  bool yfree;
 public:
   GDLWidgetContainer( WidgetIDT parentID, EnvT* e, ULong eventFlags_=0);
 
   ~GDLWidgetContainer();
   
   virtual bool IsContainer() const { return true;}
-  
+  bool xFree() {return xfree;}
+  bool yFree() {return yfree;}
 //Realize a Container==> realise first all children. Vertically-stored widgets in a base widget must be reordered, done in overriding GDLWidgetBase::OnRealize.
   void OnRealize();
 
@@ -806,12 +804,7 @@ public:
   virtual bool IsNormalBase() const { return false;} 
   virtual bool IsTabbedBase() const { return false;} 
   void SetWidgetSize(DLong sizex, DLong sizey) final;
-  void ClearEvents()
-  {
-  if (!this->GetXmanagerActiveCommand( ))  eventQueue.Purge();
-  else readlineEventQueue.Purge(); 
-  }
-  
+ 
   void NullWxWidget() { theWxWidget = NULL;}
   
   WidgetIDT GetLastRadioSelection() const { return lastRadioSelection;}                         
@@ -982,6 +975,7 @@ public:
 class wxButtonGDL: public wxButton
 {
   wxMenu* popupMenu;
+  wxPoint position;
 public: 
   wxButtonGDL(wxFont font, wxWindow *parent, 
           wxWindowID id, 
@@ -994,6 +988,7 @@ public:
       wxButton(parent,id,label,pos,size,style,validator,name){
       this->SetFont(font);
       popupMenu=new wxMenu();
+      position=this->GetClientRect().GetBottomLeft();
       Connect(id, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(wxButtonGDL::OnButton));
       Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(wxButtonGDL::OnButton));
     }
@@ -1161,8 +1156,8 @@ public:
 #else
  wxToolBarToolBase* entry;
  GDLWidgetMenuBarButton(WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, wxBitmap* bitmap_=NULL, DStringGDL* buttonTooltip = NULL);
- wxSize computeWidgetSize(); //not a real menubar: buttons may have a different fontsize.
 #endif
+ wxSize computeWidgetSize(); //not a real menubar: buttons may have a different fontsize.
  ~GDLWidgetMenuBarButton();
  void SetSensitive(bool value);
  void SetButtonWidgetLabelText( const DString& value_ );
@@ -1303,11 +1298,13 @@ class GDLWidgetText: public GDLWidget
   int maxlinelength;
   int nlines;
   bool wrapped;
+  bool multiline;
 public:
   GDLWidgetText( WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, bool noNewLine,
 		 bool editable);
   ~GDLWidgetText();
   
+  bool IsMultiline(){return multiline;}
   bool IsEditable(){return editable;}
   void SetEditable(bool v){ editable=v;}
   void ChangeText( DStringGDL* value, bool noNewLine=false);

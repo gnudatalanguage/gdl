@@ -90,7 +90,7 @@ if (frameWidth > 0) {\
   widgetPanel->FitInside();
 
 #define UPDATE_WINDOW { if (this->GetRealized()) UpdateGui(); }
-#define REALIZE_IF_NEEDED { if (this->GetRealized()) this->OnRealize(); UpdateGui(); }
+#define REALIZE_IF_NEEDED { if (this->GetRealized()) {this->OnRealize(); UpdateGui();} }
 
 const WidgetIDT GDLWidget::NullID = 0;
 
@@ -113,21 +113,25 @@ void GDLEventQueue::Purge()
   //   isEmpty = true;
 }
 
-// removes all events for TLB 'topID'
-void GDLEventQueue::Purge( WidgetIDT topID)
-{
-  for( long i=dq.size()-1; i>=0;--i)
-  {
+// removes all events for hierarchy staring at 'parentID' and below
+void GDLEventQueue::Purge( WidgetIDT parentID) {
+  //establish a list of children:
+  GDLWidget* w = GDLWidget::GetWidget(parentID);
+  DLongGDL* list = w->GetAllHeirs();
+  for (long i = dq.size() - 1; i >= 0; --i) {
     DStructGDL* ev = dq[i];
-    static int topIx = ev->Desc( )->TagIndex( "TOP" );
-    assert( topIx == 1 );
-    DLong top = (*static_cast<DLongGDL*> (ev->GetTag( topIx, 0 )))[0];
-    if( top == topID)
-    {
-      delete ev;
-      dq.erase( dq.begin( ) + i );
+    static int idIx = 0; // ev->Desc( )->TagIndex( "ID" ); //always 0
+    DLong id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0];
+    //all events pertaining to any heirs of 'parentID' including 'parentID' are removed:
+    for (DLong testid = 0; testid < list->N_Elements(); ++testid) {
+      if (id == (*list)[testid]) {
+//        std::cerr<<"event "<<id<<" purged."<<std::endl;
+        delete ev;
+        dq.erase(dq.begin() + i);
+      }
     }
   }
+  GDLDelete(list);
   //   isEmpty = true;
 }
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
@@ -303,25 +307,26 @@ inline wxSize GDLWidgetText::computeWidgetSize()
   //widget text size is in LINES in Y and CHARACTERS in X. But overridden by scr_xsize et if present
   wxRealPoint widgetSize = wxRealPoint(-1,-1);
   wxSize fontSize = getFontSize();
+  wxSize totalExtent=calculateTextScreenSize(lastValue);
   int lineHeight=1.19*fontSize.y;
   if (wSize.x > 0) {
     widgetSize.x = (wSize.x) * fontSize.x;
   } else {
     //if (scrolled || noNewLine) widgetSize.x =  20 * fontSize.x; else
-      widgetSize.x =  calculateTextScreenSize(lastValue).x+2*fontSize.x;//add 2 char wide for border.
+      widgetSize.x =  totalExtent.x+2*fontSize.x;//add 2 char wide for border.
   }
   
   if (nlines > 1 || scrolled ) widgetSize.x +=  gdlSCROLL_WIDTH_Y;
   
   //if xsize is not enough, wxWidget will add an X-direction scrollbar. Y must be higher
   
-  if (wSize.y > 0) {
+  if (wSize.y > 1) {
     widgetSize.y = wSize.y * lineHeight;
   } else {
     widgetSize.y = lineHeight;
   }
 
-   if (scrolled)  widgetSize.y += gdlSCROLL_HEIGHT_X; 
+   if (scrolled || (widgetSize.x <= totalExtent.x ) )  widgetSize.y += gdlSCROLL_HEIGHT_X; 
    else if (nlines < 2 && !( wrapped || scrolled ) ) widgetSize.y+=2*gdlTEXT_YMARGIN;
    
   //but..
@@ -422,24 +427,48 @@ inline wxSize GDLWidget::computeWidgetSize()
 
 void GDLWidget::UpdateGui()
 {
+  //needed to recompute sizes in case of a change of realized widgets or any size change.
   START_CHANGESIZE_NOEVENT 
   
   WidgetIDT actID = parentID;
   while ( actID != GDLWidget::NullID ) {
     GDLWidget *widget = GetWidget( actID );
-    wxPanel* p=widget->GetPanel();
+      wxPanel* p=widget->GetPanel();
     if (p) {
-      wxSizer* s=p->GetSizer();
-      if (s) s->Fit(p);  else p->Fit();
+      wxSizer* s = p->GetSizer();
+      if (s) s->Fit(p);
+      else { //force widget having the panel to adopt correct sizes
+        p->Fit();
+        GDLWidgetContainer* myParentContainer = static_cast<GDLWidgetContainer*> (this->GetMyParentBaseWidget());
+        if (myParentContainer != NULL) {
+          wxWindow* w = static_cast<wxWindow*> (this->GetParentPanel());
+          assert(w != NULL);
+          assert(w == p);
+          wxSize wSize = w->GetSize();
+          wxSize mySize = p->GetSize();
+          // if w.x or w.y was SET BY USER it is a requested size, that we should not change
+          wxSize desiredSize;
+          if (myParentContainer->xFree()) desiredSize.x = max(mySize.x, wSize.x);
+          else {
+            desiredSize.x = wSize.x;
+          }
+          if (myParentContainer->yFree()) desiredSize.y = max(mySize.y, wSize.y);
+          else {
+            desiredSize.y = wSize.y;
+          }
+          w->SetSize(desiredSize);
+          w->SetMinSize(desiredSize);
+        }
+      }
     }
     actID = widget->parentID;
   }
   this->GetMyTopLevelFrame()->Fit();
-  END_CHANGESIZE_NOEVENT 
-#if __WXMSW__ 
-    wxTheApp->MainLoop(); //central loop for wxEvents!
+  END_CHANGESIZE_NOEVENT
+#ifdef __WXMAC__
+  wxTheApp->Yield();
 #else
-    wxTheApp->Yield();
+  wxGetApp().MainLoop(); //central loop for wxEvents!
 #endif
 }
 
@@ -615,37 +644,60 @@ void GDLWidget::RefreshDynamicWidget() {
     }
 }
 
+void GDLWidget::SendWidgetTimerEvent(DDouble secs) {
+  WidgetIDT* id = new WidgetIDT(widgetID);
+  int millisecs = floor(secs * 1000.0);
+  if (theWxWidget) { //we nee a handle on a wxWindow object...
+    wxWindow* w = dynamic_cast<wxWindow*> (theWxWidget);
+    assert(w != NULL);
+    w->GetEventHandler()->SetClientData(id);
+    if (m_windowTimer == NULL) {
+      m_windowTimer = new wxTimer(w->GetEventHandler(), widgetID);
+    }
+#ifdef GDL_DEBUG_WIDGETS
+    std::cerr << "sending event," << widgetID << "," << m_windowTimer << std::endl;
+#endif
+    m_windowTimer->StartOnce(millisecs);
+  }
+}
+
+void GDLWidget::ClearEvents() {
+  if (!this->GetXmanagerActiveCommand()) eventQueue.Purge(this->GetWidgetID());
+  else readlineEventQueue.Purge(this->GetWidgetID());
+}
+
 void GDLWidget::HandleWidgetEvents()
 {
-  //make one loop for wxWidgets Events...
-#if __WXMSW__ 
-    wxTheApp->MainLoop(); //central loop for wxEvents!
+  //make one loop for wxWidgets Events. Forcibly, as HandleWidgetEvents() is called by the readline eventLoop, we are in a non-blocked case.
+#ifdef __WXMAC__
+  wxTheApp->Yield();
 #else
-    wxTheApp->Yield();
+  wxGetApp().MainLoop(); //central loop for wxEvents!
 #endif
   //treat our GDL events...
     DStructGDL* ev = NULL;
     while( (ev = GDLWidget::readlineEventQueue.Pop()) != NULL)
     {
-      static int idIx = ev->Desc( )->TagIndex( "ID" ); // 0
-      static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
-      static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" ); // 2
-      assert( idIx == 0 );
-      assert( topIx == 1 );
-      assert( handlerIx == 2 );
+//        static int idIx = ev->Desc( )->TagIndex( "ID" ); // 0
+//        static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
+//        static int handlerIx = ev->Desc( )->TagIndex( "HANDLER" ); // 2
+//        assert( idIx == 0 );
+//        assert( topIx == 1 );
+//        assert( handlerIx == 2 );
 
       ev = CallEventHandler( ev );
 
       if( ev != NULL)
       {
+        int idIx = ev->Desc( )->TagIndex( "ID" );
+        assert( idIx == 0 );
         WidgetIDT id = (*static_cast<DLongGDL*> (ev->GetTag( idIx, 0 )))[0];
         Warning( "Unhandled event. ID: " + i2s( id ) );
         GDLDelete( ev );
         ev = NULL;
-      } 
+      }
     }
     if (wxIsBusy()) wxEndBusyCursor( );
-//  }
 }
 
 void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) {
@@ -655,10 +707,10 @@ void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) {
     bool xmanActCom = baseWidget->GetXmanagerActiveCommand( );
     if ( !xmanActCom ) { //blocking: events in eventQueue.
       //     wxMessageOutputStderr().Printf(_T("eventQueue.Push: %d\n"),baseWidgetID);
-      eventQueue.Push( ev );
+      eventQueue.PushBack( ev );
     } else { //non-Blocking: events in readlineeventQueue.
       //     wxMessageOutputStderr().Printf(_T("readLineEventQueue.Push: %d\n"),baseWidgetID);
-      readlineEventQueue.Push( ev );
+      readlineEventQueue.PushBack( ev );
     }
   } else cerr << "NULL baseWidget (possibly Destroyed?) found in GDLWidget::PushEvent( WidgetIDT baseWidgetID=" << baseWidgetID << ", DStructGDL* ev=" << ev << "), please report!\n";
 }
@@ -671,7 +723,7 @@ void GDLWidget::InformAuthorities(const std::string& message){
         ev->InitTag( "HANDLER", DLongGDL( 0 ) );
         ev->InitTag( "MESSAGE", DStringGDL(message) );
           readlineEventQueue.PushFront( ev ); // push front (will be handled next)
-}
+    }
 
 bool GDLWidget::GetXmanagerBlock() 
 {
@@ -736,10 +788,40 @@ BaseGDL* GDLWidget::GetManagedWidgetsList() {
   }
   return result;
 }
+
+DLongGDL* GDLWidget::GetAllHeirs(){
+  std::vector<WidgetIDT> widgetIDList;
+  std::vector<bool> has_children;
+  widgetIDList.push_back(this->widgetID);
+  if (this->NChildren() > 0) has_children.push_back(true);
+  else has_children.push_back(false);
+  //loop on this list, and add recursively all children when widget is a container.
+  SizeT currentVectorSize = widgetIDList.size();
+  while (1) {
+    for (SizeT i = 0; i < currentVectorSize; i++) {
+      if (has_children.at(i)) {
+        has_children.at(i) = false;
+        GDLWidget *widget = GDLWidget::GetWidget(widgetIDList.at(i));
+        DLongGDL* list = static_cast<GDLWidgetContainer*> (widget)->GetChildrenList();
+        for (SizeT j = 0; j < list->N_Elements(); j++) {
+          widgetIDList.push_back((*list)[j]);
+          if (GDLWidget::GetWidget((*list)[j])->NChildren() > 0) has_children.push_back(true);
+          else has_children.push_back(false);
+        }
+      }
+    }
+    if (widgetIDList.size() == currentVectorSize) break; //no changes
+    currentVectorSize = widgetIDList.size();
+  }
+  DLongGDL* result = new DLongGDL(currentVectorSize, BaseGDL::NOZERO);
+  for (SizeT i = 0; i < currentVectorSize ; ++i) (*result)[i] = widgetIDList[i];
+  return result;
+}
+
 //
 bool GDLWidget::InitWx()
 { if (wxTheApp == NULL) { //not already initialized
-  if (!wxInitialize()) {
+if (!wxInitialize()) {
     std::cerr << "WARNING: wxWidgets not initializing, widget-related commands will not be available." << std::endl;
     return false;
   }
@@ -761,11 +843,11 @@ void GDLWidget::Init()
   //initially defaultFont and systemFont are THE SAME.
   defaultFont=systemFont;
   SetWxStarted();
-  //use a phantom window to retrieve th exact size of scrollBars wxWidget give wrong values.
-   gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
-   test->Hide();
-   test->Realize();
-   test->Destroy();
+//  //use a phantom window to retrieve th exact size of scrollBars wxWidget give wrong values.
+//   gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
+//   test->Hide();
+//   test->Realize();
+//   test->Destroy();
 }
 // UnInit
 void GDLWidget::UnInit() {
@@ -912,6 +994,12 @@ bool GDLWidget::GetSensitive()
 {
   return sensitive;
 }
+
+bool GDLWidget::GetXmanagerActiveCommand() {
+  GDLWidgetTopBase* w = GetMyTopLevelBaseWidget();
+  return w->GetXmanagerActiveCommand();
+}
+  
 DLong GDLWidget::GetSibling()
 {
   if ( parentID == GDLWidget::NullID ) {return 0;}
@@ -1094,7 +1182,7 @@ void GDLWidgetTopBase::Realize(bool map, bool use_default) {
   if (use_default) map = GetMap();
 
   OnRealize();
-  
+ 
  if (map) topFrame->Show() ; //endShowRequestEvent();
   else topFrame->Hide(); //SendHideRequestEvent();
   realized=true;
@@ -1121,7 +1209,34 @@ bool GDLWidget::GetRealized() {
   }
   
   wxPanel* p=static_cast<wxPanel*> (theWxContainer);
-  if (p) p->Fit(); 
+  if (p) {
+    wxSizer* s = p->GetSizer();
+    if (s) s->Fit(p);
+    else {
+      p->Fit();
+      if (this->GetParentSizer() == NULL) { //force size of parent since we cannot leave it to a nonexistent parent sizer.
+        GDLWidgetContainer* myParentContainer = static_cast<GDLWidgetContainer*> (this->GetMyParentBaseWidget());
+        if (myParentContainer != NULL) {
+          wxWindow* w = static_cast<wxWindow*> (this->GetParentPanel());
+          assert(w != NULL);
+          wxSize wSize = w->GetSize();
+          wxSize mySize = p->GetSize();
+          // if w.x or w.y was SET BY USER it is a requested size, that we should not change
+          wxSize desiredSize;
+          if (myParentContainer->xFree()) desiredSize.x = max(mySize.x, wSize.x);
+          else {
+            desiredSize.x = wSize.x;
+          }
+          if (myParentContainer->yFree()) desiredSize.y = max(mySize.y, wSize.y);
+          else {
+            desiredSize.y = wSize.y;
+          }
+          w->SetSize(desiredSize);
+          w->SetMinSize(desiredSize);
+        }
+      }
+    }
+  }
 #ifdef GDL_DEBUG_WIDGETS
     else wxMessageOutputStderr().Printf(_T("Unknown Container for (%s) widget ID %d\n"), widgetName, widgetID);
 #endif
@@ -1353,7 +1468,7 @@ DStructGDL* GDLWidget::GetGeometry(wxRealPoint fact)
 }
 
 GDLWidgetContainer::GDLWidgetContainer( WidgetIDT parentID, EnvT* e, ULong eventFlags_)
-: GDLWidget( parentID, e, NULL, eventFlags_)
+: GDLWidget( parentID, e, NULL, eventFlags_),xfree(true),yfree(true)
 {
 }
   
@@ -1446,7 +1561,7 @@ GDLWidgetBase::GDLWidgetBase(WidgetIDT parentID, EnvT* e, ULong eventFlags_,
   // All bases can receive events: EV_CONTEXT, EV_KBRD_FOCUS, EV_TRACKING
 
   wSize = computeWidgetSize();
-  //get immediately rid of scroll sizes in case of scroll or not... Here is the logic:
+//get immediately rid of scroll sizes in case of scroll or not... Here is the logic:
 
   if (x_scroll_size > 0) {scrolled=true;x_scroll_size*=unitConversionFactor.x;x_scroll_size+=gdlSCROLL_WIDTH_Y;} 
   if (y_scroll_size > 0) {scrolled=true;y_scroll_size*=unitConversionFactor.y;y_scroll_size+=gdlSCROLL_HEIGHT_X;}
@@ -1455,7 +1570,8 @@ GDLWidgetBase::GDLWidgetBase(WidgetIDT parentID, EnvT* e, ULong eventFlags_,
     if (y_scroll_size < 1) y_scroll_size = gdlDEFAULT_YSIZE+gdlSCROLL_HEIGHT_X;
   }
   wScrollSize = scrolled ? wxSize(x_scroll_size , y_scroll_size ) : wSize; //y_scroll_size + gdlSCROLL_HEIGHT_X);
-  
+  xfree=(wScrollSize.x <= 0);
+  yfree=(wScrollSize.y <= 0);  
   // Set exclusiveMode
   // If exclusive then set to -1 to signal first radiobutton
   if ( exclusiveMode_ == BGEXCLUSIVE )
@@ -1519,7 +1635,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
       if (xpad > 1) sz->Add(0, 0, wxGBPosition(1, 2));
       if (ypad > 1) sz->Add(0, 0, wxGBPosition(2, 1));
 
-      widgetPanel = new wxScrolledWindow(padxpady, wxID_ANY, wOffset, wxDefaultSize); 
+      widgetPanel = new wxScrolledWindow(padxpady, widgetID, wOffset, wxDefaultSize); 
       sz->Add(widgetPanel, wxGBPosition(1, 1));
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
@@ -1535,7 +1651,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
       panelsz->Add(padxpady, FRAME_ALLOWSTRETCH, wxALL | wxEXPAND, frameWidth);//gdlFRAME_MARGIN);
       panelsz->Fit(padxpady);
     } else {
-      widgetPanel = new wxScrolledWindow(frame, wxID_ANY, wOffset, wxDefaultSize); 
+      widgetPanel = new wxScrolledWindow(frame, widgetID, wOffset, wxDefaultSize); 
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
 #endif
@@ -1564,7 +1680,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
       if (xpad > 1) sz->Add(0, 0, wxGBPosition(1, 2));
       if (ypad > 1) sz->Add(0, 0, wxGBPosition(2, 1));
 
-      widgetPanel = new wxScrolledWindow(padxpady, wxID_ANY, wOffset, wxDefaultSize); 
+      widgetPanel = new wxScrolledWindow(padxpady, widgetID, wOffset, wxDefaultSize); 
       sz->Add(widgetPanel, wxGBPosition(1, 1));     
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
@@ -1578,7 +1694,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
         padxpady->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
       }
     } else {
-      widgetPanel = new wxScrolledWindow(parent, wxID_ANY, wOffset, wxDefaultSize); 
+      widgetPanel = new wxScrolledWindow(parent, widgetID, wOffset, wxDefaultSize); 
       theWxContainer = widgetPanel;
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
@@ -1603,7 +1719,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
 
   wxSizer* parentSizer = parent->GetSizer();
   if (parentSizer) parentSizer->Add(static_cast<wxWindow*>(theWxContainer), DONOTALLOWSTRETCH, wxALL | widgetAlignment(), gdlSPACE);
-}
+  }
 
  void GDLWidgetBase::SetWidgetSize(DLong sizex, DLong sizey) 
 {
@@ -1675,6 +1791,10 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignm
   
   // All bases can receive events: EV_CONTEXT, EV_KBRD_FOCUS, EV_TRACKING
 
+//on wxMAC, frame will not appear if style is not exactly this (!!!)
+#ifdef __WXMAC__
+long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);
+#else
   long style=wxDEFAULT_FRAME_STYLE|wxFRAME_TOOL_WINDOW; //wxFRAME_TOOL_WINDOW to NOT get focus. See behaviour of 'P' (photometry) while using ATV (atv.pro). 
   if (frame_attr) {
     style=0;
@@ -1688,6 +1808,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignm
     if (this->GetWidget(groupLeader)==NULL) e->Throw("FLOATING top level bases must have a group leader specified.");
     style |= wxFRAME_TOOL_WINDOW|wxSTAY_ON_TOP ; //wxFRAME_FLOAT_ON_PARENT will destroy the parent widget!!
   }
+#endif
 
   // Top Level Base Widget: can receive special events: tlb_size, tlb_move, tlb_icon and tlb_kill. cannot be framed.
   wxString titleWxString;
@@ -1863,7 +1984,7 @@ GDLWidgetTabbedBase::GDLWidgetTabbedBase(WidgetIDT parentID, EnvT* e, ULong even
   parentTab->InsertPage(myPage, w, titleWxString);
 //  myPage=parentTab->FindPage(w);
   
-  UPDATE_WINDOW
+//  UPDATE_WINDOW
   REALIZE_IF_NEEDED
 }
 /*********************************************************/
@@ -1886,8 +2007,8 @@ GDLWidgetNormalBase::GDLWidgetNormalBase(WidgetIDT parentID, EnvT* e, ULong even
   wxWindow* wxParent = dynamic_cast<wxWindow*> (GetParentPanel());
   assert(wxParent != NULL);
   CreateBase(wxParent);
-
-  UPDATE_WINDOW
+  
+//  UPDATE_WINDOW
   REALIZE_IF_NEEDED
 }
 
@@ -2483,7 +2604,7 @@ TIDY_WIDGET(gdlBORDER_SPACE);
       this->AddToDesiredEvents( wxEVT_GRID_SELECT_CELL,wxGridEventHandler(wxGridGDL::OnTableCellSelection),grid);
 //      this->AddToDesiredEvents( wxEVT_GRID_CELL_LEFT_CLICK,wxGridEventHandler(wxGridGDL::OnTableCellSelection),grid);
 
- UPDATE_WINDOW
+// UPDATE_WINDOW
  REALIZE_IF_NEEDED
 }
 
@@ -3596,7 +3717,7 @@ void GDLWidgetTable::SetTableNumberOfColumns( DLong ncols){
       }
     }
   }
-  else grid->DeleteCols(ncols,old_ncols-ncols);
+  else if (ncols < old_ncols) grid->DeleteCols(ncols,old_ncols-ncols);
   grid->EndBatch( );
 }
 void GDLWidgetTable::SetTableNumberOfRows( DLong nrows){
@@ -3620,7 +3741,7 @@ void GDLWidgetTable::SetTableNumberOfRows( DLong nrows){
       }
     }
   }
-  else grid->DeleteRows(nrows,old_nrows-nrows);
+  else if (nrows < old_nrows) grid->DeleteRows(nrows,old_nrows-nrows);
   grid->EndBatch( );
 }
 DStructGDL* GDLWidgetTable::GetGeometry(wxRealPoint fact)
@@ -3788,7 +3909,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_COLLAPSED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemCollapsed),tree);
     this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_EXPANDED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemExpanded),tree);
     this->AddToDesiredEvents(wxEVT_COMMAND_TREE_SEL_CHANGED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemSelected),tree);
-    UPDATE_WINDOW
+//    UPDATE_WINDOW
     REALIZE_IF_NEEDED
       
   } else {
@@ -3956,7 +4077,7 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
   END_ADD_EVENTUAL_FRAME
   theWxWidget=slider; //no trick anymore!
   TIDY_WIDGET(gdlBORDER_SPACE)
-  UPDATE_WINDOW
+//  UPDATE_WINDOW
   REALIZE_IF_NEEDED 
   this->AddToDesiredEvents( wxEVT_SCROLL_CHANGED,wxScrollEventHandler(gdlwxFrame::OnThumbRelease),slider);
   //dynamically select drag, saves resources! (note: there is no widget_control,/drag for sliders)
@@ -4067,9 +4188,9 @@ GDLWidgetNormalButton::GDLWidgetNormalButton(WidgetIDT p, EnvT* e,
     
   win->SetSize(wSize);
   win->SetMinSize(wSize);
-
+  
   TIDY_WIDGET(gdlBORDER_SPACE)
-  UPDATE_WINDOW
+//  UPDATE_WINDOW
   REALIZE_IF_NEEDED
 
 
@@ -4282,7 +4403,6 @@ GDLWidgetMenuBarButton::GDLWidgetMenuBarButton(WidgetIDT p, EnvT* e,
     assert(toolBar != NULL);
     if (bitmap_ == NULL) {
     wSize=computeWidgetSize();
-    wxSize tbSize=toolBar->GetSize();
     wxButtonGDL *button = new wxButtonGDL(font, toolBar, widgetID, valueWxString,
       wOffset, wSize,  wxBORDER_NONE);
     buttonType = POPUP_NORMAL; //gdlMenuButton is a wxButton --> normal. Bitmaps will be supported starting from 2.9.1 
@@ -4290,16 +4410,19 @@ GDLWidgetMenuBarButton::GDLWidgetMenuBarButton(WidgetIDT p, EnvT* e,
     theWxWidget = button->GetPopupMenu(); //a menu
     button->Enable(sensitive);
     entry=toolBar->AddControl(button);
+    wxSize tbSize=toolBar->GetSize();
     if (tbSize.y < wSize.y) toolBar->SetSize(wxSize(-1,wSize.y));
     toolBar->Realize();
     } else {
     wxBitmapButtonGDL *button = new wxBitmapButtonGDL(toolBar, widgetID, *bitmap_,
-      wOffset, wxDefaultSize,  wxBU_EXACTFIT|wxBORDER_NONE);
+      wOffset, wSize,  wxBU_EXACTFIT|wxBORDER_NONE);
     buttonType = POPUP_BITMAP; //
     theWxContainer = button;
     theWxWidget = button->GetPopupMenu(); //a menu
     button->Enable(sensitive);
     entry=toolBar->AddControl(button);
+    wxSize tbSize=toolBar->GetSize();
+    if (tbSize.y < wSize.y) toolBar->SetSize(wxSize(-1,wSize.y));
     toolBar->Realize();
     }
     
@@ -4397,7 +4520,7 @@ GDLWidgetMenuButton::GDLWidgetMenuButton(WidgetIDT p, EnvT* e,
     if (widgetSizer) widgetSizer->Add(win, DONOTALLOWSTRETCH, widgetStyle|wxALL, gdlSPACE); //|wxALL, gdlSPACE_BUTTON);
   } else cerr << "Warning GDLWidgetMenuButton::GDLWidgetMenuButton(): widget type confusion.\n";
 
-  UPDATE_WINDOW
+//  UPDATE_WINDOW
   REALIZE_IF_NEEDED
 }
 
@@ -4489,7 +4612,7 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style,
   END_ADD_EVENTUAL_FRAME
   TIDY_WIDGET(gdlBORDER_SPACE)
   
-  UPDATE_WINDOW
+//  UPDATE_WINDOW
   REALIZE_IF_NEEDED
 }
 void GDLWidgetList::SetWidgetSize(DLong sizex, DLong sizey)
@@ -4684,7 +4807,7 @@ const DString& title_, DLong style_ )
   droplist->SetSelection(0);
   this->AddToDesiredEvents(  wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler(gdlwxFrame::OnDropList),droplist);
 
-  UPDATE_WINDOW
+//  UPDATE_WINDOW
   REALIZE_IF_NEEDED
 }
   
@@ -4769,7 +4892,7 @@ GDLWidgetComboBox::GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value, DULo
   
   END_ADD_EVENTUAL_FRAME
   TIDY_WIDGET(gdlBORDER_SPACE)
-  UPDATE_WINDOW
+//  UPDATE_WINDOW
   REALIZE_IF_NEEDED
 }
 
@@ -4843,6 +4966,7 @@ bool editable_ )
 : GDLWidget( p, e, valueStr, eventflags )
 , noNewLine( noNewLine_ )
 , editable(editable_)
+, multiline(false)
 {
   static int wrapIx=e->KeywordIx("WRAP");
   wrapped=(e->KeywordSet(wrapIx));
@@ -4851,7 +4975,7 @@ bool editable_ )
   nlines=1;
   
   //reform entries into one string, with eventual \n . If noNewLines, do not insert a \n . If ysize=1 and no scroll, idem.
-  bool doNotAddNl=(noNewLine || (!scrolled && wSize.y==-1) );
+  bool doNotAddNl=(noNewLine || (!scrolled && wSize.y<=1) );
   
   if( vValue != NULL)
   {
@@ -4898,9 +5022,9 @@ bool editable_ )
   wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
   long textStyle = wxTE_RICH2|wxTE_NOHIDESEL;
 
-  if (nlines>1) textStyle |= wxTE_MULTILINE;
-  if (wSize.y >1) textStyle |= wxTE_MULTILINE;
-  if (!scrolled) textStyle |= wxTE_NO_VSCROLL;
+  if (nlines>1) textStyle |= wxTE_MULTILINE; 
+  if (wSize.y >1) {textStyle |= wxTE_MULTILINE; multiline=true;}
+  if (!scrolled) {textStyle |= wxTE_NO_VSCROLL;} else {textStyle |= wxHSCROLL; multiline=true;}
   if (wrapped) textStyle |= wxTE_WORDWRAP; else textStyle |= wxTE_DONTWRAP;
   if (!editable && !report ) textStyle |= wxTE_READONLY;
 
@@ -4932,9 +5056,10 @@ bool editable_ )
   if (report) this->AddToDesiredEvents( wxEVT_COMMAND_TEXT_PASTE, wxClipboardTextEventHandler(gdlwxFrame::OnTextPaste),text);
   if (report) this->AddToDesiredEvents( wxEVT_COMMAND_TEXT_CUT, wxClipboardTextEventHandler(gdlwxFrame::OnTextCut),text);
   if (report) this->AddToDesiredEvents( wxEVT_LEFT_DOWN, wxMouseEventHandler(gdlwxFrame::OnTextMouseEvents),text); 
+  if (report) this->AddToDesiredEvents( wxEVT_LEFT_UP, wxMouseEventHandler(gdlwxFrame::OnTextMouseEvents),text); 
   if (report) this->AddToDesiredEvents( wxEVT_MIDDLE_DOWN, wxMouseEventHandler(gdlwxFrame::OnTextMouseEvents),text); 
 
-  UPDATE_WINDOW
+//  UPDATE_WINDOW
   REALIZE_IF_NEEDED
 }
 void GDLWidgetText::SetWidgetSize(DLong sizex, DLong sizey)
@@ -5041,7 +5166,7 @@ void GDLWidgetText::ChangeText( DStringGDL* valueStr, bool noNewLine_)
   if ( theWxWidget != NULL ) {
     wxTextCtrl* txt=dynamic_cast<wxTextCtrl*> (theWxWidget);
     assert( txt != NULL);
-    txt->ChangeValue( valueWxString ); //by contrast with SetValue, does not generate an EVENT -- IDL does not either.    
+    txt->ChangeValue( valueWxString ); //by contrast with SetValue, does not generate an EVENT -- IDL does not either.
   }  else std::cerr << "Null widget in GDLWidgetText::SetTextValue(), please report!" << std::endl;
 }
 
@@ -5184,7 +5309,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , DU
     theWxContainer = theWxWidget = label;
     if (widgetSizer) widgetSizer->Add(label, DONOTALLOWSTRETCH, widgetStyle|wxALL, gdlSPACE);
     if (widgetSizer) widgetSizer->Fit(label); else widgetPanel->Fit();
-    UPDATE_WINDOW
+//    UPDATE_WINDOW
     REALIZE_IF_NEEDED
     return;
   } 
@@ -5230,7 +5355,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , DU
   theWxWidget=label;
   if (widgetSizer) widgetSizer->Add(framePanel, DONOTALLOWSTRETCH, widgetStyle|wxALL, 0);
   if (widgetSizer) widgetSizer->Fit(framePanel); else widgetPanel->Fit();
-  UPDATE_WINDOW
+//  UPDATE_WINDOW
   REALIZE_IF_NEEDED
 }
 
@@ -5322,7 +5447,7 @@ void GDLWidgetLabel::SetLabelValue(const DString& value_) {
 //  widgetSizer = GetParentSizer( );
 //  topWidgetSizer = this->GetTopLevelBaseWidget(parentID)->GetSizer();
 // // Construct wxPropertyGrid control
-//  wxPropertyGrid* pg = new wxPropertyGrid(gdlParent,wxID_ANY,wxDefaultPosition,wxDefaultSize,
+//  wxPropertyGrid* pg = new wxPropertyGrid(gdlParent,widgetID,wxDefaultPosition,wxDefaultSize,
 //  // Here are just some of the supported window styles
 //  wxPG_AUTO_SORT | // Automatic sorting after items added
 //  wxPG_SPLITTER_AUTO_CENTER | // Automatically center splitter until user manually adjusts it
@@ -5616,7 +5741,8 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex,
   //these widget specific events are always set:
    this->AddToDesiredEvents( wxEVT_PAINT, wxPaintEventHandler(gdlwxDrawPanel::OnPaint),draw);
 //   this->AddToDesiredEvents( wxEVT_SIZE,  wxSizeEventHandler(gdlwxDrawPanel::OnSize),draw);
-//   this->AddToDesiredEvents( wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(gdlwxDrawPanel::OnErase),draw);
+   //disable flicker see https://wiki.wxwidgets.org/Flicker-Free_Drawing
+   this->AddToDesiredEvents( wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(gdlwxDrawPanel::OnErase),draw);
 
   //other set event handling according to flags
   if (eventFlags & GDLWidget::EV_MOTION) this->AddToDesiredEvents( wxEVT_MOTION, wxMouseEventHandler(gdlwxDrawPanel::OnMouseMove),draw);
@@ -5640,7 +5766,8 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex,
        this->AddToDesiredEvents(wxEVT_KEY_UP, wxKeyEventHandler(gdlwxDrawPanel::OnKey),draw); 
   }
 
-   UPDATE_WINDOW; REALIZE_IF_NEEDED; 
+//   UPDATE_WINDOW 
+   REALIZE_IF_NEEDED 
 }
 
 GDLWidgetDraw::~GDLWidgetDraw() {
@@ -5785,7 +5912,7 @@ void GDLWidgetDraw::SetWidgetScreenSize(DLong sizex, DLong sizey) {
 // for linux, it is NOT necessary, but thos works OK
 // for MacOS /COCOA port, the following code does not work and the widgets are not created.
 // (tied_scoped_ptr problem?)
-#if __WXMSW__ 
+#ifndef __WXMAC__ 
 
 #include "wx/evtloop.h"
 #include "wx/ptr_scpd.h"
@@ -5795,12 +5922,12 @@ bool wxAppGDL::OnInit()
 { 
     return true;
 }
-   
-  int wxAppGDL::MainLoop() {
-    wxEventLoopTiedPtr mainLoop((wxEventLoop **)&m_mainLoop, new wxEventLoop);
-    m_mainLoop->SetActive(m_mainLoop);
-    loop = this->GetMainLoop();
-    if (loop) {
+
+int wxAppGDL::MainLoop() {
+  wxEventLoopTiedPtr mainLoop((wxEventLoop **) & m_mainLoop, new wxEventLoop);
+  m_mainLoop->SetActive(m_mainLoop);
+  loop = this->GetMainLoop();
+  if (loop) {
     if (loop->IsRunning()) {
       while (loop->Pending()) // Unprocessed events in queue
       {

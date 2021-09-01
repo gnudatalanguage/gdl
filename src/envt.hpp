@@ -158,7 +158,8 @@ public:
   }
 
   bool KeywordSet( SizeT ix);
-
+  //as KeyWordSet but return true if KW is not present/defined (for logical that default to true)
+  bool BooleanKeywordAbsentOrSet( SizeT ix);
 protected:
   // for HEAP_GC
   static void AddStruct( DPtrListT& ptrAccessible,  DPtrListT& objAccessible, 
@@ -342,7 +343,7 @@ public:
   // get i'th parameter
   // throws if not defined (ie. never returns NULL)
   BaseGDL*& GetParDefined(SizeT i); //, const std::string& subName = "");
-  bool KeywordPresent( SizeT ix)
+    bool KeywordPresent( SizeT ix)
   { return (env.Loc(ix)!=NULL)||(env.Env(ix)!=NULL);}
   void SetNextParUnckeckedVarNum(BaseGDL** arg1);
 

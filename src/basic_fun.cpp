@@ -2530,6 +2530,16 @@ namespace lib {
       return new DLongGDL( nP-1); // "self" is not counted
     return new DLongGDL( nP);
   }
+//keyword_set returns 1 (true) if:
+//
+//    Expression is a scalar or 1-element array with a non-zero value.
+//    Expression is a structure or a n-element array, n>1 
+//    Expression is an ASSOC file variable.  ---> not done?
+//
+//KEYWORD_SET returns 0 (false) if:
+//
+//    Expression is undefined.
+//    Expression is a scalar or 1-element array with a zero value.
 
   BaseGDL* keyword_set( EnvT* e)
   {

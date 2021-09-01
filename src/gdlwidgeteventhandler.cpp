@@ -108,6 +108,7 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
       widg->InitTag( "OFFSET", DLongGDL( this->GetInsertionPoint() ) );
       widg->InitTag( "CH", DByteGDL( 10 ) );
       GDLWidget::PushEvent( baseWidgetID, widg );
+      if (txt->IsMultiline()) event.Skip( );
       return;
       }
       event.Skip( );
@@ -277,7 +278,7 @@ void wxButtonGDL::OnButton( wxCommandEvent& event)
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_BUTTON_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlMenuButton::OnButton: %d\n"),event.GetId());
 #endif
- this->PopupMenu(dynamic_cast<wxMenu*>(popupMenu));
+ this->PopupMenu(dynamic_cast<wxMenu*>(popupMenu),position);
  event.Skip();
 }
 
@@ -498,14 +499,14 @@ void gdlwxFrame::OnListBoxDoubleClicked( wxCommandEvent& event)
   OnListBoxDo( event, 2);
 }
 
-//this is necessary to reproduce IDL's behaviour
+//this is necessary to reproduce IDL's behaviour.
 void gdlwxFrame::OnTextMouseEvents( wxMouseEvent& event)
 {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_TEXT_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlwxFrame::OnTextMouseEvents: %d\n"),event.GetId());
 #endif
-  GDLWidgetText* txt = static_cast<GDLWidgetText*>(GDLWidget::GetWidget( event.GetId()));
-  if( txt == NULL)
+  GDLWidgetText* txtWidget = static_cast<GDLWidgetText*>(GDLWidget::GetWidget( event.GetId()));
+  if( txtWidget == NULL)
   {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_KBRD_EVENTS)
     wxMessageOutputStderr().Printf(_T("GDLWidget == NULL: %d\n"),event.GetId());
@@ -514,27 +515,43 @@ void gdlwxFrame::OnTextMouseEvents( wxMouseEvent& event)
     return;
   }
   DStructGDL* widg;
-  bool report = txt->HasEventType( GDLWidget::EV_ALL );
-  bool edit = txt->IsEditable( );
+  bool report = txtWidget->HasEventType( GDLWidget::EV_ALL );
+  bool edit = txtWidget->IsEditable( );
   WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
   if ( report ) {
-    wxTextCtrl* textCtrl = dynamic_cast<wxTextCtrl*>(txt->GetWxWidget());
-    if( textCtrl == NULL)
-    {
-      event.Skip();
-      std::cerr<<"No wxWidget!"<<std::endl; return; // happens on construction 
-    }
+    wxTextCtrl* textCtrl = dynamic_cast<wxTextCtrl*>(txtWidget->GetWxWidget());
+    if( textCtrl == NULL) {std::cerr<<"gdlwxFrame::OnTextMouseEvents() : No wxWidget!"<<std::endl;  event.Skip( ); return;}
+    
+    long from,to;
     //signal entry (even if offset is bad)
-    if ( event.ButtonDown(wxMOUSE_BTN_LEFT) ) {
+    if ( event.ButtonDown(wxMOUSE_BTN_LEFT)) {
+      //Do not report, as the selection (wxWidgets side) has not been made yet, it will be done AFTER event.skip
+      //We report only the true selection, made with ButtonUp
+//      widg = new DStructGDL( "WIDGET_TEXT_SEL");
+//      widg->InitTag("ID", DLongGDL( event.GetId()));
+//      widg->InitTag("TOP", DLongGDL( baseWidgetID));
+//      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
+//      widg->InitTag("TYPE", DIntGDL( 3)); // selection
+//      from=textCtrl->GetInsertionPoint();
+//      widg->InitTag("OFFSET", DLongGDL( from ));
+//      widg->InitTag("LENGTH", DLongGDL( 0 ));
+//      GDLWidget::PushEvent( baseWidgetID, widg);
+      // NOTE: "Process a wxEVT_LEFT_DOWN event. The handler of this event should normally call event.Skip()
+      // to allow the default processing to take place as otherwise the window under mouse wouldn't get the focus. "
+      event.Skip( );
+    } else if ( event.ButtonUp(wxMOUSE_BTN_LEFT)) {
       widg = new DStructGDL( "WIDGET_TEXT_SEL");
       widg->InitTag("ID", DLongGDL( event.GetId()));
       widg->InitTag("TOP", DLongGDL( baseWidgetID));
       widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
       widg->InitTag("TYPE", DIntGDL( 3)); // selection
-      widg->InitTag("OFFSET", DLongGDL( 0 ));
-      widg->InitTag("LENGTH", DLongGDL( 0 ));
+      textCtrl->GetSelection(&from,&to);
+      widg->InitTag("OFFSET", DLongGDL( from ));
+      widg->InitTag("LENGTH", DLongGDL( to-from ));
       GDLWidget::PushEvent( baseWidgetID, widg);
-      event.Skip( );
+      // NOTE: "Process a wxEVT_LEFT_DOWN event. The handler of this event should normally call event.Skip()
+      // to allow the default processing to take place as otherwise the window under mouse wouldn't get the focus. "
+      if (event.ButtonDown(wxMOUSE_BTN_LEFT)) event.Skip( );
     }
     return;
     //middle button (paste) should be filtered. Here we just avoid the paste pollutes a not-edit widget (without creating a GDL event).
@@ -1101,7 +1118,7 @@ void gdlwxFrame::OnEnterWindow( wxMouseEvent &event ) {
   if( widget == NULL) {
      event.Skip();
      return;
-  }
+    }
   if ( widget->GetEventFlags() & GDLWidget::EV_TRACKING ) {
     WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
     DStructGDL* widgtracking = new DStructGDL( "WIDGET_TRACKING" );
@@ -1368,9 +1385,6 @@ void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)
 }
 
 void gdlwxDrawPanel::OnMouseMove( wxMouseEvent &event ) {
-#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_MOVE_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlwxDrawPanel::OnMouseMove: %d\n"),event.GetId());
-#endif
   DULong eventFlags=myWidgetDraw->GetEventFlags();
 
   if ( eventFlags & GDLWidget::EV_MOTION ) {
@@ -1383,7 +1397,10 @@ void gdlwxDrawPanel::OnMouseMove( wxMouseEvent &event ) {
     widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
     widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
     GDLWidget::PushEvent( baseWidgetID, widgdraw );
-  }  else event.Skip(); //normal end of event processing!
+  } else event.Skip(); //normal end of event processing!
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_MOVE_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlwxDrawPanel::OnMouseMove: ID=%d, coords=(%d,%d)\n"),event.GetId(),event.GetX(),event.GetY());
+#endif
 }
 
 void gdlwxDrawPanel::OnMouseDown( wxMouseEvent &event ) {
@@ -1523,7 +1540,7 @@ void gdlwxDrawPanel::OnKey( wxKeyEvent &event ) {
       default:
         widgdraw->InitTag( "TYPE", DIntGDL( 5 ) ); //normal key
         widgdraw->InitTag( "KEY", DLongGDL( 0 ) );
-        widgdraw->InitTag( "CH", DByteGDL( event.GetRawKeyCode() & 0xFF ) );
+        widgdraw->InitTag( "CH", DByteGDL( event.GetKeyCode() & 0xFF ) );
         widgdraw->InitTag( "MODIFIERS", DLongGDL( event.GetModifiers() ) );
         GDLWidget::PushEvent( baseWidgetID, widgdraw );
     }
