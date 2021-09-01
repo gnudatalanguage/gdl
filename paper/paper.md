@@ -8,43 +8,43 @@ tags:
 authors:
   - name: Jeongbin Park
     orcid: 0000-0002-9064-4912
-    affiliation: DKFZ
+    affiliation: dkfz.de
   - name: Gilles Duvert
     orcid: 0000-0001-8769-3660 
-    affiliation: UGrenoble
+    affiliation: univ-grenoble-alpes.fr
   - name: Alain Coulais
     orcid: 0000-0001-6492-7719
-    affiliation: "AIM, LERMA"
+    affiliation: "cea.fr, obspm.fr"
   - name: Gregory V. Jung
     affiliation: "TODO"
   - name: Sylwester Arabas
     orcid: 0000-0003-2361-0082
-    affiliation: "UIUC, Jagiellonian"
+    affiliation: "illinois.edu, uj.edu.pl"
   - name: James Tappin
     orcid: 
-    affiliation: RAL
+    affiliation: stfc.ac.uk
   - name: Ole Streicher
     orcid: 0000-0001-7751-1843
-    affiliation: AIP
+    affiliation: aip.de
 affiliations:
  - name: Division of Computational Genomics and Systems Genetics, German Cancer Research Center(DKFZ), Heidelberg, Germany
-   index: DKFZ
+   index: dkfz.de
  - name: Univ. Grenoble Alpes, CNRS, IPAG, 38000 Grenoble, France 
-   index: UGrenoble
- - name: AIM, CEA, CNRS, Université Paris-Saclay, Université Paris Diderot, Sorbonne Paris Cité, F-91191 Gif-sur-Yvette, France
-   index: AIM
- - name: LERMA, Observatoire de Paris, CNRS, F-75014, Paris, France 
-   index: LERMA
+   index: univ-grenoble-alpes.fr
+ - name: AIM, CEA, CNRS, Université Paris-Saclay, Université Paris Diderot, Sorbonne Paris Cité, Gif-sur-Yvette, France
+   index: cea.fr
+ - name: LERMA, Observatoire de Paris, CNRS, Paris, France 
+   index: obspm.fr
  - name: TODO
    index: TODO
  - name: Jagiellonian University, Kraków, Poland
-   index: Jagiellonian
+   index: uj.edu.pl
  - name: RAL Space, STFC Rutherford Appleton Laboratory, UK 
-   index: RAL
+   index: stfc.ac.uk
  - name: Leibniz-Institut für Astrophysik Potsdam (AIP), Potsdam, Germany 
-   index: AIP
+   index: aip.de
  - name: University of Illinois at Urbana–Champaign, USA
-   index: UIUC
+   index: illinois.edu
 bibliography: paper.bib
 
 ---
