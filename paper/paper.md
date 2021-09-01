@@ -20,6 +20,9 @@ authors:
   - name: Sylwester Arabas
     orcid: 0000-0003-2361-0082
     affiliation: "5"
+  - name: James Tappin
+    orcid: 
+    affiliation: "6"
 affiliations:
  - name: Division of Computational Genomics and Systems Genetics, German Cancer Research Center(DKFZ), Heidelberg, Germany
    index: 1
@@ -33,6 +36,8 @@ affiliations:
    index: 4
  - name: Jagiellonian University, Kraków, Poland
    index: 5
+ - name:  2 RAL Space, STFC Rutherford Appleton Laboratory, UK 
+   index: 6
 bibliography: paper.bib
 
 ---
