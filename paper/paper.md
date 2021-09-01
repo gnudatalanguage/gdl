@@ -8,10 +8,10 @@ tags:
 authors:
   - name: Jeongbin Park
     orcid: 0000-0002-9064-4912
-    affiliation: "1"
+    affiliation: DKFZ
   - name: Gilles Duvert
     orcid: 0000-0001-8769-3660 
-    affiliation: "2"
+    affiliation: UGrenoble
   - name: Alain Coulais
     orcid: 0000-0001-6492-7719
     affiliation: "3"
@@ -19,18 +19,18 @@ authors:
     affiliation: "4"
   - name: Sylwester Arabas
     orcid: 0000-0003-2361-0082
-    affiliation: "5"
+    affiliation: "UIUC, Jagiellonian"
   - name: James Tappin
     orcid: 
-    affiliation: "6"
+    affiliation: RAL
   - name: Ole Streicher
     orcid: 0000-0001-7751-1843
-    affiliation: "7"
+    affiliation: AIP
 affiliations:
  - name: Division of Computational Genomics and Systems Genetics, German Cancer Research Center(DKFZ), Heidelberg, Germany
-   index: 1
- - name: TODO
-   index: 2
+   index: DKFZ
+ - name: Univ. Grenoble Alpes, CNRS, IPAG, 38000 Grenoble, France 
+   index: UGrenoble
  - name: TODO
    index: 2
  - name: TODO
@@ -38,10 +38,13 @@ affiliations:
  - name: TODO
    index: 4
  - name: Jagiellonian University, Kraków, Poland
-   index: 5
- - name:  2 RAL Space, STFC Rutherford Appleton Laboratory, UK 
-   index: 6
+   index: Jagiellonian
+ - name: RAL Space, STFC Rutherford Appleton Laboratory, UK 
+   index: RAL
  - name: Leibniz-Institut für Astrophysik Potsdam (AIP), Potsdam, Germany 
+   index: AIP
+ - name: University of Illinois at Urbana–Champaign, USA
+   index: UIUC
 bibliography: paper.bib
 
 ---
