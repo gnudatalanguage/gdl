@@ -10,16 +10,8 @@ find_path(QHULL_INCLUDE_DIR NAMES libqhullcpp/Qhull.h
         )
 
 if(QHULL_INCLUDE_DIR)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES_BACKUP ${CMAKE_FIND_LIBRARY_SUFFIXES})
-
-    if(WIN32)
-        set(CMAKE_FIND_LIBRARY_SUFFIXES .dll ${CMAKE_FIND_LIBRARY_SUFFIXES})
-    endif()
-
-    find_library(QHULL_R_LIBRARY NAMES qhull_r HINTS ${CMAKE_PREFIX_PATH})
+    find_library(QHULL_R_LIBRARY NAMES qhullstatic_r HINTS ${CMAKE_PREFIX_PATH})
     find_library(QHULL_CPP_LIBRARY NAMES qhullcpp HINTS ${CMAKE_PREFIX_PATH})
-
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES_BACKUP})
 
     # include(FindPackageHandleStandardArgs)
     # find_package_handle_standard_args(
@@ -34,7 +26,7 @@ if(QHULL_INCLUDE_DIR)
     elseif(NOT QHULL_CPP_LIBRARY)
         message(STATUS "FindQhull: Could not find QHULL C++ library libqhullcpp")
     else()
-        message(STATUS "FindQhull: Could not find QHULL reentrant library libqhull_r")
+        message(STATUS "FindQhull: Could not find QHULL library libqhullstatic_r")
     endif()
 else(QHULL_INCLUDE_DIR)
     message(STATUS "FindQhull: Could not find QHULL include directories.")
