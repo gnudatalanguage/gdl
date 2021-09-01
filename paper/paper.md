@@ -14,7 +14,7 @@ authors:
     affiliation: univ-grenoble-alpes.fr
   - name: Alain Coulais
     orcid: 0000-0001-6492-7719
-    affiliation: "cea.fr, obspm.fr"
+    affiliation: "obspm.fr, cea.fr"
   - name: Gregory V. Jung
     affiliation: "TODO"
   - name: Sylwester Arabas
