@@ -14,9 +14,9 @@ authors:
     affiliation: UGrenoble
   - name: Alain Coulais
     orcid: 0000-0001-6492-7719
-    affiliation: "3"
+    affiliation: "AIM, LERMA"
   - name: Gregory V. Jung
-    affiliation: "4"
+    affiliation: "TODO"
   - name: Sylwester Arabas
     orcid: 0000-0003-2361-0082
     affiliation: "UIUC, Jagiellonian"
@@ -31,12 +31,12 @@ affiliations:
    index: DKFZ
  - name: Univ. Grenoble Alpes, CNRS, IPAG, 38000 Grenoble, France 
    index: UGrenoble
+ - name: AIM, CEA, CNRS, Université Paris-Saclay, Université Paris Diderot, Sorbonne Paris Cité, F-91191 Gif-sur-Yvette, France
+   index: AIM
+ - name: LERMA, Observatoire de Paris, CNRS, F-75014, Paris, France 
+   index: LERMA
  - name: TODO
-   index: 2
- - name: TODO
-   index: 3
- - name: TODO
-   index: 4
+   index: TODO
  - name: Jagiellonian University, Kraków, Poland
    index: Jagiellonian
  - name: RAL Space, STFC Rutherford Appleton Laboratory, UK 
