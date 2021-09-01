@@ -306,28 +306,36 @@ inline wxSize GDLWidgetText::computeWidgetSize()
   wxWindow* me = dynamic_cast<wxWindow*> (this->GetWxWidget());
   //widget text size is in LINES in Y and CHARACTERS in X. But overridden by scr_xsize et if present
   wxRealPoint widgetSize = wxRealPoint(-1,-1);
-  wxSize fontSize = getFontSize();
-  wxSize totalExtent=calculateTextScreenSize(lastValue);
-  int lineHeight=1.19*fontSize.y;
-  if (wSize.x > 0) {
-    widgetSize.x = (wSize.x) * fontSize.x;
+//  wxSize fontSize = getFontSize();
+  static std::string testExtent("M");
+  wxSize fontSize=calculateTextScreenSize(testExtent); //use text extent of an EM for realistic fontSize. 
+  int lineHeight=fontSize.y;
+  if (textSize.x > 0) {
+    widgetSize.x = (textSize.x) * fontSize.x;
   } else {
-    //if (scrolled || noNewLine) widgetSize.x =  20 * fontSize.x; else
-      widgetSize.x =  totalExtent.x+2*fontSize.x;//add 2 char wide for border.
-  }
-  
-  if (nlines > 1 || scrolled ) widgetSize.x +=  gdlSCROLL_WIDTH_Y;
-  
-  //if xsize is not enough, wxWidget will add an X-direction scrollbar. Y must be higher
-  
-  if (wSize.y > 1) {
-    widgetSize.y = wSize.y * lineHeight;
-  } else {
-    widgetSize.y = lineHeight;
+      widgetSize.x = maxlinelength*fontSize.x;//add 2 char wide for border.
+      textSize.x=maxlinelength;
+      if (textSize.x < 20) {
+        textSize.x=20;
+        widgetSize.x = (textSize.x) * fontSize.x;
+      }
   }
 
-   if (scrolled || (widgetSize.x <= totalExtent.x ) )  widgetSize.y += gdlSCROLL_HEIGHT_X; 
-   else if (nlines < 2 && !( wrapped || scrolled ) ) widgetSize.y+=2*gdlTEXT_YMARGIN;
+  if (textSize.y > 1) {
+    widgetSize.y = textSize.y * lineHeight;
+  } else {
+    widgetSize.y = lineHeight;
+    textSize.y = 1;
+  }
+  if (textSize.y ==1) widgetSize.y+=2*gdlTEXT_SPACE; //for margin
+  if (scrolled && textSize.y >1) widgetSize.x+=gdlSCROLL_WIDTH_Y;
+
+  //if multiline and no hscroll, a x-axis scrollbar will be adde by wxWidgets if longestLineSize cannot be shown, and we cannot do anything about it.
+  if (!scrolled) {if (textSize.y > 1 && (textSize.x < maxlinelength) )  widgetSize.y += gdlSCROLL_HEIGHT_X; }
+  else if (textSize.y > 1 && widgetSize.x < (maxlinelength*fontSize.x+gdlSCROLL_WIDTH_Y) ) {
+    widgetSize.y += gdlSCROLL_HEIGHT_X; 
+  }
+  widgetSize.x+=2*gdlTEXT_SPACE; //for margin
    
   //but..
   if (wScreenSize.x > 0) widgetSize.x = wScreenSize.x;
@@ -335,6 +343,8 @@ inline wxSize GDLWidgetText::computeWidgetSize()
 
   int x = ceil(widgetSize.x);
   int y = ceil(widgetSize.y);
+  //memorize the current textSize, in characters.
+  initialSize=textSize;
   return wxSize(x, y);
 }
 
@@ -843,11 +853,11 @@ void GDLWidget::Init()
   //initially defaultFont and systemFont are THE SAME.
   defaultFont=systemFont;
   SetWxStarted();
-//  //use a phantom window to retrieve th exact size of scrollBars wxWidget give wrong values.
-//   gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
-//   test->Hide();
-//   test->Realize();
-//   test->Destroy();
+  //use a phantom window to retrieve th exact size of scrollBars wxWidget give wrong values.
+   gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
+   test->Hide();
+   test->Realize();
+   test->Destroy();
 }
 // UnInit
 void GDLWidget::UnInit() {
@@ -4967,15 +4977,17 @@ bool editable_ )
 , noNewLine( noNewLine_ )
 , editable(editable_)
 , multiline(false)
+, maxlinelength(0)
 {
   static int wrapIx=e->KeywordIx("WRAP");
   wrapped=(e->KeywordSet(wrapIx));
   DString value = "";
-  maxlinelength = 0;
   nlines=1;
-  
+  //textSize is the current size (fixed or computed) in characters.
+  textSize=wSize;
+  if (textSize.y > 1) multiline=true; //multiline is a property implied by the widget Ysize, nothing else
   //reform entries into one string, with eventual \n . If noNewLines, do not insert a \n . If ysize=1 and no scroll, idem.
-  bool doNotAddNl=(noNewLine || (!scrolled && wSize.y<=1) );
+  bool doNotAddNl=(noNewLine || (!multiline) );
   
   if( vValue != NULL)
   {
@@ -4984,7 +4996,7 @@ bool editable_ )
         int length=((*static_cast<DStringGDL*> (vValue))[i]).length();
         value += (*static_cast<DStringGDL*> (vValue))[i]; 
         if ( !doNotAddNl) maxlinelength=(length>maxlinelength)?length:maxlinelength; else maxlinelength+=length;
-        if ( !doNotAddNl && (i + 1) != vValue->N_Elements( ) )
+        if ( !doNotAddNl )
 #ifdef _WIN32
         {value += "\r\n"; nlines++;}
 #else
@@ -4992,18 +5004,25 @@ bool editable_ )
 #endif
       }
   }
+
+  lastValue = value;
+  
   //now the string is formatted as the widget will see it. If the string contains \n  the widget will be multiline anyway.
   //recompute number of \n as some could have been embedded in each of the strings
+  //recompute nlines, maxlinelength from start to be sure
   nlines=1;
-  char* s=&value[0];
-  for (int i=0; i<value.length(); ++i)
+  maxlinelength=0;
+  const char* s=lastValue.c_str();
+  int length=0;
+  for (int i=0; i<lastValue.length(); ++i, ++length)
   {
-    if (s[i]==10) nlines++;
+    if (s[i]==10) {
+      maxlinelength=(length>maxlinelength)?length:maxlinelength;
+      nlines++;
+      length=0;
+    }
   }
-  //however:
-  if (noNewLine) nlines=1;
-  
-  lastValue = value;
+  if (length>maxlinelength) maxlinelength=length; //if no last return.
 
   GDLWidget* gdlParent = GetWidget( parentID );
   widgetPanel = GetParentPanel( );
@@ -5022,9 +5041,8 @@ bool editable_ )
   wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
   long textStyle = wxTE_RICH2|wxTE_NOHIDESEL;
 
-  if (nlines>1) textStyle |= wxTE_MULTILINE; 
-  if (wSize.y >1) {textStyle |= wxTE_MULTILINE; multiline=true;}
-  if (!scrolled) {textStyle |= wxTE_NO_VSCROLL;} else {textStyle |= wxHSCROLL; multiline=true;}
+  if (multiline) textStyle |= wxTE_MULTILINE; 
+  if (!scrolled) {textStyle |= wxTE_NO_VSCROLL;} else {textStyle |= wxHSCROLL;}
   if (wrapped) textStyle |= wxTE_WORDWRAP; else textStyle |= wxTE_DONTWRAP;
   if (!editable && !report ) textStyle |= wxTE_READONLY;
 
@@ -5037,13 +5055,13 @@ bool editable_ )
   text->SetDefaultStyle(attr);
   text->SetValue(valueWxString);
 
-  wSize = computeWidgetSize(); 
+  wSize = computeWidgetSize(); //updates textSize.
   text->SetClientSize(wSize);
   text->SetMinClientSize(wSize);
   
   text->SetSelection(0,0);
   text->SetInsertionPoint(0);
-//  text->ShowPosition(0);
+  text->ShowPosition(0);
   
   END_ADD_EVENTUAL_FRAME
   TIDY_WIDGET(gdlBORDER_SPACE)
@@ -5066,7 +5084,7 @@ void GDLWidgetText::SetWidgetSize(DLong sizex, DLong sizey)
 { 
 
   START_CHANGESIZE_NOEVENT
-  
+
   wxWindow* me = dynamic_cast<wxWindow*> (this->GetWxWidget());
   if (me == NULL) {
 #ifdef GDL_DEBUG_WIDGETS
@@ -5074,43 +5092,43 @@ void GDLWidgetText::SetWidgetSize(DLong sizex, DLong sizey)
 #endif
     return;
   }
-  //a graphic window cannot be larger than the base widget it is in, if the base widget size has been fixed
-  wxSize currentSize=me->GetClientSize();
-  wxSize currentBestSize=me->GetBestSize();
-#ifdef GDL_DEBUG_WIDGETS
-  wxMessageOutputStderr( ).Printf( _T( "GDLWidgetText::SetSize currentSize=%d,%d\n"),currentSize.x,currentSize.y);
-#endif
-
-  //widget text size is in LINES in Y and CHARACTERS in X.
+  //widget text size is in LINES in Y and CHARACTERS in X. But overridden by scr_xsize et if present
   wxRealPoint widgetSize = wxRealPoint(-1,-1);
-  wxSize fontSize = getFontSize();
-  //based on experience, actual line height is 1.2 times font y size for fonts > 20 but 1.5 for smaller fonts
-  int lineHeight=(fontSize.y<20)?fontSize.y*1.5:fontSize.y*1.2;
-  if (sizex > 0) {
-    widgetSize.x = (sizex+0.5) * fontSize.x;
-  } else {
-    widgetSize.x = currentSize.x;
-  } 
+  static std::string testExtent("M");
+  wxSize fontSize=calculateTextScreenSize(testExtent); //use text extent of an EM for realistic fontSize. 
+  int lineHeight=fontSize.y;
+  wxSize currentSize=me->GetClientSize();
 
-  if (sizey > 0) {
-    widgetSize.y =sizey * lineHeight;
-  } else {
-    widgetSize.y = currentSize.y;
+  //for each x or y, if >0 take the new value in textSize, and correct wSize to take into account possible wxWidgets-induced scrollbars.
+  // if ==0 take the initial textSize value
+  // if < 0 use current textSize.
+  // all pixels values are recomputed as we need to take care of spurious scrollbars.
+  if (sizex > 0) textSize.x=sizex; else if (sizex == 0) textSize.x=initialSize.x;
+
+  if (sizey > 0) textSize.y=sizey; else if (sizey == 0) textSize.y=initialSize.y;
+  
+  //proceed as in computeWidgetSize() , same code, except that textSize is never -1.
+  widgetSize.x = (textSize.x) * fontSize.x;
+  if (textSize.y > 1)  widgetSize.y = textSize.y * lineHeight; else widgetSize.y = lineHeight;
+
+  if (textSize.y == 1) widgetSize.y+=2*gdlTEXT_SPACE; //for margin
+  if (scrolled && textSize.y > 1) widgetSize.x+=gdlSCROLL_WIDTH_Y;
+
+  //if multiline and no hscroll, a x-axis scrollbar will be added by wxWidgets if longestLineSize cannot be shown, and we cannot do anything about it.
+  //multiline here is "if (multiline) textStyle |= wxTE_MULTILINE;"
+  if (!scrolled) {if (textSize.y > 1 && (textSize.x < maxlinelength) )  widgetSize.y += gdlSCROLL_HEIGHT_X; }
+  else if (textSize.y > 1 && widgetSize.x < (maxlinelength*fontSize.x+gdlSCROLL_WIDTH_Y) ) {
+    widgetSize.y += gdlSCROLL_HEIGHT_X; 
   }
-
-  if (sizex > 0 && maxlinelength > sizex) widgetSize.y += gdlSCROLL_HEIGHT_X;
-  if (nlines > sizey) widgetSize.x += gdlSCROLL_WIDTH_Y;
-  widgetSize.y += 10;
-
-  sizex=ceil(widgetSize.x);
-  sizey=ceil(widgetSize.y);
-
-  wSize.x = sizex;
-  wSize.y = sizey;
+  widgetSize.x+=2*gdlTEXT_SPACE; //for margin
+  
+  int x = ceil(widgetSize.x);
+  int y = ceil(widgetSize.y);
+  wSize = wxSize(x,y); //update current widgetSize.
   me->SetClientSize(wSize);
   me->SetMinClientSize(wSize);
   if (!widgetSizer) if (framePanel) framePanel->Fit();
-  
+
   UPDATE_WINDOW
 
   END_CHANGESIZE_NOEVENT
@@ -5133,7 +5151,7 @@ void GDLWidgetText::ChangeText( DStringGDL* valueStr, bool noNewLine_)
   vValue = valueStr;
   DString value = "";
 
-  bool doNotAddNl=(noNewLine_ || (!scrolled && nlines<2) );
+  bool doNotAddNl=(noNewLine_ || (!multiline) );
 
   nlines=0; 
     for( int i=0; i<valueStr->N_Elements(); ++i)
@@ -5150,7 +5168,7 @@ void GDLWidgetText::ChangeText( DStringGDL* valueStr, bool noNewLine_)
   //recompute nlines, maxlinelength from start to be sure
   nlines=1;
   maxlinelength=0;
-  char* s=&lastValue[0];
+  const char* s=lastValue.c_str();
   int length=0;
   for (int i=0; i<lastValue.length(); ++i, ++length)
   {
@@ -5160,7 +5178,7 @@ void GDLWidgetText::ChangeText( DStringGDL* valueStr, bool noNewLine_)
       length=0;
     }
   }
-  if (maxlinelength==0) maxlinelength=lastValue.length();
+  if (length>maxlinelength) maxlinelength=length; //if no last return.
   
   wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
   if ( theWxWidget != NULL ) {
@@ -5168,17 +5186,32 @@ void GDLWidgetText::ChangeText( DStringGDL* valueStr, bool noNewLine_)
     assert( txt != NULL);
     txt->ChangeValue( valueWxString ); //by contrast with SetValue, does not generate an EVENT -- IDL does not either.
   }  else std::cerr << "Null widget in GDLWidgetText::SetTextValue(), please report!" << std::endl;
+//update widgetSize. Important to deal with 'added' scrollbars.
+  this->SetWidgetSize(-1,-1);
 }
 
-void GDLWidgetText::InsertText( DStringGDL* valueStr, bool noNewLine_, bool append)
-{
-  long from,to;
-  wxTextCtrl* txt=dynamic_cast<wxTextCtrl*> (theWxWidget);
-  assert( txt != NULL);
-  txt->GetSelection(&from,&to);
-  if (append) {from=txt->GetLastPosition(); to=from;}
-
-  bool doNotAddNl=(noNewLine_ || (!scrolled && nlines<2) );
+void GDLWidgetText::InsertText( DStringGDL* valueStr, bool noNewLine_, bool append) {
+  wxTextCtrl* txt = dynamic_cast<wxTextCtrl*> (theWxWidget);
+  assert(txt != NULL);
+  long from, to;
+  
+  //wxWidgets bug?
+  wxTextPos pos=txt->GetLastPosition();
+  if (pos<=1) {
+    GDLWidgetText::ChangeText(valueStr,noNewLine_);
+    return;
+  }
+  
+  //really append/replace
+  if (append) { //see discussion wxTextEntry::GetInsertionPoint() at https://docs.wxwidgets.org/trunk/classwx_text_entry.html
+    if (multiline) {
+      txt->SetSelection(pos-1,pos);
+    } else {
+      txt->SetSelection(pos,pos);
+    }
+  }
+  txt->GetSelection(&from, &to);
+  bool doNotAddNl=(noNewLine_ || (!multiline) );
 
   DString value = (doNotAddNl)?"":(!append)?"":"\n";
   for ( int i = 0; i < valueStr->N_Elements( ); ++i ) {
@@ -5192,11 +5225,13 @@ void GDLWidgetText::InsertText( DStringGDL* valueStr, bool noNewLine_, bool appe
 #endif
     }
   }
+  //note value.size it will be used
+  int insertedLength=value.size();
   lastValue.replace(from,to-from,value);
   //recompute nlines, maxlinelength from start to be sure
   nlines=1;
   maxlinelength=0;
-  char* s=&lastValue[0];
+  const char* s=lastValue.c_str();
   int length=0;
   for (int i=0; i<lastValue.length(); ++i, ++length)
   {
@@ -5206,18 +5241,17 @@ void GDLWidgetText::InsertText( DStringGDL* valueStr, bool noNewLine_, bool appe
       length=0;
     }
   }
-  if (maxlinelength==0) maxlinelength=lastValue.length();
+  if (length>maxlinelength) maxlinelength=length; //if no last return.
   delete vValue;
   vValue = new DStringGDL(lastValue);
-//  cout<<from<<"->"<<to<<":"<<lastValue.c_str( )<<endl;
   wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
   if ( theWxWidget != NULL ) {
     txt->ChangeValue( valueWxString ); //by contrast with SetValue, does not generate an EVENT (neither does *DL).    
-//    txt->Refresh();
-//    txt->Update();
-    txt->SetSelection(from,from);
-    if (append) txt->ShowPosition(lastValue.length());
+    txt->SetSelection(from+insertedLength,from+insertedLength);
+    txt->ShowPosition(from+insertedLength);
   }  else std::cerr << "Null widget in GDLWidgetText::SetTextValue(), please report!" << std::endl;
+//update widgetSize
+  this->SetWidgetSize(-1,-1);
 }
 
 void GDLWidgetText::SetTextSelection(DLongGDL* pos)
