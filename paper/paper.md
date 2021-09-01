@@ -23,6 +23,9 @@ authors:
   - name: James Tappin
     orcid: 
     affiliation: "6"
+  - name: Ole Streicher
+    orcid:
+    affiliation: "7"
 affiliations:
  - name: Division of Computational Genomics and Systems Genetics, German Cancer Research Center(DKFZ), Heidelberg, Germany
    index: 1
@@ -38,6 +41,7 @@ affiliations:
    index: 5
  - name:  2 RAL Space, STFC Rutherford Appleton Laboratory, UK 
    index: 6
+ - name: Leibniz-Institut für Astrophysik Potsdam (AIP), Potsdam, Germany 
 bibliography: paper.bib
 
 ---
