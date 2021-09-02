@@ -449,11 +449,10 @@ void GDLWidget::UpdateGui()
       if (s) s->Fit(p);
       else { //force widget having the panel to adopt correct sizes
         p->Fit();
-        GDLWidgetContainer* myParentContainer = static_cast<GDLWidgetContainer*> (this->GetMyParentBaseWidget());
+        GDLWidgetContainer* myParentContainer = static_cast<GDLWidgetContainer*> (widget->GetMyParentBaseWidget());
         if (myParentContainer != NULL) {
-          wxWindow* w = static_cast<wxWindow*> (this->GetParentPanel());
+          wxWindow* w = static_cast<wxWindow*> (widget->GetParentPanel());
           assert(w != NULL);
-          assert(w == p);
           wxSize wSize = w->GetSize();
           wxSize mySize = p->GetSize();
           // if w.x or w.y was SET BY USER it is a requested size, that we should not change
@@ -1982,6 +1981,7 @@ GDLWidgetTabbedBase::GDLWidgetTabbedBase(WidgetIDT parentID, EnvT* e, ULong even
   wxSizer* sz=new wxBoxSizer(wxVERTICAL);
 //  wxPanel* p=new wxPanel(parentTab, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 //  p->SetSize(wScrollSize);
+  if (nrows < 1 && ncols < 1 && frameWidth < 1) frameWidth=1; //set framewidth (temporary) in this case to get good result
   CreateBase(parentTab);
 //  sz->Add(w,DONOTALLOWSTRETCH, wxALL | wxEXPAND, 0);
 //  p->SetSizer(sz);
