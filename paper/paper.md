@@ -28,6 +28,8 @@ authors:
     affiliation: aip.de
   - name: Orion Poplawski
     affiliation: nwra.com
+  - name: Takeshi Enomoto
+    affiliation: kyoto-u.ac.jp
 affiliations:
  - name: Division of Computational Genomics and Systems Genetics, German Cancer Research Center(DKFZ), Heidelberg, Germany
    index: dkfz.de
@@ -49,6 +51,8 @@ affiliations:
    index: illinois.edu
  - name: NorthWest Research Associates, Boulder, CO, USA
    index: nwra.com
+ - name: Kyoto University, Japan
+   index: kyoto-u.ac.jp
 bibliography: paper.bib
 
 ---
