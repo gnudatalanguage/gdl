@@ -195,7 +195,6 @@ jobs:
         run: |
           pacman -Q | tr ' ' '-' | sort > ~/snapshot1.txt
           scripts/build_gdl.sh prep
-          ls ../
           ls ../MINGW-packages/mingw-w64-graphicsmagick/
           mv ../MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-*-graphicsmagick-*.tar.* /var/cache/pacman/pkg
           pacman -Q | tr ' ' '-' | sort > ~/snapshot2.txt
