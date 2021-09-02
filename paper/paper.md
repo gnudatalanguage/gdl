@@ -20,6 +20,8 @@ authors:
   - name: Sylwester Arabas
     orcid: 0000-0003-2361-0082
     affiliation: "illinois.edu, uj.edu.pl"
+  - name: Eloi Rozier de Linage
+    affiliation: obspm.fr
   - name: James Tappin
     orcid: 
     affiliation: stfc.ac.uk
