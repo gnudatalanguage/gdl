@@ -1295,10 +1295,12 @@ class GDLWidgetText: public GDLWidget
   std::string lastValue;
   bool noNewLine;
   bool editable;
-  int maxlinelength;
+  int maxlinelength; //the size of the longest line in the widgets current value.
   int nlines;
   bool wrapped;
   bool multiline;
+  wxSize textSize; //the current size, in characters, not owing for the character sizes and spurious decorations as wxWidgets adds by itself
+  wxSize initialSize; //memory of the initial (realized) textSize just after creation.
 public:
   GDLWidgetText( WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, bool noNewLine,
 		 bool editable);
