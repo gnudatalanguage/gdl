@@ -26,6 +26,8 @@ authors:
   - name: Ole Streicher
     orcid: 0000-0001-7751-1843
     affiliation: aip.de
+  - name: Orion Poplawski
+    affiliation: nwra.com
 affiliations:
  - name: Division of Computational Genomics and Systems Genetics, German Cancer Research Center(DKFZ), Heidelberg, Germany
    index: dkfz.de
@@ -45,6 +47,8 @@ affiliations:
    index: aip.de
  - name: University of Illinois at Urbana–Champaign, USA
    index: illinois.edu
+ - name: NorthWest Research Associates, Boulder, CO, USA
+   index: nwra.com
 bibliography: paper.bib
 
 ---
