@@ -262,14 +262,12 @@ function prep_packages {
         for package_name in ${MSYS2_PACKAGES_REBUILD[@]}; do
             build_msys2_package $package_name
         done
-
-        pushd "$GDL_DIR/.."
+	
         download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
         decompress_file
         log "Building qhull..."
         pushd qhull-2020.2
         make SO=dll || exit 1
-        popd
         popd
 
         download_file ${BSDXDR_URL}
@@ -307,13 +305,11 @@ function prep_packages {
             done
         done
 
-        pushd "$GDL_DIR/.."
         download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
         decompress_file
         log "Building qhull..."
         pushd qhull-2020.2
         make || exit 1
-        popd
         popd
 
         if [[ -z ${INSTALL_PACKAGES} ]]; then
@@ -414,7 +410,7 @@ function configure_gdl {
     fi
 
     if [[ ${BUILD_OS} != "macOS" ]]; then
-        CMAKE_QHULLDIR_OPT="-DQHULLDIR="${GDL_DIR}"/../qhull-2020.2"
+        CMAKE_QHULLDIR_OPT="-DQHULLDIR="${ROOT_DIR}"/qhull-2020.2"
     else
         CMAKE_QHULLDIR_OPT=""
     fi
