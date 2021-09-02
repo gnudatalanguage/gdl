@@ -272,8 +272,6 @@ function prep_packages {
         popd
         popd
 
-        cd "$GDL_DIR/.."
-
         download_file ${BSDXDR_URL}
         decompress_file
 
