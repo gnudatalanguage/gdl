@@ -263,12 +263,14 @@ function prep_packages {
             build_msys2_package $package_name
         done
 	
+	pushd ${ROOT_DIR}
         download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
         decompress_file
         log "Building qhull..."
         pushd qhull-2020.2
         make SO=dll || exit 1
         popd
+	popd
 
         download_file ${BSDXDR_URL}
         decompress_file
@@ -305,12 +307,14 @@ function prep_packages {
             done
         done
 
+	pushd ${ROOT_DIR}
         download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
         decompress_file
         log "Building qhull..."
         pushd qhull-2020.2
         make || exit 1
         popd
+	popd
 
         if [[ -z ${INSTALL_PACKAGES} ]]; then
             log "All required packages are already installed on your system."
