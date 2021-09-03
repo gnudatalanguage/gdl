@@ -1539,8 +1539,8 @@ bool EnvBaseT::KeywordSet( SizeT ix)
 {
   BaseGDL* keyword=env[ix];
   if( keyword == NULL) return false;
-  if( !keyword->Scalar()) Throw("Expression must be a scalar or 1 element array in this context.");
-  if( keyword->Type() == GDL_STRUCT) Throw("Unable to convert variable from type struct.");
+  if( !keyword->Scalar()) return true; //IDL would Throw("Expression must be a scalar or 1 element array in this context.");
+  if( keyword->Type() == GDL_STRUCT)  return true; //IDL would Throw("Unable to convert variable from type struct.");
   return keyword->LogTrue();
 }
 //this version is for testing boolean KWs when the default is 'set' = true when they are not defined/present etc (see code)
@@ -1548,8 +1548,8 @@ bool EnvBaseT::BooleanKeywordAbsentOrSet( SizeT ix)
 {
   BaseGDL* keyword=env[ix];
   if( keyword == NULL) return true;
-  if( !keyword->Scalar()) Throw("Expression must be a scalar or 1 element array in this context.");
-  if( keyword->Type() == GDL_STRUCT) Throw("Unable to convert variable from type struct.");
+  if( !keyword->Scalar()) return true; // Throw("Expression must be a scalar or 1 element array in this context.");
+  if( keyword->Type() == GDL_STRUCT) return true; // Throw("Unable to convert variable from type struct.");
   return keyword->LogTrue();
 }
 // returns the ix'th parameter (for library function API only)
