@@ -50,7 +50,7 @@
 ;
 ;-
 ;
-PRO READ_X11_BITMAP, filename, bitmap , X, Y , expand_to_bytes=expand
+PRO READ_X11_BITMAP, filename, bitmap , X, Y , expand_to_bytes=expand_to_bytes
 ;
 
 compile_opt hidden, idl2
