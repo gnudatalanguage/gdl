@@ -20,6 +20,8 @@ authors:
   - name: Sylwester Arabas
     orcid: 0000-0003-2361-0082
     affiliation: "illinois.edu, uj.edu.pl"
+  - name: Sylvain Flinois
+    affiliation: kumullus.com
   - name: Eloi Rozier de Linage
     affiliation: obspm.fr
   - name: James Tappin
@@ -51,6 +53,8 @@ affiliations:
    index: illinois.edu
  - name: NorthWest Research Associates, Boulder, CO, USA
    index: nwra.com
+ - name: Kumullus, Paris, France
+   index: kumullus.com
 bibliography: paper.bib
 
 ---
