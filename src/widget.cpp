@@ -885,7 +885,7 @@ BaseGDL* widget_draw( EnvT* e ) {
 
   //xpad, ypad and space default to gdlPAD if not precised:
 
-  DLong space=gdlPAD;
+  DLong space=gdlSPACE;
   if ( e->KeywordPresent(spaceIx) && !nonexclusive && !exclusive ) e->AssureLongScalarKWIfPresent( spaceIx, space );
   DLong xpad = gdlPAD;
   e->AssureLongScalarKWIfPresent( xpadIx, xpad );

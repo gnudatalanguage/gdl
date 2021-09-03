@@ -82,7 +82,7 @@ if (frameWidth > 0) {\
     /* 3) re-add all child windows (including this one) */\
     if (this->GetRealized()) {\
       GDLWidgetBase* b = static_cast<GDLWidgetBase*> (gdlParent);\
-      b->ReorderForANewWidget(static_cast<wxWindow*> (theWxContainer), DONOTALLOWSTRETCH, widgetStyle | wxALL, xxx);\
+      b->ReorderForANewWidget(static_cast<wxWindow*> (theWxContainer), DONOTALLOWSTRETCH, widgetStyle | wxALL, b->getSpace());\
     } else widgetSizer->Add(static_cast<wxWindow*> (theWxContainer), DONOTALLOWSTRETCH, widgetStyle | wxALL, xxx);\
   } else {\
     static_cast<wxWindow*> (theWxContainer)->SetPosition(wOffset);\
@@ -2273,7 +2273,7 @@ void GDLWidgetBase::ReorderWidgets()
   // NULL widget Sizer means 1) no row no col was asked for (so, no sizer) or, if col>1, we have to create the sizer here and add children in specific order.
   // do *not* forget to give back the sizer pointer instead of the previous NULL to the base widget!
   if (widgetSizer == NULL) return;
-  if (ncols > 1) DoReorderColWidgets(); //need to reorder widget for /COL only
+  if (ncols > 1) DoReorderColWidgets(0,0,space); //need to reorder widget for /COL only
 }
 
 void GDLWidgetBase::ReorderForANewWidget(wxWindow* w, int code,int style, int border)

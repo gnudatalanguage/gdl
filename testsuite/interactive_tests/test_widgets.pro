@@ -364,29 +364,33 @@ endif
  endif
  if total(strcmp('BUTTON',present,/fold)) then begin
 ; BUTTON_BASE: 
-    button_base = widget_base( tabbed_base, TITLE="BUTTONs",_extra=extra) & offy=10
-    label=widget_label(yoff=offy,button_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
+    button_base00 = widget_base( tabbed_base, TITLE="BUTTONs", COL=2, SPACE=20) & offy=10
+ ;   label=widget_label(yoff=offy,button_base00,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
+    button_base01 = widget_base(button_base00, TITLE="BUTTONs",_extra=extra) & offy=10
+    button_base02 = widget_base(button_base00, TITLE="BUTTONs",_extra=extra) & offy=10
 ; BUTTONs
-    tmp=widget_label(yoff=offy,button_base,value="Simple Button") & offy+=10           ;
-    tmp=widget_button(yoff=offy,button_base,value="Simple Button") & offy+=10 ;
-    tmp=widget_label(yoff=offy,button_base,value="Framed Simple Button") & offy+=10           ;
-    tmp=widget_button(yoff=offy,button_base,value="Framed 10 px Simple Button",frame=10) & offy+=10 ;
-    tmp=widget_label(yoff=offy,button_base,value="Fancy Simple Button") & offy+=10           ;
-    tmp=widget_button(yoff=offy,button_base,value="Fancy Button",font=fontname) & offy+=10 ;
-    tmp=widget_label(yoff=offy,button_base,value="Exclusive base, framed 30") & offy+=10  ;
-    radio=widget_base(yoff=offy,button_base,/EXCLUSIVE,COL=1,frame=30) & offy+=150         ;
+    tmp=widget_label(yoff=offy,button_base01,value="Simple Button") & offy+=10           ;
+    tmp=widget_button(yoff=offy,button_base01,value="Simple Button") & offy+=10 ;
+    tmp=widget_label(yoff=offy,button_base01,value="Framed Simple Button") & offy+=10           ;
+    tmp=widget_button(yoff=offy,button_base01,value="Framed 10 px Simple Button",frame=10) & offy+=10 ;
+    tmp=widget_label(yoff=offy,button_base01,value="Bitmap Simple Button") & offy+=10           ;
+    tmp=widget_button(yoff=offy,button_base01,value=myBitmap()) & offy+=10 ;
+    tmp=widget_label(yoff=offy,button_base01,value="Fancy Simple Button") & offy+=10           ;
+    tmp=widget_button(yoff=offy,button_base01,value="Fancy Button",font=fontname) & offy+=10 ;
+    tmp=widget_label(yoff=offy,button_base01,value="Exclusive base, framed 30") & offy+=10  ;
+    radio=widget_base(yoff=offy,button_base01,/EXCLUSIVE,COL=1,frame=30) & offy+=150         ;
     rb1=widget_button(radio,VALUE="button in EXCLUSIVE base 1",uvalue={vEv,'rb1',[8,0]}, font=fontname)
     rb2=widget_button(radio,VALUE="button in EXCLUSIVE base 2",uvalue={vEv,'rb2',[9,0]})
     
-    tmp=widget_label(yoff=offy,button_base,value="Non-Exclusive base,simple look") & offy+=10 ;
+    tmp=widget_label(yoff=offy,button_base01,value="Non-Exclusive base,simple look") & offy+=10 ;
     
-    check=widget_base(yoff=offy,button_base,/NONEXCLUSIVE,COL=1) & offy+=100 ;
+    check=widget_base(yoff=offy,button_base01,/NONEXCLUSIVE,COL=1) & offy+=100 ;
     cb1=widget_button(check,VALUE="button in NONEXCLUSIVE base 1",uvalue={vEv,'cb1',[81,0]}, font=fontname)
     cb2=widget_button(check,VALUE="button in NONEXCLUSIVE base 2",uvalue={vEv,'cb2',[12,0]})
     
-    tmp=widget_label(yoff=offy,button_base,value='2 CW_BGROUP /COL in a framed base') & offy+=10 ;
+    tmp=widget_label(yoff=offy,button_base01,value='2 CW_BGROUP /COL in a framed base') & offy+=10 ;
     
-    bg=widget_base(yoff=offy,button_base,/ROW,Frame=10) & offy+=300 ;
+    bg=widget_base(yoff=offy,button_base01,/ROW,Frame=10) & offy+=300 ;
     values = ['One', 'Two', 'Three', 'Four', 'Five','Six'] 
     
     bgroup1 = CW_BGROUP(yoff=offy,bg, values, /COLUMN, /EXCLUSIVE, $ 
@@ -394,13 +398,13 @@ endif
     bgroup2 = CW_BGROUP(yoff=offy,bg, values, /COLUMN, /NONEXCLUSIVE, $ 
                         LABEL_TOP='Nonexclusive', FRAME=10, SET_VALUE=[1,0,1,0,1])
     
-    tmp=widget_label(yoff=offy,button_base,value="A menu button frame 10") & offy+=10 ;
-    menu=widget_button(yoff=offy,button_base,value="Menu",/menu,frame=10) & offy+=100 ;
+    tmp=widget_label(yoff=offy,button_base02,value="A menu button frame 10") & offy+=10 ;
+    menu=widget_button(yoff=offy,button_base02,value="Menu",/menu,frame=10) & offy+=100 ;
     entry1=widget_button(menu,value="entry 1")
     entry2=widget_button(menu,value="entry 2")
     
-    tmp=widget_label(yoff=offy,button_base,value="A menu button with Bitmap, frame 30") & offy+=10              ;
-    menu=widget_button(yoff=offy,button_base,value=myBitmap(),/menu,frame=30,tooltip='A TOOOOOLTIP!!!') & offy+=100 ;
+    tmp=widget_label(yoff=offy,button_base02,value="A menu button with Bitmap, frame 30") & offy+=10              ;
+    menu=widget_button(yoff=offy,button_base02,value=myBitmap(),/menu,frame=30,tooltip='A TOOOOOLTIP!!!') & offy+=100 ;
     entry1b=widget_button(menu,value=myBitmap(),/menu)
     entry1=widget_button(menu,value='submenu',/menu)
     entry2b=widget_button(entry1b,value=myBitmap(),/menu)
@@ -408,13 +412,13 @@ endif
     entry3b=widget_button(entry2b,value=myBitmap())
     entry3=widget_button(entry2,value='entry')
     
-    tmp=widget_label(yoff=offy,button_base,value="A fancy menu button") & offy+=10     ;
-    menu=widget_button(yoff=offy,button_base,value="Menu",/menu,font=fontname) & offy+=100 ;
+    tmp=widget_label(yoff=offy,button_base02,value="A fancy menu button") & offy+=10     ;
+    menu=widget_button(yoff=offy,button_base02,value="Menu",/menu,font=fontname) & offy+=100 ;
     entry1=widget_button(menu,value="entry 1",font=fontname)
     entry2=widget_button(menu,value="entry 2")
     
-    tmp=widget_label(yoff=offy,button_base,value="ALIGNMENTS",/align_center,/fram) & offy+=10 ;
-    base1=widget_base(yoff=offy,button_base,/COL,/fram,xsize=400) & offy+=10                  ;
+    tmp=widget_label(yoff=offy,button_base02,value="ALIGNMENTS",/align_center,/fram) & offy+=10 ;
+    base1=widget_base(yoff=offy,button_base02,/COL,/fram,xsize=400) & offy+=10                  ;
     tmp=widget_label(yoff=offy,base1,value="Row Base 1")
     base11=widget_base(yoff=offy,base1,/ROW,/fram)
     tmp=widget_label(base11,value="inherited")
@@ -427,7 +431,7 @@ endif
     base13=widget_base(yoff=offy,base1,/ROW,/fram)
     tmp=widget_label(base13,value="/align_right") & offy+=10                                   ;
     but=widget_button(base13,value="some button, right-aligned",xsize=200,/align_right) & offy+=10 ;
-    base2=widget_base(yoff=offy,button_base,/COL,/fram) & offy+=10                               ;
+    base2=widget_base(yoff=offy,button_base02,/COL,/fram) & offy+=10                               ;
     tmp=widget_label(base2,value="Column Base") & offy+=10                                       ;
     tmp=widget_label(base2,value="A Button inheriting base orientation: text centered") & offy+=10 ;
     but=widget_button(base2,value="some button, no align",xsize=200) & offy+=10                      ;

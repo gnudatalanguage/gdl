@@ -1127,7 +1127,8 @@ void gdlwxFrame::OnEnterWindow( wxMouseEvent &event ) {
     widgtracking->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgtracking->InitTag( "ENTER", DIntGDL( 1 ) ); 
     GDLWidget::PushEvent( baseWidgetID, widgtracking );
-  } else event.Skip();
+  }
+ event.Skip();
 }
 
 void gdlwxFrame::OnLeaveWindow( wxMouseEvent &event ) {
@@ -1147,7 +1148,8 @@ void gdlwxFrame::OnLeaveWindow( wxMouseEvent &event ) {
     widgtracking->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgtracking->InitTag( "ENTER", DIntGDL( 0 ) ); 
     GDLWidget::PushEvent( baseWidgetID, widgtracking );
-  } else event.Skip();
+  }
+ event.Skip();
 }
 
 void gdlwxFrame::OnKBRDFocusChange( wxFocusEvent &event ) {
