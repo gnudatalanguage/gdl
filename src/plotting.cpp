@@ -1430,32 +1430,36 @@ namespace lib
   
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer multiaxisdata)
   {
+    PLINT axisNotUsed=0; //to indicate that effectively the axis number is not (yet?) used in some calls
     static GDL_TICKDATA tdata;
     static SizeT internalIndex=0;
-    static DLong lastUnits=0;
+    static DLong lastMultiAxisLevel=0;
     static string theMonth[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
     PLINT Month, Day , Year , Hour , Minute, dow, cap;
     PLFLT Second;
     struct GDL_MULTIAXISTICKDATA *ptr = (GDL_MULTIAXISTICKDATA* )multiaxisdata;
     tdata.a=ptr->a;
     tdata.isLog=ptr->isLog;
- 
-    if (ptr->counter != lastUnits)
-    {
-      lastUnits=ptr->counter;
-      internalIndex=0;
+    if (ptr->reset) {
+      internalIndex=0; //reset index each time a new axis command is issued.
+      ptr->reset=false;
     }
+    if (ptr->counter != lastMultiAxisLevel)
+    {
+      lastMultiAxisLevel=ptr->counter; 
+      internalIndex=0; //reset index each time sub-axis changes
+    }
+   
     if (ptr->what==GDL_TICKFORMAT || (ptr->what==GDL_TICKFORMAT_AND_UNITS && ptr->counter < ptr->nTickFormat) )
     {
       if (ptr->counter > ptr->nTickFormat-1)
       {
-        doOurOwnFormat(axis, value, label, length, &tdata);
+        doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
       }
       else
       { //must pass the value, not the log, to the formatter?
         DDouble v=value;
         if (tdata.isLog) v=pow(10.,v);
-        std::cerr<<v<<std::endl;
         if (((*ptr->TickFormat)[ptr->counter]).substr(0,1) == "(")
         { //internal format, call internal func "STRING"
           EnvT *e=ptr->e;
@@ -1485,10 +1489,10 @@ namespace lib
           EnvUDT* newEnv = new EnvUDT( e->CallingNode(), funList[ funIx], (DObjGDL**)NULL);
           Guard< EnvUDT> guard( newEnv);
           // add parameters
-          newEnv->SetNextPar( new DLongGDL(axis));
-          newEnv->SetNextPar( new DLongGDL(internalIndex));
-          newEnv->SetNextPar( new DDoubleGDL(v));
-          if (ptr->what==GDL_TICKFORMAT_AND_UNITS) newEnv->SetNextPar( new DLongGDL(ptr->counter));
+          newEnv->SetNextPar( new DLongGDL(axis-1)); //axis in PLPLOT starts at 1, it starts at 0 in IDL
+          newEnv->SetNextPar( new DLongGDL(internalIndex)); //index
+          newEnv->SetNextPar( new DDoubleGDL(v)); //value
+          if (ptr->what==GDL_TICKFORMAT_AND_UNITS) newEnv->SetNextPar( new DLongGDL(ptr->counter)); //level
           // guard *before* pushing new env
           StackGuard<EnvStackT> guard1 ( e->Interpreter()->CallStack());
           e->Interpreter()->CallStack().push_back(newEnv);
@@ -1505,16 +1509,16 @@ namespace lib
     {
       if (ptr->counter > ptr->nTickUnits-1 )
       {
-        doOurOwnFormat(axis, value, label, length, &tdata);
+        doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
       }
       else
       {
         DString what=StrUpCase((*ptr->TickUnits)[ptr->counter]);
         if (what.length()<1) {
-          doOurOwnFormat(axis, value, label, length, &tdata);
+          doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
         }
         else if (what.substr(0,7)=="NUMERIC") {
-          doOurOwnFormat(axis, value, label, length, &tdata);
+          doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
      } else {
           j2ymdhms(value, Month , Day , Year , Hour , Minute, Second, dow, cap);
           int convcode=0;
@@ -1554,7 +1558,7 @@ namespace lib
               snprintf( label, length, "%05.2f", Second);
               break;
             case 7:
-              doOurOwnFormat(axis, value, label, length, &tdata);
+              doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
               break;
           }
           
@@ -1569,7 +1573,7 @@ namespace lib
     internalIndex++;
   }
 
-  void gdlSingleAxisTickNamedFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
+  void gdlSingleAxisTickNamedFunc( PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data)
   {
     static GDL_TICKDATA tdata;
     struct GDL_TICKNAMEDATA *ptr = (GDL_TICKNAMEDATA* )data;
@@ -1577,7 +1581,7 @@ namespace lib
     tdata.axisrange=ptr->axisrange;
     if (ptr->counter > ptr->nTickName-1)
     {
-      doOurOwnFormat(axis, value, label, length, &tdata);
+      doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
     }
     else
     {
