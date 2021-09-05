@@ -454,6 +454,10 @@ function install_gdl {
         log "Copying DLLs to install directory..."
         found_dlls=()
         find_dlls ${ROOT_DIR}/build/src/gdl.exe
+        PYTHON_DLL=`ldd ${ROOT_DIR}/build/src/gdl.exe | tr '[:upper:]' '[:lower:]' | grep python | xargs | cut -d' ' -f3`
+        if [[ -n "${PYTHON_DLL}" ]]; then
+            cp -f "${PYTHON_DLL}" bin/
+        fi
         for f in ${found_dlls[@]}; do
             cp -f "$f" bin/
         done
