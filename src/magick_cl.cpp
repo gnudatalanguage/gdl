@@ -58,7 +58,7 @@ namespace lib {
   using namespace antlr;
   using namespace Magick;
 
-  vector<Image> gImage(40);
+  vector<Image*> gImage(40);
   vector<unsigned int> gValid(40);
   unsigned int gCount = 0;
   static bool notInitialized = true;
@@ -75,17 +75,17 @@ namespace lib {
   Image& magick_image(EnvT *e, unsigned int mid) {
     if (gValid[mid] == 0) e->Throw("invalid ID.");
 
-    return gImage[mid];
+    return *gImage[mid];
   }
 
   unsigned int magick_image(EnvT* e, Image &imImage) {
     unsigned int mid = magick_id();
-    gImage[mid] = imImage;
+    gImage[mid] = &imImage;
     return mid;
   }
 
   void magick_replace(EnvT* e, unsigned int mid, Image &imImage) {
-    gImage[mid] = imImage;
+    gImage[mid] = &imImage;
   }
 
   unsigned int magick_id(void) {
