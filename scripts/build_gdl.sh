@@ -9,6 +9,7 @@
 #   - readline, zlib, libpng, libpcre
 #
 # 2021-03-20: Script has been updated to support Linux and macOS
+
 LANG=C #script works only in english
 ME="build_gdl.sh"
 Configuration=${Configuration:-"Release"}
@@ -24,12 +25,49 @@ GDLDE_VERSION=${GDLDE_VERSION:-"v1.0.0"} # needed by 'pack' (at the moment Windo
 NTHREADS=${NTHREADS:-$(getconf _NPROCESSORS_ONLN)} # find nthreads for make -j
 BUILD_OS=$(uname)
 DRY_RUN=false
-if [[ ${BUILD_OS} == *"MSYS"* ]]; then
-    BUILD_OS="Windows"
-elif [[ ${BUILD_OS} == *"MINGW"* ]]; then
+if [[ ${BUILD_OS} == *"MSYS"* ]] || [[ ${BUILD_OS} == *"MINGW"* ]]; then
     BUILD_OS="Windows"
 elif [[ ${BUILD_OS} == "Darwin" ]]; then
     BUILD_OS="macOS"
+fi
+
+# Build flags
+if [[ ${DEPS} == "headless" ]]; then
+    WITH_WXWIDGETS=${WITH_WXWIDGETS:-OFF}
+else
+    WITH_WXWIDGETS=${WITH_WXWIDGETS:-ON}
+fi
+WITH_GRAPHICSMAGICK=${WITH_GRAPHICSMAGICK:-ON}
+WITH_NETCDF=${WITH_NETCDF:-ON}
+WITH_HDF=${WITH_HDF:-ON}
+WITH_HDF5=${WITH_HDF5:-ON}
+if [[ ${DEPS} == "standard" ]]; then
+    WITH_MPI=${WITH_MPI:-OFF}
+else
+    WITH_MPI=${WITH_MPI:-ON}
+fi
+WITH_TIFF=${WITH_TIFF:-ON}
+WITH_GEOTIFF=${WITH_GEOTIFF:-ON}
+WITH_LIBPROJ=${WITH_LIBPROJ:-ON}
+WITH_PYTHON=${WITH_PYTHON:-ON}
+WITH_PYTHONVERSION=${WITH_PYTHONVERSION:-ON}
+WITH_FFTW=${WITH_FFTW:-ON}
+WITH_UDUNITS2=${WITH_UDUNITS2:-ON}
+WITH_GLPK=${WITH_GLPK:-ON}
+if [[ ${BUILD_OS} == "macOS" ]]; then
+    WITH_HDF4=${WITH_HDF4:-OFF}
+    WITH_GRIB=${WITH_GRIB:-ON}
+else
+    zz=`grep -i opensuse /etc/*-release 2> /dev/null`
+    if [[ -n $zz ]]; then
+        # in case of openSUSE
+        WITH_HDF4=${WITH_HDF4:-OFF}
+        WITH_GRIB=${WITH_GRIB:-OFF}
+    else
+        # other distros
+        WITH_HDF4=${WITH_HDF4:-ON}
+        WITH_GRIB=${WITH_GRIB:-ON}
+    fi
 fi
 
 function log {  # log is needded just below!
@@ -368,31 +406,6 @@ function configure_gdl {
                                 "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
                                 "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
     fi
-    
-    WITH_MPI="ON"
-    if [[ ${DEPS} == "standard" ]]; then
-        WITH_MPI="OFF"
-    fi
-
-    WITH_WXWIDGETS="ON"
-    if [[ ${DEPS} == "headless" ]]; then
-        WITH_WXWIDGETS="OFF"
-    fi
-
-    if [[ ${BUILD_OS} == "macOS" ]]; then
-        WITH_HDF4="OFF"
-    else 
-        zz=`grep -i opensuse /etc/*-release 2> /dev/null`
-        if [[ -n $zz ]]; then
-            # in case of openSUSE
-            WITH_HDF4="OFF"
-            WITH_GRIB="OFF"
-        else
-            # other distros
-            WITH_HDF4="ON"
-            WITH_GRIB="ON"
-        fi
-    fi
 
     if [ ${BUILD_OS} == "Windows" ]; then
         export WX_CONFIG=${GDL_DIR}/scripts/deps/windows/wx-config-wrapper
@@ -403,11 +416,11 @@ function configure_gdl {
         -DCMAKE_BUILD_TYPE=${Configuration} \
         -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
         -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
-        -DWXWIDGETS=${WITH_WXWIDGETS} -DGRAPHICSMAGICK=ON \
-        -DNETCDF=ON -DHDF=${WITH_HDF4} -DHDF5=ON \
-        -DMPI=${WITH_MPI} -DTIFF=ON -DGEOTIFF=ON \
-        -DLIBPROJ=ON -DPYTHON=ON -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=ON \
-        -DUDUNITS2=ON -DGLPK=ON -DGRIB=${WITH_GRIB} \
+        -DWXWIDGETS=${WITH_WXWIDGETS} -DGRAPHICSMAGICK=${WITH_GRAPHICSMAGICK} \
+        -DNETCDF=${WITH_NETCDF} -DHDF=${WITH_HDF4} -DHDF5=${WITH_HDF5} \
+        -DMPI=${WITH_MPI} -DTIFF=${WITH_TIFF} -DGEOTIFF=${WITH_GEOTIFF} \
+        -DLIBPROJ=${WITH_LIBPROJ} -DPYTHON=${WITH_PYTHON} -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=${WITH_FFTW} \
+        -DUDUNITS2=${WITH_UDUNITS2} -DGLPK=${WITH_GLPK} -DGRIB=${WITH_GRIB} \
         -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
 }
 
