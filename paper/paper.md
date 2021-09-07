@@ -91,6 +91,8 @@ Homebrew, Macports, or Fink on macOS. On Windows, we provide a precompiled Windo
 Install System (NSIS) based installer. For develop environments, we provide GDL Workbench, an Eclipse Rich Client
 Platform (RCP) based integrated development environment (IDE), and GDL Jupyter kernel.
 
+Software usable with GDL (vital for long-term curation of IDL codes!): GRAFFER, ...
+
 # Acknowledgements and author contributions
 
 GDL development had been started in early aughties by Marc Schellens who developed the interpreter core.
