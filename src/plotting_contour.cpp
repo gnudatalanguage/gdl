@@ -142,55 +142,59 @@ namespace lib
 	    xVal=xValTemp;
 	    yVal=yValTemp;//for the time being, will be update later
 	  }
-	else
-	  {
-	    BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
-	    p0_guard.Init( p0 ); // delete upon exit
-        
-	    zVal=static_cast<DDoubleGDL*>( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
-        zval_guard.Init ( zVal ); // delete upon exit
+        else {
+          BaseGDL* p0 = e->GetNumericArrayParDefined(0)->Transpose(NULL);
+          p0_guard.Init(p0); // delete upon exit
 
-	    xVal=e->GetParAs< DDoubleGDL>( 1 );
-	    yVal=e->GetParAs< DDoubleGDL>( 2 );
+          zVal = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+          zval_guard.Init(zVal); // delete upon exit
 
-	    if ( xVal->Rank ( )>2 )
-	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-
-	    if ( yVal->Rank ( )>2 )
-	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	    if ( xVal->Rank ( )==0 || yVal->Rank ( )==0 )
-	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-
-	    if ( xVal->Rank ( )==1 )
-	      {
-		xEl=xVal->Dim ( 0 );
-
-		if ( xEl!=zVal->Dim ( 1 ) )
-		  e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	      }
-
-	    if ( yVal->Rank ( )==1 )
-	      {
-		yEl=yVal->Dim ( 0 );
-
-		if ( yEl!=zVal->Dim ( 0 ) )
-		  e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	      }
-
-	    if ( xVal->Rank ( )==2 )
-	      {
-		xEl=xVal->Dim ( 0 );
-		if ( ( xVal->Dim ( 0 )!=zVal->Dim ( 1 ) )&&( xVal->Dim ( 1 )!=zVal->Dim ( 0 ) ) )
-		  e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	      }
-
-	    if ( yVal->Rank ( )==2 )
-	      {
-		yEl=yVal->Dim ( 1 );
-		if ( ( yVal->Dim ( 0 )!=zVal->Dim ( 1 ) )&&( yVal->Dim ( 1 )!=zVal->Dim ( 0 ) ) )
-		  e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	      }
-	  }
+          xVal = e->GetParAs< DDoubleGDL>(1);
+          yVal = e->GetParAs< DDoubleGDL>(2);
+//filter out incompatible ranks >2 or ==0
+          if (xVal->Rank() > 2)
+            e->Throw("X, Y, or Z array dimensions are incompatible.");
+          if (yVal->Rank() > 2)
+            e->Throw("X, Y, or Z array dimensions are incompatible.");
+          if (xVal->Rank() == 0 || yVal->Rank() == 0)
+            e->Throw("X, Y, or Z array dimensions are incompatible.");
+//filter out incompatible 1D dimensions
+          if (xVal->Rank() == 1) {
+            xEl = xVal->Dim(0);
+            if (xEl != zVal->Dim(1))
+              e->Throw("X, Y, or Z array dimensions are incompatible.");
+          }
+          if (yVal->Rank() == 1) {
+            yEl = yVal->Dim(0);
+            if (yEl != zVal->Dim(0))
+              e->Throw("X, Y, or Z array dimensions are incompatible.");
+          }
+//filter out incompatible 2D dimensions
+          if (xVal->Rank() == 2) {
+            xEl = xVal->Dim(0);
+            if ((xVal->Dim(0) != zVal->Dim(1))&&(xVal->Dim(1) != zVal->Dim(0)))
+              e->Throw("X, Y, or Z array dimensions are incompatible.");
+          }
+          if (yVal->Rank() == 2) {
+            yEl = yVal->Dim(1);
+            if ((yVal->Dim(0) != zVal->Dim(1))&&(yVal->Dim(1) != zVal->Dim(0)))
+              e->Throw("X, Y, or Z array dimensions are incompatible.");
+          }
+// But if X is 2D and Y is 1D (or reciprocally), we need to promote the 1D to 2D since this is supported by IDL
+          if (xVal->Rank() == 1 && yVal->Rank() == 2) {
+            DDoubleGDL* xValExpanded = new DDoubleGDL(zVal->Dim(), BaseGDL::NOZERO);
+            SizeT k = 0;
+            for (SizeT j = 0; j < zVal->Dim(1); ++j) for (SizeT i = 0; i < zVal->Dim(0); ++i) (*xValExpanded)[k++] = (*xVal)[i];
+            xval_guard.Init(xValExpanded); // delete upon exit
+            xVal = xValExpanded;
+          } else if (xVal->Rank() == 2 && yVal->Rank() == 1) {
+            DDoubleGDL* yValExpanded = new DDoubleGDL(zVal->Dim(), BaseGDL::NOZERO);
+            SizeT k = 0;
+            for (SizeT j = 0; j < zVal->Dim(1); ++j) for (SizeT i = 0; i < zVal->Dim(0); ++i) (*yValExpanded)[k++] = (*yVal)[j];
+            xval_guard.Init(yValExpanded); // delete upon exit
+            yVal = yValExpanded;
+          }
+        }
       }
       
       GetMinMaxVal ( xVal, &xStart, &xEnd );
@@ -646,7 +650,6 @@ namespace lib
 	  else //rank 2 or mapset
 	    {
 	      oneDim=false;
-
 	      actStream->Alloc2dGrid ( &cgrid2.xg, xEl, yEl );
 	      actStream->Alloc2dGrid ( &cgrid2.yg, xEl, yEl );
 	      tidyGrid2WorldData=true;
