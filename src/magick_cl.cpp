@@ -41,9 +41,6 @@
 #include "magick_cl.hpp"
 #include "graphicsdevice.hpp"
 
-#define GDL_DEBUG
-//#undef GDL_DEBUG
-
 // If Magick has not been initialized, do it here, instead of initilizing it in the main program (speedup and avoid strange backtraces)
 // Also warn about limitations due to local implementation of Magick library.
 //We should do more, by example hat octave people do in their code (they circumvent some other limitations)
@@ -58,13 +55,16 @@ namespace lib {
   using namespace antlr;
   using namespace Magick;
 
-  vector<Image*> gImage(40);
-  vector<unsigned int> gValid(40);
+  Image* gImage[40];
+  unsigned int gValid[40];
   unsigned int gCount = 0;
   static bool notInitialized = true;
 
-  __attribute__((constructor)) static void init(void) {
-    START_MAGICK;
+  __attribute__ ((destructor)) static void destruct(void) { // This is GCC only. Possible memory leak with other compilers.
+    int i;
+    for (i = 0; i < 40; ++i)
+      if (gValid[i] == 1)
+        delete gImage[i];
   }
 
   void magick_setup() {
@@ -72,20 +72,15 @@ namespace lib {
     for (i = 0; i < 40; ++i) gValid[i] = 0;
   }
 
-  Image& magick_image(EnvT *e, unsigned int mid) {
+  Image *magick_image(EnvT *e, unsigned int mid) {
     if (gValid[mid] == 0) e->Throw("invalid ID.");
-
-    return *gImage[mid];
+    return gImage[mid];
   }
 
-  unsigned int magick_image(EnvT* e, Image &imImage) {
+  unsigned int magick_image(EnvT* e, Image *imImage) {
     unsigned int mid = magick_id();
-    gImage[mid] = &imImage;
+    gImage[mid] = imImage;
     return mid;
-  }
-
-  void magick_replace(EnvT* e, unsigned int mid, Image &imImage) {
-    gImage[mid] = &imImage;
   }
 
   unsigned int magick_id(void) {
@@ -112,14 +107,14 @@ namespace lib {
 
       if (filename.length() == 0) e->Throw("Void file Name");
 
-      Image a;
+      Image *a = new Image();
       try {
-        a.read(filename);
+        a->read(filename);
       } catch (WarningCoder &warning_) {
         cerr << warning_.what() << endl;
       }
-      if ((a.rows() * a.columns()) == 0) e->Throw("Error reading image dimensions!");
-      a.flip();
+      if ((a->rows() * a->columns()) == 0) e->Throw("Error reading image dimensions!");
+      a->flip();
       unsigned int mid;
       mid = magick_image(e, a);
       return new DUIntGDL(mid);
@@ -145,10 +140,10 @@ namespace lib {
 
       WordExp(filename);
 
-      Image a;
+      Image *a = new Image;
       try {
-        a.ping(filename);
-        //a.read(filename);
+        a->ping(filename);
+        //a->read(filename);
       } catch (WarningCoder &warning_) {
         cerr << warning_.what() << endl;
       }
@@ -156,44 +151,44 @@ namespace lib {
       if (nParam == 2) {
         DString magick;
         e->AssureScalarPar<DStringGDL>(1, magick);
-        if (a.magick() != magick) return new DLongGDL(0);
+        if (a->magick() != magick) return new DLongGDL(0);
       }
 
       int debug = 0;
       if (debug == 1) {
-        cout << "a.type()      :" << a.type() << endl;
-        cout << "a.classType() :" << a.classType() << endl;
-        cout << "a.matte()     :" << a.matte() << endl;
-        // no useful info here:cout << "a.colorSpace()     :" << a.colorSpace() << endl;
-        // Always 8:cout << "a.depth()     :" << a.depth() << endl;
-        // Always 1: cout << "a.colorSpace() :" << a.colorSpace() << endl;
+        cout << "a->type()      :" << a->type() << endl;
+        cout << "a->classType() :" << a->classType() << endl;
+        cout << "a->matte()     :" << a->matte() << endl;
+        // no useful info here:cout << "a->colorSpace()     :" << a->colorSpace() << endl;
+        // Always 8:cout << "a->depth()     :" << a->depth() << endl;
+        // Always 1: cout << "a->colorSpace() :" << a->colorSpace() << endl;
       }
 
       // AC 2012-May-10
       // http://www.graphicsmagick.org/Magick++/Image.html#type
       // relevant information that, in some cases, is provided after pinging:
-      // a.matte(), a.classType() [and a.type() for Palette info only]
+      // a->matte(), a->classType() [and a->type() for Palette info only]
       DLong channels = 0;
-      if (a.classType() == 1) channels = 3; // DirectColor
-      if (a.classType() == 2) channels = 1; // PseudoColor
+      if (a->classType() == 1) channels = 3; // DirectColor
+      if (a->classType() == 2) channels = 1; // PseudoColor
       if (channels == 0) cout << "no ClassType found for current Image" << endl;
 
-      // AC 2012-May-10 this is NOT working with only a a.ping()
-      // a.type() is FULLY reliable if and only if a.read() was done before !!! 
+      // AC 2012-May-10 this is NOT working with only a a->ping()
+      // a->type() is FULLY reliable if and only if a->read() was done before !!! 
       //http://www.graphicsmagick.org/Magick++/Image.html#type
-      // (should be OK with a a.read())
+      // (should be OK with a a->read())
       /*
-      channels = a.classType() == PseudoClass 
+      channels = a->classType() == PseudoClass 
         ? 1      // color palette
-        : a.type() == GrayscaleType 
+        : a->type() == GrayscaleType 
           ? 1    // greyscale
-          : a.type() == ColorSeparationType 
+          : a->type() == ColorSeparationType 
             ? 4  // CMYK
             : 3; // RGB
        */
 
       // AC 2012-May-10 this is OK (reliable), see example "589 Lavandula mono"
-      if (a.matte()) channels += 1;
+      if (a->matte()) channels += 1;
 
       // TODO! multiple images (using the Magick++ STL interface)
       DLong image_index, num_images;
@@ -201,24 +196,24 @@ namespace lib {
       num_images = 1;
 
       DInt pixel_type;
-      pixel_type = a.depth() == 16 ? 2 : 1;
+      pixel_type = a->depth() == 16 ? 2 : 1;
 
       // AC 2012-May-10 Palette only if type == 4 OR 5
-      // Despite Type is NOT useful without a a.read(), it is OK for Palette !
+      // Despite Type is NOT useful without a a->read(), it is OK for Palette !
       // This should be reliable (OK with ImageMagick AND GraphicsMagick)
       DInt has_palette = 0;
-      if ( (a.type() == PaletteType) || (a.type() == PaletteMatteType) ) has_palette = 1;
+      if ( (a->type() == PaletteType) || (a->type() == PaletteMatteType) ) has_palette = 1;
 
       DString type;
-      type = a.magick() == "PNM" ? "PPM" :
-        a.magick() == "PGM" ? "PPM" :
-        a.magick() == "DCM" ? "DICOM" :
-        a.magick() == "JPC" ? "JPEG2000" :
-        a.magick() == "JP2" ? "JPEG2000" :
-        a.magick() == "JNG" ? "JPEG2000" :
-        a.magick();
+      type = a->magick() == "PNM" ? "PPM" :
+        a->magick() == "PGM" ? "PPM" :
+        a->magick() == "DCM" ? "DICOM" :
+        a->magick() == "JPC" ? "JPEG2000" :
+        a->magick() == "JP2" ? "JPEG2000" :
+        a->magick() == "JNG" ? "JPEG2000" :
+        a->magick();
 
-      if (debug == 1) cout << "Type (via a.magick()) : " << type << endl;
+      if (debug == 1) cout << "Type (via a->magick()) : " << type << endl;
 
       static int infoIx = e->KeywordIx("INFO");
       if (e->KeywordPresent(infoIx)) {
@@ -243,8 +238,8 @@ namespace lib {
         info->InitTag("CHANNELS", DLongGDL(channels));
         {
           DLongGDL dims(dimension(2));
-          dims[0] = a.columns();
-          dims[1] = a.rows();
+          dims[0] = a->columns();
+          dims[1] = a->rows();
           info->InitTag("DIMENSIONS", dims);
         }
         info->InitTag("HAS_PALETTE", DIntGDL(has_palette));
@@ -265,8 +260,8 @@ namespace lib {
       if (e->KeywordPresent(dimensionsIx)) {
         e->AssureGlobalKW(dimensionsIx);
         DLongGDL *dims = new DLongGDL(dimension(2));
-        (*dims)[0] = a.columns();
-        (*dims)[1] = a.rows();
+        (*dims)[0] = a->columns();
+        (*dims)[1] = a->rows();
         e->SetKW(dimensionsIx, dims);
       }
 
@@ -320,15 +315,15 @@ namespace lib {
       g.height(rows);
       if (nParam == 3) { //truecolor
         e->AssureScalarPar<DStringGDL>(2, col);
-        Image a(g, Color(col));
+        Image *a = new Image(g, Color(col));
         unsigned int mid;
-        a.matte(false);
+        a->matte(false);
         mid = magick_image(e, a);
         return new DUIntGDL(mid);
       } else {
-        Image a(g, Color("black"));
+        Image *a = new Image(g, Color("black"));
         unsigned int mid;
-        a.matte(false);
+        a->matte(false);
         mid = magick_image(e, a);
         return new DUIntGDL(mid);
       }
@@ -351,7 +346,7 @@ namespace lib {
       else if (gValid[mid] == 0) e->Throw("ID not used");
 
       gValid[mid] = 0;
-      gImage[mid] = NULL;
+      delete gImage[mid];
       if (gCount - 1 == mid) gCount--;
     } catch (Exception &error_) {
       e->Throw(error_.what());
@@ -365,14 +360,14 @@ namespace lib {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
       unsigned int columns, rows;
-      Image image = magick_image(e, mid);
-      if (image.classType() == DirectClass)
+      Image *image = magick_image(e, mid);
+      if (image->classType() == DirectClass)
         e->Throw("Not an indexed image: " + e->GetParString(0));
 
-      columns = image.columns();
-      rows = image.rows();
+      columns = image->columns();
+      rows = image->rows();
 
-      if (image.matte() == 0) {
+      if (image->matte() == 0) {
 
         SizeT c[2];
         c[0] = columns;
@@ -382,8 +377,8 @@ namespace lib {
 
 //        const PixelPacket* pixel;
         const IndexPacket* index;
-//        pixel = image.getPixels(0, 0, columns, rows);
-        index = image.getIndexes();
+//        pixel = image->getPixels(0, 0, columns, rows);
+        index = image->getIndexes();
 
         if (index == NULL) {
           string txt = "Warning -- Magick's getIndexes() returned NULL for: ";
@@ -391,7 +386,7 @@ namespace lib {
           //PATCH to get something until we understand what's going on
           cerr << (txt + e->GetParString(0) + txt2) << endl;
           string map = "R";
-          image.write(0, 0, columns, rows, map, CharPixel, &(*bImage)[0]);
+          image->write(0, 0, columns, rows, map, CharPixel, &(*bImage)[0]);
           return bImage;
         }
         return bImage;
@@ -404,7 +399,7 @@ namespace lib {
         c[2] = rows;
         dimension dim(c, 3);
         DByteGDL *bImage = new DByteGDL(dim, BaseGDL::NOZERO);
-        image.write(0, 0, columns, rows, map, CharPixel, &(*bImage)[0]);
+        image->write(0, 0, columns, rows, map, CharPixel, &(*bImage)[0]);
         return bImage;
       }
     } catch (Exception &error_) {
@@ -420,23 +415,23 @@ namespace lib {
       size_t nParam = e->NParam(1);
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
-      if (image.classType() == DirectClass)
+      Image* image = magick_image(e, mid);
+      if (image->classType() == DirectClass)
         e->Throw("Not an indexed image: " + e->GetParString(0));
 
-      if (image.classType() == PseudoClass) {
+      if (image->classType() == PseudoClass) {
         unsigned int Quant, scale, i;
         if (QuantumDepth == 16) Quant = 65535;
         if (QuantumDepth == 8) Quant = 255;
 
-        unsigned int cmapsize = image.colorMapSize();
+        unsigned int cmapsize = image->colorMapSize();
         dimension cmap(cmapsize, 1);
         Color col;
 
 #ifdef USE_MAGICK6
-        if (image.modulusDepth() <= 8)
+        if (image->modulusDepth() <= 8)
 #else
-        if (image.depth() <= 8)
+        if (image->depth() <= 8)
 #endif
         {
 
@@ -448,7 +443,7 @@ namespace lib {
           B = new DByteGDL(cmap, BaseGDL::NOZERO);
 
           for (i = 0; i < cmapsize; ++i) {
-            col = image.colorMap(i);
+            col = image->colorMap(i);
             (*R)[i] = (col.redQuantum()) ; //* scale / Quant;
             (*G)[i] = (col.greenQuantum()) ; // * scale / Quant;
             (*B)[i] = (col.blueQuantum()) ; //* scale / Quant;
@@ -458,9 +453,9 @@ namespace lib {
           if (nParam > 3) e->SetPar(3, B);
         }
 #ifdef USE_MAGICK6
-        else if (image.modulusDepth() <= 16)
+        else if (image->modulusDepth() <= 16)
 #else     
-        else if (image.depth() <= 16)
+        else if (image->depth() <= 16)
 #endif
         {
           scale = MaxRGB;
@@ -470,7 +465,7 @@ namespace lib {
           B = new DUIntGDL(cmap, BaseGDL::NOZERO);
 
           for (i = 0; i < cmapsize; ++i) {
-            col = image.colorMap(i);
+            col = image->colorMap(i);
             (*R)[i] = (col.redQuantum()) ; //* scale / Quant;
             (*G)[i] = (col.greenQuantum()) ; //* scale / Quant;
             (*B)[i] = (col.blueQuantum()) ; //* scale / Quant;
@@ -499,13 +494,13 @@ namespace lib {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
       unsigned int columns, rows, lx, ly, wx, wy;
-      Image image = magick_image(e, mid);
+      Image* image = magick_image(e, mid);
 
-      columns = image.columns();
-      rows = image.rows();
+      columns = image->columns();
+      rows = image->rows();
       if ((rows * columns) == 0) e->Throw("Error reading image dimensions!");
       string map = "RGB";
-      if (image.matte()) map = map + "A";
+      if (image->matte()) map = map + "A";
 
       if (e->GetKW(0) != NULL)//RGB
       {
@@ -555,13 +550,13 @@ namespace lib {
       dim << wx;
       dim << wy;
 
-      if (image.depth() == 8) {
+      if (image->depth() == 8) {
         DByteGDL *bImage = new DByteGDL(dim, BaseGDL::NOZERO);
-        image.write(lx, ly, wx, wy, map, CharPixel, &(*bImage)[0]);
+        image->write(lx, ly, wx, wy, map, CharPixel, &(*bImage)[0]);
         return bImage;
-      } else if (image.depth() == 16) {
+      } else if (image->depth() == 16) {
         DUIntGDL* iImage = new DUIntGDL(dim, BaseGDL::NOZERO);
-        image.write(lx, ly, wx, wy, map, ShortPixel, &(*iImage)[0]);
+        image->write(lx, ly, wx, wy, map, ShortPixel, &(*iImage)[0]);
         return iImage;
       } else {
         e->Throw("Unsupported bit depth");
@@ -582,7 +577,7 @@ namespace lib {
 
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
+      Image* image = magick_image(e, mid);
       int columns, rows, planes;
       //	StorageType ty;
       //	ty=CharPixel;
@@ -614,7 +609,7 @@ namespace lib {
               Message(s);
               map = "BGR";
             }
-            if (image.matte()) map = map + "A";
+            if (image->matte()) map = map + "A";
           }
         }
 
@@ -622,14 +617,14 @@ namespace lib {
           static_cast<DByteGDL*> (GDLimage->Convert2(GDL_BYTE, BaseGDL::COPY));
         Guard<DByteGDL> bImageGuard(bImage);
 
-        image.read(columns, rows, map, CharPixel, &(*bImage)[0]);
+        image->read(columns, rows, map, CharPixel, &(*bImage)[0]);
         /*	      }
-        else if(image.depth() == 16)
+        else if(image->depth() == 16)
           {
         DUIntGDL * iImage=
           static_cast<DUIntGDL*>(GDLimage->Convert2(GDL_UINT,BaseGDL::COPY));
 
-        image.read(columns,rows,map, ShortPixel,&(*iImage)[0]);
+        image->read(columns,rows,map, ShortPixel,&(*iImage)[0]);
           }
         else
           {
@@ -643,18 +638,18 @@ namespace lib {
           static_cast<DByteGDL*> (GDLimage->Convert2(GDL_BYTE, BaseGDL::COPY));
         Guard<DByteGDL> bImageGuard(bImage);
         // Ensure that there are no other references to this image.
-        image.modifyImage();
+        image->modifyImage();
         // Set the image type to Palette.
-        image.type(PaletteType);
+        image->type(PaletteType);
 //
-        if (image.colorMapSize() < 1) e->Throw("GDL internal: destination image has no colormap!");
-        image.size(Geometry(columns, rows));
-        image.setPixels(0,0,columns, rows);
-        image.readPixels(IndexQuantum,(unsigned char*)bImage->DataAddr());
-        image.syncPixels();
+        if (image->colorMapSize() < 1) e->Throw("GDL internal: destination image has no colormap!");
+        image->size(Geometry(columns, rows));
+        image->setPixels(0,0,columns, rows);
+        image->readPixels(IndexQuantum,(unsigned char*)bImage->DataAddr());
+        image->syncPixels();
       }
-//      image.flip();
-      magick_replace(e, mid, image);
+//      image->flip();
+      //magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
@@ -667,7 +662,7 @@ namespace lib {
       size_t nParam = e->NParam(2);
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
+      Image* image = magick_image(e, mid);
 
       DString filename;
       e->AssureScalarPar<DStringGDL>(1, filename);
@@ -676,10 +671,10 @@ namespace lib {
       if (nParam == 3) {
         DString imagetype;
         e->AssureScalarPar<DStringGDL>(2, imagetype);
-        image.magick(imagetype);
+        image->magick(imagetype);
       }
-      image.write(filename);
-      magick_replace(e, mid, image);
+      image->write(filename);
+      //magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
@@ -693,16 +688,16 @@ namespace lib {
     try {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
+      Image* image = magick_image(e, mid);
       size_t nParam = e->NParam(1);
       if (nParam == 2) {
         DUInt ncol;
         e->AssureScalarPar<DUIntGDL>(1, ncol);
-        image.colorMapSize(ncol);
-        magick_replace(e, mid, image);
+        image->colorMapSize(ncol);
+        //magick_replace(e, mid, image);
       }
 
-      return new DLongGDL(image.colorMapSize());
+      return new DLongGDL(image->colorMapSize());
     } catch (Exception &error_) {
       return new DLongGDL(-1);
     }
@@ -715,16 +710,16 @@ namespace lib {
     try {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
+      Image* image = magick_image(e, mid);
       size_t nParam = e->NParam(1);
       if (nParam == 2) {
         DString format;
         e->AssureScalarPar<DStringGDL>(1, format);
-        image.magick(format);
-        magick_replace(e, mid, image);
+        image->magick(format);
+        //magick_replace(e, mid, image);
       }
 
-      return new DStringGDL(image.magick());
+      return new DStringGDL(image->magick());
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
@@ -737,8 +732,8 @@ namespace lib {
     try {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
-      return new DLongGDL(image.rows());
+      Image* image = magick_image(e, mid);
+      return new DLongGDL(image->rows());
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
@@ -751,8 +746,8 @@ namespace lib {
     try {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
-      return new DLongGDL(image.columns());
+      Image* image = magick_image(e, mid);
+      return new DLongGDL(image->columns());
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
@@ -764,11 +759,11 @@ namespace lib {
     try {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
+      Image* image = magick_image(e, mid);
 
-      if (image.classType() == DirectClass)
+      if (image->classType() == DirectClass)
         return new DIntGDL(0);
-      if (image.classType() == PseudoClass)
+      if (image->classType() == PseudoClass)
         return new DIntGDL(1);
     } catch (Exception &error_) {
       e->Throw(error_.what());
@@ -788,9 +783,9 @@ namespace lib {
       if (nParam == 2) q = 75;
       //check before we do anything.
 
-      Image image = magick_image(e, mid);
-      image.quality(q);
-      magick_replace(e, mid, image);
+      Image* image = magick_image(e, mid);
+      image->quality(q);
+      //magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
@@ -804,9 +799,9 @@ namespace lib {
     try {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
-      image.flip();
-      magick_replace(e, mid, image);
+      Image* image = magick_image(e, mid);
+      image->flip();
+      //magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
@@ -817,10 +812,10 @@ namespace lib {
     try {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
-      image.matte(true);
+      Image* image = magick_image(e, mid);
+      image->matte(true);
 
-      magick_replace(e, mid, image);
+      //magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
@@ -831,12 +826,12 @@ namespace lib {
     try {
       DUInt mid, index;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
+      Image* image = magick_image(e, mid);
       e->AssureScalarPar<DUIntGDL>(1, index);
-      if (index >= 0 && index < image.colorMapSize()) {
-        image.transparent(image.colorMap(index));
+      if (index >= 0 && index < image->colorMapSize()) {
+        image->transparent(image->colorMap(index));
 
-        magick_replace(e, mid, image);
+        //magick_replace(e, mid, image);
       }
     } catch (Exception &error_) {
       e->Throw(error_.what());
@@ -848,7 +843,7 @@ namespace lib {
     try {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
+      Image* image = magick_image(e, mid);
 
 
       //NoInterlace.......Don't interlace image (RGBRGBRGBRGBRGBRGB...)
@@ -856,13 +851,13 @@ namespace lib {
       //PlaneInterlace....Use plane interlacing (RRRRRR...GGGGGG...BBBBBB...)
 
       if (e->KeywordSet(0))//NoInterlace
-        image.interlaceType(NoInterlace);
+        image->interlaceType(NoInterlace);
       else if (e->KeywordSet(1))//LineInterlace
-        image.interlaceType(LineInterlace);
+        image->interlaceType(LineInterlace);
       else if (e->KeywordSet(2))//PlaneInterlace
-        image.interlaceType(PlaneInterlace);
+        image->interlaceType(PlaneInterlace);
 
-      magick_replace(e, mid, image);
+      //magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
@@ -874,42 +869,42 @@ namespace lib {
     try {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
+      Image* image = magick_image(e, mid);
 
       if (e->KeywordSet(0))//Uniform noise
-        image.addNoise(UniformNoise);
+        image->addNoise(UniformNoise);
       else if (e->KeywordSet(1))//Gaussian noise
-        image.addNoise(GaussianNoise);
+        image->addNoise(GaussianNoise);
       else if (e->KeywordSet(2))//Multiplicative Gaussian noise
-        image.addNoise(MultiplicativeGaussianNoise);
+        image->addNoise(MultiplicativeGaussianNoise);
       else if (e->KeywordSet(3))//Impulse noise
-        image.addNoise(ImpulseNoise);
+        image->addNoise(ImpulseNoise);
       else if (e->KeywordSet(4))//Laplacian noise
-        image.addNoise(LaplacianNoise);
+        image->addNoise(LaplacianNoise);
       else if (e->KeywordSet(5))//Poisson noise
-        image.addNoise(PoissonNoise);
+        image->addNoise(PoissonNoise);
       else if (e->GetKW(6) != NULL) {
         DInt noise;
         e->AssureScalarKW<DIntGDL>(6, noise);
 
         if (noise == 0)//Uniform noise
-          image.addNoise(UniformNoise);
+          image->addNoise(UniformNoise);
         else if (noise == 1)//Gaussian noise
-          image.addNoise(GaussianNoise);
+          image->addNoise(GaussianNoise);
         else if (noise == 2)//Multiplicative Gaussian noise
-          image.addNoise(MultiplicativeGaussianNoise);
+          image->addNoise(MultiplicativeGaussianNoise);
         else if (noise == 3)//Impulse noise
-          image.addNoise(ImpulseNoise);
+          image->addNoise(ImpulseNoise);
         else if (noise == 4)//Laplacian noise
-          image.addNoise(LaplacianNoise);
+          image->addNoise(LaplacianNoise);
         else if (noise == 5)//Poisson noise
-          image.addNoise(PoissonNoise);
+          image->addNoise(PoissonNoise);
         else
           e->Throw("Unknown noise type requested.");
       } else//no keyword
-        image.addNoise(UniformNoise);
+        image->addNoise(UniformNoise);
 
-      magick_replace(e, mid, image);
+      //magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
@@ -922,7 +917,7 @@ namespace lib {
 
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
+      Image* image = magick_image(e, mid);
       //set the number of colors;
       DLong ncol = 256;
       if (nParam > 1) e->AssureLongScalarPar(1, ncol);
@@ -935,20 +930,20 @@ namespace lib {
       static int GRAYSCALEIx = e->KeywordIx("GRAYSCALE");
       
         if (e->KeywordSet(YUVIx)) //YUV
-          image.quantizeColorSpace(YUVColorspace);
+          image->quantizeColorSpace(YUVColorspace);
         else if (e->KeywordSet(GRAYSCALEIx)) //Grayscale
-          image.quantizeColorSpace(GRAYColorspace);
+          image->quantizeColorSpace(GRAYColorspace);
         else
-          image.quantizeColorSpace(RGBColorspace);
+          image->quantizeColorSpace(RGBColorspace);
 
-//      image.colorMapSize(ncol);
-//      image.classType(PseudoClass);
-//      image.type(PaletteType);
-      image.quantizeColors(ncol);
-      image.quantizeDither(dither);
-      image.quantize();
-//      image.syncPixels();
-      magick_replace(e, mid, image);
+//      image->colorMapSize(ncol);
+//      image->classType(PseudoClass);
+//      image->type(PaletteType);
+      image->quantizeColors(ncol);
+      image->quantizeDither(dither);
+      image->quantize();
+//      image->syncPixels();
+      //magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
@@ -960,8 +955,8 @@ namespace lib {
     START_MAGICK;
     DUInt mid;
     e->AssureScalarPar<DUIntGDL>(0, mid);
-    Image image = magick_image(e, mid);
-    image.display();
+    Image* image = magick_image(e, mid);
+    image->display();
 
   }
 
@@ -973,17 +968,17 @@ namespace lib {
       BaseGDL* GDLimage = e->GetParDefined(1);
       DByteGDL * bImage = static_cast<DByteGDL*> (GDLimage->Convert2(GDL_BYTE, BaseGDL::COPY));
 
-      Image image = magick_image(e, mid);
+      Image* image = magick_image(e, mid);
 
 //      const PixelPacket* pixels;
       IndexPacket* index;
 
       unsigned int columns, rows;
-      columns = image.columns();
-      rows = image.rows();
+      columns = image->columns();
+      rows = image->rows();
 
-//      pixels = image.setPixels(0, 0, columns, rows);
-      index = image.getIndexes();
+//      pixels = image->setPixels(0, 0, columns, rows);
+      index = image->getIndexes();
 
       SizeT nEl = columns*rows;
       // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
@@ -995,9 +990,9 @@ namespace lib {
                   index++;*/
         }
       }
-      image.syncPixels();
+      image->syncPixels();
 
-      magick_replace(e, mid, image);
+      //magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
@@ -1010,13 +1005,13 @@ namespace lib {
     try {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
-      Image image = magick_image(e, mid);
+      Image* image = magick_image(e, mid);
       SizeT nparam = e->NParam();
       if (nparam != 1 && nparam != 4) e->Throw("invalid number of parameters for MAGICK_WRITECOLORTABLE Procedure.");
 //      unsigned int scale;
 //      scale = 255;
       //these would be Palette type images I bet.
-      image.type(PaletteType);
+      image->type(PaletteType);
 
       if (nparam == 4) { //get passed LUT
         BaseGDL* GDLCol = e->GetParDefined(1);
@@ -1035,21 +1030,21 @@ namespace lib {
         if (Red->N_Elements() == Green->N_Elements() &&
           Red->N_Elements() == Blue->N_Elements()) {
           unsigned long n = Red->N_Elements();
-          image.colorSpace(RGBColorspace);
-          image.colorMapSize(n);
-          image.quantize(n);
-          for (unsigned long c = 0; c < n; ++c) image.colorMap(c, ColorRGB((double)(*Red)[c] / 255., (double)(*Green)[c] / 255., (double)(*Blue)[c] / 255.));
+          image->colorSpace(RGBColorspace);
+          image->colorMapSize(n);
+          image->quantize(n);
+          for (unsigned long c = 0; c < n; ++c) image->colorMap(c, ColorRGB((double)(*Red)[c] / 255., (double)(*Green)[c] / 255., (double)(*Blue)[c] / 255.));
           }
       } else { //GET current LOADCT LUT
         PLINT r[ctSize], g[ctSize], b[ctSize];
         GraphicsDevice::GetDevice()->GetCT()->Get(r, g, b);
         unsigned long n = ctSize;
-        image.colorSpace(RGBColorspace);
-        image.colorMapSize(n);
-        image.quantize(n);
-        for (unsigned long c = 0; c < n; ++c) image.colorMap(c, ColorRGB((double)r[c] / 255., (double)g[c] / 255., (double)b[c] / 255.));
+        image->colorSpace(RGBColorspace);
+        image->colorMapSize(n);
+        image->quantize(n);
+        for (unsigned long c = 0; c < n; ++c) image->colorMap(c, ColorRGB((double)r[c] / 255., (double)g[c] / 255., (double)b[c] / 255.));
       }
-      magick_replace(e, mid, image);
+      //magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
