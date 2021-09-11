@@ -835,6 +835,7 @@ if (!wxInitialize()) {
     return false;
   }
 } else {std::cerr << "INFO: wxWidgets already initialized (in 3rd party library?), pursue with fingers crossed" << std::endl; }
+  wxInitAllImageHandlers(); //do it here once for all
   return true;
 }
 // Init
@@ -3919,8 +3920,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_COLLAPSED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemCollapsed),tree);
     this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_EXPANDED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemExpanded),tree);
     this->AddToDesiredEvents(wxEVT_COMMAND_TREE_SEL_CHANGED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemSelected),tree);
-//    UPDATE_WINDOW
-    REALIZE_IF_NEEDED
+
       
   } else {
     GDLWidgetTree* parentTree = static_cast<GDLWidgetTree*> (gdlParent);
@@ -3952,6 +3952,8 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
    //dropability inheritance.
     if (dropability == -1) droppable=parentTree->IsDroppable(); else droppable=(dropability == 1);
   }
+//    UPDATE_WINDOW
+    REALIZE_IF_NEEDED
 }
 DInt GDLWidgetTree::GetTreeIndex()
 {
@@ -4555,7 +4557,13 @@ GDLWidgetMenuButton::~GDLWidgetMenuButton() {
   }
 
 void GDLWidgetButton::SetButtonWidgetBitmap( wxBitmap* bitmap_ ) {
-  if ( buttonType == BITMAP || buttonType == POPUP_BITMAP ) {
+  if ( buttonType == BITMAP) {
+    wxBitmapButton *b = dynamic_cast<wxBitmapButton*> (theWxWidget);
+    if ( b ) {
+      b->SetBitmapLabel( *bitmap_ );
+      b->SetLabelText(wxEmptyString);
+      }
+  } else if ( buttonType == POPUP_BITMAP ) {
     wxBitmapButton *b = dynamic_cast<wxBitmapButton*> (theWxContainer); //not the wxWidget since the widget is the popup menu itself.
     if ( b ) {
       b->SetBitmapLabel( *bitmap_ );
