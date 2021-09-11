@@ -380,8 +380,6 @@ public:
   static void UnInit(); // global GUI desinitialization in case it is useful (?)
   static bool wxIsStarted(){return (wxIsOn);}
   static void SetWxStarted(){wxIsOn=true;}
-  static bool AreWxHandlersOk(){return (handlersOk);}
-  static void SetWxHandlersOk(){handlersOk=true;}
   static void UnsetWxStarted(){gdl_lastControlId=0;/* not possible: wxWidgets library does not survive wxUniitiailze() ... wxIsOn=false; handlersOk=false;*/}
   static int  GDLNewControlId(){
    gdl_lastControlId++;
