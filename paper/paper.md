@@ -28,6 +28,8 @@ authors:
   - name: Ole Streicher
     orcid: 0000-0001-7751-1843
     affiliation: aip.de
+  - name: Thierry Thomas
+    affiliation: edf.fr
   - name: Orion Poplawski
     affiliation: nwra.com
 affiliations:
@@ -49,6 +51,8 @@ affiliations:
    index: aip.de
  - name: University of Illinois at Urbana–Champaign, USA
    index: illinois.edu
+ - name: EDF, Lyon, France
+   index: edf.fr
  - name: NorthWest Research Associates, Boulder, CO, USA
    index: nwra.com
 bibliography: paper.bib
