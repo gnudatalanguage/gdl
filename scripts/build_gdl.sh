@@ -499,7 +499,7 @@ function pack_gdl {
         cd "${ROOT_DIR}/package/GNU Data Language.app/Contents"
 
         mkdir MacOS
-        echo "#!/bin/bash" > MacOS/gdl
+        echo "#!/bin/sh" > MacOS/gdl
         echo 'SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"' >> MacOS/gdl
         echo 'open -a Terminal "file://${SCRIPTPATH}/../Resources/bin/gdl"' >> MacOS/gdl
         chmod +x MacOS/gdl
