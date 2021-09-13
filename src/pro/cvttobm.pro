@@ -23,12 +23,8 @@ function cvttobm,image,threshold=t
     nx=(sx-1)/8+1
     nsx=8*nx
     b=bytarr(nsx,sy)
-    ; use array_indices to put ones
-    w=where(a ge t)
-    dims=size(a,/dim)
-    ind=array_indices(dims,w, /dim)
-    b[ind[0,*],ind[1,*]]=1b
-
+    w=where(a ge t, na)
+    if na ne 0 then b[w]=1b
     ; compress 8 bytes in 1:
     z=bytarr(nx*sy)
     
