@@ -647,16 +647,19 @@ BaseGDL* widget_tree( EnvT* e)
   wxBitmap* bitmap=NULL;
   if (e->KeywordPresent( BITMAP )) { //must be 16 x 16 x 3 but we do not care about the 16x16
     testByte = e->GetKWAs<DByteGDL>( BITMAP );
-    if (testByte->Rank() == 3 && testByte->Dim(2) == 3) {
-      BaseGDL* transpose=testByte->Transpose(NULL);
-      wxImage tryImage=wxImage(transpose->Dim(1),transpose->Dim(2),static_cast<unsigned char*>(transpose->DataAddr()),true); //STATIC DATA I BELIEVE.
-      bitmap = new wxBitmap(tryImage.Rotate90(false).Mirror(false));
-      GDLDelete( transpose );
-    } else {
-      if (testByte->Rank() == 0 && (*testByte)[0]==0 ) { //do nothing! yet another IDL trick: will use a default system bitmap.
-    } else e->Throw( "Bitmap must be a [16,16,3] array." );
-  }
-  }
+      if (testByte) {
+        if (testByte->Rank() == 3 && testByte->Dim(2) == 3) {
+          BaseGDL* transpose = testByte->Transpose(NULL);
+          transpose->Reverse(2); //necessary 
+          wxImage tryImage = wxImage(transpose->Dim(1), transpose->Dim(2), static_cast<unsigned char*> (transpose->DataAddr()), true); //STATIC DATA I BELIEVE.
+          bitmap = new wxBitmap(tryImage);
+          GDLDelete(transpose);
+        } else {
+          if (testByte->Rank() == 0 && (*testByte)[0] == 0) { //do nothing! yet another IDL trick: will use a default system bitmap.
+          } else e->Throw("Invalid bitmap array. Bitmap array must have dimensions of [M,N,3] or [M,N,4].");
+        }
+      }
+    }
 
 //
 //  DLong checked = 0;
@@ -885,7 +888,7 @@ BaseGDL* widget_draw( EnvT* e ) {
 
   //xpad, ypad and space default to gdlPAD if not precised:
 
-  DLong space=gdlPAD;
+  DLong space=gdlSPACE;
   if ( e->KeywordPresent(spaceIx) && !nonexclusive && !exclusive ) e->AssureLongScalarKWIfPresent( spaceIx, space );
   DLong xpad = gdlPAD;
   e->AssureLongScalarKWIfPresent( xpadIx, xpad );
@@ -1108,16 +1111,9 @@ BaseGDL* widget_draw( EnvT* e ) {
       // BITMAP is ignored when invalue is of the correct type. Otherwise if string, the bitmap must be present.
       if (isBitmap && isString) {
         //try loading file
-        {
-          if (!GDLWidget::AreWxHandlersOk()) {
-            wxInitAllImageHandlers();
-            GDLWidget::SetWxHandlersOk();
-          }
-        }
         WordExp(strvalue);
-        wxImage * tryImage = new wxImage(wxString(strvalue.c_str(), wxConvUTF8), wxBITMAP_TYPE_ANY);
-        if (tryImage->IsOk()) {
-          bitmap = new wxBitmap(*tryImage);
+        bitmap = new wxBitmap(wxString(strvalue.c_str(), wxConvUTF8), wxBITMAP_TYPE_ANY);
+        if (bitmap) {
           strvalue.clear();
           hasImage = false;
         } else {
@@ -3000,16 +2996,9 @@ void widget_control( EnvT* e ) {
           if (dynamic_cast<GDLWidgetMenuBarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
 #endif
           //try loading file
-          {
-            if (!GDLWidget::AreWxHandlersOk()) {
-              wxInitAllImageHandlers();
-              GDLWidget::SetWxHandlersOk();
-            }
-          }
           WordExp(strvalue);
-          wxImage * tryImage = new wxImage(wxString(strvalue.c_str(), wxConvUTF8), wxBITMAP_TYPE_ANY); //shoul dbe BMP but we can do better.
-          if (tryImage->IsOk()) {
-            bitmap = new wxBitmap(*tryImage);
+          bitmap = new wxBitmap(wxString(strvalue.c_str(), wxConvUTF8), wxBITMAP_TYPE_ANY); //should be BMP but we can do better.
+          if (bitmap) {
             strvalue.clear();
             hasImage = false;
           } else {
@@ -3025,16 +3014,31 @@ void widget_control( EnvT* e ) {
           bb->SetButtonWidgetLabelText(strvalue);
         } else {
           DByteGDL* testByte = e->GetKWAs<DByteGDL>(setvalueIx);
-          if (testByte) { //must be n x m or n x m x 3
-            if (testByte->Rank() < 2 || testByte->Rank() > 3) e->Throw("Array must be a [X,Y] or [X,Y,3] array.");
-            if (testByte->Rank() == 3 && testByte->Dim(2) != 3) e->Throw("Array must be a [X,Y] or [X,Y,3] array.");
-            if (testByte->Rank() == 2) {
+          if (testByte) {
+            if (testByte->Rank() == 2) {//direct bitmap possible only in 2 dimensions
               bitmap = new wxBitmap(static_cast<char*> (testByte->DataAddr()), testByte->Dim(0)*8, testByte->Dim(1), 1);
             } else {
-              BaseGDL* transpose = testByte->Transpose(NULL);
-              wxImage * tryImage = new wxImage(transpose->Dim(1), transpose->Dim(2), static_cast<unsigned char*> (transpose->DataAddr()), true); //STATIC DATA I BELIEVE.
-              GDLDelete(transpose);
-              bitmap = new wxBitmap(*tryImage);
+              DUInt perm[3] = {2, 0, 1};
+              if (testByte->Dim(2) == 3) {
+                BaseGDL* tempcopy = testByte->Transpose(perm);
+                tempcopy->Reverse(2); //necessary 
+                wxImage tryImage = wxImage(tempcopy->Dim(1), tempcopy->Dim(2), static_cast<unsigned char*> (tempcopy->DataAddr()), TRUE); //STATIC DATA I BELIEVE.
+                GDLDelete(tempcopy);
+                bitmap = new wxBitmap(tryImage);
+              } else {
+                //separate Alpha channel. Awkward.
+                SizeT byteSize = 3 * testByte->Dim(0) * testByte->Dim(1);
+                DByteGDL* theBytes = new DByteGDL(dimension(testByte->Dim(0), testByte->Dim(1), 3), BaseGDL::NOZERO);
+                Guard<DByteGDL> g(theBytes);
+                theBytes->Assign(testByte, byteSize);
+
+                BaseGDL* tempcopy = (theBytes->Transpose(perm));
+                Guard<BaseGDL> g2(tempcopy);
+                tempcopy->Reverse(2); //necessary 
+                wxImage tryImage = wxImage(tempcopy->Dim(1), tempcopy->Dim(2), static_cast<unsigned char*> (tempcopy->DataAddr()),
+                  static_cast<unsigned char*> (testByte->DataAddr()) + byteSize, TRUE); //the Alpha channel is available at an offest in the testByte Array
+                bitmap = new wxBitmap(tryImage);
+              }
             }
             GDLWidgetButton *bb = (GDLWidgetButton *) widget;
 #ifdef PREFERS_MENUBAR

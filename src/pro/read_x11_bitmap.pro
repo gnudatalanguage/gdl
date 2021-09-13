@@ -50,7 +50,7 @@
 ;
 ;-
 ;
-PRO READ_X11_BITMAP, filename, bitmap , X, Y , expand_to_bytes=expand
+PRO READ_X11_BITMAP, filename, bitmap , X, Y , expand_to_bytes=expand_to_bytes
 ;
 
 compile_opt hidden, idl2
@@ -80,28 +80,17 @@ if (N_ELEMENTS(filename) GT 1) then MESSAGE, "Only one file at once !"
 if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
 if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
 if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename
+;
+; testing whether the format is as expected
+;
+if ( ~MAGICK_PING(filename, 'XBM') ) then  MESSAGE, "Not a XBM file."
 
-;open file
-m=magick_open(filename)
-; must be indexed
-if ~magick_indexedcolor(m) then message, 'non-standard X11 bitmap file '+filename+', please correct.'
-bitmap=magick_readindexes(m)
- sz = size(bitmap)
+READ_ANYGRAPHICSFILEWITHMAGICK, filename, bitmap, colortable ; returns an 'expanded bitmap 0 or 1'
+sz = size(bitmap)
  x=sz[1]
  y=sz[2]
 
 ; compact bitmap (normal case)
-if ~keyword_set(expand_to_bytes) then begin
- mask=[1,2,4,8,16,32,64,128]
- n=(x+7)/8
- m=y
- bb=bytarr(n,m)
- for j=0,m-1 do for i=0,n-1 do for k=0,7 do begin
-   if (i*8+k lt X ) then begin
-      if (bitmap[i*8+k,j] eq 1b) then bb[i,j]+=mask[k]
-   end  
- end
- bitmap=reverse(bb,2) ; for some reason it is inverted, at least on linux/i86_64
-endif else bitmap=reverse(bitmap,2) 
+if ~keyword_set(expand_to_bytes) then bitmap=cvttobm(bitmap) else bitmap*=255b
 
 end 

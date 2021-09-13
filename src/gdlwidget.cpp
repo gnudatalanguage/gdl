@@ -82,7 +82,7 @@ if (frameWidth > 0) {\
     /* 3) re-add all child windows (including this one) */\
     if (this->GetRealized()) {\
       GDLWidgetBase* b = static_cast<GDLWidgetBase*> (gdlParent);\
-      b->ReorderForANewWidget(static_cast<wxWindow*> (theWxContainer), DONOTALLOWSTRETCH, widgetStyle | wxALL, xxx);\
+      b->ReorderForANewWidget(static_cast<wxWindow*> (theWxContainer), DONOTALLOWSTRETCH, widgetStyle | wxALL, b->getSpace());\
     } else widgetSizer->Add(static_cast<wxWindow*> (theWxContainer), DONOTALLOWSTRETCH, widgetStyle | wxALL, xxx);\
   } else {\
     static_cast<wxWindow*> (theWxContainer)->SetPosition(wOffset);\
@@ -835,6 +835,7 @@ if (!wxInitialize()) {
     return false;
   }
 } else {std::cerr << "INFO: wxWidgets already initialized (in 3rd party library?), pursue with fingers crossed" << std::endl; }
+  wxInitAllImageHandlers(); //do it here once for all
   return true;
 }
 // Init
@@ -2273,7 +2274,7 @@ void GDLWidgetBase::ReorderWidgets()
   // NULL widget Sizer means 1) no row no col was asked for (so, no sizer) or, if col>1, we have to create the sizer here and add children in specific order.
   // do *not* forget to give back the sizer pointer instead of the previous NULL to the base widget!
   if (widgetSizer == NULL) return;
-  if (ncols > 1) DoReorderColWidgets(); //need to reorder widget for /COL only
+  if (ncols > 1) DoReorderColWidgets(0,0,space); //need to reorder widget for /COL only
 }
 
 void GDLWidgetBase::ReorderForANewWidget(wxWindow* w, int code,int style, int border)
@@ -3919,8 +3920,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_COLLAPSED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemCollapsed),tree);
     this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_EXPANDED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemExpanded),tree);
     this->AddToDesiredEvents(wxEVT_COMMAND_TREE_SEL_CHANGED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemSelected),tree);
-//    UPDATE_WINDOW
-    REALIZE_IF_NEEDED
+
       
   } else {
     GDLWidgetTree* parentTree = static_cast<GDLWidgetTree*> (gdlParent);
@@ -3952,6 +3952,8 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
    //dropability inheritance.
     if (dropability == -1) droppable=parentTree->IsDroppable(); else droppable=(dropability == 1);
   }
+//    UPDATE_WINDOW
+    REALIZE_IF_NEEDED
 }
 DInt GDLWidgetTree::GetTreeIndex()
 {
@@ -4555,7 +4557,13 @@ GDLWidgetMenuButton::~GDLWidgetMenuButton() {
   }
 
 void GDLWidgetButton::SetButtonWidgetBitmap( wxBitmap* bitmap_ ) {
-  if ( buttonType == BITMAP || buttonType == POPUP_BITMAP ) {
+  if ( buttonType == BITMAP) {
+    wxBitmapButton *b = dynamic_cast<wxBitmapButton*> (theWxWidget);
+    if ( b ) {
+      b->SetBitmapLabel( *bitmap_ );
+      b->SetLabelText(wxEmptyString);
+      }
+  } else if ( buttonType == POPUP_BITMAP ) {
     wxBitmapButton *b = dynamic_cast<wxBitmapButton*> (theWxContainer); //not the wxWidget since the widget is the popup menu itself.
     if ( b ) {
       b->SetBitmapLabel( *bitmap_ );

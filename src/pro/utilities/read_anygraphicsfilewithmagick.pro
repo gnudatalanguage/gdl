@@ -89,6 +89,8 @@ if (indexed) then begin
    image=reform(image[0,*,*])
    image[*]=index[image[*]]
 endif
+; no more use of MAGICK? close it:
+MAGICK_CLOSE,mid
 
 ; if 16-bit (unsigned short int) image convert to byte
 sz = SIZE(image)
