@@ -15,11 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <fstream>
-#include <algorithm>
-#include <chrono>
-#include <iostream>
-#include<vector>
 #include "includefirst.hpp"
 
 #ifndef _MSC_VER
@@ -2055,29 +2050,8 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
       }
     return res;
   }
-/*
-*/
-
-using namespace std::chrono;
-
-  unsigned int FileRead( istream & is, vector <char> & buff ) {
-    is.read( &buff[0], buff.size() );
-    return is.gcount();
-  }
-
-  unsigned int CountLines( const vector <char> & buff, int sz ) {
-    int newlines = 0;
-    const char * p = &buff[0];
-    for ( int i = 0; i < sz; i++ ) {
-        if ( p[i] == '\n' ) {
-            newlines++;
-        }
-    }
-    return newlines;
-  }
 
   BaseGDL* file_lines( EnvT* e) {
-
     SizeT nParam = e->NParam(1); //, "FILE_LINES");
     DStringGDL* p0S = e->GetParAs<DStringGDL>(0); //, "FILE_LINES");
 
@@ -2086,35 +2060,73 @@ using namespace std::chrono;
       e->Throw("invalid argument");
 
     static int compressIx = e->KeywordIx("COMPRESS");
-    bool compressed = e->KeywordSet(compressIx); // we actually don't use it. zlib does it all for us!
+    bool compressed = e->KeywordSet(compressIx); 
     static int noExpIx = e->KeywordIx("NOEXPAND_PATH");
     bool noExp = e->KeywordSet(noExpIx);
-
+    
     DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
 
-    SizeT lines;
 
-    long size;
-    size = 1024 * 1024;
 
-      for( SizeT i=0; i<nEl; ++i)
-    {
-          std::string fname = (*p0S)[i];
+    if (compressed) {
+      char newinput, lastchar = 0;
+      SizeT lines;
+              gzFile gfd = NULL;
+        for (SizeT i = 0; i < nEl; ++i) {
+        std::string fname = (*p0S)[i];
 
-          if (!noExp) WordExp(fname);
+        if (!noExp) WordExp(fname);
 
-	  std::vector <char> buff(size);
+        if ((gfd = gzopen(fname.c_str(), "r")) == NULL) {
+          e->Throw("Could not open file for reading "); // + p0[i]);
+        }
+        lines = 0;
+        while (gzread(gfd, &newinput, 1) == 1) {
+          if (newinput == '\n') {
+            lines++;
+            if (lastchar == '\r') lines--;
+          } else if (newinput == '\r') lines++;
+          lastchar = newinput;
+        }
+        gzclose(gfd);
+        if (lastchar != '\n' && lastchar != '\r') lines++;
 
-  	  ifstream ifs(fname.c_str());
+        (*res)[ i] = lines;
+      }
+    } else { //
+      char* newinput=(char*) malloc(BUFSIZ);
+      char lastchar = 0;
+      SizeT lines;
+              FILE* fd = NULL;
+        for (SizeT i = 0; i < nEl; ++i) {
+        std::string fname = (*p0S)[i];
 
-          //e->Throw("Could not open file for reading ");
+        if (!noExp) WordExp(fname);
 
-          lines = 0;
-	  while(int cc = FileRead(ifs, buff)) {
-            lines += CountLines(buff, cc);
+        if ((fd = fopen(fname.c_str(), "r")) == NULL) {
+          e->Throw("Could not open file for reading "); // + p0[i]);
+        }
+        lines = 0;
+        int count=0;
+        count=fread(newinput, 1, BUFSIZ, fd);
+        while (count != 0) {
+          for (int i = 0; i < count; ++i) {
+            if (newinput[i] == '\n') {
+              lines++;
+              if (lastchar == '\r') lines--;
+            } else if (newinput[i] == '\r') lines++;
+
+            lastchar = newinput[i];
           }
-          ifs.close();
-      (*res)[ i] = lines;
+          count = fread(newinput, 1, BUFSIZ, fd);
+        }
+
+        fclose(fd);
+        if (lastchar != '\n' && lastchar != '\r') lines++;
+
+        (*res)[ i] = lines;
+      }
+      free(newinput);
     }
 
     return res;

@@ -127,27 +127,27 @@ BaseGDL* FromPython( PyObject* pyObj)
   if( array == NULL)
     throw GDLException( "Error getting python array.") ;
   
-  int nDim = array->nd;
+  int nDim = PyArray_NDIM(array);
   SizeT dimArr[ MAXRANK];
   if( nDim > MAXRANK)
     {
     Warning( "Python array has more than "+MAXRANK_STR+
 	     " dimensions. Extending last one."); 
-    SizeT lastDim = array->dimensions[ MAXRANK-1];
-    for( SizeT i=MAXRANK; i<nDim; ++i) lastDim *= array->dimensions[ i];
+    SizeT lastDim = PyArray_DIM(array, MAXRANK-1);
+    for( SizeT i=MAXRANK; i<nDim; ++i) lastDim *= PyArray_DIM(array, i);
     for( SizeT i=0; i<MAXRANK-1; ++i)
-      dimArr[ i] = array->dimensions[ i];
+      dimArr[ i] = PyArray_DIM(array, i);
     dimArr[ MAXRANK-1] = lastDim;
     nDim = MAXRANK;
     }
   else
     {
       for( SizeT i=0; i<nDim; ++i)
-	dimArr[ i] = array->dimensions[ i];
+	dimArr[ i] = PyArray_DIM(array, i);
     }
   dimension dim( dimArr, nDim);
 
-  switch( array->descr->type_num) 
+  switch( PyArray_DTYPE(array)->type_num)
     {
     case NPY_UINT8:   //GDL_BYTE
       return NewFromPyArrayObject< DByteGDL>( dim, array);

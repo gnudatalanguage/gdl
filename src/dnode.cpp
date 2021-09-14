@@ -282,7 +282,10 @@ void DNode::Text2Long64(int base)
 {
   DLong64 val;
   bool noOverFlow = Text2Number( val, base);
-  if( noOverFlow)
+	//Ugly Patch To Be Removed One Day by modifying the ANTLR code, see #1037
+	//See https://github.com/wlandsman/IDLAstro/issues/32
+  bool doPatch=(text=="8000000000000000" && base==16) ;//will not get here if base is not 16 anyway.
+  if( noOverFlow || doPatch)
     cData=new DLong64GDL(val);
   else 
     cData=new DLong64GDL( -1);

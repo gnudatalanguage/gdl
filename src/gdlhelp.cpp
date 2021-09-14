@@ -246,7 +246,7 @@ static void help_keys(ostream& ostr)
 static void help_info()
   { 
 
-	  cout << "* Homepage: http://gnudatalanguage.sf.net" << '\n';
+	  cout << "* Homepage: https://gnudatalanguage.github.io/" << '\n';
 	  cout << '\n';
 	  cout << "* #NameOfRoutine for list of params and keywords" 
 	    " for a given NameOfRoutine (internal or compiled pro/func)" << '\n';

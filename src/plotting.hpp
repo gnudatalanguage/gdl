@@ -142,6 +142,7 @@ static const std::string axisName[6]={"X","Y","Z","X","Y","Z"};
     DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
     double nchars; //length of string *returned* after formatting. Can be non-integer.
     SizeT counter;
+    bool reset; //reset internal counter each time a new 'axis' command is issued
     int what;
     SizeT nTickFormat;
     DDouble axismin;
@@ -1042,7 +1043,7 @@ namespace lib {
     if(!(test1==0.0 && test2==0.0)) return TRUE;
     static int YRANGEIx=e->KeywordIx( "YRANGE"); 
 
-    if ( e->KeywordSet( YRANGEIx)) return TRUE;
+    if ( e->KeywordPresent( YRANGEIx)) return TRUE;
     //Style contains 1?
     DLong ystyle;
     gdlGetDesiredAxisStyle(e, YAXIS, ystyle);
@@ -1697,6 +1698,7 @@ namespace lib {
     muaxdata.axismin=Start;
     muaxdata.axismax=End;
     muaxdata.axisrange=abs(End-Start);
+    muaxdata.reset=true;
 
     //special values
     PLFLT OtherAxisSizeInMm;
@@ -1968,6 +1970,7 @@ namespace lib {
     muaxdata.axismin=Start;
     muaxdata.axismax=End;
     muaxdata.e=e;
+    muaxdata.reset=true;
     
     //special values
     PLFLT OtherAxisSizeInMm;

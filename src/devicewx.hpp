@@ -170,6 +170,9 @@ public:
   plotFrame->Fit();
   // these widget specific events are always set:
   plot->Connect(wxEVT_PAINT, wxPaintEventHandler(gdlwxGraphicsPanel::OnPaint));
+      //disable flicker see https://wiki.wxwidgets.org/Flicker-Free_Drawing
+  plot->Connect( wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(gdlwxDrawPanel::OnErase));
+
   plotFrame->Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(gdlwxPlotFrame::OnUnhandledClosePlotFrame));
 //  plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
   plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotWindowSize));
@@ -181,10 +184,10 @@ public:
     plotFrame->Raise();
   }
   //really show by letting the loop do its magic.
-#if __WXMSW__ 
-    wxTheApp->MainLoop(); //central loop for wxEvents!
+#ifdef __WXMAC__
+  wxTheApp->Yield();
 #else
-    wxTheApp->Yield();
+  wxGetApp().MainLoop(); //central loop for wxEvents!
 #endif
   return true;
  }
