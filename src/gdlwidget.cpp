@@ -4131,9 +4131,8 @@ DStringGDL* value , DULong eventflags, wxBitmap* bitmap_)
 , buttonBitmap(bitmap_)
 , buttonState(false)
 , menuItem(NULL)
-, valueWxString(wxString((*value)[0]))
+, valueWxString( wxString((*value)[0].c_str(), wxConvUTF8) )
 {
-//  valueWxString = wxString((*value)[0]);
   if (valueWxString.Length() < 1) valueWxString=wxT(" ");
 }
 
