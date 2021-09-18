@@ -33,6 +33,40 @@
 #endif
 
 #ifdef HAVE_LIBWXWIDGETS
+
+wxBitmap * GetBitmapFromPassedBytes(EnvT* e, DByteGDL* passedBytes) {
+  wxBitmap * bitmap; 
+  if (passedBytes->Rank() < 2 || passedBytes->Rank() > 3) e->Throw("Array must be a [X,Y] or [X,Y,3] array.");
+  if (passedBytes->Rank() == 3 && ((passedBytes->Dim(2) < 3) || (passedBytes->Dim(2) > 4))) e->Throw("Array must be a [X,Y] or [X,Y,3] or [X,Y,4] array.");
+  if (passedBytes->Rank() == 2) {
+    bitmap = new wxBitmap(static_cast<char*> (passedBytes->DataAddr()), passedBytes->Dim(0)*8, passedBytes->Dim(1), 1);
+  } else {
+    DUInt perm[3] = {2, 0, 1};
+    if (passedBytes->Dim(2) == 3) {
+      BaseGDL* tempcopy = passedBytes->Transpose(perm);
+      tempcopy->Reverse(2); //necessary 
+      wxImage tryImage = wxImage(tempcopy->Dim(1), tempcopy->Dim(2), static_cast<unsigned char*> (tempcopy->DataAddr()), TRUE); //STATIC DATA I BELIEVE.
+      bitmap = new wxBitmap(tryImage);
+      GDLDelete(tempcopy); //deletion AFTER bitmap has been created!
+    } else {
+      //separate Alpha channel. Awkward.
+      SizeT byteSize = 3 * passedBytes->Dim(0) * passedBytes->Dim(1);
+      DByteGDL* theBytes = new DByteGDL(dimension(passedBytes->Dim(0), passedBytes->Dim(1), 3), BaseGDL::NOZERO);
+      Guard<DByteGDL> g(theBytes);
+      theBytes->Assign(passedBytes, byteSize);
+
+      BaseGDL* tempcopy = (theBytes->Transpose(perm));
+      tempcopy->Reverse(2); //necessary 
+      wxImage tryImage = wxImage(tempcopy->Dim(1), tempcopy->Dim(2), static_cast<unsigned char*> (tempcopy->DataAddr()),
+        static_cast<unsigned char*> (passedBytes->DataAddr()) + byteSize, TRUE); //the Alpha channel is available at an offest in the passedBytes Array
+      bitmap = new wxBitmap(tryImage);
+      GDLDelete(tempcopy); //deletion AFTER bitmap has been created!
+    }
+  }
+  return bitmap;
+}
+
+
 wxRealPoint GetRequestedUnitConversionFactor( EnvT* e){
   int the_units = 0;
   static int unitsIx = e->KeywordIx( "UNITS" );
@@ -1091,7 +1125,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   bool isMenu =  e->KeywordSet( menuIx );
   bool hasImage=false;
   
-  if (isMenu) {
+  if (isMenu || parent->IsMenu() ) {
     if (e->KeywordSet(imageIx)) hasImage=true;
   }
   bool hasSeparatorAbove= e->KeywordSet(SeparatorIx) ;
@@ -1101,67 +1135,35 @@ BaseGDL* widget_draw( EnvT* e ) {
   wxBitmap * bitmap=NULL;
   //value=filename if /BITMAP present. Otherwise value must be string, although if array of correct size, is bitmap!
   //Note BITMAP and RadioButtons are not possible directly.
-    if (invalue) { //IMAGE KW is ignored when VALUE specifies an image.
-      bool isString = true;
-      try {
-        e->AssureStringScalarKWIfPresent(valueIx, strvalue); //value is a string
-      } catch (...) {
-        isString = false;
-      }
-      // BITMAP is ignored when invalue is of the correct type. Otherwise if string, the bitmap must be present.
-      if (isBitmap && isString) {
-        //try loading file
-        WordExp(strvalue);
-        bitmap = new wxBitmap(wxString(strvalue.c_str(), wxConvUTF8), wxBITMAP_TYPE_ANY);
-        if (bitmap) {
+  DByteGDL* passedBytes=NULL;
+  if (invalue) { //IMAGE KW is ignored when VALUE specifies an image.
+      if (invalue->Type() == GDL_STRING) { //value is a string
+        e->AssureStringScalarKW(valueIx, strvalue);
+        // BITMAP is ignored when invalue is of the correct type. Otherwise if string, the bitmap must be present.
+        if (isBitmap) {
+          hasImage = false; //image will be ignored.
+          WordExp(strvalue);
+          bitmap = new wxBitmap(wxString(strvalue.c_str(), wxConvUTF8), wxBITMAP_TYPE_ANY);
+          if (bitmap->IsOk()) {
           strvalue.clear();
-          hasImage = false;
-        } else {
-          e->AssureStringScalarKWIfPresent(valueIx, strvalue);
-          if (!hasImage) Warning("WIDGET_BUTTON: Can't open bitmap file: " + strvalue);
-        }
-      } else if (invalue->Type() == GDL_STRING && !hasImage) {
-        e->AssureStringScalarKWIfPresent(valueIx, strvalue);
-      } else {
-        DByteGDL* testByte;
-        if (hasImage) { //value must be a text and image is in IMAGE=xx KW
-          testByte = e->GetKWAs<DByteGDL>(imageIx);
-          e->AssureStringScalarKWIfPresent(valueIx, strvalue);
-        }
-        else testByte = e->GetKWAs<DByteGDL>(valueIx);
-        
-        if (testByte) { //must be n x m or n x m x 3
-          if (testByte->Rank() < 2 || testByte->Rank() > 3) e->Throw("Array must be a [X,Y] or [X,Y,3] array.");
-          if (testByte->Rank() == 3 && ((testByte->Dim(2) < 3) || (testByte->Dim(2) > 4))) e->Throw("Array must be a [X,Y] or [X,Y,3] or [X,Y,4] array.");
-          if (testByte->Rank() == 2) {
-            bitmap = new wxBitmap(static_cast<char*> (testByte->DataAddr()), testByte->Dim(0)*8, testByte->Dim(1), 1);
-            if (!hasImage) strvalue.clear();
           } else {
-            DUInt perm[3] = {2, 0, 1};
-            if (testByte->Dim(2) == 3) {
-              BaseGDL* tempcopy = testByte->Transpose(perm);
-              tempcopy->Reverse(2); //necessary 
-              wxImage tryImage = wxImage(tempcopy->Dim(1), tempcopy->Dim(2), static_cast<unsigned char*> (tempcopy->DataAddr()), TRUE); //STATIC DATA I BELIEVE.
-              GDLDelete(tempcopy);
-              bitmap = new wxBitmap(tryImage);
-              if (!hasImage) strvalue.clear();
-            } else {
-              //separate Alpha channel. Awkward.
-              SizeT byteSize = 3 * testByte->Dim(0) * testByte->Dim(1);
-              DByteGDL* theBytes = new DByteGDL(dimension(testByte->Dim(0), testByte->Dim(1), 3), BaseGDL::NOZERO);
-              Guard<DByteGDL> g(theBytes);
-              theBytes->Assign(testByte, byteSize);
-
-              BaseGDL* tempcopy = (theBytes->Transpose(perm));
-              Guard<BaseGDL> g2(tempcopy);
-              tempcopy->Reverse(2); //necessary 
-              wxImage tryImage = wxImage(tempcopy->Dim(1), tempcopy->Dim(2), static_cast<unsigned char*> (tempcopy->DataAddr()),
-                static_cast<unsigned char*> (testByte->DataAddr()) + byteSize, TRUE); //the Alpha channel is available at an offest in the testByte Array
-              bitmap = new wxBitmap(tryImage);
-              if (!hasImage) strvalue.clear();
-            }
+            Warning("WIDGET_BUTTON: Can't open bitmap file: " + strvalue);
+            delete bitmap;
+            bitmap=NULL; //necessary!
           }
-        } else e->Throw("Value must be string or byte.");
+        }
+      } else { //value is an image
+        passedBytes=e->GetKWAs<DByteGDL>(valueIx); //test it
+        hasImage = false; //image will be ignored.
+      }
+
+      // if hasImage is still true, it is the image KW that contains an image:
+      if (hasImage) passedBytes = e->GetKWAs<DByteGDL>(imageIx); //value must be a text and image is in IMAGE=xx KW
+          
+      //whatever the passedBytes it must be OK:
+      if (passedBytes) {
+        bitmap = GetBitmapFromPassedBytes(e, passedBytes);
+        if (!hasImage) strvalue.clear();
       }
     }
   
@@ -2541,6 +2543,8 @@ void widget_control( EnvT* e ) {
 
   static int bitmapIx = e->KeywordIx( "BITMAP" );
   bool isBitmap =  e->KeywordSet( bitmapIx );
+  static int imageIx = e->KeywordIx( "IMAGE" );
+  bool hasImage =  e->KeywordSet( imageIx );
 
   static int tlbgetsizeIx =  e->KeywordIx( "TLB_GET_SIZE" );
   bool givetlbsize = e->KeywordPresent( tlbgetsizeIx );
@@ -2978,76 +2982,54 @@ void widget_control( EnvT* e ) {
         droplist->SetValue(value);
         //      if (droplist->IsDynamicResize()) droplist->RefreshDynamicWidget();
       } else if (wType == "BUTTON") {
-        bool hasImage = false;
         DString strvalue = " "; //default value : a whitespace as some buttons do not like empty strings (wxWidgets assert)
         wxBitmap * bitmap = NULL;
         BaseGDL* invalue = e->GetKW(setvalueIx);
-        //value=filename if /BITMAP present, bitmap if array.
-        bool isString = true;
-        try {
-          e->AssureStringScalarKWIfPresent(setvalueIx, strvalue); //value is a filename
-        } catch (...) {
-          isString = false;
+        //value=filename if /BITMAP present. Otherwise value must be string, although if array of correct size, is bitmap!
+        //Note BITMAP and RadioButtons are not possible directly.
+        DByteGDL* passedBytes = NULL;
+        if (invalue->Type() == GDL_STRING) { //value is a string
+          e->AssureStringScalarKW(setvalueIx, strvalue);
+          // BITMAP is ignored when invalue is of the correct type. Otherwise if string, the bitmap must be present.
+          if (isBitmap) {
+            hasImage = false; //image will be ignored.
+            WordExp(strvalue);
+            bitmap = new wxBitmap(wxString(strvalue.c_str(), wxConvUTF8), wxBITMAP_TYPE_ANY);
+            if (bitmap->IsOk()) {
+              strvalue.clear();
+              GDLWidgetButton *bb = (GDLWidgetButton *) widget;
+#ifdef PREFERS_MENUBAR
+              if (dynamic_cast<GDLWidgetMenuBarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
+#endif
+              bb->SetButtonWidgetBitmap(bitmap);
+              return;
+            } else {
+              Warning("WIDGET_BUTTON: Can't open bitmap file: " + strvalue);
+              delete bitmap;
+              bitmap = NULL; //necessary!
+              e->AssureStringScalarKWIfPresent(setvalueIx, strvalue);
+              GDLWidgetButton *bb = (GDLWidgetButton *) widget;
+              bb->SetButtonWidgetLabelText(strvalue);
+              return;
+            }
+          }
+        } else { //value is an image
+          passedBytes = e->GetKWAs<DByteGDL>(setvalueIx); //test it
+          hasImage = false; //image will be ignored.
         }
+        // if hasImage is still true, it is the image KW that contains an image:
+        if (hasImage) passedBytes = e->GetKWAs<DByteGDL>(imageIx); //value must be a text and image is in IMAGE=xx KW
 
-        if (isBitmap && isString) {
+        //whatever the passedBytes it must be OK:
+        if (passedBytes) {
+          bitmap = GetBitmapFromPassedBytes(e, passedBytes);
+          if (!hasImage) strvalue.clear();
           GDLWidgetButton *bb = (GDLWidgetButton *) widget;
 #ifdef PREFERS_MENUBAR
           if (dynamic_cast<GDLWidgetMenuBarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
 #endif
-          //try loading file
-          WordExp(strvalue);
-          bitmap = new wxBitmap(wxString(strvalue.c_str(), wxConvUTF8), wxBITMAP_TYPE_ANY); //should be BMP but we can do better.
-          if (bitmap) {
-            strvalue.clear();
-            hasImage = false;
-          } else {
-            e->AssureStringScalarKWIfPresent(setvalueIx, strvalue);
-            if (!hasImage) Warning("WIDGET_BUTTON: Can't open bitmap file: " + strvalue);
-          }
-          strvalue.clear();
-
           bb->SetButtonWidgetBitmap(bitmap);
-        } else if (invalue->Type() == GDL_STRING && !hasImage) {
-          e->AssureStringScalarKWIfPresent(setvalueIx, strvalue);
-          GDLWidgetButton *bb = (GDLWidgetButton *) widget;
-          bb->SetButtonWidgetLabelText(strvalue);
-        } else {
-          DByteGDL* testByte = e->GetKWAs<DByteGDL>(setvalueIx);
-          if (testByte) {
-            if (testByte->Rank() == 2) {//direct bitmap possible only in 2 dimensions
-              bitmap = new wxBitmap(static_cast<char*> (testByte->DataAddr()), testByte->Dim(0)*8, testByte->Dim(1), 1);
-            } else {
-              DUInt perm[3] = {2, 0, 1};
-              if (testByte->Dim(2) == 3) {
-                BaseGDL* tempcopy = testByte->Transpose(perm);
-                tempcopy->Reverse(2); //necessary 
-                wxImage tryImage = wxImage(tempcopy->Dim(1), tempcopy->Dim(2), static_cast<unsigned char*> (tempcopy->DataAddr()), TRUE); //STATIC DATA I BELIEVE.
-                GDLDelete(tempcopy);
-                bitmap = new wxBitmap(tryImage);
-              } else {
-                //separate Alpha channel. Awkward.
-                SizeT byteSize = 3 * testByte->Dim(0) * testByte->Dim(1);
-                DByteGDL* theBytes = new DByteGDL(dimension(testByte->Dim(0), testByte->Dim(1), 3), BaseGDL::NOZERO);
-                Guard<DByteGDL> g(theBytes);
-                theBytes->Assign(testByte, byteSize);
-
-                BaseGDL* tempcopy = (theBytes->Transpose(perm));
-                Guard<BaseGDL> g2(tempcopy);
-                tempcopy->Reverse(2); //necessary 
-                wxImage tryImage = wxImage(tempcopy->Dim(1), tempcopy->Dim(2), static_cast<unsigned char*> (tempcopy->DataAddr()),
-                  static_cast<unsigned char*> (testByte->DataAddr()) + byteSize, TRUE); //the Alpha channel is available at an offest in the testByte Array
-                bitmap = new wxBitmap(tryImage);
-              }
-            }
-            GDLWidgetButton *bb = (GDLWidgetButton *) widget;
-#ifdef PREFERS_MENUBAR
-            if (dynamic_cast<GDLWidgetMenuBarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
-#endif
-            bb->SetButtonWidgetBitmap(bitmap);
-          } else e->Throw("Value must be string or byte.");
         }
-
       } else if (widget->IsTable()) {
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
         static int USE_TABLE_SELECT = e->KeywordIx("USE_TABLE_SELECT");
