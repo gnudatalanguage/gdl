@@ -829,6 +829,28 @@ public:
 	    GetString(ix));
   }
 
+  //milder version, will convert to a given type scalar if possible. 
+   template <typename T> 
+  void ProvideScalarPar( SizeT pIx, typename T::Ty& scalar)
+  {
+    BaseGDL* p = GetParDefined( pIx);
+    if( p->Type() != T::t) Throw( "Variable must be a "+T::str+" in this context: "+ GetParString(pIx));
+    T* tp= static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
+    this->DeleteAtExit(tp);
+    if( !tp->Scalar( scalar))  Throw("Keyword must be a scalar in this context: "+GetString(pIx)); 
+  } // same as before for keywords
+  template <typename T> 
+  void ProvideScalarKW( SizeT ix, typename T::Ty& scalar)
+  {
+    BaseGDL* p = GetKW( ix);
+    if( p == NULL)
+      Throw("Keyword undefined: "+GetString(ix));
+    T* tp = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
+    this->DeleteAtExit(tp);
+    if( !tp->Scalar( scalar))  Throw("Keyword must be a scalar in this context: "+GetString(ix));
+  }
+
+
   void AssureGlobalPar( SizeT pIx);
 //   void AssureGlobalKW( SizeT ix);
 
