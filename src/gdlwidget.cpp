@@ -4324,13 +4324,6 @@ GDLWidgetMenuEntry::GDLWidgetMenuEntry(WidgetIDT p, EnvT* e,
 
   //get default value: a menu. May be NULL here
   wxMenu *menu = dynamic_cast<wxMenu*> (gdlParent->GetWxWidget());
-//  //special treatment for popups menus: the menu is retrieved differently
-//  GDLWidgetButton* whatSortofBut = static_cast<GDLWidgetButton*> (gdlParent);
-//  if (whatSortofBut->buttonType == POPUP_NORMAL) {
-//    menu = dynamic_cast<wxButtonGDL*> (whatSortofBut->GetWxWidget())->GetPopupMenu();
-//  } else if (whatSortofBut->buttonType == POPUP_BITMAP) {
-//    menu = dynamic_cast<wxBitmapButtonGDL*> (whatSortofBut->GetWxWidget())->GetPopupMenu();
-//  }
   if (addSeparatorAbove) the_sep=menu->AppendSeparator();
   menuItem = new wxMenuItem(menu, widgetID, valueWxString);
   if (bitmap_) menuItem->SetBitmap(*bitmap_);
