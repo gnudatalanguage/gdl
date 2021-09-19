@@ -53,12 +53,10 @@ void LibInit_jp()
   new DLibFunRetNew(lib::widget_base, string("WIDGET_BASE"), 1, widget_baseKey);
   //BUTTON
   const string widget_buttonKey[] = {WIDGET_COMMON_KEYWORDS, "MENU", "VALUE", "HELP", "SEPARATOR", "INPUT_FOCUS", "BITMAP", "IMAGE", "TOOLTIP",
-    "TRACKING_EVENTS", "DYNAMIC_RESIZE", "X_BITMAP_EXTRA", "FLAT", "NO_RELEASE",
-  //unsupported but warning is a pain.
+    "TRACKING_EVENTS", "DYNAMIC_RESIZE", "X_BITMAP_EXTRA", "FLAT", "NO_RELEASE", "CHECKED_MENU","PUSHBUTTON_EVENTS","RESOURCE_NAME",
     "ACCELERATOR","TAB_MODE", 
     KLISTEND};
-  const string widget_buttonWarnKey[] = {"CHECKED_MENU",KLISTEND};
-  new DLibFunRetNew(lib::widget_button, string("WIDGET_BUTTON"), 1, widget_buttonKey, widget_buttonWarnKey);
+  new DLibFunRetNew(lib::widget_button, string("WIDGET_BUTTON"), 1, widget_buttonKey);
   //COMBOBOX
   const string widget_comboboxKey[] = {WIDGET_COMMON_KEYWORDS, "EDITABLE", "VALUE", "TRACKING_EVENTS", "DYNAMIC_RESIZE", "FLAT",
   //unsupported but warning is a pain.

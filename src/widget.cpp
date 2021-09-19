@@ -1094,7 +1094,9 @@ BaseGDL* widget_draw( EnvT* e ) {
 
   static int bitmapIx = e->KeywordIx( "BITMAP" );
   static int menuIx = e->KeywordIx( "MENU" );
+  bool isMenu =  e->KeywordSet( menuIx );
   static int SeparatorIx = e->KeywordIx( "SEPARATOR" );
+  bool hasSeparatorAbove= e->KeywordSet(SeparatorIx) ;
   static int TOOLTIP = e->KeywordIx( "TOOLTIP" );
   static int valueIx = e->KeywordIx( "VALUE" );
   
@@ -1107,8 +1109,20 @@ BaseGDL* widget_draw( EnvT* e ) {
   static int dynamicResizeIx = e->KeywordIx( "DYNAMIC_RESIZE" );
   bool dynres = e->KeywordSet( dynamicResizeIx );
 
-    static int imageIx = e->KeywordIx( "IMAGE" );
+  static int imageIx = e->KeywordIx( "IMAGE" );
+  bool hasImage=false;
+  if (isMenu || parent->IsMenu() ) {
+    if (e->KeywordSet(imageIx)) hasImage=true;
+  }
 
+  static int checkIx = e->KeywordIx( "CHECKED_MENU" );
+  bool checked=false;
+  if (parent->IsMenu() && !isMenu) {
+    checked=(e->KeywordSet(checkIx));
+  }
+// TBD:  "HELP", "INPUT_FOCUS", "X_BITMAP_EXTRA", "FLAT", "NO_RELEASE", "ACCELERATOR","TAB_MODE" 
+  
+  
 //  To get the equivalent of pushbutton_events (push and release) with wxWidgets and have a better coverage, use ToggleButtons (wx 2.9 and after)
 //  static int PUSHBUTTON_EVENTS = e->KeywordIx( "PUSHBUTTON_EVENTS" );
 //  bool pushbuttonevents = e->KeywordSet( PUSHBUTTON_EVENTS );
@@ -1121,14 +1135,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   DStringGDL* tooltipgdl = NULL;
   GDLWidgetButton* button;
   if (e->KeywordPresent(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP);  
-   
-  bool isMenu =  e->KeywordSet( menuIx );
-  bool hasImage=false;
   
-  if (isMenu || parent->IsMenu() ) {
-    if (e->KeywordSet(imageIx)) hasImage=true;
-  }
-  bool hasSeparatorAbove= e->KeywordSet(SeparatorIx) ;
   
   DString strvalue = "button"+i2s(buttonNumber++); //tested default!
 
@@ -1182,7 +1189,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   } else if (parent->IsMenu()) {    
     if (e->KeywordPresent(TOOLTIP)) e->Throw("Tooltips are not available for menu items.");
     if (isMenu)  button = new GDLWidgetSubMenu( parentID, e, value, eventFlags, hasSeparatorAbove, bitmap);
-    else  button = new GDLWidgetMenuEntry( parentID, e, value, eventFlags, hasSeparatorAbove, bitmap);
+    else  button = new GDLWidgetMenuEntry( parentID, e, value, eventFlags, hasSeparatorAbove, bitmap, checked);
   } 
   
   if (button->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) button->SetWidgetType( GDLWidget::WIDGET_BUTTON );
@@ -2985,6 +2992,7 @@ void widget_control( EnvT* e ) {
         DString strvalue = " "; //default value : a whitespace as some buttons do not like empty strings (wxWidgets assert)
         wxBitmap * bitmap = NULL;
         BaseGDL* invalue = e->GetKW(setvalueIx);
+        if (invalue==NULL) return; //happens
         //value=filename if /BITMAP present. Otherwise value must be string, although if array of correct size, is bitmap!
         //Note BITMAP and RadioButtons are not possible directly.
         DByteGDL* passedBytes = NULL;
@@ -2996,7 +3004,7 @@ void widget_control( EnvT* e ) {
             WordExp(strvalue);
             bitmap = new wxBitmap(wxString(strvalue.c_str(), wxConvUTF8), wxBITMAP_TYPE_ANY);
             if (bitmap->IsOk()) {
-              strvalue.clear();
+              strvalue = " "; //not clear, hurts wxWidgets feelings.
               GDLWidgetButton *bb = (GDLWidgetButton *) widget;
 #ifdef PREFERS_MENUBAR
               if (dynamic_cast<GDLWidgetMenuBarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
@@ -3012,8 +3020,9 @@ void widget_control( EnvT* e ) {
               bb->SetButtonWidgetLabelText(strvalue);
               return;
             }
+          } else { //just a string, use it, unless "hasImage" where both the string strvalue AND the bimap will be passed
           }
-        } else { //value is an image
+        } else { //value is an image, no string
           passedBytes = e->GetKWAs<DByteGDL>(setvalueIx); //test it
           hasImage = false; //image will be ignored.
         }
@@ -3023,13 +3032,16 @@ void widget_control( EnvT* e ) {
         //whatever the passedBytes it must be OK:
         if (passedBytes) {
           bitmap = GetBitmapFromPassedBytes(e, passedBytes);
-          if (!hasImage) strvalue.clear();
-          GDLWidgetButton *bb = (GDLWidgetButton *) widget;
-#ifdef PREFERS_MENUBAR
-          if (dynamic_cast<GDLWidgetMenuBarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
-#endif
-          bb->SetButtonWidgetBitmap(bitmap);
+          if (!hasImage) strvalue = " "; //not clear, hurts wxWidgets feelings.
         }
+        GDLWidgetButton *bb = (GDLWidgetButton *) widget;
+#ifdef PREFERS_MENUBAR
+        if (dynamic_cast<GDLWidgetMenuBarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
+#endif
+        if (bitmap) bb->SetButtonWidgetBitmap(bitmap);
+        //passes the string
+        bb->SetButtonWidgetLabelText(strvalue);
+        
       } else if (widget->IsTable()) {
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
         static int USE_TABLE_SELECT = e->KeywordIx("USE_TABLE_SELECT");
@@ -3500,23 +3512,19 @@ void widget_control( EnvT* e ) {
 
   if ( funcgetvalue ) {
     widget->SetFuncValue( setvaluefunc );
-  }
-
-  if ( setbutton ) {
-    if( !widget->IsButton())
-    {
-      e->Throw( "Only WIDGET_BUTTON are allowed with keyword SET_BUTTON." );
     }
-    GDLWidgetButton* button = static_cast<GDLWidgetButton*> (widget);
-    assert(button!=NULL);
-    DLong buttonVal;
-    e->AssureLongScalarKWIfPresent( setbuttonIx, buttonVal );
-    if ( buttonVal == 0 )
-      button->SetButtonWidget( false );
-    else
-      button->SetButtonWidget( true );
-  }
-  
+
+    if (setbutton) {
+      if (!widget->IsButton()) {
+        e->Throw("Only WIDGET_BUTTON are allowed with keyword SET_BUTTON.");
+      }
+      DLong buttonVal;
+      e->AssureLongScalarKWIfPresent(setbuttonIx, buttonVal);
+      if (buttonVal == 0)
+        widget->SetButtonWidget(false);
+      else
+        widget->SetButtonWidget(true);
+    }
 
   if ( settextselect ) {
     DString wType = widget->GetWidgetName( );

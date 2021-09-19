@@ -704,7 +704,7 @@ public:
   static void EnableSizeEvents(gdlwxFrame* &tlbFrame,WidgetIDT &id);
 
   void SendWidgetTimerEvent(DDouble secs);
-
+  virtual void SetButtonWidget( bool onOff){}
   void ClearEvents();
 };
 
@@ -1034,19 +1034,19 @@ public:
   ~GDLWidgetButton();
   // for WIDGET_CONTROL
 
-  void SetButtonWidget( bool onOff)
+  virtual void SetButtonWidget( bool onOff)
   {
     if( theWxWidget != NULL)
     {
       switch( buttonType) {
         case RADIO: {	  
-          SetButton( onOff);
+          SetRadioButton( onOff);
           wxRadioButton* radioButton = dynamic_cast<wxRadioButton*>(theWxWidget);
           radioButton->SetValue(onOff);
           break;
         }
         case CHECKBOX: {
-          SetButton( onOff);
+          SetRadioButton( onOff);
           wxCheckBox* checkBox = dynamic_cast<wxCheckBox*>(theWxWidget);
           checkBox->SetValue(onOff);
           break;
@@ -1057,7 +1057,7 @@ public:
   }
   virtual void SetButtonWidgetLabelText( const DString& value_ ) {std::cerr<<"SetButtonWidgetLabelText() ID="<<widgetID <<" error, please check!"<<std::endl;} ;//code in gdlwidget
   virtual void SetButtonWidgetBitmap( wxBitmap* bitmap_ );//code in gdlwidget
-  void SetButton( bool onOff)
+  void SetRadioButton( bool onOff)
   {
     buttonState = onOff;
   }
@@ -1065,7 +1065,6 @@ public:
   {
     return buttonState;
   }
-  
   bool IsButton() const final { return true;} 
   bool IsBitmapButton() const {return ( buttonType==POPUP_BITMAP || buttonType==BITMAP);}
  };
@@ -1174,13 +1173,25 @@ class GDLWidgetMenuEntry: public GDLWidgetButton
 { 
   bool addSeparatorAbove;
   wxMenuItem* the_sep;
+  bool checkedState;
 public:
- GDLWidgetMenuEntry( WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, bool hasSeparatorAbove=false, wxBitmap* bitmap=NULL);
+ GDLWidgetMenuEntry( WidgetIDT parentID, EnvT* e, DStringGDL* value, DULong eventflags, bool hasSeparatorAbove=false, wxBitmap* bitmap=NULL, bool checked_type=false);
  ~GDLWidgetMenuEntry();
  bool IsEntry() const final {return true;}
  void SetSensitive(bool value);
  void SetButtonWidgetLabelText( const DString& value_ );
  void SetButtonWidgetBitmap( wxBitmap* bitmap );
+  bool GetButtonSet() const
+  {
+    return checkedState;
+  }
+  virtual void SetButtonWidget(bool onOff) final {
+    checkedState = onOff;
+    wxMenuItem* mi = static_cast<wxMenuItem*> (theWxWidget);
+    if (mi->GetKind() == wxITEM_CHECK || mi->GetKind() == wxITEM_RADIO) {
+      mi->Check(checkedState);
+    }
+  }
 };
 
 //specialized for Context Menu Base
