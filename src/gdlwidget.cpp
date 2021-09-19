@@ -4315,17 +4315,18 @@ GDLWidgetSubMenu::~GDLWidgetSubMenu() {
 
 //this type of buttons use a container
 GDLWidgetMenuEntry::GDLWidgetMenuEntry(WidgetIDT p, EnvT* e,
-  DStringGDL* value, DULong eventflags, bool hasSeparatorAbove, wxBitmap* bitmap_)
+  DStringGDL* value, DULong eventflags, bool hasSeparatorAbove, wxBitmap* bitmap_, bool checked_type)
 : GDLWidgetButton(p, e, value, eventflags, bitmap_)
 , addSeparatorAbove( hasSeparatorAbove)
+, checkedState(false) //unchecked at start
 , the_sep(NULL)
 {
   GDLWidget* gdlParent = GetWidget(parentID);
-
+  if (bitmap_) checked_type=false; //wxWidgets does not like checked bitmaps 
   //get default value: a menu. May be NULL here
   wxMenu *menu = dynamic_cast<wxMenu*> (gdlParent->GetWxWidget());
   if (addSeparatorAbove) the_sep=menu->AppendSeparator();
-  menuItem = new wxMenuItem(menu, widgetID, valueWxString);
+  menuItem = new wxMenuItem(menu, widgetID, valueWxString,wxEmptyString, checked_type?wxITEM_CHECK:wxITEM_NORMAL);
   if (bitmap_) menuItem->SetBitmap(*bitmap_);
   menu->Append(menuItem);
   menu->Enable(menuItem->GetId(), sensitive);

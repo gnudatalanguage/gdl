@@ -315,7 +315,7 @@ void gdlwxFrame::OnMenu( wxCommandEvent& event)
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_BUTTON_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlwxFrame::OnMenu: %d\n"),event.GetId());
 #endif
-
+//if widget is a checked menu, wxWidgets should not change its checked state all by itself. How to avoird this?  
   WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId());
   // create GDL event struct
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");
@@ -353,7 +353,7 @@ void gdlwxFrame::OnRadioButton( wxCommandEvent& event)
 
     GDLWidgetButton* widget = static_cast<GDLWidgetButton*>(GDLWidget::GetWidget( lastSelection));
     assert(widget!=NULL);
-    widget->SetButton( false);
+    widget->SetRadioButton( false);
     GDLWidget::PushEvent( baseWidgetID, widgbut);
   }
     
@@ -369,7 +369,7 @@ void gdlwxFrame::OnRadioButton( wxCommandEvent& event)
 
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   assert(widget->IsButton());
-  static_cast<GDLWidgetButton*>(widget)->SetButton( true);
+  static_cast<GDLWidgetButton*>(widget)->SetRadioButton( true);
   GDLWidget::PushEvent( baseWidgetID, widgbut);
 }
 
@@ -384,7 +384,7 @@ void gdlwxFrame::OnCheckBox( wxCommandEvent& event)
   WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId());
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   assert(widget->IsButton());
-  static_cast<GDLWidgetButton*>(widget)->SetButton( selectValue);
+  static_cast<GDLWidgetButton*>(widget)->SetRadioButton( selectValue);
   
   // create GDL event struct
   DStructGDL*  widgbut = new DStructGDL( "WIDGET_BUTTON");

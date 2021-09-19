@@ -162,7 +162,19 @@ widget_control,ev.id,get_uvalue=uv
            widget_control,ev.id,get_value=value
            widget_control,topuv[0],set_value=value
            widget_control,topuv[1],set_value=value
-           end
+        end
+        'test_check': begin
+           check=widget_info(ev.id,/button_set)
+           if (check) then begin
+              print,"unsetting checkmark..."
+              widget_control,ev.id,set_button=0
+              widget_control,ev.id,set_value="entry 3 (unchecked)"
+           endif else begin
+              print,"setting checkmark..."
+              widget_control,ev.id,set_button=1
+              widget_control,ev.id,set_value="entry 3 (checked)"
+           endelse
+        end
         'quit':  widget_control,ev.top,/DESTROY
         else: begin
            print, "(other, not treated, event: ok)"
@@ -197,7 +209,7 @@ siz= widget_button(menu,VALUE="Resize (error)",EVENT_PRO="resize_gui") ; 5
         button = Widget_Button(imraster, Value='entry 5', UNAME='IMAGEMAGICK_TIFF')
         button = Widget_Button(fileID, Value='entry 1', /Separator, UNAME='SAVECOMMANDS')
         button = Widget_Button(fileID, Value='entry 2', UNAME='RESTORECOMMANDS')
-        button = Widget_Button(fileID, Value='entry 3 (separed)', /Separator, UNAME='QUIT')
+        button = Widget_Button(fileID, Value='entry 3 (unchecked)', /Separator, /check ,UVALUE={vEv,'test_check',[0,0]})
         bitmap = Widget_Button(mbar, Value='bitmap menus')
         ;; this one is allowed by IDL only on WINDOWS but possible with GDL
         ;;button = Widget_Button(bitmap, Value='a bitmap', image=myBitmap(), UNAME='BUT',/menu)
@@ -326,7 +338,8 @@ endif
        contextBase = WIDGET_BASE(yoff=offy,draw3, /CONTEXT_MENU,col=2,TITLE="ZZZZZZZZZZZZZZ",UNAME = 'drawContext') & offy+=10;
        b1 = WIDGET_BUTTON(yoff=offy,contextBase, VALUE = 'Delete this draw widget', /SEPARATOR, EVENT_PRO = 'DeleteDraw') 
        b2 = WIDGET_BUTTON(contextBase, VALUE = 'just an entry') & offy+=10;
-       b2 = WIDGET_BUTTON(contextBase, VALUE = 'just an entry') & offy+=10;
+       b2 = WIDGET_BUTTON(contextBase, VALUE = 'just an entry, checked', /check) & offy+=10 ;
+       widget_control,b2,/set_button
        b2 = WIDGET_BUTTON(contextBase, VALUE = 'just an entry') & offy+=10;
        b3 = WIDGET_BUTTON(contextBase, VALUE = 'a menu', /menu) & offy+=10;
        b4 = WIDGET_BUTTON(b3         , VALUE = 'an item.') & offy+=10;
