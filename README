@@ -76,7 +76,7 @@ REQUIREMENTS:
 
 In short:
 Mandatory libraries:
-plplot      http://plplot.sourceforge.net/source/index.html
+plplot      http://plplot.sourceforge.net
 gsl         http://www.gnu.org/software/gsl
 zlib        http://www.zlib.net/
 
@@ -87,8 +87,8 @@ readline    http://ftp.gnu.org/pub/gnu/readline/readline-4.3.tar.gz
 Eigen3       http://eigen.tuxfamily.org
 GraphicsMagick http://www.graphicsmagick.org  (preferably to ImageMagick http://www.imagemagick.org)
 netCDF *)   ftp://ftp.unidata.ucar.edu/pub/netcdf
-HDF4 *)     ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
-HDF5        ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
+HDF4 *)     
+HDF5        https://www.hdfgroup.org/downloads/hdf5/
 FFTW        http://www.fftw.org/download.html
 python      http://www.python.org
 PROJ        (consult the MAP_INSTALL file)
@@ -103,7 +103,7 @@ Optional libraries (OFF by default) :
 MPI
 
 Only with python:
-numpy          http://numpy.scipy.org/
+numpy          http://numpy.org/
 
 *) please see below for potential problems using netCDF and HDF4
 
@@ -206,9 +206,9 @@ DATA FORMATS:
     -DHDF=off (CMake)
     Note that HDF in turn needs other libraries. Check out the
     homepage for more information:
-    http://hdf.ncsa.uiuc.edu/
+    https://support.hdfgroup.org/products/hdf4/
     The HDF library can be downloaded from:
-    ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF_Current
+    https://support.hdfgroup.org/ftp/HDF/releases/
 
   HDF5:
   -----
@@ -218,9 +218,9 @@ DATA FORMATS:
     -DHDF5=off (CMake)
     Note that HDF5 in turn needs other libraries. Check out the
     homepage for more information:
-    http://hdf.ncsa.uiuc.edu/HDF5
+    http://portal.hdfgroup.org/display/HDF5/HDF5
     The HDF5 library can be downloaded from:
-    ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current
+    https://support.hdfgroup.org/ftp/HDF5/releases/
 
   NETCDF:
   -------
@@ -309,6 +309,10 @@ INSTALLATION:
 =============
 
 Please see the *INSTALL* file(s) for details.
+
+Since we do have the script for prepare then compile and test GDL,
+it is really easy to compile then install it from source files.
+You can also refer to the wiki https://github.com/gnudatalanguage/gdl/wiki
 
 For french readers, please have a look to
 http://aramis.obspm.fr/~coulais/IDL_et_GDL/memo_GDL.html

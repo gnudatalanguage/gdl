@@ -54,7 +54,8 @@ namespace lib {
     }
 
     DString title;
-    if (e->KeywordPresent(TITLEIx)) {
+    if (e->KeywordPresentAndDefined(TITLEIx)) {
+      //    if (e->KeywordPresent(TITLEIx)) {
       e->AssureStringScalarKWIfPresent(TITLEIx, title);
     } else {
       title = "GDL " + i2s(wIx);

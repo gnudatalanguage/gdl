@@ -95,7 +95,7 @@ namespace lib {
       locCpuTPOOL_NTHREADS = NbCOREs;
       locCpuTPOOL_MIN_ELTS = DefaultTPOOL_MIN_ELTS;
       locCpuTPOOL_MAX_ELTS = DefaultTPOOL_MAX_ELTS;
-    } else if (e->KeywordPresent(restoreIx)) {
+    } else if (e->KeywordPresentAndDefined(restoreIx)) {
       DStructGDL* restoreCpu = e->GetKWAs<DStructGDL>(restoreIx);
 
       if (restoreCpu->Desc() != cpu->Desc())
@@ -105,13 +105,13 @@ namespace lib {
       locCpuTPOOL_MIN_ELTS = (*(static_cast<DLong64GDL*> (restoreCpu->GetTag(TPOOL_MIN_ELTSTag, 0))))[0];
       locCpuTPOOL_MAX_ELTS = (*(static_cast<DLong64GDL*> (restoreCpu->GetTag(TPOOL_MAX_ELTSTag, 0))))[0];
     } else {
-      if (e->KeywordPresent(nThreadsIx)) {
+      if (e->KeywordPresentAndDefined(nThreadsIx)) {
         e->AssureLongScalarKW(nThreadsIx, locCpuTPOOL_NTHREADS);
       }
-      if (e->KeywordPresent(min_eltsIx)) {
+      if (e->KeywordPresentAndDefined(min_eltsIx)) {
         e->AssureLongScalarKW(min_eltsIx, locCpuTPOOL_MIN_ELTS);
       }
-      if (e->KeywordPresent(max_eltsIx)) {
+      if (e->KeywordPresentAndDefined(max_eltsIx)) {
         e->AssureLongScalarKW(max_eltsIx, locCpuTPOOL_MAX_ELTS);
       }
     }
