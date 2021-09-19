@@ -505,7 +505,7 @@ namespace lib {
       if (e->GetKW(0) != NULL)//RGB
       {
         DInt rgb;
-        e->AssureScalarKW<DIntGDL>(0, rgb);
+        e->ProvideScalarKW<DIntGDL>(0, rgb);
         if (rgb == 0) map = "BGR";
         else if (rgb == 1) map = "RGB";
         else if (rgb == 2) map = "RBG";
@@ -594,7 +594,7 @@ namespace lib {
           if (e->GetKW(0) != NULL)//RGB
           {
             DInt rgb;
-            e->AssureScalarKW<DIntGDL>(0, rgb);
+            e->ProvideScalarKW<DIntGDL>(0, rgb);
 
             if (rgb == 0) map = "BGR";
             else if (rgb == 1) map = "RGB";
@@ -885,7 +885,7 @@ namespace lib {
         image->addNoise(PoissonNoise);
       else if (e->GetKW(6) != NULL) {
         DInt noise;
-        e->AssureScalarKW<DIntGDL>(6, noise);
+        e->ProvideScalarKW<DIntGDL>(6, noise);
 
         if (noise == 0)//Uniform noise
           image->addNoise(UniformNoise);
