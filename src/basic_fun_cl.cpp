@@ -62,7 +62,7 @@ namespace lib {
 
   void timestamptovalues(EnvT* e) {
 
-    try {
+    //    try {
 
       DStringGDL* timestamps;
 
@@ -94,6 +94,10 @@ namespace lib {
       bool hasOffset = e->KeywordPresent(valueOFFSET);
 
       if (dim >= 1) {
+
+        for(int i = 0 ; i<time_size ; i++) {
+	  if ((*timestamps)[i].length() < 10) e->Throw("Time string is too short.");
+	}
 
         unsigned long year[time_size];
         DLongGDL* year_gdl = new DLongGDL(*(new dimension(time_size)));
@@ -214,21 +218,10 @@ namespace lib {
       } else {
 
         string timestamp = (*e->GetParAs<DStringGDL>(0))[0];
+	if (timestamp.length() < 10) e->Throw("Time string is too short.");
 
-        unsigned long year;
-
-        unsigned long month;
-
-        unsigned long day;
-
-        unsigned long hour;
-
-
-        unsigned long minute;
-
-        double second;
-
-        double offset;
+        unsigned long year, month, day, hour, minute;
+        double second, offset;
 
         if (hasYear) {
           year = stoi(timestamp.substr(0,4));
@@ -301,9 +294,9 @@ namespace lib {
           e->SetKW(valueOFFSET, offset_gdl);
         }
       }
-    } catch(...) {
-      e->Throw("Input is invalid.");
-    }
+      //} catch(...) {
+     // e->Throw("Input is invalid.");
+    //}
   }
 
   // Timestamp implemented by Eloi R. de Linage in June of 2021
@@ -577,33 +570,28 @@ namespace lib {
     Guard<BaseGDL> guard;
     int count;
     
-    
     BaseGDL* xvals,* lvals,* mvals;
 
-    xvals= e->GetParDefined(0); //,"LEGENDRE");
-    
-    SizeT nEx,nEl, nEm,nmin;
-    nEl=0;
-    nEm=0;
+    //    xvals= e->GetParDefined(0); //,"LEGENDRE");
+    xvals= e->GetNumericParDefined(0);
 
-    
+    SizeT nEx, nEl, nEm, nmin;
+    //    nEl=0;
+    //nEm=0;
+
     nEx=xvals->N_Elements();
-    if(nEx == 0)
-      e->Throw( 
-	       "Variable is undefined: "
-	       +e->GetParString(0));
-    
-    lvals=e->GetParDefined(1); //,"LEGENDRE");
+    if(nEx == 0) e->Throw( "Variable is undefined: "+e->GetParString(0));
+
+    //    lvals=e->GetParDefined(1); //,"LEGENDRE");
+    lvals= e->GetNumericParDefined(1);
+
     nEl=lvals->N_Elements();
-    if(nEl == 0)
-      e->Throw( 
-	       "Variable is undefined: "
-	       +e->GetParString(1));
-    
+    if(nEl == 0) e->Throw("Variable is undefined: "+e->GetParString(1));
     
     if(nParam > 2)
       {
-	mvals=e->GetParDefined(2); //,"LEGENDRE");
+	mvals= e->GetNumericParDefined(2);
+	//mvals=e->GetParDefined(2); //,"LEGENDRE");
 	nEm=mvals->N_Elements();
       } else {
 	mvals=new DIntGDL(0);
@@ -611,38 +599,17 @@ namespace lib {
 	guard.Reset(mvals);
       }
 
-    if(nEm == 0)
-      e->Throw( 
-	       "Variable is undefined: "
-	       +e->GetParString(2));
+    if(nEm == 0) e->Throw("Variable is undefined: "+e->GetParString(2));
 
-    
     nmin=nEx;
     if(nEl < nmin && nEl > 1) 	nmin=nEl;    
     if(nEm < nmin && nEm > 1) 	nmin=nEm;
     
-    if (xvals->Type() == GDL_STRING) {
-      e->Throw( 
-	       "String expression not allowed in this context: "
-	       +e->GetParString(0));
-    } else if (xvals->Type() == GDL_PTR) {
-      e->Throw( 
-	       "Pointer expression not allowed in this context: "
-	       +e->GetParString(0));
-    } else if (xvals->Type() == GDL_OBJ) {
-      e->Throw( 
-	       "Object expression not allowed in this context: "
-	       +e->GetParString(0));
-    } else if (xvals->Type() == GDL_STRUCT) {
-      e->Throw( 
-	       "Struct expression not allowed in this context: "
-	       +e->GetParString(0));
-    } else if(xvals->Type() == GDL_COMPLEX ||
-	      xvals->Type() == GDL_COMPLEXDBL) {
-      e->Throw( 
-	       "Complex Legendre not implemented: ");
+    if(xvals->Type() == GDL_COMPLEX ||
+       xvals->Type() == GDL_COMPLEXDBL) {
+      e->Throw("Complex Legendre not implemented: ");
     }        else      {
-      //byte, int, long float, double, uint, ulong, int64, uint64
+      //byte, int, long float, double, uint, ulong, int64, uint64 (AC and string too ;)
 
       DDoubleGDL* res;
       DDoubleGDL* x_cast;
@@ -656,25 +623,9 @@ namespace lib {
 	x_guard.Reset(x_cast);//e->Guard( x_cast);
 	}
 
-      //lval check
-      if (lvals->Type() == GDL_STRING)
-	e->Throw( 
-		 "String expression not allowed in this context: "
-		 +e->GetParString(1));
-      else if (lvals->Type() == GDL_PTR)
-	e->Throw( 
-		 "Pointer expression not allowed in this context: "
-		 +e->GetParString(1));
-      else if (lvals->Type() == GDL_OBJ) 
-	e->Throw( 
-		 "Object expression not allowed in this context: "
-		 +e->GetParString(1));
-      else if (lvals->Type() == GDL_STRUCT) 
-	e->Throw( 
-		 "Struct expression not allowed in this context: "
-		 +e->GetParString(1));
-      else if(lvals->Type() == GDL_COMPLEX ||
-	      lvals->Type() == GDL_COMPLEXDBL) 
+      // lvals check
+      if(lvals->Type() == GDL_COMPLEX ||
+	 lvals->Type() == GDL_COMPLEXDBL) 
 	e->Throw( 
 		 "Complex Legendre not implemented: ");
       else if(lvals->Type() == GDL_INT)
@@ -686,24 +637,8 @@ namespace lib {
 	}
 
       //mval check
-      if (mvals->Type() == GDL_STRING)
-	e->Throw( 
-		 "String expression not allowed in this context: "
-		 +e->GetParString(2));
-      else if (mvals->Type() == GDL_PTR)
-	e->Throw( 
-		 "Pointer expression not allowed in this context: "
-		 +e->GetParString(2));
-      else if (mvals->Type() == GDL_OBJ) 
-	e->Throw( 
-		 "Object expression not allowed in this context: "
-		 +e->GetParString(2));
-      else if (mvals->Type() == GDL_STRUCT) 
-	e->Throw( 
-		 "Struct expression not allowed in this context: "
-		 +e->GetParString(2));
-      else if(mvals->Type() == GDL_COMPLEX ||
-	      mvals->Type() == GDL_COMPLEXDBL) 
+      if(mvals->Type() == GDL_COMPLEX ||
+	 mvals->Type() == GDL_COMPLEXDBL) 
 	e->Throw( 
 		 "Complex Legendre not implemented: ");
       else if(mvals->Type() == GDL_INT)
@@ -783,37 +718,20 @@ namespace lib {
     Guard<BaseGDL> d_guard;
     Guard<BaseGDL> fr_guard;
 
-
     SizeT nParam = e->NParam(1);
-    BaseGDL* v=e->GetParDefined(0);   
+    BaseGDL* v=e->GetNumericParDefined(0);   
 
     size_t nEl = v->N_Elements();
     size_t i;
-    if (v->Type() == GDL_STRING) {
-      e->Throw( 
-		  "String expression not allowed in this context: "
-			  +e->GetParString(0));
-    } else if (v->Type() == GDL_PTR) {
-      e->Throw( 
-		  "Pointer expression not allowed in this context: "
-			  +e->GetParString(0));
-    } else if (v->Type() == GDL_OBJ) {
-      e->Throw( 
-		  "Object expression not allowed in this context: "
-			  +e->GetParString(0));
-    } else if (v->Type() == GDL_STRUCT) {
-      e->Throw( 
-		  "Struct expression not allowed in this context: "
-			  +e->GetParString(0));		  
-    } else   {
+
       //      DDoubleGDL* d;
-      DDoubleGDL* dr = new DDoubleGDL(v->Dim(), BaseGDL::NOZERO);
+    DDoubleGDL* dr = new DDoubleGDL(v->Dim(), BaseGDL::NOZERO);
       //      e->Guard( dr);
 
-      if(v->Type() == GDL_COMPLEX) {
-	DComplexDblGDL* cd=
-	  static_cast<DComplexDblGDL*>(v->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
-	cd_guard.Reset(cd);//e->Guard( cd);
+    if(v->Type() == GDL_COMPLEX) {
+      DComplexDblGDL* cd=
+	static_cast<DComplexDblGDL*>(v->Convert2(GDL_COMPLEXDBL, BaseGDL::COPY));
+      cd_guard.Reset(cd);//e->Guard( cd);
 
 	DComplexDblGDL* cdr =
 	  new DComplexDblGDL(v->Dim(), BaseGDL::NOZERO);
@@ -862,10 +780,11 @@ namespace lib {
 	  for (i=0;i<nEl;++i) (*dr)[i]=gsl_sf_exp((*d)[i]);
 	
 	return dr;
-      } else if(v->Type() == GDL_FLOAT || 
+    } else { // all remainding types converted to Float ...
+      /*if(v->Type() == GDL_FLOAT || 
 		v->Type() == GDL_INT ||
 		v->Type() == GDL_LONG) {
-	
+      */
 	DFloatGDL *fr=new DFloatGDL(v->Dim(), BaseGDL::NOZERO);
 	fr_guard.Reset(fr);//e->Guard( fr);
 
@@ -881,7 +800,7 @@ namespace lib {
 	return static_cast<DFloatGDL*>(dr->Convert2(GDL_FLOAT,BaseGDL::COPY));
       }
 
-    }
+  
     assert(false);
     return NULL;
   }
