@@ -57,8 +57,14 @@ wxBitmap * GetBitmapFromPassedBytes(EnvT* e, DByteGDL* passedBytes) {
 
       BaseGDL* tempcopy = (theBytes->Transpose(perm));
       tempcopy->Reverse(2); //necessary 
-      wxImage tryImage = wxImage(tempcopy->Dim(1), tempcopy->Dim(2), static_cast<unsigned char*> (tempcopy->DataAddr()),
-        static_cast<unsigned char*> (passedBytes->DataAddr()) + byteSize, TRUE); //the Alpha channel is available at an offest in the passedBytes Array
+      //need to reverse the mask bytes also
+      DByteGDL* mask = new DByteGDL(dimension(passedBytes->Dim(0), passedBytes->Dim(1)), BaseGDL::NOZERO);
+      Guard<DByteGDL> m(mask);
+      for (SizeT i=0; i<passedBytes->Dim(0)*passedBytes->Dim(1); ++i) (*mask)[i]=static_cast<unsigned char*>(static_cast<unsigned char*>(passedBytes->DataAddr())+byteSize)[i] ;
+      mask->Reverse(1);
+      
+      wxImage tryImage = wxImage(tempcopy->Dim(1), tempcopy->Dim(2), static_cast<unsigned char*> (tempcopy->DataAddr()),TRUE);
+      tryImage.SetAlpha(static_cast<unsigned char*> (mask->DataAddr()), TRUE); //the Alpha channel is available
       bitmap = new wxBitmap(tryImage);
       GDLDelete(tempcopy); //deletion AFTER bitmap has been created!
     }
