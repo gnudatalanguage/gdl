@@ -88,7 +88,16 @@ static int    widgetTypeList[]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
 static bool handlersInited=false; //handlers of graphic formats for bitmaps (magick).
 
 enum { WINDOW_TIMER = -2*wxID_HIGHEST, RESIZE_TIMER, RESIZE_PLOT_TIMER }; //negative values, should not clash with our (positive) widget ids.
-
+enum { 
+  gdlWxTree_ITEM = 0,
+  gdlWxTree_ITEM_SELECTED = 0,
+  gdlWxTree_FOLDER,
+  gdlWxTree_FOLDER_OPEN
+};
+enum { 
+  gdlWxTree_UNCHECKED = 0,
+  gdlWxTree_CHECKED
+};
 class DStructGDL;
 
 // thread safe deque
@@ -1634,18 +1643,18 @@ public:
 
 
 // tree widget **************************************************
-class wxTreeCtrlGDL: public wxTreeCtrl
-{  
-  wxWindowID GDLWidgetTableID;
+class wxTreeCtrlGDL: public wxTreeCtrl {
+  wxWindowID GDLWidgetTreeID;
 public:
+
   wxTreeCtrlGDL(wxWindow *parent, wxWindowID id = wxID_ANY,
-               const wxPoint& pos = wxDefaultPosition,
-               const wxSize& size = wxDefaultSize,
-               long style = wxTR_DEFAULT_STYLE,
-               const wxValidator &validator = wxDefaultValidator,
-               const wxString& name = wxTreeCtrlNameStr)
+    const wxPoint& pos = wxDefaultPosition,
+    const wxSize& size = wxDefaultSize,
+    long style = wxTR_DEFAULT_STYLE,
+    const wxValidator &validator = wxDefaultValidator,
+    const wxString& name = wxTreeCtrlNameStr)
           :wxTreeCtrl( parent, id, pos, size, style, wxDefaultValidator , name ),
-          GDLWidgetTableID(id)
+          GDLWidgetTreeID(id)
           {
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated));
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_ACTIVATED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated));
@@ -1654,32 +1663,34 @@ public:
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_COLLAPSED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemCollapsed));
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_EXPANDED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemExpanded));
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_SEL_CHANGED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemSelected));
-          }
-//necessary to define the destructor otherwise compiler will try to find the bind event table for destruction event!
+  }
+  //necessary to define the destructor otherwise compiler will try to find the bind event table for destruction event!
   ~wxTreeCtrlGDL(){}
-void OnItemActivated(wxTreeEvent & event);
-void OnItemCollapsed(wxTreeEvent & event);
-void OnItemExpanded(wxTreeEvent & event);
-void OnBeginDrag(wxTreeEvent & event);
-void OnItemDropped(wxTreeEvent & event);
-void OnItemSelected(wxTreeEvent & event);
+  void OnItemActivated(wxTreeEvent & event);
+  void OnItemCollapsed(wxTreeEvent & event);
+  void OnItemStateClick(wxTreeEvent & event);
+  void OnItemExpanded(wxTreeEvent & event);
+  void OnDrag(wxTreeEvent & event);
+  void OnDrop(wxTreeEvent & event);
+  void OnItemSelected(wxTreeEvent & event);
+  DECLARE_EVENT_TABLE()
 };
 
 class wxTreeItemDataGDL : public wxTreeItemData {
   public:
     WidgetIDT widgetID;
+    wxTreeCtrlGDL* myTree;
 
-    wxTreeItemDataGDL(WidgetIDT id) : widgetID(id) {}
+  wxTreeItemDataGDL(WidgetIDT id, wxTreeCtrlGDL* myTree_) : widgetID(id), myTree(myTree_) {}
 };
 
 class GDLWidgetTree: public GDLWidget
 {
 bool droppable  ; 
-bool draggable  ; 
+bool draggable  ;
+bool has_checkbox;
 bool expanded;
 bool folder;
-int buttonImageId;
-int imageId;
 WidgetIDT selectedID;
 wxTreeItemId treeItemID;
 wxTreeItemDataGDL* treeItemData;
@@ -1700,11 +1711,13 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
   bool IsTree() const final { return true;}
   bool IsDraggable() {return draggable;}
   bool IsDroppable() {return droppable;}
-  bool IsFolder() {return folder;}
-  bool IsExpanded() {return expanded;}
-  void DoExpand(){
-    wxTreeCtrlGDL * me = dynamic_cast<wxTreeCtrlGDL*>(theWxWidget);
-    if (me) me->Expand(treeItemID);
+  bool IsExpanded() {
+    return expanded;
+  }
+
+  void DoExpand(bool what){
+    expanded=what;
+    if (what) treeItemData->myTree->Expand(treeItemID); else treeItemData->myTree->Collapse(treeItemID);
   }
   WidgetIDT GetRootID(){ return rootID;}
   void SetSelectedID( WidgetIDT id){selectedID=id;}
@@ -1712,6 +1725,9 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
   DInt GetTreeIndex();
   wxTreeItemId GetItemID(){ return treeItemID;}
   void SetValue(DString val);
+  void OnRealize();
+  void SetFolder(){folder=true;}
+  bool IsFolder(){return folder;}
 };
 
 

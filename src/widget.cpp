@@ -632,8 +632,7 @@ BaseGDL* widget_tree( EnvT* e)
 //  static int ALIGN_BOTTOM = e->KeywordIx( "ALIGN_BOTTOM" );
 //  static int ALIGN_TOP = e->KeywordIx( "ALIGN_TOP" );
   static int BITMAP = e->KeywordIx( "BITMAP" );
-//  static int CHECKBOX = e->KeywordIx( "CHECKBOX" );
-//  static int CHECKED = e->KeywordIx( "CHECKED" );
+
 //  static int DRAG_NOTIFY = e->KeywordIx( "DRAG_NOTIFY" );
   static int DRAGGABLE = e->KeywordIx( "DRAGGABLE" );
   static int EXPANDED = e->KeywordIx( "EXPANDED" );
@@ -657,8 +656,8 @@ BaseGDL* widget_tree( EnvT* e)
    
   DLong draggability=-1;
   if (e->KeywordPresent( DRAGGABLE )) e->AssureLongScalarKWIfPresent( DRAGGABLE, draggability );
-  bool expanded = e->KeywordSet( EXPANDED );
   bool folder = e->KeywordSet( FOLDER );
+  bool expanded = (folder && e->KeywordSet( EXPANDED ));
 //  bool mask = e->KeywordSet( MASK );
 //  bool multiple = e->KeywordSet( MULTIPLE );
 //  bool noBitmaps = e->KeywordSet( NO_BITMAPS );
@@ -675,7 +674,7 @@ BaseGDL* widget_tree( EnvT* e)
 
   static int DROP_EVENTS = e->KeywordIx( "DROP_EVENTS" );
   DLong dropability = -1;
-  if (e->KeywordPresent( DROP_EVENTS )) e->AssureLongScalarKWIfPresent( DROP_EVENTS, dropability );;
+  if (e->KeywordPresent( DROP_EVENTS )) e->AssureLongScalarKWIfPresent( DROP_EVENTS, dropability );
   
   DByteGDL* testByte=NULL;
   wxBitmap* bitmap=NULL;
@@ -696,8 +695,6 @@ BaseGDL* widget_tree( EnvT* e)
     }
 
 //
-//  DLong checked = 0;
-//  e->AssureLongScalarKWIfPresent( CHECKED, checked );
 //  DLong tabMode = 0;
 //  e->AssureLongScalarKWIfPresent( TAB_MODE, tabMode );
 //  DString dragNotify;
@@ -708,16 +705,16 @@ BaseGDL* widget_tree( EnvT* e)
   DString strvalue=""; //important to init to a zero-length string!!!
   e->AssureStringScalarKWIfPresent( VALUE, strvalue ); //important to init to a zero-length string!!!
   DStringGDL* value=new DStringGDL(strvalue);
-  
 
-  GDLWidgetTree* tree = new GDLWidgetTree( parentID, e, value, eventFlags
-  ,bitmap
-,  dropability
-,  draggability
-,  expanded
-  ,folder
-,  treeindex
-  );
+
+    GDLWidgetTree* tree = new GDLWidgetTree(parentID, e, value, eventFlags
+      , bitmap
+      , dropability
+      , draggability
+      , expanded
+      , folder
+      , treeindex
+      );
   
   if (tree->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) tree->SetWidgetType( GDLWidget::WIDGET_TREE );
 #ifdef GDL_DEBUG_WIDGETS
@@ -2207,6 +2204,7 @@ BaseGDL* widget_info( EnvT* e ) {
   }
   
   if (treeroot||treeselect||treefolder||treeexpanded||treeindex ||treebitmap || treemask || draggable || dragnotify || dropevents) {
+    std::cerr<<"FIXME!"<<std::endl;
       WidgetIDT widgetID = (*p0L)[0];
       GDLWidget *widget = GDLWidget::GetWidget( widgetID );
       if ( widget == NULL || !widget->IsTree() ) e->Throw("Invalid widget identifier:"+i2s(widgetID));
@@ -2649,8 +2647,8 @@ void widget_control( EnvT* e ) {
 //  bool treeselect = e->KeywordSet(TREE_SELECT);
 //  static int TREE_INDEX = e->KeywordIx( "SET_TREE_INDEX");
 //  bool treeindex = e->KeywordSet(TREE_INDEX);
-//  static int TREE_EXPANDED = e->KeywordIx( "SET_TREE_EXPANDED");
-//  bool treeexpanded = e->KeywordSet(TREE_EXPANDED);
+  static int SET_TREE_EXPANDED = e->KeywordIx( "SET_TREE_EXPANDED");
+  bool settreeexpanded = e->KeywordPresent(SET_TREE_EXPANDED);
 //  static int TREE_BITMAP = e->KeywordIx( "SET_TREE_BITMAP");
 //  bool treebitmap = e->KeywordSet(TREE_BITMAP);
 
@@ -3514,7 +3512,7 @@ void widget_control( EnvT* e ) {
     widget->SetFuncValue( setvaluefunc );
     }
 
-    if (setbutton) {
+  if (setbutton) {
       if (!widget->IsButton()) {
         e->Throw("Only WIDGET_BUTTON are allowed with keyword SET_BUTTON.");
       }
@@ -3555,7 +3553,7 @@ void widget_control( EnvT* e ) {
     }    
   }
 
-    if (widget->IsSlider()) {
+  if (widget->IsSlider()) {
       GDLWidgetSlider *s = (GDLWidgetSlider *) widget;
 
       static int setsliderminIx = e->KeywordIx("SET_SLIDER_MIN");
@@ -3804,7 +3802,15 @@ void widget_control( EnvT* e ) {
       DLong ysize= (*e->GetKWAs<DLongGDL>(TABLE_YSIZE))[0];
       table->SetTableNumberOfRows(ysize);
     }
-  }  
+  }
+
+  if (widget->IsTree()) {
+      if (settreeexpanded) {
+        DLong what=0;
+        e->AssureLongScalarKWIfPresent(what,SET_TREE_EXPANDED);
+        static_cast<GDLWidgetTree *>(widget)->DoExpand(what>0);
+      }
+  }
 #endif
 }
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID

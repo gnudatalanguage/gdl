@@ -854,7 +854,16 @@ void InitStructs()
   treeexpandstruct->AddTag("EXPAND", &aLong);
   // insert into structList
   structList.push_back( treeexpandstruct); 
-  
+ 
+  DStructDesc* treeecheckedstruct = new DStructDesc( "WIDGET_TREE_CHECKED");
+  treeecheckedstruct->AddTag("ID", &aLong);
+  treeecheckedstruct->AddTag("TOP", &aLong);
+  treeecheckedstruct->AddTag("HANDLER", &aLong);
+  treeecheckedstruct->AddTag("TYPE", &aInt);
+  treeecheckedstruct->AddTag("STATE", &aLong);
+  // insert into structList
+  structList.push_back( treeecheckedstruct); 
+   
  DStructDesc* idltracebackstruct = new DStructDesc( "IDL_TRACEBACK");
   idltracebackstruct->AddTag("ROUTINE", &aString);
   idltracebackstruct->AddTag("FILENAME", &aString);

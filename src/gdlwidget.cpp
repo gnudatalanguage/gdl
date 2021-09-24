@@ -92,10 +92,98 @@ if (frameWidth > 0) {\
 #define UPDATE_WINDOW { if (this->GetRealized()) UpdateGui(); }
 #define REALIZE_IF_NEEDED { if (this->GetRealized()) {this->OnRealize(); UpdateGui();} }
 
+//a few useful defaut pixmaps:
+static const char * pixmap_unchecked[] = {
+"13 13 14 1",
+" 	c None",
+".	c #CCCED3",
+"+	c #838793",
+"@	c #C4C7CF",
+"#	c #F5F5F5",
+"$	c #F6F6F6",
+"%	c #F7F7F7",
+"&	c #F9F9F9",
+"*	c #FAFAFA",
+"=	c #FBFBFB",
+"-	c #FCFCFC",
+";	c #FDFDFD",
+">	c #FEFEFE",
+",	c #FFFFFF",
+".+++++++++++.",
+"+@@@@@@@@@@@+",
+"+@##########+",
+"+@$$$$$$$$$$+",
+"+@%%%%%%%%%%+",
+"+@&&&&&&&&&&+",
+"+@**********+",
+"+@==========+",
+"+@----------+",
+"+@;;;;;;;;;;+",
+"+@>>>>>>>>>>+",
+"+@,,,,,,,,,,+",
+".+++++++++++."};
+
+static const char * pixmap_checked[] = {
+"13 13 38 1",
+" 	c None",
+".	c #CCCED3",
+"+	c #838793",
+"@	c #C4C7CF",
+"#	c #F5F5F5",
+"$	c #BBBBBB",
+"%	c #131313",
+"&	c #0C0C0C",
+"*	c #F6F6F6",
+"=	c #BEBEBE",
+"-	c #030303",
+";	c #060606",
+">	c #B4B4B4",
+",	c #F7F7F7",
+"'	c #C6C6C6",
+")	c #080808",
+"!	c #000000",
+"~	c #C0C0C0",
+"{	c #020202",
+"]	c #363636",
+"^	c #F9F9F9",
+"/	c #505050",
+"(	c #2C2C2C",
+"_	c #545454",
+":	c #606060",
+"<	c #010101",
+"[	c #FAFAFA",
+"}	c #FBFBFB",
+"|	c #333333",
+"1	c #1D1D1D",
+"2	c #FCFCFC",
+"3	c #C4C4C4",
+"4	c #FDFDFD",
+"5	c #B9B9B9",
+"6	c #FEFEFE",
+"7	c #5E5E5E",
+"8	c #777777",
+"9	c #FFFFFF",
+".+++++++++++.",
+"+@@@@@@@@@@@+",
+"+@######$%&#+",
+"+@*****=-;**+",
+"+@$>,,')!~,,+",
+"+@{!]^/!(^^^+",
+"+@_!!:<![[[[+",
+"+@}|!!!1}}}}+",
+"+@22)!!32222+",
+"+@445!)44444+",
+"+@6667866666+",
+"+@9999999999+",
+".+++++++++++."};
+
+
 const WidgetIDT GDLWidget::NullID = 0;
 
 // instantiation
 WidgetListT GDLWidget::widgetList;
+wxImageList *gdlDefaultTreeStateImages;
+wxImageList *gdlDefaultTreeImages;
 
 GDLEventQueue GDLWidget::eventQueue; // the event queue
 GDLEventQueue GDLWidget::readlineEventQueue; // for process at command line level
@@ -858,6 +946,19 @@ void GDLWidget::Init()
    test->Hide();
    test->Realize();
    test->Destroy();
+  //initialize default image lists for trees:
+  // Make an image list containing small icons
+  wxSize ImagesSize(16,16) ; //force a 16 pix size 
+  gdlDefaultTreeImages = new wxImageList(ImagesSize.x, ImagesSize.y, true);
+  //order must be same as enum definition! 
+  gdlDefaultTreeImages->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, ImagesSize)); //gdlWxTree_ITEM,/gdlWxTree_ITEM_SELECTED (IDL give the same image)
+  gdlDefaultTreeImages->Add(wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, ImagesSize)); //gdlWxTree_FOLDER
+  gdlDefaultTreeImages->Add(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN, wxART_OTHER, ImagesSize)); //gdlWxTree_FOLDER_OPEN
+
+  wxSize StateImageSize=wxIcon(pixmap_unchecked).GetSize(); //
+  gdlDefaultTreeStateImages = new wxImageList(StateImageSize.x, StateImageSize.y, true);
+  gdlDefaultTreeStateImages->Add(wxIcon(pixmap_unchecked)); //gdlWxTree_UNCHECKED
+  gdlDefaultTreeStateImages->Add(wxIcon(pixmap_checked)); //gdlWxTree_UNCHECKED
 }
 // UnInit
 void GDLWidget::UnInit() {
@@ -870,6 +971,8 @@ void GDLWidget::UnInit() {
     GDLWidget::HandleWidgetEvents();
     // the following cannot be done: once unitialized, the wxWidgets library cannot be safely initilized again.
     //    wxUninitialize( );
+    delete gdlDefaultTreeImages;
+    delete gdlDefaultTreeStateImages;
     UnsetWxStarted(); //reset handlersOk too.
   }
 }
@@ -3864,96 +3967,121 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
 ,droppable( false )
 ,draggable( false )
 ,expanded(expanded_)
-,folder(folder_)
 ,rootID(0L)
-,buttonImageId(0L)
-,imageId(0L)
 ,treeItemData(NULL)
-{
+,has_checkbox(false){
+
+  static int CHECKBOX = e->KeywordIx("CHECKBOX");
+  static int CHECKED = e->KeywordIx("CHECKED");
+  bool checkbox_asked = false;
+  if (e->KeywordPresent(CHECKBOX)){
+    checkbox_asked = true;
+    DLong value=0;
+    e->AssureLongScalarKWIfPresent(CHECKBOX,value);
+    has_checkbox = (value>0);
+  }
+  bool checked = (has_checkbox && e->KeywordSet(CHECKED));
+
   GDLWidget* gdlParent = GetWidget( parentID );
   widgetPanel = GetParentPanel( );
   widgetSizer = GetParentSizer( );
   DStringGDL* value=static_cast<DStringGDL*>(vValue);
-
-  if ( gdlParent->IsBase( ) ) {
   
+  //define the base tree widget globally here
+  wxTreeCtrlGDL* myTreeRoot;
+  if ( gdlParent->IsBase( ) ) {
+    wxImageList *stateImages = gdlDefaultTreeStateImages;
+    wxImageList *images = gdlDefaultTreeImages;
+    
     START_ADD_EVENTUAL_FRAME
   
+    // a tree widget is always inside a scrolled window, whose ScrollSize is 200 pixels by default
     if ( wSize.x <= 0 ) wSize.x = 200; //yes, has a default value!
     if ( wSize.y <= 0 ) wSize.y = 200;
-    wSize=computeWidgetSize( );
-    long style = wxTR_DEFAULT_STYLE|wxTR_HIDE_ROOT; //wxTR_HAS_BUTTONS|wxTR_TWIST_BUTTONS|wxTR_HIDE_ROOT|wxTR_HAS_VARIABLE_ROW_HEIGHT; //(wxTR_HIDE_ROOT|wxTR_DEFAULT_STYLE| wxTR_HAS_BUTTONS | wxSUNKEN_BORDER | wxTR_TWIST_BUTTONS)    ;
-    // should be as of 2.9.0:  wxDataViewTreeCtrl* tree = new gdlTreeCtrl( widgetPanel, widgetID,
-    wxTreeCtrlGDL* tree = new wxTreeCtrlGDL( widgetPanel, widgetID, wxDefaultPosition, wxDefaultSize, style );
-    theWxContainer = theWxWidget = tree;
 
-    //our widget will ALWAYS have an image list... But this crashes GDL with wxWidgets 3.1.5 . FIXME
-//    wxImageList* images=new wxImageList();
-//    images->Add(wxArtProvider::GetBitmap(wxART_FOLDER)); //0
-//    images->Add(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN)); //1
-//    images->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE)); //2
-//////    images->Add(wxArtProvider::GetBitmap(wxART_FILE_OPEN)); //3 //no use: a selected entry is highlighted and there is no specific wxArt pixmap to do more (visually).
-//    tree->AssignImageList(images);
-    folder=true;
+    wSize=computeWidgetSize( ); //this is a SetClientSize
+    
+    long style = wxTR_HAS_BUTTONS|wxTR_LINES_AT_ROOT|wxTR_HIDE_ROOT; //OK
+    //we have no root, create one.
+    myTreeRoot = new wxTreeCtrlGDL(widgetPanel, widgetID, wxDefaultPosition, wxDefaultSize, style );
+    theWxContainer = theWxWidget = myTreeRoot;
+    //All lists are set always. Checkboxes will be hidden if checkbox is not present
+    myTreeRoot->SetImageList(images);
+    myTreeRoot->SetStateImageList(stateImages);
+    
     rootID=widgetID;
-    treeItemData=new wxTreeItemDataGDL(widgetID);
+    treeItemData=new wxTreeItemDataGDL(widgetID, myTreeRoot);
 //    if (bitmap) {
 //      int index=images->Add(*bitmap);
 //      treeItemID = tree->AddRoot(wxString( (*value)[0].c_str( ), wxConvUTF8 ),  index ,-1, treeItemData);
 //    } else { //use open and closed folder icons
-      treeItemID = tree->AddRoot(wxString( (*value)[0].c_str( ), wxConvUTF8 ),  0 ,1, treeItemData);
-//    }    
+      treeItemID = myTreeRoot->AddRoot(wxString( (*value)[0].c_str( ), wxConvUTF8 ),  0 ,1, treeItemData);
+//    }
+//    tree->SetItemImage(treeItemID,(folder)?(expanded?gdlWxTree_FOLDER_OPEN:gdlWxTree_FOLDER):gdlWxTree_ITEM);
+// checkbox is not visible for root//    if (has_checkbox) tree->SetItemState(treeItemID,(checked==true)); else tree->SetItemState(treeItemID,wxTREE_ITEMSTATE_NONE); //CHECKED,UNCHECKE,NOT_VISIBLE
     widgetStyle=widgetAlignment( );
     draggable=(dragability == 1);
     droppable=(dropability == 1);
-//    tree->Expand(treeItemID); //do not expand root if hidden  
-    tree->SetSize(wSize);
-    tree->SetMinSize(wSize);
+//do not expand root if hidden: will assert() in wxWidgets! //    if (expanded) tree->Expand(treeItemID); 
+    myTreeRoot->SetClientSize(wSize);
+    myTreeRoot->SetMinClientSize(wSize);
+//    tree->ShowScrollbars(wxSHOW_SB_ALWAYS,wxSHOW_SB_ALWAYS); //possibly useful.
     END_ADD_EVENTUAL_FRAME
     TIDY_WIDGET(gdlBORDER_SPACE)
-      
-    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_ACTIVATED, wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated),tree);
-    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_ACTIVATED, wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated),tree);
-    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_ACTIVATED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated),tree);
-    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_BEGIN_DRAG,wxTreeEventHandler(wxTreeCtrlGDL::OnBeginDrag),tree);
-    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_END_DRAG,wxTreeEventHandler(wxTreeCtrlGDL::OnItemDropped),tree);
-    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_COLLAPSED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemCollapsed),tree);
-    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_EXPANDED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemExpanded),tree);
-    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_SEL_CHANGED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemSelected),tree);
-
       
   } else {
     GDLWidgetTree* parentTree = static_cast<GDLWidgetTree*> (gdlParent);
     assert( parentTree != NULL);
     theWxWidget = parentTree->GetWxWidget( );
     rootID =  parentTree->GetRootID();
-    treeItemData=new wxTreeItemDataGDL(widgetID);
-    wxTreeCtrlGDL * tree = dynamic_cast<wxTreeCtrlGDL*> (theWxWidget);
-    assert( tree != NULL);
+    myTreeRoot = dynamic_cast<wxTreeCtrlGDL*> (theWxWidget);
+    assert( myTreeRoot != NULL);
+    treeItemData=new wxTreeItemDataGDL(widgetID,myTreeRoot);
     theWxContainer=NULL; //this is not a widget
 
-//    wxImageList* images=tree->GetImageList();
+    wxImageList* images=myTreeRoot->GetImageList();
+    wxImageList *stateImages = myTreeRoot->GetStateImageList();
+    //if parent has checkbox, I have a checkbox too unless has_checkbox is false
+    bool parent_has_checkbox=false; //(stateImages!=NULL);
+    if (!checkbox_asked) has_checkbox=(parent_has_checkbox);
+    //if parent had no checkbox but I have, I need to load (default) images
     //if image is provided use it otherwise (since no image is a bit disappointing) use an internal wxWigdets icon
 //    if (bitmap) {
 //      int imindex=images->Add(*bitmap);
 //      if (treeindex > -1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) , imindex ,-1, treeItemData);
 //      else treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) , imindex ,-1, treeItemData);
 //    } else { //use open and closed folder icons
-      if (folder) {
-        if (treeindex>-1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,0,1, treeItemData);
-        else treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,0,1, treeItemData);
+      if (folder_) {
+        SetFolder();
+        if (treeindex > -1 ) treeItemID = myTreeRoot->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,gdlWxTree_FOLDER,gdlWxTree_FOLDER_OPEN, treeItemData);
+        else treeItemID = myTreeRoot->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,gdlWxTree_FOLDER,gdlWxTree_FOLDER_OPEN, treeItemData);
       }
-      else if (treeindex>-1) treeItemID = tree->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,2, treeItemData);
-      else  treeItemID = tree->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,2,2, treeItemData);
+      else if (treeindex > -1) treeItemID = myTreeRoot->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,gdlWxTree_ITEM,gdlWxTree_ITEM_SELECTED, treeItemData);
+      else  treeItemID = myTreeRoot->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,gdlWxTree_ITEM,gdlWxTree_ITEM_SELECTED, treeItemData);
 //    }
-    if ( parentTree->IsFolder() && parentTree->IsExpanded())  parentTree->DoExpand();
+    if (has_checkbox) myTreeRoot->SetItemState(treeItemID,(checked==true)); else myTreeRoot->SetItemState(treeItemID,wxTREE_ITEMSTATE_NONE); //CHECKED,UNCHECKE,NOT_VISIBLE
+    //expand if requested:
+    if (expanded)  DoExpand(true);  //unuseful here
     //dragability inheritance.
     if (dragability == -1) draggable=parentTree->IsDraggable(); else draggable=(dragability == 1);
    //dropability inheritance.
     if (dropability == -1) droppable=parentTree->IsDroppable(); else droppable=(dropability == 1);
   }
-//    UPDATE_WINDOW
+//does not work, fixme. Replaced by global setting in gdlwidgeteventhandler 
+//    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_ACTIVATED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated),myTreeRoot);
+//    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_BEGIN_DRAG,wxTreeEventHandler(wxTreeCtrlGDL::OnBeginDrag),myTreeRoot);
+//    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_END_DRAG,wxTreeEventHandler(wxTreeCtrlGDL::OnItemDropped),myTreeRoot);
+//    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_COLLAPSED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemCollapsed),myTreeRoot);
+//    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_EXPANDED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemExpanded),myTreeRoot);
+//    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_SEL_CHANGED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemSelected),myTreeRoot);
+
+
+    //    UPDATE_WINDOW
     REALIZE_IF_NEEDED
+}
+
+void GDLWidgetTree::OnRealize(){
+  if (expanded) this->DoExpand(true);  
 }
 DInt GDLWidgetTree::GetTreeIndex()
 {

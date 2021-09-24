@@ -90,11 +90,11 @@ void LibInit_jp()
     "UPDATE", "FORMAT", "EDIT_CELL", "TABLE_XSIZE", "TABLE_YSIZE", "SEND_EVENT", "BAD_ID",
     "GROUP_LEADER", "COMBOBOX_ADDITEM", "COMBOBOX_DELETEITEM", "COMBOBOX_INDEX",
     "GET_DRAW_VIEW", "SET_TAB_CURRENT", "UNITS", "DYNAMIC_RESIZE", "SET_SLIDER_MIN", "SET_SLIDER_MAX",
-    "X_BITMAP_EXTRA", "DEFAULT_FONT", "FONT", "EDITABLE", "BASE_SET_TITLE",
+    "X_BITMAP_EXTRA", "DEFAULT_FONT", "FONT", "EDITABLE", "BASE_SET_TITLE", "SET_TREE_EXPANDED", 
     //unsupported but warning is a pain.
     "TAB_MODE", 
     KLISTEND};
-  const string widget_WarnControlKey[] = {"SET_TREE_SELECT", "SET_TREE_EXPANDED", "SET_TREE_INDEX",
+  const string widget_WarnControlKey[] = {"SET_TREE_SELECT","SET_TREE_INDEX",
     "SET_TREE_BITMAP", "DELAY_DESTROY",
     "PUSHBUTTON_EVENTS", "TABLE_BLANK", "SET_TAB_MULTILINE", "ICONIFY"
     , "CANCEL_BUTTON" //obsoleted in 6.2
@@ -246,7 +246,7 @@ void LibInit_jp()
   KLISTEND};
   new DLibFunRetNew(lib::widget_text, string("WIDGET_TEXT"), 1, widget_textKey);
   //TREE
-  const string widget_treeWarnKey[] = {"CHECKBOX", "CHECKED", "DRAG_NOTIFY"
+  const string widget_treeWarnKey[] = { "DRAG_NOTIFY"
     , "MASK"
     , "MULTIPLE"
     , "NO_BITMAPS"
@@ -263,8 +263,9 @@ void LibInit_jp()
     , "DRAGGABLE"
     , "INDEX"
     , "TOP" //obsolete in 6.4, use INDEX=0 instead
-// unsupported yet but warning about it may be a pain
     , "TAB_MODE"
+    , "CHECKBOX"
+    , "CHECKED"
     , KLISTEND};
   new DLibFunRetNew(lib::widget_tree, string("WIDGET_TREE"), 1, widget_treeKey, widget_treeWarnKey);
   //TREE_MOVE  
