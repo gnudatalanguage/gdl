@@ -1879,9 +1879,9 @@ void wxTreeCtrlGDL::OnItemSelected(wxTreeEvent & event){
 //the GDL widget that received the event
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
     WidgetIDT selected=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
-    GDLWidgetTree* tree= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID));
+    GDLWidgetTree* tree= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
     //inform root widget it is selected
-    GDLWidgetTree* root=static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(tree->GetRootID()));
+    GDLWidgetTree* root=tree->GetRootTree();
     root->SetSelectedID(selected);
     
     DStructGDL* treeselect = new DStructGDL( "WIDGET_TREE_SEL");
@@ -1899,16 +1899,15 @@ void wxTreeCtrlGDL::OnDrag(wxTreeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnDrag: %d\n"),event.GetId());
 #endif
-  //largely useful protection!!!
   if (!event.GetItem().IsOk()) {    event.Skip(); return;}
-
-
-//needed to explicitly authorize dragging.
-//get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
-//the GDL widget that received the event
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
-    GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID));
-    if (item->IsDraggable()) event.Allow(); 
+    WidgetIDT selected=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
+    GDLWidgetTree* tree= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
+    if (tree->IsDraggable()) {
+      me->SetDragged(selected);
+      event.Allow();
+      return;
+    }  
     event.Skip();
 }
 
@@ -1919,9 +1918,11 @@ void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
 #endif
   if (!event.GetItem().IsOk()) {    event.Skip(); return;}
 
-      WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
+    WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
-    GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID));
+    WidgetIDT selected=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
+    GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
+    GDLWidgetTree* root=item->GetRootTree();
 
     if (item->IsDroppable()) {
  //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
@@ -1930,7 +1931,7 @@ void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
       treedrop->InitTag("ID", DLongGDL( item->GetWidgetID()  )); //ID of the destination
       treedrop->InitTag("TOP", DLongGDL( baseWidgetID));
       treedrop->InitTag("HANDLER", DLongGDL( GDLWidgetTreeID ));
-      treedrop->InitTag("DRAG_ID", DLongGDL( item->GetRootID())); // ID of the source TREE
+      treedrop->InitTag("DRAG_ID", DLongGDL( me->GetDragged() )); // ID of the source TREE
       treedrop->InitTag("POSITION",DIntGDL(2)); //ALWAYS 2 IT SEEMS THAT wxW cannot do better? !   1 above 2 on 3 below destination widget
       treedrop->InitTag("X",DLongGDL(event.GetPoint().x)); //x and Y coord of position wrt lower left corner of destination tree widget
       treedrop->InitTag("Y",DLongGDL(event.GetPoint().y));
@@ -1938,6 +1939,9 @@ void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
       // insert into structList
       GDLWidget::PushEvent( baseWidgetID, treedrop );
   }
+    //unset dragged
+    me->SetDragged(0);
+
   event.Skip();
 
 }
