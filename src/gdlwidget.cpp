@@ -3962,6 +3962,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
 ,bool expanded_
 ,bool folder_
 ,DLong treeindex
+,DString &dragNotify_
 )
 : GDLWidget( p, e, value_, eventFlags_ )
 ,droppable( false )
@@ -3970,7 +3971,9 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
 ,myRoot(NULL)
 ,treeItemData(NULL)
 ,has_checkbox(false)
-,folder(folder_){
+,folder(folder_)
+,dragNotify( dragNotify_) 
+{
 
   //checkbox is inherited
   
@@ -3994,8 +3997,11 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
   wxTreeCtrlGDL* myTreeRoot;
   if ( gdlParent->IsBase( ) ) {
     static int NO_BITMAPS = e->KeywordIx("NO_BITMAPS");
-    noBitmaps = e->KeywordSet(NO_BITMAPS);  
-   wxImageList *stateImages = gdlDefaultTreeStateImages;
+    noBitmaps = e->KeywordSet(NO_BITMAPS);
+    static int MULTIPLE = e->KeywordIx("MULTIPLE");
+    bool multiple = e->KeywordSet(MULTIPLE);
+
+    wxImageList *stateImages = gdlDefaultTreeStateImages;
     wxImageList *images = gdlDefaultTreeImages; 
     START_ADD_EVENTUAL_FRAME
   
@@ -4005,7 +4011,8 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
 
     wSize=computeWidgetSize( ); //this is a SetClientSize
     
-    long style = wxTR_HAS_BUTTONS|wxTR_LINES_AT_ROOT|wxTR_HIDE_ROOT|wxTR_HAS_VARIABLE_ROW_HEIGHT; //OK
+    long style = wxTR_HAS_BUTTONS|wxTR_LINES_AT_ROOT|wxTR_HIDE_ROOT; //OK
+//    if (multiple) style |= wxTR_MULTIPLE; //widget is insensitive, FIXME
     //we have no root, create one.
     myTreeRoot = new wxTreeCtrlGDL(widgetPanel, widgetID, wxDefaultPosition, wxDefaultSize, style );
     theWxContainer = theWxWidget = myTreeRoot;
@@ -4034,6 +4041,10 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     TIDY_WIDGET(gdlBORDER_SPACE)
       
   } else {
+//    static int TOOLTIP = e->KeywordIx( "TOOLTIP" );
+//  DString toolTip;
+//  e->AssureStringScalarKWIfPresent( TOOLTIP, toolTip );
+
     GDLWidgetTree* parentTree = static_cast<GDLWidgetTree*> (gdlParent);
     assert( parentTree != NULL);
     theWxWidget = parentTree->GetWxWidget( );
@@ -4065,6 +4076,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
       else if (treeindex > -1) treeItemID = myTreeRoot->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,gdlWxTree_ITEM,gdlWxTree_ITEM_SELECTED, treeItemData);
       else  treeItemID = myTreeRoot->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,gdlWxTree_ITEM,gdlWxTree_ITEM_SELECTED, treeItemData);
     }
+
     if (has_checkbox) myTreeRoot->SetItemState(treeItemID,(checked==true)); else myTreeRoot->SetItemState(treeItemID,wxTREE_ITEMSTATE_NONE); //CHECKED,UNCHECKE,NOT_VISIBLE
     //expand if requested:
     if (expanded)  {
@@ -4075,6 +4087,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     if (dragability == -1) draggable=parentTree->IsDraggable(); else draggable=(dragability == 1);
    //dropability inheritance.
     if (dropability == -1) droppable=parentTree->IsDroppable(); else droppable=(dropability == 1);
+//    if (tooltip) DO SOMETHING! FIXME.
   }
 //does not work, fixme. Replaced by global setting in gdlwidgeteventhandler 
 //    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_ACTIVATED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated),myTreeRoot);
@@ -4090,7 +4103,13 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
 }
 
 void GDLWidgetTree::OnRealize(){
-  if (this->GetRootTree() != this) static_cast<wxGenericTreeCtrl*>(this->GetRootTree()->theWxWidget)->Expand(this->GetItemID());  
+   GDLWidgetTree* root=this->GetRootTree();
+   if (this==root) {
+     wxTreeCtrlGDL* ctrl=static_cast<wxTreeCtrlGDL*>(this->GetWxWidget());
+     wxTreeItemId id=ctrl->GetFirstVisibleItem 	( 		) 	;
+     if (id) ctrl->SetFocusedItem(id); else std::cerr<<"id = "<<id<<std::endl;
+   }
+//  if (this->GetRootTree() != this) static_cast<wxGenericTreeCtrl*>(this->GetRootTree()->theWxWidget)->Expand(this->GetItemID());  
 }
 DInt GDLWidgetTree::GetTreeIndex()
 {

@@ -1703,6 +1703,7 @@ WidgetIDT selectedID;
 wxTreeItemId treeItemID;
 wxTreeItemDataGDL* treeItemData;
 GDLWidgetTree* myRoot;
+DString dragNotify;
 
 public:
 GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
@@ -1712,6 +1713,7 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
 ,bool expanded_
 ,bool folder_
 ,DLong treeindex
+,DString &dragNotify_
 );
 		 
 ~GDLWidgetTree();

@@ -247,12 +247,11 @@ void LibInit_jp()
   new DLibFunRetNew(lib::widget_text, string("WIDGET_TEXT"), 1, widget_textKey);
   //TREE
   const string widget_treeWarnKey[] = { "DRAG_NOTIFY"
-    , "MASK"
-    , "MULTIPLE"
-    , "TOOLTIP"
+
     , KLISTEND};
   const string widget_treeKey[] = {WIDGET_COMMON_KEYWORDS
     , "BITMAP"
+    , "MASK"
     , "FOLDER"
     , "EXPANDED"
     , "VALUE"
@@ -266,6 +265,9 @@ void LibInit_jp()
     , "CHECKBOX"
     , "CHECKED"
     , "NO_BITMAPS"
+    , "MULTIPLE"
+    , "TOOLTIP"
+    , "DRAG_NOTIFY"
     , KLISTEND};
   new DLibFunRetNew(lib::widget_tree, string("WIDGET_TREE"), 1, widget_treeKey, widget_treeWarnKey);
   //TREE_MOVE  

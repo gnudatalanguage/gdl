@@ -629,25 +629,19 @@ BaseGDL* widget_tree( EnvT* e)
 
   if (parent->IsBase() && parent->GetExclusiveMode() != GDLWidget::BGNORMAL ) e->Throw( "Parent is of incorrect type." );
 
-//  static int ALIGN_BOTTOM = e->KeywordIx( "ALIGN_BOTTOM" );
-//  static int ALIGN_TOP = e->KeywordIx( "ALIGN_TOP" );
   static int BITMAP = e->KeywordIx( "BITMAP" );
 
-//  static int DRAG_NOTIFY = e->KeywordIx( "DRAG_NOTIFY" );
   static int DRAGGABLE = e->KeywordIx( "DRAGGABLE" );
   static int EXPANDED = e->KeywordIx( "EXPANDED" );
   static int FOLDER = e->KeywordIx( "FOLDER" );
   static int INDEX = e->KeywordIx( "INDEX" );
   static int TOP = e->KeywordIx( "TOP" ); //obsoleted in 6.4 use INDEX=0
-//  static int MASK = e->KeywordIx( "MASK" );
-//  static int MULTIPLE = e->KeywordIx( "MULTIPLE" );
-//  static int TAB_MODE = e->KeywordIx( "TAB_MODE" );
-//  static int TOOLTIP = e->KeywordIx( "TOOLTIP" );
+  
+  static int DRAG_NOTIFY = e->KeywordIx( "DRAG_NOTIFY" );
+  //  static int TAB_MODE = e->KeywordIx( "TAB_MODE" );
+
   static int VALUE = e->KeywordIx( "VALUE" );
 //
-//  bool alignBottom = e->KeywordSet( ALIGN_BOTTOM );
-//  bool alignTop = e->KeywordSet( ALIGN_TOP );
-//  bool checkbox = e->KeywordSet( CHECKBOX );
   DLong treeindex=-1;
   if (e->KeywordPresent( INDEX )) {
     e->AssureLongScalarKWIfPresent( INDEX, treeindex );
@@ -657,10 +651,11 @@ BaseGDL* widget_tree( EnvT* e)
   if (e->KeywordPresent( DRAGGABLE )) e->AssureLongScalarKWIfPresent( DRAGGABLE, draggability );
   bool folder = e->KeywordSet( FOLDER );
   bool expanded = (folder && e->KeywordSet( EXPANDED ));
-//  bool mask = e->KeywordSet( MASK );
-//  bool multiple = e->KeywordSet( MULTIPLE );
 
-//
+  static int MASK = e->KeywordIx( "MASK" );
+  bool mask = e->KeywordSet( MASK );
+
+  //
   //common for all widgets
   DULong eventFlags=0;
   static int TRACKING_EVENTS = e->KeywordIx( "TRACKING_EVENTS" );
@@ -685,6 +680,13 @@ BaseGDL* widget_tree( EnvT* e)
           transpose->Reverse(2); //necessary 
           wxImage tryImage = wxImage(transpose->Dim(1), transpose->Dim(2), static_cast<unsigned char*> (transpose->DataAddr()), true); //STATIC DATA I BELIEVE.
           bitmap = new wxBitmap(tryImage);
+          if (mask) {
+            unsigned char r=tryImage.GetRed(0,0);
+            unsigned char g=tryImage.GetGreen(0,0);
+            unsigned char b=tryImage.GetBlue(0,0);
+            wxMask* m=new wxMask(*bitmap,wxColour(r,g,b));
+            bitmap->SetMask(m);
+          }
           GDLDelete(transpose);
         } else {
           if (testByte->Rank() == 0 && (*testByte)[0] == 0) { //do nothing! yet another IDL trick: will use a default system bitmap.
@@ -696,10 +698,9 @@ BaseGDL* widget_tree( EnvT* e)
 //
 //  DLong tabMode = 0;
 //  e->AssureLongScalarKWIfPresent( TAB_MODE, tabMode );
-//  DString dragNotify;
-//  e->AssureStringScalarKWIfPresent( DRAG_NOTIFY, dragNotify );
-//  DString toolTip;
-//  e->AssureStringScalarKWIfPresent( TOOLTIP, toolTip );
+  
+  DString dragNotify;
+  e->AssureStringScalarKWIfPresent( DRAG_NOTIFY, dragNotify );
 
   DString strvalue=""; //important to init to a zero-length string!!!
   e->AssureStringScalarKWIfPresent( VALUE, strvalue ); //important to init to a zero-length string!!!
@@ -713,6 +714,7 @@ BaseGDL* widget_tree( EnvT* e)
       , expanded
       , folder
       , treeindex
+      , dragNotify
       );
   
   if (tree->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) tree->SetWidgetType( GDLWidget::WIDGET_TREE );

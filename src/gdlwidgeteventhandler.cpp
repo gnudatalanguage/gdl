@@ -1955,7 +1955,6 @@ void wxTreeCtrlGDL::OnItemExpanded(wxTreeEvent & event){
 //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
 //the GDL widget that received the event
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
-    me->SetItemImage(dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem())),gdlWxTree_FOLDER_OPEN);
     DStructGDL* treeexpand = new DStructGDL( "WIDGET_TREE_EXPAND");
     treeexpand->InitTag("ID", DLongGDL( dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID ));
     treeexpand->InitTag("TOP", DLongGDL( baseWidgetID));
