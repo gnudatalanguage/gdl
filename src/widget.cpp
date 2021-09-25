@@ -641,7 +641,6 @@ BaseGDL* widget_tree( EnvT* e)
   static int TOP = e->KeywordIx( "TOP" ); //obsoleted in 6.4 use INDEX=0
 //  static int MASK = e->KeywordIx( "MASK" );
 //  static int MULTIPLE = e->KeywordIx( "MULTIPLE" );
-//  static int NO_BITMAPS = e->KeywordIx( "NO_BITMAPS" );
 //  static int TAB_MODE = e->KeywordIx( "TAB_MODE" );
 //  static int TOOLTIP = e->KeywordIx( "TOOLTIP" );
   static int VALUE = e->KeywordIx( "VALUE" );
@@ -660,7 +659,7 @@ BaseGDL* widget_tree( EnvT* e)
   bool expanded = (folder && e->KeywordSet( EXPANDED ));
 //  bool mask = e->KeywordSet( MASK );
 //  bool multiple = e->KeywordSet( MULTIPLE );
-//  bool noBitmaps = e->KeywordSet( NO_BITMAPS );
+
 //
   //common for all widgets
   DULong eventFlags=0;
@@ -2213,7 +2212,7 @@ BaseGDL* widget_info( EnvT* e ) {
       if (treeindex) return new DLongGDL(tree->GetTreeIndex());
       if (treefolder) return new DLongGDL(tree->IsFolder());
       if (treeexpanded) return new DLongGDL(tree->IsExpanded());
-      if (treeroot) return new DLongGDL(tree->GetRootID());
+//      if (treeroot) return new DLongGDL(tree->GetRootTree());
       if (treebitmap) return new DLongGDL(0); //should return the bitmap!
       if (treemask) return new DLongGDL(0); //should return the mask!
       if (draggable) return new DLongGDL(tree->IsDraggable()); 

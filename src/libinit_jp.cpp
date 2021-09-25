@@ -249,7 +249,6 @@ void LibInit_jp()
   const string widget_treeWarnKey[] = { "DRAG_NOTIFY"
     , "MASK"
     , "MULTIPLE"
-    , "NO_BITMAPS"
     , "TOOLTIP"
     , KLISTEND};
   const string widget_treeKey[] = {WIDGET_COMMON_KEYWORDS
@@ -266,6 +265,7 @@ void LibInit_jp()
     , "TAB_MODE"
     , "CHECKBOX"
     , "CHECKED"
+    , "NO_BITMAPS"
     , KLISTEND};
   new DLibFunRetNew(lib::widget_tree, string("WIDGET_TREE"), 1, widget_treeKey, widget_treeWarnKey);
   //TREE_MOVE  

@@ -75,11 +75,14 @@
 #define DONOTALLOWSTRETCH 0
 #define ALLOWSTRETCH 1
 #define FRAME_ALLOWSTRETCH 1
+#define DEFAULT_TREE_IMAGE_SIZE 16
+
 #ifdef __WXMSW__
   #define NEWLINECHARSIZE 2  //length of <cr><nl>
 #else
   #define NEWLINECHARSIZE 1  //length of <nl> 
 #endif
+
 #define gdlSIZE_EVENT_HANDLER wxSizeEventHandler(gdlwxFrame::OnSizeWithTimer) //filter mouse events (manual resize) to avoid too many updtes for nothing
 #define gdlSIZE_IMMEDIATE_EVENT_HANDLER wxSizeEventHandler(gdlwxFrame::OnSize) 
 typedef DLong WidgetIDT;
@@ -1645,6 +1648,7 @@ public:
 // tree widget **************************************************
 class wxTreeCtrlGDL: public wxTreeCtrl {
   wxWindowID GDLWidgetTreeID;
+  wxWindowID draggedGDLWidgetID;
 public:
 
   wxTreeCtrlGDL(wxWindow *parent, wxWindowID id = wxID_ANY,
@@ -1654,7 +1658,8 @@ public:
     const wxValidator &validator = wxDefaultValidator,
     const wxString& name = wxTreeCtrlNameStr)
           :wxTreeCtrl( parent, id, pos, size, style, wxDefaultValidator , name ),
-          GDLWidgetTreeID(id)
+          GDLWidgetTreeID(id),
+          draggedGDLWidgetID(0)
           {
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated));
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_ACTIVATED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated));
@@ -1673,6 +1678,8 @@ public:
   void OnDrag(wxTreeEvent & event);
   void OnDrop(wxTreeEvent & event);
   void OnItemSelected(wxTreeEvent & event);
+  void SetDragged(wxWindowID that) {draggedGDLWidgetID=that;}
+  wxWindowID GetDragged(){ return draggedGDLWidgetID;}
   DECLARE_EVENT_TABLE()
 };
 
@@ -1691,10 +1698,11 @@ bool draggable  ;
 bool has_checkbox;
 bool expanded;
 bool folder;
+bool noBitmaps;
 WidgetIDT selectedID;
 wxTreeItemId treeItemID;
 wxTreeItemDataGDL* treeItemData;
-WidgetIDT rootID;
+GDLWidgetTree* myRoot;
 
 public:
 GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
@@ -1719,7 +1727,7 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
     expanded=what;
     if (what) treeItemData->myTree->Expand(treeItemID); else treeItemData->myTree->Collapse(treeItemID);
   }
-  WidgetIDT GetRootID(){ return rootID;}
+  GDLWidgetTree* GetRootTree(){ return myRoot;}
   void SetSelectedID( WidgetIDT id){selectedID=id;}
   WidgetIDT GetSelectedID(){ return selectedID;}
   DInt GetTreeIndex();
@@ -1728,6 +1736,8 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
   void OnRealize();
   void SetFolder(){folder=true;}
   bool IsFolder(){return folder;}
+  bool HasCheckBox(){return has_checkbox;}
+  bool NoBitmaps(){return noBitmaps;}
 };
 
 
