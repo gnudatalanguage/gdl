@@ -92,10 +92,11 @@ static bool handlersInited=false; //handlers of graphic formats for bitmaps (mag
 
 enum { WINDOW_TIMER = -2*wxID_HIGHEST, RESIZE_TIMER, RESIZE_PLOT_TIMER }; //negative values, should not clash with our (positive) widget ids.
 enum { 
-  gdlWxTree_ITEM = 0,
-  gdlWxTree_ITEM_SELECTED = 0,
-  gdlWxTree_FOLDER,
-  gdlWxTree_FOLDER_OPEN
+  TREE_BITMAP_ITEM = 0,
+  TREE_BITMAP_ITEM_SELECTED = 0,
+  TREE_BITMAP_FOLDER,
+  TREE_BITMAP_FOLDER_OPEN,
+  TREE_BITMAP_END
 };
 enum { 
   gdlWxTree_UNCHECKED = 0,
@@ -1693,12 +1694,13 @@ class wxTreeItemDataGDL : public wxTreeItemData {
 
 class GDLWidgetTree: public GDLWidget
 {
-bool droppable  ; 
-bool draggable  ;
+int droppable  ; 
+int draggable  ;
 bool has_checkbox;
 bool expanded;
 bool folder;
 bool noBitmaps;
+bool mask;
 WidgetIDT selectedID;
 wxTreeItemId treeItemID;
 wxTreeItemDataGDL* treeItemData;
@@ -1719,17 +1721,26 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
 ~GDLWidgetTree();
 
   bool IsTree() const final { return true;}
-  bool IsDraggable() {return draggable;}
-  bool IsDroppable() {return droppable;}
+  //DRAG
+  int GetDraggableValue() {return draggable;}
+  bool GetDragability();
+  void SetDragability(DLong val){draggable=val;}
+  //DRAGNOTIFY
+  DString GetDragNotifyValue(){return dragNotify;}
+  void SetDragNotify(DString &s){Warning("SET_DRAG_NOTIFY is currently ignored by GDL, FIXME."); dragNotify=s;}
+  //DROP
+  int  GetDroppableValue(){return droppable;}
+  bool GetDropability();
+  void SetDropability(DLong val){droppable=val;}
   bool IsExpanded() {
     return expanded;
   }
+  void SetExpanded(bool b){expanded=b;}
 
-  void DoExpand(bool what){
-    expanded=what;
-    if (what) treeItemData->myTree->Expand(treeItemID); else treeItemData->myTree->Collapse(treeItemID);
-  }
-  GDLWidgetTree* GetRootTree(){ return myRoot;}
+  void DoExpand(bool what);
+  void Select(bool select);
+  void Reposition(DLong where);
+  GDLWidgetTree* GetMyRootTreeWidget(){ return myRoot;}
   void SetSelectedID( WidgetIDT id){selectedID=id;}
   WidgetIDT GetSelectedID(){ return selectedID;}
   DInt GetTreeIndex();
@@ -1738,8 +1749,14 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
   void OnRealize();
   void SetFolder(){folder=true;}
   bool IsFolder(){return folder;}
+  void SetMask(bool b){mask=b;}
+  bool HasMask(){return mask;}
+  DByteGDL* ReturnBitmapAsBytes();
   bool HasCheckBox(){return has_checkbox;}
-  bool NoBitmaps(){return noBitmaps;}
+  void CheckItem(bool b){treeItemData->myTree->SetItemState(treeItemID,b);}
+  bool IsUsingBitmaps(){return noBitmaps;}
+  void SetBitmap(wxBitmap* bitmap);
+  void SetVisible() {treeItemData->myTree->EnsureVisible(treeItemID);}
 };
 
 

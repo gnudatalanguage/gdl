@@ -3965,13 +3965,14 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
 ,DString &dragNotify_
 )
 : GDLWidget( p, e, value_, eventFlags_ )
-,droppable( false )
-,draggable( false )
+,droppable(dropability ) //inherited
+,draggable(dragability ) //inherited
 ,expanded(expanded_)
 ,myRoot(NULL)
 ,treeItemData(NULL)
 ,has_checkbox(false)
 ,folder(folder_)
+,mask(false)
 ,dragNotify( dragNotify_) 
 {
 
@@ -4031,8 +4032,9 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
 //    tree->SetItemImage(treeItemID,(folder)?(expanded?gdlWxTree_FOLDER_OPEN:gdlWxTree_FOLDER):gdlWxTree_ITEM);
 // checkbox is not visible for root//    if (has_checkbox) tree->SetItemState(treeItemID,(checked==true)); else tree->SetItemState(treeItemID,wxTREE_ITEMSTATE_NONE); //CHECKED,UNCHECKE,NOT_VISIBLE
     widgetStyle=widgetAlignment( );
-    draggable=(dragability == 1);
-    droppable=(dropability == 1);
+    if (dropability == -1) droppable=0; //this for root only
+    if (dragability == -1) draggable=0; //this for root only
+    if (dragNotify=="<inherit>") dragNotify="<default>";
 //do not expand root if hidden: will assert() in wxWidgets! //    if (expanded) tree->Expand(treeItemID); 
     myTreeRoot->SetClientSize(wSize);
     myTreeRoot->SetMinClientSize(wSize);
@@ -4048,8 +4050,8 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     GDLWidgetTree* parentTree = static_cast<GDLWidgetTree*> (gdlParent);
     assert( parentTree != NULL);
     theWxWidget = parentTree->GetWxWidget( );
-    myRoot =  parentTree->GetRootTree();
-    bool nobitmaps=myRoot->NoBitmaps();
+    myRoot =  parentTree->GetMyRootTreeWidget();
+    bool nobitmaps=myRoot->IsUsingBitmaps();
 
     myTreeRoot = dynamic_cast<wxTreeCtrlGDL*> (theWxWidget);
     assert( myTreeRoot != NULL);
@@ -4059,6 +4061,14 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     //if parent has checkbox, I have a checkbox too unless has_checkbox is false
     bool parent_has_checkbox=parentTree->HasCheckBox(); 
     if (!checkbox_asked) has_checkbox=(parent_has_checkbox);
+    //if treeindex is present, it must be < the number of children (otherwise baoum, thank you wxWidgets)
+    if (treeindex > -1 ) {
+      //possible?
+      if (parentTree->IsFolder()) {
+        unsigned int count = myTreeRoot->GetChildrenCount(parentTree->treeItemID, false);
+        if (treeindex >= count) treeindex = count;
+      } else e->Throw("Parent tree widget is not a folder.");
+    }
     if (nobitmaps) {
         if (treeindex > -1 ) treeItemID = myTreeRoot->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,-1,-1, treeItemData);
         else treeItemID = myTreeRoot->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,-1,-1, treeItemData);
@@ -4070,11 +4080,11 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
       else treeItemID = myTreeRoot->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,imindex,imindex, treeItemData);
     } else {     //since no image is a bit disappointing use our internal wxWigdets icons
       if (folder) { //use open and closed folder icons 
-        if (treeindex > -1 ) treeItemID = myTreeRoot->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,gdlWxTree_FOLDER,gdlWxTree_FOLDER_OPEN, treeItemData);
-        else treeItemID = myTreeRoot->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,gdlWxTree_FOLDER,gdlWxTree_FOLDER_OPEN, treeItemData);
+        if (treeindex > -1 ) treeItemID = myTreeRoot->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,TREE_BITMAP_FOLDER,TREE_BITMAP_FOLDER_OPEN, treeItemData);
+        else treeItemID = myTreeRoot->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,TREE_BITMAP_FOLDER,TREE_BITMAP_FOLDER_OPEN, treeItemData);
       } //or normal file
-      else if (treeindex > -1) treeItemID = myTreeRoot->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,gdlWxTree_ITEM,gdlWxTree_ITEM_SELECTED, treeItemData);
-      else  treeItemID = myTreeRoot->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,gdlWxTree_ITEM,gdlWxTree_ITEM_SELECTED, treeItemData);
+      else if (treeindex > -1) treeItemID = myTreeRoot->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,TREE_BITMAP_ITEM,TREE_BITMAP_ITEM_SELECTED, treeItemData);
+      else  treeItemID = myTreeRoot->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,TREE_BITMAP_ITEM,TREE_BITMAP_ITEM_SELECTED, treeItemData);
     }
 
     if (has_checkbox) myTreeRoot->SetItemState(treeItemID,(checked==true)); else myTreeRoot->SetItemState(treeItemID,wxTREE_ITEMSTATE_NONE); //CHECKED,UNCHECKE,NOT_VISIBLE
@@ -4083,10 +4093,6 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
       myTreeRoot->SetItemHasChildren( treeItemID, true); //TRICK! to enable folder opened or closed BY CONSTRUCTION.
      DoExpand(true);
     }
-    //dragability inheritance.
-    if (dragability == -1) draggable=parentTree->IsDraggable(); else draggable=(dragability == 1);
-   //dropability inheritance.
-    if (dropability == -1) droppable=parentTree->IsDroppable(); else droppable=(dropability == 1);
 //    if (tooltip) DO SOMETHING! FIXME.
   }
 //does not work, fixme. Replaced by global setting in gdlwidgeteventhandler 
@@ -4101,9 +4107,51 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     //    UPDATE_WINDOW
     REALIZE_IF_NEEDED
 }
-
+  bool GDLWidgetTree::GetDropability() {
+    int enabledrop=droppable;
+    GDLWidgetTree* root=myRoot;
+    GDLWidgetTree* w=this;
+    while (enabledrop < 0 && w!=root) {
+      w=static_cast<GDLWidgetTree*>(w->GetMyParent());
+      enabledrop=w->GetDroppableValue();
+    }
+    return (enabledrop == 1);
+  }
+  bool GDLWidgetTree::GetDragability() {
+    int enabledrag=draggable;
+    GDLWidgetTree* root=myRoot;
+    GDLWidgetTree* w=this;
+    while (enabledrag < 0 && w!=root) {
+      w=static_cast<GDLWidgetTree*>(w->GetMyParent());
+      enabledrag=w->GetDraggableValue();
+    }
+    return (enabledrag == 1);
+  }
+  void GDLWidgetTree::DoExpand(bool what){
+    expanded=what;
+    if (what) treeItemData->myTree->Expand(treeItemID); else treeItemData->myTree->Collapse(treeItemID);
+  }
+  void GDLWidgetTree::Select(bool select){
+    if (select) treeItemData->myTree->SetFocusedItem(treeItemID); else treeItemData->myTree->ClearFocusedItem();
+  }
+  void GDLWidgetTree::Reposition(DLong where) {
+    GDLWidgetTree* parentTree = static_cast<GDLWidgetTree*> (GetWidget( parentID ));
+    if (parentTree->IsFolder()){ //is Folder
+    wxTreeCtrlGDL* myTreeRoot=dynamic_cast<wxTreeCtrlGDL*> (theWxWidget);
+    assert( myTreeRoot != NULL);
+    wxString s=myTreeRoot->GetItemText(treeItemID);
+    int imindex=myTreeRoot->GetItemImage(treeItemID);
+    wxTreeItemDataGDL* d=static_cast<wxTreeItemDataGDL*>(myTreeRoot->GetItemData(treeItemID));
+    myTreeRoot->Delete(treeItemID);
+    treeItemData=d;
+    unsigned int count = myTreeRoot->GetChildrenCount(parentTree->treeItemID, false);
+    DLong treeindex=count;
+    if (where > 0 && where <= treeindex) treeindex =where;
+    treeItemID=myTreeRoot->InsertItem( parentTree->treeItemID, treeindex, s ,imindex,imindex, treeItemData);
+    } else throw GDLException("Parent tree widget is not a folder.");
+  }
 void GDLWidgetTree::OnRealize(){
-   GDLWidgetTree* root=this->GetRootTree();
+   GDLWidgetTree* root=this->GetMyRootTreeWidget();
    if (this==root) {
      wxTreeCtrlGDL* ctrl=static_cast<wxTreeCtrlGDL*>(this->GetWxWidget());
      wxTreeItemId id=ctrl->GetFirstVisibleItem 	( 		) 	;
@@ -4123,7 +4171,7 @@ DInt GDLWidgetTree::GetTreeIndex()
     id=prev_id; 
     prev_id=tree->GetPrevSibling(id);
   }
-  return count+1; //to give compatible results with idl -- wxwidgets does not behave as idl!
+  return count;
 }
 
 GDLWidgetTree::~GDLWidgetTree()
@@ -4166,6 +4214,35 @@ void GDLWidgetTree::SetValue(DString val)
   tree->SetItemText(treeItemID, wxString( val.c_str( ), wxConvUTF8 ));
 }
 
+void GDLWidgetTree::SetBitmap(wxBitmap* bitmap) {
+  //images (default vs. custom: problem of sizes: wxWidgets ENFORCES an uniform scaling)
+  wxTreeCtrlGDL* myTreeRoot=treeItemData->myTree;
+  wxBitmap b=wxBitmap((*bitmap).ConvertToImage().Rescale(DEFAULT_TREE_IMAGE_SIZE, DEFAULT_TREE_IMAGE_SIZE));
+  int myimindex = myTreeRoot->GetItemImage(treeItemID, wxTreeItemIcon_Normal);
+  if (myimindex < TREE_BITMAP_END) { //this is a 'default' image, do not overwrite, add a new one
+    int imindex=myTreeRoot->GetImageList()->Add(b);
+    for (wxTreeItemIcon i=wxTreeItemIcon_Normal; i< wxTreeItemIcon_Max; i=wxTreeItemIcon(i+1)) myTreeRoot->SetItemImage(treeItemID,imindex,i);
+  } else {
+    myTreeRoot->GetImageList()->Replace(myimindex,b);
+  }
+}
+
+DByteGDL* GDLWidgetTree::ReturnBitmapAsBytes() {
+  wxTreeCtrlGDL* myTreeRoot = treeItemData->myTree;
+  int myimindex = myTreeRoot->GetItemImage(treeItemID, wxTreeItemIcon_Normal);
+  if (myimindex < TREE_BITMAP_END) { //this is a 'default' image,return 0
+    return new DByteGDL(0);
+  } else {
+    wxImage image=myTreeRoot->GetImageList()->GetBitmap(myimindex).ConvertToImage().Rotate90();//go figure needs to be rotated 90
+    unsigned char* pixels=image.GetData(); 
+    wxSize sz=image.GetSize();
+    DByteGDL* res=new DByteGDL(dimension(sz.x,sz.y,3), BaseGDL::NOZERO); //in fact [3,N,M] RGBRGB...
+    SizeT k=0;
+    SizeT jump=sz.x*sz.y;
+    for (SizeT i=0; i< sz.x*sz.y; ++i) {(*res)[i]=pixels[k++];(*res)[i+jump]=pixels[k++]; (*res)[i+2*jump]=pixels[k++];}//[N,M,3]
+    return res;
+  }
+}
 /*********************************************************/
 // for WIDGET_SLIDER
 /*********************************************************/

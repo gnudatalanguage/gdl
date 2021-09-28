@@ -1881,7 +1881,7 @@ void wxTreeCtrlGDL::OnItemSelected(wxTreeEvent & event){
     WidgetIDT selected=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
     GDLWidgetTree* tree= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
     //inform root widget it is selected
-    GDLWidgetTree* root=tree->GetRootTree();
+    GDLWidgetTree* root=tree->GetMyRootTreeWidget();
     root->SetSelectedID(selected);
     
     DStructGDL* treeselect = new DStructGDL( "WIDGET_TREE_SEL");
@@ -1897,18 +1897,26 @@ void wxTreeCtrlGDL::OnItemSelected(wxTreeEvent & event){
 
 void wxTreeCtrlGDL::OnDrag(wxTreeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnDrag: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnDrag: %d "),event.GetId());
 #endif
   if (!event.GetItem().IsOk()) {    event.Skip(); return;}
+  
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
     WidgetIDT selected=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
     GDLWidgetTree* tree= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
-    if (tree->IsDraggable()) {
+      
+    if (tree->GetDragability()) {//was set or inherited from one ancestor that was set
       me->SetDragged(selected);
       event.Allow();
-      return;
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("allowed.\n"),event.GetId());
+#endif
+  return;
     }  
-    event.Skip();
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("canceled.\n"),event.GetId());
+#endif
+  event.Skip();
 }
 
 void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
@@ -1922,9 +1930,9 @@ void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
     WidgetIDT selected=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
     GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
-    GDLWidgetTree* root=item->GetRootTree();
+    GDLWidgetTree* root=item->GetMyRootTreeWidget();
 
-    if (item->IsDroppable()) {
+    if (item->GetDropability()) { //was set or inherited from one ancestor that was set
  //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
 //the GDL widget that received the event
       DStructGDL* treedrop = new DStructGDL( "WIDGET_DROP");
@@ -1955,8 +1963,11 @@ void wxTreeCtrlGDL::OnItemExpanded(wxTreeEvent & event){
 //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
 //the GDL widget that received the event
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
+    WidgetIDT whoID=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
+    GDLWidgetTree* who=static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(whoID));
+    who->SetExpanded(true);
     DStructGDL* treeexpand = new DStructGDL( "WIDGET_TREE_EXPAND");
-    treeexpand->InitTag("ID", DLongGDL( dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID ));
+    treeexpand->InitTag("ID", DLongGDL( whoID ));
     treeexpand->InitTag("TOP", DLongGDL( baseWidgetID));
     treeexpand->InitTag("HANDLER", DLongGDL( GDLWidgetTreeID ));
     treeexpand->InitTag("TYPE", DIntGDL(1)); // 1
@@ -1975,9 +1986,11 @@ void wxTreeCtrlGDL::OnItemCollapsed(wxTreeEvent & event){
 //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
 //the GDL widget that received the event
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
-    
+    WidgetIDT whoID=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
+    GDLWidgetTree* who=static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(whoID));
+    who->SetExpanded(false);    
     DStructGDL* treeexpand = new DStructGDL( "WIDGET_TREE_EXPAND");
-    treeexpand->InitTag("ID", DLongGDL( dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID ));
+    treeexpand->InitTag("ID", DLongGDL( whoID ) );
     treeexpand->InitTag("TOP", DLongGDL( baseWidgetID));
     treeexpand->InitTag("HANDLER", DLongGDL( GDLWidgetTreeID ));
     treeexpand->InitTag("TYPE", DIntGDL(1)); // 1

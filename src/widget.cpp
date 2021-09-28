@@ -620,6 +620,9 @@ BaseGDL* widget_tree( EnvT* e)
 #else
   SizeT nParam = e->NParam( 1 );
 
+  static bool warnaboudragnotify=true;
+
+  
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
   WidgetIDT parentID = (*p0L)[0];
   GDLWidget* parent = GDLWidget::GetWidget( parentID );
@@ -667,8 +670,11 @@ BaseGDL* widget_tree( EnvT* e)
   if (context) eventFlags |= GDLWidget::EV_CONTEXT;
 
   static int DROP_EVENTS = e->KeywordIx( "DROP_EVENTS" );
-  DLong dropability = -1;
-  if (e->KeywordPresent( DROP_EVENTS )) e->AssureLongScalarKWIfPresent( DROP_EVENTS, dropability );
+  DLong dropability = -1; //inherit
+  if (e->KeywordPresent( DROP_EVENTS )) {
+    bool dropevents=e->KeywordSet( DROP_EVENTS); //get a zero or one
+    dropability=dropevents?1:0;
+  }
   
   DByteGDL* testByte=NULL;
   wxBitmap* bitmap=NULL;
@@ -700,8 +706,14 @@ BaseGDL* widget_tree( EnvT* e)
 //  e->AssureLongScalarKWIfPresent( TAB_MODE, tabMode );
   
   DString dragNotify;
-  e->AssureStringScalarKWIfPresent( DRAG_NOTIFY, dragNotify );
-
+  if (e->KeywordPresent(DRAG_NOTIFY)) {
+    if (warnaboudragnotify) {
+      warnaboudragnotify=false;
+      Warning("DRAG_NOTIFY NOT HANDLED BY GDL, FIXME!");
+    }
+    e->AssureStringScalarKWIfPresent( DRAG_NOTIFY, dragNotify );
+    dragNotify=StrUpCase(dragNotify); //UPPERCASE
+  } else dragNotify="<inherit>";
   DString strvalue=""; //important to init to a zero-length string!!!
   e->AssureStringScalarKWIfPresent( VALUE, strvalue ); //important to init to a zero-length string!!!
   DStringGDL* value=new DStringGDL(strvalue);
@@ -716,7 +728,8 @@ BaseGDL* widget_tree( EnvT* e)
       , treeindex
       , dragNotify
       );
-  
+  // after creation, set mask:
+    if (mask) tree->SetMask(true); 
   if (tree->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) tree->SetWidgetType( GDLWidget::WIDGET_TREE );
 #ifdef GDL_DEBUG_WIDGETS
   cerr<<"WIDGET_TREE "+i2s(tree->GetWidgetID( ))+" OK.\n";
@@ -1743,6 +1756,8 @@ BaseGDL* widget_info( EnvT* e ) {
 
   static int TREE_SELECT = e->KeywordIx( "TREE_SELECT");
   bool treeselect = e->KeywordSet(TREE_SELECT);
+  static int TREE_DRAG_SELECT = e->KeywordIx( "TREE_DRAG_SELECT");
+  bool treedragselect = e->KeywordSet(TREE_DRAG_SELECT);
   static int TREE_INDEX = e->KeywordIx( "TREE_INDEX");
   bool treeindex = e->KeywordSet(TREE_INDEX);
   static int TREE_FOLDER = e->KeywordIx( "TREE_FOLDER");
@@ -2203,24 +2218,68 @@ BaseGDL* widget_info( EnvT* e ) {
         if (useATableSelection) return table->GetRowHeight(tableSelectionToUse); else return table->GetRowHeight();
       }
   }
-  
-  if (treeroot||treeselect||treefolder||treeexpanded||treeindex ||treebitmap || treemask || draggable || dragnotify || dropevents) {
-    std::cerr<<"FIXME!"<<std::endl;
-      WidgetIDT widgetID = (*p0L)[0];
-      GDLWidget *widget = GDLWidget::GetWidget( widgetID );
-      if ( widget == NULL || !widget->IsTree() ) e->Throw("Invalid widget identifier:"+i2s(widgetID));
-      GDLWidgetTree *tree = (GDLWidgetTree *) widget;
-      if (treeselect) return new DLongGDL(tree->GetSelectedID());
-      if (treeindex) return new DLongGDL(tree->GetTreeIndex());
-      if (treefolder) return new DLongGDL(tree->IsFolder());
-      if (treeexpanded) return new DLongGDL(tree->IsExpanded());
-//      if (treeroot) return new DLongGDL(tree->GetRootTree());
-      if (treebitmap) return new DLongGDL(0); //should return the bitmap!
-      if (treemask) return new DLongGDL(0); //should return the mask!
-      if (draggable) return new DLongGDL(tree->IsDraggable()); 
-      if (dropevents) return new DLongGDL(tree->IsDroppable()); 
-      if (dragnotify) return new DStringGDL("<default>"); //other not implemented!
-  }
+
+    if (treeroot || treeselect || treedragselect || treefolder || treeexpanded || treeindex || treebitmap || treemask || draggable || dragnotify || dropevents) {
+      if (dragnotify || treeselect || treedragselect) std::cerr << "FIXME!" << std::endl;
+      if (rank == 0) {
+        // Scalar Input
+        WidgetIDT widgetID = (*p0L)[0];
+        GDLWidget *widget = GDLWidget::GetWidget(widgetID);
+        if (widget == NULL || !widget->IsTree()) e->Throw("Invalid widget identifier:" + i2s(widgetID));
+        GDLWidgetTree *thisTreeItem = (GDLWidgetTree *) widget;
+        if (treeselect) return new DLongGDL(thisTreeItem->GetSelectedID());
+        if (treedragselect) return new DLongGDL(thisTreeItem->GetSelectedID());
+        if (treeindex) return new DLongGDL(thisTreeItem->GetTreeIndex());
+        if (treefolder) return new DLongGDL(thisTreeItem->IsFolder());
+        if (treeexpanded) return new DLongGDL(thisTreeItem->IsExpanded());
+        if (treeroot) return new DLongGDL(thisTreeItem->GetMyRootTreeWidget()->GetWidgetID());
+        if (treebitmap) return thisTreeItem->ReturnBitmapAsBytes();
+        if (treemask) return new DLongGDL(thisTreeItem->HasMask());
+        if (draggable) return new DLongGDL(thisTreeItem->GetDraggableValue());
+        if (dropevents) return new DLongGDL(thisTreeItem->GetDroppableValue());
+        if (dragnotify) return new DStringGDL(thisTreeItem->GetDragNotifyValue()); //other not implemented!
+      } else {
+        if (treebitmap) e->Throw("Expression must be a scalar in this context.");
+        BaseGDL* myres;
+        bool atLeastOneFound = false;
+        // Array Input
+        if (dragnotify) {
+          DStringGDL* res = new DStringGDL(p0L->Dim());
+          for (SizeT i = 0; i < nEl; i++) {
+            WidgetIDT widgetID = (*p0L)[i];
+            GDLWidget *widget = GDLWidget::GetWidget(widgetID);
+            if (widget != NULL && widget->IsTree()) {
+              atLeastOneFound = true;
+              GDLWidgetTree *thisTreeItem = (GDLWidgetTree *) widget;
+              (*res)[ i] = thisTreeItem->GetDragNotifyValue();
+            }
+          }
+          myres=res; //pointers
+        } else {
+          DLongGDL* res = new DLongGDL(p0L->Dim());
+          for (SizeT i = 0; i < nEl; i++) {
+            WidgetIDT widgetID = (*p0L)[i];
+            GDLWidget *widget = GDLWidget::GetWidget(widgetID);
+            if (widget != NULL && widget->IsTree()) {
+              atLeastOneFound = true;
+              GDLWidgetTree *thisTreeItem = (GDLWidgetTree *) widget;
+              if (treeselect) (*res)[ i] = thisTreeItem->GetSelectedID();
+              if (treedragselect) (*res)[ i] = thisTreeItem->GetSelectedID();
+              if (treeindex) (*res)[ i] = thisTreeItem->GetTreeIndex();
+              if (treefolder) (*res)[ i] = thisTreeItem->IsFolder();
+              if (treeexpanded) (*res)[ i] = thisTreeItem->IsExpanded();
+              if (treeroot) (*res)[ i] = thisTreeItem->GetMyRootTreeWidget()->GetWidgetID();
+              if (treemask) (*res)[ i] = thisTreeItem->HasMask();
+              if (draggable) (*res)[ i] = thisTreeItem->GetDraggableValue();
+              if (dropevents) (*res)[ i] = thisTreeItem->GetDroppableValue();
+            }
+          }
+          myres=res; //pointers
+        }
+        if (atLeastOneFound) return myres;
+        else e->Throw("Invalid widget identifier:" + i2s((*p0L)[0]));
+      }
+    }
   
   if (listselect){
       WidgetIDT widgetID = (*p0L)[0];
@@ -2643,15 +2702,27 @@ void widget_control( EnvT* e ) {
   bool dynres = e->KeywordPresent( dynamicResizeIx );  
 
   static int base_set_titleIx = e->KeywordIx( "BASE_SET_TITLE" );
-  bool set_base_title = e->KeywordSet( base_set_titleIx );  
-//  static int TREE_SELECT = e->KeywordIx( "SET_TREE_SELECT");
-//  bool treeselect = e->KeywordSet(TREE_SELECT);
-//  static int TREE_INDEX = e->KeywordIx( "SET_TREE_INDEX");
-//  bool treeindex = e->KeywordSet(TREE_INDEX);
+  bool set_base_title = e->KeywordSet( base_set_titleIx );
+  
+  static int SET_TREE_SELECT = e->KeywordIx( "SET_TREE_SELECT");
+  bool setTreeselect = e->KeywordPresent(SET_TREE_SELECT);
+  static int SET_TREE_INDEX = e->KeywordIx( "SET_TREE_INDEX");
+  bool setTreeindex = e->KeywordPresent(SET_TREE_INDEX);
+  static int SET_DRAG_NOTIFY = e->KeywordIx( "SET_DRAG_NOTIFY");
+  bool setDragnotify= e->KeywordPresent(SET_DRAG_NOTIFY);
+  static int SET_DRAGGABLE = e->KeywordIx( "SET_DRAGGABLE");
+  bool setDraggable= e->KeywordPresent(SET_DRAGGABLE);
+  static int SET_TREE_CHECKED = e->KeywordIx( "SET_TREE_CHECKED");
+  bool setTreechecked= e->KeywordPresent(SET_TREE_CHECKED);
+  static int SET_TREE_BITMAP = e->KeywordIx( "SET_TREE_BITMAP");
+  bool setTreebitmap= e->KeywordPresent(SET_TREE_BITMAP);
+  static int SET_MASK = e->KeywordIx( "SET_MASK");
+  bool setTreemask= e->KeywordPresent(SET_MASK);
+
   static int SET_TREE_EXPANDED = e->KeywordIx( "SET_TREE_EXPANDED");
-  bool settreeexpanded = e->KeywordPresent(SET_TREE_EXPANDED);
-//  static int TREE_BITMAP = e->KeywordIx( "SET_TREE_BITMAP");
-//  bool treebitmap = e->KeywordSet(TREE_BITMAP);
+  bool setTreeexpanded = e->KeywordPresent(SET_TREE_EXPANDED);
+  static int SET_TREE_VISIBLE = e->KeywordIx( "SET_TREE_VISIBLE");
+  bool setTreevisible = e->KeywordSet(SET_TREE_VISIBLE);
 
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
 
@@ -3259,10 +3330,6 @@ void widget_control( EnvT* e ) {
     else widget->RemoveEventType(GDLWidget::EV_CONTEXT);
   }
 
-  if ( drop_events &&  ( widget->IsDraw() || widget->IsTree() ) ) { //draw not supported yet
-    if (e->KeywordSet(SET_DROP_EVENTS)) widget->AddEventType(GDLWidget::EV_DROP);
-    else widget->RemoveEventType(GDLWidget::EV_DROP);
-  }
   if (draw_motion_events && widget->IsDraw()) {
     GDLWidgetDraw* draw=static_cast<GDLWidgetDraw*>(widget);
     if (e->KeywordSet(DRAW_MOTION_EVENTS)) draw->AddEventType(GDLWidget::EV_MOTION);
@@ -3806,12 +3873,55 @@ void widget_control( EnvT* e ) {
   }
 
   if (widget->IsTree()) {
-      if (settreeexpanded) {
-        DLong what=0;
-        e->AssureLongScalarKWIfPresent(what,SET_TREE_EXPANDED);
-        static_cast<GDLWidgetTree *>(widget)->DoExpand(what>0);
+      if (setTreeexpanded) static_cast<GDLWidgetTree *>(widget)->DoExpand(e->KeywordSet(SET_TREE_EXPANDED));
+      else if (setDraggable) static_cast<GDLWidgetTree *> (widget)->SetDragability(e->KeywordSet(SET_DRAGGABLE));
+      else if (setTreechecked) static_cast<GDLWidgetTree *> (widget)->CheckItem(e->KeywordSet(SET_TREE_CHECKED));
+      else if (setTreevisible) static_cast<GDLWidgetTree *> (widget)->SetVisible();
+      if (drop_events) { //drop_events are INHERITED for TREE 
+        DLong what=0; //default value since the keyword IS present 
+        e->AssureLongScalarKWIfPresent(SET_DROP_EVENTS,what);
+        static_cast<GDLWidgetTree *>(widget)->SetDropability(what);
       }
-  }
+      else if (setTreeselect) {
+        bool what=e->KeywordSet(SET_TREE_SELECT);
+        static_cast<GDLWidgetTree *>(widget)->Select(what);
+      } else if (setTreeindex) {
+        DLong what=-1; e->AssureLongScalarKWIfPresent(SET_TREE_INDEX,what);
+        static_cast<GDLWidgetTree *>(widget)->Reposition(what);
+      } else if (setDragnotify) {
+        DString dragNotify;
+        e->AssureStringScalarKW( SET_DRAG_NOTIFY, dragNotify );
+        dragNotify=StrUpCase(dragNotify); //UPPERCASE
+        if (dragNotify.size() > 0) static_cast<GDLWidgetTree *>(widget)->SetDragNotify(dragNotify);
+      }
+      else if (setTreebitmap) {
+        wxBitmap* bitmap;
+          DByteGDL* testByte = e->GetKWAs<DByteGDL>(SET_TREE_BITMAP);
+          if (testByte) {
+            if (testByte->Rank() == 3 && testByte->Dim(2) == 3) {
+              BaseGDL* transpose = testByte->Transpose(NULL);
+              transpose->Reverse(2); //necessary 
+              wxImage tryImage = wxImage(transpose->Dim(1), transpose->Dim(2), static_cast<unsigned char*> (transpose->DataAddr()), true); //STATIC DATA I BELIEVE.
+              bitmap = new wxBitmap(tryImage);
+              if (setTreemask) {
+                unsigned char r = tryImage.GetRed(0, 0);
+                unsigned char g = tryImage.GetGreen(0, 0);
+                unsigned char b = tryImage.GetBlue(0, 0);
+                wxMask* m = new wxMask(*bitmap, wxColour(r, g, b));
+                bitmap->SetMask(m);
+              }
+              GDLDelete(transpose);
+            } else {
+              if (testByte->Rank() == 0 && (*testByte)[0] == 0) { //do nothing! yet another IDL trick: will use a default system bitmap.
+              } else e->Throw("Invalid bitmap array. Bitmap array must have dimensions of [M,N,3] or [M,N,4].");
+            }
+          }
+          GDLWidgetTree *t=static_cast<GDLWidgetTree *>(widget);
+          t->SetBitmap(bitmap);
+          t->SetMask(setTreemask); 
+        }
+      } 
+   
 #endif
 }
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID
