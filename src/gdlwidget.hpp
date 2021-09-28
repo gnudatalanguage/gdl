@@ -1757,6 +1757,7 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
   bool IsUsingBitmaps(){return noBitmaps;}
   void SetBitmap(wxBitmap* bitmap);
   void SetVisible() {treeItemData->myTree->EnsureVisible(treeItemID);}
+  bool IsChecked(){if (has_checkbox) return treeItemData->myTree->GetItemState(treeItemID); else return false;}
 };
 
 

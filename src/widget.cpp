@@ -1756,6 +1756,10 @@ BaseGDL* widget_info( EnvT* e ) {
 
   static int TREE_SELECT = e->KeywordIx( "TREE_SELECT");
   bool treeselect = e->KeywordSet(TREE_SELECT);
+  static int TREE_CHECKBOX = e->KeywordIx( "TREE_CHECKBOX");
+  bool treecheckbox = e->KeywordSet(TREE_CHECKBOX);
+  static int TREE_CHECKED = e->KeywordIx( "TREE_CHECKED");
+  bool treechecked = e->KeywordSet(TREE_CHECKED);
   static int TREE_DRAG_SELECT = e->KeywordIx( "TREE_DRAG_SELECT");
   bool treedragselect = e->KeywordSet(TREE_DRAG_SELECT);
   static int TREE_INDEX = e->KeywordIx( "TREE_INDEX");
@@ -1776,6 +1780,8 @@ BaseGDL* widget_info( EnvT* e ) {
   bool dragnotify = e->KeywordSet(DRAG_NOTIFY);
   static int DROP_EVENTS = e->KeywordIx( "DROP_EVENTS");
   bool dropevents = e->KeywordSet(DROP_EVENTS);
+  static int TOOLTIP = e->KeywordIx( "TOOLTIP");
+  bool tooltip = e->KeywordSet(TOOLTIP);
 
   
   static int LIST_SELECT = e->KeywordIx( "LIST_SELECT");
@@ -2218,8 +2224,14 @@ BaseGDL* widget_info( EnvT* e ) {
         if (useATableSelection) return table->GetRowHeight(tableSelectionToUse); else return table->GetRowHeight();
       }
   }
-
-    if (treeroot || treeselect || treedragselect || treefolder || treeexpanded || treeindex || treebitmap || treemask || draggable || dragnotify || dropevents) {
+  
+  if (tooltip) { // WIDGET_BUTTON, WIDGET_DRAW, WIDGET_TREE, WIDGET_WINDOW. TBD.
+    std::cerr << "FIXME!" << std::endl;
+      if (rank == 0) return new DStringGDL();
+      else return new DStringGDL(p0L->Dim());
+  }
+    if (treeroot || treeselect || treedragselect || treefolder || treeexpanded || treeindex || treebitmap
+       || treemask || draggable || dragnotify || dropevents || treecheckbox || treechecked) {
       if (dragnotify || treeselect || treedragselect) std::cerr << "FIXME!" << std::endl;
       if (rank == 0) {
         // Scalar Input
@@ -2228,16 +2240,18 @@ BaseGDL* widget_info( EnvT* e ) {
         if (widget == NULL || !widget->IsTree()) e->Throw("Invalid widget identifier:" + i2s(widgetID));
         GDLWidgetTree *thisTreeItem = (GDLWidgetTree *) widget;
         if (treeselect) return new DLongGDL(thisTreeItem->GetSelectedID());
-        if (treedragselect) return new DLongGDL(thisTreeItem->GetSelectedID());
-        if (treeindex) return new DLongGDL(thisTreeItem->GetTreeIndex());
-        if (treefolder) return new DLongGDL(thisTreeItem->IsFolder());
-        if (treeexpanded) return new DLongGDL(thisTreeItem->IsExpanded());
-        if (treeroot) return new DLongGDL(thisTreeItem->GetMyRootTreeWidget()->GetWidgetID());
-        if (treebitmap) return thisTreeItem->ReturnBitmapAsBytes();
-        if (treemask) return new DLongGDL(thisTreeItem->HasMask());
-        if (draggable) return new DLongGDL(thisTreeItem->GetDraggableValue());
-        if (dropevents) return new DLongGDL(thisTreeItem->GetDroppableValue());
-        if (dragnotify) return new DStringGDL(thisTreeItem->GetDragNotifyValue()); //other not implemented!
+        else if (treedragselect) return new DLongGDL(thisTreeItem->GetSelectedID());
+        else if (treeindex) return new DLongGDL(thisTreeItem->GetTreeIndex());
+        else if (treefolder) return new DLongGDL(thisTreeItem->IsFolder());
+        else if (treeexpanded) return new DLongGDL(thisTreeItem->IsExpanded());
+        else if (treeroot) return new DLongGDL(thisTreeItem->GetMyRootTreeWidget()->GetWidgetID());
+        else if (treebitmap) return thisTreeItem->ReturnBitmapAsBytes();
+        else if (treecheckbox) return new DLongGDL(thisTreeItem->HasCheckBox());
+        else if (treechecked) return new DLongGDL(thisTreeItem->IsChecked());
+        else if (treemask) return new DLongGDL(thisTreeItem->HasMask());
+        else if (draggable) return new DLongGDL(thisTreeItem->GetDraggableValue());
+        else if (dropevents) return new DLongGDL(thisTreeItem->GetDroppableValue());
+        else if (dragnotify) return new DStringGDL(thisTreeItem->GetDragNotifyValue()); //other not implemented!
       } else {
         if (treebitmap) e->Throw("Expression must be a scalar in this context.");
         BaseGDL* myres;
@@ -2264,14 +2278,16 @@ BaseGDL* widget_info( EnvT* e ) {
               atLeastOneFound = true;
               GDLWidgetTree *thisTreeItem = (GDLWidgetTree *) widget;
               if (treeselect) (*res)[ i] = thisTreeItem->GetSelectedID();
-              if (treedragselect) (*res)[ i] = thisTreeItem->GetSelectedID();
-              if (treeindex) (*res)[ i] = thisTreeItem->GetTreeIndex();
-              if (treefolder) (*res)[ i] = thisTreeItem->IsFolder();
-              if (treeexpanded) (*res)[ i] = thisTreeItem->IsExpanded();
-              if (treeroot) (*res)[ i] = thisTreeItem->GetMyRootTreeWidget()->GetWidgetID();
-              if (treemask) (*res)[ i] = thisTreeItem->HasMask();
-              if (draggable) (*res)[ i] = thisTreeItem->GetDraggableValue();
-              if (dropevents) (*res)[ i] = thisTreeItem->GetDroppableValue();
+              else if (treedragselect) (*res)[ i] = thisTreeItem->GetSelectedID();
+              else if (treeindex) (*res)[ i] = thisTreeItem->GetTreeIndex();
+              else if (treefolder) (*res)[ i] = thisTreeItem->IsFolder();
+              else if (treeexpanded) (*res)[ i] = thisTreeItem->IsExpanded();
+              else if (treeroot) (*res)[ i] = thisTreeItem->GetMyRootTreeWidget()->GetWidgetID();
+              else if (treecheckbox) (*res)[ i] = thisTreeItem->HasCheckBox();
+              else if (treechecked) (*res)[ i] = thisTreeItem->IsChecked();
+              else if (treemask) (*res)[ i] = thisTreeItem->HasMask();
+              else if (draggable) (*res)[ i] = thisTreeItem->GetDraggableValue();
+              else if (dropevents) (*res)[ i] = thisTreeItem->GetDroppableValue();
             }
           }
           myres=res; //pointers
