@@ -648,7 +648,7 @@ namespace lib {
         image->readPixels(IndexQuantum,(unsigned char*)bImage->DataAddr());
         image->syncPixels();
       }
-//      image->flip();
+      image->flip();
       //magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());
