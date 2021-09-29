@@ -1650,6 +1650,7 @@ public:
 class wxTreeCtrlGDL: public wxTreeCtrl {
   wxWindowID GDLWidgetTreeID;
   wxWindowID draggedGDLWidgetID;
+  int KeyModifier; //Shift, Control... set during a drag
 public:
 
   wxTreeCtrlGDL(wxWindow *parent, wxWindowID id = wxID_ANY,
@@ -1660,7 +1661,8 @@ public:
     const wxString& name = wxTreeCtrlNameStr)
           :wxTreeCtrl( parent, id, pos, size, style, wxDefaultValidator , name ),
           GDLWidgetTreeID(id),
-          draggedGDLWidgetID(0)
+          draggedGDLWidgetID(0),
+          KeyModifier(0)
           {
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated));
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_ACTIVATED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated));
@@ -1672,6 +1674,22 @@ public:
   }
   //necessary to define the destructor otherwise compiler will try to find the bind event table for destruction event!
   ~wxTreeCtrlGDL(){}
+  void SetCurrentModifier(int x, bool remove){ //We have to remap the wxWidgets events
+    switch(x){
+      case WXK_SHIFT:
+        if (remove) KeyModifier &= ~(1); else KeyModifier |= 1; break; //bit 1 
+      case WXK_ALT:
+        if (remove) KeyModifier &= ~(1<<3); else KeyModifier |= (1<<3); break; //bit 4
+      case WXK_NUMLOCK:
+        if (remove) KeyModifier &= ~(1<<2); else KeyModifier |= (1<<2); break; //bit 3
+      case WXK_CONTROL:
+        if (remove) KeyModifier &= ~(1<<1); else KeyModifier |= (1<<1); break; //bit 2
+        
+    }
+  }
+  int GetCurrentModifier(){return KeyModifier;}
+  void OnTreeKeyDown(wxKeyEvent & event);
+  void OnTreeKeyUp(wxKeyEvent & event);
   void OnItemActivated(wxTreeEvent & event);
   void OnItemCollapsed(wxTreeEvent & event);
   void OnItemStateClick(wxTreeEvent & event);
@@ -1690,6 +1708,8 @@ class wxTreeItemDataGDL : public wxTreeItemData {
     wxTreeCtrlGDL* myTree;
 
   wxTreeItemDataGDL(WidgetIDT id, wxTreeCtrlGDL* myTree_) : widgetID(id), myTree(myTree_) {}
+  WidgetIDT GetWidgetID(){return widgetID;}
+  wxTreeCtrlGDL* GetTree(){return myTree;}
 };
 
 class GDLWidgetTree: public GDLWidget
@@ -1701,7 +1721,7 @@ bool expanded;
 bool folder;
 bool noBitmaps;
 bool mask;
-WidgetIDT selectedID;
+bool multiple; //can select multiple
 wxTreeItemId treeItemID;
 wxTreeItemDataGDL* treeItemData;
 GDLWidgetTree* myRoot;
@@ -1741,8 +1761,10 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
   void Select(bool select);
   void Reposition(DLong where);
   GDLWidgetTree* GetMyRootTreeWidget(){ return myRoot;}
-  void SetSelectedID( WidgetIDT id){selectedID=id;}
-  WidgetIDT GetSelectedID(){ return selectedID;}
+  WidgetIDT IsSelectedID(){ return treeItemData->myTree->IsSelected(treeItemID);}
+  WidgetIDT IsDragSelectedID(){ return treeItemData->myTree->IsSelected(treeItemID);}
+  DLongGDL* GetAllSelectedID();
+  DLongGDL* GetAllDragSelectedID();
   DInt GetTreeIndex();
   wxTreeItemId GetItemID(){ return treeItemID;}
   void SetValue(DString val);

@@ -2239,8 +2239,16 @@ BaseGDL* widget_info( EnvT* e ) {
         GDLWidget *widget = GDLWidget::GetWidget(widgetID);
         if (widget == NULL || !widget->IsTree()) e->Throw("Invalid widget identifier:" + i2s(widgetID));
         GDLWidgetTree *thisTreeItem = (GDLWidgetTree *) widget;
-        if (treeselect) return new DLongGDL(thisTreeItem->GetSelectedID());
-        else if (treedragselect) return new DLongGDL(thisTreeItem->GetSelectedID());
+        GDLWidgetTree *thisTreeRoot = thisTreeItem->GetMyRootTreeWidget();
+        if (treeselect || treedragselect) {
+          if (thisTreeRoot == thisTreeItem) {
+            if (treeselect) return thisTreeItem->GetAllSelectedID();
+            else if (treedragselect) return thisTreeItem->GetAllDragSelectedID();
+          } else {
+            if (treeselect) return new DLongGDL(thisTreeItem->IsSelectedID());
+            else if (treedragselect) return new DLongGDL(thisTreeItem->IsDragSelectedID());
+          }
+        } 
         else if (treeindex) return new DLongGDL(thisTreeItem->GetTreeIndex());
         else if (treefolder) return new DLongGDL(thisTreeItem->IsFolder());
         else if (treeexpanded) return new DLongGDL(thisTreeItem->IsExpanded());
@@ -2277,8 +2285,8 @@ BaseGDL* widget_info( EnvT* e ) {
             if (widget != NULL && widget->IsTree()) {
               atLeastOneFound = true;
               GDLWidgetTree *thisTreeItem = (GDLWidgetTree *) widget;
-              if (treeselect) (*res)[ i] = thisTreeItem->GetSelectedID();
-              else if (treedragselect) (*res)[ i] = thisTreeItem->GetSelectedID();
+              if (treeselect) (*res)[ i] = thisTreeItem->IsSelectedID(); //IDL does silly things when ID list contains the root 
+              else if (treedragselect) (*res)[ i] = thisTreeItem->IsDragSelectedID(); //IDL does silly things when ID list contains the root 
               else if (treeindex) (*res)[ i] = thisTreeItem->GetTreeIndex();
               else if (treefolder) (*res)[ i] = thisTreeItem->IsFolder();
               else if (treeexpanded) (*res)[ i] = thisTreeItem->IsExpanded();

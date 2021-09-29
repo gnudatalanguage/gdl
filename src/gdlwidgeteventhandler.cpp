@@ -74,7 +74,8 @@ BEGIN_EVENT_TABLE(wxTreeCtrlGDL, wxTreeCtrl)
 
     EVT_TREE_SEL_CHANGED(wxID_ANY, wxTreeCtrlGDL::OnItemSelected)
 //    EVT_TREE_SEL_CHANGING(wxID_ANY, wxTreeCtrlGDL::OnSelChanging)
-//    EVT_TREE_KEY_DOWN(wxID_ANY, wxTreeCtrlGDL::OnTreeKeyDown)
+    EVT_KEY_DOWN(wxTreeCtrlGDL::OnTreeKeyDown)
+    EVT_KEY_UP(wxTreeCtrlGDL::OnTreeKeyUp)
     EVT_TREE_ITEM_ACTIVATED(wxID_ANY, wxTreeCtrlGDL::OnItemActivated)
     EVT_TREE_STATE_IMAGE_CLICK(wxID_ANY, wxTreeCtrlGDL::OnItemStateClick)
 
@@ -1848,7 +1849,20 @@ void  wxGridGDL::OnTableRangeSelection(wxGridRangeSelectEvent & event){
 //}
 //
 
-
+void wxTreeCtrlGDL::OnTreeKeyDown(wxKeyEvent & event){
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnTreeKeyDown: %d\n"),event.GetId());
+#endif  
+  wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
+  me->SetCurrentModifier(event.GetKeyCode(), false); //add
+}
+void wxTreeCtrlGDL::OnTreeKeyUp(wxKeyEvent & event){
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnTreeKeyUp: %d\n"),event.GetId());
+#endif  
+  wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
+  me->SetCurrentModifier(event.GetKeyCode(), true); //remove
+}
 void wxTreeCtrlGDL::OnItemActivated(wxTreeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemActivated: %d\n"),event.GetId());
@@ -1882,8 +1896,6 @@ void wxTreeCtrlGDL::OnItemSelected(wxTreeEvent & event){
     GDLWidgetTree* tree= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
     //inform root widget it is selected
     GDLWidgetTree* root=tree->GetMyRootTreeWidget();
-    root->SetSelectedID(selected);
-    
     DStructGDL* treeselect = new DStructGDL( "WIDGET_TREE_SEL");
     treeselect->InitTag("ID", DLongGDL( selected ));
     treeselect->InitTag("TOP", DLongGDL( baseWidgetID));
@@ -1939,11 +1951,11 @@ void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
       treedrop->InitTag("ID", DLongGDL( item->GetWidgetID()  )); //ID of the destination
       treedrop->InitTag("TOP", DLongGDL( baseWidgetID));
       treedrop->InitTag("HANDLER", DLongGDL( GDLWidgetTreeID ));
-      treedrop->InitTag("DRAG_ID", DLongGDL( me->GetDragged() )); // ID of the source TREE
-      treedrop->InitTag("POSITION",DIntGDL(2)); //ALWAYS 2 IT SEEMS THAT wxW cannot do better? !   1 above 2 on 3 below destination widget
+      treedrop->InitTag("DRAG_ID", DLongGDL( GDLWidgetTreeID )); // ID of the source TREE
+      treedrop->InitTag("POSITION",item->IsFolder()?DIntGDL(2):DIntGDL(3)); //   1 above 2 on 3 below destination widget
       treedrop->InitTag("X",DLongGDL(event.GetPoint().x)); //x and Y coord of position wrt lower left corner of destination tree widget
       treedrop->InitTag("Y",DLongGDL(event.GetPoint().y));
-      treedrop->InitTag("MODIFIERS",DIntGDL(0)); //mask with 1 shift 2 control 4 caps lock 8 alt
+      treedrop->InitTag("MODIFIERS",DIntGDL(me->GetCurrentModifier())); //mask with 1 shift 2 control 4 caps lock 8 alt
       // insert into structList
       GDLWidget::PushEvent( baseWidgetID, treedrop );
   }
