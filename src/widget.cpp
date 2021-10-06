@@ -685,7 +685,7 @@ BaseGDL* widget_tree( EnvT* e)
           BaseGDL* transpose = testByte->Transpose(NULL);
           transpose->Reverse(2); //necessary 
           wxImage tryImage = wxImage(transpose->Dim(1), transpose->Dim(2), static_cast<unsigned char*> (transpose->DataAddr()), true); //STATIC DATA I BELIEVE.
-          bitmap = new wxBitmap(tryImage);
+          bitmap = new wxBitmap(tryImage.Rotate180().Rotate90());
           if (mask) {
             unsigned char r=tryImage.GetRed(0,0);
             unsigned char g=tryImage.GetGreen(0,0);

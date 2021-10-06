@@ -4239,7 +4239,7 @@ DByteGDL* GDLWidgetTree::ReturnBitmapAsBytes() {
   if (myimindex < TREE_BITMAP_END) { //this is a 'default' image,return 0
     return new DByteGDL(0);
   } else {
-    wxImage image=myTreeRoot->GetImageList()->GetBitmap(myimindex).ConvertToImage().Rotate90();//go figure needs to be rotated 90
+    wxImage image=myTreeRoot->GetImageList()->GetBitmap(myimindex).ConvertToImage().Rotate180();//all tree pixmaps needs to be rotated to comply with IDL
     unsigned char* pixels=image.GetData(); 
     wxSize sz=image.GetSize();
     DByteGDL* res=new DByteGDL(dimension(sz.x,sz.y,3), BaseGDL::NOZERO); //in fact [3,N,M] RGBRGB...
