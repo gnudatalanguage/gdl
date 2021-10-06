@@ -85,7 +85,7 @@ if (status EQ 0) then begin
    MESSAGE, 'Not a valid image file: '+filename
 endif
 ; if query_image said it's OK, just use read_anything:
-READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, /order
+READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable
 if n_elements(colortable) gt 0 then begin
   red=colortable[*,0]
   green=colortable[*,1]

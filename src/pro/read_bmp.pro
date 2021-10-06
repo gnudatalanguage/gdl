@@ -80,15 +80,11 @@ if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+fil
 if ( ~MAGICK_PING(filename, 'BMP') )then MESSAGE, "File "+filename+" is not in bitmap file format."
 
 READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, /order
-if n_elements(colortable) then begin 
+if (n_elements(colortable) gt 0) then begin 
   red=colortable[*,0]
   green=colortable[*,1]
   blue=colortable[*,2]
-endif else begin
-  red=bindgen(256)
-  green=red
-  blue=red
-endelse
+endif
 return, image
 ;
 end

@@ -41,13 +41,15 @@
 #include "magick_cl.hpp"
 #include "graphicsdevice.hpp"
 
-// If Magick has not been initialized, do it here, instead of initilizing it in the main program (speedup and avoid strange backtraces)
+// If Magick has not been initialized, do it here, instead of initializing it in the main program (speedup and avoid strange backtraces)
 // Also warn about limitations due to local implementation of Magick library.
 //We should do more, by example hat octave people do in their code (they circumvent some other limitations)
 #define START_MAGICK  \
     if (notInitialized ) { \
       notInitialized = false; \
-        Magick::InitializeMagick(NULL); }
+        Magick::InitializeMagick(NULL);  \
+        if ( QuantumDepth < 16) fprintf(stderr, "%% INFO: the %s library support only 8 bit images.\n", MagickPackageName);\
+              }
 
 namespace lib {
 
@@ -59,6 +61,8 @@ namespace lib {
   unsigned int gValid[40];
   unsigned int gCount = 0;
   static bool notInitialized = true;
+  static const std::string imageTypeList[]={"BilevelType","GrayscaleType","GrayscaleMatteType","PaletteType","PaletteMatteType","TrueColorType","TrueColorMatteType","ColorSeparationType","ColorSeparationMatteType","OptimizeType","UnknownType"};
+  static const std::string imageClassList[]={"UndefinedClass","DirectClass","PseudoClass"};
 
   __attribute__ ((destructor)) static void destruct(void) { // This is GCC only. Possible memory leak with other compilers.
     int i;
@@ -114,7 +118,7 @@ namespace lib {
         cerr << warning_.what() << endl;
       }
       if ((a->rows() * a->columns()) == 0) e->Throw("Error reading image dimensions!");
-      a->flip();
+      a->flip(); //necessary 
       unsigned int mid;
       mid = magick_image(e, a);
       return new DUIntGDL(mid);
@@ -123,7 +127,7 @@ namespace lib {
     }
     return NULL; //pacify -Wreturn-type
   }
-
+//  a=magick_ping(name,type,"INFO", "CHANNELS", "DIMENSIONS", "HAS_PALETTE", "IMAGE_INDEX","NUM_IMAGES", "PIXEL_TYPE",/* "SUPPORTED_READ", "SUPPORTED_WRITE", */"TYPE")
   BaseGDL * magick_ping(EnvT* e) {
     // TODO!
     //if (e->KeywordPresent("SUPPORTED_READ") || e->KeywordPresent("SUPPORTED_WRITE"))
@@ -225,12 +229,14 @@ namespace lib {
         SpDLong aLong;
         SpDInt aInt;
         SpDLong aLongArr2(dimension(2));
+        SpDByte aByteArr2(dimension(5));
         info_desc->AddTag("CHANNELS", &aLong);
         info_desc->AddTag("DIMENSIONS", &aLongArr2);
         info_desc->AddTag("HAS_PALETTE", &aInt);
         info_desc->AddTag("IMAGE_INDEX", &aLong);
         info_desc->AddTag("NUM_IMAGES", &aLong);
         info_desc->AddTag("PIXEL_TYPE", &aInt);
+        info_desc->AddTag("SBIT_VALUES", &aByteArr2);
         info_desc->AddTag("TYPE", &aString);
         DStructGDL* info = new DStructGDL(info_desc, dimension());
 
@@ -361,45 +367,34 @@ namespace lib {
       e->AssureScalarPar<DUIntGDL>(0, mid);
       unsigned int columns, rows;
       Image *image = magick_image(e, mid);
-      if (image->classType() == DirectClass)
-        e->Throw("Not an indexed image: " + e->GetParString(0));
+      if (image->classType() != PseudoClass) e->Throw("Not an indexed image: " + e->GetParString(0));
 
       columns = image->columns();
       rows = image->rows();
-
-      if (image->matte() == 0) {
-
-        SizeT c[2];
-        c[0] = columns;
-        c[1] = rows;
-        dimension dim(c, 2);
-        DByteGDL *bImage = new DByteGDL(dim, BaseGDL::NOZERO);
-
-//        const PixelPacket* pixel;
-        const IndexPacket* index;
-//        pixel = image->getPixels(0, 0, columns, rows);
-        index = image->getIndexes();
-
-        if (index == NULL) {
-          string txt = "Warning -- Magick's getIndexes() returned NULL for: ";
-          string txt2 = ", using unsafe patch.";
-          //PATCH to get something until we understand what's going on
-          cerr << (txt + e->GetParString(0) + txt2) << endl;
-          string map = "R";
-          image->write(0, 0, columns, rows, map, CharPixel, &(*bImage)[0]);
-          return bImage;
-        }
+      SizeT c[2];
+      c[0] = columns;
+      c[1] = rows;
+      dimension dim(c, 2);
+#ifdef USE_MAGICK6
+      if (image->modulusDepth() <= 8)
+#else
+      if (image->depth() <= 8)
+#endif
+      {
+        DByteGDL *bImage = new DByteGDL(dim, BaseGDL::ZERO);
+        PixelPacket *pixel_cache = image->getPixels(0,0,columns,rows); //magick command, without it writePixels do NOTHING!
+        image->writePixels(IndexQuantum,(unsigned char*)(bImage->DataAddr()));
         return bImage;
-      } else {
-        // we do have to manage an extra channel for transparency
-        string map = "RA";
-        SizeT c[3];
-        c[0] = map.length(); // see code "magick_read" below
-        c[1] = columns;
-        c[2] = rows;
-        dimension dim(c, 3);
-        DByteGDL *bImage = new DByteGDL(dim, BaseGDL::NOZERO);
-        image->write(0, 0, columns, rows, map, CharPixel, &(*bImage)[0]);
+      }
+#ifdef USE_MAGICK6
+      else if (image->modulusDepth() <= 16)
+#else     
+      else if (image->depth() <= 16)
+#endif
+      {
+        DUIntGDL *bImage = new DUIntGDL(dim, BaseGDL::NOZERO);
+        PixelPacket *pixel_cache = image->getPixels(0,0,columns,rows); //magick command, without it writePixels do NOTHING!
+        image->writePixels(IndexQuantum,(unsigned char*)(bImage->DataAddr())); //probably not good, impossible to test yet.
         return bImage;
       }
     } catch (Exception &error_) {
@@ -416,14 +411,11 @@ namespace lib {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
       Image* image = magick_image(e, mid);
-      if (image->classType() == DirectClass)
-        e->Throw("Not an indexed image: " + e->GetParString(0));
-
+      bool bgnotfound=true;
+      
       if (image->classType() == PseudoClass) {
-        unsigned int Quant, scale, i;
-        if (QuantumDepth == 16) Quant = 65535;
-        if (QuantumDepth == 8) Quant = 255;
-
+        //retrieve background color
+        Color bg=image->backgroundColor();
         unsigned int cmapsize = image->colorMapSize();
         dimension cmap(cmapsize, 1);
         Color col;
@@ -434,23 +426,25 @@ namespace lib {
         if (image->depth() <= 8)
 #endif
         {
+          DByteGDL* bgIndex=new DByteGDL(0);
 
-          scale = MaxRGB;
           DByteGDL *R, *G, *B;
 
           R = new DByteGDL(cmap, BaseGDL::NOZERO);
           G = new DByteGDL(cmap, BaseGDL::NOZERO);
           B = new DByteGDL(cmap, BaseGDL::NOZERO);
 
-          for (i = 0; i < cmapsize; ++i) {
+          for (int i = 0; i < cmapsize; ++i) {
             col = image->colorMap(i);
-            (*R)[i] = (col.redQuantum()) ; //* scale / Quant;
-            (*G)[i] = (col.greenQuantum()) ; // * scale / Quant;
-            (*B)[i] = (col.blueQuantum()) ; //* scale / Quant;
+            (*R)[i] = (col.redQuantum()) ;
+            (*G)[i] = (col.greenQuantum()) ;
+            (*B)[i] = (col.blueQuantum()) ;
+            if (bgnotfound && (col==bg) ) {bgnotfound=false; (*bgIndex)[0]=i;}
           }
           if (nParam > 1) e->SetPar(1, R);
           if (nParam > 2) e->SetPar(2, G);
           if (nParam > 3) e->SetPar(3, B);
+          if (e->KeywordPresent(0)) {e->AssureGlobalKW(0); e->SetKW(0, bgIndex);}
         }
 #ifdef USE_MAGICK6
         else if (image->modulusDepth() <= 16)
@@ -458,21 +452,23 @@ namespace lib {
         else if (image->depth() <= 16)
 #endif
         {
-          scale = MaxRGB;
+          DUIntGDL* bgIndex=new DUIntGDL(0);
           DUIntGDL *R, *G, *B;
           R = new DUIntGDL(cmap, BaseGDL::NOZERO);
           G = new DUIntGDL(cmap, BaseGDL::NOZERO);
           B = new DUIntGDL(cmap, BaseGDL::NOZERO);
 
-          for (i = 0; i < cmapsize; ++i) {
+          for (int i = 0; i < cmapsize; ++i) {
             col = image->colorMap(i);
-            (*R)[i] = (col.redQuantum()) ; //* scale / Quant;
-            (*G)[i] = (col.greenQuantum()) ; //* scale / Quant;
-            (*B)[i] = (col.blueQuantum()) ; //* scale / Quant;
+            (*R)[i] = (col.redQuantum()) ; 
+            (*G)[i] = (col.greenQuantum()) ;
+            (*B)[i] = (col.blueQuantum()) ; 
+            if (bgnotfound && col==bg ) {bgnotfound=false; (*bgIndex)[0]=i;}
           }
           if (nParam > 1) e->SetPar(1, R);
           if (nParam > 2) e->SetPar(2, G);
           if (nParam > 3) e->SetPar(3, B);
+          if (e->KeywordPresent(0)) {e->AssureGlobalKW(0); e->SetKW(0, bgIndex);}
         } else {
           e->Throw("Unknown Image type, too many colors");
         }
@@ -612,25 +608,17 @@ namespace lib {
             if (image->matte()) map = map + "A";
           }
         }
-
-        DByteGDL * bImage =
-          static_cast<DByteGDL*> (GDLimage->Convert2(GDL_BYTE, BaseGDL::COPY));
-        Guard<DByteGDL> bImageGuard(bImage);
-
-        image->read(columns, rows, map, CharPixel, &(*bImage)[0]);
-        /*	      }
-        else if(image->depth() == 16)
-          {
-        DUIntGDL * iImage=
-          static_cast<DUIntGDL*>(GDLimage->Convert2(GDL_UINT,BaseGDL::COPY));
-
-        image->read(columns,rows,map, ShortPixel,&(*iImage)[0]);
-          }
-        else
-          {
-        e->Throw("Unsupported bit depth");
-        }*/
-
+        if (image->depth() == 8) {
+          DByteGDL * bImage = static_cast<DByteGDL*> (GDLimage->Convert2(GDL_BYTE, BaseGDL::COPY));
+          Guard<DByteGDL> bImageGuard(bImage);
+          image->read(columns, rows, map, CharPixel, &(*bImage)[0]);
+        } else if (image->depth() == 16) {
+          DUIntGDL * iImage = static_cast<DUIntGDL*> (GDLimage->Convert2(GDL_UINT, BaseGDL::COPY));
+          Guard<DUIntGDL> iImageGuard(iImage);
+          image->read(columns, rows, map, ShortPixel, &(*iImage)[0]);
+        } else {
+          e->Throw("Unsupported bit depth");
+        }
       } else {
         columns = GDLimage->Dim(0);
         rows = GDLimage->Dim(1);
@@ -690,7 +678,7 @@ namespace lib {
       e->AssureScalarPar<DUIntGDL>(0, mid);
       Image* image = magick_image(e, mid);
       size_t nParam = e->NParam(1);
-      if (nParam == 2) {
+      if (nParam == 2) { //to be tested, works?
         DUInt ncol;
         e->AssureScalarPar<DUIntGDL>(1, ncol);
         image->colorMapSize(ncol);
@@ -918,8 +906,9 @@ namespace lib {
       DUInt mid;
       e->AssureScalarPar<DUIntGDL>(0, mid);
       Image* image = magick_image(e, mid);
+      image->modifyImage();
       //set the number of colors;
-      DLong ncol = 256;
+      DLong ncol = (image->depth()<16)?256:65635;
       if (nParam > 1) e->AssureLongScalarPar(1, ncol);
 
       static int TRUECOLORIx = e->KeywordIx("TRUECOLOR");
@@ -936,17 +925,30 @@ namespace lib {
         else
           image->quantizeColorSpace(RGBColorspace);
 
-//      image->colorMapSize(ncol);
-//      image->classType(PseudoClass);
-//      image->type(PaletteType);
       image->quantizeColors(ncol);
       image->quantizeDither(dither);
       image->quantize();
-//      image->syncPixels();
       //magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());
     }
+  }
+  
+  //return type
+  BaseGDL* magick_type(EnvT* e){
+    START_MAGICK;
+    DUInt mid;
+    e->AssureScalarPar<DUIntGDL>(0, mid);
+    Image* image = magick_image(e, mid);
+    return new DStringGDL(imageTypeList[image->type()]);
+  }
+  //return class
+  BaseGDL* magick_class(EnvT* e){
+    START_MAGICK;
+    DUInt mid;
+    e->AssureScalarPar<DUIntGDL>(0, mid);
+    Image* image = magick_image(e, mid);
+    return new DStringGDL(imageClassList[image->classType()]);
   }
 
   //MAGICK_DISPLAY,mid

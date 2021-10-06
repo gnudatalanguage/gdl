@@ -64,6 +64,9 @@ namespace lib {
 
   //hmm
   void magick_display(EnvT* e);
+  //gd
+  BaseGDL* magick_type(EnvT* e);
+  BaseGDL* magick_class(EnvT* e);
 
   // SA: query/ping routines support
   BaseGDL * magick_ping(EnvT* e);
