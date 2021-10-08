@@ -143,7 +143,7 @@ namespace lib {
       if (filename.length() == 0) return new DLongGDL(0);
 
       WordExp(filename);
-
+      
       Image *a = new Image;
       try {
         a->ping(filename);
@@ -197,7 +197,7 @@ namespace lib {
       // TODO! multiple images (using the Magick++ STL interface)
       DLong image_index, num_images;
       image_index = 0;
-      num_images = 1;
+      num_images = 1; //a->scene()+1;
 
       DInt pixel_type;
       pixel_type = a->depth() == 16 ? 2 : 1;
@@ -218,7 +218,7 @@ namespace lib {
         a->magick();
 
       if (debug == 1) cout << "Type (via a->magick()) : " << type << endl;
-
+      bool addSBit=(a->magick() == "PNG"); //only one type?
       static int infoIx = e->KeywordIx("INFO");
       if (e->KeywordPresent(infoIx)) {
         e->AssureGlobalKW(infoIx);
@@ -236,7 +236,7 @@ namespace lib {
         info_desc->AddTag("IMAGE_INDEX", &aLong);
         info_desc->AddTag("NUM_IMAGES", &aLong);
         info_desc->AddTag("PIXEL_TYPE", &aInt);
-        info_desc->AddTag("SBIT_VALUES", &aByteArr2);
+        if (addSBit) info_desc->AddTag("SBIT_VALUES", &aByteArr2);
         info_desc->AddTag("TYPE", &aString);
         DStructGDL* info = new DStructGDL(info_desc, dimension());
 
