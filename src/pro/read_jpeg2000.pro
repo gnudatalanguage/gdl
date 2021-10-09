@@ -62,6 +62,11 @@ endif
 ;
 if (N_PARAMS() NE 1 and N_PARAMS() ne 4 ) then MESSAGE, "Incorrect number of arguments."
 ;
+if KEYWORD_SET(discard_levels) then MESSAGE,/INF, "DISCARD_LEVEL Keyword ignored."
+if KEYWORD_SET(max_layers) then MESSAGE,/INF, "MAX_LAYERS Keyword ignored."
+if KEYWORD_SET(region) then MESSAGE, "REGION Keyword not supported."
+
+
 if (N_ELEMENTS(filename) GT 1) then MESSAGE, "Only one file at once !"
 if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
 ;

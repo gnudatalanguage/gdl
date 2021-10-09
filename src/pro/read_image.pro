@@ -73,19 +73,17 @@ if ((N_PARAMS() EQ 0) OR (N_PARAMS() GT 4)) then $
    MESSAGE, "Incorrect number of arguments."
 ;
 if (N_ELEMENTS(filename) GT 1) then MESSAGE, "Only one file at once !"
-if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
-if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
-if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename
 ;
 ; First, we have to test whether the file is here
 ;
 status=QUERY_IMAGE(filename, info)
 ;
 if (status EQ 0) then begin
-   MESSAGE, 'Not a valid image file: '+filename
+   MESSAGE, /INFO, 'Not a valid image file: '+filename
+   return
 endif
 ; if query_image said it's OK, just use read_anything:
-READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, /order
+READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable
 if n_elements(colortable) gt 0 then begin
   red=colortable[*,0]
   green=colortable[*,1]

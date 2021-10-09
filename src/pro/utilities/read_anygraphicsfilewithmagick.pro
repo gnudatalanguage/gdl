@@ -51,12 +51,10 @@
 ;-
 ;
 
-pro READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, $
-               colors=ncolors, dither=dither, grayscale=grayscale, order=order, $
-               true=true
+pro READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, colors=ncolors, dither=dither, grayscale=grayscale,background_color=bgc, order=order, true=true
 
   compile_opt hidden, idl2
-
+  
   ON_ERROR, 2
    CATCH, Error_status
    IF Error_status NE 0 THEN BEGIN
@@ -65,51 +63,40 @@ pro READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, $
       RETALL
    ENDIF
 ;
-mid=MAGICK_OPEN(filename)
+  mid=MAGICK_OPEN(filename)
+  
+  if (keyword_set(order)) then magick_flip,mid
 
-; to get something in colortable, colors need to be defined
-if (KEYWORD_SET(ncolors)) then begin 
-   ncolors = ncolors < 252 > 1 ; > 8
-   if (~KEYWORD_SET(grayscale)) then  ncolors = ncolors < 32 > 1 ; to be refined. not clear.
-   MAGICK_QUANTIZE, mid, ncolors, grayscale=grayscale, dither=dither
-endif else if (KEYWORD_SET(grayscale)) then begin
-   MAGICK_QUANTIZE, mid, /GRAYSCALE, dither=dither
-endif
-image=MAGICK_READ(mid); [3,n,m]
-indexed=(magick_colormapsize(mid) gt 0) ; not the case with 
-;;flip if order is set
-if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
-;
-if (indexed) then begin
-   MAGICK_READCOLORMAPRGB,mid,r,g,b
-   colortable=[[r],[g],[b]]
-   ; apply palette compression, using r
-   index=intarr(256)
-   for i=0,n_elements(r)-1 do index[r[i]]=i
-   image=reform(image[0,*,*])
-   image[*]=index[image[*]]
-endif
+  if (KEYWORD_SET(ncolors)) then begin 
+     if (KEYWORD_SET(grayscale)) then ncolors = ncolors < 256 > 1 else ncolors = ncolors < 252 > 1 ; 252 IDL default
+     MAGICK_QUANTIZE, mid, ncolors, grayscale=grayscale, dither=dither
+  endif else if (KEYWORD_SET(grayscale)) then begin
+     MAGICK_QUANTIZE, mid, /GRAYSCALE, dither=dither
+  endif
+  indexed=(magick_class(mid) eq "PseudoClass") ; new command
+  if (indexed) then begin
+     image=MAGICK_READINDEXES(mid) ; may be [2,n,m] --> unsupported by IDL
+     if ((size(image))[0] eq 3) then image=reform(image[0,*,*]) ; get only index image, not alpha channel
+     MAGICK_READCOLORMAPRGB,mid,r,g,b,background_color=bgc
+     colortable=[[r],[g],[b]]
+  endif else begin
+     image=MAGICK_READ(mid)     ; just read! [3,n,m] or [4,n,m]
+  endelse
+  
 ; no more use of MAGICK? close it:
-MAGICK_CLOSE,mid
-
-; if 16-bit (unsigned short int) image convert to byte
-sz = SIZE(image)
-type = sz[sz[0]+1]
-if ((type EQ 2) OR (type EQ 12)) then begin
-    print, 'Converting 16-bit image to byte'
-    image = image / 256
-    image = BYTE(image)
-endif
-
-if (sz[0] EQ 3) then begin
-   if KEYWORD_SET(TRUE) then begin
-      if (TRUE eq 1) then t=[0,1,2]
-      if (TRUE eq 2) then t=[1,0,2]
-      if (TRUE eq 3) then t=[1,2,0]
-      ;;
-      image=TRANSPOSE(image, t)
-   endif
-endif
+  MAGICK_CLOSE,mid
+  
+  sz = SIZE(image)
+  
+  if (sz[0] EQ 3) then begin
+     if KEYWORD_SET(TRUE) then begin
+        if (TRUE eq 1) then t=[0,1,2]
+        if (TRUE eq 2) then t=[1,0,2]
+        if (TRUE eq 3) then t=[1,2,0]
+        ;;
+        image=TRANSPOSE(image, t)
+     endif
+  endif
 ;
 end
 
