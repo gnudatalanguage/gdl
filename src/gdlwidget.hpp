@@ -1759,8 +1759,8 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
 
   void DoExpand(bool what);
   void Select(bool select);
-  void Reposition(DLong where);
-  GDLWidgetTree* GetMyRootTreeWidget(){ return myRoot;}
+  void SetTreeIndex(DLong where);
+  GDLWidgetTree* GetMyRootGDLWidgetTree(){ return myRoot;}
   WidgetIDT IsSelectedID(){ return treeItemData->myTree->IsSelected(treeItemID);}
   WidgetIDT IsDragSelectedID(){ return treeItemData->myTree->IsSelected(treeItemID);}
   DLongGDL* GetAllSelectedID();

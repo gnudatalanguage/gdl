@@ -25,7 +25,7 @@
 #include "dstructgdl.hpp"
 #include "gdlwidget.hpp"
 
-  #define GDL_DEBUG_ALL_EVENTS 1
+  #define GDL_DEBUG_ALL_EVENTS 0
 //  #define GDL_DEBUG_MOVE_EVENTS 1
 //  #define GDL_DEBUG_KBRD_EVENTS 1
 //  #define GDL_DEBUG_TIMER_EVENTS 1
@@ -1895,7 +1895,7 @@ void wxTreeCtrlGDL::OnItemSelected(wxTreeEvent & event){
     WidgetIDT selected=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
     GDLWidgetTree* tree= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
     //inform root widget it is selected
-    GDLWidgetTree* root=tree->GetMyRootTreeWidget();
+    GDLWidgetTree* root=tree->GetMyRootGDLWidgetTree();
     DStructGDL* treeselect = new DStructGDL( "WIDGET_TREE_SEL");
     treeselect->InitTag("ID", DLongGDL( selected ));
     treeselect->InitTag("TOP", DLongGDL( baseWidgetID));
@@ -1942,7 +1942,7 @@ void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
     WidgetIDT selected=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
     GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
-    GDLWidgetTree* root=item->GetMyRootTreeWidget();
+    GDLWidgetTree* root=item->GetMyRootGDLWidgetTree();
 
     if (item->GetDropability()) { //was set or inherited from one ancestor that was set
  //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify

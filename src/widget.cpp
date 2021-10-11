@@ -34,8 +34,9 @@
 
 #ifdef HAVE_LIBWXWIDGETS
 
-wxBitmap * GetBitmapFromPassedBytes(EnvT* e, DByteGDL* passedBytes) {
-  wxBitmap * bitmap; 
+wxBitmap * GetBitmapFromPassedBytes(EnvT* e, DByteGDL* passedBytes, bool doMask=false) {
+  wxBitmap * bitmap=NULL; 
+  if (passedBytes->Rank() == 0) return NULL; //protect against call of this function with undefined bitmaps.
   if (passedBytes->Rank() < 2 || passedBytes->Rank() > 3) e->Throw("Array must be a [X,Y] or [X,Y,3] array.");
   if (passedBytes->Rank() == 3 && ((passedBytes->Dim(2) < 3) || (passedBytes->Dim(2) > 4))) e->Throw("Array must be a [X,Y] or [X,Y,3] or [X,Y,4] array.");
   if (passedBytes->Rank() == 2) {
@@ -61,7 +62,16 @@ wxBitmap * GetBitmapFromPassedBytes(EnvT* e, DByteGDL* passedBytes) {
         static_cast<unsigned char*> (passedBytes->DataAddr()) + byteSize, TRUE); //the Alpha channel is available at an offest in the passedBytes Array
       bitmap = new wxBitmap(tryImage);
       GDLDelete(tempcopy); //deletion AFTER bitmap has been created!
+      doMask=false; //since it exists already
     }
+  }
+  if (doMask) {
+    wxImage tryImage = bitmap->ConvertToImage();
+    unsigned char r = tryImage.GetRed(0, 0);
+    unsigned char g = tryImage.GetGreen(0, 0);
+    unsigned char b = tryImage.GetBlue(0, 0);
+    wxMask* m = new wxMask(*bitmap, wxColour(r, g, b));
+    bitmap->SetMask(m);
   }
   return bitmap;
 }
@@ -678,28 +688,12 @@ BaseGDL* widget_tree( EnvT* e)
   
   DByteGDL* testByte=NULL;
   wxBitmap* bitmap=NULL;
-  if (e->KeywordPresent( BITMAP )) { //must be 16 x 16 x 3 but we do not care about the 16x16
-    testByte = e->GetKWAs<DByteGDL>( BITMAP );
-      if (testByte) {
-        if (testByte->Rank() == 3 && testByte->Dim(2) == 3) {
-          BaseGDL* transpose = testByte->Transpose(NULL);
-          transpose->Reverse(2); //necessary 
-          wxImage tryImage = wxImage(transpose->Dim(1), transpose->Dim(2), static_cast<unsigned char*> (transpose->DataAddr()), true); //STATIC DATA I BELIEVE.
-          bitmap = new wxBitmap(tryImage.Rotate180().Rotate90());
-          if (mask) {
-            unsigned char r=tryImage.GetRed(0,0);
-            unsigned char g=tryImage.GetGreen(0,0);
-            unsigned char b=tryImage.GetBlue(0,0);
-            wxMask* m=new wxMask(*bitmap,wxColour(r,g,b));
-            bitmap->SetMask(m);
-          }
-          GDLDelete(transpose);
-        } else {
-          if (testByte->Rank() == 0 && (*testByte)[0] == 0) { //do nothing! yet another IDL trick: will use a default system bitmap.
-          } else e->Throw("Invalid bitmap array. Bitmap array must have dimensions of [M,N,3] or [M,N,4].");
-        }
-      }
+  if (e->KeywordPresent(BITMAP)) { //must be 16 x 16 x 3 but we do not care about the 16x16
+    testByte = e->GetKWAs<DByteGDL>(BITMAP);
+    if (testByte) {
+      bitmap = GetBitmapFromPassedBytes(e, testByte, mask);
     }
+  }
 
 //
 //  DLong tabMode = 0;
@@ -2239,7 +2233,7 @@ BaseGDL* widget_info( EnvT* e ) {
         GDLWidget *widget = GDLWidget::GetWidget(widgetID);
         if (widget == NULL || !widget->IsTree()) e->Throw("Invalid widget identifier:" + i2s(widgetID));
         GDLWidgetTree *thisTreeItem = (GDLWidgetTree *) widget;
-        GDLWidgetTree *thisTreeRoot = thisTreeItem->GetMyRootTreeWidget();
+        GDLWidgetTree *thisTreeRoot = thisTreeItem->GetMyRootGDLWidgetTree();
         if (treeselect || treedragselect) {
           if (thisTreeRoot == thisTreeItem) {
             if (treeselect) return thisTreeItem->GetAllSelectedID();
@@ -2252,7 +2246,7 @@ BaseGDL* widget_info( EnvT* e ) {
         else if (treeindex) return new DLongGDL(thisTreeItem->GetTreeIndex());
         else if (treefolder) return new DLongGDL(thisTreeItem->IsFolder());
         else if (treeexpanded) return new DLongGDL(thisTreeItem->IsExpanded());
-        else if (treeroot) return new DLongGDL(thisTreeItem->GetMyRootTreeWidget()->GetWidgetID());
+        else if (treeroot) return new DLongGDL(thisTreeItem->GetMyRootGDLWidgetTree()->GetWidgetID());
         else if (treebitmap) return thisTreeItem->ReturnBitmapAsBytes();
         else if (treecheckbox) return new DLongGDL(thisTreeItem->HasCheckBox());
         else if (treechecked) return new DLongGDL(thisTreeItem->IsChecked());
@@ -2290,7 +2284,7 @@ BaseGDL* widget_info( EnvT* e ) {
               else if (treeindex) (*res)[ i] = thisTreeItem->GetTreeIndex();
               else if (treefolder) (*res)[ i] = thisTreeItem->IsFolder();
               else if (treeexpanded) (*res)[ i] = thisTreeItem->IsExpanded();
-              else if (treeroot) (*res)[ i] = thisTreeItem->GetMyRootTreeWidget()->GetWidgetID();
+              else if (treeroot) (*res)[ i] = thisTreeItem->GetMyRootGDLWidgetTree()->GetWidgetID();
               else if (treecheckbox) (*res)[ i] = thisTreeItem->HasCheckBox();
               else if (treechecked) (*res)[ i] = thisTreeItem->IsChecked();
               else if (treemask) (*res)[ i] = thisTreeItem->HasMask();
@@ -3911,7 +3905,7 @@ void widget_control( EnvT* e ) {
         static_cast<GDLWidgetTree *>(widget)->Select(what);
       } else if (setTreeindex) {
         DLong what=-1; e->AssureLongScalarKWIfPresent(SET_TREE_INDEX,what);
-        static_cast<GDLWidgetTree *>(widget)->Reposition(what);
+        static_cast<GDLWidgetTree *>(widget)->SetTreeIndex(what);
       } else if (setDragnotify) {
         DString dragNotify;
         e->AssureStringScalarKW( SET_DRAG_NOTIFY, dragNotify );

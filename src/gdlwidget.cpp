@@ -3997,6 +3997,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
   //define the base tree widget globally here
   wxTreeCtrlGDL* myTreeRoot;
   if ( gdlParent->IsBase( ) ) {
+    folder=true; //IS A FOLDER!
     static int NO_BITMAPS = e->KeywordIx("NO_BITMAPS");
     noBitmaps = e->KeywordSet(NO_BITMAPS);
     static int MULTIPLE = e->KeywordIx("MULTIPLE");
@@ -4013,7 +4014,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     wSize=computeWidgetSize( ); //this is a SetClientSize
     
     long style = wxTR_HAS_BUTTONS|wxTR_LINES_AT_ROOT|wxTR_HIDE_ROOT; //OK
-//    if (multiple) style = wxTR_MULTIPLE; //widget is insensitive, FIXME
+    if (multiple) style |= wxTR_MULTIPLE; //widget is insensitive, FIXME
     //we have no root, create one.
     myTreeRoot = new wxTreeCtrlGDL(widgetPanel, widgetID, wxDefaultPosition, wxDefaultSize, style );
     theWxContainer = theWxWidget = myTreeRoot;
@@ -4049,7 +4050,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     GDLWidgetTree* parentTree = static_cast<GDLWidgetTree*> (gdlParent);
     assert( parentTree != NULL);
     theWxWidget = parentTree->GetWxWidget( );
-    myRoot =  parentTree->GetMyRootTreeWidget();
+    myRoot =  parentTree->GetMyRootGDLWidgetTree();
     bool nobitmaps=myRoot->IsUsingBitmaps();
 
     myTreeRoot = dynamic_cast<wxTreeCtrlGDL*> (theWxWidget);
@@ -4093,6 +4094,13 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
      DoExpand(true);
     }
 //    if (tooltip) DO SOMETHING! FIXME.
+    if (this->GetRealized()){
+      //All the following is necessary to make the newly inserted tree element visible and active, do not ask me why!
+      wxTreeItemId t=myTreeRoot->GetSelection();
+      myTreeRoot->SelectItem(treeItemID); //will add a spurious selection event unfortunately!
+      myTreeRoot->SelectItem(t);
+      myTreeRoot->Refresh();
+    }
   }
 //does not work, fixme. Replaced by global setting in gdlwidgeteventhandler 
 //    this->AddToDesiredEvents(wxEVT_COMMAND_TREE_ITEM_ACTIVATED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated),myTreeRoot);
@@ -4129,40 +4137,44 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
   void GDLWidgetTree::DoExpand(bool what){
     expanded=what;
     if (what) treeItemData->myTree->Expand(treeItemID); else treeItemData->myTree->Collapse(treeItemID);
+    dynamic_cast<wxTreeCtrlGDL*> (theWxWidget)->Refresh();
   }
   void GDLWidgetTree::Select(bool select){
 //    if (select) treeItemData->myTree->SetFocusedItem(treeItemID); else treeItemData->myTree->ClearFocusedItem();
     treeItemData->myTree->SelectItem(treeItemID,select);
   }
-  void GDLWidgetTree::Reposition(DLong where) {
+  void GDLWidgetTree::SetTreeIndex(DLong where) {
     GDLWidgetTree* parentTree = static_cast<GDLWidgetTree*> (GetWidget( parentID ));
     if (parentTree->IsFolder()){ //is Folder
-    wxTreeCtrlGDL* myTreeRoot=dynamic_cast<wxTreeCtrlGDL*> (theWxWidget);
-    assert( myTreeRoot != NULL);
-    wxString s=myTreeRoot->GetItemText(treeItemID);
-    int imindex=myTreeRoot->GetItemImage(treeItemID);
-    wxTreeItemDataGDL* d=static_cast<wxTreeItemDataGDL*>(myTreeRoot->GetItemData(treeItemID));
-    myTreeRoot->Delete(treeItemID);
-    treeItemData=d;
-    unsigned int count = myTreeRoot->GetChildrenCount(parentTree->treeItemID, false);
-    DLong treeindex=count;
-    if (where > 0 && where <= treeindex) treeindex =where;
-    treeItemID=myTreeRoot->InsertItem( parentTree->treeItemID, treeindex, s ,imindex,imindex, treeItemData);
+      wxTreeCtrlGDL* myTreeRoot=dynamic_cast<wxTreeCtrlGDL*> (theWxWidget);
+      assert( myTreeRoot != NULL);
+//      if (static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(static_cast<wxTreeItemDataGDL*>(myTreeRoot->GetItemData(treeItemID))->GetWidgetID()))->IsFolder()) std::cerr<<"FOLDER"<<std::endl;
+      wxString s=myTreeRoot->GetItemText(treeItemID);
+      int imindex=myTreeRoot->GetItemImage(treeItemID);
+      wxTreeItemDataGDL* d=static_cast<wxTreeItemDataGDL*>(myTreeRoot->GetItemData(treeItemID));
+      wxTreeItemId oldItemIdToDelete=treeItemID;
+      treeItemData=d;
+      unsigned int count = myTreeRoot->GetChildrenCount(parentTree->treeItemID, false);
+      DLong treeindex=count;
+      if (where > 0 && where <= treeindex) treeindex =where;
+      treeItemID=myTreeRoot->InsertItem( parentTree->treeItemID, treeindex, s ,imindex,imindex, treeItemData);
+      myTreeRoot->Delete(oldItemIdToDelete);
+      myTreeRoot->Refresh();
     } else throw GDLException("Parent tree widget is not a folder.");
   }
 void GDLWidgetTree::OnRealize(){
-   GDLWidgetTree* root=this->GetMyRootTreeWidget();
+   GDLWidgetTree* root=this->GetMyRootGDLWidgetTree();
    if (this==root) {
      wxTreeCtrlGDL* ctrl=static_cast<wxTreeCtrlGDL*>(this->GetWxWidget());
      wxTreeItemId id=ctrl->GetFirstVisibleItem 	( 		) 	;
-     if (id) ctrl->SetFocusedItem(id); else std::cerr<<"id = "<<id<<std::endl;
-#ifdef __WXMAC__
-     if (multiple) {
-       long style=ctrl->GetWindowStyle();
-       style |= wxTR_MULTIPLE;
-       ctrl->SetWindowStyle(style);
-     }
-#endif
+     if (id) ctrl->SetFocusedItem(id);
+//#ifdef __WXMAC__
+//     if (multiple) {
+//       long style=ctrl->GetWindowStyle();
+//       style |= wxTR_MULTIPLE;
+//       ctrl->SetWindowStyle(style);
+//     }
+//#endif
    }
 }
 DInt GDLWidgetTree::GetTreeIndex()
@@ -4218,6 +4230,7 @@ void GDLWidgetTree::SetValue(DString val)
   wxTreeCtrlGDL* tree=dynamic_cast<wxTreeCtrlGDL*>(theWxWidget);
   assert( tree != NULL);
   tree->SetItemText(treeItemID, wxString( val.c_str( ), wxConvUTF8 ));
+    dynamic_cast<wxTreeCtrlGDL*> (theWxWidget)->Refresh();
 }
 
 void GDLWidgetTree::SetBitmap(wxBitmap* bitmap) {
@@ -4231,6 +4244,7 @@ void GDLWidgetTree::SetBitmap(wxBitmap* bitmap) {
   } else {
     myTreeRoot->GetImageList()->Replace(myimindex,b);
   }
+  myTreeRoot->Refresh();
 }
 
 DByteGDL* GDLWidgetTree::ReturnBitmapAsBytes() {
@@ -4251,7 +4265,7 @@ DByteGDL* GDLWidgetTree::ReturnBitmapAsBytes() {
 }
 DLongGDL* GDLWidgetTree::GetAllSelectedID(){
   //tree must be root
-  GDLWidgetTree* myTreeRoot = this->GetMyRootTreeWidget();
+  GDLWidgetTree* myTreeRoot = this->GetMyRootGDLWidgetTree();
   assert(myTreeRoot==this);
 //  if (multiple) {
     wxArrayTreeItemIds list;
