@@ -592,7 +592,7 @@ public:
   bool IsValid(){return valid;}
   void SetUnValid(){valid=false;}
   void SetValid(){valid=true;}
-  bool IsDynamicResize(){return ((dynamicResize>0)|| (dynamicResize==0 && !GetRealized())); }
+  bool IsDynamicResize(){return ((dynamicResize>0)|| (dynamicResize==0 && !IsRealized())); }
   void SetDynamicResize(){if (dynamicResize > -1) dynamicResize=1;}
   void UnsetDynamicResize(){if (dynamicResize > -1) dynamicResize=0;}
   void authorizeDynamicResize(){dynamicResize=1;}
@@ -671,7 +671,7 @@ public:
   wxScrolled<wxPanel>* GetPanel() { return widgetPanel;}
 
   bool GetManaged() const { return managed;}
-  bool GetRealized(); 
+  bool IsRealized(); 
   void SetManaged( bool manval){managed = manval;}
   virtual void SetSensitive( bool value);
   bool GetSensitive();
@@ -879,7 +879,7 @@ public:
  bool IsTopBase() const final{
   return true;
  }
- bool IsRealized() { return realized; }
+ bool IsTopLevelRealized() { return realized; }
  gdlwxFrame* GetTopFrame() {
   return topFrame;
  }
@@ -1776,7 +1776,7 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
   bool HasMask(){return mask;}
   DByteGDL* ReturnBitmapAsBytes();
   bool HasCheckBox(){return has_checkbox;}
-  void CheckItem(bool b){treeItemData->myTree->SetItemState(treeItemID,b);}
+  void CheckItem(bool b){treeItemData->myTree->SetItemState(treeItemID,b);treeItemData->myTree->Refresh();}
   bool IsUsingBitmaps(){return noBitmaps;}
   void SetBitmap(wxBitmap* bitmap);
   void SetVisible() {treeItemData->myTree->EnsureVisible(treeItemID);}

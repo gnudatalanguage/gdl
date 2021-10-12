@@ -2128,7 +2128,7 @@ BaseGDL* widget_info( EnvT* e ) {
       bool result=false;
       if (valid) result=( widget != NULL );
       else if (managed) result=( widget->GetManaged( ) == true );
-      else if (realized) result=( widget->GetRealized( ) == true );
+      else if (realized) result=( widget->IsRealized( ) == true );
       else if (buttonset) result=( widget->GetButtonSet() == true );
         else { //tlb only for base widget
           if (widget->IsBase()) {
@@ -2154,7 +2154,7 @@ BaseGDL* widget_info( EnvT* e ) {
           bool result=false;
           if (valid) result=( widget != NULL );
           else if (managed) result=( widget->GetManaged( ) == true );
-          else if (realized) result=( widget->GetRealized( ) == true );
+          else if (realized) result=( widget->IsRealized( ) == true );
           else if (buttonset) result=( widget->GetButtonSet( ) == true );
           else { //tlb only for base widget
             if (widget->IsBase()) {
@@ -2233,7 +2233,6 @@ BaseGDL* widget_info( EnvT* e ) {
   }
     if (treeroot || treeselect || treedragselect || treefolder || treeexpanded || treeindex || treebitmap
        || treemask || draggable || dragnotify || dropevents || treecheckbox || treechecked) {
-      if (dragnotify || treeselect || treedragselect) std::cerr << "FIXME!" << std::endl;
       if (rank == 0) {
         // Scalar Input
         WidgetIDT widgetID = (*p0L)[0];

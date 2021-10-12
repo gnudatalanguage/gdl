@@ -80,7 +80,7 @@ if (frameWidth > 0) {\
     /* 1) recompute the base siser taking into account the additional widget to be inserted */\
     /* 2) recreate the adequate sizer */\
     /* 3) re-add all child windows (including this one) */\
-    if (this->GetRealized()) {\
+    if (this->IsRealized()) {\
       GDLWidgetBase* b = static_cast<GDLWidgetBase*> (gdlParent);\
       b->ReorderForANewWidget(static_cast<wxWindow*> (theWxContainer), DONOTALLOWSTRETCH, widgetStyle | wxALL, b->getSpace());\
     } else widgetSizer->Add(static_cast<wxWindow*> (theWxContainer), DONOTALLOWSTRETCH, widgetStyle | wxALL, xxx);\
@@ -89,8 +89,8 @@ if (frameWidth > 0) {\
   }\
   widgetPanel->FitInside();
 
-#define UPDATE_WINDOW { if (this->GetRealized()) UpdateGui(); }
-#define REALIZE_IF_NEEDED { if (this->GetRealized()) {this->OnRealize(); UpdateGui();} }
+#define UPDATE_WINDOW { if (this->IsRealized()) UpdateGui(); }
+#define REALIZE_IF_NEEDED { if (this->IsRealized()) {this->OnRealize(); UpdateGui();} }
 
 //a few useful defaut pixmaps:
 static const char * pixmap_unchecked[] = {
@@ -1301,10 +1301,10 @@ void GDLWidgetTopBase::Realize(bool map, bool use_default) {
   realized=true;
 }
 
-bool GDLWidget::GetRealized() {
+bool GDLWidget::IsRealized() {
     GDLWidgetTopBase *tlb = GetMyTopLevelBaseWidget();
     gdlwxFrame* topFrame = tlb->GetTopFrame();
-    return (tlb->IsRealized());
+    return (tlb->IsTopLevelRealized());
   }
   void GDLWidgetContainer::OnRealize() {
 #ifdef GDL_DEBUG_WIDGETS
@@ -1511,7 +1511,7 @@ void GDLWidget::Lower()
 
 DStructGDL* GDLWidget::GetGeometry(wxRealPoint fact)
 {
-  if (!this->GetRealized()) this->Realize(true,false);//necessary if a geometry request is done previous to the command widget_control,xxx,,/Realize !
+  if (!this->IsRealized()) this->Realize(true,false);//necessary if a geometry request is done previous to the command widget_control,xxx,,/Realize !
   GDLWidgetBase* container = static_cast<GDLWidgetBase*> (this->GetMyParent());
   assert(container != NULL);
   int ixsize = 0, iysize = 0, iscr_xsize = 0, iscr_ysize = 0;
@@ -2127,7 +2127,7 @@ GDLWidgetNormalBase::GDLWidgetNormalBase(WidgetIDT parentID, EnvT* e, ULong even
 }
 
 DStructGDL* GDLWidgetBase::GetGeometry(wxRealPoint fact) {
-  if (!this->GetRealized()) this->Realize(true, false); //necessary if a geometry request is done previous to the command widget_control,xxx,,/Realize !
+  if (!this->IsRealized()) this->Realize(true, false); //necessary if a geometry request is done previous to the command widget_control,xxx,,/Realize !
   int panel_xoff = 0;
   int panel_yoff = 0;
 
@@ -2193,7 +2193,7 @@ DStructGDL* GDLWidgetBase::GetGeometry(wxRealPoint fact) {
 
 //DStructGDL* GDLWidgetBase::GetGeometry(wxRealPoint fact)
 //{
-//  if (!this->GetRealized()) this->Realize(true,false);//necessary if a geometry request is done previous to the command widget_control,xxx,,/Realize !
+//  if (!this->IsRealized()) this->Realize(true,false);//necessary if a geometry request is done previous to the command widget_control,xxx,,/Realize !
 //  //the only way to get accurate positions seems to get the screen position of the Panel
 //  //in which the window is (the Panel is the useful part of the Base) and substract them from the
 //  //screen position of the siwget itself. And get the margin (=frame) size if any.
@@ -3860,7 +3860,7 @@ void GDLWidgetTable::SetTableNumberOfRows( DLong nrows){
 }
 DStructGDL* GDLWidgetTable::GetGeometry(wxRealPoint fact)
 {
-  if (!this->GetRealized()) this->Realize(true,false);//necessary if a geometry request is done previous to the command widget_control,xxx,,/Realize !
+  if (!this->IsRealized()) this->Realize(true,false);//necessary if a geometry request is done previous to the command widget_control,xxx,,/Realize !
   GDLWidgetBase* container = static_cast<GDLWidgetBase*> (this->GetMyParent());
   assert(container != NULL);
   int ixsize = 0, iysize = 0, iscr_xsize = 0, iscr_ysize = 0;
@@ -4103,14 +4103,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
      DoExpand(true);
     }
 //    if (tooltip) DO SOMETHING! FIXME.
-    if (this->GetRealized()){
-      //All the following is necessary to make the newly inserted tree element visible and active, do not ask me why!
-      wxArrayTreeItemIds list;
-      int nb=myTreeRoot->GetSelections(list);//      wxTreeItemId t=myTreeRoot->GetSelection();
-      if (nb > 0) {
-        myTreeRoot->SelectItem(treeItemID); //will add a spurious selection event unfortunately!
-        myTreeRoot->SelectItem(list[0]);
-      }
+    if (this->IsRealized()){
       myTreeRoot->Refresh();
     }
   }
@@ -4142,10 +4135,11 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
   void GDLWidgetTree::DoExpand(bool what){
     expanded=what;
     if (what) treeItemData->myTree->Expand(treeItemID); else treeItemData->myTree->Collapse(treeItemID);
-    dynamic_cast<wxTreeCtrlGDL*> (theWxWidget)->Refresh();
+    treeItemData->myTree->Refresh();
   }
   void GDLWidgetTree::Select(bool select){
     if (this->myRoot->GetWidgetID() != widgetID ) treeItemData->myTree->SelectItem(treeItemID,select); //root is not selectable
+    treeItemData->myTree->Refresh();
   }
   void GDLWidgetTree::SetTreeIndex(DLong where) {
     GDLWidgetTree* parentTree = static_cast<GDLWidgetTree*> (GetWidget( parentID ));
@@ -4254,7 +4248,7 @@ void GDLWidgetTree::SetValue(DString val)
   wxTreeCtrlGDL* tree=dynamic_cast<wxTreeCtrlGDL*>(theWxWidget);
   assert( tree != NULL);
   tree->SetItemText(treeItemID, wxString( val.c_str( ), wxConvUTF8 ));
-    dynamic_cast<wxTreeCtrlGDL*> (theWxWidget)->Refresh();
+  tree->Refresh();
 }
 
 void GDLWidgetTree::SetBitmap(wxBitmap* bitmap) {
@@ -4293,7 +4287,16 @@ WidgetIDT GDLWidgetTree::IsSelectedID() {
 }
 
 WidgetIDT GDLWidgetTree::IsDragSelectedID() { //must return 
-  return treeItemData->myTree->IsSelected(treeItemID); 
+  wxTreeItemId test = treeItemID;
+  wxTreeCtrlGDL* myTreeRoot = treeItemData->myTree;
+  if (!myTreeRoot->IsSelected(test)) return 0;
+  do {
+    test = myTreeRoot->GetItemParent(test);
+  } while (test.IsOk() && !myTreeRoot->IsSelected(test));
+  if (!test.IsOk()) {
+    return 1; //no parent was selected
+  }
+  return 0;
 }
 
 DLongGDL* GDLWidgetTree::GetAllSelectedID() {
