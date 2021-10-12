@@ -1761,12 +1761,13 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
   void Select(bool select);
   void SetTreeIndex(DLong where);
   GDLWidgetTree* GetMyRootGDLWidgetTree(){ return myRoot;}
-  WidgetIDT IsSelectedID(){ return treeItemData->myTree->IsSelected(treeItemID);}
-  WidgetIDT IsDragSelectedID(){ return treeItemData->myTree->IsSelected(treeItemID);}
+  WidgetIDT IsSelectedID();
+  WidgetIDT IsDragSelectedID();
   DLongGDL* GetAllSelectedID();
   DLongGDL* GetAllDragSelectedID();
   DInt GetTreeIndex();
   wxTreeItemId GetItemID(){ return treeItemID;}
+  void SetItemID( wxTreeItemId id){treeItemID=id;}
   void SetValue(DString val);
   void OnRealize();
   void SetFolder(){folder=true;}

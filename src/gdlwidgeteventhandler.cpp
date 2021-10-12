@@ -25,7 +25,7 @@
 #include "dstructgdl.hpp"
 #include "gdlwidget.hpp"
 
-  #define GDL_DEBUG_ALL_EVENTS 0
+//  #define GDL_DEBUG_ALL_EVENTS 1
 //  #define GDL_DEBUG_MOVE_EVENTS 1
 //  #define GDL_DEBUG_KBRD_EVENTS 1
 //  #define GDL_DEBUG_TIMER_EVENTS 1
@@ -1881,6 +1881,7 @@ void wxTreeCtrlGDL::OnItemActivated(wxTreeEvent & event){
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeselect );
     event.Skip();
+    me->Refresh();
 }
 
 
@@ -1905,6 +1906,7 @@ void wxTreeCtrlGDL::OnItemSelected(wxTreeEvent & event){
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeselect );
     event.Skip();
+    me->Refresh();
 }
 
 void wxTreeCtrlGDL::OnDrag(wxTreeEvent & event){
@@ -1963,6 +1965,7 @@ void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
     me->SetDragged(0);
 
   event.Skip();
+    me->Refresh();
 
 }
 void wxTreeCtrlGDL::OnItemExpanded(wxTreeEvent & event){
@@ -1987,6 +1990,7 @@ void wxTreeCtrlGDL::OnItemExpanded(wxTreeEvent & event){
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeexpand );
     event.Skip();
+    me->Refresh();
 }
 void wxTreeCtrlGDL::OnItemCollapsed(wxTreeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
@@ -2009,7 +2013,8 @@ void wxTreeCtrlGDL::OnItemCollapsed(wxTreeEvent & event){
     treeexpand->InitTag("EXPAND",DLongGDL(0)); //0 collapse
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeexpand );
-event.Skip();
+    event.Skip();
+    me->Refresh();
 }
  void wxTreeCtrlGDL::OnItemStateClick(wxTreeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
@@ -2033,5 +2038,6 @@ event.Skip();
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeechecked );
     event.Skip();
+    me->Refresh();
  }  
 #endif
