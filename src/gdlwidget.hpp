@@ -675,7 +675,7 @@ public:
   void SetManaged( bool manval){managed = manval;}
   virtual void SetSensitive( bool value);
   bool GetSensitive();
-  virtual DLong GetTheSibling(DLong){return 0;}
+  virtual DLong GetTheSiblingOf(DLong myIdx){return 0;}
   virtual void SetFocus();
 
   int  GetExclusiveMode() const { return exclusiveMode;}
@@ -765,13 +765,13 @@ public:
     return ret;   
   }
   //returns next in list or 0
-  DLong GetTheSibling(DLong childIx)
+  DLong GetTheSiblingOf(DLong myIdx)
   {
     DLong size=children.size( );
     if (size<1) return 0;
     DLong ret=0;
     for (int i=0; i< size-1; ++i) {
-     if (children[i] == childIx) {
+     if (children[i] == myIdx) {
       ret=children[i+1];
       break;
      }
@@ -1120,13 +1120,13 @@ public:
     return ret;   
   }
   //returns next in list or 0
-  DLong GetTheSibling(DLong childIx)
+  DLong GetTheSiblingOf(DLong myIdx)
   {
     DLong size=children.size( );
     if (size<1) return 0;
     DLong ret=0;
     for (int i=0; i< size-1; ++i) {
-     if (children[i] == childIx) {
+     if (children[i] == myIdx) {
       ret=children[i+1];
       break;
      }
@@ -1477,13 +1477,13 @@ public:
     return ret;   
   } 
   //returns next in list or 0
-  DLong GetTheSibling(DLong childIx)
+  DLong GetTheSiblingOf(DLong myIdx)
   {
     DLong size=children.size( );
     if (size<1) return 0;
     DLong ret=0;
     for (int i=0; i< size-1; ++i) {
-     if (children[i] == childIx) {
+     if (children[i] == myIdx) {
       ret=children[i+1];
       break;
      }
@@ -1779,8 +1779,15 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
   bool IsUsingBitmaps(){return noBitmaps;}
   void SetBitmap(wxBitmap* bitmap);
   void SetVisible() {treeItemData->myTree->EnsureVisible(treeItemID);}
-  bool IsChecked(){if (has_checkbox) return treeItemData->myTree->GetItemState(treeItemID); else return false;}
-};
+  bool IsChecked(){if (has_checkbox) return treeItemData->myTree->GetItemState(treeItemID); else return false;
+  }
+
+  DLong NChildren() const;
+  WidgetIDT GetChild(DLong childIx) const final;
+  DLongGDL* GetChildrenList() const;
+  DLong GetTheSiblingOf(DLong myIx) final;
+  DLong Sibling();
+ };
 
 
 

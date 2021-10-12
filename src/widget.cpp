@@ -2043,6 +2043,7 @@ BaseGDL* widget_info( EnvT* e ) {
   
   if ( allchildren) {
       // Scalar Input only
+    if (!p0L->Scalar()) e->Throw("Expression must be an array in this context: " + e->GetString(allchildIx));
       WidgetIDT widgetID = (*p0L)[0];
       GDLWidget *widget = GDLWidget::GetWidget( widgetID );
       if ( widget == NULL ) {

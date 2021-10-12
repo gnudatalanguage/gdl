@@ -1117,8 +1117,8 @@ DLong GDLWidget::GetSibling()
 {
   if ( parentID == GDLWidget::NullID ) {return 0;}
   GDLWidget * parent=GetWidget(parentID);
-  if (parent->IsContainer() || parent->IsMenuBar() || parent->IsMenu() ) {
-    return parent->GetTheSibling(widgetID);
+  if (parent->IsContainer() || parent->IsMenuBar() || parent->IsMenu() || parent->IsTree()) {
+    return parent->GetTheSiblingOf(widgetID);
   }
   return 0;
 }
@@ -4281,13 +4281,52 @@ DLongGDL* GDLWidgetTree::GetAllSelectedID(){
 //  } else {
 //    if (treeItemData->myTree->IsSelected(treeItemID)) return new DLongGDL(widgetID); else return new DLongGDL(-1);
 //  }
-    return new DLongGDL(dimension(4));
+    return NULL;
 }
   DLongGDL* GDLWidgetTree::GetAllDragSelectedID(){
     DLongGDL* sel=GetAllSelectedID();
     //test if 
     return sel;
   }
+  
+
+DLong GDLWidgetTree::NChildren() const {  
+  wxTreeCtrlGDL* myTreeRoot=treeItemData->myTree;
+  return myTreeRoot->GetChildrenCount(treeItemID,false);
+}
+WidgetIDT GDLWidgetTree::GetChild(DLong childIx) const { //childIx is not used here
+  wxTreeCtrlGDL* myTreeRoot=treeItemData->myTree;
+  wxTreeItemIdValue cookie;
+  wxTreeItemId id=myTreeRoot->GetFirstChild(treeItemID,cookie);
+  if (!id.IsOk()) return 0;
+  return static_cast<wxTreeItemDataGDL*>(myTreeRoot->GetItemData(id))->widgetID;
+}
+DLongGDL* GDLWidgetTree::GetChildrenList() const {
+  wxTreeCtrlGDL* myTreeRoot=treeItemData->myTree;
+  int n=myTreeRoot->GetChildrenCount(treeItemID,false);
+  if (n<1) return new DLongGDL(0);
+  wxTreeItemIdValue cookie;
+  DLongGDL* ret=new DLongGDL(dimension(n),BaseGDL::NOZERO);
+  wxTreeItemId id=myTreeRoot->GetFirstChild(treeItemID,cookie);
+  (*ret)[0]=static_cast<wxTreeItemDataGDL*>(myTreeRoot->GetItemData(id))->widgetID;
+  for (int i=1; i<n; ++i) {
+    id=myTreeRoot->GetNextChild(treeItemID,cookie); 
+    assert (id.IsOk());
+    (*ret)[i]=static_cast<wxTreeItemDataGDL*>(myTreeRoot->GetItemData(id))->widgetID;
+  }
+  return ret;
+}
+DLong GDLWidgetTree::GetTheSiblingOf(DLong myId) {  //GetTheSibling is called by widget_info() using the parent widget (a container). This is not our case here.
+  // retrieve My infos, not parent's:
+  GDLWidgetTree* me=static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(myId));
+  if (me==NULL) return 0; else return me->Sibling(); //call Sibling with good 'this'
+}
+DLong GDLWidgetTree::Sibling() { //uses NextSibling, which may be 0.
+  wxTreeCtrlGDL* myTreeRoot=treeItemData->myTree;
+  wxTreeItemId id=myTreeRoot->GetNextSibling(treeItemID);
+  if (!id.IsOk()) return 0;
+  return static_cast<wxTreeItemDataGDL*>(myTreeRoot->GetItemData(id))->widgetID;
+}
 /*********************************************************/
 // for WIDGET_SLIDER
 /*********************************************************/
