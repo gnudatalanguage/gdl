@@ -75,11 +75,14 @@
 #define DONOTALLOWSTRETCH 0
 #define ALLOWSTRETCH 1
 #define FRAME_ALLOWSTRETCH 1
+#define DEFAULT_TREE_IMAGE_SIZE 16
+
 #ifdef __WXMSW__
   #define NEWLINECHARSIZE 2  //length of <cr><nl>
 #else
   #define NEWLINECHARSIZE 1  //length of <nl> 
 #endif
+
 #define gdlSIZE_EVENT_HANDLER wxSizeEventHandler(gdlwxFrame::OnSizeWithTimer) //filter mouse events (manual resize) to avoid too many updtes for nothing
 #define gdlSIZE_IMMEDIATE_EVENT_HANDLER wxSizeEventHandler(gdlwxFrame::OnSize) 
 typedef DLong WidgetIDT;
@@ -88,7 +91,17 @@ static int    widgetTypeList[]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
 static bool handlersInited=false; //handlers of graphic formats for bitmaps (magick).
 
 enum { WINDOW_TIMER = -2*wxID_HIGHEST, RESIZE_TIMER, RESIZE_PLOT_TIMER }; //negative values, should not clash with our (positive) widget ids.
-
+enum { 
+  TREE_BITMAP_ITEM = 0,
+  TREE_BITMAP_ITEM_SELECTED = 0,
+  TREE_BITMAP_FOLDER,
+  TREE_BITMAP_FOLDER_OPEN,
+  TREE_BITMAP_END
+};
+enum { 
+  gdlWxTree_UNCHECKED = 0,
+  gdlWxTree_CHECKED
+};
 class DStructGDL;
 
 // thread safe deque
@@ -579,7 +592,7 @@ public:
   bool IsValid(){return valid;}
   void SetUnValid(){valid=false;}
   void SetValid(){valid=true;}
-  bool IsDynamicResize(){return ((dynamicResize>0)|| (dynamicResize==0 && !GetRealized())); }
+  bool IsDynamicResize(){return ((dynamicResize>0)|| (dynamicResize==0 && !IsRealized())); }
   void SetDynamicResize(){if (dynamicResize > -1) dynamicResize=1;}
   void UnsetDynamicResize(){if (dynamicResize > -1) dynamicResize=0;}
   void authorizeDynamicResize(){dynamicResize=1;}
@@ -658,11 +671,11 @@ public:
   wxScrolled<wxPanel>* GetPanel() { return widgetPanel;}
 
   bool GetManaged() const { return managed;}
-  bool GetRealized(); 
+  bool IsRealized(); 
   void SetManaged( bool manval){managed = manval;}
   virtual void SetSensitive( bool value);
   bool GetSensitive();
-  virtual DLong GetTheSibling(DLong){return 0;}
+  virtual DLong GetTheSiblingOf(DLong myIdx){return 0;}
   virtual void SetFocus();
 
   int  GetExclusiveMode() const { return exclusiveMode;}
@@ -752,13 +765,13 @@ public:
     return ret;   
   }
   //returns next in list or 0
-  DLong GetTheSibling(DLong childIx)
+  DLong GetTheSiblingOf(DLong myIdx)
   {
     DLong size=children.size( );
     if (size<1) return 0;
     DLong ret=0;
     for (int i=0; i< size-1; ++i) {
-     if (children[i] == childIx) {
+     if (children[i] == myIdx) {
       ret=children[i+1];
       break;
      }
@@ -866,7 +879,7 @@ public:
  bool IsTopBase() const final{
   return true;
  }
- bool IsRealized() { return realized; }
+ bool IsTopLevelRealized() { return realized; }
  gdlwxFrame* GetTopFrame() {
   return topFrame;
  }
@@ -1107,13 +1120,13 @@ public:
     return ret;   
   }
   //returns next in list or 0
-  DLong GetTheSibling(DLong childIx)
+  DLong GetTheSiblingOf(DLong myIdx)
   {
     DLong size=children.size( );
     if (size<1) return 0;
     DLong ret=0;
     for (int i=0; i< size-1; ++i) {
-     if (children[i] == childIx) {
+     if (children[i] == myIdx) {
       ret=children[i+1];
       break;
      }
@@ -1464,13 +1477,13 @@ public:
     return ret;   
   } 
   //returns next in list or 0
-  DLong GetTheSibling(DLong childIx)
+  DLong GetTheSiblingOf(DLong myIdx)
   {
     DLong size=children.size( );
     if (size<1) return 0;
     DLong ret=0;
     for (int i=0; i< size-1; ++i) {
-     if (children[i] == childIx) {
+     if (children[i] == myIdx) {
       ret=children[i+1];
       break;
      }
@@ -1634,18 +1647,22 @@ public:
 
 
 // tree widget **************************************************
-class wxTreeCtrlGDL: public wxTreeCtrl
-{  
-  wxWindowID GDLWidgetTableID;
+class wxTreeCtrlGDL: public wxTreeCtrl {
+  wxWindowID GDLWidgetTreeID;
+  wxWindowID draggedGDLWidgetID;
+  int KeyModifier; //Shift, Control... set during a drag
 public:
+
   wxTreeCtrlGDL(wxWindow *parent, wxWindowID id = wxID_ANY,
-               const wxPoint& pos = wxDefaultPosition,
-               const wxSize& size = wxDefaultSize,
-               long style = wxTR_DEFAULT_STYLE,
-               const wxValidator &validator = wxDefaultValidator,
-               const wxString& name = wxTreeCtrlNameStr)
+    const wxPoint& pos = wxDefaultPosition,
+    const wxSize& size = wxDefaultSize,
+    long style = wxTR_DEFAULT_STYLE,
+    const wxValidator &validator = wxDefaultValidator,
+    const wxString& name = wxTreeCtrlNameStr)
           :wxTreeCtrl( parent, id, pos, size, style, wxDefaultValidator , name ),
-          GDLWidgetTableID(id)
+          GDLWidgetTreeID(id),
+          draggedGDLWidgetID(0),
+          KeyModifier(0)
           {
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated));
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_ACTIVATED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated));
@@ -1654,36 +1671,61 @@ public:
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_COLLAPSED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemCollapsed));
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_EXPANDED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemExpanded));
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_SEL_CHANGED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemSelected));
-          }
-//necessary to define the destructor otherwise compiler will try to find the bind event table for destruction event!
+  }
+  //necessary to define the destructor otherwise compiler will try to find the bind event table for destruction event!
   ~wxTreeCtrlGDL(){}
-void OnItemActivated(wxTreeEvent & event);
-void OnItemCollapsed(wxTreeEvent & event);
-void OnItemExpanded(wxTreeEvent & event);
-void OnBeginDrag(wxTreeEvent & event);
-void OnItemDropped(wxTreeEvent & event);
-void OnItemSelected(wxTreeEvent & event);
+  void SetCurrentModifier(int x, bool remove){ //We have to remap the wxWidgets events
+    switch(x){
+      case WXK_SHIFT:
+        if (remove) KeyModifier &= ~(1); else KeyModifier |= 1; break; //bit 1 
+      case WXK_ALT:
+        if (remove) KeyModifier &= ~(1<<3); else KeyModifier |= (1<<3); break; //bit 4
+      case WXK_NUMLOCK:
+        if (remove) KeyModifier &= ~(1<<2); else KeyModifier |= (1<<2); break; //bit 3
+      case WXK_CONTROL:
+        if (remove) KeyModifier &= ~(1<<1); else KeyModifier |= (1<<1); break; //bit 2
+        
+    }
+  }
+  int GetCurrentModifier(){return KeyModifier;}
+  void OnTreeKeyDown(wxKeyEvent & event);
+  void OnTreeKeyUp(wxKeyEvent & event);
+  void OnItemActivated(wxTreeEvent & event);
+  void OnItemCollapsed(wxTreeEvent & event);
+  void OnItemStateClick(wxTreeEvent & event);
+  void OnItemExpanded(wxTreeEvent & event);
+  void OnDrag(wxTreeEvent & event);
+  void OnDrop(wxTreeEvent & event);
+  void OnItemSelected(wxTreeEvent & event);
+  void SetDragged(wxWindowID that) {draggedGDLWidgetID=that;}
+  wxWindowID GetDragged(){ return draggedGDLWidgetID;}
+  DECLARE_EVENT_TABLE()
 };
 
 class wxTreeItemDataGDL : public wxTreeItemData {
   public:
     WidgetIDT widgetID;
+    wxTreeCtrlGDL* myTree;
 
-    wxTreeItemDataGDL(WidgetIDT id) : widgetID(id) {}
+  wxTreeItemDataGDL(WidgetIDT id, wxTreeCtrlGDL* myTree_) : widgetID(id), myTree(myTree_) {}
+  WidgetIDT GetWidgetID(){return widgetID;}
+  wxTreeCtrlGDL* GetTree(){return myTree;}
 };
 
 class GDLWidgetTree: public GDLWidget
 {
-bool droppable  ; 
-bool draggable  ; 
+int droppable  ; 
+int draggable  ;
+bool has_checkbox;
 bool expanded;
 bool folder;
-int buttonImageId;
-int imageId;
-WidgetIDT selectedID;
+bool noBitmaps;
+bool mask;
+bool multiple; //can select multiple
 wxTreeItemId treeItemID;
 wxTreeItemDataGDL* treeItemData;
-WidgetIDT rootID;
+GDLWidgetTree* myRoot;
+DString dragNotify;
 
 public:
 GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
@@ -1693,26 +1735,60 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
 ,bool expanded_
 ,bool folder_
 ,DLong treeindex
+,DString &dragNotify_
 );
 		 
 ~GDLWidgetTree();
 
   bool IsTree() const final { return true;}
-  bool IsDraggable() {return draggable;}
-  bool IsDroppable() {return droppable;}
-  bool IsFolder() {return folder;}
-  bool IsExpanded() {return expanded;}
-  void DoExpand(){
-    wxTreeCtrlGDL * me = dynamic_cast<wxTreeCtrlGDL*>(theWxWidget);
-    if (me) me->Expand(treeItemID);
+  //DRAG
+  int GetDraggableValue() {return draggable;}
+  bool GetDragability();
+  void SetDragability(DLong val){draggable=val;}
+  //DRAGNOTIFY
+  DString GetDragNotifyValue(){return dragNotify;}
+  void SetDragNotify(DString &s){Warning("SET_DRAG_NOTIFY is currently ignored by GDL, FIXME."); dragNotify=s;}
+  //DROP
+  int  GetDroppableValue(){return droppable;}
+  bool GetDropability();
+  void SetDropability(DLong val){droppable=val;}
+  bool IsExpanded() {
+    return expanded;
   }
-  WidgetIDT GetRootID(){ return rootID;}
-  void SetSelectedID( WidgetIDT id){selectedID=id;}
-  WidgetIDT GetSelectedID(){ return selectedID;}
+  void SetExpanded(bool b){expanded=b;}
+
+  void DoExpand(bool what);
+  void Select(bool select);
+  void SetTreeIndex(DLong where);
+  GDLWidgetTree* GetMyRootGDLWidgetTree(){ return myRoot;}
+  WidgetIDT IsSelectedID();
+  WidgetIDT IsDragSelectedID();
+  DLongGDL* GetAllSelectedID();
+  DLongGDL* GetAllDragSelectedID();
   DInt GetTreeIndex();
   wxTreeItemId GetItemID(){ return treeItemID;}
+  void SetItemID( wxTreeItemId id){treeItemID=id;}
   void SetValue(DString val);
-};
+  void OnRealize();
+  void SetFolder(){folder=true;}
+  bool IsFolder(){return folder;}
+  void SetMask(bool b){mask=b;}
+  bool HasMask(){return mask;}
+  DByteGDL* ReturnBitmapAsBytes();
+  bool HasCheckBox(){return has_checkbox;}
+  void CheckItem(bool b){treeItemData->myTree->SetItemState(treeItemID,b);treeItemData->myTree->Refresh();}
+  bool IsUsingBitmaps(){return noBitmaps;}
+  void SetBitmap(wxBitmap* bitmap);
+  void SetVisible() {treeItemData->myTree->EnsureVisible(treeItemID);}
+  bool IsChecked(){if (has_checkbox) return treeItemData->myTree->GetItemState(treeItemID); else return false;
+  }
+
+  DLong NChildren() const;
+  WidgetIDT GetChild(DLong childIx) const final;
+  DLongGDL* GetChildrenList() const;
+  DLong GetTheSiblingOf(DLong myIx) final;
+  DLong Sibling();
+ };
 
 
 

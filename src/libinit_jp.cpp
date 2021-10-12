@@ -90,12 +90,13 @@ void LibInit_jp()
     "UPDATE", "FORMAT", "EDIT_CELL", "TABLE_XSIZE", "TABLE_YSIZE", "SEND_EVENT", "BAD_ID",
     "GROUP_LEADER", "COMBOBOX_ADDITEM", "COMBOBOX_DELETEITEM", "COMBOBOX_INDEX",
     "GET_DRAW_VIEW", "SET_TAB_CURRENT", "UNITS", "DYNAMIC_RESIZE", "SET_SLIDER_MIN", "SET_SLIDER_MAX",
-    "X_BITMAP_EXTRA", "DEFAULT_FONT", "FONT", "EDITABLE", "BASE_SET_TITLE",
+    "X_BITMAP_EXTRA", "DEFAULT_FONT", "FONT", "EDITABLE", "BASE_SET_TITLE", "SET_TREE_EXPANDED", 
+    "SET_TREE_SELECT","SET_TREE_INDEX","SET_DRAG_NOTIFY","SET_DRAGGABLE","SET_TREE_CHECKED",
+    "SET_TREE_BITMAP","SET_MASK","SET_TREE_VISIBLE",
     //unsupported but warning is a pain.
     "TAB_MODE", 
     KLISTEND};
-  const string widget_WarnControlKey[] = {"SET_TREE_SELECT", "SET_TREE_EXPANDED", "SET_TREE_INDEX",
-    "SET_TREE_BITMAP", "DELAY_DESTROY",
+  const string widget_WarnControlKey[] = { "DELAY_DESTROY",
     "PUSHBUTTON_EVENTS", "TABLE_BLANK", "SET_TAB_MULTILINE", "ICONIFY"
     , "CANCEL_BUTTON" //obsoleted in 6.2
     , "DEFAULT_BUTTON" //obsoleted in 6.2
@@ -147,7 +148,8 @@ void LibInit_jp()
     "FONTNAME", "STRING_SIZE",
     "BUTTON_SET", "PARENT", "TEXT_SELECT", "FIND_BY_UNAME", "TYPE", "NAME",
     "TABLE_DISJOINT_SELECTION", "TABLE_SELECT", "COLUMN_WIDTHS", "ROW_HEIGHTS", "USE_TABLE_SELECT", "SYSTEM_COLORS",
-    "TREE_ROOT", "TREE_SELECT", "TREE_EXPANDED", "TREE_FOLDER", "TREE_INDEX", "TREE_BITMAP", "DROP_EVENTS", "DRAGGABLE", "DRAG_NOTIFY", "MASK",
+    "TREE_ROOT", "TREE_SELECT", "TREE_DRAG_SELECT", "TREE_EXPANDED", "TREE_FOLDER", "TREE_INDEX", "TREE_BITMAP",
+  "DROP_EVENTS", "DRAGGABLE", "DRAG_NOTIFY", "MASK","TREE_CHECKBOX", "TREE_CHECKED",
     "LIST_SELECT", "DROPLIST_SELECT", "COMBOBOX_GETTEXT",
     "TAB_NUMBER", "TAB_MULTILINE", "TAB_CURRENT",
     "TLB_KILL_REQUEST_EVENTS", "TLB_MOVE_EVENTS", "TLB_SIZE_EVENTS", "TLB_ICONIFY_EVENTS",
@@ -155,8 +157,7 @@ void LibInit_jp()
     "DRAW_MOTION_EVENTS", "DRAW_BUTTON_EVENTS", "DRAW_EXPOSE_EVENTS", "DRAW_KEYBOARD_EVENTS",
     "DRAW_VIEWPORT_EVENTS", "DRAW_WHEEL_EVENTS", "TRACKING_EVENTS", "SENSITIVE",
   //Fake answer
-    "UPDATE",
-    "TAB_MODE",
+    "UPDATE","TAB_MODE","TOOLTIP",
     KLISTEND};
   const string widget_infoWarnKey[] = {
     //  "COLUMN_WIDTHS",
@@ -171,7 +172,7 @@ void LibInit_jp()
     //  "TABLE_EDITABLE","TABLE_EDIT_CELL","TABLE_FONT","TABLE_FOREGROUND_COLOR","TABLE_VIEW",
     //  "TEXT_ALL_EVENTS","TEXT_EDITABLE","TEXT_NUMBER","TEXT_OFFSET_TO_XY",
     //  "TEXT_TOP_LINE","TEXT_XY_TO_OFFSET",
-    //  "TOOLTIP","TREE_DRAG_SELECT","USE_TABLE_SELECT","VISIBLE",
+    //  "USE_TABLE_SELECT","VISIBLE",
     KLISTEND
   };
   new DLibFunRetNew(lib::widget_info, string("WIDGET_INFO"), 1, widget_infoKey, widget_infoWarnKey);
@@ -246,14 +247,12 @@ void LibInit_jp()
   KLISTEND};
   new DLibFunRetNew(lib::widget_text, string("WIDGET_TEXT"), 1, widget_textKey);
   //TREE
-  const string widget_treeWarnKey[] = {"CHECKBOX", "CHECKED", "DRAG_NOTIFY"
-    , "MASK"
-    , "MULTIPLE"
-    , "NO_BITMAPS"
-    , "TOOLTIP"
+  const string widget_treeWarnKey[] = { "DRAG_NOTIFY"
+
     , KLISTEND};
   const string widget_treeKey[] = {WIDGET_COMMON_KEYWORDS
     , "BITMAP"
+    , "MASK"
     , "FOLDER"
     , "EXPANDED"
     , "VALUE"
@@ -263,8 +262,13 @@ void LibInit_jp()
     , "DRAGGABLE"
     , "INDEX"
     , "TOP" //obsolete in 6.4, use INDEX=0 instead
-// unsupported yet but warning about it may be a pain
     , "TAB_MODE"
+    , "CHECKBOX"
+    , "CHECKED"
+    , "NO_BITMAPS"
+    , "MULTIPLE"
+    , "TOOLTIP"
+    , "DRAG_NOTIFY"
     , KLISTEND};
   new DLibFunRetNew(lib::widget_tree, string("WIDGET_TREE"), 1, widget_treeKey, widget_treeWarnKey);
   //TREE_MOVE  

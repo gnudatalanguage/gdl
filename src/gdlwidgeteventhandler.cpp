@@ -58,6 +58,39 @@
 // Besides, the misuse of event.Skip() can pose severe problems (blank widgets, etc...) since (quoting documentation) 
 // "Sizers rely on size events to function correctly. Therefore, in a sizer-based layout, do not forget to call Skip
 // on all size events you catch (and don't catch size events at all when you don't need to).
+BEGIN_EVENT_TABLE(wxTreeCtrlGDL, wxTreeCtrl)
+    EVT_TREE_BEGIN_DRAG(wxID_ANY, wxTreeCtrlGDL::OnDrag)
+//    EVT_TREE_BEGIN_RDRAG(wxID_ANY, wxTreeCtrlGDL::OnBeginRDrag)
+    EVT_TREE_END_DRAG(wxID_ANY, wxTreeCtrlGDL::OnDrop)
+//    EVT_TREE_BEGIN_LABEL_EDIT(wxID_ANY, wxTreeCtrlGDL::OnBeginLabelEdit)
+//    EVT_TREE_END_LABEL_EDIT(wxID_ANY, wxTreeCtrlGDL::OnEndLabelEdit)
+//    EVT_TREE_DELETE_ITEM(wxID_ANY, wxTreeCtrlGDL::OnDeleteItem)
+//    EVT_TREE_GET_INFO(wxID_ANY, wxTreeCtrlGDL::OnGetInfo)
+//    EVT_TREE_SET_INFO(wxID_ANY, wxTreeCtrlGDL::OnSetInfo)
+    EVT_TREE_ITEM_EXPANDED(wxID_ANY, wxTreeCtrlGDL::OnItemExpanded)
+//    EVT_TREE_ITEM_EXPANDING(wxID_ANY, wxTreeCtrlGDL::OnItemExpanding)
+    EVT_TREE_ITEM_COLLAPSED(wxID_ANY, wxTreeCtrlGDL::OnItemCollapsed)
+//    EVT_TREE_ITEM_COLLAPSING(wxID_ANY, wxTreeCtrlGDL::OnItemCollapsing)
+
+    EVT_TREE_SEL_CHANGED(wxID_ANY, wxTreeCtrlGDL::OnItemSelected)
+//    EVT_TREE_SEL_CHANGING(wxID_ANY, wxTreeCtrlGDL::OnSelChanging)
+    EVT_KEY_DOWN(wxTreeCtrlGDL::OnTreeKeyDown)
+    EVT_KEY_UP(wxTreeCtrlGDL::OnTreeKeyUp)
+    EVT_TREE_ITEM_ACTIVATED(wxID_ANY, wxTreeCtrlGDL::OnItemActivated)
+    EVT_TREE_STATE_IMAGE_CLICK(wxID_ANY, wxTreeCtrlGDL::OnItemStateClick)
+
+//    // so many different ways to handle right mouse button clicks...
+//    EVT_CONTEXT_MENU(wxTreeCtrlGDL::OnContextMenu)
+//    // EVT_TREE_ITEM_MENU is the preferred event for creating context menus
+//    // on a tree control, because it includes the point of the click or item,
+//    // meaning that no additional placement calculations are required.
+//    EVT_TREE_ITEM_MENU(wxID_ANY, wxTreeCtrlGDL::OnItemMenu)
+//    EVT_TREE_ITEM_RIGHT_CLICK(wxID_ANY, wxTreeCtrlGDL::OnItemRClick)
+//
+//    EVT_RIGHT_DOWN(wxTreeCtrlGDL::OnRMouseDown)
+//    EVT_RIGHT_UP(wxTreeCtrlGDL::OnRMouseUp)
+//    EVT_RIGHT_DCLICK(wxTreeCtrlGDL::OnRMouseDClick)
+END_EVENT_TABLE()
 
 DEFINE_EVENT_TYPE(wxEVT_SHOW_REQUEST)
 DEFINE_EVENT_TYPE(wxEVT_HIDE_REQUEST)
@@ -1816,7 +1849,20 @@ void  wxGridGDL::OnTableRangeSelection(wxGridRangeSelectEvent & event){
 //}
 //
 
-
+void wxTreeCtrlGDL::OnTreeKeyDown(wxKeyEvent & event){
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnTreeKeyDown: %d\n"),event.GetId());
+#endif  
+  wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
+  me->SetCurrentModifier(event.GetKeyCode(), false); //add
+}
+void wxTreeCtrlGDL::OnTreeKeyUp(wxKeyEvent & event){
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnTreeKeyUp: %d\n"),event.GetId());
+#endif  
+  wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
+  me->SetCurrentModifier(event.GetKeyCode(), true); //remove
+}
 void wxTreeCtrlGDL::OnItemActivated(wxTreeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemActivated: %d\n"),event.GetId());
@@ -1829,125 +1875,169 @@ void wxTreeCtrlGDL::OnItemActivated(wxTreeEvent & event){
     DStructGDL* treeselect = new DStructGDL( "WIDGET_TREE_SEL");
     treeselect->InitTag("ID", DLongGDL( dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID ));
     treeselect->InitTag("TOP", DLongGDL( baseWidgetID));
-    treeselect->InitTag("HANDLER", DLongGDL( GDLWidgetTableID ));
+    treeselect->InitTag("HANDLER", DLongGDL( GDLWidgetTreeID ));
     treeselect->InitTag("TYPE", DIntGDL(0)); // 0
     treeselect->InitTag("CLICKS",DLongGDL(2));
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeselect );
     event.Skip();
+    me->Refresh();
 }
 
 
 void wxTreeCtrlGDL::OnItemSelected(wxTreeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemActivated: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemSelected: %d\n"),event.GetId());
 #endif
   WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
 //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
 //the GDL widget that received the event
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
     WidgetIDT selected=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
-    GDLWidgetTree* tree= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID));
+    GDLWidgetTree* tree= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
     //inform root widget it is selected
-    GDLWidgetTree* root=static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(tree->GetRootID()));
-    root->SetSelectedID(selected);
-    
+    GDLWidgetTree* root=tree->GetMyRootGDLWidgetTree();
     DStructGDL* treeselect = new DStructGDL( "WIDGET_TREE_SEL");
     treeselect->InitTag("ID", DLongGDL( selected ));
     treeselect->InitTag("TOP", DLongGDL( baseWidgetID));
-    treeselect->InitTag("HANDLER", DLongGDL( GDLWidgetTableID ));
+    treeselect->InitTag("HANDLER", DLongGDL( GDLWidgetTreeID ));
     treeselect->InitTag("TYPE", DIntGDL(0)); // 0
     treeselect->InitTag("CLICKS",DLongGDL(1));
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeselect );
     event.Skip();
+    me->Refresh();
 }
 
-void wxTreeCtrlGDL::OnBeginDrag(wxTreeEvent & event){
-  //largely useful protection!!!
-  if (!event.GetItem().IsOk()) {    event.Skip(); return;}
-
+void wxTreeCtrlGDL::OnDrag(wxTreeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnBeginDrag: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnDrag: %d "),event.GetId());
 #endif
-
-//needed to explicitly authorize dragging.
-//get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
-//the GDL widget that received the event
+  if (!event.GetItem().IsOk()) {    event.Skip(); return;}
+  
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
-    GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID));
-    if (item->IsDraggable()) event.Allow();
-        event.Skip();
-
+    WidgetIDT selected=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
+    GDLWidgetTree* tree= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
+      
+    if (tree->GetDragability()) {//was set or inherited from one ancestor that was set
+      me->SetDragged(selected);
+      event.Allow();
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("allowed.\n"),event.GetId());
+#endif
+  return;
+    }  
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("canceled.\n"),event.GetId());
+#endif
+  event.Skip();
 }
 
-void wxTreeCtrlGDL::OnItemDropped(wxTreeEvent & event){
-  if (!event.GetItem().IsOk()) {    event.Skip(); return;}
+void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
 
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemDropped: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnDrop: %d\n"),event.GetId());
 #endif
+  if (!event.GetItem().IsOk()) {    event.Skip(); return;}
+
     WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
-    GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID));
+    WidgetIDT selected=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
+    GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
+    GDLWidgetTree* root=item->GetMyRootGDLWidgetTree();
 
-    if (item->IsDroppable()) {
+    if (item->GetDropability()) { //was set or inherited from one ancestor that was set
  //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
 //the GDL widget that received the event
       DStructGDL* treedrop = new DStructGDL( "WIDGET_DROP");
       treedrop->InitTag("ID", DLongGDL( item->GetWidgetID()  )); //ID of the destination
       treedrop->InitTag("TOP", DLongGDL( baseWidgetID));
-      treedrop->InitTag("HANDLER", DLongGDL( GDLWidgetTableID ));
-      treedrop->InitTag("DRAG_ID", DLongGDL( item->GetRootID())); // ID of the source TREE
-      treedrop->InitTag("POSITION",DIntGDL(2)); //ALWAYS 2 IT SEEMS THAT wxW cannot do better? !   1 above 2 on 3 below destination widget
+      treedrop->InitTag("HANDLER", DLongGDL( GDLWidgetTreeID ));
+      treedrop->InitTag("DRAG_ID", DLongGDL( GDLWidgetTreeID )); // ID of the source TREE
+      treedrop->InitTag("POSITION",item->IsFolder()?DIntGDL(2):DIntGDL(3)); //   1 above 2 on 3 below destination widget
       treedrop->InitTag("X",DLongGDL(event.GetPoint().x)); //x and Y coord of position wrt lower left corner of destination tree widget
       treedrop->InitTag("Y",DLongGDL(event.GetPoint().y));
-      treedrop->InitTag("MODIFIERS",DIntGDL(0)); //mask with 1 shift 2 control 4 caps lock 8 alt
+      treedrop->InitTag("MODIFIERS",DIntGDL(me->GetCurrentModifier())); //mask with 1 shift 2 control 4 caps lock 8 alt
       // insert into structList
       GDLWidget::PushEvent( baseWidgetID, treedrop );
   }
+    //unset dragged
+    me->SetDragged(0);
+
   event.Skip();
+    me->Refresh();
 
 }
 void wxTreeCtrlGDL::OnItemExpanded(wxTreeEvent & event){
-  if (!event.GetItem().IsOk()) {    event.Skip(); return;}
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemExpanded: %d\n"),event.GetId());
 #endif
-    WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
+  if (!event.GetItem().IsOk()) {    event.Skip(); return;}
+
+      WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
 //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
 //the GDL widget that received the event
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
-    
+    WidgetIDT whoID=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
+    GDLWidgetTree* who=static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(whoID));
+    who->SetExpanded(true);
     DStructGDL* treeexpand = new DStructGDL( "WIDGET_TREE_EXPAND");
-    treeexpand->InitTag("ID", DLongGDL( dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID ));
+    treeexpand->InitTag("ID", DLongGDL( whoID ));
     treeexpand->InitTag("TOP", DLongGDL( baseWidgetID));
-    treeexpand->InitTag("HANDLER", DLongGDL( GDLWidgetTableID ));
+    treeexpand->InitTag("HANDLER", DLongGDL( GDLWidgetTreeID ));
     treeexpand->InitTag("TYPE", DIntGDL(1)); // 1
     treeexpand->InitTag("EXPAND",DLongGDL(1)); //1 expand
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeexpand );
     event.Skip();
+    me->Refresh();
 }
 void wxTreeCtrlGDL::OnItemCollapsed(wxTreeEvent & event){
-  if (!event.GetItem().IsOk()) {    event.Skip(); return;}
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemCollapsed: %d\n"),event.GetId());
 #endif
-    WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
+  if (!event.GetItem().IsOk()) {    event.Skip(); return;}
+
+      WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
 //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
 //the GDL widget that received the event
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
-    
+    WidgetIDT whoID=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
+    GDLWidgetTree* who=static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(whoID));
+    who->SetExpanded(false);    
     DStructGDL* treeexpand = new DStructGDL( "WIDGET_TREE_EXPAND");
-    treeexpand->InitTag("ID", DLongGDL( dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID ));
+    treeexpand->InitTag("ID", DLongGDL( whoID ) );
     treeexpand->InitTag("TOP", DLongGDL( baseWidgetID));
-    treeexpand->InitTag("HANDLER", DLongGDL( GDLWidgetTableID ));
+    treeexpand->InitTag("HANDLER", DLongGDL( GDLWidgetTreeID ));
     treeexpand->InitTag("TYPE", DIntGDL(1)); // 1
     treeexpand->InitTag("EXPAND",DLongGDL(0)); //0 collapse
     // insert into structList
     GDLWidget::PushEvent( baseWidgetID, treeexpand );
     event.Skip();
+    me->Refresh();
 }
+ void wxTreeCtrlGDL::OnItemStateClick(wxTreeEvent & event){
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemCollapsed: %d\n"),event.GetId());
+#endif
+  if (!event.GetItem().IsOk()) {    event.Skip(); return;}
+  // change checked state first
+  this->SetItemState(event.GetItem(),wxTREE_ITEMSTATE_NEXT);
   
+      WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
+//get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
+//the GDL widget that received the event
+    wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
+    
+    DStructGDL* treeechecked = new DStructGDL( "WIDGET_TREE_CHECKED");
+    treeechecked->InitTag("ID", DLongGDL( dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID ));
+    treeechecked->InitTag("TOP", DLongGDL( baseWidgetID));
+    treeechecked->InitTag("HANDLER", DLongGDL( GDLWidgetTreeID ));
+    treeechecked->InitTag("TYPE", DIntGDL(2)); // 2
+    treeechecked->InitTag("STATE",DLongGDL(this->GetItemState(event.GetItem()))); //on off
+    // insert into structList
+    GDLWidget::PushEvent( baseWidgetID, treeechecked );
+    event.Skip();
+    me->Refresh();
+ }  
 #endif
