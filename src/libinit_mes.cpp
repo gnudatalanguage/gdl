@@ -101,6 +101,8 @@ void LibInit_mes()
                string("H5S_GET_SIMPLE_EXTENT_NDIMS"), 1);
   new DLibFunRetNew(lib::h5s_get_simple_extent_dims_fun,
                string("H5S_GET_SIMPLE_EXTENT_DIMS"), 1);
+  const string H5SselectHyperslabKey[] = {"BLOCK", "RESET", "STRIDE", KLISTEND};
+  new DLibPro(lib::h5s_select_hyperslab_pro,string("H5S_SELECT_HYPERSLAB"),3,H5SselectHyperslabKey);
   new DLibPro(lib::h5f_close_pro,string("H5F_CLOSE"),1);
   new DLibPro(lib::h5d_close_pro,string("H5D_CLOSE"),1);
   new DLibPro(lib::h5s_close_pro,string("H5S_CLOSE"),1);

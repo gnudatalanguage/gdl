@@ -542,6 +542,116 @@ hid_t
   }
 
 
+  void h5s_select_hyperslab_pro( EnvT* e )
+  {
+    bool debug = false;
+    SizeT nParam=e->NParam(3);
+    hsize_t start[MAXRANK], count[MAXRANK], block[MAXRANK], stride[MAXRANK];
+
+
+    /* mandatory 'Dataspace_id' parameter */
+    hid_t h5s_id=hdf5_input_conversion(e,0);
+    int rank=H5Sget_simple_extent_ndims(h5s_id);
+
+    if (H5Iis_valid(h5s_id) <= 0)
+      e->Throw("not a dataspace: Object ID:" + i2s( h5s_id ));
+
+    if (debug) printf("dataspace rank=%d;", rank);
+
+
+    /* mandatory 'Start' parameter */
+    DUIntGDL* startPar = e->GetParAs<DUIntGDL>(1);
+    SizeT nStart = startPar->N_Elements();
+
+    if (nStart == 0)
+      e->Throw("Variable is undefined: "+ e->GetParString(1));
+    else if (nStart != rank)
+      e->Throw("Number of elements in Start must equal dataspace dimensions. ");
+
+    for(int i=0; i<nStart; i++) start[i] = (hsize_t)(*startPar)[i];
+
+
+    /* mandatory 'Count' parameter */
+    DUIntGDL* countPar = e->GetParAs<DUIntGDL>(2);
+    SizeT nCount = countPar->N_Elements();
+
+    if (nCount == 0)
+      e->Throw("Variable is undefined: "+ e->GetParString(2));
+    else if (nCount != rank)
+      e->Throw("Number of elements in Count must equal dataspace dimensions. ");
+
+    for(int i=0; i<nCount; i++) count[i] = (hsize_t)(*countPar)[i];
+
+
+    /* keyword 'block' parameter */
+    static int blockIx = e->KeywordIx("BLOCK");
+    if (e->GetKW(blockIx) != NULL) {
+
+      DUIntGDL* blockKW = e->IfDefGetKWAs<DUIntGDL>(blockIx);
+      SizeT nBlock = blockKW->N_Elements();
+
+      if (nBlock == 0)
+        e->Throw("Variable is undefined: "+ e->GetParString(blockIx));
+      else if (nBlock != rank)
+        e->Throw("Number of elements in BLOCK must equal dataspace dimensions. ");
+
+      for(int i=0; i<nBlock; i++) block[i] = (hsize_t)(*blockKW)[i];
+
+    } else
+      for(int i=0; i<rank; i++) block[i] = 1;
+
+
+    /* keyword 'reset' parameter */
+    static int resetIx = e->KeywordIx("RESET");
+    bool reset = e->KeywordSet(resetIx);
+
+
+    /* keyword 'stride' parameter */
+    static int strideIx = e->KeywordIx("STRIDE");
+    if (e->GetKW(strideIx) != NULL) {
+
+      DUIntGDL* strideKW = e->IfDefGetKWAs<DUIntGDL>(strideIx);
+      SizeT nStride = strideKW->N_Elements();
+
+      if (nStride == 0)
+        e->Throw("Variable is undefined: "+ e->GetParString(strideIx));
+      else if (nStride != rank)
+        e->Throw("Number of elements in STRIDE must equal dataspace dimensions. ");
+
+      for(int i=0; i<nStride; i++) stride[i] = (hsize_t)(*strideKW)[i];
+
+    } else
+      for(int i=0; i<rank; i++) stride[i] = 1;
+
+
+    /* debug output */
+    if (debug) {
+      const hsize_t *par[4] = { start, count, block, stride };
+      const char *parnm[4] = { "start", "count", "block", "stride" };
+
+      for(int i=0; i<4; i++) {
+        printf(" %s=[",parnm[i]);
+        for(int j=0; j<rank; j++)
+          printf("%lld%s",par[i][j], (j==rank-1) ? "];" : ",");
+      }
+      printf("\n");
+    }
+
+
+    /* call library function */
+    if (H5Sselect_hyperslab( h5s_id,
+                             (reset) ? H5S_SELECT_SET : H5S_SELECT_OR,
+                             start, stride, count, block )  < 0)
+      { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    /* FIXME -- implement this special behaviour? (from IDL documentation)
+      "Note: If all of the elements in the selected hyperslab region are
+       already selected, then a new hyperslab region is not created." */
+
+    return;
+  }
+
+
   BaseGDL* h5a_read_fun( EnvT* e)
   {
 
