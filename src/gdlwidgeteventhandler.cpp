@@ -74,8 +74,6 @@ BEGIN_EVENT_TABLE(wxTreeCtrlGDL, wxTreeCtrl)
 
     EVT_TREE_SEL_CHANGED(wxID_ANY, wxTreeCtrlGDL::OnItemSelected)
 //    EVT_TREE_SEL_CHANGING(wxID_ANY, wxTreeCtrlGDL::OnSelChanging)
-    EVT_KEY_DOWN(wxTreeCtrlGDL::OnTreeKeyDown)
-    EVT_KEY_UP(wxTreeCtrlGDL::OnTreeKeyUp)
     EVT_TREE_ITEM_ACTIVATED(wxID_ANY, wxTreeCtrlGDL::OnItemActivated)
     EVT_TREE_STATE_IMAGE_CLICK(wxID_ANY, wxTreeCtrlGDL::OnItemStateClick)
 
@@ -108,6 +106,22 @@ BEGIN_EVENT_TABLE(gdlwxPlotFrame, wxFrame)
   EVT_TIMER(RESIZE_PLOT_TIMER, gdlwxPlotFrame::OnTimerPlotResize) 
 END_EVENT_TABLE()
 
+int RemapModifiers(wxMouseEvent &e) {
+  int out = 0;
+  if (wxGetKeyState(WXK_CAPITAL)) out |= 0x04;
+  if (e.ControlDown()) out |= 0x02;
+  if (e.AltDown()) out |= 0x08;
+  if (e.ShiftDown()) out |= 0x01;
+  return out;
+}
+int GetModifiers() {
+  int out = 0;
+  if (wxGetKeyState(WXK_CAPITAL)) out |= 0x04;
+  if (wxGetKeyState(WXK_CONTROL)) out |= 0x02;
+  if (wxGetKeyState(WXK_ALT)) out |= 0x08;
+  if (wxGetKeyState(WXK_SHIFT)) out |= 0x01;
+  return out;
+}
 void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_KBRD_EVENTS )
   wxMessageOutputStderr().Printf(_T("in gdlTextCtrl::OnChar: %d Keycode:%d\n"),event.GetId(),event.GetKeyCode( ));
@@ -1431,6 +1445,7 @@ void gdlwxDrawPanel::OnMouseMove( wxMouseEvent &event ) {
     widgdraw->InitTag( "TYPE", DIntGDL( 2 ) ); //motion
     widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
     widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    widgdraw->InitTag( "MODIFIERS", DLongGDL( RemapModifiers(event)));
     GDLWidget::PushEvent( baseWidgetID, widgdraw );
   } else event.Skip(); //normal end of event processing!
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_MOVE_EVENTS)
@@ -1457,7 +1472,7 @@ void gdlwxDrawPanel::OnMouseDown( wxMouseEvent &event ) {
     widgdraw->InitTag( "PRESS", DByteGDL( btn ));
     widgdraw->InitTag( "RELEASE", DByteGDL( 0 ) );
     widgdraw->InitTag( "CLICKS", DLongGDL( 1 ) );
-    widgdraw->InitTag( "MODIFIERS", DLongGDL( 0 ) );
+    widgdraw->InitTag( "MODIFIERS", DLongGDL(  RemapModifiers(event)));
     widgdraw->InitTag( "CH", DByteGDL( 0 ) );
     widgdraw->InitTag( "KEY", DLongGDL( 0 ) );
     GDLWidget::PushEvent( baseWidgetID, widgdraw );
@@ -1483,7 +1498,7 @@ void gdlwxDrawPanel::OnMouseUp( wxMouseEvent &event ) {
     widgdraw->InitTag( "PRESS", DByteGDL( 0 ) );
     widgdraw->InitTag( "RELEASE", DByteGDL( btn ) );
     widgdraw->InitTag( "CLICKS", DLongGDL( 1 ) );
-    widgdraw->InitTag( "MODIFIERS", DLongGDL( 0 ) );
+    widgdraw->InitTag( "MODIFIERS", DLongGDL( RemapModifiers(event)));
     widgdraw->InitTag( "CH", DByteGDL( 0 ) );
     widgdraw->InitTag( "KEY", DLongGDL( 0 ) );
     GDLWidget::PushEvent( baseWidgetID, widgdraw );
@@ -1508,7 +1523,7 @@ void gdlwxDrawPanel::OnMouseWheel( wxMouseEvent &event ) {
     widgdraw->InitTag( "PRESS", DByteGDL( 0 ) );
     widgdraw->InitTag( "RELEASE", DByteGDL( 0 ) );
     widgdraw->InitTag( "CLICKS", DLongGDL( event.GetWheelRotation() ) );
-    widgdraw->InitTag( "MODIFIERS", DLongGDL( 0 ) );
+    widgdraw->InitTag( "MODIFIERS", DLongGDL(RemapModifiers(event)) );
     widgdraw->InitTag( "CH", DByteGDL( 0 ) );
     widgdraw->InitTag( "KEY", DLongGDL( 0 ) );
     GDLWidget::PushEvent( baseWidgetID, widgdraw );
@@ -1568,7 +1583,7 @@ void gdlwxDrawPanel::OnKey( wxKeyEvent &event ) {
           widgdraw->InitTag( "TYPE", DIntGDL( 6 ) ); //special key
           widgdraw->InitTag( "KEY", DLongGDL( start ) );
           widgdraw->InitTag( "CH", DByteGDL( 0 ) );
-          widgdraw->InitTag( "MODIFIERS", DLongGDL( event.GetModifiers()) );
+          widgdraw->InitTag( "MODIFIERS", DLongGDL(GetModifiers()) );
           GDLWidget::PushEvent( baseWidgetID, widgdraw );
         }
         break;
@@ -1576,7 +1591,7 @@ void gdlwxDrawPanel::OnKey( wxKeyEvent &event ) {
         widgdraw->InitTag( "TYPE", DIntGDL( 5 ) ); //normal key
         widgdraw->InitTag( "KEY", DLongGDL( 0 ) );
         widgdraw->InitTag( "CH", DByteGDL( event.GetKeyCode() & 0xFF ) );
-        widgdraw->InitTag( "MODIFIERS", DLongGDL( event.GetModifiers() ) );
+        widgdraw->InitTag( "MODIFIERS", DLongGDL(GetModifiers() ) );
         GDLWidget::PushEvent( baseWidgetID, widgdraw );
     }
   } else event.Skip();
@@ -1849,20 +1864,6 @@ void  wxGridGDL::OnTableRangeSelection(wxGridRangeSelectEvent & event){
 //}
 //
 
-void wxTreeCtrlGDL::OnTreeKeyDown(wxKeyEvent & event){
-#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnTreeKeyDown: %d\n"),event.GetId());
-#endif  
-  wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
-  me->SetCurrentModifier(event.GetKeyCode(), false); //add
-}
-void wxTreeCtrlGDL::OnTreeKeyUp(wxKeyEvent & event){
-#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnTreeKeyUp: %d\n"),event.GetId());
-#endif  
-  wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
-  me->SetCurrentModifier(event.GetKeyCode(), true); //remove
-}
 void wxTreeCtrlGDL::OnItemActivated(wxTreeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnItemActivated: %d\n"),event.GetId());
@@ -1957,7 +1958,7 @@ void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
       treedrop->InitTag("POSITION",item->IsFolder()?DIntGDL(2):DIntGDL(3)); //   1 above 2 on 3 below destination widget
       treedrop->InitTag("X",DLongGDL(event.GetPoint().x)); //x and Y coord of position wrt lower left corner of destination tree widget
       treedrop->InitTag("Y",DLongGDL(event.GetPoint().y));
-      treedrop->InitTag("MODIFIERS",DIntGDL(me->GetCurrentModifier())); //mask with 1 shift 2 control 4 caps lock 8 alt
+      treedrop->InitTag("MODIFIERS",DIntGDL(GetModifiers())); //mask with 1 shift 2 control 4 caps lock 8 alt
       // insert into structList
       GDLWidget::PushEvent( baseWidgetID, treedrop );
   }

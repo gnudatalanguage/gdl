@@ -6314,8 +6314,28 @@ void GDLWidgetDraw::SetWidgetScreenSize(DLong sizex, DLong sizey) {
   UpdateGui();
   END_CHANGESIZE_NOEVENT
 }
-
-//for windows, it seems necessary to define our own wxApp and run it manually
+  wxPoint GDLWidgetDraw::GetPos(){
+    gdlwxDrawPanel* dp=static_cast<gdlwxDrawPanel*>(theWxWidget);
+    int yvs=dp->GetVirtualSize().y;
+    int ycs=dp->GetClientSize().y;
+    //the reference position is not at the top but at the bottom of this client window
+    wxPoint zero(0,yvs-ycs);
+    wxPoint np=dp->CalcScrolledPosition(zero);
+    return wxPoint(-np.x,np.y);
+  }
+  void GDLWidgetDraw::SetPos(int x, int y){
+    gdlwxDrawPanel* dp=static_cast<gdlwxDrawPanel*>(theWxWidget);
+    int yvs=dp->GetVirtualSize().y;
+    int ycs=dp->GetClientSize().y;
+    int scx,scy;
+    dp->GetScrollPixelsPerUnit(&scx,&scy);
+    if (scx) x=int(float(x)/float(scx));
+    if (scy) y=int(float(yvs-ycs-y)/float(scy));
+    dp->Scroll(x, y); //in scroll units
+    dp->Refresh();
+  }
+  
+  //for windows, it seems necessary to define our own wxApp and run it manually
 // for linux, it is NOT necessary, but thos works OK
 // for MacOS /COCOA port, the following code does not work and the widgets are not created.
 // (tied_scoped_ptr problem?)

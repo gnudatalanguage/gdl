@@ -52,7 +52,7 @@
 #include "datatypes.hpp"
 #include "widget.hpp"
 
-#define gdlSCROLL_RATE 20
+#define gdlSCROLL_RATE 10
 #define gdlSCROLL_HEIGHT_X  sysScrollHeight //wxSystemSettings::GetMetric(wxSYS_VSCROLL_X,xxx) //25 
 #define gdlSCROLL_WIDTH_Y sysScrollWidth //wxSystemSettings::GetMetric(wxSYS_HSCROLL_Y,xxx) //25
 #define gdlABSENT_SIZE_VALUE 15; 
@@ -587,8 +587,6 @@ public:
   virtual void SetWidgetVirtualSize(DLong sizex, DLong sizey){}; //do Nothing
   virtual void SetWidgetScreenSize(DLong sizex, DLong sizey);
   void SetWidgetPosition(DLong posx, DLong posy);
-  DLong GetXPos(){return dynamic_cast<wxWindow*>(theWxWidget)->GetPosition().x;}
-  DLong GetYPos(){return dynamic_cast<wxWindow*>(theWxWidget)->GetPosition().y;}
   bool IsValid(){return valid;}
   void SetUnValid(){valid=false;}
   void SetValid(){valid=true;}
@@ -1362,7 +1360,6 @@ public:
   void SetWidgetSize(DLong sizex, DLong sizey) final; 
 };
 
-
 // draw widget **************************************************
 class GDLWidgetDraw: public GDLWidget
 {
@@ -1381,6 +1378,8 @@ public:
   void SetWidgetScreenSize(DLong sizex, DLong sizey) final;
   void UnrefTheWxContainer(){theWxContainer=NULL;} 
   void UnrefTheWxWidget(){theWxWidget=NULL;} 
+  wxPoint GetPos();
+  void SetPos(int x, int y);
 };
 
 // menubar is best done with a toolbar at the moment, see below
@@ -1650,7 +1649,6 @@ public:
 class wxTreeCtrlGDL: public wxTreeCtrl {
   wxWindowID GDLWidgetTreeID;
   wxWindowID draggedGDLWidgetID;
-  int KeyModifier; //Shift, Control... set during a drag
 public:
 
   wxTreeCtrlGDL(wxWindow *parent, wxWindowID id = wxID_ANY,
@@ -1661,8 +1659,7 @@ public:
     const wxString& name = wxTreeCtrlNameStr)
           :wxTreeCtrl( parent, id, pos, size, style, wxDefaultValidator , name ),
           GDLWidgetTreeID(id),
-          draggedGDLWidgetID(0),
-          KeyModifier(0)
+          draggedGDLWidgetID(0)
           {
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated));
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_ACTIVATED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated));
@@ -1672,24 +1669,6 @@ public:
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_EXPANDED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemExpanded));
 //            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_SEL_CHANGED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemSelected));
   }
-  //necessary to define the destructor otherwise compiler will try to find the bind event table for destruction event!
-  ~wxTreeCtrlGDL(){}
-  void SetCurrentModifier(int x, bool remove){ //We have to remap the wxWidgets events
-    switch(x){
-      case WXK_SHIFT:
-        if (remove) KeyModifier &= ~(1); else KeyModifier |= 1; break; //bit 1 
-      case WXK_ALT:
-        if (remove) KeyModifier &= ~(1<<3); else KeyModifier |= (1<<3); break; //bit 4
-      case WXK_NUMLOCK:
-        if (remove) KeyModifier &= ~(1<<2); else KeyModifier |= (1<<2); break; //bit 3
-      case WXK_CONTROL:
-        if (remove) KeyModifier &= ~(1<<1); else KeyModifier |= (1<<1); break; //bit 2
-        
-    }
-  }
-  int GetCurrentModifier(){return KeyModifier;}
-  void OnTreeKeyDown(wxKeyEvent & event);
-  void OnTreeKeyUp(wxKeyEvent & event);
   void OnItemActivated(wxTreeEvent & event);
   void OnItemCollapsed(wxTreeEvent & event);
   void OnItemStateClick(wxTreeEvent & event);

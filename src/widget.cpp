@@ -3706,10 +3706,19 @@ void widget_control( EnvT* e ) {
       BaseGDL** drwKW = &e->GetKW( GET_DRAW_VIEW );
        if (drwKW!=NULL) GDLDelete((*drwKW));
       DLongGDL* res= new DLongGDL(dimension(2));
-       (*res)[0]=draw->GetXPos();
-       (*res)[1]=draw->GetYPos();
+      wxPoint pos=draw->GetPos();
+       (*res)[0]=pos.x;
+       (*res)[1]=pos.y;
        *drwKW=res->Dup();
      }
+    static int SET_DRAW_VIEW = e->KeywordIx( "SET_DRAW_VIEW" );
+    if (e->KeywordPresent(SET_DRAW_VIEW)) {
+      DLongGDL* pos=e->GetKWAs<DLongGDL>(SET_DRAW_VIEW);
+      int x=(*pos)[0];
+      int y=x; //yes.
+      if (pos->N_Elements()>1) y=(*pos)[1];
+      draw->SetPos(x,y);
+    }
   }
   
   if (widget->IsTab()) {
