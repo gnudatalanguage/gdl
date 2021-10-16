@@ -1583,7 +1583,7 @@ void gdlwxDrawPanel::OnKey( wxKeyEvent &event ) {
           widgdraw->InitTag( "TYPE", DIntGDL( 6 ) ); //special key
           widgdraw->InitTag( "KEY", DLongGDL( start ) );
           widgdraw->InitTag( "CH", DByteGDL( 0 ) );
-          widgdraw->InitTag( "MODIFIERS", DLongGDL(GetModifiers()) );
+          widgdraw->InitTag( "MODIFIERS", DLongGDL(0) );
           GDLWidget::PushEvent( baseWidgetID, widgdraw );
         }
         break;
