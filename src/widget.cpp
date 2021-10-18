@@ -636,9 +636,6 @@ BaseGDL* widget_tree( EnvT* e)
 #else
   SizeT nParam = e->NParam( 1 );
 
-  static bool warnaboudragnotify=true;
-
-  
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
   WidgetIDT parentID = (*p0L)[0];
   GDLWidget* parent = GDLWidget::GetWidget( parentID );
@@ -705,15 +702,11 @@ BaseGDL* widget_tree( EnvT* e)
 //  DLong tabMode = 0;
 //  e->AssureLongScalarKWIfPresent( TAB_MODE, tabMode );
   
-  DString dragNotify;
+  DString dragNotify=(parent->IsBase())?"<default>":"<inherit>";
   if (e->KeywordPresent(DRAG_NOTIFY)) {
-    if (warnaboudragnotify) {
-      warnaboudragnotify=false;
-      Warning("DRAG_NOTIFY NOT HANDLED BY GDL, FIXME!");
-    }
     e->AssureStringScalarKWIfPresent( DRAG_NOTIFY, dragNotify );
     dragNotify=StrUpCase(dragNotify); //UPPERCASE
-  } else dragNotify="<inherit>";
+  } 
   DString strvalue=""; //important to init to a zero-length string!!!
   e->AssureStringScalarKWIfPresent( VALUE, strvalue ); //important to init to a zero-length string!!!
   DStringGDL* value=new DStringGDL(strvalue);

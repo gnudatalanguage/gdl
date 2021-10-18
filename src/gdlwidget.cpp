@@ -4035,7 +4035,6 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     widgetStyle=widgetAlignment( );
     if (dropability == -1) droppable=0; //this for root only
     if (dragability == -1) draggable=0; //this for root only
-    if (dragNotify=="<inherit>") dragNotify="<default>";
 //do not expand root if hidden: will assert() in wxWidgets! //    if (expanded) tree->Expand(treeItemID); 
     myTreeRoot->SetClientSize(wSize);
     myTreeRoot->SetMinClientSize(wSize);
@@ -4107,8 +4106,6 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
       myTreeRoot->Refresh();
     }
   }
-
-
     //    UPDATE_WINDOW
     REALIZE_IF_NEEDED
 }
