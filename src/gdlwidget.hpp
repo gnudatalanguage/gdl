@@ -30,7 +30,11 @@
 #include <wx/app.h>
 #include <wx/panel.h>
 #include <wx/treebase.h>
+
 #include <wx/treectrl.h>
+#include <wx/dragimag.h>
+#include <wx/dcbuffer.h>
+
 #include <wx/grid.h>
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID
 //#include <wx/propgrid/propgrid.h>
@@ -1360,6 +1364,7 @@ public:
   void SetWidgetSize(DLong sizex, DLong sizey) final; 
 };
 
+
 // draw widget **************************************************
 class GDLWidgetDraw: public GDLWidget
 {
@@ -1644,13 +1649,48 @@ public:
   void setFont();
 };
 
-
+static unsigned char tree_up_selection_mask_uc[] = {
+  0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x18, 0x00, 0xfe, 0x01, 0x18, 0x01,
+  0x10, 0x01, 0x00, 0x01, 0x00, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+static unsigned char tree_up_selection_bits_uc[] = {
+  0xff, 0xff, 0xff, 0xff, 0xef, 0xff, 0xe7, 0xff, 0x01, 0xfe, 0xe7, 0xfe,
+  0xef, 0xfe, 0xff, 0xfe, 0xff, 0x80, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+};
+static unsigned char tree_down_selection_mask_uc[] = {
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+   0x00, 0x00, 0x00, 0x7f, 0x00, 0x01, 0x10, 0x01, 0x18, 0x01, 0xfe, 0x01,
+   0x18, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00 };
+static unsigned char tree_down_selection_bits_uc[] = {
+   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+   0xff, 0xff, 0xff, 0x80, 0xff, 0xfe, 0xef, 0xfe, 0xe7, 0xfe, 0x01, 0xfe,
+   0xe7, 0xff, 0xef, 0xff, 0xff, 0xff, 0xff, 0xff };
+static const char* tree_up_selection_bits = (const char*) tree_up_selection_bits_uc;
+static const char* tree_up_selection_mask = (const char*) tree_up_selection_mask_uc;
+static const char* tree_down_selection_bits = (const char*) tree_down_selection_bits_uc;
+static const char* tree_down_selection_mask = (const char*) tree_down_selection_mask_uc;
 // tree widget **************************************************
 class wxTreeCtrlGDL: public wxTreeCtrl {
   wxWindowID GDLWidgetTreeID;
-  wxWindowID draggedGDLWidgetID;
-public:
+  int KeyModifier; //Shift, Control... set during a drag
+private:
+	// the item being dragged at the moment
+	wxTreeItemId itemDragging = nullptr;
+  wxCursor gdlTREE_SELECT_ABOVE;
+  wxCursor gdlTREE_SELECT_BELOW;
+  int pos;
 
+public:
+//	void onLeftDown(wxMouseEvent &evt);
+	void onLeftUp(wxMouseEvent &evt);
+	void onLeaveWindow(wxMouseEvent &evt);
+	// finish the drag action 
+	void endDragging();
+
+	void onMouseMotion(wxMouseEvent &evt);
+public:
   wxTreeCtrlGDL(wxWindow *parent, wxWindowID id = wxID_ANY,
     const wxPoint& pos = wxDefaultPosition,
     const wxSize& size = wxDefaultSize,
@@ -1659,16 +1699,33 @@ public:
     const wxString& name = wxTreeCtrlNameStr)
           :wxTreeCtrl( parent, id, pos, size, style, wxDefaultValidator , name ),
           GDLWidgetTreeID(id),
-          draggedGDLWidgetID(0)
+          pos(-1)
           {
-//            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated));
-//            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_ACTIVATED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemActivated));
-//            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_BEGIN_DRAG,wxTreeEventHandler(wxTreeCtrlGDL::OnBeginDrag));
-//            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_END_DRAG,wxTreeEventHandler(wxTreeCtrlGDL::OnItemDropped));
-//            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_COLLAPSED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemCollapsed));
-//            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_ITEM_EXPANDED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemExpanded));
-//            Connect(GDLWidgetTableID, wxEVT_COMMAND_TREE_SEL_CHANGED,wxTreeEventHandler(wxTreeCtrlGDL::OnItemSelected));
-  }
+
+#ifdef __WXMSW__
+    wxBitmap tree_up_selection_bitmap(tree_up_selection_bits, 16, 16);
+    wxBitmap tree_up_selection_mask_bitmap(tree_up_selection_mask, 16, 16);
+    tree_up_selection_bitmap.SetMask(new wxMask(tree_up_selection_mask_bitmap));
+    wxImage tree_up_selection_image = tree_up_selection_bitmap.ConvertToImage();
+    tree_up_selection_image.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_X, 14);
+    tree_up_selection_image.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_Y, 7);
+    gdlTREE_SELECT_ABOVE = wxCursor(tree_up_selection_image);
+    wxBitmap tree_down_selection_bitmap(tree_down_selection_bits, 16, 16);
+    wxBitmap tree_down_selection_mask_bitmap(tree_down_selection_mask, 16, 16);
+    tree_down_selection_bitmap.SetMask(new wxMask(tree_down_selection_mask_bitmap));
+    wxImage tree_down_selection_image = tree_down_selection_bitmap.ConvertToImage();
+    tree_down_selection_image.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_X, 14);
+    tree_down_selection_image.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_Y, 7);
+    gdlTREE_SELECT_BELOW = wxCursor(tree_down_selection_image);
+
+#elif defined(__WXGTK__) or defined(__WXMOTIF__)
+    gdlTREE_SELECT_ABOVE = wxCursor(tree_up_selection_bits, 16, 16, 14, 7, tree_up_selection_mask, wxWHITE, wxBLACK);
+    gdlTREE_SELECT_BELOW = wxCursor(tree_down_selection_bits, 16, 16, 14, 7, tree_down_selection_mask, wxWHITE, wxBLACK);
+#endif
+          }
+  //necessary to define the destructor otherwise compiler will try to find the bind event table for destruction event!
+  ~wxTreeCtrlGDL(){}
+  int GetCurrentModifier(){return KeyModifier;}
   void OnItemActivated(wxTreeEvent & event);
   void OnItemCollapsed(wxTreeEvent & event);
   void OnItemStateClick(wxTreeEvent & event);
@@ -1676,8 +1733,6 @@ public:
   void OnDrag(wxTreeEvent & event);
   void OnDrop(wxTreeEvent & event);
   void OnItemSelected(wxTreeEvent & event);
-  void SetDragged(wxWindowID that) {draggedGDLWidgetID=that;}
-  wxWindowID GetDragged(){ return draggedGDLWidgetID;}
   DECLARE_EVENT_TABLE()
 };
 
@@ -1767,7 +1822,7 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
   DLongGDL* GetChildrenList() const;
   DLong GetTheSiblingOf(DLong myIx) final;
   DLong Sibling();
- };
+};
 
 
 

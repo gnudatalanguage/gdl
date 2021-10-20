@@ -1909,6 +1909,56 @@ void wxTreeCtrlGDL::OnItemSelected(wxTreeEvent & event){
     event.Skip();
     me->Refresh();
 }
+	void wxTreeCtrlGDL::onLeaveWindow(wxMouseEvent &evt){
+    this->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(wxTreeCtrlGDL::onLeaveWindow));
+    this->Disconnect(wxEVT_MOTION, wxMouseEventHandler(wxTreeCtrlGDL::onMouseMotion));
+    this->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(wxTreeCtrlGDL::onLeftUp));
+	}
+
+	// finish the drag action 
+	void wxTreeCtrlGDL::endDragging(){
+		itemDragging = nullptr;
+    this->Refresh();
+	}
+void wxTreeCtrlGDL::onMouseMotion(wxMouseEvent &evt) {
+  this;
+  wxPoint evtPos = evt.GetPosition();
+  wxTreeCtrlGDL *mt = (wxTreeCtrlGDL*) evt.GetEventObject();
+  wxTreeItemId itemHovered = HitTest(evtPos);
+  bool showCursors = itemHovered && itemHovered != GetRootItem();
+  if (showCursors) {
+    if (itemHovered == itemDragging)  this->SetCursor(wxCURSOR_NO_ENTRY);
+    else if (this->GetChildrenCount(itemHovered) > 0) {
+      this->SetCursor(wxCURSOR_POINT_LEFT);
+      pos=2; //dropping onto dest widget
+    }
+    else {
+      wxRect rect;
+      GetBoundingRect(itemHovered, rect, true);
+      if (evtPos.y > rect.GetTop() + rect.GetHeight() / 2) {
+        pos=4;
+        this->SetCursor(gdlTREE_SELECT_BELOW);// below
+      }
+      else { 
+        pos=1;
+        this->SetCursor(gdlTREE_SELECT_ABOVE);// above
+      }
+    }
+  } else this->SetCursor(wxCURSOR_DEFAULT);
+}
+
+void wxTreeCtrlGDL::onLeftUp(wxMouseEvent &evt)
+{
+
+  this->SetCursor(wxCURSOR_DEFAULT);
+  wxPoint evtPos = evt.GetPosition();
+	wxTreeItemId itemUnderMouse = HitTest(evtPos);
+  this->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(wxTreeCtrlGDL::onLeaveWindow));
+  this->Disconnect(wxEVT_MOTION, wxMouseEventHandler(wxTreeCtrlGDL::onMouseMotion));
+  this->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(wxTreeCtrlGDL::onLeftUp));
+  wxTreeEvent treeEvent(wxEVT_ANY,this,itemUnderMouse);
+   this->OnDrop(treeEvent);
+}
 
 void wxTreeCtrlGDL::OnDrag(wxTreeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
@@ -1921,12 +1971,16 @@ void wxTreeCtrlGDL::OnDrag(wxTreeEvent & event){
     GDLWidgetTree* tree= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
       
     if (tree->GetDragability()) {//was set or inherited from one ancestor that was set
-      me->SetDragged(selected);
-      event.Allow();
+      itemDragging=event.GetItem();
+      pos=-1;
+//      event.Allow(); //do not use wxWidgets hanlding at all!
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("allowed.\n"),event.GetId());
 #endif
-  return;
+    this->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(wxTreeCtrlGDL::onLeaveWindow));
+    this->Connect(wxEVT_MOTION, wxMouseEventHandler(wxTreeCtrlGDL::onMouseMotion));
+    this->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(wxTreeCtrlGDL::onLeftUp));
+      return;
     }  
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("canceled.\n"),event.GetId());
@@ -1940,22 +1994,27 @@ void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnDrop: %d\n"),event.GetId());
 #endif
   if (!event.GetItem().IsOk()) {    event.Skip(); return;}
-
+  if (pos==-1){return;}
+  
     WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
     WidgetIDT selected=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
-    GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnDrop: dragged: %d\n"),selected);
+#endif
+  GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
     GDLWidgetTree* root=item->GetMyRootGDLWidgetTree();
 
     if (item->GetDropability()) { //was set or inherited from one ancestor that was set
- //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
+  
+  //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
 //the GDL widget that received the event
       DStructGDL* treedrop = new DStructGDL( "WIDGET_DROP");
       treedrop->InitTag("ID", DLongGDL( item->GetWidgetID()  )); //ID of the destination
       treedrop->InitTag("TOP", DLongGDL( baseWidgetID));
       treedrop->InitTag("HANDLER", DLongGDL( GDLWidgetTreeID ));
       treedrop->InitTag("DRAG_ID", DLongGDL( GDLWidgetTreeID )); // ID of the source TREE
-      treedrop->InitTag("POSITION",item->IsFolder()?DIntGDL(2):DIntGDL(3)); //   1 above 2 on 3 below destination widget
+      treedrop->InitTag("POSITION",DIntGDL(pos)); //   1 above 2 on 4 below destination widget
       treedrop->InitTag("X",DLongGDL(event.GetPoint().x)); //x and Y coord of position wrt lower left corner of destination tree widget
       treedrop->InitTag("Y",DLongGDL(event.GetPoint().y));
       treedrop->InitTag("MODIFIERS",DIntGDL(GetModifiers())); //mask with 1 shift 2 control 4 caps lock 8 alt
@@ -1963,8 +2022,6 @@ void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
       GDLWidget::PushEvent( baseWidgetID, treedrop );
   }
     //unset dragged
-    me->SetDragged(0);
-
   event.Skip();
     me->Refresh();
 

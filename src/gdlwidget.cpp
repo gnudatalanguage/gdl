@@ -4154,9 +4154,9 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
       //we heve to suppress treeItemData from where it was previously attached otherwise it will be destroyed and bang!
       myTreeRoot->SetItemData(currentId,NULL);
       if (this->HasCheckBox()) myTreeRoot->SetItemState(newId,this->IsChecked()); // else myTreeRoot->SetItemState(treeItemID,wxTREE_ITEMSTATE_NONE); //CHECKED,UNCHECKE,NOT_VISIBLE
-      if (expanded)  {
+      if (folder)  {
          myTreeRoot->SetItemHasChildren( newId, true); //TRICK! to enable folder opened or closed BY CONSTRUCTION.
-         myTreeRoot->Expand(newId);
+         if (expanded) myTreeRoot->Expand(newId);
        }
       // give back treeItemID to transferred GDLTreeWidget:
       this->SetItemID(newId);
