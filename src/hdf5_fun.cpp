@@ -838,12 +838,12 @@ hid_t
 
     hid_t h5d_id = hdf5_input_conversion(e,0);
 
-    hid_t h5s_id = H5Dget_space(h5d_id);
-    if (h5s_id < 0) {
+    hid_t filespace_id = H5Dget_space(h5d_id);
+    if (filespace_id < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
-    hdf5_space_guard h5s_id_guard = hdf5_space_guard(h5s_id);
+    hdf5_space_guard filespace_id_guard = hdf5_space_guard(filespace_id);
 
     hid_t datatype = H5Dget_type(h5d_id);
     if (datatype < 0) {
@@ -885,14 +885,14 @@ hid_t
     }
 
     // determine the rank and dimension of the dataset
-    int rank = H5Sget_simple_extent_ndims(h5s_id);
+    int rank = H5Sget_simple_extent_ndims(filespace_id);
     if (rank < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
     if (debug) cout << "data rank is " << rank << endl;
 
-    if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0) {
+    if (H5Sget_simple_extent_dims(filespace_id, dims_out, NULL) < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
