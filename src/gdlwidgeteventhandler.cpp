@@ -105,7 +105,14 @@ END_EVENT_TABLE()
 BEGIN_EVENT_TABLE(gdlwxPlotFrame, wxFrame)
   EVT_TIMER(RESIZE_PLOT_TIMER, gdlwxPlotFrame::OnTimerPlotResize) 
 END_EVENT_TABLE()
-
+wxPoint gdlwxGraphicsPanel::WhereIsMouse(wxKeyEvent &e) {
+    wxPoint pos=e.GetPosition();
+    return this->CalcUnscrolledPosition(pos);
+}
+wxPoint gdlwxGraphicsPanel::WhereIsMouse(wxMouseEvent &e) {
+    wxPoint pos=e.GetPosition();
+    return this->CalcUnscrolledPosition(pos);
+}
 int RemapModifiers(wxMouseEvent &e) {
   int out = 0;
   if (wxGetKeyState(WXK_CAPITAL)) out |= 0x04;
@@ -1257,7 +1264,7 @@ void gdlwxFrame::OnContextEvent( wxContextMenuEvent& event) {
       int col = grid->XToCol(position.x);
       int row = grid->YToRow(position.y);
       widgcontext->InitTag( "ROW", DLongGDL( row ) );
-      widgcontext->InitTag( "ROW", DLongGDL( col ) );
+      widgcontext->InitTag( "COL", DLongGDL( col ) );
     }
     GDLWidget::PushEvent( baseWidgetID, widgcontext );
   } else event.Skip();//normal end of event processing!
@@ -1443,8 +1450,9 @@ void gdlwxDrawPanel::OnMouseMove( wxMouseEvent &event ) {
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "TYPE", DIntGDL( 2 ) ); //motion
-    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
-    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    wxPoint where=WhereIsMouse(event);
+    widgdraw->InitTag( "X", DLongGDL( where.x ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-where.y  ) );
     widgdraw->InitTag( "MODIFIERS", DLongGDL( RemapModifiers(event)));
     GDLWidget::PushEvent( baseWidgetID, widgdraw );
   } else event.Skip(); //normal end of event processing!
@@ -1466,8 +1474,9 @@ void gdlwxDrawPanel::OnMouseDown( wxMouseEvent &event ) {
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "TYPE", DIntGDL( 0 ) ); //button Press
-    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
-    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    wxPoint where=WhereIsMouse(event);
+    widgdraw->InitTag( "X", DLongGDL( where.x ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-where.y  ) );
     unsigned long btn=1<<(event.GetButton()-1);
     widgdraw->InitTag( "PRESS", DByteGDL( btn ));
     widgdraw->InitTag( "RELEASE", DByteGDL( 0 ) );
@@ -1492,8 +1501,9 @@ void gdlwxDrawPanel::OnMouseUp( wxMouseEvent &event ) {
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "TYPE", DIntGDL( 1 ) ); //button Release
-    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
-    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    wxPoint where=WhereIsMouse(event);
+    widgdraw->InitTag( "X", DLongGDL( where.x ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-where.y  ) );
     unsigned long btn=1<<(event.GetButton()-1);
     widgdraw->InitTag( "PRESS", DByteGDL( 0 ) );
     widgdraw->InitTag( "RELEASE", DByteGDL( btn ) );
@@ -1518,8 +1528,9 @@ void gdlwxDrawPanel::OnMouseWheel( wxMouseEvent &event ) {
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "TYPE", DIntGDL( 7 ) ); //wheel event
-    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
-    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    wxPoint where=WhereIsMouse(event);
+    widgdraw->InitTag( "X", DLongGDL( where.x ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-where.y  ) );
     widgdraw->InitTag( "PRESS", DByteGDL( 0 ) );
     widgdraw->InitTag( "RELEASE", DByteGDL( 0 ) );
     widgdraw->InitTag( "CLICKS", DLongGDL( event.GetWheelRotation() ) );
@@ -1545,8 +1556,9 @@ void gdlwxDrawPanel::OnKey( wxKeyEvent &event ) {
     widgdraw->InitTag( "ID", DLongGDL( myWidgetDraw->GetWidgetID() ) );
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
-    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
-    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    wxPoint where=WhereIsMouse(event);
+    widgdraw->InitTag( "X", DLongGDL( where.x ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-where.y  ) );
     widgdraw->InitTag( "CLICKS", DLongGDL( 0 ) );
     widgdraw->InitTag( "PRESS", DByteGDL( (event.GetEventType() == wxEVT_KEY_DOWN) ) );
     widgdraw->InitTag( "RELEASE", DByteGDL( (event.GetEventType() == wxEVT_KEY_UP) ) );

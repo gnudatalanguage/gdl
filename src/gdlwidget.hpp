@@ -2086,7 +2086,8 @@ public:
 
  void InitDrawSize(wxSize s) {drawSize = s;}
  wxSize GetDrawSize() {return drawSize;}
- 
+ wxPoint WhereIsMouse(wxMouseEvent &e);
+ wxPoint WhereIsMouse(wxKeyEvent &e);
  void ResizeDrawArea(const wxSize s);
  void DeleteUsingWindowNumber();
  void SetStream(GDLWXStream* s);
