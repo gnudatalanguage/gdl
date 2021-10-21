@@ -903,53 +903,13 @@ hid_t
        cout << endl;
     }
 
-    // define hyperslab in dataset
-#if (H5_VERS_MAJOR < 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR < 6)) ||  ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR == 6) && (H5_VERS_RELEASE <= 3))
-    hssize_t offset[MAXRANK];
-#else
-    hsize_t offset[MAXRANK];
-#endif
-    hsize_t count[MAXRANK];
-
-    if (rank>0) {
-
-       for (int i = 0; i < rank; i++) offset[i] = 0;
-       for (int i = 0; i < rank; i++) count[i] = dims_out[i];
-
-       if (H5Sselect_hyperslab(h5s_id, H5S_SELECT_SET,
-                               offset, NULL, count, NULL) < 0) {
-          string msg;
-          e->Throw(hdf5_error_message(msg));
-       }
-    }
-
     // define memory dataspace
-    hid_t memspace = H5Screate_simple(rank, count, NULL);
+    hid_t memspace = H5Screate_simple(rank, dims_out, NULL);
     if (memspace < 0) {
        string msg;
        e->Throw(hdf5_error_message(msg));
     }
     hdf5_space_guard memspace_guard = hdf5_space_guard(memspace);
-
-    // define memory hyperslab
-#if (H5_VERS_MAJOR < 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR < 6)) ||  ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR == 6) && (H5_VERS_RELEASE <= 3))
-    hssize_t offset_out[MAXRANK];
-#else
-    hsize_t offset_out[MAXRANK];
-#endif
-    hsize_t count_out[MAXRANK];
-
-    if (rank>0) {
-
-       for (int i = 0; i < rank; i++) offset_out[i] = 0;
-       for (int i = 0; i < rank; i++) count_out[i] = dims_out[i];
-
-       if (H5Sselect_hyperslab(memspace, H5S_SELECT_SET,
-                               offset_out, NULL, count_out, NULL) < 0) {
-          string msg;
-          e->Throw(hdf5_error_message(msg));
-       }
-    }
 
     SizeT count_s[MAXRANK];
     SizeT rank_s;
@@ -1049,7 +1009,7 @@ hid_t
 
     if (elem_rank>0) type = H5Tarray_create2( type, elem_rank, elem_dims );
 
-    if (H5Dread(h5d_id, type, memspace, h5s_id,
+    if (H5Dread(h5d_id, type, memspace, H5S_ALL,
                 H5P_DEFAULT, res->DataAddr()) < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
