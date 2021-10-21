@@ -542,6 +542,71 @@ hid_t
   }
 
 
+  BaseGDL* h5s_create_simple_fun( EnvT* e)
+  {
+    bool debug=false;
+    SizeT nParam=e->NParam(1);
+
+    int rank;
+    hsize_t curr_dims[MAXRANK], max_dims[MAXRANK];
+    hsize_t *p_max_dims=&max_dims[0];
+
+    /* mandatory 'Dimensions' parameter */
+    DUIntGDL* dimPar = e->GetParAs<DUIntGDL>(0);
+    SizeT nDim = dimPar->N_Elements();
+
+    if (nDim == 0)
+      e->Throw("Variable is undefined: "+ e->GetParString(0));
+    else
+       rank=nDim;
+
+    if (debug) printf("dataspace rank=%d\n", rank);
+
+    for(int i=0; i<rank; i++) curr_dims[i] = (hsize_t)(*dimPar)[i];
+
+    /* keyword 'max_dimensions' paramter */
+    static int maxDimIx = e->KeywordIx("MAX_DIMENSIONS");
+    if (e->GetKW(maxDimIx) != NULL) {
+
+      DUIntGDL* maxDimKW = e->IfDefGetKWAs<DUIntGDL>(maxDimIx);
+      SizeT nMaxDim = maxDimKW->N_Elements();
+
+      if (nMaxDim == 0)
+        e->Throw("Variable is undefined: "+ e->GetParString(maxDimIx));
+      else if(nMaxDim != rank)
+        e->Throw("Number of elements in MAX_DIMENSIONS must equal dataspace dimensions.");
+
+      for(int i=0; i<rank; i++) {
+         max_dims[i] = (hsize_t)(*maxDimKW)[i];
+
+         if(max_dims[i]<curr_dims[i])
+            e->Throw("H5S_CREATE_SIMPLE: maxdims is smaller than dims");
+      }
+
+    } else
+       p_max_dims=NULL;
+
+    /* debug output */
+    if (debug) {
+      const hsize_t *par[2] = { curr_dims, max_dims };
+      const char *parnm[2] = { "curr_dims", "max_dims" };
+
+      for(int i=0; i<1+(p_max_dims!=NULL); i++) {
+        printf(" %s=[",parnm[i]);
+        for(int j=0; j<rank; j++)
+          printf("%lld%s",par[i][j], (j==rank-1) ? "];" : ",");
+      }
+      printf("\n");
+    }
+
+    /* create the simple dataspace */
+    hid_t space_id = H5Screate_simple( rank, curr_dims, p_max_dims );
+    if (space_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return hdf5_output_conversion( space_id );
+  }
+
+
   void h5s_select_hyperslab_pro( EnvT* e )
   {
     bool debug = false;
