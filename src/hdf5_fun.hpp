@@ -50,6 +50,7 @@ namespace lib {
   BaseGDL* h5d_get_space_fun( EnvT* e);
   BaseGDL* h5s_get_simple_extent_ndims_fun( EnvT* e);
   BaseGDL* h5s_get_simple_extent_dims_fun( EnvT* e);
+  BaseGDL* h5s_create_scalar_fun( EnvT* e);
   BaseGDL* h5s_create_simple_fun( EnvT* e);
   void h5s_select_hyperslab_pro( EnvT* e);
   void h5f_close_pro( EnvT* e);

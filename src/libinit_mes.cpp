@@ -103,6 +103,7 @@ void LibInit_mes()
   new DLibFunRetNew(lib::h5s_get_simple_extent_dims_fun,
                string("H5S_GET_SIMPLE_EXTENT_DIMS"), 1);
   const string H5ScreateSimpleKey[] = {"MAX_DIMENSIONS", KLISTEND};
+  new DLibFunRetNew(lib::h5s_create_scalar_fun,string("H5S_CREATE_SCALAR"),0);
   new DLibFunRetNew(lib::h5s_create_simple_fun,string("H5S_CREATE_SIMPLE"),1,H5ScreateSimpleKey);
   const string H5SselectHyperslabKey[] = {"BLOCK", "RESET", "STRIDE", KLISTEND};
   new DLibPro(lib::h5s_select_hyperslab_pro,string("H5S_SELECT_HYPERSLAB"),3,H5SselectHyperslabKey);

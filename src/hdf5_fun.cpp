@@ -555,6 +555,16 @@ hid_t
   }
 
 
+  BaseGDL* h5s_create_scalar_fun( EnvT* e)
+  {
+    /* create a scalar dataspace */
+    hid_t space_id = H5Screate(H5S_SCALAR);
+    if (space_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return hdf5_output_conversion( space_id );
+  }
+
+
   BaseGDL* h5s_create_simple_fun( EnvT* e)
   {
     bool debug=false;
