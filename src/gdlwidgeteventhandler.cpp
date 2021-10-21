@@ -105,7 +105,14 @@ END_EVENT_TABLE()
 BEGIN_EVENT_TABLE(gdlwxPlotFrame, wxFrame)
   EVT_TIMER(RESIZE_PLOT_TIMER, gdlwxPlotFrame::OnTimerPlotResize) 
 END_EVENT_TABLE()
-
+wxPoint gdlwxGraphicsPanel::WhereIsMouse(wxKeyEvent &e) {
+    wxPoint pos=e.GetPosition();
+    return this->CalcUnscrolledPosition(pos);
+}
+wxPoint gdlwxGraphicsPanel::WhereIsMouse(wxMouseEvent &e) {
+    wxPoint pos=e.GetPosition();
+    return this->CalcUnscrolledPosition(pos);
+}
 int RemapModifiers(wxMouseEvent &e) {
   int out = 0;
   if (wxGetKeyState(WXK_CAPITAL)) out |= 0x04;
@@ -1257,7 +1264,7 @@ void gdlwxFrame::OnContextEvent( wxContextMenuEvent& event) {
       int col = grid->XToCol(position.x);
       int row = grid->YToRow(position.y);
       widgcontext->InitTag( "ROW", DLongGDL( row ) );
-      widgcontext->InitTag( "ROW", DLongGDL( col ) );
+      widgcontext->InitTag( "COL", DLongGDL( col ) );
     }
     GDLWidget::PushEvent( baseWidgetID, widgcontext );
   } else event.Skip();//normal end of event processing!
@@ -1443,8 +1450,9 @@ void gdlwxDrawPanel::OnMouseMove( wxMouseEvent &event ) {
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "TYPE", DIntGDL( 2 ) ); //motion
-    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
-    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    wxPoint where=WhereIsMouse(event);
+    widgdraw->InitTag( "X", DLongGDL( where.x ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-where.y  ) );
     widgdraw->InitTag( "MODIFIERS", DLongGDL( RemapModifiers(event)));
     GDLWidget::PushEvent( baseWidgetID, widgdraw );
   } else event.Skip(); //normal end of event processing!
@@ -1466,8 +1474,9 @@ void gdlwxDrawPanel::OnMouseDown( wxMouseEvent &event ) {
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "TYPE", DIntGDL( 0 ) ); //button Press
-    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
-    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    wxPoint where=WhereIsMouse(event);
+    widgdraw->InitTag( "X", DLongGDL( where.x ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-where.y  ) );
     unsigned long btn=1<<(event.GetButton()-1);
     widgdraw->InitTag( "PRESS", DByteGDL( btn ));
     widgdraw->InitTag( "RELEASE", DByteGDL( 0 ) );
@@ -1492,8 +1501,9 @@ void gdlwxDrawPanel::OnMouseUp( wxMouseEvent &event ) {
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "TYPE", DIntGDL( 1 ) ); //button Release
-    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
-    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    wxPoint where=WhereIsMouse(event);
+    widgdraw->InitTag( "X", DLongGDL( where.x ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-where.y  ) );
     unsigned long btn=1<<(event.GetButton()-1);
     widgdraw->InitTag( "PRESS", DByteGDL( 0 ) );
     widgdraw->InitTag( "RELEASE", DByteGDL( btn ) );
@@ -1518,8 +1528,9 @@ void gdlwxDrawPanel::OnMouseWheel( wxMouseEvent &event ) {
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "TYPE", DIntGDL( 7 ) ); //wheel event
-    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
-    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    wxPoint where=WhereIsMouse(event);
+    widgdraw->InitTag( "X", DLongGDL( where.x ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-where.y  ) );
     widgdraw->InitTag( "PRESS", DByteGDL( 0 ) );
     widgdraw->InitTag( "RELEASE", DByteGDL( 0 ) );
     widgdraw->InitTag( "CLICKS", DLongGDL( event.GetWheelRotation() ) );
@@ -1545,8 +1556,9 @@ void gdlwxDrawPanel::OnKey( wxKeyEvent &event ) {
     widgdraw->InitTag( "ID", DLongGDL( myWidgetDraw->GetWidgetID() ) );
     widgdraw->InitTag( "TOP", DLongGDL( baseWidgetID ) );
     widgdraw->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
-    widgdraw->InitTag( "X", DLongGDL( event.GetX() ) );
-    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-event.GetY()  ) );
+    wxPoint where=WhereIsMouse(event);
+    widgdraw->InitTag( "X", DLongGDL( where.x ) );
+    widgdraw->InitTag( "Y", DLongGDL( drawSize.y-where.y  ) );
     widgdraw->InitTag( "CLICKS", DLongGDL( 0 ) );
     widgdraw->InitTag( "PRESS", DByteGDL( (event.GetEventType() == wxEVT_KEY_DOWN) ) );
     widgdraw->InitTag( "RELEASE", DByteGDL( (event.GetEventType() == wxEVT_KEY_UP) ) );
@@ -1909,6 +1921,68 @@ void wxTreeCtrlGDL::OnItemSelected(wxTreeEvent & event){
     event.Skip();
     me->Refresh();
 }
+	void wxTreeCtrlGDL::onLeaveWindow(wxMouseEvent &evt){
+    this->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(wxTreeCtrlGDL::onLeaveWindow));
+    this->Disconnect(wxEVT_MOTION, wxMouseEventHandler(wxTreeCtrlGDL::onMouseMotion));
+    this->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(wxTreeCtrlGDL::onLeftUp));
+	}
+
+	// finish the drag action 
+	void wxTreeCtrlGDL::endDragging(){
+		itemDragging = nullptr;
+    this->Refresh();
+}
+
+void wxTreeCtrlGDL::onMouseMotion(wxMouseEvent &evt) {
+  wxPoint evtPos = evt.GetPosition();
+  wxTreeCtrlGDL *tree = (wxTreeCtrlGDL*) evt.GetEventObject();
+  wxTreeItemId treeItemHovered = HitTest(evtPos);
+  bool showCursors = treeItemHovered && treeItemHovered != GetRootItem();
+  if (showCursors) {
+    GDLWidgetTree* treeWidgetHovered = this->GetItemTreeWidget(treeItemHovered);
+    DString notify = treeWidgetHovered->GetDragNotifyValue();
+    if (treeWidgetHovered->GetDropability() == false) this->SetCursor(wxCURSOR_NO_ENTRY);
+    else if (treeItemHovered == itemDragging) this->SetCursor(wxCURSOR_NO_ENTRY);
+    else { //must ask DRAG_NOTIFY function if set up
+      //first, estimate what default behaviour would be:
+      if (this->GetChildrenCount(treeItemHovered) > 0) {
+        pos = 2; //dropping onto dest widget
+      } else {
+        wxRect rect;
+        GetBoundingRect(treeItemHovered, rect, true);
+        if (evtPos.y > rect.GetTop() + rect.GetHeight() / 2) {
+          pos = 4;
+        } else {
+          pos = 1;
+        }
+      }
+      if (notify != "<default>") {
+        GDLWidgetTree* treeWidgetDragging = this->GetItemTreeWidget(itemDragging);
+        int ret = treeWidgetHovered->GetDragNotifyReturn(notify, treeWidgetDragging->GetWidgetID(),GetModifiers() , pos);
+        if (ret != -1) pos=ret; //protect against bad returns, which are always since running a function in a wxwidgets loop is not possible yet.
+      }
+      switch(pos){
+      case 1: this->SetCursor(gdlTREE_SELECT_ABOVE);break;
+      case 2: this->SetCursor(wxCURSOR_POINT_LEFT);break;
+      case 4: this->SetCursor(gdlTREE_SELECT_BELOW);break;
+      default: this->SetCursor(wxCURSOR_NO_ENTRY);break; //case 0 
+      }
+    }
+  } else this->SetCursor(wxCURSOR_DEFAULT);
+}
+
+void wxTreeCtrlGDL::onLeftUp(wxMouseEvent &evt)
+{
+
+  this->SetCursor(wxCURSOR_DEFAULT);
+  wxPoint evtPos = evt.GetPosition();
+	wxTreeItemId itemUnderMouse = HitTest(evtPos);
+  this->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(wxTreeCtrlGDL::onLeaveWindow));
+  this->Disconnect(wxEVT_MOTION, wxMouseEventHandler(wxTreeCtrlGDL::onMouseMotion));
+  this->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(wxTreeCtrlGDL::onLeftUp));
+  wxTreeEvent treeEvent(wxEVT_ANY,this,itemUnderMouse);
+   this->OnDrop(treeEvent);
+}
 
 void wxTreeCtrlGDL::OnDrag(wxTreeEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
@@ -1921,12 +1995,16 @@ void wxTreeCtrlGDL::OnDrag(wxTreeEvent & event){
     GDLWidgetTree* tree= static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
       
     if (tree->GetDragability()) {//was set or inherited from one ancestor that was set
-      me->SetDragged(selected);
-      event.Allow();
+      itemDragging=event.GetItem();
+      pos=-1;
+//      event.Allow(); //do not use wxWidgets hanlding at all!
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("allowed.\n"),event.GetId());
 #endif
-  return;
+    this->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(wxTreeCtrlGDL::onLeaveWindow));
+    this->Connect(wxEVT_MOTION, wxMouseEventHandler(wxTreeCtrlGDL::onMouseMotion));
+    this->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(wxTreeCtrlGDL::onLeftUp));
+      return;
     }  
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("canceled.\n"),event.GetId());
@@ -1940,22 +2018,27 @@ void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
   wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnDrop: %d\n"),event.GetId());
 #endif
   if (!event.GetItem().IsOk()) {    event.Skip(); return;}
-
+  if (pos==-1){return;}
+  
     WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
     wxTreeCtrlGDL* me=dynamic_cast<wxTreeCtrlGDL*>(event.GetEventObject());
     WidgetIDT selected=dynamic_cast<wxTreeItemDataGDL*>(me->GetItemData(event.GetItem()))->widgetID;
-    GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::OnDrop: dragged: %d\n"),selected);
+#endif
+  GDLWidgetTree* item = static_cast<GDLWidgetTree*>(GDLWidget::GetWidget(selected));
     GDLWidgetTree* root=item->GetMyRootGDLWidgetTree();
 
     if (item->GetDropability()) { //was set or inherited from one ancestor that was set
- //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
+  
+  //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
 //the GDL widget that received the event
       DStructGDL* treedrop = new DStructGDL( "WIDGET_DROP");
       treedrop->InitTag("ID", DLongGDL( item->GetWidgetID()  )); //ID of the destination
       treedrop->InitTag("TOP", DLongGDL( baseWidgetID));
       treedrop->InitTag("HANDLER", DLongGDL( GDLWidgetTreeID ));
       treedrop->InitTag("DRAG_ID", DLongGDL( GDLWidgetTreeID )); // ID of the source TREE
-      treedrop->InitTag("POSITION",item->IsFolder()?DIntGDL(2):DIntGDL(3)); //   1 above 2 on 3 below destination widget
+      treedrop->InitTag("POSITION",DIntGDL(pos)); //   1 above 2 on 4 below destination widget
       treedrop->InitTag("X",DLongGDL(event.GetPoint().x)); //x and Y coord of position wrt lower left corner of destination tree widget
       treedrop->InitTag("Y",DLongGDL(event.GetPoint().y));
       treedrop->InitTag("MODIFIERS",DIntGDL(GetModifiers())); //mask with 1 shift 2 control 4 caps lock 8 alt
@@ -1963,8 +2046,6 @@ void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
       GDLWidget::PushEvent( baseWidgetID, treedrop );
   }
     //unset dragged
-    me->SetDragged(0);
-
   event.Skip();
     me->Refresh();
 
