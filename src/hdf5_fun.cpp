@@ -262,6 +262,19 @@ hid_t
     Changed from a 32-bit to a 64-bit value.
   */
 
+   hid_t hdf5_input_conversion_kw( EnvT* e, int position)
+  {
+
+    hid_t hdf5_id;
+
+#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
+    e->AssureLongScalarKW(position, (DLong64&)hdf5_id);
+#else
+    e->AssureLongScalarKW(position, hdf5_id);
+#endif
+    return  hdf5_id;
+  }
+
   hid_t hdf5_input_conversion( EnvT* e, int position)
   {
 
@@ -903,12 +916,64 @@ hid_t
 
     hid_t h5d_id = hdf5_input_conversion(e,0);
 
-    hid_t filespace_id = H5Dget_space(h5d_id);
-    if (filespace_id < 0) {
-      string msg;
-      e->Throw(hdf5_error_message(msg));
+
+    /* --- keyword 'FILE_SPACE' --- */
+
+    hid_t kw_filespace_id, filespace_id;
+
+    static int filespaceIx = e->KeywordIx("FILE_SPACE");
+
+    if(e->KeywordSet(filespaceIx)) {    /* use keyword parameter */
+
+       if (debug) printf("using keyword 'file_space'\n");
+       kw_filespace_id = hdf5_input_conversion_kw(e,filespaceIx);
+
+       if (H5Iis_valid(kw_filespace_id) <= 0)
+          e->Throw("not a dataspace: Object ID:" + i2s( kw_filespace_id ));
+       else
+          filespace_id = H5Scopy(kw_filespace_id);
+
+    } else {                            /* obtain from dataset */
+
+       filespace_id = H5Dget_space(h5d_id);
+       if (filespace_id < 0) {
+          string msg;
+          e->Throw(hdf5_error_message(msg));
+       }
     }
+
     hdf5_space_guard filespace_id_guard = hdf5_space_guard(filespace_id);
+
+
+    /* --- keyword 'MEMORY_SPACE' --- */
+
+    hid_t kw_memspace_id, memspace_id;
+
+    static int memspaceIx = e->KeywordIx("MEMORY_SPACE");
+
+    if(e->KeywordSet(memspaceIx)) {     /* use keyword parameter */
+
+       if (debug) printf("using keyword 'memory_space'\n");
+       kw_memspace_id = hdf5_input_conversion_kw(e,memspaceIx);
+
+       if (H5Iis_valid(kw_memspace_id) <= 0)
+          e->Throw("not a dataspace: Object ID:" + i2s( kw_memspace_id ));
+       else
+          memspace_id = H5Scopy(kw_memspace_id);
+
+    } else {                            /* same as file space */
+
+       memspace_id = H5Scopy(filespace_id);
+       if (memspace_id < 0) {
+          string msg;
+          e->Throw(hdf5_error_message(msg));
+       }
+    }
+
+    hdf5_space_guard memspace_id_guard = hdf5_space_guard(memspace_id);
+
+
+    /* --- data type --- */
 
     hid_t datatype = H5Dget_type(h5d_id);
     if (datatype < 0) {
@@ -949,15 +1014,15 @@ hid_t
 
     }
 
-    // determine the rank and dimension of the dataset
-    int rank = H5Sget_simple_extent_ndims(filespace_id);
+    // determine the rank and dimension of the dataset in memory
+    int rank = H5Sget_simple_extent_ndims(memspace_id);
     if (rank < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
-    if (debug) cout << "data rank is " << rank << endl;
+    if (debug) cout << "data rank in memory is " << rank << endl;
 
-    if (H5Sget_simple_extent_dims(filespace_id, dims_out, NULL) < 0) {
+    if (H5Sget_simple_extent_dims(memspace_id, dims_out, NULL) < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
@@ -967,14 +1032,6 @@ hid_t
        for(int i=0; i<rank; i++) cout << dims_out[i] << ",";
        cout << endl;
     }
-
-    // define memory dataspace
-    hid_t memspace = H5Screate_simple(rank, dims_out, NULL);
-    if (memspace < 0) {
-       string msg;
-       e->Throw(hdf5_error_message(msg));
-    }
-    hdf5_space_guard memspace_guard = hdf5_space_guard(memspace);
 
     SizeT count_s[MAXRANK];
     SizeT rank_s;
@@ -1074,7 +1131,7 @@ hid_t
 
     if (elem_rank>0) type = H5Tarray_create2( type, elem_rank, elem_dims );
 
-    if (H5Dread(h5d_id, type, memspace, H5S_ALL,
+    if (H5Dread(h5d_id, type, memspace_id, filespace_id,
                 H5P_DEFAULT, res->DataAddr()) < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
