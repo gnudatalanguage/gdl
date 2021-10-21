@@ -770,7 +770,7 @@ SizeT MemStats::NumFree = 0;
 SizeT MemStats::HighWater = 0;
 SizeT MemStats::Current = 0;
 
-#if !defined(HAVE_MALLINFO) 
+#if (!defined(HAVE_MALLINFO) && !defined(HAVE_MALLINFO2))
 #  if (!defined(HAVE_MALLOC_ZONE_STATISTICS) || !defined(HAVE_MALLOC_MALLOC_H))
 #    if defined(HAVE_SBRK)
 char* MemStats::StartOfMemory = reinterpret_cast<char*>(::sbrk(0));
@@ -785,7 +785,12 @@ char* MemStats::StartOfMemory = reinterpret_cast<char*>(::sbrk(0));
     // - the LLVM project (lib/System/Unix/Process.inc) see http://llvm.org/
     // - the Squid cache project (src/tools.cc) see http://squid-cache.org/
     // TODO (TOCHECK): Squid considers also gnumalloc.h - ?
-#if defined(HAVE_MALLINFO)
+#if defined(HAVE_MALLINFO2)
+    // Docs see below, newer versions of glibc deprecated mallinfo()
+    static struct mallinfo2 mi;
+    mi = mallinfo2();
+    Current = mi.arena+mi.hblkhd;
+#elif defined(HAVE_MALLINFO)
     // Linux case for example
     static struct mallinfo mi;
     mi = mallinfo();

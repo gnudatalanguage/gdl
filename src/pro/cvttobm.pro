@@ -23,20 +23,17 @@ function cvttobm,image,threshold=t
     nx=(sx-1)/8+1
     nsx=8*nx
     b=bytarr(nsx,sy)
-    ; use array_indices to put ones
-    w=where(a ge t)
-    dims=size(a,/dim)
-    ind=array_indices(dims,w, /dim)
-    b[ind[0,*],ind[1,*]]=1b
-
-    ; compress 8 bytes in 1:
-    z=bytarr(nx*sy)
     
-    v=[[1],[2],[4],[8],[16],[32],[64],[128]]
-    for i=0,n_elements(b)-1,8 do begin
-       x=b[i:i+7]
-       z[i/8]=byte(x##v)
-    endfor
-    return,reform(z,nx,sy)
+    ; JTappin's patch
+    b[0, 0] = a ge t
+
+  z = bytarr(nx, sy)
+  isf = 1b
+  for j = 0, 7 do begin
+     z += isf*b[j:*:8, *]
+     isf *= 2b
+  endfor
+
+  return, z
 end
 

@@ -48,23 +48,12 @@
 ;
 ;-
 ;
-pro READ_GIF, filename, image, Red, Green, Blue, $
-              help=help, test=test, debug=debug
-;
+pro READ_GIF, filename, image, Red, Green, Blue, background_color=bgc, close=close, delay_time=dtime,$
+              disposal_method=dispm, multiple=mult, repeat_count=rcount, transparent=transp, user_input= user_input
 
 compile_opt hidden, idl2
-
 ON_ERROR, 2
-;
-; this line allows to compile also in IDL ...
-FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ
-;
-if KEYWORD_SET(help) then begin
-    print, 'pro READ_GIF, filename, image, Red, Green, Blue, $'
-    print, '               help=help, test=test, debug=debug'
-    return
-endif
-;
+
 ; Do we have access to ImageMagick functionnalities ??
 ;
 if (MAGICK_EXISTS() EQ 0) then begin
@@ -80,80 +69,16 @@ if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
 if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
 if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename
 ;
-if KEYWORD_SET(unit) then MESSAGE, "Keyword UNIT not supported"
-if KEYWORD_SET(buffer) then MESSAGE, "Keyword BUFFER not supported"
-;
-;
-MESSAGE, /continue, 'This is a very preliminary procedure, please report problems'
-MESSAGE, /continue, '(if possible with link to the input image/test case)'
-;
-if (not KEYWORD_SET(unit)) then mid=MAGICK_OPEN(filename)
-;
-colors=256
-;
-;;DITHER if necessary
-if (KEYWORD_SET(grayscale)) then begin
-    MAGICK_QUANTIZE, mid, /GRAYSCALE
-endif else begin
-   if (KEYWORD_SET(colors)) then begin
-      if ((colors LT 8) OR (colors GT 256)) then MESSAGE, "COLORS must be in the range 8 to 256"
-      if (KEYWORD_SET(two_pass_quantize)) then MESSAGE, "TWO_PASS_QUANTIZE not supported by ImageMagick."
-      MAGICK_QUANTIZE, mid, colors, dither=dither
-   endif
-endelse
-;
+if ( ~MAGICK_PING(filename, 'GIF') and ~MAGICK_PING(filename, 'GIF87') )then MESSAGE, "error: Not a GIF file."
 
-if (MAGICK_INDEXEDCOLOR(mid)) then begin
-    image=MAGICK_READINDEXES(mid)
-    MAGICK_READCOLORMAPRGB, mid, red, green, blue
-    ;;   colortable=[[red],[green],[blue]]
-endif else begin
-    image=MAGICK_READ(mid)
-endelse
-;
-if KEYWORD_SET(debug) then STOP
-;
-;; if 16-bit (unsigned short int) image convert to byte
-;; sz = SIZE(image)
-;; type = sz[sz[0]+1]
-;; if ((type EQ 2) OR (type EQ 12)) then begin
-;;     print, 'Converting 16-bit image to byte'
-;;     image = image / 256
-;;     image = BYTE(image)
-;; endif
-
-;;if (not KEYWORD_SET(unit)) then 
-MAGICK_CLOSE, mid
-;
-sz = SIZE(image)
-if (sz[0] EQ 2) then begin
-   image=ROTATE(image,7)
-endif
-if (sz[0] EQ 3) then begin
-   ;; "rotate" image to agree with IDL (JMG 08/18/04)
-   tmp = image[0,*,*]
-   image[0,*,*] = image[2,*,*]
-   image[2,*,*] = tmp
-   ;;
-   if KEYWORD_SET(TRUE) then begin
-      if (TRUE eq 1) then t=[0,1,2]
-      if (TRUE eq 2) then t=[1,0,2]
-      if (TRUE eq 3) then t=[1,2,0]
-      ;;
-      image=TRANSPOSE(image, t)
-      ;;  image=transpose(image[[2,1,0],*,*], t)
-   endif
-endif
-if (sz[0] GT 3) then begin
-    MESSAGE, /continue, $
-             "Dimensions of image > 3 : we don't know how to process now"
-endif
-;else begin
-;    image = image[[2,1,0],*,*]
-;endelse
-;
-if KEYWORD_SET(test) then STOP
-;
+READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, background_color=bgc
+if ( n_elements(colortable) eq 0 ) then Message,"GIF file is not a 8 bit GIF"
+red=colortable[*,0]
+green=colortable[*,1]
+blue=colortable[*,2]
+; it happens that magick sends back a truecolor image, when IDL would
+; just send back a 2D index image. Do as IDL does:
+if (size(image))[0] eq 3 then image=reform(image[0,*,*])
 end
 
 

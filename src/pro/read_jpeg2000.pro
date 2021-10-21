@@ -1,4 +1,4 @@
-function READ_JPEG2000, filename, red, green, blue, order=order
+function READ_JPEG2000, filename, red, green, blue, order=order, discard_levels=discard_level, max_layers=max_layers, region=region
 ;
 
 compile_opt hidden, idl2
@@ -62,6 +62,11 @@ endif
 ;
 if (N_PARAMS() NE 1 and N_PARAMS() ne 4 ) then MESSAGE, "Incorrect number of arguments."
 ;
+if KEYWORD_SET(discard_levels) then MESSAGE,/INF, "DISCARD_LEVEL Keyword ignored."
+if KEYWORD_SET(max_layers) then MESSAGE,/INF, "MAX_LAYERS Keyword ignored."
+if KEYWORD_SET(region) then MESSAGE, "REGION Keyword not supported."
+
+
 if (N_ELEMENTS(filename) GT 1) then MESSAGE, "Only one file at once !"
 if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
 ;
@@ -70,23 +75,14 @@ if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+fil
 ;
 ; testing whether the format is as expected
 ;
-if ( ~MAGICK_PING(filename, 'JP2') and ~MAGICK_PING(filename, 'JPC') )  then begin
-   MESSAGE, "JPEG200 error: Not a JPEG2000 file:"
+if ( ~MAGICK_PING(filename, 'JPC') and  ~MAGICK_PING(filename, 'JP2')  and  ~MAGICK_PING(filename, 'JNG') ) then  MESSAGE, "JPEG200 error: Not a JPEG2000 file."
+;
+READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, order=order
+if n_elements(colortable) gt 0 then begin
+  red=colortable[*,0]
+  green=colortable[*,1]
+  blue=colortable[*,2]
 endif
-;
-mid=MAGICK_OPEN(filename)
-;
-;flip if order is set
-if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
-;
-if (N_PARAMS() eq 4) then begin
-if (MAGICK_INDEXEDCOLOR(mid)) then MAGICK_READCOLORMAPRGB, mid, red, green, blue
-endif
-
-image=MAGICK_READ(mid)
-
-image = image[[2,1,0],*,*]
-
 return, image
 
 end

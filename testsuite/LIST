@@ -109,6 +109,7 @@ test_idlneturl.pro
 test_indgen.pro
 test_interpol.pro
 test_interpolate.pro
+test_ioerror.pro
 test_isa.pro
 test_ishft.pro
 test_keyword_set_but_null.pro
@@ -173,6 +174,7 @@ test_systime.pro
 test_tag_names.pro
 test_tic_toc.pro
 test_tiff.pro
+test_timestamp.pro
 test_total.pro
 test_triangulate.pro
 test_trisol.pro

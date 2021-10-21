@@ -31,9 +31,8 @@ namespace lib {
   string GDLutos(unsigned int i);
   void magick_setup(void);
   unsigned int magick_id(void);
-  Image& magick_image(EnvT * e,unsigned int mid);
-  unsigned int magick_image(EnvT* e,Image &imImage);
-  void magick_replace(EnvT* e, unsigned int mid, Image &imImage);
+  Image* magick_image(EnvT *e, unsigned int mid);
+  unsigned int magick_image(EnvT *e, Image *imImage);
   //interface
   BaseGDL* magick_open(EnvT *e);
   BaseGDL* magick_create(EnvT *e);
@@ -65,6 +64,9 @@ namespace lib {
 
   //hmm
   void magick_display(EnvT* e);
+  //gd
+  BaseGDL* magick_type(EnvT* e);
+  BaseGDL* magick_class(EnvT* e);
 
   // SA: query/ping routines support
   BaseGDL * magick_ping(EnvT* e);

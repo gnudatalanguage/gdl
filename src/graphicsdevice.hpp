@@ -302,6 +302,7 @@ public:
   {
     throw GDLException( "Device "+Name()+" does not support ClearStream.");
   }
+  virtual bool DoesNotDrawSinglePoints() {return false;}
 };
 
 

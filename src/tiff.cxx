@@ -219,24 +219,24 @@ namespace lib
             return true;
         }
 
-        uint16 Handler::DirectoryCount() const
+        uint16_t Handler::DirectoryCount() const
         {
             return (tiff_ ? nDirs_ : 0);
         }
 
-        uint16 Handler::FileVersion() const
+        uint16_t Handler::FileVersion() const
         {
             return (tiff_ ? verNum_ : 0);
         }
 
-        typedef void (*ScanlineFn)(BaseGDL*, uint32, uint32, const void*, size_t);
+        typedef void (*ScanlineFn)(BaseGDL*, uint32_t, uint32_t, const void*, size_t);
         template<typename T>
         ScanlineFn createScanlineFn(BaseGDL*& var, T* val)
         {
             if(!(var = val))
                 return nullptr;
 
-            return [](BaseGDL* image, uint32 x, uint32 y, const void* buf, size_t bytes) {
+            return [](BaseGDL* image, uint32_t x, uint32_t y, const void* buf, size_t bytes) {
                 auto img = static_cast<T*>(image);
                 auto ptr = reinterpret_cast<typename T::Ty*>(img->DataAddr());
                 auto dim = img->Dim();
@@ -248,9 +248,9 @@ namespace lib
 
         BaseGDL* Handler::ReadImage(const Directory& dir, const Rectangle& rect)
         {
-            uint32 c = dir.samplesPerPixel;
-            uint32 w = (rect.w ? rect.w : dir.width - rect.x);
-            uint32 h = (rect.h ? rect.h : dir.height - rect.y);
+            uint32_t c = dir.samplesPerPixel;
+            uint32_t w = (rect.w ? rect.w : dir.width - rect.x);
+            uint32_t h = (rect.h ? rect.h : dir.height - rect.y);
 
             ScanlineFn addScanline;
             BaseGDL* image = nullptr;
@@ -289,7 +289,7 @@ namespace lib
                     goto error;
                 }
 
-                for(uint32 y = 0; y < h; ++y) {
+                for(uint32_t y = 0; y < h; ++y) {
                     if(TIFFReadScanline(tiff_, buffer, rect.y + y, 0) == -1)
                         goto error;
 
@@ -307,13 +307,13 @@ namespace lib
                     goto error;
                 }
 
-                for(uint32 y = 0, yrem, yoff; y < h; y += yrem) {
+                for(uint32_t y = 0, yrem, yoff; y < h; y += yrem) {
                     yoff = (rect.y + y) % dir.tileHeight;
 
                     if(((yrem = dir.tileHeight - yoff) + y) > h)
                         yrem = h - y;
 
-                    for(uint32 x = 0, xrem, xoff; x < w; x += xrem) {
+                    for(uint32_t x = 0, xrem, xoff; x < w; x += xrem) {
                         if(TIFFReadTile(tiff_, buffer, rect.x + x, rect.y + y, 0, 0) == -1)
                             goto error;
 
@@ -323,7 +323,7 @@ namespace lib
                         if(((xrem = dir.tileWidth - xoff) + x) > w)
                             xrem = w - x;
 
-                        for(uint32 ty = 0; ty < yrem; ++ty, start += (sampOff * dir.tileWidth))
+                        for(uint32_t ty = 0; ty < yrem; ++ty, start += (sampOff * dir.tileWidth))
                             addScanline(image, x, y + ty, start, sampOff * xrem);
                     }
                 }
@@ -352,7 +352,7 @@ namespace lib
 
             DStructFactory gtif;
             TIFF::GeoKey gk;
-            int16 nvals;
+            int16_t nvals;
             double* val;
 
             // TIFF geo fields

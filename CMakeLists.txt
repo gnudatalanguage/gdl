@@ -9,6 +9,19 @@
 
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
+# Set some policies to fix warnings in newer versions of cmake
+# Since VERSION_GREATER_EQUAL is available only since 3.7, we use 
+# VERSION_GREATER combined with VERSION_EQUAL to achieve what we want
+
+if (CMAKE_MINOR_VERSION GREATER 12)
+  if (CMAKE_VERSION VERSION_GREATER "3.12.0" OR CMAKE_VERSION VERSION_EQUAL "3.12.0")
+      cmake_policy(SET CMP0075 NEW)
+  endif(CMAKE_VERSION VERSION_GREATER "3.12.0" OR CMAKE_VERSION VERSION_EQUAL "3.12.0")
+  if (CMAKE_VERSION VERSION_GREATER "3.13.0" OR CMAKE_VERSION VERSION_EQUAL "3.13.0")
+      cmake_policy(SET CMP0077 NEW)
+  endif(CMAKE_VERSION VERSION_GREATER "3.13.0" OR CMAKE_VERSION VERSION_EQUAL "3.13.0")
+endif (CMAKE_MINOR_VERSION GREATER 12)
+
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
 
@@ -16,7 +29,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # X.X.X git becomes release X.X.X+1
-set(VERSION "1.0.0-rc.3 git")
+set(VERSION "1.0.0 Git")
 enable_testing()
 
 # cf issue 511, managing MultiArch on Debian ...
@@ -68,7 +81,7 @@ set(PNGLIB ON CACHE BOOL "GDL: Enable libpng ?")
 set(PNGLIBDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
 
 set(GRIB ON CACHE BOOL "GDL: Enable GRIB ?")
-set(GRIBDIR "" CACHE PATH "GDL: Specify the ECMWF ecCodes or GRIB API directory tree")
+set(GRIBDIR "" CACHE PATH "GDL: Specify the ECMWF ecCodes directory tree")
 
 # set(QHULL OFF CACHE BOOL "GDL: Enable Qhull ?")
 # set(QHULLDIR "" CACHE PATH "GDL: Specify the QHULL directory tree")
@@ -152,6 +165,7 @@ endif(HAVE_DL)
 check_function_exists(malloc_zone_statistics HAVE_MALLOC_ZONE_STATISTICS)
 check_function_exists(sbrk HAVE_SBRK)
 check_function_exists(mallinfo HAVE_MALLINFO)
+check_function_exists(mallinfo2 HAVE_MALLINFO2)
 
 # mallocs
 check_include_file(malloc.h HAVE_MALLOC_H)
@@ -302,6 +316,9 @@ if(OPENMP)
       set(LIBRARIES ${LIBRARIES} gomp pthread)
     else()
       set(LIBRARIES ${LIBRARIES} ${OpenMP_CXX_FLAGS})
+    endif()
+    if(APPLE)
+      link_directories(/usr/local/lib)
     endif()
   else(OPENMP_FOUND)
     message(FATAL_ERROR "Your compiler does not support OpenMP or OpenMP was not found"
@@ -965,13 +982,13 @@ if(GRIB)
         set(LIBRARIES ${LIBRARIES} ${GRIB_LIBRARIES})
         include_directories(${GRIB_INCLUDE_DIR})
     else(GRIB_FOUND)
-        message(FATAL_ERROR "ECMWF ecCodes or GRIB API is required but was not found.\n"
+        message(FATAL_ERROR "ECMWF ecCodes is required but was not found.\n"
         "Use -DGRIBDIR=DIR to specify the ecCodes or GRIB API directory tree.\n"
         "Use -DGRIB=OFF to not use it.\n"
         "Use -DJASPERDIR=DIR and|or -DJPEGDIR=DIR to specify "
         "the directory trees of JasPer and openJPEG libraries.\n"
-                "(suitable Debian/Ubuntu package: libeccodes-dev or libgrib-api-dev)\n"
-                "(suitable Fedora/CentOS package: grib_api-devel)\n"
+                "(suitable Debian/Ubuntu package: libeccodes-dev)\n"
+                "(suitable Fedora/CentOS package: eccodes-devel)\n"
         "(suitable Homebrew package: eccodes)\n")
     endif(GRIB_FOUND)
 endif(GRIB)
