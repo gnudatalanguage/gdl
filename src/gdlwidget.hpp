@@ -1672,6 +1672,8 @@ static const char* tree_up_selection_mask = (const char*) tree_up_selection_mask
 static const char* tree_down_selection_bits = (const char*) tree_down_selection_bits_uc;
 static const char* tree_down_selection_mask = (const char*) tree_down_selection_mask_uc;
 // tree widget **************************************************
+class GDLWidgetTree;
+class wxTreeItemDataGDL;
 class wxTreeCtrlGDL: public wxTreeCtrl {
   wxWindowID GDLWidgetTreeID;
   int KeyModifier; //Shift, Control... set during a drag
@@ -1688,7 +1690,6 @@ public:
 	void onLeaveWindow(wxMouseEvent &evt);
 	// finish the drag action 
 	void endDragging();
-
 	void onMouseMotion(wxMouseEvent &evt);
 public:
   wxTreeCtrlGDL(wxWindow *parent, wxWindowID id = wxID_ANY,
@@ -1726,6 +1727,8 @@ public:
   //necessary to define the destructor otherwise compiler will try to find the bind event table for destruction event!
   ~wxTreeCtrlGDL(){}
   int GetCurrentModifier(){return KeyModifier;}
+  GDLWidgetTree* GetItemTreeWidget(wxTreeItemId id);
+  
   void OnItemActivated(wxTreeEvent & event);
   void OnItemCollapsed(wxTreeEvent & event);
   void OnItemStateClick(wxTreeEvent & event);
@@ -1740,10 +1743,11 @@ class wxTreeItemDataGDL : public wxTreeItemData {
   public:
     WidgetIDT widgetID;
     wxTreeCtrlGDL* myTree;
-
+    wxTreeItemId treeItemID;
   wxTreeItemDataGDL(WidgetIDT id, wxTreeCtrlGDL* myTree_) : widgetID(id), myTree(myTree_) {}
   WidgetIDT GetWidgetID(){return widgetID;}
   wxTreeCtrlGDL* GetTree(){return myTree;}
+  void SetItemId(wxTreeItemId id){treeItemID=id;}
 };
 
 class GDLWidgetTree: public GDLWidget
@@ -1780,8 +1784,9 @@ GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong eventFlags
   bool GetDragability();
   void SetDragability(DLong val){draggable=val;}
   //DRAGNOTIFY
-  DString GetDragNotifyValue(){return dragNotify;}
-  void SetDragNotify(DString &s){Warning("SET_DRAG_NOTIFY is currently ignored by GDL, FIXME."); dragNotify=s;}
+  DString GetDragNotifyValue();
+  int GetDragNotifyReturn(DString &cf, WidgetIDT sourceID, int modifiers, int defaultval);
+  void SetDragNotify(DString &s){dragNotify=s;}
   //DROP
   int  GetDroppableValue(){return droppable;}
   bool GetDropability();

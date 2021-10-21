@@ -1919,29 +1919,41 @@ void wxTreeCtrlGDL::OnItemSelected(wxTreeEvent & event){
 	void wxTreeCtrlGDL::endDragging(){
 		itemDragging = nullptr;
     this->Refresh();
-	}
+}
+
 void wxTreeCtrlGDL::onMouseMotion(wxMouseEvent &evt) {
-  this;
   wxPoint evtPos = evt.GetPosition();
-  wxTreeCtrlGDL *mt = (wxTreeCtrlGDL*) evt.GetEventObject();
-  wxTreeItemId itemHovered = HitTest(evtPos);
-  bool showCursors = itemHovered && itemHovered != GetRootItem();
+  wxTreeCtrlGDL *tree = (wxTreeCtrlGDL*) evt.GetEventObject();
+  wxTreeItemId treeItemHovered = HitTest(evtPos);
+  bool showCursors = treeItemHovered && treeItemHovered != GetRootItem();
   if (showCursors) {
-    if (itemHovered == itemDragging)  this->SetCursor(wxCURSOR_NO_ENTRY);
-    else if (this->GetChildrenCount(itemHovered) > 0) {
-      this->SetCursor(wxCURSOR_POINT_LEFT);
-      pos=2; //dropping onto dest widget
-    }
-    else {
-      wxRect rect;
-      GetBoundingRect(itemHovered, rect, true);
-      if (evtPos.y > rect.GetTop() + rect.GetHeight() / 2) {
-        pos=4;
-        this->SetCursor(gdlTREE_SELECT_BELOW);// below
+    GDLWidgetTree* treeWidgetHovered = this->GetItemTreeWidget(treeItemHovered);
+    DString notify = treeWidgetHovered->GetDragNotifyValue();
+    if (treeWidgetHovered->GetDropability() == false) this->SetCursor(wxCURSOR_NO_ENTRY);
+    else if (treeItemHovered == itemDragging) this->SetCursor(wxCURSOR_NO_ENTRY);
+    else { //must ask DRAG_NOTIFY function if set up
+      //first, estimate what default behaviour would be:
+      if (this->GetChildrenCount(treeItemHovered) > 0) {
+        pos = 2; //dropping onto dest widget
+      } else {
+        wxRect rect;
+        GetBoundingRect(treeItemHovered, rect, true);
+        if (evtPos.y > rect.GetTop() + rect.GetHeight() / 2) {
+          pos = 4;
+        } else {
+          pos = 1;
+        }
       }
-      else { 
-        pos=1;
-        this->SetCursor(gdlTREE_SELECT_ABOVE);// above
+      if (notify != "<default>") {
+        GDLWidgetTree* treeWidgetDragging = this->GetItemTreeWidget(itemDragging);
+        int ret = treeWidgetHovered->GetDragNotifyReturn(notify, treeWidgetDragging->GetWidgetID(),GetModifiers() , pos);
+        if (ret != -1) pos=ret; //protect against bad returns, which are always since running a function in a wxwidgets loop is not possible yet.
+      }
+      switch(pos){
+      case 1: this->SetCursor(gdlTREE_SELECT_ABOVE);break;
+      case 2: this->SetCursor(wxCURSOR_POINT_LEFT);break;
+      case 4: this->SetCursor(gdlTREE_SELECT_BELOW);break;
+      default: this->SetCursor(wxCURSOR_NO_ENTRY);break; //case 0 
       }
     }
   } else this->SetCursor(wxCURSOR_DEFAULT);

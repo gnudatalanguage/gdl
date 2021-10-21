@@ -663,7 +663,7 @@ BaseGDL* widget_tree( EnvT* e)
     e->AssureLongScalarKWIfPresent( INDEX, treeindex );
   } else if (e->KeywordSet( TOP )) { treeindex=0; }
    
-  DLong draggability=-1;
+  DLong draggability=-1; //inherit
   if (e->KeywordPresent( DRAGGABLE )) e->AssureLongScalarKWIfPresent( DRAGGABLE, draggability );
   bool folder = e->KeywordSet( FOLDER );
   bool expanded = (folder && e->KeywordSet( EXPANDED ));
@@ -714,8 +714,8 @@ BaseGDL* widget_tree( EnvT* e)
 
     GDLWidgetTree* tree = new GDLWidgetTree(parentID, e, value, eventFlags
       , bitmap
-      , dropability
       , draggability
+      , dropability
       , expanded
       , folder
       , treeindex
@@ -3900,12 +3900,18 @@ void widget_control( EnvT* e ) {
 
   if (widget->IsTree()) {
       if (setTreeexpanded) static_cast<GDLWidgetTree *>(widget)->DoExpand(e->KeywordSet(SET_TREE_EXPANDED));
-      else if (setDraggable) static_cast<GDLWidgetTree *> (widget)->SetDragability(e->KeywordSet(SET_DRAGGABLE));
+      else if (setDraggable) {
+        DLong what=-1;
+        e->AssureLongScalarKWIfPresent(SET_DRAGGABLE,what);
+        if (what > 1 || what < -1) what=-1;
+        static_cast<GDLWidgetTree *>(widget)->SetDragability(what);
+      }
       else if (setTreechecked) static_cast<GDLWidgetTree *> (widget)->CheckItem(e->KeywordSet(SET_TREE_CHECKED));
       else if (setTreevisible) static_cast<GDLWidgetTree *> (widget)->SetVisible();
       if (drop_events) { //drop_events are INHERITED for TREE 
-        DLong what=0; //default value since the keyword IS present 
+        DLong what=-1; //default value: inherit
         e->AssureLongScalarKWIfPresent(SET_DROP_EVENTS,what);
+        if (what > 1 || what < -1) what=-1;
         static_cast<GDLWidgetTree *>(widget)->SetDropability(what);
       }
       else if (setTreeselect) {
