@@ -43,21 +43,27 @@ void LibInit_jp()
   //BASE  
   const string widget_baseKey[] = {WIDGET_COMMON_KEYWORDS, "MBAR", "APP_MBAR", "MODAL", "COLUMN", "ROW",
     "EXCLUSIVE", "NONEXCLUSIVE", "FLOATING", "MAP", "TITLE", "XPAD", "X_SCROLL_SIZE", "YPAD", "Y_SCROLL_SIZE", "DISPLAY_NAME",
-    "RNAME_MBAR", "TAB_MODE", "CONTEXT_EVENTS", "KBRD_FOCUS_EVENTS", "TLB_ICONIFY_EVENTS", "TLB_KILL_REQUEST_EVENTS",
+    "RNAME_MBAR", "CONTEXT_EVENTS", "KBRD_FOCUS_EVENTS", "TLB_ICONIFY_EVENTS", "TLB_KILL_REQUEST_EVENTS",
     "TLB_MOVE_EVENTS", "TLB_SIZE_EVENTS", "TRACKING_EVENTS", "GRID_LAYOUT",
     "BASE_ALIGN_CENTER", "BASE_ALIGN_LEFT", "BASE_ALIGN_RIGHT", "BASE_ALIGN_BOTTOM", "BASE_ALIGN_TOP", "SPACE", "CONTEXT_MENU",
-    "TOOLBAR", "TLB_FRAME_ATTR", "TLB_RESIZE_NODRAW", "BITMAP", KLISTEND};
+    "TOOLBAR", "TLB_FRAME_ATTR", "TLB_RESIZE_NODRAW", "BITMAP", 
+  //unsupported but warning is a pain.
+    "TAB_MODE",  
+    KLISTEND};
   new DLibFunRetNew(lib::widget_base, string("WIDGET_BASE"), 1, widget_baseKey);
   //BUTTON
   const string widget_buttonKey[] = {WIDGET_COMMON_KEYWORDS, "MENU", "VALUE", "HELP", "SEPARATOR", "INPUT_FOCUS", "BITMAP", "IMAGE", "TOOLTIP",
-    "TRACKING_EVENTS", "DYNAMIC_RESIZE", "X_BITMAP_EXTRA", "FLAT", "NO_RELEASE", KLISTEND};
-  const string widget_buttonWarnKey[] = {"ACCELERATOR", "CHECKED_MENU",
-    "TAB_MODE", KLISTEND};
-  new DLibFunRetNew(lib::widget_button, string("WIDGET_BUTTON"), 1, widget_buttonKey, widget_buttonWarnKey);
+    "TRACKING_EVENTS", "DYNAMIC_RESIZE", "X_BITMAP_EXTRA", "FLAT", "NO_RELEASE", "CHECKED_MENU","PUSHBUTTON_EVENTS","RESOURCE_NAME",
+    "ACCELERATOR","TAB_MODE", 
+    KLISTEND};
+  new DLibFunRetNew(lib::widget_button, string("WIDGET_BUTTON"), 1, widget_buttonKey);
   //COMBOBOX
-  const string widget_comboboxKey[] = {WIDGET_COMMON_KEYWORDS, "EDITABLE", "VALUE", "TRACKING_EVENTS", "DYNAMIC_RESIZE", "FLAT", KLISTEND};
-  //  const string widget_comboboxWarnKey[] = {"TAB_MODE",KLISTEND};
-  new DLibFunRetNew(lib::widget_combobox, string("WIDGET_COMBOBOX"), 1, widget_comboboxKey); //,widget_comboboxWarnKey);
+  const string widget_comboboxKey[] = {WIDGET_COMMON_KEYWORDS, "EDITABLE", "VALUE", "TRACKING_EVENTS", "DYNAMIC_RESIZE", "FLAT",
+  //unsupported but warning is a pain.
+    "IGNORE_ACCELERATORS",
+    "TAB_MODE",    
+    KLISTEND};
+  new DLibFunRetNew(lib::widget_combobox, string("WIDGET_COMBOBOX"), 1, widget_comboboxKey); 
   //CONTROL
   const string widget_ControlKey[] = {"REALIZE", "MANAGED", "EVENT_FUNC", "EVENT_PRO",
     "XMANAGER_ACTIVE_COMMAND", "DESTROY",
@@ -73,7 +79,7 @@ void LibInit_jp()
     "DRAW_MOTION_EVENTS", "DRAW_WHEEL_EVENTS", "TRACKING_EVENTS", "DRAW_VIEWPORT_EVENTS",
     "SET_DROP_EVENTS", "KILL_NOTIFY", "SHOW", "APPEND", "USE_TEXT_SELECT", "SET_TEXT_SELECT",
     "XSIZE", "YSIZE", "SCR_XSIZE", "SCR_YSIZE", "DRAW_XSIZE", "DRAW_YSIZE", "FRAME", "SCROLL", //not IDL!
-    "BITMAP", "TIMER", "NOTIFY_REALIZE", "ALL_TABLE_EVENTS", "ALL_TEXT_EVENTS",
+    "BITMAP", "IMAGE", "TIMER", "NOTIFY_REALIZE", "ALL_TABLE_EVENTS", "ALL_TEXT_EVENTS",
     "TLB_KILL_REQUEST_EVENTS", "TLB_MOVE_EVENTS", "TLB_SIZE_EVENTS", "TLB_ICONIFY_EVENTS",
     "TLB_RESIZE_NODRAW", //This keyword will be silently ignored, as the wxWidgets redrawing is always done as if "TLB_RESIZE_NODRAW" was set.
     "CONTEXT_EVENTS", "KBRD_FOCUS_EVENTS", "ALIGNMENT",
@@ -84,10 +90,14 @@ void LibInit_jp()
     "UPDATE", "FORMAT", "EDIT_CELL", "TABLE_XSIZE", "TABLE_YSIZE", "SEND_EVENT", "BAD_ID",
     "GROUP_LEADER", "COMBOBOX_ADDITEM", "COMBOBOX_DELETEITEM", "COMBOBOX_INDEX",
     "GET_DRAW_VIEW", "SET_TAB_CURRENT", "UNITS", "DYNAMIC_RESIZE", "SET_SLIDER_MIN", "SET_SLIDER_MAX",
-    "X_BITMAP_EXTRA", "DEFAULT_FONT", "FONT", "EDITABLE", "BASE_SET_TITLE", KLISTEND};
-  const string widget_WarnControlKey[] = {"SET_TREE_SELECT", "SET_TREE_EXPANDED", "SET_TREE_INDEX",
-    "SET_TREE_BITMAP", "DELAY_DESTROY",
-    "PUSHBUTTON_EVENTS", "TABLE_BLANK", "TAB_MODE", "SET_TAB_MULTILINE", "ICONIFY"
+    "X_BITMAP_EXTRA", "DEFAULT_FONT", "FONT", "EDITABLE", "BASE_SET_TITLE", "SET_TREE_EXPANDED", 
+    "SET_TREE_SELECT","SET_TREE_INDEX","SET_DRAG_NOTIFY","SET_DRAGGABLE","SET_TREE_CHECKED",
+    "SET_TREE_BITMAP","SET_MASK","SET_TREE_VISIBLE",
+    //unsupported but warning is a pain.
+    "TAB_MODE", 
+    KLISTEND};
+  const string widget_WarnControlKey[] = { "DELAY_DESTROY",
+    "PUSHBUTTON_EVENTS", "TABLE_BLANK", "SET_TAB_MULTILINE", "ICONIFY"
     , "CANCEL_BUTTON" //obsoleted in 6.2
     , "DEFAULT_BUTTON" //obsoleted in 6.2
     , KLISTEND}; //LIST NOT CLOSE!!!  
@@ -105,9 +115,9 @@ void LibInit_jp()
     , "TRACKING_EVENTS"
     , "WHEEL_EVENTS"
     , "VIEWPORT_EVENTS"
-    , "INPUT_FOCUS"
-    , "APP_SCROLL"
+    , "APP_SCROLL" //not taken into account, but not useful, too.
     , "TOOLTIP"
+ // unsupported yet but warning about it may be a pain
     , "RETAIN" //not taken into account, but not useful, too.
     , "CLASSNAME"
     , "COLOR_MODEL"
@@ -122,8 +132,10 @@ void LibInit_jp()
   };
   new DLibFunRetNew(lib::widget_draw, string("WIDGET_DRAW"), 1, widget_drawKey, widget_drawWarnKey);
   //DROPLIST 
-  const string widget_droplistKey[] = {WIDGET_COMMON_KEYWORDS, "TITLE", "VALUE", "TRACKING_EVENTS", "DYNAMIC_RESIZE", "FLAT", KLISTEND};
-  //  const string widget_droplistWarnKey[] = {"TAB_MODE",KLISTEND};
+  const string widget_droplistKey[] = {WIDGET_COMMON_KEYWORDS, "TITLE", "VALUE", "TRACKING_EVENTS", "DYNAMIC_RESIZE", "FLAT",
+    //unsupported but warning is a pain.
+    "TAB_MODE", 
+    KLISTEND};
   new DLibFunRetNew(lib::widget_droplist, string("WIDGET_DROPLIST"), 1, widget_droplistKey); //,widget_droplistWarnKey);
   //EVENT  
   const string widget_eventKey[] = {"XMANAGER_BLOCK", "DESTROY", "SAVE_HOURGLASS", "NOWAIT", "BAD_ID", KLISTEND};
@@ -136,13 +148,17 @@ void LibInit_jp()
     "FONTNAME", "STRING_SIZE",
     "BUTTON_SET", "PARENT", "TEXT_SELECT", "FIND_BY_UNAME", "TYPE", "NAME",
     "TABLE_DISJOINT_SELECTION", "TABLE_SELECT", "COLUMN_WIDTHS", "ROW_HEIGHTS", "USE_TABLE_SELECT", "SYSTEM_COLORS",
-    "TREE_ROOT", "TREE_SELECT", "TREE_EXPANDED", "TREE_FOLDER", "TREE_INDEX", "TREE_BITMAP", "DROP_EVENTS", "DRAGGABLE", "DRAG_NOTIFY", "MASK",
+    "TREE_ROOT", "TREE_SELECT", "TREE_DRAG_SELECT", "TREE_EXPANDED", "TREE_FOLDER", "TREE_INDEX", "TREE_BITMAP",
+  "DROP_EVENTS", "DRAGGABLE", "DRAG_NOTIFY", "MASK","TREE_CHECKBOX", "TREE_CHECKED",
     "LIST_SELECT", "DROPLIST_SELECT", "COMBOBOX_GETTEXT",
-    "TAB_NUMBER", "TAB_MULTILINE", "TAB_CURRENT", "UPDATE",
+    "TAB_NUMBER", "TAB_MULTILINE", "TAB_CURRENT",
     "TLB_KILL_REQUEST_EVENTS", "TLB_MOVE_EVENTS", "TLB_SIZE_EVENTS", "TLB_ICONIFY_EVENTS",
     "EVENT_FUNC", "EVENT_PRO", "N_CHILDREN", "ALL_CHILDREN", "SIBLING", "REALIZED", "UNITS", "MAP",
     "DRAW_MOTION_EVENTS", "DRAW_BUTTON_EVENTS", "DRAW_EXPOSE_EVENTS", "DRAW_KEYBOARD_EVENTS",
-    "DRAW_VIEWPORT_EVENTS", "DRAW_WHEEL_EVENTS", "TRACKING_EVENTS", "SENSITIVE", KLISTEND};
+    "DRAW_VIEWPORT_EVENTS", "DRAW_WHEEL_EVENTS", "TRACKING_EVENTS", "SENSITIVE",
+  //Fake answer
+    "UPDATE","TAB_MODE","TOOLTIP",
+    KLISTEND};
   const string widget_infoWarnKey[] = {
     //  "COLUMN_WIDTHS",
     //  "COMBOBOX_NUMBER","COMPONENT","CONTEXT_EVENTS",
@@ -154,19 +170,21 @@ void LibInit_jp()
     //  "PROPERTY_VALID","PROPERTY_VALUE","PUSHBUTTON_EVENTS","ROW_HEIGHTS",
     //  "SLIDER_MIN_MAX","TABLE_ALL_EVENTS","TABLE_BACKGROUND_COLOR",
     //  "TABLE_EDITABLE","TABLE_EDIT_CELL","TABLE_FONT","TABLE_FOREGROUND_COLOR","TABLE_VIEW",
-    //  "TAB_MODE","TEXT_ALL_EVENTS","TEXT_EDITABLE","TEXT_NUMBER","TEXT_OFFSET_TO_XY",
+    //  "TEXT_ALL_EVENTS","TEXT_EDITABLE","TEXT_NUMBER","TEXT_OFFSET_TO_XY",
     //  "TEXT_TOP_LINE","TEXT_XY_TO_OFFSET",
-    //  "TOOLTIP","TREE_DRAG_SELECT","UPDATE","USE_TABLE_SELECT","VISIBLE",
-    "TAB_MODE", KLISTEND
+    //  "USE_TABLE_SELECT","VISIBLE",
+    KLISTEND
   };
   new DLibFunRetNew(lib::widget_info, string("WIDGET_INFO"), 1, widget_infoKey, widget_infoWarnKey);
   //LABEL
   const string widget_labelKey[] = {WIDGET_COMMON_KEYWORDS, "VALUE", "SUNKEN_FRAME", "TRACKING_EVENTS", "DYNAMIC_RESIZE", KLISTEND};
   new DLibFunRetNew(lib::widget_label, string("WIDGET_LABEL"), 1, widget_labelKey);
   //LIST
-  const string widget_listKey[] = {WIDGET_COMMON_KEYWORDS, "MULTIPLE", "VALUE", "CONTEXT_EVENTS", "TRACKING_EVENTS", KLISTEND};
-  const string widget_listWarnKey[] = {"TAB_MODE", KLISTEND};
-  new DLibFunRetNew(lib::widget_list, string("WIDGET_LIST"), 1, widget_listKey, widget_listWarnKey);
+  const string widget_listKey[] = {WIDGET_COMMON_KEYWORDS, "MULTIPLE", "VALUE", "CONTEXT_EVENTS", "TRACKING_EVENTS",
+  //unsupported but warning is a pain.
+    "TAB_MODE", 
+    KLISTEND};
+  new DLibFunRetNew(lib::widget_list, string("WIDGET_LIST"), 1, widget_listKey);
   //MESSAGE
   //PROPERTYSHEET (2-columns TABLE). UNSUPPORTED !!!
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID
@@ -175,14 +193,18 @@ void LibInit_jp()
 #endif
   //SLIDER
   const string widget_sliderKey[] = {WIDGET_COMMON_KEYWORDS, "TITLE", "DRAG", "VALUE", "MINIMUM", "MAXIMUM", "VERTICAL",
-    "SUPPRESS_VALUE", "TRACKING_EVENTS", KLISTEND};
-  const string widget_sliderWarnKey[] = {"TAB_MODE", KLISTEND};
-  new DLibFunRetNew(lib::widget_slider, string("WIDGET_SLIDER"), 1, widget_sliderKey, widget_sliderWarnKey);
+    "SUPPRESS_VALUE", "TRACKING_EVENTS",
+  //unsupported but warning is a pain.
+    "TAB_MODE",
+    KLISTEND};
+  new DLibFunRetNew(lib::widget_slider, string("WIDGET_SLIDER"), 1, widget_sliderKey);
   //STUB
   //TAB
-  const string widget_tabKey[] = {WIDGET_COMMON_KEYWORDS, "MULTILINE", "LOCATION", "TRACKING_EVENTS", KLISTEND};
-  //  const string widget_tabWarnKey[] = {WIDGET_COMMON_KEYWORDS,"TAB_MODE", KLISTEND};
-  new DLibFunRetNew(lib::widget_tab, string("WIDGET_TAB"), 1, widget_tabKey); //,widget_tabWarnKey);
+  const string widget_tabKey[] = {WIDGET_COMMON_KEYWORDS, "MULTILINE", "LOCATION", "TRACKING_EVENTS",
+  //unsupported but warning is a pain.
+  "TAB_MODE",
+   KLISTEND};
+  new DLibFunRetNew(lib::widget_tab, string("WIDGET_TAB"), 1, widget_tabKey);
   //TABLE
   const string widget_tableKey[] = {WIDGET_COMMON_KEYWORDS
     , "ALIGNMENT"
@@ -212,28 +234,25 @@ void LibInit_jp()
     , "AM_PM"
     , "DAYS_OF_WEEK"
     , "MONTHS"
+// unsupported yet but warning about it may be a pain
+    , "IGNORE_ACCELERATORS"
+    , "TAB_MODE"   
     , KLISTEND};
-  const string widget_tableWarnKey[] = {
-    "IGNORE_ACCELERATORS"
-    , "TAB_MODE"
-    , KLISTEND
-  };
-  new DLibFunRetNew(lib::widget_table, string("WIDGET_TABLE"), 1, widget_tableKey, widget_tableWarnKey);
+  new DLibFunRetNew(lib::widget_table, string("WIDGET_TABLE"), 1, widget_tableKey);
   //TEXT
   const string widget_textKey[] = {WIDGET_COMMON_KEYWORDS, "EDITABLE", "NO_NEWLINE", "VALUE",
-    "INPUT_FOCUS", "ALL_EVENTS", "CONTEXT_EVENTS", "KBRD_FOCUS_EVENTS", "TRACKING_EVENTS", "WRAP", KLISTEND};
-  const string widget_textWarnKey[] = {"IGNORE_ACCELERATORS", "TAB_MODE", KLISTEND};
-  new DLibFunRetNew(lib::widget_text, string("WIDGET_TEXT"), 1, widget_textKey, widget_textWarnKey);
+    "INPUT_FOCUS", "ALL_EVENTS", "CONTEXT_EVENTS", "KBRD_FOCUS_EVENTS", "TRACKING_EVENTS", "WRAP",
+// unsupported yet but warning about it may be a pain
+  "IGNORE_ACCELERATORS", "TAB_MODE",
+  KLISTEND};
+  new DLibFunRetNew(lib::widget_text, string("WIDGET_TEXT"), 1, widget_textKey);
   //TREE
-  const string widget_treeWarnKey[] = {"CHECKBOX", "CHECKED", "DRAG_NOTIFY"
-    , "MASK"
-    , "MULTIPLE"
-    , "NO_BITMAPS"
-    , "TAB_MODE"
-    , "TOOLTIP"
+  const string widget_treeWarnKey[] = { "DRAG_NOTIFY"
+
     , KLISTEND};
   const string widget_treeKey[] = {WIDGET_COMMON_KEYWORDS
     , "BITMAP"
+    , "MASK"
     , "FOLDER"
     , "EXPANDED"
     , "VALUE"
@@ -243,6 +262,13 @@ void LibInit_jp()
     , "DRAGGABLE"
     , "INDEX"
     , "TOP" //obsolete in 6.4, use INDEX=0 instead
+    , "TAB_MODE"
+    , "CHECKBOX"
+    , "CHECKED"
+    , "NO_BITMAPS"
+    , "MULTIPLE"
+    , "TOOLTIP"
+    , "DRAG_NOTIFY"
     , KLISTEND};
   new DLibFunRetNew(lib::widget_tree, string("WIDGET_TREE"), 1, widget_treeKey, widget_treeWarnKey);
   //TREE_MOVE  

@@ -9,27 +9,68 @@
 #   - readline, zlib, libpng, libpcre
 #
 # 2021-03-20: Script has been updated to support Linux and macOS
+
 LANG=C #script works only in english
 ME="build_gdl.sh"
 Configuration=${Configuration:-"Release"}
-DEPS=${DEPS:-"full"}
+DEPS=${DEPS:-"standard"}
 real_path() {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
 }
-GDL_DIR=$(real_path "$(dirname $0)/..")
-ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}/.."}
+export GDL_DIR=$(real_path "$(dirname $0)/..")
+export ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}"}
+INSTALL_PREFIX=${INSTALL_PREFIX:-"${ROOT_DIR}/install"}
 PYTHONVERSION=${PYTHONVERSION:-"3"}
-GDLDE_VERSION=${GDLDE_VERSION:-"v1.0.0"}  #needed by 'pack' (at the moment Windows only)
+GDLDE_VERSION=${GDLDE_VERSION:-"v1.0.0"} # needed by 'pack' (at the moment Windows only)
+NTHREADS=${NTHREADS:-$(getconf _NPROCESSORS_ONLN)} # find nthreads for make -j
 BUILD_OS=$(uname)
-if [[ ${BUILD_OS} == *"MSYS"* ]]; then
-    BUILD_OS="Windows"
-elif [[ ${BUILD_OS} == *"MINGW"* ]]; then
+DRY_RUN=false
+if [[ ${BUILD_OS} == *"MSYS"* ]] || [[ ${BUILD_OS} == *"MINGW"* ]]; then
     BUILD_OS="Windows"
 elif [[ ${BUILD_OS} == "Darwin" ]]; then
     BUILD_OS="macOS"
 fi
 
-function log {  #log is needded just below!
+# Build flags
+if [[ ${DEPS} == "headless" ]]; then
+    WITH_WXWIDGETS=${WITH_WXWIDGETS:-OFF}
+else
+    WITH_WXWIDGETS=${WITH_WXWIDGETS:-ON}
+fi
+WITH_GRAPHICSMAGICK=${WITH_GRAPHICSMAGICK:-ON}
+WITH_NETCDF=${WITH_NETCDF:-ON}
+WITH_HDF=${WITH_HDF:-ON}
+WITH_HDF5=${WITH_HDF5:-ON}
+if [[ ${DEPS} == "standard" ]]; then
+    WITH_MPI=${WITH_MPI:-OFF}
+else
+    WITH_MPI=${WITH_MPI:-ON}
+fi
+WITH_TIFF=${WITH_TIFF:-ON}
+WITH_GEOTIFF=${WITH_GEOTIFF:-ON}
+WITH_LIBPROJ=${WITH_LIBPROJ:-ON}
+WITH_PYTHON=${WITH_PYTHON:-ON}
+WITH_PYTHONVERSION=${WITH_PYTHONVERSION:-ON}
+WITH_FFTW=${WITH_FFTW:-ON}
+WITH_UDUNITS2=${WITH_UDUNITS2:-ON}
+WITH_GLPK=${WITH_GLPK:-ON}
+if [[ ${BUILD_OS} == "macOS" ]]; then
+    WITH_HDF4=${WITH_HDF4:-OFF}
+    WITH_GRIB=${WITH_GRIB:-ON}
+else
+    zz=`grep -i opensuse /etc/*-release 2> /dev/null`
+    if [[ -n $zz ]]; then
+        # in case of openSUSE
+        WITH_HDF4=${WITH_HDF4:-OFF}
+        WITH_GRIB=${WITH_GRIB:-OFF}
+    else
+        # other distros
+        WITH_HDF4=${WITH_HDF4:-ON}
+        WITH_GRIB=${WITH_GRIB:-ON}
+    fi
+fi
+
+function log {  # log is needded just below!
     echo "[${ME}] $@"
 }
 
@@ -49,7 +90,7 @@ elif [ ${BUILD_OS} == "Linux" ]; then
         libncurses-dev libreadline-dev,libreadline-gplv2-dev zlib1g-dev libpng-dev libgsl-dev,libgsl0-dev
         libwxgtk3.0-gtk3-dev,libwxgtk3.0-dev,libwxgtk2.8-dev libplplot-dev libgraphicsmagick++1-dev,libgraphicsmagick++-dev libtiff-dev
         libgeotiff-dev libnetcdf-dev libhdf4-alt-dev libhdf5-dev libfftw3-dev libproj-dev libopenmpi-dev libpython3-dev,libpython-dev python3-dev,python-dev
-        python3-numpy,python-numpy libudunits2-dev libeigen3-dev libeccodes-dev,libgrib-api-dev libglpk-dev libshp-dev,shapelib libexpat1-dev
+        python3-numpy,python-numpy libudunits2-dev libeigen3-dev libeccodes-dev libglpk-dev libshp-dev,shapelib libexpat1-dev
     )
     # Redhat, Fedora, Scientific Linux, CentOS, openSuSE, SLES, etc.
     RPM_PACKAGES=(
@@ -60,7 +101,7 @@ elif [ ${BUILD_OS} == "Linux" ]; then
         netcdf-devel hdf-devel hdf5-devel fftw-devel,fftw3-devel proj-devel openmpi-devel,openmpi4-devel,openmpi3-devel
 	python39-devel,python38-devel,python3-devel,python-devel
         python39-numpy-devel,python38-numpy-devel,python3-numpy-devel,python-numpy-devel,python39-numpy,python38-numpy,python3-numpy,python-numpy
-	udunits2-devel eigen3-devel eccodes-devel,grib_api-devel glpk-devel libshp-devel,shapelib-devel
+	udunits2-devel eigen3-devel eccodes-devel glpk-devel libshp-devel,shapelib-devel
         expat-devel,libexpat-devel
     ) # JP 2021 Mar 21: SuSE lacks eccodes
 elif [ ${BUILD_OS} == "macOS" ]; then
@@ -119,7 +160,7 @@ function build_msys2_package {
     git sparse-checkout set mingw-w64-$1
     git checkout mingw-w64-$1
     cd mingw-w64-$1
-    patch="${GDL_DIR}/.ci/$1.patch"
+    patch="${GDL_DIR}/scripts/deps/windows/mingw-patches/$1.patch"
     if [[ -f $patch ]]; then
         patch -p0 -i $patch
     fi
@@ -197,6 +238,51 @@ function query_package {
     fi
 }
 
+function find_pkgmgr {
+    PKGINSTALLARG="install"
+    if command -v apt >/dev/null 2>&1; then
+        PACKAGES=( ${APT_PACKAGES[@]} )
+        PKGMGR="apt"
+    else
+        PACKAGES=( ${RPM_PACKAGES[@]} )
+        if command -v yum >/dev/null 2>&1; then
+            PKGMGR="yum"
+        elif command -v zypper >/dev/null 2>&1; then
+            PKGMGR="zypper"
+        else
+            log "Fatal error! Cannot determine package manager on your system."
+            exit 1
+        fi
+    fi
+    log "Found package manager: $PKGMGR"
+    if [ ${PKGMGR} == "apt" ]; then
+        log "Updating apt package cache..."
+        sudo apt update
+    fi
+}
+
+function install_toolchain {
+    log "Installing toolchain..."
+    
+    find_pkgmgr
+
+    if [ ${BUILD_OS} == "Windows" ]; then
+        pacman -S --noconfirm --needed mingw-w64-${arch}-toolchain mingw-w64-${arch}-cmake mingw-w64-${arch}-nsis unzip tar zstd make
+    elif [ ${BUILD_OS} == "Linux" ]; then
+        if [ ${PKGMGR} == "apt" ]; then
+            INSTALL_PACKAGES="g++ cmake make"
+        elif [ ${PKGMGR} == "yum" ]; then
+            INSTALL_PACKAGES="gcc-c++ cmake make"
+        elif [ ${PKGMGR} == "zypper" ]; then
+            INSTALL_PACKAGES="gcc-c++ cmake make"
+        else
+            log "Fatal error! Cannot determine package manager on your system."
+            exit 1
+        fi
+        eval "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
+    fi
+}
+
 function prep_packages {
     if [ ${BUILD_OS} == "Windows" ]; then
         for pkgname in ${MSYS2_PACKAGES[@]}; do
@@ -204,14 +290,16 @@ function prep_packages {
         done
         
         log "Installing dependencies: ${msys2_packages}"
-        eval "pacman --noconfirm --needed -S ${msys2_packages} "
+        if [ ${DRY_RUN} == "true" ]; then
+            log "Please run below command to install required packages to build GDL."
+            echo "pacman --noconfirm --needed -S ${msys2_packages}"
+        else
+            eval "pacman --noconfirm --needed -S ${msys2_packages}"
+        fi
 
         for package_name in ${MSYS2_PACKAGES_REBUILD[@]}; do
             build_msys2_package $package_name
         done
-
-        log "Patching wx-config..."
-        sed -e "s;-Wl,--subsystem,windows -mwindows;;" -i /${mname}/bin/wx-config
 
         download_file ${BSDXDR_URL}
         decompress_file
@@ -221,32 +309,20 @@ function prep_packages {
         sed -e 's/-Wall/-Wall -Wno-pointer-to-int-cast #/' -e 's/$(XDR_LIBRARIES) $(TEST_PROGS)/$(XDR_LIBRARIES)/' -e 's/libxdr/libbsdxdr/' -i Makefile
         mv lib/libxdr.def.in lib/libbsdxdr.def.in
         make || exit 1
-        cp -f mingw/*.dll /${mname}/bin/
-        cp -f mingw/libbsdxdr.dll.a /${mname}/lib/
-        cp -rf rpc /${mname}/include/
+        if [ ${DRY_RUN} == "true" ]; then
+            log "Please run below command to install bsd-xdr prior to build GDL."
+            echo cp -f mingw/*.dll /${mname}/bin/
+            echo cp -f mingw/libbsdxdr.dll.a /${mname}/lib/
+            echo cp -rf rpc /${mname}/include/
+        else
+            cp -f mingw/*.dll /${mname}/bin/
+            cp -f mingw/libbsdxdr.dll.a /${mname}/lib/
+            cp -rf rpc /${mname}/include/
+        fi
         popd
     elif [ ${BUILD_OS} == "Linux" ]; then
         # JP: This part is based on `aptget4gdl.sh` and `rpm4gdl.sh` by Alain C. and Ilia N.
-        PKGINSTALLARG="install"
-        if command -v apt >/dev/null 2>&1; then
-            PACKAGES=( ${APT_PACKAGES[@]} )
-            PKGMGR="apt"
-        else
-            PACKAGES=( ${RPM_PACKAGES[@]} )
-            if command -v yum >/dev/null 2>&1; then
-                PKGMGR="yum"
-            elif command -v zypper >/dev/null 2>&1; then
-                PKGMGR="zypper"
-            else
-                log "Fatal error! Cannot determine package manager on your system."
-                exit 1
-            fi
-        fi
-        log "Found package manager: $PKGMGR"
-        if [ ${PKGMGR} == "apt" ]; then
-            log "Updating apt package cache..."
-            sudo apt update
-        fi
+        find_pkgmgr
         log "Checking package availabilities..."
         for pkgnamecandidates in ${PACKAGES[@]}; do
             for pkgname in $(echo $pkgnamecandidates | tr ',' ' '); do
@@ -264,7 +340,12 @@ function prep_packages {
 	else
             log "Installing packages:"
             log "${INSTALL_PACKAGES}"
-            eval "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
+            if [ ${DRY_RUN} == "true" ]; then
+                log "Please run below command to install required packages to build GDL."
+                echo "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
+            else
+                eval "sudo ${PKGMGR} ${PKGINSTALLARG} -y ${INSTALL_PACKAGES}"
+            fi
         fi
     elif [ ${BUILD_OS} == "macOS" ]; then
         if ! command -v brew >/dev/null 2>&1; then
@@ -274,25 +355,42 @@ function prep_packages {
         brew update-reset
         brew unlink python@2
         log "Installing packages: ${BREW_PACKAGES[@]}"
-        eval "brew install ${BREW_PACKAGES[@]}"
+        if [ ${DRY_RUN} == "true" ]; then
+            log "Please run below command to install required packages to build GDL."
+            echo "brew install ${BREW_PACKAGES[@]}"
+        else
+            eval "brew install ${BREW_PACKAGES[@]}"
+        fi
         log "Installing plplot..."
         brew --cache plplot
-        bash $GDL_DIR/scripts/brew_enable_wxwidgets
+        bash $GDL_DIR/scripts/deps/macos/brew_enable_wxwidgets
     fi
+}
+
+function prep_packages_dryrun {
+    DRY_RUN=true
+    prep_packages
 }
 
 function find_dlls {
-  for dll in $(strings $1 | grep -i '[a-zA-Z0-9]\.dll$' | grep -v " " | grep -v $(basename $1)); do
-    dll="/mingw64/bin/$dll"
-    if [ -f "$dll" ] && [[ ! ${found_dlls[@]} =~ (^|[[:space:]])"$dll"($|[[:space:]]) ]]; then
-      found_dlls+=("$dll")
-      find_dlls "$dll";
-    fi
+    for dll in $(strings $1 | grep -o '\S*\.dll' | grep -v $(basename $1)); do
+        dll="/mingw64/bin/$dll"
+        if [ -f "$dll" ] && [[ ! ${found_dlls[@]} =~ (^|[[:space:]])"$dll"($|[[:space:]]) ]]; then
+            log "Found DLL dependency: $dll"
+            found_dlls+=("$dll")
+            find_dlls "$dll"
+        fi
   done
 }
 
-function build_gdl {
-    log "Building GDL (${Configuration})..."
+function configure_gdl {
+    log "Configuring GDL (${Configuration})..."
+
+    if [[ ${DEPS} != "standard" && ${DEPS} != "headless" && ${DEPS} != "debug" ]]; then
+        log "Fatal error! Unknown DEPS: ${DEPS}"
+        exit 1
+    fi
+
     mkdir -p ${ROOT_DIR}/build
     cd ${ROOT_DIR}/build
 
@@ -308,67 +406,44 @@ function build_gdl {
                                 "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
                                 "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
     fi
-    if [[ ${DEPS} == *"full"* ]]; then
-        if [[ ${DEPS} == *"msmpi"* || ! ${BUILD_OS} == "Windows" ]]; then
-            WITH_MPI="ON"
-        else
-            WITH_MPI="OFF"
-        fi
-        if [[ ${BUILD_OS} == "macOS" ]]; then
-            WITH_HDF4="OFF"
-        else 
-            zz=`grep -i opensuse /etc/*-release 2> /dev/null`
-            if [[ -n $zz ]]; then
-                # in case of openSUSE
-                WITH_HDF4="OFF"
-                WITH_GRIB="OFF"
-            else
-                # other distros
-                WITH_HDF4="ON"
-                WITH_GRIB="ON"
-            fi
-        fi
-        #interactive graphics added as we do not want the compilation to fail on systems where plplot is not correctly installed. The intent was to
-        #force distro packagers to include the plplot drivers in the dependency of the GDL package, not annoy the users of this script.
-        cmake ${GDL_DIR} -G"${GENERATOR}" \
-          -DCMAKE_BUILD_TYPE=${Configuration} \
-          -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-          -DCMAKE_INSTALL_PREFIX="${ROOT_DIR}/install" \
-          -DWXWIDGETS=ON -DGRAPHICSMAGICK=ON \
-          -DNETCDF=ON -DHDF=${WITH_HDF4} -DHDF5=ON \
-          -DMPI=${WITH_MPI} -DTIFF=ON -DGEOTIFF=ON \
-          -DLIBPROJ=ON -DPYTHON=ON -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=ON \
-          -DUDUNITS2=ON -DGLPK=ON -DGRIB=${WITH_GRIB} \
-          -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
-    else
-        cmake ${GDL_DIR} -G"${GENERATOR}" \
-          -DCMAKE_BUILD_TYPE=${Configuration} \
-          -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
-          -DCMAKE_INSTALL_PREFIX="${ROOT_DIR}/install" \
-          -DREADLINE=OFF -DPNGLIB=OFF -DOPENMP=OFF \
-          -DGRAPHICSMAGICK=OFF -DWXWIDGETS=OFF \
-          -DINTERACTIVE_GRAPHICS=OFF -DMAGICK=OFF \
-          -DNETCDF=OFF -DHDF=OFF -DHDF5=OFF -DFFTW=OFF \
-          -DLIBPROJ=OFF -DMPI=OFF -DPYTHON=OFF -DUDUNITS2=OFF \
-          -DEIGEN3=OFF -DGRIB=OFF -DGLPK=OFF -DTIFF=OFF \
-          -DGEOTIFF=OFF -DSHAPELIB=OFF -DEXPAT=OFF \
-          -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
-    fi
 
-    #find nthreads for make -j
-    NTHREADS=`getconf _NPROCESSORS_ONLN`
-
-    make -j${NTHREADS} || exit 1
-    
     if [ ${BUILD_OS} == "Windows" ]; then
-        # Copy dlls and libraries to src directory
-        mkdir -p share
-        cp -rf /${mname}/share/plplot* share/
-        if [[ ${DEPS} == *"full"* ]]; then
-            mkdir -p lib
-            cp -rf /${mname}/lib/GraphicsMagick* lib/ # copy GraphicsMagick dlls
-        fi
+        export WX_CONFIG=${GDL_DIR}/scripts/deps/windows/wx-config-wrapper
     fi
+    #interactive graphics added as we do not want the compilation to fail on systems where plplot is not correctly installed. The intent was to
+    #force distro packagers to include the plplot drivers in the dependency of the GDL package, not annoy the users of this script.
+    cmake ${GDL_DIR} -G"${GENERATOR}" \
+        -DCMAKE_BUILD_TYPE=${Configuration} \
+        -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
+        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
+        -DWXWIDGETS=${WITH_WXWIDGETS} -DGRAPHICSMAGICK=${WITH_GRAPHICSMAGICK} \
+        -DNETCDF=${WITH_NETCDF} -DHDF=${WITH_HDF4} -DHDF5=${WITH_HDF5} \
+        -DMPI=${WITH_MPI} -DTIFF=${WITH_TIFF} -DGEOTIFF=${WITH_GEOTIFF} \
+        -DLIBPROJ=${WITH_LIBPROJ} -DPYTHON=${WITH_PYTHON} -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=${WITH_FFTW} \
+        -DUDUNITS2=${WITH_UDUNITS2} -DGLPK=${WITH_GLPK} -DGRIB=${WITH_GRIB} \
+        -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
+}
+
+function build_gdl {
+    if [ ! -d "${ROOT_DIR}/build" ]; then 
+        log "Fatal error! Build directory not found."
+        exit 1
+    fi
+
+    cd ${ROOT_DIR}/build
+
+    log "Building GDL..."
+    make -j${NTHREADS} || exit 1
+}
+
+
+function install_gdl {
+    if [ ! -d "${ROOT_DIR}/build" ]; then 
+        log "Fatal error! Build directory not found."
+        exit 1
+    fi
+
+    cd ${ROOT_DIR}/build
 
     log "Installing GDL..."
     make install || exit 1
@@ -378,15 +453,22 @@ function build_gdl {
     if [ ${BUILD_OS} == "Windows" ]; then
         log "Copying DLLs to install directory..."
         found_dlls=()
-	find_dlls ${ROOT_DIR}/build/src/gdl.exe
-        # Copy dlls and libraries to install directory
+        find_dlls ${ROOT_DIR}/build/src/gdl.exe
+        PYTHON_DLL=`ldd ${ROOT_DIR}/build/src/gdl.exe | tr '[:upper:]' '[:lower:]' | grep python | xargs | cut -d' ' -f3`
+        if [[ -n "${PYTHON_DLL}" ]]; then
+            cp -f "${PYTHON_DLL}" bin/
+        fi
         for f in ${found_dlls[@]}; do
             cp -f "$f" bin/
         done
-        cp -rf ${ROOT_DIR}/build/share .
-        if [[ ${DEPS} == *"full"* ]]; then
-            cp -rf ${ROOT_DIR}/build/lib .
-        fi
+        
+        log "Copying plplot drivers to install directory..."
+        mkdir -p share
+        cp -rf /${mname}/share/plplot* share/
+
+        log "Copying GraphicsMagick drivers to install directory..."
+        mkdir -p lib
+        cp -rf /${mname}/lib/GraphicsMagick* lib/ # copy GraphicsMagick dlls
         cp -f ${GDL_DIR}/COPYING .
     fi
 }
@@ -415,23 +497,26 @@ function pack_gdl {
 
         export GDL_INSTALL_DIR=`cygpath -w ${ROOT_DIR}/install`
         export GDL_VERSION=`grep -oP 'set\(VERSION "\K.+(?="\))' ${GDL_DIR}/CMakeLists.txt`
-        makensis -V3 ${GDL_DIR}/.ci/gdlsetup.nsi && mv ${GDL_DIR}/.ci/gdlsetup.exe .
+        makensis -V3 ${GDL_DIR}/scripts/deps/windows/gdlsetup.nsi
     fi
 }
 
 function prep_deploy {
     if [ ${BUILD_OS} == "Windows" ]; then
-        cd ${ROOT_DIR}/gdl
-        mv ../package/gdlsetup.exe gdlsetup-${BUILD_OS}-${arch}-${DEPS}.exe
+        cd ${GDL_DIR}
+        mv gdlsetup.exe gdlsetup-${BUILD_OS}-${arch}-${DEPS}.exe
     fi
     cd ${ROOT_DIR}/install
-    zip -qr ../gdl/gdl-${BUILD_OS}-${arch}-${DEPS}.zip *
-    cd ${ROOT_DIR}/gdl
+    zip -qr ${GDL_DIR}/gdl-${BUILD_OS}-${arch}-${DEPS}.zip *
+    cd ${GDL_DIR}
 }
 
-AVAILABLE_OPTIONS="prep build check pack prep_deploy"
+AVAILABLE_OPTIONS="prep prep_dryrun configure build install check pack prep_deploy"
 AVAILABLE_OPTIONS_prep=prep_packages
+AVAILABLE_OPTIONS_prep_dryrun=prep_packages_dryrun
+AVAILABLE_OPTIONS_configure=configure_gdl
 AVAILABLE_OPTIONS_build=build_gdl
+AVAILABLE_OPTIONS_install=install_gdl
 AVAILABLE_OPTIONS_check=test_gdl
 AVAILABLE_OPTIONS_pack=pack_gdl
 AVAILABLE_OPTIONS_prep_deploy=prep_deploy

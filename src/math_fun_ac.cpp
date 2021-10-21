@@ -583,7 +583,7 @@ namespace lib {
     bool Yderiv0ok=false;
     if (Yderiv0 != NULL ) {
       YP0 = e->GetKWAs<DDoubleGDL>(firstderiv);
-      Yderiv0ok=(fabs((*YP0)[0])<SPL_INIT_BIG || isnan((*YP0)[0])); //apparently IDL stops considering second derivative if > SPL_INIT_BIG, but lets NaN pass.
+      Yderiv0ok=(fabs((*YP0)[0])<SPL_INIT_BIG || std::isnan((*YP0)[0])); //apparently IDL stops considering second derivative if > SPL_INIT_BIG, but lets NaN pass.
     }
 
 // follow same template even if there is only 1 KW?    
@@ -598,7 +598,7 @@ namespace lib {
     bool YderivNok=false;
     if (YderivN != NULL) {
       YPN = e->GetKWAs<DDoubleGDL>(secondderiv);
-      YderivNok=(fabs((*YPN)[0])<SPL_INIT_BIG || isnan((*YPN)[0]) ); //apparently IDL stops considering second derivative if > SPL_INIT_BIG, but lets NaN pass.
+      YderivNok=(fabs((*YPN)[0])<SPL_INIT_BIG || std::isnan((*YPN)[0]) ); //apparently IDL stops considering second derivative if > SPL_INIT_BIG, but lets NaN pass.
     }
     
     // we only issue a message

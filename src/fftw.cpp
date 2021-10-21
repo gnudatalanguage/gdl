@@ -189,6 +189,7 @@ namespace lib {
       DDoubleGDL* direction = 
 	static_cast<DDoubleGDL*>(p1->Convert2( GDL_DOUBLE, BaseGDL::COPY));
       direct = GSL_SIGN((*direction)[0]);
+      GDLDelete(direction);
     }
 
     if( e->KeywordSet(0)) dbl = 1;

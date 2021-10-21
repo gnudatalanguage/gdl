@@ -39,11 +39,11 @@ namespace lib
   static DDouble savedPointX=0.0;
   static DDouble savedPointY=0.0;
   static gdlSavebox saveBox;
-  static DFloat sym1x[5]={1, -1, 0, 0, 0}; // +
-  static DFloat sym1y[5]={0, 0, 0, -1, 1}; // +
-  static DFloat sym2x[11]= {1, -1, 0, 0, 0, 0,1,-1,0,1,-1}; //*
-  static DFloat sym2y[11]= {0, 0, 0, -1, 1,0,1,-1,0,-1,1}; // *
-  static DFloat sym3x[2]={0,0}; // .
+  static DFloat sym1x[6]={1, -1, 0, 0, 0, 0}; // +
+  static DFloat sym1y[6]={0, 0, 0, -1, 1, 0}; // +
+  static DFloat sym2x[12]= {1, -1, 0, 0, 0, 0,1,-1,0,1,-1, 0}; //*
+  static DFloat sym2y[12]= {0, 0, 0, -1, 1,0,1,-1,0,-1,1, 0}; // *
+  static DFloat sym3x[2]={0,0}; // dot. On PostScript device, x1=x1 and y2=1 creates a round dot.
   static DFloat sym3y[2]={0,0}; // .
   static DFloat sym4x[5]={ 0, 1, 0, -1, 0 }; //diamond.
   static DFloat sym4y[5]={ 1, 0, -1, 0, 1 }; //diamond.
@@ -51,9 +51,12 @@ namespace lib
   static DFloat sym5y[4]={ -1, 1, -1, -1 }; // triangle up.
   static DFloat sym6x[5]={ -1, 1, 1, -1, -1 }; //square
   static DFloat sym6y[5]={ 1, 1, -1, -1, 1 }; //square
-  static DFloat sym7x[5]= {1,-1,0,1,-1}; //x
-  static DFloat sym7y[5]= {1,-1,0,-1,1}; //x
-  DLong syml[7]={5,11,2,5,4,5,5};
+  static DFloat sym7x[6]= {1,-1,0,1,-1,0}; //x
+  static DFloat sym7y[6]= {1,-1,0,-1,1,0}; //x
+  DLong syml[7]={6,12,2,5,4,5,6};
+  static DFloat sym3xalt[6]={-0.2,-0.2,0.2,0.2,-0.2,0}; // big dot.
+  static DFloat sym3yalt[6]={-0.2,0.2,0.2,-0.2,-0.2,0}; // .
+  DLong syml_alt=6;
 
   struct LOCALUSYM {
     DLong nusym;
@@ -766,8 +769,16 @@ namespace lib
           userSymY=sym2y;
           break;
         case 3:
-          userSymX=sym3x;
-          userSymY=sym3y;
+    
+          //if device does not (bug?) draw single points (vector of 2 same coordinates as plplot does normally) then use special point psym=3.
+          if (GraphicsDevice::GetDevice()->DoesNotDrawSinglePoints()) {
+            userSymX = sym3xalt;
+            userSymY = sym3yalt;
+            userSymArrayDim=&syml_alt;
+          } else {
+            userSymX=sym3x;
+            userSymY=sym3y;
+          }
           break;
         case 4:
           userSymX=sym4x;
@@ -789,11 +800,20 @@ namespace lib
     }
 
     if (useLocalPsymAccelerator) { //since userSymArrayDim is not defined
-      localUserSymX=(DFloat*)malloc(*userSymArrayDim*sizeof(DFloat));guardlux.Reset(localUserSymX);
-      localUserSymY=(DFloat*)malloc(*userSymArrayDim*sizeof(DFloat));guardluy.Reset(localUserSymY);
-      for (int kk = 0; kk < *userSymArrayDim; kk++) {
-        localUserSymX[kk] = userSymX[kk] * a->getPsymConvX() / a->GetPlplotFudge();
-        localUserSymY[kk] = userSymY[kk] * a->getPsymConvY() / a->GetPlplotFudge();
+      localUserSymX = (DFloat*) malloc(*userSymArrayDim * sizeof (DFloat));
+      guardlux.Reset(localUserSymX);
+      localUserSymY = (DFloat*) malloc(*userSymArrayDim * sizeof (DFloat));
+      guardluy.Reset(localUserSymY);
+      if (local_psym == 3 && GraphicsDevice::GetDevice()->DoesNotDrawSinglePoints()) {
+        for (int kk = 0; kk < *userSymArrayDim; kk++) {
+          localUserSymX[kk] = userSymX[kk] * a->getPsymConvX() / a->GetPlplotFudge() / a->getSymbolSize();
+          localUserSymY[kk] = userSymY[kk] * a->getPsymConvY() / a->GetPlplotFudge() / a->getSymbolSize();
+        }
+      } else {
+        for (int kk = 0; kk < *userSymArrayDim; kk++) {
+          localUserSymX[kk] = userSymX[kk] * a->getPsymConvX() / a->GetPlplotFudge();
+          localUserSymY[kk] = userSymY[kk] * a->getPsymConvY() / a->GetPlplotFudge();
+        }
       }
     }
 
@@ -1410,32 +1430,36 @@ namespace lib
   
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer multiaxisdata)
   {
+    PLINT axisNotUsed=0; //to indicate that effectively the axis number is not (yet?) used in some calls
     static GDL_TICKDATA tdata;
     static SizeT internalIndex=0;
-    static DLong lastUnits=0;
+    static DLong lastMultiAxisLevel=0;
     static string theMonth[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
     PLINT Month, Day , Year , Hour , Minute, dow, cap;
     PLFLT Second;
     struct GDL_MULTIAXISTICKDATA *ptr = (GDL_MULTIAXISTICKDATA* )multiaxisdata;
     tdata.a=ptr->a;
     tdata.isLog=ptr->isLog;
- 
-    if (ptr->counter != lastUnits)
-    {
-      lastUnits=ptr->counter;
-      internalIndex=0;
+    if (ptr->reset) {
+      internalIndex=0; //reset index each time a new axis command is issued.
+      ptr->reset=false;
     }
+    if (ptr->counter != lastMultiAxisLevel)
+    {
+      lastMultiAxisLevel=ptr->counter; 
+      internalIndex=0; //reset index each time sub-axis changes
+    }
+   
     if (ptr->what==GDL_TICKFORMAT || (ptr->what==GDL_TICKFORMAT_AND_UNITS && ptr->counter < ptr->nTickFormat) )
     {
       if (ptr->counter > ptr->nTickFormat-1)
       {
-        doOurOwnFormat(axis, value, label, length, &tdata);
+        doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
       }
       else
       { //must pass the value, not the log, to the formatter?
         DDouble v=value;
         if (tdata.isLog) v=pow(10.,v);
-        std::cerr<<v<<std::endl;
         if (((*ptr->TickFormat)[ptr->counter]).substr(0,1) == "(")
         { //internal format, call internal func "STRING"
           EnvT *e=ptr->e;
@@ -1465,10 +1489,10 @@ namespace lib
           EnvUDT* newEnv = new EnvUDT( e->CallingNode(), funList[ funIx], (DObjGDL**)NULL);
           Guard< EnvUDT> guard( newEnv);
           // add parameters
-          newEnv->SetNextPar( new DLongGDL(axis));
-          newEnv->SetNextPar( new DLongGDL(internalIndex));
-          newEnv->SetNextPar( new DDoubleGDL(v));
-          if (ptr->what==GDL_TICKFORMAT_AND_UNITS) newEnv->SetNextPar( new DLongGDL(ptr->counter));
+          newEnv->SetNextPar( new DLongGDL(axis-1)); //axis in PLPLOT starts at 1, it starts at 0 in IDL
+          newEnv->SetNextPar( new DLongGDL(internalIndex)); //index
+          newEnv->SetNextPar( new DDoubleGDL(v)); //value
+          if (ptr->what==GDL_TICKFORMAT_AND_UNITS) newEnv->SetNextPar( new DLongGDL(ptr->counter)); //level
           // guard *before* pushing new env
           StackGuard<EnvStackT> guard1 ( e->Interpreter()->CallStack());
           e->Interpreter()->CallStack().push_back(newEnv);
@@ -1485,16 +1509,16 @@ namespace lib
     {
       if (ptr->counter > ptr->nTickUnits-1 )
       {
-        doOurOwnFormat(axis, value, label, length, &tdata);
+        doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
       }
       else
       {
         DString what=StrUpCase((*ptr->TickUnits)[ptr->counter]);
         if (what.length()<1) {
-          doOurOwnFormat(axis, value, label, length, &tdata);
+          doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
         }
         else if (what.substr(0,7)=="NUMERIC") {
-          doOurOwnFormat(axis, value, label, length, &tdata);
+          doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
      } else {
           j2ymdhms(value, Month , Day , Year , Hour , Minute, Second, dow, cap);
           int convcode=0;
@@ -1534,7 +1558,7 @@ namespace lib
               snprintf( label, length, "%05.2f", Second);
               break;
             case 7:
-              doOurOwnFormat(axis, value, label, length, &tdata);
+              doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
               break;
           }
           
@@ -1549,7 +1573,7 @@ namespace lib
     internalIndex++;
   }
 
-  void gdlSingleAxisTickNamedFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
+  void gdlSingleAxisTickNamedFunc( PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data)
   {
     static GDL_TICKDATA tdata;
     struct GDL_TICKNAMEDATA *ptr = (GDL_TICKNAMEDATA* )data;
@@ -1557,7 +1581,7 @@ namespace lib
     tdata.axisrange=ptr->axisrange;
     if (ptr->counter > ptr->nTickName-1)
     {
-      doOurOwnFormat(axis, value, label, length, &tdata);
+      doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
     }
     else
     {

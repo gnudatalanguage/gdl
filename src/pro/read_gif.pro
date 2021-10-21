@@ -69,16 +69,16 @@ if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
 if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
 if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename
 ;
-;
-if ( ~MAGICK_PING(filename, 'GIF') and ~MAGICK_PING(filename, 'GIF87') )then begin
-   MESSAGE, "error: Not a GIF file."
-endif
-READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, /order
+if ( ~MAGICK_PING(filename, 'GIF') and ~MAGICK_PING(filename, 'GIF87') )then MESSAGE, "error: Not a GIF file."
 
+READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, background_color=bgc
+if ( n_elements(colortable) eq 0 ) then Message,"GIF file is not a 8 bit GIF"
 red=colortable[*,0]
 green=colortable[*,1]
 blue=colortable[*,2]
-
+; it happens that magick sends back a truecolor image, when IDL would
+; just send back a 2D index image. Do as IDL does:
+if (size(image))[0] eq 3 then image=reform(image[0,*,*])
 end
 
 
