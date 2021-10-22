@@ -180,6 +180,8 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
 
    h5f_close, f_id
 
+   banner_for_testsuite, 'TEST_HDF5_ATTR', cumul_errors, /short
+
    return
 end
 ;
@@ -188,7 +190,7 @@ end
 pro TEST_HDF5_DATA, cumul_errors, create=create
 
    some_elem_dims = list( [], [3], [2,3] )
-   some_data_dims = list( [], [5], [5,4], [5,4,3] )
+   some_data_dims = list( [], [4], [5,4], [6,5,4] )
 
    ; --- create mock data
 
@@ -218,7 +220,7 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
             2: data = dblarr( ndata )
          endcase
 
-         for i=0,ndata-1 do data[i] = i
+         for i=0,ndata-1 do data[i] = i+1
 
          ; --- create lists
          mock_data.add, reform( data, dims )
@@ -268,19 +270,106 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
 
    f_id = h5f_open("hdf5-data-test.h5")
 
-   for idx=1,n_elements(mock_data)-1 do begin
+   for idx=0,n_elements(mock_data)-1 do begin
 
       d_id = h5d_open(f_id,string(idx, fo='(%"dset-%02d")'))
 
       read_mock_data = h5d_read(d_id)
+
       h5d_close, d_id
 
-      if ( total( mock_data[idx] - read_mock_data ) gt 0. ) then $
+      if ( total( abs( mock_data[idx] - read_mock_data ) ) gt 0. ) then $
+         cumul_errors++
+
+   endfor
+
+   ; --- read full HDF5 datasets once more, using explicit data spaces
+
+   for idx=0,n_elements(mock_data)-1 do begin
+
+      d_id = h5d_open(f_id,string(idx, fo='(%"dset-%02d")'))
+
+      fs_id = h5d_get_space(d_id)
+
+      rank = h5s_get_simple_extent_ndims(fs_id)
+      dims = h5s_get_simple_extent_dims(fs_id)
+
+      if(rank eq 0) then ms_id = h5s_create_scalar() $
+      else ms_id = h5s_create_simple(dims)
+
+      read_mock_data = h5d_read(d_id, file_space=fs_id, memory_space=ms_id)
+
+      h5d_close, d_id
+      h5s_close, fs_id
+      h5s_close, ms_id
+
+      if ( total( abs( mock_data[idx] - read_mock_data ) ) gt 0. ) then $
+         cumul_errors++
+
+   endfor
+
+   ; --- read subsets from HDF5 datasets, using hyperslab selection
+
+   for idx=0,n_elements(mock_data)-1 do begin
+
+      if data_rank[idx] eq 0 then continue ; skip scalar datasets
+
+      d_id = h5d_open(f_id,string(idx, fo='(%"dset-%02d")'))
+
+      fs_id = h5d_get_space(d_id)
+
+      rank = h5s_get_simple_extent_ndims(fs_id)
+      dims = h5s_get_simple_extent_dims(fs_id)
+
+      if(rank gt 0) then begin
+         ; FIXME: come up with less trivial hyperslabs (+ use block/stride)
+
+         for i=0,rank-1 do dims[i]-=2
+         h5s_select_hyperslab, fs_id, replicate(1,rank), dims, /reset
+         ms_id = h5s_create_simple(dims)
+
+      endif
+
+      read_mock_data = h5d_read(d_id, file_space=fs_id, memory_space=ms_id)
+
+      h5d_close, d_id
+      h5s_close, fs_id
+      h5s_close, ms_id
+
+      case elem_rank[idx] of
+         0: begin
+            case data_rank[idx] of
+               1: slab = (mock_data[idx])[1:-2]
+               2: slab = (mock_data[idx])[1:-2,1:-2]
+               3: slab = (mock_data[idx])[1:-2,1:-2,1:-2]
+            endcase
+         end
+
+         1: begin
+            case data_rank[idx] of
+               1: slab = (mock_data[idx])[*,1:-2]
+               2: slab = (mock_data[idx])[*,1:-2,1:-2]
+               3: slab = (mock_data[idx])[*,1:-2,1:-2,1:-2]
+            endcase
+         end
+
+         2: begin
+            case data_rank[idx] of
+               1: slab = (mock_data[idx])[*,*,1:-2]
+               2: slab = (mock_data[idx])[*,*,1:-2,1:-2]
+               3: slab = (mock_data[idx])[*,*,1:-2,1:-2,1:-2]
+            endcase
+         end
+      endcase
+
+      if ( total( abs( slab - read_mock_data ) ) gt 0. ) then $
          cumul_errors++
 
    endfor
 
    h5f_close, f_id
+
+   banner_for_testsuite, 'TEST_HDF5_DATA', cumul_errors, /short
 
    return
 end
