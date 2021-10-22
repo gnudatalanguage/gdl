@@ -914,12 +914,15 @@ hid_t
   /**
    * h5d_read_fun
    * CAUTION: compatibility only fractional
-   * - Does not allow to select hyperslabs
    */
   BaseGDL* h5d_read_fun(EnvT* e) {
 
     /* Jul 2021, Oliver Gressel <ogressel@gmail.com>
        - add support for datasets of type 'H5T_ARRAY'
+
+       Oct 2021, Oliver Gressel <ogressel@gmail.com>
+       - allow for hyperslab selection via passing keyword parameters
+         'FILE_SPACE' and 'MEMORY_SPACE', respectively
     */
 
     bool debug = false;
