@@ -60,34 +60,12 @@
 // on all size events you catch (and don't catch size events at all when you don't need to).
 BEGIN_EVENT_TABLE(wxTreeCtrlGDL, wxTreeCtrl)
     EVT_TREE_BEGIN_DRAG(wxID_ANY, wxTreeCtrlGDL::OnDrag)
-//    EVT_TREE_BEGIN_RDRAG(wxID_ANY, wxTreeCtrlGDL::OnBeginRDrag)
-    EVT_TREE_END_DRAG(wxID_ANY, wxTreeCtrlGDL::OnDrop)
-//    EVT_TREE_BEGIN_LABEL_EDIT(wxID_ANY, wxTreeCtrlGDL::OnBeginLabelEdit)
-//    EVT_TREE_END_LABEL_EDIT(wxID_ANY, wxTreeCtrlGDL::OnEndLabelEdit)
-//    EVT_TREE_DELETE_ITEM(wxID_ANY, wxTreeCtrlGDL::OnDeleteItem)
-//    EVT_TREE_GET_INFO(wxID_ANY, wxTreeCtrlGDL::OnGetInfo)
-//    EVT_TREE_SET_INFO(wxID_ANY, wxTreeCtrlGDL::OnSetInfo)
+//    EVT_TREE_END_DRAG(wxID_ANY, wxTreeCtrlGDL::OnDrop)
     EVT_TREE_ITEM_EXPANDED(wxID_ANY, wxTreeCtrlGDL::OnItemExpanded)
-//    EVT_TREE_ITEM_EXPANDING(wxID_ANY, wxTreeCtrlGDL::OnItemExpanding)
     EVT_TREE_ITEM_COLLAPSED(wxID_ANY, wxTreeCtrlGDL::OnItemCollapsed)
-//    EVT_TREE_ITEM_COLLAPSING(wxID_ANY, wxTreeCtrlGDL::OnItemCollapsing)
-
     EVT_TREE_SEL_CHANGED(wxID_ANY, wxTreeCtrlGDL::OnItemSelected)
-//    EVT_TREE_SEL_CHANGING(wxID_ANY, wxTreeCtrlGDL::OnSelChanging)
     EVT_TREE_ITEM_ACTIVATED(wxID_ANY, wxTreeCtrlGDL::OnItemActivated)
     EVT_TREE_STATE_IMAGE_CLICK(wxID_ANY, wxTreeCtrlGDL::OnItemStateClick)
-
-//    // so many different ways to handle right mouse button clicks...
-//    EVT_CONTEXT_MENU(wxTreeCtrlGDL::OnContextMenu)
-//    // EVT_TREE_ITEM_MENU is the preferred event for creating context menus
-//    // on a tree control, because it includes the point of the click or item,
-//    // meaning that no additional placement calculations are required.
-//    EVT_TREE_ITEM_MENU(wxID_ANY, wxTreeCtrlGDL::OnItemMenu)
-//    EVT_TREE_ITEM_RIGHT_CLICK(wxID_ANY, wxTreeCtrlGDL::OnItemRClick)
-//
-//    EVT_RIGHT_DOWN(wxTreeCtrlGDL::OnRMouseDown)
-//    EVT_RIGHT_UP(wxTreeCtrlGDL::OnRMouseUp)
-//    EVT_RIGHT_DCLICK(wxTreeCtrlGDL::OnRMouseDClick)
 END_EVENT_TABLE()
 
 DEFINE_EVENT_TYPE(wxEVT_SHOW_REQUEST)
@@ -97,7 +75,7 @@ DEFINE_EVENT_TYPE(wxEVT_HIDE_REQUEST)
 BEGIN_EVENT_TABLE(gdlwxFrame, wxFrame)
 //impossible to replace with Connect() method?
   EVT_MENU(wxID_ANY, gdlwxFrame::OnMenu) 
-  //timed resize events happen only on one frame at a time, so the timer ID is fixed here.
+//timed resize events happen only on one frame at a time, so the timer ID is fixed here.
   // If this was not the case, then remove this line and Connect() to the timer at the timer creation place.
   EVT_TIMER(RESIZE_TIMER, gdlwxFrame::OnTimerResize) //... where size event is really done here. But does not work (refresh not OK)
 END_EVENT_TABLE()
@@ -1439,6 +1417,32 @@ void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)
   this->ResizeDrawArea(newSize);
   event.Skip();
 }
+//uses  a wxDropFilesEvent to get a 'drop' event, but this is not triggered by the eventloop but by a LeftUp() on a wxTreeCtrlGDL drag action.
+void gdlwxDrawPanel::OnFakeDropFileEvent(wxDropFilesEvent& event){
+  int droppedID=event.GetNumberOfFiles(); //WARNING WIDGET ID is passed as "number of files!!!"
+ #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlwxDrawPanel::OnFakeDropFileEvent: ID=%d, file=%s\n"),droppedID,event.GetFiles()[0]);
+#endif 
+  DULong eventFlags=myWidgetDraw->GetEventFlags();
+  if (eventFlags & GDLWidget::EV_DROP ) { 
+   WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase(droppedID);
+
+    //get GDLWidgetTree ID which was passed as wxTreeItemData at creation to identify
+    //the GDL widget that received the event
+    DStructGDL* drawdrop = new DStructGDL("WIDGET_DROP");
+    drawdrop->InitTag("ID", DLongGDL( myWidgetDraw->GetWidgetID() )); //ID of the destination
+    drawdrop->InitTag("TOP", DLongGDL(baseWidgetID));
+    drawdrop->InitTag("HANDLER", DLongGDL(baseWidgetID));
+    drawdrop->InitTag("DRAG_ID", DLongGDL(droppedID)); // ID of the source
+    drawdrop->InitTag("POSITION", DIntGDL(1)); //   1 above 2 on 4 below destination widget
+    wxPoint where=CalcUnscrolledPosition(event.GetPosition());
+    drawdrop->InitTag("X", DLongGDL(where.x)); //x and Y coord of position wrt lower left corner of destination tree widget
+    drawdrop->InitTag("Y", DLongGDL(drawSize.y-where.y));
+    drawdrop->InitTag("MODIFIERS", DIntGDL(GetModifiers())); //mask with 1 shift 2 control 4 caps lock 8 alt
+    // insert into structList
+    GDLWidget::PushEvent(baseWidgetID, drawdrop);
+  }
+}
 
 void gdlwxDrawPanel::OnMouseMove( wxMouseEvent &event ) {
   DULong eventFlags=myWidgetDraw->GetEventFlags();
@@ -1921,21 +1925,36 @@ void wxTreeCtrlGDL::OnItemSelected(wxTreeEvent & event){
     event.Skip();
     me->Refresh();
 }
-	void wxTreeCtrlGDL::onLeaveWindow(wxMouseEvent &evt){
+void wxTreeCtrlGDL::onEnterWindow(wxMouseEvent &event){
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::onEnterWindow: %d\n"),event.GetId());
+#endif
+    this->Disconnect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(wxTreeCtrlGDL::onEnterWindow));
+    this->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(wxTreeCtrlGDL::onLeaveWindow));
+//    this->Disconnect(wxEVT_MOTION, wxMouseEventHandler(wxTreeCtrlGDL::onMouseMotion));
+//    this->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(wxTreeCtrlGDL::onLeftUp));
+	}
+	void wxTreeCtrlGDL::onLeaveWindow(wxMouseEvent &event){
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::onLeaveWindow: %d\n"),event.GetId());
+#endif
+    this->SetCursor(wxCURSOR_DEFAULT);
     this->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(wxTreeCtrlGDL::onLeaveWindow));
-    this->Disconnect(wxEVT_MOTION, wxMouseEventHandler(wxTreeCtrlGDL::onMouseMotion));
-    this->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(wxTreeCtrlGDL::onLeftUp));
+    this->Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(wxTreeCtrlGDL::onEnterWindow));
 	}
 
-	// finish the drag action 
-	void wxTreeCtrlGDL::endDragging(){
-		itemDragging = nullptr;
-    this->Refresh();
-}
+//	// finish the drag action 
+//	void wxTreeCtrlGDL::endDragging(){
+//		itemDragging = nullptr;
+//    this->Refresh();
+//}
 
-void wxTreeCtrlGDL::onMouseMotion(wxMouseEvent &evt) {
-  wxPoint evtPos = evt.GetPosition();
-  wxTreeCtrlGDL *tree = (wxTreeCtrlGDL*) evt.GetEventObject();
+void wxTreeCtrlGDL::onMouseMotion(wxMouseEvent &event) {
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::onMouseMotion: %d\n"),event.GetId());
+#endif
+  wxPoint evtPos = event.GetPosition();
+  wxTreeCtrlGDL *tree = (wxTreeCtrlGDL*) event.GetEventObject();
   wxTreeItemId treeItemHovered = HitTest(evtPos);
   bool showCursors = treeItemHovered && treeItemHovered != GetRootItem();
   if (showCursors) {
@@ -1971,17 +1990,38 @@ void wxTreeCtrlGDL::onMouseMotion(wxMouseEvent &evt) {
   } else this->SetCursor(wxCURSOR_DEFAULT);
 }
 
-void wxTreeCtrlGDL::onLeftUp(wxMouseEvent &evt)
+void wxTreeCtrlGDL::onLeftUp(wxMouseEvent &event)
 {
-
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlTreeCtrl::onLeftUp: %d\n"),event.GetId());
+#endif
   this->SetCursor(wxCURSOR_DEFAULT);
-  wxPoint evtPos = evt.GetPosition();
+  wxPoint evtPos = event.GetPosition();
 	wxTreeItemId itemUnderMouse = HitTest(evtPos);
   this->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(wxTreeCtrlGDL::onLeaveWindow));
   this->Disconnect(wxEVT_MOTION, wxMouseEventHandler(wxTreeCtrlGDL::onMouseMotion));
   this->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(wxTreeCtrlGDL::onLeftUp));
-  wxTreeEvent treeEvent(wxEVT_ANY,this,itemUnderMouse);
+  if (itemUnderMouse.IsOk()) {
+   wxTreeEvent treeEvent(wxEVT_ANY,this,itemUnderMouse);
    this->OnDrop(treeEvent);
+  } else { //this hack permits to "drop" on a window registered as "droppable" (currently a widget_draw)
+      // the following (generic DnD) does not work here as the eventloop LeftUp is already consumed.
+      //      wxTextDataObject my_data(i2s(itemDragging));
+      //      std::cerr << my_data.GetText() << std::endl;
+      //      wxDropSource draggedID(my_data, this);
+      //      wxDragResult result = draggedID.DoDragDrop();
+      
+      //But we have only FOR THE MOMENT to mimic what a DRAW widget would produce as  drop event.
+             // no need for DataObjects and DoDragDrop()
+      gdlwxDrawPanel* draw=static_cast<gdlwxDrawPanel*>(wxFindWindowAtPoint(wxGetMousePosition()));
+    if (draw) {
+      WidgetIDT i=GDLWidgetTreeID;//static_cast<wxTreeItemDataGDL*>(this->GetItemData(itemDragging))->GetWidgetID();
+      wxString *s=new wxString(GetItemText(itemDragging));
+       wxDropFilesEvent* e=new wxDropFilesEvent(0,i,s); //event handling will destroy content, make it new object.
+       draw->OnFakeDropFileEvent(*e);  
+    }
+  }
+  event.Skip();
 }
 
 void wxTreeCtrlGDL::OnDrag(wxTreeEvent & event){
@@ -2046,6 +2086,7 @@ void wxTreeCtrlGDL::OnDrop(wxTreeEvent & event){
       GDLWidget::PushEvent( baseWidgetID, treedrop );
   }
     //unset dragged
+    itemDragging=nullptr;
   event.Skip();
     me->Refresh();
 

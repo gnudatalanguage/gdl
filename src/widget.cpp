@@ -748,10 +748,8 @@ BaseGDL* widget_draw( EnvT* e ) {
 
   if (parent->GetExclusiveMode() != GDLWidget::BGNORMAL ) e->Throw( "Parent is of incorrect type." );
 
-
-  // TODO non-flags
-
-  //  static int CLASSNAME = e->KeywordIx( "CLASSNAME" ); // string
+// probably never implemented:
+//  static int CLASSNAME = e->KeywordIx( "CLASSNAME" ); // string
 //  static int COLOR_MODEL = e->KeywordIx( "COLOR_MODEL" );
 //  static int COLORS = e->KeywordIx( "COLORS" ); // long
 //  static int DRAG_NOTIFY = e->KeywordIx( "DRAG_NOTIFY" ); //string
@@ -1776,7 +1774,20 @@ BaseGDL* widget_info( EnvT* e ) {
   static int TOOLTIP = e->KeywordIx( "TOOLTIP");
   bool tooltip = e->KeywordSet(TOOLTIP);
 
-  
+  static int DRAW_BUTTON_EVENTS   = e->KeywordIx( "DRAW_BUTTON_EVENTS" );
+  static int DRAW_EXPOSE_EVENTS   = e->KeywordIx( "DRAW_EXPOSE_EVENTS" );
+  static int DRAW_KEYBOARD_EVENTS = e->KeywordIx( "DRAW_KEYBOARD_EVENTS" );
+  static int DRAW_MOTION_EVENTS   = e->KeywordIx( "DRAW_MOTION_EVENTS" );
+  static int DRAW_VIEWPORT_EVENTS = e->KeywordIx( "DRAW_VIEWPORT_EVENTS" );
+  static int DRAW_WHEEL_EVENTS    = e->KeywordIx( "DRAW_WHEEL_EVENTS" );
+  bool draw_button_events   = e->KeywordPresent(DRAW_BUTTON_EVENTS);
+  bool draw_expose_events   = e->KeywordPresent(DRAW_EXPOSE_EVENTS);
+  bool draw_keyboard_events = e->KeywordPresent(DRAW_KEYBOARD_EVENTS);
+  bool draw_motion_events   = e->KeywordPresent(DRAW_MOTION_EVENTS);
+  bool draw_wheel_events    = e->KeywordPresent(DRAW_WHEEL_EVENTS);
+  bool draw_viewport_events = e->KeywordPresent(DRAW_VIEWPORT_EVENTS);
+  bool drop_events          = e->KeywordPresent(DROP_EVENTS);
+    
   static int LIST_SELECT = e->KeywordIx( "LIST_SELECT");
   bool listselect = e->KeywordSet(LIST_SELECT);
 
@@ -2107,7 +2118,9 @@ BaseGDL* widget_info( EnvT* e ) {
 
   // VALID , MANAGED, BUTTONSET etc keywords giving back 0 or 1
   if ( valid || managed || realized || buttonset || tlb_size_events ||
-       tlb_iconify_events || tlb_kill_request_events || tlb_move_events ) {
+       tlb_iconify_events || tlb_kill_request_events || tlb_move_events || draw_button_events  
+|| draw_expose_events  || draw_keyboard_events|| draw_motion_events  || draw_wheel_events  || draw_viewport_events
+|| drop_events         ) {
     if ( rank == 0 ) {
       // Scalar Input
       WidgetIDT widgetID = (*p0L)[0];
@@ -2125,14 +2138,22 @@ BaseGDL* widget_info( EnvT* e ) {
       else if (buttonset) result=( widget->GetButtonSet() == true );
         else { //tlb only for base widget
           if (widget->IsBase()) {
-            if (tlb_size_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_SIZE) == GDLWidget::EV_SIZE);
+                 if (tlb_size_events)    result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_SIZE) == GDLWidget::EV_SIZE);
             else if (tlb_iconify_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_ICONIFY) == GDLWidget::EV_ICONIFY);
             else if (tlb_kill_request_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_KILL) == GDLWidget::EV_KILL);
             else if (tlb_move_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_MOVE) == GDLWidget::EV_MOVE);
           }
+          if (widget->IsDraw()) {
+            if (draw_button_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_BUTTON) == GDLWidget::EV_BUTTON);
+            if (draw_expose_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_EXPOSE) == GDLWidget::EV_EXPOSE);
+            if (draw_keyboard_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_KEYBOARD) == GDLWidget::EV_KEYBOARD) ? 1 :
+              ((widget->GetEventFlags() & (DULong) GDLWidget::EV_KEYBOARD2) == GDLWidget::EV_KEYBOARD2) ? 2 : 0;
+            if (draw_wheel_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_WHEEL) == GDLWidget::EV_WHEEL);
+            if (draw_viewport_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_VIEWPORT) == GDLWidget::EV_VIEWPORT);
+            if (drop_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_DROP) == GDLWidget::EV_DROP);
+          }
         }
-      if ( result ) return new DLongGDL( 1 ); 
-      else          return new DLongGDL( 0 );
+      return new DLongGDL( result); 
     } else {
       // Array Input
       DLongGDL* res = new DLongGDL( p0L->Dim( ), BaseGDL::NOZERO );
@@ -2155,10 +2176,18 @@ BaseGDL* widget_info( EnvT* e ) {
               else if (tlb_iconify_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_ICONIFY) == GDLWidget::EV_ICONIFY);
               else if (tlb_kill_request_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_KILL) == GDLWidget::EV_KILL);
               else if (tlb_move_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_MOVE) == GDLWidget::EV_MOVE);
+              }
+              if (widget->IsDraw()) {
+                if (draw_button_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_BUTTON) == GDLWidget::EV_BUTTON);
+                if (draw_expose_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_EXPOSE) == GDLWidget::EV_EXPOSE);
+                if (draw_keyboard_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_KEYBOARD) == GDLWidget::EV_KEYBOARD) ? 1 :
+                  ((widget->GetEventFlags() & (DULong) GDLWidget::EV_KEYBOARD2) == GDLWidget::EV_KEYBOARD2) ? 2 : 0;
+                if (draw_wheel_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_WHEEL) == GDLWidget::EV_WHEEL);
+                if (draw_viewport_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_VIEWPORT) == GDLWidget::EV_VIEWPORT);
+                if (drop_events) result = ((widget->GetEventFlags() & (DULong) GDLWidget::EV_DROP) == GDLWidget::EV_DROP);
+              }
             }
-          }
-          if ( result ) ( *res )[ i] = (DLong) 1;
-          else          ( *res )[ i] = (DLong) 0;
+          ( *res )[ i] = result;
         }
       }
       if (atLeastOneFound) return res; else e->Throw("Invalid widget identifier:"+i2s((*p0L)[0]));
