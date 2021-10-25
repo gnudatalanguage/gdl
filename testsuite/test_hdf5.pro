@@ -173,12 +173,16 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
       read_attr_data = h5a_read(a_id)
       h5a_close, a_id
 
-      if ( total( attr_data[idx] - read_attr_data ) gt 0. ) then $
+      ;;; help, attr_data[idx], read_attr_data
+
+      if ( not array_equal(attr_data[idx],read_attr_data,/no_typeconv) ) then $
          cumul_errors++
 
    endfor
 
    h5f_close, f_id
+
+   banner_for_testsuite, 'test_hdf5_attr', cumul_errors, /short
 
    return
 end
@@ -275,12 +279,15 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       read_mock_data = h5d_read(d_id)
       h5d_close, d_id
 
-      if ( total( mock_data[idx] - read_mock_data ) gt 0. ) then $
+      ;;; help, mock_data[idx], read_mock_data
+
+      if ( not array_equal(mock_data[idx],read_mock_data,/no_typeconv) ) then $
          cumul_errors++
 
    endfor
 
    h5f_close, f_id
+   banner_for_testsuite, 'test_hdf5_data', cumul_errors, /short
 
    return
 end
