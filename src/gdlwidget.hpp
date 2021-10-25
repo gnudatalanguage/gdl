@@ -1684,7 +1684,8 @@ private:
 	wxTreeItemId itemDragging = nullptr;
   wxCursor gdlTREE_SELECT_ABOVE;
   wxCursor gdlTREE_SELECT_BELOW;
-  int pos;
+  int posCode;
+  wxPoint position;
 
 public:
 //	void onLeftDown(wxMouseEvent &evt);
@@ -1703,7 +1704,8 @@ public:
     const wxString& name = wxTreeCtrlNameStr)
           :wxTreeCtrl( parent, id, pos, size, style, wxDefaultValidator , name ),
           GDLWidgetTreeID(id),
-          pos(-1)
+          posCode(-1)
+          , position(wxDefaultPosition)
           {
 
 #ifdef __WXMSW__
@@ -1737,7 +1739,8 @@ public:
   void OnItemStateClick(wxTreeEvent & event);
   void OnItemExpanded(wxTreeEvent & event);
   void OnDrag(wxTreeEvent & event);
-  void OnDrop(wxTreeEvent & event);
+  void OnTreeCtrlDrop(wxTreeEvent & event);
+  void OnForeignDrop(WidgetIDT selected, WidgetIDT drag_id);
   void OnItemSelected(wxTreeEvent & event);
   DECLARE_EVENT_TABLE()
 };
