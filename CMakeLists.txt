@@ -83,8 +83,8 @@ set(PNGLIBDIR "" CACHE PATH "GDL: Specify the libpng directory tree")
 set(GRIB ON CACHE BOOL "GDL: Enable GRIB ?")
 set(GRIBDIR "" CACHE PATH "GDL: Specify the ECMWF ecCodes directory tree")
 
-# set(QHULL OFF CACHE BOOL "GDL: Enable Qhull ?")
-# set(QHULLDIR "" CACHE PATH "GDL: Specify the QHULL directory tree")
+set(QHULL ON CACHE BOOL "GDL: Enable Qhull ?")
+set(QHULLDIR "" CACHE PATH "GDL: Specify the QHULL directory tree")
 
 set(GLPK ON CACHE BOOL "GDL: Enable GLPK (for function SIMPLEX) ?")
 set(GLPKDIR "" CACHE PATH "GDL: Specify the GLPK directory tree")
@@ -993,24 +993,28 @@ if(GRIB)
     endif(GRIB_FOUND)
 endif(GRIB)
 
-# QHULL IS NOT NEEDED YET!
-# # Qhull (enable TRIANGULATE and QHULL commands)
-# # -DQHULL=ON|OFF
-# # -DQHULLDIR=DIR
-# if(QHULL)
-#   set(CMAKE_PREFIX_PATH ${QHULLDIR})
-#   find_package(QHULL QUIET)
-#   set(PL_HAVE_QHULL ${QHULL_FOUND})
-#   if(QHULL_FOUND)
-#       set(LIBRARIES ${LIBRARIES} ${QHULL_LIBRARIES})
-#       include_directories(${QHULL_INCLUDE_DIR})
-#   else(QHULL_FOUND)
-#       message(FATAL_ERROR "QHULL is required but was not found.\n"
-#       "Use -DQHULLDIR=DIR to specify the QHULL directory tree.\n"
-#       "Use -DQHULL=OFF to not use it.\n"
-#                 "(suitable Fedora/CentOS package libqhull-devel)")
-#   endif(QHULL_FOUND)
-# endif(QHULL)
+# Qhull (enable TRIANGULATE and QHULL commands)
+# -DQHULL=ON|OFF
+# -DQHULLDIR=DIR
+if(QHULL)
+  set(CMAKE_PREFIX_PATH ${QHULLDIR})
+  find_package(QHULL QUIET)
+  set(HAVE_QHULL ${QHULL_FOUND})
+  if(QHULL_FOUND)
+      set(LIBRARIES ${LIBRARIES} ${QHULL_LIBRARIES})
+      include_directories(${QHULL_INCLUDE_DIR})
+  else(QHULL_FOUND)
+      message(FATAL_ERROR "QHULL is required but was not found.\n"
+      "Use -DQHULLDIR=DIR to specify the QHULL directory tree.\n"
+      "Use -DQHULL=OFF to not use it.\n"
+                "(suitable Fedora/CentOS package libqhull-devel)\n"
+                "(suitable Homebrew package: qhull)\n"
+                "On some Ubuntu distributions this library is missing from the apt package.\n"
+                "You might need to compile Qhull from github source (https://github.com/qhull/qhull)\n"
+                "and specify the directory to cmake with option -DQHULLDIR"
+                )
+  endif(QHULL_FOUND)
+endif(QHULL)
 
 # GLPK for Simplex ( Linear programming )
 # GLPK (enable SIMPLEX command)
@@ -1185,8 +1189,7 @@ module(PYTHON    Python    "Python        ")
 module(UDUNITS2  UDUNITS2  "UDUNITS-2     ")
 module(EIGEN3    EIGEN3    "EIGEN3        ")
 module(GRIB      GRIB      "GRIB          ")
-# set(QHULL_LIBRARIES ${QHULL_LIBRARIES})
-# module(QHULL     "QHULL         ")
+module(QHULL     QHULL     "QHULL         ")
 module(GLPK      GLPK      "GLPK          ")
 module(SHAPELIB  SHAPELIB  "SHAPELIB      ")
 module(EXPAT     EXPAT     "EXPAT         ")

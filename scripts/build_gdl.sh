@@ -107,7 +107,7 @@ elif [ ${BUILD_OS} == "Linux" ]; then
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
         llvm libomp ncurses readline zlib libpng gsl wxmac graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
-        eccodes glpk shapelib expat gcc@10
+        eccodes glpk shapelib expat gcc@10 qhull
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
 else
@@ -300,6 +300,15 @@ function prep_packages {
         for package_name in ${MSYS2_PACKAGES_REBUILD[@]}; do
             build_msys2_package $package_name
         done
+	
+	pushd ${ROOT_DIR}
+        download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
+        decompress_file
+        log "Building qhull..."
+        pushd qhull-2020.2
+        make SO=dll || exit 1
+        popd
+	popd
 
         download_file ${BSDXDR_URL}
         decompress_file
@@ -335,9 +344,19 @@ function prep_packages {
                 fi
             done
         done
+
+	pushd ${ROOT_DIR}
+        download_file "https://github.com/qhull/qhull/archive/refs/tags/2020.2.zip"
+        decompress_file
+        log "Building qhull..."
+        pushd qhull-2020.2
+        make || exit 1
+        popd
+	popd
+
         if [[ -z ${INSTALL_PACKAGES} ]]; then
             log "All required packages are already installed on your system."
-	else
+	    else
             log "Installing packages:"
             log "${INSTALL_PACKAGES}"
             if [ ${DRY_RUN} == "true" ]; then
@@ -407,6 +426,12 @@ function configure_gdl {
                                 "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
     fi
 
+    if [[ ${BUILD_OS} != "macOS" ]]; then
+        CMAKE_QHULLDIR_OPT="-DQHULLDIR="${ROOT_DIR}"/qhull-2020.2"
+    else
+        CMAKE_QHULLDIR_OPT=""
+    fi
+
     if [ ${BUILD_OS} == "Windows" ]; then
         export WX_CONFIG=${GDL_DIR}/scripts/deps/windows/wx-config-wrapper
     fi
@@ -421,7 +446,7 @@ function configure_gdl {
         -DMPI=${WITH_MPI} -DTIFF=${WITH_TIFF} -DGEOTIFF=${WITH_GEOTIFF} \
         -DLIBPROJ=${WITH_LIBPROJ} -DPYTHON=${WITH_PYTHON} -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=${WITH_FFTW} \
         -DUDUNITS2=${WITH_UDUNITS2} -DGLPK=${WITH_GLPK} -DGRIB=${WITH_GRIB} \
-        -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]}
+        -DUSE_WINGDI_NOT_WINGCC=ON -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]} ${CMAKE_QHULLDIR_OPT}
 }
 
 function build_gdl {

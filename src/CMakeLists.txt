@@ -179,6 +179,12 @@ ${SOURCES}
 sax.cpp
 )
 endif(USE_EXPAT)
+if(HAVE_QHULL)
+set (SOURCES
+${SOURCES}
+qhull.cpp
+)
+endif(HAVE_QHULL)
 if(WIN32)
 set(SOURCES
 ${SOURCES}
@@ -219,6 +225,7 @@ if (MINGW)
 target_link_libraries(gdl ws2_32)
 endif (MINGW)
 target_link_libraries(gdl ${LIBRARIES})
+
 add_definitions(-DHAVE_CONFIG_H)
 
 if(PYTHON_MODULE)
