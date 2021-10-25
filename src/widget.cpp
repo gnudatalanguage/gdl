@@ -2259,7 +2259,8 @@ BaseGDL* widget_info( EnvT* e ) {
         // Scalar Input
         WidgetIDT widgetID = (*p0L)[0];
         GDLWidget *widget = GDLWidget::GetWidget(widgetID);
-        if (widget == NULL || !widget->IsTree()) e->Throw("Invalid widget identifier:" + i2s(widgetID));
+        if (widget == NULL ) e->Throw("Invalid widget identifier:" + i2s(widgetID));
+        if (!widget->IsTree()) return new DLongGDL(0);
         GDLWidgetTree *thisTreeItem = (GDLWidgetTree *) widget;
         GDLWidgetTree *thisTreeRoot = thisTreeItem->GetMyRootGDLWidgetTree();
         if (treeselect || treedragselect) {
@@ -2292,10 +2293,15 @@ BaseGDL* widget_info( EnvT* e ) {
           for (SizeT i = 0; i < nEl; i++) {
             WidgetIDT widgetID = (*p0L)[i];
             GDLWidget *widget = GDLWidget::GetWidget(widgetID);
-            if (widget != NULL && widget->IsTree()) {
+            if (widget != NULL ) {
               atLeastOneFound = true;
+              if (widget->IsTree()) {
               GDLWidgetTree *thisTreeItem = (GDLWidgetTree *) widget;
               (*res)[ i] = thisTreeItem->GetDragNotifyValue();
+              } else (*res)[ i] = "<default>";
+            } else {
+              GDLDelete(res);
+              e->Throw("Invalid widget identifier:" + i2s(widgetID));
             }
           }
           myres=res; //pointers
@@ -2304,20 +2310,25 @@ BaseGDL* widget_info( EnvT* e ) {
           for (SizeT i = 0; i < nEl; i++) {
             WidgetIDT widgetID = (*p0L)[i];
             GDLWidget *widget = GDLWidget::GetWidget(widgetID);
-            if (widget != NULL && widget->IsTree()) {
+            if (widget != NULL) {
               atLeastOneFound = true;
-              GDLWidgetTree *thisTreeItem = (GDLWidgetTree *) widget;
-              if (treeselect) (*res)[ i] = thisTreeItem->IsSelectedID(); //IDL does silly things when ID list contains the root 
-              else if (treedragselect) (*res)[ i] = thisTreeItem->IsDragSelectedID(); //IDL does silly things when ID list contains the root 
-              else if (treeindex) (*res)[ i] = thisTreeItem->GetTreeIndex();
-              else if (treefolder) (*res)[ i] = thisTreeItem->IsFolder();
-              else if (treeexpanded) (*res)[ i] = thisTreeItem->IsExpanded();
-              else if (treeroot) (*res)[ i] = thisTreeItem->GetMyRootGDLWidgetTree()->GetWidgetID();
-              else if (treecheckbox) (*res)[ i] = thisTreeItem->HasCheckBox();
-              else if (treechecked) (*res)[ i] = thisTreeItem->IsChecked();
-              else if (treemask) (*res)[ i] = thisTreeItem->HasMask();
-              else if (draggable) (*res)[ i] = thisTreeItem->GetDraggableValue();
-              else if (dropevents) (*res)[ i] = thisTreeItem->GetDroppableValue();
+              if (widget->IsTree()) {
+                GDLWidgetTree *thisTreeItem = (GDLWidgetTree *) widget;
+                if (treeselect) (*res)[ i] = thisTreeItem->IsSelectedID(); //IDL does silly things when ID list contains the root 
+                else if (treedragselect) (*res)[ i] = thisTreeItem->IsDragSelectedID(); //IDL does silly things when ID list contains the root 
+                else if (treeindex) (*res)[ i] = thisTreeItem->GetTreeIndex();
+                else if (treefolder) (*res)[ i] = thisTreeItem->IsFolder();
+                else if (treeexpanded) (*res)[ i] = thisTreeItem->IsExpanded();
+                else if (treeroot) (*res)[ i] = thisTreeItem->GetMyRootGDLWidgetTree()->GetWidgetID();
+                else if (treecheckbox) (*res)[ i] = thisTreeItem->HasCheckBox();
+                else if (treechecked) (*res)[ i] = thisTreeItem->IsChecked();
+                else if (treemask) (*res)[ i] = thisTreeItem->HasMask();
+                else if (draggable) (*res)[ i] = thisTreeItem->GetDraggableValue();
+                else if (dropevents) (*res)[ i] = thisTreeItem->GetDroppableValue();
+              } else (*res)[ i] = 0;
+            } else {
+              GDLDelete(res);
+              e->Throw("Invalid widget identifier:" + i2s(widgetID));
             }
           }
           myres=res; //pointers
