@@ -76,7 +76,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ runner.temp }}/cache
-          key: cache-gdl-deps-${{ matrix.os }}-v3
+          key: cache-gdl-deps-${{ matrix.os }}-v4
       - name: Install Dependencies (macOS, Homebrew)
         if: contains(matrix.os, 'macos') && steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -177,7 +177,7 @@ jobs:
         with:
           path: |
             C:\msys64\cache
-          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v5
+          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v6
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench
@@ -195,8 +195,8 @@ jobs:
         run: |
           pacman -Q | tr ' ' '-' | sort > ~/snapshot1.txt
           scripts/build_gdl.sh prep
-          ls ../MINGW-packages/mingw-w64-graphicsmagick/
-          mv ../MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-*-graphicsmagick-*.tar.* /var/cache/pacman/pkg
+          ls MINGW-packages/mingw-w64-graphicsmagick/
+          mv MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-*-graphicsmagick-*.tar.* /var/cache/pacman/pkg
           pacman -Q | tr ' ' '-' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p /cache
