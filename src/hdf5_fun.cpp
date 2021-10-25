@@ -587,19 +587,15 @@ hid_t
 
        elem_dtype = H5Tget_super(datatype);
        if (elem_dtype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-       hdf5_type_guard elem_dtype_guard = hdf5_type_guard(elem_dtype);
-
-    } else if (H5Tget_class(datatype)==H5T_STRING ) {
-
-       elem_dtype = datatype;
 
     } else {
 
        elem_dtype = H5Tcopy(datatype);
        if (elem_dtype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-       hdf5_type_guard elem_dtype_guard = hdf5_type_guard(elem_dtype);
 
     }
+
+    hdf5_type_guard elem_dtype_guard = hdf5_type_guard(elem_dtype);
 
     // determine the rank and dimension of the dataset
     int rank = H5Sget_simple_extent_ndims(h5s_id);
@@ -770,19 +766,15 @@ hid_t
 
        elem_dtype = H5Tget_super(datatype);
        if (elem_dtype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-       hdf5_type_guard elem_dtype_guard = hdf5_type_guard(elem_dtype);
-
-    } else if (H5Tget_class(datatype)==H5T_STRING ) {
-
-       elem_dtype = datatype;
 
     } else {
 
        elem_dtype = H5Tcopy(datatype);
        if (elem_dtype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-       hdf5_type_guard elem_dtype_guard = hdf5_type_guard(elem_dtype);
 
     }
+
+    hdf5_type_guard elem_dtype_guard = hdf5_type_guard(elem_dtype);
 
     // determine the rank and dimension of the dataset
     int rank = H5Sget_simple_extent_ndims(h5s_id);
