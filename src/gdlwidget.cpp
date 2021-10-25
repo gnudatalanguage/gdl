@@ -4109,6 +4109,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
   }
     //    UPDATE_WINDOW
     REALIZE_IF_NEEDED
+    if ( eventFlags & GDLWidget::EV_CONTEXT ) myTreeRoot->Connect(widgetID,wxEVT_CONTEXT_MENU, wxContextMenuEventHandler(gdlwxFrame::OnContextEvent));
 }
   bool GDLWidgetTree::GetDropability() {
     if (droppable > -1) return droppable;
