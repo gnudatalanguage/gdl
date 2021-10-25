@@ -75,10 +75,13 @@ void LibInit_jp()
     "GET_VALUE", "NO_NEWLINE", "TLB_GET_SIZE",
     "HOURGLASS", "TLB_SET_TITLE", "INPUT_FOCUS",
     "CLEAR_EVENTS", "TLB_SET_XOFFSET", "TLB_SET_YOFFSET", "TLB_GET_OFFSET",
+  //Widget_Draw
     "DRAW_BUTTON_EVENTS", "DRAW_EXPOSE_EVENTS", "DRAW_KEYBOARD_EVENTS",
     "DRAW_MOTION_EVENTS", "DRAW_WHEEL_EVENTS", "TRACKING_EVENTS", "DRAW_VIEWPORT_EVENTS",
+    "DRAW_XSIZE", "DRAW_YSIZE", "GET_DRAW_VIEW", "SET_DRAW_VIEW",
+  //
     "SET_DROP_EVENTS", "KILL_NOTIFY", "SHOW", "APPEND", "USE_TEXT_SELECT", "SET_TEXT_SELECT",
-    "XSIZE", "YSIZE", "SCR_XSIZE", "SCR_YSIZE", "DRAW_XSIZE", "DRAW_YSIZE", "FRAME", "SCROLL", //not IDL!
+    "XSIZE", "YSIZE", "SCR_XSIZE", "SCR_YSIZE", "FRAME", "SCROLL", //not IDL!
     "BITMAP", "IMAGE", "TIMER", "NOTIFY_REALIZE", "ALL_TABLE_EVENTS", "ALL_TEXT_EVENTS",
     "TLB_KILL_REQUEST_EVENTS", "TLB_MOVE_EVENTS", "TLB_SIZE_EVENTS", "TLB_ICONIFY_EVENTS",
     "TLB_RESIZE_NODRAW", //This keyword will be silently ignored, as the wxWidgets redrawing is always done as if "TLB_RESIZE_NODRAW" was set.
@@ -89,7 +92,7 @@ void LibInit_jp()
     "AM_PM", "DAYS_OF_WEEK", "MONTHS", "SET_TABLE_SELECT", "SET_TABLE_VIEW",
     "UPDATE", "FORMAT", "EDIT_CELL", "TABLE_XSIZE", "TABLE_YSIZE", "SEND_EVENT", "BAD_ID",
     "GROUP_LEADER", "COMBOBOX_ADDITEM", "COMBOBOX_DELETEITEM", "COMBOBOX_INDEX",
-    "GET_DRAW_VIEW", "SET_DRAW_VIEW","SET_TAB_CURRENT", "UNITS", "DYNAMIC_RESIZE", "SET_SLIDER_MIN", "SET_SLIDER_MAX",
+    "SET_TAB_CURRENT", "UNITS", "DYNAMIC_RESIZE", "SET_SLIDER_MIN", "SET_SLIDER_MAX",
     "X_BITMAP_EXTRA", "DEFAULT_FONT", "FONT", "EDITABLE", "BASE_SET_TITLE", "SET_TREE_EXPANDED", 
     "SET_TREE_SELECT","SET_TREE_INDEX","SET_DRAG_NOTIFY","SET_DRAGGABLE","SET_TREE_CHECKED",
     "SET_TREE_BITMAP","SET_MASK","SET_TREE_VISIBLE",
@@ -119,15 +122,15 @@ void LibInit_jp()
     , "TOOLTIP"
  // unsupported yet but warning about it may be a pain
     , "RETAIN" //not taken into account, but not useful, too.
-    , "CLASSNAME"
-    , "COLOR_MODEL"
-    , "COLORS"
-    , "GRAPHICS_LEVEL"
-    , "IGNORE_ACCELERATORS"
-    , "RENDERER"
+    , "COLORS" //not taken into account, but not useful, too.
+    , "GRAPHICS_LEVEL"//not taken into account, but not useful, too.
+    , "IGNORE_ACCELERATORS"//not taken into account, but not useful, too.
+    , "RENDERER"//not taken into account, but not useful, too.
     , KLISTEND};
   const string widget_drawWarnKey[] = {
     "DRAG_NOTIFY" //should be implemented 
+    , "CLASSNAME" //obscure object class not implemented
+    , "COLOR_MODEL" //obscure object class not implemented
     , KLISTEND
   };
   new DLibFunRetNew(lib::widget_draw, string("WIDGET_DRAW"), 1, widget_drawKey, widget_drawWarnKey);
@@ -149,7 +152,7 @@ void LibInit_jp()
     "BUTTON_SET", "PARENT", "TEXT_SELECT", "FIND_BY_UNAME", "TYPE", "NAME",
     "TABLE_DISJOINT_SELECTION", "TABLE_SELECT", "COLUMN_WIDTHS", "ROW_HEIGHTS", "USE_TABLE_SELECT", "SYSTEM_COLORS",
     "TREE_ROOT", "TREE_SELECT", "TREE_DRAG_SELECT", "TREE_EXPANDED", "TREE_FOLDER", "TREE_INDEX", "TREE_BITMAP",
-  "DROP_EVENTS", "DRAGGABLE", "DRAG_NOTIFY", "MASK","TREE_CHECKBOX", "TREE_CHECKED",
+    "DROP_EVENTS", "DRAGGABLE", "DRAG_NOTIFY", "MASK","TREE_CHECKBOX", "TREE_CHECKED",
     "LIST_SELECT", "DROPLIST_SELECT", "COMBOBOX_GETTEXT",
     "TAB_NUMBER", "TAB_MULTILINE", "TAB_CURRENT",
     "TLB_KILL_REQUEST_EVENTS", "TLB_MOVE_EVENTS", "TLB_SIZE_EVENTS", "TLB_ICONIFY_EVENTS",

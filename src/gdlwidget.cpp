@@ -4109,6 +4109,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
   }
     //    UPDATE_WINDOW
     REALIZE_IF_NEEDED
+    if ( eventFlags & GDLWidget::EV_CONTEXT ) myTreeRoot->Connect(widgetID,wxEVT_CONTEXT_MENU, wxContextMenuEventHandler(gdlwxFrame::OnContextEvent));
 }
   bool GDLWidgetTree::GetDropability() {
     if (droppable > -1) return droppable;
@@ -6052,6 +6053,19 @@ void gdlwxGraphicsPanel::RepaintGraphics(bool doClear) {
   dc.Blit(0, 0, drawSize.x, drawSize.y, wx_dc, 0, 0);
 }
 
+////Stem for generalization of Drag'n'Drop, a WIDGET_DRAW can receive drop events from something else than a tree widget...
+//bool DnDText::OnDropText(wxCoord x, wxCoord y, const wxString& text)
+//{
+//  //... BUT THIS IS NOT GOING TO WORK!
+//  gdlwxDrawPanel* draw = static_cast<gdlwxDrawPanel*> (wxFindWindowAtPoint(wxGetMousePosition()));
+//  if (draw) {
+//    wxString* s=new wxString(text);
+//    wxDropFilesEvent* e = new wxDropFilesEvent(0,draw->GetMyWidget()->GetWidgetID(), s); //event handling will destroy content, make it new object.
+//    draw->OnFakeDropFileEvent(*e);
+//    return true;
+//  } return false;
+//}
+
 gdlwxDrawPanel::gdlwxDrawPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
 : gdlwxGraphicsPanel::gdlwxGraphicsPanel(parent, id, pos, size, style, name )
 , myWidgetDraw(static_cast<GDLWidgetDraw*>(GDLWidget::GetWidget(id)))
@@ -6059,6 +6073,8 @@ gdlwxDrawPanel::gdlwxDrawPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "gdlwxDrawPanel::gdlwxDrawPanel(" << this << ") called."<< std::endl;
 #endif
+//    this->SetDropTarget(new DnDText()); //will generate a DND event
+//    this->SetDropTarget(new DnDFile()); just to give an example
 }
 
 void gdlwxDrawPanel::InitStream(int wIx)
@@ -6187,6 +6203,7 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex,
   vValue = new DLongGDL(pstreamIx);  
 
   //these widget specific events are always set:
+   this->AddToDesiredEvents( wxEVT_PAINT, wxPaintEventHandler(gdlwxDrawPanel::OnPaint),draw);
    this->AddToDesiredEvents( wxEVT_PAINT, wxPaintEventHandler(gdlwxDrawPanel::OnPaint),draw);
 //   this->AddToDesiredEvents( wxEVT_SIZE,  wxSizeEventHandler(gdlwxDrawPanel::OnSize),draw);
    //disable flicker see https://wiki.wxwidgets.org/Flicker-Free_Drawing

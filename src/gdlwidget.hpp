@@ -34,6 +34,7 @@
 #include <wx/treectrl.h>
 #include <wx/dragimag.h>
 #include <wx/dcbuffer.h>
+#include <wx/dnd.h>
 
 #include <wx/grid.h>
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID
@@ -338,6 +339,7 @@ public:
  void OnTracking(wxFocusEvent& event);
  void OnWidgetTimer(wxTimerEvent & event);
  void OnKBRDFocusChange(wxFocusEvent &event);
+void OnDrag(wxMouseEvent& event);
 private:
  void OnListBoxDo(wxCommandEvent& event, DLong clicks);
  DECLARE_EVENT_TABLE()
@@ -1682,12 +1684,14 @@ private:
 	wxTreeItemId itemDragging = nullptr;
   wxCursor gdlTREE_SELECT_ABOVE;
   wxCursor gdlTREE_SELECT_BELOW;
-  int pos;
+  int posCode;
+  wxPoint position;
 
 public:
 //	void onLeftDown(wxMouseEvent &evt);
 	void onLeftUp(wxMouseEvent &evt);
 	void onLeaveWindow(wxMouseEvent &evt);
+	void onEnterWindow(wxMouseEvent &evt);
 	// finish the drag action 
 	void endDragging();
 	void onMouseMotion(wxMouseEvent &evt);
@@ -1700,7 +1704,8 @@ public:
     const wxString& name = wxTreeCtrlNameStr)
           :wxTreeCtrl( parent, id, pos, size, style, wxDefaultValidator , name ),
           GDLWidgetTreeID(id),
-          pos(-1)
+          posCode(-1)
+          , position(wxDefaultPosition)
           {
 
 #ifdef __WXMSW__
@@ -1734,7 +1739,8 @@ public:
   void OnItemStateClick(wxTreeEvent & event);
   void OnItemExpanded(wxTreeEvent & event);
   void OnDrag(wxTreeEvent & event);
-  void OnDrop(wxTreeEvent & event);
+  void OnTreeCtrlDrop(wxTreeEvent & event);
+  void OnForeignDrop(WidgetIDT selected, WidgetIDT drag_id);
   void OnItemSelected(wxTreeEvent & event);
   DECLARE_EVENT_TABLE()
 };
@@ -2140,11 +2146,29 @@ public:
   return true;
  }
 
-// virtual gdlWidgetDraw* GetGDLWidgetDraw() {
-//  return NULL;
-// }
  };
-//variant used in widget_draw, with specifics for widgets.
+// 
+////Stem for generalization of Drag'n'Drop, a WIDGET_DRAW can receive drop events from something else than a tree widget (but will probably misunderstand)
+//class DnDText : public wxTextDropTarget {
+//public:
+//
+//  DnDText() {
+//  }
+//
+//  virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& text);
+//
+//};
+//
+//class DnDFile : public wxFileDropTarget
+//{
+//public:
+//    DnDFile() {  }
+//    virtual bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames) {
+//      std::cerr<<filenames[0]<<std::endl;
+//      return true;
+//    }
+//
+//};
 class gdlwxDrawPanel : public gdlwxGraphicsPanel
 {
  GDLWidgetDraw* myWidgetDraw;
@@ -2172,6 +2196,7 @@ public:
  void OnMouseUp(wxMouseEvent& event);
  void OnMouseWheel(wxMouseEvent& event);
  void OnKey(wxKeyEvent& event);
+ void OnFakeDropFileEvent(wxDropFilesEvent& event);
  //  void OnSize(wxSizeEvent &event);
 // void OnPlotWindowSize(wxSizeEvent &event);
 
