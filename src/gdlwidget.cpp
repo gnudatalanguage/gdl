@@ -795,7 +795,7 @@ void GDLWidget::HandleWidgetEvents()
       }
     }
     if (wxIsBusy()) wxEndBusyCursor( );
-}
+  }
 
 void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) {
   // Get XmanagerActiveCommand status
@@ -4030,12 +4030,12 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
 //    } else { //use open and closed folder icons
       treeItemID = myTreeRoot->AddRoot(wxString( (*value)[0].c_str( ), wxConvUTF8 ),  0 ,1, treeItemData);
 //    }
+    treeItemData->SetItemId(treeItemID);
 //    tree->SetItemImage(treeItemID,(folder)?(expanded?gdlWxTree_FOLDER_OPEN:gdlWxTree_FOLDER):gdlWxTree_ITEM);
 // checkbox is not visible for root//    if (has_checkbox) tree->SetItemState(treeItemID,(checked==true)); else tree->SetItemState(treeItemID,wxTREE_ITEMSTATE_NONE); //CHECKED,UNCHECKE,NOT_VISIBLE
     widgetStyle=widgetAlignment( );
     if (dropability == -1) droppable=0; //this for root only
     if (dragability == -1) draggable=0; //this for root only
-    if (dragNotify=="<inherit>") dragNotify="<default>";
 //do not expand root if hidden: will assert() in wxWidgets! //    if (expanded) tree->Expand(treeItemID); 
     myTreeRoot->SetClientSize(wSize);
     myTreeRoot->SetMinClientSize(wSize);
@@ -4095,7 +4095,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
       else if (treeindex > -1) treeItemID = myTreeRoot->InsertItem( parentTree->treeItemID, treeindex, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,TREE_BITMAP_ITEM,TREE_BITMAP_ITEM_SELECTED, treeItemData);
       else  treeItemID = myTreeRoot->AppendItem( parentTree->treeItemID, wxString( (*value)[0].c_str( ), wxConvUTF8 ) ,TREE_BITMAP_ITEM,TREE_BITMAP_ITEM_SELECTED, treeItemData);
     }
-
+    treeItemData->SetItemId(treeItemID);
     if (has_checkbox) myTreeRoot->SetItemState(treeItemID,(checked==true)); else myTreeRoot->SetItemState(treeItemID,wxTREE_ITEMSTATE_NONE); //CHECKED,UNCHECKE,NOT_VISIBLE
     //expand if requested:
     if (expanded)  {
@@ -4107,12 +4107,11 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
       myTreeRoot->Refresh();
     }
   }
-
-
     //    UPDATE_WINDOW
     REALIZE_IF_NEEDED
 }
   bool GDLWidgetTree::GetDropability() {
+    if (droppable > -1) return droppable;
     int enabledrop=droppable;
     GDLWidgetTree* root=myRoot;
     GDLWidgetTree* w=this;
@@ -4123,6 +4122,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     return (enabledrop == 1);
   }
   bool GDLWidgetTree::GetDragability() {
+    if (draggable > -1) return draggable;
     int enabledrag=draggable;
     GDLWidgetTree* root=myRoot;
     GDLWidgetTree* w=this;
@@ -4157,9 +4157,9 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
       //we heve to suppress treeItemData from where it was previously attached otherwise it will be destroyed and bang!
       myTreeRoot->SetItemData(currentId,NULL);
       if (this->HasCheckBox()) myTreeRoot->SetItemState(newId,this->IsChecked()); // else myTreeRoot->SetItemState(treeItemID,wxTREE_ITEMSTATE_NONE); //CHECKED,UNCHECKE,NOT_VISIBLE
-      if (expanded)  {
+      if (folder)  {
          myTreeRoot->SetItemHasChildren( newId, true); //TRICK! to enable folder opened or closed BY CONSTRUCTION.
-         myTreeRoot->Expand(newId);
+         if (expanded) myTreeRoot->Expand(newId);
        }
       // give back treeItemID to transferred GDLTreeWidget:
       this->SetItemID(newId);
@@ -4299,6 +4299,24 @@ WidgetIDT GDLWidgetTree::IsDragSelectedID() { //must return
   return 0;
 }
 
+DString GDLWidgetTree::GetDragNotifyValue(){
+  DString s=dragNotify;
+  if (s!="<inherit>") return s;
+  
+  wxTreeItemId test = treeItemID;
+  wxTreeCtrlGDL* myTreeRoot = treeItemData->myTree;
+  do {
+    test = myTreeRoot->GetItemParent(test);
+    GDLWidgetTree* parent=myTreeRoot->GetItemTreeWidget(test);
+    s=parent->GetDragNotifyValue();
+  } while (test.IsOk() && s=="<inherit>");
+  if (!test.IsOk()) {
+    s="<default>";
+    return s; //no parent was selected
+  }
+  if (s.size()) return s; else return "<default>";
+}
+
 DLongGDL* GDLWidgetTree::GetAllSelectedID() {
   //tree must be root
   GDLWidgetTree* myGdlTreeRoot = this->GetMyRootGDLWidgetTree();
@@ -4382,6 +4400,29 @@ DLong GDLWidgetTree::Sibling() { //uses NextSibling, which may be 0.
   if (!id.IsOk()) return 0;
   return static_cast<wxTreeItemDataGDL*>(myTreeRoot->GetItemData(id))->widgetID;
 }
+//The Following does not work due to a wxWidgets inner loop problem I cannot fathom.
+  int GDLWidgetTree::GetDragNotifyReturn(DString &getFuncName, WidgetIDT sourceID, int modifiers, int defaultval) {
+    try{
+      SizeT funIx = GDLInterpreter::GetFunIx( StrUpCase( getFuncName)  );
+      if (funIx < 0) {
+        Warning("Drag Notify Function "+getFuncName+" not found.");
+        return 0;
+      }
+      EnvT* newEnv = new EnvT(NULL, libFunList[ funIx]);
+      newEnv->SetNextPar( new DLongGDL( widgetID ) ); // i am destination
+      newEnv->SetNextPar( new DLongGDL( sourceID ) ); 
+      newEnv->SetNextPar( new DLongGDL( modifiers ) ); 
+      newEnv->SetNextPar( new DLongGDL( defaultval ) ); 
+      DLongGDL* res =static_cast<DLongGDL*>( static_cast<DLibFun*>(newEnv->GetPro())->Fun()(static_cast<EnvT*>(newEnv)));
+      return (*res)[0];
+    } catch(...) {Warning("problem using "+getFuncName+"."); return -1;}
+    return -1;
+  }
+
+  GDLWidgetTree* wxTreeCtrlGDL::GetItemTreeWidget(wxTreeItemId itemid){
+    GDLWidget* wid=GDLWidget::GetWidget(static_cast<wxTreeItemDataGDL*>(GetItemData(itemid))->widgetID);
+    return static_cast<GDLWidgetTree*>(wid);
+  }
 /*********************************************************/
 // for WIDGET_SLIDER
 /*********************************************************/
@@ -6314,8 +6355,28 @@ void GDLWidgetDraw::SetWidgetScreenSize(DLong sizex, DLong sizey) {
   UpdateGui();
   END_CHANGESIZE_NOEVENT
 }
-
-//for windows, it seems necessary to define our own wxApp and run it manually
+  wxPoint GDLWidgetDraw::GetPos(){
+    gdlwxDrawPanel* dp=static_cast<gdlwxDrawPanel*>(theWxWidget);
+    int yvs=dp->GetVirtualSize().y;
+    int ycs=dp->GetClientSize().y;
+    //the reference position is not at the top but at the bottom of this client window
+    wxPoint zero(0,yvs-ycs);
+    wxPoint np=dp->CalcScrolledPosition(zero);
+    return wxPoint(-np.x,np.y);
+  }
+  void GDLWidgetDraw::SetPos(int x, int y){
+    gdlwxDrawPanel* dp=static_cast<gdlwxDrawPanel*>(theWxWidget);
+    int yvs=dp->GetVirtualSize().y;
+    int ycs=dp->GetClientSize().y;
+    int scx,scy;
+    dp->GetScrollPixelsPerUnit(&scx,&scy);
+    if (scx) x=int(float(x)/float(scx));
+    if (scy) y=int(float(yvs-ycs-y)/float(scy));
+    dp->Scroll(x, y); //in scroll units
+    dp->Refresh();
+  }
+  
+  //for windows, it seems necessary to define our own wxApp and run it manually
 // for linux, it is NOT necessary, but thos works OK
 // for MacOS /COCOA port, the following code does not work and the widgets are not created.
 // (tied_scoped_ptr problem?)
