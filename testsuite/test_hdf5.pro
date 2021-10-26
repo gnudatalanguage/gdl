@@ -175,6 +175,9 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
 
       ;;; help, attr_data[idx], read_attr_data
 
+      if ( not array_equal(size(attr_data[idx]),size(read_attr_data)) ) then $
+         cumul_errors++
+
       if ( not array_equal(attr_data[idx],read_attr_data,/no_typeconv) ) then $
          cumul_errors++
 
@@ -182,7 +185,7 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
 
    h5f_close, f_id
 
-   banner_for_testsuite, 'test_hdf5_attr', cumul_errors, /short
+   banner_for_testsuite, 'TEST_HDF5_ATTR', cumul_errors, /short
 
    return
 end
@@ -282,6 +285,9 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
 
       ;;; help, mock_data[idx], read_mock_data
 
+      if ( not array_equal(size(mock_data[idx]),size(read_mock_data)) ) then $
+         cumul_errors++
+
       if ( not array_equal(mock_data[idx],read_mock_data,/no_typeconv) ) then $
          cumul_errors++
 
@@ -308,6 +314,9 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       h5s_close, ms_id
 
       ;;; help, mock_data[idx], read_mock_data
+
+      if ( not array_equal(size(mock_data[idx]),size(read_mock_data)) ) then $
+         cumul_errors++
 
       if ( not array_equal(mock_data[idx],read_mock_data,/no_typeconv) ) then $
          cumul_errors++
@@ -368,7 +377,10 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
          end
       endcase
 
-      ;;; help, slab, read_mock_data
+      help, slab, read_mock_data
+
+      if ( not array_equal(size(slab),size(read_mock_data)) ) then $
+         cumul_errors++
 
       if ( not array_equal(slab,read_mock_data,/no_typeconv) ) then $
          cumul_errors++
@@ -376,7 +388,6 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
    endfor
 
    h5f_close, f_id
-   banner_for_testsuite, 'test_hdf5_data', cumul_errors, /short
 
    banner_for_testsuite, 'TEST_HDF5_DATA', cumul_errors, /short
 
