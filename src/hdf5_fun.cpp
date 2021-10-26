@@ -656,7 +656,7 @@ hid_t
     else if (nStart != rank)
       e->Throw("Number of elements in Start must equal dataspace dimensions. ");
 
-    for(int i=0; i<nStart; i++) start[i] = (hsize_t)(*startPar)[i];
+    for(int i=0; i<rank; i++) start[i] = (hsize_t)(*startPar)[rank-1-i];
 
 
     /* mandatory 'Count' parameter */
@@ -668,7 +668,7 @@ hid_t
     else if (nCount != rank)
       e->Throw("Number of elements in Count must equal dataspace dimensions. ");
 
-    for(int i=0; i<nCount; i++) count[i] = (hsize_t)(*countPar)[i];
+    for(int i=0; i<rank; i++) count[i] = (hsize_t)(*countPar)[rank-1-i];
 
 
     /* keyword 'block' parameter */
@@ -683,7 +683,7 @@ hid_t
       else if (nBlock != rank)
         e->Throw("Number of elements in BLOCK must equal dataspace dimensions. ");
 
-      for(int i=0; i<nBlock; i++) block[i] = (hsize_t)(*blockKW)[i];
+      for(int i=0; i<rank; i++) block[i] = (hsize_t)(*blockKW)[rank-1-i];
 
     } else
       for(int i=0; i<rank; i++) block[i] = 1;
@@ -706,7 +706,7 @@ hid_t
       else if (nStride != rank)
         e->Throw("Number of elements in STRIDE must equal dataspace dimensions. ");
 
-      for(int i=0; i<nStride; i++) stride[i] = (hsize_t)(*strideKW)[i];
+      for(int i=0; i<rank; i++) stride[i] = (hsize_t)(*strideKW)[rank-1-i];
 
     } else
       for(int i=0; i<rank; i++) stride[i] = 1;
