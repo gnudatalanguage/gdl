@@ -922,6 +922,7 @@ hid_t
     */
 
     bool debug = false;
+    bool reverse_memspace_dims;
 
     SizeT nParam = e->NParam(1);
     hsize_t dims_out[MAXRANK];
@@ -974,6 +975,8 @@ hid_t
        else
           memspace_id = H5Scopy(kw_memspace_id);
 
+       reverse_memspace_dims = true;
+
     } else {                            /* same as file space */
 
        memspace_id = H5Scopy(filespace_id);
@@ -981,6 +984,7 @@ hid_t
           string msg;
           e->Throw(hdf5_error_message(msg));
        }
+       reverse_memspace_dims = false;
     }
 
     hdf5_space_guard memspace_id_guard = hdf5_space_guard(memspace_id);
@@ -1041,12 +1045,22 @@ hid_t
       e->Throw(hdf5_error_message(msg));
     }
 
+    if (reverse_memspace_dims) {
+      int i=0,j=rank-1;
+      while (i < j) {
+        hsize_t dummy = dims_out[i];
+        dims_out[i++] = dims_out[j];
+        dims_out[j--] = dummy;
+      }
+    }
+
     if (debug && rank>0) {
        cout << "dimensions are: ";
        for(int i=0; i<rank; i++) cout << dims_out[i] << ",";
        cout << endl;
     }
 
+    // dimensions for IDL variable
     SizeT count_s[MAXRANK];
     SizeT rank_s;
 
