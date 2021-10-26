@@ -377,7 +377,7 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
          end
       endcase
 
-      help, slab, read_mock_data
+      ;;; help, slab, read_mock_data
 
       if ( not array_equal(size(slab),size(read_mock_data)) ) then $
          cumul_errors++
