@@ -366,7 +366,7 @@ namespace lib {
     int realcolorIx=colorIx;
     //eventually do not get color from standard "COLOR" keyword but from another...
     if (OtherColorKw != "") realcolorIx=e->KeywordIx (OtherColorKw);
-    if ( e->GetKW ( realcolorIx )!=NULL )
+    if ( e->GetDefinedKW ( realcolorIx )!=NULL )
     {
       colorVect=e->GetKWAs<DLongGDL>( realcolorIx ); //color can be vectorial, but...
       color=(*colorVect)[0]; //this function only sets color to 1st arg in list!
@@ -445,7 +445,7 @@ namespace lib {
       charsize=fcharsize;
     }
     static int charsizeIx=e->KeywordIx ( "CHARSIZE" );
-    if ( e->GetKW ( charsizeIx )!=NULL )
+    if ( e->GetDefinedKW ( charsizeIx )!=NULL )
     {
       DFloatGDL* charsizeVect=e->GetKWAs<DFloatGDL>( charsizeIx );
       charsize=(*charsizeVect)[0];
@@ -465,7 +465,7 @@ namespace lib {
               (pStruct->GetTag
                (pStruct->Desc()->TagIndex("CHARTHICK"), 0)))[0];
     static int charthickIx=e->KeywordIx ( "CHARTHICK" ); //Charthick values may be vector in GDL, not in IDL!
-    if ( e->GetKW ( charthickIx )!=NULL )
+    if ( e->GetDefinedKW ( charthickIx )!=NULL )
     {
       DFloatGDL* charthickVect=e->GetKWAs<DFloatGDL>( charthickIx );
       charthick=(*charthickVect)[0];
@@ -642,7 +642,7 @@ namespace lib {
         set=true;
       }
     }
-    BaseGDL* Range=e->GetKW(choosenIx);
+    BaseGDL* Range=e->GetDefinedKW(choosenIx);
     if ( Range!=NULL )
     {
       if ( Range->N_Elements()!=2 )
@@ -720,7 +720,7 @@ namespace lib {
       unsigned AxisTickformatTag=Struct->Desc()->TagIndex("TICKFORMAT");
       axisTickformatVect = static_cast<DStringGDL*>(Struct->GetTag(AxisTickformatTag,0));
     }
-    if ( e->GetKW ( choosenIx )!=NULL )
+    if ( e->GetDefinedKW ( choosenIx )!=NULL )
     {
       axisTickformatVect=e->GetKWAs<DStringGDL>( choosenIx );
     }
@@ -811,7 +811,7 @@ namespace lib {
       unsigned AxisTicknameTag=Struct->Desc()->TagIndex("TICKNAME");
       axisTicknameVect=static_cast<DStringGDL*>(Struct->GetTag(AxisTicknameTag,0));
     }
-    if ( e->GetKW ( choosenIx )!=NULL )
+    if ( e->GetDefinedKW ( choosenIx )!=NULL )
     {
       axisTicknameVect=e->GetKWAs<DStringGDL>( choosenIx );
       //translate format codes here:
@@ -868,7 +868,7 @@ namespace lib {
       unsigned AxisTickunitsTag=Struct->Desc()->TagIndex("TICKUNITS");
       axisTickunitsVect=static_cast<DStringGDL*>(Struct->GetTag(AxisTickunitsTag,0));
     }
-    if ( e->GetKW ( choosenIx )!=NULL )
+    if ( e->GetDefinedKW ( choosenIx )!=NULL )
     {
       axisTickunitsVect=e->GetKWAs<DStringGDL>( choosenIx );
     }
@@ -900,7 +900,7 @@ namespace lib {
       unsigned AxisTickunitsTag=Struct->Desc()->TagIndex("TICKUNITS");
       axisTickunitsVect=static_cast<DStringGDL*>(Struct->GetTag(AxisTickunitsTag,0));
     }
-    if ( e->GetKW ( choosenIx )!=NULL )
+    if ( e->GetDefinedKW ( choosenIx )!=NULL )
     {
       axisTickunitsVect=e->GetKWAs<DStringGDL>( choosenIx );
     }
@@ -922,7 +922,7 @@ namespace lib {
       axisTickvVect=static_cast<DDoubleGDL*>(Struct->GetTag(AxisTickvTag,0));
 
     }
-    if ( e->GetKW ( choosenIx )!=NULL )
+    if ( e->GetDefinedKW ( choosenIx )!=NULL )
     {
       axisTickvVect=e->GetKWAs<DDoubleGDL>( choosenIx );
     }
@@ -1096,7 +1096,7 @@ namespace lib {
     if ( pos==NULL )
     {
       static int positionIx=e->KeywordIx("POSITION");
-      if ( e->GetKW ( positionIx )!=NULL )
+      if ( e->GetDefinedKW ( positionIx )!=NULL )
       {
        pos=e->GetKWAs<DFloatGDL>(positionIx);
       }
