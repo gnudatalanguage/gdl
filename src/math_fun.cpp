@@ -1087,8 +1087,6 @@ namespace lib {
   //   BaseGDL* alog10_fun( EnvT* e)
   BaseGDL* alog10_fun( BaseGDL* p0, bool isReference)
   {
-    assert( p0 != NULL);
-    assert( p0->N_Elements() > 0);
     if( !isReference) //e->StealLocalPar( 0))
       {
 	return p0->Log10This();
