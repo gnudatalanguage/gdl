@@ -765,7 +765,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         std::string file=callStack.back()->GetFilename();
         if( file != "")
         {
-            SizeT line = e.getLine();
+            SizeT line = callStack.back()->GetLineNumber(); //e.getLine();
             if( line != 0)
             {       
                 std::cerr << std::right << std::setw(6) << line;
