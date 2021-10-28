@@ -242,6 +242,151 @@ namespace lib {
     return GDL_UNDEF;
   }
 
+
+  // --------------------------------------------------------------------
+
+  void hdf5_parse_compound( hid_t parent_type,
+                            DStructGDL* res, char *raw, EnvT *e ) {
+
+    static int indent=0; indent+=2;
+
+    size_t cmp_sz = H5Tget_size( parent_type );
+    int idx, n_mem = H5Tget_nmembers( parent_type );
+
+    printf( "%*scompound datatype of size %ld with %d members\n",
+            indent,"", cmp_sz, n_mem );
+
+    for(idx=0; idx<n_mem; idx++) {
+
+      char type_lbl[200];
+
+      hid_t member_class = H5Tget_member_class( parent_type, idx );
+      hid_t member_type = H5Tget_member_type( parent_type, idx );
+      size_t member_offs = H5Tget_member_offset( parent_type, idx );
+      char *member_name = H5Tget_member_name( parent_type, idx );
+      size_t member_sz = H5Tget_size( member_type );
+      /// FIXME: add guards for all these ?!
+
+      int member_rank=0;
+      hsize_t member_dims[MAXRANK];
+
+      switch (member_class) {
+
+      case H5T_COMPOUND:
+        {
+          sprintf(type_lbl, "nested compound");
+
+          DStructGDL* sub = new DStructGDL("."); /// FIXME: should be anonymous
+          hdf5_parse_compound( member_type, sub, &raw[member_offs], e );
+          res->NewTag(member_name, sub);
+        }
+        break;
+
+      case H5T_ARRAY:
+        sprintf(type_lbl, "array");
+
+        if ((member_rank=H5Tget_array_ndims(member_type)) <0)
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+
+        if (H5Tget_array_dims2(member_type, member_dims) <0)
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+
+        break;
+
+      case H5T_STRING:
+        sprintf(type_lbl, "string");
+        break;
+
+      case H5T_INTEGER:
+        sprintf(type_lbl, "integer");
+        break;
+
+      case H5T_FLOAT:
+        sprintf(type_lbl, "float");
+        break;
+
+      case H5T_BITFIELD:
+      case H5T_OPAQUE:
+      case H5T_REFERENCE:
+      case H5T_ENUM:
+      case H5T_VLEN:
+        printf("feature not yet supported.\n");
+        break;
+
+      default:
+        printf("unknown member type.\n");
+        break;
+      }
+
+      printf( "%*sfound %s element '%s' of size %ld at offset %ld\n",
+              indent, "", type_lbl, member_name, member_sz, member_offs );
+
+      hid_t elem_type;
+
+      if (member_class==H5T_ARRAY)
+        elem_type = H5Tget_super(member_type);
+      else
+        elem_type = H5Tcopy(member_type);
+
+      hdf5_type_guard elem_type_guard = hdf5_type_guard(elem_type);
+
+      SizeT rank_s=member_rank;
+      SizeT count_s[MAXRANK];
+      for(int i=0; i<rank_s; i++) /// FIXME: test w/ non-square matrix
+        count_s[i] = (SizeT) member_dims[member_rank-1-i];
+
+      // create the IDL datatypes
+      dimension dim(count_s, rank_s);
+      BaseGDL *field=NULL;
+      DLong ourType = mapH5DatatypesToGDL(elem_type);
+
+      if (ourType == GDL_BYTE) {
+        field = new DByteGDL(dim);
+      } else if (ourType == GDL_INT) {
+        field = new DIntGDL(dim);
+      } else if (ourType == GDL_UINT) {
+        field = new DUIntGDL(dim);
+      } else if (ourType == GDL_LONG) {
+        field = new DLongGDL(dim);
+      } else if (ourType == GDL_ULONG) {
+        field = new DULongGDL(dim);
+      } else if (ourType == GDL_LONG64) {
+        field = new DLong64GDL(dim);
+      } else if (ourType == GDL_LONG64) {
+        field = new DULong64GDL(dim);
+      } else if (ourType == GDL_FLOAT) {
+        field = new DFloatGDL(dim);
+      } else if (ourType == GDL_DOUBLE) {
+        field = new DDoubleGDL(dim);
+      } else if (ourType == GDL_STRING &&
+                 member_class==H5T_STRING) { //FIXME: STRING/STRUCT ambiguous
+
+        if (rank_s>0) e->Throw("Only scalar strings allowed.");
+
+        char* name = static_cast<char*>(calloc(member_sz,sizeof(char)));
+        if (name == NULL) e->Throw("Failed to allocate memory!");
+
+        strncpy(name,&raw[member_offs],member_sz);
+        res->NewTag( member_name, new DStringGDL(name) ); free(name);
+      }
+
+      if(field) {
+        res->NewTag( member_name, field );
+        memcpy( field->DataAddr(), &raw[member_offs], member_sz*sizeof(char) );
+      }
+
+      free(member_name);
+
+      H5Tclose(member_type);
+    }
+
+    indent-=2;
+    return;
+  }
+
+
+  // --------------------------------------------------------------------
+
   BaseGDL* h5_get_libversion_fun( EnvT* e)
   {
     unsigned int majnum, minnum, relnum;
@@ -1157,6 +1302,29 @@ hid_t
     } else if (ourType == GDL_DOUBLE) {
       res = new DDoubleGDL(dim);
       type = H5T_NATIVE_DOUBLE;
+
+    } else if (H5Tget_class(datatype)==H5T_COMPOUND) {
+
+       if (debug) printf("compound dataset\n");
+
+       if(rank>0)
+          e->Throw("Only scalar dataspaces supported for compound datasets.");
+
+       DStructGDL* res = new DStructGDL("");
+       size_t cmp_sz = H5Tget_size(datatype);
+       char *raw = (char*)calloc(cmp_sz,sizeof(char));
+
+       if ( H5Dread(h5d_id, datatype, memspace_id, filespace_id,
+                    H5P_DEFAULT, raw) < 0) {
+          string msg; e->Throw(hdf5_error_message(msg));
+       }
+
+       // translate to GDL structure
+       hdf5_parse_compound( datatype, res, raw, e );
+
+       free(raw);
+       return res;
+
     } else if (ourType == GDL_STRING) {
 
       // a bit special, lets follow the example on h5 site:
@@ -1198,6 +1366,7 @@ hid_t
       status = H5Tclose (filetype);
       status = H5Tclose (memtype);
       return res;
+
     } else {
       e->Throw("Unsupported data format" + i2s(elem_dtype));
     }
