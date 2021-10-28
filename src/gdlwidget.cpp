@@ -1452,9 +1452,6 @@ GDLWidget::~GDLWidget()
   this->SetUnValid();
   if (m_windowTimer) {if (m_windowTimer->IsRunning()) m_windowTimer->Stop();}
 
-  // call KILL_NOTIFY procedures
-  this->OnKill();
-
   // kill followers (here?)
   // delete all followers (in reverse order ?)
   while (!followers.empty()) {

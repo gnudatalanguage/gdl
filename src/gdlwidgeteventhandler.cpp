@@ -1323,6 +1323,9 @@ void gdlwxFrame::OnUnhandledCloseFrame( wxCloseEvent & event)
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   if( widget == NULL) {event.Skip(); return;} 
   if (!gdlOwner) {event.Skip(); return;}
+
+  // call KILL_NOTIFY procedures
+  widget->OnKill();
     //destroy TLB widget
    delete gdlOwner;
 }
