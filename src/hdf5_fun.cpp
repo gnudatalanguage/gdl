@@ -1130,6 +1130,10 @@ hid_t
        Oct 2021, Oliver Gressel <ogressel@gmail.com>
        - allow for hyperslab selection via passing keyword parameters
          'FILE_SPACE' and 'MEMORY_SPACE', respectively
+
+       Oct 2021, Oliver Gressel <ogressel@gmail.com>
+       - allow for datasets of type 'H5T_COMPOUND' mapping to GDL structures
+         (FIXME: ignores the IDL keyword 'Datatype_id' meant for partial reads)
     */
 
     bool debug = false;
