@@ -262,13 +262,14 @@ namespace lib {
       char type_lbl[200];
 
       hid_t member_class = H5Tget_member_class( parent_type, idx );
+      hdf5_type_guard member_class_guard = hdf5_type_guard(member_class);
+
       hid_t member_type = H5Tget_member_type( parent_type, idx );
-      size_t member_offs = H5Tget_member_offset( parent_type, idx );
+      hdf5_type_guard member_type_guard = hdf5_type_guard(member_type);
+
       char *member_name = H5Tget_member_name( parent_type, idx );
       size_t member_sz = H5Tget_size( member_type );
-
-      hdf5_type_guard member_class_guard = hdf5_type_guard(member_class);
-      hdf5_type_guard member_type_guard = hdf5_type_guard(member_type);
+      size_t member_offs = H5Tget_member_offset( parent_type, idx );
 
       /// FIXME: add guard for 'char *member_name' ?
 
@@ -383,7 +384,7 @@ namespace lib {
         memcpy( field->DataAddr(), &raw[member_offs], member_sz*sizeof(char) );
       }
 
-      free(member_name);
+      H5free_memory(member_name);
 
       H5Tclose(member_type);
     }
