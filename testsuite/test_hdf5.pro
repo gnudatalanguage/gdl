@@ -222,7 +222,7 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
 
       ; --- write mock attributes to HDF5 file (not yet implemented in GDL)
 
-      f_id = h5f_create(full_file_name)
+      f_id = h5f_create(file_name)
 
       for i=0,n_elements(attr_data)-1 do begin
 
@@ -250,6 +250,8 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
       endfor
 
       h5f_close, f_id
+
+      return
 
    endif
 
@@ -344,7 +346,7 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
 
       ; --- write mock datasets to HDF5 file (not yet implemented in GDL)
 
-      f_id = h5f_create(full_file_name)
+      f_id = h5f_create(file_name)
 
       for i=0,n_elements(mock_data)-1 do begin
 
@@ -372,6 +374,8 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       endfor
 
       h5f_close, f_id
+
+      return
 
    endif
 
@@ -503,6 +507,87 @@ end
 ;
 ; -----------------------------------------------
 ;
+pro TEST_HDF5_COMP, cumul_errors, create=create
+
+   errors=0
+
+   file_name = "hdf5-struct-test.h5"
+   full_file_name = file_search_for_testsuite(file_name, /warning)
+   if (not keyword_set(create) and strlen(full_file_name) eq 0) then begin
+      cumul_errors++
+      return
+   endif
+
+   ; --- create some mock GDL structures
+
+   nested = { an_integer:1, a_long:2l, a_float:1.1, a_double:1.2d, $
+              a_float_arr:[1.3,1.4,1.5], $
+              a_double_arr:[ [1.6d,1.7], [1.8,1.9], [2.0,2.1] ], $
+              a_string:"nested compound" }
+
+   main = { a_byte:4b, a_byte_arr:[5b,6,7,8], $
+            sub:nested, a_string:"main" }
+
+   if keyword_set(create) then begin
+
+      ; --- write mock structures to HDF5 file (not yet implemented in GDL)
+
+      f_id = h5f_create(file_name)
+
+      s_id = h5s_create_scalar()
+      t_id = h5t_idl_create(main)
+      d_id = h5d_create(f_id, "a_compund", t_id, s_id)
+
+      h5d_write, d_id, main
+
+      h5d_close, d_id &  h5t_close, t_id &  h5s_close, s_id
+      h5f_close, f_id
+
+      return
+
+   endif
+
+   ; --- read HDF5 compound datasets into GDL structures
+
+   f_id = h5f_open(full_file_name)
+   d_id = h5d_open(f_id, "a_compund")
+
+   read_main = h5d_read(d_id)
+
+   ;;; help, read_main, read_main.sub, main, main.sub, /st
+
+   h5d_close, d_id
+   h5f_close, f_id
+
+   ; --- check the result for errors
+
+   tags = [ tag_names(main), "SUB."+tag_names(main.sub) ]
+
+   foreach tag, tags do begin
+
+      if(tag eq "SUB") then continue
+
+      void = execute("is_string_tag=isa(MAIN."+tag+",'String')")
+      test = (is_string_tag) ? 'STRCMP' : 'ARRAY_EQUAL'
+      test_kw = (is_string_tag) ? '' : ', /no_typeconv'
+
+      cmd = "result = "+test+"( MAIN."+tag+","+" READ_MAIN."+tag+test_kw+" )"
+      void=execute(cmd)
+
+      errors += (result eq 0)
+
+   endforeach
+
+   banner_for_testsuite, 'TEST_HDF5_COMP', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors = cumul_errors + errors
+
+   return
+end
+;
+; -----------------------------------------------
+;
 pro TEST_HDF5, help=help, test=test, no_exit=no_exit
 ;
 if KEYWORD_SET(help) then begin
@@ -534,6 +619,8 @@ TEST_HDF5_ATTR, cumul_errors
 TEST_HDF5_DATA, cumul_errors
 ;
 TEST_HDF5_OBJ_INFO, cumul_errors
+;
+TEST_HDF5_COMP, cumul_errors
 ;
 BANNER_FOR_TESTSUITE, 'TEST_HDF5', cumul_errors
 ;
