@@ -165,6 +165,17 @@ end
 ;
 pro TEST_HDF5_ATTR, cumul_errors, create=create
 
+   errors=0
+
+   file_name = "hdf5-attr-test.h5"
+   full_file_name = file_search_for_testsuite(file_name, /warning)
+   if (strlen(full_file_name) eq 0) then begin
+      cumul_errors++
+      return
+   endif
+
+   ; --- specify some dimensions
+
    some_elem_dims = list( [], [3], [2,3] )
    some_data_dims = list( [], [4], [4,3], [4,3,2] )
 
@@ -211,7 +222,7 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
 
       ; --- write mock attributes to HDF5 file (not yet implemented in GDL)
 
-      f_id = h5f_create("hdf5-attr-test.h5")
+      f_id = h5f_create(full_file_name)
 
       for i=0,n_elements(attr_data)-1 do begin
 
@@ -244,7 +255,7 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
 
    ; --- read HDF5 attributes
 
-   f_id = h5f_open("hdf5-attr-test.h5")
+   f_id = h5f_open(full_file_name)
 
    for idx=0,n_elements(attr_data)-1 do begin
 
@@ -255,16 +266,19 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
       ;;; help, attr_data[idx], read_attr_data
 
       if ( not array_equal(size(attr_data[idx]),size(read_attr_data)) ) then $
-         cumul_errors++
+         errors++
 
       if ( not array_equal(attr_data[idx],read_attr_data,/no_typeconv) ) then $
-         cumul_errors++
+         errors++
 
    endfor
 
    h5f_close, f_id
 
-   banner_for_testsuite, 'TEST_HDF5_ATTR', cumul_errors, /short
+   banner_for_testsuite, 'TEST_HDF5_ATTR', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors = cumul_errors + errors
 
    return
 end
@@ -272,6 +286,17 @@ end
 ; -----------------------------------------------
 ;
 pro TEST_HDF5_DATA, cumul_errors, create=create
+
+   errors=0
+
+   file_name = "hdf5-data-test.h5"
+   full_file_name = file_search_for_testsuite(file_name, /warning)
+   if (strlen(full_file_name) eq 0) then begin
+      cumul_errors++
+      return
+   endif
+
+   ; --- specify some dimensions
 
    some_elem_dims = list( [], [3], [2,3] )
    some_data_dims = list( [], [4], [5,4], [6,5,4] )
@@ -319,7 +344,7 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
 
       ; --- write mock datasets to HDF5 file (not yet implemented in GDL)
 
-      f_id = h5f_create("hdf5-data-test.h5")
+      f_id = h5f_create(full_file_name)
 
       for i=0,n_elements(mock_data)-1 do begin
 
@@ -352,7 +377,7 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
 
    ; --- read HDF5 datasets
 
-   f_id = h5f_open("hdf5-data-test.h5")
+   f_id = h5f_open(full_file_name)
 
    for idx=0,n_elements(mock_data)-1 do begin
 
@@ -365,10 +390,10 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       ;;; help, mock_data[idx], read_mock_data
 
       if ( not array_equal(size(mock_data[idx]),size(read_mock_data)) ) then $
-         cumul_errors++
+         errors++
 
       if ( not array_equal(mock_data[idx],read_mock_data,/no_typeconv) ) then $
-         cumul_errors++
+         errors++
 
    endfor
 
@@ -395,10 +420,10 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       ;;; help, mock_data[idx], read_mock_data
 
       if ( not array_equal(size(mock_data[idx]),size(read_mock_data)) ) then $
-         cumul_errors++
+         errors++
 
       if ( not array_equal(mock_data[idx],read_mock_data,/no_typeconv) ) then $
-         cumul_errors++
+         errors++
 
    endfor
 
@@ -459,16 +484,19 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       ;;; help, slab, read_mock_data
 
       if ( not array_equal(size(slab),size(read_mock_data)) ) then $
-         cumul_errors++
+         errors++
 
       if ( not array_equal(slab,read_mock_data,/no_typeconv) ) then $
-         cumul_errors++
+         errors++
 
    endfor
 
    h5f_close, f_id
 
-   banner_for_testsuite, 'TEST_HDF5_DATA', cumul_errors, /short
+   banner_for_testsuite, 'TEST_HDF5_DATA', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors = cumul_errors + errors
 
    return
 end
