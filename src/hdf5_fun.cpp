@@ -248,13 +248,14 @@ namespace lib {
   void hdf5_parse_compound( hid_t parent_type, DStructGDL* parent_struct,
                             char *raw, EnvT *e ) {
 
+    bool debug=false;
     static int indent=0; indent+=2;
 
     size_t cmp_sz = H5Tget_size( parent_type );
     int idx, n_mem = H5Tget_nmembers( parent_type );
 
-    printf( "%*scompound datatype of size %ld with %d members\n",
-            indent,"", cmp_sz, n_mem );
+    if (debug) printf( "%*scompound datatype of size %ld with %d members\n",
+                       indent,"", cmp_sz, n_mem );
 
     for(idx=0; idx<n_mem; idx++) {
 
@@ -265,7 +266,11 @@ namespace lib {
       size_t member_offs = H5Tget_member_offset( parent_type, idx );
       char *member_name = H5Tget_member_name( parent_type, idx );
       size_t member_sz = H5Tget_size( member_type );
-      /// FIXME: add guards for all these ?!
+
+      hdf5_type_guard member_class_guard = hdf5_type_guard(member_class);
+      hdf5_type_guard member_type_guard = hdf5_type_guard(member_type);
+
+      /// FIXME: add guard for 'char *member_name' ?
 
       int member_rank=0;
       hsize_t member_dims[MAXRANK];
@@ -312,16 +317,17 @@ namespace lib {
       case H5T_REFERENCE:
       case H5T_ENUM:
       case H5T_VLEN:
-        printf("feature not yet supported.\n");
+        e->Throw("read H5T_COMPOUND: feature not yet supported.");
         break;
 
       default:
-        printf("unknown member type.\n");
+        e->Throw("read H5T_COMPOUND: unknown member type.");
         break;
       }
 
-      printf( "%*sfound %s element '%s' of size %ld at offset %ld\n",
-              indent, "", type_lbl, member_name, member_sz, member_offs );
+      if (debug)
+         printf( "%*sfound %s element '%s' of size %ld at offset %ld\n",
+                 indent, "", type_lbl, member_name, member_sz, member_offs );
 
       hid_t elem_type;
 
@@ -334,7 +340,7 @@ namespace lib {
 
       SizeT rank_s=member_rank;
       SizeT count_s[MAXRANK];
-      for(int i=0; i<rank_s; i++) /// FIXME: test w/ non-square matrix
+      for(int i=0; i<rank_s; i++)
         count_s[i] = (SizeT) member_dims[member_rank-1-i];
 
       // create the IDL datatypes
@@ -837,7 +843,7 @@ hid_t
 
   void h5s_select_hyperslab_pro( EnvT* e )
   {
-    bool debug = false;
+    bool debug=false;
     SizeT nParam=e->NParam(3);
     hsize_t start[MAXRANK], count[MAXRANK], block[MAXRANK], stride[MAXRANK];
 
@@ -952,7 +958,7 @@ hid_t
         - add support for attributes of type 'H5T_ARRAY'
      */
 
-    bool debug = false;
+    bool debug=false;
 
     SizeT nParam=e->NParam(1);
     hsize_t dims_out[MAXRANK];
