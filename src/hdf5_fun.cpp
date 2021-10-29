@@ -245,8 +245,8 @@ namespace lib {
 
   // --------------------------------------------------------------------
 
-  void hdf5_parse_compound( hid_t parent_type,
-                            DStructGDL* res, char *raw, EnvT *e ) {
+  void hdf5_parse_compound( hid_t parent_type, DStructGDL* parent_struct,
+                            char *raw, EnvT *e ) {
 
     static int indent=0; indent+=2;
 
@@ -276,9 +276,11 @@ namespace lib {
         {
           sprintf(type_lbl, "nested compound");
 
-          DStructGDL* sub = new DStructGDL("."); /// FIXME: should be anonymous
-          hdf5_parse_compound( member_type, sub, &raw[member_offs], e );
-          res->NewTag(member_name, sub);
+          DStructDesc* cmp_desc = new DStructDesc("$truct");
+          DStructGDL* res = new DStructGDL(cmp_desc);
+
+          hdf5_parse_compound( member_type, res, &raw[member_offs], e );
+          parent_struct->NewTag(member_name, res);
         }
         break;
 
@@ -367,11 +369,11 @@ namespace lib {
         if (name == NULL) e->Throw("Failed to allocate memory!");
 
         strncpy(name,&raw[member_offs],member_sz);
-        res->NewTag( member_name, new DStringGDL(name) ); free(name);
+        parent_struct->NewTag( member_name, new DStringGDL(name) ); free(name);
       }
 
       if(field) {
-        res->NewTag( member_name, field );
+        parent_struct->NewTag( member_name, field );
         memcpy( field->DataAddr(), &raw[member_offs], member_sz*sizeof(char) );
       }
 
@@ -1310,7 +1312,9 @@ hid_t
        if(rank>0)
           e->Throw("Only scalar dataspaces supported for compound datasets.");
 
-       DStructGDL* res = new DStructGDL("");
+       DStructDesc* cmp_desc = new DStructDesc("$truct");
+       DStructGDL* res = new DStructGDL(cmp_desc);
+
        size_t cmp_sz = H5Tget_size(datatype);
        char *raw = (char*)calloc(cmp_sz,sizeof(char));
 
