@@ -561,12 +561,13 @@ void GDLWidget::UpdateGui()
     actID = widget->parentID;
   }
   this->GetMyTopLevelFrame()->Fit();
+  this->GetMyTopLevelFrame()->Update();
   END_CHANGESIZE_NOEVENT
-#ifdef __WXMAC__
-  wxTheApp->Yield();
-#else
-  wxGetApp().MainLoop(); //central loop for wxEvents!
-#endif
+//#ifdef __WXMAC__
+//  wxTheApp->Yield();
+//#else
+//  wxGetApp().MainLoop(); //central loop for wxEvents!
+//#endif
 }
 
 //Alternate version if there were sizing problems with the one above.
@@ -6055,6 +6056,7 @@ void gdlwxGraphicsPanel::RepaintGraphics(bool doClear) {
 //  dc.SetDeviceClippingRegion(GetUpdateRegion());
   if (doClear) dc.Clear();
   dc.Blit(0, 0, drawSize.x, drawSize.y, wx_dc, 0, 0);
+  this->Update();
 }
 
 ////Stem for generalization of Drag'n'Drop, a WIDGET_DRAW can receive drop events from something else than a tree widget...

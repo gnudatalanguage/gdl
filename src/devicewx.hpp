@@ -183,12 +183,13 @@ public:
     plotFrame->ShowWithoutActivating();
     plotFrame->Raise();
   }
-  //really show by letting the loop do its magic.
-#ifdef __WXMAC__
-  wxTheApp->Yield();
-#else
-  wxGetApp().MainLoop(); //central loop for wxEvents!
-#endif
+  plotFrame->UpdateWindowUI();
+//  //really show by letting the loop do its magic.
+//#ifdef __WXMAC__
+//  wxTheApp->Yield();
+//#else
+//  wxGetApp().MainLoop(); //central loop for wxEvents!
+//#endif
   return true;
  }
 
