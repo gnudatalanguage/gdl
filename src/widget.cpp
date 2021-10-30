@@ -3468,7 +3468,7 @@ void widget_control( EnvT* e ) {
       WidgetIDT id;
       gdlwxFrame* local_topFrame;
       bool reconnect = widget->DisableSizeEvents(local_topFrame, id);
-      if (id = widgetID) reconnect = false; //no need reconnec a destroyed widget...
+      if (id == widgetID) reconnect = false; //no need reconnec a destroyed widget...
       // call KILL_NOTIFY procedures
       widget->OnKill();
 
