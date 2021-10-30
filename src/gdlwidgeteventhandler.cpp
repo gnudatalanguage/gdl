@@ -1326,8 +1326,9 @@ void gdlwxFrame::OnUnhandledCloseFrame( wxCloseEvent & event)
 
   // call KILL_NOTIFY procedures
   widget->OnKill();
-    //destroy TLB widget
-   delete gdlOwner;
+  //widget may have been killed after this OnKill:
+  widget = GDLWidget::GetWidget(event.GetId());
+  if (widget != NULL)   delete widget; //gdlOwner; //destroy TLB widget
 }
 
 void gdlwxPlotFrame::OnUnhandledClosePlotFrame(wxCloseEvent & event) {

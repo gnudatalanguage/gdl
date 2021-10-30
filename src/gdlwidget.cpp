@@ -1590,20 +1590,27 @@ GDLWidgetContainer::GDLWidgetContainer( WidgetIDT parentID, EnvT* e, ULong event
 
   // delete all children (in reverse order ?)
   while (!children.empty()) {
-    GDLWidget* child=GetWidget(children.back()); children.pop_back();
+    GDLWidget* child = GetWidget(children.back());
+    children.pop_back();
 
      if (child) {
+      WidgetIDT childID = child->GetWidgetID();
 #ifdef GDL_DEBUG_WIDGETS
-      std::cout << "~GDLWidgetContainer, deleting child ID #" << child->GetWidgetID() << " of container  #" << widgetID << std::endl;
+      std::cout << "~GDLWidgetContainer, deleting child ID #" << childID << " of container  #" << widgetID << std::endl;
 #endif
+      // call KILL_NOTIFY procedures
+      child->OnKill();
+      // widget may have been killed by above OnKill:
+      child = GDLWidget::GetWidget(childID);
+      if (child != NULL) {
       //special case for WIDGET_DRAW: delete from 'wdelete' command-like:
       if (child->IsDraw()) {
         gdlwxGraphicsPanel* draw=static_cast<gdlwxGraphicsPanel*>(child->GetWxWidget());
         draw->DeleteUsingWindowNumber(); //just emit quivalent to "wdelete,winNum".
       } else delete child;
      }
+    }
   }
-    
   if (theWxContainer) static_cast<wxWindow*>(theWxContainer)->Destroy(); //which is the panel.
 }
 
