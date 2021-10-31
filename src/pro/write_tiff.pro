@@ -109,5 +109,3 @@ MAGICK_CLOSE, mid
 if KEYWORD_SET(test) OR KEYWORD_SET(debug) then STOP
 ;
 end
-
-
