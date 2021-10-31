@@ -30,7 +30,11 @@ class NullGDL: public BaseGDL
     NullGDL(): BaseGDL() {} 
 
     ~NullGDL(); // virtual due to base class -> can be called nevertheless (but this would be an error here)
-
+  
+    // as GetParString of EnvT but directly from BaseGDL if possible:
+    // get the name of 'i'th parameter
+    const std::string GetParString();
+  
   public:
 
     void* operator new( size_t bytes, char* cP)

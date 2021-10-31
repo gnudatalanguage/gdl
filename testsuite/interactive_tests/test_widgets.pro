@@ -125,18 +125,19 @@ toto=["A","list","created","with","WIDGET_LIST","YSIZE=3"]
 print,toto[event.index] 
 end
 pro handle_Event,ev
-common mycount,count
-help,ev,/str
-if tag_names(ev, /structure_name) eq 'WIDGET_KILL_REQUEST' then begin
-   acceptance=dialog_message(dialog_parent=ev.id,"I Do want to close the window", /CANCEL, /DEFAULT_NO,/QUESTION) ; +strtrim(ev.id,2))
-   if acceptance eq "Yes" then begin
-      widget_control,ev.id,tlb_kill_request_events=0 ; remove blocking kill
-      widget_control,ev.id,/destroy
-   endif
-   
-endif
-
-widget_control,ev.id,get_uvalue=uv 
+  common mycount,count
+  help,ev,/str
+  if tag_names(ev, /structure_name) eq 'WIDGET_KILL_REQUEST' then begin
+     acceptance=dialog_message(dialog_parent=ev.id,"I Do want to close the window", /CANCEL, /DEFAULT_NO,/QUESTION) ; +strtrim(ev.id,2))
+     if acceptance eq "Yes" then begin
+        widget_control,ev.id,tlb_kill_request_events=0 ; remove blocking kill
+        widget_control,ev.id,/destroy
+        return
+     endif
+     
+  endif
+  
+  widget_control,ev.id,get_uvalue=uv 
   widget_control,ev.top,get_uvalue=topuv
   if n_elements(uv) gt 0 then begin
      if (strlen(tag_names(ev,/structure_name)) le 1) then begin

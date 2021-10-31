@@ -2333,11 +2333,6 @@ namespace lib {
   BaseGDL* strlowcase( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
     assert( p0 != NULL);
-    assert( p0->N_Elements() > 0);
-
-    //     e->NParam( 1);//, "STRLOWCASE");
-
-    //     DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
     DStringGDL* p0S;
     DStringGDL* res;
     //  Guard<DStringGDL> guard;
@@ -2391,11 +2386,6 @@ namespace lib {
   BaseGDL* strupcase( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
     assert( p0 != NULL);
-    assert( p0->N_Elements() > 0);
-
-    //     e->NParam( 1);//, "STRLOWCASE");
-
-    //     DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
     DStringGDL* p0S;
     DStringGDL* res;
     //  Guard<DStringGDL> guard;
@@ -2449,10 +2439,6 @@ namespace lib {
   BaseGDL* strlen( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
     assert( p0 != NULL);
-    assert( p0->N_Elements() > 0);
-
-    //     e->NParam( 1);//, "STRLEN");
-
     DStringGDL* p0S;
     Guard<DStringGDL> guard;
     

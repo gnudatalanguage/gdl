@@ -3459,21 +3459,32 @@ void widget_control( EnvT* e ) {
   if ( xmanActCom ) {
     //       cout << "Set xmanager active command: " << widgetID << endl;
     widget->SetXmanagerActiveCommand( );
-  }
+    }
 
-  if ( destroy ) {
-    WidgetIDT id;
-    gdlwxFrame* local_topFrame;
-    bool reconnect = widget->DisableSizeEvents(local_topFrame, id);
-    if (widget->IsDraw()) {
-      GDLWidgetDraw* d=static_cast<GDLWidgetDraw*>(widget);
-      gdlwxGraphicsPanel* draw=static_cast<gdlwxGraphicsPanel*>(d->GetWxWidget());
-      draw->DeleteUsingWindowNumber(); //just emit quivalent to "wdelete,winNum".
-    } else 
-      delete widget;
-    if (reconnect) GDLWidget::EnableSizeEvents(local_topFrame,id);
-    return;
-  }
+  // This is the sole programmatic entry where a widget can be destroyed, apart 2 other special cases:
+  // - the destruction of a toplevel widget using a (trapped, managed) click on the close window.
+  // - the destruction of a widget induced by its parent destruction or a group leader.
+    if (destroy) { 
+      WidgetIDT id;
+      gdlwxFrame* local_topFrame;
+      bool reconnect = widget->DisableSizeEvents(local_topFrame, id);
+      if (id == widgetID) reconnect = false; //no need reconnec a destroyed widget...
+      // call KILL_NOTIFY procedures
+      widget->OnKill();
+
+      // widget may have been killed by above OnKill:
+      widget = GDLWidget::GetWidget(widgetID);
+      if (widget != NULL) {
+        if (widget->IsDraw()) {
+          GDLWidgetDraw* d = static_cast<GDLWidgetDraw*> (widget);
+          gdlwxGraphicsPanel* draw = static_cast<gdlwxGraphicsPanel*> (d->GetWxWidget());
+          draw->DeleteUsingWindowNumber(); //just emit quivalent to "wdelete,winNum".
+        } else delete widget;
+
+        if (reconnect) GDLWidget::EnableSizeEvents(local_topFrame, id);
+      }
+      return;
+    }
 
   if ( sensitiveControl) {
     if (e->KeywordSet(sensitiveControlIx)) widget->SetSensitive( true );

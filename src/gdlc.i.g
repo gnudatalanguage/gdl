@@ -818,7 +818,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         std::string file=callStack.back()->GetFilename();
         if( file != "")
         {
-            SizeT line = e.getLine();
+            SizeT line = callStack.back()->GetLineNumber(); //e.getLine();
             if( line != 0)
             {       
                 std::cerr << std::right << std::setw(6) << line;
@@ -1377,7 +1377,7 @@ statement returns[ RetCode retCode]
 //                     if( e.getLine() == 0 && _retTree != NULL)
 //                         e.SetLine( _retTree->getLine());
                     if( e.getLine() == 0 && last != NULL)
-                        e.SetLine( last->getLine());
+                        e.SetLine( last->getLine()); //probably false -- see ReportError, was obliged to replace e.getLine() by callStack.back()->GetLineNumber()
 
                     if( interruptEnable)
                         ReportError(e, "Error occurred at:");

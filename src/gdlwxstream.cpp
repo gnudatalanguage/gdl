@@ -108,11 +108,11 @@ void GDLWXStream::Update()
   if( this->valid && container != NULL) {
     container->RepaintGraphics();
     //will be updated by eventloop.
-#ifdef __WXMAC__
-  wxTheApp->Yield();
-#else
-  wxGetApp().MainLoop(); //central loop for wxEvents!
-#endif
+//#ifdef __WXMAC__
+//  wxTheApp->Yield();
+//#else
+//  wxGetApp().MainLoop(); //central loop for wxEvents!
+//#endif
   }
 }
 
@@ -140,6 +140,7 @@ void GDLWXStream::SetSize( wxSize s )
   this->cmd(PLESC_RESIZE, (void*)&s );
   m_width = s.x;
   m_height = s.y;
+  Update();
 }
 
 void GDLWXStream::WarpPointer(DLong x, DLong y) {
@@ -320,7 +321,7 @@ bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
   image.Destroy();
   temp_dc.SelectObject( wxNullBitmap);
   *streamBitmap = streamDC->GetAsBitmap();
-//  Update();
+  Update();  //very much necessary for wxWidgets!
   return true;
 }
 

@@ -561,12 +561,13 @@ void GDLWidget::UpdateGui()
     actID = widget->parentID;
   }
   this->GetMyTopLevelFrame()->Fit();
+  this->GetMyTopLevelFrame()->Update();
   END_CHANGESIZE_NOEVENT
-#ifdef __WXMAC__
-  wxTheApp->Yield();
-#else
-  wxGetApp().MainLoop(); //central loop for wxEvents!
-#endif
+//#ifdef __WXMAC__
+//  wxTheApp->Yield();
+//#else
+//  wxGetApp().MainLoop(); //central loop for wxEvents!
+//#endif
 }
 
 //Alternate version if there were sizing problems with the one above.
@@ -1452,9 +1453,6 @@ GDLWidget::~GDLWidget()
   this->SetUnValid();
   if (m_windowTimer) {if (m_windowTimer->IsRunning()) m_windowTimer->Stop();}
 
-  // call KILL_NOTIFY procedures
-  this->OnKill();
-
   // kill followers (here?)
   // delete all followers (in reverse order ?)
   while (!followers.empty()) {
@@ -1593,20 +1591,27 @@ GDLWidgetContainer::GDLWidgetContainer( WidgetIDT parentID, EnvT* e, ULong event
 
   // delete all children (in reverse order ?)
   while (!children.empty()) {
-    GDLWidget* child=GetWidget(children.back()); children.pop_back();
+    GDLWidget* child = GetWidget(children.back());
+    children.pop_back();
 
      if (child) {
+      WidgetIDT childID = child->GetWidgetID();
 #ifdef GDL_DEBUG_WIDGETS
-      std::cout << "~GDLWidgetContainer, deleting child ID #" << child->GetWidgetID() << " of container  #" << widgetID << std::endl;
+      std::cout << "~GDLWidgetContainer, deleting child ID #" << childID << " of container  #" << widgetID << std::endl;
 #endif
+      // call KILL_NOTIFY procedures
+      child->OnKill();
+      // widget may have been killed by above OnKill:
+      child = GDLWidget::GetWidget(childID);
+      if (child != NULL) {
       //special case for WIDGET_DRAW: delete from 'wdelete' command-like:
       if (child->IsDraw()) {
         gdlwxGraphicsPanel* draw=static_cast<gdlwxGraphicsPanel*>(child->GetWxWidget());
         draw->DeleteUsingWindowNumber(); //just emit quivalent to "wdelete,winNum".
       } else delete child;
      }
+    }
   }
-    
   if (theWxContainer) static_cast<wxWindow*>(theWxContainer)->Destroy(); //which is the panel.
 }
 
@@ -6051,6 +6056,7 @@ void gdlwxGraphicsPanel::RepaintGraphics(bool doClear) {
 //  dc.SetDeviceClippingRegion(GetUpdateRegion());
   if (doClear) dc.Clear();
   dc.Blit(0, 0, drawSize.x, drawSize.y, wx_dc, 0, 0);
+  this->Update();
 }
 
 ////Stem for generalization of Drag'n'Drop, a WIDGET_DRAW can receive drop events from something else than a tree widget...

@@ -1323,8 +1323,12 @@ void gdlwxFrame::OnUnhandledCloseFrame( wxCloseEvent & event)
   GDLWidget* widget = GDLWidget::GetWidget( event.GetId());
   if( widget == NULL) {event.Skip(); return;} 
   if (!gdlOwner) {event.Skip(); return;}
-    //destroy TLB widget
-   delete gdlOwner;
+
+  // call KILL_NOTIFY procedures
+  widget->OnKill();
+  //widget may have been killed after this OnKill:
+  widget = GDLWidget::GetWidget(event.GetId());
+  if (widget != NULL)   delete widget; //gdlOwner; //destroy TLB widget
 }
 
 void gdlwxPlotFrame::OnUnhandledClosePlotFrame(wxCloseEvent & event) {
