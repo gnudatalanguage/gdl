@@ -125,7 +125,7 @@ void _GDL_OBJECT_OverloadBracketsLeftSide( EnvUDT* e)
   {
     ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) must be a passed as reference in this context.");
   }
-  BaseGDL** objRefP = &e->GetKW(1);
+  BaseGDL** objRefP = &e->GetTheKW(1); //OK global KW tested above
   BaseGDL* objRef = *objRefP;
 
   BaseGDL* rValue = e->GetKW(2);
@@ -158,7 +158,7 @@ BaseGDL* _GDL_OBJECT_OverloadBracketsRightSide( EnvUDT* e)
   if( isRange == NULL)
     ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) is undefined.");
   if( isRange->Rank() == 0)
-    ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) must be an array in this context: " + e->Caller()->GetString(e->GetKW(1)));
+    ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) must be an array in this context: " + e->Caller()->GetString(e->GetTheKW(1)));
   SizeT nIsRange = isRange->N_Elements();
   if( nIsRange > (nParam - 2)) //- SELF and ISRANGE
     ThrowFromInternalUDSub( e, "Parameter 1 (ISRANGE) must have "+i2s(nParam-2)+" elements.");
@@ -181,10 +181,11 @@ BaseGDL* _GDL_OBJECT_OverloadBracketsRightSide( EnvUDT* e)
   try {
     for( int p=0; p<nIsRange; ++p)
     {
-      BaseGDL* parX = e->GetKW( p + 2); // implicit SELF, ISRANGE, par1..par8
+      BaseGDL* parX = NULL;
+      if (e->GlobalKW( p + 2 )) parX = e->GetKW( p + 2); // implicit SELF, ISRANGE, par1..par8
       if( parX == NULL)
             ThrowFromInternalUDSub( e,
-             "Parameter is undefined: "  + e->Caller()->GetString(e->GetKW( p + 2)));
+             "Parameter is undefined: "  + e->Caller()->GetString(e->GetTheKW( p + 2)));
       DLong isRangeX = (*isRangeLong)[p];
       if( isRangeX != 0 && isRangeX != 1)
             ThrowFromInternalUDSub( e,
@@ -193,7 +194,7 @@ BaseGDL* _GDL_OBJECT_OverloadBracketsRightSide( EnvUDT* e)
       {
     if( parX->N_Elements() != 3)
             ThrowFromInternalUDSub( e, "Range vector must have 3 elements: " +
-                            e->Caller()->GetString(e->GetKW( p + 2)));
+                            e->Caller()->GetString(e->GetTheKW( p + 2)));
     Guard<DLongGDL> parXLongGuard;
     DLongGDL* parXLong;
           if( parX->Type() == GDL_LONG)

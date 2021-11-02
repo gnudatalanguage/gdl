@@ -1217,10 +1217,11 @@ BaseGDL* list_rightextraction( EnvUDT* e, BaseGDL* theref, int iprm  )
   try {
     for( int p=iprm; p<nIsRange; ++p)
     {
-      BaseGDL* parX = e->GetKW( p +  prmbeg); // implicit SELF, ISRANGE, par1..par8
-      if( parX == 0)  // programming error.
+      BaseGDL* parX = NULL;
+    if  ( e->GlobalKW( p + prmbeg)) parX = e->GetKW( p +  prmbeg); // implicit SELF, ISRANGE, par1..par8
+      if( parX == NULL)  // programming error.
             ThrowFromInternalUDSub( e, "Parameter is undefined: " 
-                    + e->Caller()->GetString(e->GetKW( p +  prmbeg)));
+                    + e->Caller()->GetString(e->GetTheKW( p +  prmbeg)));
 
       MAKE_LONGGDL(parX, parXLong)
             
@@ -1232,7 +1233,7 @@ BaseGDL* list_rightextraction( EnvUDT* e, BaseGDL* theref, int iprm  )
       {
         if( parX->N_Elements() != 3) // programming error.
             ThrowFromInternalUDSub( e, "Range vector must have 3 elements: "
-                                + e->Caller()->GetString(e->GetKW( p +  prmbeg)));
+                                + e->Caller()->GetString(e->GetTheKW( p +  prmbeg)));
         if(trace_me) {
             std::cout << "; p:"<<p <<" parX:"<<parX << std::endl;
             for(int i=0; i < 3; i++)
@@ -1382,7 +1383,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  )
     bool dotAccess = false;
     SizeT listSize = 0;
 
-    BaseGDL** objRef = &e->GetKW(1);
+    BaseGDL** objRef = &e->GetTheKW(1);
     if( *objRef == NULL || *objRef == NullGDL::GetSingleInstance()){
         if( !e->GlobalKW(1))
            ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) is undefined.");    
@@ -1426,9 +1427,10 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  )
   try {
     for( int p=iprm; p<nIsRange; ++p)
     {
-      BaseGDL* parX = e->GetKW( p + prmbeg ); // implicit SELF, ISRANGE, par1..par8
-      if( parX == 0)    ThrowFromInternalUDSub( e, "Parameter is undefined: "
-                            + e->Caller()->GetString(e->GetKW( p + prmbeg )));
+      BaseGDL* parX = NULL;
+      if (e->GlobalKW(p+prmbeg)) parX = e->GetKW( p + prmbeg ); // implicit SELF, ISRANGE, par1..par8
+      if( parX == NULL)    ThrowFromInternalUDSub( e, "Parameter is undefined: "
+                            + e->Caller()->GetString(e->GetTheKW( p + prmbeg )));
 
       DLong isRangeX = (*isRange)[p];
       if( isRangeX != 0 && isRangeX != 1) ThrowFromInternalUDSub( e, 
@@ -1440,7 +1442,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  )
       {
         if( parX->N_Elements() != 3)  ThrowFromInternalUDSub( e,
                     "Range vector must have 3 elements: " + 
-                    e->Caller()->GetString(e->GetKW( p + prmbeg )));
+                    e->Caller()->GetString(e->GetTheKW( p + prmbeg )));
 
         MAKE_LONGGDL(parX, parXLong)
         if(trace_me) std::printf(" (isRangeX =1) (*parXLong)[0-2]: %d  %d  %d \n",
@@ -1579,7 +1581,7 @@ void LIST___OverloadBracketsLeftSide( EnvUDT* e)
   // handle DOT access
   bool dotAccess = false;
 
-  BaseGDL** objRef = &e->GetKW(1);
+  BaseGDL** objRef = &e->GetTheKW(1);
   if( *objRef == NULL || *objRef == NullGDL::GetSingleInstance())
   {
     if( !e->GlobalKW(1))
@@ -3010,7 +3012,7 @@ void list__swap( EnvUDT* e)
     }
     }
     BaseGDL** countKW = NULL;
-    if( e->GetKW( kwCOUNTIx) != NULL) countKW = &e->GetKW( kwCOUNTIx);
+    if( e->GlobalKW( kwCOUNTIx)) countKW = &e->GetTheKW( kwCOUNTIx);
     
 // 
 // an IDL_CONTAINER is supposed to be only of one type or another:
@@ -3377,7 +3379,7 @@ void list__swap( EnvUDT* e)
       if( kwNO_COPY)
       {
         bool stolen = e->StealLocalKW( kwVALUEIx);
-        if( !stolen) e->GetKW(kwVALUEIx) = NULL;
+        if( !stolen) e->GetTheKW(kwVALUEIx) = NULL;
          GDLDelete(value);
       }
 
@@ -3647,8 +3649,8 @@ void list__swap( EnvUDT* e)
       }
     for( SizeT k=0; k < values->N_Elements(); k++ ) 
             if( (*result)[k] == 0 ) (*pos)[k] = -1;
-    if( e->KeywordPresent( kwPOSITIONIx)) {
-        BaseGDL** posKW = &e->GetKW( kwPOSITIONIx);
+    if( e->WriteableKeywordPresent( kwPOSITIONIx)) {
+        BaseGDL** posKW = &e->GetTheKW( kwPOSITIONIx);
         posGuard.Release();
         *posKW = pos;
         }

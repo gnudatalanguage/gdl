@@ -206,7 +206,7 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   if ( uValue != NULL ) {
     bool no_copy = e->KeywordSet( no_copyIx );
     if ( no_copy )
-      e->GetKW( uvalueIx ) = NULL;
+      e->GetTheKW( uvalueIx ) = NULL;
     else
       uValue = uValue->Dup( );
   }
@@ -2788,7 +2788,7 @@ void widget_control( EnvT* e ) {
   if ( widget == NULL ) {
     if ( dobadid ) {
       e->AssureGlobalKW(badidIx );
-      BaseGDL** badidKW = &e->GetKW( badidIx );
+      BaseGDL** badidKW = &e->GetTheKW( badidIx );
       if (badidKW) GDLDelete( (*badidKW) );
       *badidKW=new DLongGDL( widgetID );
       return;
@@ -2800,7 +2800,7 @@ void widget_control( EnvT* e ) {
 
   if ( getvalue ) {
     e->AssureGlobalKW( getvalueIx );
-    BaseGDL** valueKW = &e->GetKW( getvalueIx );
+    BaseGDL** valueKW = &e->GetTheKW( getvalueIx );
 
     DString getFuncName = widget->GetFuncValue( );
     if ( !(getFuncName.empty( )) ) {
@@ -3546,7 +3546,7 @@ void widget_control( EnvT* e ) {
 
   if (givetlbsize) { 
     e->AssureGlobalKW( tlbgetsizeIx );
-    BaseGDL** tlbsizeKW = &e->GetKW( tlbgetsizeIx );
+    BaseGDL** tlbsizeKW = &e->GetTheKW( tlbgetsizeIx );
     GDLWidgetTopBase* tlb = widget->GetMyTopLevelBaseWidget();
     if (tlbsizeKW) GDLDelete((*tlbsizeKW));
     *tlbsizeKW = new DLongGDL(2,BaseGDL::ZERO);
@@ -3567,7 +3567,7 @@ void widget_control( EnvT* e ) {
   
   if (givetlboffset) { 
     e->AssureGlobalKW( tlbgetoffsetIx );
-    BaseGDL** tlboffsetKW = &e->GetKW( tlbgetoffsetIx );
+    BaseGDL** tlboffsetKW = &e->GetTheKW( tlbgetoffsetIx );
     GDLWidgetTopBase* tlb = widget->GetMyTopLevelBaseWidget();
     if ( tlb == NULL ) e->Throw("Widget "+i2s( widgetID )+" has no top-level Base (please report!).");
     if (tlboffsetKW) GDLDelete((*tlboffsetKW));
@@ -3613,7 +3613,7 @@ void widget_control( EnvT* e ) {
 
   if ( getuvalue ) {
     e->AssureGlobalKW( getuvalueIx );
-    BaseGDL** uvalueKW = &e->GetKW( getuvalueIx );
+    BaseGDL** uvalueKW = &e->GetTheKW( getuvalueIx );
       BaseGDL *widval = widget->GetUvalue();
      if ( widval != NULL) {
        if (uvalueKW) GDLDelete((*uvalueKW));
@@ -3747,7 +3747,7 @@ void widget_control( EnvT* e ) {
     static int GET_DRAW_VIEW = e->KeywordIx( "GET_DRAW_VIEW" );
     if (e->KeywordPresent(GET_DRAW_VIEW)) {
       e->AssureGlobalKW( GET_DRAW_VIEW );
-      BaseGDL** drwKW = &e->GetKW( GET_DRAW_VIEW );
+      BaseGDL** drwKW = &e->GetTheKW( GET_DRAW_VIEW );
        if (drwKW!=NULL) GDLDelete((*drwKW));
       DLongGDL* res= new DLongGDL(dimension(2));
       wxPoint pos=draw->GetPos();

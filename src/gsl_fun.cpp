@@ -1559,8 +1559,8 @@ namespace lib {
     
     // LOCATIONS
     static int locationsIx=e->KeywordIx("LOCATIONS");
-    if( e->KeywordPresent(locationsIx)) {
-      BaseGDL** locationsKW = &e->GetKW(locationsIx);
+    if( e->WriteableKeywordPresent(locationsIx)) {
+      BaseGDL** locationsKW = &e->GetTheKW(locationsIx);
       GDLDelete((*locationsKW));
 
       dimension dim( nbins);

@@ -1733,8 +1733,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     
     BaseGDL* missing = e->GetKW( kwMISSINGIx);
     BaseGDL** skipped = NULL;
-    if( e->GlobalKW( kwSKIPPEDIx))
-      skipped = &e->GetKW(kwSKIPPEDIx);
+    if( e->GlobalKW( kwSKIPPEDIx)) skipped = &e->GetTheKW(kwSKIPPEDIx);
     bool recursive = e->KeywordSet(kwRECURSIVEIx);
     bool no_copy = e->KeywordSet( kwNO_COPYIx);
     
@@ -2192,7 +2191,7 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
     // handle DOT access
     bool dotAccess = false;
     
-    BaseGDL** objRef = &e->GetKW(1);
+    BaseGDL** objRef = &e->GetTheKW(1);
     if( *objRef == NULL || *objRef == NullGDL::GetSingleInstance())
     {
       if( !e->GlobalKW(1))
@@ -2202,9 +2201,10 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
     BaseGDL* rValue = e->GetKW(2);
     if( rValue == NULL)  rValue = NullGDL::GetSingleInstance();
 
-    BaseGDL* parX = e->GetKW(iprm + prmbeg);
-    if( parX == 0)  ThrowFromInternalUDSub( e, "Parameter is undefined: "
-                            + e->Caller()->GetString(e->GetKW( iprm + prmbeg )));
+    BaseGDL* parX=NULL;
+    if  ( e->GlobalKW( iprm + prmbeg)) parX = e->GetKW(iprm + prmbeg);
+    if( parX == NULL)  ThrowFromInternalUDSub( e, "Parameter is undefined: "
+                            + e->Caller()->GetString(e->GetTheKW( iprm + prmbeg )));
     bool stolen = e->StealLocalKW(iprm + prmbeg);
     if( !stolen) parX = parX->Dup(); // if called explicitely
     DType theType = parX->Type();
@@ -2341,7 +2341,7 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
     // handle DOT access
     bool dotAccess = false;
     
-    BaseGDL** objRef = &e->GetKW(1);
+    BaseGDL** objRef = &e->GetTheKW(1);
     if( *objRef == NULL || *objRef == NullGDL::GetSingleInstance())
     {
       if( !e->GlobalKW(1))
@@ -2369,15 +2369,16 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
           std::cout << std::endl;
         }
 // hash[*] = ... (Decline the attempt.)
-    BaseGDL* parX = e->GetKW( prmbeg); // implicit SELF, ISRANGE, par1..par8
+    BaseGDL* parX = NULL;
+    if  ( e->GlobalKW( prmbeg)) parX = e->GetKW( prmbeg); // implicit SELF, ISRANGE, par1..par8
     if( parX == NULL) ThrowFromInternalUDSub( e,
-     "Parameter is undefined: "  + e->Caller()->GetString(e->GetKW( prmbeg)));
+     "Parameter is undefined: "  + e->Caller()->GetString(e->GetTheKW( prmbeg)));
 
     if( (*isRange)[0]== 1) {  
       if( parX->N_Elements() != 3)
             ThrowFromInternalUDSub( e,
             "Range vector must have 3 elements: " + 
-            e->Caller()->GetString(e->GetKW(prmbeg)));
+            e->Caller()->GetString(e->GetTheKW(prmbeg)));
       
         MAKE_LONGGDL(parX, parXLong)
 
@@ -2725,14 +2726,15 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
     DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pTableTag, 0)))[0];
     DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
     
-    BaseGDL* parX = e->GetKW( prmbeg); // implicit SELF, ISRANGE, par1..par8
+    BaseGDL* parX = NULL;
+    if  ( e->GlobalKW( prmbeg)) parX = e->GetKW( prmbeg); // implicit SELF, ISRANGE, par1..par8
     if( parX == NULL) ThrowFromInternalUDSub( e,
-     "Parameter is undefined: "  + e->Caller()->GetString(e->GetKW( prmbeg)));
+     "Parameter is undefined: "  + e->Caller()->GetString(e->GetTheKW( prmbeg)));
 
     if( (*isRange)[0] == 1)  // r = hash[*]
       {
       if( parX->N_Elements() != 3) ThrowFromInternalUDSub( e, 
-        "Range vector must have 3 elements: " + e->Caller()->GetString(e->GetKW( prmbeg)));
+        "Range vector must have 3 elements: " + e->Caller()->GetString(e->GetTheKW( prmbeg)));
     
         MAKE_LONGGDL(parX, parXLong)
 

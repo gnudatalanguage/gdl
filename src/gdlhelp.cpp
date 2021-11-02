@@ -526,9 +526,9 @@ static void help_lastmsg(EnvT* e)
 	  static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
 
       static int outputIx = e->KeywordIx( "OUTPUT");
-	  if (e->KeywordPresent( outputIx)) 
+	  if (e->WriteableKeywordPresent( outputIx)) 
 	    {    // Setup output return variable
-	      outputKW = &e->GetKW( outputIx);
+	      outputKW = &e->GetTheKW( outputIx);
 	      GDLDelete((*outputKW));
 	      *outputKW = static_cast<DStringGDL*>((errorState->GetTag( msgTag))
 	                                             ->Convert2( GDL_STRING, BaseGDL::COPY));
@@ -809,10 +809,10 @@ void help_help(EnvT* e)
 
     BaseGDL** outputKW = NULL;
     static int outputIx = e->KeywordIx("OUTPUT");
-    bool doOutput = e->KeywordPresent(outputIx);
+    bool doOutput = e->WriteableKeywordPresent(outputIx);
 
     if (doOutput) { // Setup output return variable
-      outputKW = &e->GetKW(outputIx);
+      outputKW = &e->GetTheKW(outputIx);
       GDLDelete((*outputKW));
     }
     static SizeT OutputLines;
@@ -1351,7 +1351,7 @@ void help_help(EnvT* e)
         set<string> helpStr; // "Sorted List" 
         if (nVar > 0) {
           for (SizeT i = 0; i < nVar; ++i) {
-            BaseGDL*& par = (static_cast<EnvUDT*> (callStack[desiredlevnum - 1]))->GetKW(i);
+            BaseGDL*& par = (static_cast<EnvUDT*> (callStack[desiredlevnum - 1]))->GetTheKW(i);
             if (par != NULL) {
               stringstream ss;
               string parName = pro->GetVarName(i);
@@ -1393,7 +1393,7 @@ void help_help(EnvT* e)
       stringstream ss;
 
       for (int i = 0; i < nEnv; ++i) {
-        BaseGDL*& par = caller->GetKW(i);
+        BaseGDL*& par = caller->GetTheKW(i);
 
         if (par == NULL && !fullKW) continue;
         // if( par == NULL) continue;
