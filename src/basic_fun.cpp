@@ -2027,17 +2027,8 @@ namespace lib {
 
   BaseGDL* logical_true( BaseGDL* e1, bool isReference)//( EnvT* e);
   {
-    assert( e1 != NULL);
-    assert( e1->N_Elements() > 0);
-    
+    if (e1->Type () == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
 
-    //     SizeT nParam=e->NParam();
-    //     if( nParam != 1)
-    //       e->Throw(
-    //            "Incorrect number of arguments.");
-    // 
-    //     BaseGDL* e1=e->GetParDefined( 0);//, "LOGICAL_TRUE");
-    //     
     ULong nEl1 = e1->N_Elements();
 
     Data_<SpDByte>* res = new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
@@ -2332,7 +2323,7 @@ namespace lib {
 
   BaseGDL* strlowcase( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
-    assert( p0 != NULL);
+    if (p0->Type () == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     DStringGDL* p0S;
     DStringGDL* res;
     //  Guard<DStringGDL> guard;
@@ -2385,7 +2376,7 @@ namespace lib {
 
   BaseGDL* strupcase( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
-    assert( p0 != NULL);
+    if (p0->Type () == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     DStringGDL* p0S;
     DStringGDL* res;
     //  Guard<DStringGDL> guard;
@@ -2438,7 +2429,7 @@ namespace lib {
 
   BaseGDL* strlen( BaseGDL* p0, bool isReference)//( EnvT* e)
   {
-    assert( p0 != NULL);
+    if (p0->Type () == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     DStringGDL* p0S;
     Guard<DStringGDL> guard;
     
@@ -3986,13 +3977,13 @@ namespace lib {
     bool omitNaN = e->KeywordSet(omitNaNIx);
 
     static int subIx = e->KeywordIx("SUBSCRIPT_MAX");
-    bool subMax = e->KeywordPresent(subIx);
+    bool subMax = e->WriteableKeywordPresent(subIx); //insure the output variable exist and is of 'good' type
 
     static int dimIx = e->KeywordIx("DIMENSION");
     bool dimSet = e->KeywordSet(dimIx);
 
     static int maxIx = e->KeywordIx("MAX");
-    bool maxSet = e->KeywordPresent(maxIx);
+    bool maxSet = e->WriteableKeywordPresent(maxIx); //insure the output variable exist and is of 'good' type
 
     static int absIx= e->KeywordIx("ABSOLUTE");
     bool absSet = e->KeywordSet(absIx); // not KeywordPresent as it should be ignored if not set.
@@ -4021,12 +4012,10 @@ namespace lib {
       DLongGDL *minElArr=NULL, *maxElArr=NULL;
 
       if (maxSet) {
-        e->AssureGlobalKW(maxIx); // instead of using a guard pointer
         maxVal = searchArr->New(destDim, BaseGDL::NOZERO);
       }
 
       if (subMax) {
-        e->AssureGlobalKW(subIx); // instead of using a guard pointer
         maxElArr = new DLongGDL(destDim);
       }
 
@@ -4068,7 +4057,7 @@ namespace lib {
         e->AssureGlobalKW(0);
         GDLDelete(e->GetKW(0));
         DLong maxEl;
-        searchArr->MinMax(&minEl, &maxEl, &res, &e->GetKW(0), omitNaN, 0, 0, 1, -1, absSet);
+        searchArr->MinMax(&minEl, &maxEl, &res, &e->GetTheKW(0), omitNaN, 0, 0, 1, -1, absSet);
         if (subMax) e->SetKW(subIx, new DLongGDL(maxEl));
       } else // no MAX keyword
       {
@@ -4094,13 +4083,13 @@ namespace lib {
     bool omitNaN = e->KeywordSet(omitNaNIx);
 
     static int subIx = e->KeywordIx("SUBSCRIPT_MIN");
-    bool subMin = e->KeywordPresent(subIx);
+    bool subMin = e->WriteableKeywordPresent(subIx);
 
     static int dimIx = e->KeywordIx("DIMENSION");
     bool dimSet = e->KeywordSet(dimIx);
 
     static int minIx = e->KeywordIx("MIN");
-    bool minSet = e->KeywordPresent(minIx);
+    bool minSet = e->WriteableKeywordPresent(minIx);
 
     static int absIx= e->KeywordIx("ABSOLUTE");
     bool absSet = e->KeywordSet(absIx); // not KeywordPresent as it should be ignored if not set.
@@ -4129,12 +4118,10 @@ namespace lib {
       DLongGDL *minElArr=NULL, *maxElArr=NULL;
 
       if (minSet) {
-        e->AssureGlobalKW(minIx); // instead of using a guard pointer
         minVal = searchArr->New(destDim, BaseGDL::NOZERO);
       }
 
       if (subMin) {
-        e->AssureGlobalKW(subIx); // instead of using a guard pointer
         minElArr = new DLongGDL(destDim);
       }
 
@@ -4174,7 +4161,7 @@ namespace lib {
         e->AssureGlobalKW(0);
         GDLDelete(e->GetKW(0));
         DLong minEl;
-        searchArr->MinMax(&minEl, &maxEl, &e->GetKW(0), &res, omitNaN, 0, 0, 1, -1, absSet);
+        searchArr->MinMax(&minEl, &maxEl, &e->GetTheKW(0), &res, omitNaN, 0, 0, 1, -1, absSet);
         if (subMin) e->SetKW(subIx, new DLongGDL(minEl));
       } else // no MIN keyword
       {
@@ -8853,7 +8840,7 @@ BaseGDL* parse_url( EnvT* env)
     if (xI != -1)
     {
       //       BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
-      BaseGDL*& par = callStack[desiredlevnum - 1]->GetKW(xI);
+      BaseGDL*& par = callStack[desiredlevnum - 1]->GetTheKW(xI);
 
       if (par == NULL)
         e->Throw("Variable is undefined: " + varName);
@@ -8910,7 +8897,7 @@ BaseGDL* parse_url( EnvT* env)
     if (xI != -1)
     {
       //       BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
-      BaseGDL*& par = callStack[desiredlevnum - 1]->GetKW(xI);
+      BaseGDL*& par = callStack[desiredlevnum - 1]->GetTheKW(xI);
 
       //       if( par == NULL)
       //    e->Throw( "Variable is undefined: " + varName);
