@@ -1100,7 +1100,7 @@ namespace lib {
           // Keywords are already counted (in FindVar)
           // 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
           if (((EnvT*)(callStack[desiredlevnum - 1]))->NParam() < 1) return NULL; //meaning this fetch level is not initialized. Avoids throwing an #assert in debug mode
-          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(xI);
+          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetTheKW(xI);
 
 // not IDL behaviour                    if (par == NULL) e->Throw("Variable is undefined: " + varName);
            if (par == NULL) return NULL;
@@ -1211,7 +1211,7 @@ namespace lib {
         // 	BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey);
 
         // 	((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey) = res->Dup();
-        ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(s) = res->Dup();
+        ((EnvT*) (callStack[desiredlevnum - 1]))->GetTheKW(s) = res->Dup();
 
         //	cout << "par: " << &par << endl << endl;
         // 	memcpy(&par, &res, sizeof(par)); 
@@ -1330,7 +1330,7 @@ namespace lib {
         //	cout << xI << endl;
         if (xI != -1) {
           // 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
-          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(xI);
+          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetTheKW(xI);
           if (par == NULL) return NULL;
           return &par; // <-  HERE IS THE DIFFERENCE
         } else {
