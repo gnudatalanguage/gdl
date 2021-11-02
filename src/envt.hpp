@@ -281,8 +281,10 @@ public:
   EnvBaseT* Caller();
 
   // returns environment data, by value (but that by C++ reference)
-  BaseGDL*& GetKW(SizeT ix) { return env[ix];}
+  BaseGDL*& GetTheKW(SizeT ix) { return env[ix];}
   BaseGDL* GetDefinedKW(SizeT ix);
+//  inline const BaseGDL* GetKW(SizeT ix) { return GetDefinedKW(ix);}
+  inline BaseGDL* GetKW(SizeT ix) { return GetDefinedKW(ix);}
 
   // used by HELP, SetNextPar(...)
   SizeT EnvSize() const { return env.size();}
@@ -342,10 +344,11 @@ public:
   void AssureLongScalarPar( SizeT ix, DLong& scalar);
   void AssureLongScalarPar( SizeT ix, DLong64& scalar);
   // get i'th parameter
-  // throws if not defined (ie. never returns NULL)
-  BaseGDL*& GetParDefined(SizeT i); //, const std::string& subName = "");
+  // throws if not defined (ie. never returns NULL, but can optionally return a !NULL)
+  BaseGDL*& GetParDefined(SizeT i, bool rejectNulls=true); //, const std::string& subName = "");
 
   bool KeywordPresent( SizeT ix);
+  bool WriteableKeywordPresent( SizeT ix);
   bool KeywordPresentAndDefined( SizeT ix);
 
   void SetNextParUnckeckedVarNum(BaseGDL** arg1);
@@ -616,8 +619,8 @@ public:
   BaseGDL*& GetPar( SizeT i);  
 
   // get i'th parameter
-  // throws if not defined (ie. never returns NULL)
-  BaseGDL*& GetParDefined(SizeT i); //, const std::string& subName = "");
+  // throws if not defined (ie. never returns NULL, but can optionally return a !NULL)
+  BaseGDL*& GetParDefined(SizeT i, bool rejectNulls=true); //, const std::string& subName = "");
 
   // throw for GDL_STRING, GDL_STRUCT, GDL_PTR and GDL_OBJ
   BaseGDL*& GetNumericParDefined( SizeT ix)
@@ -745,8 +748,9 @@ public:
   bool KeywordSet( SizeT ix);
   // GD added -- possibly very wrong?
   bool KeywordPresent( const std::string& kw);
-  bool KeywordPresent( SizeT ix)
-  { return EnvBaseT::KeywordPresent( ix);}
+  bool WriteableKeywordPresent( const std::string& kw);
+  inline bool KeywordPresent( SizeT ix) { return EnvBaseT::KeywordPresent( ix);}
+  inline bool WriteableKeywordPresent( SizeT ix){ return EnvBaseT::WriteableKeywordPresent( ix);}
 
   // local/global keyword/paramter
   bool LocalKW( SizeT ix) const
