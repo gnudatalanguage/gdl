@@ -3927,7 +3927,7 @@ BaseGDL** VARNode::LEval()
 //     BaseGDL* v = ProgNode::interpreter->CallStackBack()->GetKW(this->varIx);
 //     BaseGDL** vv = &(ProgNode::interpreter->CallStackBack()->GetKW(this->varIx));
 //     cout << "vv = " << vv << "  *vv = " << *vv << "  v = " << v << endl;
-    return &(ProgNode::interpreter->CallStackBack()->GetKW(this->varIx));
+    return &(ProgNode::interpreter->CallStackBack()->GetTheKW(this->varIx));
 }
 BaseGDL** VARPTRNode::EvalRefCheck( BaseGDL*& rEval)
 {

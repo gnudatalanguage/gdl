@@ -1023,8 +1023,8 @@ void LibInit()
 // original  const string command_line_argsKey[] = {"COUNT", KLISTEND };
   new DLibFunRetNew(lib::command_line_args_fun, string("COMMAND_LINE_ARGS"), 0, command_line_argsKey);
 
-  const string pmKey[] = {"FORMAT", "TITLE", KLISTEND };
-  new DLibPro(lib::pm, string("PM"), -1, pmKey);
+ // const string pmKey[] = {"FORMAT", "TITLE", KLISTEND };
+  new DLibPro(lib::pm, string("PM"), -1);
 
   const string constantKey[] = {"DOUBLE", KLISTEND };
   new DLibFunRetNew(lib::constant, string("IMSL_CONSTANT"), 2, constantKey);

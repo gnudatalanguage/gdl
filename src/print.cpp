@@ -263,22 +263,23 @@ no_implied:
     BaseGDL* par;
     env->SetNextPar(&par);
 
-    // printing first the title if TITLE keyword present
-    static int titleIx = e->KeywordIx("TITLE");
-    if (e->GetKW(titleIx) != NULL)
-    {
-      par = e->GetKW(titleIx);
-      static_cast<DLibPro*>(env->GetPro())->Pro()( env);
-    }
-
-    // passing on the FORMAT keyword
-    static int formatIx = e->KeywordIx("FORMAT");
-    if (e->GetKW(formatIx) != NULL) 
-    {
-      if (e->GetKW(formatIx)->Rank() != 0)
-        e->Throw("FORMAT keyword must be a scalar");
-      env->SetKeyword("FORMAT", &e->GetKW(formatIx));
-    }
+// The following are notpart of standard    
+//    // printing first the title if TITLE keyword present
+//    static int titleIx = e->KeywordIx("TITLE");
+//    if (e->GetKW(titleIx) != NULL)
+//    {
+//      par = e->GetKW(titleIx);
+//      static_cast<DLibPro*>(env->GetPro())->Pro()( env);
+//    }
+//
+//    // passing on the FORMAT keyword
+//    static int formatIx = e->KeywordIx("FORMAT");
+//    if (e->GetKW(formatIx) != NULL) 
+//    {
+//      if (e->GetKW(formatIx)->Rank() != 0)
+//        e->Throw("FORMAT keyword must be a scalar");
+//      env->SetKeyword("FORMAT", &e->GetTheKW(formatIx));
+//    }
 
 //     // is it needed here? MS: not anymore :-)
 //     StackSizeGuard<EnvStackT> guard( GDLInterpreter::CallStack());
@@ -289,15 +290,14 @@ no_implied:
     // looping over the parameters
     for (SizeT i = 0; i < nParam; ++i)
     {
-      if (e->GetParDefined(i)->N_Elements() <= 1)
+      if (e->GetParDefined(i, false)->N_Elements() <= 1) //accept !NULL
       {
-        par = e->GetParDefined(i);
+        par = e->GetParDefined(i, false);
         static_cast<DLibPro*>(env->GetPro())->Pro()(static_cast<EnvT*>(env));
       } 
       else 
       {
-        if (e->GetParDefined(i)->Type() == GDL_STRUCT)
-          e->Throw("Transposing arrays of structures is undefined");
+        if (e->GetParDefined(i)->Type() == GDL_STRUCT)  e->Throw("Transposing arrays of structures is undefined");
         par = e->GetParDefined(i)->Transpose(NULL);
         static_cast<DLibPro*>(env->GetPro())->Pro()(static_cast<EnvT*>(env));
         delete par;

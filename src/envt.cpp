@@ -1097,7 +1097,10 @@ void EnvT::AssureGlobalPar( SizeT pIx)
   SizeT ix= pIx + pro->key.size();
   AssureGlobalKW( ix);
 }
-  
+/**
+ * @brief Insures the Keyword points to a variable (even a !NULL one) and not somenthing undefined or an expression
+ * @param ix index
+ */
 void EnvBaseT::AssureGlobalKW( SizeT ix)
 {
   if( env.Env( ix) == NULL) {
@@ -1201,6 +1204,13 @@ bool EnvT::KeywordPresent( const std::string& kw)
   return EnvBaseT::KeywordPresent( ix);
 }
 
+bool EnvT::WriteableKeywordPresent( const std::string& kw)
+{
+  int ix = KeywordIx( kw);
+  
+  return EnvBaseT::WriteableKeywordPresent( ix);
+}
+
 const string EnvBaseT::GetString( SizeT ix)
 {
   const string unnamed("<INTERNAL_VAR>");
@@ -1247,20 +1257,20 @@ void EnvT::ShiftParNumbering(int n)
     }
 }
 
-BaseGDL*& EnvBaseT::GetParDefined(SizeT i)
+BaseGDL*& EnvBaseT::GetParDefined(SizeT i, bool rejectNulls)
 {
   SizeT ix = i + pro->key.size();
 
   // cout << i << " -> " << ix << "  " << env.size() << "  env[ix] " << env[ix] << endl;
   if( ix >= env.size())
     Throw("Incorrect number of arguments.");
-  if( env[ ix] == NULL || env[ ix] == NullGDL::GetSingleInstance())
-    Throw("Variable is undefined: "+GetString( ix));
+  if (env[ ix] == NULL )  Throw("Variable is undefined: " + GetString(ix));
+  if ( rejectNulls && env[ ix] == NullGDL::GetSingleInstance()) Throw("Variable is undefined: " + GetString(ix));
   return env[ ix];
 }
-BaseGDL*& EnvT::GetParDefined(SizeT i)
+BaseGDL*& EnvT::GetParDefined(SizeT i, bool rejectNulls)
 {
-  return EnvBaseT::GetParDefined( i);
+  return EnvBaseT::GetParDefined( i, rejectNulls);
 }
 
 BaseGDL*& EnvT::GetParGlobal(SizeT pIx)
@@ -1370,9 +1380,33 @@ int EnvBaseT::findvar(BaseGDL* delP)
   }
   return -1;
 }
+/**
+ * @brief A readonly Keyword is present.
+ * -> It should be readonly (but no way to enforce that!)
+ * -> It can be a local expression
+ * -> !NULL values are ignored as if the Keyword was not set.
+ * @param ix index of keyword in list.
+ * @return 
+ */
+bool EnvBaseT::KeywordPresent(SizeT ix) {
+  bool b=(env.Env(ix) != NULL && *(env.Env(ix)) != NULL && *(env.Env(ix)) != NullGDL::GetSingleInstance()); //hope this is OK. GD.
+  if (b) return b; //optimisation .. TBC
+  return (env.Loc(ix) != NULL && env.Loc(ix) != NullGDL::GetSingleInstance());
+}
 
-bool EnvBaseT::KeywordPresent( SizeT ix)
-{ return (env.Loc(ix)!=NULL)||(env.Env(ix)!=NULL);}
+/**
+ * @brief A Writeable Keyword is present.
+ * -> It will be written (but no way to enforce that!)
+ * -> It cannot be a local expression (is Global)
+ * -> It can be a !NULL value
+ * @param ix index of keyword in list.
+ * @return 
+ */
+bool EnvBaseT::WriteableKeywordPresent(SizeT ix) {
+  bool exist= (env.Loc(ix) != NULL) || (env.Env(ix) != NULL);
+  if (exist) EnvBaseT::AssureGlobalKW(ix); //must exist sufficently as to be writeable
+  return exist;
+}
 
 
 // AC 2021/09/19 : keyword might be present but undefined :
@@ -1789,7 +1823,7 @@ void EnvBaseT::SetKW( SizeT ix, BaseGDL* newVal)
   Guard<BaseGDL> guard( newVal);
   AssureGlobalKW( ix);
   GDLDelete(GetKW( ix));
-  GetKW( ix) = guard.release();
+  GetTheKW( ix) = guard.release();
 }
 void EnvT::SetPar( SizeT ix, BaseGDL* newVal)
 {

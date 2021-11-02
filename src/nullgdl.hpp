@@ -55,12 +55,7 @@ class NullGDL: public BaseGDL
     void operator delete( void *ptr, size_t bytes) {}
     void operator delete( void *ptr, size_t bytes, char* cP) {}
     
-    static NullGDL* GetSingleInstance()
-    {
-      if( instance == NULL)
-    instance = new (NullGDL::buf) NullGDL();
-      return instance;
-    }
+    static NullGDL* GetSingleInstance();
     
     static bool IsNULLorNullGDL( BaseGDL* p)
     {

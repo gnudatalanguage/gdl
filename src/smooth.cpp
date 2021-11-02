@@ -270,7 +270,7 @@ BaseGDL* smooth_fun( EnvT* e)
     BaseGDL* missing;
     Guard<BaseGDL> missGuard;
     if (doMissing) {
-      missing = e->GetKW(missingIx);
+      missing = e->GetTheKW(missingIx);
       if (p0->Type() != missing->Type()) {
         missing = missing->Convert2(p0->Type(), BaseGDL::COPY);
         missGuard.Reset(missing);

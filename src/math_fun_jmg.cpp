@@ -781,8 +781,8 @@ namespace lib {
 
       // Write rho array to KW
       static int rhoIx = e->KeywordIx( "RHO"); 
-      if( e->KeywordPresent( rhoIx)) {
-	BaseGDL** rhoKW = &e->GetKW( rhoIx);
+      if( e->WriteableKeywordPresent( rhoIx)) {
+	BaseGDL** rhoKW = &e->GetTheKW( rhoIx);
 	delete (*rhoKW);
 	dimension dim((DLong *) &nrho, (SizeT) 1);
 	*rhoKW = new DFloatGDL(dim, BaseGDL::NOZERO);
@@ -791,10 +791,10 @@ namespace lib {
       }
 
       // If THETA KW present but variable doesn't exist then write theta array
-      if( e->KeywordPresent( thetaIx)) {
+      if( e->WriteableKeywordPresent( thetaIx)) {
 	if (e->IfDefGetKWAs<DFloatGDL>( thetaIx) == NULL) {
 	  dimension dim((DLong *) &ntheta, (SizeT) 1);
-	  BaseGDL** thetaKW = &e->GetKW( thetaIx);
+	  BaseGDL** thetaKW = &e->GetTheKW( thetaIx);
 	  delete (*thetaKW);
 	  *thetaKW = new DFloatGDL(dim, BaseGDL::NOZERO);
 	for( SizeT itheta=0; itheta<ntheta; ++itheta)
