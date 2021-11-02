@@ -33,6 +33,7 @@
 #include "envt.hpp"
 #include "math_utl.hpp"
 #include "math_fun.hpp"
+#include "dinterpreter.hpp"
 
 //#define GDL_DEBUG
 #undef GDL_DEBUG
@@ -44,7 +45,7 @@
 namespace lib {
 
   using namespace std;
-
+  
   template< typename srcT, typename destT>
   void TransposeFromToGSL(  srcT* src, destT* dest, SizeT srcStride1, SizeT nEl)
   {
@@ -598,6 +599,7 @@ namespace lib {
   BaseGDL* sqrt_fun(BaseGDL* p0, bool isReference) {
     SizeT nEl = p0->N_Elements();
     DType p0Type = p0->Type();
+    if (p0Type == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     if (p0Type == GDL_COMPLEX)
       if (isReference) return sqrt_fun_template< DComplexGDL>(p0);
       else return sqrt_fun_template_grab< DComplexGDL>(p0);
@@ -654,6 +656,7 @@ namespace lib {
   {
     SizeT nEl = p0->N_Elements ();
     DType p0Type = p0->Type ();
+    if (p0Type == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     if (p0Type == GDL_COMPLEX)
       if (isReference) return sin_fun_template< DComplexGDL>(p0); else return sin_fun_template_grab< DComplexGDL>(p0);
     else if (p0Type == GDL_COMPLEXDBL)
@@ -702,6 +705,7 @@ namespace lib {
   BaseGDL* cos_fun(BaseGDL* p0, bool isReference) {
     SizeT nEl = p0->N_Elements();
     DType p0Type = p0->Type();
+    if (p0Type == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     if (p0Type == GDL_COMPLEX)
       if (isReference) return cos_fun_template< DComplexGDL>(p0);
       else return cos_fun_template_grab< DComplexGDL>(p0);
@@ -753,6 +757,7 @@ namespace lib {
   BaseGDL* tan_fun(BaseGDL* p0, bool isReference) {
     SizeT nEl = p0->N_Elements();
     DType p0Type = p0->Type();
+    if (p0Type == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     if (p0Type == GDL_COMPLEX)
       if (isReference) return tan_fun_template< DComplexGDL>(p0);
       else return tan_fun_template_grab< DComplexGDL>(p0);
@@ -804,6 +809,7 @@ namespace lib {
   BaseGDL* sinh_fun(BaseGDL* p0, bool isReference) {
     SizeT nEl = p0->N_Elements();
     DType p0Type = p0->Type();
+    if (p0Type == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     if (p0Type == GDL_COMPLEX)
       if (isReference) return sinh_fun_template< DComplexGDL>(p0);
       else return sinh_fun_template_grab< DComplexGDL>(p0);
@@ -855,6 +861,7 @@ namespace lib {
   BaseGDL* cosh_fun(BaseGDL* p0, bool isReference) {
     SizeT nEl = p0->N_Elements();
     DType p0Type = p0->Type();
+    if (p0Type == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     if (p0Type == GDL_COMPLEX)
       if (isReference) return cosh_fun_template< DComplexGDL>(p0);
       else return cosh_fun_template_grab< DComplexGDL>(p0);
@@ -906,6 +913,7 @@ namespace lib {
   BaseGDL* tanh_fun(BaseGDL* p0, bool isReference) {
     SizeT nEl = p0->N_Elements();
     DType p0Type = p0->Type();
+    if (p0Type == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     if (p0Type == GDL_COMPLEX)
       if (isReference) return tanh_fun_template< DComplexGDL>(p0);
       else return tanh_fun_template_grab< DComplexGDL>(p0);
@@ -957,6 +965,7 @@ namespace lib {
   {
     SizeT nEl = p0->N_Elements ();
     DType p0Type = p0->Type ();
+    if (p0Type == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     if (p0Type == GDL_COMPLEX)
       if (isReference) return asin_fun_template< DComplexGDL>(p0); else return asin_fun_template_grab< DComplexGDL>(p0);
     else if (p0Type == GDL_COMPLEXDBL)
@@ -1005,6 +1014,7 @@ namespace lib {
   {
     SizeT nEl = p0->N_Elements ();
     DType p0Type = p0->Type ();
+    if (p0Type == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     if (p0Type == GDL_COMPLEX)
       if (isReference) return acos_fun_template< DComplexGDL>(p0); else return acos_fun_template_grab< DComplexGDL>(p0);
     else if (p0Type == GDL_COMPLEXDBL)
@@ -1053,6 +1063,7 @@ namespace lib {
   BaseGDL* exp_fun(BaseGDL* p0, bool isReference) {
     SizeT nEl = p0->N_Elements();
     DType p0Type = p0->Type();
+    if (p0Type == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     if (p0Type == GDL_COMPLEX)
       if (isReference) return exp_fun_template< DComplexGDL>(p0);
       else return exp_fun_template_grab< DComplexGDL>(p0);
@@ -1077,6 +1088,8 @@ namespace lib {
   //   BaseGDL* alog_fun( EnvT* e)
   BaseGDL* alog_fun( BaseGDL* p0, bool isReference)
   {
+    if (p0->Type() == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
+
     if( !isReference) //e->StealLocalPar( 0))
       {
 	return p0->LogThis();
@@ -1087,6 +1100,8 @@ namespace lib {
   //   BaseGDL* alog10_fun( EnvT* e)
   BaseGDL* alog10_fun( BaseGDL* p0, bool isReference)
   {
+    if (p0->Type() == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
+
     if( !isReference) //e->StealLocalPar( 0))
       {
 	return p0->Log10This();
@@ -1114,6 +1129,7 @@ namespace lib {
 
   BaseGDL* abs_fun (BaseGDL* p0, bool isReference)
   {
+    if (p0->Type () == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     if (p0->Type () == GDL_COMPLEX)
       {
         DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
@@ -1191,6 +1207,8 @@ namespace lib {
   BaseGDL* conj_fun (BaseGDL* p0, bool isReference)//( EnvT* e)
   {
     SizeT nEl = p0->N_Elements ();
+    
+    if (p0->Type () == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
 
     if (p0->Type () == GDL_COMPLEX)
       {
@@ -1225,6 +1243,7 @@ namespace lib {
   BaseGDL* imaginary_fun (BaseGDL* p0, bool isReference)//( EnvT* e)
   {
     SizeT nEl = p0->N_Elements ();
+    if (p0->Type() == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     // complex types, return imaginary part
     if (p0->Type () == GDL_COMPLEX)
       {
@@ -1261,6 +1280,7 @@ namespace lib {
   BaseGDL* real_part_fun (BaseGDL* p0, bool isReference)
   {
     SizeT nEl = p0->N_Elements ();
+    if (p0->Type () == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     // complex types, return real part
     if (p0->Type () == GDL_COMPLEX)
       {

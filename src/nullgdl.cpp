@@ -26,24 +26,28 @@ using namespace std;
 char NullGDL::buf[sizeof(NullGDL)];
 
 NullGDL* NullGDL::instance = NULL;
-// as GetParString of EnvT but directly from BaseGDL if possible:
-// get the name of 'i'th parameter
 
+/**
+ * @brief as GetParString of EnvT but directly from BaseGDL if possible
+ * @return 
+ */
 const std::string NullGDL::GetParString() {
   EnvUDT* caller = interpreter->CallStackBack();
   int i = caller->findvar(this);
-  DString parString = "Unkown.";
+  DString parString = "!NULL";
   if (i > 0) parString = caller->GetParString(i);
   return parString;
 }
 
 NullGDL::~NullGDL()
 {
-// it would be the fastest way, to just ignore it.
-// but ~BaseGDL() is called as well. And this must not be
-  cerr << "Internal error: !NULL destructor called.\n"
-	  "Save your work and restart GDL (GDL is still functional, but !NULL will not work anymore).\n"
-	  "Please report at https://github.com/gnudatalanguage/gdl/issues" << endl;
+// Nulling "instance" will recreate !NULL correctly.
+  instance=NULL;
+}
+
+NullGDL* NullGDL::GetSingleInstance() {
+  if (instance == NULL) instance = new (NullGDL::buf) NullGDL();
+  return instance;
 }
 
 bool NullGDL::IsAssoc() const { return false;}
@@ -166,7 +170,7 @@ bool NullGDL::EqType( const BaseGDL*) const
 
 void* NullGDL::DataAddr()// SizeT elem)
 {
-  throw GDLException("NullGDL::DataAddr(...) called.");
+  return buf; //throw GDLException("NullGDL::DataAddr(...) called.");
 }
   
 // make same type on the heap

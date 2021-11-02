@@ -153,7 +153,11 @@ COMPILE_OPT idl2, HIDDEN
 ON_ERROR, 2
 types=[1,2,3,4,5,6,7,9,12,13,14,15]
 type=size(value,/type)
-if (type eq 0) then return
+if (type eq 0) then begin
+ print,"!NULL"
+ return
+endif
+
 w=where(type eq types, count)
 if (count gt 0) then begin
   ret=size(value)
