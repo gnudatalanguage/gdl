@@ -543,8 +543,7 @@ namespace lib {
     bool deleteKey = e->KeywordSet(delIx);
 
     static int errorIx = e->KeywordIx("ERROR");
-    bool errorKeyword = e->KeywordPresent(errorIx);
-    if (errorKeyword) e->AssureGlobalKW(errorIx);
+    bool errorKeyword = e->WriteableKeywordPresent(errorIx);
 
     DLong width = defaultStreamWidth;
     static int widthIx = e->KeywordIx("WIDTH");
@@ -606,7 +605,7 @@ namespace lib {
         throw GDLIOException(ex.ErrorCode(), e->CallingNode(), errorMsg); //go above and be catched
       }
 
-      BaseGDL** err = &e->GetKW(errorIx);
+      BaseGDL** err = &e->GetTheKW(errorIx);
 
       GDLDelete(*err);
       //    if( *err != e->Caller()->Object()) delete (*err);
@@ -624,7 +623,7 @@ namespace lib {
       if (!errorKeyword) e->Throw(errorMsg);
       //				throw GDLIOException(ex.ErrorCode(), e->CallingNode(), errorMsg);
 
-      BaseGDL** err = &e->GetKW(errorIx);
+      BaseGDL** err = &e->GetTheKW(errorIx);
 
       GDLDelete(*err);
       //    if( *err != e->Caller()->Object()) delete (*err);
@@ -634,7 +633,7 @@ namespace lib {
     }
 
     if (errorKeyword) {
-      BaseGDL** err = &e->GetKW(errorIx);
+      BaseGDL** err = &e->GetTheKW(errorIx);
 
       // 	if( *err != e->Caller()->Object()) delete (*err);
       GDLDelete((*err));
@@ -718,8 +717,7 @@ namespace lib {
     e->AssureDoubleScalarKWIfPresent(write_timeoutIx, w_timeout);
 
     static int errorIx = e->KeywordIx("ERROR");
-    bool errorKeyword = e->KeywordPresent(errorIx);
-    if (errorKeyword) e->AssureGlobalKW(errorIx);
+    bool errorKeyword = e->WriteableKeywordPresent(errorIx);
 
     DLong width = defaultStreamWidth;
     static int widthIx = e->KeywordIx("WIDTH");
@@ -738,7 +736,7 @@ namespace lib {
       if (!errorKeyword)
         e->Throw(errorMsg);
 
-      BaseGDL** err = &e->GetKW(errorIx);
+      BaseGDL** err = &e->GetTheKW(errorIx);
 
       GDLDelete((*err));
       //    if( *err != e->Caller()->Object()) delete (*err);
@@ -748,7 +746,7 @@ namespace lib {
     }
 
     if (errorKeyword) {
-      BaseGDL** err = &e->GetKW(errorIx);
+      BaseGDL** err = &e->GetTheKW(errorIx);
 
       // 	if( *err != e->Caller()->Object()) delete (*err);
       GDLDelete((*err));
@@ -957,9 +955,9 @@ namespace lib {
     SizeT cc = p->Dim(0);
     BaseGDL** tcKW = NULL;
     static int tcIx = e->KeywordIx("TRANSFER_COUNT");
-    if (e->KeywordPresent(tcIx)) {
+    if (e->WriteableKeywordPresent(tcIx)) {
       BaseGDL* p = e->GetParDefined(nParam - 1);
-      tcKW = &e->GetKW(tcIx);
+      tcKW = &e->GetTheKW(tcIx);
       GDLDelete((*tcKW));
       *tcKW = new DLongGDL(p->N_Elements());
     }
@@ -1120,9 +1118,9 @@ namespace lib {
     SizeT cc = p->Dim(0);
     BaseGDL** tcKW = NULL;
     static int tcIx = e->KeywordIx("TRANSFER_COUNT");
-    if (e->KeywordPresent(tcIx)) {
+    if (e->WriteableKeywordPresent(tcIx)) {
       BaseGDL* p = e->GetParDefined(nParam - 1);
-      tcKW = &e->GetKW(tcIx);
+      tcKW = &e->GetTheKW(tcIx);
       GDLDelete((*tcKW));
       *tcKW = new DLongGDL(p->N_Elements());
     }
