@@ -429,7 +429,7 @@ BaseGDL* SYSVARNode::Eval()
 BaseGDL* VARNode::EvalNC()
 {
 	EnvStackT& callStack=interpreter->CallStack();
-	BaseGDL* res=static_cast<EnvUDT*> ( callStack.back() )->GetKW ( this->varIx );
+	BaseGDL* res=static_cast<EnvUDT*> ( callStack.back() )->GetTheKW ( this->varIx );
 	if ( res == NULL )
 		throw GDLException ( this, "Variable is undefined: "+
 		                     callStack.back()->GetString ( this->varIx ),true,false );
@@ -438,7 +438,7 @@ BaseGDL* VARNode::EvalNC()
 BaseGDL* VARNode::EvalNCNull()
 {
 	EnvStackT& callStack=interpreter->CallStack();
-	BaseGDL* res=static_cast<EnvUDT*> ( callStack.back() )->GetKW ( this->varIx );
+	BaseGDL* res=static_cast<EnvUDT*> ( callStack.back() )->GetTheKW ( this->varIx );
 // 	if ( res == NULL )
 // 	  res = NullGDL::GetSingleInstance();
 	return res;
@@ -4267,7 +4267,10 @@ BaseGDL* ARRAYEXPRNode::Eval()
         {
             s=_t->EvalNC();//indexable_expr(_t);
             assert(s != NULL);
-            assert( s->Type() != GDL_UNDEF);
+//            assert( s->Type() != GDL_UNDEF);
+            if ( s->Type() == GDL_UNDEF) {
+              return NullGDL::GetSingleInstance();
+            }
         }
         else
         {
@@ -4277,7 +4280,10 @@ BaseGDL* ARRAYEXPRNode::Eval()
             else
                 s = *ref;
             assert(s != NULL);
-            assert( s->Type() != GDL_UNDEF);
+//            assert( s->Type() != GDL_UNDEF);
+            if ( s->Type() == GDL_UNDEF) {
+              return NullGDL::GetSingleInstance();
+            }
         }
 
 

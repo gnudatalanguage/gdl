@@ -680,7 +680,7 @@ public:
   template <typename T> 
   T* GetKWAs( SizeT ix)
   {
-    BaseGDL* p = GetKW( ix);
+    BaseGDL* p = GetKW( ix); //insure KW is not !NULL, which cannot be 'converted' 
     if( p == NULL)
       Throw( "Keyword is undefined: "+GetString( ix));
     if( p->Type() == T::t)

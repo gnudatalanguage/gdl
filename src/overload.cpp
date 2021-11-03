@@ -234,7 +234,7 @@ BaseGDL* _GDL_OBJECT_OverloadBracketsRightSide( EnvUDT* e)
   Guard< ArrayIndexListT> aLGuard( aL);
 
   IxExprListT ixL;
-  return aL->Index( e->GetKW( 0), ixL); // index SELF
+  return aL->Index( e->GetTheKW( 0), ixL); // index SELF
 }
 
 BaseGDL* _GDL_OBJECT_OverloadEQOp( EnvUDT* e)

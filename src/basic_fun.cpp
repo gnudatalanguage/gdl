@@ -4055,7 +4055,7 @@ namespace lib {
       if (maxSet) // MAX keyword given
       {
         e->AssureGlobalKW(0);
-        GDLDelete(e->GetKW(0));
+        GDLDelete(e->GetTheKW(0)); //TheKW to keep old behaviour, OK since GlobalPar is assured.
         DLong maxEl;
         searchArr->MinMax(&minEl, &maxEl, &res, &e->GetTheKW(0), omitNaN, 0, 0, 1, -1, absSet);
         if (subMax) e->SetKW(subIx, new DLongGDL(maxEl));
@@ -4159,7 +4159,7 @@ namespace lib {
       if (minSet) // MIN keyword given
       {
         e->AssureGlobalKW(0);
-        GDLDelete(e->GetKW(0));
+        GDLDelete(e->GetTheKW(0));//TheKW to keep old behaviour, OK since GlobalPar is assured.
         DLong minEl;
         searchArr->MinMax(&minEl, &maxEl, &e->GetTheKW(0), &res, omitNaN, 0, 0, 1, -1, absSet);
         if (subMin) e->SetKW(subIx, new DLongGDL(minEl));

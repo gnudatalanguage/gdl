@@ -178,7 +178,7 @@ void GDLInterpreter::SetRootL( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, Arr
 	    {
 	      static_cast<DObjGDL*>(r)->Scalar( ooo); // checked in ObjectStruct
 
-	      BaseGDL* self = callStack.back()->GetKW(callStack.back()->GetPro()->NKey()); // SELF
+	      BaseGDL* self = callStack.back()->GetTheKW(callStack.back()->GetPro()->NKey()); // SELF //TheKW to keep old behaviour (OK?)
 
 	      assert( dynamic_cast<DObjGDL*>(self) != NULL);
 
@@ -259,7 +259,7 @@ else
 	    {
 	      static_cast<DObjGDL*>(r)->Scalar( ooo); // checked in ObjectStruct
 
-	      BaseGDL* self = callStack.back()->GetKW(callStack.back()->GetPro()->NKey()); // SELF
+	      BaseGDL* self = callStack.back()->GetTheKW(callStack.back()->GetPro()->NKey()); // SELF //TheKW to keep old behaviour (OK?)
 
 	      assert( dynamic_cast<DObjGDL*>(self) != NULL);
 
