@@ -1381,24 +1381,21 @@ int EnvBaseT::findvar(BaseGDL* delP)
   return -1;
 }
 /**
- * @brief A readonly Keyword is present.
- * -> It should be readonly (but no way to enforce that!)
- * -> It can be a local expression
- * -> !NULL values are ignored as if the Keyword was not set.
+ * @brief A Keyword is present but only 'by name'. It can be (yet) undefined.
+ * <p> - Normally it is to be written (but no way to enforce that!)
+ * <p> - It could be a local expression, so AssureGlobalKW() should be tested on it.
+ * <p> - It can be a !NULL value
+ * <p> - --> IT IS BETTER TO USE WriteableKeywordPresent() that throws directly on a local expression.
  * @param ix index of keyword in list.
  * @return 
  */
-bool EnvBaseT::KeywordPresent(SizeT ix) {
-  bool b=(env.Env(ix) != NULL && *(env.Env(ix)) != NULL && *(env.Env(ix)) != NullGDL::GetSingleInstance()); //hope this is OK. GD.
-  if (b) return b; //optimisation .. TBC
-  return (env.Loc(ix) != NULL && env.Loc(ix) != NullGDL::GetSingleInstance());
-}
+bool EnvBaseT::KeywordPresent( SizeT ix)
+{ return (env.Loc(ix)!=NULL)||(env.Env(ix)!=NULL);}
 
 /**
- * @brief A Writeable Keyword is present.
- * -> It will be written (but no way to enforce that!)
- * -> It cannot be a local expression (is Global)
- * -> It can be a !NULL value
+ * @brief A Keyword is present, so it cannot be a local expression (is Global)
+ * <p> -> It can be a !NULL value 
+ * <p> Normally it is to be written (but no way to enforce that!)
  * @param ix index of keyword in list.
  * @return 
  */
@@ -1410,7 +1407,14 @@ bool EnvBaseT::WriteableKeywordPresent(SizeT ix) {
 
 
 // AC 2021/09/19 : keyword might be present but undefined :
-// !null or an un-affected variable. In both cases KW shall not be used.
+/**
+ * @brief A DEFINED Keyword is present, so it cannot be:
+ * <p> - an undefined variable
+ * <p> - a local expression (is Global)
+ * <p> - a !NULL value 
+ * @param ix index of keyword in list.
+ * @return 
+ */
 bool EnvBaseT::KeywordPresentAndDefined( SizeT ix)
 {
   // if KW is not present
@@ -1422,7 +1426,15 @@ bool EnvBaseT::KeywordPresentAndDefined( SizeT ix)
     if ( p->Type() == GDL_UNDEF) return false; else return true;
   }
 }
-  BaseGDL* EnvBaseT::GetDefinedKW(SizeT ix){
+/**
+ * @brief pointer to a DEFINED Keyword, returning NULL if index points to:
+ * - an undefined variable
+ * - a local expression (is Global)
+ * - a !NULL value 
+ * @param ix index of keyword in list.
+ * @return 
+ */
+BaseGDL* EnvBaseT::GetDefinedKW(SizeT ix){
     if( env[ix] == NULL || env[ix] == NullGDL::GetSingleInstance()) return NULL;
     return env[ix];
   }
