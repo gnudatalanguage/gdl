@@ -190,3 +190,4 @@ test_wordexp_null_string.pro
 test_xdr.pro
 test_xmlsax.pro
 test_zeropoly.pro
+text_write_csv.pro
