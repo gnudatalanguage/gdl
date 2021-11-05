@@ -288,4 +288,4 @@ jobs:
         shell: msys2 {0}
         run: |
           export PATH=`cygpath "${pythonLocation}"`:$PATH
-          scripts/build_gdl.sh check || exit 0
+          scripts/build_gdl.sh check
