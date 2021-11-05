@@ -138,7 +138,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test GDL
         run: |
-          scripts/build_gdl.sh check || exit 0
+          scripts/build_gdl.sh check
   build-windows:
     runs-on: windows-latest
     needs: prelude
