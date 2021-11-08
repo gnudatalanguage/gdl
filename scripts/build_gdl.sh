@@ -502,9 +502,9 @@ function test_gdl {
     log "Testing GDL..."
     cd ${ROOT_DIR}/build
     if [ -f ${GDL_DIR}/CMakeModules/CodeCoverage.cmake ]; then
-        make codecov
+        make codecov || exit 1
     else
-        CTEST_OUTPUT_ON_FAILURE=1 make test
+        CTEST_OUTPUT_ON_FAILURE=1 make test || exit 1
     fi
 }
 
@@ -536,13 +536,14 @@ function prep_deploy {
     cd ${GDL_DIR}
 }
 
-AVAILABLE_OPTIONS="prep prep_dryrun configure build install check pack prep_deploy"
+AVAILABLE_OPTIONS="prep prep_dryrun configure build install check test pack prep_deploy"
 AVAILABLE_OPTIONS_prep=prep_packages
 AVAILABLE_OPTIONS_prep_dryrun=prep_packages_dryrun
 AVAILABLE_OPTIONS_configure=configure_gdl
 AVAILABLE_OPTIONS_build=build_gdl
 AVAILABLE_OPTIONS_install=install_gdl
 AVAILABLE_OPTIONS_check=test_gdl
+AVAILABLE_OPTIONS_test=test_gdl
 AVAILABLE_OPTIONS_pack=pack_gdl
 AVAILABLE_OPTIONS_prep_deploy=prep_deploy
 
