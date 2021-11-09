@@ -321,6 +321,7 @@ namespace lib {
 			    DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd);
   PLFLT gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &val_min, DDouble &val_max, bool log = false, int calendarcode = 0);
   PLFLT AutoTick(DDouble x);
+  PLFLT AutoLogTick(DDouble min, DDouble max);
   void setIsoPort(GDLGStream* actStream,PLFLT x1,PLFLT x2,PLFLT y1,PLFLT y2,PLFLT aspect);
   void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal);
   void GetMinMaxValuesForSubset( DDoubleGDL* val, DDouble &minVal, DDouble &maxVal, SizeT endElement);
@@ -497,7 +498,7 @@ namespace lib {
     PLFLT intv;
     if (nticks == 0)
     {
-      intv = (log)? AutoTick(log10(max-min)): AutoTick(max-min);
+      intv = (log)? AutoLogTick(min,max): AutoTick(max-min);
     } else {
       intv = (log)? log10(max-min)/nticks: (max-min)/nticks;
     }
@@ -1734,6 +1735,7 @@ namespace lib {
 //    gdlGetDesiredAxisTickv(e, axisId, Tickv);
     DString Title;
     gdlGetDesiredAxisTitle(e, axisId, Title);
+    bool hasTitle=(Title.size() > 0);
     
     bool hasTickUnitDefined = (TickUnits->NBytes()>0);
     int tickUnitArraySize=(hasTickUnitDefined)?TickUnits->N_Elements():0;
@@ -1777,7 +1779,10 @@ namespace lib {
                 // to avoid writing tick marks here (they will be written after)
                 // I hope old plplots were clever enough to ignore 'x'
                 // if they did not understand 'x'
-      if ( Log ) Opt+="l"; //"l" for log; otherOpt is never in log I believe
+      if ( Log ) {
+        if (TickInterval <=1) Opt+="l"; //"l" for log; otherOpt is never in log I believe
+        //if log and tickinterval was >1 then we pass in 'linear, no subticks' mode (see issue #1112)
+      }
       if (TickName->NBytes()>0) // /TICKNAME=[array]
       {
         data.counter=0;
@@ -1869,18 +1874,15 @@ namespace lib {
         if (axisId==YAXIS) title_position=nchars+2; else title_position=3.5;
         a->slabelfunc( NULL, NULL );
       }
-
-      if (modifierCode==0 ||modifierCode==1)
-      {
-        if (axisId==XAXIS) a->mtex("b",title_position, 0.5, 0.5, Title.c_str());
-        else if (axisId==YAXIS) a->mtex("l",title_position,0.5,0.5,Title.c_str());
+      if (hasTitle) {
+        if (modifierCode == 0 || modifierCode == 1) {
+          if (axisId == XAXIS) a->mtex("b", title_position, 0.5, 0.5, Title.c_str());
+          else if (axisId == YAXIS) a->mtex("l", title_position, 0.5, 0.5, Title.c_str());
+        } else if (modifierCode == 2) {
+          if (axisId == XAXIS) a->mtex("t", title_position, 0.5, 0.5, Title.c_str());
+          else if (axisId == YAXIS) a->mtex("r", title_position, 0.5, 0.5, Title.c_str());
+        }
       }
-      else if (modifierCode==2)
-      {
-        if (axisId==XAXIS) a->mtex("t", title_position, 0.5, 0.5, Title.c_str());
-        else if (axisId==YAXIS) a->mtex("r",title_position,0.5,0.5,Title.c_str());
-      }      
-      
       if (TickLayout==0)
       {
         a->smaj(ticklen_in_mm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
@@ -1889,7 +1891,7 @@ namespace lib {
         a->Thick(Thick);
 
         //ticks or grid eventually with style and length:
-        if (abs(TickLen)<1e-6) Opt=""; else Opt="st"; //remove ticks if ticklen=0
+        if (abs(TickLen)<1e-6) Opt=""; else Opt="t"; //remove ticks if ticklen=0
         if (TickLen<0) {Opt+="i"; TickLen=-TickLen;}
         switch(modifierCode)
         {
@@ -1904,7 +1906,15 @@ namespace lib {
         }
         //gridstyle applies here:
         gdlLineStyle(a,GridStyle);
-        if ( Log ) Opt+="l";
+        if ( Log ) {
+          if (TickInterval < 1) {       //if log and tickinterval was >1 then we pass in 'linear, no subticks' mode (see issue #1112)
+            Opt+="sl"; 
+            Minor = 0;
+          } else if (TickInterval < 2) {Minor=1;}
+            else if (TickInterval < 2.1) {Opt+="s";Minor=2;}
+            else if (TickInterval < 5.1)  {Opt+="s"; Minor=5;}
+            else {Opt+="s"; Minor=10;}
+        } else Opt+="s";
         if (axisId==XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
         else if (axisId==YAXIS) a->box("", 0.0, 0, Opt.c_str(), TickInterval, Minor);
         //reset gridstyle

@@ -142,7 +142,18 @@ namespace lib
     PLFLT intv=(PLFLT)(m*pow(10., static_cast<double>(n)));
     return intv;
   }
-
+  
+  PLFLT AutoLogTick(DDouble min, DDouble max)
+  {
+    DDouble x=abs(log10(max)-log10(min));
+    if ( x==0.0 ) return 1.0;
+    if (x <= 6) return 0;
+    if (x <= 7.2) return 1;
+    if (x <= 15) return 2;
+    if (x <= 35) return 5;
+    return 10;
+  }
+  
   PLFLT AutoIntv(DDouble x)
   {
     if ( x==0.0 )
@@ -1323,7 +1334,7 @@ namespace lib
     //in log, plplot gives correctly rounded "integer" values but 10^0 needs a bit of help.
     if ((ptr->isLog) && (sgn*value<1e-6)) //i.e. 0 
     {
-      snprintf(label, length, "1"); 
+      snprintf(label, length, "10!E0!N"); 
       return;
     }
     
