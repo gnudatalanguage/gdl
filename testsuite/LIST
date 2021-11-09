@@ -74,7 +74,6 @@ test_constants.pro
 test_convert_coord.pro
 test_correlate.pro
 test_delvarrnew.pro
-test_deriv.pro
 test_diag_matrix.pro
 test_dilate.pro
 test_erfinv.pro
@@ -150,7 +149,6 @@ test_qromo.pro
 test_readf_with_crlf.pro
 test_reads.pro
 test_rebin.pro
-test_rk4.pro
 test_routine_filepath.pro
 test_routine_names.pro
 test_same_name.pro
