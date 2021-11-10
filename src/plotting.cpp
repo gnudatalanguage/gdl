@@ -153,7 +153,7 @@ namespace lib
     if (x <= 35) return 5;
     return 10;
   }
-  
+  // the algo below is OK
   PLFLT AutoIntv(DDouble x)
   {
     if ( x==0.0 )
@@ -165,16 +165,13 @@ namespace lib
     DLong n=static_cast<DLong>(floor(log10(x/2.82)));
     DDouble y=(x/(2.82*pow(10., static_cast<double>(n))));
     DLong m=0;
-    if ( y>=1&&y<2 )
-      m=1;
-    else if ( y>=2&&y<4.47 )
-      m=2;
-    else if ( y>=4.47 )
-      m=5;
+    if ( y>=1 && y<2 )  m=1;
+    else if ( y>=2 && y<4.47 )  m=2;
+    else m=5;
 
 
     PLFLT intv=(PLFLT)(m*pow(10., static_cast<double>(n)));
-        cout << "AutoIntv :" << intv << " : "<< x << " " << y << endl;
+//      cout << "AutoIntv :" << intv << " : "<< x << " " << y << endl;
     return intv;
   }
 
@@ -318,7 +315,6 @@ namespace lib
 
 
     // general case (only negative OR negative and positive)
-
     //correct this for calendar values (round to nearest year, month, etc)
       if ( code > 0) {
         if (code ==7 ) {
@@ -388,12 +384,14 @@ namespace lib
             }
       } 
       else {      
+        const double max_allowed_leak_factor = 1-1.25e-6;
         intv = AutoIntv(range);
         if (log) {
-          max = ceil((max / intv) * intv);
+//          max = ceil((max / intv) * intv);
+          max = ceil(((max*max_allowed_leak_factor) / intv) * intv); //same behaviour as IDL: if value is 
           min = floor((min / intv) * intv);
         } else {
-          max = ceil(max / intv) * intv;
+          max = ceil((max*max_allowed_leak_factor)  / intv) * intv;
           min = floor(min / intv) * intv;
         }
       }
