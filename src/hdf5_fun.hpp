@@ -67,6 +67,7 @@ namespace lib {
   BaseGDL* h5a_get_num_attrs_fun( EnvT* e);
   BaseGDL* h5a_read_fun( EnvT* e);
   BaseGDL* h5g_open_fun( EnvT* e);
+  BaseGDL* h5g_get_objinfo_fun( EnvT* e);
   void h5a_close_pro( EnvT* e );
   void h5t_close_pro( EnvT* e );
   void h5g_close_pro( EnvT* e );

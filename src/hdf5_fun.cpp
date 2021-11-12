@@ -352,6 +352,33 @@ hid_t
 
   }
 
+  BaseGDL* h5g_get_objinfo_fun( EnvT* e)
+  {
+    SizeT nParam=e->NParam(2);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t h5f_id = hdf5_input_conversion(e, 0);
+
+    /* mandatory 'Name' parameter */
+    DString h5g_name;
+    e->AssureScalarPar<DStringGDL>( 1, h5g_name);
+
+    /* keyword 'FOLLOW_LINK' parameter */
+    static int followIx = e->KeywordIx("FOLLOW_LINK");
+    hbool_t follow_link = e->KeywordSet(followIx);
+
+    /* execute the HDF5 library function */
+    H5G_stat_t statbuf;
+
+    if ( H5Gget_objinfo(h5f_id, h5g_name.c_str(), follow_link, &statbuf) < 0 )
+      { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    BaseGDL* result = new BaseGDL( );
+    return result;
+
+  }
+
+
   BaseGDL* h5d_open_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(2);
