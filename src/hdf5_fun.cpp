@@ -354,6 +354,10 @@ hid_t
 
   BaseGDL* h5g_get_objinfo_fun( EnvT* e)
   {
+     /* Nov 2021, Oliver Gressel <ogressel@gmail.com>
+        - add basic functionality
+     */
+
     SizeT nParam=e->NParam(2);
 
     /* mandatory 'Loc_id' parameter */
@@ -369,12 +373,36 @@ hid_t
 
     /* execute the HDF5 library function */
     H5G_stat_t statbuf;
-
     if ( H5Gget_objinfo(h5f_id, h5g_name.c_str(), follow_link, &statbuf) < 0 )
       { string msg; e->Throw(hdf5_error_message(msg)); }
 
-    BaseGDL* result = new BaseGDL( );
-    return result;
+    DULong fileno[2] = { static_cast<DULong>(statbuf.fileno[0]),
+                         static_cast<DULong>(statbuf.fileno[1]) };
+    DULong objno[2] = { static_cast<DULong>(statbuf.objno[0]),
+                        static_cast<DULong>(statbuf.objno[1]) };
+
+    /* create return object */
+    DStructDesc* res_desc = new DStructDesc("H5G_STAT");
+    DStructGDL* res = new DStructGDL(res_desc);
+
+    /* populate the GDL structure */
+    res->NewTag("FILENO", new DULongGDL(fileno,2));
+    res->NewTag("OBJNO", new DULongGDL(objno,2));
+    res->NewTag("NLINK", new DULongGDL(statbuf.nlink));
+
+    switch(statbuf.type) {
+    case H5G_UNKNOWN: res->NewTag("TYPE", new DStringGDL("UNKNOWN")); break;
+    case H5G_GROUP:   res->NewTag("TYPE", new DStringGDL("GROUP"));   break;
+    case H5G_DATASET: res->NewTag("TYPE", new DStringGDL("DATASET")); break;
+    case H5G_TYPE:    res->NewTag("TYPE", new DStringGDL("TYPE"));    break;
+    case H5G_LINK:    res->NewTag("TYPE", new DStringGDL("LINK"));    break;
+    default:          e->Throw("type error");
+    }
+
+    res->NewTag("MTIME", new DULongGDL(statbuf.mtime));
+    res->NewTag("LINKLEN", new DULongGDL(statbuf.linklen));
+
+    return res;
 
   }
 
