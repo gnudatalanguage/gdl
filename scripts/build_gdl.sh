@@ -536,7 +536,25 @@ function prep_deploy {
     cd ${GDL_DIR}
 }
 
-AVAILABLE_OPTIONS="prep prep_dryrun configure build install check test pack prep_deploy"
+function test_antlr {
+    if ! which runantlr &> /dev/null; then
+        log "ANTLR could not be found, try installing..."
+        find_pkgmgr
+        eval "sudo ${PKGMGR} ${PKGINSTALLARG} -y antlr"
+    fi
+    pushd ${GDL_DIR}/src
+        for i in *.g; do
+            runantlr $i
+        done
+        git diff -G '(^[ANTLR 2.7.7 (])' | tee diff.log
+        if [ `cat diff.log | wc -l` -gt 0 ]; then
+            log "Error: Compiled ANTLR files do not match!"
+            exit 1
+        fi
+    popd
+}
+
+AVAILABLE_OPTIONS="prep prep_dryrun configure build install check test antlr pack prep_deploy"
 AVAILABLE_OPTIONS_prep=prep_packages
 AVAILABLE_OPTIONS_prep_dryrun=prep_packages_dryrun
 AVAILABLE_OPTIONS_configure=configure_gdl
@@ -544,6 +562,7 @@ AVAILABLE_OPTIONS_build=build_gdl
 AVAILABLE_OPTIONS_install=install_gdl
 AVAILABLE_OPTIONS_check=test_gdl
 AVAILABLE_OPTIONS_test=test_gdl
+AVAILABLE_OPTIONS_antlr=test_antlr
 AVAILABLE_OPTIONS_pack=pack_gdl
 AVAILABLE_OPTIONS_prep_deploy=prep_deploy
 
