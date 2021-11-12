@@ -546,11 +546,12 @@ function test_antlr {
         for i in *.g; do
             runantlr $i
         done
-        git diff -G '(^[ANTLR 2.7.7 (])' | tee diff.log
+        git diff -G -b '(^[ANTLR 2.7.7 (])' | tee diff.log
         if [ `cat diff.log | wc -l` -gt 0 ]; then
             log "Error: Compiled ANTLR files do not match!"
             exit 1
         fi
+        log "Compiled ANTLR files match!"
     popd
 }
 
