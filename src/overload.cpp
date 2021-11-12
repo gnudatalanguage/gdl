@@ -181,8 +181,7 @@ BaseGDL* _GDL_OBJECT_OverloadBracketsRightSide( EnvUDT* e)
   try {
     for( int p=0; p<nIsRange; ++p)
     {
-      BaseGDL* parX = NULL;
-      if (e->GlobalKW( p + 2 )) parX = e->GetKW( p + 2); // implicit SELF, ISRANGE, par1..par8
+      BaseGDL* parX = e->GetKW( p + 2); // implicit SELF, ISRANGE, par1..par8
       if( parX == NULL)
             ThrowFromInternalUDSub( e,
              "Parameter is undefined: "  + e->Caller()->GetString(e->GetTheKW( p + 2)));

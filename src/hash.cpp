@@ -2190,8 +2190,7 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
     BaseGDL* rValue = e->GetTheKW(2);
     if( rValue == NULL)  rValue = NullGDL::GetSingleInstance();
 
-    BaseGDL* parX=NULL;
-    if  ( e->GlobalKW( iprm + prmbeg)) parX = e->GetKW(iprm + prmbeg);
+    BaseGDL* parX = e->GetKW(iprm + prmbeg);
     if( parX == NULL)  ThrowFromInternalUDSub( e, "Parameter is undefined: "
                             + e->Caller()->GetString(e->GetTheKW( iprm + prmbeg )));
     bool stolen = e->StealLocalKW(iprm + prmbeg);
@@ -2358,8 +2357,7 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
           std::cout << std::endl;
         }
 // hash[*] = ... (Decline the attempt.)
-    BaseGDL* parX = NULL;
-    if  ( e->GlobalKW( prmbeg)) parX = e->GetTheKW( prmbeg); // implicit SELF, ISRANGE, par1..par8
+    BaseGDL* parX = e->GetKW( prmbeg); // implicit SELF, ISRANGE, par1..par8
     if( parX == NULL) ThrowFromInternalUDSub( e,
      "Parameter is undefined: "  + e->Caller()->GetString(e->GetTheKW( prmbeg)));
 
@@ -2715,8 +2713,7 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
     DPtr thisTableID = (*static_cast<DPtrGDL*>( self->GetTag( pTableTag, 0)))[0];
     DStructGDL* thisHashTable = static_cast<DStructGDL*>(e->Interpreter()->GetHeap( thisTableID));
     
-    BaseGDL* parX = NULL;
-    if  ( e->GlobalKW( prmbeg)) parX = e->GetKW( prmbeg); // implicit SELF, ISRANGE, par1..par8
+    BaseGDL* parX = e->GetKW( prmbeg); // implicit SELF, ISRANGE, par1..par8
     if( parX == NULL) ThrowFromInternalUDSub( e,
      "Parameter is undefined: "  + e->Caller()->GetString(e->GetTheKW( prmbeg)));
 

@@ -1217,8 +1217,7 @@ BaseGDL* list_rightextraction( EnvUDT* e, BaseGDL* theref, int iprm  )
   try {
     for( int p=iprm; p<nIsRange; ++p)
     {
-      BaseGDL* parX = NULL;
-    if  ( e->GlobalKW( p + prmbeg)) parX = e->GetTheKW( p +  prmbeg); // implicit SELF, ISRANGE, par1..par8
+      BaseGDL* parX = e->GetKW( p +  prmbeg); // implicit SELF, ISRANGE, par1..par8
       if( parX == NULL)  // programming error.
             ThrowFromInternalUDSub( e, "Parameter is undefined: " 
                     + e->Caller()->GetString(e->GetTheKW( p +  prmbeg)));
@@ -1427,8 +1426,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  )
   try {
     for( int p=iprm; p<nIsRange; ++p)
     {
-      BaseGDL* parX = NULL;
-      if (e->GlobalKW(p+prmbeg)) parX = e->GetTheKW( p + prmbeg ); // implicit SELF, ISRANGE, par1..par8
+      BaseGDL* parX = e->GetTheKW( p + prmbeg ); // implicit SELF, ISRANGE, par1..par8
       if( parX == NULL)    ThrowFromInternalUDSub( e, "Parameter is undefined: "
                             + e->Caller()->GetString(e->GetTheKW( p + prmbeg )));
 
