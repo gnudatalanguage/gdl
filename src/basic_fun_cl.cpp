@@ -308,7 +308,7 @@ namespace lib {
     if(isZero) return new DStringGDL("0000-00-00T00:00:00Z");
 
     static int utcIx=e->KeywordIx("UTC");
-    bool isUTC=e->KeywordSet(utcIx);
+    bool isUTC=e->BooleanKeywordAbsentOrSet(utcIx);
 
     struct timeval tv;
    
