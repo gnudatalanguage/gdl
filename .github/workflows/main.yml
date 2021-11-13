@@ -104,6 +104,7 @@ jobs:
           scripts/build_gdl.sh configure
           scripts/build_gdl.sh build
           scripts/build_gdl.sh install
+          sudo chown -R $(whoami) /usr/local/share/man/man4
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
       - name: Package GDL
