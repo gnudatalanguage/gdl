@@ -525,7 +525,7 @@ pro TEST_HDF5_COMP, cumul_errors, create=create
               a_double_arr:[ [1.6d,1.7], [1.8,1.9], [2.0,2.1] ], $
               a_string:"nested compound" }
 
-   main = { a_byte:4b, a_byte_arr:[5b,6,7,8], $
+   main = { a_byte:4b, a_byte_arr:byte([5,6,7,8]), $
             sub:nested, a_string:"main" }
 
    if keyword_set(create) then begin
