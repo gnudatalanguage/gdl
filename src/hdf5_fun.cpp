@@ -585,7 +585,7 @@ hid_t
 
     if (debug) printf("dataspace rank=%d\n", rank);
 
-    for(int i=0; i<rank; i++) curr_dims[i] = (hsize_t)(*dimPar)[i];
+    for(int i=0; i<rank; i++) curr_dims[i] = (hsize_t)(*dimPar)[rank-1-i];
 
     /* keyword 'max_dimensions' paramter */
     static int maxDimIx = e->KeywordIx("MAX_DIMENSIONS");
@@ -600,7 +600,7 @@ hid_t
         e->Throw("Number of elements in MAX_DIMENSIONS must equal dataspace dimensions.");
 
       for(int i=0; i<rank; i++) {
-         max_dims[i] = (hsize_t)(*maxDimKW)[i];
+         max_dims[i] = (hsize_t)(*maxDimKW)[rank-1-i];
 
          if(max_dims[i]<curr_dims[i])
             e->Throw("H5S_CREATE_SIMPLE: maxdims is smaller than dims");
@@ -922,7 +922,6 @@ hid_t
     */
 
     bool debug = false;
-    bool reverse_memspace_dims;
 
     SizeT nParam = e->NParam(1);
     hsize_t dims_out[MAXRANK];
@@ -975,8 +974,6 @@ hid_t
        else
           memspace_id = H5Scopy(kw_memspace_id);
 
-       reverse_memspace_dims = true;
-
     } else {                            /* same as file space */
 
        memspace_id = H5Scopy(filespace_id);
@@ -984,7 +981,6 @@ hid_t
           string msg;
           e->Throw(hdf5_error_message(msg));
        }
-       reverse_memspace_dims = false;
     }
 
     hdf5_space_guard memspace_id_guard = hdf5_space_guard(memspace_id);
@@ -1043,15 +1039,6 @@ hid_t
     if (H5Sget_simple_extent_dims(memspace_id, dims_out, NULL) < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
-    }
-
-    if (reverse_memspace_dims) {
-      int i=0,j=rank-1;
-      while (i < j) {
-        hsize_t dummy = dims_out[i];
-        dims_out[i++] = dims_out[j];
-        dims_out[j--] = dummy;
-      }
     }
 
     if (debug && rank>0) {
