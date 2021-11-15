@@ -154,7 +154,9 @@ namespace lib {
     if (H5Tequal(h5type , H5T_STD_U32BE )) return GDL_ULONG;
     if (H5Tequal(h5type , H5T_STD_U32LE )) return GDL_ULONG;
 
-    if (H5Tequal(h5type , H5T_NATIVE_HBOOL )) return GDL_LONG;
+    /// if (H5Tequal(h5type , H5T_NATIVE_HBOOL )) return GDL_LONG;
+    /// Oliver: disable this, as it matches against 'H5T_STD_U8LE' (GDL_BYTE)
+
     if (H5Tequal(h5type , H5T_NATIVE_LONG )) return GDL_LONG;
     if (H5Tequal(h5type , H5T_ALPHA_B32 )) return GDL_LONG;
     if (H5Tequal(h5type , H5T_ALPHA_F32 )) return GDL_LONG;
