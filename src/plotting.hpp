@@ -293,19 +293,19 @@ namespace lib {
       actStream->Update();
     }
   };
-  void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax=FALSE, DDouble minVal=0, DDouble maxVal=0);
+  void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax=false, DDouble minVal=0, DDouble maxVal=0);
   void draw_polyline(GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal, 
 		     DDouble minVal, DDouble maxVal, bool doMinMax,
 		     bool xLog, bool yLog, //end non-default values 
-         DLong psym=0, bool useProjectionInfo=false, bool append=FALSE, DLongGDL *color=NULL);
+         DLong psym=0, bool useProjectionInfo=false, bool append=false, DLongGDL *color=NULL);
   //protect from (inverted, strange) axis log values
-  void gdlHandleUnwantedAxisValue(DDouble &min, DDouble &max, bool log);
+  void gdlHandleUnwantedLogAxisValue(DDouble &min, DDouble &max, bool log);
   void gdlSetGraphicsPenColorToBackground(GDLGStream *a);
   void gdlLineStyle(GDLGStream *a, DLong style);
   void gdlStoreAxisCRANGE(int axisId, DDouble Start, DDouble End, bool log);
   void gdlStoreAxisSandWINDOW(GDLGStream* actStream, int axisId, DDouble Start, DDouble End, bool log=false);
   void gdlGetAxisType(int axisId, bool &log);
-  void gdlGetCurrentAxisRange(int axisId, DDouble &Start, DDouble &End, bool checkMapset=FALSE);
+  void gdlGetCurrentAxisRange(int axisId, DDouble &Start, DDouble &End, bool checkMapset=false);
   void gdlGetCurrentAxisWindow(int axisId, DDouble &wStart, DDouble &wEnd);
   void gdlStoreAxisType(int axisId, bool type);
   void gdlGetCharSizes(GDLGStream *a, PLFLT &nsx, PLFLT &nsy, DDouble &wsx, DDouble &wsy, 
@@ -321,6 +321,7 @@ namespace lib {
 			    DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd);
   PLFLT gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &val_min, DDouble &val_max, bool log = false, int calendarcode = 0);
   PLFLT AutoTick(DDouble x);
+  PLFLT AutoLogTick(DDouble min, DDouble max);
   void setIsoPort(GDLGStream* actStream,PLFLT x1,PLFLT x2,PLFLT y1,PLFLT y2,PLFLT aspect);
   void GetMinMaxVal( DDoubleGDL* val, double* minVal, double* maxVal);
   void GetMinMaxValuesForSubset( DDoubleGDL* val, DDouble &minVal, DDouble &maxVal, SizeT endElement);
@@ -497,7 +498,7 @@ namespace lib {
     PLFLT intv;
     if (nticks == 0)
     {
-      intv = (log)? AutoTick(log10(max-min)): AutoTick(max-min);
+      intv = (log)? AutoLogTick(min,max): AutoTick(max-min);
     } else {
       intv = (log)? log10(max-min)/nticks: (max-min)/nticks;
     }
@@ -620,7 +621,7 @@ namespace lib {
   }
   static bool gdlGetDesiredAxisRange(EnvT *e, int axisId, DDouble &start, DDouble &end)
   {
-    bool set=FALSE;
+    bool set=false;
     static int XRANGEIx = e->KeywordIx("XRANGE");
     static int YRANGEIx = e->KeywordIx("YRANGE");
     static int ZRANGEIx = e->KeywordIx("ZRANGE");
@@ -1040,14 +1041,14 @@ namespace lib {
     unsigned rangeTag=SysVar::Y()->Desc()->TagIndex("RANGE");
     test1=(*static_cast<DDoubleGDL*>(SysVar::Y()->GetTag(rangeTag, 0)))[0];
     test2=(*static_cast<DDoubleGDL*>(SysVar::Y()->GetTag(rangeTag, 0)))[1];
-    if(!(test1==0.0 && test2==0.0)) return TRUE;
+    if(!(test1==0.0 && test2==0.0)) return true;
     static int YRANGEIx=e->KeywordIx( "YRANGE"); 
 
-    if ( e->KeywordPresent( YRANGEIx)) return TRUE;
+    if ( e->KeywordPresent( YRANGEIx)) return true;
     //Style contains 1?
     DLong ystyle;
     gdlGetDesiredAxisStyle(e, YAXIS, ystyle);
-    if (ystyle&1) return TRUE;
+    if (ystyle&1) return true;
 
     DLong nozero=0;
     if (ystyle&16) nozero=1;
@@ -1061,7 +1062,7 @@ namespace lib {
   // function declared static (local to each function using it) to avoid messing the NOERASEIx index which is not the same.
   static void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a, bool noe=0)
   {
-    bool noErase=FALSE;
+    bool noErase=false;
     DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
 
     if ( !noe )
@@ -1074,12 +1075,12 @@ namespace lib {
 
       if ( e->KeywordSet(NOERASEIx) )
       {
-        noErase=TRUE;
+        noErase=true;
       }
     }
     else
     {
-      noErase=TRUE;
+      noErase=true;
     }
 
     a->NextPlot(!noErase);
@@ -1340,8 +1341,8 @@ namespace lib {
                 xMR, xML, yMB, yMT);
 
     // viewport - POSITION overrides
-    static bool kwP=FALSE;
-    static bool do_iso=FALSE;
+    static bool kwP=false;
+    static bool do_iso=false;
     static PLFLT aspect=0.0;
 
     static PLFLT positionP[4]={0, 0, 0, 0};
@@ -1423,13 +1424,13 @@ namespace lib {
     {
       if ( xLog )
       {
-        gdlHandleUnwantedAxisValue(xStart, xEnd, xLog);
+        gdlHandleUnwantedLogAxisValue(xStart, xEnd, xLog);
         xStart=log10(xStart);
         xEnd=log10(xEnd);
       }
       if ( yLog )
       {
-        gdlHandleUnwantedAxisValue(yStart, yEnd, yLog);
+        gdlHandleUnwantedLogAxisValue(yStart, yEnd, yLog);
         yStart=log10(yStart);
         yEnd=log10(yEnd);
       }
@@ -1465,12 +1466,12 @@ namespace lib {
     {
       if ( iso==1 ) // Check ISOTROPIC first
       {
-        do_iso=TRUE;
+        do_iso=true;
         aspect=abs((yEnd-yStart)/(xEnd-xStart)); //log-log or lin-log
       }
       else
       {
-        do_iso=FALSE;
+        do_iso=false;
         aspect=0.0; // vpas with aspect=0.0 equals vpor.
       }
 
@@ -1530,16 +1531,16 @@ namespace lib {
     //        cout << "yStart " << yStart << "  yEnd "<<yEnd<<endl;
     
     // set ![XYZ].CRANGE (Z is not defined but must be [0,1])
-    gdlStoreAxisCRANGE(XAXIS, xStart, xEnd, FALSE); //already in log here if relevant!
-    gdlStoreAxisCRANGE(YAXIS, yStart, yEnd, FALSE);
+    gdlStoreAxisCRANGE(XAXIS, xStart, xEnd, false); //already in log here if relevant!
+    gdlStoreAxisCRANGE(YAXIS, yStart, yEnd, false);
 
     //set ![XY].type
     gdlStoreAxisType(XAXIS,xLog); 
     gdlStoreAxisType(YAXIS,yLog);
 
     //set ![XY].WINDOW and ![XY].S
-    gdlStoreAxisSandWINDOW(actStream, XAXIS, xStart, xEnd, FALSE);//already in log here if relevant!
-    gdlStoreAxisSandWINDOW(actStream, YAXIS, yStart, yEnd, FALSE);
+    gdlStoreAxisSandWINDOW(actStream, XAXIS, xStart, xEnd, false);//already in log here if relevant!
+    gdlStoreAxisSandWINDOW(actStream, YAXIS, yStart, yEnd, false);
     //set P.CLIP (done by PLOT, CONTOUR, SHADE_SURF, and SURFACE)
     Guard<BaseGDL> clipbox_guard;
     DLongGDL* clipBox= new DLongGDL(4, BaseGDL::ZERO); clipbox_guard.Reset(clipBox);
@@ -1567,8 +1568,8 @@ namespace lib {
       NORMAL,
       DEVICE
     } coordinateSystem=DATA;
-    bool xinverted=FALSE;
-    bool yinverted=FALSE; //for inverted DATA coordinates
+    bool xinverted=false;
+    bool yinverted=false; //for inverted DATA coordinates
     
 
     
@@ -1672,7 +1673,7 @@ namespace lib {
     a->vpor(xmin, xmax,ymin, ymax);
     a->wind(tempbox[0], tempbox[2], tempbox[1], tempbox[3]);
 //    a->box( "bc", 0, 0, "bc", 0.0, 0);
-    return TRUE;
+    return true;
   }
     static bool gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log,
     DLong modifierCode=0, DDouble NormedLength=0)
@@ -1734,6 +1735,7 @@ namespace lib {
 //    gdlGetDesiredAxisTickv(e, axisId, Tickv);
     DString Title;
     gdlGetDesiredAxisTitle(e, axisId, Title);
+    bool hasTitle=(Title.size() > 0);
     
     bool hasTickUnitDefined = (TickUnits->NBytes()>0);
     int tickUnitArraySize=(hasTickUnitDefined)?TickUnits->N_Elements():0;
@@ -1777,7 +1779,10 @@ namespace lib {
                 // to avoid writing tick marks here (they will be written after)
                 // I hope old plplots were clever enough to ignore 'x'
                 // if they did not understand 'x'
-      if ( Log ) Opt+="l"; //"l" for log; otherOpt is never in log I believe
+      if ( Log ) {
+        if (TickInterval <=1) Opt+="l"; //"l" for log; otherOpt is never in log I believe
+        //if log and tickinterval was >1 then we pass in 'linear, no subticks' mode (see issue #1112)
+      }
       if (TickName->NBytes()>0) // /TICKNAME=[array]
       {
         data.counter=0;
@@ -1869,18 +1874,15 @@ namespace lib {
         if (axisId==YAXIS) title_position=nchars+2; else title_position=3.5;
         a->slabelfunc( NULL, NULL );
       }
-
-      if (modifierCode==0 ||modifierCode==1)
-      {
-        if (axisId==XAXIS) a->mtex("b",title_position, 0.5, 0.5, Title.c_str());
-        else if (axisId==YAXIS) a->mtex("l",title_position,0.5,0.5,Title.c_str());
+      if (hasTitle) {
+        if (modifierCode == 0 || modifierCode == 1) {
+          if (axisId == XAXIS) a->mtex("b", title_position, 0.5, 0.5, Title.c_str());
+          else if (axisId == YAXIS) a->mtex("l", title_position, 0.5, 0.5, Title.c_str());
+        } else if (modifierCode == 2) {
+          if (axisId == XAXIS) a->mtex("t", title_position, 0.5, 0.5, Title.c_str());
+          else if (axisId == YAXIS) a->mtex("r", title_position, 0.5, 0.5, Title.c_str());
+        }
       }
-      else if (modifierCode==2)
-      {
-        if (axisId==XAXIS) a->mtex("t", title_position, 0.5, 0.5, Title.c_str());
-        else if (axisId==YAXIS) a->mtex("r",title_position,0.5,0.5,Title.c_str());
-      }      
-      
       if (TickLayout==0)
       {
         a->smaj(ticklen_in_mm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
@@ -1889,7 +1891,7 @@ namespace lib {
         a->Thick(Thick);
 
         //ticks or grid eventually with style and length:
-        if (abs(TickLen)<1e-6) Opt=""; else Opt="st"; //remove ticks if ticklen=0
+        if (abs(TickLen)<1e-6) Opt=""; else Opt="t"; //remove ticks if ticklen=0
         if (TickLen<0) {Opt+="i"; TickLen=-TickLen;}
         switch(modifierCode)
         {
@@ -1904,7 +1906,15 @@ namespace lib {
         }
         //gridstyle applies here:
         gdlLineStyle(a,GridStyle);
-        if ( Log ) Opt+="l";
+        if ( Log ) {
+          if (TickInterval < 1) {       //if log and tickinterval was >1 then we pass in 'linear, no subticks' mode (see issue #1112)
+            Opt+="sl"; 
+            Minor = 0;
+          } else if (TickInterval < 2) {Minor=1;}
+            else if (TickInterval < 2.1) {Opt+="s";Minor=2;}
+            else if (TickInterval < 5.1)  {Opt+="s"; Minor=5;}
+            else {Opt+="s"; Minor=10;}
+        } else Opt+="s";
         if (axisId==XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
         else if (axisId==YAXIS) a->box("", 0.0, 0, Opt.c_str(), TickInterval, Minor);
         //reset gridstyle

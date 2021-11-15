@@ -217,12 +217,6 @@ namespace lib
       bool doShade=(shadevalues != NULL); //... But 3d mesh will be colorized anyway!
       if (doShade) Warning ( "SURFACE: Using Fixed (Z linear) Shade Values Only (FIXME)." );
 
-      // [XYZ]STYLE
-      DLong xStyle=0, yStyle=0, zStyle=0; ;
-      gdlGetDesiredAxisStyle(e, XAXIS, xStyle);
-      gdlGetDesiredAxisStyle(e, YAXIS, yStyle);
-      gdlGetDesiredAxisStyle(e, ZAXIS, zStyle);
-
       //check here since after AutoIntvAC values will be good but arrays passed
       //to plplot will be bad...
       if ( xLog && xStart<=0.0 )
@@ -236,17 +230,6 @@ namespace lib
         nodata=true;
       }
       if ( zLog && zStart<=0.0 ) Warning ( "SURFACE: Infinite z plot range." );
-
-
-      if ( ( xStyle&1 )!=1 )
-      {
-        PLFLT intv=gdlAdjustAxisRange (e,XAXIS,  xStart, xEnd, xLog );
-      }
-
-      if ( ( yStyle&1 )!=1 )
-      {
-        PLFLT intv=gdlAdjustAxisRange (e, YAXIS, yStart, yEnd, yLog );
-      }
 
       static int MIN_VALUEIx = e->KeywordIx( "MIN_VALUE");
       static int MAX_VALUEIx = e->KeywordIx( "MAX_VALUE");
@@ -263,11 +246,10 @@ namespace lib
         zEnd=min(zEnd,maxVal);
       }
 
-      // then only apply expansion  of axes:
-      if ( ( zStyle&1 )!=1 )
-      {
-        PLFLT intv=gdlAdjustAxisRange (e, ZAXIS, zStart, zEnd, zLog );
-      }
+      //Box adjustement:
+      gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
+      gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
+      gdlAdjustAxisRange(e, ZAXIS, zStart, zEnd, zLog);
 
       // background BEFORE next plot since it is the only place plplot may redraw the background...
       gdlSetGraphicsBackgroundColorFromKw ( e, actStream ); //BACKGROUND

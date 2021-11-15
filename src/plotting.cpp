@@ -142,7 +142,18 @@ namespace lib
     PLFLT intv=(PLFLT)(m*pow(10., static_cast<double>(n)));
     return intv;
   }
-
+  
+  PLFLT AutoLogTick(DDouble min, DDouble max)
+  {
+    DDouble x=abs(log10(max)-log10(min));
+    if ( x==0.0 ) return 1.0;
+    if (x <= 6) return 0;
+    if (x <= 7.2) return 1;
+    if (x <= 15) return 2;
+    if (x <= 35) return 5;
+    return 10;
+  }
+  // the algo below is OK
   PLFLT AutoIntv(DDouble x)
   {
     if ( x==0.0 )
@@ -154,42 +165,41 @@ namespace lib
     DLong n=static_cast<DLong>(floor(log10(x/2.82)));
     DDouble y=(x/(2.82*pow(10., static_cast<double>(n))));
     DLong m=0;
-    if ( y>=1&&y<2 )
-      m=1;
-    else if ( y>=2&&y<4.47 )
-      m=2;
-    else if ( y>=4.47 )
-      m=5;
+    if ( y>=1 && y<2 )  m=1;
+    else if ( y>=2 && y<4.47 )  m=2;
+    else m=5;
 
-    //    cout << "AutoIntv" << x << " " << y << endl;
 
     PLFLT intv=(PLFLT)(m*pow(10., static_cast<double>(n)));
+//      cout << "AutoIntv :" << intv << " : "<< x << " " << y << endl;
     return intv;
   }
 
 
 
  #define EXTENDED_DEFAULT_LOGRANGE 12
-  //protect from (inverted, strange) axis log values
-  void gdlHandleUnwantedAxisValue(DDouble &min, DDouble &max, bool log)
+  //protect from (inverted, strange) axis log values: infinities & nans restrict range to 12 powers of ten
+  void gdlHandleUnwantedLogAxisValue(DDouble &min, DDouble &max, bool log)
   {
-    bool invert=FALSE;
-    DDouble val_min, val_max;
     if (!log) return;
+
+    bool invert=false;
+    DDouble val_min, val_max;
 
     if(max-min >= 0)
     {
       val_min=min;
       val_max=max;
-      invert=FALSE;
+      invert=false;
     } else {
       val_min=max;
       val_max=min;
-      invert=TRUE;
+      invert=true;
     }
 
-    if ( val_min<=0. )
+    if ( val_min<=0. ) //problems will happen here
     {
+      Warning("Warning: Infinite plot range.");
       if ( val_max<=0. )
       {
         val_min=-EXTENDED_DEFAULT_LOGRANGE;
@@ -230,74 +240,89 @@ namespace lib
   // clearly described in the code, to be checked by others.
   
   PLFLT gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &start, DDouble &end, bool log /* = false */, int code /* = 0 */) {
-    gdlHandleUnwantedAxisValue(start, end, log);
-
-    DDouble min, max;
-    bool invert = FALSE;
-
-    if (end - start >= 0) {
-      min = start;
-      max = end;
-      invert = FALSE;
-    } else { //never happens by construction!!!!!!!!!!!!!!!!!!!!!!!
-      min = end;
-      max = start;
-      invert = TRUE;
-    }
-
+    // [XY]STYLE
+    DLong myStyle = 0;
     PLFLT intv = 1.;
-    int cas = 0;
-    DDouble x;
-    bool debug = false;
-    if (debug) {
-      cout << "init: " << min << " " << max << endl;
-    }
-    // case "all below ABS((MACHAR()).xmin)"
-    //needs example.
+
+    gdlGetDesiredAxisStyle(e, axisId, myStyle);
     
-//    if (!log && (abs(max) <= -std::numeric_limits<DDouble>::max())) {
-//      min = DDouble(0.);
-//      max = DDouble(1.);
-//      intv = (PLFLT) (2.);
-//      cas = 1;
-//    }
+    bool exact=((myStyle & 1) == 1);
+    bool extended=((myStyle & 2) == 2);
+
+    DDouble min=start;
+    DDouble max=end;
+    
 
     if (log) {
+      gdlHandleUnwantedLogAxisValue(min, max, log);
       min = log10(min);
       max = log10(max);
     }
 
-    // case "all values are equal"
-    if (cas == 0) {
-      x = max - min;
-      if (abs(x) <= std::numeric_limits<DDouble>::min()) {
-        DDouble val_ref;
-        val_ref = max;
-        if (0.98 * min < val_ref) { // positive case
-          max = 1.02 * val_ref;
-          min = 0.98 * val_ref;
-        } else { // negative case
-          max = 0.98 * val_ref;
-          min = 1.02 * val_ref;
-        }
-        if (debug) {
-          cout << "Rescale : " << min << " " << max << endl;
-        }
-        }
+    bool invert = false;
+
+    //range useful for estimate
+    DDouble range=max-min;
+
+    // correct special case "all values are equal"
+    if (abs(range) <= std::numeric_limits<DDouble>::min()) {
+      DDouble val_ref;
+      val_ref = max;
+      if (0.98 * min < val_ref) { // positive case
+        max = 1.02 * val_ref;
+        min = 0.98 * val_ref;
+      } else { // negative case
+        max = 0.98 * val_ref;
+        min = 1.02 * val_ref;
+      }
+    }
+
+    if (range >= 0) {
+      invert = false;
+    } else {
+      range=-range;
+      DDouble temp=min;
+      min = max;
+      max = temp;
+      invert = true;
+    }
+
+    if (exact) { //exit soon...
+      if (extended) { //... after 'extended' range correction
+        range=max-min; //does not hurt to recompute
+        DDouble val=0.025*range;
+        min-=val;
+        max+=val;
       }
 
+      //give back non-log values
+      if (log) {
+        min = pow(10, min);
+        max = pow(10, max);
+      }
+
+      if (invert) {
+        start = max;
+        end = min;
+      } else {
+        start = min;
+        end = max;
+      }
+
+      return intv;
+    }
+    
+
+
     // general case (only negative OR negative and positive)
-    if (cas == 0) //rounding is not aka idl due to use of ceil and floor. TBD.
-    {
-      x = max - min;
-      //correct this for calendar values (round to nearest year, month, etc)
+    //correct this for calendar values (round to nearest year, month, etc)
       if ( code > 0) {
         if (code ==7 ) {
-              if(x>=366)  code=1;
-              else if(x>=32)  code=2;
-              else if(x>=1.1)  code=3;
-              else if(x*24>=1.1)  code=4;
-              else if(x*24*60>=1.1)  code=5;
+              if(range>=366)  code=1;
+              else if(range>=32)  code=2;
+              else if(range>=1.1)  code=3;
+              else if(range*24>=1.1)  code=4;
+              else if(range*24*60>=1.1)  code=5;
               else code=6;
         }
         static int monthSize[]={31,28,31,30,31,30,31,31,30,31,30,31};
@@ -359,22 +384,25 @@ namespace lib
             }
       } 
       else {      
-        intv = AutoIntv(x);
+        const double max_allowed_leak_factor = 1-1.25e-6;
+        intv = AutoIntv(range);
         if (log) {
-          max = ceil((max / intv) * intv);
+//          max = ceil((max / intv) * intv);
+          max = ceil(((max*max_allowed_leak_factor) / intv) * intv); //same behaviour as IDL: if value is 
           min = floor((min / intv) * intv);
         } else {
-          max = ceil(max / intv) * intv;
+          max = ceil((max*max_allowed_leak_factor)  / intv) * intv;
           min = floor(min / intv) * intv;
         }
       }
-      
 
+    if (extended) {
+      range=max-min;
+      DDouble val=0.025*range;
+      min-=val;
+      max+=val;
     }
 
-    if (debug) {
-      cout << "cas: " << cas << " new range: " << min << " " << max << endl;
-    }
     //give back non-log values
     if (log) {
       min = pow(10, min);
@@ -384,7 +412,7 @@ namespace lib
     //check if tickinterval would make more than 59 ticks (IDL apparent limit). In which case, IDL plots only the first 59 intervals:
     DDouble TickInterval;
     gdlGetDesiredAxisTickInterval(e, axisId, TickInterval);
-    if ( TickInterval > 0.0 ) if ((max-min)/TickInterval > 59) max=min+59.0*TickInterval;
+    if ( TickInterval > 0.0 ) if (range/TickInterval > 59) max=min+59.0*TickInterval;
 
     if (invert) {
       start = max;
@@ -852,15 +880,15 @@ namespace lib
     PLFLT *x_buff=new PLFLT[GDL_POLYLINE_BUFFSIZE];
     PLFLT *y_buff=new PLFLT[GDL_POLYLINE_BUFFSIZE];
 
-    bool isBad=FALSE;
+    bool isBad=false;
 
     for ( SizeT i=0; i<minEl; ++i ) {
-      isBad=FALSE;
+      isBad=false;
       if ( append ) //start with the old point
       {
         getLastPoint(a, x, y);
         i--; //to get good counter afterwards
-        append=FALSE; //and stop appending after!
+        append=false; //and stop appending after!
         if ( xLog ) x=pow(10, x);
         if ( yLog ) y=pow(10, y);
       }
@@ -1304,7 +1332,7 @@ namespace lib
     //in log, plplot gives correctly rounded "integer" values but 10^0 needs a bit of help.
     if ((ptr->isLog) && (sgn*value<1e-6)) //i.e. 0 
     {
-      snprintf(label, length, "1"); 
+      snprintf(label, length, "10!E0!N"); 
       return;
     }
     

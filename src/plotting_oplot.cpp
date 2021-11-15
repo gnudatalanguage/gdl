@@ -65,8 +65,6 @@ private:
       static int polarIx = e->KeywordIx( "POLAR");
       bool polar = (e->KeywordSet(polarIx));
 
-//    DDoubleGDL *yValBis, *xValBis;
-//    Guard<BaseGDL> xvalBis_guard, yvalBis_guard;
       //test and transform eventually if POLAR and/or NSUM!
       if( nParam() == 1)
       {

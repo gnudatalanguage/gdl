@@ -36,7 +36,7 @@ namespace lib {
     SizeT xEl, yEl, zEl;
     DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd, zValue;
     bool doMinMax;
-    bool xLog, yLog, wasBadxLog, wasBadyLog;
+    bool xLog, yLog;
     Guard<BaseGDL> xval_guard, yval_guard, xtemp_guard;
     DLong iso;
     bool doT3d;
@@ -67,8 +67,6 @@ private:
       static int polarIx = e->KeywordIx( "POLAR");
       bool polar = (e->KeywordSet(polarIx));
 
-    DDoubleGDL *yValBis, *xValBis;
-    Guard<BaseGDL> xvalBis_guard, yvalBis_guard;
     //test and transform eventually if POLAR and/or NSUM!
     if (nParam() == 1)
     {
@@ -155,18 +153,18 @@ private:
       }
     }
 
-    xLog=FALSE;
-    yLog=FALSE;
+    xLog=false;
+    yLog=false;
 
     // handle Log options passing via Functions names PLOT_IO/OO/OI
     // the behavior can be superseed by [xy]log or [xy]type
     string ProName = e->GetProName( );
     if ( ProName != "PLOT" ) {
-      if ( ProName == "PLOT_IO" ) yLog = TRUE;
-      if ( ProName == "PLOT_OI" ) xLog = TRUE;
+      if ( ProName == "PLOT_IO" ) yLog = true;
+      if ( ProName == "PLOT_OI" ) xLog = true;
       if ( ProName == "PLOT_OO" ) {
-        xLog = TRUE;
-        yLog = TRUE;
+        xLog = true;
+        yLog = true;
       }
     }
 
@@ -185,11 +183,11 @@ private:
     static int xType, yType;
     if (e->KeywordPresent(xTypeIx)) {
       e->AssureLongScalarKWIfPresent(xTypeIx, xType);
-      if ((xType % 2) == 1) xLog= TRUE; else xLog= FALSE;
+      if ((xType % 2) == 1) xLog= true; else xLog= false;
     }
     if (e->KeywordPresent(yTypeIx)) {
       e->AssureLongScalarKWIfPresent( yTypeIx, yType);
-      if ((yType % 2) == 1) yLog= TRUE; else yLog= FALSE;
+      if ((yType % 2) == 1) yLog= true; else yLog= false;
     }
     
     //  cout << xType<< " " <<xLog << " "<<yType <<" " << yLog << endl;
@@ -201,57 +199,29 @@ private:
     calendar_codey = gdlGetCalendarCode(e,YAXIS);
     if ( e->KeywordSet( xTickunitsIx ) && xLog) {
       Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
-      xLog = FALSE;
+      xLog = false;
     }
     if ( e->KeywordSet( yTickunitsIx ) && yLog) {
       Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
-      yLog = FALSE;
+      yLog = false;
     }
 
 
     //    cout << xLog << " " << yLog << endl;
 
-    // compute adequate values for log scale, warn adequately...
-    wasBadxLog = FALSE;
-    wasBadyLog = FALSE;
-    if (xLog)
-    {
-      DLong minEl, maxEl;
-      xVal->MinMax(&minEl, &maxEl, NULL, NULL, true,0,xEl); //restrict minmax to xEl fist elements!!!!
-      if ((*xVal)[minEl] <= 0.0) wasBadxLog = TRUE;
-      xValBis = new DDoubleGDL(dimension(xEl), BaseGDL::NOZERO);
-      xvalBis_guard.Reset(xValBis); // delete upon exit
-      for (int i = 0; i < xEl; i++) (*xValBis)[i] = log10((*xVal)[i]);
-    }
-    else xValBis = xVal;
-    if (yLog)
-    {
-      DLong minEl, maxEl;
-      yVal->MinMax(&minEl, &maxEl, NULL, NULL, true,0,yEl);
-      if ((*yVal)[minEl] <= 0.0) wasBadyLog = TRUE;
-      yValBis = new DDoubleGDL(dimension(yEl), BaseGDL::NOZERO);
-      yvalBis_guard.Reset(yValBis); // delete upon exit
-      for (int i = 0; i < yEl; i++) (*yValBis)[i] = log10((*yVal)[i]);
-    }
-    else yValBis = yVal;
+    DLong minEl, maxEl;
+    xVal->MinMax(&minEl, &maxEl, NULL, NULL, true, 0, xEl); //restrict minmax to xEl fist elements!!!!
+    xStart = (*xVal)[minEl];
+    xEnd = (*xVal)[maxEl];
 
-#define UNDEF_RANGE_VALUE 1E-12
-    {
-      DLong minEl, maxEl;
-      xValBis->MinMax(&minEl, &maxEl, NULL, NULL, true, 0, xEl); //restrict minmax to xEl fist elements!!!!
-      xStart = (*xVal)[minEl];
-      xEnd = (*xVal)[maxEl];
-      if (isnan(xStart)) xStart = UNDEF_RANGE_VALUE;
-      if (isnan(xEnd)) xEnd = 1.0;
-      if (xStart==xEnd) xStart=xEnd-UNDEF_RANGE_VALUE;
+    yVal->MinMax(&minEl, &maxEl, NULL, NULL, true, 0, yEl);
+    yStart = (*yVal)[minEl];
+    yEnd = (*yVal)[maxEl];
+    
+    //Use this general function here, is OK. Will be called anyway AFTER all other range-changing
+    gdlHandleUnwantedLogAxisValue(xStart, xEnd, xLog);
+    gdlHandleUnwantedLogAxisValue(yStart, yEnd, yLog);
 
-      yValBis->MinMax(&minEl, &maxEl, NULL, NULL, true, 0, yEl);
-      yStart = (*yVal)[minEl];
-      yEnd = (*yVal)[maxEl];
-      if (isnan(yStart)) yStart = UNDEF_RANGE_VALUE;
-      if (isnan(yEnd)) yEnd = 1.0;
-      if (yStart==yEnd) yStart=yEnd-UNDEF_RANGE_VALUE;
-    }
     //MIN_VALUE and MAX_VALUE overwrite yStart/yEnd eventually (note: the points will not be "seen" at all in plots)
     minVal = yStart; //to give a reasonable value...
     maxVal = yEnd;   //idem
@@ -292,7 +262,6 @@ private:
     }
     //handle Nozero option after all that! (gdlAxisNoZero test if /ynozero option is valid (ex: no YRANGE)
     if(!gdlYaxisNoZero(e) && yStart >0 && !yLog ) yStart=0.0;
-#undef UNDEF_RANGE_VALUE
 
      //ISOTROPIC
     iso=0;
@@ -309,19 +278,9 @@ private:
    //start a plot
     gdlNextPlotHandlingNoEraseOption(e, actStream);     //NOERASE
 
-
-    // [XY]STYLE
-    DLong xStyle=0, yStyle=0;
-    gdlGetDesiredAxisStyle(e, XAXIS, xStyle);
-    gdlGetDesiredAxisStyle(e, YAXIS, yStyle);
-
-     //xStyle and yStyle apply on range values
-    if ((xStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog, calendar_codex);
-    }
-    if ((yStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog, calendar_codey);
-    }
+    //Box adjustement:
+    gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog, calendar_codex);
+    gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog, calendar_codey);
 
     // MARGIN
     DFloat xMarginL, xMarginR, yMarginB, yMarginT;
@@ -351,7 +310,7 @@ private:
         e->Throw("Illegal 3D transformation. (FIXME)");
       }
       if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
-        xStart, xEnd, yStart, yEnd) == FALSE) return;
+        xStart, xEnd, yStart, yEnd) == false) return;
       gdlSetGraphicsForegroundColorFromKw(e, actStream);
 
       DDouble  t3xStart, t3xEnd, t3yStart, t3yEnd, t3zStart, t3zEnd;
@@ -521,7 +480,7 @@ private:
     if (gdlSetViewPortAndWorldCoordinates(e, actStream,
         xLog, yLog,
         xMarginL, xMarginR, yMarginB, yMarginT,
-        xStart, xEnd, yStart, yEnd, iso)==FALSE) return; //no good: should catch an exception to get out of this mess.
+        xStart, xEnd, yStart, yEnd, iso)==false) return; //no good: should catch an exception to get out of this mess.
     actStream->setSymbolSizeConversionFactors();
     //current pen color...
       gdlSetGraphicsForegroundColorFromKw(e, actStream);
@@ -537,7 +496,7 @@ private:
       if ( !e->KeywordSet(nodataIx) )
       {
         bool stopClip=false;
-        if ( startClipping(e, actStream, false)==TRUE ) stopClip=true;
+        if ( startClipping(e, actStream, false)==true ) stopClip=true;
         // here graphic properties
         gdlSetPenThickness(e, actStream);
         gdlSetLineStyle(e, actStream);

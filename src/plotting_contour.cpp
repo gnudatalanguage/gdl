@@ -272,12 +272,6 @@ namespace lib
       static int ISOTROPIC=e->KeywordIx("ISOTROPIC");
       e->AssureLongScalarKWIfPresent( ISOTROPIC, iso);
 
-      // [XY]STYLE
-      DLong xStyle=0, yStyle=0, zStyle=0; ;
-      gdlGetDesiredAxisStyle(e, XAXIS, xStyle);
-      gdlGetDesiredAxisStyle(e, YAXIS, yStyle);
-      gdlGetDesiredAxisStyle(e, ZAXIS, zStyle);
-
       // MARGIN
       DFloat xMarginL, xMarginR, yMarginB, yMarginT, zMarginF, zMarginB;
       gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
@@ -311,16 +305,6 @@ namespace lib
       // ztype does not exist in IDL
       zLog=e->KeywordSet ( zLogIx );
 
-      if ( ( xStyle&1 )!=1 )
-	{
-	  PLFLT intv=gdlAdjustAxisRange (e, XAXIS, xStart, xEnd, xLog );
-	}
-
-      if ( ( yStyle&1 )!=1 )
-	{
-	  PLFLT intv=gdlAdjustAxisRange (e, YAXIS, yStart, yEnd, yLog );
-	}
-
       static int MIN_VALUE=e->KeywordIx("MIN_VALUE");
       static int MAX_VALUE=e->KeywordIx("MAX_VALUE");
       bool hasMinVal=e->KeywordPresent(MIN_VALUE);
@@ -330,11 +314,10 @@ namespace lib
       e->AssureDoubleScalarKWIfPresent ( MIN_VALUE, minVal );
       e->AssureDoubleScalarKWIfPresent ( MAX_VALUE, maxVal );
 
-      // then only apply expansion  of axes:
-      if ( ( zStyle&1 )!=1 )
-	{
-	  PLFLT intv=gdlAdjustAxisRange (e, ZAXIS, zStart, zEnd, zLog );
-	}
+      //Box adjustement:
+      gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
+      gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
+      gdlAdjustAxisRange(e, ZAXIS, zStart, zEnd, zLog);
 
       //OVERPLOT: get stored range values instead to use them!
       static int overplotKW=e->KeywordIx ( "OVERPLOT" );

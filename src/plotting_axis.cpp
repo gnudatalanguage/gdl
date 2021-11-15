@@ -177,21 +177,9 @@ namespace lib {
     //handle Nozero option after all that!
     if(!gdlYaxisNoZero(e) && yStart >0 && !yLog ) yStart=0.0;
 
-    gdlHandleUnwantedAxisValue(xStart, xEnd, xLog);
-    gdlHandleUnwantedAxisValue(yStart, yEnd, yLog);
-
-    // [XY]STYLE
-    DLong xStyle=0, yStyle=0;
-    gdlGetDesiredAxisStyle(e, XAXIS, xStyle);
-    gdlGetDesiredAxisStyle(e, YAXIS, yStyle);
-
-     //xStyle and yStyle apply on range values
-    if ((xStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
-    }
-    if ((yStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
-    }
+    //Box adjustement:
+    gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
+    gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
     
     DDouble yVal, xVal;
     //in absence of arguments we will have:
