@@ -410,10 +410,12 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       fs_id = h5d_get_space(d_id)
 
       rank = h5s_get_simple_extent_ndims(fs_id)
-      dims = h5s_get_simple_extent_dims(fs_id)
 
       if(rank eq 0) then ms_id = h5s_create_scalar() $
-      else ms_id = h5s_create_simple(dims)
+      else begin
+         dims = h5s_get_simple_extent_dims(fs_id)
+         ms_id = h5s_create_simple(dims)
+      endelse
 
       read_mock_data = h5d_read(d_id, file_space=fs_id, memory_space=ms_id)
 
@@ -442,9 +444,10 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       fs_id = h5d_get_space(d_id)
 
       rank = h5s_get_simple_extent_ndims(fs_id)
-      dims = h5s_get_simple_extent_dims(fs_id)
 
       if(rank gt 0) then begin
+         dims = h5s_get_simple_extent_dims(fs_id)
+
          ; FIXME: come up with less trivial hyperslabs (+ use block/stride)
 
          for i=0,rank-1 do dims[i]-=2
