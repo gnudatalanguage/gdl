@@ -188,43 +188,49 @@ void DNode::Text2UInt(int base, bool promote)
     }
 }
 
-void DNode::Text2Long(int base, bool promote) {
-  static const DLong64 maxDInt =
-    static_cast<DLong64> (numeric_limits<DInt>::max());
-  static const DLong64 maxDLong =
-    static_cast<DLong64> (numeric_limits<DLong>::max());
-
-  if (promote) {
-    DLong64 ll;
-    Text2Number(ll, base);
-
-    if (ll <= maxDLong) {
-      DLong val = static_cast<DLong> (ll);
-      cData = new DLongGDL(val);
-    } else {
-      cData = new DLong64GDL(ll);
+void DNode::Text2Long(int base, bool promote)
+{
+  static const DLong64 maxDInt=
+    static_cast<DLong64>(numeric_limits<DInt>::max());
+  static const DLong64 maxDLong=
+    static_cast<DLong64>(numeric_limits<DLong>::max());
+  
+  if( promote)
+    {
+      DLong64 ll;
+      Text2Number( ll, base);
+      
+      if( ll <= maxDLong)
+	{
+	  DLong val = static_cast<DLong>(ll);
+	  cData=new DLongGDL( val);
+	}
+      else
+	{
+	  cData=new DLong64GDL( ll);
+	}
+      return;
     }
-    return;
-  }
+  
+  if( base == 16)
+    {
+      if( text.size() > sizeof( DLong)*2) 
+	throw GDLException( "Long hexadecimal constant can only have "+
+			    i2s(sizeof( DLong)*2)+" digits.");
 
-  if (base == 16) {
-    if (text.size() > sizeof ( DLong)*2)
-      throw GDLException("Long hexadecimal constant can only have " +
-      i2s(sizeof ( DLong)*2) + " digits.");
-
-    DLong val;
-    if (Text2Number(val, base) == false) throw GDLException("Long integer constant must be less than 2147483648.");
-    cData = new DLongGDL(val);
-    return;
-  }
+      DLong val;
+      if (Text2Number( val, base)==false) throw GDLException( "Long integer constant must be less than 2147483648.");
+      cData=new DLongGDL(val);
+      return;
+    }
 
   DLong64 val;
-  bool noOverFlow = Text2Number(val, base);
+  bool noOverFlow = Text2Number( val, base);
 
-  if (!noOverFlow || val > std::numeric_limits< DLong>::max())
-    throw GDLException("Long integer constant must be less than 2147483648.");
+  if( !noOverFlow || val > std::numeric_limits< DLong>::max())
+    throw GDLException( "Long integer constant must be less than 2147483648.");
 
-  cData = new DLongGDL(val);
+  cData=new DLongGDL(val);
 }
 
 void DNode::Text2ULong(int base, bool promote) 
