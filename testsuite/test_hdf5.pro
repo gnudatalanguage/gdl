@@ -137,10 +137,11 @@ pro TEST_HDF5_OBJ_INFO, cumul_errors, create=create
    if (stat.type ne 'GROUP') then errors++
 
    stat = h5g_get_objinfo(file_id, "/a_group/a_dataset")
-   cmd='date -r '+full_file_name+' "+%s"' & spawn, cmd, mtime
+   ;;; cmd='date -r '+full_file_name+' "+%s"' & spawn, cmd, mtime
+   ;;; if (stat.mtime ne mtime) then errors++
    if (stat.nlink ne 1) then errors++
    if (stat.type ne 'DATASET') then errors++
-   if (stat.mtime ne mtime) then errors++
+
 
    stat = h5g_get_objinfo(file_id, "/a_soft_link")
    if (stat.nlink ne 0) then errors++
@@ -401,6 +402,8 @@ TEST_HDF5_STRING, cumul_errors
 TEST_HDF5_ATTR, cumul_errors
 ;
 TEST_HDF5_DATA, cumul_errors
+;
+TEST_HDF5_OBJ_INFO, cumul_errors
 ;
 BANNER_FOR_TESTSUITE, 'TEST_HDF5', cumul_errors
 ;
