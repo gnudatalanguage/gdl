@@ -546,11 +546,14 @@ hid_t
     if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0)
       { string msg; e->Throw(hdf5_error_message(msg)); }
 
+    if(rank == 0) return new DLongGDL(rank);
+
     dimension dim(rank);
     DLongGDL* d = new DLongGDL(dim);
 
     for(int i=0; i<rank; i++)
       (*d)[i] = dims_out[rank - 1 - i];
+
     return d;
   }
 
