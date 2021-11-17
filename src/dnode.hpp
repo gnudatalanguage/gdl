@@ -207,78 +207,8 @@ public:
   {
     var=v;
   }
-/**
- * @brief converts a series of (hexa)decimal values to a <T> (all integer types). note there is no sign here.
- * @param out the converted value, a <T>
- * @param base 16 if hexa.
- * @return 
- */
-  template<typename T> bool Text2Number(T& out, int base) {
-    bool noOverflow = true;
-
-    T number = 0;
-
-    for (unsigned i = 0; i < text.size(); ++i) {
-      char c = text[i];
-      if (c >= '0' && c <= '9') {
-        c -= '0';
-      } else if (c >= 'a' && c <= 'f') {
-        c -= 'a' - 10;
-      } else {
-        c -= 'A' - 10;
-      }
-
-      DULong64 newNumber = base * number + c;
-
-      // check for overflow
-      if (newNumber > std::numeric_limits<T>::max() ) {
-        noOverflow = false;
-      }
-
-      number = newNumber;
-    }
-    out = number;
-
-    return noOverflow;
-  }
-  
-  bool Text2Number( DByte& out, int base)
-  {
-    bool noOverflow = true;
-
-    DByte number=0;
-
-    for(unsigned i=0; i < text.size(); ++i)
-      {
-	char c=text[i];
-	if( c >= '0' && c <= '9')
-	  {
-	    c -= '0';
-	  }
-	else if( c >= 'a' &&  c <= 'f')
-	  {
-	    c -= 'a'-10;
-	  }
-	else 
-	  {
-	    c -= 'A'-10;
-	  }
-
-	DInt newNumber = base * number + c;
-
-	// check for overflow
-	if( newNumber > 255)
-	  {
-	    noOverflow = false;
-	  }
-
-	number=newNumber;
-      }
-    out=number;
-
-    return noOverflow;
-  }
-  
+  template<typename T> bool Text2Number(T& out, int base);
+//  bool Text2Number( DByte& out, int base);
   void Text2Byte(int base);
   // promote: use Long if number to large
   void Text2Int(int base, bool promote=false);
