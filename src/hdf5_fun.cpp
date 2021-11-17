@@ -262,6 +262,19 @@ hid_t
     Changed from a 32-bit to a 64-bit value.
   */
 
+   hid_t hdf5_input_conversion_kw( EnvT* e, int position)
+  {
+
+    hid_t hdf5_id;
+
+#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=10))
+    e->AssureLongScalarKW(position, (DLong64&)hdf5_id);
+#else
+    e->AssureLongScalarKW(position, hdf5_id);
+#endif
+    return  hdf5_id;
+  }
+
   hid_t hdf5_input_conversion( EnvT* e, int position)
   {
 
@@ -588,12 +601,200 @@ hid_t
     if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0)
       { string msg; e->Throw(hdf5_error_message(msg)); }
 
+    if(rank == 0) return new DLongGDL(rank);
+
     dimension dim(rank);
     DLongGDL* d = new DLongGDL(dim);
 
     for(int i=0; i<rank; i++)
       (*d)[i] = dims_out[rank - 1 - i];
+
     return d;
+  }
+
+
+  BaseGDL* h5s_create_scalar_fun( EnvT* e)
+  {
+    /* create a scalar dataspace */
+    hid_t space_id = H5Screate(H5S_SCALAR);
+    if (space_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return hdf5_output_conversion( space_id );
+  }
+
+
+  BaseGDL* h5s_create_simple_fun( EnvT* e)
+  {
+    bool debug=false;
+    SizeT nParam=e->NParam(1);
+
+    int rank;
+    hsize_t curr_dims[MAXRANK], max_dims[MAXRANK];
+    hsize_t *p_max_dims=&max_dims[0];
+
+    /* mandatory 'Dimensions' parameter */
+    DUIntGDL* dimPar = e->GetParAs<DUIntGDL>(0);
+    SizeT nDim = dimPar->N_Elements();
+
+    if (nDim == 0)
+      e->Throw("Variable is undefined: "+ e->GetParString(0));
+    else
+       rank=nDim;
+
+    if (debug) printf("dataspace rank=%d\n", rank);
+
+    for(int i=0; i<rank; i++) curr_dims[i] = (hsize_t)(*dimPar)[rank-1-i];
+
+    /* keyword 'max_dimensions' paramter */
+    static int maxDimIx = e->KeywordIx("MAX_DIMENSIONS");
+    if (e->GetKW(maxDimIx) != NULL) {
+
+      DUIntGDL* maxDimKW = e->IfDefGetKWAs<DUIntGDL>(maxDimIx);
+      SizeT nMaxDim = maxDimKW->N_Elements();
+
+      if (nMaxDim == 0)
+        e->Throw("Variable is undefined: "+ e->GetParString(maxDimIx));
+      else if(nMaxDim != rank)
+        e->Throw("Number of elements in MAX_DIMENSIONS must equal dataspace dimensions.");
+
+      for(int i=0; i<rank; i++) {
+         max_dims[i] = (hsize_t)(*maxDimKW)[rank-1-i];
+
+         if(max_dims[i]<curr_dims[i])
+            e->Throw("H5S_CREATE_SIMPLE: maxdims is smaller than dims");
+      }
+
+    } else
+       p_max_dims=NULL;
+
+    /* debug output */
+    if (debug) {
+      const hsize_t *par[2] = { curr_dims, max_dims };
+      const char *parnm[2] = { "curr_dims", "max_dims" };
+
+      for(int i=0; i<1+(p_max_dims!=NULL); i++) {
+        printf(" %s=[",parnm[i]);
+        for(int j=0; j<rank; j++)
+          printf("%lld%s",par[i][j], (j==rank-1) ? "];" : ",");
+      }
+      printf("\n");
+    }
+
+    /* create the simple dataspace */
+    hid_t space_id = H5Screate_simple( rank, curr_dims, p_max_dims );
+    if (space_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return hdf5_output_conversion( space_id );
+  }
+
+
+  void h5s_select_hyperslab_pro( EnvT* e )
+  {
+    bool debug = false;
+    SizeT nParam=e->NParam(3);
+    hsize_t start[MAXRANK], count[MAXRANK], block[MAXRANK], stride[MAXRANK];
+
+
+    /* mandatory 'Dataspace_id' parameter */
+    hid_t h5s_id=hdf5_input_conversion(e,0);
+    int rank=H5Sget_simple_extent_ndims(h5s_id);
+
+    if (H5Iis_valid(h5s_id) <= 0)
+      e->Throw("not a dataspace: Object ID:" + i2s( h5s_id ));
+
+    if (debug) printf("dataspace rank=%d;", rank);
+
+
+    /* mandatory 'Start' parameter */
+    DUIntGDL* startPar = e->GetParAs<DUIntGDL>(1);
+    SizeT nStart = startPar->N_Elements();
+
+    if (nStart == 0)
+      e->Throw("Variable is undefined: "+ e->GetParString(1));
+    else if (nStart != rank)
+      e->Throw("Number of elements in Start must equal dataspace dimensions. ");
+
+    for(int i=0; i<rank; i++) start[i] = (hsize_t)(*startPar)[rank-1-i];
+
+
+    /* mandatory 'Count' parameter */
+    DUIntGDL* countPar = e->GetParAs<DUIntGDL>(2);
+    SizeT nCount = countPar->N_Elements();
+
+    if (nCount == 0)
+      e->Throw("Variable is undefined: "+ e->GetParString(2));
+    else if (nCount != rank)
+      e->Throw("Number of elements in Count must equal dataspace dimensions. ");
+
+    for(int i=0; i<rank; i++) count[i] = (hsize_t)(*countPar)[rank-1-i];
+
+
+    /* keyword 'block' parameter */
+    static int blockIx = e->KeywordIx("BLOCK");
+    if (e->GetKW(blockIx) != NULL) {
+
+      DUIntGDL* blockKW = e->IfDefGetKWAs<DUIntGDL>(blockIx);
+      SizeT nBlock = blockKW->N_Elements();
+
+      if (nBlock == 0)
+        e->Throw("Variable is undefined: "+ e->GetParString(blockIx));
+      else if (nBlock != rank)
+        e->Throw("Number of elements in BLOCK must equal dataspace dimensions. ");
+
+      for(int i=0; i<rank; i++) block[i] = (hsize_t)(*blockKW)[rank-1-i];
+
+    } else
+      for(int i=0; i<rank; i++) block[i] = 1;
+
+
+    /* keyword 'reset' parameter */
+    static int resetIx = e->KeywordIx("RESET");
+    bool reset = e->KeywordSet(resetIx);
+
+
+    /* keyword 'stride' parameter */
+    static int strideIx = e->KeywordIx("STRIDE");
+    if (e->GetKW(strideIx) != NULL) {
+
+      DUIntGDL* strideKW = e->IfDefGetKWAs<DUIntGDL>(strideIx);
+      SizeT nStride = strideKW->N_Elements();
+
+      if (nStride == 0)
+        e->Throw("Variable is undefined: "+ e->GetParString(strideIx));
+      else if (nStride != rank)
+        e->Throw("Number of elements in STRIDE must equal dataspace dimensions. ");
+
+      for(int i=0; i<rank; i++) stride[i] = (hsize_t)(*strideKW)[rank-1-i];
+
+    } else
+      for(int i=0; i<rank; i++) stride[i] = 1;
+
+
+    /* debug output */
+    if (debug) {
+      const hsize_t *par[4] = { start, count, block, stride };
+      const char *parnm[4] = { "start", "count", "block", "stride" };
+
+      for(int i=0; i<4; i++) {
+        printf(" %s=[",parnm[i]);
+        for(int j=0; j<rank; j++)
+          printf("%lld%s",par[i][j], (j==rank-1) ? "];" : ",");
+      }
+      printf("\n");
+    }
+
+
+    /* call library function */
+    if (H5Sselect_hyperslab( h5s_id,
+                             (reset) ? H5S_SELECT_SET : H5S_SELECT_OR,
+                             start, stride, count, block )  < 0)
+      { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    /* FIXME -- implement this special behaviour? (from IDL documentation)
+      "Note: If all of the elements in the selected hyperslab region are
+       already selected, then a new hyperslab region is not created." */
+
+    return;
   }
 
 
@@ -767,12 +968,15 @@ hid_t
   /**
    * h5d_read_fun
    * CAUTION: compatibility only fractional
-   * - Does not allow to select hyperslabs
    */
   BaseGDL* h5d_read_fun(EnvT* e) {
 
     /* Jul 2021, Oliver Gressel <ogressel@gmail.com>
        - add support for datasets of type 'H5T_ARRAY'
+
+       Oct 2021, Oliver Gressel <ogressel@gmail.com>
+       - allow for hyperslab selection via passing keyword parameters
+         'FILE_SPACE' and 'MEMORY_SPACE', respectively
     */
 
     bool debug = false;
@@ -783,20 +987,70 @@ hid_t
 
     hid_t h5d_id = hdf5_input_conversion(e,0);
 
-    hid_t h5s_id = H5Dget_space(h5d_id);
-    if (h5s_id < 0) {
-      string msg;
-      e->Throw(hdf5_error_message(msg));
+
+    /* --- keyword 'FILE_SPACE' --- */
+
+    hid_t kw_filespace_id, filespace_id;
+
+    static int filespaceIx = e->KeywordIx("FILE_SPACE");
+
+    if(e->KeywordSet(filespaceIx)) {    /* use keyword parameter */
+
+       if (debug) printf("using keyword 'file_space'\n");
+       kw_filespace_id = hdf5_input_conversion_kw(e,filespaceIx);
+
+       if (H5Iis_valid(kw_filespace_id) <= 0)
+          e->Throw("not a dataspace: Object ID:" + i2s( kw_filespace_id ));
+       else
+          filespace_id = H5Scopy(kw_filespace_id);
+
+    } else {                            /* obtain from dataset */
+
+       filespace_id = H5Dget_space(h5d_id);
+       if (filespace_id < 0) {
+          string msg;
+          e->Throw(hdf5_error_message(msg));
+       }
     }
-    hdf5_space_guard h5s_id_guard = hdf5_space_guard(h5s_id);
+
+    hdf5_space_guard filespace_id_guard = hdf5_space_guard(filespace_id);
+
+
+    /* --- keyword 'MEMORY_SPACE' --- */
+
+    hid_t kw_memspace_id, memspace_id;
+
+    static int memspaceIx = e->KeywordIx("MEMORY_SPACE");
+
+    if(e->KeywordSet(memspaceIx)) {     /* use keyword parameter */
+
+       if (debug) printf("using keyword 'memory_space'\n");
+       kw_memspace_id = hdf5_input_conversion_kw(e,memspaceIx);
+
+       if (H5Iis_valid(kw_memspace_id) <= 0)
+          e->Throw("not a dataspace: Object ID:" + i2s( kw_memspace_id ));
+       else
+          memspace_id = H5Scopy(kw_memspace_id);
+
+    } else {                            /* same as file space */
+
+       memspace_id = H5Scopy(filespace_id);
+       if (memspace_id < 0) {
+          string msg;
+          e->Throw(hdf5_error_message(msg));
+       }
+    }
+
+    hdf5_space_guard memspace_id_guard = hdf5_space_guard(memspace_id);
+
+
+    /* --- data type --- */
 
     hid_t datatype = H5Dget_type(h5d_id);
     if (datatype < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
-
-    if (debug) cout << "here 1" <<endl;
 
     hdf5_type_guard datatype_guard = hdf5_type_guard(datatype);
 
@@ -831,15 +1085,16 @@ hid_t
 
     hdf5_type_guard elem_dtype_guard = hdf5_type_guard(elem_dtype);
 
-    // determine the rank and dimension of the dataset
-    int rank = H5Sget_simple_extent_ndims(h5s_id);
+    // determine the rank and dimension of the dataset in memory
+    int rank = H5Sget_simple_extent_ndims(memspace_id);
+
     if (rank < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
-    if (debug) cout << "data rank is " << rank << endl;
+    if (debug) cout << "data rank in memory is " << rank << endl;
 
-    if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0) {
+    if (H5Sget_simple_extent_dims(memspace_id, dims_out, NULL) < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
     }
@@ -850,56 +1105,7 @@ hid_t
        cout << endl;
     }
 
-    // define hyperslab in dataset
-#if (H5_VERS_MAJOR < 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR < 6)) ||  ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR == 6) && (H5_VERS_RELEASE <= 3))
-    hssize_t offset[MAXRANK];
-#else
-    hsize_t offset[MAXRANK];
-#endif
-    hsize_t count[MAXRANK];
-
-    if (rank>0) {
-
-       for (int i = 0; i < rank; i++) offset[i] = 0;
-       for (int i = 0; i < rank; i++) count[i] = dims_out[i];
-
-       if (H5Sselect_hyperslab(h5s_id, H5S_SELECT_SET,
-                               offset, NULL, count, NULL) < 0) {
-          string msg;
-          e->Throw(hdf5_error_message(msg));
-       }
-    }
-    if (debug) cout << "here 2" <<endl;
-
-    // define memory dataspace
-    hid_t memspace = H5Screate_simple(rank, count, NULL);
-    if (memspace < 0) {
-       string msg;
-       e->Throw(hdf5_error_message(msg));
-    }
-    hdf5_space_guard memspace_guard = hdf5_space_guard(memspace);
-
-    // define memory hyperslab
-#if (H5_VERS_MAJOR < 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR < 6)) ||  ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR == 6) && (H5_VERS_RELEASE <= 3))
-    hssize_t offset_out[MAXRANK];
-#else
-    hsize_t offset_out[MAXRANK];
-#endif
-    hsize_t count_out[MAXRANK];
-
-    if (rank>0) {
-
-       for (int i = 0; i < rank; i++) offset_out[i] = 0;
-       for (int i = 0; i < rank; i++) count_out[i] = dims_out[i];
-
-       if (H5Sselect_hyperslab(memspace, H5S_SELECT_SET,
-                               offset_out, NULL, count_out, NULL) < 0) {
-          string msg;
-          e->Throw(hdf5_error_message(msg));
-       }
-    }
-    if (debug) cout << "here 3" <<endl;
-
+    // dimensions for IDL variable
     SizeT count_s[MAXRANK];
     SizeT rank_s;
 
@@ -923,7 +1129,6 @@ hid_t
     hsize_t type;
 
     if (debug)  cout << "ourType : " << ourType  << endl;
-    if (debug) cout << "GDL_STRING : " << GDL_STRING << endl;
 
     if (ourType == GDL_BYTE) {
       res = new DByteGDL(dim);
@@ -954,8 +1159,6 @@ hid_t
       type = H5T_NATIVE_DOUBLE;
     } else if (ourType == GDL_STRING) {
 
-      if (debug) cout << "here 4a" <<endl;
-
       // a bit special, lets follow the example on h5 site:
       res = new DStringGDL(dim);
       type = H5T_C_S1;
@@ -982,17 +1185,12 @@ hid_t
       hid_t memtype = H5Tcopy(H5T_C_S1);
       hid_t status = H5Tset_size(memtype, sdim);
 
-      if (debug) cout << "here 4b" <<endl;
-
       status = H5Dread(h5d_id, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, rdata[0]);
-
-      if (debug) cout << "here 4c" <<endl;
 
       if (status < 0) {
         string msg;
         e->Throw(hdf5_error_message(msg));
       }
-      if (debug) cout << "here 4d" <<endl;
 
       for (int i = 0; i < count_s[0]; i++)
         (*(static_cast<DStringGDL*> (res)))[i] = rdata[i];
@@ -1004,11 +1202,9 @@ hid_t
       e->Throw("Unsupported data format" + i2s(elem_dtype));
     }
 
-    if (debug) cout << "here 5" <<endl;
-
     if (elem_rank>0) type = H5Tarray_create2( type, elem_rank, elem_dims );
 
-    if (H5Dread(h5d_id, type, memspace, h5s_id,
+    if (H5Dread(h5d_id, type, memspace_id, filespace_id,
                 H5P_DEFAULT, res->DataAddr()) < 0) {
       string msg;
       e->Throw(hdf5_error_message(msg));
