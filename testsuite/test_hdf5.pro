@@ -84,6 +84,85 @@ end
 ;
 ; -----------------------------------------------
 ;
+pro TEST_HDF5_OBJ_INFO, cumul_errors, create=create
+
+   errors=0
+
+   file_name = "hdf5-obj-info-test.h5"
+   full_file_name = file_search_for_testsuite(file_name, /warning)
+   if (STRLEN(full_file_name) eq 0) then begin
+      cumul_errors++
+      return
+   endif
+
+   ; --- create a mock dataset (not implemented in GDL yet)
+
+   if keyword_set(create) then begin
+
+      a_number=123
+
+      file_id = h5f_create(file_name)
+
+      group_id = h5g_create(file_id, "a_group")
+
+      type_id = h5t_idl_create(a_number)
+      space_id = h5s_create_scalar()
+      dset_id = h5d_create(group_id, "a_dataset", type_id, space_id)
+
+      h5d_write, dset_id, a_number
+      h5d_close, dset_id &  h5s_close, space_id &  h5t_close, type_id
+
+      h5g_close, group_id
+
+      h5g_link, file_id, "a_group", "a_first_hard_link"
+      h5g_link, file_id, "a_group", "a_second_hard_link"
+
+      h5g_link, file_id, "a_group", "a_soft_link", /soft
+
+      h5f_close, file_id
+
+      return
+   endif
+
+   ; --- check H5G_GET_OBJINFO functionality
+
+   file_id = h5f_open(full_file_name)
+
+   stat = h5g_get_objinfo(file_id, "/a_group")
+   if (stat.nlink ne 3) then errors++
+   if (stat.type ne 'GROUP') then errors++
+
+   stat = h5g_get_objinfo(file_id, "/a_first_hard_link")
+   if (stat.nlink ne 3) then errors++
+   if (stat.type ne 'GROUP') then errors++
+
+   stat = h5g_get_objinfo(file_id, "/a_group/a_dataset")
+   ;;; cmd='date -r '+full_file_name+' "+%s"' & spawn, cmd, mtime
+   ;;; if (stat.mtime ne mtime) then errors++
+   if (stat.nlink ne 1) then errors++
+   if (stat.type ne 'DATASET') then errors++
+
+
+   stat = h5g_get_objinfo(file_id, "/a_soft_link")
+   if (stat.nlink ne 0) then errors++
+   if (stat.type ne 'LINK') then errors++
+   if (stat.linklen ne 8) then errors++
+
+   stat = h5g_get_objinfo(file_id, "/a_soft_link", /follow_link)
+   if (stat.nlink ne 3) then errors++
+   if (stat.type ne 'GROUP') then errors++
+
+   ; --- print banner
+
+   banner_for_testsuite, 'TEST_HDF5_OBJ_INFO', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors=cumul_errors+errors
+
+end
+;
+; -----------------------------------------------
+;
 pro TEST_HDF5_ATTR, cumul_errors, create=create
 
    some_elem_dims = list( [], [3], [2,3] )
@@ -323,6 +402,8 @@ TEST_HDF5_STRING, cumul_errors
 TEST_HDF5_ATTR, cumul_errors
 ;
 TEST_HDF5_DATA, cumul_errors
+;
+TEST_HDF5_OBJ_INFO, cumul_errors
 ;
 BANNER_FOR_TESTSUITE, 'TEST_HDF5', cumul_errors
 ;
