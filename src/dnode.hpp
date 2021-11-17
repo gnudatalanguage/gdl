@@ -207,8 +207,9 @@ public:
   {
     var=v;
   }
+
   template<typename T> bool Text2Number(T& out, int base);
-//  bool Text2Number( DByte& out, int base);
+
   void Text2Byte(int base);
   // promote: use Long if number to large
   void Text2Int(int base, bool promote=false);

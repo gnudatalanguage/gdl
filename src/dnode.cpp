@@ -447,27 +447,26 @@ void DNode::Text2Long(int base, bool promote) {
     } else {
       cData = new DLong64GDL(ll);
     }
-    return;
-  }
+  
+  if( base == 16)
+    {
+      if( text.size() > sizeof( DLong)*2) 
+	throw GDLException( "Long hexadecimal constant can only have "+
+			    i2s(sizeof( DLong)*2)+" digits.");
 
-  if (base == 16) {
-    if (text.size() > sizeof ( DLong)*2)
-      throw GDLException("Long hexadecimal constant can only have " +
-      i2s(sizeof ( DLong)*2) + " digits.");
-
-    DLong val;
-    if (Text2Number(val, base) == false) throw GDLException("Long integer constant must be less than 2147483648.");
-    cData = new DLongGDL(val);
-    return;
-  }
+      DLong val;
+      if (Text2Number( val, base)==false) throw GDLException( "Long integer constant must be less than 2147483648.");
+      cData=new DLongGDL(val);
+      return;
+    }
 
   DLong64 val;
-  bool noOverFlow = Text2Number(val, base);
+  bool noOverFlow = Text2Number( val, base);
 
-  if (!noOverFlow || val > std::numeric_limits< DLong>::max())
-    throw GDLException("Long integer constant must be less than 2147483648.");
+  if( !noOverFlow || val > std::numeric_limits< DLong>::max())
+    throw GDLException( "Long integer constant must be less than 2147483648.");
 
-  cData = new DLongGDL(val);
+  cData=new DLongGDL(val);
 }
 
 void DNode::Text2ULong(int base, bool promote) 

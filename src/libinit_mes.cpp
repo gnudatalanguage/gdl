@@ -95,12 +95,18 @@ void LibInit_mes()
   new DLibFunRetNew(lib::h5f_create_fun, string("H5F_CREATE"), 1);
   new DLibFunRetNew(lib::h5f_open_fun, string("H5F_OPEN"), 1);
   new DLibFunRetNew(lib::h5d_open_fun, string("H5D_OPEN"), 2);
-  new DLibFunRetNew(lib::h5d_read_fun, string("H5D_READ"), 1); // TODO: 2nd argument & keywords
+  const string H5DreadKey[] = {"FILE_SPACE", "MEMORY_SPACE", KLISTEND};
+  new DLibFunRetNew(lib::h5d_read_fun, string("H5D_READ"), 1,H5DreadKey); // TODO: 2nd argument
   new DLibFunRetNew(lib::h5d_get_space_fun, string("H5D_GET_SPACE"), 1);
   new DLibFunRetNew(lib::h5s_get_simple_extent_ndims_fun,
                string("H5S_GET_SIMPLE_EXTENT_NDIMS"), 1);
   new DLibFunRetNew(lib::h5s_get_simple_extent_dims_fun,
                string("H5S_GET_SIMPLE_EXTENT_DIMS"), 1);
+  const string H5ScreateSimpleKey[] = {"MAX_DIMENSIONS", KLISTEND};
+  new DLibFunRetNew(lib::h5s_create_scalar_fun,string("H5S_CREATE_SCALAR"),0);
+  new DLibFunRetNew(lib::h5s_create_simple_fun,string("H5S_CREATE_SIMPLE"),1,H5ScreateSimpleKey);
+  const string H5SselectHyperslabKey[] = {"BLOCK", "RESET", "STRIDE", KLISTEND};
+  new DLibPro(lib::h5s_select_hyperslab_pro,string("H5S_SELECT_HYPERSLAB"),3,H5SselectHyperslabKey);
   new DLibPro(lib::h5f_close_pro,string("H5F_CLOSE"),1);
   new DLibPro(lib::h5d_close_pro,string("H5D_CLOSE"),1);
   new DLibPro(lib::h5s_close_pro,string("H5S_CLOSE"),1);
@@ -121,6 +127,8 @@ void LibInit_mes()
   new DLibPro(lib::h5t_close_pro, string("H5T_CLOSE"), 1);
   new DLibPro(lib::h5g_close_pro, string("H5G_CLOSE"), 1);
   new DLibFunRetNew(lib::h5g_open_fun, string("H5G_OPEN"), 2);
+  const string getObjInfoKey[] = {"FOLLOW_LINK", KLISTEND};
+  new DLibFunRetNew(lib::h5g_get_objinfo_fun, string("H5G_GET_OBJINFO"), 2,getObjInfoKey);
 
   // SA: disabling the default HDF5 error handler (error handling in hdf5_fun.cpp)
   H5Eset_auto(NULL, NULL);
