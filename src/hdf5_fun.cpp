@@ -98,6 +98,19 @@ namespace lib {
     ~hdf5_type_guard() { H5Tclose(type); }
   };
 
+  // auto_ptr-like class for guarding HDF5 names
+  // usage:
+  //   char* member_name = H5Tget_member_name( ... );
+  //   if (!member_name) { string msg; e->Throw(hdf5_error_message(msg)); }
+  //   hdf5_name_guard member_name_guard = hdf5_name_guard(member_name);
+  class hdf5_name_guard
+  {
+    char* name;
+  public:
+    hdf5_name_guard(char* name_) { name = name_; }
+    ~hdf5_name_guard() { H5free_memory(name); }
+  };
+
   // --------------------------------------------------------------------
 
   DLong mapH5DatatypesToGDL(hid_t h5type){
@@ -154,7 +167,9 @@ namespace lib {
     if (H5Tequal(h5type , H5T_STD_U32BE )) return GDL_ULONG;
     if (H5Tequal(h5type , H5T_STD_U32LE )) return GDL_ULONG;
 
-    if (H5Tequal(h5type , H5T_NATIVE_HBOOL )) return GDL_LONG;
+    /// if (H5Tequal(h5type , H5T_NATIVE_HBOOL )) return GDL_LONG;
+    /// Oliver: disable this, as it matches against 'H5T_STD_U8LE' (GDL_BYTE)
+
     if (H5Tequal(h5type , H5T_NATIVE_LONG )) return GDL_LONG;
     if (H5Tequal(h5type , H5T_ALPHA_B32 )) return GDL_LONG;
     if (H5Tequal(h5type , H5T_ALPHA_F32 )) return GDL_LONG;
@@ -241,6 +256,159 @@ namespace lib {
     if (H5Tequal(h5type , H5T_NATIVE_UCHAR )) return GDL_STRING;
     return GDL_UNDEF;
   }
+
+
+  // --------------------------------------------------------------------
+
+  void hdf5_parse_compound( hid_t parent_type, DStructGDL* parent_struct,
+                            char *raw, EnvT *e ) {
+
+    bool debug=false;
+    static int indent=0; indent+=2;
+
+    size_t cmp_sz = H5Tget_size( parent_type );
+    int idx, n_mem = H5Tget_nmembers( parent_type );
+
+    if (debug) printf( "%*scompound datatype of size %ld with %d members\n",
+                       indent,"", cmp_sz, n_mem );
+
+    for(idx=0; idx<n_mem; idx++) {
+
+      char type_lbl[200];
+
+      hid_t member_class = H5Tget_member_class( parent_type, idx );
+      if (member_class<0) { string msg; e->Throw(hdf5_error_message(msg)); }
+      hdf5_type_guard member_class_guard = hdf5_type_guard(member_class);
+
+      hid_t member_type = H5Tget_member_type( parent_type, idx );
+      if (member_type<0) { string msg; e->Throw(hdf5_error_message(msg)); }
+      hdf5_type_guard member_type_guard = hdf5_type_guard(member_type);
+
+      char *member_name = H5Tget_member_name( parent_type, idx );
+      if (!member_name) { string msg; e->Throw(hdf5_error_message(msg)); }
+      hdf5_name_guard member_name_guard = hdf5_name_guard(member_name);
+
+      size_t member_sz = H5Tget_size( member_type );
+      size_t member_offs = H5Tget_member_offset( parent_type, idx );
+
+      int member_rank=0;
+      hsize_t member_dims[MAXRANK];
+
+      switch (member_class) {
+
+      case H5T_COMPOUND:
+        {
+          sprintf(type_lbl, "nested compound");
+
+          DStructDesc* cmp_desc = new DStructDesc("$truct");
+          DStructGDL* res = new DStructGDL(cmp_desc);
+
+          hdf5_parse_compound( member_type, res, &raw[member_offs], e );
+          parent_struct->NewTag(member_name, res);
+        }
+        break;
+
+      case H5T_ARRAY:
+        sprintf(type_lbl, "array");
+
+        if ((member_rank=H5Tget_array_ndims(member_type)) <0)
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+
+        if (H5Tget_array_dims2(member_type, member_dims) <0)
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+
+        break;
+
+      case H5T_STRING:
+        sprintf(type_lbl, "string");
+        break;
+
+      case H5T_INTEGER:
+        sprintf(type_lbl, "integer");
+        break;
+
+      case H5T_FLOAT:
+        sprintf(type_lbl, "float");
+        break;
+
+      case H5T_BITFIELD:
+      case H5T_OPAQUE:
+      case H5T_REFERENCE:
+      case H5T_ENUM:
+      case H5T_VLEN:
+        e->Throw("read H5T_COMPOUND: feature not yet supported.");
+        break;
+
+      default:
+        e->Throw("read H5T_COMPOUND: unknown member type.");
+        break;
+      }
+
+      if (debug)
+         printf( "%*sfound %s element '%s' of size %ld at offset %ld\n",
+                 indent, "", type_lbl, member_name, member_sz, member_offs );
+
+      hid_t elem_type;
+
+      if (member_class==H5T_ARRAY)
+        elem_type = H5Tget_super(member_type);
+      else
+        elem_type = H5Tcopy(member_type);
+
+      hdf5_type_guard elem_type_guard = hdf5_type_guard(elem_type);
+
+      SizeT rank_s=member_rank;
+      SizeT count_s[MAXRANK];
+      for(int i=0; i<rank_s; i++)
+        count_s[i] = (SizeT) member_dims[member_rank-1-i];
+
+      // create the IDL datatypes
+      dimension dim(count_s, rank_s);
+      BaseGDL *field=NULL;
+      DLong ourType = mapH5DatatypesToGDL(elem_type);
+
+      if (ourType == GDL_BYTE) {
+        field = new DByteGDL(dim);
+      } else if (ourType == GDL_INT) {
+        field = new DIntGDL(dim);
+      } else if (ourType == GDL_UINT) {
+        field = new DUIntGDL(dim);
+      } else if (ourType == GDL_LONG) {
+        field = new DLongGDL(dim);
+      } else if (ourType == GDL_ULONG) {
+        field = new DULongGDL(dim);
+      } else if (ourType == GDL_LONG64) {
+        field = new DLong64GDL(dim);
+      } else if (ourType == GDL_LONG64) {
+        field = new DULong64GDL(dim);
+      } else if (ourType == GDL_FLOAT) {
+        field = new DFloatGDL(dim);
+      } else if (ourType == GDL_DOUBLE) {
+        field = new DDoubleGDL(dim);
+      } else if (ourType == GDL_STRING &&
+                 member_class==H5T_STRING) { //FIXME: STRING/STRUCT ambiguous
+
+        if (rank_s>0) e->Throw("Only scalar strings allowed.");
+
+        char* name = static_cast<char*>(calloc(member_sz,sizeof(char)));
+        if (name == NULL) e->Throw("Failed to allocate memory!");
+
+        strncpy(name,&raw[member_offs],member_sz);
+        parent_struct->NewTag( member_name, new DStringGDL(name) ); free(name);
+      }
+
+      if(field) {
+        parent_struct->NewTag( member_name, field );
+        memcpy( field->DataAddr(), &raw[member_offs], member_sz*sizeof(char) );
+      }
+    }
+
+    indent-=2;
+    return;
+  }
+
+
+  // --------------------------------------------------------------------
 
   BaseGDL* h5_get_libversion_fun( EnvT* e)
   {
@@ -690,7 +858,7 @@ hid_t
 
   void h5s_select_hyperslab_pro( EnvT* e )
   {
-    bool debug = false;
+    bool debug=false;
     SizeT nParam=e->NParam(3);
     hsize_t start[MAXRANK], count[MAXRANK], block[MAXRANK], stride[MAXRANK];
 
@@ -805,7 +973,7 @@ hid_t
         - add support for attributes of type 'H5T_ARRAY'
      */
 
-    bool debug = false;
+    bool debug=false;
 
     SizeT nParam=e->NParam(1);
     hsize_t dims_out[MAXRANK];
@@ -977,6 +1145,10 @@ hid_t
        Oct 2021, Oliver Gressel <ogressel@gmail.com>
        - allow for hyperslab selection via passing keyword parameters
          'FILE_SPACE' and 'MEMORY_SPACE', respectively
+
+       Oct 2021, Oliver Gressel <ogressel@gmail.com>
+       - allow for datasets of type 'H5T_COMPOUND' mapping to GDL structures
+         (FIXME: ignores the IDL keyword 'Datatype_id' meant for partial reads)
     */
 
     bool debug = false;
@@ -1157,6 +1329,31 @@ hid_t
     } else if (ourType == GDL_DOUBLE) {
       res = new DDoubleGDL(dim);
       type = H5T_NATIVE_DOUBLE;
+
+    } else if (H5Tget_class(datatype)==H5T_COMPOUND) {
+
+       if (debug) printf("compound dataset\n");
+
+       if(rank>0)
+          e->Throw("Only scalar dataspaces supported for compound datasets.");
+
+       DStructDesc* cmp_desc = new DStructDesc("$truct");
+       DStructGDL* res = new DStructGDL(cmp_desc);
+
+       size_t cmp_sz = H5Tget_size(datatype);
+       char *raw = (char*)calloc(cmp_sz,sizeof(char));
+
+       if ( H5Dread(h5d_id, datatype, memspace_id, filespace_id,
+                    H5P_DEFAULT, raw) < 0) {
+          string msg; e->Throw(hdf5_error_message(msg));
+       }
+
+       // translate to GDL structure
+       hdf5_parse_compound( datatype, res, raw, e );
+
+       free(raw);
+       return res;
+
     } else if (ourType == GDL_STRING) {
 
       // a bit special, lets follow the example on h5 site:
@@ -1198,6 +1395,7 @@ hid_t
       status = H5Tclose (filetype);
       status = H5Tclose (memtype);
       return res;
+
     } else {
       e->Throw("Unsupported data format" + i2s(elem_dtype));
     }

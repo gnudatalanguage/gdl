@@ -165,6 +165,17 @@ end
 ;
 pro TEST_HDF5_ATTR, cumul_errors, create=create
 
+   errors=0
+
+   file_name = "hdf5-attr-test.h5"
+   full_file_name = file_search_for_testsuite(file_name, /warning)
+   if (strlen(full_file_name) eq 0) then begin
+      cumul_errors++
+      return
+   endif
+
+   ; --- specify some dimensions
+
    some_elem_dims = list( [], [3], [2,3] )
    some_data_dims = list( [], [4], [4,3], [4,3,2] )
 
@@ -211,7 +222,7 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
 
       ; --- write mock attributes to HDF5 file (not yet implemented in GDL)
 
-      f_id = h5f_create("hdf5-attr-test.h5")
+      f_id = h5f_create(file_name)
 
       for i=0,n_elements(attr_data)-1 do begin
 
@@ -240,11 +251,13 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
 
       h5f_close, f_id
 
+      return
+
    endif
 
    ; --- read HDF5 attributes
 
-   f_id = h5f_open("hdf5-attr-test.h5")
+   f_id = h5f_open(full_file_name)
 
    for idx=0,n_elements(attr_data)-1 do begin
 
@@ -255,16 +268,19 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
       ;;; help, attr_data[idx], read_attr_data
 
       if ( not array_equal(size(attr_data[idx]),size(read_attr_data)) ) then $
-         cumul_errors++
+         errors++
 
       if ( not array_equal(attr_data[idx],read_attr_data,/no_typeconv) ) then $
-         cumul_errors++
+         errors++
 
    endfor
 
    h5f_close, f_id
 
-   banner_for_testsuite, 'TEST_HDF5_ATTR', cumul_errors, /short
+   banner_for_testsuite, 'TEST_HDF5_ATTR', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors = cumul_errors + errors
 
    return
 end
@@ -272,6 +288,17 @@ end
 ; -----------------------------------------------
 ;
 pro TEST_HDF5_DATA, cumul_errors, create=create
+
+   errors=0
+
+   file_name = "hdf5-data-test.h5"
+   full_file_name = file_search_for_testsuite(file_name, /warning)
+   if (strlen(full_file_name) eq 0) then begin
+      cumul_errors++
+      return
+   endif
+
+   ; --- specify some dimensions
 
    some_elem_dims = list( [], [3], [2,3] )
    some_data_dims = list( [], [4], [5,4], [6,5,4] )
@@ -319,7 +346,7 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
 
       ; --- write mock datasets to HDF5 file (not yet implemented in GDL)
 
-      f_id = h5f_create("hdf5-data-test.h5")
+      f_id = h5f_create(file_name)
 
       for i=0,n_elements(mock_data)-1 do begin
 
@@ -348,11 +375,13 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
 
       h5f_close, f_id
 
+      return
+
    endif
 
    ; --- read HDF5 datasets
 
-   f_id = h5f_open("hdf5-data-test.h5")
+   f_id = h5f_open(full_file_name)
 
    for idx=0,n_elements(mock_data)-1 do begin
 
@@ -365,10 +394,10 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       ;;; help, mock_data[idx], read_mock_data
 
       if ( not array_equal(size(mock_data[idx]),size(read_mock_data)) ) then $
-         cumul_errors++
+         errors++
 
       if ( not array_equal(mock_data[idx],read_mock_data,/no_typeconv) ) then $
-         cumul_errors++
+         errors++
 
    endfor
 
@@ -381,10 +410,12 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       fs_id = h5d_get_space(d_id)
 
       rank = h5s_get_simple_extent_ndims(fs_id)
-      dims = h5s_get_simple_extent_dims(fs_id)
 
       if(rank eq 0) then ms_id = h5s_create_scalar() $
-      else ms_id = h5s_create_simple(dims)
+      else begin
+         dims = h5s_get_simple_extent_dims(fs_id)
+         ms_id = h5s_create_simple(dims)
+      endelse
 
       read_mock_data = h5d_read(d_id, file_space=fs_id, memory_space=ms_id)
 
@@ -395,10 +426,10 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       ;;; help, mock_data[idx], read_mock_data
 
       if ( not array_equal(size(mock_data[idx]),size(read_mock_data)) ) then $
-         cumul_errors++
+         errors++
 
       if ( not array_equal(mock_data[idx],read_mock_data,/no_typeconv) ) then $
-         cumul_errors++
+         errors++
 
    endfor
 
@@ -413,9 +444,10 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       fs_id = h5d_get_space(d_id)
 
       rank = h5s_get_simple_extent_ndims(fs_id)
-      dims = h5s_get_simple_extent_dims(fs_id)
 
       if(rank gt 0) then begin
+         dims = h5s_get_simple_extent_dims(fs_id)
+
          ; FIXME: come up with less trivial hyperslabs (+ use block/stride)
 
          for i=0,rank-1 do dims[i]-=2
@@ -459,16 +491,100 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
       ;;; help, slab, read_mock_data
 
       if ( not array_equal(size(slab),size(read_mock_data)) ) then $
-         cumul_errors++
+         errors++
 
       if ( not array_equal(slab,read_mock_data,/no_typeconv) ) then $
-         cumul_errors++
+         errors++
 
    endfor
 
    h5f_close, f_id
 
-   banner_for_testsuite, 'TEST_HDF5_DATA', cumul_errors, /short
+   banner_for_testsuite, 'TEST_HDF5_DATA', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors = cumul_errors + errors
+
+   return
+end
+;
+; -----------------------------------------------
+;
+pro TEST_HDF5_COMP, cumul_errors, create=create
+
+   errors=0
+
+   file_name = "hdf5-struct-test.h5"
+   full_file_name = file_search_for_testsuite(file_name, /warning)
+   if (not keyword_set(create) and strlen(full_file_name) eq 0) then begin
+      cumul_errors++
+      return
+   endif
+
+   ; --- create some mock GDL structures
+
+   nested = { an_integer:1, a_long:2l, a_float:1.1, a_double:1.2d, $
+              a_float_arr:[1.3,1.4,1.5], $
+              a_double_arr:[ [1.6d,1.7], [1.8,1.9], [2.0,2.1] ], $
+              a_string:"nested compound" }
+
+   main = { a_byte:4b, a_byte_arr:byte([5,6,7,8]), $
+            sub:nested, a_string:"main" }
+
+   if keyword_set(create) then begin
+
+      ; --- write mock structures to HDF5 file (not yet implemented in GDL)
+
+      f_id = h5f_create(file_name)
+
+      s_id = h5s_create_scalar()
+      t_id = h5t_idl_create(main)
+      d_id = h5d_create(f_id, "a_compund", t_id, s_id)
+
+      h5d_write, d_id, main
+
+      h5d_close, d_id &  h5t_close, t_id &  h5s_close, s_id
+      h5f_close, f_id
+
+      return
+
+   endif
+
+   ; --- read HDF5 compound datasets into GDL structures
+
+   f_id = h5f_open(full_file_name)
+   d_id = h5d_open(f_id, "a_compund")
+
+   read_main = h5d_read(d_id)
+
+   ;;; help, read_main, read_main.sub, main, main.sub, /st
+
+   h5d_close, d_id
+   h5f_close, f_id
+
+   ; --- check the result for errors
+
+   tags = [ tag_names(main), "SUB."+tag_names(main.sub) ]
+
+   foreach tag, tags do begin
+
+      if(tag eq "SUB") then continue
+
+      void = execute("is_string_tag=isa(MAIN."+tag+",'String')")
+      test = (is_string_tag) ? 'STRCMP' : 'ARRAY_EQUAL'
+      test_kw = (is_string_tag) ? '' : ', /no_typeconv'
+
+      cmd = "result = "+test+"( MAIN."+tag+","+" READ_MAIN."+tag+test_kw+" )"
+      void=execute(cmd)
+
+      errors += (result eq 0)
+
+   endforeach
+
+   banner_for_testsuite, 'TEST_HDF5_COMP', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors = cumul_errors + errors
 
    return
 end
@@ -506,6 +622,8 @@ TEST_HDF5_ATTR, cumul_errors
 TEST_HDF5_DATA, cumul_errors
 ;
 TEST_HDF5_OBJ_INFO, cumul_errors
+;
+TEST_HDF5_COMP, cumul_errors
 ;
 BANNER_FOR_TESTSUITE, 'TEST_HDF5', cumul_errors
 ;
