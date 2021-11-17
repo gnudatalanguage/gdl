@@ -447,7 +447,9 @@ void DNode::Text2Long(int base, bool promote) {
     } else {
       cData = new DLong64GDL(ll);
     }
-  
+    return;
+  }
+	
   if( base == 16)
     {
       if( text.size() > sizeof( DLong)*2) 
@@ -459,7 +461,7 @@ void DNode::Text2Long(int base, bool promote) {
       cData=new DLongGDL(val);
       return;
     }
-
+	
   DLong64 val;
   bool noOverFlow = Text2Number( val, base);
 
