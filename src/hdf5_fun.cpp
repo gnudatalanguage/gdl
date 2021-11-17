@@ -98,6 +98,19 @@ namespace lib {
     ~hdf5_type_guard() { H5Tclose(type); }
   };
 
+  // auto_ptr-like class for guarding HDF5 names
+  // usage:
+  //   char* member_name = H5Tget_member_name( ... );
+  //   if (!member_name) { string msg; e->Throw(hdf5_error_message(msg)); }
+  //   hdf5_name_guard member_name_guard = hdf5_name_guard(member_name);
+  class hdf5_name_guard
+  {
+    char* name;
+  public:
+    hdf5_name_guard(char* name_) { name = name_; }
+    ~hdf5_name_guard() { H5free_memory(name); }
+  };
+
   // --------------------------------------------------------------------
 
   DLong mapH5DatatypesToGDL(hid_t h5type){
@@ -264,16 +277,19 @@ namespace lib {
       char type_lbl[200];
 
       hid_t member_class = H5Tget_member_class( parent_type, idx );
+      if (member_class<0) { string msg; e->Throw(hdf5_error_message(msg)); }
       hdf5_type_guard member_class_guard = hdf5_type_guard(member_class);
 
       hid_t member_type = H5Tget_member_type( parent_type, idx );
+      if (member_type<0) { string msg; e->Throw(hdf5_error_message(msg)); }
       hdf5_type_guard member_type_guard = hdf5_type_guard(member_type);
 
       char *member_name = H5Tget_member_name( parent_type, idx );
+      if (!member_name) { string msg; e->Throw(hdf5_error_message(msg)); }
+      hdf5_name_guard member_name_guard = hdf5_name_guard(member_name);
+
       size_t member_sz = H5Tget_size( member_type );
       size_t member_offs = H5Tget_member_offset( parent_type, idx );
-
-      /// FIXME: add guard for 'char *member_name' ?
 
       int member_rank=0;
       hsize_t member_dims[MAXRANK];
@@ -385,10 +401,6 @@ namespace lib {
         parent_struct->NewTag( member_name, field );
         memcpy( field->DataAddr(), &raw[member_offs], member_sz*sizeof(char) );
       }
-
-      H5free_memory(member_name);
-
-      H5Tclose(member_type);
     }
 
     indent-=2;
