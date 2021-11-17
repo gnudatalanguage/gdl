@@ -130,6 +130,7 @@ test_nestedloop.pro
 test_netcdf.pro
 test_norm.pro
 test_null.pro
+test_numeric_limits.pro
 test_obj_hasmethod.pro
 test_obj_valid.pro
 test_parse_url.pro
