@@ -125,46 +125,42 @@ DNode::~DNode()
  */
 template<typename T> bool DNode::Text2Number(T& out, int base) {
   throw GDLException("Text2Number called on unsupported type.");
-//  bool noOverflow = true;
-//  int count = 0;
-//
-//  T number = 0;
-//
-//  for (unsigned i = 0; i < text.size(); ++i) {
-//    char c = text[i];
-//    if (c >= '0' && c <= '9') {
-//      c -= '0';
-//    } else if (c >= 'a' && c <= 'f') {
-//      c -= 'a' - 10;
-//    } else {
-//      c -= 'A' - 10;
-//    }
-//
-//    T newNumber = base * number + c;
-//
-//    // check for overflow, we start from positive (by construction) can go negative yes but not positive again.
-//    if (count == 0 && newNumber < number ) {
-//      count++; //1
-//      std::cerr<<"negative, "<<newNumber<<" "<<count<<std::endl;      
-//    } else if (count == 1 && newNumber > number) {
-//      count ++;
-//      std::cerr<<"positive, "<<newNumber<<" "<<count<<std::endl;      
-//      noOverflow = false;
-//    } // we do not count more
-//
-//    number = newNumber;
-//  }
-//  out = number;
-//
-//  return noOverflow;
 }
 
 template<> bool DNode::Text2Number(DLong& out, int base) {
+  if (base == 16 && text.size() > sizeof ( DLong)*2) throw GDLException("Int hexadecimal constant can only have 8 digits.");
   bool noOverflow = true;
-  char *endptr;
-  errno = 0; /* To distinguish success/failure after call */
-  out = strtol(text.c_str(), &endptr, base);
-  if (errno == ERANGE) noOverflow = false;
+  DLong number = 0;
+  if (base != 10) { //hexa or oct decoding, can give a negative result.
+
+    for (unsigned i = 0; i < text.size(); ++i) {
+      char c = text[i];
+      if (c >= '0' && c <= '9') {
+        c -= '0';
+      } else if (c >= 'a' && c <= 'f') {
+        c -= 'a' - 10;
+      } else {
+        c -= 'A' - 10;
+      }
+
+      DULong64 newNumber = base * number + c;
+      // no overflow possible for base hex, filtered above
+      number = newNumber;
+    }
+  } else { //dec decoding, always positive
+    for (unsigned i = 0; i < text.size(); ++i) { //base is <= 10, no hexa chars!
+      char c = text[i] - '0';
+      DLong64 newNumber = base * number + c;
+
+      // check for overflow
+      if (newNumber > std::numeric_limits<DLong>::max()) {
+        noOverflow = false;
+      }
+
+      number = newNumber;
+    }
+  }
+  out = number;
   return noOverflow;
 }
 
@@ -351,7 +347,6 @@ template<> bool DNode::Text2Number(DInt& out, int base) {
     }
   }
   out = number;
-  if (!noOverflow) std::cerr << "!\n";
   return noOverflow;
 }
 
@@ -450,8 +445,7 @@ void DNode::Text2Long(int base, bool promote) {
     return;
   }
 	
-  if( base == 16)
-    {
+  if (base == 16) {
       if( text.size() > sizeof( DLong)*2) 
 	throw GDLException( "Long hexadecimal constant can only have "+
 			    i2s(sizeof( DLong)*2)+" digits.");
