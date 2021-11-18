@@ -35,6 +35,8 @@
 #error "Can't choose old API versions when deprecated APIs are disabled"
 #endif /* defined(H5_USE_16_API) && defined(H5_NO_DEPRECATED_SYMBOLS) */
 
+#include <list>
+
 namespace lib {
 
   using namespace std;
@@ -113,150 +115,123 @@ namespace lib {
 
   // --------------------------------------------------------------------
 
-  DLong mapH5DatatypesToGDL(hid_t h5type){
+  DLong mapH5DatatypesToGDL(hid_t h5type, EnvT *e){
+
+     /* Nov 2021, Oliver Gressel <ogressel@gmail.com>
+        - refactor using lists
+        - add check for invalid type handles
+        - test for GDL_STRING/GDL_STRUCT via H5Tget_class(h5type)
+     */
+
+    bool debug=false;
+
+    const int matching_gdl_type[] =
+        { //GDL_LDOUBLE,   /// see below
+          GDL_DOUBLE, GDL_FLOAT, GDL_ULONG64, GDL_LONG64, GDL_ULONG, GDL_LONG,
+          GDL_UINT, GDL_INT, GDL_BYTE, GDL_STRING };
+
+    const char *matching_gdl_type_lbl[] =
+        { //GDL_LDOUBLE,   /// see below
+          "GDL_DOUBLE", "GDL_FLOAT", "GDL_ULONG64", "GDL_LONG64", "GDL_ULONG",
+          "GDL_LONG", "GDL_UINT", "GDL_INT", "GDL_BYTE", "GDL_STRING" };
+
     //must be in order, from most complicated to simplest, string at end
 
-    //not until LDOUBLE Is handled everywhere!!
-    //    if (H5Tequal(h5type , H5T_NATIVE_LDOUBLE )) return GDL_LDOUBLE;
+    const std::list <std::list <hid_t>> type_map = {
 
-    if (H5Tequal(h5type , H5T_NATIVE_DOUBLE )) return GDL_DOUBLE;
-    if (H5Tequal(h5type , H5T_NATIVE_FLOAT )) return GDL_FLOAT;
+          /* GDL_LDOUBLE */
+     // { H5T_NATIVE_LDOUBLE }, //not until LDOUBLE Is handled everywhere!!
 
-    if (H5Tequal(h5type , H5T_NATIVE_ULLONG )) return GDL_ULONG64;
-    if (H5Tequal(h5type , H5T_ALPHA_U64 )) return GDL_ULONG64;
-    if (H5Tequal(h5type , H5T_INTEL_U64 )) return GDL_ULONG64;
-    if (H5Tequal(h5type , H5T_MIPS_U64 )) return GDL_ULONG64;
-    if (H5Tequal(h5type , H5T_NATIVE_UINT64 )) return GDL_ULONG64;
-    if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST64 )) return GDL_ULONG64;
-    if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST64 )) return GDL_ULONG64;
-    if (H5Tequal(h5type , H5T_STD_U64BE )) return GDL_ULONG64;
-    if (H5Tequal(h5type , H5T_STD_U64LE )) return GDL_ULONG64;
+          /* GDL_DOUBLE */
+        { H5T_NATIVE_DOUBLE },
 
+          /* GDL_FLOAT */
+        { H5T_NATIVE_FLOAT },
 
-    if (H5Tequal(h5type , H5T_NATIVE_LLONG )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_IEEE_F64BE )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_IEEE_F64LE )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_INTEL_B64 )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_INTEL_F64 )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_INTEL_I64 )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_MIPS_B64 )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_MIPS_F64 )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_MIPS_I64 )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_NATIVE_B64 )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_NATIVE_INT64 )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_NATIVE_INT_FAST64 )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST64 )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_STD_B64BE )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_STD_B64LE )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_STD_I64BE )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_STD_I64LE )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_UNIX_D64BE )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_UNIX_D64LE )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_ALPHA_B64 )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_ALPHA_F64 )) return GDL_LONG64;
-    if (H5Tequal(h5type , H5T_ALPHA_I64 )) return GDL_LONG64;
+          /* GDL_ULONG64 */
+        { H5T_NATIVE_ULLONG, H5T_ALPHA_U64, H5T_INTEL_U64, H5T_MIPS_U64,
+          H5T_NATIVE_UINT64, H5T_NATIVE_UINT_FAST64, H5T_NATIVE_UINT_LEAST64,
+          H5T_STD_U64BE, H5T_STD_U64LE },
 
+          /* GDL_LONG64 */
+        { H5T_NATIVE_LLONG, H5T_IEEE_F64BE, H5T_IEEE_F64LE, H5T_INTEL_B64,
+          H5T_INTEL_F64, H5T_INTEL_I64, H5T_MIPS_B64, H5T_MIPS_F64,
+          H5T_MIPS_I64, H5T_NATIVE_B64, H5T_NATIVE_INT64, H5T_NATIVE_INT_FAST64,
+          H5T_NATIVE_INT_LEAST64, H5T_STD_B64BE, H5T_STD_B64LE, H5T_STD_I64BE,
+          H5T_STD_I64LE, H5T_UNIX_D64BE, H5T_UNIX_D64LE, H5T_ALPHA_B64,
+          H5T_ALPHA_F64, H5T_ALPHA_I64 },
 
-    if (H5Tequal(h5type , H5T_NATIVE_ULONG )) return GDL_ULONG;
-    if (H5Tequal(h5type , H5T_ALPHA_U32 )) return GDL_ULONG;
-    if (H5Tequal(h5type , H5T_INTEL_U32 )) return GDL_ULONG;
-    if (H5Tequal(h5type , H5T_MIPS_U32 )) return GDL_ULONG;
-    if (H5Tequal(h5type , H5T_NATIVE_UINT32 )) return GDL_ULONG;
-    if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST32 )) return GDL_ULONG;
-    if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST32 )) return GDL_ULONG;
-    if (H5Tequal(h5type , H5T_STD_U32BE )) return GDL_ULONG;
-    if (H5Tequal(h5type , H5T_STD_U32LE )) return GDL_ULONG;
+          /* GDL_ULONG */
+        { H5T_NATIVE_ULONG, H5T_ALPHA_U32, H5T_INTEL_U32, H5T_MIPS_U32,
+          H5T_NATIVE_UINT32, H5T_NATIVE_UINT_FAST32, H5T_NATIVE_UINT_LEAST32,
+          H5T_STD_U32BE, H5T_STD_U32LE },
 
-    /// if (H5Tequal(h5type , H5T_NATIVE_HBOOL )) return GDL_LONG;
-    /// Oliver: disable this, as it matches against 'H5T_STD_U8LE' (GDL_BYTE)
+          /* GDL_LONG */
+        { /// H5T_NATIVE_HBOOL,
+          /// ^--- disabled as it matches against 'H5T_STD_U8LE' (GDL_BYTE)
+          H5T_NATIVE_LONG, H5T_ALPHA_B32, H5T_ALPHA_F32,
+          H5T_ALPHA_I32, H5T_IEEE_F32BE, H5T_IEEE_F32LE, H5T_INTEL_B32,
+          H5T_INTEL_F32, H5T_INTEL_I32, H5T_MIPS_B32, H5T_MIPS_F32,
+          H5T_MIPS_I32, H5T_NATIVE_B32, H5T_NATIVE_INT32, H5T_NATIVE_INT_FAST32,
+          H5T_NATIVE_INT_LEAST32, H5T_STD_B32BE, H5T_STD_B32LE, H5T_STD_I32BE,
+          H5T_STD_I32LE, H5T_UNIX_D32BE, H5T_UNIX_D32LE },
 
-    if (H5Tequal(h5type , H5T_NATIVE_LONG )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_ALPHA_B32 )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_ALPHA_F32 )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_ALPHA_I32 )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_IEEE_F32BE )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_IEEE_F32LE )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_INTEL_B32 )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_INTEL_F32 )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_INTEL_I32 )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_MIPS_B32 )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_MIPS_F32 )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_MIPS_I32 )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_NATIVE_B32 )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_NATIVE_INT32 )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_NATIVE_INT_FAST32 )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST32 )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_STD_B32BE )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_STD_B32LE )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_STD_I32BE )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_STD_I32LE )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_UNIX_D32BE )) return GDL_LONG;
-    if (H5Tequal(h5type , H5T_UNIX_D32LE )) return GDL_LONG;
+          /* GDL_UINT */
+        { H5T_NATIVE_UINT, H5T_NATIVE_UINT16, H5T_NATIVE_UINT_FAST16,
+          H5T_NATIVE_UINT_LEAST16, H5T_STD_U16BE, H5T_STD_U16LE, H5T_ALPHA_U16,
+          H5T_INTEL_U16, H5T_MIPS_U16 },
 
+          /* GDL_INT */
+        { H5T_NATIVE_INT, H5T_NATIVE_INT16, H5T_NATIVE_INT_FAST16,
+          H5T_NATIVE_INT_LEAST16, H5T_STD_B16BE, H5T_STD_B16LE, H5T_STD_I16BE,
+          H5T_STD_I16LE, H5T_ALPHA_B16, H5T_ALPHA_I16, H5T_INTEL_B16,
+          H5T_INTEL_I16, H5T_MIPS_B16, H5T_MIPS_I16, H5T_NATIVE_B16 },
 
-    if (H5Tequal(h5type , H5T_NATIVE_UINT )) return GDL_UINT;
-    if (H5Tequal(h5type , H5T_NATIVE_UINT16 )) return GDL_UINT;
-    if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST16 )) return GDL_UINT;
-    if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST16 )) return GDL_UINT;
-    if (H5Tequal(h5type , H5T_STD_U16BE )) return GDL_UINT;
-    if (H5Tequal(h5type , H5T_STD_U16LE )) return GDL_UINT;
-    if (H5Tequal(h5type , H5T_ALPHA_U16 )) return GDL_UINT;
-    if (H5Tequal(h5type , H5T_INTEL_U16 )) return GDL_UINT;
-    if (H5Tequal(h5type , H5T_MIPS_U16 )) return GDL_UINT;
+          /* GDL_BYTE */
+        { H5T_ALPHA_U8, H5T_MIPS_U8, H5T_INTEL_U8, H5T_NATIVE_UINT8,
+          H5T_NATIVE_UINT_FAST8, H5T_NATIVE_UINT_LEAST8, H5T_STD_U8BE,
+          H5T_STD_U8LE, H5T_NATIVE_USHORT, H5T_NATIVE_INT8, H5T_ALPHA_B8,
+          H5T_ALPHA_I8, H5T_INTEL_B8, H5T_INTEL_I8, H5T_MIPS_I8, H5T_NATIVE_B8,
+          H5T_NATIVE_INT_FAST8, H5T_NATIVE_INT_LEAST8, H5T_NATIVE_SHORT,
+          H5T_MIPS_B8, H5T_STD_B8BE, H5T_STD_B8LE, H5T_STD_I8BE, H5T_STD_I8LE },
 
+          /* GDL_STRING (redundant) */
+        { H5T_C_S1, H5T_FORTRAN_S1, H5T_STRING, H5T_NATIVE_CHAR,
+          H5T_NATIVE_SCHAR, H5T_NATIVE_UCHAR }
+    };
 
-    if (H5Tequal(h5type , H5T_NATIVE_INT )) return GDL_INT;
-    if (H5Tequal(h5type , H5T_NATIVE_INT16 )) return GDL_INT;
-    if (H5Tequal(h5type , H5T_NATIVE_INT_FAST16 )) return GDL_INT;
-    if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST16 )) return GDL_INT;
-    if (H5Tequal(h5type , H5T_STD_B16BE )) return GDL_INT;
-    if (H5Tequal(h5type , H5T_STD_B16LE )) return GDL_INT;
-    if (H5Tequal(h5type , H5T_STD_I16BE )) return GDL_INT;
-    if (H5Tequal(h5type , H5T_STD_I16LE )) return GDL_INT;
-    if (H5Tequal(h5type , H5T_ALPHA_B16 )) return GDL_INT;
-    if (H5Tequal(h5type , H5T_ALPHA_I16 )) return GDL_INT;
-    if (H5Tequal(h5type , H5T_INTEL_B16 )) return GDL_INT;
-    if (H5Tequal(h5type , H5T_INTEL_I16 )) return GDL_INT;
-    if (H5Tequal(h5type , H5T_MIPS_B16 )) return GDL_INT;
-    if (H5Tequal(h5type , H5T_MIPS_I16 )) return GDL_INT;
-    if (H5Tequal(h5type , H5T_NATIVE_B16 )) return GDL_INT;
+    /* special case: compound data types */
 
-    if (H5Tequal(h5type , H5T_ALPHA_U8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_MIPS_U8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_INTEL_U8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_NATIVE_UINT8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_NATIVE_UINT_FAST8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_NATIVE_UINT_LEAST8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_STD_U8BE )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_STD_U8LE )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_NATIVE_USHORT )) return GDL_BYTE;
+    if (H5Tget_class(h5type)==H5T_COMPOUND)
+       return GDL_STRUCT;
 
-    if (H5Tequal(h5type , H5T_NATIVE_INT8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_ALPHA_B8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_ALPHA_I8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_INTEL_B8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_INTEL_I8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_MIPS_I8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_NATIVE_B8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_NATIVE_INT_FAST8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_NATIVE_INT_LEAST8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_NATIVE_SHORT )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_MIPS_B8 )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_STD_B8BE )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_STD_B8LE )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_STD_I8BE )) return GDL_BYTE;
-    if (H5Tequal(h5type , H5T_STD_I8LE )) return GDL_BYTE;
+    /* special case: string data types */
 
-    if (H5Tequal(h5type , H5T_C_S1 )) return GDL_STRING;
-    if (H5Tequal(h5type , H5T_FORTRAN_S1 )) return GDL_STRING;
-    if (H5Tequal(h5type , H5T_STRING )) return GDL_STRING;
+    if (H5Tget_class(h5type)==H5T_STRING)
+       return GDL_STRING;
 
-    if (H5Tequal(h5type , H5T_NATIVE_CHAR )) return GDL_STRING;
-    if (H5Tequal(h5type , H5T_NATIVE_SCHAR )) return GDL_STRING;
-    if (H5Tequal(h5type , H5T_NATIVE_UCHAR )) return GDL_STRING;
+    /* find matching GDL type */
+
+    int idx=0;
+    for (auto gdl_type: type_map) {
+       for (auto hdf5_native_type: gdl_type){
+
+          int comp = H5Tequal(h5type , hdf5_native_type);
+
+          if(comp<0)
+             { string msg; e->Throw(hdf5_error_message(msg)); }
+
+          else if(comp>0) {
+             if (debug) printf("match '%s'\n", matching_gdl_type_lbl[idx]);
+             return matching_gdl_type[idx];
+          }
+       }
+       idx++;
+    }
+
+    /* no matching type found */
     return GDL_UNDEF;
   }
-
 
   // --------------------------------------------------------------------
 
@@ -365,7 +340,7 @@ namespace lib {
       // create the IDL datatypes
       dimension dim(count_s, rank_s);
       BaseGDL *field=NULL;
-      DLong ourType = mapH5DatatypesToGDL(elem_type);
+      DLong ourType = mapH5DatatypesToGDL(elem_type,e);
 
       if (ourType == GDL_BYTE) {
         field = new DByteGDL(dim);
@@ -1049,7 +1024,7 @@ hid_t
 
     BaseGDL *res;
     if (debug) cout << "datatype : " << elem_dtype << endl;
-    DLong ourType = mapH5DatatypesToGDL(elem_dtype);
+    DLong ourType = mapH5DatatypesToGDL(elem_dtype,e);
     hsize_t type;
 
     if (ourType == GDL_BYTE) {
@@ -1295,9 +1270,7 @@ hid_t
 
     BaseGDL *res;
 
-    if (debug) cout << "datatype : " << elem_dtype << endl;
-
-    DLong ourType = mapH5DatatypesToGDL(elem_dtype);
+    DLong ourType = mapH5DatatypesToGDL(elem_dtype,e);
     hsize_t type;
 
     if (debug)  cout << "ourType : " << ourType  << endl;
@@ -1330,7 +1303,7 @@ hid_t
       res = new DDoubleGDL(dim);
       type = H5T_NATIVE_DOUBLE;
 
-    } else if (H5Tget_class(datatype)==H5T_COMPOUND) {
+    } else if (ourType == GDL_STRUCT) {
 
        if (debug) printf("compound dataset\n");
 
