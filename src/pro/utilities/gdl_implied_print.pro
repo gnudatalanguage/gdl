@@ -18,8 +18,8 @@
 ;
 function pretty_serialize,value,tagname=tagname,arrayIdentifier=arrayIdentifier
 common json_serialize_gdl_level, level, types
-
 COMPILE_OPT idl2, HIDDEN
+ON_ERROR,2
    ;; CATCH, Error_status
    ;; IF Error_status NE 0 THEN BEGIN
    ;;    CATCH, /CANCEL
