@@ -1266,7 +1266,7 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
         bool recursive=false, bool accErr=false, bool mark=false,
         bool quote=false, 
         bool match_dot=false,
-        bool  forceAbsPath=false,
+        bool  forceAbsPath=true,
         bool fold_case=false,
         bool onlyDir=false,   bool *tests = NULL)
 {               
