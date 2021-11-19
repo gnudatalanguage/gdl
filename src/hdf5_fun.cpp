@@ -382,6 +382,249 @@ namespace lib {
     return;
   }
 
+  // --------------------------------------------------------------------
+
+  BaseGDL* hdf5_unified_read( hid_t loc_id,
+                              hid_t ms_id, hid_t fs_id, EnvT* e ) {
+
+    /* Nov 2021, Oliver Gressel <ogressel@gmail.com>
+       - deduplicate implementations for reading data / attributes
+    */
+
+    bool debug=false;
+    hid_t status=0;
+
+
+    /* --- obtain the datatype handle --- */
+
+    hid_t datatype;
+
+    switch( H5Iget_type(loc_id) ) {
+    case H5I_DATASET: datatype = H5Dget_type(loc_id); break;
+    case H5I_ATTR:    datatype = H5Aget_type(loc_id); break;
+    default:          e->Throw("unsupported use for hdf5_unified_read\n");
+    }
+    if (datatype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    hdf5_type_guard datatype_guard = hdf5_type_guard(datatype);
+
+
+    /* --- for array datatypes, determine rank+dimension of the element --- */
+
+    hid_t elem_dtype;
+    int elem_rank=0;
+    hsize_t elem_dims[MAXRANK];
+
+    if ( H5Tget_class(datatype)==H5T_ARRAY ) {
+
+       if ( (elem_rank=H5Tget_array_ndims(datatype)) <0 )
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+
+       if ( H5Tget_array_dims2(datatype, elem_dims) <0 )
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+
+       if (debug) {
+         cout << "array datatype of rank: " << elem_rank << endl;
+         if (elem_rank>0) {
+           cout << "dimensions are: ";
+           for(int i=0; i<elem_rank; i++) cout << elem_dims[i] << ",";
+           cout << endl;
+         }
+       }
+
+       elem_dtype = H5Tget_super(datatype);
+       if (elem_dtype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    } else {
+
+       elem_dtype = H5Tcopy(datatype);
+       if (elem_dtype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+    }
+
+    hdf5_type_guard elem_dtype_guard = hdf5_type_guard(elem_dtype);
+
+
+    /* --- determine the rank and dimension of the dataspace --- */
+
+    int data_rank;
+    hsize_t data_dims[MAXRANK];
+
+    if ( (data_rank = H5Sget_simple_extent_ndims(ms_id)) < 0 )
+      { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    if ( H5Sget_simple_extent_dims(ms_id, data_dims, NULL) < 0 )
+      { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    if (debug) {
+      cout << "data rank is: " << data_rank << endl;
+      if (data_rank>0) {
+        cout << "dimensions are: ";
+        for(int i=0; i<data_rank; i++) cout << data_dims[i] << ",";
+        cout << endl;
+      }
+    }
+
+    // dimensions for GDL variable
+    SizeT count_s[MAXRANK];
+    SizeT rank_s;
+
+    rank_s = (SizeT) (elem_rank + data_rank);
+
+    // need to reverse indices for column major format
+    for(int i=0; i<elem_rank; i++)
+      count_s[i] = (SizeT)elem_dims[elem_rank - 1  - i ];
+
+    for(int i=elem_rank; i<elem_rank+data_rank; i++)
+      count_s[i] = (SizeT)data_dims[elem_rank + data_rank - 1  - i ];
+
+    // create the GDL datatypes
+    dimension dim(count_s, rank_s);
+
+    BaseGDL *res;
+    hsize_t type;
+    DLong ourType = mapH5DatatypesToGDL(elem_dtype,e);
+
+    if (debug)  cout << "ourType : " << ourType  << endl;
+
+    if (ourType == GDL_BYTE) {
+      res = new DByteGDL(dim);
+      type = H5T_NATIVE_UINT8;
+
+    } else if (ourType == GDL_INT) {
+      res = new DIntGDL(dim);
+      type = H5T_NATIVE_INT16;
+
+    } else if (ourType == GDL_UINT) {
+      res = new DUIntGDL(dim);
+      type = H5T_NATIVE_UINT16;
+
+    } else if (ourType == GDL_LONG) {
+      res = new DLongGDL(dim);
+      type = H5T_NATIVE_INT32;
+
+    } else if (ourType == GDL_ULONG) {
+      res = new DULongGDL(dim);
+      type = H5T_NATIVE_UINT32;
+
+    } else if (ourType == GDL_LONG64) {
+      res = new DLong64GDL(dim);
+      type = H5T_NATIVE_INT64;
+
+    } else if (ourType == GDL_LONG64) {
+      res = new DULong64GDL(dim);
+      type = H5T_NATIVE_UINT64;
+
+    } else if (ourType == GDL_FLOAT) {
+      res = new DFloatGDL(dim);
+      type = H5T_NATIVE_FLOAT;
+
+    } else if (ourType == GDL_DOUBLE) {
+      res = new DDoubleGDL(dim);
+      type = H5T_NATIVE_DOUBLE;
+
+    } else if (ourType == GDL_STRING) {
+      res = new DStringGDL(dim);
+      type = H5T_C_S1;
+
+      SizeT sdim = H5Tget_size(datatype);
+      sdim++; /* Make room for null terminator */
+      char **rdata;
+      /*
+       * Allocate array of pointers to rows.
+       */
+      rdata = (char **) malloc(count_s[0] * sizeof (char *)); /// may leak
+      /*
+       * Allocate space for string data.
+       */
+      rdata[0] = (char *) malloc(count_s[0] * sdim * sizeof (char)); /// may leak
+      /*
+       * Set the rest of the pointers to rows to the correct addresses.
+       */
+      for (int i = 1; i < count_s[0]; i++)
+        rdata[i] = rdata[0] + i * sdim;
+      /*
+       * Create the memory datatype.
+       */
+      hid_t memtype = H5Tcopy(H5T_C_S1); /// FIXME: may leak
+      status = H5Tset_size(memtype, sdim);
+
+      switch( H5Iget_type(loc_id) ) {
+
+      case H5I_DATASET:
+        status = H5Dread( loc_id, memtype, H5S_ALL, /// FIXME: use '{ms|fs}_id'
+                          H5S_ALL, H5P_DEFAULT, rdata[0] ); break;
+      case H5I_ATTR:
+        status = H5Aread( loc_id, memtype, rdata[0] ); break;
+      }
+      if (status < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+      for (int i=0; i<count_s[0]; i++)
+        (*(static_cast<DStringGDL*> (res)))[i] = rdata[i];
+
+      free (rdata); //but not rdata[0]
+
+      status = H5Tclose(memtype);
+      return res;
+
+    } else if (ourType == GDL_STRUCT) {
+
+       if (debug) printf("compound dataset\n");
+
+       if(data_rank>0)
+          e->Throw("Only scalar dataspaces supported for compound datasets.");
+
+       DStructDesc* cmp_desc = new DStructDesc("$truct");
+       DStructGDL* res = new DStructGDL(cmp_desc);
+
+       size_t cmp_sz = H5Tget_size(datatype);
+       char *raw = (char*)calloc(cmp_sz,sizeof(char)); /// FIXME: may leak
+
+       // read raw-data for compound dataset
+       herr_t stat;
+
+       switch( H5Iget_type(loc_id) ) {
+
+       case H5I_DATASET:
+         status = H5Dread(loc_id, datatype, ms_id, fs_id, H5P_DEFAULT, raw);
+         break;
+
+       case H5I_ATTR:
+         status = H5Aread(loc_id, datatype, raw);
+         break;
+       }
+       if (status < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+       // translate to GDL structure
+       hdf5_parse_compound( datatype, res, raw, e );
+
+       free(raw);
+       return res;
+
+    } else {
+
+      e->Throw("Unsupported data format" + i2s(elem_dtype));
+
+    }
+
+    /* --- read regular datatypes (i.e., non-string/struct) --- */
+
+    if (elem_rank>0) type = H5Tarray_create2( type, elem_rank, elem_dims );
+    else type = H5Tcopy(type);
+
+    hdf5_type_guard type_guard = hdf5_type_guard(type);
+
+    switch( H5Iget_type(loc_id) ) {
+
+    case H5I_DATASET:
+      status = H5Dread( loc_id, type, ms_id, fs_id,
+                        H5P_DEFAULT, res->DataAddr() ); break;
+    case H5I_ATTR:
+      status = H5Aread( loc_id, type, res->DataAddr() ); break;
+    }
+    if (status<0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return res;
+  }
 
   // --------------------------------------------------------------------
 
@@ -946,6 +1189,9 @@ hid_t
 
      /* Jun 2021, Oliver Gressel <ogressel@gmail.com>
         - add support for attributes of type 'H5T_ARRAY'
+
+        Nov 2021, Oliver Gressel <ogressel@gmail.com>
+        - use 'hdf5_unified_read()' function, enabling 'H5T_COMPOUND' support
      */
 
     bool debug=false;
@@ -961,150 +1207,11 @@ hid_t
     if (h5s_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
     hdf5_space_guard h5s_id_guard = hdf5_space_guard(h5s_id);
 
-    hid_t datatype = H5Aget_type(h5a_id);
-    if (datatype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-    hdf5_type_guard datatype_guard = hdf5_type_guard(datatype);
+    /* --- read the dataset into GDL --- */
 
-    // for array datatypes, determine the rank and dimension of the element
-    int elem_rank=0;
-    hid_t elem_dtype;
-
-    if (H5Tget_class(datatype)==H5T_ARRAY ) {
-
-       if ((elem_rank=H5Tget_array_ndims(datatype)) <0)
-          { string msg; e->Throw(hdf5_error_message(msg)); }
-       if (debug) cout << "array datatype of rank " << elem_rank << endl;
-
-       if (H5Tget_array_dims2(datatype, elem_dims) <0)
-          { string msg; e->Throw(hdf5_error_message(msg)); }
-
-       if (debug && elem_rank>0) {
-          cout << "dimensions are: ";
-          for(int i=0; i<elem_rank; i++) cout << elem_dims[i] << ",";
-          cout << endl;
-       }
-
-       elem_dtype = H5Tget_super(datatype);
-       if (elem_dtype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-
-    } else {
-
-       elem_dtype = H5Tcopy(datatype);
-       if (elem_dtype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-
-    }
-
-    hdf5_type_guard elem_dtype_guard = hdf5_type_guard(elem_dtype);
-
-    // determine the rank and dimension of the dataset
-    int rank = H5Sget_simple_extent_ndims(h5s_id);
-    if (rank < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-
-    if (debug) cout << "attribute data rank is " << rank << endl;
-
-    if (H5Sget_simple_extent_dims(h5s_id, dims_out, NULL) < 0)
-      { string msg; e->Throw(hdf5_error_message(msg)); }
-
-    if (debug && rank>0) {
-       cout << "dimensions are: ";
-       for(int i=0; i<rank; i++) cout << dims_out[i] << ",";
-       cout << endl;
-    }
-
-    // need to reverse indices for column major format
-    SizeT count_s[MAXRANK];
-    for(int i=0; i<elem_rank; i++)
-      count_s[i] = (SizeT)elem_dims[elem_rank - 1  - i ];
-
-    for(int i=elem_rank; i<elem_rank+rank; i++)
-      count_s[i] = (SizeT)dims_out[elem_rank+rank - 1  - i ];
-
-    // create the IDL datatypes
-    dimension dim(count_s, rank+elem_rank);
-
-    BaseGDL *res;
-    if (debug) cout << "datatype : " << elem_dtype << endl;
-    DLong ourType = mapH5DatatypesToGDL(elem_dtype,e);
-    hsize_t type;
-
-    if (ourType == GDL_BYTE) {
-      res = new DByteGDL(dim);
-      type = H5T_NATIVE_UINT8;
-    } else if (ourType == GDL_INT) {
-      res = new DIntGDL(dim);
-      type = H5T_NATIVE_INT16;
-    } else if (ourType == GDL_UINT) {
-      res = new DUIntGDL(dim);
-      type = H5T_NATIVE_UINT16;
-    } else if (ourType == GDL_LONG) {
-      res = new DLongGDL(dim);
-      type = H5T_NATIVE_INT32;
-    } else if (ourType == GDL_ULONG) {
-      res = new DULongGDL(dim);
-      type = H5T_NATIVE_UINT32;
-    } else if (ourType == GDL_LONG64) {
-      res = new DLong64GDL(dim);
-      type = H5T_NATIVE_INT64;
-    } else if (ourType == GDL_LONG64) {
-      res = new DULong64GDL(dim);
-      type = H5T_NATIVE_UINT64;
-    } else if (ourType == GDL_FLOAT) {
-      res = new DFloatGDL(dim);
-      type = H5T_NATIVE_FLOAT;
-    } else if (ourType == GDL_DOUBLE) {
-      res = new DDoubleGDL(dim);
-      type = H5T_NATIVE_DOUBLE;
-    } else if (ourType == GDL_STRING) {
-
-      ///******* BELOW CODE IS NOT TESTED! ********///
-
-      // a bit special, lets follow the example on h5 site:
-      res = new DStringGDL(dim);
-      type = H5T_C_S1;
-      hid_t filetype = H5Dget_type(h5a_id);
-      SizeT sdim = H5Tget_size(filetype);
-      sdim++; /* Make room for null terminator */
-      char **rdata;
-      /*
-       * Allocate array of pointers to rows.
-       */
-      rdata = (char **) malloc(count_s[0] * sizeof (char *));
-      /*
-       * Allocate space for integer data.
-       */
-      rdata[0] = (char *) malloc(count_s[0] * sdim * sizeof (char));
-      /*
-       * Set the rest of the pointers to rows to the correct addresses.
-       */
-      for (int i = 1; i < count_s[0]; i++)
-        rdata[i] = rdata[0] + i * sdim;
-      /*
-       * Create the memory datatype.
-       */
-      hid_t memtype = H5Tcopy(H5T_C_S1);
-      hid_t status = H5Tset_size(memtype, sdim);
-
-      if (H5Aread(h5a_id, type, rdata[0]) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-      for (int i = 0; i < count_s[0]; i++)
-        (*(static_cast<DStringGDL*> (res)))[i] = rdata[i];
-      free (rdata); //but not rdata[0]
-      status = H5Tclose (filetype);
-      status = H5Tclose (memtype);
-      return res;
-    } else {
-      e->Throw("Unsupported data format" + i2s(elem_dtype));
-    }
-
-    if (elem_rank>0) type = H5Tarray_create2( type, elem_rank, elem_dims );
-
-    if (H5Aread(h5a_id, type, res->DataAddr()) < 0)
-      { string msg; e->Throw(hdf5_error_message(msg)); }
-
-    if (elem_rank>0) H5Tclose(type);
+    BaseGDL* res = hdf5_unified_read( h5a_id, h5s_id, H5I_BADID, e );
 
     return res;
-
-    return new DIntGDL(-1);
   }
 
 
@@ -1191,197 +1298,9 @@ hid_t
     hdf5_space_guard memspace_id_guard = hdf5_space_guard(memspace_id);
 
 
-    /* --- data type --- */
+    /* --- read the dataset into GDL --- */
 
-    hid_t datatype = H5Dget_type(h5d_id);
-    if (datatype < 0) {
-      string msg;
-      e->Throw(hdf5_error_message(msg));
-    }
-
-    hdf5_type_guard datatype_guard = hdf5_type_guard(datatype);
-
-    // for array datatypes, determine the rank and dimension of the element
-    int elem_rank=0;
-    hid_t elem_dtype;
-
-    if (H5Tget_class(datatype)==H5T_ARRAY ) {
-
-       if ((elem_rank=H5Tget_array_ndims(datatype)) <0)
-          { string msg; e->Throw(hdf5_error_message(msg)); }
-       if (debug) cout << "array datatype of rank " << elem_rank << endl;
-
-       if (H5Tget_array_dims2(datatype, elem_dims) <0)
-          { string msg; e->Throw(hdf5_error_message(msg)); }
-
-       if (debug && elem_rank>0) {
-          cout << "dimensions are: ";
-          for(int i=0; i<elem_rank; i++) cout << elem_dims[i] << ",";
-          cout << endl;
-       }
-
-       elem_dtype = H5Tget_super(datatype);
-       if (elem_dtype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-
-    } else {
-
-       elem_dtype = H5Tcopy(datatype);
-       if (elem_dtype < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-
-    }
-
-    hdf5_type_guard elem_dtype_guard = hdf5_type_guard(elem_dtype);
-
-    // determine the rank and dimension of the dataset in memory
-    int rank = H5Sget_simple_extent_ndims(memspace_id);
-
-    if (rank < 0) {
-      string msg;
-      e->Throw(hdf5_error_message(msg));
-    }
-    if (debug) cout << "data rank in memory is " << rank << endl;
-
-    if (H5Sget_simple_extent_dims(memspace_id, dims_out, NULL) < 0) {
-      string msg;
-      e->Throw(hdf5_error_message(msg));
-    }
-
-    if (debug && rank>0) {
-       cout << "dimensions are: ";
-       for(int i=0; i<rank; i++) cout << dims_out[i] << ",";
-       cout << endl;
-    }
-
-    // dimensions for IDL variable
-    SizeT count_s[MAXRANK];
-    SizeT rank_s;
-
-    rank_s = (SizeT) (elem_rank + rank);
-
-    // need to reverse indices for column major format
-    for(int i=0; i<elem_rank; i++)
-      count_s[i] = (SizeT)elem_dims[elem_rank - 1  - i ];
-
-    for(int i=elem_rank; i<elem_rank+rank; i++)
-      count_s[i] = (SizeT)dims_out[elem_rank+rank - 1  - i ];
-
-    // create the IDL datatypes
-    dimension dim(count_s, rank_s);
-
-    BaseGDL *res;
-
-    DLong ourType = mapH5DatatypesToGDL(elem_dtype,e);
-    hsize_t type;
-
-    if (debug)  cout << "ourType : " << ourType  << endl;
-
-    if (ourType == GDL_BYTE) {
-      res = new DByteGDL(dim);
-      type = H5T_NATIVE_UINT8;
-    } else if (ourType == GDL_INT) {
-      res = new DIntGDL(dim);
-      type = H5T_NATIVE_INT16;
-    } else if (ourType == GDL_UINT) {
-      res = new DUIntGDL(dim);
-      type = H5T_NATIVE_UINT16;
-    } else if (ourType == GDL_LONG) {
-      res = new DLongGDL(dim);
-      type = H5T_NATIVE_INT32;
-    } else if (ourType == GDL_ULONG) {
-      res = new DULongGDL(dim);
-      type = H5T_NATIVE_UINT32;
-    } else if (ourType == GDL_LONG64) {
-      res = new DLong64GDL(dim);
-      type = H5T_NATIVE_INT64;
-    } else if (ourType == GDL_LONG64) {
-      res = new DULong64GDL(dim);
-      type = H5T_NATIVE_UINT64;
-    } else if (ourType == GDL_FLOAT) {
-      res = new DFloatGDL(dim);
-      type = H5T_NATIVE_FLOAT;
-    } else if (ourType == GDL_DOUBLE) {
-      res = new DDoubleGDL(dim);
-      type = H5T_NATIVE_DOUBLE;
-
-    } else if (ourType == GDL_STRUCT) {
-
-       if (debug) printf("compound dataset\n");
-
-       if(rank>0)
-          e->Throw("Only scalar dataspaces supported for compound datasets.");
-
-       DStructDesc* cmp_desc = new DStructDesc("$truct");
-       DStructGDL* res = new DStructGDL(cmp_desc);
-
-       size_t cmp_sz = H5Tget_size(datatype);
-       char *raw = (char*)calloc(cmp_sz,sizeof(char));
-
-       if ( H5Dread(h5d_id, datatype, memspace_id, filespace_id,
-                    H5P_DEFAULT, raw) < 0) {
-          string msg; e->Throw(hdf5_error_message(msg));
-       }
-
-       // translate to GDL structure
-       hdf5_parse_compound( datatype, res, raw, e );
-
-       free(raw);
-       return res;
-
-    } else if (ourType == GDL_STRING) {
-
-      // a bit special, lets follow the example on h5 site:
-      res = new DStringGDL(dim);
-      type = H5T_C_S1;
-      hid_t filetype = H5Dget_type(h5d_id);
-      SizeT sdim = H5Tget_size(filetype);
-      sdim++; /* Make room for null terminator */
-      char **rdata;
-      /*
-       * Allocate array of pointers to rows.
-       */
-      rdata = (char **) malloc(count_s[0] * sizeof (char *));
-      /*
-       * Allocate space for integer data.
-       */
-      rdata[0] = (char *) malloc(count_s[0] * sdim * sizeof (char));
-      /*
-       * Set the rest of the pointers to rows to the correct addresses.
-       */
-      for (int i = 1; i < count_s[0]; i++)
-        rdata[i] = rdata[0] + i * sdim;
-      /*
-       * Create the memory datatype.
-       */
-      hid_t memtype = H5Tcopy(H5T_C_S1);
-      hid_t status = H5Tset_size(memtype, sdim);
-
-      status = H5Dread(h5d_id, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, rdata[0]);
-
-      if (status < 0) {
-        string msg;
-        e->Throw(hdf5_error_message(msg));
-      }
-
-      for (int i = 0; i < count_s[0]; i++)
-        (*(static_cast<DStringGDL*> (res)))[i] = rdata[i];
-      free (rdata); //but not rdata[0]
-      status = H5Tclose (filetype);
-      status = H5Tclose (memtype);
-      return res;
-
-    } else {
-      e->Throw("Unsupported data format" + i2s(elem_dtype));
-    }
-
-    if (elem_rank>0) type = H5Tarray_create2( type, elem_rank, elem_dims );
-
-    if (H5Dread(h5d_id, type, memspace_id, filespace_id,
-                H5P_DEFAULT, res->DataAddr()) < 0) {
-      string msg;
-      e->Throw(hdf5_error_message(msg));
-    }
-
-    if (elem_rank>0) H5Tclose(type);
+    BaseGDL* res = hdf5_unified_read( h5d_id, memspace_id, filespace_id, e );
 
     return res;
   }
