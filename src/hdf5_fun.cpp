@@ -384,6 +384,28 @@ namespace lib {
 
   // --------------------------------------------------------------------
 
+  void hdf5_basic_read( hid_t loc_id, hid_t datatype,
+                        hid_t ms_id, hid_t fs_id, void* raw, EnvT* e ) {
+
+    herr_t status;
+
+    switch( H5Iget_type(loc_id) ) {
+
+    case H5I_DATASET:
+      status = H5Dread(loc_id, datatype, ms_id, fs_id, H5P_DEFAULT, raw);
+      break;
+
+    case H5I_ATTR:
+      status = H5Aread(loc_id, datatype, raw);
+      break;
+    }
+    if (status < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return;
+  }
+
+  // --------------------------------------------------------------------
+
   BaseGDL* hdf5_unified_read( hid_t loc_id,
                               hid_t ms_id, hid_t fs_id, EnvT* e ) {
 
@@ -548,15 +570,8 @@ namespace lib {
       hid_t memtype = H5Tcopy(H5T_C_S1); /// FIXME: may leak
       status = H5Tset_size(memtype, sdim);
 
-      switch( H5Iget_type(loc_id) ) {
-
-      case H5I_DATASET:
-        status = H5Dread( loc_id, memtype, H5S_ALL, /// FIXME: use '{ms|fs}_id'
-                          H5S_ALL, H5P_DEFAULT, rdata[0] ); break;
-      case H5I_ATTR:
-        status = H5Aread( loc_id, memtype, rdata[0] ); break;
-      }
-      if (status < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+      hdf5_basic_read( loc_id, memtype, H5S_ALL, /// FIXME: use '{ms|fs}_id'
+                       H5S_ALL, rdata[0], e );
 
       for (int i=0; i<count_s[0]; i++)
         (*(static_cast<DStringGDL*> (res)))[i] = rdata[i];
@@ -580,19 +595,7 @@ namespace lib {
        char *raw = (char*)calloc(cmp_sz,sizeof(char)); /// FIXME: may leak
 
        // read raw-data for compound dataset
-       herr_t stat;
-
-       switch( H5Iget_type(loc_id) ) {
-
-       case H5I_DATASET:
-         status = H5Dread(loc_id, datatype, ms_id, fs_id, H5P_DEFAULT, raw);
-         break;
-
-       case H5I_ATTR:
-         status = H5Aread(loc_id, datatype, raw);
-         break;
-       }
-       if (status < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+       hdf5_basic_read( loc_id, datatype, ms_id, fs_id, raw, e );
 
        // translate to GDL structure
        hdf5_parse_compound( datatype, res, raw, e );
@@ -610,18 +613,9 @@ namespace lib {
 
     if (elem_rank>0) type = H5Tarray_create2( type, elem_rank, elem_dims );
     else type = H5Tcopy(type);
-
     hdf5_type_guard type_guard = hdf5_type_guard(type);
 
-    switch( H5Iget_type(loc_id) ) {
-
-    case H5I_DATASET:
-      status = H5Dread( loc_id, type, ms_id, fs_id,
-                        H5P_DEFAULT, res->DataAddr() ); break;
-    case H5I_ATTR:
-      status = H5Aread( loc_id, type, res->DataAddr() ); break;
-    }
-    if (status<0) { string msg; e->Throw(hdf5_error_message(msg)); }
+    hdf5_basic_read( loc_id, type, ms_id, fs_id, res->DataAddr(), e );
 
     return res;
   }
