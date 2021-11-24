@@ -592,15 +592,15 @@ namespace lib {
        DStructGDL* res = new DStructGDL(cmp_desc);
 
        size_t cmp_sz = H5Tget_size(datatype);
-       char *raw = (char*)calloc(cmp_sz,sizeof(char)); /// FIXME: may leak
+       if (cmp_sz < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+       std:unique_ptr<char[]> raw(new char[cmp_sz]);
 
        // read raw-data for compound dataset
-       hdf5_basic_read( loc_id, datatype, ms_id, fs_id, raw, e );
+       hdf5_basic_read( loc_id, datatype, ms_id, fs_id, raw.get(), e );
 
        // translate to GDL structure
-       hdf5_parse_compound( datatype, res, raw, e );
+       hdf5_parse_compound( datatype, res, raw.get(), e );
 
-       free(raw);
        return res;
 
     } else {
