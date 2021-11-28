@@ -539,11 +539,14 @@ pro TEST_HDF5_COMP, cumul_errors, create=create
 
       s_id = h5s_create_scalar()
       t_id = h5t_idl_create(main)
-      d_id = h5d_create(f_id, "a_compund", t_id, s_id)
+      d_id = h5d_create(f_id, "a_compund_dataset", t_id, s_id)
+      a_id = h5a_create(d_id, "a_compund_attribute", t_id, s_id)
 
       h5d_write, d_id, main
+      h5a_write, a_id, main
 
-      h5d_close, d_id &  h5t_close, t_id &  h5s_close, s_id
+      h5d_close, d_id &  h5a_close, a_id
+      h5t_close, t_id &  h5s_close, s_id
       h5f_close, f_id
 
       return
@@ -553,12 +556,15 @@ pro TEST_HDF5_COMP, cumul_errors, create=create
    ; --- read HDF5 compound datasets into GDL structures
 
    f_id = h5f_open(full_file_name)
-   d_id = h5d_open(f_id, "a_compund")
+   d_id = h5d_open(f_id, "a_compund_dataset")
+   a_id = h5a_open_name(d_id, "a_compund_attribute")
 
-   read_main = h5d_read(d_id)
+   read_data = h5d_read(d_id)
+   read_attr = h5a_read(a_id)
 
-   ;;; help, read_main, read_main.sub, main, main.sub, /st
+   ;;; help, read_data, read_data.sub, main, main.sub, /st
 
+   h5a_close, a_id
    h5d_close, d_id
    h5f_close, f_id
 
@@ -574,7 +580,14 @@ pro TEST_HDF5_COMP, cumul_errors, create=create
       test = (is_string_tag) ? 'STRCMP' : 'ARRAY_EQUAL'
       test_kw = (is_string_tag) ? '' : ', /no_typeconv'
 
-      cmd = "result = "+test+"( MAIN."+tag+","+" READ_MAIN."+tag+test_kw+" )"
+      ; --- test dataset
+      cmd = "result = "+test+"( MAIN."+tag+","+" READ_DATA."+tag+test_kw+" )"
+      void=execute(cmd)
+
+      errors += (result eq 0)
+
+      ; --- test attribute
+      cmd = "result = "+test+"( MAIN."+tag+","+" READ_ATTR."+tag+test_kw+" )"
       void=execute(cmd)
 
       errors += (result eq 0)
