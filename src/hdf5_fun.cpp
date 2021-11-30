@@ -360,9 +360,7 @@ namespace lib {
         field = new DFloatGDL(dim);
       } else if (ourType == GDL_DOUBLE) {
         field = new DDoubleGDL(dim);
-      } else if (ourType == GDL_STRING &&
-                 member_class==H5T_STRING) { //FIXME: STRING/STRUCT ambiguous
-
+      } else if (ourType == GDL_STRING) {
         if (rank_s>0) e->Throw("Only scalar strings allowed.");
 
         char* name = static_cast<char*>(calloc(member_sz,sizeof(char)));
