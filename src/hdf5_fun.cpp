@@ -584,7 +584,7 @@ namespace lib {
 
        size_t cmp_sz = H5Tget_size(datatype);
        if (cmp_sz < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-       std:unique_ptr<char[]> raw(new char[cmp_sz]);
+       std::unique_ptr<char[]> raw(new char[cmp_sz]);
 
        // read raw-data for compound dataset
        hdf5_basic_read( loc_id, datatype, ms_id, fs_id, raw.get(), e );
