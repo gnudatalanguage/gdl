@@ -543,7 +543,7 @@ pro TEST_HDF5_COMP, cumul_errors, create=create
               a_string:"nested compound" }
 
    main = { a_byte:4b, a_byte_arr:byte([5,6,7,8]), $
-            sub:nested, a_string:"main" }
+            sub:nested, a_string:"main compound", a_string_arr:["abc","def","ghi"] }
 
    if keyword_set(create) then begin
 
@@ -598,13 +598,13 @@ pro TEST_HDF5_COMP, cumul_errors, create=create
       cmd = "result = "+test+"( MAIN."+tag+","+" READ_DATA."+tag+test_kw+" )"
       void=execute(cmd)
 
-      errors += (result eq 0)
+      errors += total(result eq 0)
 
       ; --- test attribute
       cmd = "result = "+test+"( MAIN."+tag+","+" READ_ATTR."+tag+test_kw+" )"
       void=execute(cmd)
 
-      errors += (result eq 0)
+      errors += total(result eq 0)
 
    endforeach
 
