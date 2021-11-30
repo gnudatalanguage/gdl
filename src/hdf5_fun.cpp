@@ -362,7 +362,7 @@ namespace lib {
         field = new DDoubleGDL(dim);
       } else if (ourType == GDL_STRING) {
 
-        // string lenth (terminator included)
+        // string length (terminator included)
         SizeT str_len = H5Tget_size(elem_type);
 
         // number of array elements
@@ -563,7 +563,7 @@ namespace lib {
 
       if (debug) printf("fixed-length string dataset\n");
 
-      // string lenth (no terminator required)
+      // string length (terminator included)
       SizeT str_len = H5Tget_size(elem_dtype);
 
       // total number of array elements
