@@ -361,13 +361,30 @@ namespace lib {
       } else if (ourType == GDL_DOUBLE) {
         field = new DDoubleGDL(dim);
       } else if (ourType == GDL_STRING) {
-        if (rank_s>0) e->Throw("Only scalar strings allowed.");
 
+        // string lenth (terminator included)
+        SizeT str_len = H5Tget_size(elem_type);
+
+        // number of array elements
+        SizeT num_elems=member_sz/str_len;
+
+        // allocate string buffer (remains allocated)
         char* name = static_cast<char*>(calloc(member_sz,sizeof(char)));
         if (name == NULL) e->Throw("Failed to allocate memory!");
 
-        strncpy(name,&raw[member_offs],member_sz);
-        parent_struct->NewTag( member_name, new DStringGDL(name) ); free(name);
+        // create GDL variable
+        dimension flat_dim(&num_elems, 1);
+        BaseGDL *str_arr = new DStringGDL(flat_dim);
+
+        // assign array pointers
+        for (size_t i=0; i<num_elems; i++) {
+          strncpy(name+str_len*i,&raw[member_offs+str_len*i],str_len);
+          (*(static_cast<DStringGDL*> (str_arr)))[i] = name+str_len*i;
+        }
+
+        // re-shape array & add as tag
+        (static_cast<BaseGDL*>(str_arr))->SetDim(dim);
+        parent_struct->NewTag( member_name, str_arr );
       }
 
       if(field) {
