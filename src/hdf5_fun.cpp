@@ -360,16 +360,31 @@ namespace lib {
         field = new DFloatGDL(dim);
       } else if (ourType == GDL_DOUBLE) {
         field = new DDoubleGDL(dim);
-      } else if (ourType == GDL_STRING &&
-                 member_class==H5T_STRING) { //FIXME: STRING/STRUCT ambiguous
+      } else if (ourType == GDL_STRING) {
 
-        if (rank_s>0) e->Throw("Only scalar strings allowed.");
+        // string length (terminator included)
+        SizeT str_len = H5Tget_size(elem_type);
 
+        // number of array elements
+        SizeT num_elems=member_sz/str_len;
+
+        // allocate string buffer (remains allocated)
         char* name = static_cast<char*>(calloc(member_sz,sizeof(char)));
         if (name == NULL) e->Throw("Failed to allocate memory!");
 
-        strncpy(name,&raw[member_offs],member_sz);
-        parent_struct->NewTag( member_name, new DStringGDL(name) ); free(name);
+        // create GDL variable
+        dimension flat_dim(&num_elems, 1);
+        BaseGDL *str_arr = new DStringGDL(flat_dim);
+
+        // assign array pointers
+        for (size_t i=0; i<num_elems; i++) {
+          strncpy(name+str_len*i,&raw[member_offs+str_len*i],str_len);
+          (*(static_cast<DStringGDL*> (str_arr)))[i] = name+str_len*i;
+        }
+
+        // re-shape array & add as tag
+        (static_cast<BaseGDL*>(str_arr))->SetDim(dim);
+        parent_struct->NewTag( member_name, str_arr );
       }
 
       if(field) {
@@ -545,40 +560,31 @@ namespace lib {
       type = H5T_NATIVE_DOUBLE;
 
     } else if (ourType == GDL_STRING) {
-      res = new DStringGDL(dim);
-      type = H5T_C_S1;
 
-      SizeT sdim = H5Tget_size(datatype);
-      sdim++; /* Make room for null terminator */
-      char **rdata;
-      /*
-       * Allocate array of pointers to rows.
-       */
-      rdata = (char **) malloc(count_s[0] * sizeof (char *)); /// may leak
-      /*
-       * Allocate space for string data.
-       */
-      rdata[0] = (char *) malloc(count_s[0] * sdim * sizeof (char)); /// may leak
-      /*
-       * Set the rest of the pointers to rows to the correct addresses.
-       */
-      for (int i = 1; i < count_s[0]; i++)
-        rdata[i] = rdata[0] + i * sdim;
-      /*
-       * Create the memory datatype.
-       */
-      hid_t memtype = H5Tcopy(H5T_C_S1); /// FIXME: may leak
-      status = H5Tset_size(memtype, sdim);
+      if (debug) printf("fixed-length string dataset\n");
 
-      hdf5_basic_read( loc_id, memtype, H5S_ALL, /// FIXME: use '{ms|fs}_id'
-                       H5S_ALL, rdata[0], e );
+      // string length (terminator included)
+      SizeT str_len = H5Tget_size(elem_dtype);
 
-      for (int i=0; i<count_s[0]; i++)
-        (*(static_cast<DStringGDL*> (res)))[i] = rdata[i];
+      // total number of array elements
+      SizeT num_elems=1;
+      for(int i=0; i<rank_s; i++) num_elems *= count_s[i];
 
-      free (rdata); //but not rdata[0]
+      // allocate & read raw buffer (remains allocated upon return)
+      char* raw = (char*) malloc(num_elems*str_len*sizeof(char));
+      hdf5_basic_read( loc_id, datatype, ms_id, fs_id, raw, e );
 
-      status = H5Tclose(memtype);
+      // create GDL variable
+      dimension flat_dim(&num_elems, 1);
+      res = new DStringGDL(flat_dim);
+
+      // assign array pointers
+      for (size_t i=0; i<num_elems; i++)
+        (*(static_cast<DStringGDL*> (res)))[i] = raw + str_len*i;
+
+      // re-shape array to match dataset
+      (static_cast<BaseGDL*>(res))->SetDim(dim);
+
       return res;
 
     } else if (ourType == GDL_STRUCT) {
@@ -593,7 +599,7 @@ namespace lib {
 
        size_t cmp_sz = H5Tget_size(datatype);
        if (cmp_sz < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-       std:unique_ptr<char[]> raw(new char[cmp_sz]);
+       std::unique_ptr<char[]> raw(new char[cmp_sz]);
 
        // read raw-data for compound dataset
        hdf5_basic_read( loc_id, datatype, ms_id, fs_id, raw.get(), e );

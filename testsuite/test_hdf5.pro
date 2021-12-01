@@ -201,13 +201,20 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
 
          ndata=1 & for i=0,n_elements(dims)-1 do ndata *= dims[i]
 
-         case (rank mod 3) of
+         fibo = lonarr( ndata ) & fibo[0:1]=[0,1]
+         for i=2,ndata-1 do fibo[i]=fibo[i-1]+fibo[i-2]
+
+         case (rank mod 4) of
             0: data = intarr( ndata )
             1: data = fltarr( ndata )
             2: data = dblarr( ndata )
+            3: data = strarr( ndata )
          endcase
 
-         for i=0,ndata-1 do data[i] = i
+         if (rank mod 4 eq 3) then $
+            for i=0,ndata-1 do data[i] = string(fo='(%"%08d")', fibo[i]) $
+         else $
+            for i=0,ndata-1 do data[i] = fibo[i]
 
          ; --- create lists
          attr_data.add, reform( data, dims )
@@ -325,13 +332,20 @@ pro TEST_HDF5_DATA, cumul_errors, create=create
 
          ndata=1 & for i=0,n_elements(dims)-1 do ndata *= dims[i]
 
-         case (rank mod 3) of
+         fibo = lonarr( ndata ) & fibo[0:1]=[0,1]
+         for i=2,ndata-1 do fibo[i]=fibo[i-1]+fibo[i-2]
+
+         case (rank mod 4) of
             0: data = intarr( ndata )
             1: data = fltarr( ndata )
             2: data = dblarr( ndata )
+            3: data = strarr( ndata )
          endcase
 
-         for i=0,ndata-1 do data[i] = i+1
+         if (rank mod 4 eq 3) then $
+            for i=0,ndata-1 do data[i] = string(fo='(%"%08d")', fibo[i]) $
+         else $
+            for i=0,ndata-1 do data[i] = fibo[i]
 
          ; --- create lists
          mock_data.add, reform( data, dims )
@@ -529,7 +543,7 @@ pro TEST_HDF5_COMP, cumul_errors, create=create
               a_string:"nested compound" }
 
    main = { a_byte:4b, a_byte_arr:byte([5,6,7,8]), $
-            sub:nested, a_string:"main" }
+            sub:nested, a_string:"main compound", a_string_arr:["abc","def","ghi"] }
 
    if keyword_set(create) then begin
 
@@ -584,13 +598,13 @@ pro TEST_HDF5_COMP, cumul_errors, create=create
       cmd = "result = "+test+"( MAIN."+tag+","+" READ_DATA."+tag+test_kw+" )"
       void=execute(cmd)
 
-      errors += (result eq 0)
+      errors += total(result eq 0)
 
       ; --- test attribute
       cmd = "result = "+test+"( MAIN."+tag+","+" READ_ATTR."+tag+test_kw+" )"
       void=execute(cmd)
 
-      errors += (result eq 0)
+      errors += total(result eq 0)
 
    endforeach
 
