@@ -324,112 +324,117 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT,
   Sp( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
   this->dim.Purge();
+  
   if (iT == BaseGDL::NOZERO) return;  //very frequent
-  else if (iT == BaseGDL::ZERO) { //rather frequent
+  
+  if (iT == BaseGDL::ZERO) { //rather frequent
     SizeT sz = dd.size();
-#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for
-      for (SizeT i = 0; i < sz; ++i) {
-        (*this)[i] = 0;
-      }
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) { //most frequent
+      for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+      for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
   }
+  
   else if (iT == BaseGDL::INDGEN) { //less frequent
     SizeT sz = dd.size();
-    if (off==0 && inc==1) { 
-      #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-      {
-        #pragma omp for
-        for (SizeT i = 0; i < sz; ++i) {
-          (*this)[i]=i;
-        }
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) { //most frequent
+      if (off==0 && inc==1) { 
+         for (SizeT i = 0; i < sz; ++i) (*this)[i]=i;
+      } else {
+         for (SizeT i = 0; i < sz; ++i) (*this)[i]=off+i*inc;
       }
     } else {
-      #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-      {
-        #pragma omp for
-        for (SizeT i = 0; i < sz; ++i) {
-          (*this)[i]=off+i*inc;
-        }
+      if (off==0 && inc==1) { 
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+         for (SizeT i = 0; i < sz; ++i) (*this)[i]=i;
+      } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+         for (SizeT i = 0; i < sz; ++i) (*this)[i]=off+i*inc;
       }
     }
   }
 }
+
 //IDL uses floats increments and offset for floats and complex (normal) .
 template<> Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble off, DDouble inc):
-  SpDFloat( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
-{
+  SpDFloat( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false) {
   this->dim.Purge();
-  if (iT == BaseGDL::NOZERO) return;  //very frequent
-  else if (iT == BaseGDL::ZERO) { //rather frequent
+
+  if (iT == BaseGDL::NOZERO) return; //very frequent
+
+  if (iT == BaseGDL::ZERO) { //rather frequent
     SizeT sz = dd.size();
-#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for
-      for (SizeT i = 0; i < sz; ++i) {
-        (*this)[i] = 0;
-      }
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) { //most frequent
+      for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+      for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
-  }
-  else if (iT == BaseGDL::INDGEN) { //less frequent
+  } else if (iT == BaseGDL::INDGEN) { //less frequent
     SizeT sz = dd.size();
-    if (off==0 && inc==1) { 
-      #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-      {
-        #pragma omp for
-        for (SizeT i = 0; i < sz; ++i) {
-          (*this)[i]=i;
-        }
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) { //most frequent
+      if (off == 0 && inc == 1) {
+        for (SizeT i = 0; i < sz; ++i) (*this)[i] = i;
+      } else {
+        DFloat f_off = off;
+        DFloat f_inc = inc;
+        for (SizeT i = 0; i < sz; ++i) (*this)[i] = f_off + i * f_inc;
       }
     } else {
-      DFloat f_off=off;
-      DFloat f_inc=inc;
-      #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-      {
-        #pragma omp for
-        for (SizeT i = 0; i < sz; ++i) {
-          (*this)[i]=f_off+i*f_inc;
-        }
+      if (off == 0 && inc == 1) {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < sz; ++i) (*this)[i] = i;
+      } else {
+        DFloat f_off = off;
+        DFloat f_inc = inc;
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < sz; ++i) (*this)[i] = f_off + i * f_inc;
       }
     }
   }
 }
 
 template<> Data_<SpDComplex>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble off, DDouble inc):
-  SpDComplex( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
-{
+  SpDComplex( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false) {
   this->dim.Purge();
-  if (iT == BaseGDL::NOZERO) return;  //very frequent
-  else if (iT == BaseGDL::ZERO) { //rather frequent
+
+  if (iT == BaseGDL::NOZERO) return; //very frequent
+
+  if (iT == BaseGDL::ZERO) { //rather frequent
     SizeT sz = dd.size();
-#pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for
-      for (SizeT i = 0; i < sz; ++i) {
-        (*this)[i] = 0;
-      }
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) { //most frequent
+      for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+      for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
-  }
-  else if (iT == BaseGDL::INDGEN) { //less frequent
+  } else if (iT == BaseGDL::INDGEN) { //less frequent
     SizeT sz = dd.size();
-    if (off==0 && inc==1) { 
-      #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-      {
-        #pragma omp for
-        for (SizeT i = 0; i < sz; ++i) {
-          (*this)[i]=i;
-        }
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) { //most frequent
+      if (off == 0 && inc == 1) {
+        for (SizeT i = 0; i < sz; ++i) (*this)[i] = i;
+      } else {
+        DFloat f_off = off;
+        DFloat f_inc = inc;
+        for (SizeT i = 0; i < sz; ++i) (*this)[i] = f_off + i * f_inc;
       }
     } else {
-      DFloat f_off=off;
-      DFloat f_inc=inc;
-      #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-      {
-        #pragma omp for
-        for (SizeT i = 0; i < sz; ++i) {
-          (*this)[i]=f_off+i*f_inc;
-        }
+      if (off == 0 && inc == 1) {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < sz; ++i) (*this)[i] = i;
+      } else {
+        DFloat f_off = off;
+        DFloat f_inc = inc;
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < sz; ++i) (*this)[i] = f_off + i * f_inc;
       }
     }
   }
@@ -440,52 +445,43 @@ template<> Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT, 
 {
   dim.Purge();
   
-  if( iT == BaseGDL::INDGEN)
-    throw GDLException("DStringGDL(dim,InitType=INDGEN) called.");
+  if( iT == BaseGDL::INDGEN) throw GDLException("DStringGDL(dim,InitType=INDGEN) called.");
 }
-template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT, DDouble, DDouble):
-  SpDPtr(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
-{
-  dim.Purge();
-  
-  if( iT == BaseGDL::INDGEN)
-    throw GDLException("DPtrGDL(dim,InitType=INDGEN) called.");
 
-  if( iT != BaseGDL::NOALLOC && iT != BaseGDL::NOZERO)
-    {
-      SizeT sz = dd.size();
-    #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-	{
-	#pragma omp for
-      for( SizeT i=0; i<sz; ++i)
-	{
-	  (*this)[i]=0;
-	}
-      // 	  val += 1; // no increment operator for floats
-     	}
+template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT, DDouble, DDouble):
+  SpDPtr(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false) {
+  dim.Purge();
+
+  if (iT == BaseGDL::INDGEN) throw GDLException("DPtrGDL(dim,InitType=INDGEN) called.");
+
+  if (iT != BaseGDL::NOALLOC && iT != BaseGDL::NOZERO) {
+    SizeT sz = dd.size();
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) { //most frequent
+      for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+      for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
+  }
 }
 template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble):
   SpDObj(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 {
   dim.Purge();
 
-  if( iT == BaseGDL::INDGEN)
-    throw GDLException("DObjGDL(dim,InitType=INDGEN) called.");
-
-  if( iT != BaseGDL::NOALLOC && iT != BaseGDL::NOZERO)
-    {
-      SizeT sz = dd.size();
-    #pragma omp parallel if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-	{
-	#pragma omp for
-      for( SizeT i=0; i<sz; i++)
-	{
-	  (*this)[i]=0;
-	}
-      // 	  val += 1; // no increment operator for floats
+  if( iT == BaseGDL::INDGEN) throw GDLException("DObjGDL(dim,InitType=INDGEN) called.");
+  
+  if (iT != BaseGDL::NOALLOC && iT != BaseGDL::NOZERO) {
+    SizeT sz = dd.size();
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) { //most frequent
+      for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+      for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
-    }
+  }
 }
 
 // c-i
@@ -497,12 +493,12 @@ template<class Sp>
 Data_<Sp>::Data_(const Data_& d_) : Sp(d_.dim), dd(this->dim.NDimElements(), false) {
   this->dim.Purge(); //useful?
   SizeT sz = dd.size();
-#pragma omp parallel if (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-  {
-#pragma omp for
-    for (SizeT i = 0; i < sz; i++) {
-      dd[i] = d_.dd[i];
-    }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 0; i < sz; i++) dd[i] = d_.dd[i];
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for (SizeT i = 0; i < sz; i++) dd[i] = d_.dd[i];
   }
 }
 
@@ -541,65 +537,81 @@ Data_<Sp>* Data_<Sp>::Dup() const { return new Data_(*this);}
 template<class Sp>
 BaseGDL* Data_<Sp>::Log()              
 { 
-  DFloatGDL* res = static_cast<DFloatGDL*>
-    (this->Convert2( GDL_FLOAT, BaseGDL::COPY));
+  DFloatGDL* res = static_cast<DFloatGDL*> (this->Convert2( GDL_FLOAT, BaseGDL::COPY));
   res->LogThis();
   return res;
 }
+
 template<>
-BaseGDL* Data_<SpDFloat>::Log()              
-{ 
-  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+BaseGDL* Data_<SpDFloat>::Log() {
+  Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
-  if( nEl == 1)
-    {
-      (*n)[ 0] = log( (*this)[ 0]);
-      return n;
-    }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-      for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log( (*this)[ i]);
+  if (nEl == 1) {
+    (*n)[ 0] = log((*this)[ 0]);
+    return n;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
+  }
   return n;
 }
+
 template<>
 BaseGDL* Data_<SpDDouble>::Log()              
-{ 
-  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+{
+  Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
-  if( nEl == 1)
-    {
-      (*n)[ 0] = log( (*this)[ 0]);
-      return n;
-    }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( SizeT i=0; i<nEl; ++i)  (*n)[ i] = log( (*this)[ i]);
+  if (nEl == 1) {
+    (*n)[ 0] = log((*this)[ 0]);
+    return n;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
+  }
   return n;
 }
 template<>
 BaseGDL* Data_<SpDComplex>::Log()              
-{ 
-  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+{
+  Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
-  if( nEl == 1)
-    {
-      (*n)[ 0] = log( (*this)[ 0]);
-      return n;
-    }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log( (*this)[ i]);
+  if (nEl == 1) {
+    (*n)[ 0] = log((*this)[ 0]);
+    return n;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
+  }
   return n;
 }
 template<>
 BaseGDL* Data_<SpDComplexDbl>::Log()              
-{ 
-  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+{
+  Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
-  if( nEl == 1)
-    {
-      (*n)[ 0] = log( (*this)[ 0]);
-      return n;
-    }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log( (*this)[ i]);
+  if (nEl == 1) {
+    (*n)[ 0] = log((*this)[ 0]);
+    return n;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
+  }
   return n;
 }
 
@@ -610,126 +622,162 @@ BaseGDL* Data_<SpDComplexDbl>::Log()
 template<class Sp>
 BaseGDL* Data_<Sp>::LogThis()              
 { 
-  DFloatGDL* res = static_cast<DFloatGDL*>
-    (this->Convert2( GDL_FLOAT, BaseGDL::COPY));
+  DFloatGDL* res = static_cast<DFloatGDL*>(this->Convert2( GDL_FLOAT, BaseGDL::COPY));
   res->LogThis(); // calls correct LogThis for float
   return res;
 }
+
 template<>
-BaseGDL* Data_<SpDFloat>::LogThis()              
-{ 
+BaseGDL* Data_<SpDFloat>::LogThis() {
   SizeT nEl = N_Elements();
-  if( nEl == 1)
-    {
-      (*this)[ 0] = log( (*this)[ 0]);
-      return this;
-    }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( SizeT i=0; i<nEl; ++i) (*this)[ i] = log( (*this)[ i]);
+  if (nEl == 1) {
+    (*this)[ 0] = log((*this)[ 0]);
+    return this;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
+  }
   return this;
 }
+
 template<>
 BaseGDL* Data_<SpDDouble>::LogThis()              
-{ 
+{
   SizeT nEl = N_Elements();
-  if( nEl == 1)
-    {
-      (*this)[ 0] = log( (*this)[ 0]);
-      return this;
-    }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( SizeT i=0; i<nEl; ++i) (*this)[ i] = log( (*this)[ i]);
+  if (nEl == 1) {
+    (*this)[ 0] = log((*this)[ 0]);
+    return this;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
+  }
   return this;
 }
+
 template<>
 BaseGDL* Data_<SpDComplex>::LogThis()              
-{ 
+{
   SizeT nEl = N_Elements();
-  if( nEl == 1)
-    {
-      (*this)[ 0] = log( (*this)[ 0]);
-      return this;
-    }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( SizeT i=0; i<nEl; ++i) (*this)[ i] = log( (*this)[ i]);
+  if (nEl == 1) {
+    (*this)[ 0] = log((*this)[ 0]);
+    return this;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
+  }
   return this;
 }
 template<>
 BaseGDL* Data_<SpDComplexDbl>::LogThis()              
-{ 
+{
   SizeT nEl = N_Elements();
-  if( nEl == 1)
-    {
-      (*this)[ 0] = log( (*this)[ 0]);
-      return this;
-    }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( SizeT i=0; i<nEl; ++i) (*this)[ i] = log( (*this)[ i]);
+  if (nEl == 1) {
+    (*this)[ 0] = log((*this)[ 0]);
+    return this;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
+  }
   return this;
 }
 
 template<class Sp>
 BaseGDL* Data_<Sp>::Log10()              
 { 
-  DFloatGDL* res = static_cast<DFloatGDL*>
-    (this->Convert2( GDL_FLOAT, BaseGDL::COPY));
+  DFloatGDL* res = static_cast<DFloatGDL*> (this->Convert2( GDL_FLOAT, BaseGDL::COPY));
   res->Log10This();
   return res;
 }
+
 template<>
 BaseGDL* Data_<SpDFloat>::Log10()              
-{ 
-  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+{
+  Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
-  if( nEl == 1)
-    {
-      (*n)[ 0] = log10( (*this)[ 0]);
-      return n;
-    }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+  if (nEl == 1) {
+    (*n)[ 0] = log10((*this)[ 0]);
+    return n;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
+  }
   return n;
 }
+
 template<>
 BaseGDL* Data_<SpDDouble>::Log10()              
 { 
-  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+  Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
-  if( nEl == 1)
-    {
-      (*n)[ 0] = log10( (*this)[ 0]);
-      return n;
-    }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+  if (nEl == 1) {
+    (*n)[ 0] = log10((*this)[ 0]);
+    return n;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
+  }
   return n;
 }
+
 template<>
 BaseGDL* Data_<SpDComplex>::Log10()              
 { 
-  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+  Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
-  if( nEl == 1)
-    {
-      (*n)[ 0] = log10( (*this)[ 0]);
-      return n;
-    }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+  if (nEl == 1) {
+    (*n)[ 0] = log10((*this)[ 0]);
+    return n;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
+  }
   return n;
 }
+
 template<>
 BaseGDL* Data_<SpDComplexDbl>::Log10()              
 { 
-  Data_* n = this->New( this->dim, BaseGDL::NOZERO);
+  Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
-  if( nEl == 1)
-    {
-      (*n)[ 0] = log10( (*this)[ 0]);
-      return n;
-    }
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+  if (nEl == 1) {
+    (*n)[ 0] = log10((*this)[ 0]);
+    return n;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
+  }
   return n;
 }
 
@@ -737,89 +785,77 @@ BaseGDL* Data_<SpDComplexDbl>::Log10()
 template<class Sp>
 BaseGDL* Data_<Sp>::Log10This()              
 { 
-  DFloatGDL* res = static_cast<DFloatGDL*>
-    (this->Convert2( GDL_FLOAT, BaseGDL::COPY));
+  DFloatGDL* res = static_cast<DFloatGDL*> (this->Convert2( GDL_FLOAT, BaseGDL::COPY));
   res->Log10This(); // calls correct Log10This for float
   return res;
 }
 template<>
 BaseGDL* Data_<SpDFloat>::Log10This()              
-{ 
-#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
+{
   SizeT nEl = N_Elements();
-  if( nEl == 1)
-    {
-      (*this)[ 0] = log10( (*this)[ 0]);
-      return this;
-    }
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( SizeT i=0; i<nEl; ++i)
-      (*this)[ i] = log10( (*this)[ i]);
-#else
-  dd = log10(dd);
-#endif
+  if (nEl == 1) {
+    (*this)[ 0] = log10((*this)[ 0]);
+    return this;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
+  }
   return this;
 }
+
 template<>
 BaseGDL* Data_<SpDDouble>::Log10This()              
 { 
-#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
   SizeT nEl = N_Elements();
-  if( nEl == 1)
-    {
-      (*this)[ 0] = log10( (*this)[ 0]);
-      return this;
-    }
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( SizeT i=0; i<nEl; ++i)
-      (*this)[ i] = log10( (*this)[ i]);
-#else
-  dd = log10(dd);
-#endif
+  if (nEl == 1) {
+    (*this)[ 0] = log10((*this)[ 0]);
+    return this;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
+  }
   return this;
 }
 template<>
 BaseGDL* Data_<SpDComplex>::Log10This()              
 { 
-#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
   SizeT nEl = N_Elements();
-  if( nEl == 1)
-    {
-      (*this)[ 0] = log10( (*this)[ 0]);
-      return this;
-    }
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( SizeT i=0; i<nEl; ++i)
-      (*this)[ i] = log10( (*this)[ i]);
-#else
-  dd = log10(dd);
-#endif
+  if (nEl == 1) {
+    (*this)[ 0] = log10((*this)[ 0]);
+    return this;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
+  }
   return this;
 }
 template<>
 BaseGDL* Data_<SpDComplexDbl>::Log10This()              
 { 
-#if 1 || (__GNUC__ == 3) && (__GNUC_MINOR__ == 2) //&& (__GNUC_PATCHLEVEL__ == 2)
-
   SizeT nEl = N_Elements();
-  if( nEl == 1)
-    {
-      (*this)[ 0] = log10( (*this)[ 0]);
-      return this;
-    }
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    for( SizeT i=0; i<nEl; ++i)
-      (*this)[ i] = log10( (*this)[ i]);
-#else
-  dd = log10(dd);
-#endif
+  if (nEl == 1) {
+    (*this)[ 0] = log10((*this)[ 0]);
+    return this;
+  }
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
+  }
   return this;
 }
 
@@ -1227,8 +1263,9 @@ DUInt* InitPermDefault()
     res[ ii] = i;
   return res;
 }
-template<class Sp> 
-BaseGDL* Data_<Sp>::Transpose( DUInt* perm) {
+
+template<class Sp>
+BaseGDL* Data_<Sp>::Transpose(DUInt* perm) {
   SizeT rank = this->Rank();
 
   if (rank == 1) // special case: vector
@@ -1246,25 +1283,25 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm) {
   // 2 - MAXRANK
   static DUInt* permDefault = InitPermDefault();
   if (perm == NULL) {
-    
-// following 2D code is now slower than multi-dim multicore solution below. 
-//    if (rank == 2) {
-//      SizeT srcDim0 = this->dim[0];
-//      SizeT srcDim1 = this->dim[1];
-//      Data_* res = new Data_(dimension(srcDim1, srcDim0), BaseGDL::NOZERO);
-//
-//      SizeT srcIx = 0;
-//      for (SizeT srcIx1 = 0; srcIx1 < srcDim1; ++srcIx1) // src dim 1
-//      {
-//        SizeT resIx = srcIx1;
-//        SizeT srcLim = srcIx + srcDim0; // src dim 0
-//        for (; srcIx < srcLim; ++srcIx) {
-//          (*res)[ resIx] = (*this)[ srcIx];
-//          resIx += srcDim1;
-//        }
-//      }
-//      return res;
-//    }
+
+    // following 2D code is now slower than multi-dim multicore solution below. 
+    //    if (rank == 2) {
+    //      SizeT srcDim0 = this->dim[0];
+    //      SizeT srcDim1 = this->dim[1];
+    //      Data_* res = new Data_(dimension(srcDim1, srcDim0), BaseGDL::NOZERO);
+    //
+    //      SizeT srcIx = 0;
+    //      for (SizeT srcIx1 = 0; srcIx1 < srcDim1; ++srcIx1) // src dim 1
+    //      {
+    //        SizeT resIx = srcIx1;
+    //        SizeT srcLim = srcIx + srcDim0; // src dim 0
+    //        for (; srcIx < srcLim; ++srcIx) {
+    //          (*res)[ resIx] = (*this)[ srcIx];
+    //          resIx += srcDim1;
+    //        }
+    //      }
+    //      return res;
+    //    }
 
     // perm == NULL, rank != 2
     perm = &permDefault[ MAXRANK - rank];
@@ -1279,20 +1316,20 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm) {
   Data_* res = new Data_(dimension(resDim, rank), BaseGDL::NOZERO);
 
   // src stride
-  SizeT srcStride[ MAXRANK+1];
+  SizeT srcStride[ MAXRANK + 1];
   this->dim.Stride(srcStride, rank);
 
   SizeT nElem = dd.size();
   long chunksize = nElem;
   long nchunk = 1;
-  if (nElem > CpuTPOOL_MIN_ELTS) { //no use start parallel threading for small numbers.
+  bool parallelize = false;
+  if (CpuTPOOL_NTHREADS > 1 && nElem > CpuTPOOL_MIN_ELTS) { //no use start parallel threading for small numbers.
     chunksize = nElem / ((CpuTPOOL_NTHREADS > 32) ? 32 : CpuTPOOL_NTHREADS);
     nchunk = nElem / chunksize;
     if (chunksize * nchunk < nElem) ++nchunk;
-  } else {
-    nchunk = 1;
-    chunksize = nElem;
+    parallelize = true;
   }
+
   //compute start parameter for each multiWalk chunks:
   // pool of accelerators
   SizeT srcDimPool[nchunk][MAXRANK];
@@ -1315,9 +1352,7 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm) {
     for (long j = 0; j < rank; ++j) srcDimPool[iloop][j] = templateDim[j];
   }
 
-#pragma omp parallel num_threads(nchunk) 
-  {
-#pragma omp for 
+  if (!parallelize) {
     for (long iloop = 0; iloop < nchunk; ++iloop) {
       // populate src multi dim
       SizeT srcDim[MAXRANK];
@@ -1337,6 +1372,31 @@ BaseGDL* Data_<Sp>::Transpose( DUInt* perm) {
         }
       }
     }
+  } else {
+
+#pragma omp parallel num_threads(nchunk) 
+    {
+#pragma omp for 
+      for (long iloop = 0; iloop < nchunk; ++iloop) {
+        // populate src multi dim
+        SizeT srcDim[MAXRANK];
+        for (SizeT i = 0; i < rank; ++i) srcDim[i] = srcDimPool[iloop][i];
+        //inner loop
+        for (SizeT e = iloop * chunksize; (e < (iloop + 1) * chunksize && e < nElem); ++e) {
+          // src multi dim to one dim src offset index
+          SizeT ix = 0;
+          for (SizeT i = 0; i < rank; ++i) ix += srcDim[i] * srcStride[i];
+          (*res)[ e] = (*this)[ ix];
+          // update src multi dim for next dest offset index: here is the transpose effect.
+          for (SizeT i = 0; i < rank; ++i) {
+            DUInt pi = perm[i];
+            srcDim[pi]++;
+            if (srcDim[pi] < resDim[i]) break;
+            srcDim[pi] = 0;
+          }
+        }
+      }
+    }
   }
   return res;
 }
@@ -1352,9 +1412,8 @@ void Data_<Sp>::Reverse(DLong dim) {
   SizeT revStride = this->dim.Stride(dim);
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT revLimit = this->dim[dim] * revStride;
-#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
-  {
-#pragma omp for
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride));
+  if (!parallelize) { //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = 0; i < revStride; ++i) {
         SizeT oi = o + i;
@@ -1365,6 +1424,24 @@ void Data_<Sp>::Reverse(DLong dim) {
           Ty tmp = (*this)[s];
           (*this)[s] = (*this)[opp];
           (*this)[opp] = tmp;
+        }
+      }
+    }
+  } else {
+#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
+    {
+#pragma omp for
+      for (SizeT o = 0; o < nEl; o += outerStride) {
+        for (SizeT i = 0; i < revStride; ++i) {
+          SizeT oi = o + i;
+          SizeT last_plus_oi = revLimit + oi - revStride + oi;
+          SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
+          for (SizeT s = oi; s < half; s += revStride) {
+            SizeT opp = last_plus_oi - s;
+            Ty tmp = (*this)[s];
+            (*this)[s] = (*this)[opp];
+            (*this)[opp] = tmp;
+          }
         }
       }
     }
@@ -1380,9 +1457,8 @@ BaseGDL* Data_<Sp>::DupReverse(DLong dim) {
   SizeT revStride = this->dim.Stride(dim);
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT revLimit = this->dim[dim] * revStride;
-#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
-  {
-#pragma omp for
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nEl / outerStride) * revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl / outerStride) * revStride));
+  if (!parallelize) { //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = 0; i < revStride; ++i) {
         SizeT oi = o + i;
@@ -1396,11 +1472,30 @@ BaseGDL* Data_<Sp>::DupReverse(DLong dim) {
         }
       }
     }
+  } else {
+#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
+    {
+#pragma omp for
+      for (SizeT o = 0; o < nEl; o += outerStride) {
+        for (SizeT i = 0; i < revStride; ++i) {
+          SizeT oi = o + i;
+          SizeT last_plus_oi = revLimit + oi - revStride + oi;
+          SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
+          for (SizeT s = oi; s < half + 1; s += revStride) {
+            SizeT opp = last_plus_oi - s;
+            //	cout << s <<" "<< opp << " " << (*this)[s] << " " << (*this)[opp] << endl;
+            (*res)[s] = (*this)[opp];
+            (*res)[opp] = (*this)[s];
+          }
+        }
+      }
+    }
   }
   return res_guard.release();
 }
+
 template<>
-BaseGDL* Data_<SpDPtr>::DupReverse( DLong dim) {
+BaseGDL* Data_<SpDPtr>::DupReverse(DLong dim) {
   // SA: based on total_over_dim_template()
   Data_* res = new Data_(this->dim, BaseGDL::NOZERO);
   Guard<Data_> res_guard(res);
@@ -1408,9 +1503,8 @@ BaseGDL* Data_<SpDPtr>::DupReverse( DLong dim) {
   SizeT revStride = this->dim.Stride(dim);
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT revLimit = this->dim[dim] * revStride;
-#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
-  {
-#pragma omp for
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nEl / outerStride) * revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl / outerStride) * revStride));
+  if (!parallelize) { //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = 0; i < revStride; ++i) {
         SizeT oi = o + i;
@@ -1423,10 +1517,28 @@ BaseGDL* Data_<SpDPtr>::DupReverse( DLong dim) {
         }
       }
     }
+  } else {
+#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
+    {
+#pragma omp for
+      for (SizeT o = 0; o < nEl; o += outerStride) {
+        for (SizeT i = 0; i < revStride; ++i) {
+          SizeT oi = o + i;
+          SizeT last_plus_oi = revLimit + oi - revStride + oi;
+          SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
+          for (SizeT s = oi; s < half + 1; s += revStride) {
+            SizeT opp = last_plus_oi - s;
+            (*res)[s] = (*this)[opp];
+            (*res)[opp] = (*this)[s];
+          }
+        }
+      }
+    }
   }
   GDLInterpreter::IncRef(res);
   return res_guard.release();
 }
+
 template<>
 BaseGDL* Data_<SpDObj>::DupReverse(DLong dim) {
   // SA: based on total_over_dim_template()
@@ -1436,9 +1548,8 @@ BaseGDL* Data_<SpDObj>::DupReverse(DLong dim) {
   SizeT revStride = this->dim.Stride(dim);
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT revLimit = this->dim[dim] * revStride;
-#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
-  {
-#pragma omp for
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nEl / outerStride) * revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl / outerStride) * revStride));
+  if (!parallelize) { //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = 0; i < revStride; ++i) {
         SizeT oi = o + i;
@@ -1448,6 +1559,23 @@ BaseGDL* Data_<SpDObj>::DupReverse(DLong dim) {
           SizeT opp = last_plus_oi - s;
           (*res)[s] = (*this)[opp];
           (*res)[opp] = (*this)[s];
+        }
+      }
+    }
+  } else {
+#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
+    {
+#pragma omp for
+      for (SizeT o = 0; o < nEl; o += outerStride) {
+        for (SizeT i = 0; i < revStride; ++i) {
+          SizeT oi = o + i;
+          SizeT last_plus_oi = revLimit + oi - revStride + oi;
+          SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
+          for (SizeT s = oi; s < half + 1; s += revStride) {
+            SizeT opp = last_plus_oi - s;
+            (*res)[s] = (*this)[opp];
+            (*res)[opp] = (*this)[s];
+          }
         }
       }
     }
@@ -1545,20 +1673,22 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir) {
   return res;
 }
 
-template<class Sp> 
-typename Data_<Sp>::Ty Data_<Sp>::Sum() const 
-{
-  Ty s= dd[ 0];
+template<class Sp>
+typename Data_<Sp>::Ty Data_<Sp>::Sum() const {
+  Ty s = dd[ 0];
   SizeT nEl = dd.size();
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( s)
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 1; i < nEl; ++i) s += dd[ i];
+  } else {
+#pragma omp parallel shared( s)
     {
 #pragma omp for reduction(+:s)
-      for( SizeT i=1; i<nEl; ++i)
-	{
-	  s += dd[ i];
-	}
+      for (SizeT i = 1; i < nEl; ++i) {
+        s += dd[ i];
+      }
     }
+  }
   return s;
 }
 
@@ -1573,41 +1703,53 @@ Data_<SpDString>::Ty Data_<SpDString>::Sum() const
     }
   return s;
 }
-template<> 
-Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::Sum() const 
-{
-  DDouble sr= dd[ 0].real();
-  DDouble si= dd[ 0].imag();
+
+template<>
+Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::Sum() const {
+  DDouble sr = dd[ 0].real();
+  DDouble si = dd[ 0].imag();
   SizeT nEl = dd.size();
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( sr,si)
-    {
-#pragma omp for reduction(+:si,sr)
-  for( SizeT i=1; i<nEl; ++i)
-    {
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 1; i < nEl; ++i) {
       sr += dd[i].real();
       si += dd[i].imag();
     }
+  } else {
+#pragma omp parallel shared( sr,si)
+    {
+#pragma omp for reduction(+:si,sr)
+      for (SizeT i = 1; i < nEl; ++i) {
+        sr += dd[i].real();
+        si += dd[i].imag();
+      }
+    }
   }
-  return std::complex<double>(sr,si);
+  return std::complex<double>(sr, si);
 }
-template<> 
-Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const 
-{
-  DFloat sr= dd[ 0].real();
-  DFloat si= dd[ 0].imag();
+
+template<>
+Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const {
+  DFloat sr = dd[ 0].real();
+  DFloat si = dd[ 0].imag();
   SizeT nEl = dd.size();
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( sr,si)
-    {
-#pragma omp for reduction(+:si,sr)
-  for( SizeT i=1; i<nEl; ++i)
-    {
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  if (!parallelize) { //most frequent
+    for (SizeT i = 1; i < nEl; ++i) {
       sr += dd[i].real();
       si += dd[i].imag();
     }
+  } else {
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( sr,si)
+    {
+#pragma omp for reduction(+:si,sr)
+      for (SizeT i = 1; i < nEl; ++i) {
+        sr += dd[i].real();
+        si += dd[i].imag();
+      }
+    }
   }
-  return std::complex<float>(sr,si);
+  return std::complex<float>(sr, si);
 }
 
 // template<class Sp> 
@@ -1791,11 +1933,8 @@ template< class Sp>
 void Data_<Sp>::Clear() 
 { 
   SizeT nEl = dd.size(); 
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
   for( SizeT i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
-}//}
+}
 
 // first time initialization (construction)
 template< class Sp>
@@ -1809,62 +1948,23 @@ void Data_<Sp>::Construct()
   if( !isPOD)
   {
   SizeT nEl = dd.size(); 
-  //  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
   for( SizeT i = 0; i<nEl; ++i) new (&(dd[ i])) Ty;
   }
 }
+
 template<>
 void Data_<SpDPtr>::Construct() 
 {
   SizeT nEl = dd.size(); 
-  //  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
   for( SizeT i = 0; i<nEl; ++i) dd[ i] = 0;
-}//}
+}
+
 template<>
 void Data_<SpDObj>::Construct()
 {
   SizeT nEl = dd.size(); 
-  //  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
   for( SizeT i = 0; i<nEl; ++i) dd[ i] = 0;
-}//}
-// // non POD - use placement new
-// template<>
-// void Data_< SpDString>::Construct() 
-// { 
-//   SizeT nEl = dd.size(); 
-//   //  for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
-//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//     {
-//     #pragma omp for*/
-//   for( SizeT i = 0; i<nEl; ++i) new (&(dd[ i])) Ty;
-// }//}
-// template<>
-// void Data_< SpDComplex>::Construct() 
-// { 
-//   SizeT nEl = dd.size(); 
-//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//     {
-//     #pragma omp for*/
-//   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
-// }//}
-// template<>
-// void Data_< SpDComplexDbl>::Construct() 
-// { 
-//   SizeT nEl = dd.size(); 
-//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//     {
-//     #pragma omp for*/
-//   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty;
-// }//}
+}
 
 // construction and initalization to zero
 template< class Sp>
@@ -1873,48 +1973,14 @@ void Data_<Sp>::ConstructTo0()
   if( Sp::IS_POD)
   {
   SizeT nEl = dd.size(); 
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
   for( SizeT i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
   }
   else
   {
   SizeT nEl = dd.size(); 
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( Sp::zero);
   }
-}//}
-// // non POD - use placement new
-// template<>
-// void Data_< SpDString>::ConstructTo0() 
-// { 
-//   SizeT nEl = dd.size(); 
-//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//     {
-//     #pragma omp for*/
-//   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
-// }//}
-// template<>
-// void Data_< SpDComplex>::ConstructTo0() 
-// { 
-//   SizeT nEl = dd.size(); 
-//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//     {
-//     #pragma omp for*/
-//   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
-// }//}
-// template<>
-// void Data_< SpDComplexDbl>::ConstructTo0() 
-// { 
-//   SizeT nEl = dd.size(); 
-//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//     {
-//     #pragma omp for*/
-//   for( SizeT i = 0; i<nEl; ++i) new (&(*this)[ i]) Ty( zero);
-// }//}
+}
 
 template< class Sp>
 void Data_<Sp>::Destruct() 
@@ -1923,9 +1989,6 @@ void Data_<Sp>::Destruct()
   if( !Sp::IS_POD)
   {
   SizeT nEl = dd.size(); 
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
   for( SizeT i = 0; i<nEl; ++i) 
     (*this)[ i].~Ty();    
   }
@@ -1940,36 +2003,6 @@ void Data_< SpDObj>::Destruct()
 {
   GDLInterpreter::DecRefObj( this);
 }
-// template<>
-// void Data_< SpDString>::Destruct() 
-// {
-//   SizeT nEl = dd.size(); 
-//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//     {
-//     #pragma omp for*/
-//   for( SizeT i = 0; i<nEl; ++i) 
-//     (*this)[ i].~DString();
-// }//}
-// template<>
-// void Data_< SpDComplex>::Destruct() 
-// {
-//   SizeT nEl = dd.size(); 
-//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//     {
-//     #pragma omp for*/
-//   for( SizeT i = 0; i<nEl; ++i) 
-//     (*this)[ i].~DComplex();
-// }//}
-// template<>
-// void Data_< SpDComplexDbl>::Destruct() 
-// {
-//   SizeT nEl = dd.size(); 
-//   /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//     {
-//     #pragma omp for*/
-//   for( SizeT i = 0; i<nEl; ++i) 
-//     (*this)[ i].~DComplexDbl();
-// }//}
 
 template< class Sp>
 BaseGDL* Data_<Sp>::SetBuffer( const void* b)
@@ -1983,11 +2016,6 @@ void Data_<Sp>::SetBufferSize( SizeT s)
   dd.SetBufferSize( s);
 }
 
-// template< class Sp>
-// Data_<Sp>* Data_<Sp>::Dup() 
-// { return new Data_(*this);}
-
-
 template< class Sp>
 Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero) const
 {
@@ -1996,11 +2024,7 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero) cons
     {
       Data_* res =  new Data_(dim_, BaseGDL::NOZERO);
       SizeT nEl = res->dd.size();
-      /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-	{
-	#pragma omp for*/
       for( SizeT i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
-      //}
       return res;
     }
   return new Data_(dim_); // zero data
@@ -2013,21 +2037,6 @@ Data_<Sp>* Data_<Sp>::NewResult() const
   return new Data_(this->dim, BaseGDL::NOZERO);
 }
 
-// template< class Sp>
-// bool Data_<Sp>::Scalar() const
-// {
-//   return (dd.size() == 1);
-// }
-
-// template< class Sp>
-// bool Data_<Sp>::Scalar(Ty& s) const
-// {
-//   if( dd.size() != 1) return false;
-//   s=(*this)[0];
-//   return true;
-// }
-
-
 template<class Sp>
 SizeT Data_<Sp>::NBytes() const 
 { return (dd.size() * sizeof(Ty));}
@@ -2038,18 +2047,9 @@ template<> SizeT Data_<SpDString>::NBytes() const
 {
   SizeT nEl = dd.size();
   SizeT nB = 0;
-  #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) reduction(+:nB)
   for( SizeT i=0; i<nEl; ++i)  nB += (*this)[i].size();
   return nB;
 }
-// template<> SizeT Data_<SpDObj>::NBytes() const
-// {
-//   throw GDLException("object references");
-// }
-// template<> SizeT Data_<SpDPtr>::NBytes() const
-// {
-//   throw GDLException("pointers");
-// }
 
 template<class Sp>
 SizeT Data_<Sp>::ToTransfer() const
@@ -2066,36 +2066,6 @@ template<> SizeT Data_<SpDComplexDbl>::ToTransfer() const
   return N_Elements() * 2;
 }
 
-// // note that min and max are not defined in BaseGDL
-// template<class Sp> 
-// typename Data_<Sp>::Ty Data_<Sp>::min() const
-// { return dd.min();}
-// template<class Sp> 
-// typename Data_<Sp>::Ty Data_<Sp>::max() const
-// { return dd.max();}
-// template<>
-// Data_<SpDComplex>::Ty Data_<SpDComplex>::min() const
-// {
-//   throw GDLException("COMPLEX expression not allowed in this context.");
-// }
-// template<>
-// Data_<SpDComplex>::Ty Data_<SpDComplex>::max() const
-// {
-//   throw GDLException("COMPLEX expression not allowed in this context.");
-// }
-// template<>
-// Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::min() const
-// {
-//   throw GDLException("COMPLEXDBL expression not allowed in this context.");
-// }
-// template<>
-// Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::max() const
-// {
-//   throw GDLException("COMPLEXDBL expression not allowed in this context.");
-// }
-
-
-// for HASH objects
 template<class Sp> 
 DDouble Data_<Sp>::HashValue() const
 {
@@ -3625,7 +3595,7 @@ Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
 
   dimension     catArrDim(this->dim); // list contains at least one element
 
-  catArrDim.MakeRank( maxIx+1);
+  catArrDim.InsureRankAtLeast( maxIx+1);
   catArrDim.SetOneDim(catRankIx,0);     // clear rank which is added up
 
   SizeT dimSum=0;
@@ -3848,9 +3818,14 @@ void Data_<Sp>::CatInsert (const Data_* srcArr, const SizeT atDim, SizeT& at)
   // number of elements to skip
   SizeT gap = this->dim.Stride (atDim + 1); // dest array
   
-#ifdef _OPENMP
-//GD: speed up by using indexing that permit parallel and collapse. 
-#pragma omp parallel for collapse(2) if (len*nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= len*nCp))
+//GD: speed up by using indexing that permit parallel and collapse.
+  bool parallelize=(CpuTPOOL_NTHREADS >1 && len*nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= len*nCp));
+  if (!parallelize) { //most frequent
+    for (OMPInt c = 0; c < nCp; ++c) {
+      for (SizeT destIx = 0; destIx < len; destIx++) (*this)[destIx + destStart + c * gap] = (*srcArr)[ destIx + c * len];
+    }
+  } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) collapse(2)
     for (OMPInt c = 0; c < nCp; ++c)
       {
         //            // copy one segment
@@ -3860,19 +3835,7 @@ void Data_<Sp>::CatInsert (const Data_* srcArr, const SizeT atDim, SizeT& at)
         //            std::cerr<<"ncp="<<nCp<<",c="<<c<<": start: "<<destStart+c*gap<<" end: "<<destStart + c * gap + len<<" srcIxLoop="<<c * len<<std::endl;
         for (SizeT destIx = 0; destIx < len; destIx++) (*this)[destIx + destStart + c * gap] = (*srcArr)[ destIx + c * len];
       }
-#else // #ifdef _OPENMP
-  SizeT srcIx = 0;
-  for (SizeT c = 0; c < nCp; ++c)
-    {
-      // copy one segment
-      for (SizeT destIx = destStart; destIx < destEnd; destIx++)
-        (*this)[destIx] = (*srcArr)[ srcIx++];
-
-      // set new destination pointer
-      destStart += gap;
-      destEnd += gap;
-    }
-#endif
+  }
 
   SizeT add = srcArr->dim[atDim]; // update 'at'
   at += (add > 1) ? add : 1;
@@ -4007,542 +3970,665 @@ BaseGDL* Data_<SpDComplexDbl>::Rebin( const dimension& newDim, bool sample)
 
 // rebin over dimIx, new value: newDim
 // newDim != srcDim[ dimIx] -> compress or expand
+
 template< typename T>
-T* Rebin1( T* src, 
-	   const dimension& srcDim, 
-	   SizeT dimIx, SizeT newDim, bool sample)
-{
+T* Rebin1(T* src,
+  const dimension& srcDim,
+  SizeT dimIx, SizeT newDim, bool sample) {
   SizeT nEl = src->N_Elements();
-  
-  if( newDim == 0) newDim = 1;
+
+  if (newDim == 0) newDim = 1;
 
   // get dest dim and number of summations
   dimension destDim = srcDim;
 
-  destDim.MakeRank( dimIx + 1);
+  destDim.InsureRankAtLeast(dimIx + 1);
 
   SizeT srcDimIx = destDim[ dimIx];
 
-  destDim.SetOneDim( dimIx, newDim);
+  destDim.SetOneDim(dimIx, newDim); //reset stride
 
-  SizeT resStride   = destDim.Stride( dimIx); 
+  SizeT dstStride = destDim.Stride(dimIx); //computes new strides for destdim
+  SizeT dstOuterStride = destDim.Stride(dimIx + 1);
 
   // dimStride is also the number of linear src indexing
-  SizeT dimStride   = srcDim.Stride( dimIx); 
-  SizeT outerStride = srcDim.Stride( dimIx + 1);
+  SizeT srcStride = srcDim.Stride(dimIx);
+  SizeT srcOuterStride = srcDim.Stride(dimIx + 1);
+  SizeT rebinLimit = srcDimIx * srcStride;
 
-  SizeT rebinLimit = srcDimIx * dimStride;
-    
-  if( newDim < srcDimIx) // compress
-    {
-    
-      SizeT ratio = srcDimIx / newDim;
- 
-      if( sample)
-	{
-	  T* res = new T( destDim, BaseGDL::NOZERO);
-    
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
+  if (newDim < srcDimIx) // compress
+  {
+    SizeT ratio = srcDimIx / newDim;
+    if (sample) {
+      T* res = new T(destDim, BaseGDL::NOZERO);
+      SizeT dstnEl = res->N_Elements();
+      for (SizeT o = 0, i=0; o < dstnEl; o += dstOuterStride, i+= srcOuterStride) {
+      SizeT oiLimit = o+dstOuterStride;
 
-		for( SizeT s=oi; s<oiLimit; s += dimStride*ratio) // run over dim
-		  {
-		    (*res)[ (s / dimStride / ratio) * dimStride + i] = (*src)[ s];
-		  }
-	      }
-      
-	  return res;
-	}
-      else
-	{
-	  T* res = new T( destDim); // zero fields
-
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
-
-		for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
-		  {
-		    // the way s indexes:
-		    // assume over b (compress index)
-		    // src[ a, b, c]
-		    // [ 0, 0, 0] [ 0, 1, 0] [ 0, 2, 0] ...
-		    // [ 1, 0, 0] [ 1, 1, 0] [ 1, 2, 0] ...
-		    // [ 2, 0, 0] [ 2, 1, 0] [ 2, 2, 0] ...
-
-		    (*res)[ (s / dimStride / ratio) * dimStride + i] += (*src)[ s];
-		  }
-	      }
-      
-	  SizeT resEl = res->N_Elements();
-	  /*#pragma omp parallel if (resEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= resEl))
-	    {
-	    #pragma omp for*/
-	  for( int r=0; r < resEl; ++r)
-	    (*res)[ r] /= ratio;
-	  // }
-	  return res;
-	}
-    }
-  else // expand
-    {
-      T* res = new T( destDim, BaseGDL::NOZERO);
-
-      if( sample)
-	{
-	  SizeT ratio = newDim / srcDimIx;
- 
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
-
-		for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
-		  {
-		    typename T::Ty src_s = (*src)[ s];
-
-		    SizeT s_dimStride_ratio_dimStride_i = 
-		      (s / dimStride) * ratio * dimStride + i;
-
-		    for( SizeT r=0; r<ratio; ++r)
-		      {
-			(*res)[ s_dimStride_ratio_dimStride_i + r * dimStride] = 
-			  src_s;
-		      }
-		  }
-	      }
-	}
-      else
-	{
-	  DLong64 ratio = newDim / srcDimIx; // make sure 32 bit integers are working also
-
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
-
-		for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
-		  {
-		    typename T::Ty first = (*src)[ s];
-		    typename T::Ty next = 
-		      (*src)[ (s+dimStride)<oiLimit?s+dimStride:s];
-
-		    SizeT s_dimStride_ratio_dimStride_i = 
-		      (s / dimStride) * ratio * dimStride + i;
-		    for( DLong64 r=0; r<ratio; ++r)
-		      {
-			(*res)[ s_dimStride_ratio_dimStride_i + r * dimStride] = 
-			  (first * (ratio - r) + next * r) / ratio; // 64 bit temporary
-		      }
-		  }
-	      }
-	}
-
+        for (SizeT os = 0, is= 0; os < dstStride; ++os, ++is) // src element offset (lower dim)
+        {
+          SizeT oi = o + os;
+          SizeT ii = i + is;
+          for (SizeT s = oi, p=ii; s < oiLimit; s += dstStride , p+=srcStride*ratio) // run over dim
+          {
+           (*res)[ s] = (*src)[ p ];
+          }
+        }        
+      }
+      return res;
+    } else {
+      T* res = new T(destDim, BaseGDL::NOZERO);
+      SizeT dstnEl = res->N_Elements();
+      for (SizeT o = 0, i=0; o < dstnEl; o += dstOuterStride, i+= srcOuterStride) {
+      SizeT oiLimit = o+dstOuterStride;
+        for (SizeT os = 0, is = 0; os < dstStride; ++os, ++is) // src element offset (lower dim)
+        {
+          SizeT oi = o + os;
+          SizeT ii = i + is;
+          for (SizeT s = oi, p = ii; s < oiLimit; s += dstStride) // run over dim
+          {
+            typename T::Ty val=0;
+            for (SizeT j = 0; j < ratio; ++j, p += srcStride) {
+              val += (*src)[ p ];
+            }
+            (*res)[ s] = val/ratio;
+          }
+        }
+      }
       return res;
     }
+  } else // expand
+  {
+    T* res = new T(destDim, BaseGDL::NOZERO);
+      SizeT ratio = newDim / srcDimIx; // make sure 32 bit integers are working also
+      SizeT fact = ratio * srcStride;
+
+    if (sample) {
+      for (SizeT o = 0; o < nEl; o += srcOuterStride) { // outer dim
+              for (SizeT i = 0; i < srcStride; ++i) // src element offset (lower dim)
+        {
+          SizeT oi = o + i;
+          SizeT oiLimit = oi + rebinLimit;
+
+          for (SizeT s = oi; s < oiLimit; s += srcStride) // run over dim
+          {
+            SizeT s_dimStride_ratio_dimStride_i =   (s / srcStride) * fact + i;
+            typename T::Ty *me = &((*res)[ s_dimStride_ratio_dimStride_i ]);
+            for (SizeT r = 0; r < ratio*srcStride; r+=srcStride) {
+              me[r] = (*src)[s];
+            }
+          }
+        }
+      }
+    } else {
+      for (SizeT o = 0; o < nEl; o += srcOuterStride) // outer dim
+        for (SizeT i = 0; i < srcStride; ++i) // src element offset (lower dim)
+        {
+          SizeT oi = o + i;
+          SizeT oiLimit = oi + rebinLimit;
+
+          for (SizeT s = oi; s < oiLimit; s += srcStride) // run over dim
+          {
+            typename T::Ty  first = (*src)[ s];
+            typename T::Ty  incr = ( (*src)[ (s + srcStride) < oiLimit ? s + srcStride : s]-first)/ratio;
+            SizeT s_dimStride_ratio_dimStride_i =  (s / srcStride) * fact + i; //integer division: slow.
+            typename T::Ty *me = &((*res)[ s_dimStride_ratio_dimStride_i ]);
+            for (SizeT r = 0, p=0; r < ratio*srcStride; r+=srcStride, ++p) {
+              me[r] = first + incr * p; // will NOT give exactly IDL results in some cases: odd expansions for example.
+            }
+          }
+        }
+    }
+
+    return res;
+  }
 }
 
 // for integer
 template< typename T, typename TNext>
-T* Rebin1Int( T* src, 
-	      const dimension& srcDim, 
-	      SizeT dimIx, SizeT newDim, bool sample)
-{
+T* Rebin1Int(T* src,
+  const dimension& srcDim,
+  SizeT dimIx, SizeT newDim, bool sample) {
   SizeT nEl = src->N_Elements();
-  
-  if( newDim == 0) newDim = 1;
+
+  if (newDim == 0) newDim = 1;
 
   // get dest dim and number of summations
   dimension destDim = srcDim;
 
-  destDim.MakeRank( dimIx + 1);
+  destDim.InsureRankAtLeast(dimIx + 1);
 
   SizeT srcDimIx = destDim[ dimIx];
 
-  destDim.SetOneDim( dimIx, newDim);
+  destDim.SetOneDim(dimIx, newDim); //reset stride
 
-  SizeT resStride   = destDim.Stride( dimIx); 
+  SizeT dstStride = destDim.Stride(dimIx); //computes new strides for destdim
+  SizeT dstOuterStride = destDim.Stride(dimIx + 1);
 
   // dimStride is also the number of linear src indexing
-  SizeT dimStride   = srcDim.Stride( dimIx); 
-  SizeT outerStride = srcDim.Stride( dimIx + 1);
+  SizeT srcStride = srcDim.Stride(dimIx);
+  SizeT srcOuterStride = srcDim.Stride(dimIx + 1);
+  SizeT rebinLimit = srcDimIx * srcStride;
 
-  SizeT rebinLimit = srcDimIx * dimStride;
-    
-  if( newDim < srcDimIx) // compress
-    {
-    
-      SizeT ratio = srcDimIx / newDim;
- 
-      if( sample)
-	{
-	  T* res = new T( destDim, BaseGDL::NOZERO);
-    
-	  SizeT ratio = srcDimIx / newDim;
- 
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
+  if (newDim < srcDimIx) // compress
+  {
+    SizeT ratio = srcDimIx / newDim;
+    if (sample) {
+      T* res = new T(destDim, BaseGDL::NOZERO);
+      SizeT dstnEl = res->N_Elements();
+      for (SizeT o = 0, i=0; o < dstnEl; o += dstOuterStride, i+= srcOuterStride) {
+      SizeT oiLimit = o+dstOuterStride;
 
-		for( SizeT s=oi; s<oiLimit; s += dimStride*ratio) // run over dim
-		  {
-		    (*res)[ (s / dimStride / ratio) * dimStride + i] = (*src)[ s];
-		  }
-	      }
-      
-	  return res;
-	}
-      else
-	{
-	  T* res = new T( destDim); // zero fields
-
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
-
-		TNext tmp = 0;
-		for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
-		  {
-		    tmp += (*src)[ s];
-		    
-		    if( (s / dimStride) % ratio == (ratio - 1))
-		      {
-			(*res)[ (s / dimStride / ratio) * dimStride + i] = tmp / ratio;
-			tmp = 0;
-		      }
-		  }
-	      }
-      
-	  return res;
-	}
-    }
-  else // expand
-    {
-      T* res = new T( destDim, BaseGDL::NOZERO);
-
-      if( sample)
-	{
-	  SizeT ratio = newDim / srcDimIx;
- 
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
-
-		for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
-		  {
-		    typename T::Ty src_s = (*src)[ s];
-
-		    SizeT s_dimStride_ratio_dimStride_i = 
-		      (s / dimStride) * ratio * dimStride + i;
-
-		    for( SizeT r=0; r<ratio; ++r)
-		      {
-			(*res)[ s_dimStride_ratio_dimStride_i + r * dimStride] = 
-			  src_s;
-		      }
-		  }
-	      }
-	}
-      else
-	{
-	  DLong64 ratio = newDim / srcDimIx; // make sure 32 bit integers are working also
-
-	  for( SizeT o=0; o < nEl; o += outerStride) // outer dim
-	    for( SizeT i=0; i < dimStride; ++i) // src element offset (lower dim)
-	      {
-		SizeT oi = o+i;
-		SizeT oiLimit = oi + rebinLimit;
-
-		for( SizeT s=oi; s<oiLimit; s += dimStride) // run over dim
-		  {
-		    typename T::Ty first = (*src)[ s];
-		    typename T::Ty next = 
-		      (*src)[ (s+dimStride)<oiLimit?s+dimStride:s];
-
-		    SizeT s_dimStride_ratio_dimStride_i = 
-		      (s / dimStride) * ratio * dimStride + i;
-		    for( DLong64 r=0; r<ratio; ++r)
-		      {
-			(*res)[ s_dimStride_ratio_dimStride_i + r * dimStride] = 
-			  (first * (ratio - r) + next * r) / ratio; // 64 bit temporary
-		      }
-		  }
-	      }
-	}
-
+        for (SizeT os = 0, is= 0; os < dstStride; ++os, ++is) // src element offset (lower dim)
+        {
+          SizeT oi = o + os;
+          SizeT ii = i + is;
+          for (SizeT s = oi, p=ii; s < oiLimit; s += dstStride , p+=srcStride*ratio) // run over dim
+          {
+           (*res)[ s] = (*src)[ p ];
+          }
+        }        
+      }
+      return res;
+    } else {
+      T* res = new T(destDim);// MUST zero fields
+      SizeT dstnEl = res->N_Elements();
+      for (SizeT o = 0, i=0; o < dstnEl; o += dstOuterStride, i+= srcOuterStride) {
+      SizeT oiLimit = o+dstOuterStride;
+        for (SizeT os = 0, is = 0; os < dstStride; ++os, ++is) // src element offset (lower dim)
+        {
+          SizeT oi = o + os;
+          SizeT ii = i + is;
+          for (SizeT s = oi, p = ii; s < oiLimit; s += dstStride) // run over dim
+          {
+            TNext tmp = 0;
+            for (SizeT j = 0; j < ratio; ++j, p += srcStride) {
+              tmp += (*src)[ p ];
+            }
+            (*res)[ s] = tmp/ratio;
+          }
+        }
+      }
       return res;
     }
+  } else // expand
+  {
+    T* res = new T(destDim, BaseGDL::NOZERO);
+      DLong64 ratio = newDim / srcDimIx; // make sure 32 bit integers are working also
+      SizeT fact = ratio * srcStride;
+
+    if (sample) {
+      for (SizeT o = 0; o < nEl; o += srcOuterStride) { // outer dim
+              for (SizeT i = 0; i < srcStride; ++i) // src element offset (lower dim)
+        {
+          SizeT oi = o + i;
+          SizeT oiLimit = oi + rebinLimit;
+
+          for (SizeT s = oi; s < oiLimit; s += srcStride) // run over dim
+          {
+            SizeT s_dimStride_ratio_dimStride_i =   (s / srcStride) * fact + i;
+            typename T::Ty *me = &((*res)[ s_dimStride_ratio_dimStride_i ]);
+            for (SizeT r = 0; r < ratio*srcStride; r+=srcStride) {
+              me[r] = (*src)[s];
+            }
+          }
+        }
+      }
+    } else {
+      for (SizeT o = 0; o < nEl; o += srcOuterStride) // outer dim
+        for (SizeT i = 0; i < srcStride; ++i) // src element offset (lower dim)
+        {
+          SizeT oi = o + i;
+          SizeT oiLimit = oi + rebinLimit;
+
+          for (SizeT s = oi; s < oiLimit; s += srcStride) // run over dim
+          {
+            TNext first = (*src)[ s];
+            TNext next = (*src)[ (s + srcStride) < oiLimit ? s + srcStride : s];
+            SizeT s_dimStride_ratio_dimStride_i = (s / srcStride) * fact + i; //integer division: slow.
+            typename T::Ty *me = &((*res)[ s_dimStride_ratio_dimStride_i ]);
+            for (DLong64 r = 0, p=0; r < ratio*srcStride; r+=srcStride, ++p) {
+//              me[r] = first + incr * p / ratio; //wrong : does not work with bytes
+              me[r] = (first * (ratio - p) + next * p) / ratio; // idem IDL only if divide by integer is done this way. Difficult to optimize.
+            }
+          }
+        }
+    }
+
+    return res;
+  }
 }
 
-// for float, double
 template<class Sp>
-BaseGDL* Data_<Sp>::Rebin( const dimension& newDim, bool sample)
-{
+BaseGDL* Data_<Sp>::Rebin(const dimension& newDim, bool sample) {
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
 
   SizeT nDim;
-  if( resRank < srcRank) 
+  if (resRank < srcRank)
     nDim = srcRank;
   else
     nDim = resRank;
 
-  dimension actDim( this->dim);
+  dimension actDim(this->dim);
   Data_* actIn = this;
 
   // 1st compress
-  for( SizeT d=0; d<nDim; ++d)
-    if( newDim[d] <  this->dim[d])
-      { // compress
-	
-	Data_* act = Rebin1( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
-      }
+  //optimization: start by compressing the dimension that will decrease total size the most.
+  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
+  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
+  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
+  std::map<float, SizeT>compress;
+  for (SizeT d = 0; d < nDim; ++d) {
+    SizeT dim = newDim[d];
+    if (dim == 0) dim = 1; //protction  
+    if (dim < this->dim[d]) {
+      float key=float(this->dim[d] / dim)+0.01*d;
+      compress.insert(std::pair<float, SizeT>(key, d));
+    }
+  }
+  if (compress.size() > 0) {
+    for (std::map<float, SizeT>::reverse_iterator rit = compress.rbegin(); rit != compress.rend(); ++rit) {
+      Data_* act = Rebin1(actIn, actDim, rit->second, newDim[rit->second], sample);
+      actDim = act->Dim();
 
-  // 2nd expand
-  for( SizeT d=0; d<nDim; ++d)
-    if( newDim[ d] >  this->dim[d])
-      { // expand
-	
-	Data_* act = Rebin1( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
-      }
-  
-  if( actIn == this) return actIn->Dup();
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+  }
+}
+  // 2nd expand : make the biggest expansion last
+  std::map<float, SizeT>expand;
+  for (SizeT d = 0; d < nDim; ++d) {
+    SizeT dim = newDim[d];
+    if (dim == 0) dim = 1; //protction, kept for symmetry with above, but unuseful
+    if (dim > this->dim[d]) {
+      float key=float(dim / this->dim[d])+0.01*d;
+      expand.insert(std::pair<float, SizeT>(key, d));
+    }
+  }
+  if (expand.size() > 0) {
+    for (std::map<float, SizeT>::iterator it = expand.begin(); it != expand.end(); ++it) {
+   Data_* act = Rebin1(actIn, actDim, it->second, newDim[it->second], sample);
+      actDim = act->Dim();
+
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+    }
+  }
+
+  if (actIn == this) return actIn->Dup();
   return actIn;
 }
+
+#define DO_COMPRESS_INT(X,Y) Rebin1Int< X, Y>(actIn, actDim, rit->second, newDim[rit->second], sample);
+#define DO_EXPAND_INT(X,Y) Rebin1Int< X, Y>(actIn, actDim, it->second, newDim[it->second], sample);
 
 // integer types
+
 template<>
-BaseGDL* Data_<SpDByte>::Rebin( const dimension& newDim, bool sample)
-{
+BaseGDL* Data_<SpDByte>::Rebin(const dimension& newDim, bool sample) {
   SizeT resRank = newDim.Rank();
-  SizeT srcRank = Rank();
+  SizeT srcRank = this->Rank();
 
   SizeT nDim;
-  if( resRank < srcRank) 
+  if (resRank < srcRank)
     nDim = srcRank;
   else
     nDim = resRank;
 
-  dimension actDim( dim);
+  dimension actDim(this->dim);
   Data_* actIn = this;
 
   // 1st compress
-  for( SizeT d=0; d<nDim; ++d)
-    if( newDim[d] <  dim[d])
-      { // compress
-	
-	Data_* act = Rebin1Int<DByteGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
-      }
+  //optimization: start by compressing the dimension that will decrease total size the most.
+  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
+  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
+  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
+  std::map<float, SizeT>compress;
+  for (SizeT d = 0; d < nDim; ++d) {
+    SizeT dim = newDim[d];
+    if (dim == 0) dim = 1; //protction  
+    if (dim < this->dim[d]) {
+      float key = float(this->dim[d] / dim) + 0.01 * d;
+      compress.insert(std::pair<float, SizeT>(key, d));
+    }
+  }
+  if (compress.size() > 0) {
+    for (std::map<float, SizeT>::reverse_iterator rit = compress.rbegin(); rit != compress.rend(); ++rit) {
+      Data_* act = DO_COMPRESS_INT(DByteGDL, DULong64)
+        actDim = act->Dim();
 
-  // 2nd expand
-  for( SizeT d=0; d<nDim; ++d)
-    if( newDim[ d] >  dim[d])
-      { // expand
-	
-	Data_* act = Rebin1Int<DByteGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
-      }
-  
-  if( actIn == this) return actIn->Dup();
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+    }
+  }
+  // 2nd expand : make the biggest expansion last
+  std::map<float, SizeT>expand;
+  for (SizeT d = 0; d < nDim; ++d) {
+    SizeT dim = newDim[d];
+    if (dim == 0) dim = 1; //protction, kept for symmetry with above, but unuseful
+    if (dim > this->dim[d]) {
+      float key = float(dim / this->dim[d]) + 0.01 * d;
+      expand.insert(std::pair<float, SizeT>(key, d));
+    }
+  }
+  if (expand.size() > 0) {
+    for (std::map<float, SizeT>::iterator it = expand.begin(); it != expand.end(); ++it) {
+      Data_* act = DO_EXPAND_INT(DByteGDL, DULong64)
+        actDim = act->Dim();
+
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+    }
+  }
+
+  if (actIn == this) return actIn->Dup();
   return actIn;
 }
+
 template<>
-BaseGDL* Data_<SpDInt>::Rebin( const dimension& newDim, bool sample)
-{
+BaseGDL* Data_<SpDInt>::Rebin(const dimension& newDim, bool sample) {
   SizeT resRank = newDim.Rank();
-  SizeT srcRank = Rank();
+  SizeT srcRank = this->Rank();
 
   SizeT nDim;
-  if( resRank < srcRank) 
+  if (resRank < srcRank)
     nDim = srcRank;
   else
     nDim = resRank;
 
-  dimension actDim( dim);
+  dimension actDim(this->dim);
   Data_* actIn = this;
 
   // 1st compress
-  for( SizeT d=0; d<nDim; ++d)
-    if( newDim[d] <  dim[d])
-      { // compress
-	
-	Data_* act = Rebin1Int<DIntGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
-      }
+  //optimization: start by compressing the dimension that will decrease total size the most.
+  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
+  //but we cannot store 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
+  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
+  std::map<float, SizeT>compress;
+  for (SizeT d = 0; d < nDim; ++d) {
+    SizeT dim = newDim[d];
+    if (dim == 0) dim = 1; //protction  
+    if (dim < this->dim[d]) {
+      float key = float(this->dim[d] / dim) + 0.01 * d;
+      compress.insert(std::pair<float, SizeT>(key, d));
+    }
+  }
+  if (compress.size() > 0) {
+    for (std::map<float, SizeT>::reverse_iterator rit = compress.rbegin(); rit != compress.rend(); ++rit) {
+      Data_* act = DO_COMPRESS_INT(DIntGDL, DLong64)
+        actDim = act->Dim();
 
-  // 2nd expand
-  for( SizeT d=0; d<nDim; ++d)
-    if( newDim[ d] >  dim[d])
-      { // expand
-	
-	Data_* act = Rebin1Int<DIntGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
-      }
-  
-  if( actIn == this) return actIn->Dup();
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+    }
+  }
+  // 2nd expand : make the biggest expansion last
+  std::map<float, SizeT>expand;
+  for (SizeT d = 0; d < nDim; ++d) {
+    SizeT dim = newDim[d];
+    if (dim == 0) dim = 1; //protction, kept for symmetry with above, but unuseful
+    if (dim > this->dim[d]) {
+      float key = float(dim / this->dim[d]) + 0.01 * d;
+      expand.insert(std::pair<float, SizeT>(key, d));
+    }
+  }
+  if (expand.size() > 0) {
+    for (std::map<float, SizeT>::iterator it = expand.begin(); it != expand.end(); ++it) {
+      Data_* act = DO_EXPAND_INT(DIntGDL, DLong64)
+        actDim = act->Dim();
+
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+    }
+  }
+
+  if (actIn == this) return actIn->Dup();
   return actIn;
 }
+
 template<>
-BaseGDL* Data_<SpDUInt>::Rebin( const dimension& newDim, bool sample)
-{
+BaseGDL* Data_<SpDUInt>::Rebin(const dimension& newDim, bool sample) {
   SizeT resRank = newDim.Rank();
-  SizeT srcRank = Rank();
+  SizeT srcRank = this->Rank();
 
   SizeT nDim;
-  if( resRank < srcRank) 
+  if (resRank < srcRank)
     nDim = srcRank;
   else
     nDim = resRank;
 
-  dimension actDim( dim);
+  dimension actDim(this->dim);
   Data_* actIn = this;
 
   // 1st compress
-  for( SizeT d=0; d<nDim; ++d)
-    if( newDim[d] <  dim[d])
-      { // compress
-	
-	Data_* act = Rebin1Int<DUIntGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
-      }
+  //optimization: start by compressing the dimension that will decrease total size the most.
+  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
+  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
+  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
+  std::map<float, SizeT>compress;
+  for (SizeT d = 0; d < nDim; ++d) {
+    SizeT dim = newDim[d];
+    if (dim == 0) dim = 1; //protction  
+    if (dim < this->dim[d]) {
+      float key = float(this->dim[d] / dim) + 0.01 * d;
+      compress.insert(std::pair<float, SizeT>(key, d));
+    }
+  }
+  if (compress.size() > 0) {
+    for (std::map<float, SizeT>::reverse_iterator rit = compress.rbegin(); rit != compress.rend(); ++rit) {
+      Data_* act = DO_COMPRESS_INT(DUIntGDL, DULong64)
+        actDim = act->Dim();
 
-  // 2nd expand
-  for( SizeT d=0; d<nDim; ++d)
-    if( newDim[ d] >  dim[d])
-      { // expand
-	
-	Data_* act = Rebin1Int<DUIntGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
-      }
-  
-  if( actIn == this) return actIn->Dup();
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+    }
+  }
+  // 2nd expand : make the biggest expansion last
+  std::map<float, SizeT>expand;
+  for (SizeT d = 0; d < nDim; ++d) {
+    SizeT dim = newDim[d];
+    if (dim == 0) dim = 1; //protction, kept for symmetry with above, but unuseful
+    if (dim > this->dim[d]) {
+      float key = float(dim / this->dim[d]) + 0.01 * d;
+      expand.insert(std::pair<float, SizeT>(key, d));
+    }
+  }
+  if (expand.size() > 0) {
+    for (std::map<float, SizeT>::iterator it = expand.begin(); it != expand.end(); ++it) {
+      Data_* act = DO_EXPAND_INT(DUIntGDL, DULong64)
+        actDim = act->Dim();
+
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+    }
+  }
+
+  if (actIn == this) return actIn->Dup();
   return actIn;
 }
+
 template<>
-BaseGDL* Data_<SpDLong>::Rebin( const dimension& newDim, bool sample)
-{
+BaseGDL* Data_<SpDLong>::Rebin(const dimension& newDim, bool sample) {
   SizeT resRank = newDim.Rank();
-  SizeT srcRank = Rank();
+  SizeT srcRank = this->Rank();
 
   SizeT nDim;
-  if( resRank < srcRank) 
+  if (resRank < srcRank)
     nDim = srcRank;
   else
     nDim = resRank;
 
-  dimension actDim( dim);
+  dimension actDim(this->dim);
   Data_* actIn = this;
 
   // 1st compress
-  for( SizeT d=0; d<nDim; ++d)
-    if( newDim[d] <  dim[d])
-      { // compress
-	
-	Data_* act = Rebin1Int<DLongGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
-      }
+  //optimization: start by compressing the dimension that will decrease total size the most.
+  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
+  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
+  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
+  std::map<float, SizeT>compress;
+  for (SizeT d = 0; d < nDim; ++d) {
+    SizeT dim = newDim[d];
+    if (dim == 0) dim = 1; //protction  
+    if (dim < this->dim[d]) {
+      float key = float(this->dim[d] / dim) + 0.01 * d;
+      compress.insert(std::pair<float, SizeT>(key, d));
+    }
+  }
+  if (compress.size() > 0) {
+    for (std::map<float, SizeT>::reverse_iterator rit = compress.rbegin(); rit != compress.rend(); ++rit) {
+      Data_* act = DO_COMPRESS_INT(DLongGDL, DLong64)
+        actDim = act->Dim();
 
-  // 2nd expand
-  for( SizeT d=0; d<nDim; ++d)
-    if( newDim[ d] >  dim[d])
-      { // expand
-	
-	Data_* act = Rebin1Int<DLongGDL, DLong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
-      }
-  
-  if( actIn == this) return actIn->Dup();
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+    }
+  }
+  // 2nd expand : make the biggest expansion last
+  std::map<float, SizeT>expand;
+  for (SizeT d = 0; d < nDim; ++d) {
+    SizeT dim = newDim[d];
+    if (dim == 0) dim = 1; //protction, kept for symmetry with above, but unuseful
+    if (dim > this->dim[d]) {
+      float key = float(dim / this->dim[d]) + 0.01 * d;
+      expand.insert(std::pair<float, SizeT>(key, d));
+    }
+  }
+  if (expand.size() > 0) {
+    for (std::map<float, SizeT>::iterator it = expand.begin(); it != expand.end(); ++it) {
+      Data_* act = DO_EXPAND_INT(DLongGDL, DLong64)
+        actDim = act->Dim();
+
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+    }
+  }
+
+  if (actIn == this) return actIn->Dup();
   return actIn;
 }
+
 template<>
-BaseGDL* Data_<SpDULong>::Rebin( const dimension& newDim, bool sample)
-{
+BaseGDL* Data_<SpDULong>::Rebin(const dimension& newDim, bool sample) {
   SizeT resRank = newDim.Rank();
-  SizeT srcRank = Rank();
+  SizeT srcRank = this->Rank();
 
   SizeT nDim;
-  if( resRank < srcRank) 
+  if (resRank < srcRank)
     nDim = srcRank;
   else
     nDim = resRank;
 
-  dimension actDim( dim);
+  dimension actDim(this->dim);
   Data_* actIn = this;
 
   // 1st compress
-  for( SizeT d=0; d<nDim; ++d)
-    if( newDim[d] <  dim[d])
-      { // compress
-	
-	Data_* act = Rebin1Int<DULongGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
-      }
+  //optimization: start by compressing the dimension that will decrease total size the most.
+  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
+  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
+  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
+  std::map<float, SizeT>compress;
+  for (SizeT d = 0; d < nDim; ++d) {
+    SizeT dim = newDim[d];
+    if (dim == 0) dim = 1; //protction  
+    if (dim < this->dim[d]) {
+      float key = float(this->dim[d] / dim) + 0.01 * d;
+      compress.insert(std::pair<float, SizeT>(key, d));
+    }
+  }
+  if (compress.size() > 0) {
+    for (std::map<float, SizeT>::reverse_iterator rit = compress.rbegin(); rit != compress.rend(); ++rit) {
+      Data_* act = DO_COMPRESS_INT(DULongGDL, DULong64)
+        actDim = act->Dim();
 
-  // 2nd expand
-  for( SizeT d=0; d<nDim; ++d)
-    if( newDim[ d] >  dim[d])
-      { // expand
-	
-	Data_* act = Rebin1Int<DULongGDL, DULong64>( actIn, actDim, d, newDim[d], sample);
-	actDim = act->Dim();
-	
-	if( actIn != this) GDLDelete(actIn);
-	actIn = act;
-      }
-  
-  if( actIn == this) return actIn->Dup();
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+    }
+  }
+  // 2nd expand : make the biggest expansion last
+  std::map<float, SizeT>expand;
+  for (SizeT d = 0; d < nDim; ++d) {
+    SizeT dim = newDim[d];
+    if (dim == 0) dim = 1; //protction, kept for symmetry with above, but unuseful
+    if (dim > this->dim[d]) {
+      float key = float(dim / this->dim[d]) + 0.01 * d;
+      expand.insert(std::pair<float, SizeT>(key, d));
+    }
+  }
+  if (expand.size() > 0) {
+    for (std::map<float, SizeT>::iterator it = expand.begin(); it != expand.end(); ++it) {
+      Data_* act = DO_EXPAND_INT(DULongGDL, DULong64)
+        actDim = act->Dim();
+
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+    }
+  }
+
+  if (actIn == this) return actIn->Dup();
   return actIn;
 }
+template<>
+BaseGDL* Data_<SpDLong64>::Rebin(const dimension& newDim, bool sample) {
+  SizeT resRank = newDim.Rank();
+  SizeT srcRank = this->Rank();
 
+  SizeT nDim;
+  if (resRank < srcRank)
+    nDim = srcRank;
+  else
+    nDim = resRank;
+
+  dimension actDim(this->dim);
+  Data_* actIn = this;
+
+  // 1st compress
+  //optimization: start by compressing the dimension that will decrease total size the most.
+  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
+  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
+  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
+  std::map<float, SizeT>compress;
+  for (SizeT d = 0; d < nDim; ++d) {
+    SizeT dim = newDim[d];
+    if (dim == 0) dim = 1; //protction  
+    if (dim < this->dim[d]) {
+      float key = float(this->dim[d] / dim) + 0.01 * d;
+      compress.insert(std::pair<float, SizeT>(key, d));
+    }
+  }
+  if (compress.size() > 0) {
+    for (std::map<float, SizeT>::reverse_iterator rit = compress.rbegin(); rit != compress.rend(); ++rit) {
+      Data_* act = DO_COMPRESS_INT(DLong64GDL, DLong64)
+        actDim = act->Dim();
+
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+    }
+  }
+  // 2nd expand : make the biggest expansion last
+  std::map<float, SizeT>expand;
+  for (SizeT d = 0; d < nDim; ++d) {
+    SizeT dim = newDim[d];
+    if (dim == 0) dim = 1; //protction, kept for symmetry with above, but unuseful
+    if (dim > this->dim[d]) {
+      float key = float(dim / this->dim[d]) + 0.01 * d;
+      expand.insert(std::pair<float, SizeT>(key, d));
+    }
+  }
+  if (expand.size() > 0) {
+    for (std::map<float, SizeT>::iterator it = expand.begin(); it != expand.end(); ++it) {
+      Data_* act = DO_EXPAND_INT(DLong64GDL, DLong64)
+        actDim = act->Dim();
+
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+    }
+  }
+
+  if (actIn == this) return actIn->Dup();
+  return actIn;
+}
 // plain copy of nEl from src
 // no checking
 template<class Sp>

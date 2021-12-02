@@ -1266,9 +1266,8 @@ namespace lib {
       SizeT nE = im->N_Elements();
       bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE));
       if (parallelize) {
-        SizeT i;
-#pragma omp parallel for private(i)
-        for (i = 0; i < nE; ++i)  (*res)[i] = std::complex<decltype(t)>((*re)[0], (*im)[i]);
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < nE; ++i)  (*res)[i] = std::complex<decltype(t)>((*re)[0], (*im)[i]);
       } else 
         for (SizeT i = 0; i < nE; i++)  (*res)[i] = std::complex<decltype(t)>((*re)[0], (*im)[i]);
       return res;
@@ -1277,9 +1276,8 @@ namespace lib {
       SizeT nE = re->N_Elements();
       bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE));
       if (parallelize) {
-        SizeT i;
-#pragma omp parallel for private(i)
-        for (i = 0; i < nE; ++i) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[0]);
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < nE; ++i) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[0]);
       } else
         for (SizeT i = 0; i < nE; i++) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[0]);
       return res; 
@@ -1288,9 +1286,8 @@ namespace lib {
       SizeT nE = im->N_Elements();
       bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE));
       if (parallelize) {
-        SizeT i;
-#pragma omp parallel for private(i)
-        for (i = 0; i < nE; ++i)  (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[i]);
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < nE; ++i)  (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[i]);
       } else 
         for (SizeT i = 0; i < nE; i++)  (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[i]);
       return res;
@@ -1299,9 +1296,8 @@ namespace lib {
       SizeT nE = re->N_Elements();
       bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE));
       if (parallelize) {
-        SizeT i;
-#pragma omp parallel for private(i)
-        for (i = 0; i < nE; ++i) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[i]);
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < nE; ++i) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[i]);
       } else
         for (SizeT i = 0; i < nE; i++) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[i]);
       return res;
@@ -1888,9 +1884,7 @@ namespace lib {
     if( e1->LogTrue(0)) 
       {
         res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
-        // #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
         {
-          // #pragma omp for
           for( SizeT i=0; i < nEl2; i++)
         (*res)[i] = e2->LogTrue( i) ? 1 : 0;
         }
@@ -1905,9 +1899,7 @@ namespace lib {
     if( e2->LogTrue(0)) 
       {
         res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
-        // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
         {
-          // #pragma omp for
           for( SizeT i=0; i < nEl1; i++)
         (*res)[i] = e1->LogTrue( i) ? 1 : 0;
         }
@@ -1920,9 +1912,7 @@ namespace lib {
     else if( nEl2 <= nEl1) 
       {
     res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
-    // #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
     {
-      // #pragma omp for
       for( SizeT i=0; i < nEl2; i++)
         (*res)[i] = (e1->LogTrue( i) && e2->LogTrue( i)) ? 1 : 0;
     }
@@ -1930,9 +1920,7 @@ namespace lib {
     else // ( nEl2 > nEl1)
       {
     res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
-    // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
     {
-      // #pragma omp for
       for( SizeT i=0; i < nEl1; i++)
         (*res)[i] = (e1->LogTrue( i) && e2->LogTrue( i)) ? 1 : 0;
     }
@@ -1961,9 +1949,7 @@ namespace lib {
     if( e1->LogTrue(0)) 
       {
         res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
-        // #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
         {
-          // #pragma omp for
           for( SizeT i=0; i < nEl2; i++)
         (*res)[i] = 1;
         }
@@ -1971,9 +1957,7 @@ namespace lib {
     else
       {
         res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
-        // #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
         {
-          // #pragma omp for
           for( SizeT i=0; i < nEl2; i++)
         (*res)[i] = e2->LogTrue( i) ? 1 : 0;
         }
@@ -1984,9 +1968,7 @@ namespace lib {
     if( e2->LogTrue(0)) 
       {
         res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
-        // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
         {
-          // #pragma omp for
           for( SizeT i=0; i < nEl1; i++)
         (*res)[i] = 1;
         }
@@ -1994,9 +1976,7 @@ namespace lib {
     else
       {
         res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
-        // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
         {
-          // #pragma omp for
           for( SizeT i=0; i < nEl1; i++)
         (*res)[i] = e1->LogTrue( i) ? 1 : 0;
         }
@@ -2005,9 +1985,7 @@ namespace lib {
     else if( nEl2 < nEl1) 
       {
     res= new Data_<SpDByte>( e2->Dim(), BaseGDL::NOZERO);
-    // #pragma omp parallel if (nEl2 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl2))
     {
-      // #pragma omp for
       for( SizeT i=0; i < nEl2; i++)
         (*res)[i] = (e1->LogTrue( i) || e2->LogTrue( i)) ? 1 : 0;
     }
@@ -2015,9 +1993,7 @@ namespace lib {
     else // ( nEl2 >= nEl1)
       {
     res= new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
-    // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
     {
-      // #pragma omp for
       for( SizeT i=0; i < nEl1; i++)
         (*res)[i] = (e1->LogTrue( i) || e2->LogTrue( i)) ? 1 : 0;
     }
@@ -2032,9 +2008,7 @@ namespace lib {
     ULong nEl1 = e1->N_Elements();
 
     Data_<SpDByte>* res = new Data_<SpDByte>( e1->Dim(), BaseGDL::NOZERO);
-    // #pragma omp parallel if (nEl1 >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl1))
     {
-      // #pragma omp for
       for( SizeT i=0; i < nEl1; i++)
     (*res)[i] = e1->LogTrue( i) ? 1 : 0;
     }    
@@ -2056,130 +2030,106 @@ namespace lib {
 
     return p0->New( dim, BaseGDL::INIT);
   }
+static const std::string trimmable(" \t");
 
-  BaseGDL* strtrim( EnvT* e)
-  {
-    SizeT nParam = e->NParam( 1);//, "STRTRIM");
-
-    BaseGDL* p0 = e->GetPar( 0);
-    if( p0 == NULL)
-      e->Throw("Variable is undefined: " + e->GetParString(0));
-    DStringGDL* p0S = static_cast<DStringGDL*>(p0->Convert2(GDL_STRING,BaseGDL::COPY));
-    
-    DLong mode = 0;
-    if( nParam == 2)
-      {
-    BaseGDL* p1 = e->GetPar( 1);
-    if( p1 == NULL)
-      e->Throw("Variable is undefined: "+e->GetParString(1));
-    if( !p1->Scalar())
-      e->Throw("Expression must be a scalar in this context: "+
-           e->GetParString(1));
-    DLongGDL* p1L = static_cast<DLongGDL*>
-      (p1->Convert2(GDL_LONG,BaseGDL::COPY));
-
-    mode = (*p1L)[ 0];
-
-    GDLDelete(p1L);
-
-    if( mode < 0 || mode > 2)
-      {
-        ostringstream os;
-        p1->ToStream( os);
-        e->Throw( "Value of <"+ p1->TypeStr() + "  ("+ os.str() +
-              ")> is out of allowed range.");
-      }
-      }
-    
-    SizeT nEl = p0S->N_Elements();
-
-    if( mode == 2) // both
-      {
-    TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-      {
-#pragma omp for
-        for( OMPInt i=0; i<nEl; ++i)
-          {
-        unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
-//      if( first == (*p0S)[ i].npos)
-                if (first >= (*p0S)[i].length())
-          {
-            (*p0S)[ i] = "";
-          }
-        else
-          {
-            unsigned long last = (*p0S)[ i].find_last_not_of(" \t");
-            (*p0S)[ i] = (*p0S)[ i].substr(first,last-first+1);
-          }
-          }
-      }
-      }
-    else if( mode == 1) // leading
-      {
-    TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-      {
-#pragma omp for
-        for( OMPInt i=0; i<nEl; ++i)
-          {
-        unsigned long first= (*p0S)[ i].find_first_not_of(" \t");
-//      if( first == (*p0S)[ i].npos)
-            if (first >= (*p0S)[i].length())
-          {
-            (*p0S)[ i] = "";
-          }
-        else
-          {
-            (*p0S)[ i] = (*p0S)[ i].substr(first);
-          }
-          }
-      }
-      }
-    else // trailing
-      {
-    TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-      {
-#pragma omp for
-        for( OMPInt i=0; i<nEl; ++i)
-          {
-        unsigned long last = (*p0S)[ i].find_last_not_of(" \t");
-//      if( last == (*p0S)[ i].npos)
-            if (last >= (*p0S)[i].length())
-          {
-            (*p0S)[ i] = "";
-          }
-        else
-          {
-            (*p0S)[ i] = (*p0S)[ i].substr(0,last+1);
-          }
-          }
-      }
-      }
-    return p0S;
+ 
+  //leading blanks
+  inline void trim1(std::string &s) {
+    std::size_t found = s.find_first_not_of(trimmable);
+    if (found != std::string::npos)
+      s.erase(0,found);
+    else
+      s.clear();
+  }
+  //trailing blanks
+  inline void trim0(std::string &s) {
+    std::size_t found = s.find_last_not_of(trimmable);
+    if (found != std::string::npos)
+      s.erase(found + 1);
+    else
+      s.clear();
+  }
+ inline void trim2(std::string &s) {
+    trim0(s);
+    trim1(s);
   }
 
-  BaseGDL* strcompress( EnvT* e)
-  {
-    e->NParam( 1);
+  BaseGDL* strtrim(EnvT* e) {
+    SizeT nParam = e->NParam(1); //, "STRTRIM");
 
-    DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
+    BaseGDL* p0 = e->GetPar(0);
+    if (p0 == NULL)   e->Throw("Variable is undefined: " + e->GetParString(0));
 
-    bool removeAll =  e->KeywordSet(0);
+    DLong mode = 0;
+    if (nParam == 2) {
+      e->AssureLongScalarPar(1,mode);
 
-    DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
+      if (mode < 0 || mode > 2) {
+        ostringstream os;
+        e->GetPar(1)->ToStream(os);
+        e->Throw("Value of <" + e->GetPar(1)->TypeStr() + "  (" + os.str() +
+          ")> is out of allowed range.");
+      }
+    }
+    
+    DStringGDL* res;
+
+    if (p0->Type() == GDL_STRING)
+      res = static_cast<DStringGDL*>(p0->Dup());
+    else {
+      res = static_cast<DStringGDL*> (p0->Convert2(GDL_STRING, BaseGDL::COPY));
+    }
+    
+    SizeT nEl = res->N_Elements();
+    
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    if (mode == 2) // both
+    {
+      if (parallelize) {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < nEl; ++i) trim2((*res)[i]);
+      } else {
+        for (SizeT i = 0; i < nEl; ++i) trim2((*res)[i]);
+      }
+    } else if (mode == 1) // leading
+    {
+      if (parallelize) {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < nEl; ++i) trim1((*res)[i]);
+      } else {
+        for (SizeT i = 0; i < nEl; ++i) trim1((*res)[i]);
+      }
+    } else // trailing
+    {
+      if (parallelize) {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < nEl; ++i) trim0((*res)[i]);
+      } else {
+        for (SizeT i = 0; i < nEl; ++i) trim0((*res)[i]);
+      }
+    }
+    return res;
+  }
+
+  BaseGDL* strcompress(EnvT* e) {
+    e->NParam(1);
+
+    DStringGDL* p0S = e->GetParAs<DStringGDL>(0);
+
+    bool removeAll = e->KeywordSet(0);
+
+    DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
 
     SizeT nEl = p0S->N_Elements();
-    TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-      {
-#pragma omp for
-    for( OMPInt i=0; i<nEl; ++i)
-      {
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    if (!parallelize) {
+      for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = StrCompress((*p0S)[ i], removeAll);
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+      for (OMPInt i = 0; i < nEl; ++i) {
         (*res)[ i] = StrCompress((*p0S)[ i], removeAll);
       }
-      }
+    }
     return res;
   }
 
@@ -2216,241 +2166,209 @@ namespace lib {
 
     DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
 
-    SizeT nSrcStr = p0S->N_Elements();
-    TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10)))
+    SizeT nEl = p0S->N_Elements();
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    if (!parallelize) {
+      for (OMPInt i = 0; i < nEl; ++i) {
+        (*res)[ i] = StrPos((*p0S)[ i], searchString, pos, reverseOffset, reverseSearch);
+      }      
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+    for( OMPInt i=0; i<nEl; ++i)
       {
-#pragma omp for
-    for( OMPInt i=0; i<nSrcStr; ++i)
-      {
-        (*res)[ i] = StrPos((*p0S)[ i], searchString, pos, 
-                reverseOffset, reverseSearch);
-      }
-      }    
+        (*res)[ i] = StrPos((*p0S)[ i], searchString, pos,  reverseOffset, reverseSearch);
+      } 
+    }
     return res;
   }
 
-  BaseGDL* strmid( EnvT* e)
-  {
-    SizeT nParam = e->NParam( 2);//, "STRMID");
+  BaseGDL* strmid(EnvT* e) {
+    SizeT nParam = e->NParam(2); //, "STRMID");
 
-    bool reverse =  e->KeywordSet(0);
+    bool reverse = e->KeywordSet(0);
 
-    DStringGDL* p0S = e->GetParAs<DStringGDL>( 0);
-    DLongGDL*   p1L = e->GetParAs<DLongGDL>( 1);
+    DStringGDL* p0S = e->GetParAs<DStringGDL>(0);
+    DLongGDL* p1L = e->GetParAs<DLongGDL>(1);
 
     //     BaseGDL*  p2  = e->GetPar( 2);
     DLongGDL* p2L = NULL;
-    if( nParam > 2) p2L = e->GetParAs<DLongGDL>( 2);
+    if (nParam > 2) p2L = e->GetParAs<DLongGDL>(2);
 
     DLong scVal1;
-    bool sc1 = p1L->Scalar( scVal1);
+    bool sc1 = p1L->Scalar(scVal1);
 
     DLong scVal2 = numeric_limits<DLong>::max();
     bool sc2 = true;
-    if( p2L != NULL) 
-      {
-    DLong scalar;
-    sc2 = p2L->Scalar( scalar);
-    scVal2 = scalar;
-      }
+    if (p2L != NULL) {
+      DLong scalar;
+      sc2 = p2L->Scalar(scalar);
+      scVal2 = scalar;
+    }
 
     DLong stride;
-    if( !sc1 && !sc2)
-      {
-    stride = p1L->Dim( 0);
-    if( stride != p2L->Dim( 0))
-      e->Throw( "Starting offset and length arguments "
-            "have incompatible first dimension.");    
-      }
-    else
-      {
-    // at least one scalar, p2L possibly NULL
-    if( p2L == NULL)
-      stride = p1L->Dim( 0);
-    else
-      stride = max( p1L->Dim( 0), p2L->Dim( 0));
-    
-    stride = (stride > 0)? stride : 1;
-      }
+    if (!sc1 && !sc2) {
+      stride = p1L->Dim(0);
+      if (stride != p2L->Dim(0))
+        e->Throw("Starting offset and length arguments "
+        "have incompatible first dimension.");
+    } else {
+      // at least one scalar, p2L possibly NULL
+      if (p2L == NULL)
+        stride = p1L->Dim(0);
+      else
+        stride = max(p1L->Dim(0), p2L->Dim(0));
 
-    dimension resDim( p0S->Dim());
-    if( stride > 1)
+      stride = (stride > 0) ? stride : 1;
+    }
+
+    dimension resDim(p0S->Dim());
+    if (stride > 1)
       resDim >> stride;
 
-    DStringGDL* res = new DStringGDL( resDim, BaseGDL::NOZERO);
+    DStringGDL* res = new DStringGDL(resDim, BaseGDL::NOZERO);
 
     SizeT nEl1 = p1L->N_Elements();
-    SizeT nEl2 = (sc2)? 1 : p2L->N_Elements();
+    SizeT nEl2 = (sc2) ? 1 : p2L->N_Elements();
 
     SizeT nSrcStr = p0S->N_Elements();
-    if( nSrcStr == 1)
-      {
-    // possibly this optimization is not worth the longer code (as the gain can only be a small fraction
-    // of the overall time), but then this is a very common use
-    for( long ii=0; ii<stride; ++ii)
-      {
+    if (nSrcStr == 1) {
+      // possibly this optimization is not worth the longer code (as the gain can only be a small fraction
+      // of the overall time), but then this is a very common use
+      for (long ii = 0; ii < stride; ++ii) {
         SizeT destIx = ii;
-        DLong actFirst = (sc1)? scVal1 : (*p1L)[ destIx % nEl1];
-        DLong actLen   = (sc2)? scVal2 : (*p2L)[ destIx % nEl2];
-        if( actLen <= 0)
-          (*res)[ destIx] = "";//StrMid((*p0S)[ i], actFirst, actLen, reverse);
-        else    
+        DLong actFirst = (sc1) ? scVal1 : (*p1L)[ destIx % nEl1];
+        DLong actLen = (sc2) ? scVal2 : (*p2L)[ destIx % nEl2];
+        if (actLen <= 0)
+          (*res)[ destIx] = ""; //StrMid((*p0S)[ i], actFirst, actLen, reverse);
+        else
           (*res)[ destIx] = StrMid((*p0S)[ 0], actFirst, actLen, reverse);
       }
-    return res;
+      return res;
+    }
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nSrcStr * 10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr * 10)));
+    if (!parallelize) {
+      for (OMPInt i = 0; i < nSrcStr; ++i) {
+        for (long ii = 0; ii < stride; ++ii) {
+          SizeT destIx = i * stride + ii;
+          DLong actFirst = (sc1) ? scVal1 : (*p1L)[ destIx % nEl1];
+          DLong actLen = (sc2) ? scVal2 : (*p2L)[ destIx % nEl2];
+          if (actLen <= 0)
+            (*res)[ destIx] = ""; //StrMid((*p0S)[ i], actFirst, actLen, reverse);
+          else
+            (*res)[ destIx] = StrMid((*p0S)[ i], actFirst, actLen, reverse);
+        }
       }
-    TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if ((nSrcStr*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr*10))) default( shared)
-      {
-#pragma omp for
-    for( OMPInt i=0; i<nSrcStr; ++i)
-      {
-        for( long ii=0; ii<stride; ++ii)
-          {
-        SizeT destIx = i * stride + ii;
-        DLong actFirst = (sc1)? scVal1 : (*p1L)[ destIx % nEl1];
-        DLong actLen   = (sc2)? scVal2 : (*p2L)[ destIx % nEl2];
-        if( actLen <= 0)
-          (*res)[ destIx] = "";//StrMid((*p0S)[ i], actFirst, actLen, reverse);
-        else    
-          (*res)[ destIx] = StrMid((*p0S)[ i], actFirst, actLen, reverse);
-          }
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) default( shared)
+      for (OMPInt i = 0; i < nSrcStr; ++i) {
+        for (long ii = 0; ii < stride; ++ii) {
+          SizeT destIx = i * stride + ii;
+          DLong actFirst = (sc1) ? scVal1 : (*p1L)[ destIx % nEl1];
+          DLong actLen = (sc2) ? scVal2 : (*p2L)[ destIx % nEl2];
+          if (actLen <= 0)
+            (*res)[ destIx] = ""; //StrMid((*p0S)[ i], actFirst, actLen, reverse);
+          else
+            (*res)[ destIx] = StrMid((*p0S)[ i], actFirst, actLen, reverse);
+        }
       }
-      }    
+    }
     return res;
   }
 
-  BaseGDL* strlowcase( BaseGDL* p0, bool isReference)//( EnvT* e)
+  BaseGDL* strlowcase(BaseGDL* p0, bool isReference)//( EnvT* e)
   {
-    if (p0->Type () == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
+    if (p0->Type() == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     DStringGDL* p0S;
     DStringGDL* res;
-    //  Guard<DStringGDL> guard;
+    Guard<DStringGDL> guard;
 
-    if( p0->Type() == GDL_STRING)
-      {
-    p0S = static_cast<DStringGDL*>( p0);
-    if( !isReference)
-      res = p0S;
-    else
-      res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
-      }
-    else
-      {
-    p0S = static_cast<DStringGDL*>( p0->Convert2( GDL_STRING, BaseGDL::COPY));
-    res = p0S;
-    //      guard.Reset( p0S);
-      }
+    if (p0->Type() == GDL_STRING)
+      p0S = static_cast<DStringGDL*> (p0);
+    else {
+      p0S = static_cast<DStringGDL*> (p0->Convert2(GDL_STRING, BaseGDL::COPY));
+      guard.Reset(p0S);
+      isReference=true;
+    }
 
-    //     DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
-    
     SizeT nEl = p0S->N_Elements();
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
 
-    if( res == p0S)
-      {
-    TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-      {
-#pragma omp for
-        for( OMPInt i=0; i<nEl; ++i)
-          {
-        StrLowCaseInplace((*p0S)[ i]);
-          }
+    if (isReference) {
+      res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
+      if (parallelize) {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = StrLowCase((*p0S)[ i]);
+      } else {
+        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = StrLowCase((*p0S)[ i]);
       }
+    } else {
+      res = p0S;
+      if (parallelize) {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < nEl; ++i) StrLowCaseInplace((*p0S)[ i]);
+      } else {
+        for (SizeT i = 0; i < nEl; ++i) StrLowCaseInplace((*p0S)[ i]);
       }
-    else
-      {
-    TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-      {
-#pragma omp for
-        for( OMPInt i=0; i<nEl; ++i)
-          {
-        (*res)[ i] = StrLowCase((*p0S)[ i]);
-          }
-      }
-      }
+    }
     return res;
   }
 
-  BaseGDL* strupcase( BaseGDL* p0, bool isReference)//( EnvT* e)
+  BaseGDL* strupcase(BaseGDL* p0, bool isReference)//( EnvT* e)
   {
-    if (p0->Type () == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
+    if (p0->Type() == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     DStringGDL* p0S;
     DStringGDL* res;
-    //  Guard<DStringGDL> guard;
+    Guard<DStringGDL> guard;
 
-    if( p0->Type() == GDL_STRING)
-      {
-    p0S = static_cast<DStringGDL*>( p0);
-    if( !isReference)
-      res = p0S;
-    else
-      res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
-      }
-    else
-      {
-    p0S = static_cast<DStringGDL*>( p0->Convert2( GDL_STRING, BaseGDL::COPY));
-    res = p0S;
-    //      guard.Reset( p0S);
-      }
-
-    //     DStringGDL* res = new DStringGDL( p0S->Dim(), BaseGDL::NOZERO);
+    if (p0->Type() == GDL_STRING)
+      p0S = static_cast<DStringGDL*> (p0);
+    else {
+      p0S = static_cast<DStringGDL*> (p0->Convert2(GDL_STRING, BaseGDL::COPY));
+      guard.Reset(p0S);
+      isReference = true;
+    }
 
     SizeT nEl = p0S->N_Elements();
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
 
-    if( res == p0S)
-      {
-    TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-      {
-#pragma omp for
-        for( OMPInt i=0; i<nEl; ++i)
-          {
-        StrUpCaseInplace((*p0S)[ i]);
-          }
+    if (isReference) {
+      res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
+      if (parallelize) {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = StrUpCase((*p0S)[ i]);
+      } else {
+        for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = StrUpCase((*p0S)[ i]);
       }
+    } else {
+      res = p0S;
+      if (parallelize) {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < nEl; ++i) StrUpCaseInplace((*p0S)[ i]);
+      } else {
+        for (SizeT i = 0; i < nEl; ++i) StrUpCaseInplace((*p0S)[ i]);
       }
-    else
-      {
-    TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if ((nEl*10) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl*10)))
-      {
-#pragma omp for
-        for( OMPInt i=0; i<nEl; ++i)
-          {
-        (*res)[ i] = StrUpCase((*p0S)[ i]);
-          }
-      }
-      }
+    }
     return res;
   }
-
-  BaseGDL* strlen( BaseGDL* p0, bool isReference)//( EnvT* e)
+  
+  BaseGDL* strlen(BaseGDL* p0, bool isReference)//( EnvT* e)
   {
-    if (p0->Type () == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
+    if (p0->Type() == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
     DStringGDL* p0S;
     Guard<DStringGDL> guard;
-    
-    if( p0->Type() == GDL_STRING)
-      p0S = static_cast<DStringGDL*>( p0);
-    else
-      {
-    p0S = static_cast<DStringGDL*>( p0->Convert2( GDL_STRING, BaseGDL::COPY));
-    guard.Reset( p0S);
-      }
 
-    DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
-
-    SizeT nEl = p0S->N_Elements();
-    // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-      // #pragma omp for
-      for( SizeT i=0; i<nEl; ++i)
-    {
-      (*res)[ i] = (*p0S)[ i].length();
+    if (p0->Type() == GDL_STRING)
+      p0S = static_cast<DStringGDL*> (p0);
+    else {
+      p0S = static_cast<DStringGDL*> (p0->Convert2(GDL_STRING, BaseGDL::COPY));
+      guard.Reset(p0S);
     }
+
+    DLongGDL* res = new DLongGDL(p0S->Dim(), BaseGDL::NOZERO);
+//no use to parallelize, fast enough (on par)
+    SizeT nEl = p0S->N_Elements();
+    for (SizeT i = 0; i < nEl; ++i) {
+      (*res)[ i] = (*p0S)[ i].length();
     }
     return res;
   }
@@ -2583,59 +2501,71 @@ namespace lib {
   // total over all elements, preserve type
 
   template<class T>
-  BaseGDL* total_template_generic(T* src, bool omitNaN)
-  {
+  BaseGDL* total_template_generic(T* src, bool omitNaN) {
     SizeT nEl = src->N_Elements();
     typename T::Ty sum = 0;
-    bool parallelize=(CpuTPOOL_NTHREADS> 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
-    if (parallelize) {
-      SizeT i;
-      if (!omitNaN) {
-#pragma omp  parallel for reduction(+:sum) private(i)
-      for (i = 0; i < nEl; ++i) sum += (*src)[ i];
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    if (!parallelize) {
+      if (!omitNaN) for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+      else for (SizeT i = 0; i < nEl; ++i) if (isfinite((*src)[i])) sum += (*src)[ i];
+    } else {
+        if (!omitNaN) {
+#pragma omp  parallel for reduction(+:sum) num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
       } else {
-#pragma omp  parallel
+#pragma omp  parallel num_threads(CpuTPOOL_NTHREADS) if (parallelize)
         {
           typename T::Ty localsum = 0;
-#pragma omp for nowait
+#pragma omp for  
           for (SizeT i = 0; i < nEl; ++i) if (isfinite((*src)[i])) localsum += (*src)[ i];
 #pragma omp atomic
           sum += localsum;
         }
       }
-    } else {
-      if (!omitNaN) for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
-      else for (SizeT i = 0; i < nEl; ++i) if (isfinite((*src)[i])) sum += (*src)[ i];
     }
     return new T(sum);
   }
- 
+
   template<>
-  BaseGDL* total_template_generic(DComplexGDL* src, bool omitNaN)
-  {
+  BaseGDL* total_template_generic(DComplexGDL* src, bool omitNaN) {
     //    std::cerr << " total_template_generic_DComplexGdl " << std::endl;
     SizeT nEl = src->N_Elements();
     DFloat sr = 0;
     DFloat si = 0;
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
     if (!omitNaN) {
-#pragma omp  parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) reduction(+:sr,si)
-      for (SizeT i = 0; i < nEl; ++i) {
-        sr += (*src)[i].real();
-        si += (*src)[i].imag();
+      if (!parallelize) {
+        for (SizeT i = 0; i < nEl; ++i) {
+          sr += (*src)[i].real();
+          si += (*src)[i].imag();
+        }
+      } else {
+#pragma omp  parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:sr,si)
+        for (SizeT i = 0; i < nEl; ++i) {
+          sr += (*src)[i].real();
+          si += (*src)[i].imag();
+        }
       }
     } else {
-#pragma omp  parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-      {
-        DFloat lsr = 0;
-        DFloat lsi = 0;
-#pragma omp for nowait
+      if (!parallelize) {
         for (SizeT i = 0; i < nEl; ++i) {
-          if (isfinite((*src)[i].real())) lsr += (*src)[i].real();
-          if (isfinite((*src)[i].imag())) lsi += (*src)[i].imag();
+          if (isfinite((*src)[i].real())) sr += (*src)[i].real();
+          if (isfinite((*src)[i].imag())) si += (*src)[i].imag();
         }
+      } else {
+#pragma omp  parallel num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        {
+          DFloat lsr = 0;
+          DFloat lsi = 0;
+#pragma omp for nowait
+          for (SizeT i = 0; i < nEl; ++i) {
+            if (isfinite((*src)[i].real())) lsr += (*src)[i].real();
+            if (isfinite((*src)[i].imag())) lsi += (*src)[i].imag();
+          }
 #pragma omp atomic
-        sr += lsr;
-        si += lsi;
+          sr += lsr;
+          si += lsi;
+        }
       }
     }
     return new DComplexGDL(std::complex<float>(sr, si));
@@ -2648,25 +2578,40 @@ namespace lib {
     SizeT nEl = src->N_Elements();
     DDouble sr = 0;
     DDouble si = 0;
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
     if (!omitNaN) {
-#pragma omp  parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) reduction(+:sr,si)
-      for (SizeT i = 0; i < nEl; ++i) {
-        sr += (*src)[i].real();
-        si += (*src)[i].imag();
+      if (!parallelize) {
+        for (SizeT i = 0; i < nEl; ++i) {
+          sr += (*src)[i].real();
+          si += (*src)[i].imag();
+        }
+      } else {
+#pragma omp  parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:sr,si)
+        for (SizeT i = 0; i < nEl; ++i) {
+          sr += (*src)[i].real();
+          si += (*src)[i].imag();
+        }
       }
     } else {
-#pragma omp  parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-      {
-        DDouble lsr = 0;
-        DDouble lsi = 0;
-#pragma omp for nowait
+      if (!parallelize) {
         for (SizeT i = 0; i < nEl; ++i) {
-          if (isfinite((*src)[i].real())) lsr += (*src)[i].real();
-          if (isfinite((*src)[i].imag())) lsi += (*src)[i].imag();
+          if (isfinite((*src)[i].real())) sr += (*src)[i].real();
+          if (isfinite((*src)[i].imag())) si += (*src)[i].imag();
         }
+      } else {
+#pragma omp  parallel num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        {
+          DDouble lsr = 0;
+          DDouble lsi = 0;
+#pragma omp for nowait
+          for (SizeT i = 0; i < nEl; ++i) {
+            if (isfinite((*src)[i].real())) lsr += (*src)[i].real();
+            if (isfinite((*src)[i].imag())) lsi += (*src)[i].imag();
+          }
 #pragma omp atomic
-        sr += lsr;
-        si += lsi;
+          sr += lsr;
+          si += lsi;
+        }
       }
     }
     return new DComplexDblGDL(std::complex<double>(sr, si));
@@ -2675,48 +2620,60 @@ namespace lib {
   // total over all elements, done on Double. Avoids costly convert! 
 
   template<class T>
-  DDoubleGDL* total_template_double(T* src, bool omitNaN)
-  {
+  DDoubleGDL* total_template_double(T* src, bool omitNaN) {
     //   std::cerr<<" total_template_double "<<std::endl;
     SizeT nEl = src->N_Elements();
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
     DDouble sum = 0;
-    if (!omitNaN) {
-#pragma omp  parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) reduction(+:sum)
-      for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+    if (!parallelize) {
+      if (!omitNaN) {
+        for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+      } else {
+        for (SizeT i = 0; i < nEl; ++i) if (isfinite((*src)[i])) sum += (*src)[ i];
+      }
     } else {
-#pragma omp  parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-      {
-        DDouble localsum = 0;
+      if (!omitNaN) {
+#pragma omp  parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:sum)
+        for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+      } else {
+#pragma omp  parallel num_threads(CpuTPOOL_NTHREADS) if (parallelize) 
+        {
+          DDouble localsum = 0;
 #pragma omp for nowait
-        for (SizeT i = 0; i < nEl; ++i) {
-          if (isfinite((*src)[i])) localsum += (*src)[ i];
-        }
+          for (SizeT i = 0; i < nEl; ++i) if (isfinite((*src)[i])) localsum += (*src)[ i];
 #pragma omp atomic
-        sum += localsum;
+          sum += localsum;
+        }
       }
     }
     return new DDoubleGDL(sum);
   }
 
   template<class T>
-  DFloatGDL* total_template_single(T* src, bool omitNaN)
-  {
+  DFloatGDL* total_template_single(T* src, bool omitNaN) {
     //   std::cerr<<" total_template_single "<<std::endl;
     SizeT nEl = src->N_Elements();
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
     DDouble sum = 0;
-    if (!omitNaN) {
-#pragma omp  parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) reduction(+:sum)
-      for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+    if (!parallelize) {
+      if (!omitNaN) {
+        for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+      } else {
+        for (SizeT i = 0; i < nEl; ++i) if (isfinite((*src)[i])) sum += (*src)[ i];
+      }
     } else {
-#pragma omp  parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-      {
-        DDouble localsum = 0;
+      if (!omitNaN) {
+#pragma omp  parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:sum)
+        for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+      } else {
+#pragma omp  parallel num_threads(CpuTPOOL_NTHREADS) if (parallelize) 
+        {
+          DDouble localsum = 0;
 #pragma omp for nowait
-        for (SizeT i = 0; i < nEl; ++i) {
-          if (isfinite((*src)[i])) localsum += (*src)[ i];
-        }
+          for (SizeT i = 0; i < nEl; ++i) if (isfinite((*src)[i])) localsum += (*src)[ i];
 #pragma omp atomic
-        sum += localsum;
+          sum += localsum;
+        }
       }
     }
     return new DFloatGDL(sum);
@@ -2725,13 +2682,17 @@ namespace lib {
   //special case for /INT  using LONG64
 
   template<class T>
-  DLong64GDL* total_template_integer(T* src)
-  {
+  DLong64GDL* total_template_integer(T* src) {
     //   std::cerr<<" total_template_integer "<<std::endl;
     SizeT nEl = src->N_Elements();
     DLong64 sum = 0;
-#pragma omp  parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) reduction(+:sum)
-    for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    if (!parallelize) {
+      for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+    } else {
+#pragma omp  parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:sum)
+      for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
+    }
     return new DLong64GDL(sum);
   }
 
@@ -2761,7 +2722,6 @@ namespace lib {
     SizeT nEl=val->N_Elements();
     res=static_cast<T2*>(val->DataAddr());
     if (omitNaN) {
-       #pragma omp parallel for if (CpuTPOOL_NTHREADS >1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       for (SizeT i = 0; i < nEl; ++i) NaN2Zero(res[i]);
     }
     //this formulation is slightly faster on my machine
@@ -2789,11 +2749,9 @@ namespace lib {
     SizeT sumStride = srcDim.Stride(sumDimIx);
     SizeT outerStride = srcDim.Stride(sumDimIx + 1);
     SizeT sumLimit = nSum * sumStride;
-
-    if (omitNaN) {
-#pragma omp parallel if ((nEl/outerStride)*sumStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*sumStride))
-      {
-#pragma omp for
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && ((nEl/outerStride)*sumStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*sumStride)));
+    if (!parallelize) {
+      if (omitNaN) {
         for (SizeT o = 0; o < nEl; o += outerStride) {
           SizeT rIx = (o / outerStride) * sumStride;
           for (SizeT i = 0; i < sumStride; ++i) {
@@ -2803,11 +2761,7 @@ namespace lib {
             ++rIx;
           }
         }
-      }
-    } else {
-#pragma omp parallel if ((nEl/outerStride)*sumStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*sumStride))
-      {
-#pragma omp for
+      } else {
         for (SizeT o = 0; o < nEl; o += outerStride) {
           SizeT rIx = (o / outerStride) * sumStride;
           for (SizeT i = 0; i < sumStride; ++i) {
@@ -2818,6 +2772,30 @@ namespace lib {
           }
         }
       }
+    } else {
+    if (omitNaN) {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT o = 0; o < nEl; o += outerStride) {
+          SizeT rIx = (o / outerStride) * sumStride;
+          for (SizeT i = 0; i < sumStride; ++i) {
+            SizeT oi = o + i;
+            SizeT oiLimit = sumLimit + oi;
+            for (SizeT s = oi; s < oiLimit; s += sumStride) AddOmitNaN((*res)[ rIx], (*src)[ s]);
+            ++rIx;
+          }
+        }
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT o = 0; o < nEl; o += outerStride) {
+          SizeT rIx = (o / outerStride) * sumStride;
+          for (SizeT i = 0; i < sumStride; ++i) {
+            SizeT oi = o + i;
+            SizeT oiLimit = sumLimit + oi;
+            for (SizeT s = oi; s < oiLimit; s += sumStride) (*res)[ rIx] += (*src)[ s];
+            ++rIx;
+          }
+        }
+    }
     }
     return res;
   }
@@ -3412,33 +3390,45 @@ namespace lib {
   template<> inline void Nan2One(DComplex& value)
   { Nan2OneCpx< DComplex>(value); }
   template<> inline void Nan2One(DComplexDbl& value)
-  { Nan2OneCpx< DComplexDbl>(value); }
+  { Nan2OneCpx< DComplexDbl>(value);
+  }
 
   // product over all elements
+
   template<class T>
   BaseGDL* product_template(T* src, bool omitNaN) {
     typename T::Ty prod = 1;
     SizeT nEl = src->N_Elements();
-    if (!omitNaN) {
-
-      TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(prod)
-        {
-#pragma omp for reduction(*:prod)
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    if (!parallelize) {
+      if (!omitNaN) {
         for (OMPInt i = 0; i < nEl; ++i) {
           prod *= (*src)[ i];
+        }
+      } else {
+        for (OMPInt i = 0; i < nEl; ++i) {
+          MultOmitNaN(prod, (*src)[ i]);
         }
       }
     } else {
 
-      TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared(prod)
-      {
+      if (!omitNaN) {
+#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (parallelize) shared(prod)
+        {
 #pragma omp for reduction(*:prod)
-        for (OMPInt i = 0; i < nEl; ++i) {
-          MultOmitNaN(prod, (*src)[ i]);
+          for (OMPInt i = 0; i < nEl; ++i) {
+            prod *= (*src)[ i];
+          }
+        }
+      } else {
+#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (parallelize) shared(prod)
+        {
+#pragma omp for reduction(*:prod)
+          for (OMPInt i = 0; i < nEl; ++i) {
+            MultOmitNaN(prod, (*src)[ i]);
+          }
+        }
       }
-    }
     }
     return new T(prod);
   }
@@ -3489,11 +3479,12 @@ namespace lib {
   }
 
   // product over one dim
+
   template< typename T>
-  BaseGDL* product_over_dim_template( T* src, 
-                      const dimension& srcDim, 
-                      SizeT prodDimIx,
-                      bool omitNaN) {
+  BaseGDL* product_over_dim_template(T* src,
+    const dimension& srcDim,
+    SizeT prodDimIx,
+    bool omitNaN) {
     SizeT nEl = src->N_Elements();
 
     // get dest dim and number of products
@@ -3506,10 +3497,9 @@ namespace lib {
     SizeT prodStride = srcDim.Stride(prodDimIx);
     SizeT outerStride = srcDim.Stride(prodDimIx + 1);
     SizeT prodLimit = nProd * prodStride;
-    if (omitNaN) {
-#pragma omp parallel if ((nEl/outerStride)*prodStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*prodStride))
-      {
-#pragma omp for
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && ((nEl / outerStride) * prodStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl / outerStride) * prodStride)));
+    if (!parallelize) {
+      if (omitNaN) {
         for (SizeT o = 0; o < nEl; o += outerStride) {
           SizeT rIx = (o / outerStride) * prodStride;
           for (SizeT i = 0; i < prodStride; ++i) {
@@ -3520,11 +3510,33 @@ namespace lib {
             ++rIx;
           }
         }
+      } else {
+        for (SizeT o = 0; o < nEl; o += outerStride) {
+          SizeT rIx = (o / outerStride) * prodStride;
+          for (SizeT i = 0; i < prodStride; ++i) {
+            (*res)[ rIx] = 1;
+            SizeT oi = o + i;
+            SizeT oiLimit = prodLimit + oi;
+            for (SizeT s = oi; s < oiLimit; s += prodStride) (*res)[ rIx] *= (*src)[ s];
+            ++rIx;
+          }
+        }
       }
     } else {
-#pragma omp parallel if ((nEl/outerStride)*prodStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*prodStride))
-      {
-#pragma omp for
+      if (omitNaN) {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+        for (SizeT o = 0; o < nEl; o += outerStride) {
+          SizeT rIx = (o / outerStride) * prodStride;
+          for (SizeT i = 0; i < prodStride; ++i) {
+            (*res)[ rIx] = 1;
+            SizeT oi = o + i;
+            SizeT oiLimit = prodLimit + oi;
+            for (SizeT s = oi; s < oiLimit; s += prodStride) MultOmitNaN((*res)[ rIx], (*src)[ s]);
+            ++rIx;
+          }
+        }
+      } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
         for (SizeT o = 0; o < nEl; o += outerStride) {
           SizeT rIx = (o / outerStride) * prodStride;
           for (SizeT i = 0; i < prodStride; ++i) {
@@ -4025,21 +4037,17 @@ namespace lib {
       }
 
       SizeT rIx = 0;
-#pragma omp parallel if ((nEl/outerStride)*searchStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*searchStride))
-      {
-#pragma omp for
-        for (SizeT o = 0; o < nEl; o += outerStride) {
-          SizeT rIx = (o / outerStride) * searchStride;
-          for (SizeT i = 0; i < searchStride; ++i) {
-            searchArr->MinMax(
-              (nParam == 2 ? &((*minElArr)[rIx]) : NULL),
-              (subMax ? &((*maxElArr)[rIx]) : NULL),
-              &resArr,
-              (maxSet ? &maxVal : NULL),
-              omitNaN, o + i, searchLimit + o + i, searchStride, rIx, absSet
-              );
-            rIx++;
-          }
+      for (SizeT o = 0; o < nEl; o += outerStride) {
+        SizeT rIx = (o / outerStride) * searchStride;
+        for (SizeT i = 0; i < searchStride; ++i) {
+          searchArr->MinMax(
+            (nParam == 2 ? &((*minElArr)[rIx]) : NULL),
+            (subMax ? &((*maxElArr)[rIx]) : NULL),
+            &resArr,
+            (maxSet ? &maxVal : NULL),
+            omitNaN, o + i, searchLimit + o + i, searchStride, rIx, absSet
+            );
+          rIx++;
         }
       }
       if (nParam == 2) e->SetPar(1, minElArr);
@@ -4129,22 +4137,17 @@ namespace lib {
         e->AssureGlobalPar(1); // instead of using a guard pointer
         maxElArr = new DLongGDL(destDim);
       }
-
-#pragma omp parallel if ((nEl/outerStride)*searchStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*searchStride))
-      {
-#pragma omp for
-        for (SizeT o = 0; o < nEl; o += outerStride) {
-          SizeT rIx = (o/outerStride)*searchStride;
-          for (SizeT i = 0; i < searchStride; ++i) {
-            searchArr->MinMax(
-              (subMin ? &((*minElArr)[rIx]) : NULL),
-              (nParam == 2 ? &((*maxElArr)[rIx]) : NULL),
-              (minSet ? &minVal : NULL),
-              &resArr,
-              omitNaN, o + i, searchLimit + o + i, searchStride, rIx, absSet
-              );
-            rIx++;
-          }
+      for (SizeT o = 0; o < nEl; o += outerStride) {
+        SizeT rIx = (o/outerStride)*searchStride;
+        for (SizeT i = 0; i < searchStride; ++i) {
+          searchArr->MinMax(
+            (subMin ? &((*minElArr)[rIx]) : NULL),
+            (nParam == 2 ? &((*maxElArr)[rIx]) : NULL),
+            (minSet ? &minVal : NULL),
+            &resArr,
+            omitNaN, o + i, searchLimit + o + i, searchStride, rIx, absSet
+            );
+          rIx++;
         }
       }
       if (nParam == 2) e->SetPar(1, maxElArr);
@@ -4623,8 +4626,8 @@ namespace lib {
               clean_array = true;
             }
             DDoubleGDL* res = new DDoubleGDL(destDim, BaseGDL::NOZERO);
-            //probably overkill to start multithreading in some easy cases. TBD.
-#pragma omp for private(i,hasnan)
+//            //probably overkill to start multithreading in some easy cases. TBD.
+//#pragma omp for private(i,hasnan)
             for (SizeT i = 0; i < nEl; ++i) {
               if (hasnan_d(&(*input)[i * stride], stride)) (*res)[i] = quick_select_d_filter_nan(&(*input)[i * stride], stride, iseven); //special if nan.
               else (*res)[i] = quick_select_d_protect_input(&(*input)[i * stride], stride, iseven);
@@ -4638,8 +4641,8 @@ namespace lib {
               clean_array = true;
             }
             DFloatGDL* res = new DFloatGDL(destDim, BaseGDL::NOZERO);
-            //probably overkill to start multithreading in some easy cases. TBD.
-#pragma omp for private(i)
+//            //probably overkill to start multithreading in some easy cases. TBD.
+//#pragma omp for private(i)
             for (SizeT i = 0; i < nEl; ++i) {
               if (hasnan_f(&(*input)[i * stride], stride)) (*res)[i] = quick_select_f_filter_nan(&(*input)[i * stride], stride, iseven); //special if nan.
               else (*res)[i] = quick_select_f_protect_input(&(*input)[i * stride], stride, iseven);            }
@@ -4654,7 +4657,7 @@ namespace lib {
               clean_array = true;
             }
             DDoubleGDL* res = new DDoubleGDL(destDim, BaseGDL::NOZERO);
-#pragma omp for private(i)
+//#pragma omp for private(i)
             for (SizeT i = 0; i < nEl; ++i) (*res)[i] = quick_select_d_protect_input(&(*input)[i * stride], stride, iseven);
             if (clean_array) delete input;
             return res;
@@ -4665,7 +4668,7 @@ namespace lib {
               clean_array = true;
             }
             DFloatGDL* res = new DFloatGDL(destDim, BaseGDL::NOZERO);
-#pragma omp for private(i)
+//#pragma omp for private(i)
             for (SizeT i = 0; i < nEl; ++i) (*res)[i] = quick_select_f_protect_input(&(*input)[i * stride], stride, iseven);
             if (clean_array) delete input;
             return res;
@@ -5498,100 +5501,109 @@ namespace lib {
     return NULL;
 
   }// end of median
-  
-//template <typename Ty>  static inline Ty do_max(const Ty* data, const SizeT sz) {
-//    Ty maxval = data[0];
-//
-//#if OMP_HAS_MAX
-//#pragma omp parallel
-//    {
-//#pragma omp for reduction(max:maxval)
-//#endif
-//    for (SizeT i = 1; i < sz; ++i) maxval = max(maxval,data[i]);
-//#if OMP_HAS_MAX
-//    }
-//#endif
-//    return maxval;
-//  }
-//template <typename Ty>  static inline Ty do_max_nan(const Ty* data, const SizeT sz) {
-//    Ty maxval = data[0];
-//#if OMP_HAS_MAX
-//#pragma omp parallel
-//    {
-//#pragma omp for reduction(max:maxval)
-//#endif
-//      for (SizeT i = 1; i < sz; ++i) maxval = max(maxval,data[i]);
-//#if OMP_HAS_MAX
-//    }
-//#endif
-//    return maxval;
-//  }  
 
-template <typename Ty>  static inline Ty do_mean(const Ty* data, const SizeT sz) {
+  template <typename Ty> static inline Ty do_mean(const Ty* data, const SizeT sz) {
     Ty mean = 0;
-#pragma omp parallel
-    {
-#pragma omp for reduction(+:mean)
-    for (SizeT i = 0; i < sz; ++i) mean += data[i];
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) mean += data[i];
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:mean)
+      for (SizeT i = 0; i < sz; ++i) mean += data[i];
     }
-    return mean/sz;
+    return mean / sz;
   }
 
-template <typename Ty, typename T2>  static inline Ty do_mean_cpx(const Ty* data, const SizeT sz) {
+  template <typename Ty, typename T2> static inline Ty do_mean_cpx(const Ty* data, const SizeT sz) {
     T2 meanr = 0;
     T2 meani = 0;
-#pragma omp parallel
-    {
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) meanr += data[i].real();
+      for (SizeT i = 0; i < sz; ++i) meani += data[i].imag();
+    } else {
+#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+      {
 #pragma omp for reduction(+:meanr)
-    for (SizeT i = 0; i < sz; ++i) meanr += data[i].real();
+        for (SizeT i = 0; i < sz; ++i) meanr += data[i].real();
 #pragma omp for reduction(+:meani)
-    for (SizeT i = 0; i < sz; ++i) meani += data[i].imag();
+        for (SizeT i = 0; i < sz; ++i) meani += data[i].imag();
+      }
     }
-    return std::complex<T2>(meanr/sz,meani/sz);
+    return std::complex<T2>(meanr / sz, meani / sz);
   }
- 
-template <typename Ty>  static inline Ty do_mean_nan(const Ty* data, const SizeT sz) {
+
+  template <typename Ty> static inline Ty do_mean_nan(const Ty* data, const SizeT sz) {
     Ty mean = 0;
     SizeT n = 0;
-#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:mean,n)
-     for (SizeT i = 0; i < sz; ++i) {
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) {
         Ty v = data[i];
         if (std::isfinite(v)) {
           n++,
-          mean += v;
+            mean += v;
+        }
+      }
+    } else {
+#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (parallelize) 
+      {
+#pragma omp for reduction(+:mean,n)
+        for (SizeT i = 0; i < sz; ++i) {
+          Ty v = data[i];
+          if (std::isfinite(v)) {
+            n++,
+              mean += v;
+          }
         }
       }
     }
-    return mean/n;
+    return mean / n;
   }
 
-template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* data, const SizeT sz) {
+  template <typename Ty, typename T2> static inline Ty do_mean_cpx_nan(const Ty* data, const SizeT sz) {
     T2 meanr = 0;
     T2 meani = 0;
     SizeT nr = 0;
     SizeT ni = 0;
-#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:meanr,nr)
-     for (SizeT i = 0; i < sz; ++i) {
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) {
         T2 v = data[i].real();
         if (std::isfinite(v)) {
           nr++,
-          meanr += v;
+            meanr += v;
         }
       }
-#pragma omp for reduction(+:meani,ni)
-     for (SizeT i = 0; i < sz; ++i) {
+      for (SizeT i = 0; i < sz; ++i) {
         T2 v = data[i].imag();
         if (std::isfinite(v)) {
           ni++,
-          meani += v;
+            meani += v;
         }
       }
-    }    
-    return std::complex<T2>(meanr/nr,meani/ni);
+    } else {
+#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+      {
+#pragma omp for reduction(+:meanr,nr)
+        for (SizeT i = 0; i < sz; ++i) {
+          T2 v = data[i].real();
+          if (std::isfinite(v)) {
+            nr++,
+              meanr += v;
+          }
+        }
+#pragma omp for reduction(+:meani,ni)
+        for (SizeT i = 0; i < sz; ++i) {
+          T2 v = data[i].imag();
+          if (std::isfinite(v)) {
+            ni++,
+              meani += v;
+          }
+        }
+      }
+    }
+    return std::complex<T2>(meanr / nr, meani / ni);
   }
 
   BaseGDL* mean_fun(EnvT* e) {
@@ -5662,17 +5674,9 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
         }
         DComplexDblGDL* res = new DComplexDblGDL(destDim, BaseGDL::NOZERO);
         if (omitNaN) {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-          {
-#pragma omp for
             for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean_cpx_nan<DComplexDbl, double>(&(*input)[i * stride], stride);
-          }
         } else {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-          {
-#pragma omp for
             for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean_cpx<DComplexDbl, double>(&(*input)[i * stride], stride);
-          }
         }
         if (clean_array) delete input;
         return res;
@@ -5684,17 +5688,9 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
         }
         DComplexGDL* res = new DComplexGDL(destDim, BaseGDL::NOZERO);
         if (omitNaN) {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-          {
-#pragma omp for
             for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean_cpx_nan<DComplex, float>(&(*input)[i * stride], stride);
-          }
         } else {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-          {
-#pragma omp for
             for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean_cpx<DComplex, float>(&(*input)[i * stride], stride);
-          }
         }
         if (clean_array) delete input;
         return res;
@@ -5707,17 +5703,9 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
           }
           DDoubleGDL* res = new DDoubleGDL(destDim, BaseGDL::NOZERO);
           if (omitNaN) {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-            {
-#pragma omp for
               for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean_nan(&(*input)[i * stride], stride);
-            }
           } else {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-            {
-#pragma omp for
               for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean(&(*input)[i * stride], stride);
-            }
           }
           if (clean_array) delete input;
           return res;
@@ -5730,17 +5718,9 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
           }
           DFloatGDL* res = new DFloatGDL(destDim, BaseGDL::NOZERO);
           if (omitNaN) {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-            {
-#pragma omp for
               for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean_nan(&(*input)[i * stride], stride);
-            }
           } else {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-            {
-#pragma omp for
               for (SizeT i = 0; i < nEl; ++i) (*res)[i] = do_mean(&(*input)[i * stride], stride);
-            }
           }
           if (clean_array) delete input;
           return res;
@@ -5768,58 +5748,82 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
       }
     }
   }
-  
+
   template<typename Ty>
-  static inline void do_moment(const Ty* data, const SizeT sz, Ty &mean, Ty &variance, Ty &skewness, 
-    Ty &kurtosis, Ty &mdev, Ty &sdev, const int maxmoment){
-    Ty meanl=do_mean(data,sz);
-    mean=meanl;
-    if (maxmoment==1) {
-      variance=skewness=kurtosis=mdev=sdev=std::numeric_limits<float>::quiet_NaN();
+  static inline void do_moment(const Ty* data, const SizeT sz, Ty &mean, Ty &variance, Ty &skewness,
+    Ty &kurtosis, Ty &mdev, Ty &sdev, const int maxmoment) {
+    Ty meanl = do_mean(data, sz);
+    mean = meanl;
+    if (maxmoment == 1) {
+      variance = skewness = kurtosis = mdev = sdev = std::numeric_limits<float>::quiet_NaN();
       return;
     }
 
-    Ty var=0;
-    Ty md=0;
-#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:var,md)
-    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; var += cdata*cdata; md+=fabs(cdata);}
+    Ty var = 0;
+    Ty md = 0;
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        var += cdata*cdata;
+        md += fabs(cdata);
+      }
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:var,md)
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        var += cdata*cdata;
+        md += fabs(cdata);
+      }
     }
-    var/=(sz-1);
-    variance=var;
-    sdev=sqrt(var);
-    mdev=md/sz;
-    
-    if (maxmoment==2 || var==0 ) {
-      skewness=kurtosis=std::numeric_limits<float>::quiet_NaN();
+    var /= (sz - 1);
+    variance = var;
+    sdev = sqrt(var);
+    mdev = md / sz;
+
+    if (maxmoment == 2 || var == 0) {
+      skewness = kurtosis = std::numeric_limits<float>::quiet_NaN();
       return;
     }
-    Ty skew=0;
-#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:skew)
-    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; skew += (cdata*cdata*cdata)/(var*sdev); }
+    Ty skew = 0;
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        skew += (cdata * cdata * cdata) / (var * sdev);
+      }
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:skew)
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        skew += (cdata * cdata * cdata) / (var * sdev);
+      }
     }
-    skewness=skew/sz;
-    if (maxmoment==3) {
-      kurtosis=std::numeric_limits<float>::quiet_NaN();
+    skewness = skew / sz;
+    if (maxmoment == 3) {
+      kurtosis = std::numeric_limits<float>::quiet_NaN();
       return;
     }
-    Ty kurt=0;
-#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:kurt)
-    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; kurt += (cdata*cdata*cdata*cdata)/(var*var);}
+    Ty kurt = 0;
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        kurt += (cdata * cdata * cdata * cdata) / (var * var);
+      }
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:kurt)
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        kurt += (cdata * cdata * cdata * cdata) / (var * var);
+      }
     }
-    kurtosis=(kurt/sz)-3; 
+    kurtosis = (kurt / sz) - 3;
   }
-  
+
   template<typename Ty, typename T2>
-  static inline void do_moment_cpx(const Ty* data, const SizeT sz, Ty &mean, Ty &variance, Ty &skewness, 
-    Ty &kurtosis, T2 &mdev, Ty &sdev, const int maxmoment){
-    Ty meanl=do_mean_cpx<Ty, T2>(data,sz);
-    mean=meanl;
+  static inline void do_moment_cpx(const Ty* data, const SizeT sz, Ty &mean, Ty &variance, Ty &skewness,
+    Ty &kurtosis, T2 &mdev, Ty &sdev, const int maxmoment) {
+    Ty meanl = do_mean_cpx<Ty, T2>(data, sz);
+    mean = meanl;
     if (maxmoment == 1) {
       variance = skewness = kurtosis = sdev =
         std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(), std::numeric_limits<T2>::quiet_NaN());
@@ -5827,222 +5831,345 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
       return;
     }
 
-    T2 mdr=0;
-    T2 varr=0;
-    T2 vari=0;
-#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:varr,vari,mdr)
-      for (SizeT i = 0; i < sz; ++i) { 
-        Ty cdata=data[i]-meanl;
-        T2 cdatar=cdata.real();
-        T2 cdatai=cdata.imag();
-        varr += (cdatar*cdatar)-(cdatai*cdatai);
-        vari += 2*cdatar*cdatai;
-        mdr += sqrt(cdatar*cdatar+cdatai*cdatai);
+    T2 mdr = 0;
+    T2 varr = 0;
+    T2 vari = 0;
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        T2 cdatar = cdata.real();
+        T2 cdatai = cdata.imag();
+        varr += (cdatar * cdatar)-(cdatai * cdatai);
+        vari += 2 * cdatar*cdatai;
+        mdr += sqrt(cdatar * cdatar + cdatai * cdatai);
+      }
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:varr,vari,mdr)
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        T2 cdatar = cdata.real();
+        T2 cdatai = cdata.imag();
+        varr += (cdatar * cdatar)-(cdatai * cdatai);
+        vari += 2 * cdatar*cdatai;
+        mdr += sqrt(cdatar * cdatar + cdatai * cdatai);
       }
     }
-    varr/=(sz-1);
-    vari/=(sz-1);
-    mdr/=sz;
-    variance=std::complex<T2>(varr,vari);
-    sdev=sqrt(variance);
-    mdev=mdr;
+    varr /= (sz - 1);
+    vari /= (sz - 1);
+    mdr /= sz;
+    variance = std::complex<T2>(varr, vari);
+    sdev = sqrt(variance);
+    mdev = mdr;
 
-    if (maxmoment==2) {
-      skewness=kurtosis=
-        std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(),std::numeric_limits<T2>::quiet_NaN());
+    if (maxmoment == 2) {
+      skewness = kurtosis =
+        std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(), std::numeric_limits<T2>::quiet_NaN());
       return;
     }
-    T2 skewr=0;
-    T2 skewi=0;
-#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:skewr,skewi)
-      for (SizeT i = 0; i < sz; ++i) { 
-        Ty cdata=data[i]-meanl;
-        T2 cdatar=cdata.real();
-        T2 cdatai=cdata.imag();
-        skewr += (cdatar*cdatar*cdatar-3.0*cdatar*cdatai*cdatai)*
-          exp(-0.75*log(varr*varr+vari*vari))*
-          cos(0.15E1*atan2(vari,varr))+(3.0*cdatar*cdatar*cdatai-cdatai*cdatai*cdatai)*
-          exp(-0.75*log(varr*varr+vari*vari))*sin(1.5*atan2(vari,varr));
+    T2 skewr = 0;
+    T2 skewi = 0;
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        T2 cdatar = cdata.real();
+        T2 cdatai = cdata.imag();
+        skewr += (cdatar * cdatar * cdatar - 3.0 * cdatar * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) *
+          cos(0.15E1 * atan2(vari, varr))+(3.0 * cdatar * cdatar * cdatai - cdatai * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) * sin(1.5 * atan2(vari, varr));
 
-        skewi += (3.0*cdatar*cdatar*cdatai-cdatai*cdatai*cdatai)*
-          exp(-0.75*log(varr*varr+vari*vari))*cos(1.5*atan2(vari,varr))-
-          (cdatar*cdatar*cdatar-3.0*cdatar*cdatai*cdatai)*
-          exp(-0.75*log(varr*varr+vari*vari))*sin(1.5*atan2(vari,varr));
+        skewi += (3.0 * cdatar * cdatar * cdatai - cdatai * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) * cos(1.5 * atan2(vari, varr))-
+          (cdatar * cdatar * cdatar - 3.0 * cdatar * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) * sin(1.5 * atan2(vari, varr));
+      }
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:skewr,skewi)
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        T2 cdatar = cdata.real();
+        T2 cdatai = cdata.imag();
+        skewr += (cdatar * cdatar * cdatar - 3.0 * cdatar * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) *
+          cos(0.15E1 * atan2(vari, varr))+(3.0 * cdatar * cdatar * cdatai - cdatai * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) * sin(1.5 * atan2(vari, varr));
+
+        skewi += (3.0 * cdatar * cdatar * cdatai - cdatai * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) * cos(1.5 * atan2(vari, varr))-
+          (cdatar * cdatar * cdatar - 3.0 * cdatar * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) * sin(1.5 * atan2(vari, varr));
       }
     }
-    skewness=std::complex<T2>(skewr/sz,skewi/sz);
-    if (maxmoment==3) {
-      kurtosis=std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(),std::numeric_limits<T2>::quiet_NaN());
+    skewness = std::complex<T2>(skewr / sz, skewi / sz);
+    if (maxmoment == 3) {
+      kurtosis = std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(), std::numeric_limits<T2>::quiet_NaN());
       return;
     }
-    T2 kurtr=0;
-    T2 kurti=0;
-#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:kurtr,kurti)
-      for (SizeT i = 0; i < sz; ++i) { 
-        Ty cdata=data[i]-meanl;
-        T2 cdatar=cdata.real();
-        T2 cdatai=cdata.imag();
-        kurtr += (cdatar*cdatar*cdatar*cdatar-6.0*cdatar*cdatar*cdatai*cdatai+cdatai*
-          cdatai*cdatai*cdatai)*(varr*varr-vari*vari)/(pow(varr*varr-vari*vari,2.0)+
-          4.0*varr*varr*vari*vari)+2.0*(4.0*cdatar*cdatar*cdatar*cdatai-
-          4.0*cdatar*cdatai*cdatai*cdatai)*varr*vari/
-          (pow(varr*varr-vari*vari,2.0)+
-          4.0*varr*varr*vari*vari);
-        kurti += (4.0*cdatar*cdatar*cdatar*cdatai-4.0*cdatar*cdatai*cdatai*cdatai)*
-          (varr*varr-vari*vari)/(pow(varr*varr-vari*vari,2.0)+4.0*varr*varr*vari*vari)-
-          2.0*(cdatar*cdatar*cdatar*cdatar-
-          6.0*cdatar*cdatar*cdatai*cdatai+cdatai*cdatai*cdatai*cdatai)*varr*vari/
-          (pow(varr*varr-vari*vari,2.0)+
-          4.0*varr*varr*vari*vari);
+    T2 kurtr = 0;
+    T2 kurti = 0;
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        T2 cdatar = cdata.real();
+        T2 cdatai = cdata.imag();
+        kurtr += (cdatar * cdatar * cdatar * cdatar - 6.0 * cdatar * cdatar * cdatai * cdatai + cdatai *
+          cdatai * cdatai * cdatai)*(varr * varr - vari * vari) / (pow(varr * varr - vari*vari, 2.0) +
+          4.0 * varr * varr * vari * vari) + 2.0 * (4.0 * cdatar * cdatar * cdatar * cdatai -
+          4.0 * cdatar * cdatai * cdatai * cdatai) * varr * vari /
+          (pow(varr * varr - vari*vari, 2.0) +
+          4.0 * varr * varr * vari * vari);
+        kurti += (4.0 * cdatar * cdatar * cdatar * cdatai - 4.0 * cdatar * cdatai * cdatai * cdatai)*
+          (varr * varr - vari * vari) / (pow(varr * varr - vari*vari, 2.0) + 4.0 * varr * varr * vari * vari) -
+          2.0 * (cdatar * cdatar * cdatar * cdatar -
+          6.0 * cdatar * cdatar * cdatai * cdatai + cdatai * cdatai * cdatai * cdatai) * varr * vari /
+          (pow(varr * varr - vari*vari, 2.0) +
+          4.0 * varr * varr * vari * vari);
+      }
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:kurtr,kurti)
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        T2 cdatar = cdata.real();
+        T2 cdatai = cdata.imag();
+        kurtr += (cdatar * cdatar * cdatar * cdatar - 6.0 * cdatar * cdatar * cdatai * cdatai + cdatai *
+          cdatai * cdatai * cdatai)*(varr * varr - vari * vari) / (pow(varr * varr - vari*vari, 2.0) +
+          4.0 * varr * varr * vari * vari) + 2.0 * (4.0 * cdatar * cdatar * cdatar * cdatai -
+          4.0 * cdatar * cdatai * cdatai * cdatai) * varr * vari /
+          (pow(varr * varr - vari*vari, 2.0) +
+          4.0 * varr * varr * vari * vari);
+        kurti += (4.0 * cdatar * cdatar * cdatar * cdatai - 4.0 * cdatar * cdatai * cdatai * cdatai)*
+          (varr * varr - vari * vari) / (pow(varr * varr - vari*vari, 2.0) + 4.0 * varr * varr * vari * vari) -
+          2.0 * (cdatar * cdatar * cdatar * cdatar -
+          6.0 * cdatar * cdatar * cdatai * cdatai + cdatai * cdatai * cdatai * cdatai) * varr * vari /
+          (pow(varr * varr - vari*vari, 2.0) +
+          4.0 * varr * varr * vari * vari);
       }
     }
-    kurtosis=std::complex<T2>((kurtr/sz)-3,(kurti/sz)-3); 
+    kurtosis = std::complex<T2>((kurtr / sz) - 3, (kurti / sz) - 3);
   }
-  
+
   template<typename Ty>
-  static inline void do_moment_nan(const Ty* data, const SizeT sz, Ty &mean, Ty &variance, Ty &skewness, 
-    Ty &kurtosis, Ty &mdev, Ty &sdev, const int maxmoment){
-    Ty meanl=do_mean_nan(data,sz);
-    mean=meanl;
-    if (maxmoment==1 || !std::isfinite(mean)) {
-      variance=skewness=kurtosis=mdev=sdev=std::numeric_limits<float>::quiet_NaN();
+  static inline void do_moment_nan(const Ty* data, const SizeT sz, Ty &mean, Ty &variance, Ty &skewness,
+    Ty &kurtosis, Ty &mdev, Ty &sdev, const int maxmoment) {
+    Ty meanl = do_mean_nan(data, sz);
+    mean = meanl;
+    if (maxmoment == 1 || !std::isfinite(mean)) {
+      variance = skewness = kurtosis = mdev = sdev = std::numeric_limits<float>::quiet_NaN();
       return;
     }
 
-    Ty var=0;
-    Ty md=0;
-    SizeT k=0;
-#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:var,md,k)
-    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; if (std::isfinite(cdata)) {var += cdata*cdata; md+=fabs(cdata); k+=1;} }
+    Ty var = 0;
+    Ty md = 0;
+    SizeT k = 0;
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        if (std::isfinite(cdata)) {
+          var += cdata*cdata;
+          md += fabs(cdata);
+          k += 1;
+        }
+      }
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:var,md,k)
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        if (std::isfinite(cdata)) {
+          var += cdata*cdata;
+          md += fabs(cdata);
+          k += 1;
+        }
+      }
     }
-    if (k>1) var/=(k-1); else {
-      variance=skewness=kurtosis=mdev=sdev=std::numeric_limits<float>::quiet_NaN();
+    if (k > 1) var /= (k - 1);
+    else {
+      variance = skewness = kurtosis = mdev = sdev = std::numeric_limits<float>::quiet_NaN();
       return;
     }
-    variance=var;
-    sdev=sqrt(var);
-    mdev=md/k;
-    if (maxmoment==2 || var==0 ) {
-      skewness=kurtosis=std::numeric_limits<float>::quiet_NaN();
+    variance = var;
+    sdev = sqrt(var);
+    mdev = md / k;
+    if (maxmoment == 2 || var == 0) {
+      skewness = kurtosis = std::numeric_limits<float>::quiet_NaN();
       return;
     }
-    Ty skew=0;
-#pragma omp parallel //if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:skew)
-    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; if (std::isfinite(cdata)) skew += (cdata*cdata*cdata)/(var*sdev); }
+    Ty skew = 0;
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        if (std::isfinite(cdata)) skew += (cdata * cdata * cdata) / (var * sdev);
+      }
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:skew)
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        if (std::isfinite(cdata)) skew += (cdata * cdata * cdata) / (var * sdev);
+      }
     }
-    skewness=skew/k;
-    if (maxmoment==3) {
-      kurtosis=std::numeric_limits<float>::quiet_NaN();
+    skewness = skew / k;
+    if (maxmoment == 3) {
+      kurtosis = std::numeric_limits<float>::quiet_NaN();
       return;
     }
-    Ty kurt=0;
-#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:kurt)
-    for (SizeT i = 0; i < sz; ++i) { Ty cdata=data[i]-meanl; if (std::isfinite(cdata)) kurt += (cdata*cdata*cdata*cdata)/(var*var);}
+    Ty kurt = 0;
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        if (std::isfinite(cdata)) kurt += (cdata * cdata * cdata * cdata) / (var * var);
+      }
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:kurt)
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        if (std::isfinite(cdata)) kurt += (cdata * cdata * cdata * cdata) / (var * var);
+      }
     }
-    kurtosis=(kurt/k)-3; 
+    kurtosis = (kurt / k) - 3;
   }
-  
+
   template<typename Ty, typename T2>
-  static inline void do_moment_cpx_nan(const Ty* data, const SizeT sz, Ty &mean, Ty &variance, Ty &skewness, 
-    Ty &kurtosis, T2 &mdev, Ty &sdev, const int maxmoment){
-    Ty meanl=do_mean_cpx_nan<Ty, T2>(data,sz);
-    mean=meanl;
-    if (maxmoment==1) {
-      variance=skewness=kurtosis=sdev=
-        std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(),std::numeric_limits<T2>::quiet_NaN());
-        mdev=std::numeric_limits<T2>::quiet_NaN();
+  static inline void do_moment_cpx_nan(const Ty* data, const SizeT sz, Ty &mean, Ty &variance, Ty &skewness,
+    Ty &kurtosis, T2 &mdev, Ty &sdev, const int maxmoment) {
+    Ty meanl = do_mean_cpx_nan<Ty, T2>(data, sz);
+    mean = meanl;
+    if (maxmoment == 1) {
+      variance = skewness = kurtosis = sdev =
+        std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(), std::numeric_limits<T2>::quiet_NaN());
+      mdev = std::numeric_limits<T2>::quiet_NaN();
       return;
     }
-    SizeT kr=0;
-    SizeT ki=0;
-    T2 mdr=0;
-    T2 varr=0;
-    T2 vari=0;
-#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:varr,vari,mdr,kr,ki)
-      for (SizeT i = 0; i < sz; ++i) { 
-        Ty cdata=data[i]-meanl;
-          T2 cdatar=cdata.real();
-          T2 cdatai=cdata.imag();
-        if (std::isfinite(cdatar)) {varr += cdatar*cdatar; kr++;}
-        if (std::isfinite(cdatai)) {vari += cdatai*cdatai; ki++;}
-        if (std::isfinite(cdatar))  mdr += sqrt(cdatar*cdatar+cdatai*cdatai);
+    SizeT kr = 0;
+    SizeT ki = 0;
+    T2 mdr = 0;
+    T2 varr = 0;
+    T2 vari = 0;
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        T2 cdatar = cdata.real();
+        T2 cdatai = cdata.imag();
+        if (std::isfinite(cdatar)) {
+          varr += cdatar*cdatar;
+          kr++;
         }
+        if (std::isfinite(cdatai)) {
+          vari += cdatai*cdatai;
+          ki++;
+        }
+        if (std::isfinite(cdatar)) mdr += sqrt(cdatar * cdatar + cdatai * cdatai);
+      }
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:varr,vari,mdr,kr,ki)
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        T2 cdatar = cdata.real();
+        T2 cdatai = cdata.imag();
+        if (std::isfinite(cdatar)) {
+          varr += cdatar*cdatar;
+          kr++;
+        }
+        if (std::isfinite(cdatai)) {
+          vari += cdatai*cdatai;
+          ki++;
+        }
+        if (std::isfinite(cdatar)) mdr += sqrt(cdatar * cdatar + cdatai * cdatai);
+      }
     }
-    varr/=(kr-1);
-    vari/=(ki-1);
-    mdr/=kr;
-    variance=std::complex<T2>(varr,vari);    
-    sdev=sqrt(variance);
-    mdev=mdr;
+    varr /= (kr - 1);
+    vari /= (ki - 1);
+    mdr /= kr;
+    variance = std::complex<T2>(varr, vari);
+    sdev = sqrt(variance);
+    mdev = mdr;
 
-    if (maxmoment==2) {
-      skewness=kurtosis=
-        std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(),std::numeric_limits<T2>::quiet_NaN());
+    if (maxmoment == 2) {
+      skewness = kurtosis =
+        std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(), std::numeric_limits<T2>::quiet_NaN());
       return;
     }
-    T2 skewr=0;
-    T2 skewi=0;
-#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:skewr,skewi)
-      for (SizeT i = 0; i < sz; ++i) { 
-        Ty cdata=data[i]-meanl;
-          T2 cdatar=cdata.real();
-          T2 cdatai=cdata.imag();
-          if (std::isfinite(cdatar)) skewr += (cdatar*cdatar*cdatar-3.0*cdatar*cdatai*cdatai)*
-            exp(-0.75*log(varr*varr+vari*vari))*
-            cos(0.15E1*atan2(vari,varr))+(3.0*cdatar*cdatar*cdatai-cdatai*cdatai*cdatai)*
-            exp(-0.75*log(varr*varr+vari*vari))*sin(1.5*atan2(vari,varr));
+    T2 skewr = 0;
+    T2 skewi = 0;
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        T2 cdatar = cdata.real();
+        T2 cdatai = cdata.imag();
+        if (std::isfinite(cdatar)) skewr += (cdatar * cdatar * cdatar - 3.0 * cdatar * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) *
+          cos(0.15E1 * atan2(vari, varr))+(3.0 * cdatar * cdatar * cdatai - cdatai * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) * sin(1.5 * atan2(vari, varr));
 
-          if (std::isfinite(cdatai)) skewi += (3.0*cdatar*cdatar*cdatai-cdatai*cdatai*cdatai)*
-            exp(-0.75*log(varr*varr+vari*vari))*cos(1.5*atan2(vari,varr))-
-            (cdatar*cdatar*cdatar-3.0*cdatar*cdatai*cdatai)*
-            exp(-0.75*log(varr*varr+vari*vari))*sin(1.5*atan2(vari,varr));
-        }
+        if (std::isfinite(cdatai)) skewi += (3.0 * cdatar * cdatar * cdatai - cdatai * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) * cos(1.5 * atan2(vari, varr))-
+          (cdatar * cdatar * cdatar - 3.0 * cdatar * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) * sin(1.5 * atan2(vari, varr));
+      }
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:skewr,skewi)
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        T2 cdatar = cdata.real();
+        T2 cdatai = cdata.imag();
+        if (std::isfinite(cdatar)) skewr += (cdatar * cdatar * cdatar - 3.0 * cdatar * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) *
+          cos(0.15E1 * atan2(vari, varr))+(3.0 * cdatar * cdatar * cdatai - cdatai * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) * sin(1.5 * atan2(vari, varr));
+
+        if (std::isfinite(cdatai)) skewi += (3.0 * cdatar * cdatar * cdatai - cdatai * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) * cos(1.5 * atan2(vari, varr))-
+          (cdatar * cdatar * cdatar - 3.0 * cdatar * cdatai * cdatai) *
+          exp(-0.75 * log(varr * varr + vari * vari)) * sin(1.5 * atan2(vari, varr));
+      }
     }
-    skewness=std::complex<T2>(skewr/kr,skewi/ki);
-    if (maxmoment==3) {
-      kurtosis=std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(),std::numeric_limits<T2>::quiet_NaN());
+    skewness = std::complex<T2>(skewr / kr, skewi / ki);
+    if (maxmoment == 3) {
+      kurtosis = std::complex<T2>(std::numeric_limits<T2>::quiet_NaN(), std::numeric_limits<T2>::quiet_NaN());
       return;
     }
-    T2 kurtr=0;
-    T2 kurti=0;
-#pragma omp parallel // if (sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz))
-    {
-#pragma omp for reduction(+:kurtr,kurti)
-      for (SizeT i = 0; i < sz; ++i) { 
-        Ty cdata=data[i]-meanl;
-          T2 cdatar=cdata.real();
-          T2 cdatai=cdata.imag();
-          if (std::isfinite(cdatar)) kurtr += (cdatar*cdatar*cdatar*cdatar-6.0*cdatar*cdatar*cdatai*cdatai+cdatai*
-            cdatai*cdatai*cdatai)*(varr*varr-vari*vari)/(pow(varr*varr-vari*vari,2.0)+
-            4.0*varr*varr*vari*vari)+2.0*(4.0*cdatar*cdatar*cdatar*cdatai-
-            4.0*cdatar*cdatai*cdatai*cdatai)*varr*vari/
-            (pow(varr*varr-vari*vari,2.0)+
-            4.0*varr*varr*vari*vari);
-          if (std::isfinite(cdatai)) kurti += (4.0*cdatar*cdatar*cdatar*cdatai-4.0*cdatar*cdatai*cdatai*cdatai)*
-            (varr*varr-vari*vari)/(pow(varr*varr-vari*vari,2.0)+4.0*varr*varr*vari*vari)-
-            2.0*(cdatar*cdatar*cdatar*cdatar-
-            6.0*cdatar*cdatar*cdatai*cdatai+cdatai*cdatai*cdatai*cdatai)*varr*vari/
-            (pow(varr*varr-vari*vari,2.0)+
-            4.0*varr*varr*vari*vari);
-        }
+    T2 kurtr = 0;
+    T2 kurti = 0;
+    if (!parallelize) {
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        T2 cdatar = cdata.real();
+        T2 cdatai = cdata.imag();
+        if (std::isfinite(cdatar)) kurtr += (cdatar * cdatar * cdatar * cdatar - 6.0 * cdatar * cdatar * cdatai * cdatai + cdatai *
+          cdatai * cdatai * cdatai)*(varr * varr - vari * vari) / (pow(varr * varr - vari * vari, 2.0) +
+          4.0 * varr * varr * vari * vari) + 2.0 * (4.0 * cdatar * cdatar * cdatar * cdatai -
+          4.0 * cdatar * cdatai * cdatai * cdatai) * varr * vari /
+          (pow(varr * varr - vari * vari, 2.0) +
+          4.0 * varr * varr * vari * vari);
+        if (std::isfinite(cdatai)) kurti += (4.0 * cdatar * cdatar * cdatar * cdatai - 4.0 * cdatar * cdatai * cdatai * cdatai)*
+          (varr * varr - vari * vari) / (pow(varr * varr - vari * vari, 2.0) + 4.0 * varr * varr * vari * vari) -
+          2.0 * (cdatar * cdatar * cdatar * cdatar -
+          6.0 * cdatar * cdatar * cdatai * cdatai + cdatai * cdatai * cdatai * cdatai) * varr * vari /
+          (pow(varr * varr - vari * vari, 2.0) +
+          4.0 * varr * varr * vari * vari);
+      }
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) reduction(+:kurtr,kurti)
+      for (SizeT i = 0; i < sz; ++i) {
+        Ty cdata = data[i] - meanl;
+        T2 cdatar = cdata.real();
+        T2 cdatai = cdata.imag();
+        if (std::isfinite(cdatar)) kurtr += (cdatar * cdatar * cdatar * cdatar - 6.0 * cdatar * cdatar * cdatai * cdatai + cdatai *
+          cdatai * cdatai * cdatai)*(varr * varr - vari * vari) / (pow(varr * varr - vari * vari, 2.0) +
+          4.0 * varr * varr * vari * vari) + 2.0 * (4.0 * cdatar * cdatar * cdatar * cdatai -
+          4.0 * cdatar * cdatai * cdatai * cdatai) * varr * vari /
+          (pow(varr * varr - vari * vari, 2.0) +
+          4.0 * varr * varr * vari * vari);
+        if (std::isfinite(cdatai)) kurti += (4.0 * cdatar * cdatar * cdatar * cdatai - 4.0 * cdatar * cdatai * cdatai * cdatai)*
+          (varr * varr - vari * vari) / (pow(varr * varr - vari * vari, 2.0) + 4.0 * varr * varr * vari * vari) -
+          2.0 * (cdatar * cdatar * cdatar * cdatar -
+          6.0 * cdatar * cdatar * cdatai * cdatai + cdatai * cdatai * cdatai * cdatai) * varr * vari /
+          (pow(varr * varr - vari * vari, 2.0) +
+          4.0 * varr * varr * vari * vari);
+      }
     }
-    kurtosis=std::complex<T2>((kurtr/kr)-3,(kurti/kr)-3); 
+    kurtosis = std::complex<T2>((kurtr / kr) - 3, (kurti / kr) - 3);
   }
   
   BaseGDL* moment_fun(EnvT* e) {
@@ -6128,6 +6255,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
       // resize destDim
       destDim.Remove(momentDim); //will be one dimension less
       SizeT nEl = destDim.NDimElementsConst(); //need to compute that here, before adding last dim.
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
       auxiliaryDim=destDim;
       
       destDim<<4; //add 4 as last dim
@@ -6157,9 +6285,20 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
         if (dosdev) sdev = new DComplexDblGDL(auxiliaryDim, BaseGDL::NOZERO);
         if (domdev) mdev = new DDoubleGDL(auxiliaryDim, BaseGDL::NOZERO);
         if (omitNaN) {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-          {
-#pragma omp for
+          if (!parallelize) {
+            for (SizeT i = 0; i < nEl; ++i) {
+              DDouble mdevl;
+              DComplexDbl sdevl;
+              do_moment_cpx_nan<DComplexDbl, double>(&(*input)[i * stride], stride, (*res)[i], (*res)[i + nEl], (*res)[i + 2 * nEl], (*res)[i + 3 * nEl], mdevl, sdevl, maxmoment);
+              if (domean) (*mean)[i] = (*res)[i];
+              if (dovar) (*var)[i] = (*res)[i + nEl];
+              if (doskew) (*skew)[i] = (*res)[i + 2 * nEl];
+              if (dokurt) (*kurt)[i] = (*res)[i + 3 * nEl];
+              if (dosdev) (*sdev)[i] = sdevl;
+              if (domdev) (*mdev)[i] = mdevl;
+            }            
+          } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
             for (SizeT i = 0; i < nEl; ++i) {
               DDouble mdevl;
               DComplexDbl sdevl;
@@ -6173,9 +6312,20 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
             }
           }
         } else {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-          {
-#pragma omp for
+          if (!parallelize) {
+            for (SizeT i = 0; i < nEl; ++i) {
+              DDouble mdevl;
+              DComplexDbl sdevl;
+              do_moment_cpx<DComplexDbl, double>(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+              if (domean) (*mean)[i]=(*res)[i];
+              if (dovar ) (*var )[i]=(*res)[i+nEl];
+              if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+              if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+              if (dosdev) (*sdev)[i]=sdevl;
+              if (domdev) (*mdev)[i]=mdevl;
+            }                      
+          } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
             for (SizeT i = 0; i < nEl; ++i) {
               DDouble mdevl;
               DComplexDbl sdevl;
@@ -6217,9 +6367,20 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
         if (dosdev) sdev = new DComplexGDL(auxiliaryDim, BaseGDL::NOZERO);
         if (domdev) mdev = new DFloatGDL(auxiliaryDim, BaseGDL::NOZERO);
         if (omitNaN) {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-          {
-#pragma omp for
+          if (!parallelize) {
+            for (SizeT i = 0; i < nEl; ++i) {
+              DFloat mdevl;
+              DComplex sdevl;
+              do_moment_cpx_nan<DComplex, float>(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+              if (domean) (*mean)[i]=(*res)[i];
+              if (dovar ) (*var )[i]=(*res)[i+nEl];
+              if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+              if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+              if (dosdev) (*sdev)[i]=sdevl;
+              if (domdev) (*mdev)[i]=mdevl;
+            }            
+          } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
             for (SizeT i = 0; i < nEl; ++i) {
               DFloat mdevl;
               DComplex sdevl;
@@ -6233,9 +6394,20 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
             }
           }
         } else {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-          {
-#pragma omp for
+          if (!parallelize) {
+            for (SizeT i = 0; i < nEl; ++i) {
+              DFloat mdevl;
+              DComplex sdevl;
+              do_moment_cpx<DComplex, float>(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+              if (domean) (*mean)[i]=(*res)[i];
+              if (dovar ) (*var )[i]=(*res)[i+nEl];
+              if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+              if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+              if (dosdev) (*sdev)[i]=sdevl;
+              if (domdev) (*mdev)[i]=mdevl;
+            }
+          } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
             for (SizeT i = 0; i < nEl; ++i) {
               DFloat mdevl;
               DComplex sdevl;
@@ -6278,9 +6450,21 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
           if (dosdev) sdev = new DDoubleGDL(auxiliaryDim, BaseGDL::NOZERO);
           if (domdev) mdev = new DDoubleGDL(auxiliaryDim, BaseGDL::NOZERO);
           if (omitNaN) {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-            {
-#pragma omp for
+            if (!parallelize) {
+              for (SizeT i = 0; i < nEl; ++i) {
+                DDouble mdevl;
+                DDouble sdevl;
+                do_moment_nan(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], 
+                  (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+                if (domean) (*mean)[i]=(*res)[i];
+                if (dovar ) (*var )[i]=(*res)[i+nEl];
+                if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+                if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+                if (dosdev) (*sdev)[i]=sdevl;
+                if (domdev) (*mdev)[i]=mdevl;
+              }              
+            } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
               for (SizeT i = 0; i < nEl; ++i) {
                 DDouble mdevl;
                 DDouble sdevl;
@@ -6295,9 +6479,21 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
               }
             }
           } else {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-            {
-#pragma omp for
+            if (!parallelize) {
+              for (SizeT i = 0; i < nEl; ++i) {
+                DDouble mdevl;
+                DDouble sdevl;
+                do_moment(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], 
+                  (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+                if (domean) (*mean)[i]=(*res)[i];
+                if (dovar ) (*var )[i]=(*res)[i+nEl];
+                if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+                if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+                if (dosdev) (*sdev)[i]=sdevl;
+                if (domdev) (*mdev)[i]=mdevl;
+              }              
+            } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
               for (SizeT i = 0; i < nEl; ++i) {
                 DDouble mdevl;
                 DDouble sdevl;
@@ -6340,9 +6536,21 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
           if (dosdev) sdev = new DFloatGDL(auxiliaryDim, BaseGDL::NOZERO);
           if (domdev) mdev = new DFloatGDL(auxiliaryDim, BaseGDL::NOZERO);
           if (omitNaN) {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-            {
-#pragma omp for
+            if (!parallelize) {
+              for (SizeT i = 0; i < nEl; ++i) {
+                DFloat mdevl;
+                DFloat sdevl;
+                do_moment_nan(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], 
+                  (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+                if (domean) (*mean)[i]=(*res)[i];
+                if (dovar ) (*var )[i]=(*res)[i+nEl];
+                if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+                if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+                if (dosdev) (*sdev)[i]=sdevl;
+                if (domdev) (*mdev)[i]=mdevl;
+              }
+            } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
               for (SizeT i = 0; i < nEl; ++i) {
                 DFloat mdevl;
                 DFloat sdevl;
@@ -6357,9 +6565,21 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
               }
             }
           } else {
-#pragma omp parallel //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-            {
-#pragma omp for
+            if (!parallelize) {
+              for (SizeT i = 0; i < nEl; ++i) {
+                DFloat mdevl;
+                DFloat sdevl;
+                do_moment(&(*input)[i * stride], stride, (*res)[i], (*res)[i+nEl], 
+                  (*res)[i+2*nEl], (*res)[i+3*nEl], mdevl, sdevl, maxmoment);
+                if (domean) (*mean)[i]=(*res)[i];
+                if (dovar ) (*var )[i]=(*res)[i+nEl];
+                if (doskew) (*skew)[i]=(*res)[i+2*nEl];
+                if (dokurt) (*kurt)[i]=(*res)[i+3*nEl];
+                if (dosdev) (*sdev)[i]=sdevl;
+                if (domdev) (*mdev)[i]=mdevl;
+              }
+            } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
               for (SizeT i = 0; i < nEl; ++i) {
                 DFloat mdevl;
                 DFloat sdevl;
@@ -6480,21 +6700,27 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
   }
   template<typename T> void pos_ishft_s(T* out, const SizeT n, const char s) {
 // parallelization is marginally useful as the loop is well paralleized by compiler.
-#pragma omp parallel for if ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
       for (SizeT i=0; i < n; ++i) out[i] <<= s;
   }
 
   template<typename T> void neg_ishft_s(T* out, const SizeT n, const char s) {
 // parallelization is marginally useful as the loop is well paralleized by compiler.
-#pragma omp parallel for if ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
       for (SizeT i = 0; i < n; ++i) out[i] >>= s;
   }
   
   template<typename T> void ishft_m(T* out, const SizeT n, const DLong* s) {
-#pragma omp parallel for if ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
+    bool parallelize=((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n));
+    if (!parallelize) {
+      for (SizeT i = 0; i < n; ++i) {
+        if (s[i] >= 0) out[i] <<= s[i];
+        else out[i] >>= s[i];
+      }      
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
       for (SizeT i = 0; i < n; ++i) {
         if (s[i] >= 0 ) out[i] <<= s[i]; else out[i] >>= s[i];
       }
+    }
   }
   
   BaseGDL* ishft_single(BaseGDL* in, SizeT n, char s, bool pos) {
@@ -6742,61 +6968,55 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     return new DIntGDL( 0);
   }
 
-  BaseGDL* rebin_fun( EnvT* e)
-  {
-    SizeT nParam = e->NParam( 2);
+  BaseGDL* rebin_fun(EnvT* e) {
+    SizeT nParam = e->NParam(2);
 
-    BaseGDL* p0 = e->GetNumericParDefined( 0);
+    BaseGDL* p0 = e->GetNumericParDefined(0);
 
     SizeT rank = p0->Rank();
 
-    if( rank == 0) 
-      e->Throw( "Expression must be an array in this context: "+
-        e->GetParString(0));
-    
+    if (rank == 0)
+      e->Throw("Expression must be an array in this context: " +
+      e->GetParString(0));
+
     SizeT resDimInit[ MAXRANK];
 
     DLongGDL* p1 = e->GetParAs<DLongGDL>(1);
-    if (p1->Rank() > 0 && nParam > 2) 
+    if (p1->Rank() > 0 && nParam > 2)
       e->Throw("The new dimensions must either be specified as an array or as a set of scalars.");
     SizeT np = p1->Rank() == 0 ? nParam : p1->N_Elements() + 1;
 
-    for( SizeT p=1; p<np; ++p)
-      {
-    DLong newDim;
-    if (p1->Rank() == 0) e->AssureLongScalarPar( p, newDim);
-        else newDim = (*p1)[p - 1];
+    for (SizeT p = 1; p < np; ++p) {
+      DLong newDim;
+      if (p1->Rank() == 0) e->AssureLongScalarPar(p, newDim);
+      else newDim = (*p1)[p - 1];
 
-    if( newDim <= 0)
-      e->Throw( "Array dimensions must be greater than 0.");
-    
-    if( rank >= p)
-      {
-        SizeT oldDim = p0->Dim( p-1);
+      if (newDim <= 0)
+        e->Throw("Array dimensions must be greater than 0.");
 
-        if( newDim > oldDim)
-          {
-        if( (newDim % oldDim) != 0)
-          e->Throw( "Result dimensions must be integer factor "
-                "of original dimensions.");
-          }
-        else
-          {
-        if( (oldDim % newDim) != 0)
-          e->Throw( "Result dimensions must be integer factor "
-                "of original dimensions.");
-          }
-      }
-    
-    resDimInit[ p-1] = newDim; 
+      if (rank >= p) {
+        SizeT oldDim = p0->Dim(p - 1);
+
+        if (newDim > oldDim) {
+          if ((newDim % oldDim) != 0)
+            e->Throw("Result dimensions must be integer factor "
+            "of original dimensions.");
+        } else {
+          if ((oldDim % newDim) != 0)
+            e->Throw("Result dimensions must be integer factor "
+            "of original dimensions.");
+        }
       }
 
-    dimension resDim( resDimInit, np-1);
+      resDimInit[ p - 1] = newDim;
+    }
 
-    static int sampleIx = e->KeywordIx( "SAMPLE");
-    bool sample = e->KeywordSet( sampleIx);
-    
-    return p0->Rebin( resDim, sample);
+    dimension resDim(resDimInit, np - 1);
+
+    static int sampleIx = e->KeywordIx("SAMPLE");
+    bool sample = e->KeywordSet(sampleIx);
+
+    return p0->Rebin(resDim, sample);
   }
 
   BaseGDL* obj_class(EnvT* e)
@@ -7084,10 +7304,10 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
     //    cout << "Min/max :" << min << " " << max << endl;
 
     SizeT nEl = dRes->N_Elements();
-
-    if (IntType(p0->Type())) {
+    bool parallelize=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    if (!parallelize) {
+      if (IntType(p0->Type())) {
         //Is a thread pool function
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) {
           DDouble& d = (*dRes)[ i];
           if (omitNaN && (isnan(d) || isinf(d))) (*dRes)[ i] = 0;
@@ -7099,7 +7319,33 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
           }
         }
       } else {
-#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+        for (SizeT i = 0; i < nEl; ++i) {
+          DDouble& d = (*dRes)[ i];
+          if (omitNaN && (isnan(d) || isinf(d))) (*dRes)[ i] = 0;
+          else if (d <= min) (*dRes)[ i] = 0;
+          else if (d >= max) (*dRes)[ i] = dTop;
+          else {
+            // SA (?): here floor is used (instead of round) to simulate IDL behaviour
+            (*dRes)[ i] = floor(((dTop + .9999)*(d - min)) / (max - min));
+          }
+        }
+      }     
+    } else {
+    if (IntType(p0->Type())) {
+        //Is a thread pool function
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) 
+        for (SizeT i = 0; i < nEl; ++i) {
+          DDouble& d = (*dRes)[ i];
+          if (omitNaN && (isnan(d) || isinf(d))) (*dRes)[ i] = 0;
+          else if (d <= min) (*dRes)[ i] = 0;
+          else if (d >= max) (*dRes)[ i] = dTop;
+          else {
+            // SA: floor is used for integer types to simulate manipulation on input data types
+            (*dRes)[ i] = floor(((dTop + 1.)*(d - min) - 1.) / (max - min));
+          }
+        }
+      } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) 
         for (SizeT i = 0; i < nEl; ++i) {
           DDouble& d = (*dRes)[ i];
           if (omitNaN && (isnan(d) || isinf(d))) (*dRes)[ i] = 0;
@@ -7111,6 +7357,7 @@ template <typename Ty, typename T2>  static inline Ty do_mean_cpx_nan(const Ty* 
           }
         }
       }
+    }
     return dRes->Convert2(GDL_BYTE);
   } 
   
