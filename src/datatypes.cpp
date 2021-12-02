@@ -4220,10 +4220,12 @@ BaseGDL* Data_<Sp>::Rebin(const dimension& newDim, bool sample) {
   // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
   std::map<float, SizeT>compress;
   for (SizeT d = 0; d < nDim; ++d) {
-    SizeT dim = newDim[d];
-    if (dim == 0) dim = 1; //protction  
-    if (dim < this->dim[d]) {
-      float key=float(this->dim[d] / dim)+0.01*d;
+    SizeT newdim = newDim[d];
+    SizeT olddim = this->dim[d];
+    if (newdim == 0) newdim = 1; //protetion  
+    if (olddim == 0) olddim = 1; //protetion  
+    if (newdim < olddim) {
+      float key=float(olddim / newdim)+0.01*d;
       compress.insert(std::pair<float, SizeT>(key, d));
     }
   }
@@ -4239,10 +4241,12 @@ BaseGDL* Data_<Sp>::Rebin(const dimension& newDim, bool sample) {
   // 2nd expand : make the biggest expansion last
   std::map<float, SizeT>expand;
   for (SizeT d = 0; d < nDim; ++d) {
-    SizeT dim = newDim[d];
-    if (dim == 0) dim = 1; //protction, kept for symmetry with above, but unuseful
-    if (dim > this->dim[d]) {
-      float key=float(dim / this->dim[d])+0.01*d;
+    SizeT newdim = newDim[d];
+    SizeT olddim = this->dim[d];
+    if (newdim == 0) newdim = 1; //protetion  
+    if (olddim == 0) olddim = 1; //protection
+    if (newdim > olddim) {
+      float key=float(newdim / olddim)+0.01*d;
       expand.insert(std::pair<float, SizeT>(key, d));
     }
   }
@@ -4286,10 +4290,12 @@ BaseGDL* Data_<SpDByte>::Rebin(const dimension& newDim, bool sample) {
   // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
   std::map<float, SizeT>compress;
   for (SizeT d = 0; d < nDim; ++d) {
-    SizeT dim = newDim[d];
-    if (dim == 0) dim = 1; //protction  
-    if (dim < this->dim[d]) {
-      float key = float(this->dim[d] / dim) + 0.01 * d;
+    SizeT newdim = newDim[d];
+    SizeT olddim = this->dim[d];
+    if (newdim == 0) newdim = 1; //protetion  
+    if (olddim == 0) olddim = 1; //protetion  
+    if (newdim < olddim) {
+      float key=float(olddim / newdim)+0.01*d;
       compress.insert(std::pair<float, SizeT>(key, d));
     }
   }
@@ -4305,10 +4311,12 @@ BaseGDL* Data_<SpDByte>::Rebin(const dimension& newDim, bool sample) {
   // 2nd expand : make the biggest expansion last
   std::map<float, SizeT>expand;
   for (SizeT d = 0; d < nDim; ++d) {
-    SizeT dim = newDim[d];
-    if (dim == 0) dim = 1; //protction, kept for symmetry with above, but unuseful
-    if (dim > this->dim[d]) {
-      float key = float(dim / this->dim[d]) + 0.01 * d;
+    SizeT newdim = newDim[d];
+    SizeT olddim = this->dim[d];
+    if (newdim == 0) newdim = 1; //protetion  
+    if (olddim == 0) olddim = 1; //protection
+    if (newdim > olddim) {
+      float key=float(newdim / olddim)+0.01*d;
       expand.insert(std::pair<float, SizeT>(key, d));
     }
   }
@@ -4347,10 +4355,12 @@ BaseGDL* Data_<SpDInt>::Rebin(const dimension& newDim, bool sample) {
   // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
   std::map<float, SizeT>compress;
   for (SizeT d = 0; d < nDim; ++d) {
-    SizeT dim = newDim[d];
-    if (dim == 0) dim = 1; //protction  
-    if (dim < this->dim[d]) {
-      float key = float(this->dim[d] / dim) + 0.01 * d;
+    SizeT newdim = newDim[d];
+    SizeT olddim = this->dim[d];
+    if (newdim == 0) newdim = 1; //protetion  
+    if (olddim == 0) olddim = 1; //protetion  
+    if (newdim < olddim) {
+      float key=float(olddim / newdim)+0.01*d;
       compress.insert(std::pair<float, SizeT>(key, d));
     }
   }
@@ -4366,10 +4376,12 @@ BaseGDL* Data_<SpDInt>::Rebin(const dimension& newDim, bool sample) {
   // 2nd expand : make the biggest expansion last
   std::map<float, SizeT>expand;
   for (SizeT d = 0; d < nDim; ++d) {
-    SizeT dim = newDim[d];
-    if (dim == 0) dim = 1; //protction, kept for symmetry with above, but unuseful
-    if (dim > this->dim[d]) {
-      float key = float(dim / this->dim[d]) + 0.01 * d;
+    SizeT newdim = newDim[d];
+    SizeT olddim = this->dim[d];
+    if (newdim == 0) newdim = 1; //protetion  
+    if (olddim == 0) olddim = 1; //protection
+    if (newdim > olddim) {
+      float key=float(newdim / olddim)+0.01*d;
       expand.insert(std::pair<float, SizeT>(key, d));
     }
   }
@@ -4408,10 +4420,12 @@ BaseGDL* Data_<SpDUInt>::Rebin(const dimension& newDim, bool sample) {
   // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
   std::map<float, SizeT>compress;
   for (SizeT d = 0; d < nDim; ++d) {
-    SizeT dim = newDim[d];
-    if (dim == 0) dim = 1; //protction  
-    if (dim < this->dim[d]) {
-      float key = float(this->dim[d] / dim) + 0.01 * d;
+    SizeT newdim = newDim[d];
+    SizeT olddim = this->dim[d];
+    if (newdim == 0) newdim = 1; //protetion  
+    if (olddim == 0) olddim = 1; //protetion  
+    if (newdim < olddim) {
+      float key=float(olddim / newdim)+0.01*d;
       compress.insert(std::pair<float, SizeT>(key, d));
     }
   }
@@ -4427,10 +4441,12 @@ BaseGDL* Data_<SpDUInt>::Rebin(const dimension& newDim, bool sample) {
   // 2nd expand : make the biggest expansion last
   std::map<float, SizeT>expand;
   for (SizeT d = 0; d < nDim; ++d) {
-    SizeT dim = newDim[d];
-    if (dim == 0) dim = 1; //protction, kept for symmetry with above, but unuseful
-    if (dim > this->dim[d]) {
-      float key = float(dim / this->dim[d]) + 0.01 * d;
+    SizeT newdim = newDim[d];
+    SizeT olddim = this->dim[d];
+    if (newdim == 0) newdim = 1; //protetion  
+    if (olddim == 0) olddim = 1; //protection
+    if (newdim > olddim) {
+      float key=float(newdim / olddim)+0.01*d;
       expand.insert(std::pair<float, SizeT>(key, d));
     }
   }
@@ -4469,10 +4485,12 @@ BaseGDL* Data_<SpDLong>::Rebin(const dimension& newDim, bool sample) {
   // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
   std::map<float, SizeT>compress;
   for (SizeT d = 0; d < nDim; ++d) {
-    SizeT dim = newDim[d];
-    if (dim == 0) dim = 1; //protction  
-    if (dim < this->dim[d]) {
-      float key = float(this->dim[d] / dim) + 0.01 * d;
+    SizeT newdim = newDim[d];
+    SizeT olddim = this->dim[d];
+    if (newdim == 0) newdim = 1; //protetion  
+    if (olddim == 0) olddim = 1; //protetion  
+    if (newdim < olddim) {
+      float key=float(olddim / newdim)+0.01*d;
       compress.insert(std::pair<float, SizeT>(key, d));
     }
   }
@@ -4488,10 +4506,12 @@ BaseGDL* Data_<SpDLong>::Rebin(const dimension& newDim, bool sample) {
   // 2nd expand : make the biggest expansion last
   std::map<float, SizeT>expand;
   for (SizeT d = 0; d < nDim; ++d) {
-    SizeT dim = newDim[d];
-    if (dim == 0) dim = 1; //protction, kept for symmetry with above, but unuseful
-    if (dim > this->dim[d]) {
-      float key = float(dim / this->dim[d]) + 0.01 * d;
+    SizeT newdim = newDim[d];
+    SizeT olddim = this->dim[d];
+    if (newdim == 0) newdim = 1; //protetion  
+    if (olddim == 0) olddim = 1; //protection
+    if (newdim > olddim) {
+      float key=float(newdim / olddim)+0.01*d;
       expand.insert(std::pair<float, SizeT>(key, d));
     }
   }
@@ -4530,10 +4550,12 @@ BaseGDL* Data_<SpDULong>::Rebin(const dimension& newDim, bool sample) {
   // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
   std::map<float, SizeT>compress;
   for (SizeT d = 0; d < nDim; ++d) {
-    SizeT dim = newDim[d];
-    if (dim == 0) dim = 1; //protction  
-    if (dim < this->dim[d]) {
-      float key = float(this->dim[d] / dim) + 0.01 * d;
+    SizeT newdim = newDim[d];
+    SizeT olddim = this->dim[d];
+    if (newdim == 0) newdim = 1; //protetion  
+    if (olddim == 0) olddim = 1; //protetion  
+    if (newdim < olddim) {
+      float key=float(olddim / newdim)+0.01*d;
       compress.insert(std::pair<float, SizeT>(key, d));
     }
   }
@@ -4549,10 +4571,12 @@ BaseGDL* Data_<SpDULong>::Rebin(const dimension& newDim, bool sample) {
   // 2nd expand : make the biggest expansion last
   std::map<float, SizeT>expand;
   for (SizeT d = 0; d < nDim; ++d) {
-    SizeT dim = newDim[d];
-    if (dim == 0) dim = 1; //protction, kept for symmetry with above, but unuseful
-    if (dim > this->dim[d]) {
-      float key = float(dim / this->dim[d]) + 0.01 * d;
+    SizeT newdim = newDim[d];
+    SizeT olddim = this->dim[d];
+    if (newdim == 0) newdim = 1; //protetion  
+    if (olddim == 0) olddim = 1; //protection
+    if (newdim > olddim) {
+      float key=float(newdim / olddim)+0.01*d;
       expand.insert(std::pair<float, SizeT>(key, d));
     }
   }
@@ -4590,10 +4614,12 @@ BaseGDL* Data_<SpDLong64>::Rebin(const dimension& newDim, bool sample) {
   // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
   std::map<float, SizeT>compress;
   for (SizeT d = 0; d < nDim; ++d) {
-    SizeT dim = newDim[d];
-    if (dim == 0) dim = 1; //protction  
-    if (dim < this->dim[d]) {
-      float key = float(this->dim[d] / dim) + 0.01 * d;
+    SizeT newdim = newDim[d];
+    SizeT olddim = this->dim[d];
+    if (newdim == 0) newdim = 1; //protetion  
+    if (olddim == 0) olddim = 1; //protetion  
+    if (newdim < olddim) {
+      float key=float(olddim / newdim)+0.01*d;
       compress.insert(std::pair<float, SizeT>(key, d));
     }
   }
@@ -4609,10 +4635,12 @@ BaseGDL* Data_<SpDLong64>::Rebin(const dimension& newDim, bool sample) {
   // 2nd expand : make the biggest expansion last
   std::map<float, SizeT>expand;
   for (SizeT d = 0; d < nDim; ++d) {
-    SizeT dim = newDim[d];
-    if (dim == 0) dim = 1; //protction, kept for symmetry with above, but unuseful
-    if (dim > this->dim[d]) {
-      float key = float(dim / this->dim[d]) + 0.01 * d;
+    SizeT newdim = newDim[d];
+    SizeT olddim = this->dim[d];
+    if (newdim == 0) newdim = 1; //protetion  
+    if (olddim == 0) olddim = 1; //protection
+    if (newdim > olddim) {
+      float key=float(newdim / olddim)+0.01*d;
       expand.insert(std::pair<float, SizeT>(key, d));
     }
   }
