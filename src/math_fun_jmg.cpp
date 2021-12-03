@@ -199,15 +199,18 @@ namespace lib {
      SizeT nEl = src->N_Elements();
 
      if (kwNaN){
-      #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+       TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
        for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isnan((*src)[ i]);
      }
      else if (kwInfinity){
-      #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+       TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
        for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isinf((*src)[ i]);
      }
      else{
-      #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+       TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
        for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isfinite((*src)[ i]);
      }
      return res;
@@ -222,17 +225,20 @@ namespace lib {
        DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
        SizeT nEl = src->N_Elements();
        if (kwNaN){
-	    #pragma omp parallel  for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	 TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel  for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
          for ( SizeT i=0; i<nEl; ++i) 
      	    (*res)[ i] = isnan((*src)[ i].real()) || isnan((*src)[ i].imag());
 	   }
        else if (kwInfinity){
-   	    #pragma omp parallel  for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	 TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel  for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
          for ( SizeT i=0; i<nEl; ++i)
            (*res)[ i] = isinf((*src)[ i].real()) || isinf((*src)[ i].imag());
 	   }
        else{
-	    #pragma omp parallel  for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+	 TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel  for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
          for ( SizeT i=0; i<nEl; ++i)
            (*res)[ i] = isfinite((*src)[ i].real()) && 
                         isfinite((*src)[ i].imag());
@@ -262,12 +268,14 @@ namespace lib {
 	 {
 		if (kwInfinity) {
 			if (kwSign > 0) {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+			  TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 				for ( SizeT i=0; i<nEl; ++i) {
 					 (*res)[i] = (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0)); 
 				}
 			} else {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+			  TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 				for ( SizeT i=0; i<nEl; ++i) {
 					(*res)[i] = (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0)) ; 
 				}
@@ -275,12 +283,14 @@ namespace lib {
 		}
 		if (kwNaN) {
 			if (kwSign > 0) {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+			  TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 				for ( SizeT i=0; i<nEl; ++i) {
 					 (*res)[i] = (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0)); 
 				}
 			} else {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+			  TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 				for ( SizeT i=0; i<nEl; ++i) {
 					 (*res)[i] = (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0)); 
 				}
@@ -306,12 +316,14 @@ namespace lib {
 	 {
 		if (kwInfinity) {
 			if (kwSign > 0) {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+			  TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 				for ( SizeT i=0; i<nEl; ++i) {
 					 (*res)[i] = ((isinf((*src)[ i].real()) && (!signbit((*src)[ i].real())))||(isinf((*src)[ i].imag()) && (!signbit((*src)[ i].imag())))); 
 				}
 			} else {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+			  TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 				for ( SizeT i=0; i<nEl; ++i) {
 					 (*res)[i] = ((isinf((*src)[ i].real()) && (signbit((*src)[ i].real())))||(isinf((*src)[ i].imag()) && (signbit((*src)[ i].imag())))); 
 				}
@@ -319,12 +331,14 @@ namespace lib {
 		}
 		if (kwNaN) {
 			if (kwSign > 0) {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+			  TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 				for ( SizeT i=0; i<nEl; ++i) {
 					 (*res)[i] = ((isnan((*src)[ i].real()) && (!signbit((*src)[ i].real())))||(isnan((*src)[ i].imag()) && (!signbit((*src)[ i].imag())))); 
 				}
 			} else {
-				#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+			  TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 				for ( SizeT i=0; i<nEl; ++i) {
 					 (*res)[i] = ((isnan((*src)[ i].real()) && (signbit((*src)[ i].real())))||(isnan((*src)[ i].imag()) && (signbit((*src)[ i].imag())))); 
 				}
@@ -345,6 +359,7 @@ namespace lib {
 //       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::ZERO);
 //       SizeT nEl = src->N_Elements();
 //       
+//  TRACEOMP(__FILE__,__LINE__)
 // 	   #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
 //       for ( SizeT i=0; i<nEl; ++i)
 //	  {
@@ -827,6 +842,7 @@ namespace lib {
     T2* res = (T2*) res_->DataAddr();
     T2* data = (T2*) data_->DataAddr();
     if (doMissing) {
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
@@ -835,6 +851,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for collapse(2)
@@ -908,6 +925,7 @@ namespace lib {
 
 
     if (doMissing) {
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
@@ -916,6 +934,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for collapse(2)
@@ -1034,6 +1053,7 @@ namespace lib {
 
 
     if (doMissing) {
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
@@ -1042,6 +1062,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for collapse(2)
@@ -1125,6 +1146,7 @@ namespace lib {
     T2* res = (T2*) res_->DataAddr();
     T2* data = (T2*) data_->DataAddr();
     if (doMissing) {
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
@@ -1133,6 +1155,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for collapse(2)
@@ -1216,6 +1239,7 @@ namespace lib {
 
 
     if (doMissing) {
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
@@ -1224,6 +1248,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for collapse(2)
@@ -1350,6 +1375,7 @@ namespace lib {
 
 
     if (doMissing) {
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
@@ -1358,6 +1384,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for collapse(2)

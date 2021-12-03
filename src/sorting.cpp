@@ -1448,6 +1448,7 @@ template <typename T, typename IndexT>
      // same with parallelism
     DLong Left[2] = {left, i};
     DLong Right[2] = {j, right};
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(2) if (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1)
     for (int i = 0; i < 2; i++) QuickSortIndex(val, index, Left[i], Right[i]);
 }
@@ -1486,6 +1487,7 @@ template <typename T, typename IndexT>
     SizeT mid = low + (high - low) / 2;
     SizeT Left[2] = {low, mid + 1};
     SizeT Right[2] = {mid, high};
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(2) if (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1)
     for (int i = 0; i < 2; i++) MergeSortIndexAux(index, aux, Left[i], Right[i], val);
 
@@ -1587,6 +1589,7 @@ template <typename T, typename IndexT>
     SizeT mid = low + (high - low) / 2;
     SizeT Left[2] = {low, mid + 1};
     SizeT Right[2] = {mid, high};
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(2) if (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1)
     for (int i = 0; i < 2; i++) AdaptiveSortIndexAuxWithNaN(index, aux, Left[i], Right[i], val);
 

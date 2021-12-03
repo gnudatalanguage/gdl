@@ -223,6 +223,7 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   {
     doNan = false;
     doInvalid=false;
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nA))
     {
 #pragma omp for
@@ -235,6 +236,7 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   else if(doNan)
   {
     doNan = false;
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nA))
     {
 #pragma omp for
@@ -245,6 +247,7 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   else if(doInvalid)
   {
     doInvalid=false;
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nA))
     {
 #pragma omp for

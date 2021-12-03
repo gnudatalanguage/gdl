@@ -131,6 +131,7 @@ namespace lib {
       lat = new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
       latGuard.Reset(lat);
 
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
@@ -211,6 +212,7 @@ namespace lib {
       
       SizeT nEl = p0->N_Elements() / 2;
 #ifdef PROJ_IS_THREADSAFE
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for
@@ -258,6 +260,7 @@ namespace lib {
         return res; //e->Throw("The PROJ library version you use unfortunately defines no inverse for this projection!");
       }
 #ifdef PROJ_IS_THREADSAFE
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       {
 #pragma omp for 
@@ -1466,6 +1469,7 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
     
     //convert all lons lats, next tag NaN those outside CUTS
 #ifdef PROJ_IS_THREADSAFE
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for
@@ -1571,6 +1575,7 @@ bool isInvalid (const Polygon& pol) { return (!pol.valid); }
     
 
     SizeT nEl = lonsIn->N_Elements();
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (OMPInt i = 0; i < nEl; ++i) {
        lons[i]*=DEG_TO_RAD;
@@ -2086,6 +2091,7 @@ done:             aliasList->remove_if(isInvalid);
     odims[1] = nEl;
     dimension dim(odims, 2);
     DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     {
 #pragma omp for

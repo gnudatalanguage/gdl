@@ -237,6 +237,7 @@ namespace lib {
             (*res)[ 0] = round ((*p0C)[ 0]);
             return res;
           }
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round ((*p0C)[ i]);
         return res;
@@ -249,6 +250,7 @@ namespace lib {
             (*res)[ 0] = round ((*p0C)[ 0]);
             return res;
           }
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round ((*p0C)[ i]);
 
@@ -278,6 +280,7 @@ namespace lib {
                   (*res)[ 0] = round ((*p0C)[ 0].real ());
                   return res;
                 }
+	      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
               for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round ((*p0C)[ i].real ());
               return res;
@@ -292,6 +295,7 @@ namespace lib {
                   (*res)[ 0] = round ((*p0C)[ 0].real ());
                   return res;
                 }
+	      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
               for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round ((*p0C)[ i].real ());
               return res;
@@ -313,6 +317,7 @@ namespace lib {
                   (*res)[ 0] = round ((*p0C)[ 0].real ());
                   return res;
                 }
+	      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
               for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round ((*p0C)[ i].real ());
               return res;
@@ -327,6 +332,7 @@ namespace lib {
                   (*res)[ 0] = round ((*p0C)[ 0].real ());
                   return res;
                 }
+	      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
               for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round ((*p0C)[ i].real ());
               return res;
@@ -351,6 +357,7 @@ namespace lib {
             (*res)[ 0] = ceil ((*p0C)[ 0]);
             return res;
           }
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil ((*p0C)[ i]);
         return res;
@@ -363,6 +370,7 @@ namespace lib {
             (*res)[ 0] = ceil ((*p0C)[ 0]);
             return res;
           }
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil ((*p0C)[ i]);
 
@@ -392,6 +400,7 @@ namespace lib {
                 (*res)[ 0] = ceil ((*p0C)[ 0].real ());
                 return res;
               }
+	    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil ((*p0C)[ i].real ());
             return res;
@@ -406,6 +415,7 @@ namespace lib {
                 (*res)[ 0] = ceil ((*p0C)[ 0].real ());
                 return res;
               }
+	    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil ((*p0C)[ i].real ());
             return res;
@@ -427,6 +437,7 @@ namespace lib {
                 (*res)[ 0] = ceil ((*p0C)[ 0].real ());
                 return res;
               }
+	    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil ((*p0C)[ i].real ());
             return res;
@@ -441,6 +452,7 @@ namespace lib {
                 (*res)[ 0] = ceil ((*p0C)[ 0].real ());
                 return res;
               }
+	    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil ((*p0C)[ i].real ());
             return res;
@@ -465,6 +477,7 @@ namespace lib {
             (*res)[ 0] = floor ((*p0C)[ 0]);
             return res;
           }
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor ((*p0C)[ i]);
         return res;
@@ -477,6 +490,7 @@ namespace lib {
             (*res)[ 0] = floor ((*p0C)[ 0]);
             return res;
           }
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor ((*p0C)[ i]);
 
@@ -506,6 +520,7 @@ namespace lib {
                 (*res)[ 0] = floor ((*p0C)[ 0].real ());
                 return res;
               }
+	    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor ((*p0C)[ i].real ());
             return res;
@@ -520,6 +535,7 @@ namespace lib {
                 (*res)[ 0] = floor ((*p0C)[ 0].real ());
                 return res;
               }
+	    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor ((*p0C)[ i].real ());
             return res;
@@ -541,6 +557,7 @@ namespace lib {
                 (*res)[ 0] = floor ((*p0C)[ 0].real ());
                 return res;
               }
+	    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor ((*p0C)[ i].real ());
             return res;
@@ -555,6 +572,7 @@ namespace lib {
                 (*res)[ 0] = floor ((*p0C)[ 0].real ());
                 return res;
               }
+	    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor ((*p0C)[ i].real ());
             return res;
@@ -578,6 +596,7 @@ namespace lib {
       (*res)[0] = sqrt((*p0C)[0]);
       return res;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sqrt((*p0C)[ i]);
     return res;
@@ -591,6 +610,7 @@ namespace lib {
       (*p0C)[0] = sqrt((*p0C)[0]);
       return p0;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sqrt((*p0C)[ i]);
     return p0;
@@ -614,6 +634,7 @@ namespace lib {
       else return sqrt_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sqrt((*res)[ i]);
       return res;
@@ -632,6 +653,7 @@ namespace lib {
         (*res)[0] = sin ((*p0C)[0]);
         return res;
       }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sin ((*p0C)[ i]);
     return res;
@@ -647,6 +669,7 @@ namespace lib {
         (*p0C)[0] = sin ((*p0C)[0]);
         return p0;
       }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sin ((*p0C)[ i]);
     return p0;
@@ -668,6 +691,7 @@ namespace lib {
     else
       {
         DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sin ((*res)[ i]);
         return res;
@@ -684,6 +708,7 @@ namespace lib {
       (*res)[0] = cos((*p0C)[0]);
       return res;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = cos((*p0C)[ i]);
     return res;
@@ -697,6 +722,7 @@ namespace lib {
       (*p0C)[0] = cos((*p0C)[0]);
       return p0;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = cos((*p0C)[ i]);
     return p0;
@@ -720,6 +746,7 @@ namespace lib {
       else return cos_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = cos((*res)[ i]);
       return res;
@@ -736,6 +763,7 @@ namespace lib {
       (*res)[0] = tan((*p0C)[0]);
       return res;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tan((*p0C)[ i]);
     return res;
@@ -749,6 +777,7 @@ namespace lib {
       (*p0C)[0] = tan((*p0C)[0]);
       return p0;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tan((*p0C)[ i]);
     return p0;
@@ -772,6 +801,7 @@ namespace lib {
       else return tan_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = tan((*res)[ i]);
       return res;
@@ -788,6 +818,7 @@ namespace lib {
       (*res)[0] = sinh((*p0C)[0]);
       return res;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sinh((*p0C)[ i]);
     return res;
@@ -801,6 +832,7 @@ namespace lib {
       (*p0C)[0] = sinh((*p0C)[0]);
       return p0;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sinh((*p0C)[ i]);
     return p0;
@@ -824,6 +856,7 @@ namespace lib {
       else return sinh_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sinh((*res)[ i]);
       return res;
@@ -840,6 +873,7 @@ namespace lib {
       (*res)[0] = cosh((*p0C)[0]);
       return res;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = cosh((*p0C)[ i]);
     return res;
@@ -853,6 +887,7 @@ namespace lib {
       (*p0C)[0] = cosh((*p0C)[0]);
       return p0;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = cosh((*p0C)[ i]);
     return p0;
@@ -876,6 +911,7 @@ namespace lib {
       else return cosh_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = cosh((*res)[ i]);
       return res;
@@ -892,6 +928,7 @@ namespace lib {
       (*res)[0] = tanh((*p0C)[0]);
       return res;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tanh((*p0C)[ i]);
     return res;
@@ -905,6 +942,7 @@ namespace lib {
       (*p0C)[0] = tanh((*p0C)[0]);
       return p0;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tanh((*p0C)[ i]);
     return p0;
@@ -928,6 +966,7 @@ namespace lib {
       else return tanh_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = tanh((*res)[ i]);
       return res;
@@ -943,6 +982,7 @@ namespace lib {
       (*res)[0] = asin((*p0C)[0]);
       return res;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = asin((*p0C)[ i]);
     return res;
@@ -956,6 +996,7 @@ namespace lib {
       (*p0C)[0] = asin((*p0C)[0]);
       return p0;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = asin((*p0C)[ i]);
     return p0;
@@ -977,6 +1018,7 @@ namespace lib {
     else
       {
         DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = asin ((*res)[ i]);
         return res;
@@ -992,6 +1034,7 @@ namespace lib {
       (*res)[0] = acos((*p0C)[0]);
       return res;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = acos((*p0C)[ i]);
     return res;
@@ -1005,6 +1048,7 @@ namespace lib {
       (*p0C)[0] = acos((*p0C)[0]);
       return p0;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = acos((*p0C)[ i]);
     return p0;
@@ -1026,6 +1070,7 @@ namespace lib {
     else
       {
         DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2 (GDL_FLOAT, BaseGDL::COPY));
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = acos ((*res)[ i]);
         return res;
@@ -1042,6 +1087,7 @@ namespace lib {
       (*res)[0] = exp((*p0C)[0]);
       return res;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = exp((*p0C)[ i]);
     return res;
@@ -1055,6 +1101,7 @@ namespace lib {
       (*p0C)[0] = exp((*p0C)[0]);
       return p0;
     }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = exp((*p0C)[ i]);
     return p0;
@@ -1078,6 +1125,7 @@ namespace lib {
       else return exp_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
       for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = exp((*res)[ i]);
       return res;
@@ -1122,6 +1170,7 @@ namespace lib {
         (*res)[ 0] = abs ((*p0C)[ 0]);
         return res;
       }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = abs ((*p0C)[ i]);
     return res;
@@ -1140,6 +1189,7 @@ namespace lib {
             (*res)[ 0] = abs ((*p0C)[ 0]);
             return res;
           }
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = abs ((*p0C)[ i]); //sqrt(Creal*Creal + Cimag*Cimag);
         return res;
@@ -1154,6 +1204,7 @@ namespace lib {
             (*res)[ 0] = abs ((*p0C)[ 0]);
             return res;
           }
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = abs ((*p0C)[ i]); //sqrt(Creal*Creal + Cimag*Cimag);
         return res;
@@ -1198,6 +1249,7 @@ namespace lib {
         (*res)[ 0] = abs ((*res)[ 0]);
         return res;
       }
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
     for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = abs ((*res)[ i]);
     return res;
@@ -1215,6 +1267,7 @@ namespace lib {
         DComplexGDL* res;
         if (isReference) res = static_cast<DComplexGDL*> (p0)->NewResult (); else res=static_cast<DComplexGDL*>(p0);
         DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = std::conj ((*p0C)[i]);
         return res;
@@ -1224,6 +1277,7 @@ namespace lib {
         DComplexDblGDL* res;
         if (isReference) res = static_cast<DComplexDblGDL*> (p0)->NewResult (); else res=res=static_cast<DComplexDblGDL*>(p0);
         DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (p0);
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = std::conj ((*p0C)[i]);
         return res;
@@ -1249,6 +1303,7 @@ namespace lib {
       {
         DComplexGDL* c0 = static_cast<DComplexGDL*> (p0);
         DFloatGDL* res = new DFloatGDL (c0->Dim (), BaseGDL::NOZERO);
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = imag ((*c0)[i]);
         return res;
@@ -1257,6 +1312,7 @@ namespace lib {
       {
         DComplexDblGDL* c0 = static_cast<DComplexDblGDL*> (p0);
         DDoubleGDL* res = new DDoubleGDL (c0->Dim (), BaseGDL::NOZERO);
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = imag ((*c0)[i]);
         return res;
@@ -1286,6 +1342,7 @@ namespace lib {
       {
         DComplexGDL* c0 = static_cast<DComplexGDL*> (p0);
         DFloatGDL* res = new DFloatGDL (c0->Dim (), BaseGDL::NOZERO);
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = real ((*c0)[i]);
         return res;
@@ -1294,6 +1351,7 @@ namespace lib {
       {
         DComplexDblGDL* c0 = static_cast<DComplexDblGDL*> (p0);
         DDoubleGDL* res = new DDoubleGDL (c0->Dim (), BaseGDL::NOZERO);
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = real ((*c0)[i]);
         return res;
@@ -1418,14 +1476,17 @@ namespace lib {
         }
         switch (cas) {
         case 0:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[i], (*p1D)[i]);
           return res;
         case 1:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[i], (*p1D)[0]);
           return res;
         case 2:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[0], (*p1D)[i]);
           return res;
@@ -1450,14 +1511,17 @@ namespace lib {
         }
         switch (cas) {
         case 0:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0F)[i], (*p1F)[i]);
           return res;
         case 1:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0F)[i], (*p1F)[0]);
           return res;
         case 2:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0F)[0], (*p1F)[i]);
           return res;
@@ -1482,14 +1546,17 @@ namespace lib {
         }
         switch (cas) {
         case 0:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0C)[i], (*p1C)[i]);
           return res;
         case 1:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0C)[i], (*p1C)[0]);
           return res;
         case 2:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0C)[0], (*p1C)[i]);
           return res;
@@ -1514,14 +1581,17 @@ namespace lib {
         }
         switch (cas) {
         case 0:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0DC)[i], (*p1DC)[i]);
           return res;
         case 1:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0DC)[i], (*p1DC)[0]);
           return res;
         case 2:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0DC)[0], (*p1DC)[i]);
           return res;
@@ -1538,14 +1608,17 @@ namespace lib {
         }
         switch (cas) {
         case 0:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[i], (*p1D)[i]);
           return res;
         case 1:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[i], (*p1D)[0]);
           return res;
         case 2:
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nElMin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nElMin))
           for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[0], (*p1D)[i]);
           return res;
@@ -1561,6 +1634,7 @@ namespace lib {
             (*res)[ 0] = atan2(((*p0C)[ 0]).imag(), ((*p0C)[ 0]).real());
             return res;
           }
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan2(((*p0C)[i]).imag(), ((*p0C)[i]).real());
           return res;
@@ -1571,6 +1645,7 @@ namespace lib {
             (*res)[ 0] = atan2(((*p0C)[ 0]).imag(), ((*p0C)[ 0]).real());
             return res;
           }
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan2(((*p0C)[i]).imag(), ((*p0C)[i]).real());
           return res;
@@ -1583,6 +1658,7 @@ namespace lib {
             (*res)[ 0] = atan((*p0D)[ 0]);
             return res;
           }
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan((*p0D)[i]);
           return res;
@@ -1593,6 +1669,7 @@ namespace lib {
             (*res)[ 0] = atan((*p0F)[ 0]);
             return res;
           }
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan((*p0F)[i]);
           return res;
@@ -1603,6 +1680,7 @@ namespace lib {
             (*res)[ 0] = std::atan((*p0C)[ 0]);
             return res;
           }
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = std::atan((*p0C)[ i]);
           return res;
@@ -1613,6 +1691,7 @@ namespace lib {
             (*res)[ 0] = std::atan((*p0C)[ 0]);
             return res;
           }
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = std::atan((*p0C)[ i]);
           return res;
@@ -1622,6 +1701,7 @@ namespace lib {
             (*res)[ 0] = atan((*res)[ 0]);
             return res;
           }
+	  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan((*res)[i]);
           return res;
@@ -1747,6 +1827,7 @@ namespace lib {
     SizeT nEx = xvals->N_Elements();
 
 //is this really useful? parallelizing Laguerre? Do not forget openmp uses time.
+//    TRACEOMP(__FILE__,__LINE__)
 //#pragma omp parallel for if (nEx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEx))
     for (SizeT count = 0; count < nEx; ++count) (*res)[count] = gsl_sf_laguerre_n(n, k, (*xvals)[count]);
 
@@ -1759,6 +1840,7 @@ namespace lib {
 
 //GD: parallelizing this complicated loop cannot be done just like that.
 //I further doubt Laguerre is going to be used on large arrays.
+//      TRACEOMP(__FILE__,__LINE__)
 //#pragma omp parallel for if (n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
       for (SizeT count = 0; count <= n; ++count) {
         double dcount = static_cast<double> (count);

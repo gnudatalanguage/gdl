@@ -49,6 +49,7 @@ exists_fun.cpp
 fftw.cpp
 file.cpp
 fmtnode.cpp
+gdlarray.cpp
 gdleventhandler.cpp
 gdlexception.cpp
 gdlgstream.cpp

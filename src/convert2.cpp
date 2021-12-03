@@ -148,48 +148,59 @@ template<> BaseGDL* Data_<SpDByte>::Convert2(DType destTy, BaseGDL::Convert2Mode
   case GDL_BYTE: return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
   case GDL_INT:
     DO_CONVERT_START(SpDInt)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_UINT:
     DO_CONVERT_START(SpDUInt)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_LONG:
     DO_CONVERT_START(SpDLong)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_ULONG:
     DO_CONVERT_START(SpDULong)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_LONG64:
     DO_CONVERT_START(SpDLong64)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_ULONG64:
     DO_CONVERT_START(SpDULong64)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_FLOAT:
     DO_CONVERT_START(SpDFloat)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_DOUBLE:
     DO_CONVERT_START(SpDDouble)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_COMPLEX:
     DO_CONVERT_START(SpDComplex)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_COMPLEXDBL:
     DO_CONVERT_START(SpDComplexDbl)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
   {
     if (mode == BaseGDL::COPY_BYTE_AS_INT) {
       Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
       for (SizeT i = 0; i < nEl; ++i)
         (*dest)[i] = i2s(static_cast<int> ((*this)[i]), 4);
@@ -244,48 +255,59 @@ template<> BaseGDL* Data_<SpDInt>::Convert2(DType destTy, BaseGDL::Convert2Mode 
   switch (destTy) {
   case GDL_BYTE:
     DO_CONVERT_START(SpDByte)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_INT: return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
   case GDL_UINT:
     DO_CONVERT_START(SpDUInt)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_LONG:
     DO_CONVERT_START(SpDLong)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_ULONG:
     DO_CONVERT_START(SpDULong)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_LONG64:
     DO_CONVERT_START(SpDLong64)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_ULONG64:
     DO_CONVERT_START(SpDULong64)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_FLOAT:
     DO_CONVERT_START(SpDFloat)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_DOUBLE:
     DO_CONVERT_START(SpDDouble)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_COMPLEX:
     DO_CONVERT_START(SpDComplex)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_COMPLEXDBL:
     DO_CONVERT_START(SpDComplexDbl)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_STRING:
   {
     Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
     for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 8);
     if ((mode & BaseGDL::CONVERT) != 0) delete this;
@@ -313,48 +335,59 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
   switch (destTy) {
   case GDL_BYTE:
     DO_CONVERT_START(SpDByte)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_INT:
     DO_CONVERT_START(SpDInt)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_UINT: return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
   case GDL_LONG:
     DO_CONVERT_START(SpDLong)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_ULONG:
     DO_CONVERT_START(SpDULong)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_LONG64:
     DO_CONVERT_START(SpDLong64)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_ULONG64:
     DO_CONVERT_START(SpDULong64)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_FLOAT:
     DO_CONVERT_START(SpDFloat)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_DOUBLE:
     DO_CONVERT_START(SpDDouble)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_COMPLEX:
     DO_CONVERT_START(SpDComplex)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_COMPLEXDBL:
     DO_CONVERT_START(SpDComplexDbl)
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
         DO_CONVERT_END
   case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
   {
     Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
     for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 8);
     if ((mode & BaseGDL::CONVERT) != 0) delete this;
@@ -385,48 +418,59 @@ TRACE_CONVERT2
     switch (destTy) {
     case GDL_BYTE:
       DO_CONVERT_START(SpDByte)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_INT:
       DO_CONVERT_START(SpDInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_UINT:
       DO_CONVERT_START(SpDUInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_LONG:       return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
     case GDL_ULONG:
       DO_CONVERT_START(SpDULong)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_LONG64:
       DO_CONVERT_START(SpDLong64)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_ULONG64:
       DO_CONVERT_START(SpDULong64)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_FLOAT:
       DO_CONVERT_START(SpDFloat)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_DOUBLE:
       DO_CONVERT_START(SpDDouble)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_COMPLEX:
       DO_CONVERT_START(SpDComplex)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_COMPLEXDBL:
       DO_CONVERT_START(SpDComplexDbl)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
     {
       Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
       for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 12);
       if ((mode & BaseGDL::CONVERT) != 0) delete this;
@@ -458,48 +502,59 @@ TRACE_CONVERT2
   switch( destTy) {
     case GDL_BYTE:
       DO_CONVERT_START(SpDByte)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_INT:
       DO_CONVERT_START(SpDInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_UINT:
       DO_CONVERT_START(SpDUInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_LONG:
       DO_CONVERT_START(SpDLong)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
   case GDL_ULONG:       return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
     case GDL_LONG64:
       DO_CONVERT_START(SpDLong64)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_ULONG64:
       DO_CONVERT_START(SpDULong64)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_FLOAT:
       DO_CONVERT_START(SpDFloat)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_DOUBLE:
       DO_CONVERT_START(SpDDouble)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_COMPLEX:
       DO_CONVERT_START(SpDComplex)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_COMPLEXDBL:
       DO_CONVERT_START(SpDComplexDbl)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
     {
       Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
       for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 12);
       if ((mode & BaseGDL::CONVERT) != 0) delete this;
@@ -530,49 +585,60 @@ TRACE_CONVERT2
   switch( destTy) {
     case GDL_BYTE:
       DO_CONVERT_START(SpDByte)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_INT:
       DO_CONVERT_START(SpDInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_UINT:
       DO_CONVERT_START(SpDUInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_LONG:
       DO_CONVERT_START(SpDLong)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
   case GDL_ULONG: 
       DO_CONVERT_START(SpDULong)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
   case GDL_LONG64:
       DO_CONVERT_START(SpDLong64)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_ULONG64:
       DO_CONVERT_START(SpDULong64)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_FLOAT:      return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
 
     case GDL_DOUBLE:
       DO_CONVERT_START(SpDDouble)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_COMPLEX:
       DO_CONVERT_START(SpDComplex)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_COMPLEXDBL:
       DO_CONVERT_START(SpDComplexDbl)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
     {
       Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
       for (SizeT i = 0; i < nEl; ++i) (*dest)[i]=float2string((*this)[i]);
       if ((mode & BaseGDL::CONVERT) != 0) delete this;
@@ -604,48 +670,59 @@ TRACE_CONVERT2
   switch( destTy) {
     case GDL_BYTE:
       DO_CONVERT_START(SpDByte)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_INT:
       DO_CONVERT_START(SpDInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_UINT:
       DO_CONVERT_START(SpDUInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_LONG:
       DO_CONVERT_START(SpDLong)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
   case GDL_ULONG: 
       DO_CONVERT_START(SpDULong)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
   case GDL_LONG64:
       DO_CONVERT_START(SpDLong64)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_ULONG64:
       DO_CONVERT_START(SpDULong64)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_FLOAT: 
       DO_CONVERT_START(SpDFloat)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_DOUBLE:     return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
     case GDL_COMPLEX:
       DO_CONVERT_START(SpDComplex)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_COMPLEXDBL:
       DO_CONVERT_START(SpDComplexDbl)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
     {
       Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
       for (SizeT i = 0; i < nEl; ++i) (*dest)[i]=double2string((*this)[i]);
       if ((mode & BaseGDL::CONVERT) != 0) delete this;
@@ -701,7 +778,7 @@ TRACE_CONVERT2
 	bytDim >> maxLen;
 
       	Data_<SpDByte>* dest=new Data_<SpDByte>( bytDim); // zero fields
-TRACEOMP( __FILE__, __LINE__)
+  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel
 {
 #pragma omp for
@@ -720,8 +797,8 @@ TRACEOMP( __FILE__, __LINE__)
     case GDL_INT:
       {
       	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
- TRACEOMP( __FILE__, __LINE__)
- #pragma omp parallel shared( errorFlag, mode)
+   TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel shared( errorFlag, mode)
  {
  #pragma omp for
       	for( OMPInt i=0; i < nEl; ++i)
@@ -749,7 +826,7 @@ TRACEOMP( __FILE__, __LINE__)
     case GDL_UINT: 
       {
       	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel shared( errorFlag, mode)
 {
 #pragma omp for
@@ -778,7 +855,7 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
     case GDL_LONG: 
       {
       	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel shared( errorFlag, mode)
 {
 #pragma omp for
@@ -807,7 +884,7 @@ StringConversionError( errorFlag, mode, "Type conversion error: "
     case GDL_ULONG: 
       {
       	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
+  TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel shared( errorFlag, mode)
 {
 #pragma omp for
@@ -1035,48 +1112,59 @@ TRACE_CONVERT2
   switch( destTy) {
     case GDL_BYTE:
       DO_CONVERT_START_CPX(SpDByte)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
     case GDL_INT:
       DO_CONVERT_START_CPX(SpDInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
     case GDL_UINT:
       DO_CONVERT_START_CPX(SpDUInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
     case GDL_LONG:
       DO_CONVERT_START_CPX(SpDLong)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
   case GDL_ULONG: 
       DO_CONVERT_START_CPX(SpDULong)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
   case GDL_LONG64:
       DO_CONVERT_START_CPX(SpDLong64)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
     case GDL_ULONG64:
       DO_CONVERT_START_CPX(SpDULong64)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
     case GDL_FLOAT: 
       DO_CONVERT_START_CPX(SpDFloat)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
     case GDL_DOUBLE: 
       DO_CONVERT_START_CPX(SpDDouble)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
     case GDL_COMPLEX:    return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
     case GDL_COMPLEXDBL:
       DO_CONVERT_START(SpDComplexDbl)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
     {
       Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
       
 //FUTURE WORK: the version below is incredibely fast
@@ -1115,48 +1203,59 @@ TRACE_CONVERT2
   switch( destTy) {
     case GDL_BYTE:
       DO_CONVERT_START_CPX(SpDByte)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
     case GDL_INT:
       DO_CONVERT_START_CPX(SpDInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
     case GDL_UINT:
       DO_CONVERT_START_CPX(SpDUInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
     case GDL_LONG:
       DO_CONVERT_START_CPX(SpDLong)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
   case GDL_ULONG: 
       DO_CONVERT_START_CPX(SpDULong)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
   case GDL_LONG64:
       DO_CONVERT_START_CPX(SpDLong64)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
     case GDL_ULONG64:
       DO_CONVERT_START_CPX(SpDULong64)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
     case GDL_FLOAT: 
       DO_CONVERT_START_CPX(SpDFloat)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
     case GDL_DOUBLE: 
       DO_CONVERT_START_CPX(SpDDouble)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END_CPX
     case GDL_COMPLEX: 
       DO_CONVERT_START(SpDComplex)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_COMPLEXDBL:   return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
     case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
     {
       Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
       for (SizeT i = 0; i < nEl; ++i) (*dest)[i]="("+i2s(real((*this)[i]))+","+i2s(imag((*this)[i]))+")";
       if ((mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1189,48 +1288,59 @@ TRACE_CONVERT2
     switch (destTy) {
     case GDL_BYTE:
       DO_CONVERT_START(SpDByte)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_INT:
       DO_CONVERT_START(SpDInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_UINT:
       DO_CONVERT_START(SpDUInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_LONG:
       DO_CONVERT_START(SpDLong)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_ULONG:
       DO_CONVERT_START(SpDULong)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_LONG64:       return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
     case GDL_ULONG64:
       DO_CONVERT_START(SpDULong64)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_FLOAT:
       DO_CONVERT_START(SpDFloat)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_DOUBLE:
       DO_CONVERT_START(SpDDouble)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_COMPLEX:
       DO_CONVERT_START(SpDComplex)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_COMPLEXDBL:
       DO_CONVERT_START(SpDComplexDbl)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
     {
       Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
       for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 22);
       if ((mode & BaseGDL::CONVERT) != 0) delete this;
@@ -1262,48 +1372,59 @@ TRACE_CONVERT2
     switch (destTy) {
     case GDL_BYTE:
       DO_CONVERT_START(SpDByte)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_INT:
       DO_CONVERT_START(SpDInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_UINT:
       DO_CONVERT_START(SpDUInt)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_LONG:
       DO_CONVERT_START(SpDLong)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_ULONG:
       DO_CONVERT_START(SpDULong)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_LONG64:
       DO_CONVERT_START(SpDLong64)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_ULONG64:       return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
     case GDL_FLOAT:
       DO_CONVERT_START(SpDFloat)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_DOUBLE:
       DO_CONVERT_START(SpDDouble)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_COMPLEX:
       DO_CONVERT_START(SpDComplex)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_COMPLEXDBL:
       DO_CONVERT_START(SpDComplexDbl)
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
           DO_CONVERT_END
     case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
     {
       Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for
       for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 22);
       if ((mode & BaseGDL::CONVERT) != 0) delete this;

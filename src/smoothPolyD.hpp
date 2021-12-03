@@ -50,12 +50,14 @@ for (int r = 0; r < rank; ++r) {
  SizeT dimy = nEl / dimx;
  SizeT w = width[r] / 2;
  if (w == 0) {//fast transpose
+   TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   {
 #pragma omp for nowait
    for (SizeT i = 0; i < nEl; ++i) dest[transposed1Index(i, srcDim, destStride, rank)] = src[i];
   }
  } else { //smooth & transpose
+   TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
   {
 #pragma omp for nowait

@@ -333,6 +333,7 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT,
     if (!parallelize) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
@@ -349,9 +350,11 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT,
       }
     } else {
       if (off==0 && inc==1) { 
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
          for (SizeT i = 0; i < sz; ++i) (*this)[i]=i;
       } else {
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
          for (SizeT i = 0; i < sz; ++i) (*this)[i]=off+i*inc;
       }
@@ -372,6 +375,7 @@ template<> Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, D
     if (!parallelize) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
@@ -388,11 +392,13 @@ template<> Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, D
       }
     } else {
       if (off == 0 && inc == 1) {
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
         for (SizeT i = 0; i < sz; ++i) (*this)[i] = i;
       } else {
         DFloat f_off = off;
         DFloat f_inc = inc;
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
         for (SizeT i = 0; i < sz; ++i) (*this)[i] = f_off + i * f_inc;
       }
@@ -412,6 +418,7 @@ template<> Data_<SpDComplex>::Data_(const dimension& dim_, BaseGDL::InitType iT,
     if (!parallelize) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
@@ -428,11 +435,13 @@ template<> Data_<SpDComplex>::Data_(const dimension& dim_, BaseGDL::InitType iT,
       }
     } else {
       if (off == 0 && inc == 1) {
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
         for (SizeT i = 0; i < sz; ++i) (*this)[i] = i;
       } else {
         DFloat f_off = off;
         DFloat f_inc = inc;
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
         for (SizeT i = 0; i < sz; ++i) (*this)[i] = f_off + i * f_inc;
       }
@@ -460,6 +469,7 @@ template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT, DD
     if (!parallelize) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
@@ -478,6 +488,7 @@ template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDo
     if (!parallelize) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
@@ -497,6 +508,7 @@ Data_<Sp>::Data_(const Data_& d_) : Sp(d_.dim), dd(this->dim.NDimElements(), fal
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < sz; i++) dd[i] = d_.dd[i];
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for (SizeT i = 0; i < sz; i++) dd[i] = d_.dd[i];
   }
@@ -554,6 +566,7 @@ BaseGDL* Data_<SpDFloat>::Log() {
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   }
@@ -573,6 +586,7 @@ BaseGDL* Data_<SpDDouble>::Log()
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   }
@@ -591,6 +605,7 @@ BaseGDL* Data_<SpDComplex>::Log()
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   }
@@ -609,6 +624,7 @@ BaseGDL* Data_<SpDComplexDbl>::Log()
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   }
@@ -638,6 +654,7 @@ BaseGDL* Data_<SpDFloat>::LogThis() {
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   }
@@ -656,6 +673,7 @@ BaseGDL* Data_<SpDDouble>::LogThis()
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   }
@@ -674,6 +692,7 @@ BaseGDL* Data_<SpDComplex>::LogThis()
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   }
@@ -691,6 +710,7 @@ BaseGDL* Data_<SpDComplexDbl>::LogThis()
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   }
@@ -718,6 +738,7 @@ BaseGDL* Data_<SpDFloat>::Log10()
   if (!parallelize) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   }
@@ -737,6 +758,7 @@ BaseGDL* Data_<SpDDouble>::Log10()
   if (!parallelize) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   }
@@ -756,6 +778,7 @@ BaseGDL* Data_<SpDComplex>::Log10()
   if (!parallelize) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   }
@@ -775,6 +798,7 @@ BaseGDL* Data_<SpDComplexDbl>::Log10()
   if (!parallelize) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   }
@@ -801,6 +825,7 @@ BaseGDL* Data_<SpDFloat>::Log10This()
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   }
@@ -819,6 +844,7 @@ BaseGDL* Data_<SpDDouble>::Log10This()
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   }
@@ -836,6 +862,7 @@ BaseGDL* Data_<SpDComplex>::Log10This()
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   }
@@ -853,6 +880,7 @@ BaseGDL* Data_<SpDComplexDbl>::Log10This()
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   }
@@ -1374,6 +1402,7 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) {
     }
   } else {
 
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel num_threads(nchunk) 
     {
 #pragma omp for 
@@ -1428,6 +1457,7 @@ void Data_<Sp>::Reverse(DLong dim) {
       }
     }
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
     {
 #pragma omp for
@@ -1473,6 +1503,7 @@ BaseGDL* Data_<Sp>::DupReverse(DLong dim) {
       }
     }
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
     {
 #pragma omp for
@@ -1518,6 +1549,7 @@ BaseGDL* Data_<SpDPtr>::DupReverse(DLong dim) {
       }
     }
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
     {
 #pragma omp for
@@ -1563,6 +1595,7 @@ BaseGDL* Data_<SpDObj>::DupReverse(DLong dim) {
       }
     }
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
     {
 #pragma omp for
@@ -1681,6 +1714,7 @@ typename Data_<Sp>::Ty Data_<Sp>::Sum() const {
   if (!parallelize) { //most frequent
     for (SizeT i = 1; i < nEl; ++i) s += dd[ i];
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel shared( s)
     {
 #pragma omp for reduction(+:s)
@@ -1716,6 +1750,7 @@ Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::Sum() const {
       si += dd[i].imag();
     }
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel shared( sr,si)
     {
 #pragma omp for reduction(+:si,sr)
@@ -1740,6 +1775,7 @@ Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const {
       si += dd[i].imag();
     }
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( sr,si)
     {
 #pragma omp for reduction(+:si,sr)
@@ -3049,26 +3085,17 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
       if( ixList == NULL)
 	{
 	  SizeT nCp=Data_::N_Elements();
-
-	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	    {
-	    #pragma omp for*/
 	  for( int c=0; c<nCp; ++c)
 	    (*this)[ c]=scalar;
-	  // }
 	}
       else
 	{
 	  SizeT nCp=ixList->N_Elements();
 	  
 	  AllIxBaseT* allIx = ixList->BuildIx();
-	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	    {
-	    #pragma omp for*/
 	  (*this)[ allIx->InitSeqAccess()]=scalar;
 	  for( SizeT c=1; c<nCp; ++c)
 	    (*this)[ allIx->SeqAccess()]=scalar;
-	  //}	  //	    (*this)[ ixList->GetIx( c)]=scalar;
  	}
     }
   else
@@ -3084,12 +3111,9 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 	    else
 	      throw GDLException("Source expression contains not enough elements.");
 	  }
-	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	    {
-	    #pragma omp for*/
 	  for( int c=0; c<nCp; ++c)
 	    (*this)[ c]=(*src)[c+offset];
-	}//}
+	}
       else
 	{
  	  // crucial part
@@ -3113,13 +3137,9 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 				       " source expression.");
 		  
 		  AllIxBaseT* allIx = ixList->BuildIx();
-		  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-		    {
-		    #pragma omp for*/
 		  (*this)[ allIx->InitSeqAccess()]=(*src)[0];
 		  for( SizeT c=1; c<nCp; ++c)
 		    (*this)[ allIx->SeqAccess()]=(*src)[c];
-		  // }		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 		}
 	      else
 		{
@@ -3128,13 +3148,9 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 				       " source expression.");
 		  
 		  AllIxBaseT* allIx = ixList->BuildIx();
-		  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-		    {
-		    #pragma omp for*/
 		  (*this)[ allIx->InitSeqAccess()]=(*src)[offset];
 		  for( SizeT c=1; c<nCp; ++c)
 		    (*this)[ allIx->SeqAccess()]=(*src)[c+offset];
-		  // }		  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 		}
 	    }
 	}
@@ -3163,15 +3179,8 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 	  Ty scalar=(*src)[0];
 	  AllIxBaseT* allIx = ixList->BuildIx();
 	  (*this)[ allIx->InitSeqAccess()]=scalar;
-	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	    {
-	    #pragma omp for*/
 	  for( int c=1; c<nCp; ++c)
 	    (*this)[ allIx->SeqAccess()]=scalar;
-	  // 	    (*this)[ (*allIx)[ c]]=scalar;
-
-
-	  // }	  //	    (*this)[ ixList->GetIx( c)]=scalar;
 	}
     }
   else
@@ -3191,13 +3200,8 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 	  
 	  AllIxBaseT* allIx = ixList->BuildIx();
 	  (*this)[ allIx->InitSeqAccess()]=(*src)[0];
-	  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	    {
-	    #pragma omp for*/
 	  for( int c=1; c<nCp; ++c)
 	    (*this)[ allIx->SeqAccess()]=(*src)[c];
-	  // 	    (*this)[ (*allIx)[ c]]=(*src)[c];
-	  // }	  //		(*this)[ ixList->GetIx( c)]=(*src)[c+offset];
 	}
     }
 }
@@ -3215,18 +3219,8 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn)
 
       /*      dd = scalar;*/
       SizeT nCp=Data_::N_Elements();
-      
-      
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       for( int c=0; c<nCp; ++c)
 	(*this)[ c]=scalar;
-      // }      
-      //       SizeT nCp=Data_::N_Elements();
-
-      //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ c]=scalar;
     }
   else
     {
@@ -3234,13 +3228,8 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn)
       
       // if (non-indexed) src is smaller -> just copy its number of elements
       if( nCp > srcElem) nCp=srcElem;
-      
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       for( int c=0; c<nCp; ++c)
 	(*this)[ c]=(*src)[c];
-      // }
     }
 }
 
@@ -3262,13 +3251,10 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
 
       AllIxBaseT* allIx = ixList->BuildIx();
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       (*this)[ allIx->InitSeqAccess()]--;
       for( SizeT c=1; c<nCp; ++c)
 	(*this)[ allIx->SeqAccess()]--;
-    }//    }
+    }
 }
 template<class Sp>
 void Data_<Sp>::IncAt( ArrayIndexListT* ixList) 
@@ -3286,13 +3272,10 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       (*this)[ allIx->InitSeqAccess()]++;
       for( SizeT c=1; c<nCp; ++c)
 	(*this)[ allIx->SeqAccess()]++;
-    }//    }
+    }
 }
 // float, double
 template<>
@@ -3312,13 +3295,10 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
 
       AllIxBaseT* allIx = ixList->BuildIx();
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] -= 1.0f;
       for( SizeT c=1; c<nCp; ++c)
 	(*this)[ allIx->SeqAccess()] -=1.0f;
-    }//    }
+    }
 }
 template<>
 void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList) 
@@ -3337,13 +3317,10 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] += 1.0f;
       for( SizeT c=1; c<nCp; ++c)
 	(*this)[ allIx->SeqAccess()] +=1.0f;
-    }//    }
+    }
 }
 template<>
 void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList) 
@@ -3362,13 +3339,10 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] -= 1.0;
       for( SizeT c=1; c<nCp; ++c)
 	(*this)[ allIx->SeqAccess()] -=1.0;
-    }//    }
+    }
 }
 template<>
 void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList) 
@@ -3387,13 +3361,10 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] += 1.0f;
       for( SizeT c=1; c<nCp; ++c)
 	(*this)[ allIx->SeqAccess()] +=1.0f;
-    }//    }
+    }
 }
 // complex
 template<>
@@ -3405,26 +3376,19 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
 
       SizeT nCp=Data_::N_Elements();
       
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
+      TRACEOMP(__FILE__,__LINE__)
       for( int c=0; c<nCp; ++c)
 	(*this)[ c] -= 1.0;
-    }//    }
+    }
   else
     {
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] -= 1.0;
       for( SizeT c=1; c<nCp; ++c)
 	(*this)[ allIx->SeqAccess()] -=1.0;
-      //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ (*allIx)[ c]] -= 1.0;
-    }//    }
+    }
 }
 template<>
 void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList) 
@@ -3434,27 +3398,18 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
       //       dd += 1.0f;
 
       SizeT nCp=Data_::N_Elements();
-      
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       for( int c=0; c<nCp; ++c)
       	(*this)[ c] += 1.0;
-    }//    }
+    }
   else
     {
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] += 1.0;
       for( SizeT c=1; c<nCp; ++c)
 	(*this)[ allIx->SeqAccess()] +=1.0;
-      //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ (*allIx)[ c]] += 1.0;
-    }//    }
+    }
 }
 template<>
 void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList) 
@@ -3464,27 +3419,18 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
       //       dd -= 1.0;
 
       SizeT nCp=Data_::N_Elements();
-      
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       for( int c=0; c<nCp; ++c)
       	(*this)[ c] -= 1.0;
-    }//    }
+    }
   else
     {
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] -= 1.0;
       for( SizeT c=1; c<nCp; ++c)
 	(*this)[ allIx->SeqAccess()] -=1.0;
-      //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ (*allIx)[ c]] -= 1.0;
-    } //   }
+    }
 }
 template<>
 void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList) 
@@ -3494,27 +3440,18 @@ void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList)
       //       dd += 1.0;
 
       SizeT nCp=Data_::N_Elements();
-      
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       for( int c=0; c<nCp; ++c)
       	(*this)[ c] += 1.0;
-    }//    }
+    }
   else
     {
       SizeT nCp=ixList->N_Elements();
       
       AllIxBaseT* allIx = ixList->BuildIx();
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       (*this)[ allIx->InitSeqAccess()] += 1.0;
       for( SizeT c=1; c<nCp; ++c)
 	(*this)[ allIx->SeqAccess()] +=1.0;
-      //       for( SizeT c=0; c<nCp; ++c)
-      // 	(*this)[ (*allIx)[ c]] += 1.0;
-    }//    }
+    }
 }
 // forbidden types
 template<>
@@ -3560,25 +3497,17 @@ void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn,
   if( ixList == NULL)
     {
       SizeT nCp=src->N_Elements();
-
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       for( int c=0; c<nCp; ++c)
 	(*this)[ c+offset]=(*src)[c];
-    }//    }
+    }
   else
     {
       SizeT nCp=ixList->N_Elements();
 
       AllIxBaseT* allIx = ixList->BuildIx();
-      /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-	{
-	#pragma omp for*/
       (*this)[ offset]=(*src)[ allIx->InitSeqAccess()];
       for( SizeT c=1; c<nCp; ++c)
 	(*this)[ c+offset]=(*src)[ allIx->SeqAccess()];
-      //}      //	(*this)[ c+offset]=(*src)[ ixList->GetIx( c)];
     }
 }
 
@@ -3666,17 +3595,9 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
       (*res)[0]=(*this)[ (*allIx)[ 0]];
       return res;
     }
-  //   else
-  //   {
-  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-    {
-    #pragma omp for*/
   (*res)[0]=(*this)[ allIx->InitSeqAccess()];
   for( SizeT c=1; c<nCp; ++c)
     (*res)[c]=(*this)[ allIx->SeqAccess()];
-  //}  //    res_(*this)[c]=(*this)[ (*allIx)[ c]];
-  //    (*res)[c]=(*this)[ ixList->GetIx(c)];
-  //   }
   return res;
 }
 
@@ -3825,6 +3746,7 @@ void Data_<Sp>::CatInsert (const Data_* srcArr, const SizeT atDim, SizeT& at)
       for (SizeT destIx = 0; destIx < len; destIx++) (*this)[destIx + destStart + c * gap] = (*srcArr)[ destIx + c * len];
     }
   } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) collapse(2)
     for (OMPInt c = 0; c < nCp; ++c)
       {
@@ -4674,13 +4596,11 @@ void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
   {
     srcT = static_cast<Data_*>( src);
   }
-  /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-    #pragma omp for*/
+  TRACEOMP(__FILE__,__LINE__)
   for(long k=0; k < nEl; ++k)
     {
       (*this)[ k] = (*srcT)[ k];
-    }//    }
+    }
 }
 
 
@@ -4698,12 +4618,9 @@ Data_<Sp>* Data_<Sp>::NewIx( AllIxBaseT* ix, const dimension* dIn)
 {
   SizeT nCp = ix->size();
   Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
-  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-    {
-    #pragma omp for*/
+  TRACEOMP(__FILE__,__LINE__)
   for( int c=0; c<nCp; ++c)
     (*res)[c]=(*this)[ (*ix)[ c]];
-  // }
   return res;
 }
 template<class Sp>
@@ -4711,12 +4628,8 @@ Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s)
 {
   SizeT nCp = dd.size() - s;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
-  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-    {
-    #pragma omp for*/
   for( int c=0; c<nCp; ++c)
     (*res)[c]=(*this)[ s+c];
-  // }
   return res;
 }
 template<class Sp>
@@ -4724,12 +4637,8 @@ Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s, SizeT e)
 {
   SizeT nCp = e - s + 1;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
-  /*#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
-    {
-    #pragma omp for*/
   for( int c=0; c<nCp; ++c)
     (*res)[c]=(*this)[ s+c];
-  // }
   return res;
 }
 template<class Sp>

@@ -98,6 +98,7 @@ namespace lib {
     DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
 
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
       int thread_id = currentThreadNumber();
@@ -120,6 +121,7 @@ namespace lib {
     DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
 
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
       int thread_id = currentThreadNumber();
@@ -205,7 +207,8 @@ namespace lib {
   {
     DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
       int thread_id = currentThreadNumber();
       SizeT start_index, stop_index;
@@ -226,7 +229,8 @@ namespace lib {
   {
     DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
       int thread_id = currentThreadNumber();
       SizeT start_index, stop_index;
@@ -468,6 +472,7 @@ namespace lib {
   {
     DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
       int thread_id = currentThreadNumber();
@@ -489,6 +494,7 @@ namespace lib {
   {
     DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
       int thread_id = currentThreadNumber();
@@ -513,7 +519,8 @@ namespace lib {
     DDouble p = (DDouble) (*binomialKey)[1];
     DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
       int thread_id = currentThreadNumber();
       SizeT start_index, stop_index;
@@ -537,7 +544,8 @@ namespace lib {
     DDouble p = (DDouble) (*binomialKey)[1];
     DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
       int thread_id = currentThreadNumber();
       SizeT start_index, stop_index;
@@ -559,7 +567,8 @@ namespace lib {
     DDouble mu = (DDouble) (*poissonKey)[0];
     DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
       int thread_id = currentThreadNumber();
       SizeT start_index, stop_index;
@@ -581,7 +590,8 @@ namespace lib {
     DDouble mu = (DDouble) (*poissonKey)[0];
     DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
       int thread_id = currentThreadNumber();
       SizeT start_index, stop_index;
@@ -602,7 +612,8 @@ namespace lib {
   {
     DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
       int thread_id = currentThreadNumber();
       SizeT start_index, stop_index;
@@ -623,7 +634,8 @@ namespace lib {
   {
     DEFINE_NCHUNK_FOR_dSFMT
     SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
     {
       int thread_id = currentThreadNumber();
       SizeT start_index, stop_index;

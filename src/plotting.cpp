@@ -1731,6 +1731,7 @@ void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map,
     DLongGDL *gons, *lines;
     if (!isRadians) {
     SizeT nin = lons->N_Elements( );
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nin))
       {
 #pragma omp for

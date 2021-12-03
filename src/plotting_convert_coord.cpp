@@ -72,6 +72,7 @@ namespace lib {
     //eliminate simplest case here:
     if (ocoordinateSystem==icoordinateSystem)
     {
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows))
       {
 #pragma omp for
@@ -126,6 +127,7 @@ namespace lib {
       if ( mapSet )
       {
 #ifdef PROJ_IS_THREADSAFE
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows))
         {
 #pragma omp for private(idata,odata)
@@ -151,6 +153,7 @@ namespace lib {
         }
 #endif
         // to norm:
+      TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows))
       {
 #pragma omp for
@@ -162,6 +165,7 @@ namespace lib {
       }
         break;
       case DEVICE:
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows))
       {
 #pragma omp for
@@ -180,6 +184,7 @@ namespace lib {
     {
       case DATA:
         // from norm:
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows))
       {
 #pragma omp for
@@ -195,6 +200,7 @@ namespace lib {
       if ( mapSet )
       {
 #ifdef PROJ_IS_THREADSAFE
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows))
         {
 #pragma omp for private(idata,odata)
@@ -222,6 +228,7 @@ namespace lib {
 
         break;
       case DEVICE:
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows))
       {
 #pragma omp for
@@ -235,6 +242,7 @@ namespace lib {
         break;
     }
     
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel if (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows))
       {
 #pragma omp for

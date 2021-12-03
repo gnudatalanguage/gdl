@@ -488,7 +488,8 @@ void median_filter_impl_2d(int x, int y, int hx, int hy, int b, const T* in, T* 
     }
     Dim dimx(b, x, hx);
     Dim dimy(b, y, hy);
-    #pragma omp parallel
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel
     {
         MedCalc2D<T> mc(b, dimx, dimy, in, out);
         #pragma omp for collapse(2)
@@ -507,7 +508,8 @@ void median_filter_impl_1d(int x, int hx, int b, const T* in, T* out) {
         throw std::invalid_argument("window too large for this block size");
     }
     Dim dimx(b, x, hx);
-    #pragma omp parallel
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel
     {
         MedCalc1D<T> mc(b, dimx, in, out);
         #pragma omp for

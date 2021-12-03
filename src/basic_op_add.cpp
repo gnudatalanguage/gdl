@@ -40,9 +40,7 @@ BaseGDL* Data_<Sp>::Add( BaseGDL* r)
   
   Data_* right=static_cast<Data_*>(r);
 
-  // ULong rEl=right->N_Elements();
   ULong nEl=N_Elements();
-  // assert( rEl);
   assert( nEl);
   if( nEl == 1)
     {
@@ -57,13 +55,14 @@ BaseGDL* Data_<Sp>::Add( BaseGDL* r)
 	return this;
 #else
 
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] += (*right)[i];
-    }  //C delete right;
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    if (!parallelize) {
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] += (*right)[i];
+    } else {
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel for
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] += (*right)[i];
+    }
   return this;
 #endif
   
@@ -79,23 +78,21 @@ BaseGDL* Data_<SpDString>::AddInv( BaseGDL* r)
 {
   Data_* right=static_cast<Data_*>(r);
 
-  // ULong rEl=right->N_Elements();
   ULong nEl=N_Elements();
-  // assert( rEl);
   assert( nEl);
   if( nEl == 1)
     {
       (*this)[0] = (*right)[0] + (*this)[0];
       return this;
     }
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] = (*right)[i] + (*this)[i];
-    }  //C delete right;
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    if (!parallelize) {
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] = (*right)[i] + (*this)[i];
+    } else {
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel for
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] = (*right)[i] + (*this)[i];
+    } 
   return this;
 }
 // invalid types
@@ -132,7 +129,6 @@ BaseGDL* Data_<SpDObj>::Add( BaseGDL* r)
   }
   else
   {
-    // Scalar()
     self = static_cast<Data_*>( this);
     plusOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
     if( plusOverload == NULL)
@@ -230,7 +226,6 @@ BaseGDL* Data_<SpDObj>::AddInv( BaseGDL* r)
   }
   else
   {
-    // Scalar()
     self = static_cast<Data_*>( this);
     plusOverload = static_cast<DSubUD*>(GDLInterpreter::GetObjHeapOperator( (*self)[0], OOPlus));
     if( plusOverload == NULL)
@@ -305,28 +300,26 @@ BaseGDL* Data_<Sp>::AddS( BaseGDL* r)
 
   ULong nEl=N_Elements();
   assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   if( nEl == 1)
     {
       (*this)[0] += (*right)[0];
       return this;
     }
   Ty s = (*right)[0];
-  // right->Scalar(s);
-  //  dd += s;
 #ifdef USE_EIGEN
 
         Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
 	mThis += s;
 	return this;
 #else
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] += s;
-    }  //C delete right;
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    if (!parallelize) {
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
+    } else {
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel for
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
+    }
   return this;
 #endif
   
@@ -338,22 +331,20 @@ BaseGDL* Data_<SpDString>::AddS( BaseGDL* r)
 
   ULong nEl=N_Elements();
   assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   if( nEl == 1)
     {
       (*this)[0] += (*right)[0];
       return this;
     }
   Ty s = (*right)[0];
-  // right->Scalar(s);
-  //  dd += s;
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] += s;
-    }  //C delete right;
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    if (!parallelize) {
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
+    } else {
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel for
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
+    }
   return this;
 }
 
@@ -369,21 +360,20 @@ BaseGDL* Data_<SpDString>::AddInvS( BaseGDL* r)
 
   ULong nEl=N_Elements();
   assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   if( nEl == 1)
     {
       (*this)[0] = (*right)[0] + (*this)[0] ;
       return this;
     }
   Ty s = (*right)[0];
-  // right->Scalar(s);
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] = s + (*this)[i];
-    }  //C delete right;
+     bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    if (!parallelize) {
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] = s + (*this)[i];
+    } else {
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel for
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] = s + (*this)[i];
+    }
   return this;
   
 }

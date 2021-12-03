@@ -112,6 +112,7 @@
       SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
       if (!useAbs)
       {
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
         {
           int thread_id = MINMAX_THREAD_NUM;
@@ -138,6 +139,7 @@
 #ifdef ABSFUNC
       else
       {
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
         {
           int thread_id = MINMAX_THREAD_NUM;
@@ -225,6 +227,7 @@
       SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
       if (!useAbs)
       {
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
         {
           int thread_id = MINMAX_THREAD_NUM;
@@ -251,6 +254,7 @@
 #ifdef ABSFUNC
       else
       {
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
         {
           int thread_id = MINMAX_THREAD_NUM;
@@ -347,6 +351,7 @@
       SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
       if (!useAbs)
       {
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
         {
           int thread_id = MINMAX_THREAD_NUM;
@@ -377,6 +382,7 @@
 #ifdef ABSFUNC
       else
       {
+	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
         {
           int thread_id = MINMAX_THREAD_NUM;
