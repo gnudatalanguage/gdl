@@ -1731,15 +1731,20 @@ void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map,
     DLongGDL *gons, *lines;
     if (!isRadians) {
     SizeT nin = lons->N_Elements( );
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nin));
+    if (!parallelize) {
+        for (OMPInt in = 0; in < nin; in++) { //pass in radians for gdlProjForward
+          (*lons)[in] *= DEG_TO_RAD;
+          (*lats)[in] *= DEG_TO_RAD;
+        }      
+    } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel if (nin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nin))
-      {
-#pragma omp for
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
         for ( OMPInt in = 0; in < nin; in++ ) { //pass in radians for gdlProjForward
           (*lons)[in] *= DEG_TO_RAD;
           (*lats)[in] *= DEG_TO_RAD;
         }
-      }
+    }
     }
     DDoubleGDL *res = gdlProjForward( ref, localMap, lons, lats, conn, doConn, gons, doFill, lines, !doFill, false );
     SizeT nout = res->N_Elements( ) / 2;

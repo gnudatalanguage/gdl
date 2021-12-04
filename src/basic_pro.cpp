@@ -1159,11 +1159,7 @@ namespace lib {
 
     SizeT nEl = dest->N_Elements();
 //too much overhead for parallelizing a complicated function, IDL does not attempt it neither.    
-//#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-//    {
-//#pragma omp for
-      for (OMPInt i = 0; i < nEl; ++i) StrPut((*dest)[i], source, pos);
-//    }
+      for (SizeT i = 0; i < nEl; ++i) StrPut((*dest)[i], source, pos);
   }
 
   void retall(EnvT* e) {

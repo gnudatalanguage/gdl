@@ -74,7 +74,7 @@ namespace lib {
 
     DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (data);
     DComplexGDL* p0CF = static_cast<DComplexGDL*> (data);
-
+    bool parallelize= (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
     if (data->Type() == GDL_COMPLEXDBL)
     {
       double *dptr;
@@ -91,10 +91,14 @@ namespace lib {
 
       if (direct == -1)
       {
-        //        TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        {
-#pragma omp for
+        if (!parallelize) {
+          for (OMPInt i = 0; i < nEl; ++i) {
+            out[i][0] /= nEl;
+            out[i][1] /= nEl;
+          }          
+        } else {
+TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
           for (OMPInt i = 0; i < nEl; ++i)
           {
             out[i][0] /= nEl;
@@ -123,10 +127,15 @@ namespace lib {
 
       if (direct == -1)
       {
-        //        TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        {
-#pragma omp for
+        if (!parallelize) {
+          for (OMPInt i = 0; i < nEl; ++i)
+          {
+            out_f[i][0] /= nEl;
+            out_f[i][1] /= nEl;
+          }          
+        } else {
+TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
           for (OMPInt i = 0; i < nEl; ++i)
           {
             out_f[i][0] /= nEl;

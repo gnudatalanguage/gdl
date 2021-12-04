@@ -110,9 +110,9 @@ void LibInit_jmg()
   // if FFTw not available, FFT in the GSL used (slower)
   const string fftKey[]={"DOUBLE","INVERSE","OVERWRITE","DIMENSION","CENTER",KLISTEND};
 #if defined(USE_FFTW)
-  new DLibFun(lib::fftw_fun,string("FFT"),2,fftKey);
+  new DLibFun(lib::fftw_fun,string("FFT"),2,fftKey);  //UsesThreadPOOL 
 #else
-  new DLibFun(lib::fft_fun,string("FFT"),2,fftKey);
+  new DLibFun(lib::fft_fun,string("FFT"),2,fftKey); 
 #endif
 
   const string randomKey[]={"DOUBLE","GAMMA","LONG","NORMAL",
@@ -133,7 +133,7 @@ void LibInit_jmg()
   new DLibFunRetNew(lib::interpol_fun,string("INTERPOL"),3,interpolKey);
   
   const string interpolateKey[]={"CUBIC","DOUBLE","GRID","MISSING","NEAREST_NEIGHBOUR",KLISTEND};
-  new DLibFunRetNew(lib::interpolate_fun,string("INTERPOLATE"),4,interpolateKey);
+  new DLibFunRetNew(lib::interpolate_fun,string("INTERPOLATE"),4,interpolateKey);  //UsesThreadPOOL 
 
   const string la_triredKey[]={"DOUBLE","UPPER",KLISTEND};
   new DLibPro(lib::la_trired_pro,string("LA_TRIRED"),3,la_triredKey);
@@ -145,11 +145,11 @@ void LibInit_jmg()
 #if defined(USE_LIBPROJ)
   const string map_proj_forwardKey[]={"MAP_STRUCTURE","RADIANS","POLYGONS","POLYLINES","CONNECTIVITY","FILL",KLISTEND};  //WARNING FIXED ORDER for GetMapAsMapStructureKeyword()
   new DLibFunRetNew(lib::map_proj_forward_fun,
-	      string("MAP_PROJ_FORWARD"),2,map_proj_forwardKey,NULL);
+	      string("MAP_PROJ_FORWARD"),2,map_proj_forwardKey,NULL);  //UsesThreadPOOL 
 
   const string map_proj_inverseKey[]={"MAP_STRUCTURE","RADIANS",KLISTEND}; //WARNING FIXED ORDER for GetMapAsMapStructureKeyword()
   new DLibFunRetNew(lib::map_proj_inverse_fun,
-	      string("MAP_PROJ_INVERSE"),2,map_proj_inverseKey);
+	      string("MAP_PROJ_INVERSE"),2,map_proj_inverseKey);  //UsesThreadPOOL 
 //dummy functions for compatibility support of GCTP projections 
   new DLibPro(lib::map_proj_gctp_forinit,string("MAP_PROJ_GCTP_FORINIT"),4);
   new DLibPro(lib::map_proj_gctp_revinit,string("MAP_PROJ_GCTP_REVINIT"),4);
@@ -164,7 +164,7 @@ void LibInit_jmg()
 
 
   const string finiteKey[]={"INFINITY","NAN","SIGN",KLISTEND};
-  new DLibFunRetNew(lib::finite_fun,string("FINITE"),1,finiteKey);
+  new DLibFunRetNew(lib::finite_fun,string("FINITE"),1,finiteKey);  //UsesThreadPOOL 
 
   const string radonKey[]={"BACKPROJECT","DOUBLE","DRHO","DX","DY",
 			   "GRAY","LINEAR","NRHO","NTHETA","NX","NY",
@@ -194,7 +194,7 @@ void LibInit_jmg()
   new DLibFunRetNew(lib::trigrid_fun,string("TRIGRID"),6,trigridKey,trigridWarnKey);
 
   const string poly_2dKey[]={"CUBIC","MISSING",KLISTEND};
-  new DLibFunRetNew(lib::poly_2d_fun,string("POLY_2D"),6,poly_2dKey);
+  new DLibFunRetNew(lib::poly_2d_fun,string("POLY_2D"),6,poly_2dKey);  //UsesThreadPOOL 
 
   const string make_arrayKey[]={"DIMENSION", "INCREMENT", "INDEX", "NOZERO",
                                  "SIZE", "START", "TYPE", "VALUE", "BOOLEAN",

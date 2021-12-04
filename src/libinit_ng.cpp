@@ -29,7 +29,7 @@ void LibInit_ng()
   new DLibFunRetNew(lib::rk4_fun,string("RK4"),5,rk4Key);
 
   const string voigtKey[]={"DOUBLE","ITER",KLISTEND};
-  new DLibFunRetNew(lib::voigt_fun,string("VOIGT"),2,voigtKey);
+  new DLibFunRetNew(lib::voigt_fun,string("VOIGT"),2,voigtKey);  //UsesThreadPOOL 
  
 }
 

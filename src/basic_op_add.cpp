@@ -60,7 +60,7 @@ BaseGDL* Data_<Sp>::Add( BaseGDL* r)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += (*right)[i];
     } else {
       TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for
+#pragma omp parallel for  num_threads(CpuTPOOL_NTHREADS)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += (*right)[i];
     }
   return this;
@@ -90,7 +90,7 @@ BaseGDL* Data_<SpDString>::AddInv( BaseGDL* r)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] = (*right)[i] + (*this)[i];
     } else {
       TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] = (*right)[i] + (*this)[i];
     } 
   return this;
@@ -317,7 +317,7 @@ BaseGDL* Data_<Sp>::AddS( BaseGDL* r)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
     } else {
       TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
     }
   return this;
@@ -342,7 +342,7 @@ BaseGDL* Data_<SpDString>::AddS( BaseGDL* r)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
     } else {
       TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
     }
   return this;
@@ -371,7 +371,7 @@ BaseGDL* Data_<SpDString>::AddInvS( BaseGDL* r)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] = s + (*this)[i];
     } else {
       TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] = s + (*this)[i];
     }
   return this;

@@ -334,7 +334,7 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT,
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
   }
@@ -351,11 +351,11 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT,
     } else {
       if (off==0 && inc==1) { 
 	TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
          for (SizeT i = 0; i < sz; ++i) (*this)[i]=i;
       } else {
 	TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
          for (SizeT i = 0; i < sz; ++i) (*this)[i]=off+i*inc;
       }
     }
@@ -376,7 +376,7 @@ template<> Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, D
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
   } else if (iT == BaseGDL::INDGEN) { //less frequent
@@ -393,13 +393,13 @@ template<> Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, D
     } else {
       if (off == 0 && inc == 1) {
 	TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
         for (SizeT i = 0; i < sz; ++i) (*this)[i] = i;
       } else {
         DFloat f_off = off;
         DFloat f_inc = inc;
 	TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
         for (SizeT i = 0; i < sz; ++i) (*this)[i] = f_off + i * f_inc;
       }
     }
@@ -419,7 +419,7 @@ template<> Data_<SpDComplex>::Data_(const dimension& dim_, BaseGDL::InitType iT,
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
   } else if (iT == BaseGDL::INDGEN) { //less frequent
@@ -436,13 +436,13 @@ template<> Data_<SpDComplex>::Data_(const dimension& dim_, BaseGDL::InitType iT,
     } else {
       if (off == 0 && inc == 1) {
 	TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
         for (SizeT i = 0; i < sz; ++i) (*this)[i] = i;
       } else {
         DFloat f_off = off;
         DFloat f_inc = inc;
 	TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
         for (SizeT i = 0; i < sz; ++i) (*this)[i] = f_off + i * f_inc;
       }
     }
@@ -470,7 +470,7 @@ template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT, DD
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
   }
@@ -489,7 +489,7 @@ template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDo
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     }
   }
@@ -509,7 +509,7 @@ Data_<Sp>::Data_(const Data_& d_) : Sp(d_.dim), dd(this->dim.NDimElements(), fal
     for (SizeT i = 0; i < sz; i++) dd[i] = d_.dd[i];
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT i = 0; i < sz; i++) dd[i] = d_.dd[i];
   }
 }
@@ -567,7 +567,7 @@ BaseGDL* Data_<SpDFloat>::Log() {
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   }
   return n;
@@ -587,7 +587,7 @@ BaseGDL* Data_<SpDDouble>::Log()
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   }
   return n;
@@ -606,7 +606,7 @@ BaseGDL* Data_<SpDComplex>::Log()
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   }
   return n;
@@ -625,7 +625,7 @@ BaseGDL* Data_<SpDComplexDbl>::Log()
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   }
   return n;
@@ -655,7 +655,7 @@ BaseGDL* Data_<SpDFloat>::LogThis() {
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   }
   return this;
@@ -674,7 +674,7 @@ BaseGDL* Data_<SpDDouble>::LogThis()
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   }
   return this;
@@ -693,7 +693,7 @@ BaseGDL* Data_<SpDComplex>::LogThis()
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   }
   return this;
@@ -711,7 +711,7 @@ BaseGDL* Data_<SpDComplexDbl>::LogThis()
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   }
   return this;
@@ -739,7 +739,7 @@ BaseGDL* Data_<SpDFloat>::Log10()
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   }
   return n;
@@ -759,7 +759,7 @@ BaseGDL* Data_<SpDDouble>::Log10()
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   }
   return n;
@@ -779,7 +779,7 @@ BaseGDL* Data_<SpDComplex>::Log10()
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   }
   return n;
@@ -799,7 +799,7 @@ BaseGDL* Data_<SpDComplexDbl>::Log10()
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   }
   return n;
@@ -826,7 +826,7 @@ BaseGDL* Data_<SpDFloat>::Log10This()
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   }
   return this;
@@ -845,7 +845,7 @@ BaseGDL* Data_<SpDDouble>::Log10This()
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   }
   return this;
@@ -863,7 +863,7 @@ BaseGDL* Data_<SpDComplex>::Log10This()
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   }
   return this;
@@ -881,7 +881,7 @@ BaseGDL* Data_<SpDComplexDbl>::Log10This()
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   }
   return this;
@@ -3747,7 +3747,7 @@ void Data_<Sp>::CatInsert (const Data_* srcArr, const SizeT atDim, SizeT& at)
     }
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (parallelize) collapse(2)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) collapse(2)
     for (OMPInt c = 0; c < nCp; ++c)
       {
         //            // copy one segment
