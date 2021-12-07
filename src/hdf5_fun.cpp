@@ -84,7 +84,7 @@ namespace lib {
     hid_t space;
   public:
     hdf5_space_guard(hid_t space_) { space = space_; }
-    ~hdf5_space_guard() { H5Sclose(space); }
+    ~hdf5_space_guard() { if(space) H5Sclose(space); }
   };
 
   // auto_ptr-like class for guarding HDF5 types
@@ -1389,7 +1389,6 @@ hid_t
 
     } else memspace_id = H5S_ALL;
 
-    /// FIXME: only create hdf5_space_guard for valid memspace_id
     hdf5_space_guard memspace_id_guard = hdf5_space_guard(memspace_id);
 
 
@@ -1410,7 +1409,6 @@ hid_t
 
     } else filespace_id = H5S_ALL;
 
-    /// FIXME: only create hdf5_space_guard for valid filespace_id
     hdf5_space_guard filespace_id_guard = hdf5_space_guard(filespace_id);
 
 
