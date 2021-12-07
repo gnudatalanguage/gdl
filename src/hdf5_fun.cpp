@@ -961,6 +961,58 @@ hid_t
   }
 
 
+  BaseGDL* h5t_idl_create_fun( EnvT* e)
+  {
+    /* Dec 2021, Oliver Gressel <ogressel@gmail.com>
+       - implement rudimentary functionality
+         (FIXME: add GDL_STRUCT case + keyword functionality)
+    */
+
+    SizeT nParam=e->NParam(1);
+
+
+    /* --- obtain input parameters --- */
+
+    /* mandatory 'Data' parameter */
+    BaseGDL *data = e->GetParDefined(0);
+
+    /* optional 'MEMBER_NAMES' keyword parameter */
+    static int memNmIx = e->KeywordIx("MEMBER_NAMES");
+    if (e->GetKW(memNmIx)!=NULL) e->Throw("KW 'MEMBER_NAMES' not implemented.");
+
+    /* optional 'OPAQUE' keyword parameter */
+    static int opaqueIx = e->KeywordIx("OPAQUE");
+    if (e->GetKW(opaqueIx)!=NULL) e->Throw("KW 'OPAQUE' not implemented.");
+
+
+    /* --- determine HDF5 type and return datatype handle --- */
+
+    hid_t native_type;
+
+    switch ( data->Type() ) {
+
+    case GDL_BYTE:    native_type = H5T_NATIVE_UINT8;  break;
+    case GDL_INT:     native_type = H5T_NATIVE_INT16;  break;
+    case GDL_UINT:    native_type = H5T_NATIVE_UINT16; break;
+    case GDL_LONG:    native_type = H5T_NATIVE_INT32;  break;
+    case GDL_ULONG:   native_type = H5T_NATIVE_UINT32; break;
+    case GDL_LONG64:  native_type = H5T_NATIVE_INT64;  break;
+    case GDL_ULONG64: native_type = H5T_NATIVE_UINT64; break;
+    case GDL_FLOAT:   native_type = H5T_NATIVE_FLOAT;  break;
+    case GDL_DOUBLE:  native_type = H5T_NATIVE_DOUBLE; break;
+    case GDL_STRING:  native_type = H5T_C_S1;          break;
+
+    case GDL_STRUCT:
+      e->Throw("GDL Struct not (yet) supported."); break;
+
+    default:
+      e->Throw("Unrecognized data type.");
+    }
+
+    return hdf5_output_conversion( H5Tcopy(native_type) );
+  }
+
+
   BaseGDL* h5s_get_simple_extent_ndims_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);

@@ -116,6 +116,8 @@ void LibInit_mes()
   new DLibFunRetNew(lib::h5_get_libversion_fun, string("H5_GET_LIBVERSION"), 0);
   new DLibFunRetNew(lib::h5d_get_type_fun, string("H5D_GET_TYPE"), 1);
   new DLibFunRetNew(lib::h5t_get_size_fun, string("H5T_GET_SIZE"), 1);
+  const string H5TidlCreateKey[] = {"MEMBER_NAMES","OPAQUE", KLISTEND};
+  new DLibFunRetNew(lib::h5t_idl_create_fun, string("H5T_IDL_CREATE"), 1, H5TidlCreateKey);
   new DLibFunRetNew(lib::h5a_open_name_fun, string("H5A_OPEN_NAME"), 2);
   new DLibFunRetNew(lib::h5a_open_idx_fun, string("H5A_OPEN_IDX"), 2);
   new DLibFunRetNew(lib::h5a_get_name_fun, string("H5A_GET_NAME"), 1);
