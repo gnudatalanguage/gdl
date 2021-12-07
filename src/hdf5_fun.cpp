@@ -1358,6 +1358,78 @@ hid_t
   }
 
 
+  void h5d_write_pro(EnvT* e) {
+
+    /* Dec 2021, Oliver Gressel <ogressel@gmail.com>
+       - implement very basic support for writing HDF5 datasets
+    */
+
+    bool debug=false;
+
+    SizeT nParam = e->NParam(2);
+
+    hid_t dset_id = hdf5_input_conversion(e,0);
+    BaseGDL* buffer = e->GetParDefined(1);
+
+
+    /* --- optionial keyword 'MEMORY_SPACE' --- */
+
+    hid_t kw_memspace_id, memspace_id;
+    static int memspaceIx = e->KeywordIx("MEMORY_SPACE");
+
+    if(e->KeywordSet(memspaceIx)) {     /* use keyword parameter */
+
+      if (debug) printf("using keyword 'memory_space'\n");
+      kw_memspace_id = hdf5_input_conversion_kw(e,memspaceIx);
+
+      if (H5Iis_valid(kw_memspace_id) <= 0)
+        e->Throw("not a dataspace: Object ID:" + i2s( kw_memspace_id ));
+      else
+        memspace_id = H5Scopy(kw_memspace_id);
+
+    } else memspace_id = H5S_ALL;
+
+    /// FIXME: only create hdf5_space_guard for valid memspace_id
+    hdf5_space_guard memspace_id_guard = hdf5_space_guard(memspace_id);
+
+
+    /* --- optional keyword 'FILE_SPACE' --- */
+
+    hid_t kw_filespace_id, filespace_id;
+    static int filespaceIx = e->KeywordIx("FILE_SPACE");
+
+    if(e->KeywordSet(filespaceIx)) {    /* use keyword parameter */
+
+      if (debug) printf("using keyword 'file_space'\n");
+      kw_filespace_id = hdf5_input_conversion_kw(e,filespaceIx);
+
+      if (H5Iis_valid(kw_filespace_id) <= 0)
+        e->Throw("not a dataspace: Object ID:" + i2s( kw_filespace_id ));
+      else
+        filespace_id = H5Scopy(kw_filespace_id);
+
+    } else filespace_id = H5S_ALL;
+
+    /// FIXME: only create hdf5_space_guard for valid filespace_id
+    hdf5_space_guard filespace_id_guard = hdf5_space_guard(filespace_id);
+
+
+    /* --- obtain datatype --- */
+
+    hid_t dtype_id = H5Dget_type( dset_id );
+    if (dtype_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+
+    /* --- write dataset to file --- */
+
+    if ( H5Dwrite( dset_id, dtype_id, memspace_id, filespace_id,
+                   H5P_DEFAULT, buffer->DataAddr() ) < 0 )
+      { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return;
+  }
+
+
   void h5s_close_pro( EnvT* e)
   {
     SizeT nParam=e->NParam(1);

@@ -54,6 +54,7 @@ namespace lib {
   BaseGDL* h5s_create_simple_fun( EnvT* e);
   void h5s_select_hyperslab_pro( EnvT* e);
   void h5f_close_pro( EnvT* e);
+  void h5d_write_pro( EnvT* e);
   void h5d_close_pro( EnvT* e);
   void h5s_close_pro( EnvT* e);
 
