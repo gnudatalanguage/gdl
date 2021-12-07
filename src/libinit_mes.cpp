@@ -95,6 +95,7 @@ void LibInit_mes()
   new DLibFunRetNew(lib::h5f_create_fun, string("H5F_CREATE"), 1);
   new DLibFunRetNew(lib::h5f_open_fun, string("H5F_OPEN"), 1);
   new DLibFunRetNew(lib::h5d_open_fun, string("H5D_OPEN"), 2);
+  new DLibFunRetNew(lib::h5d_create_fun, string("H5D_CREATE"), 4); // TODO: keyword parameters
   const string H5DreadKey[] = {"FILE_SPACE", "MEMORY_SPACE", KLISTEND};
   new DLibFunRetNew(lib::h5d_read_fun, string("H5D_READ"), 1,H5DreadKey); // TODO: 2nd argument
   new DLibFunRetNew(lib::h5d_get_space_fun, string("H5D_GET_SPACE"), 1);
