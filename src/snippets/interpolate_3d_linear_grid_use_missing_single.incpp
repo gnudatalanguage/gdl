@@ -1,0 +1,57 @@
+      for (SizeT l = 0; l < nz; ++l) {
+        for (SizeT k = 0; k < ny; ++k) {
+          for (SizeT j = 0; j < nx; ++j) { //nb output points
+            x = xx[j];
+            if (x < 0) {
+              res[l*nx*ny + k * nx + j ] = missing;
+            } else if (x <= n1 - 1) {
+              y = yy[k];
+              if (y < 0) {
+                res[l*nx*ny + k * nx + j ] = missing;
+              } else if (y <= n2 - 1) {
+                z = zz[l];
+                if (z < 0) {
+                  res[l*nx*ny + k * nx + j ] = missing;
+                } else if (z <= n3 - 1) {
+                  ix = floor(x);
+                  xi[0] = ix;
+                  xi[1] = ix + 1;
+                  //make in range
+                  if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
+                  dx = (x - xi[0]);
+                  umdx = 1 - dx;
+
+                  iy = floor(y);
+                  yi[0] = iy;
+                  yi[1] = iy + 1;
+                  //make in range
+                  if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
+                  dy = (y - yi[0]);
+                  umdy = 1 - dy;
+
+                  iz = floor(z);
+                  zi[0] = iz;
+                  zi[1] = iz + 1;
+                  //make in range
+                  if (zi[1] < 0) zi[1] = 0; else if (zi[1] > n3 - 1) zi[1] = n3 - 1;
+                  dz = (z - zi[0]);
+                  umdz = 1 - dz;
+                  double y0z0 = umdx * array[zi[0] * n1n2 + yi[0] * n1 + xi[0]] + dx * array[zi[0] * n1n2 + yi[0] * n1 + xi[1]];
+                  double y1z0 = umdx * array[zi[0] * n1n2 + yi[1] * n1 + xi[0]] + dx * array[zi[0] * n1n2 + yi[1] * n1 + xi[1]];
+                  double y0z1 = umdx * array[zi[1] * n1n2 + yi[0] * n1 + xi[0]] + dx * array[zi[1] * n1n2 + yi[0] * n1 + xi[1]];
+                  double y1z1 = umdx * array[zi[1] * n1n2 + yi[1] * n1 + xi[0]] + dx * array[zi[1] * n1n2 + yi[1] * n1 + xi[1]];
+                  double z0 = umdy * y0z0 + dy*y1z0;
+                  double z1 = umdy * y0z1 + dy*y1z1;
+                  res[l*nx*ny + k * nx + j ] = umdz * z0 + dz*z1;
+                } else {
+                  res[l*nx*ny + k * nx + j ] = missing;
+                }
+              } else {
+                res[l*nx*ny + k * nx + j ] = missing;
+              }
+            } else {
+              res[l*nx*ny + k * nx + j ] = missing;
+            }
+          }
+        }
+      }

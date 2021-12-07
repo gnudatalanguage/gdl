@@ -80,7 +80,7 @@ template<class T, bool IsPOD>
     } catch (std::bad_alloc&) {
       ThrowGDLException("Array requires more memory than available");
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] = cp.buf[ i];
     } else {
@@ -106,7 +106,7 @@ template<class T, bool IsPOD>
     } catch (std::bad_alloc&) {
       ThrowGDLException("Array requires more memory than available");
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] = val;
     } else {
@@ -123,7 +123,7 @@ template<class T, bool IsPOD>
     } catch (std::bad_alloc&) {
       ThrowGDLException("Array requires more memory than available");
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] = arr[ i];
     } else {
@@ -160,7 +160,7 @@ template<class T, bool IsPOD>
     if (IsPOD) {
       std::memcpy(buf, right.buf, sz * sizeof (T));
     } else {
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
       if (!parallelize) {
         for (SizeT i = 0; i < sz; ++i) buf[ i] = right.buf[ i];
       } else {
@@ -178,7 +178,7 @@ template<class T, bool IsPOD>
     if (IsPOD) {
       std::memcpy(buf, right.buf, sz * sizeof (T));
     } else {
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
       if (!parallelize) {
         for (SizeT i = 0; i < sz; ++i) buf[ i] = right.buf[ i];
       } else {
@@ -192,7 +192,7 @@ template<class T, bool IsPOD>
 
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>& GDLArray<T,IsPOD>::operator+=(const GDLArray<T,IsPOD>& right) throw () {
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] += right.buf[ i];
     } else {
@@ -205,7 +205,7 @@ template<class T, bool IsPOD>
 
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>& GDLArray<T,IsPOD>::operator-=(const GDLArray<T,IsPOD>& right) throw () {
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] -= right.buf[ i];
     } else {
@@ -218,14 +218,16 @@ template<class T, bool IsPOD>
 template<>
   GDLArray<DString,true>& GDLArray<DString,true>::operator-=(const GDLArray<DString,true>& right) throw () {
    assert(false);
+   return *this;
   }
 template<>
   GDLArray<DString,false>& GDLArray<DString,false>::operator-=(const GDLArray<DString,false>& right) throw () {
    assert(false);
+   return *this;
   }
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>& GDLArray<T,IsPOD>::operator+=(const T& right) throw () {
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] += right;
     } else {
@@ -238,7 +240,7 @@ template<class T, bool IsPOD>
 
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>& GDLArray<T,IsPOD>::operator-=(const T& right) throw () {
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] -= right;
     } else {
@@ -251,10 +253,12 @@ template<class T, bool IsPOD>
 template<>
   GDLArray<DString,true>& GDLArray<DString,true>::operator-=(const DString& right) throw () {
    assert(false);
+    return *this;
   }
 template<>
   GDLArray<DString,false>& GDLArray<DString,false>::operator-=(const DString& right) throw () {
    assert(false);
+    return *this;
   }
 template<class T, bool IsPOD>
   void GDLArray<T,IsPOD>::SetSize(SizeT newSz) // only used in DStructGDL::DStructGDL( const string& name_) (dstructgdl.cpp)

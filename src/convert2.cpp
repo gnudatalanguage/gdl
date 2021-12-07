@@ -757,346 +757,296 @@ else
 	Warning( msg);
 }
 
-template<> BaseGDL* Data_<SpDString>::Convert2( DType destTy, BaseGDL::Convert2Mode mode)
-{
-TRACE_CONVERT2
-  if( destTy == t) return (((mode & BaseGDL::COPY) != 0)?Dup():this);
+// The OpenMP below is always faster than IDL, as what is in the loop is quite complicated.
+template<> BaseGDL* Data_<SpDString>::Convert2(DType destTy, BaseGDL::Convert2Mode mode) {
+  TRACE_CONVERT2
+  if (destTy == t) return (((mode & BaseGDL::COPY) != 0) ? Dup() : this);
 
-  SizeT nEl=dd.size();
-  
+  SizeT nEl = dd.size();
+
   bool errorFlag = false;
 
-  switch( destTy)
-    {
-    case GDL_BYTE: // GDL_STRING to GDL_BYTE: add first dim
-      {
-	SizeT maxLen = 1; // empty string is converted to 0b
-      	for( SizeT i=0; i < nEl; ++i)
-	  if( (*this)[i].length() > maxLen) maxLen = (*this)[i].length();
+  switch (destTy) {
+  case GDL_BYTE: // GDL_STRING to GDL_BYTE: add first dim
+  {
+    SizeT maxLen = 1; // empty string is converted to 0b
+    for (SizeT i = 0; i < nEl; ++i)
+      if ((*this)[i].length() > maxLen) maxLen = (*this)[i].length();
 
-	dimension bytDim( dim);
-	bytDim >> maxLen;
+    dimension bytDim(dim);
+    bytDim >> maxLen;
 
-      	Data_<SpDByte>* dest=new Data_<SpDByte>( bytDim); // zero fields
-  TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-	  {
-	    SizeT basePtr = i*maxLen;
+    Data_<SpDByte>* dest = new Data_<SpDByte>(bytDim); // zero fields
 
-	    SizeT strLen = (*this)[ i].length();
-	    for( SizeT b=0; b<strLen; b++)
-	      (*dest)[basePtr + b] = (*this)[ i][ b];
- 	  }
-}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-	return dest;
-      }
-    case GDL_INT:
-      {
-      	Data_<SpDInt>* dest=new Data_<SpDInt>( dim, BaseGDL::NOZERO);
-   TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel shared( errorFlag, mode)
- {
- #pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  {
-      	    const char* cStart=(*this)[i].c_str();
-      	    char* cEnd;
-      	    (*dest)[i]=strtol(cStart,&cEnd,10);
-      	    if( cEnd == cStart && (*this)[i] != "")
-      	      {
-		StringConversionError( errorFlag, mode, "Type conversion error: "
-				       "Unable to convert given STRING: '"+
-				       (*this)[i]+"' to INT.");
-      	      }
-	  }
- }
-	if( errorFlag)
-	{
-		delete dest;
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		throw GDLIOException( "Type conversion error: Unable to convert given STRING to INT.");
-	}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-	return dest;
-      }
-    case GDL_UINT: 
-      {
-      	Data_<SpDUInt>* dest=new Data_<SpDUInt>( dim, BaseGDL::NOZERO);
-  TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel shared( errorFlag, mode)
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  {
-      	    const char* cStart=(*this)[i].c_str();
-      	    char* cEnd;
-      	    (*dest)[i]=strtoul(cStart,&cEnd,10);
-      	    if( cEnd == cStart && (*this)[i] != "")
-      	      {
-StringConversionError( errorFlag, mode, "Type conversion error: "
-				       "Unable to convert given STRING: '"+
-				       (*this)[i]+"' to UINT.");
-      	      }
-      	  }
-}
-	if( errorFlag)
-	{
-		delete dest;
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		throw GDLIOException( "Type conversion error: Unable to convert given STRING to UINT.");
-	}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_LONG: 
-      {
-      	Data_<SpDLong>* dest=new Data_<SpDLong>( dim, BaseGDL::NOZERO);
-  TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel shared( errorFlag, mode)
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  {
-      	    const char* cStart=(*this)[i].c_str();
-      	    char* cEnd;
-      	    (*dest)[i]=strtol(cStart,&cEnd,10);
-      	    if( cEnd == cStart && (*this)[i] != "")
-      	      {
-StringConversionError( errorFlag, mode, "Type conversion error: "
-				       "Unable to convert given STRING: '"+
-				       (*this)[i]+"' to LONG.");
-      	      }
-      	  }
-}
-	if( errorFlag)
-	{
-		delete dest;
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		throw GDLIOException( "Type conversion error: Unable to convert given STRING to LONG.");
-	}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_ULONG: 
-      {
-      	Data_<SpDULong>* dest=new Data_<SpDULong>( dim, BaseGDL::NOZERO);
-  TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel shared( errorFlag, mode)
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  {
-      	    const char* cStart=(*this)[i].c_str();
-      	    char* cEnd;
-      	    (*dest)[i]=strtoul(cStart,&cEnd,10);
-      	    if( cEnd == cStart && (*this)[i] != "")
-      	      {
-StringConversionError( errorFlag, mode, "Type conversion error: "
-				       "Unable to convert given STRING: '"+
-				       (*this)[i]+"' to ULONG.");
-      	      }
-      	  }
-}
-	if( errorFlag)
-	{
-		delete dest;
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		throw GDLIOException( "Type conversion error: Unable to convert given STRING to ULONG.");
-	}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_LONG64: 
-      {
-      	Data_<SpDLong64>* dest=new Data_<SpDLong64>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel shared( errorFlag, mode)
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  {
-      	    const char* cStart=(*this)[i].c_str();
-      	    char* cEnd;
-      	    (*dest)[i]=strtoll(cStart,&cEnd,10);
-      	    if( cEnd == cStart && (*this)[i] != "")
-      	      {
-StringConversionError( errorFlag, mode, "Type conversion error: "
-				       "Unable to convert given STRING: '"+
-				       (*this)[i]+"' to LONG64.");
-      	      }
-      	  }
-}
-	if( errorFlag)
-	{
-		delete dest;
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		throw GDLIOException( "Type conversion error: Unable to convert given STRING to LONG64.");
-	}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_ULONG64: 
-      {
-      	Data_<SpDULong64>* dest=new Data_<SpDULong64>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel shared( errorFlag, mode)
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  {
-      	    const char* cStart=(*this)[i].c_str();
-      	    char* cEnd;
-      	    (*dest)[i]=strtoull(cStart,&cEnd,10);
-      	    if( cEnd == cStart && (*this)[i] != "")
-      	      {
-StringConversionError( errorFlag, mode, "Type conversion error: "
-				       "Unable to convert given STRING: '"+
-				       (*this)[i]+"' to ULONG64.");
-      	      }
-      	  }
-}
-	if( errorFlag)
-	{
-		delete dest;
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		throw GDLIOException( "Type conversion error: Unable to convert given STRING to ULONG64.");
-	}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_FLOAT: 
-      {
-      	Data_<SpDFloat>* dest=new Data_<SpDFloat>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel shared( errorFlag, mode)
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  {
-      	    const char* cStart=(*this)[i].c_str();
-      	    char* cEnd;
-      	    (*dest)[i] = string2real<float>(cStart, &cEnd);
-      	    if((cEnd == cStart && (*this)[i] != "")) //  || (cEnd - cStart) != strlen(cStart)) // reports error for "16 "
-      	      {
-StringConversionError( errorFlag, mode, "Type conversion error: "
-				       "Unable to convert given STRING: '"+
-				       (*this)[i]+"' to FLOAT.");
-      	      }
-      	  }
-}
-	if( errorFlag)
-	{
-		delete dest;
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		throw GDLIOException( "Type conversion error: Unable to convert given STRING to FLOAT.");
-	}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_DOUBLE: 
-      {
-      	Data_<SpDDouble>* dest=new Data_<SpDDouble>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel shared( errorFlag, mode)
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  {
-      	    const char* cStart=(*this)[i].c_str();
-	    char* cEnd;
-	    (*dest)[i] = string2real<double>( cStart, &cEnd);
-	    if( (cEnd == cStart && (*this)[i] != "")) // || (cEnd - cStart) != strlen(cStart)) // reports error for "16 "
-	      {
-StringConversionError( errorFlag, mode, "Type conversion error: "
-				       "Unable to convert given STRING: '"+
-				       (*this)[i]+"' to DOUBLE.");
-	      }
-      	  }
-}
-	if( errorFlag)
-	{
-		delete dest;
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		throw GDLIOException( "Type conversion error: Unable to convert given STRING to DOUBLE.");
-	}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-      //    case GDL_STRING: 
-    case GDL_COMPLEX: 
-      {
-      	Data_<SpDComplex>* dest=new Data_<SpDComplex>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel shared( errorFlag, mode)
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  {
-      	    const char* cStart=(*this)[i].c_str();
-      	    char* cEnd;
-      	    (*dest)[i]=string2real<float>(cStart,&cEnd);
-      	    if((cEnd == cStart && (*this)[i] != "")) // || (cEnd - cStart) != strlen(cStart)) // reports error for "16 "
-      	      {
-StringConversionError( errorFlag, mode, "Type conversion error: "
-				       "Unable to convert given STRING: '"+
-				       (*this)[i]+"' to COMPLEX.");
-      	      }
-      	  }
-}
-	if( errorFlag)
-	{
-		delete dest;
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		throw GDLIOException( "Type conversion error: Unable to convert given STRING to COMPLEX.");
-	}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_COMPLEXDBL: 
-      {
-      	Data_<SpDComplexDbl>* dest=
-	  new Data_<SpDComplexDbl>( dim, BaseGDL::NOZERO);
-TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel shared( errorFlag, mode)
-{
-#pragma omp for
-      	for( OMPInt i=0; i < nEl; ++i)
-      	  {
-      	    const char* cStart=(*this)[i].c_str();
-      	    char* cEnd;
-      	    (*dest)[i]=string2real<double>(cStart,&cEnd);
-      	    if((cEnd == cStart && (*this)[i] != "")) // || (cEnd - cStart) != strlen(cStart)) // reports error for "16 "
-      	      {
-StringConversionError( errorFlag, mode, "Type conversion error: "
-				       "Unable to convert given STRING: '"+
-				       (*this)[i]+"' to DCOMPLEX.");
-      	      }
-      	  }
-}
-	if( errorFlag)
-	{
-		delete dest;
-		if( (mode & BaseGDL::CONVERT) != 0) delete this;
-		throw GDLIOException( "Type conversion error: Unable to convert given STRING to DCOMPLEX.");
-	}
-	if( (mode & BaseGDL::CONVERT) != 0) delete this;
-      	return dest;
-      }
-    case GDL_PTR:
-    case GDL_OBJ:
-    case GDL_STRUCT:
-    case GDL_UNDEF: 
-    default:
-if(BaseGDL::interpreter!=NULL&&BaseGDL::interpreter->CallStack().size()>0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
-throw GDLException("Cannot convert to this type.");
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+      for (OMPInt i = 0; i < nEl; ++i) {
+      SizeT basePtr = i*maxLen;
+
+      SizeT strLen = (*this)[ i].length();
+      for (SizeT b = 0; b < strLen; b++)
+        (*dest)[basePtr + b] = (*this)[ i][ b];
     }
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  }
+  case GDL_INT:
+  {
+    Data_<SpDInt>* dest = new Data_<SpDInt>(dim, BaseGDL::NOZERO);
+
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for shared( errorFlag, mode)  num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+      for (OMPInt i = 0; i < nEl; ++i) {
+      const char* cStart = (*this)[i].c_str();
+      char* cEnd;
+      (*dest)[i] = strtol(cStart, &cEnd, 10);
+      if (cEnd == cStart && (*this)[i] != "") {
+        StringConversionError(errorFlag, mode, "Type conversion error: "
+          "Unable to convert given STRING: '" +
+          (*this)[i] + "' to INT.");
+      }
+    }
+    if (errorFlag) {
+      delete dest;
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      throw GDLIOException("Type conversion error: Unable to convert given STRING to INT.");
+    }
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  }
+  case GDL_UINT:
+  {
+    Data_<SpDUInt>* dest = new Data_<SpDUInt>(dim, BaseGDL::NOZERO);
+
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for shared( errorFlag, mode) num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+      for (OMPInt i = 0; i < nEl; ++i) {
+      const char* cStart = (*this)[i].c_str();
+      char* cEnd;
+      (*dest)[i] = strtoul(cStart, &cEnd, 10);
+      if (cEnd == cStart && (*this)[i] != "") {
+        StringConversionError(errorFlag, mode, "Type conversion error: "
+          "Unable to convert given STRING: '" +
+          (*this)[i] + "' to UINT.");
+      }
+    }
+    if (errorFlag) {
+      delete dest;
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      throw GDLIOException("Type conversion error: Unable to convert given STRING to UINT.");
+    }
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  }
+  case GDL_LONG:
+  {
+    Data_<SpDLong>* dest = new Data_<SpDLong>(dim, BaseGDL::NOZERO);
+
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for shared( errorFlag, mode) num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+      for (OMPInt i = 0; i < nEl; ++i) {
+      const char* cStart = (*this)[i].c_str();
+      char* cEnd;
+      (*dest)[i] = strtol(cStart, &cEnd, 10);
+      if (cEnd == cStart && (*this)[i] != "") {
+        StringConversionError(errorFlag, mode, "Type conversion error: "
+          "Unable to convert given STRING: '" +
+          (*this)[i] + "' to LONG.");
+      }
+    }
+    if (errorFlag) {
+      delete dest;
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      throw GDLIOException("Type conversion error: Unable to convert given STRING to LONG.");
+    }
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  }
+  case GDL_ULONG:
+  {
+    Data_<SpDULong>* dest = new Data_<SpDULong>(dim, BaseGDL::NOZERO);
+
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for shared( errorFlag, mode) num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+      for (OMPInt i = 0; i < nEl; ++i) {
+      const char* cStart = (*this)[i].c_str();
+      char* cEnd;
+      (*dest)[i] = strtoul(cStart, &cEnd, 10);
+      if (cEnd == cStart && (*this)[i] != "") {
+        StringConversionError(errorFlag, mode, "Type conversion error: "
+          "Unable to convert given STRING: '" +
+          (*this)[i] + "' to ULONG.");
+      }
+    }
+    if (errorFlag) {
+      delete dest;
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      throw GDLIOException("Type conversion error: Unable to convert given STRING to ULONG.");
+    }
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  }
+  case GDL_LONG64:
+  {
+    Data_<SpDLong64>* dest = new Data_<SpDLong64>(dim, BaseGDL::NOZERO);
+
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for shared( errorFlag, mode) num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+      for (OMPInt i = 0; i < nEl; ++i) {
+      const char* cStart = (*this)[i].c_str();
+      char* cEnd;
+      (*dest)[i] = strtoll(cStart, &cEnd, 10);
+      if (cEnd == cStart && (*this)[i] != "") {
+        StringConversionError(errorFlag, mode, "Type conversion error: "
+          "Unable to convert given STRING: '" +
+          (*this)[i] + "' to LONG64.");
+      }
+    }
+    if (errorFlag) {
+      delete dest;
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      throw GDLIOException("Type conversion error: Unable to convert given STRING to LONG64.");
+    }
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  }
+  case GDL_ULONG64:
+  {
+    Data_<SpDULong64>* dest = new Data_<SpDULong64>(dim, BaseGDL::NOZERO);
+
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for shared( errorFlag, mode) num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+      for (OMPInt i = 0; i < nEl; ++i) {
+      const char* cStart = (*this)[i].c_str();
+      char* cEnd;
+      (*dest)[i] = strtoull(cStart, &cEnd, 10);
+      if (cEnd == cStart && (*this)[i] != "") {
+        StringConversionError(errorFlag, mode, "Type conversion error: "
+          "Unable to convert given STRING: '" +
+          (*this)[i] + "' to ULONG64.");
+      }
+    }
+    if (errorFlag) {
+      delete dest;
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      throw GDLIOException("Type conversion error: Unable to convert given STRING to ULONG64.");
+    }
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  }
+  case GDL_FLOAT:
+  {
+    Data_<SpDFloat>* dest = new Data_<SpDFloat>(dim, BaseGDL::NOZERO);
+
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for shared( errorFlag, mode) num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+      for (OMPInt i = 0; i < nEl; ++i) {
+      const char* cStart = (*this)[i].c_str();
+      char* cEnd;
+      (*dest)[i] = string2real<float>(cStart, &cEnd);
+      if ((cEnd == cStart && (*this)[i] != "")) //  || (cEnd - cStart) != strlen(cStart)) // reports error for "16 "
+      {
+        StringConversionError(errorFlag, mode, "Type conversion error: "
+          "Unable to convert given STRING: '" +
+          (*this)[i] + "' to FLOAT.");
+      }
+    }
+    if (errorFlag) {
+      delete dest;
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      throw GDLIOException("Type conversion error: Unable to convert given STRING to FLOAT.");
+    }
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  }
+  case GDL_DOUBLE:
+  {
+    Data_<SpDDouble>* dest = new Data_<SpDDouble>(dim, BaseGDL::NOZERO);
+
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for shared( errorFlag, mode) num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+      for (OMPInt i = 0; i < nEl; ++i) {
+      const char* cStart = (*this)[i].c_str();
+      char* cEnd;
+      (*dest)[i] = string2real<double>(cStart, &cEnd);
+      if ((cEnd == cStart && (*this)[i] != "")) // || (cEnd - cStart) != strlen(cStart)) // reports error for "16 "
+      {
+        StringConversionError(errorFlag, mode, "Type conversion error: "
+          "Unable to convert given STRING: '" +
+          (*this)[i] + "' to DOUBLE.");
+      }
+    }
+    if (errorFlag) {
+      delete dest;
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      throw GDLIOException("Type conversion error: Unable to convert given STRING to DOUBLE.");
+    }
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  }
+    //    case GDL_STRING: 
+  case GDL_COMPLEX:
+  {
+    Data_<SpDComplex>* dest = new Data_<SpDComplex>(dim, BaseGDL::NOZERO);
+
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for shared( errorFlag, mode) num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+      for (OMPInt i = 0; i < nEl; ++i) {
+      const char* cStart = (*this)[i].c_str();
+      char* cEnd;
+      (*dest)[i] = string2real<float>(cStart, &cEnd);
+      if ((cEnd == cStart && (*this)[i] != "")) // || (cEnd - cStart) != strlen(cStart)) // reports error for "16 "
+      {
+        StringConversionError(errorFlag, mode, "Type conversion error: "
+          "Unable to convert given STRING: '" +
+          (*this)[i] + "' to COMPLEX.");
+      }
+    }
+    if (errorFlag) {
+      delete dest;
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      throw GDLIOException("Type conversion error: Unable to convert given STRING to COMPLEX.");
+    }
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  }
+  case GDL_COMPLEXDBL:
+  {
+    Data_<SpDComplexDbl>* dest =
+      new Data_<SpDComplexDbl>(dim, BaseGDL::NOZERO);
+
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for shared( errorFlag, mode) num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+      for (OMPInt i = 0; i < nEl; ++i) {
+      const char* cStart = (*this)[i].c_str();
+      char* cEnd;
+      (*dest)[i] = string2real<double>(cStart, &cEnd);
+      if ((cEnd == cStart && (*this)[i] != "")) // || (cEnd - cStart) != strlen(cStart)) // reports error for "16 "
+      {
+        StringConversionError(errorFlag, mode, "Type conversion error: "
+          "Unable to convert given STRING: '" +
+          (*this)[i] + "' to DCOMPLEX.");
+      }
+    }
+    if (errorFlag) {
+      delete dest;
+      if ((mode & BaseGDL::CONVERT) != 0) delete this;
+      throw GDLIOException("Type conversion error: Unable to convert given STRING to DCOMPLEX.");
+    }
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  }
+  case GDL_PTR:
+  case GDL_OBJ:
+  case GDL_STRUCT:
+  case GDL_UNDEF:
+  default:
+    if (BaseGDL::interpreter != NULL && BaseGDL::interpreter->CallStack().size() > 0) BaseGDL::interpreter->CallStack().back()->Throw("Cannot convert to this type.");
+    throw GDLException("Cannot convert to this type.");
+  }
 
   // get rid of warning
-  return NULL; 
+  return NULL;
 }  
 
 

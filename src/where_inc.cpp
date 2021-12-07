@@ -18,7 +18,7 @@ template<>
 void Data_<Sp>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret) {
   SizeT nEl=this->N_Elements();
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
-  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl))?CpuTPOOL_NTHREADS:1;
   if (comp) {
     if (nchunk==1) {
       DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
@@ -44,7 +44,7 @@ void Data_<Sp>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &c
       SizeT partialCountYes[nchunk];
       SizeT partialCountNo[nchunk];
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl))
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
@@ -123,7 +123,7 @@ void Data_<Sp>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &c
       DLong64* part[nchunk];
       SizeT partialCount[nchunk];
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl))
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
@@ -174,7 +174,7 @@ template<>
 void Data_<Sp>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret) {
   SizeT nEl=this->N_Elements();
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
-  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl))?CpuTPOOL_NTHREADS:1;
   if (comp) {
     if (nchunk==1) {
       DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
@@ -200,7 +200,7 @@ void Data_<Sp>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_
       SizeT partialCountYes[nchunk];
       SizeT partialCountNo[nchunk];
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl))
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
@@ -279,7 +279,7 @@ void Data_<Sp>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_
       DLong* part[nchunk];
       SizeT partialCount[nchunk];
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+#pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl))
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;

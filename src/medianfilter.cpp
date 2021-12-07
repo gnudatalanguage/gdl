@@ -489,7 +489,7 @@ void median_filter_impl_2d(int x, int y, int hx, int hy, int b, const T* in, T* 
     Dim dimx(b, x, hx);
     Dim dimy(b, y, hy);
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel
+#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
     {
         MedCalc2D<T> mc(b, dimx, dimy, in, out);
         #pragma omp for collapse(2)
@@ -509,7 +509,7 @@ void median_filter_impl_1d(int x, int hx, int b, const T* in, T* out) {
     }
     Dim dimx(b, x, hx);
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel
+#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
     {
         MedCalc1D<T> mc(b, dimx, in, out);
         #pragma omp for

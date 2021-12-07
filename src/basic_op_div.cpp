@@ -35,7 +35,7 @@
 // division: left=left/right
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::Div(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::Div(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
   ULong nEl = N_Elements();
   assert(nEl);
@@ -49,7 +49,7 @@ Data_<Sp>* Data_<Sp>::Div(BaseGDL* r) {
     return this;
   } else {
 
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*right)[ix] != this->zero) (*this)[ix] /= (*right)[ix];
     } else {
@@ -63,7 +63,7 @@ Data_<Sp>* Data_<Sp>::Div(BaseGDL* r) {
 // inverse division: left=right/left
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::DivInv(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::DivInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
   ULong nEl = N_Elements();
   assert(nEl);
@@ -75,7 +75,7 @@ Data_<Sp>* Data_<Sp>::DivInv(BaseGDL* r) {
     return this;
   } else {
 
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt ix = i; ix < nEl; ++ix)
         if ((*this)[ix] != this->zero)
@@ -133,7 +133,7 @@ Data_<SpDObj>* Data_<SpDObj>::DivInv(BaseGDL* r) {
 }
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::DivS(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::DivS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -162,7 +162,7 @@ Data_<Sp>* Data_<Sp>::DivS(BaseGDL* r) {
 // inverse division: left=right/left
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::DivInvS(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::DivInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -184,7 +184,7 @@ Data_<Sp>* Data_<Sp>::DivInvS(BaseGDL* r) {
     return this;
   } else {
     //      TRACEOMP( __FILE__, __LINE__)
-    // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+    // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl))
     // 	{
     // #pragma omp for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*this)[ix] = s / (*this)[ix];

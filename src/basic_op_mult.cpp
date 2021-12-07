@@ -33,7 +33,7 @@
 // right must always have more or same number of elements
 template<class Sp>
 Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right=static_cast<Data_*>(r);
   ULong nEl=N_Elements();
   assert( nEl);
@@ -49,7 +49,7 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
   mThis *= mRight;
   return this;
 #else
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] *= (*right)[i];
     } else {
@@ -83,7 +83,7 @@ Data_<SpDObj>* Data_<SpDObj>::Mult( BaseGDL* r)
 
 template<class Sp>
 Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right=static_cast<Data_*>(r);
 
   ULong nEl=N_Elements();
@@ -100,7 +100,7 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
   mThis *= s;
   return this;
 #else
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] *= s;
     } else {

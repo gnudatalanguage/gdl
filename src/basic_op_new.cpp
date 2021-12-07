@@ -50,7 +50,7 @@ using namespace std;
 // for integers
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::AndOpNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::AndOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -62,7 +62,7 @@ Data_<Sp>* Data_<Sp>::AndOpNew(BaseGDL* r) {
     (*res)[0] = (*this)[0] & (*right)[0];
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] & (*right)[i]; // & Ty(1);
   } else {
@@ -75,13 +75,13 @@ Data_<Sp>* Data_<Sp>::AndOpNew(BaseGDL* r) {
 // different for floats
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::AndOpInvNew(BaseGDL* right) {
+Data_<Sp>* Data_<Sp>::AndOpInvNew(BaseGDL* right) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return AndOpNew(right);
 }
 // for floats
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::AndOpNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::AndOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   // ULong rEl=right->N_Elements();
@@ -95,7 +95,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpNew(BaseGDL* r) {
     else (*res)[0] = (*this)[0];
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] == zero) (*res)[i] = zero;
       else (*res)[i] = (*this)[i];
@@ -108,8 +108,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpNew(BaseGDL* r) {
   return res;
 }
 
+//b=(a and a)
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -122,7 +123,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvNew(BaseGDL* r) {
     else (*res)[0] = zero;
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = (*right)[i];
       else (*res)[i] = zero;
@@ -137,7 +138,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvNew(BaseGDL* r) {
 // for doubles
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::AndOpNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::AndOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -150,7 +151,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpNew(BaseGDL* r) {
     else (*res)[0] = (*this)[0];
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] == zero) (*res)[i] = zero;
       else (*res)[i] = (*this)[i];
@@ -164,7 +165,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpNew(BaseGDL* r) {
 }
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -177,7 +178,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvNew(BaseGDL* r) {
     else (*res)[0] = zero;
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = (*right)[i];
       else (*res)[i] = zero;
@@ -210,7 +211,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::AndOpNew(BaseGDL* r) {
 }
 // template<>
 // Data_<SpDString>* Data_<SpDString>::AndOpInvNew( BaseGDL* r)
-// {
+// { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 //  throw GDLException("Cannot apply operation to datatype STRING.",true,false);
 //  return res;
 // }
@@ -222,7 +223,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::AndOpNew(BaseGDL* r) {
 }
 // template<>
 // Data_<SpDPtr>* Data_<SpDPtr>::AndOpInvNew( BaseGDL* r)
-// {
+// { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 //  throw GDLException("Cannot apply operation to datatype PTR.",true,false);
 //  return res;
 // }
@@ -234,7 +235,7 @@ Data_<SpDObj>* Data_<SpDObj>::AndOpNew(BaseGDL* r) {
 }
 // template<>
 // Data_<SpDPtr>* Data_<SpDPtr>::AndOpInvNew( BaseGDL* r)
-// {
+// { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 //  throw GDLException("Cannot apply operation to datatype PTR.",true,false);
 //  return res;
 // }
@@ -242,7 +243,7 @@ Data_<SpDObj>* Data_<SpDObj>::AndOpNew(BaseGDL* r) {
 // scalar versions
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::AndOpSNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::AndOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -255,7 +256,7 @@ Data_<Sp>* Data_<Sp>::AndOpSNew(BaseGDL* r) {
     (*res)[0] = (*this)[0] & s;
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] & s;
   } else {
@@ -268,13 +269,13 @@ Data_<Sp>* Data_<Sp>::AndOpSNew(BaseGDL* r) {
 // different for floats
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::AndOpInvSNew(BaseGDL* right) {
+Data_<Sp>* Data_<Sp>::AndOpInvSNew(BaseGDL* right) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return AndOpSNew(right);
 }
 // for floats
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::AndOpSNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::AndOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
   if ((*right)[0] == zero) {
     return New(this->dim, BaseGDL::ZERO);
@@ -282,8 +283,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpSNew(BaseGDL* r) {
   return this->Dup();
 }
 
+//b=(a and 1)
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvSNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -298,7 +300,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvSNew(BaseGDL* r) {
       else (*res)[0] = zero;
       return res;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = s;
         else (*res)[i] = zero;
@@ -314,7 +316,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvSNew(BaseGDL* r) {
 // for doubles
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::AndOpSNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::AndOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
   if ((*right)[0] == zero) {
     return New(this->dim, BaseGDL::ZERO);
@@ -323,7 +325,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpSNew(BaseGDL* r) {
 }
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvSNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -338,7 +340,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvSNew(BaseGDL* r) {
       else (*res)[0] = zero;
       return res;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = s;
         else (*res)[i] = zero;
@@ -372,7 +374,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::AndOpSNew(BaseGDL* r) {
 }
 // template<>
 // Data_<SpDString>* Data_<SpDString>::AndOpInvSNew( BaseGDL* r)
-// {
+// { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 //  throw GDLException("Cannot apply operation to datatype STRING.",true,false);
 //  return res;
 // }
@@ -397,7 +399,7 @@ Data_<SpDObj>* Data_<SpDObj>::AndOpSNew(BaseGDL* r) {
 // for integers
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::OrOpNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::OrOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   // ULong rEl=right->N_Elements();
@@ -410,7 +412,7 @@ Data_<Sp>* Data_<Sp>::OrOpNew(BaseGDL* r) {
     (*res)[0] = (*this)[0] | (*right)[0]; // | Ty(1);
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] | (*right)[i]; // | Ty(1);
   } else {
@@ -424,13 +426,13 @@ Data_<Sp>* Data_<Sp>::OrOpNew(BaseGDL* r) {
 // different for floats
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::OrOpInvNew(BaseGDL* right) {
+Data_<Sp>* Data_<Sp>::OrOpInvNew(BaseGDL* right) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return OrOpNew(right);
 }
 // for floats
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::OrOpNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::OrOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   // ULong rEl=right->N_Elements();
@@ -444,7 +446,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpNew(BaseGDL* r) {
     else (*res)[0] = (*this)[0];
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = (*right)[i];
       else (*res)[i] = (*this)[i];
@@ -457,8 +459,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpNew(BaseGDL* r) {
   return res;
 }
 
+// b=(a or a)
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   // ULong rEl=right->N_Elements();
@@ -472,7 +475,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvNew(BaseGDL* r) {
     else (*res)[0] = (*this)[0];
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] != zero) (*res)[i] = (*right)[i];
       else (*res)[i] = (*this)[i];
@@ -487,7 +490,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvNew(BaseGDL* r) {
 // for doubles
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::OrOpNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::OrOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   // ULong rEl=right->N_Elements();
@@ -501,7 +504,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpNew(BaseGDL* r) {
     else (*res)[0] = (*this)[0];
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = (*right)[i];
       else (*res)[i] = (*this)[i];
@@ -515,7 +518,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpNew(BaseGDL* r) {
 }
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   // ULong rEl=right->N_Elements();
@@ -529,7 +532,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvNew(BaseGDL* r) {
     else (*res)[0] = (*this)[0];
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] != zero) (*res)[i] = (*right)[i];
       else (*res)[i] = (*this)[i];
@@ -577,7 +580,7 @@ Data_<SpDObj>* Data_<SpDObj>::OrOpNew(BaseGDL* r) {
 // for integers
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::OrOpSNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -591,7 +594,7 @@ Data_<Sp>* Data_<Sp>::OrOpSNew(BaseGDL* r) {
     (*res)[0] = (*this)[0] | s;
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] | s;
   } else {
@@ -604,13 +607,13 @@ Data_<Sp>* Data_<Sp>::OrOpSNew(BaseGDL* r) {
 // different for floats
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::OrOpInvSNew(BaseGDL* right) {
+Data_<Sp>* Data_<Sp>::OrOpInvSNew(BaseGDL* right) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return OrOpSNew(right);
 }
 // for floats
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::OrOpSNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -624,7 +627,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpSNew(BaseGDL* r) {
       else (*res)[0] = (*this)[0];
       return res;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = s;
         else (*res)[i] = (*this)[i];
@@ -640,9 +643,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpSNew(BaseGDL* r) {
     return this->Dup();
   }
 }
-
+// b=(a or 0)
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvSNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -659,7 +662,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvSNew(BaseGDL* r) {
       else (*res)[0] = zero;
       return res;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = s;
         else (*res)[i] = zero;
@@ -675,7 +678,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvSNew(BaseGDL* r) {
 // for doubles
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::OrOpSNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -689,7 +692,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpSNew(BaseGDL* r) {
       else (*res)[0] = (*this)[0];
       return res;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = s;
         else (*res)[i] = (*this)[i];
@@ -706,7 +709,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpSNew(BaseGDL* r) {
 }
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvSNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -723,7 +726,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvSNew(BaseGDL* r) {
       else (*res)[0] = zero;
       return res;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = s;
         else (*res)[i] = zero;
@@ -774,9 +777,9 @@ Data_<SpDObj>* Data_<SpDObj>::OrOpSNew(BaseGDL* r) {
 // Xors right to itself, //C deletes right
 // right must always have more or same number of elements
 // for integers
-
+// ex: b=(a xor c)
 template<class Sp>
-Data_<Sp>* Data_<Sp>::XorOpNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::XorOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -794,7 +797,7 @@ Data_<Sp>* Data_<Sp>::XorOpNew(BaseGDL* r) {
       return this->Dup();
 
     Data_* res = NewResult();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i];
     } else {
@@ -805,7 +808,7 @@ Data_<Sp>* Data_<Sp>::XorOpNew(BaseGDL* r) {
     return res;
   } else {
     Data_* res = NewResult();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] ^ (*right)[i];
     } else {
@@ -861,7 +864,7 @@ Data_<SpDObj>* Data_<SpDObj>::XorOpNew(BaseGDL* r) {
 }
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::XorOpSNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::XorOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -876,7 +879,7 @@ Data_<Sp>* Data_<Sp>::XorOpSNew(BaseGDL* r) {
     return this->Dup();
 
   Data_* res = NewResult();
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i];
   } else {
@@ -938,7 +941,7 @@ Data_<SpDObj>* Data_<SpDObj>::XorOpSNew(BaseGDL* r) {
 // right must always have more or same number of elements
 
 template<class Sp>
-BaseGDL* Data_<Sp>::AddNew(BaseGDL* r) {
+BaseGDL* Data_<Sp>::AddNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   // ULong rEl=right->N_Elements();
@@ -960,7 +963,7 @@ BaseGDL* Data_<Sp>::AddNew(BaseGDL* r) {
   mRes = mThis + mRight;
   return res;
 #else
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] + (*right)[i];
   } else {
@@ -973,12 +976,12 @@ BaseGDL* Data_<Sp>::AddNew(BaseGDL* r) {
 }
 
 template<class Sp>
-BaseGDL* Data_<Sp>::AddInvNew(BaseGDL* r) {
+BaseGDL* Data_<Sp>::AddInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return AddNew(r);
 }
 
 template<>
-BaseGDL* Data_<SpDString>::AddInvNew(BaseGDL* r) {
+BaseGDL* Data_<SpDString>::AddInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -989,7 +992,7 @@ BaseGDL* Data_<SpDString>::AddInvNew(BaseGDL* r) {
     (*res)[0] = (*right)[0] + (*this)[0];
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*right)[i] + (*this)[i];
   } else {
@@ -1009,19 +1012,19 @@ BaseGDL* Data_<SpDPtr>::AddNew(BaseGDL* r) {
 }
 
 template<>
-BaseGDL* Data_<SpDObj>::AddNew(BaseGDL* r) {
+BaseGDL* Data_<SpDObj>::AddNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return Add(r);
 }
 
 template<>
-BaseGDL* Data_<SpDObj>::AddInvNew(BaseGDL* r) {
+BaseGDL* Data_<SpDObj>::AddInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return AddInv(r);
 }
 
 // scalar versions
 
 template<class Sp>
-BaseGDL* Data_<Sp>::AddSNew(BaseGDL* r) {
+BaseGDL* Data_<Sp>::AddSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -1040,7 +1043,7 @@ BaseGDL* Data_<Sp>::AddSNew(BaseGDL* r) {
   mRes = mThis + s;
   return res;
 #else
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] + s;
   } else {
@@ -1054,12 +1057,12 @@ BaseGDL* Data_<Sp>::AddSNew(BaseGDL* r) {
 }
 
 template<class Sp>
-BaseGDL* Data_<Sp>::AddInvSNew(BaseGDL* r) {
+BaseGDL* Data_<Sp>::AddInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return AddSNew(r);
 }
 
 template<>
-BaseGDL* Data_<SpDString>::AddInvSNew(BaseGDL* r) {
+BaseGDL* Data_<SpDString>::AddInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -1070,7 +1073,7 @@ BaseGDL* Data_<SpDString>::AddInvSNew(BaseGDL* r) {
     return res;
   }
   Ty s = (*right)[0];
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = s + (*this)[i];
   } else {
@@ -1090,12 +1093,12 @@ BaseGDL* Data_<SpDPtr>::AddSNew(BaseGDL* r) {
 }
 
 template<>
-BaseGDL* Data_<SpDObj>::AddSNew(BaseGDL* r) {
+BaseGDL* Data_<SpDObj>::AddSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return Add(r);
 }
 
 template<>
-BaseGDL* Data_<SpDObj>::AddInvSNew(BaseGDL* r) {
+BaseGDL* Data_<SpDObj>::AddInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return AddInv(r);
 }
 
@@ -1105,7 +1108,7 @@ BaseGDL* Data_<SpDObj>::AddInvSNew(BaseGDL* r) {
 // substraction: res=left-right
 
 template<class Sp>
-BaseGDL* Data_<Sp>::SubNew(BaseGDL* r) {
+BaseGDL* Data_<Sp>::SubNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong rEl = right->N_Elements();
@@ -1130,7 +1133,7 @@ BaseGDL* Data_<Sp>::SubNew(BaseGDL* r) {
     mRes = mThis - s;
     return res;
 #else
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] - s;
     } else {
@@ -1150,7 +1153,7 @@ BaseGDL* Data_<Sp>::SubNew(BaseGDL* r) {
     mRes = mThis - mRight;
     return res;
 #else
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] - (*right)[i];
     } else {
@@ -1165,7 +1168,7 @@ BaseGDL* Data_<Sp>::SubNew(BaseGDL* r) {
 // inverse substraction: left=right-left
 
 template<class Sp>
-BaseGDL* Data_<Sp>::SubInvNew(BaseGDL* r) {
+BaseGDL* Data_<Sp>::SubInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong rEl = right->N_Elements();
@@ -1185,7 +1188,7 @@ BaseGDL* Data_<Sp>::SubInvNew(BaseGDL* r) {
   mRes = mRight - mThis;
   return res;
 #else
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*right)[i] - (*this)[i];
   } else {
@@ -1223,19 +1226,19 @@ BaseGDL* Data_<SpDPtr>::SubInvNew(BaseGDL* r) {
 }
 
 template<>
-BaseGDL* Data_<SpDObj>::SubNew(BaseGDL* r) {
+BaseGDL* Data_<SpDObj>::SubNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return Sub(r);
 }
 
 template<>
-BaseGDL* Data_<SpDObj>::SubInvNew(BaseGDL* r) {
+BaseGDL* Data_<SpDObj>::SubInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return SubInv(r);
 }
 
 // scalar versions
 
 template<class Sp>
-BaseGDL* Data_<Sp>::SubSNew(BaseGDL* r) {
+BaseGDL* Data_<Sp>::SubSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -1255,7 +1258,7 @@ BaseGDL* Data_<Sp>::SubSNew(BaseGDL* r) {
   mRes = mThis - s;
   return res;
 #else
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] - s;
   } else {
@@ -1270,7 +1273,7 @@ BaseGDL* Data_<Sp>::SubSNew(BaseGDL* r) {
 // inverse substraction: left=right-left
 
 template<class Sp>
-BaseGDL* Data_<Sp>::SubInvSNew(BaseGDL* r) {
+BaseGDL* Data_<Sp>::SubInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -1292,7 +1295,7 @@ BaseGDL* Data_<Sp>::SubInvSNew(BaseGDL* r) {
   mRes = s - mThis;
   return res;
 #else
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = s - (*this)[i];
   } else {
@@ -1331,12 +1334,12 @@ BaseGDL* Data_<SpDPtr>::SubInvSNew(BaseGDL* r) {
 }
 
 template<>
-BaseGDL* Data_<SpDObj>::SubSNew(BaseGDL* r) {
+BaseGDL* Data_<SpDObj>::SubSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return Sub(r);
 }
 
 template<>
-BaseGDL* Data_<SpDObj>::SubInvSNew(BaseGDL* r) {
+BaseGDL* Data_<SpDObj>::SubInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return SubInv(r);
 }
 
@@ -1345,7 +1348,7 @@ BaseGDL* Data_<SpDObj>::SubInvSNew(BaseGDL* r) {
 // right must always have more or same number of elements
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::LtMarkNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::LtMarkNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   //  ULong rEl=right->N_Elements();
@@ -1359,7 +1362,7 @@ Data_<Sp>* Data_<Sp>::LtMarkNew(BaseGDL* r) {
     else (*res)[0] = (*this)[0];
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] > (*right)[i]) (*res)[i] = (*right)[i];
       else (*res)[i] = (*this)[i];
@@ -1406,7 +1409,7 @@ Data_<SpDObj>* Data_<SpDObj>::LtMarkNew(BaseGDL* r) {
 // scalar versions
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::LtMarkSNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::LtMarkSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -1419,7 +1422,7 @@ Data_<Sp>* Data_<Sp>::LtMarkSNew(BaseGDL* r) {
   }
   Ty s = (*right)[0];
   // right->Scalar(s);
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] > s) (*res)[i] = s;
       else (*res)[i] = (*this)[i];
@@ -1468,7 +1471,7 @@ Data_<SpDObj>* Data_<SpDObj>::LtMarkSNew(BaseGDL* r) {
 // right must always have more or same number of elements
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::GtMarkNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::GtMarkNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   //  ULong rEl=right->N_Elements();
@@ -1482,7 +1485,7 @@ Data_<Sp>* Data_<Sp>::GtMarkNew(BaseGDL* r) {
     else (*res)[0] = (*this)[0];
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] < (*right)[i]) (*res)[i] = (*right)[i];
       else (*res)[i] = (*this)[i];
@@ -1529,7 +1532,7 @@ Data_<SpDObj>* Data_<SpDObj>::GtMarkNew(BaseGDL* r) {
 // scalar versions
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::GtMarkSNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::GtMarkSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -1543,7 +1546,7 @@ Data_<Sp>* Data_<Sp>::GtMarkSNew(BaseGDL* r) {
 
   Ty s = (*right)[0];
   // right->Scalar(s);
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] < s) (*res)[i] = s;
       else (*res)[i] = (*this)[i];
@@ -1592,7 +1595,7 @@ Data_<SpDObj>* Data_<SpDObj>::GtMarkSNew(BaseGDL* r) {
 // right must always have more or same number of elements
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::MultNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::MultNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   Data_* res = NewResult();
@@ -1614,7 +1617,7 @@ Data_<Sp>* Data_<Sp>::MultNew(BaseGDL* r) {
   mRes = mThis * mRight;
   return res;
 #else
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] * (*right)[i];
   } else {
@@ -1649,7 +1652,7 @@ Data_<SpDObj>* Data_<SpDObj>::MultNew(BaseGDL* r) {
 // scalar versions
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::MultSNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::MultSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -1668,7 +1671,7 @@ Data_<Sp>* Data_<Sp>::MultSNew(BaseGDL* r) {
   mRes = mThis * s;
   return res;
 #else
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res) [i] = (*this)[i] * s;
   } else {
@@ -1706,7 +1709,7 @@ Data_<SpDObj>* Data_<SpDObj>::MultSNew(BaseGDL* r) {
 // division: left=left/right
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::DivNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::DivNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   //  ULong rEl=right->N_Elements();
@@ -1724,7 +1727,7 @@ Data_<Sp>* Data_<Sp>::DivNew(BaseGDL* r) {
       (*res)[i] = (*this)[i] / (*right)[i];
     return res;
   } else {
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*right)[ix] != this->zero) (*res)[ix] = (*this)[ix] / (*right)[ix];
         else (*res)[ix] = (*this)[ix];
@@ -1740,7 +1743,7 @@ Data_<Sp>* Data_<Sp>::DivNew(BaseGDL* r) {
 // inverse division: left=right/left
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::DivInvNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::DivInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   //  ULong rEl=right->N_Elements();
@@ -1757,7 +1760,7 @@ Data_<Sp>* Data_<Sp>::DivInvNew(BaseGDL* r) {
       (*res)[i] = (*right)[i] / (*this)[i];
     return res;
   } else {
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*res)[ix] = (*right)[ix] / (*this)[ix];
         else (*res)[ix] = (*right)[ix];
@@ -1811,7 +1814,7 @@ Data_<SpDObj>* Data_<SpDObj>::DivInvNew(BaseGDL* r) {
 // scalar versions
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::DivSNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -1839,7 +1842,7 @@ Data_<Sp>* Data_<Sp>::DivSNew(BaseGDL* r) {
 // inverse division: left=right/left
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::DivInvSNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::DivInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -1859,7 +1862,7 @@ Data_<Sp>* Data_<Sp>::DivInvSNew(BaseGDL* r) {
       (*res)[i] = s / (*this)[i];
     return res;
   } else {
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*res)[ix] = s / (*this)[ix];
         else (*res)[ix] = s;
@@ -1932,9 +1935,9 @@ inline DDouble DModulo(const DDouble& l, const DDouble& r) {
   //    return (t-floor(t))*abs(r);
   return fmod(l, r);
 }
-
+// ex: b=(a mod c)
 template<class Sp>
-Data_<Sp>* Data_<Sp>::ModNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::ModNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   //  ULong rEl=right->N_Elements();
@@ -1949,7 +1952,7 @@ Data_<Sp>* Data_<Sp>::ModNew(BaseGDL* r) {
       (*res)[i] = (*this)[i] % (*right)[i];
     return res;
   } else {
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*right)[ix] != this->zero) (*res)[ix] = (*this)[ix] % (*right)[ix];
         else (*res)[ix] = this->zero;
@@ -1965,7 +1968,7 @@ Data_<Sp>* Data_<Sp>::ModNew(BaseGDL* r) {
 // inverse modulo division: left=right % left
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::ModInvNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::ModInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -1979,7 +1982,7 @@ Data_<Sp>* Data_<Sp>::ModInvNew(BaseGDL* r) {
       (*res)[i] = (*right)[i] % (*this)[i];
     return res;
   } else {
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*res)[ix] = (*right)[ix] % (*this)[ix];
         else (*res)[ix] = this->zero;
@@ -1996,7 +1999,7 @@ Data_<Sp>* Data_<Sp>::ModInvNew(BaseGDL* r) {
 // float modulo division: left=left % right
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::ModNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::ModNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -2007,7 +2010,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModNew(BaseGDL* r) {
     (*res)[0] = Modulo((*this)[0], (*right)[0]);
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = Modulo((*this)[i], (*right)[i]);
   } else {
@@ -2020,7 +2023,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModNew(BaseGDL* r) {
 // float  inverse modulo division: left=right % left
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::ModInvNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::ModInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   // ULong rEl=right->N_Elements();
@@ -2032,7 +2035,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInvNew(BaseGDL* r) {
     (*res)[0] = Modulo((*right)[0], (*this)[0]);
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = Modulo((*right)[i], (*this)[i]);
   } else {
@@ -2045,7 +2048,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInvNew(BaseGDL* r) {
 // double modulo division: left=left % right
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::ModNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::ModNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   // ULong rEl=right->N_Elements();
@@ -2057,7 +2060,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModNew(BaseGDL* r) {
     (*res)[0] = DModulo((*this)[0], (*right)[0]);
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = DModulo((*this)[i], (*right)[i]);
   } else {
@@ -2070,7 +2073,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModNew(BaseGDL* r) {
 // double inverse modulo division: left=right % left
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::ModInvNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::ModInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   // ULong rEl=right->N_Elements();
@@ -2082,7 +2085,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvNew(BaseGDL* r) {
     (*res)[0] = DModulo((*right)[0], (*this)[0]);
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = DModulo((*right)[i], (*this)[i]);
   } else {
@@ -2157,7 +2160,7 @@ Data_<SpDObj>* Data_<SpDObj>::ModInvNew(BaseGDL* r) {
 // scalar versions
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::ModSNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::ModSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -2185,9 +2188,9 @@ Data_<Sp>* Data_<Sp>::ModSNew(BaseGDL* r) {
   }
 }
 // inverse modulo division: left=right % left
-
+// ex: b=(3 mod a)
 template<class Sp>
-Data_<Sp>* Data_<Sp>::ModInvSNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::ModInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -2208,7 +2211,7 @@ Data_<Sp>* Data_<Sp>::ModInvSNew(BaseGDL* r) {
     }
     return res;
   } else {
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*res)[ix] = s % (*this)[ix];
         else (*res)[ix] = this->zero;
@@ -2223,7 +2226,7 @@ Data_<Sp>* Data_<Sp>::ModInvSNew(BaseGDL* r) {
 }
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::ModSNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::ModSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -2236,7 +2239,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModSNew(BaseGDL* r) {
   }
 
   Ty s = (*right)[0];
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = Modulo((*this)[i], s);
   } else {
@@ -2249,7 +2252,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModSNew(BaseGDL* r) {
 // float  inverse modulo division: left=right % left
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::ModInvSNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::ModInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -2262,7 +2265,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInvSNew(BaseGDL* r) {
   }
 
   Ty s = (*right)[0];
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = Modulo(s, (*this)[i]);
   } else {
@@ -2274,7 +2277,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInvSNew(BaseGDL* r) {
 }
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::ModSNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::ModSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -2287,7 +2290,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModSNew(BaseGDL* r) {
   }
 
   Ty s = (*right)[0];
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = DModulo((*this)[i], s);
   } else {
@@ -2300,7 +2303,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModSNew(BaseGDL* r) {
 // double inverse modulo division: left=right % left
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::ModInvSNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::ModInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -2313,7 +2316,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvSNew(BaseGDL* r) {
   }
 
   Ty s = (*right)[0];
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = DModulo(s, (*this)[i]);
   } else {
@@ -2391,7 +2394,7 @@ Data_<SpDObj>* Data_<SpDObj>::ModInvSNew(BaseGDL* r) {
 // C++ defines pow only for floats and doubles
 // in basic_op.cpp:
 // template <typename T> T pow( const T r, const T l)
-// {
+// { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 //   typedef T TT;
 //
 //   if( l == 0) return 1;
@@ -2417,7 +2420,7 @@ Data_<SpDObj>* Data_<SpDObj>::ModInvSNew(BaseGDL* r) {
 // integral types
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::PowNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -2427,7 +2430,7 @@ Data_<Sp>* Data_<Sp>::PowNew(BaseGDL* r) {
     (*res)[0] = pow((*this)[0], (*right)[0]);
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]); // valarray
   } else {
@@ -2440,7 +2443,7 @@ Data_<Sp>* Data_<Sp>::PowNew(BaseGDL* r) {
 // inverse power of value: left=right ^ left
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::PowInvNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::PowInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -2450,7 +2453,7 @@ Data_<Sp>* Data_<Sp>::PowInvNew(BaseGDL* r) {
     (*res)[0] = pow((*right)[0], (*this)[0]);
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*right)[i], (*this)[i]);
   } else {
@@ -2472,14 +2475,14 @@ Data_<Sp>* Data_<Sp>::PowIntNew(BaseGDL* r) {
 // floats power of value with GDL_LONG: left=left ^ right
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   DLongGDL* right = static_cast<DLongGDL*> (r);
 
   ULong rEl = right->N_Elements();
   ULong nEl = N_Elements();
   assert(rEl);
   assert(nEl);
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (r->StrictScalar()) {
     Data_* res = new Data_(Dim(), BaseGDL::NOZERO);
     DLong r0 = (*right)[0];
@@ -2495,7 +2498,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew(BaseGDL* r) {
   if (StrictScalar()) {
     Data_* res = new Data_(right->Dim(), BaseGDL::NOZERO);
     Ty s0 = (*this)[ 0];
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s0, (*right)[ i]);
     } else {
@@ -2507,7 +2510,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew(BaseGDL* r) {
   }
   if (nEl <= rEl) {
     Data_* res = new Data_(Dim(), BaseGDL::NOZERO);
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
     } else {
@@ -2518,7 +2521,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew(BaseGDL* r) {
     return res;
   } else {
     Data_* res = new Data_(right->Dim(), BaseGDL::NOZERO);
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
     } else {
@@ -2531,7 +2534,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew(BaseGDL* r) {
 }
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   DLongGDL* right = static_cast<DLongGDL*> (r);
 
   ULong rEl = right->N_Elements();
@@ -2541,7 +2544,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew(BaseGDL* r) {
   if (r->StrictScalar()) {
     Data_* res = new Data_(Dim(), BaseGDL::NOZERO);
     DLong r0 = (*right)[0];
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], r0);
     } else {
@@ -2554,7 +2557,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew(BaseGDL* r) {
   if (StrictScalar()) {
     Data_* res = new Data_(right->Dim(), BaseGDL::NOZERO);
     Ty s0 = (*this)[ 0];
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s0, (*right)[ i]);
     } else {
@@ -2566,7 +2569,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew(BaseGDL* r) {
   }
   if (nEl <= rEl) {
     Data_* res = new Data_(Dim(), BaseGDL::NOZERO);
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
     } else {
@@ -2577,7 +2580,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew(BaseGDL* r) {
     return res;
   } else {
     Data_* res = new Data_(right->Dim(), BaseGDL::NOZERO);
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
     } else {
@@ -2592,7 +2595,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew(BaseGDL* r) {
 // floats power of value: left=left ^ right
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::PowNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -2602,7 +2605,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowNew(BaseGDL* r) {
     (*res)[0] = pow((*this)[0], (*right)[0]);
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
   } else {
@@ -2615,7 +2618,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowNew(BaseGDL* r) {
 // floats inverse power of value: left=right ^ left
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::PowInvNew(BaseGDL* r) {
+Data_<SpDFloat>* Data_<SpDFloat>::PowInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -2625,7 +2628,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInvNew(BaseGDL* r) {
     (*res)[0] = pow((*right)[0], (*this)[0]);
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*right)[i], (*this)[i]);
   } else {
@@ -2638,7 +2641,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInvNew(BaseGDL* r) {
 // doubles power of value: left=left ^ right
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::PowNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -2648,7 +2651,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowNew(BaseGDL* r) {
     (*res)[0] = pow((*this)[0], (*right)[0]);
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
   } else {
@@ -2661,7 +2664,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowNew(BaseGDL* r) {
 // doubles inverse power of value: left=right ^ left
 
 template<>
-Data_<SpDDouble>* Data_<SpDDouble>::PowInvNew(BaseGDL* r) {
+Data_<SpDDouble>* Data_<SpDDouble>::PowInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -2671,7 +2674,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInvNew(BaseGDL* r) {
     (*res)[0] = pow((*right)[0], (*this)[0]);
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*right)[i], (*this)[i]);
   } else {
@@ -2685,7 +2688,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInvNew(BaseGDL* r) {
 // complex is special here
 
 template<>
-Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) {
+Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = N_Elements();
 
   assert(nEl > 0);
@@ -2701,7 +2704,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) {
     if (right->StrictScalar(s)) {
       DComplexGDL* res = new DComplexGDL(this->Dim(),
         BaseGDL::NOZERO);
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
       if (!parallelize) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], s);
       } else {
@@ -2717,7 +2720,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) {
         if (StrictScalar(s)) {
           DComplexGDL* res = new DComplexGDL(right->Dim(),
             BaseGDL::NOZERO);
-          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
           if (!parallelize) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
@@ -2730,7 +2733,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) {
 
         DComplexGDL* res = new DComplexGDL(this->Dim(),
           BaseGDL::NOZERO);
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -2742,7 +2745,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) {
       } else {
         DComplexGDL* res = new DComplexGDL(right->Dim(),
           BaseGDL::NOZERO);
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -2765,7 +2768,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) {
     if (right->StrictScalar(s)) {
       DComplexGDL* res = new DComplexGDL(this->Dim(),
         BaseGDL::NOZERO);
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
       if (!parallelize) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], s);
       } else {
@@ -2781,7 +2784,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) {
         if (StrictScalar(s)) {
           DComplexGDL* res = new DComplexGDL(right->Dim(),
             BaseGDL::NOZERO);
-          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
           if (!parallelize) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
@@ -2794,7 +2797,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) {
 
         DComplexGDL* res = new DComplexGDL(this->Dim(),
           BaseGDL::NOZERO);
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -2806,7 +2809,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) {
       } else {
         DComplexGDL* res = new DComplexGDL(right->Dim(),
           BaseGDL::NOZERO);
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -2830,7 +2833,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) {
     DComplexGDL* res = new DComplexGDL(this->Dim(),
       BaseGDL::NOZERO);
     //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], s);
     } else {
@@ -2842,7 +2845,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) {
   } else {
     DComplexGDL* res = new DComplexGDL(this->Dim(),
       BaseGDL::NOZERO);
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
     } else {
@@ -2856,14 +2859,14 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) {
 // complex inverse power of value: left=right ^ left
 
 template<>
-Data_<SpDComplex>* Data_<SpDComplex>::PowInvNew(BaseGDL* r) {
+Data_<SpDComplex>* Data_<SpDComplex>::PowInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
   assert(nEl);
 
   Data_* res = NewResult();
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*right)[i], (*this)[i]);
   } else {
@@ -2876,7 +2879,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInvNew(BaseGDL* r) {
 // double complex power of value: left=left ^ right
 
 template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) {
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = N_Elements();
 
   assert(nEl > 0);
@@ -2892,7 +2895,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) {
     if (right->StrictScalar(s)) {
       DComplexDblGDL* res = new DComplexDblGDL(this->Dim(),
         BaseGDL::NOZERO);
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
       if (!parallelize) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], s);
       } else {
@@ -2908,7 +2911,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) {
         if (StrictScalar(s)) {
           DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
             BaseGDL::NOZERO);
-          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
           if (!parallelize) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
@@ -2921,7 +2924,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) {
 
         DComplexDblGDL* res = new DComplexDblGDL(this->Dim(),
           BaseGDL::NOZERO);
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -2933,7 +2936,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) {
       } else {
         DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
           BaseGDL::NOZERO);
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -2955,7 +2958,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) {
     if (right->StrictScalar(s)) {
       DComplexDblGDL* res = new DComplexDblGDL(this->Dim(),
         BaseGDL::NOZERO);
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
       if (!parallelize) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], s);
       } else {
@@ -2971,7 +2974,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) {
         if (StrictScalar(s)) {
           DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
             BaseGDL::NOZERO);
-          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
           if (!parallelize) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
@@ -2984,7 +2987,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) {
 
         DComplexDblGDL* res = new DComplexDblGDL(this->Dim(),
           BaseGDL::NOZERO);
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -2996,7 +2999,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) {
       } else {
         DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
           BaseGDL::NOZERO);
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -3015,7 +3018,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) {
   if (right->StrictScalar(s)) {
     DComplexDblGDL* res = new DComplexDblGDL(this->Dim(),
       BaseGDL::NOZERO);
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], s);
     } else {
@@ -3027,7 +3030,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) {
   } else {
     DComplexDblGDL* res = new DComplexDblGDL(this->Dim(),
       BaseGDL::NOZERO);
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
     } else {
@@ -3041,7 +3044,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) {
 // double complex inverse power of value: left=right ^ left
 
 template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvNew(BaseGDL* r) {
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong rEl = right->N_Elements();
@@ -3049,7 +3052,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvNew(BaseGDL* r) {
   assert(rEl);
   assert(nEl);
   Data_* res = NewResult();
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*right)[i], (*this)[i]);
   } else {
@@ -3100,7 +3103,7 @@ Data_<SpDObj>* Data_<SpDObj>::PowInvNew(BaseGDL* r) {
 // scalar versions
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::PowSNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -3111,7 +3114,7 @@ Data_<Sp>* Data_<Sp>::PowSNew(BaseGDL* r) {
     (*res)[0] = pow((*this)[0], s);
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], s);
   } else {
@@ -3125,7 +3128,7 @@ Data_<Sp>* Data_<Sp>::PowSNew(BaseGDL* r) {
 // inverse power of value: left=right ^ left
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::PowInvSNew(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::PowInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -3136,7 +3139,7 @@ Data_<Sp>* Data_<Sp>::PowInvSNew(BaseGDL* r) {
     (*res)[0] = pow(s, (*this)[0]);
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow(s, (*this)[i]);
   } else {
@@ -3150,7 +3153,7 @@ Data_<Sp>* Data_<Sp>::PowInvSNew(BaseGDL* r) {
 // complex is special here
 
 template<>
-Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) {
+Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = N_Elements();
   assert(nEl > 0);
   assert(r->N_Elements() > 0);
@@ -3164,7 +3167,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) {
     // (must also be consistent with ComplexDbl)
     if (right->StrictScalar(s)) {
       Data_* res = NewResult();
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
       if (!parallelize) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], s);
       } else {
@@ -3180,7 +3183,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) {
         if (StrictScalar(s)) {
           DComplexGDL* res = new DComplexGDL(right->Dim(),
             BaseGDL::NOZERO);
-          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
           if (!parallelize) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
@@ -3192,7 +3195,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) {
         }
 
         Data_* res = NewResult();
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -3204,7 +3207,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) {
       } else {
         DComplexGDL* res = new DComplexGDL(right->Dim(),
           BaseGDL::NOZERO);
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -3226,7 +3229,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) {
     // (must also be consistent with ComplexDbl)
     if (right->StrictScalar(s)) {
       Data_* res = NewResult();
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
       if (!parallelize) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], s);
       } else {
@@ -3242,7 +3245,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) {
         if (StrictScalar(s)) {
           DComplexGDL* res = new DComplexGDL(right->Dim(),
             BaseGDL::NOZERO);
-          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
           if (!parallelize) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
@@ -3254,7 +3257,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) {
         }
 
         Data_* res = NewResult();
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -3266,7 +3269,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) {
       } else {
         DComplexGDL* res = new DComplexGDL(right->Dim(),
           BaseGDL::NOZERO);
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -3284,7 +3287,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) {
 
   Ty s = (*right)[0];
   Data_* res = NewResult();
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], s);
   } else {
@@ -3298,7 +3301,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) {
 // complex inverse power of value: left=right ^ left
 
 template<>
-Data_<SpDComplex>* Data_<SpDComplex>::PowInvSNew(BaseGDL* r) {
+Data_<SpDComplex>* Data_<SpDComplex>::PowInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
   ULong nEl = N_Elements();
   assert(nEl);
@@ -3309,7 +3312,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInvSNew(BaseGDL* r) {
     (*res)[0] = pow(s, (*this)[0]);
     return res;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow(s, (*this)[ i]);
   } else {
@@ -3322,7 +3325,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInvSNew(BaseGDL* r) {
 // double complex power of value: left=left ^ right
 
 template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) {
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = N_Elements();
 
   assert(nEl > 0);
@@ -3338,7 +3341,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) {
     // (concerning when a new variable is created vs. using this)
     if (right->StrictScalar(s)) {
       Data_* res = NewResult();
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
       if (!parallelize) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], s);
       } else {
@@ -3354,7 +3357,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) {
         if (StrictScalar(s)) {
           DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
             BaseGDL::NOZERO);
-          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
           if (!parallelize) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
@@ -3366,7 +3369,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) {
         }
 
         Data_* res = NewResult();
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -3378,7 +3381,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) {
       } else {
         DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
           BaseGDL::NOZERO);
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -3401,7 +3404,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) {
     // (concerning when a new variable is created vs. using this)
     if (right->StrictScalar(s)) {
       Data_* res = NewResult();
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
       if (!parallelize) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], s);
       } else {
@@ -3417,7 +3420,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) {
         if (StrictScalar(s)) {
           DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
             BaseGDL::NOZERO);
-          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+          bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
           if (!parallelize) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
@@ -3429,7 +3432,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) {
         }
 
         Data_* res = NewResult();
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -3441,7 +3444,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) {
       } else {
         DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
           BaseGDL::NOZERO);
-        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= rEl));
+        bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
         if (!parallelize) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
@@ -3457,7 +3460,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) {
   Data_* right = static_cast<Data_*> (r);
   const Ty s = (*right)[0];
   Data_* res = NewResult();
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], s);
   } else {
@@ -3470,14 +3473,14 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) {
 // double complex inverse power of value: left=right ^ left
 
 template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvSNew(BaseGDL* r) {
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
   assert(nEl);
   Ty s = (*right)[0];
   Data_* res = NewResult();
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow(s, (*this)[ i]);
   } else {

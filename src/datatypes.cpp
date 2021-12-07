@@ -51,7 +51,7 @@
 #include "test_template_grouping.cpp"
 template<class Sp>
 void Data_<Sp>::TestTemplateGrouping()              
-{ 
+{  
 //   Ty ty = Test1();
   bool b = Test2();
 }
@@ -66,7 +66,7 @@ FreeListT Data_<Sp>::freeList;
 #ifdef GDLARRAY_DEBUG
 
 inline void TraceCache( SizeT& cacheSize, SizeT sz, bool cacheIsNull, SizeT smallArraySize)
-{
+{ 
   // 	if( cacheSize > smallArraySize && cacheSize == sz  && !cacheIsNull)
   // 			std::cout << "+++ CACHE HIT\tID: ("  << &cacheSize  << ")   sz: " << cacheSize << std::endl;
   // 	else
@@ -91,7 +91,7 @@ typename	GDLArray<Sp>::Ty* GDLArray<Sp>::cache = NULL;
 
 template<class Sp>
 typename GDLArray<Sp>::Ty* GDLArray<Sp>::Cached( SizeT newSize)
-{
+{ 
   assert( newSize > smallArraySize);
   if( cache != NULL && cacheSize == newSize)
     {
@@ -106,7 +106,7 @@ typename GDLArray<Sp>::Ty* GDLArray<Sp>::Cached( SizeT newSize)
 }
 
 template<class Sp>GDLArray<Sp>::GDLArray( const GDLArray<Sp>& cp) : sz( cp.size())
-{
+{ 
   TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
 	  
   try {
@@ -117,7 +117,7 @@ template<class Sp>GDLArray<Sp>::GDLArray( const GDLArray<Sp>& cp) : sz( cp.size(
 }
 
 template<class Sp>GDLArray<Sp>::	GDLArray( SizeT s, bool b) : sz( s)
-{
+{ 
   TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
 
   try {
@@ -126,7 +126,7 @@ template<class Sp>GDLArray<Sp>::	GDLArray( SizeT s, bool b) : sz( s)
 }
 
 template<class Sp>GDLArray<Sp>::	GDLArray( Ty val, SizeT s) : sz( s)
-{
+{ 
   TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
 
   try {
@@ -137,7 +137,7 @@ template<class Sp>GDLArray<Sp>::	GDLArray( Ty val, SizeT s) : sz( s)
 }
 
 template<class Sp>GDLArray<Sp>::	GDLArray( const Ty* arr, SizeT s) : sz( s)
-{
+{ 
   TraceCache( cacheSize, sz, cache==NULL, smallArraySize);
 	  
   try {
@@ -147,7 +147,7 @@ template<class Sp>GDLArray<Sp>::	GDLArray( const Ty* arr, SizeT s) : sz( s)
 }
 
 template<class Sp>GDLArray<Sp>::~GDLArray() throw()
-{
+{ 
 #ifdef GDLARRAY_DEBUG
   if( buf == cache)
     std::cout << "~~~ recycled cache\tID: ("  << &cacheSize << ")   sz: " << sz << "\tcacheSize: " << cacheSize << std::endl;
@@ -180,7 +180,7 @@ template<class Sp>GDLArray<Sp>::~GDLArray() throw()
 // note: Structs are ok, since GDL cleans up the strings they may contain and uses GDLArray as raw memory
 template<>
 GDLArray<DString>::~GDLArray() throw()
-{
+{ 
   if ( buf != scalar )
     {
       delete[] buf;
@@ -194,7 +194,7 @@ template class GDLArray<char>;
 
 template<typename T>
 inline bool gdlValid( const T &value )
-{
+{ 
     T max_value = std::numeric_limits<T>::max();
     T min_value = - max_value;
     return ( ( min_value <= value && value <= max_value ) &&  (value == value));
@@ -217,7 +217,7 @@ inline bool gdlValid( const DComplexDbl &value )
 
 
 template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
-{
+{ 
   assert( bytes == sizeof( Data_));
 
   if( freeList.size() > 0)
@@ -268,68 +268,68 @@ template<class Sp> void* Data_<Sp>::operator new( size_t bytes)
 }
 
 template<class Sp> void Data_<Sp>::operator delete( void *ptr)
-{
+{ 
   freeList.push_back( ptr);
 }
 
 
 
 // destructor
-template<class Sp> Data_<Sp>::~Data_() {}
+template<class Sp> Data_<Sp>::~Data_() { }
 template<> Data_<SpDPtr>::~Data_()
-{
+{ 
   if( this->dd.GetBuffer() != NULL)
     GDLInterpreter::DecRef( this);
 }
 template<> Data_<SpDObj>::~Data_()
-{
+{ 
   if( this->dd.GetBuffer() != NULL)
     GDLInterpreter::DecRefObj( this);
 }
 
 // default
-template<class Sp> Data_<Sp>::Data_(): Sp(), dd() {}
+template<class Sp> Data_<Sp>::Data_(): Sp(), dd() { }
 
 // scalar
 template<class Sp> Data_<Sp>::Data_(const Ty& d_): Sp(), dd(d_)
-{}
+{ }
 // template<> Data_<SpDPtr>::Data_(const Ty& d_): SpDPtr(), dd(d_)
-// {GDLInterpreter::IncRef(d_);}
+// { GDLInterpreter::IncRef(d_);}
 // template<> Data_<SpDObj>::Data_(const Ty& d_): SpDObj(), dd(d_)
-// {GDLInterpreter::IncRefObj(d_);}
+// { GDLInterpreter::IncRefObj(d_);}
 
 // new array, zero fields
 template<class Sp> Data_<Sp>::Data_(const dimension& dim_): 
   Sp( dim_), dd( Sp::zero, this->dim.NDimElements())
-{
+{ 
   this->dim.Purge();
 }
 
 // new one-dim array from Ty*
 template<class Sp> Data_<Sp>::Data_( const Ty* p, const SizeT nEl): 
   Sp( dimension( nEl)), dd( p, nEl)
-{}
+{ }
 template<> Data_<SpDPtr>::Data_( const Ty* p, const SizeT nEl):
   SpDPtr( dimension( nEl)), dd( p, nEl)
-{GDLInterpreter::IncRef(this);}
+{ GDLInterpreter::IncRef(this);}
 template<> Data_<SpDObj>::Data_( const Ty* p, const SizeT nEl):
   SpDObj( dimension( nEl)), dd( p, nEl)
-{GDLInterpreter::IncRefObj(this);}
+{ GDLInterpreter::IncRefObj(this);}
 
 // c-i 
 // template<class Sp> Data_<Sp>::Data_(const Data_& d_): 
-// Sp(d_.dim), dd(d_.dd) {}
+// Sp(d_.dim), dd(d_.dd) { }
 
 template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble off, DDouble inc):
   Sp( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
-{
+{ 
   this->dim.Purge();
   
   if (iT == BaseGDL::NOZERO) return;  //very frequent
   
   if (iT == BaseGDL::ZERO) { //rather frequent
     SizeT sz = dd.size();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
@@ -341,7 +341,7 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT,
   
   else if (iT == BaseGDL::INDGEN) { //less frequent
     SizeT sz = dd.size();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) { //most frequent
       if (off==0 && inc==1) { 
          for (SizeT i = 0; i < sz; ++i) (*this)[i]=i;
@@ -364,14 +364,14 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT,
 
 //IDL uses floats increments and offset for floats and complex (normal) .
 template<> Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble off, DDouble inc):
-  SpDFloat( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false) {
+  SpDFloat( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false) { 
   this->dim.Purge();
 
   if (iT == BaseGDL::NOZERO) return; //very frequent
 
   if (iT == BaseGDL::ZERO) { //rather frequent
     SizeT sz = dd.size();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
@@ -381,7 +381,7 @@ template<> Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, D
     }
   } else if (iT == BaseGDL::INDGEN) { //less frequent
     SizeT sz = dd.size();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) { //most frequent
       if (off == 0 && inc == 1) {
         for (SizeT i = 0; i < sz; ++i) (*this)[i] = i;
@@ -407,14 +407,14 @@ template<> Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, D
 }
 
 template<> Data_<SpDComplex>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble off, DDouble inc):
-  SpDComplex( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false) {
+  SpDComplex( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false) { 
   this->dim.Purge();
 
   if (iT == BaseGDL::NOZERO) return; //very frequent
 
   if (iT == BaseGDL::ZERO) { //rather frequent
     SizeT sz = dd.size();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
@@ -424,7 +424,7 @@ template<> Data_<SpDComplex>::Data_(const dimension& dim_, BaseGDL::InitType iT,
     }
   } else if (iT == BaseGDL::INDGEN) { //less frequent
     SizeT sz = dd.size();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) { //most frequent
       if (off == 0 && inc == 1) {
         for (SizeT i = 0; i < sz; ++i) (*this)[i] = i;
@@ -451,21 +451,21 @@ template<> Data_<SpDComplex>::Data_(const dimension& dim_, BaseGDL::InitType iT,
 
 template<> Data_<SpDString>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble):
   SpDString(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
-{
+{ 
   dim.Purge();
   
   if( iT == BaseGDL::INDGEN) throw GDLException("DStringGDL(dim,InitType=INDGEN) called.");
 }
 
 template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT, DDouble, DDouble):
-  SpDPtr(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false) {
+  SpDPtr(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false) { 
   dim.Purge();
 
   if (iT == BaseGDL::INDGEN) throw GDLException("DPtrGDL(dim,InitType=INDGEN) called.");
 
   if (iT != BaseGDL::NOALLOC && iT != BaseGDL::NOZERO) {
     SizeT sz = dd.size();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
@@ -477,14 +477,14 @@ template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT, DD
 }
 template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble):
   SpDObj(dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
-{
+{ 
   dim.Purge();
 
   if( iT == BaseGDL::INDGEN) throw GDLException("DObjGDL(dim,InitType=INDGEN) called.");
   
   if (iT != BaseGDL::NOALLOC && iT != BaseGDL::NOZERO) {
     SizeT sz = dd.size();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
@@ -497,14 +497,14 @@ template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDo
 
 // c-i
 //template<class Sp>
-//Data_<Sp>::Data_(const Data_& d_): Sp(d_.dim), dd(d_.dd) { }
+//Data_<Sp>::Data_(const Data_& d_): Sp(d_.dim), dd(d_.dd) {  }
 
 //faster, C++ initializer is probably too shy. 
 template<class Sp>
-Data_<Sp>::Data_(const Data_& d_) : Sp(d_.dim), dd(this->dim.NDimElements(), false) {
+Data_<Sp>::Data_(const Data_& d_) : Sp(d_.dim), dd(this->dim.NDimElements(), false) { 
   this->dim.Purge(); //useful?
   SizeT sz = dd.size();
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < sz; i++) dd[i] = d_.dd[i];
   } else {
@@ -516,29 +516,29 @@ Data_<Sp>::Data_(const Data_& d_) : Sp(d_.dim), dd(this->dim.NDimElements(), fal
 
 template<>
 Data_<SpDPtr>::Data_(const Data_& d_): SpDPtr(d_.dim), dd(d_.dd)
-{
+{ 
   GDLInterpreter::IncRef( this);
 }
 template<>
 Data_<SpDObj>::Data_(const Data_& d_): SpDObj(d_.dim), dd(d_.dd)
-{
+{ 
   GDLInterpreter::IncRefObj( this);
 }
 
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::Dup() const { return new Data_(*this);}
+Data_<Sp>* Data_<Sp>::Dup() const {  return new Data_(*this);}
 
 // template<>
 // Data_<SpDPtr>* Data_<SpDPtr>::Dup() const
-//   {
+//   { 
 //   Data_<SpDPtr>* p =new Data_(*this);
 //   GDLInterpreter::IncRef( p);
 //   return p;
 //   }
 // template<>
 //   Data_<SpDObj>* Data_<SpDObj>::Dup() const
-//   {
+//   { 
 //   Data_<SpDObj>* p =new Data_(*this);
 //   GDLInterpreter::IncRefObj( p);
 //   return p;
@@ -548,21 +548,21 @@ Data_<Sp>* Data_<Sp>::Dup() const { return new Data_(*this);}
   
 template<class Sp>
 BaseGDL* Data_<Sp>::Log()              
-{ 
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
   DFloatGDL* res = static_cast<DFloatGDL*> (this->Convert2( GDL_FLOAT, BaseGDL::COPY));
   res->LogThis();
   return res;
 }
 
 template<>
-BaseGDL* Data_<SpDFloat>::Log() {
+BaseGDL* Data_<SpDFloat>::Log() { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if (nEl == 1) {
     (*n)[ 0] = log((*this)[ 0]);
     return n;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
@@ -575,14 +575,14 @@ BaseGDL* Data_<SpDFloat>::Log() {
 
 template<>
 BaseGDL* Data_<SpDDouble>::Log()              
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if (nEl == 1) {
     (*n)[ 0] = log((*this)[ 0]);
     return n;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
@@ -594,14 +594,14 @@ BaseGDL* Data_<SpDDouble>::Log()
 }
 template<>
 BaseGDL* Data_<SpDComplex>::Log()              
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if (nEl == 1) {
     (*n)[ 0] = log((*this)[ 0]);
     return n;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
@@ -613,14 +613,14 @@ BaseGDL* Data_<SpDComplex>::Log()
 }
 template<>
 BaseGDL* Data_<SpDComplexDbl>::Log()              
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if (nEl == 1) {
     (*n)[ 0] = log((*this)[ 0]);
     return n;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
@@ -637,20 +637,20 @@ BaseGDL* Data_<SpDComplexDbl>::Log()
 // complex types
 template<class Sp>
 BaseGDL* Data_<Sp>::LogThis()              
-{ 
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
   DFloatGDL* res = static_cast<DFloatGDL*>(this->Convert2( GDL_FLOAT, BaseGDL::COPY));
   res->LogThis(); // calls correct LogThis for float
   return res;
 }
 
 template<>
-BaseGDL* Data_<SpDFloat>::LogThis() {
+BaseGDL* Data_<SpDFloat>::LogThis() { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = N_Elements();
   if (nEl == 1) {
     (*this)[ 0] = log((*this)[ 0]);
     return this;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
@@ -663,13 +663,13 @@ BaseGDL* Data_<SpDFloat>::LogThis() {
 
 template<>
 BaseGDL* Data_<SpDDouble>::LogThis()              
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = N_Elements();
   if (nEl == 1) {
     (*this)[ 0] = log((*this)[ 0]);
     return this;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
@@ -682,13 +682,13 @@ BaseGDL* Data_<SpDDouble>::LogThis()
 
 template<>
 BaseGDL* Data_<SpDComplex>::LogThis()              
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = N_Elements();
   if (nEl == 1) {
     (*this)[ 0] = log((*this)[ 0]);
     return this;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
@@ -700,13 +700,13 @@ BaseGDL* Data_<SpDComplex>::LogThis()
 }
 template<>
 BaseGDL* Data_<SpDComplexDbl>::LogThis()              
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = N_Elements();
   if (nEl == 1) {
     (*this)[ 0] = log((*this)[ 0]);
     return this;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
@@ -719,7 +719,7 @@ BaseGDL* Data_<SpDComplexDbl>::LogThis()
 
 template<class Sp>
 BaseGDL* Data_<Sp>::Log10()              
-{ 
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
   DFloatGDL* res = static_cast<DFloatGDL*> (this->Convert2( GDL_FLOAT, BaseGDL::COPY));
   res->Log10This();
   return res;
@@ -727,14 +727,14 @@ BaseGDL* Data_<Sp>::Log10()
 
 template<>
 BaseGDL* Data_<SpDFloat>::Log10()              
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if (nEl == 1) {
     (*n)[ 0] = log10((*this)[ 0]);
     return n;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
@@ -747,14 +747,14 @@ BaseGDL* Data_<SpDFloat>::Log10()
 
 template<>
 BaseGDL* Data_<SpDDouble>::Log10()              
-{ 
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
   Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if (nEl == 1) {
     (*n)[ 0] = log10((*this)[ 0]);
     return n;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
@@ -767,14 +767,14 @@ BaseGDL* Data_<SpDDouble>::Log10()
 
 template<>
 BaseGDL* Data_<SpDComplex>::Log10()              
-{ 
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
   Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if (nEl == 1) {
     (*n)[ 0] = log10((*this)[ 0]);
     return n;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
@@ -787,14 +787,14 @@ BaseGDL* Data_<SpDComplex>::Log10()
 
 template<>
 BaseGDL* Data_<SpDComplexDbl>::Log10()              
-{ 
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
   Data_* n = this->New(this->dim, BaseGDL::NOZERO);
   SizeT nEl = n->N_Elements();
   if (nEl == 1) {
     (*n)[ 0] = log10((*this)[ 0]);
     return n;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
@@ -808,20 +808,20 @@ BaseGDL* Data_<SpDComplexDbl>::Log10()
 // see comment at void Data_<Sp>::LogThis()              
 template<class Sp>
 BaseGDL* Data_<Sp>::Log10This()              
-{ 
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
   DFloatGDL* res = static_cast<DFloatGDL*> (this->Convert2( GDL_FLOAT, BaseGDL::COPY));
   res->Log10This(); // calls correct Log10This for float
   return res;
 }
 template<>
 BaseGDL* Data_<SpDFloat>::Log10This()              
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = N_Elements();
   if (nEl == 1) {
     (*this)[ 0] = log10((*this)[ 0]);
     return this;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
@@ -834,13 +834,13 @@ BaseGDL* Data_<SpDFloat>::Log10This()
 
 template<>
 BaseGDL* Data_<SpDDouble>::Log10This()              
-{ 
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
   SizeT nEl = N_Elements();
   if (nEl == 1) {
     (*this)[ 0] = log10((*this)[ 0]);
     return this;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
@@ -852,13 +852,13 @@ BaseGDL* Data_<SpDDouble>::Log10This()
 }
 template<>
 BaseGDL* Data_<SpDComplex>::Log10This()              
-{ 
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
   SizeT nEl = N_Elements();
   if (nEl == 1) {
     (*this)[ 0] = log10((*this)[ 0]);
     return this;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
@@ -870,13 +870,13 @@ BaseGDL* Data_<SpDComplex>::Log10This()
 }
 template<>
 BaseGDL* Data_<SpDComplexDbl>::Log10This()              
-{ 
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
   SizeT nEl = N_Elements();
   if (nEl == 1) {
     (*this)[ 0] = log10((*this)[ 0]);
     return this;
   }
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
@@ -891,25 +891,25 @@ BaseGDL* Data_<SpDComplexDbl>::Log10This()
 
 // template<class Sp>
 // BaseGDL* Data_<Sp>::Abs() const
-// {
+// { 
 //   return new Data_( this->dim, dd.abs());
 // }
 
 template<class Sp>
 inline bool Data_<Sp>::Greater(SizeT i1, SizeT i2) const
-{ return ((*this)[i1] > (*this)[i2]);}
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) return ((*this)[i1] > (*this)[i2]);}
 
 template<>
 inline bool Data_<SpDComplex>::Greater(SizeT i1, SizeT i2) const
-{ return (abs((*this)[i1]) > abs((*this)[i2]));}
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) return (abs((*this)[i1]) > abs((*this)[i2]));}
 template<>
 inline bool Data_<SpDComplexDbl>::Greater(SizeT i1, SizeT i2) const
-{ return (abs((*this)[i1]) > abs((*this)[i2]));}
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) return (abs((*this)[i1]) > abs((*this)[i2]));}
 
 
 template<class Sp>
 inline bool Data_<Sp>::Equal(SizeT i1, SizeT i2) const
-{ return ((*this)[i1] == (*this)[i2]);}
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) return ((*this)[i1] == (*this)[i2]);}
 
 
 
@@ -930,7 +930,7 @@ inline SizeT CShiftNormalize( DLong s, SizeT this_dim)
 
 template<class Sp>
 BaseGDL* Data_<Sp>::CShift( DLong d) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = dd.size();
   SizeT shift = CShiftNormalize( d, nEl);
 
@@ -949,7 +949,7 @@ BaseGDL* Data_<Sp>::CShift( DLong d) const
 
 template<>
 BaseGDL* Data_<SpDString>::CShift( DLong d) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = dd.size();
   SizeT shift = CShiftNormalize( d, nEl);
 
@@ -973,7 +973,7 @@ BaseGDL* Data_<SpDString>::CShift( DLong d) const
 }
 template<>
 BaseGDL* Data_<SpDPtr>::CShift( DLong d) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = dd.size();
   SizeT shift = CShiftNormalize( d, nEl);
 
@@ -998,7 +998,7 @@ BaseGDL* Data_<SpDPtr>::CShift( DLong d) const
 }
 template<>
 BaseGDL* Data_<SpDObj>::CShift( DLong d) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = dd.size();
   SizeT shift = CShiftNormalize( d, nEl);
 
@@ -1025,7 +1025,7 @@ BaseGDL* Data_<SpDObj>::CShift( DLong d) const
 template<typename Ty>
 inline void CShift1( Ty* dst, SizeT& dstLonIx, const Ty* src, SizeT& srcLonIx,
 		     SizeT stride_1, SizeT chunk0, SizeT chunk1)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   memcpy(  &dst[ dstLonIx], &src[ srcLonIx], chunk0 * sizeof(Ty));
   dstLonIx += chunk0;
   srcLonIx += chunk0;
@@ -1042,7 +1042,7 @@ inline void CShift1( Ty* dst, SizeT& dstLonIx, const Ty* src, SizeT& srcLonIx,
 #undef TEST_GOOD_OL_VERSION
 
 template<class Sp>
-BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK]) const {
+BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK]) const { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* sh = new Data_(this->dim, BaseGDL::NOZERO);
 
   SizeT nDim = this->Rank();
@@ -1293,7 +1293,7 @@ DUInt* InitPermDefault()
 }
 
 template<class Sp>
-BaseGDL* Data_<Sp>::Transpose(DUInt* perm) {
+BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT rank = this->Rank();
 
   if (rank == 1) // special case: vector
@@ -1433,7 +1433,7 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) {
 // used by reverse
 
 template<class Sp>
-void Data_<Sp>::Reverse(DLong dim) {
+void Data_<Sp>::Reverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   // SA: based on total_over_dim_template()
   //   static Data_* tmp = new Data_(dimension(1), BaseGDL::NOZERO);
   //Guard<Data_> tmp_guard(tmp);
@@ -1441,8 +1441,8 @@ void Data_<Sp>::Reverse(DLong dim) {
   SizeT revStride = this->dim.Stride(dim);
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT revLimit = this->dim[dim] * revStride;
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride));
-  if (!parallelize) { //most frequent
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= (nEl/outerStride)*revStride));
+  if (!parallelize) {  //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = 0; i < revStride; ++i) {
         SizeT oi = o + i;
@@ -1458,7 +1458,7 @@ void Data_<Sp>::Reverse(DLong dim) {
     }
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
+#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= (nEl/outerStride)*revStride))
     {
 #pragma omp for
       for (SizeT o = 0; o < nEl; o += outerStride) {
@@ -1479,7 +1479,7 @@ void Data_<Sp>::Reverse(DLong dim) {
 }
 
 template<class Sp>
-BaseGDL* Data_<Sp>::DupReverse(DLong dim) {
+BaseGDL* Data_<Sp>::DupReverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   // SA: based on total_over_dim_template()
   Data_* res = new Data_(this->dim, BaseGDL::NOZERO);
   Guard<Data_> res_guard(res);
@@ -1487,8 +1487,8 @@ BaseGDL* Data_<Sp>::DupReverse(DLong dim) {
   SizeT revStride = this->dim.Stride(dim);
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT revLimit = this->dim[dim] * revStride;
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nEl / outerStride) * revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl / outerStride) * revStride));
-  if (!parallelize) { //most frequent
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nEl / outerStride) * revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= (nEl / outerStride) * revStride));
+  if (!parallelize) {  //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = 0; i < revStride; ++i) {
         SizeT oi = o + i;
@@ -1504,7 +1504,7 @@ BaseGDL* Data_<Sp>::DupReverse(DLong dim) {
     }
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
+#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= (nEl/outerStride)*revStride))
     {
 #pragma omp for
       for (SizeT o = 0; o < nEl; o += outerStride) {
@@ -1526,7 +1526,7 @@ BaseGDL* Data_<Sp>::DupReverse(DLong dim) {
 }
 
 template<>
-BaseGDL* Data_<SpDPtr>::DupReverse(DLong dim) {
+BaseGDL* Data_<SpDPtr>::DupReverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   // SA: based on total_over_dim_template()
   Data_* res = new Data_(this->dim, BaseGDL::NOZERO);
   Guard<Data_> res_guard(res);
@@ -1534,8 +1534,8 @@ BaseGDL* Data_<SpDPtr>::DupReverse(DLong dim) {
   SizeT revStride = this->dim.Stride(dim);
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT revLimit = this->dim[dim] * revStride;
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nEl / outerStride) * revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl / outerStride) * revStride));
-  if (!parallelize) { //most frequent
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nEl / outerStride) * revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= (nEl / outerStride) * revStride));
+  if (!parallelize) {  //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = 0; i < revStride; ++i) {
         SizeT oi = o + i;
@@ -1550,7 +1550,7 @@ BaseGDL* Data_<SpDPtr>::DupReverse(DLong dim) {
     }
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
+#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= (nEl/outerStride)*revStride))
     {
 #pragma omp for
       for (SizeT o = 0; o < nEl; o += outerStride) {
@@ -1572,7 +1572,7 @@ BaseGDL* Data_<SpDPtr>::DupReverse(DLong dim) {
 }
 
 template<>
-BaseGDL* Data_<SpDObj>::DupReverse(DLong dim) {
+BaseGDL* Data_<SpDObj>::DupReverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   // SA: based on total_over_dim_template()
   Data_* res = new Data_(this->dim, BaseGDL::NOZERO);
   Guard<Data_> res_guard(res);
@@ -1580,8 +1580,8 @@ BaseGDL* Data_<SpDObj>::DupReverse(DLong dim) {
   SizeT revStride = this->dim.Stride(dim);
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT revLimit = this->dim[dim] * revStride;
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nEl / outerStride) * revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl / outerStride) * revStride));
-  if (!parallelize) { //most frequent
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nEl / outerStride) * revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= (nEl / outerStride) * revStride));
+  if (!parallelize) {  //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = 0; i < revStride; ++i) {
         SizeT oi = o + i;
@@ -1596,7 +1596,7 @@ BaseGDL* Data_<SpDObj>::DupReverse(DLong dim) {
     }
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl/outerStride)*revStride))
+#pragma omp parallel //if ((nEl/outerStride)*revStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= (nEl/outerStride)*revStride))
     {
 #pragma omp for
       for (SizeT o = 0; o < nEl; o += outerStride) {
@@ -1619,7 +1619,7 @@ BaseGDL* Data_<SpDObj>::DupReverse(DLong dim) {
 
 // rank must be 1 or 2 (already checked)
 template<class Sp> 
-BaseGDL* Data_<Sp>::Rotate( DLong dir) {
+BaseGDL* Data_<Sp>::Rotate( DLong dir) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   dir = (dir % 8 + 8) % 8; // bring into 0..7 range
 
   if (dir == 0) return Dup();
@@ -1707,10 +1707,10 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir) {
 }
 
 template<class Sp>
-typename Data_<Sp>::Ty Data_<Sp>::Sum() const {
+typename Data_<Sp>::Ty Data_<Sp>::Sum() const { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s = dd[ 0];
   SizeT nEl = dd.size();
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 1; i < nEl; ++i) s += dd[ i];
   } else {
@@ -1728,7 +1728,7 @@ typename Data_<Sp>::Ty Data_<Sp>::Sum() const {
 
 template<> 
 Data_<SpDString>::Ty Data_<SpDString>::Sum() const 
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s= dd[ 0];
   SizeT nEl = dd.size();
   for( SizeT i=1; i<nEl; ++i)
@@ -1739,11 +1739,11 @@ Data_<SpDString>::Ty Data_<SpDString>::Sum() const
 }
 
 template<>
-Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::Sum() const {
+Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::Sum() const { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   DDouble sr = dd[ 0].real();
   DDouble si = dd[ 0].imag();
   SizeT nEl = dd.size();
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 1; i < nEl; ++i) {
       sr += dd[i].real();
@@ -1764,11 +1764,11 @@ Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::Sum() const {
 }
 
 template<>
-Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const {
+Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   DFloat sr = dd[ 0].real();
   DFloat si = dd[ 0].imag();
   SizeT nEl = dd.size();
-  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+  bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 1; i < nEl; ++i) {
       sr += dd[i].real();
@@ -1776,7 +1776,7 @@ Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const {
     }
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) shared( sr,si)
+#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)) shared( sr,si)
     {
 #pragma omp for reduction(+:si,sr)
       for (SizeT i = 1; i < nEl; ++i) {
@@ -1790,7 +1790,7 @@ Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const {
 
 // template<class Sp> 
 // typename Data_<Sp>::DataT& Data_<Sp>:: Resize( SizeT n)
-// {
+// { 
 //   if( n > dd.size())
 //     throw GDLException("Internal error: Data_::Resize(...) tried to grow.");
 //   if( dd.size() != n) 
@@ -1805,12 +1805,12 @@ Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const {
 
 // template<class Sp> 
 // typename Data_<Sp>::Ty& Data_<Sp>::operator[] (const SizeT d1) 
-// { return (*this)[d1];}
+// {  return (*this)[d1];}
 
 // only used from DStructGDL
 template<class Sp> 
 Data_<Sp>&  Data_<Sp>::operator=(const BaseGDL& r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( r.Type() == this->Type());
   const Data_<Sp>& right = static_cast<const Data_<Sp>&>( r);
   assert( &right != this);
@@ -1822,7 +1822,7 @@ Data_<Sp>&  Data_<Sp>::operator=(const BaseGDL& r)
 // only used from DStructGDL
 template<>
 Data_<SpDPtr>& Data_<SpDPtr>::operator=(const BaseGDL& r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( r.Type() == this->Type());
   const Data_& right = static_cast<const Data_&>( r);
   assert( &right != this);
@@ -1836,7 +1836,7 @@ Data_<SpDPtr>& Data_<SpDPtr>::operator=(const BaseGDL& r)
 // only used from DStructGDL
 template<>
 Data_<SpDObj>& Data_<SpDObj>::operator=(const BaseGDL& r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( r.Type() == this->Type());
   const Data_& right = static_cast<const Data_&>( r);
   assert( &right != this);
@@ -1851,7 +1851,7 @@ Data_<SpDObj>& Data_<SpDObj>::operator=(const BaseGDL& r)
 
 template<class Sp> 
 void Data_<Sp>::InitFrom(const BaseGDL& r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( r.Type() == this->Type());
   const Data_<Sp>& right = static_cast<const Data_<Sp>&>( r);
   assert( &right != this);
@@ -1863,7 +1863,7 @@ void Data_<Sp>::InitFrom(const BaseGDL& r)
 // only used from DStructGDL::DStructGDL(const DStructGDL& d_)
 template<>
 void Data_<SpDPtr>::InitFrom(const BaseGDL& r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( r.Type() == this->Type());
   const Data_& right = static_cast<const Data_&>( r);
   assert( &right != this);
@@ -1877,7 +1877,7 @@ void Data_<SpDPtr>::InitFrom(const BaseGDL& r)
 // only used from DStructGDL::DStructGDL(const DStructGDL& d_)
 template<>
 void Data_<SpDObj>::InitFrom(const BaseGDL& r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( r.Type() == this->Type());
   const Data_& right = static_cast<const Data_&>( r);
   assert( &right != this);
@@ -1891,38 +1891,38 @@ void Data_<SpDObj>::InitFrom(const BaseGDL& r)
 
 template< class Sp>
 bool Data_<Sp>::EqType( const BaseGDL* r) const 
-{ return (this->Type() == r->Type());}
+{  return (this->Type() == r->Type());}
 
 template< class Sp>
 void* Data_<Sp>::DataAddr()// SizeT elem)
-{ return &(*this)[0];}//elem];}
+{  return &(*this)[0];}//elem];}
 
 // template<>
 // void* Data_<SpDString>::DataAddr()// SizeT elem)
-// { 
+// {  
 //  throw GDLException("STRING not allowed in this context.");
 // return NULL;
 // }
 // template<>
 // void* Data_<SpDPtr>::DataAddr()// SizeT elem)
-// { 
+// {  
 //  throw GDLException("PTR not allowed in this context.");
 // return NULL;
 // }
 // template<>
 // void* Data_<SpDObj>::DataAddr()// SizeT elem)
-// { 
+// {  
 //  throw GDLException("Object expression not allowed in this context.");
 // return NULL;
 // }
 
 template< class Sp>
 SizeT Data_<Sp>::N_Elements() const 
-{ return dd.size();}
+{  return dd.size();}
 
 template<>
 SizeT Data_<SpDObj>::N_Elements() const 
-{ 
+{  
   if( !this->StrictScalar())
     return dd.size();
 #if 1  // GJ change this and see how many problems it solves, creates. 2016/5/5 
@@ -1960,14 +1960,14 @@ SizeT Data_<SpDObj>::N_Elements() const
 
 template< class Sp>
 SizeT Data_<Sp>::Size() const 
-{ return dd.size();}
+{  return dd.size();}
 template< class Sp>
 SizeT Data_<Sp>::Sizeof() const 
-{ return sizeof(Ty);}
+{  return sizeof(Ty);}
 
 template< class Sp>
 void Data_<Sp>::Clear() 
-{ 
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
   SizeT nEl = dd.size(); 
   for( SizeT i = 0; i<nEl; ++i) (*this)[ i] = Sp::zero;
 }
@@ -1975,7 +1975,7 @@ void Data_<Sp>::Clear()
 // first time initialization (construction)
 template< class Sp>
 void Data_<Sp>::Construct() 
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   // note that this is not possible in cases where an operation 
   // (here: 'new' which is ok) isn't defined for any POD
   // (although this code never executes and should be optimized away anyway)
@@ -1990,14 +1990,14 @@ void Data_<Sp>::Construct()
 
 template<>
 void Data_<SpDPtr>::Construct() 
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = dd.size(); 
   for( SizeT i = 0; i<nEl; ++i) dd[ i] = 0;
 }
 
 template<>
 void Data_<SpDObj>::Construct()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = dd.size(); 
   for( SizeT i = 0; i<nEl; ++i) dd[ i] = 0;
 }
@@ -2005,7 +2005,7 @@ void Data_<SpDObj>::Construct()
 // construction and initalization to zero
 template< class Sp>
 void Data_<Sp>::ConstructTo0() 
-{ 
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
   if( Sp::IS_POD)
   {
   SizeT nEl = dd.size(); 
@@ -2020,7 +2020,7 @@ void Data_<Sp>::ConstructTo0()
 
 template< class Sp>
 void Data_<Sp>::Destruct() 
-{ 
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__) 
   // no destruction for POD
   if( !Sp::IS_POD)
   {
@@ -2031,30 +2031,30 @@ void Data_<Sp>::Destruct()
 }
 template<>
 void Data_< SpDPtr>::Destruct()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   GDLInterpreter::DecRef( this);
 }
 template<>
 void Data_< SpDObj>::Destruct()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   GDLInterpreter::DecRefObj( this);
 }
 
 template< class Sp>
 BaseGDL* Data_<Sp>::SetBuffer( const void* b)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   dd.SetBuffer( static_cast< Ty*>(const_cast<void*>( b)));
   return this;
 }
 template< class Sp>
 void Data_<Sp>::SetBufferSize( SizeT s)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   dd.SetBufferSize( s);
 }
 
 template< class Sp>
 Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( noZero == BaseGDL::NOZERO) return new Data_(dim_, BaseGDL::NOZERO);
   if( noZero == BaseGDL::INIT)
     {
@@ -2069,18 +2069,18 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero) cons
 
 template< class Sp>
 Data_<Sp>* Data_<Sp>::NewResult() const 
-{
+{ 
   return new Data_(this->dim, BaseGDL::NOZERO);
 }
 
 template<class Sp>
 SizeT Data_<Sp>::NBytes() const 
-{ return (dd.size() * sizeof(Ty));}
+{  return (dd.size() * sizeof(Ty));}
 
 // string, ptr, obj cannot calculate their bytes
 // only used by assoc function
 template<> SizeT Data_<SpDString>::NBytes() const
-{
+{ 
   SizeT nEl = dd.size();
   SizeT nB = 0;
   for( SizeT i=0; i<nEl; ++i)  nB += (*this)[i].size();
@@ -2089,32 +2089,32 @@ template<> SizeT Data_<SpDString>::NBytes() const
 
 template<class Sp>
 SizeT Data_<Sp>::ToTransfer() const
-{
+{ 
   return dd.size();
 }
 // complex has 2 elements to transfer
 template<> SizeT Data_<SpDComplex>::ToTransfer() const
-{
+{ 
   return N_Elements() * 2;
 }
 template<> SizeT Data_<SpDComplexDbl>::ToTransfer() const
-{
+{ 
   return N_Elements() * 2;
 }
 
 template<class Sp> 
 DDouble Data_<Sp>::HashValue() const
-{
+{ 
   return static_cast<DDouble>((*this)[0]);
 }
 template<> 
 DDouble Data_<SpDComplex>::HashValue() const
-{
+{ 
   return real((*this)[0]);
 }
 template<> 
 DDouble Data_<SpDComplexDbl>::HashValue() const
-{
+{ 
   return real((*this)[0]);
 }
 template<> 
@@ -2146,7 +2146,7 @@ DDouble Data_<SpDObj>::HashValue() const
 // this should not be called on non-numeric types (also for p2)
 template<class Sp> 
 int Data_<Sp>::HashCompare( BaseGDL* p2) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( dd.size() == 1);
   assert( p2->N_Elements() == 1);
   if( p2->Type() == GDL_STRING)
@@ -2178,7 +2178,7 @@ int Data_<Sp>::HashCompare( BaseGDL* p2) const
 
 template<> 
 int Data_<SpDString>::HashCompare( BaseGDL* p2) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( dd.size() == 1);
   assert( p2->N_Elements() == 1);
   if( p2->Type() != this->Type())
@@ -2210,7 +2210,7 @@ int Data_<SpDString>::HashCompare( BaseGDL* p2) const
 // 2   one-element array
 template<class Sp> 
 int Data_<Sp>::Scalar2Index( SizeT& st) const
-{
+{ 
   if( dd.size() != 1) return 0;
 
   // the next statement gives a warning for unsigned integer types:
@@ -2235,7 +2235,7 @@ int Data_<Sp>::Scalar2Index( SizeT& st) const
 
 template<class Sp> 
 int Data_<Sp>::Scalar2RangeT( RangeT& st) const
-{
+{ 
   if( dd.size() != 1) return 0;
 
   st= static_cast<RangeT>((*this)[0]);
@@ -2245,7 +2245,7 @@ int Data_<Sp>::Scalar2RangeT( RangeT& st) const
 
 template<> 
 int Data_<SpDComplex>::Scalar2Index( SizeT& st) const
-{
+{ 
   if( dd.size() != 1) return 0;
   float r=real((*this)[0]);
   if( r < 0.0) return -1;
@@ -2256,7 +2256,7 @@ int Data_<SpDComplex>::Scalar2Index( SizeT& st) const
 
 template<> 
 int Data_<SpDComplex>::Scalar2RangeT( RangeT& st) const
-{
+{ 
   if( dd.size() != 1) return 0;
   float r=real((*this)[0]);
   st= static_cast<RangeT>(r);
@@ -2266,7 +2266,7 @@ int Data_<SpDComplex>::Scalar2RangeT( RangeT& st) const
 
 template<>
 int Data_<SpDComplexDbl>::Scalar2Index( SizeT& st) const
-{
+{ 
   if( dd.size() != 1) return 0;
   double r=real((*this)[0]);
   if( r < 0.0) return -1;
@@ -2277,7 +2277,7 @@ int Data_<SpDComplexDbl>::Scalar2Index( SizeT& st) const
 
 template<> 
 int Data_<SpDComplexDbl>::Scalar2RangeT( RangeT& st) const
-{
+{ 
   if( dd.size() != 1) return 0;
   double r=real((*this)[0]);
   st= static_cast<RangeT>(r);
@@ -2288,7 +2288,7 @@ int Data_<SpDComplexDbl>::Scalar2RangeT( RangeT& st) const
 
 template<> 
 int Data_<SpDString>::Scalar2Index( SizeT& st) const
-{
+{ 
   if( dd.size() != 1) return 0;
 
   SizeT tSize=(*this)[0].size();
@@ -2309,7 +2309,7 @@ int Data_<SpDString>::Scalar2Index( SizeT& st) const
 
 template<> 
 int Data_<SpDString>::Scalar2RangeT( RangeT& st) const
-{
+{ 
   if( dd.size() != 1) return 0;
 
   SizeT tSize=(*this)[0].size();
@@ -2362,7 +2362,7 @@ int Data_<SpDObj>::Scalar2RangeT( RangeT& st) const
 // for FOR loop *indices*
 template<class Sp> 
 RangeT Data_<Sp>::LoopIndex() const
-{
+{ 
   //  if( dd.size() != 1) return 0;
 
   // the next statement gives a warning for unsigned integer types:
@@ -2380,7 +2380,7 @@ RangeT Data_<Sp>::LoopIndex() const
 }
 template<> 
 RangeT Data_<SpDFloat>::LoopIndex() const
-{
+{ 
   //   if( (*this)[0] < 0.0f)
   //     //if( (*this)[0] <= 1.0f)
   //       throw GDLException( "Index variable <0.");
@@ -2391,7 +2391,7 @@ RangeT Data_<SpDFloat>::LoopIndex() const
 }
 template<> 
 RangeT Data_<SpDDouble>::LoopIndex() const
-{
+{ 
   //   if( (*this)[0] < 0.0)
   //     //if( (*this)[0] <= 1.0)
   //       throw GDLException( "Index variable <0.");
@@ -2414,7 +2414,7 @@ RangeT Data_<SpDComplexDbl>::LoopIndex() const
 }
 template<> 
 RangeT Data_<SpDString>::LoopIndex() const
-{
+{ 
   if( (*this)[0] == "")
     return 0;
 	
@@ -2449,7 +2449,7 @@ RangeT Data_<SpDObj>::LoopIndex() const
 // True
 template<class Sp>
 bool Data_<Sp>::True()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -2458,7 +2458,7 @@ bool Data_<Sp>::True()
 
 template<>
 bool Data_<SpDFloat>::True()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -2467,7 +2467,7 @@ bool Data_<SpDFloat>::True()
 
 template<>
 bool Data_<SpDDouble>::True()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -2476,7 +2476,7 @@ bool Data_<SpDDouble>::True()
 
 template<>
 bool Data_<SpDString>::True()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -2485,7 +2485,7 @@ bool Data_<SpDString>::True()
 
 template<>
 bool Data_<SpDComplex>::True()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -2493,7 +2493,7 @@ bool Data_<SpDComplex>::True()
 }
 template<>
 bool Data_<SpDComplexDbl>::True()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -2502,7 +2502,7 @@ bool Data_<SpDComplexDbl>::True()
 
 template<>
 bool Data_<SpDPtr>::True()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -2511,7 +2511,7 @@ bool Data_<SpDPtr>::True()
 
 template<>
 bool Data_<SpDObj>::True()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -2595,14 +2595,14 @@ bool Data_<SpDObj>::True()
 // False
 template<class Sp>
 bool Data_<Sp>::False()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return !True();
 }
 
 // Sgn
 template<class Sp>
 int Data_<Sp>::Sgn() // -1,0,1
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -2647,7 +2647,7 @@ int Data_<SpDObj>::Sgn() // -1,0,1
 // Equal (deletes r) only used in ForCheck(...)
 template<class Sp>
 bool Data_<Sp>::Equal( BaseGDL* r) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( r->StrictScalar());
   //   if( !r->Scalar())
   //     {
@@ -2663,7 +2663,7 @@ bool Data_<Sp>::Equal( BaseGDL* r) const
 }
 template<>
 bool Data_<SpDFloat>::Equal( BaseGDL* r) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( r->StrictScalar());
   //   if( !r->Scalar())
   //     {
@@ -2679,7 +2679,7 @@ bool Data_<SpDFloat>::Equal( BaseGDL* r) const
 }
 template<>
 bool Data_<SpDDouble>::Equal( BaseGDL* r) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( r->StrictScalar());
   //   if( !r->Scalar())
   //     {
@@ -2697,7 +2697,7 @@ bool Data_<SpDDouble>::Equal( BaseGDL* r) const
 // Equal (does not delete r)
 template<class Sp>
 bool Data_<Sp>::EqualNoDelete( const BaseGDL* r) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( !r->Scalar())
     {
       throw GDLException("Expression must be a scalar in this context.");
@@ -2726,7 +2726,7 @@ bool DStructGDL::Equal( BaseGDL* r) const
 
 // For array_equal r must be of same type
 template<class Sp>
-bool Data_<Sp>::ArrayEqual( BaseGDL* rIn) {
+bool Data_<Sp>::ArrayEqual( BaseGDL* rIn) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_<Sp>* r = static_cast<Data_<Sp>*> (rIn);
   SizeT nEl = N_Elements();
   SizeT rEl = r->N_Elements();
@@ -2755,7 +2755,7 @@ bool DStructGDL::ArrayEqual( BaseGDL* r)
 // For array_equal r must be of same type
 template<class Sp>
 bool Data_<Sp>::ArrayNeverEqual( BaseGDL* rIn)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_<Sp>* r = static_cast< Data_<Sp>*>( rIn);
   SizeT nEl = N_Elements();
   SizeT rEl = r->N_Elements();
@@ -2787,29 +2787,29 @@ bool DStructGDL::ArrayNeverEqual( BaseGDL* r)
 //Not used
 //template<class Sp>
 //bool Data_<Sp>::OutOfRangeOfInt() const 
-//{
+//{ 
 //  assert( this->StrictScalar());
 //  return (*this)[0] > std::numeric_limits< DInt>::max() || (*this)[0] < std::numeric_limits< DInt>::min();
 //}
 //
 //template<>
 //bool Data_<SpDString>::OutOfRangeOfInt() const 
-//{
+//{ 
 //  return false;
 //}
 //template<>
 //bool Data_<SpDByte>::OutOfRangeOfInt() const 
-//{
+//{ 
 //  return false;
 //}
 //template<>
 //bool Data_<SpDComplex>::OutOfRangeOfInt() const 
-//{
+//{ 
 //  return false;
 //}
 //template<>
 //bool Data_<SpDComplexDbl>::OutOfRangeOfInt() const 
-//{
+//{ 
 //  return false;
 //}
 
@@ -2817,7 +2817,7 @@ bool DStructGDL::ArrayNeverEqual( BaseGDL* r)
 // (convert strings to floats here (not for first argument)
 
 template<class Sp>
-bool Data_<Sp>::ForCheck(BaseGDL** lEnd, BaseGDL** lStep) {
+bool Data_<Sp>::ForCheck(BaseGDL** lEnd, BaseGDL** lStep) { 
   // all scalars?
   if (!StrictScalar())
     throw GDLException("Loop INIT must be a scalar in this context.");
@@ -2923,7 +2923,7 @@ bool DStructGDL::ForCheck( BaseGDL** lEnd, BaseGDL** lStep)
 // ForCheck must have been called before
 template<class Sp>
 bool Data_<Sp>::ForAddCondUp( BaseGDL* endLoopVar)
-{
+{ 
   if( endLoopVar->Type() != this->t) throw GDLException("Type of FOR index variable changed.");
   Data_* lEnd=static_cast<Data_*>(endLoopVar);
   bool what=true;
@@ -2938,14 +2938,14 @@ bool Data_<Sp>::ForAddCondUp( BaseGDL* endLoopVar)
 // ForCheck must have been called before
 template<class Sp>
 bool Data_<Sp>::ForCondUp( BaseGDL* lEndIn)
-{
+{ 
   if( lEndIn->Type() != this->t) throw GDLException("Type of FOR index variable changed.");
   Data_* lEnd=static_cast<Data_*>(lEndIn);
   return (*this)[0] <= (*lEnd)[0];
 }
 template<class Sp>
 bool Data_<Sp>::ForCondDown( BaseGDL* lEndIn)
-{
+{ 
   if( lEndIn->Type() != this->t) throw GDLException("Type of FOR index variable changed.");
   Data_* lEnd=static_cast<Data_*>(lEndIn);
   return (*this)[0] >= (*lEnd)[0];
@@ -2964,7 +2964,7 @@ bool DStructGDL::ForCondDown( BaseGDL*)
 }
 template<>
 bool Data_<SpDComplex>::ForCondUp( BaseGDL*)
-{ 
+{
   throw GDLException("Type of FOR index variable changed to COMPLEX.");
   return false; 
 }
@@ -2972,13 +2972,13 @@ bool Data_<SpDComplex>::ForCondUp( BaseGDL*)
 template<>
 bool Data_<SpDComplex>::ForAddCondUp( BaseGDL* loopInfo)
 // bool Data_<SpDComplex>::ForAddCondUp( ForLoopInfoT& loopInfo)
-{ 
+{
   throw GDLException("Type of FOR index variable changed to COMPLEX.");
   return false; 
 }
 template<>
 bool Data_<SpDComplex>::ForCondDown( BaseGDL*)
-{ 
+{
   throw GDLException("Type of FOR index variable changed to COMPLEX.");
   return false; 
 }
@@ -2986,19 +2986,19 @@ bool Data_<SpDComplex>::ForCondDown( BaseGDL*)
 template<>
 bool Data_<SpDComplexDbl>::ForAddCondUp( BaseGDL* loopInfo)
 // bool Data_<SpDComplexDbl>::ForAddCondUp( ForLoopInfoT& loopInfo)
-{ 
+{
   throw GDLException("Type of FOR index variable changed to DCOMPLEX.");
   return false; 
 }
 template<>
 bool Data_<SpDComplexDbl>::ForCondUp( BaseGDL*)
-{ 
+{
   throw GDLException("Type of FOR index variable changed to DCOMPLEX.");
   return false; 
 }
 template<>
 bool Data_<SpDComplexDbl>::ForCondDown( BaseGDL*)
-{ 
+{
   throw GDLException("Type of FOR index variable changed to DCOMPLEX.");
   return false; 
 }
@@ -3007,7 +3007,7 @@ bool Data_<SpDComplexDbl>::ForCondDown( BaseGDL*)
 // general version
 template<class Sp>
 void Data_<Sp>::ForAdd( BaseGDL* addIn)
-{
+{ 
   if( addIn == NULL)
     {
       (*this)[0] += 1;
@@ -3024,7 +3024,7 @@ void DStructGDL::ForAdd( BaseGDL* addIn) {}
 //// normal (+1) version
 //template<class Sp>
 //void Data_<Sp>::ForAdd()
-//{
+//{ 
 //  (*this)[0] += 1;
 //}
 // cannnot be called, just to make the compiler shut-up
@@ -3032,7 +3032,7 @@ void DStructGDL::ForAdd( BaseGDL* addIn) {}
 
 template<class Sp>
 void Data_<Sp>::AssignAtIx( RangeT ixR, BaseGDL* srcIn)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( ixR < 0)
     {
       SizeT nEl = this->N_Elements();
@@ -3071,7 +3071,7 @@ void Data_<Sp>::AssignAtIx( RangeT ixR, BaseGDL* srcIn)
 //         GDLInterpreter::l_array_expr
 template<class Sp>
 void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   //  breakpoint(); // gdbg can not handle breakpoints in template functions
   Data_* src = static_cast<Data_*>(srcIn);  
 
@@ -3158,7 +3158,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT offset)
 }
 template<class Sp>
 void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList) 
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( ixList != NULL);
 
   //  breakpoint(); // gdbg can not handle breakpoints in template functions
@@ -3167,7 +3167,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
   SizeT srcElem= src->N_Elements();
   bool  isScalar= (srcElem == 1);
   if( isScalar) 
-    { // src is scalar
+    {// src is scalar
       SizeT nCp=ixList->N_Elements();
 
       if( nCp == 1)
@@ -3207,7 +3207,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 }
 template<class Sp>
 void Data_<Sp>::AssignAt( BaseGDL* srcIn)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   //  breakpoint(); // gdbg can not handle breakpoints in template functions
   Data_* src = static_cast<Data_*>(srcIn);  
 
@@ -3237,7 +3237,7 @@ void Data_<Sp>::AssignAt( BaseGDL* srcIn)
 // integers
 template<class Sp>
 void Data_<Sp>::DecAt( ArrayIndexListT* ixList) 
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( ixList == NULL)
     {
       dd -= 1;
@@ -3258,7 +3258,7 @@ void Data_<Sp>::DecAt( ArrayIndexListT* ixList)
 }
 template<class Sp>
 void Data_<Sp>::IncAt( ArrayIndexListT* ixList) 
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( ixList == NULL)
     {
       dd += 1;
@@ -3280,7 +3280,7 @@ void Data_<Sp>::IncAt( ArrayIndexListT* ixList)
 // float, double
 template<>
 void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList) 
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( ixList == NULL)
     {
       dd -= 1.0f;
@@ -3302,7 +3302,7 @@ void Data_<SpDFloat>::DecAt( ArrayIndexListT* ixList)
 }
 template<>
 void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList) 
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( ixList == NULL)
     {
       dd += 1.0f;
@@ -3324,7 +3324,7 @@ void Data_<SpDFloat>::IncAt( ArrayIndexListT* ixList)
 }
 template<>
 void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList) 
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( ixList == NULL)
     {
       dd -= 1.0;
@@ -3346,7 +3346,7 @@ void Data_<SpDDouble>::DecAt( ArrayIndexListT* ixList)
 }
 template<>
 void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList) 
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( ixList == NULL)
     {
       dd += 1.0;
@@ -3369,7 +3369,7 @@ void Data_<SpDDouble>::IncAt( ArrayIndexListT* ixList)
 // complex
 template<>
 void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList) 
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( ixList == NULL)
     {
       //       dd -= 1.0f;
@@ -3392,7 +3392,7 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
 }
 template<>
 void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList) 
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( ixList == NULL)
     {
       //       dd += 1.0f;
@@ -3413,7 +3413,7 @@ void Data_<SpDComplex>::IncAt( ArrayIndexListT* ixList)
 }
 template<>
 void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList) 
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( ixList == NULL)
     {
       //       dd -= 1.0;
@@ -3434,7 +3434,7 @@ void Data_<SpDComplexDbl>::DecAt( ArrayIndexListT* ixList)
 }
 template<>
 void Data_<SpDComplexDbl>::IncAt( ArrayIndexListT* ixList) 
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( ixList == NULL)
     {
       //       dd += 1.0;
@@ -3492,7 +3492,7 @@ void Data_<SpDObj>::IncAt( ArrayIndexListT* ixList)
 template<class Sp>
 void Data_<Sp>::InsertAt( SizeT offset, BaseGDL* srcIn, 
 			  ArrayIndexListT* ixList)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* src=static_cast<Data_* >(srcIn);
   if( ixList == NULL)
     {
@@ -3517,7 +3517,7 @@ template<class Sp>
 Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
 				const SizeT catRankIx, 
 				const SizeT rank)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   //  breakpoint();
   SizeT rankIx = RankIx( rank);
   SizeT maxIx = (catRankIx > rankIx)? catRankIx : rankIx;
@@ -3577,7 +3577,7 @@ Data_<Sp>* Data_<Sp>::CatArray( ExprListT& exprList,
 // returns (*this)[ ixList]
 template<class Sp>
 Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   //  ixList->SetVariable( this);
 
   Data_* res=Data_::New( ixList->GetDim(), BaseGDL::NOZERO);
@@ -3605,7 +3605,7 @@ Data_<Sp>* Data_<Sp>::Index( ArrayIndexListT* ixList)
 // respects the exact structure of srcIn
 template<class Sp>
 void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   // max. number of dimensions to copy
   SizeT nDim = ixList->NDim();
  
@@ -3724,7 +3724,7 @@ void Data_<Sp>::InsAt( Data_* srcIn, ArrayIndexListT* ixList, SizeT offset)
 // assumes that everything is checked (see CatInfo)
 template<class Sp>
 void Data_<Sp>::CatInsert (const Data_* srcArr, const SizeT atDim, SizeT& at)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   // length of one segment to copy
   SizeT len = srcArr->dim.Stride (atDim + 1); // src array
 
@@ -3740,7 +3740,7 @@ void Data_<Sp>::CatInsert (const Data_* srcArr, const SizeT atDim, SizeT& at)
   SizeT gap = this->dim.Stride (atDim + 1); // dest array
   
 //GD: speed up by using indexing that permit parallel and collapse.
-  bool parallelize=(CpuTPOOL_NTHREADS >1 && len*nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= len*nCp));
+  bool parallelize=(CpuTPOOL_NTHREADS >1 && len*nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= len*nCp));
   if (!parallelize) { //most frequent
     for (OMPInt c = 0; c < nCp; ++c) {
       for (SizeT destIx = 0; destIx < len; destIx++) (*this)[destIx + destStart + c * gap] = (*srcArr)[ destIx + c * len];
@@ -3767,7 +3767,7 @@ void Data_<Sp>::CatInsert (const Data_* srcArr, const SizeT atDim, SizeT& at)
 // integers
 template<class Sp>
 bool Data_<Sp>::LogTrue()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -3775,7 +3775,7 @@ bool Data_<Sp>::LogTrue()
 }
 template<>
 bool Data_<SpDFloat>::LogTrue()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -3783,7 +3783,7 @@ bool Data_<SpDFloat>::LogTrue()
 }
 template<>
 bool Data_<SpDDouble>::LogTrue()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -3791,7 +3791,7 @@ bool Data_<SpDDouble>::LogTrue()
 }
 template<>
 bool Data_<SpDString>::LogTrue()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -3799,7 +3799,7 @@ bool Data_<SpDString>::LogTrue()
 }
 template<>
 bool Data_<SpDComplex>::LogTrue()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -3807,7 +3807,7 @@ bool Data_<SpDComplex>::LogTrue()
 }
 template<>
 bool Data_<SpDComplexDbl>::LogTrue()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -3815,7 +3815,7 @@ bool Data_<SpDComplexDbl>::LogTrue()
 }
 template<>
 bool Data_<SpDPtr>::LogTrue()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Ty s;
   if( !Scalar( s))
     throw GDLException("Expression must be a scalar or 1 element array in this context.",true,false);
@@ -3823,7 +3823,7 @@ bool Data_<SpDPtr>::LogTrue()
 }
 template<>
 bool Data_<SpDObj>::LogTrue()
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   // ::_overloadIsTrue is handled in True()
   
   return this->True();
@@ -3834,42 +3834,42 @@ bool Data_<SpDObj>::LogTrue()
 // integers
 template<class Sp>
 bool Data_<Sp>::LogTrue(SizeT i)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return ((*this)[i] != 0);
 }
 template<>
 bool Data_<SpDFloat>::LogTrue(SizeT i)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return ((*this)[i] != 0.0f);
 }
 template<>
 bool Data_<SpDDouble>::LogTrue(SizeT i)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return ((*this)[i] != 0.0);
 }
 template<>
 bool Data_<SpDString>::LogTrue(SizeT i)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return ((*this)[i] != "");
 }
 template<>
 bool Data_<SpDComplex>::LogTrue(SizeT i)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return ((*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0);
 }
 template<>
 bool Data_<SpDComplexDbl>::LogTrue(SizeT i)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return ((*this)[i].real() != 0.0 || (*this)[i].imag() != 0.0);
 }
 template<>
 bool Data_<SpDPtr>::LogTrue(SizeT i)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return (*this)[i] != 0;
 }
 template<>
 bool Data_<SpDObj>::LogTrue(SizeT i)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return (*this)[i] != 0;
 }
 
@@ -3896,7 +3896,7 @@ BaseGDL* Data_<SpDComplexDbl>::Rebin( const dimension& newDim, bool sample)
 template< typename T>
 T* Rebin1(T* src,
   const dimension& srcDim,
-  SizeT dimIx, SizeT newDim, bool sample) {
+	  SizeT dimIx, SizeT newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = src->N_Elements();
 
   if (newDim == 0) newDim = 1;
@@ -4010,7 +4010,7 @@ T* Rebin1(T* src,
 template< typename T, typename TNext>
 T* Rebin1Int(T* src,
   const dimension& srcDim,
-  SizeT dimIx, SizeT newDim, bool sample) {
+	     SizeT dimIx, SizeT newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = src->N_Elements();
 
   if (newDim == 0) newDim = 1;
@@ -4122,7 +4122,7 @@ T* Rebin1Int(T* src,
 }
 
 template<class Sp>
-BaseGDL* Data_<Sp>::Rebin(const dimension& newDim, bool sample) {
+BaseGDL* Data_<Sp>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
 
@@ -4192,7 +4192,7 @@ BaseGDL* Data_<Sp>::Rebin(const dimension& newDim, bool sample) {
 // integer types
 
 template<>
-BaseGDL* Data_<SpDByte>::Rebin(const dimension& newDim, bool sample) {
+BaseGDL* Data_<SpDByte>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
 
@@ -4257,7 +4257,7 @@ BaseGDL* Data_<SpDByte>::Rebin(const dimension& newDim, bool sample) {
 }
 
 template<>
-BaseGDL* Data_<SpDInt>::Rebin(const dimension& newDim, bool sample) {
+BaseGDL* Data_<SpDInt>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
 
@@ -4322,7 +4322,7 @@ BaseGDL* Data_<SpDInt>::Rebin(const dimension& newDim, bool sample) {
 }
 
 template<>
-BaseGDL* Data_<SpDUInt>::Rebin(const dimension& newDim, bool sample) {
+BaseGDL* Data_<SpDUInt>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
 
@@ -4387,7 +4387,7 @@ BaseGDL* Data_<SpDUInt>::Rebin(const dimension& newDim, bool sample) {
 }
 
 template<>
-BaseGDL* Data_<SpDLong>::Rebin(const dimension& newDim, bool sample) {
+BaseGDL* Data_<SpDLong>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
 
@@ -4452,7 +4452,7 @@ BaseGDL* Data_<SpDLong>::Rebin(const dimension& newDim, bool sample) {
 }
 
 template<>
-BaseGDL* Data_<SpDULong>::Rebin(const dimension& newDim, bool sample) {
+BaseGDL* Data_<SpDULong>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
 
@@ -4516,7 +4516,7 @@ BaseGDL* Data_<SpDULong>::Rebin(const dimension& newDim, bool sample) {
   return actIn;
 }
 template<>
-BaseGDL* Data_<SpDLong64>::Rebin(const dimension& newDim, bool sample) {
+BaseGDL* Data_<SpDLong64>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
 
@@ -4583,7 +4583,7 @@ BaseGDL* Data_<SpDLong64>::Rebin(const dimension& newDim, bool sample) {
 // no checking
 template<class Sp>
 void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* srcT; // = dynamic_cast<Data_*>( src);
 
   Guard< Data_> srcTGuard;
@@ -4610,12 +4610,12 @@ void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
 // return a new type of itself (only for one dimensional case)
 template<class Sp>
 BaseGDL* Data_<Sp>::NewIx( SizeT ix)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return new Data_( (*this)[ ix]);
 }
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIx( AllIxBaseT* ix, const dimension* dIn)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nCp = ix->size();
   Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
   TRACEOMP(__FILE__,__LINE__)
@@ -4625,7 +4625,7 @@ Data_<Sp>* Data_<Sp>::NewIx( AllIxBaseT* ix, const dimension* dIn)
 }
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nCp = dd.size() - s;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
   for( int c=0; c<nCp; ++c)
@@ -4634,7 +4634,7 @@ Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s)
 }
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s, SizeT e)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nCp = e - s + 1;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
   for( int c=0; c<nCp; ++c)
@@ -4643,7 +4643,7 @@ Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s, SizeT e)
 }
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT stride)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nCp = (dd.size() - s + stride - 1)/stride;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
   for( SizeT c=0; c<nCp; ++c, s += stride)
@@ -4652,7 +4652,7 @@ Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT stride)
 }
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT e, SizeT stride)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nCp = (e - s + stride)/stride;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
   for( SizeT c=0; c<nCp; ++c, s += stride)
@@ -4664,7 +4664,7 @@ Data_<Sp>* Data_<Sp>::NewIxFromStride( SizeT s, SizeT e, SizeT stride)
 
 template<class Sp>
 Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( ix->Type() != GDL_UNDEF);
 
   // no type checking needed here: GetAsIndex() will fail with grace
@@ -4707,24 +4707,24 @@ Data_<Sp>* Data_<Sp>::NewIx( BaseGDL* ix, bool strict)
 
 // unsigned types
 template<class Sp> SizeT Data_<Sp>::GetAsIndex( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return (*this)[ i];
 }
 template<class Sp> SizeT Data_<Sp>::GetAsIndexStrict( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return (*this)[ i]; // good for unsigned types
 }
 
 template<>
 SizeT Data_<SpDInt>::GetAsIndex( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( (*this)[i] < 0)
     return 0;
   return (*this)[i];
 }	
 template<>
 SizeT Data_<SpDInt>::GetAsIndexStrict( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( (*this)[i] < 0)
     throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
@@ -4732,14 +4732,14 @@ SizeT Data_<SpDInt>::GetAsIndexStrict( SizeT i) const
 }	
 template<>
 SizeT Data_<SpDLong>::GetAsIndex( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( (*this)[i] < 0)
     return 0;
   return (*this)[i];
 }	
 template<>
 SizeT Data_<SpDLong>::GetAsIndexStrict( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( (*this)[i] < 0)
     throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
@@ -4747,14 +4747,14 @@ SizeT Data_<SpDLong>::GetAsIndexStrict( SizeT i) const
 }	
 template<>
 SizeT Data_<SpDLong64>::GetAsIndex( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( (*this)[i] < 0)
     return 0;
   return (*this)[i];
 }	
 template<>
 SizeT Data_<SpDLong64>::GetAsIndexStrict( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( (*this)[i] < 0)
     throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
@@ -4762,14 +4762,14 @@ SizeT Data_<SpDLong64>::GetAsIndexStrict( SizeT i) const
 }	
 template<>
 SizeT Data_<SpDFloat>::GetAsIndex( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( (*this)[i] <= 0.0)
     return 0;
   return Real2Int<SizeT,float>((*this)[i]);
 }	
 template<>
 SizeT Data_<SpDFloat>::GetAsIndexStrict( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( (*this)[i] <= -1.0)
     throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
@@ -4779,14 +4779,14 @@ SizeT Data_<SpDFloat>::GetAsIndexStrict( SizeT i) const
 }	
 template<>
 SizeT Data_<SpDDouble>::GetAsIndex( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( (*this)[i] <= 0.0)
     return 0;
   return Real2Int<SizeT,double>((*this)[i]);
 }	
 template<>
 SizeT Data_<SpDDouble>::GetAsIndexStrict( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( (*this)[i] <= -1.0)
     throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
@@ -4796,7 +4796,7 @@ SizeT Data_<SpDDouble>::GetAsIndexStrict( SizeT i) const
 }	
 template<>
 SizeT Data_<SpDString>::GetAsIndex( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   const char* cStart=(*this)[i].c_str();
   char* cEnd;
   long l=strtol(cStart,&cEnd,10);
@@ -4811,7 +4811,7 @@ SizeT Data_<SpDString>::GetAsIndex( SizeT i) const
 }	
 template<>
 SizeT Data_<SpDString>::GetAsIndexStrict( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   const char* cStart=(*this)[i].c_str();
   char* cEnd;
   long l=strtol(cStart,&cEnd,10);
@@ -4828,14 +4828,14 @@ SizeT Data_<SpDString>::GetAsIndexStrict( SizeT i) const
 
 template<>
 SizeT Data_<SpDComplex>::GetAsIndex( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( real((*this)[i]) <= 0.0)
     return 0;
   return Real2Int<SizeT,float>(real((*this)[i]));
 }	
 template<>
 SizeT Data_<SpDComplex>::GetAsIndexStrict( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( real((*this)[i]) <= -1.0)
     throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);
@@ -4845,14 +4845,14 @@ SizeT Data_<SpDComplex>::GetAsIndexStrict( SizeT i) const
 }	
 template<>
 SizeT Data_<SpDComplexDbl>::GetAsIndex( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( real((*this)[i]) <= 0.0)
     return 0;
   return Real2Int<SizeT,double>(real((*this)[i]));
 }	
 template<>
 SizeT Data_<SpDComplexDbl>::GetAsIndexStrict( SizeT i) const
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( real((*this)[i]) <= -1.0)
     throw GDLException(-1,NULL,"Array used to subscript array "
 		       "contains out of range (<0) subscript (at index: " + i2s(i) + ").",true,false);

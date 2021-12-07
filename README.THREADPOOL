@@ -1,0 +1,47 @@
+GDL uses, if enabled, the OpenMP mechanism for parallelization of expensive computations.
+With a small number of exceptions, the routines using OpenMP are the same as for IDL (list below)
+The threaded version of the function or procedure is triggered by the size (N_ELEMENTS()) of the variable(s) involved, and the values of the members of the !CPU structure
+!CPU.TPOOOL_NTHREADS fixes the number of threads to use, (defaults to the number of threads of the machine or, if defined, the value of the env.var. OMP_NUM_THREADS)
+!CPU.TPOOOL_MIN_ELTS is the minimum number of elements that will trigger parallell processing. Default is 100000.
+!CPU.TPOOOL_MAX_ELTS limits the parallel processing to arrays of size inferior to this value. Defaults to 0, which means: no maximum value.
+
+At the moment, operations on objects and pointers are not using OpenMP. Please open an issue (with simple working example) if this seems necessary.
+
+The list of 'thread pool' operations, functions, routines, etc that use it is:
+
+Operators + , - , * , / , # , ##  ( unless Eigen:: is used, in which case we use Eigen::)
+Operators ++ , -- , ^ , < , > , AND , OR , MOD , EQ , NE , LE, LT , GE, GT
+
+This goes also for self-operators: and= , *= , eq= , ge= , >= , gt= , le= , <= , lt= , #= , ##= , -= , mod= , ne= , or= , += , ^= , /= , xor=
+
+Math functions etc:
+-------------------
+
+ABS , ACOS , ALOG , ALOG2 , ALOG10 , ASIN , ATAN , CEIL , CONJ , COS , COSH,
+ERF , ERFC , ERFCX , EXP , EXPINT , FINITE , FLOOR , GAMMA , GAUSSINT ,
+IMAGINARY , ISHFT , LNGAMMA , MATRIX_MULTIPLY , MAX, MIN, PRODUCT , ROUND ,SIN ,
+SINH , SQRT , TAN , TANH , TOTAL, VOIGT
+
+BYTSCL , CONVOL , FFT , INTERPOLATE , POLY_2D , TVSCL
+
+INDGEN  and all indexed creators ( CINDGEN etc..),  REPLICATE .
+
+BYTE and all other data conversion routines (FIX, ULONG..)
+
+WHERE, REPLICATE_INPLACE, BYTEORDER , LOGICAL_OR , LOGICAL_AND , LOGICAL_TRUE
+
+
+Geeks corner:
+- setting the OpenMP machinery is time-consuming, and was working in defavour of GDL for small numbers. The solution (probably perfectible) has been
+ to duplicate the code everywhere necessary in a 'if (!parallelize) { ... code ...} else { ... same code, with OMP #pragmas ... }' , with 'parallelize'
+ given by the TPOOL rules. Apparently this solves most of the reported GDL sluggishness.
+
+- some code like where() or interpolate() etc are not with this simple scheme as the section put in parallel is often very long. Usually, for any problem
+  size, the speed is on par or better than IDL. Test reports welcome.
+
+- It is up to the user on mumti-core machines to adapt the values of !CPU (using the 'CPU' command) to get the most of the machine. Remember, one
+  can change the !CPU values at each line of code.
+
+- TRACE_OMP_CALLS (in src/typedefs.hpp) may be used to trace the calls to OpenMP sections.
+
+ 

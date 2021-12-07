@@ -1221,7 +1221,7 @@ namespace lib {
     if (re->Rank() == 0) {
       TypOutGDL* res = new TypOutGDL(im->Dim(), BaseGDL::NOZERO);
       SizeT nE = im->N_Elements();
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nE));
       if (!parallelize) {
         for (SizeT i = 0; i < nE; i++) (*res)[i] = std::complex<decltype(t)>((*re)[0], (*im)[i]);
       } else {
@@ -1233,7 +1233,7 @@ namespace lib {
     } else if (im->Rank() == 0) {
       TypOutGDL* res = new TypOutGDL(re->Dim(), BaseGDL::NOZERO);
       SizeT nE = re->N_Elements();
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nE));
       if (!parallelize) {
         for (SizeT i = 0; i < nE; i++) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[0]);
       } else {
@@ -1245,7 +1245,7 @@ namespace lib {
     } else if (re->N_Elements() >= im->N_Elements()) {
       TypOutGDL* res = new TypOutGDL(im->Dim(), BaseGDL::NOZERO);
       SizeT nE = im->N_Elements();
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nE));
       if (!parallelize) {
         for (SizeT i = 0; i < nE; i++) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[i]);
       } else {
@@ -1257,7 +1257,7 @@ namespace lib {
     } else {
       TypOutGDL* res = new TypOutGDL(re->Dim(), BaseGDL::NOZERO);
       SizeT nE = re->N_Elements();
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nE));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nE >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nE));
       if (!parallelize) {
         for (SizeT i = 0; i < nE; i++) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[i]);
       } else {
@@ -1994,7 +1994,7 @@ namespace lib {
 
     SizeT nEl = res->N_Elements();
 
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (mode == 2) // both
     {
       if (!parallelize) {
@@ -2036,7 +2036,7 @@ namespace lib {
     DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
 
     SizeT nEl = p0S->N_Elements();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = StrCompress((*p0S)[ i], removeAll);
     } else {
@@ -2081,7 +2081,7 @@ namespace lib {
     DLongGDL* res = new DLongGDL(p0S->Dim(), BaseGDL::NOZERO);
 
     SizeT nEl = p0S->N_Elements();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) {
         (*res)[ i] = StrPos((*p0S)[ i], searchString, pos, reverseOffset, reverseSearch);
@@ -2159,7 +2159,7 @@ namespace lib {
       }
       return res;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nSrcStr ) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nSrcStr)));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nSrcStr ) >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= (nSrcStr)));
     if (!parallelize) {
       for (OMPInt i = 0; i < nSrcStr; ++i) {
         for (long ii = 0; ii < stride; ++ii) {
@@ -2206,7 +2206,7 @@ namespace lib {
     }
 
     SizeT nEl = p0S->N_Elements();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
 
     if (isReference) {
       res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
@@ -2246,7 +2246,7 @@ namespace lib {
     }
 
     SizeT nEl = p0S->N_Elements();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
 
     if (isReference) {
       res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
@@ -2407,7 +2407,7 @@ namespace lib {
   BaseGDL* total_template_generic(T* src, bool omitNaN) {
     SizeT nEl = src->N_Elements();
     typename T::Ty sum = 0;
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       if (!omitNaN) for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
       else for (SizeT i = 0; i < nEl; ++i) if (isfinite((*src)[i])) sum += (*src)[ i];
@@ -2437,7 +2437,7 @@ namespace lib {
     SizeT nEl = src->N_Elements();
     DFloat sr = 0;
     DFloat si = 0;
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!omitNaN) {
       if (!parallelize) {
         for (SizeT i = 0; i < nEl; ++i) {
@@ -2485,7 +2485,7 @@ namespace lib {
     SizeT nEl = src->N_Elements();
     DDouble sr = 0;
     DDouble si = 0;
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!omitNaN) {
       if (!parallelize) {
         for (SizeT i = 0; i < nEl; ++i) {
@@ -2533,7 +2533,7 @@ namespace lib {
   DDoubleGDL* total_template_double(T* src, bool omitNaN) {
     //   std::cerr<<" total_template_double "<<std::endl;
     SizeT nEl = src->N_Elements();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     DDouble sum = 0;
     if (!parallelize) {
       if (!omitNaN) {
@@ -2566,7 +2566,7 @@ namespace lib {
   DFloatGDL* total_template_single(T* src, bool omitNaN) {
     //   std::cerr<<" total_template_single "<<std::endl;
     SizeT nEl = src->N_Elements();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     DDouble sum = 0;
     if (!parallelize) {
       if (!omitNaN) {
@@ -2602,7 +2602,7 @@ namespace lib {
     //   std::cerr<<" total_template_integer "<<std::endl;
     SizeT nEl = src->N_Elements();
     DLong64 sum = 0;
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
     } else {
@@ -2612,26 +2612,6 @@ namespace lib {
     }
     return new DLong64GDL(sum);
   }
-
-  // cumulative over all dims
-
-  //  template<typename T>
-  //  BaseGDL* total_cu_template(T* res, bool omitNaN)
-  //  {
-  //    SizeT nEl = res->N_Elements();
-  //    if (omitNaN) {
-  //      // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-  //      {
-  //        // #pragma omp for
-  //        for (SizeT i = 0; i < nEl; ++i)
-  //          NaN2Zero((*res)[i]);
-  //      }
-  //    }
-  //    for (SizeT i = 1, ii = 0; i < nEl; ++i, ++ii)
-  //      (*res)[i] += (*res)[ii];
-  //    return res;
-  //  }
-  //this is twice faster than above version, probably by exposing the POD (T1::Ty) to the loop to be optimized by the compiler
 
   template<typename T1, typename T2>
   BaseGDL* total_cu_template(T1* val, bool omitNaN) {
@@ -2665,7 +2645,7 @@ namespace lib {
     SizeT sumStride = srcDim.Stride(sumDimIx);
     SizeT outerStride = srcDim.Stride(sumDimIx + 1);
     SizeT sumLimit = nSum * sumStride;
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && ((nEl / outerStride) * sumStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl / outerStride) * sumStride)));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && ((nEl / outerStride) * sumStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= (nEl / outerStride) * sumStride)));
     if (!parallelize) {
       if (omitNaN) {
         for (SizeT o = 0; o < nEl; o += outerStride) {
@@ -3320,7 +3300,7 @@ namespace lib {
   BaseGDL* product_template(T* src, bool omitNaN) {
     typename T::Ty prod = 1;
     SizeT nEl = src->N_Elements();
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       if (!omitNaN) {
         for (OMPInt i = 0; i < nEl; ++i) {
@@ -3423,7 +3403,7 @@ namespace lib {
     SizeT prodStride = srcDim.Stride(prodDimIx);
     SizeT outerStride = srcDim.Stride(prodDimIx + 1);
     SizeT prodLimit = nProd * prodStride;
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && ((nEl / outerStride) * prodStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= (nEl / outerStride) * prodStride)));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && ((nEl / outerStride) * prodStride >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= (nEl / outerStride) * prodStride)));
     if (!parallelize) {
       if (omitNaN) {
         for (SizeT o = 0; o < nEl; o += outerStride) {
@@ -5414,7 +5394,7 @@ namespace lib {
 
   template <typename Ty> static inline Ty do_mean(const Ty* data, const SizeT sz) {
     Ty mean = 0;
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) mean += data[i];
     } else {
@@ -5428,7 +5408,7 @@ namespace lib {
   template <typename Ty, typename T2> static inline Ty do_mean_cpx(const Ty* data, const SizeT sz) {
     T2 meanr = 0;
     T2 meani = 0;
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) meanr += data[i].real();
       for (SizeT i = 0; i < sz; ++i) meani += data[i].imag();
@@ -5449,7 +5429,7 @@ namespace lib {
   template <typename Ty> static inline Ty do_mean_nan(const Ty* data, const SizeT sz) {
     Ty mean = 0;
     SizeT n = 0;
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty v = data[i];
@@ -5481,7 +5461,7 @@ namespace lib {
     T2 meani = 0;
     SizeT nr = 0;
     SizeT ni = 0;
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) {
         T2 v = data[i].real();
@@ -5678,7 +5658,7 @@ namespace lib {
 
     Ty var = 0;
     Ty md = 0;
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
@@ -5754,7 +5734,7 @@ namespace lib {
     T2 mdr = 0;
     T2 varr = 0;
     T2 vari = 0;
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
@@ -5885,7 +5865,7 @@ namespace lib {
     Ty var = 0;
     Ty md = 0;
     SizeT k = 0;
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
@@ -5971,7 +5951,7 @@ namespace lib {
     T2 mdr = 0;
     T2 varr = 0;
     T2 vari = 0;
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= sz));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
     if (!parallelize) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
@@ -6184,7 +6164,7 @@ namespace lib {
       // resize destDim
       destDim.Remove(momentDim); //will be one dimension less
       SizeT nEl = destDim.NDimElementsConst(); //need to compute that here, before adding last dim.
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
       auxiliaryDim = destDim;
 
       destDim << 4; //add 4 as last dim
@@ -6647,7 +6627,7 @@ namespace lib {
   }
 
   template<typename T> void ishft_m(T* out, const SizeT n, const DLong* s) {
-    bool parallelize = ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n));
+    bool parallelize = ((CpuTPOOL_NTHREADS > 1) && (n >= CpuTPOOL_MIN_ELTS) && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= n));
     if (!parallelize) {
       for (SizeT i = 0; i < n; ++i) {
         if (s[i] >= 0) out[i] <<= s[i];
@@ -7250,7 +7230,7 @@ namespace lib {
     //    cout << "Min/max :" << min << " " << max << endl;
 
     SizeT nEl = dRes->N_Elements();
-    bool parallelize = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       if (IntType(p0->Type())) {
         //Is a thread pool function

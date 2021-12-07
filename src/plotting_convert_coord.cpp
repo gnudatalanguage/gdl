@@ -63,7 +63,7 @@ namespace lib {
     SizeT nrows;
 
     nrows = xVal->Dim(0);
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nrows)));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nrows)));
     dims[1] = nrows;
     dimension dim((DLong *) dims, 2);
     res = new DDoubleGDL(dim, BaseGDL::NOZERO);

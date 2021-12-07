@@ -1453,7 +1453,7 @@ template <typename T, typename IndexT>
     for (int i = 0; i < 2; i++) QuickSortIndex(val, index, Left[i], Right[i]);
     } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(2) if (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1)
+#pragma omp parallel for num_threads(2)
     for (int i = 0; i < 2; i++) QuickSortIndex(val, index, Left[i], Right[i]);
     }
 }
@@ -1497,7 +1497,7 @@ template <typename T, typename IndexT>
     for (int i = 0; i < 2; i++) MergeSortIndexAux(index, aux, Left[i], Right[i], val);
     } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(2) if (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1)
+#pragma omp parallel for num_threads(2)
     for (int i = 0; i < 2; i++) MergeSortIndexAux(index, aux, Left[i], Right[i], val);
     }
     // If arrays are already sorted, finished.  This is an
@@ -1557,7 +1557,7 @@ template <typename T, typename IndexT>
     if (!parallelize) {
     for (int i = 0; i < 2; i++) AdaptiveSortIndexAux(index, aux, Left[i], Right[i], val);
     } else {
-#pragma omp parallel for num_threads(2) if (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1)
+#pragma omp parallel for num_threads(2)
     for (int i = 0; i < 2; i++) AdaptiveSortIndexAux(index, aux, Left[i], Right[i], val);
     }
     // If arrays are already sorted, finished.  This is an
@@ -1607,7 +1607,7 @@ template <typename T, typename IndexT>
     for (int i = 0; i < 2; i++) AdaptiveSortIndexAuxWithNaN(index, aux, Left[i], Right[i], val);
     } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(2) if (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1)
+#pragma omp parallel for num_threads(2)
     for (int i = 0; i < 2; i++) AdaptiveSortIndexAuxWithNaN(index, aux, Left[i], Right[i], val);
     }
     // If arrays are already sorted, finished.  This is an

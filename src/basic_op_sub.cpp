@@ -35,7 +35,7 @@
 // substraction: left=left-right
 
 template<class Sp>
-BaseGDL* Data_<Sp>::Sub(BaseGDL* r) {
+BaseGDL* Data_<Sp>::Sub(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong rEl = right->N_Elements();
@@ -58,7 +58,7 @@ BaseGDL* Data_<Sp>::Sub(BaseGDL* r) {
     dd -= right->dd;
   else {
 
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
       if (!parallelize) {
       for (OMPInt i = 0; i < nEl; ++i) (*this)[i] -= (*right)[i];
       } else {
@@ -74,7 +74,7 @@ BaseGDL* Data_<Sp>::Sub(BaseGDL* r) {
 // inverse substraction: left=right-left
 
 template<class Sp>
-BaseGDL* Data_<Sp>::SubInv(BaseGDL* r) {
+BaseGDL* Data_<Sp>::SubInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong rEl = right->N_Elements();
@@ -93,7 +93,7 @@ BaseGDL* Data_<Sp>::SubInv(BaseGDL* r) {
   return this;
 #else
 
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = (*right)[i] - (*this)[i];
     } else {
@@ -132,7 +132,7 @@ BaseGDL* Data_<SpDPtr>::SubInv(BaseGDL* r) {
 }
 
 template<>
-BaseGDL* Data_<SpDObj>::Sub(BaseGDL* r) {
+BaseGDL* Data_<SpDObj>::Sub(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   // overload here
   Data_* self;
   DSubUD* plusOverload;
@@ -220,7 +220,7 @@ BaseGDL* Data_<SpDObj>::Sub(BaseGDL* r) {
 }
 
 template<>
-BaseGDL* Data_<SpDObj>::SubInv(BaseGDL* r) {
+BaseGDL* Data_<SpDObj>::SubInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if (r->Type() == GDL_OBJ && r->Scalar()) {
     return r->Sub(this); // for right order of parameters
   }
@@ -298,7 +298,7 @@ BaseGDL* Data_<SpDObj>::SubInv(BaseGDL* r) {
 }
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::SubS(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::SubS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -318,7 +318,7 @@ Data_<Sp>* Data_<Sp>::SubS(BaseGDL* r) {
   return this;
 #else
 
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] -= s;
     } else {
@@ -333,7 +333,7 @@ Data_<Sp>* Data_<Sp>::SubS(BaseGDL* r) {
 // inverse substraction: left=right-left
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::SubInvS(BaseGDL* r) {
+Data_<Sp>* Data_<Sp>::SubInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -352,7 +352,7 @@ Data_<Sp>* Data_<Sp>::SubInvS(BaseGDL* r) {
   return this;
 #else
 
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = s - (*this)[i];
     } else {

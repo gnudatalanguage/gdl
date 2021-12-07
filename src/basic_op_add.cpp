@@ -35,7 +35,7 @@
 // right must always have more or same number of elements
 template<class Sp>
 BaseGDL* Data_<Sp>::Add( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   
   
   Data_* right=static_cast<Data_*>(r);
@@ -55,7 +55,7 @@ BaseGDL* Data_<Sp>::Add( BaseGDL* r)
 	return this;
 #else
 
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += (*right)[i];
     } else {
@@ -69,13 +69,13 @@ BaseGDL* Data_<Sp>::Add( BaseGDL* r)
 }
 template<class Sp>
 BaseGDL* Data_<Sp>::AddInv( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   assert( this->Type() != GDL_OBJ); // should never be called via this
   return Add( r); // this needs to be modified
 }
 template<>
 BaseGDL* Data_<SpDString>::AddInv( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right=static_cast<Data_*>(r);
 
   ULong nEl=N_Elements();
@@ -85,7 +85,7 @@ BaseGDL* Data_<SpDString>::AddInv( BaseGDL* r)
       (*this)[0] = (*right)[0] + (*this)[0];
       return this;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] = (*right)[i] + (*this)[i];
     } else {
@@ -98,13 +98,13 @@ BaseGDL* Data_<SpDString>::AddInv( BaseGDL* r)
 // invalid types
 template<>
 BaseGDL* Data_<SpDPtr>::Add( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 BaseGDL* Data_<SpDObj>::Add( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   // overload here
   Data_* self;
   DSubUD* plusOverload;
@@ -208,7 +208,7 @@ BaseGDL* Data_<SpDObj>::Add( BaseGDL* r)
 // difference from above: Order of parameters in call
 template<>
 BaseGDL* Data_<SpDObj>::AddInv( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   if( r->Type() == GDL_OBJ && r->Scalar())
   {
     return r->Add( this); // for right order of parameters
@@ -295,7 +295,7 @@ BaseGDL* Data_<SpDObj>::AddInv( BaseGDL* r)
 
 template<class Sp>
 BaseGDL* Data_<Sp>::AddS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right=static_cast<Data_*>(r);
 
   ULong nEl=N_Elements();
@@ -312,7 +312,7 @@ BaseGDL* Data_<Sp>::AddS( BaseGDL* r)
 	mThis += s;
 	return this;
 #else
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
     } else {
@@ -326,7 +326,7 @@ BaseGDL* Data_<Sp>::AddS( BaseGDL* r)
 }
 template<>
 BaseGDL* Data_<SpDString>::AddS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right=static_cast<Data_*>(r);
 
   ULong nEl=N_Elements();
@@ -337,7 +337,7 @@ BaseGDL* Data_<SpDString>::AddS( BaseGDL* r)
       return this;
     }
   Ty s = (*right)[0];
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
     } else {
@@ -350,12 +350,12 @@ BaseGDL* Data_<SpDString>::AddS( BaseGDL* r)
 
 template<class Sp>
 BaseGDL* Data_<Sp>::AddInvS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return AddS( r);
 }
 template<>
 BaseGDL* Data_<SpDString>::AddInvS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right=static_cast<Data_*>(r);
 
   ULong nEl=N_Elements();
@@ -366,7 +366,7 @@ BaseGDL* Data_<SpDString>::AddInvS( BaseGDL* r)
       return this;
     }
   Ty s = (*right)[0];
-     bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl));
+     bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (!parallelize) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] = s + (*this)[i];
     } else {
@@ -381,18 +381,18 @@ BaseGDL* Data_<SpDString>::AddInvS( BaseGDL* r)
 // invalid types
 template<>
 BaseGDL* Data_<SpDPtr>::AddS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   throw GDLException("Cannot apply operation to datatype PTR.",true,false);  
   return this;
 }
 template<>
 BaseGDL* Data_<SpDObj>::AddS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return Add( r);
 }
 template<>
 BaseGDL* Data_<SpDObj>::AddInvS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   return AddInv( r);
 }
 

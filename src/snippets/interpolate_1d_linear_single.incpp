@@ -1,0 +1,16 @@
+    for (SizeT j = 0; j < nx; ++j) {
+      x = xx[j];
+      if (x < 0) {
+        res[j] = array[0];
+      } else if (x < n1) {
+        ix = floor(x);
+        xi[0]=ix; xi[1]=ix+1;
+      //make in range
+        if (xi[0]<0) xi[0]=0; else if (xi[0]>n1-1) xi[0]=n1-1;
+        if (xi[1]<0) xi[1]=0; else if (xi[1]>n1-1) xi[1]=n1-1; 
+        dx = (x - xi[0]);
+        res[j] = (1. - dx) * array[xi[0]] + dx * array[xi[1]];
+      } else {
+        res[j] = array[n1-1];
+      }
+    }
