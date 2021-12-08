@@ -35,41 +35,41 @@ void LibInit_gm()
 #if defined(HAVE_LIBGSL)
 
   const string erfKey[]={"DOUBLE",KLISTEND};
-  new DLibFunRetNew(lib::erf_fun,string("ERF"),1,erfKey);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::erf_fun,string("ERF"),1,erfKey);  //UsesThreadPOOL 
 
   const string errorfKey[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::errorf_fun,string("ERRORF"),1,errorfKey);
 
   const string erfcKey[]={"DOUBLE",KLISTEND};
-  new DLibFunRetNew(lib::erfc_fun,string("ERFC"),1,erfcKey);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::erfc_fun,string("ERFC"),1,erfcKey);  //UsesThreadPOOL 
 
   const string gammaKey[]={"DOUBLE",KLISTEND};
-  new DLibFunRetNew(lib::gamma_fun,string("GAMMA"),1,gammaKey);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::gamma_fun,string("GAMMA"),1,gammaKey);  //UsesThreadPOOL 
   // undocumented function ...
   new DLibFunRetNew(lib::gamma_fun,string("NR_GAMMA"),1,gammaKey);
 
   const string lngammaKey[]={"DOUBLE",KLISTEND};
-  new DLibFunRetNew(lib::lngamma_fun,string("LNGAMMA"),1,lngammaKey);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::lngamma_fun,string("LNGAMMA"),1,lngammaKey);  //UsesThreadPOOL 
 
   //  const string igammaKey[]={"DOUBLE","EPS","ITER","ITMAX","METHOD",KLISTEND};
   const string igammaKey[]={"DOUBLE","METHOD",KLISTEND};
   const string igammaWarnKey[]={"EPS","ITER","ITMAX",KLISTEND};
   new DLibFunRetNew(lib::igamma_fun,string("IGAMMA"),2,igammaKey,igammaWarnKey);
   // undocumented function ...
-  new DLibFunRetNew(lib::igamma_fun,string("IDL_IGAMMA"),2,igammaKey);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::igamma_fun,string("IDL_IGAMMA"),2,igammaKey);  //UsesThreadPOOL 
 
   const string betaKey[]={"DOUBLE",KLISTEND};
-  new DLibFunRetNew(lib::beta_fun,string("BETA"),2,betaKey);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::beta_fun,string("BETA"),2,betaKey);  //UsesThreadPOOL 
 
   const string ibetaKey[]={"DOUBLE",KLISTEND};
   const string ibetaWarnKey[]={"EPS","ITER","ITMAX",KLISTEND};
-  new DLibFunRetNew(lib::ibeta_fun,string("IBETA"),3,ibetaKey, ibetaWarnKey);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::ibeta_fun,string("IBETA"),3,ibetaKey, ibetaWarnKey);  //UsesThreadPOOL 
 
   const string expintKey[]={"DOUBLE",KLISTEND};
-  new DLibFunRetNew(lib::expint_fun,string("EXPINT"),2,expintKey);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::expint_fun,string("EXPINT"),2,expintKey);  //UsesThreadPOOL 
 
   const string gaussintKey[]={"DOUBLE",KLISTEND};
-  new DLibFunRetNew(lib::gaussint_fun,string("GAUSSINT"),2,gaussintKey);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::gaussint_fun,string("GAUSSINT"),2,gaussintKey);  //UsesThreadPOOL 
 
 #endif
 

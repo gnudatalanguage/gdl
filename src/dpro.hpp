@@ -199,7 +199,7 @@ class DLib: public DSub
 public:
   DLib( const std::string& n, const std::string& o, const int nPar_,
 	const std::string keyNames[],
-	const std::string warnKeyNames[], const int nParMin_);
+	const std::string warnKeyNames[], const int nParMin_, const bool use_threadpool=false);
 
   virtual const std::string ToString() = 0;
   
@@ -229,7 +229,7 @@ public:
   // on which a value is returned.
   DLibPro( LibPro p, const std::string& n, const int nPar_=0, 
 	   const std::string keyNames[]=NULL,
-	   const std::string warnKeyNames[]=NULL, const int nParMin_=0);
+	   const std::string warnKeyNames[]=NULL, const int nParMin_=0, const bool use_threadpool=false);
 
   DLibPro( LibPro p, const std::string& n, const std::string& o, 
 	   const int nPar_=0, 
@@ -248,7 +248,7 @@ class DLibFun: public DLib
 public:
   DLibFun( LibFun f, const std::string& n, const int nPar_=0, 
 	   const std::string keyNames[]=NULL,
-	   const std::string warnKeyNames[]=NULL, const int nParMin_=0);
+	   const std::string warnKeyNames[]=NULL, const int nParMin_=0, const bool use_threadpool=false);
 
   DLibFun( LibFun f, const std::string& n, const std::string& o, 
 	   const int nPar_=0, 
@@ -273,7 +273,7 @@ public:
 		 const std::string keyNames[]=NULL,
 		 const std::string warnKeyNames[]=NULL, bool rConstant=false, const int nParMin_=0);
 
-
+  
   DLibFunRetNew( LibFun f, const std::string& n, const std::string& o, 
 		 const int nPar_=0, 
 		 const std::string keyNames[]=NULL,
@@ -283,6 +283,17 @@ public:
   bool RetConstant() { return this->retConstant;}
 };
 
+class DLibFunRetNewTP: public DLibFun
+{
+  bool   retConstant; // means: can be pre-evaluated with constant input 
+public:
+  DLibFunRetNewTP( LibFun f, const std::string& n, const int nPar_=0, 
+		 const std::string keyNames[]=NULL,
+		 const std::string warnKeyNames[]=NULL, bool rConstant=false, const int nParMin_=0);
+
+  bool RetNew() { return true;}
+  bool RetConstant() { return this->retConstant;}
+};
 // direct call functions must have:
 // ony one parameter, no keywords
 // these functions are called "direct", no environment is created
@@ -297,7 +308,20 @@ public:
 //   bool RetNew() { return true;}
   bool DirectCall() { return true;}
 };
+//The ThreadPool supplementary options (TPOOL_NOTHREAD, etc) have no effect on DLibFunDirectTP
+//as the otions are NEVER checked by a DLibFunDirect, one can type a=sin(dist(4),/ezcezc) without problem.
+//This is a bug, but not noticed by the community, so let it be, as the changes woudl imply removing the Direct functions.
+class DLibFunDirectTP: public DLibFunRetNewTP
+{
+  LibFunDirect funDirect;
+public:
+  DLibFunDirectTP( LibFunDirect f, const std::string& n, bool retConstant_=true);
 
+  LibFunDirect FunDirect() { return funDirect;}
+
+//   bool RetNew() { return true;}
+  bool DirectCall() { return true;}
+};
 // UD pro/fun ********************************************************
 // function/procedure (differ because they are in different lists)
 // User Defined

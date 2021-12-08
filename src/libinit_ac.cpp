@@ -101,7 +101,7 @@ void LibInit_ac()
 
 
   const string matrix_multiplyKey[]={"ATRANSPOSE","BTRANSPOSE",KLISTEND};
-  new DLibFunRetNew(lib::matrix_multiply,string("MATRIX_MULTIPLY"),2,matrix_multiplyKey);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::matrix_multiply,string("MATRIX_MULTIPLY"),2,matrix_multiplyKey);  //UsesThreadPOOL 
 
 // Levan Loria and Alain Coulais, September 2014 : to be extensively tested
 // please replace smooth with one of these functions only when thoroughly tested.

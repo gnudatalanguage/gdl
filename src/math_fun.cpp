@@ -1319,6 +1319,21 @@ namespace lib {
     return p0->Log10();
   }
 
+  //   BaseGDL* alog2_fun( EnvT* e)
+  //very quick and dirty.
+  BaseGDL* alog2_fun(BaseGDL* p0, bool isReference) {
+    static const double logue2=log(2.);
+    if (p0->Type() == GDL_UNDEF) throw GDLException("Variable is undefined: !NULL");
+    BaseGDL* ret;
+    if (!isReference) //e->StealLocalPar( 0))
+    {
+      ret=p0->LogThis();
+    } else  ret=p0->Log();
+    DFloatGDL* val = static_cast<DFloatGDL*> (ret->Convert2(GDL_FLOAT, BaseGDL::COPY));
+    for (SizeT i=0; i< p0->N_Elements(); ++i) (*val)[i] /= logue2;
+    return val;
+  }
+
   //Following produce Float or doubles for complex.
 
   template< typename T>

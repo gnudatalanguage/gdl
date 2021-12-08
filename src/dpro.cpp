@@ -44,7 +44,7 @@ DSub::~DSub() {}
 // DLib ******************************************************
 DLib::DLib( const string& n, const string& o, const int nPar_, 
 	    const string keyNames[],
-	    const string warnKeyNames[], const int nParMin_)
+	    const string warnKeyNames[], const int nParMin_, const bool use_threadpool)
   : DSub(n,o)
   , hideHelp( false)
 {
@@ -57,9 +57,10 @@ DLib::DLib( const string& n, const string& o, const int nPar_,
     {
       while( keyNames[nKey_] != "") ++nKey_;
     }
-
+  
   key.resize(nKey_);
-  for( SizeT k=0; k<nKey_; ++k) key[k]=keyNames[k];
+  SizeT k=0;
+  for( ; k<nKey_; ++k) key[k]=keyNames[k];
 
   if( nKey_ >= 1) {
     if( keyNames[0] == "_EXTRA")
@@ -81,7 +82,16 @@ DLib::DLib( const string& n, const string& o, const int nPar_,
     }
 
   warnKey.resize(nWarnKey_);
-  for( SizeT wk=0; wk<nWarnKey_; ++wk) warnKey[wk]=warnKeyNames[wk];
+  SizeT wk=0;
+  for( ; wk<nWarnKey_; ++wk) warnKey[wk]=warnKeyNames[wk];
+//finally add threadpool kw if any, in warnkeys at the moment, since we do not really honor those kws.
+  if (use_threadpool) {
+    nWarnKey_ += 3;
+    warnKey.resize(nWarnKey_);
+    warnKey[wk++] = "TPOOL_MAX_ELTS";
+    warnKey[wk++] = "TPOOL_MIN_ELTS";
+    warnKey[wk++] = "TPOOL_NOTHREAD";
+  }
 }
 
 const string DLibPro::ToString()
@@ -182,8 +192,8 @@ DLibPro::DLibPro( LibPro p, const string& n, const string& o, const int nPar_,
 //  sort(libProList.begin(), libProList.end(),CompLibFunName());
 }
 DLibPro::DLibPro( LibPro p, const string& n, const int nPar_, 
-		  const string keyNames[], const string warnKeyNames[], const int nParMin_)
-  : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_), pro(p)
+		  const string keyNames[], const string warnKeyNames[], const int nParMin_, const bool use_threadpool)
+  : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_, use_threadpool), pro(p)
 {
   libProList.push_back(this);
 //  sort(libProList.begin(), libProList.end(),CompLibFunName());
@@ -198,12 +208,13 @@ DLibFun::DLibFun( LibFun f, const string& n, const string& o, const int nPar_,
 }
 
 DLibFun::DLibFun( LibFun f, const string& n, const int nPar_, 
-		  const string keyNames[], const string warnKeyNames[], const int nParMin_)
-  : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_), fun(f)
+		  const string keyNames[], const string warnKeyNames[], const int nParMin_, const bool use_threadpool)
+  : DLib(n,"",nPar_,keyNames, warnKeyNames, nParMin_, use_threadpool), fun(f)
 {
   libFunList.push_back(this);
 //  sort(libFunList.begin(), libFunList.end(),CompLibFunName());
 }
+
 DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, 
 			      const string& o, const int nPar_, 
 			      const string keyNames[], const string warnKeyNames[], const int nParMin_)
@@ -214,6 +225,12 @@ DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, const int nPar_,
 			      const string keyNames[], const string warnKeyNames[], bool rConstant,
 			      const int nParMin_)
   : DLibFun(f,n,nPar_,keyNames, warnKeyNames, nParMin_), retConstant( rConstant)
+{}
+
+DLibFunRetNewTP::DLibFunRetNewTP( LibFun f, const string& n, const int nPar_, 
+			      const string keyNames[], const string warnKeyNames[], bool rConstant,
+			      const int nParMin_)
+  : DLibFun(f,n,nPar_,keyNames, warnKeyNames, nParMin_, true), retConstant( rConstant)
 {}
 // DLibFunRetNew::DLibFunRetNew( LibFun f, const string& n, const int nPar_, 
 // 			bool rConstant)
@@ -226,6 +243,9 @@ DLibFunDirect::DLibFunDirect( LibFunDirect f, const std::string& n, bool rConsta
   : DLibFunRetNew(NULL,n,1,NULL,NULL,rConstant,1), funDirect(f)
 {}
 
+DLibFunDirectTP::DLibFunDirectTP( LibFunDirect f, const std::string& n, bool rConstant)
+  : DLibFunRetNewTP(NULL,n,1,NULL,NULL,rConstant,1), funDirect(f)
+{}
 
 // DSubUD ****************************************************
 DSubUD::~DSubUD()
