@@ -539,6 +539,9 @@ namespace lib {
   // what does not work like IDL : warning messages when Inf/Nan or Zero/Negative X steps, X and Y not same size
 #define SPL_INIT_BIG double(1.0E30) 
   BaseGDL* spl_init_fun(EnvT* e) {
+    
+    e->NParam(2);
+
     static DInt doubleKWIx = e->KeywordIx("DOUBLE");
     bool isDouble = (e->GetParDefined(0)->Type() == GDL_DOUBLE || e->GetParDefined(1)->Type() == GDL_DOUBLE);
     if (e->KeywordSet(doubleKWIx)) isDouble = true;
@@ -709,6 +712,9 @@ namespace lib {
 
   BaseGDL* spl_interp_fun( EnvT* e)
   {
+    
+    e->NParam(4);
+
     static DInt doubleKWIx = e->KeywordIx("DOUBLE");
     bool isDouble = (e->GetParDefined(0)->Type() == GDL_DOUBLE || e->GetParDefined(1)->Type() == GDL_DOUBLE || 
         e->GetParDefined(2)->Type() == GDL_DOUBLE || e->GetParDefined(3)->Type() == GDL_DOUBLE);
@@ -1051,7 +1057,7 @@ namespace lib {
 
   BaseGDL* erode_fun( EnvT* e){
 
-    SizeT nParam = e->NParam(1);
+    SizeT nParam = e->NParam(2);
 
     DIntGDL* p0 = e->GetParAs<DIntGDL>(0);
     DIntGDL* p1 = e->GetParAs<DIntGDL>(1);
@@ -1213,7 +1219,7 @@ namespace lib {
 
   BaseGDL* dilate_fun( EnvT* e)
   {
-    SizeT nParam = e->NParam(1);
+    SizeT nParam = e->NParam(2);
 
     DIntGDL* p0 = e->GetParAs<DIntGDL>(0);
     DIntGDL* p1 = e->GetParAs<DIntGDL>(1);
@@ -1368,6 +1374,9 @@ namespace lib {
 
   BaseGDL* matrix_multiply( EnvT* e)
   {
+     
+    e->NParam(2);
+
     BaseGDL* a = e->GetParDefined(0);
     BaseGDL* b = e->GetParDefined(1);
 

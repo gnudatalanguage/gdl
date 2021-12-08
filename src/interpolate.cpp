@@ -657,8 +657,7 @@ namespace lib {
 
   BaseGDL* interpolate_fun(EnvT* e) {
 
-    SizeT nParam = e->NParam();
-    if (nParam < 2) e->Throw("Incorrect number of arguments.");
+    SizeT nParam = e->NParam(2);
 
     // options
     static int cubicIx = e->KeywordIx("CUBIC");

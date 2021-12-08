@@ -1641,8 +1641,7 @@ namespace lib
     DFloat thethick;
     DLong thecolor;
     DFloat *x, *y;
-    SizeT nParam=e->NParam();
-    if (nParam==0) e->Throw("Incorrect number of arguments.");
+    SizeT nParam=e->NParam(1);
     if ( nParam==1 )
     {
       BaseGDL* p0=e->GetNumericArrayParDefined(0)->Transpose(NULL); //hence [49,2]

@@ -2065,7 +2065,7 @@ namespace lib {
   // by medericboquien@users.sourceforge.net
 
   BaseGDL* t_pdf(EnvT* e) {
-    //    SizeT nParam = e->NParam(2);
+    SizeT nParam = e->NParam(2);
     DDoubleGDL* v = e->GetParAs<DDoubleGDL>(0);
     DDoubleGDL* df = e->GetParAs<DDoubleGDL>(1);
     DDoubleGDL* res;

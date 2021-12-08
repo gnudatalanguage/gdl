@@ -558,18 +558,12 @@ namespace lib {
       cp2data_2_template (real only)
     */
 
-    SizeT nParam=e->NParam();
+    SizeT nParam=e->NParam(1);
     SizeT overwrite=0, dbl=0;
     SizeT stride;
     SizeT offset;
 
     double direct=-1.0;
-
-
-    if( nParam == 0)
-      e->Throw( 
-	       "Incorrect number of arguments.");
-
 
     //BaseGDL* p0 = e->GetNumericArrayParDefined( 0); 
     BaseGDL* p0 = e->GetParDefined( 0);

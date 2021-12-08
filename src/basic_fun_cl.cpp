@@ -562,11 +562,12 @@ namespace lib {
 
   BaseGDL* legendre(EnvT* e)
   {
+    SizeT nParam=e->NParam(2); //, "LEGENDRE");
+
     Guard<BaseGDL> x_guard;
     Guard<BaseGDL> l_guard;
     Guard<BaseGDL> m_guard;
 
-    SizeT nParam=e->NParam(2); //, "LEGENDRE");
     Guard<BaseGDL> guard;
     int count;
     

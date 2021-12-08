@@ -595,10 +595,6 @@ void LibInit()
   const string reverseKey[] = {"OVERWRITE", KLISTEND};
   new DLibFun(lib::reverse, string("REVERSE"), 2, reverseKey, NULL, true);
 
-//   const string minKey[]={"MAX",KLISTEND};
-//   new DLibFun(lib::min_fun,string("MIN"),2,minKey);
-//   const string maxKey[]={"MIN",KLISTEND};
-//   new DLibFun(lib::max_fun,string("MAX"),2,maxKey);
 
 #ifdef USE_PYTHON
   const string python_funKey[]={"ARGV","DEFAULTRETURNVALUE",KLISTEND};

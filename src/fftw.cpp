@@ -161,7 +161,7 @@ TRACEOMP(__FILE__, __LINE__)
 
   BaseGDL* fftw_fun( EnvT* e)
   {
-    SizeT nParam=e->NParam();
+    SizeT nParam=e->NParam(1);
     SizeT overwrite=0, dbl=0;
     bool recenter=false;
     SizeT stride;
@@ -176,10 +176,6 @@ TRACEOMP(__FILE__, __LINE__)
     }
 
     double direct=-1.0;
-
-    if( nParam == 0)
-      throw GDLException( e->CallingNode(), 
-			  "FFT: Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);
 

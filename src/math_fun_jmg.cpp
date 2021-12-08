@@ -1841,9 +1841,7 @@ namespace lib {
 
     // GD: POLY_2D IS 5 times slower that IDL's. TBC . I note that the loops contains a lot of 'ifs', so algorithm is not efficient.
     
-    SizeT nParam = e->NParam();
-    if (nParam < 3)
-      e->Throw("Incorrect number of arguments.");
+    SizeT nParam = e->NParam(3);
 
     BaseGDL* p0 = e->GetParDefined(0);
     

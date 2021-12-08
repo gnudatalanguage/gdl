@@ -276,9 +276,7 @@ namespace lib {
     DDoubleGDL *yValou;
     Guard<BaseGDL> xvalou_guard, yvalou_guard;
 
-    SizeT nParam = e->NParam();
-    if (nParam < 1)
-      e->Throw("Incorrect number of arguments.");
+    SizeT nParam = e->NParam(1);
 
     BaseGDL* p0;
     BaseGDL* p1;

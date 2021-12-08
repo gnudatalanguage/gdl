@@ -1926,9 +1926,7 @@ namespace lib {
   }
 
   BaseGDL* replicate(EnvT* e) {
-    SizeT nParam = e->NParam();
-    if (nParam < 2)
-      e->Throw("Incorrect number of arguments.");
+    SizeT nParam = e->NParam(2);
     dimension dim;
     arr(e, dim, 1);
 
@@ -6754,6 +6752,8 @@ namespace lib {
   }
 
   BaseGDL* ishft_fun(EnvT* e) {
+    SizeT nParam=e->NParam(2);
+    
     Guard<BaseGDL>guard;
 
     BaseGDL* in = (e->GetParDefined(0));
@@ -7110,6 +7110,7 @@ namespace lib {
   }
 
   BaseGDL* obj_isa(EnvT* e) {
+    e->NParam(2);
     DString className;
     e->AssureScalarPar<DStringGDL>(1, className);
     className = StrUpCase(className);
