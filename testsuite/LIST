@@ -192,3 +192,4 @@ test_xdr.pro
 test_xmlsax.pro
 test_zeropoly.pro
 test_write_csv.pro
+test_all_basic_functions.pro
