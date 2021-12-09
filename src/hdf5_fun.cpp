@@ -1459,29 +1459,39 @@ hid_t
 
     /* --- obtain datatype --- */
 
-    hid_t dtype_id = H5Dget_type( dset_id );
-    if (dtype_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+    hid_t type_id = H5Dget_type( dset_id );
+    if (type_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+    hdf5_type_guard type_guard = hdf5_type_guard(type_id);
+
+    /* --- obtain the elementary datatype --- */
+
+    hid_t elem_type_id;
+    if (H5Tget_class(type_id)==H5T_ARRAY)
+      elem_type_id = H5Tget_super(type_id);
+    else
+      elem_type_id = H5Tcopy(type_id);
+    hdf5_type_guard elem_type_guard = hdf5_type_guard(elem_type_id);
 
     /* --- assert contiguous write buffer --- */
 
     char *buffer=NULL;
 
-    if (H5Tget_class(dtype_id)==H5T_STRING) {
+    if (H5Tget_class(elem_type_id)==H5T_STRING) {
 
-       size_t n_elem=data->Size(), len=H5Tget_size(dtype_id);
+      size_t n_elem=data->Size(), len=H5Tget_size(elem_type_id);
 
-       buffer = static_cast<char*>(calloc(n_elem*len,sizeof(char)));
-       if (buffer == NULL) e->Throw("Failed to allocate memory!");
+      buffer = static_cast<char*>(calloc(n_elem*len,sizeof(char)));
+      if (buffer == NULL) e->Throw("Failed to allocate memory!");
 
-       for(int i=0; i<n_elem; i++)
-         strncpy( &buffer[i*len],
-                  (*static_cast<DStringGDL*>(data))[i].c_str(), len );
+      for(int i=0; i<n_elem; i++)
+        strncpy( &buffer[i*len],
+                 (*static_cast<DStringGDL*>(data))[i].c_str(), len );
 
     } else buffer = (char*) data->DataAddr();
 
     /* --- write dataset to file --- */
 
-    if ( H5Dwrite( dset_id, dtype_id, memspace_id, filespace_id,
+    if ( H5Dwrite( dset_id, type_id, memspace_id, filespace_id,
                    H5P_DEFAULT, buffer ) < 0 )
       { string msg; e->Throw(hdf5_error_message(msg)); }
 
