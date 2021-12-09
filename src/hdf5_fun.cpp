@@ -961,6 +961,36 @@ hid_t
   }
 
 
+  BaseGDL* h5t_array_create_fun( EnvT* e)
+  {
+    bool debug=false;
+    SizeT nParam=e->NParam(2);
+
+    int rank;
+    hsize_t dims[MAXRANK];
+
+    /* mandatory 'Datatype_id' parameter */
+    hid_t h5t_id=hdf5_input_conversion(e,0);
+
+    /* mandatory 'Dimensions' parameter */
+    DUIntGDL* dimPar = e->GetParAs<DUIntGDL>(1);
+    SizeT nDim = dimPar->N_Elements();
+
+    if (nDim == 0)
+      e->Throw("Variable is undefined: "+ e->GetParString(0));
+    else
+       rank=nDim;
+
+    for(int i=0; i<rank; i++) dims[i] = (hsize_t)(*dimPar)[rank-1-i];
+
+    /* create the array datatype */
+    hid_t dtype_id = H5Tarray_create( h5t_id, rank, dims, NULL );
+    if (dtype_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return hdf5_output_conversion( dtype_id );
+  }
+
+
   BaseGDL* h5t_idl_create_fun( EnvT* e)
   {
     /* Dec 2021, Oliver Gressel <ogressel@gmail.com>
