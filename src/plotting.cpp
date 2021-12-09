@@ -445,14 +445,14 @@ namespace lib
 
     if ( xML+xMR>=1.0 )
     {
-      Message("XMARGIN to large (adjusted).");
+//      Message("XMARGIN to large (adjusted).");
       PLFLT xMMult=xML+xMR;
       xML/=xMMult*1.5;
       xMR/=xMMult*1.5;
     }
     if ( yMB+yMT>=1.0 )
     {
-      Message("YMARGIN to large (adjusted).");
+//      Message("YMARGIN to large (adjusted).");
       PLFLT yMMult=yMB+yMT;
       yMB/=yMMult*1.5;
       yMT/=yMMult*1.5;
