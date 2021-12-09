@@ -1384,7 +1384,7 @@ hid_t
     SizeT nParam = e->NParam(2);
 
     hid_t dset_id = hdf5_input_conversion(e,0);
-    BaseGDL* buffer = e->GetParDefined(1);
+    BaseGDL* data = e->GetParDefined(1);
 
 
     /* --- optionial keyword 'MEMORY_SPACE' --- */
@@ -1432,12 +1432,30 @@ hid_t
     hid_t dtype_id = H5Dget_type( dset_id );
     if (dtype_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
 
+    /* --- assert contiguous write buffer --- */
+
+    char *buffer=NULL;
+
+    if (H5Tget_class(dtype_id)==H5T_STRING) {
+
+       size_t n_elem=data->Size(), len=H5Tget_size(dtype_id);
+
+       buffer = static_cast<char*>(calloc(n_elem*len,sizeof(char)));
+       if (buffer == NULL) e->Throw("Failed to allocate memory!");
+
+       for(int i=0; i<n_elem; i++)
+         strncpy( &buffer[i*len],
+                  (*static_cast<DStringGDL*>(data))[i].c_str(), len );
+
+    } else buffer = (char*) data->DataAddr();
 
     /* --- write dataset to file --- */
 
     if ( H5Dwrite( dset_id, dtype_id, memspace_id, filespace_id,
-                   H5P_DEFAULT, buffer->DataAddr() ) < 0 )
+                   H5P_DEFAULT, buffer ) < 0 )
       { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    if(buffer!=data->DataAddr()) free(buffer);
 
     return;
   }
