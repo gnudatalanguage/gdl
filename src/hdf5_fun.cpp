@@ -989,7 +989,13 @@ hid_t
 
     hid_t native_type;
 
-    switch ( data->Type() ) {
+    switch ( (data[0]).Type() ) {
+
+    /* IDL Note: If the data is an array, the datatype is constructed
+       from the first element in the array. [...]  All elements of a
+       string datatype will have the same length [...]  strings longer
+       than the datatype length will be truncated. The size of the
+       returned datatype will include a null termination [...] */
 
     case GDL_BYTE:    native_type = H5T_NATIVE_UINT8;  break;
     case GDL_INT:     native_type = H5T_NATIVE_INT16;  break;
@@ -1009,7 +1015,16 @@ hid_t
       e->Throw("Unrecognized data type.");
     }
 
-    return hdf5_output_conversion( H5Tcopy(native_type) );
+    /* crate datatype handle */
+    native_type = H5Tcopy(native_type);
+
+    if ( (data[0]).Type()==GDL_STRING ) { /* set size */
+      size_t len = strlen( (*static_cast<DStringGDL*>(data))[0].c_str() );
+      if ( H5Tset_size(native_type, len+1) < 0 )
+        { string msg; e->Throw(hdf5_error_message(msg)); }
+    }
+
+    return hdf5_output_conversion( native_type );
   }
 
 
