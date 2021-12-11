@@ -1557,6 +1557,7 @@ template <typename T, typename IndexT>
     if (!parallelize) {
     for (int i = 0; i < 2; i++) AdaptiveSortIndexAux(index, aux, Left[i], Right[i], val);
     } else {
+    TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(2)
     for (int i = 0; i < 2; i++) AdaptiveSortIndexAux(index, aux, Left[i], Right[i], val);
     }

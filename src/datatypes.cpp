@@ -943,7 +943,7 @@ BaseGDL* Data_<Sp>::CShift( DLong d) const
 
   memcpy( &sh->dd[ shift], &dd[0], firstChunk * sizeof(Ty));
   memcpy( &sh->dd[ 0], &dd[firstChunk], shift * sizeof(Ty));
-	
+
   return sh;
 }
 
@@ -1707,21 +1707,17 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__L
 }
 
 template<class Sp>
-typename Data_<Sp>::Ty Data_<Sp>::Sum() const { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+typename Data_<Sp>::Ty Data_<Sp>::Sum() const {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
   Ty s = dd[ 0];
   SizeT nEl = dd.size();
   bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
   if (!parallelize) { //most frequent
     for (SizeT i = 1; i < nEl; ++i) s += dd[ i];
   } else {
-    TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel shared( s)
-    {
-#pragma omp for reduction(+:s)
-      for (SizeT i = 1; i < nEl; ++i) {
-        s += dd[ i];
-      }
-    }
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) reduction(+:s)
+    for (SizeT i = 1; i < nEl; ++i) s += dd[ i];
   }
   return s;
 }
@@ -1751,16 +1747,13 @@ Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::Sum() const { TRACE_ROUTINE(__FUN
     }
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel shared( sr,si)
-    {
-#pragma omp for reduction(+:si,sr)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) reduction(+:si,sr)
       for (SizeT i = 1; i < nEl; ++i) {
         sr += dd[i].real();
         si += dd[i].imag();
       }
-    }
   }
-  return std::complex<double>(sr, si);
+  return std::complex<DDouble>(sr, si);
 }
 
 template<>
@@ -1776,16 +1769,13 @@ Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const { TRACE_ROUTINE(__FUNCTION_
     }
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)) shared( sr,si)
-    {
-#pragma omp for reduction(+:si,sr)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) reduction(+:si,sr)
       for (SizeT i = 1; i < nEl; ++i) {
         sr += dd[i].real();
         si += dd[i].imag();
       }
-    }
   }
-  return std::complex<float>(sr, si);
+  return std::complex<DFloat>(sr, si);
 }
 
 // template<class Sp> 
@@ -2060,7 +2050,14 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero) cons
     {
       Data_* res =  new Data_(dim_, BaseGDL::NOZERO);
       SizeT nEl = res->dd.size();
+      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
+      if (!parallelize) { //most frequent
       for( SizeT i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
+      } else {
+      TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+      for( SizeT i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
+      }
       return res;
     }
   return new Data_(dim_); // zero data
@@ -3376,7 +3373,6 @@ void Data_<SpDComplex>::DecAt( ArrayIndexListT* ixList)
 
       SizeT nCp=Data_::N_Elements();
       
-      TRACEOMP(__FILE__,__LINE__)
       for( int c=0; c<nCp; ++c)
 	(*this)[ c] -= 1.0;
     }
@@ -4596,7 +4592,6 @@ void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
   {
     srcT = static_cast<Data_*>( src);
   }
-  TRACEOMP(__FILE__,__LINE__)
   for(long k=0; k < nEl; ++k)
     {
       (*this)[ k] = (*srcT)[ k];
@@ -4618,7 +4613,6 @@ Data_<Sp>* Data_<Sp>::NewIx( AllIxBaseT* ix, const dimension* dIn)
 { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nCp = ix->size();
   Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
-  TRACEOMP(__FILE__,__LINE__)
   for( int c=0; c<nCp; ++c)
     (*res)[c]=(*this)[ (*ix)[ c]];
   return res;
