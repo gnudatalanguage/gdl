@@ -225,42 +225,45 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
 
    endfor
 
-   if keyword_set(create) then begin
+   ; --- write mock attributes to HDF5 file (now implemented in GDL)
 
-      ; --- write mock attributes to HDF5 file (not yet implemented in GDL)
+   if keyword_set(create) then f_id = h5f_create(file_name) $
+   else                        f_id = h5f_create("gdl-"+file_name)
 
-      f_id = h5f_create(file_name)
+   for i=0,n_elements(attr_data)-1 do begin
 
-      for i=0,n_elements(attr_data)-1 do begin
+      elem_t_id = h5t_idl_create(attr_data[i])
 
-         elem_t_id = h5t_idl_create(attr_data[i])
+      if elem_rank[i] gt 0 then begin ; non-scalar element datatype
 
-         if elem_rank[i] gt 0 then begin ; non-scalar element datatype
+         t_id = h5t_array_create(elem_t_id, some_elem_dims[elem_rank[i]])
+         h5t_close, elem_t_id
 
-            t_id = h5t_array_create(elem_t_id, some_elem_dims[elem_rank[i]])
-            h5t_close, elem_t_id
+      endif else t_id = elem_t_id
 
-         endif else t_id = elem_t_id
+      if data_rank[i] gt 0 then $ ; non-scalar dataspace
+         s_id = h5s_create_simple(some_data_dims[data_rank[i]]) $
+      else s_id = h5s_create_scalar()
 
-         if data_rank[i] gt 0 then $ ; non-scalar dataspace
-            s_id = h5s_create_simple(some_data_dims[data_rank[i]]) $
-         else s_id = h5s_create_scalar()
+      a_id = h5a_create( f_id, string(i,fo='(%"attr-%02d")'), t_id, s_id )
 
-         a_id = h5a_create( f_id, string(i,fo='(%"attr-%02d")'), t_id, s_id )
+      h5a_write, a_id, attr_data[i]
 
-         h5a_write, a_id, attr_data[i]
+      h5a_close, a_id
+      h5s_close, s_id
+      h5t_close, t_id
 
-         h5a_close, a_id
-         h5s_close, s_id
-         h5t_close, t_id
+   endfor
 
-      endfor
+   h5f_close, f_id
 
-      h5f_close, f_id
+   if keyword_set(create) then return
 
-      return
+   ; --- test GDL output against reference file created using IDL
 
-   endif
+   spawn, 'h5diff gdl-'+file_name+' '+full_file_name, res, exit_status=exit
+   errors += (exit ne 0)
+   spawn, 'rm -f gdl-'+file_name
 
    ; --- read HDF5 attributes
 
