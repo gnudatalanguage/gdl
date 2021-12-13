@@ -39,9 +39,9 @@ Geeks corner:
 - some code like where() or interpolate() etc are not with this simple scheme as the section put in parallel is often very long. Usually, for any problem
   size, the speed is on par or better than IDL. Test reports welcome.
 
-- It is up to the user on mumti-core machines to adapt the values of !CPU (using the 'CPU' command) to get the most of the machine. Remember, one
-  can change the !CPU values at each line of code.
-
+- It is up to the user on multi-core machines to adapt the values of !CPU (using the 'CPU' command) to get the most of the machine. Remember, one
+  can change the !CPU values at each line of code, and ThreadPool friendly commands can even be called with one of the 3 keywords, TPOOL_NOTHREAD,
+  TPOOL_MAX_ELTS and TPOOL_MIN_ELTS
 - TRACE_OMP_CALLS (in src/typedefs.hpp) may be used to trace the calls to OpenMP sections.
 
  

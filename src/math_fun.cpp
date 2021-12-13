@@ -58,11 +58,11 @@ namespace lib {
 
   template< typename srcT, typename destT>
   void FromToGSL(srcT* src, destT* dest, SizeT nEl) {
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT d = 0; d < nEl; ++d) dest[ d] = src[ d];
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT d = 0; d < nEl; ++d) dest[ d] = src[ d];
     }
   }
@@ -221,11 +221,11 @@ namespace lib {
         (*res)[ 0] = round((*p0C)[ 0]);
         return res;
       }
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round((*p0C)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round((*p0C)[ i]);
       }
       return res;
@@ -235,11 +235,11 @@ namespace lib {
         (*res)[ 0] = round((*p0C)[ 0]);
         return res;
       }
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round((*p0C)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round((*p0C)[ i]);
       }
 
@@ -267,11 +267,11 @@ namespace lib {
           (*res)[ 0] = round((*p0C)[ 0].real());
           return res;
         }
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round((*p0C)[ i].real());
         } else {
           TRACEOMP(__FILE__, __LINE__)
- #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+ #pragma omp parallel for num_threads(GDL_NTHREADS)
            for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round((*p0C)[ i].real());
         }
         return res;
@@ -283,11 +283,11 @@ namespace lib {
           (*res)[ 0] = round((*p0C)[ 0].real());
           return res;
         }
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round((*p0C)[ i].real());
         } else {
           TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round((*p0C)[ i].real());
         }
         return res;
@@ -304,11 +304,11 @@ namespace lib {
           (*res)[ 0] = round((*p0C)[ 0].real());
           return res;
         }
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round((*p0C)[ i].real());
         } else {
           TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round((*p0C)[ i].real());
         }
         return res;
@@ -320,11 +320,11 @@ namespace lib {
           (*res)[ 0] = round((*p0C)[ 0].real());
           return res;
         }
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round((*p0C)[ i].real());
         } else {
           TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = round((*p0C)[ i].real());
         }
         return res;
@@ -345,11 +345,11 @@ namespace lib {
         (*res)[ 0] = ceil((*p0C)[ 0]);
         return res;
       }
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil((*p0C)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil((*p0C)[ i]);
       }
       return res;
@@ -359,11 +359,11 @@ namespace lib {
         (*res)[ 0] = ceil((*p0C)[ 0]);
         return res;
       }
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil((*p0C)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil((*p0C)[ i]);
       }
 
@@ -389,11 +389,11 @@ namespace lib {
           (*res)[ 0] = ceil((*p0C)[ 0].real());
           return res;
         }
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil((*p0C)[ i].real());
         } else {
           TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil((*p0C)[ i].real());
         }
         return res;
@@ -405,11 +405,11 @@ namespace lib {
           (*res)[ 0] = ceil((*p0C)[ 0].real());
           return res;
         }
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil((*p0C)[ i].real());
         } else {
           TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil((*p0C)[ i].real());
         }
         return res;
@@ -426,11 +426,11 @@ namespace lib {
           (*res)[ 0] = ceil((*p0C)[ 0].real());
           return res;
         }
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil((*p0C)[ i].real());
         } else {
           TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil((*p0C)[ i].real());
         }
         return res;
@@ -442,11 +442,11 @@ namespace lib {
           (*res)[ 0] = ceil((*p0C)[ 0].real());
           return res;
         }
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil((*p0C)[ i].real());
         } else {
           TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = ceil((*p0C)[ i].real());
         }
         return res;
@@ -467,11 +467,11 @@ namespace lib {
         (*res)[ 0] = floor((*p0C)[ 0]);
         return res;
       }
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor((*p0C)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor((*p0C)[ i]);
       }
       return res;
@@ -481,11 +481,11 @@ namespace lib {
         (*res)[ 0] = floor((*p0C)[ 0]);
         return res;
       }
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor((*p0C)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor((*p0C)[ i]);
       }
 
@@ -511,11 +511,11 @@ namespace lib {
           (*res)[ 0] = floor((*p0C)[ 0].real());
           return res;
         }
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor((*p0C)[ i].real());
         } else {
           TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor((*p0C)[ i].real());
         }
         return res;
@@ -527,11 +527,11 @@ namespace lib {
           (*res)[ 0] = floor((*p0C)[ 0].real());
           return res;
         }
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor((*p0C)[ i].real());
         } else {
           TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor((*p0C)[ i].real());
         }
         return res;
@@ -548,11 +548,11 @@ namespace lib {
           (*res)[ 0] = floor((*p0C)[ 0].real());
           return res;
         }
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor((*p0C)[ i].real());
         } else {
           TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor((*p0C)[ i].real());
         }
         return res;
@@ -564,11 +564,11 @@ namespace lib {
           (*res)[ 0] = floor((*p0C)[ 0].real());
           return res;
         }
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor((*p0C)[ i].real());
         } else {
           TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = floor((*p0C)[ i].real());
         }
         return res;
@@ -592,11 +592,11 @@ namespace lib {
       (*res)[0] = sqrt((*p0C)[0]);
       return res;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sqrt((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sqrt((*p0C)[ i]);
     }
     return res;
@@ -610,11 +610,11 @@ namespace lib {
       (*p0C)[0] = sqrt((*p0C)[0]);
       return p0;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sqrt((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sqrt((*p0C)[ i]);
     }
     return p0;
@@ -638,11 +638,11 @@ namespace lib {
       else return sqrt_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sqrt((*res)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sqrt((*res)[ i]);
       }
       return res;
@@ -660,11 +660,11 @@ namespace lib {
       (*res)[0] = sin((*p0C)[0]);
       return res;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sin((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sin((*p0C)[ i]);
     }
     return res;
@@ -678,11 +678,11 @@ namespace lib {
       (*p0C)[0] = sin((*p0C)[0]);
       return p0;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sin((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sin((*p0C)[ i]);
     }
     return p0;
@@ -706,11 +706,11 @@ namespace lib {
       else return sin_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sin((*res)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sin((*res)[ i]);
       }
       return res;
@@ -728,11 +728,11 @@ namespace lib {
       (*res)[0] = cos((*p0C)[0]);
       return res;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = cos((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = cos((*p0C)[ i]);
     }
     return res;
@@ -746,11 +746,11 @@ namespace lib {
       (*p0C)[0] = cos((*p0C)[0]);
       return p0;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = cos((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = cos((*p0C)[ i]);
     }
     return p0;
@@ -774,11 +774,11 @@ namespace lib {
       else return cos_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = cos((*res)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = cos((*res)[ i]);
       }
       return res;
@@ -796,11 +796,11 @@ namespace lib {
       (*res)[0] = tan((*p0C)[0]);
       return res;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tan((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tan((*p0C)[ i]);
     }
     return res;
@@ -814,11 +814,11 @@ namespace lib {
       (*p0C)[0] = tan((*p0C)[0]);
       return p0;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tan((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tan((*p0C)[ i]);
     }
     return p0;
@@ -842,11 +842,11 @@ namespace lib {
       else return tan_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = tan((*res)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = tan((*res)[ i]);
       }
       return res;
@@ -864,11 +864,11 @@ namespace lib {
       (*res)[0] = sinh((*p0C)[0]);
       return res;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sinh((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sinh((*p0C)[ i]);
     }
     return res;
@@ -882,11 +882,11 @@ namespace lib {
       (*p0C)[0] = sinh((*p0C)[0]);
       return p0;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sinh((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sinh((*p0C)[ i]);
     }
     return p0;
@@ -910,11 +910,11 @@ namespace lib {
       else return sinh_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sinh((*res)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sinh((*res)[ i]);
       }
       return res;
@@ -932,11 +932,11 @@ namespace lib {
       (*res)[0] = cosh((*p0C)[0]);
       return res;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = cosh((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = cosh((*p0C)[ i]);
     }
     return res;
@@ -950,11 +950,11 @@ namespace lib {
       (*p0C)[0] = cosh((*p0C)[0]);
       return p0;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = cosh((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = cosh((*p0C)[ i]);
     }
     return p0;
@@ -978,11 +978,11 @@ namespace lib {
       else return cosh_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = cosh((*res)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = cosh((*res)[ i]);
       }
       return res;
@@ -1000,11 +1000,11 @@ namespace lib {
       (*res)[0] = tanh((*p0C)[0]);
       return res;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tanh((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = tanh((*p0C)[ i]);
     }
     return res;
@@ -1018,11 +1018,11 @@ namespace lib {
       (*p0C)[0] = tanh((*p0C)[0]);
       return p0;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tanh((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = tanh((*p0C)[ i]);
     }
     return p0;
@@ -1046,11 +1046,11 @@ namespace lib {
       else return tanh_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = tanh((*res)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = tanh((*res)[ i]);
       }
       return res;
@@ -1066,11 +1066,11 @@ namespace lib {
       (*res)[0] = asin((*p0C)[0]);
       return res;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = asin((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = asin((*p0C)[ i]);
     }
     return res;
@@ -1084,11 +1084,11 @@ namespace lib {
       (*p0C)[0] = asin((*p0C)[0]);
       return p0;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = asin((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = asin((*p0C)[ i]);
     }
     return p0;
@@ -1112,11 +1112,11 @@ namespace lib {
       else return asin_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = asin((*res)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = asin((*res)[ i]);
       }
       return res;
@@ -1132,11 +1132,11 @@ namespace lib {
       (*res)[0] = acos((*p0C)[0]);
       return res;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = acos((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = acos((*p0C)[ i]);
     }
     return res;
@@ -1150,11 +1150,11 @@ namespace lib {
       (*p0C)[0] = acos((*p0C)[0]);
       return p0;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = acos((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = acos((*p0C)[ i]);
     }
     return p0;
@@ -1178,11 +1178,11 @@ namespace lib {
       else return acos_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = acos((*res)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = acos((*res)[ i]);
       }
       return res;
@@ -1200,11 +1200,11 @@ namespace lib {
       (*res)[0] = exp((*p0C)[0]);
       return res;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = exp((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = exp((*p0C)[ i]);
     }
     return res;
@@ -1218,11 +1218,11 @@ namespace lib {
       (*p0C)[0] = exp((*p0C)[0]);
       return p0;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = exp((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = exp((*p0C)[ i]);
     }
     return p0;
@@ -1246,11 +1246,11 @@ namespace lib {
       else return exp_fun_template_grab< DFloatGDL>(p0);
     else {
       DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = exp((*res)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = exp((*res)[ i]);
       }
       return res;
@@ -1308,11 +1308,11 @@ namespace lib {
       (*res)[ 0] = abs((*p0C)[ 0]);
       return res;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = abs((*p0C)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = abs((*p0C)[ i]);
     }
     return res;
@@ -1328,11 +1328,11 @@ namespace lib {
         (*res)[ 0] = abs((*p0C)[ 0]);
         return res;
       }
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = abs((*p0C)[ i]); //sqrt(Creal*Creal + Cimag*Cimag);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = abs((*p0C)[ i]); //sqrt(Creal*Creal + Cimag*Cimag);
       }
       return res;
@@ -1344,11 +1344,11 @@ namespace lib {
         (*res)[ 0] = abs((*p0C)[ 0]);
         return res;
       }
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = abs((*p0C)[ i]); //sqrt(Creal*Creal + Cimag*Cimag);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = abs((*p0C)[ i]); //sqrt(Creal*Creal + Cimag*Cimag);
       }
       return res;
@@ -1388,11 +1388,11 @@ namespace lib {
       (*res)[ 0] = abs((*res)[ 0]);
       return res;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = abs((*res)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = abs((*res)[ i]);
     }
     return res;
@@ -1411,11 +1411,11 @@ namespace lib {
       if (isReference) res = static_cast<DComplexGDL*> (p0)->NewResult();
       else res = static_cast<DComplexGDL*> (p0);
       DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = std::conj((*p0C)[i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i) (*res)[i] = std::conj((*p0C)[i]);
       }
       return res;
@@ -1425,11 +1425,11 @@ namespace lib {
       if (isReference) res = static_cast<DComplexDblGDL*> (p0)->NewResult();
       else res = res = static_cast<DComplexDblGDL*> (p0);
       DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (p0);
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = std::conj((*p0C)[i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i) (*res)[i] = std::conj((*p0C)[i]);
       }
       return res;
@@ -1454,11 +1454,11 @@ namespace lib {
     if (p0->Type() == GDL_COMPLEX) {
       DComplexGDL* c0 = static_cast<DComplexGDL*> (p0);
       DFloatGDL* res = new DFloatGDL(c0->Dim(), BaseGDL::NOZERO);
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = imag((*c0)[i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i) (*res)[i] = imag((*c0)[i]);
       }
       return res;
@@ -1466,11 +1466,11 @@ namespace lib {
     if (p0->Type() == GDL_COMPLEXDBL) {
       DComplexDblGDL* c0 = static_cast<DComplexDblGDL*> (p0);
       DDoubleGDL* res = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO);
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = imag((*c0)[i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i) (*res)[i] = imag((*c0)[i]);
       }
       return res;
@@ -1498,11 +1498,11 @@ namespace lib {
     if (p0->Type() == GDL_COMPLEX) {
       DComplexGDL* c0 = static_cast<DComplexGDL*> (p0);
       DFloatGDL* res = new DFloatGDL(c0->Dim(), BaseGDL::NOZERO);
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = real((*c0)[i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i) (*res)[i] = real((*c0)[i]);
       }
       return res;
@@ -1510,11 +1510,11 @@ namespace lib {
     if (p0->Type() == GDL_COMPLEXDBL) {
       DComplexDblGDL* c0 = static_cast<DComplexDblGDL*> (p0);
       DDoubleGDL* res = new DDoubleGDL(c0->Dim(), BaseGDL::NOZERO);
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[i] = real((*c0)[i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i) (*res)[i] = real((*c0)[i]);
       }
       return res;
@@ -1639,29 +1639,29 @@ namespace lib {
         }
         switch (cas) {
         case 0:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[i], (*p1D)[i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[i], (*p1D)[i]);
           }
           return res;
         case 1:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[i], (*p1D)[0]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[i], (*p1D)[0]);
           }
           return res;
         case 2:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[0], (*p1D)[i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[0], (*p1D)[i]);
           }
           return res;
@@ -1686,29 +1686,29 @@ namespace lib {
         }
         switch (cas) {
         case 0:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0F)[i], (*p1F)[i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0F)[i], (*p1F)[i]);
           }
           return res;
         case 1:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0F)[i], (*p1F)[0]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0F)[i], (*p1F)[0]);
           }
           return res;
         case 2:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0F)[0], (*p1F)[i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0F)[0], (*p1F)[i]);
           }
           return res;
@@ -1733,29 +1733,29 @@ namespace lib {
         }
         switch (cas) {
         case 0:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0C)[i], (*p1C)[i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0C)[i], (*p1C)[i]);
           }
           return res;
         case 1:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0C)[i], (*p1C)[0]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0C)[i], (*p1C)[0]);
           }
           return res;
         case 2:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0C)[0], (*p1C)[i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0C)[0], (*p1C)[i]);
           }
           return res;
@@ -1780,29 +1780,29 @@ namespace lib {
         }
         switch (cas) {
         case 0:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0DC)[i], (*p1DC)[i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0DC)[i], (*p1DC)[i]);
           }
           return res;
         case 1:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0DC)[i], (*p1DC)[0]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0DC)[i], (*p1DC)[0]);
           }
           return res;
         case 2:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0DC)[0], (*p1DC)[i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atanC((*p0DC)[0], (*p1DC)[i]);
           }
           return res;
@@ -1819,29 +1819,29 @@ namespace lib {
         }
         switch (cas) {
         case 0:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[i], (*p1D)[i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[i], (*p1D)[i]);
           }
           return res;
         case 1:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[i], (*p1D)[0]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[i], (*p1D)[0]);
           }
           return res;
         case 2:
-          if (!parallelize( nElMin)) {
+          if (GDL_NTHREADS=parallelize( nElMin)==1) {
             for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[0], (*p1D)[i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nElMin; ++i) (*res)[i] = atan2((*p0D)[0], (*p1D)[i]);
           }
           return res;
@@ -1857,11 +1857,11 @@ namespace lib {
             (*res)[ 0] = atan2(((*p0C)[ 0]).imag(), ((*p0C)[ 0]).real());
             return res;
           }
-          if (!parallelize( nEl)) {
+          if (GDL_NTHREADS=parallelize( nEl)==1) {
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan2(((*p0C)[i]).imag(), ((*p0C)[i]).real());
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan2(((*p0C)[i]).imag(), ((*p0C)[i]).real());
           }
           return res;
@@ -1872,11 +1872,11 @@ namespace lib {
             (*res)[ 0] = atan2(((*p0C)[ 0]).imag(), ((*p0C)[ 0]).real());
             return res;
           }
-          if (!parallelize( nEl)) {
+          if (GDL_NTHREADS=parallelize( nEl)==1) {
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan2(((*p0C)[i]).imag(), ((*p0C)[i]).real());
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan2(((*p0C)[i]).imag(), ((*p0C)[i]).real());
           }
           return res;
@@ -1889,11 +1889,11 @@ namespace lib {
             (*res)[ 0] = atan((*p0D)[ 0]);
             return res;
           }
-          if (!parallelize( nEl)) {
+          if (GDL_NTHREADS=parallelize( nEl)==1) {
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan((*p0D)[i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan((*p0D)[i]);
           }
           return res;
@@ -1904,11 +1904,11 @@ namespace lib {
             (*res)[ 0] = atan((*p0F)[ 0]);
             return res;
           }
-          if (!parallelize( nEl)) {
+          if (GDL_NTHREADS=parallelize( nEl)==1) {
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan((*p0F)[i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan((*p0F)[i]);
           }
           return res;
@@ -1919,11 +1919,11 @@ namespace lib {
             (*res)[ 0] = std::atan((*p0C)[ 0]);
             return res;
           }
-          if (!parallelize( nEl)) {
+          if (GDL_NTHREADS=parallelize( nEl)==1) {
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = std::atan((*p0C)[ i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = std::atan((*p0C)[ i]);
           }
           return res;
@@ -1934,11 +1934,11 @@ namespace lib {
             (*res)[ 0] = std::atan((*p0C)[ 0]);
             return res;
           }
-          if (!parallelize( nEl)) {
+          if (GDL_NTHREADS=parallelize( nEl)==1) {
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = std::atan((*p0C)[ i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = std::atan((*p0C)[ i]);
           }
           return res;
@@ -1948,11 +1948,11 @@ namespace lib {
             (*res)[ 0] = atan((*res)[ 0]);
             return res;
           }
-          if (!parallelize( nEl)) {
+          if (GDL_NTHREADS=parallelize( nEl)==1) {
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan((*res)[i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
               for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = atan((*res)[i]);
           }
           return res;
@@ -2076,11 +2076,11 @@ namespace lib {
     DInt n = (*nval)[0];
     SizeT nEx = xvals->N_Elements();
 
-    if (!parallelize( nEx)) {
+    if (GDL_NTHREADS=parallelize( nEx)==1) {
       for (SizeT count = 0; count < nEx; ++count) (*res)[count] = gsl_sf_laguerre_n(n, k, (*xvals)[count]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT count = 0; count < nEx; ++count) (*res)[count] = gsl_sf_laguerre_n(n, k, (*xvals)[count]);
     }
 
@@ -2093,8 +2093,6 @@ namespace lib {
 
       //GD: parallelizing this complicated loop cannot be done just like that.
       //I further doubt Laguerre is going to be used on large arrays.
-      //      TRACEOMP(__FILE__,__LINE__)
-      //#pragma omp parallel for  (n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= n))
       for (SizeT count = 0; count <= n; ++count) {
         double dcount = static_cast<double> (count);
         (*coefKW)[count] = ((count & 0x0001) ? -1.0 : 1.0) * gamma_kn1 /

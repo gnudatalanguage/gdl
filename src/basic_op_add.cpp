@@ -55,11 +55,11 @@ BaseGDL* Data_<Sp>::Add( BaseGDL* r)
 	return this;
 #else
 
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += (*right)[i];
     } else {
       TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for  num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for  num_threads(GDL_NTHREADS)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += (*right)[i];
     }
   return this;
@@ -84,11 +84,11 @@ BaseGDL* Data_<SpDString>::AddInv( BaseGDL* r)
       (*this)[0] = (*right)[0] + (*this)[0];
       return this;
     }
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] = (*right)[i] + (*this)[i];
     } else {
       TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] = (*right)[i] + (*this)[i];
     } 
   return this;
@@ -310,11 +310,11 @@ BaseGDL* Data_<Sp>::AddS( BaseGDL* r)
 	mThis += s;
 	return this;
 #else
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
     } else {
       TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
     }
   return this;
@@ -334,11 +334,11 @@ BaseGDL* Data_<SpDString>::AddS( BaseGDL* r)
       return this;
     }
   Ty s = (*right)[0];
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
     } else {
       TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
     }
   return this;
@@ -362,11 +362,11 @@ BaseGDL* Data_<SpDString>::AddInvS( BaseGDL* r)
       return this;
     }
   Ty s = (*right)[0];
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] = s + (*this)[i];
     } else {
       TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] = s + (*this)[i];
     }
   return this;

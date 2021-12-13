@@ -90,14 +90,14 @@ namespace lib {
 
       if (direct == -1)
       {
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (OMPInt i = 0; i < nEl; ++i) {
             out[i][0] /= nEl;
             out[i][1] /= nEl;
           }          
         } else {
 TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (OMPInt i = 0; i < nEl; ++i)
           {
             out[i][0] /= nEl;
@@ -126,7 +126,7 @@ TRACEOMP(__FILE__, __LINE__)
 
       if (direct == -1)
       {
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (OMPInt i = 0; i < nEl; ++i)
           {
             out_f[i][0] /= nEl;
@@ -134,7 +134,7 @@ TRACEOMP(__FILE__, __LINE__)
           }          
         } else {
 TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (OMPInt i = 0; i < nEl; ++i)
           {
             out_f[i][0] /= nEl;

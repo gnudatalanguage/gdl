@@ -199,27 +199,27 @@ namespace lib {
       SizeT nEl = src->N_Elements();
 
       if (kwNaN) {
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isnan((*src)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isnan((*src)[ i]);
         }
       } else if (kwInfinity) {
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isinf((*src)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isinf((*src)[ i]);
         }
       } else {
-        if (!parallelize( nEl)) {
+        if (GDL_NTHREADS=parallelize( nEl)==1) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isfinite((*src)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isfinite((*src)[ i]);
         }
       }
@@ -235,29 +235,29 @@ namespace lib {
        DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
        SizeT nEl = src->N_Elements();
        if (kwNaN){
-	 if (!parallelize( nEl)) {
+	 if (GDL_NTHREADS=parallelize( nEl)==1) {
          for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isnan((*src)[ i].real()) || isnan((*src)[ i].imag());
 	 } else {
    TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel  for num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel  for num_threads(GDL_NTHREADS) 
          for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isnan((*src)[ i].real()) || isnan((*src)[ i].imag());
 	   }
        }
        else if (kwInfinity){
-	 if (!parallelize( nEl)) {
+	 if (GDL_NTHREADS=parallelize( nEl)==1) {
          for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isinf((*src)[ i].real()) || isinf((*src)[ i].imag());
 	 } else {
    TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel  for num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel  for num_threads(GDL_NTHREADS) 
          for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isinf((*src)[ i].real()) || isinf((*src)[ i].imag());
 	   }
        }
        else{
-	 if (!parallelize( nEl)) {
+	 if (GDL_NTHREADS=parallelize( nEl)==1) {
          for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isfinite((*src)[ i].real()) && isfinite((*src)[ i].imag());
 	 } else {
    TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel  for num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel  for num_threads(GDL_NTHREADS) 
          for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isfinite((*src)[ i].real()) && isfinite((*src)[ i].imag());
 	   }
        }
@@ -285,25 +285,25 @@ namespace lib {
         {
           if (kwInfinity) {
             if (kwSign > 0) {
-              if (!parallelize( nEl)) {
+              if (GDL_NTHREADS=parallelize( nEl)==1) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0));
                 }
               } else {
                 TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
                   for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0));
                 }
               }
             } else {
-              if (!parallelize( nEl)) {
+              if (GDL_NTHREADS=parallelize( nEl)==1) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0));
                 }
               } else {
                 TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
                   for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0));
                 }
@@ -312,25 +312,25 @@ namespace lib {
           }
           if (kwNaN) {
             if (kwSign > 0) {
-              if (!parallelize( nEl)) {
+              if (GDL_NTHREADS=parallelize( nEl)==1) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0));
                 }
               } else {
                 TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
                   for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0));
                 }
               }
             } else {
-              if (!parallelize( nEl)) {
+              if (GDL_NTHREADS=parallelize( nEl)==1) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0));
                 }
               } else {
                 TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
                   for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0));
                 }
@@ -356,25 +356,25 @@ namespace lib {
         {
           if (kwInfinity) {
             if (kwSign > 0) {
-              if (!parallelize( nEl)) {
+              if (GDL_NTHREADS=parallelize( nEl)==1) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = ((isinf((*src)[ i].real()) && (!signbit((*src)[ i].real()))) || (isinf((*src)[ i].imag()) && (!signbit((*src)[ i].imag()))));
                 }
               } else {
                 TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
                   for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = ((isinf((*src)[ i].real()) && (!signbit((*src)[ i].real()))) || (isinf((*src)[ i].imag()) && (!signbit((*src)[ i].imag()))));
                 }
               }
             } else {
-              if (!parallelize( nEl)) {
+              if (GDL_NTHREADS=parallelize( nEl)==1) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = ((isinf((*src)[ i].real()) && (signbit((*src)[ i].real()))) || (isinf((*src)[ i].imag()) && (signbit((*src)[ i].imag()))));
                 }
               } else {
                 TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
                   for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = ((isinf((*src)[ i].real()) && (signbit((*src)[ i].real()))) || (isinf((*src)[ i].imag()) && (signbit((*src)[ i].imag()))));
                 }
@@ -383,25 +383,25 @@ namespace lib {
           }
           if (kwNaN) {
             if (kwSign > 0) {
-              if (!parallelize( nEl)) {
+              if (GDL_NTHREADS=parallelize( nEl)==1) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = ((isnan((*src)[ i].real()) && (!signbit((*src)[ i].real()))) || (isnan((*src)[ i].imag()) && (!signbit((*src)[ i].imag()))));
                 }
               } else {
                 TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
                   for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = ((isnan((*src)[ i].real()) && (!signbit((*src)[ i].real()))) || (isnan((*src)[ i].imag()) && (!signbit((*src)[ i].imag()))));
                 }
               }
             } else {
-              if (!parallelize( nEl)) {
+              if (GDL_NTHREADS=parallelize( nEl)==1) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = ((isnan((*src)[ i].real()) && (signbit((*src)[ i].real()))) || (isnan((*src)[ i].imag()) && (signbit((*src)[ i].imag()))));
                 }
               } else {
                 TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for num_threads(GDL_NTHREADS) 
                   for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = ((isnan((*src)[ i].real()) && (signbit((*src)[ i].real()))) || (isnan((*src)[ i].imag()) && (signbit((*src)[ i].imag()))));
                 }
@@ -423,7 +423,7 @@ namespace lib {
 //       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::ZERO);
 //       SizeT nEl = src->N_Elements();
 //       
-//		if (!parallelize( nEl)) {
+//		if (GDL_NTHREADS=parallelize( nEl)==1) {
 //       for ( SizeT i=0; i<nEl; ++i)
 //	  {
 //	   if      ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==0 && kwSign > 0) (*res)[i]=1;
@@ -433,7 +433,7 @@ namespace lib {
 //	  }
 //		} else {
 //  TRACEOMP(__FILE__,__LINE__)
-// 	   #pragma omp parallel for num_threads(CpuTPOOL_NTHREADS) 
+// 	   #pragma omp parallel for num_threads(GDL_NTHREADS) 
 //       for ( SizeT i=0; i<nEl; ++i)
 //	  {
 //	   if      ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==0 && kwSign > 0) (*res)[i]=1;
@@ -916,17 +916,17 @@ namespace lib {
     T2* res = (T2*) res_->DataAddr();
     T2* data = (T2*) data_->DataAddr();
     if (doMissing) {
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       } else {
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
 
     /* Double loop on the output image  */
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -945,7 +945,7 @@ namespace lib {
       }
     } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
         for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -1016,17 +1016,17 @@ namespace lib {
 
 
     if (doMissing) {
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       } else {
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
 
     /* Double loop on the output image  */
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -1098,7 +1098,7 @@ namespace lib {
       }
     } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -1214,17 +1214,17 @@ namespace lib {
 
 
     if (doMissing) {
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       } else {
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
 
     /* Double loop on the output image  */
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -1281,7 +1281,7 @@ namespace lib {
       }
     } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -1362,17 +1362,17 @@ namespace lib {
     T2* res = (T2*) res_->DataAddr();
     T2* data = (T2*) data_->DataAddr();
     if (doMissing) {
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       } else {
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
 
     /* Double loop on the output image  */
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
@@ -1393,7 +1393,7 @@ namespace lib {
       }
     } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
@@ -1474,17 +1474,17 @@ namespace lib {
 
 
     if (doMissing) {
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       } else {
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
 
     /* Double loop on the output image  */
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
@@ -1556,7 +1556,7 @@ namespace lib {
       }
     } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
@@ -1680,17 +1680,17 @@ namespace lib {
 
 
     if (doMissing) {
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       } else {
       TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       }
     }
 
     /* Double loop on the output image  */
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
@@ -1747,7 +1747,7 @@ namespace lib {
       }
     } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for collapse(2) num_threads(GDL_NTHREADS)
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.

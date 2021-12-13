@@ -49,11 +49,11 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
   mThis *= mRight;
   return this;
 #else
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] *= (*right)[i];
     } else {
       TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] *= (*right)[i];
     }
   return this;
@@ -99,11 +99,11 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
   mThis *= s;
   return this;
 #else
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] *= s;
     } else {
       TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] *= s;
     }
   return this;

@@ -186,11 +186,11 @@ void interpolate_1d_nearest(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res, Siz
   //operations on unsigned are not what you think, signed are ok
   ssize_t ix = 0;
   ssize_t n1 = un1;
-  if (!parallelize( nx)) {
+  if (GDL_NTHREADS=parallelize( nx)==1) {
 #include "snippets/interpolate_1d_nearest.incpp"
   } else {
   TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(ix,x,v0,vres) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for private(ix,x,v0,vres) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_1d_nearest.incpp"
   }
 }
@@ -201,11 +201,11 @@ void interpolate_1d_nearest_single(T1* array, SizeT un1, T2* xx, SizeT nx, T1* r
   //operations on unsigned are not what you think, signed are ok
   ssize_t ix = 0;
   ssize_t n1 = un1;
-  if (!parallelize( nx)) {
+  if (GDL_NTHREADS=parallelize( nx)==1) {
 #include "snippets/interpolate_1d_nearest_single.incpp"
   } else {
   TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(ix,x) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for private(ix,x) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_1d_nearest_single.incpp"
   }
 }
@@ -221,19 +221,19 @@ void interpolate_1d_linear(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res, Size
   ssize_t xi[2];
   ssize_t n1 = un1;
   if (use_missing) {
-  if (!parallelize( nx)) {
+  if (GDL_NTHREADS=parallelize( nx)==1) {
 #include "snippets/interpolate_1d_linear_use_missing.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(xi,ix,dx,x,v0,v1,vres) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for private(xi,ix,dx,x,v0,v1,vres) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_1d_linear_use_missing.incpp"
     }
   } else {
-  if (!parallelize (nx)) {
+  if (GDL_NTHREADS=parallelize (nx)==1) {
 #include "snippets/interpolate_1d_linear.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(xi,ix,dx,x,v0,v1,vres) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for private(xi,ix,dx,x,v0,v1,vres) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_1d_linear.incpp"
     }
   }
@@ -249,19 +249,19 @@ void interpolate_1d_linear_single(T1* array, SizeT un1, T2* xx, SizeT nx, T1* re
   ssize_t xi[2];
   ssize_t n1 = un1;
   if (use_missing) {
-  if (!parallelize( nx)) {
+  if (GDL_NTHREADS=parallelize( nx)==1) {
 #include "snippets/interpolate_1d_linear_use_missing_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(xi,ix,dx,x) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for private(xi,ix,dx,x) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_1d_linear_use_missing_single.incpp"
     }
   } else {
-  if (!parallelize( nx)) {
+  if (GDL_NTHREADS=parallelize( nx)==1) {
 #include "snippets/interpolate_1d_linear_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(xi,ix,dx,x) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for private(xi,ix,dx,x) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_1d_linear_single.incpp"
     }
   }
@@ -279,19 +279,19 @@ void interpolate_1d_cubic(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res, SizeT
   ssize_t xi[4];
   ssize_t n1 = un1;
   if (use_missing) {
-  if (!parallelize( nx)) {
+  if (GDL_NTHREADS=parallelize( nx)==1) {
 #include "snippets/interpolate_1d_cubic_use_missing.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(xi,ix,dx,x,v0,v1,v2,v3,vres) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for private(xi,ix,dx,x,v0,v1,v2,v3,vres) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_1d_cubic_use_missing.incpp"
     }
   } else {
-  if (!parallelize( nx)) {
+  if (GDL_NTHREADS=parallelize( nx)==1) {
 #include "snippets/interpolate_1d_cubic.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(xi,ix,dx,x,v0,v1,v2,v3,vres) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for private(xi,ix,dx,x,v0,v1,v2,v3,vres) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_1d_cubic.incpp"
     }
   }
@@ -307,19 +307,19 @@ void interpolate_1d_cubic_single(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res
   ssize_t xi[4];
   ssize_t n1 = un1;
   if (use_missing) {
-  if (!parallelize( nx)) {
+  if (GDL_NTHREADS=parallelize( nx)==1) {
 #include "snippets/interpolate_1d_cubic_use_missing_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(xi,ix,dx,x) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for private(xi,ix,dx,x) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_1d_cubic_use_missing_single.incpp"
     }
   } else {
-  if (!parallelize( nx)) {
+  if (GDL_NTHREADS=parallelize( nx)==1) {
 #include "snippets/interpolate_1d_cubic_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(xi,ix,dx,x) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for private(xi,ix,dx,x) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_1d_cubic_single.incpp"
     }
   }
@@ -332,11 +332,11 @@ void interpolate_2d_nearest_grid(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT 
   ssize_t xi, yi; //operations on unsigned are not what you think, signed are ok
   ssize_t n1 = un1;
   ssize_t n2 = un2;
-  if (!parallelize( nx*ny)) {
+  if (GDL_NTHREADS=parallelize( nx*ny)==1) {
 #include "snippets/interpolate_2d_nearest_grid.incpp"
   } else {
   TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) private(xi,yi,x,y,vx0,vres) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for collapse(2) private(xi,yi,x,y,vx0,vres) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_2d_nearest_grid.incpp"
   }
 }
@@ -347,11 +347,11 @@ void interpolate_2d_nearest_grid_single(T1* array, SizeT un1, SizeT un2, T2* xx,
   ssize_t xi, yi; //operations on unsigned are not what you think, signed are ok
   ssize_t n1 = un1;
   ssize_t n2 = un2;
-  if (!parallelize( nx*ny)) {
+  if (GDL_NTHREADS=parallelize( nx*ny)==1) {
 #include "snippets/interpolate_2d_nearest_grid_single.incpp"
   } else {
   TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) private(xi,yi,x,y) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for collapse(2) private(xi,yi,x,y) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_2d_nearest_grid_single.incpp"
   }
 }
@@ -367,19 +367,19 @@ void interpolate_2d_linear(T1* array, SizeT un1,  SizeT un2, T2* xx, SizeT n, T2
   ssize_t n1 = un1;
   ssize_t n2 = un2;
   if (use_missing) { //following behaviour validated.
-  if (!parallelize( n)) {
+  if (GDL_NTHREADS=parallelize( n)==1) {
 #include "snippets/interpolate_2d_linear_use_missing.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) num_threads(GDL_NTHREADS) 
 #include "snippets/interpolate_2d_linear_use_missing.incpp"
     }
   } else { //following behaviour validated.
-  if (!parallelize( n)) {
+  if (GDL_NTHREADS=parallelize( n)==1) {
 #include "snippets/interpolate_2d_linear.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) num_threads(GDL_NTHREADS) 
 #include "snippets/interpolate_2d_linear.incpp"
     }
   }
@@ -396,19 +396,19 @@ void interpolate_2d_linear_grid(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT n
   ssize_t n1 = un1;
   ssize_t n2 = un2;
   if (use_missing) {  //following behaviour validated.
-  if (!parallelize( nx*ny)) {
+  if (GDL_NTHREADS=parallelize( nx*ny)==1) {
 #include "snippets/interpolate_2d_linear_grid_use_missing.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) num_threads(GDL_NTHREADS) 
 #include "snippets/interpolate_2d_linear_grid_use_missing.incpp"
     }
   } else { //following behaviour validated.
-  if (!parallelize( nx*ny)) {
+  if (GDL_NTHREADS=parallelize( nx*ny)==1) {
 #include "snippets/interpolate_2d_linear_grid.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) num_threads(GDL_NTHREADS) 
 #include "snippets/interpolate_2d_linear_grid.incpp"
     }
   }
@@ -423,19 +423,19 @@ void interpolate_2d_linear_grid_single(T1* array, SizeT un1, SizeT un2, T2* xx, 
   ssize_t n1 = un1;
   ssize_t n2 = un2;
   if (use_missing) {  //following behaviour validated.
-  if (!parallelize( nx*ny)) {
+  if (GDL_NTHREADS=parallelize( nx*ny)==1) {
 #include "snippets/interpolate_2d_linear_grid_use_missing_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y) num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y) num_threads(GDL_NTHREADS) 
 #include "snippets/interpolate_2d_linear_grid_use_missing_single.incpp"
     }
   } else {
-  if (!parallelize( nx*ny)) {
+  if (GDL_NTHREADS=parallelize( nx*ny)==1) {
 #include "snippets/interpolate_2d_linear_grid_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y) num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y) num_threads(GDL_NTHREADS) 
 #include "snippets/interpolate_2d_linear_grid_single.incpp"
     }
   }
@@ -458,18 +458,18 @@ void interpolate_2d_cubic(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT n, T2* 
   ssize_t n2 = un2;
   if (use_missing) { 
 #include "snippets/interpolate_2d_cubic_use_missing.incpp"
-  if (!parallelize( n)) {
+  if (GDL_NTHREADS=parallelize( n)==1) {
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) num_threads(GDL_NTHREADS) 
 #include "snippets/interpolate_2d_cubic_use_missing.incpp"
     }
   } else {
-  if (!parallelize( n)) {
+  if (GDL_NTHREADS=parallelize( n)==1) {
 #include "snippets/interpolate_2d_cubic.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) num_threads(GDL_NTHREADS) 
 #include "snippets/interpolate_2d_cubic.incpp"
   }
   }
@@ -491,19 +491,19 @@ void interpolate_2d_cubic_grid(T1* array, SizeT un1, SizeT un2, T2* xx, const Si
   const ssize_t n1 = un1;
   const ssize_t n2 = un2;
   if (use_missing) {
-  if (!parallelize( nx*ny)) {
+  if (GDL_NTHREADS=parallelize( nx*ny)==1) {
 #include "snippets/interpolate_2d_cubic_use_missing_grid.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) num_threads(GDL_NTHREADS) 
 #include "snippets/interpolate_2d_cubic_use_missing_grid.incpp"
     }
   } else { 
-  if (!parallelize( nx*ny)) {
+  if (GDL_NTHREADS=parallelize( nx*ny)==1) {
 #include "snippets/interpolate_2d_cubic_grid.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) num_threads(GDL_NTHREADS) 
 #include "snippets/interpolate_2d_cubic_grid.incpp"
   }
   }
@@ -520,19 +520,19 @@ void interpolate_2d_cubic_grid_single(T1* array, SizeT un1, SizeT un2, T2* xx, c
   const ssize_t n1 = un1;
   const ssize_t n2 = un2;
   if (use_missing) {
-  if (!parallelize( nx*ny)) {
+  if (GDL_NTHREADS=parallelize( nx*ny)==1) {
 #include "snippets/interpolate_2d_cubic_use_missing_grid_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y) num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y) num_threads(GDL_NTHREADS) 
 #include "snippets/interpolate_2d_cubic_use_missing_grid_single.incpp"
     }
   } else { 
-  if (!parallelize( nx*ny)) {
+  if (GDL_NTHREADS=parallelize( nx*ny)==1) {
 #include "snippets/interpolate_2d_cubic_grid_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_2d_cubic_grid_single.incpp"
   }
   }
@@ -553,19 +553,19 @@ void interpolate_3d_linear(T1* array, SizeT un1,  SizeT un2, SizeT un3, T2* xx, 
   ssize_t n3 = un3;
   ssize_t n1n2=n1*n2;
   if (use_missing) { 
-  if (!parallelize( n)) {
+  if (GDL_NTHREADS=parallelize( n)==1) {
 #include "snippets/interpolate_3d_linear_use_missing.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(xi,yi,zi,ix,iy,iz,dx,dy,dz,x,y,z,umdx,umdy,umdz,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for private(xi,yi,zi,ix,iy,iz,dx,dy,dz,x,y,z,umdx,umdy,umdz,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_3d_linear_use_missing.incpp"
     }
   } else {
-  if (!parallelize( n)) {
+  if (GDL_NTHREADS=parallelize( n)==1) {
 #include "snippets/interpolate_3d_linear.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_3d_linear.incpp"
     }
   }
@@ -586,19 +586,19 @@ void interpolate_3d_linear_grid(T1* array, SizeT un1, SizeT un2, SizeT un3, T2* 
   ssize_t n3 = un3;
   ssize_t n1n2 = n1*n2;
   if (use_missing) {
-  if (!parallelize( nx*ny*nz)) {
+  if (GDL_NTHREADS=parallelize( nx*ny*nz)==1) {
 #include "snippets/interpolate_3d_linear_grid_use_missing.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(3) private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for collapse(3) private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) num_threads(GDL_NTHREADS) 
 #include "snippets/interpolate_3d_linear_grid_use_missing.incpp"
     }
   } else {
-  if (!parallelize( nx*ny*nz)) {
+  if (GDL_NTHREADS=parallelize( nx*ny*nz)==1) {
 #include "snippets/interpolate_3d_linear_grid.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) num_threads(CpuTPOOL_NTHREADS) //2 is a good compromise as some values (yi and zi) are not computed nx times. 
+#pragma omp parallel for collapse(2) private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) num_threads(GDL_NTHREADS) //2 is a good compromise as some values (yi and zi) are not computed nx times. 
 #include "snippets/interpolate_3d_linear_grid.incpp"
     }
   }
@@ -618,19 +618,19 @@ void interpolate_3d_linear_grid_single(T1* array, SizeT un1, SizeT un2, SizeT un
   ssize_t n3 = un3;
   ssize_t n1n2 = n1*n2;
   if (use_missing) {
-  if (!parallelize( nx*ny*nz)) {
+  if (GDL_NTHREADS=parallelize( nx*ny*nz)==1) {
 #include "snippets/interpolate_3d_linear_grid_use_missing_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(3) private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z) num_threads(CpuTPOOL_NTHREADS) 
+#pragma omp parallel for collapse(3) private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z) num_threads(GDL_NTHREADS) 
 #include "snippets/interpolate_3d_linear_grid_use_missing_single.incpp"
     }
   } else {
-  if (!parallelize( nx*ny*nz)) {
+  if (GDL_NTHREADS=parallelize( nx*ny*nz)==1) {
 #include "snippets/interpolate_3d_linear_grid_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for collapse(2) private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z) num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for collapse(2) private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z) num_threads(GDL_NTHREADS)
 #include "snippets/interpolate_3d_linear_grid_single.incpp"
     }
   }

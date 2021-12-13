@@ -15,7 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
-// for all variants of MinMax(), to be included from datatypes.cpp
+// for all variants of MinMax(), to be included from datatypes_minmax.cpp
 
   // default: start = 0, stop = 0, step = 1, valIx = -1
   if (stop == 0) stop = dd.size();
@@ -44,7 +44,8 @@
   
 
   SizeT nElem = (stop - start) / step;
-//trap existence of ABSFUNC and create something that stands cppchekck useage (needed by contiunous integration scripts!) 
+  GDL_NTHREADS=parallelize( nElem);
+  //trap existence of ABSFUNC and create something that stands cppchekck useage (needed by contiunous integration scripts!) 
 #ifndef ABSFUNC
 #define FUNCABS
   useAbs=false;
@@ -84,8 +85,7 @@
     DLong maxEl = start;
     Ty maxV = (*this)[maxEl];
 
-    if (nElem < CpuTPOOL_MIN_ELTS || nElem < CpuTPOOL_NTHREADS || CpuTPOOL_NTHREADS == 1)
-    {
+    if (GDL_NTHREADS==1) {
       if (!useAbs)
       {
         for (SizeT i = start+step ; i < stop; i += step) {
@@ -104,21 +104,21 @@
 #endif
     } else
     {
-      Ty* maxVArray= new Ty[CpuTPOOL_NTHREADS];
-      SizeT maxElArray[CpuTPOOL_NTHREADS];
+      Ty* maxVArray= new Ty[GDL_NTHREADS];
+      SizeT maxElArray[GDL_NTHREADS];
 //precaution:initialize to something realistic:
-      for (int i = 0; i < CpuTPOOL_NTHREADS; ++i) {maxVArray[i]=maxV;maxElArray[i]=maxEl;}
+      for (int i = 0; i < GDL_NTHREADS; ++i) {maxVArray[i]=maxV;maxElArray[i]=maxEl;}
 
-      SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
+      SizeT chunksize = nElem / (GDL_NTHREADS);
       if (!useAbs)
       {
 	TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+#pragma omp parallel num_threads(GDL_NTHREADS)
         {
           int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
           start_index = start + thread_id * chunksize*step;
-          if (thread_id != (CpuTPOOL_NTHREADS - 1))
+          if (thread_id != (GDL_NTHREADS - 1))
           {
             stop_index = start_index + chunksize*step;
           } else
@@ -140,12 +140,12 @@
       else
       {
 	TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+#pragma omp parallel num_threads(GDL_NTHREADS)
         {
           int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
           start_index = start + thread_id * chunksize*step;
-          if (thread_id != (CpuTPOOL_NTHREADS - 1))
+          if (thread_id != (GDL_NTHREADS - 1))
           {
             stop_index = start_index + chunksize*step;
           } else
@@ -169,7 +169,7 @@
 #ifdef ABSFUNC
       if (useAbs)
       {
-        for (int i = 1; i < CpuTPOOL_NTHREADS; ++i) if (FUNCABS(maxVArray[i]) > FUNCABS(maxV))
+        for (int i = 1; i < GDL_NTHREADS; ++i) if (FUNCABS(maxVArray[i]) > FUNCABS(maxV))
           {
             maxV = maxVArray[i];
             maxEl = maxElArray[i];
@@ -178,7 +178,7 @@
       else
 #endif      
       {
-        for (int i = 1; i < CpuTPOOL_NTHREADS; ++i) if (REAL_PART(maxVArray[i]) > REAL_PART(maxV))
+        for (int i = 1; i < GDL_NTHREADS; ++i) if (REAL_PART(maxVArray[i]) > REAL_PART(maxV))
           {
             maxV = maxVArray[i];
             maxEl = maxElArray[i];
@@ -199,8 +199,7 @@
     DLong minEl = start;
     Ty minV = (*this)[minEl];
 
-    if (nElem < CpuTPOOL_MIN_ELTS || nElem < CpuTPOOL_NTHREADS || CpuTPOOL_NTHREADS == 1)
-    {
+    if (GDL_NTHREADS==1) {
       if (!useAbs)
       {
         for (SizeT i = start+step; i < stop; i += step) {
@@ -219,21 +218,21 @@
 #endif
     } else
     {
-      Ty* minVArray=new Ty[CpuTPOOL_NTHREADS];
-      SizeT minElArray[CpuTPOOL_NTHREADS];
+      Ty* minVArray=new Ty[GDL_NTHREADS];
+      SizeT minElArray[GDL_NTHREADS];
 //precaution:initialize to something realistic:
-      for (int i = 0; i < CpuTPOOL_NTHREADS; ++i) {minVArray[i]=minV;minElArray[i]=minEl;}
+      for (int i = 0; i < GDL_NTHREADS; ++i) {minVArray[i]=minV;minElArray[i]=minEl;}
       
-      SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
+      SizeT chunksize = nElem / (GDL_NTHREADS);
       if (!useAbs)
       {
 	TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+#pragma omp parallel num_threads(GDL_NTHREADS)
         {
           int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
           start_index = start + thread_id * chunksize*step;
-          if (thread_id != (CpuTPOOL_NTHREADS - 1))
+          if (thread_id != (GDL_NTHREADS - 1))
           {
             stop_index = start_index + chunksize*step;
           } else
@@ -255,12 +254,12 @@
       else
       {
 	TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+#pragma omp parallel num_threads(GDL_NTHREADS)
         {
           int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
           start_index = start + thread_id * chunksize*step;
-          if (thread_id != (CpuTPOOL_NTHREADS - 1))
+          if (thread_id != (GDL_NTHREADS - 1))
           {
             stop_index = start_index + chunksize*step;
           } else
@@ -284,7 +283,7 @@
 #ifdef ABSFUNC
       if (useAbs)
       {
-        for (int i = 1; i < CpuTPOOL_NTHREADS; ++i) if (FUNCABS(minVArray[i]) < FUNCABS(minV))
+        for (int i = 1; i < GDL_NTHREADS; ++i) if (FUNCABS(minVArray[i]) < FUNCABS(minV))
           {
             minV = minVArray[i];
             minEl = minElArray[i];
@@ -293,7 +292,7 @@
       else
 #endif
       {
-        for (int i = 1; i < CpuTPOOL_NTHREADS; ++i) if (REAL_PART(minVArray[i]) < REAL_PART(minV))
+        for (int i = 1; i < GDL_NTHREADS; ++i) if (REAL_PART(minVArray[i]) < REAL_PART(minV))
           {
             minV = minVArray[i];
             minEl = minElArray[i];
@@ -317,8 +316,7 @@
     DLong maxEl = start;
     Ty maxV = (*this)[maxEl];
 
-    if (nElem < CpuTPOOL_MIN_ELTS || nElem < CpuTPOOL_NTHREADS || CpuTPOOL_NTHREADS == 1)
-    {
+    if (GDL_NTHREADS==1) {
       if (!useAbs)
       {
         for (SizeT i = start+step; i < stop; i += step) {
@@ -340,24 +338,24 @@
     } else
     {
 
-      Ty* maxVArray=new Ty[CpuTPOOL_NTHREADS];
-      SizeT maxElArray[CpuTPOOL_NTHREADS];
-      Ty* minVArray=new Ty[CpuTPOOL_NTHREADS];
-      SizeT minElArray[CpuTPOOL_NTHREADS];
+      Ty* maxVArray=new Ty[GDL_NTHREADS];
+      SizeT maxElArray[GDL_NTHREADS];
+      Ty* minVArray=new Ty[GDL_NTHREADS];
+      SizeT minElArray[GDL_NTHREADS];
 //precaution:initialize to something realistic:
-      for (int i = 0; i < CpuTPOOL_NTHREADS; ++i) {maxVArray[i]=maxV;maxElArray[i]=maxEl;}
-      for (int i = 0; i < CpuTPOOL_NTHREADS; ++i) {minVArray[i]=minV;minElArray[i]=minEl;}
+      for (int i = 0; i < GDL_NTHREADS; ++i) {maxVArray[i]=maxV;maxElArray[i]=maxEl;}
+      for (int i = 0; i < GDL_NTHREADS; ++i) {minVArray[i]=minV;minElArray[i]=minEl;}
       
-      SizeT chunksize = nElem / (CpuTPOOL_NTHREADS);
+      SizeT chunksize = nElem / (GDL_NTHREADS);
       if (!useAbs)
       {
 	TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+#pragma omp parallel num_threads(GDL_NTHREADS)
         {
           int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
           start_index = start + thread_id * chunksize*step;
-          if (thread_id != (CpuTPOOL_NTHREADS - 1))
+          if (thread_id != (GDL_NTHREADS - 1))
           {
             stop_index = start_index + chunksize*step;
           } else
@@ -383,12 +381,12 @@
       else
       {
 	TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel num_threads(CpuTPOOL_NTHREADS) if (CpuTPOOL_NTHREADS > 1)
+#pragma omp parallel num_threads(GDL_NTHREADS)
         {
           int thread_id = MINMAX_THREAD_NUM;
           SizeT start_index, stop_index;
           start_index = start + thread_id * chunksize*step;
-          if (thread_id != (CpuTPOOL_NTHREADS - 1))
+          if (thread_id != (GDL_NTHREADS - 1))
           {
             stop_index = start_index + chunksize*step;
           } else
@@ -418,7 +416,7 @@
 #ifdef ABSFUNC
       if (useAbs)
       {
-        for (int i = 1; i < CpuTPOOL_NTHREADS; ++i) {
+        for (int i = 1; i < GDL_NTHREADS; ++i) {
           if (FUNCABS(minVArray[i]) < FUNCABS(minV)) {
             minV = minVArray[i];
             minEl = minElArray[i];
@@ -432,7 +430,7 @@
       else
 #endif
       {
-        for (int i = 1; i < CpuTPOOL_NTHREADS; ++i) {
+        for (int i = 1; i < GDL_NTHREADS; ++i) {
           if (REAL_PART(minVArray[i]) < REAL_PART(minV)) {
             minV = minVArray[i];
             minEl = minElArray[i];

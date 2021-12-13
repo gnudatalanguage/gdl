@@ -58,11 +58,11 @@ BaseGDL* Data_<Sp>::Sub(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE
     dd -= right->dd;
   else {
 
-      if (!parallelize( nEl)) {
+      if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*this)[i] -= (*right)[i];
       } else {
 	TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < nEl; ++i) (*this)[i] -= (*right)[i];
     }
   }
@@ -92,11 +92,11 @@ BaseGDL* Data_<Sp>::SubInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__L
   return this;
 #else
 
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = (*right)[i] - (*this)[i];
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = (*right)[i] - (*this)[i];
   }
   return this;
@@ -316,11 +316,11 @@ Data_<Sp>* Data_<Sp>::SubS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__L
   return this;
 #else
 
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] -= s;
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] -= s;
   }
   return this;
@@ -349,11 +349,11 @@ Data_<Sp>* Data_<Sp>::SubInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
   return this;
 #else
 
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = s - (*this)[i];
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = s - (*this)[i];
   }
   return this;

@@ -775,7 +775,8 @@ enum ThreadPoolType {
     TP_CPU_INTENSIVE  // benefit from max number of threads
   };
 
-bool parallelize(SizeT n, int modifier=TP_DEFAULT);
+extern  int GDL_NTHREADS;
+int parallelize(SizeT n, int modifier=TP_DEFAULT);
 
 #endif
 

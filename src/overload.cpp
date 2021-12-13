@@ -257,11 +257,11 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp(EnvUDT* e) {
       (*res)[0] = (s == (*left)[0]);
       return res;
     }
-    if (!parallelize( nEl, TP_MEMORY_ACCESS)) {
+    if (GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS)==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = ((*left)[i] == s);
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = ((*left)[i] == s);
     }
   } else if (left->StrictScalar(s)) {
@@ -270,20 +270,20 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp(EnvUDT* e) {
       (*res)[0] = ((*right)[0] == s);
       return res;
     }
-    if (!parallelize( rEl, TP_MEMORY_ACCESS)) {
+    if (GDL_NTHREADS=parallelize( rEl, TP_MEMORY_ACCESS)==1) {
       for (OMPInt i = 0; i < rEl; ++i)  (*res)[i] = ((*right)[i] == s);
     } else {
     TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < rEl; ++i)  (*res)[i] = ((*right)[i] == s);
     }
   } else if (rEl < nEl) {
     res = new Data_<SpDByte>(right->Dim(), BaseGDL::NOZERO);
-    if (!parallelize( rEl, TP_MEMORY_ACCESS)) {
+    if (GDL_NTHREADS=parallelize( rEl, TP_MEMORY_ACCESS)==1) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = ((*right)[i] == (*left)[i]);
     } else {
     TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = ((*right)[i] == (*left)[i]);
     }
   } else // ( rEl >= nEl)
@@ -293,11 +293,11 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp(EnvUDT* e) {
       (*res)[0] = ((*right)[0] == (*left)[0]);
       return res;
     }
-    if (!parallelize( nEl, TP_MEMORY_ACCESS)) {
+    if (GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS)==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = ((*right)[i] == (*left)[i]);
     } else {
     TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = ((*right)[i] == (*left)[i]);
     }
   }
@@ -339,11 +339,11 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp(EnvUDT* e) {
       (*res)[0] = (s != (*left)[0]);
       return res;
     }
-    if (!parallelize( nEl, TP_MEMORY_ACCESS)) {
+    if (GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS)==1) {
        for (OMPInt i = 0; i < nEl; ++i)  (*res)[i] = ((*left)[i] != s);
    } else {
     TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < nEl; ++i)  (*res)[i] = ((*left)[i] != s);
     }
   } else if (left->StrictScalar(s)) {
@@ -352,20 +352,20 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp(EnvUDT* e) {
       (*res)[0] = ((*right)[0] != s);
       return res;
     }
-    if (!parallelize( rEl, TP_MEMORY_ACCESS)) {
+    if (GDL_NTHREADS=parallelize( rEl, TP_MEMORY_ACCESS)==1) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = ((*right)[i] != s);
     } else {
     TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = ((*right)[i] != s);
     }
   } else if (rEl < nEl) {
     res = new Data_<SpDByte>(right->Dim(), BaseGDL::NOZERO);
-    if (!parallelize( rEl, TP_MEMORY_ACCESS)) {
+    if (GDL_NTHREADS=parallelize( rEl, TP_MEMORY_ACCESS)==1) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = ((*right)[i] != (*left)[i]);
     } else {
     TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = ((*right)[i] != (*left)[i]);
     }
   } else // ( rEl >= nEl)
@@ -375,11 +375,11 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp(EnvUDT* e) {
       (*res)[0] = ((*right)[0] != (*left)[0]);
       return res;
     }
-    if (!parallelize( nEl, TP_MEMORY_ACCESS)) {
+    if (GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS)==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = ((*right)[i] != (*left)[i]);
     } else {
     TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = ((*right)[i] != (*left)[i]);
     }
   }

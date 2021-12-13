@@ -49,11 +49,11 @@ Data_<Sp>* Data_<Sp>::Div(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LI
     return this;
   } else {
 
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*right)[ix] != this->zero) (*this)[ix] /= (*right)[ix];
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (OMPInt ix = i; ix < nEl; ++ix) if ((*right)[ix] != this->zero) (*this)[ix] /= (*right)[ix];
     }
     return this;
@@ -74,7 +74,7 @@ Data_<Sp>* Data_<Sp>::DivInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,_
     return this;
   } else {
 
-    if (!parallelize( nEl)) {
+    if (GDL_NTHREADS=parallelize( nEl)==1) {
       for (OMPInt ix = i; ix < nEl; ++ix)
         if ((*this)[ix] != this->zero)
           (*this)[ix] = (*right)[ix] / (*this)[ix];
@@ -82,7 +82,7 @@ Data_<Sp>* Data_<Sp>::DivInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,_
           (*this)[ix] = (*right)[ix];
     } else {
       TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for (OMPInt ix = i; ix < nEl; ++ix)
         if ((*this)[ix] != this->zero)
           (*this)[ix] = (*right)[ix] / (*this)[ix];
@@ -181,10 +181,6 @@ Data_<Sp>* Data_<Sp>::DivInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
     for (/*SizeT i=0*/; i < nEl; ++i) (*this)[i] = s / (*this)[i];
     return this;
   } else {
-    //      TRACEOMP( __FILE__, __LINE__)
-    // #pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl))
-    // 	{
-    // #pragma omp for num_threads(CpuTPOOL_NTHREADS)
     for (SizeT ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*this)[ix] = s / (*this)[ix];
       else (*this)[ix] = s;
     return this;
