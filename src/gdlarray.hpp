@@ -24,8 +24,8 @@
 //#define GDLARRAY_DEBUG
 #undef GDLARRAY_DEBUG
 
-#define TRACE_GDLARRAY_OMP_CALLS
-//#undef TRACE_GDLARRAY_OMP_CALLS
+//#define TRACE_GDLARRAY_OMP_CALLS
+#undef TRACE_GDLARRAY_OMP_CALLS
 #if defined(_OPENMP) && defined(TRACE_GDLARRAY_OMP_CALLS)
 #define GDLARRAY_TRACEOMP( file, line)  TRACEOMP( file, line) 
 #else

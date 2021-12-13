@@ -33,15 +33,15 @@ using namespace std;
 //#define TRACE_CONVERT2 cout << "Convert2 " << this->TypeStr() << " -> " << destTy << "\tn " << dd.size() << "\tmode " << mode << endl;
 #define TRACE_CONVERT2
 
-#define DO_CONVERT_START(tnew)  {bool parallelize=(CpuTPOOL_NTHREADS >1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));\
+#define DO_CONVERT_START(tnew)  {\
         Data_<tnew>* dest=new Data_<tnew>( dim, BaseGDL::NOZERO);\
         if( nEl == 1) { (*dest)[0]=(*this)[0]; if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest;}\
-        if(!parallelize) {for( SizeT i=0; i < nEl; ++i) (*dest)[i]=(*this)[i]; if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
+        if(!parallelize(nEl,  TP_ARRAY_INITIALISATION)) {for( SizeT i=0; i < nEl; ++i) (*dest)[i]=(*this)[i]; if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
 
-#define DO_CONVERT_START_CPX(tnew)  {bool parallelize=(CpuTPOOL_NTHREADS >1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));\
+#define DO_CONVERT_START_CPX(tnew)  {\
         Data_<tnew>* dest=new Data_<tnew>( dim, BaseGDL::NOZERO);\
         if( nEl == 1) { (*dest)[0]=(*this)[0].real(); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest;}\
-        if(!parallelize) {for( SizeT i=0; i < nEl; ++i) (*dest)[i]=(*this)[i].real(); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
+        if(!parallelize(nEl,  TP_ARRAY_INITIALISATION)) {for( SizeT i=0; i < nEl; ++i) (*dest)[i]=(*this)[i].real(); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
 
 #define DO_CONVERT_END 	for( SizeT i=0; i < nEl; ++i) (*dest)[i]=(*this)[i]; if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }
 #define DO_CONVERT_END_CPX 	for( SizeT i=0; i < nEl; ++i) (*dest)[i]=(*this)[i].real(); if( (mode & BaseGDL::CONVERT) != 0) delete this; return dest; }

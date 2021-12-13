@@ -74,7 +74,6 @@ namespace lib {
 
     DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (data);
     DComplexGDL* p0CF = static_cast<DComplexGDL*> (data);
-    bool parallelize= (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
     if (data->Type() == GDL_COMPLEXDBL)
     {
       double *dptr;
@@ -91,7 +90,7 @@ namespace lib {
 
       if (direct == -1)
       {
-        if (!parallelize) {
+        if (!parallelize( nEl)) {
           for (OMPInt i = 0; i < nEl; ++i) {
             out[i][0] /= nEl;
             out[i][1] /= nEl;
@@ -127,7 +126,7 @@ TRACEOMP(__FILE__, __LINE__)
 
       if (direct == -1)
       {
-        if (!parallelize) {
+        if (!parallelize( nEl)) {
           for (OMPInt i = 0; i < nEl; ++i)
           {
             out_f[i][0] /= nEl;

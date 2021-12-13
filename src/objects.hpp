@@ -113,7 +113,6 @@ bool IsRelaxed(); //tells if syntax is not strict (i.e. parenthesis for array in
 void SetStrict(bool value);
 
 bool BigEndian();
-
 int get_suggested_omp_num_threads();
 int currentNumberOfThreads();
 int currentThreadNumber();

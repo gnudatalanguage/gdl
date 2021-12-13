@@ -49,8 +49,7 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
   mThis *= mRight;
   return this;
 #else
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] *= (*right)[i];
     } else {
       TRACEOMP( __FILE__, __LINE__)
@@ -100,8 +99,7 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
   mThis *= s;
   return this;
 #else
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] *= s;
     } else {
       TRACEOMP( __FILE__, __LINE__)

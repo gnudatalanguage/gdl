@@ -197,10 +197,9 @@ namespace lib {
     inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity) {
       DByteGDL* res = new DByteGDL(src->Dim(), BaseGDL::NOZERO);
       SizeT nEl = src->N_Elements();
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
 
       if (kwNaN) {
-        if (!parallelize) {
+        if (!parallelize( nEl)) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isnan((*src)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -208,7 +207,7 @@ namespace lib {
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isnan((*src)[ i]);
         }
       } else if (kwInfinity) {
-        if (!parallelize) {
+        if (!parallelize( nEl)) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isinf((*src)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -216,7 +215,7 @@ namespace lib {
             for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isinf((*src)[ i]);
         }
       } else {
-        if (!parallelize) {
+        if (!parallelize( nEl)) {
           for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = isfinite((*src)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -235,9 +234,8 @@ namespace lib {
     {
        DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::NOZERO);
        SizeT nEl = src->N_Elements();
-    	 bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
        if (kwNaN){
-	 if (!parallelize) {
+	 if (!parallelize( nEl)) {
          for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isnan((*src)[ i].real()) || isnan((*src)[ i].imag());
 	 } else {
    TRACEOMP(__FILE__,__LINE__)
@@ -246,7 +244,7 @@ namespace lib {
 	   }
        }
        else if (kwInfinity){
-	 if (!parallelize) {
+	 if (!parallelize( nEl)) {
          for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isinf((*src)[ i].real()) || isinf((*src)[ i].imag());
 	 } else {
    TRACEOMP(__FILE__,__LINE__)
@@ -255,7 +253,7 @@ namespace lib {
 	   }
        }
        else{
-	 if (!parallelize) {
+	 if (!parallelize( nEl)) {
          for ( SizeT i=0; i<nEl; ++i) (*res)[ i] = isfinite((*src)[ i].real()) && isfinite((*src)[ i].imag());
 	 } else {
    TRACEOMP(__FILE__,__LINE__)
@@ -283,12 +281,11 @@ namespace lib {
 
       DByteGDL* res = new DByteGDL(src->Dim(), BaseGDL::ZERO); // ::ZERO is not working
       SizeT nEl = src->N_Elements();
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
       if (kwInfinity || kwNaN) {
         {
           if (kwInfinity) {
             if (kwSign > 0) {
-              if (!parallelize) {
+              if (!parallelize( nEl)) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = (isinf((*src)[ i]) && (signbit((*src)[ i]) == 0));
                 }
@@ -300,7 +297,7 @@ namespace lib {
                 }
               }
             } else {
-              if (!parallelize) {
+              if (!parallelize( nEl)) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = (isinf((*src)[ i]) && (signbit((*src)[ i]) != 0));
                 }
@@ -315,7 +312,7 @@ namespace lib {
           }
           if (kwNaN) {
             if (kwSign > 0) {
-              if (!parallelize) {
+              if (!parallelize( nEl)) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = (isnan((*src)[ i]) && (signbit((*src)[ i]) == 0));
                 }
@@ -327,7 +324,7 @@ namespace lib {
                 }
               }
             } else {
-              if (!parallelize) {
+              if (!parallelize( nEl)) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = (isnan((*src)[ i]) && (signbit((*src)[ i]) != 0));
                 }
@@ -355,12 +352,11 @@ namespace lib {
     inline static BaseGDL* do_it(T* src, bool kwNaN, bool kwInfinity, DLong kwSign) {
       DByteGDL* res = new DByteGDL(src->Dim(), BaseGDL::ZERO);
       SizeT nEl = src->N_Elements();
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
       if (kwInfinity || kwNaN) {
         {
           if (kwInfinity) {
             if (kwSign > 0) {
-              if (!parallelize) {
+              if (!parallelize( nEl)) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = ((isinf((*src)[ i].real()) && (!signbit((*src)[ i].real()))) || (isinf((*src)[ i].imag()) && (!signbit((*src)[ i].imag()))));
                 }
@@ -372,7 +368,7 @@ namespace lib {
                 }
               }
             } else {
-              if (!parallelize) {
+              if (!parallelize( nEl)) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = ((isinf((*src)[ i].real()) && (signbit((*src)[ i].real()))) || (isinf((*src)[ i].imag()) && (signbit((*src)[ i].imag()))));
                 }
@@ -387,7 +383,7 @@ namespace lib {
           }
           if (kwNaN) {
             if (kwSign > 0) {
-              if (!parallelize) {
+              if (!parallelize( nEl)) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = ((isnan((*src)[ i].real()) && (!signbit((*src)[ i].real()))) || (isnan((*src)[ i].imag()) && (!signbit((*src)[ i].imag()))));
                 }
@@ -399,7 +395,7 @@ namespace lib {
                 }
               }
             } else {
-              if (!parallelize) {
+              if (!parallelize( nEl)) {
                 for (SizeT i = 0; i < nEl; ++i) {
                   (*res)[i] = ((isnan((*src)[ i].real()) && (signbit((*src)[ i].real()))) || (isnan((*src)[ i].imag()) && (signbit((*src)[ i].imag()))));
                 }
@@ -427,8 +423,7 @@ namespace lib {
 //       DByteGDL* res = new DByteGDL( src->Dim(), BaseGDL::ZERO);
 //       SizeT nEl = src->N_Elements();
 //       
-//		bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-//		if (!parallelize) {
+//		if (!parallelize( nEl)) {
 //       for ( SizeT i=0; i<nEl; ++i)
 //	  {
 //	   if      ((kwInfinity && isinf((*src)[ i].real()) || kwNaN && isnan((*src)[ i].real())) && signbit((*src)[ i].real())==0 && kwSign > 0) (*res)[i]=1;
@@ -921,8 +916,7 @@ namespace lib {
     T2* res = (T2*) res_->DataAddr();
     T2* data = (T2*) data_->DataAddr();
     if (doMissing) {
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 &&  (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)));
-      if (!parallelize) {
+      if (!parallelize( nEl)) {
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       } else {
       TRACEOMP(__FILE__,__LINE__)
@@ -932,8 +926,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 &&  (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -1023,8 +1016,7 @@ namespace lib {
 
 
     if (doMissing) {
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 &&  (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)));
-      if (!parallelize) {
+      if (!parallelize( nEl)) {
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       } else {
       TRACEOMP(__FILE__,__LINE__)
@@ -1034,8 +1026,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 &&  (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -1223,8 +1214,7 @@ namespace lib {
 
 
     if (doMissing) {
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 &&  (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)));
-      if (!parallelize) {
+      if (!parallelize( nEl)) {
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       } else {
       TRACEOMP(__FILE__,__LINE__)
@@ -1234,8 +1224,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 &&  (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -1373,8 +1362,7 @@ namespace lib {
     T2* res = (T2*) res_->DataAddr();
     T2* data = (T2*) data_->DataAddr();
     if (doMissing) {
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 &&  (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)));
-      if (!parallelize) {
+      if (!parallelize( nEl)) {
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       } else {
       TRACEOMP(__FILE__,__LINE__)
@@ -1384,8 +1372,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 &&  (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
@@ -1487,8 +1474,7 @@ namespace lib {
 
 
     if (doMissing) {
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 &&  (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)));
-      if (!parallelize) {
+      if (!parallelize( nEl)) {
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       } else {
       TRACEOMP(__FILE__,__LINE__)
@@ -1498,8 +1484,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 &&  (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
@@ -1695,8 +1680,7 @@ namespace lib {
 
 
     if (doMissing) {
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 &&  (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)));
-      if (!parallelize) {
+      if (!parallelize( nEl)) {
         for (OMPInt i = 0; i < nCols * nRows; ++i) res[i] = initvalue;
       } else {
       TRACEOMP(__FILE__,__LINE__)
@@ -1706,8 +1690,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 &&  (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.

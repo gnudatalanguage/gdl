@@ -223,23 +223,36 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   {
     doNan = false;
     doInvalid=false;
+    if (!parallelize( nA)) {
+      for (SizeT i = 0; i < nA; ++i) {
+        if (!gdlValid(ddP[i])) {
+          doNan = true;
+        }
+        if (ddP[i] == invalidValue) {
+          doInvalid = true;
+        }
+      }      
+    } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nA))
-    {
-#pragma omp for
-    for( OMPInt i=0; i<nA; ++i)  {
-        if (!gdlValid(ddP[i])) {doNan=true;}
-        if (ddP[i] == invalidValue) {doInvalid=true;}
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
+        for (OMPInt i = 0; i < nA; ++i) {
+        if (!gdlValid(ddP[i])) {
+          doNan = true;
+        }
+        if (ddP[i] == invalidValue) {
+          doInvalid = true;
+        }
       }
     }
   }
   else if(doNan)
   {
     doNan = false;
-    TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nA))
-    {
-#pragma omp for
+    if (!parallelize( nA)) {
+    for(SizeT i=0; i<nA; ++i)  if (!gdlValid(ddP[i])) {doNan=true;}
+    } else {
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for( OMPInt i=0; i<nA; ++i)  if (!gdlValid(ddP[i])) {doNan=true;}
     }
   }
@@ -247,10 +260,10 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   else if(doInvalid)
   {
     doInvalid=false;
-    TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nA))
-    {
-#pragma omp for
+    if (!parallelize( nA)) {
+    for(SizeT i=0; i<nA; ++i)  if (ddP[i] == invalidValue) {doInvalid=true;}
+    } else {
+#pragma omp parallel for num_threads(CpuTPOOL_NTHREADS)
     for( OMPInt i=0; i<nA; ++i)  if (ddP[i] == invalidValue) {doInvalid=true;}
     }
   }

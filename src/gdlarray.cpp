@@ -80,8 +80,7 @@ template<class T, bool IsPOD>
     } catch (std::bad_alloc&) {
       ThrowGDLException("Array requires more memory than available");
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
-    if (!parallelize) {
+    if (!parallelize( sz, TP_ARRAY_INITIALISATION)) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] = cp.buf[ i];
     } else {
       GDLARRAY_TRACEOMP(__FILE__, __LINE__)
@@ -106,8 +105,7 @@ template<class T, bool IsPOD>
     } catch (std::bad_alloc&) {
       ThrowGDLException("Array requires more memory than available");
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
-    if (!parallelize) {
+    if (!parallelize( sz, TP_ARRAY_INITIALISATION)) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] = val;
     } else {
       GDLARRAY_TRACEOMP(__FILE__, __LINE__)
@@ -123,8 +121,7 @@ template<class T, bool IsPOD>
     } catch (std::bad_alloc&) {
       ThrowGDLException("Array requires more memory than available");
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
-    if (!parallelize) {
+    if (!parallelize( sz, TP_ARRAY_INITIALISATION)) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] = arr[ i];
     } else {
       GDLARRAY_TRACEOMP(__FILE__, __LINE__)
@@ -160,8 +157,7 @@ template<class T, bool IsPOD>
     if (IsPOD) {
       std::memcpy(buf, right.buf, sz * sizeof (T));
     } else {
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
-      if (!parallelize) {
+      if (!parallelize( sz, TP_ARRAY_INITIALISATION)) {
         for (SizeT i = 0; i < sz; ++i) buf[ i] = right.buf[ i];
       } else {
         GDLARRAY_TRACEOMP(__FILE__, __LINE__)
@@ -178,8 +174,7 @@ template<class T, bool IsPOD>
     if (IsPOD) {
       std::memcpy(buf, right.buf, sz * sizeof (T));
     } else {
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
-      if (!parallelize) {
+      if (!parallelize( sz, TP_ARRAY_INITIALISATION)) {
         for (SizeT i = 0; i < sz; ++i) buf[ i] = right.buf[ i];
       } else {
         GDLARRAY_TRACEOMP(__FILE__, __LINE__)
@@ -192,8 +187,7 @@ template<class T, bool IsPOD>
 
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>& GDLArray<T,IsPOD>::operator+=(const GDLArray<T,IsPOD>& right) throw () {
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
-    if (!parallelize) {
+  if (!parallelize( sz, TP_ARRAY_INITIALISATION)) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] += right.buf[ i];
     } else {
       GDLARRAY_TRACEOMP(__FILE__, __LINE__)
@@ -205,8 +199,7 @@ template<class T, bool IsPOD>
 
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>& GDLArray<T,IsPOD>::operator-=(const GDLArray<T,IsPOD>& right) throw () {
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
-    if (!parallelize) {
+  if (!parallelize( sz, TP_ARRAY_INITIALISATION)) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] -= right.buf[ i];
     } else {
       GDLARRAY_TRACEOMP(__FILE__, __LINE__)
@@ -227,8 +220,7 @@ template<>
   }
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>& GDLArray<T,IsPOD>::operator+=(const T& right) throw () {
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
-    if (!parallelize) {
+  if (!parallelize( sz, TP_ARRAY_INITIALISATION)) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] += right;
     } else {
       GDLARRAY_TRACEOMP(__FILE__, __LINE__)
@@ -240,8 +232,7 @@ template<class T, bool IsPOD>
 
 template<class T, bool IsPOD>
   GDLArray<T,IsPOD>& GDLArray<T,IsPOD>::operator-=(const T& right) throw () {
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && sz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= sz));
-    if (!parallelize) {
+  if (!parallelize( sz, TP_ARRAY_INITIALISATION)) {
       for (SizeT i = 0; i < sz; ++i) buf[ i] -= right;
     } else {
       GDLARRAY_TRACEOMP(__FILE__, __LINE__)

@@ -837,3 +837,4 @@ void GDLDelete( BaseGDL* toDelete)
     delete toDelete;
 }
 
+bool parallelize(SizeT n, int modifier) { return (CpuTPOOL_NTHREADS > 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= n));}

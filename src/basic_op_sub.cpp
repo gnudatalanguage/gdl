@@ -58,8 +58,7 @@ BaseGDL* Data_<Sp>::Sub(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE
     dd -= right->dd;
   else {
 
-      bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-      if (!parallelize) {
+      if (!parallelize( nEl)) {
       for (OMPInt i = 0; i < nEl; ++i) (*this)[i] -= (*right)[i];
       } else {
 	TRACEOMP(__FILE__, __LINE__)
@@ -93,8 +92,7 @@ BaseGDL* Data_<Sp>::SubInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__L
   return this;
 #else
 
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = (*right)[i] - (*this)[i];
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -318,8 +316,7 @@ Data_<Sp>* Data_<Sp>::SubS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__L
   return this;
 #else
 
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] -= s;
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -352,8 +349,7 @@ Data_<Sp>* Data_<Sp>::SubInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
   return this;
 #else
 
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = s - (*this)[i];
     } else {
       TRACEOMP(__FILE__, __LINE__)

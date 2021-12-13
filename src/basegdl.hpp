@@ -767,6 +767,15 @@ struct ForLoopInfoT
 // before NullGDL instance must not be deleted, now this is fine (overloaded operators new and delete)
 // inline void GDLDelete( BaseGDL* toDelete) { delete toDelete;}
 void GDLDelete( BaseGDL* toDelete);
+ 
+enum ThreadPoolType {
+    TP_DEFAULT=0, //the same as IDL, reserved for routines that use the thread pool, ideally check the special thread pool keywords.
+    TP_ARRAY_INITIALISATION, // used by GDL array initialisation (new, convert, gdlarray): probably needs som special tuning
+    TP_MEMORY_ACCESS, // concurrent memory access, probably needs to be capped to preserve bandwidth 
+    TP_CPU_INTENSIVE  // benefit from max number of threads
+  };
+
+bool parallelize(SizeT n, int modifier=TP_DEFAULT);
 
 #endif
 

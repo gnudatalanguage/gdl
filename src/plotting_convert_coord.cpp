@@ -63,14 +63,13 @@ namespace lib {
     SizeT nrows;
 
     nrows = xVal->Dim(0);
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && (nrows >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nrows)));
     dims[1] = nrows;
     dimension dim((DLong *) dims, 2);
     res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 
     //eliminate simplest case here:
     if (ocoordinateSystem == icoordinateSystem) {
-      if (!parallelize) {
+      if (!parallelize( nrows, TP_MEMORY_ACCESS)) {
         for (OMPInt i = 0; i < nrows; ++i) {
           (*res)[i * 3 + 0] = (*xVal)[i];
           (*res)[i * 3 + 1] = (*yVal)[i];
@@ -144,7 +143,7 @@ namespace lib {
       }
 #endif
       // to norm:
-      if (!parallelize) {
+      if (!parallelize( nrows, TP_MEMORY_ACCESS)) {
         for (OMPInt i = 0; i < nrows; ++i) {
           TONORMCOORDX((*xVal)[i], (*xVal)[i], xLog);
           TONORMCOORDY((*yVal)[i], (*yVal)[i], yLog);
@@ -161,7 +160,7 @@ namespace lib {
       }
       break;
     case DEVICE:
-      if (!parallelize) {
+      if (!parallelize( nrows, TP_MEMORY_ACCESS)) {
         for (OMPInt i = 0; i < nrows; ++i) {
           (*xVal)[i] /= xSize;
           (*yVal)[i] /= ySize;
@@ -184,7 +183,7 @@ namespace lib {
     switch (ocoordinateSystem) {
     case DATA:
       // from norm:
-      if (!parallelize) {
+      if (!parallelize( nrows, TP_MEMORY_ACCESS)) {
         for (OMPInt i = 0; i < nrows; ++i) {
           TODATACOORDX((*xVal)[i], (*xVal)[i], xLog);
           TODATACOORDY((*yVal)[i], (*yVal)[i], yLog);
@@ -223,7 +222,7 @@ namespace lib {
 
       break;
     case DEVICE:
-      if (!parallelize) {
+      if (!parallelize( nrows, TP_MEMORY_ACCESS)) {
         for (OMPInt i = 0; i < nrows; ++i) {
           (*xVal)[i] *= xSize;
           (*yVal)[i] *= ySize;
@@ -242,7 +241,7 @@ namespace lib {
       break;
     }
 
-    if (!parallelize) {
+    if (!parallelize( nrows, TP_MEMORY_ACCESS)) {
       for (OMPInt i = 0; i < nrows; ++i) {
         (*res)[i * 3 + 0] = (*xVal)[i];
         (*res)[i * 3 + 1] = (*yVal)[i];

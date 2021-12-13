@@ -186,8 +186,7 @@ void interpolate_1d_nearest(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res, Siz
   //operations on unsigned are not what you think, signed are ok
   ssize_t ix = 0;
   ssize_t n1 = un1;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nx));
-  if (!parallelize) {
+  if (!parallelize( nx)) {
 #include "snippets/interpolate_1d_nearest.incpp"
   } else {
   TRACEOMP(__FILE__,__LINE__)
@@ -202,8 +201,7 @@ void interpolate_1d_nearest_single(T1* array, SizeT un1, T2* xx, SizeT nx, T1* r
   //operations on unsigned are not what you think, signed are ok
   ssize_t ix = 0;
   ssize_t n1 = un1;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nx));
-  if (!parallelize) {
+  if (!parallelize( nx)) {
 #include "snippets/interpolate_1d_nearest_single.incpp"
   } else {
   TRACEOMP(__FILE__,__LINE__)
@@ -222,9 +220,8 @@ void interpolate_1d_linear(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res, Size
   ssize_t ix = 0;
   ssize_t xi[2];
   ssize_t n1 = un1;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nx));
   if (use_missing) {
-  if (!parallelize) {
+  if (!parallelize( nx)) {
 #include "snippets/interpolate_1d_linear_use_missing.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -232,7 +229,7 @@ void interpolate_1d_linear(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res, Size
 #include "snippets/interpolate_1d_linear_use_missing.incpp"
     }
   } else {
-  if (!parallelize) {
+  if (!parallelize (nx)) {
 #include "snippets/interpolate_1d_linear.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -251,9 +248,8 @@ void interpolate_1d_linear_single(T1* array, SizeT un1, T2* xx, SizeT nx, T1* re
   ssize_t ix = 0;
   ssize_t xi[2];
   ssize_t n1 = un1;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nx));
   if (use_missing) {
-  if (!parallelize) {
+  if (!parallelize( nx)) {
 #include "snippets/interpolate_1d_linear_use_missing_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -261,7 +257,7 @@ void interpolate_1d_linear_single(T1* array, SizeT un1, T2* xx, SizeT nx, T1* re
 #include "snippets/interpolate_1d_linear_use_missing_single.incpp"
     }
   } else {
-  if (!parallelize) {
+  if (!parallelize( nx)) {
 #include "snippets/interpolate_1d_linear_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -282,9 +278,8 @@ void interpolate_1d_cubic(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res, SizeT
   ssize_t ix = 0;
   ssize_t xi[4];
   ssize_t n1 = un1;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nx));
   if (use_missing) {
-  if (!parallelize) {
+  if (!parallelize( nx)) {
 #include "snippets/interpolate_1d_cubic_use_missing.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -292,7 +287,7 @@ void interpolate_1d_cubic(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res, SizeT
 #include "snippets/interpolate_1d_cubic_use_missing.incpp"
     }
   } else {
-  if (!parallelize) {
+  if (!parallelize( nx)) {
 #include "snippets/interpolate_1d_cubic.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -311,9 +306,8 @@ void interpolate_1d_cubic_single(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res
   ssize_t ix = 0;
   ssize_t xi[4];
   ssize_t n1 = un1;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nx));
   if (use_missing) {
-  if (!parallelize) {
+  if (!parallelize( nx)) {
 #include "snippets/interpolate_1d_cubic_use_missing_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -321,7 +315,7 @@ void interpolate_1d_cubic_single(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res
 #include "snippets/interpolate_1d_cubic_use_missing_single.incpp"
     }
   } else {
-  if (!parallelize) {
+  if (!parallelize( nx)) {
 #include "snippets/interpolate_1d_cubic_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -338,8 +332,7 @@ void interpolate_2d_nearest_grid(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT 
   ssize_t xi, yi; //operations on unsigned are not what you think, signed are ok
   ssize_t n1 = un1;
   ssize_t n2 = un2;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nx*ny)); 
-  if (!parallelize) {
+  if (!parallelize( nx*ny)) {
 #include "snippets/interpolate_2d_nearest_grid.incpp"
   } else {
   TRACEOMP(__FILE__,__LINE__)
@@ -354,8 +347,7 @@ void interpolate_2d_nearest_grid_single(T1* array, SizeT un1, SizeT un2, T2* xx,
   ssize_t xi, yi; //operations on unsigned are not what you think, signed are ok
   ssize_t n1 = un1;
   ssize_t n2 = un2;
-  bool parallelize =  (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nx*ny));
-  if (!parallelize) {
+  if (!parallelize( nx*ny)) {
 #include "snippets/interpolate_2d_nearest_grid_single.incpp"
   } else {
   TRACEOMP(__FILE__,__LINE__)
@@ -374,9 +366,8 @@ void interpolate_2d_linear(T1* array, SizeT un1,  SizeT un2, T2* xx, SizeT n, T2
   ssize_t xi[2], yi[2]; //operations on unsigned are not what you think, signed are ok
   ssize_t n1 = un1;
   ssize_t n2 = un2;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= n));
   if (use_missing) { //following behaviour validated.
-  if (!parallelize) {
+  if (!parallelize( n)) {
 #include "snippets/interpolate_2d_linear_use_missing.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -384,7 +375,7 @@ void interpolate_2d_linear(T1* array, SizeT un1,  SizeT un2, T2* xx, SizeT n, T2
 #include "snippets/interpolate_2d_linear_use_missing.incpp"
     }
   } else { //following behaviour validated.
-  if (!parallelize) {
+  if (!parallelize( n)) {
 #include "snippets/interpolate_2d_linear.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -404,9 +395,8 @@ void interpolate_2d_linear_grid(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT n
   ssize_t xi[2], yi[2]; //operations on unsigned are not what you think, signed are ok
   ssize_t n1 = un1;
   ssize_t n2 = un2;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nx*ny));
   if (use_missing) {  //following behaviour validated.
-  if (!parallelize) {
+  if (!parallelize( nx*ny)) {
 #include "snippets/interpolate_2d_linear_grid_use_missing.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -414,7 +404,7 @@ void interpolate_2d_linear_grid(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT n
 #include "snippets/interpolate_2d_linear_grid_use_missing.incpp"
     }
   } else { //following behaviour validated.
-  if (!parallelize) {
+  if (!parallelize( nx*ny)) {
 #include "snippets/interpolate_2d_linear_grid.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -432,9 +422,8 @@ void interpolate_2d_linear_grid_single(T1* array, SizeT un1, SizeT un2, T2* xx, 
   ssize_t xi[2], yi[2]; //operations on unsigned are not what you think, signed are ok
   ssize_t n1 = un1;
   ssize_t n2 = un2;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nx*ny));
   if (use_missing) {  //following behaviour validated.
-  if (!parallelize) {
+  if (!parallelize( nx*ny)) {
 #include "snippets/interpolate_2d_linear_grid_use_missing_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -442,7 +431,7 @@ void interpolate_2d_linear_grid_single(T1* array, SizeT un1, SizeT un2, T2* xx, 
 #include "snippets/interpolate_2d_linear_grid_use_missing_single.incpp"
     }
   } else {
-  if (!parallelize) {
+  if (!parallelize( nx*ny)) {
 #include "snippets/interpolate_2d_linear_grid_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -467,17 +456,16 @@ void interpolate_2d_cubic(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT n, T2* 
   ssize_t xi[4], yi[4]; //operations on unsigned are not what you think, signed are ok
   ssize_t n1 = un1;
   ssize_t n2 = un2;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= n));
   if (use_missing) { 
 #include "snippets/interpolate_2d_cubic_use_missing.incpp"
-  if (!parallelize) {
+  if (!parallelize( n)) {
   } else {
     TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) num_threads(CpuTPOOL_NTHREADS) 
 #include "snippets/interpolate_2d_cubic_use_missing.incpp"
     }
   } else {
-  if (!parallelize) {
+  if (!parallelize( n)) {
 #include "snippets/interpolate_2d_cubic.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -502,9 +490,8 @@ void interpolate_2d_cubic_grid(T1* array, SizeT un1, SizeT un2, T2* xx, const Si
   ssize_t xi[4], yi[4]; //operations on unsigned are not what you think, signed are ok
   const ssize_t n1 = un1;
   const ssize_t n2 = un2;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nx*ny));
   if (use_missing) {
-  if (!parallelize) {
+  if (!parallelize( nx*ny)) {
 #include "snippets/interpolate_2d_cubic_use_missing_grid.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -512,7 +499,7 @@ void interpolate_2d_cubic_grid(T1* array, SizeT un1, SizeT un2, T2* xx, const Si
 #include "snippets/interpolate_2d_cubic_use_missing_grid.incpp"
     }
   } else { 
-  if (!parallelize) {
+  if (!parallelize( nx*ny)) {
 #include "snippets/interpolate_2d_cubic_grid.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -532,9 +519,8 @@ void interpolate_2d_cubic_grid_single(T1* array, SizeT un1, SizeT un2, T2* xx, c
   ssize_t xi[4], yi[4]; //operations on unsigned are not what you think, signed are ok
   const ssize_t n1 = un1;
   const ssize_t n2 = un2;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nx*ny));
   if (use_missing) {
-  if (!parallelize) {
+  if (!parallelize( nx*ny)) {
 #include "snippets/interpolate_2d_cubic_use_missing_grid_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -542,7 +528,7 @@ void interpolate_2d_cubic_grid_single(T1* array, SizeT un1, SizeT un2, T2* xx, c
 #include "snippets/interpolate_2d_cubic_use_missing_grid_single.incpp"
     }
   } else { 
-  if (!parallelize) {
+  if (!parallelize( nx*ny)) {
 #include "snippets/interpolate_2d_cubic_grid_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -566,9 +552,8 @@ void interpolate_3d_linear(T1* array, SizeT un1,  SizeT un2, SizeT un3, T2* xx, 
   ssize_t n2 = un2;
   ssize_t n3 = un3;
   ssize_t n1n2=n1*n2;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= n));
   if (use_missing) { 
-  if (!parallelize) {
+  if (!parallelize( n)) {
 #include "snippets/interpolate_3d_linear_use_missing.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -576,7 +561,7 @@ void interpolate_3d_linear(T1* array, SizeT un1,  SizeT un2, SizeT un3, T2* xx, 
 #include "snippets/interpolate_3d_linear_use_missing.incpp"
     }
   } else {
-  if (!parallelize) {
+  if (!parallelize( n)) {
 #include "snippets/interpolate_3d_linear.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -600,9 +585,8 @@ void interpolate_3d_linear_grid(T1* array, SizeT un1, SizeT un2, SizeT un3, T2* 
   ssize_t n2 = un2;
   ssize_t n3 = un3;
   ssize_t n1n2 = n1*n2;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && nx*ny*nz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nx*ny*nz));
   if (use_missing) {
-  if (!parallelize) {
+  if (!parallelize( nx*ny*nz)) {
 #include "snippets/interpolate_3d_linear_grid_use_missing.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -610,7 +594,7 @@ void interpolate_3d_linear_grid(T1* array, SizeT un1, SizeT un2, SizeT un3, T2* 
 #include "snippets/interpolate_3d_linear_grid_use_missing.incpp"
     }
   } else {
-  if (!parallelize) {
+  if (!parallelize( nx*ny*nz)) {
 #include "snippets/interpolate_3d_linear_grid.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -633,9 +617,8 @@ void interpolate_3d_linear_grid_single(T1* array, SizeT un1, SizeT un2, SizeT un
   ssize_t n2 = un2;
   ssize_t n3 = un3;
   ssize_t n1n2 = n1*n2;
-  bool parallelize = (CpuTPOOL_NTHREADS> 1 && nx*ny*nz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nx*ny*nz));
   if (use_missing) {
-  if (!parallelize) {
+  if (!parallelize( nx*ny*nz)) {
 #include "snippets/interpolate_3d_linear_grid_use_missing_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -643,7 +626,7 @@ void interpolate_3d_linear_grid_single(T1* array, SizeT un1, SizeT un2, SizeT un
 #include "snippets/interpolate_3d_linear_grid_use_missing_single.incpp"
     }
   } else {
-  if (!parallelize) {
+  if (!parallelize( nx*ny*nz)) {
 #include "snippets/interpolate_3d_linear_grid_single.incpp"
   } else {
     TRACEOMP(__FILE__,__LINE__)

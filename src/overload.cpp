@@ -257,8 +257,7 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp(EnvUDT* e) {
       (*res)[0] = (s == (*left)[0]);
       return res;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-    if (!parallelize) {
+    if (!parallelize( nEl, TP_MEMORY_ACCESS)) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = ((*left)[i] == s);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -271,8 +270,7 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp(EnvUDT* e) {
       (*res)[0] = ((*right)[0] == s);
       return res;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
-    if (!parallelize) {
+    if (!parallelize( rEl, TP_MEMORY_ACCESS)) {
       for (OMPInt i = 0; i < rEl; ++i)  (*res)[i] = ((*right)[i] == s);
     } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -281,8 +279,7 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp(EnvUDT* e) {
     }
   } else if (rEl < nEl) {
     res = new Data_<SpDByte>(right->Dim(), BaseGDL::NOZERO);
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
-    if (!parallelize) {
+    if (!parallelize( rEl, TP_MEMORY_ACCESS)) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = ((*right)[i] == (*left)[i]);
     } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -296,8 +293,7 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp(EnvUDT* e) {
       (*res)[0] = ((*right)[0] == (*left)[0]);
       return res;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-    if (!parallelize) {
+    if (!parallelize( nEl, TP_MEMORY_ACCESS)) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = ((*right)[i] == (*left)[i]);
     } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -343,8 +339,7 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp(EnvUDT* e) {
       (*res)[0] = (s != (*left)[0]);
       return res;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-    if (!parallelize) {
+    if (!parallelize( nEl, TP_MEMORY_ACCESS)) {
        for (OMPInt i = 0; i < nEl; ++i)  (*res)[i] = ((*left)[i] != s);
    } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -357,8 +352,7 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp(EnvUDT* e) {
       (*res)[0] = ((*right)[0] != s);
       return res;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
-    if (!parallelize) {
+    if (!parallelize( rEl, TP_MEMORY_ACCESS)) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = ((*right)[i] != s);
     } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -367,8 +361,7 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp(EnvUDT* e) {
     }
   } else if (rEl < nEl) {
     res = new Data_<SpDByte>(right->Dim(), BaseGDL::NOZERO);
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && rEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= rEl));
-    if (!parallelize) {
+    if (!parallelize( rEl, TP_MEMORY_ACCESS)) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = ((*right)[i] != (*left)[i]);
     } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -382,8 +375,7 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp(EnvUDT* e) {
       (*res)[0] = ((*right)[0] != (*left)[0]);
       return res;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-    if (!parallelize) {
+    if (!parallelize( nEl, TP_MEMORY_ACCESS)) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = ((*right)[i] != (*left)[i]);
     } else {
     TRACEOMP(__FILE__, __LINE__)

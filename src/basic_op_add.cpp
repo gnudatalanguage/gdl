@@ -55,8 +55,7 @@ BaseGDL* Data_<Sp>::Add( BaseGDL* r)
 	return this;
 #else
 
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += (*right)[i];
     } else {
       TRACEOMP( __FILE__, __LINE__)
@@ -85,8 +84,7 @@ BaseGDL* Data_<SpDString>::AddInv( BaseGDL* r)
       (*this)[0] = (*right)[0] + (*this)[0];
       return this;
     }
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] = (*right)[i] + (*this)[i];
     } else {
       TRACEOMP( __FILE__, __LINE__)
@@ -312,8 +310,7 @@ BaseGDL* Data_<Sp>::AddS( BaseGDL* r)
 	mThis += s;
 	return this;
 #else
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
     } else {
       TRACEOMP( __FILE__, __LINE__)
@@ -337,8 +334,7 @@ BaseGDL* Data_<SpDString>::AddS( BaseGDL* r)
       return this;
     }
   Ty s = (*right)[0];
-    bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] += s;
     } else {
       TRACEOMP( __FILE__, __LINE__)
@@ -366,8 +362,7 @@ BaseGDL* Data_<SpDString>::AddInvS( BaseGDL* r)
       return this;
     }
   Ty s = (*right)[0];
-     bool parallelize = (CpuTPOOL_NTHREADS > 1 && nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl));
-    if (!parallelize) {
+    if (!parallelize( nEl)) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] = s + (*this)[i];
     } else {
       TRACEOMP( __FILE__, __LINE__)
