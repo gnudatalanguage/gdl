@@ -934,6 +934,25 @@ hid_t
   }
 
 
+  void h5a_write_pro(EnvT* e) {
+
+    /* Dec 2021, Oliver Gressel <ogressel@gmail.com>
+       - implement basic support for writing HDF5 attributes
+    */
+
+    SizeT nParam = e->NParam(2);
+
+    hid_t dset_id = hdf5_input_conversion(e,0);
+    BaseGDL* data = e->GetParDefined(1);
+
+    /* --- write the dataset to file ---*/
+
+    hdf5_unified_write( dset_id, data, H5I_BADID, H5I_BADID, e );
+
+    return;
+  }
+
+
   BaseGDL* h5a_open_idx_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(2);
