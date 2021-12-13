@@ -900,6 +900,40 @@ hid_t
 
   }
 
+
+  BaseGDL* h5a_create_fun( EnvT* e)
+  {
+    /* Dec 2021, Oliver Gressel <ogressel@gmail.com>
+       - implement basic functionality
+    */
+
+    SizeT nParam=e->NParam(4);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e,0);
+
+    /* mandatory 'Name' paramter */
+    DString dset_name;
+    e->AssureScalarPar<DStringGDL>(1,dset_name);
+
+    /* mandatory 'Datatype_id' paramter */
+    hid_t type_id = hdf5_input_conversion(e,2);
+    if (H5Iis_valid(type_id) <= 0)
+      e->Throw("not a datatype: Object ID:" + i2s( type_id ));
+
+    /* mandatory 'Dataspace_id' paramter */
+    hid_t space_id = hdf5_input_conversion(e,3);
+    if (H5Iis_valid(space_id) <= 0)
+      e->Throw("not a dataspace: Object ID:" + i2s( space_id ));
+
+    hid_t h5a_id = H5Acreate( loc_id, dset_name.c_str(),
+                              type_id, space_id, H5P_DEFAULT );
+    if (h5a_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return hdf5_output_conversion( h5a_id );
+  }
+
+
   BaseGDL* h5a_open_idx_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(2);

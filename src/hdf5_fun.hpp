@@ -66,6 +66,7 @@ namespace lib {
   BaseGDL* h5t_get_size_fun( EnvT* e);
   BaseGDL* h5t_array_create_fun( EnvT* e);
   BaseGDL* h5t_idl_create_fun( EnvT* e);
+  BaseGDL* h5a_create_fun( EnvT* e);
   BaseGDL* h5a_open_name_fun( EnvT* e);
   BaseGDL* h5a_open_idx_fun( EnvT* e);
   BaseGDL* h5a_get_name_fun( EnvT* e);

@@ -122,6 +122,7 @@ void LibInit_mes()
   new DLibFunRetNew(lib::h5t_array_create_fun, string("H5T_ARRAY_CREATE"), 2);
   const string H5TidlCreateKey[] = {"MEMBER_NAMES","OPAQUE", KLISTEND};
   new DLibFunRetNew(lib::h5t_idl_create_fun, string("H5T_IDL_CREATE"), 1, H5TidlCreateKey);
+  new DLibFunRetNew(lib::h5a_create_fun, string("H5A_CREATE"), 4);
   new DLibFunRetNew(lib::h5a_open_name_fun, string("H5A_OPEN_NAME"), 2);
   new DLibFunRetNew(lib::h5a_open_idx_fun, string("H5A_OPEN_IDX"), 2);
   new DLibFunRetNew(lib::h5a_get_name_fun, string("H5A_GET_NAME"), 1);
