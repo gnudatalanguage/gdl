@@ -421,6 +421,83 @@ namespace lib {
 
   // --------------------------------------------------------------------
 
+  void hdf5_unified_write( hid_t loc_id, BaseGDL* data,
+                           hid_t ms_id, hid_t fs_id, EnvT* e ) {
+
+    /* Dec 2021, Oliver Gressel <ogressel@gmail.com>
+       - deduplicate implementations for writing data / attributes
+    */
+
+
+    /* --- obtain datatype handle --- */
+
+    hid_t type_id;
+
+    switch( H5Iget_type(loc_id) ) {
+    case H5I_DATASET: type_id = H5Dget_type(loc_id); break;
+    case H5I_ATTR:    type_id = H5Aget_type(loc_id); break;
+    default:          e->Throw("unsupported use for hdf5_unified_write\n");
+    }
+    if (type_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    hdf5_type_guard type_id_guard = hdf5_type_guard(type_id);
+
+
+    /* --- obtain the elementary datatype --- */
+
+    hid_t elem_type_id;
+    if (H5Tget_class(type_id)==H5T_ARRAY)
+      elem_type_id = H5Tget_super(type_id);
+    else
+      elem_type_id = H5Tcopy(type_id);
+    hdf5_type_guard elem_type_guard = hdf5_type_guard(elem_type_id);
+
+
+    /* --- assert contiguous write buffer --- */
+
+    char *buffer=NULL;
+
+    if (H5Tget_class(elem_type_id)==H5T_STRING) {
+
+      size_t n_elem=data->Size(), len=H5Tget_size(elem_type_id);
+
+      buffer = static_cast<char*>(calloc(n_elem*len,sizeof(char)));
+      if (buffer == NULL) e->Throw("Failed to allocate memory!");
+
+      for(int i=0; i<n_elem; i++)
+        strncpy( &buffer[i*len],
+                 (*static_cast<DStringGDL*>(data))[i].c_str(), len );
+
+    } else buffer = (char*) data->DataAddr();
+
+
+    /* --- write dataset/attribute to file --- */
+
+    herr_t status;
+
+    switch( H5Iget_type(loc_id) ) {
+
+    case H5I_DATASET:
+      status = H5Dwrite(loc_id, type_id, ms_id, fs_id, H5P_DEFAULT, buffer);
+      break;
+
+    case H5I_ATTR:
+      status = H5Awrite(loc_id, type_id, buffer);
+      break;
+    }
+
+    if (status < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+
+    /* --- free resources --- */
+
+    if(buffer!=data->DataAddr()) free(buffer);
+
+    return;
+  }
+
+  // --------------------------------------------------------------------
+
   BaseGDL* hdf5_unified_read( hid_t loc_id,
                               hid_t ms_id, hid_t fs_id, EnvT* e ) {
 
@@ -1457,45 +1534,9 @@ hid_t
     hdf5_space_guard filespace_id_guard = hdf5_space_guard(filespace_id);
 
 
-    /* --- obtain datatype --- */
+    /* --- write the dataset to file ---*/
 
-    hid_t type_id = H5Dget_type( dset_id );
-    if (type_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
-    hdf5_type_guard type_guard = hdf5_type_guard(type_id);
-
-    /* --- obtain the elementary datatype --- */
-
-    hid_t elem_type_id;
-    if (H5Tget_class(type_id)==H5T_ARRAY)
-      elem_type_id = H5Tget_super(type_id);
-    else
-      elem_type_id = H5Tcopy(type_id);
-    hdf5_type_guard elem_type_guard = hdf5_type_guard(elem_type_id);
-
-    /* --- assert contiguous write buffer --- */
-
-    char *buffer=NULL;
-
-    if (H5Tget_class(elem_type_id)==H5T_STRING) {
-
-      size_t n_elem=data->Size(), len=H5Tget_size(elem_type_id);
-
-      buffer = static_cast<char*>(calloc(n_elem*len,sizeof(char)));
-      if (buffer == NULL) e->Throw("Failed to allocate memory!");
-
-      for(int i=0; i<n_elem; i++)
-        strncpy( &buffer[i*len],
-                 (*static_cast<DStringGDL*>(data))[i].c_str(), len );
-
-    } else buffer = (char*) data->DataAddr();
-
-    /* --- write dataset to file --- */
-
-    if ( H5Dwrite( dset_id, type_id, memspace_id, filespace_id,
-                   H5P_DEFAULT, buffer ) < 0 )
-      { string msg; e->Throw(hdf5_error_message(msg)); }
-
-    if(buffer!=data->DataAddr()) free(buffer);
+    hdf5_unified_write( dset_id, data, memspace_id, filespace_id, e );
 
     return;
   }
