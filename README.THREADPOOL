@@ -33,11 +33,12 @@ WHERE, REPLICATE_INPLACE, BYTEORDER , LOGICAL_OR , LOGICAL_AND , LOGICAL_TRUE
 
 Geeks corner:
 - setting the OpenMP machinery is time-consuming, and was working in defavour of GDL for small numbers. The solution (probably perfectible) has been
- to duplicate the code everywhere necessary in a 'if (!parallelize) { ... code ...} else { ... same code, with OMP #pragmas ... }' , with 'parallelize'
- given by the TPOOL rules. Apparently this solves most of the reported GDL sluggishness.
+ to duplicate the code everywhere necessary in a 'if (GDL_NTHREADS=parallelize( nEl)==1) { ... code ...} else { ... same code, with OMP #pragmas ... }' ,
+ where the global GDL_NTHREADS is returned by the function parallelize( nElements), the only one to decide, based on nElements and current setup of !CPU
+ how many (GDL_NTHREADS) threads must be used (if any). Apparently this solves most of the reported GDL sluggishness.
 
-- some code like where() or interpolate() etc are not with this simple scheme as the section put in parallel is often very long. Usually, for any problem
-  size, the speed is on par or better than IDL. Test reports welcome.
+- some code like where() or interpolate() etc are not exactly aligned  this simple scheme as the section put in parallel is often very long.
+  Usually, for any problem size, the speed is on par or better than IDL. Test reports welcome.
 
 - It is up to the user on multi-core machines to adapt the values of !CPU (using the 'CPU' command) to get the most of the machine. Remember, one
   can change the !CPU values at each line of code, and ThreadPool friendly commands can even be called with one of the 3 keywords, TPOOL_NOTHREAD,

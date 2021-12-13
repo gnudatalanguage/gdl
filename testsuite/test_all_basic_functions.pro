@@ -13,11 +13,14 @@ pro test_all_basic_functions, size=size, section=section
   typenames=["		BYTE","		INT","		LONG","		UINT","		ULONG","		LONG64","		ULONG64","		FLOAT","		DOUBLE","		COMPLEX","		DCOMPLEX"]
   all_numeric=10
   integers_only=6
+  not_complex=8
   seed=33
   cote=long(sqrt(size)) > 8
   a=randomn(seed,cote,cote,/double)*randomu(seed,cote,cote,/ulong)
   various_types=ptrarr(11,/allo)
 k=0 & foreach i,typecodes do begin & *various_types[k]=fix(a,type=i) & k++ &end
+; for poly_2d:
+   XO = [61, 62, 143, 133]&YO = [89, 34, 38, 105]&XI = [24, 35, 102, 92]&YI = [81, 24, 25, 92]&POLYWARP, XI, YI, XO, YO, 1, P, Q
 
 ; start master clock here --- random  does not obey pool 
    masterclock=tic("ALL TESTS")
@@ -51,12 +54,35 @@ if (section eq 0 or section eq 4) then begin
 what=[' + ',' - ' ,' * ',' / ']
 calls="for k=0,all_numeric do ret=(*various_types[k])"+what+'1'
 for i=0,n_elements(what)-1 do begin & clock=tic(what[i])  &  z=execute(calls[i]) &  toc,clock & endfor
+; operators 2
+what=[' # ',' ## ']
+calls="for k=0,all_numeric do ret=(*various_types[k])"+what+"(*various_types[k])"
+for i=0,n_elements(what)-1 do begin & clock=tic(what[i])  &  z=execute(calls[i]) &  toc,clock & endfor
+what=[' #= ',' ##= ']
+calls="for k=0,all_numeric do (*various_types[k])"+what+"(*various_types[k])"
+for i=0,n_elements(what)-1 do begin & clock=tic(what[i])  &  z=execute(calls[i]) &  toc,clock & endfor
+; operators 3
+what=[' ^' ,' < ',' > ',' AND ',' OR ',' MOD ',' EQ ',' NE ',' LE ',' LT ', ' GE ', ' GT ']
+calls="z=2 & for k=0,not_complex do ret=(*various_types[k]) "+what+" z"
+for i=0,n_elements(what)-1 do begin & clock=tic(what[i])  &  z=execute(calls[i]) &  toc,clock & endfor
+; operators 4
+what=[ '*=' , 'eq=' , 'ge=' , '>=' , 'gt=' , 'le=' , '<=' , 'lt=' ,  '-=' , 'mod=' , 'ne=' , 'or=' , '+=' , '^=' , '/= ', 'xor=']
+calls="z=2 & for k=0,all_numeric do (*various_types[k]) "+what+" z"
+for i=0,n_elements(what)-1 do begin & clock=tic(what[i])  &  z=execute(calls[i]) &  toc,clock & endfor
+what=['and=']
+calls="z=2 & for k=0,not_complex do (*various_types[k]) "+what+" z"
+for i=0,n_elements(what)-1 do begin & clock=tic(what[i])  &  z=execute(calls[i]) &  toc,clock & endfor
 endif
-
 print
-; operations
+
+; get device, save & set to null
+olddev=!D.NAME
+set_plot,"Z"
+device,set_resolution=[cote,cote]
+
+; functions etc
 if (section eq 0 or section eq 5) then begin
-  what=['BYTSCL','SORT','MEDIAN','MEAN','MOMENT','TRANSPOSE','WHERE','TOTAL','PRODUCT','MIN','MAX','FINITE','SHIFT','ISHIFT','LOGICAL_AND','LOGICAL_OR','LOGICAL_TRUE','ATAN','CONVOL']
+  what=['BYTSCL','SORT','MEDIAN','MEAN','MOMENT','TRANSPOSE','WHERE','TOTAL','PRODUCT','MIN','MAX','FINITE','SHIFT','ISHIFT','LOGICAL_AND','LOGICAL_OR','LOGICAL_TRUE','ATAN','CONVOL','FFT', 'INTERPOLATE' , 'POLY_2D' , 'TVSCL']
   calls=[$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=BYTSCL(*various_types[k],max=10,min=1,/nan,top=100) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=sort(*various_types[k]) & toc,subclock & end ',$
@@ -76,11 +102,16 @@ if (section eq 0 or section eq 5) then begin
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=logical_or(*various_types[k],!dpi) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=logical_true(*various_types[k]) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=atan(*various_types[k],*various_types[k]) & toc,subclock & end ',$
-   'print,what[i] & kernel=[ [0,1,0],[-1,0,1],[0,-1,0] ] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=convol(*various_types[k],kernel) & toc,subclock & end ']
+   'print,what[i] & kernel=[ [0,1,0],[-1,0,1],[0,-1,0] ] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=convol(*various_types[k],kernel) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=fft(*various_types[k]) & toc,subclock & end ',$
+   'print,what[i] & z=findgen(size) & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=interpolate(*various_types[k],z) & toc,subclock & end ',$
+   'print,what[i] & for k=0,not_complex do begin & subclock=tic(typenames[k]) & ret=poly_2d(*various_types[k],p,q) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & tvscl,(*various_types[k]) & toc,subclock & end ' ]
 
 for i=0,n_elements(calls)-1 do begin & clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & end
      print
   endif
+set_plot,olddev
 
 ; FunDirect functions
 if (section eq 0 or section eq 6) then begin
@@ -92,6 +123,8 @@ endif
 
   toc,masterclock
 end
+
 ; to do :string things, that are 2 times slower than idl (up to several seconds)
+; ERF , ERFC , ERFCX , EXP , EXPINT, GAMMA , GAUSSINT, LNGAMMA , MATRIX_MULTIPLY, VOIGT, REPLICATE_INPLACE
 ;   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=string(*various_types[k]) & toc,subclock & end ',$
 ;   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=strtrim(*various_types[k],2) & toc,subclock & end ',$
