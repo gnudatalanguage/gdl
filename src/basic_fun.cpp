@@ -2633,7 +2633,7 @@ namespace lib {
     SizeT sumStride = srcDim.Stride(sumDimIx);
     SizeT outerStride = srcDim.Stride(sumDimIx + 1);
     SizeT sumLimit = nSum * sumStride;
-    if (GDL_NTHREADS=parallelize( (nEl / outerStride)==1)) {
+    if (GDL_NTHREADS=parallelize( (nEl / outerStride) )==1) {
       if (omitNaN) {
         for (SizeT o = 0; o < nEl; o += outerStride) {
           SizeT rIx = (o / outerStride) * sumStride;
@@ -3400,7 +3400,7 @@ namespace lib {
     SizeT prodStride = srcDim.Stride(prodDimIx);
     SizeT outerStride = srcDim.Stride(prodDimIx + 1);
     SizeT prodLimit = nProd * prodStride;
-    if (GDL_NTHREADS=parallelize( (nEl / outerStride)==1)) {
+    if (GDL_NTHREADS=parallelize( (nEl / outerStride))==1) {
       if (omitNaN) {
         for (SizeT o = 0; o < nEl; o += outerStride) {
           SizeT rIx = (o / outerStride) * prodStride;
