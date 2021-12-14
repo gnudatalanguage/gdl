@@ -2300,7 +2300,6 @@ namespace lib {
     }
 
     DLongGDL* res = new DLongGDL(p0S->Dim(), BaseGDL::NOZERO);
-    //no use toGDL_NTHREADS=parallelize, fast enough (on par)
     SizeT nEl = p0S->N_Elements();
     for (SizeT i = 0; i < nEl; ++i) {
       (*res)[ i] = (*p0S)[ i].length();
@@ -2330,7 +2329,7 @@ namespace lib {
       return res;
     }
 
-    dimension resDim(p0S->Dim()==1);
+    dimension resDim(p0S->Dim());
     resDim.Purge();
 
     SizeT stride = resDim.Stride(1);

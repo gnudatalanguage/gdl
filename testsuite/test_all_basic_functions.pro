@@ -120,6 +120,20 @@ if (section eq 0 or section eq 6) then begin
      for i=0,n_elements(command)-1 do begin & clock=tic(command[i])  &  z=execute(calls[i]) &  toc,clock & end
   print
 endif
+; non-threaded functions
+if (section eq 0 or section eq 7) then begin
+  what=['ROTATE','REVERSE','REFORM','ROT','BYTEORDER','INTERPOL']
+  calls=[$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=ROTATE(*various_types[k],1) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=REVERSE(*various_types[k],2) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=REFORM(*various_types[k],cote*cote) & toc,subclock & end ',$
+     'print,what[i] & for k=0,not_complex do begin & subclock=tic(typenames[k]) & ret=ROT(*various_types[k],33,0.6,/INTERP) & toc,subclock & end ',$
+     'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & BYTEORDER,*various_types[k],/LSWAP & toc,subclock & end ',$
+     'print,what[i] & x = FINDGEN(100)*0.02 & y=sin(x) & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & res=interpol(y,x,*various_types[k]) & toc,subclock & end ']
+
+   for i=0,n_elements(calls)-1 do begin & clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & end
+  print
+endif
 
   toc,masterclock
 end

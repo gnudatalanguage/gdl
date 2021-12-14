@@ -1610,7 +1610,7 @@ BaseGDL* Data_<Sp>::Rotate( DLong dir) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__L
     if (dir == 7) return Dup();
 
     if (dir == 1 || dir == 4) {
-      return new Data_(dimension(1, N_Elements()==1), dd);
+      return new Data_(dimension(1, N_Elements()), dd);
     }
     if (dir == 5) // || dir == 2
     {
