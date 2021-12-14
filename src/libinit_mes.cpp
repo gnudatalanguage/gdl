@@ -93,7 +93,8 @@ void LibInit_mes()
 #ifdef USE_HDF5
   // hdf5 procedures/functions
   new DLibFunRetNew(lib::h5f_create_fun, string("H5F_CREATE"), 1);
-  new DLibFunRetNew(lib::h5f_open_fun, string("H5F_OPEN"), 1);
+  const string H5FopenKey[] = {"WRITE", KLISTEND};
+  new DLibFunRetNew(lib::h5f_open_fun, string("H5F_OPEN"), 1, H5FopenKey);
   new DLibFunRetNew(lib::h5d_open_fun, string("H5D_OPEN"), 2);
   new DLibFunRetNew(lib::h5d_create_fun, string("H5D_CREATE"), 4); // TODO: keyword parameters
   const string H5DreadKey[] = {"FILE_SPACE", "MEMORY_SPACE", KLISTEND};

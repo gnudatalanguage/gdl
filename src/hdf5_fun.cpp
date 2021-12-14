@@ -795,18 +795,20 @@ hid_t
   BaseGDL* h5f_open_fun( EnvT* e)
   {
 
+    /* mandatory 'Filename' paramter */
     DString h5fFilename;
     e->AssureScalarPar<DStringGDL>( 0, h5fFilename);
     WordExp( h5fFilename);
 
-    hid_t h5f_id;
-    h5f_id = H5Fopen(h5fFilename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+    /* optional keyword 'WRITE' parameter */
+    static int writeIx = e->KeywordIx("WRITE");
+    hbool_t write = e->KeywordSet(writeIx);
 
+    hid_t h5f_id = H5Fopen( h5fFilename.c_str(),
+                            (write) ? H5F_ACC_RDWR
+                                    : H5F_ACC_RDONLY, H5P_DEFAULT );
     if (h5f_id < 0)
-      {
-        string msg;
-        e->Throw(hdf5_error_message(msg));
-      }
+      { string msg; e->Throw(hdf5_error_message(msg)); }
 
     return hdf5_output_conversion( h5f_id );
   }
