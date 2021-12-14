@@ -124,6 +124,7 @@ void LibInit_mes()
   new DLibFunRetNew(lib::h5t_idl_create_fun, string("H5T_IDL_CREATE"), 1, H5TidlCreateKey);
   new DLibFunRetNew(lib::h5a_create_fun, string("H5A_CREATE"), 4);
   new DLibPro(lib::h5a_write_pro, string("H5A_WRITE"), 2);
+  new DLibPro(lib::h5a_delete_pro, string("H5A_DELETE"), 2);
   new DLibFunRetNew(lib::h5a_open_name_fun, string("H5A_OPEN_NAME"), 2);
   new DLibFunRetNew(lib::h5a_open_idx_fun, string("H5A_OPEN_IDX"), 2);
   new DLibFunRetNew(lib::h5a_get_name_fun, string("H5A_GET_NAME"), 1);

@@ -953,6 +953,26 @@ hid_t
   }
 
 
+  void h5a_delete_pro(EnvT* e) {
+
+    /* Dec 2021, Oliver Gressel <ogressel@gmail.com>
+       - implement support for deleting HDF5 attributes
+    */
+
+    SizeT nParam=e->NParam(2);
+
+    hid_t loc_id = hdf5_input_conversion(e,0);
+
+    DString attr_name;
+    e->AssureScalarPar<DStringGDL>( 1, attr_name );
+
+    if (H5Adelete( loc_id, attr_name.c_str() ) < 0)
+      e->Throw( "unable to delete attribute: (Object ID:"+i2s(loc_id)+
+                ", Object Name:\""+attr_name.c_str()+"\")" );
+    return;
+  }
+
+
   BaseGDL* h5a_open_idx_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(2);
