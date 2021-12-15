@@ -263,6 +263,19 @@ pro TEST_HDF5_ATTR, cumul_errors, create=create
 
    spawn, 'h5diff gdl-'+file_name+' '+full_file_name, res, exit_status=exit
    errors += (exit ne 0)
+
+   ; --- test 'H5F_OPEN, /write' and 'H5A_DELETE' functionality
+
+   spawn, 'h5dump -a "attr-02" gdl-'+file_name, res, exit_status=exit
+   errors += (exit ne 0)
+
+   f_id = h5f_open("gdl-"+file_name, /write)
+   h5a_delete, f_id, "attr-02"
+   h5f_close, f_id
+
+   spawn, 'h5dump -a "attr-02" gdl-'+file_name, res, exit_status=exit
+   errors += (exit eq 0)
+
    spawn, 'rm -f gdl-'+file_name
 
    ; --- read HDF5 attributes
