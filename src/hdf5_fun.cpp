@@ -113,6 +113,18 @@ namespace lib {
     ~hdf5_name_guard() { H5free_memory(name); }
   };
 
+  // auto_ptr-like class for guarding HDF5 property lists
+  // usage:
+  //   hid_t h5p_id = H5Pcreate(...);
+  //   hdf5_plist_guard h5p_id_guard = hdf5_plist_guard(h5p_id);
+  class hdf5_plist_guard
+  {
+    hid_t plist;
+  public:
+    hdf5_plist_guard(hid_t plist_) { plist = plist_; }
+    ~hdf5_plist_guard() { if(plist) H5Pclose(plist); }
+  };
+
   // --------------------------------------------------------------------
 
   DLong mapH5DatatypesToGDL(hid_t h5type, EnvT *e){
@@ -1631,31 +1643,75 @@ hid_t
   {
     /* Nov 2021, Oliver Gressel <ogressel@gmail.com>
        - implement rudimentary functionality
-       - FIXME: add optional keyword parameters
-                [, CHUNK_DIMENSIONS=vector [, GZIP=value [, /SHUFFLE]]]
+       - FIXME: add optional keyword parameters [, GZIP=value [, /SHUFFLE]]
     */
 
     SizeT nParam=e->NParam(4);
 
-    /* mandatory 'Loc_id' parameter */
+
+    /* --- dataset creation property list --- */
+
+    hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
+    hdf5_plist_guard plist_guard = hdf5_plist_guard(plist_id);
+
+
+    /* --- mandatory parameters --- */
+
+    /* 'Loc_id' parameter */
     hid_t loc_id = hdf5_input_conversion(e,0);
 
-    /* mandatory 'Name' paramter */
+    /* 'Name' parameter */
     DString dset_name;
     e->AssureScalarPar<DStringGDL>(1,dset_name);
 
-    /* mandatory 'Datatype_id' paramter */
+    /* 'Datatype_id' parameter */
     hid_t type_id = hdf5_input_conversion(e,2);
     if (H5Iis_valid(type_id) <= 0)
       e->Throw("not a datatype: Object ID:" + i2s( type_id ));
 
-    /* mandatory 'Dataspace_id' paramter */
+    /* 'Dataspace_id' parameter */
     hid_t space_id = hdf5_input_conversion(e,3);
     if (H5Iis_valid(space_id) <= 0)
       e->Throw("not a dataspace: Object ID:" + i2s( space_id ));
 
+
+    /* --- optional keyword 'CHUNK_DIMENSIONS' paramter --- */
+
+    static int chunkDimIx = e->KeywordIx("CHUNK_DIMENSIONS");
+    if (e->GetKW(chunkDimIx) != NULL) {
+
+      DUIntGDL* chunkDimKW = e->IfDefGetKWAs<DUIntGDL>(chunkDimIx);
+      SizeT nChunkDim = chunkDimKW->N_Elements();
+
+      int rank;
+      hsize_t dims[MAXRANK], chunk_dims[MAXRANK];
+
+      if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
+        { string msg; e->Throw(hdf5_error_message(msg)); }
+
+      if (nChunkDim == 0)
+        e->Throw("Variable is undefined: "+ e->GetParString(chunkDimIx));
+      else if(nChunkDim != rank)
+        e->Throw("Number of elements in CHUNK_DIMENSIONS must equal dataspace.");
+
+      if ( H5Sget_simple_extent_dims(space_id, dims, NULL) < 0 )
+        { string msg; e->Throw(hdf5_error_message(msg)); }
+
+      for(int i=0; i<rank; i++) {
+        chunk_dims[i] = (hsize_t)(*chunkDimKW)[rank-1-i];
+
+        if(chunk_dims[i]>dims[i])
+          e->Throw("CHUNK_DIMENSION["+i2s(i)+"] is larger than dimension");
+      }
+
+      H5Pset_chunk(plist_id, 1, chunk_dims);
+    }
+
+
+    /* --- create the dataset identifier --- */
+
     hid_t h5d_id = H5Dcreate( loc_id, dset_name.c_str(),
-                              type_id, space_id, H5P_DEFAULT );
+                              type_id, space_id, plist_id );
     if (h5d_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
 
     return hdf5_output_conversion( h5d_id );

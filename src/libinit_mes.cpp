@@ -96,7 +96,8 @@ void LibInit_mes()
   const string H5FopenKey[] = {"WRITE", KLISTEND};
   new DLibFunRetNew(lib::h5f_open_fun, string("H5F_OPEN"), 1, H5FopenKey);
   new DLibFunRetNew(lib::h5d_open_fun, string("H5D_OPEN"), 2);
-  new DLibFunRetNew(lib::h5d_create_fun, string("H5D_CREATE"), 4); // TODO: keyword parameters
+  const string H5DcreateKey[] = {"CHUNK_DIMENSIONS", KLISTEND};
+  new DLibFunRetNew(lib::h5d_create_fun, string("H5D_CREATE"), 4, H5DcreateKey); // TODO: missing keyword parameters
   const string H5DreadKey[] = {"FILE_SPACE", "MEMORY_SPACE", KLISTEND};
   new DLibFunRetNew(lib::h5d_read_fun, string("H5D_READ"), 1,H5DreadKey); // TODO: 2nd argument
   const string H5DwriteKey[] = {"FILE_SPACE", "MEMORY_SPACE", KLISTEND};
