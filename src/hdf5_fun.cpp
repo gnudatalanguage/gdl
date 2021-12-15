@@ -1719,6 +1719,36 @@ hid_t
   }
 
 
+  void h5d_extend_pro( EnvT* e)
+  {
+    SizeT nParam=e->NParam(2);
+
+    int rank, curr_rank;
+    hsize_t size[MAXRANK], curr_size[MAXRANK];
+
+    /* mandatory 'Dataset_id' parameter */
+    hid_t h5d_id = hdf5_input_conversion(e,0);
+
+    /* mandatory 'Size' parameter */
+    DUIntGDL* sizePar = e->GetParAs<DUIntGDL>(1);
+    SizeT nDim = sizePar->N_Elements();
+
+    if (nDim == 0)
+      e->Throw("Variable is undefined: "+ e->GetParString(1));
+    else
+      rank=nDim;
+
+    /* reverse dimensions */
+    for(int i=0; i<rank; i++) size[i] = (hsize_t)(*sizePar)[rank-1-i];
+
+    /* extend the dataset dimensions */
+    if( H5Dset_extent( h5d_id, size ) < 0 )
+      e->Throw("unable to extend dataset: Object ID:"+i2s(h5d_id));
+
+    return;
+  }
+
+
   void h5d_close_pro( EnvT* e)
   {
     SizeT nParam=e->NParam(1);

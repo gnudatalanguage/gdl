@@ -102,6 +102,7 @@ void LibInit_mes()
   new DLibFunRetNew(lib::h5d_read_fun, string("H5D_READ"), 1,H5DreadKey); // TODO: 2nd argument
   const string H5DwriteKey[] = {"FILE_SPACE", "MEMORY_SPACE", KLISTEND};
   new DLibPro(lib::h5d_write_pro, string("H5D_WRITE"), 2,H5DwriteKey);
+  new DLibPro(lib::h5d_extend_pro,string("H5D_EXTEND"),2);
   new DLibFunRetNew(lib::h5d_get_space_fun, string("H5D_GET_SPACE"), 1);
   new DLibFunRetNew(lib::h5s_get_simple_extent_ndims_fun,
                string("H5S_GET_SIMPLE_EXTENT_NDIMS"), 1);
