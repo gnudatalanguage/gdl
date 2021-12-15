@@ -1296,7 +1296,7 @@ hid_t
     static int maxDimIx = e->KeywordIx("MAX_DIMENSIONS");
     if (e->GetKW(maxDimIx) != NULL) {
 
-      DUIntGDL* maxDimKW = e->IfDefGetKWAs<DUIntGDL>(maxDimIx);
+      DIntGDL* maxDimKW = e->IfDefGetKWAs<DIntGDL>(maxDimIx);
       SizeT nMaxDim = maxDimKW->N_Elements();
 
       if (nMaxDim == 0)
@@ -1305,9 +1305,10 @@ hid_t
         e->Throw("Number of elements in MAX_DIMENSIONS must equal dataspace dimensions.");
 
       for(int i=0; i<rank; i++) {
+
          max_dims[i] = (hsize_t)(*maxDimKW)[rank-1-i];
 
-         if(max_dims[i]<curr_dims[i])
+         if ( max_dims[i]>0 && max_dims[i]<curr_dims[i] )
             e->Throw("H5S_CREATE_SIMPLE: maxdims is smaller than dims");
       }
 
@@ -1700,11 +1701,11 @@ hid_t
       for(int i=0; i<rank; i++) {
         chunk_dims[i] = (hsize_t)(*chunkDimKW)[rank-1-i];
 
-        if(chunk_dims[i]>dims[i])
-          e->Throw("CHUNK_DIMENSION["+i2s(i)+"] is larger than dimension");
+        if (chunk_dims[i]>dims[i])
+          e->Throw("CHUNK_DIMENSION["+i2s(rank-1-i)+"] exceeds dimension");
       }
 
-      H5Pset_chunk(plist_id, 1, chunk_dims);
+      H5Pset_chunk(plist_id, rank, chunk_dims);
     }
 
 
