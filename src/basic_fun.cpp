@@ -2616,7 +2616,7 @@ namespace lib {
   }
 
   // total over one dim
-
+  //this version is much faster as the larger array (src) is explored linearly.
   template< typename T>
   BaseGDL* total_over_dim_template(T* src,
     const dimension& srcDim,
@@ -2625,6 +2625,7 @@ namespace lib {
 
     // get dest dim and number of summations
     dimension destDim = srcDim;
+
     SizeT nSum = destDim.Remove(sumDimIx);
 
     T* res = new T(destDim); // zero fields
@@ -2632,53 +2633,20 @@ namespace lib {
     // sumStride is also the number of linear src indexing
     SizeT sumStride = srcDim.Stride(sumDimIx);
     SizeT outerStride = srcDim.Stride(sumDimIx + 1);
-    SizeT sumLimit = nSum * sumStride;
-    if (GDL_NTHREADS=parallelize( (nEl / outerStride) )==1) {
-      if (omitNaN) {
-        for (SizeT o = 0; o < nEl; o += outerStride) {
-          SizeT rIx = (o / outerStride) * sumStride;
-          for (SizeT i = 0; i < sumStride; ++i) {
-            SizeT oi = o + i;
-            SizeT oiLimit = sumLimit + oi;
-            for (SizeT s = oi; s < oiLimit; s += sumStride) AddOmitNaN((*res)[ rIx], (*src)[ s]);
-            ++rIx;
-          }
-        }
-      } else {
-        for (SizeT o = 0; o < nEl; o += outerStride) {
-          SizeT rIx = (o / outerStride) * sumStride;
-          for (SizeT i = 0; i < sumStride; ++i) {
-            SizeT oi = o + i;
-            SizeT oiLimit = sumLimit + oi;
-            for (SizeT s = oi; s < oiLimit; s += sumStride) (*res)[ rIx] += (*src)[ s];
-            ++rIx;
-          }
+    if (omitNaN) {
+      for (SizeT o = 0, k = 0; o < nEl; o += outerStride, ++k) {
+        SizeT jump = k*sumStride;
+        for (SizeT i = 0, j = 0; i < outerStride; ++i, ++j) {
+          if (j >= sumStride) j = 0;
+          AddOmitNaN((*res)[ j + jump], (*src)[ i + o]);
         }
       }
     } else {
-      if (omitNaN) {
-        TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-          for (OMPInt o = 0; o < nEl; o += outerStride) {
-          SizeT rIx = (o / outerStride) * sumStride;
-          for (SizeT i = 0; i < sumStride; ++i) {
-            SizeT oi = o + i;
-            SizeT oiLimit = sumLimit + oi;
-            for (SizeT s = oi; s < oiLimit; s += sumStride) AddOmitNaN((*res)[ rIx], (*src)[ s]);
-            ++rIx;
-          }
-        }
-      } else {
-        TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-          for (OMPInt o = 0; o < nEl; o += outerStride) {
-          SizeT rIx = (o / outerStride) * sumStride;
-          for (SizeT i = 0; i < sumStride; ++i) {
-            SizeT oi = o + i;
-            SizeT oiLimit = sumLimit + oi;
-            for (SizeT s = oi; s < oiLimit; s += sumStride) (*res)[ rIx] += (*src)[ s];
-            ++rIx;
-          }
+      for (SizeT o = 0, k = 0; o < nEl; o += outerStride, ++k) {
+        SizeT jump = k*sumStride;  //there is an obvious optimisation for sumDimIx=0 where j=0 always. Strangely, it seems ineffective and has been dropped.
+        for (SizeT i = 0, j = 0; i < outerStride; ++i, ++j) {
+          if (j >= sumStride) j = 0; //this is so much better than slow integer divides or %
+          (*res)[j + jump] += (*src)[ i + o];
         }
       }
     }
@@ -3394,65 +3362,29 @@ namespace lib {
     dimension destDim = srcDim;
     SizeT nProd = destDim.Remove(prodDimIx);
 
-    T* res = new T(destDim, BaseGDL::NOZERO);
+    T* res = new T(destDim, BaseGDL::INDGEN,1,0);
 
     // prodStride is also the number of linear src indexing
     SizeT prodStride = srcDim.Stride(prodDimIx);
     SizeT outerStride = srcDim.Stride(prodDimIx + 1);
     SizeT prodLimit = nProd * prodStride;
-    if (GDL_NTHREADS=parallelize( (nEl / outerStride))==1) {
       if (omitNaN) {
-        for (SizeT o = 0; o < nEl; o += outerStride) {
-          SizeT rIx = (o / outerStride) * prodStride;
-          for (SizeT i = 0; i < prodStride; ++i) {
-            (*res)[ rIx] = 1;
-            SizeT oi = o + i;
-            SizeT oiLimit = prodLimit + oi;
-            for (SizeT s = oi; s < oiLimit; s += prodStride) MultOmitNaN((*res)[ rIx], (*src)[ s]);
-            ++rIx;
+        for (SizeT o = 0, k = 0; o < nEl; o += outerStride, ++k) {
+          SizeT jump = k*prodStride; //there is an obvious optimisation for sumDimIx=0 where j=0 always. Strangely, it seems ineffective and has been dropped.
+          for (SizeT i = 0, j = 0; i < outerStride; ++i, ++j) {
+            if (j >= prodStride) j = 0; //this is so much better than slow integer divides or %
+            MultOmitNaN((*res)[j + jump] , (*src)[ i + o]);
           }
         }
       } else {
-        for (SizeT o = 0; o < nEl; o += outerStride) {
-          SizeT rIx = (o / outerStride) * prodStride;
-          for (SizeT i = 0; i < prodStride; ++i) {
-            (*res)[ rIx] = 1;
-            SizeT oi = o + i;
-            SizeT oiLimit = prodLimit + oi;
-            for (SizeT s = oi; s < oiLimit; s += prodStride) (*res)[ rIx] *= (*src)[ s];
-            ++rIx;
+        for (SizeT o = 0, k = 0; o < nEl; o += outerStride, ++k) {
+          SizeT jump = k*prodStride; //there is an obvious optimisation for sumDimIx=0 where j=0 always. Strangely, it seems ineffective and has been dropped.
+          for (SizeT i = 0, j = 0; i < outerStride; ++i, ++j) {
+            if (j >= prodStride) j = 0; //this is so much better than slow integer divides or %
+            (*res)[j + jump] *= (*src)[ i + o];
           }
         }
       }
-    } else {
-      if (omitNaN) {
-        TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-          for (OMPInt o = 0; o < nEl; o += outerStride) {
-          SizeT rIx = (o / outerStride) * prodStride;
-          for (SizeT i = 0; i < prodStride; ++i) {
-            (*res)[ rIx] = 1;
-            SizeT oi = o + i;
-            SizeT oiLimit = prodLimit + oi;
-            for (SizeT s = oi; s < oiLimit; s += prodStride) MultOmitNaN((*res)[ rIx], (*src)[ s]);
-            ++rIx;
-          }
-        }
-      } else {
-        TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-          for (OMPInt o = 0; o < nEl; o += outerStride) {
-          SizeT rIx = (o / outerStride) * prodStride;
-          for (SizeT i = 0; i < prodStride; ++i) {
-            (*res)[ rIx] = 1;
-            SizeT oi = o + i;
-            SizeT oiLimit = prodLimit + oi;
-            for (SizeT s = oi; s < oiLimit; s += prodStride) (*res)[ rIx] *= (*src)[ s];
-            ++rIx;
-          }
-        }
-      }
-    }
     return res;
   }
 
