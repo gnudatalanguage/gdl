@@ -160,7 +160,19 @@ endif
 
 w=where(type eq types, count)
 if (count gt 0) then begin
-  print, value
+  ret=size(value)
+  ndim=ret[0]
+  type=ret[ndim+1]
+  n=n_elements(value)
+  if (n eq 1) then begin
+    case type of
+    4: print,value,format='(G16.8)'
+    5: print,value,format='(G25.17)'
+    6: print,value,format='("(",G16.8,",",G16.8,")")'
+    9: print,value,format='("(",G25.17,",",G25.17,")")'
+    ELSE: print,value
+    endcase
+  endif else print,value
   return
 endif
 
