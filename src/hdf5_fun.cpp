@@ -1749,6 +1749,18 @@ hid_t
   }
 
 
+  BaseGDL* h5d_get_storage_size_fun( EnvT* e)
+  {
+    SizeT nParam = e->NParam(1);
+    hid_t dset_id = hdf5_input_conversion(e,0);
+
+    hsize_t storage_size = H5Dget_storage_size( dset_id );
+    if (storage_size < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return new DULong64GDL( storage_size );
+  }
+
+
   void h5d_close_pro( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
