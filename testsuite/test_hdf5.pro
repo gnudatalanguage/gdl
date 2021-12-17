@@ -163,6 +163,53 @@ end
 ;
 ; -----------------------------------------------
 ;
+pro TEST_HDF5_EXTEND, cumul_errors, create=create
+
+   errors=0
+
+   file_name = "hdf5-extend-test.h5"
+   full_file_name = file_search_for_testsuite(file_name, /warning)
+   if (STRLEN(full_file_name) eq 0) then begin
+      cumul_errors++
+      return
+   endif
+
+   ; --- create an extensible mock dataset
+
+   data=[ [1,2,3,4,5,6], [7,8,9,10,11,12], [13,14,15,16,17,18] ]
+
+   if keyword_set(create) then f_id = h5f_create(file_name) $
+   else                        f_id = h5f_create("gdl-"+file_name)
+
+   t_id = h5t_idl_create(data)
+   s_id = h5s_create_simple([4,2], max_dim=[6,-1])
+
+   d_id = h5d_create(f_id, "chunked_dataset", t_id, s_id, chunk_dim=[2,1])
+
+   h5d_extend, d_id, [6,3] &  h5d_write, d_id, data
+
+   h5d_close, d_id
+   h5f_close, f_id
+
+   if keyword_set(create) then return
+
+   ; --- test the result against HDF5 file created using IDL
+
+   spawn, 'h5diff gdl-'+file_name+' '+full_file_name, res, exit_status=exit
+   errors += (exit ne 0)
+   spawn, 'rm -f gdl-'+file_name
+
+   ; --- print banner
+
+   banner_for_testsuite, 'TEST_HDF5_EXTEND', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors=cumul_errors+errors
+
+end
+;
+; -----------------------------------------------
+;
 pro TEST_HDF5_ATTR, cumul_errors, create=create
 
    errors=0
