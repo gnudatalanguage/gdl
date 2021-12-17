@@ -1410,39 +1410,30 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__
 // NOT A TP function
 template<class Sp>
 void Data_<Sp>::Reverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  // SA: based on total_over_dim_template()
-  //   static Data_* tmp = new Data_(dimension(1), BaseGDL::NOZERO);
-  //Guard<Data_> tmp_guard(tmp);
   SizeT nEl = N_Elements();
   SizeT revStride = this->dim.Stride(dim);
+  SizeT halfDim=this->dim[dim]/2 * revStride;
+  if (this->dim[dim]%2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
-  SizeT revLimit = this->dim[dim] * revStride;
-  if (GDL_NTHREADS=parallelize((nEl/outerStride)*revStride, TP_MEMORY_ACCESS)==1) {  //most frequent
+  SizeT span=outerStride - revStride;
+  if (GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS)==1) {  //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
-      for (SizeT i = 0; i < revStride; ++i) {
-        SizeT oi = o + i;
-        SizeT last_plus_oi = revLimit + oi - revStride + oi;
-        SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-        for (SizeT s = oi; s < half; s += revStride) {
-          SizeT opp = last_plus_oi - s;
-          Ty tmp = (*this)[s];
-          (*this)[s] = (*this)[opp];
-          (*this)[opp] = tmp;
+      for (SizeT i = o; i < o+revStride; ++i) {
+        for (SizeT s = i, opp=span+i; s < halfDim+i  ; s += revStride, opp-=revStride) {
+             Ty tmp = (*this)[s];
+            (*this)[s] = (*this)[opp];
+            (*this)[opp] = tmp;
         }
       }
     }
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel
+#pragma omp parallel num_threads(GDL_NTHREADS)
     {
-#pragma omp for
+#pragma omp for collapse(2)
       for (SizeT o = 0; o < nEl; o += outerStride) {
         for (SizeT i = 0; i < revStride; ++i) {
-          SizeT oi = o + i;
-          SizeT last_plus_oi = revLimit + oi - revStride + oi;
-          SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-          for (SizeT s = oi; s < half; s += revStride) {
-            SizeT opp = last_plus_oi - s;
+          for (SizeT s = i + o, opp = span + i + o; s < halfDim + i + o; s += revStride, opp -= revStride) {
             Ty tmp = (*this)[s];
             (*this)[s] = (*this)[opp];
             (*this)[opp] = tmp;
@@ -1455,42 +1446,35 @@ void Data_<Sp>::Reverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE_
 
 template<class Sp>
 BaseGDL* Data_<Sp>::DupReverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  // SA: based on total_over_dim_template()
   Data_* res = new Data_(this->dim, BaseGDL::NOZERO);
   Guard<Data_> res_guard(res);
   SizeT nEl = N_Elements();
   SizeT revStride = this->dim.Stride(dim);
+  SizeT halfDim=this->dim[dim]/2 * revStride;
+  if (this->dim[dim]%2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
-  SizeT revLimit = this->dim[dim] * revStride;
-  if (GDL_NTHREADS=parallelize((nEl / outerStride) * revStride, TP_MEMORY_ACCESS)==1) {  //most frequent
+  SizeT span=outerStride - revStride;
+  if (GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS)==1) {  //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
-      for (SizeT i = 0; i < revStride; ++i) {
-        SizeT oi = o + i;
-        SizeT last_plus_oi = revLimit + oi - revStride + oi;
-        SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-        for (SizeT s = oi; s < half + 1; s += revStride) {
-          SizeT opp = last_plus_oi - s;
-          //	cout << s <<" "<< opp << " " << (*this)[s] << " " << (*this)[opp] << endl;
-          (*res)[s] = (*this)[opp];
-          (*res)[opp] = (*this)[s];
+      for (SizeT i = o; i < o+revStride; ++i) {
+        for (SizeT s = i, opp=span+i; s < halfDim+i  ; s += revStride, opp-=revStride) {
+             Ty tmp = (*this)[s];
+            (*res)[s] = (*this)[opp];
+            (*res)[opp] = tmp;
         }
       }
     }
   } else {
     TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel
+#pragma omp parallel num_threads(GDL_NTHREADS)
     {
-#pragma omp for
+#pragma omp for collapse(2)
       for (SizeT o = 0; o < nEl; o += outerStride) {
         for (SizeT i = 0; i < revStride; ++i) {
-          SizeT oi = o + i;
-          SizeT last_plus_oi = revLimit + oi - revStride + oi;
-          SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-          for (SizeT s = oi; s < half + 1; s += revStride) {
-            SizeT opp = last_plus_oi - s;
-            //	cout << s <<" "<< opp << " " << (*this)[s] << " " << (*this)[opp] << endl;
+          for (SizeT s = i+o, opp = span + i+o; s < halfDim + i+o; s += revStride, opp -= revStride) {
+             Ty tmp = (*this)[s];
             (*res)[s] = (*this)[opp];
-            (*res)[opp] = (*this)[s];
+            (*res)[opp] = tmp;
           }
         }
       }
@@ -1500,41 +1484,38 @@ BaseGDL* Data_<Sp>::DupReverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
 }
 
 template<>
-BaseGDL* Data_<SpDPtr>::DupReverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  // SA: based on total_over_dim_template()
+BaseGDL* Data_<SpDPtr>::DupReverse(DLong dim) {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
   Data_* res = new Data_(this->dim, BaseGDL::NOZERO);
   Guard<Data_> res_guard(res);
   SizeT nEl = N_Elements();
   SizeT revStride = this->dim.Stride(dim);
+  SizeT halfDim = this->dim[dim] / 2 * revStride;
+  if (this->dim[dim] % 2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
-  SizeT revLimit = this->dim[dim] * revStride;
-  if (GDL_NTHREADS=parallelize((nEl / outerStride) * revStride, TP_MEMORY_ACCESS)==1) {  //most frequent
+  SizeT span = outerStride - revStride;
+  if (GDL_NTHREADS = parallelize(nEl, TP_MEMORY_ACCESS) == 1) { //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
-      for (SizeT i = 0; i < revStride; ++i) {
-        SizeT oi = o + i;
-        SizeT last_plus_oi = revLimit + oi - revStride + oi;
-        SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-        for (SizeT s = oi; s < half + 1; s += revStride) {
-          SizeT opp = last_plus_oi - s;
+      for (SizeT i = o; i < o + revStride; ++i) {
+        for (SizeT s = i, opp = span + i; s < halfDim + i; s += revStride, opp -= revStride) {
+          Ty tmp = (*this)[s];
           (*res)[s] = (*this)[opp];
-          (*res)[opp] = (*this)[s];
+          (*res)[opp] = tmp;
         }
       }
     }
   } else {
-    TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel
+
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel num_threads(GDL_NTHREADS)
     {
-#pragma omp for
+#pragma omp for collapse(2)
       for (SizeT o = 0; o < nEl; o += outerStride) {
         for (SizeT i = 0; i < revStride; ++i) {
-          SizeT oi = o + i;
-          SizeT last_plus_oi = revLimit + oi - revStride + oi;
-          SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-          for (SizeT s = oi; s < half + 1; s += revStride) {
-            SizeT opp = last_plus_oi - s;
+          for (SizeT s = i + o, opp = span + i + o; s < halfDim + i + o; s += revStride, opp -= revStride) {
+            Ty tmp = (*this)[s];
             (*res)[s] = (*this)[opp];
-            (*res)[opp] = (*this)[s];
+            (*res)[opp] = tmp;
           }
         }
       }
@@ -1545,41 +1526,38 @@ BaseGDL* Data_<SpDPtr>::DupReverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FIL
 }
 
 template<>
-BaseGDL* Data_<SpDObj>::DupReverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  // SA: based on total_over_dim_template()
+BaseGDL* Data_<SpDObj>::DupReverse(DLong dim)  {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
   Data_* res = new Data_(this->dim, BaseGDL::NOZERO);
   Guard<Data_> res_guard(res);
   SizeT nEl = N_Elements();
   SizeT revStride = this->dim.Stride(dim);
+  SizeT halfDim = this->dim[dim] / 2 * revStride;
+  if (this->dim[dim] % 2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
-  SizeT revLimit = this->dim[dim] * revStride;
-  if (GDL_NTHREADS=parallelize((nEl / outerStride) * revStride), TP_MEMORY_ACCESS) {  //most frequent
+  SizeT span = outerStride - revStride;
+  if (GDL_NTHREADS = parallelize(nEl, TP_MEMORY_ACCESS) == 1) { //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
-      for (SizeT i = 0; i < revStride; ++i) {
-        SizeT oi = o + i;
-        SizeT last_plus_oi = revLimit + oi - revStride + oi;
-        SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-        for (SizeT s = oi; s < half + 1; s += revStride) {
-          SizeT opp = last_plus_oi - s;
+      for (SizeT i = o; i < o + revStride; ++i) {
+        for (SizeT s = i, opp = span + i; s < halfDim + i; s += revStride, opp -= revStride) {
+          Ty tmp = (*this)[s];
           (*res)[s] = (*this)[opp];
-          (*res)[opp] = (*this)[s];
+          (*res)[opp] = tmp;
         }
       }
     }
   } else {
-    TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel
+
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel num_threads(GDL_NTHREADS)
     {
-#pragma omp for
+#pragma omp for collapse(2)
       for (SizeT o = 0; o < nEl; o += outerStride) {
         for (SizeT i = 0; i < revStride; ++i) {
-          SizeT oi = o + i;
-          SizeT last_plus_oi = revLimit + oi - revStride + oi;
-          SizeT half = ((revLimit / revStride) / 2) * revStride + oi;
-          for (SizeT s = oi; s < half + 1; s += revStride) {
-            SizeT opp = last_plus_oi - s;
+          for (SizeT s = i + o, opp = span + i + o; s < halfDim + i + o; s += revStride, opp -= revStride) {
+            Ty tmp = (*this)[s];
             (*res)[s] = (*this)[opp];
-            (*res)[opp] = (*this)[s];
+            (*res)[opp] = tmp;
           }
         }
       }
