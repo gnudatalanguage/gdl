@@ -32,6 +32,13 @@
 #define INCLUDE_DATATYPESREF_CPP 1
 #include "datatypesref.cpp"
 
+#ifdef USE_EIGEN  
+#if EIGEN_VERSION_AT_LEAST(3,3,7) //my version atthis time, works.
+#include<unsupported/Eigen/CXX11/Tensor>
+#define EIGEN_HAS_TENSOR
+#endif
+#endif
+
 #if defined(USE_PYTHON) || defined(PYTHON_MODULE)
 
 #  define INCLUDE_TOPYTHON_CPP 1
@@ -1254,8 +1261,6 @@ BaseGDL* Data_<Sp>::CShift( DLong s[ MAXRANK]) const { TRACE_ROUTINE(__FUNCTION_
   return sh;
 }
 
-
-
 // assumes *perm is already checked according to uniqness and length
 // dim[i]_out = dim[perm[i]]_in
 // helper function for Transpose()
@@ -1271,7 +1276,7 @@ template<class Sp>
 BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT rank = this->Rank();
 
-  if (rank == 1) // special case: vector
+ if (rank == 1) // special case: vector
   {
     if (perm != NULL) // must be [0]
     {
@@ -1321,7 +1326,63 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__
   // src stride
   SizeT srcStride[ MAXRANK + 1];
   this->dim.Stride(srcStride, rank);
+  
+#ifdef USE_EIGEN
+  if (rank == 2) // special case: eigen x 2
+  {
+    Eigen::Map<Eigen::Array<Ty, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Aligned> mThis(&(*this)[0],  this->dim[0],  this->dim[1]);
+    Eigen::Map<Eigen::Array<Ty, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Aligned> mRes(&(*res)[0],  res->dim[0],  res->dim[1]);
+    mRes=mThis.transpose();
+    return res;
+  }
+#endif
+#ifdef EIGEN_HAS_TENSOR  
+  else if (rank == 3) // special case: eigen x 3
+  {
+ Eigen::TensorMap<Eigen::Tensor<Ty, 3>> mThis(&(*this)[0], this->dim[0],  this->dim[1], this->dim[2]); 
+ Eigen::TensorMap<Eigen::Tensor<Ty, 3>> mRes(&(*res)[0], res->dim[0],  res->dim[1], res->dim[2]);
+ mRes=mThis.shuffle(perm);
+ return res;
+  }
+  
+  else if (rank == 4) // special case: eigen x 4
+  {
+ Eigen::TensorMap<Eigen::Tensor<Ty, 4>> mThis(&(*this)[0], this->dim[0],  this->dim[1], this->dim[2], this->dim[3]); 
+ Eigen::TensorMap<Eigen::Tensor<Ty, 4>> mRes(&(*res)[0], res->dim[0],  res->dim[1], res->dim[2], res->dim[3]);
+ mRes=mThis.shuffle(perm);
+ return res;
+  }
+  else if (rank == 5) // special case: eigen x 5
+  {
+ Eigen::TensorMap<Eigen::Tensor<Ty, 5>> mThis(&(*this)[0], this->dim[0],  this->dim[1], this->dim[2], this->dim[3], this->dim[4]); 
+ Eigen::TensorMap<Eigen::Tensor<Ty, 5>> mRes(&(*res)[0], res->dim[0],  res->dim[1], res->dim[2], res->dim[3], res->dim[4]);
+ mRes=mThis.shuffle(perm);
+ return res;
+  }
+  else if (rank == 6) // special case: eigen x 6
+  {
+ Eigen::TensorMap<Eigen::Tensor<Ty, 6>> mThis(&(*this)[0], this->dim[0],  this->dim[1], this->dim[2], this->dim[3], this->dim[4], this->dim[5]); 
+ Eigen::TensorMap<Eigen::Tensor<Ty, 6>> mRes(&(*res)[0], res->dim[0],  res->dim[1], res->dim[2], res->dim[3], res->dim[4], res->dim[5]);
+ mRes=mThis.shuffle(perm);
+ return res;
+  }
+  else if (rank == 7) // special case: eigen x 7
+  {
+ Eigen::TensorMap<Eigen::Tensor<Ty, 7>> mThis(&(*this)[0], this->dim[0],  this->dim[1], this->dim[2], this->dim[3], this->dim[4], this->dim[5], this->dim[6]); 
+ Eigen::TensorMap<Eigen::Tensor<Ty, 7>> mRes(&(*res)[0], res->dim[0],  res->dim[1], res->dim[2], res->dim[3], res->dim[4], res->dim[5], res->dim[6]);
+ mRes=mThis.shuffle(perm);
+ return res;
+  }
+  else if (rank == 8) // special case: eigen x 8
+  {
+ Eigen::TensorMap<Eigen::Tensor<Ty, 8>> mThis(&(*this)[0], this->dim[0],  this->dim[1], this->dim[2], this->dim[3], this->dim[4], this->dim[5], this->dim[6], this->dim[7]); 
+ Eigen::TensorMap<Eigen::Tensor<Ty, 8>> mRes(&(*res)[0], res->dim[0],  res->dim[1], res->dim[2], res->dim[3], res->dim[4], res->dim[5], res->dim[6], res->dim[7]);
+ mRes=mThis.shuffle(perm);
+ return res;
+  }
 
+#endif
+  
   SizeT nElem = dd.size();
   long chunksize = nElem;
   long nchunk = 1;
