@@ -49,7 +49,7 @@ Data_<Sp>* Data_<Sp>::Div(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LI
     return this;
   } else {
 
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*right)[ix] != this->zero) (*this)[ix] /= (*right)[ix];
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -74,7 +74,7 @@ Data_<Sp>* Data_<Sp>::DivInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,_
     return this;
   } else {
 
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt ix = i; ix < nEl; ++ix)
         if ((*this)[ix] != this->zero)
           (*this)[ix] = (*right)[ix] / (*this)[ix];

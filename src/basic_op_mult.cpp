@@ -49,7 +49,7 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
   mThis *= mRight;
   return this;
 #else
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] *= (*right)[i];
     } else {
       TRACEOMP( __FILE__, __LINE__)
@@ -99,7 +99,7 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
   mThis *= s;
   return this;
 #else
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for( OMPInt i=0; i < nEl; ++i) (*this)[i] *= s;
     } else {
       TRACEOMP( __FILE__, __LINE__)

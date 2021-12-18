@@ -257,7 +257,7 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp(EnvUDT* e) {
       (*res)[0] = (s == (*left)[0]);
       return res;
     }
-    if (GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = ((*left)[i] == s);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -270,7 +270,7 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp(EnvUDT* e) {
       (*res)[0] = ((*right)[0] == s);
       return res;
     }
-    if (GDL_NTHREADS=parallelize( rEl, TP_MEMORY_ACCESS)==1) {
+    if ((GDL_NTHREADS=parallelize( rEl, TP_MEMORY_ACCESS))==1) {
       for (OMPInt i = 0; i < rEl; ++i)  (*res)[i] = ((*right)[i] == s);
     } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -279,7 +279,7 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp(EnvUDT* e) {
     }
   } else if (rEl < nEl) {
     res = new Data_<SpDByte>(right->Dim(), BaseGDL::NOZERO);
-    if (GDL_NTHREADS=parallelize( rEl, TP_MEMORY_ACCESS)==1) {
+    if ((GDL_NTHREADS=parallelize( rEl, TP_MEMORY_ACCESS))==1) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = ((*right)[i] == (*left)[i]);
     } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -293,7 +293,7 @@ BaseGDL* _GDL_OBJECT_OverloadEQOp(EnvUDT* e) {
       (*res)[0] = ((*right)[0] == (*left)[0]);
       return res;
     }
-    if (GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = ((*right)[i] == (*left)[i]);
     } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -339,7 +339,7 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp(EnvUDT* e) {
       (*res)[0] = (s != (*left)[0]);
       return res;
     }
-    if (GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS))==1) {
        for (OMPInt i = 0; i < nEl; ++i)  (*res)[i] = ((*left)[i] != s);
    } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -352,7 +352,7 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp(EnvUDT* e) {
       (*res)[0] = ((*right)[0] != s);
       return res;
     }
-    if (GDL_NTHREADS=parallelize( rEl, TP_MEMORY_ACCESS)==1) {
+    if ((GDL_NTHREADS=parallelize( rEl, TP_MEMORY_ACCESS))==1) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = ((*right)[i] != s);
     } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -361,7 +361,7 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp(EnvUDT* e) {
     }
   } else if (rEl < nEl) {
     res = new Data_<SpDByte>(right->Dim(), BaseGDL::NOZERO);
-    if (GDL_NTHREADS=parallelize( rEl, TP_MEMORY_ACCESS)==1) {
+    if ((GDL_NTHREADS=parallelize( rEl, TP_MEMORY_ACCESS))==1) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = ((*right)[i] != (*left)[i]);
     } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -375,7 +375,7 @@ BaseGDL* _GDL_OBJECT_OverloadNEOp(EnvUDT* e) {
       (*res)[0] = ((*right)[0] != (*left)[0]);
       return res;
     }
-    if (GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = ((*right)[i] != (*left)[i]);
     } else {
     TRACEOMP(__FILE__, __LINE__)

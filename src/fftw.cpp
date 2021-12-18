@@ -90,7 +90,7 @@ namespace lib {
 
       if (direct == -1)
       {
-        if (GDL_NTHREADS=parallelize( nEl)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
           for (OMPInt i = 0; i < nEl; ++i) {
             out[i][0] /= nEl;
             out[i][1] /= nEl;
@@ -126,7 +126,7 @@ TRACEOMP(__FILE__, __LINE__)
 
       if (direct == -1)
       {
-        if (GDL_NTHREADS=parallelize( nEl)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
           for (OMPInt i = 0; i < nEl; ++i)
           {
             out_f[i][0] /= nEl;

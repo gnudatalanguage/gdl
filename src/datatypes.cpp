@@ -336,7 +336,7 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT,
   
   if (iT == BaseGDL::ZERO) { //rather frequent
     SizeT sz = dd.size();
-    if (GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION)==1) { //most frequent
+    if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
       TRACEOMP(__FILE__,__LINE__)
@@ -347,7 +347,7 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT,
   
   else if (iT == BaseGDL::INDGEN) { //less frequent
     SizeT sz = dd.size();
-    if (GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION)==1) { //most frequent
+    if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) { //most frequent
       if (off==0 && inc==1) { 
          for (SizeT i = 0; i < sz; ++i) (*this)[i]=i;
       } else {
@@ -376,7 +376,7 @@ template<> Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, D
 
   if (iT == BaseGDL::ZERO) { //rather frequent
     SizeT sz = dd.size();
-    if (GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION)==1) { //most frequent
+    if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
       TRACEOMP(__FILE__,__LINE__)
@@ -385,7 +385,7 @@ template<> Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, D
     }
   } else if (iT == BaseGDL::INDGEN) { //less frequent
     SizeT sz = dd.size();
-    if (GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION)==1) { //most frequent
+    if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) { //most frequent
       if (off == 0 && inc == 1) {
         for (SizeT i = 0; i < sz; ++i) (*this)[i] = i;
       } else {
@@ -417,7 +417,7 @@ template<> Data_<SpDComplex>::Data_(const dimension& dim_, BaseGDL::InitType iT,
 
   if (iT == BaseGDL::ZERO) { //rather frequent
     SizeT sz = dd.size();
-    if (GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION)==1) { //most frequent
+    if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
       TRACEOMP(__FILE__,__LINE__)
@@ -426,7 +426,7 @@ template<> Data_<SpDComplex>::Data_(const dimension& dim_, BaseGDL::InitType iT,
     }
   } else if (iT == BaseGDL::INDGEN) { //less frequent
     SizeT sz = dd.size();
-    if (GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION)==1) { //most frequent
+    if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) { //most frequent
       if (off == 0 && inc == 1) {
         for (SizeT i = 0; i < sz; ++i) (*this)[i] = i;
       } else {
@@ -466,7 +466,7 @@ template<> Data_<SpDPtr>::Data_(const dimension& dim_,  BaseGDL::InitType iT, DD
 
   if (iT != BaseGDL::NOALLOC && iT != BaseGDL::NOZERO) {
     SizeT sz = dd.size();
-    if (GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION)==1) { //most frequent
+    if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
       TRACEOMP(__FILE__,__LINE__)
@@ -484,7 +484,7 @@ template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDo
   
   if (iT != BaseGDL::NOALLOC && iT != BaseGDL::NOZERO) {
     SizeT sz = dd.size();
-    if (GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION)==1) { //most frequent
+    if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) { //most frequent
       for (SizeT i = 0; i < sz; ++i) (*this)[i] = 0;
     } else {
       TRACEOMP(__FILE__,__LINE__)
@@ -503,7 +503,7 @@ template<class Sp>
 Data_<Sp>::Data_(const Data_& d_) : Sp(d_.dim), dd(this->dim.NDimElements(), false) { 
   this->dim.Purge(); //useful?
   SizeT sz = dd.size();
-  if (GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) { //most frequent
     for (SizeT i = 0; i < sz; i++) dd[i] = d_.dd[i];
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -560,7 +560,7 @@ BaseGDL* Data_<SpDFloat>::Log() { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
     (*n)[ 0] = log((*this)[ 0]);
     return n;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -579,7 +579,7 @@ BaseGDL* Data_<SpDDouble>::Log()
     (*n)[ 0] = log((*this)[ 0]);
     return n;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -597,7 +597,7 @@ BaseGDL* Data_<SpDComplex>::Log()
     (*n)[ 0] = log((*this)[ 0]);
     return n;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -615,7 +615,7 @@ BaseGDL* Data_<SpDComplexDbl>::Log()
     (*n)[ 0] = log((*this)[ 0]);
     return n;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*n)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -644,7 +644,7 @@ BaseGDL* Data_<SpDFloat>::LogThis() { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE
     (*this)[ 0] = log((*this)[ 0]);
     return this;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -662,7 +662,7 @@ BaseGDL* Data_<SpDDouble>::LogThis()
     (*this)[ 0] = log((*this)[ 0]);
     return this;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -680,7 +680,7 @@ BaseGDL* Data_<SpDComplex>::LogThis()
     (*this)[ 0] = log((*this)[ 0]);
     return this;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -697,7 +697,7 @@ BaseGDL* Data_<SpDComplexDbl>::LogThis()
     (*this)[ 0] = log((*this)[ 0]);
     return this;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -724,7 +724,7 @@ BaseGDL* Data_<SpDFloat>::Log10()
     (*n)[ 0] = log10((*this)[ 0]);
     return n;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -743,7 +743,7 @@ BaseGDL* Data_<SpDDouble>::Log10()
     (*n)[ 0] = log10((*this)[ 0]);
     return n;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -762,7 +762,7 @@ BaseGDL* Data_<SpDComplex>::Log10()
     (*n)[ 0] = log10((*this)[ 0]);
     return n;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -781,7 +781,7 @@ BaseGDL* Data_<SpDComplexDbl>::Log10()
     (*n)[ 0] = log10((*this)[ 0]);
     return n;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for( SizeT i=0; i<nEl; ++i) (*n)[ i] = log10( (*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -807,7 +807,7 @@ BaseGDL* Data_<SpDFloat>::Log10This()
     (*this)[ 0] = log10((*this)[ 0]);
     return this;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -825,7 +825,7 @@ BaseGDL* Data_<SpDDouble>::Log10This()
     (*this)[ 0] = log10((*this)[ 0]);
     return this;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -842,7 +842,7 @@ BaseGDL* Data_<SpDComplex>::Log10This()
     (*this)[ 0] = log10((*this)[ 0]);
     return this;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -859,7 +859,7 @@ BaseGDL* Data_<SpDComplexDbl>::Log10This()
     (*this)[ 0] = log10((*this)[ 0]);
     return this;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 0; i < nEl; ++i) (*this)[ i] = log10((*this)[ i]);
   } else {
     TRACEOMP(__FILE__,__LINE__)
@@ -1477,7 +1477,7 @@ void Data_<Sp>::Reverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE_
   if (this->dim[dim]%2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT span=outerStride - revStride;
-  if (GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS)==1) {  //most frequent
+  if ((GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS))==1) {  //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = o; i < o+revStride; ++i) {
         for (SizeT s = i, opp=span+i; s < halfDim+i  ; s += revStride, opp-=revStride) {
@@ -1515,7 +1515,7 @@ BaseGDL* Data_<Sp>::DupReverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
   if (this->dim[dim]%2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT span=outerStride - revStride;
-  if (GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS)==1) {  //most frequent
+  if ((GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS))==1) {  //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = o; i < o+revStride; ++i) {
         for (SizeT s = i, opp=span+i; s < halfDim+i  ; s += revStride, opp-=revStride) {
@@ -1722,7 +1722,7 @@ typename Data_<Sp>::Ty Data_<Sp>::Sum() const {
   TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
   Ty s = dd[ 0];
   SizeT nEl = dd.size();
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 1; i < nEl; ++i) s += dd[ i];
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -1749,7 +1749,7 @@ Data_<SpDComplexDbl>::Ty Data_<SpDComplexDbl>::Sum() const { TRACE_ROUTINE(__FUN
   DDouble sr = dd[ 0].real();
   DDouble si = dd[ 0].imag();
   SizeT nEl = dd.size();
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 1; i < nEl; ++i) {
       sr += dd[i].real();
       si += dd[i].imag();
@@ -1770,7 +1770,7 @@ Data_<SpDComplex>::Ty Data_<SpDComplex>::Sum() const { TRACE_ROUTINE(__FUNCTION_
   DFloat sr = dd[ 0].real();
   DFloat si = dd[ 0].imag();
   SizeT nEl = dd.size();
-  if (GDL_NTHREADS=parallelize( nEl)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( nEl))==1) { //most frequent
     for (SizeT i = 1; i < nEl; ++i) {
       sr += dd[i].real();
       si += dd[i].imag();
@@ -2058,7 +2058,7 @@ Data_<Sp>* Data_<Sp>::New( const dimension& dim_, BaseGDL::InitType noZero) cons
     {
       Data_* res =  new Data_(dim_, BaseGDL::NOZERO);
       SizeT nEl = res->dd.size();
-      if (GDL_NTHREADS=parallelize( nEl, TP_ARRAY_INITIALISATION)==1) { //most frequent
+      if ((GDL_NTHREADS=parallelize( nEl, TP_ARRAY_INITIALISATION))==1) { //most frequent
       for( SizeT i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
       } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -3743,7 +3743,7 @@ void Data_<Sp>::CatInsert (const Data_* srcArr, const SizeT atDim, SizeT& at)
   SizeT gap = this->dim.Stride (atDim + 1); // dest array
   
 //GD: speed up by using indexing that permit parallel and collapse.
-  if (GDL_NTHREADS=parallelize( len*nCp, TP_MEMORY_ACCESS)==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( len*nCp, TP_MEMORY_ACCESS))==1) { //most frequent
     for (OMPInt c = 0; c < nCp; ++c) {
       for (SizeT destIx = 0; destIx < len; destIx++) (*this)[destIx + destStart + c * gap] = (*srcArr)[ destIx + c * len];
     }
@@ -4619,7 +4619,7 @@ Data_<Sp>* Data_<Sp>::NewIx( AllIxBaseT* ix, const dimension* dIn)
 { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nCp = ix->size();
   Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
-  if (GDL_NTHREADS=parallelize( nCp, TP_MEMORY_ACCESS)==1) {
+  if ((GDL_NTHREADS=parallelize( nCp, TP_MEMORY_ACCESS))==1) {
     for( int c=0; c<nCp; ++c)  (*res)[c]=(*this)[ (*ix)[ c]];
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -4633,7 +4633,7 @@ Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s)
 { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nCp = dd.size() - s;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
-  if (GDL_NTHREADS=parallelize( nCp, TP_MEMORY_ACCESS)==1) {
+  if ((GDL_NTHREADS=parallelize( nCp, TP_MEMORY_ACCESS))==1) {
    for( int c=0; c<nCp; ++c)  (*res)[c]=(*this)[ s+c];
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -4647,7 +4647,7 @@ Data_<Sp>* Data_<Sp>::NewIxFrom( SizeT s, SizeT e)
 { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nCp = e - s + 1;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
-  if (GDL_NTHREADS=parallelize( nCp, TP_MEMORY_ACCESS)==1) {
+  if ((GDL_NTHREADS=parallelize( nCp, TP_MEMORY_ACCESS))==1) {
   for( int c=0; c<nCp; ++c)  (*res)[c]=(*this)[ s+c];
   }else {
     TRACEOMP(__FILE__, __LINE__)

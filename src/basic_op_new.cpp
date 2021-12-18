@@ -62,7 +62,7 @@ Data_<Sp>* Data_<Sp>::AndOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__
     (*res)[0] = (*this)[0] & (*right)[0];
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] & (*right)[i]; // & Ty(1);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -94,7 +94,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTIO
     else (*res)[0] = (*this)[0];
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] == zero) (*res)[i] = zero;
       else (*res)[i] = (*this)[i];
   } else {
@@ -121,7 +121,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
     else (*res)[0] = zero;
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = (*right)[i];
       else (*res)[i] = zero;
   } else {
@@ -148,7 +148,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
     else (*res)[0] = (*this)[0];
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] == zero) (*res)[i] = zero;
       else (*res)[i] = (*this)[i];
   } else {
@@ -174,7 +174,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FU
     else (*res)[0] = zero;
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = (*right)[i];
       else (*res)[i] = zero;
   } else {
@@ -251,7 +251,7 @@ Data_<Sp>* Data_<Sp>::AndOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE_
     (*res)[0] = (*this)[0] & s;
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] & s;
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -294,7 +294,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::AndOpInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUN
       else (*res)[0] = zero;
       return res;
     }
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = s;
         else (*res)[i] = zero;
     } else {
@@ -333,7 +333,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::AndOpInvSNew(BaseGDL* r) { TRACE_ROUTINE(__F
       else (*res)[0] = zero;
       return res;
     }
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = s;
         else (*res)[i] = zero;
     } else {
@@ -404,7 +404,7 @@ Data_<Sp>* Data_<Sp>::OrOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
     (*res)[0] = (*this)[0] | (*right)[0]; // | Ty(1);
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] | (*right)[i]; // | Ty(1);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -437,7 +437,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION
     else (*res)[0] = (*this)[0];
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = (*right)[i];
       else (*res)[i] = (*this)[i];
   } else {
@@ -465,7 +465,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
     else (*res)[0] = (*this)[0];
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] != zero) (*res)[i] = (*right)[i];
       else (*res)[i] = (*this)[i];
   } else {
@@ -493,7 +493,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
     else (*res)[0] = (*this)[0];
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = (*right)[i];
       else (*res)[i] = (*this)[i];
   } else {
@@ -520,7 +520,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUN
     else (*res)[0] = (*this)[0];
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*right)[i] != zero) (*res)[i] = (*right)[i];
       else (*res)[i] = (*this)[i];
   } else {
@@ -581,7 +581,7 @@ Data_<Sp>* Data_<Sp>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__
     (*res)[0] = (*this)[0] | s;
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] | s;
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -613,7 +613,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTIO
       else (*res)[0] = (*this)[0];
       return res;
     }
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = s;
         else (*res)[i] = (*this)[i];
     } else {
@@ -647,7 +647,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
       else (*res)[0] = zero;
       return res;
     }
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = s;
         else (*res)[i] = zero;
     } else {
@@ -676,7 +676,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
       else (*res)[0] = (*this)[0];
       return res;
     }
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = s;
         else (*res)[i] = (*this)[i];
     } else {
@@ -709,7 +709,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FU
       else (*res)[0] = zero;
       return res;
     }
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = s;
         else (*res)[i] = zero;
     } else {
@@ -779,7 +779,7 @@ Data_<Sp>* Data_<Sp>::XorOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__
       return this->Dup();
 
     Data_* res = NewResult();
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i];
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -789,7 +789,7 @@ Data_<Sp>* Data_<Sp>::XorOpNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__
     return res;
   } else {
     Data_* res = NewResult();
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] ^ (*right)[i];
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -859,7 +859,7 @@ Data_<Sp>* Data_<Sp>::XorOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE_
     return this->Dup();
 
   Data_* res = NewResult();
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i];
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -942,7 +942,7 @@ BaseGDL* Data_<Sp>::AddNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__L
   mRes = mThis + mRight;
   return res;
 #else
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] + (*right)[i];
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -970,7 +970,7 @@ BaseGDL* Data_<SpDString>::AddInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__
     (*res)[0] = (*right)[0] + (*this)[0];
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*right)[i] + (*this)[i];
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -1020,7 +1020,7 @@ BaseGDL* Data_<Sp>::AddSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__
   mRes = mThis + s;
   return res;
 #else
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] + s;
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -1049,7 +1049,7 @@ BaseGDL* Data_<SpDString>::AddInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,_
     return res;
   }
   Ty s = (*right)[0];
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = s + (*this)[i];
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -1108,7 +1108,7 @@ BaseGDL* Data_<Sp>::SubNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__L
     mRes = mThis - s;
     return res;
 #else
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] - s;
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -1127,7 +1127,7 @@ BaseGDL* Data_<Sp>::SubNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__L
     mRes = mThis - mRight;
     return res;
 #else
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] - (*right)[i];
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -1161,7 +1161,7 @@ BaseGDL* Data_<Sp>::SubInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
   mRes = mRight - mThis;
   return res;
 #else
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*right)[i] - (*this)[i];
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -1230,7 +1230,7 @@ BaseGDL* Data_<Sp>::SubSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__
   mRes = mThis - s;
   return res;
 #else
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] - s;
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -1266,7 +1266,7 @@ BaseGDL* Data_<Sp>::SubInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__
   mRes = s - mThis;
   return res;
 #else
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = s - (*this)[i];
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -1332,7 +1332,7 @@ Data_<Sp>* Data_<Sp>::LtMarkNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE_
     else (*res)[0] = (*this)[0];
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] > (*right)[i]) (*res)[i] = (*right)[i];
       else (*res)[i] = (*this)[i];
   } else {
@@ -1391,7 +1391,7 @@ Data_<Sp>* Data_<Sp>::LtMarkSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE
   }
   Ty s = (*right)[0];
   // right->Scalar(s);
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] > s) (*res)[i] = s;
       else (*res)[i] = (*this)[i];
   } else {
@@ -1453,7 +1453,7 @@ Data_<Sp>* Data_<Sp>::GtMarkNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE_
     else (*res)[0] = (*this)[0];
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] < (*right)[i]) (*res)[i] = (*right)[i];
       else (*res)[i] = (*this)[i];
   } else {
@@ -1513,7 +1513,7 @@ Data_<Sp>* Data_<Sp>::GtMarkSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE
 
   Ty s = (*right)[0];
   // right->Scalar(s);
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] < s) (*res)[i] = s;
       else (*res)[i] = (*this)[i];
   } else {
@@ -1583,7 +1583,7 @@ Data_<Sp>* Data_<Sp>::MultNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
   mRes = mThis * mRight;
   return res;
 #else
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] * (*right)[i];
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -1636,7 +1636,7 @@ Data_<Sp>* Data_<Sp>::MultSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__
   mRes = mThis * s;
   return res;
 #else
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res) [i] = (*this)[i] * s;
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -1691,7 +1691,7 @@ Data_<Sp>* Data_<Sp>::DivNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,_
       (*res)[i] = (*this)[i] / (*right)[i];
     return res;
   } else {
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*right)[ix] != this->zero) (*res)[ix] = (*this)[ix] / (*right)[ix];
         else (*res)[ix] = (*this)[ix];
     } else {
@@ -1723,7 +1723,7 @@ Data_<Sp>* Data_<Sp>::DivInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE_
       (*res)[i] = (*right)[i] / (*this)[i];
     return res;
   } else {
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*res)[ix] = (*right)[ix] / (*this)[ix];
         else (*res)[ix] = (*right)[ix];
     } else {
@@ -1824,7 +1824,7 @@ Data_<Sp>* Data_<Sp>::DivInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE
       (*res)[i] = s / (*this)[i];
     return res;
   } else {
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*res)[ix] = s / (*this)[ix];
         else (*res)[ix] = s;
     } else {
@@ -1913,7 +1913,7 @@ Data_<Sp>* Data_<Sp>::ModNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,_
       (*res)[i] = (*this)[i] % (*right)[i];
     return res;
   } else {
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*right)[ix] != this->zero) (*res)[ix] = (*this)[ix] % (*right)[ix];
         else (*res)[ix] = this->zero;
     } else {
@@ -1942,7 +1942,7 @@ Data_<Sp>* Data_<Sp>::ModInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE_
       (*res)[i] = (*right)[i] % (*this)[i];
     return res;
   } else {
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*res)[ix] = (*right)[ix] % (*this)[ix];
         else (*res)[ix] = this->zero;
     } else {
@@ -1969,7 +1969,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION_
     (*res)[0] = Modulo((*this)[0], (*right)[0]);
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = Modulo((*this)[i], (*right)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -1993,7 +1993,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
     (*res)[0] = Modulo((*right)[0], (*this)[0]);
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = Modulo((*right)[i], (*this)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -2017,7 +2017,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTIO
     (*res)[0] = DModulo((*this)[0], (*right)[0]);
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = DModulo((*this)[i], (*right)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -2041,7 +2041,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
     (*res)[0] = DModulo((*right)[0], (*this)[0]);
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = DModulo((*right)[i], (*this)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -2166,7 +2166,7 @@ Data_<Sp>* Data_<Sp>::ModInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE
     }
     return res;
   } else {
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*res)[ix] = s % (*this)[ix];
         else (*res)[ix] = this->zero;
     } else {
@@ -2193,7 +2193,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION
   }
 
   Ty s = (*right)[0];
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = Modulo((*this)[i], s);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -2218,7 +2218,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
   }
 
   Ty s = (*right)[0];
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = Modulo(s, (*this)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -2242,7 +2242,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
   }
 
   Ty s = (*right)[0];
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = DModulo((*this)[i], s);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -2267,7 +2267,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUN
   }
 
   Ty s = (*right)[0];
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = DModulo(s, (*this)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -2380,7 +2380,7 @@ Data_<Sp>* Data_<Sp>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,_
     (*res)[0] = pow((*this)[0], (*right)[0]);
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]); // valarray
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -2402,7 +2402,7 @@ Data_<Sp>* Data_<Sp>::PowInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE_
     (*res)[0] = pow((*right)[0], (*this)[0]);
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*right)[i], (*this)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -2433,7 +2433,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
   if (r->StrictScalar()) {
     Data_* res = new Data_(Dim(), BaseGDL::NOZERO);
     DLong r0 = (*right)[0];
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], r0);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -2445,7 +2445,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
   if (StrictScalar()) {
     Data_* res = new Data_(right->Dim(), BaseGDL::NOZERO);
     Ty s0 = (*this)[ 0];
-    if (GDL_NTHREADS=parallelize( rEl)==1) {
+    if ((GDL_NTHREADS=parallelize( rEl))==1) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s0, (*right)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -2456,7 +2456,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
   }
   if (nEl <= rEl) {
     Data_* res = new Data_(Dim(), BaseGDL::NOZERO);
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -2466,7 +2466,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowIntNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
     return res;
   } else {
     Data_* res = new Data_(right->Dim(), BaseGDL::NOZERO);
-    if (GDL_NTHREADS=parallelize( rEl)==1) {
+    if ((GDL_NTHREADS=parallelize( rEl))==1) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -2488,7 +2488,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
   if (r->StrictScalar()) {
     Data_* res = new Data_(Dim(), BaseGDL::NOZERO);
     DLong r0 = (*right)[0];
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], r0);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -2500,7 +2500,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
   if (StrictScalar()) {
     Data_* res = new Data_(right->Dim(), BaseGDL::NOZERO);
     Ty s0 = (*this)[ 0];
-    if (GDL_NTHREADS=parallelize( rEl)==1) {
+    if ((GDL_NTHREADS=parallelize( rEl))==1) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s0, (*right)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -2511,7 +2511,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
   }
   if (nEl <= rEl) {
     Data_* res = new Data_(Dim(), BaseGDL::NOZERO);
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -2521,7 +2521,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowIntNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
     return res;
   } else {
     Data_* res = new Data_(right->Dim(), BaseGDL::NOZERO);
-    if (GDL_NTHREADS=parallelize( rEl)==1) {
+    if ((GDL_NTHREADS=parallelize( rEl))==1) {
       for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -2545,7 +2545,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION_
     (*res)[0] = pow((*this)[0], (*right)[0]);
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -2567,7 +2567,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
     (*res)[0] = pow((*right)[0], (*this)[0]);
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*right)[i], (*this)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -2589,7 +2589,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTIO
     (*res)[0] = pow((*this)[0], (*right)[0]);
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -2611,7 +2611,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
     (*res)[0] = pow((*right)[0], (*this)[0]);
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*right)[i], (*this)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -2640,7 +2640,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
     if (right->StrictScalar(s)) {
       DComplexGDL* res = new DComplexGDL(this->Dim(),
         BaseGDL::NOZERO);
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], s);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -2655,7 +2655,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
         if (StrictScalar(s)) {
           DComplexGDL* res = new DComplexGDL(right->Dim(),
             BaseGDL::NOZERO);
-          if (GDL_NTHREADS=parallelize( rEl)==1) {
+          if ((GDL_NTHREADS=parallelize( rEl))==1) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
@@ -2667,7 +2667,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
 
         DComplexGDL* res = new DComplexGDL(this->Dim(),
           BaseGDL::NOZERO);
-        if (GDL_NTHREADS=parallelize( nEl)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -2678,7 +2678,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
       } else {
         DComplexGDL* res = new DComplexGDL(right->Dim(),
           BaseGDL::NOZERO);
-        if (GDL_NTHREADS=parallelize( rEl)==1) {
+        if ((GDL_NTHREADS=parallelize( rEl))==1) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -2700,7 +2700,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
     if (right->StrictScalar(s)) {
       DComplexGDL* res = new DComplexGDL(this->Dim(),
         BaseGDL::NOZERO);
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], s);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -2715,7 +2715,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
         if (StrictScalar(s)) {
           DComplexGDL* res = new DComplexGDL(right->Dim(),
             BaseGDL::NOZERO);
-          if (GDL_NTHREADS=parallelize( rEl)==1) {
+          if ((GDL_NTHREADS=parallelize( rEl))==1) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
@@ -2727,7 +2727,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
 
         DComplexGDL* res = new DComplexGDL(this->Dim(),
           BaseGDL::NOZERO);
-        if (GDL_NTHREADS=parallelize( nEl)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -2738,7 +2738,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
       } else {
         DComplexGDL* res = new DComplexGDL(right->Dim(),
           BaseGDL::NOZERO);
-        if (GDL_NTHREADS=parallelize( rEl)==1) {
+        if ((GDL_NTHREADS=parallelize( rEl))==1) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -2761,7 +2761,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
     DComplexGDL* res = new DComplexGDL(this->Dim(),
       BaseGDL::NOZERO);
     //#if (__GNUC__ == 3) && (__GNUC_MINOR__ <= 2)
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], s);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -2772,7 +2772,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
   } else {
     DComplexGDL* res = new DComplexGDL(this->Dim(),
       BaseGDL::NOZERO);
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -2792,7 +2792,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInvNew(BaseGDL* r) { TRACE_ROUTINE(__FU
   assert(nEl);
 
   Data_* res = NewResult();
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*right)[i], (*this)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -2820,7 +2820,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) { TRACE_ROUTINE(_
     if (right->StrictScalar(s)) {
       DComplexDblGDL* res = new DComplexDblGDL(this->Dim(),
         BaseGDL::NOZERO);
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], s);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -2835,7 +2835,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) { TRACE_ROUTINE(_
         if (StrictScalar(s)) {
           DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
             BaseGDL::NOZERO);
-          if (GDL_NTHREADS=parallelize( rEl)==1) {
+          if ((GDL_NTHREADS=parallelize( rEl))==1) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
@@ -2847,7 +2847,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) { TRACE_ROUTINE(_
 
         DComplexDblGDL* res = new DComplexDblGDL(this->Dim(),
           BaseGDL::NOZERO);
-        if (GDL_NTHREADS=parallelize( nEl)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -2858,7 +2858,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) { TRACE_ROUTINE(_
       } else {
         DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
           BaseGDL::NOZERO);
-        if (GDL_NTHREADS=parallelize( rEl)==1) {
+        if ((GDL_NTHREADS=parallelize( rEl))==1) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -2879,7 +2879,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) { TRACE_ROUTINE(_
     if (right->StrictScalar(s)) {
       DComplexDblGDL* res = new DComplexDblGDL(this->Dim(),
         BaseGDL::NOZERO);
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], s);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -2894,7 +2894,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) { TRACE_ROUTINE(_
         if (StrictScalar(s)) {
           DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
             BaseGDL::NOZERO);
-          if (GDL_NTHREADS=parallelize( rEl)==1) {
+          if ((GDL_NTHREADS=parallelize( rEl))==1) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
@@ -2906,7 +2906,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) { TRACE_ROUTINE(_
 
         DComplexDblGDL* res = new DComplexDblGDL(this->Dim(),
           BaseGDL::NOZERO);
-        if (GDL_NTHREADS=parallelize( nEl)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -2917,7 +2917,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) { TRACE_ROUTINE(_
       } else {
         DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
           BaseGDL::NOZERO);
-        if (GDL_NTHREADS=parallelize( rEl)==1) {
+        if ((GDL_NTHREADS=parallelize( rEl))==1) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -2935,7 +2935,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) { TRACE_ROUTINE(_
   if (right->StrictScalar(s)) {
     DComplexDblGDL* res = new DComplexDblGDL(this->Dim(),
       BaseGDL::NOZERO);
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = pow((*this)[ i], s);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -2946,7 +2946,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowNew(BaseGDL* r) { TRACE_ROUTINE(_
   } else {
     DComplexDblGDL* res = new DComplexDblGDL(this->Dim(),
       BaseGDL::NOZERO);
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -2967,7 +2967,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvNew(BaseGDL* r) { TRACE_ROUTIN
   assert(rEl);
   assert(nEl);
   Data_* res = NewResult();
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*right)[i], (*this)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -3028,7 +3028,7 @@ Data_<Sp>* Data_<Sp>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
     (*res)[0] = pow((*this)[0], s);
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[i], s);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -3052,7 +3052,7 @@ Data_<Sp>* Data_<Sp>::PowInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE
     (*res)[0] = pow(s, (*this)[0]);
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow(s, (*this)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -3079,7 +3079,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
     // (must also be consistent with ComplexDbl)
     if (right->StrictScalar(s)) {
       Data_* res = NewResult();
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], s);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -3094,7 +3094,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
         if (StrictScalar(s)) {
           DComplexGDL* res = new DComplexGDL(right->Dim(),
             BaseGDL::NOZERO);
-          if (GDL_NTHREADS=parallelize( rEl)==1) {
+          if ((GDL_NTHREADS=parallelize( rEl))==1) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
@@ -3105,7 +3105,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
         }
 
         Data_* res = NewResult();
-        if (GDL_NTHREADS=parallelize( nEl)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -3116,7 +3116,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
       } else {
         DComplexGDL* res = new DComplexGDL(right->Dim(),
           BaseGDL::NOZERO);
-        if (GDL_NTHREADS=parallelize( rEl)==1) {
+        if ((GDL_NTHREADS=parallelize( rEl))==1) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -3137,7 +3137,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
     // (must also be consistent with ComplexDbl)
     if (right->StrictScalar(s)) {
       Data_* res = NewResult();
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], s);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -3152,7 +3152,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
         if (StrictScalar(s)) {
           DComplexGDL* res = new DComplexGDL(right->Dim(),
             BaseGDL::NOZERO);
-          if (GDL_NTHREADS=parallelize( rEl)==1) {
+          if ((GDL_NTHREADS=parallelize( rEl))==1) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
@@ -3163,7 +3163,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
         }
 
         Data_* res = NewResult();
-        if (GDL_NTHREADS=parallelize( nEl)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -3174,7 +3174,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
       } else {
         DComplexGDL* res = new DComplexGDL(right->Dim(),
           BaseGDL::NOZERO);
-        if (GDL_NTHREADS=parallelize( rEl)==1) {
+        if ((GDL_NTHREADS=parallelize( rEl))==1) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -3191,7 +3191,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
 
   Ty s = (*right)[0];
   Data_* res = NewResult();
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], s);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -3215,7 +3215,7 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInvSNew(BaseGDL* r) { TRACE_ROUTINE(__F
     (*res)[0] = pow(s, (*this)[0]);
     return res;
   }
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow(s, (*this)[ i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -3243,7 +3243,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(
     // (concerning when a new variable is created vs. using this)
     if (right->StrictScalar(s)) {
       Data_* res = NewResult();
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], s);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -3258,7 +3258,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(
         if (StrictScalar(s)) {
           DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
             BaseGDL::NOZERO);
-          if (GDL_NTHREADS=parallelize( rEl)==1) {
+          if ((GDL_NTHREADS=parallelize( rEl))==1) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
@@ -3269,7 +3269,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(
         }
 
         Data_* res = NewResult();
-        if (GDL_NTHREADS=parallelize( nEl)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -3280,7 +3280,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(
       } else {
         DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
           BaseGDL::NOZERO);
-        if (GDL_NTHREADS=parallelize( rEl)==1) {
+        if ((GDL_NTHREADS=parallelize( rEl))==1) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -3302,7 +3302,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(
     // (concerning when a new variable is created vs. using this)
     if (right->StrictScalar(s)) {
       Data_* res = NewResult();
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], s);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -3317,7 +3317,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(
         if (StrictScalar(s)) {
           DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
             BaseGDL::NOZERO);
-          if (GDL_NTHREADS=parallelize( rEl)==1) {
+          if ((GDL_NTHREADS=parallelize( rEl))==1) {
             for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s, (*right)[ i]);
           } else {
             TRACEOMP(__FILE__, __LINE__)
@@ -3328,7 +3328,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(
         }
 
         Data_* res = NewResult();
-        if (GDL_NTHREADS=parallelize( nEl)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
           for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -3339,7 +3339,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(
       } else {
         DComplexDblGDL* res = new DComplexDblGDL(right->Dim(),
           BaseGDL::NOZERO);
-        if (GDL_NTHREADS=parallelize( rEl)==1) {
+        if ((GDL_NTHREADS=parallelize( rEl))==1) {
           for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow((*this)[ i], (*right)[ i]);
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -3354,7 +3354,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowSNew(BaseGDL* r) { TRACE_ROUTINE(
   Data_* right = static_cast<Data_*> (r);
   const Ty s = (*right)[0];
   Data_* res = NewResult();
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*this)[ i], s);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -3373,7 +3373,7 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvSNew(BaseGDL* r) { TRACE_ROUTI
   assert(nEl);
   Ty s = (*right)[0];
   Data_* res = NewResult();
-  if (GDL_NTHREADS=parallelize( nEl)==1) {
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow(s, (*this)[ i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)

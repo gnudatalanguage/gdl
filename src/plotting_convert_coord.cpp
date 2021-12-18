@@ -69,7 +69,7 @@ namespace lib {
 
     //eliminate simplest case here:
     if (ocoordinateSystem == icoordinateSystem) {
-      if (GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS)==1) {
+      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
         for (OMPInt i = 0; i < nrows; ++i) {
           (*res)[i * 3 + 0] = (*xVal)[i];
           (*res)[i * 3 + 1] = (*yVal)[i];
@@ -143,7 +143,7 @@ namespace lib {
       }
 #endif
       // to norm:
-      if (GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS)==1) {
+      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
         for (OMPInt i = 0; i < nrows; ++i) {
           TONORMCOORDX((*xVal)[i], (*xVal)[i], xLog);
           TONORMCOORDY((*yVal)[i], (*yVal)[i], yLog);
@@ -160,7 +160,7 @@ namespace lib {
       }
       break;
     case DEVICE:
-      if (GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS)==1) {
+      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
         for (OMPInt i = 0; i < nrows; ++i) {
           (*xVal)[i] /= xSize;
           (*yVal)[i] /= ySize;
@@ -183,7 +183,7 @@ namespace lib {
     switch (ocoordinateSystem) {
     case DATA:
       // from norm:
-      if (GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS)==1) {
+      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
         for (OMPInt i = 0; i < nrows; ++i) {
           TODATACOORDX((*xVal)[i], (*xVal)[i], xLog);
           TODATACOORDY((*yVal)[i], (*yVal)[i], yLog);
@@ -222,7 +222,7 @@ namespace lib {
 
       break;
     case DEVICE:
-      if (GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS)==1) {
+      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
         for (OMPInt i = 0; i < nrows; ++i) {
           (*xVal)[i] *= xSize;
           (*yVal)[i] *= ySize;
@@ -241,7 +241,7 @@ namespace lib {
       break;
     }
 
-    if (GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS)==1) {
+    if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
       for (OMPInt i = 0; i < nrows; ++i) {
         (*res)[i * 3 + 0] = (*xVal)[i];
         (*res)[i * 3 + 1] = (*yVal)[i];

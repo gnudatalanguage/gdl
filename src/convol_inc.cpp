@@ -223,7 +223,7 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   {
     doNan = false;
     doInvalid=false;
-    if (GDL_NTHREADS=parallelize( nA)==1) {
+    if ((GDL_NTHREADS=parallelize( nA))==1) {
       for (SizeT i = 0; i < nA; ++i) {
         if (!gdlValid(ddP[i])) {
           doNan = true;
@@ -248,7 +248,7 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   else if(doNan)
   {
     doNan = false;
-    if (GDL_NTHREADS=parallelize( nA)==1) {
+    if ((GDL_NTHREADS=parallelize( nA))==1) {
     for(SizeT i=0; i<nA; ++i)  if (!gdlValid(ddP[i])) {doNan=true;}
     } else {
       TRACEOMP(__FILE__,__LINE__)
@@ -260,7 +260,7 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   else if(doInvalid)
   {
     doInvalid=false;
-    if (GDL_NTHREADS=parallelize( nA)==1) {
+    if ((GDL_NTHREADS=parallelize( nA))==1) {
     for(SizeT i=0; i<nA; ++i)  if (ddP[i] == invalidValue) {doInvalid=true;}
     } else {
 #pragma omp parallel for num_threads(GDL_NTHREADS)

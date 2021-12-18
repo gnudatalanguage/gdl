@@ -1219,7 +1219,7 @@ namespace lib {
     if (re->Rank() == 0) {
       TypOutGDL* res = new TypOutGDL(im->Dim(), BaseGDL::NOZERO);
       SizeT nE = im->N_Elements();
-      if (GDL_NTHREADS=parallelize( nE)==1) {
+      if ((GDL_NTHREADS=parallelize( nE))==1) {
         for (SizeT i = 0; i < nE; i++) (*res)[i] = std::complex<decltype(t)>((*re)[0], (*im)[i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -1230,7 +1230,7 @@ namespace lib {
     } else if (im->Rank() == 0) {
       TypOutGDL* res = new TypOutGDL(re->Dim(), BaseGDL::NOZERO);
       SizeT nE = re->N_Elements();
-      if (GDL_NTHREADS=parallelize( nE)==1) {
+      if ((GDL_NTHREADS=parallelize( nE))==1) {
         for (SizeT i = 0; i < nE; i++) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[0]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -1241,7 +1241,7 @@ namespace lib {
     } else if (re->N_Elements() >= im->N_Elements()) {
       TypOutGDL* res = new TypOutGDL(im->Dim(), BaseGDL::NOZERO);
       SizeT nE = im->N_Elements();
-      if (GDL_NTHREADS=parallelize( nE)==1) {
+      if ((GDL_NTHREADS=parallelize( nE))==1) {
         for (SizeT i = 0; i < nE; i++) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -1252,7 +1252,7 @@ namespace lib {
     } else {
       TypOutGDL* res = new TypOutGDL(re->Dim(), BaseGDL::NOZERO);
       SizeT nE = re->N_Elements();
-      if (GDL_NTHREADS=parallelize( nE)==1) {
+      if ((GDL_NTHREADS=parallelize( nE))==1) {
         for (SizeT i = 0; i < nE; i++) (*res)[i] = std::complex<decltype(t)>((*re)[i], (*im)[i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -1808,7 +1808,7 @@ namespace lib {
     if (e1->Scalar()) {
       if (e1->LogTrue(0)) {
         res = new Data_<SpDByte>(e2->Dim(), BaseGDL::NOZERO);
-        if (GDL_NTHREADS=parallelize( nEl2)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl2))==1) {
           for (SizeT i = 0; i < nEl2; i++) (*res)[i] = e2->LogTrue(i) ? 1 : 0;
 
         } else {
@@ -1822,7 +1822,7 @@ namespace lib {
     } else if (e2->Scalar()) {
       if (e2->LogTrue(0)) {
         res = new Data_<SpDByte>(e1->Dim(), BaseGDL::NOZERO);
-        if (GDL_NTHREADS=parallelize( nEl1)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl1))==1) {
           for (SizeT i = 0; i < nEl1; i++) (*res)[i] = e1->LogTrue(i) ? 1 : 0;
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -1834,7 +1834,7 @@ namespace lib {
       }
     } else if (nEl2 <= nEl1) {
       res = new Data_<SpDByte>(e2->Dim(), BaseGDL::NOZERO);
-      if (GDL_NTHREADS=parallelize( nEl2)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl2))==1) {
         for (SizeT i = 0; i < nEl2; i++) (*res)[i] = (e1->LogTrue(i) && e2->LogTrue(i)) ? 1 : 0;
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -1844,7 +1844,7 @@ namespace lib {
     } else // ( nEl2 > nEl1)
     {
       res = new Data_<SpDByte>(e1->Dim(), BaseGDL::NOZERO);
-      if (GDL_NTHREADS=parallelize( nEl1)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl1))==1) {
         for (SizeT i = 0; i < nEl1; i++) (*res)[i] = (e1->LogTrue(i) && e2->LogTrue(i)) ? 1 : 0;
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -1874,7 +1874,7 @@ namespace lib {
     if (e1->Scalar()) {
       res = new Data_<SpDByte>(e2->Dim(), BaseGDL::NOZERO);
       if (e1->LogTrue(0)) {
-        if (GDL_NTHREADS=parallelize( nEl2)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl2))==1) {
           for (SizeT i = 0; i < nEl2; i++) (*res)[i] = 1;
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -1882,7 +1882,7 @@ namespace lib {
             for (OMPInt i = 0; i < nEl2; i++) (*res)[i] = 1;
         }
       } else {
-        if (GDL_NTHREADS=parallelize( nEl2)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl2))==1) {
           for (SizeT i = 0; i < nEl2; i++) (*res)[i] = e2->LogTrue(i) ? 1 : 0;
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -1893,7 +1893,7 @@ namespace lib {
     } else if (e2->Scalar()) {
       res = new Data_<SpDByte>(e1->Dim(), BaseGDL::NOZERO);
       if (e2->LogTrue(0)) {
-        if (GDL_NTHREADS=parallelize( nEl1)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl1))==1) {
           for (SizeT i = 0; i < nEl1; i++) (*res)[i] = 1;
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -1901,7 +1901,7 @@ namespace lib {
             for (OMPInt i = 0; i < nEl1; i++) (*res)[i] = 1;
         }
       } else {
-        if (GDL_NTHREADS=parallelize( nEl1)==1) {
+        if ((GDL_NTHREADS=parallelize( nEl1))==1) {
           for (SizeT i = 0; i < nEl1; i++) (*res)[i] = e1->LogTrue(i) ? 1 : 0;
         } else {
           TRACEOMP(__FILE__, __LINE__)
@@ -1911,7 +1911,7 @@ namespace lib {
       }
     } else if (nEl2 < nEl1) {
       res = new Data_<SpDByte>(e2->Dim(), BaseGDL::NOZERO);
-      if (GDL_NTHREADS=parallelize( nEl2)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl2))==1) {
         for (SizeT i = 0; i < nEl2; i++) (*res)[i] = (e1->LogTrue(i) || e2->LogTrue(i)) ? 1 : 0;
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -1920,7 +1920,7 @@ namespace lib {
       }
     } else { // ( nEl2 >= nEl1)
       res = new Data_<SpDByte>(e1->Dim(), BaseGDL::NOZERO);
-      if (GDL_NTHREADS=parallelize( nEl1)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl1))==1) {
         for (SizeT i = 0; i < nEl1; i++) (*res)[i] = (e1->LogTrue(i) || e2->LogTrue(i)) ? 1 : 0;
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -1938,7 +1938,7 @@ namespace lib {
     ULong nEl1 = e1->N_Elements();
 
     Data_<SpDByte>* res = new Data_<SpDByte>(e1->Dim(), BaseGDL::NOZERO);
-    if (GDL_NTHREADS=parallelize( nEl1)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl1))==1) {
       for (SizeT i = 0; i < nEl1; i++) (*res)[i] = e1->LogTrue(i) ? 1 : 0;
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -2017,7 +2017,7 @@ namespace lib {
 
     if (mode == 2) // both
     {
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (SizeT i = 0; i < nEl; ++i) trim2((*res)[i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -2026,7 +2026,7 @@ namespace lib {
       }
     } else if (mode == 1) // leading
     {
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (SizeT i = 0; i < nEl; ++i) trim1((*res)[i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -2035,7 +2035,7 @@ namespace lib {
       }
     } else // trailing
     {
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (SizeT i = 0; i < nEl; ++i) trim0((*res)[i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -2056,7 +2056,7 @@ namespace lib {
     DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
 
     SizeT nEl = p0S->N_Elements();
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) (*res)[ i] = StrCompress((*p0S)[ i], removeAll);
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -2100,7 +2100,7 @@ namespace lib {
     DLongGDL* res = new DLongGDL(p0S->Dim(), BaseGDL::NOZERO);
 
     SizeT nEl = p0S->N_Elements();
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (OMPInt i = 0; i < nEl; ++i) {
         (*res)[ i] = StrPos((*p0S)[ i], searchString, pos, reverseOffset, reverseSearch);
       }
@@ -2177,7 +2177,7 @@ namespace lib {
       }
       return res;
     }
-    if (GDL_NTHREADS=parallelize(nSrcStr)==1) {
+    if ((GDL_NTHREADS=parallelize(nSrcStr))==1) {
       for (OMPInt i = 0; i < nSrcStr; ++i) {
         for (long ii = 0; ii < stride; ++ii) {
           SizeT destIx = i * stride + ii;
@@ -2226,7 +2226,7 @@ namespace lib {
 
     if (isReference) {
       res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = StrLowCase((*p0S)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -2235,7 +2235,7 @@ namespace lib {
       }
     } else {
       res = p0S;
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (SizeT i = 0; i < nEl; ++i) StrLowCaseInplace((*p0S)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -2265,7 +2265,7 @@ namespace lib {
 
     if (isReference) {
       res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = StrUpCase((*p0S)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -2274,7 +2274,7 @@ namespace lib {
       }
     } else {
       res = p0S;
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (SizeT i = 0; i < nEl; ++i) StrUpCaseInplace((*p0S)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
@@ -2419,7 +2419,7 @@ namespace lib {
   BaseGDL* total_template_generic(T* src, bool omitNaN) {
     SizeT nEl = src->N_Elements();
     typename T::Ty sum = 0;
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       if (!omitNaN) for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
       else for (SizeT i = 0; i < nEl; ++i) if (isfinite((*src)[i])) sum += (*src)[ i];
     } else {
@@ -2443,7 +2443,7 @@ namespace lib {
     DFloat sr = 0;
     DFloat si = 0;
     if (!omitNaN) {
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (SizeT i = 0; i < nEl; ++i) {
           sr += (*src)[i].real();
           si += (*src)[i].imag();
@@ -2457,7 +2457,7 @@ namespace lib {
         }
       }
     } else {
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (SizeT i = 0; i < nEl; ++i) {
           if (isfinite((*src)[i].real())) sr += (*src)[i].real();
           if (isfinite((*src)[i].imag())) si += (*src)[i].imag();
@@ -2490,7 +2490,7 @@ namespace lib {
     DDouble sr = 0;
     DDouble si = 0;
     if (!omitNaN) {
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (SizeT i = 0; i < nEl; ++i) {
           sr += (*src)[i].real();
           si += (*src)[i].imag();
@@ -2504,7 +2504,7 @@ namespace lib {
         }
       }
     } else {
-      if (GDL_NTHREADS=parallelize( nEl)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (SizeT i = 0; i < nEl; ++i) {
           if (isfinite((*src)[i].real())) sr += (*src)[i].real();
           if (isfinite((*src)[i].imag())) si += (*src)[i].imag();
@@ -2537,7 +2537,7 @@ namespace lib {
     //   std::cerr<<" total_template_double "<<std::endl;
     SizeT nEl = src->N_Elements();
     DDouble sum = 0;
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       if (!omitNaN) {
         for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
       } else {
@@ -2562,7 +2562,7 @@ namespace lib {
     //   std::cerr<<" total_template_single "<<std::endl;
     SizeT nEl = src->N_Elements();
     DDouble sum = 0;
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       if (!omitNaN) {
         for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
       } else {
@@ -2590,7 +2590,7 @@ namespace lib {
     //   std::cerr<<" total_template_integer "<<std::endl;
     SizeT nEl = src->N_Elements();
     DLong64 sum = 0;
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       for (SizeT i = 0; i < nEl; ++i) sum += (*src)[ i];
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -3253,7 +3253,7 @@ namespace lib {
     typename T::Ty prod = 1;
     SizeT nEl = src->N_Elements();
 
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       if (!omitNaN) for (OMPInt i = 0; i < nEl; ++i) prod *= (*src)[ i];
       else for (OMPInt i = 0; i < nEl; ++i) if (std::isfinite((*src)[ i])) prod *= (*src)[ i];
     } else {
@@ -3273,7 +3273,7 @@ namespace lib {
   template<>
   BaseGDL* product_template(DComplexGDL* src, bool omitNaN) {
     SizeT nEl = src->N_Elements();
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       DComplexGDL::Ty prod = 1;
       if (!omitNaN) {
         for (SizeT i = 0; i < nEl; ++i) prod *= (*src)[ i];
@@ -3306,7 +3306,7 @@ namespace lib {
   template<>
   BaseGDL* product_template(DComplexDblGDL* src, bool omitNaN) {
     SizeT nEl = src->N_Elements();
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       DComplexDblGDL::Ty prod = 1;
       if (!omitNaN) {
         for (SizeT i = 0; i < nEl; ++i) prod *= (*src)[ i];
@@ -5326,7 +5326,7 @@ namespace lib {
 
   template <typename Ty> static inline Ty do_mean(const Ty* data, const SizeT sz) {
     Ty mean = 0;
-    if (GDL_NTHREADS=parallelize( sz)==1) {
+    if ((GDL_NTHREADS=parallelize( sz))==1) {
       for (SizeT i = 0; i < sz; ++i) mean += data[i];
     } else {
       TRACEOMP(__FILE__, __LINE__)
@@ -5339,7 +5339,7 @@ namespace lib {
   template <typename Ty, typename T2> static inline Ty do_mean_cpx(const Ty* data, const SizeT sz) {
     T2 meanr = 0;
     T2 meani = 0;
-    if (GDL_NTHREADS=parallelize( sz)==1) {
+    if ((GDL_NTHREADS=parallelize( sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         meanr += data[i].real();
         meani += data[i].imag();
@@ -5359,7 +5359,7 @@ namespace lib {
   template <typename Ty> static inline Ty do_mean_nan(const Ty* data, const SizeT sz) {
     Ty mean = 0;
     SizeT n = 0;
-    if (GDL_NTHREADS=parallelize( sz)==1) {
+    if ((GDL_NTHREADS=parallelize( sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty v = data[i];
         if (std::isfinite(v)) {
@@ -5386,7 +5386,7 @@ namespace lib {
     T2 meani = 0;
     SizeT nr = 0;
     SizeT ni = 0;
-    if (GDL_NTHREADS=parallelize( sz)==1) {
+    if ((GDL_NTHREADS=parallelize( sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         T2 v = data[i].real();
         if (std::isfinite(v)) {
@@ -5573,7 +5573,7 @@ namespace lib {
 
     Ty var = 0;
     Ty md = 0;
-    if (GDL_NTHREADS=parallelize( sz)==1) {
+    if ((GDL_NTHREADS=parallelize( sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
         var += cdata*cdata;
@@ -5598,7 +5598,7 @@ namespace lib {
       return;
     }
     Ty skew = 0;
-    if (GDL_NTHREADS=parallelize( sz)==1) {
+    if ((GDL_NTHREADS=parallelize( sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
         skew += (cdata * cdata * cdata) / (var * sdev);
@@ -5617,7 +5617,7 @@ namespace lib {
       return;
     }
     Ty kurt = 0;
-    if (GDL_NTHREADS=parallelize(sz)==1) {
+    if ((GDL_NTHREADS=parallelize(sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
         kurt += (cdata * cdata * cdata * cdata) / (var * var);
@@ -5648,7 +5648,7 @@ namespace lib {
     T2 mdr = 0;
     T2 varr = 0;
     T2 vari = 0;
-    if (GDL_NTHREADS=parallelize( sz)==1) {
+    if ((GDL_NTHREADS=parallelize( sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
         T2 cdatar = cdata.real();
@@ -5683,7 +5683,7 @@ namespace lib {
     }
     T2 skewr = 0;
     T2 skewi = 0;
-    if (GDL_NTHREADS=parallelize( sz)==1) {
+    if ((GDL_NTHREADS=parallelize( sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
         T2 cdatar = cdata.real();
@@ -5723,7 +5723,7 @@ namespace lib {
     }
     T2 kurtr = 0;
     T2 kurti = 0;
-    if (GDL_NTHREADS=parallelize(sz)==1) {
+    if ((GDL_NTHREADS=parallelize(sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
         T2 cdatar = cdata.real();
@@ -5778,7 +5778,7 @@ namespace lib {
     Ty var = 0;
     Ty md = 0;
     SizeT k = 0;
-    if (GDL_NTHREADS=parallelize( sz)==1) {
+    if ((GDL_NTHREADS=parallelize( sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
         if (std::isfinite(cdata)) {
@@ -5812,7 +5812,7 @@ namespace lib {
       return;
     }
     Ty skew = 0;
-    if (GDL_NTHREADS=parallelize( sz)==1) {
+    if ((GDL_NTHREADS=parallelize( sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
         if (std::isfinite(cdata)) skew += (cdata * cdata * cdata) / (var * sdev);
@@ -5831,7 +5831,7 @@ namespace lib {
       return;
     }
     Ty kurt = 0;
-    if (GDL_NTHREADS=parallelize( sz)==1) {
+    if ((GDL_NTHREADS=parallelize( sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
         if (std::isfinite(cdata)) kurt += (cdata * cdata * cdata * cdata) / (var * var);
@@ -5863,7 +5863,7 @@ namespace lib {
     T2 mdr = 0;
     T2 varr = 0;
     T2 vari = 0;
-    if (GDL_NTHREADS=parallelize( sz)==1) {
+    if ((GDL_NTHREADS=parallelize( sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
         T2 cdatar = cdata.real();
@@ -5910,7 +5910,7 @@ namespace lib {
     }
     T2 skewr = 0;
     T2 skewi = 0;
-    if (GDL_NTHREADS=parallelize( sz)==1) {
+    if ((GDL_NTHREADS=parallelize( sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
         T2 cdatar = cdata.real();
@@ -5950,7 +5950,7 @@ namespace lib {
     }
     T2 kurtr = 0;
     T2 kurti = 0;
-    if (GDL_NTHREADS=parallelize( sz)==1) {
+    if ((GDL_NTHREADS=parallelize( sz))==1) {
       for (SizeT i = 0; i < sz; ++i) {
         Ty cdata = data[i] - meanl;
         T2 cdatar = cdata.real();
@@ -6104,7 +6104,7 @@ namespace lib {
         if (dosdev) sdev = new DComplexDblGDL(auxiliaryDim, BaseGDL::NOZERO);
         if (domdev) mdev = new DDoubleGDL(auxiliaryDim, BaseGDL::NOZERO);
         if (omitNaN) {
-          if (GDL_NTHREADS=parallelize( nEl)==1) {
+          if ((GDL_NTHREADS=parallelize( nEl))==1) {
             for (SizeT i = 0; i < nEl; ++i) {
               DDouble mdevl;
               DComplexDbl sdevl;
@@ -6132,7 +6132,7 @@ namespace lib {
             }
           }
         } else {
-          if (GDL_NTHREADS=parallelize( nEl)==1) {
+          if ((GDL_NTHREADS=parallelize( nEl))==1) {
             for (SizeT i = 0; i < nEl; ++i) {
               DDouble mdevl;
               DComplexDbl sdevl;
@@ -6188,7 +6188,7 @@ namespace lib {
         if (dosdev) sdev = new DComplexGDL(auxiliaryDim, BaseGDL::NOZERO);
         if (domdev) mdev = new DFloatGDL(auxiliaryDim, BaseGDL::NOZERO);
         if (omitNaN) {
-          if (GDL_NTHREADS=parallelize( nEl)==1) {
+          if ((GDL_NTHREADS=parallelize( nEl))==1) {
             for (SizeT i = 0; i < nEl; ++i) {
               DFloat mdevl;
               DComplex sdevl;
@@ -6216,7 +6216,7 @@ namespace lib {
             }
           }
         } else {
-          if (GDL_NTHREADS=parallelize( nEl)==1) {
+          if ((GDL_NTHREADS=parallelize( nEl))==1) {
             for (SizeT i = 0; i < nEl; ++i) {
               DFloat mdevl;
               DComplex sdevl;
@@ -6273,7 +6273,7 @@ namespace lib {
           if (dosdev) sdev = new DDoubleGDL(auxiliaryDim, BaseGDL::NOZERO);
           if (domdev) mdev = new DDoubleGDL(auxiliaryDim, BaseGDL::NOZERO);
           if (omitNaN) {
-            if (GDL_NTHREADS=parallelize( nEl)==1) {
+            if ((GDL_NTHREADS=parallelize( nEl))==1) {
               for (SizeT i = 0; i < nEl; ++i) {
                 DDouble mdevl;
                 DDouble sdevl;
@@ -6303,7 +6303,7 @@ namespace lib {
               }
             }
           } else {
-            if (GDL_NTHREADS=parallelize( nEl)==1) {
+            if ((GDL_NTHREADS=parallelize( nEl))==1) {
               for (SizeT i = 0; i < nEl; ++i) {
                 DDouble mdevl;
                 DDouble sdevl;
@@ -6361,7 +6361,7 @@ namespace lib {
           if (dosdev) sdev = new DFloatGDL(auxiliaryDim, BaseGDL::NOZERO);
           if (domdev) mdev = new DFloatGDL(auxiliaryDim, BaseGDL::NOZERO);
           if (omitNaN) {
-            if (GDL_NTHREADS=parallelize( nEl)==1) {
+            if ((GDL_NTHREADS=parallelize( nEl))==1) {
               for (SizeT i = 0; i < nEl; ++i) {
                 DFloat mdevl;
                 DFloat sdevl;
@@ -6391,7 +6391,7 @@ namespace lib {
               }
             }
           } else {
-            if (GDL_NTHREADS=parallelize( nEl)==1) {
+            if ((GDL_NTHREADS=parallelize( nEl))==1) {
               for (SizeT i = 0; i < nEl; ++i) {
                 DFloat mdevl;
                 DFloat sdevl;
@@ -6537,7 +6537,7 @@ namespace lib {
   }
 
   template<typename T> void ishft_m(T* out, const SizeT n, const DLong* s) {
-    if (GDL_NTHREADS=parallelize( n)==1) {
+    if ((GDL_NTHREADS=parallelize( n))==1) {
       for (SizeT i = 0; i < n; ++i) {
         if (s[i] >= 0) out[i] <<= s[i];
         else out[i] >>= s[i];
@@ -7139,7 +7139,7 @@ namespace lib {
     //    cout << "Min/max :" << min << " " << max << endl;
 
     SizeT nEl = dRes->N_Elements();
-    if (GDL_NTHREADS=parallelize( nEl)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
       if (IntType(p0->Type())) {
         //Is a thread pool function
         for (SizeT i = 0; i < nEl; ++i) {

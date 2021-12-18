@@ -109,7 +109,7 @@ namespace lib {
       lat = new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
       latGuard.Reset(lat);
 
-      if (GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS))==1) {
         for (OMPInt i = 0; i < nEl; ++i) {
           (*lon)[i] = (*ll)[2 * i] * ((radians) ? 1.0 : DEG_TO_RAD);
           (*lat)[i] = (*ll)[2 * i + 1] * ((radians) ? 1.0 : DEG_TO_RAD);
@@ -134,7 +134,7 @@ namespace lib {
       lonGuard.Reset(lon);
       lat = new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
       latGuard.Reset(lat);
-      if (GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS)==1) {
+      if ((GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS))==1) {
         for (OMPInt i = 0; i < nEl; ++i) {
           (*lon)[i] = (*tmplon)[i] * ((radians) ? 1 : DEG_TO_RAD);
           (*lat)[i] = (*tmplat)[i] * ((radians) ? 1 : DEG_TO_RAD);
@@ -1539,7 +1539,7 @@ namespace lib {
 
 
     SizeT nEl = lonsIn->N_Elements();
-    if (GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS))==1) {
       for (OMPInt i = 0; i < nEl; ++i) {
         lons[i] *= DEG_TO_RAD;
         lats[i] *= DEG_TO_RAD;
@@ -2062,7 +2062,7 @@ namespace lib {
     odims[1] = nEl;
     dimension dim(odims, 2);
     DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-    if (GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS)==1) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS))==1) {
       for (OMPInt i = 0; i < nEl; ++i) {
         (*res)[2 * i] = (*lons)[i];
         (*res)[2 * i + 1] = (*lats)[i];

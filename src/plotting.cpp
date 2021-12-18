@@ -1730,7 +1730,7 @@ void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map,
     DLongGDL *gons, *lines;
     if (!isRadians) {
     SizeT nin = lons->N_Elements( );
-    if (GDL_NTHREADS=parallelize( nin, TP_MEMORY_ACCESS)==1) {
+    if ((GDL_NTHREADS=parallelize( nin, TP_MEMORY_ACCESS))==1) {
         for (OMPInt in = 0; in < nin; in++) { //pass in radians for gdlProjForward
           (*lons)[in] *= DEG_TO_RAD;
           (*lats)[in] *= DEG_TO_RAD;
