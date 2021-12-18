@@ -70,7 +70,6 @@ extern "C" char **environ;
 #include "objects.hpp"
 //#include "file.hpp"
 
-
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
@@ -4042,6 +4041,11 @@ namespace lib {
         if (j == rank)
           e->Throw("Incorrect permutation vector.");
       }
+      //check we transpose something
+      bool identical=true;
+      for (SizeT i = 0; i < rank; ++i) if (perm[i] != i) identical=false;
+      if (identical) return p0->Dup();
+      
       return p0->Transpose(perm);
     }
 
