@@ -10,7 +10,6 @@
 find_path(
   GLPK_INCLUDE_DIR
   glpk.h
-  PATHS /usr/local/include /usr/include
 )
 
 if( GLPK_INCLUDE_DIR )
