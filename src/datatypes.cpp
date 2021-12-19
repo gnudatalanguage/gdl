@@ -1328,7 +1328,11 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__
   this->dim.Stride(srcStride, rank);
   
 #ifdef USE_EIGEN
-  if (rank == 2) // special case: eigen x 2
+  //for some reason, this simple eigen::code dos not like dimensions == 1, so cannot be used if this is the case.
+  bool try_eigen=true;
+  for (auto i=0; i< MAXRANK; ++i) if (this->dim[i]==1) try_eigen=false;
+
+  if (try_eigen && rank == 2) // special case: eigen x 2
   {
     Eigen::Map<Eigen::Array<Ty, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Aligned> mThis(&(*this)[0],  this->dim[0],  this->dim[1]);
     Eigen::Map<Eigen::Array<Ty, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Aligned> mRes(&(*res)[0],  res->dim[0],  res->dim[1]);
@@ -1337,7 +1341,7 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__
   }
 #endif
 #ifdef EIGEN_HAS_TENSOR  
-  else if (rank == 3) // special case: eigen x 3
+  else if (try_eigen && rank == 3) // special case: eigen x 3
   {
  Eigen::TensorMap<Eigen::Tensor<Ty, 3>> mThis(&(*this)[0], this->dim[0],  this->dim[1], this->dim[2]); 
  Eigen::TensorMap<Eigen::Tensor<Ty, 3>> mRes(&(*res)[0], res->dim[0],  res->dim[1], res->dim[2]);
@@ -1345,35 +1349,35 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__
  return res;
   }
   
-  else if (rank == 4) // special case: eigen x 4
+  else if (try_eigen && rank == 4) // special case: eigen x 4
   {
  Eigen::TensorMap<Eigen::Tensor<Ty, 4>> mThis(&(*this)[0], this->dim[0],  this->dim[1], this->dim[2], this->dim[3]); 
  Eigen::TensorMap<Eigen::Tensor<Ty, 4>> mRes(&(*res)[0], res->dim[0],  res->dim[1], res->dim[2], res->dim[3]);
  mRes=mThis.shuffle(perm);
  return res;
   }
-  else if (rank == 5) // special case: eigen x 5
+  else if (try_eigen && rank == 5) // special case: eigen x 5
   {
  Eigen::TensorMap<Eigen::Tensor<Ty, 5>> mThis(&(*this)[0], this->dim[0],  this->dim[1], this->dim[2], this->dim[3], this->dim[4]); 
  Eigen::TensorMap<Eigen::Tensor<Ty, 5>> mRes(&(*res)[0], res->dim[0],  res->dim[1], res->dim[2], res->dim[3], res->dim[4]);
  mRes=mThis.shuffle(perm);
  return res;
   }
-  else if (rank == 6) // special case: eigen x 6
+  else if (try_eigen && rank == 6) // special case: eigen x 6
   {
  Eigen::TensorMap<Eigen::Tensor<Ty, 6>> mThis(&(*this)[0], this->dim[0],  this->dim[1], this->dim[2], this->dim[3], this->dim[4], this->dim[5]); 
  Eigen::TensorMap<Eigen::Tensor<Ty, 6>> mRes(&(*res)[0], res->dim[0],  res->dim[1], res->dim[2], res->dim[3], res->dim[4], res->dim[5]);
  mRes=mThis.shuffle(perm);
  return res;
   }
-  else if (rank == 7) // special case: eigen x 7
+  else if (try_eigen && rank == 7) // special case: eigen x 7
   {
  Eigen::TensorMap<Eigen::Tensor<Ty, 7>> mThis(&(*this)[0], this->dim[0],  this->dim[1], this->dim[2], this->dim[3], this->dim[4], this->dim[5], this->dim[6]); 
  Eigen::TensorMap<Eigen::Tensor<Ty, 7>> mRes(&(*res)[0], res->dim[0],  res->dim[1], res->dim[2], res->dim[3], res->dim[4], res->dim[5], res->dim[6]);
  mRes=mThis.shuffle(perm);
  return res;
   }
-  else if (rank == 8) // special case: eigen x 8
+  else if (try_eigen && rank == 8) // special case: eigen x 8
   {
  Eigen::TensorMap<Eigen::Tensor<Ty, 8>> mThis(&(*this)[0], this->dim[0],  this->dim[1], this->dim[2], this->dim[3], this->dim[4], this->dim[5], this->dim[6], this->dim[7]); 
  Eigen::TensorMap<Eigen::Tensor<Ty, 8>> mRes(&(*res)[0], res->dim[0],  res->dim[1], res->dim[2], res->dim[3], res->dim[4], res->dim[5], res->dim[6], res->dim[7]);
@@ -1555,7 +1559,7 @@ BaseGDL* Data_<SpDPtr>::DupReverse(DLong dim) {
   if (this->dim[dim] % 2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT span = outerStride - revStride;
-  if (GDL_NTHREADS = parallelize(nEl, TP_MEMORY_ACCESS) == 1) { //most frequent
+  if ((GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS)) == 1) { //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = o; i < o + revStride; ++i) {
         for (SizeT s = i, opp = span + i; s < halfDim + i; s += revStride, opp -= revStride) {
@@ -1597,7 +1601,7 @@ BaseGDL* Data_<SpDObj>::DupReverse(DLong dim)  {
   if (this->dim[dim] % 2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT span = outerStride - revStride;
-  if (GDL_NTHREADS = parallelize(nEl, TP_MEMORY_ACCESS) == 1) { //most frequent
+  if ((GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS)) == 1) { //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = o; i < o + revStride; ++i) {
         for (SizeT s = i, opp = span + i; s < halfDim + i; s += revStride, opp -= revStride) {
