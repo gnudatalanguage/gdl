@@ -498,7 +498,7 @@ void LibInit()
 
   new DLibFun(lib::uint_fun,string("UINT"),10,NULL,NULL,0,true);  //UsesThreadPOOL 
   new DLibFun(lib::long_fun,string("LONG"),10,NULL,NULL,0,true);  //UsesThreadPOOL 
-  new DLibFun(lib::ulong_fun,string("ULONG"),10,NULL,NULL),0,true;  //UsesThreadPOOL 
+  new DLibFun(lib::ulong_fun,string("ULONG"),10,NULL,NULL,0,true);  //UsesThreadPOOL 
   new DLibFun(lib::long64_fun,string("LONG64"),10,NULL,NULL,0,true);  //UsesThreadPOOL 
   new DLibFun(lib::ulong64_fun,string("ULONG64"),10,NULL,NULL,0,true);  //UsesThreadPOOL 
   new DLibFun(lib::float_fun,string("FLOAT"),10,NULL,NULL,0,true);  //UsesThreadPOOL 
