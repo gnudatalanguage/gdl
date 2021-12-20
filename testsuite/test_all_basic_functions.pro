@@ -80,21 +80,14 @@ olddev=!D.NAME
 set_plot,"Z"
 device,set_resolution=[cote,cote]
 
-; functions etc
+; functions that oerate on whole array
 if (section eq 0 or section eq 5) then begin
-  what=['BYTSCL','SORT','MEDIAN','MEAN','MOMENT','TRANSPOSE','WHERE','TOTAL','PRODUCT','MIN','MAX','FINITE','SHIFT','ISHIFT','LOGICAL_AND','LOGICAL_OR','LOGICAL_TRUE','ATAN','CONVOL','FFT', 'INTERPOLATE' , 'POLY_2D' , 'TVSCL']
+  what=['BYTSCL','SORT','TRANSPOSE','WHERE','FINITE','SHIFT','ISHIFT','LOGICAL_AND','LOGICAL_OR','LOGICAL_TRUE','ATAN','CONVOL','INTERPOLATE' , 'POLY_2D' , 'TVSCL']
   calls=[$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=BYTSCL(*various_types[k],max=10,min=1,/nan,top=100) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=sort(*various_types[k]) & toc,subclock & end ',$
-   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=median(*various_types[k]) & toc,subclock & end ',$
-   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=mean(*various_types[k],/nan) & toc,subclock & end ',$
-   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=moment(*various_types[k],/nan) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=transpose(*various_types[k]) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & b=(*various_types[k] eq 0) & subclock=tic(typenames[k]) & ret=where(b) & toc,subclock & end ',$
-   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=total(*various_types[k]) & toc,subclock & end ',$
-   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=product(*various_types[k]) & toc,subclock & end ',$
-   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=min(*various_types[k],max=max) & toc,subclock & end ',$
-   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=max(*various_types[k],min=min) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=finite(*various_types[k]) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=shift(*various_types[k],[2,3]) & toc,subclock & end ',$
    'print,what[i] & for k=0,integers_only do begin & subclock=tic(typenames[k]) & ret=ishft(*various_types[k],[2,3]) & toc,subclock & end ',$ ; ishft needs integer
@@ -103,7 +96,6 @@ if (section eq 0 or section eq 5) then begin
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=logical_true(*various_types[k]) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=atan(*various_types[k],*various_types[k]) & toc,subclock & end ',$
    'print,what[i] & kernel=[ [0,1,0],[-1,0,1],[0,-1,0] ] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=convol(*various_types[k],kernel) & toc,subclock & end ',$
-   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=fft(*various_types[k]) & toc,subclock & end ',$
    'print,what[i] & z=findgen(size) & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=interpolate(*various_types[k],z) & toc,subclock & end ',$
    'print,what[i] & for k=0,not_complex do begin & subclock=tic(typenames[k]) & ret=poly_2d(*various_types[k],p,q) & toc,subclock & end ',$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & tvscl,(*various_types[k]) & toc,subclock & end ' ]
@@ -113,15 +105,40 @@ for i=0,n_elements(calls)-1 do begin & clock=tic(what[i])  & z=execute(calls[i])
   endif
 set_plot,olddev
 
-; FunDirect functions
+; functions that operate also on particular dimension
 if (section eq 0 or section eq 6) then begin
+   what=['MEDIAN (all dims)','MEDIAN (dim=2)','MEAN (all dims)','MEAN (dim=2)','MOMENT (all dims)','MOMENT (dim=2)','TOTAL (all dims)','TOTAL (dim=2)','PRODUCT (all dims)','PRODUCT (dim=2)','MIN (all dims)','MIN (dim=2)','MAX (all dims)','MAX (dim=2)','FFT (all dims)','FFT (dim=2)']
+  calls=[$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=median(*various_types[k]) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=median(*various_types[k],dim=2) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=mean(*various_types[k]) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=mean(*various_types[k], dim=2) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=moment(*various_types[k],/nan) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=moment(*various_types[k],dim=2) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=total(*various_types[k]) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=total(*various_types[k],2) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=product(*various_types[k]) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=product(*various_types[k],2) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=min(*various_types[k]) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=min(*various_types[k],dim=2) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=max(*various_types[k]) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=max(*various_types[k],dim=2) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=fft(*various_types[k]) & toc,subclock & end ',$
+   'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=fft(*various_types[k],dim=2) & toc,subclock & end ']
+
+for i=0,n_elements(calls)-1 do begin & clock=tic(what[i])  & z=execute(calls[i]) &  toc,clock & end
+     print
+  endif
+
+; FunDirect functions
+if (section eq 0 or section eq 7) then begin
   command=["SIN","COS","TAN","SINH","COSH","TANH","ASIN","ACOS","ALOG","ALOG2","ALOG10","SQRT","ABS","EXP","CONJ","IMAGINARY","ROUND","CEIL","FLOOR"]
      calls="for k=0,all_numeric do ret="+command+"(*various_types[k])"
      for i=0,n_elements(command)-1 do begin & clock=tic(command[i])  &  z=execute(calls[i]) &  toc,clock & end
   print
 endif
 ; non-threaded functions
-if (section eq 0 or section eq 7) then begin
+if (section eq 0 or section eq 8) then begin
   what=['ROTATE','REVERSE','REFORM','ROT','BYTEORDER','INTERPOL']
   calls=[$
    'print,what[i] & for k=0,all_numeric do begin & subclock=tic(typenames[k]) & ret=ROTATE(*various_types[k],1) & toc,subclock & end ',$
