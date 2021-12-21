@@ -87,11 +87,10 @@ namespace structDesc {
   DStructDesc* IDLFFXMLSAX = NULL;
 }
 
-// for OpenMP
+//// for OpenMP
 DLong CpuTPOOL_NTHREADS;
 DLong64 CpuTPOOL_MIN_ELTS;
 DLong64 CpuTPOOL_MAX_ELTS;
-//const DULong64 CpuTPOOL_MAX_ELTS_max = numeric_limits<DLong64>::max();
 
 // instantiate own AST factory
 //_DNodeFactory DNodeFactory;

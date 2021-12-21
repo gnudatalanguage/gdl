@@ -488,14 +488,10 @@ void median_filter_impl_2d(int x, int y, int hx, int hy, int b, const T* in, T* 
     }
     Dim dimx(b, x, hx);
     Dim dimy(b, y, hy);
-    #pragma omp parallel
-    {
-        MedCalc2D<T> mc(b, dimx, dimy, in, out);
-        #pragma omp for collapse(2)
-        for (int by = 0; by < dimy.count; ++by) {
-            for (int bx = 0; bx < dimx.count; ++bx) {
-                mc.run(bx, by);
-            }
+    MedCalc2D<T> mc(b, dimx, dimy, in, out);
+    for (int by = 0; by < dimy.count; ++by) {
+        for (int bx = 0; bx < dimx.count; ++bx) {
+            mc.run(bx, by);
         }
     }
 }
@@ -507,13 +503,9 @@ void median_filter_impl_1d(int x, int hx, int b, const T* in, T* out) {
         throw std::invalid_argument("window too large for this block size");
     }
     Dim dimx(b, x, hx);
-    #pragma omp parallel
-    {
-        MedCalc1D<T> mc(b, dimx, in, out);
-        #pragma omp for
-        for (int bx = 0; bx < dimx.count; ++bx) {
-            mc.run(bx);
-        }
+    MedCalc1D<T> mc(b, dimx, in, out);
+    for (int bx = 0; bx < dimx.count; ++bx) {
+        mc.run(bx);
     }
 }
 

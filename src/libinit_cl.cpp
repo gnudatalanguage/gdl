@@ -53,7 +53,7 @@ void LibInit_cl()
   new DLibPro(lib::journal,string("JOURNAL"),1);
 
   const string timestampKey[]={"DAY","HOUR","MINUTE","MONTH","OFFSET","SECOND","UTC","YEAR","ZERO",KLISTEND};
-  new DLibFunRetNew(lib::timestamp,string("TIMESTAMP"),2,timestampKey);
+  new DLibFunRetNew(lib::timestamp,string("TIMESTAMP"),0,timestampKey);
 
   const string timestamptovaluesKey[]={"DAY","HOUR","MINUTE","MONTH","OFFSET","SECOND","YEAR",KLISTEND};
   new DLibPro (lib::timestamptovalues,string("TIMESTAMPTOVALUES"),1,timestamptovaluesKey);

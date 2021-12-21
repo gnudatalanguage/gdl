@@ -44,7 +44,7 @@ namespace lib {
  
   BaseGDL* isa_fun( EnvT* e) 
   {
-    if (e->NParam() == 0) e->Throw("Requires at least one argument !");
+    e->NParam(1);
 
     DString type;
     BaseGDL *p0;

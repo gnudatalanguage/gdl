@@ -1,0 +1,23 @@
+    for (SizeT j = 0; j < nx; ++j) {
+      vres = &(res[ncontiguous * j]);
+      x = xx[j];
+      if (x < 0) {
+        v0 = &(array[0]);
+        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = v0[i];
+      } else if (x < n1 - 1) {
+        ix = floor(x);
+        xi[0]=ix; xi[1]=ix+1;
+      //make in range
+        if (xi[0]<0) xi[0]=0; else if (xi[0]>n1-1) xi[0]=n1-1;
+        if (xi[1]<0) xi[1]=0; else if (xi[1]>n1-1) xi[1]=n1-1; 
+        dx = (x - xi[0]);
+        v0 = &(array[ncontiguous * xi[0]]);
+        v1 = &(array[ncontiguous * xi[1]]);
+        for (SizeT i = 0; i < ncontiguous; ++i) {
+          vres[i] = (1. - dx) * v0[i] + dx * v1[i];
+        }
+      } else {
+        v0 = &(array[ncontiguous * (n1 - 1)]);
+        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = v0[i];
+      }
+    }

@@ -186,22 +186,12 @@ void interpolate_1d_nearest(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res, Siz
   //operations on unsigned are not what you think, signed are ok
   ssize_t ix = 0;
   ssize_t n1 = un1;
-#pragma omp parallel private(ix,x,v0,vres) if (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx))
-  {
-#pragma omp for 
-    for (SizeT j = 0; j < nx; ++j) {
-      vres = &(res[ncontiguous * j]);
-      x = xx[j];
-      if (x < 0) {
-        v0 = &(array[0]);
-      } else if (x < n1 - 1) {
-        ix = floor(x); //floor  ix is [0 .. n1[
-        v0 = &(array[ncontiguous * ix]);
-      } else {
-        v0 = &(array[ncontiguous * (n1 - 1)]);
-      }
-      for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = v0[i];
-    }
+  if ((GDL_NTHREADS=parallelize( nx))==1) {
+#include "snippets/interpolate_1d_nearest.incpp"
+  } else {
+  TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(ix,x,v0,vres) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_1d_nearest.incpp"
   }
 }
 
@@ -211,20 +201,12 @@ void interpolate_1d_nearest_single(T1* array, SizeT un1, T2* xx, SizeT nx, T1* r
   //operations on unsigned are not what you think, signed are ok
   ssize_t ix = 0;
   ssize_t n1 = un1;
-#pragma omp parallel private(ix,x) if (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx))
-  {
-#pragma omp for 
-    for (SizeT j = 0; j < nx; ++j) {
-      x = xx[j];
-      if (x < 0) {
-        res[j] = array[0];
-      } else if (x < n1 - 1) {
-        ix = floor(x); //floor  ix is [0 .. n1[
-        res[j] = array[ix];
-      } else {
-        res[j] = array[n1 - 1];
-      }
-    }
+  if ((GDL_NTHREADS=parallelize( nx))==1) {
+#include "snippets/interpolate_1d_nearest_single.incpp"
+  } else {
+  TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(ix,x) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_1d_nearest_single.incpp"
   }
 }
 
@@ -239,59 +221,21 @@ void interpolate_1d_linear(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res, Size
   ssize_t xi[2];
   ssize_t n1 = un1;
   if (use_missing) {
-#pragma omp parallel private(xi,ix,dx,x,v0,v1,vres) if (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx))
-    {
-#pragma omp for 
-    for (SizeT j = 0; j < nx; ++j) { //nb output points
-      vres = &(res[ncontiguous * j]);
-      x = xx[j];
-      if (x < 0) {
-        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-      } else if (x < n1) {
-        ix = floor(x);
-        xi[0]=ix; xi[1]=ix+1;
-      //make in range
-        if (xi[0]<0) xi[0]=0; else if (xi[0]>n1-1) xi[0]=n1-1;
-        if (xi[1]<0) xi[1]=0; else if (xi[1]>n1-1) xi[1]=n1-1; 
-        dx = (x - xi[0]);
-        v0 = &(array[ncontiguous * xi[0]]);
-        v1 = &(array[ncontiguous * xi[1]]);
-        for (SizeT i = 0; i < ncontiguous; ++i) {
-          vres[i] = (1. - dx) * v0[i] + dx * v1[i];
-        }
-      } else {
-        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx))==1) {
+#include "snippets/interpolate_1d_linear_use_missing.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(xi,ix,dx,x,v0,v1,vres) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_1d_linear_use_missing.incpp"
     }
   } else {
-#pragma omp parallel private(xi,ix,dx,x,v0,v1,vres) if (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx))
-      {
-#pragma omp for 
-    for (SizeT j = 0; j < nx; ++j) {
-      vres = &(res[ncontiguous * j]);
-      x = xx[j];
-      if (x < 0) {
-        v0 = &(array[0]);
-        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = v0[i];
-      } else if (x < n1 - 1) {
-        ix = floor(x);
-        xi[0]=ix; xi[1]=ix+1;
-      //make in range
-        if (xi[0]<0) xi[0]=0; else if (xi[0]>n1-1) xi[0]=n1-1;
-        if (xi[1]<0) xi[1]=0; else if (xi[1]>n1-1) xi[1]=n1-1; 
-        dx = (x - xi[0]);
-        v0 = &(array[ncontiguous * xi[0]]);
-        v1 = &(array[ncontiguous * xi[1]]);
-        for (SizeT i = 0; i < ncontiguous; ++i) {
-          vres[i] = (1. - dx) * v0[i] + dx * v1[i];
-        }
-      } else {
-        v0 = &(array[ncontiguous * (n1 - 1)]);
-        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = v0[i];
-      }
+    if ((GDL_NTHREADS=parallelize (nx))==1) {
+#include "snippets/interpolate_1d_linear.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(xi,ix,dx,x,v0,v1,vres) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_1d_linear.incpp"
     }
-      }
   }
 }
 
@@ -305,47 +249,20 @@ void interpolate_1d_linear_single(T1* array, SizeT un1, T2* xx, SizeT nx, T1* re
   ssize_t xi[2];
   ssize_t n1 = un1;
   if (use_missing) {
-#pragma omp parallel private(xi,ix,dx,x) if (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx))
-    {
-#pragma omp for 
-    for (SizeT j = 0; j < nx; ++j) { //nb output points
-      x = xx[j];
-      if (x < 0) {
-        res[j] = missing;
-      }
-      else if (x < n1) {
-        ix = floor(x);
-        xi[0]=ix; xi[1]=ix+1;
-      //make in range
-        if (xi[0]<0) xi[0]=0; else if (xi[0]>n1-1) xi[0]=n1-1;
-        if (xi[1]<0) xi[1]=0; else if (xi[1]>n1-1) xi[1]=n1-1; 
-        dx = (x - xi[0]);
-        res[j] = (1. - dx) * array[xi[0]] + dx * array[xi[1]];
-      } else {
-        res[j] = missing;
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx))==1) {
+#include "snippets/interpolate_1d_linear_use_missing_single.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(xi,ix,dx,x) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_1d_linear_use_missing_single.incpp"
     }
   } else {
-#pragma omp parallel private(xi,ix,dx,x) if (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx))
-    {
-#pragma omp for 
-    for (SizeT j = 0; j < nx; ++j) {
-      x = xx[j];
-      if (x < 0) {
-        res[j] = array[0];
-      } else if (x < n1) {
-        ix = floor(x);
-        xi[0]=ix; xi[1]=ix+1;
-      //make in range
-        if (xi[0]<0) xi[0]=0; else if (xi[0]>n1-1) xi[0]=n1-1;
-        if (xi[1]<0) xi[1]=0; else if (xi[1]>n1-1) xi[1]=n1-1; 
-        dx = (x - xi[0]);
-        res[j] = (1. - dx) * array[xi[0]] + dx * array[xi[1]];
-      } else {
-        res[j] = array[n1-1];
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx))==1) {
+#include "snippets/interpolate_1d_linear_single.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(xi,ix,dx,x) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_1d_linear_single.incpp"
     }
   }
 }
@@ -362,105 +279,20 @@ void interpolate_1d_cubic(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res, SizeT
   ssize_t xi[4];
   ssize_t n1 = un1;
   if (use_missing) {
-#pragma omp parallel private(xi,ix,dx,x,v0,v1,v2,v3,vres) if (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx))
-    {
-#pragma omp for 
-    for (SizeT j = 0; j < nx; ++j) { //nb output points
-      vres = &(res[ncontiguous * j]);
-      x = xx[j];
-     if (x < 0) {
-        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-      } else if (x  < n1-1 ) { 
-        ix = floor(x); //floor  ix is [0 .. n1[
-        xi[0]=ix-1; xi[1]=ix; xi[2]=ix+1; xi[3]=ix+2;
-      //make in range
-        if (xi[0]<0) xi[0]=0; else if (xi[0]>n1-1) xi[0]=n1-1;
-        if (xi[1]<0) xi[1]=0; else if (xi[1]>n1-1) xi[1]=n1-1; 
-        if (xi[2]<0) xi[2]=0; else if (xi[2]>n1-1) xi[2]=n1-1; 
-        if (xi[3]<0) xi[3]=0; else if (xi[3]>n1-1) xi[3]=n1-1; 
-        v0 = &(array[ncontiguous * xi[0]]);
-        v1 = &(array[ncontiguous * xi[1]]);
-        v2 = &(array[ncontiguous * xi[2]]);
-        v3 = &(array[ncontiguous * xi[3]]);
-        dx = (x - xi[1]);
-        double d2 = dx*dx;
-        double d3 = d2*dx;
-        double omd = 1 - dx;
-        double omd2 = omd*omd;
-        double omd3 = omd2*omd;
-        double opd = 1 + dx;
-        double opd2 = opd*opd;
-        double opd3 = opd2*opd;
-        double dmd = 2 - dx;
-        double dmd2 = dmd*dmd;
-        double dmd3 = dmd2*dmd;
-        double c1 = ((g + 2) * d3 - (g + 3) * d2 + 1);
-        double c2 = ((g + 2) * omd3 - (g + 3) * omd2 + 1);
-        double c0 = (g * opd3 - 5 * g * opd2 + 8 * g * opd - 4 * g);
-        double c3 = (g * dmd3 - 5 * g * dmd2 + 8 * g * dmd - 4 * g);
-
-        for (SizeT i = 0; i < ncontiguous; ++i) {
-          vres[i] = c1 * v1[i] + c2 * v2[i] + c0 * v0[i] + c3 * v3[i];
-        }
-      } else if (x < n1) {
-        v0 = &(array[ncontiguous * (n1-1)]);
-        for (SizeT i = 0; i < ncontiguous; ++i) {
-          vres[i] = v0[i];
-        }
-      } else {
-        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx))==1) {
+#include "snippets/interpolate_1d_cubic_use_missing.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(xi,ix,dx,x,v0,v1,v2,v3,vres) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_1d_cubic_use_missing.incpp"
     }
   } else {
-#pragma omp parallel private(xi,ix,dx,x,v0,v1,v2,v3,vres) if (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx))
-    {
-#pragma omp for 
-    for (SizeT j = 0; j < nx; ++j) { //nb output points
-      vres = &(res[ncontiguous * j]);
-      x = xx[j];
-     if (x < 0) {
-        v0 = &(array[0]);
-        for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = v0[i];
-      } else if (x  < n1-1 ) { 
-        ix = floor(x); //floor  ix is [0 .. n1[
-        xi[0]=ix-1; xi[1]=ix; xi[2]=ix+1; xi[3]=ix+2;
-      //make in range
-        if (xi[0]<0) xi[0]=0; else if (xi[0]>n1-1) xi[0]=n1-1;
-        if (xi[1]<0) xi[1]=0; else if (xi[1]>n1-1) xi[1]=n1-1; 
-        if (xi[2]<0) xi[2]=0; else if (xi[2]>n1-1) xi[2]=n1-1; 
-        if (xi[3]<0) xi[3]=0; else if (xi[3]>n1-1) xi[3]=n1-1; 
-        v0 = &(array[ncontiguous * xi[0]]);
-        v1 = &(array[ncontiguous * xi[1]]);
-        v2 = &(array[ncontiguous * xi[2]]);
-        v3 = &(array[ncontiguous * xi[3]]);
-        dx = (x - xi[1]);
-        double d2 = dx*dx;
-        double d3 = d2*dx;
-        double omd = 1 - dx;
-        double omd2 = omd*omd;
-        double omd3 = omd2*omd;
-        double opd = 1 + dx;
-        double opd2 = opd*opd;
-        double opd3 = opd2*opd;
-        double dmd = 2 - dx;
-        double dmd2 = dmd*dmd;
-        double dmd3 = dmd2*dmd;
-        double c1 = ((g + 2) * d3 - (g + 3) * d2 + 1);
-        double c2 = ((g + 2) * omd3 - (g + 3) * omd2 + 1);
-        double c0 = (g * opd3 - 5 * g * opd2 + 8 * g * opd - 4 * g);
-        double c3 = (g * dmd3 - 5 * g * dmd2 + 8 * g * dmd - 4 * g);
-
-        for (SizeT i = 0; i < ncontiguous; ++i) {
-          vres[i] = c1 * v1[i] + c2 * v2[i] + c0 * v0[i] + c3 * v3[i];
-        }
-      } else {
-        v0 = &(array[ncontiguous * (n1-1)]);
-        for (SizeT i = 0; i < ncontiguous; ++i) {
-          vres[i] = v0[i];
-        }
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx))==1) {
+#include "snippets/interpolate_1d_cubic.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(xi,ix,dx,x,v0,v1,v2,v3,vres) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_1d_cubic.incpp"
     }
   }
 }
@@ -475,88 +307,20 @@ void interpolate_1d_cubic_single(T1* array, SizeT un1, T2* xx, SizeT nx, T1* res
   ssize_t xi[4];
   ssize_t n1 = un1;
   if (use_missing) {
-#pragma omp parallel private(xi,ix,dx,x) if (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx))
-    {
-#pragma omp for 
-    for (SizeT j = 0; j < nx; ++j) { //nb output points
-      x = xx[j];
-      if (x < 0) {
-        res[j] = missing;
-      } else if (x < n1 - 1) {
-        ix = floor(x); //floor  ix is [0 .. n1[
-        xi[0] = ix - 1;
-        xi[1] = ix;
-        xi[2] = ix + 1;
-        xi[3] = ix + 2;
-        //make in range
-        if (xi[0] < 0) xi[0] = 0; else if (xi[0] > n1 - 1) xi[0] = n1 - 1;
-        if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-        if (xi[2] < 0) xi[2] = 0; else if (xi[2] > n1 - 1) xi[2] = n1 - 1;
-        if (xi[3] < 0) xi[3] = 0; else if (xi[3] > n1 - 1) xi[3] = n1 - 1;
-        dx = (x - xi[1]);
-        double d2 = dx*dx;
-        double d3 = d2*dx;
-        double omd = 1 - dx;
-        double omd2 = omd*omd;
-        double omd3 = omd2*omd;
-        double opd = 1 + dx;
-        double opd2 = opd*opd;
-        double opd3 = opd2*opd;
-        double dmd = 2 - dx;
-        double dmd2 = dmd*dmd;
-        double dmd3 = dmd2*dmd;
-        double c1 = ((g + 2) * d3 - (g + 3) * d2 + 1);
-        double c2 = ((g + 2) * omd3 - (g + 3) * omd2 + 1);
-        double c0 = (g * opd3 - 5 * g * opd2 + 8 * g * opd - 4 * g);
-        double c3 = (g * dmd3 - 5 * g * dmd2 + 8 * g * dmd - 4 * g);
-        res[j] = c1 * array[xi[1]] + c2 * array[xi[2]] + c0 * array[xi[0]] + c3 * array[xi[3]];
-      } else if (x < n1) {
-        res[j] = array[n1 - 1];
-      } else {
-        res[j] = missing;
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx))==1) {
+#include "snippets/interpolate_1d_cubic_use_missing_single.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(xi,ix,dx,x) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_1d_cubic_use_missing_single.incpp"
     }
   } else {
-#pragma omp parallel private(xi,ix,dx,x) if (CpuTPOOL_NTHREADS> 1 && nx >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx))
-    {
-#pragma omp for 
-    for (SizeT j = 0; j < nx; ++j) { //nb output points
-      x = xx[j];
-      if (x < 0) {
-        res[j] = array[0];
-      } else if (x < n1 - 1) {
-        ix = floor(x);  if (x<0)x=0; if(x>n1-1)x=n1-1; //floor  ix is [0 .. n1[
-        xi[0] = ix - 1;
-        xi[1] = ix;
-        xi[2] = ix + 1;
-        xi[3] = ix + 2;
-        //make in range
-        if (xi[0] < 0) xi[0] = 0; else if (xi[0] > n1 - 1) xi[0] = n1 - 1;
-        if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-        if (xi[2] < 0) xi[2] = 0; else if (xi[2] > n1 - 1) xi[2] = n1 - 1;
-        if (xi[3] < 0) xi[3] = 0; else if (xi[3] > n1 - 1) xi[3] = n1 - 1;
-        dx = (x - xi[1]);
-        double d2 = dx*dx;
-        double d3 = d2*dx;
-        double omd = 1 - dx;
-        double omd2 = omd*omd;
-        double omd3 = omd2*omd;
-        double opd = 1 + dx;
-        double opd2 = opd*opd;
-        double opd3 = opd2*opd;
-        double dmd = 2 - dx;
-        double dmd2 = dmd*dmd;
-        double dmd3 = dmd2*dmd;
-        double c1 = ((g + 2) * d3 - (g + 3) * d2 + 1);
-        double c2 = ((g + 2) * omd3 - (g + 3) * omd2 + 1);
-        double c0 = (g * opd3 - 5 * g * opd2 + 8 * g * opd - 4 * g);
-        double c3 = (g * dmd3 - 5 * g * dmd2 + 8 * g * dmd - 4 * g);
-        res[j] = c1 * array[xi[1]] + c2 * array[xi[2]] + c0 * array[xi[0]] + c3 * array[xi[3]];
-      } else {
-        res[j] = array[n1-1];
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx))==1) {
+#include "snippets/interpolate_1d_cubic_single.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(xi,ix,dx,x) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_1d_cubic_single.incpp"
     }
   }
 }
@@ -568,34 +332,12 @@ void interpolate_2d_nearest_grid(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT 
   ssize_t xi, yi; //operations on unsigned are not what you think, signed are ok
   ssize_t n1 = un1;
   ssize_t n2 = un2;
-#pragma omp parallel private(xi,yi,x,y,vx0,vres) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
-  {
-#pragma omp for collapse(2)
-  for (SizeT k = 0; k < ny; ++k) {
-    for (SizeT j = 0; j < nx; ++j) { //nb output points
-      vres = &(res[ncontiguous * (k * nx + j) ]);
-      x = xx[j];
-      if (x < 0) {
-        xi = 0;
-      } else if (x >= n1-1 ) {
-        xi = n1-1;
-      } else {
-        xi = floor(x);
-      }
-      y = yy[k];
-      if (y < 0) {
-        yi = 0; 
-      } else if (y >= n2-1 ) {
-        yi = n2-1; 
-      } else {
-        yi = floor(y);
-      }
-      vx0 = &(array[ncontiguous * (yi * n1 + xi)]);
-      for (SizeT i = 0; i < ncontiguous; ++i) {
-        vres[i] = vx0[i];
-      }
-    }
-  }
+  if ((GDL_NTHREADS=parallelize( nx*ny))==1) {
+#include "snippets/interpolate_2d_nearest_grid.incpp"
+  } else {
+  TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) private(xi,yi,x,y,vx0,vres) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_2d_nearest_grid.incpp"
   }
 }
 
@@ -605,30 +347,12 @@ void interpolate_2d_nearest_grid_single(T1* array, SizeT un1, SizeT un2, T2* xx,
   ssize_t xi, yi; //operations on unsigned are not what you think, signed are ok
   ssize_t n1 = un1;
   ssize_t n2 = un2;
-#pragma omp parallel private(xi,yi,x,y) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
-  {
-#pragma omp for collapse(2)
-  for (SizeT k = 0; k < ny; ++k) {
-    for (SizeT j = 0; j < nx; ++j) { //nb output points
-      x = xx[j];
-      if (x < 0) {
-        xi = 0;
-      } else if (x >= n1-1 ) {
-        xi = n1-1;
-      } else {
-        xi = floor(x);
-      }
-      y = yy[k];
-      if (y < 0) {
-        yi = 0; 
-      } else if (y >= n2-1 ) {
-        yi = n2-1; 
-      } else {
-        yi = floor(y);
-      }
-      res[k * nx + j] = array[yi * n1 + xi];
-    }
-  }
+  if ((GDL_NTHREADS=parallelize( nx*ny))==1) {
+#include "snippets/interpolate_2d_nearest_grid_single.incpp"
+  } else {
+  TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) private(xi,yi,x,y) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_2d_nearest_grid_single.incpp"
   }
 }
 
@@ -643,94 +367,20 @@ void interpolate_2d_linear(T1* array, SizeT un1,  SizeT un2, T2* xx, SizeT n, T2
   ssize_t n1 = un1;
   ssize_t n2 = un2;
   if (use_missing) { //following behaviour validated.
-#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) if (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
-    {
-#pragma omp for 
-      for (SizeT j = 0; j < n; ++j) { //nb output points
-        vres = &(res[ncontiguous * j ]);
-        x = xx[j];
-        if (x < 0) {
-          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-        } else if (x <= n1 - 1) {
-          y = yy[j];
-          if (y < 0) {
-            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-          } else if (y <= n2 - 1) {
-            ix = floor(x);
-            xi[0] = ix;
-            xi[1] = ix + 1;
-            //make in range
-            if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-            dx = (x - xi[0]);
-            iy = floor(y);
-            yi[0] = iy;
-            yi[1] = iy + 1;
-            //make in range
-            if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-            dy = (y - yi[0]);
-            vx0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
-            vx1 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
-            vy0 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
-            vy1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
-            for (SizeT i = 0; i < ncontiguous; ++i) {
-              double dxdy = dx*dy;
-              double c0 = (1 - dy - dx + dxdy);
-              double c1 = (dy - dxdy);
-              double c2 = (dx - dxdy);
-              vres[i] = vx0[i] * c0 + vy0[i] * c1 + vx1[i] * c2 + vy1[i] * dxdy;
-            }
-          } else {
-            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-          }
-        } else {
-          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-        }
-      }
+    if ((GDL_NTHREADS=parallelize( n))==1) {
+#include "snippets/interpolate_2d_linear_use_missing.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) num_threads(GDL_NTHREADS) 
+#include "snippets/interpolate_2d_linear_use_missing.incpp"
     }
   } else { //following behaviour validated.
-#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) if (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
-    {
-#pragma omp for 
-      for (SizeT j = 0; j < n; ++j) { //nb output points
-        vres = &(res[ncontiguous * j ]);
-        x = xx[j];
-        if (x < 0) {
-          xi[0] = 0;
-          xi[1] = 0;
-        } else if (x >= n1 - 1) {
-          xi[0] = n1 - 1;
-          xi[1] = n1 - 1;
-        } else {
-          ix = floor(x);
-          xi[0] = ix;
-          xi[1] = ix + 1;
-        }
-        y = yy[j];
-        if (y < 0) {
-          yi[0] = 0;
-          yi[1] = 0;
-        } else if (y >= n2 - 1) {
-          yi[0] = n2 - 1;
-          yi[1] = n2 - 1;
-        } else {
-          iy = floor(y);
-          yi[0] = iy;
-          yi[1] = iy + 1;
-        }
-        dx = (x - xi[0]);
-        dy = (y - yi[0]);
-        vx0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
-        vx1 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
-        vy0 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
-        vy1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
-        for (SizeT i = 0; i < ncontiguous; ++i) {
-          double dxdy = dx*dy;
-          double c0 = (1 - dy - dx + dxdy);
-          double c1 = (dy - dxdy);
-          double c2 = (dx - dxdy);
-          vres[i] = vx0[i] * c0 + vy0[i] * c1 + vx1[i] * c2 + vy1[i] * dxdy;
-        }
-      }
+    if ((GDL_NTHREADS=parallelize( n))==1) {
+#include "snippets/interpolate_2d_linear.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) num_threads(GDL_NTHREADS) 
+#include "snippets/interpolate_2d_linear.incpp"
     }
   }
 }
@@ -746,94 +396,20 @@ void interpolate_2d_linear_grid(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT n
   ssize_t n1 = un1;
   ssize_t n2 = un2;
   if (use_missing) {  //following behaviour validated.
-#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
-    {
-#pragma omp for collapse(2)
-      for (SizeT k = 0; k < ny; ++k) {
-      for (SizeT j = 0; j < nx; ++j) { //nb output points
-        vres = &(res[ncontiguous * (k * nx + j) ]);
-        x = xx[j];
-        if (x < 0) {
-          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-        } else if (x <= n1 - 1) {
-          y = yy[k];
-          if (y < 0) {
-            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-          } else if (y <= n2 - 1) {
-            ix = floor(x);
-            xi[0] = ix;
-            xi[1] = ix + 1;
-            //make in range
-            if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-            dx = (x - xi[0]);
-            iy = floor(y);
-            yi[0] = iy;
-            yi[1] = iy + 1;
-            //make in range
-            if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-            dy = (y - yi[0]);
-            vx0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
-            vx1 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
-            vy0 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
-            vy1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
-            for (SizeT i = 0; i < ncontiguous; ++i) {
-              double dxdy=dx*dy;
-              double c0=(1-dy-dx+dxdy);
-              double c1=(dy-dxdy);
-              double c2=(dx-dxdy);
-              vres[i] = vx0[i] * c0 + vy0[i] * c1 + vx1[i] * c2 + vy1[i]*dxdy;
-            }
-          } else {
-            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-          }
-        } else {
-          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-        }
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx*ny))==1) {
+#include "snippets/interpolate_2d_linear_grid_use_missing.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) num_threads(GDL_NTHREADS) 
+#include "snippets/interpolate_2d_linear_grid_use_missing.incpp"
     }
   } else { //following behaviour validated.
-#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
-    {
-#pragma omp for collapse(2)
-    for (SizeT k = 0; k < ny; ++k) {
-      for (SizeT j = 0; j < nx; ++j) { //nb output points
-        vres = &(res[ncontiguous * (k * nx + j) ]);
-        x = xx[j];
-        if (x < 0) {
-          xi[0] = 0; xi[1] = 0;
-        } else if (x >= n1-1 ) {
-          xi[0] = n1-1; xi[1] = n1-1;
-        } else {
-          ix = floor(x);
-          xi[0] = ix;
-          xi[1] = ix + 1;
-        }
-        y = yy[k];
-        if (y < 0) {
-          yi[0] = 0; yi[1] = 0;
-        } else if (y >= n2-1 ) {
-          yi[0] = n2-1; yi[1] = n2-1;
-        } else {
-          iy = floor(y);
-          yi[0] = iy;
-          yi[1] = iy + 1;
-        }
-        dx = (x - xi[0]);
-        dy = (y - yi[0]);
-        vx0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
-        vx1 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
-        vy0 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
-        vy1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
-        for (SizeT i = 0; i < ncontiguous; ++i) {
-          double dxdy=dx*dy;
-          double c0=(1-dy-dx+dxdy);
-          double c1=(dy-dxdy);
-          double c2=(dx-dxdy);
-          vres[i] = vx0[i] * c0 + vy0[i] * c1 + vx1[i] * c2 + vy1[i]*dxdy;
-        }
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx*ny))==1) {
+#include "snippets/interpolate_2d_linear_grid.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y,vx0,vx1,vy0,vy1,vres) num_threads(GDL_NTHREADS) 
+#include "snippets/interpolate_2d_linear_grid.incpp"
     }
   }
 }
@@ -847,80 +423,20 @@ void interpolate_2d_linear_grid_single(T1* array, SizeT un1, SizeT un2, T2* xx, 
   ssize_t n1 = un1;
   ssize_t n2 = un2;
   if (use_missing) {  //following behaviour validated.
-#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
-    {
-#pragma omp for collapse(2)
-    for (SizeT k = 0; k < ny; ++k) {
-      for (SizeT j = 0; j < nx; ++j) { //nb output points
-        x = xx[j];
-        if (x < 0) {
-          res[k * nx + j] = missing;
-        } else if (x <= n1 - 1) {
-          y = yy[k];
-          if (y < 0) {
-            res[k * nx + j] = missing;
-          } else if (y <= n2 - 1) {
-            ix = floor(x);
-            xi[0] = ix;
-            xi[1] = ix + 1;
-            //make in range
-            if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-            dx = (x - xi[0]);
-            iy = floor(y);
-            yi[0] = iy;
-            yi[1] = iy + 1;
-            //make in range
-            if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-            dy = (y - yi[0]);
-            double dxdy=dx*dy;
-            double c0=(1-dy-dx+dxdy);
-            double c1=(dy-dxdy);
-            double c2=(dx-dxdy);
-            res[k * nx + j] = array[yi[0] * n1 + xi[0]] * c0 + array[yi[1] * n1 + xi[0]] * c1 + array[yi[0] * n1 + xi[1]] * c2 + array[yi[1] * n1 + xi[1]] * dxdy;
-          } else {
-            res[k * nx + j] = missing;
-          }
-        } else {
-          res[k * nx + j] = missing;
-        }
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx*ny))==1) {
+#include "snippets/interpolate_2d_linear_grid_use_missing_single.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y) num_threads(GDL_NTHREADS) 
+#include "snippets/interpolate_2d_linear_grid_use_missing_single.incpp"
     }
   } else {
-#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
-    {
-#pragma omp for collapse(2)
-    for (SizeT k = 0; k < ny; ++k) {
-      for (SizeT j = 0; j < nx; ++j) { 
-        x = xx[j];
-        if (x < 0) {
-          xi[0] = 0; xi[1] = 0;
-        } else if (x >= n1-1 ) {
-          xi[0] = n1-1; xi[1] = n1-1;
-        } else {
-          ix = floor(x);
-          xi[0] = ix;
-          xi[1] = ix + 1;
-        }
-        y = yy[k];
-        if (y < 0) {
-          yi[0] = 0; yi[1] = 0;
-        } else if (y >= n2-1 ) {
-          yi[0] = n2-1; yi[1] = n2-1;
-        } else {
-          iy = floor(y);
-          yi[0] = iy;
-          yi[1] = iy + 1;
-        }
-        dx = (x - xi[0]);
-        dy = (y - yi[0]);
-        double dxdy=dx*dy;
-        double c0=(1-dy-dx+dxdy);
-        double c1=(dy-dxdy);
-        double c2=(dx-dxdy);
-        res[k * nx + j] = array[yi[0] * n1 + xi[0]] * c0 + array[yi[1] * n1 + xi[0]] * c1 + array[yi[0] * n1 + xi[1]] * c2 + array[yi[1] * n1 + xi[1]] * dxdy;
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx*ny))==1) {
+#include "snippets/interpolate_2d_linear_grid_single.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y) num_threads(GDL_NTHREADS) 
+#include "snippets/interpolate_2d_linear_grid_single.incpp"
     }
   }
 }
@@ -941,197 +457,20 @@ void interpolate_2d_cubic(T1* array, SizeT un1, SizeT un2, T2* xx, SizeT n, T2* 
   ssize_t n1 = un1;
   ssize_t n2 = un2;
   if (use_missing) { 
-#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) if (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
-    {
-#pragma omp for 
-      for (SizeT j = 0; j < n; ++j) { //nb output points
-        vres = &(res[ncontiguous * j]);
-        x = xx[j];
-        if (x < 0) {
-          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-        } else if (x <= n1 - 1) {
-          y = yy[j];
-          if (y < 0) {
-            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-          } else if (y <= n2 - 1) {
-            ix = floor(x); //floor  ix is [0 .. n1[
-            xi[0] = ix - 1;
-            xi[1] = ix;
-            xi[2] = ix + 1;
-            xi[3] = ix + 2;
-            //make in range
-            if (xi[0] < 0) xi[0] = 0; else if (xi[0] > n1 - 1) xi[0] = n1 - 1;
-            if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-            if (xi[2] < 0) xi[2] = 0; else if (xi[2] > n1 - 1) xi[2] = n1 - 1;
-            if (xi[3] < 0) xi[3] = 0; else if (xi[3] > n1 - 1) xi[3] = n1 - 1;
-            dx = (x - xi[1]);
-            double dx2 = dx*dx;
-            double dx3 = dx2*dx;
-            double omdx = 1 - dx;
-            double omdx2 = omdx*omdx;
-            double omdx3 = omdx2*omdx;
-            double opdx = 1 + dx;
-            double opdx2 = opdx*opdx;
-            double opdx3 = opdx2*opdx;
-            double dmdx = 2 - dx;
-            double dmdx2 = dmdx*dmdx;
-            double dmdx3 = dmdx2*dmdx;
-            double cx1 = ((g + 2) * dx3 - (g + 3) * dx2 + 1);
-            double cx2 = ((g + 2) * omdx3 - (g + 3) * omdx2 + 1);
-            double cx0 = (g * opdx3 - 5 * g * opdx2 + 8 * g * opdx - 4 * g);
-            double cx3 = (g * dmdx3 - 5 * g * dmdx2 + 8 * g * dmdx - 4 * g);
-
-            iy = floor(y);
-            yi[0] = iy - 1;
-            yi[1] = iy;
-            yi[2] = iy + 1;
-            yi[3] = iy + 2;
-            //make in range
-            if (yi[0] < 0) yi[0] = 0; else if (yi[0] > n2 - 1) yi[0] = n2 - 1;
-            if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-            if (yi[2] < 0) yi[2] = 0; else if (yi[2] > n2 - 1) yi[2] = n2 - 1;
-            if (yi[3] < 0) yi[3] = 0; else if (yi[3] > n2 - 1) yi[3] = n2 - 1;
-            dy = (y - yi[1]);
-            double dy2 = dy*dy;
-            double dy3 = dy2*dy;
-            double omdy = 1 - dy;
-            double omdy2 = omdy*omdy;
-            double omdy3 = omdy2*omdy;
-            double opdy = 1 + dy;
-            double opdy2 = opdy*opdy;
-            double opdy3 = opdy2*opdy;
-            double dmdy = 2 - dy;
-            double dmdy2 = dmdy*dmdy;
-            double dmdy3 = dmdy2*dmdy;
-            double cy1 = ((g + 2) * dy3 - (g + 3) * dy2 + 1);
-            double cy2 = ((g + 2) * omdy3 - (g + 3) * omdy2 + 1);
-            double cy0 = (g * opdy3 - 5 * g * opdy2 + 8 * g * opdy - 4 * g);
-            double cy3 = (g * dmdy3 - 5 * g * dmdy2 + 8 * g * dmdy - 4 * g);
-            vx0y0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
-            vx1y0 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
-            vx2y0 = &(array[ncontiguous * (yi[0] * n1 + xi[2])]);
-            vx3y0 = &(array[ncontiguous * (yi[0] * n1 + xi[3])]);
-
-            vx0y1 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
-            vx1y1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
-            vx2y1 = &(array[ncontiguous * (yi[1] * n1 + xi[2])]);
-            vx3y1 = &(array[ncontiguous * (yi[1] * n1 + xi[3])]);
-
-            vx0y2 = &(array[ncontiguous * (yi[2] * n1 + xi[0])]);
-            vx1y2 = &(array[ncontiguous * (yi[2] * n1 + xi[1])]);
-            vx2y2 = &(array[ncontiguous * (yi[2] * n1 + xi[2])]);
-            vx3y2 = &(array[ncontiguous * (yi[2] * n1 + xi[3])]);
-
-            vx0y3 = &(array[ncontiguous * (yi[3] * n1 + xi[0])]);
-            vx1y3 = &(array[ncontiguous * (yi[3] * n1 + xi[1])]);
-            vx2y3 = &(array[ncontiguous * (yi[3] * n1 + xi[2])]);
-            vx3y3 = &(array[ncontiguous * (yi[3] * n1 + xi[3])]);
-
-            for (SizeT i = 0; i < ncontiguous; ++i) {
-              double r0=cx1*vx1y0[i]+cx2*vx2y0[i]+cx0*vx0y0[i]+cx3*vx3y0[i];
-              double r1=cx1*vx1y1[i]+cx2*vx2y1[i]+cx0*vx0y1[i]+cx3*vx3y1[i];
-              double r2=cx1*vx1y2[i]+cx2*vx2y2[i]+cx0*vx0y2[i]+cx3*vx3y2[i];
-              double r3=cx1*vx1y3[i]+cx2*vx2y3[i]+cx0*vx0y3[i]+cx3*vx3y3[i];
-              vres[i] = cy1*r1+cy2*r2+cy0*r0+cy3*r3;
-            }
-          } else {
-            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-          }
-        } else {
-          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-        }
-      }
+#include "snippets/interpolate_2d_cubic_use_missing.incpp"
+    if ((GDL_NTHREADS=parallelize( n))==1) {
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) num_threads(GDL_NTHREADS) 
+#include "snippets/interpolate_2d_cubic_use_missing.incpp"
     }
   } else {
-#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) if (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
-  {
-#pragma omp for 
-    for (SizeT j = 0; j < n; ++j) { //nb output points
-        vres = &(res[ncontiguous * j ]);
-        x = xx[j]; if (x<0)x=0; if(x>n1-1)x=n1-1;
-        ix = floor(x); //floor  ix is [0 .. n1[
-        xi[0] = ix - 1;
-        xi[1] = ix;
-        xi[2] = ix + 1;
-        xi[3] = ix + 2;
-        //make in range
-        if (xi[0] < 0) xi[0] = 0; else if (xi[0] > n1 -1 ) xi[0] = n1 - 1;
-        if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 -1 ) xi[1] = n1 - 1;
-        if (xi[2] < 0) xi[2] = 0; else if (xi[2] > n1 -1 ) xi[2] = n1 - 1;
-        if (xi[3] < 0) xi[3] = 0; else if (xi[3] > n1 -1 ) xi[3] = n1 - 1;
-        dx = (x - xi[1]);
-        double dx2 = dx*dx;
-        double dx3 = dx2*dx;
-        double omdx = 1 - dx;
-        double omdx2 = omdx*omdx;
-        double omdx3 = omdx2*omdx;
-        double opdx = 1 + dx;
-        double opdx2 = opdx*opdx;
-        double opdx3 = opdx2*opdx;
-        double dmdx = 2 - dx;
-        double dmdx2 = dmdx*dmdx;
-        double dmdx3 = dmdx2*dmdx;
-        double cx1 = ((g + 2) * dx3 - (g + 3) * dx2 + 1);
-        double cx2 = ((g + 2) * omdx3 - (g + 3) * omdx2 + 1);
-        double cx0 = (g * opdx3 - 5 * g * opdx2 + 8 * g * opdx - 4 * g);
-        double cx3 = (g * dmdx3 - 5 * g * dmdx2 + 8 * g * dmdx - 4 * g);
-
-        y = yy[j]; if (y<0)y=0; if(y>n2-1)y=n2-1;
-        iy = floor(y);
-        yi[0] = iy - 1;
-        yi[1] = iy;
-        yi[2] = iy + 1;
-        yi[3] = iy + 2;
-        //make in range
-        if (yi[0] < 0) yi[0] = 0; else if (yi[0] > n2-1 ) yi[0] = n2 - 1;
-        if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2-1 ) yi[1] = n2 - 1;
-        if (yi[2] < 0) yi[2] = 0; else if (yi[2] > n2-1 ) yi[2] = n2 - 1;
-        if (yi[3] < 0) yi[3] = 0; else if (yi[3] > n2-1 ) yi[3] = n2 - 1;
-        dy = (y - yi[1]);
-        double dy2 = dy*dy;
-        double dy3 = dy2*dy;
-        double omdy = 1 - dy;
-        double omdy2 = omdy*omdy;
-        double omdy3 = omdy2*omdy;
-        double opdy = 1 + dy;
-        double opdy2 = opdy*opdy;
-        double opdy3 = opdy2*opdy;
-        double dmdy = 2 - dy;
-        double dmdy2 = dmdy*dmdy;
-        double dmdy3 = dmdy2*dmdy;
-        double cy1 = ((g + 2) * dy3 - (g + 3) * dy2 + 1);
-        double cy2 = ((g + 2) * omdy3 - (g + 3) * omdy2 + 1);
-        double cy0 = (g * opdy3 - 5 * g * opdy2 + 8 * g * opdy - 4 * g);
-        double cy3 = (g * dmdy3 - 5 * g * dmdy2 + 8 * g * dmdy - 4 * g);
-
-        vx0y0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
-        vx1y0 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
-        vx2y0 = &(array[ncontiguous * (yi[0] * n1 + xi[2])]);
-        vx3y0 = &(array[ncontiguous * (yi[0] * n1 + xi[3])]);
-
-        vx0y1 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
-        vx1y1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
-        vx2y1 = &(array[ncontiguous * (yi[1] * n1 + xi[2])]);
-        vx3y1 = &(array[ncontiguous * (yi[1] * n1 + xi[3])]);
-
-        vx0y2 = &(array[ncontiguous * (yi[2] * n1 + xi[0])]);
-        vx1y2 = &(array[ncontiguous * (yi[2] * n1 + xi[1])]);
-        vx2y2 = &(array[ncontiguous * (yi[2] * n1 + xi[2])]);
-        vx3y2 = &(array[ncontiguous * (yi[2] * n1 + xi[3])]);
-
-        vx0y3 = &(array[ncontiguous * (yi[3] * n1 + xi[0])]);
-        vx1y3 = &(array[ncontiguous * (yi[3] * n1 + xi[1])]);
-        vx2y3 = &(array[ncontiguous * (yi[3] * n1 + xi[2])]);
-        vx3y3 = &(array[ncontiguous * (yi[3] * n1 + xi[3])]);
-
-        for (SizeT i = 0; i < ncontiguous; ++i) {
-          double r0 = cx1 * vx1y0[i] + cx2 * vx2y0[i] + cx0 * vx0y0[i] + cx3 * vx3y0[i];
-          double r1 = cx1 * vx1y1[i] + cx2 * vx2y1[i] + cx0 * vx0y1[i] + cx3 * vx3y1[i];
-          double r2 = cx1 * vx1y2[i] + cx2 * vx2y2[i] + cx0 * vx0y2[i] + cx3 * vx3y2[i];
-          double r3 = cx1 * vx1y3[i] + cx2 * vx2y3[i] + cx0 * vx0y3[i] + cx3 * vx3y3[i];
-          vres[i] = cy1 * r1 + cy2 * r2 + cy0 * r0 + cy3*r3;
-        }
-      }
+    if ((GDL_NTHREADS=parallelize( n))==1) {
+#include "snippets/interpolate_2d_cubic.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) num_threads(GDL_NTHREADS) 
+#include "snippets/interpolate_2d_cubic.incpp"
   }
   }
 }
@@ -1152,200 +491,20 @@ void interpolate_2d_cubic_grid(T1* array, SizeT un1, SizeT un2, T2* xx, const Si
   const ssize_t n1 = un1;
   const ssize_t n2 = un2;
   if (use_missing) {
-#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
-    {
-#pragma omp for collapse(2)
-    for (SizeT k = 0; k < ny; ++k) {
-      for (SizeT j = 0; j < nx; ++j) { //nb output points
-        vres = &(res[ncontiguous * (k * nx + j) ]);
-        x = xx[j];
-        if (x < 0) {
-          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-        } else if (x <= n1 - 1) {
-          y = yy[k];
-          if (y < 0) {
-            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-          } else if (y <= n2 - 1) {
-            ix = floor(x); //floor  ix is [0 .. n1[
-            xi[0] = ix - 1;
-            xi[1] = ix;
-            xi[2] = ix + 1;
-            xi[3] = ix + 2;
-            //make in range
-            if (xi[0] < 0) xi[0] = 0; else if (xi[0] > n1 - 1) xi[0] = n1 - 1;
-            if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-            if (xi[2] < 0) xi[2] = 0; else if (xi[2] > n1 - 1) xi[2] = n1 - 1;
-            if (xi[3] < 0) xi[3] = 0; else if (xi[3] > n1 - 1) xi[3] = n1 - 1;
-            dx = (x - xi[1]);
-            double dx2 = dx*dx;
-            double dx3 = dx2*dx;
-            double omdx = 1 - dx;
-            double omdx2 = omdx*omdx;
-            double omdx3 = omdx2*omdx;
-            double opdx = 1 + dx;
-            double opdx2 = opdx*opdx;
-            double opdx3 = opdx2*opdx;
-            double dmdx = 2 - dx;
-            double dmdx2 = dmdx*dmdx;
-            double dmdx3 = dmdx2*dmdx;
-            double cx1 = ((g + 2) * dx3 - (g + 3) * dx2 + 1);
-            double cx2 = ((g + 2) * omdx3 - (g + 3) * omdx2 + 1);
-            double cx0 = (g * opdx3 - 5 * g * opdx2 + 8 * g * opdx - 4 * g);
-            double cx3 = (g * dmdx3 - 5 * g * dmdx2 + 8 * g * dmdx - 4 * g);
-
-            iy = floor(y);
-            yi[0] = iy - 1;
-            yi[1] = iy;
-            yi[2] = iy + 1;
-            yi[3] = iy + 2;
-            //make in range
-            if (yi[0] < 0) yi[0] = 0; else if (yi[0] > n2 - 1) yi[0] = n2 - 1;
-            if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-            if (yi[2] < 0) yi[2] = 0; else if (yi[2] > n2 - 1) yi[2] = n2 - 1;
-            if (yi[3] < 0) yi[3] = 0; else if (yi[3] > n2 - 1) yi[3] = n2 - 1;
-            dy = (y - yi[1]);
-            double dy2 = dy*dy;
-            double dy3 = dy2*dy;
-            double omdy = 1 - dy;
-            double omdy2 = omdy*omdy;
-            double omdy3 = omdy2*omdy;
-            double opdy = 1 + dy;
-            double opdy2 = opdy*opdy;
-            double opdy3 = opdy2*opdy;
-            double dmdy = 2 - dy;
-            double dmdy2 = dmdy*dmdy;
-            double dmdy3 = dmdy2*dmdy;
-            double cy1 = ((g + 2) * dy3 - (g + 3) * dy2 + 1);
-            double cy2 = ((g + 2) * omdy3 - (g + 3) * omdy2 + 1);
-            double cy0 = (g * opdy3 - 5 * g * opdy2 + 8 * g * opdy - 4 * g);
-            double cy3 = (g * dmdy3 - 5 * g * dmdy2 + 8 * g * dmdy - 4 * g);
-            vx0y0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
-            vx1y0 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
-            vx2y0 = &(array[ncontiguous * (yi[0] * n1 + xi[2])]);
-            vx3y0 = &(array[ncontiguous * (yi[0] * n1 + xi[3])]);
-
-            vx0y1 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
-            vx1y1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
-            vx2y1 = &(array[ncontiguous * (yi[1] * n1 + xi[2])]);
-            vx3y1 = &(array[ncontiguous * (yi[1] * n1 + xi[3])]);
-
-            vx0y2 = &(array[ncontiguous * (yi[2] * n1 + xi[0])]);
-            vx1y2 = &(array[ncontiguous * (yi[2] * n1 + xi[1])]);
-            vx2y2 = &(array[ncontiguous * (yi[2] * n1 + xi[2])]);
-            vx3y2 = &(array[ncontiguous * (yi[2] * n1 + xi[3])]);
-
-            vx0y3 = &(array[ncontiguous * (yi[3] * n1 + xi[0])]);
-            vx1y3 = &(array[ncontiguous * (yi[3] * n1 + xi[1])]);
-            vx2y3 = &(array[ncontiguous * (yi[3] * n1 + xi[2])]);
-            vx3y3 = &(array[ncontiguous * (yi[3] * n1 + xi[3])]);
-            for (SizeT i = 0; i < ncontiguous; ++i) {
-              double r0=cx1*vx1y0[i]+cx2*vx2y0[i]+cx0*vx0y0[i]+cx3*vx3y0[i];
-              double r1=cx1*vx1y1[i]+cx2*vx2y1[i]+cx0*vx0y1[i]+cx3*vx3y1[i];
-              double r2=cx1*vx1y2[i]+cx2*vx2y2[i]+cx0*vx0y2[i]+cx3*vx3y2[i];
-              double r3=cx1*vx1y3[i]+cx2*vx2y3[i]+cx0*vx0y3[i]+cx3*vx3y3[i];
-              vres[i] = cy1*r1+cy2*r2+cy0*r0+cy3*r3;
-            }
-          } else {
-            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-          }
-        } else {
-          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-        }
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx*ny))==1) {
+#include "snippets/interpolate_2d_cubic_use_missing_grid.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) num_threads(GDL_NTHREADS) 
+#include "snippets/interpolate_2d_cubic_use_missing_grid.incpp"
     }
   } else { 
-#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
-    {
-#pragma omp for collapse(2)
-    for (SizeT k = 0; k < ny; ++k) {
-      for (SizeT j = 0; j < nx; ++j) { //nb output points
-        vres = &(res[ncontiguous * (k * nx + j) ]);
-        x = xx[j]; if (x<0)x=0; if(x>n1-1)x=n1-1;
-        ix = floor(x); //floor  ix is [0 .. n1[
-        xi[0] = ix - 1;
-        xi[1] = ix;
-        xi[2] = ix + 1;
-        xi[3] = ix + 2;
-        //make in range
-        if (xi[0] < 0) xi[0] = 0; else if (xi[0] > n1 -1 ) xi[0] = n1 - 1;
-        if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 -1 ) xi[1] = n1 - 1;
-        if (xi[2] < 0) xi[2] = 0; else if (xi[2] > n1 -1 ) xi[2] = n1 - 1;
-        if (xi[3] < 0) xi[3] = 0; else if (xi[3] > n1 -1 ) xi[3] = n1 - 1;
-        dx = (x - xi[1]);
-        double dx2 = dx*dx;
-        double dx3 = dx2*dx;
-        double omdx = 1 - dx;
-        double omdx2 = omdx*omdx;
-        double omdx3 = omdx2*omdx;
-        double opdx = 1 + dx;
-        double opdx2 = opdx*opdx;
-        double opdx3 = opdx2*opdx;
-        double dmdx = 2 - dx;
-        double dmdx2 = dmdx*dmdx;
-        double dmdx3 = dmdx2*dmdx;
-        double cx1 = ((g + 2) * dx3 - (g + 3) * dx2 + 1);
-        double cx2 = ((g + 2) * omdx3 - (g + 3) * omdx2 + 1);
-        double cx0 = (g * opdx3 - 5 * g * opdx2 + 8 * g * opdx - 4 * g);
-        double cx3 = (g * dmdx3 - 5 * g * dmdx2 + 8 * g * dmdx - 4 * g);
-
-        y = yy[k]; if (y<0)y=0; if(y>n2-1)y=n2-1;
-        iy = floor(y);
-        yi[0] = iy - 1;
-        yi[1] = iy;
-        yi[2] = iy + 1;
-        yi[3] = iy + 2;
-        //make in range
-        if (yi[0] < 0) yi[0] = 0; else if (yi[0] > n2-1 ) yi[0] = n2 - 1;
-        if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2-1 ) yi[1] = n2 - 1;
-        if (yi[2] < 0) yi[2] = 0; else if (yi[2] > n2-1 ) yi[2] = n2 - 1;
-        if (yi[3] < 0) yi[3] = 0; else if (yi[3] > n2-1 ) yi[3] = n2 - 1;
-        dy = (y - yi[1]);
-        double dy2 = dy*dy;
-        double dy3 = dy2*dy;
-        double omdy = 1 - dy;
-        double omdy2 = omdy*omdy;
-        double omdy3 = omdy2*omdy;
-        double opdy = 1 + dy;
-        double opdy2 = opdy*opdy;
-        double opdy3 = opdy2*opdy;
-        double dmdy = 2 - dy;
-        double dmdy2 = dmdy*dmdy;
-        double dmdy3 = dmdy2*dmdy;
-        double cy1 = ((g + 2) * dy3 - (g + 3) * dy2 + 1);
-        double cy2 = ((g + 2) * omdy3 - (g + 3) * omdy2 + 1);
-        double cy0 = (g * opdy3 - 5 * g * opdy2 + 8 * g * opdy - 4 * g);
-        double cy3 = (g * dmdy3 - 5 * g * dmdy2 + 8 * g * dmdy - 4 * g);
-
-        vx0y0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
-        vx1y0 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
-        vx2y0 = &(array[ncontiguous * (yi[0] * n1 + xi[2])]);
-        vx3y0 = &(array[ncontiguous * (yi[0] * n1 + xi[3])]);
-
-        vx0y1 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
-        vx1y1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
-        vx2y1 = &(array[ncontiguous * (yi[1] * n1 + xi[2])]);
-        vx3y1 = &(array[ncontiguous * (yi[1] * n1 + xi[3])]);
-
-        vx0y2 = &(array[ncontiguous * (yi[2] * n1 + xi[0])]);
-        vx1y2 = &(array[ncontiguous * (yi[2] * n1 + xi[1])]);
-        vx2y2 = &(array[ncontiguous * (yi[2] * n1 + xi[2])]);
-        vx3y2 = &(array[ncontiguous * (yi[2] * n1 + xi[3])]);
-
-        vx0y3 = &(array[ncontiguous * (yi[3] * n1 + xi[0])]);
-        vx1y3 = &(array[ncontiguous * (yi[3] * n1 + xi[1])]);
-        vx2y3 = &(array[ncontiguous * (yi[3] * n1 + xi[2])]);
-        vx3y3 = &(array[ncontiguous * (yi[3] * n1 + xi[3])]);
-
-        for (SizeT i = 0; i < ncontiguous; ++i) {
-          double r0 = cx1 * vx1y0[i] + cx2 * vx2y0[i] + cx0 * vx0y0[i] + cx3 * vx3y0[i];
-          double r1 = cx1 * vx1y1[i] + cx2 * vx2y1[i] + cx0 * vx0y1[i] + cx3 * vx3y1[i];
-          double r2 = cx1 * vx1y2[i] + cx2 * vx2y2[i] + cx0 * vx0y2[i] + cx3 * vx3y2[i];
-          double r3 = cx1 * vx1y3[i] + cx2 * vx2y3[i] + cx0 * vx0y3[i] + cx3 * vx3y3[i];
-          vres[i] = cy1 * r1 + cy2 * r2 + cy0 * r0 + cy3*r3;
-        }
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx*ny))==1) {
+#include "snippets/interpolate_2d_cubic_grid.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y,vx0y0,vx1y0,vx2y0,vx3y0,vx0y1,vx1y1,vx2y1,vx3y1,vx0y2,vx1y2,vx2y2,vx3y2,vx0y3,vx1y3,vx2y3,vx3y3,vres) num_threads(GDL_NTHREADS) 
+#include "snippets/interpolate_2d_cubic_grid.incpp"
   }
   }
 }
@@ -1361,154 +520,20 @@ void interpolate_2d_cubic_grid_single(T1* array, SizeT un1, SizeT un2, T2* xx, c
   const ssize_t n1 = un1;
   const ssize_t n2 = un2;
   if (use_missing) {
-#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
-    {
-#pragma omp for collapse(2)
-    for (SizeT k = 0; k < ny; ++k) {
-      for (SizeT j = 0; j < nx; ++j) { //nb output points
-        x = xx[j];
-        if (x < 0) {
-          res[k * nx + j] = missing;
-        } else if (x <= n1 - 1) {
-          y = yy[k];
-          if (y < 0) {
-            res[k * nx + j] = missing;
-          } else if (y <= n2 - 1) {
-            ix = floor(x); //floor  ix is [0 .. n1[
-            xi[0] = ix - 1;
-            xi[1] = ix;
-            xi[2] = ix + 1;
-            xi[3] = ix + 2;
-            //make in range
-            if (xi[0] < 0) xi[0] = 0; else if (xi[0] > n1 - 1) xi[0] = n1 - 1;
-            if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-            if (xi[2] < 0) xi[2] = 0; else if (xi[2] > n1 - 1) xi[2] = n1 - 1;
-            if (xi[3] < 0) xi[3] = 0; else if (xi[3] > n1 - 1) xi[3] = n1 - 1;
-            dx = (x - xi[1]);
-            double dx2 = dx*dx;
-            double dx3 = dx2*dx;
-            double omdx = 1 - dx;
-            double omdx2 = omdx*omdx;
-            double omdx3 = omdx2*omdx;
-            double opdx = 1 + dx;
-            double opdx2 = opdx*opdx;
-            double opdx3 = opdx2*opdx;
-            double dmdx = 2 - dx;
-            double dmdx2 = dmdx*dmdx;
-            double dmdx3 = dmdx2*dmdx;
-            double cx1 = ((g + 2) * dx3 - (g + 3) * dx2 + 1);
-            double cx2 = ((g + 2) * omdx3 - (g + 3) * omdx2 + 1);
-            double cx0 = (g * opdx3 - 5 * g * opdx2 + 8 * g * opdx - 4 * g);
-            double cx3 = (g * dmdx3 - 5 * g * dmdx2 + 8 * g * dmdx - 4 * g);
-
-            iy = floor(y);
-            yi[0] = iy - 1;
-            yi[1] = iy;
-            yi[2] = iy + 1;
-            yi[3] = iy + 2;
-            //make in range
-            if (yi[0] < 0) yi[0] = 0; else if (yi[0] > n2 - 1) yi[0] = n2 - 1;
-            if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-            if (yi[2] < 0) yi[2] = 0; else if (yi[2] > n2 - 1) yi[2] = n2 - 1;
-            if (yi[3] < 0) yi[3] = 0; else if (yi[3] > n2 - 1) yi[3] = n2 - 1;
-            dy = (y - yi[1]);
-            double dy2 = dy*dy;
-            double dy3 = dy2*dy;
-            double omdy = 1 - dy;
-            double omdy2 = omdy*omdy;
-            double omdy3 = omdy2*omdy;
-            double opdy = 1 + dy;
-            double opdy2 = opdy*opdy;
-            double opdy3 = opdy2*opdy;
-            double dmdy = 2 - dy;
-            double dmdy2 = dmdy*dmdy;
-            double dmdy3 = dmdy2*dmdy;
-            double cy1 = ((g + 2) * dy3 - (g + 3) * dy2 + 1);
-            double cy2 = ((g + 2) * omdy3 - (g + 3) * omdy2 + 1);
-            double cy0 = (g * opdy3 - 5 * g * opdy2 + 8 * g * opdy - 4 * g);
-            double cy3 = (g * dmdy3 - 5 * g * dmdy2 + 8 * g * dmdy - 4 * g);
-            double r0=cx1*array[yi[0] * n1 + xi[1]]+cx2*array[yi[0] * n1 + xi[2]]+cx0*array[yi[0] * n1 + xi[0]]+cx3*array[yi[0] * n1 + xi[3]];
-            double r1=cx1*array[yi[1] * n1 + xi[1]]+cx2*array[yi[1] * n1 + xi[2]]+cx0*array[yi[1] * n1 + xi[0]]+cx3*array[yi[1] * n1 + xi[3]];
-            double r2=cx1*array[yi[2] * n1 + xi[1]]+cx2*array[yi[2] * n1 + xi[2]]+cx0*array[yi[2] * n1 + xi[0]]+cx3*array[yi[2] * n1 + xi[3]];
-            double r3=cx1*array[yi[3] * n1 + xi[1]]+cx2*array[yi[3] * n1 + xi[2]]+cx0*array[yi[3] * n1 + xi[0]]+cx3*array[yi[3] * n1 + xi[3]];
-            res[k * nx + j] = cy1*r1+cy2*r2+cy0*r0+cy3*r3;
-          } else {
-            res[k * nx + j] = missing;
-          }
-        } else {
-          res[k * nx + j] = missing;
-        }
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx*ny))==1) {
+#include "snippets/interpolate_2d_cubic_use_missing_grid_single.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y) num_threads(GDL_NTHREADS) 
+#include "snippets/interpolate_2d_cubic_use_missing_grid_single.incpp"
     }
   } else { 
-#pragma omp parallel private(xi,yi,ix,iy,dx,dy,x,y) if (CpuTPOOL_NTHREADS> 1 && nx*ny >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny))
-    {
-#pragma omp for collapse(2)
-    for (SizeT k = 0; k < ny; ++k) {
-      for (SizeT j = 0; j < nx; ++j) { //nb output points
-        x = xx[j]; if (x<0)x=0; if(x>n1-1)x=n1-1;
-        ix = floor(x); //floor  ix is [0 .. n1[
-        xi[0] = ix - 1;
-        xi[1] = ix;
-        xi[2] = ix + 1;
-        xi[3] = ix + 2;
-        //make in range
-        if (xi[0] < 0) xi[0] = 0; else if (xi[0] > n1 -1 ) xi[0] = n1 - 1;
-        if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 -1 ) xi[1] = n1 - 1;
-        if (xi[2] < 0) xi[2] = 0; else if (xi[2] > n1 -1 ) xi[2] = n1 - 1;
-        if (xi[3] < 0) xi[3] = 0; else if (xi[3] > n1 -1 ) xi[3] = n1 - 1;
-        dx = (x - xi[1]);
-        double dx2 = dx*dx;
-        double dx3 = dx2*dx;
-        double omdx = 1 - dx;
-        double omdx2 = omdx*omdx;
-        double omdx3 = omdx2*omdx;
-        double opdx = 1 + dx;
-        double opdx2 = opdx*opdx;
-        double opdx3 = opdx2*opdx;
-        double dmdx = 2 - dx;
-        double dmdx2 = dmdx*dmdx;
-        double dmdx3 = dmdx2*dmdx;
-        double cx1 = ((g + 2) * dx3 - (g + 3) * dx2 + 1);
-        double cx2 = ((g + 2) * omdx3 - (g + 3) * omdx2 + 1);
-        double cx0 = (g * opdx3 - 5 * g * opdx2 + 8 * g * opdx - 4 * g);
-        double cx3 = (g * dmdx3 - 5 * g * dmdx2 + 8 * g * dmdx - 4 * g);
-
-        y = yy[k]; if (y<0)y=0; if(y>n2-1)y=n2-1;
-        iy = floor(y);
-        yi[0] = iy - 1;
-        yi[1] = iy;
-        yi[2] = iy + 1;
-        yi[3] = iy + 2;
-        //make in range
-        if (yi[0] < 0) yi[0] = 0; else if (yi[0] > n2-1 ) yi[0] = n2 - 1;
-        if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2-1 ) yi[1] = n2 - 1;
-        if (yi[2] < 0) yi[2] = 0; else if (yi[2] > n2-1 ) yi[2] = n2 - 1;
-        if (yi[3] < 0) yi[3] = 0; else if (yi[3] > n2-1 ) yi[3] = n2 - 1;
-        dy = (y - yi[1]);
-        double dy2 = dy*dy;
-        double dy3 = dy2*dy;
-        double omdy = 1 - dy;
-        double omdy2 = omdy*omdy;
-        double omdy3 = omdy2*omdy;
-        double opdy = 1 + dy;
-        double opdy2 = opdy*opdy;
-        double opdy3 = opdy2*opdy;
-        double dmdy = 2 - dy;
-        double dmdy2 = dmdy*dmdy;
-        double dmdy3 = dmdy2*dmdy;
-        double cy1 = ((g + 2) * dy3 - (g + 3) * dy2 + 1);
-        double cy2 = ((g + 2) * omdy3 - (g + 3) * omdy2 + 1);
-        double cy0 = (g * opdy3 - 5 * g * opdy2 + 8 * g * opdy - 4 * g);
-        double cy3 = (g * dmdy3 - 5 * g * dmdy2 + 8 * g * dmdy - 4 * g);
-        double r0 = cx1 * array[yi[0] * n1 + xi[1]] + cx2 * array[yi[0] * n1 + xi[2]] + cx0 * array[yi[0] * n1 + xi[0]] + cx3 * array[yi[0] * n1 + xi[3]];
-        double r1 = cx1 * array[yi[1] * n1 + xi[1]] + cx2 * array[yi[1] * n1 + xi[2]] + cx0 * array[yi[1] * n1 + xi[0]] + cx3 * array[yi[1] * n1 + xi[3]];
-        double r2 = cx1 * array[yi[2] * n1 + xi[1]] + cx2 * array[yi[2] * n1 + xi[2]] + cx0 * array[yi[2] * n1 + xi[0]] + cx3 * array[yi[2] * n1 + xi[3]];
-        double r3 = cx1 * array[yi[3] * n1 + xi[1]] + cx2 * array[yi[3] * n1 + xi[2]] + cx0 * array[yi[3] * n1 + xi[0]] + cx3 * array[yi[3] * n1 + xi[3]];
-        res[k * nx + j] = cy1 * r1 + cy2 * r2 + cy0 * r0 + cy3*r3;
-      }
-    }
+    if ((GDL_NTHREADS=parallelize( nx*ny))==1) {
+#include "snippets/interpolate_2d_cubic_grid_single.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) private(xi,yi,ix,iy,dx,dy,x,y) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_2d_cubic_grid_single.incpp"
   }
   }
 }
@@ -1528,121 +553,20 @@ void interpolate_3d_linear(T1* array, SizeT un1,  SizeT un2, SizeT un3, T2* xx, 
   ssize_t n3 = un3;
   ssize_t n1n2=n1*n2;
   if (use_missing) { 
-#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,x,y,z,umdx,umdy,umdz,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) if (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
-    {
-#pragma omp for
-      for (SizeT j = 0; j < n; ++j) { //nb output points
-        vres = &(res[ncontiguous * j ]);
-        x = xx[j];
-        if (x < 0) {
-          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-        } else if (x <= n1 - 1) {
-          y = yy[j];
-          if (y < 0) {
-            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-          } else if (y <= n2 - 1) {
-            z = zz[j];
-            if (z < 0) {
-              for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-            } else if (z <= n3 - 1) {
-              ix = floor(x);
-              xi[0] = ix;
-              xi[1] = ix + 1;
-              //make in range
-              if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-              dx = (x - xi[0]); umdx=1-dx;
-              
-              iy = floor(y);
-              yi[0] = iy;
-              yi[1] = iy + 1;
-              //make in range
-              if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-              dy = (y - yi[0]); umdy=1-dy;
-                
-              iz = floor(z);
-              zi[0] = iz;
-              zi[1] = iz + 1;
-              //make in range
-              if (zi[1] < 0) zi[1] = 0; else if (zi[1] > n3 - 1) zi[1] = n3 - 1;
-              dz = (z - zi[0]); umdz=1-dz;
-
-              vx0y0z0 = &( array[ncontiguous * ( zi[0] * n1n2 + yi[0] * n1 + xi[0])] );
-              vx1y0z0 = &( array[ncontiguous * ( zi[0] * n1n2 + yi[0] * n1 + xi[1])] );
-              vx0y1z0 = &( array[ncontiguous * ( zi[0] * n1n2 + yi[1] * n1 + xi[0])] );
-              vx1y1z0 = &( array[ncontiguous * ( zi[0] * n1n2 + yi[1] * n1 + xi[1])] );
-              vx0y0z1 = &( array[ncontiguous * ( zi[1] * n1n2 + yi[0] * n1 + xi[0])] );
-              vx1y0z1 = &( array[ncontiguous * ( zi[1] * n1n2 + yi[0] * n1 + xi[1])] );
-              vx0y1z1 = &( array[ncontiguous * ( zi[1] * n1n2 + yi[1] * n1 + xi[0])] );
-              vx1y1z1 = &( array[ncontiguous * ( zi[1] * n1n2 + yi[1] * n1 + xi[1])] );
-              for (SizeT i = 0; i < ncontiguous; ++i) {
-                double y0z0=umdx*vx0y0z0[i]+dx*vx1y0z0[i];
-                double y1z0=umdx*vx0y1z0[i]+dx*vx1y1z0[i];
-                double y0z1=umdx*vx0y0z1[i]+dx*vx1y0z1[i];
-                double y1z1=umdx*vx0y1z1[i]+dx*vx1y1z1[i];
-                double   z0=umdy*y0z0+dy*y1z0;
-                double   z1=umdy*y0z1+dy*y1z1;
-                vres[i] = umdz*z0+dz*z1; 
-              }
-            } else {
-              for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-            }
-          } else {
-            for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-          }
-        } else {
-          for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-        }
-      }
+    if ((GDL_NTHREADS=parallelize( n))==1) {
+#include "snippets/interpolate_3d_linear_use_missing.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(xi,yi,zi,ix,iy,iz,dx,dy,dz,x,y,z,umdx,umdy,umdz,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_3d_linear_use_missing.incpp"
     }
   } else {
-#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) if (CpuTPOOL_NTHREADS> 1 && n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= n))
-    {
-#pragma omp for
-      for (SizeT j = 0; j < n; ++j) { //nb output points
-        vres = &(res[ncontiguous * j ]);
-        x = xx[j]; if (x<0) x=0; if (x>n1-1) x=n1-1;
-        y = yy[j]; if (y<0) y=0; if (y>n2-1) y=n2-1;
-        z = zz[j]; if (z<0) z=0; if (z>n3-1) z=n3-1;
-
-        ix = floor(x); 
-        xi[0] = ix;
-        xi[1] = ix + 1;
-        //make in range
-        if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-        dx = (x - xi[0]); umdx=1-dx;
-
-        iy = floor(y);
-        yi[0] = iy;
-        yi[1] = iy + 1;
-        //make in range
-        if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-        dy = (y - yi[0]); umdy=1-dy;
-
-        iz = floor(z);
-        zi[0] = iz;
-        zi[1] = iz + 1;
-        //make in range
-        if (zi[1] < 0) zi[1] = 0; else if (zi[1] > n3 - 1) zi[1] = n3 - 1;
-        dz = (z - zi[0]); umdz=1-dz;
-
-        vx0y0z0 = &( array[ncontiguous * ( zi[0] * n1n2 + yi[0] * n1 + xi[0])] );
-        vx1y0z0 = &( array[ncontiguous * ( zi[0] * n1n2 + yi[0] * n1 + xi[1])] );
-        vx0y1z0 = &( array[ncontiguous * ( zi[0] * n1n2 + yi[1] * n1 + xi[0])] );
-        vx1y1z0 = &( array[ncontiguous * ( zi[0] * n1n2 + yi[1] * n1 + xi[1])] );
-        vx0y0z1 = &( array[ncontiguous * ( zi[1] * n1n2 + yi[0] * n1 + xi[0])] );
-        vx1y0z1 = &( array[ncontiguous * ( zi[1] * n1n2 + yi[0] * n1 + xi[1])] );
-        vx0y1z1 = &( array[ncontiguous * ( zi[1] * n1n2 + yi[1] * n1 + xi[0])] );
-        vx1y1z1 = &( array[ncontiguous * ( zi[1] * n1n2 + yi[1] * n1 + xi[1])] );
-        for (SizeT i = 0; i < ncontiguous; ++i) {
-          double y0z0=umdx*vx0y0z0[i]+dx*vx1y0z0[i];
-          double y1z0=umdx*vx0y1z0[i]+dx*vx1y1z0[i];
-          double y0z1=umdx*vx0y0z1[i]+dx*vx1y0z1[i];
-          double y1z1=umdx*vx0y1z1[i]+dx*vx1y1z1[i];
-          double   z0=umdy*y0z0+dy*y1z0;
-          double   z1=umdy*y0z1+dy*y1z1;
-          vres[i] = umdz*z0+dz*z1; 
-        }
-      }
+    if ((GDL_NTHREADS=parallelize( n))==1) {
+#include "snippets/interpolate_3d_linear.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_3d_linear.incpp"
     }
   }
 }
@@ -1662,137 +586,20 @@ void interpolate_3d_linear_grid(T1* array, SizeT un1, SizeT un2, SizeT un3, T2* 
   ssize_t n3 = un3;
   ssize_t n1n2 = n1*n2;
   if (use_missing) {
-#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) if (CpuTPOOL_NTHREADS> 1 && nx*ny*nz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny*nz))
-    {
-#pragma omp for collapse(3)
-      for (SizeT l = 0; l < nz; ++l) {
-        for (SizeT k = 0; k < ny; ++k) {
-          for (SizeT j = 0; j < nx; ++j) { //nb output points
-            vres = &(res[ncontiguous * ( l*nx*ny + k * nx + j) ]);
-            x = xx[j];
-            if (x < 0) {
-              for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-            } else if (x <= n1 - 1) {
-              y = yy[k];
-              if (y < 0) {
-                for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-              } else if (y <= n2 - 1) {
-                z = zz[l];
-                if (z < 0) {
-                  for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-                } else if (z <= n3 - 1) {
-                  ix = floor(x);
-                  xi[0] = ix;
-                  xi[1] = ix + 1;
-                  //make in range
-                  if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-                  dx = (x - xi[0]);
-                  umdx = 1 - dx;
-
-                  iy = floor(y);
-                  yi[0] = iy;
-                  yi[1] = iy + 1;
-                  //make in range
-                  if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-                  dy = (y - yi[0]);
-                  umdy = 1 - dy;
-
-                  iz = floor(z);
-                  zi[0] = iz;
-                  zi[1] = iz + 1;
-                  //make in range
-                  if (zi[1] < 0) zi[1] = 0; else if (zi[1] > n3 - 1) zi[1] = n3 - 1;
-                  dz = (z - zi[0]);
-                  umdz = 1 - dz;
-
-                  vx0y0z0 = &(array[ncontiguous * (zi[0] * n1n2 + yi[0] * n1 + xi[0])]);
-                  vx1y0z0 = &(array[ncontiguous * (zi[0] * n1n2 + yi[0] * n1 + xi[1])]);
-                  vx0y1z0 = &(array[ncontiguous * (zi[0] * n1n2 + yi[1] * n1 + xi[0])]);
-                  vx1y1z0 = &(array[ncontiguous * (zi[0] * n1n2 + yi[1] * n1 + xi[1])]);
-                  vx0y0z1 = &(array[ncontiguous * (zi[1] * n1n2 + yi[0] * n1 + xi[0])]);
-                  vx1y0z1 = &(array[ncontiguous * (zi[1] * n1n2 + yi[0] * n1 + xi[1])]);
-                  vx0y1z1 = &(array[ncontiguous * (zi[1] * n1n2 + yi[1] * n1 + xi[0])]);
-                  vx1y1z1 = &(array[ncontiguous * (zi[1] * n1n2 + yi[1] * n1 + xi[1])]);
-                  for (SizeT i = 0; i < ncontiguous; ++i) {
-                    double y0z0 = umdx * vx0y0z0[i] + dx * vx1y0z0[i];
-                    double y1z0 = umdx * vx0y1z0[i] + dx * vx1y1z0[i];
-                    double y0z1 = umdx * vx0y0z1[i] + dx * vx1y0z1[i];
-                    double y1z1 = umdx * vx0y1z1[i] + dx * vx1y1z1[i];
-                    double z0 = umdy * y0z0 + dy*y1z0;
-                    double z1 = umdy * y0z1 + dy*y1z1;
-                    vres[i] = umdz * z0 + dz*z1;
-                  }
-                } else {
-                  for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-                }
-              } else {
-                for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-              }
-            } else {
-              for (SizeT i = 0; i < ncontiguous; ++i) vres[i] = missing;
-            }
-          }
-        }
-      }
+    if ((GDL_NTHREADS=parallelize( nx*ny*nz))==1) {
+#include "snippets/interpolate_3d_linear_grid_use_missing.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(3) private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) num_threads(GDL_NTHREADS) 
+#include "snippets/interpolate_3d_linear_grid_use_missing.incpp"
     }
   } else {
-#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) if (CpuTPOOL_NTHREADS> 1 && nx*ny*nz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny*nz))
-    {
-#pragma omp for collapse(2)   //2 is a good compromise as some values (yi and zi) are not computed nx times. 
-      for (SizeT l = 0; l < nz; ++l) {
-        for (SizeT k = 0; k < ny; ++k) {
-          z = zz[l];
-          if (z < 0) z = 0; if (z > n3 - 1) z = n3 - 1;
-          iz = floor(z);
-          zi[0] = iz;
-          zi[1] = iz + 1;
-          //make in range
-          if (zi[1] < 0) zi[1] = 0; else if (zi[1] > n3 - 1) zi[1] = n3 - 1;
-          dz = (z - zi[0]);
-          umdz = 1 - dz;
-
-          y = yy[k];
-          if (y < 0) y = 0; if (y > n2 - 1) y = n2 - 1;
-          iy = floor(y);
-          yi[0] = iy;
-          yi[1] = iy + 1;
-          //make in range
-          if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-          dy = (y - yi[0]);
-          umdy = 1 - dy;
-
-          for (SizeT j = 0; j < nx; ++j) { //nb output points
-            vres = &(res[ncontiguous * ( l*nx*ny + k * nx + j) ]);
-            x = xx[j];
-            if (x < 0) x = 0; if (x > n1 - 1) x = n1 - 1;
-            ix = floor(x);
-            xi[0] = ix;
-            xi[1] = ix + 1;
-            //make in range
-            if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-            dx = (x - xi[0]);
-            umdx = 1 - dx;
-
-            vx0y0z0 = &(array[ncontiguous * (zi[0] * n1n2 + yi[0] * n1 + xi[0])]);
-            vx1y0z0 = &(array[ncontiguous * (zi[0] * n1n2 + yi[0] * n1 + xi[1])]);
-            vx0y1z0 = &(array[ncontiguous * (zi[0] * n1n2 + yi[1] * n1 + xi[0])]);
-            vx1y1z0 = &(array[ncontiguous * (zi[0] * n1n2 + yi[1] * n1 + xi[1])]);
-            vx0y0z1 = &(array[ncontiguous * (zi[1] * n1n2 + yi[0] * n1 + xi[0])]);
-            vx1y0z1 = &(array[ncontiguous * (zi[1] * n1n2 + yi[0] * n1 + xi[1])]);
-            vx0y1z1 = &(array[ncontiguous * (zi[1] * n1n2 + yi[1] * n1 + xi[0])]);
-            vx1y1z1 = &(array[ncontiguous * (zi[1] * n1n2 + yi[1] * n1 + xi[1])]);
-            for (SizeT i = 0; i < ncontiguous; ++i) {
-              double y0z0 = umdx * vx0y0z0[i] + dx * vx1y0z0[i];
-              double y1z0 = umdx * vx0y1z0[i] + dx * vx1y1z0[i];
-              double y0z1 = umdx * vx0y0z1[i] + dx * vx1y0z1[i];
-              double y1z1 = umdx * vx0y1z1[i] + dx * vx1y1z1[i];
-              double z0 = umdy * y0z0 + dy*y1z0;
-              double z1 = umdy * y0z1 + dy*y1z1;
-              vres[i] = umdz * z0 + dz*z1;
-            }
-          }
-        }
-      }
+    if ((GDL_NTHREADS=parallelize( nx*ny*nz))==1) {
+#include "snippets/interpolate_3d_linear_grid.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z,vx0y0z0,vx1y0z0,vx0y1z0,vx1y1z0,vx0y0z1,vx1y0z1,vx0y1z1,vx1y1z1,vres) num_threads(GDL_NTHREADS) //2 is a good compromise as some values (yi and zi) are not computed nx times. 
+#include "snippets/interpolate_3d_linear_grid.incpp"
     }
   }
 }
@@ -1811,114 +618,20 @@ void interpolate_3d_linear_grid_single(T1* array, SizeT un1, SizeT un2, SizeT un
   ssize_t n3 = un3;
   ssize_t n1n2 = n1*n2;
   if (use_missing) {
-#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z) if (CpuTPOOL_NTHREADS> 1 && nx*ny*nz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny*nz))
-    {
-#pragma omp for collapse(3)
-      for (SizeT l = 0; l < nz; ++l) {
-        for (SizeT k = 0; k < ny; ++k) {
-          for (SizeT j = 0; j < nx; ++j) { //nb output points
-            x = xx[j];
-            if (x < 0) {
-              res[l*nx*ny + k * nx + j ] = missing;
-            } else if (x <= n1 - 1) {
-              y = yy[k];
-              if (y < 0) {
-                res[l*nx*ny + k * nx + j ] = missing;
-              } else if (y <= n2 - 1) {
-                z = zz[l];
-                if (z < 0) {
-                  res[l*nx*ny + k * nx + j ] = missing;
-                } else if (z <= n3 - 1) {
-                  ix = floor(x);
-                  xi[0] = ix;
-                  xi[1] = ix + 1;
-                  //make in range
-                  if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-                  dx = (x - xi[0]);
-                  umdx = 1 - dx;
-
-                  iy = floor(y);
-                  yi[0] = iy;
-                  yi[1] = iy + 1;
-                  //make in range
-                  if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-                  dy = (y - yi[0]);
-                  umdy = 1 - dy;
-
-                  iz = floor(z);
-                  zi[0] = iz;
-                  zi[1] = iz + 1;
-                  //make in range
-                  if (zi[1] < 0) zi[1] = 0; else if (zi[1] > n3 - 1) zi[1] = n3 - 1;
-                  dz = (z - zi[0]);
-                  umdz = 1 - dz;
-                  double y0z0 = umdx * array[zi[0] * n1n2 + yi[0] * n1 + xi[0]] + dx * array[zi[0] * n1n2 + yi[0] * n1 + xi[1]];
-                  double y1z0 = umdx * array[zi[0] * n1n2 + yi[1] * n1 + xi[0]] + dx * array[zi[0] * n1n2 + yi[1] * n1 + xi[1]];
-                  double y0z1 = umdx * array[zi[1] * n1n2 + yi[0] * n1 + xi[0]] + dx * array[zi[1] * n1n2 + yi[0] * n1 + xi[1]];
-                  double y1z1 = umdx * array[zi[1] * n1n2 + yi[1] * n1 + xi[0]] + dx * array[zi[1] * n1n2 + yi[1] * n1 + xi[1]];
-                  double z0 = umdy * y0z0 + dy*y1z0;
-                  double z1 = umdy * y0z1 + dy*y1z1;
-                  res[l*nx*ny + k * nx + j ] = umdz * z0 + dz*z1;
-                } else {
-                  res[l*nx*ny + k * nx + j ] = missing;
-                }
-              } else {
-                res[l*nx*ny + k * nx + j ] = missing;
-              }
-            } else {
-              res[l*nx*ny + k * nx + j ] = missing;
-            }
-          }
-        }
-      }
+    if ((GDL_NTHREADS=parallelize( nx*ny*nz))==1) {
+#include "snippets/interpolate_3d_linear_grid_use_missing_single.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(3) private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z) num_threads(GDL_NTHREADS) 
+#include "snippets/interpolate_3d_linear_grid_use_missing_single.incpp"
     }
   } else {
-#pragma omp parallel private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z) if (CpuTPOOL_NTHREADS> 1 && nx*ny*nz >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nx*ny*nz))
-    {
-#pragma omp for collapse(2)   //2 is a good compromise as some values (yi and zi) are not computed nx times. 
-      for (SizeT l = 0; l < nz; ++l) {
-        for (SizeT k = 0; k < ny; ++k) {
-          z = zz[l];
-          if (z < 0) z = 0; if (z > n3 - 1) z = n3 - 1;
-          iz = floor(z);
-          zi[0] = iz;
-          zi[1] = iz + 1;
-          //make in range
-          if (zi[1] < 0) zi[1] = 0; else if (zi[1] > n3 - 1) zi[1] = n3 - 1;
-          dz = (z - zi[0]);
-          umdz = 1 - dz;
-
-          y = yy[k];
-          if (y < 0) y = 0; if (y > n2 - 1) y = n2 - 1;
-          iy = floor(y);
-          yi[0] = iy;
-          yi[1] = iy + 1;
-          //make in range
-          if (yi[1] < 0) yi[1] = 0; else if (yi[1] > n2 - 1) yi[1] = n2 - 1;
-          dy = (y - yi[0]);
-          umdy = 1 - dy;
-
-          for (SizeT j = 0; j < nx; ++j) { //nb output points
-            x = xx[j];
-            if (x < 0) x = 0; if (x > n1 - 1) x = n1 - 1;
-            ix = floor(x);
-            xi[0] = ix;
-            xi[1] = ix + 1;
-            //make in range
-            if (xi[1] < 0) xi[1] = 0; else if (xi[1] > n1 - 1) xi[1] = n1 - 1;
-            dx = (x - xi[0]);
-            umdx = 1 - dx;
-
-            double y0z0 = umdx * array[zi[0] * n1n2 + yi[0] * n1 + xi[0]] + dx * array[zi[0] * n1n2 + yi[0] * n1 + xi[1]];
-            double y1z0 = umdx * array[zi[0] * n1n2 + yi[1] * n1 + xi[0]] + dx * array[zi[0] * n1n2 + yi[1] * n1 + xi[1]];
-            double y0z1 = umdx * array[zi[1] * n1n2 + yi[0] * n1 + xi[0]] + dx * array[zi[1] * n1n2 + yi[0] * n1 + xi[1]];
-            double y1z1 = umdx * array[zi[1] * n1n2 + yi[1] * n1 + xi[0]] + dx * array[zi[1] * n1n2 + yi[1] * n1 + xi[1]];
-            double z0 = umdy * y0z0 + dy*y1z0;
-            double z1 = umdy * y0z1 + dy*y1z1;
-            res[l*nx*ny + k * nx + j ] = umdz * z0 + dz*z1;
-          }
-        }
-      }
+    if ((GDL_NTHREADS=parallelize( nx*ny*nz))==1) {
+#include "snippets/interpolate_3d_linear_grid_single.incpp"
+  } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for collapse(2) private(xi,yi,zi,ix,iy,iz,dx,dy,dz,umdx,umdy,umdz,x,y,z) num_threads(GDL_NTHREADS)
+#include "snippets/interpolate_3d_linear_grid_single.incpp"
     }
   }
 }
@@ -1927,8 +640,7 @@ namespace lib {
 
   BaseGDL* interpolate_fun(EnvT* e) {
 
-    SizeT nParam = e->NParam();
-    if (nParam < 2) e->Throw("Incorrect number of arguments.");
+    SizeT nParam = e->NParam(2);
 
     // options
     static int cubicIx = e->KeywordIx("CUBIC");

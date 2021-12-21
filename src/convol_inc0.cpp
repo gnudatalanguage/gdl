@@ -19,8 +19,8 @@ edgemode = 0 (skip)
 // to be included from convol.cpp
 // NOTE: All the unreadble #ifdef below are there to avoid IF constructs which results in much faster code when optimization is on.
 #ifdef INCLUDE_CONVOL_INC_CPP
-
 // for all result elements
+TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel num_threads(nchunk) firstprivate(scale,bias) shared(ker,kIxArr,res,aInitIxRef,regArrRef,nchunk,chunksize,aBeg,aEnd,nDim,aBeg0,aStride,ddP,invalidValue,kDim0,kDim0_nDim,nKel,missingValue,aEnd0,dim0,nA,absker,biasker) //default(none)
   {
 #pragma omp for

@@ -431,7 +431,7 @@ int main(int argc, char *argv[])
   InitGDL(); 
 
   // must be after !cpu initialisation
-  InitOpenMP();
+  InitOpenMP(); //will supersede values for CpuTPOOL_NTHREADS
 
   if (gdlde || (isatty(0) && !quiet)) StartupMessage();
 

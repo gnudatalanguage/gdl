@@ -1448,8 +1448,14 @@ template <typename T, typename IndexT>
      // same with parallelism
     DLong Left[2] = {left, i};
     DLong Right[2] = {j, right};
-#pragma omp parallel for num_threads(2) if (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1)
+    bool do_parallel = (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1);
+    if (!do_parallel) {
     for (int i = 0; i < 2; i++) QuickSortIndex(val, index, Left[i], Right[i]);
+    } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(2)
+    for (int i = 0; i < 2; i++) QuickSortIndex(val, index, Left[i], Right[i]);
+    }
 }
 
   
@@ -1486,9 +1492,14 @@ template <typename T, typename IndexT>
     SizeT mid = low + (high - low) / 2;
     SizeT Left[2] = {low, mid + 1};
     SizeT Right[2] = {mid, high};
-#pragma omp parallel for num_threads(2) if (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1)
+    bool do_parallel = (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1);
+    if (!do_parallel) {
     for (int i = 0; i < 2; i++) MergeSortIndexAux(index, aux, Left[i], Right[i], val);
-
+    } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(2)
+    for (int i = 0; i < 2; i++) MergeSortIndexAux(index, aux, Left[i], Right[i], val);
+    }
     // If arrays are already sorted, finished.  This is an
     // optimization that results in faster sorts for nearly ordered lists.
     if (val[aux[mid + 1]] >= val[aux[mid]]) {
@@ -1542,9 +1553,14 @@ template <typename T, typename IndexT>
     SizeT mid = low + (high - low) / 2;
     SizeT Left[2] = {low, mid + 1};
     SizeT Right[2] = {mid, high};
-#pragma omp parallel for num_threads(2) if (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1)
+    bool do_parallel = (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1);
+    if (!do_parallel) {
     for (int i = 0; i < 2; i++) AdaptiveSortIndexAux(index, aux, Left[i], Right[i], val);
-
+    } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(2)
+    for (int i = 0; i < 2; i++) AdaptiveSortIndexAux(index, aux, Left[i], Right[i], val);
+    }
     // If arrays are already sorted, finished.  This is an
     // optimization that results in faster sorts for nearly ordered lists. No need to care about NaNs
     if (val[aux[mid + 1]] >= val[aux[mid]]) {
@@ -1587,9 +1603,14 @@ template <typename T, typename IndexT>
     SizeT mid = low + (high - low) / 2;
     SizeT Left[2] = {low, mid + 1};
     SizeT Right[2] = {mid, high};
-#pragma omp parallel for num_threads(2) if (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1)
+    bool do_parallel = (length >= MERGESORT_PARALLEL_THRESHOLD && CpuTPOOL_NTHREADS > 1);
+    if (!do_parallel) {
     for (int i = 0; i < 2; i++) AdaptiveSortIndexAuxWithNaN(index, aux, Left[i], Right[i], val);
-
+    } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(2)
+    for (int i = 0; i < 2; i++) AdaptiveSortIndexAuxWithNaN(index, aux, Left[i], Right[i], val);
+    }
     // If arrays are already sorted, finished.  This is an
     // optimization that results in faster sorts for nearly ordered lists.
     if (geq(val[aux[mid + 1]] ,val[aux[mid]])) {

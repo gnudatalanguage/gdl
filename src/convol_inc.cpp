@@ -223,21 +223,36 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   {
     doNan = false;
     doInvalid=false;
-#pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nA))
-    {
-#pragma omp for
-    for( OMPInt i=0; i<nA; ++i)  {
-        if (!gdlValid(ddP[i])) {doNan=true;}
-        if (ddP[i] == invalidValue) {doInvalid=true;}
+    if ((GDL_NTHREADS=parallelize( nA))==1) {
+      for (SizeT i = 0; i < nA; ++i) {
+        if (!gdlValid(ddP[i])) {
+          doNan = true;
+        }
+        if (ddP[i] == invalidValue) {
+          doInvalid = true;
+        }
+      }      
+    } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+        for (OMPInt i = 0; i < nA; ++i) {
+        if (!gdlValid(ddP[i])) {
+          doNan = true;
+        }
+        if (ddP[i] == invalidValue) {
+          doInvalid = true;
+        }
       }
     }
   }
   else if(doNan)
   {
     doNan = false;
-#pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nA))
-    {
-#pragma omp for
+    if ((GDL_NTHREADS=parallelize( nA))==1) {
+    for(SizeT i=0; i<nA; ++i)  if (!gdlValid(ddP[i])) {doNan=true;}
+    } else {
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
     for( OMPInt i=0; i<nA; ++i)  if (!gdlValid(ddP[i])) {doNan=true;}
     }
   }
@@ -245,9 +260,10 @@ BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
   else if(doInvalid)
   {
     doInvalid=false;
-#pragma omp parallel if (nA >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nA))
-    {
-#pragma omp for
+    if ((GDL_NTHREADS=parallelize( nA))==1) {
+    for(SizeT i=0; i<nA; ++i)  if (ddP[i] == invalidValue) {doInvalid=true;}
+    } else {
+#pragma omp parallel for num_threads(GDL_NTHREADS)
     for( OMPInt i=0; i<nA; ++i)  if (ddP[i] == invalidValue) {doInvalid=true;}
     }
   }
@@ -272,14 +288,13 @@ static bool* regArrRef[33];
 // historical version, slow but true and tested (well, a few bugs were cured along with this version). 
   long chunksize=nA;
   long nchunk=1;
-  if (nA > 1000) { //no use start parallel threading for small numbers.
-    chunksize=nA/((CpuTPOOL_NTHREADS>32)?32:CpuTPOOL_NTHREADS);
-    long n_dim0=chunksize/dim0; chunksize=dim0*n_dim0; //ensures chunksize integer number of dim0.
-    if (chunksize>0) {
-      nchunk=nA/chunksize;
-      if (chunksize*nchunk < nA) ++nchunk;
-    } else {nchunk=1; chunksize=nA;}
-  }
+  GDL_NTHREADS=parallelize( nA, TP_MEMORY_ACCESS);
+  chunksize=nA/((GDL_NTHREADS>32)?32:GDL_NTHREADS);
+  long n_dim0=chunksize/dim0; chunksize=dim0*n_dim0; //ensures chunksize integer number of dim0.
+  if (chunksize>0) {
+    nchunk=nA/chunksize;
+    if (chunksize*nchunk < nA) ++nchunk;
+  } else {nchunk=1; chunksize=nA;}
 // build a nchunk times copy of the master offset table (accelerator). Each thread will use its own copy, properly initialized.
 // GD: could the offset accelerator be made easier? This would certainly simplify the code.
   long  aInitIxT[ MAXRANK+1]; //T for template

@@ -285,7 +285,7 @@ namespace lib
                 auto scanSize = TIFFScanlineSize(tiff_);
 
                 if(!(buffer = static_cast<char*>(_TIFFmalloc(scanSize)))) {
-                    fprintf(stderr, "Could not allocate %lu bytes for TIFF scanline buffer\n", scanSize);
+                    fprintf(stderr, "Could not allocate %lld bytes for TIFF scanline buffer\n", scanSize);
                     goto error;
                 }
 
@@ -303,7 +303,7 @@ namespace lib
                 auto tileSize = TIFFTileSize(tiff_);
 
                 if(!(buffer = static_cast<char*>(_TIFFmalloc(tileSize)))) {
-                    fprintf(stderr, "Could not allocate %lu bytes for TIFF tile buffer\n", tileSize);
+                    fprintf(stderr, "Could not allocate %lld bytes for TIFF tile buffer\n", tileSize);
                     goto error;
                 }
 

@@ -1,0 +1,11 @@
+    for (SizeT j = 0; j < nx; ++j) {
+      x = xx[j];
+      if (x < 0) {
+        res[j] = array[0];
+      } else if (x < n1 - 1) {
+        ix = floor(x); //floor  ix is [0 .. n1[
+        res[j] = array[ix];
+      } else {
+        res[j] = array[n1 - 1];
+      }
+    }

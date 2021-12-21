@@ -347,8 +347,7 @@ const gdl_interpol_type* gdl_interpol_cspline = &cspline_type;
 namespace lib {
   
   BaseGDL* interpol_fun(EnvT* e){
-    SizeT nParam = e->NParam();
-    if (nParam < 2 || nParam > 3) e->Throw("Incorrect number of arguments.");
+    SizeT nParam = e->NParam(2);
 
     const gdl_interpol_type* interpol=gdl_interpol_linear;
     // options

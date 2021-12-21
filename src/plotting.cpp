@@ -445,14 +445,14 @@ namespace lib
 
     if ( xML+xMR>=1.0 )
     {
-      Message("XMARGIN to large (adjusted).");
+//      Message("XMARGIN to large (adjusted).");
       PLFLT xMMult=xML+xMR;
       xML/=xMMult*1.5;
       xMR/=xMMult*1.5;
     }
     if ( yMB+yMT>=1.0 )
     {
-      Message("YMARGIN to large (adjusted).");
+//      Message("YMARGIN to large (adjusted).");
       PLFLT yMMult=yMB+yMT;
       yMB/=yMMult*1.5;
       yMT/=yMMult*1.5;
@@ -1641,8 +1641,7 @@ namespace lib
     DFloat thethick;
     DLong thecolor;
     DFloat *x, *y;
-    SizeT nParam=e->NParam();
-    if (nParam==0) e->Throw("Incorrect number of arguments.");
+    SizeT nParam=e->NParam(1);
     if ( nParam==1 )
     {
       BaseGDL* p0=e->GetNumericArrayParDefined(0)->Transpose(NULL); //hence [49,2]
@@ -1731,14 +1730,19 @@ void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map,
     DLongGDL *gons, *lines;
     if (!isRadians) {
     SizeT nin = lons->N_Elements( );
-#pragma omp parallel if (nin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nin))
-      {
-#pragma omp for
+    if ((GDL_NTHREADS=parallelize( nin, TP_MEMORY_ACCESS))==1) {
+        for (OMPInt in = 0; in < nin; in++) { //pass in radians for gdlProjForward
+          (*lons)[in] *= DEG_TO_RAD;
+          (*lats)[in] *= DEG_TO_RAD;
+        }      
+    } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for ( OMPInt in = 0; in < nin; in++ ) { //pass in radians for gdlProjForward
           (*lons)[in] *= DEG_TO_RAD;
           (*lats)[in] *= DEG_TO_RAD;
         }
-      }
+    }
     }
     DDoubleGDL *res = gdlProjForward( ref, localMap, lons, lats, conn, doConn, gons, doFill, lines, !doFill, false );
     SizeT nout = res->N_Elements( ) / 2;
