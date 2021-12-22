@@ -305,14 +305,30 @@ template<> BaseGDL* Data_<SpDInt>::Convert2(DType destTy, BaseGDL::Convert2Mode 
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         DO_CONVERT_END
   case GDL_STRING:
-  {
-    Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
-    TRACEOMP(__FILE__,__LINE__)
+    {
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
+      if ((GDL_NTHREADS = parallelize(nEl, TP_ARRAY_INITIALISATION)) == 1) {
+        for (SizeT i = 0; i < nEl; ++i) {
+          char* buf = new char(8);
+          sprintf(buf, "%8i", (*this)[i]);
+          (*dest)[i] = std::string(buf);
+          //        (*dest)[i] = i2s((*this)[i], 8);
+        }
+        if ((mode & BaseGDL::CONVERT) != 0) delete this;
+        return dest;
+      } else {
+        TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-    for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 8);
-    if ((mode & BaseGDL::CONVERT) != 0) delete this;
-    return dest;
-  }
+          for (SizeT i = 0; i < nEl; ++i) {
+          char* buf = new char(8);
+          sprintf(buf, "%8i", (*this)[i]);
+          (*dest)[i] = std::string(buf);
+          //        (*dest)[i] = i2s((*this)[i], 8);
+        }
+        if ((mode & BaseGDL::CONVERT) != 0) delete this;
+        return dest;
+      }
+    }
   case GDL_PTR:
   case GDL_OBJ:
   case GDL_STRUCT:
@@ -385,14 +401,31 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2( DType destTy, BaseGDL::Convert2Mod
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         DO_CONVERT_END
   case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
-  {
-    Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
-    TRACEOMP(__FILE__,__LINE__)
+    {
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
+      if ((GDL_NTHREADS = parallelize(nEl, TP_ARRAY_INITIALISATION)) == 1) {
+        for (SizeT i = 0; i < nEl; ++i) {
+          char* buf = new char(8);
+          sprintf(buf, "%8i", (*this)[i]);
+          (*dest)[i] = std::string(buf);
+          //        (*dest)[i] = i2s((*this)[i], 8);
+        }
+        if ((mode & BaseGDL::CONVERT) != 0) delete this;
+        return dest;
+      } else {
+        TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-    for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 8);
-    if ((mode & BaseGDL::CONVERT) != 0) delete this;
-    return dest;
-  }
+          for (SizeT i = 0; i < nEl; ++i) {
+          char* buf = new char(8);
+          sprintf(buf, "%8i", (*this)[i]);
+          (*dest)[i] = std::string(buf);
+          //        (*dest)[i] = i2s((*this)[i], 8);
+        }
+        if ((mode & BaseGDL::CONVERT) != 0) delete this;
+        return dest;
+      }
+    }
+
     case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
@@ -469,14 +502,30 @@ TRACE_CONVERT2
           DO_CONVERT_END
     case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
     {
-      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
-      TRACEOMP(__FILE__,__LINE__)
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
+      if ((GDL_NTHREADS = parallelize(nEl, TP_ARRAY_INITIALISATION)) == 1) {
+        for (SizeT i = 0; i < nEl; ++i) {
+          char* buf = new char(12);
+          sprintf(buf, "%12i", (*this)[i]);
+          (*dest)[i] = std::string(buf);
+          //        (*dest)[i] = i2s((*this)[i], 12);
+        }
+        if ((mode & BaseGDL::CONVERT) != 0) delete this;
+        return dest;
+      } else {
+        TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-      for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 12);
-      if ((mode & BaseGDL::CONVERT) != 0) delete this;
-      return dest;
+          for (SizeT i = 0; i < nEl; ++i) {
+          char* buf = new char(12);
+          sprintf(buf, "%12i", (*this)[i]);
+          (*dest)[i] = std::string(buf);
+          //        (*dest)[i] = i2s((*this)[i], 12);
+        }
+        if ((mode & BaseGDL::CONVERT) != 0) delete this;
+        return dest;
+      }
     }
-    case GDL_PTR:
+   case GDL_PTR:
     case GDL_OBJ:
     case GDL_STRUCT:
     case GDL_UNDEF: 
@@ -551,14 +600,30 @@ TRACE_CONVERT2
 	TRACEOMP(__FILE__,__LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
           DO_CONVERT_END
-    case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+    case GDL_STRING: 
     {
-      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
-      TRACEOMP(__FILE__,__LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-      for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 12);
-      if ((mode & BaseGDL::CONVERT) != 0) delete this;
-      return dest;
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
+if((GDL_NTHREADS=parallelize(nEl,  TP_ARRAY_INITIALISATION))==1) {
+        for (SizeT i = 0; i < nEl; ++i) { 
+          char* buf=new char(12);
+          sprintf(buf,"%12i",(*this)[i]);
+           (*dest)[i] = std::string(buf);
+  //        (*dest)[i] = i2s((*this)[i], 12);
+        }
+        if ((mode & BaseGDL::CONVERT) != 0) delete this;
+        return dest;
+} else {
+    TRACEOMP(__FILE__,__LINE__)
+  #pragma omp parallel for num_threads(GDL_NTHREADS)
+        for (SizeT i = 0; i < nEl; ++i) { 
+          char* buf=new char(12);
+          sprintf(buf,"%12i",(*this)[i]);
+           (*dest)[i] = std::string(buf);
+  //        (*dest)[i] = i2s((*this)[i], 12);
+        }
+        if ((mode & BaseGDL::CONVERT) != 0) delete this;
+        return dest;
+      }
     }
     case GDL_PTR:
     case GDL_OBJ:
@@ -1289,12 +1354,28 @@ TRACE_CONVERT2
           DO_CONVERT_END
     case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
     {
-      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
-      TRACEOMP(__FILE__,__LINE__)
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
+      if ((GDL_NTHREADS = parallelize(nEl, TP_ARRAY_INITIALISATION)) == 1) {
+        for (SizeT i = 0; i < nEl; ++i) {
+          char* buf = new char(22);
+          sprintf(buf, "%22i", (*this)[i]);
+          (*dest)[i] = std::string(buf);
+          //        (*dest)[i] = i2s((*this)[i], 22);
+        }
+        if ((mode & BaseGDL::CONVERT) != 0) delete this;
+        return dest;
+      } else {
+        TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-      for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 22);
-      if ((mode & BaseGDL::CONVERT) != 0) delete this;
-      return dest;
+          for (SizeT i = 0; i < nEl; ++i) {
+          char* buf = new char(22);
+          sprintf(buf, "%22i", (*this)[i]);
+          (*dest)[i] = std::string(buf);
+          //        (*dest)[i] = i2s((*this)[i], 22);
+        }
+        if ((mode & BaseGDL::CONVERT) != 0) delete this;
+        return dest;
+      }
     }
     case GDL_PTR:
     case GDL_OBJ:
@@ -1373,12 +1454,28 @@ TRACE_CONVERT2
           DO_CONVERT_END
     case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
     {
-      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
-      TRACEOMP(__FILE__,__LINE__)
+      Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
+      if ((GDL_NTHREADS = parallelize(nEl, TP_ARRAY_INITIALISATION)) == 1) {
+        for (SizeT i = 0; i < nEl; ++i) {
+          char* buf = new char(22);
+          sprintf(buf, "%22i", (*this)[i]);
+          (*dest)[i] = std::string(buf);
+          //        (*dest)[i] = i2s((*this)[i], 22);
+        }
+        if ((mode & BaseGDL::CONVERT) != 0) delete this;
+        return dest;
+      } else {
+        TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-      for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = i2s((*this)[i], 22);
-      if ((mode & BaseGDL::CONVERT) != 0) delete this;
-      return dest;
+          for (SizeT i = 0; i < nEl; ++i) {
+          char* buf = new char(22);
+          sprintf(buf, "%22i", (*this)[i]);
+          (*dest)[i] = std::string(buf);
+          //        (*dest)[i] = i2s((*this)[i], 22);
+        }
+        if ((mode & BaseGDL::CONVERT) != 0) delete this;
+        return dest;
+      }
     }
     case GDL_PTR:
     case GDL_OBJ:

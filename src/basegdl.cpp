@@ -836,7 +836,7 @@ void GDLDelete( BaseGDL* toDelete)
   if( toDelete != NullGDL::GetSingleInstance())
     delete toDelete;
 }
-int GDL_NTHREADS;
+int GDL_NTHREADS=1;
 
 int parallelize(SizeT n, int modifier) {
 //below, please modify if you find a way to persuade behaviour of those different cases to be better if they return different number of threads.

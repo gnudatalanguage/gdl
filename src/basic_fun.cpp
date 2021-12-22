@@ -1021,8 +1021,17 @@ namespace lib {
 
     e->AssureDoubleScalarKWIfPresent("START", off);
     e->AssureDoubleScalarKWIfPresent("INCREMENT", inc);
-    DULongGDL* iGen = new DULongGDL(dim, BaseGDL::INDGEN, off, inc);
-    return iGen->Convert2(GDL_STRING);
+    // size of string is 12 if result can be of type DLong, 22 if DLong64
+    DLong64 max=off+dim.NDimElementsConst()*inc;
+    DLong64 min=off;
+    if (max < min) { min=max; max=off;}
+    if (min < std::numeric_limits<DLong>::min() || max > std::numeric_limits<DLong>::max() ) { //call format with size=22
+      DLong64GDL* iGen = new DLong64GDL(dim, BaseGDL::INDGEN, off, inc);
+      return iGen->Convert2(GDL_STRING);
+    } else {
+      DLongGDL* iGen = new DLongGDL(dim, BaseGDL::INDGEN, off, inc);
+      return iGen->Convert2(GDL_STRING);
+    }
     /*    }
       catch( GDLException& ex)
       {
