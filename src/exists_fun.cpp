@@ -239,6 +239,15 @@ namespace lib {
 #else
     return new DIntGDL(0);
 #endif
+  }
+  
+  BaseGDL* qhull_exists(EnvT* e)
+  {
+#ifdef USE_QHULL
+    return new DIntGDL(1);
+#else
+    return new DIntGDL(0);
+#endif
   }  
 }
  // namespace

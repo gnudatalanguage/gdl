@@ -67,6 +67,7 @@ void LibInit_exists()
   new DLibFunRetNew(lib::pnglib_exists,string("PNGLIB_EXISTS"));
   new DLibFunRetNew(lib::proj_exists,string("PROJ_EXISTS"));
   new DLibFunRetNew(lib::python_exists,string("PYTHON_EXISTS"));
+  new DLibFunRetNew(lib::qhull_exists,string("QHULL_EXISTS"));
   new DLibFunRetNew(lib::shapelib_exists,string("SHAPELIB_EXISTS"));
   new DLibFunRetNew(lib::tiff_exists,string("TIFF_EXISTS"));
   new DLibFunRetNew(lib::udunits_exists,string("UDUNITS_EXISTS"));
