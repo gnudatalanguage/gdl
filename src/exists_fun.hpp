@@ -43,6 +43,7 @@ namespace lib {
  BaseGDL* dsfmt_exists(EnvT *e);
  BaseGDL* expat_exists(EnvT *e);
  BaseGDL* mpi_exists(EnvT* e);
+ BaseGDL* qhull_exists(EnvT* e);
 
 } // namespace
 
