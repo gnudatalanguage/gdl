@@ -303,10 +303,10 @@ template<> BaseGDL* Data_<SpDInt>::Convert2(DType destTy, BaseGDL::Convert2Mode 
       DO_CONVERT_END
   case GDL_STRING:
   {
+    char buf[32];
     Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
     if ((GDL_NTHREADS = parallelize(nEl, TP_ARRAY_INITIALISATION)) == 1) {
       for (SizeT i = 0; i < nEl; ++i) {
-        char* buf = new char(8);
         sprintf(buf, "%8i", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 8);
@@ -317,7 +317,6 @@ template<> BaseGDL* Data_<SpDInt>::Convert2(DType destTy, BaseGDL::Convert2Mode 
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) {
-        char* buf = new char(8);
         sprintf(buf, "%8i", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 8);
@@ -398,10 +397,10 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2(DType destTy, BaseGDL::Convert2Mode
       DO_CONVERT_END
   case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
   {
+    char buf[32];
     Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
     if ((GDL_NTHREADS = parallelize(nEl, TP_ARRAY_INITIALISATION)) == 1) {
       for (SizeT i = 0; i < nEl; ++i) {
-        char* buf = new char(8);
         sprintf(buf, "%8i", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 8);
@@ -412,7 +411,6 @@ template<> BaseGDL* Data_<SpDUInt>::Convert2(DType destTy, BaseGDL::Convert2Mode
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) {
-        char* buf = new char(8);
         sprintf(buf, "%8i", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 8);
@@ -494,10 +492,10 @@ template<> BaseGDL* Data_<SpDLong>::Convert2(DType destTy, BaseGDL::Convert2Mode
       DO_CONVERT_END
   case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
   {
+    char buf[32];
     Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
     if ((GDL_NTHREADS = parallelize(nEl, TP_ARRAY_INITIALISATION)) == 1) {
       for (SizeT i = 0; i < nEl; ++i) {
-        char* buf = new char(12);
         sprintf(buf, "%12i", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 12);
@@ -508,7 +506,6 @@ template<> BaseGDL* Data_<SpDLong>::Convert2(DType destTy, BaseGDL::Convert2Mode
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) {
-        char* buf = new char(12);
         sprintf(buf, "%12i", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 12);
@@ -590,10 +587,10 @@ template<> BaseGDL* Data_<SpDULong>::Convert2(DType destTy, BaseGDL::Convert2Mod
       DO_CONVERT_END
   case GDL_STRING:
   {
+    char buf[32];
     Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
     if ((GDL_NTHREADS = parallelize(nEl, TP_ARRAY_INITIALISATION)) == 1) {
       for (SizeT i = 0; i < nEl; ++i) {
-        char* buf = new char(12);
         sprintf(buf, "%12i", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 12);
@@ -604,7 +601,6 @@ template<> BaseGDL* Data_<SpDULong>::Convert2(DType destTy, BaseGDL::Convert2Mod
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) {
-        char* buf = new char(12);
         sprintf(buf, "%12i", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 12);
@@ -1321,10 +1317,10 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2(DType destTy, BaseGDL::Convert2Mo
       DO_CONVERT_END
   case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
   {
+    char buf[32];
     Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
     if ((GDL_NTHREADS = parallelize(nEl, TP_ARRAY_INITIALISATION)) == 1) {
       for (SizeT i = 0; i < nEl; ++i) {
-        char* buf = new char(22);
         sprintf(buf, "%22i", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 22);
@@ -1335,7 +1331,6 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2(DType destTy, BaseGDL::Convert2Mo
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) {
-        char* buf = new char(22);
         sprintf(buf, "%22i", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 22);
@@ -1418,10 +1413,10 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2(DType destTy, BaseGDL::Convert2M
       DO_CONVERT_END
   case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
   {
-    Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
+   char buf[32];
+   Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
     if ((GDL_NTHREADS = parallelize(nEl, TP_ARRAY_INITIALISATION)) == 1) {
       for (SizeT i = 0; i < nEl; ++i) {
-        char* buf = new char(22);
         sprintf(buf, "%22i", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 22);
@@ -1432,7 +1427,6 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2(DType destTy, BaseGDL::Convert2M
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) {
-        char* buf = new char(22);
         sprintf(buf, "%22i", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 22);
