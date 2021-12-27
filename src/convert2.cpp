@@ -1321,7 +1321,7 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2(DType destTy, BaseGDL::Convert2Mo
     Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
     if ((GDL_NTHREADS = parallelize(nEl, TP_ARRAY_INITIALISATION)) == 1) {
       for (SizeT i = 0; i < nEl; ++i) {
-        sprintf(buf, "%22i", (*this)[i]);
+        sprintf(buf, "%22lli", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 22);
       }
@@ -1331,7 +1331,7 @@ template<> BaseGDL* Data_<SpDLong64>::Convert2(DType destTy, BaseGDL::Convert2Mo
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) {
-        sprintf(buf, "%22i", (*this)[i]);
+        sprintf(buf, "%22lli", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 22);
       }
@@ -1417,7 +1417,7 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2(DType destTy, BaseGDL::Convert2M
    Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO, 12);
     if ((GDL_NTHREADS = parallelize(nEl, TP_ARRAY_INITIALISATION)) == 1) {
       for (SizeT i = 0; i < nEl; ++i) {
-        sprintf(buf, "%22i", (*this)[i]);
+        sprintf(buf, "%22llu", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 22);
       }
@@ -1427,7 +1427,7 @@ template<> BaseGDL* Data_<SpDULong64>::Convert2(DType destTy, BaseGDL::Convert2M
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) {
-        sprintf(buf, "%22i", (*this)[i]);
+        sprintf(buf, "%22llu", (*this)[i]);
         (*dest)[i] = std::string(buf);
         //        (*dest)[i] = i2s((*this)[i], 22);
       }
