@@ -6825,7 +6825,12 @@ namespace lib {
 
     DLong lun;
     e->AssureLongScalarPar(0, lun);
-
+    //GD: see  #1187 discussion
+    if (lun ==0) { //special stdin case
+      char c=std::cin.get();
+      if ( std::cin.eof() ) return new DIntGDL(1); else {std::cin.unget(); return new DIntGDL(0);}
+    }
+    
     bool stdLun = check_lun(e, lun);
     if (stdLun)
       return new DIntGDL(0);
