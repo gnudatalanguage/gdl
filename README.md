@@ -86,8 +86,8 @@ Besides, for optimal use (speed mainly), GDL incorporates slightly edited code o
 - [dSFMT](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT) as our parallel random Generator.
 - [delaunator](https://github.com/mapbox/delaunator) as our new hyperfast triangulation.
 - [ANTLR3](https://www.antlr3.org/) as interpretor.
-- [Median Filtering](http://nomis80.org/ctmf.html )
-- [Median Filtering](http://users.ics.aalto.fi/suomela)
+- [Median Filtering (S. Perreault)](http://nomis80.org/ctmf.html )
+- [Median Filtering (J. Suomela)](http://users.ics.aalto.fi/suomela)
 - [Radix Sorting](https://github.com/Pierre-Terdiman/RadixRedux) (we have written all variants up to doubles).
 
 Build-time dependencies
