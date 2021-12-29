@@ -1089,17 +1089,6 @@ install(FILES ${CMAKE_SOURCE_DIR}/doc/gdl.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/
 # substitute variables in configure.h.cmake and move it to configure.h
 configure_file(${CMAKE_SOURCE_DIR}/config.h.cmake ${CMAKE_BINARY_DIR}/config.h)
 
-# create a link src/gdl -> ${BUILD}/.../gdl
-# for windows, just copy the file
-if(NOT PYTHON_MODULE)
-    set(GDLLOCATION $<TARGET_FILE:gdl>)
-    if(WIN32)
-    add_custom_target(copy_gdl ALL ${CMAKE_COMMAND} -E copy ${GDLLOCATION} ${CMAKE_SOURCE_DIR}/src/gdl DEPENDS gdl)
-    else(WIN32)
-    add_custom_target(symlink_gdl ALL ${CMAKE_COMMAND} -E create_symlink ${GDLLOCATION} ${CMAKE_SOURCE_DIR}/src/gdl DEPENDS gdl)
-    endif(WIN32)
-endif(NOT PYTHON_MODULE)
-
 # display macro
 macro(MODULE MOD LIBNAME NAME)
     if(${MOD})
