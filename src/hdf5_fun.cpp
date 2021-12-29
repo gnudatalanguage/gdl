@@ -413,6 +413,9 @@ namespace lib {
     case H5I_ATTR:
       status = H5Aread(loc_id, datatype, raw);
       break;
+
+    default:
+      break;
     }
     if (status < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
 
