@@ -211,9 +211,9 @@ namespace lib {
 
     sem_onexit();
 
-    //flush still opened files.
+    //flush & close still opened files.
     
-    for (int p = 0; p < maxUserLun; ++p) {
+    for (int p = 0; p < maxLun; ++p) { //and NOT userlun!
       fileUnits[p].Flush();
     }
     
