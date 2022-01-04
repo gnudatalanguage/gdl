@@ -383,6 +383,7 @@ function prep_packages {
         log "Installing plplot..."
         brew --cache plplot
         bash $GDL_DIR/scripts/deps/macos/brew_enable_wxwidgets
+        bash $GDL_DIR/scripts/deps/macos//brew_make_good_symlink_plplot
     fi
 }
 
