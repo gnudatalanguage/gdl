@@ -20,12 +20,18 @@ authors:
   - name: Sylwester Arabas
     orcid: 0000-0003-2361-0082
     affiliation: "illinois.edu, uj.edu.pl"
+  - name: Sylvain Flinois
+    affiliation: kumullus.com
+  - name: Eloi Rozier de Linage
+    affiliation: obspm.fr
   - name: James Tappin
     orcid: 
     affiliation: stfc.ac.uk
   - name: Ole Streicher
     orcid: 0000-0001-7751-1843
     affiliation: aip.de
+  - name: Thierry Thomas
+    affiliation: edf.fr
   - name: Orion Poplawski
     affiliation: nwra.com
   - name: Takeshi Enomoto
@@ -49,10 +55,14 @@ affiliations:
    index: aip.de
  - name: University of Illinois at Urbana–Champaign, USA
    index: illinois.edu
+ - name: EDF, Lyon, France
+   index: edf.fr
  - name: NorthWest Research Associates, Boulder, CO, USA
    index: nwra.com
- - name: Kyoto University, Japan
+ - name: TBC Kyoto University, Japan
    index: kyoto-u.ac.jp
+ - name: TBC Kumullus, Paris, France
+   index: kumullus.com
 bibliography: paper.bib
 
 ---
@@ -92,6 +102,8 @@ GDL can be installed via the package managing system on Linux (for example, `apt
 Homebrew, Macports, or Fink on macOS. On Windows, we provide a precompiled Windows binary, as well as a Nullsoft Scriptable
 Install System (NSIS) based installer. For develop environments, we provide GDL Workbench, an Eclipse Rich Client
 Platform (RCP) based integrated development environment (IDE), and GDL Jupyter kernel.
+
+Software usable with GDL (vital for long-term curation of IDL codes!): GRAFFER, ...
 
 # Acknowledgements and author contributions
 
