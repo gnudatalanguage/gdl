@@ -258,3 +258,9 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource DESTINATION ${CMAKE_INSTALL_PREFI
 	PATTERN checks EXCLUDE
 	PATTERN Makefile* EXCLUDE
 	PATTERN UrgentNeed.txt EXCLUDE)
+
+configure_file(
+ 	${CMAKE_SOURCE_DIR}/scripts/quick_start_GDL.sh.in
+	${CMAKE_BINARY_DIR}/quick_start_GDL.sh
+)
+
