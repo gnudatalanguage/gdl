@@ -84,7 +84,7 @@ namespace lib {
     hid_t space;
   public:
     hdf5_space_guard(hid_t space_) { space = space_; }
-    ~hdf5_space_guard() { H5Sclose(space); }
+    ~hdf5_space_guard() { if(space) H5Sclose(space); }
   };
 
   // auto_ptr-like class for guarding HDF5 types
@@ -111,6 +111,18 @@ namespace lib {
   public:
     hdf5_name_guard(char* name_) { name = name_; }
     ~hdf5_name_guard() { H5free_memory(name); }
+  };
+
+  // auto_ptr-like class for guarding HDF5 property lists
+  // usage:
+  //   hid_t h5p_id = H5Pcreate(...);
+  //   hdf5_plist_guard h5p_id_guard = hdf5_plist_guard(h5p_id);
+  class hdf5_plist_guard
+  {
+    hid_t plist;
+  public:
+    hdf5_plist_guard(hid_t plist_) { plist = plist_; }
+    ~hdf5_plist_guard() { if(plist) H5Pclose(plist); }
   };
 
   // --------------------------------------------------------------------
@@ -424,6 +436,83 @@ namespace lib {
 
   // --------------------------------------------------------------------
 
+  void hdf5_unified_write( hid_t loc_id, BaseGDL* data,
+                           hid_t ms_id, hid_t fs_id, EnvT* e ) {
+
+    /* Dec 2021, Oliver Gressel <ogressel@gmail.com>
+       - deduplicate implementations for writing data / attributes
+    */
+
+
+    /* --- obtain datatype handle --- */
+
+    hid_t type_id;
+
+    switch( H5Iget_type(loc_id) ) {
+    case H5I_DATASET: type_id = H5Dget_type(loc_id); break;
+    case H5I_ATTR:    type_id = H5Aget_type(loc_id); break;
+    default:          e->Throw("unsupported use for hdf5_unified_write\n");
+    }
+    if (type_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    hdf5_type_guard type_id_guard = hdf5_type_guard(type_id);
+
+
+    /* --- obtain the elementary datatype --- */
+
+    hid_t elem_type_id;
+    if (H5Tget_class(type_id)==H5T_ARRAY)
+      elem_type_id = H5Tget_super(type_id);
+    else
+      elem_type_id = H5Tcopy(type_id);
+    hdf5_type_guard elem_type_guard = hdf5_type_guard(elem_type_id);
+
+
+    /* --- assert contiguous write buffer --- */
+
+    char *buffer=NULL;
+
+    if (H5Tget_class(elem_type_id)==H5T_STRING) {
+
+      size_t n_elem=data->Size(), len=H5Tget_size(elem_type_id);
+
+      buffer = static_cast<char*>(calloc(n_elem*len,sizeof(char)));
+      if (buffer == NULL) e->Throw("Failed to allocate memory!");
+
+      for(int i=0; i<n_elem; i++)
+        strncpy( &buffer[i*len],
+                 (*static_cast<DStringGDL*>(data))[i].c_str(), len );
+
+    } else buffer = (char*) data->DataAddr();
+
+
+    /* --- write dataset/attribute to file --- */
+
+    herr_t status;
+
+    switch( H5Iget_type(loc_id) ) {
+
+    case H5I_DATASET:
+      status = H5Dwrite(loc_id, type_id, ms_id, fs_id, H5P_DEFAULT, buffer);
+      break;
+
+    case H5I_ATTR:
+      status = H5Awrite(loc_id, type_id, buffer);
+      break;
+    }
+
+    if (status < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+
+    /* --- free resources --- */
+
+    if(buffer!=data->DataAddr()) free(buffer);
+
+    return;
+  }
+
+  // --------------------------------------------------------------------
+
   BaseGDL* hdf5_unified_read( hid_t loc_id,
                               hid_t ms_id, hid_t fs_id, EnvT* e ) {
 
@@ -721,18 +810,20 @@ hid_t
   BaseGDL* h5f_open_fun( EnvT* e)
   {
 
+    /* mandatory 'Filename' paramter */
     DString h5fFilename;
     e->AssureScalarPar<DStringGDL>( 0, h5fFilename);
     WordExp( h5fFilename);
 
-    hid_t h5f_id;
-    h5f_id = H5Fopen(h5fFilename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+    /* optional keyword 'WRITE' parameter */
+    static int writeIx = e->KeywordIx("WRITE");
+    hbool_t write = e->KeywordSet(writeIx);
 
+    hid_t h5f_id = H5Fopen( h5fFilename.c_str(),
+                            (write) ? H5F_ACC_RDWR
+                                    : H5F_ACC_RDONLY, H5P_DEFAULT );
     if (h5f_id < 0)
-      {
-        string msg;
-        e->Throw(hdf5_error_message(msg));
-      }
+      { string msg; e->Throw(hdf5_error_message(msg)); }
 
     return hdf5_output_conversion( h5f_id );
   }
@@ -825,6 +916,79 @@ hid_t
     return hdf5_output_conversion( h5d_id );
 
   }
+
+
+  BaseGDL* h5a_create_fun( EnvT* e)
+  {
+    /* Dec 2021, Oliver Gressel <ogressel@gmail.com>
+       - implement basic functionality
+    */
+
+    SizeT nParam=e->NParam(4);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e,0);
+
+    /* mandatory 'Name' paramter */
+    DString dset_name;
+    e->AssureScalarPar<DStringGDL>(1,dset_name);
+
+    /* mandatory 'Datatype_id' paramter */
+    hid_t type_id = hdf5_input_conversion(e,2);
+    if (H5Iis_valid(type_id) <= 0)
+      e->Throw("not a datatype: Object ID:" + i2s( type_id ));
+
+    /* mandatory 'Dataspace_id' paramter */
+    hid_t space_id = hdf5_input_conversion(e,3);
+    if (H5Iis_valid(space_id) <= 0)
+      e->Throw("not a dataspace: Object ID:" + i2s( space_id ));
+
+    hid_t h5a_id = H5Acreate( loc_id, dset_name.c_str(),
+                              type_id, space_id, H5P_DEFAULT );
+    if (h5a_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return hdf5_output_conversion( h5a_id );
+  }
+
+
+  void h5a_write_pro(EnvT* e) {
+
+    /* Dec 2021, Oliver Gressel <ogressel@gmail.com>
+       - implement basic support for writing HDF5 attributes
+    */
+
+    SizeT nParam = e->NParam(2);
+
+    hid_t dset_id = hdf5_input_conversion(e,0);
+    BaseGDL* data = e->GetParDefined(1);
+
+    /* --- write the dataset to file ---*/
+
+    hdf5_unified_write( dset_id, data, H5I_BADID, H5I_BADID, e );
+
+    return;
+  }
+
+
+  void h5a_delete_pro(EnvT* e) {
+
+    /* Dec 2021, Oliver Gressel <ogressel@gmail.com>
+       - implement support for deleting HDF5 attributes
+    */
+
+    SizeT nParam=e->NParam(2);
+
+    hid_t loc_id = hdf5_input_conversion(e,0);
+
+    DString attr_name;
+    e->AssureScalarPar<DStringGDL>( 1, attr_name );
+
+    if (H5Adelete( loc_id, attr_name.c_str() ) < 0)
+      e->Throw( "unable to delete attribute: (Object ID:"+i2s(loc_id)+
+                ", Object Name:\""+attr_name.c_str()+"\")" );
+    return;
+  }
+
 
   BaseGDL* h5a_open_idx_fun( EnvT* e)
   {
@@ -964,6 +1128,103 @@ hid_t
   }
 
 
+  BaseGDL* h5t_array_create_fun( EnvT* e)
+  {
+    bool debug=false;
+    SizeT nParam=e->NParam(2);
+
+    int rank;
+    hsize_t dims[MAXRANK];
+
+    /* mandatory 'Datatype_id' parameter */
+    hid_t h5t_id=hdf5_input_conversion(e,0);
+
+    /* mandatory 'Dimensions' parameter */
+    DUIntGDL* dimPar = e->GetParAs<DUIntGDL>(1);
+    SizeT nDim = dimPar->N_Elements();
+
+    if (nDim == 0)
+      e->Throw("Variable is undefined: "+ e->GetParString(0));
+    else
+       rank=nDim;
+
+    for(int i=0; i<rank; i++) dims[i] = (hsize_t)(*dimPar)[rank-1-i];
+
+    /* create the array datatype */
+    hid_t dtype_id = H5Tarray_create( h5t_id, rank, dims, NULL );
+    if (dtype_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return hdf5_output_conversion( dtype_id );
+  }
+
+
+  BaseGDL* h5t_idl_create_fun( EnvT* e)
+  {
+    /* Dec 2021, Oliver Gressel <ogressel@gmail.com>
+       - implement rudimentary functionality
+         (FIXME: add GDL_STRUCT case + keyword functionality)
+    */
+
+    SizeT nParam=e->NParam(1);
+
+
+    /* --- obtain input parameters --- */
+
+    /* mandatory 'Data' parameter */
+    BaseGDL *data = e->GetParDefined(0);
+
+    /* optional 'MEMBER_NAMES' keyword parameter */
+    static int memNmIx = e->KeywordIx("MEMBER_NAMES");
+    if (e->GetKW(memNmIx)!=NULL) e->Throw("KW 'MEMBER_NAMES' not implemented.");
+
+    /* optional 'OPAQUE' keyword parameter */
+    static int opaqueIx = e->KeywordIx("OPAQUE");
+    if (e->GetKW(opaqueIx)!=NULL) e->Throw("KW 'OPAQUE' not implemented.");
+
+
+    /* --- determine HDF5 type and return datatype handle --- */
+
+    hid_t native_type;
+
+    switch ( (data[0]).Type() ) {
+
+    /* IDL Note: If the data is an array, the datatype is constructed
+       from the first element in the array. [...]  All elements of a
+       string datatype will have the same length [...]  strings longer
+       than the datatype length will be truncated. The size of the
+       returned datatype will include a null termination [...] */
+
+    case GDL_BYTE:    native_type = H5T_NATIVE_UINT8;  break;
+    case GDL_INT:     native_type = H5T_NATIVE_INT16;  break;
+    case GDL_UINT:    native_type = H5T_NATIVE_UINT16; break;
+    case GDL_LONG:    native_type = H5T_NATIVE_INT32;  break;
+    case GDL_ULONG:   native_type = H5T_NATIVE_UINT32; break;
+    case GDL_LONG64:  native_type = H5T_NATIVE_INT64;  break;
+    case GDL_ULONG64: native_type = H5T_NATIVE_UINT64; break;
+    case GDL_FLOAT:   native_type = H5T_NATIVE_FLOAT;  break;
+    case GDL_DOUBLE:  native_type = H5T_NATIVE_DOUBLE; break;
+    case GDL_STRING:  native_type = H5T_C_S1;          break;
+
+    case GDL_STRUCT:
+      e->Throw("GDL Struct not (yet) supported."); break;
+
+    default:
+      e->Throw("Unrecognized data type.");
+    }
+
+    /* crate datatype handle */
+    native_type = H5Tcopy(native_type);
+
+    if ( (data[0]).Type()==GDL_STRING ) { /* set size */
+      size_t len = strlen( (*static_cast<DStringGDL*>(data))[0].c_str() );
+      if ( H5Tset_size(native_type, len+1) < 0 )
+        { string msg; e->Throw(hdf5_error_message(msg)); }
+    }
+
+    return hdf5_output_conversion( native_type );
+  }
+
+
   BaseGDL* h5s_get_simple_extent_ndims_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
@@ -1038,7 +1299,7 @@ hid_t
     static int maxDimIx = e->KeywordIx("MAX_DIMENSIONS");
     if (e->GetKW(maxDimIx) != NULL) {
 
-      DUIntGDL* maxDimKW = e->IfDefGetKWAs<DUIntGDL>(maxDimIx);
+      DIntGDL* maxDimKW = e->IfDefGetKWAs<DIntGDL>(maxDimIx);
       SizeT nMaxDim = maxDimKW->N_Elements();
 
       if (nMaxDim == 0)
@@ -1047,9 +1308,10 @@ hid_t
         e->Throw("Number of elements in MAX_DIMENSIONS must equal dataspace dimensions.");
 
       for(int i=0; i<rank; i++) {
+
          max_dims[i] = (hsize_t)(*maxDimKW)[rank-1-i];
 
-         if(max_dims[i]<curr_dims[i])
+         if ( max_dims[i]>0 && max_dims[i]<curr_dims[i] )
             e->Throw("H5S_CREATE_SIMPLE: maxdims is smaller than dims");
       }
 
@@ -1309,6 +1571,68 @@ hid_t
   }
 
 
+  void h5d_write_pro(EnvT* e) {
+
+    /* Dec 2021, Oliver Gressel <ogressel@gmail.com>
+       - implement very basic support for writing HDF5 datasets
+    */
+
+    bool debug=false;
+
+    SizeT nParam = e->NParam(2);
+
+    hid_t dset_id = hdf5_input_conversion(e,0);
+    BaseGDL* data = e->GetParDefined(1);
+
+
+    /* --- optionial keyword 'MEMORY_SPACE' --- */
+
+    hid_t kw_memspace_id, memspace_id;
+    static int memspaceIx = e->KeywordIx("MEMORY_SPACE");
+
+    if(e->KeywordSet(memspaceIx)) {     /* use keyword parameter */
+
+      if (debug) printf("using keyword 'memory_space'\n");
+      kw_memspace_id = hdf5_input_conversion_kw(e,memspaceIx);
+
+      if (H5Iis_valid(kw_memspace_id) <= 0)
+        e->Throw("not a dataspace: Object ID:" + i2s( kw_memspace_id ));
+      else
+        memspace_id = H5Scopy(kw_memspace_id);
+
+    } else memspace_id = H5S_ALL;
+
+    hdf5_space_guard memspace_id_guard = hdf5_space_guard(memspace_id);
+
+
+    /* --- optional keyword 'FILE_SPACE' --- */
+
+    hid_t kw_filespace_id, filespace_id;
+    static int filespaceIx = e->KeywordIx("FILE_SPACE");
+
+    if(e->KeywordSet(filespaceIx)) {    /* use keyword parameter */
+
+      if (debug) printf("using keyword 'file_space'\n");
+      kw_filespace_id = hdf5_input_conversion_kw(e,filespaceIx);
+
+      if (H5Iis_valid(kw_filespace_id) <= 0)
+        e->Throw("not a dataspace: Object ID:" + i2s( kw_filespace_id ));
+      else
+        filespace_id = H5Scopy(kw_filespace_id);
+
+    } else filespace_id = H5S_ALL;
+
+    hdf5_space_guard filespace_id_guard = hdf5_space_guard(filespace_id);
+
+
+    /* --- write the dataset to file ---*/
+
+    hdf5_unified_write( dset_id, data, memspace_id, filespace_id, e );
+
+    return;
+  }
+
+
   void h5s_close_pro( EnvT* e)
   {
     SizeT nParam=e->NParam(1);
@@ -1316,6 +1640,127 @@ hid_t
     hid_t h5s_id = hdf5_input_conversion(e,0);
 
     if (H5Sclose(h5s_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+  }
+
+
+  BaseGDL* h5d_create_fun( EnvT* e)
+  {
+    /* Nov 2021, Oliver Gressel <ogressel@gmail.com>
+       - implement rudimentary functionality
+       - FIXME: add optional keyword parameters [, GZIP=value [, /SHUFFLE]]
+    */
+
+    SizeT nParam=e->NParam(4);
+
+
+    /* --- dataset creation property list --- */
+
+    hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
+    hdf5_plist_guard plist_guard = hdf5_plist_guard(plist_id);
+
+
+    /* --- mandatory parameters --- */
+
+    /* 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e,0);
+
+    /* 'Name' parameter */
+    DString dset_name;
+    e->AssureScalarPar<DStringGDL>(1,dset_name);
+
+    /* 'Datatype_id' parameter */
+    hid_t type_id = hdf5_input_conversion(e,2);
+    if (H5Iis_valid(type_id) <= 0)
+      e->Throw("not a datatype: Object ID:" + i2s( type_id ));
+
+    /* 'Dataspace_id' parameter */
+    hid_t space_id = hdf5_input_conversion(e,3);
+    if (H5Iis_valid(space_id) <= 0)
+      e->Throw("not a dataspace: Object ID:" + i2s( space_id ));
+
+
+    /* --- optional keyword 'CHUNK_DIMENSIONS' paramter --- */
+
+    static int chunkDimIx = e->KeywordIx("CHUNK_DIMENSIONS");
+    if (e->GetKW(chunkDimIx) != NULL) {
+
+      DUIntGDL* chunkDimKW = e->IfDefGetKWAs<DUIntGDL>(chunkDimIx);
+      SizeT nChunkDim = chunkDimKW->N_Elements();
+
+      int rank;
+      hsize_t dims[MAXRANK], chunk_dims[MAXRANK];
+
+      if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
+        { string msg; e->Throw(hdf5_error_message(msg)); }
+
+      if (nChunkDim == 0)
+        e->Throw("Variable is undefined: "+ e->GetParString(chunkDimIx));
+      else if(nChunkDim != rank)
+        e->Throw("Number of elements in CHUNK_DIMENSIONS must equal dataspace.");
+
+      if ( H5Sget_simple_extent_dims(space_id, dims, NULL) < 0 )
+        { string msg; e->Throw(hdf5_error_message(msg)); }
+
+      for(int i=0; i<rank; i++) {
+        chunk_dims[i] = (hsize_t)(*chunkDimKW)[rank-1-i];
+
+        if (chunk_dims[i]>dims[i])
+          e->Throw("CHUNK_DIMENSION["+i2s(rank-1-i)+"] exceeds dimension");
+      }
+
+      H5Pset_chunk(plist_id, rank, chunk_dims);
+    }
+
+
+    /* --- create the dataset identifier --- */
+
+    hid_t h5d_id = H5Dcreate( loc_id, dset_name.c_str(),
+                              type_id, space_id, plist_id );
+    if (h5d_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return hdf5_output_conversion( h5d_id );
+  }
+
+
+  void h5d_extend_pro( EnvT* e)
+  {
+    SizeT nParam=e->NParam(2);
+
+    int rank, curr_rank;
+    hsize_t size[MAXRANK], curr_size[MAXRANK];
+
+    /* mandatory 'Dataset_id' parameter */
+    hid_t h5d_id = hdf5_input_conversion(e,0);
+
+    /* mandatory 'Size' parameter */
+    DUIntGDL* sizePar = e->GetParAs<DUIntGDL>(1);
+    SizeT nDim = sizePar->N_Elements();
+
+    if (nDim == 0)
+      e->Throw("Variable is undefined: "+ e->GetParString(1));
+    else
+      rank=nDim;
+
+    /* reverse dimensions */
+    for(int i=0; i<rank; i++) size[i] = (hsize_t)(*sizePar)[rank-1-i];
+
+    /* extend the dataset dimensions */
+    if( H5Dset_extent( h5d_id, size ) < 0 )
+      e->Throw("unable to extend dataset: Object ID:"+i2s(h5d_id));
+
+    return;
+  }
+
+
+  BaseGDL* h5d_get_storage_size_fun( EnvT* e)
+  {
+    SizeT nParam = e->NParam(1);
+    hid_t dset_id = hdf5_input_conversion(e,0);
+
+    hsize_t storage_size = H5Dget_storage_size( dset_id );
+    if (storage_size < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return new DULong64GDL( storage_size );
   }
 
 
