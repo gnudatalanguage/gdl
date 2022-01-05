@@ -1,0 +1,1 @@
+ln -s /usr/local/opt/glib/lib/libgobject-2.0.0.dylib /usr/local/lib/gobject-2.0
