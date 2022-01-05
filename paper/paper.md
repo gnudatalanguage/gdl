@@ -34,6 +34,8 @@ authors:
     affiliation: edf.fr
   - name: Orion Poplawski
     affiliation: nwra.com
+  - name: Takeshi Enomoto
+    affiliation: kyoto-u.ac.jp
 affiliations:
  - name: Division of Computational Genomics and Systems Genetics, German Cancer Research Center(DKFZ), Heidelberg, Germany
    index: dkfz.de
@@ -57,7 +59,9 @@ affiliations:
    index: edf.fr
  - name: NorthWest Research Associates, Boulder, CO, USA
    index: nwra.com
- - name: Kumullus, Paris, France
+ - name: TBC Kyoto University, Japan
+   index: kyoto-u.ac.jp
+ - name: TBC Kumullus, Paris, France
    index: kumullus.com
 bibliography: paper.bib
 
