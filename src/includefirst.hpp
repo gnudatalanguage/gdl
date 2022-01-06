@@ -44,6 +44,7 @@
 
 #include <cstddef>
 #include <cstdlib>
+#include <algorithm>
 
 #if defined(USE_EIGEN)
 #include <Eigen/Core>
