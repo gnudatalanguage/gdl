@@ -99,6 +99,7 @@ initsysvar.cpp
 interpolate.cpp
 interpol.cpp
 io.cpp
+labelregion.cpp
 lapack.cpp
 least_squares.cpp
 libinit.cpp
