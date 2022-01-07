@@ -475,6 +475,16 @@ namespace lib {
       if ((v <= -1) || (v >= 1)) ret_seconds=true;
 
     }
+
+    static int elapsedIx=e->KeywordIx("ELAPSED");
+    bool iselapsed=e->KeywordSet(elapsedIx);
+
+    if (iselapsed) {cout << "coucou" << endl;
+      
+      DDoubleGDL *elapsed = e->GetKWAs<DDoubleGDL>(elapsedIx);
+      cout << (*elapsed)[1] << endl;
+    }
+    
     static int julianIx=e->KeywordIx("JULIAN");
     bool isjulian=e->KeywordSet(julianIx);
     static int secondsIx=e->KeywordIx("SECONDS");
