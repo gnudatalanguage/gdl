@@ -6,6 +6,7 @@
 ; 
 ; MODIFICATION HISTORY:
 ;   29-Jun-2021 : written by G. Duvert
+;   03-Jan-2022 : print to 'out' as implied_print is possible with "printf'
 ;
 ; LICENCE:
 ; Copyright (C) 2017, G. Duvert
@@ -148,13 +149,13 @@ endif else tmpstr=''
   return,tmpstr
 end
 
-pro gdl_implied_print,value
+pro gdl_implied_print,out,value
 COMPILE_OPT idl2, HIDDEN
 ON_ERROR, 2
 types=[1,2,3,4,5,6,7,9,12,13,14,15]
 type=size(value,/type)
 if (type eq 0) then begin
- print,"!NULL"
+ printf,out,"!NULL"
  return
 endif
 
@@ -166,17 +167,17 @@ if (count gt 0) then begin
   n=n_elements(value)
   if (n eq 1) then begin
     case type of
-    4: print,value,format='(G16.8)'
-    5: print,value,format='(G25.17)'
-    6: print,value,format='("(",G16.8,",",G16.8,")")'
-    9: print,value,format='("(",G25.17,",",G25.17,")")'
-    ELSE: print,value
+    4: printf,out,value,format='(G16.8)'
+    5: printf,out,value,format='(G25.17)'
+    6: printf,out,value,format='("(",G16.8,",",G16.8,")")'
+    9: printf,out,value,format='("(",G25.17,",",G25.17,")")'
+    ELSE: printf,out,value
     endcase
-  endif else print,value
+  endif else printf,out,value
   return
 endif
 
 text=pretty_serialize(value)
-print,text
+printf,out,text
 end
 
