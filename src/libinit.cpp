@@ -57,6 +57,7 @@
 
 #include "grib.hpp"
 #include "semshm.hpp"
+#include "labelregion.hpp"
 
 using namespace std;
 
@@ -1066,5 +1067,8 @@ void LibInit()
   new DLibPro(lib::sem_delete, string("SEM_DELETE"), 1);
   new DLibFunRetNew(lib::sem_lock, string("SEM_LOCK"), 1);
   new DLibPro(lib::sem_release, string("SEM_RELEASE"), 1);
+  // -----------------------------------------------------------------------------------------
+  const string labelregionKey[] = {"ALL_NEIGHBORS", "ULONG", KLISTEND };
+  new DLibFunRetNew(lib::labelregion, string("LABEL_REGION"),1,labelregionKey);
 }
 
