@@ -247,6 +247,95 @@ namespace lib {
 
   // --------------------------------------------------------------------
 
+  hid_t hdf5_compound_create( DStructGDL*, EnvT* );
+
+  hid_t mapGDLdatatypesToH5( BaseGDL* data, EnvT* e ) {
+
+    hid_t native_type;
+
+    switch ( (data[0]).Type() ) {
+
+    /* IDL Note: If the data is an array, the datatype is constructed
+       from the first element in the array. [...]  All elements of a
+       string datatype will have the same length [...]  strings longer
+       than the datatype length will be truncated. The size of the
+       returned datatype will include a null termination [...] */
+
+    case GDL_BYTE:    native_type = H5T_NATIVE_UINT8;  break;
+    case GDL_INT:     native_type = H5T_NATIVE_INT16;  break;
+    case GDL_UINT:    native_type = H5T_NATIVE_UINT16; break;
+    case GDL_LONG:    native_type = H5T_NATIVE_INT32;  break;
+    case GDL_ULONG:   native_type = H5T_NATIVE_UINT32; break;
+    case GDL_LONG64:  native_type = H5T_NATIVE_INT64;  break;
+    case GDL_ULONG64: native_type = H5T_NATIVE_UINT64; break;
+    case GDL_FLOAT:   native_type = H5T_NATIVE_FLOAT;  break;
+    case GDL_DOUBLE:  native_type = H5T_NATIVE_DOUBLE; break;
+    case GDL_STRING:  native_type = H5T_C_S1;          break;
+
+    case GDL_STRUCT:
+      native_type = hdf5_compound_create(static_cast<DStructGDL*>(data),e);
+      break;
+
+    default:
+      e->Throw("Unrecognized data type.");
+    }
+
+    return native_type;
+  }
+
+  // --------------------------------------------------------------------
+
+  hid_t hdf5_compound_create( DStructGDL* parent_struct, EnvT* e ) {
+
+    bool debug=false;
+    static int indent=0; indent+=2;
+
+    hid_t cmp_id = H5Tcreate( H5T_COMPOUND, parent_struct->SizeofTags() );
+
+    size_t member_offset = 0;
+    SizeT nTags = (*parent_struct).Desc()->NTags();
+
+    if (debug) printf( "%*screating type for struct '%s' "
+                       "of size %lld with %lld members\n",
+                       indent,"", parent_struct->Desc()->Name().c_str(),
+                       parent_struct->SizeofTags(), nTags );
+
+    for( int t=0; t<nTags; t++) {
+
+      BaseGDL *tag = parent_struct->GetTag(t);
+      string tagName = (*parent_struct).Desc()->TagName(t);
+
+      hsize_t rank = tag->Dim().Rank(), dims[MAXRANK];
+      for(int i=0; i<rank; i++) dims[rank-1-i] = tag->Dim(i);
+
+      if (debug) {
+        printf( "%*stag '%s' of rank %lld, dimensions are: (",
+                indent,"", tagName.c_str(), rank );
+        for(int i=0; i<rank; i++)
+          printf("%lld%s", tag->Dim(i), (i<rank-1) ? "," : "");
+        printf("), size=%lld, offs=%ld\n", tag->NBytes(), member_offset);
+      }
+
+      hid_t member_type_id, elem_type_id = mapGDLdatatypesToH5(tag,e);
+
+      if (rank>0)
+        member_type_id = H5Tarray_create2( elem_type_id, rank, dims );
+      else
+        member_type_id = H5Tcopy( elem_type_id );
+
+      H5Tinsert( cmp_id, tagName.c_str(), member_offset, member_type_id );
+      H5Tclose(member_type_id), H5Tclose(elem_type_id);
+
+      member_offset += tag->NBytes();
+    }
+
+    indent-=2;
+
+    return cmp_id;
+  }
+
+  // --------------------------------------------------------------------
+
   void hdf5_parse_compound( hid_t parent_type, DStructGDL* parent_struct,
                             char *raw, EnvT *e ) {
 
@@ -472,7 +561,11 @@ namespace lib {
 
     char *buffer=NULL;
 
-    if (H5Tget_class(elem_type_id)==H5T_STRING) {
+    if (H5Tget_class(elem_type_id)==H5T_COMPOUND) {
+
+      printf("struct datatype\n"); /// FIXME: needs to be implemented
+
+    } else if (H5Tget_class(elem_type_id)==H5T_STRING) {
 
       size_t n_elem=data->Size(), len=H5Tget_size(elem_type_id);
 
@@ -1184,36 +1277,10 @@ hid_t
 
     /* --- determine HDF5 type and return datatype handle --- */
 
-    hid_t native_type;
+    hid_t native_type = mapGDLdatatypesToH5( data, e );
 
-    switch ( (data[0]).Type() ) {
-
-    /* IDL Note: If the data is an array, the datatype is constructed
-       from the first element in the array. [...]  All elements of a
-       string datatype will have the same length [...]  strings longer
-       than the datatype length will be truncated. The size of the
-       returned datatype will include a null termination [...] */
-
-    case GDL_BYTE:    native_type = H5T_NATIVE_UINT8;  break;
-    case GDL_INT:     native_type = H5T_NATIVE_INT16;  break;
-    case GDL_UINT:    native_type = H5T_NATIVE_UINT16; break;
-    case GDL_LONG:    native_type = H5T_NATIVE_INT32;  break;
-    case GDL_ULONG:   native_type = H5T_NATIVE_UINT32; break;
-    case GDL_LONG64:  native_type = H5T_NATIVE_INT64;  break;
-    case GDL_ULONG64: native_type = H5T_NATIVE_UINT64; break;
-    case GDL_FLOAT:   native_type = H5T_NATIVE_FLOAT;  break;
-    case GDL_DOUBLE:  native_type = H5T_NATIVE_DOUBLE; break;
-    case GDL_STRING:  native_type = H5T_C_S1;          break;
-
-    case GDL_STRUCT:
-      e->Throw("GDL Struct not (yet) supported."); break;
-
-    default:
-      e->Throw("Unrecognized data type.");
-    }
-
-    /* crate datatype handle */
-    native_type = H5Tcopy(native_type);
+    /* crate datatype handle if required */
+    if (!H5Iis_valid(native_type)) native_type = H5Tcopy(native_type);
 
     if ( (data[0]).Type()==GDL_STRING ) { /* set size */
       size_t len = strlen( (*static_cast<DStringGDL*>(data))[0].c_str() );
