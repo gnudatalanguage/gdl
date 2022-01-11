@@ -119,10 +119,10 @@ namespace lib {
 
         double offset[time_size];
         DDoubleGDL* offset_gdl = new DDoubleGDL(*(new dimension(time_size)));
-      
+
         for(int i = 0 ; i<time_size ; i++) {
           string timestamp = (*timestamps)[i];
-        
+
           if (hasYear) {
             year[i] = stoi(timestamp.substr(0,4));
             (*year_gdl)[i] = year[i];
@@ -139,25 +139,25 @@ namespace lib {
           }
 
           if (hasHour) {
-            if (timestamp.length() > 10) {  
+            if (timestamp.length() > 10) {
               hour[i] = stoi(timestamp.substr(11,2));
-            } else { 
-              hour[i] = 0; 
+            } else {
+              hour[i] = 0;
             }
             (*hour_gdl)[i] = hour[i];
           }
 
           if (hasMinute) {
-            if (timestamp.length() > 10) {  
+            if (timestamp.length() > 10) {
               minute[i] = stoi(timestamp.substr(14,2));
-            } else { 
-              minute[i] = 0; 
+            } else {
+              minute[i] = 0;
             }
             (*minute_gdl)[i] = minute[i];
           }
 
           if (hasSecond) {
-            if (timestamp.length() > 10) {  
+            if (timestamp.length() > 10) {
               second[i] = stoi(timestamp.substr(17,2));
               if (timestamp.substr(19,1) == ".") {
                 if (timestamp.substr(timestamp.length()-1,1) == "Z") {
@@ -166,14 +166,14 @@ namespace lib {
                   second[i] += stod(timestamp.substr(20, timestamp.length()-26))/pow(10,(timestamp.length()-26));
                 }
               }
-            } else { 
-              second[i] = 0; 
+            } else {
+              second[i] = 0;
             }
             (*second_gdl)[i] = second[i];
           }
 
           if (hasOffset) {
-            if (timestamp.length() > 10) {  
+            if (timestamp.length() > 10) {
               string offset_string;
               if (timestamp.substr(timestamp.length()-1,1) == "Z") {
                 offset_string = "+00:00";
@@ -181,8 +181,8 @@ namespace lib {
                 offset_string = timestamp.substr(timestamp.length()-6,7);
               }
               offset[i] = stod(offset_string.substr(0,3)) + stod(offset_string.substr(4,2))/60;
-            } else { 
-            offset[i] = 0; 
+            } else {
+            offset[i] = 0;
             }
             (*offset_gdl)[i] = offset[i];
           }
@@ -242,27 +242,27 @@ namespace lib {
         }
 
         if (hasHour) {
-          if (timestamp.length() > 10) {  
+          if (timestamp.length() > 10) {
             hour = stoi(timestamp.substr(11,2));
-          } else { 
-            hour = 0; 
+          } else {
+            hour = 0;
           }
           DLongGDL* hour_gdl = new DLongGDL(hour);
           e->SetKW(valueHOUR, hour_gdl);
         }
 
         if (hasMinute) {
-          if (timestamp.length() > 10) {  
+          if (timestamp.length() > 10) {
             minute = stoi(timestamp.substr(14,2));
-          } else { 
-            minute = 0; 
+          } else {
+            minute = 0;
           }
           DLongGDL* minute_gdl = new DLongGDL(minute);
           e->SetKW(valueMINUTE, minute_gdl);
         }
 
         if (hasSecond) {
-          if (timestamp.length() > 10) {  
+          if (timestamp.length() > 10) {
             second = stoi(timestamp.substr(17,2));
             if (timestamp.substr(19,1) == ".") {
               if (timestamp.substr(timestamp.length()-1,1) == "Z") {
@@ -271,15 +271,15 @@ namespace lib {
                 second += stod(timestamp.substr(20, timestamp.length()-26))/pow(10,(timestamp.length()-26));
               }
             }
-          } else { 
-            second = 0; 
+          } else {
+            second = 0;
           }
           DDoubleGDL* second_gdl = new DDoubleGDL(second);
           e->SetKW(valueSECOND, second_gdl);
         }
 
         if (hasOffset) {
-          if (timestamp.length() > 10) {  
+          if (timestamp.length() > 10) {
             string offset_string;
             if (timestamp.substr(timestamp.length()-1,1) == "Z") {
               offset_string = "+00:00";
@@ -287,8 +287,8 @@ namespace lib {
               offset_string = timestamp.substr(timestamp.length()-6,7);
             }
             offset = stod(offset_string.substr(0,3)) + stod(offset_string.substr(4,2))/60;
-          } else { 
-          offset = 0; 
+          } else {
+          offset = 0;
           }
           DDoubleGDL* offset_gdl = new DDoubleGDL(offset);
           e->SetKW(valueOFFSET, offset_gdl);
@@ -311,16 +311,16 @@ namespace lib {
     bool isUTC=e->BooleanKeywordAbsentOrSet(utcIx);
 
     struct timeval tv;
-   
+
     /* Get the current time at high precision; could also use clock_gettime() for
      * even higher precision times if we want it. */
     gettimeofday(&tv, NULL);
-   
+
     // convert to time to 'struct tm' for use with strftime
     time_t time_sec=tv.tv_sec;
     struct tm *tm_local=localtime(&time_sec);
     struct tm *tm_utc=gmtime(&time_sec);
-    
+
     if(isUTC){
       tm_local=tm_utc;
     }
@@ -410,7 +410,7 @@ namespace lib {
       }
 
       float diff = 0;
-      if(noOffset){ 
+      if(noOffset){
         //compute difference in hours of local time to UTC time
         diff = (float) tm_local->tm_hour-tm_utc->tm_hour+(tm_local->tm_min-tm_utc->tm_min)/60.0;
       } else {
@@ -446,9 +446,9 @@ namespace lib {
     struct timeval tval;
     struct timezone tzone;
 
-    /*get the time before doing anything else, 
+    /*get the time before doing anything else,
       this hopefully gives a more meaningful "time"
-      than if the t=time(0) call came after an 
+      than if the t=time(0) call came after an
       arbitary number of conditional statements.*/
     //    cout << "lib::systime: " << t << endl;
     gettimeofday(&tval,&tzone);
@@ -459,12 +459,12 @@ namespace lib {
 
     Guard<BaseGDL> v_guard;
     Guard<BaseGDL> v1_guard;
-
+    DLong v=0;
     if (nParam == 1) {
-      //1 parameter, 
+      //1 parameter,
       //      1->current UTC time seconds
       //      default
-      DLong v=0; 
+      //DLong v=0;
       e->AssureLongScalarPar(0,v);
 
       //    DIntGDL* v = static_cast<DIntGDL*>(e->GetParDefined(0)->Convert2(GDL_INT,BaseGDL::COPY));
@@ -477,82 +477,123 @@ namespace lib {
     }
 
     static int elapsedIx=e->KeywordIx("ELAPSED");
-    bool iselapsed=e->KeywordSet(elapsedIx);
-
-    if (iselapsed) {cout << "coucou" << endl;
-      
-      DDoubleGDL *elapsed = e->GetKWAs<DDoubleGDL>(elapsedIx);
-      cout << (*elapsed)[1] << endl;
-    }
-    
+    //bool iselapsed=e->KeywordSet("ELAPSED");
+    bool iselapsed=e->KeywordPresentAndDefined(elapsedIx);
     static int julianIx=e->KeywordIx("JULIAN");
     bool isjulian=e->KeywordSet(julianIx);
     static int secondsIx=e->KeywordIx("SECONDS");
+    bool isseconds=e->KeywordSet(secondsIx);
     static int utcIx=e->KeywordIx("UTC");
     bool isutc=e->KeywordSet(utcIx);
+    
+    
     if (nParam == 2) {
-      if (isjulian) e->Throw("Conflicting keywords.");
-
+      if (isjulian) e->Throw("Conflicting keywords.");//I don't think it's necessory.
       //2 parameters
       //if the first param is 0, return the date of the second arg
       //if the first param is 1, return the 'double' of the second arg
-      DLong v1=0; 
+      DLong v1=0;
       e->AssureLongScalarPar(0,v1);
-      DDouble v2=0.0; 
-      e->AssureDoubleScalarPar(1,v2);
-
       //     DIntGDL* v1 = static_cast<DIntGDL*>(e->GetParDefined(0)->Convert2(GDL_INT,BaseGDL::COPY));
+
+      if (iselapsed==0){//if is elapsed, v2 is ignored.
+      DDouble v2=0.0;
+      e->AssureDoubleScalarPar(1,v2);
       //v_guard.Reset( v1); //  e->Guard(v1);
       //DDoubleGDL* v2 = static_cast<DDoubleGDL*>(e->GetParDefined(1)->Convert2(GDL_DOUBLE,BaseGDL::COPY));
-
       if (v1 == 0) { //v1->EqualNoDelete( DIntGDL(0))) { //0, read the second argument as time_t;
-	tval.tv_sec = static_cast<long int>(v2);
-        tval.tv_usec = static_cast<long int>((v2-tval.tv_sec)*1e+6);
+          tval.tv_sec = static_cast<long int>(v2);
+          tval.tv_usec = static_cast<long int>((v2-tval.tv_sec)*1e+6);
         //delete v2; // we delete v2 here as it is not guarded. Avoids a "new" in the following "else"
       } else { //1
         return new DDoubleGDL(v2);
       }
+      }
+      else{
+        if ((v1 <= -1) || (v1 >= 1)) ret_seconds=true;
+      }
+      
+    }
+    
+    //
+    if (iselapsed) {
+      DDouble elapsed;
+      e->AssureDoubleScalarKW(elapsedIx, elapsed);
+      //if ( ret_seconds==true ){
+      //  return new DDoubleGDL(elapsed);
+      //}
+      // cout<<"elapsed = "<<elapsed<<endl;
+      tt = elapsed;
+      // In case the elapsed = NaN or Inf;
+      int inputnan = isnan(elapsed);
+      int inputinf = isinf(elapsed);
+      if (inputnan == 1|| inputinf == 1){
+        if (isjulian==1){
+          return new DDoubleGDL(static_cast<double>(tt));
+          }else{
+            if ((ret_seconds|| isseconds )){
+              return new DDoubleGDL(static_cast<double>(tt));
+              } 
+            else { elapsed=0; tt=elapsed;isutc=true;}
+            }
+        }
+      tval.tv_sec = static_cast<long int>(elapsed);
+      tval.tv_usec = static_cast<long int>((elapsed-tval.tv_sec)*1e+6);
     }
 
     //return the variable in seconds, either JULIAN, JULIAN+UTC,
     //or no other keywords
     struct tm *tstruct;
-    if( ret_seconds || e->KeywordSet(secondsIx) )
-      {
-       if( isjulian )
-         {
-           time_t ttime = tval.tv_sec;
-           if( isutc )
-             tstruct=gmtime(&ttime);
-           else
-             tstruct=localtime(&ttime);
-           return new DDoubleGDL(Gregorian2Julian(tstruct));
-         }
-       else
-         {
+    if (isjulian){
+      time_t ttime = tval.tv_sec;
+      // does not (necessaryly) work: time might count backwards
+           //double tickTime = static_cast<double>(t) + tt - floor( tt);
+      if( isutc )
+        tstruct=gmtime(&ttime);
+      else
+        tstruct=localtime(&ttime);
+      return new DDoubleGDL(Gregorian2Julian(tstruct));
+    }
+    
+    if( ret_seconds || isseconds )
+      {if(isjulian){
+        time_t ttime = tval.tv_sec;
+        // does not (necessaryly) work: time might count backwards
+        //double tickTime = static_cast<double>(t) + tt - floor( tt);
+        if( isutc )
+          tstruct=gmtime(&ttime);
+        else
+          tstruct=localtime(&ttime);
+        return new DDoubleGDL(Gregorian2Julian(tstruct));
+        }
+        else
+        {
            // does not (necessaryly) work: time might count backwards
            //double tickTime = static_cast<double>(t) + tt - floor( tt);
            return new DDoubleGDL(static_cast<double>(tt));
-         }
+        }
       }
 
     //return a string of the time, either UTC or local (default)
     time_t ttime = tval.tv_sec;
-    if(isutc)
+    
+    if(isutc){
       tstruct= gmtime(&ttime);
-    else
+      }
+      else{
       tstruct= localtime(&ttime);
-
+      }
     //Convert the time to JULIAN or NOT
     if(isjulian)
         return new DDoubleGDL(Gregorian2Julian(tstruct));
-    else 
+    else
       {
        char st[MAX_DATE_STRING_LENGTH];
 //        char *st=new char[MAX_DATE_STRING_LENGTH];
 //        ArrayGuard<char> stGuard( st);
-       const char *format="%a %h %d %T %Y";//my IDL date format.
+       const char *format="%a %h %e %T %Y";//my IDL date format.
        DStringGDL *S;
+    
 #ifdef _WIN32
   char *at = asctime(tstruct); // https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/asctime-wasctime
   at[strlen(at) - 1] = 0;      // On Windows, asctime appends a newline at the end of string.
@@ -580,7 +621,7 @@ namespace lib {
 
     Guard<BaseGDL> guard;
     int count;
-    
+
     BaseGDL* xvals,* lvals,* mvals;
 
     //    xvals= e->GetParDefined(0); //,"LEGENDRE");
@@ -598,7 +639,7 @@ namespace lib {
 
     nEl=lvals->N_Elements();
     if(nEl == 0) e->Throw("Variable is undefined: "+e->GetParString(1));
-    
+
     if(nParam > 2)
       {
 	mvals= e->GetNumericParDefined(2);
@@ -613,9 +654,9 @@ namespace lib {
     if(nEm == 0) e->Throw("Variable is undefined: "+e->GetParString(2));
 
     nmin=nEx;
-    if(nEl < nmin && nEl > 1) 	nmin=nEl;    
+    if(nEl < nmin && nEl > 1) 	nmin=nEl;
     if(nEm < nmin && nEm > 1) 	nmin=nEm;
-    
+
     if(xvals->Type() == GDL_COMPLEX ||
        xvals->Type() == GDL_COMPLEXDBL) {
       e->Throw("Complex Legendre not implemented: ");
@@ -626,7 +667,7 @@ namespace lib {
       DDoubleGDL* x_cast;
       DIntGDL* l_cast,*m_cast;
 
-      if(xvals->Type() == GDL_DOUBLE) 
+      if(xvals->Type() == GDL_DOUBLE)
 	x_cast=  static_cast<DDoubleGDL*>(xvals);
       else
 	{
@@ -636,8 +677,8 @@ namespace lib {
 
       // lvals check
       if(lvals->Type() == GDL_COMPLEX ||
-	 lvals->Type() == GDL_COMPLEXDBL) 
-	e->Throw( 
+	 lvals->Type() == GDL_COMPLEXDBL)
+	e->Throw(
 		 "Complex Legendre not implemented: ");
       else if(lvals->Type() == GDL_INT)
 	l_cast=static_cast<DIntGDL*>(lvals);
@@ -649,8 +690,8 @@ namespace lib {
 
       //mval check
       if(mvals->Type() == GDL_COMPLEX ||
-	 mvals->Type() == GDL_COMPLEXDBL) 
-	e->Throw( 
+	 mvals->Type() == GDL_COMPLEXDBL)
+	e->Throw(
 		 "Complex Legendre not implemented: ");
       else if(mvals->Type() == GDL_INT)
 	m_cast=static_cast<DIntGDL*>(mvals);
@@ -662,13 +703,13 @@ namespace lib {
 	}
 
       //x,m,l are converted to the correct format (double, int, int) here
-	
+
 
       //make the result array have the same size as the smallest x,m,l array
       if(nmin == nEx) res=new DDoubleGDL(xvals->Dim(),BaseGDL::NOZERO);
       else if(nmin == nEl) res=new DDoubleGDL(lvals->Dim(),BaseGDL::NOZERO);
       else if(nmin == nEm) res=new DDoubleGDL(mvals->Dim(),BaseGDL::NOZERO);
-	  
+
       for (count=0;count<nmin;count++)
 	{
 	  DDouble xNow = (*x_cast)[nmin > nEx?0:count];
@@ -681,14 +722,14 @@ namespace lib {
 	    e->Throw( "Argument L must be greater than or equal to zero.");
 	  if( mNow < -lNow || mNow > lNow)
 	    e->Throw( "Argument M must be in the range [-L, L].");
-	 
+
 	  if( mNow >= 0)
-	    (*res)[count]= 
+	    (*res)[count]=
 	      gsl_sf_legendre_Plm( lNow, mNow, xNow);
 	  else
 	    {
 	      mNow = -mNow;
-	      
+
 	      int addIx  = lNow+mNow;
 	      DDouble mul = 1.0;
 	      DDouble dD  = static_cast<DDouble>( lNow-mNow+1);
@@ -704,7 +745,7 @@ namespace lib {
 	      (*res)[count] = Pm / mul;
 	    }
 	}
-	
+
       //convert things back
       static int doubleIx=e->KeywordIx("DOUBLE");
       if(xvals->Type() != GDL_DOUBLE && !e->KeywordSet(doubleIx))
@@ -730,7 +771,7 @@ namespace lib {
     Guard<BaseGDL> fr_guard;
 
     SizeT nParam = e->NParam(1);
-    BaseGDL* v=e->GetNumericParDefined(0);   
+    BaseGDL* v=e->GetNumericParDefined(0);
 
     size_t nEl = v->N_Elements();
     size_t i;
@@ -748,12 +789,12 @@ namespace lib {
 	  new DComplexDblGDL(v->Dim(), BaseGDL::NOZERO);
 	cdr_guard.Reset(cdr);//e->Guard( cdr);
 
-	if(nEl == 1) 
+	if(nEl == 1)
 	  (*cdr)[0]=
 	   DComplex((gsl_sf_exp((*cd)[0].real())*cos((*cd)[0].imag())),
 		    (gsl_sf_exp((*cd)[0].real())*sin((*cd)[0].imag())));
 	else
-	  for(i=0;i<nEl;++i) 
+	  for(i=0;i<nEl;++i)
 	    (*cdr)[i]=
 	      DComplex((gsl_sf_exp((*cd)[i].real())*cos((*cd)[i].imag())),
 		       (gsl_sf_exp((*cd)[i].real())*sin((*cd)[i].imag())));
@@ -768,42 +809,42 @@ namespace lib {
 	DComplexDblGDL* cdr =
 	  new DComplexDblGDL(v->Dim(), BaseGDL::NOZERO);
 
-	if(nEl == 1) 
+	if(nEl == 1)
 	  (*cdr)[0]=
 	   DComplex((gsl_sf_exp((*cd)[0].real())*cos((*cd)[0].imag())),
 		    (gsl_sf_exp((*cd)[0].real())*sin((*cd)[0].imag())));
 	else
-	  for(i=0;i<nEl;i++) 
+	  for(i=0;i<nEl;i++)
 	    (*cdr)[i]=
 	      DComplex((gsl_sf_exp((*cd)[i].real())*cos((*cd)[i].imag())),
 		       (gsl_sf_exp((*cd)[i].real())*sin((*cd)[i].imag())));
-	
+
 	return cdr;
-	
+
       } else if(v->Type() == GDL_DOUBLE) {
-	
-	DDoubleGDL* d=static_cast<DDoubleGDL*>(v->Convert2(GDL_DOUBLE, 
+
+	DDoubleGDL* d=static_cast<DDoubleGDL*>(v->Convert2(GDL_DOUBLE,
 							   BaseGDL::COPY));
 	d_guard.Reset(d);//e->Guard( d);
-	if(nEl == 1) 
+	if(nEl == 1)
 	  (*dr)[0]=gsl_sf_exp((*d)[0]);
 	else
 	  for (i=0;i<nEl;++i) (*dr)[i]=gsl_sf_exp((*d)[i]);
-	
+
 	return dr;
     } else { // all remainding types converted to Float ...
-      /*if(v->Type() == GDL_FLOAT || 
+      /*if(v->Type() == GDL_FLOAT ||
 		v->Type() == GDL_INT ||
 		v->Type() == GDL_LONG) {
       */
 	DFloatGDL *fr=new DFloatGDL(v->Dim(), BaseGDL::NOZERO);
 	fr_guard.Reset(fr);//e->Guard( fr);
 
-	DDoubleGDL* d=static_cast<DDoubleGDL*>(v->Convert2(GDL_DOUBLE, 
+	DDoubleGDL* d=static_cast<DDoubleGDL*>(v->Convert2(GDL_DOUBLE,
 							   BaseGDL::COPY));
 	d_guard.Reset(d);//e->Guard( d);
 
-	if(nEl == 1) 
+	if(nEl == 1)
 	  (*dr)[0]=gsl_sf_exp((*d)[0]);
 	else
 	  for (i=0;i<nEl;++i) (*dr)[i]=gsl_sf_exp((*d)[i]);
@@ -811,7 +852,7 @@ namespace lib {
 	return static_cast<DFloatGDL*>(dr->Convert2(GDL_FLOAT,BaseGDL::COPY));
       }
 
-  
+
     assert(false);
     return NULL;
   }
