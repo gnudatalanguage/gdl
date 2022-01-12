@@ -152,7 +152,7 @@ pro TEST_SYSTIME_EPOCH, cumul_errors, verbose=verbose, test=test, help=help
 nb_pbs_epoch=0
 ;
 ; Unix billennium
-expected='Sun Sep 09 01:46:40 2001'
+expected='Sun Sep  9 01:46:40 2001'
 value=SYSTIME(0,1000000000,/utc)
 if (expected NE value) then ERRORS_ADD, nb_pbs_epoch, 'Unix billennium conversion failed !'
 ;
@@ -170,6 +170,79 @@ ERRORS_CUMUL, cumul_errors, nb_pbs_epoch
 if KEYWORD_SET(test) then STOP
 ;
 end
+; ----------------------------------------------------
+;##########TO DO#############
+pro TEST_SYSTIME_ELAPSED, cumul_errors, verbose=verbose, test=test, help=help
+;
+; not ready now, other pbs found ...
+MESSAGE,/continue, 'v1 et Elapsed"
+expected='01:00:05'
+if ( expected NE STRMID(SYSTIME(el=05),11,8)) then ERRORS_ADD, nb_pbs_zero, 'case 1 i'
+if ( expected NE STRMID(SYSTIME(0, el=05),11,8)) then ERRORS_ADD, nb_pbs_zero, 'case 2 i'
+if ( expected NE STRMID(SYSTIME(1, el=05),11,8)) then ERRORS_ADD, nb_pbs_zero, 'case 3 i'
+
+print, systime(ela=5)
+print, systime(elapsed=5)
+print, systime(0, ela=5)
+print, systime(1, ela=5)
+
+MESSAGE,/continue, 'v1, Elapsed, utc"
+print, systime(1,/elapsed,/utc)
+print, systime(1,elapsed=200,/utc)
+print, systime(1,elapsed=0,/utc)
+print, systime(1,/utc)
+print, systime(0,elapsed=0,/utc)
+
+MESSAGE,/continue, '0,el,jul,et utc"
+print,systime(0,el=1,jul=0,utc=1)
+print,systime(0,el=0,jul=0,utc=1)
+print,systime(0,el=1,jul=1,utc=1)
+print,systime(0,el=0,jul=1,utc=1)
+print,systime(0,el=1,jul=1,utc=0)
+print,systime(0,el=0,jul=1,utc=0)
+print,systime(0,el=1,jul=0,utc=0)
+print,systime(0,el=0,jul=0,utc=0)
+
+MESSAGE,/continue, '0,v2,el"
+print,systime(0,1,el=2)
+print,systime(0,0,el=1)
+print,systime(0,1,el=0)
+print,systime(0,0,el=0)
+
+MESSAGE,/continue, 'Inf et NaN"
+print,systime(0,el=!values.f_nan)
+print,systime(1,el=!values.f_nan)
+print,systime(0,el=!values.f_nan,/julian)
+print,systime(1,el=!values.f_nan,/julian)
+print,systime(1,1,el=!values.f_nan)
+print,systime(0,1,el=!values.f_nan)
+print,systime(0,1,el=!values.f_nan,/utc)
+print,systime(0,1,el=!values.f_nan)
+
+MESSAGE,/continue, '0.5"
+print,systime(0.5,0)
+print,systime(1,0)
+print,systime(0,0)
+
+print,systime(0,0.5)
+print,systime(0,1)
+
+print,systime(0,julian=0.5)
+print,systime(0,julian=1)
+print,systime(0,utc=0.5)
+print,systime(0,utc=1)
+
+;
+nb_pbs_elapsed=0
+;
+BANNER_FOR_TESTSUITE, "TEST_SYSTIME_ELAPSED", nb_pbs_elapsed, /short, verb=verbose
+;
+ERRORS_CUMUL, cumul_errors, nb_pbs_elapsed
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
 ; ----------------------------------------------------
 ;
 pro TEST_SYSTIME_JULIAN, cumul_errors, verbose=verbose, test=test, help=help
@@ -210,6 +283,8 @@ endif
 TEST_SYSTIME_ZERO, cumul_errors, verbose=verbose, test=test
 ;
 TEST_SYSTIME_EPOCH, cumul_errors, verbose=verbose, test=test
+;
+TEST_SYSTIME_ELAPSED, cumul_errors, verbose=verbose, test=test
 ;
 TEST_SYSTIME_JULIAN, cumul_errors, verbose=verbose, test=test
 ;
