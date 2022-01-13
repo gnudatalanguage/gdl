@@ -215,6 +215,7 @@ namespace lib {
 	// If DIRECTORY is not set, show FileDialog
 	wxString wxfilterstr;
 	if (isfilter) {
+    if (e->GetDefinedKW(filterIx)->Type()!=GDL_STRING) e->Throw("String expression required in this context: "+ e->GetString(filterIx));
 	  DStringGDL* filterstrarr = e->IfDefGetKWAs<DStringGDL>(filterIx);
 	  dimension dim = filterstrarr->Dim();
 	  if (dim.Rank() > 2 || (dim.Rank() == 2 && dim[1] != 2))
