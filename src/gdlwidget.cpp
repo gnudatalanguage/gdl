@@ -3940,20 +3940,6 @@ GDLWidgetTable::~GDLWidgetTable()
   std::cout << "~GDLWidgetTable(" << widgetID << ")" << std::endl;
 #endif  
   if (theWxContainer) static_cast<wxWindow*>(theWxContainer)->Destroy();
-  
-  GDLDelete( table_alignment );
-  GDLDelete( editable );
-  GDLDelete( amPm );
-  GDLDelete( backgroundColor );
-  GDLDelete( foregroundColor );
-  GDLDelete( columnLabels );
-  GDLDelete( columnWidth );
-  GDLDelete( daysOfWeek );
-  GDLDelete( format );
-  GDLDelete( month );
-  GDLDelete( rowHeights );
-  GDLDelete( rowLabels );
-  GDLDelete( valueAsStrings );
 }
 
 /*********************************************************/
