@@ -280,6 +280,16 @@ namespace lib {
       e->Throw("Unrecognized data type.");
     }
 
+    /* crate datatype handle if required */
+    if (!H5Iis_valid(native_type)) native_type = H5Tcopy(native_type);
+
+    /* set size for string datatypes */
+    if ( (data[0]).Type()==GDL_STRING ) {
+      size_t len = strlen( (*static_cast<DStringGDL*>(data))[0].c_str() );
+      if ( H5Tset_size(native_type, len+1) < 0 )
+        { string msg; e->Throw(hdf5_error_message(msg)); }
+    }
+
     return native_type;
   }
 
@@ -1278,15 +1288,6 @@ hid_t
     /* --- determine HDF5 type and return datatype handle --- */
 
     hid_t native_type = mapGDLdatatypesToH5( data, e );
-
-    /* crate datatype handle if required */
-    if (!H5Iis_valid(native_type)) native_type = H5Tcopy(native_type);
-
-    if ( (data[0]).Type()==GDL_STRING ) { /* set size */
-      size_t len = strlen( (*static_cast<DStringGDL*>(data))[0].c_str() );
-      if ( H5Tset_size(native_type, len+1) < 0 )
-        { string msg; e->Throw(hdf5_error_message(msg)); }
-    }
 
     return hdf5_output_conversion( native_type );
   }
