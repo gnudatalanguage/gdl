@@ -295,25 +295,53 @@ namespace lib {
 
   // --------------------------------------------------------------------
 
-  hid_t hdf5_compound_create( DStructGDL* parent_struct, EnvT* e ) {
+  size_t tag_NBytes_0( BaseGDL* tag ) {
+
+    /* count space for extra 0-terminators for string-type tag */
+    size_t n_term=0;
+    if ( tag->Type() == GDL_STRING ) {
+      n_term=1;
+      for(int i=0; i<tag->Dim().Rank(); i++) n_term *= tag->Dim(i);
+    }
+
+    return n_term *sizeof(char);
+  }
+
+  // --------------------------------------------------------------------
+
+  size_t struct_NBytes_0( DStructGDL* d_struct ) {
+
+    /* count extra 0-terminators for strings inside struct */
+    SizeT nTags = d_struct->Desc()->NTags();
+    size_t n_term_total=0;
+    for(int t=0; t<nTags; t++)
+      n_term_total += tag_NBytes_0(d_struct->GetTag(t));
+
+    return n_term_total;
+  }
+
+  // --------------------------------------------------------------------
+
+  hid_t hdf5_compound_create( DStructGDL* d_struct, EnvT* e ) {
 
     bool debug=false;
     static int indent=0; indent+=2;
 
-    hid_t cmp_id = H5Tcreate( H5T_COMPOUND, parent_struct->SizeofTags() );
-
+    /* create HDF5 compound data type */
+    hid_t cmp_id = H5Tcreate( H5T_COMPOUND, d_struct->SizeofTags()
+                                          + struct_NBytes_0(d_struct) );
     size_t member_offset = 0;
-    SizeT nTags = (*parent_struct).Desc()->NTags();
+    SizeT nTags = d_struct->Desc()->NTags();
 
     if (debug) printf( "%*screating type for struct '%s' "
                        "of size %lld with %lld members\n",
-                       indent,"", parent_struct->Desc()->Name().c_str(),
-                       parent_struct->SizeofTags(), nTags );
+                       indent,"", d_struct->Desc()->Name().c_str(),
+                       d_struct->SizeofTags(), nTags );
 
-    for( int t=0; t<nTags; t++) {
+    for(int t=0; t<nTags; t++) {
 
-      BaseGDL *tag = parent_struct->GetTag(t);
-      string tagName = (*parent_struct).Desc()->TagName(t);
+      BaseGDL *tag = d_struct->GetTag(t);
+      string tagName = (*d_struct).Desc()->TagName(t);
 
       hsize_t rank = tag->Dim().Rank(), dims[MAXRANK];
       for(int i=0; i<rank; i++) dims[rank-1-i] = tag->Dim(i);
@@ -341,12 +369,71 @@ namespace lib {
       H5Tinsert( cmp_id, tagName.c_str(), member_offset, member_type_id );
       H5Tclose(member_type_id), H5Tclose(elem_type_id);
 
-      member_offset += tag->NBytes();
+      member_offset += tag->NBytes() + tag_NBytes_0(tag);
     }
 
     indent-=2;
 
     return cmp_id;
+  }
+
+  // --------------------------------------------------------------------
+
+  void hdf5_compound_gather( DStructGDL* d_struct,
+                             char *buffer, EnvT* e ) {
+
+    bool debug=false;
+    static int indent=0; indent+=2;
+
+    size_t member_offset=0;
+    size_t cmp_sz=d_struct->SizeofTags()+struct_NBytes_0(d_struct);
+    SizeT nTags = d_struct->Desc()->NTags();
+
+    if (debug) printf( "%*sgathering data for struct '%s' "
+                       "of size %ld with %lld members\n",
+                       indent,"", d_struct->Desc()->Name().c_str(),
+                       cmp_sz, nTags );
+
+    for(int t=0; t<nTags; t++) {
+
+      BaseGDL *tag = d_struct->GetTag(t);
+      string tagName = (*d_struct).Desc()->TagName(t);
+
+      hsize_t rank = tag->Dim().Rank(), dims[MAXRANK];
+      for(int i=0; i<rank; i++) dims[rank-1-i] = tag->Dim(i);
+
+      if (debug) {
+        printf( "%*stag '%s' of rank %lld, dimensions are: (",
+                indent,"", tagName.c_str(), rank );
+        for(int i=0; i<rank; i++)
+          printf("%lld%s", tag->Dim(i), (i<rank-1) ? "," : "");
+        printf( "), size=%lld, offs=%ld\n",
+                tag->NBytes()+tag_NBytes_0(tag), member_offset );
+      }
+
+      if ( tag->Type() == GDL_STRUCT ) { /* nested structure */
+
+        hdf5_compound_gather( static_cast<DStructGDL*>(tag),
+                              buffer+member_offset, e );
+
+      } else if ( tag->Type() == GDL_STRING ) { /* string data */
+
+        size_t len=1+strlen((*static_cast<DStringGDL*>(tag))[0].c_str());
+        for(int i=0; i<tag->Size(); i++)
+          strncpy( &buffer[member_offset+i*len],
+                   (char*)((*static_cast<DStringGDL*>(tag))[i].c_str()), len );
+
+      } else { /* numeric data */
+
+        memcpy( &buffer[member_offset], tag->DataAddr(), tag->NBytes() );
+      }
+
+      member_offset += tag->NBytes() + tag_NBytes_0(tag);
+    }
+
+    indent-=2;
+
+    return;
   }
 
   // --------------------------------------------------------------------
@@ -577,11 +664,20 @@ namespace lib {
     char *buffer=NULL;
     void *data_addr=NULL;
 
-    if (H5Tget_class(elem_type_id)==H5T_COMPOUND) {
 
-      printf("struct datatype\n"); /// FIXME: needs to be implemented
+    if (H5Tget_class(elem_type_id)==H5T_COMPOUND) {         /* --- struct */
 
-    } else if (H5Tget_class(elem_type_id)==H5T_STRING) {
+      DStructGDL* d_struct = static_cast<DStructGDL*>(data);
+      hsize_t n_elem=d_struct->N_Elements(),
+              len=d_struct->SizeofTags()+struct_NBytes_0(d_struct);
+
+      data_addr = buffer = static_cast<char*>(calloc(n_elem*len,sizeof(char)));
+      if (buffer == NULL) e->Throw("Failed to allocate memory!");
+
+      hdf5_compound_gather(d_struct,buffer,e);
+
+
+    } else if (H5Tget_class(elem_type_id)==H5T_STRING) {    /* --- string */
 
       size_t n_elem=data->Size(), len=H5Tget_size(elem_type_id);
 
@@ -592,7 +688,8 @@ namespace lib {
         strncpy( &buffer[i*len],
                  (*static_cast<DStringGDL*>(data))[i].c_str(), len );
 
-    } else data_addr = data->DataAddr();
+
+    } else data_addr = data->DataAddr();                    /* --- numeric */
 
 
     /* --- write dataset/attribute to file --- */
