@@ -608,6 +608,9 @@ namespace lib {
     case H5I_ATTR:
       status = H5Awrite(loc_id, type_id, data_addr);
       break;
+
+    default:
+      break;
     }
 
     if (status < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
