@@ -318,7 +318,10 @@ namespace lib {
       hsize_t rank = tag->Dim().Rank(), dims[MAXRANK];
       for(int i=0; i<rank; i++) dims[rank-1-i] = tag->Dim(i);
 
-      if (debug) {
+      /* treat 1D data with single element as scalar */
+      if (rank==1 && dims[0]==1) rank=0;
+
+      if (debug) { /* print tag properties */
         printf( "%*stag '%s' of rank %lld, dimensions are: (",
                 indent,"", tagName.c_str(), rank );
         for(int i=0; i<rank; i++)
@@ -326,13 +329,15 @@ namespace lib {
         printf("), size=%lld, offs=%ld\n", tag->NBytes(), member_offset);
       }
 
+      /* obtain tag's HDF5 data type */
       hid_t member_type_id, elem_type_id = mapGDLdatatypesToH5(tag,e);
 
-      if (rank>0)
+      if (rank>0) /* create array datatype if needed */
         member_type_id = H5Tarray_create2( elem_type_id, rank, dims );
       else
         member_type_id = H5Tcopy( elem_type_id );
 
+      /* insert into HDF5 compound datatype */
       H5Tinsert( cmp_id, tagName.c_str(), member_offset, member_type_id );
       H5Tclose(member_type_id), H5Tclose(elem_type_id);
 
