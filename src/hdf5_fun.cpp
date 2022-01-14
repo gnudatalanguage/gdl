@@ -575,6 +575,7 @@ namespace lib {
     /* --- assert contiguous write buffer --- */
 
     char *buffer=NULL;
+    void *data_addr=NULL;
 
     if (H5Tget_class(elem_type_id)==H5T_COMPOUND) {
 
@@ -584,14 +585,14 @@ namespace lib {
 
       size_t n_elem=data->Size(), len=H5Tget_size(elem_type_id);
 
-      buffer = static_cast<char*>(calloc(n_elem*len,sizeof(char)));
+      data_addr = buffer = static_cast<char*>(calloc(n_elem*len,sizeof(char)));
       if (buffer == NULL) e->Throw("Failed to allocate memory!");
 
       for(int i=0; i<n_elem; i++)
         strncpy( &buffer[i*len],
                  (*static_cast<DStringGDL*>(data))[i].c_str(), len );
 
-    } else buffer = (char*) data->DataAddr();
+    } else data_addr = data->DataAddr();
 
 
     /* --- write dataset/attribute to file --- */
@@ -601,11 +602,11 @@ namespace lib {
     switch( H5Iget_type(loc_id) ) {
 
     case H5I_DATASET:
-      status = H5Dwrite(loc_id, type_id, ms_id, fs_id, H5P_DEFAULT, buffer);
+      status = H5Dwrite(loc_id, type_id, ms_id, fs_id, H5P_DEFAULT, data_addr);
       break;
 
     case H5I_ATTR:
-      status = H5Awrite(loc_id, type_id, buffer);
+      status = H5Awrite(loc_id, type_id, data_addr);
       break;
     }
 
@@ -614,7 +615,7 @@ namespace lib {
 
     /* --- free resources --- */
 
-    if(buffer!=data->DataAddr()) free(buffer);
+    if(buffer) free(buffer), buffer=NULL;
 
     return;
   }
