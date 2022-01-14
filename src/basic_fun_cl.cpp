@@ -445,12 +445,11 @@ namespace lib {
   {
     struct timeval tval;
     struct timezone tzone;
-
+    
     /*get the time before doing anything else,
       this hopefully gives a more meaningful "time"
       than if the t=time(0) call came after an
       arbitary number of conditional statements.*/
-    //    cout << "lib::systime: " << t << endl;
     gettimeofday(&tval,&tzone);
     double tt = tval.tv_sec+tval.tv_usec/1e+6; // time in UTC seconds
 
@@ -476,7 +475,7 @@ namespace lib {
 
     }
 
-    static int elapsedIx=e->KeywordIx("ELAPSED");
+    static double elapsedIx=e->KeywordIx("ELAPSED");
     //bool iselapsed=e->KeywordSet("ELAPSED");
     bool iselapsed=e->KeywordPresentAndDefined(elapsedIx);
     static int julianIx=e->KeywordIx("JULIAN");
@@ -519,10 +518,6 @@ namespace lib {
     if (iselapsed) {
       DDouble elapsed;
       e->AssureDoubleScalarKW(elapsedIx, elapsed);
-      //if ( ret_seconds==true ){
-      //  return new DDoubleGDL(elapsed);
-      //}
-      // cout<<"elapsed = "<<elapsed<<endl;
       tt = elapsed;
       // In case the elapsed = NaN or Inf;
       int inputnan = isnan(elapsed);
@@ -544,37 +539,8 @@ namespace lib {
     //return the variable in seconds, either JULIAN, JULIAN+UTC,
     //or no other keywords
     struct tm *tstruct;
-    if (isjulian){
-      time_t ttime = tval.tv_sec;
-      // does not (necessaryly) work: time might count backwards
-           //double tickTime = static_cast<double>(t) + tt - floor( tt);
-      if( isutc )
-        tstruct=gmtime(&ttime);
-      else
-        tstruct=localtime(&ttime);
-      return new DDoubleGDL(Gregorian2Julian(tstruct));
-    }
-    
-    if( ret_seconds || isseconds )
-      {if(isjulian){
-        time_t ttime = tval.tv_sec;
-        // does not (necessaryly) work: time might count backwards
-        //double tickTime = static_cast<double>(t) + tt - floor( tt);
-        if( isutc )
-          tstruct=gmtime(&ttime);
-        else
-          tstruct=localtime(&ttime);
-        return new DDoubleGDL(Gregorian2Julian(tstruct));
-        }
-        else
-        {
-           // does not (necessaryly) work: time might count backwards
-           //double tickTime = static_cast<double>(t) + tt - floor( tt);
-           return new DDoubleGDL(static_cast<double>(tt));
-        }
-      }
-
     //return a string of the time, either UTC or local (default)
+
     time_t ttime = tval.tv_sec;
     
     if(isutc){
@@ -584,10 +550,12 @@ namespace lib {
       tstruct= localtime(&ttime);
       }
     //Convert the time to JULIAN or NOT
-    if(isjulian)
-        return new DDoubleGDL(Gregorian2Julian(tstruct));
-    else
-      {
+    if(isjulian){
+        DDouble t_nsec = (tt-tval.tv_sec)*1e+9;
+        return new DDoubleGDL(Gregorian2Julian(tstruct,t_nsec));}
+    else if( ret_seconds || isseconds )
+        return new DDoubleGDL(static_cast<double>(tt));
+    else{
        char st[MAX_DATE_STRING_LENGTH];
 //        char *st=new char[MAX_DATE_STRING_LENGTH];
 //        ArrayGuard<char> stGuard( st);
