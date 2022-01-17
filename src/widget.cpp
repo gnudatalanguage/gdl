@@ -390,22 +390,22 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
   return ev;
 }
 
-//template< typename T>
-//T* GetKeywordAs( EnvT* e, int ix)
-//{
-//  BaseGDL* kwBaseGDL = e->GetKW( ix );
-//  if ( kwBaseGDL == NULL )
-//    return NULL;
-//
-//  if ( kwBaseGDL->Type( ) != T::t )
-//    return static_cast<T*> (kwBaseGDL->Convert2( T::t, BaseGDL::COPY ));
-//
-//  bool stolen = e->StealLocalKW( ix );
-//  if ( stolen )
-//    return static_cast<T*> (kwBaseGDL);
-//
-//  return static_cast<T*> (kwBaseGDL->Dup( ));
-//}
+template< typename T>
+T* GetKeywordAs( EnvT* e, int ix)
+{
+  BaseGDL* kwBaseGDL = e->GetTheKW( ix );
+  if ( kwBaseGDL == NULL )
+    return NULL;
+
+  if ( kwBaseGDL->Type( ) != T::t )
+    return static_cast<T*> (kwBaseGDL->Convert2( T::t, BaseGDL::COPY ));
+
+  bool stolen = e->StealLocalKW( ix );
+  if ( stolen )
+    return static_cast<T*> (kwBaseGDL);
+
+  return static_cast<T*> (kwBaseGDL->Dup( ));
+}
 
 
 namespace lib {
@@ -455,38 +455,38 @@ BaseGDL* widget_table( EnvT* e)
   bool resizeableColumns = e->KeywordSet( RESIZEABLE_COLUMNS );
   bool resizeableRows = e->KeywordSet( RESIZEABLE_ROWS );
 
-  DByteGDL* editable = e->IfDefGetKWAs<DByteGDL>( EDITABLE );
-  DByteGDL* alignment = e->IfDefGetKWAs<DByteGDL>( ALIGNMENT);
+  DByteGDL* editable = GetKeywordAs<DByteGDL>(e, EDITABLE );
+  DByteGDL* alignment = GetKeywordAs<DByteGDL>(e, ALIGNMENT);
   //not checked by idl
   //if (alignment) {if (!(alignment->Rank()==0 ||alignment->Rank()==2)) e->Throw("Table grid color attribute has the wrong dimensions.");}
  
 
-  DByteGDL* backgroundColor = e->IfDefGetKWAs<DByteGDL>( BACKGROUND_COLOR);
-  DByteGDL* foregroundColor = e->IfDefGetKWAs<DByteGDL>( FOREGROUND_COLOR);
+  DByteGDL* backgroundColor = GetKeywordAs<DByteGDL>(e, BACKGROUND_COLOR);
+  DByteGDL* foregroundColor = GetKeywordAs<DByteGDL>(e, FOREGROUND_COLOR);
   //exit if problems
   if (backgroundColor) {if (backgroundColor->N_Elements()%3 != 0) e->Throw("Table grid color attribute has the wrong dimensions.");}
   if (foregroundColor) {if (foregroundColor->N_Elements()%3 != 0) e->Throw("Table grid color attribute has the wrong dimensions.");}
  
-  DStringGDL* columnLabels = e->IfDefGetKWAs<DStringGDL>(COLUMN_LABELS);
-  DLongGDL* columnWidth = e->IfDefGetKWAs<DLongGDL>(COLUMN_WIDTHS);
+  DStringGDL* columnLabels = GetKeywordAs<DStringGDL>(e, COLUMN_LABELS);
+  DLongGDL* columnWidth = GetKeywordAs<DLongGDL>(e, COLUMN_WIDTHS);
 
   static int AM_PM = e->KeywordIx( "AM_PM" );
-  DStringGDL* amPm = e->IfDefGetKWAs<DStringGDL>(AM_PM);
+  DStringGDL* amPm = GetKeywordAs<DStringGDL>(e, AM_PM);
   //check
   if (amPm) {if (amPm->N_Elements()!=2) e->Throw("% Keyword array parameter AM_PM must have 2 elements.");}
   static int DAYS_OF_WEEK = e->KeywordIx( "DAYS_OF_WEEK" );
-  DStringGDL* daysOfWeek = e->IfDefGetKWAs<DStringGDL>(DAYS_OF_WEEK);
+  DStringGDL* daysOfWeek = GetKeywordAs<DStringGDL>(e, DAYS_OF_WEEK);
   //check
   if (daysOfWeek) {if (daysOfWeek->N_Elements()!=2) e->Throw("% Keyword array parameter DAYS_OF_WEEK must have 7 elements.");}
   static int MONTHS = e->KeywordIx( "MONTHS" );
-  DStringGDL* month = e->IfDefGetKWAs<DStringGDL>(MONTHS);
+  DStringGDL* month = GetKeywordAs<DStringGDL>(e, MONTHS);
   //check
   if (month) {if (month->N_Elements()!=12) e->Throw("% Keyword array parameter MONTH must have 12 elements.");}
   
-  DStringGDL* format = e->IfDefGetKWAs<DStringGDL>(FORMAT);
+  DStringGDL* format = GetKeywordAs<DStringGDL>(e, FORMAT);
 
-  DLongGDL* rowHeights = e->IfDefGetKWAs<DLongGDL>(ROW_HEIGHTS);
-  DStringGDL* rowLabels = e->IfDefGetKWAs<DStringGDL>(ROW_LABELS);
+  DLongGDL* rowHeights = GetKeywordAs<DLongGDL>(e, ROW_HEIGHTS);
+  DStringGDL* rowLabels = GetKeywordAs<DStringGDL>(e, ROW_LABELS);
 
 //  DLong tabMode = 0;
 //  e->AssureLongScalarKWIfPresent( TAB_MODE, tabMode );
@@ -692,7 +692,7 @@ BaseGDL* widget_tree( EnvT* e)
   DByteGDL* testByte=NULL;
   wxBitmap* bitmap=NULL;
   if (e->KeywordPresent(BITMAP)) { //must be 16 x 16 x 3 but we do not care about the 16x16
-    testByte = e->IfDefGetKWAs<DByteGDL>(BITMAP);
+    testByte = e->GetKWAs<DByteGDL>(BITMAP);
     if (testByte) {
       bitmap = GetBitmapFromPassedBytes(e, testByte, mask);
     }
@@ -797,12 +797,12 @@ BaseGDL* widget_draw( EnvT* e ) {
   if (wheel_events) eventFlags |=  GDLWidget::EV_WHEEL;
   if (button_events) eventFlags |=  GDLWidget::EV_BUTTON;
   if (keyboard_events) {
-    DLong val= (*e->IfDefGetKWAs<DLongGDL>(KEYBOARD_EVENTS))[0];
+    DLong val= (*e->GetKWAs<DLongGDL>(KEYBOARD_EVENTS))[0];
     if (val==2) { eventFlags |=  GDLWidget::EV_KEYBOARD2;}
     else if (val==1)  {eventFlags |=  GDLWidget::EV_KEYBOARD;}
   }
   DStringGDL* tooltipgdl=NULL;
-  if (e->KeywordPresent(TOOLTIP)) tooltipgdl = e->IfDefGetKWAs<DStringGDL>(TOOLTIP) ;
+  if (e->KeywordPresent(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP) ;
   GDLWidgetDraw* draw=new GDLWidgetDraw( parentID, e, -1, x_scroll_size, y_scroll_size, app_scroll, eventFlags, tooltipgdl);
   if (draw->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) draw->SetWidgetType( GDLWidget::WIDGET_DRAW );
   if (keyboard_events) draw->SetFocus();
@@ -1136,7 +1136,7 @@ BaseGDL* widget_draw( EnvT* e ) {
 
   DStringGDL* tooltipgdl = NULL;
   GDLWidgetButton* button;
-  if (e->KeywordPresent(TOOLTIP)) tooltipgdl = e->IfDefGetKWAs<DStringGDL>(TOOLTIP);  
+  if (e->KeywordPresent(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP);  
   
   
   DString strvalue = "button"+i2s(buttonNumber++); //tested default!
@@ -1162,12 +1162,12 @@ BaseGDL* widget_draw( EnvT* e ) {
           }
         }
       } else { //value is an image
-        passedBytes=e->IfDefGetKWAs<DByteGDL>(valueIx); //test it
+        passedBytes=e->GetKWAs<DByteGDL>(valueIx); //test it
         hasImage = false; //image will be ignored.
       }
 
       // if hasImage is still true, it is the image KW that contains an image:
-      if (hasImage) passedBytes = e->IfDefGetKWAs<DByteGDL>(imageIx); //value must be a text and image is in IMAGE=xx KW
+      if (hasImage) passedBytes = e->GetKWAs<DByteGDL>(imageIx); //value must be a text and image is in IMAGE=xx KW
           
       //whatever the passedBytes it must be OK:
       if (passedBytes) {
@@ -1823,7 +1823,7 @@ BaseGDL* widget_info( EnvT* e ) {
 
   //find a string, return a long
   if (findbyuname) {
-    DStringGDL* myUname = e->IfDefGetKWAs<DStringGDL>(findbyunameIx);
+    DStringGDL* myUname = e->GetKWAs<DStringGDL>(findbyunameIx);
     if (myUname == NULL) return new DLongGDL( 0 );
     DLongGDL* list = static_cast<DLongGDL*>( GDLWidget::GetWidgetsList( ) );
     Guard<BaseGDL> guard_list(list);
@@ -2003,7 +2003,7 @@ BaseGDL* widget_info( EnvT* e ) {
   }
 
     if (getStringSize) {
-      DStringGDL* gs = e->IfDefGetKWAs<DStringGDL>(STRING_SIZE);
+      DStringGDL* gs = e->GetKWAs<DStringGDL>(STRING_SIZE);
       if (gs->N_Elements()> 2) e->Throw("Keyword array parameter STRING_SIZE must have from 1 to 2 elements.");
       DString s=(*gs)[0];
       DString font("");
@@ -2217,7 +2217,7 @@ BaseGDL* widget_info( EnvT* e ) {
       if (tabledisjointselection)  return new DLongGDL( table->GetDisjointSelection()?1:0 );
       
       bool useATableSelection = e->KeywordSet(USE_TABLE_SELECT);
-      DLongGDL* tableSelectionToUse = e->IfDefGetKWAs<DLongGDL>(USE_TABLE_SELECT);
+      DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
       if (useATableSelection && tableSelectionToUse->Rank()==0 && !table->IsSomethingSelected())
         { e->Throw( "USE_TABLE_SELECT value out of range.");}
       if (useATableSelection && tableSelectionToUse->Rank()>0) { //check further a bit...
@@ -2704,7 +2704,7 @@ void widget_control( EnvT* e ) {
   static int ALL_TEXT_EVENTS = e->KeywordIx( "ALL_TEXT_EVENTS" );
 
   static int EDITABLE = e->KeywordIx( "EDITABLE" ); 
-  DByteGDL* editable = e->IfDefGetKWAs<DByteGDL>(EDITABLE );
+  DByteGDL* editable = GetKeywordAs<DByteGDL>(e, EDITABLE );
 
     
   bool send_event = e->KeywordPresent( SEND_EVENT );
@@ -2826,7 +2826,7 @@ void widget_control( EnvT* e ) {
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
         static int USE_TABLE_SELECT = e->KeywordIx( "USE_TABLE_SELECT" );
         bool useATableSelection = e->KeywordPresentAndDefined( USE_TABLE_SELECT );
-        DLongGDL* tableSelectionToUse = e->IfDefGetKWAs<DLongGDL>(USE_TABLE_SELECT);
+        DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e,USE_TABLE_SELECT);
 
         if ( useATableSelection && tableSelectionToUse->Rank( ) == 0 && !table->IsSomethingSelected( ) ) {
           e->Throw( "USE_TABLE_SELECT value out of range." );
@@ -2992,8 +2992,8 @@ void widget_control( EnvT* e ) {
   
   if (hasScr_xsize || hasScr_ysize) { //simple: direct sizing in pixels or UNITS for ALL widgets
     DLong xsize=-1, ysize=-1;
-    if (hasScr_xsize) {xsize= (*e->IfDefGetKWAs<DLongGDL>(SCR_XSIZE))[0]; if (xsize<0) e->Throw("Illegal keyword value for SCR_XSIZE.");}
-    if (hasScr_ysize) {ysize= (*e->IfDefGetKWAs<DLongGDL>(SCR_YSIZE))[0]; if (ysize<0) e->Throw("Illegal keyword value for SCR_YSIZE.");}
+    if (hasScr_xsize) {xsize= (*e->GetKWAs<DLongGDL>(SCR_XSIZE))[0]; if (xsize<0) e->Throw("Illegal keyword value for SCR_XSIZE.");}
+    if (hasScr_ysize) {ysize= (*e->GetKWAs<DLongGDL>(SCR_YSIZE))[0]; if (ysize<0) e->Throw("Illegal keyword value for SCR_YSIZE.");}
 
     wxWindow* me=dynamic_cast<wxWindow*>(widget->GetWxWidget());
     if (me==NULL) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
@@ -3009,8 +3009,8 @@ void widget_control( EnvT* e ) {
   
   if ( (hasDraw_xsize || hasDraw_ysize ) && widget->IsDraw() ) {
     DLong xsize=-1, ysize=-1;
-    if (hasDraw_xsize) {xsize= (*e->IfDefGetKWAs<DLongGDL>(DRAW_XSIZE))[0]; if (xsize<0) e->Throw("Illegal keyword value for DRAW_XSIZE.");}
-    if (hasDraw_ysize) {ysize= (*e->IfDefGetKWAs<DLongGDL>(DRAW_YSIZE))[0]; if (ysize<0) e->Throw("Illegal keyword value for DRAW_YSIZE.");}
+    if (hasDraw_xsize) {xsize= (*e->GetKWAs<DLongGDL>(DRAW_XSIZE))[0]; if (xsize<0) e->Throw("Illegal keyword value for DRAW_XSIZE.");}
+    if (hasDraw_ysize) {ysize= (*e->GetKWAs<DLongGDL>(DRAW_YSIZE))[0]; if (ysize<0) e->Throw("Illegal keyword value for DRAW_YSIZE.");}
     wxRealPoint fact = wxRealPoint(1.,1.);
     if ( unitsGiven ) {
       fact = GetRequestedUnitConversionFactor( e );
@@ -3026,8 +3026,8 @@ void widget_control( EnvT* e ) {
       if (whatSortofBut->IsMenu() || whatSortofBut->IsEntry()) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
     }
     DLong xsize=-1, ysize=-1;
-    if (hasXsize) {xsize= (*e->IfDefGetKWAs<DLongGDL>(XSIZE))[0]; if (xsize<0) e->Throw("Illegal keyword value for XSIZE.");}
-    if (hasYsize) {ysize= (*e->IfDefGetKWAs<DLongGDL>(YSIZE))[0]; if (ysize<0) e->Throw("Illegal keyword value for YSIZE.");}
+    if (hasXsize) {xsize= (*e->GetKWAs<DLongGDL>(XSIZE))[0]; if (xsize<0) e->Throw("Illegal keyword value for XSIZE.");}
+    if (hasYsize) {ysize= (*e->GetKWAs<DLongGDL>(YSIZE))[0]; if (ysize<0) e->Throw("Illegal keyword value for YSIZE.");}
 
     wxWindow* me=dynamic_cast<wxWindow*>(widget->GetWxWidget());
     if (!me) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
@@ -3150,11 +3150,11 @@ void widget_control( EnvT* e ) {
           } else { //just a string, use it, unless "hasImage" where both the string strvalue AND the bimap will be passed
           }
         } else { //value is an image, no string
-          passedBytes = e->IfDefGetKWAs<DByteGDL>(setvalueIx); //test it
+          passedBytes = e->GetKWAs<DByteGDL>(setvalueIx); //test it
           hasImage = false; //image will be ignored.
         }
         // if hasImage is still true, it is the image KW that contains an image:
-        if (hasImage) passedBytes = e->IfDefGetKWAs<DByteGDL>(imageIx); //value must be a text and image is in IMAGE=xx KW
+        if (hasImage) passedBytes = e->GetKWAs<DByteGDL>(imageIx); //value must be a text and image is in IMAGE=xx KW
 
         //whatever the passedBytes it must be OK:
         if (passedBytes) {
@@ -3173,7 +3173,7 @@ void widget_control( EnvT* e ) {
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
         static int USE_TABLE_SELECT = e->KeywordIx("USE_TABLE_SELECT");
         bool useATableSelection = e->KeywordPresent(USE_TABLE_SELECT);
-        DLongGDL* tableSelectionToUse = e->IfDefGetKWAs<DLongGDL>(USE_TABLE_SELECT);
+        DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
 
         if (useATableSelection && tableSelectionToUse->Rank() > 0) { //check further a bit...
           if (table->GetDisjointSelection()) {
@@ -3184,7 +3184,7 @@ void widget_control( EnvT* e ) {
         }
         DStringGDL* valueAsStrings;
         static int FORMAT = e->KeywordIx("FORMAT");
-        DStringGDL* format = e->IfDefGetKWAs<DStringGDL>(FORMAT);
+        DStringGDL* format = GetKeywordAs<DStringGDL>(e, FORMAT);
         //test of non-conformity
         if (useATableSelection && table->GetDisjointSelection()) {
           //everything works in this case
@@ -3269,7 +3269,7 @@ void widget_control( EnvT* e ) {
   
 //  static int FRAME = e->KeywordIx( "FRAME" );
 //  if (e->KeywordPresent( FRAME )) {
-//    DLongGDL* val=e->IfDefGetKWAs<DLongGDL>(FRAME);
+//    DLongGDL* val=e->GetKWAs<DLongGDL>(FRAME);
 //    if ( (*val)[0] > 0) widget->AddFrame((*val)[0]); else widget->RemoveFrame();
 //  }
 //  static int SCROLL = e->KeywordIx( "SCROLL" );
@@ -3421,7 +3421,7 @@ void widget_control( EnvT* e ) {
     GDLWidgetDraw* draw=static_cast<GDLWidgetDraw*>(widget);
     draw->RemoveEventType(GDLWidget::EV_KEYBOARD2);
     draw->RemoveEventType(GDLWidget::EV_KEYBOARD);
-    DLong val= (*e->IfDefGetKWAs<DLongGDL>(DRAW_KEYBOARD_EVENTS))[0];
+    DLong val= (*e->GetKWAs<DLongGDL>(DRAW_KEYBOARD_EVENTS))[0];
     if (val==2) { widget->SetFocus();  draw->AddEventType(GDLWidget::EV_KEYBOARD2);}
     else if (val==1)  { widget->SetFocus(); draw->AddEventType(GDLWidget::EV_KEYBOARD);}
   }
@@ -3524,19 +3524,19 @@ void widget_control( EnvT* e ) {
      GDLWidgetTopBase* tlb = widget->GetMyTopLevelBaseWidget();
      gdlwxFrame* topFrame=tlb->GetTopFrame();
      if (settlbtitle) {
-       DStringGDL* tlbTitle=e->IfDefGetKWAs<DStringGDL>( tlbsettitleIx );
+       DStringGDL* tlbTitle=e->GetKWAs<DStringGDL>( tlbsettitleIx );
        wxString tlbName = wxString( (*tlbTitle)[0].c_str( ), wxConvUTF8 );
        topFrame->SetTitle(tlbName);
      }
      if (settlbxoffset) {
-       DLongGDL* xoffset=e->IfDefGetKWAs<DLongGDL>( tlbsetxoffsetIx );
+       DLongGDL* xoffset=e->GetKWAs<DLongGDL>( tlbsetxoffsetIx );
        if (unitsGiven) {
          wxRealPoint fact=GetRequestedUnitConversionFactor(e);
          topFrame->Move( (*xoffset)[0]*fact.x, topFrame->GetPosition().y );
        } else   topFrame->Move( (*xoffset)[0], topFrame->GetPosition().y );
      }
      if (settlbyoffset) {
-       DLongGDL* yoffset=e->IfDefGetKWAs<DLongGDL>( tlbsetyoffsetIx );
+       DLongGDL* yoffset=e->GetKWAs<DLongGDL>( tlbsetyoffsetIx );
        if (unitsGiven) {
          wxRealPoint fact=GetRequestedUnitConversionFactor(e);
          topFrame->Move(topFrame->GetPosition().x, (*yoffset)[0]*fact.y  );
@@ -3593,7 +3593,7 @@ void widget_control( EnvT* e ) {
     DLong xoff=-1; //not asked for
     DLong yoff=-1; //not asked for
       if (setxoffset) {
-        DLongGDL* xoffset = e->IfDefGetKWAs<DLongGDL>(setxoffsetIx);
+        DLongGDL* xoffset = e->GetKWAs<DLongGDL>(setxoffsetIx);
         if (unitsGiven) {
           wxRealPoint fact = GetRequestedUnitConversionFactor(e);
           (*xoffset)[0] *= fact.x;
@@ -3601,7 +3601,7 @@ void widget_control( EnvT* e ) {
         xoff=(*xoffset)[0];
       }
       if (setyoffset) {
-        DLongGDL* yoffset = e->IfDefGetKWAs<DLongGDL>(setyoffsetIx);
+        DLongGDL* yoffset = e->GetKWAs<DLongGDL>(setyoffsetIx);
         if (unitsGiven) {
           wxRealPoint fact = GetRequestedUnitConversionFactor(e);
           (*yoffset)[0] *= fact.y;
@@ -3631,7 +3631,7 @@ void widget_control( EnvT* e ) {
     widget->SetUname( uname );
   }
   if ( set_base_title && widget->IsBase()) {
-    DStringGDL* s=e->IfDefGetKWAs<DStringGDL>( base_set_titleIx );
+    DStringGDL* s=e->GetKWAs<DStringGDL>( base_set_titleIx );
     GDLWidgetBase* me=static_cast<GDLWidgetBase*>(widget);
     if (me->IsTabbedBase()) static_cast<GDLWidgetTabbedBase*>(me)->SetBaseTitle((*s)[0]);
     else if (me->IsTopBase()) {
@@ -3663,7 +3663,7 @@ void widget_control( EnvT* e ) {
   if ( settextselect ) {
     DString wType = widget->GetWidgetName( );
     if ( wType == "TEXT" ) {
-      DLongGDL* value=e->IfDefGetKWAs<DLongGDL>( settextselectIx );
+      DLongGDL* value=e->GetKWAs<DLongGDL>( settextselectIx );
       if (value->N_Elements() > 2) e->Throw( "Keyword array parameter SET_TEXT_SELECT must have from 1 to 2 elements." );
       GDLWidgetText *textWidget = (GDLWidgetText *) widget;
       textWidget->SetTextSelection( value );
@@ -3683,7 +3683,7 @@ void widget_control( EnvT* e ) {
     
     static int SET_DROPLIST_SELECT = e->KeywordIx( "SET_DROPLIST_SELECT" );
     if (e->KeywordPresent(SET_DROPLIST_SELECT)) {
-      DLongGDL* droplistSelection =  e->IfDefGetKWAs<DLongGDL>(SET_DROPLIST_SELECT);
+      DLongGDL* droplistSelection =  e->GetKWAs<DLongGDL>(SET_DROPLIST_SELECT);
       if (droplistSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context:");
       droplist->SelectEntry((*droplistSelection)[0]);
     }    
@@ -3697,11 +3697,11 @@ void widget_control( EnvT* e ) {
       static int setslidermaxIx = e->KeywordIx("SET_SLIDER_MAX");
       bool setslidermax = e->KeywordPresent(setslidermaxIx);
       if (setslidermin) {
-        DLongGDL* value = e->IfDefGetKWAs<DLongGDL>(setsliderminIx);
+        DLongGDL* value = e->GetKWAs<DLongGDL>(setsliderminIx);
         s->ControlSetMinValue((*value)[0]);
       }
       if (setslidermax) {
-        DLongGDL* value = e->IfDefGetKWAs<DLongGDL>(setslidermaxIx);
+        DLongGDL* value = e->GetKWAs<DLongGDL>(setslidermaxIx);
         s->ControlSetMaxValue((*value)[0]);
       }
     }
@@ -3711,7 +3711,7 @@ void widget_control( EnvT* e ) {
     
     static int SET_LIST_SELECT = e->KeywordIx( "SET_LIST_SELECT" );
     if (e->KeywordPresent(SET_LIST_SELECT)) {
-      DLongGDL* listSelection =  e->IfDefGetKWAs<DLongGDL>(SET_LIST_SELECT);
+      DLongGDL* listSelection =  e->GetKWAs<DLongGDL>(SET_LIST_SELECT);
       for (int i=0; i<listSelection->N_Elements() ; ++i) list->SelectEntry((*listSelection)[i]); //most probably not the right thing to do.
     }
   }
@@ -3721,7 +3721,7 @@ void widget_control( EnvT* e ) {
     
     static int SET_COMBOBOX_SELECT = e->KeywordIx( "SET_COMBOBOX_SELECT" );
     if (e->KeywordPresent(SET_COMBOBOX_SELECT)) {
-      DLongGDL* comboSelection =  e->IfDefGetKWAs<DLongGDL>(SET_COMBOBOX_SELECT);
+      DLongGDL* comboSelection =  e->GetKWAs<DLongGDL>(SET_COMBOBOX_SELECT);
       if (comboSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context:");
       combo->SelectEntry((*comboSelection)[0]);
     }
@@ -3800,25 +3800,25 @@ void widget_control( EnvT* e ) {
     static int USE_TABLE_SELECT = e->KeywordIx("USE_TABLE_SELECT");
     static int EDIT_CELL = e->KeywordIx("EDIT_CELL");
 //
-//    DByteGDL* editable = e->IfDefGetKWAs<DByteGDL>(EDITABLE );
+//    DByteGDL* editable = GetKeywordAs<DByteGDL>(e, EDITABLE );
 
     static int AM_PM = e->KeywordIx( "AM_PM" );
-    DStringGDL* amPm = e->IfDefGetKWAs<DStringGDL>(AM_PM);
+    DStringGDL* amPm = GetKeywordAs<DStringGDL>(e, AM_PM);
     //check
     if (amPm) {if (amPm->N_Elements()!=2) e->Throw("% Keyword array parameter AM_PM must have 2 elements.");else table->SetAmPm(amPm);}
     static int DAYS_OF_WEEK = e->KeywordIx( "DAYS_OF_WEEK" );
-    DStringGDL* daysOfWeek = e->IfDefGetKWAs<DStringGDL>(DAYS_OF_WEEK);
+    DStringGDL* daysOfWeek = GetKeywordAs<DStringGDL>(e, DAYS_OF_WEEK);
     //check
     if (daysOfWeek) {if (daysOfWeek->N_Elements()!=2) e->Throw("% Keyword array parameter DAYS_OF_WEEK must have 7 elements."); else table->SetDOW(daysOfWeek);}
     static int MONTHS = e->KeywordIx( "MONTHS" );
-    DStringGDL* month = e->IfDefGetKWAs<DStringGDL>(MONTHS);
+    DStringGDL* month = GetKeywordAs<DStringGDL>(e, MONTHS);
     //check
     if (month) {if (month->N_Elements()!=12) e->Throw("% Keyword array parameter MONTH must have 12 elements."); else table->SetMonth(month);}
 
-    DByteGDL* alignment = e->IfDefGetKWAs<DByteGDL>(ALIGNMENT);
-    DByteGDL* backgroundColor = e->IfDefGetKWAs<DByteGDL>(BACKGROUND_COLOR);
-    DStringGDL* columnLabels = e->IfDefGetKWAs<DStringGDL>(COLUMN_LABELS);
-    DLongGDL* columnWidth = e->IfDefGetKWAs<DLongGDL>(COLUMN_WIDTHS);
+    DByteGDL* alignment = GetKeywordAs<DByteGDL>(e, ALIGNMENT);
+    DByteGDL* backgroundColor = GetKeywordAs<DByteGDL>(e, BACKGROUND_COLOR);
+    DStringGDL* columnLabels = GetKeywordAs<DStringGDL>(e, COLUMN_LABELS);
+    DLongGDL* columnWidth = GetKeywordAs<DLongGDL>(e, COLUMN_WIDTHS);
     bool hasColumnsToDelete = e->KeywordPresent(DELETE_COLUMNS); //Present is sufficient to trig column deletion (IDL feature).
     bool hasRowsToDelete = e->KeywordPresent(DELETE_ROWS); //Present is sufficient to trig column deletion (IDL feature).
 
@@ -3830,18 +3830,18 @@ void widget_control( EnvT* e ) {
     int rowsToInsert = 0;
     if (insertRows) e->AssureLongScalarKWIfPresent(INSERT_ROWS,rowsToInsert);
     
-    DByteGDL* foregroundColor = e->IfDefGetKWAs<DByteGDL>(FOREGROUND_COLOR);
-    DLongGDL* rowHeights = e->IfDefGetKWAs<DLongGDL>(ROW_HEIGHTS);
-    DStringGDL* rowLabels = e->IfDefGetKWAs<DStringGDL>(ROW_LABELS);
+    DByteGDL* foregroundColor = GetKeywordAs<DByteGDL>(e, FOREGROUND_COLOR);
+    DLongGDL* rowHeights = GetKeywordAs<DLongGDL>(e, ROW_HEIGHTS);
+    DStringGDL* rowLabels = GetKeywordAs<DStringGDL>(e, ROW_LABELS);
 
     bool setATableView = e->KeywordPresent(SET_TABLE_VIEW);
-    DLongGDL* tableView = e->IfDefGetKWAs<DLongGDL>(SET_TABLE_VIEW);
+    DLongGDL* tableView = GetKeywordAs<DLongGDL>(e, SET_TABLE_VIEW);
 
     bool editcell = e->KeywordPresent(EDIT_CELL);
-    DLongGDL* cellToEdit = e->IfDefGetKWAs<DLongGDL>(EDIT_CELL);
+    DLongGDL* cellToEdit = GetKeywordAs<DLongGDL>(e, EDIT_CELL);
    
     bool setATableSelection = e->KeywordPresent(SET_TABLE_SELECT);
-    DLongGDL* tableSelectionToSet = e->IfDefGetKWAs<DLongGDL>(SET_TABLE_SELECT);
+    DLongGDL* tableSelectionToSet = GetKeywordAs<DLongGDL>(e, SET_TABLE_SELECT);
     if (setATableSelection) { //check further a bit...
       if (table->GetDisjointSelection()) {
         if (tableSelectionToSet->Dim(0) != 2) e->Throw( "Array must have dimensions of (2, N): " + e->GetString( SET_TABLE_SELECT ) );
@@ -3852,7 +3852,7 @@ void widget_control( EnvT* e ) {
     }
     
     bool useATableSelection = e->KeywordPresent(USE_TABLE_SELECT);
-    DLongGDL* tableSelectionToUse = e->IfDefGetKWAs<DLongGDL>(USE_TABLE_SELECT);
+    DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
     if (useATableSelection && tableSelectionToUse->Rank()==0 && !table->IsSomethingSelected())
       { e->Throw( "USE_TABLE_SELECT value out of range.");}
     if (useATableSelection && tableSelectionToUse->Rank()>0) { //check further a bit...
@@ -3940,11 +3940,11 @@ void widget_control( EnvT* e ) {
       table->EditCell(cellToEdit);
     }
     if (tablexsize) {
-      DLong xsize= (*e->IfDefGetKWAs<DLongGDL>(TABLE_XSIZE))[0];
+      DLong xsize= (*e->GetKWAs<DLongGDL>(TABLE_XSIZE))[0];
       table->SetTableNumberOfColumns(xsize);
     }
     if (tableysize) {
-      DLong ysize= (*e->IfDefGetKWAs<DLongGDL>(TABLE_YSIZE))[0];
+      DLong ysize= (*e->GetKWAs<DLongGDL>(TABLE_YSIZE))[0];
       table->SetTableNumberOfRows(ysize);
     }
   }
@@ -3979,7 +3979,7 @@ void widget_control( EnvT* e ) {
       }
       else if (setTreebitmap) {
         wxBitmap* bitmap;
-          DByteGDL* testByte = e->IfDefGetKWAs<DByteGDL>(SET_TREE_BITMAP);
+          DByteGDL* testByte = e->GetKWAs<DByteGDL>(SET_TREE_BITMAP);
           if (testByte) {
             if (testByte->Rank() == 3 && testByte->Dim(2) == 3) {
               BaseGDL* transpose = testByte->Transpose(NULL);
