@@ -834,6 +834,7 @@ char* MemStats::StartOfMemory = reinterpret_cast<char*>(::sbrk(0));
 void GDLDelete( BaseGDL* toDelete)
 {
   if( toDelete ==NULL) return;
+  if( toDelete == NullGDL::GetSingleInstance()) return;
   delete toDelete;
 }
 int GDL_NTHREADS=1;
