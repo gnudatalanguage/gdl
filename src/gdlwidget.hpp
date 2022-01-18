@@ -1546,8 +1546,8 @@ class GDLWidgetTable: public GDLWidget
   DLongGDL* rowHeights;
   DStringGDL* rowLabels;
 //  DLong tabMode;
-  DLong x_scroll_size;
-  DLong y_scroll_size;
+  DLong x_scroll_size_columns;
+  DLong y_scroll_size_rows;
   DStringGDL * valueAsStrings;
   bool         updating; //widget is modified by program (avoid sending events)
 
