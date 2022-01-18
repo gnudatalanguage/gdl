@@ -196,8 +196,8 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   if (the_units==2) unitConversionFactor=wxRealPoint(sx*10.0,sy*10.0);
 
   e->AssureLongScalarKWIfPresent( scr_xsizeIx, wScreenSize.x ); if (wScreenSize.x<=0) wScreenSize.x=wxDefaultSize.x;
-  e->AssureLongScalarKWIfPresent( xsizeIx, wSize.x );           if (wSize.x<=0) wSize.x=wxDefaultSize.y;
-  e->AssureLongScalarKWIfPresent( scr_ysizeIx, wScreenSize.y ); if (wScreenSize.y<=0) wScreenSize.y=wxDefaultSize.x;
+  e->AssureLongScalarKWIfPresent( xsizeIx, wSize.x );           if (wSize.x<=0) wSize.x=wxDefaultSize.x;
+  e->AssureLongScalarKWIfPresent( scr_ysizeIx, wScreenSize.y ); if (wScreenSize.y<=0) wScreenSize.y=wxDefaultSize.y;
   e->AssureLongScalarKWIfPresent( ysizeIx, wSize.y );           if (wSize.y<=0) wSize.y=wxDefaultSize.y;
   e->AssureLongScalarKWIfPresent( xoffsetIx, wOffset.x );       if (wOffset.x<=0) wOffset.x=wxDefaultPosition.x;
   e->AssureLongScalarKWIfPresent( yoffsetIx, wOffset.y );       if (wOffset.y<=0) wOffset.y=wxDefaultPosition.y;
@@ -532,7 +532,7 @@ BaseGDL* widget_table( EnvT* e)
   e->AssureLongScalarKWIfPresent( xsizeIx, xSize );
   ySize = -1;
   e->AssureLongScalarKWIfPresent( ysizeIx, ySize );
-   
+  
   if ( value == NULL ) { //set valueAsString. 
     SizeT dims[2];
     dims[0] = (xSize>0)?xSize:6;
@@ -911,8 +911,6 @@ BaseGDL* widget_draw( EnvT* e ) {
   e->AssureLongScalarKWIfPresent( x_scroll_sizeIx, x_scroll_size );
   DLong y_scroll_size = -1;
   e->AssureLongScalarKWIfPresent( y_scroll_sizeIx, y_scroll_size );
-  DLong xsize=-1;
-  DLong ysize=-1;
 
   bool mbarPresent = e->KeywordPresent( mbarIx )||e->KeywordPresent( obsolete_app_mbarIx );
 
@@ -2087,12 +2085,12 @@ BaseGDL* widget_info( EnvT* e ) {
       DStructDesc* dWidgeomDesc = FindInStructList( structList, "WIDGET_GEOMETRY");
       DStructGDL* ex = new DStructGDL(dWidgeomDesc, p0L->Dim( ), BaseGDL::NOZERO );
       ex->Clear();
-      static unsigned tag1=ex->Desc()->TagIndex("XOFFSET");
-      static unsigned tag2=ex->Desc()->TagIndex("YOFFSET");
-      static unsigned tag3=ex->Desc()->TagIndex("XSIZE");
-      static unsigned tag4=ex->Desc()->TagIndex("YSIZE");
-      static unsigned tag5=ex->Desc()->TagIndex("SCR_XSIZE");
-      static unsigned tag6=ex->Desc()->TagIndex("SCR_YSIZE");
+//      static unsigned tag1=ex->Desc()->TagIndex("XOFFSET");
+//      static unsigned tag2=ex->Desc()->TagIndex("YOFFSET");
+//      static unsigned tag3=ex->Desc()->TagIndex("XSIZE");
+//      static unsigned tag4=ex->Desc()->TagIndex("YSIZE");
+//      static unsigned tag5=ex->Desc()->TagIndex("SCR_XSIZE");
+//      static unsigned tag6=ex->Desc()->TagIndex("SCR_YSIZE");
       bool atLeastOneFound=false;
       for ( SizeT i = 0; i < nEl; i++ ) {
         WidgetIDT widgetID = (*p0L)[i];
