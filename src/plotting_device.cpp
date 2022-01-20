@@ -83,6 +83,7 @@ namespace lib {
       static int get_current_fontIx = e->KeywordIx("GET_CURRENT_FONT");
       if (e->KeywordPresent(get_current_fontIx)) {
         DString value = actDevice->GetCurrentFont(); //should NOT open graphic window
+        if (value=="__$") e->Throw("Keyword GET_CURRENT_FONT not allowed in call to: DEVICE");
         e->SetKW(get_current_fontIx, new DStringGDL(value));
       }
     }
