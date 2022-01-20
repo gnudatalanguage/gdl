@@ -586,7 +586,7 @@ if(PLPLOT_FOUND)
       else (CYGWIN OR NOT WIN32)  #WIN32: check wingcc
           check_c_source_runs("${_test_wingcc}" HAVE_PLPLOT_X11_DRIVER) #same env var different meaning
       endif(CYGWIN OR NOT WIN32)
-
+set(DO_MAKE_WXWIDGETS_DRIVER 1)
       if (NOT HAVE_PLPLOT_WXWIDGETS_DRIVER AND NOT HAVE_PLPLOT_X11_DRIVER ) 
            if (wxWidgets_FOUND) 
              message(FATAL_ERROR "PlPlot was compiled without needed wxwidgets driver, aborting. Do you mean -DINTERACTIVE_GRAPHICS=OFF ?")
