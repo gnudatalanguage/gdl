@@ -223,7 +223,7 @@ public:
   virtual BaseGDL* GetFontnames()                     { ThrowGDLException("DEVICE: Keyword GET_FONTNAMES not allowed for call to: DEVICE" ); return NULL;}
   virtual DLong GetFontnum()                          { ThrowGDLException("DEVICE: Keyword GET_FONTNUM not allowed for call to: DEVICE" ); return 0;}
   virtual bool SetFont(DString &f)                 {static int warning_sent=1; if (warning_sent) {Warning("SET_FONT not active for this device (FIXME)."); warning_sent=0;} return true;}
-  virtual DString GetCurrentFont()                 {return NULL;}
+  virtual DString GetCurrentFont()                 {return "__$";}
   virtual DLong GetGraphicsFunction()                 { return -1;}
   virtual DIntGDL* GetPageSize()                      { return NULL;}
   virtual DLong GetPixelDepth()                       { return -1;}

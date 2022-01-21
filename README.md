@@ -52,6 +52,11 @@ See:
 - [GDL on BSD](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-BSD)
 - [GDL on Windows](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-Windows)
 
+Alerts
+-------------------------------------
+
+Check the [WIKI](https://github.com/gnudatalanguage/gdl/wiki/Known-issues) for (transient) alerts.
+
 Dependencies 
 -------------------------------------
 
