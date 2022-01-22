@@ -28,7 +28,7 @@
 #include <plplot/drivers.h>
 
 #include "graphicsdevice.hpp"
-#include "otherdevices/gdlxstream.hpp"
+#include "gdlxstream.hpp"
 #include "initsysvar.hpp"
 #include "gdlexception.hpp"
 

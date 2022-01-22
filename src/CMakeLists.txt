@@ -39,6 +39,7 @@ dialog.cpp
 dinterpreter.cpp
 dnode.cpp
 dpro.cpp
+dSFMT/dSFMT.c
 dstructdesc.cpp
 dstructfactory.cxx
 dstructgdl.cpp
@@ -53,22 +54,14 @@ gdlarray.cpp
 gdleventhandler.cpp
 gdlexception.cpp
 gdlgstream.cpp
-dSFMT/dSFMT.c
 )
 
-if(WIN32)
+if(NOT WIN32)
 set(SOURCES
 ${SOURCES}
-otherdevices/gdlwinstream.cpp
-gtdhelper.cpp
-otherdevices/devicewin.cpp
+gdlxstream.cpp
 )
-else(WIN32)
-set(SOURCES
-${SOURCES}
-otherdevices/gdlxstream.cpp
-)
-endif(WIN32)
+endif(NOT WIN32)
 
 set(SOURCES
 ${SOURCES}

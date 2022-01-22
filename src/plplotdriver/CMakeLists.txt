@@ -1,21 +1,17 @@
-if(DO_MAKE_WXWIDGETS_DRIVER)
+#conditionally compile a 'local' version of our (patched?) favorite drivers: safer as we do not depend on plplot's vagaries.
+if(USE_LOCAL_DRIVERS)
 set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${wxWidgets_LIBRARY_DIRS})
 foreach(WXDEF ${wxWidgets_DEFINITIONS})
     add_definitions(-D${WXDEF})
 endforeach(WXDEF ${wxWidgets_DEFINITIONS})
 include_directories(${PLPLOT_INCLUDE_DIR}/plplot ${PLPLOT_INCLUDE_DIR} ${wxWidgets_INCLUDE_DIRS})
-#add_library(wxwidgets MODULE wxwidgets.cpp wxwidgets_comms.cpp wxwidgets_dev.cpp)
 add_library(wxwidgets MODULE deprecated_wxwidgets.cpp deprecated_wxwidgets_app.cpp deprecated_wxwidgets_dc.cpp deprecated_wxwidgets_gc.cpp)
 target_link_libraries(
 	wxwidgets
 	plplot
 	${MATH_LIB}
 	${RT_LIB}
-	${${SOURCE_ROOT_NAME}_LINK_FLAGS}
-	${${SOURCE_ROOT_NAME}_TARGETS}
 	)
-endif(DO_MAKE_WXWIDGETS_DRIVER)
-if(DO_MAKE_XWIN_DRIVER)
 include_directories(${PLPLOT_INCLUDE_DIR}/plplot ${PLPLOT_INCLUDE_DIR} )
 add_library(xwin MODULE xwin.c)
 target_link_libraries(
@@ -23,19 +19,38 @@ target_link_libraries(
 	plplot
 	${MATH_LIB}
 	${RT_LIB}
-	${${SOURCE_ROOT_NAME}_LINK_FLAGS}
-	${${SOURCE_ROOT_NAME}_TARGETS}
 	)
-endif(DO_MAKE_XWIN_DRIVER)
-if(DO_MAKE_WINGCC_DRIVER)
-include_directories(${PLPLOT_INCLUDE_DIR}/plplot ${PLPLOT_INCLUDE_DIR} )
-add_library(wingcc MODULE wingcc.c)
+add_library(ps MODULE ps.c)
 target_link_libraries(
-	wingcc
+	ps
 	plplot
 	${MATH_LIB}
 	${RT_LIB}
-	${${SOURCE_ROOT_NAME}_LINK_FLAGS}
-	${${SOURCE_ROOT_NAME}_TARGETS}
 	)
-endif(DO_MAKE_WINGCC_DRIVER)
+add_library(svg MODULE svg.c)
+target_link_libraries(
+	svg
+	plplot
+	${MATH_LIB}
+	${RT_LIB}
+	)
+
+if(WIN32)
+  set(DYNAMIC_SUFFIX ".dll")
+else(WIN32)
+  set(DYNAMIC_SUFFIX ".so")
+endif(WIN32)
+
+set_target_properties(
+      svg ps xwin wxwidgets
+      PROPERTIES
+      PREFIX ""
+      SUFFIX ${DYNAMIC_SUFFIX}
+      )
+ install(TARGETS svg ps xwin wxwidgets DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/drivers)
+    install(
+      FILES svg.driver_info ps.driver_info xwin.driver_info wxwidgets.driver_info
+      DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/drivers
+      )
+
+endif(USE_LOCAL_DRIVERS)

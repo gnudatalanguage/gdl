@@ -221,7 +221,14 @@ int main(int argc, char *argv[])
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
-
+  
+#ifdef INSTALL_LOCAL_DRIVERS
+  // We must declare here (and not later) where our local copy of (customized?) drivers is to be found.
+  std::string drvPath="PLPLOT_DRV_DIR=" GDLDATADIR "/drivers";
+  char s[256];
+  strcpy(s,drvPath.c_str());
+  putenv(s);
+#endif
   // keeps a list of files to be executed after the startup file
   // and before entering the interactive mode
   vector<string> batch_files;
