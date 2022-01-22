@@ -9,30 +9,23 @@ add_library(wxwidgets MODULE deprecated_wxwidgets.cpp deprecated_wxwidgets_app.c
 target_link_libraries(
 	wxwidgets
 	plplot
-	${MATH_LIB}
-	${RT_LIB}
+${wxWidgets_LIBRARIES}
 	)
 include_directories(${PLPLOT_INCLUDE_DIR}/plplot ${PLPLOT_INCLUDE_DIR} )
 add_library(xwin MODULE xwin.c)
 target_link_libraries(
 	xwin
 	plplot
-	${MATH_LIB}
-	${RT_LIB}
 	)
 add_library(ps MODULE ps.c)
 target_link_libraries(
 	ps
 	plplot
-	${MATH_LIB}
-	${RT_LIB}
 	)
 add_library(svg MODULE svg.c)
 target_link_libraries(
 	svg
 	plplot
-	${MATH_LIB}
-	${RT_LIB}
 	)
 
 if(WIN32)
