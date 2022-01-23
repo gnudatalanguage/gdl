@@ -221,13 +221,14 @@ int main(int argc, char *argv[])
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
-  
+  bool useLocalDrivers=false;
 #ifdef INSTALL_LOCAL_DRIVERS
   // We must declare here (and not later) where our local copy of (customized?) drivers is to be found.
   std::string drvPath="PLPLOT_DRV_DIR=" GDLDATADIR "/drivers";
   char s[256];
   strcpy(s,drvPath.c_str());
   putenv(s);
+  useLocalDrivers=true;
 #endif
   // keeps a list of files to be executed after the startup file
   // and before entering the interactive mode
@@ -456,7 +457,9 @@ int main(int argc, char *argv[])
   if (useWxWidgetsForGraphics) {
       if (gdlde || (isatty(0) && !quiet)) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
     }
-
+  if (useLocalDrivers) {
+      if (gdlde || (isatty(0) && !quiet)) cerr << "- Using local drivers in " GDLDATADIR "/drivers ." << endl;
+    }
   
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
   

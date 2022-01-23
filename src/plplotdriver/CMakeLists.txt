@@ -27,6 +27,11 @@ target_link_libraries(
 	svg
 	plplot
 	)
+add_library(mem MODULE mem.c)
+target_link_libraries(
+	mem
+	plplot
+	)
 
 if(WIN32)
   set(DYNAMIC_SUFFIX ".dll")
@@ -35,14 +40,14 @@ else(WIN32)
 endif(WIN32)
 
 set_target_properties(
-      svg ps xwin wxwidgets
+      mem svg ps xwin wxwidgets
       PROPERTIES
       PREFIX ""
       SUFFIX ${DYNAMIC_SUFFIX}
       )
- install(TARGETS svg ps xwin wxwidgets DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/drivers)
+ install(TARGETS mem svg ps xwin wxwidgets DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/drivers)
     install(
-      FILES svg.driver_info ps.driver_info xwin.driver_info wxwidgets.driver_info
+      FILES mem.driver_info svg.driver_info ps.driver_info xwin.driver_info wxwidgetsgdl.driver_info
       DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/drivers
       )
 
