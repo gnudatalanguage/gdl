@@ -547,7 +547,7 @@ endif(PLPLOT_FOUND)
 
 if (USE_LOCAL_DRIVERS)  #meaning wxWidgets is found
   if (WIN32)
-    USE_LOCAL_DRIVERS=0  #PLPLOT constantly refuses to load our drivers on Windows. I quit.
+    set(USE_LOCAL_DRIVERS 0)  #PLPLOT constantly refuses to load our drivers on Windows. I quit.
   else (WIN32)
   #test if plplot has been compiled with DYNDRIVERS option:
    if (PL_IS_DYNDRIVERS) 
