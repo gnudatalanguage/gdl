@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
-  bool useLocalDrivers=false;
+  useLocalDrivers=false;
 #ifdef INSTALL_LOCAL_DRIVERS
   // We must declare here (and not later) where our local copy of (customized?) drivers is to be found.
   std::string drvPath="PLPLOT_DRV_DIR=" GDLDATADIR "/drivers";
@@ -229,6 +229,10 @@ int main(int argc, char *argv[])
   strcpy(s,drvPath.c_str());
   putenv(s);
   useLocalDrivers=true;
+  //Now, it is possible that GDL WAS compiled with INSTALL_LOCAL_DRIVERS, but the plplot installation is NOT compiled with DYNAMIC DRIVERS.
+  //Then not only we will not have 'our' good driver, but calling our nicknamed wxwidgetsgdl driver will fail.
+  //So I check here the plplot driver list to check if wxwidgetsgdl is present. If not, useLocalDriver=false
+  if (!GDLGStream::checkPlplotDriver("wxwidgetsgdl")) useLocalDrivers=false;
 #endif
   // keeps a list of files to be executed after the startup file
   // and before entering the interactive mode

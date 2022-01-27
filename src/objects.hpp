@@ -78,6 +78,8 @@ extern volatile bool useWxWidgetsForGraphics;
 extern volatile bool forceWxWidgetsUglyFonts;
 //do we favor SIMD-accelerated random number generation?
 extern volatile bool useDSFMTAcceleration;
+//do we use our own copy of (better?) drivers?
+extern volatile bool useLocalDrivers;
 extern volatile bool usePlatformDeviceName;
 extern          int  debugMode;
 

@@ -24,7 +24,7 @@
 
 
 GDLWXStream::GDLWXStream( int width, int height )
-: GDLGStream( width, height, "wxwidgetsgdl")
+: GDLGStream( width, height, (useLocalDrivers)?"wxwidgetsgdl":"wxwidgets")
   , streamDC(NULL)
   , streamBitmap(NULL)
   , m_width(width), m_height(height)
@@ -40,7 +40,8 @@ GDLWXStream::GDLWXStream( int width, int height )
     delete streamDC;
     throw GDLException("GDLWXStream: Failed to create DC.");
   }
-  setopt("drvopt", "hrshsym=1,text=0" ); //no hershey; WE USE TT fonts (antialiasing very nice and readable. Moreover, big bug somewhere with hershey fonts).
+  if (useLocalDrivers) setopt("drvopt", "hrshsym=1,text=0" ); //
+  else setopt("drvopt", "hrshsym=1,text=1" ); //no hershey; WE USE TT fonts (antialiasing very nice and readable. Moreover, big bug somewhere with hershey fonts).
 
   PLFLT XDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_PX_CM"))))[0]*2.5;
   PLFLT YDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_PX_CM"))))[0]*2.5;
@@ -108,11 +109,11 @@ void GDLWXStream::Update()
   if( this->valid && container != NULL) {
     container->RepaintGraphics();
     //will be updated by eventloop.
-//#ifdef __WXMAC__
-//  wxTheApp->Yield();
-//#else
-//  wxGetApp().MainLoop(); //central loop for wxEvents!
-//#endif
+#ifdef __WXMAC__
+  wxTheApp->Yield();
+#else
+  wxGetApp().MainLoop(); //central loop for wxEvents!
+#endif
   }
 }
 

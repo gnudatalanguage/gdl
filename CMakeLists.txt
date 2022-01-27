@@ -63,7 +63,6 @@ set(READLINE ON CACHE BOOL "GDL: Enable GNU Readline ?")
 set(READLINEDIR "" CACHE PATH "GDL: Specify the GNU Readline directory tree")
 
 set(PLPLOTDIR "" CACHE PATH "GDL: Specify the plplot directory tree")
-set(USE_LOCAL_DRIVERS ON CACHE BOOL "GDL: Enable using a local copy of plplot's graphic drivers (optimized for GDL)?")
 
 set(GSLDIR "" CACHE PATH "GDL: Specify the GSL directory tree")
 
@@ -432,12 +431,13 @@ if(WXWIDGETS)
                 "(suitable Debian/Ubuntu package: libwxgtk3.0-gtk3-dev)\n"
                 "(suitable Fedora/CentOS package: wxGTK-devel)")
     endif(wxWidgets_FOUND)
+    set (USE_LOCAL_DRIVERS 1) # At the moment, the only case where having our owwn drivers is useful. Should be changed if we improve other drivers.
 else (WXWIDGETS)
-if (INTERACTIVE_GRAPHICS AND WIN32) 
-message(FATAL_ERROR "wxWidgets are required on Windows unless the option -DINTERACTIVE_GRAPHICS=FALSE is given. In which case you will NOT have graphics plots on screen")
-endif (INTERACTIVE_GRAPHICS AND WIN32) 
-#forcibly not used, no need to build and install our own copy of drivers, below
-set (USE_LOCAL_DRIVERS 0)
+  if (INTERACTIVE_GRAPHICS AND WIN32) 
+    message(FATAL_ERROR "wxWidgets are required on Windows unless the option -DINTERACTIVE_GRAPHICS=FALSE is given. In which case you will NOT have graphics plots on screen")
+  endif (INTERACTIVE_GRAPHICS AND WIN32) 
+  #forcibly not used, no need to build and install our own copy of drivers, below
+  set (USE_LOCAL_DRIVERS 0)
 endif(WXWIDGETS)
 
 # X11 : OFF by default since wxWidgets SHOULD take preference in ALL builds.
@@ -464,8 +464,8 @@ endif(CYGWIN OR NOT WIN32)
 
 
 # PLplot MANDATORY
-# it is possible to avoid using plplot's drivers and instead use a copy, eventually modified by us, that is installed in gnudatalanguage/lib/drivers 
-# this is done by default and triggered by USE_LOCAL_DRIVERS
+# it is necessary at least for wxwidgets to avoid using plplot's drivers and instead use a copy, eventually modified by us, 
+# that is installed in gnudatalanguage/lib/drivers. This is done by default and triggered by USE_LOCAL_DRIVERS
 # -DPLPLOTDIR=DIR
 set(CMAKE_PREFIX_PATH ${PLPLOTDIR})
 find_package(Plplot QUIET)
@@ -479,11 +479,10 @@ else(PLPLOT_FOUND)
         "(suitable Debian/Ubuntu packages: libplplot-dev, [plplot9-driver-xwin])"
         "(suitable Fedora/CentOS package: plplot-devel)")
 endif(PLPLOT_FOUND)
-if (USE_LOCAL_DRIVERS)  #meaning wxWidgets is found
-   set(INSTALL_LOCAL_DRIVERS 1)
-endif (USE_LOCAL_DRIVERS)
 
 if(PLPLOT_FOUND)
+
+    #1) mandatory: has ps_labelfunc() function? 
     check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
     if(NOT HAVE_PLPLOT_SLABELFUNC)
       message(FATAL_ERROR "please upgrade to plplot version > 5.9.6 (missing plslabelfunc")
@@ -491,7 +490,10 @@ if(PLPLOT_FOUND)
 
     set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
     set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
-
+    #2) compiled with DYNDRIVERS?
+    check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" PL_IS_DYNDRIVERS)
+    
+    #has correct plwidth() function? 
     #the following does not work with clang (???)
         check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
     
@@ -513,13 +515,15 @@ if(PLPLOT_FOUND)
        endif(HAVE_PLPLOT_WIDTH)
     endif(NOT HAVE_PLPLOT_WIDTH)
     
+    #has plstrl function?
     check_library_exists("${PLPLOT_LIBRARIES}" plstrl "" PLPLOT_PRIVATE_NOT_HIDDEN)
     if(PLPLOT_PRIVATE_NOT_HIDDEN)
       set(PLPLOT_PRIVATE_NOT_HIDDEN 1)
     else(PLPLOT_PRIVATE_NOT_HIDDEN)
-      message(STATUS "Using a plplot library without private functions - workarounds will be used.")
+      message(STATUS "Using a plplot library without private functions - UGLY workarounds will be used.")
     endif(PLPLOT_PRIVATE_NOT_HIDDEN)
 
+    #has plcallback function?
     set(_test_plplot2
         "
         #include <plplot/plstream.h>
@@ -540,6 +544,15 @@ if(PLPLOT_FOUND)
       message(STATUS "Will use a local copy of plplot drivers (patched for speed).")
     endif ((NOT INSTALL_LOCAL_DRIVERS) AND INTERACTIVE_GRAPHICS)
 endif(PLPLOT_FOUND)
+
+if (USE_LOCAL_DRIVERS)  #meaning wxWidgets is found
+  #test if plplot has been compiled with DYNDRIVERS option:
+   if (PL_IS_DYNDRIVERS) 
+     set(INSTALL_LOCAL_DRIVERS 1)
+   else (PL_IS_DYNDRIVERS) 
+     message(FATAL_ERROR "Plplot was compiled without Dynamic Driver support. Please recompile plplot with option -DENABLE_DYNDRIVERS=ON.")
+   endif (PL_IS_DYNDRIVERS) 
+endif (USE_LOCAL_DRIVERS)
     
 # GraphicsMagick (GM) is an alternative to the classical ImageMagick Lib (IM).
 # It was experienced that GM was more stable in time than IM

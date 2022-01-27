@@ -81,6 +81,7 @@ if [ ${BUILD_OS} == "Windows" ]; then
         eigen3 eccodes glpk shapelib expat openssl
     )
     MSYS2_PACKAGES_REBUILD=(
+        plplot
         graphicsmagick
     )
 elif [ ${BUILD_OS} == "Linux" ]; then
@@ -413,6 +414,7 @@ function configure_gdl {
 
     mkdir -p ${ROOT_DIR}/build
     cd ${ROOT_DIR}/build
+    rm -f CMakeCache.txt  #each 'build' resets cmake, which is safer!
 
     if [ ${BUILD_OS} == "Windows" ]; then
         GENERATOR="MSYS Makefiles"
