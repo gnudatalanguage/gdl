@@ -1294,13 +1294,13 @@ static void install_buffer( PLStream *pls )
     {
         // this hack enables to have a GUI on Mac OSX even if the
         // program was called from the command line (and isn't a bundle)
-#ifdef __WXMAC__
-        ProcessSerialNumber psn;
-
-        GetCurrentProcess( &psn );
-        CPSEnableForegroundOperation( &psn );
-        SetFrontProcess( &psn );
-#endif
+//#ifdef __WXMAC__
+//        ProcessSerialNumber psn;
+//
+//        GetCurrentProcess( &psn );
+//        CPSEnableForegroundOperation( &psn );
+//        SetFrontProcess( &psn );
+//#endif
 
         // initialize wxWidgets
         wxInitialize();

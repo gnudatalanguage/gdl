@@ -80,8 +80,7 @@ if [ ${BUILD_OS} == "Windows" ]; then
         readline zlib libpng gsl wxWidgets plplot libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
         eigen3 eccodes glpk shapelib expat openssl
     )
-    MSYS2_PACKAGES_REBUILD=(
-        plplot
+    MSYS2_PACKAGES_REBUILD=(    #        plplot   # not yet, problems finally as plplot does not find driver (eveyting else OK)
         graphicsmagick
     )
 elif [ ${BUILD_OS} == "Linux" ]; then

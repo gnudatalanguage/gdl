@@ -546,12 +546,16 @@ if(PLPLOT_FOUND)
 endif(PLPLOT_FOUND)
 
 if (USE_LOCAL_DRIVERS)  #meaning wxWidgets is found
+  if (WIN32)
+    USE_LOCAL_DRIVERS=0  #PLPLOT constantly refuses to load our drivers on Windows. I quit.
+  else (WIN32)
   #test if plplot has been compiled with DYNDRIVERS option:
    if (PL_IS_DYNDRIVERS) 
      set(INSTALL_LOCAL_DRIVERS 1)
    else (PL_IS_DYNDRIVERS) 
      message(FATAL_ERROR "Plplot was compiled without Dynamic Driver support. Please recompile plplot with option -DENABLE_DYNDRIVERS=ON.")
    endif (PL_IS_DYNDRIVERS) 
+  endif(WIN32)
 endif (USE_LOCAL_DRIVERS)
     
 # GraphicsMagick (GM) is an alternative to the classical ImageMagick Lib (IM).
