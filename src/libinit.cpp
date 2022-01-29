@@ -175,7 +175,7 @@ void LibInit()
   const string rebinKey[]={"SAMPLE",KLISTEND};
   new DLibFunRetNew(lib::rebin_fun,string("REBIN"),9,rebinKey);
 
-  const string convolKey[]={"CENTER","EDGE_TRUNCATE","EDGE_WRAP","EDGE_ZERO", "EDGE_MIRROR",
+  const string convolKey[]={"CENTER","EDGE_TRUNCATE","EDGE_WRAP","EDGE_ZERO", "EDGE_MIRROR","EDGE_CONSTANT",
 			    "BIAS","NORMALIZE","NAN", "INVALID", "MISSING",KLISTEND};
   new DLibFunRetNewTP(lib::convol_fun,string("CONVOL"),3,convolKey);  //UsesThreadPOOL 
 

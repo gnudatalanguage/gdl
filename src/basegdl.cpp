@@ -539,7 +539,7 @@ SizeT BaseGDL::IFmtI( std::istream* is, SizeT offs, SizeT num, int width,
 BaseGDL* BaseGDL::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
 		          bool center, bool normalize, int edgeMode,
                           bool doNan, BaseGDL* missing, bool doMissing,
-                          BaseGDL* invalid, bool doInvalid)
+                          BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   throw GDLException("BaseGDL::Convol(...) called.");
 }
