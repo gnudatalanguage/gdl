@@ -579,6 +579,7 @@ namespace lib {
       }
   }
 
+
   BaseGDL* legendre(EnvT* e)
   {
     SizeT nParam=e->NParam(2); //, "LEGENDRE");
@@ -589,7 +590,7 @@ namespace lib {
 
     Guard<BaseGDL> guard;
     int count;
-
+    
     BaseGDL* xvals,* lvals,* mvals;
 
     //    xvals= e->GetParDefined(0); //,"LEGENDRE");
@@ -598,33 +599,49 @@ namespace lib {
     SizeT nEx, nEl, nEm, nmin;
     //    nEl=0;
     //nEm=0;
-
-    nEx=xvals->N_Elements();
-    if(nEx == 0) e->Throw( "Variable is undefined: "+e->GetParString(0));
-
+    if (xvals->Rank() != 0) {// xvals is an array
+      nEx=xvals->N_Elements();
+      if(nEx == 0) e->Throw( "Variable is undefined: "+e->GetParString(0));
+    }else{
+      nEx = 0;
+    }
+    
     //    lvals=e->GetParDefined(1); //,"LEGENDRE");
     lvals= e->GetNumericParDefined(1);
 
-    nEl=lvals->N_Elements();
-    if(nEl == 0) e->Throw("Variable is undefined: "+e->GetParString(1));
+    if (lvals->Rank() != 0) {// lvals is an array
+      nEl=lvals->N_Elements();
+      if(nEl == 0) e->Throw( "Variable is undefined: "+e->GetParString(1));
+    }else{
+      nEl = 0;
+    }
 
-    if(nParam > 2)
-      {
-	mvals= e->GetNumericParDefined(2);
-	//mvals=e->GetParDefined(2); //,"LEGENDRE");
-	nEm=mvals->N_Elements();
-      } else {
-	mvals=new DIntGDL(0);
-	nEm=1;
-	guard.Reset(mvals);
-      }
-
-    if(nEm == 0) e->Throw("Variable is undefined: "+e->GetParString(2));
-
-    nmin=nEx;
-    if(nEl < nmin && nEl > 1) 	nmin=nEl;
-    if(nEm < nmin && nEm > 1) 	nmin=nEm;
-
+    if(nParam > 2){
+      mvals= e->GetNumericParDefined(2);
+      //mvals=e->GetParDefined(2); //,"LEGENDRE");
+      if (mvals->Rank() != 0) {// lvals is an array
+        nEm=mvals->N_Elements();
+      if(nEm == 0) e->Throw("Variable is undefined: "+e->GetParString(2));
+    }else{nEm = 0;}
+    } else {
+      mvals=new DIntGDL(0);
+	    nEm=0;
+	    guard.Reset(mvals);
+    }
+    
+    nmin=0;
+    if(nEx>0){
+      nmin=nEx;
+      if(nEl < nmin && nEl > 0)         nmin=nEl;
+      if(nEm < nmin && nEm > 0)         nmin=nEm;
+    }else if(nEl>0){
+      nmin=nEl;
+      if(nEm < nmin && nEm > 0)         nmin=nEm;
+    }else if(nEm>0){
+      nmin=nEm;
+    }
+    
+    
     if(xvals->Type() == GDL_COMPLEX ||
        xvals->Type() == GDL_COMPLEXDBL) {
       e->Throw("Complex Legendre not implemented: ");
@@ -634,8 +651,9 @@ namespace lib {
       DDoubleGDL* res;
       DDoubleGDL* x_cast;
       DIntGDL* l_cast,*m_cast;
+      DDoubleGDL* tep_lcast, *tep_mcast;
 
-      if(xvals->Type() == GDL_DOUBLE)
+      if(xvals->Type() == GDL_DOUBLE) 
 	x_cast=  static_cast<DDoubleGDL*>(xvals);
       else
 	{
@@ -644,60 +662,71 @@ namespace lib {
 	}
 
       // lvals check
-      if(lvals->Type() == GDL_COMPLEX ||
-	 lvals->Type() == GDL_COMPLEXDBL)
-	e->Throw(
-		 "Complex Legendre not implemented: ");
-      else if(lvals->Type() == GDL_INT)
-	l_cast=static_cast<DIntGDL*>(lvals);
-      else
-	{
+    if(lvals->Type() == GDL_COMPLEX || lvals->Type() == GDL_COMPLEXDBL) 
+	  e->Throw( "Complex Legendre not implemented: ");
+    else if(lvals->Type() == GDL_INT){
+	  l_cast=static_cast<DIntGDL*>(lvals);
+    tep_lcast = static_cast<DDoubleGDL*>(lvals->Convert2(GDL_DOUBLE,BaseGDL::COPY));
+      }else{ 
 	  l_cast=static_cast<DIntGDL*>(lvals->Convert2(GDL_INT,BaseGDL::COPY));
 	  l_guard.Reset(l_cast);//e->Guard( l_cast);
+    tep_lcast = static_cast<DDoubleGDL*>(lvals->Convert2(GDL_DOUBLE,BaseGDL::COPY));
 	}
-
       //mval check
-      if(mvals->Type() == GDL_COMPLEX ||
-	 mvals->Type() == GDL_COMPLEXDBL)
-	e->Throw(
-		 "Complex Legendre not implemented: ");
-      else if(mvals->Type() == GDL_INT)
-	m_cast=static_cast<DIntGDL*>(mvals);
-      else
-	{
+    if(mvals->Type() == GDL_COMPLEX ||mvals->Type() == GDL_COMPLEXDBL) 
+	    e->Throw("Complex Legendre not implemented: ");
+    else if(mvals->Type() == GDL_INT){
+      m_cast=static_cast<DIntGDL*>(mvals);
+      tep_mcast = static_cast<DDoubleGDL*>(mvals->Convert2(GDL_DOUBLE,BaseGDL::COPY));
+    }else{
 	  m_cast=static_cast<DIntGDL*>(mvals->Convert2(GDL_INT,BaseGDL::COPY));
+    tep_mcast = static_cast<DDoubleGDL*>(mvals->Convert2(GDL_DOUBLE,BaseGDL::COPY));
 	  //e->Guard( m_cast);
 	  m_guard.Reset(m_cast);
 	}
 
       //x,m,l are converted to the correct format (double, int, int) here
-
+	
 
       //make the result array have the same size as the smallest x,m,l array
       if(nmin == nEx) res=new DDoubleGDL(xvals->Dim(),BaseGDL::NOZERO);
       else if(nmin == nEl) res=new DDoubleGDL(lvals->Dim(),BaseGDL::NOZERO);
       else if(nmin == nEm) res=new DDoubleGDL(mvals->Dim(),BaseGDL::NOZERO);
+      if(nmin == 0){nmin = 1;}
 
       for (count=0;count<nmin;count++)
 	{
 	  DDouble xNow = (*x_cast)[nmin > nEx?0:count];
 	  DInt lNow =    (*l_cast)[nmin > nEl?0:count];
 	  DInt mNow =    (*m_cast)[nmin > nEm?0:count];
-
+    
+    //JW Feb. 2022: The warnings are not totally the same with IDL, for here it would be more clear; Begin:
+    if( isinf(xNow))
+	    e->Throw( "Argument X can not be infinity.");
+	  if( isnan((*tep_lcast)[nmin > nEl?0:count]))
+	    e->Throw( "Argument L must be a number.");
+    if( isinf((*tep_lcast)[nmin > nEl?0:count]))
+	    e->Throw( "Argument L can not be infinity.");
+	  if( isnan((*tep_mcast)[nmin > nEm?0:count]))
+	    e->Throw( "Argument M must be a number.");
+    if( isinf((*tep_mcast)[nmin > nEm?0:count]))
+	    e->Throw( "Argument M can not be infinity.");
+    // JW end;
+    
 	  if( xNow < -1.0 || xNow > 1.0)
 	    e->Throw( "Argument X must be in the range [-1.0, 1.0]");
 	  if( lNow < 0)
 	    e->Throw( "Argument L must be greater than or equal to zero.");
 	  if( mNow < -lNow || mNow > lNow)
 	    e->Throw( "Argument M must be in the range [-L, L].");
-
+	 
 	  if( mNow >= 0)
-	    (*res)[count]=
+	    (*res)[count]= 
 	      gsl_sf_legendre_Plm( lNow, mNow, xNow);
 	  else
 	    {
 	      mNow = -mNow;
-
+	      
 	      int addIx  = lNow+mNow;
 	      DDouble mul = 1.0;
 	      DDouble dD  = static_cast<DDouble>( lNow-mNow+1);
@@ -712,8 +741,8 @@ namespace lib {
 
 	      (*res)[count] = Pm / mul;
 	    }
-	}
-
+  }
+	
       //convert things back
       static int doubleIx=e->KeywordIx("DOUBLE");
       if(xvals->Type() != GDL_DOUBLE && !e->KeywordSet(doubleIx))
