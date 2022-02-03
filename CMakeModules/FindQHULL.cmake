@@ -10,7 +10,7 @@ find_path(QHULL_INCLUDE_DIR NAMES libqhullcpp/Qhull.h
         )
 
 if(QHULL_INCLUDE_DIR)
-    find_library(QHULL_R_LIBRARY NAMES qhullstatic_r HINTS ${CMAKE_PREFIX_PATH})
+    find_library(QHULL_R_LIBRARY NAMES qhullstatic_r qhull_r HINTS ${CMAKE_PREFIX_PATH})
     find_library(QHULL_CPP_LIBRARY NAMES qhullcpp HINTS ${CMAKE_PREFIX_PATH})
 
     # include(FindPackageHandleStandardArgs)

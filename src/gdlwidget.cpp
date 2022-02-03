@@ -2539,8 +2539,8 @@ DULong eventFlags_
 , rowHeights( rowHeights_ )
 , rowLabels( rowLabels_ )
 //, tabMode( tabMode_ )
-, x_scroll_size( xScrollSize_ )
-, y_scroll_size( yScrollSize_)
+, x_scroll_size_columns( xScrollSize_ )
+, y_scroll_size_rows( yScrollSize_)
 , valueAsStrings( valueAsStrings_ )
 , updating(false)
 {
@@ -2548,9 +2548,6 @@ DULong eventFlags_
   widgetPanel = GetParentPanel( );
   widgetSizer = GetParentSizer( );
 
-  //due to subtle problems in the absence of a frame around, a 0 or negative frame becomes a frame=1
-//  if (frameWidth <1) frameWidth=1;
-  
   START_ADD_EVENTUAL_FRAME
 
   widgetStyle=widgetAlignment();
@@ -2564,30 +2561,18 @@ if (valueAsStrings->Rank()==1) {
   numRows=valueAsStrings->Dim(1);
   numCols=valueAsStrings->Dim(0);
 }
-SizeT grid_nrows=(wSize.y<=0)?numRows:wSize.y;
-SizeT grid_ncols=(wSize.x<=0)?numCols:wSize.x;
+
+//if wSize is not explicit, it must now be explicit:
+SizeT grid_nrows=numRows;
+if (wSize.y<=0) wSize.y=numRows; else grid_nrows=wSize.y;
+SizeT grid_ncols=numCols;
+if (wSize.x<=0) wSize.x=numCols; else grid_ncols=wSize.x;
   
   wxGridGDL *grid = new wxGridGDL( widgetPanel, widgetID, wxDefaultPosition, wxDefaultSize);
 //important:set wxWidget here. (fonts)
   theWxContainer = theWxWidget = grid;
 // important: use adapted font for further sizes & shapes. Define font for labels AND  cells.
   this->setFont();
- //Column Width Before creating
-bool hasColumnWidth=(columnWidth!=NULL);
-if (hasColumnWidth) { //one value set for all?
-  if (columnWidth->N_Elements()==1) {
-    grid->SetDefaultColSize((*columnWidth)[0]*unitConversionFactor.x) ;
-    hasColumnWidth=false;
-  }
-}
-//RowHeight
-bool hasRowHeights=(rowHeights!=NULL);
-if (hasRowHeights) { //one value set for all?
-  if (rowHeights->N_Elements()==1) {
-    grid->SetDefaultRowSize((*rowHeights)[0]*unitConversionFactor.y) ;
-    hasRowHeights=false;
-  }
-}
 //Alignment
 bool hasAlignment=(table_alignment!=NULL);
 if (hasAlignment) {
@@ -2653,8 +2638,8 @@ grid->CreateGrid( grid_nrows, grid_ncols, static_cast<wxGrid::wxGridSelectionMod
 //colors per element
 if (isBackgroundColored) this->DoBackgroundColor();
 if (isForegroundColored) this->DoForegroundColor();
-if (hasColumnWidth) this->DoColumnWidth();
-if (hasRowHeights) this->DoRowHeights();
+if (columnWidth!=NULL) this->DoColumnWidth();
+if (rowHeights!=NULL) this->DoRowHeights();
 //treat other alignment cases.
 if (hasAlignment) this->DoAlign();
 
@@ -2664,56 +2649,68 @@ if (rowLabels!=NULL) this->DoRowLabels();
 //get back on sizes. Do we enforce some size or scroll_size, in columns/rows:
 int currentColLabelHeight = grid->GetColLabelSize();
 int currentRowLabelWidth = grid->GetRowLabelSize();
+////ClientSize
+//int clientsizex=currentRowLabelWidth;
+//int clientsizey=currentColLabelHeight; 
+//for (SizeT i=0; i< numCols ; ++i) clientsizex+=(i<grid_ncols)?grid->GetColSize(i):grid->GetDefaultColSize(); 
+//for (SizeT j=0; j< numRows ; ++j) clientsizey+=(j<grid_nrows)?grid->GetRowHeight(j):grid->GetDefaultRowSize();
+//wxSize wClientSize=wxSize(clientsizex,clientsizey);
+//
+////Not Useful?
+//grid->SetInitialSize(wClientSize);
 
-int fullsizex=currentRowLabelWidth;
-int fullsizey=currentColLabelHeight; 
-for (SizeT i=0; i< numCols ; ++i) fullsizex+=(i<grid_ncols)?grid->GetColSize(i):grid->GetDefaultColSize(); 
-for (SizeT j=0; j< numRows ; ++j) fullsizey+=(j<grid_nrows)?grid->GetRowHeight(j):grid->GetDefaultRowSize(); 
+//Size will be WindowSize, as wSize is in columns.
+wxSize windowSize(100,100); //default value, avoids warnings in GTK
+//wxSize in columns, transform to units
+int xsize_columns = wSize.x;
+int ysize_rows = wSize.y;
+if (xsize_columns > 0) { //defined
+  int windowsizex = currentRowLabelWidth;
+  for (SizeT i = 0; i < xsize_columns; ++i) windowsizex += (i < grid_ncols) ? grid->GetColSize(i) : grid->GetDefaultColSize();
+  windowSize = wxSize(windowsizex, windowSize.y);
+}
+if (ysize_rows > 0) { //defined
+  int windowsizey = currentColLabelHeight;
+  for (SizeT j = 0; j < ysize_rows; ++j) windowsizey += (j < grid_nrows) ? grid->GetRowHeight(j) : grid->GetDefaultRowSize();
+  windowSize = wxSize(windowSize.x,windowsizey);
+}
 
-int visiblesizex=currentRowLabelWidth;
-int visiblesizey=currentColLabelHeight; 
-for (SizeT i=0; i< grid_ncols ; ++i) visiblesizex+=grid->GetColSize(i); 
-for (SizeT j=0; j< grid_nrows ; ++j) visiblesizey+=grid->GetRowHeight(j); 
-
-int sizex=-1;
-int sizey=-1;
-int scr_sizex=-1;
-int scr_sizey=-1;
-  if ( wSize.x > 0 ) { sizex = visiblesizex; //size in columns given
-  } else {sizex=fullsizex;}
-  if ( wSize.y > 0 ) { sizey = visiblesizey; //size in rows given
-  } else {sizey=fullsizey;}
-  if ( x_scroll_size > 0 ) { //scroll size is in columns
-    scrolled=true;
-    scr_sizex=currentRowLabelWidth+gdlSCROLL_HEIGHT_X;
-    for (SizeT i=0; i< x_scroll_size ; ++i) scr_sizex+=grid->GetColSize(i);
-    scr_sizex=min(scr_sizex,fullsizex);
-    if (y_scroll_size <=0) y_scroll_size=x_scroll_size;
+//Scrolled?
+x_scroll_size_columns=(x_scroll_size_columns > grid_ncols)?grid_ncols:x_scroll_size_columns;
+y_scroll_size_rows=(y_scroll_size_rows > grid_nrows)?grid_nrows:y_scroll_size_rows;
+if ( x_scroll_size_columns > 0 ) { //scroll size is in columns
+  scrolled = true;
+}
+if (y_scroll_size_rows > 0) { //rows
+  scrolled = true;
+}
+if (scrolled) { //size to pass is given by scrolled 
+  if ( x_scroll_size_columns > 0 ) { //scroll size is in columns
+    int scrollsizex=currentRowLabelWidth+gdlSCROLL_WIDTH_Y;
+    for (SizeT i = 0; i < x_scroll_size_columns ; ++i) scrollsizex += (i<grid_ncols)?grid->GetColSize(i):grid->GetDefaultColSize();
+    windowSize = wxSize(scrollsizex, windowSize.y);
   }
-  if ( y_scroll_size > 0 ) { //rows
-    scrolled=true;
-    scr_sizey=currentColLabelHeight+gdlSCROLL_WIDTH_Y;
-    for (SizeT j=0; j< y_scroll_size ; ++j) scr_sizey+=grid->GetRowHeight(j);
-    scr_sizey=min(scr_sizey,fullsizey);
+  if (y_scroll_size_rows > 0) { //rows
+    int scrollsizey=currentColLabelHeight+gdlSCROLL_HEIGHT_X;
+    for (SizeT j = 0; j < y_scroll_size_rows ; ++j) scrollsizey += (j<grid_nrows)?grid->GetRowHeight(j):grid->GetDefaultRowSize();
+    windowSize = wxSize(windowSize.x,scrollsizey);
   }
-//fix size if relevant
-if (scrolled && scr_sizex == -1) scr_sizex = (sizex>0)?sizex:fullsizex;
-if (scrolled && scr_sizey == -1) scr_sizey = (sizey>0)?sizey:fullsizey;
-//wScrXSize etc to be considered since sizes are not in pixels:
-if (wScreenSize.x>0) {scr_sizex=wScreenSize.x; scrolled=true;}  
-if (wScreenSize.y>0) {scr_sizey=wScreenSize.y; scrolled=true;}  
+}
+
+//scr_xsize or ysize: replaces value in windowSize:
+if (wScreenSize.x > 0) windowSize=wxSize(wScreenSize.x,windowSize.y);
+if (wScreenSize.y > 0) windowSize=wxSize(windowSize.x,wScreenSize.y);
+
 //wxGrid IS a scrolled window
 if (scrolled) {
+//  int visibx=x_scroll_size>0?wxSHOW_SB_ALWAYS:wxSHOW_SB_NEVER;
+//  int visiby=y_scroll_size>0?wxSHOW_SB_ALWAYS:wxSHOW_SB_NEVER;
   grid->ShowScrollbars(wxSHOW_SB_ALWAYS,wxSHOW_SB_ALWAYS);
-  grid->SetInitialSize(wxSize(scr_sizex, scr_sizey)); 
-} else {
-  if (wSize.x>0||wSize.y>0) {
-    grid->SetInitialSize(wxSize(sizex,sizey)); 
-}
 }
 grid->SetScrollLineX(grid->GetColSize(0));
 grid->SetScrollLineY(grid->GetRowHeight(0));
-
+grid->SetSize(windowSize);
+grid->SetMinSize(windowSize);
 END_ADD_EVENTUAL_FRAME
 TIDY_WIDGET(gdlBORDER_SPACE);
   
@@ -3940,20 +3937,6 @@ GDLWidgetTable::~GDLWidgetTable()
   std::cout << "~GDLWidgetTable(" << widgetID << ")" << std::endl;
 #endif  
   if (theWxContainer) static_cast<wxWindow*>(theWxContainer)->Destroy();
-  
-  GDLDelete( table_alignment );
-  GDLDelete( editable );
-  GDLDelete( amPm );
-  GDLDelete( backgroundColor );
-  GDLDelete( foregroundColor );
-  GDLDelete( columnLabels );
-  GDLDelete( columnWidth );
-  GDLDelete( daysOfWeek );
-  GDLDelete( format );
-  GDLDelete( month );
-  GDLDelete( rowHeights );
-  GDLDelete( rowLabels );
-  GDLDelete( valueAsStrings );
 }
 
 /*********************************************************/

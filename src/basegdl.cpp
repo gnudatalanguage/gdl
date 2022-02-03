@@ -539,7 +539,7 @@ SizeT BaseGDL::IFmtI( std::istream* is, SizeT offs, SizeT num, int width,
 BaseGDL* BaseGDL::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
 		          bool center, bool normalize, int edgeMode,
                           bool doNan, BaseGDL* missing, bool doMissing,
-                          BaseGDL* invalid, bool doInvalid)
+                          BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   throw GDLException("BaseGDL::Convol(...) called.");
 }
@@ -833,8 +833,9 @@ char* MemStats::StartOfMemory = reinterpret_cast<char*>(::sbrk(0));
 
 void GDLDelete( BaseGDL* toDelete)
 {
-  if( toDelete != NullGDL::GetSingleInstance())
-    delete toDelete;
+  if( toDelete ==NULL) return;
+  if( toDelete == NullGDL::GetSingleInstance()) return;
+  delete toDelete;
 }
 int GDL_NTHREADS=1;
 
