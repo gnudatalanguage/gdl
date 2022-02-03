@@ -1585,6 +1585,10 @@ int EnvBaseT::GetKeywordIx( const std::string& k) {
 }
   
 // for use within library functions
+
+/**
+ * @brief NULL, !NULL are ignored
+ */
 bool EnvT::KeywordSet( const std::string& kw)
 {
   assert( pro != NULL);
@@ -1594,19 +1598,29 @@ bool EnvT::KeywordSet( const std::string& kw)
   return KeywordSet( static_cast<SizeT>(ix));
 }
 
+/**
+ * @brief NULL, !NULL are ignored
+ */
 bool EnvT::KeywordSet( SizeT ix)
 {
   return EnvBaseT::KeywordSet( ix);
 }
+
+/**
+ * @brief NULL, !NULL are ignored
+ */
 bool EnvBaseT::KeywordSet( SizeT ix)
 {
   BaseGDL* keyword=env[ix];
   if( keyword == NULL) return false;
+  if (keyword==NullGDL::GetSingleInstance()) return false;
   if( !keyword->Scalar()) return true; //IDL would Throw("Expression must be a scalar or 1 element array in this context.");
   if( keyword->Type() == GDL_STRUCT)  return true; //IDL would Throw("Unable to convert variable from type struct.");
   return keyword->LogTrue();
 }
-//this version is for testing boolean KWs when the default is 'set' = true when they are not defined/present etc (see code)
+/**
+ * @brief NULL, !NULL are implictly 'set'. this version is for testing boolean KWs when the default is 'set' = true when they are not defined/present etc (see code)
+ */
 bool EnvBaseT::BooleanKeywordAbsentOrSet( SizeT ix)
 {
   BaseGDL* keyword=env[ix];
@@ -1615,7 +1629,9 @@ bool EnvBaseT::BooleanKeywordAbsentOrSet( SizeT ix)
   if( keyword->Type() == GDL_STRUCT) return true; // Throw("Unable to convert variable from type struct.");
   return keyword->LogTrue();
 }
-// returns the ix'th parameter (for library function API only)
+/**
+ * @brief returns the ix'th parameter (for library function API only)
+ */
 BaseGDL*& EnvT::GetPar(SizeT i)
 {
   static BaseGDL* null=NULL;
@@ -1633,6 +1649,9 @@ BaseGDL*& EnvT::GetPar(SizeT i)
 //   return env[ ix];
 // }
 
+/**
+ * @brief converts par if necessary and sets 'scalar' to Long . Chokes on !NULL, NULL and non-scalar
+ */
 void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);
@@ -1642,6 +1661,9 @@ void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
     Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
+/**
+ * @brief converts par if necessary and sets 'scalar' to Long . Chokes on !NULL, NULL and non-scalar
+ */
 void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);
@@ -1651,35 +1673,53 @@ void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
     Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
+/**
+ * @brief converts par if necessary and sets 'scalar' to Long . Chokes on !NULL, NULL and non-scalar
+ */
 void EnvT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
 {
   EnvBaseT::AssureLongScalarPar( pIx, scalar);
 }
+/**
+ * @brief converts par if necessary and sets 'scalar' to Long . Chokes on !NULL, NULL and non-scalar
+ */
 void EnvT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
 {
   EnvBaseT::AssureLongScalarPar( pIx, scalar);
 }
-// if keyword 'kw' is not set, 'scalar' is left unchanged
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Long . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureLongScalarKWIfPresent( const std::string& kw, DLong& scalar)
 {
   int ix = KeywordIx( kw);
   AssureLongScalarKWIfPresent( ix, scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Long . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureLongScalarKWIfPresent( SizeT ix, DLong& scalar)
 {
   if( env[ix] == NULL || env[ix] == NullGDL::GetSingleInstance()) return;
   AssureLongScalarKW( ix, scalar);
 }
-// converts keyword 'kw' if necessary and sets 'scalar' 
+/**
+ * @brief converts keyword 'kw' if necessary and sets 'scalar' to DLong . Chokes on !NULL, NULL and non-scalar
+ */
 void EnvT::AssureLongScalarKW( const std::string& kw, DLong& scalar)
 {
   AssureLongScalarKW( KeywordIx( kw), scalar);
 }
+/**
+ * @brief converts keyword 'kw' if necessary and sets 'scalar' to DLong64 . Chokes on !NULL, NULL and non-scalar
+ */
 void EnvT::AssureLongScalarKW( const std::string& kw, DLong64& scalar)
 {
   AssureLongScalarKW( KeywordIx( kw), scalar);
 }
-
+/**
+ * @brief converts ix if necessary and sets 'scalar' to DLong64 . Chokes on !NULL, NULL and non-scalar
+ */
 void EnvT::AssureLongScalarKW( SizeT eIx, DLong64& scalar)
 {
   BaseGDL* p = GetKW( eIx);
@@ -1695,6 +1735,9 @@ void EnvT::AssureLongScalarKW( SizeT eIx, DLong64& scalar)
     Throw("Expression must be a scalar or 1 element array in this context: "+
 	  GetString(eIx));
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to DLong . Chokes on !NULL, NULL and non-scalar
+ */
 void EnvT::AssureLongScalarKW( SizeT eIx, DLong& scalar)
 {
   BaseGDL* p = GetKW( eIx);
@@ -1711,6 +1754,9 @@ void EnvT::AssureLongScalarKW( SizeT eIx, DLong& scalar)
 	  GetString(eIx));
 }
 
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Double . Chokes on !NULL, NULL and non-scalar
+ */
 void EnvT::AssureDoubleScalarPar( SizeT pIx, DDouble& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);
@@ -1720,20 +1766,32 @@ void EnvT::AssureDoubleScalarPar( SizeT pIx, DDouble& scalar)
     Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Double . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureDoubleScalarKWIfPresent( const std::string& kw, DDouble& scalar)
 {
   int ix = KeywordIx( kw);
   AssureDoubleScalarKWIfPresent( ix, scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Double . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureDoubleScalarKWIfPresent( SizeT ix, DDouble& scalar)
 {
   if( env[ix] == NULL || env[ ix] == NullGDL::GetSingleInstance() ) return;
   AssureDoubleScalarKW( ix, scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Double . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureDoubleScalarKW( const std::string& kw, DDouble& scalar)
 {
   AssureDoubleScalarKW( KeywordIx( kw), scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Double . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureDoubleScalarKW( SizeT eIx, DDouble& scalar)
 {
   BaseGDL* p = GetKW( eIx);
@@ -1748,7 +1806,9 @@ void EnvT::AssureDoubleScalarKW( SizeT eIx, DDouble& scalar)
 	  GetString(eIx));
 }
 
-
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Float . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureFloatScalarPar( SizeT pIx, DFloat& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);
@@ -1758,6 +1818,9 @@ void EnvT::AssureFloatScalarPar( SizeT pIx, DFloat& scalar)
     Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Float . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureFloatScalarKWIfPresent( const std::string& kw, DFloat& scalar)
 {
   int ix = KeywordIx( kw);
@@ -1765,16 +1828,24 @@ void EnvT::AssureFloatScalarKWIfPresent( const std::string& kw, DFloat& scalar)
   //  if( !KeywordPresent( ix)) return;
   AssureFloatScalarKW( ix, scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Float . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureFloatScalarKWIfPresent( SizeT ix, DFloat& scalar)
 {
-  if( env[ix] == NULL) return;
-  //  if( !KeywordPresent( ix)) return;
+  if( env[ix] == NULL || env[ ix] == NullGDL::GetSingleInstance() ) return;
   AssureFloatScalarKW( ix, scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Float . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureFloatScalarKW( const std::string& kw, DFloat& scalar)
 {
   AssureFloatScalarKW( KeywordIx( kw), scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to Float . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureFloatScalarKW( SizeT eIx, DFloat& scalar)
 {
   BaseGDL* p = GetKW( eIx);
@@ -1792,6 +1863,9 @@ void EnvT::AssureFloatScalarKW( SizeT eIx, DFloat& scalar)
 }
 
 
+/**
+ * @brief converts parIx if necessary and sets 'scalar' to String . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureStringScalarPar( SizeT pIx, DString& scalar)
 {
   BaseGDL* p = GetParDefined( pIx);
@@ -1801,20 +1875,32 @@ void EnvT::AssureStringScalarPar( SizeT pIx, DString& scalar)
     Throw("Parameter must be a scalar or 1 element array in this context: "+
 	  GetParString(pIx));
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to string . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureStringScalarKWIfPresent( const std::string& kw, DString& scalar)
 {
   int ix = KeywordIx( kw);
   AssureStringScalarKWIfPresent( ix, scalar);
 }
+/**
+ * @brief converts ix if necessary and sets 'scalar' to string . scalar unchanged if !NULL, NULL. Chokes on non-scalar
+ */
 void EnvT::AssureStringScalarKWIfPresent( SizeT ix, DString& scalar)
 {
   if( env[ix] == NULL || env[ix] == NullGDL::GetSingleInstance()) return;
   AssureStringScalarKW( ix, scalar);
 }
+/**
+ * @brief converts  if necessary and sets 'scalar' to String . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureStringScalarKW( const std::string& kw, DString& scalar)
 {
   AssureStringScalarKW( KeywordIx( kw), scalar);
 }
+/**
+ * @brief converts if necessary and sets 'scalar' to String . Will choke on NULL, !NULL  and non-scalars
+ */
 void EnvT::AssureStringScalarKW( SizeT eIx, DString& scalar)
 {
   BaseGDL* p = GetKW( eIx);
@@ -1828,7 +1914,9 @@ void EnvT::AssureStringScalarKW( SizeT eIx, DString& scalar)
     Throw("Expression must be a scalar or 1 element array in this context: "+
 	  GetString(eIx));
 }
-
+/**
+ * @brief Insure it is a global Keyword. Will choke on NULL but not !NULL.
+ */
 void EnvBaseT::SetKW( SizeT ix, BaseGDL* newVal)
 {
   // can't use Guard here as data has to be released
@@ -1837,6 +1925,9 @@ void EnvBaseT::SetKW( SizeT ix, BaseGDL* newVal)
   GDLDelete(GetKW( ix));
   GetTheKW( ix) = guard.release();
 }
+/**
+ * @brief Insure it is a global parameter. Will choke on NULL but not !NULL.
+ */
 void EnvT::SetPar( SizeT ix, BaseGDL* newVal)
 {
   // can't use Guard here as data has to be released

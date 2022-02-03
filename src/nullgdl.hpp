@@ -171,7 +171,7 @@ class NullGDL: public BaseGDL
   /*virtual*/ BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
                    bool center, bool normalize, int edgeMode,
                                bool doNan, BaseGDL* missing, bool doMissing,
-                               BaseGDL* invalid, bool doInvalid);
+                               BaseGDL* invalid, bool doInvalid, DDouble edgeVal);
   /*virtual*/ BaseGDL* Smooth( DLong* width, int edgeMode,
                                bool doNan, BaseGDL* missing);
   /*virtual*/ BaseGDL* Rebin( const dimension& newDim, bool sample);
