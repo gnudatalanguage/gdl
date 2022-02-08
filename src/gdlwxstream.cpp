@@ -53,7 +53,7 @@ GDLWXStream::GDLWXStream( int width, int height )
 #endif
   init();
   plstream::cmd(PLESC_DEVINIT, (void*)streamDC );
-  
+    
    // no pause on win destruction
     spause( false);
 
@@ -348,31 +348,34 @@ bool GDLWXStream::SetGraphicsFunction( long value) {
     case 5: //wxNO_OP:
       streamDC->SetLogicalFunction( wxNO_OP);
       break;
-    case 6: //wxXOR:
+    case 6: //wxXOR
       streamDC->SetLogicalFunction( wxXOR);
+      break;    
+    case 7: //wxOR:
+      streamDC->SetLogicalFunction( wxOR);
       break;
-    case 7: //wxNOR:
+    case 8: //wxNOR:
       streamDC->SetLogicalFunction( wxNOR);
       break;
-    case 8: //wxEQUIV:
+    case 9: //wxEQUIV:
       streamDC->SetLogicalFunction( wxEQUIV);
       break;
-    case 9: //wxINVERT:
+    case 10: //wxINVERT:
       streamDC->SetLogicalFunction( wxINVERT);
       break;
-    case 10: //wxOR_REVERSE:
+    case 11: //wxOR_REVERSE:
       streamDC->SetLogicalFunction( wxOR_REVERSE);
       break;
-    case 11: //wxSRC_INVERT:
+    case 12: //wxSRC_INVERT:
       streamDC->SetLogicalFunction( wxSRC_INVERT);
       break;
-    case 12: //wxOR_INVERT:
+    case 13: //wxOR_INVERT:
       streamDC->SetLogicalFunction( wxOR_INVERT);
       break;
-    case 13: //wxNAND:
+    case 14: //wxNAND:
       streamDC->SetLogicalFunction( wxNAND);
       break;
-    case 14: //wxSET:
+    case 15: //wxSET:
       streamDC->SetLogicalFunction( wxSET);
       break;
   }
