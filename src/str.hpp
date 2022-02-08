@@ -32,6 +32,7 @@
 #endif
 
 std::string GetEnvString(const char* env);
+std::string GetEnvPathString(const char* env);
 
 // check if path is given in filename f
 inline bool PathGiven(const std::string& f)

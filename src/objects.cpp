@@ -905,9 +905,13 @@ void InitObjects()
   // We need to initialize the multi-device object that inherits from the single-device object.
   GraphicsMultiDevice::Init();
 
-  string gdlPath=GetEnvString("GDL_PATH");
-  if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
-  if( gdlPath == "") gdlPath = "+" GDLDATADIR "/lib";
+  string gdlPath=GetEnvPathString("GDL_PATH");
+  if( gdlPath == "") gdlPath=GetEnvPathString("IDL_PATH");
+  std::string S_GDLDATADIR=string(GDLDATADIR);
+#ifdef _WIN32
+    std::replace(S_GDLDATADIR.begin(), S_GDLDATADIR.end(), '/', '\\');
+#endif  
+  gdlPath = "+" + S_GDLDATADIR + lib::PathSeparator() + "lib";
   SysVar::SetGDLPath( gdlPath);
 }
 

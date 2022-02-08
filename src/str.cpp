@@ -76,7 +76,18 @@ std::string GetEnvString(const char* env)
   if( !c) return std::string("");
   return std::string(c);
 }
-
+//same but for a path: separator will be '\' for _WIN32
+std::string GetEnvPathString(const char* env)
+{
+  std::string ret("");
+  char* c=getenv(env);
+  if( !c) return ret;
+  ret=std::string(c);
+#ifdef _WIN32
+    std::replace(ret.begin(), ret.end(), '/', '\\');
+#endif
+  return ret;
+}
 DLong StrPos(const std::string& s, const std::string& searchStr, long pos, 
 	     bool reverseOffset, bool reverseSearch)
 {

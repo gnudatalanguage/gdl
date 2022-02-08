@@ -1204,14 +1204,16 @@ namespace SysVar
 #endif
 
     // !DIR
-#ifndef EXEC_PREFIX
-#define EXEC_PREFIX ""
+#ifndef GDLDATADIR
+#define GDLDATADIR ""
 #endif
-    DStringGDL *dirData = new DStringGDL( EXEC_PREFIX);
-    string gdlDir=GetEnvString("GDL_DIR");
-    if( gdlDir == "") gdlDir=GetEnvString("IDL_DIR");
-    if( gdlDir != "") 
-	{
+    DStringGDL *dirData = new DStringGDL( GDLDATADIR) ;
+#ifdef _WIN32
+    std::replace((*dirData)[0].begin(), (*dirData)[0].end(), '/', '\\');
+#endif  
+    string gdlDir=GetEnvPathString("GDL_DIR");
+    if( gdlDir == "") gdlDir=GetEnvPathString("IDL_DIR");
+    if (gdlDir != "") {
 	delete dirData;
 	dirData = new DStringGDL( gdlDir);
 	}
@@ -1220,21 +1222,23 @@ namespace SysVar
     sysVarList.push_back( dir);
 
     // !GDL_MAPS_DIR 
-    string tmpDir=GetEnvString("GDL_MAPS_DIR");
-    if( tmpDir == "") tmpDir = string(GDLDATADIR) + "/resource/maps";
-    char *symlinkpath =const_cast<char*> (tmpDir.c_str());// is the path a true path ?
-
-#ifdef _MSC_VER
-	#define PATH_MAX MAX_PATH
-#endif
-//patch #90
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif
-    char actualpath [PATH_MAX+1];
-    char *ptr;
-    ptr = realpath(symlinkpath, actualpath);
-    if( ptr != NULL ) tmpDir=string(ptr)+lib::PathSeparator(); else tmpDir="";
+    string tmpDir=GetEnvPathString("GDL_MAPS_DIR");
+    if( tmpDir == "") tmpDir = (*dirData)[0]+lib::PathSeparator() +"resource"+lib::PathSeparator()+"maps";
+//The following seems to be incorrect and probably irrelevant
+// //    char *symlinkpath =const_cast<char*> (tmpDir.c_str());// is the path a true path ?
+// //
+// //#ifdef _MSC_VER
+// //	#define PATH_MAX MAX_PATH
+// //#endif
+// ////patch #90
+// //#ifndef PATH_MAX
+// //#define PATH_MAX 4096
+// //#endif
+// //    char actualpath [PATH_MAX+1];
+// //    char *ptr;
+// //    ptr = realpath(symlinkpath, actualpath);
+// //    if( ptr != NULL ) tmpDir=string(ptr)+lib::PathSeparator(); else tmpDir="";
+//
     DStringGDL *GdlMapsDataDir =  new DStringGDL( tmpDir);
     DVar *GdlMapsDir = new DVar("GDL_MAPS_DIR", GdlMapsDataDir);
     sysVarList.push_back(GdlMapsDir);
