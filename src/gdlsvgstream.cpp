@@ -105,7 +105,7 @@ std::string GDLSVGStream::svg_to_png64(int width,int height,
    int fd;
    *error = 0;
    /* open a temporary file */
-   sprintf(filename,"%sgdlsvgpng64.XXXXXX",getenv("IDL_TMPDIR")); //Insecure, check!
+   sprintf(filename,"%sgdlsvgpng64.XXXXXX",GetEnvPathString("IDL_TMPDIR")); //Insecure, check!
 #ifdef _WIN32
    static const char *letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
    char *XXXXXX = &filename[strlen(filename)-6];
