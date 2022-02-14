@@ -97,7 +97,7 @@ inline string float2string(const DFloat f){
 inline string complex2string(const DComplex f){
     std::string st;
     if (std::isfinite(std::abs(f))){
-      char buf [14];
+      char buf [30];
       std::sprintf (buf, "(%#13.6g,%#13.6g)", f.real(),f.imag());
       st = std::string(buf);
     } else {
@@ -109,7 +109,7 @@ inline string complex2string(const DComplex f){
 inline string dcomplex2string(const DComplexDbl f){
     std::string st;
     if (std::isfinite(std::abs(f))){
-      char buf [17];
+      char buf [36];
       std::sprintf (buf, "(%#16.8g,%#16.8g)", f.real(),f.imag());
       st = std::string(buf);
     } else {
