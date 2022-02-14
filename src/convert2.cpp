@@ -18,7 +18,7 @@
 // TODO: adjust the with for string conversion for each type (i2s((*this)[i],X))
 
 // Convert2( DType) functions
-
+#include <string.h>
 #include "includefirst.hpp"
 
 //#include "datatypes.hpp"
@@ -54,19 +54,69 @@ using namespace std;
 
 // for double -> string
 
-inline string double2string(const DDouble d) {
+/*inline string double2string(const DDouble d) {
   std::ostringstream os;
   OutAuto(os, d, 16, 8, 0);
   return os.str();
-}
+}*/
+inline string double2string(const DDouble d) {
+    std::string st;
+    if (std::isfinite(d)){
+      char buf [17];
+      std::sprintf (buf, "%#16.8g", d);
+      st = std::string(buf);
+    } else if(std::isnan((double)d)){
+          st=(std::signbit(d))? "            -NaN" : "             NaN";
+    
+    } else if(std::isinf(d)){
+          st=(std::signbit(d))? "       -Infinity" : "        Infinity";
+    };
+    return st;
+}//Here we quit the use of ostringstream who would take 3 times long time; by JW Feb 2022; 
+
 
 // for float -> string
 
-inline string float2string(const DFloat f) {
-  std::ostringstream os;
-  OutAuto(os, f, 13, 6, 0);
-  return os.str();
-}
+inline string float2string(const DFloat f){
+    std::string st;
+    if (isfinite(f)){
+      char buf [14];
+      std::sprintf (buf, "%#13.6g", f);
+      st = std::string(buf);
+    } else if(isnan(f)){
+          st=(std::signbit(f))? "         -NaN" : "          NaN";
+    } else if(isinf(f)){
+          st=(std::signbit(f))? "         -Inf" : "          Inf";
+    };
+    return st;
+} //by JW Feb 2022; 
+
+
+// for float -> string
+
+inline string complex2string(const DComplex f){
+    std::string st;
+    if (std::isfinite(std::abs(f))){
+      char buf [30];
+      std::sprintf (buf, "(%#13.6g,%#13.6g)", f.real(),f.imag());
+      st = std::string(buf);
+    } else {
+      st="(" + float2string(f.real()) + "," + float2string(f.imag()) + ")";
+    }
+    return st;
+} //by JW Feb 2022; 
+
+inline string dcomplex2string(const DComplexDbl f){
+    std::string st;
+    if (std::isfinite(std::abs(f))){
+      char buf [36];
+      std::sprintf (buf, "(%#16.8g,%#16.8g)", f.real(),f.imag());
+      st = std::string(buf);
+    } else {
+      st="(" + double2string(f.real()) + "," + double2string(f.imag()) + ")";
+    }
+    return st;
+} //by JW Feb 2022; 
 
 // for string -> float/double
 template <typename real_t>
@@ -195,8 +245,7 @@ template<> BaseGDL* Data_<SpDByte>::Convert2(DType destTy, BaseGDL::Convert2Mode
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
   case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
-  {
-    if (mode == BaseGDL::COPY_BYTE_AS_INT) {
+  {   if (mode == BaseGDL::COPY_BYTE_AS_INT) {
       Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
@@ -690,6 +739,7 @@ template<> BaseGDL* Data_<SpDFloat>::Convert2(DType destTy, BaseGDL::Convert2Mod
     if ((mode & BaseGDL::CONVERT) != 0) delete this;
     return dest;
   }
+
   case GDL_PTR:
   case GDL_OBJ:
   case GDL_STRUCT:
@@ -770,6 +820,7 @@ template<> BaseGDL* Data_<SpDDouble>::Convert2(DType destTy, BaseGDL::Convert2Mo
     if ((mode & BaseGDL::CONVERT) != 0) delete this;
     return dest;
   }
+
   case GDL_PTR:
   case GDL_OBJ:
   case GDL_STRUCT:
@@ -1143,7 +1194,7 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2(DType destTy, BaseGDL::Convert2M
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
-  case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+  /*case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
   {
     Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
     TRACEOMP(__FILE__, __LINE__)
@@ -1155,11 +1206,33 @@ template<> BaseGDL* Data_<SpDComplex>::Convert2(DType destTy, BaseGDL::Convert2M
       //      for (SizeT i = 0; i < nEl; ++i) {
       //        (*dest)[i].resize(32);
       //        snprintf(&((*dest)[i])[0],32,"(%13g,%13g)",(*this)[i].real(),(*this)[i].imag());
-      //      }
+      //      } 
     for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = "(" + i2s(real((*this)[i])) + "," + i2s(imag((*this)[i])) + ")";
+      // The using of i2s needs iostream which takes long time; by JW, Feb 2022
     if ((mode & BaseGDL::CONVERT) != 0) delete this;
     return dest;
-  }
+  }*/
+
+  case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+  {
+    Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+      //  JW
+      //  for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = "(" + float2string(real((*this)[i])) + "," + float2string(imag((*this)[i])) + ")";
+      //AC
+            for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = complex2string((*this)[i]);
+
+      /*
+      for (SizeT i = 0; i < nEl; ++i) {
+        (*dest)[i].resize(32);
+        snprintf(&((*dest)[i])[0],32,"(%#13.6g,%#13.6g)",(*this)[i].real(),(*this)[i].imag());
+	} */
+
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  }//JW, Feb 2022
+
   case GDL_PTR:
   case GDL_OBJ:
   case GDL_STRUCT:
@@ -1230,15 +1303,29 @@ template<> BaseGDL* Data_<SpDComplexDbl>::Convert2(DType destTy, BaseGDL::Conver
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       DO_CONVERT_END
   case GDL_COMPLEXDBL: return (((mode & BaseGDL::COPY) != 0) ? Dup():this);
-  case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+  /*case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
   {
     Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = "(" + i2s(real((*this)[i])) + "," + i2s(imag((*this)[i])) + ")";
     if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    //the using of i2s needs iostreal, which takes long time; by JW Feb 2022; 
     return dest;
-  }
+  }*/
+ 
+  case GDL_STRING: // GDL_BYTE to GDL_STRING: remove first dim
+  {
+    Data_<SpDString>* dest = new Data_<SpDString>(dim, BaseGDL::NOZERO);
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+      //JW    for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = "(" + double2string(real((*this)[i])) + "," + double2string(imag((*this)[i])) + ")";
+
+      //AC
+      for (SizeT i = 0; i < nEl; ++i) (*dest)[i] = dcomplex2string((*this)[i]);
+    if ((mode & BaseGDL::CONVERT) != 0) delete this;
+    return dest;
+  } //JW, Feb 2022
   case GDL_PTR:
   case GDL_OBJ:
   case GDL_STRUCT:
