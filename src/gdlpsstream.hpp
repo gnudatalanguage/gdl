@@ -51,7 +51,6 @@ public:
   bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
   //logically close the svg each time an update is made, then rollback to the last graphic section for further graphics.
   void Update(){plstream::cmd(PLESC_EXPOSE, NULL);fprintf(pls->OutFile," S\neop\n");fseek(pls->OutFile,-7, SEEK_END);} 
-  float GetPlplotFudge(){return 1;}; //correction factor 
 };
 
 #endif

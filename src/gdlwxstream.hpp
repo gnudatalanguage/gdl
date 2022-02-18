@@ -98,7 +98,6 @@ public:
     DString GetVisualName();
     bool GetScreenResolution(double& resx, double& resy);
     DByteGDL* GetBitmapData();
-    float GetPlplotFudge(){return 1.8;}; //correction factor
     static void DefineSomeWxCursors(); //global initialisation of 77 X11-like cursors.
 };
 

@@ -22,7 +22,7 @@
 #ifdef GDL_DEBUG
 #define GDL_DEBUG_PLSTREAM 1
 #else
-#define GDL_DEBUG_PLSTREAM 0
+#define GDL_DEBUG_PLSTREAM 1
 #endif
 
 #ifdef HAVE_CONFIG_H
@@ -51,7 +51,7 @@
 
 const double MMToINCH = 0.039370078 ; // 1./2.54;
 const double CM_IN_MM = 10.00000000 ; 
-
+const double FONT_ASPECT_RATIO = 1.5; // Height / Width
 using namespace std;
 static std::string internalFontCodes[] = {
     "#fn",      // !0  : unused
@@ -167,7 +167,6 @@ static std::string internalFontCodes[] = {
     PLFLT ndsy; // idem y
     PLFLT dsx; // size of char in device units, x direction
     PLFLT dsy; // idem y
-    PLFLT fudge; //a correction factor to reported sizes, useful with wxWidgets plplot driver (?) for which it is 1.8 . go figure.
     DDouble mmsx; //in mm
     DDouble mmsy; //
     PLFLT wsx;  //in current world coordinates
@@ -684,8 +683,7 @@ public:
   void SetColorMap1Table(PLINT tableSize, BaseGDL *passed_colors, DLong decomposed=0);
   //if create a colormap1 with a black to white ramp.
   void SetColorMap1Ramp(DLong decomposed=0, PLFLT minlight=0.0);
-  virtual void DefaultCharSize();
-  virtual float GetPlplotFudge(){return 1;}; //correction factor 
+  void DefaultCharSize();
   void NextPlot( bool erase=true); // handles multi plots
 
   void NoSub(); // no subwindows (/NORM, /DEVICE)
@@ -733,7 +731,7 @@ public:
                                     theCurrentChar.wsx,theCurrentChar.wsy);
   }
   
-  void RenewPlplotDefaultCharsize(PLFLT newMmSize);
+//  void RenewPlplotDefaultCharsize(PLFLT newMmSize);
   
   void GetPlplotDefaultCharSize();
 
@@ -749,7 +747,7 @@ public:
                          const char *text);
   void ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
                          const char *text, double *stringCharLength=NULL );
-  void schr( PLFLT charwidthmm, PLFLT scale, PLFLT lineSpacingmm);
+  void schr( PLFLT charwidthpixel, PLFLT scale, PLFLT lineSpacingpixel, PLFLT xpxcm, PLFLT ypxcm);
   void sizeChar(PLFLT scale);
   void vpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
 //  void gvpd( PLFLT& xmin, PLFLT& xmax, PLFLT& ymin, PLFLT& ymax );

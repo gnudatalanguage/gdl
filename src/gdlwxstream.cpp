@@ -40,11 +40,9 @@ GDLWXStream::GDLWXStream( int width, int height )
     delete streamDC;
     throw GDLException("GDLWXStream: Failed to create DC.");
   }
-  setopt("drvopt", "hrshsym=0,text=1" ); //no hershey; WE USE TT fonts (antialiasing very nice and readable. Moreover, big bug somewhere with hershey fonts).
+  setopt("drvopt", "hrshsym=0,text=0" ); //no hershey; WE USE TT fonts (antialiasing very nice and readable. Moreover, big bug somewhere with hershey fonts).
 
-  PLFLT XDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_PX_CM"))))[0]*2.5;
-  PLFLT YDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_PX_CM"))))[0]*2.5;
-  spage( XDPI, YDPI, width, height, 0, 0 ); //width and height have importance. 90 dpi is what is in the driver code.
+  spage(0,0, width, height, 0, 0 ); //width and height have importance. dpi is best left to plplot, as it is always false but not correctable.
   
   //plplot switched from PLESC_DEVINIT to dev_data for wxwidgets around version 5.11
 #define PLPLOT_TEST_VERSION_NUMBER PLPLOT_VERSION_MAJOR*1000+PLPLOT_VERSION_MINOR

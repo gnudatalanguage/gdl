@@ -28,9 +28,9 @@
 
   static const float CM2IN = .01 / GSL_CONST_MKSA_INCH;
   static const float in2cm = GSL_CONST_MKSA_INCH*100;
-  static const PLFLT DPI = 72.0 ; //in dpi;
+  static const PLFLT PS_DPI = 72.0 ; //in dpi;
   static const PLFLT DPICM = 72.0/2.54 ; //dpi/cm;
-  static const float RESOL = 1000.0;
+  static const float PS_RESOL = 1000.0;
   static const PLFLT PlplotInternalPageRatioXoverY=4./3.; //Some machines do not know PRIVATE values stored in plplotP.h 4/3=PlplotInternalPageRatioXoverY=float(PIXELS_X)/float(PIXELS_Y)
 
 class DevicePS: public GraphicsDevice
@@ -87,9 +87,9 @@ class DevicePS: public GraphicsDevice
     if (orient_portrait) { //X size will be OK, Y size must be scaled 
      actStream->setopt( "portrait",NULL);
      actStream->sdidev( PL_NOTSET, PlplotInternalPageRatioXoverY, PL_NOTSET, PL_NOTSET ); //only OK if page ratio is 540x720 
-     actStream->spage(DPI, DPI, XSIZE, YSIZE, YOFF, XOFF);
+     actStream->spage(PS_DPI, PS_DPI, XSIZE, YSIZE, YOFF, XOFF);
     } else {
-     actStream->spage(DPI, DPI, YSIZE, XSIZE, YOFF-XSIZE, XOFF); //invert axes, displace as does IDL..
+     actStream->spage(PS_DPI, PS_DPI, YSIZE, XSIZE, YOFF-XSIZE, XOFF); //invert axes, displace as does IDL..
      actStream->sdiori(2);
     }
 
@@ -107,7 +107,7 @@ class DevicePS: public GraphicsDevice
     //force TTF fonts as scaling of hershey fonts will not be good 
     short font=((int)SysVar::GetPFont()>-1)?1:0;
 //    string what="text="+i2s(font)+",color="+i2s(color);
-    string what="text=1,color="+i2s(color);
+    string what="text=0,color="+i2s(color);
     actStream->setopt( "drvopt",what.c_str());
     actStream->scolbg(255,255,255); // start with a white background
 
@@ -157,8 +157,8 @@ private:
      int offx, offy, width, height;
      bb += 15;
      sscanf(bb, "%i %i %i %i", &offx, &offy, &width, &height);
-     float hsize = XPageSize*CM2IN*DPI*scale;
-     float vsize = YPageSize*CM2IN*DPI*scale;
+     float hsize = XPageSize*CM2IN*PS_DPI*scale;
+     float vsize = YPageSize*CM2IN*PS_DPI*scale;
      float newwidth = (width - offx), newheight = (height - offy);
      float hscale = (orient_portrait ? hsize : vsize)/newwidth/5.0;
      float vscale = (orient_portrait ? vsize : hsize)/newheight/5.0;
@@ -259,14 +259,14 @@ public:
 
     dStruct = new DStructGDL( "!DEVICE");
     dStruct->InitTag("NAME",       DStringGDL( name)); 
-    dStruct->InitTag("X_SIZE",     DLongGDL( XPageSize*scale*RESOL)); 
-    dStruct->InitTag("Y_SIZE",     DLongGDL( YPageSize*scale*RESOL));
-    dStruct->InitTag("X_VSIZE",    DLongGDL( XPageSize*scale*RESOL));
-    dStruct->InitTag("Y_VSIZE",    DLongGDL( YPageSize*scale*RESOL));
+    dStruct->InitTag("X_SIZE",     DLongGDL( XPageSize*scale*PS_RESOL)); 
+    dStruct->InitTag("Y_SIZE",     DLongGDL( YPageSize*scale*PS_RESOL));
+    dStruct->InitTag("X_VSIZE",    DLongGDL( XPageSize*scale*PS_RESOL));
+    dStruct->InitTag("Y_VSIZE",    DLongGDL( YPageSize*scale*PS_RESOL));
     dStruct->InitTag("X_CH_SIZE",  DLongGDL( 222));
     dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 352));
-    dStruct->InitTag("X_PX_CM",    DFloatGDL( RESOL)); 
-    dStruct->InitTag("Y_PX_CM",    DFloatGDL( RESOL)); 
+    dStruct->InitTag("X_PX_CM",    DFloatGDL( PS_RESOL)); 
+    dStruct->InitTag("Y_PX_CM",    DFloatGDL( PS_RESOL)); 
     dStruct->InitTag("N_COLORS",   DLongGDL( 256)); 
     dStruct->InitTag("TABLE_SIZE", DLongGDL( 256)); 
     dStruct->InitTag("FILL_DIST",  DLongGDL( 1));

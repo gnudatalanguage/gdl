@@ -371,27 +371,6 @@ public:
     SetActWin( wIx);
     return winList[ wIx]; 
   } // GUIOpen  
-   
-bool SetCharacterSize( DLong x, DLong y)     {
-   DStructGDL* dStruct=SysVar::D();
-   int tagx = dStruct->Desc()->TagIndex( "X_CH_SIZE");
-   int tagy = dStruct->Desc()->TagIndex( "Y_CH_SIZE");
-   DLongGDL* newxch = static_cast<DLongGDL*>( dStruct->GetTag( tagx));
-   DLongGDL* newych = static_cast<DLongGDL*>( dStruct->GetTag( tagy));
-   (*newxch)[0]=x;
-   (*newych)[0]=y;
-
-   int tagxppcm = dStruct->Desc()->TagIndex( "X_PX_CM");
-   int tagyppcm = dStruct->Desc()->TagIndex( "Y_PX_CM");
-   DFloat xppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagxppcm)))[0]*0.1;
-   DFloat yppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagyppcm)))[0]*0.1;
-
-   PLFLT newsize=x/xppm/1.5; //1.5 is probably due to height / width ratio . 
-   PLFLT newSpacing=y/yppm;
-   GDLGStream* actStream=GetStream(false);
-   if( actStream != NULL) {actStream->setLineSpacing(newSpacing); actStream->RenewPlplotDefaultCharsize(newsize);}
-   return true;
-}
 
 };
 #endif

@@ -44,6 +44,15 @@ namespace lib {
     //The font-related commands will not really work in graphic widgets until the plplot-related part is taken into account (PLESC font).
     //But all the elements are there.    
     //SET_FONT?  //must be before GET_FONTNAME if in same commandline. Otherwise GET_FONTXXX will return NULL
+    // scheme:
+    // Hershey fonts are selected wth !P.FONT<0
+    // Dynamic fonts with !P.FONT=1
+    // Static fonts elsewhere. (0 but also > 1)
+    // DEVICE, SET_FONT=X will load X in "dynamic fonts" if /TT_FONT is present, "static font" if not present.
+    // Dynamic fonts can be sized and obey X_CH_SIZE set by DEVICE,SET_CHARACTER_SIZE=yyy 
+    // Static fonts cannot be sized.
+    // device,set_character_size=[..] does NOTHING for X device if device is not opened, it is not the case for the plotters (PS etc).
+    // 
     {
       static int set_fontIx = e->KeywordIx("SET_FONT");
       if (e->KeywordPresent(set_fontIx)) {
