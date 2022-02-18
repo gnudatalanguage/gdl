@@ -80,7 +80,7 @@ void LibInit()
   LibInit_ac();
   LibInit_gm();
   LibInit_ng(); 
-  LibInit_jp(); //absence of wxWidgets will trigger a message for each finction using widgets.
+  if (useWxWidgets) LibInit_jp(); //when called, useWxWidgets as already been set to false if wxWidgets was not initializing.
   LibInit_exists();
 
   const char KLISTEND[] = "";
