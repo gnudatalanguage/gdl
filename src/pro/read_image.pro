@@ -80,7 +80,7 @@ status=QUERY_IMAGE(filename, info)
 ;
 if (status EQ 0) then begin
    MESSAGE, /INFO, 'Not a valid image file: '+filename
-   return
+   return, -1
 endif
 ; if query_image said it's OK, just use read_anything:
 READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable
@@ -89,7 +89,6 @@ if n_elements(colortable) gt 0 then begin
   green=colortable[*,1]
   blue=colortable[*,2]
 endif
-
 ;
 return, image
 ;
