@@ -40,7 +40,10 @@ GDLWXStream::GDLWXStream( int width, int height )
     delete streamDC;
     throw GDLException("GDLWXStream: Failed to create DC.");
   }
-  setopt("drvopt", "hrshsym=0,text=0" ); //no hershey; WE USE TT fonts (antialiasing very nice and readable. Moreover, big bug somewhere with hershey fonts).
+  short myfont = ((int) SysVar::GetPFont()>-1) ? 1 : 0;
+  std::string what = "hrshsym=0,text=" + i2s(myfont);
+  setopt("drvopt", what.c_str());
+//  setopt("drvopt", "hrshsym=0,text=0" ); //no hershey; WE USE TT fonts (antialiasing very nice and readable. Moreover, big bug somewhere with hershey fonts).
 
   spage(0,0, width, height, 0, 0 ); //width and height have importance. dpi is best left to plplot, as it is always false but not correctable.
   

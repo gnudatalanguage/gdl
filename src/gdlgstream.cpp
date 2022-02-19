@@ -943,22 +943,22 @@ void GDLGStream::schr( PLFLT charwidthpixel, PLFLT scale , PLFLT lineSpacingpixe
 // to get 'charwidthpixel' with this 'wrongdpi', wee need to ask a (wrong) mm size of the character HEIGHT, 
 // BUT we do not know the height/width ratio of the font used, plus the fact that some drivers make the wrong calculation!!!!
 // AND!!! the expected pixel size (X_CH_SIZE) is the true pixel on screen (or paper), not the fake one
-  PLFLT wrongmmheight=charwidthpixel/pls->xdpi*25.4*1.2; //start with a height/width of 1.2 (guessed) will be updated later.
- if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"current (fake?) dpi is %f : asking for a mm height size: %f)\n",pls->ydpi, wrongmmheight);
-   plstream::schr(wrongmmheight, 1); 
+  PLFLT expectedheight=charwidthpixel/pls->xdpi*25.4*1.2; //start with a height/width of 1.2 (guessed) will be updated later.
+ if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"current (fake?) dpi is %f : asking for a mm height size: %f)\n",pls->ydpi, expectedheight);
+   plstream::schr(expectedheight, 1); 
 //trick: if 'em' is not 0, we have the character real width, in mm. It is assumed that when 0, then the size is OK
 //if not 0, then we know the height/width ratio and can recompute the 'good' height that will give the 'good' width (in pixels) 
    PLFLT em=0;
 #if PLPLOT_PRIVATE_NOT_HIDDEN
-    em=gdlGetStringLength("M"); //M is good representative
+    em=gdlGetStringLength("ABCDEFGHIJKLMNOPQRSTUVWXYZ")/26; //M is good representative
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"Able to check character width=%f, should have been %f\n",em, charwidthpixel/pls->xdpi*25.4);
 #endif
   if (em > 0) {
     PLFLT ratio=charwidthpixel/pls->xdpi*25.4/em;
-    plstream::schr(wrongmmheight*ratio*1.2, 1);
+    plstream::schr(expectedheight*ratio, 1);
    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"got plplot character height in mm=%f (2nd pass))\n",pls->chrdef);
 #if PLPLOT_PRIVATE_NOT_HIDDEN
-    em=gdlGetStringLength("M"); //M is good representative
+    em=gdlGetStringLength("ABCDEFGHIJKLMNOPQRSTUVWXYZ")/26; //M is good representative
     ratio=charwidthpixel/pls->xdpi*25.4/em;
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"re-check character width=%f, ratio is %f\n",em, ratio);
 #endif

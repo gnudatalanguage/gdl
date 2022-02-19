@@ -104,10 +104,10 @@ class DevicePS: public GraphicsDevice
     actStream->SetColorMap0( r, g, b, ctSize);
     actStream->SetColorMap1( r, g, b, ctSize);
     // default: black+white (IDL behaviour)
-    //force TTF fonts as scaling of hershey fonts will not be good 
+    //? force TTF fonts as scaling of hershey fonts will not be good 
     short font=((int)SysVar::GetPFont()>-1)?1:0;
-//    string what="text="+i2s(font)+",color="+i2s(color);
-    string what="text=0,color="+i2s(color);
+    string what="text="+i2s(font)+",color="+i2s(color);
+//    string what="text=0,color="+i2s(color);
     actStream->setopt( "drvopt",what.c_str());
     actStream->scolbg(255,255,255); // start with a white background
 
