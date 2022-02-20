@@ -565,6 +565,7 @@ namespace lib {
 #ifdef _WIN32
   char *at = asctime(tstruct); // https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/asctime-wasctime
   at[strlen(at) - 1] = 0;      // On Windows, asctime appends a newline at the end of string.
+  if (at[8] == '0') at[8] = ' '; // convert zero-padded days to space-padded days on Windows
 	S = new DStringGDL(at);
 #else
        SizeT res=strftime(st,MAX_DATE_STRING_LENGTH,format,tstruct);
