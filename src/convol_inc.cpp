@@ -35,7 +35,7 @@ template<>
 BaseGDL* Data_<SpDByte>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn, 
 				 bool center, bool normalize, int edgeMode,
                                  bool doNan, BaseGDL* missing, bool doMissing,
-                                 BaseGDL* invalid, bool doInvalid)
+                                 BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   Data_<SpDLong>* kernel = static_cast<Data_<SpDLong>*>( kIn);
   Data_<SpDLong>* dabskern = new Data_<SpDLong>( kIn->Dim(), BaseGDL::ZERO);
@@ -56,7 +56,7 @@ template<>
 BaseGDL* Data_<SpDUInt>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn, 
 				 bool center, bool normalize, int edgeMode,
                                  bool doNan, BaseGDL* missing, bool doMissing,
-                                 BaseGDL* invalid, bool doInvalid)
+                                 BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   Data_<SpDLong>* kernel = static_cast<Data_<SpDLong>*>( kIn);
   Data_<SpDLong>* dabskern = new Data_<SpDLong>( kIn->Dim(), BaseGDL::ZERO);
@@ -77,7 +77,7 @@ template<>
 BaseGDL* Data_<SpDInt>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn, 
 				 bool center, bool normalize, int edgeMode,
                                  bool doNan, BaseGDL* missing, bool doMissing,
-                                 BaseGDL* invalid, bool doInvalid)
+                                 BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   Data_<SpDLong>* kernel = static_cast<Data_<SpDLong>*>( kIn);
   Data_<SpDLong>* dabskern = new Data_<SpDLong>( kIn->Dim(), BaseGDL::ZERO);
@@ -97,7 +97,7 @@ template<>
 BaseGDL* Data_<SpDULong>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn, 
 				 bool center, bool normalize, int edgeMode,
                                  bool doNan, BaseGDL* missing, bool doMissing,
-                                 BaseGDL* invalid, bool doInvalid)
+                                 BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   Data_<SpDLong>* kernel = static_cast<Data_<SpDLong>*>( kIn);
   Data_<SpDLong>* dabskern = new Data_<SpDLong>( kIn->Dim(), BaseGDL::ZERO);
@@ -117,7 +117,7 @@ template<>
 BaseGDL* Data_<SpDULong64>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn, 
 				 bool center, bool normalize, int edgeMode,
                                  bool doNan, BaseGDL* missing, bool doMissing,
-                                 BaseGDL* invalid, bool doInvalid)
+                                 BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   Data_<SpDLong64>* kernel = static_cast<Data_<SpDLong64>*>( kIn);
   Data_<SpDLong64>* dabskern = new Data_<SpDLong64>( kIn->Dim(), BaseGDL::ZERO);
@@ -137,7 +137,7 @@ template<>
 BaseGDL* Data_<Sp>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* biasIn,
 			    bool center, bool normalize, int edgeMode,
                             bool doNan, BaseGDL* missing, bool doMissing,
-                            BaseGDL* invalid, bool doInvalid)
+                            BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   Data_* kernel = static_cast<Data_*>( kIn);
   Data_* dabskern = new Data_( kIn->Dim(), BaseGDL::ZERO);
@@ -1015,8 +1015,8 @@ if (normalize) {
 //      Guard<BaseGDL> transpP1Guard;
 //      transpP1=p1->Transpose(perm);
 //      transpP1Guard.Reset(transpP1);
-//      result=input->Convol(transpP1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid)->Transpose(mrep);
-//    } else result=p0->Convol( p1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid);
+//      result=input->Convol(transpP1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid, DDouble edgeVal)->Transpose(mrep);
+//    } else result=p0->Convol( p1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid, DDouble edgeVal);
 //    
 //    if (deprecise) {
 //      Guard<BaseGDL> resultGuard;

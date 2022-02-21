@@ -53,7 +53,9 @@ TRACEOMP(__FILE__,__LINE__)
         for (long k = 0; k < nKel; ++k) {
           long aLonIx = aInitIx0 + kIx[0];
 #if defined(CONVOL_EDGE_ZERO)
-          bool doit = true;
+          bool omit = false;
+          bool doedge=(edgeVal!=0);
+          bool cste=false;
 #endif
           if (aLonIx < 0) {
 #if defined (CONVOL_EDGE_WRAP)
@@ -64,7 +66,7 @@ TRACEOMP(__FILE__,__LINE__)
             aLonIx = 0;
 #elif defined(CONVOL_EDGE_ZERO)
             aLonIx = 0;
-            doit=false;
+            if (!doedge) omit=true;
 #endif
           } else if (aLonIx >= dim0) {
 #if defined (CONVOL_EDGE_WRAP)
@@ -75,11 +77,11 @@ TRACEOMP(__FILE__,__LINE__)
                 aLonIx = dim0 - 1;
 #elif defined(CONVOL_EDGE_ZERO)
                 aLonIx = dim0 - 1;
-                doit = false;
+            if (!doedge)  omit = true; else cste=true;
 #endif
           }
 #if defined(CONVOL_EDGE_ZERO)
-          if (doit) {
+          if (!omit) {
 #endif
             for (long rSp = 1; rSp < nDim; ++rSp) {
               long aIx = aInitIx[ rSp] + kIx[ rSp];
@@ -92,7 +94,7 @@ TRACEOMP(__FILE__,__LINE__)
                 aIx = 0;
 #elif defined(CONVOL_EDGE_ZERO)
                 aIx = 0;
-                doit = false;
+            if (!doedge)  omit = true; else cste=true;
 #endif 
               } else if (aIx >= this->dim[ rSp]) {
 #if defined (CONVOL_EDGE_WRAP)
@@ -103,16 +105,18 @@ TRACEOMP(__FILE__,__LINE__)
                 aIx = this->dim[ rSp] - 1;
 #elif defined(CONVOL_EDGE_ZERO)
                 aIx = this->dim[ rSp] - 1;
-                doit = false;
+            if (!doedge)  omit = true; else cste=true;
 #endif
               }
               aLonIx += aIx * aStride[ rSp];
             }
 #if defined(CONVOL_EDGE_ZERO)
           }
-          if (doit) {
-#endif
+          if (!omit) {
+            Ty ddpHlp = (cste)?edgeVal:ddP[ aLonIx];
+#else
             Ty ddpHlp = ddP[ aLonIx];
+#endif
 #if defined(CONVOL_NAN_INVALID)
             if (ddpHlp != invalidValue && gdlValid(ddpHlp)) {
               counter++;

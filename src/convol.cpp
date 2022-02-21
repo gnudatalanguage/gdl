@@ -48,7 +48,7 @@ template<>
 BaseGDL* Data_<SpDString>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
  				   bool center, bool normalize, int edgeMode,
                                    bool doNan, BaseGDL* missing, bool doMissing,
-                                   BaseGDL* invalid, bool doInvalid)
+                                   BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   throw GDLException("String expression not allowed in this context.");
 }
@@ -56,7 +56,7 @@ template<>
 BaseGDL* Data_<SpDObj>::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
  				bool center, bool normalize, int edgeMode,
                                 bool doNan, BaseGDL* missing, bool doMissing,
-                                BaseGDL* invalid, bool doInvalid)
+                                BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   throw GDLException("Object expression not allowed in this context.");
 }
@@ -64,7 +64,7 @@ template<>
 BaseGDL* Data_<SpDPtr>::Convol( BaseGDL* kIn, BaseGDL* scaleIn,BaseGDL* bias,
  				bool center, bool normalize, int edgeMode,
                                 bool doNan, BaseGDL* missing, bool doMissing,
-                                BaseGDL* invalid, bool doInvalid)
+                                BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   throw GDLException("Pointer expression not allowed in this context.");
 }
@@ -285,6 +285,12 @@ namespace lib {
     bool edge_truncate = e->KeywordSet( edge_truncateIx);
     static int edge_zeroIx = e->KeywordIx( "EDGE_ZERO");
     bool edge_zero = e->KeywordSet( edge_zeroIx);
+    DDouble edgeVal=0;
+
+    static int edge_constantIx = e->KeywordIx( "EDGE_CONSTANT");
+    bool edge_constant = e->KeywordSet( edge_constantIx);
+    if (edge_constant) e->AssureDoubleScalarKW( edge_constantIx, edgeVal);
+    
     static int edge_mirrorIx = e->KeywordIx( "EDGE_MIRROR");
     bool edge_mirror = e->KeywordSet( edge_mirrorIx);
     int edgeMode = 0; 
@@ -292,7 +298,7 @@ namespace lib {
       edgeMode = 1;
     else if( edge_truncate)
       edgeMode = 2;
-    else if( edge_zero)
+    else if( edge_zero || edge_constant)
       edgeMode = 3;
     else if(edge_mirror)
       edgeMode = 4;
@@ -380,8 +386,8 @@ namespace lib {
       Guard<BaseGDL> transpP1Guard;
       transpP1=p1->Transpose(perm);
       transpP1Guard.Reset(transpP1);
-      result=input->Convol(transpP1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid)->Transpose(mrep);
-    } else result=p0->Convol( p1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid);
+      result=input->Convol(transpP1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid, edgeVal)->Transpose(mrep);
+    } else result=p0->Convol( p1, scale, bias, center, normalize, edgeMode, doNan, missing, doMissing, invalid, doInvalid, edgeVal);
     
 //    if (deprecise) {
 //      Guard<BaseGDL> resultGuard;

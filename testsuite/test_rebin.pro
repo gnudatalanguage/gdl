@@ -1,4 +1,5 @@
 ; by Sylwester Arabas <slayoo@igf.fuw.edu.pl>, GD
+;
 pro test_rebin, test=test
   errnum=0
   dotest=keyword_set(test)
@@ -58,5 +59,3 @@ if KEYWORD_SET(test) then STOP
 ;
 end
 
-end
-  

@@ -294,7 +294,7 @@ static	void operator delete( void *ptr);
   BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias, 
 		   bool center, bool normalize, int edgeMode,
                    bool doNan, BaseGDL* missing, bool doMissing,
-                   BaseGDL* invalid, bool doInvalid);
+                   BaseGDL* invalid, bool doInvalid, DDouble edgeVal);
   BaseGDL* Smooth(DLong* width, int edgeMode,
                    bool doNan, BaseGDL* missing);
   BaseGDL* Rebin( const dimension& newDim, bool sample);
