@@ -22,7 +22,7 @@
 #ifdef GDL_DEBUG
 #define GDL_DEBUG_PLSTREAM 1
 #else
-#define GDL_DEBUG_PLSTREAM 1
+#define GDL_DEBUG_PLSTREAM 0
 #endif
 
 #ifdef HAVE_CONFIG_H
@@ -49,9 +49,10 @@
 #include <algorithm>
 #endif
 
-const double MMToINCH = 0.039370078 ; // 1./2.54;
+const double INCHToMM = 25.4 ; 
+const double INCHToCM = 2.54 ;
 const double CM_IN_MM = 10.00000000 ; 
-const double FONT_ASPECT_RATIO = 1.5; // Height / Width
+const double DEFAULT_FONT_ASPECT_RATIO = 1.2; // Height / Width
 using namespace std;
 static std::string internalFontCodes[] = {
     "#fn",      // !0  : unused
@@ -747,7 +748,8 @@ public:
                          const char *text);
   void ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
                          const char *text, double *stringCharLength=NULL );
-  void schr( PLFLT charwidthpixel, PLFLT scale, PLFLT lineSpacingpixel, PLFLT xpxcm, PLFLT ypxcm);
+  void setVariableCharacterSize( PLFLT charwidthpixel, PLFLT scale, PLFLT lineSpacingpixel, PLFLT xpxcm, PLFLT ypxcm);
+  void setFixedCharacterSize( PLFLT charwidthpixel, PLFLT scale, PLFLT lineSpacingpixel);
   void sizeChar(PLFLT scale);
   void vpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
 //  void gvpd( PLFLT& xmin, PLFLT& xmax, PLFLT& ymin, PLFLT& ymax );

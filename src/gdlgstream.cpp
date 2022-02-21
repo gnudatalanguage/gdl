@@ -189,13 +189,19 @@ void GDLGStream::DefaultCharSize() {
   DStructDesc* s = d->Desc();
   int X_CH_SIZE = s->TagIndex("X_CH_SIZE");
   int Y_CH_SIZE = s->TagIndex("Y_CH_SIZE");
-  int X_PX_CM = s->TagIndex("X_PX_CM");
-  int Y_PX_CM = s->TagIndex("Y_PX_CM");
   DLong chx = (*static_cast<DLongGDL*> (d->GetTag(X_CH_SIZE, 0)))[0];
   DLong chy = (*static_cast<DLongGDL*> (d->GetTag(Y_CH_SIZE, 0)))[0];
-  DFloat xpxcm = (*static_cast<DFloatGDL*> (d->GetTag(X_PX_CM, 0)))[0];
-  DFloat ypxcm = (*static_cast<DFloatGDL*> (d->GetTag(Y_PX_CM, 0)))[0];
-  schr(chx, 1.0, chy,xpxcm,ypxcm);
+  int FLAGS = s->TagIndex("FLAGS");
+  DLong flags = (*static_cast<DLongGDL*> (d->GetTag(FLAGS, 0)))[0];
+  if (flags & 0x1) {
+    int X_PX_CM = s->TagIndex("X_PX_CM");
+    int Y_PX_CM = s->TagIndex("Y_PX_CM");
+    DFloat xpxcm = (*static_cast<DFloatGDL*> (d->GetTag(X_PX_CM, 0)))[0];
+    DFloat ypxcm = (*static_cast<DFloatGDL*> (d->GetTag(Y_PX_CM, 0)))[0];
+    setVariableCharacterSize(chx, 1.0, chy,xpxcm,ypxcm);
+  } else {
+    setFixedCharacterSize(chx, 1.0, chy);
+  }
 }
 //  void GDLGStream::RenewPlplotDefaultCharsize(PLFLT newMmSize)
 //  {
@@ -931,39 +937,83 @@ void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
   plstream::ptex(x,y,dx,dy,just,TranslateFormatCodes(text,stringCharLength).c_str());
 }
 
-//xpxcm (ypxcm) is the value of X_PX_CM (resp. Y_PX_CM)
-void GDLGStream::schr( PLFLT charwidthpixel, PLFLT scale , PLFLT lineSpacingpixel, PLFLT xpxcm, PLFLT ypxcm)
+static std::string PATTERN="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+static float PATTERN_LENGTH=36;
+#define FUDGE_VARCHARSIZE sqrt(2)
+//This defines the character size for SCALABLE character devices (POSTSCRIPT, SVG))
+//The dimension of "average" character (given by X_CH_SIZE) is to be a physical (mm) size.
+//this implies to have a correct value for DPI AND that the plplot driver is correctly written.
+void GDLGStream::setVariableCharacterSize( PLFLT charwidthpixel, PLFLT scale , PLFLT lineSpacingpixel, PLFLT xpxcm, PLFLT ypxcm)
 {
-  if (xpxcm > 40) {
-    pls->xdpi=xpxcm*2.54;
-    pls->ydpi=xpxcm*2.54;
-  }
+  xpxcm/=FUDGE_VARCHARSIZE;
+  ypxcm/=FUDGE_VARCHARSIZE;  //go figure why this is needed, but indeed it is needed!
+  //tried by comparison of outputs of 
+  // "set_plot,'ps' & !P.multi=[0,2,2]&a=dist(5)&for i=1,4 do begin&s=i*0.7& plot,a,psym=6,syms=s,chars=s,xtit="XXXX" $
+  //  & xyouts,indgen(25),a,"M",ali=0.5,chars=s & end & !p.multi=0 & plots,[0.001,0.001,0.999,0.999,0.001],$
+  //  [0.001,0.999,0.999,0.001,0.001],/norm & device,/close & set_plot,'x'
+
  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"schr(width=%f, scale=%f, spacing=%f, xpxcm=%f, ypxcm=%f)\n",charwidthpixel,scale,lineSpacingpixel,xpxcm,ypxcm);
+   PLFLT xdpi=xpxcm*INCHToCM;
+   PLFLT ydpi=ypxcm*INCHToCM;
 // GDL asks for pixels, plplot asks for mm size, but plplot's dpi is always wrong!
 // to get 'charwidthpixel' with this 'wrongdpi', wee need to ask a (wrong) mm size of the character HEIGHT, 
 // BUT we do not know the height/width ratio of the font used, plus the fact that some drivers make the wrong calculation!!!!
 // AND!!! the expected pixel size (X_CH_SIZE) is the true pixel on screen (or paper), not the fake one
-  PLFLT expectedheight=charwidthpixel/pls->xdpi*25.4*1.2; //start with a height/width of 1.2 (guessed) will be updated later.
+  PLFLT expectedheight_in_mm=charwidthpixel/xdpi*INCHToMM*DEFAULT_FONT_ASPECT_RATIO; //start with a height/width of FONT_ASPECT_RATIO (guessed) will be updated later.
+ if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"current (fake?) dpi is %f : asking for a mm height size: %f)\n",ydpi, expectedheight_in_mm);
+   plstream::schr(expectedheight_in_mm, 1); 
+//trick: if 'em' is not 0, we have the character real width, in mm. It is assumed that when 0, then the size is OK
+//if not 0, then we know the height/width ratio and can recompute the 'good' height that will give the 'good' width (in pixels) 
+   PLFLT em=0;
+#if PLPLOT_PRIVATE_NOT_HIDDEN
+    em=gdlGetStringLength(PATTERN)/PATTERN_LENGTH; //mean of all
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"Able to check character width=%f, should have been %f\n",em, charwidthpixel/xdpi*INCHToMM);
+#endif
+  if (em > 0) {
+    PLFLT ratio=charwidthpixel/xdpi*INCHToMM/em;
+    plstream::schr(expectedheight_in_mm*ratio, 1);
+   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"got plplot character height in mm=%f (2nd pass))\n",pls->chrdef);
+//#if PLPLOT_PRIVATE_NOT_HIDDEN
+//    em=gdlGetStringLength(PATTERN)/PATTERN_LENGTH; //mean of all
+//    ratio=charwidthpixel/xdpi*INCHToMM/em;
+//    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"re-check character width=%f, ratio is %f\n",em, ratio);
+//#endif
+  }
+ setLineSpacing(lineSpacingpixel/ydpi*INCHToMM); //this one is NOT related to characters idiosyncrasies.
+  gdlDefaultCharInitialized=0; //reset Default
+  CurrentCharSize(scale);
+}
+
+
+//This defines the character size for FIXED character devices (X, Z )
+//The dimension of "average" character (given by X_CH_SIZE) is to be a number of pixels on screen
+void GDLGStream::setFixedCharacterSize( PLFLT charwidthpixel, PLFLT scale , PLFLT lineSpacingpixel) {
+ if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"schr(width=%f, scale=%f, spacing=%f)\n",charwidthpixel,scale,lineSpacingpixel);
+// GDL asks for pixels, plplot asks for mm size, but plplot's dpi is always wrong!
+// to get 'charwidthpixel' with this 'wrongdpi', wee need to ask a (wrong) mm size of the character HEIGHT, 
+// BUT we do not know the height/width ratio of the font used, plus the fact that some drivers make the wrong calculation!!!!
+// AND!!! the expected pixel size (X_CH_SIZE) is the true pixel on screen (or paper), not the fake one
+  PLFLT expectedheight=charwidthpixel/pls->xdpi*INCHToMM*DEFAULT_FONT_ASPECT_RATIO; //start with a height/width of FONT_ASPECT_RATIO (guessed) will be updated later.
  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"current (fake?) dpi is %f : asking for a mm height size: %f)\n",pls->ydpi, expectedheight);
    plstream::schr(expectedheight, 1); 
 //trick: if 'em' is not 0, we have the character real width, in mm. It is assumed that when 0, then the size is OK
 //if not 0, then we know the height/width ratio and can recompute the 'good' height that will give the 'good' width (in pixels) 
    PLFLT em=0;
 #if PLPLOT_PRIVATE_NOT_HIDDEN
-    em=gdlGetStringLength("ABCDEFGHIJKLMNOPQRSTUVWXYZ")/26; //M is good representative
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"Able to check character width=%f, should have been %f\n",em, charwidthpixel/pls->xdpi*25.4);
+    em=gdlGetStringLength(PATTERN)/PATTERN_LENGTH; //mean of all
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"Able to check character width=%f, should have been %f\n",em, charwidthpixel/pls->xdpi*INCHToMM);
 #endif
   if (em > 0) {
-    PLFLT ratio=charwidthpixel/pls->xdpi*25.4/em;
+    PLFLT ratio=charwidthpixel/pls->xdpi*INCHToMM/em;
     plstream::schr(expectedheight*ratio, 1);
    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"got plplot character height in mm=%f (2nd pass))\n",pls->chrdef);
-#if PLPLOT_PRIVATE_NOT_HIDDEN
-    em=gdlGetStringLength("ABCDEFGHIJKLMNOPQRSTUVWXYZ")/26; //M is good representative
-    ratio=charwidthpixel/pls->xdpi*25.4/em;
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"re-check character width=%f, ratio is %f\n",em, ratio);
-#endif
+//#if PLPLOT_PRIVATE_NOT_HIDDEN
+//    em=gdlGetStringLength(PATTERN)/PATTERN_LENGTH; //mean of all
+//    ratio=charwidthpixel/pls->xdpi*INCHToMM/em;
+//    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"re-check character width=%f, ratio is %f, in pixels:%f\n",em, ratio, em/INCHToMM*pls->xdpi);
+//#endif
   }
- setLineSpacing(lineSpacingpixel/pls->ydpi*25.4); //this one is NOT related to characters idiosyncrasies.
+ setLineSpacing(lineSpacingpixel/pls->ydpi*INCHToMM); //this one is NOT related to characters idiosyncrasies.
   gdlDefaultCharInitialized=0; //reset Default
   CurrentCharSize(scale);
 }

@@ -20,7 +20,7 @@
 
 #include "gdlsvgstream.hpp"
 
-static const float SVG_CM2IN = (1.0 / 2.54) ;
+static const float SVG_CM2IN = (1.0 / INCHToCM) ;
 static const float SVG_RESOL = 1000.0; // per cm
 static const PLFLT SVG_DPI = 72; 
 

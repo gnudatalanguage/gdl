@@ -291,9 +291,7 @@ public:
    if( actStream != NULL) {
      int tagxppcm = dStruct->Desc()->TagIndex( "X_PX_CM");
      int tagyppcm = dStruct->Desc()->TagIndex( "Y_PX_CM");
-     DFloat xppcm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagxppcm)))[0];
-     DFloat yppcm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagyppcm)))[0];
-     actStream->schr(x,1.0,y,xppcm,yppcm);
+     actStream->setFixedCharacterSize(x,1.0,y);
    }
    return true;
   }
@@ -363,7 +361,7 @@ public:
   DLong GetDecomposed();
   BaseGDL* GetFontnames(){ ThrowGDLException("DEVICE: Keyword GET_FONTNAMES not allowed for call to: DEVICE" );return NULL;}
   DLong GetFontnum(){ ThrowGDLException("DEVICE: Keyword GET_FONTNUM not allowed for call to: DEVICE" );return 0;}
-  bool SetFont(DString &f) {fontname=f; return true;}
+  virtual bool SetFont(DString &f) final {fontname=f; return true;}
   DString GetCurrentFont() {return fontname;}
   bool SetBackingStore(int value);
   bool Hide(); 
@@ -379,12 +377,8 @@ public:
    (*newxch)[0]=x;
    (*newych)[0]=y;
 
-   int tagxppcm = dStruct->Desc()->TagIndex( "X_PX_CM");
-   int tagyppcm = dStruct->Desc()->TagIndex( "Y_PX_CM");
-   DFloat xppcm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagxppcm)))[0];
-   DFloat yppcm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagyppcm)))[0];
    for (WindowListT::iterator i= winList.begin(); i != winList.end(); ++i) if ((*i) != NULL) {
-     (*i)->schr(x,1.0,y,xppcm,yppcm);
+     (*i)->setFixedCharacterSize(x,1.0,y);
    }
    return true;
   }  

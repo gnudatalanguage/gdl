@@ -45,7 +45,7 @@ GDLWXStream::GDLWXStream( int width, int height )
   setopt("drvopt", what.c_str());
 //  setopt("drvopt", "hrshsym=0,text=0" ); //no hershey; WE USE TT fonts (antialiasing very nice and readable. Moreover, big bug somewhere with hershey fonts).
 
-  spage(0,0, width, height, 0, 0 ); //width and height have importance. dpi is best left to plplot, as it is always false but not correctable.
+  spage(0,0, width, height, 0, 0 ); //width and height have importance. dpi is best left to plplot.
   
   //plplot switched from PLESC_DEVINIT to dev_data for wxwidgets around version 5.11
 #define PLPLOT_TEST_VERSION_NUMBER PLPLOT_VERSION_MAJOR*1000+PLPLOT_VERSION_MINOR
@@ -393,8 +393,8 @@ bool GDLWXStream::GetWindowPosition(long& xpos, long& ypos ) {
 bool GDLWXStream::GetScreenResolution(double& resx, double& resy) {
   wxScreenDC *temp_dc=new wxScreenDC();
   wxSize reso=temp_dc->GetPPI();
-  resx = reso.x/2.54;
-  resy = reso.y/2.54;
+  resx = reso.x/INCHToCM;
+  resy = reso.y/INCHToCM;
   return true;
 }
 void GDLWXStream::DefineSomeWxCursors(){

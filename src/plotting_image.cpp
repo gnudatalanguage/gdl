@@ -231,8 +231,8 @@ namespace lib {
             }             
           } else {
             if (e->KeywordSet(INCHES)) { //devx and devy interpreted as floats
-              devx *= (10 * 2.54);
-              devy *= (10 * 2.54);
+              devx *= (INCHToMM);
+              devy *= (INCHToMM);
               actStream->mm2device(devx, devy, x,y);
               devx=x;
               devy=y;
@@ -291,8 +291,8 @@ namespace lib {
           botLeftPixelY = yLLf;
         } else {
           if (e->KeywordSet(INCHES)) {
-            xLLf *= (10 * 2.54);
-            yLLf *= (10 * 2.54);
+            xLLf *= (INCHToMM);
+            yLLf *= (INCHToMM);
             actStream->mm2device(xLLf, yLLf, x,y);
             botLeftPixelX=x;
             botLeftPixelY=y;
