@@ -937,8 +937,6 @@ void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
   plstream::ptex(x,y,dx,dy,just,TranslateFormatCodes(text,stringCharLength).c_str());
 }
 
-static std::string PATTERN="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-static float PATTERN_LENGTH=36;
 #define FUDGE_VARCHARSIZE sqrt(2)
 //This defines the character size for SCALABLE character devices (POSTSCRIPT, SVG))
 //The dimension of "average" character (given by X_CH_SIZE) is to be a physical (mm) size.

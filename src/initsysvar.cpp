@@ -256,10 +256,18 @@ namespace SysVar
     return static_cast<DStructGDL*>(pSysVar.Data());
   }
   void PFancyCallBack(){
+    //1) adjust FANCY (initial motive)
     DIntGDL* fancy=GetFancy();
     DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset
     DFloat charsizePos=(*static_cast<DFloatGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0];
     (*fancy)[0]=charsizePos*5-4;
+    //2) call change of font for interested drivers.
+    static DLong opfont=-1;
+    DLong pfont=(*static_cast<DLongGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("FONT"), 0)))[0];
+    if (opfont != pfont) { //optimize number of calls
+      opfont=pfont;
+      GraphicsDevice::GetDevice()->FontChanged();
+    }
   }
   DLongGDL* GetPMulti()
   {

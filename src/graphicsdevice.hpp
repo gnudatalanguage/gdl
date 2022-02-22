@@ -295,6 +295,14 @@ public:
    }
    return true;
   }
+
+  virtual void FontChanged() {
+    GDLGStream* actStream = GetStream(false);
+    if (actStream != NULL) {
+      actStream->fontChanged();
+    }
+  }
+  
   virtual void ClearStream( DLong bColor)
   {
     throw GDLException( "Device "+Name()+" does not support ClearStream.");
@@ -361,7 +369,7 @@ public:
   DLong GetDecomposed();
   BaseGDL* GetFontnames(){ ThrowGDLException("DEVICE: Keyword GET_FONTNAMES not allowed for call to: DEVICE" );return NULL;}
   DLong GetFontnum(){ ThrowGDLException("DEVICE: Keyword GET_FONTNUM not allowed for call to: DEVICE" );return 0;}
-  virtual bool SetFont(DString &f) final {fontname=f; return true;}
+  virtual bool SetFont(DString &f) {fontname=f; return true;}
   DString GetCurrentFont() {return fontname;}
   bool SetBackingStore(int value);
   bool Hide(); 
@@ -381,7 +389,14 @@ public:
      (*i)->setFixedCharacterSize(x,1.0,y);
    }
    return true;
-  }  
+  }
+
+  virtual void FontChanged() {
+    for (WindowListT::iterator i = winList.begin(); i != winList.end(); ++i) if ((*i) != NULL) {
+        (*i)->fontChanged();
+      }
+  }
+  
 };
 
 #endif

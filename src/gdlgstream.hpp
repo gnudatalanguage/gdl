@@ -49,6 +49,8 @@
 #include <algorithm>
 #endif
 
+static const std::string PATTERN = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+static const float PATTERN_LENGTH = 36;
 const double INCHToMM = 25.4 ; 
 const double INCHToCM = 2.54 ;
 const double CM_IN_MM = 10.00000000 ; 
@@ -750,6 +752,7 @@ public:
                          const char *text, double *stringCharLength=NULL );
   void setVariableCharacterSize( PLFLT charwidthpixel, PLFLT scale, PLFLT lineSpacingpixel, PLFLT xpxcm, PLFLT ypxcm);
   void setFixedCharacterSize( PLFLT charwidthpixel, PLFLT scale, PLFLT lineSpacingpixel);
+  virtual void fontChanged(){}; //nothing here
   void sizeChar(PLFLT scale);
   void vpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
 //  void gvpd( PLFLT& xmin, PLFLT& xmax, PLFLT& ymin, PLFLT& ymax );
