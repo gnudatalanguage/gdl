@@ -964,7 +964,7 @@ void GDLGStream::setVariableCharacterSize( PLFLT charwidthpixel, PLFLT scale , P
 //if not 0, then we know the height/width ratio and can recompute the 'good' height that will give the 'good' width (in pixels) 
    PLFLT em=0;
 #if PLPLOT_PRIVATE_NOT_HIDDEN
-    em=gdlGetStringLength(PATTERN)/PATTERN_LENGTH; //mean of all
+    em=gdlGetStringLength(ALLCHARACTERSFORSTRINGLENGTHTEST)/ALLCHARACTERSFORSTRINGLENGTHTEST_NCHARS; //mean of all
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"Able to check character width=%f, should have been %f\n",em, charwidthpixel/xdpi*INCHToMM);
 #endif
   if (em > 0) {
@@ -998,7 +998,7 @@ void GDLGStream::setFixedCharacterSize( PLFLT charwidthpixel, PLFLT scale , PLFL
 //if not 0, then we know the height/width ratio and can recompute the 'good' height that will give the 'good' width (in pixels) 
    PLFLT em=0;
 #if PLPLOT_PRIVATE_NOT_HIDDEN
-    em=gdlGetStringLength(PATTERN)/PATTERN_LENGTH; //mean of all
+    em=gdlGetStringLength(ALLCHARACTERSFORSTRINGLENGTHTEST)/ALLCHARACTERSFORSTRINGLENGTHTEST_NCHARS; //mean of all
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"Able to check character width=%f, should have been %f\n",em, charwidthpixel/pls->xdpi*INCHToMM);
 #endif
   if (em > 0) {

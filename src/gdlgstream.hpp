@@ -49,8 +49,8 @@
 #include <algorithm>
 #endif
 
-static const std::string PATTERN = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-static const float PATTERN_LENGTH = 36;
+static const std::string ALLCHARACTERSFORSTRINGLENGTHTEST = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+static const float ALLCHARACTERSFORSTRINGLENGTHTEST_NCHARS = 36;
 const double INCHToMM = 25.4 ; 
 const double INCHToCM = 2.54 ;
 const double CM_IN_MM = 10.00000000 ; 
