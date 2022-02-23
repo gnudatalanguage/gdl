@@ -28,7 +28,7 @@
 #include <plplot/drivers.h>
 
 #include "graphicsdevice.hpp"
-#include "otherdevices/gdlxstream.hpp"
+#include "gdlxstream.hpp"
 #include "initsysvar.hpp"
 #include "gdlexception.hpp"
 
@@ -82,7 +82,7 @@ public:
         dStruct->InitTag("X_VSIZE",    DLongGDL(640));
         dStruct->InitTag("Y_VSIZE",    DLongGDL(512));
         dStruct->InitTag("X_CH_SIZE",  DLongGDL(6));
-        dStruct->InitTag("Y_CH_SIZE",  DLongGDL(10));
+        dStruct->InitTag("Y_CH_SIZE",  DLongGDL(9));
         dStruct->InitTag("X_PX_CM",    DFloatGDL(40.0));
         dStruct->InitTag("Y_PX_CM",    DFloatGDL(40.0));
         dStruct->InitTag("N_COLORS",   DLongGDL( (decomposed==1)?256*256*256:256)); 
