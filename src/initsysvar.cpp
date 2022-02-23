@@ -1222,18 +1222,18 @@ namespace SysVar
     string gdlDir=GetEnvPathString("GDL_DIR");
     if( gdlDir == "") gdlDir=GetEnvPathString("IDL_DIR");
     if (gdlDir != "") {
-	delete dirData;
-	dirData = new DStringGDL( gdlDir);
-	}
+      delete dirData;
+      dirData = new DStringGDL(gdlDir);
+    }
     DVar *dir = new DVar( "DIR", dirData);
     dirIx=sysVarList.size();
     sysVarList.push_back( dir);
 
     // !GDL_MAPS_DIR 
-    string tmpDir=GetEnvPathString("GDL_MAPS_DIR");
-    if( tmpDir == "") tmpDir = (*dirData)[0]+lib::PathSeparator() +"resource"+lib::PathSeparator()+"maps";
+    string gdlmapsdir=GetEnvPathString("GDL_MAPS_DIR");
+    if( gdlmapsdir == "") gdlmapsdir = (*dirData)[0]+lib::PathSeparator() +"resource"+lib::PathSeparator()+"maps";
 //The following seems to be incorrect and probably irrelevant
-// //    char *symlinkpath =const_cast<char*> (tmpDir.c_str());// is the path a true path ?
+// //    char *symlinkpath =const_cast<char*> (gdlmapsdir.c_str());// is the path a true path ?
 // //
 // //#ifdef _MSC_VER
 // //	#define PATH_MAX MAX_PATH
@@ -1245,9 +1245,9 @@ namespace SysVar
 // //    char actualpath [PATH_MAX+1];
 // //    char *ptr;
 // //    ptr = realpath(symlinkpath, actualpath);
-// //    if( ptr != NULL ) tmpDir=string(ptr)+lib::PathSeparator(); else tmpDir="";
+// //    if( ptr != NULL ) gdlmapsdir=string(ptr)+lib::PathSeparator(); else gdlmapsdir="";
 //
-    DStringGDL *GdlMapsDataDir =  new DStringGDL( tmpDir);
+    DStringGDL *GdlMapsDataDir =  new DStringGDL( gdlmapsdir);
     DVar *GdlMapsDir = new DVar("GDL_MAPS_DIR", GdlMapsDataDir);
     sysVarList.push_back(GdlMapsDir);
    

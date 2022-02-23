@@ -907,11 +907,13 @@ void InitObjects()
 
   string gdlPath=GetEnvPathString("GDL_PATH");
   if( gdlPath == "") gdlPath=GetEnvPathString("IDL_PATH");
-  std::string S_GDLDATADIR=string(GDLDATADIR);
-#ifdef _WIN32
-    std::replace(S_GDLDATADIR.begin(), S_GDLDATADIR.end(), '/', '\\');
-#endif  
-  gdlPath = "+" + S_GDLDATADIR + lib::PathSeparator() + "lib";
+  if( gdlPath == "") {
+    std::string S_GDLDATADIR=string(GDLDATADIR);
+  #ifdef _WIN32
+      std::replace(S_GDLDATADIR.begin(), S_GDLDATADIR.end(), '/', '\\');
+  #endif  
+    gdlPath = "+" + S_GDLDATADIR + lib::PathSeparator() + "lib";
+  }
   SysVar::SetGDLPath( gdlPath);
 }
 
