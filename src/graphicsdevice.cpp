@@ -23,16 +23,12 @@
 #include "objects.hpp"
 #include "graphicsdevice.hpp"
 
-#if _WIN32
-#include "otherdevices/devicewin.hpp"
-#endif
-  
 #ifdef HAVE_LIBWXWIDGETS 
 #include "devicewx.hpp"
 #endif
   
 #ifdef HAVE_X
-#include "otherdevices/devicex.hpp"
+#include "devicex.hpp"
 #endif
   
 #include "deviceps.hpp"

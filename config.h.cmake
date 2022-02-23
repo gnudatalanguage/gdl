@@ -84,5 +84,5 @@
 #cmakedefine USE_UDUNITS 1
 #cmakedefine USE_EIGEN 1
 #cmakedefine USE_PNGLIB 1
-#cmakedefine USE_WINGDI_NOT_WINGCC 1
+#cmakedefine INSTALL_LOCAL_DRIVERS 1
 #endif

@@ -413,7 +413,6 @@ endif()
 #
 # -DWXWIDGETS=ON|OFF
 # -DWXWIDGETSDIR=DIR
-set(wxWidgets_USE_DEBUG OFF) # Use release build
 if(WXWIDGETS)
     set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
     find_package(wxWidgets COMPONENTS base core adv)
@@ -432,6 +431,13 @@ if(WXWIDGETS)
                 "(suitable Debian/Ubuntu package: libwxgtk3.0-gtk3-dev)\n"
                 "(suitable Fedora/CentOS package: wxGTK-devel)")
     endif(wxWidgets_FOUND)
+    set (USE_LOCAL_DRIVERS 1) # At the moment, the only case where having our owwn drivers is useful. Should be changed if we improve other drivers.
+else (WXWIDGETS)
+  if (INTERACTIVE_GRAPHICS AND WIN32) 
+    message(FATAL_ERROR "wxWidgets are required on Windows unless the option -DINTERACTIVE_GRAPHICS=FALSE is given. In which case you will NOT have graphics plots on screen")
+  endif (INTERACTIVE_GRAPHICS AND WIN32) 
+  #forcibly not used, no need to build and install our own copy of drivers, below
+  set (USE_LOCAL_DRIVERS 0)
 endif(WXWIDGETS)
 
 # X11 : OFF by default since wxWidgets SHOULD take preference in ALL builds.
@@ -458,6 +464,8 @@ endif(CYGWIN OR NOT WIN32)
 
 
 # PLplot MANDATORY
+# it is necessary at least for wxwidgets to avoid using plplot's drivers and instead use a copy, eventually modified by us, 
+# that is installed in gnudatalanguage/lib/drivers. This is done by default and triggered by USE_LOCAL_DRIVERS
 # -DPLPLOTDIR=DIR
 set(CMAKE_PREFIX_PATH ${PLPLOTDIR})
 find_package(Plplot QUIET)
@@ -473,7 +481,8 @@ else(PLPLOT_FOUND)
 endif(PLPLOT_FOUND)
 
 if(PLPLOT_FOUND)
-    message(STATUS "Warning, if you have plplot version > 5.11 and wxWidgets enabled, please read carefully file README")
+
+    #1) mandatory: has ps_labelfunc() function? 
     check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
     if(NOT HAVE_PLPLOT_SLABELFUNC)
       message(FATAL_ERROR "please upgrade to plplot version > 5.9.6 (missing plslabelfunc")
@@ -481,7 +490,10 @@ if(PLPLOT_FOUND)
 
     set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
     set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
+    #2) compiled with DYNDRIVERS?
+    check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" PL_IS_DYNDRIVERS)
 
+    #has correct plwidth() function? 
     #the following does not work with clang (???)
         check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
     
@@ -503,13 +515,15 @@ if(PLPLOT_FOUND)
        endif(HAVE_PLPLOT_WIDTH)
     endif(NOT HAVE_PLPLOT_WIDTH)
     
+    #has plstrl function?
     check_library_exists("${PLPLOT_LIBRARIES}" plstrl "" PLPLOT_PRIVATE_NOT_HIDDEN)
     if(PLPLOT_PRIVATE_NOT_HIDDEN)
       set(PLPLOT_PRIVATE_NOT_HIDDEN 1)
     else(PLPLOT_PRIVATE_NOT_HIDDEN)
-      message(STATUS "Using a plplot library without private functions - workarounds will be used.")
+      message(STATUS "Using a plplot library without private functions - UGLY workarounds will be used.")
     endif(PLPLOT_PRIVATE_NOT_HIDDEN)
 
+    #has plcallback function?
     set(_test_plplot2
         "
         #include <plplot/plstream.h>
@@ -525,77 +539,24 @@ if(PLPLOT_FOUND)
       set(PLPLOT_HAS_PLCALLBACK 1)
     endif(PLPLOT_HAS_PLCALLBACK)
  
-    if (INTERACTIVE_GRAPHICS)
-      set (_test_wxwidgets
-      "
-      #include <plplot/plplot.h>
-      #include<string.h>
-      #include <stdio.h>
-      int main(int argc, char **argv) {
-      int numdevs = 128;
-      const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
-      const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
-      plgDevs(&devlongnames, &devnames, &numdevs);
-      fprintf(stderr,\"PLPLOT Devices Found: \");
-      for (int i = 0; i < numdevs; ++i) {fprintf(stderr,\" - %s \", devnames[i]);}
-      for (int i = 0; i < numdevs; ++i) {if (strcmp(\"wxwidgets\", devnames[i])==0) exit(EXIT_SUCCESS);}
-      exit(EXIT_FAILURE);
-      }
-      "
-      )
-      set (_test_xwin
-      "
-      #include <plplot/plplot.h>
-      #include<string.h>
-      int main(int argc, char **argv) {
-      int numdevs = 128;
-      const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
-      const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
-      plgDevs(&devlongnames, &devnames, &numdevs);
-      for (int i = 0; i < numdevs; ++i) {if (strcmp(\"xwin\", devnames[i])==0) exit(EXIT_SUCCESS);}
-      exit(EXIT_FAILURE);
-      }
-      "
-      )
-      set (_test_wingcc
-      "
-      #include <plplot/plplot.h>
-      #include<string.h>
-      int main(int argc, char **argv) {
-      int numdevs = 128;
-      const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
-      const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
-      plgDevs(&devlongnames, &devnames, &numdevs);
-      for (int i = 0; i < numdevs; ++i) {if ( strcmp(\"wingcc\", devnames[i])==0 || strcmp(\"wingdi\", devnames[i])==0 ) exit(EXIT_SUCCESS);}
-      exit(EXIT_FAILURE);
-      }
-      "
-      )
-      # if wxWidgets found, we check whether plplot was compiled within wxwidgets
-      # if plplot's wxwidgets driver is not in the distribution, and if X11 is not present either (or winggc under WIN32) then
-      # it will be a STOP unless INTERACTIVE_GRAPHICS=OFF. Totally noninteractive graphics apps (such as Jupyter GDL kernel)
-      # must be compiled with -DINTERACTIVE_GRAPHICS=OFF .
-      if (wxWidgets_FOUND)
-          check_c_source_runs("${_test_wxwidgets}" HAVE_PLPLOT_WXWIDGETS_DRIVER)
-      endif (wxWidgets_FOUND)
-      #idem for X11
-      if(CYGWIN OR NOT WIN32)
-         if (X11_FOUND)
-            check_c_source_runs("${_test_xwin}" HAVE_PLPLOT_X11_DRIVER)
-         endif (X11_FOUND)
-      else (CYGWIN OR NOT WIN32)  #WIN32: check wingcc
-          check_c_source_runs("${_test_wingcc}" HAVE_PLPLOT_X11_DRIVER) #same env var different meaning
-      endif(CYGWIN OR NOT WIN32)
-
-      if (NOT HAVE_PLPLOT_WXWIDGETS_DRIVER AND NOT HAVE_PLPLOT_X11_DRIVER ) 
-           if (wxWidgets_FOUND) 
-             message(FATAL_ERROR "PlPlot was compiled without needed wxwidgets driver, aborting. Do you mean -DINTERACTIVE_GRAPHICS=OFF ?")
-           else (wxWidgets_FOUND)
-             message(FATAL_ERROR "PlPlot was compiled without xwin (or wingcc on Windows) driver, aborting. Do you mean -DINTERACTIVE_GRAPHICS=OFF ?")
-           endif (wxWidgets_FOUND)
-      endif (NOT HAVE_PLPLOT_WXWIDGETS_DRIVER AND NOT HAVE_PLPLOT_X11_DRIVER)
-    endif (INTERACTIVE_GRAPHICS)
+# here, for windows, install_local_driver is already true as we impose wxwidgets now. So this section is skipped under windows. 
+    if ((NOT INSTALL_LOCAL_DRIVERS) AND INTERACTIVE_GRAPHICS)
+      message(STATUS "Will use a local copy of plplot drivers (patched for speed).")
+    endif ((NOT INSTALL_LOCAL_DRIVERS) AND INTERACTIVE_GRAPHICS)
 endif(PLPLOT_FOUND)
+
+if (USE_LOCAL_DRIVERS)  #meaning wxWidgets is found
+  if (WIN32)
+    set(USE_LOCAL_DRIVERS 0)  #PLPLOT constantly refuses to load our drivers on Windows. I quit.
+  else (WIN32)
+  #test if plplot has been compiled with DYNDRIVERS option:
+   if (PL_IS_DYNDRIVERS) 
+     set(INSTALL_LOCAL_DRIVERS 1)
+   else (PL_IS_DYNDRIVERS) 
+     message(FATAL_ERROR "Plplot was compiled without Dynamic Driver support. Please recompile plplot with option -DENABLE_DYNDRIVERS=ON.")
+   endif (PL_IS_DYNDRIVERS) 
+  endif(WIN32)
+endif (USE_LOCAL_DRIVERS)
     
 # GraphicsMagick (GM) is an alternative to the classical ImageMagick Lib (IM).
 # It was experienced that GM was more stable in time than IM
@@ -663,18 +624,6 @@ if(MAGICK)
       "(suitable Fedora/CentOS package: ImageMagick-c++-devel)")
   endif(ImageMagick_FOUND)
 endif(MAGICK)
-
-## not valid anymore I bet ## if GM or IM activated, we check whether Plplot is OK for that
-## not valid anymore I bet #if(USE_MAGICK AND NOT WIN32)
-## not valid anymore I bet #  check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" HAVE_PLGETDRVDIR)
-## not valid anymore I bet #  if(HAVE_PLGETDRVDIR)
-## not valid anymore I bet #    message(STATUS "WARNING: Dynamic drivers may have to be disabled in plplot.\n"
-## not valid anymore I bet #      "To make plplot work with ImageMagick:\n"
-## not valid anymore I bet #      "use -DENABLE_DYNDRIVERS=OFF cmake option when compiling plplot or\n"
-## not valid anymore I bet #      "use -DMAGICK=OFF here to not use ImageMagick in GDL.")
-## not valid anymore I bet #  endif(HAVE_PLGETDRVDIR)
-## not valid anymore I bet #endif(USE_MAGICK AND NOT WIN32)
-
 
 # libtiff
 # -DTIFF=ON|OFF
