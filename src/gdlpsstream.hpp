@@ -30,11 +30,7 @@ private:
   long bitsPerPix;
 public:
   GDLPSStream( int nx, int ny, int pfont, bool encaps, int color, int bpp, bool orient_portrait):
-#ifdef _MSC_VER
-    GDLGStream( nx, ny, /*pfont == 1 ? "psttf" :*/ (color==0)?"ps":"psc")
-#else
-    GDLGStream::GDLGStream( nx, ny, /*pfont == 1 ? "psttf" :*/(color==0)?"ps":"psc")
-#endif
+  GDLGStream::GDLGStream( nx, ny, (color==0)?"ps":"psc")
   {
     encapsulated = encaps;
     page = 0;
@@ -50,8 +46,13 @@ public:
   void Init();
   bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
   //logically close the svg each time an update is made, then rollback to the last graphic section for further graphics.
-  void Update(){plstream::cmd(PLESC_EXPOSE, NULL);fprintf(pls->OutFile," S\neop\n");fseek(pls->OutFile,-7, SEEK_END);} 
-  float GetPlplotFudge(){return 1;}; //correction factor 
+  void Update(){plstream::cmd(PLESC_EXPOSE, NULL);fprintf(pls->OutFile," S\neop\n");fseek(pls->OutFile,-7, SEEK_END);}
+
+  virtual void fontChanged() final {
+    PLINT doFont = ((PLINT) SysVar::GetPFont()>-1) ? 1 : 0;
+    pls->dev_text = doFont;
+  }
+  
 };
 
 #endif

@@ -41,6 +41,7 @@ private:
     int m_width;   //!< Width of dc/plot area.
     int m_height;   //!< Height of dc/plot area.
     bool isplot; //precise the status of associated widget: plot (true) or widget_draw (false)
+    bool olddriver; //memory of if the wxwidgets driver is old, and thus... OK: reliable and fast!
 public:
     gdlwxGraphicsPanel* container; // for Update()
 
@@ -98,8 +99,13 @@ public:
     DString GetVisualName();
     bool GetScreenResolution(double& resx, double& resy);
     DByteGDL* GetBitmapData();
-    float GetPlplotFudge(){return 1.8;}; //correction factor
     static void DefineSomeWxCursors(); //global initialisation of 77 X11-like cursors.
+    virtual void fontChanged() final {
+     if (olddriver) {
+      PLINT doFont = ((PLINT) SysVar::GetPFont()>-1) ? 1 : 0;
+      pls->dev_text = doFont;
+     }
+    }
 };
 
 

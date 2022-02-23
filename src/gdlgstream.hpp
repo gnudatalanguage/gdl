@@ -49,9 +49,12 @@
 #include <algorithm>
 #endif
 
-const double MMToINCH = 0.039370078 ; // 1./2.54;
+static const std::string ALLCHARACTERSFORSTRINGLENGTHTEST = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+static const float ALLCHARACTERSFORSTRINGLENGTHTEST_NCHARS = 36;
+const double INCHToMM = 25.4 ; 
+const double INCHToCM = 2.54 ;
 const double CM_IN_MM = 10.00000000 ; 
-
+const double DEFAULT_FONT_ASPECT_RATIO = 1.2; // Height / Width
 using namespace std;
 static std::string internalFontCodes[] = {
     "#fn",      // !0  : unused
@@ -167,7 +170,6 @@ static std::string internalFontCodes[] = {
     PLFLT ndsy; // idem y
     PLFLT dsx; // size of char in device units, x direction
     PLFLT dsy; // idem y
-    PLFLT fudge; //a correction factor to reported sizes, useful with wxWidgets plplot driver (?) for which it is 1.8 . go figure.
     DDouble mmsx; //in mm
     DDouble mmsy; //
     PLFLT wsx;  //in current world coordinates
@@ -217,7 +219,7 @@ public:
     theBox.initialized=false;
     plgpls( &pls);
     //you can debug plplot things with
-    //    pls->verbose=1;
+//     pls->debug=1;
 
 	if (GDL_DEBUG_PLSTREAM) printf(" new GDLGstream( %d , %d , %s ):pls=%p \n", nx, ny, driver, (void *)pls);
 
@@ -684,8 +686,7 @@ public:
   void SetColorMap1Table(PLINT tableSize, BaseGDL *passed_colors, DLong decomposed=0);
   //if create a colormap1 with a black to white ramp.
   void SetColorMap1Ramp(DLong decomposed=0, PLFLT minlight=0.0);
-  virtual void DefaultCharSize();
-  virtual float GetPlplotFudge(){return 1;}; //correction factor 
+  void DefaultCharSize();
   void NextPlot( bool erase=true); // handles multi plots
 
   void NoSub(); // no subwindows (/NORM, /DEVICE)
@@ -733,7 +734,7 @@ public:
                                     theCurrentChar.wsx,theCurrentChar.wsy);
   }
   
-  void RenewPlplotDefaultCharsize(PLFLT newMmSize);
+//  void RenewPlplotDefaultCharsize(PLFLT newMmSize);
   
   void GetPlplotDefaultCharSize();
 
@@ -749,7 +750,9 @@ public:
                          const char *text);
   void ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
                          const char *text, double *stringCharLength=NULL );
-  void schr( PLFLT charwidthmm, PLFLT scale, PLFLT lineSpacingmm);
+  void setVariableCharacterSize( PLFLT charwidthpixel, PLFLT scale, PLFLT lineSpacingpixel, PLFLT xpxcm, PLFLT ypxcm);
+  void setFixedCharacterSize( PLFLT charwidthpixel, PLFLT scale, PLFLT lineSpacingpixel);
+  virtual void fontChanged(){}; //nothing here
   void sizeChar(PLFLT scale);
   void vpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
 //  void gvpd( PLFLT& xmin, PLFLT& xmax, PLFLT& ymin, PLFLT& ymax );

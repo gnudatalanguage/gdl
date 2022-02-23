@@ -1748,8 +1748,8 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
 
     result = read_history(history_filename.c_str());
     if (debug) {
-      if (result == 0) cout << "Successfull reading of ~/.gdl/history" << endl;
-      else cout << "Fail to read back ~/.gdl/history" << endl;
+      if (result == 0) cout << "Successfull reading of "<< history_filename << endl;
+      else cout << "Fail to read back "<< history_filename << endl;
     }
   }
 

@@ -834,13 +834,13 @@ namespace lib
       guardluy.Reset(localUserSymY);
       if (local_psym == 3 && GraphicsDevice::GetDevice()->DoesNotDrawSinglePoints()) {
         for (int kk = 0; kk < *userSymArrayDim; kk++) {
-          localUserSymX[kk] = userSymX[kk] * a->getPsymConvX() / a->GetPlplotFudge() / a->getSymbolSize();
-          localUserSymY[kk] = userSymY[kk] * a->getPsymConvY() / a->GetPlplotFudge() / a->getSymbolSize();
+          localUserSymX[kk] = userSymX[kk] * a->getPsymConvX()  / a->getSymbolSize();
+          localUserSymY[kk] = userSymY[kk] * a->getPsymConvY()  / a->getSymbolSize();
         }
       } else {
         for (int kk = 0; kk < *userSymArrayDim; kk++) {
-          localUserSymX[kk] = userSymX[kk] * a->getPsymConvX() / a->GetPlplotFudge();
-          localUserSymY[kk] = userSymY[kk] * a->getPsymConvY() / a->GetPlplotFudge();
+          localUserSymX[kk] = userSymX[kk] * a->getPsymConvX();
+          localUserSymY[kk] = userSymY[kk] * a->getPsymConvY();
         }
       }
     }

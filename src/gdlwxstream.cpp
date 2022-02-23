@@ -29,6 +29,7 @@ GDLWXStream::GDLWXStream( int width, int height )
   , streamBitmap(NULL)
   , m_width(width), m_height(height)
   , container(NULL)
+  , olddriver(false)
 {
   streamDC = new wxMemoryDC();
   streamBitmap = new wxBitmap( width, height, 32);
@@ -40,20 +41,34 @@ GDLWXStream::GDLWXStream( int width, int height )
     delete streamDC;
     throw GDLException("GDLWXStream: Failed to create DC.");
   }
-  setopt("drvopt", "hrshsym=0,text=1" ); //no hershey; WE USE TT fonts (antialiasing very nice and readable. Moreover, big bug somewhere with hershey fonts).
 
-  PLFLT XDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_PX_CM"))))[0]*2.5;
-  PLFLT YDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_PX_CM"))))[0]*2.5;
-  spage( XDPI, YDPI, width, height, 0, 0 ); //width and height have importance. 90 dpi is what is in the driver code.
-  
-  //plplot switched from PLESC_DEVINIT to dev_data for wxwidgets around version 5.11
+  spage(0,0, width, height, 0, 0 ); //width and height have importance. dpi is best left to plplot.
+
+//select the fonts in all cases...
+  std::string what = "hrshsym=0,text=1";
+  setopt("drvopt", what.c_str());
+
+//init the driver...  
+//plplot switched from PLESC_DEVINIT to dev_data for wxwidgets around version 5.11
 #define PLPLOT_TEST_VERSION_NUMBER PLPLOT_VERSION_MAJOR*1000+PLPLOT_VERSION_MINOR
 #if (PLPLOT_TEST_VERSION_NUMBER > 5010)
   this->pls->dev_data=(void*)streamDC;
 #endif
   init();
-  plstream::cmd(PLESC_DEVINIT, (void*)streamDC );
   
+  // Up to now, new PLPLOT wxWidgets driver has a problem with Hershey fonts. Avoid at all costs!
+  // One possiblity to test if the new driver is in use is that it sets "has_string_length"
+  //To do this, we must have called init()!
+  if (pls->has_string_length == 0) { //old but good driver
+    olddriver=true;
+  //enable fonts OR Hershey --- eventually find how to do this outside initialization init()
+    PLINT doFont = ((PLINT) SysVar::GetPFont()>-1) ? 1 : 0;
+    pls->dev_text=doFont;
+  }
+  
+  
+  plstream::cmd(PLESC_DEVINIT, (void*)streamDC );
+    
    // no pause on win destruction
     spause( false);
 
@@ -348,31 +363,34 @@ bool GDLWXStream::SetGraphicsFunction( long value) {
     case 5: //wxNO_OP:
       streamDC->SetLogicalFunction( wxNO_OP);
       break;
-    case 6: //wxXOR:
+    case 6: //wxXOR
       streamDC->SetLogicalFunction( wxXOR);
+      break;    
+    case 7: //wxOR:
+      streamDC->SetLogicalFunction( wxOR);
       break;
-    case 7: //wxNOR:
+    case 8: //wxNOR:
       streamDC->SetLogicalFunction( wxNOR);
       break;
-    case 8: //wxEQUIV:
+    case 9: //wxEQUIV:
       streamDC->SetLogicalFunction( wxEQUIV);
       break;
-    case 9: //wxINVERT:
+    case 10: //wxINVERT:
       streamDC->SetLogicalFunction( wxINVERT);
       break;
-    case 10: //wxOR_REVERSE:
+    case 11: //wxOR_REVERSE:
       streamDC->SetLogicalFunction( wxOR_REVERSE);
       break;
-    case 11: //wxSRC_INVERT:
+    case 12: //wxSRC_INVERT:
       streamDC->SetLogicalFunction( wxSRC_INVERT);
       break;
-    case 12: //wxOR_INVERT:
+    case 13: //wxOR_INVERT:
       streamDC->SetLogicalFunction( wxOR_INVERT);
       break;
-    case 13: //wxNAND:
+    case 14: //wxNAND:
       streamDC->SetLogicalFunction( wxNAND);
       break;
-    case 14: //wxSET:
+    case 15: //wxSET:
       streamDC->SetLogicalFunction( wxSET);
       break;
   }
@@ -389,8 +407,8 @@ bool GDLWXStream::GetWindowPosition(long& xpos, long& ypos ) {
 bool GDLWXStream::GetScreenResolution(double& resx, double& resy) {
   wxScreenDC *temp_dc=new wxScreenDC();
   wxSize reso=temp_dc->GetPPI();
-  resx = reso.x/2.54;
-  resy = reso.y/2.54;
+  resx = reso.x/INCHToCM;
+  resy = reso.y/INCHToCM;
   return true;
 }
 void GDLWXStream::DefineSomeWxCursors(){
