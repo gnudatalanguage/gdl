@@ -3902,8 +3902,6 @@ BaseGDL* Data_<SpDComplexDbl>::Rebin( const dimension& newDim, bool sample)
 
 // rebin over dimIx, new value: newDim
 // newDim != srcDim[ dimIx] -> compress or expand
-//#define tic      double tic_t = clock();
-//#define toc      std::cout << (clock() - tic_t)/CLOCKS_PER_SEC << " seconds" << std::endl;
 template< typename T>
 T* Rebin1(T* src,
   const dimension& srcDim,
@@ -3936,11 +3934,6 @@ T* Rebin1(T* src,
       
       T* res = new T(destDim, BaseGDL::NOZERO);
       SizeT dstnEl = res->N_Elements();
-      SizeT count_t = 0;
-      //tic
-      //std::cout<<"dstnEl : "<<dstnEl<<std::endl;
-      //std::cout<<dstnEl/dstOuterStride<<std::endl;
-      //std::cout<<dstStride<<std::endl;
       for (SizeT o = 0, i=0; o < dstnEl; o += dstOuterStride, i+= srcOuterStride) {
       SizeT oiLimit = o+dstOuterStride;
         for (SizeT os = 0, is= 0; os < dstStride; ++os, ++is) // src element offset (lower dim)
@@ -3949,23 +3942,14 @@ T* Rebin1(T* src,
           SizeT ii = i + is;
           for (SizeT s = oi, p=ii; s < oiLimit; s += dstStride , p+=srcStride*ratio) // run over dim
           {
-          //count_t++;
            (*res)[ s] = (*src)[ p ];
           }
         }   
-      }
-      //toc
-      //std::cout<<"Rebin1 - compress - sample; "<<"for times : "<< count_t <<std::endl;     
+      }  
       return res;
     } else {
       T* res = new T(destDim, BaseGDL::NOZERO);
       SizeT dstnEl = res->N_Elements();
-      SizeT count_t = 0;
-      //std::cout<<"dstnEl : "<<dstnEl<<std::endl;
-      //std::cout<<"dstnEl/dstOuterStride "<<dstnEl/dstOuterStride<<std::endl;
-      //std::cout<<"dstStride "<<dstStride<<std::endl;
-      //std::cout<<"ratio "<<ratio<<std::endl;
-      //tic
       for (SizeT o = 0, i=0; o < dstnEl; o += dstOuterStride, i+= srcOuterStride) {
       SizeT oiLimit = o+dstOuterStride;
         for (SizeT os = 0, is = 0; os < dstStride; ++os, ++is) // src element offset (lower dim)
@@ -3975,17 +3959,13 @@ T* Rebin1(T* src,
           for (SizeT s = oi, p = ii; s < oiLimit; s += dstStride) // run over dim
           {
             typename T::Ty val=0;
-            //SizeT val=0;
             for (SizeT j = 0; j < ratio; ++j, p += srcStride) {
-              //count_t++;
               val += (*src)[ p ];
             }
             (*res)[ s] = val/ratio;
           }
         }
       }   
-      //toc
-      //std::cout<<"Rebin1 - compress - not sample; "<<"for times : "<< count_t <<std::endl;
       return res;
     }
     
@@ -3997,11 +3977,6 @@ T* Rebin1(T* src,
       SizeT fact = ratio * srcStride;
     
     if (sample) {
-      //tic
-      //std::cout<<"Rebin1 - expand - sample; "<<std::endl;
-      //std::cout<<"nEl/dstOuterStride "<<nEl/dstOuterStride<<std::endl;
-      //std::cout<<"dstStride "<<srcStride<<std::endl;
-      //std::cout<<"ratio "<<ratio<<std::endl;
       for (SizeT o = 0; o < nEl; o += srcOuterStride) { // outer dim
               for (SizeT i = 0; i < srcStride; ++i) // src element offset (lower dim)
         {
@@ -4018,13 +3993,7 @@ T* Rebin1(T* src,
           }
         }
       }
-      //toc
     } else {
-      //std::cout<<"Rebin1 - expand - not sample; "<<std::endl;
-      //std::cout<<"dstnEl/dstOuterStride "<<nEl/dstOuterStride<<std::endl;
-      //std::cout<<"dstStride "<<srcStride<<std::endl;
-      //std::cout<<"ratio "<<ratio<<std::endl;
-      //tic
       for (SizeT o = 0; o < nEl; o += srcOuterStride) // outer dim
         for (SizeT i = 0; i < srcStride; ++i) // src element offset (lower dim)
         {
@@ -4042,7 +4011,6 @@ T* Rebin1(T* src,
             }
           }
         }
-    //toc
     }
     
     return res;
@@ -4192,7 +4160,6 @@ BaseGDL* Data_<Sp>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(
     if (newdim == 0) newdim = 1; //protection  
     if (olddim == 0) olddim = 1; //protection  
     if (newdim < olddim ) {
-      //std::cout<<d<<std::endl;
       Data_* act = Rebin1(actIn, actDim, d, newdim, sample);
       actDim = act->Dim();
       if (actIn != this) GDLDelete(actIn);
@@ -4223,7 +4190,6 @@ template<>
 BaseGDL* Data_<SpDByte>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
-  //std::cout<< "here - SpDByte"<<std::endl;
   SizeT nDim;
   if (resRank < srcRank)
     nDim = srcRank;
@@ -4281,7 +4247,6 @@ template<>
 BaseGDL* Data_<SpDInt>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
-  //std::cout<< "here - SpDInt"<<std::endl;
   SizeT nDim;
   if (resRank < srcRank)
     nDim = srcRank;
@@ -4339,7 +4304,6 @@ template<>
 BaseGDL* Data_<SpDUInt>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
-  //std::cout<< "here - SpDUInt"<<std::endl;
   SizeT nDim;
   if (resRank < srcRank)
     nDim = srcRank;
@@ -4396,7 +4360,6 @@ template<>
 BaseGDL* Data_<SpDLong>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
-  //std::cout<< "here - SpDLong"<<std::endl;
   SizeT nDim;
   if (resRank < srcRank)
     nDim = srcRank;
@@ -4429,7 +4392,6 @@ BaseGDL* Data_<SpDLong>::Rebin(const dimension& newDim, bool sample) { TRACE_ROU
   }
   if (compress.size() > 0) {
     for (std::map<float, SizeT>::iterator it = compress.begin(); it != compress.end(); ++it) {
-      //Data_* act = Rebin1Int<DLongGDL, DULong64>(actIn, actDim, it->first, newDim[it->first], sample);
       Data_* act = DO_COMPRESS_INT(DLongGDL, DLong64);
       actDim = act->Dim();
 
@@ -4439,7 +4401,6 @@ BaseGDL* Data_<SpDLong>::Rebin(const dimension& newDim, bool sample) { TRACE_ROU
   }
   if (expand.size() > 0) {
     for (std::map<float, SizeT>::reverse_iterator rit = expand.rbegin(); rit != expand.rend(); ++rit) {
-      //Data_* act = Rebin1Int<DLongGDL, DULong64>(actIn, actDim, rit->first, newDim[rit->first], sample);
       Data_* act = DO_EXPAND_INT(DLongGDL, DLong64);
       actDim = act->Dim();
       if (actIn != this) GDLDelete(actIn);
@@ -4510,7 +4471,6 @@ BaseGDL* Data_<SpDULong>::Rebin(const dimension& newDim, bool sample) { TRACE_RO
 }
 template<>
 BaseGDL* Data_<SpDLong64>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  //std::cout<< "here - SpDLong64"<<std::endl;
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
 
