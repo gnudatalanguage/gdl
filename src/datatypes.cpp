@@ -3902,13 +3902,13 @@ BaseGDL* Data_<SpDComplexDbl>::Rebin( const dimension& newDim, bool sample)
 
 // rebin over dimIx, new value: newDim
 // newDim != srcDim[ dimIx] -> compress or expand
-
+//#define tic      double tic_t = clock();
+//#define toc      std::cout << (clock() - tic_t)/CLOCKS_PER_SEC << " seconds" << std::endl;
 template< typename T>
 T* Rebin1(T* src,
   const dimension& srcDim,
-	  SizeT dimIx, SizeT newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+	SizeT dimIx, SizeT newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = src->N_Elements();
-
   if (newDim == 0) newDim = 1;
 
   // get dest dim and number of summations
@@ -3927,30 +3927,45 @@ T* Rebin1(T* src,
   SizeT srcStride = srcDim.Stride(dimIx);
   SizeT srcOuterStride = srcDim.Stride(dimIx + 1);
   SizeT rebinLimit = srcDimIx * srcStride;
-
+  
   if (newDim < srcDimIx) // compress
-  {
+  {  
+
     SizeT ratio = srcDimIx / newDim;
     if (sample) {
+      
       T* res = new T(destDim, BaseGDL::NOZERO);
       SizeT dstnEl = res->N_Elements();
+      SizeT count_t = 0;
+      //tic
+      //std::cout<<"dstnEl : "<<dstnEl<<std::endl;
+      //std::cout<<dstnEl/dstOuterStride<<std::endl;
+      //std::cout<<dstStride<<std::endl;
       for (SizeT o = 0, i=0; o < dstnEl; o += dstOuterStride, i+= srcOuterStride) {
       SizeT oiLimit = o+dstOuterStride;
-
         for (SizeT os = 0, is= 0; os < dstStride; ++os, ++is) // src element offset (lower dim)
         {
           SizeT oi = o + os;
           SizeT ii = i + is;
           for (SizeT s = oi, p=ii; s < oiLimit; s += dstStride , p+=srcStride*ratio) // run over dim
           {
+          //count_t++;
            (*res)[ s] = (*src)[ p ];
           }
-        }        
+        }   
       }
+      //toc
+      //std::cout<<"Rebin1 - compress - sample; "<<"for times : "<< count_t <<std::endl;     
       return res;
     } else {
       T* res = new T(destDim, BaseGDL::NOZERO);
       SizeT dstnEl = res->N_Elements();
+      SizeT count_t = 0;
+      //std::cout<<"dstnEl : "<<dstnEl<<std::endl;
+      //std::cout<<"dstnEl/dstOuterStride "<<dstnEl/dstOuterStride<<std::endl;
+      //std::cout<<"dstStride "<<dstStride<<std::endl;
+      //std::cout<<"ratio "<<ratio<<std::endl;
+      //tic
       for (SizeT o = 0, i=0; o < dstnEl; o += dstOuterStride, i+= srcOuterStride) {
       SizeT oiLimit = o+dstOuterStride;
         for (SizeT os = 0, is = 0; os < dstStride; ++os, ++is) // src element offset (lower dim)
@@ -3960,22 +3975,33 @@ T* Rebin1(T* src,
           for (SizeT s = oi, p = ii; s < oiLimit; s += dstStride) // run over dim
           {
             typename T::Ty val=0;
+            //SizeT val=0;
             for (SizeT j = 0; j < ratio; ++j, p += srcStride) {
+              //count_t++;
               val += (*src)[ p ];
             }
             (*res)[ s] = val/ratio;
           }
         }
-      }
+      }   
+      //toc
+      //std::cout<<"Rebin1 - compress - not sample; "<<"for times : "<< count_t <<std::endl;
       return res;
     }
+    
   } else // expand
   {
+    
     T* res = new T(destDim, BaseGDL::NOZERO);
       SizeT ratio = newDim / srcDimIx; // make sure 32 bit integers are working also
       SizeT fact = ratio * srcStride;
-
+    
     if (sample) {
+      //tic
+      //std::cout<<"Rebin1 - expand - sample; "<<std::endl;
+      //std::cout<<"nEl/dstOuterStride "<<nEl/dstOuterStride<<std::endl;
+      //std::cout<<"dstStride "<<srcStride<<std::endl;
+      //std::cout<<"ratio "<<ratio<<std::endl;
       for (SizeT o = 0; o < nEl; o += srcOuterStride) { // outer dim
               for (SizeT i = 0; i < srcStride; ++i) // src element offset (lower dim)
         {
@@ -3992,7 +4018,13 @@ T* Rebin1(T* src,
           }
         }
       }
+      //toc
     } else {
+      //std::cout<<"Rebin1 - expand - not sample; "<<std::endl;
+      //std::cout<<"dstnEl/dstOuterStride "<<nEl/dstOuterStride<<std::endl;
+      //std::cout<<"dstStride "<<srcStride<<std::endl;
+      //std::cout<<"ratio "<<ratio<<std::endl;
+      //tic
       for (SizeT o = 0; o < nEl; o += srcOuterStride) // outer dim
         for (SizeT i = 0; i < srcStride; ++i) // src element offset (lower dim)
         {
@@ -4010,19 +4042,20 @@ T* Rebin1(T* src,
             }
           }
         }
+    //toc
     }
-
+    
     return res;
   }
 }
 
 // for integer
+
 template< typename T, typename TNext>
 T* Rebin1Int(T* src,
   const dimension& srcDim,
 	     SizeT dimIx, SizeT newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT nEl = src->N_Elements();
-
   if (newDim == 0) newDim = 1;
 
   // get dest dim and number of summations
@@ -4041,9 +4074,10 @@ T* Rebin1Int(T* src,
   SizeT srcStride = srcDim.Stride(dimIx);
   SizeT srcOuterStride = srcDim.Stride(dimIx + 1);
   SizeT rebinLimit = srcDimIx * srcStride;
-
+  
   if (newDim < srcDimIx) // compress
   {
+
     SizeT ratio = srcDimIx / newDim;
     if (sample) {
       T* res = new T(destDim, BaseGDL::NOZERO);
@@ -4081,8 +4115,9 @@ T* Rebin1Int(T* src,
           }
         }
       }
-      return res;
+      return res;    
     }
+  
   } else // expand
   {
     T* res = new T(destDim, BaseGDL::NOZERO);
@@ -4135,7 +4170,6 @@ template<class Sp>
 BaseGDL* Data_<Sp>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
-
   SizeT nDim;
   if (resRank < srcRank)
     nDim = srcRank;
@@ -4150,62 +4184,46 @@ BaseGDL* Data_<Sp>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(
   //the key is used to keep the map always in increasing order of key, so it's the compression factor,
   //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
   // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
-  std::map<float, SizeT>compress;
-  for (SizeT d = 0; d < nDim; ++d) {
-    SizeT newdim = newDim[d];
-    SizeT olddim = this->dim[d];
-    if (newdim == 0) newdim = 1; //protetion  
-    if (olddim == 0) olddim = 1; //protetion  
-    if (newdim < olddim) {
-      float key=float(olddim / newdim)+0.01*d;
-      compress.insert(std::pair<float, SizeT>(key, d));
-    }
-  }
-  if (compress.size() > 0) {
-    for (std::map<float, SizeT>::reverse_iterator rit = compress.rbegin(); rit != compress.rend(); ++rit) {
-      Data_* act = Rebin1(actIn, actDim, rit->second, newDim[rit->second], sample);
-      actDim = act->Dim();
-
-      if (actIn != this) GDLDelete(actIn);
-      actIn = act;
-  }
-}
-  // 2nd expand : make the biggest expansion last
+  
   std::map<float, SizeT>expand;
   for (SizeT d = 0; d < nDim; ++d) {
     SizeT newdim = newDim[d];
     SizeT olddim = this->dim[d];
-    if (newdim == 0) newdim = 1; //protetion  
-    if (olddim == 0) olddim = 1; //protection
+    if (newdim == 0) newdim = 1; //protection  
+    if (olddim == 0) olddim = 1; //protection  
+    if (newdim < olddim ) {
+      //std::cout<<d<<std::endl;
+      Data_* act = Rebin1(actIn, actDim, d, newdim, sample);
+      actDim = act->Dim();
+      if (actIn != this) GDLDelete(actIn);
+      actIn = act;
+    }
     if (newdim > olddim) {
       float key=float(newdim / olddim)+0.01*d;
-      expand.insert(std::pair<float, SizeT>(key, d));
+      expand.insert(std::pair<SizeT,float>(d,key));
     }
-  }
-  if (expand.size() > 0) {
-    for (std::map<float, SizeT>::iterator it = expand.begin(); it != expand.end(); ++it) {
-   Data_* act = Rebin1(actIn, actDim, it->second, newDim[it->second], sample);
+    }
+    if (expand.size() > 0) {
+    for (std::map<float, SizeT>::reverse_iterator rit = expand.rbegin(); rit != expand.rend(); ++rit) {
+      Data_* act = Rebin1(actIn, actDim, rit->first, newDim[rit->first], sample);
       actDim = act->Dim();
 
       if (actIn != this) GDLDelete(actIn);
       actIn = act;
-    }
-  }
-
+    }}
   if (actIn == this) return actIn->Dup();
   return actIn;
 }
 
-#define DO_COMPRESS_INT(X,Y) Rebin1Int< X, Y>(actIn, actDim, rit->second, newDim[rit->second], sample);
-#define DO_EXPAND_INT(X,Y) Rebin1Int< X, Y>(actIn, actDim, it->second, newDim[it->second], sample);
+#define DO_COMPRESS_INT(X,Y) Rebin1Int< X, Y>(actIn, actDim, it->first, newDim[it->first], sample);
+#define DO_EXPAND_INT(X,Y) Rebin1Int< X, Y>(actIn, actDim, rit->first, newDim[rit->first], sample);
 
-// integer types
 
 template<>
 BaseGDL* Data_<SpDByte>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
-
+  //std::cout<< "here - SpDByte"<<std::endl;
   SizeT nDim;
   if (resRank < srcRank)
     nDim = srcRank;
@@ -4215,12 +4233,8 @@ BaseGDL* Data_<SpDByte>::Rebin(const dimension& newDim, bool sample) { TRACE_ROU
   dimension actDim(this->dim);
   Data_* actIn = this;
 
-  // 1st compress
-  //optimization: start by compressing the dimension that will decrease total size the most.
-  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
-  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
-  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
   std::map<float, SizeT>compress;
+  std::map<float, SizeT>expand;
   for (SizeT d = 0; d < nDim; ++d) {
     SizeT newdim = newDim[d];
     SizeT olddim = this->dim[d];
@@ -4228,40 +4242,37 @@ BaseGDL* Data_<SpDByte>::Rebin(const dimension& newDim, bool sample) { TRACE_ROU
     if (olddim == 0) olddim = 1; //protetion  
     if (newdim < olddim) {
       float key=float(olddim / newdim)+0.01*d;
-      compress.insert(std::pair<float, SizeT>(key, d));
+      compress.insert(std::pair<SizeT, float>(d, key));
+    }
+    if (newdim > olddim) {
+      float key=float(newdim / olddim)+0.01*d;
+      expand.insert(std::pair<SizeT, float>(d, key));
     }
   }
   if (compress.size() > 0) {
-    for (std::map<float, SizeT>::reverse_iterator rit = compress.rbegin(); rit != compress.rend(); ++rit) {
-      Data_* act = DO_COMPRESS_INT(DByteGDL, DULong64)
-        actDim = act->Dim();
+    for (std::map<float, SizeT>::iterator it = compress.begin(); it != compress.end(); ++it) {
+      Data_* act = DO_COMPRESS_INT(DByteGDL, DLong64)
+      actDim = act->Dim();
 
       if (actIn != this) GDLDelete(actIn);
       actIn = act;
-    }
-  }
-  // 2nd expand : make the biggest expansion last
-  std::map<float, SizeT>expand;
-  for (SizeT d = 0; d < nDim; ++d) {
-    SizeT newdim = newDim[d];
-    SizeT olddim = this->dim[d];
-    if (newdim == 0) newdim = 1; //protetion  
-    if (olddim == 0) olddim = 1; //protection
-    if (newdim > olddim) {
-      float key=float(newdim / olddim)+0.01*d;
-      expand.insert(std::pair<float, SizeT>(key, d));
     }
   }
   if (expand.size() > 0) {
-    for (std::map<float, SizeT>::iterator it = expand.begin(); it != expand.end(); ++it) {
-      Data_* act = DO_EXPAND_INT(DByteGDL, DULong64)
-        actDim = act->Dim();
+    for (std::map<float, SizeT>::reverse_iterator rit = expand.rbegin(); rit != expand.rend(); ++rit) {
+      Data_* act = DO_EXPAND_INT(DByteGDL, DLong64)
+      actDim = act->Dim();
 
       if (actIn != this) GDLDelete(actIn);
       actIn = act;
     }
   }
-
+  // 1st compress
+  //optimization: start by compressing the dimension that will decrease total size the most.
+  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
+  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
+  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
+ 
   if (actIn == this) return actIn->Dup();
   return actIn;
 }
@@ -4270,7 +4281,7 @@ template<>
 BaseGDL* Data_<SpDInt>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
-
+  //std::cout<< "here - SpDInt"<<std::endl;
   SizeT nDim;
   if (resRank < srcRank)
     nDim = srcRank;
@@ -4280,12 +4291,8 @@ BaseGDL* Data_<SpDInt>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUT
   dimension actDim(this->dim);
   Data_* actIn = this;
 
-  // 1st compress
-  //optimization: start by compressing the dimension that will decrease total size the most.
-  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
-  //but we cannot store 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
-  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
   std::map<float, SizeT>compress;
+  std::map<float, SizeT>expand;
   for (SizeT d = 0; d < nDim; ++d) {
     SizeT newdim = newDim[d];
     SizeT olddim = this->dim[d];
@@ -4293,40 +4300,37 @@ BaseGDL* Data_<SpDInt>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUT
     if (olddim == 0) olddim = 1; //protetion  
     if (newdim < olddim) {
       float key=float(olddim / newdim)+0.01*d;
-      compress.insert(std::pair<float, SizeT>(key, d));
+      compress.insert(std::pair<SizeT, float>(d, key));
+    }
+    if (newdim > olddim) {
+      float key=float(newdim / olddim)+0.01*d;
+      expand.insert(std::pair<SizeT, float>(d, key));
     }
   }
   if (compress.size() > 0) {
-    for (std::map<float, SizeT>::reverse_iterator rit = compress.rbegin(); rit != compress.rend(); ++rit) {
+    for (std::map<float, SizeT>::iterator it = compress.begin(); it != compress.end(); ++it) {
       Data_* act = DO_COMPRESS_INT(DIntGDL, DLong64)
-        actDim = act->Dim();
+      actDim = act->Dim();
 
       if (actIn != this) GDLDelete(actIn);
       actIn = act;
-    }
-  }
-  // 2nd expand : make the biggest expansion last
-  std::map<float, SizeT>expand;
-  for (SizeT d = 0; d < nDim; ++d) {
-    SizeT newdim = newDim[d];
-    SizeT olddim = this->dim[d];
-    if (newdim == 0) newdim = 1; //protetion  
-    if (olddim == 0) olddim = 1; //protection
-    if (newdim > olddim) {
-      float key=float(newdim / olddim)+0.01*d;
-      expand.insert(std::pair<float, SizeT>(key, d));
     }
   }
   if (expand.size() > 0) {
-    for (std::map<float, SizeT>::iterator it = expand.begin(); it != expand.end(); ++it) {
+    for (std::map<float, SizeT>::reverse_iterator rit = expand.rbegin(); rit != expand.rend(); ++rit) {
       Data_* act = DO_EXPAND_INT(DIntGDL, DLong64)
-        actDim = act->Dim();
+      actDim = act->Dim();
 
       if (actIn != this) GDLDelete(actIn);
       actIn = act;
     }
   }
-
+  // 1st compress
+  //optimization: start by compressing the dimension that will decrease total size the most.
+  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
+  //but we cannot store 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
+  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
+  
   if (actIn == this) return actIn->Dup();
   return actIn;
 }
@@ -4335,7 +4339,7 @@ template<>
 BaseGDL* Data_<SpDUInt>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
-
+  //std::cout<< "here - SpDUInt"<<std::endl;
   SizeT nDim;
   if (resRank < srcRank)
     nDim = srcRank;
@@ -4344,13 +4348,8 @@ BaseGDL* Data_<SpDUInt>::Rebin(const dimension& newDim, bool sample) { TRACE_ROU
 
   dimension actDim(this->dim);
   Data_* actIn = this;
-
-  // 1st compress
-  //optimization: start by compressing the dimension that will decrease total size the most.
-  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
-  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
-  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
   std::map<float, SizeT>compress;
+  std::map<float, SizeT>expand;
   for (SizeT d = 0; d < nDim; ++d) {
     SizeT newdim = newDim[d];
     SizeT olddim = this->dim[d];
@@ -4358,40 +4357,37 @@ BaseGDL* Data_<SpDUInt>::Rebin(const dimension& newDim, bool sample) { TRACE_ROU
     if (olddim == 0) olddim = 1; //protetion  
     if (newdim < olddim) {
       float key=float(olddim / newdim)+0.01*d;
-      compress.insert(std::pair<float, SizeT>(key, d));
+      compress.insert(std::pair<SizeT, float>(d, key));
+    }
+    if (newdim > olddim) {
+      float key=float(newdim / olddim)+0.01*d;
+      expand.insert(std::pair<SizeT, float>(d, key));
     }
   }
   if (compress.size() > 0) {
-    for (std::map<float, SizeT>::reverse_iterator rit = compress.rbegin(); rit != compress.rend(); ++rit) {
-      Data_* act = DO_COMPRESS_INT(DUIntGDL, DULong64)
-        actDim = act->Dim();
+    for (std::map<float, SizeT>::iterator it = compress.begin(); it != compress.end(); ++it) {
+      Data_* act = DO_COMPRESS_INT(DUIntGDL, DLong64)
+      actDim = act->Dim();
 
       if (actIn != this) GDLDelete(actIn);
       actIn = act;
-    }
-  }
-  // 2nd expand : make the biggest expansion last
-  std::map<float, SizeT>expand;
-  for (SizeT d = 0; d < nDim; ++d) {
-    SizeT newdim = newDim[d];
-    SizeT olddim = this->dim[d];
-    if (newdim == 0) newdim = 1; //protetion  
-    if (olddim == 0) olddim = 1; //protection
-    if (newdim > olddim) {
-      float key=float(newdim / olddim)+0.01*d;
-      expand.insert(std::pair<float, SizeT>(key, d));
     }
   }
   if (expand.size() > 0) {
-    for (std::map<float, SizeT>::iterator it = expand.begin(); it != expand.end(); ++it) {
-      Data_* act = DO_EXPAND_INT(DUIntGDL, DULong64)
-        actDim = act->Dim();
+    for (std::map<float, SizeT>::reverse_iterator rit = expand.rbegin(); rit != expand.rend(); ++rit) {
+      Data_* act = DO_EXPAND_INT(DUIntGDL, DLong64)
+      actDim = act->Dim();
 
       if (actIn != this) GDLDelete(actIn);
       actIn = act;
     }
   }
-
+  // 1st compress
+  //optimization: start by compressing the dimension that will decrease total size the most.
+  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
+  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
+  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
+  
   if (actIn == this) return actIn->Dup();
   return actIn;
 }
@@ -4400,7 +4396,7 @@ template<>
 BaseGDL* Data_<SpDLong>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
-
+  //std::cout<< "here - SpDLong"<<std::endl;
   SizeT nDim;
   if (resRank < srcRank)
     nDim = srcRank;
@@ -4409,13 +4405,14 @@ BaseGDL* Data_<SpDLong>::Rebin(const dimension& newDim, bool sample) { TRACE_ROU
 
   dimension actDim(this->dim);
   Data_* actIn = this;
-
+  
   // 1st compress
   //optimization: start by compressing the dimension that will decrease total size the most.
   //the key is used to keep the map always in increasing order of key, so it's the compression factor,
   //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
   // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
   std::map<float, SizeT>compress;
+  std::map<float, SizeT>expand;
   for (SizeT d = 0; d < nDim; ++d) {
     SizeT newdim = newDim[d];
     SizeT olddim = this->dim[d];
@@ -4423,35 +4420,28 @@ BaseGDL* Data_<SpDLong>::Rebin(const dimension& newDim, bool sample) { TRACE_ROU
     if (olddim == 0) olddim = 1; //protetion  
     if (newdim < olddim) {
       float key=float(olddim / newdim)+0.01*d;
-      compress.insert(std::pair<float, SizeT>(key, d));
+      compress.insert(std::pair<SizeT, float>(d, key));
+    }
+    if (newdim > olddim) {
+      float key=float(newdim / olddim)+0.01*d;
+      expand.insert(std::pair<SizeT, float>(d, key));
     }
   }
   if (compress.size() > 0) {
-    for (std::map<float, SizeT>::reverse_iterator rit = compress.rbegin(); rit != compress.rend(); ++rit) {
-      Data_* act = DO_COMPRESS_INT(DLongGDL, DLong64)
-        actDim = act->Dim();
+    for (std::map<float, SizeT>::iterator it = compress.begin(); it != compress.end(); ++it) {
+      //Data_* act = Rebin1Int<DLongGDL, DULong64>(actIn, actDim, it->first, newDim[it->first], sample);
+      Data_* act = DO_COMPRESS_INT(DLongGDL, DLong64);
+      actDim = act->Dim();
 
       if (actIn != this) GDLDelete(actIn);
       actIn = act;
     }
   }
-  // 2nd expand : make the biggest expansion last
-  std::map<float, SizeT>expand;
-  for (SizeT d = 0; d < nDim; ++d) {
-    SizeT newdim = newDim[d];
-    SizeT olddim = this->dim[d];
-    if (newdim == 0) newdim = 1; //protetion  
-    if (olddim == 0) olddim = 1; //protection
-    if (newdim > olddim) {
-      float key=float(newdim / olddim)+0.01*d;
-      expand.insert(std::pair<float, SizeT>(key, d));
-    }
-  }
   if (expand.size() > 0) {
-    for (std::map<float, SizeT>::iterator it = expand.begin(); it != expand.end(); ++it) {
-      Data_* act = DO_EXPAND_INT(DLongGDL, DLong64)
-        actDim = act->Dim();
-
+    for (std::map<float, SizeT>::reverse_iterator rit = expand.rbegin(); rit != expand.rend(); ++rit) {
+      //Data_* act = Rebin1Int<DLongGDL, DULong64>(actIn, actDim, rit->first, newDim[rit->first], sample);
+      Data_* act = DO_EXPAND_INT(DLongGDL, DLong64);
+      actDim = act->Dim();
       if (actIn != this) GDLDelete(actIn);
       actIn = act;
     }
@@ -4475,12 +4465,8 @@ BaseGDL* Data_<SpDULong>::Rebin(const dimension& newDim, bool sample) { TRACE_RO
   dimension actDim(this->dim);
   Data_* actIn = this;
 
-  // 1st compress
-  //optimization: start by compressing the dimension that will decrease total size the most.
-  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
-  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
-  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
   std::map<float, SizeT>compress;
+  std::map<float, SizeT>expand;
   for (SizeT d = 0; d < nDim; ++d) {
     SizeT newdim = newDim[d];
     SizeT olddim = this->dim[d];
@@ -4488,45 +4474,43 @@ BaseGDL* Data_<SpDULong>::Rebin(const dimension& newDim, bool sample) { TRACE_RO
     if (olddim == 0) olddim = 1; //protetion  
     if (newdim < olddim) {
       float key=float(olddim / newdim)+0.01*d;
-      compress.insert(std::pair<float, SizeT>(key, d));
+      compress.insert(std::pair<SizeT, float>(d, key));
+    }
+    if (newdim > olddim) {
+      float key=float(newdim / olddim)+0.01*d;
+      expand.insert(std::pair<SizeT, float>(d, key));
     }
   }
   if (compress.size() > 0) {
-    for (std::map<float, SizeT>::reverse_iterator rit = compress.rbegin(); rit != compress.rend(); ++rit) {
-      Data_* act = DO_COMPRESS_INT(DULongGDL, DULong64)
-        actDim = act->Dim();
+    for (std::map<float, SizeT>::iterator it = compress.begin(); it != compress.end(); ++it) {
+      Data_* act = DO_COMPRESS_INT(DULongGDL, DLong64)
+      actDim = act->Dim();
 
       if (actIn != this) GDLDelete(actIn);
       actIn = act;
-    }
-  }
-  // 2nd expand : make the biggest expansion last
-  std::map<float, SizeT>expand;
-  for (SizeT d = 0; d < nDim; ++d) {
-    SizeT newdim = newDim[d];
-    SizeT olddim = this->dim[d];
-    if (newdim == 0) newdim = 1; //protetion  
-    if (olddim == 0) olddim = 1; //protection
-    if (newdim > olddim) {
-      float key=float(newdim / olddim)+0.01*d;
-      expand.insert(std::pair<float, SizeT>(key, d));
     }
   }
   if (expand.size() > 0) {
-    for (std::map<float, SizeT>::iterator it = expand.begin(); it != expand.end(); ++it) {
-      Data_* act = DO_EXPAND_INT(DULongGDL, DULong64)
-        actDim = act->Dim();
+    for (std::map<float, SizeT>::reverse_iterator rit = expand.rbegin(); rit != expand.rend(); ++rit) {
+      Data_* act = DO_EXPAND_INT(DULongGDL, DLong64)
+      actDim = act->Dim();
 
       if (actIn != this) GDLDelete(actIn);
       actIn = act;
     }
   }
-
+  // 1st compress
+  //optimization: start by compressing the dimension that will decrease total size the most.
+  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
+  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
+  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
+  
   if (actIn == this) return actIn->Dup();
   return actIn;
 }
 template<>
 BaseGDL* Data_<SpDLong64>::Rebin(const dimension& newDim, bool sample) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  //std::cout<< "here - SpDLong64"<<std::endl;
   SizeT resRank = newDim.Rank();
   SizeT srcRank = this->Rank();
 
@@ -4538,13 +4522,9 @@ BaseGDL* Data_<SpDLong64>::Rebin(const dimension& newDim, bool sample) { TRACE_R
 
   dimension actDim(this->dim);
   Data_* actIn = this;
-
-  // 1st compress
-  //optimization: start by compressing the dimension that will decrease total size the most.
-  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
-  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
-  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
+ 
   std::map<float, SizeT>compress;
+  std::map<float, SizeT>expand;
   for (SizeT d = 0; d < nDim; ++d) {
     SizeT newdim = newDim[d];
     SizeT olddim = this->dim[d];
@@ -4552,40 +4532,37 @@ BaseGDL* Data_<SpDLong64>::Rebin(const dimension& newDim, bool sample) { TRACE_R
     if (olddim == 0) olddim = 1; //protetion  
     if (newdim < olddim) {
       float key=float(olddim / newdim)+0.01*d;
-      compress.insert(std::pair<float, SizeT>(key, d));
+      compress.insert(std::pair<SizeT, float>(d, key));
+    }
+    if (newdim > olddim) {
+      float key=float(newdim / olddim)+0.01*d;
+      expand.insert(std::pair<SizeT, float>(d, key));
     }
   }
   if (compress.size() > 0) {
-    for (std::map<float, SizeT>::reverse_iterator rit = compress.rbegin(); rit != compress.rend(); ++rit) {
+    for (std::map<float, SizeT>::iterator it = compress.begin(); it != compress.end(); ++it) {
       Data_* act = DO_COMPRESS_INT(DLong64GDL, DLong64)
-        actDim = act->Dim();
+      actDim = act->Dim();
 
       if (actIn != this) GDLDelete(actIn);
       actIn = act;
-    }
-  }
-  // 2nd expand : make the biggest expansion last
-  std::map<float, SizeT>expand;
-  for (SizeT d = 0; d < nDim; ++d) {
-    SizeT newdim = newDim[d];
-    SizeT olddim = this->dim[d];
-    if (newdim == 0) newdim = 1; //protetion  
-    if (olddim == 0) olddim = 1; //protection
-    if (newdim > olddim) {
-      float key=float(newdim / olddim)+0.01*d;
-      expand.insert(std::pair<float, SizeT>(key, d));
     }
   }
   if (expand.size() > 0) {
-    for (std::map<float, SizeT>::iterator it = expand.begin(); it != expand.end(); ++it) {
+    for (std::map<float, SizeT>::reverse_iterator rit = expand.rbegin(); rit != expand.rend(); ++rit) {
       Data_* act = DO_EXPAND_INT(DLong64GDL, DLong64)
-        actDim = act->Dim();
+      actDim = act->Dim();
 
       if (actIn != this) GDLDelete(actIn);
       actIn = act;
     }
   }
-
+  // 1st compress
+  //optimization: start by compressing the dimension that will decrease total size the most.
+  //the key is used to keep the map always in increasing order of key, so it's the compression factor,
+  //but we cannot sore 2 identical compression factors, on 2 difeerent dimensions, in the map since the key must be unique.
+  // so the key is a real, composed by the compression factor+dim/100. Sufficient to have 2 keys different and still order OK.
+  
   if (actIn == this) return actIn->Dup();
   return actIn;
 }
