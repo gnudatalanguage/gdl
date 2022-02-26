@@ -247,7 +247,24 @@ const bool IsNonPODType[]={
   true, //GDL_LONG64,
   true //GDL_ULONG64
  };
-  
+ const bool IsUnsignedType[] = {
+  false, //GDL_UNDEF
+  true, //GDL_BYTE
+  false, //GDL_INT
+  false, //GDL_LONG,	
+  false, //GDL_FLOAT,	
+  false, //GDL_DOUBLE,	
+  false, //GDL_COMPLEX,	
+  false, //GDL_STRING,	
+  false, //GDL_STRUCT,	
+  false, //GDL_COMPLEXDBL,	
+  false, //GDL_PTR,		
+  false, //GDL_OBJ,
+  true, //GDL_UINT,	
+  true, //GDL_ULONG,
+  false, //GDL_LONG64,
+  true //GDL_ULONG64
+ };  
 } //namespace gdl_type_lookup 
 
 inline bool NonPODType( DType t)
@@ -278,8 +295,6 @@ inline bool ComplexType( DType t)
 inline bool NumericType( DType t) // Float or Int or Complex
 {
   return gdl_type_lookup::IsNumericType[ t];
-//   int o = DTypeOrder[ t];
-//   return (o >= 2 && o <= 11);
 }
 inline bool ConvertableType( DType t) // everything except Struct, Ptr, Obj
 {
@@ -288,6 +303,10 @@ inline bool ConvertableType( DType t) // everything except Struct, Ptr, Obj
 inline bool LongLongType( DType t) // POD but 64 bits
 {
   return gdl_type_lookup::IsLongLongType[ t];
+}
+inline bool UnsignedType( DType t) // integer, unsigned type
+{
+  return gdl_type_lookup::IsUnsignedType[ t];
 }
 class   BaseGDL;
 class   ArrayIndexListT;
