@@ -2827,6 +2827,11 @@ bool DStructGDL::ArrayNeverEqual( BaseGDL* r)
 
 // for statement compliance (int types , float types scalar only)
 // (convert strings to floats here (not for first argument)
+// GD: works together with FORNode::Run(). At exit, if bool is true, 'this' will be CONVERTED (in FORNode::Run()) TO lEnd's Type if they are not similar.
+// the logic is the following:
+// If 'this' is an unsigned integer or a floating-point value, lEnd is converted to this->Type() and that's all.
+// Else (signed integer case), this will be promoted to lEnd's type if lEnd is larger than the maximum value available for 'this'.
+// BUT there are issues with trying to get that with our logic: see bug #816
 
 template<class Sp>
 bool Data_<Sp>::ForCheck(BaseGDL** lEnd, BaseGDL** lStep) { 
@@ -2855,6 +2860,15 @@ bool Data_<Sp>::ForCheck(BaseGDL** lEnd, BaseGDL** lStep) {
   DType lType = (*lEnd)->Type();
   if (lType == GDL_COMPLEX || lType == GDL_COMPLEXDBL)
     throw GDLException("Complex expression not allowed in this context.");
+  
+  //float type are simple:
+  if (FloatType(this->t) || this->t == GDL_LONG64 ) { //unsigned rule and other simple cases where 'this' rules
+      *lEnd = (*lEnd)->Convert2(this->t);
+      if (lStep != NULL) *lStep = (*lStep)->Convert2(this->t);
+      return true;
+    }
+  
+   //All other cases, it is lEnd type that rules if it's value is gt the max value of 'this' type:
 
   //ForCheck() is donce only once so the penalty is minimal for these complicated tests.
   //BYTE is quite special and (see #816) there are dubious cases. The following code
