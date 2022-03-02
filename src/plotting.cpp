@@ -132,12 +132,10 @@ namespace lib
     DLong n=static_cast<DLong>(floor(log10(x/3.5)));
     DDouble y=(x/(3.5*pow(10., static_cast<double>(n))));
     DLong m=0;
-    if ( y>=1&&y<2 )
-      m=1;
-    else if ( y>=2&&y<5 )
-      m=2;
-    else if ( y>=5 )
-      m=5;
+
+    if ( y>= 4.51754) m=5;
+    else if ( y>=2.0203057 )  m=2;
+    else if ( y>=1 )  m=1;
 
     PLFLT intv=(PLFLT)(m*pow(10., static_cast<double>(n)));
     return intv;
