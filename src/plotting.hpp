@@ -348,7 +348,7 @@ namespace lib {
     (*static_cast<DLongGDL*>
      (pStruct->GetTag(pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];
     if ( kw ) {
-      static int BACKGROUNDIx=e->KeywordIx("BACKGROUND");
+      int BACKGROUNDIx=e->KeywordIx("BACKGROUND");
       e->AssureLongScalarKWIfPresent(BACKGROUNDIx, background);
     }
     DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
@@ -363,7 +363,7 @@ namespace lib {
      (pStruct->GetTag(pStruct->Desc()->TagIndex("COLOR"), 0)))[0];
 
     DLongGDL *colorVect;
-    static int colorIx=e->KeywordIx ( "COLOR" );
+    int colorIx=e->KeywordIx ( "COLOR" );
     int realcolorIx=colorIx;
     //eventually do not get color from standard "COLOR" keyword but from another...
     if (OtherColorKw != "") realcolorIx=e->KeywordIx (OtherColorKw);
@@ -382,7 +382,7 @@ namespace lib {
     DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
     psym=(*static_cast<DLongGDL*>
           (pStruct->GetTag(pStruct->Desc()->TagIndex("PSYM"), 0)))[0];
-    static int PSYMIx=e->KeywordIx("PSYM");
+    int PSYMIx=e->KeywordIx("PSYM");
     e->AssureLongScalarKWIfPresent(PSYMIx, psym);
     if ( psym>10||psym < -8||psym==9 )
       e->Throw(
@@ -395,7 +395,7 @@ namespace lib {
                     (pStruct->GetTag(pStruct->Desc()->TagIndex("SYMSIZE"), 0)))[0];
                     //NOTE THAT AS OF IDL 8.2 !P.SYMSIZE, HOWEVER EXISTING, IS NOT TAKEN INTO ACCOUNT. We however do not want
                     //to reproduce this feature.
-    static int SYMSIZEIx=e->KeywordIx("SYMSIZE");
+    int SYMSIZEIx=e->KeywordIx("SYMSIZE");
     e->AssureFloatScalarKWIfPresent(SYMSIZEIx, symsize);
     if ( symsize<=0.0 ) symsize=1.0;
     a->setSymbolSize(symsize);
@@ -406,7 +406,7 @@ namespace lib {
 //    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
 //    DFloat symsize=(*static_cast<DFloatGDL*>
 //                    (pStruct->GetTag(pStruct->Desc()->TagIndex("SYMSIZE"), 0)))[0];
-//    static int SYMSIZEIx = e->KeywordIx("SYMSIZE");
+//    int SYMSIZEIx = e->KeywordIx("SYMSIZE");
 //    e->AssureFloatScalarKWIfPresent(SYMSIZEIx, symsize);
 //    if ( symsize<=0.0 ) symsize=1.0;
 //    
@@ -439,13 +439,13 @@ namespace lib {
     //overload with command preference. Charsize may be a vector now in some gdl commands, take care of it:
     if (accept_sizeKw) //XYOUTS specials!
     {
-      static int SIZEIx=e->KeywordIx("SIZE"); //define here only (else trig an assert() )
+      int SIZEIx=e->KeywordIx("SIZE"); //define here only (else trig an assert() )
       DFloat fcharsize;
       fcharsize=charsize;
       e->AssureFloatScalarKWIfPresent(SIZEIx, fcharsize); 
       charsize=fcharsize;
     }
-    static int charsizeIx=e->KeywordIx ( "CHARSIZE" );
+    int charsizeIx=e->KeywordIx ( "CHARSIZE" );
     if ( e->GetDefinedKW ( charsizeIx )!=NULL )
     {
       DFloatGDL* charsizeVect=e->GetKWAs<DFloatGDL>( charsizeIx );
@@ -465,7 +465,7 @@ namespace lib {
     DFloat charthick=(*static_cast<DFloatGDL*>
               (pStruct->GetTag
                (pStruct->Desc()->TagIndex("CHARTHICK"), 0)))[0];
-    static int charthickIx=e->KeywordIx ( "CHARTHICK" ); //Charthick values may be vector in GDL, not in IDL!
+    int charthickIx=e->KeywordIx ( "CHARTHICK" ); //Charthick values may be vector in GDL, not in IDL!
     if ( e->GetDefinedKW ( charthickIx )!=NULL )
     {
       DFloatGDL* charthickVect=e->GetKWAs<DFloatGDL>( charthickIx );
@@ -479,9 +479,9 @@ namespace lib {
   {
     DLong nticks=0;
 
-    static int XTICKSIx = e->KeywordIx("XTICKS");
-    static int YTICKSIx = e->KeywordIx("YTICKS");
-    static int ZTICKSIx = e->KeywordIx("ZTICKS");
+    int XTICKSIx = e->KeywordIx("XTICKS");
+    int YTICKSIx = e->KeywordIx("YTICKS");
+    int ZTICKSIx = e->KeywordIx("ZTICKS");
     int choosenIx=XTICKSIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKSIx; }
@@ -514,14 +514,14 @@ namespace lib {
     charsize=(*static_cast<DFloatGDL*>
               (pStruct->GetTag
               (pStruct->Desc()->TagIndex("CHARSIZE"), 0)))[0];
-    static int CharsizeIx= e->KeywordIx( "CHARSIZE");
+    int CharsizeIx= e->KeywordIx( "CHARSIZE");
     //cerr<<" CHARSIZE: "<< CharsizeIx<<" ("<< &CharsizeIx<<")"<<endl;
     e->AssureFloatScalarKWIfPresent(CharsizeIx, charsize); // option charsize overloads P.CHARSIZE
     if (charsize==0) charsize=1.0;
     // Axis Preference. Is a Multiplier!
-    static int XCharsizeIx = e->KeywordIx("XCHARSIZE");
-    static int YCharsizeIx = e->KeywordIx("YCHARSIZE");
-    static int ZCharsizeIx = e->KeywordIx("ZCHARSIZE");
+    int XCharsizeIx = e->KeywordIx("XCHARSIZE");
+    int YCharsizeIx = e->KeywordIx("YCHARSIZE");
+    int ZCharsizeIx = e->KeywordIx("ZCHARSIZE");
     int choosenIx=XCharsizeIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XCharsizeIx; }
@@ -554,9 +554,9 @@ namespace lib {
   {
     axisGridstyle=0;
     DStructGDL* Struct=NULL;
-    static int XGRIDSTYLEIx = e->KeywordIx("XGRIDSTYLE");
-    static int YGRIDSTYLEIx = e->KeywordIx("YGRIDSTYLE");
-    static int ZGRIDSTYLEIx = e->KeywordIx("ZGRIDSTYLE");
+    int XGRIDSTYLEIx = e->KeywordIx("XGRIDSTYLE");
+    int YGRIDSTYLEIx = e->KeywordIx("YGRIDSTYLE");
+    int ZGRIDSTYLEIx = e->KeywordIx("ZGRIDSTYLE");
     int choosenIx=XGRIDSTYLEIx;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XGRIDSTYLEIx; }
     if ( axisId==YAXIS ) { Struct=SysVar::Y(); choosenIx=YGRIDSTYLEIx; }
@@ -571,9 +571,9 @@ namespace lib {
   }
   static void gdlGetDesiredAxisMargin(EnvT *e, int axisId, DFloat &start, DFloat &end)
   {
-    static int XMARGINIx = e->KeywordIx("XMARGIN");
-    static int YMARGINIx = e->KeywordIx("YMARGIN");
-    static int ZMARGINIx = e->KeywordIx("ZMARGIN");
+    int XMARGINIx = e->KeywordIx("XMARGIN");
+    int YMARGINIx = e->KeywordIx("YMARGIN");
+    int ZMARGINIx = e->KeywordIx("ZMARGIN");
     int choosenIx=XMARGINIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XMARGINIx; }
@@ -604,9 +604,9 @@ namespace lib {
   static void gdlGetDesiredAxisMinor(EnvT* e, int axisId, DLong &axisMinor)
   {
     axisMinor=0;
-    static int XMINORIx = e->KeywordIx("XMINOR");
-    static int YMINORIx = e->KeywordIx("YMINOR");
-    static int ZMINORIx = e->KeywordIx("ZMINOR");
+    int XMINORIx = e->KeywordIx("XMINOR");
+    int YMINORIx = e->KeywordIx("YMINOR");
+    int ZMINORIx = e->KeywordIx("ZMINOR");
     int choosenIx=XMINORIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XMINORIx; }
@@ -622,9 +622,9 @@ namespace lib {
   static bool gdlGetDesiredAxisRange(EnvT *e, int axisId, DDouble &start, DDouble &end)
   {
     bool set=false;
-    static int XRANGEIx = e->KeywordIx("XRANGE");
-    static int YRANGEIx = e->KeywordIx("YRANGE");
-    static int ZRANGEIx = e->KeywordIx("ZRANGE");
+    int XRANGEIx = e->KeywordIx("XRANGE");
+    int YRANGEIx = e->KeywordIx("YRANGE");
+    int ZRANGEIx = e->KeywordIx("ZRANGE");
     int choosenIx=XRANGEIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XRANGEIx; }
@@ -662,9 +662,9 @@ namespace lib {
   }
   static  void gdlGetDesiredAxisStyle(EnvT *e, int axisId, DLong &style)
   {
-    static int XSTYLEIx = e->KeywordIx("XSTYLE");
-    static int YSTYLEIx = e->KeywordIx("YSTYLE");
-    static int ZSTYLEIx = e->KeywordIx("ZSTYLE");
+    int XSTYLEIx = e->KeywordIx("XSTYLE");
+    int YSTYLEIx = e->KeywordIx("YSTYLE");
+    int ZSTYLEIx = e->KeywordIx("ZSTYLE");
     int choosenIx=XSTYLEIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XSTYLEIx; }
@@ -682,9 +682,9 @@ namespace lib {
     static void gdlGetDesiredAxisThick(EnvT *e,  int axisId, DFloat &thick)
   {
     thick=1.0;
-    static int XTHICKIx = e->KeywordIx("XTHICK");
-    static int YTHICKIx = e->KeywordIx("YTHICK");
-    static int ZTHICKIx = e->KeywordIx("ZTHICK");
+    int XTHICKIx = e->KeywordIx("XTHICK");
+    int YTHICKIx = e->KeywordIx("YTHICK");
+    int ZTHICKIx = e->KeywordIx("ZTHICK");
     int choosenIx=XTHICKIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTHICKIx; }
@@ -707,9 +707,9 @@ namespace lib {
 
   static void gdlGetDesiredAxisTickFormat(EnvT* e, int axisId, DStringGDL* &axisTickformatVect)
   {
-    static int XTICKFORMATIx = e->KeywordIx("XTICKFORMAT");
-    static int YTICKFORMATIx = e->KeywordIx("YTICKFORMAT");
-    static int ZTICKFORMATIx = e->KeywordIx("ZTICKFORMAT");
+    int XTICKFORMATIx = e->KeywordIx("XTICKFORMAT");
+    int YTICKFORMATIx = e->KeywordIx("YTICKFORMAT");
+    int ZTICKFORMATIx = e->KeywordIx("ZTICKFORMAT");
     int choosenIx=XTICKFORMATIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKFORMATIx; }
@@ -730,9 +730,9 @@ namespace lib {
   static void gdlGetDesiredAxisTickInterval(EnvT* e, int axisId, DDouble &axisTickinterval)
   {
     axisTickinterval=0;
-    static int XTICKINTERVALIx = e->KeywordIx("XTICKINTERVAL");
-    static int YTICKINTERVALIx = e->KeywordIx("YTICKINTERVAL");
-    static int ZTICKINTERVALIx = e->KeywordIx("ZTICKINTERVAL");
+    int XTICKINTERVALIx = e->KeywordIx("XTICKINTERVAL");
+    int YTICKINTERVALIx = e->KeywordIx("YTICKINTERVAL");
+    int ZTICKINTERVALIx = e->KeywordIx("ZTICKINTERVAL");
     int choosenIx=XTICKINTERVALIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKINTERVALIx; }
@@ -751,9 +751,9 @@ namespace lib {
   static void gdlGetDesiredAxisTickLayout(EnvT* e, int axisId, DLong &axisTicklayout)
   {
     axisTicklayout=0;
-    static int XTICKLAYOUTIx = e->KeywordIx("XTICKLAYOUT");
-    static int YTICKLAYOUTIx = e->KeywordIx("YTICKLAYOUT");
-    static int ZTICKLAYOUTIx = e->KeywordIx("ZTICKLAYOUT");
+    int XTICKLAYOUTIx = e->KeywordIx("XTICKLAYOUT");
+    int YTICKLAYOUTIx = e->KeywordIx("YTICKLAYOUT");
+    int ZTICKLAYOUTIx = e->KeywordIx("ZTICKLAYOUT");
     int choosenIx=XTICKLAYOUTIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKLAYOUTIx; }
@@ -776,12 +776,12 @@ namespace lib {
     ticklen=(*static_cast<DFloatGDL*>
             (pStruct->GetTag
             (pStruct->Desc()->TagIndex("TICKLEN"), 0)))[0]; //!P.TICKLEN, always exist, may be 0
-    static int TICKLENIx = e->KeywordIx("TICKLEN");
+    int TICKLENIx = e->KeywordIx("TICKLEN");
     e->AssureFloatScalarKWIfPresent(TICKLENIx, ticklen); //overwritten by TICKLEN option
 
-    static int XTICKLENIx = e->KeywordIx("XTICKLEN");
-    static int YTICKLENIx = e->KeywordIx("YTICKLEN");
-    static int ZTICKLENIx = e->KeywordIx("ZTICKLEN");
+    int XTICKLENIx = e->KeywordIx("XTICKLEN");
+    int YTICKLENIx = e->KeywordIx("YTICKLEN");
+    int ZTICKLENIx = e->KeywordIx("ZTICKLEN");
     int choosenIx=XTICKLENIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKLENIx; }
@@ -799,9 +799,9 @@ namespace lib {
  static void gdlGetDesiredAxisTickName(EnvT* e, GDLGStream* a, int axisId, DStringGDL* &axisTicknameVect)
   {
 
-    static int XTICKNAMEIx = e->KeywordIx("XTICKNAME");
-    static int YTICKNAMEIx = e->KeywordIx("YTICKNAME");
-    static int ZTICKNAMEIx = e->KeywordIx("ZTICKNAME");
+    int XTICKNAMEIx = e->KeywordIx("XTICKNAME");
+    int YTICKNAMEIx = e->KeywordIx("YTICKNAME");
+    int ZTICKNAMEIx = e->KeywordIx("ZTICKNAME");
     int choosenIx=XTICKNAMEIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKNAMEIx; }
@@ -830,9 +830,9 @@ namespace lib {
   {
     axisTicks=0;
 
-    static int XTICKSIx = e->KeywordIx("XTICKS");
-    static int YTICKSIx = e->KeywordIx("YTICKS");
-    static int ZTICKSIx = e->KeywordIx("ZTICKS");
+    int XTICKSIx = e->KeywordIx("XTICKS");
+    int YTICKSIx = e->KeywordIx("YTICKS");
+    int ZTICKSIx = e->KeywordIx("ZTICKS");
     int choosenIx=XTICKSIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKSIx; }
@@ -855,9 +855,9 @@ namespace lib {
   // This is conveyed by the code
   static int gdlGetCalendarCode(EnvT* e, int axisId)
   {
-    static int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
-    static int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
-    static int ZTICKUNITSIx = e->KeywordIx("ZTICKUNITS");
+    int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
+    int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
+    int ZTICKUNITSIx = e->KeywordIx("ZTICKUNITS");
     int choosenIx=XTICKUNITSIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKUNITSIx; }
@@ -888,9 +888,9 @@ namespace lib {
  
  static void gdlGetDesiredAxisTickUnits(EnvT* e, int axisId, DStringGDL* &axisTickunitsVect)
   {
-    static int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
-    static int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
-    static int ZTICKUNITSIx = e->KeywordIx("ZTICKUNITS");
+    int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
+    int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
+    int ZTICKUNITSIx = e->KeywordIx("ZTICKUNITS");
     int choosenIx=XTICKUNITSIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKUNITSIx; }
@@ -909,9 +909,9 @@ namespace lib {
 
   static void gdlGetDesiredAxisTickv(EnvT* e, int axisId, DDoubleGDL* axisTickvVect)
   {
-    static int XTICKVIx = e->KeywordIx("XTICKV");
-    static int YTICKVIx = e->KeywordIx("YTICKV");
-    static int ZTICKVIx = e->KeywordIx("ZTICKV");
+    int XTICKVIx = e->KeywordIx("XTICKV");
+    int YTICKVIx = e->KeywordIx("YTICKV");
+    int ZTICKVIx = e->KeywordIx("ZTICKV");
     int choosenIx=XTICKVIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTICKVIx; }
@@ -931,9 +931,9 @@ namespace lib {
 
   static void gdlGetDesiredAxisTitle(EnvT *e, int axisId, DString &title)
   {
-    static int XTITLEIx = e->KeywordIx("XTITLE");
-    static int YTITLEIx = e->KeywordIx("YTITLE");
-    static int ZTITLEIx = e->KeywordIx("ZTITLE");
+    int XTITLEIx = e->KeywordIx("XTITLE");
+    int YTITLEIx = e->KeywordIx("YTITLE");
+    int ZTITLEIx = e->KeywordIx("ZTITLE");
     int choosenIx=XTITLEIx;
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) { Struct=SysVar::X(); choosenIx=XTITLEIx; }
@@ -959,7 +959,7 @@ namespace lib {
 
     // if the LINESTYLE keyword is present, the value will be change
     DLong linestyleNew=-1111;
-    static int linestyleIx = e->KeywordIx("LINESTYLE");
+    int linestyleIx = e->KeywordIx("LINESTYLE");
 
     if (e->KeywordSet(linestyleIx)) e->AssureLongScalarKWIfPresent(linestyleIx, linestyleNew);
 
@@ -992,7 +992,7 @@ namespace lib {
     DFloat thick=(*static_cast<DFloatGDL*>
                   (pStruct->GetTag(pStruct->Desc()->TagIndex("THICK"), 0)))[0];
 
-    static int THICKIx = e->KeywordIx("THICK");
+    int THICKIx = e->KeywordIx("THICK");
     e->AssureFloatScalarKWIfPresent(THICKIx, thick);
     if ( thick <= 0.0 ) thick=1.0;
     return thick;
@@ -1010,8 +1010,8 @@ namespace lib {
     DString title=(*static_cast<DStringGDL*>(SysVar::P()->GetTag(titleTag, 0)))[0];
     DString subTitle=(*static_cast<DStringGDL*>(SysVar::P()->GetTag(subTitleTag, 0)))[0];
 
-    static int TITLEIx = e->KeywordIx("TITLE");
-    static int SUBTITLEIx = e->KeywordIx("SUBTITLE");
+    int TITLEIx = e->KeywordIx("TITLE");
+    int SUBTITLEIx = e->KeywordIx("SUBTITLE");
     e->AssureStringScalarKWIfPresent(TITLEIx, title);
     e->AssureStringScalarKWIfPresent(SUBTITLEIx, subTitle);
     if (title.empty() && subTitle.empty()) return;
@@ -1042,7 +1042,7 @@ namespace lib {
     test1=(*static_cast<DDoubleGDL*>(SysVar::Y()->GetTag(rangeTag, 0)))[0];
     test2=(*static_cast<DDoubleGDL*>(SysVar::Y()->GetTag(rangeTag, 0)))[1];
     if(!(test1==0.0 && test2==0.0)) return true;
-    static int YRANGEIx=e->KeywordIx( "YRANGE"); 
+    int YRANGEIx=e->KeywordIx( "YRANGE"); 
 
     if ( e->KeywordPresent( YRANGEIx)) return true;
     //Style contains 1?
@@ -1052,7 +1052,7 @@ namespace lib {
 
     DLong nozero=0;
     if (ystyle&16) nozero=1;
-    static int YNOZEROIx=e->KeywordIx( "YNOZERO");
+    int YNOZEROIx=e->KeywordIx( "YNOZERO");
     if ( e->KeywordSet(YNOZEROIx)) nozero = 1;
     return (nozero==1);
   }
@@ -1071,7 +1071,7 @@ namespace lib {
                       (pStruct->
                        GetTag(pStruct->Desc()->TagIndex("NOERASE"), 0)))[0];
       noErase=(LnoErase==1);
-      static int NOERASEIx = e->KeywordIx("NOERASE");
+      int NOERASEIx = e->KeywordIx("NOERASE");
 
       if ( e->KeywordSet(NOERASEIx) )
       {
@@ -1096,7 +1096,7 @@ namespace lib {
     // keyword
     if ( pos==NULL )
     {
-      static int positionIx=e->KeywordIx("POSITION");
+      int positionIx=e->KeywordIx("POSITION");
       if ( e->GetDefinedKW ( positionIx )!=NULL )
       {
        pos=e->GetKWAs<DFloatGDL>(positionIx);
@@ -1208,16 +1208,16 @@ namespace lib {
     positionP[3]=min(1.0,positionP[3]);
 
     //check presence of DATA,DEVICE and NORMAL options
-    static int DATAIx=e->KeywordIx("DATA");
-    static int DEVICEIx=e->KeywordIx("DEVICE");
-    static int NORMALIx=e->KeywordIx("NORMAL");
+    int DATAIx=e->KeywordIx("DATA");
+    int DEVICEIx=e->KeywordIx("DEVICE");
+    int NORMALIx=e->KeywordIx("NORMAL");
 
     if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
     if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
     if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
 //    if (coordinateSystem==DATA && !actStream->validWorldBox()) e->Throw("PLOT: Data coordinate system not established.");
     // read boxPosition if needed
-    static int positionIx = e->KeywordIx( "POSITION");
+    int positionIx = e->KeywordIx( "POSITION");
     DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>( positionIx);
     if (boxPosition == NULL) boxPosition = (DFloatGDL*) 0xF;
     if ( boxPosition!=(DFloatGDL*)0xF)
@@ -1374,16 +1374,16 @@ namespace lib {
     positionP[3]=min(1.0,positionP[3]);
     
     //check presence of DATA,DEVICE and NORMAL options
-    static int DATAIx=e->KeywordIx("DATA");
-    static int DEVICEIx=e->KeywordIx("DEVICE");
-    static int NORMALIx=e->KeywordIx("NORMAL");
+    int DATAIx=e->KeywordIx("DATA");
+    int DEVICEIx=e->KeywordIx("DEVICE");
+    int NORMALIx=e->KeywordIx("NORMAL");
 
     if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
     if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
     if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
 //    if (coordinateSystem==DATA && !actStream->validWorldBox()) e->Throw("PLOT: Data coordinate system not established.");
     // read boxPosition if needed
-    static int positionIx = e->KeywordIx( "POSITION");
+    int positionIx = e->KeywordIx( "POSITION");
     DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>( positionIx);
     if (boxPosition == NULL) boxPosition = (DFloatGDL*) 0xF;
     if ( boxPosition!=NULL && boxPosition!=(DFloatGDL*)0xF )
@@ -1573,7 +1573,7 @@ namespace lib {
     
 
     
-    static int clippingix=e->KeywordIx("CLIP");
+    int clippingix=e->KeywordIx("CLIP");
     DFloatGDL* clipBox=NULL;
     clipBox=e->IfDefGetKWAs<DFloatGDL>(clippingix);
 
@@ -1590,7 +1590,7 @@ namespace lib {
     PLFLT dClipBox[4]={0, 0, 0, 0};
     PLFLT tempbox[4]={0, 0, 0, 0};
     DDouble un, deux, trois, quatre;
-    static int NOCLIPIx=e->KeywordIx("NOCLIP");
+    int NOCLIPIx=e->KeywordIx("NOCLIP");
     static string proname=e->GetProName();
     static bool invertedMeaning=(proname=="PLOTS"||proname=="POLYFILL"||proname=="XYOUTS");
     int noclipvalue=1;
@@ -1603,9 +1603,9 @@ namespace lib {
     if ( !canUsePClip  && clipBox->N_Elements()<4) return false;
     //now we can start checking more deeply
     if (proname != "OPLOT") {     //OPLOT has no /DEVICE /NORM and is already /DATA
-     static int DATAIx=e->KeywordIx("DATA");
-     static int DEVICEIx=e->KeywordIx("DEVICE");
-     static int NORMALIx=e->KeywordIx("NORMAL");
+     int DATAIx=e->KeywordIx("DATA");
+     int DEVICEIx=e->KeywordIx("DEVICE");
+     int NORMALIx=e->KeywordIx("NORMAL");
 
      if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
      if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
@@ -1768,6 +1768,10 @@ namespace lib {
       else TickInterval = (End - Start);
     } else { //check that tickinterval does not make more than 59 ticks:
       if (abs((End - Start) / TickInterval) > 59) TickInterval = (End - Start) / 59;
+    }
+    if (Minor == 0) {// if tickinterval is 0.1,1,10,100..., IDL wants to see all 10 tickmarks.
+      DDouble test=log10(abs(TickInterval));
+      if ( (test - floor(test)) < std::numeric_limits<DDouble>::epsilon()) Minor=10;
     }
     //first write labels only:
     gdlSetAxisCharsize(e, a, axisId);
@@ -2167,7 +2171,7 @@ namespace lib {
       DDouble yEnd, DDouble zStart, DDouble zEnd, bool xLog, bool yLog, bool zLog, bool doSpecialZAxisPlacement=0)
   {
     DLong zAxisCode=0;
-    static int ZAXISIx=e->KeywordIx("ZAXIS");
+    int ZAXISIx=e->KeywordIx("ZAXIS");
     if (doSpecialZAxisPlacement) e->AssureLongScalarKWIfPresent(ZAXISIx, zAxisCode);
     gdlAxis3(e, a, XAXIS, xStart, xEnd, xLog, 0);
     gdlAxis3(e, a, YAXIS, yStart, yEnd, yLog, 0);
