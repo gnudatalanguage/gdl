@@ -734,7 +734,8 @@ public:
   int KeywordIx( const std::string& k);
 
   // for use within library functions
-  // consider to use (note: 'static' is the point here):
+  // consider to use (note: 'static' is the point here, it MUST NOT be in a .h file 
+  // that is shared between multiple commands, unless the position of these KW is identical in libinit):
   // static int kwIx = env->KeywordIx( "KEYWORD");
   // bool kwSet = env->KeywordSet( kwIx);
   //
