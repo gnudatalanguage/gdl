@@ -380,7 +380,7 @@ namespace lib {
   // --------------------------------------------------------------------
 
   void hdf5_compound_gather( DStructGDL* d_struct,
-                             char *buffer, EnvT* e ) {
+                             char *buffer, hsize_t idx, EnvT* e ) {
 
     bool debug=false;
     static int indent=0; indent+=2;
@@ -396,7 +396,7 @@ namespace lib {
 
     for(int t=0; t<nTags; t++) {
 
-      BaseGDL *tag = d_struct->GetTag(t);
+      BaseGDL *tag = d_struct->GetTag(t,idx);
       string tagName = (*d_struct).Desc()->TagName(t);
 
       hsize_t rank = tag->Dim().Rank(), dims[MAXRANK];
@@ -414,7 +414,7 @@ namespace lib {
       if ( tag->Type() == GDL_STRUCT ) { /* nested structure */
 
         hdf5_compound_gather( static_cast<DStructGDL*>(tag),
-                              buffer+member_offset, e );
+                              buffer+member_offset, 0 , e );
 
       } else if ( tag->Type() == GDL_STRING ) { /* string data */
 
@@ -674,8 +674,8 @@ namespace lib {
       data_addr = buffer = static_cast<char*>(calloc(n_elem*len,sizeof(char)));
       if (buffer == NULL) e->Throw("Failed to allocate memory!");
 
-      hdf5_compound_gather(d_struct,buffer,e);
-
+      for (hsize_t idx=0; idx<n_elem; idx++)
+         hdf5_compound_gather(d_struct, &buffer[idx*len], idx, e);
 
     } else if (H5Tget_class(elem_type_id)==H5T_STRING) {    /* --- string */
 
