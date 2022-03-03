@@ -132,12 +132,10 @@ namespace lib
     DLong n=static_cast<DLong>(floor(log10(x/3.5)));
     DDouble y=(x/(3.5*pow(10., static_cast<double>(n))));
     DLong m=0;
-    if ( y>=1&&y<2 )
-      m=1;
-    else if ( y>=2&&y<5 )
-      m=2;
-    else if ( y>=5 )
-      m=5;
+
+    if ( y>= 4.51754) m=5;
+    else if ( y>=2.0203057 )  m=2;
+    else if ( y>=1 )  m=1;
 
     PLFLT intv=(PLFLT)(m*pow(10., static_cast<double>(n)));
     return intv;
@@ -834,13 +832,13 @@ namespace lib
       guardluy.Reset(localUserSymY);
       if (local_psym == 3 && GraphicsDevice::GetDevice()->DoesNotDrawSinglePoints()) {
         for (int kk = 0; kk < *userSymArrayDim; kk++) {
-          localUserSymX[kk] = userSymX[kk] * a->getPsymConvX() / a->GetPlplotFudge() / a->getSymbolSize();
-          localUserSymY[kk] = userSymY[kk] * a->getPsymConvY() / a->GetPlplotFudge() / a->getSymbolSize();
+          localUserSymX[kk] = userSymX[kk] * a->getPsymConvX()  / a->getSymbolSize();
+          localUserSymY[kk] = userSymY[kk] * a->getPsymConvY()  / a->getSymbolSize();
         }
       } else {
         for (int kk = 0; kk < *userSymArrayDim; kk++) {
-          localUserSymX[kk] = userSymX[kk] * a->getPsymConvX() / a->GetPlplotFudge();
-          localUserSymY[kk] = userSymY[kk] * a->getPsymConvY() / a->GetPlplotFudge();
+          localUserSymX[kk] = userSymX[kk] * a->getPsymConvX();
+          localUserSymY[kk] = userSymY[kk] * a->getPsymConvY();
         }
       }
     }

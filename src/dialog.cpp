@@ -478,7 +478,7 @@ namespace lib {
   }
 #else
   BaseGDL* wxwidgets_exists(EnvT* e) { return new DIntGDL(0); };
-  BaseGDL* dialog_pickfile_wxwidgets(EnvT* e) { ThrowGDLException("wxWidgets is not available!"); return 0; }
-  BaseGDL* dialog_message_wxwidgets(EnvT* e) { ThrowGDLException("wxWidgets is not available!"); return 0; }
+  BaseGDL* dialog_pickfile_wxwidgets(EnvT* e) { ThrowGDLException("DIALOG_PICKFILE: GDL was compiled without support for wxWidgets"); return 0; }
+  BaseGDL* dialog_message_wxwidgets(EnvT* e) { ThrowGDLException("DIALOG_MESSAGE: GDL was compiled without support for wxWidgets"); return 0; }
 #endif
 }

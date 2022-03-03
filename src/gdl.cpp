@@ -221,6 +221,16 @@ int main(int argc, char *argv[])
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
+// in the (suggested) absence of IDL_PATH, !DIR is correct if set to GDLDATADIR.
+  std::string S_GDLDATADIR = std::string(GDLDATADIR);
+#ifdef _WIN32
+  std::replace(S_GDLDATADIR.begin(), S_GDLDATADIR.end(), '/', '\\');
+#endif 
+
+//PATH. This one is often modified by people before starting GDL.
+  string gdlPath=GetEnvPathString("GDL_PATH"); //warning: is a Path, use system separator.
+  if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH"); //warning: is a Path, use system separator.
+  if( gdlPath == "") gdlPath = S_GDLDATADIR + lib::PathSeparator() + "lib";
 
   // keeps a list of files to be executed after the startup file
   // and before entering the interactive mode
@@ -433,24 +443,14 @@ int main(int argc, char *argv[])
   // must be after !cpu initialisation
   InitOpenMP(); //will supersede values for CpuTPOOL_NTHREADS
 
-  if (gdlde || (isatty(0) && !quiet)) StartupMessage();
-
   // instantiate the interpreter
   DInterpreter interpreter;
 
-  string gdlPath=GetEnvString("GDL_PATH");
-  if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
-  if( gdlPath == "")
-    {
-      gdlPath = "+" GDLDATADIR "/lib";
-      if (gdlde || (isatty(0) && !quiet)) cerr <<
-        "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " GDLDATADIR "/lib" << endl;
+  if (gdlde || (isatty(0) && !quiet)) {
+    StartupMessage();
+    cerr << "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << gdlPath << endl;
+    if (useWxWidgetsForGraphics) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
     }
-  if (useWxWidgetsForGraphics) {
-      if (gdlde || (isatty(0) && !quiet)) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
-    }
-
-  
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
   
   //report in !GDL status struct
@@ -462,8 +462,6 @@ int main(int argc, char *argv[])
   unsigned  useWXTAG= gdlconfig->Desc()->TagIndex("GDL_USE_WX");
   (*static_cast<DByteGDL*> (gdlconfig->GetTag(useWXTAG, 0)))[0]=useWxWidgetsForGraphics;
   
-  SysVar::SetGDLPath( gdlPath); //probably duplicate with the one in initobjects!
-  
   if (!pretendRelease.empty()) SysVar::SetFakeRelease(pretendRelease);
   //fussyness setup and change if switch at start
   if (syntaxOptionSet) { //take it no matters any env. var.
@@ -473,8 +471,8 @@ int main(int argc, char *argv[])
   }
   
   
-  string startup=GetEnvString("GDL_STARTUP");
-  if( startup == "") startup=GetEnvString("IDL_STARTUP");
+  string startup=GetEnvPathString("GDL_STARTUP");
+  if( startup == "") startup=GetEnvPathString("IDL_STARTUP");
   if( startup == "")
     {
       if (gdlde || (isatty(0) && !quiet)) cerr << 

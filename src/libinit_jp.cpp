@@ -26,7 +26,7 @@ using namespace std;
 
 void LibInit_jp()
 {
-#ifdef HAVE_LIBWXWIDGETS
+//#ifdef HAVE_LIBWXWIDGETS
   const char KLISTEND[] = "";
 
   // WIDGET_ functions
@@ -289,6 +289,6 @@ void LibInit_jp()
 						 "DIALOG_PARENT", "DISPLAY_NAME", "ERROR", "INFORMATION", "QUESTION", "RESOURCE_NAME", "TITLE", KLISTEND };
   new DLibFunRetNew(lib::dialog_message_wxwidgets, string("DIALOG_MESSAGE"), 1, dialog_message_wxwidgetsKey);
   new DLibFunRetNew(lib::dialog_message_wxwidgets, string("WIDGET_MESSAGE"), 1, dialog_message_wxwidgetsKey); //old name
-#endif
+//#endif
 
 }

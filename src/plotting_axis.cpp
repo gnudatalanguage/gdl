@@ -267,7 +267,6 @@ namespace lib {
       actStream->WorldToNormedDevice(xVal, yVal, vpX, vpY);
     }
     //compute new temporary viewport in relative coords
-#define ADDEPSILON 0.1
     if ( standardNumPos )
     {
       vpXL=(xAxis || xnodef )?ovpXL       :vpX;

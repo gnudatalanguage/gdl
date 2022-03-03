@@ -287,17 +287,22 @@ public:
    (*newxch)[0]=x;
    (*newych)[0]=y;
 
-   int tagxppcm = dStruct->Desc()->TagIndex( "X_PX_CM");
-   int tagyppcm = dStruct->Desc()->TagIndex( "Y_PX_CM");
-   DFloat xppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagxppcm)))[0]*0.1;
-   DFloat yppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagyppcm)))[0]*0.1;
-
-   PLFLT newsize=x/xppm;
-   PLFLT newSpacing=y/yppm;
    GDLGStream* actStream=GetStream(false);
-   if( actStream != NULL) {actStream->setLineSpacing(newSpacing); actStream->RenewPlplotDefaultCharsize(newsize);}
+   if( actStream != NULL) {
+     int tagxppcm = dStruct->Desc()->TagIndex( "X_PX_CM");
+     int tagyppcm = dStruct->Desc()->TagIndex( "Y_PX_CM");
+     actStream->setFixedCharacterSize(x,1.0,y);
+   }
    return true;
   }
+
+  virtual void FontChanged() {
+    GDLGStream* actStream = GetStream(false);
+    if (actStream != NULL) {
+      actStream->fontChanged();
+    }
+  }
+  
   virtual void ClearStream( DLong bColor)
   {
     throw GDLException( "Device "+Name()+" does not support ClearStream.");
@@ -364,7 +369,7 @@ public:
   DLong GetDecomposed();
   BaseGDL* GetFontnames(){ ThrowGDLException("DEVICE: Keyword GET_FONTNAMES not allowed for call to: DEVICE" );return NULL;}
   DLong GetFontnum(){ ThrowGDLException("DEVICE: Keyword GET_FONTNUM not allowed for call to: DEVICE" );return 0;}
-  bool SetFont(DString &f) {fontname=f; return true;}
+  virtual bool SetFont(DString &f) {fontname=f; return true;}
   DString GetCurrentFont() {return fontname;}
   bool SetBackingStore(int value);
   bool Hide(); 
@@ -372,24 +377,26 @@ public:
   int ActWin();
   int GetNonManagedWidgetActWin(bool doTidyWindowList=true);
   bool CopyRegion(DLongGDL* me);
-  virtual bool SetCharacterSize( DLong x, DLong y)     {
+  virtual bool SetCharacterSize( DLong x, DLong y)  final   {
    int tagx = dStruct->Desc()->TagIndex( "X_CH_SIZE");
    int tagy = dStruct->Desc()->TagIndex( "Y_CH_SIZE");
    DLongGDL* newxch = static_cast<DLongGDL*>( dStruct->GetTag( tagx));
    DLongGDL* newych = static_cast<DLongGDL*>( dStruct->GetTag( tagy));
    (*newxch)[0]=x;
    (*newych)[0]=y;
-   WindowListT::iterator i;
-   int tagxppcm = dStruct->Desc()->TagIndex( "X_PX_CM");
-   int tagyppcm = dStruct->Desc()->TagIndex( "Y_PX_CM");
-   DFloat xppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagxppcm)))[0]*0.1;
-   DFloat yppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagyppcm)))[0]*0.1;
 
-   PLFLT newsize=x/xppm;
-   PLFLT newSpacing=y/yppm;
-   for (i = winList.begin(); i != winList.end(); ++i) if ((*i) != NULL) {(*i)->setLineSpacing(newSpacing); (*i)->RenewPlplotDefaultCharsize(newsize);}
+   for (WindowListT::iterator i= winList.begin(); i != winList.end(); ++i) if ((*i) != NULL) {
+     (*i)->setFixedCharacterSize(x,1.0,y);
+   }
    return true;
-  }  
+  }
+
+  virtual void FontChanged() {
+    for (WindowListT::iterator i = winList.begin(); i != winList.end(); ++i) if ((*i) != NULL) {
+        (*i)->fontChanged();
+      }
+  }
+  
 };
 
 #endif
