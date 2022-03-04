@@ -3885,18 +3885,36 @@ bool Data_<SpDObj>::LogTrue(SizeT i)
 
 template<>
 BaseGDL* Data_<SpDString>::Rebin( const dimension& newDim, bool sample)
-{
-  throw GDLException("String expression not allowed in this context.");
+{std::string t = BaseGDL::interpreter->Name(this);
+if ( t.substr(0,12) != "<Expression>" ){
+  throw GDLException("REBIN: String expression not allowed in this context: "+ t +".");
+  
+}else {
+  t = t.erase(0,13);
+  throw GDLException("REBIN: String expression not allowed in this context: "+ t +"."); 
+}
 }
 template<>
 BaseGDL* Data_<SpDComplex>::Rebin( const dimension& newDim, bool sample)
-{
-  throw GDLException("Complex expression not allowed in this context.");
+{std::string t = BaseGDL::interpreter->Name(this);
+if ( t.substr(0,12) != "<Expression>" ){
+  throw GDLException("REBIN: Complex expression not allowed in this context: "+ t +".");
+  
+}else {
+  t = t.erase(0,13);
+  throw GDLException("REBIN: Complex expression not allowed in this context: "+ t +"."); 
+}
 }
 template<>
 BaseGDL* Data_<SpDComplexDbl>::Rebin( const dimension& newDim, bool sample)
-{
-  throw GDLException("Double complex expression not allowed in this context.");
+{std::string t = BaseGDL::interpreter->Name(this);
+if ( t.substr(0,12) != "<Expression>" ){
+  throw GDLException("REBIN: Complex expression not allowed in this context: "+ t +".");
+  
+}else {
+  t = t.erase(0,13);
+  throw GDLException("REBIN: Complex expression not allowed in this context: "+ t +"."); 
+}
 }
 
 
