@@ -78,7 +78,7 @@ jobs:
           path: ${{ runner.temp }}/cache
           key: cache-gdl-deps-${{ matrix.os }}-v4
       - name: Install Dependencies (macOS, Homebrew)
-        if: contains(matrix.os, 'macos')
+        if: contains(matrix.os, 'macos')                    # && steps.cache.outputs.cache-hit != 'true'  #removed as the cached state is bad.
         run: |
           find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot1.txt
           scripts/build_gdl.sh prep

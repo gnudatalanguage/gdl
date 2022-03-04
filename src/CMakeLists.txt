@@ -39,6 +39,7 @@ dialog.cpp
 dinterpreter.cpp
 dnode.cpp
 dpro.cpp
+dSFMT/dSFMT.c
 dstructdesc.cpp
 dstructfactory.cxx
 dstructgdl.cpp
@@ -53,22 +54,14 @@ gdlarray.cpp
 gdleventhandler.cpp
 gdlexception.cpp
 gdlgstream.cpp
-dSFMT/dSFMT.c
 )
 
-if(WIN32)
+if(NOT WIN32)
 set(SOURCES
 ${SOURCES}
-otherdevices/gdlwinstream.cpp
-gtdhelper.cpp
-otherdevices/devicewin.cpp
+gdlxstream.cpp
 )
-else(WIN32)
-set(SOURCES
-${SOURCES}
-otherdevices/gdlxstream.cpp
-)
-endif(WIN32)
+endif(NOT WIN32)
 
 set(SOURCES
 ${SOURCES}
@@ -200,10 +193,12 @@ ${SOURCES}
 ${WX_RC}
 )
 endif(HAVE_LIBWXWIDGETS AND WIN32)
+#local plplot drivers
+add_subdirectory(plplotdriver)
 
 add_subdirectory(antlr)
 
-include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_BINARY_DIR})
+include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_SOURCE_DIR}/src/plplotdriver ${CMAKE_BINARY_DIR})
 link_directories(${LINK_DIRECTORIES})
 
 if(PYTHON_MODULE) #GDL.so
