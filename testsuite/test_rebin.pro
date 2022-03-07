@@ -28,8 +28,7 @@ pro test_rebin, test=test
   ; this one passes with total 
   f=bindgen(3,5,7,11,13,17)
   b=rebin(f,3*5,5*4,7*3,11*2,13*2,17*2) & w=where(b eq 33, count) & if count ne 74045 then begin & errnum++ &  if dotest then stop & endif
-  
-  ;;;;;;;;;;;;;;wrong here;;;;;;;;;;;;;;;;;;;;;;
+
   ; not OK with IDL  - 1950
   ; now it's OK
   c=rebin(b,3,5,7,11,13,17) & w=where(c eq 155, count) & if count ne 2113 then begin & errnum++ &  if dotest then stop & endif
@@ -47,11 +46,7 @@ pro test_rebin, test=test
 
 ; simple case that was failing 
   a=[-320s,192] & b=rebin(a,200) & if (b[0] ne -320 or b[99] ne 186) then begin & errnum++ &  if dotest then stop & endif 
-  
-  ;;;; wrong;;;;;;;;;
   a=[-320l,192] & b=rebin(a,200) & if (b[0] ne -320 or b[99] ne 186) then begin & errnum++ &  if dotest then stop & endif 
-  
-  
   a=[-320ll,192] & b=rebin(a,200) & if (b[0] ne -320 or b[99] ne 186) then begin & errnum++ &  if dotest then stop & endif 
 
 ; testing the two ways of specifying new dimensions:
