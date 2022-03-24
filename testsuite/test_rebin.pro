@@ -9,6 +9,12 @@ pro test_rebin, test=test
   c=rebin(b,3,5,7,11,13,17,/sam)
   if total(c-f) ne 0 then begin & errnum++ &  if dotest then stop & endif
   
+  f=findgen(48,64)
+  b = rebin(f,24,16)
+  c = rebin(f,96,128)
+  if b[10,15] ne 2972.5000 then begin & errnum++ &  if dotest then stop & endif
+  if c[77,101] ne 2462.5000 then begin & errnum++ &  if dotest then stop & endif
+
 ;  old_cpu=!cpu
 ;  cpu,tpool_nthread=1
 ; these multidim arrays will give a different (and unpredictible) total if parallelism is present (see IDL's doc for TOTAL).
@@ -22,8 +28,10 @@ pro test_rebin, test=test
   ; this one passes with total 
   f=bindgen(3,5,7,11,13,17)
   b=rebin(f,3*5,5*4,7*3,11*2,13*2,17*2) & w=where(b eq 33, count) & if count ne 74045 then begin & errnum++ &  if dotest then stop & endif
-  ; not OK with IDL
-  c=rebin(b,3,5,7,11,13,17) & w=where(c eq 155, count) & if count ne 1950 then begin & errnum++ &  if dotest then stop & endif
+
+  ; not OK with IDL  - 1950
+  ; now it's OK
+  c=rebin(b,3,5,7,11,13,17) & w=where(c eq 155, count) & if count ne 2113 then begin & errnum++ &  if dotest then stop & endif
  ; 
   f=indgen(3,5,7,11,13,17)
   b=rebin(f,3*5,5*4,7*3,11*2,13*2,17*2) & w=where(b eq 32767, count) & if count ne 8 then begin & errnum++ &  if dotest then stop & endif
