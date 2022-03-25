@@ -24,7 +24,7 @@
 
 
 GDLWXStream::GDLWXStream( int width, int height )
-: GDLGStream( width, height, "wxwidgets")
+: GDLGStream( width, height, (useLocalDrivers)?"wxwidgetsgdl":"wxwidgets")
   , streamDC(NULL)
   , streamBitmap(NULL)
   , m_width(width), m_height(height)
@@ -413,7 +413,7 @@ bool GDLWXStream::GetScreenResolution(double& resx, double& resy) {
 }
 void GDLWXStream::DefineSomeWxCursors(){
 
-#include "otherdevices/gdlcursors.h"
+#include "gdlcursors.h"
   for (int cnum=0; cnum<nglyphs; cnum++) {
   char* glyph=(char*)&(glyphs[glyphs_offset[cnum]]);
   char* glyph_mask=(char*)&(glyphs_mask[glyphs_mask_offset[cnum]]);
