@@ -1529,11 +1529,9 @@ namespace lib {
     } else {
       ceil = b;
     }
-    DLong bini;
     for( SizeT i=0; i<nEl; ++i) {
       if ((*p0D)[i] <= ceil && (*p0D)[i] >= a ){
-        bini = floor(((*p0D)[i] -a)/bsize);
-        hh->bin[bini] = (hh->bin[bini]) + 1 ;
+	gsl_histogram_increment(hh, (*p0D)[i]);
       }
     }
 
