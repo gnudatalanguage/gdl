@@ -1484,12 +1484,13 @@ namespace lib {
         nbins = static_cast< DLong>(floor(nbins0)+1);
       }
     }
+
     // -> b
     b = a + nbins * bsize;
 
+    // AC 2022/03/26 detected by "test_2876372"
     if( bsize < 0 || a > b || !isfinite(a) || !isfinite(b))
       e->Throw( "Illegal binsize or max/min.");
-
 
     // INPUT keyword
     static int inputIx = e->KeywordIx("INPUT");
@@ -1572,7 +1573,10 @@ namespace lib {
       DULong k = 0;
       multimap< size_t, SizeT> bin_j;
       for( SizeT j=0; j<nEl; ++j) {
-	if( (*p0D)[j] >= a && (*p0D)[j] <= b)
+
+	// AC 2022/03/26 detected by "test_2846561"
+
+	if( (*p0D)[j] >= a && (*p0D)[j] < b)
 	  {
 	    ++k;
 
