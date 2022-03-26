@@ -194,3 +194,4 @@ test_zeropoly.pro
 test_write_csv.pro
 test_all_basic_functions.pro
 test_convert2.pro
+test_histo.pro
