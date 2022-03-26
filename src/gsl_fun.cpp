@@ -1489,7 +1489,7 @@ namespace lib {
     b = a + nbins * bsize;
 
     // AC 2022/03/26 detected by "test_2876372"
-    if( bsize < 0 || a > b || !isfinite(a) || !isfinite(b))
+    if( bsize <= 0 || a > b || !isfinite(a) || !isfinite(b))
       e->Throw( "Illegal binsize or max/min.");
 
     // INPUT keyword
