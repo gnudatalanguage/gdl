@@ -103,7 +103,7 @@ There is an ongoing effort to maintain a `GDL` Jupyter kernel `gdl_kernel` provi
 Over the years, `IDL` had been commercially offered by Research Systems Inc. (RSI), ITT Visual Information Solutions (ITT-VIS) and
   Exelis Visual Information Solutions; `PV-WAVE` had been offered by Precision Visuals, Visual Numerics and Rogue Wave Software.
 
-There also exists a non-libre closed-source free/gratis implementation of `IDL`/`GDL`: [Fawlty Language (FL)](https://www.flxpert.hu/fl/).
+[Fawlty Language (FL)](https://www.flxpert.hu/fl/) is a non-libre closed-source free/gratis implementation of `IDL`/`GDL`.
 
 Both `GDL` and `FL` rely on `IDL` and `PV-WAVE` documentation which have been publicly available on the `IDL` and `PV-WAVE` proprietors' websites.
 For many years, `IDL` documentation had been publicly available on NASA websites and is thus archived by the Internet Archive at
@@ -169,6 +169,6 @@ The paper text was composed by JP and SA.
 `GDL` development benefited from code contributions, bug reports and feedback from numerous
   other developers and users.
 
-Development of GDL had been hosted at Sourceforge in years 2003-2018 and has since moved to Github.
+`GDL` development had been hosted at Sourceforge over 2003-2018 and has since moved to Github.
 
 # References
