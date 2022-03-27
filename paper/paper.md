@@ -9,7 +9,7 @@ tags:
 authors:
   - name: Jeongbin Park
     orcid: 0000-0002-9064-4912
-    affiliation: pusan.ac.kr,dkfz.de
+    affiliation: pusan.ac.kr
   - name: Gilles Duvert
     orcid: 0000-0001-8769-3660 
     affiliation: univ-grenoble-alpes.fr
@@ -39,8 +39,6 @@ authors:
     orcid: 0000-0003-2361-0082
     affiliation: "illinois.edu,uj.edu.pl"
 affiliations:
- - name: German Cancer Research Center (DKFZ), Heidelberg, Germany
-   index: dkfz.de
  - name: Pusan National University, Korea
    index: pusan.ac.kr
  - name: Univ. Grenoble Alpes, CNRS, IPAG, 38000 Grenoble, France 
@@ -100,7 +98,7 @@ There also exists a non-libre closed-source free/gratis implementation of IDL/GD
 Both GDL and FL rely on IDL and PV-WAVE documentation which have been publicly available on the IDL and PV-WAVE proprietors.
 For many years, IDL documentation had been publicly available on NASA websites and is thus archived by the Internet Archive at
   <https://web.archive.org/web/2017*/http://idlastro.gsfc.nasa.gov/idl_html_help>.
-IDL syntax and library routines are documented in several published books, e.g.: [@Fanning_2003,Bowman_2005,Gumley_2010,Galloy_2015].
+IDL syntax and library routines are documented in several published books, e.g.: @Fanning_2003,Bowman_2005,Gumley_2010,Galloy_2015.
 
 # Statement of Need
 
@@ -110,7 +108,7 @@ Nowadays, the main goal of development of GDL is to preserve the capability to r
 
 Reports on the development status and examples of use of `GDL` in research have been presented at consecutive editions 
   of the Astronomical Data Analysis Software and Systems (ADASS) conferences:
-  [@Coulais_et_al_2010,Coulais_et_al_2012,Coulais_et_al_2014,Coulais_et_al_2019,Duvert_et_al_2020].
+  @Coulais_et_al_2010,Coulais_et_al_2012,Coulais_et_al_2014,Coulais_et_al_2019,Duvert_et_al_2020.
 
 # Obtaining GDL
 
@@ -118,7 +116,7 @@ GDL can be installed via the package managing system on Linux (Arch, Debian, Fed
   FreeBSD and macOS (Homebrew and Macports).
 On Windows, we provide a precompiled Windows binary, as well as a Nullsoft Scriptable
   Install System (NSIS) based installer.
-Weekly development builds are available from Github, see <https://github.com/gnudatalanguage>.
+Links to `GDL` package sites as well as weekly development builds are available from Github, see <https://github.com/gnudatalanguage>.
 
 # Support and Contributions
 
@@ -126,7 +124,7 @@ Weekly development builds are available from Github, see <https://github.com/gnu
 The preferred and effective way to report requests for support, missing features or bugs present
   is through the GitHub issue tracker.
 
-To streamline handling of code contributions, pull requests on GitHub are preferred.
+To streamline review and incorporation of code contributions, pull requests on GitHub are preferred.
 All contributed code must comply with the `GDL` free and open source licensing terms.
 
 # Design and dependencies
