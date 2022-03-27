@@ -7,35 +7,35 @@ tags:
   - IDL
   - PV-WAVE
 authors:
-  - name: Jeongbin Park
+  - name: Jeongbin~Park
     orcid: 0000-0002-9064-4912
     affiliation: pusan.ac.kr
-  - name: Gilles Duvert
+  - name: Gilles~Duvert
     orcid: 0000-0001-8769-3660 
     affiliation: univ-grenoble-alpes.fr
-  - name: Alain Coulais
+  - name: Alain~Coulais
     orcid: 0000-0001-6492-7719
-    affiliation: "obspm.fr, cea.fr"
-  - name: Takeshi Enomoto
+    affiliation: "obspm.fr,cea.fr"
+  - name: Takeshi~Enomoto
     affiliation: kyoto-u.ac.jp
-  - name: Sylvain Flinois
+  - name: Sylvain~Flinois
     affiliation: kumullus.com
-  - name: Gregory V. Jung
+  - name: Gregory~V.~Jung
     affiliation: ".us"
-  - name: Orion Poplawski
+  - name: Orion~Poplawski
     affiliation: nwra.com
-  - name: Eloi Rozier de Linage
+  - name: Eloi~Rozier~de~Linage
     affiliation: obspm.fr
-  - name: Remi A. Solås
+  - name: Remi~A.~Solås
     affiliation: ".no" 
-  - name: Ole Streicher
+  - name: Ole~Streicher
     orcid: 0000-0001-7751-1843
     affiliation: aip.de
-  - name: James Tappin
+  - name: James~Tappin
     affiliation: stfc.ac.uk
-  - name: Thierry Thomas
+  - name: Thierry~Thomas
     affiliation: edf.fr
-  - name: Sylwester Arabas
+  - name: Sylwester~Arabas
     orcid: 0000-0003-2361-0082
     affiliation: "illinois.edu,uj.edu.pl"
 affiliations:
@@ -69,13 +69,13 @@ bibliography: paper.bib
 
 # Summary
 
-We present GNU Data Language (`GDL`), an open-source free incremental compiler for the scripts written in Interactive Data
+We present GNU Data Language (`GDL`), an open-source free incremental compiler for programs written in Interactive Data
   Language (`IDL`), a computer language once widely used for scientific data analysis, especially in the fields of astronomy,
   geosciences, biology, hyperspectral and medical imaging. 
-`GDL` 1.0 aims at full compatible with modern `IDL` language specification, including partial support
+`GDL` 1.0 aims at full compatibility with modern `IDL` language specification, including partial support
   of `IDL` 8 specification and above.
-`GDL` is also partially compatible with `PV-WAVE`, another data analysis language that forked from `IDL` and 
-  shares parts of `IDL` syntax and library interface.
+`GDL` is also partially compatible with `PV-WAVE`, another data analysis framework forked from `IDL` and 
+  sharing parts of `IDL` syntax and library interface.
 `GDL` has been developed to closely mimic the behavior of the `IDL` compiler and libraries distributed by
   Harris Geospatial Solutions, so that the existing `IDL` scripts to be compatible with `GDL` without any modifications. 
 `GDL` also comes with an integrated development environment (IDE), `GDL Workbench`, based on Eclipse Rich Client Platform (RCP),
@@ -83,10 +83,11 @@ We present GNU Data Language (`GDL`), an open-source free incremental compiler f
 There is an ongoing effort to maintain a GDL Jupyter kernel `gdl_kernel` providing GDL data analysis and plotting functionalities
   via familiar interactive notebook interface.
 `GDL` features a bi-directional Python bridge offering access to IDL/GDL code from Python and vice versa.
-`GDL` development has been started by Marc Schellens almost 20 years ago (commit history preserved on github dates back to 2004) 
+`GDL`, `GDLDE` and `gdl_kernel` are free/libre and open-source software released under the terms of the GNU General Public License v2.
+
+`GDL` development has been started by **Marc Schellens** almost 20 years ago (commit history preserved on github dates back to 2004) 
   and has since been continuesly carried out by an evolving team of volunteer contributors -- both freelance and affiliated with
   academic institutions.
-GDL, GDLDE and `gdl_kernel` are free/libre and open-source software released under the terms of the GNU General Public License v2.
 
 `IDL` is a registered trademark of [L3HARRIS](http://l3harrisgeospatial.com). 
 `PV-WAVE` is a product of [Perforce](http://perforce.com).
@@ -98,7 +99,7 @@ There also exists a non-libre closed-source free/gratis implementation of IDL/GD
 Both GDL and FL rely on IDL and PV-WAVE documentation which have been publicly available on the IDL and PV-WAVE proprietors.
 For many years, IDL documentation had been publicly available on NASA websites and is thus archived by the Internet Archive at
   <https://web.archive.org/web/2017*/http://idlastro.gsfc.nasa.gov/idl_html_help>.
-IDL syntax and library routines are documented in several published books, e.g.: @Fanning_2003,Bowman_2005,Gumley_2010,Galloy_2015.
+IDL syntax and library routines are documented in several published books, e.g.: @Fanning_2003, @Bowman_2005, @Gumley_2010, @Galloy_2015.
 
 # Statement of Need
 
@@ -108,7 +109,7 @@ Nowadays, the main goal of development of GDL is to preserve the capability to r
 
 Reports on the development status and examples of use of `GDL` in research have been presented at consecutive editions 
   of the Astronomical Data Analysis Software and Systems (ADASS) conferences:
-  @Coulais_et_al_2010,Coulais_et_al_2012,Coulais_et_al_2014,Coulais_et_al_2019,Duvert_et_al_2020.
+  @Coulais_et_al_2010, @Coulais_et_al_2012, @Coulais_et_al_2014, @Coulais_et_al_2019, @Duvert_et_al_2020.
 
 # Obtaining GDL
 
