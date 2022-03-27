@@ -1,9 +1,49 @@
 ;
-; AC 01-Jun-2007
-; SA 30-Aug-2009 (TEST_HISTO_BASIC)
-; AC 06-Dec-2011 (adding TEST_HISTO_NAN)
-; AC 20-Feb-2013 (adding TEST_HISTO_UNITY_BIN)
-; JW Mar-2022 (adding TEST_HISTO_NBINS, TEST_HISTO_BINSIZE, TEST_HISTO_MAX, TEST_HISTO_TYPE, TEST_HISTO_TOUT)
+; Initial author : AC 01-Jun-2007
+; Code under GNU GPL V2 or later
+;
+; ---------------------------------------
+; Modifications history :
+;
+; - SA 30-Aug-2009 (TEST_HISTO_BASIC)
+; - AC 06-Dec-2011 (adding TEST_HISTO_NAN)
+; - AC 20-Feb-2013 (adding TEST_HISTO_UNITY_BIN)
+; - JW Mar-2022 (adding TEST_HISTO_NBINS, TEST_HISTO_BINSIZE,
+;    TEST_HISTO_MAX, TEST_HISTO_TYPE, TEST_HISTO_TOUT)
+; - AC Mar-2022 :
+;  * inserting old tests done in "test_bug_2846561" et "test_bug_2876372"
+;  * renaming !
+;
+; -------------------------------------
+;
+; This bug was reported when we were hosted by SourceForge
+; We update it here.
+;
+pro TEST_BUG_2846561, cumul_errors, test=test, verbose=verbose
+;
+errors=0
+;
+x=INDGEN(50)
+;
+res=HISTOGRAM(x, min=15, max=16)
+if ~ARRAY_EQUAL(res, [1l,1]) then ERRORS_ADD, errors, 'case 1'
+;
+res=HISTOGRAM(x,min=30,max=33)
+if ~ARRAY_EQUAL(res, [1l,1,1,1]) then ERRORS_ADD, errors, 'case 2'
+;
+res=HISTOGRAM(x, min=15, max=16, reverse_indices=ir)
+if ~ARRAY_EQUAL(res, [1l,1]) then ERRORS_ADD, errors, 'case 3a'
+if ~ARRAY_EQUAL(ir, [3L, 4, 5, 15, 16]) then ERRORS_ADD, errors, 'case 3b'
+;
+; --------------
+;
+BANNER_FOR_TESTSUITE, "TEST_BUG_2846561", errors, /short, verb=verbose
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_SET(test) then STOP
+;
+end
+;
+; -------------------------------------
 ;
 pro TEST_HISTO_RANDOMU, nbp=nbp, nan=nan
 ;
@@ -21,6 +61,7 @@ end
 ; based on a IDL example
 ; ------------------------------------------------------------------
 pro TEST_HISTO_GAUSS, test=test
+;
 if ~KEYWORD_SET(num_err) then num_err=0
 ; Two-hundred values ranging from -5 to 4.95:  
 X = FINDGEN(200) / 20. - 5.  
@@ -40,23 +81,25 @@ OPLOT, X, Y * 8.
 if KEYWORD_SET(test) then stop
 ;
 end
+;
 ; ------------------------------------------------------------------
 ; SA: intended for checking basic histogram functionality
 pro TEST_HISTO_BASIC, cumul_errors, test=test, verbose=verbose
-  ; for any input if MAX/MIN kw. value is the max/min element of input
-  ; it shoud be counted in the last/first bins
+;
+; for any input if MAX/MIN kw. value is the max/min element of input
+; it shoud be counted in the last/first bins
 ;
 errors = 0
 ;
-  for e = -1023, 1021 do begin  ; idl-1022, gdl-1021
-    input = [-2d^e, 2d^e]
-    if ( ~array_equal(histogram(input, max=input[1], min=input[0], nbins=2, reverse=ri), [1,1]) ) then begin 
-      errors++ &  print,' error basic TEST 01!' 
-    endif
-  endfor
-  ;ignored = histogram([0.], min=0, max=0, reverse=ri) 
+for e = -1023, 1021 do begin    ; idl-1022, gdl-1021
+   input = [-2d^e, 2d^e]
+   res=HISTOGRAM(input, max=input[1], min=input[0], nbins=2, reverse=ri)
+   if ( ~ARRAY_EQUAL(res, [1,1]) ) then ERRORS_ADD, errors, ' error basic TEST 01!' 
+endfor
 
-  ; test if binsize=(max-min)/(nbins-1) when nbins is set and binsize is not set
+;;ignored = histogram([0.], min=0, max=0, reverse=ri) 
+
+ ; test if binsize=(max-min)/(nbins-1) when nbins is set and binsize is not set
   ; data-type loop 
   for type = 2, 15 do if type lt 6 or type gt 11 then begin
     data = make_array(100, type=type, index = type ne 7)
@@ -461,9 +504,8 @@ end
 ; ------------------------------------------------------------------
 
 ;
-pro TEST_HISTO, help=help, test=test, verbose=verbose, no_exit=no_exit, display=display
+pro TEST_HISTOGRAM, help=help, test=test, verbose=verbose, no_exit=no_exit
 ;
-num_err = 0
 cumul_errors=0
 ;
 ; revised by JW
@@ -478,10 +520,11 @@ TEST_HISTO_BINSIZE, cumul_errors, test=test, verbose=verbose
 TEST_HISTO_MAX, cumul_errors, test=test, verbose=verbose
 TEST_HISTO_TYPE, cumul_errors, test=test, verbose=verbose
 TEST_HISTO_TOUT, cumul_errors, test=test, verbose=verbose
+TEST_BUG_2846561, cumul_errors, test=test, verbose=verbose
 ;
 ; ----------------- final message ----------
 ;
-BANNER_FOR_TESTSUITE, 'TEST_HISTO', cumul_errors, short=short
+BANNER_FOR_TESTSUITE, 'TEST_HISTOGRAM', cumul_errors, short=short
 ;
 if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
