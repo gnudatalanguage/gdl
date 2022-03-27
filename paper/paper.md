@@ -106,8 +106,8 @@ Over the years, `IDL` had been commercially offered by Research Systems Inc. (RS
 [Fawlty Language (FL)](https://www.flxpert.hu/fl/) is a non-libre closed-source free/gratis implementation of `IDL`/`GDL`.
 
 Both `GDL` and `FL` rely on `IDL` and `PV-WAVE` documentation which have been publicly available on the `IDL` and `PV-WAVE` proprietors' websites.
-For many years, `IDL` documentation had been publicly available on NASA websites and is thus archived by the Internet Archive at
-  <https://web.archive.org/web/2017*/http://idlastro.gsfc.nasa.gov/idl_html_help>.
+For many years, `IDL` documentation had been publicly available on NASA websites and it is archived by the Internet Archive at
+  <https://web.archive.org/web/20090423093625/http://idlastro.gsfc.nasa.gov/idl_html_help/>.
 `IDL` syntax and library routines are documented in several published books, e.g.: @Fanning_2003, @Bowman_2005, @Gumley_2010, @Galloy_2015.
 
 # Statement of Need
