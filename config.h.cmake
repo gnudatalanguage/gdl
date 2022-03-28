@@ -22,6 +22,7 @@
 #cmakedefine HAVE_LOCALE_H 1
 #cmakedefine HAVE_SBRK 1
 #cmakedefine HAVE_MALLINFO 1
+#cmakedefine HAVE_MALLINFO2 1
 #cmakedefine HAVE_MALLOC_H 1
 #cmakedefine HAVE_MALLOC_MALLOC_H 1
 #cmakedefine HAVE_MALLOC_ZONE_STATISTICS 1
@@ -30,6 +31,7 @@
 #cmakedefine HAVE_PLPLOT_WIDTH 1
 #cmakedefine PLPLOT_PRIVATE_NOT_HIDDEN 1
 #cmakedefine PLPLOT_HAS_PLCALLBACK
+#cmakedefine HAVE_QHULL 1
 #define _WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ 1
 
 #ifndef HAVE_STDINT_H
@@ -68,19 +70,19 @@
 #cmakedefine USE_EXPAT 1
 #cmakedefine USE_HDF 1
 #cmakedefine USE_HDF5 1
-#cmakedefine USE_LIBPROJ4 1
-#cmakedefine USE_LIBPROJ4_NEW 1
+#cmakedefine USE_LIBPROJ 1
+#define LIBPROJ_MAJOR_VERSION @LIBPROJ_MAJOR_VERSION@
 #cmakedefine USE_MAGICK 1
 #cmakedefine USE_MPI 1
 #cmakedefine USE_NETCDF 1
 #cmakedefine USE_NETCDF4 1
 #cmakedefine USE_OPENMP 1
 #cmakedefine USE_PYTHON 1
+#cmakedefine USE_QHULL 1
 #cmakedefine USE_TIFF 1
 #cmakedefine USE_GEOTIFF 1
 #cmakedefine USE_UDUNITS 1
 #cmakedefine USE_EIGEN 1
 #cmakedefine USE_PNGLIB 1
-#cmakedefine USE_X 1
-#cmakedefine USE_WINGDI_NOT_WINGCC 1
+#cmakedefine INSTALL_LOCAL_DRIVERS 1
 #endif

@@ -44,6 +44,7 @@
 
 #include <cstddef>
 #include <cstdlib>
+#include <algorithm>
 
 #if defined(USE_EIGEN)
 #include <Eigen/Core>
@@ -91,7 +92,11 @@ inline void gdlAlignedFree(void* ptr) {
 inline int currentNumberOfThreads() {
   return omp_get_num_threads();
 }
-inline int maxNumberOfThreads() {
+#define DSFMT_MAX_PARALLEL_SEEDS 4
+inline int maxNumberOfThreadsForDSFMT() {
+  return std::min (DSFMT_MAX_PARALLEL_SEEDS,omp_get_num_procs());
+}
+inline int numberOfProcs() {
   return omp_get_num_procs();
 }
 inline int currentThreadNumber() {
@@ -102,7 +107,7 @@ inline int currentNumberOfThreads() {
   return 1;
 }
 
-inline int maxNumberOfThreads() {
+inline int maxNumberOfThreadsForDSFMT() {
   return 1;
 }
 

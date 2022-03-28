@@ -25,17 +25,13 @@
 
 #include "objects.hpp"
 
-#ifdef _MSC_VER
-#define CM2IN (.01 / GSL_CONST_MKSA_INCH) // This is not good, but works
-#define in2cm ( GSL_CONST_MKSA_INCH * 100)
-#define DPI 72.0 //in dpi;
-#define RESOL 1000.0
-#else
+
   static const float CM2IN = .01 / GSL_CONST_MKSA_INCH;
   static const float in2cm = GSL_CONST_MKSA_INCH*100;
-  static const PLFLT DPI = 72.0 ; //in dpi;
-  static const float RESOL = 1000.0;
-#endif
+  static const PLFLT PS_DPI = 72.0 ; //in dpi;
+  static const PLFLT DPICM = 72.0/2.54 ; //dpi/cm;
+  static const float PS_RESOL = 1000.0;
+  static const PLFLT PlplotInternalPageRatioXoverY=4./3.; //Some machines do not know PRIVATE values stored in plplotP.h 4/3=PlplotInternalPageRatioXoverY=float(PIXELS_X)/float(PIXELS_Y)
 
 class DevicePS: public GraphicsDevice
 {
@@ -64,7 +60,7 @@ class DevicePS: public GraphicsDevice
 
     if( nx <= 0) nx = 1;
     if( ny <= 0) ny = 1;
-    actStream = new GDLPSStream( nx, ny, (int)SysVar::GetPFont(), encapsulated, color, bitsPerPix);
+    actStream = new GDLPSStream( nx, ny, (int)SysVar::GetPFont(), encapsulated, color, bitsPerPix, orient_portrait);
 
     actStream->sfnam( fileName.c_str());
 
@@ -72,28 +68,31 @@ class DevicePS: public GraphicsDevice
     // AC 29-Avril-2013: the way I found to link GDLPSStream* and GDLStream*
     DLong lun=GetLUN();
     psUnit = &fileUnits[ lun-1];
-    psUnit->Open(fileName,fstream::out,false,false,false,
-		 defaultStreamWidth,false,false);
+    psUnit->Open(fileName,fstream::out,false,false,false,defaultStreamWidth,false,false);
     (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("UNIT"))))[0]=lun;
 
     // zeroing offsets (xleng and yleng are the default ones but they need to be specified 
-    // for the offsets to be taken into account by spage(), works with plplot >= 5.9.9)    
-    actStream->spage(DPI, DPI, 540, 720, 0, 0); //plplot default: portrait!
-
+    // for the offsets to be taken into account by spage(), works with plplot >= 5.9.9)
+    PLINT XSIZE=ceil(XPageSize*DPICM);
+    PLINT YSIZE=ceil(YPageSize*DPICM);
+    PLINT XOFF=encapsulated?0:ceil(XOffset*DPICM);
+    PLINT YOFF=encapsulated?0:ceil(YOffset*DPICM);
+    
     // as setting the offsets and sizes with plPlot is (extremely) tricky, and some of these setting
     // are hardcoded into plplot (like EPS header, and offsets in older versions of plplot)
     // here we play only with the aspect ratio 
-    
-    // patch 3611949 by Joanna, 29 Avril 2013
-    PLFLT pageRatio=XPageSize/YPageSize;
-    std::string as = i2s( pageRatio);
-    actStream->setopt( "a", as.c_str());
-    
+
     // plot orientation
-    //std::cout  << "orientation : " << orient_portrait<< std::endl;
-    
-    actStream->sdiori(orient_portrait ? 1 : 2);
-    
+    //std::cout  << "orientation : " << orient_portrait<< '\n';
+    if (orient_portrait) { //X size will be OK, Y size must be scaled 
+     actStream->setopt( "portrait",NULL);
+     actStream->sdidev( PL_NOTSET, PlplotInternalPageRatioXoverY, PL_NOTSET, PL_NOTSET ); //only OK if page ratio is 540x720 
+     actStream->spage(PS_DPI, PS_DPI, XSIZE, YSIZE, YOFF, XOFF);
+    } else {
+     actStream->spage(PS_DPI, PS_DPI, YSIZE, XSIZE, YOFF-XSIZE, XOFF); //invert axes, displace as does IDL..
+     actStream->sdiori(2);
+    }
+
     // no pause on destruction
     actStream->spause( false);
 
@@ -105,8 +104,9 @@ class DevicePS: public GraphicsDevice
     actStream->SetColorMap0( r, g, b, ctSize);
     actStream->SetColorMap1( r, g, b, ctSize);
     // default: black+white (IDL behaviour)
-    short font=((int)SysVar::GetPFont()>-1)?1:0;
-    string what="text="+i2s(font)+",color="+i2s(color);
+    //? force TTF fonts as scaling of hershey fonts will not be good 
+    short text=(SysVar::GetPFont()>=0)?1:0;
+    string what="hrshsym=1,text="+i2s(text)+",color="+i2s(color);
     actStream->setopt( "drvopt",what.c_str());
     actStream->scolbg(255,255,255); // start with a white background
 
@@ -120,26 +120,10 @@ class DevicePS: public GraphicsDevice
     actStream->vpor(0,1,0,1);
     actStream->wind(0,1,0,1);
     actStream->DefaultCharSize();
-   //in case these are not initalized, here is a good place to do it.
-//    if (actStream->updatePageInfo()==true)
-//    {
-//        actStream->GetPlplotDefaultCharSize(); //initializes everything in fact..
-//
-//    }
-//    PLFLT xp, yp;
-//    PLINT xleng, yleng, xoff, yoff;
-//    actStream->gpage(xp, yp, xleng, yleng, xoff, yoff);
-//    // to mimic IDL we must scale char so that the A4 charsize is constant whatever the size of the plot
-//    PLFLT size = (XPageSize>YPageSize)?XPageSize:YPageSize;
-//    PLFLT refsize= (xleng/xp>yleng/yp)?xleng/xp:yleng/yp;
-//    PLFLT charScale=(refsize*in2cm)/size;
-//    PLFLT defhmm, scalhmm;
-//    plgchr(&defhmm, &scalhmm); // height of a letter in millimetres
-//    actStream->RenewPlplotDefaultCharsize(defhmm * charScale);
   }
     
 private:
-  void epsHacks()
+  void psHacks(bool encap)
   {
     // using namespace std;
     //PLPLOT outputs a strange boundingbox; this hack directly edits the eps file.  
@@ -165,35 +149,39 @@ private:
     size_t pos;
     int extralen=0;
 
-// Do not change bonding box. It is good now.
-//    int offx, offy, width, height;
-//    bb += 15;
-//    sscanf(bb, "%i %i %i %i", &offx, &offy, &width, &height);
-//    float hsize = XPageSize*CM2IN*DPI*scale;
-//    float vsize = YPageSize*CM2IN*DPI*scale;
-//    float newwidth = (width - offx), newheight = (height - offy);
-//    float hscale = (orient_portrait ? hsize : vsize)/newwidth/5.0;
-//    float vscale = (orient_portrait ? vsize : hsize)/newheight/5.0;
-////    hscale = min(hscale,vscale)*0.98;
-//    hscale = min(hscale,vscale);
-//    vscale = hscale;
-//    float hoff = -5.*offx*hscale + ((orient_portrait ? hsize : vsize) - 5.0*hscale*newwidth)*0.5;
-//    float voff = -5.*offy*vscale + ((orient_portrait ? vsize : hsize) - 5.0*vscale*newheight)*0.5;
-//
-//    //replace with a more sensible boundingbox
-//    searchstr << "BoundingBox: " << offx << " " << offy << " " << width << " " << height;
-//    replstr << "BoundingBox: 0 0 " << floor((orient_portrait ? hsize : vsize)+0.5) << " " << floor((orient_portrait ? vsize : hsize)+0.5);
-//      pos = sbuff.find(searchstr.str());
-//    if (pos != string::npos) {
-//      sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
-//      extralen = replstr.str().length()-searchstr.str().length();
-//    }
+//  Change bounding box for encapsulated.
+    // normally the bbox should be the P.POSITION or POSITION=[...] values
+    // apparently this works.
+    if (encap) {
+     int offx, offy, width, height;
+     bb += 15;
+     sscanf(bb, "%i %i %i %i", &offx, &offy, &width, &height);
+     float hsize = XPageSize*CM2IN*PS_DPI*scale;
+     float vsize = YPageSize*CM2IN*PS_DPI*scale;
+     float newwidth = (width - offx), newheight = (height - offy);
+     float hscale = (orient_portrait ? hsize : vsize)/newwidth/5.0;
+     float vscale = (orient_portrait ? vsize : hsize)/newheight/5.0;
+ //    hscale = min(hscale,vscale)*0.98;
+     hscale = min(hscale,vscale);
+     vscale = hscale;
+     float hoff = -5.*offx*hscale + ((orient_portrait ? hsize : vsize) - 5.0*hscale*newwidth)*0.5;
+     float voff = -5.*offy*vscale + ((orient_portrait ? vsize : hsize) - 5.0*vscale*newheight)*0.5;
+
+     //replace with a more sensible boundingbox
+     searchstr << "BoundingBox: " << offx << " " << offy << " " << width << " " << height;
+     replstr << "BoundingBox: 0 0 " << floor((orient_portrait ? hsize : vsize)+0.5) << " " << floor((orient_portrait ? vsize : hsize)+0.5);
+       pos = sbuff.find(searchstr.str());
+     if (pos != string::npos) {
+       sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
+       extralen = replstr.str().length()-searchstr.str().length();
+     }
+    }
 
     //replace the values of linecap and linejoin to nice round butts (sic!) more pleasing to the eye.
     searchstr.str("");
-    searchstr << "0 setlinecap" << endl << "    0 setlinejoin";
+    searchstr << "0 setlinecap" << '\n' << "    0 setlinejoin";
     replstr.str("");
-    replstr << "1 setlinecap" << endl << "    1 setlinejoin";
+    replstr << "1 setlinecap" << '\n' << "    1 setlinejoin";
     pos = sbuff.find(searchstr.str());
     if (pos != string::npos) {
       sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
@@ -204,7 +192,7 @@ private:
     if (!orient_portrait) {
     searchstr.str("%%Page: 1 1");
     replstr.str("");
-    replstr << "%%Page: 1 1" << endl << "%%PageOrientation: Landscape" << endl;
+    replstr << "%%Page: 1 1" << '\n' << "%%PageOrientation: Landscape" << '\n';
     pos = sbuff.find(searchstr.str());
     if (pos != string::npos) {
       sbuff.replace(pos,searchstr.str().length(),replstr.str()); 
@@ -258,7 +246,7 @@ private:
 
 public:
   DevicePS(): GraphicsDevice(), fileName( "gdl.ps"), actStream( NULL),
-    XPageSize(17.78), YPageSize(12.7), XOffset(0.75),YOffset(5.0),
+    XPageSize(17.78), YPageSize(12.7), XOffset(1.905),YOffset(12.7),  //IDL default for offests: 54 pts /X and 360 pts/Y
     color(0), decomposed( 0), encapsulated(false), scale(1.), orient_portrait(true), bitsPerPix(8)
   {
     name = "PS";
@@ -270,14 +258,14 @@ public:
 
     dStruct = new DStructGDL( "!DEVICE");
     dStruct->InitTag("NAME",       DStringGDL( name)); 
-    dStruct->InitTag("X_SIZE",     DLongGDL( XPageSize*scale*RESOL)); 
-    dStruct->InitTag("Y_SIZE",     DLongGDL( YPageSize*scale*RESOL));
-    dStruct->InitTag("X_VSIZE",    DLongGDL( XPageSize*scale*RESOL));
-    dStruct->InitTag("Y_VSIZE",    DLongGDL( YPageSize*scale*RESOL));
+    dStruct->InitTag("X_SIZE",     DLongGDL( XPageSize*scale*PS_RESOL)); 
+    dStruct->InitTag("Y_SIZE",     DLongGDL( YPageSize*scale*PS_RESOL));
+    dStruct->InitTag("X_VSIZE",    DLongGDL( XPageSize*scale*PS_RESOL));
+    dStruct->InitTag("Y_VSIZE",    DLongGDL( YPageSize*scale*PS_RESOL));
     dStruct->InitTag("X_CH_SIZE",  DLongGDL( 222));
     dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 352));
-    dStruct->InitTag("X_PX_CM",    DFloatGDL( RESOL)); 
-    dStruct->InitTag("Y_PX_CM",    DFloatGDL( RESOL)); 
+    dStruct->InitTag("X_PX_CM",    DFloatGDL( PS_RESOL)); 
+    dStruct->InitTag("Y_PX_CM",    DFloatGDL( PS_RESOL)); 
     dStruct->InitTag("N_COLORS",   DLongGDL( 256)); 
     dStruct->InitTag("TABLE_SIZE", DLongGDL( 256)); 
     dStruct->InitTag("FILL_DIST",  DLongGDL( 1));
@@ -324,7 +312,7 @@ public:
 
       delete actStream;
       actStream = NULL;
-      if (encapsulated) epsHacks(); // needs to be called after the plPlot-generated file is closed
+      psHacks(encapsulated); // needs to be called after the plPlot-generated file is closed
     }
     return true;
   }

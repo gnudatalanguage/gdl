@@ -109,10 +109,8 @@ if keyword_set(background) then message,/informational,"The BACKGROUND keyword t
 ValidateManagedWidgets
 
 if (n_params() eq 0) then begin
-   if ~ids[0] then begin
-      message,/informational, 'NOT managing any widget currently.'
-      return
-   endif
+   if ~ids[0] then message,/informational, 'No widgets are currently being managed.'
+   return
 endif else if (n_params() ne 2) then message, 'Wrong number of arguments, usage: XMANAGER [, name, id]'
 
 if (n_elements(just_reg) eq 0) then just_reg = 0

@@ -1,14 +1,65 @@
 ;
 ; GM 16/05/2007
 ;
-; Plots of Gamma,lnGamma, iGamma and Beta functions
+; Plots of Gamma,lnGamma, iGamma, Beta and iBeta functions
 ;
 ; Numerical tests and limit tests on these functions
 ;
 ; If you find bugs, limitations, others interresting cases,
 ; please report them to Gregory Marchal (email and code source in src/math_fun_gm.cpp)
 ;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ---------------
+pro test_ibeta_plot
+
+; surface ibeta function:
+z = findgen(10, 10)
+for i = 0, 9 do begin
+    for j = 0, 9 do begin
+        z(i, j) = ibeta(i+.5, j+.5, 0.5)
+    endfor
+endfor
+
+surface, z, title = 'iBeta function', xtitle = 'a', ytitle = 'b', ztitle = 'iB(a,b,x=0.5)', zrange = [0., !pi]
+
+end
+; --------------
+pro test_ibeta_numeric
+
+    ; numerical tests ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        ; float ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+a  = [-5., 1/2., 1/2., 1/2., 1/2.]
+b  = [0.5, 1., 1.5, 2., 2.]
+x  = [1., 0.5, 0.75, 0.5, 0.75]
+ze = [!values.f_infinity, 0.5*sqrt(2), 0.94233114,  0.88388348, 0.97427857]
+zc = ibeta(a, b, x)
+
+test_numeric3, a, b, x, ze, zc, 'numerical', 'a', 'b', 'x', 'iBeta', 'iB(a,b,x)'
+
+for i = 0, 4 do begin
+    if abs(ze(i) - zc(i)) ge 1e-6 then begin
+        print, 'IBETA: FLOAT: WARNING: the difference between expected values and computed values is greater than or equal to 1e-6!'
+    endif
+endfor
+
+    ; limits tests ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        ; float ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+a  = [-!values.f_infinity, !values.f_infinity, !values.f_nan, -!values.f_infinity, !values.f_infinity,!values.f_nan, -!values.f_infinity, !values.f_infinity, !values.f_nan]
+b  = [-!values.f_infinity, -!values.f_infinity, -!values.f_infinity, !values.f_infinity, !values.f_infinity, !values.f_infinity, !values.f_nan, !values.f_nan, !values.f_nan]
+x  = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+ze = [!values.f_nan, !values.f_nan, !values.f_nan, !values.f_nan, !values.f_nan, !values.f_nan, !values.f_nan, !values.f_nan, !values.f_nan]
+zc = ibeta(a, b, x)
+
+test_numeric3, a(0:4), b(0:4), x(0:4), ze(0:4), zc(0:4), 'limits', 'a', 'b', 'x', 'iBeta', 'iB(a,b,x)'
+test_numeric3, a(5:8), b(5:8), x(5:8), ze(5:8), zc(5:8), 'limits', 'a', 'b', 'x', 'iBeta', 'iB(a,b,x)'
+
+for i = 0, 8 do begin
+    if finite(zc(i), /nan) ne 1 then begin
+        print, 'IBETA: FLOAT: WARNING: '+strtrim(i+1,1)+'th limit is wrong!'
+    endif
+endfor
+
+end
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 pro test_gamma_plot
 
 x = findgen(1000)/100-5
@@ -97,6 +148,19 @@ if size(x, /type) eq 4 then print, 'Float '+type+' tests on '+fun_name+':'
 if size(x, /type) eq 5 then print, 'Double '+type+' tests on '+fun_name+':'
 print, format="(a18, 10(' ',g10.7))", xname+' values:', x
 print, format="(a18, 10(' ',g10.7))", yname+' values:', y
+print, format="(a18, 10(' ',g10.7))", 'Expected '+fun_form+':', ze
+print, format="(a18, 10(' ',g10.7))", 'Computed '+fun_form+':', zc
+
+end
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+pro test_numeric3, a, b, x, ze, zc, type, aname, bname, xname, fun_name, fun_form
+
+print ,''
+if size(x, /type) eq 4 then print, 'Float '+type+' tests on '+fun_name+':'
+if size(x, /type) eq 5 then print, 'Double '+type+' tests on '+fun_name+':'
+print, format="(a18, 10(' ',g10.7))", aname+' values:', a
+print, format="(a18, 10(' ',g10.7))", bname+' values:', b
+print, format="(a18, 10(' ',g10.7))", xname+' values:', x
 print, format="(a18, 10(' ',g10.7))", 'Expected '+fun_form+':', ze
 print, format="(a18, 10(' ',g10.7))", 'Computed '+fun_form+':', zc
 
@@ -358,6 +422,7 @@ test_gamma_plot
 test_lngamma_plot
 test_igamma_plot
 test_beta_plot
+test_ibeta_plot
 !p.multi = 0
 
 test_gamma_numeric
@@ -367,6 +432,8 @@ test_lngamma_numeric
 test_igamma_numeric
 	separator
 test_beta_numeric
+    separator
+test_ibeta_numeric
 
 print, ''
 print, 'Please remember that GDL does not support now complex Gamma, lnGamma, iGamma & Beta (GSL limitation) and that iGamma does not computes for first parameter lesser than or equal to zero (GSL limitation).'

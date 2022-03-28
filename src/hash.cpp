@@ -672,7 +672,7 @@ void HASH__ToStream( DStructGDL* oStructGDL, std::ostream& o, SizeT w, SizeT* ac
     o << ":";
     value->ToStream( o, w, actPosPtr);
     if( (i+1) < nCount)
-      o << std::endl;
+      o << '\n';
   }
 }
 
@@ -933,7 +933,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     SizeT nParam = e->NParam(1);
 
     static int kwSELFIx = 0;
-    DStructGDL* self = GetOBJ( e->GetKW( kwSELFIx), e);
+    DStructGDL* self = GetOBJ( e->GetTheKW( kwSELFIx), e); //by ref faster
 
     DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0];
     
@@ -956,12 +956,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       ThrowFromInternalUDSub( e, "Two parameters are needed: LEFT, RIGHT.");
 
     BaseGDL* l = e->GetKW(1);
-    if( l == NullGDL::GetSingleInstance())
-      l = NULL;
-    
     BaseGDL* r = e->GetKW(2);
-    if( r == NullGDL::GetSingleInstance())
-      r = NULL;
 
     if( (l == NULL && r == NULL))
       ThrowFromInternalUDSub( e, "At least one parameter must be defined and a HASH.");
@@ -1224,13 +1219,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
       ThrowFromInternalUDSub( e, "Two parameters are needed: LEFT, RIGHT.");
 
     BaseGDL* l = e->GetKW(1);
-    if( l == NullGDL::GetSingleInstance())
-      l = NULL;
-    
     BaseGDL* r = e->GetKW(2);
-    if( r == NullGDL::GetSingleInstance())
-      r = NULL;
-
     if( (l == NULL && r == NULL))
       ThrowFromInternalUDSub( e, "At least one parameter must be defined and a HASH.");
       
@@ -1733,8 +1722,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     
     BaseGDL* missing = e->GetKW( kwMISSINGIx);
     BaseGDL** skipped = NULL;
-    if( e->GlobalKW( kwSKIPPEDIx))
-      skipped = &e->GetKW(kwSKIPPEDIx);
+    if( e->GlobalKW( kwSKIPPEDIx)) skipped = &e->GetTheKW(kwSKIPPEDIx);
     bool recursive = e->KeywordSet(kwRECURSIVEIx);
     bool no_copy = e->KeywordSet( kwNO_COPYIx);
     
@@ -1742,14 +1730,14 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     static int kwSELFIx = kwSKIPPEDIx + 1;
 
     SizeT nParam = e->NParam(1); 
-    DStructGDL* self = GetOBJ( e->GetKW( kwSELFIx), e);
+    DStructGDL* self = GetOBJ( e->GetTheKW( kwSELFIx), e);
     return hash_tostruct( self, missing, skipped, recursive, no_copy);
 }
   BaseGDL* hash__isempty( EnvUDT* e)
   {
     static unsigned TableCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
     static int kwSELFIx = 0;
-    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    BaseGDL* selfP = e->GetTheKW( kwSELFIx);
     DStructGDL* self = GetOBJ( selfP, e);
     DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0];
     if (nCount > 0) return new DByteGDL( 0); else return new DByteGDL(1);
@@ -1761,7 +1749,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     static unsigned TableBitsTag = structDesc::HASH->TagIndex( "TABLE_BITS");
     static unsigned TableCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
     static int kwSELFIx = 0;
-    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    BaseGDL* selfP = e->GetTheKW( kwSELFIx);
     DStructGDL* self = GetOBJ( selfP, e);
     DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0];
     if(trace_me) std::cout << "isordered: nCount=" << nCount << std::endl;
@@ -1774,7 +1762,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     static unsigned fold_case_mask = 0x00000001;
     static unsigned TableBitsTag = structDesc::HASH->TagIndex( "TABLE_BITS");
     
-    if ( Hashisfoldcase( GetOBJ( e->GetKW( 0), e)) ) return new DByteGDL(1);
+    if ( Hashisfoldcase( GetOBJ( e->GetTheKW( 0), e)) ) return new DByteGDL(1);
      else return new DByteGDL(0);
   }
 
@@ -1785,14 +1773,14 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     static unsigned TableCountTag = structDesc::HASH->TagIndex( "TABLE_COUNT");
     static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
 
-    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    BaseGDL* selfP = e->GetTheKW( kwSELFIx);
 
     SizeT nParam = e->NParam(1);
     if( nParam == 1) return new DLongGDL( HASH_count( GetOBJ( selfP, e)));
 
     DObjGDL* selfObj = static_cast<DObjGDL*>(selfP);
     // nParam > 1:
-      BaseGDL* r = e->GetKW( kwVALUEIx);
+      BaseGDL* r = e->GetTheKW( kwVALUEIx);
     
       DObjGDL* listObj = static_cast<DObjGDL*>( selfObj->EqOp( r));
       Guard<DObjGDL> listObjGuard( listObj);
@@ -1818,12 +1806,12 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
 
     SizeT nParam = e->NParam(2); // SELF, VALUE
 
-    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    BaseGDL* selfP = e->GetTheKW( kwSELFIx);
     DStructGDL* self = GetOBJ( selfP, e);
 
     DObjGDL* selfObj = static_cast<DObjGDL*>(selfP);
     
-    BaseGDL* r = e->GetKW( kwVALUEIx);
+    BaseGDL* r = e->GetTheKW( kwVALUEIx);
     
     DObjGDL* listObj = static_cast<DObjGDL*>( selfObj->EqOp( r));
     Guard<DObjGDL> listObjGuard( listObj);
@@ -1872,7 +1860,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
 
     SizeT nParam = e->NParam(1); // SELF
 
-    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    BaseGDL* selfP = e->GetTheKW( kwSELFIx);
     DStructGDL* self = GetOBJ( selfP, e);
 
     DLong nCount = (*static_cast<DLongGDL*>( self->GetTag( TableCountTag, 0)))[0];
@@ -1954,7 +1942,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
 
     SizeT nParam = e->NParam(2); // SELF, KEYLIST
 
-    BaseGDL* selfP = e->GetKW( kwSELFIx);
+    BaseGDL* selfP = e->GetTheKW( kwSELFIx);
     DStructGDL* self = GetOBJ( selfP, e);
 
     bool isfoldcase = Hashisfoldcase( self);
@@ -2018,7 +2006,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
 
     SizeT nParam = e->NParam(1);
 
-    DStructGDL* self = GetOBJ( e->GetKW( kwSELFIx), e);
+    DStructGDL* self = GetOBJ( e->GetTheKW( kwSELFIx), e);
 
     if( kwALL)
     {
@@ -2192,19 +2180,19 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
     // handle DOT access
     bool dotAccess = false;
     
-    BaseGDL** objRef = &e->GetKW(1);
+    BaseGDL** objRef = &e->GetTheKW(1);
     if( *objRef == NULL || *objRef == NullGDL::GetSingleInstance())
     {
       if( !e->GlobalKW(1))
     ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) is undefined.");    
       dotAccess = true;
     }
-    BaseGDL* rValue = e->GetKW(2);
+    BaseGDL* rValue = e->GetTheKW(2);
     if( rValue == NULL)  rValue = NullGDL::GetSingleInstance();
 
     BaseGDL* parX = e->GetKW(iprm + prmbeg);
-    if( parX == 0)  ThrowFromInternalUDSub( e, "Parameter is undefined: "
-                            + e->Caller()->GetString(e->GetKW( iprm + prmbeg )));
+    if( parX == NULL)  ThrowFromInternalUDSub( e, "Parameter is undefined: "
+                            + e->Caller()->GetString(e->GetTheKW( iprm + prmbeg )));
     bool stolen = e->StealLocalKW(iprm + prmbeg);
     if( !stolen) parX = parX->Dup(); // if called explicitely
     DType theType = parX->Type();
@@ -2341,17 +2329,17 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
     // handle DOT access
     bool dotAccess = false;
     
-    BaseGDL** objRef = &e->GetKW(1);
+    BaseGDL** objRef = &e->GetTheKW(1);
     if( *objRef == NULL || *objRef == NullGDL::GetSingleInstance())
     {
       if( !e->GlobalKW(1))
     ThrowFromInternalUDSub( e, "Parameter 1 (OBJREF) is undefined.");    
       dotAccess = true;
     }
-    BaseGDL* rValue = e->GetKW(2);
+    BaseGDL* rValue = e->GetTheKW(2);
     if( rValue == NULL)  rValue = NullGDL::GetSingleInstance();
     
-   DLongGDL* isRange = static_cast<DLongGDL*>( e->GetKW(isRangeIx));
+   DLongGDL* isRange = static_cast<DLongGDL*>( e->GetKW(isRangeIx)); //insure is defined!
    SizeT nIsRange = isRange->N_Elements();
 
    if(nIsRange == 0)  {
@@ -2371,13 +2359,13 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
 // hash[*] = ... (Decline the attempt.)
     BaseGDL* parX = e->GetKW( prmbeg); // implicit SELF, ISRANGE, par1..par8
     if( parX == NULL) ThrowFromInternalUDSub( e,
-     "Parameter is undefined: "  + e->Caller()->GetString(e->GetKW( prmbeg)));
+     "Parameter is undefined: "  + e->Caller()->GetString(e->GetTheKW( prmbeg)));
 
     if( (*isRange)[0]== 1) {  
       if( parX->N_Elements() != 3)
             ThrowFromInternalUDSub( e,
             "Range vector must have 3 elements: " + 
-            e->Caller()->GetString(e->GetKW(prmbeg)));
+            e->Caller()->GetString(e->GetTheKW(prmbeg)));
       
         MAKE_LONGGDL(parX, parXLong)
 
@@ -2393,7 +2381,7 @@ BaseGDL* hash_newhash(SizeT nEntries = 0, bool isfoldcase = false) {
       "Please report if you would appreciate this functionality.");
     }
 // Generalize from  self to theStruct
-    DStructGDL* self = GetOBJ( e->GetKW( 0), e);
+    DStructGDL* self = GetOBJ( e->GetTheKW( 0), e);
     DStructGDL* theStruct = self;       
 
     DPtr Ptr = (*static_cast<DPtrGDL*>( 
@@ -2703,7 +2691,7 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
     if( nParam < 3) ThrowFromInternalUDSub( e,
         "Two parameters are needed: ISRANGE, SUB1 [, ...].");
 
-    DStructGDL* self = GetOBJ( e->GetKW( 0), e);
+    DStructGDL* self = GetOBJ( e->GetTheKW( 0), e);
 
     DLongGDL* isRange = static_cast<DLongGDL*>( e->GetKW(isRangeIx));
     SizeT nIsRange = isRange->N_Elements();
@@ -2727,12 +2715,12 @@ BaseGDL* hash_duplicate(DStructGDL* self) {
     
     BaseGDL* parX = e->GetKW( prmbeg); // implicit SELF, ISRANGE, par1..par8
     if( parX == NULL) ThrowFromInternalUDSub( e,
-     "Parameter is undefined: "  + e->Caller()->GetString(e->GetKW( prmbeg)));
+     "Parameter is undefined: "  + e->Caller()->GetString(e->GetTheKW( prmbeg)));
 
     if( (*isRange)[0] == 1)  // r = hash[*]
       {
       if( parX->N_Elements() != 3) ThrowFromInternalUDSub( e, 
-        "Range vector must have 3 elements: " + e->Caller()->GetString(e->GetKW( prmbeg)));
+        "Range vector must have 3 elements: " + e->Caller()->GetString(e->GetTheKW( prmbeg)));
     
         MAKE_LONGGDL(parX, parXLong)
 

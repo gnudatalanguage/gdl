@@ -297,16 +297,15 @@ endif
 ;
 nb_errors=0
 ;
-file=FILE_WHICH('Saturn.jpg')
+file=FILE_WHICH('Saturn.jpg', /INCLUDE_CURRENT_DIR)
 mess='This file '+file+' '
-expected_mode=511L
-alternative_mode=436L
+expected_modes=[511L,436L,420L]
 exist=FILE_TEST(file, get_mode=mode)
 if ~exist then begin
    ERRORS_ADD, nb_errors, mess+'should exist !'
 endif else begin
-   if (mode ne expected_mode) and (mode ne alternative_mode) then $
-        ERRORS_ADD, nb_errors, mess+'has a bad mode !'
+   w=where(mode eq expected_modes, count)
+   if (count eq 0) then ERRORS_ADD, nb_errors, mess+'has a bad mode !'
 endelse
 ;
 ; testing /char file

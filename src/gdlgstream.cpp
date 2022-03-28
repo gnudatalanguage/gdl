@@ -184,27 +184,32 @@ void GDLGStream::DefaultBackground()
 }
 #undef WHITEB
 void GDLGStream::DefaultCharSize() {
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLGStream::DefaultCharSize()\n");
   DStructGDL* d = SysVar::D();
   DStructDesc* s = d->Desc();
   int X_CH_SIZE = s->TagIndex("X_CH_SIZE");
   int Y_CH_SIZE = s->TagIndex("Y_CH_SIZE");
-  int X_PX_CM = s->TagIndex("X_PX_CM");
-  int Y_PX_CM = s->TagIndex("Y_PX_CM");
   DLong chx = (*static_cast<DLongGDL*> (d->GetTag(X_CH_SIZE, 0)))[0];
   DLong chy = (*static_cast<DLongGDL*> (d->GetTag(Y_CH_SIZE, 0)))[0];
-  DFloat xpxcm = (*static_cast<DFloatGDL*> (d->GetTag(X_PX_CM, 0)))[0];
-  DFloat ypxcm = (*static_cast<DFloatGDL*> (d->GetTag(Y_PX_CM, 0)))[0];
-  DFloat xchsizemm = chx * CM_IN_MM / xpxcm;
-  DFloat linespacingmm = chy * CM_IN_MM / ypxcm;
-  schr(xchsizemm, 1.0, linespacingmm);
-}
-  void GDLGStream::RenewPlplotDefaultCharsize(PLFLT newMmSize)
-  {
-    plstream::schr(newMmSize, 1.0);
-    gdlDefaultCharInitialized=0;
-    GetPlplotDefaultCharSize();
+  int FLAGS = s->TagIndex("FLAGS");
+  DLong flags = (*static_cast<DLongGDL*> (d->GetTag(FLAGS, 0)))[0];
+  if (flags & 0x1) {
+    int X_PX_CM = s->TagIndex("X_PX_CM");
+    int Y_PX_CM = s->TagIndex("Y_PX_CM");
+    DFloat xpxcm = (*static_cast<DFloatGDL*> (d->GetTag(X_PX_CM, 0)))[0];
+    DFloat ypxcm = (*static_cast<DFloatGDL*> (d->GetTag(Y_PX_CM, 0)))[0];
+    setVariableCharacterSize(chx, 1.0, chy,xpxcm,ypxcm);
+  } else {
+    setFixedCharacterSize(chx, 1.0, chy);
   }
-  
+}
+//  void GDLGStream::RenewPlplotDefaultCharsize(PLFLT newMmSize)
+//  {
+//    plstream::schr(newMmSize, 1.0);
+//    gdlDefaultCharInitialized=0;
+//    GetPlplotDefaultCharSize();
+//  }
+//  
   void GDLGStream::GetPlplotDefaultCharSize()
   {
         
@@ -215,7 +220,6 @@ void GDLGStream::DefaultCharSize() {
     theDefaultChar.scale=1.0;
     theDefaultChar.mmsx=pls->chrht; //millimeter
     theDefaultChar.mmsy=pls->chrht;
-    theDefaultChar.fudge=GetPlplotFudge();
     theDefaultChar.ndsx=mm2ndx(theDefaultChar.mmsx); //normalized device
     theDefaultChar.ndsy=mm2ndy(theDefaultChar.mmsy);
     theDefaultChar.dsy=theDefaultChar.ndsy*thePage.height;
@@ -332,8 +336,8 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
     xSize = (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0];
     ySize = (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0];
   } else {
-    xSize = xleng;
-    ySize = yleng;
+  xSize = xleng;
+  ySize = yleng;
   }
   if (xSize<1.0||ySize<1) //plplot gives back crazy values! z-buffer for example!
   {
@@ -351,6 +355,8 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
 {
   bool debug = false;
   static char errmsg[] = "No such font:   ";
+  static std::string begin_unicode="#[";
+  static std::string end_unicode="]";
   static const size_t errmsglen = strlen(errmsg);
   static double fact[]={1.,0.9,0.666,0.5,0.45,0.33,0.2};
   double base=1.0;
@@ -670,8 +676,8 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
             case 'C' : // tick sign
               out += " "; break;
               break;
-            default : 
-              out.append(in, i, 1);
+            default :
+              if ((unsigned char)in[i] > 127) { out+=begin_unicode; out+=to_string((unsigned char)in[i]); out+=end_unicode; } else out.append(in, i, 1); //use unicode
               break;
           }
           break;
@@ -775,7 +781,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
             case 'z' : out += "#(2305)"; break; // ?
             case 'm' : out += "#(899)";  break; // smallest circle - dot
             default : 
-              out.append(in, i, 1);
+              if ((unsigned char)in[i] > 127) { out+=begin_unicode; out+=to_string((unsigned char)in[i]); out+=end_unicode; } else out.append(in, i, 1); //use unicode
               break;
           }
           break;
@@ -815,7 +821,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
             case '"' : out += "#(2831)"; break; case '^' : case '~' : out += "#(2931)"; break; // [yu]
             case 127u : case '_' : out += "#(2832)"; break; case ';' : out += "#(2932)"; break; // [ya]
             default : 
-              out.append(in, i, 1);
+              if ((unsigned char)in[i] > 127) { out+=begin_unicode; out+=to_string((unsigned char)in[i]); out+=end_unicode; } else out.append(in, i, 1); //use unicode
               break;
           }
           break;
@@ -851,9 +857,9 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
             case 'I' : case 'i' :
             case 'O' : case 'o' :
             case 'P' : case 'p' :
-              out += "#g";
+              out += "#g"; out.append(in, i, 1); break;
             default : 
-              out.append(in, i, 1);
+              if ((unsigned char)in[i] > 127) { out+=begin_unicode; out+=to_string((unsigned char)in[i]); out+=end_unicode; } else out.append(in, i, 1); //use unicode
               break;
           }
           break;
@@ -877,13 +883,13 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
             case 190u : out += "#(271)"; break; // 3/4
             case 215u : out += "#(846)"; break; // cross sign
             case 223u : out += "#fs#gb"; out += internalFontCodes[curr_fnt]; break; // beta script
-            default : 
-              out.append(in, i, 1);
+            default :
+              if ((unsigned char)in[i] > 127) { out+=begin_unicode; out+=to_string((unsigned char)in[i]); out+=end_unicode; } else out.append(in, i, 1); //use unicode
               break;
           }
           break;
         default : // simply pass the char
-          out.append(in, i, 1);
+          if ((unsigned char)in[i] > 127) { out+=begin_unicode; out+=to_string((unsigned char)in[i]); out+=end_unicode; } else out.append(in, i, 1); //use unicode
           break;
       }
       curr_fnt = next_fnt;
@@ -898,14 +904,14 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
 retrn:
   activeFontCodeNum = curr_fnt;
   if (stringLength) *stringLength=0;
-  if (debug) cout << "GDLGStream::TranslateFormatCodes(\"" << in << "\") = \"" << out << "\"" << endl;  
+  cout << "ERROR: GDLGStream::TranslateFormatCodes(\"" << in << "\") = \"" << out << "\"" << endl;  
   return ""; 
 }
 
 void GDLGStream::setSymbolSize( PLFLT scale )
 {
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"setSymbolScale(%f)\n",scale);
-  plstream::ssym(0.0, scale);
+//  plstream::ssym(0.0, scale);
   theCurrentSymSize=scale;
 }
 
@@ -931,20 +937,89 @@ void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
   plstream::ptex(x,y,dx,dy,just,TranslateFormatCodes(text,stringCharLength).c_str());
 }
 
-void GDLGStream::schr( PLFLT charwidthmm, PLFLT scale , PLFLT lineSpacingmm)
+#define FUDGE_VARCHARSIZE sqrt(2)
+//This defines the character size for SCALABLE character devices (POSTSCRIPT, SVG))
+//The dimension of "average" character (given by X_CH_SIZE) is to be a physical (mm) size.
+//this implies to have a correct value for DPI AND that the plplot driver is correctly written.
+void GDLGStream::setVariableCharacterSize( PLFLT charwidthpixel, PLFLT scale , PLFLT lineSpacingpixel, PLFLT xpxcm, PLFLT ypxcm)
 {
-  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"schr(%f,%f,%f)\n",charwidthmm,scale,lineSpacingmm);
-  plstream::schr(charwidthmm, scale);
-  this->setLineSpacing(lineSpacingmm);
-  gdlDefaultCharInitialized=0;
+  xpxcm/=FUDGE_VARCHARSIZE;
+  ypxcm/=FUDGE_VARCHARSIZE;  //go figure why this is needed, but indeed it is needed!
+  //tried by comparison of outputs of 
+  // "set_plot,'ps' & !P.multi=[0,2,2]&a=dist(5)&for i=1,4 do begin&s=i*0.7& plot,a,psym=6,syms=s,chars=s,xtit="XXXX" $
+  //  & xyouts,indgen(25),a,"M",ali=0.5,chars=s & end & !p.multi=0 & plots,[0.001,0.001,0.999,0.999,0.001],$
+  //  [0.001,0.999,0.999,0.001,0.001],/norm & device,/close & set_plot,'x'
+
+ if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"schr(width=%f, scale=%f, spacing=%f, xpxcm=%f, ypxcm=%f)\n",charwidthpixel,scale,lineSpacingpixel,xpxcm,ypxcm);
+   PLFLT xdpi=xpxcm*INCHToCM;
+   PLFLT ydpi=ypxcm*INCHToCM;
+// GDL asks for pixels, plplot asks for mm size, but plplot's dpi is always wrong!
+// to get 'charwidthpixel' with this 'wrongdpi', wee need to ask a (wrong) mm size of the character HEIGHT, 
+// BUT we do not know the height/width ratio of the font used, plus the fact that some drivers make the wrong calculation!!!!
+// AND!!! the expected pixel size (X_CH_SIZE) is the true pixel on screen (or paper), not the fake one
+  PLFLT expectedheight_in_mm=charwidthpixel/xdpi*INCHToMM*DEFAULT_FONT_ASPECT_RATIO; //start with a height/width of FONT_ASPECT_RATIO (guessed) will be updated later.
+ if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"current (fake?) dpi is %f : asking for a mm height size: %f)\n",ydpi, expectedheight_in_mm);
+   plstream::schr(expectedheight_in_mm, 1); 
+//trick: if 'em' is not 0, we have the character real width, in mm. It is assumed that when 0, then the size is OK
+//if not 0, then we know the height/width ratio and can recompute the 'good' height that will give the 'good' width (in pixels) 
+   PLFLT em=0;
+#if PLPLOT_PRIVATE_NOT_HIDDEN
+    em=gdlGetStringLength(ALLCHARACTERSFORSTRINGLENGTHTEST)/ALLCHARACTERSFORSTRINGLENGTHTEST_NCHARS; //mean of all
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"Able to check character width=%f, should have been %f\n",em, charwidthpixel/xdpi*INCHToMM);
+#endif
+  if (em > 0) {
+    PLFLT ratio=charwidthpixel/xdpi*INCHToMM/em;
+    plstream::schr(expectedheight_in_mm*ratio, 1);
+   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"got plplot character height in mm=%f (2nd pass))\n",pls->chrdef);
+//#if PLPLOT_PRIVATE_NOT_HIDDEN
+//    em=gdlGetStringLength(PATTERN)/PATTERN_LENGTH; //mean of all
+//    ratio=charwidthpixel/xdpi*INCHToMM/em;
+//    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"re-check character width=%f, ratio is %f\n",em, ratio);
+//#endif
+  }
+ setLineSpacing(lineSpacingpixel/ydpi*INCHToMM); //this one is NOT related to characters idiosyncrasies.
+  gdlDefaultCharInitialized=0; //reset Default
+  CurrentCharSize(scale);
+}
+
+
+//This defines the character size for FIXED character devices (X, Z )
+//The dimension of "average" character (given by X_CH_SIZE) is to be a number of pixels on screen
+void GDLGStream::setFixedCharacterSize( PLFLT charwidthpixel, PLFLT scale , PLFLT lineSpacingpixel) {
+ if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"schr(width=%f, scale=%f, spacing=%f)\n",charwidthpixel,scale,lineSpacingpixel);
+// GDL asks for pixels, plplot asks for mm size, but plplot's dpi is always wrong!
+// to get 'charwidthpixel' with this 'wrongdpi', wee need to ask a (wrong) mm size of the character HEIGHT, 
+// BUT we do not know the height/width ratio of the font used, plus the fact that some drivers make the wrong calculation!!!!
+// AND!!! the expected pixel size (X_CH_SIZE) is the true pixel on screen (or paper), not the fake one
+  PLFLT expectedheight=charwidthpixel/pls->xdpi*INCHToMM*DEFAULT_FONT_ASPECT_RATIO; //start with a height/width of FONT_ASPECT_RATIO (guessed) will be updated later.
+ if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"current (fake?) dpi is %f : asking for a mm height size: %f)\n",pls->ydpi, expectedheight);
+   plstream::schr(expectedheight, 1); 
+//trick: if 'em' is not 0, we have the character real width, in mm. It is assumed that when 0, then the size is OK
+//if not 0, then we know the height/width ratio and can recompute the 'good' height that will give the 'good' width (in pixels) 
+   PLFLT em=0;
+#if PLPLOT_PRIVATE_NOT_HIDDEN
+    em=gdlGetStringLength(ALLCHARACTERSFORSTRINGLENGTHTEST)/ALLCHARACTERSFORSTRINGLENGTHTEST_NCHARS; //mean of all
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"Able to check character width=%f, should have been %f\n",em, charwidthpixel/pls->xdpi*INCHToMM);
+#endif
+  if (em > 0) {
+    PLFLT ratio=charwidthpixel/pls->xdpi*INCHToMM/em;
+    plstream::schr(expectedheight*ratio, 1);
+   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"got plplot character height in mm=%f (2nd pass))\n",pls->chrdef);
+//#if PLPLOT_PRIVATE_NOT_HIDDEN
+//    em=gdlGetStringLength(PATTERN)/PATTERN_LENGTH; //mean of all
+//    ratio=charwidthpixel/pls->xdpi*INCHToMM/em;
+//    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"re-check character width=%f, ratio is %f, in pixels:%f\n",em, ratio, em/INCHToMM*pls->xdpi);
+//#endif
+  }
+ setLineSpacing(lineSpacingpixel/pls->ydpi*INCHToMM); //this one is NOT related to characters idiosyncrasies.
+  gdlDefaultCharInitialized=0; //reset Default
   CurrentCharSize(scale);
 }
 
 void GDLGStream::sizeChar( PLFLT scale )
 {
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"SizeChar(%f)\n",scale);
-  plstream::schr(theDefaultChar.mmsx, scale);
-//  plstream::schr(0, scale);
+  plstream::schr(theDefaultChar.mmsx, scale); //must FORCE a new size.
   CurrentCharSize(scale);
 }
 
@@ -977,6 +1052,9 @@ void GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
 void GDLGStream::wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
 {
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"wind(): setting x[%f:%f],y[%f:%f] (world) \n",xmin,xmax,ymin,ymax);
+  //silly test to protect against plplot warnings ... side effects unkonwn.
+  if (xmin==xmax) {xmin=0; xmax=1;}
+  if (ymin==ymax) {ymin=0; ymax=1;}
   plstream::wind(xmin, xmax, ymin, ymax);
   theBox.wx1=xmin;
   theBox.wx2=xmax;

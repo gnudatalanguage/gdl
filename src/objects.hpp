@@ -40,7 +40,9 @@ const std::string GDL_OBJECT_NAME("GDL_OBJECT");
 const std::string GDL_CONTAINER_NAME("GDL_CONTAINER");
 
 extern VarListT      sysVarList;
+extern VarListT      obsoleteSysVarList;
 extern VarListT      sysVarRdOnlyList;
+extern VarListT      sysVarNoSaveList;
 
 extern FunListT      funList;
 extern ProListT      proList;
@@ -55,9 +57,11 @@ extern GDLFileListT  fileUnits;
 // for OpenMP
 const SizeT DefaultTPOOL_MIN_ELTS = 100000;
 const SizeT DefaultTPOOL_MAX_ELTS = 0;
-extern DLong CpuTPOOL_NTHREADS;
-extern DLong64 CpuTPOOL_MIN_ELTS;
-extern DLong64 CpuTPOOL_MAX_ELTS;
+
+//defined as extern in typedefs.hpp, which is 'seen' by all code
+//extern DLong CpuTPOOL_NTHREADS;
+//extern DLong64 CpuTPOOL_MIN_ELTS;
+//extern DLong64 CpuTPOOL_MAX_ELTS;
 
 //extern DeviceListT   deviceList;
 //extern Graphics*     actDevice;
@@ -65,12 +69,18 @@ extern DLong64 CpuTPOOL_MAX_ELTS;
 // signals if control-c was pressed
 extern volatile bool sigControlC;
 
+extern volatile bool iAmANotebook;
+// tells if wxwidgets is to be used at all...
+extern volatile bool useWxWidgets;
 // tells if wxwidgets backend for graphics is to be used...
 extern volatile bool useWxWidgetsForGraphics;
-
+// do we force fonts to be the ugly IDL fonts?
+extern volatile bool forceWxWidgetsUglyFonts;
 //do we favor SIMD-accelerated random number generation?
 extern volatile bool useDSFMTAcceleration;
-
+//do we use our own copy of (better?) drivers?
+extern volatile bool useLocalDrivers;
+extern volatile bool usePlatformDeviceName;
 extern          int  debugMode;
 
 enum DebugCode {
@@ -107,7 +117,6 @@ bool IsRelaxed(); //tells if syntax is not strict (i.e. parenthesis for array in
 void SetStrict(bool value);
 
 bool BigEndian();
-
 int get_suggested_omp_num_threads();
 int currentNumberOfThreads();
 int currentThreadNumber();

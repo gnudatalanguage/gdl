@@ -43,7 +43,7 @@
 
 
 PRO GdlDrawShapefile, shapefile, ATTRNAME=attrname, ATTRVAL=attrval, COLOR=colorindex,$
-                     FILL_CODE=fillcode, FORCE_FILL=force, ORIENTATION=ori, $
+                     FILL_CODE=fillcode, FORCE_FILL=force, ORIENTATION=ori,  auto=auto, $
                      MAP_STRUCTURE=mapstruct,$
                      USE_LINESTYLE=mlinestyle, USE_LINETHICK=mlinethick, $
                      SPACING=spacing, PSYM=MPSYM, SYMSIZE=MSYMSIZE,$
@@ -96,6 +96,16 @@ entities = Ptr_New(/Allocate_Heap)
 Obj_Destroy, shapefileObj
 ; save in hastable: entities and attribute name list
 compound=list(theNames,entities)
+; if auto, compute minmax and set plot
+if keyword_set(auto) then begin
+   range=(*entities).bounds
+   xmin=min(range[0,*])
+   xmax=max(range[4,*])
+   ymin=min(range[1,*])
+   ymax=max(range[5,*])
+   plot,[0],/nodata,xrange=[xmin,xmax],yrange=[ymin,ymax],/iso
+endif
+
 gdlDrawShapeCompound, compound, zvalue, extra, attrname=attrname, attrval=attrval, polyfill=poly, MAPSTRUCT=mapStruct, force_fill=force
 ; delete compound
 gdlFreeShapecompound, compound

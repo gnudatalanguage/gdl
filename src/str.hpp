@@ -32,6 +32,7 @@
 #endif
 
 std::string GetEnvString(const char* env);
+std::string GetEnvPathString(const char* env);
 
 // check if path is given in filename f
 inline bool PathGiven(const std::string& f)
@@ -123,6 +124,13 @@ long int Str2L( const char* c, int base=10);
 long int Str2L( const std::string& s, int base=10);
 unsigned long int Str2UL( const char* c, int base=10);
 unsigned long int Str2UL( const std::string& s, int base=10);
-
+namespace lib {
+#ifdef _WIN32
+  extern bool posixpaths;
+#endif
+  std::string PathSeparator();
+  std::string SearchPathSeparator();
+  std::string ParentDirectoryIndicator();
+}
 
 #endif

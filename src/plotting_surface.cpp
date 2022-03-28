@@ -86,73 +86,87 @@ namespace lib
 	// should be OK ...
 	    if ( (e->GetNumericArrayParDefined ( 0 ))->EquivalentRank ( )!=2 ) e->Throw ( "Array must have 2 dimensions: "+e->GetParString ( 0 ) );
     }
-    if ( nParam ( )==1 )
-      {
-        BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
-        p0_guard.Init ( p0 ); // delete upon exit
+    if ( nParam ( )==1) {
+        BaseGDL* p0 = e->GetNumericArrayParDefined(0)->Transpose(NULL);
+        p0_guard.Init(p0); // delete upon exit
 
-        zVal=static_cast<DDoubleGDL*>( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
-        zval_guard.Init ( zVal ); // delete upon exit
+        zVal = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+        zval_guard.Init(zVal); // delete upon exit
 
-        xEl=zVal->Dim ( 1 );
-        yEl=zVal->Dim ( 0 );
+        xEl = zVal->Dim(1);
+        yEl = zVal->Dim(0);
 
-        xVal=new DDoubleGDL ( dimension ( xEl ), BaseGDL::INDGEN );
-        xval_guard.Init ( xVal ); // delete upon exit
+        xVal = new DDoubleGDL(dimension(xEl), BaseGDL::INDGEN);
+        xval_guard.Init(xVal); // delete upon exit
         if (xLog) xVal->Inc();
-        yVal=new DDoubleGDL ( dimension ( yEl ), BaseGDL::INDGEN );
-        yval_guard.Init ( yVal ); // delete upon exit
+        yVal = new DDoubleGDL(dimension(yEl), BaseGDL::INDGEN);
+        yval_guard.Init(yVal); // delete upon exit
         if (yLog) yVal->Inc();
-      }
-      else
-      {
-        BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
-        p0_guard.Init ( p0 ); // delete upon exit
+      } else {
+        BaseGDL* p0 = e->GetNumericArrayParDefined(0)->Transpose(NULL);
+        p0_guard.Init(p0); // delete upon exit
+
+        zVal = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+        zval_guard.Init(zVal); // delete upon exit
+
+        xVal = e->GetParAs< DDoubleGDL>(1);
+        yVal = e->GetParAs< DDoubleGDL>(2);
+
+        if (xVal->Rank() > 2)
+          e->Throw("X, Y, or Z array dimensions are incompatible.");
+
+        if (yVal->Rank() > 2)
+          e->Throw("X, Y, or Z array dimensions are incompatible.");
+        if (xVal->Rank() == 0 || yVal->Rank() == 0)
+          e->Throw("X, Y, or Z array dimensions are incompatible.");
+
+        if (xVal->Rank() == 1) {
+          xEl = xVal->Dim(0);
+
+          if (xEl != zVal->Dim(1))
+            e->Throw("X, Y, or Z array dimensions are incompatible.");
+        }
+
+        if (yVal->Rank() == 1) {
+          yEl = yVal->Dim(0);
+
+          if (yEl != zVal->Dim(0))
+            e->Throw("X, Y, or Z array dimensions are incompatible.");
+        }
+
+        if (xVal->Rank() == 2) {
+          //plplot is unable to handle such subtetlies, better to throw?
+          e->Throw("Sorry, plplot cannot handle 2D X coordinates in its 3D plots.");
+          xEl = xVal->Dim(0);
+          if ((xVal->Dim(0) != zVal->Dim(1))&&(xVal->Dim(1) != zVal->Dim(0)))
+            e->Throw("X, Y, or Z array dimensions are incompatible.");
+        }
+
+        if (yVal->Rank() == 2) {
+        //plplot is unable to handle such subtetlies, better to throw?
+          e->Throw("Sorry, plplot cannot handle 2D Y coordinates in its 3D plots.");
+          yEl = yVal->Dim(1);
+          if ((yVal->Dim(0) != zVal->Dim(1))&&(yVal->Dim(1) != zVal->Dim(0)))
+            e->Throw("X, Y, or Z array dimensions are incompatible.");
+        }
         
-        zVal=static_cast<DDoubleGDL*>( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
-        zval_guard.Init ( zVal ); // delete upon exit
-
-        xVal=e->GetParAs< DDoubleGDL>( 1 );
-        yVal=e->GetParAs< DDoubleGDL>( 2 );
-
-	    if ( xVal->Rank ( )>2 )
-	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-
-	    if ( yVal->Rank ( )>2 )
-	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	    if ( xVal->Rank ( )==0 || yVal->Rank ( )==0 )
-	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-
-        if ( xVal->Rank ( )==1 )
-        {
-          xEl=xVal->Dim ( 0 );
-
-          if ( xEl!=zVal->Dim ( 1 ) )
-            e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-        }
-
-        if ( yVal->Rank ( )==1 )
-        {
-          yEl=yVal->Dim ( 0 );
-
-          if ( yEl!=zVal->Dim ( 0 ) )
-            e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-        }
-
-	    if ( xVal->Rank ( )==2 )
-	      {
-		xEl=xVal->Dim ( 0 );
-		if ( ( xVal->Dim ( 0 )!=zVal->Dim ( 1 ) )&&( xVal->Dim ( 1 )!=zVal->Dim ( 0 ) ) )
-		  e->Throw ( "X, Y, or Z array dimensions are incompatible." );
+        //plplot is unable to handle such subtetlies, better to throw?
+        
+//        // But if X is 2D and Y is 1D (or reciprocally), we need to promote the 1D to 2D since this is supported by IDL
+//        if (xVal->Rank() == 1 && yVal->Rank() == 2) {
+//          DDoubleGDL* xValExpanded = new DDoubleGDL(zVal->Dim(), BaseGDL::NOZERO);
+//          SizeT k = 0;
+//          for (SizeT j = 0; j < zVal->Dim(1); ++j) for (SizeT i = 0; i < zVal->Dim(0); ++i) (*xValExpanded)[k++] = (*xVal)[i];
+//          xval_guard.Init(xValExpanded); // delete upon exit
+//          xVal = xValExpanded;
+//        } else if (xVal->Rank() == 2 && yVal->Rank() == 1) {
+//          DDoubleGDL* yValExpanded = new DDoubleGDL(zVal->Dim(), BaseGDL::NOZERO);
+//          SizeT k = 0;
+//          for (SizeT j = 0; j < zVal->Dim(1); ++j) for (SizeT i = 0; i < zVal->Dim(0); ++i) (*yValExpanded)[k++] = (*yVal)[j];
+//          xval_guard.Init(yValExpanded); // delete upon exit
+//          yVal = yValExpanded;
+//        }
       }
-
-	    if ( yVal->Rank ( )==2 )
-	      {
-		yEl=yVal->Dim ( 1 );
-		if ( ( yVal->Dim ( 0 )!=zVal->Dim ( 1 ) )&&( yVal->Dim ( 1 )!=zVal->Dim ( 0 ) ) )
-		  e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	      }
-	  }
       
       GetMinMaxVal ( xVal, &xStart, &xEnd );
       GetMinMaxVal ( yVal, &yStart, &yEnd );
@@ -203,12 +217,6 @@ namespace lib
       bool doShade=(shadevalues != NULL); //... But 3d mesh will be colorized anyway!
       if (doShade) Warning ( "SURFACE: Using Fixed (Z linear) Shade Values Only (FIXME)." );
 
-      // [XYZ]STYLE
-      DLong xStyle=0, yStyle=0, zStyle=0; ;
-      gdlGetDesiredAxisStyle(e, XAXIS, xStyle);
-      gdlGetDesiredAxisStyle(e, YAXIS, yStyle);
-      gdlGetDesiredAxisStyle(e, ZAXIS, zStyle);
-
       //check here since after AutoIntvAC values will be good but arrays passed
       //to plplot will be bad...
       if ( xLog && xStart<=0.0 )
@@ -222,17 +230,6 @@ namespace lib
         nodata=true;
       }
       if ( zLog && zStart<=0.0 ) Warning ( "SURFACE: Infinite z plot range." );
-
-
-      if ( ( xStyle&1 )!=1 )
-      {
-        PLFLT intv=gdlAdjustAxisRange (e,XAXIS,  xStart, xEnd, xLog );
-      }
-
-      if ( ( yStyle&1 )!=1 )
-      {
-        PLFLT intv=gdlAdjustAxisRange (e, YAXIS, yStart, yEnd, yLog );
-      }
 
       static int MIN_VALUEIx = e->KeywordIx( "MIN_VALUE");
       static int MAX_VALUEIx = e->KeywordIx( "MAX_VALUE");
@@ -249,11 +246,10 @@ namespace lib
         zEnd=min(zEnd,maxVal);
       }
 
-      // then only apply expansion  of axes:
-      if ( ( zStyle&1 )!=1 )
-      {
-        PLFLT intv=gdlAdjustAxisRange (e, ZAXIS, zStart, zEnd, zLog );
-      }
+      //Box adjustement:
+      gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
+      gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
+      gdlAdjustAxisRange(e, ZAXIS, zStart, zEnd, zLog);
 
       // background BEFORE next plot since it is the only place plplot may redraw the background...
       gdlSetGraphicsBackgroundColorFromKw ( e, actStream ); //BACKGROUND

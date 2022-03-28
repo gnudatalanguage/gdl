@@ -23,7 +23,6 @@
 
 #include "typedefs.hpp"
 #include "datatypes.hpp" // for friend declaration
-//#include "typetraits.hpp"
 #include "dstructdesc.hpp"
 
 // NOTE: lot of the code together with Data_<...>::functions

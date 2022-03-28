@@ -105,6 +105,7 @@ namespace lib
         strVal=e->GetParAs<DStringGDL>(2);
         strEl=strVal->N_Elements();
         //behaviour: if x or y are not an array, they are repeated to match minEl
+        //if s is not a vector, minel is min(xel,yel) and S is repeated.
         //if x or y have less elements than s, minEl is max(x,y) else minEl is size(s)
          //z will be set at Zero unless Z=value is given
         if ( (xVal->Dim(0)==0) && (yVal->Dim(0)==0) ) {
@@ -118,20 +119,19 @@ namespace lib
           yval_guard.Reset(yVal); // delete upon exit
           for (SizeT i=0; i< minEl ; ++i) (*yVal)[i]=(*tmpyVal)[0];
         } else if (xVal->Dim(0)==0) {
-          minEl=(yEl<strEl)?yEl:strEl;
+          if (strEl==1) minEl=yEl; else minEl=(yEl<strEl)?yEl:strEl;
           DDoubleGDL* tmpxVal=e->GetParAs< DDoubleGDL>(0);
           xVal=new DDoubleGDL(minEl, BaseGDL::NOZERO);
           xval_guard.Reset(xVal); // delete upon exit
           for (SizeT i=0; i< minEl ; ++i) (*xVal)[i]=(*tmpxVal)[0];
         } else if (yVal->Dim(0)==0) {
-          minEl=(xEl<strEl)?xEl:strEl;
+          if (strEl==1) minEl=xEl; else minEl=(xEl<strEl)?xEl:strEl;
           DDoubleGDL* tmpyVal=e->GetParAs< DDoubleGDL>(1);
           yVal=new DDoubleGDL(minEl, BaseGDL::NOZERO);
           yval_guard.Reset(yVal); // delete upon exit
           for (SizeT i=0; i< minEl ; ++i) (*yVal)[i]=(*tmpyVal)[0];
          } else {
           minEl=(xEl<yEl)?xEl:yEl;
-          minEl=(minEl<strEl)?minEl:strEl;          
          }
         zEl=minEl;
         zVal=new DDoubleGDL(dimension(zEl));
@@ -206,7 +206,7 @@ namespace lib
       restorelayout=true;
       
       bool mapSet=false;
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       get_mapset(mapSet);
       mapSet=(mapSet && coordinateSystem==DATA);
       if ( mapSet )
@@ -371,16 +371,24 @@ namespace lib
         x=static_cast<PLFLT>((*xVal)[i%xVal->N_Elements ( )]); //insure even 1 parameter, string array
         y=static_cast<PLFLT>((*yVal)[i%xVal->N_Elements ( )]);
 
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
         if ( mapSet )
         {
           LPTYPE idata;
           XYTYPE odata;
+#if LIBPROJ_MAJOR_VERSION >= 5
+          idata.lam=x * DEG_TO_RAD;
+          idata.phi=y * DEG_TO_RAD;
+          odata=protect_proj_fwd_lp(idata, ref);
+          x=odata.x;
+          y=odata.y;
+#else
           idata.u=x * DEG_TO_RAD;
           idata.v=y * DEG_TO_RAD;
           odata=PJ_FWD(idata, ref);
           x=odata.u;
           y=odata.v;
+#endif
         }
 #endif
  

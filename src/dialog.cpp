@@ -17,11 +17,6 @@
  ***************************************************************************/
 #include "includefirst.hpp"
 
-#ifdef HAVE_LIBWXWIDGETS
-//following includes are 1) not necessary and 2) create a problem with gcc6
-//#include <wx/filedlg.h>
-//#include <wx/msgdlg.h>
-#endif
 
 #include "envt.hpp"
 #include "dialog.hpp"
@@ -37,12 +32,7 @@ namespace lib {
     return new DIntGDL(1);
   }
 
-  BaseGDL* dialog_pickfile_wxwidgets(EnvT* e)
-  {
-    if (!GDLWidget::wxIsStarted()){
-      if( ! wxInitialize( ) ) e->Throw("Unable to initialize wxWidgets");
-      GDLWidget::SetWxStarted();
-    }
+  BaseGDL* dialog_pickfile_wxwidgets(EnvT* e) {
     /*
       results = DIALOG_PICKFILE_WXWIDGETS(DEFAULT_EXTENSION=default_extension, $
       DIRECTORY=directory, DIALOG_PARENT=dialog_parent, $
@@ -225,6 +215,7 @@ namespace lib {
 	// If DIRECTORY is not set, show FileDialog
 	wxString wxfilterstr;
 	if (isfilter) {
+    if (e->GetDefinedKW(filterIx)->Type()!=GDL_STRING) e->Throw("String expression required in this context: "+ e->GetString(filterIx));
 	  DStringGDL* filterstrarr = e->IfDefGetKWAs<DStringGDL>(filterIx);
 	  dimension dim = filterstrarr->Dim();
 	  if (dim.Rank() > 2 || (dim.Rank() == 2 && dim[1] != 2))
@@ -351,13 +342,7 @@ namespace lib {
     return res;
   }
 
-  BaseGDL* dialog_message_wxwidgets(EnvT* e)
-  {
-    
-    if (!GDLWidget::wxIsStarted()){
-      if( ! wxInitialize( ) ) e->Throw("Unable to initialize wxWidgets");
-      GDLWidget::SetWxStarted();
-    }
+  BaseGDL* dialog_message_wxwidgets(EnvT* e) {
 
 #ifdef HAVE_LOCALE_H
     setlocale(LC_ALL, "C");
@@ -493,7 +478,7 @@ namespace lib {
   }
 #else
   BaseGDL* wxwidgets_exists(EnvT* e) { return new DIntGDL(0); };
-  BaseGDL* dialog_pickfile_wxwidgets(EnvT* e) { ThrowGDLException("wxWidgets is not available!"); return 0; }
-  BaseGDL* dialog_message_wxwidgets(EnvT* e) { ThrowGDLException("wxWidgets is not available!"); return 0; }
+  BaseGDL* dialog_pickfile_wxwidgets(EnvT* e) { ThrowGDLException("DIALOG_PICKFILE: GDL was compiled without support for wxWidgets"); return 0; }
+  BaseGDL* dialog_message_wxwidgets(EnvT* e) { ThrowGDLException("DIALOG_MESSAGE: GDL was compiled without support for wxWidgets"); return 0; }
 #endif
 }

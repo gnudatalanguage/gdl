@@ -59,7 +59,7 @@ ArrayIndexScalarVP::ArrayIndexScalarVP( RefDNode& dNode)
 
 SizeT ArrayIndexScalar::NIter( SizeT varDim) 
 {
-  sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+  sInit = GDLInterpreter::CallStackBack()->GetTheKW( varIx)->LoopIndex();
   if( sInit < 0)
     s = sInit + varDim;
   else
@@ -88,12 +88,12 @@ SizeT ArrayIndexScalarVP::NIter( SizeT varDim)
 
 void ArrayIndexScalar::Init() 
 {
-  sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+  sInit = GDLInterpreter::CallStackBack()->GetTheKW( varIx)->LoopIndex();
   s = sInit;
 }
 BaseGDL* ArrayIndexScalar::OverloadIndexNew()
 { 
-  BaseGDL* v = GDLInterpreter::CallStackBack()->GetKW( varIx);
+  BaseGDL* v = GDLInterpreter::CallStackBack()->GetTheKW( varIx); //TheKW to kep old behaviour (OK?)
   if( v == NULL) return NULL;
   return v->Dup();
 }
@@ -128,7 +128,7 @@ BaseGDL* ArrayIndexListOneScalarT::Index( BaseGDL* var, IxExprListT& ix_)
     // Init() not called
     if( !var->IsAssoc())// && var->Type() != GDL_STRUCT)
       {
-	sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+	sInit = GDLInterpreter::CallStackBack()->GetTheKW( varIx)->LoopIndex();
 	  
 	if( sInit < 0)
 	  s = sInit + var->N_Elements()/*var->Size()*/;
@@ -157,7 +157,7 @@ BaseGDL* ArrayIndexListOneScalarNoAssocT::Index( BaseGDL* var, IxExprListT& ix_)
     // Init() not called
 //     if( !var->IsAssoc())// && var->Type() != GDL_STRUCT)
 //       {
-	sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+	sInit = GDLInterpreter::CallStackBack()->GetTheKW( varIx)->LoopIndex();
 	  
 	if( sInit < 0)
 	  s = sInit + var->N_Elements()/*var->Size()*/;
@@ -189,7 +189,7 @@ void ArrayIndexListOneScalarNoAssocT::InitAsOverloadIndex( IxExprListT& ix_, /*I
     DLongGDL* isRange = new DLongGDL( 0);
     ixOut.push_back(isRange);
 
-    BaseGDL* oIx = GDLInterpreter::CallStackBack()->GetKW( varIx);
+    BaseGDL* oIx = GDLInterpreter::CallStackBack()->GetTheKW( varIx); //TheKW to keep old behaviour (OK?)
     if( oIx != NULL)
       oIx = oIx->Dup();
     ixOut.push_back(oIx);
@@ -269,7 +269,7 @@ BaseGDL* ArrayIndexListOneScalarVPNoAssocT::Index( BaseGDL* var, IxExprListT& ix
 
 bool ArrayIndexListOneScalarT::ToAssocIndex( SizeT& lastIx)
   {
-    sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+    sInit = GDLInterpreter::CallStackBack()->GetTheKW( varIx)->LoopIndex();
     if( sInit < 0)
       throw GDLException(-1,NULL,"Record number must be a scalar > 0 in this context.",true,false);      
     lastIx = sInit;
@@ -277,7 +277,7 @@ bool ArrayIndexListOneScalarT::ToAssocIndex( SizeT& lastIx)
   }
 void ArrayIndexListOneScalarT::SetVariable( BaseGDL* var) 
   {
-    sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+    sInit = GDLInterpreter::CallStackBack()->GetTheKW( varIx)->LoopIndex();
     if( var->IsAssoc()) 
     {
       s = sInit;
@@ -298,7 +298,7 @@ void ArrayIndexListOneScalarT::SetVariable( BaseGDL* var)
   }
 void ArrayIndexListOneScalarNoAssocT::SetVariable( BaseGDL* var) 
   {
-    sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+    sInit = GDLInterpreter::CallStackBack()->GetTheKW( varIx)->LoopIndex();
     if( var->IsAssoc()) 
     {
       s = sInit;
@@ -324,7 +324,7 @@ void ArrayIndexListOneScalarT::AssignAt( BaseGDL* var, BaseGDL* right)
     // scalar case
     if( right->N_Elements() == 1 && !var->IsAssoc())// && var->Type() != GDL_STRUCT) 
       {
-	sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+	sInit = GDLInterpreter::CallStackBack()->GetTheKW( varIx)->LoopIndex();
 	if( sInit < 0)
 	  s = sInit + var->N_Elements()/*var->Size()*/;
 	else
@@ -356,7 +356,7 @@ void ArrayIndexListOneScalarNoAssocT::AssignAt( BaseGDL* var, BaseGDL* right)
     // scalar case
     if( right->N_Elements() == 1)// && !var->IsAssoc())// && var->Type() != GDL_STRUCT) 
       {
-	sInit = GDLInterpreter::CallStackBack()->GetKW( varIx)->LoopIndex();
+	sInit = GDLInterpreter::CallStackBack()->GetTheKW( varIx)->LoopIndex();
 	if( sInit < 0)
 	  s = sInit + var->N_Elements()/*var->Size()*/;
 	else

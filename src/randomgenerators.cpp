@@ -61,21 +61,22 @@ namespace lib {
 #include "dSFMT/dSFMT.h"
 #include "dSFMT/dSFMT-params.h"
 #include "dSFMT/dSFMT-common.h"
-//for jumps and parallelism
-#include "dSFMT/dSFMT-jump.h"
-#include "dSFMT/dSFMT-poly.h"
 
 #define GSL_M_E  2.7182818284590452354 /* e */
 
-  //our own struct to keep up things related to parallel seeds
-  //it will contain all 128-bit internal state arrays, one per thread.
-  //as the number of threads is not known, it will be initialized at start.
+ //RANDOM numbers are not thread-pool commands. This version does not parallelize calculations, and does not use dSFMT_jump.
+
+  // our own struct to keep up things related to parallel seeds.
+  // this one is when this file is used: r is just of one dsfmt_t struture,
+  // since this version does not used parallel threads. The version in
+  // 'randomgenerators_parallel.cpp' keeps the same stucture, but there r is a vector
+  // of seeds, each one with its own copy of the seed,
+  // displaced by 2^128 in the 'future' by the magic of the dSFMT_jump
+  // such as to contain all 128-bit internal state arrays, one per thread.
   struct DSFMT_STATE {
     dsfmt_t **r; 
  };
  typedef struct DSFMT_STATE dsfmt_state;
-#define DEFINE_NCHUNK_FOR_dSFMT  int nchunk = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl)) ? CpuTPOOL_NTHREADS : 1;
- 
 
 // This function could prove to be way faster than the function below, provided the parallelization insures
 // an alignment on _align16 , i.e., 2 doubles = 128 bits = address%16==0
@@ -94,46 +95,13 @@ namespace lib {
   
   int random_uniform(double* res, dsfmt_state state, SizeT nEl)
   {
-    //no difficulty as we do not use aligned functions here.
-    DEFINE_NCHUNK_FOR_dSFMT
-    SizeT chunksize = nEl / nchunk;
-
-#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
-    {
-      int thread_id = currentThreadNumber();
-      SizeT start_index, stop_index;
-      start_index = thread_id * chunksize;
-      if (thread_id != nchunk-1) //robust wrt. use of threads or not.
-      {
-        stop_index = start_index + chunksize;
-      } else {
-        stop_index = nEl;
-      }
-      SizeT i;
-      for (i=start_index; i<stop_index; ++i) res[i] = dsfmt_genrand_close_open(state.r[thread_id]);
-    }
+    for (SizeT i=0; i<nEl; ++i) res[i] = dsfmt_genrand_close_open(state.r[0]);
     return 0;
   }
 
   int random_uniform(float* res, dsfmt_state state, SizeT nEl)
   {
-    DEFINE_NCHUNK_FOR_dSFMT
-    SizeT chunksize = nEl / nchunk;
-
-#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
-    {
-      int thread_id = currentThreadNumber();
-      SizeT start_index, stop_index;
-      start_index = thread_id * chunksize;
-      if (thread_id != nchunk-1) //robust wrt. use of threads or not.
-      {
-        stop_index = start_index + chunksize;
-      } else {
-        stop_index = nEl;
-      }
-      SizeT i;
-      for (i=start_index; i<stop_index; ++i) res[i] = (float) dsfmt_genrand_close_open(state.r[thread_id]);
-    }
+    for (SizeT i=0; i<nEl; ++i) res[i] = (float) dsfmt_genrand_close_open(state.r[0]);
     return 0;
   }
 
@@ -203,43 +171,13 @@ namespace lib {
 
   int random_normal(double* res, dsfmt_state state, SizeT nEl)
   {
-    DEFINE_NCHUNK_FOR_dSFMT
-    SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
-    {
-      int thread_id = currentThreadNumber();
-      SizeT start_index, stop_index;
-      start_index = thread_id * chunksize;
-      if (thread_id != nchunk-1) //robust wrt. use of threads or not.
-      {
-        stop_index = start_index + chunksize;
-      } else {
-        stop_index = nEl;
-      }
-      SizeT i;
-      for (i=start_index; i<stop_index; ++i) res[i] = dsfmt_gauss(state.r[thread_id],1.0);
-    }
+    for (SizeT i=0; i<nEl; ++i) res[i] = dsfmt_gauss(state.r[0],1.0);
     return 0;
   }
   
   int random_normal( float* res, dsfmt_state state, SizeT nEl)
   {
-    DEFINE_NCHUNK_FOR_dSFMT
-    SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
-    {
-      int thread_id = currentThreadNumber();
-      SizeT start_index, stop_index;
-      start_index = thread_id * chunksize;
-      if (thread_id != nchunk-1) //robust wrt. use of threads or not.
-      {
-        stop_index = start_index + chunksize;
-      } else {
-        stop_index = nEl;
-      }
-      SizeT i;
-      for (i=start_index; i<stop_index; ++i) res[i] = (float) dsfmt_gauss(state.r[thread_id],1.0);
-    }
+    for (SizeT i=0; i<nEl; ++i) res[i] = (float) dsfmt_gauss(state.r[0],1.0);
     return 0;
   }
  
@@ -466,43 +404,13 @@ namespace lib {
 
   int random_gamma(double* res, dsfmt_state state, SizeT nEl, DLong n)
   {
-    DEFINE_NCHUNK_FOR_dSFMT
-    SizeT chunksize = nEl / nchunk;
-#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
-    {
-      int thread_id = currentThreadNumber();
-      SizeT start_index, stop_index;
-      start_index = thread_id * chunksize;
-      if (thread_id != nchunk - 1) //robust wrt. use of threads or not.
-      {
-        stop_index = start_index + chunksize;
-      } else {
-        stop_index = nEl;
-      }
-      SizeT i;
-      for (i = start_index; i < stop_index; ++i) res[i] = dsfmt_ran_gamma_knuth(state.r[thread_id], 1.0 * n, 1.0);
-    }
+    for (SizeT i = 0; i < nEl; ++i) res[i] = dsfmt_ran_gamma_knuth(state.r[0], 1.0 * n, 1.0);
     return 0;
   }
 
   int random_gamma(float* res, dsfmt_state state, SizeT nEl, DLong n)
   {
-    DEFINE_NCHUNK_FOR_dSFMT
-    SizeT chunksize = nEl / nchunk;
-#pragma omp parallel num_threads(nchunk) if (nchunk > 1)
-    {
-      int thread_id = currentThreadNumber();
-      SizeT start_index, stop_index;
-      start_index = thread_id * chunksize;
-      if (thread_id != nchunk - 1) //robust wrt. use of threads or not.
-      {
-        stop_index = start_index + chunksize;
-      } else {
-        stop_index = nEl;
-      }
-      SizeT i;
-      for (i = start_index; i < stop_index; ++i) res[i] = (float) dsfmt_ran_gamma_knuth(state.r[thread_id], 1.0 * n, 1.0);
-    }
+    for (SizeT i = 0; i < nEl; ++i) res[i] = (float) dsfmt_ran_gamma_knuth(state.r[0], 1.0 * n, 1.0);
     return 0;
   }
   
@@ -511,22 +419,7 @@ namespace lib {
     //Note: Binomial values are not same IDL.    
     DULong n = (DULong) (*binomialKey)[0];
     DDouble p = (DDouble) (*binomialKey)[1];
-    DEFINE_NCHUNK_FOR_dSFMT
-    SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
-    {
-      int thread_id = currentThreadNumber();
-      SizeT start_index, stop_index;
-      start_index = thread_id * chunksize;
-      if (thread_id != nchunk - 1) //robust wrt. use of threads or not.
-      {
-        stop_index = start_index + chunksize;
-      } else {
-        stop_index = nEl;
-      }
-      SizeT i;
-      for (i = start_index; i < stop_index; ++i) res[i] = dsfmt_ran_binomial_knuth(state.r[thread_id], p, n);
-    }
+    for (SizeT i = 0; i < nEl; ++i) res[i] = dsfmt_ran_binomial_knuth(state.r[0], p, n);
     return 0;    
   }
   
@@ -535,108 +428,33 @@ namespace lib {
     //Note: Binomial values are not same IDL.    
     DULong n = (DULong) (*binomialKey)[0];
     DDouble p = (DDouble) (*binomialKey)[1];
-    DEFINE_NCHUNK_FOR_dSFMT
-    SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
-    {
-      int thread_id = currentThreadNumber();
-      SizeT start_index, stop_index;
-      start_index = thread_id * chunksize;
-      if (thread_id != nchunk - 1) //robust wrt. use of threads or not.
-      {
-        stop_index = start_index + chunksize;
-      } else {
-        stop_index = nEl;
-      }
-      SizeT i;
-      for (i = start_index; i < stop_index; ++i) res[i] = (float) dsfmt_ran_binomial_knuth(state.r[thread_id], p, n);
-    }
+    for (SizeT i = 0; i < nEl; ++i) res[i] = (float) dsfmt_ran_binomial_knuth(state.r[0], p, n);
     return 0;    
   }
   
   int random_poisson(double* res, dsfmt_state state, SizeT nEl, DDoubleGDL* poissonKey)
   {
     DDouble mu = (DDouble) (*poissonKey)[0];
-    DEFINE_NCHUNK_FOR_dSFMT
-    SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
-    {
-      int thread_id = currentThreadNumber();
-      SizeT start_index, stop_index;
-      start_index = thread_id * chunksize;
-      if (thread_id != nchunk - 1) //robust wrt. use of threads or not.
-      {
-        stop_index = start_index + chunksize;
-      } else {
-        stop_index = nEl;
-      }
-      SizeT i;
-      for (i = start_index; i < stop_index; ++i) res[i] = dsfmt_ran_poisson(state.r[thread_id], mu);
-    }
+    for (SizeT i = 0; i < nEl; ++i) res[i] = dsfmt_ran_poisson(state.r[0], mu);
     return 0;
   }
 
   int random_poisson(float* res, dsfmt_state state, SizeT nEl, DDoubleGDL* poissonKey)
   {
     DDouble mu = (DDouble) (*poissonKey)[0];
-    DEFINE_NCHUNK_FOR_dSFMT
-    SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
-    {
-      int thread_id = currentThreadNumber();
-      SizeT start_index, stop_index;
-      start_index = thread_id * chunksize;
-      if (thread_id != nchunk-1) //robust wrt. use of threads or not.
-      {
-        stop_index = start_index + chunksize;
-      } else {
-        stop_index = nEl;
-      }
-      SizeT i;
-      for (i=start_index; i<stop_index; ++i) res[i] = (float) dsfmt_ran_poisson(state.r[thread_id], mu);
-    }
+    for (SizeT i = 0; i < nEl; ++i) res[i] = (float) dsfmt_ran_poisson(state.r[0], mu);
     return 0;
   }
 
   int random_dlong(DLong* res, dsfmt_state state, SizeT nEl)
   {
-    DEFINE_NCHUNK_FOR_dSFMT
-    SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
-    {
-      int thread_id = currentThreadNumber();
-      SizeT start_index, stop_index;
-      start_index = thread_id * chunksize;
-      if (thread_id != nchunk - 1) //robust wrt. use of threads or not.
-      {
-        stop_index = start_index + chunksize;
-      } else {
-        stop_index = nEl;
-      }
-      SizeT i;
-      for (i = start_index; i < stop_index; ++i) res[i] = dsfmt_genrand_int31(state.r[thread_id]); //int31 as in [0..2^31-1] 
-    }
+    for (SizeT i = 0; i < nEl; ++i) res[i] = dsfmt_genrand_int31(state.r[0]); //int31 as in [0..2^31-1] 
     return 0;
   }
 
   int random_dulong(DULong* res, dsfmt_state state, SizeT nEl)
   {
-    DEFINE_NCHUNK_FOR_dSFMT
-    SizeT chunksize = nEl / nchunk;
-    #pragma omp parallel num_threads(nchunk) if (nchunk > 1)
-    {
-      int thread_id = currentThreadNumber();
-      SizeT start_index, stop_index;
-      start_index = thread_id * chunksize;
-      if (thread_id != nchunk - 1) //robust wrt. use of threads or not.
-      {
-        stop_index = start_index + chunksize;
-      } else {
-        stop_index = nEl;
-      }
-      SizeT i;
-      for (i = start_index; i < stop_index; ++i) res[i] = dsfmt_genrand_uint32(state.r[thread_id]); //int31 as in [0..2^31-1] 
-    }
+    for (SizeT i = 0; i < nEl; ++i) res[i] = dsfmt_genrand_uint32(state.r[0]); //int31 as in [0..2^31-1] 
     return 0;
   }  
   
@@ -647,18 +465,17 @@ namespace lib {
     dsfmt_mem->idx = pos;
   }
 
+  //same as parallel version, but just with 1 thread
   void get_random_state(EnvT* e, dsfmt_state state, const DULong seed)
   {
     if (e->GlobalPar(0)) {
-      DULong64GDL* ret = new DULong64GDL(dimension(1+(DSFMT_N64+1)*maxNumberOfThreads()), BaseGDL::NOZERO);
+      DULong64GDL* ret = new DULong64GDL(dimension(1+(DSFMT_N64+1)*1), BaseGDL::NOZERO);
       DULong64* newstate = (DULong64*) (ret->DataAddr());
       long k=0;
       newstate[k++] = seed;
-      for (int ithread=0; ithread < maxNumberOfThreads() ; ++ithread) {
-        newstate[k++] = state.r[ithread]->idx;
-        uint64_t *psfmt64 = &(state.r[ithread]->status[0].u[0]);
-        for (int j = 0; j < DSFMT_N64; ++j) newstate[k++] = psfmt64[j];
-      }
+      newstate[k++] = state.r[0]->idx;
+      uint64_t *psfmt64 = &(state.r[0]->status[0].u[0]);
+      for (int j = 0; j < DSFMT_N64; ++j) newstate[k++] = psfmt64[j];
       e->SetPar(0, ret);
     }
   }
@@ -668,41 +485,23 @@ namespace lib {
   // This is already two to four times faster than IDL.
   // Use of dSFMT depends on the presence of switches (--no-dSFMT), environment variable (GDL_USE_DSFMT)
   // and if Eigen:: is used (because Eigen:: aligns correctly wrt. the requirements of dSFMT)
-
-  // We moreover definitely speed up random number generation for a very large number of
-  // values by parallelizing the code. This is possible within dSFMT, provided one use the dsfmt-jump() function 
-  // written by the authors above. It permits to "jump" the seed to a new state as if 2^{128} 
-  // random numbers had been generated in the meantime. (This in a random series with a period of 2^19937 !).
-  // Note: 2^128 is already way larger than the number of particles in the Universe.
-  // The implementation creates maxNumberOfThreads() seed states, separated by a 2^{128} state jump,
-  // and run TPOOL_NTHREADS in parallell, each continuing with its own seed.
   
   // The price to pay is that **the produced random numbers are not the same as IDL**.
   // To get values comparable with IDL, but slowly, use the /RAN1 switch (1) (or do not enable dSFMT).  
   // Moreover, the seed arrays are different. Switching from one to another is *NOT* possible as the
-  // types and seed lengths are different. Besides, our dSFMT seed is, because of the use of parallel threads
-  // to speed up the random generator, approx NTHREADS larger than the IDL one (not a big deal!).
+  // types and seed lengths are different. Besides, our dSFMT seed is larger than the IDL one (not a big deal!).
   
   // (1) Why /RAN1? Because this option is present in IDL, and, instead of throwing an error on it,
   // we use it also as a compatibility switch. But in our case the compatibility is with IDL8+
   // results, not with IDL6.
   
-#include "dSFMT/dSFMT-jump.c"
-
  //this initializes parallel states up to min of max_allowed_threads and omp_max_threads.
  //independently of the fact that only a subset of theses thtreads will be used in loops.
  void init_seeds(dsfmt_state state, DULong seed) {
    //populate with seed template state 'temp'
    dsfmt_t temp;   
    dsfmt_init_gen_rand(&temp, seed);
-   //sucessively push by 2^128 and copy to next place
-   //Note: we use the maximum number of threads allowed as this seed can be replayed
-   //after changing the number of threads to be used.
-   memcpy((void*)(state.r[0]),(void*)&temp,sizeof(temp));
-   for (int i=1; i<maxNumberOfThreads(); ++i) {
-     dSFMT_jump(&temp, poly_128);
-     memcpy((void*)(state.r[i]),(void*)&temp,sizeof(temp));
-   }
+   memcpy((void*)(state.r[0]),(void*)&temp,sizeof(temp)); //first and only state.
  }
   
   BaseGDL* random_fun_dsfmt(EnvT* e)
@@ -731,10 +530,10 @@ namespace lib {
     if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
     
     static dsfmt_state dsfmt_mem;
-    //initialize only once!
+    //initialize only once, and for 1 state (this unparallel version)
     if (dsfmt_mem.r==NULL) {
-      dsfmt_mem.r=(dsfmt_t**)malloc(maxNumberOfThreads()*sizeof(dsfmt_t*));
-      {for (int i=0; i< maxNumberOfThreads() ; ++i) dsfmt_mem.r[i]=(dsfmt_t*)malloc(sizeof(dsfmt_t));}
+      dsfmt_mem.r=(dsfmt_t**)malloc(sizeof(dsfmt_t*));
+      dsfmt_mem.r[0]=(dsfmt_t*)malloc(sizeof(dsfmt_t));
     }
 
     SizeT nParam = e->NParam(1);
@@ -754,15 +553,13 @@ namespace lib {
       // plus the memory of the initial seed value.
       if (p0->Type() == GDL_ULONG64) { //good chances we have here a genuine dSFMT seed!
         DULong64GDL* p0L = e->IfDefGetParAs< DULong64GDL>(0);
-        if (p0L->N_Elements() == 1 + (DSFMT_N64 + 1) * maxNumberOfThreads()) {
+        if (p0L->N_Elements() == 1 + (DSFMT_N64 + 1) *1 ) {
           long k = 0;
-          seed = (*p0L)[k++]; //hopefully it is always compatible with an unisgned int32 as reslut of a saved previous seed.
-          for (int ithread = 0; ithread < maxNumberOfThreads(); ++ithread) {
-            int pos = (*p0L)[k++];
-            DULong64 sequence[DSFMT_N64];
-            for (int i = 0; i < DSFMT_N64; ++i) sequence[i] = (*p0L)[k++];
-            set_random_state(dsfmt_mem.r[ithread], sequence, pos); //initialize each thread seed 
-          }
+          seed = (*p0L)[k++]; //hopefully it is always compatible with an unisgned int32 as result of a saved previous seed.
+          int pos = (*p0L)[k++];
+          DULong64 sequence[DSFMT_N64];
+          for (int i = 0; i < DSFMT_N64; ++i) sequence[i] = (*p0L)[k++];
+          set_random_state(dsfmt_mem.r[0], sequence, pos); //initialize each thread seed 
           initialized=true;
         } else { // not a seed sequence: take first value as 32 bit UNsigned integer (for dSFMT compatibility).
           DULongGDL* p02L = e->IfDefGetParAs< DULongGDL>(0);

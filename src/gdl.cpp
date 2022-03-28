@@ -62,6 +62,16 @@
 // GDLDATADIR
 #include "config.h"
 
+//initialize wxWidgets system
+#ifdef HAVE_LIBWXWIDGETS
+#include "gdlwidget.hpp"
+#ifndef __WXMAC__ 
+wxIMPLEMENT_APP_NO_MAIN( wxAppGDL);
+#else
+wxIMPLEMENT_APP_NO_MAIN( wxApp);
+#endif
+#endif
+
 using namespace std;
 
 static void StartupMessage()
@@ -126,8 +136,9 @@ void GDLSetLimits()
 struct rlimit* gdlstack=new struct rlimit;
   int r=getrlimit(RLIMIT_STACK,gdlstack); 
 //  cerr <<"Current rlimit = "<<gdlstack->rlim_cur<<endl;
-//  cerr<<"Max rlimit = "<<  gdlstack->rlim_max<<endl;     
-  if (gdlstack->rlim_max > GDL_PREFERED_STACKSIZE ) gdlstack->rlim_cur=GDL_PREFERED_STACKSIZE;
+//  cerr<<"Max rlimit = "<<  gdlstack->rlim_max<<endl;
+  if (gdlstack->rlim_cur >= GDL_PREFERED_STACKSIZE ) return; //the bigger the better.
+  if (gdlstack->rlim_max > GDL_PREFERED_STACKSIZE ) gdlstack->rlim_cur=GDL_PREFERED_STACKSIZE; //not completely satisfactory.
   r=setrlimit(RLIMIT_STACK,gdlstack);
 }
 #endif
@@ -137,6 +148,12 @@ void InitGDL()
 #ifndef _WIN32
   GDLSetLimits();
 #endif
+
+//rl_event_hook (defined below) uses a wxwidgets event loop, so wxWidgets must be started
+#ifdef HAVE_LIBWXWIDGETS
+    if (useWxWidgets) GDLWidget::Init();
+#endif
+
 #if defined(HAVE_LIBREADLINE)
   // initialize readline (own version - not pythons one)
   // in includefirst.hpp readline is disabled for python_module
@@ -147,9 +164,6 @@ void InitGDL()
   //when editing the command line with ARROW keys. (bug 562). (used also in dinterpreted.cpp )
   //but... without it we have no graphics event handler! FIXME!!! 
   rl_event_hook = GDLEventHandler;
-  // SA: history is now stifled in the interpreter.InterpreterLoop( startup),
-  //     enabling one to set the history-file length via the !EDIT_INPUT sysvar
-  // stifle_history( 20);
 #endif
 
   // ncurses blurs the output, initialize TermWidth here
@@ -207,7 +221,34 @@ int main(int argc, char *argv[])
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
+// in the (suggested) absence of IDL_PATH, !DIR is correct if set to GDLDATADIR.
+  std::string S_GDLDATADIR = std::string(GDLDATADIR);
+#ifdef _WIN32
+  std::replace(S_GDLDATADIR.begin(), S_GDLDATADIR.end(), '/', '\\');
+#endif 
 
+//PATH. This one is often modified by people before starting GDL.
+  string gdlPath=GetEnvPathString("GDL_PATH"); //warning: is a Path, use system separator.
+  if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH"); //warning: is a Path, use system separator.
+  if( gdlPath == "") gdlPath = S_GDLDATADIR + lib::PathSeparator() + "lib";
+
+//drivers if local
+  useLocalDrivers=false;
+  bool driversNotFound=false;
+  string driversPath=S_GDLDATADIR + lib::PathSeparator() + "drivers"; 
+
+#ifdef INSTALL_LOCAL_DRIVERS
+  // We must declare here (and not later) where our local copy of (customized?) drivers is to be found.
+  std::string drvPathCommand="PLPLOT_DRV_DIR="+driversPath;
+  char s[256];
+  strcpy(s,drvPathCommand.c_str());
+  putenv(s);
+  useLocalDrivers=true;
+  //Now, it is possible that GDL WAS compiled with INSTALL_LOCAL_DRIVERS, but the plplot installation is NOT compiled with DYNAMIC DRIVERS.
+  //Then not only we will not have 'our' good driver, but calling our nicknamed wxwidgetsgdl driver will fail.
+  //So I check here the plplot driver list to check if wxwidgetsgdl is present. If not, useLocalDriver=false
+  if (!GDLGStream::checkPlplotDriver("wxwidgetsgdl")) {driversNotFound=true; useLocalDrivers=false;}
+#endif
   // keeps a list of files to be executed after the startup file
   // and before entering the interactive mode
   vector<string> batch_files;
@@ -216,49 +257,61 @@ int main(int argc, char *argv[])
   bool strict_syntax=false;
   bool syntaxOptionSet=false;
 
-  //start with a default value:
-  useWxWidgetsForGraphics = false;
   bool force_no_wxgraphics = false;
+  usePlatformDeviceName=false;
+  forceWxWidgetsUglyFonts = false;
   useDSFMTAcceleration = true;
+  iAmANotebook=false; //option --notebook
+ #ifdef HAVE_LIBWXWIDGETS 
+  useWxWidgets=true;
+#else
+  useWxWidgets=false;
+#endif  
 #ifdef _WIN32
   lib::posixpaths = false;
 #endif
   for( SizeT a=1; a< argc; ++a)
     {
-      if( string( argv[a]) == "--help" | string( argv[a]) == "-h")
-	{
-	  cerr << "Usage: gdl [ OPTIONS ] [ batch_file ... ]" << endl;
-	  cerr << "Start the GDL interpreter (incremental compiler)" << endl;
-	  cerr << endl;
-	  cerr << "GDL options:" << endl;
-	  cerr << "  --help (-h)        display this message" << endl;
-	  cerr << "  --version (-V, -v) show version information" << endl;
-	  cerr << "  --fakerelease X.y  pretend that !VERSION.RELEASE is X.y" << endl;
-	  cerr << "  --fussy            implies that procedures adhere with modern IDL, where \"()\" are for functions and \"[]\" are for arrays." <<endl;
+      if( string( argv[a]) == "--help" | string( argv[a]) == "-h") {
+      cerr << "Usage: gdl [ OPTIONS ] [ batch_file ... ]" << endl;
+      cerr << "Start the GDL interpreter (incremental compiler)" << endl;
+      cerr << endl;
+      cerr << "GDL options:" << endl;
+      cerr << "  --help (-h)        display this message" << endl;
+      cerr << "  --version (-V, -v) show version information" << endl;
+      cerr << "  --fakerelease X.y  pretend that !VERSION.RELEASE is X.y" << endl;
+      cerr << "  --fussy            implies that procedures adhere with modern IDL, where \"()\" are for functions and \"[]\" are for arrays." << endl;
       cerr << "                     This speeds up (sometimes terribly) compilation but choke on every use of \"()\" with arrays." << endl;
       cerr << "                     Conversion of procedures to modern IDL can be done with D. Landsman's idlv4_to_v5 procedure." << endl;
       cerr << "                     Use enviromnment variable \"GDL_IS_FUSSY\" to set up permanently this feature." << endl;
-	  cerr << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
+      cerr << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
       cerr << "                     Needed to counteract temporarily the effect of the enviromnment variable \"GDL_IS_FUSSY\"." << endl;
-      cerr << "  --use-wx           Tells GDL to use WxWidgets graphics instead of X11 or Windows. (nicer plots)." << endl;
-      cerr << "                     Also enabled by setting the environment variable GDL_USE_WX to a non-null value." << endl;
-      cerr << "  --no-use-wx        Tells GDL no to use WxWidgets graphics, even if env. var. \"GDL_USE_WX\" is set." << endl;
+      cerr << "  --MAC              Graphic device will be called 'MAC' on MacOSX. (default: 'X')" << endl;
+      cerr << "  --no-use-wx        Tells GDL not to use WxWidgets graphics." << endl;
+      cerr << "                     Also enabled by setting the environment variable GDL_DISABLE_WX_PLOTS to a non-null value." << endl;
+      cerr << "  --notebook         Force SVG-only device, used only when GDL is a Python Notebook Kernel." << endl;
+      cerr << "  --widget-compat    Tells GDL to use a default (rather ugly) fixed pitch font for compatiblity with IDL widgets." << endl;
+      cerr << "                     Also enabled by setting the environment variable GDL_WIDGET_COMPAT to a non-null value." << endl;
+      cerr << "                     Using this option may render some historical widgets unworkable (as they are based on fixed sizes)." << endl;
       cerr << "  --no-dSFMT         Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random doubles." << endl;
       cerr << "                     Also disable by setting the environment variable GDL_NO_DSFMT to a non-null value." << endl;
+#ifdef _WIN32
+      cerr << "  --posix (Windows only): paths will be posix paths (experimental)." << endl;
+#endif
       cerr << endl;
-	  cerr << "IDL-compatible options:" << endl;
-	  cerr << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
-          cerr << "             the following argument (may be specified more than once)" << endl;
-	  cerr << "  -args ...  tells COMMAND_LINE_ARGS() to report " << endl;
-          cerr << "             all following arguments" << endl;
-          cerr << "  -e value   execute given statement and exit (last occurrence taken into account only," << endl;
-          cerr << "             executed after startup file, may not be specified together with batch files)" << endl;
-	  cerr << "  -pref=/path/to/params_file  loads the specified preference file" << endl;
-	  cerr << "  -quiet (--quiet, -q) suppress welcome messages" << endl;
-	  cerr << endl;
-	  cerr << "Homepage: http://gnudatalanguage.sf.net" << endl;
-	  return 0;
-	}
+      cerr << "IDL-compatible options:" << endl;
+      cerr << "  -arg value tells COMMAND_LINE_ARGS() to report" << endl;
+      cerr << "             the following argument (may be specified more than once)" << endl;
+      cerr << "  -args ...  tells COMMAND_LINE_ARGS() to report " << endl;
+      cerr << "             all following arguments" << endl;
+      cerr << "  -e value   execute given statement and exit (last occurrence taken into account only," << endl;
+      cerr << "             executed after startup file, may not be specified together with batch files)" << endl;
+      cerr << "  -pref=/path/to/params_file  loads the specified preference file" << endl;
+      cerr << "  -quiet (--quiet, -q) suppress welcome messages" << endl;
+      cerr << endl;
+      cerr << "Homepage: https://gnudatalanguage.github.io" << endl;
+      return 0;
+    }
       else if (string(argv[a])=="--version" | string(argv[a])=="-v" | string(argv[a])=="-V")
 	{
 	  cerr << "GDL - GNU Data Language, Version " << VERSION << endl;
@@ -338,16 +391,24 @@ int main(int argc, char *argv[])
       {
            useDSFMTAcceleration = false;
       }
-      else if (string(argv[a]) == "--use-wx")
+      else if (string(argv[a]) == "--widget-compat")
       {
-          useWxWidgetsForGraphics = true;
+          forceWxWidgetsUglyFonts = true;
       }      
 #ifdef _WIN32
       else if (string(argv[a]) == "--posix") lib::posixpaths=true;
 #endif
+      else if (string(argv[a]) == "--MAC")
+      {
+         usePlatformDeviceName = true;
+      }
       else if (string(argv[a]) == "--no-use-wx")
       {
-           force_no_wxgraphics = true;
+         force_no_wxgraphics = true;
+      }
+      else if (string(argv[a]) == "--notebook")
+      {
+         iAmANotebook = true;
       }
       else if (string(argv[a]) == "--fakerelease")
       {
@@ -376,34 +437,41 @@ int main(int argc, char *argv[])
   }
   
   //before InitGDL() as InitGDL() starts graphic!
-  std::string useWX=GetEnvString("GDL_USE_WX");
-  if ( useWX.length() > 0) useWxWidgetsForGraphics=true; //not necessary "YES".
+  
+#ifdef HAVE_LIBWXWIDGETS
+  //tells if wxWidgets is working (may not be the case if DISPLAY is not set) by setting useWxWidgets to false
+  useWxWidgets=GDLWidget::InitWx();
+  // default is wx Graphics...
+  useWxWidgetsForGraphics=useWxWidgets;
+#else
+  useWxWidgetsForGraphics=false;
+#endif
+#ifdef HAVE_X
+  // unless we have X and want to see it for plots
+  std::string disableWXPlots=GetEnvString("GDL_DISABLE_WX_PLOTS");
+  if ( disableWXPlots.length() > 0) useWxWidgetsForGraphics=false; //not necessary "YES".
   if (force_no_wxgraphics) useWxWidgetsForGraphics=false; //this has the last answer, whatever the setup.
+#endif  
+  std::string doUseUglyFonts=GetEnvString("GDL_WIDGETS_COMPAT");
+  if ( doUseUglyFonts.length() > 0) forceWxWidgetsUglyFonts=true; 
   
-  
-  InitGDL();
+  InitGDL(); 
 
   // must be after !cpu initialisation
-  InitOpenMP();
-
-  if (gdlde || (isatty(0) && !quiet)) StartupMessage();
+  InitOpenMP(); //will supersede values for CpuTPOOL_NTHREADS
 
   // instantiate the interpreter
   DInterpreter interpreter;
 
-  string gdlPath=GetEnvString("GDL_PATH");
-  if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
-  if( gdlPath == "")
-    {
-      gdlPath = "+" GDLDATADIR "/lib";
-      if (gdlde || (isatty(0) && !quiet)) cerr <<
-        "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " GDLDATADIR "/lib" << endl;
+  if (gdlde || (isatty(0) && !quiet)) {
+    StartupMessage();
+    cerr << "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << gdlPath << endl;
+    if (useWxWidgetsForGraphics) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
+    if (useLocalDrivers || driversNotFound) {
+      if (driversNotFound) cerr << "- Local drivers not found --- using default ones. " << endl;
+      else cerr << "- Using local drivers in " << driversPath << endl;
     }
-  if (useWxWidgetsForGraphics) {
-      if (gdlde || (isatty(0) && !quiet)) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
     }
-
-  
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
   
   //report in !GDL status struct
@@ -415,8 +483,6 @@ int main(int argc, char *argv[])
   unsigned  useWXTAG= gdlconfig->Desc()->TagIndex("GDL_USE_WX");
   (*static_cast<DByteGDL*> (gdlconfig->GetTag(useWXTAG, 0)))[0]=useWxWidgetsForGraphics;
   
-  SysVar::SetGDLPath( gdlPath);
-  
   if (!pretendRelease.empty()) SysVar::SetFakeRelease(pretendRelease);
   //fussyness setup and change if switch at start
   if (syntaxOptionSet) { //take it no matters any env. var.
@@ -426,8 +492,8 @@ int main(int argc, char *argv[])
   }
   
   
-  string startup=GetEnvString("GDL_STARTUP");
-  if( startup == "") startup=GetEnvString("IDL_STARTUP");
+  string startup=GetEnvPathString("GDL_STARTUP");
+  if( startup == "") startup=GetEnvPathString("IDL_STARTUP");
   if( startup == "")
     {
       if (gdlde || (isatty(0) && !quiet)) cerr << 

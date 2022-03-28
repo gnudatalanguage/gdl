@@ -65,8 +65,6 @@ private:
       static int polarIx = e->KeywordIx( "POLAR");
       bool polar = (e->KeywordSet(polarIx));
 
-//    DDoubleGDL *yValBis, *xValBis;
-//    Guard<BaseGDL> xvalBis_guard, yvalBis_guard;
       //test and transform eventually if POLAR and/or NSUM!
       if( nParam() == 1)
       {
@@ -203,7 +201,7 @@ private:
     actStream->setSymbolSizeConversionFactors();
 
     bool mapSet=false;
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
     get_mapset(mapSet);
     if ( mapSet )
     {
@@ -272,7 +270,7 @@ private:
         }
         actStream->stransform(gdl3dTo2dTransform, &Data3d);
     }
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
         if ( mapSet && psym < 1) {
           GDLgrProjectedPolygonPlot(actStream, ref, NULL, xVal, yVal, false, false, NULL);
           psym=-psym;

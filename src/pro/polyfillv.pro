@@ -1,4 +1,20 @@
-FUNCTION polyfillv,x,y,sx,sy,runlength=run_length
+Function expandrl,idx
+  compile_opt hidden, idl2
+  n=n_elements(idx)
+  if (n lt 2) then return,-1
+  k=[0:n-1:2]
+  sz=total(idx[k])
+  val=lonarr(sz)
+  k=0L
+  for i=0,n-1,2 do begin
+     j=idx[i]
+     val[k:k+j-1]=lindgen(j)+idx[i+1]
+     k+=j
+  endfor
+  return, val
+end
+
+FUNCTION polyfillv,x,y,sx,sy,run_length
 ;+
 ;
 ; NAME:     polyfillv
@@ -15,7 +31,7 @@ FUNCTION polyfillv,x,y,sx,sy,runlength=run_length
 ; (at your option) any later version.                                   
 ;
 ;-
-
+compile_opt hidden, idl2
   ;; reprogrammed after
   ;; http://alienryderflex.com/polygon_fill/
   ;; public-domain code by Darel Rex Finley, 2007
@@ -41,60 +57,51 @@ FUNCTION polyfillv,x,y,sx,sy,runlength=run_length
      stop
   ENDIF
 
-  IF keyword_set(run_length) THEN BEGIN
-     print,"The Keyword Run_Length is not yet implemented."
-     stop
-  ENDIF
+  runl=(n_elements(run_length) gt 0 && run_length[0] gt 0)
 
   ;; initialize output array
   idx = -1L
 
-  fx = float(x)
-  fy = float(y)
+  fx = long(x)
+  fy = long(y)
 
   ;;  Loop through the rows of the image.
   FOR py=0L,sy-1L DO BEGIN
     
-     fpy = float(py)
-     
-     n = 0L
+     fpy = float(py)+0.5
+     nodex=lonarr(polycorners+1)
+    
+     nodes = 0L
 
      first = 1B
-     nodex = 0.0
      j = polycorners-1L
      FOR i=0L,polycorners-1L DO BEGIN
-        IF ((fy[i] LE fpy) AND (fy[j] GT fpy)) OR $
-           ((fy[j] LE fpy) AND (fy[i] GT fpy)) THEN BEGIN
-           fpx = fx[i] + (fpy-fy[i])/(fy[j]-fy[i])*(fx[j]-fx[i])
-           px = fix(fpx)
-;;           print,i,px,py,x[i],y[i],x[j],y[j],fpx
-           IF first THEN BEGIN
-              nodex = px 
-              first = 0B
-           ENDIF ELSE BEGIN
-              nodex = [nodex,px]
-           ENDELSE
-           n += 1L
-        ENDIF
+        IF (((fy[i] LE fpy) && (fy[j] GT fpy)) || ((fy[j] LE fpy) && (fy[i] GT fpy))) THEN BEGIN
+           nodex[nodes++] = ceil(fx[i] -0.5 + ((fpy-fy[i])/(fy[j]-fy[i])*(fx[j]-fx[i]))) ; [3.25,3.5,3.75] -> [3,3,4] which is not easy.
+;           print,nodes-1,fy[i],fy[j],fpy,nodex[nodes-1]
+        endif
+        
         j=i
      ENDFOR
-
-;;     print,"Line: ",py," Nodes: ",n
  
-     nodes = n_elements(nodex)
      IF nodes GE 2L THEN BEGIN
 
         ;;  Sort the nodes
-        nodex = nodex[sort(nodex)]
+        nodex = nodex[0:nodes-1]
+        nodex=nodex[sort(nodex)]
+ ;       print,"Line: ",py," Nodes: ",nodes,":",nodex
 
         ;;  Fill the pixels between node pairs.
         FOR i=0L,nodes-1L,2 DO BEGIN
+ ;          print,nodex[i+1], nodex[i]
+           if (nodex[i] GE sx) THEN BREAK
            IF (nodex[i+1] GE 0) THEN BEGIN
               IF (nodex[i] LT 0) THEN nodex[i] = 0  ;; reset to left edge of raster
               IF (nodex[i+1] GT sx) THEN nodex[i+1] = sx  ;; reset to right edge of raster
               numx=nodex[i+1] - nodex[i]
+;              print,numx,nodex[i], nodex[i+1]
               IF numx GT 0L THEN BEGIN
-                 valx=(lindgen(numx) + nodex[i]) + py * sx
+                 valx=[numx,nodex[i] + py * sx]
                  IF idx[0] EQ -1L THEN idx = valx ELSE idx = [idx,valx]
               ENDIF
            ENDIF
@@ -103,7 +110,7 @@ FUNCTION polyfillv,x,y,sx,sy,runlength=run_length
      ENDIF
 
   ENDFOR
-
-  RETURN,idx
-
+  if (idx[0] eq -1) then message,/inf,"No points in polygon"
+  if (runl) then RETURN,idx
+  return, expandrl(idx)
 END

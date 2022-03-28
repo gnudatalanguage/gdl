@@ -39,11 +39,11 @@ namespace lib
   static DDouble savedPointX=0.0;
   static DDouble savedPointY=0.0;
   static gdlSavebox saveBox;
-  static DFloat sym1x[5]={1, -1, 0, 0, 0}; // +
-  static DFloat sym1y[5]={0, 0, 0, -1, 1}; // +
-  static DFloat sym2x[11]= {1, -1, 0, 0, 0, 0,1,-1,0,1,-1}; //*
-  static DFloat sym2y[11]= {0, 0, 0, -1, 1,0,1,-1,0,-1,1}; // *
-  static DFloat sym3x[2]={0,0}; // .
+  static DFloat sym1x[6]={1, -1, 0, 0, 0, 0}; // +
+  static DFloat sym1y[6]={0, 0, 0, -1, 1, 0}; // +
+  static DFloat sym2x[12]= {1, -1, 0, 0, 0, 0,1,-1,0,1,-1, 0}; //*
+  static DFloat sym2y[12]= {0, 0, 0, -1, 1,0,1,-1,0,-1,1, 0}; // *
+  static DFloat sym3x[2]={0,0}; // dot. On PostScript device, x1=x1 and y2=1 creates a round dot.
   static DFloat sym3y[2]={0,0}; // .
   static DFloat sym4x[5]={ 0, 1, 0, -1, 0 }; //diamond.
   static DFloat sym4y[5]={ 1, 0, -1, 0, 1 }; //diamond.
@@ -51,9 +51,12 @@ namespace lib
   static DFloat sym5y[4]={ -1, 1, -1, -1 }; // triangle up.
   static DFloat sym6x[5]={ -1, 1, 1, -1, -1 }; //square
   static DFloat sym6y[5]={ 1, 1, -1, -1, 1 }; //square
-  static DFloat sym7x[5]= {1,-1,0,1,-1}; //x
-  static DFloat sym7y[5]= {1,-1,0,-1,1}; //x
-  DLong syml[7]={5,11,2,5,4,5,5};
+  static DFloat sym7x[6]= {1,-1,0,1,-1,0}; //x
+  static DFloat sym7y[6]= {1,-1,0,-1,1,0}; //x
+  DLong syml[7]={6,12,2,5,4,5,6};
+  static DFloat sym3xalt[6]={-0.2,-0.2,0.2,0.2,-0.2,0}; // big dot.
+  static DFloat sym3yalt[6]={-0.2,0.2,0.2,-0.2,-0.2,0}; // .
+  DLong syml_alt=6;
 
   struct LOCALUSYM {
     DLong nusym;
@@ -129,17 +132,26 @@ namespace lib
     DLong n=static_cast<DLong>(floor(log10(x/3.5)));
     DDouble y=(x/(3.5*pow(10., static_cast<double>(n))));
     DLong m=0;
-    if ( y>=1&&y<2 )
-      m=1;
-    else if ( y>=2&&y<5 )
-      m=2;
-    else if ( y>=5 )
-      m=5;
+
+    if ( y>= 4.51754) m=5;
+    else if ( y>=2.0203057 )  m=2;
+    else if ( y>=1 )  m=1;
 
     PLFLT intv=(PLFLT)(m*pow(10., static_cast<double>(n)));
     return intv;
   }
-
+  
+  PLFLT AutoLogTick(DDouble min, DDouble max)
+  {
+    DDouble x=abs(log10(max)-log10(min));
+    if ( x==0.0 ) return 1.0;
+    if (x <= 6) return 0;
+    if (x <= 7.2) return 1;
+    if (x <= 15) return 2;
+    if (x <= 35) return 5;
+    return 10;
+  }
+  // the algo below is OK
   PLFLT AutoIntv(DDouble x)
   {
     if ( x==0.0 )
@@ -151,42 +163,41 @@ namespace lib
     DLong n=static_cast<DLong>(floor(log10(x/2.82)));
     DDouble y=(x/(2.82*pow(10., static_cast<double>(n))));
     DLong m=0;
-    if ( y>=1&&y<2 )
-      m=1;
-    else if ( y>=2&&y<4.47 )
-      m=2;
-    else if ( y>=4.47 )
-      m=5;
+    if ( y>=1 && y<2 )  m=1;
+    else if ( y>=2 && y<4.47 )  m=2;
+    else m=5;
 
-    //    cout << "AutoIntv" << x << " " << y << endl;
 
     PLFLT intv=(PLFLT)(m*pow(10., static_cast<double>(n)));
+//      cout << "AutoIntv :" << intv << " : "<< x << " " << y << endl;
     return intv;
   }
 
 
 
  #define EXTENDED_DEFAULT_LOGRANGE 12
-  //protect from (inverted, strange) axis log values
-  void gdlHandleUnwantedAxisValue(DDouble &min, DDouble &max, bool log)
+  //protect from (inverted, strange) axis log values: infinities & nans restrict range to 12 powers of ten
+  void gdlHandleUnwantedLogAxisValue(DDouble &min, DDouble &max, bool log)
   {
-    bool invert=FALSE;
-    DDouble val_min, val_max;
     if (!log) return;
+
+    bool invert=false;
+    DDouble val_min, val_max;
 
     if(max-min >= 0)
     {
       val_min=min;
       val_max=max;
-      invert=FALSE;
+      invert=false;
     } else {
       val_min=max;
       val_max=min;
-      invert=TRUE;
+      invert=true;
     }
 
-    if ( val_min<=0. )
+    if ( val_min<=0. ) //problems will happen here
     {
+      Warning("Warning: Infinite plot range.");
       if ( val_max<=0. )
       {
         val_min=-EXTENDED_DEFAULT_LOGRANGE;
@@ -227,74 +238,89 @@ namespace lib
   // clearly described in the code, to be checked by others.
   
   PLFLT gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &start, DDouble &end, bool log /* = false */, int code /* = 0 */) {
-    gdlHandleUnwantedAxisValue(start, end, log);
-
-    DDouble min, max;
-    bool invert = FALSE;
-
-    if (end - start >= 0) {
-      min = start;
-      max = end;
-      invert = FALSE;
-    } else { //never happens by construction!!!!!!!!!!!!!!!!!!!!!!!
-      min = end;
-      max = start;
-      invert = TRUE;
-    }
-
+    // [XY]STYLE
+    DLong myStyle = 0;
     PLFLT intv = 1.;
-    int cas = 0;
-    DDouble x;
-    bool debug = false;
-    if (debug) {
-      cout << "init: " << min << " " << max << endl;
-    }
-    // case "all below ABS((MACHAR()).xmin)"
-    //needs example.
+
+    gdlGetDesiredAxisStyle(e, axisId, myStyle);
     
-//    if (!log && (abs(max) <= -std::numeric_limits<DDouble>::max())) {
-//      min = DDouble(0.);
-//      max = DDouble(1.);
-//      intv = (PLFLT) (2.);
-//      cas = 1;
-//    }
+    bool exact=((myStyle & 1) == 1);
+    bool extended=((myStyle & 2) == 2);
+
+    DDouble min=start;
+    DDouble max=end;
+    
 
     if (log) {
+      gdlHandleUnwantedLogAxisValue(min, max, log);
       min = log10(min);
       max = log10(max);
     }
 
-    // case "all values are equal"
-    if (cas == 0) {
-      x = max - min;
-      if (abs(x) <= std::numeric_limits<DDouble>::min()) {
-        DDouble val_ref;
-        val_ref = max;
-        if (0.98 * min < val_ref) { // positive case
-          max = 1.02 * val_ref;
-          min = 0.98 * val_ref;
-        } else { // negative case
-          max = 0.98 * val_ref;
-          min = 1.02 * val_ref;
-        }
-        if (debug) {
-          cout << "Rescale : " << min << " " << max << endl;
-        }
-        }
+    bool invert = false;
+
+    //range useful for estimate
+    DDouble range=max-min;
+
+    // correct special case "all values are equal"
+    if (abs(range) <= std::numeric_limits<DDouble>::min()) {
+      DDouble val_ref;
+      val_ref = max;
+      if (0.98 * min < val_ref) { // positive case
+        max = 1.02 * val_ref;
+        min = 0.98 * val_ref;
+      } else { // negative case
+        max = 0.98 * val_ref;
+        min = 1.02 * val_ref;
+      }
+    }
+
+    if (range >= 0) {
+      invert = false;
+    } else {
+      range=-range;
+      DDouble temp=min;
+      min = max;
+      max = temp;
+      invert = true;
+    }
+
+    if (exact) { //exit soon...
+      if (extended) { //... after 'extended' range correction
+        range=max-min; //does not hurt to recompute
+        DDouble val=0.025*range;
+        min-=val;
+        max+=val;
       }
 
+      //give back non-log values
+      if (log) {
+        min = pow(10, min);
+        max = pow(10, max);
+      }
+
+      if (invert) {
+        start = max;
+        end = min;
+      } else {
+        start = min;
+        end = max;
+      }
+
+      return intv;
+    }
+    
+
+
     // general case (only negative OR negative and positive)
-    if (cas == 0) //rounding is not aka idl due to use of ceil and floor. TBD.
-    {
-      x = max - min;
-      //correct this for calendar values (round to nearest year, month, etc)
+    //correct this for calendar values (round to nearest year, month, etc)
       if ( code > 0) {
         if (code ==7 ) {
-              if(x>=366)  code=1;
-              else if(x>=32)  code=2;
-              else if(x>=1.1)  code=3;
-              else if(x*24>=1.1)  code=4;
-              else if(x*24*60>=1.1)  code=5;
+              if(range>=366)  code=1;
+              else if(range>=32)  code=2;
+              else if(range>=1.1)  code=3;
+              else if(range*24>=1.1)  code=4;
+              else if(range*24*60>=1.1)  code=5;
               else code=6;
         }
         static int monthSize[]={31,28,31,30,31,30,31,31,30,31,30,31};
@@ -356,22 +382,25 @@ namespace lib
             }
       } 
       else {      
-        intv = AutoIntv(x);
+        const double max_allowed_leak_factor = 1-1.25e-6;
+        intv = AutoIntv(range);
         if (log) {
-          max = ceil((max / intv) * intv);
+//          max = ceil((max / intv) * intv);
+          max = ceil(((max*max_allowed_leak_factor) / intv) * intv); //same behaviour as IDL: if value is 
           min = floor((min / intv) * intv);
         } else {
-          max = ceil(max / intv) * intv;
+          max = ceil((max*max_allowed_leak_factor)  / intv) * intv;
           min = floor(min / intv) * intv;
         }
       }
-      
 
+    if (extended) {
+      range=max-min;
+      DDouble val=0.025*range;
+      min-=val;
+      max+=val;
     }
 
-    if (debug) {
-      cout << "cas: " << cas << " new range: " << min << " " << max << endl;
-    }
     //give back non-log values
     if (log) {
       min = pow(10, min);
@@ -381,7 +410,7 @@ namespace lib
     //check if tickinterval would make more than 59 ticks (IDL apparent limit). In which case, IDL plots only the first 59 intervals:
     DDouble TickInterval;
     gdlGetDesiredAxisTickInterval(e, axisId, TickInterval);
-    if ( TickInterval > 0.0 ) if ((max-min)/TickInterval > 59) max=min+59.0*TickInterval;
+    if ( TickInterval > 0.0 ) if (range/TickInterval > 59) max=min+59.0*TickInterval;
 
     if (invert) {
       start = max;
@@ -406,26 +435,22 @@ namespace lib
                    PLFLT& yMT)
   {
     PLFLT sclx=actStream->dCharLength()/actStream->xSubPageSize(); //current char length/subpage size
-//eventually correct if there is a probem with supposed char sizes:
-    sclx/=actStream->GetPlplotFudge();
     xML=xMarginL*sclx; //margin as percentage of subpage
     xMR=xMarginR*sclx;
     PLFLT scly=actStream->dLineSpacing()/actStream->ySubPageSize(); //current char length/subpage size
-//eventually correct if there is a probem with supposed char sizes:
-    scly/=actStream->GetPlplotFudge();
     yMB=(yMarginB)*scly;
     yMT=(yMarginT)*scly; //to allow subscripts and superscripts (as in IDL)
 
     if ( xML+xMR>=1.0 )
     {
-      Message("XMARGIN to large (adjusted).");
+//      Message("XMARGIN to large (adjusted).");
       PLFLT xMMult=xML+xMR;
       xML/=xMMult*1.5;
       xMR/=xMMult*1.5;
     }
     if ( yMB+yMT>=1.0 )
     {
-      Message("YMARGIN to large (adjusted).");
+//      Message("YMARGIN to large (adjusted).");
       PLFLT yMMult=yMB+yMT;
       yMB/=yMMult*1.5;
       yMT/=yMMult*1.5;
@@ -708,26 +733,34 @@ namespace lib
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"draw_polyline()\n");
     SizeT plotIndex=0;
     bool line=false;
-    DLong psym_=0;
+    DLong local_psym=0;
 
     if ( psym<0 )
     {
       line=true;
-      psym_= -psym;
+      local_psym= -psym;
     }
     else if ( psym==0 )
     {
       line=true;
-      psym_=psym;
+      local_psym=psym;
     }
     else
     {
-      psym_=psym;
+      local_psym=psym;
     }
 
     //usersym and other syms as well!
     DFloat *userSymX, *userSymY;
     DLong *userSymArrayDim;
+    //accelerate: define a localUsymArray where the computations that were previously in the loop are already done
+    DFloat *localUserSymX=NULL;
+    Guard<DFloat> guardlux;
+    DFloat *localUserSymY=NULL;
+    Guard<DFloat> guardluy;
+    
+    bool useLocalPsymAccelerator=false;
+    
     //initialize symbol vertex list
     static PLFLT xSym[49];
     static PLFLT ySym[49];
@@ -737,19 +770,21 @@ namespace lib
     DLong *usymColor;
     DFloat *usymThick;
     static DInt nofill=0;
-    if ( psym_==8 )
+    if ( local_psym==8 )
     {
       GetUsym(&userSymArrayDim, &do_fill, &userSymX, &userSymY, &usersymhascolor, &usymColor , &usersymhasthick, &usymThick );
       if ( *userSymArrayDim==0 )
       {
         ThrowGDLException("No user symbol defined.");
       }
+      useLocalPsymAccelerator=true;
     }
-    else if ( (psym_>0&&psym_<8))
+    else if ( (local_psym>0&&local_psym<8))
     {
       do_fill=&nofill;
-      userSymArrayDim=&(syml[psym_-1]);
-      switch(psym_)
+      userSymArrayDim=&(syml[local_psym-1]);
+      useLocalPsymAccelerator=true;
+      switch(local_psym)
       {
         case 1:
           userSymX=sym1x;
@@ -760,8 +795,16 @@ namespace lib
           userSymY=sym2y;
           break;
         case 3:
-          userSymX=sym3x;
-          userSymY=sym3y;
+    
+          //if device does not (bug?) draw single points (vector of 2 same coordinates as plplot does normally) then use special point psym=3.
+          if (GraphicsDevice::GetDevice()->DoesNotDrawSinglePoints()) {
+            userSymX = sym3xalt;
+            userSymY = sym3yalt;
+            userSymArrayDim=&syml_alt;
+          } else {
+            userSymX=sym3x;
+            userSymY=sym3y;
+          }
           break;
         case 4:
           userSymX=sym4x;
@@ -780,6 +823,24 @@ namespace lib
           userSymY=sym7y;
           break;
      }
+    }
+
+    if (useLocalPsymAccelerator) { //since userSymArrayDim is not defined
+      localUserSymX = (DFloat*) malloc(*userSymArrayDim * sizeof (DFloat));
+      guardlux.Reset(localUserSymX);
+      localUserSymY = (DFloat*) malloc(*userSymArrayDim * sizeof (DFloat));
+      guardluy.Reset(localUserSymY);
+      if (local_psym == 3 && GraphicsDevice::GetDevice()->DoesNotDrawSinglePoints()) {
+        for (int kk = 0; kk < *userSymArrayDim; kk++) {
+          localUserSymX[kk] = userSymX[kk] * a->getPsymConvX()  / a->getSymbolSize();
+          localUserSymY[kk] = userSymY[kk] * a->getPsymConvY()  / a->getSymbolSize();
+        }
+      } else {
+        for (int kk = 0; kk < *userSymArrayDim; kk++) {
+          localUserSymX[kk] = userSymX[kk] * a->getPsymConvX();
+          localUserSymY[kk] = userSymY[kk] * a->getPsymConvY();
+        }
+      }
     }
 
     DLong minEl=(xVal->N_Elements()<yVal->N_Elements())?
@@ -817,15 +878,15 @@ namespace lib
     PLFLT *x_buff=new PLFLT[GDL_POLYLINE_BUFFSIZE];
     PLFLT *y_buff=new PLFLT[GDL_POLYLINE_BUFFSIZE];
 
-    bool isBad=FALSE;
+    bool isBad=false;
 
     for ( SizeT i=0; i<minEl; ++i ) {
-      isBad=FALSE;
+      isBad=false;
       if ( append ) //start with the old point
       {
         getLastPoint(a, x, y);
         i--; //to get good counter afterwards
-        append=FALSE; //and stop appending after!
+        append=false; //and stop appending after!
         if ( xLog ) x=pow(10, x);
         if ( yLog ) y=pow(10, y);
       }
@@ -856,7 +917,7 @@ namespace lib
             }
             else a->line(i_buff, x_buff, y_buff);
           }
-          if (psym_>0&&psym_<8)
+          if (local_psym>0&&local_psym<8)
           {
             DLong oldStyl=gdlGetCurrentStyle();
             a->styl(0, NULL, NULL); //symbols drawn in continuous lines
@@ -864,8 +925,8 @@ namespace lib
             {
               for ( int kk=0; kk < *userSymArrayDim; kk++ )
               {
-                xSym[kk]=x_buff[j]+userSymX[kk]*a->getPsymConvX();
-                ySym[kk]=y_buff[j]+userSymY[kk]*a->getPsymConvY();
+                xSym[kk]=x_buff[j]+localUserSymX[kk];
+                ySym[kk]=y_buff[j]+localUserSymY[kk];
               }
               if (docolor)
               {
@@ -883,7 +944,7 @@ namespace lib
             }
             gdlLineStyle(a,oldStyl);
           }
-        else if ( psym_==8 )
+        else if ( local_psym==8 )
         {
           DLong oldStyl=gdlGetCurrentStyle();
           a->styl(0, NULL, NULL); //symbols drawn in continuous lines
@@ -899,8 +960,8 @@ namespace lib
           {
             for (int kk = 0; kk < *userSymArrayDim; kk++)
             {
-              xSym[kk] = x_buff[j] + userSymX[kk] * a->getPsymConvX();
-              ySym[kk] = y_buff[j] + userSymY[kk] * a->getPsymConvY();
+              xSym[kk] = x_buff[j] + localUserSymX[kk];
+              ySym[kk] = y_buff[j] + localUserSymY[kk];
             }
             if (*do_fill == 1)
             {
@@ -912,7 +973,7 @@ namespace lib
           }
           gdlLineStyle(a,oldStyl);
         }
-        else if ( psym_==10 )
+        else if ( local_psym==10 )
           {
             ac_histo(a, i_buff, x_buff, y_buff, xLog);
           }
@@ -939,7 +1000,7 @@ namespace lib
             }
             else a->line(i_buff, x_buff, y_buff);
         }
-        if ( psym_>0&&psym_<8 )
+        if ( local_psym>0&&local_psym<8 )
         {
           DLong oldStyl=gdlGetCurrentStyle();
           a->styl(0, NULL, NULL); //symbols drawn in continuous lines
@@ -947,8 +1008,8 @@ namespace lib
           {
             for ( int kk=0; kk < *userSymArrayDim; kk++ )
             {
-              xSym[kk]=x_buff[j]+userSymX[kk]*a->getPsymConvX();
-              ySym[kk]=y_buff[j]+userSymY[kk]*a->getPsymConvY();
+              xSym[kk]=x_buff[j]+localUserSymX[kk];
+              ySym[kk]=y_buff[j]+localUserSymY[kk];
             }
             if (docolor)
             {
@@ -966,7 +1027,7 @@ namespace lib
           }
           gdlLineStyle(a,oldStyl);
         }
-        else if ( psym_==8 )
+        else if ( local_psym==8 )
         {
           DLong oldStyl=gdlGetCurrentStyle();
           a->styl(0, NULL, NULL); //symbols drawn in continuous lines
@@ -982,8 +1043,8 @@ namespace lib
           {
             for (int kk = 0; kk < *userSymArrayDim; kk++)
             {
-              xSym[kk] = x_buff[j] + userSymX[kk] * a->getPsymConvX();
-              ySym[kk] = y_buff[j] + userSymY[kk] * a->getPsymConvY();
+              xSym[kk] = x_buff[j] + localUserSymX[kk];
+              ySym[kk] = y_buff[j] + localUserSymY[kk];
             }
             if (*do_fill == 1)
             {
@@ -995,7 +1056,7 @@ namespace lib
           }
           gdlLineStyle(a,oldStyl);
         }
-        else if ( psym_==10 )
+        else if ( local_psym==10 )
         {
           ac_histo(a, i_buff, x_buff, y_buff, xLog);
         }
@@ -1123,15 +1184,39 @@ namespace lib
       wEnd=(*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1];
     }
   }
+  void gdlStoreSC() {
+    //save corresponding SCxx values:
+    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+    static unsigned positionTag = pStruct->Desc()->TagIndex("POSITION");
+    DFloat* position = &(*static_cast<DFloatGDL*> (pStruct->GetTag(positionTag, 0)))[0];
+    DStructGDL* dStruct = SysVar::D(); //MUST NOT BE STATIC, due to .reset
+    static unsigned dxvsizeTag = dStruct->Desc()->TagIndex("X_VSIZE");
+    static unsigned dyvsizeTag = dStruct->Desc()->TagIndex("Y_VSIZE");
 
+    DLong x_vsize = (*static_cast<DLongGDL*> (dStruct->GetTag(dxvsizeTag, 0)))[0];
+    DLong y_vsize = (*static_cast<DLongGDL*> (dStruct->GetTag(dyvsizeTag, 0)))[0];
+    DFloat* sc = SysVar::GetSC();
+    DStructGDL* xStruct = SysVar::X(); 
+    static unsigned xwindowTag = xStruct->Desc()->TagIndex("WINDOW");
+    DStructGDL* yStruct = SysVar::Y(); 
+    static unsigned ywindowTag = yStruct->Desc()->TagIndex("WINDOW");
+    DFloat* xwindow=&(*static_cast<DFloatGDL*> (xStruct->GetTag(xwindowTag, 0)))[0];
+    DFloat* ywindow=&(*static_cast<DFloatGDL*> (yStruct->GetTag(ywindowTag, 0)))[0];
+    sc[0] = (position[2] != 0) ? position[0] * x_vsize : xwindow[0]*x_vsize;
+    sc[1] = (position[2] != 0) ? position[2] * x_vsize : xwindow[1]*x_vsize;
+    sc[2] = (position[2] != 0) ? position[1] * y_vsize : ywindow[0]*y_vsize;
+    sc[3] = (position[2] != 0) ? position[3] * y_vsize : ywindow[1]*y_vsize;
+
+  }
   //Stores [XYZ].WINDOW, .REGION and .S
   void gdlStoreAxisSandWINDOW(GDLGStream* actStream, int axisId, DDouble Start, DDouble End, bool log)
   {
     PLFLT p_xmin, p_xmax, p_ymin, p_ymax, norm_min, norm_max, charDim;
+    bool savesc=false;
     actStream->gvpd(p_xmin, p_xmax, p_ymin, p_ymax); //viewport normalized coords
     DStructGDL* Struct=NULL;
-    if ( axisId==XAXIS ) {Struct=SysVar::X(); norm_min=p_xmin; norm_max=p_xmax; charDim=actStream->nCharLength();}
-    if ( axisId==YAXIS ) {Struct=SysVar::Y(); norm_min=p_ymin; norm_max=p_ymax; charDim=actStream->nCharHeight();}
+    if ( axisId==XAXIS ) {Struct=SysVar::X(); savesc=true; norm_min=p_xmin; norm_max=p_xmax; charDim=actStream->nCharLength();}
+    if ( axisId==YAXIS ) {Struct=SysVar::Y(); savesc=true; norm_min=p_ymin; norm_max=p_ymax; charDim=actStream->nCharHeight();}
     if ( axisId==ZAXIS ) {Struct=SysVar::Z(); norm_min=0; norm_max=1; charDim=actStream->nCharLength();}
     if ( Struct!=NULL )
     {
@@ -1152,6 +1237,7 @@ namespace lib
       (norm_min*End-norm_max*Start)/(End-Start);
       (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=
       (norm_max-norm_min)/(End-Start);
+      if (savesc) gdlStoreSC();
     }
   }
 
@@ -1244,7 +1330,7 @@ namespace lib
     //in log, plplot gives correctly rounded "integer" values but 10^0 needs a bit of help.
     if ((ptr->isLog) && (sgn*value<1e-6)) //i.e. 0 
     {
-      snprintf(label, length, "1"); 
+      snprintf(label, length, "10!E0!N"); 
       return;
     }
     
@@ -1370,28 +1456,36 @@ namespace lib
   
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer multiaxisdata)
   {
+    PLINT axisNotUsed=0; //to indicate that effectively the axis number is not (yet?) used in some calls
     static GDL_TICKDATA tdata;
     static SizeT internalIndex=0;
-    static DLong lastUnits=0;
+    static DLong lastMultiAxisLevel=0;
     static string theMonth[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
     PLINT Month, Day , Year , Hour , Minute, dow, cap;
     PLFLT Second;
     struct GDL_MULTIAXISTICKDATA *ptr = (GDL_MULTIAXISTICKDATA* )multiaxisdata;
     tdata.a=ptr->a;
     tdata.isLog=ptr->isLog;
-    if (ptr->counter != lastUnits)
-    {
-      lastUnits=ptr->counter;
-      internalIndex=0;
+    if (ptr->reset) {
+      internalIndex=0; //reset index each time a new axis command is issued.
+      ptr->reset=false;
     }
+    if (ptr->counter != lastMultiAxisLevel)
+    {
+      lastMultiAxisLevel=ptr->counter; 
+      internalIndex=0; //reset index each time sub-axis changes
+    }
+   
     if (ptr->what==GDL_TICKFORMAT || (ptr->what==GDL_TICKFORMAT_AND_UNITS && ptr->counter < ptr->nTickFormat) )
     {
       if (ptr->counter > ptr->nTickFormat-1)
       {
-        doOurOwnFormat(axis, value, label, length, &tdata);
+        doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
       }
       else
-      {
+      { //must pass the value, not the log, to the formatter?
+        DDouble v=value;
+        if (tdata.isLog) v=pow(10.,v);
         if (((*ptr->TickFormat)[ptr->counter]).substr(0,1) == "(")
         { //internal format, call internal func "STRING"
           EnvT *e=ptr->e;
@@ -1400,7 +1494,7 @@ namespace lib
           EnvT* newEnv= new EnvT(e, libFunList[stringIx], NULL);
           Guard<EnvT> guard( newEnv);
           // add parameters
-          newEnv->SetNextPar( new DDoubleGDL(value));
+          newEnv->SetNextPar( new DDoubleGDL(v));
           newEnv->SetNextPar( new DStringGDL(((*ptr->TickFormat)[ptr->counter]).c_str()));
           // make the call
           BaseGDL* res = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
@@ -1421,10 +1515,10 @@ namespace lib
           EnvUDT* newEnv = new EnvUDT( e->CallingNode(), funList[ funIx], (DObjGDL**)NULL);
           Guard< EnvUDT> guard( newEnv);
           // add parameters
-          newEnv->SetNextPar( new DLongGDL(axis));
-          newEnv->SetNextPar( new DLongGDL(internalIndex));
-          newEnv->SetNextPar( new DDoubleGDL(value));
-          if (ptr->what==GDL_TICKFORMAT_AND_UNITS) newEnv->SetNextPar( new DLongGDL(ptr->counter));
+          newEnv->SetNextPar( new DLongGDL(axis-1)); //axis in PLPLOT starts at 1, it starts at 0 in IDL
+          newEnv->SetNextPar( new DLongGDL(internalIndex)); //index
+          newEnv->SetNextPar( new DDoubleGDL(v)); //value
+          if (ptr->what==GDL_TICKFORMAT_AND_UNITS) newEnv->SetNextPar( new DLongGDL(ptr->counter)); //level
           // guard *before* pushing new env
           StackGuard<EnvStackT> guard1 ( e->Interpreter()->CallStack());
           e->Interpreter()->CallStack().push_back(newEnv);
@@ -1441,16 +1535,16 @@ namespace lib
     {
       if (ptr->counter > ptr->nTickUnits-1 )
       {
-        doOurOwnFormat(axis, value, label, length, &tdata);
+        doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
       }
       else
       {
         DString what=StrUpCase((*ptr->TickUnits)[ptr->counter]);
         if (what.length()<1) {
-          doOurOwnFormat(axis, value, label, length, &tdata);
+          doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
         }
         else if (what.substr(0,7)=="NUMERIC") {
-          doOurOwnFormat(axis, value, label, length, &tdata);
+          doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
      } else {
           j2ymdhms(value, Month , Day , Year , Hour , Minute, Second, dow, cap);
           int convcode=0;
@@ -1490,7 +1584,7 @@ namespace lib
               snprintf( label, length, "%05.2f", Second);
               break;
             case 7:
-              doOurOwnFormat(axis, value, label, length, &tdata);
+              doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
               break;
           }
           
@@ -1505,7 +1599,7 @@ namespace lib
     internalIndex++;
   }
 
-  void gdlSingleAxisTickNamedFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
+  void gdlSingleAxisTickNamedFunc( PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data)
   {
     static GDL_TICKDATA tdata;
     struct GDL_TICKNAMEDATA *ptr = (GDL_TICKNAMEDATA* )data;
@@ -1513,7 +1607,7 @@ namespace lib
     tdata.axisrange=ptr->axisrange;
     if (ptr->counter > ptr->nTickName-1)
     {
-      doOurOwnFormat(axis, value, label, length, &tdata);
+      doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
     }
     else
     {
@@ -1545,8 +1639,7 @@ namespace lib
     DFloat thethick;
     DLong thecolor;
     DFloat *x, *y;
-    SizeT nParam=e->NParam();
-    if (nParam==0) e->Throw("Incorrect number of arguments.");
+    SizeT nParam=e->NParam(1);
     if ( nParam==1 )
     {
       BaseGDL* p0=e->GetNumericArrayParDefined(0)->Transpose(NULL); //hence [49,2]
@@ -1620,7 +1713,7 @@ namespace lib
     }    
     SetUsym(n, do_fill, x, y, do_color, thecolor, do_thick, thethick);
   }
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
 void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map,
   DDoubleGDL *lons_donottouch, DDoubleGDL *lats_donottouch, bool isRadians, bool const doFill, DLongGDL *conn ) {
     DDoubleGDL *lons,*lats;
@@ -1635,14 +1728,19 @@ void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map,
     DLongGDL *gons, *lines;
     if (!isRadians) {
     SizeT nin = lons->N_Elements( );
-#pragma omp parallel if (nin >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nin))
-      {
-#pragma omp for
+    if ((GDL_NTHREADS=parallelize( nin, TP_MEMORY_ACCESS))==1) {
+        for (OMPInt in = 0; in < nin; in++) { //pass in radians for gdlProjForward
+          (*lons)[in] *= DEG_TO_RAD;
+          (*lats)[in] *= DEG_TO_RAD;
+        }      
+    } else {
+    TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
         for ( OMPInt in = 0; in < nin; in++ ) { //pass in radians for gdlProjForward
           (*lons)[in] *= DEG_TO_RAD;
           (*lats)[in] *= DEG_TO_RAD;
         }
-      }
+    }
     }
     DDoubleGDL *res = gdlProjForward( ref, localMap, lons, lats, conn, doConn, gons, doFill, lines, !doFill, false );
     SizeT nout = res->N_Elements( ) / 2;

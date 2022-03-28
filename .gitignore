@@ -2,3 +2,7 @@ src/gdl
 testsuite/launchtest.c
 nbproject/
 build/
+install/
+gdlde/
+gdlde*.zip
+.vscode

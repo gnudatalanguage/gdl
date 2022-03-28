@@ -41,16 +41,16 @@ public:
     dStruct->InitTag("Y_SIZE",     DLongGDL( 1000)); 
     dStruct->InitTag("X_VSIZE",    DLongGDL( 1000)); 
     dStruct->InitTag("Y_VSIZE",    DLongGDL( 1000)); 
-    dStruct->InitTag("X_CH_SIZE",  DLongGDL( 0)); 
-    dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 0)); 
-    dStruct->InitTag("X_PX_CM",    DFloatGDL( 1000.0)); 
-    dStruct->InitTag("Y_PX_CM",    DFloatGDL( 1000.0)); 
+    dStruct->InitTag("X_CH_SIZE",  DLongGDL( 8)); 
+    dStruct->InitTag("Y_CH_SIZE",  DLongGDL( 13)); 
+    dStruct->InitTag("X_PX_CM",    DFloatGDL( 13.0)); 
+    dStruct->InitTag("Y_PX_CM",    DFloatGDL( 13.0)); 
     dStruct->InitTag("N_COLORS",   DLongGDL( 256)); 
     dStruct->InitTag("TABLE_SIZE", DLongGDL( 256)); 
-    dStruct->InitTag("FILL_DIST",  DLongGDL( 0)); 
+    dStruct->InitTag("FILL_DIST",  DLongGDL( 1)); 
     dStruct->InitTag("WINDOW",     DLongGDL( -1)); 
     dStruct->InitTag("UNIT",       DLongGDL( 0)); 
-    dStruct->InitTag("FLAGS",      DLongGDL( 266807)); 
+    dStruct->InitTag("FLAGS",      DLongGDL( 16)); 
     dStruct->InitTag("ORIGIN",     origin); 
     dStruct->InitTag("ZOOM",       zoom); 
   }

@@ -50,27 +50,28 @@ using namespace std;
 
 void LibInit_exists()
 {
+  new DLibFunRetNew(lib::dsfmt_exists, string("DSFMT_EXISTS"));
   new DLibFunRetNew(lib::eigen_exists,string("EIGEN_EXISTS"));
+  new DLibFunRetNew(lib::expat_exists, string("EXPAT_EXISTS"));
   new DLibFunRetNew(lib::fftw_exists,string("FFTW_EXISTS"));
+  new DLibFunRetNew(lib::geotiff_exists,string("GEOTIFF_EXISTS"));
   new DLibFunRetNew(lib::glpk_exists,string("GLPK_EXISTS"));
   new DLibFunRetNew(lib::grib_exists,string("GRIB_EXISTS"));
-  new DLibFunRetNew(lib::shapelib_exists,string("SHAPELIB_EXISTS"));
-  new DLibFunRetNew(lib::hdf5_exists,string("HDF5_EXISTS"));
   new DLibFunRetNew(lib::hdf_exists,string("HDF_EXISTS"));
+  new DLibFunRetNew(lib::hdf5_exists,string("HDF5_EXISTS"));
   new DLibFunRetNew(lib::magick_exists,string("MAGICK_EXISTS"));
+  new DLibFunRetNew(lib::mpi_exists,string("MPI_EXISTS"));
   new DLibFunRetNew(lib::ncdf_exists,string("NCDF_EXISTS"));
   new DLibFunRetNew(lib::ncdf4_exists,string("NCDF4_EXISTS"));
   new DLibFunRetNew(lib::openmp_exists,string("OPENMP_EXISTS"));
   new DLibFunRetNew(lib::pnglib_exists,string("PNGLIB_EXISTS"));
-  new DLibFunRetNew(lib::proj4_exists,string("PROJ4_EXISTS"));
-  new DLibFunRetNew(lib::proj4new_exists,string("PROJ4NEW_EXISTS"));
+  new DLibFunRetNew(lib::proj_exists,string("PROJ_EXISTS"));
   new DLibFunRetNew(lib::python_exists,string("PYTHON_EXISTS"));
+  new DLibFunRetNew(lib::qhull_exists,string("QHULL_EXISTS"));
+  new DLibFunRetNew(lib::shapelib_exists,string("SHAPELIB_EXISTS"));
   new DLibFunRetNew(lib::tiff_exists,string("TIFF_EXISTS"));
-  new DLibFunRetNew(lib::geotiff_exists,string("GEOTIFF_EXISTS"));
   new DLibFunRetNew(lib::udunits_exists,string("UDUNITS_EXISTS"));
   new DLibFunRetNew(lib::wxwidgets_exists, string("WXWIDGETS_EXISTS"));
   new DLibFunRetNew(lib::x11_exists, string("X11_EXISTS"));
-  new DLibFunRetNew(lib::dsfmt_exists, string("DSFMT_EXISTS"));
-  new DLibFunRetNew(lib::expat_exists, string("EXPAT_EXISTS"));
 
 }

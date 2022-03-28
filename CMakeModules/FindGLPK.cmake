@@ -10,14 +10,12 @@
 find_path(
   GLPK_INCLUDE_DIR
   glpk.h
-  PATHS /usr/local/include /usr/include
 )
 
 if( GLPK_INCLUDE_DIR )
   find_library(
     GLPK_LIBRARY
-    NAMES libglpk.so libglpk.a
-    PATHS /usr/lib64 /usr/local/lib /usr/lib
+    NAMES glpk
   )
   if( GLPK_LIBRARY )
     set(GLPK_LIBRARY_DIR "")

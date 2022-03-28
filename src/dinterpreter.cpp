@@ -178,7 +178,7 @@ void GDLInterpreter::SetRootL( ProgNodeP tt, DotAccessDescT* aD, BaseGDL* r, Arr
 	    {
 	      static_cast<DObjGDL*>(r)->Scalar( ooo); // checked in ObjectStruct
 
-	      BaseGDL* self = callStack.back()->GetKW(callStack.back()->GetPro()->NKey()); // SELF
+	      BaseGDL* self = callStack.back()->GetTheKW(callStack.back()->GetPro()->NKey()); // SELF //TheKW to keep old behaviour (OK?)
 
 	      assert( dynamic_cast<DObjGDL*>(self) != NULL);
 
@@ -259,7 +259,7 @@ else
 	    {
 	      static_cast<DObjGDL*>(r)->Scalar( ooo); // checked in ObjectStruct
 
-	      BaseGDL* self = callStack.back()->GetKW(callStack.back()->GetPro()->NKey()); // SELF
+	      BaseGDL* self = callStack.back()->GetTheKW(callStack.back()->GetPro()->NKey()); // SELF //TheKW to keep old behaviour (OK?)
 
 	      assert( dynamic_cast<DObjGDL*>(self) != NULL);
 
@@ -481,9 +481,9 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
 
     //eliminate the simple case
     if (proIx != -1) return proIx;
+#ifdef 	AUTO_PRINT_EXPR
     //noInteractive: throw
     if (noInteractive) throw GDLException(f, "Procedure not found: " + subName, true, false);
-
     //attempts an implied print. All this should be done in the ANTLR stuff of course.
     //We are here because the text is interpreted as a procedure. It is not (otherwise it would have been found),
     //but it could just be one or a series of variable names, such as in "a=dist(3) & b=findgen(2) & a,b"
@@ -530,6 +530,9 @@ int GDLInterpreter::GetProIx(ProgNodeP f)
         throw GDLException(f, "Procedure not found: " + subName, true, false);
       }
     } else throw GDLException(f, "Procedure not found: " + subName, true, false);
+#else      
+      throw GDLException(f, "Procedure not found: " + subName, true, false);
+#endif    
   }
   return proIx;
 }
@@ -1736,17 +1739,17 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
   if (homeDir != NULL) {
     string pathToGDL_history;
     pathToGDL_history = homeDir;
-    AppendIfNeeded(pathToGDL_history, "/");
+    AppendIfNeeded(pathToGDL_history, lib::PathSeparator());
     pathToGDL_history = pathToGDL_history + ".gdl";
     string history_filename;
-    AppendIfNeeded(pathToGDL_history, "/");
+    AppendIfNeeded(pathToGDL_history, lib::PathSeparator());
     history_filename = pathToGDL_history + "history";
     if (debug) cout << "History file name: " << history_filename << endl;
 
     result = read_history(history_filename.c_str());
     if (debug) {
-      if (result == 0) cout << "Successfull reading of ~/.gdl/history" << endl;
-      else cout << "Fail to read back ~/.gdl/history" << endl;
+      if (result == 0) cout << "Successfull reading of "<< history_filename << endl;
+      else cout << "Fail to read back "<< history_filename << endl;
     }
   }
 

@@ -18,6 +18,8 @@
 #ifndef DEVICEZ_HPP_
 #define DEVICEZ_HPP_
 
+static const PLFLT Z_DPI = 96 ; //in dpi;
+
 //#include "dstructgdl.hpp"
 #include "gdlzstream.hpp"
 
@@ -44,7 +46,8 @@ class DeviceZ: public GraphicsDevice
   char*  memBuffer;
   DInt*  zBuffer;
   int    decomposed;
-  
+  DString fontname;
+    
   void SetZBuffer( DLong x, DLong y)
   {
     delete[] zBuffer;
@@ -107,10 +110,14 @@ class DeviceZ: public GraphicsDevice
       { r[ i] = g[ i] = b[ i] = i;}
     actStream->SetColorMap0( r, g, b, ctSize); 
     actStream->SetColorMap1( r, g, b, ctSize); 
+    
+  short myfont = ((int) SysVar::GetPFont()>-1) ? 1 : 0;
+  std::string what = "hrshsym=0,text=" + i2s(myfont);
+  actStream->setopt("drvopt", what.c_str());
+  
+   actStream->spage(Z_DPI, Z_DPI, nx, ny, 0, 0 );
 
-    actStream->setopt( "drvopt","text=0"); // clear drvopt
-
-    actStream->Init();
+   actStream->Init();
    // need to be called initially. permit to fix things
     actStream->ssub(1,1);
     actStream->adv(0);
@@ -119,12 +126,6 @@ class DeviceZ: public GraphicsDevice
     actStream->vpor(0,1,0,1);
     actStream->wind(0,1,0,1);
     actStream->DefaultCharSize();
-//   //in case these are not initalized, here is a good place to do it.
-//    if (actStream->updatePageInfo()==true)
-//    {
-//        actStream->GetPlplotDefaultCharSize(); //initializes everything in fact..
-//
-//    }
   }
 
 public:
@@ -256,6 +257,9 @@ public:
   {
     return decomposed;  
   }
+    
+    virtual bool SetFont(DString &f) final {fontname=f; return true;}
+
 };
 
 #endif

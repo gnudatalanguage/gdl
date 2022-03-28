@@ -57,10 +57,7 @@
 
 #include "grib.hpp"
 #include "semshm.hpp"
-
-// for extensions
-#include "new.hpp"
-
+#include "labelregion.hpp"
 
 using namespace std;
 
@@ -83,7 +80,7 @@ void LibInit()
   LibInit_ac();
   LibInit_gm();
   LibInit_ng(); 
-  LibInit_jp();
+  LibInit_jp(); //absence of wxWidgets will trigger a message for each finction using widgets.
   LibInit_exists();
 
   const char KLISTEND[] = "";
@@ -92,7 +89,9 @@ void LibInit()
   const string restoreWarnKey[]={"NO_COMPILE", "RELAXED_STRUCTURE_ASSIGNMENT", "RESTORED_OBJECTS" , KLISTEND};
   new DLibPro(lib::gdl_restore,string("RESTORE"),1,restoreKey,restoreWarnKey);
   
-  const string saveKey[]={ "FILENAME","DESCRIPTION","VERBOSE","VARIABLES", "ALL", "COMM", "COMPRESS", "SYSTEM_VARIABLES",KLISTEND};
+  const string saveKey[]={ "FILENAME","DESCRIPTION","VERBOSE","VARIABLES", "ALL", "COMM", "COMPRESS", "SYSTEM_VARIABLES"
+    ,"XDR" //obsolete
+    ,KLISTEND};
   const string saveWarnKey[]={"EMBEDDED","ROUTINES", KLISTEND};
   new DLibPro(lib::gdl_save,string("SAVE"),-1,saveKey,saveWarnKey);
 
@@ -142,6 +141,7 @@ void LibInit()
 
 
   const string spawnKey[]={ "COUNT","EXIT_STATUS","NOSHELL","NULL_STDIN","PID","STDERR","UNIT", //All platforms
+  "FORCE", "MACCREATOR", "NOCLISYM", "NOLOGNAME", "NOTIFY", //obsoleted and silently ignored.  
 #ifdef _WIN32
 	  "HIDE", "LOG_OUTPUT", "NOWAIT",  KLISTEND};
 
@@ -152,7 +152,7 @@ void LibInit()
   new DLibPro(lib::spawn_pro,string("SPAWN"),3,spawnKey);
 
   const string bytsclKey[]={"MIN","MAX","TOP","NAN",KLISTEND};
-  new DLibFunRetNew(lib::bytscl,string("BYTSCL"),3,bytsclKey);
+  new DLibFunRetNewTP(lib::bytscl,string("BYTSCL"),3,bytsclKey);  //UsesThreadPOOL 
 
   const string n_tagsKey[]={"DATA_LENGTH","LENGTH",KLISTEND};
   new DLibFunRetNew(lib::n_tags,string("N_TAGS"),1,n_tagsKey);
@@ -162,8 +162,9 @@ void LibInit()
 			       "SWAP_IF_LITTLE_ENDIAN",
 			       "NTOHL","NTOHS","HTONL","HTONS",
 			       "FTOXDR","DTOXDR","XDRTOF","XDRTOD",
+             "DTOGFLOAT","GFLOATTOD", // obsoleted 2  keywords only on the VMS platform
 			       KLISTEND};
-  new DLibPro(lib::byteorder,string("BYTEORDER"),-1,byteorderKey);
+  new DLibPro(lib::byteorder,string("BYTEORDER"),-1,byteorderKey,NULL,0,true);  //UsesThreadPOOL 
 
   const string obj_classKey[]={"COUNT","SUPERCLASS",KLISTEND};
   new DLibFunRetNew(lib::obj_class,string("OBJ_CLASS"),1,obj_classKey);
@@ -174,9 +175,9 @@ void LibInit()
   const string rebinKey[]={"SAMPLE",KLISTEND};
   new DLibFunRetNew(lib::rebin_fun,string("REBIN"),9,rebinKey);
 
-  const string convolKey[]={"CENTER","EDGE_TRUNCATE","EDGE_WRAP","EDGE_ZERO", "EDGE_MIRROR",
+  const string convolKey[]={"CENTER","EDGE_TRUNCATE","EDGE_WRAP","EDGE_ZERO", "EDGE_MIRROR","EDGE_CONSTANT",
 			    "BIAS","NORMALIZE","NAN", "INVALID", "MISSING",KLISTEND};
-  new DLibFunRetNew(lib::convol_fun,string("CONVOL"),3,convolKey);
+  new DLibFunRetNewTP(lib::convol_fun,string("CONVOL"),3,convolKey);  //UsesThreadPOOL 
 
   const string smoothKey[]={"NAN", "EDGE_MIRROR", "EDGE_WRAP","EDGE_TRUNCATE", "EDGE_ZERO", "MISSING", KLISTEND};
   new DLibFunRetNew(lib::smooth_fun,string("SMOOTH"),2,smoothKey);
@@ -191,8 +192,10 @@ void LibInit()
                                  "TEST_SYMLINK",
                                  "DIRECTORY","SYMLINK","REGULAR","ZERO_LENGTH",
                                  KLISTEND};
-  new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),3,file_searchKey);
-
+  new DLibFunRetNew(lib::file_search,string("FILE_SEARCH"),2,file_searchKey); //was 3: is NOT IDL, check this special GDL possibilty ? still useful?
+  const string findfileKey[]={"COUNT",KLISTEND}; //Obsolete but very much used version of file_search! Use C++ code ABSOLUTELY!!
+  new DLibFunRetNew(lib::file_search,string("FINDFILE"),1,findfileKey);
+  
   const string file_expand_pathKey[]={KLISTEND};
   new DLibFunRetNew(lib::file_expand_path,string("FILE_EXPAND_PATH"),1,file_expand_pathKey);
 
@@ -229,6 +232,9 @@ void LibInit()
 			       "NAMED_PIPE","SOCKET","SYMLINK","NOEXPAND_PATH","DANGLING_SYMLINK",KLISTEND};
   new DLibFunRetNew(lib::file_test,string("FILE_TEST"),1,file_testKey);
 
+  const string path_sepKey[]={"PARENT_DIRECTORY","SEARCH_PATH",KLISTEND};
+  new DLibFunRetNew(lib::path_sep,string("PATH_SEP"),0,path_sepKey);
+  
   const string file_basenameKey[]={"FOLD_CASE",KLISTEND};
   new DLibFunRetNew(lib::file_basename,string("FILE_BASENAME"),2,file_basenameKey);
 
@@ -268,7 +274,7 @@ void LibInit()
   new DLibPro(lib::file_mkdir,string("FILE_MKDIR"),-1,file_mkdirKey);
 
   new DLibFunRetNew(lib::shift_fun,string("SHIFT"),9,NULL,NULL,true);
-  new DLibFunRetNew(lib::ishft_fun,string("ISHFT"),2,NULL,NULL,true);
+  new DLibFunRetNewTP(lib::ishft_fun,string("ISHFT"),2,NULL,NULL,true);  //UsesThreadPOOL 
 
   const string sortKey[]={"L64",KLISTEND};
   new DLibFunRetNew(lib::sort_fun,string("SORT"),1,sortKey,NULL,true);
@@ -326,32 +332,31 @@ void LibInit()
   // as the same functions are called "FORMAT" till "MONTH"
   // must be the first four keywords. The inner print_os function is BASED on this ORDER!
   //NOTE THAT AM_PM, DAYS_OF_WEEK and MONTHS are silently ignored!!!
-  //implied print is a feature introduced in idl8.3 and shared by print/printf, string and fix(type=7)
   #define COMMONKEYWORDSFORSTRINGFORMATTING "FORMAT","AM_PM","DAYS_OF_WEEK","MONTHS"
-  const string printKey[]={COMMONKEYWORDSFORSTRINGFORMATTING, "STDIO_NON_FINITE",KLISTEND};
-  const string impliedprintKey[]={COMMONKEYWORDSFORSTRINGFORMATTING, "STDIO_NON_FINITE","IMPLIED_PRINT",KLISTEND};
-  //At the moment, print accepts silently "IMPLIED_PRINT" as this is used in autoprint feature.
-  new DLibPro(lib::print,string("PRINT"),-1,impliedprintKey);
-  //but PRINTF issues a warning, as it is not yet supported
-  const string printfWarnKey[]={"IMPLIED_PRINT",KLISTEND};
-  new DLibPro(lib::printf,string("PRINTF"),-1,printKey,printfWarnKey);
+  //implied print is a feature introduced in idl8.3 and shared by print/printf, string and fix(type=7) and used in print_os()
+  #define COMMONKEYWORDSFORSTRINGFORMATTINGWITHIMPLIEDPRINT COMMONKEYWORDSFORSTRINGFORMATTING,"IMPLIED_PRINT"
+  const string printOsKey[]={COMMONKEYWORDSFORSTRINGFORMATTINGWITHIMPLIEDPRINT, "STDIO_NON_FINITE",KLISTEND};
+  const string printKey[]={COMMONKEYWORDSFORSTRINGFORMATTINGWITHIMPLIEDPRINT, "STDIO_NON_FINITE","REWRITE"/*obsoleted in 5.3*/,KLISTEND};
+  new DLibPro(lib::print,string("PRINT"),-1,printKey);
+  new DLibPro(lib::printf,string("PRINTF"),-1,printOsKey);
   // allow printing (of expressions) with all keywords 
   // (easier to implement this way)
-  new DLibPro(lib::stop,string("STOP"),-1,printKey); 
+  new DLibPro(lib::stop,string("STOP"),-1,printOsKey); 
 
-  const string readKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"PROMPT",KLISTEND};
+  const string readKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"PROMPT"
+    ,"KEY_ID","KEY_MATCH","KEY_VALUE" //obsoleted in 5.3
+    ,KLISTEND};
   new DLibPro(lib::read,string("READ"),-1,readKey);
   new DLibPro(lib::readf,string("READF"),-1,readKey);
 
   const string readsKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,	   KLISTEND}; // no PROMPT
   new DLibPro(lib::reads,string("READS"),-1,readsKey);
 
-  const string stringKey[]={COMMONKEYWORDSFORSTRINGFORMATTING,"PRINT",KLISTEND};
-  const string stringWarnKey[]={"IMPLIED_PRINT",KLISTEND};
-  new DLibFun(lib::string_fun,string("STRING"),-1,stringKey,stringWarnKey);
+  const string stringKey[]={COMMONKEYWORDSFORSTRINGFORMATTINGWITHIMPLIEDPRINT,"PRINT",KLISTEND};
+  new DLibFun(lib::string_fun,string("STRING"),-1,stringKey);
 
-  const string defsysvKey[]={"EXISTS",KLISTEND};
-  new DLibPro(lib::defsysv,string("DEFSYSV"),3,defsysvKey); 
+  const string defsysvKey[]={"EXISTS","TEST",KLISTEND};
+  new DLibPro(lib::defsysv,string("DEFSYSV"),4,defsysvKey); 
 
   const string heap_gcKey[]={"PTR","OBJ","VERBOSE",KLISTEND};
   new DLibPro(lib::heap_gc,string("HEAP_GC"),0,heap_gcKey); 
@@ -403,18 +408,18 @@ void LibInit()
 			 "STRING","UINT","UL64","ULONG",
 			 "START", "INCREMENT", KLISTEND};
   const string xindKey[]={"START", "INCREMENT", KLISTEND};
-  new DLibFunRetNew(lib::bindgen,string("BINDGEN"),MAXRANK,xindKey,NULL,true);
-  new DLibFunRetNew(lib::indgen,string("INDGEN"),MAXRANK,indKey,NULL,true);
-  new DLibFunRetNew(lib::uindgen,string("UINDGEN"),MAXRANK,xindKey,NULL,true);
-  new DLibFunRetNew(lib::sindgen,string("SINDGEN"),MAXRANK,xindKey,NULL,true);
-  new DLibFunRetNew(lib::lindgen,string("LINDGEN"),MAXRANK,xindKey,NULL,true);
-  new DLibFunRetNew(lib::ulindgen,string("ULINDGEN"),MAXRANK,xindKey,NULL,true);
-  new DLibFunRetNew(lib::l64indgen,string("L64INDGEN"),MAXRANK,xindKey,NULL,true);
-  new DLibFunRetNew(lib::ul64indgen,string("UL64INDGEN"),MAXRANK,xindKey,NULL,true);
-  new DLibFunRetNew(lib::findgen,string("FINDGEN"),MAXRANK,xindKey,NULL,true);
-  new DLibFunRetNew(lib::dindgen,string("DINDGEN"),MAXRANK,xindKey,NULL,true);
-  new DLibFunRetNew(lib::cindgen,string("CINDGEN"),MAXRANK,xindKey,NULL,true);
-  new DLibFunRetNew(lib::dcindgen,string("DCINDGEN"),MAXRANK,xindKey,NULL,true);
+  new DLibFunRetNewTP(lib::bindgen,string("BINDGEN"),MAXRANK,xindKey,NULL,true);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::indgen,string("INDGEN"),MAXRANK,indKey,NULL,true);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::uindgen,string("UINDGEN"),MAXRANK,xindKey,NULL,true);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::sindgen,string("SINDGEN"),MAXRANK,xindKey,NULL,true);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::lindgen,string("LINDGEN"),MAXRANK,xindKey,NULL,true);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::ulindgen,string("ULINDGEN"),MAXRANK,xindKey,NULL,true);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::l64indgen,string("L64INDGEN"),MAXRANK,xindKey,NULL,true);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::ul64indgen,string("UL64INDGEN"),MAXRANK,xindKey,NULL,true);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::findgen,string("FINDGEN"),MAXRANK,xindKey,NULL,true);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::dindgen,string("DINDGEN"),MAXRANK,xindKey,NULL,true);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::cindgen,string("CINDGEN"),MAXRANK,xindKey,NULL,true);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::dcindgen,string("DCINDGEN"),MAXRANK,xindKey,NULL,true);  //UsesThreadPOOL 
 
   new DLibFunRetNew(lib::n_elements,string("N_ELEMENTS"),1,NULL,NULL,true,1);
 
@@ -426,12 +431,15 @@ void LibInit()
 			  "SWAP_ENDIAN","SWAP_IF_BIG_ENDIAN",
 			  "SWAP_IF_LITTLE_ENDIAN" /*12*/,
 			  "VAX_FLOAT","WIDTH","XDR", "BLOCK",
-			  "NOAUTOMODE","BINARY","STREAM",
-			  KLISTEND};
-  const string openWarnKey[]={"INITIALSIZE","EXTENDSIZE",KLISTEND}; // VAX only
-  new DLibPro(lib::openr,string("OPENR"),3,openKey,openWarnKey);
-  new DLibPro(lib::openw,string("OPENW"),3,openKey,openWarnKey);
-  new DLibPro(lib::openu,string("OPENU"),3,openKey,openWarnKey);
+			  "NOAUTOMODE","BINARY"
+       ,"STREAM"// obsolete VMS only
+       ,"DEFAULT","INITIALSIZE","EXTENDSIZE","FIXED","FORTRAN"// obsolete VMS only
+       ,"KEYED","LIST","NONE","PRINT","SEGMENTED","SHARED","SUBMIT","SUPERSED"// obsolete VMS only
+       ,"TRUNCATE_ON_CLOSE","UDF_BLOCK","VARIABLE"// obsolete VMS only
+       ,KLISTEND};
+  new DLibPro(lib::openr,string("OPENR"),3,openKey); //3 as a third arg, "record_length", VMS only, was once possible.
+  new DLibPro(lib::openw,string("OPENW"),3,openKey);
+  new DLibPro(lib::openu,string("OPENU"),3,openKey);
   new DLibPro(lib::get_lun,string("GET_LUN"),1);
 
   const string socketKey[]={"ERROR","GET_LUN","STDIO",
@@ -452,9 +460,12 @@ void LibInit()
   const string free_lunWarnKey[]={"EXIT_STATUS",KLISTEND};
   new DLibPro(lib::free_lun,string("FREE_LUN"),-1,free_lunKey,free_lunWarnKey);
 
-  const string writeuKey[]={"TRANSFER_COUNT",KLISTEND};
+  const string writeuKey[]={"TRANSFER_COUNT","REWRITE"/*obsolete*/,KLISTEND};
+  const string readuKey[]={"TRANSFER_COUNT"
+    ,"KEY_ID", "KAY_MATCH", "KEY_VALUE" // obsoleted in 5.3
+    ,KLISTEND};
   new DLibPro(lib::writeu,string("WRITEU"),-1,writeuKey);
-  new DLibPro(lib::readu,string("READU"),-1,writeuKey);
+  new DLibPro(lib::readu,string("READU"),-1,readuKey);
 
   const string resolve_routineWarnKey[]={"SKIP_EXISTING",KLISTEND};
   const string resolve_routineKey[]={"NO_RECOMPILE","IS_FUNCTION","EITHER","COMPILE_FULL_FILE","QUIET",KLISTEND};
@@ -468,7 +479,7 @@ void LibInit()
   const string assocKey[]={"PACKED",KLISTEND};
   new DLibFunRetNew(lib::assoc,string("ASSOC"),3,assocKey);
 
-  new DLibFun(lib::byte_fun,string("BYTE"),10,NULL,NULL);
+  new DLibFun(lib::byte_fun,string("BYTE"),10,NULL,NULL,0,true);  //UsesThreadPOOL 
 
 /*
   new DLibFunRetNew(lib::fix_fun,string("FIX"),10,fixKey,NULL,true);
@@ -483,71 +494,69 @@ void LibInit()
   new DLibFunRetNew(lib::dcomplex_fun,string("DCOMPLEX"),MAXRANK+2,NULL,NULL,true);
 */
 // that's apparently the desired bahaviour, see bug no. 3151760
-  const string fixKey[]={"TYPE","PRINT",KLISTEND};
-  const string fixWarnKey[]={"IMPLIED_PRINT",KLISTEND};
-  new DLibFun(lib::fix_fun,string("FIX"),10,fixKey,fixWarnKey);
+  const string fixKey[]={"TYPE","PRINT","IMPLIED_PRINT",KLISTEND}; //Fix never uses IMPLIED_PRINT, but called print_os does.
+  new DLibFun(lib::fix_fun,string("FIX"),10,fixKey,NULL,0,true);  //UsesThreadPOOL 
 
-  new DLibFun(lib::uint_fun,string("UINT"),10,NULL,NULL);
-  new DLibFun(lib::long_fun,string("LONG"),10,NULL,NULL);
-  new DLibFun(lib::ulong_fun,string("ULONG"),10,NULL,NULL);
-  new DLibFun(lib::long64_fun,string("LONG64"),10,NULL,NULL);
-  new DLibFun(lib::ulong64_fun,string("ULONG64"),10,NULL,NULL);
-  new DLibFun(lib::float_fun,string("FLOAT"),10,NULL,NULL);
-  new DLibFun(lib::double_fun,string("DOUBLE"),10,NULL,NULL);
+  new DLibFun(lib::uint_fun,string("UINT"),10,NULL,NULL,0,true);  //UsesThreadPOOL 
+  new DLibFun(lib::long_fun,string("LONG"),10,NULL,NULL,0,true);  //UsesThreadPOOL 
+  new DLibFun(lib::ulong_fun,string("ULONG"),10,NULL,NULL,0,true);  //UsesThreadPOOL 
+  new DLibFun(lib::long64_fun,string("LONG64"),10,NULL,NULL,0,true);  //UsesThreadPOOL 
+  new DLibFun(lib::ulong64_fun,string("ULONG64"),10,NULL,NULL,0,true);  //UsesThreadPOOL 
+  new DLibFun(lib::float_fun,string("FLOAT"),10,NULL,NULL,0,true);  //UsesThreadPOOL 
+  new DLibFun(lib::double_fun,string("DOUBLE"),10,NULL,NULL,0,true);  //UsesThreadPOOL 
 
   const string complexKey[]={"DOUBLE",KLISTEND};
-  new DLibFun(lib::complex_fun,string("COMPLEX"),MAXRANK+2,complexKey,NULL);
-  new DLibFun(lib::dcomplex_fun,string("DCOMPLEX"),MAXRANK+2,NULL,NULL);
+  new DLibFun(lib::complex_fun,string("COMPLEX"),MAXRANK+2,complexKey,NULL,0,true);  //UsesThreadPOOL 
+  new DLibFun(lib::dcomplex_fun,string("DCOMPLEX"),MAXRANK+2,NULL,NULL,0,true);  //UsesThreadPOOL 
 
-  new DLibFunRetNew(lib::gdl_logical_and,string("LOGICAL_AND"),2,NULL,NULL,true);
-  new DLibFunRetNew(lib::gdl_logical_or,string("LOGICAL_OR"),2,NULL,NULL,true);
-  new DLibFunDirect(lib::logical_true,string("LOGICAL_TRUE"));
+  new DLibFunRetNewTP(lib::gdl_logical_and,string("LOGICAL_AND"),2,NULL,NULL,true);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::gdl_logical_or,string("LOGICAL_OR"),2,NULL,NULL,true);  //UsesThreadPOOL 
+  new DLibFunDirectTP(lib::logical_true,string("LOGICAL_TRUE"));  //UsesThreadPOOL 
 
   new DLibFunRetNew(lib::replicate,string("REPLICATE"),9,NULL,NULL,true);
-  new DLibPro(lib::replicate_inplace_pro,string("REPLICATE_INPLACE"),6);
+  new DLibPro(lib::replicate_inplace_pro,string("REPLICATE_INPLACE"),6,NULL,NULL,0,true);  //UsesThreadPOOL 
 
-  new DLibFunDirect(lib::sin_fun,string("SIN"));
-  new DLibFunDirect(lib::cos_fun,string("COS"));
-  new DLibFunDirect(lib::tan_fun,string("TAN"));//,1,NULL,NULL,true);
+  new DLibFunDirectTP(lib::sin_fun,string("SIN"));  //UsesThreadPOOL 
+  new DLibFunDirectTP(lib::cos_fun,string("COS"));  //UsesThreadPOOL 
+  new DLibFunDirectTP(lib::tan_fun,string("TAN"));  //UsesThreadPOOL 
 
-  new DLibFunDirect(lib::sinh_fun,string("SINH"));//,1,NULL,NULL,true);
-  new DLibFunDirect(lib::cosh_fun,string("COSH"));//,1,NULL,NULL,true);
-  new DLibFunDirect(lib::tanh_fun,string("TANH"));//,1,NULL,NULL,true);
+  new DLibFunDirectTP(lib::sinh_fun,string("SINH"));  //UsesThreadPOOL 
+  new DLibFunDirectTP(lib::cosh_fun,string("COSH"));  //UsesThreadPOOL 
+  new DLibFunDirectTP(lib::tanh_fun,string("TANH"));  //UsesThreadPOOL 
 
-  new DLibFunDirect(lib::asin_fun,string("ASIN"));
-  new DLibFunDirect(lib::acos_fun,string("ACOS"));
+  new DLibFunDirectTP(lib::asin_fun,string("ASIN"));  //UsesThreadPOOL 
+  new DLibFunDirectTP(lib::acos_fun,string("ACOS"));  //UsesThreadPOOL 
   const string atanKey[] = {"PHASE", KLISTEND};
-  new DLibFunRetNew(lib::atan_fun,string("ATAN"),2,atanKey,NULL,true);
+  new DLibFunRetNewTP(lib::atan_fun,string("ATAN"),2,atanKey,NULL,true);  //UsesThreadPOOL 
 
-  new DLibFunDirect(lib::alog_fun,string("ALOG"));
-  new DLibFunDirect(lib::alog10_fun,string("ALOG10"));
-//   new DLibFunRetNew(lib::alog_fun,string("ALOG"),1,NULL,NULL,true,1);
-//   new DLibFunRetNew(lib::alog10_fun,string("ALOG10"),1,NULL,NULL,true,1);
+  new DLibFunDirectTP(lib::alog_fun,string("ALOG"));  //UsesThreadPOOL 
+  new DLibFunDirectTP(lib::alog2_fun,string("ALOG2"));  //UsesThreadPOOL 
+  new DLibFunDirectTP(lib::alog10_fun,string("ALOG10"));  //UsesThreadPOOL 
 
-  new DLibFunDirect(lib::sqrt_fun,string("SQRT"));
-  new DLibFunDirect(lib::abs_fun,string("ABS"));
+  new DLibFunDirectTP(lib::sqrt_fun,string("SQRT"));  //UsesThreadPOOL 
+  new DLibFunDirectTP(lib::abs_fun,string("ABS"));  //UsesThreadPOOL 
 
-  new DLibFunDirect(lib::exp_fun,string("EXP"));
+  new DLibFunDirectTP(lib::exp_fun,string("EXP"));  //UsesThreadPOOL 
 
   const string roundKey[]={"L64",KLISTEND};
   // retConstant: check definition of the rounding functions if they depend 
   // from some sys var (defining a round mode) 
   // (probably nobody rounds a constant anyway)
   const string roundceilfloorKey[]={"L64",KLISTEND};
-  new DLibFunRetNew(lib::round_fun,string("ROUND"),1,roundceilfloorKey);
-  new DLibFunRetNew(lib::ceil_fun,string("CEIL"),1,roundceilfloorKey);
-  new DLibFunRetNew(lib::floor_fun,string("FLOOR"),1,roundceilfloorKey);
+  new DLibFunRetNewTP(lib::round_fun,string("ROUND"),1,roundceilfloorKey);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::ceil_fun,string("CEIL"),1,roundceilfloorKey);  //UsesThreadPOOL 
+  new DLibFunRetNewTP(lib::floor_fun,string("FLOOR"),1,roundceilfloorKey);  //UsesThreadPOOL 
 
-  new DLibFunDirect(lib::conj_fun,string("CONJ"));
-  new DLibFunDirect(lib::imaginary_fun,string("IMAGINARY"));
-  new DLibFunDirect(lib::real_part_fun,string("REAL_PART"));
+  new DLibFunDirectTP(lib::conj_fun,string("CONJ"));  //UsesThreadPOOL 
+  new DLibFunDirectTP(lib::imaginary_fun,string("IMAGINARY"));  //UsesThreadPOOL 
+  new DLibFunDirectTP(lib::real_part_fun,string("REAL_PART"));
 
   const string strcompressKey[]={"REMOVE_ALL",KLISTEND};
   new DLibFunRetNew(lib::strcompress,string("STRCOMPRESS"),1,strcompressKey,NULL,true);
   
-  new DLibFunDirect(lib::strlowcase,string("STRLOWCASE"));
-  new DLibFunDirect(lib::strupcase,string("STRUPCASE"));
-  new DLibFunDirect(lib::strlen,string("STRLEN"));
+  new DLibFunDirectTP(lib::strlowcase,string("STRLOWCASE"));
+  new DLibFunDirectTP(lib::strupcase,string("STRUPCASE"));
+  new DLibFunDirectTP(lib::strlen,string("STRLEN"));
 
   const string strmidKey[]={"REVERSE_OFFSET",KLISTEND};
   new DLibFunRetNew(lib::strmid,string("STRMID"),3,strmidKey,NULL,true);
@@ -557,13 +566,13 @@ void LibInit()
   new DLibPro(lib::strput,string("STRPUT"),3,NULL,NULL,2);
   
   const string whereKey[]={"COMPLEMENT","NCOMPLEMENT","NULL","L64",KLISTEND};
-  new DLibFunRetNew(lib::where_fun,string("WHERE"),2,whereKey);
+  new DLibFunRetNewTP(lib::where_fun,string("WHERE"),2,whereKey);  //UsesThreadPOOL 
 
   const string totalKey[]={"CUMULATIVE","DOUBLE","NAN","INTEGER","PRESERVE_TYPE",KLISTEND};
-  new DLibFunRetNew(lib::total_fun,string("TOTAL"),2,totalKey,NULL,true);
+  new DLibFunRetNewTP(lib::total_fun,string("TOTAL"),2,totalKey,NULL,true);  //UsesThreadPOOL 
 
   const string productKey[]={"CUMULATIVE","NAN","INTEGER","PRESERVE_TYPE",KLISTEND};
-  new DLibFunRetNew(lib::product_fun,string("PRODUCT"),2,productKey,NULL,true);
+  new DLibFunRetNewTP(lib::product_fun,string("PRODUCT"),2,productKey,NULL,true);  //UsesThreadPOOL 
 
   new DLibFunRetNew(lib::n_params,string("N_PARAMS"),1); // IDL allows one parameter
   new DLibFunRetNew(lib::keyword_set,string("KEYWORD_SET"),1);
@@ -572,9 +581,9 @@ void LibInit()
   new DLibFunRetNew(lib::array_equal,string("ARRAY_EQUAL"),2,array_equalKey,NULL,true);
   
   const string minKey[]={"MAX","NAN","SUBSCRIPT_MAX","DIMENSION","ABSOLUTE",KLISTEND};
-  new DLibFunRetNew(lib::min_fun,string("MIN"),2,minKey,NULL,true);
+  new DLibFunRetNewTP(lib::min_fun,string("MIN"),2,minKey,NULL,true);  //UsesThreadPOOL 
   const string maxKey[]={"MIN","NAN","SUBSCRIPT_MIN","DIMENSION","ABSOLUTE",KLISTEND};
-  new DLibFunRetNew(lib::max_fun,string("MAX"),2,maxKey,NULL,true);
+  new DLibFunRetNewTP(lib::max_fun,string("MAX"),2,maxKey,NULL,true);  //UsesThreadPOOL 
 
   // retConstant: structs are tricky: struct resolution depends from !PATH
   // and this might change during runtime, but if treated as retConstant
@@ -587,10 +596,6 @@ void LibInit()
   const string reverseKey[] = {"OVERWRITE", KLISTEND};
   new DLibFun(lib::reverse, string("REVERSE"), 2, reverseKey, NULL, true);
 
-//   const string minKey[]={"MAX",KLISTEND};
-//   new DLibFun(lib::min_fun,string("MIN"),2,minKey);
-//   const string maxKey[]={"MIN",KLISTEND};
-//   new DLibFun(lib::max_fun,string("MAX"),2,maxKey);
 
 #ifdef USE_PYTHON
   const string python_funKey[]={"ARGV","DEFAULTRETURNVALUE",KLISTEND};
@@ -637,7 +642,11 @@ void LibInit()
       "COLOR","GET_PAGE_SIZE","GET_SCREEN_SIZE","INCHES","WINDOW_STATE","SCALE_FACTOR", 
       "XOFFSET", "YOFFSET", "ENCAPSULATED", "GET_GRAPHICS_FUNCTION", 
       "SET_GRAPHICS_FUNCTION", "CURSOR_STANDARD", "CURSOR_ORIGINAL",
-      "CURSOR_CROSSHAIR","RETAIN", "BITS_PER_PIXEL", 
+      "CURSOR_CROSSHAIR",
+      "CURSOR_IMAGE", //WIN,X
+      "CURSOR_MASK",  //WIN,X
+      "CURSOR_XY",  //WIN,X
+      "RETAIN", "BITS_PER_PIXEL", 
       "GET_WINDOW_POSITION","GET_PIXEL_DEPTH","GET_VISUAL_DEPTH","GET_VISUAL_NAME",
       "GET_WRITE_MASK", "COPY","GET_FONTNAMES","SET_FONT","FONT","GET_CURRENT_FONT","GET_FONTNUM", //"FONT" is idem SET_FONT before IDL5.3
       "SET_PIXEL_DEPTH", //Z
@@ -652,10 +661,8 @@ void LibInit()
   "BOOK", //PS
   "BYPASS_TRANSLATION", //(WIN,X)
   "CMYK", //PS
-  "CURSOR_IMAGE", //WIN,X
-  "CURSOR_MASK",  //WIN,X
-  "CURSOR_XY",  //WIN,X
   "DIRECT_COLOR", //X
+  "DEPTH", //VMS OBSOLETE
   //"EJECT", (HP)
   //"ENCODING", (CGM)
   "FLOYD", //(PCL,X)
@@ -1012,8 +1019,8 @@ void LibInit()
 // original  const string command_line_argsKey[] = {"COUNT", KLISTEND };
   new DLibFunRetNew(lib::command_line_args_fun, string("COMMAND_LINE_ARGS"), 0, command_line_argsKey);
 
-  const string pmKey[] = {"FORMAT", "TITLE", KLISTEND };
-  new DLibPro(lib::pm, string("PM"), -1, pmKey);
+ // const string pmKey[] = {"FORMAT", "TITLE", KLISTEND };
+  new DLibPro(lib::pm, string("PM"), -1);
 
   const string constantKey[] = {"DOUBLE", KLISTEND };
   new DLibFunRetNew(lib::constant, string("IMSL_CONSTANT"), 2, constantKey);
@@ -1024,8 +1031,7 @@ void LibInit()
   const string binomialcoefKey[] = {"DOUBLE", KLISTEND };
   new DLibFunRetNew(lib::binomialcoef, string("IMSL_BINOMIALCOEF"), 2, binomialcoefKey);
 
-  // SA: GRIB format support based on the ECMWF GRIB_API package (IDL does not support it yet)
-  // GRIBAPI_ prefix is used in order to (hopefully) prevent future incompatibilities with IDL
+  // SA: GRIB format support using ECMWF ECCODES package (developed prior to IDL GRIB support)
   // -----------------------------------------------------------------------------------------
   // GRIB: file related
   new DLibFunRetNew(lib::grib_open_file_fun, string("GRIBAPI_OPEN_FILE"), 1); 
@@ -1061,5 +1067,8 @@ void LibInit()
   new DLibPro(lib::sem_delete, string("SEM_DELETE"), 1);
   new DLibFunRetNew(lib::sem_lock, string("SEM_LOCK"), 1);
   new DLibPro(lib::sem_release, string("SEM_RELEASE"), 1);
+  // -----------------------------------------------------------------------------------------
+  const string labelregionKey[] = {"ALL_NEIGHBORS", "ULONG", KLISTEND };
+  new DLibFunRetNew(lib::labelregion, string("LABEL_REGION"),1,labelregionKey);
 }
 

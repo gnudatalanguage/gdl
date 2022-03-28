@@ -403,10 +403,8 @@ public:
        }
    }
    static void EnableAllGC() {
-        SizeT nEl = heap.size();
         for( HeapT::iterator it=heap.begin(); it != heap.end(); ++it)
 			it->second.EnableGC(true);
-        nEl = objHeap.size();
         for( ObjHeapT::iterator it=objHeap.begin(); it != objHeap.end(); ++it)
 			it->second.EnableGC(true);
    }
@@ -820,7 +818,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         std::string file=callStack.back()->GetFilename();
         if( file != "")
         {
-            SizeT line = e.getLine();
+            SizeT line = callStack.back()->GetLineNumber(); //e.getLine();
             if( line != 0)
             {       
                 std::cerr << std::right << std::setw(6) << line;
@@ -1256,7 +1254,7 @@ statement returns[ RetCode retCode]
 
         if( e.IsIOException())
             {
-                assert( dynamic_cast< GDLIOException*>( &e) != NULL);
+//		assert( dynamic_cast< GDLIOException*>( &e) != NULL);  //removed. for some reason dynamic_cast returns NULL on bona fide GDLIOException objects.
                 // set the jump target - also logs the jump
                 ProgNodeP onIOErr = 
                     static_cast<EnvUDT*>(callStack.back())->GetIOError();
@@ -1379,7 +1377,7 @@ statement returns[ RetCode retCode]
 //                     if( e.getLine() == 0 && _retTree != NULL)
 //                         e.SetLine( _retTree->getLine());
                     if( e.getLine() == 0 && last != NULL)
-                        e.SetLine( last->getLine());
+                        e.SetLine( last->getLine()); //probably false -- see ReportError, was obliged to replace e.getLine() by callStack.back()->GetLineNumber()
 
                     if( interruptEnable)
                         ReportError(e, "Error occurred at:");
@@ -2727,6 +2725,12 @@ arrayindex_list[ bool noAssoc] returns [ArrayIndexListT* aL]
             }
 			
         assert( s != NULL);
+       if (s == NullGDL::GetSingleInstance()) { //return an empty arraylist, to be checked further as to not apply any posterior 'AssignAt' function.
+	     aL->Init();                            //as an array assigment containing '!NULL' is to be ignored.
+         aL->SetIgnore();
+	     _retTree = ax->getNextSibling();//retTree;
+	     return aL;
+	   }
         ixExprList.push_back( s);
         if( ixExprList.size() == nExpr)
             break; // allows some manual tuning

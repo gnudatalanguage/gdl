@@ -75,7 +75,7 @@ void LibInit_ac()
 
 #endif
 
-  const string spl1Key[]={"YP0","YPN_1","DOUBLE","HELP",KLISTEND};
+  const string spl1Key[]={"YP0","YPN_1","YP1","DOUBLE","HELP",KLISTEND}; //YP1 is old value for YP0
   new DLibFunRetNew(lib::spl_init_fun,string("SPL_INIT"),2,spl1Key);
   const string spl2Key[]={"DOUBLE","HELP",KLISTEND};
   new DLibFunRetNew(lib::spl_interp_fun,string("SPL_INTERP"),4,spl2Key);
@@ -101,13 +101,7 @@ void LibInit_ac()
 
 
   const string matrix_multiplyKey[]={"ATRANSPOSE","BTRANSPOSE",KLISTEND};
-  new DLibFunRetNew(lib::matrix_multiply,string("MATRIX_MULTIPLY"),2,matrix_multiplyKey);
+  new DLibFunRetNewTP(lib::matrix_multiply,string("MATRIX_MULTIPLY"),2,matrix_multiplyKey);  //UsesThreadPOOL 
 
-// Levan Loria and Alain Coulais, September 2014 : to be extensively tested
-// please replace smooth with one of these functions only when thoroughly tested.
-//  const string smoothKey[]={"NAN",KLISTEND};
-//  new DLibFunRetNew(lib::smooth2_fun,string("SMOOTH2"),2,smoothKey);
-//  new DLibFunRetNew(lib::smooth3_fun,string("SMOOTH3"),2,smoothKey);
-  
 }
 

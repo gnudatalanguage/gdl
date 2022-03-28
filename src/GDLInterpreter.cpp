@@ -439,7 +439,7 @@ GDLInterpreter::GDLInterpreter()
 		
 		if( e.IsIOException())
 		{
-		assert( dynamic_cast< GDLIOException*>( &e) != NULL);
+//		assert( dynamic_cast< GDLIOException*>( &e) != NULL);  //removed. for some reason dynamic_cast returns NULL on bona fide GDLIOException objects.
 		// set the jump target - also logs the jump
 		ProgNodeP onIOErr = 
 		static_cast<EnvUDT*>(callStack.back())->GetIOError();
@@ -562,7 +562,7 @@ GDLInterpreter::GDLInterpreter()
 		//                     if( e.getLine() == 0 && _retTree != NULL)
 		//                         e.SetLine( _retTree->getLine());
 		if( e.getLine() == 0 && last != NULL)
-		e.SetLine( last->getLine());
+		e.SetLine( last->getLine()); //probably false -- see ReportError, was obliged to replace e.getLine() by callStack.back()->GetLineNumber()
 		
 		if( interruptEnable)
 		ReportError(e, "Error occurred at:");
@@ -2590,6 +2590,12 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t,
 	}
 				
 	assert( s != NULL);
+  if (s == NullGDL::GetSingleInstance()) { //return an empty arraylist, to be checked further as to not apply any posterior 'AssignAt' function.
+    aL->Init();                            //as an array assigment containing '!NULL' is to be ignored.
+    aL->SetIgnore();
+    _retTree = ax->getNextSibling(); //retTree;
+    return aL;
+  }
 	ixExprList.push_back( s);
 	if( ixExprList.size() == nExpr)
 	break; // allows some manual tuning

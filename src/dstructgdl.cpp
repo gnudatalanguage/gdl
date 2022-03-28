@@ -28,8 +28,8 @@ vector< void*> DStructGDL::freeList;
 #ifdef HAVE_LIBWXWIDGETS
 #include <wx/wx.h>
 wxMutex mutexNewDelete;
-#define LOCK_MUTEXNEWDELETE	mutexNewDelete.Lock();
-#define UNLOCK_MUTEXNEWDELETE	mutexNewDelete.Unlock();
+#define LOCK_MUTEXNEWDELETE	if (useWxWidgets) mutexNewDelete.Lock();
+#define UNLOCK_MUTEXNEWDELETE	if (useWxWidgets) mutexNewDelete.Unlock();
 #else
 #define LOCK_MUTEXNEWDELETE	;
 #define UNLOCK_MUTEXNEWDELETE	;
@@ -659,7 +659,7 @@ DStructGDL* DStructGDL::CatArray( ExprListT& exprList,
 
   dimension     catArrDim(dim); // list contains at least one element
 
-  catArrDim.MakeRank( maxIx+1);
+  catArrDim.InsureRankAtLeast( maxIx+1);
   catArrDim.SetOneDim(catRankIx,0);     // clear rank which is added up
 
   SizeT dimSum=0;

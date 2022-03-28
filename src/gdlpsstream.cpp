@@ -25,7 +25,13 @@ using namespace std;
 
 void GDLPSStream::Init()
 {
+//select the fonts in all cases...
+   std::string what = "hrshsym=0,text=1";
+   setopt("drvopt", what.c_str());
    plstream::init();
+   //AFTER init, change back to selected
+   PLINT doFont = ((PLINT) SysVar::GetPFont()>-1) ? 1 : 0;
+   pls->dev_text=doFont;
    page = 0;
 }
  
@@ -62,43 +68,22 @@ void image_compress(unsigned char *idata, PLINT size, long bpp)
 }
 bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
         DLong trueColorOrder, DLong channel) {
-  if (firstTime){
-    firstTime=false;
-    this->OnePageSaveLayout();
-    this->vpor(0, 1, 0, 1); //ALL PAGE
-    this->wind(0, 1, 0, 1); //ALL PAGE
-    PLFLT x=0;
-    PLFLT y=0;
-    this->poin(1,&x,&y,-1); //put a point at 0,0 wherever it is on the plot
-    this->Flush();
-    pls->bytecnt += fprintf(pls->OutFile, "\ncurrentpoint /YMIN exch def /XMIN exch def\n");
-    x=1;
-    y=1;
-    this->poin(1,&x,&y,-1); //put a point at 0,0 wherever it is on the plot
-    this->Flush();
-    this->RestoreLayout();
-//autotest whether PS was rotated + define good sizes.
-    pls->bytecnt += fprintf(pls->OutFile, "\ncurrentpoint /YMAX exch def /XMAX exch def\n");
-    pls->bytecnt += fprintf(pls->OutFile, "YMAX YMIN lt /LAND exch def \n");
-    pls->bytecnt += fprintf(pls->OutFile, "LAND { YMAX /YMAX YMIN def /YMIN exch def /ROT 270 def} {/ROT 0 def} ifelse\n");
-    pls->bytecnt += fprintf(pls->OutFile, "XMAX XMIN sub /XRANGE exch def YMAX YMIN sub /YRANGE exch def\n");
-    pls->bytecnt += fprintf(pls->OutFile, "LAND {/X0 XMIN def /Y0 YMAX def /RX YRANGE def /RY XRANGE def}"
-    "{/X0 XMIN def /Y0 YMIN def /RX XRANGE def /RY YRANGE def} ifelse\n");
-  }
-  //need to : check position in file Ok; update bounding box values.
-  //test black and white:
   bool bw = (((*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 16) == 0); 
-  long xs, ys;
-  GDLPSStream::GetGeometry(xs, ys);
   SizeT nelem;
   if (channel > 0) {
     cerr << "TV: Value of CHANNEL (use TRUE instead) is out of allowed range." << endl;
     return false;
   } 
- 
-  pls->bytecnt += fprintf(pls->OutFile, "%%BeginObject: Image\n S gsave\nX0 Y0 translate ROT rotate RX RY scale\n");
-  pls->bytecnt += fprintf(pls->OutFile, "%d %ld div %d %ld div translate\n", pos[0], xs, pos[2], ys);
-  pls->bytecnt += fprintf(pls->OutFile, "%d %ld div %d %ld div scale\n", pos[1], xs, pos[3], ys);
+  pls->bytecnt += fprintf(pls->OutFile, "\n%%BeginObject: Image\n");
+  
+  // note PLPLOT_PS_MAGIC_FACTOR = 1000 (dpi) /72 * 2.54 = 0.028346458 
+
+  if (portrait) {
+  pls->bytecnt += fprintf(pls->OutFile, "%d 0.028346458 mul XScale div %d 0.028346458 mul YScale div translate\n", pos[0], pos[2]);
+  } else {
+  pls->bytecnt += fprintf(pls->OutFile, "%d 0.028346458 mul YScale div hs 0.028346458 div %d sub 0.028346458 mul XScale div translate 270 rotate\n", pos[2], pos[0]);
+  }
+  pls->bytecnt += fprintf(pls->OutFile, "%d 0.028346458 mul XScale div %d 0.028346458 mul YScale div scale\n", pos[1], pos[3]);
 #define LINEWIDTH 80
 
   if (trueColorOrder == 0) { 
@@ -168,4 +153,3 @@ bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
   return true;
 #undef LINEWIDTH
 }
-

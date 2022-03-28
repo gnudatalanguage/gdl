@@ -66,8 +66,9 @@
 template<>
 void Data_<SpDString>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret) {
   SizeT nEl=this->N_Elements();
+  GDL_NTHREADS=parallelize( nEl);
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
-  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+  int nchunk=GDL_NTHREADS;
   if (comp) {
     if (nchunk==1) {
       DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
@@ -92,7 +93,8 @@ void Data_<SpDString>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong*
       DLong* partno[nchunk];
       SizeT partialCountYes[nchunk];
       SizeT partialCountNo[nchunk];
-      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk)
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
@@ -170,7 +172,8 @@ void Data_<SpDString>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong*
       SizeT chunksize = nEl / nchunk;
       DLong* part[nchunk];
       SizeT partialCount[nchunk];
-      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk)
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
@@ -221,8 +224,9 @@ void Data_<SpDString>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong*
 template<>
 void Data_<SpDString>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret) {
   SizeT nEl=this->N_Elements();
+  GDL_NTHREADS=parallelize( nEl);
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
-  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+  int nchunk=GDL_NTHREADS;
   if (comp) {
     if (nchunk==1) {
       DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
@@ -247,7 +251,8 @@ void Data_<SpDString>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLon
       DLong64* partno[nchunk];
       SizeT partialCountYes[nchunk];
       SizeT partialCountNo[nchunk];
-      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk)
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
@@ -325,7 +330,8 @@ void Data_<SpDString>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLon
       SizeT chunksize = nEl / nchunk;
       DLong64* part[nchunk];
       SizeT partialCount[nchunk];
-      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk)
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
@@ -376,8 +382,9 @@ void Data_<SpDString>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLon
 template<>
 void Data_<SpDComplex>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret) {
   SizeT nEl=this->N_Elements();
+  GDL_NTHREADS=parallelize( nEl);
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
-  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+  int nchunk=GDL_NTHREADS;
   if (comp) {
     if (nchunk==1) {
       DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
@@ -402,7 +409,8 @@ void Data_<SpDComplex>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong
       DLong* partno[nchunk];
       SizeT partialCountYes[nchunk];
       SizeT partialCountNo[nchunk];
-      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk)
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
@@ -480,7 +488,8 @@ void Data_<SpDComplex>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong
       SizeT chunksize = nEl / nchunk;
       DLong* part[nchunk];
       SizeT partialCount[nchunk];
-      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk)
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
@@ -531,8 +540,9 @@ void Data_<SpDComplex>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong
 template<>
 void Data_<SpDComplex>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret) {
   SizeT nEl=this->N_Elements();
+  GDL_NTHREADS=parallelize( nEl);
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
-  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+  int nchunk=GDL_NTHREADS;
   if (comp) {
     if (nchunk==1) {
       DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
@@ -557,7 +567,8 @@ void Data_<SpDComplex>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLo
       DLong64* partno[nchunk];
       SizeT partialCountYes[nchunk];
       SizeT partialCountNo[nchunk];
-      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk)
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
@@ -635,7 +646,8 @@ void Data_<SpDComplex>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLo
       SizeT chunksize = nEl / nchunk;
       DLong64* part[nchunk];
       SizeT partialCount[nchunk];
-      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk)
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
@@ -686,8 +698,9 @@ void Data_<SpDComplex>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLo
 template<>
 void Data_<SpDComplexDbl>::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret) {
   SizeT nEl=this->N_Elements();
+  GDL_NTHREADS=parallelize( nEl);
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
-  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+  int nchunk=GDL_NTHREADS;
   if (comp) {
     if (nchunk==1) {
       DLong* yes = (DLong*)MALLOC(nEl*sizeof(DLong)); 
@@ -712,7 +725,8 @@ void Data_<SpDComplexDbl>::Where(DLong* &ret, SizeT &passed_count, bool comp, DL
       DLong* partno[nchunk];
       SizeT partialCountYes[nchunk];
       SizeT partialCountNo[nchunk];
-      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk)
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
@@ -790,7 +804,8 @@ void Data_<SpDComplexDbl>::Where(DLong* &ret, SizeT &passed_count, bool comp, DL
       SizeT chunksize = nEl / nchunk;
       DLong* part[nchunk];
       SizeT partialCount[nchunk];
-      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk)
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
@@ -841,8 +856,9 @@ void Data_<SpDComplexDbl>::Where(DLong* &ret, SizeT &passed_count, bool comp, DL
 template<>
 void Data_<SpDComplexDbl>::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret) {
   SizeT nEl=this->N_Elements();
+  GDL_NTHREADS=parallelize( nEl);
  //code is optimized for 1 thread (no thread) and for presence or absence of complement.
-  int nchunk=(nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))?CpuTPOOL_NTHREADS:1;
+  int nchunk=GDL_NTHREADS;
   if (comp) {
     if (nchunk==1) {
       DLong64* yes = (DLong64*)MALLOC(nEl*sizeof(DLong64)); 
@@ -867,7 +883,8 @@ void Data_<SpDComplexDbl>::Where(DLong64* &ret, SizeT &passed_count, bool comp, 
       DLong64* partno[nchunk];
       SizeT partialCountYes[nchunk];
       SizeT partialCountNo[nchunk];
-      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk)
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;
@@ -945,7 +962,8 @@ void Data_<SpDComplexDbl>::Where(DLong64* &ret, SizeT &passed_count, bool comp, 
       SizeT chunksize = nEl / nchunk;
       DLong64* part[nchunk];
       SizeT partialCount[nchunk];
-      #pragma omp parallel num_threads(nchunk) //shared(partialCount,part) //if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      TRACEOMP(__FILE__,__LINE__)
+#pragma omp parallel num_threads(nchunk)
       {
         int thread_id = currentThreadNumber();
         SizeT start_index, stop_index;

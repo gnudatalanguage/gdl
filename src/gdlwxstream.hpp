@@ -28,37 +28,40 @@
 
 #include <wx/fontenum.h>
 #include <wx/fontmap.h>
-//#include <wx/dc.h>
-//#include <wx/rawbmp.h>
-class GDLDrawPanel;
+class gdlwxDrawPanel;
+
+static std::vector<wxCursor> gdlwxCursors;
 
 class GDLWXStream: public GDLGStream 
 {
 private:
-    wxMemoryDC*  	m_dc;
-    wxBitmap*    	m_bitmap;
+    wxMemoryDC*  	streamDC;
+    wxBitmap*    	streamBitmap;
 
-//     wxDC* m_dc;   //!< Pointer to wxDC to plot into.
     int m_width;   //!< Width of dc/plot area.
     int m_height;   //!< Height of dc/plot area.
-
-    GDLDrawPanel* gdlWindow; // for Update()
+    bool isplot; //precise the status of associated widget: plot (true) or widget_draw (false)
+    bool olddriver; //memory of if the wxwidgets driver is old, and thus... OK: reliable and fast!
 public:
-    GDLWXStream( int width, int height );  //!< Constructor.
-    ~GDLWXStream();  //!< Constructor.
+    gdlwxGraphicsPanel* container; // for Update()
+
+    GDLWXStream( int width, int height );  
+    ~GDLWXStream(); 
     
-    wxMemoryDC* GetDC() const { return m_dc;}
+    wxMemoryDC* GetStreamDC() const { return streamDC;}
 
 //     void set_stream();   //!< Calls some code before every PLplot command.
-//    void SetSize( int width, int height );   //!< Set new size of plot area.
+    void SetSize( const wxSize s );   //!< Set new size of plot area.
     void RenewPlot();   //!< Redo plot.
     void Update();
-    void DefaultCharSize();
-    void SetGDLDrawPanel(GDLDrawPanel* w);
-    GDLDrawPanel* GetGDLDrawPanel(){return gdlWindow;}
-
+    void SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot=true);
+    gdlwxGraphicsPanel* GetMyContainer(){return container;}
+    void DestroyContainer(){delete container; container=NULL;}
+    
+    bool IsPlot() {return isplot;}
+    
     void Init();
-    //void EventHandler(); //    
+    void EventHandler();
     
     //static int   GetImageErrorHandler(Display *display, XErrorEvent *error); //
 
@@ -69,7 +72,6 @@ public:
     bool SetBackingStore(int value){return true;}
     void Clear();
     void Clear( DLong bColor);
-    bool streamIsNotAWidget();
     void Raise();
     void Lower();
     void Iconic();
@@ -82,13 +84,14 @@ public:
     //void SetDoubleBuffering();
     //void UnSetDoubleBuffering();
     bool HasDoubleBuffering(){return true;}
-    bool HasSafeDoubleBuffering(){return ( m_dc->GetLogicalFunction() == wxCOPY);};
+    bool HasSafeDoubleBuffering(){return ( streamDC->GetLogicalFunction() == wxCOPY);};
     bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
 		   DLong trueColorOrder, DLong channel);
     virtual bool HasCrossHair() {return true;}
     bool SetGraphicsFunction( long value);
     bool GetWindowPosition(long& xpos, long& ypos );
     bool CursorStandard(int cursorNumber);
+    bool CursorImage(char* v, int x, int y, char* m);
     DLong GetVisualDepth();
     BaseGDL* GetFontnames(DString pattern);
     DLong GetFontnum(DString pattern);
@@ -96,7 +99,13 @@ public:
     DString GetVisualName();
     bool GetScreenResolution(double& resx, double& resy);
     DByteGDL* GetBitmapData();
-    float GetPlplotFudge(){return 1.8;}; //correction factor see gdlwxStream.cpp
+    static void DefineSomeWxCursors(); //global initialisation of 77 X11-like cursors.
+    virtual void fontChanged() final {
+     if (olddriver) {
+      PLINT doFont = ((PLINT) SysVar::GetPFont()>-1) ? 1 : 0;
+      pls->dev_text = doFont;
+     }
+    }
 };
 
 

@@ -296,8 +296,8 @@ namespace lib {
 
     // Write SDS dimensions array to KW
 
-    if( e->KeywordPresent( 0)) {
-      BaseGDL** dimKW = &e->GetKW( 0);
+    if( e->WriteableKeywordPresent( 0)) {
+      BaseGDL** dimKW = &e->GetTheKW( 0);
       GDLDelete((*dimKW));
       dimension dim((DLong *) &rank, (SizeT) 1);
       *dimKW = new DLongGDL(dim, BaseGDL::NOZERO);
@@ -312,32 +312,32 @@ namespace lib {
       memcpy(&(*(DLongGDL*) *dimKW)[0], dims, sizeof(int32)*rank);
     }
 
-    if( e->KeywordPresent( 1)) {
-      BaseGDL** hdftypeKW = &e->GetKW( 1);
+    if( e->WriteableKeywordPresent( 1)) {
+      BaseGDL** hdftypeKW = &e->GetTheKW( 1);
       GDLDelete((*hdftypeKW)); 
       *hdftypeKW = new DLongGDL( dtype);
     }
 
-    if( e->KeywordPresent( 2)) {
-      BaseGDL** nameKW = &e->GetKW( 2);
+    if( e->WriteableKeywordPresent( 2)) {
+      BaseGDL** nameKW = &e->GetTheKW( 2);
       delete(*nameKW);
       *nameKW = new DStringGDL( fieldname);
     }
 
-    if( e->KeywordPresent( 3)) {
-      BaseGDL** nattrsKW = &e->GetKW( 3);
+    if( e->WriteableKeywordPresent( 3)) {
+      BaseGDL** nattrsKW = &e->GetTheKW( 3);
       GDLDelete((*nattrsKW)); 
       *nattrsKW = new DLongGDL( nattrs);
     }
 
-    if( e->KeywordPresent( 4)) {
-      BaseGDL** ndimsKW = &e->GetKW( 4);
+    if( e->WriteableKeywordPresent( 4)) {
+      BaseGDL** ndimsKW = &e->GetTheKW( 4);
       GDLDelete((*ndimsKW)); 
       *ndimsKW = new DLongGDL( rank);
     }
 
-    if( e->KeywordPresent( 5)) {
-      BaseGDL** typeKW = &e->GetKW( 5);
+    if( e->WriteableKeywordPresent( 5)) {
+      BaseGDL** typeKW = &e->GetTheKW( 5);
       delete(*typeKW);
 
       switch ( dtype) {
@@ -396,16 +396,16 @@ namespace lib {
 
     status = SDattrinfo(s_id, attrindex, attrname, &num_type, &count);
 
-    if( e->KeywordPresent( 0)) {
-      BaseGDL** countKW = &e->GetKW( 0);
+    if( e->WriteableKeywordPresent( 0)) {
+      BaseGDL** countKW = &e->GetTheKW( 0);
       GDLDelete((*countKW)); 
       *countKW = new DLongGDL( count);
     }
 
-    if( e->KeywordPresent( 1)) {
+    if( e->WriteableKeywordPresent( 1)) {
       dimension dim((DLong *) &count, 1);
 
-      BaseGDL** dataKW = &e->GetKW( 1);
+      BaseGDL** dataKW = &e->GetTheKW( 1);
       GDLDelete((*dataKW));
 
       switch ( num_type) {
@@ -456,14 +456,14 @@ namespace lib {
       }
     }
 
-    if( e->KeywordPresent( 2)) {
-      BaseGDL** hdftypeKW = &e->GetKW( 2);
+    if( e->WriteableKeywordPresent( 2)) {
+      BaseGDL** hdftypeKW = &e->GetTheKW( 2);
       GDLDelete((*hdftypeKW)); 
       *hdftypeKW = new DLongGDL( num_type);
     }
 
-    if( e->KeywordPresent( 3)) {
-      BaseGDL** nameKW = &e->GetKW( 3);
+    if( e->WriteableKeywordPresent( 3)) {
+      BaseGDL** nameKW = &e->GetTheKW( 3);
       delete(*nameKW);
       *nameKW = new DStringGDL( attrname);
     }
@@ -480,23 +480,23 @@ namespace lib {
     DLong vg_id;
     e->AssureScalarPar<DLongGDL>( 0, vg_id);
 
-    if( e->KeywordPresent( 0)) {
+    if( e->WriteableKeywordPresent( 0)) {
       Vgetclass(vg_id, groupclass);
-      BaseGDL** classKW = &e->GetKW( 0);
+      BaseGDL** classKW = &e->GetTheKW( 0);
       delete(*classKW);
       *classKW = new DStringGDL( groupclass);
     }
 
-    if( e->KeywordPresent( 1)) {
+    if( e->WriteableKeywordPresent( 1)) {
       Vgetname(vg_id, groupname);
-      BaseGDL** nameKW = &e->GetKW( 1);
+      BaseGDL** nameKW = &e->GetTheKW( 1);
       delete(*nameKW);
       *nameKW = new DStringGDL( groupname);
     }
 
-    if( e->KeywordPresent( 2)) {
+    if( e->WriteableKeywordPresent( 2)) {
       Vinquire(vg_id, &nentries, groupname);
-      BaseGDL** nentriesKW = &e->GetKW( 2);
+      BaseGDL** nentriesKW = &e->GetTheKW( 2);
       GDLDelete((*nentriesKW)); 
       *nentriesKW = new DLongGDL( nentries);
     }
@@ -513,23 +513,23 @@ namespace lib {
     DLong vd_id;
     e->AssureScalarPar<DLongGDL>( 0, vd_id);
 
-    if( e->KeywordPresent( 0)) {
+    if( e->WriteableKeywordPresent( 0)) {
       VSgetclass(vd_id, vdataclass);
-      BaseGDL** classKW = &e->GetKW( 0);
+      BaseGDL** classKW = &e->GetTheKW( 0);
       delete(*classKW);
       *classKW = new DStringGDL( vdataclass);
     }
 
-    if( e->KeywordPresent( 1)) {
+    if( e->WriteableKeywordPresent( 1)) {
       VSgetname(vd_id, vdataname);
-      BaseGDL** nameKW = &e->GetKW( 1);
+      BaseGDL** nameKW = &e->GetTheKW( 1);
       delete(*nameKW);
       *nameKW = new DStringGDL( vdataname);
     }
 
-    if( e->KeywordPresent( 2)) {
+    if( e->WriteableKeywordPresent( 2)) {
       nentries = VSelts(vd_id);
-      BaseGDL** nentriesKW = &e->GetKW( 2);
+      BaseGDL** nentriesKW = &e->GetTheKW( 2);
       GDLDelete((*nentriesKW)); 
       *nentriesKW = new DLongGDL( nentries);
     }
@@ -626,7 +626,7 @@ namespace lib {
   {
     T* data = new T(dimension(dim_size), BaseGDL::NOZERO);
     SDgetdimscale(dim_id, data->DataAddr());
-    BaseGDL** scaleKW = &e->GetKW(2);
+    BaseGDL** scaleKW = &e->GetTheKW(2);
     *scaleKW = data;
   }
 
@@ -638,13 +638,13 @@ namespace lib {
     e->AssureScalarPar<DLongGDL>( 0, dim_id);
 
     // NAME keyword
-    if (e->KeywordPresent(0)) 
+    if (e->WriteableKeywordPresent(0)) 
     {
       char dim_name[64];
       status = SDdiminfo(dim_id, dim_name, &dim_size, &data_type, &n_attrs);
       if (status != FAIL)
       {
-        BaseGDL** nameKW = &e->GetKW(0);
+        BaseGDL** nameKW = &e->GetTheKW(0);
         delete(*nameKW);
         *nameKW = new DStringGDL(dim_name);
       }
@@ -659,17 +659,17 @@ namespace lib {
     // ... or unselected SDS?
 
     // NATTR keyword
-    if (e->KeywordPresent(1))
+    if (e->WriteableKeywordPresent(1))
     {
-      BaseGDL** nattrKW = &e->GetKW(1);
+      BaseGDL** nattrKW = &e->GetTheKW(1);
       delete(*nattrKW);
       *nattrKW = new DLongGDL(n_attrs);
     }
 
     // SCALE keyword
-    if (e->KeywordPresent(2))
+    if (e->WriteableKeywordPresent(2))
     { 
-      BaseGDL** scaleKW = &e->GetKW(2);      
+      BaseGDL** scaleKW = &e->GetTheKW(2);      
       delete(*scaleKW);
       // TODO: ? if dim_type == 0 scale not set
       switch (data_type) 
@@ -686,9 +686,9 @@ namespace lib {
     } // SCALE keyword
  
     // COUNT keyword
-    if (e->KeywordPresent(3))
+    if (e->WriteableKeywordPresent(3))
     {
-      BaseGDL** countKW = &e->GetKW(3);
+      BaseGDL** countKW = &e->GetTheKW(3);
       delete(*countKW);
       *countKW = new DLongGDL(dim_size);
     }

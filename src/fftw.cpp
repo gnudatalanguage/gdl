@@ -74,7 +74,6 @@ namespace lib {
 
     DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (data);
     DComplexGDL* p0CF = static_cast<DComplexGDL*> (data);
-
     if (data->Type() == GDL_COMPLEXDBL)
     {
       double *dptr;
@@ -91,10 +90,14 @@ namespace lib {
 
       if (direct == -1)
       {
-        //        TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        {
-#pragma omp for
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
+          for (OMPInt i = 0; i < nEl; ++i) {
+            out[i][0] /= nEl;
+            out[i][1] /= nEl;
+          }          
+        } else {
+TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (OMPInt i = 0; i < nEl; ++i)
           {
             out[i][0] /= nEl;
@@ -123,10 +126,15 @@ namespace lib {
 
       if (direct == -1)
       {
-        //        TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-        {
-#pragma omp for
+        if ((GDL_NTHREADS=parallelize( nEl))==1) {
+          for (OMPInt i = 0; i < nEl; ++i)
+          {
+            out_f[i][0] /= nEl;
+            out_f[i][1] /= nEl;
+          }          
+        } else {
+TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
           for (OMPInt i = 0; i < nEl; ++i)
           {
             out_f[i][0] /= nEl;
@@ -152,7 +160,7 @@ namespace lib {
 
   BaseGDL* fftw_fun( EnvT* e)
   {
-    SizeT nParam=e->NParam();
+    SizeT nParam=e->NParam(1);
     SizeT overwrite=0, dbl=0;
     bool recenter=false;
     SizeT stride;
@@ -167,10 +175,6 @@ namespace lib {
     }
 
     double direct=-1.0;
-
-    if( nParam == 0)
-      throw GDLException( e->CallingNode(), 
-			  "FFT: Incorrect number of arguments.");
 
     BaseGDL* p0 = e->GetParDefined( 0);
 
@@ -189,6 +193,7 @@ namespace lib {
       DDoubleGDL* direction = 
 	static_cast<DDoubleGDL*>(p1->Convert2( GDL_DOUBLE, BaseGDL::COPY));
       direct = GSL_SIGN((*direction)[0]);
+      GDLDelete(direction);
     }
 
     if( e->KeywordSet(0)) dbl = 1;

@@ -47,10 +47,10 @@ void LibInit_mes()
 
 
   const char KLISTEND[] = "";
-  
-  // general procedures/functions 
+
+  // general procedures/functions
   const string strtokKey[]={"EXTRACT","ESCAPE","LENGTH",
-			    "PRESERVE_NULL","REGEX","COUNT","FOLD_CASE",KLISTEND};
+                            "PRESERVE_NULL","REGEX","COUNT","FOLD_CASE",KLISTEND};
   new DLibFunRetNew(lib::strtok_fun, string("STRTOK"), 2, strtokKey);
 
 
@@ -58,14 +58,14 @@ void LibInit_mes()
 
   const string getenvKey[]={"ENVIRONMENT", KLISTEND};
   new DLibFunRetNew(lib::getenv_fun, string("GETENV"), 1, getenvKey);
-  
+
   const string tagNamesKey[] = {"STRUCTURE_NAME", KLISTEND};
   new DLibFunRetNew(lib::tag_names_fun, string("TAG_NAMES"), 1, tagNamesKey);
 
   const string stregexKey[] = {"BOOLEAN", "EXTRACT", "LENGTH",
          "SUBEXPR", "FOLD_CASE", KLISTEND};
   new DLibFunRetNew(lib::stregex_fun, string("STREGEX"), 2, stregexKey);
- 
+
   const string structAssignKey[] = {"NOZERO", "VERBOSE", KLISTEND};
   new DLibPro(lib::struct_assign_pro, string("STRUCT_ASSIGN"), 2, structAssignKey);
 
@@ -91,14 +91,29 @@ void LibInit_mes()
 #endif
 
 #ifdef USE_HDF5
-  // hdf5 procedures/functions 
+  // hdf5 procedures/functions
   new DLibFunRetNew(lib::h5f_create_fun, string("H5F_CREATE"), 1);
-  new DLibFunRetNew(lib::h5f_open_fun, string("H5F_OPEN"), 1);
+  const string H5FopenKey[] = {"WRITE", KLISTEND};
+  new DLibFunRetNew(lib::h5f_open_fun, string("H5F_OPEN"), 1, H5FopenKey);
   new DLibFunRetNew(lib::h5d_open_fun, string("H5D_OPEN"), 2);
-  new DLibFunRetNew(lib::h5d_read_fun, string("H5D_READ"), 1); // TODO: 2nd argument & keywords
+  const string H5DcreateKey[] = {"CHUNK_DIMENSIONS", KLISTEND};
+  new DLibFunRetNew(lib::h5d_create_fun, string("H5D_CREATE"), 4, H5DcreateKey); // TODO: missing keyword parameters
+  new DLibFunRetNew(lib::h5d_get_storage_size_fun, string("H5D_GET_STORAGE_SIZE"),1);
+  const string H5DreadKey[] = {"FILE_SPACE", "MEMORY_SPACE", KLISTEND};
+  new DLibFunRetNew(lib::h5d_read_fun, string("H5D_READ"), 1,H5DreadKey); // TODO: 2nd argument
+  const string H5DwriteKey[] = {"FILE_SPACE", "MEMORY_SPACE", KLISTEND};
+  new DLibPro(lib::h5d_write_pro, string("H5D_WRITE"), 2,H5DwriteKey);
+  new DLibPro(lib::h5d_extend_pro,string("H5D_EXTEND"),2);
   new DLibFunRetNew(lib::h5d_get_space_fun, string("H5D_GET_SPACE"), 1);
+  new DLibFunRetNew(lib::h5s_get_simple_extent_ndims_fun,
+               string("H5S_GET_SIMPLE_EXTENT_NDIMS"), 1);
   new DLibFunRetNew(lib::h5s_get_simple_extent_dims_fun,
-	       string("H5S_GET_SIMPLE_EXTENT_DIMS"), 1);
+               string("H5S_GET_SIMPLE_EXTENT_DIMS"), 1);
+  const string H5ScreateSimpleKey[] = {"MAX_DIMENSIONS", KLISTEND};
+  new DLibFunRetNew(lib::h5s_create_scalar_fun,string("H5S_CREATE_SCALAR"),0);
+  new DLibFunRetNew(lib::h5s_create_simple_fun,string("H5S_CREATE_SIMPLE"),1,H5ScreateSimpleKey);
+  const string H5SselectHyperslabKey[] = {"BLOCK", "RESET", "STRIDE", KLISTEND};
+  new DLibPro(lib::h5s_select_hyperslab_pro,string("H5S_SELECT_HYPERSLAB"),3,H5SselectHyperslabKey);
   new DLibPro(lib::h5f_close_pro,string("H5F_CLOSE"),1);
   new DLibPro(lib::h5d_close_pro,string("H5D_CLOSE"),1);
   new DLibPro(lib::h5s_close_pro,string("H5S_CLOSE"),1);
@@ -108,6 +123,12 @@ void LibInit_mes()
   new DLibFunRetNew(lib::h5_get_libversion_fun, string("H5_GET_LIBVERSION"), 0);
   new DLibFunRetNew(lib::h5d_get_type_fun, string("H5D_GET_TYPE"), 1);
   new DLibFunRetNew(lib::h5t_get_size_fun, string("H5T_GET_SIZE"), 1);
+  new DLibFunRetNew(lib::h5t_array_create_fun, string("H5T_ARRAY_CREATE"), 2);
+  const string H5TidlCreateKey[] = {"MEMBER_NAMES","OPAQUE", KLISTEND};
+  new DLibFunRetNew(lib::h5t_idl_create_fun, string("H5T_IDL_CREATE"), 1, H5TidlCreateKey);
+  new DLibFunRetNew(lib::h5a_create_fun, string("H5A_CREATE"), 4);
+  new DLibPro(lib::h5a_write_pro, string("H5A_WRITE"), 2);
+  new DLibPro(lib::h5a_delete_pro, string("H5A_DELETE"), 2);
   new DLibFunRetNew(lib::h5a_open_name_fun, string("H5A_OPEN_NAME"), 2);
   new DLibFunRetNew(lib::h5a_open_idx_fun, string("H5A_OPEN_IDX"), 2);
   new DLibFunRetNew(lib::h5a_get_name_fun, string("H5A_GET_NAME"), 1);
@@ -119,10 +140,12 @@ void LibInit_mes()
   new DLibPro(lib::h5t_close_pro, string("H5T_CLOSE"), 1);
   new DLibPro(lib::h5g_close_pro, string("H5G_CLOSE"), 1);
   new DLibFunRetNew(lib::h5g_open_fun, string("H5G_OPEN"), 2);
+  const string getObjInfoKey[] = {"FOLLOW_LINK", KLISTEND};
+  new DLibFunRetNew(lib::h5g_get_objinfo_fun, string("H5G_GET_OBJINFO"), 2,getObjInfoKey);
 
   // SA: disabling the default HDF5 error handler (error handling in hdf5_fun.cpp)
   H5Eset_auto(NULL, NULL);
 #endif
-  
+
 }
 

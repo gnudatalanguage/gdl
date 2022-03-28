@@ -125,11 +125,11 @@ if KEYWORD_SET(verbose) then print, com, status, a, expected
 ;
 ; internal intrinsic procedure (better idea welcome !)
 ;
-com='plot, SIN(!pi*findgen(100)/10.)'
-status=EXECUTE(com)
+; REMOVED AS MAY STOP OR CRASH TESTS!
+;com='plot, SIN(!pi*findgen(100)/10.)'
+;status=EXECUTE(com)
 ;
-if (status NE 1) then ERRORS_ADD, errors, 'Sin Status'
-WDELETE
+;if (status NE 1) then ERRORS_ADD, errors, 'Sin Status'
 ;
 ; external function, single element
 ;

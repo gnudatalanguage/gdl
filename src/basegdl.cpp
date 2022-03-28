@@ -539,7 +539,7 @@ SizeT BaseGDL::IFmtI( std::istream* is, SizeT offs, SizeT num, int width,
 BaseGDL* BaseGDL::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
 		          bool center, bool normalize, int edgeMode,
                           bool doNan, BaseGDL* missing, bool doMissing,
-                          BaseGDL* invalid, bool doInvalid)
+                          BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   throw GDLException("BaseGDL::Convol(...) called.");
 }
@@ -770,19 +770,85 @@ SizeT MemStats::NumFree = 0;
 SizeT MemStats::HighWater = 0;
 SizeT MemStats::Current = 0;
 
-#if !defined(HAVE_MALLINFO) 
+#if (!defined(HAVE_MALLINFO) && !defined(HAVE_MALLINFO2))
 #  if (!defined(HAVE_MALLOC_ZONE_STATISTICS) || !defined(HAVE_MALLOC_MALLOC_H))
 #    if defined(HAVE_SBRK)
 char* MemStats::StartOfMemory = reinterpret_cast<char*>(::sbrk(0));
 #    endif
 #  endif
 #endif
+  // returns current memory usage and updates the highwater mark
+  void MemStats::UpdateCurrent() 
+  { 
+    // ---------------------------------------------------------------------
+    // based on the codes from:
+    // - the LLVM project (lib/System/Unix/Process.inc) see http://llvm.org/
+    // - the Squid cache project (src/tools.cc) see http://squid-cache.org/
+    // TODO (TOCHECK): Squid considers also gnumalloc.h - ?
+#if defined(HAVE_MALLINFO2)
+    // Docs see below, newer versions of glibc deprecated mallinfo()
+    static struct mallinfo2 mi;
+    mi = mallinfo2();
+    Current = mi.arena+mi.hblkhd;
+#elif defined(HAVE_MALLINFO)
+    // Linux case for example
+    static struct mallinfo mi;
+    mi = mallinfo();
+//         printf("Total non-mmapped bytes (arena):       %d\n", mi.arena);
+//           printf("# of free chunks (ordblks):            %d\n", mi.ordblks);
+//           printf("# of free fastbin blocks (smblks):     %d\n", mi.smblks);
+//           printf("# of mapped regions (hblks):           %d\n", mi.hblks);
+//           printf("Bytes in mapped regions (hblkhd):      %d\n", mi.hblkhd);
+//           printf("Max. total allocated space (usmblks):  %d\n", mi.usmblks);
+//           printf("Free bytes held in fastbins (fsmblks): %d\n", mi.fsmblks);
+//           printf("Total allocated space (uordblks):      %d\n", mi.uordblks);
+//           printf("Total free space (fordblks):           %d\n", mi.fordblks);
+//           printf("Topmost releasable block (keepcost):   %d\n", mi.keepcost);
+      Current = mi.arena+mi.hblkhd; //was mi.uordblks;
+#elif defined(HAVE_MALLOC_ZONE_STATISTICS) && defined(HAVE_MALLOC_MALLOC_H)
+    // Mac OS X case for example
+    static malloc_statistics_t stats;
+    malloc_zone_statistics(malloc_default_zone(), &stats);
+    Current = stats.size_in_use;
+#elif defined(HAVE_SBRK)
+    // Open Solaris case for example
+    static char* EndOfMemory;
+    EndOfMemory = (char*)sbrk(0);
+    Current = EndOfMemory - StartOfMemory;
+#elif defined(_WIN32)
+    // a draft of Windows version (for neccesarry includes consult the LLVM source): 
+    _HEAPINFO hinfo;
+    hinfo._pentry = NULL;
+    Current = 0;
+    while (_heapwalk(&hinfo) == _HEAPOK)
+        if (hinfo._useflag == _USEDENTRY)
+            Current += hinfo._size;
+#else
+    Warning("Cannot get dynamic memory information on this platform (FIXME)");
+#endif
 
+    HighWater = std::max(HighWater, Current);
+  }
 // ---
 
 void GDLDelete( BaseGDL* toDelete)
 {
-  if( toDelete != NullGDL::GetSingleInstance())
-    delete toDelete;
+  if( toDelete ==NULL) return;
+  if( toDelete == NullGDL::GetSingleInstance()) return;
+  delete toDelete;
 }
+int GDL_NTHREADS=1;
 
+int parallelize(SizeT n, int modifier) {
+//below, please modify if you find a way to persuade behaviour of those different cases to be better if they return different number of threads.
+  switch(modifier)
+  {
+  case TP_DEFAULT: //the same as IDL, reserved for routines that use the thread pool, ideally check the special thread pool keywords.
+  case TP_ARRAY_INITIALISATION: // used by GDL array initialisation (new, convert, gdlarray): probably needs som special tuning
+  case TP_MEMORY_ACCESS: // concurrent memory access, probably needs to be capped to preserve bandwidth 
+  case TP_CPU_INTENSIVE:  // benefit from max number of threads
+    return (n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= n))?CpuTPOOL_NTHREADS:1;
+  default:
+    return 1;
+  }    
+}

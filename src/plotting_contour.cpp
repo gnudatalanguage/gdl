@@ -142,55 +142,59 @@ namespace lib
 	    xVal=xValTemp;
 	    yVal=yValTemp;//for the time being, will be update later
 	  }
-	else
-	  {
-	    BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
-	    p0_guard.Init( p0 ); // delete upon exit
-        
-	    zVal=static_cast<DDoubleGDL*>( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
-        zval_guard.Init ( zVal ); // delete upon exit
+        else {
+          BaseGDL* p0 = e->GetNumericArrayParDefined(0)->Transpose(NULL);
+          p0_guard.Init(p0); // delete upon exit
 
-	    xVal=e->GetParAs< DDoubleGDL>( 1 );
-	    yVal=e->GetParAs< DDoubleGDL>( 2 );
+          zVal = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+          zval_guard.Init(zVal); // delete upon exit
 
-	    if ( xVal->Rank ( )>2 )
-	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-
-	    if ( yVal->Rank ( )>2 )
-	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	    if ( xVal->Rank ( )==0 || yVal->Rank ( )==0 )
-	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-
-	    if ( xVal->Rank ( )==1 )
-	      {
-		xEl=xVal->Dim ( 0 );
-
-		if ( xEl!=zVal->Dim ( 1 ) )
-		  e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	      }
-
-	    if ( yVal->Rank ( )==1 )
-	      {
-		yEl=yVal->Dim ( 0 );
-
-		if ( yEl!=zVal->Dim ( 0 ) )
-		  e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	      }
-
-	    if ( xVal->Rank ( )==2 )
-	      {
-		xEl=xVal->Dim ( 0 );
-		if ( ( xVal->Dim ( 0 )!=zVal->Dim ( 1 ) )&&( xVal->Dim ( 1 )!=zVal->Dim ( 0 ) ) )
-		  e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	      }
-
-	    if ( yVal->Rank ( )==2 )
-	      {
-		yEl=yVal->Dim ( 1 );
-		if ( ( yVal->Dim ( 0 )!=zVal->Dim ( 1 ) )&&( yVal->Dim ( 1 )!=zVal->Dim ( 0 ) ) )
-		  e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	      }
-	  }
+          xVal = e->GetParAs< DDoubleGDL>(1);
+          yVal = e->GetParAs< DDoubleGDL>(2);
+//filter out incompatible ranks >2 or ==0
+          if (xVal->Rank() > 2)
+            e->Throw("X, Y, or Z array dimensions are incompatible.");
+          if (yVal->Rank() > 2)
+            e->Throw("X, Y, or Z array dimensions are incompatible.");
+          if (xVal->Rank() == 0 || yVal->Rank() == 0)
+            e->Throw("X, Y, or Z array dimensions are incompatible.");
+//filter out incompatible 1D dimensions
+          if (xVal->Rank() == 1) {
+            xEl = xVal->Dim(0);
+            if (xEl != zVal->Dim(1))
+              e->Throw("X, Y, or Z array dimensions are incompatible.");
+          }
+          if (yVal->Rank() == 1) {
+            yEl = yVal->Dim(0);
+            if (yEl != zVal->Dim(0))
+              e->Throw("X, Y, or Z array dimensions are incompatible.");
+          }
+//filter out incompatible 2D dimensions
+          if (xVal->Rank() == 2) {
+            xEl = xVal->Dim(0);
+            if ((xVal->Dim(0) != zVal->Dim(1))&&(xVal->Dim(1) != zVal->Dim(0)))
+              e->Throw("X, Y, or Z array dimensions are incompatible.");
+          }
+          if (yVal->Rank() == 2) {
+            yEl = yVal->Dim(1);
+            if ((yVal->Dim(0) != zVal->Dim(1))&&(yVal->Dim(1) != zVal->Dim(0)))
+              e->Throw("X, Y, or Z array dimensions are incompatible.");
+          }
+// But if X is 2D and Y is 1D (or reciprocally), we need to promote the 1D to 2D since this is supported by IDL
+          if (xVal->Rank() == 1 && yVal->Rank() == 2) {
+            DDoubleGDL* xValExpanded = new DDoubleGDL(zVal->Dim(), BaseGDL::NOZERO);
+            SizeT k = 0;
+            for (SizeT j = 0; j < zVal->Dim(1); ++j) for (SizeT i = 0; i < zVal->Dim(0); ++i) (*xValExpanded)[k++] = (*xVal)[i];
+            xval_guard.Init(xValExpanded); // delete upon exit
+            xVal = xValExpanded;
+          } else if (xVal->Rank() == 2 && yVal->Rank() == 1) {
+            DDoubleGDL* yValExpanded = new DDoubleGDL(zVal->Dim(), BaseGDL::NOZERO);
+            SizeT k = 0;
+            for (SizeT j = 0; j < zVal->Dim(1); ++j) for (SizeT i = 0; i < zVal->Dim(0); ++i) (*yValExpanded)[k++] = (*yVal)[j];
+            xval_guard.Init(yValExpanded); // delete upon exit
+            yVal = yValExpanded;
+          }
+        }
       }
       
       GetMinMaxVal ( xVal, &xStart, &xEnd );
@@ -268,12 +272,6 @@ namespace lib
       static int ISOTROPIC=e->KeywordIx("ISOTROPIC");
       e->AssureLongScalarKWIfPresent( ISOTROPIC, iso);
 
-      // [XY]STYLE
-      DLong xStyle=0, yStyle=0, zStyle=0; ;
-      gdlGetDesiredAxisStyle(e, XAXIS, xStyle);
-      gdlGetDesiredAxisStyle(e, YAXIS, yStyle);
-      gdlGetDesiredAxisStyle(e, ZAXIS, zStyle);
-
       // MARGIN
       DFloat xMarginL, xMarginR, yMarginB, yMarginT, zMarginF, zMarginB;
       gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
@@ -307,16 +305,6 @@ namespace lib
       // ztype does not exist in IDL
       zLog=e->KeywordSet ( zLogIx );
 
-      if ( ( xStyle&1 )!=1 )
-	{
-	  PLFLT intv=gdlAdjustAxisRange (e, XAXIS, xStart, xEnd, xLog );
-	}
-
-      if ( ( yStyle&1 )!=1 )
-	{
-	  PLFLT intv=gdlAdjustAxisRange (e, YAXIS, yStart, yEnd, yLog );
-	}
-
       static int MIN_VALUE=e->KeywordIx("MIN_VALUE");
       static int MAX_VALUE=e->KeywordIx("MAX_VALUE");
       bool hasMinVal=e->KeywordPresent(MIN_VALUE);
@@ -326,11 +314,10 @@ namespace lib
       e->AssureDoubleScalarKWIfPresent ( MIN_VALUE, minVal );
       e->AssureDoubleScalarKWIfPresent ( MAX_VALUE, maxVal );
 
-      // then only apply expansion  of axes:
-      if ( ( zStyle&1 )!=1 )
-	{
-	  PLFLT intv=gdlAdjustAxisRange (e, ZAXIS, zStart, zEnd, zLog );
-	}
+      //Box adjustement:
+      gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
+      gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
+      gdlAdjustAxisRange(e, ZAXIS, zStart, zEnd, zLog);
 
       //OVERPLOT: get stored range values instead to use them!
       static int overplotKW=e->KeywordIx ( "OVERPLOT" );
@@ -340,7 +327,7 @@ namespace lib
 
       //projection: would work only with 2D X and Y.
       bool mapSet=false;
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       static LPTYPE idata;
       static XYTYPE odata;
       get_mapset ( mapSet );
@@ -646,7 +633,6 @@ namespace lib
 	  else //rank 2 or mapset
 	    {
 	      oneDim=false;
-
 	      actStream->Alloc2dGrid ( &cgrid2.xg, xEl, yEl );
 	      actStream->Alloc2dGrid ( &cgrid2.yg, xEl, yEl );
 	      tidyGrid2WorldData=true;
@@ -672,18 +658,26 @@ namespace lib
           //This is going to work in a very restricted case.
           //One MUST instead plot the contours as for map_continents, i.e., using gdlPolygonPlot.
           //this will be feasible as soon as we use our  own contour-making algorithm, not plplot's.
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
 	      if ( mapSet )
 		{
 		  for ( SizeT i=0; i<xEl; i++ )
 		    {
 		      for ( SizeT j=0; j<yEl; j++ )
 			{
+#if LIBPROJ_MAJOR_VERSION >= 5
+			  idata.lam= cgrid2.xg[i][j] * DEG_TO_RAD;
+			  idata.phi= cgrid2.yg[i][j] * DEG_TO_RAD;
+			  odata=protect_proj_fwd_lp( idata, ref );
+			  cgrid2.xg[i][j]=odata.x;
+			  cgrid2.yg[i][j]=odata.y;
+#else
 			  idata.u= cgrid2.xg[i][j] * DEG_TO_RAD;
 			  idata.v= cgrid2.yg[i][j] * DEG_TO_RAD;
 			  odata=PJ_FWD ( idata, ref );
 			  cgrid2.xg[i][j]=odata.u;
 			  cgrid2.yg[i][j]=odata.v;
+#endif
 			}
 		    }
 		}

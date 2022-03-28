@@ -37,7 +37,7 @@
 #ifdef HAVE_MALLOC_MALLOC_H
 #  include <malloc/malloc.h>
 #endif
-#if !defined(HAVE_MALLINFO) 
+#if (!defined(HAVE_MALLINFO) && !defined(HAVE_MALLINFO2))
 #  if (!defined(HAVE_MALLOC_ZONE_STATISTICS) || !defined(HAVE_MALLOC_MALLOC_H))
 #    if defined(HAVE_SBRK)
 #      include <unistd.h>
@@ -228,9 +228,43 @@ const bool IsNonPODType[]={
   false, 	//GDL_ULONG,
   false, 	//GDL_LONG64,
   false 	//GDL_ULONG64
-};	
-
-  
+};
+ const bool IsLongLongType[] = {
+  false, //GDL_UNDEF
+  false, //GDL_BYTE
+  false, //GDL_INT
+  false, //GDL_LONG,	
+  false, //GDL_FLOAT,	
+  true, //GDL_DOUBLE,	
+  false, //GDL_COMPLEX,	
+  false, //GDL_STRING,	
+  false, //GDL_STRUCT,	
+  true, //GDL_COMPLEXDBL,	
+  false, //GDL_PTR,		
+  false, //GDL_OBJ,
+  false, //GDL_UINT,	
+  false, //GDL_ULONG,
+  true, //GDL_LONG64,
+  true //GDL_ULONG64
+ };
+ const bool IsUnsignedType[] = {
+  false, //GDL_UNDEF
+  true, //GDL_BYTE
+  false, //GDL_INT
+  false, //GDL_LONG,	
+  false, //GDL_FLOAT,	
+  false, //GDL_DOUBLE,	
+  false, //GDL_COMPLEX,	
+  false, //GDL_STRING,	
+  false, //GDL_STRUCT,	
+  false, //GDL_COMPLEXDBL,	
+  false, //GDL_PTR,		
+  false, //GDL_OBJ,
+  true, //GDL_UINT,	
+  true, //GDL_ULONG,
+  false, //GDL_LONG64,
+  true //GDL_ULONG64
+ };  
 } //namespace gdl_type_lookup 
 
 inline bool NonPODType( DType t)
@@ -261,16 +295,19 @@ inline bool ComplexType( DType t)
 inline bool NumericType( DType t) // Float or Int or Complex
 {
   return gdl_type_lookup::IsNumericType[ t];
-//   int o = DTypeOrder[ t];
-//   return (o >= 2 && o <= 11);
 }
 inline bool ConvertableType( DType t) // everything except Struct, Ptr, Obj
 {
   return gdl_type_lookup::IsConvertableType[ t];
-//   int o = DTypeOrder[ t];
-//   return (o >= 1 && o <= 11);
 }
-
+inline bool LongLongType( DType t) // POD but 64 bits
+{
+  return gdl_type_lookup::IsLongLongType[ t];
+}
+inline bool UnsignedType( DType t) // integer, unsigned type
+{
+  return gdl_type_lookup::IsUnsignedType[ t];
+}
 class   BaseGDL;
 class   ArrayIndexListT;
 //class   ExprListT;
@@ -292,7 +329,7 @@ private:
   // SizeT has architecture-dependant size (32/64 bit)
   static SizeT NumAlloc, NumFree, HighWater, Current;
 
-#if !defined(HAVE_MALLINFO) 
+#if (!defined(HAVE_MALLINFO) && !defined(HAVE_MALLINFO2))
 #  if (!defined(HAVE_MALLOC_ZONE_STATISTICS) || !defined(HAVE_MALLOC_MALLOC_H))
 #    if defined(HAVE_SBRK)
   static char* StartOfMemory;
@@ -333,52 +370,8 @@ public:
   }
 
   // returns current memory usage and updates the highwater mark
-  static void UpdateCurrent() 
-  { 
-    // ---------------------------------------------------------------------
-    // based on the codes from:
-    // - the LLVM project (lib/System/Unix/Process.inc) see http://llvm.org/
-    // - the Squid cache project (src/tools.cc) see http://squid-cache.org/
-    // TODO (TOCHECK): Squid considers also gnumalloc.h - ?
-#if defined(HAVE_MALLINFO)
-    // Linux case for example
-    static struct mallinfo mi;
-    mi = mallinfo();
-//         printf("Total non-mmapped bytes (arena):       %d\n", mi.arena);
-//           printf("# of free chunks (ordblks):            %d\n", mi.ordblks);
-//           printf("# of free fastbin blocks (smblks):     %d\n", mi.smblks);
-//           printf("# of mapped regions (hblks):           %d\n", mi.hblks);
-//           printf("Bytes in mapped regions (hblkhd):      %d\n", mi.hblkhd);
-//           printf("Max. total allocated space (usmblks):  %d\n", mi.usmblks);
-//           printf("Free bytes held in fastbins (fsmblks): %d\n", mi.fsmblks);
-//           printf("Total allocated space (uordblks):      %d\n", mi.uordblks);
-//           printf("Total free space (fordblks):           %d\n", mi.fordblks);
-//           printf("Topmost releasable block (keepcost):   %d\n", mi.keepcost);
-      Current = mi.arena+mi.hblkhd; //was mi.uordblks;
-#elif defined(HAVE_MALLOC_ZONE_STATISTICS) && defined(HAVE_MALLOC_MALLOC_H)
-    // Mac OS X case for example
-    static malloc_statistics_t stats;
-    malloc_zone_statistics(malloc_default_zone(), &stats);
-    Current = stats.size_in_use;
-#elif defined(HAVE_SBRK)
-    // Open Solaris case for example
-    static char* EndOfMemory;
-    EndOfMemory = (char*)sbrk(0);
-    Current = EndOfMemory - StartOfMemory;
-#elif defined(_WIN32)
-    // a draft of Windows version (for neccesarry includes consult the LLVM source): 
-    _HEAPINFO hinfo;
-    hinfo._pentry = NULL;
-    Current = 0;
-    while (_heapwalk(&hinfo) == _HEAPOK)
-        if (hinfo._useflag == _USEDENTRY)
-            Current += hinfo._size;
-#else
-    Warning("Cannot get dynamic memory information on this platform (FIXME)");
-#endif
+  static void UpdateCurrent() ;
 
-    HighWater = std::max(HighWater, Current);
-  }
 
 };
 
@@ -583,7 +576,7 @@ public:
   virtual BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
  			   bool center, bool normalize, int edgeMode,
                                 bool doNan, BaseGDL* missing, bool doMissing,
-                                BaseGDL* invalid, bool doInvalid);
+                                BaseGDL* invalid, bool doInvalid, DDouble edgeVal);
   virtual BaseGDL* Smooth( DLong* width, int edgeMode,
                                 bool doNan, BaseGDL* missing);
   virtual BaseGDL* Rebin( const dimension& newDim, bool sample);
@@ -793,6 +786,16 @@ struct ForLoopInfoT
 // before NullGDL instance must not be deleted, now this is fine (overloaded operators new and delete)
 // inline void GDLDelete( BaseGDL* toDelete) { delete toDelete;}
 void GDLDelete( BaseGDL* toDelete);
+ 
+enum ThreadPoolType {
+    TP_DEFAULT=0, //the same as IDL, reserved for routines that use the thread pool, ideally check the special thread pool keywords.
+    TP_ARRAY_INITIALISATION, // used by GDL array initialisation (new, convert, gdlarray): probably needs som special tuning
+    TP_MEMORY_ACCESS, // concurrent memory access, probably needs to be capped to preserve bandwidth 
+    TP_CPU_INTENSIVE  // benefit from max number of threads
+  };
+
+extern  int GDL_NTHREADS;
+int parallelize(SizeT n, int modifier=TP_DEFAULT);
 
 #endif
 

@@ -49,9 +49,12 @@
 #include <algorithm>
 #endif
 
-const double MMToINCH = 0.039370078 ; // 1./2.54;
+static const std::string ALLCHARACTERSFORSTRINGLENGTHTEST = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+static const float ALLCHARACTERSFORSTRINGLENGTHTEST_NCHARS = 36;
+const double INCHToMM = 25.4 ; 
+const double INCHToCM = 2.54 ;
 const double CM_IN_MM = 10.00000000 ; 
-
+const double DEFAULT_FONT_ASPECT_RATIO = 1.2; // Height / Width
 using namespace std;
 static std::string internalFontCodes[] = {
     "#fn",      // !0  : unused
@@ -167,7 +170,6 @@ static std::string internalFontCodes[] = {
     PLFLT ndsy; // idem y
     PLFLT dsx; // size of char in device units, x direction
     PLFLT dsy; // idem y
-    PLFLT fudge; //a correction factor to reported sizes, useful with wxWidgets plplot driver (?) for which it is 1.8 . go figure.
     DDouble mmsx; //in mm
     DDouble mmsy; //
     PLFLT wsx;  //in current world coordinates
@@ -217,7 +219,7 @@ public:
     theBox.initialized=false;
     plgpls( &pls);
     //you can debug plplot things with
-    //    pls->verbose=1;
+//     pls->debug=1;
 
 	if (GDL_DEBUG_PLSTREAM) printf(" new GDLGstream( %d , %d , %s ):pls=%p \n", nx, ny, driver, (void *)pls);
 
@@ -228,40 +230,22 @@ public:
 	  if (GDL_DEBUG_PLSTREAM) printf(" retire GDLGstream:pls=0x%p \n", (void *)pls);
   }
 
-  static bool checkPlplotDriver(const char *driver)
-  {
-    int numdevs_plus_one = 64;
-    const char **devlongnames = NULL;
-    const char **devnames = NULL;
-
-    static std::vector<std::string> devNames;
-
-    // do only once
-    if( devNames.empty())
-    {
-      // acquireing a list of drivers from plPlot
-      for (int maxnumdevs = numdevs_plus_one;; numdevs_plus_one = maxnumdevs += 16)
-      {
-        //handles gracefully the improbable failure of realloc
-        void* tmp = realloc(devlongnames, maxnumdevs * sizeof(char*));
-        if (tmp) devlongnames = static_cast<const char**>(tmp); else return false;
-        tmp = realloc(devnames, maxnumdevs * sizeof(char*));
-        if (tmp) devnames = static_cast<const char**>(tmp); else return false;
-        plgDevs(&devlongnames, &devnames, &numdevs_plus_one);
-        numdevs_plus_one++;
-        if (numdevs_plus_one < maxnumdevs) break;
-        else Message("The above PLPlot warning message, if any, can be ignored");
-      } 
-      free(devlongnames); // we do not need this information
-
-      for( int i = 0; i < numdevs_plus_one - 1; ++i)
-        devNames.push_back(std::string(devnames[ i]));
-    
-      free(devnames);
+  static bool checkPlplotDriver(const char *driver) {
+  int numdevs = 128;
+  const char **devlongnames = (const char**) malloc(numdevs * sizeof (char*));
+  const char **devnames = (const char**) malloc(numdevs * sizeof (char*));
+  plgDevs(&devlongnames, &devnames, &numdevs);
+  bool found = false;
+  for (int i = 0; i < numdevs; ++i) {
+   if (strcmp(driver, devnames[i])==0){
+     found = true;
+     break;
     }
-
-    return std::find( devNames.begin(), devNames.end(), std::string( driver)) != devNames.end();
   }
+    free(devlongnames);
+    free(devnames);
+    return found;
+ }
    std::string getActiveFontCode(){
    return internalFontCodes[activeFontCodeNum];
   }
@@ -281,13 +265,14 @@ public:
   virtual DLong GetVisualDepth() {return -1;}
   virtual DString GetVisualName() {return "";}
   virtual BaseGDL* GetFontnames(DString pattern) {return NULL;}
-  virtual DLong GetFontnum(DString pattern) {return -1;}
+  virtual DLong GetFontnum(DString pattern) {return 0;}
   virtual bool UnsetFocus(){return false;}
   virtual bool SetBackingStore(int value){return false;}
   virtual bool SetGraphicsFunction(long value ){return false;}
   virtual bool GetWindowPosition(long& xpos, long& ypos ){return false;}
   virtual bool GetScreenResolution(double& resx, double& resy){return false;}
   virtual bool CursorStandard(int cursorNumber){return false;}
+  virtual bool CursorImage(char* v, int x, int y, char* m) {return false;}
   virtual void eop()          { plstream::eop();}
   virtual void SetDoubleBuffering() {}
   virtual void UnSetDoubleBuffering() {}
@@ -304,8 +289,9 @@ public:
   virtual void Clear( DLong chan)          {}
   virtual bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan){return false;}
   virtual bool HasCrossHair() {return false;}
-  virtual void UnMapWindow() {usedAsPixmap=true;} 
+  virtual void UnMapWindowAndSetPixmapProperty() {usedAsPixmap=true;} 
   bool IsPixmapWindow() {return usedAsPixmap;}
+  virtual bool IsPlot() {return true;} //except some wxWidgets
   virtual BaseGDL* GetBitmapData(){return NULL;}
   virtual void SetCurrentFont(std::string fontname){}//do nothing
   bool GetRegion(DLong& xs, DLong& ys, DLong& nx, DLong& ny);//{return false;}
@@ -748,10 +734,9 @@ public:
                                     theCurrentChar.wsx,theCurrentChar.wsy);
   }
   
-  void RenewPlplotDefaultCharsize(PLFLT newMmSize);
+//  void RenewPlplotDefaultCharsize(PLFLT newMmSize);
   
   void GetPlplotDefaultCharSize();
-  virtual float GetPlplotFudge(){return 1.0;};
 
   // SA: overloading plplot methods in order to handle IDL-plplot extended
   // text formating syntax conversion
@@ -765,7 +750,9 @@ public:
                          const char *text);
   void ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
                          const char *text, double *stringCharLength=NULL );
-  void schr( PLFLT charwidthmm, PLFLT scale, PLFLT lineSpacingmm);
+  void setVariableCharacterSize( PLFLT charwidthpixel, PLFLT scale, PLFLT lineSpacingpixel, PLFLT xpxcm, PLFLT ypxcm);
+  void setFixedCharacterSize( PLFLT charwidthpixel, PLFLT scale, PLFLT lineSpacingpixel);
+  virtual void fontChanged(){}; //nothing here
   void sizeChar(PLFLT scale);
   void vpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
 //  void gvpd( PLFLT& xmin, PLFLT& xmax, PLFLT& ymin, PLFLT& ymax );

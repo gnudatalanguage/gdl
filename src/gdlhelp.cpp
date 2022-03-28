@@ -173,12 +173,12 @@ static void help_files(ostream& os, EnvT* e) {
   // AC 2020-04-28
   // see https://github.com/gnudatalanguage/gdl/issues/743
   // pb1 : why maxUserLun ?? pb2 : no return for -1, 0, 1
-  cout << " maxUserLun : " << maxUserLun << " fileUnits.size() : " << fileUnits.size() << endl;
+  cout << " maxUserLun : " << maxUserLun << " fileUnits.size() : " << fileUnits.size() << '\n';
 
   for( DLong lun=maxUserLun+1; lun <= fileUnits.size(); ++lun)
     if( fileUnits[ lun-1].InUse() || fileUnits[ lun-1].GetGetLunLock())
       {
-	os << "	 lun "<< lun << ": "+fileUnits[lun-1].Name() << endl;
+	os << "	 lun "<< lun << ": "+fileUnits[lun-1].Name() << '\n';
       }
   return;
 }
@@ -224,43 +224,43 @@ char my_get_kbrd()
 
 static void help_keys(ostream& ostr)
   { 
-	ostr << "GDL is using Readline to manage keys shortcuts, few useful listed below." << endl;
-	ostr << "A summary can be read here : http://www.bigsmoke.us/readline/shortcuts " << endl;
-	ostr << endl;
-	ostr << "Moving in the command line :"<< endl;
-	ostr << "  Ctrl-a          : going to the beginning of the line"<< endl;
-	ostr << "  Ctrl-e          : going to the end of the line"<< endl;
-	ostr << "  Ctrl-u          : removing from here to the beginning of the line"<< endl;
-	ostr << "  Ctrl-k          : removing from here to the end of the line"<< endl;
-	ostr << "  Ctrl-RightArrow : jumping one word on the right"<< endl;
-	ostr << "  Ctrl-LeftArrow  : jumping one word on the left"<< endl;
-	ostr << endl;
-	ostr << "Moving in the history :"<< endl;
-	ostr << "  HELP, /recall       : listing the whole history" << endl;
-	ostr << "  Ctrl-p or UpArrow   : previous entry in history"  << endl;
-	ostr << "  Ctrl-n or DownArrow : next entry in history"  << endl;
-	ostr << endl;    
+	ostr << "GDL is using Readline to manage keys shortcuts, few useful listed below." << '\n';
+	ostr << "A summary can be read here : http://www.bigsmoke.us/readline/shortcuts " << '\n';
+	ostr << '\n';
+	ostr << "Moving in the command line :"<< '\n';
+	ostr << "  Ctrl-a          : going to the beginning of the line"<< '\n';
+	ostr << "  Ctrl-e          : going to the end of the line"<< '\n';
+	ostr << "  Ctrl-u          : removing from here to the beginning of the line"<< '\n';
+	ostr << "  Ctrl-k          : removing from here to the end of the line"<< '\n';
+	ostr << "  Ctrl-RightArrow : jumping one word on the right"<< '\n';
+	ostr << "  Ctrl-LeftArrow  : jumping one word on the left"<< '\n';
+	ostr << '\n';
+	ostr << "Moving in the history :"<< '\n';
+	ostr << "  HELP, /recall       : listing the whole history" << '\n';
+	ostr << "  Ctrl-p or UpArrow   : previous entry in history"  << '\n';
+	ostr << "  Ctrl-n or DownArrow : next entry in history"  << '\n';
+	ostr << '\n';    
 	return;
   }
 
 static void help_info()
   { 
 
-	  cout << "* Homepage: http://gnudatalanguage.sf.net" << endl;
-	  cout << endl;
+	  cout << "* Homepage: https://gnudatalanguage.github.io/" << '\n';
+	  cout << '\n';
 	  cout << "* #NameOfRoutine for list of params and keywords" 
-	    " for a given NameOfRoutine (internal or compiled pro/func)" << endl;
-	  cout << endl;
+	    " for a given NameOfRoutine (internal or compiled pro/func)" << '\n';
+	  cout << '\n';
 	  cout << "* ?NameOfRoutine for starting a browser to access online doc"
 	    " for a given routine (if exists ! internal or compiled pro/func)" ;
-	  cout << endl; cout << endl;
+	  cout << '\n'; cout << '\n';
 	  cout << "* HELP, /INTERNAL_LIB_GDL for a list of all internal library "
-	    "functions/procedures." << endl;
+	    "functions/procedures." << '\n';
 	  cout << "* HELP, /LIB Additional subroutines are written in GDL language, "
-	    "look for *.pro files (e.g. in CVS in src/pro/)." << endl;
-	  cout << endl;
-	  cout << "* HELP, /KEYS for useful CLI keys shortcuts." << endl;
-	  cout << endl;
+	    "look for *.pro files (e.g. in CVS in src/pro/)." << '\n';
+	  cout << '\n';
+	  cout << "* HELP, /KEYS for useful CLI keys shortcuts." << '\n';
+	  cout << '\n';
 		return;
 }
 static void help_sysvar(ostream& os , bool briefKW=true)
@@ -268,7 +268,7 @@ static void help_sysvar(ostream& os , bool briefKW=true)
   std::map<std::string, DVar*>list;
   for (SizeT v = 0; v < sysVarList.size(); ++v) list.insert(std::pair<std::string, DVar*>(" !" +sysVarList[ v]->Name(), sysVarList[ v]));
 	  if (briefKW) {
-    for (std::map<std::string, DVar*>::iterator it=list.begin(); it!=list.end(); ++it) { os << it->first << endl;}
+    for (std::map<std::string, DVar*>::iterator it=list.begin(); it!=list.end(); ++it) { os << it->first << '\n';}
   } else {
     for (std::map<std::string, DVar*>::iterator it=list.begin(); it!=list.end(); ++it) { 
       DVar* v=it->second;
@@ -305,14 +305,14 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
 	while ((found = s.find(delimiter,pos)) != std::string::npos) {
 		token = s.substr(pos, found-pos);
 		if( doOutput and (nOut not_eq nlines)) (*(DStringGDL *) *outputKW)[nOut] = token;
-		else cout << token << endl;
+		else cout << token << '\n';
 		++nOut;
 		pos = found+1;
 		}
 	    ostr.str("");
 //	    if( nOut  not_eq nlines and debug) cout << 
 //			" help_Output: Error counting lines -" <<
-//			" nOut: "<<nOut<<" OutputLines:"<<nlines<<endl;
+//			" nOut: "<<nOut<<" OutputLines:"<<nlines<<'\n';
 	}
 
     // showing HELP, /path_cache
@@ -328,13 +328,13 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
     StrArr path = SysVar::GDLPath();
 
     std::sort(path.begin(),path.end());
-    ostr << "!PATH (Disabled, "<< path.size() <<" directories)" << endl;
+    ostr << "!PATH (Disabled, "<< path.size() <<" directories)" << '\n';
     lines_count = 1;
 
     for (StrArr::iterator CurrentDir = path.begin(); CurrentDir != path.end(); ++CurrentDir) {
-      //	  cout << "1>>" << (*CurrentDir).c_str() << "<<" <<endl;
+      //	  cout << "1>>" << (*CurrentDir).c_str() << "<<" <<'\n';
       DIR* dirp = opendir((*CurrentDir).c_str());
-      //cout << "2>>" << dirp << "<<" <<endl;
+      //cout << "2>>" << dirp << "<<" <<'\n';
       if (dirp != NULL) {
 		int NbProFilesInCurrentDir = 0;
         while ((dp = readdir(dirp)) != NULL) {
@@ -347,7 +347,7 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
         }
         closedir(dirp);
         ++lines_count;
-        ostr << *CurrentDir << " (" << NbProFilesInCurrentDir << " files)" << endl;
+        ostr << *CurrentDir << " (" << NbProFilesInCurrentDir << " files)" << '\n';
       }
     }
   }
@@ -385,7 +385,7 @@ static void help_Output(BaseGDL** outputKW, ostringstream& ostr, SizeT &nlines, 
         }
         ost << std::left << " " << file;
       }
-      ost << std::endl;
+      ost << '\n';
     }
 	  return;
   }
@@ -395,8 +395,8 @@ static void help_object(std::ostream* ostrp, DStructDesc* objDesc, bool verbose 
   ProListT& prolist = objDesc->ProList();
   int num_methods = funlist.size() + prolist.size();
   int numpar = objDesc->GetNumberOfParents();
-  if (numpar==1) *ostrp << "** Object class " << objDesc->Name() << ", " << numpar << " direct superclass, " << num_methods << " known methods" << std::endl;
-  else *ostrp << "** Object class " << objDesc->Name() << ", " << numpar << " direct superclasses, " << num_methods << " known methods" << std::endl;
+  if (numpar==1) *ostrp << "** Object class " << objDesc->Name() << ", " << numpar << " direct superclass, " << num_methods << " known methods" << '\n';
+  else *ostrp << "** Object class " << objDesc->Name() << ", " << numpar << " direct superclasses, " << num_methods << " known methods" << '\n';
   if (numpar > 0) {
     *ostrp << "   Superclasses:\n";
     std::set< std::string> pNames;
@@ -424,7 +424,7 @@ static void help_object(std::ostream* ostrp, DStructDesc* objDesc, bool verbose 
     }
 	}
 
-static void help_ListLib(DString names, ostream& ostr, bool internal=true)
+static void help_ListLib(const DString names, ostream& ostr, bool internal=true)
   {
 	bool searchbyname;
 	  searchbyname = (names != "");
@@ -441,9 +441,9 @@ static void help_ListLib(DString names, ostream& ostr, bool internal=true)
 	  if(internal) ostr << "Internal l";
 	  else ostr << "L";
 	  ostr << "ibrary procedures (" 
-				<< subList.size() <<"):" << endl;
+				<< subList.size() <<"):" << '\n';
 	  for( SizeT i = 0; i<subList.size(); ++i)
-			ostr << subList[ i] << endl;
+			ostr << subList[ i] << '\n';
 
 	  subList.clear();
 
@@ -461,9 +461,9 @@ static void help_ListLib(DString names, ostream& ostr, bool internal=true)
 	  if(internal) ostr << "Internal l";
 	  else ostr << "L";
 	  ostr << "ibrary functions (" 
-				<< subList.size() <<"):" << endl;
+				<< subList.size() <<"):" << '\n';
 	  for( SizeT i = 0; i<subList.size(); ++i)
-	    ostr << subList[ i] << endl;
+	    ostr << subList[ i] << '\n';
 	  subList.clear();
 
 }
@@ -472,9 +472,9 @@ static void help_heap_obj_ptr_head(EnvT* e, ostream& ostr)
 {
   SizeT numPtr = e->Interpreter()->HeapSize();
   SizeT numObj = e->Interpreter()->ObjHeapSize();
-  ostr << "Heap Variables:" << std::endl;
-  ostr << "    # Pointer: " << numPtr << std::endl;
-  ostr << "    # Object : " << numObj << std::endl<<std::endl;
+  ostr << "Heap Variables:" << '\n';
+  ostr << "    # Pointer: " << numPtr << '\n';
+  ostr << "    # Object : " << numObj << '\n'<<'\n';
 }
       
       
@@ -526,16 +526,16 @@ static void help_lastmsg(EnvT* e)
 	  static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
 
       static int outputIx = e->KeywordIx( "OUTPUT");
-	  if (e->KeywordPresent( outputIx)) 
+	  if (e->WriteableKeywordPresent( outputIx)) 
 	    {    // Setup output return variable
-	      outputKW = &e->GetKW( outputIx);
+	      outputKW = &e->GetTheKW( outputIx);
 	      GDLDelete((*outputKW));
 	      *outputKW = static_cast<DStringGDL*>((errorState->GetTag( msgTag))
 	                                             ->Convert2( GDL_STRING, BaseGDL::COPY));
 	      return;
 			}
 			else {
-	    cout << (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0]<< endl;
+	    cout << (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0]<< '\n';
 	    return;
 	  }
   }
@@ -546,7 +546,7 @@ static void help_lastmsg(EnvT* e)
 #if defined(HAVE_LIBREADLINE)
     // http://cnswww.cns.cwru.edu/php/chet/readline/history.html#IDX14
     HIST_ENTRY **the_list;
-    //    cout << "history_length" << history_length << endl;
+    //    cout << "history_length" << history_length << '\n';
     the_list = history_list();
 
     if (the_list) {
@@ -583,7 +583,7 @@ BaseGDL* recall_commands( EnvT* e)
       cout << par->Type() << " :"
         << par->TypeStr() << " :"
         //		<< &par->TypeStr() << ": "
-        << parString << endl;
+        << parString << '\n';
     }
 
     if (doIndentation) ostr << "   ";
@@ -592,18 +592,18 @@ BaseGDL* recall_commands( EnvT* e)
     ostr.width(16);
     ostr << left << parString;
     if (parString.length() >= 16) {
-      ostr << endl; // for cmsv compatible output (uses help,OUTPUT)
+      ostr << '\n'; // for cmsv compatible output (uses help,OUTPUT)
       ostr.width(doIndentation ? 19 : 16);
       ostr << "";
     }
 
     // Type display (we have two "null" : defined !null and undefined variables ...
     if (par == NULL) {
-      ostr << "UNDEFINED = <Undefined>" << endl;
+      ostr << "UNDEFINED = <Undefined>" << '\n';
       return;
     }
     if (par == NullGDL::GetSingleInstance()) {
-      ostr << "UNDEFINED = !NULL" << endl;
+      ostr << "UNDEFINED = !NULL" << '\n';
       return;
     }
     ostr.width(10);
@@ -685,7 +685,7 @@ BaseGDL* recall_commands( EnvT* e)
     if (par->Dim(0) != 0) ostr << par->Dim();
 
     // End of line
-    ostr << endl;
+    ostr << '\n';
   }
 
   void help_struct(ostream& ostr, BaseGDL* par, int indent = 0, bool debug = false)
@@ -704,7 +704,7 @@ BaseGDL* recall_commands( EnvT* e)
         //			<< "/" << s->RealBytes() ; GJ has this but only applied here.
         << "/" << s->SizeofTags();
     }
-    ostr << ":" << endl;
+    ostr << ":" << '\n';
 
     for (SizeT t = 0; t < nTags; ++t) {
       for (int i = 0; i < indent; ++i) ostr << "   ";
@@ -730,7 +730,7 @@ void help_struct(ostream& ostr,  DStructDesc* dsc)
 		    if(dsc->GetTag(t)->Type() == GDL_STRUCT) 
 				help_struct(ostr, dsc->GetTag(t)->Desc());
 			}
-		ostr << ":" << endl;
+		ostr << ":" << '\n';
 }
 #endif
 
@@ -761,7 +761,7 @@ void help_help(EnvT* e)
     sort(stringList.begin(), stringList.end());
     vector<std::string>::iterator it = stringList.begin();
 	while (it != stringList.end()) std::cout << *it++;
-    std::cout << std::endl;
+    std::cout << '\n';
 }
   
   DStringGDL* StreamToGDLString(ostringstream& oss, bool sorted=false) {
@@ -809,10 +809,10 @@ void help_help(EnvT* e)
 
     BaseGDL** outputKW = NULL;
     static int outputIx = e->KeywordIx("OUTPUT");
-    bool doOutput = e->KeywordPresent(outputIx);
+    bool doOutput = e->WriteableKeywordPresent(outputIx);
 
     if (doOutput) { // Setup output return variable
-      outputKW = &e->GetKW(outputIx);
+      outputKW = &e->GetTheKW(outputIx);
       GDLDelete((*outputKW));
     }
     static SizeT OutputLines;
@@ -842,7 +842,7 @@ void help_help(EnvT* e)
     static int debugIx = e->KeywordIx("DEBUG");
     if (e->KeywordSet(debugIx)) {
       debugKW = !debugKW;
-      cout << " Help debug option set/reset: " << debugKW << endl;
+      cout << " Help debug option set/reset: " << debugKW << '\n';
       return;
     }
 
@@ -850,8 +850,8 @@ void help_help(EnvT* e)
     if (e->KeywordSet(pathIx)) { // exercising two methods
       help_path_cached(ostr, OutputLines);
       if (debugKW) {
-        cout << OutputLines << endl;
-        cout << "begin" << ostr.rdbuf()->str() << "end" << endl;
+        cout << OutputLines << '\n';
+        cout << "begin" << ostr.rdbuf()->str() << "end" << '\n';
       }
       help_Output(outputKW, ostr, OutputLines, doOutput);
       return;
@@ -880,7 +880,7 @@ void help_help(EnvT* e)
     if (deviceKW) {
       GraphicsDevice::ListDevice(ostr);
       DString name = (*static_cast<DStringGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)))[0];
-      ostr << "Current graphics device: " << name << endl;
+      ostr << "Current graphics device: " << name << '\n';
       if (doOutput) (*outputKW) = StreamToGDLString(ostr, true);
       else cout << ostr.str();
       return;
@@ -976,33 +976,33 @@ void help_help(EnvT* e)
         ProListT proList_tmp;
         proList_tmp = proList;
         sort(proList_tmp.begin(), proList_tmp.end(), CompProName());
-        *ostrp << "Compiled Procedures:" << endl;
-        *ostrp << "$MAIN$" << endl;
+        *ostrp << "Compiled Procedures:" << '\n';
+        *ostrp << "$MAIN$" << '\n';
         OutputLines += 2;
         for (SizeT i = 0; i < proList_tmp.size(); ++i) {
           if (proList_tmp[i]->isHidden() and !fullKW) continue;
           if (isKWSetNames and
             !(CompareWithJokers(names, proList_tmp[i]->ObjectName()))) continue;
           *ostrp << setw(25) << left << proList_tmp[i]->ObjectName() << setw(0);
-          *ostrp << proList_tmp[i]->GetFilename() << endl;
+          *ostrp << proList_tmp[i]->GetFilename() << '\n';
         }
       }
 
       if (!isKWSetProcedures) {
-        if (!isKWSetFunctions) *ostrp << endl;
+        if (!isKWSetFunctions) *ostrp << '\n';
         // AC 2018-01-09 : Duplicating the fun list to avoid messing up the order of "funList"
         // see above in (do_pro).
         FunListT funList_tmp;
         funList_tmp = funList;
         sort(funList_tmp.begin(), funList_tmp.end(), CompFunName());
-        *ostrp << "Compiled Functions:" << endl;
+        *ostrp << "Compiled Functions:" << '\n';
         ++OutputLines;
         for (SizeT i = 0; i < funList_tmp.size(); ++i) {
           if (funList_tmp[i]->isHidden() and !fullKW) continue;
           if (isKWSetNames and
             !(CompareWithJokers(names, funList_tmp[i]->ObjectName()))) continue;
           *ostrp << setw(25) << left << funList_tmp[i]->ObjectName() << setw(0);
-          *ostrp << funList_tmp[i]->GetFilename() << endl;
+          *ostrp << funList_tmp[i]->GetFilename() << '\n';
           ++OutputLines;
         }
       }
@@ -1032,7 +1032,7 @@ void help_help(EnvT* e)
       }
     sort(pList.begin(), pList.end());
     if (debugKW) cout << " #procedures=" << npro;
-    if (debugKW) cout << " #env:" << e->Caller()->EnvSize() << endl;
+    if (debugKW) cout << " #env:" << e->Caller()->EnvSize() << '\n';
 
     static int callsKWIx = e->KeywordIx("CALLS");
     bool callsKW = e->KeywordPresent(callsKWIx);
@@ -1077,8 +1077,8 @@ void help_help(EnvT* e)
     static int INTERNAL_LIB_GDLIx = e->KeywordIx("INTERNAL_LIB_GDL");
     bool kwLibInternal = e->KeywordSet(INTERNAL_LIB_GDLIx);
     if (kwLibInternal) {
-      cout << "NOTE: Internal subroutines are subject to change without notice." << endl;
-      cout << "They should never be called directly from a GDL program." << endl;
+      cout << "NOTE: Internal subroutines are subject to change without notice." << '\n';
+      cout << "They should never be called directly from a GDL program." << '\n';
     }
     if (e->KeywordSet(libIx)) {
       kw = true;
@@ -1103,7 +1103,7 @@ void help_help(EnvT* e)
       DStringGDL *previous_commands;
       previous_commands = recall_commands_internal();
       SizeT nEl2 = previous_commands->N_Elements();
-      cout << "Recall buffer length: " << nEl2 << endl;
+      cout << "Recall buffer length: " << nEl2 << '\n';
 
       char ctmp;
       int nb_lines=TermHeight();
@@ -1111,18 +1111,18 @@ void help_help(EnvT* e)
       for (SizeT i = 0; i < nEl2; ++i) {
         if (isKWSetNames and
           !CompareWithJokers(names, (*previous_commands)[i])) continue;
-        *ostrp << i + 1 << "  " << (*previous_commands)[i] << endl;
+        *ostrp << i + 1 << "  " << (*previous_commands)[i] << '\n';
 	if (( i > 0) && (i % (nb_lines-4)) == 0) {
-	  *ostrp << "      < Press q or Q to quit, any key to continue, ? for help >" << endl; 
+	  *ostrp << "      < Press q or Q to quit, any key to continue, ? for help >" << '\n'; 
 	  ctmp=my_get_kbrd(); 
 	  nb_lines=TermHeight();
 	  if ((tolower(ctmp) == 'h') || (ctmp == '?')) {
-	    *ostrp << "---------------------------------------------------    " << endl;
-	    *ostrp << "<space>		Display next page of text." << endl;
-	    *ostrp << "<return>	Display next line of text. (TBD)" << endl;
-	    *ostrp << "q or Q		Quit" << endl;
-	    *ostrp << "h, H, or ?	Display this message." << endl;
-	    *ostrp << "---------------------------------------------------" << endl;
+	    *ostrp << "---------------------------------------------------    " << '\n';
+	    *ostrp << "<space>		Display next page of text." << '\n';
+	    *ostrp << "<return>	Display next line of text. (TBD)" << '\n';
+	    *ostrp << "q or Q		Quit" << '\n';
+	    *ostrp << "h, H, or ?	Display this message." << '\n';
+	    *ostrp << "---------------------------------------------------" << '\n';
 	    ctmp=my_get_kbrd(); 
 	    nb_lines=TermHeight();
 	  }
@@ -1143,14 +1143,14 @@ void help_help(EnvT* e)
       ostr << ", gets: ";
       ostr << MemStats::GetNumAlloc();
       ostr << ", frees: ";
-      ostr << MemStats::GetNumFree() << endl;
+      ostr << MemStats::GetNumFree() << '\n';
       if (doOutput) (*outputKW) = StreamToGDLString(ostr);
       else cout << ostr.str();
       return;
     }
     if (isKWSetPreferences) {
-      //cout << "ici 1 " << isKWSetPreferences << endl;
-      *ostrp << "Preferences: this is not ready ..." << endl;
+      //cout << "ici 1 " << isKWSetPreferences << '\n';
+      *ostrp << "Preferences: this is not ready ..." << '\n';
       //*ostrp << GDL_GR_X_QSCREEN::GetValue();
       if (doOutput) help_Output(outputKW, ostr, OutputLines);
 
@@ -1168,7 +1168,7 @@ void help_help(EnvT* e)
         SimpleDumpStack(e, *ostrp);
 
       if (isKWSetProcedures or routinesKW) {
-        *ostrp << "Compiled Procedures:" << endl << "$MAIN$" << endl;
+        *ostrp << "Compiled Procedures:" << '\n' << "$MAIN$" << '\n';
         OutputLines += 2;
         for (SizeT i = 1; i < pList.size(); ++i) {
 
@@ -1189,13 +1189,13 @@ void help_help(EnvT* e)
             *ostrp << StrLowCase(pro->GetVarName(nKey + j)) << " ";
           for (SizeT j = 0; j < pro->NKey(); ++j)
             *ostrp << StrUpCase(pro->GetVarName(j)) << " ";
-          *ostrp << endl;
+          *ostrp << '\n';
           ++OutputLines;
         }
       }
 
       if (isKWSetFunctions or routinesKW) {
-        *ostrp << "Compiled Functions:" << endl;
+        *ostrp << "Compiled Functions:" << '\n';
         ++OutputLines;
         // Loop through functions
         for (SizeT i = 0; i < fList.size(); ++i) {
@@ -1214,7 +1214,7 @@ void help_help(EnvT* e)
             *ostrp << StrLowCase(pro->GetVarName(nKey + j)) << " ";
           for (SizeT j = 0; j < nKey; ++j)
             *ostrp << StrUpCase(pro->GetVarName(j)) << " ";
-          *ostrp << endl;
+          *ostrp << '\n';
           OutputLines++;
         }
       }
@@ -1227,8 +1227,8 @@ void help_help(EnvT* e)
     // Excluding keywords which are exclusive is not finished ...
 
     if (isKWSetPreferences) {
-      //cout << "ici 1 " << isKWSetPreferences << endl;
-      *ostrp << "Preferences: this is not ready ..." << endl;
+      //cout << "ici 1 " << isKWSetPreferences << '\n';
+      *ostrp << "Preferences: this is not ready ..." << '\n';
       //*ostrp << GDL_GR_X_QSCREEN::GetValue();
       if (doOutput) help_Output(outputKW, ostr, OutputLines);
 
@@ -1241,7 +1241,7 @@ void help_help(EnvT* e)
         SizeT nVar = (*it)->NVar();
         if (nVar == 0) continue;
 	*ostrp << " Common block (" << (*it)->Name() <<
-          ") listed in internal order:" << endl;
+          ") listed in internal order:" << '\n';
         for (SizeT vIx = 0; vIx < nVar; ++vIx) {
           DString parString = (*it)->VarName(vIx) + " (" + (*it)->Name() + ')';
           DVar* var = (*it)->Var(vIx);
@@ -1260,7 +1260,7 @@ void help_help(EnvT* e)
       DString parString = e->Caller()->GetString(par, true); //= string(" ??? ");
       if (debugKW) std::cout << ". ";
       if (par == NULL) {
-        if (debugKW) std::cout << " par ==(NULL)" << endl;
+        if (debugKW) std::cout << " par ==(NULL)" << '\n';
         if (!briefKW) help_item(ostr, par, parString, false);
         continue;
       }
@@ -1310,14 +1310,14 @@ void help_help(EnvT* e)
             else parents = " parents:";
             ostr << left << parents;
             for (SizeT i = 0; i < pNames.size(); ++i) ostr << " " << pNames[i];
-            ostr << endl;
+            ostr << '\n';
           } else
             help_item(ostr, NULL, nameobj, false);
         }
       }
 
     }
-    if (debugKW) std::cout << " :=:" << std::endl;
+    if (debugKW) std::cout << " :=:" << '\n';
     if (nParam > 0) {
       if (doOutput) (*outputKW) = StreamToGDLString(ostr);
       else cout << ostr.str();
@@ -1346,12 +1346,12 @@ void help_help(EnvT* e)
       SizeT nVar = pro->Size(); // # var in GDL for desired level 
       SizeT nComm = pro->CommonsSize(); // # has commons?
       SizeT nTotVar = nVar + nComm; //All the variables availables at that lev.
-      if (debugKW) cout << " Level section: nTotVar=" << nTotVar << endl;
+      if (debugKW) cout << " Level section: nTotVar=" << nTotVar << '\n';
       if (nTotVar > 0) {
         set<string> helpStr; // "Sorted List" 
         if (nVar > 0) {
           for (SizeT i = 0; i < nVar; ++i) {
-            BaseGDL*& par = (static_cast<EnvUDT*> (callStack[desiredlevnum - 1]))->GetKW(i);
+            BaseGDL*& par = (static_cast<EnvUDT*> (callStack[desiredlevnum - 1]))->GetTheKW(i);
             if (par != NULL) {
               stringstream ss;
               string parName = pro->GetVarName(i);
@@ -1387,13 +1387,13 @@ void help_help(EnvT* e)
 
       SizeT nEnv = caller->EnvSize();
 
-      //cout << "EnvSize() " << nEnv << endl;
+      //cout << "EnvSize() " << nEnv << '\n';
 
       set<string> helpStr; // "Sorted List" 
       stringstream ss;
 
       for (int i = 0; i < nEnv; ++i) {
-        BaseGDL*& par = caller->GetKW(i);
+        BaseGDL*& par = caller->GetTheKW(i);
 
         if (par == NULL && !fullKW) continue;
         // if( par == NULL) continue;
@@ -1406,7 +1406,7 @@ void help_help(EnvT* e)
         helpStr.insert(ss.str());
         ss.str("");
       }
-      if (debugKW) cout << endl;
+      if (debugKW) cout << '\n';
       std::vector<DCommonBase*> cptr;
       DSubUD* proUD = dynamic_cast<DSubUD*> (caller->GetPro());
       proUD->commonPtrs(cptr);
@@ -1435,12 +1435,12 @@ void help_help(EnvT* e)
       // Display compiled procedures & functions
       if (!isKWSetProcedures and !isKWSetFunctions) {
 
-        *ostrp << "Compiled Procedures:" << endl;
+        *ostrp << "Compiled Procedures:" << '\n';
         for (SizeT i = 0; i < pList.size(); ++i) *ostrp << pList[i] << " ";
-        *ostrp << endl << endl;
-        *ostrp << "Compiled Functions:" << endl;
+        *ostrp << '\n' << '\n';
+        *ostrp << "Compiled Functions:" << '\n';
         for (SizeT i = 0; i < fList.size(); ++i) *ostrp << fList[i] << " ";
-        *ostrp << endl;
+        *ostrp << '\n';
         OutputLines += 4;
       }
     }

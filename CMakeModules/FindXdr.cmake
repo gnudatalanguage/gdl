@@ -11,14 +11,14 @@
 if(XDRDIR) 
   set(CMAKE_PREFIX_PATH $XDRDIR)
 endif(XDRDIR)
-find_library(XDR_LIBRARY NAMES xdr)
+find_library(XDR_LIBRARY NAMES bsdxdr xdr)
 set(XDR_LIBRARIES ${XDR_LIBRARY})
 find_path(XDR_INCLUDE_DIR NAMES rpc/xdr.h)
 
 unset( CMAKE_PREFIX_PATH)
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(XDR DEFAULT_MSG XDR_LIBRARIES XDR_INCLUDE_DIR)
+find_package_handle_standard_args(Xdr DEFAULT_MSG XDR_LIBRARIES XDR_INCLUDE_DIR)
 
 mark_as_advanced(
 XDR_LIBRARY

@@ -229,8 +229,7 @@ BaseGDL* GDLXStream::GetFontnames(DString pattern) {
   return myList;
 }
 DLong GDLXStream::GetFontnum(DString pattern){
-  // never occurs ...  if (pattern.length()<0) return -1;
-  if (this->GetFontnames(pattern) == NULL) return -1;
+  if (this->GetFontnames(pattern) == NULL) return 0;
   if (pattern.length()==0) return 0;
   return this->GetFontnames(pattern)->N_Elements();
 }
@@ -334,7 +333,7 @@ void GDLXStream::DeIconic() {
   XMapWindow(dev->xwd->display, dev->window);
 }
 
-void GDLXStream::UnMapWindow() {
+void GDLXStream::UnMapWindowAndSetPixmapProperty() {
   //Used for /PIXMAP windows: 1) insure write_to_pixmap and not write_to_window, and 2) hide the window.
   XwDev *dev = (XwDev *) pls->dev;
   dev->write_to_pixmap=1;
@@ -731,14 +730,6 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
   XColor curcolor;
   curcolor = xwd->fgcolor; //default
   PLINT iclr1, ired, igrn, iblu;
-  // parallelize does not work when using XGet[Put]Pixel in the loop below, otherwise would be OK!
-  // please allow parallelization only after removing this problem ;^)
-  //#ifdef _OPENMP
-  //  SizeT nOp = kxLimit * kyLimit;
-  //#endif
-  //  #pragma omp parallel if (nOp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nOp)) private(ired,igrn,iblu,kx,ky,iclr1,curcolor)
-  //  {
-  //  #pragma omp for
   for (ix = 0; ix < xmax; ++ix) {
     for (iy = 0; iy < ymax; ++iy) {
 
@@ -797,7 +788,6 @@ bool GDLXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos
       XPutPixel(ximg, ix, ymax-1-iy, curcolor.pixel); //ximg IS reversed allways.
     }
   }
-  //  } //end parallelize 
   if (dev->write_to_pixmap == 1)
     XPutImage(xwd->display, dev->pixmap, dev->gc, ximg, 0, 0,
     xoff, dev->height-yoff-ymax, xmax, ymax);

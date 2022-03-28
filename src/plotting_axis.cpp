@@ -177,33 +177,26 @@ namespace lib {
     //handle Nozero option after all that!
     if(!gdlYaxisNoZero(e) && yStart >0 && !yLog ) yStart=0.0;
 
-    gdlHandleUnwantedAxisValue(xStart, xEnd, xLog);
-    gdlHandleUnwantedAxisValue(yStart, yEnd, yLog);
-
-    // [XY]STYLE
-    DLong xStyle=0, yStyle=0;
-    gdlGetDesiredAxisStyle(e, XAXIS, xStyle);
-    gdlGetDesiredAxisStyle(e, YAXIS, yStyle);
-
-     //xStyle and yStyle apply on range values
-    if ((xStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
-    }
-    if ((yStyle & 1) != 1) {
-      PLFLT intv = gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
-    }
+    //Box adjustement:
+    gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
+    gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
     
     DDouble yVal, xVal;
     //in absence of arguments we will have:
+    bool ynodef=true;
+    bool xnodef=true;
     yVal=(standardNumPos)?oyStart:oyEnd;
     xVal=(standardNumPos)?oxStart:oxEnd;
     //read arguments 
     if (nParam() == 1) {
       e->AssureDoubleScalarPar( 0, xVal);
+      xnodef=false;
     }
     if (nParam() == 2) {
       e->AssureDoubleScalarPar( 0, xVal);
+      xnodef=false;
       e->AssureDoubleScalarPar( 1, yVal);
+      ynodef=false;
     }
     if (nParam() == 3) {
       e->Throw( "Sorry, we do not yet support the 3D case");
@@ -229,7 +222,7 @@ namespace lib {
     else //DATA
     {
 
-#ifdef USE_LIBPROJ4
+#ifdef USE_LIBPROJ
       // Map Stuff (xtype = 3)
       LPTYPE idata;
       XYTYPE odata;
@@ -243,11 +236,19 @@ namespace lib {
         {
           e->Throw("Projection initialization failed.");
         }
+#if PROJ_VERSION_MAJOR >= 5
+        idata.lam=xVal * DEG_TO_RAD;
+        idata.phi=yVal * DEG_TO_RAD;
+        odata=protect_proj_fwd_lp(idata, ref);
+        xVal=odata.x;
+        yVal=odata.y;
+#else
         idata.u=xVal * DEG_TO_RAD;
         idata.v=yVal * DEG_TO_RAD;
         odata=PJ_FWD(idata, ref);
         xVal=odata.u;
         yVal=odata.v;
+#endif
         DDouble *sx, *sy;
         GetSFromPlotStructs( &sx, &sy );
 
@@ -266,20 +267,19 @@ namespace lib {
       actStream->WorldToNormedDevice(xVal, yVal, vpX, vpY);
     }
     //compute new temporary viewport in relative coords
-#define ADDEPSILON 0.1
     if ( standardNumPos )
     {
-      vpXL=(xAxis)?ovpXL       :vpX;
-      vpXR=(xAxis)?ovpXR       :vpX+ovpSizeY;
-      vpYB=(xAxis)?vpY         :ovpYB;
-      vpYT=(xAxis)?vpY+ovpSizeX:ovpYT;
+      vpXL=(xAxis || xnodef )?ovpXL       :vpX;
+      vpXR=(xAxis || xnodef )?ovpXR       :vpX+ovpSizeY;
+      vpYB=(yAxis || ynodef )?ovpYB       :vpY         ;
+      vpYT=(yAxis || ynodef )?ovpYT       :vpY+ovpSizeX;
     }
     else
     {
-      vpXL=(xAxis)?ovpXL:vpX-ovpSizeY;
-      vpXR=(xAxis)?ovpXR:vpX;
-      vpYB=(xAxis)?vpY-ovpSizeX:ovpYB;
-      vpYT=(xAxis)?vpY:ovpYT;
+      vpXL=(xAxis || xnodef )?ovpXL  :vpX-ovpSizeY;
+      vpXR=(xAxis || xnodef )?ovpXR  :vpX;
+      vpYB=(yAxis || ynodef )?ovpYB  :vpY-ovpSizeX;
+      vpYT=(yAxis || ynodef )?ovpYT  :vpY;
     }
      
     actStream->OnePageSaveLayout(); // one page
@@ -287,6 +287,8 @@ namespace lib {
     actStream->vpor(vpXL, vpXR, vpYB, vpYT);
     if (xLog) {xStart=log10(xStart);xEnd=log10(xEnd);}
     if (yLog) {yStart=log10(yStart);yEnd=log10(yEnd);}
+    
+    //insure 'wind' arguments are 
     actStream->wind(xStart, xEnd, yStart, yEnd);
 
     if ( xAxis )

@@ -580,14 +580,15 @@ extern "C" {
     // instantiate the interpreter (creates $MAIN$ environment)
     interpreter = new DInterpreter();
 
-    // Ole: enable GDL PATH!
-    string gdlPath=GetEnvString("GDL_PATH");
-    if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
-    if( gdlPath == "")
-      {
-        gdlPath = "+" GDLDATADIR "/lib";
-      }
-    SysVar::SetGDLPath( gdlPath);
+// This is done above in InitObjects(), why duplicate?
+//    // Ole: enable GDL PATH!
+//    string gdlPath=GetEnvString("GDL_PATH");
+//    if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
+//    if( gdlPath == "")
+//      {
+//        gdlPath = "+" GDLDATADIR "/lib";
+//      }
+//    SysVar::SetGDLPath( gdlPath);
     
 #if PY_MAJOR_VERSION >= 3
     PyObject* m = PyModule_Create(&moduledef);

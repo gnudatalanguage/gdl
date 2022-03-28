@@ -20,7 +20,7 @@
 
 #include "gdlsvgstream.hpp"
 
-static const float SVG_CM2IN = (1.0 / 2.54) ;
+static const float SVG_CM2IN = (1.0 / INCHToCM) ;
 static const float SVG_RESOL = 1000.0; // per cm
 static const PLFLT SVG_DPI = 72; 
 
@@ -162,30 +162,30 @@ public:
   bool SetXPageSize( const float xs) // xs [cm]
   {
     // nothing for the moment (coordinates tricky)
-//    XPageSize=xs;
-//    (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_SIZE"))))[0] 
-//      = DLong(floor(0.5+
-//        xs * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_PX_CM"))))[0]
-//      ));
-//   (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_VSIZE"))))[0]
-//      = DLong(floor(0.5+
-//        xs * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_PX_CM"))))[0]
-//      ));
+    XPageSize=xs;
+    (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_SIZE"))))[0] 
+      = DLong(floor(0.5+
+        xs * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_PX_CM"))))[0]
+      ));
+   (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_VSIZE"))))[0]
+      = DLong(floor(0.5+
+        xs * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("X_PX_CM"))))[0]
+      ));
     return true;
   }
 
   bool SetYPageSize( const float ys) // ys [cm]
   {
     // nothing for the moment (coordinates tricky)
-//    YPageSize=ys;
-//    (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_SIZE"))))[0] 
-//      = DLong(floor(0.5+
-//        ys * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_PX_CM"))))[0]
-//      ));
-//    (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_VSIZE"))))[0]
-//      = DLong(floor(0.5+
-//        ys * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_PX_CM"))))[0]
-//      ));
+    YPageSize=ys;
+    (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_SIZE"))))[0] 
+      = DLong(floor(0.5+
+        ys * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_PX_CM"))))[0]
+      ));
+    (*static_cast<DLongGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_VSIZE"))))[0]
+      = DLong(floor(0.5+
+        ys * (*static_cast<DFloatGDL*>(dStruct->GetTag(dStruct->Desc()->TagIndex("Y_PX_CM"))))[0]
+      ));
     return true;
   }
 

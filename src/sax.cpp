@@ -565,10 +565,12 @@ namespace lib {
     static int SCHEMA_CHECKING = e->GetKeywordIx("SCHEMA_CHECKING");
     static int VALIDATION_MODE = e->GetKeywordIx("VALIDATION_MODE");
 
-    BaseGDL* dummy;
-    if (e->KeywordPresent(NAMESPACE_PREFIXES)) dummy=e->GetKW(NAMESPACE_PREFIXES);
-    if (e->KeywordPresent(SCHEMA_CHECKING)) e->GetKW(SCHEMA_CHECKING);
-    if (e->KeywordPresent(VALIDATION_MODE)) e->GetKW(VALIDATION_MODE);
+    BaseGDL* dummy_n;
+    BaseGDL* dummy_s;
+    BaseGDL* dummy_v;
+    if (e->KeywordPresent(NAMESPACE_PREFIXES)) dummy_n=e->GetKW(NAMESPACE_PREFIXES);
+    if (e->KeywordPresent(SCHEMA_CHECKING)) dummy_s=e->GetKW(SCHEMA_CHECKING);
+    if (e->KeywordPresent(VALIDATION_MODE)) dummy_v=e->GetKW(VALIDATION_MODE);
     XML_Parser parser = (XML_Parser) ((*gdlparser)[0]);
     if (parser) { //do something useful!
     } 

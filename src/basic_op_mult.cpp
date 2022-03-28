@@ -33,14 +33,10 @@
 // right must always have more or same number of elements
 template<class Sp>
 Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right=static_cast<Data_*>(r);
-
-  //  ULong rEl=right->N_Elements();
   ULong nEl=N_Elements();
-  // assert( rEl);
   assert( nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");  
   if( nEl == 1)
     {
       (*this)[0] *= (*right)[0];
@@ -53,13 +49,13 @@ Data_<Sp>* Data_<Sp>::Mult( BaseGDL* r)
   mThis *= mRight;
   return this;
 #else
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] *= (*right)[i];
-    }  //C delete right;
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] *= (*right)[i];
+    } else {
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] *= (*right)[i];
+    }
   return this;
 #endif
   
@@ -86,7 +82,7 @@ Data_<SpDObj>* Data_<SpDObj>::Mult( BaseGDL* r)
 
 template<class Sp>
 Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
-{
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right=static_cast<Data_*>(r);
 
   ULong nEl=N_Elements();
@@ -97,21 +93,19 @@ Data_<Sp>* Data_<Sp>::MultS( BaseGDL* r)
       return this;
     }
   Ty s = (*right)[0];
-  // right->Scalar(s);
-  //  dd *= s;
 #ifdef USE_EIGEN
 
   Eigen::Map<Eigen::Array<Ty,Eigen::Dynamic,1> ,Eigen::Aligned> mThis(&(*this)[0], nEl);
   mThis *= s;
   return this;
 #else
-  TRACEOMP( __FILE__, __LINE__)
-#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
-    {
-#pragma omp for
-      for( OMPInt i=0; i < nEl; ++i)
-	(*this)[i] *= s;
-    }  //C delete right;
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] *= s;
+    } else {
+      TRACEOMP( __FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+      for( OMPInt i=0; i < nEl; ++i) (*this)[i] *= s;
+    }
   return this;
 #endif
   
