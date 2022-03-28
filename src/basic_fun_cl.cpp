@@ -60,6 +60,12 @@ namespace lib {
   using namespace std;
   using namespace antlr;
 
+  // AC + JW : to have isinf & isnan ...
+#ifndef _MSC_VER
+  using std::isinf;
+  using std::isnan;
+#endif
+
   void timestamptovalues(EnvT* e) {
 
     //    try {
