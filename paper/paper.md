@@ -97,8 +97,8 @@ The GDL project is an international effort to create a clone of Interactive Data
   
 `GDL` has been developed for over four decades with public funding throughout academic institutions around the world.
   The initial development was done by **Marc Schellens** almost 20 years ago (commit history preserved on `GitHub` dates back to 2004) 
-  and since then has been continuously carried out by an evolving team of volunteer contributors -- both freelance and affiliated with
-  academic institutions (@Coulais_et_al_2010, @Coulais_et_al_2012, @Coulais_et_al_2014, @Coulais_et_al_2019, @Duvert_et_al_2020).
+  and since then a continuous development has been carried out by an evolving team of volunteer contributors -- both freelance
+  and affiliated with academic institutions (@Coulais_et_al_2010, @Coulais_et_al_2012, @Coulais_et_al_2014, @Coulais_et_al_2019, @Duvert_et_al_2020).
   As a result, we have recently announced GDL 1.0.
 
 In terms of compatibility, `GDL` aims at a full compatibility with modern `IDL` language specification, including partial
