@@ -123,7 +123,7 @@ For developer convenience, `GDL` comes with its own integrated development envir
 `GDL`, `GDL Workbench` and `gdl_kernel` are free/libre and open-source software publicly available under the terms of the GNU General
   Public License v2.
 
-# Design and dependencies
+# Design and Dependencies
 
 `GDL` interpreter is written in `C++` using the `ANTLR` framework.
 The library routines are written either in `C++` or in `GDL` itself.
@@ -153,16 +153,16 @@ The weekly unstable builds can be obtained from <https://github.com/gnudatalangu
 # Support and Contributions
 
 `GDL` resources are being catalogued at the <https://gnudatalanguage.github.io/> `GDL` website.
-The preferred and effective way to report requests for support, missing features or bugs present
+  The preferred and effective way to report requests for support, missing features or bugs present
   is through the GitHub issue tracker.
 
 To streamline review and incorporation of code contributions, pull requests on GitHub are preferred.
 All contributed code must comply with the `GDL` free and open source license.
 
-# Acknowledgements and author contributions
+# Author Contributions
 
 JP has served as release manager for GDL 1.0 and has been the key contributor to Windows OS support,
-the `GDL Workbench` IDE for GDL and the continuous integration setup. 
+the `GDL Workbench` IDE for GDL and the continuous integration setup.
 GD has contributed a major rework of widgets and plotting subsystems to the 1.0 release.
 GD and AC have been the key maintainers and developers of GDL over the last decade.
 GVJ has contributed support for Windows OS, newer `IDL` datatypes and library routines.
@@ -170,7 +170,9 @@ LS started the `gdl_kernel` project.
 SF, ERdL, JT, JW and RAS contributed library routines.
 OS, TT, OP and TE maintain GDL packages.
 SA had been an active contributor in years 2009-2015 and has since kept contributing to project maintenance.
-The paper text was composed by JP and SA.
+JP and SA wrote the paper draft, and all the other authors have reviewed and confirmed the text.
+
+# Acknowledgements
 `GDL` development benefited from code contributions, bug reports and feedback from numerous
 other developers and users.
 
