@@ -87,7 +87,7 @@ We present GNU Data Language (`GDL`), an open-source free incremental compiler f
   available at https://gnudatalanguage.github.io/.
 
 \* `IDL` is a registered trademark of [L3HARRIS](http://l3harrisgeospatial.com). \
-** `PV-WAVE` is a product of [Perforce](http://perforce.com). \
+** `PV-WAVE` is a product of [Perforce](http://perforce.com).
 
 # Statement of Need
 
@@ -123,15 +123,6 @@ For developer convenience, `GDL` comes with its own integrated development envir
 `GDL`, `GDL Workbench` and `gdl_kernel` are free/libre and open-source software publicly available under the terms of the GNU General
   Public License v2.
 
-# Availability
-
-`GDL` can be installed via the package managing system on Linux (Arch, Debian, Fedora, Gentoo, Mageia, Ubuntu), 
-  FreeBSD and macOS (Homebrew and Macports).
-On Windows, we provide a precompiled Windows binary, wrapped as a convenient installer based on the Nullsoft Scriptable
-  Install System (NSIS).
-The source code of `GDL`, `GDL Workbench`, and `gdl_kernel` is available at our `GitHub` repository (<https://github.com/gnudatalanguage>).
-The weekly unstable builds can be obtained from <https://github.com/gnudatalanguage/gdl/releases>.
-
 # Design and dependencies
 
 `GDL` interpreter is written in `C++` using the `ANTLR` framework.
@@ -149,6 +140,15 @@ Support for various file formats is implemented using `netCDF`, `HDF4`,
 Map projections are handled using `PROJ`.
 An evolving list of all project dependencies is maintained at the project website
   and can also be extracted from the CMake configuration files.
+
+# Availability
+
+`GDL` can be installed via the package managing system on Linux (Arch, Debian, Fedora, Gentoo, Mageia, Ubuntu), 
+  FreeBSD and macOS (Homebrew and Macports).
+On Windows, we provide a precompiled Windows binary, wrapped as a convenient installer based on the Nullsoft Scriptable
+  Install System (NSIS).
+The source code of `GDL`, `GDL Workbench`, and `gdl_kernel` is available at our `GitHub` repository (<https://github.com/gnudatalanguage>).
+The weekly unstable builds can be obtained from <https://github.com/gnudatalanguage/gdl/releases>.
 
 # Support and Contributions
 
