@@ -92,8 +92,8 @@ We present GNU Data Language (`GDL`), an open-source free incremental compiler f
 # Statement of Need
 
 The GDL project is an international effort to create a clone of Interactive Data Language (`IDL`) or Precision Visuals -
-  Workstation Analysis and Visualization Environment (`PV-WAVE`), preserving the capability to run without any technical,
-  legal or financial constraints the vast body of scientific legacy codes.
+  Workstation Analysis and Visualization Environment (`PV-WAVE`), preserving the capability to run the vast body of scientific
+  legacy codes without any technical, legal or financial constraints.
   
 `GDL` has been developed for over four decades with public funding throughout academic institutions around the world.
   The initial development was done by **Marc Schellens** almost 20 years ago (commit history preserved on `GitHub` dates back to 2004) 
