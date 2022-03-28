@@ -129,6 +129,19 @@ namespace lib {
 
   };
 
+  bool IsInteger(DType pType)
+  {
+    if (pType == GDL_BYTE) return true;
+    if (pType == GDL_INT) return true; 
+    if (pType == GDL_LONG) return true;
+    if (pType == GDL_UINT) return true; 
+    if (pType == GDL_ULONG) return true;
+    if (pType == GDL_LONG64) return true;
+    if (pType == GDL_ULONG64) return true;
+    
+    return false;
+  }
+
   void GDLGenericGSLErrorHandler(const char* reason, const char* file, int line, int gsl_errno)
   {
     throw GDLException( "GSL Error #" + i2s(gsl_errno) + ": " + string(reason));// + "  file: " + file + "  line: " + i2s(line));
@@ -675,8 +688,8 @@ namespace lib {
     double f64[2];
 
     // Determine if radix2
-//[gsl_fun.cpp:692]: (error) Shifting signed 32-bit value by 31 bits is undefined behaviour
-//[gsl_fun.cpp:692]: (error) Signed integer overflow for expression '2<<i'.
+    //[gsl_fun.cpp:692]: (error) Shifting signed 32-bit value by 31 bits is undefined behaviour
+    //[gsl_fun.cpp:692]: (error) Signed integer overflow for expression '2<<i'.
     SizeT radix2 = 0;
     for( SizeT i=0; i<32; ++i) {
       if (nEl == (2 << i)) {
@@ -820,7 +833,7 @@ namespace lib {
     assert(false);
     return 0;
   }
-/* following are modified codes taken from the GNU Scientific Library (gauss.c)
+  /* following are modified codes taken from the GNU Scientific Library (gauss.c)
    *
    * Copyright (C) 1996, 1997, 1998, 1999, 2000, 2006, 2007 James Theiler, Brian Gough
    * Copyright (C) 2006 Charles Karney
@@ -927,7 +940,7 @@ namespace lib {
   int random_gamma(T1* res, gsl_rng *gsl_rng_mem, dimension dim, DLong n) {
     SizeT nEl = res->N_Elements();
     for (SizeT i = 0; i < nEl; ++i) (*res)[ i] =
-      (T2) gsl_ran_gamma_knuth(gsl_rng_mem, 1.0 * n, 1.0); //differs from idl above gamma=6. ?//IDL says it's the Knuth algo used.
+				      (T2) gsl_ran_gamma_knuth(gsl_rng_mem, 1.0 * n, 1.0); //differs from idl above gamma=6. ?//IDL says it's the Knuth algo used.
     return 0;
   }
 
@@ -1058,25 +1071,25 @@ namespace lib {
     if (!isAnull) {
       DULongGDL* p0L = e->IfDefGetParAs< DULongGDL>(0);
       if (p0L != NULL) // some non-null value passed -> can be a seed state, 628 integers, or use first value:
-      {
-        // IDL does not check that the seed sequence has been changed: as long as it is a 628 element Ulong, it takes it
-        // and use it as the current sequence (try with "all zeroes").
-        if (p0L->N_Elements() == MERSENNE_GSL_N + 4 && p0L->Type() == GDL_ULONG) { //a (valid?) seed sequence
-          seed = (*p0L)[0];
-          int pos = (*p0L)[1];
-          int n = MERSENNE_GSL_N;
-          unsigned long int sequence[n];
-          for (int i = 0; i < n; ++i) sequence[i] = (unsigned long int) (*p0L)[i + 2];
-          set_random_state(gsl_rng_mem, sequence, pos, n); //the seed
-          initialized = true;
-        } else { // not a seed sequence: take first (IDL does more than this...)
-          if (p0L->N_Elements() >= 1) {
-            seed = (*p0L)[0];
-            gsl_rng_set(gsl_rng_mem, seed);
-            initialized = true;
-          }
-        }
-      }
+	{
+	  // IDL does not check that the seed sequence has been changed: as long as it is a 628 element Ulong, it takes it
+	  // and use it as the current sequence (try with "all zeroes").
+	  if (p0L->N_Elements() == MERSENNE_GSL_N + 4 && p0L->Type() == GDL_ULONG) { //a (valid?) seed sequence
+	    seed = (*p0L)[0];
+	    int pos = (*p0L)[1];
+	    int n = MERSENNE_GSL_N;
+	    unsigned long int sequence[n];
+	    for (int i = 0; i < n; ++i) sequence[i] = (unsigned long int) (*p0L)[i + 2];
+	    set_random_state(gsl_rng_mem, sequence, pos, n); //the seed
+	    initialized = true;
+	  } else { // not a seed sequence: take first (IDL does more than this...)
+	    if (p0L->N_Elements() >= 1) {
+	      seed = (*p0L)[0];
+	      gsl_rng_set(gsl_rng_mem, seed);
+	      initialized = true;
+	    }
+	  }
+	}
     }
 
     if (!initialized) {
@@ -1251,30 +1264,6 @@ namespace lib {
   }
 #endif
 
-  // Alain C., 26 February 2013
-  // this is a temporary workaround of an in accuracy in the GSL (up to 1.15)
-  // when working on 64b version and integer bin size ...
-  // GDL bug report 618683
-  // http://sourceforge.net/tracker/?func=detail&aid=3602623&group_id=97659&atid=618683
-  // GSL bug report thread
-  // http://lists.gnu.org/archive/html/bug-gsl/2013-02/msg00006.html
-
-  static void gdl_make_uniform (gsl_histogram * h, size_t n, double xmin, double xmax)
-  {
-    size_t i;
-    int debug=0;
-    h->range[n] = xmax;
-    for (i = 0; i < n; i++) {
-      if (debug==1) { cout << h->range[i] << endl;}
-      DDouble hi = xmin +  (double) i * (xmax-xmin)/((double) n);
-      if( h->range[i] != hi){
-          if(debug) std::cout<<"not equal! i="<<i<<";h old="<<h->range[i]<<";h new ="<<hi<<";diffirence:"<<hi-h->range[i]<<std::endl;//jw
-          h->range[i] = hi;
-      };//jw
-      if (debug==1) cout << h->range[i] << endl;
-    }
-  }
-
 
   BaseGDL* histogram_fun( EnvT* e)
   {
@@ -1310,6 +1299,7 @@ namespace lib {
     BaseGDL* maxKW = e->GetKW(maxIx);
     static int minIx=e->KeywordIx("MIN");
     BaseGDL* minKW = e->GetKW(minIx);
+
     static int nbinsIx=e->KeywordIx("NBINS");
     BaseGDL* nbinsKW = e->GetKW(nbinsIx);
     DLong nbins;
@@ -1336,6 +1326,7 @@ namespace lib {
       {
 	p0D = static_cast<DDoubleGDL*>(p0);
       }
+
     // get min max
     // use MinMax here when NAN will be supported
 
@@ -1367,8 +1358,8 @@ namespace lib {
     int debug=0;
     if (debug) cout << "min/max : " << minVal << " " << maxVal << endl;
 
-  // minVal / a
-  if (minKW == NULL)
+    // minVal / a
+    if (minKW == NULL)
       {
 	if( p0->Type() == GDL_BYTE)
 	  a = 0;
@@ -1378,102 +1369,61 @@ namespace lib {
     else {
       e->AssureDoubleScalarKW(minIx, a);
       if( p0->Type() == GDL_BYTE){
-      DByte byt = (DByte) a;
-      a = byt;
+	DByte byt = (DByte) a;
+	a = byt;
       }else if( p0->Type() == GDL_INT){
-      int in = (int) a;
-      a = in;
+	int in = (int) a;
+	a = in;
       }
       if(debug) cout<<"nbins="<<nbins<<"; bsize="<<bsize<<endl;
     }
 
-
-  // bsize / maxVal
-   if (maxKW == NULL){
-  if( p0->Type() == GDL_BYTE){
-    if(debug) cout<<"BYTE !"<<endl;
-	  b = 255;
-    maxVal = 255;
-    if (binsizeKW == NULL && nbinsKW != NULL){
-      if(nbins==1){
-      bsize = b-a;
-      }else{
-      bsize = (maxVal - a) / (nbins - 1);//jw
-      if(debug) cout<<"b="<<b<<"; bsize="<<bsize<<endl;
-      }
-    }
-	  } else {
-  if (binsizeKW == NULL && nbinsKW != NULL) {
-      if (nbins==1){
-      b = maxVal+1;
-      bsize = maxVal+1-a;
-      }else{
+    // bsize / maxVal
+    if (maxKW == NULL){
+      if( p0->Type() == GDL_BYTE){
+	if(debug) cout<<"BYTE !"<<endl;
+	b = 255;
+	maxVal = 255;
+	if (binsizeKW == NULL && nbinsKW != NULL){
+	  if(nbins==1){
+	    bsize = b-a;
+	  }else{
 	    bsize = (maxVal - a) / (nbins - 1);//jw
-      }
-      if(debug) cout<<"nbins="<<nbins<<"; bsize="<<bsize<<endl;
+	    if(debug) cout<<"b="<<b<<"; bsize="<<bsize<<endl;
 	  }
-  }
-  } else {
-	  e->AssureDoubleScalarKW(maxIx, maxVal);
-    if( p0->Type() == GDL_BYTE){
-      DByte mv = (DByte) maxVal;
-      maxVal = mv;
-    }else if( p0->Type() == GDL_INT){
-      int mv = (int) maxVal;
-      maxVal = mv;
-    }else if(p0->Type() == GDL_UINT){
-      unsigned int mv = (unsigned int) maxVal;
-      maxVal = mv;
-    } else if(p0->Type() == GDL_LONG){
-      long int mv = (long int) maxVal;
-      maxVal = mv;
-    } else if(p0->Type() == GDL_LONG64){
-      long long int mv = (long long int) maxVal;
-      maxVal = mv;
-    } else if(p0->Type() == GDL_ULONG){
-      unsigned long int mv = (unsigned long int) maxVal;
-      maxVal = mv;
-    } else if(p0->Type() == GDL_ULONG64){
-      unsigned long long int mv = (unsigned long long int) maxVal;
-      maxVal = mv;
-    }
-  if( binsizeKW == NULL && nbinsKW != NULL){
-    if(nbins==1){
-       bsize = maxVal-a+1;
-    }else{
-      bsize = (maxVal - a) / (nbins - 1);//jw
+	}
+      } else {
+	if (binsizeKW == NULL && nbinsKW != NULL) {
+	  if (nbins==1){
+	    b = maxVal+1;
+	    bsize = maxVal+1-a;
+	  }else{
+	    bsize = (maxVal - a) / (nbins - 1);//jw
+	  }
+	  if(debug) cout<<"nbins="<<nbins<<"; bsize="<<bsize<<endl;
+	}
       }
-      if(debug) cout<<"nbins="<<nbins<<"; bsize="<<bsize<<endl;
-  } else if( binsizeKW != NULL && nbinsKW != NULL)
-      e->Throw( "Conflicting keywords.");
-  }
+    } else {
+      e->AssureDoubleScalarKW(maxIx, maxVal);
+
+      if (IsInteger(p0->Type())) maxVal=floor(maxVal);
+
+      if( binsizeKW == NULL && nbinsKW != NULL){
+	if(nbins==1){
+	  bsize = maxVal-a+1;
+	}else{
+	  bsize = (maxVal - a) / (nbins - 1);//jw
+	}
+	if(debug) cout<<"nbins="<<nbins<<"; bsize="<<bsize<<endl;
+      } else if( binsizeKW != NULL && nbinsKW != NULL)
+	e->Throw( "Conflicting keywords.");
+    }
+
+    // at the end, when Integer, work in Integer ...
+    if (IsInteger(p0->Type())) bsize=floor(bsize);
 
     // -> omax, omin
     DDouble aOri = a, bOri = maxVal;
-
-    // adjust data type
-    if( p0->Type() == GDL_BYTE){
-      DByte bs = (DByte) bsize;
-      bsize = bs;
-    }else if( p0->Type() == GDL_INT){
-      int bs = (int) bsize;
-      bsize = bs;
-    } else if(p0->Type() == GDL_UINT){
-      unsigned int bs = (unsigned int) bsize;
-      bsize = bs;
-    } else if(p0->Type() == GDL_LONG){
-      long int bs = (long int) bsize;
-      bsize = bs;
-    } else if(p0->Type() == GDL_LONG64){
-      long long int bs = (long long int) bsize;
-      bsize = bs;
-    } else if(p0->Type() == GDL_ULONG){
-      unsigned long int bs = (unsigned long int) bsize;
-      bsize = bs;
-    } else if(p0->Type() == GDL_ULONG64){
-      unsigned long long int bs = (unsigned long long int) bsize;
-      bsize = bs;
-    }
 
     // -> nbins
     if( nbinsKW == NULL){
@@ -1487,6 +1437,9 @@ namespace lib {
 
     // -> b
     b = a + nbins * bsize;
+
+    debug=0;
+    if (debug) cout << "a : "<< a<<", b : "<<b<< ", bsize : "<<bsize<< ", nbins : "<<nbins<<endl;
 
     // AC 2022/03/26 detected by "test_2876372"
     if( bsize <= 0 || a > b || !isfinite(a) || !isfinite(b))
@@ -1518,7 +1471,7 @@ namespace lib {
     hh->range[nbins]=b;
     for (i = 1; i < nbins; i++) {
       hh->range[i] = a + (DDouble) i * ((DDouble) bsize);//faster
-      }
+    }
     gsl_histogram_set_ranges (hh,hh->range,nbins+1);
 
 
@@ -1604,33 +1557,6 @@ namespace lib {
 	    }
 	}
 
-      //       for( SizeT i=nbins+1; i<nri; ++i)
-      // 	cout << (*revindKW)[i] << " ";
-      //       cout << endl;
-
-
-      //       k = 0;
-      //       for( SizeT i=0; i<nbins; ++i) {
-      // 	for( SizeT j=0; j<nEl; ++j) {
-
-      // 	  if( (*p0D)[j] >= a && (*p0D)[j] <= b)
-      // 	    {
-      // 	      size_t bin;
-      // 	      gsl_histogram_find (hh, (*p0D)[j], &bin);
-
-      // 	      if( bin == i)
-      // 		{
-      // 		  (*revindKW)[nbins+1+k] = j;
-      // 		  k++;
-      // 		}
-      // 	    }
-      // 	}
-      //       }
-
-      //       for( SizeT i=nbins+1; i<nri; ++i)
-      // 	cout << (*revindKW)[i] << " ";
-      //       cout << endl;
-
       (*revindKW)[0] = nbins + 1;
       k = 0;
       for( SizeT i=1; i<=nbins; ++i) {
@@ -1644,85 +1570,17 @@ namespace lib {
     // LOCATIONS
     static int locationsIx=e->KeywordIx("LOCATIONS");
     if( e->WriteableKeywordPresent(locationsIx)) {
-    dimension dim(nbins);
-    DDoubleGDL *locationsKW0 =new DDoubleGDL( dim, BaseGDL::NOZERO);
-    for( SizeT i=0; i<nbins; ++i){
-      (*locationsKW0)[i] = aOri + bsize * i;}
-    BaseGDL* locationsKW = locationsKW0->Convert2(p0->Type(), BaseGDL::CONVERT);
+      dimension dim(nbins);
+      DDoubleGDL *locationsKW0 =new DDoubleGDL( dim, BaseGDL::NOZERO);
+      for( SizeT i=0; i<nbins; ++i){
+	(*locationsKW0)[i] = aOri + bsize * i;}
+      // final conversion
+      BaseGDL* locationsKW = locationsKW0->Convert2(p0->Type(), BaseGDL::CONVERT);
+      e->SetKW(locationsIx, locationsKW);
+    }
 
-    e->SetKW(locationsIx, locationsKW);
-  }
-    /*if( e->WriteableKeywordPresent(locationsIx)) {
-      BaseGDL** locationsKW = &e->GetTheKW(locationsIx);
-      GDLDelete((*locationsKW));
-
-      dimension dim( nbins);
-      if( p0->Type() == GDL_DOUBLE) {
-
-	*locationsKW = new DDoubleGDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nbins; ++i)
-	  (*static_cast<DDoubleGDL*>( *locationsKW))[i] =
-	    static_cast<DDouble>(aOri + bsize * i);
-
-      } else if (p0->Type() == GDL_FLOAT) {
-
-	*locationsKW = new DFloatGDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nbins; ++i)
-	  (*static_cast<DFloatGDL*>( *locationsKW))[i] =
-	    static_cast<DFloat>(aOri + bsize * i);
-
-      } else if (p0->Type() == GDL_LONG) {
-
-	*locationsKW = new DLongGDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nbins; ++i)
-	  (*static_cast<DLongGDL*>( *locationsKW))[i] =
-	    static_cast<DLong>(aOri + bsize * i);
-
-      } else if (p0->Type() == GDL_ULONG) {
-
-	*locationsKW = new DULongGDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nbins; ++i)
-	  (*static_cast<DULongGDL*>( *locationsKW))[i] =
-	    static_cast<DULong>(aOri + bsize * i);
-
-      } else if (p0->Type() == GDL_LONG64) {
-
-	*locationsKW = new DLong64GDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nbins; ++i)
-	  (*static_cast<DLong64GDL*>( *locationsKW))[i] =
-	    static_cast<DLong64>(aOri + bsize * i);
-
-      } else if (p0->Type() == GDL_ULONG64) {
-
-	*locationsKW = new DULong64GDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nbins; ++i)
-	  (*static_cast<DULong64GDL*>( *locationsKW))[i] =
-	    static_cast<DULong64>(aOri + bsize * i);
-
-      } else if (p0->Type() == GDL_INT) {
-
-	*locationsKW = new DIntGDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nbins; ++i)
-	  (*static_cast<DIntGDL*>( *locationsKW))[i] =
-	    static_cast<DInt>(aOri + bsize * i);
-
-      } else if (p0->Type() == GDL_UINT) {
-
-	*locationsKW = new DUIntGDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nbins; ++i)
-	  (*static_cast<DUIntGDL*>( *locationsKW))[i] =
-	    static_cast<DUInt>(aOri + bsize * i);
-
-      } else if (p0->Type() == GDL_BYTE) {
-
-	*locationsKW = new DByteGDL( dim, BaseGDL::NOZERO);
-	for( SizeT i=0; i<nbins; ++i)
-	  (*static_cast<DByteGDL*>( *locationsKW))[i] =
-	    static_cast<DByte>(aOri + bsize * i);
-      }
-
-      }*/
-    //gsl_histogram_free (hh);
+    // AC 2022 We don't need it
+    // gsl_histogram_free (hh);
 
     return(res);
   }
@@ -1734,10 +1592,6 @@ namespace lib {
     float f32;
     double f64;
 
-    //     if( nParam != 3)
-    //       e->Throw(
-    // 			  "LA_TRIRED: Incorrect number of arguments.");
-
     BaseGDL* p0 = e->GetNumericArrayParDefined( 0);
 
     SizeT nEl = p0->N_Elements();
@@ -1746,6 +1600,11 @@ namespace lib {
 
     if (p0->Dim(0) != p0->Dim(1))
       e->Throw("Input must be a square matrix: "+ e->GetParString(0));
+
+    // AC2022 : can we write in the inputs ?!
+    e->AssureGlobalPar( 0);
+    e->AssureGlobalPar( 1);
+    e->AssureGlobalPar( 2);
 
     if( p0->Type() == GDL_COMPLEX)
       {
