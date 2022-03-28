@@ -152,12 +152,12 @@ The weekly unstable builds can be obtained from <https://github.com/gnudatalangu
 
 # Support and Contributions
 
-`GDL` resources are being catalogued at the <https://gnudatalanguage.github.io/> `GDL` website.
+`GDL` resources are being catalogued at the `GDL` website (<https://gnudatalanguage.github.io/>).
   The preferred and effective way to report requests for support, missing features or bugs present
-  is through the GitHub issue tracker.
+  is through the GitHub issue tracker (<https://github.com/gnudatalanguage/gdl/issues>).
 
 To streamline review and incorporation of code contributions, pull requests on GitHub are preferred.
-All contributed code must comply with the `GDL` free and open source license.
+All contributed code must comply with the GNU General Public License.
 
 # Author Contributions
 
