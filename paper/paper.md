@@ -91,16 +91,15 @@ We present GNU Data Language (`GDL`), an open-source free incremental compiler f
 
 # Statement of Need
 
-Interactive Data Language (`IDL`) is a commercial, domain-specific language used for processing data in various scientific
+Interactive Data Language (IDL) is a commercial, domain-specific language used for processing data in various scientific
   fields, including astronomy, geosciences, biology, hyperspectral, and medical imaging. Although IDL is not so widely used
-  in these days for scientific computing as the rise of modern computing languages such as Python, there are a lot of
-  legacy IDL codes still being used these days. Undoubtedly, porting such legacy codes to new languages would require a huge
-  effort, it is much more ecnonomic to run them with IDL. To run such IDL codes without any financial constraints, there have
-  been several efforts to create a freeware clone of IDL, including Fawlty Language (<https://www.flxpert.hu/fl/>). Fawlty
-  Language is a very successful implementation as it supports nearly 100% of the latest IDL 8.0 syntax. However, Faulty
-  Language is not 100% guaranteed to behave exactly the same as IDL compiler when it comes to running legacy IDL codes,
-  since it is not an open-source software package and users cannot easily report and fix their own problems to run their
-  IDL codes.
+  these days for scientific computing as the rise of modern computing languages such as Python, many legacy IDL codes are
+  still being used these days. Undoubtedly, porting such legacy codes to new languages would require a huge effort, it is
+  much more economic to run them with IDL. To run such IDL codes without any financial constraints, there have been several
+  efforts to create a freeware clone of IDL, including Fawlty Language (https://www.flxpert.hu/fl/). Fawlty Language is a
+  very successful implementation as it supports nearly 100% of the latest IDL 8.0 syntax. However, Faulty Language is not
+  100% guaranteed to behave the same as an IDL compiler when it comes to running legacy IDL codes, since it is not an
+  open-source software package and users cannot easily report and fix their problems to run their IDL codes.
 
 The GDL project is an international effort to create a free software clone of Interactive Data Language (`IDL`) or Precision
   Visuals - Workstation Analysis and Visualization Environment (`PV-WAVE`), preserving the capability to run the vast body of
