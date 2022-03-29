@@ -1084,39 +1084,71 @@ void GDLGStream::adv(PLINT page)
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"adv() now at page %d\n",thePage.curPage);
 }
 //get region (3BPP data)
-bool GDLGStream::GetRegion(DLong& x_gdl, DLong& y_gdl, DLong& nx_gdl, DLong& ny_gdl){
-    DByteGDL *bitmap = static_cast<DByteGDL*>(this->GetBitmapData());
-    if (bitmap==NULL)  return false; //need to GDLDelete bitmap on exit after this line.
 
-    bool error=false;
-    DLong nx=bitmap->Dim(0);
-    DLong ny=bitmap->Dim(1);
-    
-    DLong xref,xval,xinc,yref,yval,yinc,xmax11,ymin11;
-    long x_11=0;
-    long y_11=0;
-    xref=0;xval=0;xinc=1;
-    yref=0;yval=0;yinc=1;
-    
-    x_11=xval+(x_gdl-xref)*xinc;
-    y_11=yval+(y_gdl-yref)*yinc;
-    xmax11=xval+(x_gdl+nx_gdl-1-xref)*xinc;    
-    ymin11=yval+(y_gdl+ny_gdl-1-yref)*yinc;
-    if (y_11 < 0 || y_11 > ny-1) error=true;
-    if (x_11 < 0 || x_11 > nx-1) error=true;
-    if (xmax11 < 0 || xmax11 > nx-1) error=true;
-    if (ymin11 < 0 || ymin11 > ny-1) error=true;
-    if (error) {  GDLDelete(bitmap); return false; }
-    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-    unsigned char* data=actDevice->SetCopyBuffer(nx_gdl*ny_gdl*3);  
-    for ( SizeT i =0; i < nx_gdl ; ++i ) {
-      for ( SizeT j = 0; j < ny_gdl ; ++j ) {
-       for ( SizeT k = 0 ; k < 3 ; ++k) data[3 * (j * nx_gdl + i) + k] = (*bitmap)[3 * ((j+y_11) * nx + (i+x_11)) + k]; 
-      }
-    }
+bool GDLGStream::GetRegion(DLong& x_gdl, DLong& y_gdl, DLong& nx_gdl, DLong& ny_gdl) {
+  DByteGDL *bitmap = static_cast<DByteGDL*> (this->GetBitmapData());
+  if (bitmap == NULL) return false; //need to GDLDelete bitmap on exit after this line.
+
+  bool error = false;
+  DLong nx = bitmap->Dim(0);
+  DLong ny = bitmap->Dim(1);
+
+
+  DLong xmax11 = x_gdl + nx_gdl - 1;
+  DLong ymin11 = y_gdl + ny_gdl - 1;
+  if (y_gdl < 0 || y_gdl > ny - 1) error = true;
+  if (x_gdl < 0 || x_gdl > nx - 1) error = true;
+  if (xmax11 < 0 || xmax11 > nx - 1) error = true;
+  if (ymin11 < 0 || ymin11 > ny - 1) error = true;
+  if (error) {
     GDLDelete(bitmap);
-    return true;
+    return false;
+  }
+  GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+  unsigned char* data = actDevice->SetCopyBuffer(nx_gdl * ny_gdl * 3);
+  for (auto j = 0; j < ny_gdl; ++j) {
+    for (auto i = 0; i < nx_gdl; ++i) {
+      for (auto k = 0; k < 3; ++k) data[3 * (j * nx_gdl + i) + k] = (*bitmap)[3 * ((j + y_gdl) * nx + (i + x_gdl)) + k];
+    }
+  }
+  GDLDelete(bitmap);
+  return true;
 }
+
+////get region (3BPP data)
+//bool GDLGStream::GetRegion(DLong& x_gdl, DLong& y_gdl, DLong& nx_gdl, DLong& ny_gdl){
+//    DByteGDL *bitmap = static_cast<DByteGDL*>(this->GetBitmapData());
+//    if (bitmap==NULL)  return false; //need to GDLDelete bitmap on exit after this line.
+//
+//    bool error=false;
+//    DLong nx=bitmap->Dim(0);
+//    DLong ny=bitmap->Dim(1);
+//    
+//    DLong xref,xval,xinc,yref,yval,yinc,xmax11,ymin11;
+//    long x_11=0;
+//    long y_11=0;
+//    xref=0;xval=0;xinc=1;
+//    yref=0;yval=0;yinc=1;
+//    
+//    x_11=xval+(x_gdl-xref)*xinc;
+//    y_11=yval+(y_gdl-yref)*yinc;
+//    xmax11=xval+(x_gdl+nx_gdl-1-xref)*xinc;    
+//    ymin11=yval+(y_gdl+ny_gdl-1-yref)*yinc;
+//    if (y_11 < 0 || y_11 > ny-1) error=true;
+//    if (x_11 < 0 || x_11 > nx-1) error=true;
+//    if (xmax11 < 0 || xmax11 > nx-1) error=true;
+//    if (ymin11 < 0 || ymin11 > ny-1) error=true;
+//    if (error) {  GDLDelete(bitmap); return false; }
+//    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+//    unsigned char* data=actDevice->SetCopyBuffer(nx_gdl*ny_gdl*3);  
+//    for ( SizeT i =0; i < nx_gdl ; ++i ) {
+//      for ( SizeT j = 0; j < ny_gdl ; ++j ) {
+//       for ( SizeT k = 0 ; k < 3 ; ++k) data[3 * (j * nx_gdl + i) + k] = (*bitmap)[3 * ((j+y_11) * nx + (i+x_11)) + k]; 
+//      }
+//    }
+//    GDLDelete(bitmap);
+//    return true;
+//}
 
 bool GDLGStream::SetRegion(DLong& xs, DLong& ys, DLong& nx, DLong& ny){
   DLong pos[4]={xs,nx,ys,ny};

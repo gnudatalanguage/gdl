@@ -25,7 +25,9 @@
 
 // use "plain menubars" instead of 'taskbars used as menubars'. taskbars permit to change font in bar, put pixmaps instead of text, and will work
 // on OSX. So we choose normally to undefine this 
-// #define PREFERS_MENUBAR 1
+#ifndef __WXMAC__ 
+#define PREFERS_MENUBAR 1
+#endif
 #include <wx/wx.h>
 #include <wx/app.h>
 #include <wx/panel.h>

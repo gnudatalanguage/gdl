@@ -866,10 +866,11 @@ DByteGDL* GDLXStream::GetBitmapData() {
     //PADDING is 4BPP -- we take 3BPP and revert Y to respect IDL default
     SizeT kpad = 0;
     for ( SizeT iy =0; iy < ny ; ++iy ) {
-      for ( SizeT ix = 0; ix < nx; ++ix ) {
-        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 2] = ximg->data[kpad++];
-        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 1] = ximg->data[kpad++];
-        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 0] = ximg->data[kpad++];
+      auto j0=3 * (ny-1-iy) * nx ;
+      for ( SizeT ix = 0; ix < 3*nx; ix+=3 ) {
+        (*bitmap)[ j0 + ix + 2] = ximg->data[kpad++];
+        (*bitmap)[ j0 + ix + 1] = ximg->data[kpad++];
+        (*bitmap)[ j0 + ix + 0] = ximg->data[kpad++];
         kpad++; //pad to 4
       }
     }
