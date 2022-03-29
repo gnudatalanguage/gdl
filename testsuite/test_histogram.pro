@@ -501,6 +501,95 @@ ERRORS_CUMUL, cumul_errors, errors
 if KEYWORD_SET(test) then STOP
 ;
 end
+;
+; ------------------------------------------------------------------
+;
+pro TEST_HISTO_OVER_LIMIT, cumul_errors, test=test, verbose=verbose
+;
+errors = 0
+;-----------max: byte/integer/uint/; no long/ulong/long64, it's too big to test
+res=Histogram(byte(indgen(10000)), max=300)
+total_expected = 1771.0000
+if ~ARRAY_EQUAL(total(res), total_expected) then begin & errors++ & print,' error max over byte upper limit !' & endif
+;
+res=Histogram(indgen(100000),max=40000)
+total_expected = 8929.0000
+if ~ARRAY_EQUAL(total(res), total_expected) then begin & errors++ & print,' error max over int upper limit !' & endif
+;
+res=Histogram(uindgen(100000),max=70000)
+total_expected = 8930.0000
+if ~ARRAY_EQUAL(total(res), total_expected) then begin & errors++ & print,' error max over uint upper limit !' & endif
+;----
+res=Histogram(byte(indgen(10000)), max=-100)
+total_expected = 6139.0000
+if ~ARRAY_EQUAL(total(res), total_expected) then begin & errors++ & print,' error max less than byte upper limit !' & endif
+;
+res=Histogram(indgen(100000),max=-40000)
+total_expected = 85538.000
+if ~ARRAY_EQUAL(total(res), total_expected) then begin & errors++ & print,' error max less than int lower limit !' & endif
+;
+res=Histogram(uindgen(100000),max=-40)
+total_expected = 99961.000
+if ~ARRAY_EQUAL(total(res), total_expected) then begin & errors++ & print,' error max less than uint lower limit !' & endif
+;
+;-----------min: byte/integer/uint/;
+res=Histogram(byte(indgen(10000)), min=300)
+total_expected = 8268.0000
+if ~ARRAY_EQUAL(total(res), total_expected) then begin & errors++ & print,' error min over than byte lower limit !' & endif
+;
+res=Histogram(indgen(100000),min=40000)
+total_expected = 91072.000
+if ~ARRAY_EQUAL(total(res), total_expected) then begin & errors++ & print,' error min over int upper limit !' & endif
+;
+res=Histogram(uindgen(100000),min=70000)
+total_expected = 91072.000
+if ~ARRAY_EQUAL(total(res), total_expected) then begin & errors++ & print,' error min over uint upper limit !' & endif
+;----
+res=Histogram(byte(indgen(10000)), min=-100)
+total_expected = 3900.0000
+if ~ARRAY_EQUAL(total(res), total_expected) then begin & errors++ & print,' error min less than byte upper limit !' & endif
+;
+res=Histogram(indgen(100000),min=-40000)
+total_expected = 14464.000
+if ~ARRAY_EQUAL(total(res), total_expected) then begin & errors++ & print,' error min less than int lower limit !' & endif
+;
+res=Histogram(uindgen(100000),min=-40)
+total_expected = 40.000000
+if ~ARRAY_EQUAL(total(res), total_expected) then begin & errors++ & print,' error min less than uint lower limit !' & endif
+;
+;-----------binsize: byte/integer/uint/;
+res=Histogram(byte(indgen(10000)), binsize=300)
+res_expected = [1732,1716,1716,1716,1716,1404]
+if ~ARRAY_EQUAL(res, res_expected) then begin & errors++ & print,' error binsize over byte lower limit !' & endif
+;
+;res=Histogram(indgen(100000),binsize=40000)
+;res_expected = 91072.000
+;if ~ARRAY_EQUAL(res[0], res0_expected) then begin & errors++ & print,' error binsize over int upper limit !' & endif
+;
+res=Histogram(uindgen(100000),binsize=90000)
+res_expected = [48928, 34464, 16608]
+if ~ARRAY_EQUAL(res, res_expected) then begin & errors++ & print,' error binsize over uint upper limit !' & endif
+;----
+res=Histogram(byte(indgen(10000)), binsize=-100)
+res_expected = [6100,3900]
+if ~ARRAY_EQUAL(res, res_expected) then begin & errors++ & print,' error binsize less than byte upper limit !' & endif
+;
+res=Histogram(indgen(100000),binsize=-40000)
+res_expected = [27232, 43840, 28928]
+if ~ARRAY_EQUAL(res, res_expected) then begin & errors++ & print,' error binsize less than int lower limit !' & endif
+;
+res=Histogram(uindgen(100000),binsize=-40)
+res_expected = [99960,40]
+if ~ARRAY_EQUAL(res, res_expected) then begin & errors++ & print,' error binsize less than uint lower limit !' & endif
+;
+; --------------
+;
+BANNER_FOR_TESTSUITE, "TEST_HISTO_OVER_LIMIT", errors, /short, verb=verbose
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_SET(test) then STOP
+;
+end
+;
 ; ------------------------------------------------------------------
 
 ;
@@ -513,6 +602,7 @@ TEST_HISTO_BASIC, cumul_errors, test=test, verbose=verbose
 TEST_HISTO_NAN, cumul_errors, test=test, verbose=verbose
 TEST_HISTO_UNITY_BIN, cumul_errors, test=test, verbose=verbose
 TEST_HISTO_NBINS, cumul_errors, test=test, verbose=verbose
+TEST_HISTO_OVER_LIMIT, cumul_errors, test=test, verbose=verbose
 ;
 ; revised by AC
 ;
