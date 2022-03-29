@@ -81,7 +81,7 @@ bibliography: paper.bib
 We present GNU Data Language (`GDL`), an open-source free incremental compiler for programs written in Interactive Data
   Language (`IDL`<sup>*</sup>) and Precision Visuals - Workstation Analysis and Visualization Environment (`PV-WAVE`<sup>**</sup>),
   the computer languages used for scientific data analysis, especially in the fields of astronomy, geosciences, biology,
-  hyperspectral and medical imaging. GDL is highly compatible with the IDL and PV-WAVE and aims to run any existing IDL
+  hyperspectral, and medical imaging. GDL is highly compatible with the IDL and PV-WAVE and aims to run any existing IDL
   codes without any modifications. GDL comes with its dedicated IDE `GDL Workbench` and Jupyter kernel `gdl_kernel` 
   to provide a comfortable development environment. In addition, GDL supports interoperability with Python. GDL is freely
   available at https://gnudatalanguage.github.io/.
@@ -91,15 +91,25 @@ We present GNU Data Language (`GDL`), an open-source free incremental compiler f
 
 # Statement of Need
 
-The GDL project is an international effort to create a clone of Interactive Data Language (`IDL`) or Precision Visuals -
-  Workstation Analysis and Visualization Environment (`PV-WAVE`), preserving the capability to run the vast body of scientific
-  legacy codes without any technical, legal or financial constraints.
-  
-`GDL` has been developed for over four decades with public funding throughout academic institutions around the world.
-  The initial development was done by **Marc Schellens** almost 20 years ago (commit history preserved on `GitHub` dates back to 2004) 
-  and since then a continuous development has been carried out by an evolving team of volunteer contributors -- both freelance
-  and affiliated with academic institutions (@Coulais_et_al_2010, @Coulais_et_al_2012, @Coulais_et_al_2014, @Coulais_et_al_2019, @Duvert_et_al_2020).
-  As a result, we have recently announced GDL 1.0.
+Interactive Data Language (`IDL`) is a commercial, domain-specific language used for processing data in various scientific
+  fields, including astronomy, geosciences, biology, hyperspectral, and medical imaging. Although IDL is not so widely used
+  in these days for scientific computing as the rise of modern computing languages such as Python, there are a lot of
+  legacy IDL codes still being used these days. Undoubtedly, porting such legacy codes to new languages would require a huge
+  effort, it is much more ecnonomic to run them with IDL. To run such IDL codes without any financial constraints, there have
+  been several efforts to create a freeware clone of IDL, including Fawlty Language (<https://www.flxpert.hu/fl/>). Fawlty
+  Language is a very successful implementation as it supports nearly 100% of the latest IDL 8.0 syntax. However, Faulty
+  Language is not 100% guaranteed to behave exactly the same as IDL compiler when it comes to running legacy IDL codes,
+  since it is not an open-source software package and users cannot easily report and fix their own problems to run their
+  IDL codes.
+
+The GDL project is an international effort to create a free software clone of Interactive Data Language (`IDL`) or Precision
+  Visuals - Workstation Analysis and Visualization Environment (`PV-WAVE`), preserving the capability to run the vast body of
+  scientific legacy codes without any technical, legal or financial constraints. `GDL` has been developed for over four decades
+  with public funding throughout academic institutions around the world. The initial development was done by **Marc Schellens**
+  almost 20 years ago (commit history preserved on `GitHub` dates back to 2004) and since then a continuous development has
+  been carried out by an evolving team of volunteer contributors -- both freelance and affiliated with academic institutions
+  (@Coulais_et_al_2010, @Coulais_et_al_2012, @Coulais_et_al_2014, @Coulais_et_al_2019, @Duvert_et_al_2020). As a result,
+  we have recently announced GDL 1.0.
 
 In terms of compatibility, `GDL` aims at a full compatibility with modern `IDL` language specification, including partial
   support of the `IDL` 8 specification and above. In addition, `GDL` is partially compatible with `PV-WAVE`, another data
@@ -110,7 +120,6 @@ In terms of compatibility, `GDL` aims at a full compatibility with modern `IDL` 
   had been publicly available on NASA websites (currently available at the Internet Archive, see
   <https://web.archive.org/web/20090423093625/http://idlastro.gsfc.nasa.gov/idl_html_help/>), and several published books which
   describes `IDL` syntax and library routines (@Fanning_2003, @Bowman_2005, @Gumley_2010, @Galloy_2015).
-
 
 For developer convenience, `GDL` comes with its own integrated development environment (IDE), `GDL Workbench`, based on Eclipse
   Rich Client Platform (RCP), to aid users to simply edit `IDL` scripts and run them with `GDL`. In addition, there is an
