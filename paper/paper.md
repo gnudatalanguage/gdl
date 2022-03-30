@@ -80,7 +80,7 @@ bibliography: paper.bib
 
 We present GNU Data Language (`GDL`), an open-source free incremental compiler for programs written in Interactive Data
   Language (`IDL`<sup>*</sup>) and Precision Visuals - Workstation Analysis and Visualization Environment (`PV-WAVE`<sup>**</sup>),
-  the computer languages used for scientific data analysis, especially in the fields of astronomy, geosciences, biology,
+  two computer languages used for scientific data analysis, especially in the fields of astronomy, geosciences, biology,
   hyperspectral and medical imaging. GDL is highly compatible with the IDL and PV-WAVE and aims to run any existing IDL
   codes without any modifications. GDL comes with its dedicated IDE `GDL Workbench` and Jupyter kernel `gdl_kernel` 
   to provide a comfortable development environment. In addition, GDL supports interoperability with Python. GDL is freely
