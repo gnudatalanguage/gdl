@@ -339,119 +339,6 @@ wxNativePixelData::Iterator p(data);
     }
   }
 
-//  wxImage image=streamBitmap->ConvertToImage();
-//
-//  unsigned char* mem=image.GetData();
-//
-//  PLINT xsize = m_width;
-//  PLINT ysize = m_height;
-//  PLINT kxLimit = xsize - xoff;
-//  PLINT kyLimit = ysize - yoff;
-//  if (nx < kxLimit) kxLimit = nx;
-//  if (ny < kyLimit) kyLimit = ny;
-//
-//  if (nx > 0 && ny > 0) {
-//    SizeT p = (ysize - yoff - 1)*3 * xsize;
-//    if (trueColorOrder == 0 && chan == 0) {
-//      if (decomposed == 1) {
-//        for (int iy = 0; iy < kyLimit; ++iy) {
-//          SizeT rowStart = p;
-//          p += xoff * 3;
-//          for (int ix = 0; ix < kxLimit; ++ix) {
-//            mem[p++] = idata[iy * nx + ix];
-//            mem[p++] = idata[iy * nx + ix];
-//            mem[p++] = idata[iy * nx + ix];
-//          }
-//          p = rowStart - (xsize * 3);
-//        }
-//      } else {
-//        for (int iy = 0; iy < kyLimit; ++iy) {
-//          SizeT rowStart = p;
-//          p += xoff * 3;
-//          for (int ix = 0; ix < kxLimit; ++ix) {
-//            mem[p++] = pls->cmap0[idata[iy * nx + ix]].r;
-//            mem[p++] = pls->cmap0[idata[iy * nx + ix]].g;
-//            mem[p++] = pls->cmap0[idata[iy * nx + ix]].b;
-//          }
-//          p = rowStart - (xsize * 3);
-//        }
-//      }
-//    } else {
-//      if (chan == 0) {
-//        if (trueColorOrder == 1) {
-//          for (int iy = 0; iy < kyLimit; ++iy) {
-//            SizeT rowStart = p;
-//            p += xoff * 3;
-//            for (int ix = 0; ix < kxLimit; ++ix) {
-//              mem[p++] = idata[3 * (iy * nx + ix) + 0];
-//              mem[p++] = idata[3 * (iy * nx + ix) + 1];
-//              mem[p++] = idata[3 * (iy * nx + ix) + 2];
-//            }
-//            p = rowStart - (xsize * 3);
-//          }
-//        } else if (trueColorOrder == 2) {
-//          for (int iy = 0; iy < kyLimit; ++iy) {
-//            SizeT rowStart = p;
-//            p += xoff * 3;
-//            for (int ix = 0; ix < kxLimit; ++ix) {
-//              mem[p++] = idata[nx * (iy * 3 + 0) + ix];
-//              mem[p++] = idata[nx * (iy * 3 + 1) + ix];
-//              mem[p++] = idata[nx * (iy * 3 + 2) + ix];
-//            }
-//            p = rowStart - (xsize * 3);
-//          }
-//        } else if (trueColorOrder == 3) {
-//          for (int iy = 0; iy < kyLimit; ++iy) {
-//            SizeT rowStart = p;
-//            p += xoff * 3;
-//            for (int ix = 0; ix < kxLimit; ++ix) {
-//              mem[p++] = idata[nx * (0 * ny + iy) + ix];
-//              mem[p++] = idata[nx * (1 * ny + iy) + ix];
-//              mem[p++] = idata[nx * (2 * ny + iy) + ix];
-//            }
-//            p = rowStart - (xsize * 3);
-//          }
-//        }
-//      } else { //1 byte bitmap passed.
-//        if (chan == 1) {
-//          for (int iy = 0; iy < kyLimit; ++iy) {
-//            SizeT rowStart = p;
-//            p += xoff * 3;
-//            for (int ix = 0; ix < kxLimit; ++ix) {
-//              mem[p++] = idata[1 * (iy * nx + ix) + 0];
-//              p += 2;
-//            }
-//            p = rowStart - (xsize * 3);
-//          }
-//        } else if (chan == 2) {
-//          for (int iy = 0; iy < kyLimit; ++iy) {
-//            SizeT rowStart = p;
-//            p += xoff * 3;
-//            for (int ix = 0; ix < kxLimit; ++ix) {
-//              p++;
-//              mem[p++] = idata[1 * (iy * nx + ix) + 0];
-//              p++;
-//            }
-//            p = rowStart - (xsize * 3);
-//          }
-//        } else if (chan == 3) {
-//          for (int iy = 0; iy < kyLimit; ++iy) {
-//            SizeT rowStart = p;
-//            p += xoff * 3;
-//            for (int ix = 0; ix < kxLimit; ++ix) {
-//              p += 2;
-//              mem[p++] = idata[1 * (iy * nx + ix) + 0];
-//            }
-//            p = rowStart - (xsize * 3);
-//          }
-//        }
-//      }
-//    }
-//  }
-//  streamDC->DrawBitmap(image,0,0);
-//  image.Destroy();
-//  temp_dc.SelectObject( wxNullBitmap);
-//  *streamBitmap = streamDC->GetAsBitmap();
   wxMemoryDC temp_dc;
   temp_dc.SelectObject(bmp);
   streamDC->Blit(xoff, m_height-yoff-ny, nx, ny, &temp_dc, 0, 0);
@@ -631,29 +518,76 @@ return visual;
 }
 
 DByteGDL* GDLWXStream::GetBitmapData() {
-    wxImage image=streamBitmap->ConvertToImage();
-    unsigned char* mem=image.GetData();
-    if ( mem == NULL ) return NULL;    
+  int nx = streamBitmap->GetWidth();
+  int ny = streamBitmap->GetHeight();
 
-    unsigned int nx = streamBitmap->GetWidth();
-    unsigned int ny = streamBitmap->GetHeight();
+  SizeT datadims[3];
+  datadims[0] = nx;
+  datadims[1] = ny;
+  datadims[2] = 3;
+  dimension datadim(datadims, (SizeT) 3);
+  DByteGDL *bitmapgdl = new DByteGDL(datadim, BaseGDL::NOZERO);
+  DByte* bmp = static_cast<DByte*> (bitmapgdl->DataAddr());
 
-    SizeT datadims[3];
-    datadims[0] = nx;
-    datadims[1] = ny;
-    datadims[2] = 3;
-    dimension datadim(datadims, (SizeT) 3);
-    DByteGDL *bitmap = new DByteGDL( datadim, BaseGDL::NOZERO);
-    //PADDING is 3BPP -- we revert Y to respect IDL default
-    SizeT kpad = 0;
-    for ( SizeT iy =0; iy < ny ; ++iy ) {
-      auto j0= 3 * (ny-1-iy) * nx ;
-      for ( SizeT ix = j0; ix < j0+3*nx; ++ix,++kpad) {
-        (*bitmap)[ix] =  mem[kpad];
-      }
+  wxNativePixelData data(*streamBitmap);
+  if (!data) {
+    // ... raw access to bitmap data unavailable, do something else ...
+    return NULL;
+  }
+
+  wxNativePixelData::Iterator p(data);
+
+  for (int y = 0; y < ny; ++y) {
+    auto j0 = 3 * (ny - 1 - y) * nx;
+    wxNativePixelData::Iterator rowStart = p;
+    for (int x = j0; x < j0 + 3 * nx;) {
+      bmp[x++ ] = p.Red();
+      bmp[x++ ] = p.Green();
+      bmp[x++ ] = p.Blue();
+      p++;
     }
-    image.Destroy();
-    return bitmap;
+    p = rowStart;
+    p.OffsetY(data, 1);
+  }
+  return bitmapgdl;
+}
+
+DByteGDL* GDLWXStream::GetSubBitmapData(int xoff, int yoff, int nx, int ny) {
+//this function is unprotected from wron xoff,  yoff etc bad values.
+  int orig_nx = streamBitmap->GetWidth();
+  int orig_ny = streamBitmap->GetHeight();
+  SizeT datadims[3];
+  datadims[0] = nx;
+  datadims[1] = ny;
+  datadims[2] = 3;
+  dimension datadim(datadims, (SizeT) 3);
+  DByteGDL *bitmapgdl = new DByteGDL(datadim, BaseGDL::NOZERO);
+  DByte* bmp = static_cast<DByte*> (bitmapgdl->DataAddr());
+ 
+  wxRect sub=wxRect(xoff, orig_ny-ny-yoff, nx, ny);
+  wxBitmap subb=streamBitmap->GetSubBitmap(sub);
+  if (!subb.Ok()) throw GDLException("Value of Area is out of allowed range.");
+  wxNativePixelData data(subb);
+  if (!data) {
+    // ... raw access to bitmap data unavailable, do something else ...
+    return NULL;
+  }
+
+  wxNativePixelData::Iterator p(data);
+
+  for (int y = 0; y < ny; ++y) {
+    auto j0 = 3 * (ny - 1 - y) * nx;
+    wxNativePixelData::Iterator rowStart = p;
+    for (int x = j0; x < j0 + 3 * nx;) {
+      bmp[x++ ] = p.Red();
+      bmp[x++ ] = p.Green();
+      bmp[x++ ] = p.Blue();
+      p++;
+    }
+    p = rowStart;
+    p.OffsetY(data, 1);
+  }
+  return bitmapgdl;
 }
 
 void GDLWXStream::Raise() {

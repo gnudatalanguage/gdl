@@ -877,5 +877,49 @@ DByteGDL* GDLXStream::GetBitmapData() {
     XDestroyImage(ximg);
     return bitmap;
 }
+DByteGDL* GDLXStream::GetSubBitmapData(int xoff, int yoff, int nx, int ny) {
+//  plstream::cmd( PLESC_FLUSH, NULL );
+  GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+  
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+  XImage *ximg = NULL;
+  XWindowAttributes win_attr;
 
+  /* query the window's attributes. */
+  Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attr);
+  unsigned int screen_ny = win_attr.height;
+
+    int (*oldErrorHandler)(Display*, XErrorEvent*);
+    oldErrorHandler = XSetErrorHandler(GetImageErrorHandler);
+    if (dev->write_to_pixmap==1) {
+      ximg = XGetImage(xwd->display, dev->pixmap, xoff,  screen_ny-ny-yoff, nx, ny, AllPlanes, ZPixmap);
+    } else {
+      ximg = XGetImage( xwd->display, dev->window, xoff, screen_ny-ny-yoff, nx, ny, AllPlanes, ZPixmap);
+    }
+    XSetErrorHandler(oldErrorHandler);
+    
+    if (ximg == NULL) return NULL;
+    if (ximg->bits_per_pixel != 32) return NULL;
+
+    SizeT datadims[3];
+    datadims[0] = nx;
+    datadims[1] = ny;
+    datadims[2] = 3;
+    dimension datadim(datadims, (SizeT) 3);
+    DByteGDL *bitmap = new DByteGDL( datadim, BaseGDL::NOZERO);
+    //PADDING is 4BPP -- we take 3BPP and revert Y to respect IDL default
+    SizeT kpad = 0;
+    for ( SizeT iy =0; iy < ny ; ++iy ) {
+      auto j0=3 * (ny-1-iy) * nx ;
+      for ( SizeT ix = 0; ix < 3*nx; ix+=3 ) {
+        (*bitmap)[ j0 + ix + 2] = ximg->data[kpad++];
+        (*bitmap)[ j0 + ix + 1] = ximg->data[kpad++];
+        (*bitmap)[ j0 + ix + 0] = ximg->data[kpad++];
+        kpad++; //pad to 4
+      }
+    }
+    XDestroyImage(ximg);
+    return bitmap;
+}
 #endif
