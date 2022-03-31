@@ -98,8 +98,7 @@ public:
     void SetCurrentFont(std::string fontname);
     DString GetVisualName();
     bool GetScreenResolution(double& resx, double& resy);
-    virtual DByteGDL* GetBitmapData() final;
-    virtual DByteGDL* GetSubBitmapData(int xoff, int yoff, int nx, int ny) final;
+    virtual DByteGDL* GetBitmapData(int xoff, int yoff, int nx, int ny) final;
     static void DefineSomeWxCursors(); //global initialisation of 77 X11-like cursors.
     virtual void fontChanged() final {
      if (olddriver) {

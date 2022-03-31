@@ -520,8 +520,7 @@ inline wxSize GDLWidget::computeWidgetSize()
   if ( wSize.y > 0 )  widgetSize.y = wSize.y * unitConversionFactor.y; 
   else widgetSize.y = wxDefaultSize.y;
 //but..
-   if (wScreenSize.y > 0) widgetSize.y=wScreenSize.y;
-  
+   if (wScreenSize.y > 0) widgetSize.y=wScreenSize.y;  
   return widgetSize;
 }
 
@@ -1942,6 +1941,22 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
     if (wOffset.y < 0) wOffset.y =x.y+x.height/2;
   }
   topFrame = new gdlwxFrame(NULL, this, widgetID, titleWxString, wOffset, wxDefaultSize, style);
+
+#ifdef __wxMAC__
+//does not work.
+//#include <ApplicationServices/ApplicationServices.h>
+//
+//ProcessSerialNumber PSN;
+//GetCurrentProcess(&PSN);
+//TransformProcessType(&PSN,kProcessTransformToForegroundApplication);
+
+  //the following is not really working either, except that a 'gdl' mac menubar is present an that's sufficient to get keyboard focus correctly
+wxMenu* macmenu[1];
+  WXMenubar* macBar=new wxMenubar();
+  macBar->Append(OSXGetAppleMenu (), titleWxString)
+  topFrame->SetMenuBar(macBar);
+#endif
+
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
   topFrame->SetBackgroundColour(wxColour(0x81, 0x46, 0xf1)); //violet
 #endif
@@ -5313,6 +5328,26 @@ GDLWidgetComboBox::GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value, DULo
   REALIZE_IF_NEEDED
 }
 
+inline wxSize GDLWidgetComboBox::computeWidgetSize() {
+  //here is a good place to make dynamic widgets static, since dynamic_resize is permitted only if size is not given.
+  if (wSize.x > 0 || wSize.y > 0 || wScreenSize.x > 0 || wScreenSize.y > 0) dynamicResize = -1;
+  wxSize widgetSize;
+  if (wSize.x > 0) widgetSize.x = wSize.x * unitConversionFactor.x;
+  else widgetSize.x = wxDefaultSize.x;
+  //but..
+  if (wScreenSize.x > 0) widgetSize.x = wScreenSize.x;
+
+  if (wSize.y > 0) widgetSize.y = wSize.y * unitConversionFactor.y;
+  else widgetSize.y = wxDefaultSize.y;
+  //but..
+  if (wScreenSize.y > 0) widgetSize.y = wScreenSize.y;
+//Specific to macOSX: combobox must be small.
+#ifdef __WXMAC__
+  //MAC OSX complains about large Y comboboxes.
+  if (widgetSize.y > 12) widgetSize.y = -1;
+#endif  
+  return widgetSize;
+}
 void GDLWidgetComboBox::SetValue(BaseGDL *value){
   GDLDelete(vValue);
   vValue=value;
@@ -5473,7 +5508,7 @@ bool editable_ )
   END_ADD_EVENTUAL_FRAME
   TIDY_WIDGET(gdlBORDER_SPACE)
 
-//  this->AddToDesiredEvents( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler(GDLFrame::OnTextEnter),text); //NOT USED
+//  this->AddToDesiredEvents( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler(gdlwxFrame::OnTextEnter),text); //NOT USED
   if( editable || report) this->AddToDesiredEvents(wxEVT_CHAR, wxKeyEventHandler(wxTextCtrlGDL::OnChar),text);
   //add scrolling even if text is not scrollable since scroll is not permitted (IDL widgets are not at all the same as GTK...)
   if (!scrolled) this->AddToDesiredEvents(wxEVT_MOUSEWHEEL, wxMouseEventHandler(wxTextCtrlGDL::OnMouseEvents),text);

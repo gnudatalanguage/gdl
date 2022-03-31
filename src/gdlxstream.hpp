@@ -85,8 +85,7 @@ public:
   bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
   virtual bool HasCrossHair() {return true;}
   void UnMapWindowAndSetPixmapProperty();
-  virtual DByteGDL* GetBitmapData() final;
-  virtual DByteGDL* GetSubBitmapData(int xoff, int yoff, int nx, int ny) final;
+  virtual DByteGDL* GetBitmapData(int xoff, int yoff, int nx, int ny) final;
   void Color( ULong color, DLong decomposed);
 //  void Update(){plstream::cmd(PLESC_EXPOSE, NULL);}
   

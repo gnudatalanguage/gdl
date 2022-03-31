@@ -26,6 +26,7 @@
 // use "plain menubars" instead of 'taskbars used as menubars'. taskbars permit to change font in bar, put pixmaps instead of text, and will work
 // on OSX. So we choose normally to undefine this 
 #ifndef __WXMAC__ 
+//warning MAC should not have prefer_menubar=1 unless you solve the mac manubar problem.
 #define PREFERS_MENUBAR 1
 #endif
 #include <wx/wx.h>
@@ -1270,7 +1271,7 @@ public:
   
 //   void SetSelectOff();
   bool IsComboBox() const final { return true;} 
-
+  wxSize computeWidgetSize();
   void SetLastValue( const std::string& v) { lastValue = v;}
   std::string GetLastValue() { return lastValue;}
   void SetValue(BaseGDL *value);

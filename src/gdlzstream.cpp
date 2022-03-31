@@ -121,32 +121,7 @@ DLong trueColorOrder, DLong chan ) {
   return true;
 }
 
-DByteGDL* GDLZStream::GetBitmapData() {
-  plstream::cmd(PLESC_FLUSH, NULL);
-  unsigned char *mem = (unsigned char *) pls->dev;
-  if (mem == NULL) return NULL;
-  PLINT nx = pls->phyxma;
-  PLINT ny = pls->phyyma;
-
-  SizeT datadims[3];
-  datadims[0] = nx;
-  datadims[1] = ny;
-  datadims[2] = 3;
-  dimension datadim(datadims, (SizeT) 3);
-  DByteGDL *bitmap = new DByteGDL(datadim, BaseGDL::NOZERO);
-  //PADDING is 3BPP -- we revert Y to respect IDL default
-  SizeT kpad = 0;
-  for (SizeT iy = 0; iy < ny; ++iy) {
-    for (SizeT ix = 0; ix < nx; ++ix) {
-      (*bitmap)[3 * ((ny - 1 - iy) * nx + ix) + 0] = mem[kpad++];
-      (*bitmap)[3 * ((ny - 1 - iy) * nx + ix) + 1] = mem[kpad++];
-      (*bitmap)[3 * ((ny - 1 - iy) * nx + ix) + 2] = mem[kpad++];
-    }
-  }
-  return bitmap;
-}
-
-DByteGDL* GDLZStream::GetSubBitmapData(int xoff, int yoff, int nx, int ny) {
+DByteGDL* GDLZStream::GetBitmapData(int xoff, int yoff, int nx, int ny) {
   plstream::cmd(PLESC_FLUSH, NULL);
   unsigned char *mem = (unsigned char *) pls->dev;
   if (mem == NULL) return NULL;

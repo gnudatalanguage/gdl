@@ -32,7 +32,7 @@ GDLWXStream::GDLWXStream( int width, int height )
   , olddriver(false)
 {
   streamDC = new wxMemoryDC();
-  streamBitmap = new wxBitmap( width, height, wxBITMAP_SCREEN_DEPTH );
+  streamBitmap = new wxBitmap( width, height, 24 );
   streamDC->SelectObject( *streamBitmap);
   if( !streamDC->IsOk())
   {
@@ -141,7 +141,7 @@ void GDLWXStream::SetSize( wxSize s )
   delete streamDC; //only solution to have it work with plplot-5.15 
   streamDC = new wxMemoryDC;
   container->SetStream(this); //act change of streamDC
-  streamBitmap = new wxBitmap( s.x, s.y, wxBITMAP_SCREEN_DEPTH );
+  streamBitmap = new wxBitmap( s.x, s.y, 24 );
   streamDC->SelectObject( *streamBitmap );
   if( !streamDC->IsOk())
   {
@@ -517,42 +517,7 @@ static const char* visual="TrueColor";
 return visual;
 }
 
-DByteGDL* GDLWXStream::GetBitmapData() {
-  int nx = streamBitmap->GetWidth();
-  int ny = streamBitmap->GetHeight();
-
-  SizeT datadims[3];
-  datadims[0] = nx;
-  datadims[1] = ny;
-  datadims[2] = 3;
-  dimension datadim(datadims, (SizeT) 3);
-  DByteGDL *bitmapgdl = new DByteGDL(datadim, BaseGDL::NOZERO);
-  DByte* bmp = static_cast<DByte*> (bitmapgdl->DataAddr());
-
-  wxNativePixelData data(*streamBitmap);
-  if (!data) {
-    // ... raw access to bitmap data unavailable, do something else ...
-    return NULL;
-  }
-
-  wxNativePixelData::Iterator p(data);
-
-  for (int y = 0; y < ny; ++y) {
-    auto j0 = 3 * (ny - 1 - y) * nx;
-    wxNativePixelData::Iterator rowStart = p;
-    for (int x = j0; x < j0 + 3 * nx;) {
-      bmp[x++ ] = p.Red();
-      bmp[x++ ] = p.Green();
-      bmp[x++ ] = p.Blue();
-      p++;
-    }
-    p = rowStart;
-    p.OffsetY(data, 1);
-  }
-  return bitmapgdl;
-}
-
-DByteGDL* GDLWXStream::GetSubBitmapData(int xoff, int yoff, int nx, int ny) {
+DByteGDL* GDLWXStream::GetBitmapData(int xoff, int yoff, int nx, int ny) {
 //this function is unprotected from wron xoff,  yoff etc bad values.
   int orig_nx = streamBitmap->GetWidth();
   int orig_ny = streamBitmap->GetHeight();
@@ -565,10 +530,12 @@ DByteGDL* GDLWXStream::GetSubBitmapData(int xoff, int yoff, int nx, int ny) {
   DByte* bmp = static_cast<DByte*> (bitmapgdl->DataAddr());
  
   wxRect sub=wxRect(xoff, orig_ny-ny-yoff, nx, ny);
+  streamDC->SelectObject(wxNullBitmap);
   wxBitmap subb=streamBitmap->GetSubBitmap(sub);
   if (!subb.Ok()) throw GDLException("Value of Area is out of allowed range.");
   wxNativePixelData data(subb);
   if (!data) {
+    streamDC->SelectObject(*streamBitmap);
     // ... raw access to bitmap data unavailable, do something else ...
     return NULL;
   }
@@ -587,6 +554,7 @@ DByteGDL* GDLWXStream::GetSubBitmapData(int xoff, int yoff, int nx, int ny) {
     p = rowStart;
     p.OffsetY(data, 1);
   }
+    streamDC->SelectObject(*streamBitmap);
   return bitmapgdl;
 }
 

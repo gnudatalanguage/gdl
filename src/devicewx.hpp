@@ -127,7 +127,12 @@ public:
 
   //1) a frame
   wxString titleWxString = wxString(title.c_str(), wxConvUTF8);
-  long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX | wxFRAME_TOOL_WINDOW); //no focus 
+//on wxMAC, frame will not appear if style is not exactly this (!!!)
+#ifdef __WXMAC__
+long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);
+#else
+long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX| wxFRAME_TOOL_WINDOW); //no focus 
+#endif
   gdlwxPlotFrame* plotFrame = new gdlwxPlotFrame(titleWxString, wxPoint(xoff,yoff), wxDefaultSize, style, scrolled);
   // Associate a sizer immediately
   wxSizer* tfSizer = new wxBoxSizer(wxVERTICAL);

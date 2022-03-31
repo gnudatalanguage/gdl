@@ -29,21 +29,6 @@ using namespace std;
 
 namespace lib {
 
-
-  //  BaseGDL* tvrd( EnvT* e)
-  //  {
-  //      // when !d.name == Null  we do nothing !
-  //      GDLGStream* actStream = GraphicsDevice::GetDevice()->GetStream();
-  //      if (actStream == NULL) e->Throw("Unable to create window.");
-  //
-  //#ifdef HAVE_LIBWXWIDGETS
-  //      if (actStream->HasImage()) 
-  //        return GetImage(e);
-  //      else
-  //#endif
-  //        return GraphicsDevice::GetDevice()->TVRD( e);
-  //  }
-
   BaseGDL* tvrd(EnvT* e) {
     GDLGStream* actStream = GraphicsDevice::GetDevice()->GetStream();
     if (actStream == NULL) e->Throw("Unable to create window.");
@@ -68,7 +53,6 @@ namespace lib {
     DLong nx = screen_nx;
     DLong ny = screen_ny;
 
-    bool error = false;
     bool hasXsize = false;
     bool hasYsize = false;
     int nParam = e->NParam();
@@ -107,6 +91,7 @@ namespace lib {
     if (!(hasXsize)) nx -= xoff;
     if (!(hasYsize)) ny -= yoff;
 
+    bool error = false;
     DLong xmax11 = xoff + nx - 1;
     DLong ymin11 = yoff + ny - 1;
     if (yoff < 0 || yoff > screen_ny - 1) error = true;
@@ -120,16 +105,12 @@ namespace lib {
     //OK sizes, get (sub)bitmap
     //GetBitMapData is device-dependent and insures that image is by default ORDER=0 now.
     DByteGDL *bitmap;
-    if (nx==screen_nx && ny==screen_ny) {
-      bitmap = static_cast<DByteGDL*> (actStream->GetBitmapData());
-    } else {
-      bitmap = static_cast<DByteGDL*> (actStream->GetSubBitmapData(xoff,yoff,nx,ny));
-    }
+    //here bitmap returned is nx*ny and in good shape
+    bitmap = static_cast<DByteGDL*> (actStream->GetBitmapData(xoff,yoff,nx,ny));
     if (bitmap == NULL) e->Throw("Unable to read from current device: " + GraphicsDevice::GetDevice()->Name() + "."); //need to GDLDelete bitmap on exit after this line.
     
     DByte* bmp=static_cast<DByte*>(bitmap->DataAddr());
     
-    //here bitmap returned is nx_gdl*ny_gdl and in good shape
     SizeT dims[3];
     DByteGDL* res;
 
