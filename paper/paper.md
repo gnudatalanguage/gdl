@@ -97,8 +97,7 @@ Interactive Data Language (IDL) is a commercial, domain-specific language used f
   still being used these days. Undoubtedly, porting such legacy codes to modern languages would require a huge effort, it is
   much more economic to run them with IDL. To run such IDL codes without any financial constraints, there have been several
   efforts to create a freeware clone of IDL, including Fawlty Language (<https://www.flxpert.hu/fl/>). Fawlty Language is a
-  very successful implementation as it supports nearly 100% of the latest IDL 8.0 syntax. However, Faulty Language is not
-  100% guaranteed to behave the same as an IDL compiler when it comes to running legacy IDL codes, since it is not an
+  very successful implementation as it supports nearly 100% of the latest IDL 8.0 syntax. However, Faulty Language is not an
   open-source software package and users cannot easily report and fix their problems to run their IDL codes.
 
 The GDL project is an international effort to create a free software clone of Interactive Data Language (IDL) or Precision
