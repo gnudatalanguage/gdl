@@ -232,6 +232,23 @@ int main(int argc, char *argv[])
   if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH"); //warning: is a Path, use system separator.
   if( gdlPath == "") gdlPath = S_GDLDATADIR + lib::PathSeparator() + "lib";
 
+//drivers if local
+  useLocalDrivers=false;
+  bool driversNotFound=false;
+  string driversPath=S_GDLDATADIR + lib::PathSeparator() + "drivers"; 
+
+#ifdef INSTALL_LOCAL_DRIVERS
+  // We must declare here (and not later) where our local copy of (customized?) drivers is to be found.
+  std::string drvPathCommand="PLPLOT_DRV_DIR="+driversPath;
+  char s[256];
+  strcpy(s,drvPathCommand.c_str());
+  putenv(s);
+  useLocalDrivers=true;
+  //Now, it is possible that GDL WAS compiled with INSTALL_LOCAL_DRIVERS, but the plplot installation is NOT compiled with DYNAMIC DRIVERS.
+  //Then not only we will not have 'our' good driver, but calling our nicknamed wxwidgetsgdl driver will fail.
+  //So I check here the plplot driver list to check if wxwidgetsgdl is present. If not, useLocalDriver=false
+  if (!GDLGStream::checkPlplotDriver("wxwidgetsgdl")) {driversNotFound=true; useLocalDrivers=false;}
+#endif
   // keeps a list of files to be executed after the startup file
   // and before entering the interactive mode
   vector<string> batch_files;
@@ -450,6 +467,10 @@ int main(int argc, char *argv[])
     StartupMessage();
     cerr << "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << gdlPath << endl;
     if (useWxWidgetsForGraphics) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
+    if (useLocalDrivers || driversNotFound) {
+      if (driversNotFound) cerr << "- Local drivers not found --- using default ones. " << endl;
+      else cerr << "- Using local drivers in " << driversPath << endl;
+    }
     }
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
   

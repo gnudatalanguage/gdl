@@ -131,7 +131,7 @@ namespace lib {
   std::vector<std::string> command_line_args;
 
 
-  //  using namespace std;
+  using namespace std;
   using std::isinf;
   using std::isnan;
   using namespace antlr;
