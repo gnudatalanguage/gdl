@@ -20,6 +20,8 @@ authors:
     affiliation: kyoto-u.ac.jp
   - name: Sylvain&nbsp;Flinois
     affiliation: kumullus.com
+  - name: Thibault Huillet
+    affiliation: .fr
   - name: Gregory&nbsp;V.&nbsp;Jung
     affiliation: ".us"
   - name: Orion&nbsp;Poplawski
@@ -174,7 +176,7 @@ GD has contributed a major rework of widgets and plotting subsystems to the 1.0 
 GD and AC have been the key maintainers and developers of GDL over the last decade.
 GVJ has contributed support for Windows OS, newer IDL datatypes, and library routines.
 LS started the `gdl_kernel` project.
-SF, ERdL, JT, JW, and RAS contributed library routines.
+SF, TH, ERdL, JT, JW, and RAS contributed library routines.
 OS, TT, OP, and TE maintain GDL packages.
 SA had been an active contributor in years 2009-2015 and has since kept contributing to project maintenance.
 JP and SA wrote the paper draft, and all the other authors have reviewed and confirmed the text.
