@@ -601,6 +601,9 @@ pro TEST_HDF5_COMP, cumul_errors, create=create
       return
    endif
 
+   if keyword_set(create) then f_id = h5f_create(file_name) $
+   else                        f_id = h5f_create("gdl-"+file_name)
+
    ; --- create some mock GDL structures
 
    nested = { an_integer:1, a_long:2l, a_float:1.1, a_double:1.2d, $
@@ -609,29 +612,52 @@ pro TEST_HDF5_COMP, cumul_errors, create=create
               a_string:"nested compound" }
 
    main = { a_byte:4b, a_byte_arr:byte([5,6,7,8]), $
-            sub:nested, a_string:"main compound", a_string_arr:["abc","def","ghi"] }
+            sub:nested, a_string:"main compound", $
+            a_string_arr:["abc","def","ghi"] }
 
-   if keyword_set(create) then begin
+   ; --- write mock structures to HDF5 file
 
-      ; --- write mock structures to HDF5 file (not yet implemented in GDL)
+   s_id = h5s_create_scalar()
+   t_id = h5t_idl_create(main)
+   d_id = h5d_create(f_id, "a_compund_dataset", t_id, s_id)
+   a_id = h5a_create(d_id, "a_compund_attribute", t_id, s_id)
 
-      f_id = h5f_create(file_name)
+   h5d_write, d_id, main
+   h5a_write, a_id, main
 
-      s_id = h5s_create_scalar()
-      t_id = h5t_idl_create(main)
-      d_id = h5d_create(f_id, "a_compund_dataset", t_id, s_id)
-      a_id = h5a_create(d_id, "a_compund_attribute", t_id, s_id)
+   h5d_close, d_id &  h5a_close, a_id
+   h5t_close, t_id &  h5s_close, s_id
 
-      h5d_write, d_id, main
-      h5a_write, a_id, main
+   ; ---
 
-      h5d_close, d_id &  h5a_close, a_id
-      h5t_close, t_id &  h5s_close, s_id
-      h5f_close, f_id
+   repl = replicate( nested, 3,2 )
+   for i=0,2 do $
+      for j=0,1 do $
+         if ( i gt 0 or j gt 0 ) then begin
+            repl[i,j].a_float_arr[*] += 10.*i+100.*j
+            repl[i,j].a_double_arr[*] += 20.*i+200.*j
+         endif
 
-      return
+   s_id = h5s_create_simple([3,2])
+   t_id = h5t_idl_create(repl)
+   d_id = h5d_create(f_id, "a_compund_dataset_array", t_id, s_id)
 
-   endif
+   h5d_write, d_id, repl
+
+   h5d_close, d_id
+   h5t_close, t_id &  h5s_close, s_id
+
+   ; ---
+
+   h5f_close, f_id
+
+   if keyword_set(create) then return
+
+   ; --- test the result against HDF5 file created using IDL
+
+   spawn, 'h5diff gdl-'+file_name+' '+full_file_name, res, exit_status=exit
+   errors += (exit ne 0)
+   spawn, 'rm -f gdl-'+file_name
 
    ; --- read HDF5 compound datasets into GDL structures
 
@@ -673,6 +699,8 @@ pro TEST_HDF5_COMP, cumul_errors, create=create
       errors += total(result eq 0)
 
    endforeach
+
+   ;;; FIXME: check result for reading 'a_compund_dataset_array' ;;;
 
    banner_for_testsuite, 'TEST_HDF5_COMP', errors, /short
 
