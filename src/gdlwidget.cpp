@@ -177,6 +177,8 @@ static const char * pixmap_checked[] = {
 "+@9999999999+",
 ".+++++++++++."};
 
+#include "../resource/gdlicon.xpm"
+wxIcon wxgdlicon = wxIcon(gdlicon_xpm);
 
 const WidgetIDT GDLWidget::NullID = 0;
 
@@ -518,8 +520,7 @@ inline wxSize GDLWidget::computeWidgetSize()
   if ( wSize.y > 0 )  widgetSize.y = wSize.y * unitConversionFactor.y; 
   else widgetSize.y = wxDefaultSize.y;
 //but..
-   if (wScreenSize.y > 0) widgetSize.y=wScreenSize.y;
-  
+   if (wScreenSize.y > 0) widgetSize.y=wScreenSize.y;  
   return widgetSize;
 }
 
@@ -942,11 +943,11 @@ void GDLWidget::Init()
   //initially defaultFont and systemFont are THE SAME.
   defaultFont=systemFont;
   SetWxStarted();
-  //use a phantom window to retrieve th exact size of scrollBars wxWidget give wrong values.
-   gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
-   test->Hide();
-   test->Realize();
-   test->Destroy();
+//  //use a phantom window to retrieve th exact size of scrollBars wxWidget give wrong values.
+//   gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
+//   test->Hide();
+//   test->Realize();
+//   test->Destroy();
   //initialize default image lists for trees:
   // Make an image list containing small icons
   wxSize ImagesSize(DEFAULT_TREE_IMAGE_SIZE,DEFAULT_TREE_IMAGE_SIZE);
@@ -1296,10 +1297,10 @@ void GDLWidgetTopBase::Realize(bool map, bool use_default) {
   if (use_default) map = GetMap();
 
   OnRealize();
- 
+
  if (map) topFrame->Show() ; //endShowRequestEvent();
   else topFrame->Hide(); //SendHideRequestEvent();
-  realized=true;
+  realized = true;
 }
 
 bool GDLWidget::IsRealized() {
@@ -1913,7 +1914,7 @@ DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignm
 #ifdef __WXMAC__
 long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);
 #else
-  long style=wxDEFAULT_FRAME_STYLE|wxFRAME_TOOL_WINDOW; //wxFRAME_TOOL_WINDOW to NOT get focus. See behaviour of 'P' (photometry) while using ATV (atv.pro). 
+  long style=wxDEFAULT_FRAME_STYLE; //|wxFRAME_TOOL_WINDOW would be to NOT get focus, but IDL gives focus to widgets. See behaviour of 'P' (photometry) while using ATV (atv.pro). 
   if (frame_attr) {
     style=0;
     if (!(frame_attr & 1)) style |= (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER| wxCAPTION);
@@ -1940,12 +1941,30 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
     if (wOffset.y < 0) wOffset.y =x.y+x.height/2;
   }
   topFrame = new gdlwxFrame(NULL, this, widgetID, titleWxString, wOffset, wxDefaultSize, style);
+
+#ifdef __wxMAC__
+//does not work.
+//#include <ApplicationServices/ApplicationServices.h>
+//
+//ProcessSerialNumber PSN;
+//GetCurrentProcess(&PSN);
+//TransformProcessType(&PSN,kProcessTransformToForegroundApplication);
+
+  //the following is not really working either, except that a 'gdl' mac menubar is present an that's sufficient to get keyboard focus correctly
+wxMenu* macmenu[1];
+  WXMenubar* macBar=new wxMenubar();
+  macBar->Append(OSXGetAppleMenu (), titleWxString)
+  topFrame->SetMenuBar(macBar);
+#endif
+
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
   topFrame->SetBackgroundColour(wxColour(0x81, 0x46, 0xf1)); //violet
 #endif
 
   //Base Frame inherits default font -- then each widget will possibly get its own font when /FONT is possible    
   topFrame->SetFont(defaultFont);
+  //add icon
+  topFrame->SetIcon(wxgdlicon);
 
   if (mbarID != 0) {
 #if PREFERS_MENUBAR
@@ -5309,6 +5328,26 @@ GDLWidgetComboBox::GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value, DULo
   REALIZE_IF_NEEDED
 }
 
+inline wxSize GDLWidgetComboBox::computeWidgetSize() {
+  //here is a good place to make dynamic widgets static, since dynamic_resize is permitted only if size is not given.
+  if (wSize.x > 0 || wSize.y > 0 || wScreenSize.x > 0 || wScreenSize.y > 0) dynamicResize = -1;
+  wxSize widgetSize;
+  if (wSize.x > 0) widgetSize.x = wSize.x * unitConversionFactor.x;
+  else widgetSize.x = wxDefaultSize.x;
+  //but..
+  if (wScreenSize.x > 0) widgetSize.x = wScreenSize.x;
+
+  if (wSize.y > 0) widgetSize.y = wSize.y * unitConversionFactor.y;
+  else widgetSize.y = wxDefaultSize.y;
+  //but..
+  if (wScreenSize.y > 0) widgetSize.y = wScreenSize.y;
+//Specific to macOSX: combobox must be small.
+#ifdef __WXMAC__
+  //MAC OSX complains about large Y comboboxes.
+  if (widgetSize.y > 12) widgetSize.y = -1;
+#endif  
+  return widgetSize;
+}
 void GDLWidgetComboBox::SetValue(BaseGDL *value){
   GDLDelete(vValue);
   vValue=value;
@@ -5469,7 +5508,7 @@ bool editable_ )
   END_ADD_EVENTUAL_FRAME
   TIDY_WIDGET(gdlBORDER_SPACE)
 
-//  this->AddToDesiredEvents( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler(GDLFrame::OnTextEnter),text); //NOT USED
+//  this->AddToDesiredEvents( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler(gdlwxFrame::OnTextEnter),text); //NOT USED
   if( editable || report) this->AddToDesiredEvents(wxEVT_CHAR, wxKeyEventHandler(wxTextCtrlGDL::OnChar),text);
   //add scrolling even if text is not scrollable since scroll is not permitted (IDL widgets are not at all the same as GTK...)
   if (!scrolled) this->AddToDesiredEvents(wxEVT_MOUSEWHEEL, wxMouseEventHandler(wxTextCtrlGDL::OnMouseEvents),text);
@@ -5976,6 +6015,7 @@ gdlwxPlotFrame::gdlwxPlotFrame( const wxString& title , const wxPoint& pos, cons
 , scrolled(scrolled_)
 {
   m_resizeTimer = new wxTimer(this,RESIZE_PLOT_TIMER);
+  this->SetIcon(wxgdlicon);
 }
 
 gdlwxPlotFrame::~gdlwxPlotFrame() {
@@ -6039,7 +6079,6 @@ void gdlwxGraphicsPanel::RepaintGraphics(bool doClear) {
 //  dc.SetDeviceClippingRegion(GetUpdateRegion());
   if (doClear) dc.Clear();
   dc.Blit(0, 0, drawSize.x, drawSize.y, wx_dc, 0, 0);
-  this->Update();
 }
 
 ////Stem for generalization of Drag'n'Drop, a WIDGET_DRAW can receive drop events from something else than a tree widget...
