@@ -1290,7 +1290,29 @@ namespace lib {
     DDouble bsize = 1.0;
     if( binsizeKW != NULL)
       {
-	e->AssureDoubleScalarKW( 0, bsize);
+	  e->AssureDoubleScalarKW( 0, bsize);
+    if( p0->Type() == GDL_BYTE){
+      DByte bs = (DByte) bsize;
+      bsize = bs;
+    }else if( p0->Type() == GDL_INT){
+      DInt bs = (DInt) bsize;
+      bsize = bs;
+    } else if(p0->Type() == GDL_UINT){
+      DUInt bs = (DUInt) bsize;
+      bsize = bs;
+    } else if(p0->Type() == GDL_LONG){
+      DLong bs = (DLong) bsize;
+      bsize = bs;
+    } else if(p0->Type() == GDL_LONG64){
+      DLong64 bs = (DLong64) bsize;
+      bsize = bs;
+    } else if(p0->Type() == GDL_ULONG){
+      DULong bs = (DULong) bsize;
+      bsize = bs;
+    } else if(p0->Type() == GDL_ULONG64){
+      DULong64 bs = (DULong64) bsize;
+      bsize = bs;
+    }
 	if( bsize <= 0.0)
 	  e->Throw( "Illegal BINSIZE.");
       }
@@ -1369,13 +1391,28 @@ namespace lib {
     else {
       e->AssureDoubleScalarKW(minIx, a);
       if( p0->Type() == GDL_BYTE){
-	DByte byt = (DByte) a;
-	a = byt;
+      DByte mv = (DByte) a;
+      a = mv;
       }else if( p0->Type() == GDL_INT){
-	int in = (int) a;
-	a = in;
-      }
-      if(debug) cout<<"nbins="<<nbins<<"; bsize="<<bsize<<endl;
+      DInt mv = (DInt) a;
+      a = mv;
+    }else if(p0->Type() == GDL_UINT){
+      DUInt mv = (DUInt) a;
+      a = mv;
+    } else if(p0->Type() == GDL_LONG){
+      DLong mv = (DLong) a;
+      a = mv;
+    } else if(p0->Type() == GDL_LONG64){
+      DLong64 mv = (DLong64) a;
+      a = mv;
+    } else if(p0->Type() == GDL_ULONG){
+      DULong mv = (DULong) a;
+      a = mv;
+    } else if(p0->Type() == GDL_ULONG64){
+      DULong64 mv = (DULong64) a;
+     a = mv;
+    }
+    if(debug) cout<<"nbins="<<nbins<<"; bsize="<<bsize<<endl;
     }
 
     // bsize / maxVal
@@ -1405,8 +1442,29 @@ namespace lib {
       }
     } else {
       e->AssureDoubleScalarKW(maxIx, maxVal);
-
-      if (IsInteger(p0->Type())) maxVal=floor(maxVal);
+    if( p0->Type() == GDL_BYTE){
+      DByte mv = (DByte) maxVal;
+      maxVal = mv;
+    }else if( p0->Type() == GDL_INT){
+      DInt mv = (DInt) maxVal;
+      maxVal = mv;
+    }else if(p0->Type() == GDL_UINT){
+      DUInt mv = (DUInt) maxVal;
+      maxVal = mv;
+    } else if(p0->Type() == GDL_LONG){
+      DLong mv = (DLong) maxVal;
+      maxVal = mv;
+    } else if(p0->Type() == GDL_LONG64){
+      DLong64 mv = (DLong64) maxVal;
+      maxVal = mv;
+    } else if(p0->Type() == GDL_ULONG){
+      DULong mv = (DULong) maxVal;
+      maxVal = mv;
+    } else if(p0->Type() == GDL_ULONG64){
+      DULong64 mv = (DULong64) maxVal;
+      maxVal = mv;
+    }
+      //if (IsInteger(p0->Type())) maxVal=floor(maxVal);
 
       if( binsizeKW == NULL && nbinsKW != NULL){
 	if(nbins==1){
@@ -1421,7 +1479,7 @@ namespace lib {
 
     // at the end, when Integer, work in Integer ...
     if (IsInteger(p0->Type())) bsize=floor(bsize);
-
+    
     // -> omax, omin
     DDouble aOri = a, bOri = maxVal;
 

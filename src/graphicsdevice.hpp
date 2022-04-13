@@ -184,7 +184,8 @@ public:
   unsigned char* SetCopyBuffer(SizeT size) 
   {
     if (CopyBufferSize != 0) {free (CopyBuffer); CopyBufferSize = 0;}
-    CopyBuffer=(unsigned char*)calloc(size, sizeof(char)); //set to zero
+//    CopyBuffer=(unsigned char*)calloc(size, sizeof(char)); //set to zero
+    CopyBuffer=(unsigned char*)malloc(size*sizeof(char)); //will be filled elsewhere, no need to set to zero
     CopyBufferSize = size;
     return CopyBuffer;
   }
@@ -376,7 +377,7 @@ public:
   int MaxNonFreeWin();
   int ActWin();
   int GetNonManagedWidgetActWin(bool doTidyWindowList=true);
-  bool CopyRegion(DLongGDL* me);
+  virtual bool CopyRegion(DLongGDL* me) final;
   virtual bool SetCharacterSize( DLong x, DLong y)  final   {
    int tagx = dStruct->Desc()->TagIndex( "X_CH_SIZE");
    int tagy = dStruct->Desc()->TagIndex( "Y_CH_SIZE");
