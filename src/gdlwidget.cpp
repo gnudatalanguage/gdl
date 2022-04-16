@@ -989,8 +989,6 @@ void GDLWidget::UnInit() {
     readlineEventQueue.Purge();
     eventQueue.Purge();
     // the following cannot be done: once unitialized, the wxWidgets library cannot be safely initilized again.:  wxUninitialize( );
-    gdlDefaultTreeImages->Destroy();
-    gdlDefaultTreeStateImages->Destroy();
     UnsetWxStarted(); //reset handlersOk too.
   }
 }
