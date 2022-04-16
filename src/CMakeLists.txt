@@ -86,6 +86,7 @@ hash.cpp
 hdf5_fun.cpp
 hdf_fun.cpp
 hdf_pro.cpp
+histogram.cpp
 image.cpp
 initct.cpp
 initsysvar.cpp

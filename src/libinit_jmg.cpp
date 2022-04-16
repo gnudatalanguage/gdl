@@ -27,6 +27,7 @@
 #include "basic_pro_jmg.hpp"
 
 #include "gsl_fun.hpp"
+#include "histogram.hpp"
 #include "interpolate.hpp"
 #include "interpol.hpp"
 #include "image.hpp"

@@ -32,8 +32,6 @@ namespace lib {
   //  BaseGDL* invert_fun( EnvT* e);
   BaseGDL* fft_fun( EnvT* e);
   BaseGDL* random_fun( EnvT* e);
-  BaseGDL* histogram_fun( EnvT* e);
-//  BaseGDL* interpolate_fun( EnvT* e);
 
   void la_trired_pro( EnvT* e);
 
@@ -73,7 +71,6 @@ namespace lib {
 			SizeT offset, SizeT stride_in, SizeT stride_out);
 
   BaseGDL* random_fun_gsl(EnvT* e);
-//  BaseGDL* interpol_fun(EnvT* e);
 } // namespace
 
 #endif
