@@ -113,11 +113,6 @@ volatile bool useDSFMTAcceleration;
 
 void ResetObjects()
 {
-#ifdef HAVE_LIBWXWIDGETS
-
-  // un-initialize widget system
-  GDLWidget::UnInit();
-#endif
   
   GraphicsDevice::DestroyDevices();
 
@@ -125,7 +120,7 @@ void ResetObjects()
   cerr << flush; cout << flush; clog << flush;
 
   PurgeContainer(sysVarList);
-//   sysVarRdOnlyList.clear(); // data is owned by sysVarList
+  sysVarRdOnlyList.clear(); // data is owned by sysVarList
   PurgeContainer(funList);
   PurgeContainer(proList);
 

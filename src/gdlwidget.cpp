@@ -962,19 +962,33 @@ void GDLWidget::Init()
   gdlDefaultTreeStateImages->Add(wxIcon(pixmap_unchecked)); //gdlWxTree_UNCHECKED
   gdlDefaultTreeStateImages->Add(wxIcon(pixmap_checked)); //gdlWxTree_UNCHECKED
 }
+//ResetWidgets
+void GDLWidget::ResetWidgets() {
+  //Delete current widgets --- complicated, use utility procedure
+  std::string callP = "GDL_RESET_WIDGETS";
+  StackGuard<EnvStackT> guard(BaseGDL::interpreter->CallStack());
+  int proIx = LibProIx(callP);
+  if (proIx == -1) proIx = DInterpreter::GetProIx(callP);
+  if (proIx == -1) return;
+  ProgNodeP callingNode = NULL;
+  EnvUDT* newEnv = new EnvUDT(callingNode, proList[ proIx], NULL);
+  BaseGDL::interpreter->CallStack().push_back(newEnv);
+  BaseGDL::interpreter->call_pro(static_cast<DSubUD*> (newEnv->GetPro())->GetTree());
+  //really remove widgets from screen
+#ifdef __WXMAC__
+  wxTheApp->Yield();
+#else
+  wxGetApp().MainLoop(); //central loop for wxEvents!
+#endif
+}
 // UnInit
 void GDLWidget::UnInit() {
   if (wxIsStarted()) {
-    WidgetListT::iterator it;
-    for (it = widgetList.begin(); it != widgetList.end(); ++it) {
-      GDLWidget* w = (*it).second;
-      if (w != NULL) delete w;
-    }
-    GDLWidget::HandleWidgetEvents();
-    // the following cannot be done: once unitialized, the wxWidgets library cannot be safely initilized again.
-    //    wxUninitialize( );
-    delete gdlDefaultTreeImages;
-    delete gdlDefaultTreeStateImages;
+    ResetWidgets();
+    //clear all events --- otherwise baoum!)
+    readlineEventQueue.Purge();
+    eventQueue.Purge();
+    // the following cannot be done: once unitialized, the wxWidgets library cannot be safely initilized again.:  wxUninitialize( );
     UnsetWxStarted(); //reset handlersOk too.
   }
 }

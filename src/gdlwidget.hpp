@@ -400,6 +400,7 @@ public:
   static bool InitWx(); // global start of wxWidgets
   static void Init(); // global GUI intialization upon GDL startup
   static void UnInit(); // global GUI desinitialization in case it is useful (?)
+  static void ResetWidgets(); // for widget_control,/reset and UnInit
   static bool wxIsStarted(){return (wxIsOn);}
   static void SetWxStarted(){wxIsOn=true;}
   static void UnsetWxStarted(){gdl_lastControlId=0;/* not possible: wxWidgets library does not survive wxUniitiailze() ... wxIsOn=false; handlersOk=false;*/}
