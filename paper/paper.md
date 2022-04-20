@@ -47,7 +47,9 @@ authors:
     affiliation: edf.fr
   - name: Jingwei&nbsp;Wang
     affiliation: mines-paristech.fr
-  
+  - name: Christian&nbsp;Wimmer
+    affiliation: ".de"
+
   - name: Sylwester&nbsp;Arabas
     orcid: 0000-0003-2361-0082
     affiliation: "illinois.edu,uj.edu.pl"
