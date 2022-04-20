@@ -108,8 +108,8 @@ Interactive Data Language (IDL) is a commercial, domain-specific language used f
   effort, it is much more economic to run them with IDL. To run such IDL codes without any financial constraints, there
   have been several efforts to create a freeware clone of IDL, including Fawlty Language (<https://www.flxpert.hu/fl/>).
   Fawlty Language is a very successful implementation as it supports nearly 100% of the latest IDL 8.0 syntax. However,
-  Faulty Language is not an open-source software package and users cannot easily report and fix their problems to run
-  their IDL codes.
+  Faulty Language is neither open-source nor free as in free speach and thus users cannot report or fix problems in its 
+  source code. Neither IDL nor FL fulfill modern requirements for freely reproducible research. 
 
 The GDL project is an international effort to create a free software clone of Interactive Data Language (IDL) or Precision
   Visuals - Workstation Analysis and Visualization Environment (PV-WAVE), preserving the capability to run the vast body of
@@ -143,7 +143,7 @@ GDL, GDL Workbench and `gdl_kernel` are free/libre and open-source software publ
 
 # Highlights in GDL 1.0
 
-From GDL 1.0, the plotting part has been completely revamped based on wxWidgets by default for all platforms, which provides a widget support and also guarantees the same behaviour across different operating systems. GDL 1.0 also provides an improved file format support, including reading/writing geoTIFF and writing HDF files. From the release of 1.0, GDL project is automatically compiled and released via Github Actions, with providing a convenient installer for Windows systems. In addition to new features, many performance and threading optimizations were also done.
+From GDL 1.0, the plotting part has been completely revamped based on wxWidgets by default for all platforms, which provides a widget support and also guarantees the same behaviour across different operating systems. GDL 1.0 also provides an improved file format support, including reading/writing geoTIFF and writing HDF files. From the release of 1.0, GDL project is automatically compiled and released via Github Actions, with providing a convenient installer for Windows systems. In addition to new features, many performance and threading optimizations were also done. Map projections support in GDL is also much more mature compared to earlier major releases of GDL. Finally, the transition from SourceForge to GitHub that preceded release of GDL 1.0 helped to consolidate the community efforts, streamline development and support workflows.
 
 # Design and Dependencies
 
