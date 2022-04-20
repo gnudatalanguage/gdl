@@ -141,6 +141,10 @@ GDL is interoperable with Python, by featuring a bi-directional Python bridge of
 GDL, GDL Workbench and `gdl_kernel` are free/libre and open-source software publicly available under the terms of the GNU General
   Public License v2 or above.
 
+# Highlights in GDL 1.0
+
+From GDL 1.0, the plotting part has been completely revamped based on wxWidgets by default for all platforms, which provides a widget support and also guarantees the same behaviour across different operating systems. GDL 1.0 also provides an improved file format support, including reading/writing geoTIFF and writing HDF files. From the release of 1.0, GDL project is automatically compiled and released via Github Actions, with providing a convenient installer for Windows systems. In addition to new features, many performance and threading optimizations were also done.
+
 # Design and Dependencies
 
 GDL interpreter is written in C++ using the ANTLR framework.
