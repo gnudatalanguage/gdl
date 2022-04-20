@@ -292,7 +292,7 @@ public:
   virtual void UnMapWindowAndSetPixmapProperty() {usedAsPixmap=true;} 
   bool IsPixmapWindow() {return usedAsPixmap;}
   virtual bool IsPlot() {return true;} //except some wxWidgets
-  virtual BaseGDL* GetBitmapData(){return NULL;}
+  virtual BaseGDL* GetBitmapData(int xoff, int yoff, int nx, int ny){return NULL;}
   virtual void SetCurrentFont(std::string fontname){}//do nothing
   bool GetRegion(DLong& xs, DLong& ys, DLong& nx, DLong& ny);//{return false;}
   bool SetRegion(DLong& xd, DLong& yd, DLong& nx, DLong& ny);//{return false;}

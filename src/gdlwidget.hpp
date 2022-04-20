@@ -25,7 +25,10 @@
 
 // use "plain menubars" instead of 'taskbars used as menubars'. taskbars permit to change font in bar, put pixmaps instead of text, and will work
 // on OSX. So we choose normally to undefine this 
-// #define PREFERS_MENUBAR 1
+#ifndef __WXMAC__ 
+//warning MAC should not have prefer_menubar=1 unless you solve the mac manubar problem.
+#define PREFERS_MENUBAR 1
+#endif
 #include <wx/wx.h>
 #include <wx/app.h>
 #include <wx/panel.h>
@@ -397,6 +400,7 @@ public:
   static bool InitWx(); // global start of wxWidgets
   static void Init(); // global GUI intialization upon GDL startup
   static void UnInit(); // global GUI desinitialization in case it is useful (?)
+  static void ResetWidgets(); // for widget_control,/reset and UnInit
   static bool wxIsStarted(){return (wxIsOn);}
   static void SetWxStarted(){wxIsOn=true;}
   static void UnsetWxStarted(){gdl_lastControlId=0;/* not possible: wxWidgets library does not survive wxUniitiailze() ... wxIsOn=false; handlersOk=false;*/}
@@ -1268,7 +1272,7 @@ public:
   
 //   void SetSelectOff();
   bool IsComboBox() const final { return true;} 
-
+  wxSize computeWidgetSize();
   void SetLastValue( const std::string& v) { lastValue = v;}
   std::string GetLastValue() { return lastValue;}
   void SetValue(BaseGDL *value);

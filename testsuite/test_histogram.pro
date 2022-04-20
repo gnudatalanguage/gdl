@@ -96,6 +96,15 @@ for e = -1023, 1021 do begin    ; idl-1022, gdl-1021
    res=HISTOGRAM(input, max=input[1], min=input[0], nbins=2, reverse=ri)
    if ( ~ARRAY_EQUAL(res, [1,1]) ) then ERRORS_ADD, errors, ' error basic TEST 01!' 
 endfor
+;; test a complicated histogram based on random numbers, including reverse. GDL ONLY
+DEFSYSV, '!GDL', EXISTS = e
+if e then begin
+   a=randomu(33,100000,/RAN1)& a*=900 &  z=histogram(a,nbins=876.33,max=856,rev=rev)
+   tz=ulong(total(z)*1000)
+   trev=ulong64(total(rev))
+   if ( ~ARRAY_EQUAL(tz,95339000UL) ) then ERRORS_ADD, errors, ' error basic TEST 01!' 
+   if ( ~ARRAY_EQUAL(trev,4811181056LL) ) then ERRORS_ADD, errors, ' error basic TEST 01!' 
+endif
 
 ;;ignored = histogram([0.], min=0, max=0, reverse=ri) 
 
@@ -251,6 +260,7 @@ res=Histogram(a,nbins=0)
 sum = total(res)
 sum_expected = 6
 res_expected = [1,1,1,1,1,1]
+if (size(res))[1] ne 256 then begin & errors++ &  print,' error nbins 0 !' & endif
 if ~ARRAY_EQUAL(res[1:6], res_expected) then begin & errors++ &  print,' error nbins 0 !' & endif
 if ~ARRAY_EQUAL(sum, sum_expected) then begin & errors++ & print,' error byte nbins 0 !' & endif
 ;

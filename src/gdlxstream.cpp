@@ -830,8 +830,7 @@ void GDLXStream::Color( ULong color, DLong decomposed ) {
   XSetForeground( xwd->display, dev->gc, curcolor);
 }
 
-//Read X11 bitmapdata -- normally on 4BPP=Allplanes, return 3BPP ignoring Alpha plane.
-DByteGDL* GDLXStream::GetBitmapData() {
+DByteGDL* GDLXStream::GetBitmapData(int xoff, int yoff, int nx, int ny) {
 //  plstream::cmd( PLESC_FLUSH, NULL );
   GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
   
@@ -842,15 +841,14 @@ DByteGDL* GDLXStream::GetBitmapData() {
 
   /* query the window's attributes. */
   Status rc = XGetWindowAttributes(xwd->display, dev->window, &win_attr);
-  unsigned int nx = win_attr.width;
-  unsigned int ny = win_attr.height;
+  unsigned int screen_ny = win_attr.height;
 
     int (*oldErrorHandler)(Display*, XErrorEvent*);
     oldErrorHandler = XSetErrorHandler(GetImageErrorHandler);
     if (dev->write_to_pixmap==1) {
-      ximg = XGetImage(xwd->display, dev->pixmap, 0, 0, nx, ny, AllPlanes, ZPixmap);
+      ximg = XGetImage(xwd->display, dev->pixmap, xoff,  screen_ny-ny-yoff, nx, ny, AllPlanes, ZPixmap);
     } else {
-      ximg = XGetImage( xwd->display, dev->window, 0, 0, nx, ny, AllPlanes, ZPixmap);
+      ximg = XGetImage( xwd->display, dev->window, xoff, screen_ny-ny-yoff, nx, ny, AllPlanes, ZPixmap);
     }
     XSetErrorHandler(oldErrorHandler);
     
@@ -866,15 +864,15 @@ DByteGDL* GDLXStream::GetBitmapData() {
     //PADDING is 4BPP -- we take 3BPP and revert Y to respect IDL default
     SizeT kpad = 0;
     for ( SizeT iy =0; iy < ny ; ++iy ) {
-      for ( SizeT ix = 0; ix < nx; ++ix ) {
-        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 2] = ximg->data[kpad++];
-        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 1] = ximg->data[kpad++];
-        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 0] = ximg->data[kpad++];
+      auto j0=3 * (ny-1-iy) * nx ;
+      for ( SizeT ix = 0; ix < 3*nx; ix+=3 ) {
+        (*bitmap)[ j0 + ix + 2] = ximg->data[kpad++];
+        (*bitmap)[ j0 + ix + 1] = ximg->data[kpad++];
+        (*bitmap)[ j0 + ix + 0] = ximg->data[kpad++];
         kpad++; //pad to 4
       }
     }
     XDestroyImage(ximg);
     return bitmap;
 }
-
 #endif
