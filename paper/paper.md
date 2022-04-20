@@ -139,7 +139,7 @@ GDL is interoperable with Python, by featuring a bi-directional Python bridge of
   Python and vice versa.
 
 GDL, GDL Workbench and `gdl_kernel` are free/libre and open-source software publicly available under the terms of the GNU General
-  Public License v2.
+  Public License v2 or above.
 
 # Design and Dependencies
 
