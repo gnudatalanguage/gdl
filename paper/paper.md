@@ -18,7 +18,9 @@ authors:
     affiliation: "obspm.fr,cea.fr"
   - name: Gregory&nbsp;V.&nbsp;Jung
     affiliation: ".us"
-  
+  - name: Sylwester&nbsp;Arabas
+    orcid: 0000-0003-2361-0082
+    affiliation: "illinois.edu,uj.edu.pl"
   - name: Brian Barker
     affiliation: ursinus.edu
   - name: Takeshi&nbsp;Enomoto
@@ -52,9 +54,6 @@ authors:
   - name: Christian&nbsp;Wimmer
     affiliation: ".de"
 
-  - name: Sylwester&nbsp;Arabas
-    orcid: 0000-0003-2361-0082
-    affiliation: "illinois.edu,uj.edu.pl"
 affiliations:
  - name: Pusan National University, Korea
    index: pusan.ac.kr
