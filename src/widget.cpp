@@ -2571,7 +2571,12 @@ void widget_control( EnvT* e ) {
     }
     return;
   }
-
+  static int resetIx = e->KeywordIx( "RESET" );
+  bool reset = e->KeywordSet( resetIx );
+  if (reset) {
+    GDLWidget::ResetWidgets();
+    return;
+  }
   if (e->NParam()==0) return; //quietly return when no widget is given.
 
   static int hourglassIx =  e->KeywordIx( "HOURGLASS" );

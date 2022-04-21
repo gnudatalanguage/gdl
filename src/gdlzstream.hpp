@@ -46,7 +46,7 @@ public:
   bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
   void GetGeometry( long& xSize, long& ySize);
   unsigned long GetWindowDepth();
-  DByteGDL* GetBitmapData();
+  virtual DByteGDL* GetBitmapData(int xoff, int yoff, int nx, int ny) final;
 //to be written. Needed by same needs as for X11
 //  bool SetGraphicsFunction(long value );
 };

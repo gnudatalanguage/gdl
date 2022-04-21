@@ -711,7 +711,7 @@ void gdlwxFrame::OnText( wxCommandEvent& event)
       std::cerr<<"No wxWidget!"<<std::endl; return; // happens on construction 
     }
     if (!control->IsEditable()) return; //no OnText Events shoudl be generated!
-    int pos = control->GetCurrentSelection() ; //would be control->GetSelection( &selStart, &selEnd); // with GTK 
+    int pos = control->GetSelection() ; //would be control->GetSelection( &selStart, &selEnd); // with GTK 
     offset = control->GetInsertionPoint();    
     lastValue = static_cast<GDLWidgetComboBox*>(widget)->GetLastValue();
     newValue = control->GetValue().mb_str(wxConvUTF8);

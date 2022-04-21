@@ -16,14 +16,25 @@ authors:
   - name: Alain&nbsp;Coulais
     orcid: 0000-0001-6492-7719
     affiliation: "obspm.fr,cea.fr"
+  - name: Gregory&nbsp;V.&nbsp;Jung
+    affiliation: ".us"
+  - name: Sylwester&nbsp;Arabas
+    orcid: 0000-0003-2361-0082
+    affiliation: "illinois.edu,uj.edu.pl"
+  - name: Brian Barker
+    affiliation: ursinus.edu
   - name: Takeshi&nbsp;Enomoto
     affiliation: kyoto-u.ac.jp
   - name: Sylvain&nbsp;Flinois
     affiliation: kumullus.com
+  - name: Oliver Gressel
+    affiliation: aip.de
   - name: Tomas Hillberg
     affiliation: astro.su.se
-  - name: Gregory&nbsp;V.&nbsp;Jung
-    affiliation: ".us"
+  - name: Thibault Huillet
+    affiliation: .fr
+  - name: Jan Kohnert
+    affiliation: ".de"
   - name: Orion&nbsp;Poplawski
     affiliation: nwra.com
   - name: Eloi&nbsp;Rozier&nbsp;de&nbsp;Linage
@@ -42,9 +53,9 @@ authors:
     affiliation: edf.fr
   - name: Jingwei&nbsp;Wang
     affiliation: mines-paristech.fr
-  - name: Sylwester&nbsp;Arabas
-    orcid: 0000-0003-2361-0082
-    affiliation: "illinois.edu,uj.edu.pl"
+  - name: Christian&nbsp;Wimmer
+    affiliation: ".de"
+
 affiliations:
  - name: Pusan National University, Korea
    index: pusan.ac.kr
@@ -76,6 +87,8 @@ affiliations:
    index: ga.com
  - name:  Department of Astronomy, Stockholm University, Sweden
    index: astro.su.se
+ - name: Ursinus College, PA, USA
+   index: ursinus.edu
 bibliography: paper.bib
 
 ---
@@ -84,9 +97,8 @@ bibliography: paper.bib
 
 We present GNU Data Language (GDL), an open-source free incremental compiler for programs written in Interactive Data
   Language (IDL<sup>*</sup>) and Precision Visuals - Workstation Analysis and Visualization Environment (PV-WAVE<sup>**</sup>),
-  the computer languages used for scientific data analysis, especially in the fields of astronomy, geosciences, biology,
-  hyperspectral, and medical imaging. GDL is highly compatible with the IDL and PV-WAVE and aims to run any existing IDL
-  codes without any modifications. GDL comes with its dedicated IDE GDL Workbench and Jupyter kernel `gdl_kernel` 
+  two computer languages used for scientific data analysis. GDL is highly compatible with the IDL and PV-WAVE and aims to run
+  any existing IDL codes without any modifications. GDL comes with its dedicated IDE GDL Workbench and Jupyter kernel `gdl_kernel` 
   to provide a comfortable development environment. In addition, GDL supports interoperability with Python. GDL is freely
   available at https://gnudatalanguage.github.io/.
 
@@ -96,13 +108,15 @@ We present GNU Data Language (GDL), an open-source free incremental compiler for
 # Statement of Need
 
 Interactive Data Language (IDL) is a commercial, domain-specific language used for processing data in various scientific
-  fields, including astronomy, geosciences, biology, hyperspectral, and medical imaging. Although IDL is not so widely used
-  these days for scientific computing as the rise of modern computing languages such as Python, many legacy IDL codes are
-  still being used these days. Undoubtedly, porting such legacy codes to modern languages would require a huge effort, it is
-  much more economic to run them with IDL. To run such IDL codes without any financial constraints, there have been several
-  efforts to create a freeware clone of IDL, including Fawlty Language (<https://www.flxpert.hu/fl/>). Fawlty Language is a
-  very successful implementation as it supports nearly 100% of the latest IDL 8.0 syntax. However, Faulty Language is not an
-  open-source software package and users cannot easily report and fix their problems to run their IDL codes.
+  fields, including astronomy, geosciences, biology, hyperspectral, medical imaging (@burrage2021cardiac, @coates2019high,
+  @xiao2022superheating, @lee2022transboundary, @castro2021very), and even COVID-19 research (@chen2021orf3a). Although
+  IDL is not so widely used these days for scientific computing as the rise of modern computing languages, many legacy IDL
+  codes are still being used these days. Undoubtedly, porting such legacy codes to modern languages would require a huge
+  effort, it is much more economic to run them with IDL. To run such IDL codes without any financial constraints, there
+  have been several efforts to create a freeware clone of IDL, including Fawlty Language (<https://www.flxpert.hu/fl/>).
+  Fawlty Language is a very successful implementation as it supports nearly 100% of the latest IDL 8.0 syntax. However,
+  Faulty Language is neither open-source nor free as in free speach and thus users cannot report or fix problems in its 
+  source code. Neither IDL nor FL fulfill modern requirements for freely reproducible research. 
 
 The GDL project is an international effort to create a free software clone of Interactive Data Language (IDL) or Precision
   Visuals - Workstation Analysis and Visualization Environment (PV-WAVE), preserving the capability to run the vast body of
@@ -132,7 +146,11 @@ GDL is interoperable with Python, by featuring a bi-directional Python bridge of
   Python and vice versa.
 
 GDL, GDL Workbench and `gdl_kernel` are free/libre and open-source software publicly available under the terms of the GNU General
-  Public License v2.
+  Public License v2 or above.
+
+# Highlights in GDL 1.0
+
+From GDL 1.0, the plotting part has been completely revamped based on wxWidgets by default for all platforms, which provides a widget support and also guarantees the same behaviour across different operating systems. GDL 1.0 also provides an improved file format support, including reading/writing geoTIFF and writing HDF files. From the release of 1.0, GDL project is automatically compiled and released via Github Actions, with providing a convenient installer for Windows systems. In addition to new features, many performance and threading optimizations were also done. Map projections support in GDL is also much more mature compared to earlier major releases of GDL. Finally, the transition from SourceForge to GitHub that preceded release of GDL 1.0 helped to consolidate the community efforts, streamline development and support workflows.
 
 # Design and Dependencies
 
@@ -178,7 +196,7 @@ GD has contributed a major rework of widgets and plotting subsystems to the 1.0 
 GD and AC have been the key maintainers and developers of GDL over the last decade.
 GVJ has contributed support for Windows OS, newer IDL datatypes, and library routines.
 LS started the `gdl_kernel` project.
-SF, TH, ERdL, JT, JW, and RAS contributed library routines.
+BB, SF, OG, THi, THu, JK, ERdL, JT, JW, and RAS contributed library routines and tests.
 OS, TT, OP, and TE maintain GDL packages.
 SA had been an active contributor in years 2009-2015 and has since kept contributing to project maintenance.
 JP and SA wrote the paper draft, and all the other authors have reviewed and confirmed the text.
