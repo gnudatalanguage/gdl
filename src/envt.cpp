@@ -1505,28 +1505,28 @@ void EnvBaseT::SetNextPar( BaseGDL** const nextP) // by reference (reset env)
 // returns the keyword index, used for UD functions
 int EnvBaseT::GetKeywordIx( const std::string& k) {
   String_abbref_eq strAbbrefEq_k(k);
-
-  // if there are no keywords, even _EXTRA isn't allowed
-  if (pro->key.size() == 0) {
-    if (pro->warnKey.size() == 0)
-      Throw("Keyword parameters not allowed in call.");
-
-    // look if warnKeyword
-    IDList::iterator wf = std::find_if(pro->warnKey.begin(),
-      pro->warnKey.end(),
-      strAbbrefEq_k);
-    if (wf == pro->warnKey.end())
-      Throw("Keyword parameter -" + k + "- not allowed in call "
-      "to: " + pro->Name());
-    // 	throw GDLException(callingNode,
-    // 			   "Keyword parameter "+k+" not allowed in call "
-    // 			   "to: "+pro->Name());
-
-    Warning("Warning: Keyword parameter " + k + " not supported in call "
-      "to: " + pro->Name() + ". Ignored.");
-
-    return -4;
-  }
+//GD: no, _EXTRA is possible even when no keywords (will pass if _EXTRA=!NULL or undefined) 
+//  // if there are no keywords, even _EXTRA isn't allowed
+//  if (pro->key.size() == 0) {
+//    if (pro->warnKey.size() == 0)
+//      Throw("Keyword parameters not allowed in call.");
+//
+//    // look if warnKeyword
+//    IDList::iterator wf = std::find_if(pro->warnKey.begin(),
+//      pro->warnKey.end(),
+//      strAbbrefEq_k);
+//    if (wf == pro->warnKey.end())
+//      Throw("Keyword parameter -" + k + "- not allowed in call "
+//      "to: " + pro->Name());
+//    // 	throw GDLException(callingNode,
+//    // 			   "Keyword parameter "+k+" not allowed in call "
+//    // 			   "to: "+pro->Name());
+//
+//    Warning("Warning: Keyword parameter " + k + " not supported in call "
+//      "to: " + pro->Name() + ". Ignored.");
+//
+//    return -4;
+//  }
 
   // search keyword
   KeyVarListT::iterator f = std::find_if(pro->key.begin(),
@@ -1542,19 +1542,10 @@ int EnvBaseT::GetKeywordIx( const std::string& k) {
       IDList::iterator wf = std::find_if(pro->warnKey.begin(),
         pro->warnKey.end(),
         strAbbrefEq_k);
-      if (wf == pro->warnKey.end())
-        Throw("Keyword parameter <" + k + "> not allowed in call "
-        "to: " + pro->Name());
-      /*	    throw GDLException(callingNode,
-          "Keyword parameter "+k+" not allowed in call "
-          "to: "+pro->Name());*/
-
-      Warning("Warning: Keyword parameter " + k + " not supported in call "
-        "to: " + pro->Name() + ". Ignored.");
-
+      if (wf == pro->warnKey.end()) Throw("Keyword parameter <" + k + "> not allowed in call to: " + pro->Name());
+      Warning("Warning: Keyword parameter " + k + " not supported in call to: " + pro->Name() + ". Ignored.");
       return -4;
     }
-
     // extra keyword
     return -1;
   }
