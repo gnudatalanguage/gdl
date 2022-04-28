@@ -34,9 +34,9 @@ namespace lib {
   {
     DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
     SizeT xEl, yEl, zEl;
-    DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd, zValue;
+    DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd, zValue, zStart, zEnd;
     bool doMinMax;
-    bool xLog, yLog, wasBadxLog, wasBadyLog;
+    bool xLog, yLog;
     Guard<BaseGDL> xval_guard, yval_guard, xtemp_guard;
     DLong iso;
     bool doT3d;
@@ -159,15 +159,28 @@ private:
 
     DDouble minVal, maxVal;
     bool doMinMax;
-
-    bool xLog;
-    bool yLog;
     gdlGetAxisType(XAXIS, xLog);
     gdlGetAxisType(YAXIS, yLog);
 
-   GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd);
+//    GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd);
+   gdlGetCurrentAxisRange(XAXIS, xStart, xEnd); 
+   gdlGetCurrentAxisRange(YAXIS, yStart, yEnd);
+      // hack: !y may have changed between last plot and now,
+      // and the code is based on plplot having the good values.
+      // We need to set up the plplot equivalent of !y before anything else.
+   if (!doT3d) {
+	    DDouble *sx, *sy;
+	    GetSFromPlotStructs( &sx, &sy );
 
-    //now we can setup minVal and maxVal to defaults: Start-End and overload if KW present
+	    DFloat *wx, *wy;
+	    GetWFromPlotStructs( &wx, &wy );
+
+	    DDouble pxStart, pxEnd, pyStart, pyEnd;
+	    DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
+
+	    actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
+	    actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
+	  } else gdlGetCurrentAxisRange(ZAXIS, zStart, zEnd); 
 
     minVal = yStart; //to give a reasonable value...
     maxVal = yEnd;   //idem
@@ -290,7 +303,6 @@ private:
     private: void post_call(EnvT* e, GDLGStream* actStream)
     {
      if (doT3d) actStream->stransform(NULL,NULL);
-//      actStream->RestoreLayout();
       actStream->lsty(1);//reset linestyle
       actStream->sizeChar(1.0);
     } 

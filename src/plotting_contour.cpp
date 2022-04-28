@@ -921,11 +921,13 @@ namespace lib
       if (doT3d) {
         actStream->stransform(NULL,NULL); //remove transform BEFORE writing axes, ticks..
       }
-      //Draw axes after the data because /fill could potentially overlap the axes.
+	  //restore color for boxes
+    gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
+
+    //Draw axes after the data because /fill could potentially overlap the axes.
       //... if keyword "OVERPLOT" is not set
       if ( make2dBox ) //onlyplace where tick etc is relevant!
 	{
-	  gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
 	  gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
 	}
       if(make3dBox) {  //overplot box
