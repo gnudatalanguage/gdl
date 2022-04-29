@@ -218,9 +218,9 @@ private:
     yStart = (*yVal)[minEl];
     yEnd = (*yVal)[maxEl];
     
-    //Use this general function here, is OK. Will be called anyway AFTER all other range-changing
-    gdlHandleUnwantedLogAxisValue(xStart, xEnd, xLog);
-    gdlHandleUnwantedLogAxisValue(yStart, yEnd, yLog);
+    //NO see #1318//Use this general function here, is OK. Will be called anyway AFTER all other range-changing
+    //gdlHandleUnwantedLogAxisValue(xStart, xEnd, xLog);
+    //gdlHandleUnwantedLogAxisValue(yStart, yEnd, yLog);
 
     //MIN_VALUE and MAX_VALUE overwrite yStart/yEnd eventually (note: the points will not be "seen" at all in plots)
     minVal = yStart; //to give a reasonable value...

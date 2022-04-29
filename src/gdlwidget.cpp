@@ -178,7 +178,7 @@ static const char * pixmap_checked[] = {
 ".+++++++++++."};
 
 #include "../resource/gdlicon.xpm"
-wxIcon wxgdlicon = wxIcon(gdlicon_xpm);
+wxIcon wxgdlicon;
 
 const WidgetIDT GDLWidget::NullID = 0;
 
@@ -961,6 +961,8 @@ void GDLWidget::Init()
   gdlDefaultTreeStateImages = new wxImageList(StateImageSize.x, StateImageSize.y, true);
   gdlDefaultTreeStateImages->Add(wxIcon(pixmap_unchecked)); //gdlWxTree_UNCHECKED
   gdlDefaultTreeStateImages->Add(wxIcon(pixmap_checked)); //gdlWxTree_UNCHECKED
+  //create wxIcon HERE and not before wxWidgets is started!
+  wxgdlicon = wxIcon(gdlicon_xpm);
 }
 //ResetWidgets
 void GDLWidget::ResetWidgets() {
