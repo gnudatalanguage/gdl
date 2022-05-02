@@ -126,6 +126,9 @@ namespace lib {
         oxStart = 0;
         oxEnd = 1;
       }
+    } else {
+      if (xLog) {oxStart=pow(oxStart,10);oxEnd=pow(oxEnd,10);}
+      if (yLog) {oyStart=pow(oyStart,10);oyEnd=pow(oxEnd,10);}
     }
 
     PLFLT ovpSizeX, ovpSizeY;
@@ -148,8 +151,8 @@ namespace lib {
     static int xTickunitsIx = e->KeywordIx( "XTICKUNITS" );
     static int yTickunitsIx = e->KeywordIx( "YTICKUNITS" );
 
-    if ( e->KeywordPresent( xTypeIx ) ) xLog = e->KeywordSet( xTypeIx ); else xLog = e->KeywordSet( xLogIx );
-    if ( e->KeywordPresent( yTypeIx ) ) yLog = e->KeywordSet( yTypeIx ); else yLog = e->KeywordSet( yLogIx );
+    if ( e->KeywordPresent( xTypeIx ) ) xLog = e->KeywordSet( xTypeIx );
+    if ( e->KeywordPresent( yTypeIx ) ) yLog = e->KeywordSet( yTypeIx );
 
     if ( xLog && e->KeywordSet( xTickunitsIx ) ) {
       Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
