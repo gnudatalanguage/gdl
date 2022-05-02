@@ -70,6 +70,9 @@ namespace lib
   };
   static LOCALUSYM localusym;
   
+  static std::vector<PLFLT>xtickget;
+  static std::vector<PLFLT>ytickget;
+  static std::vector<PLFLT>ztickget;
   gdlSavebox* getSaveBox(){return &saveBox;} 
 
   void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax, DDouble minVal, DDouble maxVal)
@@ -1304,7 +1307,70 @@ namespace lib
       (*static_cast<DLongGDL*>(Struct->GetTag(typeTag, 0)))[0]=Type;
     } 
   }
-
+  DDoubleGDL* getLabelingValues(int axisId) {
+    DDoubleGDL* res = NULL;
+    int nEl;
+    switch (axisId) {
+    case XAXIS:
+      nEl = xtickget.size();
+      if (nEl > 0) {
+        res = new DDoubleGDL(nEl, BaseGDL::NOZERO);
+        for (auto i = 0; i < nEl; ++i) (*res)[i] = xtickget[i];
+      }
+      xtickget.clear();
+      break;
+    case YAXIS:
+      nEl = ytickget.size();
+      if (nEl > 0) {
+        res = new DDoubleGDL(nEl, BaseGDL::NOZERO);
+        for (auto i = 0; i < nEl; ++i) (*res)[i] = ytickget[i];
+      }
+      ytickget.clear();
+      break;
+    case ZAXIS:
+      nEl = ztickget.size();
+      if (nEl > 0) {
+        res = new DDoubleGDL(nEl, BaseGDL::NOZERO);
+        for (auto i = 0; i < nEl; ++i) (*res)[i] = ztickget[i];
+      }
+      ztickget.clear();
+      break;
+    }
+    return res;
+  }
+  void resetTickGet(int axisId){
+    switch(axisId){
+    case XAXIS:
+      xtickget.clear();
+      break;
+    case YAXIS:
+      ytickget.clear();
+      break;
+    case ZAXIS:
+      ztickget.clear();
+      break;
+    }
+  }
+  void addToTickGet(int axisId, PLFLT value){
+    switch(axisId){
+    case PL_X_AXIS:
+      xtickget.push_back(value);
+      break;
+    case PL_Y_AXIS:
+      ytickget.push_back(value);
+      break;
+    case PL_Z_AXIS:
+      ztickget.push_back(value);
+      break;
+    }
+  }
+  void defineLabeling(GDLGStream *a, int axisId, void(*func)(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data), PLPointer data) {
+    resetTickGet(axisId);
+    a->slabelfunc(func, data);
+  }
+  void resetLabeling(GDLGStream *a, int axisId) {
+    a->slabelfunc(NULL, NULL);
+  }
   void doOurOwnFormat(PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data)
   {
     struct GDL_TICKDATA *ptr = (GDL_TICKDATA* )data;
@@ -1445,6 +1511,7 @@ namespace lib
   //just a wrapper for doOurOwnFormat() adding general font code translation.
   void gdlSimpleAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
   {
+    addToTickGet(axis,value);
     struct GDL_TICKDATA *ptr = (GDL_TICKDATA* )data;
     doOurOwnFormat(axis, value, label, length, data);
     //translate format codes (as in mtex).
@@ -1456,6 +1523,7 @@ namespace lib
   
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer multiaxisdata)
   {
+    addToTickGet(axis,value);
     PLINT axisNotUsed=0; //to indicate that effectively the axis number is not (yet?) used in some calls
     static GDL_TICKDATA tdata;
     static SizeT internalIndex=0;
@@ -1601,6 +1669,7 @@ namespace lib
 
   void gdlSingleAxisTickNamedFunc( PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data)
   {
+    addToTickGet(axisNotUsed,value);
     static GDL_TICKDATA tdata;
     struct GDL_TICKNAMEDATA *ptr = (GDL_TICKNAMEDATA* )data;
     tdata.isLog=ptr->isLog;

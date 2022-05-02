@@ -332,6 +332,9 @@ namespace lib {
 			   DDouble yEnd, bool xLog, bool yLog);
   gdlSavebox* getSaveBox();
   gdlSavebox* getTempBox();
+  DDoubleGDL* getLabelingValues(int axisId);
+  void defineLabeling(GDLGStream *a, int axisId, void(*func)(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data), PLPointer data);
+  void resetLabeling(GDLGStream *a, int axisId);
   void gdlSimpleAxisTickFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void gdlSingleAxisTickNamedFunc( PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
@@ -928,7 +931,24 @@ namespace lib {
       axisTickvVect=e->GetKWAs<DDoubleGDL>( choosenIx );
     }
   }
-
+  
+  //if [X|Y|Z]TICK_GET was given for axis, write the values.
+  static void gdlWriteDesiredAxisTickGet(EnvT* e, int axisId, bool isLog)
+  {
+    int XTICKGIx = e->KeywordIx("XTICK_GET");
+    int YTICKGIx = e->KeywordIx("YTICK_GET");
+    int ZTICKGIx = e->KeywordIx("ZTICK_GET");
+    int choosenIx=XTICKGIx;
+    if ( axisId==XAXIS ) { choosenIx=XTICKGIx; }
+    if ( axisId==YAXIS ) { choosenIx=YTICKGIx; }
+    if ( axisId==ZAXIS ) { choosenIx=ZTICKGIx; }
+    if (e->WriteableKeywordPresent ( choosenIx )) {
+      DDoubleGDL* val=getLabelingValues(axisId);
+      if (val==NULL) e->Throw("Internal GDL error for [X|Y|Z]TICK_GET, please report");
+      if (isLog) for (auto i=0; i< val->N_Elements(); ++i) (*val)[i]=pow(10.0,(*val)[i]);
+      e->SetKW(choosenIx,val);
+    }
+  }  
   static void gdlGetDesiredAxisTitle(EnvT *e, int axisId, DString &title)
   {
     int XTITLEIx = e->KeywordIx("XTITLE");
@@ -1793,7 +1813,7 @@ namespace lib {
       data.nchars = 0;
       data.TickName = TickName;
       data.nTickName = TickName->N_Elements();
-      a->slabelfunc(gdlSingleAxisTickNamedFunc, &data);
+      defineLabeling(a,axisId,gdlSingleAxisTickNamedFunc, &data);
       Opt += "o"; //custom labelling
       if (modifierCode == 2) Opt += "m"; //write label "unconventional position" (top or right) 
       else Opt += "n"; //write label "conventional position" (bottom or left) 
@@ -1801,7 +1821,7 @@ namespace lib {
       else if (axisId == YAXIS) a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
       nchars = data.nchars;
         if (axisId==YAXIS) title_position=nchars+2.5; else title_position=3.5;
-      a->slabelfunc(NULL, NULL);
+      resetLabeling(a,axisId);
     }
     //care Tickunits size is 10 if not defined because it is the size of !X.TICKUNITS.
     else if (hasTickUnitDefined) // /TICKUNITS=[several types of axes written below each other]
@@ -1816,7 +1836,7 @@ namespace lib {
       }
       muaxdata.TickUnits = TickUnits;
       muaxdata.nTickUnits = tickUnitArraySize;
-      a->slabelfunc(gdlMultiAxisTickFunc, &muaxdata);
+      defineLabeling(a,axisId,gdlMultiAxisTickFunc, &muaxdata);
         Opt+="o";otherOpt+="o"; //use external func custom labeling
         if (modifierCode==2) {Opt+="m"; otherOpt+="m";} else {Opt+="n"; otherOpt+="n";} //m: write numerical/right above, n: below/left (normal)
       PLFLT un, deux, trois, quatre, xun, xdeux, xtrois, xquatre;
@@ -1849,7 +1869,7 @@ namespace lib {
       }
       a->vpor(un, deux, trois, quatre);
       a->wind(xun, xdeux, xtrois, xquatre);
-      a->slabelfunc(NULL, NULL);
+      resetLabeling(a,axisId);
       }
       else if (TickFormat->NBytes()>0) //no /TICKUNITS=> only 1 value taken into account
     {
@@ -1858,26 +1878,26 @@ namespace lib {
       muaxdata.what = GDL_TICKFORMAT;
       muaxdata.TickFormat = TickFormat;
       muaxdata.nTickFormat = 1;
-      a->slabelfunc(gdlMultiAxisTickFunc, &muaxdata);
+      defineLabeling(a,axisId,gdlMultiAxisTickFunc, &muaxdata);
       Opt += "o";
-        if (modifierCode==2) Opt+="m"; else Opt+="n";
+      if (modifierCode==2) Opt+="m"; else Opt+="n";
       if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
       else if (axisId == YAXIS) a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
       nchars = muaxdata.nchars;
-        if (axisId==YAXIS) title_position=nchars+2; else title_position=3.5;
-      a->slabelfunc(NULL, NULL);
-      }
-      else
-      {
+      if (axisId==YAXIS) title_position=nchars+2; else title_position=3.5;
+      resetLabeling(a,axisId);
+    }
+    else
+    {
       tdata.nchars = 0;
-      a->slabelfunc(gdlSimpleAxisTickFunc, &tdata);
+      defineLabeling(a,axisId,gdlSimpleAxisTickFunc, &tdata);
       Opt += "o";
-        if (modifierCode==2) Opt+="m"; else Opt+="n";
+      if (modifierCode==2) Opt+="m"; else Opt+="n";
       if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
       else if (axisId == YAXIS) a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
       nchars = tdata.nchars;
-        if (axisId==YAXIS) title_position=nchars+2; else title_position=3.5;
-      a->slabelfunc(NULL, NULL);
+      if (axisId==YAXIS) title_position=nchars+2; else title_position=3.5;
+      resetLabeling(a,axisId);
     }
     if (hasTitle) {
       if (modifierCode == 0 || modifierCode == 1) {
@@ -1940,6 +1960,7 @@ namespace lib {
       if (axisId == XAXIS) a->box(Opt.c_str(), 0.0, 0, "", 0.0, 0);
       else if (axisId == YAXIS) a->box("", 0.0, 0, Opt.c_str(), 0.0, 0);
     }
+      gdlWriteDesiredAxisTickGet(e, axisId, Log);
     //reset charsize & thick
     a->Thick(1.0);
     a->sizeChar(1.0);
@@ -2073,12 +2094,12 @@ namespace lib {
         data.counter=0;
         data.TickName=TickName;
         data.nTickName=TickName->N_Elements();
-        a->slabelfunc( gdlSingleAxisTickNamedFunc, &data );
+        defineLabeling(a,axisId,gdlSingleAxisTickNamedFunc, &data );
         Opt+="o";
         if      (axisId==XAXIS) a->box3(Opt.c_str(), "" , TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
         else if (axisId==YAXIS) a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
         else if (doZ) if (axisId==ZAXIS) a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
-        a->slabelfunc( NULL, NULL );
+        resetLabeling(a,axisId);
       }
       //care Tickunits size is 10 if not defined because it is the size of !X.TICKUNITS.
       else if (hasTickUnitDefined) // /TICKUNITS=[several types of axes written below each other]
@@ -2093,7 +2114,7 @@ namespace lib {
         }
         muaxdata.TickUnits=TickUnits;
         muaxdata.nTickUnits=tickUnitArraySize;
-        a->slabelfunc( gdlMultiAxisTickFunc, &muaxdata );
+        defineLabeling(a,axisId,gdlMultiAxisTickFunc, &muaxdata );
         Opt+="o";
         for (SizeT i=0; i< muaxdata.nTickUnits; ++i) //loop on TICKUNITS axis
         {
@@ -2108,7 +2129,7 @@ namespace lib {
 //          a->plstream::wind(xun,xdeux,xtrois,xquatre);
             muaxdata.counter++;
         }
-        a->slabelfunc( NULL, NULL );
+        resetLabeling(a,axisId);
       }
       else if (TickFormat->NBytes()>0) //no /TICKUNITS=> only 1 value taken into account
       {
@@ -2116,22 +2137,22 @@ namespace lib {
         muaxdata.what=GDL_TICKFORMAT;
         muaxdata.TickFormat=TickFormat;
         muaxdata.nTickFormat=1;
-        a->slabelfunc( gdlMultiAxisTickFunc, &muaxdata );
+        defineLabeling(a,axisId,gdlMultiAxisTickFunc, &muaxdata );
         Opt+="o";
         if      (axisId==XAXIS) a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
         else if (axisId==YAXIS) a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
         else if (doZ) if (axisId==ZAXIS) a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
         
-        a->slabelfunc( NULL, NULL );
+        resetLabeling(a,axisId);
       }
       else
       {
-        a->slabelfunc( gdlSimpleAxisTickFunc, &tdata );
+        defineLabeling(a,axisId,gdlSimpleAxisTickFunc, &tdata );
         Opt+="o";
         if      (axisId==XAXIS) a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
         else if (axisId==YAXIS) a->box3("", "", 0.0 ,0.0, Opt.c_str(),"", TickInterval, Minor, "", "", 0.0, 0);
         else if (doZ) if (axisId==ZAXIS) a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
-        a->slabelfunc( NULL, NULL );
+        resetLabeling(a,axisId);
       }
 
       if (TickLayout==0)
@@ -2163,6 +2184,7 @@ namespace lib {
       //reset charsize & thick
       a->Thick(1.0);
       a->sizeChar(1.0);
+      gdlWriteDesiredAxisTickGet(e, axisId, Log);
     }
 	return 0;
   }
