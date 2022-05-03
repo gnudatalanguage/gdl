@@ -123,15 +123,16 @@ public:
 // dynamic allocation needed!    
     PLINT Quadx[4]={xMaxSize-xleng-1,xMaxSize-xleng-1,1,1};
     PLINT Quady[4]={1,yMaxSize-yleng-1,1,yMaxSize-yleng-1};
-    if (noPosx && noPosy) { //no init given, use 4 quadrants:
-      xoff = Quadx[wIx%4];
-      yoff = Quady[wIx%4];
+  int locOnScreen=(wIx>31)?(wIx+2)%4:wIx % 4; //IDL shifts /FREE windows by 2
+  if (noPosx && noPosy) { //no init given, use 4 quadrants:
+      xoff = Quadx[locOnScreen];
+      yoff = Quady[locOnScreen];
     } else if (noPosx) {
-      xoff = Quadx[wIx%4];
+      xoff = Quadx[locOnScreen];
       yoff = yMaxSize-yPos-yleng;
     } else if (noPosy) {
       xoff = xPos;
-      yoff = Quady[wIx%4];
+      yoff = Quady[locOnScreen];
     } else {
       xoff  = xPos;
       yoff  = yMaxSize-yPos-yleng;
