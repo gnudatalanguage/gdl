@@ -37,6 +37,7 @@ namespace lib {
     DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd, zValue, zStart, zEnd;
     bool doMinMax;
     bool xLog, yLog;
+    bool restorelayout;
     Guard<BaseGDL> xval_guard, yval_guard, xtemp_guard;
     DLong iso;
     bool doT3d;
@@ -168,7 +169,8 @@ private:
       // hack: !y may have changed between last plot and now,
       // and the code is based on plplot having the good values.
       // We need to set up the plplot equivalent of !y before anything else.
-   if (!doT3d) {
+    restorelayout=true;
+    if (!doT3d) {
 	    DDouble *sx, *sy;
 	    GetSFromPlotStructs( &sx, &sy );
 
@@ -177,7 +179,7 @@ private:
 
 	    DDouble pxStart, pxEnd, pyStart, pyEnd;
 	    DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
-
+      if (restorelayout) actStream->OnePageSaveLayout(); // one page
 	    actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
 	    actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
 	  } else gdlGetCurrentAxisRange(ZAXIS, zStart, zEnd); 
@@ -302,6 +304,7 @@ private:
 
     private: void post_call(EnvT* e, GDLGStream* actStream)
     {
+     if (restorelayout) actStream->RestoreLayout();
      if (doT3d) actStream->stransform(NULL,NULL);
       actStream->lsty(1);//reset linestyle
       actStream->sizeChar(1.0);
