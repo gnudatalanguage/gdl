@@ -111,15 +111,16 @@ public:
 #else
   PLINT Quady[4] = {1, yMaxSize - y_scroll_size - 1, 1, yMaxSize - y_scroll_size - 1}; //IDL covers the linux (bottom) taskbar too
 #endif
+  int locOnScreen=(wIx>31)?(wIx+2)%4:wIx % 4; //IDL shifts /FREE windows by 2
   if (noPosx && noPosy) { //no init given, use 4 quadrants:
-   xoff = Quadx[wIx % 4];
-   yoff = Quady[wIx % 4];
+   xoff = Quadx[locOnScreen];
+   yoff = Quady[locOnScreen];
   } else if (noPosx) {
-   xoff = Quadx[wIx % 4];
+   xoff = Quadx[locOnScreen];
    yoff = yMaxSize - yPos - y_scroll_size;
   } else if (noPosy) {
    xoff = xPos;
-   yoff = Quady[wIx % 4];
+   yoff = Quady[locOnScreen];
   } else {
    xoff = xPos;
    yoff = yMaxSize - yPos - y_scroll_size;
@@ -189,12 +190,12 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
     plotFrame->Show(); //WithoutActivating();
   }
   plotFrame->UpdateWindowUI();
-//  //really show by letting the loop do its magic.
-//#ifdef __WXMAC__
-//  wxTheApp->Yield();
-//#else
-//  wxGetApp().MainLoop(); //central loop for wxEvents!
-//#endif
+//really show by letting the loop do its magic. Necessary.
+#ifdef __WXMAC__
+  wxTheApp->Yield();
+#else
+  wxGetApp().MainLoop(); //central loop for wxEvents!
+#endif
   return true;
  }
 

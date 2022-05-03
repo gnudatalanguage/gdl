@@ -48,7 +48,7 @@ void tvcrs( EnvT* e)
 
   if (nParam < 2 )
   {
-    e->Throw("TVCRS with 1 argument not implemented (fixme)");
+    return; // ignore e->Throw("TVCRS with 1 argument not implemented (fixme)");
   }
   DDoubleGDL *x,*y;
 
