@@ -102,8 +102,8 @@
 #define TRACEOMP( file, line) 
 #endif
 
-//#define TRACE_OPCALLS
-#undef TRACE_OPCALLS
+#define TRACE_OPCALLS
+//#undef TRACE_OPCALLS
 
 #if defined(TRACE_OPCALLS)
 #define TRACE_ROUTINE(func,file,line) std::cout << func << "\t" << file << "\t" << line << std::endl;
