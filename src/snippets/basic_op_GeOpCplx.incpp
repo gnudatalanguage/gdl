@@ -1,4 +1,3 @@
-TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong rEl = right->N_Elements();

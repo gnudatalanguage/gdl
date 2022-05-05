@@ -11,40 +11,40 @@
   if (right->StrictScalar(s)) {
     res = new Data_<SpDByte>(this->dim, BaseGDL::NOZERO);
     if (nEl == 1) {
-      (*res)[0] = (std::norm((*this)[0]) > std::norm(s));
+      (*res)[0] = (std::norm((*this)[0]) < std::norm(s));
       return res;
     }
 
     if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (std::norm((*this)[i]) > std::norm(s));
+      for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (std::norm((*this)[i]) < std::norm(s));
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (std::norm((*this)[i]) > std::norm(s));
+        for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (std::norm((*this)[i]) < std::norm(s));
     }
   } else if (StrictScalar(s)) {
     res = new Data_<SpDByte>(right->dim, BaseGDL::NOZERO);
     if (rEl == 1) {
-      (*res)[0] = (std::norm((*right)[0]) < std::norm(s));
+      (*res)[0] = (std::norm((*right)[0]) > std::norm(s));
       return res;
     }
 
     if ((GDL_NTHREADS=parallelize( rEl))==1) {
-      for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = (std::norm((*right)[i]) < std::norm(s));
+      for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = (std::norm((*right)[i]) > std::norm(s));
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = (std::norm((*right)[i]) < std::norm(s));
+        for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = (std::norm((*right)[i]) > std::norm(s));
     }
   } else if (rEl < nEl) {
     res = new Data_<SpDByte>(right->dim, BaseGDL::NOZERO);
 
     if ((GDL_NTHREADS=parallelize( rEl))==1) {
-      for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = (std::norm((*right)[i]) < std::norm((*this)[i]));
+      for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = (std::norm((*right)[i]) > std::norm((*this)[i]));
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = (std::norm((*right)[i]) < std::norm((*this)[i]));
+        for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = (std::norm((*right)[i]) > std::norm((*this)[i]));
     }
   } else // ( rEl >= nEl)
   {
@@ -55,11 +55,11 @@
     }
 
     if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (std::norm((*right)[i]) < std::norm((*this)[i]));
+      for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (std::norm((*right)[i]) > std::norm((*this)[i]));
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (std::norm((*right)[i]) < std::norm((*this)[i]));
+        for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (std::norm((*right)[i]) > std::norm((*this)[i]));
     }
   }
   return res;

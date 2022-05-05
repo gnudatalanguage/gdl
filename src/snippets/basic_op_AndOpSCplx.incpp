@@ -1,0 +1,11 @@
+Data_* right = static_cast<Data_*> (r);
+
+ULong nEl = N_Elements();
+
+assert(nEl);
+Ty s = (*right)[0];
+if (s == zero) {
+  for (SizeT i = 0; i < nEl; ++i)
+    (*this)[i] = zero;
+}
+return this;
