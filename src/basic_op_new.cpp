@@ -194,46 +194,26 @@ Data_<SpDString>* Data_<SpDString>::AndOpNew(BaseGDL* r) {
 }
 
 template<>
-Data_<SpDComplex>* Data_<SpDComplex>::AndOpNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return NULL;
+Data_<SpDComplex>* Data_<SpDComplex>::AndOpNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+#include "snippets/basic_op_AndOpNewCplx.incpp"
 }
 
 template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::AndOpNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return NULL;
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::AndOpNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+#include "snippets/basic_op_AndOpNewCplx.incpp"
 }
-// template<>
-// Data_<SpDString>* Data_<SpDString>::AndOpInvNew( BaseGDL* r)
-// { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-//  throw GDLException("Cannot apply operation to datatype STRING.",true,false);
-//  return res;
-// }
 
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::AndOpNew(BaseGDL* r) {
   throw GDLException("Cannot apply operation to datatype PTR.", true, false);
   return NULL;
 }
-// template<>
-// Data_<SpDPtr>* Data_<SpDPtr>::AndOpInvNew( BaseGDL* r)
-// { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-//  throw GDLException("Cannot apply operation to datatype PTR.",true,false);
-//  return res;
-// }
 
 template<>
 Data_<SpDObj>* Data_<SpDObj>::AndOpNew(BaseGDL* r) {
   throw GDLException("Cannot apply operation to datatype OBJECT.", true, false);
   return NULL;
 }
-// template<>
-// Data_<SpDPtr>* Data_<SpDPtr>::AndOpInvNew( BaseGDL* r)
-// { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-//  throw GDLException("Cannot apply operation to datatype PTR.",true,false);
-//  return res;
-// }
 
 // scalar versions
 
@@ -354,16 +334,32 @@ Data_<SpDString>* Data_<SpDString>::AndOpSNew(BaseGDL* r) {
 }
 
 template<>
-Data_<SpDComplex>* Data_<SpDComplex>::AndOpSNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return NULL;
+Data_<SpDComplex>* Data_<SpDComplex>::AndOpSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
+  if ((*right)[0] == zero) {
+    return New(this->dim, BaseGDL::ZERO);
+  }
+  return this->Dup();
 }
 
 template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::AndOpSNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return NULL;
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::AndOpSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
+  if ((*right)[0] == zero) {
+    return New(this->dim, BaseGDL::ZERO);
+  }
+  return this->Dup();
 }
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::AndOpInvSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+#include "snippets/basic_op_AndOpInvSNewCplx.incpp"
+}
+
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::AndOpInvSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+#include "snippets/basic_op_AndOpInvSNewCplx.incpp"
+}
+
 // template<>
 // Data_<SpDString>* Data_<SpDString>::AndOpInvSNew( BaseGDL* r)
 // { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
@@ -540,15 +536,13 @@ Data_<SpDString>* Data_<SpDString>::OrOpNew(BaseGDL* r) {
 }
 
 template<>
-Data_<SpDComplex>* Data_<SpDComplex>::OrOpNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return NULL;
+Data_<SpDComplex>* Data_<SpDComplex>::OrOpNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+#include "snippets/basic_op_OrOpNewCplx.incpp"
 }
 
 template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::OrOpNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return NULL;
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::OrOpNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+#include "snippets/basic_op_OrOpNewCplx.incpp"
 }
 
 template<>
@@ -629,36 +623,36 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTIO
   }
 }
 // b=(a or 0)
-template<>
-Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  Data_* right = static_cast<Data_*> (r);
-
-  ULong nEl = N_Elements();
-  Data_* res = NewResult();
-  assert(nEl);
-  Ty s = (*right)[0];
-  if (s != zero) {
-    for (SizeT i = 0; i < nEl; ++i)
-      (*res)[i] = s;
-    return res;
-  } else {
-    if (nEl == 1) {
-      if ((*this)[0] != zero) (*res)[0] = s;
-      else (*res)[0] = zero;
-      return res;
-    }
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = s;
-        else (*res)[i] = zero;
-    } else {
-      TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = s;
-        else (*res)[i] = zero;
-    }
-    return res;
-  }
-}
+//template<>
+//Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+//  Data_* right = static_cast<Data_*> (r);
+//
+//  ULong nEl = N_Elements();
+//  Data_* res = NewResult();
+//  assert(nEl);
+//  Ty s = (*right)[0];
+//  if (s != zero) {
+//    for (SizeT i = 0; i < nEl; ++i)
+//      (*res)[i] = s;
+//    return res;
+//  } else {
+//    if (nEl == 1) {
+//      if ((*this)[0] != zero) (*res)[0] = s;
+//      else (*res)[0] = zero;
+//      return res;
+//    }
+//    if ((GDL_NTHREADS=parallelize( nEl))==1) {
+//      for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = s;
+//        else (*res)[i] = zero;
+//    } else {
+//      TRACEOMP(__FILE__, __LINE__)
+//#pragma omp parallel for num_threads(GDL_NTHREADS)
+//        for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = s;
+//        else (*res)[i] = zero;
+//    }
+//    return res;
+//  }
+//}
 // for doubles
 
 template<>
@@ -691,36 +685,6 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
   return this->Dup();
 }
 
-template<>
-Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  Data_* right = static_cast<Data_*> (r);
-
-  ULong nEl = N_Elements();
-  Data_* res = NewResult();
-  assert(nEl);
-  Ty s = (*right)[0];
-  if (s != zero) {
-    for (SizeT i = 0; i < nEl; ++i)
-      (*res)[i] = s;
-    return res;
-  } else {
-    if (nEl == 1) {
-      if ((*this)[0] != zero) (*res)[0] = s;
-      else (*res)[0] = zero;
-      return res;
-    }
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = s;
-        else (*res)[i] = zero;
-    } else {
-      TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] != zero) (*res)[i] = s;
-        else (*res)[i] = zero;
-    }
-    return res;
-  }
-}
 // invalid types
 
 template<>
@@ -730,15 +694,13 @@ Data_<SpDString>* Data_<SpDString>::OrOpSNew(BaseGDL* r) {
 }
 
 template<>
-Data_<SpDComplex>* Data_<SpDComplex>::OrOpSNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return NULL;
+Data_<SpDComplex>* Data_<SpDComplex>::OrOpSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+#include "snippets/basic_op_OrOpSNewCplx.incpp"
 }
 
 template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::OrOpSNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return NULL;
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::OrOpSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+#include "snippets/basic_op_OrOpSNewCplx.incpp"
 }
 
 template<>

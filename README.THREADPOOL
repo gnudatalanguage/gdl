@@ -10,7 +10,7 @@ At the moment, operations on objects and pointers are not using OpenMP. Please o
 The list of 'thread pool' operations, functions, routines, etc that use it is:
 
 Operators + , - , * , / , # , ##  ( unless Eigen:: is used, in which case we use Eigen::)
-Operators ++ , -- , ^ , < , > , AND , OR , MOD , EQ , NE , LE, LT , GE, GT
+Operators ++ , -- , ^ , < , > , AND , OR , XOR, MOD , EQ , NE , LE, LT , GE, GT
 
 This goes also for self-operators: and= , *= , eq= , ge= , >= , gt= , le= , <= , lt= , #= , ##= , -= , mod= , ne= , or= , += , ^= , /= , xor=
 

@@ -1,0 +1,22 @@
+Data_* right = static_cast<Data_*> (r);
+
+ULong nEl = N_Elements();
+assert(nEl);
+if (nEl == 1) {
+  if (std::norm((*this)[0]) > 0) return this; 
+  (*this)[0] = (*right)[0]; // | Ty(1);
+  return this;
+}
+
+if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+  for (OMPInt i = 0; i < nEl; ++i) {
+    if (std::norm((*this)[i]) == 0) (*this)[i] = (*right)[i];
+  }
+} else {
+  TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+    for (OMPInt i = 0; i < nEl; ++i) {
+          if (std::norm((*this)[i]) == 0) (*this)[i] = (*right)[i];
+    }
+}
+return this;
