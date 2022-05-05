@@ -6,7 +6,7 @@ end
 
 pro test_all_basic_functions, size=size, section=section
   
-  if (n_elements(size) eq 0 ) then size=1000000
+  if (n_elements(size) eq 0 ) then size=10000
   if (n_elements(section) eq 0 ) then section=0
 ; initialisations: floats at end, since some commands do not accpet floats/doubles/complex
   typecodes=[1,2,3,12,13,14,15,4,5,6,9]
