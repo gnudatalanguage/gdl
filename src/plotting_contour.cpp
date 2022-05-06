@@ -626,6 +626,7 @@ namespace lib
 	      for ( SizeT i=0; i<xEl; i++ ) cgrid1.xg[i] = (*xVal)[i];
 	      for ( SizeT i=0; i<yEl; i++ ) cgrid1.yg[i] = (*yVal)[i];
 	      //apply plot options transformations:
+        // note that here this cgrid is NOT tested internally by plplot to be STRICTLY increasing, contrary to plot3dcl() in SURFACE and SHADE_SURF
 	      if (xLog) for ( SizeT i=0; i<xEl; i++ ) cgrid1.xg[i] = cgrid1.xg[i]>0?log10(cgrid1.xg[i]):1E-12;  // #define EXTENDED_DEFAULT_LOGRANGE 12
 	      if (yLog) for ( SizeT i=0; i<yEl; i++ ) cgrid1.yg[i] = cgrid1.yg[i]>0?log10(cgrid1.yg[i]):1E-12;
 	      tidyGrid1WorldData=true;

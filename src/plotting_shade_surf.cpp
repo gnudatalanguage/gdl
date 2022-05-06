@@ -231,16 +231,8 @@ namespace lib
 
       //check here since after AutoIntvAC values will be good but arrays passed
       //to plplot will be bad...
-      if ( xLog && xStart<=0.0 )
-      {
-        Warning ( "SHADE_SURF: Infinite x plot range." );
-        nodata=true;
-      }
-      if ( yLog && yStart<=0.0 )
-      {
-        Warning ( "SHADE_SURF: Infinite y plot range." );
-        nodata=true;
-      }
+      if ( xLog && xStart<=0.0 ) Warning ( "SHADE_SURF: Infinite x plot range." );
+      if ( yLog && yStart<=0.0 ) Warning ( "SHADE_SURF: Infinite y plot range." );
       if ( zLog && zStart<=0.0 ) Warning ( "SHADE_SURF: Infinite z plot range." );
 
       static int MIN_VALUEIx = e->KeywordIx( "MIN_VALUE");
@@ -378,9 +370,19 @@ namespace lib
         for ( SizeT i=0; i<cgrid1.ny; i++ ) cgrid1.yg[i] = (*yVal)[i];
         //apply projection transformations:
         //not until plplot accepts 2D X Y!
-        //apply plot options transformations:
-        if (xLog) for ( SizeT i=0; i<cgrid1.nx; i++ ) cgrid1.xg[i] = cgrid1.xg[i]>0?log10(cgrid1.xg[i]):1E-12;  // #define EXTENDED_DEFAULT_LOGRANGE 12
-        if (yLog) for ( SizeT i=0; i<cgrid1.ny; i++ ) cgrid1.yg[i] = cgrid1.yg[i]>0?log10(cgrid1.yg[i]):1E-12;
+        //apply plot options transformations
+        if (xLog) { //cgrid is tested internally by plplot (pl3dcl) that aborts if not STRICTLY increasing, this is painful!
+          DDouble startVal=xStart; //at this point xStart is an OK value for the log X axis.
+          DDouble epsilon=fabs(startVal-1)/xEl;
+          startVal-=1; 
+          for ( SizeT i=0; i<cgrid1.nx; i++ ) cgrid1.xg[i] = cgrid1.xg[i]>0?log10(cgrid1.xg[i]):startVal+i*epsilon; 
+        }
+        if (yLog) {
+          DDouble startVal=yStart; //at this point yStart is an OK value for the log Y axis.
+          DDouble epsilon=fabs(startVal-1)/xEl;
+          startVal-=1; 
+          for ( SizeT i=0; i<cgrid1.ny; i++ ) cgrid1.yg[i] = cgrid1.yg[i]>0?log10(cgrid1.yg[i]):startVal+i*epsilon;
+        }
 
         // Important: make all clipping computations BEFORE setting graphic properties (color, size)
         static int NOCLIPIx = e->KeywordIx("NOCLIP");
