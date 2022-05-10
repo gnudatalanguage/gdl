@@ -99,6 +99,10 @@ namespace lib
   void GetMinMaxVal(DDoubleGDL* val, double* minVal, double* maxVal)
   {
 #define UNDEF_RANGE_VALUE 1E-12
+    //prudency
+    *minVal = UNDEF_RANGE_VALUE;
+    *maxVal=*minVal+1.0;
+    //the real values.
     DLong minE, maxE;
     const bool omitNaN=true;
     val->MinMax(&minE, &maxE, NULL, NULL, omitNaN);
@@ -114,19 +118,19 @@ namespace lib
 #undef UNDEF_RANGE_VALUE
   }
   
-  void GetMinMaxValuesForSubset(DDoubleGDL* val, DDouble &minVal, DDouble &maxVal, SizeT FinalElement)
-  {
-#define UNDEF_RANGE_VALUE 1E-12
-    DLong minE, maxE;
-    const bool omitNaN=true;
-    val->MinMax(&minE, &maxE, NULL, NULL, omitNaN, 0, FinalElement);
-    minVal=(*val)[ minE];
-    if (isnan(minVal)) minVal = UNDEF_RANGE_VALUE;
-    maxVal=(*val)[ maxE];
-    if (isnan(maxVal)) maxVal = 1.0;
-    if (maxVal==minVal) maxVal=minVal+1.0;
-#undef UNDEF_RANGE_VALUE
-  }
+//  void GetMinMaxValuesForSubset(DDoubleGDL* val, DDouble &minVal, DDouble &maxVal, SizeT FinalElement)
+//  {
+//#define UNDEF_RANGE_VALUE 1E-12
+//    DLong minE, maxE;
+//    const bool omitNaN=true;
+//    val->MinMax(&minE, &maxE, NULL, NULL, omitNaN, 0, FinalElement);
+//    minVal=(*val)[ minE];
+//    if (isnan(minVal)) minVal = UNDEF_RANGE_VALUE;
+//    maxVal=(*val)[ maxE];
+//    if (isnan(maxVal)) maxVal = 1.0;
+//    if (maxVal==minVal) maxVal=minVal+1.0;
+//#undef UNDEF_RANGE_VALUE
+//  }
 
   PLFLT AutoTick(DDouble x)
   {
@@ -600,12 +604,10 @@ namespace lib
     if ((yStart == yEnd) || (xStart == xEnd))
       {
         if (yStart != 0.0 && yStart == yEnd){
-          Message("PLOTS: !Y.CRANGE ERROR, setting to [0,1]");
         yStart = 0;
         yEnd = 1;
         }
         if (xStart != 0.0 && xStart == xEnd){
-          Message("PLOTS: !X.CRANGE ERROR, setting to [0,1]");
         xStart = 0;
         xEnd = 1;
         }

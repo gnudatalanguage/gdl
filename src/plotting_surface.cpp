@@ -17,6 +17,7 @@
 
 #include "includefirst.hpp"
 #include "plotting.hpp"
+#include "dinterpreter.hpp"
 
 namespace lib
 {
@@ -38,7 +39,7 @@ namespace lib
     bool xLog;
     bool yLog;
     bool zLog;
-    ORIENTATION3D axisExchangeCode;
+    T3DEXCHANGECODE axisExchangeCode;
   private:
     bool handle_args (EnvT* e)
     {
@@ -272,19 +273,14 @@ namespace lib
 
       //now we are in plplot different kind of 3d
       DDoubleGDL* plplot3d;
-      DDouble ay, scale; //not useful at this time
+      DDouble ay, scale[3]=TEMPORARY_PLOT3D_SCALE;
       if (doT3d) //convert to this world...
       {
-
-        plplot3d=gdlConvertT3DMatrixToPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
-        if (plplot3d == NULL)
-        {
-          e->Throw ( "SURFACE: Illegal 3D transformation." );
-        }
+        plplot3d=gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
+        if (plplot3d == NULL)e->Throw ( "SURFACE: Illegal 3D transformation." );
       }
       else //make the transformation ourselves
-      {
-        scale=1/sqrt(3.0);
+      { 
         //Compute transformation matrix with plplot conventions:
         plplot3d=gdlComputePlplotRotationMatrix( az, alt, zValue,scale);
         // save !P.T if asked to...
@@ -309,7 +305,7 @@ namespace lib
       if (yLog) yEnd=log10(yEnd);
       if (zLog) zEnd=log10(zEnd);
 
-       actStream->w3d(scale,scale,scale*(1.0-zValue),
+       actStream->w3d(scale[0],scale[1],scale[2]*(1.0-zValue),
                      xStart, xEnd, yStart, yEnd, zStart, zEnd,
                      alt, az);
 

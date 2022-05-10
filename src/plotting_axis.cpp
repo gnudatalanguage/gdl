@@ -24,6 +24,7 @@ namespace lib {
 
   class axis_call : public plotting_routine_call 
   {
+    bool doT3d;
 
     private: bool handle_args(EnvT* e)
     {
@@ -32,7 +33,6 @@ namespace lib {
 
   private: void old_body( EnvT* e, GDLGStream* actStream) 
   { 
-    bool doT3d, real3d;
     DDouble zValue;
     //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
     static int zvIx = e->KeywordIx( "Z");
@@ -50,7 +50,7 @@ namespace lib {
     static int zaxisIx = e->KeywordIx( "ZAXIS");
     
     PLINT xaxis_value, yaxis_value, zaxis_value;
-    bool standardNumPos;
+    bool standardNumPos = true;
     //IDL behaviour for XAXIS and YAXIS and ZAXIS options: only one option is considered, and ZAXIS above YAXIS above XAXIS
     if( (e->GetKW( xaxisIx) != NULL) ) {
       xAxis = true;
@@ -65,9 +65,6 @@ namespace lib {
     if( e->GetKW( zaxisIx) != NULL) {
       zAxis = true; xAxis = false; yAxis=false; // like in IDL, zaxis overrides all
       e->AssureLongScalarKWIfPresent( zaxisIx, zaxis_value);
-    }
-    if( (e->GetKW( xaxisIx) == NULL) && (e->GetKW( yaxisIx) == NULL )  && ((e->GetKW( zaxisIx) == NULL )||!doT3d))  {
-      xAxis = true; standardNumPos = true; 
     }
     
     // MARGIN
@@ -85,12 +82,8 @@ namespace lib {
     yLog=yAxisWasLog; //by default logness is similar until another option is set
     zLog=zAxisWasLog;
     
-    enum
-    {
-      DATA=0,
-      NORMAL,
-      DEVICE
-    } coordinateSystem=DATA;
+    COORDSYS coordinateSystem=DATA;
+    
     static int DATAIx=e->KeywordIx("DATA");
     static int DEVICEIx=e->KeywordIx("DEVICE");
     static int NORMALIx=e->KeywordIx("NORMAL");
@@ -111,12 +104,14 @@ namespace lib {
     // old x and y range
     DDouble oxStart, oxEnd;
     DDouble oyStart, oyEnd;
+    DDouble ozStart, ozEnd;
 
     // get ![XY].CRANGE
     gdlGetCurrentAxisRange(XAXIS, oxStart, oxEnd, FALSE); //ignore projection limits, convert to linear values if necessary.
     gdlGetCurrentAxisRange(YAXIS, oyStart, oyEnd, FALSE);
+    gdlGetCurrentAxisRange(ZAXIS, ozStart, ozEnd, FALSE);
 
-    if ((oyStart == oyEnd) || (oxStart == oxEnd))
+    if ((oyStart == oyEnd) || (oxStart == oxEnd)|| (ozStart == ozEnd))
     {
       if (oyStart != 0.0 && oyStart == oyEnd){
         oyStart = 0;
@@ -126,9 +121,15 @@ namespace lib {
         oxStart = 0;
         oxEnd = 1;
       }
+      if (ozStart != 0.0 && ozStart == ozEnd){
+        ozStart = 0;
+        ozEnd = 1;
+      }
+
     } else {
       if (xLog) {oxStart=pow(oxStart,10);oxEnd=pow(oxEnd,10);}
       if (yLog) {oyStart=pow(oyStart,10);oyEnd=pow(oxEnd,10);}
+      if (zLog) {ozStart=pow(ozStart,10);ozEnd=pow(ozEnd,10);}
     }
 
     PLFLT ovpSizeX, ovpSizeY;
@@ -140,6 +141,8 @@ namespace lib {
     DDouble xEnd=oxEnd;
     DDouble yStart=oyStart;
     DDouble yEnd=oyEnd;
+    DDouble zStart=ozStart;
+    DDouble zEnd=ozEnd;
 
     // handle Log options passing via Keywords
     // note: undocumented keywords [xyz]type still exist and
@@ -164,9 +167,10 @@ namespace lib {
     }
 
     //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
-    DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;
+    DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd, zAxisStart, zAxisEnd;
     bool setx=gdlGetDesiredAxisRange(e, XAXIS, xAxisStart, xAxisEnd);
     bool sety=gdlGetDesiredAxisRange(e, YAXIS, yAxisStart, yAxisEnd);
+    bool setz=gdlGetDesiredAxisRange(e, ZAXIS, zAxisStart, zAxisEnd);
     if (sety)
     {
       yStart=yAxisStart;
@@ -177,19 +181,27 @@ namespace lib {
       xStart=xAxisStart;
       xEnd=xAxisEnd;
     }
+    if (setz)
+    {
+      zStart=zAxisStart;
+      zEnd=zAxisEnd;
+    }
     //handle Nozero option after all that!
     if(!gdlYaxisNoZero(e) && yStart >0 && !yLog ) yStart=0.0;
 
     //Box adjustement:
     gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
     gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
+    gdlAdjustAxisRange(e, ZAXIS, zStart, zEnd, zLog);
     
-    DDouble yVal, xVal;
+    DDouble yVal, xVal, zVal;
     //in absence of arguments we will have:
     bool ynodef=true;
     bool xnodef=true;
+    bool znodef=true;
     yVal=(standardNumPos)?oyStart:oyEnd;
     xVal=(standardNumPos)?oxStart:oxEnd;
+    zVal=(standardNumPos)?ozStart:ozEnd;
     //read arguments 
     if (nParam() == 1) {
       e->AssureDoubleScalarPar( 0, xVal);
@@ -202,14 +214,46 @@ namespace lib {
       ynodef=false;
     }
     if (nParam() == 3) {
-      e->Throw( "Sorry, we do not yet support the 3D case");
+      e->AssureDoubleScalarPar( 0, xVal);
+      xnodef=false;
+      e->AssureDoubleScalarPar( 1, yVal);
+      ynodef=false;
+      e->AssureDoubleScalarPar( 2, zVal);
+      znodef=false;
     }
 
     // *** start drawing
     gdlSetGraphicsForegroundColorFromKw(e, actStream);       //COLOR
     //    contrary to the documentation axis does not erase the plot (fortunately!)
     //    gdlNextPlotHandlingNoEraseOption(e, actStream, true);     //NOERASE -- not supported
+    if (doT3d)
+    {
 
+      static DDouble x0,y0,z0,xs,ys,zs; //conversion to normalized coords
+      x0=(xLog)?-log10(xStart):-xStart;
+      y0=(yLog)?-log10(yStart):-yStart;
+      z0=(zLog)?-log10(zStart):-zStart;
+      xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
+      ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
+      zs=(zLog)?(log10(zEnd)-log10(zStart)):zEnd-zStart;zs=1.0/zs;
+    
+      DDoubleGDL* plplot3d;
+      DDouble az, alt, ay, scale[3]=TEMPORARY_PLOT3D_SCALE;
+      T3DEXCHANGECODE axisExchangeCode;
+
+      plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
+      if (plplot3d == NULL)
+      {
+        e->Throw("Illegal 3D transformation. (FIXME)");
+      }
+      gdlSetPlplotW3(actStream,xStart, xEnd, xLog, yStart, yEnd,  yLog, zStart, zEnd, zLog, zValue, az, alt, scale, axisExchangeCode) ;
+      gdlSetGraphicsForegroundColorFromKw(e, actStream); //necessary to plot the axes correctly
+
+      if (xAxis) gdlAxis3(e, actStream, XAXIS, xStart, xEnd, xLog);
+      if (yAxis) gdlAxis3(e, actStream, YAXIS, yStart, yEnd, yLog);
+      if (zAxis) gdlAxis3(e, actStream, ZAXIS, zStart, zEnd, zLog);
+    } else
+    {
     PLFLT vpXL, vpXR, vpYB, vpYT; //define new viewport in relative units
     // where is point of world coords xVal, yVal in viewport relative coords?
     DDouble vpX,vpY;
@@ -324,7 +368,7 @@ namespace lib {
     {
       actStream->wind(xStart, xEnd, yStart, yEnd);
     }
-
+    }
   }
 
     private: void call_plplot(EnvT* e, GDLGStream* actStream) 
@@ -333,6 +377,7 @@ namespace lib {
  
     private: virtual void post_call(EnvT* e, GDLGStream* actStream)
     {
+      if (doT3d) actStream->stransform(NULL,NULL);
        actStream->sizeChar(1.0);
     } 
 

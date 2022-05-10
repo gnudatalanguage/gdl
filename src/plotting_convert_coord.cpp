@@ -34,12 +34,6 @@ namespace lib {
 
   DDoubleGDL* convert_coord_double(EnvT* e, DDoubleGDL* xVal, DDoubleGDL* yVal, DDoubleGDL* zVal) {
 
-    typedef enum {
-      DATA = 0,
-      NORMAL,
-      DEVICE
-    } COORDSYS;
-
     COORDSYS icoordinateSystem = DATA, ocoordinateSystem = DATA;
     //check presence of DATA,DEVICE and NORMAL options
     static int DATAIx = e->KeywordIx("DATA");
@@ -414,6 +408,17 @@ namespace lib {
   //THE FOLLOWING ARE POSSIBLY THE WORST WAY TO DO THE JOB. At least they are to be used *only*
   //for [4,4] generalized 3D matrices
 
+  void SelfPrint3d(DDoubleGDL* me) {
+    SizeT dim0 = me->Dim(0);
+    SizeT dim1 = me->Dim(1);
+    if (dim1 > 0) {
+      for (auto j = 0, k = 0; j < dim1; ++j) {
+        for (auto i = 0; i < dim0; ++i) std::cerr << (*me)[k++] << " ";
+        std::cerr << std::endl;
+      }
+    } else for (auto i = 0; i < dim0; ++i) std::cerr << (*me)[i] << " ";
+    std::cerr << std::endl;
+  }
   void SelfTranspose3d(DDoubleGDL* me) {
     //crude quick hack to have the same behaviour as the other functions.
     SizeT dim0 = me->Dim(0);
@@ -437,19 +442,6 @@ namespace lib {
     GDLDelete(Identity);
   }
 
-  DDoubleGDL* Translate3d(DDoubleGDL* me, DDouble* trans) {
-    SizeT dim0 = me->Dim(0);
-    SizeT dim1 = me->Dim(1);
-    Guard<BaseGDL> mat_guard;
-    DDoubleGDL* mat = (new DDoubleGDL(dimension(dim0, dim1)));
-    mat_guard.Reset(mat);
-    SelfReset3d(mat); //identity Matrix
-    for (SizeT i = 0; i < 3; ++i) {
-      (*mat)[3 * dim1 + i] = trans[i];
-    }
-    return mat->MatrixOp(me, false, false);
-  }
-
   void SelfTranslate3d(DDoubleGDL* me, DDouble* trans) {
     SizeT dim0 = me->Dim(0);
     SizeT dim1 = me->Dim(1);
@@ -465,28 +457,16 @@ namespace lib {
     GDLDelete(mat);
   }
 
-  DDoubleGDL* Scale3d(DDoubleGDL* me, DDouble *scale) {
-    SizeT dim0 = me->Dim(0);
-    SizeT dim1 = me->Dim(1);
-    Guard<BaseGDL> mat_guard;
-    DDoubleGDL* mat = (new DDoubleGDL(dimension(dim0, dim1)));
-    mat_guard.Reset(mat);
-    SelfReset3d(mat); //identity Matrix
-    for (SizeT i = 0; i < 3; ++i) {
-      (*mat)[i * dim1 + i] = scale[i];
-    }
-    return mat->MatrixOp(me, false, false);
-  }
-
   void SelfScale3d(DDoubleGDL* me, DDouble *scale) {
     SizeT dim0 = me->Dim(0);
     SizeT dim1 = me->Dim(1);
     if (dim0 != 4 && dim1 != 4) return;
     DDoubleGDL* mat = (new DDoubleGDL(dimension(dim0, dim1)));
     SelfReset3d(mat); //identity Matrix
-    for (SizeT i = 0; i < 3; ++i) {
-      (*mat)[i * dim1 + i] = scale[i];
-    }
+    (*mat)[0] = scale[0];
+    (*mat)[5] = scale[1];
+    (*mat)[10] = scale[2];
+//    SelfPrint3d(mat);
     DDoubleGDL* intermediary = mat->MatrixOp(me, false, false);
     memcpy(me->DataAddr(), intermediary->DataAddr(), dim0 * dim1 * sizeof (double));
     GDLDelete(intermediary);
@@ -582,25 +562,25 @@ namespace lib {
     GDLDelete(mat);
   }
 
-  void SelfExch3d(DDoubleGDL* me, DLong code) {
+  void SelfExch3d(DDoubleGDL* me, T3DEXCHANGECODE &axisExchangeCode) {
     SizeT dim0 = me->Dim(0);
     SizeT dim1 = me->Dim(1);
     if (dim0 != 4 && dim1 != 4) return;
     DDoubleGDL* mat = me->Dup();
-    switch (code) {
-    case 1: //exchange 0 and 1
+    switch (axisExchangeCode) {
+    case XY: //exchange 0 and 1
       for (SizeT i = 0; i < dim0; ++i) {
         (*me)[0 * dim1 + i] = (*mat)[1 * dim1 + i];
         (*me)[1 * dim1 + i] = (*mat)[0 * dim1 + i];
       }
       break;
-    case 2: //exchange 0 and 2
+    case XZ: //exchange 0 and 2
       for (SizeT i = 0; i < dim0; ++i) {
         (*me)[0 * dim1 + i] = (*mat)[2 * dim1 + i];
         (*me)[2 * dim1 + i] = (*mat)[0 * dim1 + i];
       }
       break;
-    case 12: //exchange 1 and 2
+    case YZ: //exchange 1 and 2
       for (SizeT i = 0; i < dim0; ++i) {
         (*me)[1 * dim1 + i] = (*mat)[2 * dim1 + i];
         (*me)[2 * dim1 + i] = (*mat)[1 * dim1 + i];
@@ -609,23 +589,107 @@ namespace lib {
     GDLDelete(mat);
   }
 
-  DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble scale) {
+
+  DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale) {
+    DDoubleGDL* plplot3d = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
+    SelfReset3d(plplot3d);
+    static DDouble mytrans[3] = {-0.5, -0.5, -zValue};
+    SelfTranslate3d(plplot3d, mytrans);
+    DDouble rot1[3] = {-90.0, az, 0.0};
+    DDouble rot2[3] = {alt, 0.0, 0.0};
+    SelfRotate3d(plplot3d, rot1);
+    SelfRotate3d(plplot3d, rot2);
+    SelfScale3d(plplot3d, scale);
+    return plplot3d; //This is not the same matrix as made with 'surfr', not a true !P.T
+  }
+  //sets a new !P.T as if 'surfr' was used:
+  DDoubleGDL* gdlComputePDotT(DDouble az, DDouble alt, DDouble zValue, DDouble *scale) {
     //scale should not be used and must be 1 until scale is introduced everywhre.
     DDoubleGDL* plplot3d = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
     SelfReset3d(plplot3d);
     static DDouble mytrans[3] = {-0.5, -0.5, -zValue};
     SelfTranslate3d(plplot3d, mytrans);
-    static DDouble myscale[3] = {scale, scale, scale};
+    std::cerr<<"scale will be 1/sqrt(3)\n";
+    DDouble tmpscale=1/sqrt(3.0);
+    static DDouble myscale[3] = {tmpscale, tmpscale, tmpscale};
     SelfScale3d(plplot3d, myscale);
     DDouble rot1[3] = {-90.0, az, 0.0};
     DDouble rot2[3] = {alt, 0.0, 0.0};
     SelfRotate3d(plplot3d, rot1);
     SelfRotate3d(plplot3d, rot2);
-    //    static DDouble mytrans2[3]={0.5, 0.5, zValue};
-    //    SelfTranslate3d(plplot3d,mytrans2);
-    return plplot3d; //this matrix converts 3D xyz in plplot's 2d
+    return plplot3d; //This is not the same matrix as made with 'surfr', not a true !P.T
+  }  
+  //the general homogenous transformation defined by p.t
+  void PDotTTransformXYZ(PLFLT x, PLFLT y, PLFLT z, PLFLT *xt, PLFLT *yt, PLFLT* zt){
+    //retrieve !P.T 
+    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+    static unsigned tTag = pStruct->Desc()->TagIndex("T");
+    DDouble* t= static_cast<DDouble*>(pStruct->GetTag(tTag, 0)->DataAddr());
+    DDouble a,b,c,w;
+    a = x * t[0] + y * t[1] + z * t[2] + t[3]; 
+    b = x * t[4] + y * t[5] + z * t[6] + t[7]; 
+    c = x * t[8] + y * t[9] + z * t[10] + t[11]; 
+    w = x * t[12] + y * t[13] + z * t[14] + t[15];
+    
+    *xt = a / w; 
+    *yt = b / w; 
+    *zt = c / w;
   }
+  void SelfPDotTTransformXYZ(SizeT n, PLFLT *x, PLFLT *y, PLFLT *z, int code){
+    //retrieve !P.T 
+    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+    static unsigned tTag = pStruct->Desc()->TagIndex("T");
+    DDouble* t= static_cast<DDouble*>(pStruct->GetTag(tTag, 0)->DataAddr());
+//    for (SizeT i=0; i< 16; ++i)std::cerr<<t[i]<<std::endl;
+    DDouble a,b,c,w;
+    for (SizeT i=0; i< n; ++i) {
+      a = x[i] * t[0] + y[i] * t[1] + z[i] * t[2] + t[3]; 
+      b = x[i] * t[4] + y[i] * t[5] + z[i] * t[6] + t[7]; 
+      c = x[i] * t[8] + y[i] * t[9] + z[i] * t[10] + t[11]; 
+      w = x[i] * t[12] + y[i] * t[13] + z[i] * t[14] + t[15];
+    
+      x[i] = a / w; 
+      y[i] = b / w; 
+      z[i] = c / w;
+//      std::cerr<<x[i]<<","<<y[i]<<","<<z[i]<<std::endl;
+    }
+  }
+  //transposed
+  void SelfPDotTTransformXYZTransp(SizeT n, PLFLT *x, PLFLT *y, PLFLT *z, int code) {
+    //retrieve !P.T 
+    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+    static unsigned tTag = pStruct->Desc()->TagIndex("T");
+    DDouble* t = static_cast<DDouble*> (pStruct->GetTag(tTag, 0)->DataAddr());
+    DDouble a, b, c, w;
+    for (SizeT i = 0; i < n; ++i) {
+      a = x[i] * t[0] + y[i] * t[4] + z[i] * t[8] + t[12];
+      b = x[i] * t[1] + y[i] * t[5] + z[i] * t[9] + t[13];
+      c = x[i] * t[2] + y[i] * t[6] + z[i] * t[10] + t[14];
+      w = x[i] * t[3] + y[i] * t[7] + z[i] * t[11] + t[15];
 
+      x[i] = a / w;
+      y[i] = b / w;
+      z[i] = c / w;
+//      std::cerr << x[i] << "," << y[i] << "," << z[i] << std::endl;
+    }
+  }
+  //version 2 d for pltransform 
+  void PDotTTransformXY(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer unused){
+    //retrieve !P.T 
+    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+    static unsigned tTag = pStruct->Desc()->TagIndex("T");
+    DDouble* t= static_cast<DDouble*>(pStruct->GetTag(tTag, 0)->DataAddr());
+    DDouble a,b,c,w;
+    DDouble z=0;
+    a = x * t[0] + y * t[1] + z * t[2] + t[3]; 
+    b = x * t[4] + y * t[5] + z * t[6] + t[7]; 
+    c = x * t[8] + y * t[9] + z * t[10] + t[11]; 
+    w = x * t[12] + y * t[13] + z * t[14] + t[15];
+    
+    *xt = a / w; 
+    *yt = b / w; 
+    //*zt = c / w;
+  }
   void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data) {
     struct GDL_3DTRANSFORMDATA *ptr = (GDL_3DTRANSFORMDATA*) data;
     DDoubleGDL* xyzw = new DDoubleGDL(dimension(4));
@@ -766,9 +830,62 @@ namespace lib {
     GDLDelete(xyzw);
     GDLDelete(temp);
   }
+  
+// Check if passed 4x4 matrix is valid (in the *DL sense, rotation about Z by 90, 
+// effectively making z the y axis, then around Z by az then around X by AX)
+// the projection of the Z axis must be on the Y axis, otherwise the matrix is not good.
+// return NULL if not or retrieves alt and az needed by plplot's w3d().
+bool isValidRotationMatrix(DDoubleGDL* Matrix, T3DEXCHANGECODE &axisExchangeCode){
+    axisExchangeCode=INVALID;
+    static DDoubleGDL* x=new DDoubleGDL(dimension(4));
+    static DDoubleGDL* y=new DDoubleGDL(dimension(4));
+    static DDoubleGDL* z=new DDoubleGDL(dimension(4));
+    (*x)[0]=1;(*x)[3]=1;
+    (*y)[1]=1;(*y)[3]=1;
+    (*z)[2]=1;(*z)[3]=1;
+    DDoubleGDL* res = Matrix->MatrixOp(y, false, false);
+    std::cerr<<"Y\n";SelfPrint3d(res);
+    if (abs((*res)[0] < 1E-4)) { 
+      //XY?
+      std::cerr<<"NORMAL3D\n";
+      axisExchangeCode=NORMAL3D;
+      return true;
+    }
+    res = Matrix->MatrixOp(x, false, false);
+    std::cerr<<"X\n";SelfPrint3d(res);
+    if (abs((*res)[0] < 1E-4)) {
+      std::cerr << "XY\n";
+      axisExchangeCode = XY;
+      return true;
+    }
+    res = Matrix->MatrixOp(z, false, false);
+    std::cerr<<"Z\n";SelfPrint3d(res);
+    if (abs((*res)[0] < 1E-4)) {
+      std::cerr << "YZ\n";
+      axisExchangeCode=YZ;
+      return true;
+    }
+    return false;
+}  
+bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode) {
+  //with *DL notations, the 3x3 'rotation+scale' subset of the 4x4 matrix is of the form:
+  //        [             cos(ay) cos(az)                               -cos(ay) sin(az)                     sin(ay)     ]
+  //        [                                                                                                            ]
+  // rot := [sin(ax) sin(ay) cos(az) + cos(ax) sin(az)     -sin(ax) sin(ay) sin(az) + cos(ax) cos(az)    -sin(ax) cos(ay)]
+  //        [                                                                                                            ]
+  //        [-cos(ax) sin(ay) cos(az) + sin(ax) sin(az)    cos(ax) sin(ay) sin(az) + sin(ax) cos(az)     cos(ax) cos(ay) ]
+  //For the 3x3 matrix to be compatible with plplot ax (elevation) and az (azimuth) ay must be 0, i.e.:
+   //           [    cos(az)           -sin(az)           0    ]
+   //           [                                              ]
+   // rot_ok := [cos(ax) sin(az)    cos(ax) cos(az)    -sin(ax)]
+   //           [                                              ]
+   //           [sin(ax) sin(az)    sin(ax) cos(az)    cos(ax) ]
 
-  bool isMatrixRotation(DDoubleGDL* Matrix, DDouble &rx, DDouble &ry, DDouble &rz, DDouble &scale) {
+  if (!isValidRotationMatrix(Matrix, axisExchangeCode)) return false;
+    
     DDoubleGDL* t3dMatrix = Matrix->Dup();
+    Guard<DDoubleGDL> guard(t3dMatrix);
+    if (axisExchangeCode!=NORMAL3D) SelfExch3d(t3dMatrix,axisExchangeCode);
     // !P.T=rt#cs#9r#Ry#Rx(#Rz?)#tr !Ry contains az!
     // r9#sc#tr# rt#cs#9r#Ry#Rx(#Rz?)#tr #rt =  r9#sc#tr#!P.T#rt = Ry#Rx(#Rz?)
     //
@@ -784,31 +901,36 @@ namespace lib {
     SelfRotate3d(test, r9);
     static DDouble tr[3] = {0.5, 0.5, 0.5};
     SelfTranslate3d(test, tr);
-    // product of the two should be a pure scaled rotx,roty(rotz)(scale) matrix, hence:
+//    // product of the two should be a pure scaled rotx,roty(rotz)(scale) matrix, hence:
     DDoubleGDL* xz = (t3dMatrix->MatrixOp(test, false, false));
-    rx = atan2((*xz)[1 * 4 + 2], (*xz)[1 * 4 + 1]) * RADTODEG;
-    ry = atan2((*xz)[2 * 4 + 0], sqrt(pow((*xz)[2 * 4 + 1], 2.0) + pow((*xz)[2 * 4 + 2], 2.0))) * RADTODEG;
-    rz = atan2((*xz)[1 * 4 + 0], (*xz)[0 * 4 + 0]) * RADTODEG;
-    //test by rotation inverse
-    static DDouble Rot[3];
-    memset(Rot, '\0', 3 * sizeof (DDouble));
-    Rot[2] = -rz;
-    SelfRotate3d(xz, Rot); //#zR
-    memset(Rot, '\0', 3 * sizeof (DDouble));
-    Rot[0] = -rx;
-    SelfRotate3d(xz, Rot); //#xR
-    memset(Rot, '\0', 3 * sizeof (DDouble));
-    Rot[1] = -ry;
-    SelfRotate3d(xz, Rot); //#yR
-    scale = (*xz)[0];
-    DDouble sum = (*xz)[0]+(*xz)[5]+(*xz)[10];
-    sum /= scale; //sum of scaled Rotation matrix diagonal
-    if (abs(sum - 3.0) < 1E-4) return true;
-    else return false;
+    //scaling found here:
+    DDouble sx,sy,sz;
+    sx=sqrt( (*xz)[0 * 4 + 0] * (*xz)[0 * 4 + 0]+ (*xz)[0 * 4 + 1]*(*xz)[0 * 4 + 1]+ (*xz)[0 * 4 + 2]*(*xz)[0 * 4 + 2]);
+    sy=sqrt( (*xz)[1 * 4 + 0] * (*xz)[1 * 4 + 0]+ (*xz)[1 * 4 + 1]*(*xz)[1 * 4 + 1]+ (*xz)[1 * 4 + 2]*(*xz)[1 * 4 + 2]);
+    sz=sqrt( (*xz)[2 * 4 + 0] * (*xz)[2 * 4 + 0]+ (*xz)[2 * 4 + 1]*(*xz)[2 * 4 + 1]+ (*xz)[2 * 4 + 2]*(*xz)[2 * 4 + 2]);
+    //unscale
+    for (auto i=0; i<3; ++i) (*xz)[0 * 4 + i]/=sx;
+    for (auto i=0; i<3; ++i) (*xz)[1 * 4 + i]/=sy;
+    for (auto i=0; i<3; ++i) (*xz)[2 * 4 + i]/=sz;
+    scale[0]=sx;
+    scale[1]=sy;
+    scale[2]=sz;
+    
+    ax = atan2((*xz)[1 * 4 + 2], (*xz)[1 * 4 + 1]) * RADTODEG;
+    az = atan2((*xz)[2 * 4 + 0], sqrt(pow((*xz)[2 * 4 + 1], 2.0) + pow((*xz)[2 * 4 + 2], 2.0))) * RADTODEG;
+    ay = atan2((*xz)[1 * 4 + 0], (*xz)[0 * 4 + 0]) * RADTODEG;
+
+    std::cerr<<"ax="<<ax<<", az="<<az<<", ay="<<ay<<", scale x="<<sx<<", scale y="<<sy<<", scale z="<<sz<<std::endl;
+    return true;
   }
 
-  DDoubleGDL* gdlConvertT3DMatrixToPlplotRotationMatrix(DDouble zValue, DDouble &az,
-    DDouble &alt, DDouble &ay, DDouble &scale, ORIENTATION3D &code) {
+  //examine general !P.T like matrix and determine if it is valid for an non-tilted axes axonometric perspective, enabling
+  // futher plotting of axes and surfaces by plplot.
+  // Note that if drawing of axes and hidden surfaces (by plplot) are not needed (e.g., PLOTS), any matrix can be used.
+  // Returns a 'plplot-compatible' matrix that will be used in calls to plplot.
+  // Retunrs NULL if conversion is impossible.
+  DDoubleGDL* gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble zValue, DDouble &az,
+    DDouble &alt, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode) {
     //returns NULL if error!
     DDoubleGDL* t3dMatrix = (new DDoubleGDL(dimension(4, 4)));
     //retrieve !P.T and find az, alt, inversions, and (possibly) scale and roty
@@ -816,85 +938,52 @@ namespace lib {
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
     for (int i = 0; i < t3dMatrix->N_Elements(); ++i)(*t3dMatrix)[i] = (*static_cast<DDoubleGDL*> (pStruct->GetTag(tTag, 0)))[i];
     SelfTranspose3d(t3dMatrix);
-    //check repeatedly rotations & translations
-    if (isMatrixRotation(t3dMatrix, alt, az, ay, scale)) {
-      code = NORMAL3D;
-      goto done; // 0
-    }
-    SelfExch3d(t3dMatrix, 01); //XY, 1
-    if (isMatrixRotation(t3dMatrix, alt, az, ay, scale)) {
-      code = XY;
-      goto done;
-    }
-    SelfExch3d(t3dMatrix, 01); //-XY
-    SelfExch3d(t3dMatrix, 02); //+XZ 2
-    if (isMatrixRotation(t3dMatrix, alt, az, ay, scale)) {
-      code = XZ;
-      goto done;
-    }
-    SelfExch3d(t3dMatrix, 02); //-XZ
-    SelfExch3d(t3dMatrix, 12); //+YZ 3
-    if (isMatrixRotation(t3dMatrix, alt, az, ay, scale)) {
-      code = YZ;
-      goto done;
-    }
-    SelfExch3d(t3dMatrix, 12); //-YZ
-
-    SelfExch3d(t3dMatrix, 01); //XY first
-
-    SelfExch3d(t3dMatrix, 02); //+XZ 5
-    if (isMatrixRotation(t3dMatrix, alt, az, ay, scale)) {
-      code = XZXY;
-      goto done;
-    }
-    SelfExch3d(t3dMatrix, 02); //-XZ
-    SelfExch3d(t3dMatrix, 12); //+YZ 4
-    if (isMatrixRotation(t3dMatrix, alt, az, ay, scale)) {
-      code = XZYZ;
-      goto done;
-    }
-    SelfExch3d(t3dMatrix, 12); //-YZ
-    SelfExch3d(t3dMatrix, 01); //-XY
-    //redundant
-    //    SelfExch3d(t3dMatrix,12); // YZ first
-    //
-    //    SelfExch3d(t3dMatrix,01); //XY 5
-    //    if (isMatrixRotation(t3dMatrix,alt,az,ay,scale))
-    //    {
-    //      code=YZXY;   goto done;
-    //    }
-    //    SelfExch3d(t3dMatrix,01); //-XY
-    //    SelfExch3d(t3dMatrix,02); //+XZ 4
-    //    if (isMatrixRotation(t3dMatrix,alt,az,ay,scale))
-    //    {
-    //      code=YZXZ;   goto done;
-    //    }
-    //    SelfExch3d(t3dMatrix,02); //-XZ
-    //    SelfExch3d(t3dMatrix,12); //-YZ
-    //
-    //    SelfExch3d(t3dMatrix,02); // XZ first
-    //
-    //    SelfExch3d(t3dMatrix,01); //XY 4
-    //    if (isMatrixRotation(t3dMatrix,alt,az,ay,scale))
-    //    {
-    //      code=XZXY;   goto done;
-    //    }
-    //    SelfExch3d(t3dMatrix,01); //-XY
-    //    SelfExch3d(t3dMatrix,12); //+YZ 4
-    //    if (isMatrixRotation(t3dMatrix,alt,az,ay,scale))
-    //    {
-    //      code=XZYZ;   goto done;
-    //    }
-    return (DDoubleGDL*) (NULL); //ERROR!
-  done:
-    if (alt > 90.0 || alt <-1.E-3) return (DDoubleGDL*) (NULL);
+    //check if valid, get rotation etc.
+    if (!isAxonometricRotation(t3dMatrix, alt, az, ay, scale, axisExchangeCode)) return (DDoubleGDL*) NULL;
+    if (alt > 90.0 || alt < -1.E-3) return (DDoubleGDL*) (NULL);
     if (alt < 0.0) alt = 0.0; //prevents plplot complain for epsilon not being strictly positive.
-
-    //recompute transformation matrix with plplot conventions:
+    //recompute transformation matrix with plplot conventions, exchange code being treated outside:
     DDoubleGDL* plplot3d = gdlComputePlplotRotationMatrix(az, alt, zValue, scale);
     return plplot3d;
   }
-
+  void gdlSetPlplotW3(GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue, DDouble az, DDouble alt, DDouble *scale, T3DEXCHANGECODE axisExchangeCode) {
+    DDouble t3xStart, t3xEnd, t3yStart, t3yEnd, t3zStart, t3zEnd;
+    switch (axisExchangeCode) {
+    case NORMAL3D: //X->X Y->Y plane XY
+      t3xStart = (xLog) ? log10(xStart) : xStart,
+        t3xEnd = (xLog) ? log10(xEnd) : xEnd,
+        t3yStart = (yLog) ? log10(yStart) : yStart,
+        t3yEnd = (yLog) ? log10(yEnd) : yEnd,
+        t3zStart = 0;
+      t3zEnd = 1.0;
+      break;
+    case XY: // X->Y Y->X plane XY
+      t3yStart = (xLog) ? log10(xStart) : xStart,
+        t3yEnd = (xLog) ? log10(xEnd) : xEnd,
+        t3xStart = (yLog) ? log10(yStart) : yStart,
+        t3xEnd = (yLog) ? log10(yEnd) : yEnd,
+        t3zStart = 0;
+      t3zEnd = 1.0;
+      break;
+    case XZ: // Y->Y X->Z plane YZ
+      t3zStart = (xLog) ? log10(xStart) : xStart,
+        t3zEnd = (xLog) ? log10(xEnd) : xEnd,
+        t3yStart = (yLog) ? log10(yStart) : yStart,
+        t3yEnd = (yLog) ? log10(yEnd) : yEnd,
+        t3xStart = 0;
+      t3xEnd = 1.0;
+      break;
+    case YZ: // X->X Y->Z plane XZ
+      t3xStart = (xLog) ? log10(xStart) : xStart,
+        t3xEnd = (xLog) ? log10(xEnd) : xEnd,
+        t3zStart = (yLog) ? log10(yStart) : yStart,
+        t3zEnd = (yLog) ? log10(yEnd) : yEnd,
+        t3yStart = 0;
+      t3yEnd = 1.0;
+      break;
+    }
+      actStream->w3d(scale[0], scale[1], scale[2], t3xStart, t3xEnd, t3yStart, t3yEnd, t3zStart, t3zEnd, alt, az);
+}
   void scale3_pro(EnvT* e) {
     static unsigned tTag = SysVar::P()->Desc()->TagIndex("T");
     const double invsqrt3 = 1.0 / sqrt(3.0);
@@ -1012,19 +1101,19 @@ namespace lib {
       if (oblique->N_Elements() != 2) e->Throw("OBLIQUE parameter must be a [2] array.");
       SelfOblique3d(mat, (*oblique)[0], (*oblique)[1]);
     }
-    DLong code;
+    T3DEXCHANGECODE code=INVALID;
     //XYEXCH
     static int exchxyIx = e->KeywordIx("XYEXCH");
     bool exchxy = e->KeywordSet(exchxyIx);
-    if (exchxy) code = 01;
+    if (exchxy) code = XY;
     //XZEXCH
     static int exchxzIx = e->KeywordIx("XZEXCH");
     bool exchxz = e->KeywordSet(exchxzIx);
-    if (exchxz) code = 02;
+    if (exchxz) code = XZ;
     //YYEXCH
     static int exchyzIx = e->KeywordIx("YZEXCH");
     bool exchyz = e->KeywordSet(exchyzIx);
-    if (exchyz) code = 12;
+    if (exchyz) code = YZ;
 
     if (exchxy || exchxz || exchyz) SelfExch3d(mat, code);
 

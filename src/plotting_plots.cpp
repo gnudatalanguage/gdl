@@ -31,7 +31,7 @@ namespace lib
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
     DLong psym;
     bool xLog, yLog, zLog;
-    SizeT xEl, yEl, zEl;
+    SizeT nEl;
     bool append;
     bool doClip;
     bool restorelayout;
@@ -41,15 +41,10 @@ namespace lib
     Guard<BaseGDL> plplot3d_guard;
     DLongGDL *color;
     bool mapSet;
-    ORIENTATION3D axisExchangeCode;
+    T3DEXCHANGECODE axisExchangeCode;
     DDouble az, alt, ay, scale;
 
-      enum
-      {
-        DATA=0,
-        NORMAL,
-        DEVICE
-      } coordinateSystem;
+      COORDSYS coordinateSystem=DATA;
       
       
   private:
@@ -76,29 +71,27 @@ namespace lib
         BaseGDL* p0;
         p0=e->GetParDefined(0);
         SizeT dim0=p0->Dim(0);
-        if ( dim0<2 || dim0>3 )
-          e->Throw("When only 1 param, dims must be (2,n) or (3,n)");
-
+        if ( dim0<2 || dim0>3 ) e->Throw("When only 1 param, dims must be (2,n) or (3,n)");
+        if ( dim0==3) real3d=true;
+        
         DDoubleGDL *val=e->GetParAs< DDoubleGDL>(0);
-        xEl=p0->N_Elements()/dim0;
-        xVal=new DDoubleGDL(dimension(xEl), BaseGDL::NOZERO);
+        nEl=p0->N_Elements()/dim0;
+        xVal=new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
         xval_guard.Reset(xVal); // delete upon exit
 
-        yEl=p0->N_Elements()/dim0;
-        yVal=new DDoubleGDL(dimension(yEl), BaseGDL::NOZERO);
+        yVal=new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
         yval_guard.Reset(yVal); // delete upon exit
 
-        for ( SizeT i=0; i<xEl; i++ )
+        for ( SizeT i=0; i<nEl; i++ )
         {
           (*xVal)[i]=(*val)[dim0*i];
           (*yVal)[i]=(*val)[dim0*i+1];
         }
 
-        zEl=p0->N_Elements()/dim0;
-        zVal=new DDoubleGDL(dimension(zEl), BaseGDL::NOZERO);
+        zVal=new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
         zval_guard.Reset(zVal); // delete upon exit
-        if (dim0==3) for ( SizeT i=0; i<zEl; i++ ) (*zVal)[i]=(*val)[dim0*i+2];
-        else for (SizeT i=0; i< zEl ; ++i) (*zVal)[i]=zValue;
+        if (dim0==3) for ( SizeT i=0; i<nEl; i++ ) (*zVal)[i]=(*val)[dim0*i+2];
+        else for (SizeT i=0; i< nEl ; ++i) (*zVal)[i]=zValue;
       }
       //behaviour: if x or y are not an array, they are repeated to match minEl
       //if x or y have less elements than s, minEl is max(x,y) else minEl is size(s)
@@ -106,95 +99,86 @@ namespace lib
       else if ( nParam()==2 || (nParam()==3 && !doT3d) )
       {
         xVal=e->GetParAs< DDoubleGDL>(0);
-        xEl=xVal->N_Elements();
+        SizeT xEl=xVal->N_Elements();
 
         yVal=e->GetParAs< DDoubleGDL>(1);
-        yEl=yVal->N_Elements();
+        SizeT yEl=yVal->N_Elements();
 
         SizeT maxEl;
         maxEl=(xEl>yEl)?xEl:yEl;
+        SizeT minEl=maxEl;
         
         if (maxEl > 1) { //there is at least one non-single
-          SizeT minEl;
           minEl=(xVal->Dim(0)==0)?maxEl:((xEl<maxEl)?xEl:maxEl);
           minEl=(yVal->Dim(0)==0)?minEl:((yEl<minEl)?yEl:minEl);
-
-          //replicate singletons.
+          nEl=minEl;
+          //replicate singletons if any
           if (xVal->Dim(0)==0) {
             DDoubleGDL* tmpxVal=e->GetParAs< DDoubleGDL>(0);
-            xVal=new DDoubleGDL(minEl, BaseGDL::NOZERO);
-            xEl=minEl;
+            xVal=new DDoubleGDL(nEl, BaseGDL::NOZERO);
             xval_guard.Reset(xVal); // delete upon exit
-            for (SizeT i=0; i< minEl ; ++i) (*xVal)[i]=(*tmpxVal)[0];
+            for (SizeT i=0; i< nEl ; ++i) (*xVal)[i]=(*tmpxVal)[0];
           }
           if (yVal->Dim(0)==0) {
             DDoubleGDL* tmpyVal=e->GetParAs< DDoubleGDL>(1);
-            yVal=new DDoubleGDL(minEl, BaseGDL::NOZERO);
-            yEl=minEl;
+            yVal=new DDoubleGDL(nEl, BaseGDL::NOZERO);
             yval_guard.Reset(yVal); // delete upon exit
-            for (SizeT i=0; i< minEl ; ++i) (*yVal)[i]=(*tmpyVal)[0];
+            for (SizeT i=0; i< nEl ; ++i) (*yVal)[i]=(*tmpyVal)[0];
           }
         }
-        //z will be set at Zero unless Z=value is given
-        zEl=xEl;
-        zVal=new DDoubleGDL(dimension(zEl));
+        //z will be set at zValue
+        zVal=new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
         zval_guard.Reset(zVal); // delete upon exit
-        for (SizeT i=0; i< zEl ; ++i) (*zVal)[i]=zValue;
+        for (SizeT i=0; i< nEl ; ++i) (*zVal)[i]=zValue;
       }
       else if ( nParam()==3 )
       {
-        if (doT3d) real3d=true;
+        if (doT3d) {
+          real3d=true;
+          doT3d=false;
+        }
         zVal=e->GetParAs< DDoubleGDL>(2);
-        zEl=zVal->N_Elements();
+        SizeT zEl=zVal->N_Elements();
 
         xVal=e->GetParAs< DDoubleGDL>(0);
-        xEl=xVal->N_Elements();
+        SizeT xEl=xVal->N_Elements();
 
         yVal=e->GetParAs< DDoubleGDL>(1);
-        yEl=yVal->N_Elements();
+        SizeT yEl=yVal->N_Elements();
         //Z has no effect if T3D is not active, either through the T3D kw or through the !P.T3D sysvar.
         
         SizeT maxEl;
         maxEl=(xEl>yEl)?xEl:yEl;
         maxEl=(maxEl>zEl)?maxEl:zEl;
+        SizeT minEl=maxEl;
         
         if (maxEl > 1) { //there is at least one non-single
-          SizeT minEl;
           minEl=(xVal->Dim(0)==0)?maxEl:((xEl<maxEl)?xEl:maxEl);
           minEl=(yVal->Dim(0)==0)?minEl:((yEl<minEl)?yEl:minEl);
           minEl=(zVal->Dim(0)==0)?minEl:((zEl<minEl)?zEl:minEl);
+          nEl=minEl;
 
           //replicate singletons.
           if (xVal->Dim(0)==0) {
             DDoubleGDL* tmpxVal=e->GetParAs< DDoubleGDL>(0);
-            xVal=new DDoubleGDL(minEl, BaseGDL::NOZERO);
-            xEl=minEl;
+            xVal=new DDoubleGDL(nEl, BaseGDL::NOZERO);
             xval_guard.Reset(xVal); // delete upon exit
-            for (SizeT i=0; i< minEl ; ++i) (*xVal)[i]=(*tmpxVal)[0];
+            for (SizeT i=0; i< nEl ; ++i) (*xVal)[i]=(*tmpxVal)[0];
           }
           if (yVal->Dim(0)==0) {
             DDoubleGDL* tmpyVal=e->GetParAs< DDoubleGDL>(1);
-            yVal=new DDoubleGDL(minEl, BaseGDL::NOZERO);
-            yEl=minEl;
+            yVal=new DDoubleGDL(nEl, BaseGDL::NOZERO);
             yval_guard.Reset(yVal); // delete upon exit
-            for (SizeT i=0; i< minEl ; ++i) (*yVal)[i]=(*tmpyVal)[0];
+            for (SizeT i=0; i< nEl ; ++i) (*yVal)[i]=(*tmpyVal)[0];
           }
           if (zVal->Dim(0)==0) {
             DDoubleGDL* tmpzVal=e->GetParAs< DDoubleGDL>(2);
-            zVal=new DDoubleGDL(minEl, BaseGDL::NOZERO);
-            zEl=minEl;
+            zVal=new DDoubleGDL(nEl, BaseGDL::NOZERO);
             zval_guard.Reset(zVal); // delete upon exit
-            for (SizeT i=0; i< minEl ; ++i) (*zVal)[i]=(*tmpzVal)[0];
+            for (SizeT i=0; i< nEl ; ++i) (*zVal)[i]=(*tmpzVal)[0];
           }
         }
       } 
-      if ( doT3d && !real3d) { //test to avois passing a non-rotation matrix to plplots's stransform. plplot limitation-> FIXME!
-        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
-        if (plplot3d == NULL)
-        {
-          e->Throw("Illegal 3D transformation. (FIXME)");
-        } else GDLDelete(plplot3d);
-      }
       return false;
     }
 
@@ -226,7 +210,6 @@ namespace lib
 
       if (zStart != 0.0 && zStart == zEnd)
       {
-        Message("PLOTS: !Z.CRANGE ERROR, setting to [0,1]");
         zStart = 0;
         zEnd = 1;
       }
@@ -251,14 +234,8 @@ namespace lib
           e->Throw("Projection initialization failed.");
         }
         restorelayout=true;
-
       }
 #endif
-      if ( doT3d && !real3d) {
-        doClip=false; //impossible to clip in 3d using plplot. we should do it ourselves.
-        restorelayout=false;
-        if ( coordinateSystem==NORMAL ){ xLog=false; yLog=false;}
-      } else {
         
         if (restorelayout) actStream->OnePageSaveLayout(); // one page
 
@@ -278,9 +255,21 @@ namespace lib
         }
         else //with PLOTS, we can plot *outside* the box(e)s in DATA coordinates.
         {
-          setPlplotScale(actStream);
+          if (doT3d || real3d) {
+            DDouble *sx, *sy, *sz;
+            GetSFromPlotStructs(&sx, &sy, &sz);
+
+            DDouble x[2],y[2],z[2];
+            x[0] = -sx[0] / sx[1];
+            x[1] = (1 - sx[0]) / sx[1];
+            y[0] = -sy[0] / sy[1];
+            y[1] = (1 - sy[0]) / sy[1];
+            z[0] = -sz[0] / sz[1];
+            z[1] = (1 - sz[0]) / sz[1];
+            SelfPDotTTransformXYZ(2, x, y, z, coordinateSystem);
+            actStream->wind(x[0], x[1], y[0], y[1]);
+          } else setPlplotScale(actStream);
         }
-      }
         actStream->setSymbolSizeConversionFactors();
     }
 
@@ -296,130 +285,119 @@ namespace lib
         color=e->GetKWAs<DLongGDL>( colorIx ); doColor=true;
       }
 
-
-      if ( doT3d && !real3d) { //if X,Y and Z are passed, we will use !P.T and not our plplot "interpretation" of !P.T
-                               //if the x and y scaling is OK, using !P.T directly permits to use other projections
-                               //than those used implicitly by plplot. See @showhaus example for *DL
-        // case where we project 2D data on 3D: use plplot-like matrix.
-        static DDouble x0,y0,xs,ys; //conversion to normalized coords
-
-        if (coordinateSystem==NORMAL) {
-          //TODO: THIS IS NOT CORRECT. The conversion is limited to the world box, not the 3d-projected normalized coordinates. 
-          x0=0;y0=0;xs=1.0;ys=1.0;
-        } else {
-          x0=(xLog)?-log10(xStart):-xStart;
-          y0=(yLog)?-log10(yStart):-yStart;
-          xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
-          ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
-        }
-        // here zvalue here is zcoord on Z axis, to be scaled between 0 and 1 for compatibility with call of gdlConvertT3DMatrixToPlplotRotationMatrix()
-        zValue /= (zEnd - zStart);
-        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
-        Data3d.zValue = zValue;
-        Data3d.Matrix = plplot3d; //try to change for !P.T in future?
-        Data3d.x0 = x0;
-        Data3d.y0 = y0;
-        Data3d.xs = xs;
-        Data3d.ys = ys;
-        switch (axisExchangeCode) {
-          case NORMAL3D: //X->X Y->Y plane XY
-        Data3d.code = code012;
-            break;
-          case XY: // X->Y Y->X plane XY
-            Data3d.code = code102;
-            break;
-          case XZ: // Y->Y X->Z plane YZ
-            Data3d.code = code210;
-            break;
-          case YZ: // X->X Y->Z plane XZ
-            Data3d.code = code021;
-            break;
-          case XZXY: //X->Y Y->Z plane YZ
-            Data3d.code = code120;
-            break;
-          case XZYZ: //X->Z Y->X plane XZ
-            Data3d.code = code201;
-            break;
-        }
-        actStream->stransform(gdl3dTo2dTransform, &Data3d);
-      }
-      // make all clipping computations BEFORE setting graphic properties (color, size)
+      //reproject using P.T transformation in [0..1] cube
+      if (doT3d || real3d) SelfPDotTTransformXYZ(nEl, (PLFLT*) xVal->DataAddr(), (PLFLT*) yVal->DataAddr(), (PLFLT*) zVal->DataAddr(), coordinateSystem);
+//      else if ( doT3d ) { 
+//        //if X,Y and Z are passed, we will use !P.T and not our plplot "interpretation" of !P.T
+//                               //if the x and y scaling is OK, using !P.T directly permits to use other projections
+//                               //than those used implicitly by plplot. See @showhaus example for *DL
+//        // case where we project 2D data on 3D: use plplot-like matrix.
+//        static DDouble x0,y0,xs,ys; //conversion to normalized coords
+//
+//        if (coordinateSystem==NORMAL) {
+//          //TODO: THIS IS NOT CORRECT. The conversion is limited to the world box, not the 3d-projected normalized coordinates. 
+//          x0=0;y0=0;xs=1.0;ys=1.0;
+//        } else {
+//          x0=(xLog)?-log10(xStart):-xStart;
+//          y0=(yLog)?-log10(yStart):-yStart;
+//          xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
+//          ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
+//        }
+//        // here zvalue here is zcoord on Z axis, to be scaled between 0 and 1 for compatibility with call of gdlConvertT3DMatrixToPlplotRotationMatrix()
+//        zValue /= (zEnd - zStart);
+//        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
+//        Data3d.zValue = zValue;
+//        Data3d.Matrix = plplot3d; //try to change for !P.T in future?
+//        Data3d.x0 = x0;
+//        Data3d.y0 = y0;
+//        Data3d.xs = xs;
+//        Data3d.ys = ys;
+//        switch (axisExchangeCode) {
+//          case NORMAL3D: //X->X Y->Y plane XY
+//        Data3d.code = code012;
+//            break;
+//          case XY: // X->Y Y->X plane XY
+//            Data3d.code = code102;
+//            break;
+//          case XZ: // Y->Y X->Z plane YZ
+//            Data3d.code = code210;
+//            break;
+//          case YZ: // X->X Y->Z plane XZ
+//            Data3d.code = code021;
+//            break;
+//        }
+//        actStream->stransform(gdl3dTo2dTransform, &Data3d);
+//      }
+//      // make all clipping computations BEFORE setting graphic properties (color, size)
       bool stopClip=false;
       if ( doClip )  if ( startClipping(e, actStream, true)==true ) stopClip=true;  //will use pClip if needed
 
       //properties
-      if (!doColor || color->N_Elements() == 1){ //if no KW or only 1 color, no need to complicate things
+      if (!doColor || color->N_Elements() == 1){
+        //if no KW or only 1 color, no need to complicate things
                                                 //at draw_polyline level!
         gdlSetGraphicsForegroundColorFromKw(e, actStream); //COLOR
         doColor=false;
       }
       gdlSetLineStyle(e, actStream); //LINESTYLE
       gdlSetPenThickness(e, actStream); //THICK
-      
-      if (real3d) {
-        //try first if the matrix is a plplot-compatible one
-        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
 
-        if (plplot3d == NULL) //use the original !P.T matrix (better than nothing)
-        {
-          Warning("Using Illegal 3D transformation, continuing. (FIXME)");
-          plplot3d=gdlGetT3DMatrix(); //the original one
-          plplot3d_guard.Reset(plplot3d);
-          Data3d.code = code012;
-        } else
-        {
-          switch (axisExchangeCode) {
-          case NORMAL3D: //X->X Y->Y plane XY
-            Data3d.code = code012;
-            break;
-          case XY: // X->Y Y->X plane XY
-            Data3d.code = code102;
-            break;
-          case XZ: // Y->Y X->Z plane YZ
-            Data3d.code = code210;
-            break;
-          case YZ: // X->X Y->Z plane XZ
-            Data3d.code = code021;
-            break;
-          case XZXY: //X->Y Y->Z plane YZ
-            Data3d.code = code120;
-            break;
-          case XZYZ: //X->Z Y->X plane XZ
-            Data3d.code = code201;
-            break;
-          }
-        }
-        DDoubleGDL *xValou=new DDoubleGDL(dimension(xEl));
-        DDoubleGDL *yValou=new DDoubleGDL(dimension(yEl));
-        Guard<BaseGDL> xval_guard, yval_guard;
-        xval_guard.reset(xValou);
-        yval_guard.reset(yValou);
-        //rescale to normalized box before conversions --- works for both matrices.
-//        gdl3dto2dProjectDDouble(gdlGetScaledNormalizedT3DMatrix(plplot3d),xVal,yVal,zVal,xValou,yValou,Data3d.code);
-        gdl3dto2dProjectDDouble(plplot3d,xVal,yVal,zVal,xValou,yValou,Data3d.code);
-        
-        ///TODO: Get proper USerSymSize in 3D.
+//      if (doT3d) {
+//   try first if the matrix is a plplot-compatible one
+//        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
+//
+//        if (plplot3d == NULL) //use the original !P.T matrix (better than nothing)
+//        {
+//          Warning("Using Illegal 3D transformation, continuing. (FIXME)");
+//          plplot3d=gdlGetT3DMatrix(); //the original one
+//          plplot3d_guard.Reset(plplot3d);
+//          Data3d.code = code012;
+//        } else {
+//          switch (axisExchangeCode) {
+//          case NORMAL3D: //X->X Y->Y plane XY
+//            Data3d.code = code012;
+//            break;
+//          case XY: // X->Y Y->X plane XY
+//            Data3d.code = code102;
+//            break;
+//          case XZ: // Y->Y X->Z plane YZ
+//            Data3d.code = code210;
+//            break;
+//          case YZ: // X->X Y->Z plane XZ
+//            Data3d.code = code021;
+//            break;
+//          }
+//        }
+//        DDoubleGDL *xValou=new DDoubleGDL(dimension(xEl));
+//        DDoubleGDL *yValou=new DDoubleGDL(dimension(yEl));
+//        Guard<BaseGDL> xval_guard, yval_guard;
+//        xval_guard.reset(xValou);
+//        yval_guard.reset(yValou);
+//        rescale to normalized box before conversions --- works for both matrices.
+//        gdl3dto2dProjectDDouble(plplot3d,xVal,yVal,zVal,xValou,yValou,Data3d.code);
+//        
+//        /TODO: Get proper USerSymSize in 3D.
         
 #ifdef USE_LIBPROJ
-        if ( mapSet && psym < 1) {
-          GDLgrProjectedPolygonPlot(actStream, ref, NULL, xValou, yValou, false, false, NULL);
-          psym=-psym;
-          if (psym > 0) draw_polyline(actStream, xValou, yValou, 0.0, 0.0, false, xLog, yLog, psym, mapSet, append, doColor?color:NULL);
-        }
-        else draw_polyline(actStream, xValou, yValou, 0.0, 0.0, false, xLog, yLog, psym, mapSet, append, doColor?color:NULL);
-      }
-      else
-      {
+//        if ( mapSet && psym < 1) {
+//          GDLgrProjectedPolygonPlot(actStream, ref, NULL, xValou, yValou, false, false, NULL);
+//          psym=-psym;
+//          if (psym > 0) draw_polyline(actStream, xValou, yValou, 0.0, 0.0, false, xLog, yLog, psym, mapSet, append, doColor?color:NULL);
+//        }
+//        else draw_polyline(actStream, xValou, yValou, 0.0, 0.0, false, xLog, yLog, psym, mapSet, append, doColor?color:NULL);
+//      }
+//      else
+//      {
         if ( mapSet && psym < 1) {
           GDLgrProjectedPolygonPlot(actStream, ref, NULL, xVal, yVal, false, false, NULL); //connect lines correctly
           psym=-psym;
           if (psym > 0) draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, mapSet,  append, doColor?color:NULL);
         }
         else draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, mapSet, append, doColor?color:NULL);
-      }
+//      }
 #else
-          draw_polyline(actStream, xValou, yValou, 0.0, 0.0, false, xLog, yLog, psym, false, append, doColor?color:NULL);
-      }
+//          draw_polyline(actStream, xValou, yValou, 0.0, 0.0, false, xLog, yLog, psym, false, append, doColor?color:NULL);
+//      }
       else draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, false, append, doColor?color:NULL);
 #endif
       if (stopClip) stopClipping(actStream);
@@ -429,11 +407,12 @@ namespace lib
 
     virtual void post_call(EnvT*, GDLGStream* actStream)
     {
-      if (doT3d && !real3d)
-      {
-        plplot3d_guard.Reset(plplot3d);
-        actStream->stransform(NULL,NULL);
-      }
+//      if (doT3d )
+//      {
+//        plplot3d_guard.Reset(plplot3d);
+//        actStream->stransform(NULL,NULL);
+//      } else 
+//        if (doT3d || real3d) actStream->stransform(NULL,NULL);
       if (restorelayout) actStream->RestoreLayout();
       actStream->lsty(1); 
     }

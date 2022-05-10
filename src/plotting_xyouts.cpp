@@ -55,8 +55,8 @@ namespace lib
     Guard<BaseGDL> plplot3d_guard;
     bool singleArg;
     DDouble zValue;
-    ORIENTATION3D axisExchangeCode;
-    DDouble az, alt, ay, scale;
+    T3DEXCHANGECODE axisExchangeCode;
+    DDouble az, alt, ay, scale[3]=TEMPORARY_PLOT3D_SCALE;
 
       enum
       {
@@ -144,7 +144,7 @@ namespace lib
                  "parameters valid.");
       }
       if ( doT3d ) { //test to avois passing a non-rotation matrix to plplots's stransform. plplot limitation-> FIXME!
-        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
+        plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
         if (plplot3d == NULL)
         {
           e->Throw("Illegal 3D transformation. (FIXME)");
@@ -318,11 +318,9 @@ namespace lib
           ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
         }
 
-        DDouble az, alt, ay, scale;
-
         // here zvalue here is zcoord on Z axis, to be scaled between 0 and 1 for compatibility with call of gdlConvertT3DMatrixToPlplotRotationMatrix()
         zValue /= (zEnd - zStart);
-        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
+        plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
         //if matrix was not checked to be ok at start, we could authorize a non_rotation matrix, but would have to avoid using stransform.
         Data3d.zValue = zValue;
         Data3d.Matrix = plplot3d; //try to change for !P.T in future?
@@ -343,12 +341,8 @@ namespace lib
           case YZ: // X->X Y->Z plane XZ
             Data3d.code = code021;
             break;
-          case XZXY: //X->Y Y->Z plane YZ
-            Data3d.code = code120;
-            break;
-          case XZYZ: //X->Z Y->X plane XZ
-            Data3d.code = code201;
-            break;
+          default:
+            assert(false);
         }
         actStream->stransform(gdl3dTo2dTransform, &Data3d);
       }

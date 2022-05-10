@@ -242,10 +242,10 @@ private:
     if ( doT3d ) //convert X,Y,Z in X',Y' as per T3D perspective.
     {
       DDoubleGDL* plplot3d;
-      DDouble az, alt, ay, scale;
-      ORIENTATION3D axisExchangeCode;
+      DDouble az, alt, ay, scale[3]=TEMPORARY_PLOT3D_SCALE;
+      T3DEXCHANGECODE axisExchangeCode;
 
-      plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
+      plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
       if (plplot3d == NULL)
       {
         e->Throw("Illegal 3D transformation. (FIXME)");
@@ -276,12 +276,8 @@ private:
           case YZ: // X->X Y->Z plane XZ
             Data3d.code = code021;
             break;
-          case XZXY: //X->Y Y->Z plane YZ
-            Data3d.code = code120;
-            break;
-          case XZYZ: //X->Z Y->X plane XZ
-            Data3d.code = code201;
-            break;
+        default:
+          assert(false);
         }
         actStream->stransform(gdl3dTo2dTransform, &Data3d);
     }

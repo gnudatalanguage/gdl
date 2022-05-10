@@ -39,15 +39,10 @@ namespace lib
     Guard<BaseGDL> plplot3d_guard;
     DLongGDL *color;
     bool mapSet;
-    ORIENTATION3D axisExchangeCode;
-    DDouble az, alt, ay, scale;
+    T3DEXCHANGECODE axisExchangeCode;
+    DDouble az, alt, ay, scale[3]=TEMPORARY_PLOT3D_SCALE;
 
-      enum
-      {
-        DATA=0,
-        NORMAL,
-        DEVICE
-      } coordinateSystem;
+    COORDSYS coordinateSystem=DATA;
       
       
   private:
@@ -157,7 +152,7 @@ namespace lib
         }
       }
       if ( doT3d && !real3d) { //test to throw before plot values changes 
-        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
+        plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
         if (plplot3d == NULL)
         {
           e->Throw("Illegal 3D transformation. (FIXME)");
@@ -279,7 +274,7 @@ namespace lib
         }
         // here zvalue here is zcoord on Z axis, to be scaled between 0 and 1 for compatibility with call of gdlConvertT3DMatrixToPlplotRotationMatrix()
         zValue /= (zEnd - zStart);
-        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
+        plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
         Data3d.zValue = zValue;
         Data3d.Matrix = plplot3d; //try to change for !P.T in future?
         Data3d.x0 = x0;
@@ -299,12 +294,8 @@ namespace lib
           case YZ: // X->X Y->Z plane XZ
             Data3d.code = code021;
             break;
-          case XZXY: //X->Y Y->Z plane YZ
-            Data3d.code = code120;
-            break;
-          case XZYZ: //X->Z Y->X plane XZ
-            Data3d.code = code201;
-            break;
+          default:
+          assert(false);
         }
         actStream->stransform(gdl3dTo2dTransform, &Data3d);
       }
@@ -339,11 +330,11 @@ namespace lib
       
       if (real3d) {
         //try first if the matrix is a plplot-compatible one
-        plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
+        plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
 
         if (plplot3d == NULL) //use the original !P.T matrix (better than nothing)
         {
-          Warning("Using Illegal 3D transformation, continuing. (FIXME)");
+          e->Throw("Using Illegal 3D transformation, continuing. (FIXME)");
           plplot3d=gdlGetT3DMatrix(); //the original one
           plplot3d_guard.Reset(plplot3d);
           Data3d.code = code012;
@@ -362,12 +353,8 @@ namespace lib
           case YZ: // X->X Y->Z plane XZ
             Data3d.code = code021;
             break;
-          case XZXY: //X->Y Y->Z plane YZ
-            Data3d.code = code120;
-            break;
-          case XZYZ: //X->Z Y->X plane XZ
-            Data3d.code = code201;
-            break;
+          default:
+            assert(false);
           }
         }
         DDoubleGDL *xValou=new DDoubleGDL(dimension(xEl));

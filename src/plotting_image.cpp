@@ -146,12 +146,7 @@ namespace lib {
 
     void old_body(EnvT* e, GDLGStream * actStream) {
 
-      enum {
-        DATA = 0,
-        NORMAL,
-        DEVICE,
-        NONE
-      } coordinateSystem = NONE;
+      COORDSYS coordinateSystem = NONE;
       static int DATAIx=e->KeywordIx("DATA");
       static int DEVICEIx=e->KeywordIx("DEVICE");
       static int NORMALIx=e->KeywordIx("NORMAL");

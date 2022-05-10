@@ -51,7 +51,6 @@ private:
     //T3D ?
     static int t3dIx = e->KeywordIx( "T3D");
     doT3d=(e->KeywordSet(t3dIx)|| T3Denabled());
-
     //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
     static int zvIx = e->KeywordIx( "ZVALUE");
     zValue=0.0;
@@ -269,224 +268,128 @@ private:
     e->AssureLongScalarKWIfPresent( ISOTROPICIx, iso);
 
     return false;
-  }
+    }
 
-  private: void old_body( EnvT* e, GDLGStream* actStream) 
-  {
-    // background BEFORE next plot since it is the only place plplot may redraw the background...
-    gdlSetGraphicsBackgroundColorFromKw(e, actStream);
-   //start a plot
-    gdlNextPlotHandlingNoEraseOption(e, actStream);     //NOERASE
+  private:
 
-    //Box adjustement:
-    gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog, calendar_codex);
-    gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog, calendar_codey);
+    void old_body(EnvT* e, GDLGStream* actStream) {
+      // background BEFORE next plot since it is the only place plplot may redraw the background...
+      gdlSetGraphicsBackgroundColorFromKw(e, actStream);
+      //start a plot
+      gdlNextPlotHandlingNoEraseOption(e, actStream); //NOERASE
 
-    // MARGIN
-    DFloat xMarginL, xMarginR, yMarginB, yMarginT;
-    gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
-    gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
+      //Box adjustement:
+      gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog, calendar_codex);
+      gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog, calendar_codey);
 
-    // viewport and world coordinates
-    // set the PLOT charsize before setting viewport (margin depend on charsize)
-    gdlSetPlotCharsize(e, actStream);
-    
-    if (doT3d)
-    {
+      // MARGIN
+      DFloat xMarginL, xMarginR, yMarginB, yMarginT;
+      gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
+      gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
 
-      static DDouble x0,y0,xs,ys; //conversion to normalized coords
-      x0=(xLog)?-log10(xStart):-xStart;
-      y0=(yLog)?-log10(yStart):-yStart;
-      xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
-      ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
-    
-      DDoubleGDL* plplot3d;
-      DDouble az, alt, ay, scale;
-      ORIENTATION3D axisExchangeCode;
+      // viewport and world coordinates
+      // set the PLOT charsize before setting viewport (margin depend on charsize)
+      gdlSetPlotCharsize(e, actStream);
 
-      plplot3d = gdlConvertT3DMatrixToPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
-      if (plplot3d == NULL)
-      {
-        e->Throw("Illegal 3D transformation. (FIXME)");
-      }
-      if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
-        xStart, xEnd, yStart, yEnd) == false) return;
-      gdlSetGraphicsForegroundColorFromKw(e, actStream);
+      if (doT3d) {
 
-      DDouble  t3xStart, t3xEnd, t3yStart, t3yEnd, t3zStart, t3zEnd;
-      switch (axisExchangeCode) {
+        static DDouble x0, y0, xs, ys; //conversion to normalized coords
+        x0 = (xLog) ? -log10(xStart) : -xStart;
+        y0 = (yLog) ? -log10(yStart) : -yStart;
+        xs = (xLog) ? (log10(xEnd) - log10(xStart)) : xEnd - xStart;
+        xs = 1.0 / xs;
+        ys = (yLog) ? (log10(yEnd) - log10(yStart)) : yEnd - yStart;
+        ys = 1.0 / ys;
+
+        DDoubleGDL* plplot3d;
+        DDouble az, alt, ay, scale[3]=TEMPORARY_PLOT3D_SCALE;
+        T3DEXCHANGECODE axisExchangeCode;
+
+        plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
+        if (plplot3d == NULL) {
+          e->Throw("Illegal 3D transformation. (FIXME)");
+        }
+        if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog, xStart, xEnd, yStart, yEnd) == false) return;
+        gdlSetPlplotW3(actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, 0, 1, false, zValue, az, alt, scale, axisExchangeCode);
+
+        gdlSetGraphicsForegroundColorFromKw(e, actStream);
+
+        gdlAxis3(e, actStream, ZAXIS, xStart, xEnd, xLog, 1);
+        gdlAxis3(e, actStream, XAXIS, yStart, yEnd, yLog);
+
+//        //finish box: since there is no option in plplot for upper box 3d axes, do it ourselve:
+//        Data3d.zValue = 0;
+//        Data3d.Matrix = plplot3d; //try to change for !P.T in future?
+//        Data3d.x0 = x0;
+//        Data3d.y0 = y0;
+//        Data3d.xs = xs;
+//        Data3d.ys = ys;
+//        switch (axisExchangeCode) {
+//        case NORMAL3D: //X->X Y->Y plane XY
+//          Data3d.code = code012;
+//          actStream->stransform(gdl3dTo2dTransform, &Data3d);
+//          actStream->join(t3xStart, t3yEnd, t3xEnd, t3yEnd);
+//          actStream->join(t3xEnd, t3yStart, t3xEnd, t3yEnd);
+//          break;
+//        case XY: // X->Y Y->X plane XY
+//          Data3d.code = code012;
+//          actStream->stransform(gdl3dTo2dTransform, &Data3d);
+//          actStream->join(t3yStart, t3xEnd, t3yEnd, t3xEnd);
+//          actStream->join(t3yEnd, t3xStart, t3yEnd, t3xEnd);
+//          break;
+//        case XZ: // Y->Y X->Z plane YZ
+//          Data3d.code = code210;
+//          actStream->stransform(gdl3dTo2dTransform, &Data3d);
+//          actStream->join(t3zStart, t3yStart, t3zEnd, t3yStart);
+//          actStream->join(t3zEnd, t3yStart, t3zEnd, t3yEnd);
+//        default:
+//          assert(false);
+//        }
+
+        //data: will plot using coordinates transform.
+        //TODO: unless PSYM=0 (optimize)
+
+        Data3d.zValue = zValue;
+        Data3d.Matrix = plplot3d; //try to change for !P.T in future?
+        Data3d.x0 = x0;
+        Data3d.y0 = y0;
+        Data3d.xs = xs;
+        Data3d.ys = ys;
+        switch (axisExchangeCode) {
         case NORMAL3D: //X->X Y->Y plane XY
-          t3xStart=(xLog)?log10(xStart):xStart,
-          t3xEnd=(xLog)?log10(xEnd):xEnd,
-          t3yStart=(yLog)?log10(yStart):yStart,
-          t3yEnd=(yLog)?log10(yEnd):yEnd,
-          t3zStart=0;
-          t3zEnd=1.0;
-          actStream->w3d(scale, scale, scale*(1.0 - zValue),
-          t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
-          alt, az);
-          gdlAxis3(e, actStream, XAXIS, xStart, xEnd, xLog);
-          gdlAxis3(e, actStream, YAXIS, yStart, yEnd, yLog);
+          Data3d.code = code012;
           break;
         case XY: // X->Y Y->X plane XY
-          t3yStart=(xLog)?log10(xStart):xStart,
-          t3yEnd=(xLog)?log10(xEnd):xEnd,
-          t3xStart=(yLog)?log10(yStart):yStart,
-          t3xEnd=(yLog)?log10(yEnd):yEnd,
-          t3zStart=0;
-          t3zEnd=1.0;
-          actStream->w3d(scale, scale, scale*(1.0 - zValue),
-          t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
-          alt, az);
-          gdlAxis3(e, actStream, YAXIS, xStart, xEnd, xLog);
-          gdlAxis3(e, actStream, XAXIS, yStart, yEnd, yLog);
+          Data3d.code = code102;
           break;
         case XZ: // Y->Y X->Z plane YZ
-          t3zStart=(xLog)?log10(xStart):xStart,
-          t3zEnd=(xLog)?log10(xEnd):xEnd,
-          t3yStart=(yLog)?log10(yStart):yStart,
-          t3yEnd=(yLog)?log10(yEnd):yEnd,
-          t3xStart=0;
-          t3xEnd=1.0;
-          actStream->w3d(scale, scale, scale,
-          t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
-          alt, az);
-          gdlAxis3(e, actStream, ZAXIS, xStart, xEnd, xLog,0);
-          gdlAxis3(e, actStream, YAXIS, yStart, yEnd, yLog);
+          Data3d.code = code210;
           break;
         case YZ: // X->X Y->Z plane XZ
-          t3xStart=(xLog)?log10(xStart):xStart,
-          t3xEnd=(xLog)?log10(xEnd):xEnd,
-          t3zStart=(yLog)?log10(yStart):yStart,
-          t3zEnd=(yLog)?log10(yEnd):yEnd,
-          t3yStart=0;
-          t3yEnd=1.0;
-          actStream->w3d(scale, scale, scale,
-          t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
-          alt, az);
-          gdlAxis3(e, actStream, XAXIS, xStart, xEnd, xLog);
-          gdlAxis3(e, actStream, ZAXIS, yStart, yEnd, yLog,1);
+          Data3d.code = code021;
           break;
-        case XZXY: //X->Y Y->Z plane YZ
-          t3yStart=(xLog)?log10(xStart):xStart,
-          t3yEnd=(xLog)?log10(xEnd):xEnd,
-          t3zStart=(yLog)?log10(yStart):yStart,
-          t3zEnd=(yLog)?log10(yEnd):yEnd,
-          t3xStart=0;
-          t3xEnd=1.0;
-          actStream->w3d(scale, scale, scale,
-          t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
-          alt, az);
-          gdlAxis3(e, actStream, YAXIS, xStart, xEnd, xLog);
-          gdlAxis3(e, actStream, ZAXIS, yStart, yEnd, yLog);
-          break;
-        case XZYZ: //X->Z Y->X plane XZ
-          t3zStart=(xLog)?log10(xStart):xStart,
-          t3zEnd=(xLog)?log10(xEnd):xEnd,
-          t3xStart=(yLog)?log10(yStart):yStart,
-          t3xEnd=(yLog)?log10(yEnd):yEnd,
-          t3yStart=0;
-          t3yEnd=1.0;
-          actStream->w3d(scale, scale, scale,
-          t3xStart,t3xEnd,t3yStart,t3yEnd,t3zStart,t3zEnd,
-          alt, az);
-          gdlAxis3(e, actStream, ZAXIS, xStart, xEnd, xLog,1);
-          gdlAxis3(e, actStream, XAXIS, yStart, yEnd, yLog);
-          break;
+        default:
+          assert(false);
+        }
+
+        actStream->stransform(gdl3dTo2dTransform, &Data3d);
+        // title and sub title
+        gdlWriteTitleAndSubtitle(e, actStream);
+
+      } else {
+        //fix viewport and coordinates for non-3D box. this permits to have correct UsymConv values.
+        // it is important to fix simsize before!
+        gdlSetSymsize(e, actStream);
+        if (gdlSetViewPortAndWorldCoordinates(e, actStream,
+          xLog, yLog,
+          xMarginL, xMarginR, yMarginB, yMarginT,
+          xStart, xEnd, yStart, yEnd, iso) == false) return; //no good: should catch an exception to get out of this mess.
+        actStream->setSymbolSizeConversionFactors();
+        //current pen color...
+        gdlSetGraphicsForegroundColorFromKw(e, actStream);
+        gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
       }
-      //finish box: since there is no option in plplot for upper box 3d axes, do it ourselve:
-      Data3d.zValue = 0;
-      Data3d.Matrix = plplot3d; //try to change for !P.T in future?
-            Data3d.x0=x0;
-            Data3d.y0=y0;
-            Data3d.xs=xs;
-            Data3d.ys=ys;
-      switch (axisExchangeCode) {
-          case NORMAL3D: //X->X Y->Y plane XY
-            Data3d.code = code012;
-            actStream->stransform(gdl3dTo2dTransform, &Data3d);      
-            actStream->join(t3xStart,t3yEnd,t3xEnd,t3yEnd);
-            actStream->join(t3xEnd,t3yStart,t3xEnd,t3yEnd);
-            break;
-          case XY: // X->Y Y->X plane XY
-            Data3d.code = code012;
-            actStream->stransform(gdl3dTo2dTransform, &Data3d);      
-            actStream->join(t3yStart,t3xEnd,t3yEnd,t3xEnd);
-            actStream->join(t3yEnd,t3xStart,t3yEnd,t3xEnd);
-            break;
-          case XZ: // Y->Y X->Z plane YZ
-            Data3d.code = code210;
-            actStream->stransform(gdl3dTo2dTransform, &Data3d);      
-            actStream->join(t3zStart,t3yStart,t3zEnd,t3yStart);
-            actStream->join(t3zEnd,t3yStart,t3zEnd,t3yEnd);
-          default:
-            break;
-//          case YZ: // X->X Y->Z plane XZ
-//            cerr<<"yz"<<endl;
-//            Data3d.code = code021;
-//            actStream->stransform(gdl3dTo2dTransform, &Data3d);      
-//            break;
-//          case XZXY: //X->Y Y->Z plane YZ
-//            cerr<<"xzxy"<<endl;
-//            Data3d.code = code120;
-//            actStream->stransform(gdl3dTo2dTransform, &Data3d);      
-//            break;
-//          case XZYZ: //X->Z Y->X plane XZ
-//            cerr<<"xzyz"<<endl;
-//            Data3d.code = code201;
-//            actStream->stransform(gdl3dTo2dTransform, &Data3d);      
-//            break;
-        }
-      
-      //data: will plot using coordinates transform.
-      //TODO: unless PSYM=0 (optimize)
-      
-      Data3d.zValue = zValue;
-      Data3d.Matrix = plplot3d; //try to change for !P.T in future?
-            Data3d.x0=x0;
-            Data3d.y0=y0;
-            Data3d.xs=xs;
-            Data3d.ys=ys;
-      switch (axisExchangeCode) {
-          case NORMAL3D: //X->X Y->Y plane XY
-            Data3d.code = code012;
-            break;
-          case XY: // X->Y Y->X plane XY
-            Data3d.code = code102;
-            break;
-          case XZ: // Y->Y X->Z plane YZ
-            Data3d.code = code210;
-            break;
-          case YZ: // X->X Y->Z plane XZ
-            Data3d.code = code021;
-            break;
-          case XZXY: //X->Y Y->Z plane YZ
-            Data3d.code = code120;
-            break;
-          case XZYZ: //X->Z Y->X plane XZ
-            Data3d.code = code201;
-            break;
-        }
-
-      actStream->stransform(gdl3dTo2dTransform, &Data3d);
-      // title and sub title
-      gdlWriteTitleAndSubtitle(e, actStream);
-
-    } else
-    {
-    //fix viewport and coordinates for non-3D box. this permits to have correct UsymConv values.
-    // it is important to fix simsize before!
-    gdlSetSymsize(e, actStream);
-    if (gdlSetViewPortAndWorldCoordinates(e, actStream,
-        xLog, yLog,
-        xMarginL, xMarginR, yMarginB, yMarginT,
-        xStart, xEnd, yStart, yEnd, iso)==false) return; //no good: should catch an exception to get out of this mess.
-    actStream->setSymbolSizeConversionFactors();
-    //current pen color...
-      gdlSetGraphicsForegroundColorFromKw(e, actStream);
-      gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
-    }
-  } 
+    } 
   
     private: void call_plplot(EnvT* e, GDLGStream* actStream) 
     {
@@ -510,7 +413,7 @@ private:
     {
 //      gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
       if (doT3d) actStream->stransform(NULL,NULL);
-      actStream->lsty(1);//reset linestyle
+    actStream->lsty(1);//reset linestyle
       actStream->sizeChar(1.0);
     } 
 

@@ -65,6 +65,12 @@
 #include "projections.hpp"
 #endif 
 
+typedef enum{ DATA=0,
+      NORMAL,
+      DEVICE,
+      NONE //for TV()
+    } COORDSYS;
+
 struct GDL_3DTRANSFORMDATA
 {
   DDoubleGDL* Matrix;
@@ -90,16 +96,18 @@ static int code210[3] = {2, 1, 0};
 static int code201[3] = {2, 0, 1};
 static int code021[3] = {0, 2, 1};
 
-enum ORIENTATION3D
+enum T3DEXCHANGECODE
   {
+    INVALID=-1,
     NORMAL3D=0,
     XY,
     XZ,
     YZ,
-    XZYZ,
-    XZXY
   };
   
+// to be removed:
+#define  SCALEBYDEFAULT 1./sqrt(3) 
+#define TEMPORARY_PLOT3D_SCALE {SCALEBYDEFAULT,SCALEBYDEFAULT,SCALEBYDEFAULT}
 enum PLOT_AXES_IDENTIFIERS
 {
  XAXIS=0,
@@ -223,15 +231,20 @@ namespace lib {
   void SelfOblique3d(DDoubleGDL* me, DDouble dist, DDouble angle);
   void SelfExch3d(DDoubleGDL* me, DLong code);
   void gdl3dTo2dTransformContour(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
-  void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
+  void SelfPDotTTransformXYZ(SizeT n, PLFLT *xt, PLFLT *yt, PLFLT *zt, int code);
+  void PDotTTransformXYZ(PLFLT x, PLFLT y, PLFLT z, PLFLT *xt, PLFLT *yt, PLFLT *zt);
+  void PDotTTransformXY(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
+  void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer unused);
   void gdlProject3dCoordinatesIn2d( DDoubleGDL* Matrix, DDoubleGDL *xVal, DDouble *sx,
                                     DDoubleGDL *yVal, DDouble *sy, DDoubleGDL* zVal,
                                     DDouble *sz, DDoubleGDL *xValou, DDoubleGDL *yValou);
-  DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble scale=1.0);
-  DDoubleGDL* gdlConvertT3DMatrixToPlplotRotationMatrix(DDouble zValue, DDouble &az, DDouble &alt, 
-							DDouble &ay, DDouble &scale, ORIENTATION3D &code);
+  DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale);
+  DDoubleGDL* gdlComputePDotT(DDouble az, DDouble alt, DDouble zValue, DDouble *scale);
+  DDoubleGDL* gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble zValue, DDouble &az, DDouble &alt, 
+							DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode);
   DDoubleGDL* gdlGetScaledNormalizedT3DMatrix(DDoubleGDL* Matrix=NULL);
   DDoubleGDL* gdlGetT3DMatrix();
+  void gdlSetPlplotW3(GDLGStream* actStream,DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue, DDouble az, DDouble alt, DDouble *scale, T3DEXCHANGECODE axisExchangeCode); 
   void gdlNormed3dToWorld3d(DDoubleGDL *xVal, DDoubleGDL *yVal, DDoubleGDL* zVal,
                             DDoubleGDL* xValou, DDoubleGDL *yValou, DDoubleGDL *zValou);
   void gdl3dto2dProjectDDouble(DDoubleGDL* t3dMatrix, DDoubleGDL *xVal, DDoubleGDL *yVal, 
@@ -246,7 +259,7 @@ namespace lib {
     // private fields
   private: SizeT _nParam;
   private: bool overplot;
-  private: bool isDB; //see below why commented.
+//  private: bool isDB; //see below why commented.
 
     // common helper methods
   protected: inline SizeT nParam() { return _nParam; }
@@ -1148,10 +1161,8 @@ namespace lib {
     gdlStoreAxisSandWINDOW(actStream, ZAXIS, zStart, zEnd, zLog);
 
     //3D work
-    enum{ DATA=0,
-          NORMAL,
-          DEVICE
-        } coordinateSystem=DATA;
+
+    COORDSYS coordinateSystem=DATA;
     //To center plot, compute projected corners of 1 unit box
     static DDouble zz[8]={0,0,0,0,1,1,1,1};
     static DDouble yy[8]={0,0,1,1,0,0,1,1};
