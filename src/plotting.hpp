@@ -238,8 +238,8 @@ namespace lib {
   void gdlProject3dCoordinatesIn2d( DDoubleGDL* Matrix, DDoubleGDL *xVal, DDouble *sx,
                                     DDoubleGDL *yVal, DDouble *sy, DDoubleGDL* zVal,
                                     DDouble *sz, DDoubleGDL *xValou, DDoubleGDL *yValou);
-  DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale);
-  DDoubleGDL* gdlComputePDotT(DDouble az, DDouble alt, DDouble zValue, DDouble *scale);
+  DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale, bool save=false);
+  DDoubleGDL* gdlComputePDotT(DDouble az, DDouble alt);
   DDoubleGDL* gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble zValue, DDouble &az, DDouble &alt, 
 							DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode);
   DDoubleGDL* gdlGetScaledNormalizedT3DMatrix(DDoubleGDL* Matrix=NULL);

@@ -590,7 +590,7 @@ namespace lib {
   }
 
 
-  DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale) {
+  DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale, bool save) {
     DDoubleGDL* plplot3d = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
     SelfReset3d(plplot3d);
     static DDouble mytrans[3] = {-0.5, -0.5, -zValue};
@@ -600,24 +600,65 @@ namespace lib {
     SelfRotate3d(plplot3d, rot1);
     SelfRotate3d(plplot3d, rot2);
     SelfScale3d(plplot3d, scale);
+    if (save) {
+      DDoubleGDL* t3dMatrix=gdlComputePDotT(az,alt);
+      SelfTranspose3d(t3dMatrix);
+      DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
+      static unsigned tTag=pStruct->Desc()->TagIndex("T");
+      for (int i=0; i<t3dMatrix->N_Elements(); ++i )(*static_cast<DDoubleGDL*>(pStruct->GetTag(tTag, 0)))[i]=(*t3dMatrix)[i];
+      GDLDelete(t3dMatrix);
+    }
     return plplot3d; //This is not the same matrix as made with 'surfr', not a true !P.T
   }
   //sets a new !P.T as if 'surfr' was used:
-  DDoubleGDL* gdlComputePDotT(DDouble az, DDouble alt, DDouble zValue, DDouble *scale) {
-    //scale should not be used and must be 1 until scale is introduced everywhre.
+  DDoubleGDL* gdlComputePDotT(DDouble az, DDouble alt) {
     DDoubleGDL* plplot3d = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
     SelfReset3d(plplot3d);
-    static DDouble mytrans[3] = {-0.5, -0.5, -zValue};
+    static DDouble mytrans[3] = {-0.5, -0.5, -0.5}; //-zValue};
     SelfTranslate3d(plplot3d, mytrans);
-    std::cerr<<"scale will be 1/sqrt(3)\n";
-    DDouble tmpscale=1/sqrt(3.0);
-    static DDouble myscale[3] = {tmpscale, tmpscale, tmpscale};
-    SelfScale3d(plplot3d, myscale);
     DDouble rot1[3] = {-90.0, az, 0.0};
     DDouble rot2[3] = {alt, 0.0, 0.0};
     SelfRotate3d(plplot3d, rot1);
     SelfRotate3d(plplot3d, rot2);
-    return plplot3d; //This is not the same matrix as made with 'surfr', not a true !P.T
+  // create all 8 homogenous coordinates of the cubes points, 
+  // compute their projected coord,
+  // find min and max on both axes.
+    static DDoubleGDL* cube_coord = (new DDoubleGDL(dimension(8,4), BaseGDL::NOZERO));
+    static DDouble vals[32]={0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1};
+    for (auto i=0; i< 32; ++i) (*cube_coord)[i]=vals[i];
+    //    w=v#!p.t
+    DDoubleGDL* tmp = plplot3d->MatrixOp(cube_coord, false, true);
+    DDoubleGDL* res = static_cast<DDoubleGDL*>(tmp->Transpose(NULL));
+    GDLDelete(tmp);
+//    SelfPrint3d(res);
+    //    z=w[*,3]
+    // normalize? not useful as this is not a perspective or oblique matrix.
+//w[*,0]/=z
+//w[*,1]/=z
+//w[*,2]/=z
+//min=min(w,dim=1)//max=max(w,dim=1)
+    DDouble valmin[4], valmax[4];
+    DLong   posmin[4], posmax[4];
+    res->MinMax(&posmin[0], &posmax[0],NULL,NULL, false, 0, 8);
+    res->MinMax(&posmin[1], &posmax[1],NULL,NULL, false, 8, 16);
+    res->MinMax(&posmin[2], &posmax[2],NULL,NULL, false, 16, 24);
+    res->MinMax(&posmin[3], &posmax[3],NULL,NULL, false, 24, 32);
+    for (auto i=0; i<4; ++i) {
+      valmin[i]=(*res)[posmin[i]];
+      valmax[i]=(*res)[posmax[i]];
+    }
+
+    if (valmax[0] == valmin[0]) valmax[0]=valmin[0]+1;
+      if (valmax[1] == valmin[1]) valmax[1]=valmin[1]+1;
+      if (valmax[2] == valmin[2]) valmax[2]=valmin[2]+1;
+//translate=[ -min[0], -min[1], -min[2]]
+      DDouble translate[3] = {-valmin[0],-valmin[1],-valmin[2]}; //-zValue};
+//scale=1./(max[0:2]-min[0:2])
+      DDouble scale[3]={1./(valmax[0]-valmin[0]),1./(valmax[1]-valmin[1]),1./(valmax[2]-valmin[2])};
+//t3d,tr = translate, sc=scale
+      SelfTranslate3d(plplot3d, translate);
+      SelfScale3d(plplot3d, scale);
+  return plplot3d; //This is not the same matrix as made with 'surfr', not a true !P.T
   }  
   //the general homogenous transformation defined by p.t
   void PDotTTransformXYZ(PLFLT x, PLFLT y, PLFLT z, PLFLT *xt, PLFLT *yt, PLFLT* zt){

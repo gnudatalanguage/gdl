@@ -295,17 +295,7 @@ namespace lib
       else //make the transformation ourselves
       {
         //Compute transformation matrix with plplot conventions:
-        plplot3d=gdlComputePlplotRotationMatrix( az, alt, zValue,scale);
-        // save !P.T if asked to...
-        if (saveT3d) //will use ax and az values...
-        {
-          DDoubleGDL* t3dMatrix=plplot3d->Dup();
-          SelfTranspose3d(t3dMatrix);
-          DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
-          static unsigned tTag=pStruct->Desc()->TagIndex("T");
-          for (int i=0; i<t3dMatrix->N_Elements(); ++i )(*static_cast<DDoubleGDL*>(pStruct->GetTag(tTag, 0)))[i]=(*t3dMatrix)[i];
-          GDLDelete(t3dMatrix);
-        }
+        plplot3d=gdlComputePlplotRotationMatrix( az, alt, zValue,scale,saveT3d);
       }
 
       if ( gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
