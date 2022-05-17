@@ -249,7 +249,9 @@ namespace lib
       gdlNextPlotHandlingNoEraseOption(e, actStream);     //NOERASE
         // set the PLOT charsize before computing box, see plot command.
       gdlSetPlotCharsize(e, actStream);
-
+      //set 2D scale etc.
+      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog) == false) return; //no good: should catch an exception to get out of this mess.
+      
       // Deal with T3D options -- either present and we have to deduce az and alt contained in it,
       // or absent and we have to compute !P.T from az and alt.
 
@@ -277,12 +279,12 @@ namespace lib
       if (doT3d) //convert to this world...
       {
         plplot3d=gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
-        if (plplot3d == NULL)e->Throw ( "SURFACE: Illegal 3D transformation." );
+        if (plplot3d == NULL) e->Throw ( "SURFACE: Illegal 3D transformation." );
       }
       else //make the transformation ourselves
       { 
         //Compute transformation matrix with plplot conventions:
-        plplot3d=gdlComputePlplotRotationMatrix( az, alt, zValue,scale, saveT3d);
+        plplot3d=gdlComputePlplotRotationMatrix( az, alt, zValue, scale, saveT3d);
       }
 
       if ( gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,

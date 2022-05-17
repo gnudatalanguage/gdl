@@ -282,14 +282,10 @@ private:
       gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog, calendar_codex);
       gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog, calendar_codey);
 
-      // MARGIN
-      DFloat xMarginL, xMarginR, yMarginB, yMarginT;
-      gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
-      gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
-
       // viewport and world coordinates
       // set the PLOT charsize before setting viewport (margin depend on charsize)
       gdlSetPlotCharsize(e, actStream);
+      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, iso) == false) return; //no good: should catch an exception to get out of this mess.
 
       if (doT3d) {
 
@@ -380,10 +376,10 @@ private:
         //fix viewport and coordinates for non-3D box. this permits to have correct UsymConv values.
         // it is important to fix simsize before!
         gdlSetSymsize(e, actStream);
-        if (gdlSetViewPortAndWorldCoordinates(e, actStream,
-          xLog, yLog,
-          xMarginL, xMarginR, yMarginB, yMarginT,
-          xStart, xEnd, yStart, yEnd, iso) == false) return; //no good: should catch an exception to get out of this mess.
+//        if (gdlSetViewPortAndWorldCoordinates(e, actStream,
+//          xLog, yLog,
+//          xMarginL, xMarginR, yMarginB, yMarginT,
+//          xStart, xEnd, yStart, yEnd, iso) == false) return; //no good: should catch an exception to get out of this mess.
         actStream->setSymbolSizeConversionFactors();
         //current pen color...
         gdlSetGraphicsForegroundColorFromKw(e, actStream);

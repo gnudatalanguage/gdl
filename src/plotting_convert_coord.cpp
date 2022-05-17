@@ -22,8 +22,9 @@
 #define TODATACOORDX( in, out, log) out = (log) ? pow(10.0, (in -sx[0])/sx[1]) : (in -sx[0])/sx[1];
 #define TONORMCOORDY( in, out, log) out = (log) ? sy[0] + sy[1] * log10(in) : sy[0] + sy[1] * in;
 #define TODATACOORDY( in, out, log) out = (log) ? pow(10.0, (in -sy[0])/sy[1]) : (in -sy[0])/sy[1];
-#define TONORMCOORDZ( in, out, log, doT3d) out = (doT3d)? (log) ? sz[0] + sz[1] * log10(in) : sz[0] + sz[1] * in   : (log) ? log10(in)    : in;
-#define TODATACOORDZ( in, out, log, doT3d) out = (doT3d)? (log) ? pow(10.0, (in -sz[0])/sz[1]) : (in -sz[0])/sz[1] : (log) ? pow(10.0,in) : in;
+#define TONORMCOORDZ( in, out, log) out = (log) ? sz[0] + sz[1] * log10(in) : sz[0] + sz[1] * in;
+#define TODATACOORDZ( in, out, log) out = (log) ? pow(10.0, (in -sz[0])/sz[1]) : (in -sz[0])/sz[1];
+
 namespace lib {
 
   using namespace std;
@@ -31,380 +32,6 @@ namespace lib {
   static DDouble cubeCorners[32] ={
     0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
   };
-
-  DDoubleGDL* convert_coord_double(EnvT* e, DDoubleGDL* xVal, DDoubleGDL* yVal, DDoubleGDL* zVal) {
-
-    COORDSYS icoordinateSystem = DATA, ocoordinateSystem = DATA;
-    //check presence of DATA,DEVICE and NORMAL options
-    static int DATAIx = e->KeywordIx("DATA");
-    static int DEVICEIx = e->KeywordIx("DEVICE");
-    static int NORMALIx = e->KeywordIx("NORMAL");
-    static int TO_DATAIx = e->KeywordIx("TO_DATA");
-    static int TO_DEVICEIx = e->KeywordIx("TO_DEVICE");
-    static int TO_NORMALIx = e->KeywordIx("TO_NORMAL");
-
-    if (e->KeywordSet(DATAIx)) icoordinateSystem = DATA;
-    if (e->KeywordSet(DEVICEIx)) icoordinateSystem = DEVICE;
-    if (e->KeywordSet(NORMALIx)) icoordinateSystem = NORMAL;
-    if (e->KeywordSet(TO_DATAIx)) ocoordinateSystem = DATA;
-    if (e->KeywordSet(TO_DEVICEIx)) ocoordinateSystem = DEVICE;
-    if (e->KeywordSet(TO_NORMALIx)) ocoordinateSystem = NORMAL;
-    static int t3dIx = e->KeywordIx("T3D");
-    bool doT3d = (e->KeywordSet(t3dIx) || T3Denabled());
-    DLong dims[2] = {3, 0};
-
-    DDoubleGDL* res;
-    SizeT nrows;
-
-    nrows = xVal->Dim(0);
-    dims[1] = nrows;
-    dimension dim((DLong *) dims, 2);
-    res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-
-    //eliminate simplest case here:
-    if (ocoordinateSystem == icoordinateSystem) {
-      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
-        for (OMPInt i = 0; i < nrows; ++i) {
-          (*res)[i * 3 + 0] = (*xVal)[i];
-          (*res)[i * 3 + 1] = (*yVal)[i];
-          (*res)[i * 3 + 2] = (*zVal)[i];
-        }
-      } else {
-        TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-          for (OMPInt i = 0; i < nrows; ++i) {
-          (*res)[i * 3 + 0] = (*xVal)[i];
-          (*res)[i * 3 + 1] = (*yVal)[i];
-          (*res)[i * 3 + 2] = (*zVal)[i];
-        }
-      }
-      return res;
-    }
-
-    DDouble *sx, *sy, *sz;
-    GetSFromPlotStructs(&sx, &sy, &sz);
-
-    bool xLog, yLog, zLog;
-    gdlGetAxisType(XAXIS, xLog);
-    gdlGetAxisType(YAXIS, yLog);
-    gdlGetAxisType(ZAXIS, zLog);
-
-    int xSize, ySize;
-    //give default values
-    DStructGDL* dStruct = SysVar::D();
-    unsigned xsizeTag = dStruct->Desc()->TagIndex("X_SIZE");
-    unsigned ysizeTag = dStruct->Desc()->TagIndex("Y_SIZE");
-    xSize = (*static_cast<DLongGDL*> (dStruct->GetTag(xsizeTag, 0)))[0];
-    ySize = (*static_cast<DLongGDL*> (dStruct->GetTag(ysizeTag, 0)))[0];
-    // Use Size in lieu of VSize
-    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-    DLong wIx = actDevice->ActWin();
-    if (wIx != -1) bool success = actDevice->WSize(wIx, &xSize, &ySize); //on failure, sizes are ot changed by WSize.
-
-    //projection?
-    bool mapSet = false;
-#ifdef USE_LIBPROJ
-    static LPTYPE idata;
-    static XYTYPE odata;
-    get_mapset(mapSet);
-    if (mapSet) {
-      ref = map_init();
-      if (ref == NULL) e->Throw("Projection initialization failed.");
-    }
-#endif
-
-    //convert input (we can overwrite X Y and Z) to normalized
-    switch (icoordinateSystem) {
-    case DATA:
-      // to u,v
-#ifdef USE_LIBPROJ
-      if (mapSet) {
-          for (SizeT i = 0; i < nrows; i++) {
-#if LIBPROJ_MAJOR_VERSION >= 5
-            idata.lam = (*xVal)[i] * DEG_TO_RAD;
-            idata.phi = (*yVal)[i] * DEG_TO_RAD;
-            odata = protect_proj_fwd_lp(idata, ref);
-            (*xVal)[i] = odata.x;
-            (*yVal)[i] = odata.y;
-#else
-            idata.u = (*xVal)[i] * DEG_TO_RAD;
-            idata.v = (*yVal)[i] * DEG_TO_RAD;
-            odata = PJ_FWD(idata, ref);
-            (*xVal)[i] = odata.u;
-            (*yVal)[i] = odata.v;
-#endif
-          }
-      }
-#endif
-      // to norm:
-      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
-        for (OMPInt i = 0; i < nrows; ++i) {
-          TONORMCOORDX((*xVal)[i], (*xVal)[i], xLog);
-          TONORMCOORDY((*yVal)[i], (*yVal)[i], yLog);
-          TONORMCOORDZ((*zVal)[i], (*zVal)[i], zLog, doT3d);
-        }
-      } else {
-        TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-          for (OMPInt i = 0; i < nrows; ++i) {
-          TONORMCOORDX((*xVal)[i], (*xVal)[i], xLog);
-          TONORMCOORDY((*yVal)[i], (*yVal)[i], yLog);
-          TONORMCOORDZ((*zVal)[i], (*zVal)[i], zLog, doT3d);
-        }
-      }
-      break;
-    case DEVICE:
-      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
-        for (OMPInt i = 0; i < nrows; ++i) {
-          (*xVal)[i] /= xSize;
-          (*yVal)[i] /= ySize;
-          // (zSize is 1)
-        }
-      } else {
-        TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-          for (OMPInt i = 0; i < nrows; ++i) {
-          (*xVal)[i] /= xSize;
-          (*yVal)[i] /= ySize;
-          // (zSize is 1)
-        }
-      }
-    default:
-      break;
-    }
-
-    //convert to output from normalized
-    switch (ocoordinateSystem) {
-    case DATA:
-      // from norm:
-      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
-        for (OMPInt i = 0; i < nrows; ++i) {
-          TODATACOORDX((*xVal)[i], (*xVal)[i], xLog);
-          TODATACOORDY((*yVal)[i], (*yVal)[i], yLog);
-          TODATACOORDZ((*zVal)[i], (*zVal)[i], zLog, doT3d);
-        }
-      } else {
-        TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-          for (OMPInt i = 0; i < nrows; ++i) {
-          TODATACOORDX((*xVal)[i], (*xVal)[i], xLog);
-          TODATACOORDY((*yVal)[i], (*yVal)[i], yLog);
-          TODATACOORDZ((*zVal)[i], (*zVal)[i], zLog, doT3d);
-        }
-      }
-
-      // from u,v
-#ifdef USE_LIBPROJ
-      if (mapSet) {
-          for (SizeT i = 0; i < nrows; i++) {
-#if LIBPROJ_MAJOR_VERSION >= 5
-            odata.x = (*xVal)[i];
-            odata.y = (*yVal)[i];
-            idata = protect_proj_inv_xy(odata, ref);
-            (*xVal)[i] = idata.lam * RAD_TO_DEG;
-            (*yVal)[i] = idata.phi * RAD_TO_DEG;
-#else
-            odata.u = (*xVal)[i];
-            odata.v = (*yVal)[i];
-            idata = PJ_INV(odata, ref);
-            (*xVal)[i] = idata.u * RAD_TO_DEG;
-            (*yVal)[i] = idata.v * RAD_TO_DEG;
-#endif
-          }
-        }
-#endif
-
-      break;
-    case DEVICE:
-      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
-        for (OMPInt i = 0; i < nrows; ++i) {
-          (*xVal)[i] *= xSize;
-          (*yVal)[i] *= ySize;
-          //(zSize is 1)
-        }
-      } else {
-        TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-          for (OMPInt i = 0; i < nrows; ++i) {
-          (*xVal)[i] *= xSize;
-          (*yVal)[i] *= ySize;
-          //(zSize is 1)
-        }
-      }
-    default:
-      break;
-    }
-
-    if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
-      for (OMPInt i = 0; i < nrows; ++i) {
-        (*res)[i * 3 + 0] = (*xVal)[i];
-        (*res)[i * 3 + 1] = (*yVal)[i];
-        (*res)[i * 3 + 2] = (*zVal)[i];
-      }
-    } else {
-      TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < nrows; ++i) {
-        (*res)[i * 3 + 0] = (*xVal)[i];
-        (*res)[i * 3 + 1] = (*yVal)[i];
-        (*res)[i * 3 + 2] = (*zVal)[i];
-      }
-    }
-    return res;
-  }
-
-  BaseGDL* convert_coord(EnvT* e) {
-    DDoubleGDL* xVal, *yVal, *zVal;
-    Guard<DDoubleGDL> xval_guard, yval_guard, zval_guard;
-    SizeT xEl, yEl, zEl, minEl, xDim, yDim, zDim;
-
-    //behaviour: 1 argument: needs to be [2,*] or [3,*] else 2 args: X,vector, Y vector 1 (z=vector zero). else 3 args, 3 vectors.
-    //in case of vectors, note usual behaviour:
-    //minimum set of dimensions of arrays. singletons expanded to dimension,
-
-    //T3D
-    static int t3dIx = e->KeywordIx("T3D");
-    bool doT3d = (e->KeywordSet(t3dIx) || T3Denabled());
-    DDoubleGDL *xValou;
-    DDoubleGDL *yValou;
-    Guard<BaseGDL> xvalou_guard, yvalou_guard;
-
-    SizeT nParam = e->NParam(1);
-
-    BaseGDL* p0;
-    BaseGDL* p1;
-    BaseGDL* p2;
-
-    DType type = GDL_FLOAT;
-    static int doubleIx = e->KeywordIx("DOUBLE");
-    if (e->KeywordSet(doubleIx)) type = GDL_DOUBLE;
-
-    p0 = e->GetParDefined(0);
-    if (p0->Type() == GDL_DOUBLE) type = GDL_DOUBLE;
-
-    if (e->NParam() == 1) {
-      if (p0->Dim(0) == 0) e->Throw("Expression must be an array in this context: " + e->GetParString(0));
-      if (p0->Dim(0) != 2 && p0->Dim(0) != 3) e->Throw("When only 1 param, dims must be (2,n) or (3,n)"); //with n=0 also!!!
-      SizeT dim0 = p0->Dim(0);
-      minEl = p0->Dim(1);
-      if (minEl == 0) minEl = 1; // aka in convert_coord([44,22])-->n_dim=1,dim=2
-      xVal = new DDoubleGDL(dimension(minEl), BaseGDL::NOZERO);
-      xval_guard.Reset(xVal); // delete upon exit
-      DDoubleGDL* tmpVal = e->GetParAs< DDoubleGDL>(0);
-      for (SizeT i = 0; i < minEl; ++i) (*xVal)[i] = (*tmpVal)[i * dim0 + 0];
-      yVal = new DDoubleGDL(dimension(minEl), BaseGDL::NOZERO);
-      yval_guard.Reset(yVal); // delete upon exit
-      for (SizeT i = 0; i < minEl; ++i) (*yVal)[i] = (*tmpVal)[i * dim0 + 1];
-      zVal = new DDoubleGDL(dimension(minEl), BaseGDL::ZERO);
-      zval_guard.Reset(zVal); // delete upon exit
-      if (dim0 == 3) for (SizeT i = 0; i < minEl; ++i) (*zVal)[i] = (*tmpVal)[i * dim0 + 2];
-    }
-
-    if (nParam >= 2) {
-      p1 = e->GetParDefined(1);
-      if (p1->Type() == GDL_DOUBLE) type = GDL_DOUBLE;
-      xVal = e->GetParAs< DDoubleGDL>(0);
-      xEl = xVal->N_Elements();
-      xDim = xVal->Dim(0);
-      yVal = e->GetParAs< DDoubleGDL>(1);
-      yEl = yVal->N_Elements();
-      yDim = yVal->Dim(0);
-      //minEl:
-      minEl = -1;
-      minEl = (minEl > xEl && xDim) ? xEl : minEl;
-      minEl = (minEl > yEl && yDim) ? yEl : minEl;
-
-      if (minEl == -1) {
-        minEl = 1;
-      } else {
-        minEl = (minEl > xEl && xDim) ? xEl : minEl;
-        minEl = (minEl > yEl && yDim) ? yEl : minEl;
-      }
-      DDoubleGDL* tmpxVal = e->GetParAs< DDoubleGDL>(0);
-      xVal = new DDoubleGDL(minEl, BaseGDL::NOZERO);
-      xval_guard.Reset(xVal); // delete upon exit
-      if (xDim) for (SizeT i = 0; i < minEl; ++i) (*xVal)[i] = (*tmpxVal)[i];
-      else for (SizeT i = 0; i < minEl; ++i) (*xVal)[i] = (*tmpxVal)[0];
-      DDoubleGDL* tmpyVal = e->GetParAs< DDoubleGDL>(1);
-      yVal = new DDoubleGDL(minEl, BaseGDL::NOZERO);
-      yval_guard.Reset(yVal); // delete upon exit
-      if (yDim) for (SizeT i = 0; i < minEl; ++i) (*yVal)[i] = (*tmpyVal)[i];
-      else for (SizeT i = 0; i < minEl; ++i) (*yVal)[i] = (*tmpyVal)[0];
-      zVal = new DDoubleGDL(minEl, BaseGDL::ZERO);
-      zval_guard.Reset(zVal); // delete upon exit
-    }
-
-    if (nParam == 3) {
-      p2 = e->GetParDefined(2);
-      if (p2->Type() == GDL_DOUBLE) type = GDL_DOUBLE;
-      xVal = e->GetParAs< DDoubleGDL>(0);
-      xEl = xVal->N_Elements();
-      xDim = xVal->Dim(0);
-      yVal = e->GetParAs< DDoubleGDL>(1);
-      yEl = yVal->N_Elements();
-      yDim = yVal->Dim(0);
-      zVal = e->GetParAs<DDoubleGDL>(2);
-      zEl = zVal->N_Elements();
-      zDim = zVal->Dim(0);
-      //minEl:
-      minEl = -1;
-      minEl = (minEl > xEl && xDim) ? xEl : minEl;
-      minEl = (minEl > yEl && yDim) ? yEl : minEl;
-      minEl = (minEl > zEl && zDim) ? zEl : minEl;
-
-      if (minEl == -1) {
-        minEl = 1;
-      } else {
-        minEl = (minEl > xEl && xDim) ? xEl : minEl;
-        minEl = (minEl > yEl && yDim) ? yEl : minEl;
-        minEl = (minEl > zEl && zDim) ? zEl : minEl;
-      }
-      DDoubleGDL* tmpxVal = e->GetParAs< DDoubleGDL>(0);
-      xVal = new DDoubleGDL(minEl, BaseGDL::NOZERO);
-      xval_guard.Reset(xVal); // delete upon exit
-      if (xDim) for (SizeT i = 0; i < minEl; ++i) (*xVal)[i] = (*tmpxVal)[i];
-      else for (SizeT i = 0; i < minEl; ++i) (*xVal)[i] = (*tmpxVal)[0];
-      DDoubleGDL* tmpyVal = e->GetParAs< DDoubleGDL>(1);
-      yVal = new DDoubleGDL(minEl, BaseGDL::NOZERO);
-      yval_guard.Reset(yVal); // delete upon exit
-      if (yDim) for (SizeT i = 0; i < minEl; ++i) (*yVal)[i] = (*tmpyVal)[i];
-      else for (SizeT i = 0; i < minEl; ++i) (*yVal)[i] = (*tmpyVal)[0];
-      DDoubleGDL* tmpzVal = e->GetParAs< DDoubleGDL>(2);
-      zVal = new DDoubleGDL(minEl, BaseGDL::NOZERO);
-      zval_guard.Reset(zVal); // delete upon exit
-      if (zDim) for (SizeT i = 0; i < minEl; ++i) (*zVal)[i] = (*tmpzVal)[i];
-      else for (SizeT i = 0; i < minEl; ++i) (*zVal)[i] = (*tmpzVal)[0];
-    }
-
-    if (doT3d) //convert X,Y,Z in X',Y' as per T3D perspective.
-    {
-      DDoubleGDL* t3dMatrix;
-      Guard<BaseGDL> t3dMatrix_guard;
-      t3dMatrix = gdlGetT3DMatrix(); //the original one
-      t3dMatrix_guard.Reset(t3dMatrix);
-      DDouble *sx, *sy, *sz;
-      GetSFromPlotStructs(&sx, &sy, &sz);
-      xValou = new DDoubleGDL(dimension(minEl));
-      yValou = new DDoubleGDL(dimension(minEl));
-      Guard<BaseGDL> xval_guard, yval_guard;
-      xval_guard.reset(xValou);
-      yval_guard.reset(yValou);
-      gdlProject3dCoordinatesIn2d(t3dMatrix, xVal, sx, yVal, sy, zVal, sz, xValou, yValou);
-      xVal = xValou;
-      yVal = yValou;
-    }
-
-    DDoubleGDL* res = convert_coord_double(e, xVal, yVal, zVal);
-
-    if (type == GDL_DOUBLE) {
-      return res;
-    }
-    //else return something...
-    DFloatGDL* res1 = static_cast<DFloatGDL*> (res->Convert2(GDL_FLOAT, BaseGDL::COPY));
-    delete res;
-    return res1;
-  }
-
   //THE FOLLOWING ARE POSSIBLY THE WORST WAY TO DO THE JOB. At least they are to be used *only*
   //for [4,4] generalized 3D matrices
 
@@ -419,6 +46,7 @@ namespace lib {
     } else for (auto i = 0; i < dim0; ++i) std::cerr << (*me)[i] << " ";
     std::cerr << std::endl;
   }
+
   void SelfTranspose3d(DDoubleGDL* me) {
     //crude quick hack to have the same behaviour as the other functions.
     SizeT dim0 = me->Dim(0);
@@ -466,7 +94,7 @@ namespace lib {
     (*mat)[0] = scale[0];
     (*mat)[5] = scale[1];
     (*mat)[10] = scale[2];
-//    SelfPrint3d(mat);
+    //    SelfPrint3d(mat);
     DDoubleGDL* intermediary = mat->MatrixOp(me, false, false);
     memcpy(me->DataAddr(), intermediary->DataAddr(), dim0 * dim1 * sizeof (double));
     GDLDelete(intermediary);
@@ -562,7 +190,7 @@ namespace lib {
     GDLDelete(mat);
   }
 
-  void SelfExch3d(DDoubleGDL* me, T3DEXCHANGECODE &axisExchangeCode) {
+  void SelfExch3d(DDoubleGDL* me, T3DEXCHANGECODE axisExchangeCode) {
     SizeT dim0 = me->Dim(0);
     SizeT dim1 = me->Dim(1);
     if (dim0 != 4 && dim1 != 4) return;
@@ -587,6 +215,433 @@ namespace lib {
       }
     }
     GDLDelete(mat);
+  }
+
+
+  DDoubleGDL* convert_coord_double(EnvT* e, DDoubleGDL* xVal, DDoubleGDL* yVal, DDoubleGDL* zVal, COORDSYS icoordinateSystem, COORDSYS ocoordinateSystem) {
+
+    DLong dims[2] = {3, 0};
+
+    DDoubleGDL* res;
+    SizeT nrows;
+
+    nrows = xVal->Dim(0);
+    dims[1] = nrows;
+    dimension dim((DLong *) dims, 2);
+    res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+
+    //eliminate simplest case here:
+    if (ocoordinateSystem == icoordinateSystem) {
+      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
+        for (OMPInt i = 0; i < nrows; ++i) {
+          (*res)[i * 3 + 0] = (*xVal)[i];
+          (*res)[i * 3 + 1] = (*yVal)[i];
+          (*res)[i * 3 + 2] = (*zVal)[i];
+        }
+      } else {
+        TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+          for (OMPInt i = 0; i < nrows; ++i) {
+          (*res)[i * 3 + 0] = (*xVal)[i];
+          (*res)[i * 3 + 1] = (*yVal)[i];
+          (*res)[i * 3 + 2] = (*zVal)[i];
+        }
+      }
+      return res;
+    }
+
+    DDouble *sx, *sy, *sz;
+    GetSFromPlotStructs(&sx, &sy, &sz);
+
+    bool xLog, yLog, zLog;
+    gdlGetAxisType(XAXIS, xLog);
+    gdlGetAxisType(YAXIS, yLog);
+    gdlGetAxisType(ZAXIS, zLog);
+
+    int xSize, ySize;
+    //give default values
+    DStructGDL* dStruct = SysVar::D();
+    unsigned xsizeTag = dStruct->Desc()->TagIndex("X_SIZE");
+    unsigned ysizeTag = dStruct->Desc()->TagIndex("Y_SIZE");
+    xSize = (*static_cast<DLongGDL*> (dStruct->GetTag(xsizeTag, 0)))[0];
+    ySize = (*static_cast<DLongGDL*> (dStruct->GetTag(ysizeTag, 0)))[0];
+    // Use Size in lieu of VSize
+    GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
+    DLong wIx = actDevice->ActWin();
+    if (wIx != -1) bool success = actDevice->WSize(wIx, &xSize, &ySize); //on failure, sizes are ot changed by WSize.
+    else Warning("CONVERT_COORD: Window is closed and unavailable.");
+    
+    //projection?
+    bool mapSet = false;
+#ifdef USE_LIBPROJ
+    static LPTYPE idata;
+    static XYTYPE odata;
+    get_mapset(mapSet);
+    if (mapSet) {
+      ref = map_init();
+      if (ref == NULL) e->Throw("Projection initialization failed.");
+    }
+#endif
+
+    //convert input (we can overwrite X Y and Z) to normalized
+    switch (icoordinateSystem) {
+    case DATA:
+      // to u,v
+#ifdef USE_LIBPROJ
+      if (mapSet) {
+          for (SizeT i = 0; i < nrows; i++) {
+#if LIBPROJ_MAJOR_VERSION >= 5
+            idata.lam = (*xVal)[i] * DEG_TO_RAD;
+            idata.phi = (*yVal)[i] * DEG_TO_RAD;
+            odata = protect_proj_fwd_lp(idata, ref);
+            (*xVal)[i] = odata.x;
+            (*yVal)[i] = odata.y;
+#else
+            idata.u = (*xVal)[i] * DEG_TO_RAD;
+            idata.v = (*yVal)[i] * DEG_TO_RAD;
+            odata = PJ_FWD(idata, ref);
+            (*xVal)[i] = odata.u;
+            (*yVal)[i] = odata.v;
+#endif
+          }
+      }
+#endif
+      // to norm:
+      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
+        for (OMPInt i = 0; i < nrows; ++i) {
+          TONORMCOORDX((*xVal)[i], (*xVal)[i], xLog);
+          TONORMCOORDY((*yVal)[i], (*yVal)[i], yLog);
+          TONORMCOORDZ((*zVal)[i], (*zVal)[i], zLog);
+        }
+      } else {
+        TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+          for (OMPInt i = 0; i < nrows; ++i) {
+          TONORMCOORDX((*xVal)[i], (*xVal)[i], xLog);
+          TONORMCOORDY((*yVal)[i], (*yVal)[i], yLog);
+          TONORMCOORDZ((*zVal)[i], (*zVal)[i], zLog);
+        }
+      }
+      break;
+    case DEVICE:
+      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
+        for (OMPInt i = 0; i < nrows; ++i) {
+          (*xVal)[i] /= xSize;
+          (*yVal)[i] /= ySize;
+          // (zSize is 1)
+        }
+      } else {
+        TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+          for (OMPInt i = 0; i < nrows; ++i) {
+          (*xVal)[i] /= xSize;
+          (*yVal)[i] /= ySize;
+          // (zSize is 1)
+        }
+      }
+    default:
+      break;
+    }
+
+    //convert to output from normalized
+    switch (ocoordinateSystem) {
+    case DATA:
+      // from norm:
+      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
+        for (OMPInt i = 0; i < nrows; ++i) {
+          TODATACOORDX((*xVal)[i], (*xVal)[i], xLog);
+          TODATACOORDY((*yVal)[i], (*yVal)[i], yLog);
+          TODATACOORDZ((*zVal)[i], (*zVal)[i], zLog);
+        }
+      } else {
+        TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+          for (OMPInt i = 0; i < nrows; ++i) {
+          TODATACOORDX((*xVal)[i], (*xVal)[i], xLog);
+          TODATACOORDY((*yVal)[i], (*yVal)[i], yLog);
+          TODATACOORDZ((*zVal)[i], (*zVal)[i], zLog);
+        }
+      }
+
+      // from u,v
+#ifdef USE_LIBPROJ
+      if (mapSet) {
+          for (SizeT i = 0; i < nrows; i++) {
+#if LIBPROJ_MAJOR_VERSION >= 5
+            odata.x = (*xVal)[i];
+            odata.y = (*yVal)[i];
+            idata = protect_proj_inv_xy(odata, ref);
+            (*xVal)[i] = idata.lam * RAD_TO_DEG;
+            (*yVal)[i] = idata.phi * RAD_TO_DEG;
+#else
+            odata.u = (*xVal)[i];
+            odata.v = (*yVal)[i];
+            idata = PJ_INV(odata, ref);
+            (*xVal)[i] = idata.u * RAD_TO_DEG;
+            (*yVal)[i] = idata.v * RAD_TO_DEG;
+#endif
+          }
+        }
+#endif
+
+      break;
+    case DEVICE:
+      if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
+        for (OMPInt i = 0; i < nrows; ++i) {
+          (*xVal)[i] *= xSize;
+          (*yVal)[i] *= ySize;
+          //(zSize is 1)
+        }
+      } else {
+        TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+          for (OMPInt i = 0; i < nrows; ++i) {
+          (*xVal)[i] *= xSize;
+          (*yVal)[i] *= ySize;
+          //(zSize is 1)
+        }
+      }
+    default:
+      break;
+    }
+
+    if ((GDL_NTHREADS=parallelize( nrows, TP_MEMORY_ACCESS))==1) {
+      for (OMPInt i = 0; i < nrows; ++i) {
+        (*res)[i * 3 + 0] = (*xVal)[i];
+        (*res)[i * 3 + 1] = (*yVal)[i];
+        (*res)[i * 3 + 2] = (*zVal)[i];
+      }
+    } else {
+      TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+        for (OMPInt i = 0; i < nrows; ++i) {
+        (*res)[i * 3 + 0] = (*xVal)[i];
+        (*res)[i * 3 + 1] = (*yVal)[i];
+        (*res)[i * 3 + 2] = (*zVal)[i];
+      }
+    }
+    return res;
+  }
+
+  BaseGDL* convert_coord(EnvT* e) {
+    DDoubleGDL* xVal, *yVal, *zVal;
+    Guard<DDoubleGDL> xval_guard, yval_guard, zval_guard;
+    SizeT xEl, yEl, zEl, minEl, xDim, yDim, zDim;
+
+    //behaviour: 1 argument: needs to be [2,*] or [3,*] else 2 args: X,vector, Y vector 1 (z=vector zero). else 3 args, 3 vectors.
+    //in case of vectors, note usual behaviour:
+    //minimum set of dimensions of arrays. singletons expanded to dimension,
+
+    SizeT nParam = e->NParam(1);
+
+    BaseGDL* p0;
+    BaseGDL* p1;
+    BaseGDL* p2;
+
+    DType type = GDL_FLOAT;
+    static int doubleIx = e->KeywordIx("DOUBLE");
+    if (e->KeywordSet(doubleIx)) type = GDL_DOUBLE;
+
+    p0 = e->GetParDefined(0);
+    if (p0->Type() == GDL_DOUBLE) type = GDL_DOUBLE;
+
+    if (nParam == 1) {
+      if (p0->Dim(0) == 0) e->Throw("Expression must be an array in this context: " + e->GetParString(0));
+      if (p0->Dim(0) != 2 && p0->Dim(0) != 3) e->Throw("When only 1 param, dims must be (2,n) or (3,n)"); //with n=0 also!!!
+      SizeT dim0 = p0->Dim(0);
+      minEl = p0->Dim(1);
+      if (minEl == 0) minEl = 1; // aka in convert_coord([44,22])-->n_dim=1,dim=2
+      xVal = new DDoubleGDL(dimension(minEl), BaseGDL::NOZERO);
+      xval_guard.Reset(xVal); // delete upon exit
+      DDoubleGDL* tmpVal = e->GetParAs< DDoubleGDL>(0);
+      for (SizeT i = 0; i < minEl; ++i) (*xVal)[i] = (*tmpVal)[i * dim0 + 0];
+      yVal = new DDoubleGDL(dimension(minEl), BaseGDL::NOZERO);
+      yval_guard.Reset(yVal); // delete upon exit
+      for (SizeT i = 0; i < minEl; ++i) (*yVal)[i] = (*tmpVal)[i * dim0 + 1];
+      zVal = new DDoubleGDL(dimension(minEl), BaseGDL::ZERO);
+      zval_guard.Reset(zVal); // delete upon exit
+      if (dim0 == 3) for (SizeT i = 0; i < minEl; ++i) (*zVal)[i] = (*tmpVal)[i * dim0 + 2];
+    }
+
+    if (nParam >= 2) {
+      p1 = e->GetParDefined(1);
+      if (p1->Type() == GDL_DOUBLE) type = GDL_DOUBLE;
+      p0 = e->GetParDefined(0);
+      xEl = p0->N_Elements();
+      xDim = p0->Dim(0);
+      yEl = p1->N_Elements();
+      yDim = p1->Dim(0);
+      //minEl:
+      minEl = -1;
+      minEl = (minEl > xEl && xDim) ? xEl : minEl;
+      minEl = (minEl > yEl && yDim) ? yEl : minEl;
+
+      if (minEl == -1) {
+        minEl = 1;
+      } else {
+        minEl = (minEl > xEl && xDim) ? xEl : minEl;
+        minEl = (minEl > yEl && yDim) ? yEl : minEl;
+      }
+      DDoubleGDL* tmpxVal = e->GetParAs< DDoubleGDL>(0);
+      xVal = new DDoubleGDL(minEl, BaseGDL::NOZERO);
+      xval_guard.Reset(xVal); // delete upon exit
+      if (xDim) for (SizeT i = 0; i < minEl; ++i) (*xVal)[i] = (*tmpxVal)[i];
+      else for (SizeT i = 0; i < minEl; ++i) (*xVal)[i] = (*tmpxVal)[0];
+      DDoubleGDL* tmpyVal = e->GetParAs< DDoubleGDL>(1);
+      yVal = new DDoubleGDL(minEl, BaseGDL::NOZERO);
+      yval_guard.Reset(yVal); // delete upon exit
+      if (yDim) for (SizeT i = 0; i < minEl; ++i) (*yVal)[i] = (*tmpyVal)[i];
+      else for (SizeT i = 0; i < minEl; ++i) (*yVal)[i] = (*tmpyVal)[0];
+      zVal = new DDoubleGDL(minEl, BaseGDL::ZERO);
+      zval_guard.Reset(zVal); // delete upon exit
+    }
+
+    if (nParam == 3) {
+      p2 = e->GetParDefined(2);
+      if (p2->Type() == GDL_DOUBLE) type = GDL_DOUBLE;
+      zEl = p2->N_Elements();
+      zDim = p2->Dim(0);
+      p0 = e->GetParDefined(0);
+      xEl = p0->N_Elements();
+      xDim = p0->Dim(0);
+      p1 = e->GetParDefined(1);
+      yEl = p1->N_Elements();
+      yDim = p1->Dim(0);
+      //minEl:
+      minEl = -1;
+      minEl = (minEl > xEl && xDim) ? xEl : minEl;
+      minEl = (minEl > yEl && yDim) ? yEl : minEl;
+      minEl = (minEl > zEl && zDim) ? zEl : minEl;
+
+      if (minEl == -1) {
+        minEl = 1;
+      } else {
+        minEl = (minEl > xEl && xDim) ? xEl : minEl;
+        minEl = (minEl > yEl && yDim) ? yEl : minEl;
+        minEl = (minEl > zEl && zDim) ? zEl : minEl;
+      }
+      DDoubleGDL* tmpxVal = e->GetParAs< DDoubleGDL>(0);
+      xVal = new DDoubleGDL(minEl, BaseGDL::NOZERO);
+      xval_guard.Reset(xVal); // delete upon exit
+      if (xDim) for (SizeT i = 0; i < minEl; ++i) (*xVal)[i] = (*tmpxVal)[i];
+      else for (SizeT i = 0; i < minEl; ++i) (*xVal)[i] = (*tmpxVal)[0];
+      DDoubleGDL* tmpyVal = e->GetParAs< DDoubleGDL>(1);
+      yVal = new DDoubleGDL(minEl, BaseGDL::NOZERO);
+      yval_guard.Reset(yVal); // delete upon exit
+      if (yDim) for (SizeT i = 0; i < minEl; ++i) (*yVal)[i] = (*tmpyVal)[i];
+      else for (SizeT i = 0; i < minEl; ++i) (*yVal)[i] = (*tmpyVal)[0];
+      DDoubleGDL* tmpzVal = e->GetParAs< DDoubleGDL>(2);
+      zVal = new DDoubleGDL(minEl, BaseGDL::NOZERO);
+      zval_guard.Reset(zVal); // delete upon exit
+      if (zDim) for (SizeT i = 0; i < minEl; ++i) (*zVal)[i] = (*tmpzVal)[i];
+      else for (SizeT i = 0; i < minEl; ++i) (*zVal)[i] = (*tmpzVal)[0];
+    }
+    COORDSYS icoordinateSystem = DATA, ocoordinateSystem = DATA;
+    //check presence of DATA,DEVICE and NORMAL options
+    static int DATAIx = e->KeywordIx("DATA");
+    static int DEVICEIx = e->KeywordIx("DEVICE");
+    static int NORMALIx = e->KeywordIx("NORMAL");
+    static int TO_DATAIx = e->KeywordIx("TO_DATA");
+    static int TO_DEVICEIx = e->KeywordIx("TO_DEVICE");
+    static int TO_NORMALIx = e->KeywordIx("TO_NORMAL");
+
+    if (e->KeywordSet(DATAIx)) icoordinateSystem = DATA;
+    if (e->KeywordSet(DEVICEIx)) icoordinateSystem = DEVICE;
+    if (e->KeywordSet(NORMALIx)) icoordinateSystem = NORMAL;
+    if (e->KeywordSet(TO_DATAIx)) ocoordinateSystem = DATA;
+    if (e->KeywordSet(TO_DEVICEIx)) ocoordinateSystem = DEVICE;
+    if (e->KeywordSet(TO_NORMALIx)) ocoordinateSystem = NORMAL;
+    
+    //special treatment of T3D: conversion HERE BELOW
+    static int t3dIx = e->KeywordIx("T3D");
+    bool doT3d = (e->KeywordSet(t3dIx) || T3Denabled());
+    doT3d = doT3d && e->KeywordSet(TO_DEVICEIx); //T3D ignored if TO is not device;
+    doT3d = (doT3d && !e->KeywordSet(NORMALIx)); //and if entries are no DATA-like
+    doT3d = (doT3d && !e->KeywordSet(DEVICEIx));
+    
+    if (doT3d) //convert X,Y,Z in X',Y' as per T3D perspective.
+    {  //input is DATA 
+
+      SizeT nEl = xVal->N_Elements();
+
+      //projection?
+      bool mapSet = false;
+#ifdef USE_LIBPROJ
+      static LPTYPE idata;
+      static XYTYPE odata;
+      get_mapset(mapSet);
+      if (mapSet) {
+        ref = map_init();
+        if (ref == NULL) e->Throw("Projection initialization failed.");
+      }
+#endif
+      // to u,v
+#ifdef USE_LIBPROJ
+      if (mapSet) {
+        for (SizeT i = 0; i < nEl; i++) {
+#if LIBPROJ_MAJOR_VERSION >= 5
+          idata.lam = (*xVal)[i] * DEG_TO_RAD;
+          idata.phi = (*yVal)[i] * DEG_TO_RAD;
+          odata = protect_proj_fwd_lp(idata, ref);
+          (*xVal)[i] = odata.x;
+          (*yVal)[i] = odata.y;
+#else
+          idata.u = (*xVal)[i] * DEG_TO_RAD;
+          idata.v = (*yVal)[i] * DEG_TO_RAD;
+          odata = PJ_FWD(idata, ref);
+          (*xVal)[i] = odata.u;
+          (*yVal)[i] = odata.v;
+#endif
+        }
+      }
+#endif
+      
+      DDoubleGDL *xValou, *yValou, *zValou;
+      DDoubleGDL* t3dMatrix = gdlGetT3DMatrix(); //the original one
+      Guard<BaseGDL> t3dMatrix_guard(t3dMatrix);
+      DDouble *sx, *sy, *sz;
+      GetSFromPlotStructs(&sx, &sy, &sz);
+      xValou = new DDoubleGDL(dimension(minEl));
+      yValou = new DDoubleGDL(dimension(minEl));
+      zValou = new DDoubleGDL(dimension(minEl));
+      Guard<BaseGDL> xvalou_guard(xValou);
+      Guard<BaseGDL> yvalou_guard(yValou);
+      Guard<BaseGDL> zvalou_guard(zValou);
+
+        //populate a 4D matrix with reduced coordinates through sx,sy,sz:
+      DDoubleGDL* xyzw = new DDoubleGDL(dimension(nEl, 4));
+      memcpy(&((*xyzw)[0]), xVal->DataAddr(), nEl * sizeof (double));
+      memcpy(&((*xyzw)[nEl]), yVal->DataAddr(), nEl * sizeof (double));
+      memcpy(&((*xyzw)[2 * nEl]), zVal->DataAddr(), nEl * sizeof (double));
+      for (int index = 0; index < nEl; ++index) {
+        (*xyzw)[3 * nEl + index] = 1.0;
+      }
+      for (auto i=0; i< nEl; ++i) (*xyzw)[i] = (*xyzw)[i]*sx[1]+sx[0];
+      for (auto i=nEl; i< 2*nEl; ++i) (*xyzw)[i] = (*xyzw)[i]*sy[1]+sy[0];
+      for (auto i=2*nEl; i< 3*nEl; ++i) (*xyzw)[i] = (*xyzw)[i]*sz[1]+sz[0];
+      DDoubleGDL* trans = t3dMatrix->MatrixOp(xyzw, false, true); //transpose xyzw for Operation
+      SelfPrint3d(trans);
+      memcpy(xValou->DataAddr(), trans->DataAddr(), nEl * sizeof (double));
+      memcpy(yValou->DataAddr(), &(*trans)[nEl], nEl * sizeof (double));
+      memcpy(zValou->DataAddr(), &(*trans)[2*nEl], nEl * sizeof (double));
+      GDLDelete(trans);
+      GDLDelete(xyzw);
+      xVal = xValou;
+      yVal = yValou;
+      zVal = zValou;
+      //values are now in NORMED:
+      icoordinateSystem=NORMAL;
+    }
+
+    DDoubleGDL* res = convert_coord_double(e, xVal, yVal, zVal, icoordinateSystem, ocoordinateSystem);
+
+    if (type == GDL_DOUBLE) {
+      return res;
+    }
+    //else return something...
+    DFloatGDL* res1 = static_cast<DFloatGDL*> (res->Convert2(GDL_FLOAT, BaseGDL::COPY));
+    delete res;
+    return res1;
   }
 
 
@@ -729,6 +784,7 @@ namespace lib {
     
     *xt = a / w; 
     *yt = b / w; 
+    std::cerr<<*xt<<","<<*yt<<std::endl;
     //*zt = c / w;
   }
   void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data) {
@@ -846,122 +902,107 @@ namespace lib {
     GDLDelete(xyzw);
   }
 
-  void gdlProject3dCoordinatesIn2d(DDoubleGDL* Matrix, DDoubleGDL *xVal, DDouble* sx,
-    DDoubleGDL *yVal, DDouble *sy, DDoubleGDL* zVal, DDouble *sz, DDoubleGDL *xValou, DDoubleGDL *yValou) {
-    DDoubleGDL* toScaled = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
-    SelfReset3d(toScaled);
-    DDouble depla[3] = {sx[0], sy[0], sz[0]};
-    DDouble scale[3] = {sx[1], sy[1], sz[1]};
-    SelfScale3d(toScaled, scale);
-    SelfTranslate3d(toScaled, depla);
-    //populate a 4D matrix with reduced coordinates through sx,sy,sz:
-    SizeT nEl = xVal->N_Elements();
-    DDoubleGDL* xyzw = new DDoubleGDL(dimension(nEl, 4));
-    memcpy(&((*xyzw)[0]), xVal->DataAddr(), nEl * sizeof (double));
-    memcpy(&((*xyzw)[nEl]), yVal->DataAddr(), nEl * sizeof (double));
-    memcpy(&((*xyzw)[2 * nEl]), zVal->DataAddr(), nEl * sizeof (double));
-    for (int index = 0; index < nEl; ++index) {
-      (*xyzw)[3 * nEl + index] = 1.0;
-    }
-    DDoubleGDL* temp = Matrix->MatrixOp(toScaled, false, false);
-    DDoubleGDL* trans = xyzw->MatrixOp(temp, false, true);
-    memcpy(xValou->DataAddr(), trans->DataAddr(), nEl * sizeof (double));
-    memcpy(yValou->DataAddr(), &(*trans)[nEl], nEl * sizeof (double));
-    GDLDelete(trans);
-    GDLDelete(xyzw);
-    GDLDelete(temp);
-  }
   
-// Check if passed 4x4 matrix is valid (in the *DL sense, rotation about Z by 90, 
-// effectively making z the y axis, then around Z by az then around X by AX)
+// Check if passed 4x4 matrix is valid :
 // the projection of the Z axis must be on the Y axis, otherwise the matrix is not good.
-// return NULL if not or retrieves alt and az needed by plplot's w3d().
+// return NULL if not or retrieves exchange code.
 bool isValidRotationMatrix(DDoubleGDL* Matrix, T3DEXCHANGECODE &axisExchangeCode){
-    axisExchangeCode=INVALID;
-    static DDoubleGDL* x=new DDoubleGDL(dimension(4));
-    static DDoubleGDL* y=new DDoubleGDL(dimension(4));
-    static DDoubleGDL* z=new DDoubleGDL(dimension(4));
-    (*x)[0]=1;(*x)[3]=1;
-    (*y)[1]=1;(*y)[3]=1;
-    (*z)[2]=1;(*z)[3]=1;
-    DDoubleGDL* res = Matrix->MatrixOp(y, false, false);
-    std::cerr<<"Y\n";SelfPrint3d(res);
-    if (abs((*res)[0] < 1E-4)) { 
-      //XY?
-      std::cerr<<"NORMAL3D\n";
-      axisExchangeCode=NORMAL3D;
-      return true;
-    }
-    res = Matrix->MatrixOp(x, false, false);
-    std::cerr<<"X\n";SelfPrint3d(res);
-    if (abs((*res)[0] < 1E-4)) {
-      std::cerr << "XY\n";
-      axisExchangeCode = XY;
-      return true;
-    }
-    res = Matrix->MatrixOp(z, false, false);
-    std::cerr<<"Z\n";SelfPrint3d(res);
-    if (abs((*res)[0] < 1E-4)) {
-      std::cerr << "YZ\n";
-      axisExchangeCode=YZ;
-      return true;
-    }
+    axisExchangeCode=NORMAL3D;
+    return true;
+//    bool a=(abs((*Matrix)[0]) < 1E-4);
+//    bool b=(abs((*Matrix)[4]) < 1E-4);
+//    bool c=(abs((*Matrix)[8]) < 1E-4);
+//    if (c) {
+//      static DDoubleGDL* x = new DDoubleGDL(dimension(4));
+//      static DDoubleGDL* y = new DDoubleGDL(dimension(4));
+//      static DDoubleGDL* z = new DDoubleGDL(dimension(4));
+//      (*x)[0] = 1;
+//      (*y)[1] = 1;
+//      (*z)[2] = 1;
+//
+//      DDoubleGDL* res;
+//      res = Matrix->MatrixOp(y, false, false);
+//      SelfPrint3d(res);
+//      if (abs((*res)[0] < 1E-4)) {
+//        //XY?
+//        std::cerr << "NORMAL3D\n";
+//        axisExchangeCode = NORMAL3D;
+//        return true;
+//      } else {
+//        res = Matrix->MatrixOp(x, false, false);
+//        SelfPrint3d(res);
+//        if (abs((*res)[0] < 1E-4)) {
+//          std::cerr << "XY\n";
+//          axisExchangeCode = XY;
+//          return true;
+//        } else {
+//          return false;
+//        }
+//      }
+//    } else {
+//      if (b) {
+//        std::cerr << "YZ\n";
+//        axisExchangeCode = YZ;
+//        return true;
+//      } else if (a) {
+//        std::cerr << "XZ\n";
+//        axisExchangeCode = XZ;
+//        return true;
+//      } else return false;
+//    }
     return false;
 }  
 bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode) {
+  // Comments To Be Revised equations below are not exact.
   //with *DL notations, the 3x3 'rotation+scale' subset of the 4x4 matrix is of the form:
   //        [             cos(ay) cos(az)                               -cos(ay) sin(az)                     sin(ay)     ]
   //        [                                                                                                            ]
   // rot := [sin(ax) sin(ay) cos(az) + cos(ax) sin(az)     -sin(ax) sin(ay) sin(az) + cos(ax) cos(az)    -sin(ax) cos(ay)]
   //        [                                                                                                            ]
   //        [-cos(ax) sin(ay) cos(az) + sin(ax) sin(az)    cos(ax) sin(ay) sin(az) + sin(ax) cos(az)     cos(ax) cos(ay) ]
-  //For the 3x3 matrix to be compatible with plplot ax (elevation) and az (azimuth) ay must be 0, i.e.:
-   //           [    cos(az)           -sin(az)           0    ]
-   //           [                                              ]
-   // rot_ok := [cos(ax) sin(az)    cos(ax) cos(az)    -sin(ax)]
-   //           [                                              ]
-   //           [sin(ax) sin(az)    sin(ax) cos(az)    cos(ax) ]
+  //For the 3x3 matrix to be compatible with plplot ax (elevation) and az (azimuth) ay must be 0 after a +90 initial rotation around X:
+ //      0                1                  2
+ // 0 [cos(az)    sin(az) sin(ax)     sin(az) cos(ax) ]
+ //   [                                               ]
+ // 1 [sin(az)    -cos(az) sin(ax)    -cos(az) cos(ax)]
+ //   [                                               ]
+ // 2 [   0           cos(ax)             -sin(ax)    ]
 
-  if (!isValidRotationMatrix(Matrix, axisExchangeCode)) return false;
-    
+  // work on duplicate to avoid problems.
     DDoubleGDL* t3dMatrix = Matrix->Dup();
     Guard<DDoubleGDL> guard(t3dMatrix);
-    if (axisExchangeCode!=NORMAL3D) SelfExch3d(t3dMatrix,axisExchangeCode);
-    // !P.T=rt#cs#9r#Ry#Rx(#Rz?)#tr !Ry contains az!
-    // r9#sc#tr# rt#cs#9r#Ry#Rx(#Rz?)#tr #rt =  r9#sc#tr#!P.T#rt = Ry#Rx(#Rz?)
-    //
-    // a= r9#sc#tr#!P.T#rt
-    //construct derotator of Matrix=!P.T . We can find sc if not stretch.
-    //substract translation rt
-    static DDouble rt[3] = {-0.5, -0.5, -0.5};
-    SelfTranslate3d(t3dMatrix, rt); //!P.T#rt
-    //on the other end compute the good invert translation-rotation t3dMatrix
-    DDoubleGDL* test = (new DDoubleGDL(dimension(4, 4)));
-    SelfReset3d(test);
-    static DDouble r9[3] = {90.0, 0.0, 0.0};
-    SelfRotate3d(test, r9);
-    static DDouble tr[3] = {0.5, 0.5, 0.5};
-    SelfTranslate3d(test, tr);
-//    // product of the two should be a pure scaled rotx,roty(rotz)(scale) matrix, hence:
-    DDoubleGDL* xz = (t3dMatrix->MatrixOp(test, false, false));
-    //scaling found here:
-    DDouble sx,sy,sz;
-    sx=sqrt( (*xz)[0 * 4 + 0] * (*xz)[0 * 4 + 0]+ (*xz)[0 * 4 + 1]*(*xz)[0 * 4 + 1]+ (*xz)[0 * 4 + 2]*(*xz)[0 * 4 + 2]);
-    sy=sqrt( (*xz)[1 * 4 + 0] * (*xz)[1 * 4 + 0]+ (*xz)[1 * 4 + 1]*(*xz)[1 * 4 + 1]+ (*xz)[1 * 4 + 2]*(*xz)[1 * 4 + 2]);
-    sz=sqrt( (*xz)[2 * 4 + 0] * (*xz)[2 * 4 + 0]+ (*xz)[2 * 4 + 1]*(*xz)[2 * 4 + 1]+ (*xz)[2 * 4 + 2]*(*xz)[2 * 4 + 2]);
-    //unscale
-    for (auto i=0; i<3; ++i) (*xz)[0 * 4 + i]/=sx;
-    for (auto i=0; i<3; ++i) (*xz)[1 * 4 + i]/=sy;
-    for (auto i=0; i<3; ++i) (*xz)[2 * 4 + i]/=sz;
+ 
+    axisExchangeCode=NORMAL3D;
+    
+    // to be improved --- not useful yet
+//    if (!isValidRotationMatrix(t3dMatrix, axisExchangeCode)) return false;
+//    if (axisExchangeCode!=NORMAL3D) SelfExch3d(t3dMatrix,axisExchangeCode);
+
+    //scaling
+    DDouble sx=1; DDouble sy=1; DDouble sz=1;
+    sx=sqrt( (*t3dMatrix)[0 * 4 + 0] * (*t3dMatrix)[0 * 4 + 0]+ (*t3dMatrix)[1 * 4 + 0]*(*t3dMatrix)[1 * 4 + 0]+ (*t3dMatrix)[2 * 4 + 0]*(*t3dMatrix)[2 * 4 + 0]);
+    sy=sqrt( (*t3dMatrix)[0 * 4 + 1] * (*t3dMatrix)[0 * 4 + 1]+ (*t3dMatrix)[1 * 4 + 1]*(*t3dMatrix)[1 * 4 + 1]+ (*t3dMatrix)[2 * 4 + 1]*(*t3dMatrix)[2 * 4 + 1]);
+    sz=sqrt( (*t3dMatrix)[0 * 4 + 2] * (*t3dMatrix)[0 * 4 + 2]+ (*t3dMatrix)[1 * 4 + 2]*(*t3dMatrix)[1 * 4 + 2]+ (*t3dMatrix)[2 * 4 + 2]*(*t3dMatrix)[2 * 4 + 2]);
+    //unscale not necessary as we use atan2 below.
+//    for (auto i=0; i<3; ++i) (*t3dMatrix)[i * 4 + 0]/=sx;
+//    for (auto i=0; i<3; ++i) (*t3dMatrix)[i * 4 + 1]/=sy;
+//    for (auto i=0; i<3; ++i) (*t3dMatrix)[i * 4 + 2]/=sz;
     scale[0]=sx;
     scale[1]=sy;
     scale[2]=sz;
-    
-    ax = atan2((*xz)[1 * 4 + 2], (*xz)[1 * 4 + 1]) * RADTODEG;
-    az = atan2((*xz)[2 * 4 + 0], sqrt(pow((*xz)[2 * 4 + 1], 2.0) + pow((*xz)[2 * 4 + 2], 2.0))) * RADTODEG;
-    ay = atan2((*xz)[1 * 4 + 0], (*xz)[0 * 4 + 0]) * RADTODEG;
-
+    ay = -atan2((*t3dMatrix)[2 * 4 + 0], sqrt(pow((*t3dMatrix)[2 * 4 + 1], 2.0) + pow((*t3dMatrix)[2 * 4 + 2], 2.0))) * RADTODEG;
+    az = atan2(-(*t3dMatrix)[1 * 4 + 0], (*t3dMatrix)[0 * 4 + 0]) * RADTODEG;
+    ax =  atan2((*t3dMatrix)[2 * 4 + 2], (*t3dMatrix)[2 * 4 + 1]) * RADTODEG;
+    if (ax < 0.0) {
+      ax = -ax ; //prevents plplot complain for epsilon not being strictly positive.
+      axisExchangeCode=INVALID;
+    }
+    if (ax > 90.0) {
+      ax = 180-ax;
+      az += 180;
+    }
     std::cerr<<"ax="<<ax<<", az="<<az<<", ay="<<ay<<", scale x="<<sx<<", scale y="<<sy<<", scale z="<<sz<<std::endl;
+    if (abs(ay) > 1E-4) return false;
     return true;
   }
 
@@ -974,6 +1015,7 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble
     DDouble &alt, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode) {
     //returns NULL if error!
     DDoubleGDL* t3dMatrix = (new DDoubleGDL(dimension(4, 4)));
+    Guard<DDoubleGDL> guard(t3dMatrix);
     //retrieve !P.T and find az, alt, inversions, and (possibly) scale and roty
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
@@ -981,8 +1023,7 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble
     SelfTranspose3d(t3dMatrix);
     //check if valid, get rotation etc.
     if (!isAxonometricRotation(t3dMatrix, alt, az, ay, scale, axisExchangeCode)) return (DDoubleGDL*) NULL;
-    if (alt > 90.0 || alt < -1.E-3) return (DDoubleGDL*) (NULL);
-    if (alt < 0.0) alt = 0.0; //prevents plplot complain for epsilon not being strictly positive.
+
     //recompute transformation matrix with plplot conventions, exchange code being treated outside:
     DDoubleGDL* plplot3d = gdlComputePlplotRotationMatrix(az, alt, zValue, scale);
     return plplot3d;

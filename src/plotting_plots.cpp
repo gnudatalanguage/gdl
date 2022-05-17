@@ -204,7 +204,7 @@ namespace lib
       gdlGetAxisType(ZAXIS, zLog);
       
       //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
-      GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd);
+      GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd);
       // get !Z.CRANGE
       gdlGetCurrentAxisRange(ZAXIS, zStart, zEnd);
 
@@ -286,8 +286,11 @@ namespace lib
       }
 
       //reproject using P.T transformation in [0..1] cube
-      if (doT3d || real3d) SelfPDotTTransformXYZ(nEl, (PLFLT*) xVal->DataAddr(), (PLFLT*) yVal->DataAddr(), (PLFLT*) zVal->DataAddr(), coordinateSystem);
-//      else if ( doT3d ) { 
+      if (doT3d || real3d) actStream->stransform(PDotTTransformXY, NULL);
+//      if (doT3d || real3d) SelfPDotTTransformXYZ(nEl, (PLFLT*) xVal->DataAddr(), (PLFLT*) yVal->DataAddr(), (PLFLT*) zVal->DataAddr(), coordinateSystem);
+
+      
+      //      else if ( doT3d ) { 
 //        //if X,Y and Z are passed, we will use !P.T and not our plplot "interpretation" of !P.T
 //                               //if the x and y scaling is OK, using !P.T directly permits to use other projections
 //                               //than those used implicitly by plplot. See @showhaus example for *DL
@@ -412,7 +415,7 @@ namespace lib
 //        plplot3d_guard.Reset(plplot3d);
 //        actStream->stransform(NULL,NULL);
 //      } else 
-//        if (doT3d || real3d) actStream->stransform(NULL,NULL);
+        if (doT3d || real3d) actStream->stransform(NULL,NULL);
       if (restorelayout) actStream->RestoreLayout();
       actStream->lsty(1); 
     }

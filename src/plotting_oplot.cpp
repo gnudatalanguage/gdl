@@ -171,11 +171,11 @@ private:
       // We need to set up the plplot equivalent of !y before anything else.
     restorelayout=true;
     if (!doT3d) {
-	    DDouble *sx, *sy;
-	    GetSFromPlotStructs( &sx, &sy );
+	    DDouble *sx, *sy, *sz;
+	    GetSFromPlotStructs( &sx, &sy, &sz );
 
-	    DFloat *wx, *wy;
-	    GetWFromPlotStructs( &wx, &wy );
+	    DFloat *wx, *wy, *wz;
+	    GetWFromPlotStructs( &wx, &wy, &wz );
 
 	    DDouble pxStart, pxEnd, pyStart, pyEnd;
 	    DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
@@ -225,11 +225,11 @@ private:
       {
         e->Throw("Projection initialization failed.");
       }
-        DDouble *sx, *sy;
-        GetSFromPlotStructs( &sx, &sy );
+        DDouble *sx, *sy, *sz;
+        GetSFromPlotStructs( &sx, &sy, &sz );
 
-        DFloat *wx, *wy;
-        GetWFromPlotStructs( &wx, &wy );
+        DFloat *wx, *wy, *wz;
+        GetWFromPlotStructs( &wx, &wy, &wz );
 
         DDouble pxStart, pxEnd, pyStart, pyEnd;
         DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );

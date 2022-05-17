@@ -40,6 +40,7 @@ namespace lib
   // shared parameter
   bool xLog;
   bool yLog;
+  bool zLog;
   void myrecordingfunction(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data)
   {
     *xt=x;
@@ -62,7 +63,7 @@ namespace lib
     Guard<BaseGDL> xval_temp_guard, yval_temp_guard;
     SizeT xEl, yEl, zEl, ixEl, iyEl;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd, datamax, datamin;
-    bool zLog, isLog;
+    bool isLog;
     bool overplot, make2dBox, make3dBox, nodata;
     DLongGDL *colors,*labels,*style;
     PLINT defaultColor;
@@ -346,17 +347,17 @@ namespace lib
         gdlGetAxisType(XAXIS, xLog);
         gdlGetAxisType(YAXIS, yLog);
         gdlGetAxisType(ZAXIS, zLog);
-        GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd);
+        GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd);
 
         if (!doT3d) {
           restorelayout = true;
           actStream->OnePageSaveLayout(); // we'll give back actual plplot's setup at end
 
-          DDouble *sx, *sy;
-          GetSFromPlotStructs(&sx, &sy);
+          DDouble *sx, *sy, *sz;
+          GetSFromPlotStructs(&sx, &sy, &sz);
 
-          DFloat *wx, *wy;
-          GetWFromPlotStructs(&wx, &wy);
+          DFloat *wx, *wy, *wz;
+          GetWFromPlotStructs(&wx, &wy, &wz);
 
           DDouble pxStart, pxEnd, pyStart, pyEnd;
           DataCoordLimits(sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true);
@@ -385,15 +386,9 @@ namespace lib
         gdlNextPlotHandlingNoEraseOption(e, actStream); //NOERASE
       }
 
-      if (make2dBox) { //start a plot
-        // viewport and world coordinates
-        // set the PLOT charsize before computing box, see plot command.
-        gdlSetPlotCharsize(e, actStream);
-        if (gdlSetViewPortAndWorldCoordinates(e, actStream, xLog, yLog,
-          xMarginL, xMarginR, yMarginB, yMarginT,
-          xStart, xEnd, yStart, yEnd, iso) == FALSE)
-          return; //no good: should catch an exception to get out of this mess.
-      }
+      //set plplot internals, and save !P !x !Y !Z values as they should be
+      gdlSetPlotCharsize(e, actStream);
+      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, iso, zStart, zEnd, zLog) == FALSE) return; //no good: should catch an exception to get out of this mess.
 
       if (doT3d) {
         plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
@@ -472,6 +467,7 @@ namespace lib
       // managing the levels list OR the nlevels value
       // LEVELS=vector_of_values_in_increasing_order
       // NLEVELS=[1..60]
+      DDouble cmax, cmin;
       PLINT nlevel;
       PLFLT *clevel;
       ArrayGuard<PLFLT> clevel_guard;
@@ -486,6 +482,8 @@ namespace lib
           if (clevel[i] <= clevel[i - 1])
             e->Throw("Contour levels must be in increasing order.");
         }
+        cmin=zStart; 
+        cmax=zEnd;
       } else {
         PLFLT zintv;
         DDouble mapmax, mapmin;
@@ -508,15 +506,9 @@ namespace lib
         //levels values tries to be as rounded as possible aka IDL.
 
         //trick to round
-        DDouble cmax, cmin;
         cmax = ceil(mapmax / zintv) * zintv;
         cmin = floor(mapmin / zintv) * zintv;
         zintv = (cmax - cmin) / (nlevel + 1);
-
-        if (!setZrange) { //update CRANGE if it was rounded above.
-          zStart = cmin;
-          zEnd = cmax;
-        }
 
         if (fill) {
           nlevel = nlevel + 1;
@@ -776,7 +768,7 @@ namespace lib
             // if C_SPACING and C_ORIENTATION absent, FILL will do a solid fill .
             for (SizeT i = 0; i < nlevel - 1; ++i) {
               if (doT3d & !hasZvalue) {
-                Data3d.zValue = clevel[i] / (zEnd - zStart);
+                Data3d.zValue = clevel[i] / (cmax - cmin);
                 actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
               }
               ori = floor(10.0 * (*orientation)[i % orientation->N_Elements()]);
@@ -802,7 +794,7 @@ namespace lib
           }//end FILL with equispaced lines
           else if (doT3d & !hasZvalue) { //contours will be filled with solid color and displaced in Z according to their value
             for (SizeT i = 0; i < nlevel; ++i) {
-              Data3d.zValue = clevel[i] / (zEnd - zStart); //displacement in Z
+              Data3d.zValue = clevel[i] / (cmax - cmin); //displacement in Z
               actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
 
               value = static_cast<PLFLT> (i) / nlevel;
@@ -849,7 +841,7 @@ namespace lib
           gdlSetPlotCharsize(e, actStream);
           for (SizeT i = 0; i < nlevel; ++i) {
             if (doT3d & !hasZvalue) {
-              Data3d.zValue = clevel[i] / (zEnd - zStart);
+              Data3d.zValue = clevel[i] / (cmax - cmin);
               actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
             }
             if (docolors) actStream->Color((*colors)[i % colors->N_Elements()], decomposed);
@@ -897,12 +889,7 @@ namespace lib
         if (stopClip) stopClipping(actStream);
         actStream->Free2dGrid(map, xEl, yEl);
       }
-      ////      finished? Store Zrange and Loginess unless we are overplot:
-      //      if ( make2dBox || make3dBox )
-      //	{
-      gdlStoreAxisCRANGE(ZAXIS, zStart, zEnd, zLog);
-      gdlStoreAxisType(ZAXIS, zLog);
-      //	}
+
 
       if (doT3d)  actStream->stransform(NULL, NULL); //remove transform BEFORE writing axes, ticks..
 

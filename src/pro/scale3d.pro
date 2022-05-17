@@ -43,5 +43,6 @@ if (count) then max[w]=min[w]+1 ;probably always max[3]=min[3] but this is not u
 if max[2] eq min[2] then max[2]=min[2]+1
 translate=[ -min[0], -min[1], -min[2]]
 scale=1./(max[0:2]-min[0:2])
+print,"scale3d, scale=",scale
 t3d,tr = translate, sc=scale
 end

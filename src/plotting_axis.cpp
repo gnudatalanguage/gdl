@@ -229,29 +229,32 @@ namespace lib {
     if (doT3d)
     {
 
-      static DDouble x0,y0,z0,xs,ys,zs; //conversion to normalized coords
-      x0=(xLog)?-log10(xStart):-xStart;
-      y0=(yLog)?-log10(yStart):-yStart;
-      z0=(zLog)?-log10(zStart):-zStart;
-      xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
-      ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
-      zs=(zLog)?(log10(zEnd)-log10(zStart)):zEnd-zStart;zs=1.0/zs;
-    
-      DDoubleGDL* plplot3d;
-      DDouble az, alt, ay, scale[3]=TEMPORARY_PLOT3D_SCALE;
-      T3DEXCHANGECODE axisExchangeCode;
-
-      plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
-      if (plplot3d == NULL)
-      {
-        e->Throw("Illegal 3D transformation. (FIXME)");
-      }
-      gdlSetPlplotW3(actStream,xStart, xEnd, xLog, yStart, yEnd,  yLog, zStart, zEnd, zLog, zValue, az, alt, scale, axisExchangeCode) ;
-      gdlSetGraphicsForegroundColorFromKw(e, actStream); //necessary to plot the axes correctly
-
-      if (xAxis) gdlAxis3(e, actStream, XAXIS, xStart, xEnd, xLog);
-      if (yAxis) gdlAxis3(e, actStream, YAXIS, yStart, yEnd, yLog);
-      if (zAxis) gdlAxis3(e, actStream, ZAXIS, zStart, zEnd, zLog);
+//      static DDouble x0,y0,z0,xs,ys,zs; //conversion to normalized coords
+//      x0=(xLog)?-log10(xStart):-xStart;
+//      y0=(yLog)?-log10(yStart):-yStart;
+//      z0=(zLog)?-log10(zStart):-zStart;
+//      xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
+//      ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
+//      zs=(zLog)?(log10(zEnd)-log10(zStart)):zEnd-zStart;zs=1.0/zs;
+//    
+//      DDoubleGDL* plplot3d;
+//      DDouble az, alt, ay, scale[3]=TEMPORARY_PLOT3D_SCALE;
+//      T3DEXCHANGECODE axisExchangeCode;
+//
+//      plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
+//      if (plplot3d == NULL)
+//      {
+//        e->Throw("Illegal 3D transformation. (FIXME)");
+//      }
+//      gdlSetPlplotW3(actStream,xStart, xEnd, xLog, yStart, yEnd,  yLog, zStart, zEnd, zLog, zValue, az, alt, scale, axisExchangeCode) ;
+//      gdlSetGraphicsForegroundColorFromKw(e, actStream); //necessary to plot the axes correctly
+//
+//      if (xAxis) gdlAxis3(e, actStream, XAXIS, xStart, xEnd, xLog);
+//      if (yAxis) gdlAxis3(e, actStream, YAXIS, yStart, yEnd, yLog);
+//      if (zAxis) gdlAxis3(e, actStream, ZAXIS, zStart, zEnd, zLog);
+        actStream->stransform(PDotTTransformXY, NULL);
+        actStream->box("tvn", 1, 0.5, "tvn", 1, 0.5);
+        actStream->mtex("b", 0.5, 0.5, 0.5, "TITLE");
     } else
     {
     PLFLT vpXL, vpXR, vpYB, vpYT; //define new viewport in relative units
@@ -296,11 +299,11 @@ namespace lib {
         xVal=odata.u;
         yVal=odata.v;
 #endif
-        DDouble *sx, *sy;
-        GetSFromPlotStructs( &sx, &sy );
+        DDouble *sx, *sy, *sz;
+        GetSFromPlotStructs( &sx, &sy, & sz );
 
-        DFloat *wx, *wy;
-        GetWFromPlotStructs( &wx, &wy );
+        DFloat *wx, *wy, *wz;
+        GetWFromPlotStructs( &wx, &wy, &wz );
 
         DDouble pxStart, pxEnd, pyStart, pyEnd;
         DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );

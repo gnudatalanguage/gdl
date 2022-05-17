@@ -229,15 +229,12 @@ namespace lib {
   void SelfRotate3d(DDoubleGDL* me, DDouble *rot);
   void SelfPerspective3d(DDoubleGDL* me, DDouble zdist);
   void SelfOblique3d(DDoubleGDL* me, DDouble dist, DDouble angle);
-  void SelfExch3d(DDoubleGDL* me, DLong code);
+  void SelfExch3d(DDoubleGDL* me, T3DEXCHANGECODE axisExchangeCode);
   void gdl3dTo2dTransformContour(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
   void SelfPDotTTransformXYZ(SizeT n, PLFLT *xt, PLFLT *yt, PLFLT *zt, int code);
   void PDotTTransformXYZ(PLFLT x, PLFLT y, PLFLT z, PLFLT *xt, PLFLT *yt, PLFLT *zt);
   void PDotTTransformXY(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
   void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer unused);
-  void gdlProject3dCoordinatesIn2d( DDoubleGDL* Matrix, DDoubleGDL *xVal, DDouble *sx,
-                                    DDoubleGDL *yVal, DDouble *sy, DDoubleGDL* zVal,
-                                    DDouble *sz, DDoubleGDL *xValou, DDoubleGDL *yValou);
   DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale, bool save=false);
   DDoubleGDL* gdlComputePDotT(DDouble az, DDouble alt);
   DDoubleGDL* gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble zValue, DDouble &az, DDouble &alt, 
@@ -324,14 +321,14 @@ namespace lib {
 //  void gdlGetCharSizes(GDLGStream *a, PLFLT &nsx, PLFLT &nsy, DDouble &wsx, DDouble &wsy, 
 //		       DDouble &dsx, DDouble &dsy, DDouble &lsx, DDouble &lsy); 
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz=NULL);
-  void GetWFromPlotStructs(DFloat **wx, DFloat **wy);
+  void GetWFromPlotStructs(DFloat **wx, DFloat **wy, DFloat **wz);
   void setPlplotScale(GDLGStream* a);
   void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy, 
 		       DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd, bool);
   void stopClipping(GDLGStream *a);
   void gdlStoreCLIP(DLongGDL* clipBox);
   void GetCurrentUserLimits(GDLGStream *a, 
-			    DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd);
+			    DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble &zEnd);
   PLFLT gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &val_min, DDouble &val_max, bool log = false, int calendarcode = 0);
   PLFLT AutoTick(DDouble x);
   PLFLT AutoLogTick(DDouble min, DDouble max);
@@ -1177,7 +1174,7 @@ namespace lib {
 
     DDoubleGDL* pV=(Matrix->MatrixOp(V,false,true));
 
-    DDouble xmin,xmax,ymin,ymax;
+    PLFLT xmin,xmax,ymin,ymax;
     DLong iMin,iMax;
     pV->MinMax(&iMin,&iMax,NULL,NULL,false,0,0,4);
     xmin=(*pV)[iMin];
@@ -1228,9 +1225,9 @@ namespace lib {
     {
         //compute position removing margins
         positionP[0]=regionP[0]+xMarginL*actStream->nCharLength();
-        positionP[1]=regionP[1]+yMarginB*actStream->nCharHeight();
+        positionP[1]=regionP[1]+yMarginB*actStream->nLineSpacing();
         positionP[2]=regionP[2]-xMarginR*actStream->nCharLength();
-        positionP[3]=regionP[3]-yMarginT*actStream->nCharHeight();
+        positionP[3]=regionP[3]-yMarginT*actStream->nLineSpacing();
     }
     //compatibility: Position NEVER outside [0,1]:
     positionP[0]=max(0.0,positionP[0]);
@@ -1343,16 +1340,16 @@ namespace lib {
   
   static bool gdlSetViewPortAndWorldCoordinates(EnvT* e,
                                          GDLGStream* actStream,
-                                         bool xLog, bool yLog,
-                                         DFloat xMarginL,
-                                         DFloat xMarginR,
-                                         DFloat yMarginB,
-                                         DFloat yMarginT,
                                          DDouble xStart,
                                          DDouble xEnd,
+                                         bool xLog, 
                                          DDouble yStart,
                                          DDouble yEnd,
-                                         DLong iso)
+                                         bool yLog,
+                                         DLong iso=false,
+                                         DDouble zStart=0,
+                                         DDouble zEnd=1,
+                                         bool zLog=false)
   {
 
     PLFLT xMR;
@@ -1363,6 +1360,11 @@ namespace lib {
           NORMAL,
           DEVICE
         } coordinateSystem=DATA;
+    // MARGIN
+    DFloat xMarginL, xMarginR, yMarginB, yMarginT, zMarginB, zMarginT;
+    gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
+    gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
+    gdlGetDesiredAxisMargin(e, ZAXIS, zMarginB, zMarginT);
 
     CheckMargin(actStream,
                 xMarginL,
@@ -1417,7 +1419,7 @@ namespace lib {
     int positionIx = e->KeywordIx( "POSITION");
     DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>( positionIx);
     if (boxPosition == NULL) boxPosition = (DFloatGDL*) 0xF;
-    if ( boxPosition!=NULL && boxPosition!=(DFloatGDL*)0xF )
+    if ( boxPosition!=(DFloatGDL*)0xF )
     {
       for ( SizeT i=0; i<4&&i<boxPosition->N_Elements(); ++i ) position[i]=(*boxPosition)[i];
     }
@@ -1432,7 +1434,7 @@ namespace lib {
       actStream->DeviceToNormedDevice(positionP[2], positionP[3], normx, normy);
       positionP[2]=normx;
       positionP[3]=normy;
-      if ( boxPosition!=NULL && boxPosition!=(DFloatGDL*)0xF )
+      if ( boxPosition!=(DFloatGDL*)0xF )
       {
         actStream->DeviceToNormedDevice(position[0], position[1], normx, normy);
         position[0]=normx;
@@ -1442,7 +1444,7 @@ namespace lib {
         position[3]=normy;
      }
     }
-    if ( boxPosition!=NULL && boxPosition!=(DFloatGDL*)0xF )
+    if ( boxPosition!=(DFloatGDL*)0xF )
     {
        //compatibility again: Position NEVER outside [0,1]:
       position[0]=max(0.0,position[0]);
@@ -1561,17 +1563,20 @@ namespace lib {
     //       cout << "xStart " << xStart << "  xEnd "<<xEnd<<endl;
     //        cout << "yStart " << yStart << "  yEnd "<<yEnd<<endl;
     
-    // set ![XYZ].CRANGE (Z is not defined but must be [0,1])
+    // set ![XYZ].CRANGE
     gdlStoreAxisCRANGE(XAXIS, xStart, xEnd, false); //already in log here if relevant!
     gdlStoreAxisCRANGE(YAXIS, yStart, yEnd, false);
+    gdlStoreAxisCRANGE(ZAXIS, zStart, zEnd, false);
 
     //set ![XY].type
     gdlStoreAxisType(XAXIS,xLog); 
     gdlStoreAxisType(YAXIS,yLog);
+    gdlStoreAxisType(ZAXIS,zLog);
 
     //set ![XY].WINDOW and ![XY].S
     gdlStoreAxisSandWINDOW(actStream, XAXIS, xStart, xEnd, false);//already in log here if relevant!
     gdlStoreAxisSandWINDOW(actStream, YAXIS, yStart, yEnd, false);
+    gdlStoreAxisSandWINDOW(actStream, ZAXIS, zStart, zEnd, false);
     //set P.CLIP (done by PLOT, CONTOUR, SHADE_SURF, and SURFACE)
     Guard<BaseGDL> clipbox_guard;
     DLongGDL* clipBox= new DLongGDL(4, BaseGDL::ZERO); clipbox_guard.Reset(clipBox);

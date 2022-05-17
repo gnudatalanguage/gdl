@@ -183,7 +183,7 @@ namespace lib
       gdlGetAxisType(ZAXIS, zLog);
 
       //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
-      GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd);
+      GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd);
       // get !Z.CRANGE
       gdlGetCurrentAxisRange(ZAXIS, zStart, zEnd);
 

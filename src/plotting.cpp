@@ -515,14 +515,17 @@ namespace lib
     if (sz != NULL) *sz= &(*static_cast<DDoubleGDL*>(zStruct->GetTag(szTag, 0)))[0];
   }
 
-  void GetWFromPlotStructs(DFloat **wx, DFloat **wy)
+  void GetWFromPlotStructs(DFloat **wx, DFloat **wy, DFloat **wz )
   {
     DStructGDL* xStruct=SysVar::X();   //MUST NOT BE STATIC, due to .reset 
     DStructGDL* yStruct=SysVar::Y();   //MUST NOT BE STATIC, due to .reset 
+    DStructGDL* zStruct=SysVar::Z();   //MUST NOT BE STATIC, due to .reset 
     unsigned xwindowTag=xStruct->Desc()->TagIndex("WINDOW");
     unsigned ywindowTag=yStruct->Desc()->TagIndex("WINDOW");
+    unsigned zwindowTag=zStruct->Desc()->TagIndex("WINDOW");
     *wx= &(*static_cast<DFloatGDL*>(xStruct->GetTag(xwindowTag, 0)))[0];
     *wy= &(*static_cast<DFloatGDL*>(yStruct->GetTag(ywindowTag, 0)))[0];
+    *wz= &(*static_cast<DFloatGDL*>(zStruct->GetTag(zwindowTag, 0)))[0];
   }
   void setPlplotScale(GDLGStream* a)
   {
@@ -588,30 +591,31 @@ namespace lib
   }
 
   //This is the good way to get world start end end values.
-  void GetCurrentUserLimits(GDLGStream *a, DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd)
+  void GetCurrentUserLimits(GDLGStream *a, DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble & zEnd)
   {
-    DDouble *sx, *sy;
-    GetSFromPlotStructs( &sx, &sy );
-    DFloat *wx, *wy;
-    GetWFromPlotStructs(&wx, &wy);
-    PLFLT x1,x2,y1,y2;
-    x1=wx[0];x2=wx[1];y1=wy[0];y2=wy[1];
-    xStart=(x1-sx[0])/sx[1];
-    xEnd=(x2-sx[0])/sx[1];
-    yStart=(y1-sy[0])/sy[1];
-    yEnd=(y2-sy[0])/sy[1];
+    DDouble *sx, *sy, *sz;
+    GetSFromPlotStructs( &sx, &sy, &sz );
+    DFloat *wx, *wy, *wz;
+    GetWFromPlotStructs(&wx, &wy, &wz);
+    xStart=(wx[0]-sx[0])/sx[1];
+    xEnd=(wx[1]-sx[0])/sx[1];
+    yStart=(wy[0]-sy[0])/sy[1];
+    yEnd=(wy[1]-sy[0])/sy[1];
+    zStart=(wz[0]-sz[0])/sz[1];
+    xEnd=(wz[1]-sz[0])/sz[1];
   //probably overkill now...
-    if ((yStart == yEnd) || (xStart == xEnd))
-      {
-        if (yStart != 0.0 && yStart == yEnd){
-        yStart = 0;
-        yEnd = 1;
-        }
-        if (xStart != 0.0 && xStart == xEnd){
-        xStart = 0;
-        xEnd = 1;
-        }
-      }
+    if (zStart != 0.0 && zStart == zEnd) {
+      zStart = 0;
+      zEnd = 1;
+    }
+    if (yStart != 0.0 && yStart == yEnd) {
+      yStart = 0;
+      yEnd = 1;
+    }
+    if (xStart != 0.0 && xStart == xEnd) {
+      xStart = 0;
+      xEnd = 1;
+    }
   }
   
   void ac_histo(GDLGStream *a, int i_buff, PLFLT *x_buff, PLFLT *y_buff, bool xLog)
