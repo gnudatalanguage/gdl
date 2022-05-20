@@ -728,8 +728,15 @@ namespace lib {
 //    *yt = b / w; 
 //    *zt = c / w;
 //  }
-  void SelfPDotTTransformXYZ(SizeT n, PLFLT *x, PLFLT *y, PLFLT *z, int code){
+  void SelfPDotTTransformXYZ(SizeT n, PLFLT *x, PLFLT *y, PLFLT *z, COORDSYS code){
     std::cerr<<"SelfPDotTTransformXYZ()\n";
+    if (code==DATA) {
+      DDouble *sx, *sy, *sz;
+      GetSFromPlotStructs(&sx, &sy, &sz);
+      for (auto i=0; i< n; ++i) x[i] = x[i]*sx[1]+sx[0];
+      for (auto i=0; i< n; ++i) y[i] = y[i]*sy[1]+sy[0];
+      for (auto i=0; i< n; ++i) z[i] = z[i]*sz[1]+sz[0];
+    }
     //retrieve !P.T 
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
