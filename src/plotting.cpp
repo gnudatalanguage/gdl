@@ -1193,8 +1193,9 @@ namespace lib
       wEnd=(*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1];
     }
   }
+  
   void gdlStoreSC() {
-    //save corresponding SCxx values:
+    //save corresponding SCxx values useful for oldies compatibility (to be checked as some changes have been done):
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned positionTag = pStruct->Desc()->TagIndex("POSITION");
     DFloat* position = &(*static_cast<DFloatGDL*> (pStruct->GetTag(positionTag, 0)))[0];
@@ -1218,36 +1219,81 @@ namespace lib
 
   }
   //Stores [XYZ].WINDOW, .REGION and .S
-  void gdlStoreAxisSandWINDOW(GDLGStream* actStream, int axisId, DDouble Start, DDouble End, bool log)
+  void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End)
+  {
+    //easier to retrieve here the values sent to vpor() in the calling function instead of
+    //calling a special function like gdlStoreRegion(), gdlStoreWindow() each time a memory of vpor() is needed.
+    //Will thus need to be amended when/if we get rid of plplot.
+    PLFLT p_xmin, p_xmax, p_ymin, p_ymax, norm_min, norm_max, charDim;
+    actStream->gvpd(p_xmin, p_xmax, p_ymin, p_ymax); //viewport normalized coords
+    DStructGDL* Struct=SysVar::X(); 
+    norm_min=p_xmin; 
+    norm_max=p_xmax; 
+    charDim=actStream->nCharLength();
+    unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
+    DFloat m1=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[0];
+    DFloat m2=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[1];
+    static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=max(0.0,norm_min-m1*charDim);
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=min(1.0,norm_max+m2*charDim);
+
+    static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
+    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=norm_min;
+    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=norm_max;
+
+    static unsigned sTag=Struct->Desc()->TagIndex("S");
+    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=
+    (norm_min*End-norm_max*Start)/(End-Start);
+    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=
+    (norm_max-norm_min)/(End-Start);
+    gdlStoreSC();
+  }
+    void gdlStoreYAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End)
   {
     PLFLT p_xmin, p_xmax, p_ymin, p_ymax, norm_min, norm_max, charDim;
-    bool savesc=false;
     actStream->gvpd(p_xmin, p_xmax, p_ymin, p_ymax); //viewport normalized coords
-    DStructGDL* Struct=NULL;
-    if ( axisId==XAXIS ) {Struct=SysVar::X(); savesc=true; norm_min=p_xmin; norm_max=p_xmax; charDim=actStream->nCharLength();}
-    if ( axisId==YAXIS ) {Struct=SysVar::Y(); savesc=true; norm_min=p_ymin; norm_max=p_ymax; charDim=actStream->nCharHeight();}
-    if ( axisId==ZAXIS ) {Struct=SysVar::Z(); norm_min=0; norm_max=1; charDim=actStream->nCharLength();}
-    if ( Struct!=NULL )
-    {
-      unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
-      DFloat m1=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[0];
-      DFloat m2=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[1];
-      static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
-      (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=max(0.0,norm_min-m1*charDim);
-      (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=min(1.0,norm_max+m2*charDim);
+    DStructGDL* Struct=SysVar::Y(); 
+    norm_min=p_ymin; 
+    norm_max=p_ymax; 
+    charDim=actStream->nLineSpacing();
+    unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
+    DFloat m1=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[0];
+    DFloat m2=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[1];
+    static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=max(0.0,norm_min-m1*charDim);
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=min(1.0,norm_max+m2*charDim);
 
-      //      if ( log ) {Start=log10(Start); End=log10(End);}
-      static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
-      (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=norm_min;
-      (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=norm_max;
+    static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
+    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=norm_min;
+    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=norm_max;
 
-      static unsigned sTag=Struct->Desc()->TagIndex("S");
-      (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=
-      (norm_min*End-norm_max*Start)/(End-Start);
-      (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=
-      (norm_max-norm_min)/(End-Start);
-      if (savesc) gdlStoreSC();
-    }
+    static unsigned sTag=Struct->Desc()->TagIndex("S");
+    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=
+    (norm_min*End-norm_max*Start)/(End-Start);
+    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=
+    (norm_max-norm_min)/(End-Start);
+    gdlStoreSC();
+  }
+    void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble zposStart, DDouble zposEnd)
+  {
+    DStructGDL* Struct=SysVar::Z(); 
+    unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
+    static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=zposStart;
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=zposEnd;
+
+    static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
+    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=zposStart;
+    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=zposEnd;
+
+    static unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
+    DDouble valStart = (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0];
+    DDouble valEnd = (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1];
+
+    static unsigned sTag=Struct->Desc()->TagIndex("S");
+    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=zposStart;
+    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=
+    (zposEnd-zposStart)/(valEnd-valStart);
   }
 
   void gdlStoreCLIP(DLongGDL* clipBox)

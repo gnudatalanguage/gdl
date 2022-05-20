@@ -1034,7 +1034,7 @@ void GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
   theBox.ny1=ymin;
   theBox.ny2=ymax;
   PLFLT x1,x2,y1,y2;
-  plstream::gvpd(x1,x2,y1,y2); //retrieve NORMALIZED DEVICE coordinates of viewport
+  plstream::gvpd(x1,x2,y1,y2); //retrieve NORMALIZED DEVICE coordinates of viewport, that are NOT xmin, xmax, ymin, ymax when subpages are present (!P.MULTI)
   theBox.ndx1=x1;
   theBox.ndx2=x2;
   theBox.ndy1=y1;

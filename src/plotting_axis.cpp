@@ -44,7 +44,7 @@ namespace lib {
 
     DFloat xMarginL, xMarginR, yMarginB, yMarginT; 
 
-    bool xAxis=false, yAxis=false, zAxis=false;
+    bool xAxis=true, yAxis=false, zAxis=false;
     static int xaxisIx = e->KeywordIx( "XAXIS");
     static int yaxisIx = e->KeywordIx( "YAXIS");
     static int zaxisIx = e->KeywordIx( "ZAXIS");
@@ -349,7 +349,7 @@ namespace lib {
       {
         gdlStoreAxisCRANGE(XAXIS, xStart, xEnd, xLog);
         gdlStoreAxisType(XAXIS, xLog);
-        gdlStoreAxisSandWINDOW(actStream,XAXIS, xStart, xEnd, xLog);
+        gdlStoreXAxisParameters(actStream, xStart, xEnd);
       }
     }
 
@@ -361,7 +361,7 @@ namespace lib {
       {
         gdlStoreAxisCRANGE(YAXIS, yStart, yEnd, yLog);
         gdlStoreAxisType(YAXIS, yLog);
-        gdlStoreAxisSandWINDOW(actStream,YAXIS, yStart, yEnd, yLog);
+        gdlStoreYAxisParameters(actStream, yStart, yEnd);
       }
     }
     // reset the viewport and world coordinates to the original values

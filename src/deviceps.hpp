@@ -162,7 +162,7 @@ private:
      float hscale = (orient_portrait ? hsize : vsize)/newwidth/5.0;
      float vscale = (orient_portrait ? vsize : hsize)/newheight/5.0;
  //    hscale = min(hscale,vscale)*0.98;
-     hscale = min(hscale,vscale);
+     hscale = fmin(hscale,vscale);
      vscale = hscale;
      float hoff = -5.*offx*hscale + ((orient_portrait ? hsize : vsize) - 5.0*hscale*newwidth)*0.5;
      float voff = -5.*offy*vscale + ((orient_portrait ? vsize : hsize) - 5.0*vscale*newheight)*0.5;
@@ -413,7 +413,7 @@ public:
   
   bool SetBPP(const int val)
   {
-    int bpp = max(min(8,val),1);
+    int bpp = MAX(MIN(8,val),1);
     if (bpp > 4) bpp = 8;
     else if (bpp > 2) bpp = 4;
     bitsPerPix = bpp;

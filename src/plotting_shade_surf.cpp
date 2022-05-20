@@ -88,8 +88,7 @@ namespace lib
 	// should be OK ...
 	    if ( (e->GetNumericArrayParDefined ( 0 ))->EquivalentRank ( )!=2 ) e->Throw ( "Array must have 2 dimensions: "+e->GetParString ( 0 ) );
     }
-      if ( nParam ( )==1 )
-      {
+    if ( nParam ( )==1) {
        BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
         p0_guard.Init ( p0 ); // delete upon exit
 
@@ -105,9 +104,7 @@ namespace lib
         yVal=new DDoubleGDL ( dimension ( yEl ), BaseGDL::INDGEN );
         yval_guard.Init ( yVal ); // delete upon exit
         if (yLog) yVal->Inc();
-      }
-      else
-{
+      } else {
         BaseGDL* p0 = e->GetNumericArrayParDefined(0)->Transpose(NULL);
         p0_guard.Init(p0); // delete upon exit
 
@@ -138,7 +135,6 @@ namespace lib
           if (yEl != zVal->Dim(0))
             e->Throw("X, Y, or Z array dimensions are incompatible.");
         }
-
 
         if (xVal->Rank() == 2) {
           //plplot is unable to handle such subtetlies, better to throw?
@@ -188,6 +184,7 @@ namespace lib
         yStart=yAxisStart;
         yEnd=yAxisEnd;
       }
+
       // z range
       datamax=0.0;
       datamin=0.0;
@@ -217,12 +214,13 @@ namespace lib
     {
       //T3D
       static int t3dIx = e->KeywordIx( "T3D");
-      bool doT3d=(e->KeywordSet(t3dIx)|| T3Denabled());
+      bool doT3d=(e->BooleanKeywordSet(t3dIx)|| T3Denabled());
       //ZVALUE
       static int zvIx = e->KeywordIx( "ZVALUE");
       DDouble zValue=0.0;
       e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
-      zValue=min(zValue,0.999999); //to avoid problems with plplot
+      zValue=min(zValue,ZVALUEMAX); //to avoid problems with plplot
+      zValue = max(zValue, 0.0);
       //SAVE
       static int savet3dIx = e->KeywordIx( "SAVE");
       bool saveT3d=e->KeywordSet(savet3dIx);
@@ -261,6 +259,8 @@ namespace lib
       gdlNextPlotHandlingNoEraseOption(e, actStream);     //NOERASE
         // set the PLOT charsize before computing box, see plot command.
       gdlSetPlotCharsize(e, actStream);
+      //set 2D scale etc.
+      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return; //no good: should catch an exception to get out of this mess.
 
       // Deal with T3D options -- either present and we have to deduce az and alt contained in it,
       // or absent and we have to compute !P.T from az and alt.
@@ -285,17 +285,16 @@ namespace lib
 
       //now we are in plplot different kind of 3d
       DDoubleGDL* plplot3d;
-      DDouble ay, scale[3]=TEMPORARY_PLOT3D_SCALE;
+      DDouble ay, scale[3]={SCALEBYDEFAULT,SCALEBYDEFAULT,1-zValue};
       if (doT3d) //convert to this world...
       {
-
         plplot3d=gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
         if (plplot3d == NULL) e->Throw ( "SHADE_SURF: Illegal 3D transformation." );
       }
       else //make the transformation ourselves
       {
         //Compute transformation matrix with plplot conventions:
-        plplot3d=gdlComputePlplotRotationMatrix( az, alt, zValue,scale,saveT3d);
+        plplot3d=gdlDefinePlplotRotationMatrix( az, alt, zValue,scale,saveT3d);
       }
 
       if ( gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
@@ -357,6 +356,7 @@ namespace lib
         for ( SizeT i=0; i<cgrid1.ny; i++ ) cgrid1.yg[i] = (*yVal)[i];
         //apply projection transformations:
         //not until plplot accepts 2D X Y!
+        
         //apply plot options transformations
         if (xLog) { //cgrid is tested internally by plplot (pl3dcl) that aborts if not STRICTLY increasing, this is painful!
           DDouble startVal=xStart; //at this point xStart is an OK value for the log X axis.

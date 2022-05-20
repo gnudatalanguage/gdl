@@ -717,9 +717,8 @@ void LibInit()
      "NORMAL",    "POSITION","PSYM",     "SUBTITLE",
      "SYMSIZE",   "THICK",    "TICKLEN", "TITLE",
      "MAX_VALUE", "MIN_VALUE",
-     "XLOG",      "YLOG",
-     "YNOZERO",   "XTYPE",    "YTYPE",   "POLAR", "NSUM", //XTYPE and YTYPE are oldies, equivalent to XLOG when value is odd.
-      "XCHARSIZE", "YCHARSIZE",
+     "XLOG",      "YLOG", "ZLOG", "YNOZERO",   "XTYPE",    "YTYPE",  //XTYPE and YTYPE are oldies, equivalent to XLOG when value is odd. ZTYPE NOT ALLOWED
+        "POLAR", "NSUM", "XCHARSIZE", "YCHARSIZE",
       "XGRIDSTYLE", "YGRIDSTYLE",
       "XMARGIN", "YMARGIN",
       "XMINOR", "YMINOR",
@@ -755,7 +754,8 @@ void LibInit()
     "NODATA",    "NOERASE", 
     "NORMAL",    "SUBTITLE",
     "T3D",       "TICKLEN", 
-    "SAVE", "XAXIS", "YAXIS", "XLOG", "YLOG", "XTYPE", "YTYPE", "YNOZERO", "THICK",
+    "SAVE", "XAXIS", "YAXIS", "XLOG", "YLOG", "ZLOG", "XTYPE", "YTYPE", "ZTYPE", //XTYPE and YTYPE are oldies, equivalent to XLOG when value is odd.
+    "YNOZERO", "THICK",
     "XCHARSIZE", "YCHARSIZE",
     "XGRIDSTYLE", "YGRIDSTYLE",
     "XMARGIN", "YMARGIN",
@@ -773,7 +773,7 @@ void LibInit()
     "XTICKUNITS", "YTICKUNITS",
     "XTICKV", "YTICKV",
     "XTITLE", "YTITLE",
-    "ZAXIS", "ZLOG", "ZVALUE", "ZCHARSIZE", "ZGRIDSTYLE", "ZMARGIN", "ZMINOR",
+    "ZAXIS",  "ZVALUE", "ZCHARSIZE", "ZGRIDSTYLE", "ZMARGIN", "ZMINOR",
     "ZRANGE", "ZSTYLE", "ZTHICK", "ZTICK_GET", "ZTICKFORMAT", "ZTICKINTERVAL",
     "ZTICKLAYOUT", "ZTICKLEN", "ZTICKNAME", "ZTICKS", "ZTICKUNITS", "ZTICKV",
     "ZTITLE", "CHANNEL",
@@ -819,8 +819,7 @@ void LibInit()
     {
       "AX", "AZ",  "MAX_VALUE", "MIN_VALUE", "SHADES", 
       "HORIZONTAL", "LOWER_ONLY", "UPPER_ONLY", "BOTTOM", 
-      // ([xyz]type undocumented but still existing in SHADE_SURF ...)
-      "XLOG", "YLOG", "ZLOG", "XTYPE", "YTYPE", "ZTYPE", 
+      "XLOG", "YLOG", "ZLOG", "XTYPE", "YTYPE", "ZTYPE",  //XTYPE and YTYPE are oldies, equivalent to XLOG when value is odd.
       //General Graphics KW
       "BACKGROUND", "NOERASE", "CLIP", "NOCLIP",
       "CHARSIZE", "CHARTHICK", "COLOR", "DATA", "DEVICE", "NORMAL", "FONT",
@@ -874,8 +873,7 @@ void LibInit()
      "ZTICKS",       "ZTICKUNITS", "ZTICKV",  "ZTICK_GET", "ZTITLE",
      // SURFACE keywords
      "MAX_VALUE",  "MIN_VALUE", "AX", "AZ", 
-     // ([xyz]type undocumented but still existing in SURFACE ...)
-     "XLOG", "YLOG", "ZLOG", "XTYPE", "YTYPE", "ZTYPE", 
+     "XLOG", "YLOG", "ZLOG", "XTYPE", "YTYPE", "ZTYPE",      // ([xyz]type undocumented but still existing in SURFACE ...)
      "HORIZONTAL", "LOWER_ONLY", "UPPER_ONLY", "SHADES", "ZAXIS",  "BOTTOM", 
      "SKIRT", "SAVE", "T3D",  "ZVALUE", "CHANNEL", KLISTEND
     };
@@ -894,9 +892,7 @@ void LibInit()
       "T3D",     "THICK",    "TICKLEN",
       "TITLE" ,    "LEVELS", "NLEVELS",
       "MAX_VALUE", "MIN_VALUE",
-      // ([xy]type undocumented but still existing in CONTOUR ...)
-      "XLOG", "YLOG", "XTYPE", "YTYPE",
-      
+      "XLOG", "YLOG", "ZLOG", "XTYPE", "YTYPE", // ([xy]type undocumented but still existing in CONTOUR ... ZTYPE NOT ALLOWED)
       "FILL", "ISOTROPIC", "FOLLOW",
       "XCHARSIZE", "YCHARSIZE", "ZCHARSIZE",
       "XGRIDSTYLE", "YGRIDSTYLE", "ZGRIDSTYLE",
@@ -919,7 +915,7 @@ void LibInit()
       "C_CHARSIZE","OVERPLOT","C_COLORS","C_LINESTYLE",
       "C_LABELS", "C_CHARTHICK", "C_ORIENTATION", "C_SPACING", "C_THICK",
       "PATH_INFO","PATH_XY",
-      "ZLOG","IRREGULAR", "CHANNEL", "FONT", //ZLOG is an addition for GDL only & FONT is not permitted apparently
+      "IRREGULAR", "CHANNEL", "FONT", // FONT is not permitted ???
       KLISTEND
     };
    // NO SUPPORT AT ALL for:,"CLOSED","DOWNHILL","IRREGULAR","PATH_DATA_COORDS","PATH_FILENAME",

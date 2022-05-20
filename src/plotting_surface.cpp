@@ -33,7 +33,7 @@ namespace lib
     DDoubleGDL *zVal, *yVal, *xVal;
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard, p0_guard;
     SizeT xEl, yEl, zEl;
-    DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd, datamax, datamin;
+    DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd, zValue, datamax, datamin;
     bool nodata;
     bool setZrange;
     bool xLog;
@@ -200,12 +200,13 @@ namespace lib
     {
       //T3D
       static int t3dIx = e->KeywordIx( "T3D");
-      bool doT3d=(e->KeywordSet(t3dIx)|| T3Denabled());
+      bool doT3d=(e->BooleanKeywordSet(t3dIx)|| T3Denabled());
       //ZVALUE
       static int zvIx = e->KeywordIx( "ZVALUE");
-      DDouble zValue=0.0;
+      zValue=0.0;
       e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
-      zValue=min(zValue,0.999999); //to avoid problems with plplot
+      zValue=min(zValue,ZVALUEMAX); //to avoid problems with plplot
+      zValue = max(zValue, 0.0);
       //SAVE
       static int savet3dIx = e->KeywordIx( "SAVE");
       bool saveT3d=e->KeywordSet(savet3dIx);
@@ -250,7 +251,7 @@ namespace lib
         // set the PLOT charsize before computing box, see plot command.
       gdlSetPlotCharsize(e, actStream);
       //set 2D scale etc.
-      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog) == false) return; //no good: should catch an exception to get out of this mess.
+      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return; //no good: should catch an exception to get out of this mess.
       
       // Deal with T3D options -- either present and we have to deduce az and alt contained in it,
       // or absent and we have to compute !P.T from az and alt.
@@ -275,7 +276,7 @@ namespace lib
 
       //now we are in plplot different kind of 3d
       DDoubleGDL* plplot3d;
-      DDouble ay, scale[3]=TEMPORARY_PLOT3D_SCALE;
+      DDouble ay, scale[3]={SCALEBYDEFAULT,SCALEBYDEFAULT,1-zValue};
       if (doT3d) //convert to this world...
       {
         plplot3d=gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
@@ -284,11 +285,11 @@ namespace lib
       else //make the transformation ourselves
       { 
         //Compute transformation matrix with plplot conventions:
-        plplot3d=gdlComputePlplotRotationMatrix( az, alt, zValue, scale, saveT3d);
+        plplot3d=gdlDefinePlplotRotationMatrix( az, alt, zValue, scale, saveT3d);
       }
 
-      if ( gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
-        xStart, xEnd, yStart, yEnd, zStart, zEnd, zLog)==FALSE ) return;
+//      if ( gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
+//        xStart, xEnd, yStart, yEnd, zStart, zEnd, zLog)==FALSE ) return;
 
       if (xLog) xStart=log10(xStart);
       if (yLog) yStart=log10(yStart);

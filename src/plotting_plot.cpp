@@ -34,11 +34,11 @@ namespace lib {
   {
     DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
     SizeT xEl, yEl, zEl;
-    DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd, zValue;
+    DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd, zStart, zEnd, zValue;
     bool doMinMax;
-    bool xLog, yLog;
+    bool xLog, yLog, zLog;
     Guard<BaseGDL> xval_guard, yval_guard, xtemp_guard;
-    DLong iso;
+    bool iso;
     bool doT3d;
     DFloat  UsymConvX, UsymConvY;
     int calendar_codex;
@@ -50,12 +50,12 @@ private:
 
     //T3D ?
     static int t3dIx = e->KeywordIx( "T3D");
-    doT3d=(e->KeywordSet(t3dIx)|| T3Denabled());
+    doT3d=(e->BooleanKeywordSet(t3dIx)|| T3Denabled());
     //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
     static int zvIx = e->KeywordIx( "ZVALUE");
     zValue=0.0;
     e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
-    zValue=min(zValue,0.999999); //to avoid problems with plplot
+    zValue=min(zValue,ZVALUEMAX); //to avoid problems with plplot
     zValue=max(zValue,0.0);
 
     // system variable !P.NSUM first
@@ -154,7 +154,8 @@ private:
 
     xLog=false;
     yLog=false;
-
+    zLog=false; //and will not be checked.
+    
     // handle Log options passing via Functions names PLOT_IO/OO/OI
     // the behavior can be superseed by [xy]log or [xy]type
     string ProName = e->GetProName( );
@@ -172,8 +173,10 @@ private:
     // have priority on [xyz]log !
     static int xLogIx = e->KeywordIx( "XLOG" );
     static int yLogIx = e->KeywordIx( "YLOG" );
+    static int zLogIx = e->KeywordIx( "ZLOG" );
     if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
     if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
+    if (e->KeywordPresent(zLogIx)) zLog = e->KeywordSet(zLogIx);
 
     // note: undocumented keywords [xyz]type still exist and
     // have priority on [xyz]log ! In fact, it is the modulo (1, 3, 5 ... --> /log)   
@@ -262,10 +265,9 @@ private:
     //handle Nozero option after all that! (gdlAxisNoZero test if /ynozero option is valid (ex: no YRANGE)
     if(!gdlYaxisNoZero(e) && yStart >0 && !yLog ) yStart=0.0;
 
-     //ISOTROPIC
-    iso=0;
-    static int ISOTROPICIx = e->KeywordIx("ISOTROPIC");
-    e->AssureLongScalarKWIfPresent( ISOTROPICIx, iso);
+      //ISOTROPIC
+      static int ISOTROPIC = e->KeywordIx("ISOTROPIC");
+      iso = e->KeywordSet(ISOTROPIC);
 
     return false;
     }
@@ -285,7 +287,7 @@ private:
       // viewport and world coordinates
       // set the PLOT charsize before setting viewport (margin depend on charsize)
       gdlSetPlotCharsize(e, actStream);
-      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, iso) == false) return; //no good: should catch an exception to get out of this mess.
+      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == false) return; //no good: should catch an exception to get out of this mess.
 
       if (doT3d) {
 

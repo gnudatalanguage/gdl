@@ -1621,6 +1621,17 @@ bool EnvBaseT::BooleanKeywordAbsentOrSet( SizeT ix)
   return keyword->LogTrue();
 }
 /**
+ * @brief this version is for testing boolean KWs: test if set (!null are ignored) but throws if not scalar
+ */
+bool EnvBaseT::BooleanKeywordSet( SizeT ix)
+{
+  BaseGDL* keyword=env[ix];
+  if( keyword == NULL) return false;
+  if( !keyword->Scalar()) Throw("Expression must be a scalar or 1 element array in this context.");
+  if( keyword->Type() == GDL_STRUCT) return false; // Throw("Unable to convert variable from type struct.");
+  return keyword->LogTrue();
+}
+/**
  * @brief returns the ix'th parameter (for library function API only)
  */
 BaseGDL*& EnvT::GetPar(SizeT i)

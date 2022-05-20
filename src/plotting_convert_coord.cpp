@@ -554,7 +554,7 @@ namespace lib {
     
     //special treatment of T3D: conversion HERE BELOW
     static int t3dIx = e->KeywordIx("T3D");
-    bool doT3d = (e->KeywordSet(t3dIx) || T3Denabled());
+    bool doT3d = (e->BooleanKeywordSet(t3dIx) || T3Denabled());
     doT3d = doT3d && e->KeywordSet(TO_DEVICEIx); //T3D ignored if TO is not device;
     doT3d = (doT3d && !e->KeywordSet(NORMALIx)); //and if entries are no DATA-like
     doT3d = (doT3d && !e->KeywordSet(DEVICEIx));
@@ -596,17 +596,10 @@ namespace lib {
       }
 #endif
       
-      DDoubleGDL *xValou, *yValou, *zValou;
       DDoubleGDL* t3dMatrix = gdlGetT3DMatrix(); //the original one
       Guard<BaseGDL> t3dMatrix_guard(t3dMatrix);
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz);
-      xValou = new DDoubleGDL(dimension(minEl));
-      yValou = new DDoubleGDL(dimension(minEl));
-      zValou = new DDoubleGDL(dimension(minEl));
-      Guard<BaseGDL> xvalou_guard(xValou);
-      Guard<BaseGDL> yvalou_guard(yValou);
-      Guard<BaseGDL> zvalou_guard(zValou);
 
         //populate a 4D matrix with reduced coordinates through sx,sy,sz:
       DDoubleGDL* xyzw = new DDoubleGDL(dimension(nEl, 4));
@@ -621,14 +614,11 @@ namespace lib {
       for (auto i=2*nEl; i< 3*nEl; ++i) (*xyzw)[i] = (*xyzw)[i]*sz[1]+sz[0];
       DDoubleGDL* trans = t3dMatrix->MatrixOp(xyzw, false, true); //transpose xyzw for Operation
       SelfPrint3d(trans);
-      memcpy(xValou->DataAddr(), trans->DataAddr(), nEl * sizeof (double));
-      memcpy(yValou->DataAddr(), &(*trans)[nEl], nEl * sizeof (double));
-      memcpy(zValou->DataAddr(), &(*trans)[2*nEl], nEl * sizeof (double));
+      for (auto i=0; i< nEl; ++i) (*xVal)[i] = (*trans)[i*4];
+      for (auto i=0; i< nEl; ++i) (*yVal)[i] = (*trans)[i*4+1];
+      for (auto i=0; i< nEl; ++i) (*zVal)[i] = (*trans)[i*4+2];
       GDLDelete(trans);
       GDLDelete(xyzw);
-      xVal = xValou;
-      yVal = yValou;
-      zVal = zValou;
       //values are now in NORMED:
       icoordinateSystem=NORMAL;
     }
@@ -644,32 +634,38 @@ namespace lib {
     return res1;
   }
 
-
-  DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale, bool save) {
-    DDoubleGDL* plplot3d = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
-    SelfReset3d(plplot3d);
-    static DDouble mytrans[3] = {-0.5, -0.5, -zValue};
-    SelfTranslate3d(plplot3d, mytrans);
-    DDouble rot1[3] = {-90.0, az, 0.0};
-    DDouble rot2[3] = {alt, 0.0, 0.0};
-    SelfRotate3d(plplot3d, rot1);
-    SelfRotate3d(plplot3d, rot2);
-    SelfScale3d(plplot3d, scale);
+  DDoubleGDL* gdlDefinePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale, bool save) {
+    std::cerr<<"gdlDefinePlplotRotationMatrix()\n";
+    DDoubleGDL* t3dMatrix = gdlDoAsSurfr(az,alt, zValue); // (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
     if (save) {
-      DDoubleGDL* t3dMatrix=gdlComputePDotT(az,alt);
       SelfTranspose3d(t3dMatrix);
       DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
       static unsigned tTag=pStruct->Desc()->TagIndex("T");
       for (int i=0; i<t3dMatrix->N_Elements(); ++i )(*static_cast<DDoubleGDL*>(pStruct->GetTag(tTag, 0)))[i]=(*t3dMatrix)[i];
-      GDLDelete(t3dMatrix);
     }
-    return plplot3d; //This is not the same matrix as made with 'surfr', not a true !P.T
+    return t3dMatrix; //This is not exactly the same matrix as made with 'surfr' since zValue is inside.
   }
-  //sets a new !P.T as if 'surfr' was used:
-  DDoubleGDL* gdlComputePDotT(DDouble az, DDouble alt) {
+  
+  // returns a plplot-compatible matrix, not a true !P.T
+  DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale) {
+    std::cerr<<"gdlComputePlplotRotationMatrix()\n";
     DDoubleGDL* plplot3d = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
     SelfReset3d(plplot3d);
-    static DDouble mytrans[3] = {-0.5, -0.5, -0.5}; //-zValue};
+    static DDouble mytrans[3] = {-0.5, -0.5, -0.5};
+//    static DDouble mytrans[3] = {-0.5, -0.5, -zValue};
+    DDouble rot1[3] = {-90.0, az, 0.0};
+    DDouble rot2[3] = {alt, 0.0, 0.0};
+    SelfRotate3d(plplot3d, rot1);
+    SelfRotate3d(plplot3d, rot2);
+    SelfTranslate3d(plplot3d, mytrans);
+    SelfScale3d(plplot3d, scale);
+    return plplot3d; //This is not the same matrix as made with 'surfr', not a true !P.T
+  }
+  //sets a new !P.T approx as if 'surfr' was used, but zValue is not part of surfr()
+  DDoubleGDL* gdlDoAsSurfr(DDouble az, DDouble alt, DDouble zValue) {
+    DDoubleGDL* plplot3d = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
+    SelfReset3d(plplot3d);
+    static DDouble mytrans[3] = {-0.5, -0.5, -0.5};
     SelfTranslate3d(plplot3d, mytrans);
     DDouble rot1[3] = {-90.0, az, 0.0};
     DDouble rot2[3] = {alt, 0.0, 0.0};
@@ -709,29 +705,31 @@ namespace lib {
 //translate=[ -min[0], -min[1], -min[2]]
       DDouble translate[3] = {-valmin[0],-valmin[1],-valmin[2]}; //-zValue};
 //scale=1./(max[0:2]-min[0:2])
-      DDouble scale[3]={1./(valmax[0]-valmin[0]),1./(valmax[1]-valmin[1]),1./(valmax[2]-valmin[2])};
+      //This is not the same matrix as made with 'surfr', not a true !P.T
+      DDouble scale[3]={1./(valmax[0]-valmin[0]),1./(valmax[1]-valmin[1]),(1-zValue)/(valmax[2]-valmin[2])};
 //t3d,tr = translate, sc=scale
       SelfTranslate3d(plplot3d, translate);
       SelfScale3d(plplot3d, scale);
-  return plplot3d; //This is not the same matrix as made with 'surfr', not a true !P.T
+  return plplot3d; 
   }  
   //the general homogenous transformation defined by p.t
-  void PDotTTransformXYZ(PLFLT x, PLFLT y, PLFLT z, PLFLT *xt, PLFLT *yt, PLFLT* zt){
-    //retrieve !P.T 
-    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
-    static unsigned tTag = pStruct->Desc()->TagIndex("T");
-    DDouble* t= static_cast<DDouble*>(pStruct->GetTag(tTag, 0)->DataAddr());
-    DDouble a,b,c,w;
-    a = x * t[0] + y * t[1] + z * t[2] + t[3]; 
-    b = x * t[4] + y * t[5] + z * t[6] + t[7]; 
-    c = x * t[8] + y * t[9] + z * t[10] + t[11]; 
-    w = x * t[12] + y * t[13] + z * t[14] + t[15];
-    
-    *xt = a / w; 
-    *yt = b / w; 
-    *zt = c / w;
-  }
+//  void PDotTTransformXYZ(PLFLT x, PLFLT y, PLFLT z, PLFLT *xt, PLFLT *yt, PLFLT* zt){
+//    //retrieve !P.T 
+//    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+//    static unsigned tTag = pStruct->Desc()->TagIndex("T");
+//    DDouble* t= static_cast<DDouble*>(pStruct->GetTag(tTag, 0)->DataAddr());
+//    DDouble a,b,c,w;
+//    a = x * t[0] + y * t[1] + z * t[2] + t[3]; 
+//    b = x * t[4] + y * t[5] + z * t[6] + t[7]; 
+//    c = x * t[8] + y * t[9] + z * t[10] + t[11]; 
+//    w = x * t[12] + y * t[13] + z * t[14] + t[15];
+//    
+//    *xt = a / w; 
+//    *yt = b / w; 
+//    *zt = c / w;
+//  }
   void SelfPDotTTransformXYZ(SizeT n, PLFLT *x, PLFLT *y, PLFLT *z, int code){
+    std::cerr<<"SelfPDotTTransformXYZ()\n";
     //retrieve !P.T 
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
@@ -750,27 +748,28 @@ namespace lib {
 //      std::cerr<<x[i]<<","<<y[i]<<","<<z[i]<<std::endl;
     }
   }
-  //transposed
-  void SelfPDotTTransformXYZTransp(SizeT n, PLFLT *x, PLFLT *y, PLFLT *z, int code) {
-    //retrieve !P.T 
-    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
-    static unsigned tTag = pStruct->Desc()->TagIndex("T");
-    DDouble* t = static_cast<DDouble*> (pStruct->GetTag(tTag, 0)->DataAddr());
-    DDouble a, b, c, w;
-    for (SizeT i = 0; i < n; ++i) {
-      a = x[i] * t[0] + y[i] * t[4] + z[i] * t[8] + t[12];
-      b = x[i] * t[1] + y[i] * t[5] + z[i] * t[9] + t[13];
-      c = x[i] * t[2] + y[i] * t[6] + z[i] * t[10] + t[14];
-      w = x[i] * t[3] + y[i] * t[7] + z[i] * t[11] + t[15];
-
-      x[i] = a / w;
-      y[i] = b / w;
-      z[i] = c / w;
-//      std::cerr << x[i] << "," << y[i] << "," << z[i] << std::endl;
-    }
-  }
+//  //transposed
+//  void SelfPDotTTransformXYZTransp(SizeT n, PLFLT *x, PLFLT *y, PLFLT *z, int code) {
+//    //retrieve !P.T 
+//    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+//    static unsigned tTag = pStruct->Desc()->TagIndex("T");
+//    DDouble* t = static_cast<DDouble*> (pStruct->GetTag(tTag, 0)->DataAddr());
+//    DDouble a, b, c, w;
+//    for (SizeT i = 0; i < n; ++i) {
+//      a = x[i] * t[0] + y[i] * t[4] + z[i] * t[8] + t[12];
+//      b = x[i] * t[1] + y[i] * t[5] + z[i] * t[9] + t[13];
+//      c = x[i] * t[2] + y[i] * t[6] + z[i] * t[10] + t[14];
+//      w = x[i] * t[3] + y[i] * t[7] + z[i] * t[11] + t[15];
+//
+//      x[i] = a / w;
+//      y[i] = b / w;
+//      z[i] = c / w;
+////      std::cerr << x[i] << "," << y[i] << "," << z[i] << std::endl;
+//    }
+//  }
   //version 2 d for pltransform 
   void PDotTTransformXY(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer unused){
+    std::cerr<<"PDotTTransformXY()\n";
     //retrieve !P.T 
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
@@ -787,13 +786,14 @@ namespace lib {
     std::cerr<<*xt<<","<<*yt<<std::endl;
     //*zt = c / w;
   }
+  
   void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data) {
+    std::cerr<<"gdl3dTo2dTransform()\n";
     struct GDL_3DTRANSFORMDATA *ptr = (GDL_3DTRANSFORMDATA*) data;
     DDoubleGDL* xyzw = new DDoubleGDL(dimension(4));
     (*xyzw)[3] = 1.0;
     (*xyzw)[ptr->code[0]] = (x + ptr->x0) * ptr->xs;
     (*xyzw)[ptr->code[1]] = (y + ptr->y0) * ptr->ys;
-    ;
     (*xyzw)[ptr->code[2]] = ptr->zValue;
     DDoubleGDL* trans = xyzw->MatrixOp(ptr->Matrix, false, true);
     *xt = (*trans)[0];
@@ -801,26 +801,26 @@ namespace lib {
     GDLDelete(trans);
     GDLDelete(xyzw);
   }
-  //Special for Contour (not special for the moment in fact):
-
-  void gdl3dTo2dTransformContour(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data) {
-    struct GDL_3DTRANSFORMDATA *ptr = (GDL_3DTRANSFORMDATA*) data;
-    DDoubleGDL* xyzw = new DDoubleGDL(dimension(4));
-    (*xyzw)[3] = 1.0;
-    (*xyzw)[ptr->code[0]] = (x + ptr->x0) * ptr->xs;
-    (*xyzw)[ptr->code[1]] = (y + ptr->y0) * ptr->ys;
-    ;
-    (*xyzw)[ptr->code[2]] = ptr->zValue;
-    DDoubleGDL* trans = xyzw->MatrixOp(ptr->Matrix, false, true);
-    *xt = (*trans)[0];
-    *yt = (*trans)[1];
-    GDLDelete(trans);
-    GDLDelete(xyzw);
-  }
+//  //Special for Contour (not special for the moment in fact):
+//
+//  void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data) {
+//    struct GDL_3DTRANSFORMDATA *ptr = (GDL_3DTRANSFORMDATA*) data;
+//    DDoubleGDL* xyzw = new DDoubleGDL(dimension(4));
+//    (*xyzw)[3] = 1.0;
+//    (*xyzw)[ptr->code[0]] = (x + ptr->x0) * ptr->xs;
+//    (*xyzw)[ptr->code[1]] = (y + ptr->y0) * ptr->ys;
+//    (*xyzw)[ptr->code[2]] = ptr->zValue;
+//    DDoubleGDL* trans = xyzw->MatrixOp(ptr->Matrix, false, true);
+//    *xt = (*trans)[0];
+//    *yt = (*trans)[1];
+//    GDLDelete(trans);
+//    GDLDelete(xyzw);
+//  }
 
   //retrieve !P.T,
 
   DDoubleGDL* gdlGetT3DMatrix() {
+    std::cerr<<"gdlGetT3DMatrix()\n";
     DDoubleGDL* t3dMatrix = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
@@ -833,6 +833,7 @@ namespace lib {
   // XYZ data to get projected X' Y' *normalized* coordinates values
 
   DDoubleGDL* gdlGetScaledNormalizedT3DMatrix(DDoubleGDL* passedMatrix) {
+    std::cerr<<"POLYFILL: ???? gdlGetScaledNormalizedT3DMatrix()\n";
     DDoubleGDL* t3dMatrix;
     if (passedMatrix == NULL) t3dMatrix = gdlGetT3DMatrix();
     else t3dMatrix = passedMatrix;
@@ -850,39 +851,40 @@ namespace lib {
     return returnMatrix;
   }
 
-  void gdlNormed3dToWorld3d(DDoubleGDL *xValin, DDoubleGDL *yValin, DDoubleGDL* zValin,
-    DDoubleGDL *xValou, DDoubleGDL *yValou, DDoubleGDL* zValou) {
-    DDouble *sx, *sy, *sz;
-    GetSFromPlotStructs(&sx, &sy, &sz);
-    DDoubleGDL* toWorld = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
-    SelfReset3d(toWorld);
-    DDouble depla[3] = {-sx[0], -sy[0], -sz[0]};
-    DDouble scale[3] = {1 / sx[1], 1 / sy[1], 1 / sz[1]};
-    SelfTranslate3d(toWorld, depla); //pay attention to order for matrices!
-    SelfScale3d(toWorld, scale);
-    //populate a 4D matrix with reduced coordinates through sx,sy,sz:
-    SizeT nEl = xValin->N_Elements();
-    DDoubleGDL* xyzw = new DDoubleGDL(dimension(nEl, 4));
-    memcpy(&((*xyzw)[0]), xValin->DataAddr(), nEl * sizeof (double));
-    memcpy(&((*xyzw)[nEl]), yValin->DataAddr(), nEl * sizeof (double));
-    if (zValin != NULL) memcpy(&((*xyzw)[2 * nEl]), zValin->DataAddr(), nEl * sizeof (double));
-    else for (int index = 0; index < nEl; ++index) {
-        (*xyzw)[2 * nEl + index] = 1.0;
-      }
-    for (int index = 0; index < nEl; ++index) {
-      (*xyzw)[3 * nEl + index] = 1.0;
-    }
-    DDoubleGDL* trans = xyzw->MatrixOp(toWorld, false, true);
-    memcpy(xValou->DataAddr(), trans->DataAddr(), nEl * sizeof (double));
-    memcpy(yValou->DataAddr(), &(*trans)[nEl], nEl * sizeof (double));
-    if (zValou != NULL) memcpy(zValou->DataAddr(), &(*trans)[2 * nEl], nEl * sizeof (double));
-    GDLDelete(trans);
-    GDLDelete(xyzw);
-    GDLDelete(toWorld);
-  }
+//  void gdlNormed3dToWorld3d(DDoubleGDL *xValin, DDoubleGDL *yValin, DDoubleGDL* zValin,
+//    DDoubleGDL *xValou, DDoubleGDL *yValou, DDoubleGDL* zValou) {
+//    DDouble *sx, *sy, *sz;
+//    GetSFromPlotStructs(&sx, &sy, &sz);
+//    DDoubleGDL* toWorld = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
+//    SelfReset3d(toWorld);
+//    DDouble depla[3] = {-sx[0], -sy[0], -sz[0]};
+//    DDouble scale[3] = {1 / sx[1], 1 / sy[1], 1 / sz[1]};
+//    SelfTranslate3d(toWorld, depla); //pay attention to order for matrices!
+//    SelfScale3d(toWorld, scale);
+//    //populate a 4D matrix with reduced coordinates through sx,sy,sz:
+//    SizeT nEl = xValin->N_Elements();
+//    DDoubleGDL* xyzw = new DDoubleGDL(dimension(nEl, 4));
+//    memcpy(&((*xyzw)[0]), xValin->DataAddr(), nEl * sizeof (double));
+//    memcpy(&((*xyzw)[nEl]), yValin->DataAddr(), nEl * sizeof (double));
+//    if (zValin != NULL) memcpy(&((*xyzw)[2 * nEl]), zValin->DataAddr(), nEl * sizeof (double));
+//    else for (int index = 0; index < nEl; ++index) {
+//        (*xyzw)[2 * nEl + index] = 1.0;
+//      }
+//    for (int index = 0; index < nEl; ++index) {
+//      (*xyzw)[3 * nEl + index] = 1.0;
+//    }
+//    DDoubleGDL* trans = xyzw->MatrixOp(toWorld, false, true);
+//    memcpy(xValou->DataAddr(), trans->DataAddr(), nEl * sizeof (double));
+//    memcpy(yValou->DataAddr(), &(*trans)[nEl], nEl * sizeof (double));
+//    if (zValou != NULL) memcpy(zValou->DataAddr(), &(*trans)[2 * nEl], nEl * sizeof (double));
+//    GDLDelete(trans);
+//    GDLDelete(xyzw);
+//    GDLDelete(toWorld);
+//  }
 
   void gdl3dto2dProjectDDouble(DDoubleGDL* t3dMatrix, DDoubleGDL *xVal, DDoubleGDL *yVal, DDoubleGDL* zVal,
     DDoubleGDL *xValou, DDoubleGDL *yValou, int* code) {
+    std::cerr<<"POLYFILL: ???? gdl3dto2dProjectDDouble()\n";
     DDoubleGDL * decodedAxis[3] = {xVal, yVal, zVal};
     int *localCode = code;
     if (localCode == NULL) localCode = code012;
@@ -953,6 +955,7 @@ bool isValidRotationMatrix(DDoubleGDL* Matrix, T3DEXCHANGECODE &axisExchangeCode
     return false;
 }  
 bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode) {
+  std::cerr<<"isAxonometricRotation()\n";
   // Comments To Be Revised equations below are not exact.
   //with *DL notations, the 3x3 'rotation+scale' subset of the 4x4 matrix is of the form:
   //        [             cos(ay) cos(az)                               -cos(ay) sin(az)                     sin(ay)     ]
@@ -1013,6 +1016,7 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble
   // Retunrs NULL if conversion is impossible.
   DDoubleGDL* gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble zValue, DDouble &az,
     DDouble &alt, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode) {
+    std::cerr<<"gdlInterpretT3DMatrixAsPlplotRotationMatrix(()\n";
     //returns NULL if error!
     DDoubleGDL* t3dMatrix = (new DDoubleGDL(dimension(4, 4)));
     Guard<DDoubleGDL> guard(t3dMatrix);
@@ -1029,6 +1033,7 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble
     return plplot3d;
   }
   void gdlSetPlplotW3(GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue, DDouble az, DDouble alt, DDouble *scale, T3DEXCHANGECODE axisExchangeCode) {
+    std::cerr<<"gdlSetPlplotW3(AXISEXCHANGECODE="<<axisExchangeCode<<")\n";
     DDouble t3xStart, t3xEnd, t3yStart, t3yEnd, t3zStart, t3zEnd;
     switch (axisExchangeCode) {
     case NORMAL3D: //X->X Y->Y plane XY

@@ -75,6 +75,7 @@ namespace lib
     bool irregular;
     bool setZrange;
     bool restorelayout;
+    bool iso;
 
   //PATH_XY etc: use actStream->stransform with a crafted recording function per level [lev-maxmax].
     //disentangle positive and negative contours with their rotation signature.
@@ -239,14 +240,14 @@ namespace lib
       restorelayout = false;
       //T3D
       static int t3dIx = e->KeywordIx("T3D");
-      doT3d = (e->KeywordSet(t3dIx) || T3Denabled());
+      doT3d = (e->BooleanKeywordSet(t3dIx) || T3Denabled());
       //ZVALUE
       static int zvIx = e->KeywordIx("ZVALUE");
       DDouble zValue = 0.0;
       bool hasZvalue = false;
       if (e->GetKW(zvIx) != NULL) {
         e->AssureDoubleScalarKW(zvIx, zValue);
-        zValue = min(zValue, 0.999999); //to avoid problems with plplot
+        zValue=min(zValue,ZVALUEMAX); //to avoid problems with plplot
         zValue = max(zValue, 0.0);
         hasZvalue = true;
       }
@@ -265,11 +266,10 @@ namespace lib
         recordPath = false;
       }
       //      else actStream->stransform(NULL, NULL);
-      //ISOTROPIC
-      DLong iso = 0;
 
+      //ISOTROPIC
       static int ISOTROPIC = e->KeywordIx("ISOTROPIC");
-      e->AssureLongScalarKWIfPresent(ISOTROPIC, iso);
+      iso = e->KeywordSet(ISOTROPIC);
 
       // MARGIN
       DFloat xMarginL, xMarginR, yMarginB, yMarginT, zMarginF, zMarginB;
@@ -368,14 +368,6 @@ namespace lib
 
       }
 
-      static DDouble x0, y0, xs, ys; //conversion to normalized coords
-      x0 = (xLog) ? -log10(xStart) : -xStart;
-      y0 = (yLog) ? -log10(yStart) : -yStart;
-      xs = (xLog) ? (log10(xEnd) - log10(xStart)) : xEnd - xStart;
-      xs = 1.0 / xs;
-      ys = (yLog) ? (log10(yEnd) - log10(yStart)) : yEnd - yStart;
-      ys = 1.0 / ys;
-
       if (!setZrange) {
         zStart = max(minVal, zStart);
         zEnd = min(zEnd, maxVal);
@@ -388,13 +380,21 @@ namespace lib
 
       //set plplot internals, and save !P !x !Y !Z values as they should be
       gdlSetPlotCharsize(e, actStream);
-      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, iso, zStart, zEnd, zLog) == FALSE) return; //no good: should catch an exception to get out of this mess.
+      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == FALSE) return; //no good: should catch an exception to get out of this mess.
 
       if (doT3d) {
         plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
         if (plplot3d == NULL) {
           e->Throw("Illegal 3D transformation. (FIXME)");
         }
+
+        DDouble x0, y0, xs, ys; //conversion to normalized coords
+        x0 = (xLog) ? -log10(xStart) : -xStart;
+        y0 = (yLog) ? -log10(yStart) : -yStart;
+        xs = (xLog) ? (log10(xEnd) - log10(xStart)) : xEnd - xStart;
+        xs = 1.0 / xs;
+        ys = (yLog) ? (log10(yEnd) - log10(yStart)) : yEnd - yStart;
+        ys = 1.0 / ys;
 
         Data3d.zValue = zValue;
         Data3d.Matrix = plplot3d; //try to change for !P.T in future?
@@ -426,7 +426,7 @@ namespace lib
         if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
           xStart, xEnd, yStart, yEnd, zStart, zEnd, zLog) == FALSE) return;
         //start 3D->2D coordinate conversions in plplot
-        actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
+        actStream->stransform(gdl3dTo2dTransform, &Data3d);
       }
 
       if (xLog && xStart <= 0.0) Warning("CONTOUR: Infinite x plot range.");
@@ -769,7 +769,7 @@ namespace lib
             for (SizeT i = 0; i < nlevel - 1; ++i) {
               if (doT3d & !hasZvalue) {
                 Data3d.zValue = clevel[i] / (cmax - cmin);
-                actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
+                actStream->stransform(gdl3dTo2dTransform, &Data3d);
               }
               ori = floor(10.0 * (*orientation)[i % orientation->N_Elements()]);
               spa = floor(10000 * (*spacing)[i % spacing->N_Elements()]);
@@ -795,7 +795,7 @@ namespace lib
           else if (doT3d & !hasZvalue) { //contours will be filled with solid color and displaced in Z according to their value
             for (SizeT i = 0; i < nlevel; ++i) {
               Data3d.zValue = clevel[i] / (cmax - cmin); //displacement in Z
-              actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
+              actStream->stransform(gdl3dTo2dTransform, &Data3d);
 
               value = static_cast<PLFLT> (i) / nlevel;
               actStream->shade(map, xEl, yEl, isLog ? doIt : NULL,
@@ -842,7 +842,7 @@ namespace lib
           for (SizeT i = 0; i < nlevel; ++i) {
             if (doT3d & !hasZvalue) {
               Data3d.zValue = clevel[i] / (cmax - cmin);
-              actStream->stransform(gdl3dTo2dTransformContour, &Data3d);
+              actStream->stransform(gdl3dTo2dTransform, &Data3d);
             }
             if (docolors) actStream->Color((*colors)[i % colors->N_Elements()], decomposed);
             if (dothick) {

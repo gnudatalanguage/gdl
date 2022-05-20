@@ -160,6 +160,8 @@ public:
   bool KeywordSet( SizeT ix);
   //as KeyWordSet but return true if KW is not present/defined (for logical that default to true)
   bool BooleanKeywordAbsentOrSet( SizeT ix);
+  // this version is for testing boolean KWs: test if set (!null are ignored) but throws if not scalar
+  bool BooleanKeywordSet( SizeT ix);
 protected:
   // for HEAP_GC
   static void AddStruct( DPtrListT& ptrAccessible,  DPtrListT& objAccessible, 
