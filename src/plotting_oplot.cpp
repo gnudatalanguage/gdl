@@ -18,17 +18,9 @@
 #include "includefirst.hpp"
 #include "plotting.hpp"
 
-#ifdef _MSC_VER
-#define isnan _isnan
-#endif
-
 namespace lib {
 
   using namespace std;
-//  using std::isinf;
-#ifndef _MSC_VER
-  using std::isnan;
-#endif
 
   class oplot_call : public plotting_routine_call 
   {
@@ -46,7 +38,6 @@ private:
 
   bool handle_args(EnvT* e) 
     {
-
       //T3D?
       static int t3dIx = e->KeywordIx( "T3D");
       doT3d=(e->BooleanKeywordSet(t3dIx)|| T3Denabled());
@@ -54,10 +45,11 @@ private:
       //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
       static int zvIx = e->KeywordIx( "ZVALUE");
       zValue=0.0;
+      if (doT3d) {
       e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
-      zValue=min(zValue,0.999999); //to avoid problems with plplot
-      zValue=max(zValue,0.0);
-
+        zValue=min(zValue,ZVALUEMAX); //to avoid problems with plplot
+        zValue = max(zValue, 0.0);
+      }
     // system variable !P.NSUM first
       DLong nsum=(*static_cast<DLongGDL*>(SysVar::P()-> GetTag(SysVar::P()->Desc()->TagIndex("NSUM"), 0)))[0];
       static int NSUMIx = e->KeywordIx( "NSUM");
@@ -163,47 +155,63 @@ private:
     gdlGetAxisType(XAXIS, xLog);
     gdlGetAxisType(YAXIS, yLog);
 
-//    GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd);
    gdlGetCurrentAxisRange(XAXIS, xStart, xEnd); 
    gdlGetCurrentAxisRange(YAXIS, yStart, yEnd);
-      // hack: !y may have changed between last plot and now,
-      // and the code is based on plplot having the good values.
-      // We need to set up the plplot equivalent of !y before anything else.
-    restorelayout=true;
-    if (!doT3d) {
-	    DDouble *sx, *sy, *sz;
-	    GetSFromPlotStructs( &sx, &sy, &sz );
 
-	    DFloat *wx, *wy, *wz;
-	    GetWFromPlotStructs( &wx, &wy, &wz );
+    actStream->OnePageSaveLayout();
+    
+   //CLIPPING (or not) is just defining the adequate viewport and world coordinates, all of them normalized since this is what plplot will get in the end.
+      static int NOCLIPIx = e->KeywordIx("NOCLIP");
+      bool noclip = e->BooleanKeywordSet(NOCLIPIx);
+      // Clipping is enabled by default for OPLOT.
+      int CLIP = e->KeywordIx("CLIP");
+      bool doClip=(e->KeywordSet(CLIP) && !(noclip));
 
-	    DDouble pxStart, pxEnd, pyStart, pyEnd;
-	    DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
-      if (restorelayout) actStream->OnePageSaveLayout(); // one page
-	    actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
-	    actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
-	  } else gdlGetCurrentAxisRange(ZAXIS, zStart, zEnd); 
+      if (doClip) { //by Default
+        //define a default clipbox (DATA coords):
+        DDouble clipBox[4]={xStart,yStart,xEnd,yEnd};
+        DFloatGDL* clipBoxGDL = e->IfDefGetKWAs<DFloatGDL>(CLIP);
+        if (clipBoxGDL != NULL && clipBoxGDL->N_Elements()< 4) for (auto i=0; i<4; ++i) clipBox[i]=0; //set clipbox to 0 0 0 0 apparently this is what IDL does.
+        if (clipBoxGDL != NULL && clipBoxGDL->N_Elements()==4) for (auto i=0; i<4; ++i) clipBox[i]=(*clipBoxGDL)[i];
+
+        //convert clipBox to normalized coordinates:
+        PLFLT xnormmin,xnormmax,ynormmin,ynormmax;
+        actStream->WorldToNormedDevice(clipBox[0],clipBox[1],xnormmin,ynormmin);
+        actStream->WorldToNormedDevice(clipBox[2],clipBox[3],xnormmax,ynormmax);
+        actStream->vpor(xnormmin,xnormmax,ynormmin,ynormmax);
+        actStream->wind(xnormmin,xnormmax,ynormmin,ynormmax);
+      } else {
+        actStream->vpor(0, 1, 0, 1);
+        actStream->wind(0, 1, 0, 1);
+      }
+
 
     minVal = yStart; //to give a reasonable value...
     maxVal = yEnd;   //idem
     doMinMax = false; //although we will not use it...
     static int MIN_VALUEIx = e->KeywordIx("MIN_VALUE");
     static int MAX_VALUEIx = e->KeywordIx("MAX_VALUE");
-    if( e->KeywordSet(MIN_VALUEIx) || e->KeywordSet(MAX_VALUEIx))
-      doMinMax = true; //...unless explicitely required
+    if( e->KeywordSet(MIN_VALUEIx) || e->KeywordSet(MAX_VALUEIx)) doMinMax = true; //...unless explicitely required
     e->AssureDoubleScalarKWIfPresent( MIN_VALUEIx, minVal);
     e->AssureDoubleScalarKWIfPresent( MAX_VALUEIx, maxVal);
 
-//    int noclipvalue=0;
-//    static int NOCLIPIx = e->KeywordIx("NOCLIP");
-//    e->AssureLongScalarKWIfPresent( NOCLIPIx, noclipvalue);
-//    // Clipping is enabled by default for OPLOT.
-//    // make all clipping computations BEFORE setting graphic properties (color, size)
-//    bool doClip=(e->KeywordSet(CLIPIx)||!(noclipvalue==0));
-    bool stopClip=false;
-//    if ( doClip )  
-      if ( startClipping(e, actStream)==true ) stopClip=true;
+    // final coordinates conversions (in NORM) before plotting
+    bool mapSet = false;
+#ifdef USE_LIBPROJ
+      get_mapset(mapSet);
+#endif
 
+      SelfConvertToNormXY(xEl, (PLFLT*) xVal->DataAddr(), (PLFLT*) yVal->DataAddr());
+      //convert minval, maxVal to normalized coords too:
+      DataCoordYToNorm(minVal, yLog);
+      DataCoordYToNorm(maxVal, yLog);
+
+      if (doT3d) //convert X,Y,Z in X',Y' as per T3D perspective.
+      {
+        //reproject using P.T transformation in [0..1] cube during the actual plot using pltransform() (to reproject also the PSYMs is possible with plplot only if z=0, using this trick:
+        actStream->stransform(PDotTTransformXYZval, &zValue);
+      }
+    
     // start drawing. Graphic Keywords accepted:CLIP(YES), COLOR(YES), LINESTYLE(YES), NOCLIP(YES),
     //                                          PSYM(YES), SYMSIZE(YES), T3D(YES), ZVALUE(YES)
     gdlSetGraphicsForegroundColorFromKw(e, actStream);
@@ -215,75 +223,9 @@ private:
     gdlSetLineStyle(e, actStream);
     actStream->setSymbolSizeConversionFactors();
 
-    bool mapSet=false;
-#ifdef USE_LIBPROJ
-    get_mapset(mapSet);
-    if ( mapSet )
-    {
-      ref=map_init();
-      if ( ref==NULL )
-      {
-        e->Throw("Projection initialization failed.");
-      }
-        DDouble *sx, *sy, *sz;
-        GetSFromPlotStructs( &sx, &sy, &sz );
-
-        DFloat *wx, *wy, *wz;
-        GetWFromPlotStructs( &wx, &wy, &wz );
-
-        DDouble pxStart, pxEnd, pyStart, pyEnd;
-        DataCoordLimits( sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true );
-//        actStream->OnePageSaveLayout(); // one page
-        actStream->vpor( wx[0], wx[1], wy[0], wy[1] );
-        actStream->wind( pxStart, pxEnd, pyStart, pyEnd );
-    }
-#endif
-
-    if ( doT3d ) //convert X,Y,Z in X',Y' as per T3D perspective.
-    {
-      DDoubleGDL* plplot3d;
-      DDouble az, alt, ay, scale[3]=TEMPORARY_PLOT3D_SCALE;
-      T3DEXCHANGECODE axisExchangeCode;
-
-      plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
-      if (plplot3d == NULL)
-      {
-        e->Throw("Illegal 3D transformation. (FIXME)");
-      }
-      
-      static DDouble x0,y0,xs,ys; //conversion to normalized coords
-      x0=(xLog)?-log10(xStart):-xStart;
-      y0=(yLog)?-log10(yStart):-yStart;
-      xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
-      ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
-      
-      Data3d.zValue = zValue;
-      Data3d.Matrix = plplot3d; //try to change for !P.T in future?
-            Data3d.x0=x0;
-            Data3d.y0=y0;
-            Data3d.xs=xs;
-            Data3d.ys=ys;
-        switch (axisExchangeCode) {
-          case NORMAL3D: //X->X Y->Y plane XY
-            Data3d.code = code012;
-            break;
-          case XY: // X->Y Y->X plane XY
-            Data3d.code = code102;
-            break;
-          case XZ: // Y->Y X->Z plane YZ
-            Data3d.code = code210;
-            break;
-          case YZ: // X->X Y->Z plane XZ
-            Data3d.code = code021;
-            break;
-        default:
-          assert(false);
-        }
-        actStream->stransform(gdl3dTo2dTransform, &Data3d);
-    }
 #ifdef USE_LIBPROJ
         if ( mapSet && psym < 1) {
-          GDLgrProjectedPolygonPlot(actStream, ref, NULL, xVal, yVal, false, false, NULL);
+          GDLgrProjectedPolygonPlot(actStream, ref, NULL, xVal, yVal, false, false, NULL);  //will use LIBPROJ
           psym=-psym;
           if (psym > 0) draw_polyline(actStream, xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog, psym);
         }
@@ -291,7 +233,6 @@ private:
 #else
     draw_polyline(actStream, xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog, psym);
 #endif
-    if (stopClip) stopClipping(actStream);
   } 
 
     private: void call_plplot(EnvT* e, GDLGStream* actStream) 
@@ -300,8 +241,8 @@ private:
 
     private: void post_call(EnvT* e, GDLGStream* actStream)
     {
-     if (restorelayout) actStream->RestoreLayout();
-     if (doT3d) actStream->stransform(NULL,NULL);
+      actStream->RestoreLayout();
+      actStream->stransform(NULL,NULL);
       actStream->lsty(1);//reset linestyle
       actStream->sizeChar(1.0);
     } 

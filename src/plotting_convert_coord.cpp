@@ -711,32 +711,48 @@ namespace lib {
       SelfTranslate3d(plplot3d, translate);
       SelfScale3d(plplot3d, scale);
   return plplot3d; 
-  }  
-  //the general homogenous transformation defined by p.t
-//  void PDotTTransformXYZ(PLFLT x, PLFLT y, PLFLT z, PLFLT *xt, PLFLT *yt, PLFLT* zt){
-//    //retrieve !P.T 
-//    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
-//    static unsigned tTag = pStruct->Desc()->TagIndex("T");
-//    DDouble* t= static_cast<DDouble*>(pStruct->GetTag(tTag, 0)->DataAddr());
-//    DDouble a,b,c,w;
-//    a = x * t[0] + y * t[1] + z * t[2] + t[3]; 
-//    b = x * t[4] + y * t[5] + z * t[6] + t[7]; 
-//    c = x * t[8] + y * t[9] + z * t[10] + t[11]; 
-//    w = x * t[12] + y * t[13] + z * t[14] + t[15];
-//    
-//    *xt = a / w; 
-//    *yt = b / w; 
-//    *zt = c / w;
-//  }
-  void SelfPDotTTransformXYZ(SizeT n, PLFLT *x, PLFLT *y, PLFLT *z, COORDSYS code){
-    std::cerr<<"SelfPDotTTransformXYZ()\n";
-    if (code==DATA) {
+  }
+ 
+  void SelfConvertToNormXYZ(SizeT n, PLFLT *x, PLFLT *y, PLFLT *z, COORDSYS code) {
+    if (code == DATA) {
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz);
-      for (auto i=0; i< n; ++i) x[i] = x[i]*sx[1]+sx[0];
-      for (auto i=0; i< n; ++i) y[i] = y[i]*sy[1]+sy[0];
-      for (auto i=0; i< n; ++i) z[i] = z[i]*sz[1]+sz[0];
+      for (auto i = 0; i < n; ++i) x[i] = x[i] * sx[1] + sx[0];
+      for (auto i = 0; i < n; ++i) y[i] = y[i] * sy[1] + sy[0];
+      for (auto i = 0; i < n; ++i) z[i] = z[i] * sz[1] + sz[0];
+    } else if (code == DEVICE) {
+      int xSize, ySize;
+      //give default values
+      DStructGDL* dStruct = SysVar::D();
+      unsigned xsizeTag = dStruct->Desc()->TagIndex("X_SIZE");
+      unsigned ysizeTag = dStruct->Desc()->TagIndex("Y_SIZE");
+      xSize = (*static_cast<DLongGDL*> (dStruct->GetTag(xsizeTag, 0)))[0];
+      ySize = (*static_cast<DLongGDL*> (dStruct->GetTag(ysizeTag, 0)))[0];
+      for (auto i = 0; i < n; ++i) x[i] /= xSize;
+      for (auto i = 0; i < n; ++i) y[i] /= ySize;
     }
+  }
+  //same but only for x and y, z treated separately
+  void SelfConvertToNormXY(SizeT n, PLFLT *x, PLFLT *y, COORDSYS code) {
+    if (code == DATA) {
+      DDouble *sx, *sy, *sz;
+      GetSFromPlotStructs(&sx, &sy, &sz);
+      for (auto i = 0; i < n; ++i) x[i] = x[i] * sx[1] + sx[0];
+      for (auto i = 0; i < n; ++i) y[i] = y[i] * sy[1] + sy[0];
+    } else if (code == DEVICE) {
+      int xSize, ySize;
+      //give default values
+      DStructGDL* dStruct = SysVar::D();
+      unsigned xsizeTag = dStruct->Desc()->TagIndex("X_SIZE");
+      unsigned ysizeTag = dStruct->Desc()->TagIndex("Y_SIZE");
+      xSize = (*static_cast<DLongGDL*> (dStruct->GetTag(xsizeTag, 0)))[0];
+      ySize = (*static_cast<DLongGDL*> (dStruct->GetTag(ysizeTag, 0)))[0];
+      for (auto i = 0; i < n; ++i) x[i] /= xSize;
+      for (auto i = 0; i < n; ++i) y[i] /= ySize;
+    }
+  } 
+  void SelfPDotTTransformXYZ(SizeT n, PLFLT *x, PLFLT *y, PLFLT *z, COORDSYS code){
+    SelfConvertToNormXYZ(n, x, y, z, code);
     //retrieve !P.T 
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
@@ -752,28 +768,8 @@ namespace lib {
       x[i] = a / w; 
       y[i] = b / w; 
       z[i] = c / w;
-//      std::cerr<<x[i]<<","<<y[i]<<","<<z[i]<<std::endl;
     }
   }
-//  //transposed
-//  void SelfPDotTTransformXYZTransp(SizeT n, PLFLT *x, PLFLT *y, PLFLT *z, int code) {
-//    //retrieve !P.T 
-//    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
-//    static unsigned tTag = pStruct->Desc()->TagIndex("T");
-//    DDouble* t = static_cast<DDouble*> (pStruct->GetTag(tTag, 0)->DataAddr());
-//    DDouble a, b, c, w;
-//    for (SizeT i = 0; i < n; ++i) {
-//      a = x[i] * t[0] + y[i] * t[4] + z[i] * t[8] + t[12];
-//      b = x[i] * t[1] + y[i] * t[5] + z[i] * t[9] + t[13];
-//      c = x[i] * t[2] + y[i] * t[6] + z[i] * t[10] + t[14];
-//      w = x[i] * t[3] + y[i] * t[7] + z[i] * t[11] + t[15];
-//
-//      x[i] = a / w;
-//      y[i] = b / w;
-//      z[i] = c / w;
-////      std::cerr << x[i] << "," << y[i] << "," << z[i] << std::endl;
-//    }
-//  }
   //version 2 d for pltransform 
   void PDotTTransformXY(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer unused){
     std::cerr<<"PDotTTransformXY()\n";
@@ -793,7 +789,24 @@ namespace lib {
     std::cerr<<*xt<<","<<*yt<<std::endl;
     //*zt = c / w;
   }
-  
+  //generalized for 'flat3d', using zValue
+   void PDotTTransformXYZval(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data){
+    DDouble *pz=(DDouble*) data;
+    DDouble z=*pz;
+    //retrieve !P.T 
+    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+    static unsigned tTag = pStruct->Desc()->TagIndex("T");
+    DDouble* t= static_cast<DDouble*>(pStruct->GetTag(tTag, 0)->DataAddr());
+    DDouble a,b,c,w;
+    a = x * t[0] + y * t[1] + z * t[2] + t[3]; 
+    b = x * t[4] + y * t[5] + z * t[6] + t[7]; 
+    c = x * t[8] + y * t[9] + z * t[10] + t[11]; 
+    w = x * t[12] + y * t[13] + z * t[14] + t[15];
+    
+    *xt = a / w; 
+    *yt = b / w; 
+  }
+   
   void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data) {
     std::cerr<<"gdl3dTo2dTransform()\n";
     struct GDL_3DTRANSFORMDATA *ptr = (GDL_3DTRANSFORMDATA*) data;

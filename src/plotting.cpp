@@ -514,7 +514,7 @@ namespace lib
     if (sy != NULL) *sy= &(*static_cast<DDoubleGDL*>(yStruct->GetTag(syTag, 0)))[0];
     if (sz != NULL) *sz= &(*static_cast<DDoubleGDL*>(zStruct->GetTag(szTag, 0)))[0];
   }
-
+  
   void GetWFromPlotStructs(DFloat **wx, DFloat **wy, DFloat **wz )
   {
     DStructGDL* xStruct=SysVar::X();   //MUST NOT BE STATIC, due to .reset 
@@ -539,7 +539,21 @@ namespace lib
         yEnd=(1-sy[0])/sy[1];
         a->wind(xStart, xEnd, yStart, yEnd);
   }
-  void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy,
+  #define TONORMCOORDX( coord, log) coord = (log) ? sx[0] + sx[1] * log10(coord) : sx[0] + sx[1] * coord;
+  #define TONORMCOORDY( coord, log) coord = (log) ? sy[0] + sy[1] * log10(coord) : sy[0] + sy[1] * coord;
+
+  void DataCoordXToNorm(DDouble &x, bool xLog) {
+      DDouble *sx;
+      GetSFromPlotStructs(&sx, NULL, NULL);
+      TONORMCOORDX( x, xLog) 
+ }
+  void DataCoordYToNorm(DDouble &y, bool yLog) {
+      DDouble *sy;
+      GetSFromPlotStructs(NULL, &sy, NULL);
+      TONORMCOORDY( y, yLog) 
+ }
+  
+ void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy,
                        DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd, bool clip_by_default)
   {
     *xStart=(wx[0]-sx[0])/sx[1];
@@ -1218,6 +1232,18 @@ namespace lib
     sc[3] = (position[2] != 0) ? position[3] * y_vsize : ywindow[1]*y_vsize;
 
   }
+  //Get [XYZ].WINDOW
+  DFloat* gdlGetRegion() {
+    static const SizeT REGIONTAG=12;
+    static DFloat position[6];
+    position[0]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(REGIONTAG, 0)))[0];
+    position[1]=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(REGIONTAG, 0)))[1];
+    position[2]=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(REGIONTAG, 0)))[0];
+    position[3]=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(REGIONTAG, 0)))[1];
+    position[4]=(*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(REGIONTAG, 0)))[0];
+    position[5]=(*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(REGIONTAG, 0)))[1];
+    return position;
+}
   //Stores [XYZ].WINDOW, .REGION and .S
   void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End)
   {

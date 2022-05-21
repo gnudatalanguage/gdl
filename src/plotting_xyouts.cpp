@@ -31,39 +31,26 @@ namespace lib
 
   class xyouts_call: public plotting_routine_call
   {
-    PLFLT currentBoxXmin, currentBoxXmax, currentBoxYmin, currentBoxYmax, currentBoxZmin, currentBoxZmax;
-    PLFLT vpXmin, vpXmax, vpYmin, vpYmax;
     
-    DDoubleGDL *xVal, *yVal, *zVal;
+    DDoubleGDL *xVal, *yVal;
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
     
     DStringGDL* strVal;
-    SizeT xEl, yEl, zEl, strEl;
+    SizeT xEl, yEl, strEl;
     SizeT minEl;
-    bool xLog, yLog, zLog;
-    bool restorelayout;
+    bool xLog, yLog;
     bool doClip, restoreClipBox;
-    PLFLT savebox[4];
-    bool kwWidth;
+    bool returnWidth;
     PLFLT width;
     DLongGDL *color;
     DFloatGDL *spacing,*orientation,*charthick,*alignement,*size;
     Guard<BaseGDL> alignement_guard, orientation_guard,size_guard;
     bool doT3d;
-    DDoubleGDL* plplot3d;
-    Guard<BaseGDL> plplot3d_guard;
     bool singleArg;
-    DDouble zValue;
-    T3DEXCHANGECODE axisExchangeCode;
-    DDouble az, alt, ay, scale[3]=TEMPORARY_PLOT3D_SCALE;
+    DDouble zPosition;
 
-      enum
-      {
-        DATA=0,
-        NORMAL,
-        DEVICE
-      } coordinateSystem;
+    COORDSYS coordinateSystem;
       
       
   private:
@@ -77,8 +64,14 @@ namespace lib
       //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
       // Then Z is useful only if (doT3d).
       static int zvIx = e->KeywordIx( "Z");
-      zValue=0.0;
-      if (doT3d) e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
+      zPosition=0.0; //it is NOT a zValue.
+      if (doT3d) {
+        e->AssureDoubleScalarKWIfPresent ( zvIx, zPosition );
+        //norm directly here, we are in 3D mode
+        DDouble *sx, *sy, *sz;
+        GetSFromPlotStructs(&sx, &sy, &sz);
+        zPosition = zPosition * sz[1] + sz[0];
+      }
       singleArg=false;
       if ( nParam()==1 )
       {
@@ -91,9 +84,6 @@ namespace lib
         xEl=yEl=xVal->N_Elements();
         strVal=e->GetParAs<DStringGDL>(0);
         strEl=strVal->N_Elements();
-        zVal=new DDoubleGDL(1);
-        zval_guard.Reset(zVal); // delete upon exit
-        (*zVal)[0]=zValue;
         minEl=strEl; //in this case only
       }
       else if ( nParam()==3 )
@@ -133,23 +123,13 @@ namespace lib
          } else {
           minEl=(xEl<yEl)?xEl:yEl;
          }
-        zEl=minEl;
-        zVal=new DDoubleGDL(dimension(zEl));
-        zval_guard.Reset(zVal); // delete upon exit
-        for (SizeT i=0; i< zEl ; ++i) (*zVal)[i]=zValue;
       }
       else
       {
         e->Throw("Not enough parameters. Either 1 parameter or 3 "
                  "parameters valid.");
       }
-      if ( doT3d ) { //test to avois passing a non-rotation matrix to plplots's stransform. plplot limitation-> FIXME!
-        plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix( zValue, az, alt, ay, scale, axisExchangeCode);
-        if (plplot3d == NULL)
-        {
-          e->Throw("Illegal 3D transformation. (FIXME)");
-        } else GDLDelete(plplot3d);
-      }
+
       return true;
     }
 
@@ -166,7 +146,7 @@ namespace lib
 
       // WIDTH keyword (read, write)
       static int widthIx=e->KeywordIx("WIDTH");
-      kwWidth=e->KeywordPresent(widthIx);
+      returnWidth=e->KeywordPresent(widthIx);
       width=0.;
 
       //check presence of DATA,DEVICE and NORMAL options
@@ -179,31 +159,17 @@ namespace lib
       if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
       if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
       
-    //T3D incompatible with DEVICE option.
-      if (coordinateSystem == DEVICE) doT3d =false;
-      
       // get_axis_type
       gdlGetAxisType(XAXIS, xLog);
       gdlGetAxisType(YAXIS, yLog);
-      gdlGetAxisType(ZAXIS, zLog);
 
       //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
       GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd);
-      // get !Z.CRANGE
-      gdlGetCurrentAxisRange(ZAXIS, zStart, zEnd);
-
-      if (zStart != 0.0 && zStart == zEnd)
-      {
-        Message("PLOTS: !Z.CRANGE ERROR, setting to [0,1]");
-        zStart = 0;
-        zEnd = 1;
-      }
 
       int noclipvalue=1;
       static int NOCLIPIx = e->KeywordIx("NOCLIP");
       e->AssureLongScalarKWIfPresent( NOCLIPIx, noclipvalue);
       doClip=(noclipvalue==0); //XYOUTS by default does not clip, even if clip is defined by CLIP= or !P.CLIP, and CONTRARY TO THE DOCUMENTATION!!!!
-      restorelayout=true;
       
       bool mapSet=false;
 #ifdef USE_LIBPROJ
@@ -216,37 +182,32 @@ namespace lib
         {
           e->Throw("Projection initialization failed.");
         }
-        restorelayout=true;
 
       }
 #endif
-      if ( doT3d ) {
-        doClip=false; //impossible to clip in 3d using plplot. we should do it ourselves.
-        restorelayout=false;
-      } else {
 
-        if (restorelayout) actStream->OnePageSaveLayout(); // one page
-
+        actStream->OnePageSaveLayout(); // one page
         actStream->vpor(0, 1, 0, 1); //ALL PAGE
-
-        if ( coordinateSystem==DEVICE )
-        {
+        
+      if (doT3d) {
+        actStream->wind(0, 1, 0, 1); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
+        xLog = false;
+        yLog = false;
+      } else {
+        if (coordinateSystem == DEVICE) {
           actStream->wind(0.0, actStream->xPageSize(), 0.0, actStream->yPageSize());
-          xLog=false;
-          yLog=false;
-        }
-        else if ( coordinateSystem==NORMAL )
-        {
+          xLog = false;
+          yLog = false;
+        } else if (coordinateSystem == NORMAL) {
           actStream->wind(0, 1, 0, 1);
-          xLog=false;
-          yLog=false;
-        }
-        else //with XYOUTS, we can plot *outside* the box(e)s in DATA coordinates.
+          xLog = false;
+          yLog = false;
+        } else //with PLOTS, we can plot *outside* the box(e)s in DATA coordinates.
         {
           setPlplotScale(actStream);
         }
       }
-
+      
       PLFLT x,y,aspectw,aspectd;
       aspectw=actStream->boxAspectWorld();
       aspectd=actStream->boxAspectDevice();
@@ -295,7 +256,6 @@ namespace lib
         (*alignement)[0]=0;
       }
 
-
       // make all clipping computations BEFORE setting graphic properties (color, size)
       bool stopClip=false;
       if ( doClip )  if ( startClipping(e, actStream, true)==true ) stopClip=true;
@@ -305,53 +265,16 @@ namespace lib
       if (!docharthick) gdlSetPlotCharthick(e, actStream);
       if (!docharsize) gdlSetPlotCharsize(e, actStream, true); //accept SIZE kw!
 
-      if (doT3d) { //set up plplot 3D transform
-        // case where we project 2D data on 3D: use plplot-like matrix.
-        static DDouble x0,y0,xs,ys; //conversion to normalized coords
-
-        if (coordinateSystem==NORMAL) {;
-          x0=0;y0=0;xs=1.0;ys=1.0;
-        } else {
-          x0=(xLog)?-log10(xStart):-xStart;
-          y0=(yLog)?-log10(yStart):-yStart;
-          xs=(xLog)?(log10(xEnd)-log10(xStart)):xEnd-xStart;xs=1.0/xs;
-          ys=(yLog)?(log10(yEnd)-log10(yStart)):yEnd-yStart;ys=1.0/ys;
-        }
-
-        // here zvalue here is zcoord on Z axis, to be scaled between 0 and 1 for compatibility with call of gdlConvertT3DMatrixToPlplotRotationMatrix()
-        zValue /= (zEnd - zStart);
-        plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
-        //if matrix was not checked to be ok at start, we could authorize a non_rotation matrix, but would have to avoid using stransform.
-        Data3d.zValue = zValue;
-        Data3d.Matrix = plplot3d; //try to change for !P.T in future?
-        Data3d.x0 = x0;
-        Data3d.y0 = y0;
-        Data3d.xs = xs;
-        Data3d.ys = ys;
-        switch (axisExchangeCode) {
-          case NORMAL3D: //X->X Y->Y plane XY
-            Data3d.code = code012;
-            break;
-          case XY: // X->Y Y->X plane XY
-            Data3d.code = code102;
-            break;
-          case XZ: // Y->Y X->Z plane YZ
-            Data3d.code = code210;
-            break;
-          case YZ: // X->X Y->Z plane XZ
-            Data3d.code = code021;
-            break;
-          default:
-            assert(false);
-        }
-        actStream->stransform(gdl3dTo2dTransform, &Data3d);
-      }
       // Get decomposed value for colors
       DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
 
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz); 
-        
+      
+      if (doT3d) {
+        //NOTE: TO SUPPORT OPTION TEXT_AXES the transformation should be done at a more fundamental level by overwriting mtex() 
+          actStream->stransform(PDotTTransformXYZval, &zPosition);
+      }        
       for ( SizeT i=0; i<minEl; ++i )
       {
         //if string only, fill empty Xval Yval with current value:
@@ -390,7 +313,11 @@ namespace lib
           if( xLog ) x=log10(x);
           if( yLog ) y=log10(y);
         }
-        
+      
+      if (doT3d) {
+        //reproject using P.T transformation in [0..1] cube during the actual plot using pltransform() (to reproject also the PSYMs is possible with plplot only if z=0, using this trick:
+          SelfConvertToNormXY(1, &x, &y, coordinateSystem);
+      }        
         if ( !isfinite(x)|| !isfinite(y) ) continue; //no plot
         if ( docharsize && ( *size )[i%size->N_Elements ( )] < 0) continue; //no plot either
         
@@ -437,7 +364,7 @@ namespace lib
       }
       if (stopClip) stopClipping(actStream);
 
-      if ( kwWidth )
+      if ( returnWidth )
       {
         // width is in "normalized coordinates"
         e->SetKW(widthIx, new DFloatGDL(width));
@@ -454,15 +381,10 @@ namespace lib
 
     virtual void post_call(EnvT* e, GDLGStream* actStream) // {{{
     {
-      if (doT3d)
-      {
-        plplot3d_guard.Reset(plplot3d);
-        actStream->stransform(NULL,NULL);
-      }
-      if (restorelayout) actStream->RestoreLayout();
+      actStream->stransform(NULL,NULL);
+      actStream->RestoreLayout();
       actStream->sizeChar(1.0);
     }
-
   };
 
   void xyouts(EnvT* e)
@@ -470,5 +392,4 @@ namespace lib
     xyouts_call xyouts;
     xyouts.call(e, 1);
   }
-
 } // namespace

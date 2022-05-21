@@ -233,9 +233,12 @@ namespace lib {
   void SelfOblique3d(DDoubleGDL* me, DDouble dist, DDouble angle);
   void SelfExch3d(DDoubleGDL* me, T3DEXCHANGECODE axisExchangeCode);
   void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
-  void SelfPDotTTransformXYZ(SizeT n, PLFLT *xt, PLFLT *yt, PLFLT *zt, COORDSYS code);
+  void SelfPDotTTransformXYZ(SizeT n, PLFLT *xt, PLFLT *yt, PLFLT *zt, COORDSYS code=DATA);
+  void SelfConvertToNormXYZ(SizeT n, PLFLT *xt, PLFLT *yt, PLFLT *zt, COORDSYS code=DATA);
+  void SelfConvertToNormXY(SizeT n, PLFLT *xt, PLFLT *yt, COORDSYS code=DATA);
   void PDotTTransformXYZ(PLFLT x, PLFLT y, PLFLT z, PLFLT *xt, PLFLT *yt, PLFLT *zt);
   void PDotTTransformXY(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
+  void PDotTTransformXYZval(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
   void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer unused);
   DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale);
   DDoubleGDL* gdlDefinePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale, bool save);
@@ -315,6 +318,7 @@ namespace lib {
   void gdlHandleUnwantedLogAxisValue(DDouble &min, DDouble &max, bool log);
   void gdlSetGraphicsPenColorToBackground(GDLGStream *a);
   void gdlLineStyle(GDLGStream *a, DLong style);
+  DFloat* gdlGetRegion();
   void gdlStoreAxisCRANGE(int axisId, DDouble Start, DDouble End, bool log);
   void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End);
   void gdlStoreYAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End);
@@ -328,6 +332,8 @@ namespace lib {
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz=NULL);
   void GetWFromPlotStructs(DFloat **wx, DFloat **wy, DFloat **wz);
   void setPlplotScale(GDLGStream* a);
+  void DataCoordXToNorm(DDouble &x, bool xLog);
+  void DataCoordYToNorm(DDouble &y, bool yLog);
   void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy, 
 		       DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd, bool);
   void stopClipping(GDLGStream *a);
