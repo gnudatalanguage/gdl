@@ -1229,24 +1229,14 @@ namespace SysVar
     dirIx=sysVarList.size();
     sysVarList.push_back( dir);
 
-    // !GDL_MAPS_DIR 
+    // !GDL_MAPS_DIR cannot be found in $IDL_DIR natively. It is only where we put it.
+    DStringGDL *nativeDirData = new DStringGDL( GDLDATADIR) ;
+#ifdef _WIN32
+    std::replace((*nativeDirData)[0].begin(), (*nativeDirData)[0].end(), '/', '\\');
+#endif  
     string gdlmapsdir=GetEnvPathString("GDL_MAPS_DIR");
-    if( gdlmapsdir == "") gdlmapsdir = (*dirData)[0]+lib::PathSeparator() +"resource"+lib::PathSeparator()+"maps";
-//The following seems to be incorrect and probably irrelevant
-// //    char *symlinkpath =const_cast<char*> (gdlmapsdir.c_str());// is the path a true path ?
-// //
-// //#ifdef _MSC_VER
-// //	#define PATH_MAX MAX_PATH
-// //#endif
-// ////patch #90
-// //#ifndef PATH_MAX
-// //#define PATH_MAX 4096
-// //#endif
-// //    char actualpath [PATH_MAX+1];
-// //    char *ptr;
-// //    ptr = realpath(symlinkpath, actualpath);
-// //    if( ptr != NULL ) gdlmapsdir=string(ptr)+lib::PathSeparator(); else gdlmapsdir="";
-//
+    if( gdlmapsdir == "") gdlmapsdir = (*nativeDirData)[0]+lib::PathSeparator() +"resource"+lib::PathSeparator()+"maps";
+
     DStringGDL *GdlMapsDataDir =  new DStringGDL( gdlmapsdir);
     DVar *GdlMapsDir = new DVar("GDL_MAPS_DIR", GdlMapsDataDir);
     sysVarList.push_back(GdlMapsDir);

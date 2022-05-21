@@ -713,13 +713,14 @@ namespace lib {
   return plplot3d; 
   }
  
-  void SelfConvertToNormXYZ(SizeT n, PLFLT *x, PLFLT *y, PLFLT *z, COORDSYS code) {
+  //converts 3D values according to COORDSYS towards NORMAL coordinates and , logically, unset xLog,yLo,zLog and define code as NORMAL.
+  void SelfConvertToNormXYZ(SizeT n, DDouble *x, bool &xLog, DDouble *y, bool &yLog, DDouble *z, bool &zLog, COORDSYS &code) {
     if (code == DATA) {
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz);
-      for (auto i = 0; i < n; ++i) x[i] = x[i] * sx[1] + sx[0];
-      for (auto i = 0; i < n; ++i) y[i] = y[i] * sy[1] + sy[0];
-      for (auto i = 0; i < n; ++i) z[i] = z[i] * sz[1] + sz[0];
+      for (auto i = 0; i < n; ++i) TONORMCOORDX( x[i], x[i], xLog);
+      for (auto i = 0; i < n; ++i) TONORMCOORDY( y[i], y[i], yLog);
+      for (auto i = 0; i < n; ++i) TONORMCOORDZ( z[i], z[i], zLog);
     } else if (code == DEVICE) {
       int xSize, ySize;
       //give default values
@@ -730,15 +731,22 @@ namespace lib {
       ySize = (*static_cast<DLongGDL*> (dStruct->GetTag(ysizeTag, 0)))[0];
       for (auto i = 0; i < n; ++i) x[i] /= xSize;
       for (auto i = 0; i < n; ++i) y[i] /= ySize;
+      if (zLog) for (auto i = 0; i < n; ++i) z[i]=log10(i);
     }
+    code=NORMAL;
+    xLog=false;
+    yLog=false;
+    zLog=false;
   }
+  
   //same but only for x and y, z treated separately
-  void SelfConvertToNormXY(SizeT n, PLFLT *x, PLFLT *y, COORDSYS code) {
-    if (code == DATA) {
+  void SelfConvertToNormXY(SizeT n, DDouble *x, bool &xLog, DDouble *y, bool &yLog, COORDSYS &code) {
+  std::cerr<<"SelfConvertToNormXY()"<<std::endl;
+  if (code == DATA) {
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz);
-      for (auto i = 0; i < n; ++i) x[i] = x[i] * sx[1] + sx[0];
-      for (auto i = 0; i < n; ++i) y[i] = y[i] * sy[1] + sy[0];
+      for (auto i = 0; i < n; ++i) TONORMCOORDX( x[i], x[i], xLog);
+      for (auto i = 0; i < n; ++i) TONORMCOORDY( y[i], y[i], yLog);
     } else if (code == DEVICE) {
       int xSize, ySize;
       //give default values
@@ -750,9 +758,13 @@ namespace lib {
       for (auto i = 0; i < n; ++i) x[i] /= xSize;
       for (auto i = 0; i < n; ++i) y[i] /= ySize;
     }
+    code=NORMAL;
+    xLog=false;
+    yLog=false;
   } 
-  void SelfPDotTTransformXYZ(SizeT n, PLFLT *x, PLFLT *y, PLFLT *z, COORDSYS code){
-    SelfConvertToNormXYZ(n, x, y, z, code);
+  
+  //Implied Useage: x,y,z in NORMAL coordinates
+  void SelfPDotTTransformXYZ(SizeT n, DDouble *x, DDouble *y, DDouble *z){
     //retrieve !P.T 
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
@@ -770,8 +782,8 @@ namespace lib {
       z[i] = c / w;
     }
   }
-  //version 2 d for pltransform 
-  void PDotTTransformXY(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer unused){
+  
+  void PDotTTransformXY(DDouble x, DDouble y, DDouble *xt, DDouble *yt, PLPointer unused){
     std::cerr<<"PDotTTransformXY()\n";
     //retrieve !P.T 
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
@@ -790,7 +802,8 @@ namespace lib {
     //*zt = c / w;
   }
   //generalized for 'flat3d', using zValue
-   void PDotTTransformXYZval(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data){
+   void PDotTTransformXYZval(DDouble x, DDouble y, DDouble *xt, DDouble *yt, PLPointer data){
+    std::cerr<<"PDotTTransformXYZval()"<<std::endl;
     DDouble *pz=(DDouble*) data;
     DDouble z=*pz;
     //retrieve !P.T 
@@ -807,7 +820,7 @@ namespace lib {
     *yt = b / w; 
   }
    
-  void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data) {
+  void gdl3dTo2dTransform(DDouble x, DDouble y, DDouble *xt, DDouble *yt, PLPointer data) {
     std::cerr<<"gdl3dTo2dTransform()\n";
     struct GDL_3DTRANSFORMDATA *ptr = (GDL_3DTRANSFORMDATA*) data;
     DDoubleGDL* xyzw = new DDoubleGDL(dimension(4));
@@ -821,21 +834,6 @@ namespace lib {
     GDLDelete(trans);
     GDLDelete(xyzw);
   }
-//  //Special for Contour (not special for the moment in fact):
-//
-//  void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data) {
-//    struct GDL_3DTRANSFORMDATA *ptr = (GDL_3DTRANSFORMDATA*) data;
-//    DDoubleGDL* xyzw = new DDoubleGDL(dimension(4));
-//    (*xyzw)[3] = 1.0;
-//    (*xyzw)[ptr->code[0]] = (x + ptr->x0) * ptr->xs;
-//    (*xyzw)[ptr->code[1]] = (y + ptr->y0) * ptr->ys;
-//    (*xyzw)[ptr->code[2]] = ptr->zValue;
-//    DDoubleGDL* trans = xyzw->MatrixOp(ptr->Matrix, false, true);
-//    *xt = (*trans)[0];
-//    *yt = (*trans)[1];
-//    GDLDelete(trans);
-//    GDLDelete(xyzw);
-//  }
 
   //retrieve !P.T,
 
@@ -870,37 +868,6 @@ namespace lib {
     if (passedMatrix == NULL) GDLDelete(t3dMatrix);
     return returnMatrix;
   }
-
-//  void gdlNormed3dToWorld3d(DDoubleGDL *xValin, DDoubleGDL *yValin, DDoubleGDL* zValin,
-//    DDoubleGDL *xValou, DDoubleGDL *yValou, DDoubleGDL* zValou) {
-//    DDouble *sx, *sy, *sz;
-//    GetSFromPlotStructs(&sx, &sy, &sz);
-//    DDoubleGDL* toWorld = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
-//    SelfReset3d(toWorld);
-//    DDouble depla[3] = {-sx[0], -sy[0], -sz[0]};
-//    DDouble scale[3] = {1 / sx[1], 1 / sy[1], 1 / sz[1]};
-//    SelfTranslate3d(toWorld, depla); //pay attention to order for matrices!
-//    SelfScale3d(toWorld, scale);
-//    //populate a 4D matrix with reduced coordinates through sx,sy,sz:
-//    SizeT nEl = xValin->N_Elements();
-//    DDoubleGDL* xyzw = new DDoubleGDL(dimension(nEl, 4));
-//    memcpy(&((*xyzw)[0]), xValin->DataAddr(), nEl * sizeof (double));
-//    memcpy(&((*xyzw)[nEl]), yValin->DataAddr(), nEl * sizeof (double));
-//    if (zValin != NULL) memcpy(&((*xyzw)[2 * nEl]), zValin->DataAddr(), nEl * sizeof (double));
-//    else for (int index = 0; index < nEl; ++index) {
-//        (*xyzw)[2 * nEl + index] = 1.0;
-//      }
-//    for (int index = 0; index < nEl; ++index) {
-//      (*xyzw)[3 * nEl + index] = 1.0;
-//    }
-//    DDoubleGDL* trans = xyzw->MatrixOp(toWorld, false, true);
-//    memcpy(xValou->DataAddr(), trans->DataAddr(), nEl * sizeof (double));
-//    memcpy(yValou->DataAddr(), &(*trans)[nEl], nEl * sizeof (double));
-//    if (zValou != NULL) memcpy(zValou->DataAddr(), &(*trans)[2 * nEl], nEl * sizeof (double));
-//    GDLDelete(trans);
-//    GDLDelete(xyzw);
-//    GDLDelete(toWorld);
-//  }
 
   void gdl3dto2dProjectDDouble(DDoubleGDL* t3dMatrix, DDoubleGDL *xVal, DDoubleGDL *yVal, DDoubleGDL* zVal,
     DDoubleGDL *xValou, DDoubleGDL *yValou, int* code) {

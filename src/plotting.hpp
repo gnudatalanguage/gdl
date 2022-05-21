@@ -233,12 +233,13 @@ namespace lib {
   void SelfOblique3d(DDoubleGDL* me, DDouble dist, DDouble angle);
   void SelfExch3d(DDoubleGDL* me, T3DEXCHANGECODE axisExchangeCode);
   void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
-  void SelfPDotTTransformXYZ(SizeT n, PLFLT *xt, PLFLT *yt, PLFLT *zt, COORDSYS code=DATA);
-  void SelfConvertToNormXYZ(SizeT n, PLFLT *xt, PLFLT *yt, PLFLT *zt, COORDSYS code=DATA);
-  void SelfConvertToNormXY(SizeT n, PLFLT *xt, PLFLT *yt, COORDSYS code=DATA);
-  void PDotTTransformXYZ(PLFLT x, PLFLT y, PLFLT z, PLFLT *xt, PLFLT *yt, PLFLT *zt);
+ 
+  void SelfConvertToNormXYZ(SizeT n, PLFLT *xt, bool &xLog, PLFLT *yt, bool &yLog, PLFLT *zt, bool &zLog, COORDSYS &code);
+  void SelfConvertToNormXY(SizeT n, PLFLT *xt, bool &xLog, PLFLT *yt, bool &yLog, COORDSYS &code);
+  void SelfPDotTTransformXYZ(SizeT n, PLFLT *xt, PLFLT *yt, PLFLT *zt);
   void PDotTTransformXY(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
   void PDotTTransformXYZval(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
+  
   void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer unused);
   DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale);
   DDoubleGDL* gdlDefinePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale, bool save);
@@ -313,7 +314,9 @@ namespace lib {
   void draw_polyline(GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal, 
 		     DDouble minVal, DDouble maxVal, bool doMinMax,
 		     bool xLog, bool yLog, //end non-default values 
-         DLong psym=0, bool useProjectionInfo=false, bool append=false, DLongGDL *color=NULL);
+         DLong psym=0, bool append=false, DLongGDL *color=NULL);
+  DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons_donottouch, DDoubleGDL *lats_donottouch, bool isRadians, bool const doFill, DLongGDL *&conn);
+  void GDLgrPlotProjectedPolygon(GDLGStream * a, DDoubleGDL *lonlat, bool const doFill, DLongGDL *conn);
   //protect from (inverted, strange) axis log values
   void gdlHandleUnwantedLogAxisValue(DDouble &min, DDouble &max, bool log);
   void gdlSetGraphicsPenColorToBackground(GDLGStream *a);
@@ -1377,8 +1380,8 @@ namespace lib {
     gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
     // not used. gdlGetDesiredAxisMargin(e, ZAXIS, zMarginB, zMarginT);
     //Special for Z: for Z.WINDOW and Z.REGION, in case of POSITION having 6 elements
-    DFloat zposStart=zValue;
-    DFloat zposEnd=ZVALUEMAX;
+    DDouble zposStart=zValue;
+    DDouble zposEnd=ZVALUEMAX;
     
     CheckMargin(actStream,
                 xMarginL,

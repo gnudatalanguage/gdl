@@ -200,8 +200,8 @@ private:
 #ifdef USE_LIBPROJ
       get_mapset(mapSet);
 #endif
-
-      SelfConvertToNormXY(xEl, (PLFLT*) xVal->DataAddr(), (PLFLT*) yVal->DataAddr());
+      COORDSYS coordinateSystem=DATA;
+      SelfConvertToNormXY(xEl, (PLFLT*) xVal->DataAddr(), xLog, (PLFLT*) yVal->DataAddr(), yLog, coordinateSystem);
       //convert minval, maxVal to normalized coords too:
       DataCoordYToNorm(minVal, yLog);
       DataCoordYToNorm(maxVal, yLog);

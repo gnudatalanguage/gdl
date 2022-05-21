@@ -1607,7 +1607,7 @@ namespace lib {
   }
 
   DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lonsIn, DDoubleGDL *latsIn, DLongGDL *connIn,
-    bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines, bool const doFill) {
+    bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines, bool const doFill, bool const transpose) {
 
     //DATA MUST BE IN RADIANS
 #ifdef USE_LIBPROJ
@@ -2057,22 +2057,33 @@ namespace lib {
     PolygonList.clear();
 
     nEl = lons->N_Elements();
-    DLong odims[2];
-    odims[0] = 2;
-    odims[1] = nEl;
-    dimension dim(odims, 2);
-    DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-    if ((GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS))==1) {
-      for (OMPInt i = 0; i < nEl; ++i) {
-        (*res)[2 * i] = (*lons)[i];
-        (*res)[2 * i + 1] = (*lats)[i];
-      }
+    DDoubleGDL *res;
+    if (transpose) {
+      DLong odims[2];
+      odims[0] = nEl;
+      odims[1] = 2;
+      dimension dim(odims, 2);
+      res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+      memcpy(&((*res)[0]), lons->DataAddr(), nEl * sizeof (double));
+      memcpy(&((*res)[nEl]), lats->DataAddr(), nEl * sizeof (double));
     } else {
-      TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
+      DLong odims[2];
+      odims[0] = 2;
+      odims[1] = nEl;
+      dimension dim(odims, 2);
+      res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+      if ((GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS))==1) {
         for (OMPInt i = 0; i < nEl; ++i) {
-        (*res)[2 * i] = (*lons)[i];
-        (*res)[2 * i + 1] = (*lats)[i];
+          (*res)[2 * i] = (*lons)[i];
+          (*res)[2 * i + 1] = (*lats)[i];
+        }
+      } else {
+        TRACEOMP(__FILE__, __LINE__)
+  #pragma omp parallel for num_threads(GDL_NTHREADS)
+          for (OMPInt i = 0; i < nEl; ++i) {
+          (*res)[2 * i] = (*lons)[i];
+          (*res)[2 * i + 1] = (*lats)[i];
+        }
       }
     }
     //cleanup

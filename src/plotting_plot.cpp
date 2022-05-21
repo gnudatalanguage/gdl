@@ -51,13 +51,16 @@ private:
     //T3D ?
     static int t3dIx = e->KeywordIx( "T3D");
     doT3d=(e->BooleanKeywordSet(t3dIx)|| T3Denabled());
-    //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
+
     static int zvIx = e->KeywordIx( "ZVALUE");
     zValue=0.0;
     e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
     zValue=min(zValue,ZVALUEMAX); //to avoid problems with plplot
     zValue=max(zValue,0.0);
-
+    //zStart and zEnd are ALWAYS Zero. zValue will be registered in !Z.REGION
+    zStart=0;
+    zEnd=0;
+    
     // system variable !P.NSUM first
     DLong nsum=(*static_cast<DLongGDL*>(SysVar::P()-> GetTag(SysVar::P()->Desc()->TagIndex("NSUM"), 0)))[0];
       static int NSUMIx = e->KeywordIx( "NSUM");
@@ -173,10 +176,8 @@ private:
     // have priority on [xyz]log !
     static int xLogIx = e->KeywordIx( "XLOG" );
     static int yLogIx = e->KeywordIx( "YLOG" );
-    static int zLogIx = e->KeywordIx( "ZLOG" );
     if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
     if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
-    if (e->KeywordPresent(zLogIx)) zLog = e->KeywordSet(zLogIx);
 
     // note: undocumented keywords [xyz]type still exist and
     // have priority on [xyz]log ! In fact, it is the modulo (1, 3, 5 ... --> /log)   

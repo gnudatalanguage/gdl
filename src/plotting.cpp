@@ -741,8 +741,10 @@ namespace lib
     DDoubleGDL *xVal, DDoubleGDL *yVal,
     DDouble minVal, DDouble maxVal, bool doMinMax,
     bool xLog, bool yLog,  //end non-implicit parameters
-    DLong psym, bool useProjInfo, bool append, DLongGDL *color)
+    DLong psym, bool append, DLongGDL *color)
   {
+        std::cerr<<"draw_polyline()"<<std::endl;
+
     bool docolor=(color != NULL);
  
     // Get decomposed value for colors
@@ -1267,11 +1269,14 @@ namespace lib
     (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=norm_min;
     (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=norm_max;
 
+    //protect
+    DDouble range=End-Start;
+    if (range==0) range=1;
     static unsigned sTag=Struct->Desc()->TagIndex("S");
     (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=
-    (norm_min*End-norm_max*Start)/(End-Start);
+    (norm_min*End-norm_max*Start)/range;
     (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=
-    (norm_max-norm_min)/(End-Start);
+    (norm_max-norm_min)/range;
     gdlStoreSC();
   }
     void gdlStoreYAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End)
@@ -1293,11 +1298,14 @@ namespace lib
     (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=norm_min;
     (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=norm_max;
 
+    //protect
+    DDouble range=End-Start;
+    if (range==0) range=1;
     static unsigned sTag=Struct->Desc()->TagIndex("S");
     (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=
-    (norm_min*End-norm_max*Start)/(End-Start);
+    (norm_min*End-norm_max*Start)/range;
     (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=
-    (norm_max-norm_min)/(End-Start);
+    (norm_max-norm_min)/range;
     gdlStoreSC();
   }
     void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble zposStart, DDouble zposEnd)
@@ -1315,11 +1323,14 @@ namespace lib
     static unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
     DDouble valStart = (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0];
     DDouble valEnd = (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1];
-
+    
+    //protect
+    DDouble range=valEnd-valStart;
+    if (range==0) range=1;
     static unsigned sTag=Struct->Desc()->TagIndex("S");
     (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=zposStart;
     (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=
-    (zposEnd-zposStart)/(valEnd-valStart);
+    (zposEnd-zposStart)/range;
   }
 
   void gdlStoreCLIP(DLongGDL* clipBox)
@@ -1860,66 +1871,148 @@ namespace lib
     }    
     SetUsym(n, do_fill, x, y, do_color, thecolor, do_thick, thethick);
   }
+  
+void SelfNormLonLat(DDoubleGDL *lonlat) {
+    std::cerr << "SelfNormLonLat()" << std::endl;
+    DDouble *sx, *sy, *sz;
+    GetSFromPlotStructs(&sx, &sy, &sz);
+
+    SizeT Dim1 = lonlat->Dim(0);
+    SizeT Dim2 = lonlat->Dim(1);
+    if (Dim2 == 2) {
+      for (auto i = 0; i < Dim1; ++i) (*lonlat)[i] = sx[0] + sx[1] * (*lonlat)[i];
+      for (auto i = Dim1; i < 2 * Dim1; ++i) (*lonlat)[i] = sy[0] + sy[1] * (*lonlat)[i];
+    }
+  }
 #ifdef USE_LIBPROJ
-void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map,
-  DDoubleGDL *lons_donottouch, DDoubleGDL *lats_donottouch, bool isRadians, bool const doFill, DLongGDL *conn ) {
-    DDoubleGDL *lons,*lats;
-    lons=lons_donottouch->Dup(); Guard<BaseGDL> lonsGuard( lons);
-    lats=lats_donottouch->Dup(); Guard<BaseGDL> latsGuard( lats);
+void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons_donottouch, DDoubleGDL *lats_donottouch, bool isRadians, bool const doFill, DLongGDL *conn ) {
+    DDoubleGDL *lonlat=GDLgrGetProjectPolygon(a, ref, map, lons_donottouch, lats_donottouch, isRadians, doFill, conn);
+    if (lonlat!=NULL) {
+      GDLgrPlotProjectedPolygon(a, lonlat, doFill, conn);
+//    
+//    DDoubleGDL *lons,*lats;
+//    lons=lons_donottouch->Dup(); Guard<BaseGDL> lonsGuard( lons);
+//    lats=lats_donottouch->Dup(); Guard<BaseGDL> latsGuard( lats);
+//
+//    DStructGDL* localMap = map;
+//    if (localMap==NULL) localMap=SysVar::Map( );
+//    bool doConn = (conn != NULL);
+//    DLongGDL *gons, *lines;
+//    if (!isRadians) {
+//    SizeT nin = lons->N_Elements( );
+//    if ((GDL_NTHREADS=parallelize( nin, TP_MEMORY_ACCESS))==1) {
+//        for (OMPInt in = 0; in < nin; in++) { //pass in radians for gdlProjForward
+//          (*lons)[in] *= DEG_TO_RAD;
+//          (*lats)[in] *= DEG_TO_RAD;
+//        }      
+//    } else {
+//    TRACEOMP(__FILE__,__LINE__)
+//#pragma omp parallel for num_threads(GDL_NTHREADS)
+//        for ( OMPInt in = 0; in < nin; in++ ) { //pass in radians for gdlProjForward
+//          (*lons)[in] *= DEG_TO_RAD;
+//          (*lats)[in] *= DEG_TO_RAD;
+//        }
+//    }
+//    }
+//    DDoubleGDL *res = gdlProjForward( ref, localMap, lons, lats, conn, doConn, gons, doFill, lines, !doFill, false );
+//    SizeT nout = res->N_Elements( ) / 2;
+//    if (nout < 1) {GDLDelete(res); return;} //projection clipped totally these values.
+//    DDoubleGDL *res2 = static_cast<DDoubleGDL*> (static_cast<BaseGDL*> (res)->Transpose( NULL )); GDLDelete(res);
+//    int minpoly;
+//    if ( doFill ) {
+//      conn = gons;
+//      minpoly = 3;
+//    } else {
+//      conn = lines;
+//      minpoly = 2;
+//    }
+//    SizeT index = 0;
+//    SizeT size;
+//    SizeT start;
+//    while ( index < conn->N_Elements( ) ) {
+//      size = (*conn)[index];
+//      if ( size == 0 ) break; //cannot be negative!
+//      start = (*conn)[index + 1];
+//      if ( size >= minpoly ) {
+//        if ( doFill ) {
+//          a->fill( size, (PLFLT*) &((*res2)[start]), (PLFLT*) &((*res2)[start + nout]) );
+//        } else {
+//          a->line( size, (PLFLT*) &((*res2)[start]), (PLFLT*) &((*res2)[start + nout]) );
+//        }
+//      }
+//      index += (size + 1);
+//    }
+      GDLDelete( lonlat );
+      GDLDelete( conn );
+    }
+  }
+
+  DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons_donottouch, DDoubleGDL *lats_donottouch, bool isRadians, bool const doFill, DLongGDL *&conn) {
+    DDoubleGDL *lons, *lats;
+    lons = lons_donottouch->Dup();
+    Guard<BaseGDL> lonsGuard(lons);
+    lats = lats_donottouch->Dup();
+    Guard<BaseGDL> latsGuard(lats);
 
     DStructGDL* localMap = map;
-    if (localMap==NULL) localMap=SysVar::Map( );
-    bool mapSet; 
-    get_mapset(mapSet); //if mapSet, output will be converted to normalized coordinates as this seems to be the way to do it.
+    if (localMap == NULL) localMap = SysVar::Map();
     bool doConn = (conn != NULL);
     DLongGDL *gons, *lines;
     if (!isRadians) {
-    SizeT nin = lons->N_Elements( );
-    if ((GDL_NTHREADS=parallelize( nin, TP_MEMORY_ACCESS))==1) {
+      SizeT nin = lons->N_Elements();
+      if ((GDL_NTHREADS = parallelize(nin, TP_MEMORY_ACCESS)) == 1) {
         for (OMPInt in = 0; in < nin; in++) { //pass in radians for gdlProjForward
           (*lons)[in] *= DEG_TO_RAD;
           (*lats)[in] *= DEG_TO_RAD;
-        }      
-    } else {
-    TRACEOMP(__FILE__,__LINE__)
+        }
+      } else {
+        TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for ( OMPInt in = 0; in < nin; in++ ) { //pass in radians for gdlProjForward
+          for (OMPInt in = 0; in < nin; in++) { //pass in radians for gdlProjForward
           (*lons)[in] *= DEG_TO_RAD;
           (*lats)[in] *= DEG_TO_RAD;
         }
+      }
     }
-    }
-    DDoubleGDL *res = gdlProjForward( ref, localMap, lons, lats, conn, doConn, gons, doFill, lines, !doFill, false );
-    SizeT nout = res->N_Elements( ) / 2;
-    if (nout < 1) {GDLDelete(res); return;} //projection clipped totally these values.
-    DDoubleGDL *res2 = static_cast<DDoubleGDL*> (static_cast<BaseGDL*> (res)->Transpose( NULL )); GDLDelete(res);
+    DDoubleGDL *res = gdlProjForward(ref, localMap, lons, lats, conn, doConn, gons, doFill, lines, !doFill, false, true); //transposed=true for speed 
+    SizeT nout = res->N_Elements() / 2;
+    if (nout < 1) {
+      GDLDelete(res);
+      return NULL;
+    } //projection clipped totally these values.
+    if (doFill) conn = gons; else conn = lines; //return appropriate connectivity list
+    return res;
+  }
+  
+  void GDLgrPlotProjectedPolygon(GDLGStream * a, DDoubleGDL *lonlat, bool const doFill, DLongGDL *conn) {
+    //convert to normed values
+    std::cerr<<"GDLgrPlotProjectedPolygon()"<<std::endl;
+    if (doFill & conn->N_Elements()<3) return; //protection
+    else if (conn->N_Elements()<2) return; //protection
+    SelfNormLonLat(lonlat);
+    SizeT nout=lonlat->Dim(0);
     int minpoly;
-    if ( doFill ) {
-      conn = gons;
+    if (doFill) {
       minpoly = 3;
     } else {
-      conn = lines;
       minpoly = 2;
     }
     SizeT index = 0;
     SizeT size;
     SizeT start;
-    while ( index < conn->N_Elements( ) ) {
+    while (index < conn->N_Elements()) {
       size = (*conn)[index];
-      if ( size == 0 ) break; //cannot be negative!
+      if (size == 0) break; //cannot be negative!
       start = (*conn)[index + 1];
-      if ( size >= minpoly ) {
-        if ( doFill ) {
-          a->fill( size, (PLFLT*) &((*res2)[start]), (PLFLT*) &((*res2)[start + nout]) );
+      if (size >= minpoly) {
+        if (doFill) {
+          a->fill(size, (PLFLT*) &((*lonlat)[start]), (PLFLT*) &((*lonlat)[start + nout]));
         } else {
-          a->line( size, (PLFLT*) &((*res2)[start]), (PLFLT*) &((*res2)[start + nout]) );
+          a->line(size, (PLFLT*) &((*lonlat)[start]), (PLFLT*) &((*lonlat)[start + nout]));
         }
       }
       index += (size + 1);
     }
-    GDLDelete( res2 );
-    if ( doFill ) GDLDelete( gons );
-    else GDLDelete( lines );
   }
 #endif
 } // namespace

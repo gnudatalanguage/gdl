@@ -316,7 +316,7 @@ namespace lib
       
       if (doT3d) {
         //reproject using P.T transformation in [0..1] cube during the actual plot using pltransform() (to reproject also the PSYMs is possible with plplot only if z=0, using this trick:
-          SelfConvertToNormXY(1, &x, &y, coordinateSystem);
+          SelfConvertToNormXY(1, &x, xLog, &y, yLog, coordinateSystem);
       }        
         if ( !isfinite(x)|| !isfinite(y) ) continue; //no plot
         if ( docharsize && ( *size )[i%size->N_Elements ( )] < 0) continue; //no plot either

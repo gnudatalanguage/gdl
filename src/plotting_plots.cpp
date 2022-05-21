@@ -26,10 +26,11 @@ namespace lib
   class plots_call: public plotting_routine_call
   {
 
-    DDoubleGDL *xVal, *yVal, *zVal;
+    DDoubleGDL *xVal, *yVal, *zVal, *zInit;
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard;
     Guard<BaseGDL> xvalnative_guard, yvalnative_guard, zvalnative_guard;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
+    DDouble zPosition;
     DLong psym;
     bool xLog, yLog, zLog;
     SizeT nEl;
@@ -47,9 +48,8 @@ namespace lib
     bool handle_args(EnvT* e)
     {
       //for cases where 3D is enabled, but z is not defined (since zVal is not an argument of PLOTS() )
-      flat3d=true; //by default
       DFloat * position=gdlGetRegion();
-      DDoubleGDL* zInit = new DDoubleGDL(position[4]);
+      zInit = new DDoubleGDL(position[4]); Guard<BaseGDL> zinit_guard(zInit);
       
       xnative=false;
       ynative=false;
@@ -59,7 +59,20 @@ namespace lib
       if (psym==10) e->Throw("PSYM (plotting symbol) out of range"); //not allowed for PLOTS!
       //T3D
       static int t3dIx = e->KeywordIx( "T3D");
-      doT3d=(e->BooleanKeywordSet(t3dIx) || T3Denabled()); 
+      doT3d=(e->BooleanKeywordSet(t3dIx) || T3Denabled());
+      flat3d=doT3d; //by default
+
+      //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
+      // Then Z is useful only if (doT3d).
+      static int zvIx = e->KeywordIx("Z");
+      zPosition = 0.0; //it is NOT a zValue.
+      if (doT3d) {
+        e->AssureDoubleScalarKWIfPresent(zvIx, zPosition);
+        //norm directly here, we are in 3D mode
+        DDouble *sx, *sy, *sz;
+        GetSFromPlotStructs(&sx, &sy, &sz);
+        zPosition = zPosition * sz[1] + sz[0];
+      }
       
       static int continueIx = e->KeywordIx( "CONTINUE");
       append=e->KeywordSet(continueIx);
@@ -223,21 +236,7 @@ namespace lib
         zEnd = 1;
       }
       
-
-      mapSet=false;
-#ifdef USE_LIBPROJ
-      get_mapset(mapSet);
-      mapSet=(mapSet && coordinateSystem==DATA);
-      if ( mapSet )
-      {
-        ref=map_init();
-        if ( ref==NULL )
-        {
-          e->Throw("Projection initialization failed.");
-        }
-      }
-#endif
-        
+       
       actStream->OnePageSaveLayout(); // one page
     
    //CLIPPING (or not) is just defining the adequate viewport and world coordinates, all of them normalized since this is what plplot will get in the end.
@@ -254,8 +253,8 @@ namespace lib
 
       if (doClip) { //redefine default viewport & world
         //define a default clipbox (DATA coords):
-        DDouble clipBox[4]={xStart,yStart,xEnd,yEnd};
-        DFloatGDL* clipBoxGDL = e->IfDefGetKWAs<DFloatGDL>(CLIP);
+        PLFLT clipBox[4]={xStart,yStart,xEnd,yEnd};
+        DDoubleGDL* clipBoxGDL = e->IfDefGetKWAs<DDoubleGDL>(CLIP);
         if (clipBoxGDL != NULL && clipBoxGDL->N_Elements()< 4) for (auto i=0; i<4; ++i) clipBox[i]=0; //set clipbox to 0 0 0 0 apparently this is what IDL does.
         if (clipBoxGDL != NULL && clipBoxGDL->N_Elements()==4) for (auto i=0; i<4; ++i) clipBox[i]=(*clipBoxGDL)[i];
         //clipBox is defined accordingly to /NORM /DEVICE /DATA:
@@ -281,20 +280,6 @@ namespace lib
       gdlSetSymsize(e, actStream); //SYMSIZE
       actStream->vpor(xnormmin,xnormmax,ynormmin,ynormmax);
       actStream->wind(xnormmin,xnormmax,ynormmin,ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
-      
-      if (doT3d) {
-        xLog = false;
-        yLog = false;
-      } else {
-        if (coordinateSystem == DEVICE) {
-          xLog = false;
-          yLog = false;
-        } else if (coordinateSystem == NORMAL) {
-          xLog = false;
-          yLog = false;
-        } 
-
-      }
       actStream->setSymbolSizeConversionFactors();
     }
 
@@ -310,19 +295,34 @@ namespace lib
         color=e->GetKWAs<DLongGDL>( colorIx ); doColor=true;
       }
 
-      if (doT3d) {
-        if (flat3d) {
-        //reproject using P.T transformation in [0..1] cube during the actual plot using pltransform() (to reproject also the PSYMs is possible with plplot only if z=0, using this trick:
-          SelfConvertToNormXYZ(nEl, (PLFLT*) xVal->DataAddr(), (PLFLT*) yVal->DataAddr(), (PLFLT*) zVal->DataAddr(), coordinateSystem);
-          actStream->stransform(PDotTTransformXYZval, &((*zVal)[0]));
-        } else {
-          SelfPDotTTransformXYZ(nEl, (PLFLT*) xVal->DataAddr(), (PLFLT*) yVal->DataAddr(), (PLFLT*) zVal->DataAddr(), coordinateSystem);
-        }
-      } else {
-        SelfConvertToNormXY(nEl, (PLFLT*) xVal->DataAddr(), (PLFLT*) yVal->DataAddr(), coordinateSystem);
-        //this is important!
-        coordinateSystem=NORMAL;
-      }
+
+      
+//#ifdef USE_LIBPROJ
+//      static LPTYPE idata;
+//      static XYTYPE odata;
+//      if (mapSet) {
+//        ref=map_init();
+//        if ( ref==NULL )
+//        {
+//          e->Throw("Projection initialization failed.");
+//        }
+//        for (SizeT i = 0; i < nEl; i++) {
+//#if LIBPROJ_MAJOR_VERSION >= 5
+//            idata.lam = (*xVal)[i] * DEG_TO_RAD;
+//            idata.phi = (*yVal)[i] * DEG_TO_RAD;
+//            odata = protect_proj_fwd_lp(idata, ref);
+//            (*xVal)[i] = odata.x;
+//            (*yVal)[i] = odata.y;
+//#else
+//            idata.u = (*xVal)[i] * DEG_TO_RAD;
+//            idata.v = (*yVal)[i] * DEG_TO_RAD;
+//            odata = PJ_FWD(idata, ref);
+//            (*xVal)[i] = odata.u;
+//            (*yVal)[i] = odata.v;
+//#endif
+//          }
+//      }
+//#endif
 
       //properties
       if (!doColor || color->N_Elements() == 1){
@@ -334,15 +334,43 @@ namespace lib
       gdlSetLineStyle(e, actStream); //LINESTYLE
       gdlSetPenThickness(e, actStream); //THICK
 
+      //projections: X & Y to be converted to u,v BEFORE plotting in NORM coordinates
+      mapSet = false;
+      get_mapset(mapSet);
+      mapSet = (mapSet && coordinateSystem == DATA);
+
+      //real 3D is not (yet) using projections.
+      if (doT3d && !flat3d) {
+           SelfConvertToNormXYZ(nEl, (DDouble*) xVal->DataAddr(), xLog, (DDouble*) yVal->DataAddr(), yLog, (DDouble*) zVal->DataAddr(), zLog, coordinateSystem); 
+           SelfPDotTTransformXYZ(nEl, (PLFLT*) xVal->DataAddr(), (PLFLT*) yVal->DataAddr(), (PLFLT*) zVal->DataAddr());
+           draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, append, doColor?color:NULL);
+      } else {
+        if (flat3d) actStream->stransform(PDotTTransformXYZval, &zPosition);
 #ifdef USE_LIBPROJ
         if ( mapSet && psym < 1) {
-          GDLgrProjectedPolygonPlot(actStream, ref, NULL, xVal, yVal, false, false, NULL); //connect lines correctly
-          psym=-psym;
-          if (psym > 0) draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, mapSet,  append, doColor?color:NULL);
+          ref=map_init();
+          if ( ref==NULL )
+          {
+            e->Throw("Projection initialization failed.");
+          }
+          DLongGDL *conn=NULL; //tricky as xVal and yVal will be probably replaced by connectivity
+          DDoubleGDL *lonlat=GDLgrGetProjectPolygon(actStream, ref, NULL, xVal, yVal, false, false, conn);
+          if (lonlat!=NULL) { 
+            GDLgrPlotProjectedPolygon(actStream, lonlat, false, conn);
+            GDLDelete(lonlat);
+            GDLDelete(conn);            
+//            psym=-psym;
+//            if (psym > 0) draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, append, doColor?color:NULL);
+          }
+        } else {
+          SelfConvertToNormXY(nEl, (DDouble*) xVal->DataAddr(), xLog, (DDouble*) yVal->DataAddr(), yLog, coordinateSystem);
+          draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, append, doColor?color:NULL);
         }
-        else draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, mapSet, append, doColor?color:NULL);
+      }
 #else
-      else draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, false, append, doColor?color:NULL);
+        SelfConvertToNormXY(nEl, (DDouble*) xVal->DataAddr(), xLog, (DDouble*) yVal->DataAddr(), yLog, coordinateSystem);
+        draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, append, doColor?color:NULL);
+      }
 #endif
     }
 
