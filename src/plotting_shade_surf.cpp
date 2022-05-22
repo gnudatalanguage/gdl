@@ -260,7 +260,7 @@ namespace lib
         // set the PLOT charsize before computing box, see plot command.
       gdlSetPlotCharsize(e, actStream);
       //set 2D scale etc.
-      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return; //no good: should catch an exception to get out of this mess.
+      if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return; //no good: should catch an exception to get out of this mess.
 
       // Deal with T3D options -- either present and we have to deduce az and alt contained in it,
       // or absent and we have to compute !P.T from az and alt.

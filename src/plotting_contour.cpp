@@ -380,7 +380,7 @@ namespace lib
 
       //set plplot internals, and save !P !x !Y !Z values as they should be
       gdlSetPlotCharsize(e, actStream);
-      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == FALSE) return; //no good: should catch an exception to get out of this mess.
+      if (gdlSet2DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, iso) == FALSE) return; //no good: should catch an exception to get out of this mess.
 
       if (doT3d) {
         plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);

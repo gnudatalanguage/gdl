@@ -663,6 +663,7 @@ namespace lib {
   }
   //sets a new !P.T approx as if 'surfr' was used, but zValue is not part of surfr()
   DDoubleGDL* gdlDoAsSurfr(DDouble az, DDouble alt, DDouble zValue) {
+    std::cerr<<"gdlDoAsSurfr()\n";
     DDoubleGDL* plplot3d = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
     SelfReset3d(plplot3d);
     static DDouble mytrans[3] = {-0.5, -0.5, -0.5};
@@ -715,6 +716,7 @@ namespace lib {
  
   //converts 3D values according to COORDSYS towards NORMAL coordinates and , logically, unset xLog,yLo,zLog and define code as NORMAL.
   void SelfConvertToNormXYZ(SizeT n, DDouble *x, bool &xLog, DDouble *y, bool &yLog, DDouble *z, bool &zLog, COORDSYS &code) {
+    std::cerr<<"SelfConvertToNormXYZ()\n";
     if (code == DATA) {
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz);
@@ -765,6 +767,7 @@ namespace lib {
   
   //Implied Useage: x,y,z in NORMAL coordinates
   void SelfPDotTTransformXYZ(SizeT n, DDouble *x, DDouble *y, DDouble *z){
+  std::cerr<<"SelfPDotTTransformXYZ()"<<std::endl;
     //retrieve !P.T 
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");

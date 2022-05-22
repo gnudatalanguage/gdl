@@ -315,7 +315,10 @@ namespace lib {
 		     DDouble minVal, DDouble maxVal, bool doMinMax,
 		     bool xLog, bool yLog, //end non-default values 
          DLong psym=0, bool append=false, DLongGDL *color=NULL);
-  DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons_donottouch, DDoubleGDL *lats_donottouch, bool isRadians, bool const doFill, DLongGDL *&conn);
+  void SelfNormLonLat(DDoubleGDL *lonlat);
+  void SelfPDotTTransformProjectedPolygonTable(DDoubleGDL *lonlat);
+//  DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, DDoubleGDL *z, bool isRadians, bool const doFill, DLongGDL *&conn);
+  DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats,DDoubleGDL *zVal,  bool isRadians, bool const doFill, DLongGDL *&conn, bool justProject=false);
   void GDLgrPlotProjectedPolygon(GDLGStream * a, DDoubleGDL *lonlat, bool const doFill, DLongGDL *conn);
   //protect from (inverted, strange) axis log values
   void gdlHandleUnwantedLogAxisValue(DDouble &min, DDouble &max, bool log);
@@ -1350,8 +1353,8 @@ namespace lib {
     return true;
   }
 
-  //ONLY USED BY PLOT,CONTOUR and the 2 SURFACE commands. Sets all relevant Direct Graphic structures !X, !Y , !Z  
-  static bool gdlSetViewPortAndWorldCoordinates(EnvT* e,
+  //ONLY USED BY PLOT,CONTOUR. Sets all relevant Direct Graphic structures !X, !Y , !Z  
+  static bool gdlSet2DViewPortAndWorldCoordinates(EnvT* e,
                                          GDLGStream* actStream,
                                          DDouble xStart,
                                          DDouble xEnd,
@@ -1359,10 +1362,6 @@ namespace lib {
                                          DDouble yStart,
                                          DDouble yEnd,
                                          bool yLog,
-                                         DDouble zStart,
-                                         DDouble zEnd,
-                                         bool zLog,
-                                         DDouble zValue,
                                          bool iso = false)
   {
 
@@ -1378,10 +1377,6 @@ namespace lib {
     DFloat xMarginL, xMarginR, yMarginB, yMarginT; //, zMarginB, zMarginT;
     gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
     gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
-    // not used. gdlGetDesiredAxisMargin(e, ZAXIS, zMarginB, zMarginT);
-    //Special for Z: for Z.WINDOW and Z.REGION, in case of POSITION having 6 elements
-    DDouble zposStart=zValue;
-    DDouble zposEnd=ZVALUEMAX;
     
     CheckMargin(actStream,
                 xMarginL,
@@ -1436,10 +1431,6 @@ namespace lib {
     if ( boxPosition!=NULL )
     {
       for ( SizeT i=0; i<4&&i<boxPosition->N_Elements(); ++i ) position[i]=(*boxPosition)[i];
-      if (boxPosition->N_Elements() > 4) {
-        zposStart=fmin((*boxPosition)[4],ZVALUEMAX);zposStart=fmax(zposStart,0);
-        if (boxPosition->N_Elements() > 5) zposEnd=fmin((*boxPosition)[5],ZVALUEMAX);zposEnd=fmax(zposEnd,zposStart);
-      }
     }
     // modify positionP and/or boxPosition to NORMAL if DEVICE is present
     if (coordinateSystem==DEVICE)
@@ -1513,12 +1504,6 @@ namespace lib {
       yStart=log10(yStart);
       yEnd=log10(yEnd);
     }
-    if ( zLog )
-    {
-      gdlHandleUnwantedLogAxisValue(zStart, zEnd, zLog);
-      zStart=log10(zStart);
-      zEnd=log10(zEnd);
-    }
 
     // set world coordinates
     //protection against silly coordinates
@@ -1541,17 +1526,14 @@ namespace lib {
     // set ![XYZ].CRANGE
     gdlStoreAxisCRANGE(XAXIS, xStart, xEnd, false); //already in log here if relevant!
     gdlStoreAxisCRANGE(YAXIS, yStart, yEnd, false);
-    gdlStoreAxisCRANGE(ZAXIS, zStart, zEnd, false);
 
     //set ![XYZ].type
     gdlStoreAxisType(XAXIS,xLog); 
     gdlStoreAxisType(YAXIS,yLog);
-    gdlStoreAxisType(ZAXIS,zLog);
 
     //set ![XYZ].WINDOW and ![XYZ].S
     gdlStoreXAxisParameters(actStream, xStart, xEnd);//already in log here if relevant!
     gdlStoreYAxisParameters(actStream, yStart, yEnd);
-    gdlStoreZAxisParameters(actStream, zposStart, zposEnd); //uses zStart,zEnd as written in !Z.CRANGE internally
     //set P.CLIP (done by PLOT, CONTOUR, SHADE_SURF, and SURFACE)
     Guard<BaseGDL> clipbox_guard;
     DLongGDL* clipBox= new DLongGDL(4, BaseGDL::ZERO); clipbox_guard.Reset(clipBox);
@@ -1564,6 +1546,213 @@ namespace lib {
     actStream->NormedDeviceToDevice(xmax, ymax,x,y);
     (*clipBox)[2]=x;
     (*clipBox)[3]=y;
+    gdlStoreCLIP(clipBox);
+    return true;
+  }
+  //ONLY USED BY the 2 SURFACE commands. Sets all relevant Direct Graphic structures !X, !Y , !Z  
+
+  static bool gdlSet3DViewPortAndWorldCoordinates(EnvT* e,
+    GDLGStream* actStream,
+    DDouble xStart,
+    DDouble xEnd,
+    bool xLog,
+    DDouble yStart,
+    DDouble yEnd,
+    bool yLog,
+    DDouble zStart,
+    DDouble zEnd,
+    bool zLog,
+    DDouble zValue,
+    bool iso = false) {
+
+    PLFLT xMR;
+    PLFLT xML;
+    PLFLT yMB;
+    PLFLT yMT;
+
+    enum {
+      DATA = 0,
+      NORMAL,
+      DEVICE
+    } coordinateSystem = DATA;
+    // MARGIN
+    DFloat xMarginL, xMarginR, yMarginB, yMarginT; //, zMarginB, zMarginT;
+    gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
+    gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
+    // not used. gdlGetDesiredAxisMargin(e, ZAXIS, zMarginB, zMarginT);
+    //Special for Z: for Z.WINDOW and Z.REGION, in case of POSITION having 6 elements
+    DDouble zposStart = zValue;
+    DDouble zposEnd = ZVALUEMAX;
+
+    CheckMargin(actStream,
+      xMarginL,
+      xMarginR,
+      yMarginB,
+      yMarginT,
+      xMR, xML, yMB, yMT);
+
+    // viewport - POSITION overrides
+    static PLFLT aspect = 0.0;
+
+    static PLFLT positionP[4] = {0, 0, 0, 0};
+    static PLFLT regionP[4] = {0, 0, 0, 0};
+    static PLFLT position[4] = {0, 0, 1, 1};
+    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
+    // Get !P.position values. !P.REGION is superseded by !P.POSITION
+    if (pStruct != NULL) {
+      unsigned regionTag = pStruct->Desc()->TagIndex("REGION");
+      for (SizeT i = 0; i < 4; ++i) regionP[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(regionTag, 0)))[i];
+      unsigned positionTag = pStruct->Desc()->TagIndex("POSITION");
+      for (SizeT i = 0; i < 4; ++i) positionP[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(positionTag, 0)))[i];
+    }
+    if (regionP[0] != regionP[2] && positionP[0] == positionP[2]) //if not ignored, and will be used, as 
+      //a surrogate of !P.Position:
+    {
+      //compute position removing margins
+      positionP[0] = regionP[0] + xMarginL * actStream->nCharLength();
+      positionP[1] = regionP[1] + yMarginB * actStream->nLineSpacing();
+      positionP[2] = regionP[2] - xMarginR * actStream->nCharLength();
+      positionP[3] = regionP[3] - yMarginT * actStream->nLineSpacing();
+    }
+    //compatibility: Position NEVER outside [0,1]:
+    positionP[0] = max(0.0, positionP[0]);
+    positionP[1] = max(0.0, positionP[1]);
+    positionP[2] = min(1.0, positionP[2]);
+    positionP[3] = min(1.0, positionP[3]);
+
+    //check presence of DATA,DEVICE and NORMAL options
+    int DATAIx = e->KeywordIx("DATA");
+    int DEVICEIx = e->KeywordIx("DEVICE");
+    int NORMALIx = e->KeywordIx("NORMAL");
+
+    if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
+    if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
+    if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
+
+    //    if (coordinateSystem==DATA && !actStream->validWorldBox()) e->Throw("PLOT: Data coordinate system not established.");
+    // read boxPosition if needed
+    int positionIx = e->KeywordIx("POSITION");
+    DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>(positionIx);
+    if (boxPosition != NULL) {
+      for (SizeT i = 0; i < 4 && i < boxPosition->N_Elements(); ++i) position[i] = (*boxPosition)[i];
+      if (boxPosition->N_Elements() > 4) {
+        zposStart = fmin((*boxPosition)[4], ZVALUEMAX);
+        zposStart = fmax(zposStart, 0);
+        if (boxPosition->N_Elements() > 5) zposEnd = fmin((*boxPosition)[5], ZVALUEMAX);
+        zposEnd = fmax(zposEnd, zposStart);
+      }
+    }
+    // modify positionP and/or boxPosition to NORMAL if DEVICE is present
+    if (coordinateSystem == DEVICE) {
+      PLFLT normx;
+      PLFLT normy;
+      actStream->DeviceToNormedDevice(positionP[0], positionP[1], normx, normy);
+      positionP[0] = normx;
+      positionP[1] = normy;
+      actStream->DeviceToNormedDevice(positionP[2], positionP[3], normx, normy);
+      positionP[2] = normx;
+      positionP[3] = normy;
+      if (boxPosition != NULL) {
+        actStream->DeviceToNormedDevice(position[0], position[1], normx, normy);
+        position[0] = normx;
+        position[1] = normy;
+        actStream->DeviceToNormedDevice(position[2], position[3], normx, normy);
+        position[2] = normx;
+        position[3] = normy;
+      }
+    }
+    if (boxPosition != NULL) {
+      //compatibility again: Position NEVER outside [0,1]:
+      position[0] = max(0.0, position[0]);
+      position[1] = max(0.0, position[1]);
+      position[2] = min(1.0, position[2]);
+      position[3] = min(1.0, position[3]);
+    }
+
+    aspect = 0.0; // vpas with aspect=0.0 equals vpor.
+    if (iso) aspect = abs((yEnd - yStart) / (xEnd - xStart)); //log-log or lin-log
+
+    // New plot without POSITION=[] as argument
+    if (boxPosition == NULL) {
+      // If !P.position not set use default values. coordinatesSystem not used even if present!
+      if (positionP[0] == 0 && positionP[1] == 0 && positionP[2] == 0 && positionP[3] == 0) {
+        // Set to default values
+        position[0] = xML;
+        position[1] = yMB;
+        position[2] = 1.0 - xMR;
+        position[3] = 1.0 - yMT;
+        if (iso) setIsoPort(actStream, position[0], position[2], position[1], position[3], aspect);
+        else actStream->vpor(position[0], position[2], position[1], position[3]);
+      } else {
+        // Use !P.position values.
+        if (iso) setIsoPort(actStream, positionP[0], positionP[2], positionP[1], positionP[3], aspect);
+        else actStream->vpor(positionP[0], positionP[2], positionP[1], positionP[3]);
+      }
+    } else // Position keyword set
+    {
+      if (iso) setIsoPort(actStream, position[0], position[2], position[1], position[3], aspect);
+      else actStream->vpor(position[0], position[2], position[1], position[3]);
+    }
+
+    if (xLog) {
+      gdlHandleUnwantedLogAxisValue(xStart, xEnd, xLog);
+      xStart = log10(xStart);
+      xEnd = log10(xEnd);
+    }
+    if (yLog) {
+      gdlHandleUnwantedLogAxisValue(yStart, yEnd, yLog);
+      yStart = log10(yStart);
+      yEnd = log10(yEnd);
+    }
+    if (zLog) {
+      gdlHandleUnwantedLogAxisValue(zStart, zEnd, zLog);
+      zStart = log10(zStart);
+      zEnd = log10(zEnd);
+    }
+
+    // set world coordinates
+    //protection against silly coordinates
+    if (xStart == xEnd) {
+      Message(e->GetProName() + "Coordinate system in error, please report to authors.");
+      xStart = 0.0;
+      xEnd = 1.0;
+    }
+    if (yStart == yEnd) {
+      Message(e->GetProName() + "Coordinate system in error, please report to authors.");
+      yStart = 0.0;
+      yEnd = 1.0;
+    }
+
+
+    actStream->wind(xStart, xEnd, yStart, yEnd);
+
+    // set ![XYZ].CRANGE
+    gdlStoreAxisCRANGE(XAXIS, xStart, xEnd, false); //already in log here if relevant!
+    gdlStoreAxisCRANGE(YAXIS, yStart, yEnd, false);
+    gdlStoreAxisCRANGE(ZAXIS, zStart, zEnd, false);
+
+    //set ![XYZ].type
+    gdlStoreAxisType(XAXIS, xLog);
+    gdlStoreAxisType(YAXIS, yLog);
+    gdlStoreAxisType(ZAXIS, zLog);
+
+    //set ![XYZ].WINDOW and ![XYZ].S
+    gdlStoreXAxisParameters(actStream, xStart, xEnd); //already in log here if relevant!
+    gdlStoreYAxisParameters(actStream, yStart, yEnd);
+    gdlStoreZAxisParameters(actStream, zposStart, zposEnd); //uses zStart,zEnd as written in !Z.CRANGE internally
+    //set P.CLIP (done by PLOT, CONTOUR, SHADE_SURF, and SURFACE)
+    Guard<BaseGDL> clipbox_guard;
+    DLongGDL* clipBox = new DLongGDL(4, BaseGDL::ZERO);
+    clipbox_guard.Reset(clipBox);
+    PLFLT xmin, xmax, ymin, ymax, x, y;
+    actStream->gvpd(xmin, xmax, ymin, ymax);
+
+    actStream->NormedDeviceToDevice(xmin, ymin, x, y);
+    (*clipBox)[0] = x;
+    (*clipBox)[1] = y;
+    actStream->NormedDeviceToDevice(xmax, ymax, x, y);
+    (*clipBox)[2] = x;
+    (*clipBox)[3] = y;
     gdlStoreCLIP(clipBox);
     return true;
   }
