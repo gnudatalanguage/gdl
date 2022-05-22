@@ -88,9 +88,9 @@ namespace lib {
   void gdlFullProjectionTransformation(PROJTYPE ref, DStructGDL* map,
 			     DDoubleGDL* lon, DDoubleGDL *lat);
   DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map,
-			     DDoubleGDL* lon, DDoubleGDL *lat, DLongGDL* connectivity,
+			     DDoubleGDL* lon, DDoubleGDL *lat,  DDoubleGDL *z, DLongGDL* connectivity,
 			     bool doConn, DLongGDL* &gons, bool doGons,
-			     DLongGDL* &lines, bool doLines, bool doFill);
+			     DLongGDL* &lines, bool doLines, bool doFill, bool transpose);
   DStructGDL *GetMapAsMapStructureKeyword(EnvT *e, bool &externalMap); //not static since KW is at same place for all uses.
 
 #define COMPLEX2 GDL_COMPLEX
