@@ -189,11 +189,18 @@ namespace lib
             yval_guard.Reset(yVal); // delete upon exit
             for (SizeT i=0; i< nEl ; ++i) (*yVal)[i]=(*tmpyVal)[0];
           }
-          if (zVal->Dim(0)==0) {
+          if (zVal->Dim(0)==0) { //must give the same behaviuor as if z=... was passed.
+            //for safety we populate zVal
             DDoubleGDL* tmpzVal=e->GetParAs< DDoubleGDL>(2);
             zVal=new DDoubleGDL(nEl, BaseGDL::NOZERO);
             zval_guard.Reset(zVal); // delete upon exit
             for (SizeT i=0; i< nEl ; ++i) (*zVal)[i]=(*tmpzVal)[0];
+            //but if fact this is the equivalent of z=.. :
+            flat3d=true;
+            //norm directly here, we are in 3D mode
+            DDouble *sz;
+            GetSFromPlotStructs(NULL, NULL, &sz);
+            zPosition = (*tmpzVal)[0] * sz[1] + sz[0];
           }
         }
       }
@@ -324,7 +331,7 @@ namespace lib
         if (ref == NULL) e->Throw("Projection initialization failed.");
 
         //everything goes through map transformation, including cuts at horizon, then conversion to normalized coordinates (and eventually stransform (3Dprojection)  when plotted)
-        
+        std::cerr<<"FLAT3D="<<flat3d<<"!"<<std::endl;
         if (flat3d) actStream->stransform(PDotTTransformXYZval, &zPosition);//3D projection will be done at plplot level
         
         DLongGDL *conn=NULL; //tricky as xVal and yVal will be probably replaced by connectivity
@@ -339,8 +346,7 @@ namespace lib
         if (lonlat!=NULL) { 
           if (doT3d && !flat3d) {
             SelfPDotTTransformProjectedPolygonTable(lonlat); //lonlat 3D is now projected 2D  
-          }
-          SelfNormLonLat(lonlat); //lonlat is now converted to norm
+          } else  SelfNormLonLat(lonlat); //lonlat is now converted to norm
           if (psym < 1) { //lines must be specially explored
               GDLgrPlotProjectedPolygon(actStream, lonlat, false, conn);
               psym = -psym;

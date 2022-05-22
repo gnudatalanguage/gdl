@@ -150,7 +150,7 @@ namespace lib {
     }
 
     if (doGons || doLines) {
-      res = gdlProjForward(ref, map, lon, lat, NULL, connectivity, doConn, gons, doGons, lines, doLines, doFill);
+      res = gdlProjForward(ref, map, lon, lat, NULL, connectivity, doConn, gons, doGons, lines, doLines, doFill, false);
       if (doGons) e->SetKW(gonsIx, gons);
       else e->SetKW(linesIx, lines);
     } else res = gdlApplyFullProjection(ref, map, lon, lat);
@@ -2064,14 +2064,14 @@ namespace lib {
     nEl = resLons->N_Elements();
     DDoubleGDL *res;
     if (transpose) {
-      DLong odims[3];
+      DLong odims[2];
       odims[0] = nEl;
       odims[1] = 3;
       dimension dim(odims, 2);
       res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-      memcpy(&((*res)[0]), resLons->DataAddr(), nEl * sizeof (double));
-      memcpy(&((*res)[nEl]), resLats->DataAddr(), nEl * sizeof (double));
-      memcpy(&((*res)[2*nEl]), resZ->DataAddr(), nEl * sizeof (double));
+      memcpy(&((*res)[0]), resLons->DataAddr(), nEl * sizeof (DDouble));
+      memcpy(&((*res)[nEl]), resLats->DataAddr(), nEl * sizeof (DDouble));
+      memcpy(&((*res)[2*nEl]), resZ->DataAddr(), nEl * sizeof (DDouble));
     } else {
       DLong odims[2];
       odims[0] = 2; //routines still expect [2,N] not [3,N]

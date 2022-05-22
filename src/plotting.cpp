@@ -1880,23 +1880,25 @@ namespace lib
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
     DDouble* t= static_cast<DDouble*>(pStruct->GetTag(tTag, 0)->DataAddr());
     SizeT n = lonlat->Dim(0);
-    SizeT Dim2 = lonlat->Dim(1);
-    if (Dim2 == 3) {
-    DDouble* x=static_cast<DDouble*>(lonlat->DataAddr());
-    DDouble* y=static_cast<DDouble*>(lonlat->DataAddr())+n*sizeof(DDouble);
-    DDouble* z=static_cast<DDouble*>(lonlat->DataAddr())+2*n*sizeof(DDouble);
+    assert(lonlat->Dim(1)==3);
+    DDouble  *sx, *sy , *sz;
+    GetSFromPlotStructs(&sx, &sy, &sz);
+    DDouble* x=&((*lonlat)[0]); //static_cast<DDouble*>(lonlat->DataAddr());
+    DDouble* y=&((*lonlat)[n]); //static_cast<DDouble*>(lonlat->DataAddr())+n*sizeof(DDouble);
+    DDouble* z=&((*lonlat)[2*n]); //static_cast<DDouble*>(lonlat->DataAddr())+2*n*sizeof(DDouble);
     DDouble a,b,c,w;
-      for (SizeT i=0; i< n; ++i) {
-        a = x[i] * t[0] + y[i] * t[1] + z[i] * t[2] + t[3]; 
-        b = x[i] * t[4] + y[i] * t[5] + z[i] * t[6] + t[7]; 
-        c = x[i] * t[8] + y[i] * t[9] + z[i] * t[10] + t[11]; 
-        w = x[i] * t[12] + y[i] * t[13] + z[i] * t[14] + t[15];
+    for (SizeT i=0; i< n; ++i) {
+      x[i] = sx[0] + sx[1] * x[i]; //normalize here
+      y[i] = sy[0] + sy[1] * y[i]; //normalize here
+      z[i] = sz[0] + sz[1] * z[i]; //normalize here
+      a = x[i] * t[0] + y[i] * t[1] + z[i] * t[2] + t[3]; 
+      b = x[i] * t[4] + y[i] * t[5] + z[i] * t[6] + t[7]; 
+      c = x[i] * t[8] + y[i] * t[9] + z[i] * t[10] + t[11]; 
+      w = x[i] * t[12] + y[i] * t[13] + z[i] * t[14] + t[15];
 
-        x[i] = a / w; 
-        y[i] = b / w; 
-        z[i] = c / w;
-        std::cerr<<x[i]<<" "<<y[i]<<std::endl;
-      }
+      x[i] = a / w; 
+      y[i] = b / w; 
+//      z[i] = c / w;
     }
   }
   
@@ -1904,17 +1906,11 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     std::cerr << "SelfNormLonLat()" << std::endl;
     DDouble *sx, *sy, *sz;
     GetSFromPlotStructs(&sx, &sy, &sz);
-
+    assert(lonlat->Dim(1) == 3);
     SizeT Dim1 = lonlat->Dim(0);
-    SizeT Dim2 = lonlat->Dim(1);
-    if (Dim2 == 3) {
-      for (auto i = 0; i < Dim1; ++i) (*lonlat)[i] = sx[0] + sx[1] * (*lonlat)[i];
-      for (auto i = Dim1; i < 2 * Dim1; ++i) (*lonlat)[i] = sy[0] + sy[1] * (*lonlat)[i];
-      for (auto i = 2 * Dim1; i < 3 * Dim1; ++i) (*lonlat)[i] = sz[0] + sz[1] * (*lonlat)[i];
-    } else if (Dim2 == 2) {
-      for (auto i = 0; i < Dim1; ++i) (*lonlat)[i] = sx[0] + sx[1] * (*lonlat)[i];
-      for (auto i = Dim1; i < 2 * Dim1; ++i) (*lonlat)[i] = sy[0] + sy[1] * (*lonlat)[i];
-    }
+    for (auto i = 0; i < Dim1; ++i) (*lonlat)[i] = sx[0] + sx[1] * (*lonlat)[i];
+    for (auto i = Dim1; i < 2 * Dim1; ++i) (*lonlat)[i] = sy[0] + sy[1] * (*lonlat)[i];
+    for (auto i = 2 * Dim1; i < 3 * Dim1; ++i) (*lonlat)[i] = sz[0] + sz[1] * (*lonlat)[i];
   }
 #ifdef USE_LIBPROJ
 void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians, bool const doFill, DLongGDL *conn ) {
@@ -2042,7 +2038,8 @@ void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map, D
     
     bool doConn = (conn != NULL);
     DDoubleGDL *res = gdlProjForward(ref, localMap, lons, lats, z, conn, doConn, gons, doFill, lines, !doFill, false, true); //transposed=true for speed  and gives a [N,3] table
-    SizeT nout = res->N_Elements() / 3;
+    assert (res->Dim(1) == 3);
+    SizeT nout = res->Dim(0);
     if (nout < 1) {
       GDLDelete(res);
       return NULL;
