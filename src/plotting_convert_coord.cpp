@@ -772,7 +772,6 @@ namespace lib {
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
     DDouble* t= static_cast<DDouble*>(pStruct->GetTag(tTag, 0)->DataAddr());
-//    for (SizeT i=0; i< 16; ++i)std::cerr<<t[i]<<std::endl;
     DDouble a,b,c,w;
     for (SizeT i=0; i< n; ++i) {
       a = x[i] * t[0] + y[i] * t[1] + z[i] * t[2] + t[3]; 
@@ -787,7 +786,7 @@ namespace lib {
   }
   
   void PDotTTransformXY(DDouble x, DDouble y, DDouble *xt, DDouble *yt, PLPointer unused){
-    std::cerr<<"PDotTTransformXY()\n";
+//    std::cerr<<"PDotTTransformXY()\n";
     //retrieve !P.T 
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
@@ -801,12 +800,11 @@ namespace lib {
     
     *xt = a / w; 
     *yt = b / w; 
-    std::cerr<<*xt<<","<<*yt<<std::endl;
     //*zt = c / w;
   }
   //generalized for 'flat3d', using zValue
    void PDotTTransformXYZval(DDouble x, DDouble y, DDouble *xt, DDouble *yt, PLPointer data){
-    std::cerr<<"PDotTTransformXYZval()"<<std::endl;
+//    std::cerr<<"PDotTTransformXYZval()"<<std::endl;
     DDouble *pz=(DDouble*) data;
     DDouble z=*pz;
     //retrieve !P.T 
@@ -824,7 +822,7 @@ namespace lib {
   }
    
   void gdl3dTo2dTransform(DDouble x, DDouble y, DDouble *xt, DDouble *yt, PLPointer data) {
-    std::cerr<<"gdl3dTo2dTransform()\n";
+//    std::cerr<<"gdl3dTo2dTransform()\n";
     struct GDL_3DTRANSFORMDATA *ptr = (GDL_3DTRANSFORMDATA*) data;
     DDoubleGDL* xyzw = new DDoubleGDL(dimension(4));
     (*xyzw)[3] = 1.0;
@@ -841,7 +839,7 @@ namespace lib {
   //retrieve !P.T,
 
   DDoubleGDL* gdlGetT3DMatrix() {
-    std::cerr<<"gdlGetT3DMatrix()\n";
+//    std::cerr<<"gdlGetT3DMatrix()\n";
     DDoubleGDL* t3dMatrix = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");

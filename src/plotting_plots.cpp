@@ -331,13 +331,12 @@ namespace lib
         if (ref == NULL) e->Throw("Projection initialization failed.");
 
         //everything goes through map transformation, including cuts at horizon, then conversion to normalized coordinates (and eventually stransform (3Dprojection)  when plotted)
-        std::cerr<<"FLAT3D="<<flat3d<<"!"<<std::endl;
         if (flat3d) actStream->stransform(PDotTTransformXYZval, &zPosition);//3D projection will be done at plplot level
         
         DLongGDL *conn=NULL; //tricky as xVal and yVal will be probably replaced by connectivity
-
+        bool doFill=false;
         //if doT3d and !flat3d, the projected polygon needs to keep track of Z.
-        DDoubleGDL *lonlat=GDLgrGetProjectPolygon(actStream, ref, NULL, xVal, yVal, zVal, false, false, conn);
+        DDoubleGDL *lonlat=GDLgrGetProjectPolygon(actStream, ref, NULL, xVal, yVal, zVal, false, doFill, conn);
         
         //lonlat is still in radians.
         //GDLgrPlotProjectedPolygon or draw_polyline() will make the 3d projection if flat3d=true through the use of stransform()
@@ -348,7 +347,7 @@ namespace lib
             SelfPDotTTransformProjectedPolygonTable(lonlat); //lonlat 3D is now projected 2D  
           } else  SelfNormLonLat(lonlat); //lonlat is now converted to norm
           if (psym < 1) { //lines must be specially explored
-              GDLgrPlotProjectedPolygon(actStream, lonlat, false, conn);
+              GDLgrPlotProjectedPolygon(actStream, lonlat, doFill, conn);
               psym = -psym;
           } //now that lines are plotted, do the points:
           if (psym > 0 ) { 

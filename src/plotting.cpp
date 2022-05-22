@@ -743,7 +743,7 @@ namespace lib
     bool xLog, bool yLog,  //end non-implicit parameters
     DLong psym, bool append, DLongGDL *color)
   {
-        std::cerr<<"draw_polyline()"<<std::endl;
+//        std::cerr<<"draw_polyline()"<<std::endl;
 
     bool docolor=(color != NULL);
  
@@ -1874,7 +1874,7 @@ namespace lib
   
   //passes the return of GDLgrGetProjectPolygon() to the 3D Matrix, to be called when real 3D is used in conjunction with a projection.
   void SelfPDotTTransformProjectedPolygonTable(DDoubleGDL *lonlat){
-  std::cerr<<"SelfPDotTTransformProjectedPolygonTable()"<<std::endl;
+//  std::cerr<<"SelfPDotTTransformProjectedPolygonTable()"<<std::endl;
     //retrieve !P.T 
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
@@ -1903,7 +1903,7 @@ namespace lib
   }
   
 void SelfNormLonLat(DDoubleGDL *lonlat) {
-    std::cerr << "SelfNormLonLat()" << std::endl;
+//    std::cerr << "SelfNormLonLat()" << std::endl;
     DDouble *sx, *sy, *sz;
     GetSFromPlotStructs(&sx, &sy, &sz);
     assert(lonlat->Dim(1) == 3);
@@ -1917,101 +1917,15 @@ void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map, D
     DDoubleGDL *lonlat=GDLgrGetProjectPolygon(a, ref, map, lons, lats, NULL, isRadians, doFill, conn);
     if (lonlat!=NULL) {
       GDLgrPlotProjectedPolygon(a, lonlat, doFill, conn);
-//    
-//    DDoubleGDL *lons,*lats;
-//    lons=lons_donottouch->Dup(); Guard<BaseGDL> lonsGuard( lons);
-//    lats=lats_donottouch->Dup(); Guard<BaseGDL> latsGuard( lats);
-//
-//    DStructGDL* localMap = map;
-//    if (localMap==NULL) localMap=SysVar::Map( );
-//    bool doConn = (conn != NULL);
-//    DLongGDL *gons, *lines;
-//    if (!isRadians) {
-//    SizeT nin = lons->N_Elements( );
-//    if ((GDL_NTHREADS=parallelize( nin, TP_MEMORY_ACCESS))==1) {
-//        for (OMPInt in = 0; in < nin; in++) { //pass in radians for gdlProjForward
-//          (*lons)[in] *= DEG_TO_RAD;
-//          (*lats)[in] *= DEG_TO_RAD;
-//        }      
-//    } else {
-//    TRACEOMP(__FILE__,__LINE__)
-//#pragma omp parallel for num_threads(GDL_NTHREADS)
-//        for ( OMPInt in = 0; in < nin; in++ ) { //pass in radians for gdlProjForward
-//          (*lons)[in] *= DEG_TO_RAD;
-//          (*lats)[in] *= DEG_TO_RAD;
-//        }
-//    }
-//    }
-//    DDoubleGDL *res = gdlProjForward( ref, localMap, lons, lats, conn, doConn, gons, doFill, lines, !doFill, false );
-//    SizeT nout = res->N_Elements( ) / 2;
-//    if (nout < 1) {GDLDelete(res); return;} //projection clipped totally these values.
-//    DDoubleGDL *res2 = static_cast<DDoubleGDL*> (static_cast<BaseGDL*> (res)->Transpose( NULL )); GDLDelete(res);
-//    int minpoly;
-//    if ( doFill ) {
-//      conn = gons;
-//      minpoly = 3;
-//    } else {
-//      conn = lines;
-//      minpoly = 2;
-//    }
-//    SizeT index = 0;
-//    SizeT size;
-//    SizeT start;
-//    while ( index < conn->N_Elements( ) ) {
-//      size = (*conn)[index];
-//      if ( size == 0 ) break; //cannot be negative!
-//      start = (*conn)[index + 1];
-//      if ( size >= minpoly ) {
-//        if ( doFill ) {
-//          a->fill( size, (PLFLT*) &((*res2)[start]), (PLFLT*) &((*res2)[start + nout]) );
-//        } else {
-//          a->line( size, (PLFLT*) &((*res2)[start]), (PLFLT*) &((*res2)[start + nout]) );
-//        }
-//      }
-//      index += (size + 1);
-//    }
       GDLDelete( lonlat );
       GDLDelete( conn );
     }
   }
 
-//  DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians, bool const doFill, DLongGDL *&conn) {
-//    std::cerr<<"GDLgrGetProjectPolygon()"<<std::endl;
-//
-//    DStructGDL* localMap = map;
-//    if (localMap == NULL) localMap = SysVar::Map();
-//    bool doConn = (conn != NULL);
-//    DLongGDL *gons, *lines;
-//    if (!isRadians) {
-//      SizeT nin = lons->N_Elements();
-//      if ((GDL_NTHREADS = parallelize(nin, TP_MEMORY_ACCESS)) == 1) {
-//        for (OMPInt in = 0; in < nin; in++) { //pass in radians for gdlProjForward
-//          (*lons)[in] *= DEG_TO_RAD;
-//          (*lats)[in] *= DEG_TO_RAD;
-//        }
-//      } else {
-//        TRACEOMP(__FILE__, __LINE__)
-//#pragma omp parallel for num_threads(GDL_NTHREADS)
-//          for (OMPInt in = 0; in < nin; in++) { //pass in radians for gdlProjForward
-//          (*lons)[in] *= DEG_TO_RAD;
-//          (*lats)[in] *= DEG_TO_RAD;
-//        }
-//      }
-//    }
-//    DDoubleGDL *res = gdlProjForward(ref, localMap, lons, lats, conn, doConn, gons, doFill, lines, !doFill, false, true); //transposed=true for speed 
-//    SizeT nout = res->N_Elements() / 2;
-//    if (nout < 1) {
-//      GDLDelete(res);
-//      return NULL;
-//    } //projection clipped totally these values.
-//    if (doFill) conn = gons; else conn = lines; //return appropriate connectivity list
-//    return res;
-//  }
-
 //ALL-IN-ONE: if justProject is true, will just convert lons and lats to projected coordinates. Z is unchanged, returned value is NULL.
 // if justProject is false (default), will output a [N,2] or [N,3] (if z is not NULL) 'polygon' list  
  DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, DDoubleGDL *z, bool isRadians, bool const doFill, DLongGDL *&conn, bool justProject) {
-    std::cerr << "GDLgrGetProjectPolygon()" << std::endl;
+//    std::cerr << "GDLgrGetProjectPolygon()" << std::endl;
 
     DStructGDL* localMap = map;
     if (localMap == NULL) localMap = SysVar::Map();
@@ -2051,7 +1965,7 @@ void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map, D
   
   void GDLgrPlotProjectedPolygon(GDLGStream * a, DDoubleGDL *lonlat, bool const doFill, DLongGDL *conn) {
     //convert to normed values
-    std::cerr<<"GDLgrPlotProjectedPolygon()"<<std::endl;
+//    std::cerr<<"GDLgrPlotProjectedPolygon()"<<std::endl;
     if (doFill & conn->N_Elements()<3) return; //protection
     else if (conn->N_Elements()<2) return; //protection
     SizeT nout=lonlat->Dim(0);
