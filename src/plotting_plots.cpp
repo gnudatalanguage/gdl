@@ -241,15 +241,6 @@ namespace lib
       
       //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
       GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd);
-      // get !Z.CRANGE
-      gdlGetCurrentAxisRange(ZAXIS, zStart, zEnd);
-
-      if (zStart != 0.0 && zStart == zEnd)
-      {
-        zStart = 0;
-        zEnd = 1;
-      }
-      
        
       actStream->OnePageSaveLayout(); // one page
     

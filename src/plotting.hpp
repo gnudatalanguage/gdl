@@ -233,7 +233,8 @@ namespace lib {
   void SelfOblique3d(DDoubleGDL* me, DDouble dist, DDouble angle);
   void SelfExch3d(DDoubleGDL* me, T3DEXCHANGECODE axisExchangeCode);
   void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
- 
+  void SelfProjectXY(SizeT nEl, DDouble *x, DDouble *y, COORDSYS &coordinateSystem);
+
   void SelfConvertToNormXYZ(SizeT n, PLFLT *xt, bool &xLog, PLFLT *yt, bool &yLog, PLFLT *zt, bool &zLog, COORDSYS &code);
   void SelfConvertToNormXY(SizeT n, PLFLT *xt, bool &xLog, PLFLT *yt, bool &yLog, COORDSYS &code);
   void SelfPDotTTransformXYZ(SizeT n, PLFLT *xt, PLFLT *yt, PLFLT *zt);

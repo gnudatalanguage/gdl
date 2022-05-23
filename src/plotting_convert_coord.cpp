@@ -713,7 +713,7 @@ namespace lib {
       SelfScale3d(plplot3d, scale);
   return plplot3d; 
   }
- 
+  
   //converts 3D values according to COORDSYS towards NORMAL coordinates and , logically, unset xLog,yLo,zLog and define code as NORMAL.
   void SelfConvertToNormXYZ(SizeT n, DDouble *x, bool &xLog, DDouble *y, bool &yLog, DDouble *z, bool &zLog, COORDSYS &code) {
     std::cerr<<"SelfConvertToNormXYZ()\n";

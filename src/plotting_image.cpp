@@ -160,21 +160,6 @@ namespace lib {
       if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
       if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
 
-      bool mapSet = false;
-      
-#ifdef USE_LIBPROJ
-      // Map Stuff (xtype = 3)
-
-      get_mapset(mapSet);
-
-      if (mapSet) {
-        ref = map_init();
-        if (ref == NULL) {
-          e->Throw("Projection initialization failed.");
-        }
-      }
-#endif
-
       SizeT nParam = e->NParam(1);
 
       DLong xPageSize = actStream->xPageSize();
@@ -273,7 +258,8 @@ namespace lib {
         e->AssureDoubleScalarPar(2, yLLf); //idem
         //convert to device Pixel:
         if (coordinateSystem == DATA) {
-//          actStream->WorldToDevice(xLLf, yLLf, x,y);
+      //here for eventual projection
+          SelfProjectXY(1, &xLLf, &yLLf, coordinateSystem);
           actStream->world2device(xLLf, yLLf, x,y);
           botLeftPixelX=x; 
           botLeftPixelY=y;
@@ -327,7 +313,7 @@ namespace lib {
 
     void call_plplot(EnvT* e, GDLGStream * actStream) {
 
-      //pass physical position of image
+  //pass physical position of image
       DLong devicebox[4] = {botLeftPixelX, xSize, botLeftPixelY, ySize};
 
       Guard<BaseGDL> chan_guard;

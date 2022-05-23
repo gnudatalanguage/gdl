@@ -682,8 +682,8 @@ namespace lib
   {
       //set saved Satle to nex style:
       savedStyle=style;
-      static PLINT mark1[]={75};
-      static PLINT space1[]={1500};
+      static PLINT mark1[]={200};
+      static PLINT space1[]={750};
       static PLINT mark2[]={1500};
       static PLINT space2[]={1500};
       static PLINT mark3[]={1500, 100};
@@ -1871,7 +1871,39 @@ namespace lib
     }    
     SetUsym(n, do_fill, x, y, do_color, thecolor, do_thick, thethick);
   }
-  
+
+  void SelfProjectXY(SizeT nEl, DDouble *x, DDouble *y, COORDSYS &coordinateSystem) {
+    //Take care of projections: better to duplicate the code 
+    //projections: X & Y to be converted to u,v BEFORE plotting in NORM coordinates
+    bool mapSet = false;
+    get_mapset(mapSet);
+    mapSet = (mapSet && coordinateSystem == DATA);
+
+    if (mapSet) {
+#ifdef USE_LIBPROJ
+      ref = map_init();
+      if (ref == NULL) BaseGDL::interpreter->CallStack().back()->Throw("Projection initialization failed.");
+      LPTYPE idata;
+      XYTYPE odata;
+      for (OMPInt i = 0; i < nEl; ++i) {
+#if LIBPROJ_MAJOR_VERSION >= 5
+        idata.lam = x[i] * DEG_TO_RAD;
+        idata.phi = y[i] * DEG_TO_RAD;
+        odata = protect_proj_fwd_lp(idata, ref);
+        x[i] = odata.x;
+        y[i] = odata.y;
+#else
+        idata.u = x[i] * DEG_TO_RAD;
+        idata.v = y[i] * DEG_TO_RAD;
+        odata = PJ_FWD(idata, ref);
+        x[i] = odata.u;
+        y[i] = odata.v;
+#endif
+      }
+#endif
+    }
+  }
+ 
   //passes the return of GDLgrGetProjectPolygon() to the 3D Matrix, to be called when real 3D is used in conjunction with a projection.
   void SelfPDotTTransformProjectedPolygonTable(DDoubleGDL *lonlat){
 //  std::cerr<<"SelfPDotTTransformProjectedPolygonTable()"<<std::endl;

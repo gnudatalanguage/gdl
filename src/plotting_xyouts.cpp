@@ -21,144 +21,124 @@
 #define DPI (double)(4*atan(1.0))
 #define DEGTORAD DPI/180.0
 
-namespace lib
-{
+namespace lib {
 
   using namespace std;
 
-  static DDouble lastTextPosX=0.0;
-  static DDouble lastTextPosY=0.0;
+  static DDouble lastTextPosX = 0.0;
+  static DDouble lastTextPosY = 0.0;
 
-  class xyouts_call: public plotting_routine_call
-  {
-    
+  class xyouts_call : public plotting_routine_call {
     DDoubleGDL *xVal, *yVal;
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
-    
+
     DStringGDL* strVal;
     SizeT xEl, yEl, strEl;
     SizeT minEl;
     bool xLog, yLog;
     bool doClip, restoreClipBox;
-    bool returnWidth;
-    PLFLT width;
-    DLongGDL *color;
-    DFloatGDL *spacing,*orientation,*charthick,*alignement,*size;
-    Guard<BaseGDL> alignement_guard, orientation_guard,size_guard;
     bool doT3d;
     bool singleArg;
     DDouble zPosition;
 
-    COORDSYS coordinateSystem;
-      
-      
+    COORDSYS coordinateSystem=DATA;
+
+
   private:
 
-    bool handle_args(EnvT* e)
-    {
+    void getTextPos(GDLGStream *a, DDouble &wx, DDouble &wy) {
+      wx = lastTextPosX;
+      wy = lastTextPosY;
+      if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "getTextPos: Got norm: %lf %lf\n", lastTextPosX, lastTextPosY);
+    }
+
+    bool handle_args(EnvT* e) {
       //T3D
-      static int t3dIx = e->KeywordIx( "T3D");
-      doT3d=(e->BooleanKeywordSet(t3dIx) || T3Denabled()); 
+      static int t3dIx = e->KeywordIx("T3D");
+      doT3d = (e->BooleanKeywordSet(t3dIx) || T3Denabled());
 
       //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
       // Then Z is useful only if (doT3d).
-      static int zvIx = e->KeywordIx( "Z");
-      zPosition=0.0; //it is NOT a zValue.
+      static int zvIx = e->KeywordIx("Z");
+      zPosition = 0.0; //it is NOT a zValue.
       if (doT3d) {
-        e->AssureDoubleScalarKWIfPresent ( zvIx, zPosition );
+        e->AssureDoubleScalarKWIfPresent(zvIx, zPosition);
         //norm directly here, we are in 3D mode
         DDouble *sx, *sy, *sz;
         GetSFromPlotStructs(&sx, &sy, &sz);
         zPosition = zPosition * sz[1] + sz[0];
       }
-      singleArg=false;
-      if ( nParam()==1 )
-      {
-        singleArg=true;
+      singleArg = false;
+      if (nParam() == 1) {
+        singleArg = true;
         //string only...
-        xVal=new DDoubleGDL(1, BaseGDL::ZERO);
+        xVal = new DDoubleGDL(1, BaseGDL::ZERO);
         xval_guard.Reset(xVal); // delete upon exit
-        yVal=new DDoubleGDL(1, BaseGDL::ZERO);
+        yVal = new DDoubleGDL(1, BaseGDL::ZERO);
         yval_guard.Reset(yVal); // delete upon exit
-        xEl=yEl=xVal->N_Elements();
-        strVal=e->GetParAs<DStringGDL>(0);
-        strEl=strVal->N_Elements();
-        minEl=strEl; //in this case only
-      }
-      else if ( nParam()==3 )
-      {
-        xVal=e->GetParAs< DDoubleGDL>(0);
-        xEl=xVal->N_Elements();
-        yVal=e->GetParAs< DDoubleGDL>(1);
-        yEl=yVal->N_Elements();
-        strVal=e->GetParAs<DStringGDL>(2);
-        strEl=strVal->N_Elements();
+        xEl = yEl = xVal->N_Elements();
+        strVal = e->GetParAs<DStringGDL>(0);
+        strEl = strVal->N_Elements();
+        minEl = strEl; //in this case only
+      } else if (nParam() == 3) {
+        xVal = e->GetParAs< DDoubleGDL>(0);
+        xEl = xVal->N_Elements();
+        yVal = e->GetParAs< DDoubleGDL>(1);
+        yEl = yVal->N_Elements();
+        strVal = e->GetParAs<DStringGDL>(2);
+        strEl = strVal->N_Elements();
         //behaviour: if x or y are not an array, they are repeated to match minEl
         //if s is not a vector, minel is min(xel,yel) and S is repeated.
         //if x or y have less elements than s, minEl is max(x,y) else minEl is size(s)
-         //z will be set at Zero unless Z=value is given
-        if ( (xVal->Dim(0)==0) && (yVal->Dim(0)==0) ) {
-          minEl=strEl;
-          DDoubleGDL* tmpxVal=e->GetParAs< DDoubleGDL>(0);
-          xVal=new DDoubleGDL(minEl, BaseGDL::NOZERO); //should remove previous xVal if allocated -- fixme.
+        //z will be set at Zero unless Z=value is given
+        if ((xVal->Dim(0) == 0) && (yVal->Dim(0) == 0)) {
+          minEl = strEl;
+          DDoubleGDL* tmpxVal = e->GetParAs< DDoubleGDL>(0);
+          xVal = new DDoubleGDL(minEl, BaseGDL::NOZERO); //should remove previous xVal if allocated -- fixme.
           xval_guard.Reset(xVal); // delete upon exit
-          for (SizeT i=0; i< minEl ; ++i) (*xVal)[i]=(*tmpxVal)[0];
-          DDoubleGDL* tmpyVal=e->GetParAs< DDoubleGDL>(1);
-          yVal=new DDoubleGDL(minEl, BaseGDL::NOZERO); //idem and below
+          for (SizeT i = 0; i < minEl; ++i) (*xVal)[i] = (*tmpxVal)[0];
+          DDoubleGDL* tmpyVal = e->GetParAs< DDoubleGDL>(1);
+          yVal = new DDoubleGDL(minEl, BaseGDL::NOZERO); //idem and below
           yval_guard.Reset(yVal); // delete upon exit
-          for (SizeT i=0; i< minEl ; ++i) (*yVal)[i]=(*tmpyVal)[0];
-        } else if (xVal->Dim(0)==0) {
-          if (strEl==1) minEl=yEl; else minEl=(yEl<strEl)?yEl:strEl;
-          DDoubleGDL* tmpxVal=e->GetParAs< DDoubleGDL>(0);
-          xVal=new DDoubleGDL(minEl, BaseGDL::NOZERO);
+          for (SizeT i = 0; i < minEl; ++i) (*yVal)[i] = (*tmpyVal)[0];
+        } else if (xVal->Dim(0) == 0) {
+          if (strEl == 1) minEl = yEl;
+          else minEl = (yEl < strEl) ? yEl : strEl;
+          DDoubleGDL* tmpxVal = e->GetParAs< DDoubleGDL>(0);
+          xVal = new DDoubleGDL(minEl, BaseGDL::NOZERO);
           xval_guard.Reset(xVal); // delete upon exit
-          for (SizeT i=0; i< minEl ; ++i) (*xVal)[i]=(*tmpxVal)[0];
-        } else if (yVal->Dim(0)==0) {
-          if (strEl==1) minEl=xEl; else minEl=(xEl<strEl)?xEl:strEl;
-          DDoubleGDL* tmpyVal=e->GetParAs< DDoubleGDL>(1);
-          yVal=new DDoubleGDL(minEl, BaseGDL::NOZERO);
+          for (SizeT i = 0; i < minEl; ++i) (*xVal)[i] = (*tmpxVal)[0];
+        } else if (yVal->Dim(0) == 0) {
+          if (strEl == 1) minEl = xEl;
+          else minEl = (xEl < strEl) ? xEl : strEl;
+          DDoubleGDL* tmpyVal = e->GetParAs< DDoubleGDL>(1);
+          yVal = new DDoubleGDL(minEl, BaseGDL::NOZERO);
           yval_guard.Reset(yVal); // delete upon exit
-          for (SizeT i=0; i< minEl ; ++i) (*yVal)[i]=(*tmpyVal)[0];
-         } else {
-          minEl=(xEl<yEl)?xEl:yEl;
-         }
-      }
-      else
-      {
+          for (SizeT i = 0; i < minEl; ++i) (*yVal)[i] = (*tmpyVal)[0];
+        } else {
+          minEl = (xEl < yEl) ? xEl : yEl;
+        }
+      } else {
         e->Throw("Not enough parameters. Either 1 parameter or 3 "
-                 "parameters valid.");
+          "parameters valid.");
       }
 
       return true;
     }
 
-  private:
-
-    void getTextPos(GDLGStream *a, DDouble &wx, DDouble &wy)
-    {
-      a->DeviceToWorld(lastTextPosX, lastTextPosY, wx, wy);
-      if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"getTextPos: Got norm: %lf %lf giving %lf %lf world\n", lastTextPosX, lastTextPosY, wx, wy);
-    }
-
-    void old_body(EnvT* e, GDLGStream* actStream)
-    {
-
-      // WIDTH keyword (read, write)
-      static int widthIx=e->KeywordIx("WIDTH");
-      returnWidth=e->KeywordPresent(widthIx);
-      width=0.;
+    void old_body(EnvT* e, GDLGStream* actStream) {
 
       //check presence of DATA,DEVICE and NORMAL options
-      static int DATAIx=e->KeywordIx("DATA");
-      static int DEVICEIx=e->KeywordIx("DEVICE");
-      static int NORMALIx=e->KeywordIx("NORMAL");
+      static int DATAIx = e->KeywordIx("DATA");
+      static int DEVICEIx = e->KeywordIx("DEVICE");
+      static int NORMALIx = e->KeywordIx("NORMAL");
       coordinateSystem = DATA;
-    //check presence of DATA,DEVICE and NORMAL options
+      //check presence of DATA,DEVICE and NORMAL options
       if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
       if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
       if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
-      
+
       // get_axis_type
       gdlGetAxisType(XAXIS, xLog);
       gdlGetAxisType(YAXIS, yLog);
@@ -166,99 +146,113 @@ namespace lib
       //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
       GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd);
 
-      int noclipvalue=1;
+      actStream->OnePageSaveLayout(); // one page
+
+      //CLIPPING (or not) is just defining the adequate viewport and world coordinates, all of them normalized since this is what plplot will get in the end.
       static int NOCLIPIx = e->KeywordIx("NOCLIP");
-      e->AssureLongScalarKWIfPresent( NOCLIPIx, noclipvalue);
-      doClip=(noclipvalue==0); //XYOUTS by default does not clip, even if clip is defined by CLIP= or !P.CLIP, and CONTRARY TO THE DOCUMENTATION!!!!
-      
-      bool mapSet=false;
-#ifdef USE_LIBPROJ
-      get_mapset(mapSet);
-      mapSet=(mapSet && coordinateSystem==DATA);
-      if ( mapSet )
-      {
-        ref=map_init();
-        if ( ref==NULL )
-        {
-          e->Throw("Projection initialization failed.");
+      // Clipping is not enabled by default for PLOTS: noclip is true by default
+      bool noclip = e->BooleanKeywordAbsentOrSet(NOCLIPIx);
+      int CLIP = e->KeywordIx("CLIP");
+      bool doClip = (e->KeywordSet(CLIP) && !(noclip) && !doT3d);
+
+      PLFLT xnormmin = 0;
+      PLFLT xnormmax = 1;
+      PLFLT ynormmin = 0;
+      PLFLT ynormmax = 1;
+
+      if (doClip) {
+        //redefine default viewport & world
+        //define a default clipbox (DATA coords):
+        PLFLT clipBox[4] = {xStart, yStart, xEnd, yEnd};
+        DDoubleGDL* clipBoxGDL = e->IfDefGetKWAs<DDoubleGDL>(CLIP);
+        if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() < 4) for (auto i = 0; i < 4; ++i) clipBox[i] = 0; //set clipbox to 0 0 0 0 apparently this is what IDL does.
+        if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() == 4) for (auto i = 0; i < 4; ++i) clipBox[i] = (*clipBoxGDL)[i];
+        //clipBox is defined accordingly to /NORM /DEVICE /DATA:
+        //convert clipBox to normalized coordinates:
+        switch (coordinateSystem) {
+        case DATA:
+          actStream->WorldToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
+          actStream->WorldToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
+          break;
+        case DEVICE:
+          actStream->DeviceToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
+          actStream->DeviceToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
+          break;
+        default:
+          xnormmin = clipBox[0];
+          xnormmax = clipBox[2];
+          ynormmin = clipBox[1];
+          ynormmax = clipBox[3];
         }
-
       }
-#endif
 
-        actStream->OnePageSaveLayout(); // one page
-        actStream->vpor(0, 1, 0, 1); //ALL PAGE
-        
-      if (doT3d) {
-        actStream->wind(0, 1, 0, 1); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
-        xLog = false;
-        yLog = false;
+      // it is important to fix symsize before changing vpor or win 
+      actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
+      actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
+      actStream->setSymbolSizeConversionFactors();
+
+      //Take care of projections:
+      SelfProjectXY(minEl, (DDouble*) xVal->DataAddr(), (DDouble*) yVal->DataAddr(), coordinateSystem);
+      //input coordinates converted to NORMAL
+      SelfConvertToNormXY(minEl, (DDouble*) xVal->DataAddr(), xLog, (DDouble*) yVal->DataAddr(), yLog, coordinateSystem);
+    }
+
+    void call_plplot(EnvT* e, GDLGStream* actStream) {
+
+      PLFLT stringWidth = 0.;
+
+      DFloatGDL  *orientation, *charthick, *alignement, *size;
+      Guard<BaseGDL> alignement_guard, orientation_guard, size_guard;
+
+      // WIDTH keyword (read, write)
+      static int widthIx = e->KeywordIx("WIDTH");
+      bool returnWidth = e->KeywordPresent(widthIx);
+
+      PLFLT aspectw, aspectd;
+      aspectw = actStream->boxAspectWorld();
+      aspectd = actStream->boxAspectDevice();
+
+      static int colorIx = e->KeywordIx("COLOR");
+      bool docolor = false;
+      static int charthickIx = e->KeywordIx("CHARTHICK");
+      bool docharthick = false;
+      static int charsizeIx = e->KeywordIx("CHARSIZE");
+      bool docharsize = false;
+
+      DLongGDL *color;
+      if (e->GetKW(colorIx) != NULL) {
+        color = e->GetKWAs<DLongGDL>(colorIx);
+        docolor = true;
+      }
+      if (e->GetKW(charthickIx) != NULL) {
+        charthick = e->GetKWAs<DFloatGDL>(charthickIx);
+        docharthick = true;
+      }
+      if (e->GetKW(charsizeIx) != NULL) {
+        size = e->GetKWAs<DFloatGDL>(charsizeIx);
+        docharsize = true;
+      } else //for security in future conditional evaluation...
+      {
+        size = new DFloatGDL(dimension(1), BaseGDL::ZERO);
+        size_guard.Init(size);
+        (*size)[0] = 1.0;
+      }
+      static int orientationIx = e->KeywordIx("ORIENTATION");
+      if (e->GetKW(orientationIx) != NULL) {
+        orientation = e->GetKWAs<DFloatGDL>(orientationIx);
       } else {
-        if (coordinateSystem == DEVICE) {
-          actStream->wind(0.0, actStream->xPageSize(), 0.0, actStream->yPageSize());
-          xLog = false;
-          yLog = false;
-        } else if (coordinateSystem == NORMAL) {
-          actStream->wind(0, 1, 0, 1);
-          xLog = false;
-          yLog = false;
-        } else //with PLOTS, we can plot *outside* the box(e)s in DATA coordinates.
-        {
-          setPlplotScale(actStream);
-        }
+        orientation = new DFloatGDL(dimension(1), BaseGDL::ZERO);
+        orientation_guard.Init(orientation);
+        (*orientation)[0] = 0;
       }
-      
-      PLFLT x,y,aspectw,aspectd;
-      aspectw=actStream->boxAspectWorld();
-      aspectd=actStream->boxAspectDevice();
-
-      static int colorIx=e->KeywordIx ( "COLOR" ); bool docolor=false;
-      static int charthickIx=e->KeywordIx ( "CHARTHICK" ); bool docharthick=false;
-      static int charsizeIx=e->KeywordIx ( "CHARSIZE" ); bool docharsize=false;
-      if ( e->GetKW ( colorIx )!=NULL )
-      {
-        color=e->GetKWAs<DLongGDL>( colorIx ); docolor=true;
+      static int alignIx = e->KeywordIx("ALIGNMENT");
+      if (e->GetKW(alignIx) != NULL) {
+        alignement = e->GetKWAs<DFloatGDL>(alignIx);
+      } else {
+        alignement = new DFloatGDL(dimension(1), BaseGDL::ZERO);
+        alignement_guard.Init(alignement);
+        (*alignement)[0] = 0;
       }
-      if ( e->GetKW ( charthickIx )!=NULL )
-      {
-        charthick=e->GetKWAs<DFloatGDL>( charthickIx ); docharthick=true;
-      }
-      if ( e->GetKW ( charsizeIx )!=NULL )
-      {
-        size=e->GetKWAs<DFloatGDL>( charsizeIx ); docharsize=true;
-      }
-      else  //for security in future conditional evaluation...
-      {
-        size=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
-        size_guard.Init ( size);
-        (*size)[0]=1.0;
-      }
-      static int orientationIx=e->KeywordIx ( "ORIENTATION" );
-      if ( e->GetKW ( orientationIx )!=NULL )
-      {
-        orientation=e->GetKWAs<DFloatGDL>( orientationIx ); 
-      }
-      else
-      {
-        orientation=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
-        orientation_guard.Init ( orientation);
-        (*orientation)[0]=0;
-      }
-      static int alignIx=e->KeywordIx ( "ALIGNMENT" );
-      if ( e->GetKW ( alignIx )!=NULL )
-      {
-        alignement=e->GetKWAs<DFloatGDL>( alignIx );
-      }
-      else
-      {
-        alignement=new DFloatGDL  ( dimension (1), BaseGDL::ZERO );
-        alignement_guard.Init (alignement);
-        (*alignement)[0]=0;
-      }
-
-      // make all clipping computations BEFORE setting graphic properties (color, size)
-      bool stopClip=false;
-      if ( doClip )  if ( startClipping(e, actStream, true)==true ) stopClip=true;
 
       // *** start drawing by defalut values
       gdlSetGraphicsForegroundColorFromKw(e, actStream);
@@ -266,129 +260,89 @@ namespace lib
       if (!docharsize) gdlSetPlotCharsize(e, actStream, true); //accept SIZE kw!
 
       // Get decomposed value for colors
-      DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
+      DLong decomposed = GraphicsDevice::GetDevice()->GetDecomposed();
 
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz); 
       
       if (doT3d) {
         //NOTE: TO SUPPORT OPTION TEXT_AXES the transformation should be done at a more fundamental level by overwriting mtex() 
-          actStream->stransform(PDotTTransformXYZval, &zPosition);
-      }        
-      for ( SizeT i=0; i<minEl; ++i )
-      {
+        actStream->stransform(PDotTTransformXYZval, &zPosition);
+      }
+      for (SizeT i = 0; i < minEl; ++i) {
         //if string only, fill empty Xval Yval with current value:
-        if ( nParam()==1 )
-        {
-          DDouble s,t;
+        if (nParam() == 1) {
+          DDouble s, t;
           getTextPos(actStream, s, t);
-          (*xVal)[0]=s;
-          (*yVal)[0]=t;
+          (*xVal)[0] = s;
+          (*yVal)[0] = t;
         }
-        x=static_cast<PLFLT>((*xVal)[i%xVal->N_Elements ( )]); //insure even 1 parameter, string array
-        y=static_cast<PLFLT>((*yVal)[i%xVal->N_Elements ( )]);
+        PLFLT x = static_cast<PLFLT> ((*xVal)[i % xVal->N_Elements()]); //insure even 1 parameter, string array
+        PLFLT y = static_cast<PLFLT> ((*yVal)[i % xVal->N_Elements()]);
 
-#ifdef USE_LIBPROJ
-        if ( mapSet )
-        {
-          LPTYPE idata;
-          XYTYPE odata;
-#if LIBPROJ_MAJOR_VERSION >= 5
-          idata.lam=x * DEG_TO_RAD;
-          idata.phi=y * DEG_TO_RAD;
-          odata=protect_proj_fwd_lp(idata, ref);
-          x=odata.x;
-          y=odata.y;
-#else
-          idata.u=x * DEG_TO_RAD;
-          idata.v=y * DEG_TO_RAD;
-          odata=PJ_FWD(idata, ref);
-          x=odata.u;
-          y=odata.v;
-#endif
-        }
-#endif
- 
-        if (  coordinateSystem==DATA ) { //in case 3d matrix, the matrix transform above is in log, so coordinates must be in log.
-          if( xLog ) x=log10(x);
-          if( yLog ) y=log10(y);
-        }
-      
-      if (doT3d) {
-        //reproject using P.T transformation in [0..1] cube during the actual plot using pltransform() (to reproject also the PSYMs is possible with plplot only if z=0, using this trick:
-          SelfConvertToNormXY(1, &x, xLog, &y, yLog, coordinateSystem);
-      }        
-        if ( !isfinite(x)|| !isfinite(y) ) continue; //no plot
-        if ( docharsize && ( *size )[i%size->N_Elements ( )] < 0) continue; //no plot either
-        
-        //plot!
-        if (docharsize) actStream->sizeChar(( *size )[i%size->N_Elements ( )]);
-        if (docolor) actStream->Color ( ( *color )[i%color->N_Elements ( )], decomposed);
-        if (docharthick) actStream->Thick(( *charthick )[i%charthick->N_Elements()]);
+        if (!isfinite(x) || !isfinite(y)) continue; //no plot
+        if (docharsize && (*size)[i % size->N_Elements()] < 0) continue; //no plot either
 
-	//orientation word is not orientation page depending on axes increment direction [0..1] vs. [1..0]
-        PLFLT oriD=(( *orientation )[i%orientation->N_Elements ( )]); //ori DEVICE
-        PLFLT oriW=oriD; //ori WORLD
+        if (docharsize) actStream->sizeChar((*size)[i % size->N_Elements()]);
+        if (docolor) actStream->Color((*color)[i % color->N_Elements()], decomposed);
+        if (docharthick) actStream->Thick((*charthick)[i % charthick->N_Elements()]);
+
+        //orientation word is not orientation page depending on axes increment direction [0..1] vs. [1..0]
+        PLFLT oriD = ((*orientation)[i % orientation->N_Elements()]); //ori DEVICE
+        PLFLT oriW = oriD; //ori WORLD
         oriD *= DEGTORAD;
-        if (sx[1]<0) oriW=180.0-oriW;
-        if (sy[1]<0) oriW*=-1;
+        if (sx[1] < 0) oriW = 180.0 - oriW;
+        if (sy[1] < 0) oriW *= -1;
         oriW *= DEGTORAD;
+
+        PLFLT cosOriD = cos(oriD);
+        PLFLT sinOriD = sin(oriD);
+        PLFLT cosOriW = cos(oriW);
+        PLFLT sinOriW = sin(oriW);
+
+        PLFLT align = (*alignement)[i % alignement->N_Elements()];
+        align = max(align, 0.0);
+        align = min(align, 1.0);
         
-        PLFLT cosOriD=cos(oriD);
-        PLFLT sinOriD=sin(oriD);
-        PLFLT cosOriW=cos(oriW);
-        PLFLT sinOriW=sin(oriW);
-        
-        PLFLT align=( *alignement )[i%alignement->N_Elements ( )];
-        align=max(align,0.0); align=min(align,1.0);
-        PLFLT dispx,dispy, chsize, dx, dy;
+        PLFLT ptex_x, ptex_y, chsize, device_x, device_y;
         // displacement due to offset (reference in IDL is baseline,
         // in plplot it's the half-height) is best computed in device coords
-        chsize=actStream->dCharHeight()*0.5;
-        actStream->WorldToDevice(x, y, dx, dy);
-        actStream->DeviceToWorld(dx-chsize*sinOriD,dy+chsize*cosOriD,dispx,dispy);
-        string out=(*strVal)[i%strVal->N_Elements ( )];
+        chsize = actStream->dCharHeight()*0.5;
+        actStream->NormedDeviceToDevice(x, y, device_x, device_y);
+        actStream->DeviceToNormedDevice(device_x - chsize*sinOriD, device_y + chsize*cosOriD, ptex_x, ptex_y);
+     
+        string out = (*strVal)[i % strVal->N_Elements()];
         double returnedStringCharLength;
-        actStream->ptex(dispx, dispy, cosOriW, sinOriW*aspectw/aspectd, align, out.c_str(), &returnedStringCharLength);
+        actStream->ptex(ptex_x, ptex_y, cosOriW, sinOriW * aspectw / aspectd, align, out.c_str(), &returnedStringCharLength);
 
-        if (singleArg || (i==minEl-1 ) ) //then x and y are not given and whatever the number of strings, are retrieved
-                       // from lastTextPos. We must thus remember lastTextPos.
+
+        if (singleArg || (i == minEl - 1)) //then x and y are not given and whatever the number of strings, are retrieved
+          // from lastTextPos. We must thus remember lastTextPos.
         {
           //we want normed size:
-          width=returnedStringCharLength*actStream->nCharLength();
+          stringWidth = returnedStringCharLength * actStream->nCharLength();
           //save position - compute must be in DEVICE coords, or in normed*aspect!
-          actStream->WorldToNormedDevice(x, y, dx, dy); //normed
-          actStream->NormedDeviceToWorld(dx+(1.0-align)*width*cosOriD,dy+(1.0-align)*width*sinOriD/aspectd,dispx,dispy);
-          actStream->WorldToDevice(dispx, dispy, lastTextPosX, lastTextPosY);
+          lastTextPosX=x + (1.0 - align) * stringWidth*cosOriD;
+          lastTextPosY=y + (1.0 - align) * stringWidth * sinOriD / aspectd;
         }
       }
-      if (stopClip) stopClipping(actStream);
 
-      if ( returnWidth )
-      {
-        // width is in "normalized coordinates"
-        e->SetKW(widthIx, new DFloatGDL(width));
+      if (returnWidth) {
+        // width is in "normalized coordinates", and is the width of the last string written (in case of an array of strings)
+        e->SetKW(widthIx, new DFloatGDL(stringWidth));
       }
-    } 
+    }
 
   private:
 
-    void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
-    {
-    } 
-
-  private:
-
-    virtual void post_call(EnvT* e, GDLGStream* actStream) // {{{
-    {
-      actStream->stransform(NULL,NULL);
+    virtual void post_call(EnvT* e, GDLGStream* actStream) {
+      actStream->stransform(NULL, NULL);
       actStream->RestoreLayout();
       actStream->sizeChar(1.0);
     }
   };
 
-  void xyouts(EnvT* e)
-  {
+  void xyouts(EnvT* e) {
     xyouts_call xyouts;
     xyouts.call(e, 1);
   }
