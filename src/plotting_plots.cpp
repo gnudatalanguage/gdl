@@ -124,13 +124,12 @@ namespace lib
         yVal=e->GetParAs< DDoubleGDL>(1);
         SizeT yEl=yVal->N_Elements();
 
-        SizeT maxEl;
-        maxEl=(xEl>yEl)?xEl:yEl;
-        SizeT minEl=maxEl;
+        nEl=(xEl>yEl)?xEl:yEl;
         
-        if (maxEl > 1) { //there is at least one non-single
-          minEl=(xVal->Dim(0)==0)?maxEl:((xEl<maxEl)?xEl:maxEl);
-          minEl=(yVal->Dim(0)==0)?minEl:((yEl<minEl)?yEl:minEl);
+        if (nEl > 1) { //there is at least one non-single
+        SizeT maxEl=nEl;
+        SizeT minEl=(xVal->Dim(0)==0)?maxEl:((xEl<maxEl)?xEl:maxEl);
+        minEl=(yVal->Dim(0)==0)?minEl:((yEl<minEl)?yEl:minEl);
         nEl=minEl;
         //replicate singletons if any
         if (xVal->Dim(0)==0) {
@@ -165,13 +164,12 @@ namespace lib
         zVal=e->GetParAs< DDoubleGDL>(2);
         SizeT zEl=zVal->N_Elements();
         
-        SizeT maxEl;
-        maxEl=(xEl>yEl)?xEl:yEl;
-        maxEl=(maxEl>zEl)?maxEl:zEl;
-        SizeT minEl=maxEl;
+        nEl=(xEl>yEl)?xEl:yEl;
+        nEl=(nEl>zEl)?nEl:zEl;
         
-        if (maxEl > 1) { //there is at least one non-single
-          minEl=(xVal->Dim(0)==0)?maxEl:((xEl<maxEl)?xEl:maxEl);
+        if (nEl > 1) { //there is at least one non-single
+          SizeT maxEl=nEl;
+          SizeT minEl=(xVal->Dim(0)==0)?maxEl:((xEl<maxEl)?xEl:maxEl);
           minEl=(yVal->Dim(0)==0)?minEl:((yEl<minEl)?yEl:minEl);
           minEl=(zVal->Dim(0)==0)?minEl:((zEl<minEl)?zEl:minEl);
           nEl=minEl;

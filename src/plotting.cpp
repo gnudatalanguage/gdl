@@ -780,9 +780,7 @@ namespace lib
     DLong *userSymArrayDim;
     //accelerate: define a localUsymArray where the computations that were previously in the loop are already done
     DFloat *localUserSymX=NULL;
-    Guard<DFloat> guardlux;
     DFloat *localUserSymY=NULL;
-    Guard<DFloat> guardluy;
     
     bool useLocalPsymAccelerator=false;
     
@@ -852,9 +850,7 @@ namespace lib
 
     if (useLocalPsymAccelerator) { //since userSymArrayDim is not defined
       localUserSymX = (DFloat*) malloc(*userSymArrayDim * sizeof (DFloat));
-      guardlux.Reset(localUserSymX);
       localUserSymY = (DFloat*) malloc(*userSymArrayDim * sizeof (DFloat));
-      guardluy.Reset(localUserSymY);
       if (local_psym == 3 && GraphicsDevice::GetDevice()->DoesNotDrawSinglePoints()) {
         for (int kk = 0; kk < *userSymArrayDim; kk++) {
           localUserSymX[kk] = userSymX[kk] * a->getPsymConvX()  / a->getSymbolSize();
@@ -1092,7 +1088,10 @@ namespace lib
         i_buff=1;
       }
     }
-
+    if (useLocalPsymAccelerator) {
+      free(localUserSymX);
+      free(localUserSymY);
+    }
     delete[] x_buff;
     delete[] y_buff;
     //save last point
