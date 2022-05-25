@@ -124,7 +124,7 @@ namespace lib {
           "parameters valid.");
       }
 
-      return true;
+      return false;
     }
 
     void old_body(EnvT* e, GDLGStream* actStream) {
@@ -160,8 +160,7 @@ namespace lib {
       PLFLT ynormmin = 0;
       PLFLT ynormmax = 1;
 
-      if (doClip) {
-        //redefine default viewport & world
+      if (doClip) { //redefine default viewport & world
         //define a default clipbox (DATA coords):
         PLFLT clipBox[4] = {xStart, yStart, xEnd, yEnd};
         DDoubleGDL* clipBoxGDL = e->IfDefGetKWAs<DDoubleGDL>(CLIP);
@@ -170,14 +169,22 @@ namespace lib {
         //clipBox is defined accordingly to /NORM /DEVICE /DATA:
         //convert clipBox to normalized coordinates:
         switch (coordinateSystem) {
-        case DATA:
-          actStream->WorldToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
-          actStream->WorldToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
+        case DATA:  //will know about projections
+        {
+          SelfProjectXY(1, &clipBox[0], &clipBox[1], coordinateSystem); //here for eventual projection
+          SelfProjectXY(1, &clipBox[2], &clipBox[3], coordinateSystem); //here for eventual projection
+          bool f = false;
+          SelfConvertToNormXY(1, &clipBox[0], f, &clipBox[1], f, coordinateSystem); //input coordinates converted to NORMAL
+          SelfConvertToNormXY(1, &clipBox[2], f, &clipBox[3], f, coordinateSystem); //input coordinates converted to NORMAL
+          xnormmin=clipBox[0];ynormmin=clipBox[1];
+          xnormmax=clipBox[2];ynormmax=clipBox[3];
           break;
+        }
         case DEVICE:
           actStream->DeviceToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
           actStream->DeviceToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
           break;
+        case NORMAL:
         default:
           xnormmin = clipBox[0];
           xnormmax = clipBox[2];
@@ -186,6 +193,10 @@ namespace lib {
         }
       }
 
+      if (xnormmin==xnormmax || ynormmin==ynormmax) {
+        actStream->RestoreLayout();
+        return; //nothing to see and plpot complains.
+      }
       // it is important to fix symsize before changing vpor or win 
       actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
       actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.

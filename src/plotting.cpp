@@ -1866,7 +1866,7 @@ namespace lib
     SetUsym(n, do_fill, x, y, do_color, thecolor, do_thick, thethick);
   }
 
-  void SelfProjectXY(SizeT nEl, DDouble *x, DDouble *y, COORDSYS &coordinateSystem) {
+  void SelfProjectXY(SizeT nEl, DDouble *x, DDouble *y, COORDSYS const coordinateSystem) {
     //Take care of projections: better to duplicate the code 
     //projections: X & Y to be converted to u,v BEFORE plotting in NORM coordinates
     bool mapSet = false;

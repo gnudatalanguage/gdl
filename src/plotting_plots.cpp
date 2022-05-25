@@ -23,7 +23,7 @@ namespace lib {
   using namespace std;
 
   class plots_call : public plotting_routine_call {
-    DDoubleGDL *xVal, *yVal, *zVal, *zInit;
+    DDoubleGDL *xVal, *yVal, *zVal;
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard;
     Guard<BaseGDL> xvalnative_guard, yvalnative_guard, zvalnative_guard;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
@@ -36,7 +36,6 @@ namespace lib {
     bool doT3d, flat3d;
     DLongGDL *color;
     bool mapSet;
-    DDouble az, alt, ay, scale;
     COORDSYS coordinateSystem = DATA;
     bool xnative, ynative, znative; //tell if xVal etc are a copy of the variables or the real thing. When the real thing, they should not be modified.
 
@@ -45,7 +44,7 @@ namespace lib {
     bool handle_args(EnvT* e) {
       //for cases where 3D is enabled, but z is not defined (since zVal is not an argument of PLOTS() )
       DFloat * position = gdlGetRegion();
-      zInit = new DDoubleGDL(position[4]);
+      DDoubleGDL* zInit = new DDoubleGDL(position[4]);
       Guard<BaseGDL> zinit_guard(zInit);
 
       //3 parameters max, may be null, so test them.
@@ -85,6 +84,7 @@ namespace lib {
       if (nPar == 1) {
         SizeT dim0 = p0->Dim(0);
         if (dim0 < 2 || dim0 > 3) e->Throw("When only 1 param, dims must be (2,n) or (3,n)");
+        if (p0->Dim(1) < 3) e->Throw("Not enough valid and unique points specified.");
 
         DDoubleGDL *val = e->GetParAs< DDoubleGDL>(0);
         nEl = p0->N_Elements() / dim0;
@@ -254,14 +254,22 @@ namespace lib {
         //clipBox is defined accordingly to /NORM /DEVICE /DATA:
         //convert clipBox to normalized coordinates:
         switch (coordinateSystem) {
-        case DATA:
-          actStream->WorldToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
-          actStream->WorldToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
+        case DATA:  //will know about projections
+        {
+          SelfProjectXY(1, &clipBox[0], &clipBox[1], coordinateSystem); //here for eventual projection
+          SelfProjectXY(1, &clipBox[2], &clipBox[3], coordinateSystem); //here for eventual projection
+          bool f = false;
+          SelfConvertToNormXY(1, &clipBox[0], f, &clipBox[1], f, coordinateSystem); //input coordinates converted to NORMAL
+          SelfConvertToNormXY(1, &clipBox[2], f, &clipBox[3], f, coordinateSystem); //input coordinates converted to NORMAL
+          xnormmin=clipBox[0];ynormmin=clipBox[1];
+          xnormmax=clipBox[2];ynormmax=clipBox[3];
           break;
+        }
         case DEVICE:
           actStream->DeviceToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
           actStream->DeviceToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
           break;
+        case NORMAL:
         default:
           xnormmin = clipBox[0];
           xnormmax = clipBox[2];
@@ -270,6 +278,10 @@ namespace lib {
         }
       }
 
+      if (xnormmin==xnormmax || ynormmin==ynormmax) {
+        actStream->RestoreLayout();
+        return; //nothing to see and plpot complains.
+      }
       // it is important to fix symsize before changing vpor or win 
       gdlSetSymsize(e, actStream); //SYMSIZE
       actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);

@@ -742,8 +742,8 @@ namespace lib {
     zLog=false;
   }
   
-  //same but only for x and y, z treated separately
-  void SelfConvertToNormXY(SizeT n, DDouble *x, bool &xLog, DDouble *y, bool &yLog, COORDSYS &code) {
+  //converts x and y but leaves code and log unchanged.
+  void SelfConvertToNormXY(SizeT n, DDouble *x, bool const xLog, DDouble *y, bool const yLog, COORDSYS const code) {
   std::cerr<<"SelfConvertToNormXY()"<<std::endl;
   if (code == DATA) {
       DDouble *sx, *sy, *sz;
@@ -761,11 +761,9 @@ namespace lib {
       for (auto i = 0; i < n; ++i) x[i] /= xSize;
       for (auto i = 0; i < n; ++i) y[i] /= ySize;
     }
-    code=NORMAL;
-    xLog=false;
-    yLog=false;
   } 
   
+  //converts x and y and updates code and log, for futher use in the pipeline.
    void SelfConvertToNormXY(DDoubleGDL *x, bool &xLog, DDoubleGDL *y, bool &yLog, COORDSYS &code) {
   std::cerr<<"SelfConvertToNormXY()"<<std::endl;
   SizeT n=x->N_Elements();
