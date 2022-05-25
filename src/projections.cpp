@@ -886,38 +886,40 @@ namespace lib {
     return badProjXY;
   }
 
-  PJ_XY protect_proj_fwd_xy(PJ_XY idata, PJ *proj) {
-    PJ_COORD c, c_out;
-    DDouble x, y;
-    if (isfinite((idata.x)*(idata.y))) {
-      c.xy = idata;
-      c_out = proj_trans(proj, PJ_FWD, c);
-      if (isfinite(c_out.xy.x) && c_out.xy.x != HUGE_VAL) {
-        if (isRot) {
-          x = c_out.xy.x;
-          y = c_out.xy.y;
-          c_out.xy.x = x * cRot + y*sRot;
-          c_out.xy.y = -x * sRot + y*cRot;
-        }
-        return c_out.xy;
-      }
-    }
-    return badProjXY;
-  }
+//  PJ_XY protect_proj_fwd_xy(PJ_XY idata, PJ *proj) {
+//    PJ_COORD c, c_out;
+//    DDouble x, y;
+//    if (isfinite((idata.x)*(idata.y))) {
+//      c.xy = idata;
+//      c_out = proj_trans(proj, PJ_FWD, c);
+//      if (isfinite(c_out.xy.x) && c_out.xy.x != HUGE_VAL) {
+//        if (isRot) {
+//          x = c_out.xy.x;
+//          y = c_out.xy.y;
+//          c_out.xy.x = x * cRot + y*sRot;
+//          c_out.xy.y = -x * sRot + y*cRot;
+//        }
+//        return c_out.xy;
+//      }
+//    }
+//    return badProjXY;
+//  }
 
   PJ_LP protect_proj_inv_xy(PJ_XY idata, PJ *proj) {
     if (noInv) return badProjLP;
     //  throw GDLException("The PROJ library version you use unfortunately defines no inverse for this projection!");
     PJ_COORD c, c_out;
     DDouble x, y;
-    if (isRot) {
-      x = idata.x;
-      y = idata.y;
-      c.xy.x = x * cRot - y*sRot;
-      c.xy.y = x * sRot + y*cRot;
-    }
-    if (isfinite((c.xy.x)*(c.xy.y))) {
+    if (isfinite((idata.x)*(idata.y))){
+      c.xy = idata;
+      if (isRot) {
+        x = idata.x;
+        y = idata.y;
+        c.xy.x = x * cRot - y*sRot;
+        c.xy.y = x * sRot + y*cRot;
+      }
       c_out = proj_trans(proj, PJ_INV, c);
+      if (!isfinite((c_out.lp.lam)*(c_out.lp.phi))) return badProjLP; //IDL return NaNs not infinities.
       return c_out.lp;
     }
     return badProjLP;
@@ -1608,6 +1610,8 @@ namespace lib {
     }
   }
 
+  //reproject, removing hidden points, cutting lines at projections splits & boundaries if LINE and FILL, closing contours if FILL.
+  //produces a [3,N] or [N,3] output. Or -1 if nothing works.
   DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, DDoubleGDL *zIn, DLongGDL *connIn,
     bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines, bool const doFill, bool const transpose) {
 
@@ -1699,7 +1703,7 @@ namespace lib {
     SizeT num = 0;
     while (index < currentConn->N_Elements()) {
       size = (*currentConn)[index];
-      if (size > ((fill) ? 2 : 1)) { //two or 3 points I hope.
+      if (size > ((fill) ? 2 : (doLines)?1:0)) { //3pts for fill, 2 for line, 1 is OK for points
         start = index + 1; //start new chunk...
         num++;
         currentVertexList.clear();
@@ -1864,10 +1868,10 @@ namespace lib {
             beg->VertexList.splice(beg->VertexList.begin(), end->VertexList); //concatenate
             tmpPolygonList.pop_back();
           }
-
-          if (doClip) { //eliminate invalid (cached) polygons.
-            tmpPolygonList.remove_if(isInvalid);
-          }
+// cannot do that here
+//          if (doClip) { //eliminate invalid (cached) polygons.
+//            tmpPolygonList.remove_if(isInvalid);
+//          }
 
           if (fill && tmpPolygonList.size() > 1) {
             // produce 2 lists: before and after cut
@@ -1979,7 +1983,7 @@ namespace lib {
         PolygonList.swap(newPolygonList);
         newPolygonList.clear();
 
-        //Should remove empty polygons: TODO
+        //Should remove empty polygons? ??? to do here. 
         break;
       case TRANSFORM:
         if (PolygonList.empty()) break;
@@ -2103,497 +2107,6 @@ namespace lib {
 
     return res;
   }
-  
-//  DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lonsIn, DDoubleGDL *latsIn, DLongGDL *connIn,
-//    bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines, bool const doFill, bool const transpose) {
-//
-//    //DATA MUST BE IN RADIANS
-//#ifdef USE_LIBPROJ
-//    LPTYPE idata;
-//    XYTYPE odata;
-//#endif
-//
-//    unsigned pTag = map->Desc()->TagIndex("PIPELINE");
-//    DDoubleGDL* pipeline = (static_cast<DDoubleGDL*> (map->GetTag(pTag, 0))->Dup());
-//    Guard<BaseGDL> pipeGuard(pipeline);
-//
-//    unsigned llboxTag = map->Desc()->TagIndex("LL_BOX");
-//    DDoubleGDL* llbox = (static_cast<DDoubleGDL*> (map->GetTag(llboxTag, 0))->Dup());
-//    Guard<BaseGDL> llboxGuard(llbox);
-//    //test if we can eliminate some polygons as they are probably (this is the use of ll_box) not going to be seen at the end.
-//    //this has problems as ll_box is very crude and false for some projetions (satellite)
-//    //    bool llsubset=!((*llbox)[0] <= -90.0 && (*llbox)[2] >= 90.0 && (*llbox)[1] <= -180.0 && (*llbox)[3] >= 180.0);
-//
-//    // convert to radians
-//    for (int i = 0; i < 4; ++i) (*llbox)[i] *= DEG_TO_RAD;
-//
-//    DLong dims[2];
-//
-//    enum {
-//      EXIT = 0,
-//      SPLIT,
-//      CLIP_PLANE,
-//      TRANSFORM,
-//      CLIP_UV
-//    };
-//
-//    dims[0] = pipeline->Dim(0);
-//    dims[1] = pipeline->Dim(1);
-//    int line = 0;
-//    //if pipeline is void, a TRANSFORM will be applied anyway.This test is just for that.
-//    bool PerformTransform = (pipeline->Sum() == 0);
-//    if (PerformTransform) (*pipeline)[0] = TRANSFORM; //just change value of pipeline (which is a copy)
-//    bool fill = (doFill || doGons);
-//
-//    int icode = (*pipeline)[dims[0] * line + 0];
-//    DDouble a = (*pipeline)[dims[0] * line + 1]; //plane a,b,c,d
-//    DDouble b = (*pipeline)[dims[0] * line + 2];
-//    DDouble c = (*pipeline)[dims[0] * line + 3];
-//    DDouble d = (*pipeline)[dims[0] * line + 4];
-//    DDouble px = (*pipeline)[dims[0] * line + 5]; //pole x,y,z
-//    DDouble py = (*pipeline)[dims[0] * line + 6];
-//    DDouble pz = (*pipeline)[dims[0] * line + 7];
-//    DDouble x, y, z, before, after, xs, ys, zs, xe, ye, ze, xcutb, ycutb, zcutb, xcuta, ycuta, zcuta; //b: before, a: after cut
-//    OMPInt in;
-//    DDoubleGDL *lons;
-//    DDoubleGDL *lats;
-//    DLongGDL *currentConn;
-//
-//    DDouble clon, slon, clat, slat;
-//    DDouble minlon, maxlon, minlat, maxlat;
-//
-//    //interpolations for GONS on cuts is every 2.5 degrees.
-//    //Gons takes precedence on Lines
-//
-//    SizeT nEl = lonsIn->N_Elements();
-//    //if connectivity does not exist, fake a simple one
-//    if (!doConn) {
-//      currentConn = new DLongGDL(dimension(nEl + 1), BaseGDL::INDGEN);
-//      currentConn->Dec();
-//      (*currentConn)[0] = nEl; //[nEl,0,1...nEl]  very important!
-//    } else { //just copy
-//      currentConn = connIn->Dup();
-//    }
-//
-//    //copy Input
-//    lons = lonsIn->Dup();
-//    lats = latsIn->Dup();
-//
-//
-//    //convert to lists
-//    SizeT index;
-//    SizeT size;
-//    SizeT start;
-//    SizeT k;
-//
-//    std::list<Polygon> PolygonList;
-//    Polygon currentPol;
-//    currentPol.inside = 0;
-//    currentPol.outside = 0;
-//    currentPol.type = 0;
-//    currentPol.valid = true;
-//    std::list<Vertex> currentVertexList;
-//    Vertex curr;
-//    Vertex currstart;
-//
-//    //explore conn and construct polygon list. THE CURRENT CODE DOES NOT SOLVE NESTED POYGONS ETC. (SO CONNECTIVITY IS NOT REALLY USED)
-//    index = 0;
-//    SizeT num = 0;
-//    while (index < currentConn->N_Elements()) {
-//      size = (*currentConn)[index];
-//      if (size > ((fill) ? 2 : 1)) { //two or 3 points I hope.
-//        start = index + 1; //start new chunk...
-//        num++;
-//        currentVertexList.clear();
-//
-//        k = (*currentConn)[start + 0];
-//        minlon = maxlon = currstart.lon = (*lons)[k];
-//        minlat = maxlat = currstart.lat = (*lats)[k];
-//        currentVertexList.push_back(currstart);
-//        for (in = 1; in < size; in++) {
-//          k = (*currentConn)[start + in]; //conn is a list of indexes...
-//          curr.lon = (*lons)[k];
-//          curr.lat = (*lats)[k];
-//          minlon = min(minlon, curr.lon);
-//          minlat = min(minlat, curr.lat);
-//          maxlon = max(maxlon, curr.lon);
-//          maxlat = max(maxlat, curr.lat);
-//          currentVertexList.push_back(curr);
-//        }
-//        if (fill) {
-//          Vertex last = currentVertexList.back();
-//          if (!((last.lon - currstart.lon == 0.0) && (last.lat - currstart.lat == 0.0))) {//close polygon.
-//            Vertex curr;
-//            curr.lon = currstart.lon;
-//            curr.lat = currstart.lat;
-//            currentVertexList.push_back(curr);
-//          }
-//        }
-//        //        if (llsubset) {
-//        //          bool keep=intersectsLonLatBox(minlon,maxlon,minlat,maxlat,&((*llbox)[0]));
-//        //          if (keep) 
-//        //          {
-//        //            currentPol.VertexList = currentVertexList;
-//        //            currentPol.type = 1; //before cut
-//        //            PolygonList.push_back(currentPol);
-//        //          } else {
-//        ////            cerr<<"removed "<<minlon*RAD_TO_DEG<<","<<maxlon*RAD_TO_DEG<<","<<minlat*RAD_TO_DEG<<","<<maxlat*RAD_TO_DEG<<endl;
-//        //            currentVertexList.clear();
-//        //          }
-//        //        } else {
-//        currentPol.VertexList = currentVertexList;
-//        currentPol.type = 1; //before cut
-//        PolygonList.push_back(currentPol);
-//        //        }
-//      } else break;
-//      index += (size + 1);
-//    }
-//    GDLDelete(lons);
-//    GDLDelete(lats);
-//    GDLDelete(currentConn);
-//
-//    std::list<Polygon> newPolygonList;
-//    std::list<Polygon> tmpPolygonList;
-//
-//    int sideCode = 0; //side Code: +1: on the pole side if the clip/split plane = visible (for CLIP) -1 on the other side.
-//    while (icode > 0 && line < 12) {
-//      bool doClip = false; //say we clip plane, not split along poles.
-//      switch (icode) {
-//      case CLIP_PLANE:
-//        doClip = true;
-//      case SPLIT:
-//        if (PolygonList.empty()) break;
-//        for (std::list<Polygon>::iterator p = PolygonList.begin(); p != PolygonList.end(); ++p) {
-//
-//          //cut current polygon, copy in a new polygon list the cuts
-//          currentVertexList.clear();
-//          Vertex curr;
-//
-//          std::list<Vertex>::iterator v = p->VertexList.begin();
-//          gdl_sincos(v->lon, &slon, &clon);
-//          gdl_sincos(v->lat, &slat, &clat);
-//          xs = clon * clat;
-//          ys = slon * clat;
-//          zs = slat;
-//          before = a * xs + b * ys + c * zs + d;
-//          // peculiar case: start point is on a split. We need to find the first point in the vertex list that is not on the split and "push"
-//          // all the previous points towards it. This is the reason of the "sideCode" parameter in avoidSplits(), based on positivity of the
-//          // distance to the plane. If every vertexes are on the split (MAP_GRID values for example), sideCode is 0 and the result
-//          // is "somewhere" but consistent. In summary: once "sideCode" is defined and followed, nothing should go wrong.
-//
-//          if (abs(before) < epsilon) sideCode = findSign((*p), a, b, c, d); //if we start too close to the plane, 
-//          else sideCode = getSign(before);
-//          avoidSplits(v, a, b, c, d, sideCode);
-//          // xs etc may have changed due to avoidSplits(), recompute.
-//          gdl_sincos(v->lon, &slon, &clon);
-//          gdl_sincos(v->lat, &slat, &clat);
-//          xs = clon * clat;
-//          ys = slon * clat;
-//          zs = slat;
-//
-//          before = a * xs + b * ys + c * zs + d;
-//
-//          currentPol.type = sideCode;
-//          currentPol.valid = (doClip && currentPol.type == -1) ? false : true;
-//          curr.lon = v->lon;
-//          curr.lat = v->lat;
-//          currentVertexList.push_back(curr);
-//          for (++v; v != p->VertexList.end(); ++v) {
-//
-//            avoidSplits(v, a, b, c, d, sideCode);
-//            gdl_sincos(v->lon, &slon, &clon);
-//            gdl_sincos(v->lat, &slat, &clat);
-//            xe = clon * clat;
-//            ye = slon * clat;
-//            ze = slat;
-//            after = a * xe + b * ye + c * ze + d;
-//
-//            if (before * after < 0) {
-//              //cut and start a new polygon
-//              //find intersection. 
-//              OnSphereVectorPlaneIntersection(xs, ys, zs, xe, ye, ze, a, b, c, d, xcutb, ycutb, zcutb, xcuta, ycuta, zcuta, sideCode);
-//
-//              //double dist = DistanceFromSplitPole(xcutb, ycutb, zcutb, px, py, pz);
-//              //SPLIT is made to cut on the opposite side of the sphere, not on all the split plane.
-//              if (1) { //currentPol.haspole || dist > GDL_HALFPI - epsilon ) { //not cutting everywhere would be more complicated as it implies treating correctly the polygons around the poles.
-//                x = xcutb;
-//                y = ycutb;
-//                z = zcutb;
-//                curr.lon = atan2(y, x);
-//                curr.lat = atan2(z, sqrt(x * x + y * y));
-//                currentVertexList.push_back(curr);
-//                //end of current Pol. Memorize cut position of first cut for cut ordering if filling occurs:
-//                currentPol.VertexList = currentVertexList;
-//                currentVertexList.clear();
-//                tmpPolygonList.push_back(currentPol);
-//                sideCode = -sideCode; //as we are on the other side
-//                //create a new polygon list
-//                currentPol.type = sideCode;
-//                currentPol.valid = (doClip && currentPol.type == -1) ? false : true;
-//                x = xcuta;
-//                y = ycuta;
-//                z = zcuta;
-//                curr.lon = atan2(y, x);
-//                curr.lat = atan2(z, sqrt(x * x + y * y));
-//                currentVertexList.push_back(curr);
-//              }
-//            }
-//            curr.lon = v->lon;
-//            curr.lat = v->lat;
-//            currentVertexList.push_back(curr);
-//            before = after;
-//            xs = xe;
-//            ys = ye;
-//            zs = ze;
-//          }
-//          currentPol.VertexList = currentVertexList;
-//          currentVertexList.clear();
-//          tmpPolygonList.push_back(currentPol);
-//
-//          //tmpPolygonList contains the current polygon, splitted. It must be stitched if filling occurs.
-//          //level-0 filling consist in adding last portion at beginning of first one 
-//
-//          if (fill && tmpPolygonList.size() > 2) { //2 because here there has been a cut and thus two sides.
-//            std::list<Polygon>::iterator beg = tmpPolygonList.begin();
-//            std::list<Polygon>::reverse_iterator end = tmpPolygonList.rbegin();
-//            beg->VertexList.splice(beg->VertexList.begin(), end->VertexList); //concatenate
-//            tmpPolygonList.pop_back();
-//          }
-//
-//          if (doClip) { //eliminate invalid (cached) polygons.
-//            tmpPolygonList.remove_if(isInvalid);
-//          }
-//
-//          if (fill && tmpPolygonList.size() > 1) {
-//            // produce 2 lists: before and after cut
-//            std::list<Polygon> beforePolygonList;
-//            std::list<Polygon> afterPolygonList;
-//            for (std::list<Polygon>::iterator p = tmpPolygonList.begin(); p != tmpPolygonList.end(); ++p) {
-//              if (p->type == 1) {
-//                beforePolygonList.push_back((*p)); //on side of first vertex.
-//              } else {
-//                afterPolygonList.push_back((*p)); //on other side.
-//              }
-//            }
-//            tmpPolygonList.clear();
-//
-//            // for each list, repeatedly find polygons that contain others. Polygons that contain no others are closed and removed.
-//            // polygons that contain others: sticth the one whose start is closer to the end of the container, this decreases the complexity.
-//            // repeat until all polygons have been stitched.
-//            std::list<Polygon>* aliasList;
-//            std::list<Polygon>* theTwoLists[] = {&beforePolygonList, &afterPolygonList};
-//            int maxloop = 0;
-//            for (int jj = 0; jj < 2; ++jj) {
-//              aliasList = theTwoLists[jj];
-//              maxloop = 0;
-//              do {
-//                //establish the complexity of each polygon: contains or/and is contained:
-//              done:
-//                aliasList->remove_if(isInvalid);
-//                for (std::list<Polygon>::iterator q = aliasList->begin(); q != aliasList->end(); ++q) {
-//                  Polygon * container = &(*q);
-//                  // (re)establish cur's complexity number: either the polygon does not contain others, nor it is contained, and we stitch it alone
-//                  // or it is contained and we pass,
-//                  // or it is not contained and we stitch with the first it contains, then the complexity decreases and the process continues at the
-//                  // next iteration
-//                  container->inside = 0;
-//                  container->outside = 0;
-//                  for (std::list<Polygon>::iterator p = aliasList->begin(); p != aliasList->end(); ++p) {
-//                    Polygon * test = &(*p);
-//                    if (!(test == container)) {
-//                      if (IsPolygonInside(container, test, a, b, c)) container->inside += 1;
-//                      if (IsPolygonInside(test, container, a, b, c)) container->outside += 1;
-//                    }
-//                  }
-//                }
-//                //                for (std::list<Polygon>::iterator q = aliasList->begin(); q != aliasList->end(); ++q) {
-//                //                  Polygon * container = &(*q);
-//                //                    std::cerr << "polygon " << container << "inside: "<<container->inside <<", outside "<<container->outside <<endl;
-//                //                }                
-//                //find all non-contained non-container polygons, close and remove them
-//                int needsUpdate = 0;
-//                for (std::list<Polygon>::iterator q = aliasList->begin(); q != aliasList->end(); ++q) {
-//                  Polygon * container = &(*q);
-//                  if (container->inside == 0 && container->outside == 0) { //if the polygon is alone, stitch it and pop it
-//                    //                    cerr<<" closing on itself "<<container<<endl;
-//                    StitchTwoPolygons(container, container, a, b, c);
-//                    //add closed polygon to end of newPolygonList
-//                    newPolygonList.push_back(*container);
-//                    container->valid = false;
-//                    needsUpdate++;
-//                  }
-//                }
-//                if (needsUpdate) goto done;
-//                //find all containers that are not contained, they contain at least one polygon. remove the nearest inside polygon by stitching
-//                for (std::list<Polygon>::iterator q = aliasList->begin(); q != aliasList->end(); ++q) {
-//                  Polygon * container = &(*q);
-//                  if (container->inside > 0 && container->outside == 0) { //not contained
-//                    //                      std::cerr<<"closing container-only polygon "<<container<<endl;
-//                    std::list<Polygon>::iterator toStitch = aliasList->end();
-//                    DDouble distref = proximityEvaluator(container, container, a, b, c);
-//                    DDouble dist;
-//                    for (std::list<Polygon>::iterator p = aliasList->begin(); p != aliasList->end(); ++p) {
-//                      Polygon * inside = &(*p);
-//                      if (!(inside == container) && IsPolygonInside(container, inside, a, b, c)) {
-//                        dist = proximityEvaluator(container, inside, a, b, c);
-//                        if (dist / distref > 0 && dist / distref < 1) {
-//                          distref = dist;
-//                          toStitch = p;
-//                        }
-//                      }
-//                    }
-//                    //                      cerr<<" stitching "<<container<<" to " <<&(*toStitch)<< endl;
-//                    StitchTwoPolygons(container, &(*toStitch), a, b, c);
-//                    toStitch->valid = false;
-//                    goto done;
-//                  }
-//                }
-//                //will break on empty list
-//                int erase_all = 1;
-//                for (std::list<Polygon>::iterator q = aliasList->begin(); q != aliasList->end(); ++q) {
-//                  if (q->valid) erase_all *= 0;
-//                }
-//                maxloop++;
-//
-//                if (maxloop > 32) {
-//                  erase_all = 1;
-//                }
-//                if (erase_all == 1) aliasList->clear();
-//              } while (!aliasList->empty());
-//            }
-//
-//          } else {
-//            //just add tmpPolygonList content to end of newPolygonList
-//            newPolygonList.splice(newPolygonList.end(), tmpPolygonList);
-//            //clear tmp (normally should be empty!)
-//            tmpPolygonList.clear();
-//          }
-//        }
-//        //end of all the input list of polygons, newPolygonList contains cut and stitched polygons:
-//        //exchange new & old contents and void new
-//        PolygonList.swap(newPolygonList);
-//        newPolygonList.clear();
-//
-//        //Should remove empty polygons: TODO
-//        break;
-//      case TRANSFORM:
-//        if (PolygonList.empty()) break;
-//
-//#ifdef USE_LIBPROJ
-//        for (std::list<Polygon>::iterator p = PolygonList.begin(); p != PolygonList.end(); ++p) {
-//          for (std::list<Vertex>::iterator v = p->VertexList.begin(); v != p->VertexList.end(); ++v) {
-//#if LIBPROJ_MAJOR_VERSION >= 5
-//            idata.lam = v->lon;
-//            idata.phi = v->lat;
-//            odata = protect_proj_fwd_lp(idata, ref);
-//            v->lon = odata.x;
-//            v->lat = odata.y;
-//#else
-//            idata.u = v->lon;
-//            idata.v = v->lat;
-//            odata = PJ_FWD(idata, ref);
-//            v->lon = odata.u;
-//            v->lat = odata.v;
-//#endif
-//          }
-//        }
-//#endif   //USE_LIBPROJ 
-//        break;
-//      case CLIP_UV:
-//        //TO BE DONE (really useful?)
-//        //        if (PolygonList.empty()) break;
-//        break;
-//      default:
-//        continue;
-//      }
-//      line++;
-//      icode = (*pipeline)[dims[0] * line + 0];
-//      a = (*pipeline)[dims[0] * line + 1]; //plane a,b,c,d
-//      b = (*pipeline)[dims[0] * line + 2];
-//      c = (*pipeline)[dims[0] * line + 3];
-//      d = (*pipeline)[dims[0] * line + 4];
-//      px = (*pipeline)[dims[0] * line + 5]; //pole x,y,z
-//      py = (*pipeline)[dims[0] * line + 6];
-//      pz = (*pipeline)[dims[0] * line + 7];
-//    }
-//    //recreate lons, lats, gons, ..
-//    if (PolygonList.empty()) {
-//      if (doGons) gonsOut = new DLongGDL(-1);
-//      else linesOut = new DLongGDL(-1);
-//      return new DDoubleGDL(-1);
-//    }
-//
-//    //size
-//    SizeT nelem = 0;
-//    SizeT ngons = 0;
-//
-//    for (std::list<Polygon>::iterator p = PolygonList.begin(); p != PolygonList.end(); ++p) {
-//      if (p->VertexList.size() > 0) {
-//        ngons++;
-//        ngons += p->VertexList.size();
-//        nelem += p->VertexList.size();
-//      }
-//    }
-//    lons = new DDoubleGDL(nelem, BaseGDL::NOZERO);
-//    lats = new DDoubleGDL(nelem, BaseGDL::NOZERO);
-//    currentConn = new DLongGDL(ngons, BaseGDL::NOZERO);
-//    SizeT i = 0;
-//    SizeT j = 0;
-//    for (std::list<Polygon>::iterator p = PolygonList.begin(); p != PolygonList.end(); ++p) {
-//      if (p->VertexList.size() > 0) {
-//        (*currentConn)[j++] = p->VertexList.size();
-//        for (std::list<Vertex>::iterator v = p->VertexList.begin(); v != p->VertexList.end(); ++v, i++) {
-//          (*lons)[i] = v->lon;
-//          (*lats)[i] = v->lat;
-//          (*currentConn)[j++] = i;
-//        }
-//        //delete vertexlist
-//        p->VertexList.clear();
-//      }
-//    }
-//    //finally, delete polygon list.
-//    PolygonList.clear();
-//
-//    nEl = lons->N_Elements();
-//    DDoubleGDL *res;
-//    if (transpose) {
-//      DLong odims[2];
-//      odims[0] = nEl;
-//      odims[1] = 2;
-//      dimension dim(odims, 2);
-//      res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-//      memcpy(&((*res)[0]), lons->DataAddr(), nEl * sizeof (double));
-//      memcpy(&((*res)[nEl]), lats->DataAddr(), nEl * sizeof (double));
-//    } else {
-//      DLong odims[2];
-//      odims[0] = 2;
-//      odims[1] = nEl;
-//      dimension dim(odims, 2);
-//      res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-//      if ((GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS))==1) {
-//        for (OMPInt i = 0; i < nEl; ++i) {
-//          (*res)[2 * i] = (*lons)[i];
-//          (*res)[2 * i + 1] = (*lats)[i];
-//        }
-//      } else {
-//        TRACEOMP(__FILE__, __LINE__)
-//  #pragma omp parallel for num_threads(GDL_NTHREADS)
-//          for (OMPInt i = 0; i < nEl; ++i) {
-//          (*res)[2 * i] = (*lons)[i];
-//          (*res)[2 * i + 1] = (*lats)[i];
-//        }
-//      }
-//    }
-//    //cleanup
-//    GDLDelete(lons);
-//    GDLDelete(lats);
-//    if (doGons || doLines) {
-//      if (doGons) gonsOut = currentConn;
-//      else linesOut = currentConn;
-//    } else GDLDelete(currentConn);
-//
-//    return res;
-//  }
 
 #endif
 
