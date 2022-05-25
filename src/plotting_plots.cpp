@@ -324,8 +324,10 @@ namespace lib
         
         DLongGDL *conn=NULL; //tricky as xVal and yVal will be probably replaced by connectivity
         bool doFill=false;
+        bool doLines=(psym < 1);
+        bool isRadians=false;
         //if doT3d and !flat3d, the projected polygon needs to keep track of Z.
-        DDoubleGDL *lonlat=GDLgrGetProjectPolygon(actStream, ref, NULL, xVal, yVal, zVal, false, doFill, conn);
+        DDoubleGDL *lonlat=GDLgrGetProjectPolygon(actStream, ref, NULL, xVal, yVal, zVal, isRadians, doFill, doLines, conn);
         
         //lonlat is still in radians.
         //GDLgrPlotProjectedPolygon or draw_polyline() will make the 3d projection if flat3d=true through the use of stransform()
@@ -341,19 +343,17 @@ namespace lib
           } //now that lines are plotted, do the points:
           if (psym > 0 ) { 
             SizeT npts=lonlat->Dim(0); //lonlat is [npts,2]
-            //temporary create a fake new XVal,yVal pointing to the two parts of lonlat (faster)
-            DDoubleGDL* x=new DDoubleGDL(dimension(npts),BaseGDL::NOALLOC);
-            x->SetBuffer((DDouble*)lonlat->DataAddr());
-            x->SetBufferSize(npts);
-            x->SetDim(dimension(npts));
-            DDoubleGDL* y=new DDoubleGDL(dimension(npts),BaseGDL::NOALLOC); 
-            y->SetBuffer((DDouble*)(lonlat->DataAddr())+npts*sizeof(DDouble));
-            y->SetBufferSize(npts);
-            y->SetDim(dimension(npts));
+            //temporary create x and y to pass to draw_polyline. Not very efficient!
+            DDoubleGDL* x=new DDoubleGDL(dimension(npts),BaseGDL::NOZERO);
+            for (auto i=0; i<npts; ++i) (*x)[i]=(*lonlat)[i];
+            DDoubleGDL* y=new DDoubleGDL(dimension(npts),BaseGDL::NOZERO); 
+            for (auto i=0; i<npts; ++i) (*y)[i]=(*lonlat)[i+npts];
             draw_polyline(actStream, x, y, 0.0, 0.0, false, false, false, psym, append, doColor?color:NULL);
+            GDLDelete(x);
+            GDLDelete(y);
           }
           GDLDelete(lonlat);
-          GDLDelete(conn);
+          if (doLines || doFill) GDLDelete(conn); //conn may be null if no line-drawing or fill was requested.
         }
 #endif 
       } else { //just as if LIBPROJ WAS NOT present

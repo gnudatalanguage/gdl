@@ -1944,8 +1944,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     for (auto i = 2 * Dim1; i < 3 * Dim1; ++i) (*lonlat)[i] = sz[0] + sz[1] * (*lonlat)[i];
   }
 #ifdef USE_LIBPROJ
-void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians, bool const doFill, DLongGDL *conn ) {
-    DDoubleGDL *lonlat=GDLgrGetProjectPolygon(a, ref, map, lons, lats, NULL, isRadians, doFill, conn);
+void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians, bool const doFill, bool const doLines, DLongGDL *conn ) {
+    DDoubleGDL *lonlat=GDLgrGetProjectPolygon(a, ref, map, lons, lats, NULL, isRadians, doFill, doLines, conn);
     if (lonlat!=NULL) {
       GDLgrPlotProjectedPolygon(a, lonlat, doFill, conn);
       GDLDelete( lonlat );
@@ -1955,7 +1955,7 @@ void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map, D
 
 //ALL-IN-ONE: if justProject is true, will just convert lons and lats to projected coordinates. Z is unchanged, returned value is NULL.
 // if justProject is false (default), will output a [N,2] or [N,3] (if z is not NULL) 'polygon' list  
- DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, DDoubleGDL *z, bool isRadians, bool const doFill, DLongGDL *&conn, bool justProject) {
+ DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, DDoubleGDL *zVal, bool isRadians, bool const doFill, bool const doLines, DLongGDL *&conn) {
 //    std::cerr << "GDLgrGetProjectPolygon()" << std::endl;
 
     DStructGDL* localMap = map;
@@ -1978,22 +1978,21 @@ void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map, D
       }
     }
     
-    //return if that was just to convert values lon and lat to (u,v)
-    if (justProject) return NULL;
-    
     bool doConn = (conn != NULL);
-    DDoubleGDL *res = gdlProjForward(ref, localMap, lons, lats, z, conn, doConn, gons, doFill, lines, !doFill, false, true); //transposed=true for speed  and gives a [N,3] table
-    assert (res->Dim(1) == 3);
+    DDoubleGDL *res = gdlProjForward(ref, localMap, lons, lats, zVal, conn, doConn, gons, doFill, lines, doLines, false, true); //transposed=true for speed  and gives a [N,3] table
+    //res may be DDoubleGDL(-1) 
     SizeT nout = res->Dim(0);
     if (nout < 1) {
       GDLDelete(res);
       return NULL;
     } //projection clipped totally these values.
+    assert(res->Dim(1) == 3);
     if (doFill) conn = gons;
     else conn = lines; //return appropriate connectivity list
     return res;
   }
   
+ //for projected lines and fills, does not handle PSYMs
   void GDLgrPlotProjectedPolygon(GDLGStream * a, DDoubleGDL *lonlat, bool const doFill, DLongGDL *conn) {
     //convert to normed values
 //    std::cerr<<"GDLgrPlotProjectedPolygon()"<<std::endl;

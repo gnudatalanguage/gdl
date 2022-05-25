@@ -219,9 +219,7 @@ namespace lib {
   void get_mapset(bool &mapset);
   void set_mapset(bool mapset);
 #ifdef USE_LIBPROJ
-  void GDLgrProjectedPolygonPlot(GDLGStream * a, PROJTYPE ref, DStructGDL* map, 
-				 DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians,
-				 bool const doFill, DLongGDL *conn=NULL);
+  void GDLgrProjectedPolygonPlot(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians, bool const doFill, bool const doLines, DLongGDL *conn=NULL);
 #endif
   //3D conversions
   void SelfTranspose3d(DDoubleGDL* me);
@@ -318,8 +316,7 @@ namespace lib {
          DLong psym=0, bool append=false, DLongGDL *color=NULL);
   void SelfNormLonLat(DDoubleGDL *lonlat);
   void SelfPDotTTransformProjectedPolygonTable(DDoubleGDL *lonlat);
-//  DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, DDoubleGDL *z, bool isRadians, bool const doFill, DLongGDL *&conn);
-  DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats,DDoubleGDL *zVal,  bool isRadians, bool const doFill, DLongGDL *&conn, bool justProject=false);
+  DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats,DDoubleGDL *zVal,  bool isRadians, bool const doFill, bool const dolines, DLongGDL *&conn);
   void GDLgrPlotProjectedPolygon(GDLGStream * a, DDoubleGDL *lonlat, bool const doFill, DLongGDL *conn);
   //protect from (inverted, strange) axis log values
   void gdlHandleUnwantedLogAxisValue(DDouble &min, DDouble &max, bool log);

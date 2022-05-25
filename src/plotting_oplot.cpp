@@ -225,7 +225,10 @@ private:
 
 #ifdef USE_LIBPROJ
         if ( mapSet && psym < 1) {
-          GDLgrProjectedPolygonPlot(actStream, ref, NULL, xVal, yVal, false, false, NULL);  //will use LIBPROJ
+        bool doFill=false;
+        bool doLines=(psym < 1);
+        bool isRadians=false;
+          GDLgrProjectedPolygonPlot(actStream, ref, NULL, xVal, yVal, isRadians, doFill, doLines, NULL);  //will use LIBPROJ
           psym=-psym;
           if (psym > 0) draw_polyline(actStream, xVal, yVal, minVal, maxVal, doMinMax, xLog, yLog, psym);
         }
