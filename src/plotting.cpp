@@ -391,14 +391,8 @@ namespace lib
       else {      
         const double max_allowed_leak_factor = 1-1.25e-6;
         intv = AutoIntv(range);
-        if (log) {
-//          max = ceil((max / intv) * intv);
-          max = ceil(((max*max_allowed_leak_factor) / intv) * intv); //same behaviour as IDL: if value is 
-          min = floor((min / intv) * intv);
-        } else {
-          max = ceil((max*max_allowed_leak_factor)  / intv) * intv;
-          min = floor(min / intv) * intv;
-        }
+        max = ceil((max*max_allowed_leak_factor)  / intv) * intv;
+        min = floor(min / intv) * intv;
       }
 
     if (extended) {
@@ -408,16 +402,17 @@ namespace lib
       max+=val;
     }
 
-    //give back non-log values
-    if (log) {
-      min = pow(10, min);
-      max = pow(10, max);
-    }
 
     //check if tickinterval would make more than 59 ticks (IDL apparent limit). In which case, IDL plots only the first 59 intervals:
     DDouble TickInterval;
     gdlGetDesiredAxisTickInterval(e, axisId, TickInterval);
     if ( TickInterval > 0.0 ) if (range/TickInterval > 59) max=min+59.0*TickInterval;
+
+    //give back non-log values
+    if (log) {
+      min = pow(10, min);
+      max = pow(10, max);
+    }
 
     if (invert) {
       start = max;
