@@ -194,7 +194,7 @@ namespace lib {
       //Take care of projections:
       SelfProjectXY(minEl, (DDouble*) xVal->DataAddr(), (DDouble*) yVal->DataAddr(), coordinateSystem);
       //input coordinates converted to NORMAL
-      SelfConvertToNormXY(minEl, (DDouble*) xVal->DataAddr(), xLog, (DDouble*) yVal->DataAddr(), yLog, coordinateSystem);
+      SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //DATA
     }
 
     void call_plplot(EnvT* e, GDLGStream* actStream) {

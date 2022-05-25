@@ -715,14 +715,15 @@ namespace lib {
   }
   
   //converts 3D values according to COORDSYS towards NORMAL coordinates and , logically, unset xLog,yLo,zLog and define code as NORMAL.
-  void SelfConvertToNormXYZ(SizeT n, DDouble *x, bool &xLog, DDouble *y, bool &yLog, DDouble *z, bool &zLog, COORDSYS &code) {
+  void SelfConvertToNormXYZ(DDoubleGDL *x, bool &xLog, DDoubleGDL *y, bool &yLog, DDoubleGDL *z, bool &zLog, COORDSYS &code) {
     std::cerr<<"SelfConvertToNormXYZ()\n";
+    SizeT n=x->N_Elements();
     if (code == DATA) {
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz);
-      for (auto i = 0; i < n; ++i) TONORMCOORDX( x[i], x[i], xLog);
-      for (auto i = 0; i < n; ++i) TONORMCOORDY( y[i], y[i], yLog);
-      for (auto i = 0; i < n; ++i) TONORMCOORDZ( z[i], z[i], zLog);
+      for (auto i = 0; i < n; ++i) TONORMCOORDX( (*x)[i], (*x)[i], xLog);
+      for (auto i = 0; i < n; ++i) TONORMCOORDY( (*y)[i], (*y)[i], yLog);
+      for (auto i = 0; i < n; ++i) TONORMCOORDZ( (*z)[i], (*z)[i], zLog);
     } else if (code == DEVICE) {
       int xSize, ySize;
       //give default values
@@ -731,9 +732,9 @@ namespace lib {
       unsigned ysizeTag = dStruct->Desc()->TagIndex("Y_SIZE");
       xSize = (*static_cast<DLongGDL*> (dStruct->GetTag(xsizeTag, 0)))[0];
       ySize = (*static_cast<DLongGDL*> (dStruct->GetTag(ysizeTag, 0)))[0];
-      for (auto i = 0; i < n; ++i) x[i] /= xSize;
-      for (auto i = 0; i < n; ++i) y[i] /= ySize;
-      if (zLog) for (auto i = 0; i < n; ++i) z[i]=log10(i);
+      for (auto i = 0; i < n; ++i) (*x)[i] /= xSize;
+      for (auto i = 0; i < n; ++i) (*y)[i] /= ySize;
+      if (zLog) for (auto i = 0; i < n; ++i) (*z)[i]=log10(i);
     }
     code=NORMAL;
     xLog=false;
@@ -765,6 +766,30 @@ namespace lib {
     yLog=false;
   } 
   
+   void SelfConvertToNormXY(DDoubleGDL *x, bool &xLog, DDoubleGDL *y, bool &yLog, COORDSYS &code) {
+  std::cerr<<"SelfConvertToNormXY()"<<std::endl;
+  SizeT n=x->N_Elements();
+  if (code == DATA) {
+      DDouble *sx, *sy, *sz;
+      GetSFromPlotStructs(&sx, &sy, &sz);
+      for (auto i = 0; i < n; ++i) TONORMCOORDX( (*x)[i], (*x)[i], xLog);
+      for (auto i = 0; i < n; ++i) TONORMCOORDY( (*y)[i], (*y)[i], yLog);
+    } else if (code == DEVICE) {
+      int xSize, ySize;
+      //give default values
+      DStructGDL* dStruct = SysVar::D();
+      unsigned xsizeTag = dStruct->Desc()->TagIndex("X_SIZE");
+      unsigned ysizeTag = dStruct->Desc()->TagIndex("Y_SIZE");
+      xSize = (*static_cast<DLongGDL*> (dStruct->GetTag(xsizeTag, 0)))[0];
+      ySize = (*static_cast<DLongGDL*> (dStruct->GetTag(ysizeTag, 0)))[0];
+      for (auto i = 0; i < n; ++i) (*x)[i] /= xSize;
+      for (auto i = 0; i < n; ++i) (*y)[i] /= ySize;
+    }
+    code=NORMAL;
+    xLog=false;
+    yLog=false;
+  }
+   
   //Implied Useage: x,y,z in NORMAL coordinates
   void SelfPDotTTransformXYZ(SizeT n, DDouble *x, DDouble *y, DDouble *z){
   std::cerr<<"SelfPDotTTransformXYZ()"<<std::endl;
@@ -784,7 +809,25 @@ namespace lib {
       z[i] = c / w;
     }
   }
-  
+  void SelfPDotTTransformXYZ(DDoubleGDL *x, DDoubleGDL *y, DDoubleGDL *z){
+  std::cerr<<"SelfPDotTTransformXYZ()"<<std::endl;
+  SizeT n=x->N_Elements();
+    //retrieve !P.T 
+    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+    static unsigned tTag = pStruct->Desc()->TagIndex("T");
+    DDouble* t= static_cast<DDouble*>(pStruct->GetTag(tTag, 0)->DataAddr());
+    DDouble a,b,c,w;
+    for (SizeT i=0; i< n; ++i) {
+      a = (*x)[i] * t[0]  + (*y)[i] * t[1]  + (*z)[i] * t[2]  + t[3]; 
+      b = (*x)[i] * t[4]  + (*y)[i] * t[5]  + (*z)[i] * t[6]  + t[7]; 
+      c = (*x)[i] * t[8]  + (*y)[i] * t[9]  + (*z)[i] * t[10] + t[11]; 
+      w = (*x)[i] * t[12] + (*y)[i] * t[13] + (*z)[i] * t[14] + t[15];
+    
+      (*x)[i] = a / w; 
+      (*y)[i] = b / w; 
+      (*z)[i] = c / w;
+    }
+  }  
   void PDotTTransformXY(DDouble x, DDouble y, DDouble *xt, DDouble *yt, PLPointer unused){
 //    std::cerr<<"PDotTTransformXY()\n";
     //retrieve !P.T 

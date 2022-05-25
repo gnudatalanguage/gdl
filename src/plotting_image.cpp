@@ -34,8 +34,26 @@ namespace lib {
     DLong botLeftPixelX, botLeftPixelY;
     DLong channel;
     SizeT rank;
+    bool doT3d;
+    DDouble zPosition;
 
     bool handle_args(EnvT* e) {
+
+      //T3D
+      static int t3dIx = e->KeywordIx("T3D");
+      doT3d = (e->BooleanKeywordSet(t3dIx) || T3Denabled());
+
+      //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
+      // Then Z is useful only if (doT3d).
+      static int zvIx = e->KeywordIx("Z");
+      zPosition = 0.0; //it is NOT a zValue.
+      if (doT3d) {
+        e->AssureDoubleScalarKWIfPresent(zvIx, zPosition);
+        //norm directly here, we are in 3D mode
+        DDouble *sx, *sy, *sz;
+        GetSFromPlotStructs(&sx, &sy, &sz);
+        zPosition = zPosition * sz[1] + sz[0];
+      }
 
       trueColor = 0;
       static int TRUEIx=e->KeywordIx("TRUE");
@@ -258,11 +276,12 @@ namespace lib {
         e->AssureDoubleScalarPar(2, yLLf); //idem
         //convert to device Pixel:
         if (coordinateSystem == DATA) {
-      //here for eventual projection
-          SelfProjectXY(1, &xLLf, &yLLf, coordinateSystem);
-          actStream->world2device(xLLf, yLLf, x,y);
-          botLeftPixelX=x; 
-          botLeftPixelY=y;
+          SelfProjectXY(1, &xLLf, &yLLf, coordinateSystem); //here for eventual projection
+          bool f=false;
+          SelfConvertToNormXY(1, &xLLf, f, &yLLf, f, coordinateSystem);       //input coordinates converted to NORMAL
+          if (doT3d) SelfPDotTTransformXYZ(1, &xLLf, &yLLf , &zPosition); //T3D transform for point
+          botLeftPixelX=xLLf*xPageSize; 
+          botLeftPixelY=yLLf*yPageSize;
         } else if (coordinateSystem == NORMAL) {
           actStream->NormedDeviceToDevice(xLLf, yLLf, x,y);
           botLeftPixelX=x;
