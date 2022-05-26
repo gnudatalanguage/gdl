@@ -903,7 +903,7 @@ namespace lib
         gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
       }
       if (make3dBox) { //overplot box
-        gdlSetPlplotW3(actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, az, alt, scale, axisExchangeCode);
+        gdlSetPlplotW3(e,actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, az, alt, scale, axisExchangeCode);
         gdlAxis3(e, actStream, ZAXIS, xStart, xEnd, xLog, 1);
         gdlAxis3(e, actStream, XAXIS, yStart, yEnd, yLog);
       }

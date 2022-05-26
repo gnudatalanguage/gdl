@@ -29,7 +29,6 @@ namespace lib {
     bool xLog, yLog;
     bool restorelayout;
     Guard<BaseGDL> xval_guard, yval_guard, xtemp_guard;
-    DLong iso;
     bool doT3d;
     COORDSYS coordinateSystem = DATA;
     DLongGDL *color;
@@ -38,7 +37,6 @@ namespace lib {
   private:
 
     bool handle_args(EnvT* e) {
-      gdlGetPsym(e, psym); //PSYM
       //T3D?
       static int t3dIx = e->KeywordIx("T3D");
       doT3d = (e->BooleanKeywordSet(t3dIx) || T3Denabled());
@@ -227,8 +225,9 @@ namespace lib {
         gdlSetGraphicsForegroundColorFromKw(e, actStream); //COLOR
         doColor = false;
       }
-      gdlSetLineStyle(e, actStream); //LINESTYLE
       gdlSetPenThickness(e, actStream); //THICK
+      gdlSetLineStyle(e, actStream); //LINESTYLE
+      gdlGetPsym(e, psym); //PSYM
 
 
       // reproject using P.T transformation in [0..1] cube during the actual plot using pltransform() (to reproject also the PSYMs is possible with plplot only if z = 0, using this trick :

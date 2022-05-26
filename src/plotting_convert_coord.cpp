@@ -1061,8 +1061,140 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble
     DDoubleGDL* plplot3d = gdlComputePlplotRotationMatrix(az, alt, zValue, scale);
     return plplot3d;
   }
-  void gdlSetPlplotW3(GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue, DDouble az, DDouble alt, DDouble *scale, T3DEXCHANGECODE axisExchangeCode) {
-    std::cerr<<"gdlSetPlplotW3(AXISEXCHANGECODE="<<axisExchangeCode<<")\n";
+  void gdlPlot3DBox(EnvT* e, GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, T3DEXCHANGECODE axisExchangeCode) {
+    std::cerr<<"gdlPlot3DBox(AXISEXCHANGECODE="<<axisExchangeCode<<")\n";
+    DDouble t3xStart, t3xEnd, t3yStart, t3yEnd, t3zStart, t3zEnd;
+    switch (axisExchangeCode) {
+    case NORMAL3D: //X->X Y->Y plane XY
+      t3xStart = (xLog) ? log10(xStart) : xStart,
+      t3xEnd = (xLog) ? log10(xEnd) : xEnd,
+      t3yStart = (yLog) ? log10(yStart) : yStart,
+      t3yEnd = (yLog) ? log10(yEnd) : yEnd,
+      t3zStart = zStart;
+      t3zEnd = zEnd;
+      break;
+    case XY: // X->Y Y->X plane XY
+      t3yStart = (xLog) ? log10(xStart) : xStart,
+      t3yEnd = (xLog) ? log10(xEnd) : xEnd,
+      t3xStart = (yLog) ? log10(yStart) : yStart,
+      t3xEnd = (yLog) ? log10(yEnd) : yEnd,
+      t3zStart = zStart;
+      t3zEnd = zEnd;
+      break;
+    case XZ: // Y->Y X->Z plane YZ
+    t3zStart = (xLog) ? log10(xStart) : xStart,
+      t3zEnd = (xLog) ? log10(xEnd) : xEnd,
+      t3yStart = (yLog) ? log10(yStart) : yStart,
+      t3yEnd = (yLog) ? log10(yEnd) : yEnd,
+      t3xStart = zStart;
+      t3xEnd = zEnd;
+      break;
+    case YZ: // X->X Y->Z plane XZ
+    t3xStart = (xLog) ? log10(xStart) : xStart,
+      t3xEnd = (xLog) ? log10(xEnd) : xEnd,
+      t3zStart = (yLog) ? log10(yStart) : yStart,
+      t3zEnd = (yLog) ? log10(yEnd) : yEnd,
+      t3yStart = zStart;
+      t3yEnd = zEnd;
+      break;
+    }
+
+       switch (axisExchangeCode) {
+    case NORMAL3D: //X->X Y->Y plane XY
+      gdlAxis3(e, actStream, XAXIS, xStart, xEnd, xLog);
+      gdlAxis3(e, actStream, YAXIS, yStart, yEnd, yLog);
+      break;
+    case XY: // X->Y Y->X plane XY
+      gdlAxis3(e, actStream, YAXIS, xStart, xEnd, xLog);
+      gdlAxis3(e, actStream, XAXIS, yStart, yEnd, yLog);
+      break;
+    case XZ: // Y->Y X->Z plane YZ
+      gdlAxis3(e, actStream, ZAXIS, xStart, xEnd, xLog, 0);
+      gdlAxis3(e, actStream, YAXIS, yStart, yEnd, yLog);
+      break;
+    case YZ: // X->X Y->Z plane XZ
+      gdlAxis3(e, actStream, XAXIS, xStart, xEnd, xLog);
+      gdlAxis3(e, actStream, ZAXIS, yStart, yEnd, yLog, 1);
+      default:
+      break;
+       }
+  }
+
+  void gdlPlot3DBorders(EnvT* e, GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, T3DEXCHANGECODE axisExchangeCode) {
+    std::cerr << "gdlPlot3DBorders(AXISEXCHANGECODE=" << axisExchangeCode << ")\n";
+    DDouble xs, xe, ys, ye, zs, ze;
+    switch (axisExchangeCode) {
+    case NORMAL3D: //X->X Y->Y plane XY
+      xs = (xLog) ? log10(xStart) : xStart,
+        xe = (xLog) ? log10(xEnd) : xEnd,
+        ys = (yLog) ? log10(yStart) : yStart,
+        ye = (yLog) ? log10(yEnd) : yEnd,
+        zs = zStart;
+      ze = zEnd;
+      break;
+    case XY: // X->Y Y->X plane XY
+      ys = (xLog) ? log10(xStart) : xStart,
+        ye = (xLog) ? log10(xEnd) : xEnd,
+        xs = (yLog) ? log10(yStart) : yStart,
+        xe = (yLog) ? log10(yEnd) : yEnd,
+        zs = zStart;
+      ze = zEnd;
+      break;
+    case XZ: // Y->Y X->Z plane YZ
+      zs = (xLog) ? log10(xStart) : xStart,
+        ze = (xLog) ? log10(xEnd) : xEnd,
+        ys = (yLog) ? log10(yStart) : yStart,
+        ye = (yLog) ? log10(yEnd) : yEnd,
+        xs = zStart;
+      xe = zEnd;
+      break;
+    case YZ: // X->X Y->Z plane XZ
+      xs = (xLog) ? log10(xStart) : xStart,
+        xe = (xLog) ? log10(xEnd) : xEnd,
+        zs = (yLog) ? log10(yStart) : yStart,
+        ze = (yLog) ? log10(yEnd) : yEnd,
+        ys = zStart;
+      ye = zEnd;
+      break;
+    }
+    switch (axisExchangeCode) {
+    case NORMAL3D: //X->X Y->Y plane XY
+//      actStream->stransform(PDotTTransformXYZval, &zs);
+      actStream->join(xs, ys, xs, ye);
+      actStream->join(xs, ys, xe, ys);
+      actStream->join(xe, ye, xs, ye);
+      actStream->join(xe, ye, xe, ys);
+      actStream->ptex(xs,ys,0,0,0,"XS");
+      actStream->ptex(xe,ys,0,0,0,"XE");
+      actStream->ptex(xs,ys,0,0,0,"YS");
+      actStream->ptex(xs,ye,0,0,0,"YE");
+//      actStream->stransform(PDotTTransformXYZval, &ze);
+//      actStream->join(xs, ys, xs, ye);
+//      actStream->join(xs, ys, xe, ys);
+//      actStream->join(xe, ye, xs, ye);
+//      actStream->join(xe, ye, xe, ys);     
+      break;
+    case XY: // X->Y Y->X plane XY
+      actStream->stransform(PDotTTransformXYZval, &zStart);
+      actStream->join(ys, xe, ye, xe);
+      actStream->join(ye, xs, ye, xe);
+      break;
+    case XZ: // Y->Y X->Z plane YZ
+      actStream->stransform(PDotTTransformXYZval, &xStart);
+      actStream->join(zs, ys, ze, ys);
+      actStream->join(ze, ys, ze, ye);
+    case YZ: // X->X Y->Z plane XZ
+      actStream->stransform(PDotTTransformXYZval, &xStart);
+      actStream->join(zs, ys, ze, ys);
+      actStream->join(ze, ys, ze, ye);
+    default:
+      break;
+    }
+    actStream->stransform(NULL, NULL);
+  }
+
+  void gdlSetPlplotW3(EnvT* e, GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog,  DDouble zValue, DDouble az, DDouble alt, DDouble *scale, T3DEXCHANGECODE axisExchangeCode) {
+    std::cerr << "gdlSetPlplotW3(AXISEXCHANGECODE=" << axisExchangeCode << ")\n";
     DDouble t3xStart, t3xEnd, t3yStart, t3yEnd, t3zStart, t3zEnd;
     switch (axisExchangeCode) {
     case NORMAL3D: //X->X Y->Y plane XY
@@ -1070,36 +1202,37 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble
         t3xEnd = (xLog) ? log10(xEnd) : xEnd,
         t3yStart = (yLog) ? log10(yStart) : yStart,
         t3yEnd = (yLog) ? log10(yEnd) : yEnd,
-        t3zStart = 0;
-      t3zEnd = 1.0;
+        t3zStart = zStart;
+      t3zEnd = zEnd;
       break;
     case XY: // X->Y Y->X plane XY
       t3yStart = (xLog) ? log10(xStart) : xStart,
         t3yEnd = (xLog) ? log10(xEnd) : xEnd,
         t3xStart = (yLog) ? log10(yStart) : yStart,
         t3xEnd = (yLog) ? log10(yEnd) : yEnd,
-        t3zStart = 0;
-      t3zEnd = 1.0;
+        t3zStart = zStart;
+      t3zEnd = zEnd;
       break;
     case XZ: // Y->Y X->Z plane YZ
       t3zStart = (xLog) ? log10(xStart) : xStart,
         t3zEnd = (xLog) ? log10(xEnd) : xEnd,
         t3yStart = (yLog) ? log10(yStart) : yStart,
         t3yEnd = (yLog) ? log10(yEnd) : yEnd,
-        t3xStart = 0;
-      t3xEnd = 1.0;
+        t3xStart = zStart;
+      t3xEnd = zEnd;
       break;
     case YZ: // X->X Y->Z plane XZ
       t3xStart = (xLog) ? log10(xStart) : xStart,
         t3xEnd = (xLog) ? log10(xEnd) : xEnd,
         t3zStart = (yLog) ? log10(yStart) : yStart,
         t3zEnd = (yLog) ? log10(yEnd) : yEnd,
-        t3yStart = 0;
-      t3yEnd = 1.0;
+        t3yStart = zStart;
+      t3yEnd = zEnd;
       break;
     }
-      actStream->w3d(scale[0], scale[1], scale[2], t3xStart, t3xEnd, t3yStart, t3yEnd, t3zStart, t3zEnd, alt, az);
-}
+
+    actStream->w3d(scale[0], scale[1], scale[2], t3xStart, t3xEnd, t3yStart, t3yEnd, t3zStart, t3zEnd, alt, az);
+  }
   void scale3_pro(EnvT* e) {
     static unsigned tTag = SysVar::P()->Desc()->TagIndex("T");
     const double invsqrt3 = 1.0 / sqrt(3.0);

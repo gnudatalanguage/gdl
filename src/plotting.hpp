@@ -249,7 +249,9 @@ namespace lib {
 							DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode);
   DDoubleGDL* gdlGetScaledNormalizedT3DMatrix(DDoubleGDL* Matrix=NULL);
   DDoubleGDL* gdlGetT3DMatrix();
-  void gdlSetPlplotW3(GDLGStream* actStream,DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue, DDouble az, DDouble alt, DDouble *scale, T3DEXCHANGECODE axisExchangeCode); 
+  void gdlSetPlplotW3(EnvT* e,GDLGStream* actStream,DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue, DDouble az, DDouble alt, DDouble *scale, T3DEXCHANGECODE axisExchangeCode); 
+  void gdlPlot3DBox(EnvT* e,GDLGStream* actStream,DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, T3DEXCHANGECODE axisExchangeCode); 
+  void gdlPlot3DBorders(EnvT* e,GDLGStream* actStream,DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, T3DEXCHANGECODE axisExchangeCode); 
   void gdlNormed3dToWorld3d(DDoubleGDL *xVal, DDoubleGDL *yVal, DDoubleGDL* zVal,
                             DDoubleGDL* xValou, DDoubleGDL *yValou, DDoubleGDL *zValou);
   void gdl3dto2dProjectDDouble(DDoubleGDL* t3dMatrix, DDoubleGDL *xVal, DDoubleGDL *yVal, 
@@ -1075,8 +1077,9 @@ namespace lib {
     if (!subTitle.empty()) 
     {
       e->AssureStringScalarKWIfPresent(SUBTITLEIx, subTitle);
-      DFloat step=a->mmLineSpacing()/a->mmCharHeight();
-      a->mtex("b", 5*step, 0.5, 0.5, subTitle.c_str());
+//      DFloat step=a->mmLineSpacing()/a->mmCharHeight();
+//      a->mtex("b", 5*step, 0.5, 0.5, subTitle.c_str());
+      a->mtex("b", 6, 0.5, 0.5, subTitle.c_str()); //position is in units of current char height. baseline at half-height
     }
  }
   //call this function if Y data is strictly >0.
@@ -1160,19 +1163,6 @@ namespace lib {
                                            DDouble yStart,
                                            DDouble yEnd, DDouble zStart=0.0, DDouble zEnd=1.0, bool zLog=false)
   {
-
-//   // set ![XY].CRANGE Before doing anything relative to 3D.
-//    gdlStoreAxisCRANGE(XAXIS, xStart, xEnd, xLog);
-//    gdlStoreAxisCRANGE(YAXIS, yStart, yEnd, yLog);
-//    gdlStoreAxisCRANGE(ZAXIS, zStart, zEnd, zLog);
-//    //set ![XY].type
-//    gdlStoreAxisType(XAXIS,xLog);
-//    gdlStoreAxisType(YAXIS,yLog);
-//    gdlStoreAxisType(ZAXIS,zLog);
-//    //set ![XY].WINDOW and ![XY].S
-//    gdlStoreAxisSandWINDOW(actStream, XAXIS, xStart, xEnd, xLog);
-//    gdlStoreAxisSandWINDOW(actStream, YAXIS, yStart, yEnd, yLog);
-//    gdlStoreAxisSandWINDOW(actStream, ZAXIS, zStart, zEnd, zLog);
 
     //3D work
 
@@ -1335,21 +1325,6 @@ namespace lib {
     actStream->wind(xb, xe, yb, ye);
 
 
-    //Clipping is false in 3D... 
-
-    //set P.CLIP (done by PLOT, CONTOUR, SHADE_SURF, and SURFACE)
-    Guard<BaseGDL> clipbox_guard;
-    DLongGDL* clipBox= new DLongGDL(4, BaseGDL::ZERO); clipbox_guard.Reset(clipBox);
-    PLFLT x,y;
-    actStream->gvpd(xmin, xmax, ymin, ymax);
-
-    actStream->NormedDeviceToDevice(xmin, ymin, x,y);
-    (*clipBox)[0]=x;
-    (*clipBox)[1]=y;
-    actStream->NormedDeviceToDevice(xmax, ymax,x,y);
-    (*clipBox)[2]=x;
-    (*clipBox)[3]=y;
-    gdlStoreCLIP(clipBox);
     return true;
   }
 
@@ -1534,19 +1509,7 @@ namespace lib {
     //set ![XYZ].WINDOW and ![XYZ].S
     gdlStoreXAxisParameters(actStream, xStart, xEnd);//already in log here if relevant!
     gdlStoreYAxisParameters(actStream, yStart, yEnd);
-    //set P.CLIP (done by PLOT, CONTOUR, SHADE_SURF, and SURFACE)
-    Guard<BaseGDL> clipbox_guard;
-    DLongGDL* clipBox= new DLongGDL(4, BaseGDL::ZERO); clipbox_guard.Reset(clipBox);
-    PLFLT xmin, xmax, ymin, ymax, x,y;
-    actStream->gvpd(xmin, xmax, ymin, ymax);
 
-    actStream->NormedDeviceToDevice(xmin, ymin, x,y);
-    (*clipBox)[0]=x;
-    (*clipBox)[1]=y;
-    actStream->NormedDeviceToDevice(xmax, ymax,x,y);
-    (*clipBox)[2]=x;
-    (*clipBox)[3]=y;
-    gdlStoreCLIP(clipBox);
     return true;
   }
   //ONLY USED BY the 2 SURFACE commands. Sets all relevant Direct Graphic structures !X, !Y , !Z  
