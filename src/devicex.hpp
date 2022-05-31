@@ -170,14 +170,12 @@ public:
     static char buf[ 256];
     strncpy( buf, title.c_str(), 255);
     buf[ 255] = 0;
-//    winList[ wIx]->setopt( "db", 0); //handled elsewhere
-//    winList[ wIx]->setopt( "debug", "1"); //useful for debugging plplot!
     winList[ wIx]->setopt( "plwindow", buf);
-// Do not init colors --- we handle colors ourseves, very much faster!
-    winList[ wIx]->setopt( "drvopt","noinitcolors=1");
 
+// Do not init colors --- we handle colors ourseves, very much faster!
+// Do not use command buffer
 // Please no threads, no gain especially in remote X11 
-   winList[ wIx]->setopt( "drvopt","usepth=0");
+    winList[ wIx]->setopt( "drvopt","noinitcolors=1,nobuffered=1,usepth=0");
 
 //all the options must be passed BEFORE INIT=plinit.
     winList[ wIx]->Init();

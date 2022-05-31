@@ -196,7 +196,7 @@ namespace lib {
 	  Data3d.code = code201;
 	  break;
 	}
-	actStream->stransform(gdl3dTo2dTransform, &Data3d);
+	actStream->stransform(gdl3dTo2dTransform_todelete, &Data3d);
       }
       else
 	{

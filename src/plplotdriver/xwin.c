@@ -25,6 +25,9 @@
 #include "plDevs.h"
 
 #define DEBUG
+/*
+#define DEBUG_ENTER
+*/
 
 #ifdef PLD_xwin
 #define NEED_PLDEBUG
@@ -129,6 +132,8 @@ void plD_dispatch_init_xw( PLDispatchTable *pdt );
 void plD_init_xw( PLStream * );
 void plD_line_xw( PLStream *, short, short, short, short );
 void plD_polyline_xw( PLStream *, short *, short *, PLINT );
+void plD_line_xw_3D( PLStream *, short, short, short, short );
+void plD_polyline_xw_3D( PLStream *, short *, short *, PLINT );
 void plD_eop_xw( PLStream * );
 void plD_bop_xw( PLStream * );
 void plD_tidy_xw( PLStream * );
@@ -214,8 +219,92 @@ static DrvOpt xwin_options[] = { { "sync",         DRV_INT, &synchronize,   "Syn
                                  { "usepth",       DRV_INT, &usepthreads,   "Use pthreads (0|1)"                    },
                                  { NULL,           DRV_INT, NULL,           NULL                                    } };
 
+static PLDispatchTable *currDispatchTab;
+#define PLESC_2D 99
+#define PLESC_3D 100
+
+typedef struct {
+  double zValue;
+  double T[16];
+} GDL_3DTRANSFORMDEVICE;
+
+static GDL_3DTRANSFORMDEVICE Data3d;
+//generalized for 'flat3d', using zValue, but with screen displacement of sizeX/2 sizeY/2 as this is used to bypass plplot's fixed device coordinates
+// PLPLOT device coords to physical coords (x)
+
+PLFLT my_plP_dcpcx(PLFLT x)
+{
+  return plsc->phyxmi + plsc->phyxlen * x;
+}
+
+// device coords to physical coords (y)
+
+PLFLT my_plP_dcpcy(PLFLT y)
+{
+  XwDev *dev = (XwDev *) plsc->dev;
+  return dev->ylen - (plsc->phyymi + plsc->phyylen * y);
+}
+// PLPLOT physical coords to device coords (x)
+//
+
+PLFLT my_plP_pcdcx(PLFLT x)
+{
+  return (x - plsc->phyxmi) / (double) plsc->phyxlen;
+}
+
+// physical coords to device coords (y)
+
+PLFLT my_plP_pcdcy(PLFLT y)
+{
+  XwDev *dev = (XwDev *) plsc->dev;
+  return ((dev->ylen - y) - plsc->phyymi) / (double) plsc->phyylen;
+}
+
+
+static void SelfTransform3D(int *xs, int *ys)
+{
+  PLFLT x = *xs, y = *ys;
+  // x and Y are in raw device coordinates.
+  // convert to NORM
+  x = my_plP_pcdcx(x);
+  y = my_plP_pcdcy(y);
+    pldebug( "SelfTransform3D1","x = %f, y = %f\n",x,y);
+ //here it is !P.T not a c/c++ transposed matrix
+  PLFLT xx,yy;
+  xx = x * Data3d.T[0] + y * Data3d.T[1] + Data3d.zValue * Data3d.T[2] + Data3d.T[3];
+  yy = x * Data3d.T[4] + y * Data3d.T[5] + Data3d.zValue * Data3d.T[6] + Data3d.T[7];
+    pldebug( "SelfTransform3D2","x = %f, y = %f\n",xx,yy);
+  // convert to device again
+  *xs = (int) (my_plP_dcpcx(xx));
+  *ys = (int) (my_plP_dcpcy(yy));
+    pldebug( "SelfTransform3D3","xs = %i, ys = %i\n",*xs,*ys);
+}
+
+static void
+Set3D(void* ptr)
+{
+  if (currDispatchTab == NULL) return;
+  if (ptr != NULL) {
+    GDL_3DTRANSFORMDEVICE* data=(GDL_3DTRANSFORMDEVICE*)ptr;
+    pldebug( "Set3D","ptr=%p\n",ptr);
+    for (int i = 0; i < 16; ++i) Data3d.T[i]=data->T[i]; 
+    Data3d.zValue = data->zValue;
+    currDispatchTab->pl_line = (plD_line_fp) plD_line_xw_3D;
+    currDispatchTab->pl_polyline = (plD_polyline_fp) plD_polyline_xw_3D;
+  }
+}
+static void
+UnSet3D()
+{
+  if (currDispatchTab == NULL) return;
+  pldebug( "UnSet3D","difits=%i\n",plsc->difilt);
+  pldebug( "UnSet3D","plbuf_write=%i\n",plsc->plbuf_write);
+  currDispatchTab->pl_line = (plD_line_fp) plD_line_xw;
+  currDispatchTab->pl_polyline = (plD_polyline_fp) plD_polyline_xw;
+}
 void plD_dispatch_init_xw( PLDispatchTable *pdt )
 {
+  currDispatchTab=pdt;
 #ifndef ENABLE_DYNDRIVERS
     pdt->pl_MenuStr = "X-Window (Xlib)";
     pdt->pl_DevName = "xwin";
@@ -362,7 +451,7 @@ plD_line_xw( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
     int       x1 = x1a, y1 = y1a, x2 = x2a, y2 = y2a;
 
     dbug_enter( "plD_line_xw" );
-
+    
 #ifdef PL_USE_PTHREADS_XWIN
     if ( usepthreads )
         pthread_mutex_lock( &events_mutex );
@@ -387,6 +476,56 @@ plD_line_xw( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
 #ifdef PL_USE_PTHREADS_XWIN
     if ( usepthreads )
         pthread_mutex_unlock( &events_mutex );
+#endif
+}
+
+//--------------------------------------------------------------------------
+// plD_line_xw_3D()
+//
+// Same as plD_line_xw() but passes coordinates through a 3D -> 2D transformation.
+// Use triggered by the 'escape' sequence PLESC_3D
+//--------------------------------------------------------------------------
+
+void
+plD_line_xw_3D(PLStream *pls, short x1a, short y1a, short x2a, short y2a)
+{
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+
+  int x1 = x1a, y1 = y1a, x2 = x2a, y2 = y2a;
+
+
+  dbug_enter("plD_line_xw_3D");
+
+#ifdef PL_USE_PTHREADS_XWIN
+  if (usepthreads)
+    pthread_mutex_lock(&events_mutex);
+#endif
+
+  CheckForEvents(pls);
+
+  y1 = dev->ylen - y1;
+  y2 = dev->ylen - y2;
+
+  // 3D convert on normalized values
+  SelfTransform3D(&x1, &y1);
+  SelfTransform3D(&x2, &y2);
+
+
+  x1 = (int) (x1 * dev->xscale);
+  x2 = (int) (x2 * dev->xscale);
+  y1 = (int) (y1 * dev->yscale);
+  y2 = (int) (y2 * dev->yscale);
+  
+  if (dev->write_to_window)
+    XDrawLine(xwd->display, dev->window, dev->gc, x1, y1, x2, y2);
+
+  if (dev->write_to_pixmap)
+    XDrawLine(xwd->display, dev->pixmap, dev->gc, x1, y1, x2, y2);
+
+#ifdef PL_USE_PTHREADS_XWIN
+  if (usepthreads)
+    pthread_mutex_unlock(&events_mutex);
 #endif
 }
 
@@ -465,6 +604,64 @@ plD_polyline_xw( PLStream *pls, short *xa, short *ya, PLINT npts )
     {
         free( pts );
     }
+}
+//--------------------------------------------------------------------------
+// plD_polyline_xw()
+//
+// same as above but using 3D reprojection
+//--------------------------------------------------------------------------
+
+void
+plD_polyline_xw_3D(PLStream *pls, short *xa, short *ya, PLINT npts)
+{
+  XwDev *dev = (XwDev *) pls->dev;
+  XwDisplay *xwd = (XwDisplay *) dev->xwd;
+
+  PLINT i;
+  XPoint _pts[PL_MAXPOLY];
+  XPoint *pts;
+
+  if (npts > PL_MAXPOLY) {
+    pts = (XPoint *) malloc(sizeof ( XPoint) * (size_t) npts);
+  } else {
+    pts = _pts;
+  }
+
+  dbug_enter("plD_polyline_xw_3D");
+
+#ifdef PL_USE_PTHREADS_XWIN
+  if (usepthreads)
+    pthread_mutex_lock(&events_mutex);
+#endif
+
+  CheckForEvents(pls);
+
+  for (i = 0; i < npts; i++) {
+    int x=xa[i];
+    int y=dev->ylen-ya[i];
+  // 3D convert, must take into account that y is inverted.
+    SelfTransform3D(&x, &y);
+
+    pts[i].x = (short) (dev->xscale * x);
+    pts[i].y = (short) (dev->yscale * y);
+  }
+
+  if (dev->write_to_window)
+    XDrawLines(xwd->display, dev->window, dev->gc, pts, npts,
+      CoordModeOrigin);
+
+  if (dev->write_to_pixmap)
+    XDrawLines(xwd->display, dev->pixmap, dev->gc, pts, npts,
+      CoordModeOrigin);
+
+#ifdef PL_USE_PTHREADS_XWIN
+  if (usepthreads)
+    pthread_mutex_unlock(&events_mutex);
+#endif
+
+  if (npts > PL_MAXPOLY) {
+    free(pts);
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -812,6 +1009,14 @@ plD_esc_xw( PLStream *pls, PLINT op, void *ptr )
 
     case PLESC_DEVINIT:
         OpenXwin( pls );
+        break;
+        
+    case PLESC_3D:
+        Set3D( ptr );
+        break;
+
+    case PLESC_2D:
+        UnSet3D();
         break;
     }
 

@@ -17,6 +17,11 @@
 
 #ifndef PLOTTING_HPP_
 #define PLOTTING_HPP_
+
+//for 3D transformations, with "our" plplot drivers.
+#define PLESC_2D 99
+#define PLESC_3D 100
+
 #define gdlPlot_Min(a, b) ((a) < (b) ? (a) : (b))
 #define gdlPlot_Max(a, b) ((a) > (b) ? (a) : (b))
 
@@ -70,6 +75,11 @@ typedef enum{ DATA=0,
       DEVICE,
       NONE //for TV()
     } COORDSYS;
+
+typedef struct {
+  DDouble zValue;
+  DDouble T[16];
+} GDL_3DTRANSFORMDEVICE;
 
 struct GDL_3DTRANSFORMDATA
 {
@@ -230,7 +240,6 @@ namespace lib {
   void SelfPerspective3d(DDoubleGDL* me, DDouble zdist);
   void SelfOblique3d(DDoubleGDL* me, DDouble dist, DDouble angle);
   void SelfExch3d(DDoubleGDL* me, T3DEXCHANGECODE axisExchangeCode);
-  void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
   void SelfProjectXY(SizeT nEl, DDouble *x, DDouble *y, COORDSYS const coordinateSystem);
 
   void SelfConvertToNormXYZ(DDoubleGDL* x, bool &xLog, DDoubleGDL* y, bool &yLog,DDoubleGDL* z, bool &zLog, COORDSYS &code);
@@ -238,10 +247,10 @@ namespace lib {
   void SelfConvertToNormXY(DDoubleGDL* x, bool &xLog, DDoubleGDL* y, bool &yLog, COORDSYS &code);
   void SelfPDotTTransformXYZ(SizeT n, PLFLT *xt, PLFLT *yt, PLFLT *zt);
   void SelfPDotTTransformXYZ(DDoubleGDL *xt, DDoubleGDL *yt, DDoubleGDL *zt);
-  void PDotTTransformXY(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
+  void PDotTTransformXY_todelete(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
   void PDotTTransformXYZval(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
-  
-  void gdl3dTo2dTransform(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer unused);
+  void PDotTTransformXYZvalForPlplotAxes(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
+  void gdl3dTo2dTransform_todelete(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer unused);
   DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale);
   DDoubleGDL* gdlDefinePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale, bool save);
   DDoubleGDL* gdlDoAsSurfr(DDouble az, DDouble alt, DDouble zValue);
@@ -249,7 +258,8 @@ namespace lib {
 							DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode);
   DDoubleGDL* gdlGetScaledNormalizedT3DMatrix(DDoubleGDL* Matrix=NULL);
   DDoubleGDL* gdlGetT3DMatrix();
-  void gdlSetPlplotW3(EnvT* e,GDLGStream* actStream,DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue, DDouble az, DDouble alt, DDouble *scale, T3DEXCHANGECODE axisExchangeCode); 
+  void gdlFillWithT3DMatrix(DDouble* T);
+  void gdlSetPlplotW3_todelete(EnvT* e,GDLGStream* actStream,DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue, DDouble az, DDouble alt, DDouble *scale, T3DEXCHANGECODE axisExchangeCode); 
   void gdlPlot3DBox(EnvT* e,GDLGStream* actStream,DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, T3DEXCHANGECODE axisExchangeCode); 
   void gdlPlot3DBorders(EnvT* e,GDLGStream* actStream,DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, T3DEXCHANGECODE axisExchangeCode); 
   void gdlNormed3dToWorld3d(DDoubleGDL *xVal, DDoubleGDL *yVal, DDoubleGDL* zVal,

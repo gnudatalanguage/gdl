@@ -826,7 +826,7 @@ namespace lib {
       (*z)[i] = c / w;
     }
   }  
-  void PDotTTransformXY(DDouble x, DDouble y, DDouble *xt, DDouble *yt, PLPointer unused){
+  void PDotTTransformXY_todelete(DDouble x, DDouble y, DDouble *xt, DDouble *yt, PLPointer unused){
 //    std::cerr<<"PDotTTransformXY()\n";
     //retrieve !P.T 
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
@@ -836,7 +836,7 @@ namespace lib {
     DDouble z=0;
     a = x * t[0] + y * t[1] + z * t[2] + t[3]; 
     b = x * t[4] + y * t[5] + z * t[6] + t[7]; 
-    c = x * t[8] + y * t[9] + z * t[10] + t[11]; 
+//    c = x * t[8] + y * t[9] + z * t[10] + t[11]; 
     w = x * t[12] + y * t[13] + z * t[14] + t[15];
     
     *xt = a / w; 
@@ -852,17 +852,88 @@ namespace lib {
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
     DDouble* t= static_cast<DDouble*>(pStruct->GetTag(tTag, 0)->DataAddr());
-    DDouble a,b,c,w;
-    a = x * t[0] + y * t[1] + z * t[2] + t[3]; 
-    b = x * t[4] + y * t[5] + z * t[6] + t[7]; 
-    c = x * t[8] + y * t[9] + z * t[10] + t[11]; 
-    w = x * t[12] + y * t[13] + z * t[14] + t[15];
-    
-    *xt = a / w; 
-    *yt = b / w; 
+    *xt = x * t[0] + y * t[1] + z * t[2] + t[3]; 
+    *yt = x * t[4] + y * t[5] + z * t[6] + t[7]; 
   }
+
+// PLPLOT device coords to physical coords (x)
+   DDouble plP_dcpcx(DDouble x) {
+    return plsc->phyxmi + plsc->phyxlen * x;
+  }
+
+  // device coords to physical coords (y)
+
+   DDouble plP_dcpcy(DDouble y) {
+    return plsc->phyymi + plsc->phyylen * y;
+  }
+// PLPLOT physical coords to device coords (x)
+//
+  DDouble
+  plP_pcdcx(DDouble x) {
+    return (x - plsc->phyxmi) / (double) plsc->phyxlen ;
+  }
+
+  // physical coords to device coords (y)
+
+  DDouble
+  plP_pcdcy(DDouble y) {
+    return (y - plsc->phyymi) / (double) plsc->phyylen;
+  }
+  
+// device coords to subpage coords (x)
+
+DDouble
+plP_dcscx( DDouble x )
+{
+    return  ( x - plsc->spdxmi ) / ( plsc->spdxma - plsc->spdxmi ) ;
+}
+
+// device coords to subpage coords (y)
+
+DDouble
+plP_dcscy( DDouble y )
+{
+    return ( y - plsc->spdymi ) / ( plsc->spdyma - plsc->spdymi ) ;
+  }
+  // subpage coords to device coords (x)
+
+  DDouble
+  plP_scdcx(DDouble x) {
+    return plsc->spdxmi + (plsc->spdxma - plsc->spdxmi) * x;
+  }
+
+  // subpage coords to device coords (y)
+
+  DDouble
+  plP_scdcy(DDouble y) {
+    return plsc->spdymi + (plsc->spdyma - plsc->spdymi) * y;
+  }
+
+  //generalized for 'flat3d', using zValue, but with screen displacement of sizeX/2 sizeY/2 as this is used to bypass plplot's fixed device coordinates
+   void PDotTTransformXYZvalForPlplotAxes(DDouble x, DDouble y, DDouble *xt, DDouble *yt, PLPointer data){
+//    std::cerr<<"PDotTTransformXYZvalForPlplotAxes()"<<std::endl;
+
+// x and Y are in raw device coordinates.
+// convert to NORM
+    x = plP_pcdcx(x);   
+    y = plP_pcdcy(y);   
+  
+    DDouble *pz=(DDouble*) data;
+    DDouble z=*pz;
+    //retrieve !P.T 
+    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+    static unsigned tTag = pStruct->Desc()->TagIndex("T");
+    DDouble* t= static_cast<DDouble*>(pStruct->GetTag(tTag, 0)->DataAddr());
+    *xt = x * t[0] + y * t[1] + z * t[2] + t[3]; 
+    *yt = x * t[4] + y * t[5] + z * t[6] + t[7]; 
+// convert to device again
+    *xt = plP_dcpcx(*xt);
+    *yt = plP_dcpcy(*yt);
+
+
+ }
    
-  void gdl3dTo2dTransform(DDouble x, DDouble y, DDouble *xt, DDouble *yt, PLPointer data) {
+   void gdl3dTo2dTransform_todelete(DDouble x, DDouble y, DDouble *xt, DDouble *yt, PLPointer data) {
 //    std::cerr<<"gdl3dTo2dTransform()\n";
     struct GDL_3DTRANSFORMDATA *ptr = (GDL_3DTRANSFORMDATA*) data;
     DDoubleGDL* xyzw = new DDoubleGDL(dimension(4));
@@ -880,7 +951,7 @@ namespace lib {
   //retrieve !P.T,
 
   DDoubleGDL* gdlGetT3DMatrix() {
-//    std::cerr<<"gdlGetT3DMatrix()\n";
+    std::cerr<<"gdlGetT3DMatrix()\n";
     DDoubleGDL* t3dMatrix = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
@@ -888,51 +959,69 @@ namespace lib {
     SelfTranspose3d(t3dMatrix);
     return t3dMatrix;
   }
+
+//  void gdlFillWithT3DMatrix(DDouble* T) {
+//    std::cerr << "gdlFillWithT3DMatrix()\n";
+//    DDoubleGDL* t3dMatrix = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
+//    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+//    static unsigned tTag = pStruct->Desc()->TagIndex("T");
+//    for (int i = 0; i < t3dMatrix->N_Elements(); ++i)(*t3dMatrix)[i] = (*static_cast<DDoubleGDL*> (pStruct->GetTag(tTag, 0)))[i];
+//    SelfTranspose3d(t3dMatrix);
+//    for (int i = 0; i < 16; ++i)T[i] = (*t3dMatrix)[i];
+//    GDLDelete(t3dMatrix);
+//  }
+  //simpler, transposition must be done in client code.
+  void gdlFillWithT3DMatrix(DDouble* T) {
+    std::cerr<<"gdlFillWithT3DMatrix()\n";
+    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+    static unsigned tTag = pStruct->Desc()->TagIndex("T");
+    for (int i = 0; i < 16; ++i)T[i] = (*static_cast<DDoubleGDL*> (pStruct->GetTag(tTag, 0)))[i];
+  }
   // retrieve !P.T, (or use passed matrix)
   // scale to current X.S Y.S and Z.S, returns a matrix that can be applied directly to
   // XYZ data to get projected X' Y' *normalized* coordinates values
 
-  DDoubleGDL* gdlGetScaledNormalizedT3DMatrix(DDoubleGDL* passedMatrix) {
-    std::cerr<<"POLYFILL: ???? gdlGetScaledNormalizedT3DMatrix()\n";
-    DDoubleGDL* t3dMatrix;
-    if (passedMatrix == NULL) t3dMatrix = gdlGetT3DMatrix();
-    else t3dMatrix = passedMatrix;
-    DDouble *sx, *sy, *sz;
-    GetSFromPlotStructs(&sx, &sy, &sz);
-    DDoubleGDL* toScaled = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
-    SelfReset3d(toScaled);
-    DDouble depla[3] = {sx[0], sy[0], sz[0]};
-    DDouble scale[3] = {sx[1], sy[1], sz[1]};
-    SelfScale3d(toScaled, scale); //pay attention to order for matrices!
-    SelfTranslate3d(toScaled, depla);
-    DDoubleGDL* returnMatrix = t3dMatrix->MatrixOp(toScaled, false, false);
-    GDLDelete(toScaled);
-    if (passedMatrix == NULL) GDLDelete(t3dMatrix);
-    return returnMatrix;
-  }
+//  DDoubleGDL* gdlGetScaledNormalizedT3DMatrix(DDoubleGDL* passedMatrix) {
+//    std::cerr<<"POLYFILL: ???? gdlGetScaledNormalizedT3DMatrix()\n";
+//    DDoubleGDL* t3dMatrix;
+//    if (passedMatrix == NULL) t3dMatrix = gdlGetT3DMatrix();
+//    else t3dMatrix = passedMatrix;
+//    DDouble *sx, *sy, *sz;
+//    GetSFromPlotStructs(&sx, &sy, &sz);
+//    DDoubleGDL* toScaled = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
+//    SelfReset3d(toScaled);
+//    DDouble depla[3] = {sx[0], sy[0], sz[0]};
+//    DDouble scale[3] = {sx[1], sy[1], sz[1]};
+//    SelfScale3d(toScaled, scale); //pay attention to order for matrices!
+//    SelfTranslate3d(toScaled, depla);
+//    DDoubleGDL* returnMatrix = t3dMatrix->MatrixOp(toScaled, false, false);
+//    GDLDelete(toScaled);
+//    if (passedMatrix == NULL) GDLDelete(t3dMatrix);
+//    return returnMatrix;
+//  }
 
-  void gdl3dto2dProjectDDouble(DDoubleGDL* t3dMatrix, DDoubleGDL *xVal, DDoubleGDL *yVal, DDoubleGDL* zVal,
-    DDoubleGDL *xValou, DDoubleGDL *yValou, int* code) {
-    std::cerr<<"POLYFILL: ???? gdl3dto2dProjectDDouble()\n";
-    DDoubleGDL * decodedAxis[3] = {xVal, yVal, zVal};
-    int *localCode = code;
-    if (localCode == NULL) localCode = code012;
-    //populate a 4D matrix with reduced coordinates through sx,sy,sz:
-    SizeT nEl = xVal->N_Elements();
-    DDoubleGDL* xyzw = new DDoubleGDL(dimension(nEl, 4));
-    memcpy(&((*xyzw)[0]), decodedAxis[localCode[0]]->DataAddr(), nEl * sizeof (double));
-    memcpy(&((*xyzw)[nEl]), decodedAxis[localCode[1]]->DataAddr(), nEl * sizeof (double));
-    memcpy(&((*xyzw)[2 * nEl]), decodedAxis[localCode[2]]->DataAddr(), nEl * sizeof (double));
-    for (int index = 0; index < nEl; ++index) {
-      (*xyzw)[3 * nEl + index] = 1.0;
-    }
-    DDoubleGDL* trans = xyzw->MatrixOp(t3dMatrix, false, true);
-    memcpy(xValou->DataAddr(), trans->DataAddr(), nEl * sizeof (double));
-    memcpy(yValou->DataAddr(), &(*trans)[nEl], nEl * sizeof (double));
-    GDLDelete(trans);
-    GDLDelete(xyzw);
-  }
-
+//  void gdl3dto2dProjectDDouble(DDoubleGDL* t3dMatrix, DDoubleGDL *xVal, DDoubleGDL *yVal, DDoubleGDL* zVal,
+//    DDoubleGDL *xValou, DDoubleGDL *yValou, int* code) {
+//    std::cerr<<"POLYFILL: ???? gdl3dto2dProjectDDouble()\n";
+//    DDoubleGDL * decodedAxis[3] = {xVal, yVal, zVal};
+//    int *localCode = code;
+//    if (localCode == NULL) localCode = code012;
+//    //populate a 4D matrix with reduced coordinates through sx,sy,sz:
+//    SizeT nEl = xVal->N_Elements();
+//    DDoubleGDL* xyzw = new DDoubleGDL(dimension(nEl, 4));
+//    memcpy(&((*xyzw)[0]), decodedAxis[localCode[0]]->DataAddr(), nEl * sizeof (double));
+//    memcpy(&((*xyzw)[nEl]), decodedAxis[localCode[1]]->DataAddr(), nEl * sizeof (double));
+//    memcpy(&((*xyzw)[2 * nEl]), decodedAxis[localCode[2]]->DataAddr(), nEl * sizeof (double));
+//    for (int index = 0; index < nEl; ++index) {
+//      (*xyzw)[3 * nEl + index] = 1.0;
+//    }
+//    DDoubleGDL* trans = xyzw->MatrixOp(t3dMatrix, false, true);
+//    memcpy(xValou->DataAddr(), trans->DataAddr(), nEl * sizeof (double));
+//    memcpy(yValou->DataAddr(), &(*trans)[nEl], nEl * sizeof (double));
+//    GDLDelete(trans);
+//    GDLDelete(xyzw);
+//  }
+//
   
 // Check if passed 4x4 matrix is valid :
 // the projection of the Z axis must be on the Y axis, otherwise the matrix is not good.
@@ -1157,43 +1246,44 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble
       ye = zEnd;
       break;
     }
-    switch (axisExchangeCode) {
-    case NORMAL3D: //X->X Y->Y plane XY
-//      actStream->stransform(PDotTTransformXYZval, &zs);
-      actStream->join(xs, ys, xs, ye);
-      actStream->join(xs, ys, xe, ys);
-      actStream->join(xe, ye, xs, ye);
-      actStream->join(xe, ye, xe, ys);
-      actStream->ptex(xs,ys,0,0,0,"XS");
-      actStream->ptex(xe,ys,0,0,0,"XE");
-      actStream->ptex(xs,ys,0,0,0,"YS");
-      actStream->ptex(xs,ye,0,0,0,"YE");
-//      actStream->stransform(PDotTTransformXYZval, &ze);
-//      actStream->join(xs, ys, xs, ye);
-//      actStream->join(xs, ys, xe, ys);
-//      actStream->join(xe, ye, xs, ye);
-//      actStream->join(xe, ye, xe, ys);     
-      break;
-    case XY: // X->Y Y->X plane XY
-      actStream->stransform(PDotTTransformXYZval, &zStart);
-      actStream->join(ys, xe, ye, xe);
-      actStream->join(ye, xs, ye, xe);
-      break;
-    case XZ: // Y->Y X->Z plane YZ
-      actStream->stransform(PDotTTransformXYZval, &xStart);
-      actStream->join(zs, ys, ze, ys);
-      actStream->join(ze, ys, ze, ye);
-    case YZ: // X->X Y->Z plane XZ
-      actStream->stransform(PDotTTransformXYZval, &xStart);
-      actStream->join(zs, ys, ze, ys);
-      actStream->join(ze, ys, ze, ye);
-    default:
-      break;
-    }
+    actStream->join(xs, ys, xs, ye);
+    actStream->join(xs, ys, xe, ys);
+    actStream->join(xe, ye, xs, ye);
+    actStream->join(xe, ye, xe, ys);
+
+//    switch (axisExchangeCode) {
+//    case NORMAL3D: //X->X Y->Y plane XY
+////      actStream->stransform(PDotTTransformXYZval, &zs);
+////      actStream->ptex(xs,ys,0,0,0,"XS");
+////      actStream->ptex(xe,ys,0,0,0,"XE");
+////      actStream->ptex(xs,ys,0,0,0,"YS");
+////      actStream->ptex(xs,ye,0,0,0,"YE");
+////      actStream->stransform(PDotTTransformXYZval, &ze);
+////      actStream->join(xs, ys, xs, ye);
+////      actStream->join(xs, ys, xe, ys);
+////      actStream->join(xe, ye, xs, ye);
+////      actStream->join(xe, ye, xe, ys);     
+//      break;
+//    case XY: // X->Y Y->X plane XY
+//      actStream->stransform(PDotTTransformXYZval, &zStart);
+//      actStream->join(ys, xe, ye, xe);
+//      actStream->join(ye, xs, ye, xe);
+//      break;
+//    case XZ: // Y->Y X->Z plane YZ
+//      actStream->stransform(PDotTTransformXYZval, &xStart);
+//      actStream->join(zs, ys, ze, ys);
+//      actStream->join(ze, ys, ze, ye);
+//    case YZ: // X->X Y->Z plane XZ
+//      actStream->stransform(PDotTTransformXYZval, &xStart);
+//      actStream->join(zs, ys, ze, ys);
+//      actStream->join(ze, ys, ze, ye);
+//    default:
+//      break;
+//    }
     actStream->stransform(NULL, NULL);
   }
 
-  void gdlSetPlplotW3(EnvT* e, GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog,  DDouble zValue, DDouble az, DDouble alt, DDouble *scale, T3DEXCHANGECODE axisExchangeCode) {
+  void gdlSetPlplotW3_todelete(EnvT* e, GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog,  DDouble zValue, DDouble az, DDouble alt, DDouble *scale, T3DEXCHANGECODE axisExchangeCode) {
     std::cerr << "gdlSetPlplotW3(AXISEXCHANGECODE=" << axisExchangeCode << ")\n";
     DDouble t3xStart, t3xEnd, t3yStart, t3yEnd, t3zStart, t3zEnd;
     switch (axisExchangeCode) {

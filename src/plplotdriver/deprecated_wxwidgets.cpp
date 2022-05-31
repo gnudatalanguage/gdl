@@ -545,7 +545,7 @@ void plD_init_wxwidgets( PLStream* pls )
     wxPLDevBase* dev;
     dev = common_init( pls );
 
-    pls->plbuf_write = 1;             // use the plot buffer!
+    pls->plbuf_write = 0;             // use the plot buffer!
     pls->termin      = 1;             // interactive device
     pls->graphx      = GRAPHICS_MODE; //  No text mode for this driver (at least for now, might add a console window if I ever figure it out and have the inclination)
 

@@ -18,6 +18,8 @@
 #include "includefirst.hpp"
 #include "plotting.hpp"
 
+static GDL_3DTRANSFORMDEVICE PlotDevice3d;
+
 namespace lib {
 
   using namespace std;
@@ -271,44 +273,24 @@ namespace lib {
       gdlSetPlotCharsize(e, actStream);
       if (gdlSet2DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, iso) == false) return; //no good: should catch an exception to get out of this mess.
 
-      if (doT3d) {
-
-        static DDouble x0, y0, xs, ys; //conversion to normalized coords
-        x0 = (xLog) ? -log10(xStart) : -xStart;
-        y0 = (yLog) ? -log10(yStart) : -yStart;
-        xs = (xLog) ? (log10(xEnd) - log10(xStart)) : xEnd - xStart;
-        xs = 1.0 / xs;
-        ys = (yLog) ? (log10(yEnd) - log10(yStart)) : yEnd - yStart;
-        ys = 1.0 / ys;
-
-        DDoubleGDL* plplot3d;
-        DDouble az, alt, ay, scale[3] = TEMPORARY_PLOT3D_SCALE;
-
-//        plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
-//        if (plplot3d == NULL) {
-//          e->Throw("Illegal 3D transformation. (FIXME)");
-//        }
-        az=0; alt=0; ay=0;
-        plplot3d = gdlGetT3DMatrix();
-        axisExchangeCode=NORMAL3D;
- //       if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog, xStart, xEnd, yStart, yEnd) == false) return;
-        gdlSetGraphicsForegroundColorFromKw(e, actStream);
-//        gdlSetPlplotW3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, 0, 1, false, zValue, az, alt, scale, axisExchangeCode);
-
-      } else {
-        //fix viewport and coordinates for non-3D box. this permits to have correct UsymConv values.
-        // it is important to fix simsize before!
-        gdlSetSymsize(e, actStream);
-        //        if (gdlSetViewPortAndWorldCoordinates(e, actStream,
-        //          xLog, yLog,
-        //          xMarginL, xMarginR, yMarginB, yMarginT,
-        //          xStart, xEnd, yStart, yEnd, iso) == false) return; //no good: should catch an exception to get out of this mess.
-        actStream->setSymbolSizeConversionFactors();
-        //current pen color...
-        gdlSetGraphicsForegroundColorFromKw(e, actStream);
-        gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
-      }
-
+      if (doT3d) { //do special transform for boxes
+//        actStream->stransform(PDotTTransformXYZvalForPlplotAxes, &zValue);
+        gdlFillWithT3DMatrix(PlotDevice3d.T);
+        PlotDevice3d.zValue=zValue;
+        actStream->cmd( PLESC_3D,  &PlotDevice3d);
+      } 
+      gdlSetSymsize(e, actStream);
+      actStream->setSymbolSizeConversionFactors();
+      //current pen color...
+      gdlSetGraphicsForegroundColorFromKw(e, actStream);
+      gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
+      
+      // title and sub title
+      gdlWriteTitleAndSubtitle(e, actStream);
+//       if (doT3d) {
+//         actStream->cmd( PLESC_2D,  NULL);
+//       }
+      //NOW we work as for all other graphic procedures, in NORMmalized coordinates
       actStream->OnePageSaveLayout(); // one page
 
       //CLIPPING (or not) is just defining the adequate viewport and world coordinates, all of them normalized since this is what plplot will get in the end.
@@ -316,7 +298,7 @@ namespace lib {
       bool noclip = e->BooleanKeywordSet(NOCLIPIx);
       // Clipping is enabled by default for OPLOT.
       int CLIP = e->KeywordIx("CLIP");
-      bool doClip = (e->KeywordSet(CLIP) && !(noclip) && !doT3d);
+      bool doClip = (!(noclip) && !doT3d);
 
       PLFLT xnormmin = 0;
       PLFLT xnormmax = 1;
@@ -381,7 +363,7 @@ namespace lib {
 
 
       // reproject using P.T transformation in [0..1] cube during the actual plot using pltransform() (to reproject also the PSYMs is possible with plplot only if z = 0, using this trick :
-      if (doT3d) actStream->stransform(PDotTTransformXYZval, &zValue);
+//      if (doT3d) actStream->stransform(PDotTTransformXYZval, &zValue);
 
       bool mapSet = false;
       get_mapset(mapSet);
@@ -432,14 +414,10 @@ namespace lib {
     }
 
     void post_call(EnvT* e, GDLGStream* actStream) {
-      // title and sub title
-      gdlWriteTitleAndSubtitle(e, actStream);
       if (doT3d) {
-//      gdlPlot3DBox(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, 0, 1, false, axisExchangeCode);
-        SelfConvertToNormXY(1,&xStart,xLog,&yStart, yLog, DATA);
-        SelfConvertToNormXY(1,&xEnd,xLog,&yEnd, yLog, DATA);
-      gdlPlot3DBorders(e, actStream, xStart, xEnd, false, yStart, yEnd, false, zValue, 1, false, axisExchangeCode);
+        actStream->cmd(PLESC_2D, NULL);
       }
+      
       actStream->stransform(NULL, NULL);
       actStream->lsty(1); //reset linestyle
       actStream->sizeChar(1.0);

@@ -426,7 +426,7 @@ namespace lib
         if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
           xStart, xEnd, yStart, yEnd, zStart, zEnd, zLog) == FALSE) return;
         //start 3D->2D coordinate conversions in plplot
-        actStream->stransform(gdl3dTo2dTransform, &Data3d);
+        actStream->stransform(gdl3dTo2dTransform_todelete, &Data3d);
       }
 
       if (xLog && xStart <= 0.0) Warning("CONTOUR: Infinite x plot range.");
@@ -769,7 +769,7 @@ namespace lib
             for (SizeT i = 0; i < nlevel - 1; ++i) {
               if (doT3d & !hasZvalue) {
                 Data3d.zValue = clevel[i] / (cmax - cmin);
-                actStream->stransform(gdl3dTo2dTransform, &Data3d);
+                actStream->stransform(gdl3dTo2dTransform_todelete, &Data3d);
               }
               ori = floor(10.0 * (*orientation)[i % orientation->N_Elements()]);
               spa = floor(10000 * (*spacing)[i % spacing->N_Elements()]);
@@ -795,7 +795,7 @@ namespace lib
           else if (doT3d & !hasZvalue) { //contours will be filled with solid color and displaced in Z according to their value
             for (SizeT i = 0; i < nlevel; ++i) {
               Data3d.zValue = clevel[i] / (cmax - cmin); //displacement in Z
-              actStream->stransform(gdl3dTo2dTransform, &Data3d);
+              actStream->stransform(gdl3dTo2dTransform_todelete, &Data3d);
 
               value = static_cast<PLFLT> (i) / nlevel;
               actStream->shade(map, xEl, yEl, isLog ? doIt : NULL,
@@ -842,7 +842,7 @@ namespace lib
           for (SizeT i = 0; i < nlevel; ++i) {
             if (doT3d & !hasZvalue) {
               Data3d.zValue = clevel[i] / (cmax - cmin);
-              actStream->stransform(gdl3dTo2dTransform, &Data3d);
+              actStream->stransform(gdl3dTo2dTransform_todelete, &Data3d);
             }
             if (docolors) actStream->Color((*colors)[i % colors->N_Elements()], decomposed);
             if (dothick) {
@@ -903,12 +903,10 @@ namespace lib
         gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
       }
       if (make3dBox) { //overplot box
-        gdlSetPlplotW3(e,actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, az, alt, scale, axisExchangeCode);
+        gdlSetPlplotW3_todelete(e,actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, az, alt, scale, axisExchangeCode);
         gdlAxis3(e, actStream, ZAXIS, xStart, xEnd, xLog, 1);
         gdlAxis3(e, actStream, XAXIS, yStart, yEnd, yLog);
       }
-      // title and sub title
-      gdlWriteTitleAndSubtitle(e, actStream);
     }
 
   private:

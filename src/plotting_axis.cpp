@@ -252,7 +252,7 @@ namespace lib {
 //      if (xAxis) gdlAxis3(e, actStream, XAXIS, xStart, xEnd, xLog);
 //      if (yAxis) gdlAxis3(e, actStream, YAXIS, yStart, yEnd, yLog);
 //      if (zAxis) gdlAxis3(e, actStream, ZAXIS, zStart, zEnd, zLog);
-        actStream->stransform(PDotTTransformXY, NULL);
+        actStream->stransform(PDotTTransformXY_todelete, NULL);
         actStream->box("tvn", 1, 0.5, "tvn", 1, 0.5);
         actStream->mtex("b", 0.5, 0.5, 0.5, "TITLE");
     } else

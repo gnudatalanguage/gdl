@@ -1112,3 +1112,6 @@ bool GDLGStream::SetRegion(DLong& xs, DLong& ys, DLong& nx, DLong& ny){
   GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
   return this->PaintImage(actDevice->GetCopyBuffer(), nx, ny, pos, 1, 0);  
 }
+//
+////plplot main functions patched for 3d
+//#include "plplotdriver/plutils.h"
