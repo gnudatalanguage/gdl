@@ -219,7 +219,7 @@ public:
     theBox.initialized=false;
     plgpls( &pls);
     //you can debug plplot things with
-     pls->debug=1;
+//     pls->debug=1;
 
 	if (GDL_DEBUG_PLSTREAM) printf(" new GDLGstream( %d , %d , %s ):pls=%p \n", nx, ny, driver, (void *)pls);
 

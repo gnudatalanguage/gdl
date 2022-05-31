@@ -95,11 +95,20 @@ get_font( PSDev* dev, PLUNICODE fci );
 // that scales, rotates (with slanting) and offsets text strings.
 // It has yet some bugs for 3d plots.
 
+//define LINE2D, LINE3D, POLYLINE2D, POLYLINE3D
+#define LINE2D plD_line_ps
+#define LINE3D plD_line_ps_3D
+#define POLYLINE2D plD_polyline_ps
+#define POLYLINE3D plD_polyline_ps_3D
+#include "plplot3d.h"
 
 static void ps_dispatch_init_helper( PLDispatchTable *pdt,
                                      const char *menustr, const char *devnam,
                                      int type, int seq, plD_init_fp init )
 {
+  currDispatchTab = pdt;
+  Status3D = 0;
+
 #ifndef ENABLE_DYNDRIVERS
     pdt->pl_MenuStr = (char *) menustr;
     pdt->pl_DevName = (char *) devnam;
@@ -468,7 +477,60 @@ plD_line_ps( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
     dev->xold     = x2;
     dev->yold     = y2;
 }
+//--------------------------------------------------------------------------
+// same as above ut with 3D enabled
+//--------------------------------------------------------------------------
 
+void
+plD_line_ps_3D(PLStream *pls, short x1a, short y1a, short x2a, short y2a)
+{
+  PSDev *dev = (PSDev *) pls->dev;
+  PLINT x1 = x1a, y1 = y1a, x2 = x2a, y2 = y2a;
+
+  // 3D convert on normalized values
+  SelfTransform3D(&x1, &y1);
+  SelfTransform3D(&x2, &y2);
+
+  // Rotate by 90 degrees
+
+  plRotPhy(ORIENTATION, dev->xmin, dev->ymin, dev->xmax, dev->ymax, &x1, &y1);
+  plRotPhy(ORIENTATION, dev->xmin, dev->ymin, dev->xmax, dev->ymax, &x2, &y2);
+
+  if (x1 == dev->xold && y1 == dev->yold && dev->ptcnt < 40) {
+    if (pls->linepos + 12 > LINELENGTH) {
+      putc('\n', OF);
+      pls->linepos = 0;
+    } else
+      putc(' ', OF);
+
+    snprintf(outbuf, OUTBUF_LEN, "%d %d D", x2, y2);
+    dev->ptcnt++;
+    pls->linepos += 12;
+  } else {
+    fprintf(OF, " Z\n");
+    pls->linepos = 0;
+
+    if (x1 == x2 && y1 == y2) // must be a single dot, draw a circle
+      snprintf(outbuf, OUTBUF_LEN, "%d %d A", x1, y1);
+    else
+      snprintf(outbuf, OUTBUF_LEN, "%d %d M %d %d D", x1, y1, x2, y2);
+    dev->llx = MIN(dev->llx, x1);
+    dev->lly = MIN(dev->lly, y1);
+    dev->urx = MAX(dev->urx, x1);
+    dev->ury = MAX(dev->ury, y1);
+    dev->ptcnt = 1;
+    pls->linepos += 24;
+  }
+  dev->llx = MIN(dev->llx, x2);
+  dev->lly = MIN(dev->lly, y2);
+  dev->urx = MAX(dev->urx, x2);
+  dev->ury = MAX(dev->ury, y2);
+
+  fprintf(OF, "%s", outbuf);
+  pls->bytecnt += 1 + (PLINT) strlen(outbuf);
+  dev->xold = x2;
+  dev->yold = y2;
+}
 //--------------------------------------------------------------------------
 // plD_polyline_ps()
 //
@@ -482,6 +544,18 @@ plD_polyline_ps( PLStream *pls, short *xa, short *ya, PLINT npts )
 
     for ( i = 0; i < npts - 1; i++ )
         plD_line_ps( pls, xa[i], ya[i], xa[i + 1], ya[i + 1] );
+}
+//--------------------------------------------------------------------------
+// Same as above for 3D
+//--------------------------------------------------------------------------
+
+void
+plD_polyline_ps_3D(PLStream *pls, short *xa, short *ya, PLINT npts)
+{
+  PLINT i;
+
+  for (i = 0; i < npts - 1; i++)
+    plD_line_ps_3D(pls, xa[i], ya[i], xa[i + 1], ya[i + 1]);
 }
 
 //--------------------------------------------------------------------------
@@ -653,15 +727,21 @@ plD_state_ps( PLStream *pls, PLINT op )
 //--------------------------------------------------------------------------
 
 void
-plD_esc_ps( PLStream *pls, PLINT op, void *ptr )
+plD_esc_ps(PLStream *pls, PLINT op, void *ptr)
 {
     switch ( op )
     {
-    case PLESC_FILL:
-        fill_polygon( pls );
+      case PLESC_FILL:
+        fill_polygon(pls);
         break;
-    case PLESC_HAS_TEXT:
-        proc_str( pls, (EscText *) ptr );
+      case PLESC_HAS_TEXT:
+        proc_str(pls, (EscText *) ptr);
+        break;
+      case PLESC_3D:
+        Set3D(ptr);
+        break;
+      case PLESC_2D:
+        UnSet3D();
         break;
     }
 }

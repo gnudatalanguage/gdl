@@ -39,6 +39,13 @@
 
 #include "deprecated_wxwidgets.h"
 
+//define LINE2D, LINE3D, POLYLINE2D, POLYLINE3D
+#define LINE2D plD_line_wxwidgets
+#define LINE3D plD_line_wxwidgets_3D
+#define POLYLINE2D plD_polyline_wxwidgets
+#define POLYLINE3D plD_polyline_wxwidgets_3D
+#include "plplot3d.h"
+
 // Static function prototypes
 #ifdef PL_HAVE_FREETYPE
 static void plD_pixel_wxwidgets( PLStream *pls, short x, short y );
@@ -517,6 +524,8 @@ wxPLDevBase* common_init( PLStream *pls )
 //--------------------------------------------------------------------------
 void plD_dispatch_init_wxwidgets( PLDispatchTable *pdt )
 {
+    currDispatchTab=pdt;
+    Status3D=0;
 #ifndef ENABLE_DYNDRIVERS
     pdt->pl_MenuStr = "wxWidgets DC";
     pdt->pl_DevName = "wxwidgets";
@@ -640,6 +649,39 @@ void plD_line_wxwidgets( PLStream *pls, short x1a, short y1a, short x2a, short y
     }
 }
 
+//--------------------------------------------------------------------------
+//  Same as above but with 3D projection.
+//--------------------------------------------------------------------------
+void plD_line_wxwidgets_3D( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
+{
+    // Log_Verbose( "plD_line_wxwidgets(x1a=%d, y1a=%d, x2a=%d, y2a=%d)", x1a, y1a, x2a, y2a );
+
+    wxPLDevBase* dev = (wxPLDevBase *) pls->dev;
+
+    if ( !( dev->ready ) )
+        install_buffer( pls );
+
+  int x1 = x1a, y1 = y1a, x2 = x2a, y2 = y2a;
+  // 3D convert on normalized values
+  SelfTransform3D(&x1, &y1);
+  SelfTransform3D(&x2, &y2);
+  x1a = x1;
+  y1a = y1;
+  x2a = x2;
+  y2a = y2;
+
+    dev->DrawLine( x1a, y1a, x2a, y2a );
+
+    if ( !( dev->resizing ) && dev->ownGUI )
+    {
+        dev->comcount++;
+        if ( dev->comcount > MAX_COMCOUNT )
+        {
+            wxRunApp( pls, true );
+            dev->comcount = 0;
+        }
+    }
+}
 
 //--------------------------------------------------------------------------
 //  void plD_polyline_wxwidgets( PLStream *pls, short *xa, short *ya,
@@ -670,6 +712,38 @@ void plD_polyline_wxwidgets( PLStream *pls, short *xa, short *ya, PLINT npts )
     }
 }
 
+//--------------------------------------------------------------------------
+//  Same as above but with 3D projection.
+//--------------------------------------------------------------------------
+
+void plD_polyline_wxwidgets_3D(PLStream *pls, short *xa, short *ya, PLINT npts) {
+  // Log_Verbose( "plD_polyline_wxwidgets()" );
+
+  // should be changed to use the wxDC::DrawLines function?
+  wxPLDevBase* dev = (wxPLDevBase *) pls->dev;
+
+  if (!(dev->ready))
+    install_buffer(pls);
+  
+  for (PLINT i = 0; i < npts; ++i) {
+    int x = xa[i];
+    int y = ya[i];
+    // 3D convert
+    SelfTransform3D(&x, &y);
+    xa[i] = x;
+    ya[i] = y;
+  }
+
+  dev->DrawPolyline(xa, ya, npts);
+
+  if (!(dev->resizing) && dev->ownGUI) {
+    dev->comcount++;
+    if (dev->comcount > MAX_COMCOUNT) {
+      wxRunApp(pls, true);
+      dev->comcount = 0;
+    }
+  }
+}
 
 //--------------------------------------------------------------------------
 //  void plD_eop_wxwidgets( PLStream *pls )
@@ -939,6 +1013,14 @@ void plD_esc_wxwidgets( PLStream *pls, PLINT op, void *ptr )
     case PLESC_GETBACKEND:
         *( (int *) ptr ) = dev->backend;
         break;
+
+    case PLESC_3D:
+      Set3D(ptr);
+      break;
+
+    case PLESC_2D:
+      UnSet3D();
+      break;
 
     default:
         break;

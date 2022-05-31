@@ -273,8 +273,7 @@ namespace lib {
       gdlSetPlotCharsize(e, actStream);
       if (gdlSet2DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, iso) == false) return; //no good: should catch an exception to get out of this mess.
 
-      if (doT3d) { //do special transform for boxes
-//        actStream->stransform(PDotTTransformXYZvalForPlplotAxes, &zValue);
+      if (doT3d) { //call for driver to perform special transform for all further drawing
         gdlFillWithT3DMatrix(PlotDevice3d.T);
         PlotDevice3d.zValue=zValue;
         actStream->cmd( PLESC_3D,  &PlotDevice3d);
@@ -287,10 +286,8 @@ namespace lib {
       
       // title and sub title
       gdlWriteTitleAndSubtitle(e, actStream);
-//       if (doT3d) {
-//         actStream->cmd( PLESC_2D,  NULL);
-//       }
-      //NOW we work as for all other graphic procedures, in NORMmalized coordinates
+
+      //NOW we work as for all other graphic procedures, in NORMmalized coordinates, as for PLOTS etc.
       actStream->OnePageSaveLayout(); // one page
 
       //CLIPPING (or not) is just defining the adequate viewport and world coordinates, all of them normalized since this is what plplot will get in the end.
@@ -361,10 +358,6 @@ namespace lib {
       gdlSetLineStyle(e, actStream); //LINESTYLE
       gdlGetPsym(e, psym); //PSYM
 
-
-      // reproject using P.T transformation in [0..1] cube during the actual plot using pltransform() (to reproject also the PSYMs is possible with plplot only if z = 0, using this trick :
-//      if (doT3d) actStream->stransform(PDotTTransformXYZval, &zValue);
-
       bool mapSet = false;
       get_mapset(mapSet);
       mapSet = (mapSet && coordinateSystem == DATA); //always the case here
@@ -414,10 +407,9 @@ namespace lib {
     }
 
     void post_call(EnvT* e, GDLGStream* actStream) {
-      if (doT3d) {
+      if (doT3d) { //reset driver to 2D plotting routines.
         actStream->cmd(PLESC_2D, NULL);
       }
-      
       actStream->stransform(NULL, NULL);
       actStream->lsty(1); //reset linestyle
       actStream->sizeChar(1.0);

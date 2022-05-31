@@ -335,7 +335,12 @@ PLINT wxPLDevDC::GetPixel( short x, short y )
 void wxPLDevDC::PSDrawTextToDC( char* utf8_string, bool drawText )
 {
     wxCoord  w, h, d, l;
-
+    
+    //must find the correct transformation in case of 3D
+//    printf( "%i %i\n",posX,posY );
+//    SelfTransform3D(&posX, &posY);
+//    printf( "%i %i\n",posX,posY );
+    
     wxString str( wxConvUTF8.cMB2WC( utf8_string ), *wxConvCurrent );
 
     m_dc->GetTextExtent( str, &w, &h, &d, &l );
