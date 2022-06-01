@@ -31,6 +31,11 @@ void plD_tidy_mem( PLStream * );
 void plD_state_mem( PLStream *, PLINT );
 void plD_esc_mem( PLStream *, PLINT, void * );
 
+//define LINE2D, POLYLINE2D
+#define LINE2D plD_line_mem
+#define POLYLINE2D plD_polyline_mem
+#include "plplot3d.h"
+
 #undef MAX
 #undef ABS
 #define MAX( a, b )    ( ( a > b ) ? a : b )
@@ -40,6 +45,8 @@ void plD_esc_mem( PLStream *, PLINT, void * );
 
 void plD_dispatch_init_mem( PLDispatchTable *pdt )
 {
+  currDispatchTab = pdt;
+  Status3D = 0;
 #ifndef ENABLE_DYNDRIVERS
     pdt->pl_MenuStr = "User-supplied memory device";
     pdt->pl_DevName = "mem";
@@ -175,9 +182,17 @@ plD_state_mem( PLStream * PL_UNUSED( pls ), PLINT PL_UNUSED( op ) )
 }
 
 void
-plD_esc_mem( PLStream *PL_UNUSED( pls ), PLINT PL_UNUSED( op ), void * PL_UNUSED( ptr ) )
+plD_esc_mem( PLStream *pls, PLINT op, void *ptr  )
 {
-// Nothing to do here
+     switch ( op )
+    {
+   case PLESC_3D:
+       Set3D( ptr );
+       break;
+   case PLESC_2D:
+       UnSet3D();
+       break;
+     }
 }
 
 #endif                          // PLD_mem

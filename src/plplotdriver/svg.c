@@ -120,6 +120,11 @@ void plD_tidy_svg( PLStream * );
 void plD_state_svg( PLStream *, PLINT );
 void plD_esc_svg( PLStream *, PLINT, void * );
 
+//define LINE2D, POLYLINE2D
+#define LINE2D plD_line_svg
+#define POLYLINE2D plD_polyline_svg
+#include "plplot3d.h"
+
 //--------------------------------------------------------------------------
 // dispatch_init_init()
 //
@@ -128,6 +133,8 @@ void plD_esc_svg( PLStream *, PLINT, void * );
 
 void plD_dispatch_init_svg( PLDispatchTable *pdt )
 {
+  currDispatchTab = pdt;
+  Status3D = 0;
 #ifndef ENABLE_DYNDRIVERS
     pdt->pl_MenuStr = "Scalable Vector Graphics (SVG 1.1)";
     pdt->pl_DevName = "svg";
@@ -297,10 +304,12 @@ void plD_line_svg( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
 
     aStream = pls->dev;
 
+/*
     if ( svg_family_check( pls ) )
     {
         return;
     }
+*/
     svg_open( aStream, "polyline" );
     svg_stroke_width( pls );
     svg_stroke_color( pls );
@@ -318,10 +327,12 @@ void plD_line_svg( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
 
 void plD_polyline_svg( PLStream *pls, short *xa, short *ya, PLINT npts )
 {
+/*
     if ( svg_family_check( pls ) )
     {
         return;
     }
+*/
     poly_line( pls, xa, ya, npts, 0 );
 }
 
@@ -336,11 +347,13 @@ void plD_eop_svg( PLStream *pls )
     SVG *aStream;
 
     aStream = pls->dev;
+/*
 
     if ( svg_family_check( pls ) )
     {
         return;
     }
+*/
     // write the closing svg tag
 
     svg_close( aStream, "g" );
@@ -383,10 +396,12 @@ void plD_state_svg( PLStream *PL_UNUSED( pls ), PLINT PL_UNUSED( op ) )
 
 void plD_esc_svg( PLStream *pls, PLINT op, void *ptr )
 {
+/*
     if ( svg_family_check( pls ) )
     {
         return;
     }
+*/
     switch ( op )
     {
     case PLESC_FILL:      // fill polygon
@@ -398,6 +413,13 @@ void plD_esc_svg( PLStream *pls, PLINT op, void *ptr )
     case PLESC_HAS_TEXT:  // render text
         proc_str( pls, (EscText *) ptr );
         break;
+  case PLESC_3D:
+    Set3D(ptr);
+    break;
+  case PLESC_2D:
+    UnSet3D();
+    break;
+
     }
 }
 

@@ -1,23 +1,27 @@
 /* include file to insert in a driver code to define minimal functions to provide 3D projections with the 4x4 matrix in GDL_3DTRANSFORMDEVICE */
 /* must be further defined internally in driver:
- *  -code for 'LINE3D' and 'POLYLINE3D'
- *  - save   currDispatchTab=pdt; in plD_dispatch_init_XXX
- *  - set Status3D=0 as well in  plD_dispatch_init_XXX
- *  - accept PLESC_2D and 3D in plD_esc_ as such:
- *  case PLESC_3D:
- *      Set3D( ptr );
- *      break;
- *
- *  case PLESC_2D:
- *      UnSet3D();
- *      break;
+ *  - what is the driver function for 'LINE2D' and 'POLYLINE2D' before #include this file.
+ *  -  add 'currDispatchTab=pdt;' in plD_dispatch_init_XXX
+ *  -  add 'Status3D=0;' as well in  plD_dispatch_init_XXX
+ *  - accept PLESC_2D and 3D in plD_esc_XXX as such:
+   case PLESC_3D:
+       Set3D( ptr );
+       break;
+   case PLESC_2D:
+       UnSet3D();
+       break;
+ * 
  * */
 
 #ifndef PLPLOT3D_H_
 #define PLPLOT3D_H_
 
-void LINE3D( PLStream *, short, short, short, short );
-void POLYLINE3D( PLStream *, short *, short *, PLINT );
+//if the driver needs specific writing of 3D equivalent of 2D functions (i.e., the standard conversion function does not work) then
+//write LINE3D_FUNCTION and POLYLINE3D_FUNCTION in the code, and set  SPECIFIC_3D
+#ifndef SPECIFIC_3D
+#define LINE3D_FUNCTION plD_line_3D
+#define POLYLINE3D_FUNCTION plD_polyline_3D
+#endif
 
 static PLDispatchTable *currDispatchTab;
 
@@ -79,7 +83,34 @@ static void SelfTransform3D(int *xs, int *ys) {
     //  *ys = (int) (my_plP_dcpcy(yy));
     *xs = (int) (plsc->phyxmi + plsc->phyxlen * xx);
     *ys = (int) (plsc->phyymi + plsc->phyylen * yy);
+   }
+}
+
+
+void plD_line_3D(PLStream *pls, short x1a, short y1a, short x2a, short y2a){
+  //perform conversion on the fly
+  int x1 = x1a, y1 = y1a, x2 = x2a, y2 = y2a;
+  // 3D convert on normalized values
+  SelfTransform3D(&x1, &y1);
+  SelfTransform3D(&x2, &y2);
+  x1a=x1; y1a=y1; x2a=x2; y2a=y2;
+  //call LINE2D genuine driver code
+  LINE2D(pls, x1a, y1a, x2a, y2a);
+}
+
+void plD_polyline_3D(PLStream *pls, short *xa, short *ya, PLINT npts){
+  //perform conversion on the fly
+  for (PLINT i = 0; i < npts; ++i) {
+    int x=xa[i];
+    int y=ya[i];
+  // 3D convert, must take into account that y is inverted.
+    SelfTransform3D(&x, &y);
+
+    xa[i] = x;
+    ya[i] = y;
   }
+  //call POLYLINE2D genuine driver code
+  POLYLINE2D(pls, xa, ya, npts);
 }
 
 static void
@@ -91,8 +122,8 @@ Set3D(void* ptr)
     GDL_3DTRANSFORMDEVICE* data=(GDL_3DTRANSFORMDEVICE*)ptr;
     for (int i = 0; i < 16; ++i) Data3d.T[i]=data->T[i]; 
     Data3d.zValue = data->zValue;
-    currDispatchTab->pl_line = (plD_line_fp) LINE3D;
-    currDispatchTab->pl_polyline = (plD_polyline_fp) POLYLINE3D;
+    currDispatchTab->pl_line = (plD_line_fp) LINE3D_FUNCTION;
+    currDispatchTab->pl_polyline = (plD_polyline_fp) POLYLINE3D_FUNCTION;
   }
 }
 static void

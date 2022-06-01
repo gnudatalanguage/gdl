@@ -95,11 +95,17 @@ get_font( PSDev* dev, PLUNICODE fci );
 // that scales, rotates (with slanting) and offsets text strings.
 // It has yet some bugs for 3d plots.
 
-//define LINE2D, LINE3D, POLYLINE2D, POLYLINE3D
+//We have a special processing, defualt one does not work (meaning the driver is not well written)
+void plD_line_ps_3D( PLStream *, short, short, short, short );
+void plD_polyline_ps_3D( PLStream *, short *, short *, PLINT );
+
+#define SPECIFIC_3D
+#define LINE3D_FUNCTION plD_line_ps_3D
+#define POLYLINE3D_FUNCTION plD_polyline_ps_3D
+
+//define LINE2D, POLYLINE2D
 #define LINE2D plD_line_ps
-#define LINE3D plD_line_ps_3D
 #define POLYLINE2D plD_polyline_ps
-#define POLYLINE3D plD_polyline_ps_3D
 #include "plplot3d.h"
 
 static void ps_dispatch_init_helper( PLDispatchTable *pdt,
@@ -429,7 +435,7 @@ ps_init( PLStream *pls )
 void
 plD_line_ps( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
 {
-    PSDev *dev = (PSDev *) pls->dev;
+   PSDev *dev = (PSDev *) pls->dev;
     PLINT x1   = x1a, y1 = y1a, x2 = x2a, y2 = y2a;
 
 // Rotate by 90 degrees
@@ -481,21 +487,76 @@ plD_line_ps( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
 // same as above ut with 3D enabled
 //--------------------------------------------------------------------------
 
+//special 3D transform for PORTAIT mode
+static void SelfTransform3DPSP(int *xs, int *ys)
+{
+  if (Status3D == 1) { //enable use everywhere.
+    PLFLT x = *xs, y = *ys;
+    // x and Y are in raw device coordinates.
+    // convert to NORM, here X and Y are inverted if PORTRAIT
+    //  x = my_plP_pcdcx(x);
+    //  y = my_plP_pcdcy(y);
+    x = (x - plsc->phyymi) / (double) plsc->phyylen;
+    y = (y - plsc->phyxmi) / (double) plsc->phyxlen;
+    //here it is !P.T not a c/c++ transposed matrix
+    PLFLT xx, yy;
+    xx = x * Data3d.T[0] + y * Data3d.T[1] + Data3d.zValue * Data3d.T[2] + Data3d.T[3];
+    yy = x * Data3d.T[4] + y * Data3d.T[5] + Data3d.zValue * Data3d.T[6] + Data3d.T[7];
+    // convert to device again
+    //  *xs = (int) (my_plP_dcpcx(xx));
+    //  *ys = (int) (my_plP_dcpcy(yy));
+    *xs = (int) (plsc->phyymi + plsc->phyylen * xx);
+    *ys = (int) (plsc->phyxmi + plsc->phyxlen * yy);
+  }
+}
+//special 3D transform for LANDCSAPE mode
+static void SelfTransform3DPSL(int *xs, int *ys)
+{
+  if (Status3D == 1) { //enable use everywhere.
+    PLFLT x = *xs, y = *ys;
+    PLFLT z=(1-Data3d.zValue); //this displacement is needed
+    // x and Y are in raw device coordinates.
+    // convert to NORM
+    //  x = my_plP_pcdcx(x);
+    //  y = my_plP_pcdcy(y);
+    x = (x - plsc->phyxmi) / (double) plsc->phyxlen;
+    y = (y - plsc->phyymi) / (double) plsc->phyylen;
+    //here it is !P.T not a c/c++ transposed matrix
+    PLFLT xx, yy;
+    xx = x * Data3d.T[0] + y * Data3d.T[1] + z * Data3d.T[2] + Data3d.T[3];
+    yy = x * Data3d.T[4] + y * Data3d.T[5] + z * Data3d.T[6] + Data3d.T[7];
+    // convert to device again
+    //  *xs = (int) (my_plP_dcpcx(xx));
+    //  *ys = (int) (my_plP_dcpcy(yy));
+    *xs = (int) (plsc->phyxmi + plsc->phyxlen * xx);
+    *ys = (int) (plsc->phyymi + plsc->phyylen * yy);
+  }
+}
 void
 plD_line_ps_3D(PLStream *pls, short x1a, short y1a, short x2a, short y2a)
 {
   PSDev *dev = (PSDev *) pls->dev;
   PLINT x1 = x1a, y1 = y1a, x2 = x2a, y2 = y2a;
 
-  // 3D convert on normalized values
-  SelfTransform3D(&x1, &y1);
-  SelfTransform3D(&x2, &y2);
-
+if ( !pls->portrait )
+{
+    // 3D convert on normalized values
+    
+    SelfTransform3DPSL(&x1, &y1);
+    SelfTransform3DPSL(&x2, &y2);
+}
+  
   // Rotate by 90 degrees
 
   plRotPhy(ORIENTATION, dev->xmin, dev->ymin, dev->xmax, dev->ymax, &x1, &y1);
   plRotPhy(ORIENTATION, dev->xmin, dev->ymin, dev->xmax, dev->ymax, &x2, &y2);
 
+if ( pls->portrait )
+{
+  // 3D convert on normalized values
+  SelfTransform3DPSP(&x1, &y1);
+  SelfTransform3DPSP(&x2, &y2);
+}
   if (x1 == dev->xold && y1 == dev->yold && dev->ptcnt < 40) {
     if (pls->linepos + 12 > LINELENGTH) {
       putc('\n', OF);
@@ -540,7 +601,7 @@ plD_line_ps_3D(PLStream *pls, short x1a, short y1a, short x2a, short y2a)
 void
 plD_polyline_ps( PLStream *pls, short *xa, short *ya, PLINT npts )
 {
-    PLINT i;
+   PLINT i;
 
     for ( i = 0; i < npts - 1; i++ )
         plD_line_ps( pls, xa[i], ya[i], xa[i + 1], ya[i + 1] );
@@ -552,7 +613,7 @@ plD_polyline_ps( PLStream *pls, short *xa, short *ya, PLINT npts )
 void
 plD_polyline_ps_3D(PLStream *pls, short *xa, short *ya, PLINT npts)
 {
-  PLINT i;
+ PLINT i;
 
   for (i = 0; i < npts - 1; i++)
     plD_line_ps_3D(pls, xa[i], ya[i], xa[i + 1], ya[i + 1]);
