@@ -17,6 +17,7 @@
 
 
 #include "includefirst.hpp"
+#include "graphicsdevice.hpp"
 #include "gdlsvgstream.hpp"
 
 #ifdef _WIN32
@@ -300,6 +301,27 @@ bool  GDLSVGStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *
   return true;
 #undef BUFLEN
 }
+
+// Clear is not used on SVG --- but this could be it.
+
+//void GDLSVGStream::Clear(DLong chan) {
+//Clear();
+//}
+//void GDLSVGStream::Clear() {
+//  DByte r = (GraphicsDevice::GetDevice()->BackgroundR());
+//  DByte g = (GraphicsDevice::GetDevice()->BackgroundG());
+//  DByte b = (GraphicsDevice::GetDevice()->BackgroundB());
+//    // set the background by drawing a rectangle that is the size of
+//    // of the canvas and filling it with the background color.
+//     pls->bytecnt += fprintf(pls->OutFile,"<rect " );
+//     pls->bytecnt += fprintf(pls->OutFile, "x=\"0\" y=\"0\"");
+//     pls->bytecnt += fprintf(pls->OutFile, " width=\"%d\"",pls->xlength);
+//     pls->bytecnt += fprintf(pls->OutFile, " height=\"%d\"",pls->ylength);
+//     pls->bytecnt += fprintf(pls->OutFile, " stroke=\"none\"");
+//     pls->bytecnt += fprintf(pls->OutFile, " fill=\"#%2.2X%2.2X%2.2X\" ", r, g, b);
+//     pls->bytecnt += fprintf(pls->OutFile, " fill-opacity=\"%f\"", 1.0); //pls->cmap0[0].a);
+//     pls->bytecnt += fprintf(pls->OutFile, "/>\n");
+//}
 #else
 bool  GDLSVGStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
 		   DLong trueColorOrder, DLong channel) {return false;}

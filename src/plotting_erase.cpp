@@ -38,6 +38,11 @@ namespace lib {
 
     private: void call_plplot(EnvT* e, GDLGStream* actStream) // {{{
     {
+      bool printer = (((*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 512) == 512);
+      if (printer) {
+        actStream->eop();
+        return;
+      }
       DLong chan = 0;
       static int chanIx = e->KeywordIx( "CHANNEL" );
       if ( e->KeywordPresent( chanIx ) ) {
