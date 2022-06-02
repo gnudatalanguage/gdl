@@ -608,7 +608,10 @@ void proc_str( PLStream *pls, EscText *args )
         printf( "Non unicode string passed to SVG driver, ignoring\n" );
         return;
     }
-
+  // 3D convert on normalized values
+  SelfTransform3D(&(args->x), &(args->y));
+  //rotate if 3D
+  Project3DToPlplotFormMatrix( args->xform);    
     // get plplot escape character and the current font
     plgesc( &plplot_esc );
     plgfci( &fci );

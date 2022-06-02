@@ -1034,7 +1034,7 @@ proc_str( PLStream *pls, EscText *args )
         // Determine the font height
         ft_ht = pls->chrht * 72.0 / 25.4; // ft_ht in points, ht is in mm
 
-
+        Project3DToPlplotFormMatrix(t);
         // The transform matrix has only rotations and shears; extract them
         plRotationShear( t, &theta, &shear, &stride );
         cs    = cos( theta );
@@ -1068,9 +1068,19 @@ proc_str( PLStream *pls, EscText *args )
         args->y += (PLINT) ( offset * cos( theta ) );
         args->x -= (PLINT) ( offset * sin( theta ) );
 
+if ( ! pls->portrait )
+{
+  // 3D convert on normalized values
+  SelfTransform3DPSL(&(args->x), &(args->y));
+}
         // ps driver is rotated by default
         plRotPhy( ORIENTATION, dev->xmin, dev->ymin, dev->xmax, dev->ymax,
             &( args->x ), &( args->y ) );
+if ( pls->portrait )
+{
+  // 3D convert on normalized values
+  SelfTransform3DPSP(&(args->x), &(args->y));
+}
 
         // Correct for the fact ps driver uses landscape by default
         theta += PI / 2.;

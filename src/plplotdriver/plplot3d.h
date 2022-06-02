@@ -65,7 +65,7 @@ static GDL_3DTRANSFORMDEVICE Data3d;
 //  return (y - plsc->phyymi) / (double) plsc->phyylen;
 //}
 
-static void SelfTransform3D(int *xs, int *ys) {
+void SelfTransform3D(int *xs, int *ys) {
   if (Status3D == 1) { //enable use everywhere.
     PLFLT x = *xs, y = *ys;
     // x and Y are in raw device coordinates.
@@ -86,29 +86,49 @@ static void SelfTransform3D(int *xs, int *ys) {
    }
 }
 
+void Project3DToPlplotFormMatrix(PLFLT *P) { //P for P ...lplot
+   if (Status3D == 1) { //enable use everywhere.
+   // compute product of P with Data3d.T for the 4 elements of 'xFormMatrix' P (see plot3d.c)
+    // so P' = T * P
+    // We need to transpose T since T is like
+    // [xFormMatrix[0] xFormMatrix[2]]
+    // [xFormMatrix[1] xFormMatrix[3]]
+
+    PLFLT a=P[0]*Data3d.T[0]+P[1]*Data3d.T[4];
+    PLFLT c=P[2]*Data3d.T[0]+P[3]*Data3d.T[4];
+    PLFLT b=P[0]*Data3d.T[1]+P[1]*Data3d.T[5];
+    PLFLT d=P[2]*Data3d.T[1]+P[3]*Data3d.T[5];
+
+    P[0]=a;P[1]=b;P[2]=c;P[3]=d;
+   }
+}
 
 void plD_line_3D(PLStream *pls, short x1a, short y1a, short x2a, short y2a){
-  //perform conversion on the fly
-  int x1 = x1a, y1 = y1a, x2 = x2a, y2 = y2a;
-  // 3D convert on normalized values
-  SelfTransform3D(&x1, &y1);
-  SelfTransform3D(&x2, &y2);
-  x1a=x1; y1a=y1; x2a=x2; y2a=y2;
+   if (Status3D == 1) { //enable use everywhere.
+    //perform conversion on the fly
+    int x1 = x1a, y1 = y1a, x2 = x2a, y2 = y2a;
+    // 3D convert on normalized values
+    SelfTransform3D(&x1, &y1);
+    SelfTransform3D(&x2, &y2);
+    x1a=x1; y1a=y1; x2a=x2; y2a=y2;
+   }
   //call LINE2D genuine driver code
   LINE2D(pls, x1a, y1a, x2a, y2a);
 }
 
 void plD_polyline_3D(PLStream *pls, short *xa, short *ya, PLINT npts){
-  //perform conversion on the fly
-  for (PLINT i = 0; i < npts; ++i) {
-    int x=xa[i];
-    int y=ya[i];
-  // 3D convert, must take into account that y is inverted.
-    SelfTransform3D(&x, &y);
+   if (Status3D == 1) { //enable use everywhere.
+    //perform conversion on the fly
+    for (PLINT i = 0; i < npts; ++i) {
+      int x=xa[i];
+      int y=ya[i];
+    // 3D convert, must take into account that y is inverted.
+      SelfTransform3D(&x, &y);
 
-    xa[i] = x;
-    ya[i] = y;
-  }
+      xa[i] = x;
+      ya[i] = y;
+    }
+   }
   //call POLYLINE2D genuine driver code
   POLYLINE2D(pls, xa, ya, npts);
 }
@@ -116,8 +136,8 @@ void plD_polyline_3D(PLStream *pls, short *xa, short *ya, PLINT npts){
 static void
 Set3D(void* ptr)
 {
-  Status3D=1;
   if (currDispatchTab == NULL) return;
+  Status3D=1;
   if (ptr != NULL) {
     GDL_3DTRANSFORMDEVICE* data=(GDL_3DTRANSFORMDEVICE*)ptr;
     for (int i = 0; i < 16; ++i) Data3d.T[i]=data->T[i]; 

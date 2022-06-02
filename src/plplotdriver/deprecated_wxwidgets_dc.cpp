@@ -450,9 +450,14 @@ void wxPLDevDC::ProcessString( PLStream* pls, EscText* args )
     {
         printf( "Sorry, the wxWidgets drivers only handles strings of length < %d\n", 500 );
         return;
-    }
+  }
 
-    // Calculate the font size (in pixels)
+  // 3D convert on normalized values
+  SelfTransform3D(&(args->x), &(args->y));
+  //rotate if 3D
+  Project3DToPlplotFormMatrix(args->xform);
+  
+  // Calculate the font size (in pixels)
     fontSize = pls->chrht * VIRTUAL_PIXELS_PER_MM / scaley * 1.3;
 
     // Use PLplot core routine to get the corners of the clipping rectangle
