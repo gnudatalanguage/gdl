@@ -2064,7 +2064,7 @@ namespace lib {
       if (TickLayout==0)
       {
       a->smaj(ticklen_in_mm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
-      a->smin(ticklen_in_mm / 2.0, 1.0); //idem min (plplt defaults)
+      //a->smin(ticklen_in_mm / 2.0, 1.0); //idem min (plplt defaults) //NO NO NO
       //thick for box and ticks.
       a->Thick(Thick);
 
