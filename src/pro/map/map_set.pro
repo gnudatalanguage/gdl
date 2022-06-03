@@ -202,6 +202,13 @@ PRO MAP_SET, lat, lon, rot, $
   endif 
 
 ; the real thing
+; apparently setting the clip window may help. !P?clip is in pixels
+; (device coordinates):
+    clipx = (uvrange[[0,2]] * !x.s[1] + !x.s[0]) * !d.x_size
+    !p.clip[[0,2]] = [clipx[0] < clipx[1], clipx[0] > clipx[1]]
+    clipy = (uvrange[[1,3]] * !y.s[1] + !y.s[0]) * !d.y_size
+    !p.clip[[1,3]] = [clipy[0] < clipy[1], clipy[0] > clipy[1]]
+  
   plot,[0,1],/noerase,/nodata,xrange=uvrange[[0,2]],yrange=uvrange[[1,3]],isotropic=keyword_set(scale)?0:isotropic,xsty=5,ysty=5, position=position, charsize=charsize, color=color,title=title
   if doborder then plots, !x.window[[0,1,1,0,0]], !y.window[[0,0,1,1,0]], COLOR=color, zvalue, /NORM, /NOCLIP, T3D=t3d
 

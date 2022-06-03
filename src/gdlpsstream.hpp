@@ -46,7 +46,9 @@ public:
   void Init();
   bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
   //logically close the svg each time an update is made, then rollback to the last graphic section for further graphics.
-  void Update(){plstream::cmd(PLESC_EXPOSE, NULL);fprintf(pls->OutFile," S\neop\n");fseek(pls->OutFile,-7, SEEK_END);}
+  //the adding of pls->stream_closed=XXX is just due to avoid bug https://sourceforge.net/p/plplot/bugs/203/ at least in the sens it does not crash GDL
+  void Update(){plstream::cmd(PLESC_EXPOSE, NULL);pls->stream_closed=1;fprintf(pls->OutFile," S\neop\n");fseek(pls->OutFile,-7, SEEK_END);pls->stream_closed=0;}
+//  void Update(){}
 
   virtual void fontChanged() final {
     PLINT doFont = ((PLINT) SysVar::GetPFont()>-1) ? 1 : 0;

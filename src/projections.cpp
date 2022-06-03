@@ -62,7 +62,7 @@ namespace lib {
     DDoubleGDL *res = NULL;
     SizeT nEl;
 
-    SizeT nParam = e->NParam();
+    SizeT nParam = e->NParam(1);
     if (nParam < 1 || nParam > 2)
       e->Throw("Incorrect number of arguments.");
 
@@ -91,17 +91,15 @@ namespace lib {
     bool doConn = e->KeywordPresent(connIx);
     if (doConn) connectivity = e->GetKWAs<DLongGDL>(connIx);
 
-    //with connectivity, polygons or polylines, and 1 argument, dimension MUST be [2,*]
-    bool fussy = (doConn || doGons || doLines);
+//    //with connectivity, polygons or polylines, and 1 argument, dimension MUST be [2,*]
+//    bool fussy = (doConn || doGons || doLines);
 
     //Get arguments
-    if (nParam == 1) { //lat is not present...
+    if (nParam == 1) { //lat is not present...it must be a 2,N array
       p0 = e->GetParDefined(0);
       DDoubleGDL* ll = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-      if (fussy) {
         if (p0->Rank() != 2) e->Throw("(X,Y) array must be (2,N).");
         if (p0->Dim(0) != 2) e->Throw("(X,Y) array must be (2,N).");
-      }
       nEl = p0->N_Elements() / 2; //as simple as that
 
       lon = new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
@@ -1868,10 +1866,10 @@ namespace lib {
             beg->VertexList.splice(beg->VertexList.begin(), end->VertexList); //concatenate
             tmpPolygonList.pop_back();
           }
-// cannot do that here
-//          if (doClip) { //eliminate invalid (cached) polygons.
-//            tmpPolygonList.remove_if(isInvalid);
-//          }
+
+          if (doClip) { //eliminate invalid (cached) polygons.
+            tmpPolygonList.remove_if(isInvalid);
+          }
 
           if (fill && tmpPolygonList.size() > 1) {
             // produce 2 lists: before and after cut
@@ -2009,8 +2007,33 @@ namespace lib {
 #endif   //USE_LIBPROJ 
         break;
       case CLIP_UV:
-        //TO BE DONE (really useful?)
-        //        if (PolygonList.empty()) break;
+        //a,b,c,d is [Umin, Vmin, Umax, Vmax].
+        //This is too crude but efficient for a debut.
+        if (PolygonList.empty()) break;
+        for (std::list<Polygon>::iterator p = PolygonList.begin(); p != PolygonList.end(); ++p) {
+          currentVertexList.clear();
+          for (std::list<Vertex>::iterator v = p->VertexList.begin(); v != p->VertexList.end(); ++v) {
+            double x=v->lon;
+            double y=v->lat;
+            if (x < a || x > c) { //bad lon
+              if ( y < b || y > d) { //bad lat
+                //forget
+              } else { //lat OK
+                if (x < a) v->lon = a; else v->lon = c;
+                currentVertexList.push_back(*v);
+              } 
+            } else { //x OK
+              if ( y < b || y > d) {
+                if (y < b) v->lat = b; else v->lat = d;
+                currentVertexList.push_back(*v);
+              } else { //y OK
+                currentVertexList.push_back(*v);
+              }
+            }
+          }
+          p->VertexList.clear();
+          if (!currentVertexList.empty()) p->VertexList=currentVertexList;
+        }
         break;
       default:
         continue;
@@ -2043,6 +2066,12 @@ namespace lib {
         nelem += p->VertexList.size();
       }
     }
+    if (nelem<1 || ngons < 1 ) {
+      if (doGons) gonsOut = new DLongGDL(-1);
+      else linesOut = new DLongGDL(-1);
+      return new DDoubleGDL(-1);
+    }
+    
     DDoubleGDL* resLons = new DDoubleGDL(nelem, BaseGDL::NOZERO);
     DDoubleGDL* resLats = new DDoubleGDL(nelem, BaseGDL::NOZERO);
     DDoubleGDL* resZ = new DDoubleGDL(nelem, BaseGDL::ZERO); //Zero if Z is NULL

@@ -618,6 +618,11 @@ if keyword_set(gdl_precise) then gdl_compute_map_limits, myMap else gdl_set_map_
 ; 4) transform
 MAP_CLIP_SET, MAP=myMap, /transform        ;apply transform
 
+; 5) clip uv
+if ( clip and n_elements(passed_limit) gt 0 ) then begin
+ MAP_CLIP_SET, MAP=myMap, CLIP_UV = myMap.uv_box
+endif
+
 return,myMap
 end
 

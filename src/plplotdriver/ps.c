@@ -154,7 +154,7 @@ plD_init_ps( PLStream *pls )
 {
     color      = 0;
     pls->color = 0;             // Not a color device
-
+    
     plParseDrvOpts( ps_options );
     if ( color )
         pls->color = 1;         // But user wants color
@@ -348,7 +348,7 @@ ps_init( PLStream *pls )
     fprintf( OF, "/@line\n" );
     fprintf( OF, "   {0 setlinecap\n" );
     fprintf( OF, "    0 setlinejoin\n" );
-    fprintf( OF, "    1 setmiterlimit\n" );
+    fprintf( OF, "    2.5 setmiterlimit\n" );
     fprintf( OF, "   } def\n" );
 
 // d @hsize -  horizontal clipping dimension
@@ -361,19 +361,12 @@ ps_init( PLStream *pls )
     fprintf( OF, "/@hoffset {/ho exch def} def\n" );
     fprintf( OF, "/@voffset {/vo exch def} def\n" );
 
-// Set line width
-
-    fprintf( OF, "/lw %d def\n", (int) (
-            ( pls->width < MIN_WIDTH ) ? DEF_WIDTH :
-            ( pls->width > MAX_WIDTH ) ? MAX_WIDTH : pls->width ) );
-
 // Setup user specified offsets, scales, sizes for clipping
 
     fprintf( OF, "/@SetPlot\n" );
     fprintf( OF, "   {\n" );
     fprintf( OF, "    ho vo translate\n" );
     fprintf( OF, "    XScale YScale scale\n" );
-    fprintf( OF, "    lw setlinewidth\n" );
     fprintf( OF, "   } def\n" );
 
 // Setup x & y scales
@@ -394,10 +387,10 @@ ps_init( PLStream *pls )
     // anti-aliasing
     //fprintf(OF, "/F {fill} def\n");
     if ( pls->dev_eofill )
-        fprintf( OF, "/F {closepath gsave eofill grestore stroke} def " );
+        fprintf( OF, "/F {closepath gsave eofill grestore stroke} def \n" );
     else
-        fprintf( OF, "/F {closepath gsave fill grestore stroke} def " );
-    fprintf( OF, "/N {newpath} def" );
+        fprintf( OF, "/F {closepath gsave fill grestore stroke} def \n" );
+    fprintf( OF, "/N {newpath} def\n" );
     fprintf( OF, "/C {setrgbcolor} def\n" );
     fprintf( OF, "/G {setgray} def\n" );
     fprintf( OF, "/W {setlinewidth} def\n" );
@@ -417,12 +410,11 @@ ps_init( PLStream *pls )
     fprintf( OF, "PSDict begin\n" );
     fprintf( OF, "@start\n" );
     fprintf( OF, "%d @copies\n", COPIES );
-    fprintf( OF, "@line\n" );
     fprintf( OF, "%d @hsize\n", YSIZE );
     fprintf( OF, "%d @vsize\n", XSIZE );
     fprintf( OF, "%d @hoffset\n", YOFFSET );
     fprintf( OF, "%d @voffset\n", XOFFSET );
-
+    fprintf( OF, "@line\n" );
     fprintf( OF, "@SetPlot\n\n" );
 }
 
@@ -558,7 +550,7 @@ if ( pls->portrait )
   SelfTransform3DPSP(&x2, &y2);
 }
   if (x1 == dev->xold && y1 == dev->yold && dev->ptcnt < 40) {
-    if (pls->linepos + 12 > LINELENGTH) {
+    if (pls->linepos > (LINELENGTH-12)) {
       putc('\n', OF);
       pls->linepos = 0;
     } else
@@ -656,6 +648,8 @@ plD_bop_ps( PLStream *pls )
     else
         fprintf( OF, "%%%%Page: %d %d\n", (int) pls->page, (int) pls->page );
 
+    if ( !pls->portrait ) fprintf( OF, "%%PageOrientation: Landscape\n");
+
     fprintf( OF, "bop\n" );
     if ( pls->color )
     {
@@ -739,12 +733,13 @@ plD_state_ps( PLStream *pls, PLINT op )
 
     switch ( op )
     {
-    case PLSTATE_WIDTH: {
-        int width = (int) (
-            ( pls->width < MIN_WIDTH ) ? DEF_WIDTH :
-            ( pls->width > MAX_WIDTH ) ? MAX_WIDTH : pls->width );
-
-        fprintf( OF, " S\n%d W", width );
+    case PLSTATE_WIDTH:
+  {
+    // Set line width
+    float width = pls->width*DEF_WIDTH;
+    if (width < MIN_WIDTH) width = MIN_WIDTH;
+    if (width > MAX_WIDTH) width = MAX_WIDTH;
+        fprintf( OF, " S\n%f W", width );
 
         dev->xold = PL_UNDEFINED;
         dev->yold = PL_UNDEFINED;
@@ -846,7 +841,7 @@ fill_polygon( PLStream *pls )
             continue;
         }
 
-        if ( pls->linepos + 21 > LINELENGTH )
+        if ( pls->linepos > (LINELENGTH-21) )
         {
             putc( '\n', OF );
             pls->linepos = 0;

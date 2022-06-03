@@ -46,16 +46,7 @@ endif
 if (keyword_set(reset)) then begin
     map_structure.pipeline=0.0
 endif
-if (keyword_set(transform)) then begin
-    i = 0
-    while (map_structure.pipeline[0,i] ne 0 and map_structure.pipeline[0,i] ne 3) do i = i + 1
-    if (i eq 11) then begin ; can already be set to 3
-       if map_structure.pipeline[0,i] ne 3 then  message, 'Too many pipeline stages..'
-    endif else begin
-        map_structure.pipeline[0,i] = 3
-    endelse
-endif
-
+; 1
 if (n_elements(split) ne 0) then begin
     i = 0
     while (map_structure.pipeline[0,i] ne 0 and map_structure.pipeline[0,i] ne 3) do i = i + 1
@@ -76,7 +67,7 @@ if (n_elements(split) ne 0) then begin
         map_structure.pipeline[7,i] = z
     endelse
 endif
-
+; 2
 if (n_elements(clip_plane) ne 0) then begin
     i = 0
     while (map_structure.pipeline[0,i] ne 0 and map_structure.pipeline[0,i] ne 3) do i = i + 1
@@ -94,17 +85,31 @@ if (n_elements(clip_plane) ne 0) then begin
         map_structure.pipeline[4,i] = clip_plane[3] / f
     endelse
 endif
-
-if (n_elements(clip_uv) ne 0) then begin
+; 3
+if (keyword_set(transform)) then begin
     i = 0
-    while (map_structure.pipeline[0,i] ne 3 and i lt 11) do i = i + 1
-    if (i eq 11) then begin
+    while (map_structure.pipeline[0,i] ne 0 and map_structure.pipeline[0,i] ne 3) do i = i + 1
+    if (i eq 11) then begin ; can already be set to 3
+       if map_structure.pipeline[0,i] ne 3 then  message, 'Too many pipeline stages..'
+    endif else begin
+        map_structure.pipeline[0,i] = 3
+    endelse
+endif
+; 4 : if nothing done, write transform, then clip
+if (n_elements(clip_uv) ne 0) then begin
+                                ; empty structure:
+   if map_structure.pipeline[0,0] eq 0 then begin
         map_structure.pipeline[0,0] = 3
         map_structure.pipeline[0,1] = 4
         map_structure.pipeline[1,1] = clip_uv[0]
         map_structure.pipeline[2,1] = clip_uv[1]
         map_structure.pipeline[3,1] = clip_uv[2]
         map_structure.pipeline[4,1] = clip_uv[3]
+   endif else begin ; non-empty: ends with 3
+      i = 0
+      while (map_structure.pipeline[0,i] ne 3 and i lt 11) do i = i + 1
+      if (i eq 11) then begin
+         message,/informational, 'Too many pipeline stages, uv clipping not used.'
     endif else begin
         map_structure.pipeline[0,i+1] = 4
         map_structure.pipeline[1,i+1] = clip_uv[0]
@@ -112,6 +117,7 @@ if (n_elements(clip_uv) ne 0) then begin
         map_structure.pipeline[3,i+1] = clip_uv[2]
         map_structure.pipeline[4,i+1] = clip_uv[3]
     endelse
+   endelse
 endif
 
 if (keyword_set(show)) then begin
