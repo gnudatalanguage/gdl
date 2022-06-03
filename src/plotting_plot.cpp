@@ -26,7 +26,7 @@ namespace lib {
 
   class plot_call : public plotting_routine_call {
     DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
-    SizeT xEl, yEl, zEl;
+    SizeT nEl;
     DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd, zStart, zEnd, zValue;
     bool doMinMax;
     bool xLog, yLog, zLog;
@@ -43,6 +43,7 @@ namespace lib {
   private:
 
     bool handle_args(EnvT* e) {
+      SizeT xEl, yEl;
       //T3D ?
       static int t3dIx = e->KeywordIx("T3D");
       doT3d = (e->BooleanKeywordSet(t3dIx) || T3Denabled());
@@ -74,6 +75,7 @@ namespace lib {
         xEl = yEl;
         xTemp = new DDoubleGDL(dimension(xEl), BaseGDL::INDGEN);
         xtemp_guard.Reset(xTemp); // delete upon exit
+        nEl=yEl;
       } else {
         xTemp = e->GetParAs< DDoubleGDL > (0);
         if (xTemp->Rank() == 0)
@@ -83,39 +85,44 @@ namespace lib {
         if (yTemp->Rank() == 0)
           e->Throw("Expression must be an array in this context: " + e->GetParString(1));
         yEl = yTemp->N_Elements();
-        //silently drop unmatched values
-        if (yEl != xEl) {
-          SizeT size;
-          size = min(xEl, yEl);
-          xEl = size;
-          yEl = size;
-        }
+        
+        //we need to drop unmatched values, checking nEl
+        nEl=min(xEl, yEl);
       }
+
       //check nsum validity
       nsum = max(1, nsum);
-      nsum = min(nsum, (DLong) xEl);
+      nsum = min(nsum, (DLong) nEl);
 
       if (nsum == 1) {
         if (polar) {
-          xVal = new DDoubleGDL(dimension(xEl), BaseGDL::NOZERO);
+          xVal = new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
           xval_guard.Reset(xVal); // delete upon exit
-          yVal = new DDoubleGDL(dimension(yEl), BaseGDL::NOZERO);
+          yVal = new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
           yval_guard.Reset(yVal); // delete upon exit
-          for (int i = 0; i < xEl; i++) (*xVal)[i] = (*xTemp)[i] * cos((*yTemp)[i]);
-          for (int i = 0; i < yEl; i++) (*yVal)[i] = (*xTemp)[i] * sin((*yTemp)[i]);
+          for (int i = 0; i < nEl; ++i) (*xVal)[i] = (*xTemp)[i] * cos((*yTemp)[i]);
+          for (int i = 0; i < nEl; ++i) (*yVal)[i] = (*xTemp)[i] * sin((*yTemp)[i]);
         } else { //careful about previously set autopointers!
-          if (nParam() == 1) xval_guard.Init(xtemp_guard.release());
-          xVal = xTemp;
-          yVal = yTemp;
+          //if (nParam() == 1) xval_guard.Init(xtemp_guard.release());
+          if (nEl != xEl) {
+            xVal = new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
+            xval_guard.Reset(xVal); // delete upon exit
+            for (int i = 0; i < nEl; ++i) (*xVal)[i] = (*xTemp)[i];
+          } else xVal = xTemp;
+          if (nEl != yEl) {
+            yVal = new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
+            yval_guard.Reset(yVal); // delete upon exit
+            for (int i = 0; i < nEl; ++i) (*yVal)[i] = (*yTemp)[i];
+          } else yVal = yTemp;
         }
       } else {
         int i, j, k;
-        DLong size = (DLong) xEl / nsum;
+        DLong size = (DLong) nEl / nsum;
         xVal = new DDoubleGDL(size, BaseGDL::ZERO); //SHOULD BE ZERO, IS NOT!
         xval_guard.Reset(xVal); // delete upon exit
         yVal = new DDoubleGDL(size, BaseGDL::ZERO); //IDEM
         yval_guard.Reset(yVal); // delete upon exit
-        for (i = 0, k = 0; i < size; i++) {
+        for (i = 0, k = 0; i < size; ++i) {
           (*xVal)[i] = 0.0;
           (*yVal)[i] = 0.0;
           for (j = 0; j < nsum; j++, k++) {
@@ -123,12 +130,12 @@ namespace lib {
             (*yVal)[i] += (*yTemp)[k];
           }
         }
-        for (i = 0; i < size; i++) (*xVal)[i] /= nsum;
-        for (i = 0; i < size; i++) (*yVal)[i] /= nsum;
+        for (i = 0; i < size; ++i) (*xVal)[i] /= nsum;
+        for (i = 0; i < size; ++i) (*yVal)[i] /= nsum;
 
         if (polar) {
           DDouble x, y;
-          for (i = 0; i < size; i++) {
+          for (i = 0; i < size; ++i) {
             x = (*xVal)[i] * cos((*yVal)[i]);
             y = (*xVal)[i] * sin((*yVal)[i]);
             (*xVal)[i] = x;
@@ -197,11 +204,11 @@ namespace lib {
       //    cout << xLog << " " << yLog << endl;
 
       DLong minEl, maxEl;
-      xVal->MinMax(&minEl, &maxEl, NULL, NULL, true, 0, xEl); //restrict minmax to xEl fist elements!!!!
+      xVal->MinMax(&minEl, &maxEl, NULL, NULL, true); //restrict minmax to xEl fist elements!!!!
       xStart = (*xVal)[minEl];
       xEnd = (*xVal)[maxEl];
 
-      yVal->MinMax(&minEl, &maxEl, NULL, NULL, true, 0, yEl);
+      yVal->MinMax(&minEl, &maxEl, NULL, NULL, true);
       yStart = (*yVal)[minEl];
       yEnd = (*yVal)[maxEl];
 
