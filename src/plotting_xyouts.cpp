@@ -21,6 +21,8 @@
 #define DPI (double)(4*atan(1.0))
 #define DEGTORAD DPI/180.0
 
+static GDL_3DTRANSFORMDEVICE PlotDevice3d;
+
 namespace lib {
 
   using namespace std;
@@ -276,11 +278,12 @@ namespace lib {
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz); 
       
-      if (doT3d) {
-        //NOTE: TO SUPPORT OPTION TEXT_AXES the transformation should be done at a more fundamental level by overwriting mtex() 
-        actStream->stransform(PDotTTransformXYZval, &zPosition);
+      if (doT3d) { //call for driver to perform special transform for all further drawing
+        gdlFillWithT3DMatrix(PlotDevice3d.T);
+        PlotDevice3d.zValue = zPosition;
+        actStream->cmd(PLESC_3D, &PlotDevice3d);
       }
-      for (SizeT i = 0; i < minEl; ++i) {
+            for (SizeT i = 0; i < minEl; ++i) {
         //if string only, fill empty Xval Yval with current value:
         if (nParam() == 1) {
           DDouble s, t;
