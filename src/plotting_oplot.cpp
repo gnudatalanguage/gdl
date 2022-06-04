@@ -151,10 +151,10 @@ namespace lib {
         }
       }
 
-      return false;
+      return false; //do not abort
     }
 
-    void old_body(EnvT* e, GDLGStream* actStream) {
+    bool old_body(EnvT* e, GDLGStream* actStream) {
       gdlGetAxisType(XAXIS, xLog);
       gdlGetAxisType(YAXIS, yLog);
 
@@ -206,6 +206,7 @@ namespace lib {
       actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
       actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
       actStream->setSymbolSizeConversionFactors();
+      return false; //do not abort
     }
 
     void call_plplot(EnvT* e, GDLGStream* actStream) {
@@ -285,7 +286,6 @@ namespace lib {
       actStream->RestoreLayout();
       actStream->lsty(1);
     }
-
   };
 
   void oplot(EnvT* e) {

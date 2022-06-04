@@ -192,11 +192,11 @@ namespace lib
       zEnd=datamax;
       setZrange = gdlGetDesiredAxisRange(e, ZAXIS, zStart, zEnd);
 
-        return false;
+        return false; //do not abort
     } 
 
   private:
-    void old_body (EnvT* e, GDLGStream* actStream) // {{{
+    bool old_body (EnvT* e, GDLGStream* actStream) // {{{
     {
       //T3D
       static int t3dIx = e->KeywordIx( "T3D");
@@ -251,7 +251,7 @@ namespace lib
         // set the PLOT charsize before computing box, see plot command.
       gdlSetPlotCharsize(e, actStream);
       //set 2D scale etc.
-      if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return; //no good: should catch an exception to get out of this mess.
+      if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return true; //no good: should catch an exception to get out of this mess.
       
       // Deal with T3D options -- either present and we have to deduce az and alt contained in it,
       // or absent and we have to compute !P.T from az and alt.
@@ -289,7 +289,7 @@ namespace lib
       }
 
 //      if ( gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
-//        xStart, xEnd, yStart, yEnd, zStart, zEnd, zLog)==FALSE ) return;
+//        xStart, xEnd, yStart, yEnd, zStart, zEnd, zLog)==FALSE ) return true;
 
       if (xLog) xStart=log10(xStart);
       if (yLog) yStart=log10(yStart);
@@ -434,6 +434,8 @@ namespace lib
       //Draw axes with normal color!
       gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
       gdlBox3(e, actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd, xLog, yLog, zLog, true);
+
+      return false; //do not abort
     } 
 
   private:

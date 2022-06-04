@@ -4,7 +4,7 @@
     begin                : July 22 2002
     copyright            : (C) 2002-2011 by Marc Schellens et al.
     email                : m_schellens@users.sf.net
-***************************************************************************/
+ ***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -32,8 +32,7 @@
 #define PLCALLBACK plstream
 #endif
 
-namespace lib
-{
+namespace lib {
 
   using namespace std;
 
@@ -41,22 +40,20 @@ namespace lib
   bool xLog;
   bool yLog;
   bool zLog;
-  void myrecordingfunction(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data)
-  {
-    *xt=x;
-    *yt=y;
-    fprintf(stderr,"x=%f,y=%f\n",x,y);
+
+  void myrecordingfunction(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data) {
+    *xt = x;
+    *yt = y;
+    fprintf(stderr, "x=%f,y=%f\n", x, y);
   }
-  PLINT doIt( PLFLT x, PLFLT y )
-  {
-    if (xLog && x<=0 ) return 0;
-    if (yLog && y<=0 ) return 0;
+
+  PLINT doIt(PLFLT x, PLFLT y) {
+    if (xLog && x <= 0) return 0;
+    if (yLog && y <= 0) return 0;
     return 1;
   }
-  
-  class contour_call: public plotting_routine_call
-  {
 
+  class contour_call : public plotting_routine_call {
     DDoubleGDL *zVal, *yVal, *xVal;
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard, p0_guard;
     DDoubleGDL *yValTemp, *xValTemp;
@@ -65,86 +62,80 @@ namespace lib
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd, datamax, datamin;
     bool isLog;
     bool overplot, make2dBox, make3dBox, nodata;
-    DLongGDL *colors,*labels,*style;
+    DLongGDL *colors, *labels, *style;
     PLINT defaultColor;
     DFloatGDL* thick;
-    Guard<BaseGDL> colors_guard,thick_guard,labels_guard,style_guard;
-    DFloatGDL *spacing,*orientation;
-    Guard<BaseGDL> spacing_guard,orientation_guard;
+    Guard<BaseGDL> colors_guard, thick_guard, labels_guard, style_guard;
+    DFloatGDL *spacing, *orientation;
+    Guard<BaseGDL> spacing_guard, orientation_guard;
     bool doT3d;
     bool irregular;
     bool setZrange;
     bool restorelayout;
     bool iso;
 
-  //PATH_XY etc: use actStream->stransform with a crafted recording function per level [lev-maxmax].
+    //PATH_XY etc: use actStream->stransform with a crafted recording function per level [lev-maxmax].
     //disentangle positive and negative contours with their rotation signature.
   private:
-    bool handle_args (EnvT* e)
-    {
-      static int irregIx = e->KeywordIx( "IRREGULAR");
-      irregular=e->KeywordSet(irregIx);
-      
-      // in all cases, we have to exit here
-      if ( nParam()==2 || nParam()>3 )
-	{
-	  e->Throw ( "Incorrect number of arguments." );
-	}
-    if ( nParam ( ) > 0 )
-    {
-	// By testing here using EquivalentRank() we avoid computing zval if there was a problem.
-	// AC 2018/04/24
-	// a sub-array like: a=RANDOMU(seed, 3,4,5) & (this procedure name), a[1,*,*]
-	// should be OK ...
-	    if ( (e->GetNumericArrayParDefined ( 0 ))->EquivalentRank ( )!=2 ) e->Throw ( "Array must have 2 dimensions: "+e->GetParString ( 0 ) );
-    }
-                
-      if (nParam()==1) {
-	if (irregular)
-	  {
-	    e->Throw ( "Incorrect number of arguments." );
-	  } 
-	else 
-	  {
-	    BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
-        p0_guard.Init ( p0 ); // delete upon exit
 
-	    zVal=static_cast<DDoubleGDL*>( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
-        zval_guard.Init ( zVal ); // delete upon exit
-	    
-	    xEl=zVal->Dim ( 1 );
-	    yEl=zVal->Dim ( 0 );
-	  
-	    xVal=new DDoubleGDL ( dimension ( xEl ), BaseGDL::INDGEN );
-	    xval_guard.Init ( xVal ); // delete upon exit
-	    yVal=new DDoubleGDL ( dimension ( yEl ), BaseGDL::INDGEN );
-	    yval_guard.Init ( yVal ); // delete upon exit
-	  }
+    bool handle_args(EnvT* e) {
+      static int irregIx = e->KeywordIx("IRREGULAR");
+      irregular = e->KeywordSet(irregIx);
+
+      // in all cases, we have to exit here
+      if (nParam() == 2 || nParam() > 3) {
+        e->Throw("Incorrect number of arguments.");
+      }
+      if (nParam() > 0) {
+        // By testing here using EquivalentRank() we avoid computing zval if there was a problem.
+        // AC 2018/04/24
+        // a sub-array like: a=RANDOMU(seed, 3,4,5) & (this procedure name), a[1,*,*]
+        // should be OK ...
+        if ((e->GetNumericArrayParDefined(0))->EquivalentRank() != 2) e->Throw("Array must have 2 dimensions: " + e->GetParString(0));
       }
 
-      if ( nParam()==3) {
-	if (irregular)
-	  { 
-	    //ZVal will be treated as 1 dim array and X and Y must have the same number of elements.
-	    BaseGDL* p0=e->GetNumericArrayParDefined ( 0 )->Transpose ( NULL );
-	    p0_guard.Init( p0 ); // delete upon exit
-
-	    zVal=static_cast<DDoubleGDL*>( p0->Convert2 ( GDL_DOUBLE, BaseGDL::COPY ) );
-        zval_guard.Init ( zVal ); // delete upon exit
-
-	    xValTemp=e->GetParAs< DDoubleGDL>( 1 );
-	    yValTemp=e->GetParAs< DDoubleGDL>( 2 );
-	    
-	    if (xValTemp->N_Elements() != zVal->N_Elements() )
-	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	    if (yValTemp->N_Elements() != zVal->N_Elements() )
-	      e->Throw ( "X, Y, or Z array dimensions are incompatible." );
-	    xEl=xValTemp->N_Elements();
-	    yEl=yValTemp->N_Elements(); //all points inside
-	    xVal=xValTemp;
-	    yVal=yValTemp;//for the time being, will be update later
-	  }
+      if (nParam() == 1) {
+        if (irregular) {
+          e->Throw("Incorrect number of arguments.");
+        }
         else {
+          BaseGDL* p0 = e->GetNumericArrayParDefined(0)->Transpose(NULL);
+          p0_guard.Init(p0); // delete upon exit
+
+          zVal = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+          zval_guard.Init(zVal); // delete upon exit
+
+          xEl = zVal->Dim(1);
+          yEl = zVal->Dim(0);
+
+          xVal = new DDoubleGDL(dimension(xEl), BaseGDL::INDGEN);
+          xval_guard.Init(xVal); // delete upon exit
+          yVal = new DDoubleGDL(dimension(yEl), BaseGDL::INDGEN);
+          yval_guard.Init(yVal); // delete upon exit
+        }
+      }
+
+      if (nParam() == 3) {
+        if (irregular) {
+          //ZVal will be treated as 1 dim array and X and Y must have the same number of elements.
+          BaseGDL* p0 = e->GetNumericArrayParDefined(0)->Transpose(NULL);
+          p0_guard.Init(p0); // delete upon exit
+
+          zVal = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
+          zval_guard.Init(zVal); // delete upon exit
+
+          xValTemp = e->GetParAs< DDoubleGDL>(1);
+          yValTemp = e->GetParAs< DDoubleGDL>(2);
+
+          if (xValTemp->N_Elements() != zVal->N_Elements())
+            e->Throw("X, Y, or Z array dimensions are incompatible.");
+          if (yValTemp->N_Elements() != zVal->N_Elements())
+            e->Throw("X, Y, or Z array dimensions are incompatible.");
+          xEl = xValTemp->N_Elements();
+          yEl = yValTemp->N_Elements(); //all points inside
+          xVal = xValTemp;
+          yVal = yValTemp; //for the time being, will be update later
+        } else {
           BaseGDL* p0 = e->GetNumericArrayParDefined(0)->Transpose(NULL);
           p0_guard.Init(p0); // delete upon exit
 
@@ -153,14 +144,14 @@ namespace lib
 
           xVal = e->GetParAs< DDoubleGDL>(1);
           yVal = e->GetParAs< DDoubleGDL>(2);
-//filter out incompatible ranks >2 or ==0
+          //filter out incompatible ranks >2 or ==0
           if (xVal->Rank() > 2)
             e->Throw("X, Y, or Z array dimensions are incompatible.");
           if (yVal->Rank() > 2)
             e->Throw("X, Y, or Z array dimensions are incompatible.");
           if (xVal->Rank() == 0 || yVal->Rank() == 0)
             e->Throw("X, Y, or Z array dimensions are incompatible.");
-//filter out incompatible 1D dimensions
+          //filter out incompatible 1D dimensions
           if (xVal->Rank() == 1) {
             xEl = xVal->Dim(0);
             if (xEl != zVal->Dim(1))
@@ -171,7 +162,7 @@ namespace lib
             if (yEl != zVal->Dim(0))
               e->Throw("X, Y, or Z array dimensions are incompatible.");
           }
-//filter out incompatible 2D dimensions
+          //filter out incompatible 2D dimensions
           if (xVal->Rank() == 2) {
             xEl = xVal->Dim(0);
             if ((xVal->Dim(0) != zVal->Dim(1))&&(xVal->Dim(1) != zVal->Dim(0)))
@@ -182,7 +173,7 @@ namespace lib
             if ((yVal->Dim(0) != zVal->Dim(1))&&(yVal->Dim(1) != zVal->Dim(0)))
               e->Throw("X, Y, or Z array dimensions are incompatible.");
           }
-// But if X is 2D and Y is 1D (or reciprocally), we need to promote the 1D to 2D since this is supported by IDL
+          // But if X is 2D and Y is 1D (or reciprocally), we need to promote the 1D to 2D since this is supported by IDL
           if (xVal->Rank() == 1 && yVal->Rank() == 2) {
             DDoubleGDL* xValExpanded = new DDoubleGDL(zVal->Dim(), BaseGDL::NOZERO);
             SizeT k = 0;
@@ -198,13 +189,13 @@ namespace lib
           }
         }
       }
-      
-      GetMinMaxVal ( xVal, &xStart, &xEnd );
-      GetMinMaxVal ( yVal, &yStart, &yEnd );
+
+      GetMinMaxVal(xVal, &xStart, &xEnd);
+      GetMinMaxVal(yVal, &yStart, &yEnd);
       //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
       DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;
-      bool setx=gdlGetDesiredAxisRange(e, XAXIS, xAxisStart, xAxisEnd);
-      bool sety=gdlGetDesiredAxisRange(e, YAXIS, yAxisStart, yAxisEnd);
+      bool setx = gdlGetDesiredAxisRange(e, XAXIS, xAxisStart, xAxisEnd);
+      bool sety = gdlGetDesiredAxisRange(e, YAXIS, yAxisStart, yAxisEnd);
       if (setx) {
         xStart = xAxisStart;
         xEnd = xAxisEnd;
@@ -214,20 +205,19 @@ namespace lib
         yEnd = yAxisEnd;
       }
       // z range
-      datamax=0.0;
-      datamin=0.0;
-      GetMinMaxVal ( zVal, &datamin, &datamax );
-      zStart=datamin;
-      zEnd=datamax;
+      datamax = 0.0;
+      datamin = 0.0;
+      GetMinMaxVal(zVal, &datamin, &datamax);
+      zStart = datamin;
+      zEnd = datamax;
       setZrange = gdlGetDesiredAxisRange(e, ZAXIS, zStart, zEnd);
 
-      return false;
+      return false; //do not abort
     }
 
   private:
 
-    void old_body(EnvT* e, GDLGStream* actStream) // {{{
-    {
+    bool old_body(EnvT* e, GDLGStream* actStream) {
       // we need to define the NaN value
       DStructGDL *Values = SysVar::Values(); //MUST NOT BE STATIC, due to .reset 
       static DDouble d_nan = (*static_cast<DDoubleGDL*> (Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
@@ -235,7 +225,7 @@ namespace lib
       static DDouble maxmax = std::numeric_limits<PLFLT>::max();
       //for 3D
       DDoubleGDL* plplot3d;
-      DDouble az, alt, ay, scale[3]=TEMPORARY_PLOT3D_SCALE;
+      DDouble az, alt, ay, scale[3] = TEMPORARY_PLOT3D_SCALE;
       T3DEXCHANGECODE axisExchangeCode;
       restorelayout = false;
       //T3D
@@ -247,7 +237,7 @@ namespace lib
       bool hasZvalue = false;
       if (e->GetKW(zvIx) != NULL) {
         e->AssureDoubleScalarKW(zvIx, zValue);
-        zValue=min(zValue,ZVALUEMAX); //to avoid problems with plplot
+        zValue = min(zValue, ZVALUEMAX); //to avoid problems with plplot
         zValue = max(zValue, 0.0);
         hasZvalue = true;
       }
@@ -380,7 +370,7 @@ namespace lib
 
       //set plplot internals, and save !P !x !Y !Z values as they should be
       gdlSetPlotCharsize(e, actStream);
-      if (gdlSet2DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, iso) == FALSE) return; //no good: should catch an exception to get out of this mess.
+      if (gdlSet2DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, iso) == FALSE) return true;
 
       if (doT3d) {
         plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
@@ -424,7 +414,7 @@ namespace lib
         // set the PLOT charsize before computing box, see plot command.
         gdlSetPlotCharsize(e, actStream);
         if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
-          xStart, xEnd, yStart, yEnd, zStart, zEnd, zLog) == FALSE) return;
+          xStart, xEnd, yStart, yEnd, zStart, zEnd, zLog) == FALSE) return true;
         //start 3D->2D coordinate conversions in plplot
         actStream->stransform(gdl3dTo2dTransform_todelete, &Data3d);
       }
@@ -482,8 +472,8 @@ namespace lib
           if (clevel[i] <= clevel[i - 1])
             e->Throw("Contour levels must be in increasing order.");
         }
-        cmin=zStart; 
-        cmax=zEnd;
+        cmin = zStart;
+        cmax = zEnd;
       } else {
         PLFLT zintv;
         DDouble mapmax, mapmin;
@@ -891,7 +881,7 @@ namespace lib
       }
 
 
-      if (doT3d)  actStream->stransform(NULL, NULL); //remove transform BEFORE writing axes, ticks..
+      if (doT3d) actStream->stransform(NULL, NULL); //remove transform BEFORE writing axes, ticks..
 
       //restore color for boxes
       gdlSetGraphicsForegroundColorFromKw(e, actStream); //COLOR
@@ -903,33 +893,30 @@ namespace lib
         gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
       }
       if (make3dBox) { //overplot box
-        gdlSetPlplotW3_todelete(e,actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, az, alt, scale, axisExchangeCode);
+        gdlSetPlplotW3_todelete(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, az, alt, scale, axisExchangeCode);
         gdlAxis3(e, actStream, ZAXIS, xStart, xEnd, xLog, 1);
         gdlAxis3(e, actStream, XAXIS, yStart, yEnd, yLog);
       }
+      return false;
     }
 
   private:
 
-    void call_plplot (EnvT* e, GDLGStream* actStream)
-    {
-    }
+    void call_plplot(EnvT* e, GDLGStream* actStream) { }
 
   private:
 
-    virtual void post_call (EnvT*, GDLGStream* actStream)
-    {
+    virtual void post_call(EnvT*, GDLGStream* actStream) {
       if (restorelayout) actStream->RestoreLayout();
-      actStream->lsty(1);//reset linestyle
+      actStream->lsty(1); //reset linestyle
       actStream->sizeChar(1.0);
     }
 
   }; // contour_call class
 
-  void contour (EnvT* e)
-  {
+  void contour(EnvT* e) {
     contour_call contour;
-    contour.call ( e, 1 );
+    contour.call(e, 1);
   }
 
 } // namespace

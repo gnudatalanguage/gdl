@@ -126,10 +126,10 @@ namespace lib {
           "parameters valid.");
       }
 
-      return false;
+      return false; //do not abort
     }
 
-    void old_body(EnvT* e, GDLGStream* actStream) {
+    bool old_body(EnvT* e, GDLGStream* actStream) {
 
       //check presence of DATA,DEVICE and NORMAL options
       static int DATAIx = e->KeywordIx("DATA");
@@ -197,7 +197,7 @@ namespace lib {
 
       if (xnormmin==xnormmax || ynormmin==ynormmax) {
         actStream->RestoreLayout();
-        return; //nothing to see and plpot complains.
+        return true; //nothing to see and plpot complains.
       }
       // it is important to fix symsize before changing vpor or win 
       actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
@@ -208,6 +208,8 @@ namespace lib {
       SelfProjectXY(minEl, (DDouble*) xVal->DataAddr(), (DDouble*) yVal->DataAddr(), coordinateSystem);
       //input coordinates converted to NORMAL
       SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //DATA
+      
+      return false;
     }
 
     void call_plplot(EnvT* e, GDLGStream* actStream) {

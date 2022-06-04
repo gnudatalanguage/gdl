@@ -202,10 +202,10 @@ namespace lib {
         zvalnative_guard.Reset(zVal);
       }
 
-      return false;
+      return false; //do not abort
     }
 
-    void old_body(EnvT* e, GDLGStream* actStream) {
+    bool old_body(EnvT* e, GDLGStream* actStream) {
 
       //check presence of DATA,DEVICE and NORMAL options
       static int DATAIx = e->KeywordIx("DATA");
@@ -274,11 +274,13 @@ namespace lib {
 
       if (xnormmin==xnormmax || ynormmin==ynormmax) {
         actStream->RestoreLayout();
-        return; //nothing to see and plpot complains.
+        return true; //nothing to see and plpot complains.
       }
       actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
       actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
       actStream->setSymbolSizeConversionFactors();
+      
+      return false;
     }
 
     void call_plplot(EnvT* e, GDLGStream* actStream) {

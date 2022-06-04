@@ -38,7 +38,6 @@ namespace lib {
     DLong psym;
     int calendar_codex;
     int calendar_codey;
-    T3DEXCHANGECODE axisExchangeCode;
 
   private:
 
@@ -249,10 +248,10 @@ namespace lib {
       if (!gdlYaxisNoZero(e) && yStart > 0 && !yLog) yStart = 0.0;
 
 
-      return false;
+      return false; //do not abort
     }
 
-    void old_body(EnvT* e, GDLGStream* actStream) {
+    bool old_body(EnvT* e, GDLGStream* actStream) {
       //check presence of DATA,DEVICE and NORMAL options
       static int DATAIx = e->KeywordIx("DATA");
       static int DEVICEIx = e->KeywordIx("DEVICE");
@@ -278,7 +277,7 @@ namespace lib {
       // viewport and world coordinates
       // set the PLOT charsize before setting viewport (margin depend on charsize)
       gdlSetPlotCharsize(e, actStream);
-      if (gdlSet2DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, iso) == false) return; //no good: should catch an exception to get out of this mess.
+      if (gdlSet2DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, iso) == false) return true; 
 
       if (doT3d) { //call for driver to perform special transform for all further drawing
         gdlFillWithT3DMatrix(PlotDevice3d.T);
@@ -340,6 +339,8 @@ namespace lib {
       actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
       actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
       actStream->setSymbolSizeConversionFactors();
+      
+      return false;
     }
 
     void call_plplot(EnvT* e, GDLGStream* actStream) {
