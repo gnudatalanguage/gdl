@@ -413,8 +413,7 @@ namespace lib {
         //necessary even if overplot
         // set the PLOT charsize before computing box, see plot command.
         gdlSetPlotCharsize(e, actStream);
-        if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
-          xStart, xEnd, yStart, yEnd, zStart, zEnd, zLog) == FALSE) return true;
+      if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return true; //no good: should catch an exception to get out of this mess.
         //start 3D->2D coordinate conversions in plplot
         actStream->stransform(gdl3dTo2dTransform_todelete, &Data3d);
       }

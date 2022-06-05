@@ -260,8 +260,10 @@ namespace lib {
   void SelfOblique3d(DDoubleGDL* me, DDouble dist, DDouble angle);
   void SelfExch3d(DDoubleGDL* me, T3DEXCHANGECODE axisExchangeCode);
   void SelfProjectXY(SizeT nEl, DDouble *x, DDouble *y, COORDSYS const coordinateSystem);
-
+  void yzaxisExch(DDouble* me);
+  void xzaxisExch(DDouble* me);
   void SelfConvertToNormXYZ(DDoubleGDL* x, bool &xLog, DDoubleGDL* y, bool &yLog, DDoubleGDL* z, bool &zLog, COORDSYS &code);
+  void SelfConvertToNormXYZ(SizeT n, DDouble* x, bool const xLog, DDouble* y, bool const yLog, DDouble* z, bool const zLog, COORDSYS const code);
   void SelfConvertToNormXY(SizeT n, PLFLT *xt, bool const xLog, PLFLT *yt, bool const yLog, COORDSYS const code);
   void SelfConvertToNormXY(DDoubleGDL* x, bool &xLog, DDoubleGDL* y, bool &yLog, COORDSYS &code);
   void SelfPDotTTransformXYZ(SizeT n, PLFLT *xt, PLFLT *yt, PLFLT *zt);
@@ -1316,166 +1318,166 @@ namespace lib {
     if (pos != NULL) a->NoSub();
   }
 
-  static bool gdlSet3DViewPortAndWorldCoordinates(EnvT* e,
-    GDLGStream* actStream,
-    DDoubleGDL* Matrix,
-    bool xLog, bool yLog,
-    DDouble xStart,
-    DDouble xEnd,
-    DDouble yStart,
-    DDouble yEnd, DDouble zStart = 0.0, DDouble zEnd = 1.0, bool zLog = false) {
-
-    //3D work
-
-    COORDSYS coordinateSystem = DATA;
-    //To center plot, compute projected corners of 1 unit box
-    static DDouble zz[8] = {0, 0, 0, 0, 1, 1, 1, 1};
-    static DDouble yy[8] = {0, 0, 1, 1, 0, 0, 1, 1};
-    static DDouble xx[8] = {0, 1, 0, 1, 0, 1, 0, 1};
-    static DDouble ww[8] = {1, 1, 1, 1, 1, 1, 1, 1};
-
-    DDoubleGDL* V = (new DDoubleGDL(dimension(8, 4)));
-    memcpy(&((*V)[0]), xx, 8 * sizeof (double));
-    memcpy(&((*V)[8]), yy, 8 * sizeof (double));
-    memcpy(&((*V)[16]), zz, 8 * sizeof (double));
-    memcpy(&((*V)[24]), ww, 8 * sizeof (double));
-
-    DDoubleGDL* pV = (Matrix->MatrixOp(V, false, true));
-
-    PLFLT xmin, xmax, ymin, ymax;
-    DLong iMin, iMax;
-    pV->MinMax(&iMin, &iMax, NULL, NULL, false, 0, 0, 4);
-    xmin = (*pV)[iMin];
-    xmax = (*pV)[iMax];
-    pV->MinMax(&iMin, &iMax, NULL, NULL, false, 1, 0, 4);
-    ymin = (*pV)[iMin];
-    ymax = (*pV)[iMax];
-
-    PLFLT xMR, xML, yMB, yMT;
-    DFloat xMarginL, xMarginR, yMarginB, yMarginT;
-    gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
-    gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
-    PLFLT scl = actStream->nCharLength(); //current char width
-    xML = xMarginL*scl; //margin as percentage of subpage
-    xMR = xMarginR*scl;
-    scl = actStream->nCharHeight(); //current char height
-    yMB = (yMarginB) * scl;
-    yMT = (yMarginT) * scl;
-
-    if (xML + xMR >= 1.0) {
-      PLFLT xMMult = xML + xMR;
-      xML /= xMMult * 1.5;
-      xMR /= xMMult * 1.5;
-    }
-    if (yMB + yMT >= 1.0) {
-      PLFLT yMMult = yMB + yMT;
-      yMB /= yMMult * 1.5;
-      yMT /= yMMult * 1.5;
-    }
-
-    static PLFLT positionP[4] = {0, 0, 0, 0};
-    static PLFLT regionP[4] = {0, 0, 0, 0};
-    static PLFLT position[4] = {0, 0, 1, 1};
-    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
-    // Get !P.position values. !P.REGION is superseded by !P.POSITION
-    if (pStruct != NULL) {
-
-      unsigned regionTag = pStruct->Desc()->TagIndex("REGION");
-      for (SizeT i = 0; i < 4; ++i) regionP[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(regionTag, 0)))[i];
-      unsigned positionTag = pStruct->Desc()->TagIndex("POSITION");
-      for (SizeT i = 0; i < 4; ++i) positionP[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(positionTag, 0)))[i];
-    }
-    if (regionP[0] != regionP[2] && positionP[0] == positionP[2]) //if not ignored, and will be used, as 
-      //a surrogate of !P.Position:
-    {
-      //compute position removing margins
-      positionP[0] = regionP[0] + xMarginL * actStream->nCharLength();
-      positionP[1] = regionP[1] + yMarginB * actStream->nLineSpacing();
-      positionP[2] = regionP[2] - xMarginR * actStream->nCharLength();
-      positionP[3] = regionP[3] - yMarginT * actStream->nLineSpacing();
-    }
-    //compatibility: Position NEVER outside [0,1]:
-    positionP[0] = max(0.0, positionP[0]);
-    positionP[1] = max(0.0, positionP[1]);
-    positionP[2] = min(1.0, positionP[2]);
-    positionP[3] = min(1.0, positionP[3]);
-
-    //check presence of DATA,DEVICE and NORMAL options
-    int DATAIx = e->KeywordIx("DATA");
-    int DEVICEIx = e->KeywordIx("DEVICE");
-    int NORMALIx = e->KeywordIx("NORMAL");
-
-    if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
-    if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
-    if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
-    //    if (coordinateSystem==DATA && !actStream->validWorldBox()) e->Throw("PLOT: Data coordinate system not established.");
-    // read boxPosition if needed
-    int positionIx = e->KeywordIx("POSITION");
-    DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>(positionIx);
-    if (boxPosition == NULL) boxPosition = (DFloatGDL*) 0xF;
-    if (boxPosition != (DFloatGDL*) 0xF) {
-      for (SizeT i = 0; i < 4 && i < boxPosition->N_Elements(); ++i) position[i] = (*boxPosition)[i];
-    }
-    // modify positionP and/or boxPosition to NORMAL if DEVICE is present
-    if (coordinateSystem == DEVICE) {
-      PLFLT normx;
-      PLFLT normy;
-      actStream->DeviceToNormedDevice(positionP[0], positionP[1], normx, normy);
-      positionP[0] = normx;
-      positionP[1] = normy;
-      actStream->DeviceToNormedDevice(positionP[2], positionP[3], normx, normy);
-      positionP[2] = normx;
-      positionP[3] = normy;
-      if (boxPosition != (DFloatGDL*) 0xF) {
-        actStream->DeviceToNormedDevice(position[0], position[1], normx, normy);
-        position[0] = normx;
-        position[1] = normy;
-        actStream->DeviceToNormedDevice(position[2], position[3], normx, normy);
-        position[2] = normx;
-        position[3] = normy;
-      }
-    }
-    if (boxPosition != (DFloatGDL*) 0xF) { //compatibility again: Position NEVER outside [0,1]:
-      position[0] = max(0.0, position[0]);
-      position[1] = max(0.0, position[1]);
-      position[2] = min(1.0, position[2]);
-      position[3] = min(1.0, position[3]);
-    }
-
-    // New plot without POSITION=[] as argument
-    if (boxPosition == (DFloatGDL*) 0xF) {
-      // If !P.position not set use default values. coordinatesSystem not used even if present!
-      if (positionP[0] == 0 && positionP[1] == 0 &&
-        positionP[2] == 0 && positionP[3] == 0) {
-        // Set to (smart?) default values
-        position[0] = 0;
-        position[1] = 0 + 2 * (yMB / yMarginB); //subtitle
-        position[2] = 1.0;
-        position[3] = 1.0 - 2 * (yMT / yMarginT); //title
-        actStream->vpor(position[0], position[2], position[1], position[3]);
-      } else {
-        // Use !P.position values.
-        actStream->vpor(positionP[0], positionP[2], positionP[1], positionP[3]);
-      }
-    } else // Position keyword set
-    {
-      actStream->vpor(position[0], position[2], position[1], position[3]);
-    }
-    //adjust 'world' values to give room to axis labels. Could be better if we take
-    //into account projection angles
-    // fix word values without labels:
-    actStream->wind(xmin, xmax, ymin, ymax);
-    //compute world Charsize
-    PLFLT xb, xe, yb, ye;
-    xb = xmin - xMarginL * actStream->wCharLength();
-    xe = xmax + xMarginR * actStream->wCharLength();
-    yb = ymin - yMarginB * actStream->wCharHeight();
-    ye = ymax - yMarginT * actStream->wCharHeight();
-    actStream->wind(xb, xe, yb, ye);
-
-
-    return true;
-  }
+//  static bool gdlSet3DViewPortAndWorldCoordinates(EnvT* e,
+//    GDLGStream* actStream,
+//    DDoubleGDL* Matrix,
+//    bool xLog, bool yLog,
+//    DDouble xStart,
+//    DDouble xEnd,
+//    DDouble yStart,
+//    DDouble yEnd, DDouble zStart = 0.0, DDouble zEnd = 1.0, bool zLog = false) {
+//
+//    //3D work
+//
+//    COORDSYS coordinateSystem = DATA;
+//    //To center plot, compute projected corners of 1 unit box
+//    static DDouble zz[8] = {0, 0, 0, 0, 1, 1, 1, 1};
+//    static DDouble yy[8] = {0, 0, 1, 1, 0, 0, 1, 1};
+//    static DDouble xx[8] = {0, 1, 0, 1, 0, 1, 0, 1};
+//    static DDouble ww[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+//
+//    DDoubleGDL* V = (new DDoubleGDL(dimension(8, 4)));
+//    memcpy(&((*V)[0]), xx, 8 * sizeof (double));
+//    memcpy(&((*V)[8]), yy, 8 * sizeof (double));
+//    memcpy(&((*V)[16]), zz, 8 * sizeof (double));
+//    memcpy(&((*V)[24]), ww, 8 * sizeof (double));
+//
+//    DDoubleGDL* pV = (Matrix->MatrixOp(V, false, true));
+//
+//    PLFLT xmin, xmax, ymin, ymax;
+//    DLong iMin, iMax;
+//    pV->MinMax(&iMin, &iMax, NULL, NULL, false, 0, 0, 4);
+//    xmin = (*pV)[iMin];
+//    xmax = (*pV)[iMax];
+//    pV->MinMax(&iMin, &iMax, NULL, NULL, false, 1, 0, 4);
+//    ymin = (*pV)[iMin];
+//    ymax = (*pV)[iMax];
+//
+//    PLFLT xMR, xML, yMB, yMT;
+//    DFloat xMarginL, xMarginR, yMarginB, yMarginT;
+//    gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
+//    gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
+//    PLFLT scl = actStream->nCharLength(); //current char width
+//    xML = xMarginL*scl; //margin as percentage of subpage
+//    xMR = xMarginR*scl;
+//    scl = actStream->nCharHeight(); //current char height
+//    yMB = (yMarginB) * scl;
+//    yMT = (yMarginT) * scl;
+//
+//    if (xML + xMR >= 1.0) {
+//      PLFLT xMMult = xML + xMR;
+//      xML /= xMMult * 1.5;
+//      xMR /= xMMult * 1.5;
+//    }
+//    if (yMB + yMT >= 1.0) {
+//      PLFLT yMMult = yMB + yMT;
+//      yMB /= yMMult * 1.5;
+//      yMT /= yMMult * 1.5;
+//    }
+//
+//    static PLFLT positionP[4] = {0, 0, 0, 0};
+//    static PLFLT regionP[4] = {0, 0, 0, 0};
+//    static PLFLT position[4] = {0, 0, 1, 1};
+//    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
+//    // Get !P.position values. !P.REGION is superseded by !P.POSITION
+//    if (pStruct != NULL) {
+//
+//      unsigned regionTag = pStruct->Desc()->TagIndex("REGION");
+//      for (SizeT i = 0; i < 4; ++i) regionP[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(regionTag, 0)))[i];
+//      unsigned positionTag = pStruct->Desc()->TagIndex("POSITION");
+//      for (SizeT i = 0; i < 4; ++i) positionP[i] = (PLFLT) (*static_cast<DFloatGDL*> (pStruct->GetTag(positionTag, 0)))[i];
+//    }
+//    if (regionP[0] != regionP[2] && positionP[0] == positionP[2]) //if not ignored, and will be used, as 
+//      //a surrogate of !P.Position:
+//    {
+//      //compute position removing margins
+//      positionP[0] = regionP[0] + xMarginL * actStream->nCharLength();
+//      positionP[1] = regionP[1] + yMarginB * actStream->nLineSpacing();
+//      positionP[2] = regionP[2] - xMarginR * actStream->nCharLength();
+//      positionP[3] = regionP[3] - yMarginT * actStream->nLineSpacing();
+//    }
+//    //compatibility: Position NEVER outside [0,1]:
+//    positionP[0] = max(0.0, positionP[0]);
+//    positionP[1] = max(0.0, positionP[1]);
+//    positionP[2] = min(1.0, positionP[2]);
+//    positionP[3] = min(1.0, positionP[3]);
+//
+//    //check presence of DATA,DEVICE and NORMAL options
+//    int DATAIx = e->KeywordIx("DATA");
+//    int DEVICEIx = e->KeywordIx("DEVICE");
+//    int NORMALIx = e->KeywordIx("NORMAL");
+//
+//    if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
+//    if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
+//    if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
+//    //    if (coordinateSystem==DATA && !actStream->validWorldBox()) e->Throw("PLOT: Data coordinate system not established.");
+//    // read boxPosition if needed
+//    int positionIx = e->KeywordIx("POSITION");
+//    DFloatGDL* boxPosition = e->IfDefGetKWAs<DFloatGDL>(positionIx);
+//    if (boxPosition == NULL) boxPosition = (DFloatGDL*) 0xF;
+//    if (boxPosition != (DFloatGDL*) 0xF) {
+//      for (SizeT i = 0; i < 4 && i < boxPosition->N_Elements(); ++i) position[i] = (*boxPosition)[i];
+//    }
+//    // modify positionP and/or boxPosition to NORMAL if DEVICE is present
+//    if (coordinateSystem == DEVICE) {
+//      PLFLT normx;
+//      PLFLT normy;
+//      actStream->DeviceToNormedDevice(positionP[0], positionP[1], normx, normy);
+//      positionP[0] = normx;
+//      positionP[1] = normy;
+//      actStream->DeviceToNormedDevice(positionP[2], positionP[3], normx, normy);
+//      positionP[2] = normx;
+//      positionP[3] = normy;
+//      if (boxPosition != (DFloatGDL*) 0xF) {
+//        actStream->DeviceToNormedDevice(position[0], position[1], normx, normy);
+//        position[0] = normx;
+//        position[1] = normy;
+//        actStream->DeviceToNormedDevice(position[2], position[3], normx, normy);
+//        position[2] = normx;
+//        position[3] = normy;
+//      }
+//    }
+//    if (boxPosition != (DFloatGDL*) 0xF) { //compatibility again: Position NEVER outside [0,1]:
+//      position[0] = max(0.0, position[0]);
+//      position[1] = max(0.0, position[1]);
+//      position[2] = min(1.0, position[2]);
+//      position[3] = min(1.0, position[3]);
+//    }
+//
+//    // New plot without POSITION=[] as argument
+//    if (boxPosition == (DFloatGDL*) 0xF) {
+//      // If !P.position not set use default values. coordinatesSystem not used even if present!
+//      if (positionP[0] == 0 && positionP[1] == 0 &&
+//        positionP[2] == 0 && positionP[3] == 0) {
+//        // Set to (smart?) default values
+//        position[0] = 0;
+//        position[1] = 0 + 2 * (yMB / yMarginB); //subtitle
+//        position[2] = 1.0;
+//        position[3] = 1.0 - 2 * (yMT / yMarginT); //title
+//        actStream->vpor(position[0], position[2], position[1], position[3]);
+//      } else {
+//        // Use !P.position values.
+//        actStream->vpor(positionP[0], positionP[2], positionP[1], positionP[3]);
+//      }
+//    } else // Position keyword set
+//    {
+//      actStream->vpor(position[0], position[2], position[1], position[3]);
+//    }
+//    //adjust 'world' values to give room to axis labels. Could be better if we take
+//    //into account projection angles
+//    // fix word values without labels:
+//    actStream->wind(xmin, xmax, ymin, ymax);
+//    //compute world Charsize
+//    PLFLT xb, xe, yb, ye;
+//    xb = xmin - xMarginL * actStream->wCharLength();
+//    xe = xmax + xMarginR * actStream->wCharLength();
+//    yb = ymin - yMarginB * actStream->wCharHeight();
+//    ye = ymax - yMarginT * actStream->wCharHeight();
+//    actStream->wind(xb, xe, yb, ye);
+//
+//
+//    return true;
+//  }
 
   //ONLY USED BY PLOT,CONTOUR. Sets all relevant Direct Graphic structures !X, !Y , !Z  
 
@@ -1984,8 +1986,8 @@ namespace lib {
     return true;
   }
 
-  static bool gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log,
-    DLong modifierCode = 0, DDouble NormedLength = 0) {
+  static bool gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong modifierCode = 0, DDouble NormedLength = 0) {
+    if (Start==End) return true;
     DLong Style;
     gdlGetDesiredAxisStyle(e, axisId, Style);
     if ((Style & 4) == 4) return true; //if we do not write the axis...
@@ -2026,7 +2028,10 @@ namespace lib {
       axisId = YAXIS;
       OtherAxisSizeInMm = a->mmxPageSize()*(NormedLength);
     }
-
+    if (axisId == ZAXIS2) {
+      axisId = ZAXIS;
+      OtherAxisSizeInMm = a->mmxPageSize()*(NormedLength);
+    }
     DLong GridStyle;
     gdlGetDesiredAxisGridStyle(e, axisId, GridStyle);
     DLong Minor;
@@ -2289,6 +2294,7 @@ namespace lib {
   }
 
   static bool gdlAxis3(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong zAxisCode = 0, DDouble NormedLength = 0) {
+    if (Start==End) return true;
     string addCode = "b"; //for X and Y, and some Z
     if (zAxisCode == 1 || zAxisCode == 4) addCode = "cm";
     bool doZ = (zAxisCode >= 0);
@@ -2391,7 +2397,7 @@ namespace lib {
       //Following hopefully corrects a bug in plplot when TickInterval is very very tiny. The only solution
       // is to avoid plotting the axis!
       if (TickInterval < 10 * std::numeric_limits<double>::epsilon()) {
-        return 0;
+        return true;
       }
       string Opt;
       //first write labels only:

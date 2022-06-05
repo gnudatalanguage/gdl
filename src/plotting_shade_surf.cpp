@@ -297,9 +297,6 @@ namespace lib
         plplot3d=gdlDefinePlplotRotationMatrix( az, alt, zValue,scale,saveT3d);
       }
 
-      if ( gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
-        xStart, xEnd, yStart, yEnd, zStart, zEnd, zLog)==FALSE ) return true;
-
       if (xLog) xStart=log10(xStart);
       if (yLog) yStart=log10(yStart);
       if (zLog) zStart=log10(zStart);

@@ -1779,7 +1779,36 @@ namespace lib
     DLong ok4t3d=(*static_cast<DLongGDL*>(pStruct->GetTag(pStruct->Desc()->TagIndex("T3D"), 0)))[0];
     if (ok4t3d==0) return false; else return true;
   }
-  
+
+  void yzaxisExch(DDouble* me) {
+    DDouble tmp=me[2];
+    me[2]=me[1];
+    me[1]=tmp;
+    tmp=me[6];
+    me[6]=me[5];
+    me[5]=tmp;
+    tmp=me[10];
+    me[10]=me[9];
+    me[9]=tmp;
+    tmp=me[14];
+    me[14]=me[13];
+    me[13]=tmp;
+  }
+  void xzaxisExch(DDouble* me) {
+    DDouble tmp=me[2];
+    me[2]=me[0];
+    me[0]=tmp;
+    tmp=me[6];
+    me[6]=me[4];
+    me[4]=tmp;
+    tmp=me[10];
+    me[10]=me[8];
+    me[8]=tmp;
+    tmp=me[14];
+    me[14]=me[12];
+    me[12]=tmp;
+  }
+
   void usersym(EnvT *e)
   {
     DFloatGDL *xyVal, *xVal, *yVal;

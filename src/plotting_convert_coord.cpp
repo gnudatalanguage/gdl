@@ -217,7 +217,6 @@ namespace lib {
     GDLDelete(mat);
   }
 
-
   DDoubleGDL* convert_coord_double(EnvT* e, DDoubleGDL* xVal, DDoubleGDL* yVal, DDoubleGDL* zVal, COORDSYS icoordinateSystem, COORDSYS ocoordinateSystem) {
 
     DLong dims[2] = {3, 0};
@@ -716,7 +715,8 @@ namespace lib {
   
   //converts 3D values according to COORDSYS towards NORMAL coordinates and , logically, unset xLog,yLo,zLog and define code as NORMAL.
   void SelfConvertToNormXYZ(DDoubleGDL *x, bool &xLog, DDoubleGDL *y, bool &yLog, DDoubleGDL *z, bool &zLog, COORDSYS &code) {
-    std::cerr<<"SelfConvertToNormXYZ()\n";
+    std::cerr<<"SelfConvertToNormXYZ(DDoubleGDL)\n";
+    assert (code != DEVICE);
     SizeT n=x->N_Elements();
     if (code == DATA) {
       DDouble *sx, *sy, *sz;
@@ -724,27 +724,29 @@ namespace lib {
       for (auto i = 0; i < n; ++i) TONORMCOORDX( (*x)[i], (*x)[i], xLog);
       for (auto i = 0; i < n; ++i) TONORMCOORDY( (*y)[i], (*y)[i], yLog);
       for (auto i = 0; i < n; ++i) TONORMCOORDZ( (*z)[i], (*z)[i], zLog);
-    } else if (code == DEVICE) {
-      int xSize, ySize;
-      //give default values
-      DStructGDL* dStruct = SysVar::D();
-      unsigned xsizeTag = dStruct->Desc()->TagIndex("X_SIZE");
-      unsigned ysizeTag = dStruct->Desc()->TagIndex("Y_SIZE");
-      xSize = (*static_cast<DLongGDL*> (dStruct->GetTag(xsizeTag, 0)))[0];
-      ySize = (*static_cast<DLongGDL*> (dStruct->GetTag(ysizeTag, 0)))[0];
-      for (auto i = 0; i < n; ++i) (*x)[i] /= xSize;
-      for (auto i = 0; i < n; ++i) (*y)[i] /= ySize;
-      if (zLog) for (auto i = 0; i < n; ++i) (*z)[i]=log10(i);
     }
     code=NORMAL;
     xLog=false;
     yLog=false;
     zLog=false;
   }
+  //same for a DDouble, leaves code and log unchanged.
+
+  void SelfConvertToNormXYZ(SizeT n, DDouble *x, bool const xLog, DDouble *y, bool const yLog, DDouble *z, bool const zLog, COORDSYS const code) {
+    std::cerr << "SelfConvertToNormXYZ(DDouble)\n";
+    assert (code != DEVICE);
+    if (code == DATA) {
+      DDouble *sx, *sy, *sz;
+      GetSFromPlotStructs(&sx, &sy, &sz);
+      for (auto i = 0; i < n; ++i) TONORMCOORDX(x[i], x[i], xLog);
+      for (auto i = 0; i < n; ++i) TONORMCOORDY(y[i], y[i], yLog);
+      for (auto i = 0; i < n; ++i) TONORMCOORDZ(z[i], z[i], zLog);
+    }
+  }
   
   //converts x and y but leaves code and log unchanged.
   void SelfConvertToNormXY(SizeT n, DDouble *x, bool const xLog, DDouble *y, bool const yLog, COORDSYS const code) {
-  std::cerr<<"SelfConvertToNormXY()"<<std::endl;
+  std::cerr<<"SelfConvertToNormXY(DDouble)"<<std::endl;
   if (code == DATA) {
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz);
@@ -765,7 +767,7 @@ namespace lib {
   
   //converts x and y and updates code and log, for futher use in the pipeline.
    void SelfConvertToNormXY(DDoubleGDL *x, bool &xLog, DDoubleGDL *y, bool &yLog, COORDSYS &code) {
-  std::cerr<<"SelfConvertToNormXY()"<<std::endl;
+  std::cerr<<"SelfConvertToNormXY(DDoubleGD)"<<std::endl;
   SizeT n=x->N_Elements();
   if (code == DATA) {
       DDouble *sx, *sy, *sz;
