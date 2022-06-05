@@ -6026,7 +6026,7 @@ void gdlwxPhantomFrame::Realize() {
 
 // Frame for Plots ========================================================
 gdlwxPlotFrame::gdlwxPlotFrame( const wxString& title , const wxPoint& pos, const wxSize& size, long style, bool scrolled_)
-: wxFrame( NULL, wxID_ANY, title, pos, size, style )
+: wxFrame( NULL, wxID_ANY, title, pos, size, wxDEFAULT_FRAME_STYLE )
 , frameSize(size)
 , scrolled(scrolled_)
 {
