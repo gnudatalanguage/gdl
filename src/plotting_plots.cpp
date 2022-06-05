@@ -220,7 +220,7 @@ namespace lib {
       coordinateSystem = DATA;
       //check presence of DATA,DEVICE and NORMAL options
       if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
-      if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
+      if (e->KeywordSet(DEVICEIx)) {coordinateSystem = DEVICE; doT3d=false;}
       if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
 
       // get_axis_type
