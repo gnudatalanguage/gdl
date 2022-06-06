@@ -280,7 +280,7 @@ namespace lib {
       if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == false) return true; 
 
       if (doT3d) { //call for driver to perform special transform for all further drawing
-        gdlFillWithT3DMatrix(PlotDevice3d.T);
+        gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
         PlotDevice3d.zValue=zValue;
         actStream->cmd( PLESC_3D,  &PlotDevice3d);
       } 
@@ -345,7 +345,7 @@ namespace lib {
 
     void call_plplot(EnvT* e, GDLGStream* actStream) {
       static int nodataIx = e->KeywordIx("NODATA");
-      if (e->KeywordSet(nodataIx)) return;
+      if (e->KeywordSet(nodataIx)) return; //will perform post_call
       // start drawing. Graphic Keywords accepted:CLIP(YES), COLOR(YES), LINESTYLE(YES), NOCLIP(YES),
       //                                          PSYM(YES), SYMSIZE(YES), T3D(YES), ZVALUE(YES)
       static int colorIx = e->KeywordIx("COLOR");
@@ -415,6 +415,7 @@ namespace lib {
     }
 
     void post_call(EnvT* e, GDLGStream* actStream) {
+      actStream->RestoreLayout();
       if (doT3d) { //reset driver to 2D plotting routines.
         actStream->cmd(PLESC_2D, NULL);
       }

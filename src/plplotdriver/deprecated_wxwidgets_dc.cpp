@@ -165,7 +165,7 @@ void wxPLDevDC::FillPolygon( PLStream *pls )
     wxPoint *points = new wxPoint[pls->dev_npts];
     wxCoord xoffset = 0;
     wxCoord yoffset = 0;
-
+    
     for ( int i = 0; i < pls->dev_npts; i++ )
     {
         points[i].x = (int) ( pls->dev_x[i] / scalex );

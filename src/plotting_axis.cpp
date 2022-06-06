@@ -314,7 +314,7 @@ namespace lib {
         actStream->wind(xStart, xEnd, yStart, yEnd);
 
         if (doT3d) { //call for driver to perform special transform for all further drawing
-          gdlFillWithT3DMatrix(PlotDevice3d.T);
+          gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
           PlotDevice3d.zValue = zPos;
           actStream->cmd(PLESC_3D, &PlotDevice3d);
         }
@@ -334,7 +334,7 @@ namespace lib {
         actStream->wind(xStart, xEnd, yStart, yEnd);
 
         if (doT3d) { //call for driver to perform special transform for all further drawing
-          gdlFillWithT3DMatrix(PlotDevice3d.T);
+          gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
           PlotDevice3d.zValue = zPos;
           actStream->cmd(PLESC_3D, &PlotDevice3d);
         }
@@ -354,7 +354,7 @@ namespace lib {
         //insure 'wind' arguments are given, otherwise BAM! in plplot
         actStream->wind(xStart, xEnd, zStart, zEnd);
 
-        gdlFillWithT3DMatrix(PlotDevice3d.T);
+        gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
         yzaxisExch(PlotDevice3d.T);
         PlotDevice3d.zValue = yPos;
         actStream->cmd(PLESC_3D, &PlotDevice3d);

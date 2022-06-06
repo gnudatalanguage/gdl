@@ -196,7 +196,7 @@ namespace lib {
       }
 
       if (xnormmin==xnormmax || ynormmin==ynormmax) {
-        actStream->RestoreLayout();
+        this->post_call(e,actStream);
         return true; //nothing to see and plpot complains.
       }
       // it is important to fix symsize before changing vpor or win 
@@ -281,7 +281,7 @@ namespace lib {
       GetSFromPlotStructs(&sx, &sy, &sz); 
       
       if (doT3d) { //call for driver to perform special transform for all further drawing
-        gdlFillWithT3DMatrix(PlotDevice3d.T);
+        gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
         PlotDevice3d.zValue = zPosition;
         actStream->cmd(PLESC_3D, &PlotDevice3d);
       }

@@ -405,10 +405,34 @@ void plD_esc_svg( PLStream *pls, PLINT op, void *ptr )
     switch ( op )
     {
     case PLESC_FILL:      // fill polygon
+        if (Status3D == 1) { //enable use everywhere.
+          //perform conversion on the fly
+          for (PLINT i = 0; i < pls->dev_npts; ++i) {
+            int x = pls->dev_x[i];
+            int y = pls->dev_y[i];
+            // 3D convert, must take into account that y is inverted.
+            SelfTransform3D(&x, &y);
+
+            pls->dev_x[i] = x;
+            pls->dev_y[i] = y;
+          }
+        }
         poly_line( pls, pls->dev_x, pls->dev_y, pls->dev_npts, 1 );
         break;
     case PLESC_GRADIENT:      // render gradient inside polygon
-        gradient( pls, pls->dev_x, pls->dev_y, pls->dev_npts );
+        if (Status3D == 1) { //enable use everywhere.
+          //perform conversion on the fly
+          for (PLINT i = 0; i < pls->dev_npts; ++i) {
+            int x = pls->dev_x[i];
+            int y = pls->dev_y[i];
+            // 3D convert, must take into account that y is inverted.
+            SelfTransform3D(&x, &y);
+
+            pls->dev_x[i] = x;
+            pls->dev_y[i] = y;
+          }
+        }
+       gradient( pls, pls->dev_x, pls->dev_y, pls->dev_npts );
         break;
     case PLESC_HAS_TEXT:  // render text
         proc_str( pls, (EscText *) ptr );

@@ -973,8 +973,8 @@ plP_dcscy( DDouble y )
 //    GDLDelete(t3dMatrix);
 //  }
   //simpler, transposition must be done in client code.
-  void gdlFillWithT3DMatrix(DDouble* T) {
-    std::cerr<<"gdlFillWithT3DMatrix()\n";
+  void gdlGetT3DMatrixForDriverTransform(DDouble* T) {
+    std::cerr<<"gdlGetT3DMatrixForDriverTransform()\n";
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
     for (int i = 0; i < 16; ++i)T[i] = (*static_cast<DDoubleGDL*> (pStruct->GetTag(tTag, 0)))[i];

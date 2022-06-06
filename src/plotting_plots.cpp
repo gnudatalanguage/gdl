@@ -279,7 +279,7 @@ namespace lib {
       }
 
       if (xnormmin==xnormmax || ynormmin==ynormmax) {
-        actStream->RestoreLayout();
+        this->post_call(e,actStream);
         return true; //nothing to see and plpot complains.
       }
       // it is important to fix symsize before changing vpor or win 

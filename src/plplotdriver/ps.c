@@ -817,15 +817,22 @@ fill_polygon( PLStream *pls )
     PLINT x, y;
 
     fprintf( OF, " Z\n" );
-
+    
     for ( n = 0; n < pls->dev_npts; n++ )
     {
         x = pls->dev_x[ix++];
         y = pls->dev_y[iy++];
-
+        
+    if ( Status3D == 1 && !pls->portrait ) { // 3D convert on normalized values
+          SelfTransform3DPSL(&x, &y);
+    }
 // Rotate by 90 degrees
 
         plRotPhy( ORIENTATION, dev->xmin, dev->ymin, dev->xmax, dev->ymax, &x, &y );
+
+    if ( Status3D == 1 && pls->portrait ) { // 3D convert on normalized values
+          SelfTransform3DPSP(&x, &y);
+    }
 
 // First time through start with a x y moveto
 

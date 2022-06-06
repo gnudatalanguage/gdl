@@ -975,6 +975,18 @@ static void fill_polygon( PLStream *pls )
     if ( !( dev->ready ) )
         install_buffer( pls );
 
+    if (Status3D == 1) { //enable use everywhere.
+      //perform conversion on the fly
+      for (PLINT i = 0; i < pls->dev_npts; ++i) {
+        int x = pls->dev_x[i];
+        int y = pls->dev_y[i];
+        // 3D convert, must take into account that y is inverted.
+        SelfTransform3D(&x, &y);
+
+        pls->dev_x[i] = x;
+        pls->dev_y[i] = y;
+      }
+    }
     dev->FillPolygon( pls );
 
     if ( !( dev->resizing ) && dev->ownGUI )

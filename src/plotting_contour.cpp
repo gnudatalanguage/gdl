@@ -32,6 +32,8 @@
 #define PLCALLBACK plstream
 #endif
 
+static GDL_3DTRANSFORMDEVICE PlotDevice3d;
+
 namespace lib {
 
   using namespace std;
@@ -56,29 +58,46 @@ namespace lib {
   class contour_call : public plotting_routine_call {
     DDoubleGDL *zVal, *yVal, *xVal;
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard, p0_guard;
-    DDoubleGDL *yValTemp, *xValTemp;
-    Guard<BaseGDL> xval_temp_guard, yval_temp_guard;
+    DDoubleGDL *yValIrregularCase, *xValIrregularCase;
     SizeT xEl, yEl, zEl, ixEl, iyEl;
-    DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd, datamax, datamin;
+    DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
+    DDouble minVal, maxVal;
     bool isLog;
-    bool overplot, make2dBox, make3dBox, nodata;
+    bool overplot, nodata;
+    COORDSYS coordinateSystem = DATA;
     DLongGDL *colors, *labels, *style;
-    PLINT defaultColor;
     DFloatGDL* thick;
     Guard<BaseGDL> colors_guard, thick_guard, labels_guard, style_guard;
     DFloatGDL *spacing, *orientation;
     Guard<BaseGDL> spacing_guard, orientation_guard;
-    bool doT3d;
+    bool doT3d, flat3d;
     bool irregular;
-    bool setZrange;
-    bool restorelayout;
     bool iso;
+    DDouble zValue;
+    int calendar_codex;
+    int calendar_codey;
+    bool hasMinVal,hasMaxVal;
+    bool recordPath;
 
     //PATH_XY etc: use actStream->stransform with a crafted recording function per level [lev-maxmax].
     //disentangle positive and negative contours with their rotation signature.
   private:
 
     bool handle_args(EnvT* e) {
+      //T3D ?
+      static int t3dIx = e->KeywordIx("T3D");
+      doT3d = (e->BooleanKeywordSet(t3dIx) || T3Denabled());
+      //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
+      static int zvIx = e->KeywordIx("ZVALUE");
+      zValue = 0.0;
+      flat3d=e->KeywordPresent(zvIx);
+      e->AssureDoubleScalarKWIfPresent(zvIx, zValue);
+      zValue = min(zValue, ZVALUEMAX); //to avoid problems with plplot
+      zValue = max(zValue, 0.0);
+      //zStart and zEnd are ALWAYS Zero. zValue will be registered in !Z.REGION
+      zStart = 0;
+      zEnd = 0;
+
       static int irregIx = e->KeywordIx("IRREGULAR");
       irregular = e->KeywordSet(irregIx);
 
@@ -124,17 +143,17 @@ namespace lib {
           zVal = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
           zval_guard.Init(zVal); // delete upon exit
 
-          xValTemp = e->GetParAs< DDoubleGDL>(1);
-          yValTemp = e->GetParAs< DDoubleGDL>(2);
+          xValIrregularCase = e->GetParAs< DDoubleGDL>(1);
+          yValIrregularCase = e->GetParAs< DDoubleGDL>(2);
 
-          if (xValTemp->N_Elements() != zVal->N_Elements())
+          if (xValIrregularCase->N_Elements() != zVal->N_Elements())
             e->Throw("X, Y, or Z array dimensions are incompatible.");
-          if (yValTemp->N_Elements() != zVal->N_Elements())
+          if (yValIrregularCase->N_Elements() != zVal->N_Elements())
             e->Throw("X, Y, or Z array dimensions are incompatible.");
-          xEl = xValTemp->N_Elements();
-          yEl = yValTemp->N_Elements(); //all points inside
-          xVal = xValTemp;
-          yVal = yValTemp; //for the time being, will be update later
+          xEl = xValIrregularCase->N_Elements();
+          yEl = yValIrregularCase->N_Elements(); //all points inside
+          xVal = xValIrregularCase;
+          yVal = yValIrregularCase; //for the time being, will be update later
         } else {
           BaseGDL* p0 = e->GetNumericArrayParDefined(0)->Transpose(NULL);
           p0_guard.Init(p0); // delete upon exit
@@ -190,27 +209,101 @@ namespace lib {
         }
       }
 
+      xLog = false;
+      yLog = false;
+      zLog = false; 
+
+      // handle Log options passing via Functions names PLOT_IO/OO/OI
+      // the behavior can be superseed by [xy]log or [xy]type
+      string ProName = e->GetProName();
+      if (ProName != "PLOT") {
+        if (ProName == "PLOT_IO") yLog = true;
+        if (ProName == "PLOT_OI") xLog = true;
+        if (ProName == "PLOT_OO") {
+          xLog = true;
+          yLog = true;
+        }
+      }
+
+      // handle Log options passing via Keywords
+      // note: undocumented keywords [xyz]type still exist and
+      // have priority on [xyz]log !
+      static int xLogIx = e->KeywordIx("XLOG");
+      static int yLogIx = e->KeywordIx("YLOG");
+      static int zLogIx = e->KeywordIx("ZLOG");
+      if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
+      if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
+      if (e->KeywordPresent(zLogIx)) zLog = e->KeywordSet(zLogIx);
+
+      // note: undocumented keywords [xyz]type still exist and
+      // have priority on [xyz]log ! In fact, it is the modulo (1, 3, 5 ... --> /log)   
+      static int xTypeIx = e->KeywordIx("XTYPE");
+      static int yTypeIx = e->KeywordIx("YTYPE");
+      // ztype does not exist in IDL
+      static int xType, yType;
+      if (e->KeywordPresent(xTypeIx)) {
+        e->AssureLongScalarKWIfPresent(xTypeIx, xType);
+        if ((xType % 2) == 1) xLog = true;
+        else xLog = false;
+      }
+      if (e->KeywordPresent(yTypeIx)) {
+        e->AssureLongScalarKWIfPresent(yTypeIx, yType);
+        if ((yType % 2) == 1) yLog = true;
+        else yLog = false;
+      }
+
+      static int xTickunitsIx = e->KeywordIx("XTICKUNITS");
+      static int yTickunitsIx = e->KeywordIx("YTICKUNITS");
+
+      calendar_codex = gdlGetCalendarCode(e, XAXIS);
+      calendar_codey = gdlGetCalendarCode(e, YAXIS);
+      if (e->KeywordSet(xTickunitsIx) && xLog) {
+        Message("PLOT: LOG setting ignored for Date/Time TICKUNITS.");
+        xLog = false;
+      }
+      if (e->KeywordSet(yTickunitsIx) && yLog) {
+        Message("PLOT: LOG setting ignored for Date/Time TICKUNITS.");
+        yLog = false;
+      }
+      isLog = false;
+      if (xLog || yLog) isLog = true;
+
       GetMinMaxVal(xVal, &xStart, &xEnd);
       GetMinMaxVal(yVal, &yStart, &yEnd);
       //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
       DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;
       bool setx = gdlGetDesiredAxisRange(e, XAXIS, xAxisStart, xAxisEnd);
       bool sety = gdlGetDesiredAxisRange(e, YAXIS, yAxisStart, yAxisEnd);
-      if (setx) {
+      if (setx && sety) {
         xStart = xAxisStart;
         xEnd = xAxisEnd;
-      }
-      if (sety) {
         yStart = yAxisStart;
         yEnd = yAxisEnd;
+      } else if (sety) {
+        yStart = yAxisStart;
+        yEnd = yAxisEnd;
+      } else if (setx) {
+        xStart = xAxisStart;
+        xEnd = xAxisEnd;
+        //must compute min-max for other axis!
+        {
+          gdlDoRangeExtrema(xVal, yVal, yStart, yEnd, xStart, xEnd, false);
+        }
       }
       // z range
-      datamax = 0.0;
-      datamin = 0.0;
-      GetMinMaxVal(zVal, &datamin, &datamax);
-      zStart = datamin;
-      zEnd = datamax;
-      setZrange = gdlGetDesiredAxisRange(e, ZAXIS, zStart, zEnd);
+      minVal=maxVal=0;
+      GetMinMaxVal(zVal, &minVal, &maxVal);
+      zStart = minVal;
+      zEnd = maxVal;
+      gdlGetDesiredAxisRange(e, ZAXIS, zStart, zEnd);
+      
+      //minVal and maxVal are values to make the contours
+      static int MIN_VALUE = e->KeywordIx("MIN_VALUE");
+      static int MAX_VALUE = e->KeywordIx("MAX_VALUE");
+      hasMinVal = e->KeywordPresent(MIN_VALUE);
+      hasMaxVal = e->KeywordPresent(MAX_VALUE);
+      e->AssureDoubleScalarKWIfPresent(MIN_VALUE, minVal);
+      e->AssureDoubleScalarKWIfPresent(MAX_VALUE, maxVal);
 
       return false; //do not abort
     }
@@ -218,34 +311,126 @@ namespace lib {
   private:
 
     bool old_body(EnvT* e, GDLGStream* actStream) {
+      //OVERPLOT: get stored range values instead to use them!
+      static int overplotKW = e->KeywordIx("OVERPLOT");
+      overplot = e->KeywordSet(overplotKW);
+      if (overplot) {
+        //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
+        GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd);
+      } else {
+        //check presence of DATA,DEVICE and NORMAL options
+        static int DATAIx = e->KeywordIx("DATA");
+        static int DEVICEIx = e->KeywordIx("DEVICE");
+        static int NORMALIx = e->KeywordIx("NORMAL");
+        coordinateSystem = DATA;
+        //check presence of DATA,DEVICE and NORMAL options
+        if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
+        if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
+        if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
+
+        //ISOTROPIC
+        static int ISOTROPIC = e->KeywordIx("ISOTROPIC");
+        iso = e->KeywordSet(ISOTROPIC);
+        // background BEFORE next plot since it is the only place plplot may redraw the background...
+        gdlSetGraphicsBackgroundColorFromKw(e, actStream);
+        //start a plot
+        gdlNextPlotHandlingNoEraseOption(e, actStream); //NOERASE
+
+        //Box adjustement:
+        gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog, calendar_codex);
+        gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog, calendar_codey);
+        gdlAdjustAxisRange(e, ZAXIS, zStart, zEnd, zLog);
+
+
+        if (xLog && xStart <= 0.0) Warning("CONTOUR: Infinite x plot range.");
+        if (yLog && yStart <= 0.0) Warning("CONTOUR: Infinite y plot range.");
+        if (zLog && zStart <= 0.0) Warning("CONTOUR: Infinite z plot range.");
+
+        // viewport and world coordinates
+        // set the PLOT charsize before setting viewport (margin depend on charsize)
+        gdlSetPlotCharsize(e, actStream);
+        if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == false) return true; 
+
+        if (doT3d) { //call for driver to perform special transform for all further drawing
+          gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
+          PlotDevice3d.zValue=zValue;
+          actStream->cmd( PLESC_3D,  &PlotDevice3d);
+        } 
+        //current pen color...
+        gdlSetGraphicsForegroundColorFromKw(e, actStream);
+        gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
+
+        // title and sub title
+        gdlWriteTitleAndSubtitle(e, actStream);
+        
+        if (doT3d) { //reset driver to 2D plotting routines after box plot.
+          actStream->cmd(PLESC_2D, NULL);
+        }
+      }
+      //NOW we work as for all other graphic procedures, in NORMmalized coordinates, as for PLOTS etc.
+      actStream->OnePageSaveLayout(); // one page
+
+      //CLIPPING (or not) is just defining the adequate viewport and world coordinates, all of them normalized since this is what plplot will get in the end.
+      static int NOCLIPIx = e->KeywordIx("NOCLIP");
+      bool noclip = e->BooleanKeywordSet(NOCLIPIx);
+      // Clipping is enabled by default for OPLOT.
+      int CLIP = e->KeywordIx("CLIP");
+      bool doClip = (!(noclip) && !doT3d);
+
+      PLFLT xnormmin = 0;
+      PLFLT xnormmax = 1;
+      PLFLT ynormmin = 0;
+      PLFLT ynormmax = 1;
+
+      if (doClip) { //redefine default viewport & world
+        //define a default clipbox (DATA coords):
+        PLFLT clipBox[4] = {xStart, yStart, xEnd, yEnd};
+        DDoubleGDL* clipBoxGDL = e->IfDefGetKWAs<DDoubleGDL>(CLIP);
+        if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() < 4) for (auto i = 0; i < 4; ++i) clipBox[i] = 0; //set clipbox to 0 0 0 0 apparently this is what IDL does.
+        if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() == 4) for (auto i = 0; i < 4; ++i) clipBox[i] = (*clipBoxGDL)[i];
+        //clipBox is defined accordingly to /NORM /DEVICE /DATA:
+        //convert clipBox to normalized coordinates:
+        //switch here is irrelevant since coordinates are DATA , but kepts here for sameness with othe rplotting_* routines.
+        switch (coordinateSystem) {
+        case DATA:
+          actStream->WorldToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
+          actStream->WorldToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
+          break;
+        case DEVICE:
+          actStream->DeviceToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
+          actStream->DeviceToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
+          break;
+        default:
+          xnormmin = clipBox[0];
+          xnormmax = clipBox[2];
+          ynormmin = clipBox[1];
+          ynormmax = clipBox[3];
+        }
+      }
+
+      actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
+      actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
+      
+      return false;
+    }
+
+  private:
+
+    void call_plplot(EnvT* e, GDLGStream* actStream) {
+            
+      static int nodataIx = e->KeywordIx("NODATA");
+      if (e->KeywordSet(nodataIx)) return; //will perform post_call
+      //ISOTROPIC
+      static int ISOTROPIC = e->KeywordIx("ISOTROPIC");
+      iso = e->KeywordSet(ISOTROPIC);
+
       // we need to define the NaN value
       DStructGDL *Values = SysVar::Values(); //MUST NOT BE STATIC, due to .reset 
       static DDouble d_nan = (*static_cast<DDoubleGDL*> (Values->GetTag(Values->Desc()->TagIndex("D_NAN"), 0)))[0];
       static DDouble minmin = std::numeric_limits<PLFLT>::min();
       static DDouble maxmax = std::numeric_limits<PLFLT>::max();
-      //for 3D
-      DDoubleGDL* plplot3d;
-      DDouble az, alt, ay, scale[3] = TEMPORARY_PLOT3D_SCALE;
-      T3DEXCHANGECODE axisExchangeCode;
-      restorelayout = false;
-      //T3D
-      static int t3dIx = e->KeywordIx("T3D");
-      doT3d = (e->BooleanKeywordSet(t3dIx) || T3Denabled());
-      //ZVALUE
-      static int zvIx = e->KeywordIx("ZVALUE");
-      DDouble zValue = 0.0;
-      bool hasZvalue = false;
-      if (e->GetKW(zvIx) != NULL) {
-        e->AssureDoubleScalarKW(zvIx, zValue);
-        zValue = min(zValue, ZVALUEMAX); //to avoid problems with plplot
-        zValue = max(zValue, 0.0);
-        hasZvalue = true;
-      }
-      //NODATA
-      static int nodataIx = e->KeywordIx("NODATA");
-      nodata = e->KeywordSet(nodataIx);
+
       //We could RECORD PATH this way. Not developed since PATH_INFO seems not to be used
-      bool recordPath;
       static int pathinfoIx = e->KeywordIx("PATH_INFO");
       static int pathxyIx = e->KeywordIx("PATH_XY");
       recordPath = (e->KeywordSet(pathinfoIx) || e->KeywordSet(pathxyIx));
@@ -255,172 +440,8 @@ namespace lib {
         Warning("PATH_INFO, PATH_XY not yet supported, (FIXME)");
         recordPath = false;
       }
-      //      else actStream->stransform(NULL, NULL);
-
-      //ISOTROPIC
-      static int ISOTROPIC = e->KeywordIx("ISOTROPIC");
-      iso = e->KeywordSet(ISOTROPIC);
-
-      // MARGIN
-      DFloat xMarginL, xMarginR, yMarginB, yMarginT, zMarginF, zMarginB;
-      gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
-      gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
-      gdlGetDesiredAxisMargin(e, ZAXIS, zMarginF, zMarginB);
-
-      // handle Log options passing via Keywords
-      // note: undocumented keywords [xyz]type still exist and
-      // have priority on [xyz]log ! 
-      static int xTypeIx = e->KeywordIx("XTYPE");
-      static int yTypeIx = e->KeywordIx("YTYPE");
-      static int xLogIx = e->KeywordIx("XLOG");
-      static int yLogIx = e->KeywordIx("YLOG");
-      static int zLogIx = e->KeywordIx("ZLOG");
-      static int xTickunitsIx = e->KeywordIx("XTICKUNITS");
-      static int yTickunitsIx = e->KeywordIx("YTICKUNITS");
-
-      if (e->KeywordPresent(xTypeIx)) xLog = e->KeywordSet(xTypeIx);
-      else xLog = e->KeywordSet(xLogIx);
-      if (e->KeywordPresent(yTypeIx)) yLog = e->KeywordSet(yTypeIx);
-      else yLog = e->KeywordSet(yLogIx);
-
-      if (xLog && e->KeywordSet(xTickunitsIx)) {
-        Message("PLOT: LOG setting ignored for Date/Time TICKUNITS.");
-        xLog = FALSE;
-      }
-      if (yLog && e->KeywordSet(yTickunitsIx)) {
-        Message("PLOT: LOG setting ignored for Date/Time TICKUNITS.");
-        yLog = FALSE;
-      }
-      if (xLog || yLog) isLog = true;
-      else isLog = false;
-
-      // ztype does not exist in IDL
-      zLog = e->KeywordSet(zLogIx);
-
-      static int MIN_VALUE = e->KeywordIx("MIN_VALUE");
-      static int MAX_VALUE = e->KeywordIx("MAX_VALUE");
-      bool hasMinVal = e->KeywordPresent(MIN_VALUE);
-      bool hasMaxVal = e->KeywordPresent(MAX_VALUE);
-      DDouble minVal = datamin;
-      DDouble maxVal = datamax;
-      e->AssureDoubleScalarKWIfPresent(MIN_VALUE, minVal);
-      e->AssureDoubleScalarKWIfPresent(MAX_VALUE, maxVal);
-
-      //Box adjustement:
-      gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
-      gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
-      gdlAdjustAxisRange(e, ZAXIS, zStart, zEnd, zLog);
-
-      //OVERPLOT: get stored range values instead to use them!
-      static int overplotKW = e->KeywordIx("OVERPLOT");
-      overplot = e->KeywordSet(overplotKW);
-      make2dBox = (!overplot&&!doT3d);
-      make3dBox = (!overplot && doT3d);
-
-      //projection: would work only with 2D X and Y.
-      bool mapSet = false;
-#ifdef USE_LIBPROJ
-      static LPTYPE idata;
-      static XYTYPE odata;
-      get_mapset(mapSet);
-      mapSet = mapSet && overplot;
-      if (mapSet) {
-        ref = map_init();
-        if (ref == NULL) e->Throw("Projection initialization failed.");
-      }
-#endif
 
 
-      if (overplot) //retrieve information in case they are not in the command line ans apply
-        // some computation (alas)!
-      {
-        gdlGetAxisType(XAXIS, xLog);
-        gdlGetAxisType(YAXIS, yLog);
-        gdlGetAxisType(ZAXIS, zLog);
-        GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd);
-
-        if (!doT3d) {
-          restorelayout = true;
-          actStream->OnePageSaveLayout(); // we'll give back actual plplot's setup at end
-
-          DDouble *sx, *sy, *sz;
-          GetSFromPlotStructs(&sx, &sy, &sz);
-
-          DFloat *wx, *wy, *wz;
-          GetWFromPlotStructs(&wx, &wy, &wz);
-
-          DDouble pxStart, pxEnd, pyStart, pyEnd;
-          DataCoordLimits(sx, sy, wx, wy, &pxStart, &pxEnd, &pyStart, &pyEnd, true);
-
-          actStream->vpor(wx[0], wx[1], wy[0], wy[1]);
-          actStream->wind(pxStart, pxEnd, pyStart, pyEnd);
-        } else gdlGetCurrentAxisRange(ZAXIS, zStart, zEnd); //we should memorize the number of levels!
-
-      }
-
-      if (!setZrange) {
-        zStart = max(minVal, zStart);
-        zEnd = min(zEnd, maxVal);
-      }
-      if (!overplot) {
-        // background BEFORE next plot since it is the only place plplot may redraw the background...
-        gdlSetGraphicsBackgroundColorFromKw(e, actStream); //BACKGROUND
-        gdlNextPlotHandlingNoEraseOption(e, actStream); //NOERASE
-      }
-
-      //set plplot internals, and save !P !x !Y !Z values as they should be
-      gdlSetPlotCharsize(e, actStream);
-      if (gdlSet2DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, iso) == FALSE) return true;
-
-      if (doT3d) {
-        plplot3d = gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
-        if (plplot3d == NULL) {
-          e->Throw("Illegal 3D transformation. (FIXME)");
-        }
-
-        DDouble x0, y0, xs, ys; //conversion to normalized coords
-        x0 = (xLog) ? -log10(xStart) : -xStart;
-        y0 = (yLog) ? -log10(yStart) : -yStart;
-        xs = (xLog) ? (log10(xEnd) - log10(xStart)) : xEnd - xStart;
-        xs = 1.0 / xs;
-        ys = (yLog) ? (log10(yEnd) - log10(yStart)) : yEnd - yStart;
-        ys = 1.0 / ys;
-
-        Data3d.zValue = zValue;
-        Data3d.Matrix = plplot3d; //try to change for !P.T in future?
-        Data3d.x0 = x0;
-        Data3d.y0 = y0;
-        Data3d.xs = xs;
-        Data3d.ys = ys;
-
-        switch (axisExchangeCode) {
-        case NORMAL3D: //X->X Y->Y plane XY
-          Data3d.code = code012;
-          break;
-        case XY: // X->Y Y->X plane XY
-          Data3d.code = code102;
-          break;
-        case XZ: // Y->Y X->Z plane YZ
-          Data3d.code = code210;
-          break;
-        case YZ: // X->X Y->Z plane XZ
-          Data3d.code = code021;
-          break;
-        default:
-          assert(false);
-        }
-
-        //necessary even if overplot
-        // set the PLOT charsize before computing box, see plot command.
-        gdlSetPlotCharsize(e, actStream);
-      if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return true; //no good: should catch an exception to get out of this mess.
-        //start 3D->2D coordinate conversions in plplot
-        actStream->stransform(gdl3dTo2dTransform_todelete, &Data3d);
-      }
-
-      if (xLog && xStart <= 0.0) Warning("CONTOUR: Infinite x plot range.");
-      if (yLog && yStart <= 0.0) Warning("CONTOUR: Infinite y plot range.");
-      if (zLog && zStart <= 0.0) Warning("CONTOUR: Infinite z plot range.");
 
       // labeling
       // initiated by /FOLLOW.
@@ -523,6 +544,9 @@ namespace lib {
 
       // PLOT ONLY IF NODATA=0
       if (!nodata) {
+        
+        //here every postion XYZ must be in NORMalized coordinates to follow convention above.
+        
         //use of intermediate map for correct handling of blanking values and nans. We take advantage of the fact that
         //this program makes either filled regions with plshades() [but plshades hates Nans!] or contours with plcont,
         //which needs Nans to avoid blanked regions. The idea is to mark unwanted regions with Nans for plcont, and
@@ -534,8 +558,8 @@ namespace lib {
           DDouble xmin, xmax, ymin, ymax;
           long xsize, ysize;
           actStream->GetGeometry(xsize, ysize);
-          GetMinMaxVal(xValTemp, &xmin, &xmax);
-          GetMinMaxVal(yValTemp, &ymin, &ymax);
+          GetMinMaxVal(xValIrregularCase, &xmin, &xmax);
+          GetMinMaxVal(yValIrregularCase, &ymin, &ymax);
           // find a good compromise for default size of gridded map...
           ixEl = max(51.0, 2 * sqrt((double) xEl) + 1); //preferably odd
           iyEl = max(51.0, 2 * sqrt((double) yEl) + 1);
@@ -547,7 +571,7 @@ namespace lib {
           for (SizeT i = 0; i < iyEl; ++i) (*yVal)[i] = ymin + i * (ymax - ymin) / iyEl;
           actStream->Alloc2dGrid(&map, ixEl, iyEl);
           PLFLT data = 0;
-          actStream->griddata(&(*xValTemp)[0], &(*yValTemp)[0], &(*zVal)[0], xEl,
+          actStream->griddata(&(*xValIrregularCase)[0], &(*yValIrregularCase)[0], &(*zVal)[0], xEl,
             &(*xVal)[0], ixEl, &(*yVal)[0], iyEl, map, GRID_DTLI, data);
           for (SizeT i = 0, k = 0; i < ixEl; i++) {
             for (SizeT j = 0; j < iyEl; j++) {
@@ -572,6 +596,20 @@ namespace lib {
             }
           }
         }
+        
+        //Good place for conversion to normed values
+        SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //DATA
+
+        //fill at least PlotDevice3d transform matrix
+        if (doT3d) gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
+
+        if (flat3d) { //call for driver to perform special transform for all further drawing. No further 3D case as everyting is handled by the driver.
+          PlotDevice3d.zValue=zValue;
+          actStream->cmd( PLESC_3D,  &PlotDevice3d);
+          flat3d=false;
+          doT3d=false;
+        } // else we have to do it ourselves for each contour
+        
         // provision for 2 types of grids.
         PLcGrid cgrid1; // X and Y independent deformation
         PLFLT* xg1;
@@ -583,7 +621,7 @@ namespace lib {
         bool rank1 = (xVal->Rank() == 1 && yVal->Rank() == 1);
         // the Grids:
         // 1 DIM X & Y
-        if (rank1 && !mapSet) //mapSet: must create a 2d grid 
+        if (rank1) 
         {
           oneDim = true;
           xg1 = new PLFLT[xEl];
@@ -594,12 +632,8 @@ namespace lib {
           cgrid1.ny = yEl;
           for (SizeT i = 0; i < xEl; i++) cgrid1.xg[i] = (*xVal)[i];
           for (SizeT i = 0; i < yEl; i++) cgrid1.yg[i] = (*yVal)[i];
-          //apply plot options transformations:
-          // note that here this cgrid is NOT tested internally by plplot to be STRICTLY increasing, contrary to plot3dcl() in SURFACE and SHADE_SURF
-          if (xLog) for (SizeT i = 0; i < xEl; i++) cgrid1.xg[i] = cgrid1.xg[i] > 0 ? log10(cgrid1.xg[i]) : 1E-12; // #define EXTENDED_DEFAULT_LOGRANGE 12
-          if (yLog) for (SizeT i = 0; i < yEl; i++) cgrid1.yg[i] = cgrid1.yg[i] > 0 ? log10(cgrid1.yg[i]) : 1E-12;
           tidyGrid1WorldData = true;
-        } else //rank 2 or mapset
+        } else //rank 2
         {
           oneDim = false;
           actStream->Alloc2dGrid(&cgrid2.xg, xEl, yEl);
@@ -607,54 +641,12 @@ namespace lib {
           tidyGrid2WorldData = true;
           cgrid2.nx = xEl;
           cgrid2.ny = yEl;
-          //create 2D grid
-          if (mapSet && rank1) {
-            for (SizeT i = 0; i < xEl; i++) {
-              for (SizeT j = 0; j < yEl; j++) {
-                cgrid2.xg[i][j] = (*xVal)[i];
-                cgrid2.yg[i][j] = (*yVal)[j];
-              }
-            }
-          } else {
             for (SizeT i = 0; i < xEl; i++) {
               for (SizeT j = 0; j < yEl; j++) {
                 cgrid2.xg[i][j] = (*xVal)[j * (xEl) + i];
                 cgrid2.yg[i][j] = (*yVal)[j * (xEl) + i];
               }
             }
-          }
-          //apply projection transformations:
-          //This is going to work in a very restricted case.
-          //One MUST instead plot the contours as for map_continents, i.e., using gdlPolygonPlot.
-          //this will be feasible as soon as we use our  own contour-making algorithm, not plplot's.
-#ifdef USE_LIBPROJ
-          if (mapSet) {
-            for (SizeT i = 0; i < xEl; i++) {
-              for (SizeT j = 0; j < yEl; j++) {
-#if LIBPROJ_MAJOR_VERSION >= 5
-                idata.lam = cgrid2.xg[i][j] * DEG_TO_RAD;
-                idata.phi = cgrid2.yg[i][j] * DEG_TO_RAD;
-                odata = protect_proj_fwd_lp(idata, ref);
-                cgrid2.xg[i][j] = odata.x;
-                cgrid2.yg[i][j] = odata.y;
-#else
-                idata.u = cgrid2.xg[i][j] * DEG_TO_RAD;
-                idata.v = cgrid2.yg[i][j] * DEG_TO_RAD;
-                odata = PJ_FWD(idata, ref);
-                cgrid2.xg[i][j] = odata.u;
-                cgrid2.yg[i][j] = odata.v;
-#endif
-              }
-            }
-          }
-#endif
-          //apply plot options transformations:
-          if (xLog) for (SizeT i = 0; i < xEl; i++) for (SizeT j = 0; j < yEl; j++) {
-                cgrid2.xg[i][j] = (cgrid2.xg[i][j] > 0) ? log10(cgrid2.xg[i][j]) : 1E-12;
-              }
-          if (yLog) for (SizeT i = 0; i < xEl; i++) for (SizeT j = 0; j < yEl; j++) {
-                cgrid2.yg[i][j] = (cgrid2.yg[i][j] > 0) ? log10(cgrid2.yg[i][j]) : 1E-12;
-              }
         }
 
         //Colors.
@@ -726,21 +718,11 @@ namespace lib {
         }
         bool hachures = (dospacing || doori);
 
-        // Important: make all clipping computations BEFORE setting graphic properties (color, size)
-        static int CLIP = e->KeywordIx("CLIP");
-        static int NOCLIP = e->KeywordIx("NOCLIP");
-
-        bool doClip = (e->KeywordSet(CLIP) && !(e->KeywordSet(NOCLIP)));
-        bool stopClip = false;
-        if (doClip) if (startClipping(e, actStream) == true) stopClip = true;
-
         //provides some defaults:
         if (!docolors) gdlSetGraphicsForegroundColorFromKw(e, actStream);
         if (!dothick) gdlSetPenThickness(e, actStream);
         gdlSetPlotCharsize(e, actStream);
         actStream->psty(0); //solid fill by default!
-
-        PLFLT colorindex;
 
         PLFLT value; //used for all filled contours: they use colortable 1; value is between 0 and 1.
         if (docolors) actStream->SetColorMap1Table(nlevel, colors, decomposed); //load colormap1 with given colors (decomposed or not))
@@ -756,9 +738,9 @@ namespace lib {
             // C_SPACING= vector of spacing in CENTIMETRES of lines to  FILL (needs FILL KW) .
             // if C_SPACING and C_ORIENTATION absent, FILL will do a solid fill .
             for (SizeT i = 0; i < nlevel - 1; ++i) {
-              if (doT3d & !hasZvalue) {
-                Data3d.zValue = clevel[i] / (cmax - cmin);
-                actStream->stransform(gdl3dTo2dTransform_todelete, &Data3d);
+              if (doT3d) {
+                PlotDevice3d.zValue = clevel[i] / (cmax - cmin);
+                actStream->cmd(PLESC_3D, &PlotDevice3d);
               }
               ori = floor(10.0 * (*orientation)[i % orientation->N_Elements()]);
               spa = floor(10000 * (*spacing)[i % spacing->N_Elements()]);
@@ -781,10 +763,10 @@ namespace lib {
             //            if (dothick) gdlSetPenThickness(e, actStream);
             //            if (dostyle) gdlLineStyle(actStream, 0);
           }//end FILL with equispaced lines
-          else if (doT3d & !hasZvalue) { //contours will be filled with solid color and displaced in Z according to their value
+          else if (doT3d) { //contours will be filled with solid color and displaced in Z according to their value
             for (SizeT i = 0; i < nlevel; ++i) {
-              Data3d.zValue = clevel[i] / (cmax - cmin); //displacement in Z
-              actStream->stransform(gdl3dTo2dTransform_todelete, &Data3d);
+              PlotDevice3d.zValue = clevel[i] / (cmax - cmin); //displacement in Z
+              actStream->cmd(PLESC_3D, &PlotDevice3d);
 
               value = static_cast<PLFLT> (i) / nlevel;
               actStream->shade(map, xEl, yEl, isLog ? doIt : NULL,
@@ -829,9 +811,9 @@ namespace lib {
           }
           gdlSetPlotCharsize(e, actStream);
           for (SizeT i = 0; i < nlevel; ++i) {
-            if (doT3d & !hasZvalue) {
-              Data3d.zValue = clevel[i] / (cmax - cmin);
-              actStream->stransform(gdl3dTo2dTransform_todelete, &Data3d);
+            if (doT3d) {
+              PlotDevice3d.zValue = clevel[i] / (cmax - cmin);
+              actStream->cmd(PLESC_3D, &PlotDevice3d);
             }
             if (docolors) actStream->Color((*colors)[i % colors->N_Elements()], decomposed);
             if (dothick) {
@@ -839,27 +821,21 @@ namespace lib {
               referencePenThickness = (*thick)[i % thick->N_Elements()];
             }
             if (dostyle) gdlLineStyle(actStream, (*style)[i % style->N_Elements()]);
-            if (doT3d) { //no label in T3D , bug in plplot...
-              actStream->setcontlabelparam(LABELOFFSET, (PLFLT) label_size, LABELSPACING, 0);
+            if (dolabels && i < labels->N_Elements()) {
+              if (label_thick < referencePenThickness) { //one pass with (current) thick without labels, over with (smaller) label+contour.
+                //else (lables thicker than contours) impossible with plplot...
+                actStream->setcontlabelparam(LABELOFFSET, (PLFLT) label_size, LABELSPACING, 0);
+                actStream->cont(map, xEl, yEl, 1, xEl, 1, yEl, &(clevel[i]), 1,
+                  (oneDim) ? (PLCALLBACK::tr1) : (PLCALLBACK::tr2), (oneDim) ? (void *) &cgrid1 : (void *) &cgrid2); //thick contours, no label
+                actStream->Thick(label_thick);
+              }
+              actStream->setcontlabelparam(LABELOFFSET, (PLFLT) label_size, LABELSPACING * sqrt(label_size), (PLINT) (*labels)[i]);
               actStream->cont(map, xEl, yEl, 1, xEl, 1, yEl, &(clevel[i]), 1,
                 (oneDim) ? (PLCALLBACK::tr1) : (PLCALLBACK::tr2), (oneDim) ? (void *) &cgrid1 : (void *) &cgrid2);
+              if (!dothick) gdlSetPenThickness(e, actStream);
             } else {
-              if (dolabels && i < labels->N_Elements()) {
-                if (label_thick < referencePenThickness) { //one pass with (current) thick without labels, over with (smaller) label+contour.
-                  //else (lables thicker than contours) impossible with plplot...
-                  actStream->setcontlabelparam(LABELOFFSET, (PLFLT) label_size, LABELSPACING, 0);
-                  actStream->cont(map, xEl, yEl, 1, xEl, 1, yEl, &(clevel[i]), 1,
-                    (oneDim) ? (PLCALLBACK::tr1) : (PLCALLBACK::tr2), (oneDim) ? (void *) &cgrid1 : (void *) &cgrid2); //thick contours, no label
-                  actStream->Thick(label_thick);
-                }
-                actStream->setcontlabelparam(LABELOFFSET, (PLFLT) label_size, LABELSPACING * sqrt(label_size), (PLINT) (*labels)[i]);
-                actStream->cont(map, xEl, yEl, 1, xEl, 1, yEl, &(clevel[i]), 1,
-                  (oneDim) ? (PLCALLBACK::tr1) : (PLCALLBACK::tr2), (oneDim) ? (void *) &cgrid1 : (void *) &cgrid2);
-                if (!dothick) gdlSetPenThickness(e, actStream);
-              } else {
-                actStream->cont(map, xEl, yEl, 1, xEl, 1, yEl, &(clevel[i]), 1,
-                  (oneDim) ? (PLCALLBACK::tr1) : (PLCALLBACK::tr2), (oneDim) ? (void *) &cgrid1 : (void *) &cgrid2);
-              }
+              actStream->cont(map, xEl, yEl, 1, xEl, 1, yEl, &(clevel[i]), 1,
+                (oneDim) ? (PLCALLBACK::tr1) : (PLCALLBACK::tr2), (oneDim) ? (void *) &cgrid1 : (void *) &cgrid2);
             }
           }
           //          if (docolors) gdlSetGraphicsForegroundColorFromKw ( e, actStream );
@@ -875,38 +851,21 @@ namespace lib {
           delete[] yg1;
         }
 
-        if (stopClip) stopClipping(actStream);
         actStream->Free2dGrid(map, xEl, yEl);
       }
 
-
-      if (doT3d) actStream->stransform(NULL, NULL); //remove transform BEFORE writing axes, ticks..
-
       //restore color for boxes
       gdlSetGraphicsForegroundColorFromKw(e, actStream); //COLOR
-
-      //Draw axes after the data because /fill could potentially overlap the axes.
-      //... if keyword "OVERPLOT" is not set
-      if (make2dBox) //onlyplace where tick etc is relevant!
-      {
-        gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
+      //reset driver to 2D plotting routines in all cases
+      actStream->cmd(PLESC_2D, NULL);
       }
-      if (make3dBox) { //overplot box
-        gdlSetPlplotW3_todelete(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, az, alt, scale, axisExchangeCode);
-        gdlAxis3(e, actStream, ZAXIS, xStart, xEnd, xLog, 1);
-        gdlAxis3(e, actStream, XAXIS, yStart, yEnd, yLog);
-      }
-      return false;
-    }
 
-  private:
-
-    void call_plplot(EnvT* e, GDLGStream* actStream) { }
 
   private:
 
     virtual void post_call(EnvT*, GDLGStream* actStream) {
-      if (restorelayout) actStream->RestoreLayout();
+      actStream->RestoreLayout();
+      if (recordPath) actStream->stransform(NULL, NULL);
       actStream->lsty(1); //reset linestyle
       actStream->sizeChar(1.0);
     }

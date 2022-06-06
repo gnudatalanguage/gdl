@@ -273,7 +273,7 @@ namespace lib {
       }
 
       if (xnormmin==xnormmax || ynormmin==ynormmax) {
-        actStream->RestoreLayout();
+        this->post_call(e,actStream);
         return true; //nothing to see and plpot complains.
       }
       actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
