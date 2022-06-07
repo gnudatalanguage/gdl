@@ -132,7 +132,7 @@ public:
 #ifdef __WXMAC__
 long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);
 #else
-long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX| wxFRAME_TOOL_WINDOW); //no focus 
+long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);//| wxFRAME_TOOL_WINDOW); //no focus 
 #endif
   gdlwxPlotFrame* plotFrame = new gdlwxPlotFrame(titleWxString, wxPoint(xoff,yoff), wxDefaultSize, style, scrolled);
   // Associate a sizer immediately
@@ -182,12 +182,16 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
   plotFrame->Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(gdlwxPlotFrame::OnUnhandledClosePlotFrame));
 //  plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
   plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotWindowSize));
-  plotFrame->Realize();
+
+  //do not do anything else here, since it may affect hidden windows behaviour
+
   if (hide) {
    winList[ wIx]->UnMapWindowAndSetPixmapProperty(); //needed: will set the "pixmap" property
   } else {
-//    plotFrame->Raise(); //Raise will ALWAYS put focus on plot window, that we do not want
-    plotFrame->Show(); //WithoutActivating();
+    //only for REALIZED windows, we can change some 'interactive' properties.
+  plotFrame->Raise();
+  plotFrame->Realize();
+    plotFrame->ShowWithoutActivating();
   }
   plotFrame->UpdateWindowUI();
 //really show by letting the loop do its magic. Necessary.
