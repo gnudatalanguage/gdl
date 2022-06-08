@@ -196,7 +196,7 @@ namespace lib
     } 
 
   private:
-    bool old_body (EnvT* e, GDLGStream* actStream) // {{{
+    bool prepareDrawArea (EnvT* e, GDLGStream* actStream) // {{{
     {
       //T3D
       static int t3dIx = e->KeywordIx( "T3D");
@@ -251,7 +251,7 @@ namespace lib
         // set the PLOT charsize before computing box, see plot command.
       gdlSetPlotCharsize(e, actStream);
       //set 2D scale etc.
-      if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return true; //no good: should catch an exception to get out of this mess.
+      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return true; //no good: should catch an exception to get out of this mess.
       
       // Deal with T3D options -- either present and we have to deduce az and alt contained in it,
       // or absent and we have to compute !P.T from az and alt.
@@ -371,12 +371,6 @@ namespace lib
           for ( SizeT i=0; i<cgrid1.ny; i++ ) cgrid1.yg[i] = cgrid1.yg[i]>0?log10(cgrid1.yg[i]):startVal+i*epsilon;
         }
 
-        // Important: make all clipping computations BEFORE setting graphic properties (color, size)
-        static int NOCLIPIx = e->KeywordIx("NOCLIP");
-        static int CLIPIx = e->KeywordIx("CLIP");
-        bool doClip=(e->KeywordSet(CLIPIx)||e->KeywordSet(NOCLIPIx));
-        bool stopClip=false;
-        if ( doClip )  if ( startClipping(e, actStream)==true ) stopClip=true;
 
         gdlSetGraphicsForegroundColorFromKw ( e, actStream );
         //mesh option
@@ -425,7 +419,6 @@ namespace lib
            }
         }
 
-        if (stopClip) stopClipping(actStream);
 //Clean allocated data struct
         delete[] xg1;
         delete[] yg1;
@@ -440,7 +433,7 @@ namespace lib
 
   private:
 
-    void call_plplot (EnvT* e, GDLGStream* actStream) 
+    void applyGraphics (EnvT* e, GDLGStream* actStream) 
     {
     } 
 

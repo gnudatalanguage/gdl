@@ -251,16 +251,7 @@ namespace lib {
       return false; //do not abort
     }
 
-    bool old_body(EnvT* e, GDLGStream* actStream) {
-      //check presence of DATA,DEVICE and NORMAL options
-      static int DATAIx = e->KeywordIx("DATA");
-      static int DEVICEIx = e->KeywordIx("DEVICE");
-      static int NORMALIx = e->KeywordIx("NORMAL");
-      coordinateSystem = DATA;
-      //check presence of DATA,DEVICE and NORMAL options
-      if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
-      if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
-      if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
+    bool prepareDrawArea(EnvT* e, GDLGStream* actStream) {
 
       //ISOTROPIC
       static int ISOTROPIC = e->KeywordIx("ISOTROPIC");
@@ -277,7 +268,7 @@ namespace lib {
       // viewport and world coordinates
       // set the PLOT charsize before setting viewport (margin depend on charsize)
       gdlSetPlotCharsize(e, actStream);
-      if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == false) return true; 
+      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == false) return true; 
 
       if (doT3d) { //call for driver to perform special transform for all further drawing
         gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
@@ -292,58 +283,14 @@ namespace lib {
       
       // title and sub title
       gdlWriteTitleAndSubtitle(e, actStream);
-
-      //NOW we work as for all other graphic procedures, in NORMmalized coordinates, as for PLOTS etc.
-      actStream->OnePageSaveLayout(); // one page
-
-      //CLIPPING (or not) is just defining the adequate viewport and world coordinates, all of them normalized since this is what plplot will get in the end.
-      static int NOCLIPIx = e->KeywordIx("NOCLIP");
-      bool noclip = e->BooleanKeywordSet(NOCLIPIx);
-      // Clipping is enabled by default for OPLOT.
-      int CLIP = e->KeywordIx("CLIP");
-      bool doClip = (!(noclip) && !doT3d);
-
-      PLFLT xnormmin = 0;
-      PLFLT xnormmax = 1;
-      PLFLT ynormmin = 0;
-      PLFLT ynormmax = 1;
-
-      if (doClip) { //redefine default viewport & world
-        //define a default clipbox (DATA coords):
-        PLFLT clipBox[4] = {xStart, yStart, xEnd, yEnd};
-        DDoubleGDL* clipBoxGDL = e->IfDefGetKWAs<DDoubleGDL>(CLIP);
-        if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() < 4) for (auto i = 0; i < 4; ++i) clipBox[i] = 0; //set clipbox to 0 0 0 0 apparently this is what IDL does.
-        if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() == 4) for (auto i = 0; i < 4; ++i) clipBox[i] = (*clipBoxGDL)[i];
-        //clipBox is defined accordingly to /NORM /DEVICE /DATA:
-        //convert clipBox to normalized coordinates:
-        //switch here is irrelevant since coordinates are DATA , but kepts here for sameness with othe rplotting_* routines.
-        switch (coordinateSystem) {
-        case DATA:
-          actStream->WorldToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
-          actStream->WorldToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
-          break;
-        case DEVICE:
-          actStream->DeviceToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
-          actStream->DeviceToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
-          break;
-        default:
-          xnormmin = clipBox[0];
-          xnormmax = clipBox[2];
-          ynormmin = clipBox[1];
-          ynormmax = clipBox[3];
-        }
-      }
-
-      // it is important to fix symsize before changing vpor or win 
-      gdlSetSymsize(e, actStream); //SYMSIZE
-      actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
-      actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
-      actStream->setSymbolSizeConversionFactors();
       
+      //box plotted, we pass in normalized coordinates w/clipping if needed 
+      gdlSwitchToClippedNormalizedCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, doT3d);
+
       return false;
     }
 
-    void call_plplot(EnvT* e, GDLGStream* actStream) {
+    void applyGraphics(EnvT* e, GDLGStream* actStream) {
       static int nodataIx = e->KeywordIx("NODATA");
       if (e->KeywordSet(nodataIx)) return; //will perform post_call
       // start drawing. Graphic Keywords accepted:CLIP(YES), COLOR(YES), LINESTYLE(YES), NOCLIP(YES),

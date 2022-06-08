@@ -129,80 +129,84 @@ namespace lib {
       return false; //do not abort
     }
 
-    bool old_body(EnvT* e, GDLGStream* actStream) {
+    bool prepareDrawArea(EnvT* e, GDLGStream* actStream) {
 
-      //check presence of DATA,DEVICE and NORMAL options
-      static int DATAIx = e->KeywordIx("DATA");
-      static int DEVICEIx = e->KeywordIx("DEVICE");
-      static int NORMALIx = e->KeywordIx("NORMAL");
-      coordinateSystem = DATA;
-      //check presence of DATA,DEVICE and NORMAL options
-      if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
-      if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
-      if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
 
       // get_axis_type
       gdlGetAxisType(XAXIS, xLog);
       gdlGetAxisType(YAXIS, yLog);
 
       //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
-      GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd);
-
-      actStream->OnePageSaveLayout(); // one page
-
-      //CLIPPING (or not) is just defining the adequate viewport and world coordinates, all of them normalized since this is what plplot will get in the end.
-      static int NOCLIPIx = e->KeywordIx("NOCLIP");
-      // Clipping is not enabled by default for PLOTS: noclip is true by default
-      bool noclip = e->BooleanKeywordAbsentOrSet(NOCLIPIx);
-      int CLIP = e->KeywordIx("CLIP");
-      bool doClip = (e->KeywordSet(CLIP) && !(noclip) && !doT3d);
-
-      PLFLT xnormmin = 0;
-      PLFLT xnormmax = 1;
-      PLFLT ynormmin = 0;
-      PLFLT ynormmax = 1;
-
-      if (doClip) { //redefine default viewport & world
-        //define a default clipbox (DATA coords):
-        PLFLT clipBox[4] = {xStart, yStart, xEnd, yEnd};
-        DDoubleGDL* clipBoxGDL = e->IfDefGetKWAs<DDoubleGDL>(CLIP);
-        if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() < 4) for (auto i = 0; i < 4; ++i) clipBox[i] = 0; //set clipbox to 0 0 0 0 apparently this is what IDL does.
-        if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() == 4) for (auto i = 0; i < 4; ++i) clipBox[i] = (*clipBoxGDL)[i];
-        //clipBox is defined accordingly to /NORM /DEVICE /DATA:
-        //convert clipBox to normalized coordinates:
-        switch (coordinateSystem) {
-        case DATA:  //will know about projections
-        {
-          SelfProjectXY(1, &clipBox[0], &clipBox[1], coordinateSystem); //here for eventual projection
-          SelfProjectXY(1, &clipBox[2], &clipBox[3], coordinateSystem); //here for eventual projection
-          bool f = false;
-          SelfConvertToNormXY(1, &clipBox[0], f, &clipBox[1], f, coordinateSystem); //input coordinates converted to NORMAL
-          SelfConvertToNormXY(1, &clipBox[2], f, &clipBox[3], f, coordinateSystem); //input coordinates converted to NORMAL
-          xnormmin=clipBox[0];ynormmin=clipBox[1];
-          xnormmax=clipBox[2];ynormmax=clipBox[3];
-          break;
-        }
-        case DEVICE:
-          actStream->DeviceToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
-          actStream->DeviceToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
-          break;
-        case NORMAL:
-        default:
-          xnormmin = clipBox[0];
-          xnormmax = clipBox[2];
-          ynormmin = clipBox[1];
-          ynormmax = clipBox[3];
-        }
-      }
-
-      if (xnormmin==xnormmax || ynormmin==ynormmax) {
-        this->post_call(e,actStream);
-        return true; //nothing to see and plpot complains.
-      }
-      // it is important to fix symsize before changing vpor or win 
-      actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
-      actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
-      actStream->setSymbolSizeConversionFactors();
+      GetCurrentUserLimits(xStart, xEnd, yStart, yEnd, zStart, zEnd);
+      
+      //box plotted, we pass in normalized coordinates w/clipping if needed 
+      gdlSwitchToClippedNormalizedCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, doT3d);
+//      //check presence of DATA,DEVICE and NORMAL options
+//      static int DATAIx = e->KeywordIx("DATA");
+//      static int DEVICEIx = e->KeywordIx("DEVICE");
+//      static int NORMALIx = e->KeywordIx("NORMAL");
+//      coordinateSystem = DATA;
+//      //check presence of DATA,DEVICE and NORMAL options
+//      if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
+//      if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
+//      if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
+//
+//
+//      actStream->OnePageSaveLayout(); // one page
+//
+//      //CLIPPING (or not) is just defining the adequate viewport and world coordinates, all of them normalized since this is what plplot will get in the end.
+//      static int NOCLIPIx = e->KeywordIx("NOCLIP");
+//      // Clipping is not enabled by default for PLOTS: noclip is true by default
+//      bool noclip = e->BooleanKeywordAbsentOrSet(NOCLIPIx);
+//      int CLIP = e->KeywordIx("CLIP");
+//      bool doClip = (e->KeywordSet(CLIP) && !(noclip) && !doT3d);
+//
+//      PLFLT xnormmin = 0;
+//      PLFLT xnormmax = 1;
+//      PLFLT ynormmin = 0;
+//      PLFLT ynormmax = 1;
+//
+//      if (doClip) { //redefine default viewport & world
+//        //define a default clipbox (DATA coords):
+//        PLFLT clipBox[4] = {xStart, yStart, xEnd, yEnd};
+//        DDoubleGDL* clipBoxGDL = e->IfDefGetKWAs<DDoubleGDL>(CLIP);
+//        if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() < 4) for (auto i = 0; i < 4; ++i) clipBox[i] = 0; //set clipbox to 0 0 0 0 apparently this is what IDL does.
+//        if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() == 4) for (auto i = 0; i < 4; ++i) clipBox[i] = (*clipBoxGDL)[i];
+//        //clipBox is defined accordingly to /NORM /DEVICE /DATA:
+//        //convert clipBox to normalized coordinates:
+//        switch (coordinateSystem) {
+//        case DATA:  //will know about projections
+//        {
+//          SelfProjectXY(1, &clipBox[0], &clipBox[1], coordinateSystem); //here for eventual projection
+//          SelfProjectXY(1, &clipBox[2], &clipBox[3], coordinateSystem); //here for eventual projection
+//          bool f = false;
+//          SelfConvertToNormXY(1, &clipBox[0], f, &clipBox[1], f, coordinateSystem); //input coordinates converted to NORMAL
+//          SelfConvertToNormXY(1, &clipBox[2], f, &clipBox[3], f, coordinateSystem); //input coordinates converted to NORMAL
+//          xnormmin=clipBox[0];ynormmin=clipBox[1];
+//          xnormmax=clipBox[2];ynormmax=clipBox[3];
+//          break;
+//        }
+//        case DEVICE:
+//          actStream->DeviceToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
+//          actStream->DeviceToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
+//          break;
+//        case NORMAL:
+//        default:
+//          xnormmin = clipBox[0];
+//          xnormmax = clipBox[2];
+//          ynormmin = clipBox[1];
+//          ynormmax = clipBox[3];
+//        }
+//      }
+//
+//      if (xnormmin==xnormmax || ynormmin==ynormmax) {
+//        this->post_call(e,actStream);
+//        return true; //nothing to see and plpot complains.
+//      }
+//      // it is important to fix symsize before changing vpor or win 
+//      actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
+//      actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
+//      actStream->setSymbolSizeConversionFactors();
 
       //Take care of projections:
       SelfProjectXY(minEl, (DDouble*) xVal->DataAddr(), (DDouble*) yVal->DataAddr(), coordinateSystem);
@@ -212,7 +216,7 @@ namespace lib {
       return false;
     }
 
-    void call_plplot(EnvT* e, GDLGStream* actStream) {
+    void applyGraphics(EnvT* e, GDLGStream* actStream) {
 
       PLFLT stringWidth = 0.;
 

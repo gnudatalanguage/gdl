@@ -427,14 +427,18 @@ namespace lib
   }
 
   void CheckMargin(GDLGStream* actStream,
-                   DFloat xMarginL,
-                   DFloat xMarginR,
-                   DFloat yMarginB,
-                   DFloat yMarginT,
-                   PLFLT& xMR,
-                   PLFLT& xML,
-                   PLFLT& yMB,
-                   PLFLT& yMT)
+    DFloat xMarginL,
+    DFloat xMarginR,
+    DFloat yMarginB,
+    DFloat yMarginT,
+    DFloat zMarginB,
+    DFloat zMarginT,
+    PLFLT& xMR,
+    PLFLT& xML,
+    PLFLT& yMB,
+    PLFLT& yMT,
+    PLFLT& zMB,
+    PLFLT& zMT)
   {
     PLFLT sclx=actStream->dCharLength()/actStream->xSubPageSize(); //current char length/subpage size
     xML=xMarginL*sclx; //margin as percentage of subpage
@@ -442,57 +446,54 @@ namespace lib
     PLFLT scly=actStream->dLineSpacing()/actStream->ySubPageSize(); //current char length/subpage size
     yMB=(yMarginB)*scly;
     yMT=(yMarginT)*scly; //to allow subscripts and superscripts (as in IDL)
+    // Z is like Y 
+    PLFLT sclz=scly;
+    zMB=(zMarginB)*scly;
+    zMT=(zMarginT)*scly;
 
     if ( xML+xMR>=1.0 )
     {
-//      Message("XMARGIN to large (adjusted).");
       PLFLT xMMult=xML+xMR;
       xML/=xMMult*1.5;
       xMR/=xMMult*1.5;
     }
     if ( yMB+yMT>=1.0 )
     {
-//      Message("YMARGIN to large (adjusted).");
       PLFLT yMMult=yMB+yMT;
       yMB/=yMMult*1.5;
       yMT/=yMMult*1.5;
     }
+    if ( zMB+zMT>=1.0 )
+    {
+      PLFLT zMMult=zMB+zMT;
+      zMB/=zMMult*1.5;
+      zMT/=zMMult*1.5;
+    }
   }
 
   void setIsoPort(GDLGStream* actStream,
-                  PLFLT x1,
-                  PLFLT x2,
-                  PLFLT y1,
-                  PLFLT y2,
-                  PLFLT aspect)
+    PLFLT x1,
+    PLFLT x2,
+    PLFLT y1,
+    PLFLT y2,
+    PLFLT aspect)
   {
-    PLFLT X1, X2, Y1, Y2, X1s, X2s, Y1s, Y2s, displacx, displacy, scalex, scaley, offsetx, offsety;
     if ( aspect<=0.0 )
     {
       actStream->vpor(x1, x2, y1, y2);
       return;
     }
+    assert (x2 > x1 && y2 > y1); 
+    //x1 < x2 && y1 < y2 implied
+    PLFLT ys=y2-y1;
+    PLFLT xs=x2-x1;
+    if (ys > xs*aspect) { //x ok, resize y
+      y2=y1+aspect*xs;
+    } else {
+      x2=x1+xs/aspect;
+    }
     // here we need too compensate for the change of aspect due to eventual !P.MULTI plots
     actStream->vpor(x1, x2, y1, y2); //ask for non-iso window
-    actStream->gvpd(X1, X2, Y1, Y2); //get viewport values
-    //compute relation desiredViewport-page viewport x=scalex*X+offsetx:
-    scalex=(x2-x1)/(X2-X1);
-    offsetx=(x1*X2-x2*X1)/(X2-X1);
-    scaley=(y2-y1)/(Y2-Y1);
-    offsety=(y1*Y2-y2*Y1)/(Y2-Y1);
-    //ask for wiewport scaled to isotropic by plplot
-    actStream->vpas(x1, x2, y1, y2, aspect);
-    //retrieve values
-    actStream->gvpd(X1s, X2s, Y1s, Y2s);
-    //measure displacement
-    displacx=X1s-X1;
-    displacy=Y1s-Y1;
-    //set wiewport scaled by plplot, displaced, as vpor using above linear transformation
-    x1=(X1s-displacx)*scalex+offsetx;
-    x2=(X2s-displacx)*scalex+offsetx;
-    y1=(Y1s-displacy)*scaley+offsety;
-    y2=(Y2s-displacy)*scaley+offsety;
-    actStream->vpor(x1, x2, y1, y2);
   }
 
 
@@ -600,31 +601,35 @@ namespace lib
   }
 
   //This is the good way to get world start end end values.
-  void GetCurrentUserLimits(GDLGStream *a, DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble & zEnd)
+  void GetCurrentUserLimits( DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble & zEnd)
   {
-    DDouble *sx, *sy, *sz;
-    GetSFromPlotStructs( &sx, &sy, &sz );
-    DFloat *wx, *wy, *wz;
-    GetWFromPlotStructs(&wx, &wy, &wz);
-    xStart=(wx[0]-sx[0])/sx[1];
-    xEnd=(wx[1]-sx[0])/sx[1];
-    yStart=(wy[0]-sy[0])/sy[1];
-    yEnd=(wy[1]-sy[0])/sy[1];
-    zStart=(wz[0]-sz[0])/sz[1];
-    xEnd=(wz[1]-sz[0])/sz[1];
-  //probably overkill now...
-    if (zStart != 0.0 && zStart == zEnd) {
-      zStart = 0;
-      zEnd = 1;
-    }
-    if (yStart != 0.0 && yStart == yEnd) {
-      yStart = 0;
-      yEnd = 1;
-    }
-    if (xStart != 0.0 && xStart == xEnd) {
-      xStart = 0;
-      xEnd = 1;
-    }
+    gdlGetCurrentAxisRawRangeValues(XAXIS, xStart, xEnd);
+    gdlGetCurrentAxisRawRangeValues(YAXIS, yStart, yEnd);
+    gdlGetCurrentAxisRawRangeValues(XAXIS, zStart, zEnd);
+    //following is NOT what IDL does
+//    DDouble *sx, *sy, *sz;
+//    GetSFromPlotStructs( &sx, &sy, &sz );
+//    DFloat *wx, *wy, *wz;
+//    GetWFromPlotStructs(&wx, &wy, &wz);
+//    xStart=(wx[0]-sx[0])/sx[1];
+//    xEnd=(wx[1]-sx[0])/sx[1];
+//    yStart=(wy[0]-sy[0])/sy[1];
+//    yEnd=(wy[1]-sy[0])/sy[1];
+//    zStart=(wz[0]-sz[0])/sz[1];
+//    xEnd=(wz[1]-sz[0])/sz[1];
+//  //probably overkill now...
+//    if (zStart != 0.0 && zStart == zEnd) {
+//      zStart = 0;
+//      zEnd = 1;
+//    }
+//    if (yStart != 0.0 && yStart == yEnd) {
+//      yStart = 0;
+//      yEnd = 1;
+//    }
+//    if (xStart != 0.0 && xStart == xEnd) {
+//      xStart = 0;
+//      xEnd = 1;
+//    }
   }
   
   void ac_histo(GDLGStream *a, int i_buff, PLFLT *x_buff, PLFLT *y_buff, bool xLog)
@@ -652,14 +657,6 @@ namespace lib
     }
   }
 
-
-  void stopClipping(GDLGStream *a)
-  {
-    if (saveBox.initialized) {
-    a->vpor(saveBox.nx1, saveBox.nx2, saveBox.ny1, saveBox.ny2); //restore norm of current box
-    a->wind(saveBox.wx1, saveBox.wx2, saveBox.wy1, saveBox.wy2); //give back world of current box
-    } else cerr<<"plot \"savebox\" not initialized, please report" <<endl;
-  }
 
   void saveLastPoint(GDLGStream *a, DDouble wx, DDouble wy)
   {
@@ -1145,8 +1142,8 @@ namespace lib
   }
 
   //CRANGE from struct
-
-  void gdlGetCurrentAxisRange(int axisId, DDouble &Start, DDouble &End, bool checkMapset)
+  //RETURN LINEAR VALUES
+  void gdlGetCurrentAxisLinearRange(int axisId, DDouble &Start, DDouble &End)
   {
     DStructGDL* Struct=NULL;
     if ( axisId==XAXIS ) Struct=SysVar::X();
@@ -1156,38 +1153,45 @@ namespace lib
     End=0;
     if ( Struct!=NULL )
     {
-      int debug=0;
-      if ( debug ) cout<<"Get     :"<<Start<<" "<<End<<endl;
-      bool isProj;
-      get_mapset(isProj);
-      if (checkMapset && isProj && axisId!=ZAXIS) {
-        DStructGDL* mapStruct=SysVar::Map();   //MUST NOT BE STATIC, due to .reset 
-        static unsigned uvboxTag=mapStruct->Desc()->TagIndex("UV_BOX");
-        static DDoubleGDL *uvbox;
-        uvbox=static_cast<DDoubleGDL*>(mapStruct->GetTag(uvboxTag, 0));
-        if (axisId==XAXIS) {
-          Start=(*uvbox)[0];
-          End=(*uvbox)[2];
-        } else {
-          Start=(*uvbox)[1];
-          End=(*uvbox)[3];
-        }
-      } else {
-        static unsigned crangeTag=Struct->Desc()->TagIndex("CRANGE");
-        Start=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[0];
-        End=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[1];
+      static unsigned crangeTag=Struct->Desc()->TagIndex("CRANGE");
+      Start=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[0];
+      End=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[1];
 
-        static unsigned typeTag=Struct->Desc()->TagIndex("TYPE");
-        if ( (*static_cast<DLongGDL*>(Struct->GetTag(typeTag, 0)))[0]==1 )
-        {
-          Start=pow(10., Start);
-          End=pow(10., End);
-          if ( debug ) cout<<"Get log :"<<Start<<" "<<End<<endl;
-        }
+      static unsigned typeTag=Struct->Desc()->TagIndex("TYPE");
+      if ( (*static_cast<DLongGDL*>(Struct->GetTag(typeTag, 0)))[0]==1 )
+      {
+        Start=pow(10., Start);
+        End=pow(10., End);
       }
     }
+    if (Start==End) { //avoids problems with plplot.
+      Start=1E-20; //avoid problem with log10
+      End=1; 
+    }
   }
-
+  
+  //CRANGE from struct
+  //RETURN RAW VALUES, not deLog-ified
+  void gdlGetCurrentAxisRawRangeValues(int axisId, DDouble &Start, DDouble &End)
+  {
+    DStructGDL* Struct=NULL;
+    if ( axisId==XAXIS ) Struct=SysVar::X();
+    if ( axisId==YAXIS ) Struct=SysVar::Y();
+    if ( axisId==ZAXIS ) Struct=SysVar::Z();
+    Start=0;
+    End=0;
+    if ( Struct!=NULL )
+    {
+      static unsigned crangeTag=Struct->Desc()->TagIndex("CRANGE");
+      Start=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[0];
+      End=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[1];
+    }
+    if (Start==End) { //avoids problems with plplot.
+      Start=1E-20; //avoid problem with log10
+      End=1; 
+    }
+  }
+  
   void gdlGetCurrentAxisWindow(int axisId, DDouble &wStart, DDouble &wEnd)
   {
     DStructGDL* Struct=NULL;
@@ -1241,98 +1245,147 @@ namespace lib
     return position;
 }
   //Stores [XYZ].WINDOW, .REGION and .S
-  void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End)
+  void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log)
   {
+    // !X etc parameters relative to the VIEWPORT:
     //easier to retrieve here the values sent to vpor() in the calling function instead of
     //calling a special function like gdlStoreRegion(), gdlStoreWindow() each time a memory of vpor() is needed.
     //Will thus need to be amended when/if we get rid of plplot.
     PLFLT p_xmin, p_xmax, p_ymin, p_ymax, norm_min, norm_max, charDim;
-    actStream->gvpd(p_xmin, p_xmax, p_ymin, p_ymax); //viewport normalized coords
+    actStream->getCurrentNormBox(p_xmin, p_xmax, p_ymin, p_ymax); //viewport normalized coords
     DStructGDL* Struct=SysVar::X(); 
     norm_min=p_xmin; 
     norm_max=p_xmax; 
     charDim=actStream->nCharLength();
-    unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
+    static unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
     DFloat m1=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[0];
     DFloat m2=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[1];
+    //REGION
     static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
     (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=max(0.0,norm_min-m1*charDim);
     (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=min(1.0,norm_max+m2*charDim);
-
+    //WINDOW
     static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
     (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=norm_min;
     (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=norm_max;
-
-    //protect
+    // Loginess
+    static unsigned typeTag = Struct->Desc()->TagIndex("TYPE");
+    (*static_cast<DLongGDL*> (Struct->GetTag(typeTag, 0)))[0] = log;
+    //CRANGE
+    unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
+    //here, as this is called from a box-setting (or axis-setting) function, Start and End are already in LOG if case be.
+    (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0] = Start;
+    (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1] = End;
+    //X.S
     DDouble range=End-Start;
     if (range==0) range=1;
     static unsigned sTag=Struct->Desc()->TagIndex("S");
-    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=
-    (norm_min*End-norm_max*Start)/range;
-    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=
-    (norm_max-norm_min)/range;
+    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=(norm_min*End-norm_max*Start)/range;
+    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=(norm_max-norm_min)/range;
+    //OLDIES COMPATIBILITY (?)
     gdlStoreSC();
   }
-    void gdlStoreYAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End)
-  {
+    void gdlStoreYAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log)
+{
+    // !Y etc parameters relative to the VIEWPORT:
+    //easier to retrieve here the values sent to vpor() in the calling function instead of
+    //calling a special function like gdlStoreRegion(), gdlStoreWindow() each time a memory of vpor() is needed.
+    //Will thus need to be amended when/if we get rid of plplot.
     PLFLT p_xmin, p_xmax, p_ymin, p_ymax, norm_min, norm_max, charDim;
-    actStream->gvpd(p_xmin, p_xmax, p_ymin, p_ymax); //viewport normalized coords
-    DStructGDL* Struct=SysVar::Y(); 
-    norm_min=p_ymin; 
-    norm_max=p_ymax; 
-    charDim=actStream->nLineSpacing();
-    unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
-    DFloat m1=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[0];
-    DFloat m2=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[1];
-    static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
-    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=max(0.0,norm_min-m1*charDim);
-    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=min(1.0,norm_max+m2*charDim);
-
-    static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
-    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=norm_min;
-    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=norm_max;
-
-    //protect
-    DDouble range=End-Start;
-    if (range==0) range=1;
-    static unsigned sTag=Struct->Desc()->TagIndex("S");
-    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=
-    (norm_min*End-norm_max*Start)/range;
-    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=
-    (norm_max-norm_min)/range;
+    actStream->getCurrentNormBox(p_xmin, p_xmax, p_ymin, p_ymax); //viewport normalized coords
+    DStructGDL* Struct = SysVar::Y();
+    norm_min = p_ymin;
+    norm_max = p_ymax;
+    charDim = actStream->nLineSpacing();
+    static unsigned marginTag = Struct->Desc()->TagIndex("MARGIN");
+    DFloat m1 = (*static_cast<DFloatGDL*> (Struct->GetTag(marginTag, 0)))[0];
+    DFloat m2 = (*static_cast<DFloatGDL*> (Struct->GetTag(marginTag, 0)))[1];
+    //REGION
+    static unsigned regionTag = Struct->Desc()->TagIndex("REGION");
+    (*static_cast<DFloatGDL*> (Struct->GetTag(regionTag, 0)))[0] = max(0.0, norm_min - m1 * charDim);
+    (*static_cast<DFloatGDL*> (Struct->GetTag(regionTag, 0)))[1] = min(1.0, norm_max + m2 * charDim);
+    //WINDOW
+    static unsigned windowTag = Struct->Desc()->TagIndex("WINDOW");
+    (*static_cast<DFloatGDL*> (Struct->GetTag(windowTag, 0)))[0] = norm_min;
+    (*static_cast<DFloatGDL*> (Struct->GetTag(windowTag, 0)))[1] = norm_max;
+    // Loginess
+    static unsigned typeTag = Struct->Desc()->TagIndex("TYPE");
+    (*static_cast<DLongGDL*> (Struct->GetTag(typeTag, 0)))[0] = log;
+    //CRANGE
+    unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
+    //here, as this is called from a box-setting (or axis-setting) function, Start and End are already in LOG if case be.
+    (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0] = Start;
+    (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1] = End;
+    //Y.S
+    DDouble range = End - Start;
+    if (range == 0) range = 1;
+    static unsigned sTag = Struct->Desc()->TagIndex("S");
+    (*static_cast<DDoubleGDL*> (Struct->GetTag(sTag, 0)))[0] = (norm_min * End - norm_max * Start) / range;
+    (*static_cast<DDoubleGDL*> (Struct->GetTag(sTag, 0)))[1] = (norm_max - norm_min) / range;
+    //OLDIES COMPATIBILITY (?)
     gdlStoreSC();
   }
-    void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble zposStart, DDouble zposEnd)
-  {
+  
+  //Z is a bit different  
+  void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble zposStart, DDouble zposEnd, bool log)
+{
     DStructGDL* Struct=SysVar::Z(); 
-    unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
+    static unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
+    DFloat m1 = (*static_cast<DFloatGDL*> (Struct->GetTag(marginTag, 0)))[0];
+    DFloat m2 = (*static_cast<DFloatGDL*> (Struct->GetTag(marginTag, 0)))[1];
+    //REGION
     static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
     (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=zposStart;
     (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=zposEnd;
-
+    //WINDOW
     static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
     (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=zposStart;
     (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=zposEnd;
-
-    static unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
-    DDouble valStart = (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0];
-    DDouble valEnd = (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1];
-    
-    //protect
-    DDouble range=valEnd-valStart;
+    // Loginess
+    static unsigned typeTag = Struct->Desc()->TagIndex("TYPE");
+    (*static_cast<DLongGDL*> (Struct->GetTag(typeTag, 0)))[0] = log;
+    //CRANGE
+    unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
+    //here, as this is called from a box-setting (or axis-setting) function, Start and End are already in LOG if case be.
+    (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0] = zposStart;
+    (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1] = zposEnd;
+    //Z.S
+    DDouble range=zposEnd-zposStart;
     if (range==0) range=1;
     static unsigned sTag=Struct->Desc()->TagIndex("S");
     (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=zposStart;
-    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=
-    (zposEnd-zposStart)/range;
+    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=(zposEnd-zposStart)/range;
   }
-
-  void gdlStoreCLIP(DLongGDL* clipBox)
+  void gdlGetCLIPXY(DDouble &xStart, DDouble &yStart, DDouble &xEnd, DDouble &yEnd){
+    DStructGDL* dStruct=SysVar::D();   //MUST NOT BE STATIC, due to .reset 
+    static unsigned xsTag=dStruct->Desc()->TagIndex("X_SIZE");
+    static unsigned ysTag=dStruct->Desc()->TagIndex("Y_SIZE");
+    DLong xsize=(*static_cast<DLongGDL*>(dStruct->GetTag(xsTag, 0)))[0];
+    DLong ysize=(*static_cast<DLongGDL*>(dStruct->GetTag(ysTag, 0)))[0];
+    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
+    static unsigned clipTag=pStruct->Desc()->TagIndex("CLIP");
+    xStart=double((*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[0])/xsize;
+    yStart=double((*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[1])/ysize;
+    xEnd=double((*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[2])/xsize;
+    yEnd=double((*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[3])/ysize;
+  }
+  void gdlStoreCLIP()
   {
     DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
-    int i;
+    DLong xsize=(*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0];
+    DLong ysize=(*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0];
+    //WINDOW
+    DFloat x0=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(SysVar::X()->Desc()->TagIndex("WINDOW"), 0)))[0];
+    DFloat x1=(*static_cast<DFloatGDL*>(SysVar::X()->GetTag(SysVar::X()->Desc()->TagIndex("WINDOW"), 0)))[1];
+    DFloat y0=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(SysVar::Y()->Desc()->TagIndex("WINDOW"), 0)))[0];
+    DFloat y1=(*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(SysVar::Y()->Desc()->TagIndex("WINDOW"), 0)))[1];
     static unsigned clipTag=pStruct->Desc()->TagIndex("CLIP");
-    for ( i=0; i<clipBox->N_Elements(); ++i ) (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[i]=(*clipBox)[i];
+    (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[0]=x0*xsize;
+    (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[1]=y0*ysize;
+    (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[2]=x1*xsize;
+    (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[3]=y1*ysize;
+    (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[4]=0;
+    (*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[5]=1000; //for the time being
   }
 
   void gdlGetAxisType(int axisId, bool &log)

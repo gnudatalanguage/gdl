@@ -154,12 +154,12 @@ namespace lib {
       return false; //do not abort
     }
 
-    bool old_body(EnvT* e, GDLGStream* actStream) {
+    bool prepareDrawArea(EnvT* e, GDLGStream* actStream) {
       gdlGetAxisType(XAXIS, xLog);
       gdlGetAxisType(YAXIS, yLog);
 
       //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
-      GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd);
+      GetCurrentUserLimits(xStart, xEnd, yStart, yEnd, zStart, zEnd);
 
       actStream->OnePageSaveLayout(); // one page
 
@@ -209,7 +209,7 @@ namespace lib {
       return false; //do not abort
     }
 
-    void call_plplot(EnvT* e, GDLGStream* actStream) {
+    void applyGraphics(EnvT* e, GDLGStream* actStream) {
       // start drawing. Graphic Keywords accepted:CLIP(YES), COLOR(YES), LINESTYLE(YES), NOCLIP(YES),
       //                                          PSYM(YES), SYMSIZE(YES), T3D(YES), ZVALUE(YES)
       static int colorIx = e->KeywordIx("COLOR");

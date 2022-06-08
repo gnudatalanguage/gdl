@@ -1033,16 +1033,14 @@ void GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
   theBox.nx2=xmax;
   theBox.ny1=ymin;
   theBox.ny2=ymax;
-  PLFLT x1,x2,y1,y2;
-  plstream::gvpd(x1,x2,y1,y2); //retrieve NORMALIZED DEVICE coordinates of viewport, that are NOT xmin, xmax, ymin, ymax when subpages are present (!P.MULTI)
-  theBox.ndx1=x1;
-  theBox.ndx2=x2;
-  theBox.ndy1=y1;
-  theBox.ndy2=y2;
-  theBox.ondx=x1;
-  theBox.ondy=y1;
-  theBox.sndx=x2-x1;
-  theBox.sndy=y2-y1;
+  theBox.ndx1=xmin;
+  theBox.ndx2=xmax;
+  theBox.ndy1=ymin;
+  theBox.ndy2=ymax;
+  theBox.ondx=xmin;
+  theBox.ondy=ymin;
+  theBox.sndx=xmax-xmin;
+  theBox.sndy=ymax-ymin;
 
   theBox.initialized=true;
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"vpor(): got x[%f:%f],x[%f:%f] (normalized, device)\n",theBox.ndx1,theBox.ndx2,theBox.ndy1,theBox.ndy2);
@@ -1062,11 +1060,12 @@ void GDLGStream::wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
   theBox.wy2=ymax;
   updateBoxDeviceCoords();
   UpdateCurrentCharWorldSize();
+  setSymbolSizeConversionFactors(); //because symbols are written in world coordinates. 
 }
 
 void GDLGStream::ssub(PLINT nx, PLINT ny)
 {
-  plstream::ssub( nx, ny ); // does not appear to change charsize.
+//  plstream::ssub( nx, ny ); // does not appear to change charsize.
   // set subpage numbers in X and Y
   thePage.nbPages=nx*ny;
   thePage.nx=nx;
@@ -1078,10 +1077,22 @@ void GDLGStream::ssub(PLINT nx, PLINT ny)
 
 void GDLGStream::adv(PLINT page)
 {
-  plstream::adv(page);
+//  plstream::adv(page);
   if (page==0) {thePage.curPage++;} else {thePage.curPage=page;}
   if (thePage.curPage > thePage.nbPages) thePage.curPage=1;
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"adv() now at page %d\n",thePage.curPage);
+}
+
+void GDLGStream::getSubpageRegion(PLFLT &sxmin, PLFLT &symin, PLFLT &sxmax, PLFLT &symax){
+  int p=thePage.curPage-1;
+  PLFLT width=1.0/thePage.nx;
+  PLFLT height=1.0/thePage.ny;
+ int j= p / thePage.nx;
+ int i= (p - j*thePage.nx); 
+ sxmin=i*width;
+ sxmax=sxmin+width;
+ symax=1-(j*height);
+ symin=symax-height;
 }
 //get region (3BPP data)
 

@@ -166,7 +166,7 @@ namespace lib {
 
   private:
 
-    bool old_body(EnvT* e, GDLGStream * actStream) {
+    bool prepareDrawArea(EnvT* e, GDLGStream * actStream) {
 
       COORDSYS coordinateSystem = NONE;
       static int DATAIx = e->KeywordIx("DATA");
@@ -346,7 +346,7 @@ namespace lib {
 
   private:
 
-    void call_plplot(EnvT* e, GDLGStream * actStream) {
+    void applyGraphics(EnvT* e, GDLGStream * actStream) {
 
       //pass physical position of image
       DLong devicebox[4] = {botLeftPixelX, xSize, botLeftPixelY, ySize};

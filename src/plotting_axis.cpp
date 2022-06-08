@@ -90,12 +90,6 @@ namespace lib {
         }
       }
 
-      gdlGetAxisType(XAXIS, xAxisWasLog);
-      gdlGetAxisType(YAXIS, yAxisWasLog);
-      gdlGetAxisType(ZAXIS, zAxisWasLog);
-      xLog = xAxisWasLog;
-      yLog = yAxisWasLog; //by default logness is similar until another option is set
-      zLog = zAxisWasLog;
 
       static int DATAIx = e->KeywordIx("DATA");
       static int DEVICEIx = e->KeywordIx("DEVICE");
@@ -105,7 +99,7 @@ namespace lib {
       if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
       if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
 
-      // get viewport coordinates in normalised units
+      // get current viewport coordinates in normalised units
 
       gdlGetCurrentAxisWindow(XAXIS, xnormmin, xnormmax);
       gdlGetCurrentAxisWindow(YAXIS, ynormmin, ynormmax);
@@ -113,106 +107,31 @@ namespace lib {
       //undefined or null previous viewport, seems IDL returns without complain:
       if ((xnormmin == xnormmax) || (ynormmin == ynormmax)|| (doT3d && (znormmin == znormmax)) ) return true; //abort
 
+      viewportXSize = xnormmax - xnormmin;
+      viewportYSize = ynormmax - ynormmin;
+      viewportZSize = znormmax - znormmin;
 
-      // old x and y range
+      // old x y z range for axes : default in absence of [XYZ]RANGE etc in commandline.
       DDouble oxStart, oxEnd;
       DDouble oyStart, oyEnd;
       DDouble ozStart, ozEnd;
 
-      // get ![XY].CRANGE
-      gdlGetCurrentAxisRange(XAXIS, oxStart, oxEnd, FALSE); //ignore projection limits, convert to linear values if necessary.
-      gdlGetCurrentAxisRange(YAXIS, oyStart, oyEnd, FALSE);
-      gdlGetCurrentAxisRange(ZAXIS, ozStart, ozEnd, FALSE);
+      gdlGetAxisType(XAXIS, xAxisWasLog);
+      gdlGetAxisType(YAXIS, yAxisWasLog);
+      gdlGetAxisType(ZAXIS, zAxisWasLog);
+      
+      GetCurrentUserLimits(oxStart,oxEnd, oyStart, oyEnd, ozStart, ozEnd);
+      gdlAdjustAxisRange(e, XAXIS, oxStart, oxEnd, xAxisWasLog); //Box adjustement
+      gdlAdjustAxisRange(e, YAXIS, oyStart, oyEnd, yAxisWasLog); //Box adjustement
+      gdlAdjustAxisRange(e, ZAXIS, ozStart, ozEnd, zAxisWasLog); //Box adjustement
 
-      if ((oyStart == oyEnd) || (oxStart == oxEnd) || (ozStart == ozEnd)) {
-        if (oyStart == oyEnd) {
-          oyStart = 0;
-          oyEnd = 1;
-        }
-        if (oxStart == oxEnd) {
-          oxStart = 0;
-          oxEnd = 1;
-        }
-        if (ozStart == ozEnd) {
-          ozStart = 0;
-          ozEnd = 1;
-        }
-
-      } else {
-        if (xLog) {
-          oxStart = pow(oxStart, 10);
-          oxEnd = pow(oxEnd, 10);
-        }
-        if (yLog) {
-          oyStart = pow(oyStart, 10);
-          oyEnd = pow(oxEnd, 10);
-        }
-        if (zLog) {
-          ozStart = pow(ozStart, 10);
-          ozEnd = pow(ozEnd, 10);
-        }
-      }
-
-      viewportXSize = xnormmax - xnormmin;
-      viewportYSize = ynormmax - ynormmin;
-      viewportZSize = znormmax - znormmin;
-      xStart = oxStart;
-      xEnd = oxEnd;
-      yStart = oyStart;
-      yEnd = oyEnd;
-      zStart = ozStart;
-      zEnd = ozEnd;
-
-      // handle Log options passing via Keywords
-      // note: undocumented keywords [xyz]type still exist and
-      // have priority on [xyz]log !
-      static int xTypeIx = e->KeywordIx("XTYPE");
-      static int yTypeIx = e->KeywordIx("YTYPE");
-      static int xLogIx = e->KeywordIx("XLOG");
-      static int yLogIx = e->KeywordIx("YLOG");
-      static int xTickunitsIx = e->KeywordIx("XTICKUNITS");
-      static int yTickunitsIx = e->KeywordIx("YTICKUNITS");
-
-      if (e->KeywordPresent(xTypeIx)) xLog = e->KeywordSet(xTypeIx);
-      if (e->KeywordPresent(yTypeIx)) yLog = e->KeywordSet(yTypeIx);
-
-      if (xLog && e->KeywordSet(xTickunitsIx)) {
-        Message("PLOT: LOG setting ignored for Date/Time TICKUNITS.");
-        xLog = FALSE;
-      }
-      if (yLog && e->KeywordSet(yTickunitsIx)) {
-        Message("PLOT: LOG setting ignored for Date/Time TICKUNITS.");
-        yLog = FALSE;
-      }
-
-      //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
-      DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd, zAxisStart, zAxisEnd;
-      bool setx = gdlGetDesiredAxisRange(e, XAXIS, xAxisStart, xAxisEnd);
-      bool sety = gdlGetDesiredAxisRange(e, YAXIS, yAxisStart, yAxisEnd);
-      bool setz = gdlGetDesiredAxisRange(e, ZAXIS, zAxisStart, zAxisEnd);
-      if (sety) {
-        yStart = yAxisStart;
-        yEnd = yAxisEnd;
-      }
-      if (setx) {
-        xStart = xAxisStart;
-        xEnd = xAxisEnd;
-      }
-      if (setz) {
-        zStart = zAxisStart;
-        zEnd = zAxisEnd;
-      }
-      //handle Nozero option after all that!
-      if (!gdlYaxisNoZero(e) && yStart > 0 && !yLog) yStart = 0.0;
-
-      //Box adjustement:
-      gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
-      gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
-      gdlAdjustAxisRange(e, ZAXIS, zStart, zEnd, zLog);
-
+      //position values are in the 'old' system just defined above.
       xPos = (standardNumPos) ? oxStart : oxEnd;
+      if (xAxisWasLog) xPos=pow(10,xPos);
       yPos = (standardNumPos) ? oyStart : oyEnd;
-      zPos = ozStart ; //trick zAxis is NOT a 3D zAXIS; it is a X or Y axis depending on  standardNumPos
+      if (yAxisWasLog) yPos=pow(10,yPos);
+      zPos = (standardNumPos) ? ozStart : ozEnd; 
+      if (xAxisWasLog) zPos=pow(10,zPos);
       //read arguments 
       if (nParam() == 1) {
         e->AssureDoubleScalarPar(0, yPos);
@@ -233,12 +152,79 @@ namespace lib {
         znodef = false;
       }
 
+      //default values: start with 'old' values.
+      
+      xLog = xAxisWasLog;
+      yLog = yAxisWasLog; //by default logness is similar until another option is set
+      zLog = zAxisWasLog;
+
+      xStart = oxStart;
+      xEnd = oxEnd;
+      yStart = oyStart;
+      yEnd = oyEnd;
+      zStart = ozStart;
+      zEnd = ozEnd;
+
+      // handle Log options passing via Keywords
+      // note: undocumented keywords [xyz]type still exist and
+      // have priority on [xyz]log !
+      static int xLogIx = e->KeywordIx("XLOG");
+      static int yLogIx = e->KeywordIx("YLOG");
+      static int zLogIx = e->KeywordIx("ZLOG");
+      if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
+      if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
+      if (e->KeywordPresent(yLogIx)) zLog = e->KeywordSet(zLogIx);
+
+      // note: undocumented keywords [xyz]type still exist and
+      // have priority on [xyz]log ! In fact, it is the modulo (1, 3, 5 ... --> /log)   
+      static int xTypeIx = e->KeywordIx("XTYPE");
+      static int yTypeIx = e->KeywordIx("YTYPE");
+      static int xType, yType;
+      if (e->KeywordPresent(xTypeIx)) {
+        e->AssureLongScalarKWIfPresent(xTypeIx, xType);
+        if ((xType % 2) == 1) xLog = true;
+        else xLog = false;
+      }
+      if (e->KeywordPresent(yTypeIx)) {
+        e->AssureLongScalarKWIfPresent(yTypeIx, yType);
+        if ((yType % 2) == 1) yLog = true;
+        else yLog = false;
+      }
+
+      //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
+      DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd, zAxisStart, zAxisEnd;
+      bool setx = gdlGetDesiredAxisRange(e, XAXIS, xAxisStart, xAxisEnd);
+      gdlAdjustAxisRange(e, XAXIS, xAxisStart, xAxisEnd, xLog); //Box adjustement
+      bool sety = gdlGetDesiredAxisRange(e, YAXIS, yAxisStart, yAxisEnd);
+      gdlAdjustAxisRange(e, YAXIS, yAxisStart, yAxisEnd, yLog); //Box adjustement
+      bool setz = gdlGetDesiredAxisRange(e, ZAXIS, zAxisStart, zAxisEnd);
+      gdlAdjustAxisRange(e, ZAXIS, zAxisStart, zAxisEnd, zLog); //Box adjustement
+
+      // here LOG will apply ONLY if the RANGE was set-up.
+      //IMHO this is an IDL BUG, but IDL interprets the 'CURRENT AXIS RANGE' as LOG values if [xyz]Log is typed.
+      // meaning that if !Y.CRANGE=[2,200] and we ask for axis,0.5,0.5,/norm,yax=0,color='ff00'x,/ylo then the axis is in LOG between 10^2 and 10^200!
+      if (setx) {
+        xStart = (xLog)?log10(xAxisStart):xAxisStart;
+        xEnd = (xLog)?log10(xAxisEnd):xAxisEnd;
+     }
+      if (sety) {
+       yStart = (yLog)?log10(yAxisStart):yAxisStart;
+        yEnd = (yLog)?log10(yAxisEnd):yAxisEnd;
+// forgotten by IDL apparently also...
+//        //handle Nozero option after all that!
+//        if (!gdlYaxisNoZero(e) && yAxisStart > 0 && !yLog) yAxisStart = 0.0;
+      }
+      if (setz) {
+        zStart = (zLog)?log10(zAxisStart):zAxisStart;
+        zEnd = (zLog)?log10(zAxisEnd):zAxisEnd;
+      }
+
       return false; //do not abort
     }
 
   private:
 
-    bool old_body(EnvT* e, GDLGStream* actStream) {
+    bool prepareDrawArea(EnvT* e, GDLGStream* actStream) {
       gdlSetGraphicsForegroundColorFromKw(e, actStream); //COLOR
       //    contrary to the documentation axis does not erase the plot (fortunately!)
       //    gdlNextPlotHandlingNoEraseOption(e, actStream, true);     //NOERASE -- not supported
@@ -291,20 +277,6 @@ namespace lib {
 
       actStream->OnePageSaveLayout(); // one page
 
-      if (xLog) {
-        xStart = log10(xStart);
-        xEnd = log10(xEnd);
-      }
-      if (yLog) {
-        yStart = log10(yStart);
-        yEnd = log10(yEnd);
-      }
-      if (zLog) {
-        zStart = log10(zStart);
-        zEnd = log10(zEnd);
-      }
-
-
       static int SAVEIx = e->KeywordIx("SAVE");
       bool doSave = e->KeywordSet(SAVEIx);
 
@@ -322,9 +294,9 @@ namespace lib {
         gdlAxis(e, actStream, XAXIS, xStart, xEnd, xLog, standardNumPos ? 1 : 2, viewportYSize);
 
         if (doSave) {
-          gdlStoreAxisCRANGE(XAXIS, xStart, xEnd, xLog);
-          gdlStoreAxisType(XAXIS, xLog);
-          gdlStoreXAxisParameters(actStream, xStart, xEnd);
+//          gdlStoreAxisCRANGE(XAXIS, xStart, xEnd, xLog);
+//          gdlStoreAxisType(XAXIS, xLog);
+          gdlStoreXAxisParameters(actStream, xStart, xEnd, xLog);
         }
       }
 
@@ -342,9 +314,9 @@ namespace lib {
         gdlAxis(e, actStream, YAXIS, yStart, yEnd, yLog, standardNumPos ? 1 : 2, viewportXSize);
 
         if (doSave) {
-          gdlStoreAxisCRANGE(YAXIS, yStart, yEnd, yLog);
-          gdlStoreAxisType(YAXIS, yLog);
-          gdlStoreYAxisParameters(actStream, yStart, yEnd);
+//          gdlStoreAxisCRANGE(YAXIS, yStart, yEnd, yLog);
+//          gdlStoreAxisType(YAXIS, yLog);
+          gdlStoreYAxisParameters(actStream, yStart, yEnd, yLog);
         }
       }
       
@@ -360,9 +332,9 @@ namespace lib {
         actStream->cmd(PLESC_3D, &PlotDevice3d);
         gdlAxis(e, actStream, YAXIS, zStart, zEnd, zLog, standardNumPos ? 1 : 2, viewportXSize);
         if (doSave) {
-          gdlStoreAxisCRANGE(ZAXIS, zStart, zEnd, zLog);
-          gdlStoreAxisType(ZAXIS, zLog);
-          gdlStoreYAxisParameters(actStream, zStart, zEnd);
+//          gdlStoreAxisCRANGE(ZAXIS, zStart, zEnd, zLog);
+//          gdlStoreAxisType(ZAXIS, zLog);
+          gdlStoreYAxisParameters(actStream, zStart, zEnd, zLog);
         }
       }
       // reset the viewport and world coordinates to the original values
@@ -376,7 +348,7 @@ namespace lib {
 
   private:
 
-    void call_plplot(EnvT* e, GDLGStream* actStream) { }
+    void applyGraphics(EnvT* e, GDLGStream* actStream) { }
 
   private:
 

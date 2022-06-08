@@ -547,6 +547,7 @@ public:
 
   void RestoreLayout()
   {
+    return;
       ssub(pageLayout.nx,pageLayout.ny);
       adv(pageLayout.curPage);
       vpor(boxLayout.nx1,boxLayout.nx2,boxLayout.ny1,boxLayout.ny2);
@@ -555,6 +556,7 @@ public:
 
   void OnePageSaveLayout()
   {
+    return;
       SaveLayout();
       NoSub();
   }
@@ -759,7 +761,7 @@ public:
   void wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
   void ssub( PLINT nx, PLINT ny);
   void adv(PLINT page);
-
+  void getSubpageRegion(PLFLT &sxmin, PLFLT &symin, PLFLT &sxmax, PLFLT &symax);
   inline void syncPageInfo()
   {
       if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"SyncPageInfo()\n");

@@ -205,7 +205,7 @@ namespace lib {
       return false; //do not abort
     }
 
-    bool old_body(EnvT* e, GDLGStream* actStream) {
+    bool prepareDrawArea(EnvT* e, GDLGStream* actStream) {
 
       //check presence of DATA,DEVICE and NORMAL options
       static int DATAIx = e->KeywordIx("DATA");
@@ -223,7 +223,7 @@ namespace lib {
       gdlGetAxisType(ZAXIS, zLog);
 
       //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
-      GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd);
+      GetCurrentUserLimits(xStart, xEnd, yStart, yEnd, zStart, zEnd);
 
       actStream->OnePageSaveLayout(); // one page
 
@@ -283,7 +283,7 @@ namespace lib {
       return false;
     }
 
-    void call_plplot(EnvT* e, GDLGStream* actStream) {
+    void applyGraphics(EnvT* e, GDLGStream* actStream) {
 
       static int colorIx = e->KeywordIx("COLOR");
       bool doColor = false;

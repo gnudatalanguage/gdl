@@ -310,13 +310,13 @@ namespace lib {
 
   private:
 
-    bool old_body(EnvT* e, GDLGStream* actStream) {
+    bool prepareDrawArea(EnvT* e, GDLGStream* actStream) {
       //OVERPLOT: get stored range values instead to use them!
       static int overplotKW = e->KeywordIx("OVERPLOT");
       overplot = e->KeywordSet(overplotKW);
       if (overplot) {
         //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
-        GetCurrentUserLimits(actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd);
+        GetCurrentUserLimits(xStart, xEnd, yStart, yEnd, zStart, zEnd);
       } else {
         //check presence of DATA,DEVICE and NORMAL options
         static int DATAIx = e->KeywordIx("DATA");
@@ -349,7 +349,7 @@ namespace lib {
         // viewport and world coordinates
         // set the PLOT charsize before setting viewport (margin depend on charsize)
         gdlSetPlotCharsize(e, actStream);
-        if (gdlSet3DViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == false) return true; 
+        if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == false) return true; 
 
         if (doT3d) { //call for driver to perform special transform for all further drawing
           gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
@@ -416,7 +416,7 @@ namespace lib {
 
   private:
 
-    void call_plplot(EnvT* e, GDLGStream* actStream) {
+    void applyGraphics(EnvT* e, GDLGStream* actStream) {
             
       static int nodataIx = e->KeywordIx("NODATA");
       if (e->KeywordSet(nodataIx)) return; //will perform post_call
