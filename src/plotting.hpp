@@ -387,11 +387,6 @@ namespace lib {
   //		       DDouble &dsx, DDouble &dsy, DDouble &lsx, DDouble &lsy); 
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz = NULL);
   void GetWFromPlotStructs(DFloat **wx, DFloat **wy, DFloat **wz);
-  void setPlplotScale(GDLGStream* a);
-  void DataCoordXToNorm(DDouble &x, bool xLog);
-  void DataCoordYToNorm(DDouble &y, bool yLog);
-  void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy,
-    DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd, bool);
   void gdlStoreCLIP();
   void gdlGetCLIPXY(DDouble &xStart,  DDouble &yStart, DDouble &xEnd, DDouble &yEnd);
   void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble &zEnd);
@@ -1395,7 +1390,7 @@ namespace lib {
       position[1] = symin + yMarginB * actStream->nLineSpacing();
       position[2] = sxmax - xMarginR * actStream->nCharLength();
       position[3] = symax - yMarginT * actStream->nLineSpacing();
-    std::cerr<<position[0]<<","<<position[2]<<","<<position[1]<<","<<position[3]<<std::endl;
+//    std::cerr<<position[0]<<","<<position[2]<<","<<position[1]<<","<<position[3]<<std::endl;
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
     // Get !P.position values. !P.REGION is superseded by !P.POSITION
     if (pStruct != NULL) {
@@ -1461,7 +1456,7 @@ namespace lib {
 
     aspect = 0.0; // vpas with aspect=0.0 equals vpor.
     if (iso) aspect = abs((yEnd - yStart) / (xEnd - xStart)); //log-log or lin-log
-    if (iso) setIsoPort(actStream, position[0], position[2], position[1], position[3], aspect);
+    if (iso) actStream->isovpor(position[0], position[2], position[1], position[3], aspect);
     else actStream->vpor(position[0], position[2], position[1], position[3]);
 
     actStream->wind(xStart, xEnd, yStart, yEnd);
@@ -1476,7 +1471,7 @@ namespace lib {
   }
 
   static bool gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong modifierCode = 0, DDouble NormedLength = 0) {
-    std::cerr<<"axis id="<<axisId<<"start="<<Start<<", end="<<End<<", log="<<Log<<std::endl;
+ //   std::cerr<<"axis id="<<axisId<<"start="<<Start<<", end="<<End<<", log="<<Log<<std::endl;
     if (Start==End) return true;
     DLong Style;
     gdlGetDesiredAxisStyle(e, axisId, Style);

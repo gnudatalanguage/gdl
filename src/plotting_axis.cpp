@@ -222,9 +222,8 @@ namespace lib {
       return false; //do not abort
     }
 
-  private:
-
     bool prepareDrawArea(EnvT* e, GDLGStream* actStream) {
+      
       gdlSetGraphicsForegroundColorFromKw(e, actStream); //COLOR
       //    contrary to the documentation axis does not erase the plot (fortunately!)
       //    gdlNextPlotHandlingNoEraseOption(e, actStream, true);     //NOERASE -- not supported
@@ -294,8 +293,6 @@ namespace lib {
         gdlAxis(e, actStream, XAXIS, xStart, xEnd, xLog, standardNumPos ? 1 : 2, viewportYSize);
 
         if (doSave) {
-//          gdlStoreAxisCRANGE(XAXIS, xStart, xEnd, xLog);
-//          gdlStoreAxisType(XAXIS, xLog);
           gdlStoreXAxisParameters(actStream, xStart, xEnd, xLog);
         }
       }
@@ -314,8 +311,6 @@ namespace lib {
         gdlAxis(e, actStream, YAXIS, yStart, yEnd, yLog, standardNumPos ? 1 : 2, viewportXSize);
 
         if (doSave) {
-//          gdlStoreAxisCRANGE(YAXIS, yStart, yEnd, yLog);
-//          gdlStoreAxisType(YAXIS, yLog);
           gdlStoreYAxisParameters(actStream, yStart, yEnd, yLog);
         }
       }
@@ -332,8 +327,6 @@ namespace lib {
         actStream->cmd(PLESC_3D, &PlotDevice3d);
         gdlAxis(e, actStream, YAXIS, zStart, zEnd, zLog, standardNumPos ? 1 : 2, viewportXSize);
         if (doSave) {
-//          gdlStoreAxisCRANGE(ZAXIS, zStart, zEnd, zLog);
-//          gdlStoreAxisType(ZAXIS, zLog);
           gdlStoreYAxisParameters(actStream, zStart, zEnd, zLog);
         }
       }

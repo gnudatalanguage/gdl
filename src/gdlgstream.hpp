@@ -362,11 +362,11 @@ public:
 //  inline PLFLT nd2py(PLFLT y){ return ( pls->phyymi + pls->phyylen * y  );}
 //  inline void norm2physical(PLFLT devx, PLFLT devy, PLFLT &physx, PLFLT &physy)
 //  { physx=nd2px(devx); physy=nd2py(devy);}
-//  // (normed) device to mm
-//  inline PLFLT nd2mx(PLFLT x){ return (PLFLT) ( x * abs( pls->phyxma - pls->phyxmi ) / pls->xpmm ) ;}
-//  inline PLFLT nd2my(PLFLT y){ return (PLFLT) ( y * abs( pls->phyyma - pls->phyymi ) / pls->ypmm ) ;}
-//  inline void norm2mm(PLFLT devx, PLFLT devy, PLFLT &mmx, PLFLT &mmy)
-//  { mmx=nd2mx(devx); mmy=nd2my(devy);}
+  // (normed) device to mm
+  inline PLFLT nd2mx(PLFLT x){ return (PLFLT) ( x * abs( pls->phyxma - pls->phyxmi ) / pls->xpmm ) ;}
+  inline PLFLT nd2my(PLFLT y){ return (PLFLT) ( y * abs( pls->phyyma - pls->phyymi ) / pls->ypmm ) ;}
+  inline void norm2mm(PLFLT devx, PLFLT devy, PLFLT &mmx, PLFLT &mmy)
+  { mmx=nd2mx(devx); mmy=nd2my(devy);}
 //  //(normed) device to world
   inline PLFLT nd2wx(PLFLT x){return (PLFLT) ( (x- pls->wdxoff) / pls->wdxscl );}
   inline PLFLT nd2wy(PLFLT y){return (PLFLT) ( (y- pls->wdyoff) / pls->wdyscl );}
@@ -757,6 +757,7 @@ public:
   virtual void fontChanged(){}; //nothing here
   void sizeChar(PLFLT scale);
   void vpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
+  void isovpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax, PLFLT aspect );
 //  void gvpd( PLFLT& xmin, PLFLT& xmax, PLFLT& ymin, PLFLT& ymax );
   void wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
   void ssub( PLINT nx, PLINT ny);

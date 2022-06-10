@@ -1047,6 +1047,33 @@ void GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
   syncPageInfo();
 }
 
+void GDLGStream::isovpor(PLFLT x1, PLFLT x2, PLFLT y1,  PLFLT y2,  PLFLT aspect)
+{
+  if (aspect <= 0.0) {
+    vpor(x1, x2, y1, y2);
+    return;
+  }
+  assert(x2 > x1 && y2 > y1);
+  //x1 < x2 && y1 < y2 implied
+  PLFLT x1mm = nd2mx(x1);
+  PLFLT y1mm = nd2my(y1);
+  PLFLT x2mm = nd2mx(x2);
+  PLFLT y2mm = nd2my(y2);
+  PLFLT ys = y2mm - y1mm; //x and y are in normalized coordinates. ISO scaling must be performed using screen (or paper) coordinates:
+  PLFLT xs = x2mm - x1mm;
+  if (ys > xs * aspect) { //x ok, resize y
+    y2mm = y1mm + aspect*xs;
+  } else {
+    x2mm = x1mm + xs / aspect;
+  }
+  x1 = mm2ndx(x1mm);
+  x2 = mm2ndx(x2mm);
+  y1 = mm2ndy(y1mm);
+  y2 = mm2ndy(y2mm);
+  // here we need too compensate for the change of aspect due to eventual !P.MULTI plots
+  vpor(x1, x2, y1, y2); //ask for non-iso window
+}
+
 void GDLGStream::wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
 {
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"wind(): setting x[%f:%f],y[%f:%f] (world) \n",xmin,xmax,ymin,ymax);

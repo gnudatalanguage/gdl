@@ -471,32 +471,6 @@ namespace lib
     }
   }
 
-  void setIsoPort(GDLGStream* actStream,
-    PLFLT x1,
-    PLFLT x2,
-    PLFLT y1,
-    PLFLT y2,
-    PLFLT aspect)
-  {
-    if ( aspect<=0.0 )
-    {
-      actStream->vpor(x1, x2, y1, y2);
-      return;
-    }
-    assert (x2 > x1 && y2 > y1); 
-    //x1 < x2 && y1 < y2 implied
-    PLFLT ys=y2-y1;
-    PLFLT xs=x2-x1;
-    if (ys > xs*aspect) { //x ok, resize y
-      y2=y1+aspect*xs;
-    } else {
-      x2=x1+xs/aspect;
-    }
-    // here we need too compensate for the change of aspect due to eventual !P.MULTI plots
-    actStream->vpor(x1, x2, y1, y2); //ask for non-iso window
-  }
-
-
 
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz)
   {
@@ -522,55 +496,6 @@ namespace lib
     *wx= &(*static_cast<DFloatGDL*>(xStruct->GetTag(xwindowTag, 0)))[0];
     *wy= &(*static_cast<DFloatGDL*>(yStruct->GetTag(ywindowTag, 0)))[0];
     *wz= &(*static_cast<DFloatGDL*>(zStruct->GetTag(zwindowTag, 0)))[0];
-  }
-  void setPlplotScale(GDLGStream* a)
-  {
-        DDouble *sx, *sy;
-        GetSFromPlotStructs( &sx, &sy );
-
-        DDouble xStart, xEnd, yStart, yEnd;
-        xStart=-sx[0]/sx[1];
-        xEnd=(1-sx[0])/sx[1];
-        yStart=-sy[0]/sy[1];
-        yEnd=(1-sy[0])/sy[1];
-        a->wind(xStart, xEnd, yStart, yEnd);
-  }
-  #define TONORMCOORDX( coord, log) coord = (log) ? sx[0] + sx[1] * log10(coord) : sx[0] + sx[1] * coord;
-  #define TONORMCOORDY( coord, log) coord = (log) ? sy[0] + sy[1] * log10(coord) : sy[0] + sy[1] * coord;
-
-  void DataCoordXToNorm(DDouble &x, bool xLog) {
-      DDouble *sx;
-      GetSFromPlotStructs(&sx, NULL, NULL);
-      TONORMCOORDX( x, xLog) 
- }
-  void DataCoordYToNorm(DDouble &y, bool yLog) {
-      DDouble *sy;
-      GetSFromPlotStructs(NULL, &sy, NULL);
-      TONORMCOORDY( y, yLog) 
- }
-  
- void DataCoordLimits(DDouble *sx, DDouble *sy, DFloat *wx, DFloat *wy,
-                       DDouble *xStart, DDouble *xEnd, DDouble *yStart, DDouble *yEnd, bool clip_by_default)
-  {
-    *xStart=(wx[0]-sx[0])/sx[1];
-    *xEnd=(wx[1]-sx[0])/sx[1];
-    *yStart=(wy[0]-sy[0])/sy[1];
-    *yEnd=(wy[1]-sy[0])/sy[1];
-
-    // patch from Joanna (tracker item no. 3029409, see test_clip.pro)
-    if ( !clip_by_default )
-    {
-      //      cout << "joanna" << endl;
-      DFloat wxlen=wx[1]-wx[0];
-      DFloat wylen=wy[1]-wy[0];
-      DFloat xlen= *xEnd- *xStart;
-      DFloat ylen= *yEnd- *yStart;
-      *xStart= *xStart-xlen/wxlen*wx[0];
-      *xEnd= *xEnd+xlen/wxlen*(1-wx[1]);
-      *yStart= *yStart-ylen/wylen*wy[0];
-      *yEnd= *yEnd+ylen/wylen*(1-wy[1]);
-    }
-    //    cout << *xStart <<" "<< *xEnd << " "<< *yStart <<" "<< *yEnd << ""<< endl;
   }
 
   void GetUsym(DLong **n, DInt **do_fill, DFloat **x, DFloat **y, bool **do_color, DLong **usymColor , bool **do_thick, DFloat **usymThick)

@@ -767,7 +767,7 @@ namespace lib {
   
   //converts x and y and updates code and log, for futher use in the pipeline.
    void SelfConvertToNormXY(DDoubleGDL *x, bool &xLog, DDoubleGDL *y, bool &yLog, COORDSYS &code) {
-  std::cerr<<"SelfConvertToNormXY(DDoubleGD)"<<std::endl;
+//  std::cerr<<"SelfConvertToNormXY(DDoubleGD)"<<std::endl;
   SizeT n=x->N_Elements();
   if (code == DATA) {
       DDouble *sx, *sy, *sz;

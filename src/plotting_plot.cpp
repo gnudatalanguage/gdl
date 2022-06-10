@@ -33,7 +33,6 @@ namespace lib {
     Guard<BaseGDL> xval_guard, yval_guard, xtemp_guard;
     bool iso;
     bool doT3d;
-    COORDSYS coordinateSystem = DATA;
     DLongGDL *color;
     DLong psym;
     int calendar_codex;
@@ -293,8 +292,7 @@ namespace lib {
     void applyGraphics(EnvT* e, GDLGStream* actStream) {
       static int nodataIx = e->KeywordIx("NODATA");
       if (e->KeywordSet(nodataIx)) return; //will perform post_call
-      // start drawing. Graphic Keywords accepted:CLIP(YES), COLOR(YES), LINESTYLE(YES), NOCLIP(YES),
-      //                                          PSYM(YES), SYMSIZE(YES), T3D(YES), ZVALUE(YES)
+
       static int colorIx = e->KeywordIx("COLOR");
       bool doColor = false;
       if (e->GetKW(colorIx) != NULL) {
@@ -315,7 +313,6 @@ namespace lib {
 
       bool mapSet = false;
       get_mapset(mapSet);
-      mapSet = (mapSet && coordinateSystem == DATA); //always the case here
 
       if (mapSet) {
 #ifdef USE_LIBPROJ
@@ -355,7 +352,8 @@ namespace lib {
         }
 #endif 
       } else { //just as if LIBPROJ WAS NOT present
-        SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //DATA
+        COORDSYS coordinateSystem = DATA;
+        SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //always DATA for PLOT X,Y values
         draw_polyline(actStream, xVal, yVal, 0, 0, false, xLog, yLog, psym, false, doColor ? color : NULL);
       }
 
