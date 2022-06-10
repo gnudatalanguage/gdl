@@ -70,13 +70,13 @@ GDLWXStream::GDLWXStream( int width, int height )
   plstream::cmd(PLESC_DEVINIT, (void*)streamDC );
     
    // no pause on win destruction
-    spause( false);
+    plstream::spause( false);
 
     // extended fonts
-    fontld( 1);
+    plstream::fontld( 1);
 
     // we want color
-    scolor( 1);
+    plstream::scolor( 1);
 
     PLINT r[ctSize], g[ctSize], b[ctSize];
     GDLCT* myCT=GraphicsDevice::GetGUIDevice( )->GetCT();
@@ -84,12 +84,15 @@ GDLWXStream::GDLWXStream( int width, int height )
     SetColorMap0( r, g, b, ctSize); //set colormap 0 to 256 values
 
     // need to be called initially. permit to fix things
-    plstream::ssub(1,1);
-    plstream::adv(0);
+    plstream::ssub( 1, 1 ); // plstream below stays with ONLY ONE page
+    plstream::adv(0); //-->this one is the 1st and only pladv
     // load font
     plstream::font( 1);
     plstream::vpor(0,1,0,1);
     plstream::wind(0,1,0,1);
+
+    ssub(1,1);
+    adv(0); //this is for us (counters)
     DefaultCharSize();
     clear();
 }

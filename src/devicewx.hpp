@@ -21,19 +21,7 @@
 #ifndef HAVE_LIBWXWIDGETS
 #else
 
-#include <algorithm>
-#include <vector>
-#include <cstring>
-
-#include <plplot/drivers.h>
-
-#include "graphicsdevice.hpp"
 #include "gdlwxstream.hpp"
-#include "initsysvar.hpp"
-#include "gdlexception.hpp"
-
-//#define MAX_WIN 32  //IDL free and widgets start at 32 ...
-//#define MAX_WIN_RESERVE 256
 
 class DeviceWX : public GraphicsMultiDevice {
   
@@ -70,12 +58,13 @@ public:
  }
 
  bool WOpen(int wIx, const std::string& title,
-   int xSize, int ySize, int xPos, int yPos, bool hide = false) {
+	      int xSize, int ySize, int xPos, int yPos, bool hide=false)
+  {
+
+
   if (wIx >= winList.size() || wIx < 0) return false;
 
-  if (winList[ wIx] != NULL) winList[ wIx]->SetValid(false);
-
-  TidyWindowsList();
+    if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false); TidyWindowsList();
 
   // set initial window size
   int x_scroll_size;
@@ -85,8 +74,7 @@ public:
 
   DLong xMaxSize=640;
   DLong yMaxSize=512;
-  DeviceWX::MaxXYSize(&xMaxSize, &yMaxSize);
-
+  MaxXYSize(&xMaxSize, &yMaxSize);
   bool noPosx = (xPos == -1);
   bool noPosy = (yPos == -1);
   xPos = max(1, xPos); //starts at 1 to avoid problems plplot!
@@ -203,8 +191,6 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
   return true;
  }
 
-    // should check for valid streams
-
  GDLGStream* GetStream(bool open = true) {
   TidyWindowsList();
   if (actWin == -1) {
@@ -239,7 +225,7 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
     }
 
     DLong GetGraphicsFunction() {
-        this->GetStream(); //to open a window if none opened.
+    this->GetStream(); //MUST open a window if none opened (even  if it is not useful with GDL, this is to mimic IDL).
         return gcFunction;
     }
 
@@ -264,7 +250,7 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
     }
 
     DIntGDL* GetWindowPosition() {
-        this->GetStream(); //to open a window if none opened.
+        this->GetStream(); //MUST open a window if none opened.
         long xpos, ypos;
         if (winList[actWin]->GetWindowPosition(xpos, ypos)) {
             DIntGDL* res;

@@ -27,12 +27,6 @@
 
 class GDLSVGStream: public GDLGStream
 {
-
-  bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
-#ifdef USE_PNGLIB
-  std::string svg_to_png64(int height, int width, unsigned char *image, int bit_depth, int bpp, int whattype, int *error);
-#endif
-
 public:
   GDLSVGStream( int nx, int ny):
     GDLGStream( nx, ny, "svg")
@@ -42,15 +36,18 @@ public:
 //    plsetopt( "debug", "1");
   }
 
-  ~GDLSVGStream()
-  {
-  }
+  ~GDLSVGStream(){}
 
   void eop()
   {
   }
 
   void Init();
+  bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos, DLong tru, DLong chan);
+#ifdef USE_PNGLIB
+  std::string svg_to_png64(int height, int width, unsigned char *image, int bit_depth, int bpp, int whattype, int *error);
+#endif
+
   //logically close the svg each time an update is made, then rollback to the last graphic section for further graphics.
   void Update(){plstream::cmd(PLESC_EXPOSE, NULL);fprintf(pls->OutFile,"</g>\n</svg>\n");fseek(pls->OutFile,-12, SEEK_END);}
 // Clear is not used on SVG --- but this could be it.

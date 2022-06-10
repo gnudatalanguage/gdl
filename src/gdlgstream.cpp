@@ -1066,6 +1066,7 @@ void GDLGStream::wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
 void GDLGStream::ssub(PLINT nx, PLINT ny)
 {
 //  plstream::ssub( nx, ny ); // does not appear to change charsize.
+
   // set subpage numbers in X and Y
   thePage.nbPages=nx*ny;
   thePage.nx=nx;
@@ -1077,7 +1078,7 @@ void GDLGStream::ssub(PLINT nx, PLINT ny)
 
 void GDLGStream::adv(PLINT page)
 {
-//  plstream::adv(page);
+//  plstream::adv(page); //plstream below soes not advance pages as it has only ONE.
   if (page==0) {thePage.curPage++;} else {thePage.curPage=page;}
   if (thePage.curPage > thePage.nbPages) thePage.curPage=1;
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"adv() now at page %d\n",thePage.curPage);

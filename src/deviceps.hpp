@@ -113,13 +113,17 @@ class DevicePS: public GraphicsDevice
     actStream->Init();
     
     // need to be called initially. permit to fix things
-    actStream->ssub(1,1);
-    actStream->adv(0);
+    actStream->plstream::ssub(1, 1); // plstream below stays with ONLY ONE page
+    actStream->plstream::adv(0); //-->this one is the 1st and only pladv
     // load font
-    actStream->font( 1);
-    actStream->vpor(0,1,0,1);
-    actStream->wind(0,1,0,1);
+    actStream->plstream::font(1);
+    actStream->plstream::vpor(0, 1, 0, 1);
+    actStream->plstream::wind(0, 1, 0, 1);
+
+    actStream->ssub(1, 1);
+    actStream->adv(0); //this is for us (counters)
     actStream->DefaultCharSize();
+//    clear();
   }
     
 public:
@@ -297,7 +301,6 @@ public:
     decomposed = value;
     if (decomposed==1) (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("N_COLORS"))))[0]=256*256*256;
     else (*static_cast<DLongGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("N_COLORS"))))[0]=256;
-    DLong FLAG=(*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0];
     return true;
   }
 

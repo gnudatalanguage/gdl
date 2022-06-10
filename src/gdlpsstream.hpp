@@ -38,8 +38,7 @@ public:
     bitsPerPix=bpp;
   }
 
-  ~GDLPSStream()
-  {}
+  ~GDLPSStream(){}
  
   void eop();
 

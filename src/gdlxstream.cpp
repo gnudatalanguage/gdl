@@ -27,26 +27,25 @@
 
 using namespace std;
 
-void GDLXStream::Init() {
+void GDLXStream::FindTerminalWindow() {
   // plstream::init() calls exit() if it cannot establish a connection with X-server
-  bool okToRevertToTerminal=false;
   int revert_to;
-  {
-    Display* display = XOpenDisplay(NULL);
+  Display* display = XOpenDisplay(NULL);
+  if (display == NULL) {
+    display = XOpenDisplay(":0");//IDL also opens :0 when DISPLAY is not set.
     if (display == NULL) {
-      display = XOpenDisplay(":0");//IDL also opens :0 when DISPLAY is not set.
-      if (display == NULL) {
-      valid = false;
-      ThrowGDLException("Cannot connect to X server");
-      }
+    valid = false;
+    ThrowGDLException("Cannot connect to X server");
     }
-    XGetInputFocus(display, &term_window, &revert_to);
-    //avoid doing impossible things if term_window is *not* a bona fide window.
-    if (term_window == PointerRoot || term_window == None) term_window=0;
-    XCloseDisplay(display);
   }
+  XGetInputFocus(display, &term_window, &revert_to);
+  //avoid doing impossible things if term_window is *not* a bona fide window.
+  if (term_window == PointerRoot || term_window == None) term_window=0;
+  XCloseDisplay(display);
+}
 
-  this->plstream::init();
+void GDLXStream::PostInit() {
+  bool okToRevertToTerminal=false;
 
   XwDev *dev = (XwDev *) pls->dev;
   XwDisplay *xwd = (XwDisplay *) dev->xwd;
@@ -63,14 +62,6 @@ void GDLXStream::Init() {
   }
   if ( okToRevertToTerminal ) XSetInputFocus(xwd->display,term_window,RevertToParent,CurrentTime);
   else UnsetFocus(); //desperate method, since it prevents iconifying etc...
-//  XFlush(xwd->display);
-  GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-  //current cursor:
-  CursorStandard(actDevice->getCursorId());
-  //current graphics function
-  SetGraphicsFunction(actDevice->GetGraphicsFunction());
-  //BackingStore 
-  SetBackingStore(actDevice->getBackingStore());
 }
 
 void GDLXStream::EventHandler() {

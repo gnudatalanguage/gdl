@@ -47,7 +47,6 @@ class DeviceSVG : public GraphicsDevice
 
     if( nx <= 0) nx = 1;
     if( ny <= 0) ny = 1;
-
     actStream = new GDLSVGStream( nx, ny);
 
     actStream->sfnam( fileName.c_str());
@@ -67,20 +66,28 @@ class DeviceSVG : public GraphicsDevice
     actStream->scolbg(255,255,255); // start with a white background
 
     actStream->Init();
-    
+
     // need to be called initially. permit to fix things
-    actStream->ssub(1,1);
-    actStream->adv(0);
+    actStream->plstream::ssub(1, 1); // plstream below stays with ONLY ONE page
+    actStream->plstream::adv(0); //-->this one is the 1st and only pladv
     // load font
-    actStream->font( 1);
-    actStream->vpor(0,1,0,1);
-    actStream->wind(0,1,0,1);
+    actStream->plstream::font(1);
+    actStream->plstream::vpor(0, 1, 0, 1);
+    actStream->plstream::wind(0, 1, 0, 1);
+
+    actStream->ssub(1, 1);
+    actStream->adv(0); //this is for us (counters)
     actStream->DefaultCharSize();
-//   //in case these are not initalized, here is a good place to do it.
-//    if (actStream->updatePageInfo()==true)
-//    {
-//        actStream->GetPlplotDefaultCharSize(); //initializes everything in fact..
-//    }
+//    clear();
+//
+//    // need to be called initially. permit to fix things
+//    actStream->ssub(1,1);
+//    actStream->adv(0);
+//    // load font
+//    actStream->font( 1);
+//    actStream->vpor(0,1,0,1);
+//    actStream->wind(0,1,0,1);
+//    actStream->DefaultCharSize();
   }
 
 public:
@@ -219,7 +226,6 @@ public:
 
   bool SetScale(float value)
   {
-      //no effect for postscript in IDL up to 8 (?)
     //    scale = value;
     return true;
   }
