@@ -1248,7 +1248,7 @@ namespace lib {
       e->AssureStringScalarKWIfPresent(SUBTITLEIx, subTitle);
       //      DFloat step=a->mmLineSpacing()/a->mmCharHeight();
       //      a->mtex("b", 5*step, 0.5, 0.5, subTitle.c_str());
-      a->mtex("b", 6, 0.5, 0.5, subTitle.c_str()); //position is in units of current char height. baseline at half-height
+      a->mtex("b", 5, 0.5, 0.5, subTitle.c_str()); //position is in units of current char height. baseline at half-height
     }
   }
   //call this function if Y data is strictly >0.
