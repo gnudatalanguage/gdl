@@ -36,38 +36,10 @@ typedef struct {
 } GDL_3DTRANSFORMDEVICE;
 
 static GDL_3DTRANSFORMDEVICE Data3d;
-//generalized for 'flat3d', using zValue, but with screen displacement of sizeX/2 sizeY/2 as this is used to bypass plplot's fixed device coordinates
-//// PLPLOT device coords to physical coords (x)
-//
-//inline PLFLT my_plP_dcpcx(PLFLT x)
-//{
-//  return plsc->phyxmi + plsc->phyxlen * x;
-//}
-//
-//// device coords to physical coords (y)
-//
-//inline PLFLT my_plP_dcpcy(PLFLT y)
-//{
-//  return plsc->phyymi + plsc->phyylen * y;
-//}
-// PLPLOT physical coords to device coords (x)
-//
-
-//inline PLFLT my_plP_pcdcx(PLFLT x)
-//{
-//  return (x - plsc->phyxmi) / (double) plsc->phyxlen;
-//}
-//
-//// physical coords to device coords (y)
-//
-//inline PLFLT my_plP_pcdcy(PLFLT y)
-//{
-//  return (y - plsc->phyymi) / (double) plsc->phyylen;
-//}
-
+      
 void SelfTransform3D(int *xs, int *ys) {
   if (Status3D == 1) { //enable use everywhere.
-    PLFLT x = *xs, y = *ys;
+    PLFLT x = *xs, y = *ys, z=Data3d.zValue;
     // x and Y are in raw device coordinates.
     // convert to NORM
     //  x = my_plP_pcdcx(x);
@@ -75,12 +47,15 @@ void SelfTransform3D(int *xs, int *ys) {
     x = (x - plsc->phyxmi) / (double) plsc->phyxlen;
     y = (y - plsc->phyymi) / (double) plsc->phyylen;
     //here it is !P.T not a c/c++ transposed matrix
-    PLFLT xx, yy;
-    xx = x * Data3d.T[0] + y * Data3d.T[1] + Data3d.zValue * Data3d.T[2] + Data3d.T[3];
-    yy = x * Data3d.T[4] + y * Data3d.T[5] + Data3d.zValue * Data3d.T[6] + Data3d.T[7];
+    PLFLT xx, yy, ww;
+    xx = x * Data3d.T[0] + y * Data3d.T[1] + z * Data3d.T[2] + Data3d.T[3];
+    yy = x * Data3d.T[4] + y * Data3d.T[5] + z * Data3d.T[6] + Data3d.T[7];
+    ww = x * Data3d.T[12] + y * Data3d.T[13] + z * Data3d.T[14] + Data3d.T[15];
     // convert to device again
     //  *xs = (int) (my_plP_dcpcx(xx));
     //  *ys = (int) (my_plP_dcpcy(yy));
+    xx /= ww;
+    yy /= ww;
     *xs = (int) (plsc->phyxmi + plsc->phyxlen * xx);
     *ys = (int) (plsc->phyymi + plsc->phyylen * yy);
    }

@@ -483,7 +483,7 @@ plD_line_ps( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
 static void SelfTransform3DPSP(int *xs, int *ys)
 {
   if (Status3D == 1) { //enable use everywhere.
-    PLFLT x = *xs, y = *ys;
+    PLFLT x = *xs, y = *ys, z=Data3d.zValue;
     // x and Y are in raw device coordinates.
     // convert to NORM, here X and Y are inverted if PORTRAIT
     //  x = my_plP_pcdcx(x);
@@ -491,10 +491,13 @@ static void SelfTransform3DPSP(int *xs, int *ys)
     x = (x - plsc->phyymi) / (double) plsc->phyylen;
     y = (y - plsc->phyxmi) / (double) plsc->phyxlen;
     //here it is !P.T not a c/c++ transposed matrix
-    PLFLT xx, yy;
-    xx = x * Data3d.T[0] + y * Data3d.T[1] + Data3d.zValue * Data3d.T[2] + Data3d.T[3];
-    yy = x * Data3d.T[4] + y * Data3d.T[5] + Data3d.zValue * Data3d.T[6] + Data3d.T[7];
-    // convert to device again
+    PLFLT xx, yy, ww;
+    xx = x * Data3d.T[0] + y * Data3d.T[1] + z * Data3d.T[2] + Data3d.T[3];
+    yy = x * Data3d.T[4] + y * Data3d.T[5] + z * Data3d.T[6] + Data3d.T[7];
+    ww = x * Data3d.T[12] + y * Data3d.T[13] + z * Data3d.T[14] + Data3d.T[15];
+    xx /= ww;
+    yy /= ww;
+     // convert to device again
     //  *xs = (int) (my_plP_dcpcx(xx));
     //  *ys = (int) (my_plP_dcpcy(yy));
     *xs = (int) (plsc->phyymi + plsc->phyylen * xx);
@@ -514,9 +517,12 @@ static void SelfTransform3DPSL(int *xs, int *ys)
     x = (x - plsc->phyxmi) / (double) plsc->phyxlen;
     y = (y - plsc->phyymi) / (double) plsc->phyylen;
     //here it is !P.T not a c/c++ transposed matrix
-    PLFLT xx, yy;
+    PLFLT xx, yy, ww;
     xx = x * Data3d.T[0] + y * Data3d.T[1] + z * Data3d.T[2] + Data3d.T[3];
     yy = x * Data3d.T[4] + y * Data3d.T[5] + z * Data3d.T[6] + Data3d.T[7];
+    ww = x * Data3d.T[12] + y * Data3d.T[13] + z * Data3d.T[14] + Data3d.T[15];
+    xx /= ww;
+    yy /= ww;
     // convert to device again
     //  *xs = (int) (my_plP_dcpcx(xx));
     //  *ys = (int) (my_plP_dcpcy(yy));

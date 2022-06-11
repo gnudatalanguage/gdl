@@ -911,45 +911,6 @@ plP_dcscy( DDouble y )
     return plsc->spdymi + (plsc->spdyma - plsc->spdymi) * y;
   }
 
-  //generalized for 'flat3d', using zValue, but with screen displacement of sizeX/2 sizeY/2 as this is used to bypass plplot's fixed device coordinates
-   void PDotTTransformXYZvalForPlplotAxes(DDouble x, DDouble y, DDouble *xt, DDouble *yt, PLPointer data){
-//    std::cerr<<"PDotTTransformXYZvalForPlplotAxes()"<<std::endl;
-
-// x and Y are in raw device coordinates.
-// convert to NORM
-    x = plP_pcdcx(x);   
-    y = plP_pcdcy(y);   
-  
-    DDouble *pz=(DDouble*) data;
-    DDouble z=*pz;
-    //retrieve !P.T 
-    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
-    static unsigned tTag = pStruct->Desc()->TagIndex("T");
-    DDouble* t= static_cast<DDouble*>(pStruct->GetTag(tTag, 0)->DataAddr());
-    *xt = x * t[0] + y * t[1] + z * t[2] + t[3]; 
-    *yt = x * t[4] + y * t[5] + z * t[6] + t[7]; 
-// convert to device again
-    *xt = plP_dcpcx(*xt);
-    *yt = plP_dcpcy(*yt);
-
-
- }
-   
-   void gdl3dTo2dTransform_todelete(DDouble x, DDouble y, DDouble *xt, DDouble *yt, PLPointer data) {
-//    std::cerr<<"gdl3dTo2dTransform()\n";
-    struct GDL_3DTRANSFORMDATA *ptr = (GDL_3DTRANSFORMDATA*) data;
-    DDoubleGDL* xyzw = new DDoubleGDL(dimension(4));
-    (*xyzw)[3] = 1.0;
-    (*xyzw)[ptr->code[0]] = (x + ptr->x0) * ptr->xs;
-    (*xyzw)[ptr->code[1]] = (y + ptr->y0) * ptr->ys;
-    (*xyzw)[ptr->code[2]] = ptr->zValue;
-    DDoubleGDL* trans = xyzw->MatrixOp(ptr->Matrix, false, true);
-    *xt = (*trans)[0];
-    *yt = (*trans)[1];
-    GDLDelete(trans);
-    GDLDelete(xyzw);
-  }
-
   //retrieve !P.T,
 
   DDoubleGDL* gdlGetT3DMatrix() {
@@ -962,16 +923,6 @@ plP_dcscy( DDouble y )
     return t3dMatrix;
   }
 
-//  void gdlFillWithT3DMatrix(DDouble* T) {
-//    std::cerr << "gdlFillWithT3DMatrix()\n";
-//    DDoubleGDL* t3dMatrix = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
-//    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
-//    static unsigned tTag = pStruct->Desc()->TagIndex("T");
-//    for (int i = 0; i < t3dMatrix->N_Elements(); ++i)(*t3dMatrix)[i] = (*static_cast<DDoubleGDL*> (pStruct->GetTag(tTag, 0)))[i];
-//    SelfTranspose3d(t3dMatrix);
-//    for (int i = 0; i < 16; ++i)T[i] = (*t3dMatrix)[i];
-//    GDLDelete(t3dMatrix);
-//  }
   //simpler, transposition must be done in client code.
   void gdlGetT3DMatrixForDriverTransform(DDouble* T) {
 //    std::cerr<<"gdlGetT3DMatrixForDriverTransform()\n";
@@ -979,51 +930,6 @@ plP_dcscy( DDouble y )
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
     for (int i = 0; i < 16; ++i)T[i] = (*static_cast<DDoubleGDL*> (pStruct->GetTag(tTag, 0)))[i];
   }
-  // retrieve !P.T, (or use passed matrix)
-  // scale to current X.S Y.S and Z.S, returns a matrix that can be applied directly to
-  // XYZ data to get projected X' Y' *normalized* coordinates values
-
-//  DDoubleGDL* gdlGetScaledNormalizedT3DMatrix(DDoubleGDL* passedMatrix) {
-//    std::cerr<<"POLYFILL: ???? gdlGetScaledNormalizedT3DMatrix()\n";
-//    DDoubleGDL* t3dMatrix;
-//    if (passedMatrix == NULL) t3dMatrix = gdlGetT3DMatrix();
-//    else t3dMatrix = passedMatrix;
-//    DDouble *sx, *sy, *sz;
-//    GetSFromPlotStructs(&sx, &sy, &sz);
-//    DDoubleGDL* toScaled = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
-//    SelfReset3d(toScaled);
-//    DDouble depla[3] = {sx[0], sy[0], sz[0]};
-//    DDouble scale[3] = {sx[1], sy[1], sz[1]};
-//    SelfScale3d(toScaled, scale); //pay attention to order for matrices!
-//    SelfTranslate3d(toScaled, depla);
-//    DDoubleGDL* returnMatrix = t3dMatrix->MatrixOp(toScaled, false, false);
-//    GDLDelete(toScaled);
-//    if (passedMatrix == NULL) GDLDelete(t3dMatrix);
-//    return returnMatrix;
-//  }
-
-//  void gdl3dto2dProjectDDouble(DDoubleGDL* t3dMatrix, DDoubleGDL *xVal, DDoubleGDL *yVal, DDoubleGDL* zVal,
-//    DDoubleGDL *xValou, DDoubleGDL *yValou, int* code) {
-//    std::cerr<<"POLYFILL: ???? gdl3dto2dProjectDDouble()\n";
-//    DDoubleGDL * decodedAxis[3] = {xVal, yVal, zVal};
-//    int *localCode = code;
-//    if (localCode == NULL) localCode = code012;
-//    //populate a 4D matrix with reduced coordinates through sx,sy,sz:
-//    SizeT nEl = xVal->N_Elements();
-//    DDoubleGDL* xyzw = new DDoubleGDL(dimension(nEl, 4));
-//    memcpy(&((*xyzw)[0]), decodedAxis[localCode[0]]->DataAddr(), nEl * sizeof (double));
-//    memcpy(&((*xyzw)[nEl]), decodedAxis[localCode[1]]->DataAddr(), nEl * sizeof (double));
-//    memcpy(&((*xyzw)[2 * nEl]), decodedAxis[localCode[2]]->DataAddr(), nEl * sizeof (double));
-//    for (int index = 0; index < nEl; ++index) {
-//      (*xyzw)[3 * nEl + index] = 1.0;
-//    }
-//    DDoubleGDL* trans = xyzw->MatrixOp(t3dMatrix, false, true);
-//    memcpy(xValou->DataAddr(), trans->DataAddr(), nEl * sizeof (double));
-//    memcpy(yValou->DataAddr(), &(*trans)[nEl], nEl * sizeof (double));
-//    GDLDelete(trans);
-//    GDLDelete(xyzw);
-//  }
-//
   
 // Check if passed 4x4 matrix is valid :
 // the projection of the Z axis must be on the Y axis, otherwise the matrix is not good.

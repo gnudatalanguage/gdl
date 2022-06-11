@@ -1194,8 +1194,8 @@ int svg_family_check( PLStream *pls )
         if ( !already_warned )
         {
             already_warned = 1;
-            plwarn( "All pages after the first skipped because family file output not specified.\n" );
-        }
+            plwarn( "Device does not support multiple pages (yet).\n" ); //todo: add support for 
+        }                                                                //https://www.w3.org/TR/2004/WD-SVG12-20041027/multipage.html
         return 1;
     }
 }
