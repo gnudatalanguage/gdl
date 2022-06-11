@@ -39,7 +39,7 @@ namespace lib {
   using namespace std;
 
   // shared parameter
-  bool xLog;
+  bool log;
   bool yLog;
   bool zLog;
 
@@ -50,7 +50,7 @@ namespace lib {
   }
 
   PLINT doIt(PLFLT x, PLFLT y) {
-    if (xLog && x <= 0) return 0;
+    if (log && x <= 0) return 0;
     if (yLog && y <= 0) return 0;
     return 1;
   }
@@ -74,8 +74,6 @@ namespace lib {
     bool irregular;
     bool iso;
     DDouble zValue;
-    int calendar_codex;
-    int calendar_codey;
     bool hasMinVal,hasMaxVal;
     bool recordPath;
 
@@ -209,7 +207,7 @@ namespace lib {
         }
       }
 
-      xLog = false;
+      log = false;
       yLog = false;
       zLog = false; 
 
@@ -218,9 +216,9 @@ namespace lib {
       string ProName = e->GetProName();
       if (ProName != "PLOT") {
         if (ProName == "PLOT_IO") yLog = true;
-        if (ProName == "PLOT_OI") xLog = true;
+        if (ProName == "PLOT_OI") log = true;
         if (ProName == "PLOT_OO") {
-          xLog = true;
+          log = true;
           yLog = true;
         }
       }
@@ -231,7 +229,7 @@ namespace lib {
       static int xLogIx = e->KeywordIx("XLOG");
       static int yLogIx = e->KeywordIx("YLOG");
       static int zLogIx = e->KeywordIx("ZLOG");
-      if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
+      if (e->KeywordPresent(xLogIx)) log = e->KeywordSet(xLogIx);
       if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
       if (e->KeywordPresent(zLogIx)) zLog = e->KeywordSet(zLogIx);
 
@@ -243,8 +241,8 @@ namespace lib {
       static int xType, yType;
       if (e->KeywordPresent(xTypeIx)) {
         e->AssureLongScalarKWIfPresent(xTypeIx, xType);
-        if ((xType % 2) == 1) xLog = true;
-        else xLog = false;
+        if ((xType % 2) == 1) log = true;
+        else log = false;
       }
       if (e->KeywordPresent(yTypeIx)) {
         e->AssureLongScalarKWIfPresent(yTypeIx, yType);
@@ -252,21 +250,8 @@ namespace lib {
         else yLog = false;
       }
 
-      static int xTickunitsIx = e->KeywordIx("XTICKUNITS");
-      static int yTickunitsIx = e->KeywordIx("YTICKUNITS");
-
-      calendar_codex = gdlGetCalendarCode(e, XAXIS);
-      calendar_codey = gdlGetCalendarCode(e, YAXIS);
-      if (e->KeywordSet(xTickunitsIx) && xLog) {
-        Message("PLOT: LOG setting ignored for Date/Time TICKUNITS.");
-        xLog = false;
-      }
-      if (e->KeywordSet(yTickunitsIx) && yLog) {
-        Message("PLOT: LOG setting ignored for Date/Time TICKUNITS.");
-        yLog = false;
-      }
       isLog = false;
-      if (xLog || yLog) isLog = true;
+      if (log || yLog) isLog = true;
 
       GetMinMaxVal(xVal, &xStart, &xEnd);
       GetMinMaxVal(yVal, &yStart, &yEnd);
@@ -337,19 +322,19 @@ namespace lib {
         gdlNextPlotHandlingNoEraseOption(e, actStream); //NOERASE
 
         //Box adjustement:
-        gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog, calendar_codex);
-        gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog, calendar_codey);
+        gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, log);
+        gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
         gdlAdjustAxisRange(e, ZAXIS, zStart, zEnd, zLog);
 
 
-        if (xLog && xStart <= 0.0) Warning("CONTOUR: Infinite x plot range.");
+        if (log && xStart <= 0.0) Warning("CONTOUR: Infinite x plot range.");
         if (yLog && yStart <= 0.0) Warning("CONTOUR: Infinite y plot range.");
         if (zLog && zStart <= 0.0) Warning("CONTOUR: Infinite z plot range.");
 
         // viewport and world coordinates
         // set the PLOT charsize before setting viewport (margin depend on charsize)
         gdlSetPlotCharsize(e, actStream);
-        if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == false) return true; 
+        if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, log, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == false) return true; 
 
         if (doT3d) { //call for driver to perform special transform for all further drawing
           gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
@@ -358,7 +343,7 @@ namespace lib {
         } 
         //current pen color...
         gdlSetGraphicsForegroundColorFromKw(e, actStream);
-        gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
+        gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, log, yLog);
 
         // title and sub title
         gdlWriteTitleAndSubtitle(e, actStream);
@@ -598,7 +583,7 @@ namespace lib {
         }
         
         //Good place for conversion to normed values
-        SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //DATA
+        SelfConvertToNormXY(xVal, log, yVal, yLog, coordinateSystem); //DATA
 
         //fill at least PlotDevice3d transform matrix
         if (doT3d) gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);

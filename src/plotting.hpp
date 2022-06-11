@@ -390,7 +390,7 @@ namespace lib {
   void gdlStoreCLIP();
   void gdlGetCLIPXY(DDouble &xStart,  DDouble &yStart, DDouble &xEnd, DDouble &yEnd);
   void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble &zEnd);
-  PLFLT gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &val_min, DDouble &val_max, bool log = false, int calendarcode = 0);
+  PLFLT gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &val_min, DDouble &val_max, bool &log);
   PLFLT AutoTick(DDouble x);
   PLFLT AutoLogTick(DDouble min, DDouble max);
   void setIsoPort(GDLGStream* actStream, PLFLT x1, PLFLT x2, PLFLT y1, PLFLT y2, PLFLT aspect);
@@ -884,6 +884,7 @@ namespace lib {
         (Struct->Desc()->TagIndex("TICKINTERVAL"), 0)))[0];
     }
     e->AssureDoubleScalarKWIfPresent(choosenIx, axisTickinterval);
+    if (axisTickinterval < 0) axisTickinterval=0;
   }
 
   static void gdlGetDesiredAxisTickLayout(EnvT* e, int axisId, DLong &axisTicklayout) {
@@ -1083,6 +1084,46 @@ namespace lib {
     if (e->GetDefinedKW(choosenIx) != NULL) {
       axisTickunitsVect = e->GetKWAs<DStringGDL>(choosenIx);
     }
+  }
+  static bool gdlHasTickUnits(EnvT* e, int axisId) {
+    bool has = false;
+    int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
+    int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
+    int ZTICKUNITSIx = e->KeywordIx("ZTICKUNITS");
+    int choosenIx = XTICKUNITSIx;
+    DStructGDL* Struct = NULL;
+    if (axisId == XAXIS) {
+      Struct = SysVar::X();
+      choosenIx = XTICKUNITSIx;
+    }
+    if (axisId == YAXIS) {
+      Struct = SysVar::Y();
+      choosenIx = YTICKUNITSIx;
+    }
+    if (axisId == ZAXIS) {
+      Struct = SysVar::Z();
+      choosenIx = ZTICKUNITSIx;
+    }
+    if (Struct != NULL) {
+      unsigned AxisTickunitsTag = Struct->Desc()->TagIndex("TICKUNITS");
+      DStringGDL* axisTickunitsVect = static_cast<DStringGDL*> (Struct->GetTag(AxisTickunitsTag, 0));
+      for (auto i = 0; i < axisTickunitsVect->N_Elements(); ++i) {
+        if ((*axisTickunitsVect)[i].size() > 0) {
+          has = true;
+          break;
+        }
+      }
+    }
+    if (e->GetDefinedKW(choosenIx) != NULL) {
+      DStringGDL* axisTickunitsVect = e->GetKWAs<DStringGDL>(choosenIx);
+      for (auto i = 0; i < axisTickunitsVect->N_Elements(); ++i) {
+        if ((*axisTickunitsVect)[i].size() > 0) {
+          has = true;
+          break;
+        }
+      }
+    }
+    return has;
   }
 
   static bool gdlGetDesiredAxisTickv(EnvT* e, int axisId, DDoubleGDL* axisTickvVect) {

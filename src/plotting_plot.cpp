@@ -35,8 +35,6 @@ namespace lib {
     bool doT3d;
     DLongGDL *color;
     DLong psym;
-    int calendar_codex;
-    int calendar_codey;
 
   private:
 
@@ -182,25 +180,6 @@ namespace lib {
         else yLog = false;
       }
 
-      //  cout << xType<< " " <<xLog << " "<<yType <<" " << yLog << endl;
-
-      static int xTickunitsIx = e->KeywordIx("XTICKUNITS");
-      static int yTickunitsIx = e->KeywordIx("YTICKUNITS");
-
-      calendar_codex = gdlGetCalendarCode(e, XAXIS);
-      calendar_codey = gdlGetCalendarCode(e, YAXIS);
-      if (e->KeywordSet(xTickunitsIx) && xLog) {
-        Message("PLOT: LOG setting ignored for Date/Time TICKUNITS.");
-        xLog = false;
-      }
-      if (e->KeywordSet(yTickunitsIx) && yLog) {
-        Message("PLOT: LOG setting ignored for Date/Time TICKUNITS.");
-        yLog = false;
-      }
-
-
-      //    cout << xLog << " " << yLog << endl;
-
       DLong minEl, maxEl;
       xVal->MinMax(&minEl, &maxEl, NULL, NULL, true); //restrict minmax to xEl fist elements!!!!
       xStart = (*xVal)[minEl];
@@ -261,8 +240,8 @@ namespace lib {
       gdlNextPlotHandlingNoEraseOption(e, actStream); //NOERASE
 
       //Box adjustement:
-      gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog, calendar_codex);
-      gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog, calendar_codey);
+      gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
+      gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
 
       // viewport and world coordinates
       // set the PLOT charsize before setting viewport (margin depend on charsize)

@@ -233,7 +233,13 @@ namespace lib
   }
 #undef EXTENDED_DEFAULT_LOGRANGE
 
-   //improved version of "AutoIntv" for:
+  void adjustForTickInterval(const DDouble interval, DDouble &min, DDouble &max) {
+    DLong64 n = min / interval;
+    min = n*interval;
+    n = max / interval;
+    max = n*interval;
+  }
+  //improved version of "AutoIntv" for:
   // 1/ better managing ranges when all the data have same value
   // 2/ mimic IDL behavior when data are all positive
   // please notice that (val_min, val_max) will be changed
@@ -243,20 +249,28 @@ namespace lib
   // NOTE GD: this function should be rewritten, documented and tested correctly. Most often, the
   // plots are not exactly what IDL does in the same conditions. The reasons for the choices should be
   // clearly described in the code, to be checked by others.
-  
-  PLFLT gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &start, DDouble &end, bool log /* = false */, int code /* = 0 */) {
+
+  PLFLT gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &start, DDouble &end, bool &log) {
+
+    bool hastickunits=gdlHasTickUnits(e, axisId);
+    if (hastickunits && log) {
+      Message("PLOT: LOG setting ignored for Date/Time TICKUNITS.");
+      log = false;
+    }
+    int code = gdlGetCalendarCode(e, axisId);
+
     // [XY]STYLE
     DLong myStyle = 0;
     PLFLT intv = 1.;
 
     gdlGetDesiredAxisStyle(e, axisId, myStyle);
-    
-    bool exact=((myStyle & 1) == 1);
-    bool extended=((myStyle & 2) == 2);
 
-    DDouble min=start;
-    DDouble max=end;
-    
+    bool exact = ((myStyle & 1) == 1);
+    bool extended = ((myStyle & 2) == 2);
+
+    DDouble min = start;
+    DDouble max = end;
+
 
     if (log) {
       gdlHandleUnwantedLogAxisValue(min, max, log);
@@ -267,10 +281,10 @@ namespace lib
     bool invert = false;
 
     //range useful for estimate
-    DDouble range=max-min;
+    DDouble range = max - min;
 
     // correct special case "all values are equal"
-    if (abs(range) <= std::numeric_limits<DDouble>::min()) {
+    if (ABS(range) <= std::numeric_limits<DDouble>::min()) {
       DDouble val_ref;
       val_ref = max;
       if (0.98 * min < val_ref) { // positive case
@@ -285,20 +299,28 @@ namespace lib
     if (range >= 0) {
       invert = false;
     } else {
-      range=-range;
-      DDouble temp=min;
+      range = -range;
+      DDouble temp = min;
       min = max;
       max = temp;
       invert = true;
     }
 
+    DDouble TickInterval = 0;
+    if (!log) gdlGetDesiredAxisTickInterval(e, axisId, TickInterval); //tickinterval ignored when LOG
+    if (TickInterval > 0) adjustForTickInterval(TickInterval, min, max);
+    
     if (exact) { //exit soon...
       if (extended) { //... after 'extended' range correction
-        range=max-min; //does not hurt to recompute
-        DDouble val=0.025*range;
-        min-=val;
-        max+=val;
+        range = max - min; //does not hurt to recompute
+        DDouble val = 0.025 * range;
+        min -= val;
+        max += val;
+        if (TickInterval > 0) adjustForTickInterval(TickInterval, min, max);
       }
+
+      //check if tickinterval would make more than 59 ticks (IDL apparent limit). In which case, IDL plots only the first 59 intervals:
+      if (TickInterval > 0.0) if (range / TickInterval > 59) max = min + 59.0 * TickInterval;
 
       //give back non-log values
       if (log) {
@@ -316,97 +338,146 @@ namespace lib
 
       return intv;
     }
-    
-
 
     // general case (only negative OR negative and positive)
     //correct this for calendar values (round to nearest year, month, etc)
-      if ( code > 0) {
-        if (code ==7 ) {
-              if(range>=366)  code=1;
-              else if(range>=32)  code=2;
-              else if(range>=1.1)  code=3;
-              else if(range*24>=1.1)  code=4;
-              else if(range*24*60>=1.1)  code=5;
-              else code=6;
-        }
-        static int monthSize[]={31,28,31,30,31,30,31,31,30,31,30,31};
-        DLong Day1,Day2 , Year1,Year2 , Hour1,Hour2 , Minute1,Minute2, MonthNum1,MonthNum2;
-        DLong idow1,icap1,idow2,icap2;
-        DDouble Seconde1,Seconde2;
-        j2ymdhms(min, MonthNum1 , Day1 , Year1 , Hour1 , Minute1, Seconde1, idow1, icap1);
-        MonthNum1++; //j2ymdhms gives back Month number in the [0-11] range for indexing month name tables. pity.
-        j2ymdhms(max, MonthNum2 , Day2 , Year2 , Hour2 , Minute2, Seconde2, idow2, icap2);
+    if (code > 0) {
+      if (code == 7) {
+        if (range >= 366) code = 1;
+        else if (range >= 32) code = 2;
+        else if (range >= 1.1) code = 3;
+        else if (range * 24 >= 1.1) code = 4;
+        else if (range * 24 * 60 >= 1.1) code = 5;
+        else code = 6;
+      }
+      static int monthSize[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+      DLong Day1, Day2, Year1, Year2, Hour1, Hour2, Minute1, Minute2, MonthNum1, MonthNum2;
+      DLong idow1, icap1, idow2, icap2;
+      DDouble Seconde1, Seconde2;
+      j2ymdhms(min, MonthNum1, Day1, Year1, Hour1, Minute1, Seconde1, idow1, icap1);
+      MonthNum1++; //j2ymdhms gives back Month number in the [0-11] range for indexing month name tables. pity.
+      j2ymdhms(max, MonthNum2, Day2, Year2, Hour2, Minute2, Seconde2, idow2, icap2);
+      MonthNum2++;
+      switch (code) {
+      case 1:
+        //           day mon year h m s.s
+        dateToJD(min, 1, 1, Year1, 0, 0, 0.0);
+        dateToJD(max, 1, 1, Year2 + 1, 0, 0, 0.0);
+        break;
+      case 2:
+        dateToJD(min, 1, MonthNum1, Year1, 0, 0, 0.0);
         MonthNum2++;
-        switch(code){
-             case 1:
-               //           day mon year h m s.s
-               dateToJD(min, 1, 1, Year1, 0, 0, 0.0);
-               dateToJD(max, 1, 1, Year2+1, 0, 0, 0.0);
-              break;
-             case 2:
-               dateToJD(min, 1, MonthNum1, Year1, 0, 0, 0.0);
-               MonthNum2++;
-               if (MonthNum2 > 12) {MonthNum2-=12; Year2+=1;}
-               dateToJD(max, 1, MonthNum2, Year2, 0, 0, 0.0);
-               break;
-             case 3:
-               dateToJD(min, Day1, MonthNum1, Year1, 0, 0, 0.0);
-               Day2++;
-               if (Day2 > monthSize[MonthNum2]) {Day2-=monthSize[MonthNum2]; MonthNum2+=1;}
-               if (MonthNum2 > 12) {MonthNum2-=12; Year2+=1;}
-               dateToJD(max, Day2, MonthNum2, Year2, 0, 0, 0.0);
-               break;
-             case 4:
-               dateToJD(min, Day1, MonthNum1, Year1, Hour1, 0, 0.0);
-               Hour2++;
-               if (Hour2 > 23) {Hour2-=24; Day2+=1;}
-               if (Day2 > monthSize[MonthNum2]) {Day2-=monthSize[MonthNum2]; MonthNum2+=1;}
-               if (MonthNum2 > 12) {MonthNum2-=12; Year2+=1;}
-               dateToJD(max, Day2, MonthNum2, Year2, Hour2, 0, 0.0);
-               break;
-             case 5:
-               dateToJD(min, Day1, MonthNum1, Year1, Hour1, Minute1, 0.0);
-               Minute2++;
-               if (Minute2 > 59) {Minute2-=60; Hour2+=1;}
-               if (Hour2 > 23) {Hour2-=24; Day2+=1;}
-               if (Day2 > monthSize[MonthNum2]) {Day2-=monthSize[MonthNum2]; MonthNum2+=1;}
-               if (MonthNum2 > 12) {MonthNum2-=12; Year2+=1;}
-               dateToJD(max, Day2, MonthNum2, Year2, Hour2, Minute2, 0.0);
-               break;
-             case 6:
-               dateToJD(min, Day1, MonthNum1, Year1, Hour1, Minute1, Seconde1);
-               Seconde2++;
-               if (Seconde2 > 59) {Seconde2-=60; Minute2+=1;}
-               if (Minute2 > 59) {Minute2-=60; Hour2+=1;}
-               if (Hour2 > 23) {Hour2-=24; Day2+=1;}
-               if (Day2 > monthSize[MonthNum2]) {Day2-=monthSize[MonthNum2]; MonthNum2+=1;}
-               if (MonthNum2 > 12) {MonthNum2-=12; Year2+=1;}
-               dateToJD(max, Day2, MonthNum2, Year2, Hour2, Minute2, Seconde2);
-               break;
-             default:
-              break;
-            }
-      } 
-      else {      
-        const double max_allowed_leak_factor = 1-1.25e-6;
+        if (MonthNum2 > 12) {
+          MonthNum2 -= 12;
+          Year2 += 1;
+        }
+        dateToJD(max, 1, MonthNum2, Year2, 0, 0, 0.0);
+        break;
+      case 3:
+        dateToJD(min, Day1, MonthNum1, Year1, 0, 0, 0.0);
+        Day2++;
+        if (Day2 > monthSize[MonthNum2]) {
+          Day2 -= monthSize[MonthNum2];
+          MonthNum2 += 1;
+        }
+        if (MonthNum2 > 12) {
+          MonthNum2 -= 12;
+          Year2 += 1;
+        }
+        dateToJD(max, Day2, MonthNum2, Year2, 0, 0, 0.0);
+        break;
+      case 4:
+        dateToJD(min, Day1, MonthNum1, Year1, Hour1, 0, 0.0);
+        Hour2++;
+        if (Hour2 > 23) {
+          Hour2 -= 24;
+          Day2 += 1;
+        }
+        if (Day2 > monthSize[MonthNum2]) {
+          Day2 -= monthSize[MonthNum2];
+          MonthNum2 += 1;
+        }
+        if (MonthNum2 > 12) {
+          MonthNum2 -= 12;
+          Year2 += 1;
+        }
+        dateToJD(max, Day2, MonthNum2, Year2, Hour2, 0, 0.0);
+        break;
+      case 5:
+        dateToJD(min, Day1, MonthNum1, Year1, Hour1, Minute1, 0.0);
+        Minute2++;
+        if (Minute2 > 59) {
+          Minute2 -= 60;
+          Hour2 += 1;
+        }
+        if (Hour2 > 23) {
+          Hour2 -= 24;
+          Day2 += 1;
+        }
+        if (Day2 > monthSize[MonthNum2]) {
+          Day2 -= monthSize[MonthNum2];
+          MonthNum2 += 1;
+        }
+        if (MonthNum2 > 12) {
+          MonthNum2 -= 12;
+          Year2 += 1;
+        }
+        dateToJD(max, Day2, MonthNum2, Year2, Hour2, Minute2, 0.0);
+        break;
+      case 6:
+        dateToJD(min, Day1, MonthNum1, Year1, Hour1, Minute1, Seconde1);
+        Seconde2++;
+        if (Seconde2 > 59) {
+          Seconde2 -= 60;
+          Minute2 += 1;
+        }
+        if (Minute2 > 59) {
+          Minute2 -= 60;
+          Hour2 += 1;
+        }
+        if (Hour2 > 23) {
+          Hour2 -= 24;
+          Day2 += 1;
+        }
+        if (Day2 > monthSize[MonthNum2]) {
+          Day2 -= monthSize[MonthNum2];
+          MonthNum2 += 1;
+        }
+        if (MonthNum2 > 12) {
+          MonthNum2 -= 12;
+          Year2 += 1;
+        }
+        dateToJD(max, Day2, MonthNum2, Year2, Hour2, Minute2, Seconde2);
+        break;
+      default:
+        break;
+      }
+    } else if (TickInterval == 0) {
+      if (log) {
+        int imin = floor(min);
+        int imax = ceil(max);
+        min = imin;
+        max = imax;
+      } else {
+        const double max_allowed_leak_factor = 1 - 1.25e-6;
         intv = AutoIntv(range);
-        max = ceil((max*max_allowed_leak_factor)  / intv) * intv;
+        max = ceil((max * max_allowed_leak_factor) / intv) * intv;
         min = floor(min / intv) * intv;
       }
-
-    if (extended) {
-      range=max-min;
-      DDouble val=0.025*range;
-      min-=val;
-      max+=val;
     }
 
+    if (TickInterval > 0) adjustForTickInterval(TickInterval, min, max);
+
+    if (extended) {
+      range = max - min;
+      DDouble val = 0.025 * range;
+      min -= val;
+      max += val;
+      if (TickInterval > 0) adjustForTickInterval(TickInterval, min, max);
+    }
 
     //check if tickinterval would make more than 59 ticks (IDL apparent limit). In which case, IDL plots only the first 59 intervals:
-    DDouble TickInterval;
-    gdlGetDesiredAxisTickInterval(e, axisId, TickInterval);
-    if ( TickInterval > 0.0 ) if (range/TickInterval > 59) max=min+59.0*TickInterval;
+    if (TickInterval > 0.0) if (range / TickInterval > 59) max = min + 59.0 * TickInterval;
 
     //give back non-log values
     if (log) {
@@ -425,7 +496,6 @@ namespace lib
 
     return intv;
   }
-
   void CheckMargin(GDLGStream* actStream,
     DFloat xMarginL,
     DFloat xMarginR,
