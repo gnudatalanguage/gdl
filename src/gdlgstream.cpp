@@ -209,13 +209,13 @@ void GDLGStream::SetPageDPMM() {
   offy_mm = ymin;
   // test if plplot is consistent:
   PLFLT theory = xoff / xdpi * 25.4;
-  if (fabs(offx_mm - theory) > 1e-4) fprintf(stderr, "plpot driver returns inconsistent x DPI values.\n");
+  if (fabs(offx_mm - theory) > 1e-4) if (GDL_DEBUG_PLSTREAM)  fprintf(stderr, "plpot driver returns inconsistent x DPI values.\n");
   theory = yoff / ydpi * 25.4;
-  if (fabs(offx_mm - theory) > 1e-4) fprintf(stderr, "plpot driver returns inconsistent y DPI values.\n");
+  if (fabs(offy_mm - theory) > 1e-4) if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "plpot driver returns inconsistent y DPI values.\n");
   theory = xleng / xdpi * 25.4;
-  if (fabs(bxsize_mm - theory) > 1e-4) fprintf(stderr, "plpot driver returns inconsistent x DPI values (2).\n");
+  if (fabs(bxsize_mm - theory) > 1e-4) if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "plpot driver returns inconsistent x DPI values (2).\n");
   theory = yleng / ydpi * 25.4;
-  if (fabs(bysize_mm - theory) > 1e-4) fprintf(stderr, "plpot driver returns inconsistent y DPI values (2).\n");
+  if (fabs(bysize_mm - theory) > 1e-4) if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "plpot driver returns inconsistent y DPI values (2).\n");
   //we can derive the dpm in x and y which converts mm to device coords:
   thePage.xdpmm = abs(thePage.length / bxsize_mm);
   thePage.ydpmm = abs(thePage.height / bysize_mm);

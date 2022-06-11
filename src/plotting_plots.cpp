@@ -26,16 +26,13 @@ namespace lib {
     DDoubleGDL *xVal, *yVal, *zVal;
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard;
     Guard<BaseGDL> xvalnative_guard, yvalnative_guard, zvalnative_guard;
-    DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
     DDouble zPosition;
     DLong psym;
     bool xLog, yLog, zLog;
     SizeT nEl;
     bool append;
-    bool doClip;
     bool doT3d, flat3d;
     DLongGDL *color;
-    bool mapSet;
     COORDSYS coordinateSystem = DATA;
     bool xnative, ynative, znative; //tell if xVal etc are a copy of the variables or the real thing. When the real thing, they should not be modified.
 
@@ -212,83 +209,11 @@ namespace lib {
     }
 
     bool prepareDrawArea(EnvT* e, GDLGStream* actStream) {
+      //box defined in previous PLOT command, we pass in normalized coordinates w/clipping if needed 
+      gdlSetSymsize(e, actStream); //set symsize BEFORE switching (TBC)
+      gdlSwitchToClippedNormalizedCoordinates(e, actStream, true); //inverted clip meaning
 
-      //check presence of DATA,DEVICE and NORMAL options
-      static int DATAIx = e->KeywordIx("DATA");
-      static int DEVICEIx = e->KeywordIx("DEVICE");
-      static int NORMALIx = e->KeywordIx("NORMAL");
-      coordinateSystem = DATA;
-      //check presence of DATA,DEVICE and NORMAL options
-      if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
-      if (e->KeywordSet(DEVICEIx)) {coordinateSystem = DEVICE; doT3d=false;}
-      if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
-
-      // get_axis_type
-      gdlGetAxisType(XAXIS, xLog);
-      gdlGetAxisType(YAXIS, yLog);
-      gdlGetAxisType(ZAXIS, zLog);
-
-      //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
-      GetCurrentUserLimits(xStart, xEnd, yStart, yEnd, zStart, zEnd);
-
-      actStream->OnePageSaveLayout(); // one page
-
-      //CLIPPING (or not) is just defining the adequate viewport and world coordinates, all of them normalized since this is what plplot will get in the end.
-      static int NOCLIPIx = e->KeywordIx("NOCLIP");
-      // Clipping is not enabled by default for PLOTS: noclip is true by default
-      bool noclip = e->BooleanKeywordAbsentOrSet(NOCLIPIx);
-      int CLIP = e->KeywordIx("CLIP");
-      bool doClip = (e->KeywordSet(CLIP) && !(noclip) && !doT3d);
-
-      PLFLT xnormmin = 0;
-      PLFLT xnormmax = 1;
-      PLFLT ynormmin = 0;
-      PLFLT ynormmax = 1;
-
-      if (doClip) { //redefine default viewport & world
-        //define a default clipbox (DATA coords):
-        PLFLT clipBox[4] = {xStart, yStart, xEnd, yEnd};
-        DDoubleGDL* clipBoxGDL = e->IfDefGetKWAs<DDoubleGDL>(CLIP);
-        if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() < 4) for (auto i = 0; i < 4; ++i) clipBox[i] = 0; //set clipbox to 0 0 0 0 apparently this is what IDL does.
-        if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() == 4) for (auto i = 0; i < 4; ++i) clipBox[i] = (*clipBoxGDL)[i];
-        //clipBox is defined accordingly to /NORM /DEVICE /DATA:
-        //convert clipBox to normalized coordinates:
-        switch (coordinateSystem) {
-        case DATA:  //will know about projections
-        {
-          SelfProjectXY(1, &clipBox[0], &clipBox[1], coordinateSystem); //here for eventual projection
-          SelfProjectXY(1, &clipBox[2], &clipBox[3], coordinateSystem); //here for eventual projection
-          bool f = false;
-          SelfConvertToNormXY(1, &clipBox[0], f, &clipBox[1], f, coordinateSystem); //input coordinates converted to NORMAL
-          SelfConvertToNormXY(1, &clipBox[2], f, &clipBox[3], f, coordinateSystem); //input coordinates converted to NORMAL
-          xnormmin=clipBox[0];ynormmin=clipBox[1];
-          xnormmax=clipBox[2];ynormmax=clipBox[3];
-          break;
-        }
-        case DEVICE:
-          actStream->DeviceToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
-          actStream->DeviceToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
-          break;
-        case NORMAL:
-        default:
-          xnormmin = clipBox[0];
-          xnormmax = clipBox[2];
-          ynormmin = clipBox[1];
-          ynormmax = clipBox[3];
-        }
-      }
-
-      if (xnormmin==xnormmax || ynormmin==ynormmax) {
-        this->post_call(e,actStream);
-        return true; //nothing to see and plpot complains.
-      }
-      // it is important to fix symsize before changing vpor or win 
-      gdlSetSymsize(e, actStream); //SYMSIZE
-      actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
-      actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
-      actStream->setSymbolSizeConversionFactors();
-      
-      return false;
+       return false;
     }
 
     void applyGraphics(EnvT* e, GDLGStream* actStream) {
@@ -308,12 +233,22 @@ namespace lib {
         gdlSetGraphicsForegroundColorFromKw(e, actStream); //COLOR
         doColor = false;
       }
-      gdlSetLineStyle(e, actStream); //LINESTYLE
       gdlSetPenThickness(e, actStream); //THICK
+      gdlSetLineStyle(e, actStream); //LINESTYLE
+      gdlGetPsym(e, psym); //PSYM
 
+      //check presence of DATA,DEVICE and NORMAL options
+      static int DATAIx = e->KeywordIx("DATA");
+      static int DEVICEIx = e->KeywordIx("DEVICE");
+      static int NORMALIx = e->KeywordIx("NORMAL");
+      coordinateSystem = DATA;
+      //check presence of DATA,DEVICE and NORMAL options
+      if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
+      if (e->KeywordSet(DEVICEIx)) {coordinateSystem = DEVICE; doT3d=false;}
+      if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
       //Take care of projections: 
       //projections: X & Y to be converted to u,v BEFORE plotting in NORM coordinates
-      mapSet = false;
+      bool mapSet = false;
       get_mapset(mapSet);
       mapSet = (mapSet && coordinateSystem == DATA);
 
@@ -374,7 +309,6 @@ namespace lib {
 
     virtual void post_call(EnvT*, GDLGStream* actStream) {
       actStream->stransform(NULL, NULL);
-      actStream->RestoreLayout();
       actStream->lsty(1);
     }
 

@@ -274,8 +274,6 @@ namespace lib {
         vpZT = (zAxis || znodef) ? znormmax : znormmax; //zPos - viewportYSize;
       }
 
-      actStream->OnePageSaveLayout(); // one page
-
       static int SAVEIx = e->KeywordIx("SAVE");
       bool doSave = e->KeywordSet(SAVEIx);
 
@@ -330,8 +328,6 @@ namespace lib {
           gdlStoreYAxisParameters(actStream, zStart, zEnd, zLog);
         }
       }
-      // reset the viewport and world coordinates to the original values
-      actStream->RestoreLayout();
       // if save, update world coordinates to the new values -- should not make any difference.
       if (doSave) {
         actStream->wind(xStart, xEnd, yStart, yEnd);

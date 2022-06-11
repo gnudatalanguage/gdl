@@ -23,6 +23,13 @@
 #define snprintf _snprintf
 #endif
 
+#define TONORMCOORDX( in, out, log) out = (log) ? sx[0] + sx[1] * log10(in) : sx[0] + sx[1] * in;
+//#define TODATACOORDX( in, out, log) out = (log) ? pow(10.0, (in -sx[0])/sx[1]) : (in -sx[0])/sx[1];
+#define TONORMCOORDY( in, out, log) out = (log) ? sy[0] + sy[1] * log10(in) : sy[0] + sy[1] * in;
+//#define TODATACOORDY( in, out, log) out = (log) ? pow(10.0, (in -sy[0])/sy[1]) : (in -sy[0])/sy[1];
+//#define TONORMCOORDZ( in, out, log) out = (log) ? sz[0] + sz[1] * log10(in) : sz[0] + sz[1] * in;
+//#define TODATACOORDZ( in, out, log) out = (log) ? pow(10.0, (in -sz[0])/sz[1]) : (in -sz[0])/sz[1];
+
 namespace lib
 {
 
@@ -233,22 +240,15 @@ namespace lib
   }
 #undef EXTENDED_DEFAULT_LOGRANGE
 
-  void adjustForTickInterval(const DDouble interval, DDouble &min, DDouble &max) {
+  DDouble adjustForTickInterval(const DDouble interval, DDouble &min, DDouble &max) {
     DLong64 n = min / interval;
-    min = n*interval;
+    if (n*interval > min) n--;
+    min=n*interval;
     n = max / interval;
+    if ( n*interval < max) n++;
     max = n*interval;
+    return max-min; //return range
   }
-  //improved version of "AutoIntv" for:
-  // 1/ better managing ranges when all the data have same value
-  // 2/ mimic IDL behavior when data are all positive
-  // please notice that (val_min, val_max) will be changed
-  // and "epsilon" is a coefficient if "extended range" is expected
-  // input: linear min and max, output: linear min and max.
-
-  // NOTE GD: this function should be rewritten, documented and tested correctly. Most often, the
-  // plots are not exactly what IDL does in the same conditions. The reasons for the choices should be
-  // clearly described in the code, to be checked by others.
 
   PLFLT gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &start, DDouble &end, bool &log) {
 
@@ -308,7 +308,8 @@ namespace lib
 
     DDouble TickInterval = 0;
     if (!log) gdlGetDesiredAxisTickInterval(e, axisId, TickInterval); //tickinterval ignored when LOG
-    if (TickInterval > 0) adjustForTickInterval(TickInterval, min, max);
+    bool doTickInt=(TickInterval > 0);
+    if (doTickInt && !exact) range=adjustForTickInterval(TickInterval, min, max);
     
     if (exact) { //exit soon...
       if (extended) { //... after 'extended' range correction
@@ -316,11 +317,11 @@ namespace lib
         DDouble val = 0.025 * range;
         min -= val;
         max += val;
-        if (TickInterval > 0) adjustForTickInterval(TickInterval, min, max);
+        if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
       }
 
       //check if tickinterval would make more than 59 ticks (IDL apparent limit). In which case, IDL plots only the first 59 intervals:
-      if (TickInterval > 0.0) if (range / TickInterval > 59) max = min + 59.0 * TickInterval;
+      if (doTickInt) if (range / TickInterval > 59) max = min + 59.0 * TickInterval;
 
       //give back non-log values
       if (log) {
@@ -452,7 +453,7 @@ namespace lib
       default:
         break;
       }
-    } else if (TickInterval == 0) {
+    } else if (!doTickInt) {
       if (log) {
         int imin = floor(min);
         int imax = ceil(max);
@@ -466,18 +467,18 @@ namespace lib
       }
     }
 
-    if (TickInterval > 0) adjustForTickInterval(TickInterval, min, max);
+    if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
 
     if (extended) {
       range = max - min;
       DDouble val = 0.025 * range;
       min -= val;
       max += val;
-      if (TickInterval > 0) adjustForTickInterval(TickInterval, min, max);
+      if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
     }
 
     //check if tickinterval would make more than 59 ticks (IDL apparent limit). In which case, IDL plots only the first 59 intervals:
-    if (TickInterval > 0.0) if (range / TickInterval > 59) max = min + 59.0 * TickInterval;
+    if (doTickInt) if (range / TickInterval > 59) max = min + 59.0 * TickInterval;
 
     //give back non-log values
     if (log) {
@@ -653,16 +654,17 @@ namespace lib
   }
 
 
-  void saveLastPoint(GDLGStream *a, DDouble wx, DDouble wy)
+  void saveLastPoint(DDouble wx, DDouble wy) 
   {
-    a->WorldToNormedDevice(wx, wy, savedPointX, savedPointY);
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"saveLastPoint as %lf %lf\n", savedPointX, savedPointY);
+    //we are in Normed coordinates
+    savedPointX=wx;
+    savedPointY=wy;
   }
 
   void getLastPoint(GDLGStream *a, DDouble& wx, DDouble& wy)
   {
-    a->NormedDeviceToWorld(savedPointX, savedPointY, wx, wy);
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"getLastPoint: Got dev: %lf %lf giving %lf %lf world\n", savedPointX, savedPointY, wx, wy);
+    wx=savedPointX;
+    wy=savedPointY;    //we are in Normed coordinates
   }
   //LINESTYLE
   void gdlLineStyle(GDLGStream *a, DLong style)
@@ -1082,7 +1084,7 @@ namespace lib
     delete[] x_buff;
     delete[] y_buff;
     //save last point
-    saveLastPoint(a, x, y);
+    saveLastPoint(x, y);
   }
 
  
@@ -1202,7 +1204,27 @@ namespace lib
       wEnd=(*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1];
     }
   }
-  
+  //converts x and y but leaves code and log unchanged.
+
+  void ConvertToNormXY(SizeT n, DDouble *x, bool const xLog, DDouble *y, bool const yLog, COORDSYS const code) {
+    //  std::cerr<<"ConvertToNormXY(DDouble)"<<std::endl;
+    if (code == DATA) {
+      DDouble *sx, *sy, *sz;
+      GetSFromPlotStructs(&sx, &sy, &sz);
+      for (auto i = 0; i < n; ++i) TONORMCOORDX(x[i], x[i], xLog);
+      for (auto i = 0; i < n; ++i) TONORMCOORDY(y[i], y[i], yLog);
+    } else if (code == DEVICE) {
+      int xSize, ySize;
+      //give default values
+      DStructGDL* dStruct = SysVar::D();
+      unsigned xsizeTag = dStruct->Desc()->TagIndex("X_SIZE");
+      unsigned ysizeTag = dStruct->Desc()->TagIndex("Y_SIZE");
+      xSize = (*static_cast<DLongGDL*> (dStruct->GetTag(xsizeTag, 0)))[0];
+      ySize = (*static_cast<DLongGDL*> (dStruct->GetTag(ysizeTag, 0)))[0];
+      for (auto i = 0; i < n; ++i) x[i] /= xSize;
+      for (auto i = 0; i < n; ++i) y[i] /= ySize;
+    }
+  }
   void gdlStoreSC() {
     //save corresponding SCxx values useful for oldies compatibility (to be checked as some changes have been done):
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset

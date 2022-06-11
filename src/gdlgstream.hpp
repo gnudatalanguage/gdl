@@ -620,19 +620,6 @@ public:
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"          input [%f,%f] (nd) output [%f,%f] (w)\n", normx, normy, worldx, worldy);
   }
 
-  inline void WorldToNorm(PLFLT worldx, PLFLT worldy, PLFLT &normx, PLFLT &normy)
-  {
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"WorldToNormedDevice()\n");
-    DDouble s1,s2;
-    s1=(theBox.nx2-theBox.nx1)/(theBox.wx2-theBox.wx1);
-    s2=theBox.nx1;
-    normx=s1*(worldx-theBox.wx1)+s2;
-    s1=(theBox.ny2-theBox.ny1)/(theBox.wy2-theBox.wy1);
-    s2=theBox.ny1;
-    normy=s1*(worldy-theBox.wy1)+s2;
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"     input [%f,%f] output [%f,%f]\n", worldx, worldy, normx, normy);
-  }
-
   inline void WorldToNormedDevice(PLFLT worldx, PLFLT worldy, PLFLT &normx, PLFLT &normy)
   {
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"WorldToNormedDevice()\n");

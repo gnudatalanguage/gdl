@@ -118,6 +118,7 @@ void tvcrs( EnvT* e)
      gdlGetAxisType(YAXIS, yLog);
      if(xLog) tempx=pow(10,tempx);
      if(yLog) tempy=pow(10,tempy);
+     std::cerr<<"WARNING ---- Using obseolete WorldToDevice function"<<std::endl;
     actStream->WorldToDevice(tempx,tempy,ix,iy);
   }
   else if (e->KeywordSet(NORMAL))

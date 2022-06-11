@@ -263,7 +263,8 @@ namespace lib {
       gdlWriteTitleAndSubtitle(e, actStream);
       
       //box plotted, we pass in normalized coordinates w/clipping if needed 
-      gdlSwitchToClippedNormalizedCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, doT3d);
+      gdlSetSymsize(e, actStream); //set symsize BEFORE switching (TBC)
+      gdlSwitchToClippedNormalizedCoordinates(e, actStream);
 
       return false;
     }
@@ -290,6 +291,9 @@ namespace lib {
       gdlSetLineStyle(e, actStream); //LINESTYLE
       gdlGetPsym(e, psym); //PSYM
 
+
+      //Take care of projections: 
+      //projections: X & Y to be converted to u,v BEFORE plotting in NORM coordinates
       bool mapSet = false;
       get_mapset(mapSet);
 
@@ -339,10 +343,7 @@ namespace lib {
     }
 
     void post_call(EnvT* e, GDLGStream* actStream) {
-      actStream->RestoreLayout();
-      if (doT3d) { //reset driver to 2D plotting routines.
-        actStream->cmd(PLESC_2D, NULL);
-      }
+      actStream->cmd(PLESC_2D, NULL);
       actStream->stransform(NULL, NULL);
       actStream->lsty(1); //reset linestyle
       actStream->sizeChar(1.0);

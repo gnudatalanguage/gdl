@@ -387,6 +387,7 @@ namespace lib {
   //		       DDouble &dsx, DDouble &dsy, DDouble &lsx, DDouble &lsy); 
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz = NULL);
   void GetWFromPlotStructs(DFloat **wx, DFloat **wy, DFloat **wz);
+  void ConvertToNormXY(SizeT n, DDouble *x, bool const xLog, DDouble *y, bool const yLog, COORDSYS const code);
   void gdlStoreCLIP();
   void gdlGetCLIPXY(DDouble &xStart,  DDouble &yStart, DDouble &xEnd, DDouble &yEnd);
   void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble &zEnd);
@@ -2051,84 +2052,68 @@ namespace lib {
     gdlWriteTitleAndSubtitle(e, a);
     return true;
   }
-  static void gdlSwitchToClippedNormalizedCoordinates(EnvT *e, GDLGStream *actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, bool doT3d, bool invertedClipMeaning=false) {
-    if (xLog) {xStart=log10(xStart); xEnd=log10(xEnd);}
-    if (yLog) {yStart=log10(yStart); yEnd=log10(yEnd);}
-
+  
+  //restore current clipbox, make another or remove it at all.
+  static void gdlSwitchToClippedNormalizedCoordinates(EnvT *e, GDLGStream *actStream, bool invertedClipMeaning=false, bool commandHasCoordSys=true ) {
     COORDSYS coordinateSystem = DATA;
-    //check presence of DATA,DEVICE and NORMAL options
-    static int DATAIx = e->KeywordIx("DATA");
-    static int DEVICEIx = e->KeywordIx("DEVICE");
-    static int NORMALIx = e->KeywordIx("NORMAL");
-    coordinateSystem = DATA;
-    //check presence of DATA,DEVICE and NORMAL options
-    if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
-    if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
-    if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
-
-    //NOW we work as for all other graphic procedures, in NORMmalized coordinates, as for PLOTS etc.
-    actStream->OnePageSaveLayout(); // one page
+    //check presence of DATA,DEVICE and NORMAL options only of command accept them (otherwise assert triggered if in debug mode)
+    if (commandHasCoordSys) {
+      static int DATAIx = e->KeywordIx("DATA");
+      static int DEVICEIx = e->KeywordIx("DEVICE");
+      static int NORMALIx = e->KeywordIx("NORMAL");
+      coordinateSystem = DATA;
+      //check presence of DATA,DEVICE and NORMAL options
+      if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
+      if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
+      if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
+    }
 
     //CLIPPING (or not) is just defining the adequate viewport and world coordinates, all of them normalized since this is what plplot will get in the end.
     //CLIPPING is in NORMAL case triggered by the existence of CLIP keyword, and is not set by GDL if 3D is in use, as IDL does weird things and we cannot clip correctly
     // with the current version of plplot.
-    DDouble clipx0,clipy0,clipx1,clipy1;
-    gdlGetCLIPXY(clipx0,clipy0,clipx1,clipy1); //in normed
-    
-    PLFLT xnormmin = clipx0;
-    PLFLT xnormmax = clipx1;
-    PLFLT ynormmin = clipy0;
-    PLFLT ynormmax = clipy1;
-
-    if (doT3d) { //set and return.
-      // it is important to fix symsize before changing vpor or win 
-      gdlSetSymsize(e, actStream); //SYMSIZE
-      actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
-      actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
-      actStream->setSymbolSizeConversionFactors();
-      return;
-    }
-    
-    static int CLIP = e->KeywordIx("CLIP");
-    bool doClip = e->KeywordSet(CLIP);
-    
+    bool doClip,noclip;
     static int NOCLIPIx = e->KeywordIx("NOCLIP");
-    bool noclip;
     if (invertedClipMeaning) {
       noclip = e->BooleanKeywordAbsentOrSet(NOCLIPIx);
     } else {
       noclip = e->BooleanKeywordSet(NOCLIPIx);
     }
+    doClip = (!noclip);  
 
-    doClip=(doClip && !noclip);
+    PLFLT xnormmin = 0;
+    PLFLT xnormmax = 1;
+    PLFLT ynormmin = 0;
+    PLFLT ynormmax = 1;
 
     if (doClip) {
+      //retrieve current clip (default)
+      DDouble clipx0, clipy0, clipx1, clipy1;
+      gdlGetCLIPXY(clipx0, clipy0, clipx1, clipy1); //in normed
+      xnormmin = clipx0;
+      xnormmax = clipx1;
+      ynormmin = clipy0;
+      ynormmax = clipy1;
       //redefine default viewport & world
       //define a default clipbox (DATA coords):
-      PLFLT clipBox[4] = {xStart, yStart, xEnd, yEnd};
+      PLFLT clipBox[4] = {clipx0, clipy0, clipx1, clipy1};
+      //clipBox is in NORMALIZED coords
+      static int CLIP = e->KeywordIx("CLIP"); //this one may be in other coordinates
       DDoubleGDL* clipBoxGDL = e->IfDefGetKWAs<DDoubleGDL>(CLIP);
       if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() < 4) for (auto i = 0; i < 4; ++i) clipBox[i] = 0; //set clipbox to 0 0 0 0 apparently this is what IDL does.
-      if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() == 4) for (auto i = 0; i < 4; ++i) clipBox[i] = (*clipBoxGDL)[i];
-      //clipBox is defined accordingly to /NORM /DEVICE /DATA:
-      //convert clipBox to normalized coordinates:
-      //switch here is irrelevant since coordinates are DATA , but kepts here for sameness with othe rplotting_* routines.
-      switch (coordinateSystem) {
-        case DATA:
-          actStream->WorldToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
-          actStream->WorldToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
-          break;
-        case DEVICE:
-          actStream->DeviceToNormedDevice(clipBox[0], clipBox[1], xnormmin, ynormmin);
-          actStream->DeviceToNormedDevice(clipBox[2], clipBox[3], xnormmax, ynormmax);
-          break;
-        default:
-          xnormmin = clipBox[0];
-          xnormmax = clipBox[2];
-          ynormmin = clipBox[1];
-          ynormmax = clipBox[3];
+      if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() == 4)
+      {
+        for (auto i = 0; i < 4; ++i) clipBox[i] = (*clipBoxGDL)[i];
+        //newClipBox is defined accordingly to /NORM /DEVICE /DATA:
+        //convert newClipBox to normalized coordinates:
+        ConvertToNormXY(1, &clipBox[0], false, &clipBox[1], false, coordinateSystem);
+        ConvertToNormXY(1, &clipBox[2], false, &clipBox[3], false, coordinateSystem);
+        xnormmin = clipBox[0];
+        xnormmax = clipBox[2];
+        ynormmin = clipBox[1];
+        ynormmax = clipBox[3];
       }
     }
-
+    
     actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
     actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
     }
