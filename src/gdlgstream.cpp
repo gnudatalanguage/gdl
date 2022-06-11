@@ -183,6 +183,134 @@ void GDLGStream::DefaultBackground()
   GraphicsDevice::GetDevice()->SetDeviceBckColor( red, green, blue);
 }
 #undef WHITEB
+
+void GDLGStream::SetPageDPMM() {
+  //This is supposed to be called each time DPI is changed, which happens only at creation of a new device.
+  // contrary to the page size, that may change for intercative devices that can be resized.
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "SetPageDPMM()\n");
+  PLINT level;
+  plstream::glevel(level);
+  if (level <= 1) return;
+  if (thePage.nbPages == 0) return;
+  plstream::ssub(1, 1);
+  plstream::adv(0);
+  PLFLT xdpi, ydpi;
+  PLINT xleng, yleng, xoff, yoff;
+  plstream::gpage( xdpi, ydpi, xleng, yleng, xoff, yoff); //so-called page parameters, but the units may vary: pixels or mm?
+  thePage.length = xleng;
+  thePage.height = yleng;
+  //get the mm values using gspa:
+  PLFLT bxsize_mm, bysize_mm, offx_mm, offy_mm;
+  PLFLT xmin, ymin, xmax, ymax;
+  plstream::gspa(xmin, xmax, ymin, ymax); //subpage in mm
+  bxsize_mm = xmax - xmin;
+  bysize_mm = ymax - ymin;
+  offx_mm = xmin;
+  offy_mm = ymin;
+  // test if plplot is consistent:
+  PLFLT theory = xoff / xdpi * 25.4;
+  if (fabs(offx_mm - theory) > 1e-4) fprintf(stderr, "plpot driver returns inconsistent x DPI values.\n");
+  theory = yoff / ydpi * 25.4;
+  if (fabs(offx_mm - theory) > 1e-4) fprintf(stderr, "plpot driver returns inconsistent y DPI values.\n");
+  theory = xleng / xdpi * 25.4;
+  if (fabs(bxsize_mm - theory) > 1e-4) fprintf(stderr, "plpot driver returns inconsistent x DPI values (2).\n");
+  theory = yleng / ydpi * 25.4;
+  if (fabs(bysize_mm - theory) > 1e-4) fprintf(stderr, "plpot driver returns inconsistent y DPI values (2).\n");
+  //we can derive the dpm in x and y which converts mm to device coords:
+  thePage.xdpmm = abs(thePage.length / bxsize_mm);
+  thePage.ydpmm = abs(thePage.height / bysize_mm);
+}
+
+bool GDLGStream::updatePageInfo() {
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "updatePageInfo():\n");
+  if (thePage.nbPages == 0) {
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "            FAILED\n");
+    return false;
+  }
+  long xsize, ysize;
+  GetGeometry(xsize, ysize);
+  if (thePage.length == xsize && thePage.height == ysize) return true;
+  thePage.length = xsize;
+  thePage.height = ysize;
+  (*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0] = xsize;
+  (*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ysize;
+  (*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xsize;
+  (*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ysize;
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "             %fx%f device units.\n", thePage.length, thePage.height);
+  return true;
+}
+
+void GDLGStream::CurrentCharSize(PLFLT scale) {
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "CurrentCharsize()\n");
+  if (gdlDefaultCharInitialized == 0) {
+    if (updatePageInfo() == true) {
+      GetPlplotDefaultCharSize();
+    }
+  }
+  theCurrentChar.scale = scale;
+  theCurrentChar.ndsx = scale * theDefaultChar.ndsx;
+  theCurrentChar.ndsy = scale * theDefaultChar.ndsy;
+  theCurrentChar.dsx = scale * theDefaultChar.dsx;
+  theCurrentChar.dsy = scale * theDefaultChar.dsy;
+  theCurrentChar.mmsx = scale * theDefaultChar.mmsx;
+  theCurrentChar.mmsy = scale * theDefaultChar.mmsy;
+  theCurrentChar.wsx = scale * theDefaultChar.wsx;
+  theCurrentChar.wsy = scale * theDefaultChar.wsy;
+  theCurrentChar.mmspacing = scale * theDefaultChar.mmspacing;
+  theCurrentChar.nspacing = scale * theDefaultChar.nspacing;
+  theCurrentChar.dspacing = scale * theDefaultChar.dspacing;
+  theCurrentChar.wspacing = scale * theDefaultChar.wspacing;
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "            sized by %f is %fx%f mm or %fx%f device or %fx%f world\n", scale, theCurrentChar.mmsx, theCurrentChar.mmsy, theCurrentChar.dsx, theCurrentChar.dsy, theCurrentChar.wsx, theCurrentChar.wsy);
+}
+
+void GDLGStream::UpdateCurrentCharWorldSize() {
+  PLFLT x, y, dx, dy;
+  DeviceToWorld(0, 0, x, y);
+  DeviceToWorld(theDefaultChar.dsx, theDefaultChar.dsy, dx, dy);
+  theDefaultChar.wsx = abs(dx - x);
+  theDefaultChar.wsy = abs(dy - y);
+  theCurrentChar.wsx = theCurrentChar.scale * theDefaultChar.wsx;
+  theCurrentChar.wsy = theCurrentChar.scale * theDefaultChar.wsy;
+
+  DeviceToWorld(0, theDefaultChar.dspacing, dx, dy);
+  theDefaultChar.wspacing = abs(dy - y);
+
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "UpdateCurrentCharWorldSize(%f,%f)\n",
+    theCurrentChar.wsx, theCurrentChar.wsy);
+}
+
+void GDLGStream::updateBoxDeviceCoords() {
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "updateBoxDeviceCoords()\n");
+  // world coordinates of current subpage boundaries and page boundaries
+  NormedDeviceToWorld(0.0, 0.0, theBox.pageWorldCoordinates[0], theBox.pageWorldCoordinates[2]);
+  NormedDeviceToWorld(1.0, 1.0, theBox.pageWorldCoordinates[1], theBox.pageWorldCoordinates[3]);
+  NormToWorld(0.0, 0.0, theBox.subPageWorldCoordinates[0], theBox.subPageWorldCoordinates[2]);
+  NormToWorld(1.0, 1.0, theBox.subPageWorldCoordinates[1], theBox.subPageWorldCoordinates[3]);
+  NormToDevice(theBox.nx1, theBox.ny1, theBox.dx1, theBox.dy1);
+  NormToDevice(theBox.nx2, theBox.ny2, theBox.dx2, theBox.dy2);
+}
+void GDLGStream::syncPageInfo()
+{
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "SyncPageInfo()\n");
+  PLINT level;
+  plstream::glevel(level);
+  if (level > 1 && thePage.nbPages != 0) //we need to have a vpor defined, and a page!
+  {
+    //resolution (xdpmm, ydpmm) never change.
+    //The page width and height in mm:
+    thePage.xsizemm = thePage.length / thePage.xdpmm;
+    thePage.ysizemm = thePage.height / thePage.ydpmm;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "         device resolution [%f,%f]mm^-1, device size [%f,%f], [%f,%f] mm\n",
+      thePage.xdpmm, thePage.ydpmm, thePage.length, thePage.height, thePage.xsizemm, thePage.ysizemm);
+    thePage.subpage.dxoff = 0; //our subpages have 0 offset
+    thePage.subpage.dyoff = 0;
+    thePage.subpage.dxsize = thePage.length / thePage.nx;
+    thePage.subpage.dysize = thePage.height / thePage.ny;
+    if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "         subpage is %fx%f at [%f,%f] device units\n",
+      thePage.subpage.dxsize, thePage.subpage.dysize, thePage.subpage.dxoff, thePage.subpage.dyoff);
+
+  } else if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "       WARNING: not initalized\n");
+}
 void GDLGStream::DefaultCharSize() {
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLGStream::DefaultCharSize()\n");
   DStructGDL* d = SysVar::D();
@@ -1025,6 +1153,17 @@ void GDLGStream::sizeChar( PLFLT scale )
 
 void GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
 {
+  //make vpor units really min max, otherwise som problems appear spuriously
+  if (xmin > xmax) {
+    PLFLT tmp=xmax;
+    xmin=xmax;
+    xmax=tmp;
+  }
+  if (ymin > ymax) {
+    PLFLT tmp=ymax;
+    ymin=ymax;
+    ymax=tmp;
+  }
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"vpor(): requesting x[%f:%f],y[%f:%f] (normalized, subpage)\n",xmin,xmax,ymin,ymax);
   //note that plplot apparently does not write the y=0 line of pixels (in device coords). IDL page is on the contrary limited to
   // [0..1[ in both axes (normalized coordinates)

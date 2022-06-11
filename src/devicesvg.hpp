@@ -77,17 +77,8 @@ class DeviceSVG : public GraphicsDevice
 
     actStream->ssub(1, 1);
     actStream->adv(0); //this is for us (counters)
+    actStream->SetPageDPMM();
     actStream->DefaultCharSize();
-//    clear();
-//
-//    // need to be called initially. permit to fix things
-//    actStream->ssub(1,1);
-//    actStream->adv(0);
-//    // load font
-//    actStream->font( 1);
-//    actStream->vpor(0,1,0,1);
-//    actStream->wind(0,1,0,1);
-//    actStream->DefaultCharSize();
   }
 
 public:

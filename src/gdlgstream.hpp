@@ -510,6 +510,7 @@ public:
 
   void SaveLayout()
   {
+    return;
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"SaveLayout():\n");
     pageLayout.nbPages=thePage.nbPages;
     pageLayout.nx=thePage.nx;
@@ -561,23 +562,8 @@ public:
       NoSub();
   }
 
-  bool updatePageInfo()
-  {
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"updatePageInfo():\n");
-    if (thePage.nbPages==0) {if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"            FAILED\n");return false;}
-    long xsize,ysize;
-    GetGeometry(xsize,ysize);
-    if (thePage.length==xsize && thePage.height==ysize ) return true;
-    thePage.length=xsize;
-    thePage.height=ysize;
-    (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0] = xsize;
-    (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0] = ysize;
-    (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_VSIZE"), 0)))[0] = xsize;
-    (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = ysize;
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"             %fx%f device units.\n",thePage.length, thePage.height);
-    return true;
-  }
-
+  bool updatePageInfo();
+  
   inline void NormToDevice(PLFLT normx, PLFLT normy, PLFLT &devx, PLFLT &devy)
   {
     if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"NormToDevice()\n");
@@ -693,51 +679,9 @@ public:
 
   void NoSub(); // no subwindows (/NORM, /DEVICE)
 
-  void CurrentCharSize(PLFLT scale)
-  {
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"CurrentCharsize()\n");
-    if (gdlDefaultCharInitialized==0)
-    {
-        if (updatePageInfo()==true)
-        {
-        GetPlplotDefaultCharSize();
-        }
-    }
-    theCurrentChar.scale=scale;
-    theCurrentChar.ndsx=scale*theDefaultChar.ndsx;
-    theCurrentChar.ndsy=scale*theDefaultChar.ndsy;
-    theCurrentChar.dsx=scale*theDefaultChar.dsx;
-    theCurrentChar.dsy=scale*theDefaultChar.dsy;
-    theCurrentChar.mmsx=scale*theDefaultChar.mmsx;
-    theCurrentChar.mmsy=scale*theDefaultChar.mmsy;
-    theCurrentChar.wsx=scale*theDefaultChar.wsx;
-    theCurrentChar.wsy=scale*theDefaultChar.wsy;
-    theCurrentChar.mmspacing=scale*theDefaultChar.mmspacing;
-    theCurrentChar.nspacing=scale*theDefaultChar.nspacing;
-    theCurrentChar.dspacing=scale*theDefaultChar.dspacing;
-    theCurrentChar.wspacing=scale*theDefaultChar.wspacing;
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"            sized by %f is %fx%f mm or %fx%f device or %fx%f world\n",scale,theCurrentChar.mmsx,theCurrentChar.mmsy,theCurrentChar.dsx,theCurrentChar.dsy,theCurrentChar.wsx, theCurrentChar.wsy);
-  }
+  void CurrentCharSize(PLFLT scale);
 
-  void UpdateCurrentCharWorldSize()
-  {
-    PLFLT x,y,dx,dy;
-    DeviceToWorld(0,0,x,y);
-    DeviceToWorld(theDefaultChar.dsx,theDefaultChar.dsy, dx, dy);
-    theDefaultChar.wsx=abs(dx-x);
-    theDefaultChar.wsy=abs(dy-y);
-    theCurrentChar.wsx=theCurrentChar.scale*theDefaultChar.wsx;
-    theCurrentChar.wsy=theCurrentChar.scale*theDefaultChar.wsy;
-
-    DeviceToWorld(0,theDefaultChar.dspacing, dx, dy);
-    theDefaultChar.wspacing=abs(dy-y);
-    
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"UpdateCurrentCharWorldSize(%f,%f)\n",
-                                    theCurrentChar.wsx,theCurrentChar.wsy);
-  }
-  
-//  void RenewPlplotDefaultCharsize(PLFLT newMmSize);
-  
+  void UpdateCurrentCharWorldSize(); 
   void GetPlplotDefaultCharSize();
 
   // SA: overloading plplot methods in order to handle IDL-plplot extended
@@ -763,50 +707,9 @@ public:
   void ssub( PLINT nx, PLINT ny);
   void adv(PLINT page);
   void getSubpageRegion(PLFLT &sxmin, PLFLT &symin, PLFLT &sxmax, PLFLT &symax);
-  inline void syncPageInfo()
-  {
-      if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"SyncPageInfo()\n");
-      PLINT level;
-      plstream::glevel(level);
-      if (level>1 && thePage.nbPages!=0) //we need to have a vpor defined, and a page!
-      {
-        PLFLT bxsize_mm, bysize_mm, offx_mm, offy_mm;
-        PLFLT xmin,ymin,xmax,ymax;
-        plstream::gspa(xmin,xmax,ymin,ymax); //subpage in mm
-        bxsize_mm=xmax-xmin;
-        bysize_mm=ymax-ymin;
-        offx_mm=xmin;
-        offy_mm=ymin;
-        if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"         gspa returned size[%f,%f] at offset [%f,%f] (mm) for subpage %d of %dx%d subpages\n",bxsize_mm,bysize_mm,offx_mm,offy_mm,thePage.curPage,thePage.nx,thePage.ny);
-        //we can derive the dpm in x and y which converts mm to device coords:
-        thePage.xdpmm=abs(thePage.length/(thePage.nx*bxsize_mm));
-        thePage.ydpmm=abs(thePage.height/(thePage.ny*bysize_mm));
-        //and the page width and height in mm:
-        thePage.xsizemm=thePage.length/thePage.xdpmm;
-        thePage.ysizemm=thePage.height/thePage.ydpmm;
-        if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"         device resolution [%f,%f]mm^-1, device size [%f,%f], [%f,%f] mm\n",
-         thePage.xdpmm,thePage.ydpmm,thePage.length,thePage.height,thePage.xsizemm,thePage.ysizemm);
-        thePage.subpage.dxoff=offx_mm*thePage.xdpmm;
-        thePage.subpage.dyoff=offy_mm*thePage.ydpmm;
-        thePage.subpage.dxsize=bxsize_mm*thePage.xdpmm;
-        thePage.subpage.dysize=bysize_mm*thePage.ydpmm;
-        if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"         subpage is %fx%f at [%f,%f] device units\n",
-                thePage.subpage.dxsize,thePage.subpage.dysize,thePage.subpage.dxoff,thePage.subpage.dyoff);
-
-      } else         if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"       WARNING: not initalized\n");
-  }
-
-  inline void updateBoxDeviceCoords()
-  {
-      if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"updateBoxDeviceCoords()\n");
-    // world coordinates of current subpage boundaries and page boundaries
-    NormedDeviceToWorld(0.0, 0.0,theBox.pageWorldCoordinates[0],theBox.pageWorldCoordinates[2]);
-    NormedDeviceToWorld(1.0, 1.0,theBox.pageWorldCoordinates[1],theBox.pageWorldCoordinates[3]);
-    NormToWorld(0.0, 0.0,theBox.subPageWorldCoordinates[0],theBox.subPageWorldCoordinates[2]);
-    NormToWorld(1.0, 1.0,theBox.subPageWorldCoordinates[1],theBox.subPageWorldCoordinates[3]);
-    NormToDevice(theBox.nx1,theBox.ny1,theBox.dx1,theBox.dy1);
-    NormToDevice(theBox.nx2,theBox.ny2,theBox.dx2,theBox.dy2);
-  }
+  void SetPageDPMM();
+  void syncPageInfo();
+  void updateBoxDeviceCoords();
 
   inline void setThickFactor(DFloat tf)
   {

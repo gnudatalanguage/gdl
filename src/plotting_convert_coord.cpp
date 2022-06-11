@@ -715,7 +715,7 @@ namespace lib {
   
   //converts 3D values according to COORDSYS towards NORMAL coordinates and , logically, unset xLog,yLo,zLog and define code as NORMAL.
   void SelfConvertToNormXYZ(DDoubleGDL *x, bool &xLog, DDoubleGDL *y, bool &yLog, DDoubleGDL *z, bool &zLog, COORDSYS &code) {
-    std::cerr<<"SelfConvertToNormXYZ(DDoubleGDL)\n";
+//    std::cerr<<"SelfConvertToNormXYZ(DDoubleGDL)\n";
     assert (code != DEVICE);
     SizeT n=x->N_Elements();
     if (code == DATA) {
@@ -733,7 +733,7 @@ namespace lib {
   //same for a DDouble, leaves code and log unchanged.
 
   void SelfConvertToNormXYZ(SizeT n, DDouble *x, bool const xLog, DDouble *y, bool const yLog, DDouble *z, bool const zLog, COORDSYS const code) {
-    std::cerr << "SelfConvertToNormXYZ(DDouble)\n";
+//    std::cerr << "SelfConvertToNormXYZ(DDouble)\n";
     assert (code != DEVICE);
     if (code == DATA) {
       DDouble *sx, *sy, *sz;
@@ -746,7 +746,7 @@ namespace lib {
   
   //converts x and y but leaves code and log unchanged.
   void SelfConvertToNormXY(SizeT n, DDouble *x, bool const xLog, DDouble *y, bool const yLog, COORDSYS const code) {
-  std::cerr<<"SelfConvertToNormXY(DDouble)"<<std::endl;
+//  std::cerr<<"SelfConvertToNormXY(DDouble)"<<std::endl;
   if (code == DATA) {
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz);
@@ -792,7 +792,7 @@ namespace lib {
    
   //Implied Useage: x,y,z in NORMAL coordinates
   void SelfPDotTTransformXYZ(SizeT n, DDouble *x, DDouble *y, DDouble *z){
-  std::cerr<<"SelfPDotTTransformXYZ()"<<std::endl;
+//  std::cerr<<"SelfPDotTTransformXYZ()"<<std::endl;
     //retrieve !P.T 
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
@@ -810,7 +810,7 @@ namespace lib {
     }
   }
   void SelfPDotTTransformXYZ(DDoubleGDL *x, DDoubleGDL *y, DDoubleGDL *z){
-  std::cerr<<"SelfPDotTTransformXYZ()"<<std::endl;
+//  std::cerr<<"SelfPDotTTransformXYZ()"<<std::endl;
   SizeT n=x->N_Elements();
     //retrieve !P.T 
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
@@ -953,7 +953,7 @@ plP_dcscy( DDouble y )
   //retrieve !P.T,
 
   DDoubleGDL* gdlGetT3DMatrix() {
-    std::cerr<<"gdlGetT3DMatrix()\n";
+//    std::cerr<<"gdlGetT3DMatrix()\n";
     DDoubleGDL* t3dMatrix = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
@@ -974,7 +974,7 @@ plP_dcscy( DDouble y )
 //  }
   //simpler, transposition must be done in client code.
   void gdlGetT3DMatrixForDriverTransform(DDouble* T) {
-    std::cerr<<"gdlGetT3DMatrixForDriverTransform()\n";
+//    std::cerr<<"gdlGetT3DMatrixForDriverTransform()\n";
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
     for (int i = 0; i < 16; ++i)T[i] = (*static_cast<DDoubleGDL*> (pStruct->GetTag(tTag, 0)))[i];

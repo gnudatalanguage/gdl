@@ -1431,7 +1431,6 @@ namespace lib {
       position[1] = symin + yMarginB * actStream->nLineSpacing();
       position[2] = sxmax - xMarginR * actStream->nCharLength();
       position[3] = symax - yMarginT * actStream->nLineSpacing();
-//    std::cerr<<position[0]<<","<<position[2]<<","<<position[1]<<","<<position[3]<<std::endl;
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
     // Get !P.position values. !P.REGION is superseded by !P.POSITION
     if (pStruct != NULL) {
@@ -1511,8 +1510,8 @@ namespace lib {
     return true;
   }
 
+  //ZAXIS will always be an YAXIS plotted with a special YZEXCH T3D matrix. So no special handling of ZAXIS here.
   static bool gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong modifierCode = 0, DDouble NormedLength = 0) {
- //   std::cerr<<"axis id="<<axisId<<"start="<<Start<<", end="<<End<<", log="<<Log<<std::endl;
     if (Start==End) return true;
     DLong Style;
     gdlGetDesiredAxisStyle(e, axisId, Style);
@@ -1552,10 +1551,6 @@ namespace lib {
     }
     if (axisId == YAXIS2) {
       axisId = YAXIS;
-      OtherAxisSizeInMm = a->mmxPageSize()*(NormedLength);
-    }
-    if (axisId == ZAXIS2) {
-      axisId = ZAXIS;
       OtherAxisSizeInMm = a->mmxPageSize()*(NormedLength);
     }
     DLong GridStyle;
