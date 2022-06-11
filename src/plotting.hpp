@@ -1544,6 +1544,7 @@ namespace lib {
     PLFLT OtherAxisSizeInMm;
     if (axisId == XAXIS) OtherAxisSizeInMm = a->mmyPageSize()*(a->boxnYSize());
     if (axisId == YAXIS) OtherAxisSizeInMm = a->mmxPageSize()*(a->boxnXSize());
+    if (axisId == ZAXIS) OtherAxisSizeInMm = a->mmxPageSize()*(a->boxnXSize());
     //special for AXIS who change the requested box size!
     if (axisId == XAXIS2) {
       axisId = XAXIS;
@@ -1551,6 +1552,10 @@ namespace lib {
     }
     if (axisId == YAXIS2) {
       axisId = YAXIS;
+      OtherAxisSizeInMm = a->mmxPageSize()*(NormedLength);
+    }
+    if (axisId == ZAXIS2) {
+      axisId = ZAXIS;
       OtherAxisSizeInMm = a->mmxPageSize()*(NormedLength);
     }
     DLong GridStyle;
@@ -1588,7 +1593,7 @@ namespace lib {
     if (TickLen < 0) ticklen_in_mm *= -1;
     //ticklen in a percentage of box x or y size, to be expressed in mm 
     if (axisId == XAXIS) ticklen_in_mm = a->mmyPageSize()*(a->boxnYSize()) * ticklen_in_mm;
-    if (axisId == YAXIS) ticklen_in_mm = a->mmxPageSize()*(a->boxnXSize()) * ticklen_in_mm;
+    else ticklen_in_mm = a->mmxPageSize()*(a->boxnXSize()) * ticklen_in_mm;
     DFloat ticklen_as_norm = (axisId == XAXIS) ? a->mm2ndy(ticklen_in_mm) : a->mm2ndx(ticklen_in_mm); //in normed coord
     //eventually, each succesive X or Y axis is separated from previous by interligne + ticklen in adequate units. 
     DFloat interligne_as_char;
@@ -1640,9 +1645,9 @@ namespace lib {
       if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL; //write label "unconventional position" (top or right) 
       else Opt += NUMERIC; //write label "conventional position" (bottom or left) 
       if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-      else if (axisId == YAXIS) a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
+      else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
       nchars = data.nchars;
-      if (axisId == YAXIS) title_position = nchars + 2.5;
+      if (axisId != XAXIS) title_position = nchars + 2.5;
       else title_position = 3.5;
       resetLabeling(a, axisId);
     }      //care Tickunits size is 10 if not defined because it is the size of !X.TICKUNITS.
@@ -1682,7 +1687,7 @@ namespace lib {
           a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
           title_position = current_displacement / a->nCharHeight() + 3.5;
           current_displacement += displacement_of_new_axis_as_norm; //and the spacing plus the ticklengths
-        } else if (axisId == YAXIS) {
+        } else {
           a->vpor(un - current_displacement, deux, trois, quatre);
           a->wind(xun, xdeux, xtrois, xquatre);
           a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
@@ -1708,9 +1713,9 @@ namespace lib {
       if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL;
       else Opt += NUMERIC;
       if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-      else if (axisId == YAXIS) a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
+      else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
       nchars = muaxdata.nchars;
-      if (axisId == YAXIS) title_position = nchars + 2;
+      if (axisId != XAXIS) title_position = nchars + 2;
       else title_position = 3.5;
       resetLabeling(a, axisId);
     } else {
@@ -1720,19 +1725,19 @@ namespace lib {
       if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL;
       else Opt += NUMERIC;
       if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-      else if (axisId == YAXIS) a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
+      else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
       nchars = tdata.nchars;
-      if (axisId == YAXIS) title_position = nchars + 2;
+      if (axisId != XAXIS) title_position = nchars + 2;
       else title_position = 3.5;
       resetLabeling(a, axisId);
     }
     if (hasTitle) {
       if (modifierCode == 0 || modifierCode == 1) {
         if (axisId == XAXIS) a->mtex("b", title_position, 0.5, 0.5, Title.c_str());
-        else if (axisId == YAXIS) a->mtex("l", title_position, 0.5, 0.5, Title.c_str());
+        else a->mtex("l", title_position, 0.5, 0.5, Title.c_str());
       } else if (modifierCode == 2) {
         if (axisId == XAXIS) a->mtex("t", title_position, 0.5, 0.5, Title.c_str());
-        else if (axisId == YAXIS) a->mtex("r", title_position, 0.5, 0.5, Title.c_str());
+        else a->mtex("r", title_position, 0.5, 0.5, Title.c_str());
       }
     }
     if (TickLayout == 0) {
@@ -1780,7 +1785,7 @@ namespace lib {
         }
       } else if (!hasTickv) Opt += SUBTICKS;
       if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-      else if (axisId == YAXIS) a->box("", 0.0, 0, Opt.c_str(), TickInterval, Minor);
+      else a->box("", 0.0, 0, Opt.c_str(), TickInterval, Minor);
       //reset gridstyle
       gdlLineStyle(a, 0);
       // pass over with outer box, with thick. No style applied, only ticks
@@ -1797,7 +1802,7 @@ namespace lib {
           else Opt += BOTTOM TOP;
       }
       if (axisId == XAXIS) a->box(Opt.c_str(), 0.0, 0, "", 0.0, 0);
-      else if (axisId == YAXIS) a->box("", 0.0, 0, Opt.c_str(), 0.0, 0);
+      else a->box("", 0.0, 0, Opt.c_str(), 0.0, 0);
     }
     gdlWriteDesiredAxisTickGet(e, axisId, Log);
     //reset charsize & thick

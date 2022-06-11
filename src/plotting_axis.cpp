@@ -260,18 +260,18 @@ namespace lib {
       //compute new temporary viewport in relative coords
       if (standardNumPos) {
         vpXL = (xAxis || xnodef) ? xnormmin : xPos;
-        vpXR = (xAxis || xnodef) ? xnormmax : xPos + viewportXSize;
+        vpXR = (xAxis || xnodef) ? xnormmax : xnormmax; //xPos + viewportXSize;
         vpYB = (yAxis || ynodef) ? ynormmin : yPos;
-        vpYT = (yAxis || ynodef) ? ynormmax : yPos + viewportYSize;
-        vpZB = (zAxis || znodef) ? znormmin : zPos - viewportXSize;
+        vpYT = (yAxis || ynodef) ? ynormmax : ynormmax; //yPos + viewportYSize;
+        vpZB = (zAxis || znodef) ? znormmin : znormmin; //zPos - viewportXSize;
         vpZT = (zAxis || znodef) ? znormmax : zPos;
       } else {
-        vpXL = (xAxis || xnodef) ? xnormmin : xPos - viewportXSize;
+        vpXL = (xAxis || xnodef) ? xnormmin : xnormmin; //xPos - viewportXSize;
         vpXR = (xAxis || xnodef) ? xnormmax : xPos;
-        vpYB = (yAxis || ynodef) ? ynormmin : yPos - viewportYSize;
+        vpYB = (yAxis || ynodef) ? ynormmin : ynormmin; //yPos - viewportYSize;
         vpYT = (yAxis || ynodef) ? ynormmax : yPos;
         vpZB = (zAxis || znodef) ? znormmin : zPos;
-        vpZT = (zAxis || znodef) ? znormmax : zPos - viewportYSize;
+        vpZT = (zAxis || znodef) ? znormmax : znormmax; //zPos - viewportYSize;
       }
 
       actStream->OnePageSaveLayout(); // one page
@@ -325,7 +325,7 @@ namespace lib {
         yzaxisExch(PlotDevice3d.T);
         PlotDevice3d.zValue = yPos;
         actStream->cmd(PLESC_3D, &PlotDevice3d);
-        gdlAxis(e, actStream, YAXIS, zStart, zEnd, zLog, standardNumPos ? 1 : 2, viewportXSize);
+        gdlAxis(e, actStream, ZAXIS, zStart, zEnd, zLog, standardNumPos ? 1 : 2, viewportXSize);
         if (doSave) {
           gdlStoreYAxisParameters(actStream, zStart, zEnd, zLog);
         }
