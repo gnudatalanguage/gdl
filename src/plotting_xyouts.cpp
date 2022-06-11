@@ -33,7 +33,6 @@ namespace lib {
   class xyouts_call : public plotting_routine_call {
     DDoubleGDL *xVal, *yVal;
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard;
-    DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
 
     DStringGDL* strVal;
     SizeT xEl, yEl, strEl;
@@ -71,6 +70,20 @@ namespace lib {
         GetSFromPlotStructs(&sx, &sy, &sz);
         zPosition = zPosition * sz[1] + sz[0];
       }
+      
+      //check presence of DATA,DEVICE and NORMAL options
+      static int DATAIx = e->KeywordIx("DATA");
+      static int DEVICEIx = e->KeywordIx("DEVICE");
+      static int NORMALIx = e->KeywordIx("NORMAL");
+      coordinateSystem = DATA;
+      //check presence of DATA,DEVICE and NORMAL options
+      if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
+      if (e->KeywordSet(DEVICEIx)) {
+        coordinateSystem = DEVICE;
+        doT3d = false;
+      }
+      if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
+      
       singleArg = false;
       if (nParam() == 1) {
         singleArg = true;
@@ -135,12 +148,9 @@ namespace lib {
       // get_axis_type
       gdlGetAxisType(XAXIS, xLog);
       gdlGetAxisType(YAXIS, yLog);
-
-      //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
-      GetCurrentUserLimits(xStart, xEnd, yStart, yEnd, zStart, zEnd);
       
       //box plotted, we pass in normalized coordinates w/clipping if needed 
-      gdlSwitchToClippedNormalizedCoordinates(e, actStream);
+      gdlSwitchToClippedNormalizedCoordinates(e, actStream, true);
 
       SelfProjectXY(minEl, (DDouble*) xVal->DataAddr(), (DDouble*) yVal->DataAddr(), coordinateSystem);
       //input coordinates converted to NORMAL
