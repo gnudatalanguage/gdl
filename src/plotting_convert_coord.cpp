@@ -732,15 +732,25 @@ namespace lib {
   }
   //same for a DDouble, leaves code and log unchanged.
 
-  void SelfConvertToNormXYZ(SizeT n, DDouble *x, bool const xLog, DDouble *y, bool const yLog, DDouble *z, bool const zLog, COORDSYS const code) {
+  void SelfConvertToNormXYZ(DDouble &x, bool const xLog, DDouble &y, bool const yLog, DDouble &z, bool const zLog, COORDSYS const code) {
 //    std::cerr << "SelfConvertToNormXYZ(DDouble)\n";
-    assert (code != DEVICE);
     if (code == DATA) {
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz);
-      for (auto i = 0; i < n; ++i) TONORMCOORDX(x[i], x[i], xLog);
-      for (auto i = 0; i < n; ++i) TONORMCOORDY(y[i], y[i], yLog);
-      for (auto i = 0; i < n; ++i) TONORMCOORDZ(z[i], z[i], zLog);
+      TONORMCOORDX(x, x, xLog);
+      TONORMCOORDY(y, y, yLog);
+      TONORMCOORDZ(z, z, zLog);
+    } else if (code == DEVICE) { //Z=0 in this case
+      int xSize, ySize;
+      //give default values
+      DStructGDL* dStruct = SysVar::D();
+      unsigned xsizeTag = dStruct->Desc()->TagIndex("X_SIZE");
+      unsigned ysizeTag = dStruct->Desc()->TagIndex("Y_SIZE");
+      xSize = (*static_cast<DLongGDL*> (dStruct->GetTag(xsizeTag, 0)))[0];
+      ySize = (*static_cast<DLongGDL*> (dStruct->GetTag(ysizeTag, 0)))[0];
+      x /= xSize;
+      y /= ySize;
+      z = 0;
     }
   }
   

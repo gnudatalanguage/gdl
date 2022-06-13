@@ -263,7 +263,7 @@ namespace lib {
   void yzaxisExch(DDouble* me);
   void xzaxisExch(DDouble* me);
   void SelfConvertToNormXYZ(DDoubleGDL* x, bool &xLog, DDoubleGDL* y, bool &yLog, DDoubleGDL* z, bool &zLog, COORDSYS &code);
-  void SelfConvertToNormXYZ(SizeT n, DDouble* x, bool const xLog, DDouble* y, bool const yLog, DDouble* z, bool const zLog, COORDSYS const code);
+  void SelfConvertToNormXYZ(DDouble &x, bool const xLog, DDouble &y, bool const yLog, DDouble &z, bool const zLog, COORDSYS const code);
   void SelfConvertToNormXY(SizeT n, PLFLT *xt, bool const xLog, PLFLT *yt, bool const yLog, COORDSYS const code);
   void SelfConvertToNormXY(DDoubleGDL* x, bool &xLog, DDoubleGDL* y, bool &yLog, COORDSYS &code);
   void SelfPDotTTransformXYZ(SizeT n, PLFLT *xt, PLFLT *yt, PLFLT *zt);
@@ -378,6 +378,7 @@ namespace lib {
   void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log);
   void gdlStoreYAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log);
   void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log);
+  void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble zValue);
   void gdlGetAxisType(int axisId, bool &log);
   void gdlGetCurrentAxisLinearRange(int axisId, DDouble &Start, DDouble &End);
   void gdlGetCurrentAxisRawRangeValues(int axisId, DDouble &Start, DDouble &End);
@@ -388,6 +389,7 @@ namespace lib {
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz = NULL);
   void GetWFromPlotStructs(DFloat **wx, DFloat **wy, DFloat **wz);
   void ConvertToNormXY(SizeT n, DDouble *x, bool const xLog, DDouble *y, bool const yLog, COORDSYS const code);
+  void ConvertToNormZ(SizeT n, DDouble *z, bool const zLog, COORDSYS const code);
   void gdlStoreCLIP();
   void gdlGetCLIPXY(DDouble &xStart,  DDouble &yStart, DDouble &xEnd, DDouble &yEnd);
   void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble &zEnd);
@@ -1505,7 +1507,8 @@ namespace lib {
     //set ![XYZ].CRANGE ![XYZ].type ![XYZ].WINDOW and ![XYZ].S
     gdlStoreXAxisParameters(actStream, xStart, xEnd, xLog); //already in log here if relevant!
     gdlStoreYAxisParameters(actStream, yStart, yEnd, yLog);
-    gdlStoreZAxisParameters(actStream, zposStart, zposEnd, zLog); //uses zStart,zEnd as written in !Z.CRANGE internally
+    if (zEnd!=zStart ) gdlStoreZAxisParameters(actStream, zStart, zEnd, zLog);
+    gdlStoreZAxisParameters(actStream, zValue);
     //set P.CLIP (done by PLOT, CONTOUR, SHADE_SURF, and SURFACE)
     gdlStoreCLIP();
     return true;

@@ -19,7 +19,7 @@
 #include "plotting.hpp"
 
 static GDL_3DTRANSFORMDEVICE PlotDevice3d;
-
+#define EXCH(a,b) { if (a>b){DDouble tmp=a; a=b; b=tmp;} a=MAX(a,0); a=MIN(a,1); b=MAX(b,0); b=MIN(b,1);}
 namespace lib {
 
   using namespace std;
@@ -39,14 +39,14 @@ namespace lib {
     bool xnodef = true;
     bool znodef = true;
     PLFLT viewportXSize, viewportYSize, viewportZSize;
-    PLFLT xnormmin, xnormmax, ynormmin, ynormmax, znormmin, znormmax;
+    PLFLT xnormmin, xnormmax, ynormmin, ynormmax, znormmin=0, znormmax=1, zValue;
     // new x and y range, real values (not log)
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
 
   private:
 
     bool handle_args(EnvT* e) {
-
+      //NOTE: ZVALUE is not mentioned in doc, but is just ignored
       //T3D ?
       static int t3dIx = e->KeywordIx("T3D");
       doT3d = (e->BooleanKeywordSet(t3dIx) || T3Denabled());
@@ -90,7 +90,6 @@ namespace lib {
         }
       }
 
-
       static int DATAIx = e->KeywordIx("DATA");
       static int DEVICEIx = e->KeywordIx("DEVICE");
       static int NORMALIx = e->KeywordIx("NORMAL");
@@ -104,8 +103,9 @@ namespace lib {
       gdlGetCurrentAxisWindow(XAXIS, xnormmin, xnormmax);
       gdlGetCurrentAxisWindow(YAXIS, ynormmin, ynormmax);
       gdlGetCurrentAxisWindow(ZAXIS, znormmin, znormmax);
+      zValue=znormmin;
       //undefined or null previous viewport, seems IDL returns without complain:
-      if ((xnormmin == xnormmax) || (ynormmin == ynormmax)|| (doT3d && (znormmin == znormmax)) ) return true; //abort
+      if ((xnormmin == xnormmax) || (ynormmin == ynormmax)|| (doT3d && (znormmin == znormmax)) ) {std::cerr<<"AXIS: coordinate system not established\n";return true;} //abort
 
       viewportXSize = xnormmax - xnormmin;
       viewportYSize = ynormmax - ynormmin;
@@ -130,11 +130,11 @@ namespace lib {
       if (xAxisWasLog) xPos=pow(10,xPos);
       yPos = (standardNumPos) ? oyStart : oyEnd;
       if (yAxisWasLog) yPos=pow(10,yPos);
-      zPos = (standardNumPos) ? ozStart : ozEnd; 
-      if (xAxisWasLog) zPos=pow(10,zPos);
       //read arguments 
       if (nParam() == 1) {
-        e->AssureDoubleScalarPar(0, yPos);
+        e->AssureDoubleScalarPar(0, xPos);
+        yPos=0;
+        ynodef = false;
         xnodef = false;
       }
       if (nParam() == 2) {
@@ -151,9 +151,40 @@ namespace lib {
         e->AssureDoubleScalarPar(2, zPos);
         znodef = false;
       }
-
-      //default values: start with 'old' values.
-      
+      if (!ynodef) { 
+        // where is point of world coords xVal, yVal in viewport relative coords?
+        bool mapSet = false;
+        get_mapset(mapSet);
+        mapSet = (mapSet && coordinateSystem == DATA);
+        if (mapSet) {
+  #ifdef USE_LIBPROJ
+          ref = map_init();
+          if (ref == NULL) {
+            e->Throw("Projection initialization failed.");
+          }
+          LPTYPE idata;
+          XYTYPE odata;
+  #if PROJ_VERSION_MAJOR >= 5
+          idata.lam = xPos * DEG_TO_RAD;
+          idata.phi = yPos * DEG_TO_RAD;
+          odata = protect_proj_fwd_lp(idata, ref);
+          xPos = odata.x;
+          yPos = odata.y;
+  #else
+          idata.u = xPos * DEG_TO_RAD;
+          idata.v = yPos * DEG_TO_RAD;
+          odata = PJ_FWD(idata, ref);
+          xPos = odata.u;
+          yPos = odata.v;
+  #endif
+  #endif
+        }
+      }
+      //normalized poistions:
+      ConvertToNormXY(1, &xPos, xAxisWasLog, &yPos, yAxisWasLog, coordinateSystem);
+      if (!znodef) ConvertToNormZ(1, &zPos,  zAxisWasLog, coordinateSystem); else zPos=zValue;
+           
+      //default axis values: start with 'old' values.
       xLog = xAxisWasLog;
       yLog = yAxisWasLog; //by default logness is similar until another option is set
       zLog = zAxisWasLog;
@@ -228,109 +259,64 @@ namespace lib {
       //    contrary to the documentation axis does not erase the plot (fortunately!)
       //    gdlNextPlotHandlingNoEraseOption(e, actStream, true);     //NOERASE -- not supported
       PLFLT vpXL, vpXR, vpYB, vpYT, vpZB, vpZT; //define new viewport in relative units
-      // where is point of world coords xVal, yVal in viewport relative coords?
-      bool mapSet = false;
-      get_mapset(mapSet);
-      mapSet = (mapSet && coordinateSystem == DATA);
-      if (mapSet) {
-#ifdef USE_LIBPROJ
-        ref = map_init();
-        if (ref == NULL) {
-          e->Throw("Projection initialization failed.");
-        }
-        LPTYPE idata;
-        XYTYPE odata;
-#if PROJ_VERSION_MAJOR >= 5
-        idata.lam = xPos * DEG_TO_RAD;
-        idata.phi = yPos * DEG_TO_RAD;
-        odata = protect_proj_fwd_lp(idata, ref);
-        xPos = odata.x;
-        yPos = odata.y;
-#else
-        idata.u = xPos * DEG_TO_RAD;
-        idata.v = yPos * DEG_TO_RAD;
-        odata = PJ_FWD(idata, ref);
-        xPos = odata.u;
-        yPos = odata.v;
-#endif
-#endif
-      }    
-      SelfConvertToNormXYZ(1, &xPos, xAxisWasLog , &yPos, yAxisWasLog, &zPos, zAxisWasLog, coordinateSystem);
-
+   
+      if (doT3d) { //call for driver to perform special transform for all further drawing
+        gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
+        PlotDevice3d.zValue=zPos;
+        actStream->cmd( PLESC_3D,  &PlotDevice3d);
+      }
       //compute new temporary viewport in relative coords
       if (standardNumPos) {
         vpXL = (xAxis || xnodef) ? xnormmin : xPos;
-        vpXR = (xAxis || xnodef) ? xnormmax : xnormmax; //xPos + viewportXSize;
+        vpXR = (xAxis || xnodef) ? xnormmax : xnormmax;
         vpYB = (yAxis || ynodef) ? ynormmin : yPos;
-        vpYT = (yAxis || ynodef) ? ynormmax : ynormmax; //yPos + viewportYSize;
+        vpYT = (yAxis || ynodef) ? ynormmax : ynormmax;
         vpZB = (zAxis || znodef) ? znormmin : znormmin; //zPos - viewportXSize;
         vpZT = (zAxis || znodef) ? znormmax : zPos;
       } else {
-        vpXL = (xAxis || xnodef) ? xnormmin : xnormmin; //xPos - viewportXSize;
+        vpXL = (xAxis || xnodef) ? xnormmin : xnormmin;
         vpXR = (xAxis || xnodef) ? xnormmax : xPos;
         vpYB = (yAxis || ynodef) ? ynormmin : ynormmin; //yPos - viewportYSize;
         vpYT = (yAxis || ynodef) ? ynormmax : yPos;
         vpZB = (zAxis || znodef) ? znormmin : zPos;
         vpZT = (zAxis || znodef) ? znormmax : znormmax; //zPos - viewportYSize;
       }
-
+      // virtual port position may be in non-increasing order with formula above:
+      EXCH(vpXL,vpXR);
+      EXCH(vpYB,vpYT);
+      EXCH(vpZB,vpZT);
       static int SAVEIx = e->KeywordIx("SAVE");
       bool doSave = e->KeywordSet(SAVEIx);
-
+      if (doSave) {
+        if (xAxis) gdlStoreXAxisParameters(actStream, xStart, xEnd, xLog);
+        if (yAxis) gdlStoreYAxisParameters(actStream, yStart, yEnd, yLog);
+        if (zAxis) gdlStoreZAxisParameters(actStream, zStart, zEnd, zLog);
+      }
       if (xAxis) { //special ID "XAXIS2" needed because we artificially changed size of box
+      // TBD should not plot  axes if they are not on screen
         actStream->vpor(vpXL, vpXR, vpYB, vpYT);
         //insure 'wind' arguments are given, otherwise BAM! in plplot
         actStream->wind(xStart, xEnd, yStart, yEnd);
-
-        if (doT3d) { //call for driver to perform special transform for all further drawing
-          gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
-          PlotDevice3d.zValue = zPos;
-          actStream->cmd(PLESC_3D, &PlotDevice3d);
-        }
-        
         gdlAxis(e, actStream, XAXIS, xStart, xEnd, xLog, standardNumPos ? 1 : 2, viewportYSize);
-
-        if (doSave) {
-          gdlStoreXAxisParameters(actStream, xStart, xEnd, xLog);
-        }
       }
 
       if (yAxis) {//special id "YAXIS2" needed because we artificially changed size of box
         actStream->vpor(vpXL, vpXR, vpYB, vpYT);
         //insure 'wind' arguments are given, otherwise BAM! in plplot
         actStream->wind(xStart, xEnd, yStart, yEnd);
-
-        if (doT3d) { //call for driver to perform special transform for all further drawing
-          gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
-          PlotDevice3d.zValue = zPos;
-          actStream->cmd(PLESC_3D, &PlotDevice3d);
-        }
-        
         gdlAxis(e, actStream, YAXIS, yStart, yEnd, yLog, standardNumPos ? 1 : 2, viewportXSize);
-
-        if (doSave) {
-          gdlStoreYAxisParameters(actStream, yStart, yEnd, yLog);
-        }
       }
       
       if (doT3d && zAxis) { //no use drawing something unseen
-        
         actStream->vpor(vpXL, vpXR, vpZB, vpZT);
         //insure 'wind' arguments are given, otherwise BAM! in plplot
-        actStream->wind(xStart, xEnd, zStart, zEnd);
-
+        actStream->wind(xStart, xEnd, zStart, zEnd); //as Y but with Z
+        //special transform to use 'y' axis code, but with 'z' values and yz exch.
         gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
         yzaxisExch(PlotDevice3d.T);
         PlotDevice3d.zValue = yPos;
         actStream->cmd(PLESC_3D, &PlotDevice3d);
-        gdlAxis(e, actStream, ZAXIS, zStart, zEnd, zLog, standardNumPos ? 1 : 2, viewportXSize);
-        if (doSave) {
-          gdlStoreYAxisParameters(actStream, zStart, zEnd, zLog);
-        }
-      }
-      // if save, update world coordinates to the new values -- should not make any difference.
-      if (doSave) {
-        actStream->wind(xStart, xEnd, yStart, yEnd);
+        gdlAxis(e, actStream, ZAXIS, zStart, zEnd, zLog, standardNumPos ? 1 : 2, viewportZSize);
       }
       return false;
     }
@@ -342,9 +328,7 @@ namespace lib {
   private:
 
     virtual void post_call(EnvT* e, GDLGStream* actStream) {
-      if (doT3d) { //reset driver to 2D plotting routines.
-        actStream->cmd(PLESC_2D, NULL);
-      }
+      actStream->cmd(PLESC_2D, NULL);
       actStream->sizeChar(1.0);
     }
 

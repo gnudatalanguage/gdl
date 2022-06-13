@@ -27,7 +27,7 @@ namespace lib {
   class plot_call : public plotting_routine_call {
     DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
     SizeT nEl;
-    DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd, zStart, zEnd, zValue;
+    DDouble minVal, maxVal, xStart, xEnd, yStart, yEnd, zValue;
     bool doMinMax;
     bool xLog, yLog, zLog;
     Guard<BaseGDL> xval_guard, yval_guard, xtemp_guard;
@@ -51,8 +51,6 @@ namespace lib {
       zValue = min(zValue, ZVALUEMAX); //to avoid problems with plplot
       zValue = max(zValue, 0.0);
       //zStart and zEnd are ALWAYS Zero. zValue will be registered in !Z.REGION
-      zStart = 0;
-      zEnd = 0;
 
       // system variable !P.NSUM first
       DLong nsum = (*static_cast<DLongGDL*> (SysVar::P()-> GetTag(SysVar::P()->Desc()->TagIndex("NSUM"), 0)))[0];
@@ -142,7 +140,7 @@ namespace lib {
 
       xLog = false;
       yLog = false;
-      zLog = false; //and will not be checked.
+      zLog = false;
 
       // handle Log options passing via Functions names PLOT_IO/OO/OI
       // the behavior can be superseed by [xy]log or [xy]type
@@ -161,8 +159,10 @@ namespace lib {
       // have priority on [xyz]log !
       static int xLogIx = e->KeywordIx("XLOG");
       static int yLogIx = e->KeywordIx("YLOG");
+      static int zLogIx = e->KeywordIx("ZLOG");
       if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
       if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
+      if (e->KeywordPresent(yLogIx)) zLog = e->KeywordSet(zLogIx);
 
       // note: undocumented keywords [xyz]type still exist and
       // have priority on [xyz]log ! In fact, it is the modulo (1, 3, 5 ... --> /log)   
@@ -246,7 +246,7 @@ namespace lib {
       // viewport and world coordinates
       // set the PLOT charsize before setting viewport (margin depend on charsize)
       gdlSetPlotCharsize(e, actStream);
-      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == false) return true; 
+      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, 0, 0, false, zValue, iso) == false) return true; 
 
       if (doT3d) { //call for driver to perform special transform for all further drawing
         gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
@@ -271,7 +271,7 @@ namespace lib {
 
     void applyGraphics(EnvT* e, GDLGStream* actStream) {
       static int nodataIx = e->KeywordIx("NODATA");
-      if (e->KeywordSet(nodataIx)) return; //will perform post_call
+      if (e->KeywordSet(nodataIx) || zLog) return; //will perform post_call //IDL does not plot anything with zLOG???
 
       static int colorIx = e->KeywordIx("COLOR");
       bool doColor = false;

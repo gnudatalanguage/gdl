@@ -27,7 +27,7 @@
 //#define TODATACOORDX( in, out, log) out = (log) ? pow(10.0, (in -sx[0])/sx[1]) : (in -sx[0])/sx[1];
 #define TONORMCOORDY( in, out, log) out = (log) ? sy[0] + sy[1] * log10(in) : sy[0] + sy[1] * in;
 //#define TODATACOORDY( in, out, log) out = (log) ? pow(10.0, (in -sy[0])/sy[1]) : (in -sy[0])/sy[1];
-//#define TONORMCOORDZ( in, out, log) out = (log) ? sz[0] + sz[1] * log10(in) : sz[0] + sz[1] * in;
+#define TONORMCOORDZ( in, out, log) out = (log) ? sz[0] + sz[1] * log10(in) : sz[0] + sz[1] * in;
 //#define TODATACOORDZ( in, out, log) out = (log) ? pow(10.0, (in -sz[0])/sz[1]) : (in -sz[0])/sz[1];
 
 namespace lib
@@ -601,31 +601,7 @@ namespace lib
   {
     gdlGetCurrentAxisRawRangeValues(XAXIS, xStart, xEnd);
     gdlGetCurrentAxisRawRangeValues(YAXIS, yStart, yEnd);
-    gdlGetCurrentAxisRawRangeValues(XAXIS, zStart, zEnd);
-    //following is NOT what IDL does
-//    DDouble *sx, *sy, *sz;
-//    GetSFromPlotStructs( &sx, &sy, &sz );
-//    DFloat *wx, *wy, *wz;
-//    GetWFromPlotStructs(&wx, &wy, &wz);
-//    xStart=(wx[0]-sx[0])/sx[1];
-//    xEnd=(wx[1]-sx[0])/sx[1];
-//    yStart=(wy[0]-sy[0])/sy[1];
-//    yEnd=(wy[1]-sy[0])/sy[1];
-//    zStart=(wz[0]-sz[0])/sz[1];
-//    xEnd=(wz[1]-sz[0])/sz[1];
-//  //probably overkill now...
-//    if (zStart != 0.0 && zStart == zEnd) {
-//      zStart = 0;
-//      zEnd = 1;
-//    }
-//    if (yStart != 0.0 && yStart == yEnd) {
-//      yStart = 0;
-//      yEnd = 1;
-//    }
-//    if (xStart != 0.0 && xStart == xEnd) {
-//      xStart = 0;
-//      xEnd = 1;
-//    }
+    gdlGetCurrentAxisRawRangeValues(ZAXIS, zStart, zEnd);
   }
   
   void ac_histo(GDLGStream *a, int i_buff, PLFLT *x_buff, PLFLT *y_buff, bool xLog)
@@ -1225,6 +1201,16 @@ namespace lib
       for (auto i = 0; i < n; ++i) y[i] /= ySize;
     }
   }
+  void ConvertToNormZ(SizeT n, DDouble *z, bool const zLog, COORDSYS const code) {
+    //  std::cerr<<"ConvertToNormZ(DDouble)"<<std::endl;
+    if (code == DATA) {
+      DDouble *sx, *sy, *sz;
+      GetSFromPlotStructs(&sx, &sy, &sz);
+      for (auto i = 0; i < n; ++i) TONORMCOORDZ(z[i], z[i], zLog);
+    } else if (code == DEVICE) {
+      for (auto i = 0; i < n; ++i) z[i] = 0;
+    }
+  }
   void gdlStoreSC() {
     //save corresponding SCxx values useful for oldies compatibility (to be checked as some changes have been done):
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
@@ -1295,10 +1281,11 @@ namespace lib
     (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1] = End;
     //X.S
     DDouble range=End-Start;
-    if (range==0) range=1;
+    if (range!=0) {
     static unsigned sTag=Struct->Desc()->TagIndex("S");
     (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=(norm_min*End-norm_max*Start)/range;
     (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=(norm_max-norm_min)/range;
+    }
     //OLDIES COMPATIBILITY (?)
     gdlStoreSC();
   }
@@ -1343,35 +1330,38 @@ namespace lib
     gdlStoreSC();
   }
   
-  //Z is a bit different  
-  void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble zposStart, DDouble zposEnd, bool log)
+  //Z is a bit different. this is for Z= or Z param.  
+  void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log)
 {
     DStructGDL* Struct=SysVar::Z(); 
-    static unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
-    DFloat m1 = (*static_cast<DFloatGDL*> (Struct->GetTag(marginTag, 0)))[0];
-    DFloat m2 = (*static_cast<DFloatGDL*> (Struct->GetTag(marginTag, 0)))[1];
-    //REGION
-    static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
-    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=zposStart;
-    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=zposEnd;
-    //WINDOW
-    static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
-    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=zposStart;
-    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=zposEnd;
+    PLFLT norm_min = 0;
+    PLFLT norm_max = 1;
     // Loginess
     static unsigned typeTag = Struct->Desc()->TagIndex("TYPE");
     (*static_cast<DLongGDL*> (Struct->GetTag(typeTag, 0)))[0] = log;
     //CRANGE
     unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
     //here, as this is called from a box-setting (or axis-setting) function, Start and End are already in LOG if case be.
-    (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0] = zposStart;
-    (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1] = zposEnd;
+    (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0] = Start;
+    (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1] = End;
     //Z.S
-    DDouble range=zposEnd-zposStart;
+    DDouble range=End-Start;
     if (range==0) range=1;
     static unsigned sTag=Struct->Desc()->TagIndex("S");
-    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=zposStart;
-    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=(zposEnd-zposStart)/range;
+    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=(norm_min * End - norm_max * Start) / range;
+    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=(norm_max - norm_min) / range;
+  }
+  //Z with zValue, not Z= or Z param  
+  void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble zValue)
+{
+    DStructGDL* Struct=SysVar::Z(); 
+    static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=zValue;
+    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=ZVALUEMAX;
+    //WINDOW
+    static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
+    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=zValue;
+    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=ZVALUEMAX;
   }
   void gdlGetCLIPXY(DDouble &xStart, DDouble &yStart, DDouble &xEnd, DDouble &yEnd){
     DStructGDL* dStruct=SysVar::D();   //MUST NOT BE STATIC, due to .reset 
