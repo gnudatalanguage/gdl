@@ -19,6 +19,8 @@
 #include "plotting.hpp"
 #include "dinterpreter.hpp"
 
+static GDL_3DTRANSFORMDEVICE T3DForAXes;
+
 namespace lib
 {
 
@@ -34,18 +36,36 @@ namespace lib
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard, p0_guard;
     SizeT xEl, yEl, zEl;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd, zValue, datamax, datamin;
+    DDouble minVal,maxVal;
+    bool hasMinVal, hasMaxVal;
+    bool doT3d;
     bool nodata;
     bool setZrange;
     bool xLog;
     bool yLog;
     bool zLog;
     T3DEXCHANGECODE axisExchangeCode;
+    PLFLT alt = 30.0;
+    PLFLT az = 30.0;
+    PLFLT ay = 0;
+    
   private:
     bool handle_args (EnvT* e)
-    {
-     // in all cases, we have to exit here
-      if ( nParam()==2 || nParam()>3 )
-	{
+{
+      //T3D ?
+      static int t3dIx = e->KeywordIx("T3D");
+      doT3d = (e->BooleanKeywordSet(t3dIx) || T3Denabled());
+
+      zValue = std::numeric_limits<DDouble>::quiet_NaN(); //NAN = no zValue?
+      static int zvIx = e->KeywordIx("ZVALUE");
+      if (e->KeywordPresent(zvIx)){
+        e->AssureDoubleScalarKWIfPresent(zvIx, zValue);
+        zValue = min(zValue, ZVALUEMAX); //to avoid problems with plplot
+        zValue = max(zValue, 0.0);
+      }
+      
+    // in all cases, we have to exit here
+      if ( nParam()==2 || nParam()>3 )	{
 	  e->Throw ( "Incorrect number of arguments." );
 	}
       
@@ -58,35 +78,19 @@ namespace lib
     static int xLogIx = e->KeywordIx( "XLOG" );
     static int yLogIx = e->KeywordIx( "YLOG" );
     static int zLogIx = e->KeywordIx( "ZLOG" );
-    static int xTickunitsIx = e->KeywordIx( "XTICKUNITS" );
-    static int yTickunitsIx = e->KeywordIx( "YTICKUNITS" );
-    static int zTickunitsIx = e->KeywordIx( "ZTICKUNITS" );
 
     if ( e->KeywordPresent( xTypeIx ) ) xLog = e->KeywordSet( xTypeIx ); else xLog = e->KeywordSet( xLogIx );
     if ( e->KeywordPresent( yTypeIx ) ) yLog = e->KeywordSet( yTypeIx ); else yLog = e->KeywordSet( yLogIx );
     if ( e->KeywordPresent( zTypeIx ) ) zLog = e->KeywordSet( zTypeIx ); else zLog = e->KeywordSet( zLogIx );
 
-    if ( xLog && e->KeywordSet( xTickunitsIx ) ) {
-      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
-      xLog = FALSE;
-    }
-    if ( yLog && e->KeywordSet( yTickunitsIx ) ) {
-      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
-      yLog = FALSE;
-    }
-    if ( zLog && e->KeywordSet( zTickunitsIx ) ) {
-      Message( "PLOT: LOG setting ignored for Date/Time TICKUNITS." );
-      zLog = FALSE;
-    }
-
-    if ( nParam ( ) > 0 )
-    {
+    if ( nParam ( ) > 0 ) {
 	// By testing here using EquivalentRank() we avoid computing zval if there was a problem.
 	// AC 2018/04/24
 	// a sub-array like: a=RANDOMU(seed, 3,4,5) & (this procedure name), a[1,*,*]
 	// should be OK ...
 	    if ( (e->GetNumericArrayParDefined ( 0 ))->EquivalentRank ( )!=2 ) e->Throw ( "Array must have 2 dimensions: "+e->GetParString ( 0 ) );
     }
+
     if ( nParam ( )==1) {
         BaseGDL* p0 = e->GetNumericArrayParDefined(0)->Transpose(NULL);
         p0_guard.Init(p0); // delete upon exit
@@ -112,29 +116,25 @@ namespace lib
 
         xVal = e->GetParAs< DDoubleGDL>(1);
         yVal = e->GetParAs< DDoubleGDL>(2);
-
+          //filter out incompatible ranks >2 or ==0
         if (xVal->Rank() > 2)
           e->Throw("X, Y, or Z array dimensions are incompatible.");
-
         if (yVal->Rank() > 2)
           e->Throw("X, Y, or Z array dimensions are incompatible.");
         if (xVal->Rank() == 0 || yVal->Rank() == 0)
           e->Throw("X, Y, or Z array dimensions are incompatible.");
-
+          //filter out incompatible 1D dimensions
         if (xVal->Rank() == 1) {
           xEl = xVal->Dim(0);
-
           if (xEl != zVal->Dim(1))
             e->Throw("X, Y, or Z array dimensions are incompatible.");
         }
-
         if (yVal->Rank() == 1) {
           yEl = yVal->Dim(0);
-
           if (yEl != zVal->Dim(0))
             e->Throw("X, Y, or Z array dimensions are incompatible.");
         }
-
+          //filter out incompatible 2D dimensions
         if (xVal->Rank() == 2) {
           //plplot is unable to handle such subtetlies, better to throw?
           e->Throw("Sorry, plplot cannot handle 2D X coordinates in its 3D plots.");
@@ -142,7 +142,6 @@ namespace lib
           if ((xVal->Dim(0) != zVal->Dim(1))&&(xVal->Dim(1) != zVal->Dim(0)))
             e->Throw("X, Y, or Z array dimensions are incompatible.");
         }
-
         if (yVal->Rank() == 2) {
         //plplot is unable to handle such subtetlies, better to throw?
           e->Throw("Sorry, plplot cannot handle 2D Y coordinates in its 3D plots.");
@@ -175,15 +174,22 @@ namespace lib
       DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;
       bool setx=gdlGetDesiredAxisRange(e, XAXIS, xAxisStart, xAxisEnd);
       bool sety=gdlGetDesiredAxisRange(e, YAXIS, yAxisStart, yAxisEnd);
-      if (setx) {
+      if (setx && sety) {
         xStart=xAxisStart;
         xEnd=xAxisEnd;
-      }
-      if (sety) {
         yStart=yAxisStart;
         yEnd=yAxisEnd;
+      } else if (sety) {
+        yStart = yAxisStart;
+        yEnd = yAxisEnd;
+      } else if (setx) {
+        xStart = xAxisStart;
+        xEnd = xAxisEnd;
+        //must compute min-max for other axis!
+        {
+          gdlDoRangeExtrema(xVal, yVal, yStart, yEnd, xStart, xEnd, false);
+        }
       }
-
       // z range
       datamax=0.0;
       datamin=0.0;
@@ -192,52 +198,25 @@ namespace lib
       zEnd=datamax;
       setZrange = gdlGetDesiredAxisRange(e, ZAXIS, zStart, zEnd);
 
-        return false; //do not abort
-    } 
-
-  private:
-    bool prepareDrawArea (EnvT* e, GDLGStream* actStream) // {{{
-    {
-      //T3D
-      static int t3dIx = e->KeywordIx( "T3D");
-      bool doT3d=(e->BooleanKeywordSet(t3dIx)|| T3Denabled());
-      //ZVALUE
-      static int zvIx = e->KeywordIx( "ZVALUE");
-      zValue=0.0;
-      e->AssureDoubleScalarKWIfPresent ( zvIx, zValue );
-      zValue=min(zValue,ZVALUEMAX); //to avoid problems with plplot
-      zValue = max(zValue, 0.0);
-      //SAVE
-      static int savet3dIx = e->KeywordIx( "SAVE");
-      bool saveT3d=e->KeywordSet(savet3dIx);
-      //NODATA
-      static int nodataIx = e->KeywordIx( "NODATA");
-      nodata=e->KeywordSet(nodataIx);
-      //SHADES
-      static int shadesIx = e->KeywordIx( "SHADES");
-      BaseGDL* shadevalues=e->GetKW ( shadesIx );
-      bool doShade=(shadevalues != NULL); //... But 3d mesh will be colorized anyway!
-      if (doShade) Warning ( "SURFACE: Using Fixed (Z linear) Shade Values Only (FIXME)." );
-
       //check here since after AutoIntvAC values will be good but arrays passed
       //to plplot will be bad...
-      if ( xLog && xStart<=0.0 ) Warning ( "SURFACE: Infinite x plot range." );
-      if ( yLog && yStart<=0.0 ) Warning ( "SURFACE: Infinite y plot range." );
-      if ( zLog && zStart<=0.0 ) Warning ( "SURFACE: Infinite z plot range." );
+      if (xLog && xStart <= 0.0) Warning("SURFACE: Infinite x plot range.");
+      if (yLog && yStart <= 0.0) Warning("SURFACE: Infinite y plot range.");
+      if (zLog && zStart <= 0.0) Warning("SURFACE: Infinite z plot range.");
 
-      static int MIN_VALUEIx = e->KeywordIx( "MIN_VALUE");
-      static int MAX_VALUEIx = e->KeywordIx( "MAX_VALUE");
+      static int MIN_VALUEIx = e->KeywordIx("MIN_VALUE");
+      static int MAX_VALUEIx = e->KeywordIx("MAX_VALUE");
 
-      bool hasMinVal=e->KeywordPresent(MIN_VALUEIx);
-      bool hasMaxVal=e->KeywordPresent(MAX_VALUEIx);
-      DDouble minVal=datamin;
-      DDouble maxVal=datamax;
-      e->AssureDoubleScalarKWIfPresent ( MIN_VALUEIx, minVal );
-      e->AssureDoubleScalarKWIfPresent ( MAX_VALUEIx, maxVal );
+      hasMinVal = e->KeywordPresent(MIN_VALUEIx);
+      hasMaxVal = e->KeywordPresent(MAX_VALUEIx);
+      minVal = datamin;
+      maxVal = datamax;
+      e->AssureDoubleScalarKWIfPresent(MIN_VALUEIx, minVal);
+      e->AssureDoubleScalarKWIfPresent(MAX_VALUEIx, maxVal);
 
       if (!setZrange) {
-        zStart=max(minVal,zStart);
-        zEnd=min(zEnd,maxVal);
+        zStart = max(minVal, zStart);
+        zEnd = min(zEnd, maxVal);
       }
 
       //Box adjustement:
@@ -245,62 +224,104 @@ namespace lib
       gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
       gdlAdjustAxisRange(e, ZAXIS, zStart, zEnd, zLog);
 
+        return false; //do not abort
+    } 
+
+  private:
+    bool prepareDrawArea (EnvT* e, GDLGStream* actStream) // {{{
+    {
+      static int savet3dIx = e->KeywordIx("SAVE");
+      bool saveT3d = e->KeywordSet(savet3dIx);
+
       // background BEFORE next plot since it is the only place plplot may redraw the background...
-      gdlSetGraphicsBackgroundColorFromKw ( e, actStream ); //BACKGROUND
+      gdlSetGraphicsBackgroundColorFromKw ( e, actStream );
+      //start a plot
       gdlNextPlotHandlingNoEraseOption(e, actStream);     //NOERASE
-        // set the PLOT charsize before computing box, see plot command.
+
+      // viewport and world coordinates
+      // set the PLOT charsize before setting viewport (margin depend on charsize)
       gdlSetPlotCharsize(e, actStream);
-      //set 2D scale etc.
-      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return true; //no good: should catch an exception to get out of this mess.
       
       // Deal with T3D options -- either present and we have to deduce az and alt contained in it,
       // or absent and we have to compute !P.T from az and alt.
 
-      PLFLT alt=30.0;
-      PLFLT az=30.0;
-      //set az and ax (alt)
-      DFloat alt_change=alt;
-      static int AXIx=e->KeywordIx("AX");
-      e->AssureFloatScalarKWIfPresent(AXIx, alt_change);
-      alt=alt_change;
+      PLFLT scale[3]={SCALEBYDEFAULT,SCALEBYDEFAULT,SCALEBYDEFAULT};
+      if (!doT3d) { // or absent and we have to compute !P.T from az and alt.
+        //set az and ax (alt)
+        DFloat alt_change=alt;
+        static int AXIx=e->KeywordIx("AX");
+        e->AssureFloatScalarKWIfPresent(AXIx, alt_change);
+        alt=alt_change;
 
-      alt=fmod(alt,360.0); //restrict between 0 and 90 for plplot!
-      if (alt > 90.0 || alt < 0.0)
-      {
-        e->Throw ( "SURFACE: AX restricted to [0-90] range by plplot (fix plplot!)" );
+        alt=fmod(alt,360.0); //restrict between 0 and 90 for plplot!
+        if (alt > 90.0 || alt < 0.0)
+        {
+          e->Throw ( "SURFACE: AX restricted to [0-90] range by plplot (fix plplot!)" );
+        }
+        DFloat az_change=az;
+        static int AZIx=e->KeywordIx("AZ");
+        e->AssureFloatScalarKWIfPresent(AZIx, az_change);
+        az=az_change;
+        //Compute transformation matrix with *DL conventions for the BOX
+        DDoubleGDL* gdlBox3d=gdlDefinePlplotRotationMatrix( az, alt, scale, saveT3d);
+        for (int i = 0; i < 16; ++i)T3DForAXes.T[i] =(*gdlBox3d)[i];
+        T3DForAXes.zValue = (std::isfinite(zValue))?zValue:0;
+      } else {
+        bool ok=gdlInterpretT3DMatrixAsPlplotRotationMatrix(az, alt, ay, scale, axisExchangeCode);
+        if (!ok) e->Throw ( "SURFACE: Illegal 3D transformation." );
+        gdlGetT3DMatrixForDriverTransform(T3DForAXes.T);
+        T3DForAXes.zValue = (std::isfinite(zValue))?zValue:0;
       }
-      DFloat az_change=az;
-      static int AZIx=e->KeywordIx("AZ");
-      e->AssureFloatScalarKWIfPresent(AZIx, az_change);
-      az=az_change;
+      // We could have kept the old code where the box was written by plplot's box3(), but it would not be compatible with the rest of the eventual other (over)plots
+      //write box using our 3D PLESC tricks:
+      actStream->cmd( PLESC_3D,  &T3DForAXes);
+      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return true;
+      //Draw axes with normal color!
+      gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
+      //draw OUR box
+      gdlBox3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, T3DForAXes);
+      // title and sub title
+      gdlWriteTitleAndSubtitle(e, actStream);
+       //reset driver to 2D plotting routines, further 3D is just plplot drawing a mesh.
+      actStream->cmd(PLESC_2D, NULL); 
+      
+      //we now pass EVERYTHING in normalized coordinates w/o clipping and set up a transformation to have plplot mesh correct on the 2D vpor.
+      gdlSwitchToClippedNormalizedCoordinates(e, actStream, true); //true=noclip
+      const COORDSYS coordinateSystem = DATA;
+      SelfConvertToNormXYZ(xStart, xLog, yStart, yLog, zStart, zLog, coordinateSystem); 
+      SelfConvertToNormXYZ(xEnd, xLog, yEnd, yLog, zEnd, zLog, coordinateSystem);
+      if (hasMinVal) ConvertToNormZ(1, &minVal, zLog, coordinateSystem);
+      if (hasMaxVal) ConvertToNormZ(1, &maxVal, zLog, coordinateSystem);
+      //WARNING Following sets coordinateSystem=NORM!
+      COORDSYS coordinateSystem2 = DATA;
+      SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem2); //always DATA for PLOT X,Y values
+      ConvertToNormZ(xEl*yEl, (DDouble*) zVal->DataAddr(), zLog, coordinateSystem);
+// the mapping between data 3-d and world 3-d coordinates is given by:
+//
+//   x = xmin   =>   wx = -0.5*basex
+//   x = xmax   =>   wx =  0.5*basex
+//   y = ymin   =>   wy = -0.5*basey
+//   y = ymax   =>   wy =  0.5*basey
+//   z = zmin   =>   wz =  0.0
+//   z = zmax   =>   wz =  height
+//      actStream->vpor(0,1,0,1);
+      actStream->wind(-0.5,0.5,-0.5,0.5);
+//      std::cerr<<scale[0]<<","<<scale[1]<<","<<scale[2]<<std::endl;
+      actStream->w3d(scale[0],scale[1],scale[2],0,1,0,1,-0.5,0.5, alt, az);
+//      actStream->w3d(1,1,1,0,1,0,1,0,1, alt, az);
 
-      //now we are in plplot different kind of 3d
-      DDoubleGDL* plplot3d;
-      DDouble ay, scale[3]={SCALEBYDEFAULT,SCALEBYDEFAULT,1-zValue};
-      if (doT3d) //convert to this world...
-      {
-        plplot3d=gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
-        if (plplot3d == NULL) e->Throw ( "SURFACE: Illegal 3D transformation." );
-      }
-      else //make the transformation ourselves
-      { 
-        //Compute transformation matrix with plplot conventions:
-        plplot3d=gdlDefinePlplotRotationMatrix( az, alt, zValue, scale, saveT3d);
-      }
-
-//      if ( gdlSet3DViewPortAndWorldCoordinates(e, actStream, plplot3d, xLog, yLog,
-//        xStart, xEnd, yStart, yEnd, zStart, zEnd, zLog)==FALSE ) return true;
-
-      if (xLog) xStart=log10(xStart);
-      if (yLog) yStart=log10(yStart);
-      if (zLog) zStart=log10(zStart);
-      if (xLog) xEnd=log10(xEnd);
-      if (yLog) yEnd=log10(yEnd);
-      if (zLog) zEnd=log10(zEnd);
-
-       actStream->w3d(scale[0],scale[1],scale[2]*(1.0-zValue),
-                     xStart, xEnd, yStart, yEnd, zStart, zEnd,
-                     alt, az);
+      return false;
+    }
+    
+void applyGraphics(EnvT* e, GDLGStream * actStream) {
+      //NODATA
+      static int nodataIx = e->KeywordIx("NODATA");
+      nodata = e->KeywordSet(nodataIx);
+      //SHADES
+      static int shadesIx = e->KeywordIx("SHADES");
+      BaseGDL* shadevalues = e->GetKW(shadesIx);
+      bool doShade = (shadevalues != NULL); //... But 3d mesh will be colorized anyway!
+      if (doShade) Warning("SURFACE: Using Fixed (Z linear) Shade Values Only (FIXME).");
 
       static int UPPER_ONLYIx = e->KeywordIx( "UPPER_ONLY");
       static int LOWER_ONLYIx = e->KeywordIx( "LOWER_ONLY");
@@ -324,22 +345,10 @@ namespace lib
           for ( SizeT j=0; j<yEl; j++)
           { //plplot does not like NaNs and any other terribly large gradient!
             PLFLT v=(*zVal)[k++];
-            if (zLog)
-            {
-              v= log10(v);
-              PLFLT miv=log10(minVal);
-              PLFLT mav=log10(maxVal);
-              if ( !isfinite(v) ) v=miv;
-              if ( hasMinVal && v < miv) v=miv;
-              if ( hasMaxVal && v > mav) v=mav;
-            }
-            else
-            {
-              if ( !isfinite(v) ) v=minVal;
-              if ( hasMinVal && v < minVal) v=minVal;
-              if ( hasMaxVal && v > maxVal) v=maxVal;
-            }
-            map[i][j] = v;
+            if ( !isfinite(v) ) v=minVal;
+            if ( hasMinVal && v < minVal) v=minVal;
+            if ( hasMaxVal && v > maxVal) v=maxVal;
+            map[i][j] = v-1;
           }
         }
         // 1 types of grid only: 1D X and Y.
@@ -352,24 +361,24 @@ namespace lib
         cgrid1.yg = yg1;
         cgrid1.nx = xEl;
         cgrid1.ny = yEl;
-        for ( SizeT i=0; i<cgrid1.nx; i++ ) cgrid1.xg[i] = (*xVal)[i];
-        for ( SizeT i=0; i<cgrid1.ny; i++ ) cgrid1.yg[i] = (*yVal)[i];
+        for ( SizeT i=0; i<xEl; i++ ) cgrid1.xg[i] = (*xVal)[i];
+        for ( SizeT i=0; i<yEl; i++ ) cgrid1.yg[i] = (*yVal)[i];
         //apply projection transformations:
         //not until plplot accepts 2D X Y!
         
-        //apply plot options transformations
-        if (xLog) { //cgrid is tested internally by plplot (pl3dcl) that aborts if not STRICTLY increasing, this is painful!
-          DDouble startVal=xStart; //at this point xStart is an OK value for the log X axis.
-          DDouble epsilon=fabs(startVal-1)/xEl;
-          startVal-=1; 
-          for ( SizeT i=0; i<cgrid1.nx; i++ ) cgrid1.xg[i] = cgrid1.xg[i]>0?log10(cgrid1.xg[i]):startVal+i*epsilon; 
-        }
-        if (yLog) {
-          DDouble startVal=yStart; //at this point yStart is an OK value for the log Y axis.
-          DDouble epsilon=fabs(startVal-1)/xEl;
-          startVal-=1; 
-          for ( SizeT i=0; i<cgrid1.ny; i++ ) cgrid1.yg[i] = cgrid1.yg[i]>0?log10(cgrid1.yg[i]):startVal+i*epsilon;
-        }
+//        //apply plot options transformations
+//        if (xLog) { //cgrid is tested internally by plplot (pl3dcl) that aborts if not STRICTLY increasing, this is painful!
+//          DDouble startVal=xStart; //at this point xStart is an OK value for the log X axis.
+//          DDouble epsilon=fabs(startVal-1)/xEl;
+//          startVal-=1; 
+//          for ( SizeT i=0; i<cgrid1.nx; i++ ) cgrid1.xg[i] = cgrid1.xg[i]>0?log10(cgrid1.xg[i]):startVal+i*epsilon; 
+//        }
+//        if (yLog) {
+//          DDouble startVal=yStart; //at this point yStart is an OK value for the log Y axis.
+//          DDouble epsilon=fabs(startVal-1)/xEl;
+//          startVal-=1; 
+//          for ( SizeT i=0; i<cgrid1.ny; i++ ) cgrid1.yg[i] = cgrid1.yg[i]>0?log10(cgrid1.yg[i]):startVal+i*epsilon;
+//        }
 
 
         gdlSetGraphicsForegroundColorFromKw ( e, actStream );
@@ -407,7 +416,7 @@ namespace lib
            else
            {
              if (doShade) actStream->meshc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt+MAG_COLOR,NULL,0);
-             else actStream->meshc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
+             else actStream->mesh(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt);
            }
            //redraw upper part with background color to remove it... Not 100% satisfying though.
            if (low)
@@ -424,23 +433,10 @@ namespace lib
         delete[] yg1;
         actStream->Free2dGrid(map, xEl, yEl);
       }
-      //Draw axes with normal color!
-      gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
-      gdlBox3(e, actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd, xLog, yLog, zLog, true);
-
-      return false; //do not abort
     } 
-
-  private:
-
-    void applyGraphics (EnvT* e, GDLGStream* actStream) 
-    {
-    } 
-
-  private:
 
     virtual void post_call (EnvT*, GDLGStream* actStream) 
-    {
+{
       actStream->lsty(1);//reset linestyle
       actStream->sizeChar(1.0);
     } 

@@ -1151,19 +1151,10 @@ void GDLGStream::sizeChar( PLFLT scale )
   CurrentCharSize(scale);
 }
 
-void GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
+bool GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
 {
   //make vpor units really min max, otherwise som problems appear spuriously
-  if (xmin > xmax) {
-    PLFLT tmp=xmax;
-    xmin=xmax;
-    xmax=tmp;
-  }
-  if (ymin > ymax) {
-    PLFLT tmp=ymax;
-    ymin=ymax;
-    ymax=tmp;
-  }
+  if (xmin > xmax || ymin > ymax) return true;
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"vpor(): requesting x[%f:%f],y[%f:%f] (normalized, subpage)\n",xmin,xmax,ymin,ymax);
   //note that plplot apparently does not write the y=0 line of pixels (in device coords). IDL page is on the contrary limited to
   // [0..1[ in both axes (normalized coordinates)
@@ -1184,15 +1175,16 @@ void GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
   theBox.initialized=true;
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"vpor(): got x[%f:%f],x[%f:%f] (normalized, device)\n",theBox.ndx1,theBox.ndx2,theBox.ndy1,theBox.ndy2);
   syncPageInfo();
+  return false;
 }
 
-void GDLGStream::isovpor(PLFLT x1, PLFLT x2, PLFLT y1,  PLFLT y2,  PLFLT aspect)
+//returns true if positioning problem
+bool GDLGStream::isovpor(PLFLT x1, PLFLT x2, PLFLT y1,  PLFLT y2,  PLFLT aspect)
 {
   if (aspect <= 0.0) {
-    vpor(x1, x2, y1, y2);
-    return;
+    return vpor(x1, x2, y1, y2);
   }
-  assert(x2 > x1 && y2 > y1);
+  if (x2 <= x1 || y2 <= y1) return true;
   //x1 < x2 && y1 < y2 implied
   PLFLT x1mm = nd2mx(x1);
   PLFLT y1mm = nd2my(y1);
@@ -1200,17 +1192,17 @@ void GDLGStream::isovpor(PLFLT x1, PLFLT x2, PLFLT y1,  PLFLT y2,  PLFLT aspect)
   PLFLT y2mm = nd2my(y2);
   PLFLT ys = y2mm - y1mm; //x and y are in normalized coordinates. ISO scaling must be performed using screen (or paper) coordinates:
   PLFLT xs = x2mm - x1mm;
-  if (ys > xs * aspect) { //x ok, resize y
+  if (ys >= xs * aspect) { //x ok, resize y
     y2mm = y1mm + aspect*xs;
   } else {
-    x2mm = x1mm + xs / aspect;
+    x2mm = x1mm + aspect*ys;
   }
   x1 = mm2ndx(x1mm);
   x2 = mm2ndx(x2mm);
   y1 = mm2ndy(y1mm);
   y2 = mm2ndy(y2mm);
   // here we need too compensate for the change of aspect due to eventual !P.MULTI plots
-  vpor(x1, x2, y1, y2); //ask for non-iso window
+  return vpor(x1, x2, y1, y2); //ask for non-iso window
 }
 
 void GDLGStream::wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )

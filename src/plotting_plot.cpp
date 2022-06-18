@@ -44,13 +44,13 @@ namespace lib {
       static int t3dIx = e->KeywordIx("T3D");
       doT3d = (e->BooleanKeywordSet(t3dIx) || T3Denabled());
 
-      //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
+      zValue = std::numeric_limits<DDouble>::quiet_NaN(); //NAN = no zValue?
       static int zvIx = e->KeywordIx("ZVALUE");
-      zValue = 0.0;
+      if (e->KeywordPresent(zvIx)){
       e->AssureDoubleScalarKWIfPresent(zvIx, zValue);
       zValue = min(zValue, ZVALUEMAX); //to avoid problems with plplot
       zValue = max(zValue, 0.0);
-      //zStart and zEnd are ALWAYS Zero. zValue will be registered in !Z.REGION
+      }
 
       // system variable !P.NSUM first
       DLong nsum = (*static_cast<DLongGDL*> (SysVar::P()-> GetTag(SysVar::P()->Desc()->TagIndex("NSUM"), 0)))[0];
@@ -234,14 +234,15 @@ namespace lib {
       //ISOTROPIC
       static int ISOTROPIC = e->KeywordIx("ISOTROPIC");
       iso = e->KeywordSet(ISOTROPIC);
-      // background BEFORE next plot since it is the only place plplot may redraw the background...
-      gdlSetGraphicsBackgroundColorFromKw(e, actStream);
-      //start a plot
-      gdlNextPlotHandlingNoEraseOption(e, actStream); //NOERASE
 
       //Box adjustement:
       gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
       gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
+      
+     // background BEFORE next plot since it is the only place plplot may redraw the background...
+      gdlSetGraphicsBackgroundColorFromKw(e, actStream);
+      //start a plot
+      gdlNextPlotHandlingNoEraseOption(e, actStream); //NOERASE
 
       // viewport and world coordinates
       // set the PLOT charsize before setting viewport (margin depend on charsize)
@@ -257,7 +258,7 @@ namespace lib {
       actStream->setSymbolSizeConversionFactors();
       //current pen color...
       gdlSetGraphicsForegroundColorFromKw(e, actStream);
-      gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, xLog, yLog);
+      gdlBox(e, actStream, xStart, xEnd, xLog, yStart, yEnd,  yLog);
       
       // title and sub title
       gdlWriteTitleAndSubtitle(e, actStream);
@@ -271,7 +272,7 @@ namespace lib {
 
     void applyGraphics(EnvT* e, GDLGStream* actStream) {
       static int nodataIx = e->KeywordIx("NODATA");
-      if (e->KeywordSet(nodataIx) || zLog) return; //will perform post_call //IDL does not plot anything with zLOG???
+      if (e->KeywordSet(nodataIx) || zLog) return; //will perform post_call //IDL does not plot anything when zlog is present (normal, z=0)
 
       static int colorIx = e->KeywordIx("COLOR");
       bool doColor = false;

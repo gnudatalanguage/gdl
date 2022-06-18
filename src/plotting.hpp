@@ -82,22 +82,6 @@ typedef struct {
   DDouble T[16];
 } GDL_3DTRANSFORMDEVICE;
 
-struct GDL_3DTRANSFORMDATA {
-  DDoubleGDL* Matrix;
-  DDouble zValue;
-  int* code;
-  DDouble x0;
-  DDouble xs;
-  DDouble y0;
-  DDouble ys;
-  DDouble z0;
-  DDouble zs;
-  bool xlog;
-  bool ylog;
-  bool zlog;
-};
-
-static GDL_3DTRANSFORMDATA Data3d;
 
 static int code012[3] = {0, 1, 2};
 static int code102[3] = {1, 0, 2};
@@ -116,17 +100,13 @@ enum T3DEXCHANGECODE {
 
 // to be removed:
 #define  SCALEBYDEFAULT 1./sqrt(3) 
-#define TEMPORARY_PLOT3D_SCALE {SCALEBYDEFAULT,SCALEBYDEFAULT,SCALEBYDEFAULT}
 
-#define ZVALUEMAX 0.999999
+static const DDouble ZVALUEMAX=0.99998999;
 
 enum PLOT_AXES_IDENTIFIERS {
   XAXIS = 0,
   YAXIS,
   ZAXIS,
-  XAXIS2, //special identifiere for gdlAxis
-  YAXIS2,
-  ZAXIS2
 };
 
 static const std::string axisName[6] = {"X", "Y", "Z", "X", "Y", "Z"};
@@ -268,19 +248,15 @@ namespace lib {
   void SelfConvertToNormXY(DDoubleGDL* x, bool &xLog, DDoubleGDL* y, bool &yLog, COORDSYS &code);
   void SelfPDotTTransformXYZ(SizeT n, PLFLT *xt, PLFLT *yt, PLFLT *zt);
   void SelfPDotTTransformXYZ(DDoubleGDL *xt, DDoubleGDL *yt, DDoubleGDL *zt);
-  void PDotTTransformXY_todelete(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
   void PDotTTransformXYZval(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
   void PDotTTransformXYZvalForPlplotAxes(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
-  void gdl3dTo2dTransform_todelete(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer unused);
-  DDoubleGDL* gdlComputePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale);
-  DDoubleGDL* gdlDefinePlplotRotationMatrix(DDouble az, DDouble alt, DDouble zValue, DDouble *scale, bool save);
-  DDoubleGDL* gdlDoAsSurfr(DDouble az, DDouble alt, DDouble zValue);
-  DDoubleGDL* gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble zValue, DDouble &az, DDouble &alt,
-    DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode);
+  DDoubleGDL* gdlDefinePlplotRotationMatrix(DDouble az, DDouble alt, DDouble *scale, bool save);
+  bool gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble &az, DDouble &alt, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode);
   DDoubleGDL* gdlGetScaledNormalizedT3DMatrix(DDoubleGDL* Matrix = NULL);
   DDoubleGDL* gdlGetT3DMatrix();
   void gdlGetT3DMatrixForDriverTransform(DDouble* T);
-  void gdlSetPlplotW3_todelete(EnvT* e, GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue, DDouble az, DDouble alt, DDouble *scale, T3DEXCHANGECODE axisExchangeCode);
+  void setAsHalfSizeTranslation(DDouble* T);
+  void gdlStart3DDriverTransform(GDLGStream *a, GDL_3DTRANSFORMDEVICE transform3D, DDouble zValue);
   void gdlPlot3DBox(EnvT* e, GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, T3DEXCHANGECODE axisExchangeCode);
   void gdlPlot3DBorders(EnvT* e, GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, T3DEXCHANGECODE axisExchangeCode);
   void gdlNormed3dToWorld3d(DDoubleGDL *xVal, DDoubleGDL *yVal, DDoubleGDL* zVal,
@@ -369,19 +345,13 @@ namespace lib {
   void SelfPDotTTransformProjectedPolygonTable(DDoubleGDL *lonlat);
   DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, DDoubleGDL *zVal, bool isRadians, bool const doFill, bool const dolines, DLongGDL *&conn);
   void GDLgrPlotProjectedPolygon(GDLGStream * a, DDoubleGDL *lonlat, bool const doFill, DLongGDL *conn);
-  //protect from (inverted, strange) axis log values
-  void gdlHandleUnwantedLogAxisValue(DDouble &min, DDouble &max, bool log);
   void gdlSetGraphicsPenColorToBackground(GDLGStream *a);
   void gdlLineStyle(GDLGStream *a, DLong style);
   DFloat* gdlGetRegion();
-  void gdlStoreAxisCRANGE(int axisId, DDouble Start, DDouble End, bool log);
   void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log);
   void gdlStoreYAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log);
-  void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log);
-  void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble zValue);
+  void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log, DDouble zposStart, DDouble zposEnd);
   void gdlGetAxisType(int axisId, bool &log);
-  void gdlGetCurrentAxisLinearRange(int axisId, DDouble &Start, DDouble &End);
-  void gdlGetCurrentAxisRawRangeValues(int axisId, DDouble &Start, DDouble &End);
   void gdlGetCurrentAxisWindow(int axisId, DDouble &wStart, DDouble &wEnd);
   void gdlStoreAxisType(int axisId, bool type);
   //  void gdlGetCharSizes(GDLGStream *a, PLFLT &nsx, PLFLT &nsy, DDouble &wsx, DDouble &wsy, 
@@ -1319,7 +1289,7 @@ namespace lib {
   //advance to next plot unless the noerase flag is set
   // function declared static (local to each function using it) to avoid messing the NOERASEIx index which is not the same.
 
-  static void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a, bool noe = 0) {
+  static void gdlNextPlotHandlingNoEraseOption(EnvT *e, GDLGStream *a, bool noe = false) {
     bool noErase = false;
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
 
@@ -1407,9 +1377,15 @@ namespace lib {
     gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
     gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
     gdlGetDesiredAxisMargin(e, ZAXIS, zMarginB, zMarginT);
-    //Special for Z: for Z.WINDOW and Z.REGION, in case of POSITION having 6 elements
-    DDouble zposStart = zValue;
-    DDouble zposEnd = ZVALUEMAX;
+    //Special for Z: for Z.S, Z.WINDOW and Z.REGION, in case of POSITION having 6 elements
+    DDouble zposStart, zposEnd;
+    if (std::isfinite(zValue)) {
+      zposStart=zValue;
+      zposEnd=ZVALUEMAX;
+    } else {
+      zposStart=0;
+      zposEnd=ZVALUEMAX;
+    }
 
     PLFLT xMR, xML, yMB, yMT, zMB, zMT;
     CheckMargin(actStream,
@@ -1480,8 +1456,10 @@ namespace lib {
       if (boxPosition->N_Elements() > 4) {
         zposStart = fmin((*boxPosition)[4], ZVALUEMAX);
         zposStart = fmax(zposStart, 0);
-        if (boxPosition->N_Elements() > 5) zposEnd = fmin((*boxPosition)[5], ZVALUEMAX);
-        zposEnd = fmax(zposEnd, zposStart);
+        if (boxPosition->N_Elements() > 5) {
+          zposEnd = fmin((*boxPosition)[5], ZVALUEMAX);
+          zposEnd = fmax(zposEnd, 0);
+        }
       }
     }
     if (boxPosition != NULL) { //use passed values
@@ -1499,16 +1477,17 @@ namespace lib {
 
     aspect = 0.0; // vpas with aspect=0.0 equals vpor.
     if (iso) aspect = abs((yEnd - yStart) / (xEnd - xStart)); //log-log or lin-log
-    if (iso) actStream->isovpor(position[0], position[2], position[1], position[3], aspect);
-    else actStream->vpor(position[0], position[2], position[1], position[3]);
+    bool ret;
+    if (iso) ret=actStream->isovpor(position[0], position[2], position[1], position[3], aspect); 
+    else  ret=actStream->vpor(position[0], position[2], position[1], position[3]);
+    if (ret) e->Throw("Data coordinate system not established.");
 
     actStream->wind(xStart, xEnd, yStart, yEnd);
 
     //set ![XYZ].CRANGE ![XYZ].type ![XYZ].WINDOW and ![XYZ].S
     gdlStoreXAxisParameters(actStream, xStart, xEnd, xLog); //already in log here if relevant!
     gdlStoreYAxisParameters(actStream, yStart, yEnd, yLog);
-    if (zEnd!=zStart ) gdlStoreZAxisParameters(actStream, zStart, zEnd, zLog);
-    gdlStoreZAxisParameters(actStream, zValue);
+    gdlStoreZAxisParameters(actStream, zStart, zEnd, zLog, zposStart, zposEnd);
     //set P.CLIP (done by PLOT, CONTOUR, SHADE_SURF, and SURFACE)
     gdlStoreCLIP();
     return true;
@@ -1549,19 +1528,6 @@ namespace lib {
     if (axisId == XAXIS) OtherAxisSizeInMm = a->mmyPageSize()*(a->boxnYSize());
     if (axisId == YAXIS) OtherAxisSizeInMm = a->mmxPageSize()*(a->boxnXSize());
     if (axisId == ZAXIS) OtherAxisSizeInMm = a->mmxPageSize()*(a->boxnXSize());
-    //special for AXIS who change the requested box size!
-    if (axisId == XAXIS2) {
-      axisId = XAXIS;
-      OtherAxisSizeInMm = a->mmyPageSize()*(NormedLength);
-    }
-    if (axisId == YAXIS2) {
-      axisId = YAXIS;
-      OtherAxisSizeInMm = a->mmxPageSize()*(NormedLength);
-    }
-    if (axisId == ZAXIS2) {
-      axisId = ZAXIS;
-      OtherAxisSizeInMm = a->mmxPageSize()*(NormedLength);
-    }
     DLong GridStyle;
     gdlGetDesiredAxisGridStyle(e, axisId, GridStyle);
     DLong Minor;
@@ -1815,14 +1781,25 @@ namespace lib {
     return 0;
   }
 
-  static bool gdlBox(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, DDouble yStart, DDouble yEnd, bool xLog, bool yLog) {
+  static bool gdlBox(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog) {
     gdlWriteTitleAndSubtitle(e, a);
     gdlAxis(e, a, XAXIS, xStart, xEnd, xLog);
     gdlAxis(e, a, YAXIS, yStart, yEnd, yLog);
-    // title and sub title
     return true;
   }
-
+  
+  static bool gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog,  DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue, GDL_3DTRANSFORMDEVICE PlotDevice3d) {
+    gdlWriteTitleAndSubtitle(e, a);
+    gdlAxis(e, a, XAXIS, xStart, xEnd, xLog, 1); //only Bottom
+    gdlAxis(e, a, YAXIS, yStart, yEnd, yLog, 1); //only left
+//    yzaxisExch(PlotDevice3d.T);
+//    PlotDevice3d.zValue = 0;
+//    a->cmd(PLESC_3D, &PlotDevice3d);
+//    gdlAxis(e, a, ZAXIS, zStart, zEnd, zLog);
+//    yzaxisExch(PlotDevice3d.T);
+//    a->cmd(PLESC_3D, &PlotDevice3d);
+    return true;
+  }
   static bool gdlAxis3(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong zAxisCode = 0, DDouble NormedLength = 0) {
     if (Start==End) return true;
     string addCode = "b"; //for X and Y, and some Z
@@ -1859,19 +1836,6 @@ namespace lib {
     if (axisId == XAXIS) OtherAxisSizeInMm = a->mmyPageSize()*(a->boxnYSize());
     if (axisId == YAXIS) OtherAxisSizeInMm = a->mmxPageSize()*(a->boxnXSize());
     if (axisId == ZAXIS) OtherAxisSizeInMm = a->mmxPageSize()*(a->boxnXSize()); //not always correct
-    //special for AXIS who change the requested box size!
-    if (axisId == XAXIS2) {
-      axisId = XAXIS;
-      OtherAxisSizeInMm = a->mmyPageSize()*(NormedLength);
-    }
-    if (axisId == YAXIS2) {
-      axisId = YAXIS;
-      OtherAxisSizeInMm = a->mmxPageSize()*(NormedLength);
-    }
-    if (axisId == ZAXIS2) {
-      axisId = ZAXIS;
-      OtherAxisSizeInMm = a->mmxPageSize()*(NormedLength);
-    } //not always correct
 
     //    DFloat Charsize;//done in gdlSetAxisCharsize() below
     //    gdlGetDesiredAxisCharsize(e, axisId, Charsize);
@@ -2043,18 +2007,18 @@ namespace lib {
     return 0;
   }
 
-  static bool gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, DDouble yStart,
-    DDouble yEnd, DDouble zStart, DDouble zEnd, bool xLog, bool yLog, bool zLog, bool doSpecialZAxisPlacement = 0) {
-    DLong zAxisCode = 0;
-    int ZAXISIx = e->KeywordIx("ZAXIS");
-    if (doSpecialZAxisPlacement) e->AssureLongScalarKWIfPresent(ZAXISIx, zAxisCode);
-    gdlAxis3(e, a, XAXIS, xStart, xEnd, xLog, 0);
-    gdlAxis3(e, a, YAXIS, yStart, yEnd, yLog, 0);
-    gdlAxis3(e, a, ZAXIS, zStart, zEnd, zLog, zAxisCode);
-    // title and sub title
-    gdlWriteTitleAndSubtitle(e, a);
-    return true;
-  }
+//  static bool gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, DDouble yStart,
+//    DDouble yEnd, DDouble zStart, DDouble zEnd, bool xLog, bool yLog, bool zLog, bool doSpecialZAxisPlacement = 0) {
+//    DLong zAxisCode = 0;
+//    int ZAXISIx = e->KeywordIx("ZAXIS");
+//    if (doSpecialZAxisPlacement) e->AssureLongScalarKWIfPresent(ZAXISIx, zAxisCode);
+//    gdlAxis3(e, a, XAXIS, xStart, xEnd, xLog, 0);
+//    gdlAxis3(e, a, YAXIS, yStart, yEnd, yLog, 0);
+//    gdlAxis3(e, a, ZAXIS, zStart, zEnd, zLog, zAxisCode);
+//    // title and sub title
+//    gdlWriteTitleAndSubtitle(e, a);
+//    return true;
+//  }
   
   //restore current clipbox, make another or remove it at all.
   static void gdlSwitchToClippedNormalizedCoordinates(EnvT *e, GDLGStream *actStream, bool invertedClipMeaning=false, bool commandHasCoordSys=true ) {
@@ -2117,7 +2081,8 @@ namespace lib {
       }
     }
     
-    actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
+    bool ret=actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
+    if (ret) e->Throw("Data coordinate system not established.");
     actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
     }
 } // namespace

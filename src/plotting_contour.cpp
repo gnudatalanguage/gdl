@@ -39,7 +39,7 @@ namespace lib {
   using namespace std;
 
   // shared parameter
-  bool log;
+  bool xLog;
   bool yLog;
   bool zLog;
 
@@ -48,9 +48,9 @@ namespace lib {
     *yt = y;
     fprintf(stderr, "x=%f,y=%f\n", x, y);
   }
-
+  //kept out of object vaguely because plplot is in C, but should not be the case.
   PLINT doIt(PLFLT x, PLFLT y) {
-    if (log && x <= 0) return 0;
+    if (xLog && x <= 0) return 0;
     if (yLog && y <= 0) return 0;
     return 1;
   }
@@ -85,13 +85,14 @@ namespace lib {
       //T3D ?
       static int t3dIx = e->KeywordIx("T3D");
       doT3d = (e->BooleanKeywordSet(t3dIx) || T3Denabled());
-      //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
+
+      zValue = std::numeric_limits<DDouble>::quiet_NaN(); //NAN = no zValue?
       static int zvIx = e->KeywordIx("ZVALUE");
-      zValue = 0.0;
-      flat3d=e->KeywordPresent(zvIx);
+      if (e->KeywordPresent(zvIx)){
       e->AssureDoubleScalarKWIfPresent(zvIx, zValue);
       zValue = min(zValue, ZVALUEMAX); //to avoid problems with plplot
       zValue = max(zValue, 0.0);
+      }
       //zStart and zEnd are ALWAYS Zero. zValue will be registered in !Z.REGION
       zStart = 0;
       zEnd = 0;
@@ -207,21 +208,9 @@ namespace lib {
         }
       }
 
-      log = false;
+      xLog = false;
       yLog = false;
       zLog = false; 
-
-      // handle Log options passing via Functions names PLOT_IO/OO/OI
-      // the behavior can be superseed by [xy]log or [xy]type
-      string ProName = e->GetProName();
-      if (ProName != "PLOT") {
-        if (ProName == "PLOT_IO") yLog = true;
-        if (ProName == "PLOT_OI") log = true;
-        if (ProName == "PLOT_OO") {
-          log = true;
-          yLog = true;
-        }
-      }
 
       // handle Log options passing via Keywords
       // note: undocumented keywords [xyz]type still exist and
@@ -229,7 +218,7 @@ namespace lib {
       static int xLogIx = e->KeywordIx("XLOG");
       static int yLogIx = e->KeywordIx("YLOG");
       static int zLogIx = e->KeywordIx("ZLOG");
-      if (e->KeywordPresent(xLogIx)) log = e->KeywordSet(xLogIx);
+      if (e->KeywordPresent(xLogIx)) xLog = e->KeywordSet(xLogIx);
       if (e->KeywordPresent(yLogIx)) yLog = e->KeywordSet(yLogIx);
       if (e->KeywordPresent(zLogIx)) zLog = e->KeywordSet(zLogIx);
 
@@ -241,8 +230,8 @@ namespace lib {
       static int xType, yType;
       if (e->KeywordPresent(xTypeIx)) {
         e->AssureLongScalarKWIfPresent(xTypeIx, xType);
-        if ((xType % 2) == 1) log = true;
-        else log = false;
+        if ((xType % 2) == 1) xLog = true;
+        else xLog = false;
       }
       if (e->KeywordPresent(yTypeIx)) {
         e->AssureLongScalarKWIfPresent(yTypeIx, yType);
@@ -251,7 +240,7 @@ namespace lib {
       }
 
       isLog = false;
-      if (log || yLog) isLog = true;
+      if (xLog || yLog) isLog = true;
 
       GetMinMaxVal(xVal, &xStart, &xEnd);
       GetMinMaxVal(yVal, &yStart, &yEnd);
@@ -303,38 +292,29 @@ namespace lib {
         //get DATA limits (not necessary CRANGE, see AXIS / SAVE behaviour!)
         GetCurrentUserLimits(xStart, xEnd, yStart, yEnd, zStart, zEnd);
       } else {
-        //check presence of DATA,DEVICE and NORMAL options
-        static int DATAIx = e->KeywordIx("DATA");
-        static int DEVICEIx = e->KeywordIx("DEVICE");
-        static int NORMALIx = e->KeywordIx("NORMAL");
-        coordinateSystem = DATA;
-        //check presence of DATA,DEVICE and NORMAL options
-        if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
-        if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
-        if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
 
         //ISOTROPIC
         static int ISOTROPIC = e->KeywordIx("ISOTROPIC");
-        iso = e->KeywordSet(ISOTROPIC);
+        iso = e->BooleanKeywordSet(ISOTROPIC);
         // background BEFORE next plot since it is the only place plplot may redraw the background...
         gdlSetGraphicsBackgroundColorFromKw(e, actStream);
         //start a plot
         gdlNextPlotHandlingNoEraseOption(e, actStream); //NOERASE
 
         //Box adjustement:
-        gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, log);
+        gdlAdjustAxisRange(e, XAXIS, xStart, xEnd, xLog);
         gdlAdjustAxisRange(e, YAXIS, yStart, yEnd, yLog);
         gdlAdjustAxisRange(e, ZAXIS, zStart, zEnd, zLog);
 
 
-        if (log && xStart <= 0.0) Warning("CONTOUR: Infinite x plot range.");
+        if (xLog && xStart <= 0.0) Warning("CONTOUR: Infinite x plot range.");
         if (yLog && yStart <= 0.0) Warning("CONTOUR: Infinite y plot range.");
         if (zLog && zStart <= 0.0) Warning("CONTOUR: Infinite z plot range.");
 
         // viewport and world coordinates
         // set the PLOT charsize before setting viewport (margin depend on charsize)
         gdlSetPlotCharsize(e, actStream);
-        if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, log, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == false) return true; 
+        if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == false) return true; 
 
         if (doT3d) { //call for driver to perform special transform for all further drawing
           gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
@@ -343,7 +323,7 @@ namespace lib {
         } 
         //current pen color...
         gdlSetGraphicsForegroundColorFromKw(e, actStream);
-        gdlBox(e, actStream, xStart, xEnd, yStart, yEnd, log, yLog);
+        gdlBox(e, actStream, xStart, xEnd,  xLog, yStart, yEnd, yLog);
 
         // title and sub title
         gdlWriteTitleAndSubtitle(e, actStream);
@@ -353,7 +333,7 @@ namespace lib {
         }
       }
 
-      gdlSwitchToClippedNormalizedCoordinates(e, actStream, true); //inverted clip meaning
+      gdlSwitchToClippedNormalizedCoordinates(e, actStream); //normal clip meaning
       
       return false;
     }
@@ -361,12 +341,8 @@ namespace lib {
   private:
 
     void applyGraphics(EnvT* e, GDLGStream* actStream) {
-            
       static int nodataIx = e->KeywordIx("NODATA");
       if (e->KeywordSet(nodataIx)) return; //will perform post_call
-      //ISOTROPIC
-      static int ISOTROPIC = e->KeywordIx("ISOTROPIC");
-      iso = e->KeywordSet(ISOTROPIC);
 
       // we need to define the NaN value
       DStructGDL *Values = SysVar::Values(); //MUST NOT BE STATIC, due to .reset 
@@ -490,7 +466,6 @@ namespace lib {
       if (!nodata) {
         
         //here every postion XYZ must be in NORMalized coordinates to follow convention above.
-        
         //use of intermediate map for correct handling of blanking values and nans. We take advantage of the fact that
         //this program makes either filled regions with plshades() [but plshades hates Nans!] or contours with plcont,
         //which needs Nans to avoid blanked regions. The idea is to mark unwanted regions with Nans for plcont, and
@@ -542,7 +517,8 @@ namespace lib {
         }
         
         //Good place for conversion to normed values
-        SelfConvertToNormXY(xVal, log, yVal, yLog, coordinateSystem); //DATA
+
+        SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //DATA
 
         //fill at least PlotDevice3d transform matrix
         if (doT3d) gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
@@ -626,8 +602,7 @@ namespace lib {
           // Get THICK from PLOT system variable
           thick = new DFloatGDL(1, BaseGDL::NOZERO);
           thick_guard.Init(thick); // delete upon exit
-          DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
-          thick = static_cast<DFloatGDL*> (pStruct->GetTag(pStruct->Desc()->TagIndex("THICK"), 0));
+          (*thick) = gdlGetPenThickness(e, actStream);
           dothick = false;
         }
         if (e->GetKW(C_LABELS) != NULL) {
@@ -683,7 +658,7 @@ namespace lib {
             // if C_SPACING and C_ORIENTATION absent, FILL will do a solid fill .
             for (SizeT i = 0; i < nlevel - 1; ++i) {
               if (doT3d) {
-                PlotDevice3d.zValue = clevel[i] / (cmax - cmin);
+                PlotDevice3d.zValue = (clevel[i]-cmin) / (cmax - cmin);
                 actStream->cmd(PLESC_3D, &PlotDevice3d);
               }
               ori = floor(10.0 * (*orientation)[i % orientation->N_Elements()]);
@@ -694,7 +669,7 @@ namespace lib {
               if (dostyle) gdlLineStyle(actStream, (*style)[i % style->N_Elements()]); //not working; plplot bug see https://sourceforge.net/p/plplot/bugs/111
               actStream->shade(map, xEl, yEl, isLog ? doIt : NULL, xStart, xEnd, yStart, yEnd,
                 clevel[i], clevel[i + 1],
-                1, value,
+                (docolors)?1:0, (docolors)?value:255,
                 static_cast<PLFLT> ((*thick)[i % thick->N_Elements()]),
                 0, 0, 0, 0,
                 //NOTE TO DISCOURAGE CORRECTIONS: if trick with plcallback does not work, it is because Cmake did not set correctly 
@@ -709,7 +684,7 @@ namespace lib {
           }//end FILL with equispaced lines
           else if (doT3d) { //contours will be filled with solid color and displaced in Z according to their value
             for (SizeT i = 0; i < nlevel; ++i) {
-              PlotDevice3d.zValue = clevel[i] / (cmax - cmin); //displacement in Z
+              PlotDevice3d.zValue = (clevel[i]-cmin) / (cmax - cmin);
               actStream->cmd(PLESC_3D, &PlotDevice3d);
 
               value = static_cast<PLFLT> (i) / nlevel;
@@ -756,7 +731,7 @@ namespace lib {
           gdlSetPlotCharsize(e, actStream);
           for (SizeT i = 0; i < nlevel; ++i) {
             if (doT3d) {
-              PlotDevice3d.zValue = clevel[i] / (cmax - cmin);
+              PlotDevice3d.zValue = (clevel[i]-cmin) / (cmax - cmin);
               actStream->cmd(PLESC_3D, &PlotDevice3d);
             }
             if (docolors) actStream->Color((*colors)[i % colors->N_Elements()], decomposed);

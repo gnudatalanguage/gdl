@@ -288,13 +288,13 @@ namespace lib
       DDouble ay, scale[3]={SCALEBYDEFAULT,SCALEBYDEFAULT,1-zValue};
       if (doT3d) //convert to this world...
       {
-        plplot3d=gdlInterpretT3DMatrixAsPlplotRotationMatrix(zValue, az, alt, ay, scale, axisExchangeCode);
-        if (plplot3d == NULL) e->Throw ( "SHADE_SURF: Illegal 3D transformation." );
+        bool ok=gdlInterpretT3DMatrixAsPlplotRotationMatrix(az, alt, ay, scale, axisExchangeCode);
+        if (!ok) e->Throw ( "SHADE_SURF: Illegal 3D transformation." );
       }
       else //make the transformation ourselves
       {
         //Compute transformation matrix with plplot conventions:
-        plplot3d=gdlDefinePlplotRotationMatrix( az, alt, zValue,scale,saveT3d);
+        plplot3d=gdlDefinePlplotRotationMatrix( az, alt, scale, saveT3d);
       }
 
       if (xLog) xStart=log10(xStart);
@@ -396,7 +396,7 @@ namespace lib
       }
       //Draw axes with normal color!
       gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
-      gdlBox3(e, actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd, xLog, yLog, zLog, true);
+//      gdlBox3(e, actStream, xStart, xEnd, yStart, yEnd, zStart, zEnd, xLog, yLog, zLog, true);
       
       return false;
     } 

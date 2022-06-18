@@ -71,8 +71,8 @@ namespace lib {
       if (doT3d) {
         e->AssureDoubleScalarKWIfPresent(zvIx, zPosition);
         //norm directly here, we are in 3D mode
-        DDouble *sx, *sy, *sz;
-        GetSFromPlotStructs(&sx, &sy, &sz);
+        DDouble *sz;
+        GetSFromPlotStructs(NULL, NULL, &sz);
         zPosition = zPosition * sz[1] + sz[0];
       }
 

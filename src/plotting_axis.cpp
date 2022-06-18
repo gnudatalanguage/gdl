@@ -290,7 +290,7 @@ namespace lib {
       if (doSave) {
         if (xAxis) gdlStoreXAxisParameters(actStream, xStart, xEnd, xLog);
         if (yAxis) gdlStoreYAxisParameters(actStream, yStart, yEnd, yLog);
-        if (zAxis) gdlStoreZAxisParameters(actStream, zStart, zEnd, zLog);
+        if (zAxis) gdlStoreZAxisParameters(actStream, zStart, zEnd, zLog, znormmin, znormmax);
       }
       if (xAxis) { //special ID "XAXIS2" needed because we artificially changed size of box
       // TBD should not plot  axes if they are not on screen

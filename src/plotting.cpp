@@ -125,20 +125,6 @@ namespace lib
 #undef UNDEF_RANGE_VALUE
   }
   
-//  void GetMinMaxValuesForSubset(DDoubleGDL* val, DDouble &minVal, DDouble &maxVal, SizeT FinalElement)
-//  {
-//#define UNDEF_RANGE_VALUE 1E-12
-//    DLong minE, maxE;
-//    const bool omitNaN=true;
-//    val->MinMax(&minE, &maxE, NULL, NULL, omitNaN, 0, FinalElement);
-//    minVal=(*val)[ minE];
-//    if (isnan(minVal)) minVal = UNDEF_RANGE_VALUE;
-//    maxVal=(*val)[ maxE];
-//    if (isnan(maxVal)) maxVal = 1.0;
-//    if (maxVal==minVal) maxVal=minVal+1.0;
-//#undef UNDEF_RANGE_VALUE
-//  }
-
   PLFLT AutoTick(DDouble x)
   {
     if ( x==0.0 ) return 1.0;
@@ -595,7 +581,22 @@ namespace lib
     localusym.color=usymColor;
     localusym.thick=usymThick;
   }
-
+  
+  //RETURN RAW VALUES, not deLog-ified
+  void gdlGetCurrentAxisRawRangeValues(int axisId, DDouble &Start, DDouble &End) {
+    DStructGDL* Struct = NULL;
+    if (axisId == XAXIS) Struct = SysVar::X();
+    if (axisId == YAXIS) Struct = SysVar::Y();
+    if (axisId == ZAXIS) Struct = SysVar::Z();
+    Start = 0;
+    End = 0;
+    if (Struct != NULL) {
+      static unsigned crangeTag = Struct->Desc()->TagIndex("CRANGE");
+      Start = (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0];
+      End = (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1];
+    }
+  }
+  
   //This is the good way to get world start end end values.
   void GetCurrentUserLimits( DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble & zEnd)
   {
@@ -1114,57 +1115,8 @@ namespace lib
     }
   }
 
-  //CRANGE from struct
-  //RETURN LINEAR VALUES
-  void gdlGetCurrentAxisLinearRange(int axisId, DDouble &Start, DDouble &End)
-  {
-    DStructGDL* Struct=NULL;
-    if ( axisId==XAXIS ) Struct=SysVar::X();
-    if ( axisId==YAXIS ) Struct=SysVar::Y();
-    if ( axisId==ZAXIS ) Struct=SysVar::Z();
-    Start=0;
-    End=0;
-    if ( Struct!=NULL )
-    {
-      static unsigned crangeTag=Struct->Desc()->TagIndex("CRANGE");
-      Start=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[0];
-      End=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[1];
+//CRANGE from struct
 
-      static unsigned typeTag=Struct->Desc()->TagIndex("TYPE");
-      if ( (*static_cast<DLongGDL*>(Struct->GetTag(typeTag, 0)))[0]==1 )
-      {
-        Start=pow(10., Start);
-        End=pow(10., End);
-      }
-    }
-    if (Start==End) { //avoids problems with plplot.
-      Start=1E-20; //avoid problem with log10
-      End=1; 
-    }
-  }
-  
-  //CRANGE from struct
-  //RETURN RAW VALUES, not deLog-ified
-  void gdlGetCurrentAxisRawRangeValues(int axisId, DDouble &Start, DDouble &End)
-  {
-    DStructGDL* Struct=NULL;
-    if ( axisId==XAXIS ) Struct=SysVar::X();
-    if ( axisId==YAXIS ) Struct=SysVar::Y();
-    if ( axisId==ZAXIS ) Struct=SysVar::Z();
-    Start=0;
-    End=0;
-    if ( Struct!=NULL )
-    {
-      static unsigned crangeTag=Struct->Desc()->TagIndex("CRANGE");
-      Start=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[0];
-      End=(*static_cast<DDoubleGDL*>(Struct->GetTag(crangeTag, 0)))[1];
-    }
-    if (Start==End) { //avoids problems with plplot.
-      Start=1E-20; //avoid problem with log10
-      End=1; 
-    }
-  }
-  
   void gdlGetCurrentAxisWindow(int axisId, DDouble &wStart, DDouble &wEnd)
   {
     DStructGDL* Struct=NULL;
@@ -1185,8 +1137,8 @@ namespace lib
   void ConvertToNormXY(SizeT n, DDouble *x, bool const xLog, DDouble *y, bool const yLog, COORDSYS const code) {
     //  std::cerr<<"ConvertToNormXY(DDouble)"<<std::endl;
     if (code == DATA) {
-      DDouble *sx, *sy, *sz;
-      GetSFromPlotStructs(&sx, &sy, &sz);
+      DDouble *sx, *sy;
+      GetSFromPlotStructs(&sx, &sy);
       for (auto i = 0; i < n; ++i) TONORMCOORDX(x[i], x[i], xLog);
       for (auto i = 0; i < n; ++i) TONORMCOORDY(y[i], y[i], yLog);
     } else if (code == DEVICE) {
@@ -1204,8 +1156,8 @@ namespace lib
   void ConvertToNormZ(SizeT n, DDouble *z, bool const zLog, COORDSYS const code) {
     //  std::cerr<<"ConvertToNormZ(DDouble)"<<std::endl;
     if (code == DATA) {
-      DDouble *sx, *sy, *sz;
-      GetSFromPlotStructs(&sx, &sy, &sz);
+      DDouble *sz;
+      GetSFromPlotStructs(NULL, NULL, &sz);
       for (auto i = 0; i < n; ++i) TONORMCOORDZ(z[i], z[i], zLog);
     } else if (code == DEVICE) {
       for (auto i = 0; i < n; ++i) z[i] = 0;
@@ -1331,11 +1283,9 @@ namespace lib
   }
   
   //Z is a bit different. this is for Z= or Z param.  
-  void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log)
+  void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log, DDouble zNormMin, DDouble zNormMax)
 {
     DStructGDL* Struct=SysVar::Z(); 
-    PLFLT norm_min = 0;
-    PLFLT norm_max = 1;
     // Loginess
     static unsigned typeTag = Struct->Desc()->TagIndex("TYPE");
     (*static_cast<DLongGDL*> (Struct->GetTag(typeTag, 0)))[0] = log;
@@ -1344,25 +1294,23 @@ namespace lib
     //here, as this is called from a box-setting (or axis-setting) function, Start and End are already in LOG if case be.
     (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0] = Start;
     (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1] = End;
-    //Z.S
-    DDouble range=End-Start;
-    if (range==0) range=1;
-    static unsigned sTag=Struct->Desc()->TagIndex("S");
-    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[0]=(norm_min * End - norm_max * Start) / range;
-    (*static_cast<DDoubleGDL*>(Struct->GetTag(sTag, 0)))[1]=(norm_max - norm_min) / range;
-  }
-  //Z with zValue, not Z= or Z param  
-  void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble zValue)
-{
-    DStructGDL* Struct=SysVar::Z(); 
-    static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
-    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=zValue;
-    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=ZVALUEMAX;
+    //REGION
+    static unsigned regionTag = Struct->Desc()->TagIndex("REGION");
+    (*static_cast<DFloatGDL*> (Struct->GetTag(regionTag, 0)))[0] = zNormMin;
+    (*static_cast<DFloatGDL*> (Struct->GetTag(regionTag, 0)))[1] = zNormMax;
     //WINDOW
-    static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
-    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=zValue;
-    (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1]=ZVALUEMAX;
-  }
+    static unsigned windowTag = Struct->Desc()->TagIndex("WINDOW");
+    (*static_cast<DFloatGDL*> (Struct->GetTag(windowTag, 0)))[0] = zNormMin;
+    (*static_cast<DFloatGDL*> (Struct->GetTag(windowTag, 0)))[1] = zNormMax;
+    //Z.S
+    DDouble range = End - Start;
+    if (range != 0) {
+      static unsigned sTag = Struct->Desc()->TagIndex("S");
+      (*static_cast<DDoubleGDL*> (Struct->GetTag(sTag, 0)))[0] = (zNormMin * End - zNormMax * Start) / range;
+      (*static_cast<DDoubleGDL*> (Struct->GetTag(sTag, 0)))[1] = (zNormMax - zNormMin) / range;
+    }
+}
+
   void gdlGetCLIPXY(DDouble &xStart, DDouble &yStart, DDouble &xEnd, DDouble &yEnd){
     DStructGDL* dStruct=SysVar::D();   //MUST NOT BE STATIC, due to .reset 
     static unsigned xsTag=dStruct->Desc()->TagIndex("X_SIZE");
@@ -1436,20 +1384,6 @@ namespace lib
   }
 
 
-  //axis type (log..)
-
-  void gdlStoreAxisType(int axisId, bool Type)
-  {
-    DStructGDL* Struct=NULL;
-    if ( axisId==XAXIS ) Struct=SysVar::X();
-    if ( axisId==YAXIS ) Struct=SysVar::Y();
-    if ( axisId==ZAXIS ) Struct=SysVar::Z();
-    if ( Struct!=NULL )
-    {
-      static unsigned typeTag=Struct->Desc()->TagIndex("TYPE");
-      (*static_cast<DLongGDL*>(Struct->GetTag(typeTag, 0)))[0]=Type;
-    } 
-  }
   DDoubleGDL* getLabelingValues(int axisId) {
     DDoubleGDL* res = NULL;
     int nEl;
@@ -1832,7 +1766,13 @@ namespace lib
     strcpy(label,out.c_str());
     ptr->counter++;
   }
-
+  void gdlStart3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE transform3D, DDouble zValue){
+    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+    static unsigned tTag = pStruct->Desc()->TagIndex("T");
+    for (int i = 0; i < 16; ++i) transform3D.T[i] = (*static_cast<DDoubleGDL*> (pStruct->GetTag(tTag, 0)))[i];
+    transform3D.zValue = (std::isfinite(zValue))?zValue:0;
+    a->cmd(PLESC_3D, &transform3D);
+  }
   bool T3Denabled()
   {
     DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
@@ -2028,14 +1968,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     for (auto i = 2 * Dim1; i < 3 * Dim1; ++i) (*lonlat)[i] = sz[0] + sz[1] * (*lonlat)[i];
   }
 #ifdef USE_LIBPROJ
-void GDLgrProjectedPolygonPlot( GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians, bool const doFill, bool const doLines, DLongGDL *conn ) {
-    DDoubleGDL *lonlat=GDLgrGetProjectPolygon(a, ref, map, lons, lats, NULL, isRadians, doFill, doLines, conn);
-    if (lonlat!=NULL) {
-      GDLgrPlotProjectedPolygon(a, lonlat, doFill, conn);
-      GDLDelete( lonlat );
-      GDLDelete( conn );
-    }
-  }
 
 //ALL-IN-ONE: if justProject is true, will just convert lons and lats to projected coordinates. Z is unchanged, returned value is NULL.
 // if justProject is false (default), will output a [N,2] or [N,3] (if z is not NULL) 'polygon' list  

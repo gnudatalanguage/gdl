@@ -60,7 +60,7 @@ void SelfTransform3D(int *xs, int *ys) {
     *ys = (int) (plsc->phyymi + plsc->phyylen * yy);
    }
 }
-
+//following incomplete, FIXME.
 void Project3DToPlplotFormMatrix(PLFLT *P) { //P for P ...lplot
    if (Status3D == 1) { //enable use everywhere.
    // compute product of P with Data3d.T for the 4 elements of 'xFormMatrix' P (see plot3d.c)

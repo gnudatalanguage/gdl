@@ -184,12 +184,7 @@ static std::string internalFontCodes[] = {
 
 class GDLGStream: public plstream
 {
-// protected:  
-//   void init(); // prevent plstream::init from being called directly
-private:
-    gdlpage pageLayout;
-    gdlbox boxLayout;
-    
+
 protected:
   bool valid;
   gdlCharInfo theCurrentChar;
@@ -508,60 +503,6 @@ public:
   PLFLT  boxAspectDevice(){return (theBox.dy2-theBox.dy1)/(theBox.dx2-theBox.dx1);}
   PLFLT  boxAspectWorld(){return fabs(theBox.wy2-theBox.wy1)/fabs(theBox.wx2-theBox.wx1);}
 
-  void SaveLayout()
-  {
-    return;
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"SaveLayout():\n");
-    pageLayout.nbPages=thePage.nbPages;
-    pageLayout.nx=thePage.nx;
-    pageLayout.ny=thePage.ny;
-    pageLayout.curPage=thePage.curPage;
-    pageLayout.length=thePage.length;
-    pageLayout.height=thePage.height;
-    pageLayout.xsizemm=thePage.xsizemm;
-    pageLayout.ysizemm=thePage.ysizemm;
-    pageLayout.plxoff=thePage.plxoff;
-    pageLayout.plyoff=thePage.plyoff;
-
-    boxLayout.nx1=theBox.nx1;
-    boxLayout.nx2=theBox.nx2;
-    boxLayout.ny1=theBox.ny1;
-    boxLayout.ny2=theBox.ny2;
-    boxLayout.ndx1=theBox.ndx1;
-    boxLayout.ndx2=theBox.ndx2;
-    boxLayout.ndy1=theBox.ndy1;
-    boxLayout.ndy2=theBox.ndy2;
-    boxLayout.ondx=theBox.ondx;
-    boxLayout.ondy=theBox.ondy;
-    boxLayout.sndx=theBox.sndx;
-    boxLayout.sndy=theBox.sndy;
-    boxLayout.dx1=theBox.dx1;
-    boxLayout.dx2=theBox.dx2;
-    boxLayout.dy1=theBox.dy1;
-    boxLayout.dy2=theBox.dy2;
-    boxLayout.wx1=theBox.wx1;
-    boxLayout.wx2=theBox.wx2;
-    boxLayout.wy1=theBox.wy1;
-    boxLayout.wy2=theBox.wy2;
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"saving box [%f,%f,%f,%f] at [%f,%f,%f,%f] in subpage %d of %dx%d (device coords [%f,%f,%f,%f]\n",boxLayout.wx1,boxLayout.wy1,boxLayout.wx2,boxLayout.wy2,boxLayout.nx1,boxLayout.ny1,boxLayout.nx2,boxLayout.ny2,pageLayout.curPage,pageLayout.nx,pageLayout.ny,boxLayout.dx1,boxLayout.dy1,boxLayout.dx2,boxLayout.dy2);
-  }
-
-  void RestoreLayout()
-  {
-    return;
-      ssub(pageLayout.nx,pageLayout.ny);
-      adv(pageLayout.curPage);
-      vpor(boxLayout.nx1,boxLayout.nx2,boxLayout.ny1,boxLayout.ny2);
-      wind(boxLayout.wx1,boxLayout.wx2,boxLayout.wy1,boxLayout.wy2);
-  }
-
-  void OnePageSaveLayout()
-  {
-    return;
-      SaveLayout();
-      NoSub();
-  }
-
   bool updatePageInfo();
   
   inline void NormToDevice(PLFLT normx, PLFLT normy, PLFLT &devx, PLFLT &devy)
@@ -687,8 +628,8 @@ public:
   void setFixedCharacterSize( PLFLT charwidthpixel, PLFLT scale, PLFLT lineSpacingpixel);
   virtual void fontChanged(){}; //nothing here
   void sizeChar(PLFLT scale);
-  void vpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
-  void isovpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax, PLFLT aspect );
+  bool vpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
+  bool isovpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax, PLFLT aspect );
 //  void gvpd( PLFLT& xmin, PLFLT& xmax, PLFLT& ymin, PLFLT& ymax );
   void wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
   void ssub( PLINT nx, PLINT ny);

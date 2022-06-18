@@ -120,7 +120,7 @@ public:
 #ifdef __WXMAC__
 long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);
 #else
-long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);//| wxFRAME_TOOL_WINDOW); //no focus 
+long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);// | wxFRAME_TOOL_WINDOW); //no focus 
 #endif
   gdlwxPlotFrame* plotFrame = new gdlwxPlotFrame(titleWxString, wxPoint(xoff,yoff), wxDefaultSize, style, scrolled);
   // Associate a sizer immediately
@@ -177,11 +177,13 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
    winList[ wIx]->UnMapWindowAndSetPixmapProperty(); //needed: will set the "pixmap" property
   } else {
     //only for REALIZED windows, we can change some 'interactive' properties.
-  plotFrame->Raise();
   plotFrame->Realize();
     plotFrame->ShowWithoutActivating();
   }
-  plotFrame->UpdateWindowUI();
+  plotFrame->Refresh();
+  plotFrame->Update();
+//  plotFrame->Raise();
+
 //really show by letting the loop do its magic. Necessary.
 #ifdef __WXMAC__
   wxTheApp->Yield();
