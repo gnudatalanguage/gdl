@@ -18,8 +18,6 @@
 #include "includefirst.hpp"
 #include "plotting.hpp"
 
-static GDL_3DTRANSFORMDEVICE PlotDevice3d;
-
 namespace lib {
 
   using namespace std;
@@ -248,12 +246,7 @@ namespace lib {
       // set the PLOT charsize before setting viewport (margin depend on charsize)
       gdlSetPlotCharsize(e, actStream);
       if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, 0, 0, false, zValue, iso) == false) return true; 
-
-      if (doT3d) { //call for driver to perform special transform for all further drawing
-        gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
-        PlotDevice3d.zValue=zValue;
-        actStream->cmd( PLESC_3D,  &PlotDevice3d);
-      } 
+      if (doT3d) gdlStartT3DMatrixDriverTransform(actStream, zValue); //call for driver to perform special transform for all further drawing
       gdlSetSymsize(e, actStream);
       actStream->setSymbolSizeConversionFactors();
       //current pen color...
@@ -310,10 +303,6 @@ namespace lib {
         //if doT3d and !flat3d, the projected polygon needs to keep track of Z.
         DDoubleGDL *lonlat = GDLgrGetProjectPolygon(actStream, ref, NULL, xVal, yVal, NULL, isRadians, doFill, doLines, conn);
 
-        //lonlat is still in radians.
-        //GDLgrPlotProjectedPolygon or draw_polyline() will make the 3d projection if flat3d=true through the use of stransform()
-        //if doT3d and !flat3d, we need to apply the 3D rotation ourselves:
-
         if (lonlat != NULL) {
           SelfNormLonLat(lonlat); //lonlat is now converted to norm
           if (psym < 1) { //lines must be specially explored
@@ -344,8 +333,7 @@ namespace lib {
     }
 
     void post_call(EnvT* e, GDLGStream* actStream) {
-      actStream->cmd(PLESC_2D, NULL);
-      actStream->stransform(NULL, NULL);
+      gdlStop3DDriverTransform(actStream);
       actStream->lsty(1); //reset linestyle
       actStream->sizeChar(1.0);
     }

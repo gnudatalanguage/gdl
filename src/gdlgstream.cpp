@@ -382,8 +382,9 @@ void GDLGStream::NextPlot( bool erase )
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"NextPlot(erase=%d)\n",erase);
   // set subpage numbers in X and Y
 //  plstream::ssub( nx, ny ); // ssub does not change charsize it seems
-  ssub( nx, ny ); 
-  DLong pMod = (*pMulti)[0] % (nx*ny);
+  ssub( nx, ny, nz ); 
+  DLong nsub=nx*ny*nz;
+  DLong pMod = (*pMulti)[0] % (nsub);
 
 //  if( (*pMulti)[0] <= 0 || (*pMulti)[0] == nx*ny) // clear and restart to first subpage
   if( pMod == 0 ) // clear and restart to first subpage
@@ -410,18 +411,18 @@ void GDLGStream::NextPlot( bool erase )
 
 //    plstream::adv(1); //advance to first subpage
     adv(1); //advance to first subpage
-    (*pMulti)[0] = nx*ny*nz-1; //set PMULTI[0] to this page
+    (*pMulti)[0] = nsub-1; //set PMULTI[0] to this page
   }
   else
   {
     if( dir == 0 )
     {
 //      plstream::adv(nx*ny - pMod + 1);
-      adv(nx*ny - pMod + 1);
+      adv(nsub - pMod + 1);
     }
     else
     {
-      int p = nx*ny - pMod;
+      int p = nsub - pMod;
       int pp = p*nx % (nx*ny) + p/ny + 1;
 //      plstream::adv(pp);
       adv(pp);
@@ -1221,15 +1222,16 @@ void GDLGStream::wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
   setSymbolSizeConversionFactors(); //because symbols are written in world coordinates. 
 }
 
-void GDLGStream::ssub(PLINT nx, PLINT ny)
+void GDLGStream::ssub(PLINT nx, PLINT ny, PLINT nz)
 {
 //  plstream::ssub( nx, ny ); // does not appear to change charsize.
 
   // set subpage numbers in X and Y
-  thePage.nbPages=nx*ny;
+  thePage.nbPages=nx*ny*nz;
   thePage.nx=nx;
   thePage.ny=ny;
-  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"ssub() %dx%d pages\n",nx,ny);
+  thePage.nz=nz;
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"ssub() %dx%dx%d pages\n",nx,ny,nz);
   thePage.curPage=1;
   syncPageInfo();
 }
@@ -1240,18 +1242,37 @@ void GDLGStream::adv(PLINT page)
   if (page==0) {thePage.curPage++;} else {thePage.curPage=page;}
   if (thePage.curPage > thePage.nbPages) thePage.curPage=1;
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"adv() now at page %d\n",thePage.curPage);
+  PLFLT sxmin,symin,sxmax,symax,szmin,szmax;
+  getSubpageRegion(sxmin,symin,sxmax,symax,&szmin,&szmax);
+  //SET ALL REGION TAGS
+  unsigned regionTag=SysVar::X()->Desc()->TagIndex("REGION");
+  (*static_cast<DFloatGDL*>(SysVar::X()->GetTag(regionTag, 0)))[0]=sxmin;
+  (*static_cast<DFloatGDL*>(SysVar::X()->GetTag(regionTag, 0)))[1]=sxmax;
+  regionTag=SysVar::Y()->Desc()->TagIndex("REGION");
+  (*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(regionTag, 0)))[0]=symin;
+  (*static_cast<DFloatGDL*>(SysVar::Y()->GetTag(regionTag, 0)))[1]=symax;
+  regionTag=SysVar::Z()->Desc()->TagIndex("REGION");
+  (*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(regionTag, 0)))[0]=szmin;
+  (*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(regionTag, 0)))[1]=szmax;
 }
 
-void GDLGStream::getSubpageRegion(PLFLT &sxmin, PLFLT &symin, PLFLT &sxmax, PLFLT &symax){
+void GDLGStream::getSubpageRegion(PLFLT &sxmin, PLFLT &symin, PLFLT &sxmax, PLFLT &symax, PLFLT *szmin, PLFLT *szmax){
   int p=thePage.curPage-1;
   PLFLT width=1.0/thePage.nx;
   PLFLT height=1.0/thePage.ny;
- int j= p / thePage.nx;
- int i= (p - j*thePage.nx); 
+  PLFLT profund=1.0/thePage.nz;
+ int k= p / (thePage.nx*thePage.ny);
+ int l= p - k*(thePage.nx*thePage.ny);
+ int j= l /thePage.nx ;
+ int i= (l - j*thePage.nx); 
  sxmin=i*width;
  sxmax=sxmin+width;
  symax=1-(j*height);
  symin=symax-height;
+ if (szmin != NULL) {
+   *szmin=k*profund;
+   *szmax=*szmin+profund;
+ }
 }
 //get region (3BPP data)
 

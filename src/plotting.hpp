@@ -254,9 +254,9 @@ namespace lib {
   bool gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble &az, DDouble &alt, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode);
   DDoubleGDL* gdlGetScaledNormalizedT3DMatrix(DDoubleGDL* Matrix = NULL);
   DDoubleGDL* gdlGetT3DMatrix();
-  void gdlGetT3DMatrixForDriverTransform(DDouble* T);
-  void setAsHalfSizeTranslation(DDouble* T);
-  void gdlStart3DDriverTransform(GDLGStream *a, GDL_3DTRANSFORMDEVICE transform3D, DDouble zValue);
+  void gdlStartT3DMatrixDriverTransform(GDLGStream *a, DDouble zValue, bool zAxisExch=false);
+  void gdlStartSpecial3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE &PlotDevice3D, bool zAxisExch=false);
+  void gdlStop3DDriverTransform(GDLGStream *a);
   void gdlPlot3DBox(EnvT* e, GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, T3DEXCHANGECODE axisExchangeCode);
   void gdlPlot3DBorders(EnvT* e, GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, T3DEXCHANGECODE axisExchangeCode);
   void gdlNormed3dToWorld3d(DDoubleGDL *xVal, DDoubleGDL *yVal, DDoubleGDL* zVal,
@@ -369,9 +369,6 @@ namespace lib {
   void setIsoPort(GDLGStream* actStream, PLFLT x1, PLFLT x2, PLFLT y1, PLFLT y2, PLFLT aspect);
   void GetMinMaxVal(DDoubleGDL* val, double* minVal, double* maxVal);
   void GetMinMaxValuesForSubset(DDoubleGDL* val, DDouble &minVal, DDouble &maxVal, SizeT endElement);
-  void CheckMargin(GDLGStream* actStream,
-    DFloat xMarginL, DFloat xMarginR, DFloat yMarginB, DFloat yMarginT, DFloat zMarginB, DFloat zMarginT,
-    PLFLT& xMR, PLFLT& xML, PLFLT& yMB, PLFLT& yMT, PLFLT& zMB, PLFLT& zMT);
   void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart,
     DDouble yEnd, bool xLog, bool yLog);
   gdlSavebox* getSaveBox();
@@ -1333,6 +1330,34 @@ namespace lib {
 
   //handling of Z bounds is not complete IMHO.
 
+  inline void CheckMargin(GDLGStream* actStream,
+    DFloat xMarginL,
+    DFloat xMarginR,
+    DFloat yMarginB,
+    DFloat yMarginT,
+    PLFLT& xMR,
+    PLFLT& xML,
+    PLFLT& yMB,
+    PLFLT& yMT) {
+    PLFLT sclx = actStream->dCharLength() / actStream->xSubPageSize(); //current char length/subpage size
+    xML = xMarginL*sclx; //margin as percentage of subpage
+    xMR = xMarginR*sclx;
+    PLFLT scly = actStream->dLineSpacing() / actStream->ySubPageSize(); //current char length/subpage size
+    yMB = (yMarginB) * scly;
+    yMT = (yMarginT) * scly; //to allow subscripts and superscripts (as in IDL)
+
+    if (xML + xMR >= 1.0) {
+      PLFLT xMMult = xML + xMR;
+      xML /= xMMult * 1.5;
+      xMR /= xMMult * 1.5;
+    }
+    if (yMB + yMT >= 1.0) {
+      PLFLT yMMult = yMB + yMT;
+      yMB /= yMMult * 1.5;
+      yMT /= yMMult * 1.5;
+    }
+  }
+  
   static bool gdlSetViewPortAndWorldCoordinates(EnvT* e,
     GDLGStream* actStream,
     DDouble x0,
@@ -1377,15 +1402,20 @@ namespace lib {
     gdlGetDesiredAxisMargin(e, XAXIS, xMarginL, xMarginR);
     gdlGetDesiredAxisMargin(e, YAXIS, yMarginB, yMarginT);
     gdlGetDesiredAxisMargin(e, ZAXIS, zMarginB, zMarginT);
+
+    PLFLT sxmin,symin,sxmax,symax,szmin,szmax;
+    actStream->getSubpageRegion(sxmin,symin,sxmax,symax,&szmin,&szmax);
     //Special for Z: for Z.S, Z.WINDOW and Z.REGION, in case of POSITION having 6 elements
+
     DDouble zposStart, zposEnd;
     if (std::isfinite(zValue)) {
       zposStart=zValue;
       zposEnd=ZVALUEMAX;
     } else {
-      zposStart=0;
-      zposEnd=ZVALUEMAX;
+      zposStart=szmin;
+      zposEnd=szmax;
     }
+    fprintf(stderr," %lf %lf %lf %lf \n",szmin,szmax,zposStart,zposEnd);
 
     PLFLT xMR, xML, yMB, yMT, zMB, zMT;
     CheckMargin(actStream,
@@ -1393,8 +1423,7 @@ namespace lib {
       xMarginR,
       yMarginB,
       yMarginT,
-      zMarginB,
-      zMarginT, xMR, xML, yMB, yMT, zMB, zMT);
+      xMR, xML, yMB, yMT);
 
     // viewport - POSITION overrides
     static PLFLT aspect = 0.0;
@@ -1403,13 +1432,12 @@ namespace lib {
     static PLFLT P_region_normed[4] = {0, 0, 0, 0};
     static PLFLT position[4];
     // Set to default values:
-    PLFLT sxmin,symin,sxmax,symax;
-    actStream->getSubpageRegion(sxmin,symin,sxmax,symax);
-      //compute position removing margins
-      position[0] = sxmin + xMarginL * actStream->nCharLength();
-      position[1] = symin + yMarginB * actStream->nLineSpacing();
-      position[2] = sxmax - xMarginR * actStream->nCharLength();
-      position[3] = symax - yMarginT * actStream->nLineSpacing();
+
+    //compute position removing margins
+    position[0] = sxmin + xMarginL * actStream->nCharLength();
+    position[1] = symin + yMarginB * actStream->nLineSpacing();
+    position[2] = sxmax - xMarginR * actStream->nCharLength();
+    position[3] = symax - yMarginT * actStream->nLineSpacing();
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
     // Get !P.position values. !P.REGION is superseded by !P.POSITION
     if (pStruct != NULL) {
@@ -1788,16 +1816,10 @@ namespace lib {
     return true;
   }
   
-  static bool gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog,  DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue, GDL_3DTRANSFORMDEVICE PlotDevice3d) {
+  static bool gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog,  DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue) {
     gdlWriteTitleAndSubtitle(e, a);
     gdlAxis(e, a, XAXIS, xStart, xEnd, xLog, 1); //only Bottom
     gdlAxis(e, a, YAXIS, yStart, yEnd, yLog, 1); //only left
-//    yzaxisExch(PlotDevice3d.T);
-//    PlotDevice3d.zValue = 0;
-//    a->cmd(PLESC_3D, &PlotDevice3d);
-//    gdlAxis(e, a, ZAXIS, zStart, zEnd, zLog);
-//    yzaxisExch(PlotDevice3d.T);
-//    a->cmd(PLESC_3D, &PlotDevice3d);
     return true;
   }
   static bool gdlAxis3(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong zAxisCode = 0, DDouble NormedLength = 0) {

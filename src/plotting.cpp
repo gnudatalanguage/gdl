@@ -18,7 +18,7 @@
 #include "includefirst.hpp"
 #include "dinterpreter.hpp"
 #include "plotting.hpp"
-
+static GDL_3DTRANSFORMDEVICE PlotDevice3D;
 #ifdef _MSC_VER
 #define snprintf _snprintf
 #endif
@@ -483,50 +483,7 @@ namespace lib
 
     return intv;
   }
-  void CheckMargin(GDLGStream* actStream,
-    DFloat xMarginL,
-    DFloat xMarginR,
-    DFloat yMarginB,
-    DFloat yMarginT,
-    DFloat zMarginB,
-    DFloat zMarginT,
-    PLFLT& xMR,
-    PLFLT& xML,
-    PLFLT& yMB,
-    PLFLT& yMT,
-    PLFLT& zMB,
-    PLFLT& zMT)
-  {
-    PLFLT sclx=actStream->dCharLength()/actStream->xSubPageSize(); //current char length/subpage size
-    xML=xMarginL*sclx; //margin as percentage of subpage
-    xMR=xMarginR*sclx;
-    PLFLT scly=actStream->dLineSpacing()/actStream->ySubPageSize(); //current char length/subpage size
-    yMB=(yMarginB)*scly;
-    yMT=(yMarginT)*scly; //to allow subscripts and superscripts (as in IDL)
-    // Z is like Y 
-    PLFLT sclz=scly;
-    zMB=(zMarginB)*scly;
-    zMT=(zMarginT)*scly;
 
-    if ( xML+xMR>=1.0 )
-    {
-      PLFLT xMMult=xML+xMR;
-      xML/=xMMult*1.5;
-      xMR/=xMMult*1.5;
-    }
-    if ( yMB+yMT>=1.0 )
-    {
-      PLFLT yMMult=yMB+yMT;
-      yMB/=yMMult*1.5;
-      yMT/=yMMult*1.5;
-    }
-    if ( zMB+zMT>=1.0 )
-    {
-      PLFLT zMMult=zMB+zMT;
-      zMB/=zMMult*1.5;
-      zMT/=zMMult*1.5;
-    }
-  }
 
 
   void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz)
@@ -542,18 +499,18 @@ namespace lib
     if (sz != NULL) *sz= &(*static_cast<DDoubleGDL*>(zStruct->GetTag(szTag, 0)))[0];
   }
   
-  void GetWFromPlotStructs(DFloat **wx, DFloat **wy, DFloat **wz )
-  {
-    DStructGDL* xStruct=SysVar::X();   //MUST NOT BE STATIC, due to .reset 
-    DStructGDL* yStruct=SysVar::Y();   //MUST NOT BE STATIC, due to .reset 
-    DStructGDL* zStruct=SysVar::Z();   //MUST NOT BE STATIC, due to .reset 
-    unsigned xwindowTag=xStruct->Desc()->TagIndex("WINDOW");
-    unsigned ywindowTag=yStruct->Desc()->TagIndex("WINDOW");
-    unsigned zwindowTag=zStruct->Desc()->TagIndex("WINDOW");
-    *wx= &(*static_cast<DFloatGDL*>(xStruct->GetTag(xwindowTag, 0)))[0];
-    *wy= &(*static_cast<DFloatGDL*>(yStruct->GetTag(ywindowTag, 0)))[0];
-    *wz= &(*static_cast<DFloatGDL*>(zStruct->GetTag(zwindowTag, 0)))[0];
-  }
+//  void GetWFromPlotStructs(DFloat **wx, DFloat **wy, DFloat **wz )
+//  {
+//    DStructGDL* xStruct=SysVar::X();   //MUST NOT BE STATIC, due to .reset 
+//    DStructGDL* yStruct=SysVar::Y();   //MUST NOT BE STATIC, due to .reset 
+//    DStructGDL* zStruct=SysVar::Z();   //MUST NOT BE STATIC, due to .reset 
+//    unsigned xwindowTag=xStruct->Desc()->TagIndex("WINDOW");
+//    unsigned ywindowTag=yStruct->Desc()->TagIndex("WINDOW");
+//    unsigned zwindowTag=zStruct->Desc()->TagIndex("WINDOW");
+//    *wx= &(*static_cast<DFloatGDL*>(xStruct->GetTag(xwindowTag, 0)))[0];
+//    *wy= &(*static_cast<DFloatGDL*>(yStruct->GetTag(ywindowTag, 0)))[0];
+//    *wz= &(*static_cast<DFloatGDL*>(zStruct->GetTag(zwindowTag, 0)))[0];
+//  }
 
   void GetUsym(DLong **n, DInt **do_fill, DFloat **x, DFloat **y, bool **do_color, DLong **usymColor , bool **do_thick, DFloat **usymThick)
   {
@@ -1215,10 +1172,10 @@ namespace lib
     static unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
     DFloat m1=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[0];
     DFloat m2=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[1];
-    //REGION
-    static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
-    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=max(0.0,norm_min-m1*charDim);
-    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=min(1.0,norm_max+m2*charDim);
+//    //REGION
+//    static unsigned regionTag=Struct->Desc()->TagIndex("REGION");
+//    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[0]=max(0.0,norm_min-m1*charDim);
+//    (*static_cast<DFloatGDL*>(Struct->GetTag(regionTag, 0)))[1]=min(1.0,norm_max+m2*charDim);
     //WINDOW
     static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
     (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=norm_min;
@@ -1256,10 +1213,10 @@ namespace lib
     static unsigned marginTag = Struct->Desc()->TagIndex("MARGIN");
     DFloat m1 = (*static_cast<DFloatGDL*> (Struct->GetTag(marginTag, 0)))[0];
     DFloat m2 = (*static_cast<DFloatGDL*> (Struct->GetTag(marginTag, 0)))[1];
-    //REGION
-    static unsigned regionTag = Struct->Desc()->TagIndex("REGION");
-    (*static_cast<DFloatGDL*> (Struct->GetTag(regionTag, 0)))[0] = max(0.0, norm_min - m1 * charDim);
-    (*static_cast<DFloatGDL*> (Struct->GetTag(regionTag, 0)))[1] = min(1.0, norm_max + m2 * charDim);
+//    //REGION
+//    static unsigned regionTag = Struct->Desc()->TagIndex("REGION");
+//    (*static_cast<DFloatGDL*> (Struct->GetTag(regionTag, 0)))[0] = max(0.0, norm_min - m1 * charDim);
+//    (*static_cast<DFloatGDL*> (Struct->GetTag(regionTag, 0)))[1] = min(1.0, norm_max + m2 * charDim);
     //WINDOW
     static unsigned windowTag = Struct->Desc()->TagIndex("WINDOW");
     (*static_cast<DFloatGDL*> (Struct->GetTag(windowTag, 0)))[0] = norm_min;
@@ -1294,10 +1251,10 @@ namespace lib
     //here, as this is called from a box-setting (or axis-setting) function, Start and End are already in LOG if case be.
     (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[0] = Start;
     (*static_cast<DDoubleGDL*> (Struct->GetTag(crangeTag, 0)))[1] = End;
-    //REGION
-    static unsigned regionTag = Struct->Desc()->TagIndex("REGION");
-    (*static_cast<DFloatGDL*> (Struct->GetTag(regionTag, 0)))[0] = zNormMin;
-    (*static_cast<DFloatGDL*> (Struct->GetTag(regionTag, 0)))[1] = zNormMax;
+//    //REGION
+//    static unsigned regionTag = Struct->Desc()->TagIndex("REGION");
+//    (*static_cast<DFloatGDL*> (Struct->GetTag(regionTag, 0)))[0] = zNormMin;
+//    (*static_cast<DFloatGDL*> (Struct->GetTag(regionTag, 0)))[1] = zNormMax;
     //WINDOW
     static unsigned windowTag = Struct->Desc()->TagIndex("WINDOW");
     (*static_cast<DFloatGDL*> (Struct->GetTag(windowTag, 0)))[0] = zNormMin;
@@ -1766,12 +1723,20 @@ namespace lib
     strcpy(label,out.c_str());
     ptr->counter++;
   }
-  void gdlStart3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE transform3D, DDouble zValue){
+  void gdlStartT3DMatrixDriverTransform( GDLGStream *a, DDouble zValue, bool zAxisExch){
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
-    for (int i = 0; i < 16; ++i) transform3D.T[i] = (*static_cast<DDoubleGDL*> (pStruct->GetTag(tTag, 0)))[i];
-    transform3D.zValue = (std::isfinite(zValue))?zValue:0;
-    a->cmd(PLESC_3D, &transform3D);
+    for (int i = 0; i < 16; ++i) PlotDevice3D.T[i] = (*static_cast<DDoubleGDL*> (pStruct->GetTag(tTag, 0)))[i];
+    PlotDevice3D.zValue = (std::isfinite(zValue))?zValue:0;
+    if (zAxisExch) yzaxisExch(PlotDevice3D.T); //for zAxis ONLY
+    a->cmd(PLESC_3D, &PlotDevice3D);
+  }
+  void gdlStartSpecial3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE &PlotDevice3D, bool zAxisExch){
+    if (zAxisExch) yzaxisExch(PlotDevice3D.T); //for zAxis ONLY
+    a->cmd(PLESC_3D, &PlotDevice3D);
+  }
+  void gdlStop3DDriverTransform( GDLGStream *a){
+    a->cmd(PLESC_2D, NULL);
   }
   bool T3Denabled()
   {

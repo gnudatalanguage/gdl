@@ -18,8 +18,6 @@
 #include "includefirst.hpp"
 #include "plotting.hpp"
 
-static GDL_3DTRANSFORMDEVICE PlotDevice3d;
-
 namespace lib {
 
   using namespace std;
@@ -222,11 +220,7 @@ namespace lib {
 
     bool prepareDrawArea(EnvT* e, GDLGStream* actStream) {
       //box defined in previous PLOT command, we pass in normalized coordinates w/clipping if needed 
-      if (flat3d) { //call for driver to perform special transform for all further drawing
-        gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
-        PlotDevice3d.zValue=zPosition;
-        actStream->cmd( PLESC_3D,  &PlotDevice3d);
-      } 
+      if (flat3d) gdlStartT3DMatrixDriverTransform(actStream, zPosition);
       gdlSwitchToClippedNormalizedCoordinates(e, actStream, true); //inverted clip meaning
       return false; //do not abort
     }
@@ -321,7 +315,7 @@ namespace lib {
 
     virtual void post_call(EnvT*, GDLGStream *actStream) {
      actStream->stransform(NULL, NULL);
-     actStream->cmd(PLESC_2D, NULL);
+     gdlStop3DDriverTransform(actStream);
      actStream->lsty(1); //reset linestyle
       actStream->psty(0); //reset fill
     }

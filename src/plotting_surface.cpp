@@ -262,28 +262,28 @@ namespace lib
         static int AZIx=e->KeywordIx("AZ");
         e->AssureFloatScalarKWIfPresent(AZIx, az_change);
         az=az_change;
-        //Compute transformation matrix with *DL conventions for the BOX
+        //Compute special transformation matrix for the BOX and give it to the driver
         DDoubleGDL* gdlBox3d=gdlDefinePlplotRotationMatrix( az, alt, scale, saveT3d);
         for (int i = 0; i < 16; ++i)T3DForAXes.T[i] =(*gdlBox3d)[i];
         T3DForAXes.zValue = (std::isfinite(zValue))?zValue:0;
+        gdlStartSpecial3DDriverTransform(actStream,T3DForAXes);
       } else {
+        //just ask for P.T3D transform with the driver:
         bool ok=gdlInterpretT3DMatrixAsPlplotRotationMatrix(az, alt, ay, scale, axisExchangeCode);
         if (!ok) e->Throw ( "SURFACE: Illegal 3D transformation." );
-        gdlGetT3DMatrixForDriverTransform(T3DForAXes.T);
-        T3DForAXes.zValue = (std::isfinite(zValue))?zValue:0;
+        gdlStartT3DMatrixDriverTransform(actStream, zValue);
       }
       // We could have kept the old code where the box was written by plplot's box3(), but it would not be compatible with the rest of the eventual other (over)plots
       //write box using our 3D PLESC tricks:
-      actStream->cmd( PLESC_3D,  &T3DForAXes);
       if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return true;
       //Draw axes with normal color!
       gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
       //draw OUR box
-      gdlBox3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, T3DForAXes);
+      gdlBox3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue);
       // title and sub title
       gdlWriteTitleAndSubtitle(e, actStream);
        //reset driver to 2D plotting routines, further 3D is just plplot drawing a mesh.
-      actStream->cmd(PLESC_2D, NULL); 
+      gdlStop3DDriverTransform(actStream); 
       
       //we now pass EVERYTHING in normalized coordinates w/o clipping and set up a transformation to have plplot mesh correct on the 2D vpor.
       gdlSwitchToClippedNormalizedCoordinates(e, actStream, true); //true=noclip

@@ -866,19 +866,6 @@ DDoubleGDL* gdlDoAsScale3(DDouble az, DDouble alt, DDouble *scalex, DDouble *sca
     return t3dMatrix;
   }
 
-  //simpler, transposition must be done in client code.
-  void gdlGetT3DMatrixForDriverTransform(DDouble* T) {
-//    std::cerr<<"gdlGetT3DMatrixForDriverTransform()\n";
-    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
-    static unsigned tTag = pStruct->Desc()->TagIndex("T");
-    for (int i = 0; i < 16; ++i)T[i] = (*static_cast<DDoubleGDL*> (pStruct->GetTag(tTag, 0)))[i];
-  }
-  
-  //just a translation of 0.5 in all directions
-  void setAsHalfSizeTranslation(DDouble* T) {
-    for (int i = 0; i < 16; ++i)T[i] = 0;
-    T[0]=1;T[5]=1;T[10]=1;T[15]=1;T[3]=0.5;T[7]=0.5;T[11]=0.5;
-  }  
 // Check if passed 4x4 matrix is valid :
 // the projection of the Z axis must be on the Y axis, otherwise the matrix is not good.
 // return NULL if not or retrieves exchange code.

@@ -18,7 +18,6 @@
 #include "includefirst.hpp"
 #include "plotting.hpp"
 
-static GDL_3DTRANSFORMDEVICE PlotDevice3d;
 #define EXCH(a,b) { if (a>b){DDouble tmp=a; a=b; b=tmp;} a=MAX(a,0); a=MIN(a,1); b=MAX(b,0); b=MIN(b,1);}
 namespace lib {
 
@@ -260,11 +259,8 @@ namespace lib {
       //    gdlNextPlotHandlingNoEraseOption(e, actStream, true);     //NOERASE -- not supported
       PLFLT vpXL, vpXR, vpYB, vpYT, vpZB, vpZT; //define new viewport in relative units
    
-      if (doT3d) { //call for driver to perform special transform for all further drawing
-        gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
-        PlotDevice3d.zValue=zPos;
-        actStream->cmd( PLESC_3D,  &PlotDevice3d);
-      }
+      if (doT3d) gdlStartT3DMatrixDriverTransform(actStream, zPos); //call for driver to perform special transform for all further drawing
+        
       //compute new temporary viewport in relative coords
       if (standardNumPos) {
         vpXL = (xAxis || xnodef) ? xnormmin : xPos;
@@ -312,10 +308,7 @@ namespace lib {
         //insure 'wind' arguments are given, otherwise BAM! in plplot
         actStream->wind(xStart, xEnd, zStart, zEnd); //as Y but with Z
         //special transform to use 'y' axis code, but with 'z' values and yz exch.
-        gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
-        yzaxisExch(PlotDevice3d.T);
-        PlotDevice3d.zValue = yPos;
-        actStream->cmd(PLESC_3D, &PlotDevice3d);
+        gdlStartT3DMatrixDriverTransform(actStream, yPos, true); //call for driver to perform special transform for all further drawing
         gdlAxis(e, actStream, ZAXIS, zStart, zEnd, zLog, standardNumPos ? 1 : 2, viewportZSize);
       }
       return false;
@@ -328,7 +321,7 @@ namespace lib {
   private:
 
     virtual void post_call(EnvT* e, GDLGStream* actStream) {
-      actStream->cmd(PLESC_2D, NULL);
+      gdlStop3DDriverTransform(actStream);
       actStream->sizeChar(1.0);
     }
 

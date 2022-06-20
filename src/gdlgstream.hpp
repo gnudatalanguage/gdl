@@ -158,9 +158,10 @@ static std::string internalFontCodes[] = {
     PLFLT xsizemm; // size in mm, x
     PLFLT ysizemm;
     PLINT curPage; //current Page
-    PLINT nbPages; //nx*ny
+    PLINT nbPages; //nx*ny*nz
     PLINT nx;
     PLINT ny;
+    PLINT nz;
     gdlsubpage subpage;
   } gdlpage ;
 
@@ -632,9 +633,9 @@ public:
   bool isovpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax, PLFLT aspect );
 //  void gvpd( PLFLT& xmin, PLFLT& xmax, PLFLT& ymin, PLFLT& ymax );
   void wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
-  void ssub( PLINT nx, PLINT ny);
+  void ssub( PLINT nx, PLINT ny, PLINT nz=1);
   void adv(PLINT page);
-  void getSubpageRegion(PLFLT &sxmin, PLFLT &symin, PLFLT &sxmax, PLFLT &symax);
+  void getSubpageRegion(PLFLT &sxmin, PLFLT &symin, PLFLT &sxmax, PLFLT &symax, PLFLT *zmin=NULL, PLFLT *zmax=NULL);
   void SetPageDPMM();
   void syncPageInfo();
   void updateBoxDeviceCoords();

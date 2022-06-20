@@ -32,8 +32,6 @@
 #define PLCALLBACK plstream
 #endif
 
-static GDL_3DTRANSFORMDEVICE PlotDevice3d;
-
 namespace lib {
 
   using namespace std;
@@ -316,11 +314,8 @@ namespace lib {
         gdlSetPlotCharsize(e, actStream);
         if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == false) return true; 
 
-        if (doT3d) { //call for driver to perform special transform for all further drawing
-          gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
-          PlotDevice3d.zValue=zValue;
-          actStream->cmd( PLESC_3D,  &PlotDevice3d);
-        } 
+        if (doT3d) gdlStartT3DMatrixDriverTransform(actStream, zValue); //call for driver to perform special transform for all further drawing
+
         //current pen color...
         gdlSetGraphicsForegroundColorFromKw(e, actStream);
         gdlBox(e, actStream, xStart, xEnd,  xLog, yStart, yEnd, yLog);
@@ -328,9 +323,7 @@ namespace lib {
         // title and sub title
         gdlWriteTitleAndSubtitle(e, actStream);
         
-        if (doT3d) { //reset driver to 2D plotting routines after box plot.
-          actStream->cmd(PLESC_2D, NULL);
-        }
+        if (doT3d) gdlStop3DDriverTransform(actStream);
       }
 
       gdlSwitchToClippedNormalizedCoordinates(e, actStream); //normal clip meaning
@@ -520,13 +513,8 @@ namespace lib {
 
         SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //DATA
 
-        //fill at least PlotDevice3d transform matrix
-        if (doT3d) gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
-
-        if (flat3d) { //call for driver to perform special transform for all further drawing. No further 3D case as everyting is handled by the driver.
-          PlotDevice3d.zValue=zValue;
-          actStream->cmd( PLESC_3D,  &PlotDevice3d);
-          flat3d=false;
+        if (flat3d) {
+          gdlStartT3DMatrixDriverTransform(actStream, zValue); //call for driver to perform special transform for all further drawing. No further 3D case as everyting is handled by the driver.
           doT3d=false;
         } // else we have to do it ourselves for each contour
         
@@ -657,10 +645,7 @@ namespace lib {
             // C_SPACING= vector of spacing in CENTIMETRES of lines to  FILL (needs FILL KW) .
             // if C_SPACING and C_ORIENTATION absent, FILL will do a solid fill .
             for (SizeT i = 0; i < nlevel - 1; ++i) {
-              if (doT3d) {
-                PlotDevice3d.zValue = (clevel[i]-cmin) / (cmax - cmin);
-                actStream->cmd(PLESC_3D, &PlotDevice3d);
-              }
+              if (doT3d) gdlStartT3DMatrixDriverTransform(actStream, (clevel[i]-cmin) / (cmax - cmin));
               ori = floor(10.0 * (*orientation)[i % orientation->N_Elements()]);
               spa = floor(10000 * (*spacing)[i % spacing->N_Elements()]);
               actStream->pat(1, &ori, &spa);
@@ -684,8 +669,7 @@ namespace lib {
           }//end FILL with equispaced lines
           else if (doT3d) { //contours will be filled with solid color and displaced in Z according to their value
             for (SizeT i = 0; i < nlevel; ++i) {
-              PlotDevice3d.zValue = (clevel[i]-cmin) / (cmax - cmin);
-              actStream->cmd(PLESC_3D, &PlotDevice3d);
+              gdlStartT3DMatrixDriverTransform(actStream, (clevel[i]-cmin) / (cmax - cmin));
 
               value = static_cast<PLFLT> (i) / nlevel;
               actStream->shade(map, xEl, yEl, isLog ? doIt : NULL,
@@ -730,10 +714,7 @@ namespace lib {
           }
           gdlSetPlotCharsize(e, actStream);
           for (SizeT i = 0; i < nlevel; ++i) {
-            if (doT3d) {
-              PlotDevice3d.zValue = (clevel[i]-cmin) / (cmax - cmin);
-              actStream->cmd(PLESC_3D, &PlotDevice3d);
-            }
+            if (doT3d) gdlStartT3DMatrixDriverTransform(actStream, (clevel[i]-cmin) / (cmax - cmin));
             if (docolors) actStream->Color((*colors)[i % colors->N_Elements()], decomposed);
             if (dothick) {
               actStream->Thick((*thick)[i % thick->N_Elements()]);
@@ -776,7 +757,7 @@ namespace lib {
       //restore color for boxes
       gdlSetGraphicsForegroundColorFromKw(e, actStream); //COLOR
       //reset driver to 2D plotting routines in all cases
-      actStream->cmd(PLESC_2D, NULL);
+      gdlStop3DDriverTransform(actStream);
       }
 
 

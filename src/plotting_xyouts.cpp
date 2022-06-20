@@ -21,8 +21,6 @@
 #define DPI (double)(4*atan(1.0))
 #define DEGTORAD DPI/180.0
 
-static GDL_3DTRANSFORMDEVICE PlotDevice3d;
-
 namespace lib {
 
   using namespace std;
@@ -227,12 +225,9 @@ namespace lib {
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz); 
       
-      if (doT3d) { //call for driver to perform special transform for all further drawing
-        gdlGetT3DMatrixForDriverTransform(PlotDevice3d.T);
-        PlotDevice3d.zValue = zPosition;
-        actStream->cmd(PLESC_3D, &PlotDevice3d);
-      }
-            for (SizeT i = 0; i < minEl; ++i) {
+      if (doT3d) gdlStartT3DMatrixDriverTransform(actStream, zPosition);
+      
+      for (SizeT i = 0; i < minEl; ++i) {
         //if string only, fill empty Xval Yval with current value:
         if (nParam() == 1) {
           DDouble s, t;
@@ -299,7 +294,7 @@ namespace lib {
   private:
 
     virtual void post_call(EnvT* e, GDLGStream* actStream) {
-      actStream->stransform(NULL, NULL);
+      gdlStop3DDriverTransform(actStream);
       actStream->sizeChar(1.0);
     }
   };

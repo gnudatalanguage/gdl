@@ -391,12 +391,8 @@ namespace lib {
 
   private:
 
-    void post_call(EnvT*, GDLGStream * actStream) // {{{
+    void post_call(EnvT*, GDLGStream * actStream)
     {
-      //      if (doT3d) {
-      //        plplot3d_guard.Reset(plplot3d);
-      //        actStream->stransform(NULL, NULL);
-      //      }
     }
   };
 
