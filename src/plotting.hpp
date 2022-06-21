@@ -254,8 +254,9 @@ namespace lib {
   bool gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble &az, DDouble &alt, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode);
   DDoubleGDL* gdlGetScaledNormalizedT3DMatrix(DDoubleGDL* Matrix = NULL);
   DDoubleGDL* gdlGetT3DMatrix();
-  void gdlStartT3DMatrixDriverTransform(GDLGStream *a, DDouble zValue, bool zAxisExch=false);
-  void gdlStartSpecial3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE &PlotDevice3D, bool zAxisExch=false);
+  void gdlStartT3DMatrixDriverTransform(GDLGStream *a, DDouble zValue);
+  void gdlStartSpecial3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE &PlotDevice3D);
+  void gdlExchange3DDriverTransform( GDLGStream *a);
   void gdlStop3DDriverTransform(GDLGStream *a);
   void gdlPlot3DBox(EnvT* e, GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, T3DEXCHANGECODE axisExchangeCode);
   void gdlPlot3DBorders(EnvT* e, GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, T3DEXCHANGECODE axisExchangeCode);
@@ -1415,7 +1416,7 @@ namespace lib {
       zposStart=szmin;
       zposEnd=szmax;
     }
-    fprintf(stderr," %lf %lf %lf %lf \n",szmin,szmax,zposStart,zposEnd);
+    fprintf(stderr,"gdlSetViewPortAndWorldCoordinates: %lf %lf %lf %lf %lf %lf\n",sxmin,sxmax,symin,symax,szmin,szmax);
 
     PLFLT xMR, xML, yMB, yMT, zMB, zMT;
     CheckMargin(actStream,
@@ -1553,9 +1554,7 @@ namespace lib {
 
     //special values
     PLFLT OtherAxisSizeInMm;
-    if (axisId == XAXIS) OtherAxisSizeInMm = a->mmyPageSize()*(a->boxnYSize());
-    if (axisId == YAXIS) OtherAxisSizeInMm = a->mmxPageSize()*(a->boxnXSize());
-    if (axisId == ZAXIS) OtherAxisSizeInMm = a->mmxPageSize()*(a->boxnXSize());
+    if (axisId == XAXIS) OtherAxisSizeInMm = a->mmyPageSize()*(a->boxnYSize()); else  OtherAxisSizeInMm = a->mmxPageSize()*(a->boxnXSize());
     DLong GridStyle;
     gdlGetDesiredAxisGridStyle(e, axisId, GridStyle);
     DLong Minor;
@@ -1816,10 +1815,13 @@ namespace lib {
     return true;
   }
   
-  static bool gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog,  DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue) {
+  static bool gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog,  DDouble zStart, DDouble zEnd, bool zLog) {
     gdlWriteTitleAndSubtitle(e, a);
     gdlAxis(e, a, XAXIS, xStart, xEnd, xLog, 1); //only Bottom
     gdlAxis(e, a, YAXIS, yStart, yEnd, yLog, 1); //only left
+    gdlExchange3DDriverTransform(a);
+    gdlAxis(e, a, YAXIS, zStart, zEnd, zLog, 0); 
+    gdlExchange3DDriverTransform(a);
     return true;
   }
   static bool gdlAxis3(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong zAxisCode = 0, DDouble NormedLength = 0) {

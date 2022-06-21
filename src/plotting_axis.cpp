@@ -308,8 +308,10 @@ namespace lib {
         //insure 'wind' arguments are given, otherwise BAM! in plplot
         actStream->wind(xStart, xEnd, zStart, zEnd); //as Y but with Z
         //special transform to use 'y' axis code, but with 'z' values and yz exch.
-        gdlStartT3DMatrixDriverTransform(actStream, yPos, true); //call for driver to perform special transform for all further drawing
+        gdlExchange3DDriverTransform(actStream);
+//        gdlStartT3DMatrixDriverTransform(actStream, yPos, true); //call for driver to perform special transform for all further drawing
         gdlAxis(e, actStream, ZAXIS, zStart, zEnd, zLog, standardNumPos ? 1 : 2, viewportZSize);
+        gdlExchange3DDriverTransform(actStream);
       }
       return false;
     }

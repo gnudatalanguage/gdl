@@ -279,14 +279,14 @@ namespace lib
       //Draw axes with normal color!
       gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
       //draw OUR box
-      gdlBox3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue);
+      gdlBox3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog);
       // title and sub title
       gdlWriteTitleAndSubtitle(e, actStream);
        //reset driver to 2D plotting routines, further 3D is just plplot drawing a mesh.
       gdlStop3DDriverTransform(actStream); 
       
       //we now pass EVERYTHING in normalized coordinates w/o clipping and set up a transformation to have plplot mesh correct on the 2D vpor.
-      gdlSwitchToClippedNormalizedCoordinates(e, actStream, true); //true=noclip
+//      gdlSwitchToClippedNormalizedCoordinates(e, actStream, true); //true=noclip
       const COORDSYS coordinateSystem = DATA;
       SelfConvertToNormXYZ(xStart, xLog, yStart, yLog, zStart, zLog, coordinateSystem); 
       SelfConvertToNormXYZ(xEnd, xLog, yEnd, yLog, zEnd, zLog, coordinateSystem);
