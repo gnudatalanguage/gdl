@@ -32,7 +32,7 @@ authors:
   - name: Tomas Hillberg
     affiliation: astro.su.se
   - name: Thibault Huillet
-    affiliation: .fr
+    affiliation: ".fr"
   - name: Jan Kohnert
     affiliation: ".de"
   - name: Orion&nbsp;Poplawski
@@ -91,6 +91,12 @@ affiliations:
    index: ursinus.edu
  - name: USA
    index: .us
+ - name: France
+   index: .fr
+ - name: Germany
+   index: .de
+ - name: Norway
+   index: .no
 bibliography: paper.bib
 
 ---
