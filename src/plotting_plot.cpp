@@ -60,7 +60,7 @@ namespace lib {
 
       //test and transform eventually if POLAR and/or NSUM!
       if (nParam() == 1) {
-        yTemp = e->GetParAs< DDoubleGDL > (0);
+        yTemp = e->GetWriteableParAs< DDoubleGDL > (0);
         if (yTemp->Rank() == 0)
           e->Throw("Expression must be an array in this context: " + e->GetParString(0));
         yEl = yTemp->N_Elements();
@@ -69,11 +69,11 @@ namespace lib {
         xtemp_guard.Reset(xTemp); // delete upon exit
         nEl=yEl;
       } else {
-        xTemp = e->GetParAs< DDoubleGDL > (0);
+        xTemp = e->GetWriteableParAs< DDoubleGDL > (0);
         if (xTemp->Rank() == 0)
           e->Throw("Expression must be an array in this context: " + e->GetParString(0));
         xEl = xTemp->N_Elements();
-        yTemp = e->GetParAs< DDoubleGDL > (1);
+        yTemp = e->GetWriteableParAs< DDoubleGDL > (1);
         if (yTemp->Rank() == 0)
           e->Throw("Expression must be an array in this context: " + e->GetParString(1));
         yEl = yTemp->N_Elements();
@@ -316,7 +316,7 @@ namespace lib {
             for (auto i = 0; i < npts; ++i) (*x)[i] = (*lonlat)[i];
             DDoubleGDL* y = new DDoubleGDL(dimension(npts), BaseGDL::NOZERO);
             for (auto i = 0; i < npts; ++i) (*y)[i] = (*lonlat)[i + npts];
-            draw_polyline(actStream, x, y, 0, 0, false, false, false, psym, false, doColor ? color : NULL);
+            draw_polyline(actStream, x, y, psym, false, doColor ? color : NULL); //x and y are normed values.
             GDLDelete(x);
             GDLDelete(y);
           }
@@ -327,7 +327,7 @@ namespace lib {
       } else { //just as if LIBPROJ WAS NOT present
         COORDSYS coordinateSystem = DATA;
         SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //always DATA for PLOT X,Y values
-        draw_polyline(actStream, xVal, yVal, 0, 0, false, xLog, yLog, psym, false, doColor ? color : NULL);
+        draw_polyline(actStream, xVal, yVal, psym, false, doColor ? color : NULL); //x and y are normed values.
       }
 
     }

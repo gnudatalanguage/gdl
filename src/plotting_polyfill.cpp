@@ -25,7 +25,6 @@ namespace lib {
   class polyfill_call : public plotting_routine_call {
     DDoubleGDL *xVal, *yVal, *zVal;
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard;
-    Guard<BaseGDL> xvalnative_guard, yvalnative_guard, zvalnative_guard;
     DDouble xStart, xEnd, yStart, yEnd, zStart, zEnd;
     DDouble zPosition;
     bool xLog, yLog, zLog;
@@ -35,7 +34,6 @@ namespace lib {
     DLongGDL *color;
     bool mapSet;
     COORDSYS coordinateSystem = DATA;
-    bool xnative, ynative, znative; //tell if xVal etc are a copy of the variables or the real thing. When the real thing, they should not be modified.
 
   private:
 
@@ -53,10 +51,6 @@ namespace lib {
       if (p0 == NULL) e->Throw("Variable is undefined: " + e->GetParString(0));
       if (nPar >= 2 && p1 == NULL) e->Throw("Variable is undefined: " + e->GetParString(1));
       if (nPar == 3 && p2 == NULL) e->Throw("Variable is undefined: " + e->GetParString(2));
-
-      xnative = false;
-      ynative = false;
-      znative = false;
 
       //T3D
       static int t3dIx = e->KeywordIx("T3D");
@@ -116,12 +110,10 @@ namespace lib {
         //if x or y have less elements than s, minEl is max(x,y) else minEl is size(s)
         //z ignored unless T3D is given or !P.T3D not 0
       else if (nPar == 2 || (nPar == 3 && !doT3d)) {
-        if (p0->Type() == GDL_DOUBLE) xnative = true;
-        xVal = e->GetParAs< DDoubleGDL>(0);
+        xVal = e->GetWriteableParAs< DDoubleGDL>(0);
         SizeT xEl = xVal->N_Elements();
 
-        if (p1->Type() == GDL_DOUBLE) ynative = true;
-        yVal = e->GetParAs< DDoubleGDL>(1);
+        yVal = e->GetWriteableParAs< DDoubleGDL>(1);
         SizeT yEl = yVal->N_Elements();
 
         nEl = (xEl > yEl) ? xEl : yEl;
@@ -151,16 +143,13 @@ namespace lib {
       {
         flat3d = false;
 
-        if (p0->Type() == GDL_DOUBLE) xnative = true;
-        xVal = e->GetParAs< DDoubleGDL>(0);
+        xVal = e->GetWriteableParAs< DDoubleGDL>(0);
         SizeT xEl = xVal->N_Elements();
 
-        if (p1->Type() == GDL_DOUBLE) ynative = true;
-        yVal = e->GetParAs< DDoubleGDL>(1);
+        yVal = e->GetWriteableParAs< DDoubleGDL>(1);
         SizeT yEl = yVal->N_Elements();
 
-        if (p2->Type() == GDL_DOUBLE) znative = true;
-        zVal = e->GetParAs< DDoubleGDL>(2);
+        zVal = e->GetWriteableParAs< DDoubleGDL>(2);
         SizeT zEl = zVal->N_Elements();
 
         nEl = (xEl > yEl) ? xEl : yEl;
@@ -200,19 +189,6 @@ namespace lib {
             zPosition = (*tmpzVal)[0] * sz[1] + sz[0];
           }
         }
-      }
-      //in all cases, we need to replace the native arrays by a copy as they will be converted to normed values
-      if (xnative) {
-        xVal = xVal->Dup();
-        xvalnative_guard.Reset(xVal);
-      }
-      if (ynative) {
-        yVal = yVal->Dup();
-        yvalnative_guard.Reset(yVal);
-      }
-      if (znative) {
-        zVal = zVal->Dup();
-        zvalnative_guard.Reset(zVal);
       }
 
       return false; //do not abort

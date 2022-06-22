@@ -111,8 +111,8 @@ namespace lib
         zVal = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
         zval_guard.Init(zVal); // delete upon exit
 
-        xVal = e->GetParAs< DDoubleGDL>(1);
-        yVal = e->GetParAs< DDoubleGDL>(2);
+        xVal = e->GetWriteableParAs< DDoubleGDL>(1);
+        yVal = e->GetWriteableParAs< DDoubleGDL>(2);
 
         if (xVal->Rank() > 2)
           e->Throw("X, Y, or Z array dimensions are incompatible.");

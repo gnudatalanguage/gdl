@@ -562,7 +562,7 @@ namespace lib
     gdlGetCurrentAxisRawRangeValues(ZAXIS, zStart, zEnd);
   }
   
-  void ac_histo(GDLGStream *a, int i_buff, PLFLT *x_buff, PLFLT *y_buff, bool xLog)
+  void ac_histo(GDLGStream *a, int i_buff, PLFLT *x_buff, PLFLT *y_buff)
   {
     PLFLT x, x1, y, y1, val;
     for ( int jj=1; jj<i_buff; ++jj )
@@ -571,16 +571,7 @@ namespace lib
       x=x_buff[jj];
       y1=y_buff[jj-1];
       y=y_buff[jj];
-      // cf patch 3567803
-      if ( xLog )
-      {
-        //  val=log10((pow(10.0,x1)+pow(10.0,x))/2.0);
-        val=x1+log10(0.5+0.5*(pow(10.0, x-x1)));
-      }
-      else
-      {
-        val=(x1+x)/2.0;
-      }
+      val=(x1+x)/2.0;
       a->join(x1, y1, val, y1);
       a->join(val, y1, val, y);
       a->join(val, y, x, y);
@@ -660,11 +651,7 @@ namespace lib
 /// @param color DLongGDL* pointer to color list (NULL if no use)
 ///
 
-  void draw_polyline(GDLGStream *a,
-    DDoubleGDL *xVal, DDoubleGDL *yVal,
-    DDouble minVal, DDouble maxVal, bool doMinMax,
-    bool xLog, bool yLog,  //end non-implicit parameters
-    DLong psym, bool append, DLongGDL *color)
+  void draw_polyline(GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal, DLong psym, bool append, DLongGDL *color)
   {
 //        std::cerr<<"draw_polyline()"<<std::endl;
 
@@ -831,8 +818,6 @@ namespace lib
         getLastPoint(a, x, y);
         i--; //to get good counter afterwards
         append=false; //and stop appending after!
-        if ( xLog ) x=pow(10, x);
-        if ( yLog ) y=pow(10, y);
       }
       else
       {
@@ -842,11 +827,7 @@ namespace lib
         else y=y_ref;
       }
       
-      //note: here y is in minVal maxVal
-      if ( doMinMax ) isBad=((y<minVal)||(y>maxVal));
-      if ( xLog ) x=log10(x);
-      if ( yLog ) y=log10(y);
-      isBad=(isBad||!isfinite(x)|| !isfinite(y)||isnan(x)||isnan(y));
+      isBad=(!isfinite(x)|| !isfinite(y)||isnan(x)||isnan(y));
       if ( isBad )
       {
         if ( i_buff>0 )
@@ -919,7 +900,7 @@ namespace lib
         }
         else if ( local_psym==10 )
           {
-            ac_histo(a, i_buff, x_buff, y_buff, xLog);
+            ac_histo(a, i_buff, x_buff, y_buff);
           }
           i_buff=0;
         }
@@ -1002,7 +983,7 @@ namespace lib
         }
         else if ( local_psym==10 )
         {
-          ac_histo(a, i_buff, x_buff, y_buff, xLog);
+          ac_histo(a, i_buff, x_buff, y_buff);
         }
 
         // we must recopy the last point since the line must continue (tested via small buffer ...)

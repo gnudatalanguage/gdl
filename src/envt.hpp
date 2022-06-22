@@ -678,6 +678,16 @@ public:
     this->DeleteAtExit( res);
     return res;
   }
+  //same but ALWAYS a new copy, (BaseGDL::COPY) so it can be modified by the program 'safely' i.e. the original variable is not modified.
+  template <typename T> 
+  T* GetWriteableParAs( SizeT pIx)
+  {
+    BaseGDL* p = GetParDefined( pIx);
+    T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
+    this->DeleteAtExit( res);
+    return res;
+  }
+  
   // same as before for keywords
   template <typename T> 
   T* GetKWAs( SizeT ix)

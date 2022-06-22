@@ -95,9 +95,9 @@ namespace lib {
         strEl = strVal->N_Elements();
         minEl = strEl; //in this case only
       } else if (nParam() == 3) {
-        xVal = e->GetParAs< DDoubleGDL>(0);
+        xVal = e->GetWriteableParAs< DDoubleGDL>(0);
         xEl = xVal->N_Elements();
-        yVal = e->GetParAs< DDoubleGDL>(1);
+        yVal = e->GetWriteableParAs< DDoubleGDL>(1);
         yEl = yVal->N_Elements();
         strVal = e->GetParAs<DStringGDL>(2);
         strEl = strVal->N_Elements();

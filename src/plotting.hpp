@@ -338,10 +338,7 @@ namespace lib {
     }
   };
   void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax = false, DDouble minVal = 0, DDouble maxVal = 0);
-  void draw_polyline(GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal,
-    DDouble minVal, DDouble maxVal, bool doMinMax,
-    bool xLog, bool yLog, //end non-default values 
-    DLong psym = 0, bool append = false, DLongGDL *color = NULL);
+  void draw_polyline(GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal, DLong psym = 0, bool append = false, DLongGDL *color = NULL);
   void SelfNormLonLat(DDoubleGDL *lonlat);
   void SelfPDotTTransformProjectedPolygonTable(DDoubleGDL *lonlat);
   DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, DDoubleGDL *zVal, bool isRadians, bool const doFill, bool const dolines, DLongGDL *&conn);
