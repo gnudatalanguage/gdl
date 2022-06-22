@@ -89,6 +89,8 @@ affiliations:
    index: astro.su.se
  - name: Ursinus College, PA, USA
    index: ursinus.edu
+ - name: USA
+   index: .us
 bibliography: paper.bib
 
 ---
