@@ -61,7 +61,7 @@ namespace lib {
       // Then Z is useful only if (doT3d).
       static int zvIx = e->KeywordIx("Z");
       zPosition = 0.0; //it is NOT a zValue.
-      if (doT3d) {
+      if (e->KeywordPresent(zvIx)) {
         e->AssureDoubleScalarKWIfPresent(zvIx, zPosition);
         //norm directly here, we are in 3D mode
         DDouble *sz;
@@ -217,8 +217,8 @@ namespace lib {
         gdlSetGraphicsForegroundColorFromKw(e, actStream); //COLOR
         doColor = false;
       }
-      gdlSetLineStyle(e, actStream); //LINESTYLE
       gdlSetPenThickness(e, actStream); //THICK
+      gdlSetLineStyle(e, actStream); //LINESTYLE
       
       // LINE_FILL, SPACING, LINESTYLE, ORIENTATION, THICK old code: should be put in line with CONTOUR code (FIXME)
       static int linestyleIx = e->KeywordIx("LINESTYLE");

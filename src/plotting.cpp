@@ -1692,11 +1692,16 @@ namespace lib
     strcpy(label,out.c_str());
     ptr->counter++;
   }
+  
+  //this will take into account !Z.REGION to interpret zValue as a percentage between Z.REGION[0] and !Z.REGION[1]
   void gdlStartT3DMatrixDriverTransform( GDLGStream *a, DDouble zValue){
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
     for (int i = 0; i < 16; ++i) PlotDevice3D.T[i] = (*static_cast<DDoubleGDL*> (pStruct->GetTag(tTag, 0)))[i];
-    PlotDevice3D.zValue = (std::isfinite(zValue))?zValue:0;
+    PLFLT sxmin,symin,sxmax,symax,szmin,szmax;
+    a->getSubpageRegion(sxmin,symin,sxmax,symax,&szmin,&szmax);
+    zValue = (std::isfinite(zValue))?zValue:0; //necessary as NaN means something.
+    PlotDevice3D.zValue = szmin+zValue*(szmax-szmin);
     a->cmd(PLESC_3D, &PlotDevice3D);
   }
   void gdlStartSpecial3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE &PlotDevice3D){
