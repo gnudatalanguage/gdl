@@ -633,6 +633,7 @@ public:
   bool isovpor( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax, PLFLT aspect );
 //  void gvpd( PLFLT& xmin, PLFLT& xmax, PLFLT& ymin, PLFLT& ymax );
   void wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax );
+  void wind( PLFLT xmin, PLFLT xmax, bool xLog, PLFLT ymin, PLFLT ymax, bool yLog );
   void ssub( PLINT nx, PLINT ny, PLINT nz=1);
   void adv(PLINT page);
   void getSubpageRegion(PLFLT &sxmin, PLFLT &symin, PLFLT &sxmax, PLFLT &symax, PLFLT *zmin=NULL, PLFLT *zmax=NULL);

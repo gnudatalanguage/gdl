@@ -378,6 +378,7 @@ namespace lib {
   void gdlSingleAxisTickNamedFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void doOurOwnFormat(PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data);
+  void gdlHandleUnwantedLogAxisValue(DDouble &min, DDouble &max, bool log);
   //
   //--------------FOLLOWING ARE STATIC FUNCTIONS-----------------------------------------------
   //This because static pointers to options indexes are needed to speed up process, but these indexes vary between
@@ -1522,6 +1523,7 @@ namespace lib {
   //ZAXIS will always be an YAXIS plotted with a special YZEXCH T3D matrix. So no special handling of ZAXIS here.
   static bool gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong modifierCode = 0, DDouble NormedLength = 0) {
     if (Start==End) return true;
+    if (Log && (Start<=0 ||End <=0)) return true; //important protection 
     DLong Style;
     gdlGetDesiredAxisStyle(e, axisId, Style);
     if ((Style & 4) == 4) return true; //if we do not write the axis...
@@ -1817,7 +1819,7 @@ namespace lib {
     gdlAxis(e, a, XAXIS, xStart, xEnd, xLog, 1); //only Bottom
     gdlAxis(e, a, YAXIS, yStart, yEnd, yLog, 1); //only left
     gdlExchange3DDriverTransform(a);
-    gdlAxis(e, a, YAXIS, zStart, zEnd, zLog, 0); 
+    gdlAxis(e, a, ZAXIS, zStart, zEnd, zLog, 1); 
     gdlExchange3DDriverTransform(a);
     return true;
   }

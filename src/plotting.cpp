@@ -144,6 +144,7 @@ namespace lib
   PLFLT AutoLogTick(DDouble min, DDouble max)
   {
     DDouble x=abs(log10(max)-log10(min));
+    if (!isfinite(x)) return 0; //trouble ahead...
     if ( x==0.0 ) return 1.0;
     if (x <= 6) return 0;
     if (x <= 7.2) return 1;

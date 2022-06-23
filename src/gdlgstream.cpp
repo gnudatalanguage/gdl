@@ -1222,6 +1222,28 @@ void GDLGStream::wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
   setSymbolSizeConversionFactors(); //because symbols are written in world coordinates. 
 }
 
+void GDLGStream::wind( PLFLT xmin, PLFLT xmax, bool xLog, PLFLT ymin, PLFLT ymax, bool yLog )
+{
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"wind(): setting x[%f:%f],y[%f:%f] (world) \n",xmin,xmax,ymin,ymax);
+  if (xLog) {
+    xmin = log10(xmin);
+    xmax = log10(xmax);
+  }
+  if (yLog) {
+    ymin = log10(ymin);
+    ymax = log10(ymax);
+  }
+  if (xmin==xmax) {xmin=0; xmax=1;}
+  if (ymin==ymax) {ymin=0; ymax=1;}
+  plstream::wind(xmin, xmax, ymin, ymax);
+  theBox.wx1=xmin;
+  theBox.wx2=xmax;
+  theBox.wy1=ymin;
+  theBox.wy2=ymax;
+  updateBoxDeviceCoords();
+  UpdateCurrentCharWorldSize();
+  setSymbolSizeConversionFactors(); //because symbols are written in world coordinates. 
+}
 void GDLGStream::ssub(PLINT nx, PLINT ny, PLINT nz)
 {
 //  plstream::ssub( nx, ny ); // does not appear to change charsize.
