@@ -220,7 +220,7 @@ namespace lib {
       coordinateSystem = DATA;
       //check presence of DATA,DEVICE and NORMAL options
       if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
-      if (e->KeywordSet(DEVICEIx)) {coordinateSystem = DEVICE; doT3d=false;}
+      if (e->KeywordSet(DEVICEIx)) {coordinateSystem = DEVICE; doT3d=false; flat3d=false;}
       if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
       //Take care of projections: 
       //projections: X & Y to be converted to u,v BEFORE plotting in NORM coordinates
