@@ -57,7 +57,7 @@ authors:
     affiliation: 14
 
 affiliations:
- - name: Pusan National University, Korea
+ - name: School of Biomedical Convergence Engineering, Pusan National University, Republic of Korea
    index: 1
  - name: Univ. Grenoble Alpes, CNRS, IPAG, 38000 Grenoble, France 
    index: 2
