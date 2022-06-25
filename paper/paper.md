@@ -7,96 +7,96 @@ tags:
   - IDL
   - PV-WAVE
 authors:
-  - name: Jeongbin&nbsp;Park
+  - name: Jeongbin Park
     orcid: 0000-0002-9064-4912
-    affiliation: pusan.ac.kr
-  - name: Gilles&nbsp;Duvert
+    affiliation: 1
+  - name: Gilles Duvert
     orcid: 0000-0001-8769-3660 
-    affiliation: univ-grenoble-alpes.fr
-  - name: Alain&nbsp;Coulais
+    affiliation: 2
+  - name: Alain Coulais
     orcid: 0000-0001-6492-7719
-    affiliation: "obspm.fr,cea.fr"
-  - name: Gregory&nbsp;V.&nbsp;Jung
-    affiliation: ".us"
-  - name: Sylwester&nbsp;Arabas
+    affiliation: "3, 4"
+  - name: Gregory V. Jung
+    affiliation: 5
+  - name: Sylwester Arabas
     orcid: 0000-0003-2361-0082
-    affiliation: "illinois.edu,uj.edu.pl"
+    affiliation: "6, 7"
   - name: Brian Barker
-    affiliation: ursinus.edu
-  - name: Takeshi&nbsp;Enomoto
-    affiliation: kyoto-u.ac.jp
-  - name: Sylvain&nbsp;Flinois
-    affiliation: kumullus.com
+    affiliation: 8
+  - name: Takeshi Enomoto
+    affiliation: 9
+  - name: Sylvain Flinois
+    affiliation: 10
   - name: Oliver Gressel
-    affiliation: aip.de
+    affiliation: 11
   - name: Tomas Hillberg
-    affiliation: astro.su.se
+    affiliation: 12
   - name: Thibault Huillet
-    affiliation: ".fr"
+    affiliation: 13
   - name: Jan Kohnert
-    affiliation: ".de"
-  - name: Orion&nbsp;Poplawski
-    affiliation: nwra.com
-  - name: Eloi&nbsp;Rozier&nbsp;de&nbsp;Linage
-    affiliation: obspm.fr
-  - name: Remi&nbsp;A.&nbsp;Solås
-    affiliation: ".no" 
-  - name: Luke&nbsp;Stagner 
+    affiliation: 14
+  - name: Orion Poplawski
+    affiliation: 15
+  - name: Eloi Rozier de Linage
+    affiliation: 3
+  - name: Remi A. Solås
+    affiliation: 16
+  - name: Luke Stagner 
     orcid: 0000-0001-5516-3729
-    affiliation: ga.com
-  - name: Ole&nbsp;Streicher
+    affiliation: 17
+  - name: Ole Streicher
     orcid: 0000-0001-7751-1843
-    affiliation: aip.de
-  - name: James&nbsp;Tappin
-    affiliation: stfc.ac.uk
-  - name: Thierry&nbsp;Thomas
-    affiliation: edf.fr
-  - name: Jingwei&nbsp;Wang
-    affiliation: mines-paristech.fr
-  - name: Christian&nbsp;Wimmer
-    affiliation: ".de"
+    affiliation: 11
+  - name: James Tappin
+    affiliation: 18
+  - name: Thierry Thomas
+    affiliation: 19
+  - name: Jingwei Wang
+    affiliation: 20
+  - name: Christian Wimmer
+    affiliation: 14
 
 affiliations:
  - name: Pusan National University, Korea
-   index: pusan.ac.kr
+   index: 1
  - name: Univ. Grenoble Alpes, CNRS, IPAG, 38000 Grenoble, France 
-   index: univ-grenoble-alpes.fr
- - name: AIM, CEA, CNRS, Université Paris-Saclay, Université Paris Diderot, Sorbonne Paris Cité, Gif-sur-Yvette, France
-   index: cea.fr
+   index: 2
  - name: LERMA, Observatoire de Paris, CNRS, Paris, France 
-   index: obspm.fr
- - name: Jagiellonian University, Kraków, Poland
-   index: uj.edu.pl
- - name: RAL Space, STFC Rutherford Appleton Laboratory, UK 
-   index: stfc.ac.uk
- - name: Leibniz-Institut für Astrophysik Potsdam (AIP), Potsdam, Germany 
-   index: aip.de
+   index: 3
+ - name: AIM, CEA, CNRS, Université Paris-Saclay, Université Paris Diderot, Sorbonne Paris Cité, Gif-sur-Yvette, France
+   index: 4
+ - name: Independent Researcher, USA
+   index: 5
  - name: University of Illinois at Urbana–Champaign, USA
-   index: illinois.edu
- - name: EDF, Lyon, France
-   index: edf.fr
- - name: NorthWest Research Associates, Boulder, CO, USA
-   index: nwra.com
- - name: Kyoto University, Japan
-   index: kyoto-u.ac.jp
- - name: Kumullus, Paris, France
-   index: kumullus.com
- - name: MINES ParisTech, Paris, France
-   index: mines-paristech.fr
- - name: General Atomics, San Diego, CA, USA
-   index: ga.com
- - name:  Department of Astronomy, Stockholm University, Sweden
-   index: astro.su.se
+   index: 6
+ - name: Jagiellonian University, Kraków, Poland
+   index: 7
  - name: Ursinus College, PA, USA
-   index: ursinus.edu
- - name: USA
-   index: .us
- - name: France
-   index: .fr
- - name: Germany
-   index: .de
- - name: Norway
-   index: .no
+   index: 8
+ - name: Kyoto University, Japan
+   index: 9
+ - name: Kumullus, Paris, France
+   index: 10
+ - name: Leibniz-Institut für Astrophysik Potsdam (AIP), Potsdam, Germany 
+   index: 11
+ - name: Department of Astronomy, Stockholm University, Sweden
+   index: 12
+ - name: Independent Researcher, France
+   index: 13
+ - name: Independent Researcher, Germany
+   index: 14
+ - name: NorthWest Research Associates, Boulder, CO, USA
+   index: 15
+ - name: Independent Researcher, Norway
+   index: 16
+ - name: General Atomics, San Diego, CA, USA
+   index: 17
+ - name: RAL Space, STFC Rutherford Appleton Laboratory, UK 
+   index: 18
+ - name: EDF, Lyon, France
+   index: 19
+ - name: MINES ParisTech, Paris, France
+   index: 20
 bibliography: paper.bib
 
 ---
