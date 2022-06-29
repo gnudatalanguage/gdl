@@ -45,7 +45,6 @@ namespace lib
   static DLong savedStyle=0;
   static DDouble savedPointX=0.0;
   static DDouble savedPointY=0.0;
-  static gdlSavebox saveBox;
   static DFloat sym1x[6]={1, -1, 0, 0, 0, 0}; // +
   static DFloat sym1y[6]={0, 0, 0, -1, 1, 0}; // +
   static DFloat sym2x[12]= {1, -1, 0, 0, 0, 0,1,-1,0,1,-1, 0}; //*
@@ -80,7 +79,6 @@ namespace lib
   static std::vector<PLFLT>xtickget;
   static std::vector<PLFLT>ytickget;
   static std::vector<PLFLT>ztickget;
-  gdlSavebox* getSaveBox(){return &saveBox;} 
 
   void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax, DDouble minVal, DDouble maxVal)
   {
@@ -1703,16 +1701,24 @@ namespace lib
     a->getSubpageRegion(sxmin,symin,sxmax,symax,&szmin,&szmax);
     zValue = (std::isfinite(zValue))?zValue:0; //necessary as NaN means something.
     PlotDevice3D.zValue = szmin+zValue*(szmax-szmin);
-    a->cmd(PLESC_3D, &PlotDevice3D);
+    a->cmd(PLESC_3D, &PlotDevice3D); //copy to driver's
   }
-  void gdlStartSpecial3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE &PlotDevice3D){
-    a->cmd(PLESC_3D, &PlotDevice3D);
+  void gdlStartSpecial3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE &UseThis3DMatrix){
+    for (int i = 0; i < 16; ++i) PlotDevice3D.T[i] = UseThis3DMatrix.T[i];
+    PlotDevice3D.zValue = UseThis3DMatrix.zValue;
+    a->cmd(PLESC_3D, &PlotDevice3D);//copy to driver's
   }
   void gdlExchange3DDriverTransform( GDLGStream *a){
     yzaxisExch(PlotDevice3D.T); //for zAxis ONLY
-    a->cmd(PLESC_3D, &PlotDevice3D);
+    a->cmd(PLESC_3D, &PlotDevice3D);//copy to driver's
   }
-  void gdlStop3DDriverTransform( GDLGStream *a){
+  void gdlSetZto3DDriverTransform( GDLGStream *a, DDouble zValue){
+    PlotDevice3D.zValue=zValue; //for zAxis ONLY
+    a->cmd(PLESC_3D, &PlotDevice3D);//copy to driver's
+  }
+  void gdlStop3DDriverTransform( GDLGStream *a){ //stop and RESET to unity/
+    for (int i = 0; i < 16; ++i) PlotDevice3D.T[i] = 0;PlotDevice3D.T[0] = 1;PlotDevice3D.T[5] = 1;PlotDevice3D.T[10] = 1;PlotDevice3D.T[15] = 1;
+    PlotDevice3D.zValue=0;
     a->cmd(PLESC_2D, NULL);
   }
   bool T3Denabled()
@@ -1736,20 +1742,20 @@ namespace lib
     me[14]=me[13];
     me[13]=tmp;
   }
-  void xzaxisExch(DDouble* me) {
-    DDouble tmp=me[2];
-    me[2]=me[0];
-    me[0]=tmp;
-    tmp=me[6];
-    me[6]=me[4];
-    me[4]=tmp;
-    tmp=me[10];
-    me[10]=me[8];
-    me[8]=tmp;
-    tmp=me[14];
-    me[14]=me[12];
-    me[12]=tmp;
-  }
+//  void xzaxisExch(DDouble* me) {
+//    DDouble tmp=me[2];
+//    me[2]=me[0];
+//    me[0]=tmp;
+//    tmp=me[6];
+//    me[6]=me[4];
+//    me[4]=tmp;
+//    tmp=me[10];
+//    me[10]=me[8];
+//    me[8]=tmp;
+//    tmp=me[14];
+//    me[14]=me[12];
+//    me[12]=tmp;
+//  }
 
   void usersym(EnvT *e)
   {

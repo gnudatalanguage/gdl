@@ -705,6 +705,7 @@ DDoubleGDL* gdlDoAsScale3(DDouble az, DDouble alt, DDouble *scalex, DDouble *sca
    DDoubleGDL* gdlDefinePlplotRotationMatrix(DDouble az, DDouble alt, DDouble *scale, bool save) {
 //    std::cerr<<"gdlDefinePlplotRotationMatrix()\n";
     DDoubleGDL* t3dMatrix = gdlDoAsScale3(az,alt, &scale[0], &scale[1], &scale[2]); 
+//    DDoubleGDL* t3dMatrix = gdlDoAsSurfr(az,alt, &scale[0], &scale[1], &scale[2]); 
     SelfTranspose3d(t3dMatrix);
     if (save) {
       DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
@@ -916,7 +917,7 @@ bool isValidRotationMatrix(DDoubleGDL* Matrix, T3DEXCHANGECODE &axisExchangeCode
     return false;
 }  
 bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode) {
-  std::cerr<<"isAxonometricRotation()\n";
+//  std::cerr<<"isAxonometricRotation()\n";
   // Comments To Be Revised equations below are not exact.
   //with *DL notations, the 3x3 'rotation+scale' subset of the 4x4 matrix is of the form:
   //        [             cos(ay) cos(az)                               -cos(ay) sin(az)                     sin(ay)     ]
@@ -965,7 +966,7 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble
       ax = 180-ax;
       az += 180;
     }
-    std::cerr<<"ax="<<ax<<", az="<<az<<", ay="<<ay<<", scale x="<<sx<<", scale y="<<sy<<", scale z="<<sz<<std::endl;
+//    std::cerr<<"ax="<<ax<<", az="<<az<<", ay="<<ay<<", scale x="<<sx<<", scale y="<<sy<<", scale z="<<sz<<std::endl;
     if (abs(ay) > 1E-4) return false;
     return true;
   }

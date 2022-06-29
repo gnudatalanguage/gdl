@@ -241,6 +241,7 @@ namespace lib
       // viewport and world coordinates
       // set the PLOT charsize before setting viewport (margin depend on charsize)
       gdlSetPlotCharsize(e, actStream);
+      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return true;
       
       // Deal with T3D options -- either present and we have to deduce az and alt contained in it,
       // or absent and we have to compute !P.T from az and alt.
@@ -274,12 +275,10 @@ namespace lib
         gdlStartT3DMatrixDriverTransform(actStream, zValue);
       }
       // We could have kept the old code where the box was written by plplot's box3(), but it would not be compatible with the rest of the eventual other (over)plots
-      //write box using our 3D PLESC tricks:
-      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return true;
       //Draw axes with normal color!
       gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
-      //draw OUR box
-      gdlBox3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog);
+      //write OUR box using our 3D PLESC tricks:
+      gdlBox3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue);
       // title and sub title
       gdlWriteTitleAndSubtitle(e, actStream);
        //reset driver to 2D plotting routines, further 3D is just plplot drawing a mesh.
@@ -304,8 +303,8 @@ namespace lib
 //   y = ymax   =>   wy =  0.5*basey
 //   z = zmin   =>   wz =  0.0
 //   z = zmax   =>   wz =  height
-//      actStream->vpor(0,1,0,1);
-      actStream->wind(-0.5,0.5,-0.5,0.5);
+      actStream->vpor(0,1,0,1);
+      actStream->wind(-0.5,0.5,0,1);
 //      std::cerr<<scale[0]<<","<<scale[1]<<","<<scale[2]<<std::endl;
       actStream->w3d(scale[0],scale[1],scale[2],0,1,0,1,-0.5,0.5, alt, az);
 //      actStream->w3d(1,1,1,0,1,0,1,0,1, alt, az);
@@ -321,8 +320,11 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
       static int shadesIx = e->KeywordIx("SHADES");
       BaseGDL* shadevalues = e->GetKW(shadesIx);
       bool doShade = (shadevalues != NULL); //... But 3d mesh will be colorized anyway!
-      if (doShade) Warning("SURFACE: Using Fixed (Z linear) Shade Values Only (FIXME).");
-
+      if (doShade) Warning("SURFACE: problem with plplot shading... (FIXME).");
+      // Get decomposed value for shades
+      DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
+      if (doShade) actStream->SetColorMap1Table(shadevalues->N_Elements(), shadevalues, decomposed); //SetColorMap1DefaultColors(256,  decomposed ); //actStream->SetColorMap1DefaultColors(256,  decomposed );
+      else actStream->SetColorMap1Ramp(decomposed, 0.5); 
       static int UPPER_ONLYIx = e->KeywordIx( "UPPER_ONLY");
       static int LOWER_ONLYIx = e->KeywordIx( "LOWER_ONLY");
       bool up=e->KeywordSet ( UPPER_ONLYIx );
@@ -348,7 +350,7 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
             if ( !isfinite(v) ) v=minVal;
             if ( hasMinVal && v < minVal) v=minVal;
             if ( hasMaxVal && v > maxVal) v=maxVal;
-            map[i][j] = v-1;
+            map[i][j] = v;
           }
         }
         // 1 types of grid only: 1D X and Y.
@@ -363,24 +365,10 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
         cgrid1.ny = yEl;
         for ( SizeT i=0; i<xEl; i++ ) cgrid1.xg[i] = (*xVal)[i];
         for ( SizeT i=0; i<yEl; i++ ) cgrid1.yg[i] = (*yVal)[i];
+        
         //apply projection transformations:
         //not until plplot accepts 2D X Y!
         
-//        //apply plot options transformations
-//        if (xLog) { //cgrid is tested internally by plplot (pl3dcl) that aborts if not STRICTLY increasing, this is painful!
-//          DDouble startVal=xStart; //at this point xStart is an OK value for the log X axis.
-//          DDouble epsilon=fabs(startVal-1)/xEl;
-//          startVal-=1; 
-//          for ( SizeT i=0; i<cgrid1.nx; i++ ) cgrid1.xg[i] = cgrid1.xg[i]>0?log10(cgrid1.xg[i]):startVal+i*epsilon; 
-//        }
-//        if (yLog) {
-//          DDouble startVal=yStart; //at this point yStart is an OK value for the log Y axis.
-//          DDouble epsilon=fabs(startVal-1)/xEl;
-//          startVal-=1; 
-//          for ( SizeT i=0; i<cgrid1.ny; i++ ) cgrid1.yg[i] = cgrid1.yg[i]>0?log10(cgrid1.yg[i]):startVal+i*epsilon;
-//        }
-
-
         gdlSetGraphicsForegroundColorFromKw ( e, actStream );
         //mesh option
         PLINT meshOpt;

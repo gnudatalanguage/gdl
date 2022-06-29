@@ -256,16 +256,14 @@ namespace lib {
         } else {
           vpXL = (xAxis || xnodef) ? xnormmin : xnormmin;
           vpXR = (xAxis || xnodef) ? xnormmax : xPos;
-          vpYB = (yAxis || ynodef) ? ynormmin : ynormmin; //yPos - viewportYSize;
+          vpYB = (yAxis || ynodef) ? ynormmin : ynormmin;
           vpYT = (yAxis || ynodef) ? ynormmax : yPos;
         }
         
       // TBD should not plot  axes if they are not on screen
         actStream->vpor(vpXL, vpXR, vpYB, vpYT);
-        //insure 'wind' arguments are given, otherwise BAM! in plplot
-        actStream->wind(xStart, xEnd, xLog, yStart, yEnd, yLog);
         if (doT3d) gdlStartT3DMatrixDriverTransform(actStream, zPos); //call for driver to perform special transform for all further drawing
-        gdlAxis(e, actStream, XAXIS, xStart, xEnd, xLog, xaxis_value+1, viewportYSize);
+        gdlAxis(e, actStream, XAXIS, xStart, xEnd, xLog, xaxis_value+1);
       }
 
       if (yAxis) {
@@ -278,14 +276,12 @@ namespace lib {
         } else {
           vpXL = (xAxis || xnodef) ? xnormmin : xnormmin;
           vpXR = (xAxis || xnodef) ? xnormmax : xPos;
-          vpYB = (yAxis || ynodef) ? ynormmin : ynormmin; //yPos - viewportYSize;
+          vpYB = (yAxis || ynodef) ? ynormmin : ynormmin;
           vpYT = (yAxis || ynodef) ? ynormmax : yPos;
         }
         actStream->vpor(vpXL, vpXR, vpYB, vpYT);
-        //insure 'wind' arguments are given, otherwise BAM! in plplot
-        actStream->wind(xStart, xEnd, xLog, yStart, yEnd, yLog);
         if (doT3d) gdlStartT3DMatrixDriverTransform(actStream, zPos); //call for driver to perform special transform for all further drawing
-        gdlAxis(e, actStream, YAXIS, yStart, yEnd, yLog, yaxis_value+1, viewportXSize);
+        gdlAxis(e, actStream, YAXIS, yStart, yEnd, yLog, yaxis_value+1);
       }
       
       if (doT3d && zAxis) { //no use drawing something unseen
@@ -320,13 +316,11 @@ namespace lib {
           actStream->vpor(xPos, xPos + viewportXSize, znormmin, znormmax);
           break;
         }
-        //insure 'wind' arguments are given, otherwise BAM! in plplot
-        actStream->wind(xStart, xEnd, xLog, zStart, zEnd, zLog); //as Y but with Z
         //special transform to use 'y' axis code, but with 'z' values and yz exch.
 
         gdlStartT3DMatrixDriverTransform(actStream, yPos); 
         gdlExchange3DDriverTransform(actStream);
-        gdlAxis(e, actStream, ZAXIS, zStart, zEnd, zLog, modifierCode, viewportZSize);
+        gdlAxis(e, actStream, ZAXIS, zStart, zEnd, zLog, modifierCode);
       }
 
       static int SAVEIx = e->KeywordIx("SAVE");

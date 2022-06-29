@@ -27,7 +27,6 @@ namespace lib {
     Guard<BaseGDL> xval_guard, yval_guard, zval_guard;
     DDouble zPosition;
     DLong psym;
-    bool xLog, yLog, zLog;
     SizeT nEl;
     bool append;
     bool doT3d, flat3d;
@@ -99,7 +98,7 @@ namespace lib {
       }        //behaviour: if x or y are not an array, they are repeated to match minEl
         //if x or y have less elements than s, minEl is max(x,y) else minEl is size(s)
         //z ignored unless T3D is given or !P.T3D not 0
-      else if (nPar == 2 || (nPar == 3 && !doT3d)) {
+      else if (nPar == 2 || (nPar == 3 && !doT3d)) { //==> flat3d=false;
         xVal = e->GetWriteableParAs< DDoubleGDL>(0);
         SizeT xEl = xVal->N_Elements();
 
@@ -129,7 +128,7 @@ namespace lib {
         }
         zVal = zInit->New(dimension(nEl), BaseGDL::INIT); //inherits current Z.WINDOW[0]
         zval_guard.Reset(zVal); // delete upon exit
-      } else if (nPar == 3) // here we have doT3d 
+      } else if (nPar == 3) // here we have doT3d=true & flat3d=true so...
       {
         flat3d = false;
 
@@ -188,7 +187,6 @@ namespace lib {
       //box defined in previous PLOT command, we pass in normalized coordinates w/clipping if needed 
       gdlSetSymsize(e, actStream); //set symsize BEFORE switching (TBC)
       gdlSwitchToClippedNormalizedCoordinates(e, actStream, true); //inverted clip meaning
-
        return false;
     }
 
@@ -227,7 +225,12 @@ namespace lib {
       bool mapSet = false;
       get_mapset(mapSet);
       mapSet = (mapSet && coordinateSystem == DATA);
-
+      bool xLog, yLog, zLog;
+      //LOG?
+      gdlGetAxisType(XAXIS, xLog);
+      gdlGetAxisType(YAXIS, yLog);
+      gdlGetAxisType(ZAXIS, zLog);
+      
       if (mapSet) {
 #ifdef USE_LIBPROJ
         ref = map_init();

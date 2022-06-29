@@ -26,8 +26,6 @@ namespace lib {
     DDoubleGDL *yVal, *xVal, *xTemp, *yTemp;
     SizeT xEl, yEl, zEl, nEl;
     DDouble xStart, xEnd, yStart, yEnd, zValue, zStart, zEnd;
-    bool xLog, yLog;
-    bool restorelayout;
     Guard<BaseGDL> xval_guard, yval_guard, xtemp_guard;
     bool doT3d;
     DLongGDL *color;
@@ -228,6 +226,7 @@ namespace lib {
       } else { //just as if LIBPROJ WAS NOT present
         COORDSYS coordinateSystem = DATA;
         //LOG?
+        bool xLog, yLog;
         gdlGetAxisType(XAXIS, xLog);
         gdlGetAxisType(YAXIS, yLog);
         SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //DATA

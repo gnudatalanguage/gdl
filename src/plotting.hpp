@@ -172,18 +172,6 @@ struct GDL_MULTIAXISTICKDATA {
   EnvT *e;
 };
 
-typedef struct GDL_SAVEBOX {
-  bool initialized;
-  PLFLT wx1; //world coord of x min
-  PLFLT wx2;
-  PLFLT wy1;
-  PLFLT wy2;
-  PLFLT nx1;
-  PLFLT nx2;
-  PLFLT ny1;
-  PLFLT ny2;
-} gdlSavebox;
-
 namespace lib {
 
   using namespace std;
@@ -241,7 +229,6 @@ namespace lib {
   void SelfExch3d(DDoubleGDL* me, T3DEXCHANGECODE axisExchangeCode);
   void SelfProjectXY(SizeT nEl, DDouble *x, DDouble *y, COORDSYS const coordinateSystem);
   void yzaxisExch(DDouble* me);
-  void xzaxisExch(DDouble* me);
   void SelfConvertToNormXYZ(DDoubleGDL* x, bool &xLog, DDoubleGDL* y, bool &yLog, DDoubleGDL* z, bool &zLog, COORDSYS &code);
   void SelfConvertToNormXYZ(DDouble &x, bool const xLog, DDouble &y, bool const yLog, DDouble &z, bool const zLog, COORDSYS const code);
   void SelfConvertToNormXY(SizeT n, PLFLT *xt, bool const xLog, PLFLT *yt, bool const yLog, COORDSYS const code);
@@ -249,21 +236,14 @@ namespace lib {
   void SelfPDotTTransformXYZ(SizeT n, PLFLT *xt, PLFLT *yt, PLFLT *zt);
   void SelfPDotTTransformXYZ(DDoubleGDL *xt, DDoubleGDL *yt, DDoubleGDL *zt);
   void PDotTTransformXYZval(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
-  void PDotTTransformXYZvalForPlplotAxes(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
   DDoubleGDL* gdlDefinePlplotRotationMatrix(DDouble az, DDouble alt, DDouble *scale, bool save);
   bool gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble &az, DDouble &alt, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode);
-  DDoubleGDL* gdlGetScaledNormalizedT3DMatrix(DDoubleGDL* Matrix = NULL);
   DDoubleGDL* gdlGetT3DMatrix();
   void gdlStartT3DMatrixDriverTransform(GDLGStream *a, DDouble zValue);
   void gdlStartSpecial3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE &PlotDevice3D);
   void gdlExchange3DDriverTransform( GDLGStream *a);
+  void gdlSetZto3DDriverTransform( GDLGStream *a, DDouble zValue);
   void gdlStop3DDriverTransform(GDLGStream *a);
-  void gdlPlot3DBox(EnvT* e, GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, T3DEXCHANGECODE axisExchangeCode);
-  void gdlPlot3DBorders(EnvT* e, GDLGStream* actStream, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, T3DEXCHANGECODE axisExchangeCode);
-  void gdlNormed3dToWorld3d(DDoubleGDL *xVal, DDoubleGDL *yVal, DDoubleGDL* zVal,
-    DDoubleGDL* xValou, DDoubleGDL *yValou, DDoubleGDL *zValou);
-  void gdl3dto2dProjectDDouble(DDoubleGDL* t3dMatrix, DDoubleGDL *xVal, DDoubleGDL *yVal,
-    DDoubleGDL* zVal, DDoubleGDL *xValou, DDoubleGDL *yValou, int* code);
   bool T3Denabled();
 
   class plotting_routine_call {
@@ -369,8 +349,6 @@ namespace lib {
   void GetMinMaxValuesForSubset(DDoubleGDL* val, DDouble &minVal, DDouble &maxVal, SizeT endElement);
   void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart,
     DDouble yEnd, bool xLog, bool yLog);
-  gdlSavebox* getSaveBox();
-  gdlSavebox* getTempBox();
   DDoubleGDL* getLabelingValues(int axisId);
   void defineLabeling(GDLGStream *a, int axisId, void(*func)(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data), PLPointer data);
   void resetLabeling(GDLGStream *a, int axisId);
@@ -1414,7 +1392,6 @@ namespace lib {
       zposStart=szmin;
       zposEnd=szmax;
     }
-    fprintf(stderr,"gdlSetViewPortAndWorldCoordinates: %lf %lf %lf %lf %lf %lf\n",sxmin,sxmax,symin,symax,szmin,szmax);
 
     PLFLT xMR, xML, yMB, yMT, zMB, zMT;
     CheckMargin(actStream,
@@ -1520,14 +1497,26 @@ namespace lib {
     return true;
   }
 
+  
+  //gdlAxis will write an axis from Start to End, following all modifier switch, in the good place of the current VPOR, independent of the current WIN,
+  // as it is temporarily superseded by setting a new a->win().
+  //this makes GDLAXIS independent of WIN, and help the whole code to be dependent only on VPOR which is the sole useful plplot command to really use.
   //ZAXIS will always be an YAXIS plotted with a special YZEXCH T3D matrix. So no special handling of ZAXIS here.
-  static bool gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong modifierCode = 0, DDouble NormedLength = 0) {
-    if (Start==End) return true;
-    if (Log && (Start<=0 ||End <=0)) return true; //important protection 
+  static void gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong modifierCode = 0) {
+    if (Start==End) return;
+    if (Log && (Start<=0 ||End <=0)) return; //important protection 
     DLong Style;
     gdlGetDesiredAxisStyle(e, axisId, Style);
-    if ((Style & 4) == 4) return true; //if we do not write the axis...
-
+    if ((Style & 4) == 4) return; //if we do not write the axis...
+    
+    // we WILL plot something, so set temporarlily WIN accordingly
+    PLFLT owxmin,owxmax,owymin,owymax;
+    a->getCurrentWorldBox(owxmin,owxmax,owymin,owymax);
+    if (axisId == XAXIS) {
+      if (Log) a->wind(log10(Start),log10(End),owymin,owymax); else a->wind(Start,End,owymin,owymax);
+    } else {
+      if (Log) a->wind(owxmin,owxmax,log10(Start),log10(End)); else a->wind(owxmin,owxmax,Start,End);
+    }
     static GDL_TICKDATA tdata;
     tdata.a = a;
     tdata.isLog = Log;
@@ -1804,245 +1793,41 @@ namespace lib {
     //reset charsize & thick
     a->Thick(1.0);
     a->sizeChar(1.0);
-    return 0;
+    a->wind(owxmin,owxmax,owymin,owymax); //restore old values 
   }
 
-  static bool gdlBox(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog) {
+  static void gdlBox(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog) {
     gdlWriteTitleAndSubtitle(e, a);
     gdlAxis(e, a, XAXIS, xStart, xEnd, xLog);
     gdlAxis(e, a, YAXIS, yStart, yEnd, yLog);
-    return true;
   }
   
-  static bool gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog,  DDouble zStart, DDouble zEnd, bool zLog) {
+  static void gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog,  DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue) {
     gdlWriteTitleAndSubtitle(e, a);
     gdlAxis(e, a, XAXIS, xStart, xEnd, xLog, 1); //only Bottom
     gdlAxis(e, a, YAXIS, yStart, yEnd, yLog, 1); //only left
+
+    PLFLT xnormmin, xnormmax, ynormmin, ynormmax, znormmin=0, znormmax=1;
+    a->getCurrentNormBox(xnormmin, xnormmax, ynormmin, ynormmax);
+    gdlGetCurrentAxisWindow(ZAXIS, znormmin, znormmax);
+
+    //almost cut and paste of plotting_axis section on Z axis:
+    PLFLT yPos = ynormmax;
+    PLFLT xPos = xnormmin ;
+    PLFLT viewportXSize=xnormmax-xPos; if (viewportXSize<0.001) viewportXSize=0.01;
+    a->vpor(xPos, xPos + viewportXSize, znormmin, znormmax);
+    //special transform to use 'y' axis code, but with 'z' values and yz exch.
+    gdlSetZto3DDriverTransform(a, yPos);
     gdlExchange3DDriverTransform(a);
-    gdlAxis(e, a, ZAXIS, zStart, zEnd, zLog, 1); 
+    gdlAxis(e, a, ZAXIS, zStart, zEnd, zLog, 1);
+
+    //restore (normally not useful?)
     gdlExchange3DDriverTransform(a);
-    return true;
+    gdlSetZto3DDriverTransform(a, zValue);
+    a->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
+    a->wind(xStart, xEnd, xLog, yStart, yEnd, yLog); //Y
   }
-  static bool gdlAxis3(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong zAxisCode = 0, DDouble NormedLength = 0) {
-    if (Start==End) return true;
-    string addCode = "b"; //for X and Y, and some Z
-    if (zAxisCode == 1 || zAxisCode == 4) addCode = "cm";
-    bool doZ = (zAxisCode >= 0);
-
-    static GDL_TICKDATA tdata;
-    tdata.a = a;
-    tdata.isLog = Log;
-    tdata.axisrange = abs(End - Start);
-
-    static GDL_TICKNAMEDATA data;
-    data.a = a;
-    data.isLog = Log;
-    data.axisrange = abs(End - Start);
-
-    data.nTickName = 0;
-
-    static GDL_MULTIAXISTICKDATA muaxdata;
-    muaxdata.a = a;
-    muaxdata.isLog = Log;
-    muaxdata.axisrange = abs(End - Start);
-
-    muaxdata.what = GDL_NONE;
-    muaxdata.nTickFormat = 0;
-    muaxdata.nTickUnits = 0;
-    muaxdata.axismin = Start;
-    muaxdata.axismax = End;
-    muaxdata.e = e;
-    muaxdata.reset = true;
-
-    //special values
-    PLFLT OtherAxisSizeInMm;
-    if (axisId == XAXIS) OtherAxisSizeInMm = a->mmyPageSize()*(a->boxnYSize());
-    if (axisId == YAXIS) OtherAxisSizeInMm = a->mmxPageSize()*(a->boxnXSize());
-    if (axisId == ZAXIS) OtherAxisSizeInMm = a->mmxPageSize()*(a->boxnXSize()); //not always correct
-
-    //    DFloat Charsize;//done in gdlSetAxisCharsize() below
-    //    gdlGetDesiredAxisCharsize(e, axisId, Charsize);
-    DLong GridStyle;
-    gdlGetDesiredAxisGridStyle(e, axisId, GridStyle);
-    //    DFloat MarginL, MarginR; //unused yet (fixme)
-    //    gdlGetDesiredAxisMargin(e, axisId, MarginL, MarginR);
-    DLong Minor;
-    gdlGetDesiredAxisMinor(e, axisId, Minor);
-    DLong Style;
-    gdlGetDesiredAxisStyle(e, axisId, Style);
-    DFloat Thick;
-    gdlGetDesiredAxisThick(e, axisId, Thick);
-    DStringGDL* TickFormat;
-    gdlGetDesiredAxisTickFormat(e, axisId, TickFormat);
-    DDouble TickInterval;
-    gdlGetDesiredAxisTickInterval(e, axisId, TickInterval);
-    DLong TickLayout;
-    gdlGetDesiredAxisTickLayout(e, axisId, TickLayout);
-    DFloat TickLen;
-    gdlGetDesiredAxisTickLen(e, axisId, TickLen);
-    DStringGDL* TickName;
-    gdlGetDesiredAxisTickName(e, a, axisId, TickName);
-    DLong Ticks;
-    gdlGetDesiredAxisTicks(e, axisId, Ticks);
-    DStringGDL* TickUnits;
-    gdlGetDesiredAxisTickUnits(e, axisId, TickUnits);
-    //    DDoubleGDL* Tickv;
-    //    gdlGetDesiredAxisTickv(e, axisId, Tickv);
-    DString Title;
-    gdlGetDesiredAxisTitle(e, axisId, Title);
-
-    bool hasTickUnitDefined = (TickUnits->NBytes() > 0);
-    int tickUnitArraySize = (hasTickUnitDefined) ? TickUnits->N_Elements() : 0;
-    //For labels we need ticklen in current character size, for ticks we need it in mm
-    DFloat ticklen_in_mm = TickLen;
-    if (TickLen < 0) ticklen_in_mm *= -1;
-    //ticklen in a percentage of box x or y size, to be expressed in mm 
-    if (axisId == XAXIS) ticklen_in_mm = a->mmyPageSize()*(a->boxnYSize()) * ticklen_in_mm;
-    if (axisId == YAXIS) ticklen_in_mm = a->mmyPageSize()*(a->boxnXSize()) * ticklen_in_mm;
-    //eventually, each succesive X or Y axisId is separated from previous by interligne + ticklen in adequate units. 
-    DFloat interligne;
-    if (axisId == XAXIS) interligne = a->mmLineSpacing() / a->mmCharHeight(); //in units of character size      
-    if (axisId == YAXIS) interligne = a->mmLineSpacing() / a->mmCharLength(); //in units of character size 
-
-    if ((Style & 4) != 4) //if we write the axis...
-    {
-      if (TickInterval == 0) {
-        if (Ticks <= 0) TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log);
-        else if (Ticks > 1) TickInterval = (End - Start) / Ticks;
-        else TickInterval = (End - Start);
-      }
-      //Following hopefully corrects a bug in plplot when TickInterval is very very tiny. The only solution
-      // is to avoid plotting the axis!
-      if (TickInterval < 10 * std::numeric_limits<double>::epsilon()) {
-        return true;
-      }
-      string Opt;
-      //first write labels only:
-      gdlSetAxisCharsize(e, a, axisId);
-      gdlSetPlotCharthick(e, a);
-      // axis legend if box style, else do not draw. Take care writing BELOW/ABOVE all axis if tickunits present:actStream->wCharHeight()
-      DDouble displacement = (tickUnitArraySize > 1) ? 2.5 * tickUnitArraySize : 0;
-
-      //no option to care of placement of Z axis???
-      if (axisId == XAXIS) a->mtex3("xp", 3.5 + displacement, 0.5, 0.5, Title.c_str());
-      else if (axisId == YAXIS) a->mtex3("yp", 5.0 + displacement, 0.5, 0.5, Title.c_str());
-      else if (doZ) a->mtex3("zp", 5.0 + displacement, 0.5, 0.5, Title.c_str());
-
-      //axis, 1st time: labels
-      Opt = addCode + "nst"; //will write labels beside the left hand axis (u) at major ticks (n)
-      if (Log) Opt += "l";
-      if (TickName->NBytes() > 0) // /TICKNAME=[array]
-      {
-        data.counter = 0;
-        data.TickName = TickName;
-        data.nTickName = TickName->N_Elements();
-        defineLabeling(a, axisId, gdlSingleAxisTickNamedFunc, &data);
-        Opt += "o";
-        if (axisId == XAXIS) a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
-        else if (axisId == YAXIS) a->box3("", "", 0.0, 0.0, Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0);
-        else if (doZ) if (axisId == ZAXIS) a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
-        resetLabeling(a, axisId);
-      }        //care Tickunits size is 10 if not defined because it is the size of !X.TICKUNITS.
-      else if (hasTickUnitDefined) // /TICKUNITS=[several types of axes written below each other]
-      {
-        muaxdata.counter = 0;
-        muaxdata.what = GDL_TICKUNITS;
-        if (TickFormat->NBytes() > 0) // with also TICKFORMAT option..
-        {
-          muaxdata.what = GDL_TICKFORMAT_AND_UNITS;
-          muaxdata.TickFormat = TickFormat;
-          muaxdata.nTickFormat = TickFormat->N_Elements();
-        }
-        muaxdata.TickUnits = TickUnits;
-        muaxdata.nTickUnits = tickUnitArraySize;
-        defineLabeling(a, axisId, gdlMultiAxisTickFunc, &muaxdata);
-        Opt += "o";
-        for (SizeT i = 0; i < muaxdata.nTickUnits; ++i) //loop on TICKUNITS axis
-        {
-          // no equivalent in 3d yet...
-          //          PLFLT un,deux,trois,quatre,xun,xdeux,xtrois,xquatre;
-          //          a->plstream::gvpd(un,deux,trois,quatre);
-          //          a->plstream::gvpw(xun,xdeux,xtrois,xquatre);
-          if (axisId == XAXIS) a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
-          else if (axisId == YAXIS) a->box3("", "", 0.0, 0.0, Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0);
-          else if (doZ) if (axisId == ZAXIS) a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
-          //          a->plstream::vpor(un,deux,trois,quatre);
-          //          a->plstream::wind(xun,xdeux,xtrois,xquatre);
-          muaxdata.counter++;
-        }
-        resetLabeling(a, axisId);
-      } else if (TickFormat->NBytes() > 0) //no /TICKUNITS=> only 1 value taken into account
-      {
-        muaxdata.counter = 0;
-        muaxdata.what = GDL_TICKFORMAT;
-        muaxdata.TickFormat = TickFormat;
-        muaxdata.nTickFormat = 1;
-        defineLabeling(a, axisId, gdlMultiAxisTickFunc, &muaxdata);
-        Opt += "o";
-        if (axisId == XAXIS) a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
-        else if (axisId == YAXIS) a->box3("", "", 0.0, 0.0, Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0);
-        else if (doZ) if (axisId == ZAXIS) a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
-
-        resetLabeling(a, axisId);
-      } else {
-        defineLabeling(a, axisId, gdlSimpleAxisTickFunc, &tdata);
-        Opt += "o";
-        if (axisId == XAXIS) a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
-        else if (axisId == YAXIS) a->box3("", "", 0.0, 0.0, Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0);
-        else if (doZ) if (axisId == ZAXIS) a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
-        resetLabeling(a, axisId);
-      }
-
-      if (TickLayout == 0) {
-        a->smaj(ticklen_in_mm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
-        a->smin(ticklen_in_mm / 2.0, 1.0); //idem min (plplt defaults)
-        //thick for box and ticks.
-        a->Thick(Thick);
-
-        //ticks or grid eventually with style and length:
-        if (abs(TickLen) < 1e-6) Opt = "";
-        else Opt = "st"; //remove ticks if ticklen=0
-        if (TickLen < 0) {
-          Opt += "i";
-          TickLen = -TickLen;
-        }
-
-        //gridstyle applies here:
-        gdlLineStyle(a, GridStyle);
-        if (Log) Opt += "l";
-        if (axisId == XAXIS) a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0, "", "", 0.0, 0);
-        else if (axisId == YAXIS) a->box3("", "", 0.0, 0.0, Opt.c_str(), "", TickInterval, Minor, "", "", 0.0, 0);
-        else if (doZ) if (axisId == ZAXIS) a->box3("", "", 0.0, 0, "", "", 0.0, 0, Opt.c_str(), "", TickInterval, Minor);
-        //reset ticks to default plplot value...
-        //reset gridstyle
-        gdlLineStyle(a, 0);
-        // pass over with outer box, with thick. No style applied, only ticks
-        Opt = "b";
-        if (axisId == XAXIS) a->box3(Opt.c_str(), "", TickInterval, Minor, "", "", 0, 0, "", "", 0, 0);
-        else if (axisId == YAXIS) a->box3("", "", 0, 0, Opt.c_str(), "", TickInterval, Minor, "", "", 0, 0);
-        else if (doZ) if (axisId == ZAXIS) a->box3("", "", 0, 0, "", "", 0, 0, Opt.c_str(), "", TickInterval, Minor);
-      }
-      //reset charsize & thick
-      a->Thick(1.0);
-      a->sizeChar(1.0);
-      gdlWriteDesiredAxisTickGet(e, axisId, Log);
-    }
-    return 0;
-  }
-
-//  static bool gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, DDouble yStart,
-//    DDouble yEnd, DDouble zStart, DDouble zEnd, bool xLog, bool yLog, bool zLog, bool doSpecialZAxisPlacement = 0) {
-//    DLong zAxisCode = 0;
-//    int ZAXISIx = e->KeywordIx("ZAXIS");
-//    if (doSpecialZAxisPlacement) e->AssureLongScalarKWIfPresent(ZAXISIx, zAxisCode);
-//    gdlAxis3(e, a, XAXIS, xStart, xEnd, xLog, 0);
-//    gdlAxis3(e, a, YAXIS, yStart, yEnd, yLog, 0);
-//    gdlAxis3(e, a, ZAXIS, zStart, zEnd, zLog, zAxisCode);
-//    // title and sub title
-//    gdlWriteTitleAndSubtitle(e, a);
-//    return true;
-//  }
-  
+   
   //restore current clipbox, make another or remove it at all.
   static void gdlSwitchToClippedNormalizedCoordinates(EnvT *e, GDLGStream *actStream, bool invertedClipMeaning=false, bool commandHasCoordSys=true ) {
     COORDSYS coordinateSystem = DATA;

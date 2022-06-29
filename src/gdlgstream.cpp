@@ -1172,6 +1172,8 @@ bool GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
   theBox.ondy=ymin;
   theBox.sndx=xmax-xmin;
   theBox.sndy=ymax-ymin;
+  // avoid complaints by plplot if we forget to reset the world box
+  wind(theBox.wx1,theBox.wx2,theBox.wy1,theBox.wy2);
 
   theBox.initialized=true;
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"vpor(): got x[%f:%f],x[%f:%f] (normalized, device)\n",theBox.ndx1,theBox.ndx2,theBox.ndy1,theBox.ndy2);

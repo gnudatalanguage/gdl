@@ -87,9 +87,10 @@ namespace lib {
       zValue = std::numeric_limits<DDouble>::quiet_NaN(); //NAN = no zValue?
       static int zvIx = e->KeywordIx("ZVALUE");
       if (e->KeywordPresent(zvIx)){
-      e->AssureDoubleScalarKWIfPresent(zvIx, zValue);
-      zValue = min(zValue, ZVALUEMAX); //to avoid problems with plplot
-      zValue = max(zValue, 0.0);
+        e->AssureDoubleScalarKWIfPresent(zvIx, zValue);
+        zValue = min(zValue, ZVALUEMAX); //to avoid problems with plplot
+        zValue = max(zValue, 0.0);
+        flat3d=true;
       }
       //zStart and zEnd are ALWAYS Zero. zValue will be registered in !Z.REGION
       zStart = 0;
