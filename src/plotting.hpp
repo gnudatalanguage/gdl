@@ -1289,7 +1289,8 @@ namespace lib {
     DFloatGDL* pos1 = NULL;
     DFloatGDL* pos2 = NULL;
 
-    bool hasregion, hasposition;
+    bool hasregion=false;
+    bool hasposition=false;
     // system variable !P.REGION first 
     pos1 = static_cast<DFloatGDL*> (pStruct-> GetTag(pStruct->Desc()->TagIndex("REGION"), 0));
     if ((*pos1)[0] != (*pos1)[2]) hasregion=true;
