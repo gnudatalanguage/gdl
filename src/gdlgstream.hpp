@@ -600,7 +600,7 @@ public:
   //if decomposed, create a red ramp. If not, copy the colormap0 in colormap1
   void SetColorMap1DefaultColors(PLINT ncolors, DLong decomposed=0);
   //if create a colormap1 color with passed colors, palette will be tableSize and colors assigned like in contour.
-  void SetColorMap1Table(PLINT tableSize, BaseGDL *passed_colors, DLong decomposed=0);
+  void SetColorMap1Table(PLINT tableSize, DLongGDL *colors, DLong decomposed=0);
   //if create a colormap1 with a black to white ramp.
   void SetColorMap1Ramp(DLong decomposed=0, PLFLT minlight=0.0);
   void DefaultCharSize();

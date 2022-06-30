@@ -1335,7 +1335,7 @@ namespace lib {
     }
   }
   
-  static bool gdlSetViewPortAndWorldCoordinates(EnvT* e,
+  static DDouble gdlSetViewPortAndWorldCoordinates(EnvT* e,
     GDLGStream* actStream,
     DDouble x0,
     DDouble x1,
@@ -1346,10 +1346,10 @@ namespace lib {
     DDouble z0,
     DDouble z1,
     bool zLog,
-    DDouble zValue,
+    DDouble zValue_input, //input
     bool iso = false) {
 
-
+    DDouble zValue_output;
     COORDSYS coordinateSystem = DATA;
     DDouble xStart, yStart, xEnd, yEnd, zStart, zEnd;
 
@@ -1385,8 +1385,8 @@ namespace lib {
     //Special for Z: for Z.S, Z.WINDOW and Z.REGION, in case of POSITION having 6 elements
 
     DDouble zposStart, zposEnd;
-    if (std::isfinite(zValue)) {
-      zposStart=zValue;
+    if (std::isfinite(zValue_input)) {
+      zposStart=zValue_input;
       zposEnd=ZVALUEMAX;
     } else {
       zposStart=szmin;
@@ -1494,7 +1494,7 @@ namespace lib {
     gdlStoreZAxisParameters(actStream, zStart, zEnd, zLog, zposStart, zposEnd);
     //set P.CLIP (done by PLOT, CONTOUR, SHADE_SURF, and SURFACE)
     gdlStoreCLIP();
-    return true;
+    return zposStart;
   }
 
   

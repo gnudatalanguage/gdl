@@ -102,9 +102,8 @@ void GDLGStream::SetColorMap1DefaultColors(PLINT ncolors, DLong decomposed)
   }
 }
 
-void GDLGStream::SetColorMap1Table( PLINT tableSize, BaseGDL *passed_colors,  DLong decomposed)
+void GDLGStream::SetColorMap1Table( PLINT tableSize, DLongGDL *colors,  DLong decomposed)
 { //cycle on passed colors to fill tableSize.
-  DLongGDL *colors=static_cast<DLongGDL*>(passed_colors);
   DLong n=colors->N_Elements();
 #ifdef _MSC_VER
   PLINT *r = (PLINT*)alloca(sizeof(PLINT)*tableSize);

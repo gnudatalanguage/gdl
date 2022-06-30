@@ -239,7 +239,7 @@ namespace lib
       // viewport and world coordinates
       // set the PLOT charsize before setting viewport (margin depend on charsize)
       gdlSetPlotCharsize(e, actStream);
-      if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue) == false) return true;
+      zValue=gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue);
 
       // Deal with T3D options -- either present and we have to deduce az and alt contained in it,
       // or absent and we have to compute !P.T from az and alt.
@@ -302,11 +302,11 @@ namespace lib
 //   z = zmin   =>   wz =  0.0
 //   z = zmax   =>   wz =  height
       actStream->vpor(0,1,0,1);
-      actStream->wind(-0.5,0.5,0,1);
-//      std::cerr<<scale[0]<<","<<scale[1]<<","<<scale[2]<<std::endl;
-      actStream->w3d(scale[0],scale[1],scale[2],0,1,0,1,-0.5,0.5, alt, az);
-//      actStream->w3d(1,1,1,0,1,0,1,0,1, alt, az);
-
+      actStream->wind(-0.5/scale[0],0.5/scale[0],-0.5/scale[1],0.5/scale[1]);
+      actStream->w3d(1,1,1,0,1,0,1,0.5,1.5, alt, az);
+      
+      if (zValue < 0.5) Message("SHADE_SURF: due to plplot restrictions, shaded surface is not entirely visible. Please try with zvalue=0.5 or greater.");
+      
       return false;
       }
 
@@ -314,18 +314,18 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
       //NODATA
       static int nodataIx = e->KeywordIx("NODATA");
       nodata = e->KeywordSet(nodataIx);
-      //SHADES
       static int shadesIx = e->KeywordIx("SHADES");
-      BaseGDL* shadevalues = e->GetKW(shadesIx);
-      bool doShade = (shadevalues != NULL); //... But 3d mesh will be colorized anyway!
+      bool doShade=false;
+      DLongGDL* shadevalues=NULL;
+      if (e->GetKW(shadesIx) != NULL) {
+        shadevalues = e->GetKWAs<DLongGDL>(shadesIx);
+        doShade=true;
+      }
       // Get decomposed value for shades
       DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
-      if (doShade) actStream->SetColorMap1Table(shadevalues->N_Elements(), shadevalues, decomposed); //SetColorMap1DefaultColors(256,  decomposed ); //actStream->SetColorMap1DefaultColors(256,  decomposed );
-      else actStream->SetColorMap1Ramp(decomposed, 0.5);
-//      // Get decomposed value for shades
-//      DLong decomposed = GraphicsDevice::GetDevice()->GetDecomposed();
-//      if (doShade) actStream->SetColorMap1DefaultColors(256, decomposed);
-//      else actStream->SetColorMap1Ramp(decomposed, 0.5); 
+      if (doShade && decomposed==0) actStream->SetColorMap1Table(shadevalues->N_Elements(), shadevalues, decomposed); 
+      else if (doShade && decomposed==1) actStream->SetColorMap1DefaultColors(256,  decomposed );
+      else actStream->SetColorMap1Ramp(decomposed, 0.1);
 
       //Draw 3d mesh before axes
       // PLOT ONLY IF NODATA=0

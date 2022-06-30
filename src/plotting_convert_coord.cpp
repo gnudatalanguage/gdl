@@ -704,8 +704,8 @@ DDoubleGDL* gdlDoAsScale3(DDouble az, DDouble alt, DDouble *scalex, DDouble *sca
   
    DDoubleGDL* gdlDefinePlplotRotationMatrix(DDouble az, DDouble alt, DDouble *scale, bool save) {
 //    std::cerr<<"gdlDefinePlplotRotationMatrix()\n";
-    DDoubleGDL* t3dMatrix = gdlDoAsScale3(az,alt, &scale[0], &scale[1], &scale[2]); 
-//    DDoubleGDL* t3dMatrix = gdlDoAsSurfr(az,alt, &scale[0], &scale[1], &scale[2]); 
+//    DDoubleGDL* t3dMatrix = gdlDoAsScale3(az,alt, &scale[0], &scale[1], &scale[2]); 
+    DDoubleGDL* t3dMatrix = gdlDoAsSurfr(az,alt, &scale[0], &scale[1], &scale[2]); 
     SelfTranspose3d(t3dMatrix);
     if (save) {
       DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 

@@ -313,7 +313,7 @@ namespace lib {
         // viewport and world coordinates
         // set the PLOT charsize before setting viewport (margin depend on charsize)
         gdlSetPlotCharsize(e, actStream);
-        if (gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso) == false) return true; 
+        zValue=gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, iso); 
 
         if (doT3d) gdlStartT3DMatrixDriverTransform(actStream, zValue); //call for driver to perform special transform for all further drawing
 
