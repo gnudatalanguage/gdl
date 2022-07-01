@@ -71,6 +71,7 @@ PRO MAP_SET, lat, lon, rot, $
   ON_ERROR, 2                   ; return to caller
 
 ; limit vs. scale
+ doiso=n_elements(isotropic) gt 0
  doscale=n_elements(scale) gt 0
  dolimit=n_elements(limit) gt 0
   if doscale and dolimit then begin 
@@ -160,24 +161,14 @@ PRO MAP_SET, lat, lon, rot, $
      !map=map_proj_init( keyword_set(nam)?nam:keyword_set(projection)?projection:"cylindrical", sphere_radius=1d, center_latitude=lat, center_longitude=lon, rotation=rot, clip=clip, _extra=extra)
   endelse
 
-  uvrange=!map.uv_box
-; this to initialize (fixme)
-  plot,[0,1],/noerase,/nodata,xrange=uvrange[[0,2]],yrange=uvrange[[1,3]],isotropic=keyword_set(scale)?0:isotropic,xsty=5,ysty=5, position=position
+  if  keyword_set(GNOMIC) then !map.uv_box=[-2,-2,2,2] 
 
-  if doscale then begin
-     x_size = !x.window[1]-!x.window[0]
-     y_size = !y.window[1]-!y.window[0]
-                                ; construct a limit using scale
-     map_proj_info, /CURRENT, SCALE=meters ; scale is in meters per UV unit. 
-     
-     ourUvRange = meters/scale  ; ourUvRange is desired range in uv units (normalized).
-     windowSizeM = !d.x_size / !d.x_px_cm / 100. ;width of window in meters
-     !x.s[1] = ourUvRange / windowSizeM
-     !y.s[1] = !x.s[1] * !d.x_size / !d.y_size ; aspect ratio.
-     ourhalfuv = [x_size / !x.s[1], y_size / !y.s[1]] / 2.0        ;half the UV range
-     uvrange = [-ourhalfuv[0] , -ourhalfuv[1] , ourhalfuv[0], ourhalfuv[1]] ;New uv range
-     !map.uv_box = uvrange
-  endif
+  uvrange=!map.uv_box
+
+
+
+  
+
 
   ; reverse? TODO
 
@@ -209,14 +200,71 @@ PRO MAP_SET, lat, lon, rot, $
     clipy = (uvrange[[1,3]] * !y.s[1] + !y.s[0]) * !d.y_size
     !p.clip[[1,3]] = [clipy[0] < clipy[1], clipy[0] > clipy[1]]
   
-  plot,[0,1],/noerase,/nodata,xrange=uvrange[[0,2]],yrange=uvrange[[1,3]],isotropic=keyword_set(scale)?0:isotropic,xsty=5,ysty=5, position=position, charsize=charsize, color=color,title=title
-  if doborder then plots, !x.window[[0,1,1,0,0]], !y.window[[0,0,1,1,0]], COLOR=color, zvalue, /NORM, /NOCLIP, T3D=t3d
+  plot,[0,1],/noerase,/nodata,xsty=5,ysty=5, position=position, charsize=charsize, color=color,title=title
 
-  ; reverse? TODO
+    midx = total(!x.window)/2.
+    midy = total(!y.window)/2.
+
+    if doscale then begin       ; scale has preference over iso
+     x_size = !x.window[1]-!x.window[0]
+     y_size = !y.window[1]-!y.window[0]
+                                ; construct a limit using scale
+     map_proj_info, /CURRENT, SCALE=meters ; scale is in meters per UV unit. 
+     
+     ourUvRange = meters/scale  ; ourUvRange is desired range in uv units (normalized).
+     windowSizeM = !d.x_size / !d.x_px_cm / 100. ;width of window in meters
+     !x.s[1] = ourUvRange / windowSizeM
+     !y.s[1] = !x.s[1] * !d.x_size / !d.y_size ; aspect ratio.
+     ourhalfuv = [x_size / !x.s[1], y_size / !y.s[1]] / 2.0        ;half the UV range
+     uvrange = [-ourhalfuv[0] , -ourhalfuv[1] , ourhalfuv[0], ourhalfuv[1]] ;New uv range
+     !map.uv_box = uvrange
+  endif else if doiso then begin ;isotropic is a sort of scale
+ ; Scale in pixels/uvunit, correct for ISOMETRIC aspect ratio. Use smaller
+ ; of X and Y scale factors
+       x_size = !x.window[1]-!x.window[0]
+      y_size = !y.window[1]-!y.window[0]
+
+     sx = x_size * !d.x_size /(uvrange[2]-uvrange[0]) ;X scale
+    sy = y_size * !d.y_size/(uvrange[3]-uvrange[1]) ;Y scale
+
+    !x.s[1] = (sx < sy) / !d.x_size ;Set smaller
+    !y.s[1] = !x.s[1] * !d.x_size / !d.y_size
+    if sx gt sy then $          ;Resize window to fit map area
+      !x.window = midx + sy/sx/2 * [-x_size, x_size] $
+    else !y.window = midy + sx/sy/2 * [-y_size, y_size]
+    ;; sizex = (!x.window[1]-!x.window[0]) * !d.x_size/(uvrange[2]-uvrange[0])
+    ;; sizey = (!y.window[1]-!y.window[0]) * !d.y_size/(uvrange[3]-uvrange[1])
+    ;;                             ; take smaller of the two sizes,
+    ;;                             ; notice that we align the box on the
+    ;;                             ; center of the screen
+    ;; ratio=sizex/sizey/2.
+    ;; if (sizex le sizey) then begin
+    ;;    !x.s[1] = sizey / !d.x_size
+    ;;    !y.s[1] = !x.s[1] * !d.x_size / !d.y_size
+    ;;    !y.window = midy + ratio * [-y_size, y_size]
+    ;; endif else begin
+    ;;    !x.s[1] = sizex / !d.x_size
+    ;;    !y.s[1] = !x.s[1] * !d.x_size / !d.y_size
+    ;;    !x.window = midx + ratio * [-x_size, x_size]
+    ;; endelse
+  endif else begin ; default case, just set ![x|y].s :
+     x_size = !x.window[1]-!x.window[0]
+     y_size = !y.window[1]-!y.window[0]
+    !x.s[1] = x_size/(uvrange[2]-uvrange[0])
+    !y.s[1] = y_size/(uvrange[3]-uvrange[1])
+  endelse
+
+; reverse? TODO
+; Compute offsets to center UV rectangle in the window
+!x.s[0] = midx - (uvrange[0]+uvrange[2])/2. * !x.s[1]
+!y.s[0] = midy - (uvrange[1]+uvrange[3])/2. * !y.s[1]
+
+  if doborder then plots, !x.window[[0,1,1,0,0]], !y.window[[0,0,1,1,0]], COLOR=color, zvalue, /NORM, /NOCLIP, T3D=t3d
 
   !x.type=3
 
 ; map_horizon? first, because of possibility to be filled... 
+
   if keyword_set(horizon) or keyword_set(ehorizon) then begin
      merge_structs_mapset, ehorizon, egraphics ;Add common graphics keywords
      MAP_HORIZON, _EXTRA=ehorizon
