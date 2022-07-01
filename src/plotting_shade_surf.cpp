@@ -19,8 +19,6 @@
 #include "plotting.hpp"
 #include "dinterpreter.hpp"
 
-static GDL_3DTRANSFORMDEVICE T3DForAXes;
-
 namespace lib
 {
   using namespace std;
@@ -263,6 +261,7 @@ namespace lib
       az=az_change;
         //Compute special transformation matrix for the BOX and give it to the driver
         DDoubleGDL* gdlBox3d=gdlDefinePlplotRotationMatrix( az, alt, scale, saveT3d);
+        GDL_3DTRANSFORMDEVICE T3DForAXes;
         for (int i = 0; i < 16; ++i)T3DForAXes.T[i] =(*gdlBox3d)[i];
         T3DForAXes.zValue = (std::isfinite(zValue))?zValue:0;
         gdlStartSpecial3DDriverTransform(actStream,T3DForAXes);

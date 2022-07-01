@@ -235,7 +235,7 @@ namespace lib
     return max-min; //return range
   }
 
-  PLFLT gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &start, DDouble &end, bool &log) {
+  void gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &start, DDouble &end, bool &log) {
 
     bool hastickunits=gdlHasTickUnits(e, axisId);
     if (hastickunits && log) {
@@ -246,7 +246,6 @@ namespace lib
 
     // [XY]STYLE
     DLong myStyle = 0;
-    PLFLT intv = 1.;
 
     gdlGetDesiredAxisStyle(e, axisId, myStyle);
 
@@ -322,7 +321,7 @@ namespace lib
         end = max;
       }
 
-      return intv;
+      return;
     }
 
     // general case (only negative OR negative and positive)
@@ -446,7 +445,7 @@ namespace lib
         max = imax;
       } else {
         const double max_allowed_leak_factor = 1 - 1.25e-6;
-        intv = AutoIntv(range);
+        PLFLT intv = AutoIntv(range);
         max = ceil((max * max_allowed_leak_factor) / intv) * intv;
         min = floor(min / intv) * intv;
       }
@@ -478,9 +477,6 @@ namespace lib
       start = min;
       end = max;
     }
-
-
-    return intv;
   }
 
 
@@ -560,6 +556,12 @@ namespace lib
     gdlGetCurrentAxisRawRangeValues(YAXIS, yStart, yEnd);
     gdlGetCurrentAxisRawRangeValues(ZAXIS, zStart, zEnd);
   }
+  //This is the good way to get world start end end values.
+  void GetCurrentUserLimits( DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd)
+  {
+    gdlGetCurrentAxisRawRangeValues(XAXIS, xStart, xEnd);
+    gdlGetCurrentAxisRawRangeValues(YAXIS, yStart, yEnd);
+  }  
   
   void ac_histo(GDLGStream *a, int i_buff, PLFLT *x_buff, PLFLT *y_buff)
   {
@@ -1843,6 +1845,38 @@ namespace lib
     SetUsym(n, do_fill, x, y, do_color, thecolor, do_thick, thethick);
   }
 
+  void SelfProjectXY(DDoubleGDL *x, DDoubleGDL *y) {
+    //Take care of projections: better to duplicate the code 
+    //projections: X & Y to be converted to u,v BEFORE plotting in NORM coordinates
+    assert (x->N_Elements()==y->N_Elements());
+    bool mapSet = false;
+    get_mapset(mapSet);
+    SizeT nEl=x->N_Elements();
+    
+    if (mapSet) {
+#ifdef USE_LIBPROJ
+      ref = map_init();
+      if (ref == NULL) BaseGDL::interpreter->CallStack().back()->Throw("Projection initialization failed.");
+      LPTYPE idata;
+      XYTYPE odata;
+      for (OMPInt i = 0; i < nEl; ++i) {
+#if LIBPROJ_MAJOR_VERSION >= 5
+        idata.lam = (*x)[i] * DEG_TO_RAD;
+        idata.phi = (*y)[i] * DEG_TO_RAD;
+        odata = protect_proj_fwd_lp(idata, ref);
+        (*x)[i] = odata.x;
+        (*y)[i] = odata.y;
+#else
+        idata.u = (*x)[i] * DEG_TO_RAD;
+        idata.v = (*y)[i] * DEG_TO_RAD;
+        odata = PJ_FWD(idata, ref);
+        (*x)[i] = odata.u;
+        (*y)[i] = odata.v;
+#endif
+      }
+#endif
+    }
+  }
   void SelfProjectXY(SizeT nEl, DDouble *x, DDouble *y, COORDSYS const coordinateSystem) {
     //Take care of projections: better to duplicate the code 
     //projections: X & Y to be converted to u,v BEFORE plotting in NORM coordinates

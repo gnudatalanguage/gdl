@@ -227,6 +227,7 @@ namespace lib {
   void SelfPerspective3d(DDoubleGDL* me, DDouble zdist);
   void SelfOblique3d(DDoubleGDL* me, DDouble dist, DDouble angle);
   void SelfExch3d(DDoubleGDL* me, T3DEXCHANGECODE axisExchangeCode);
+  void SelfProjectXY(DDoubleGDL *x, DDoubleGDL *y);
   void SelfProjectXY(SizeT nEl, DDouble *x, DDouble *y, COORDSYS const coordinateSystem);
   void yzaxisExch(DDouble* me);
   void SelfConvertToNormXYZ(DDoubleGDL* x, bool &xLog, DDoubleGDL* y, bool &yLog, DDoubleGDL* z, bool &zLog, COORDSYS &code);
@@ -340,8 +341,9 @@ namespace lib {
   void ConvertToNormZ(SizeT n, DDouble *z, bool const zLog, COORDSYS const code);
   void gdlStoreCLIP();
   void gdlGetCLIPXY(DDouble &xStart,  DDouble &yStart, DDouble &xEnd, DDouble &yEnd);
-  void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble &zEnd);
-  PLFLT gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &val_min, DDouble &val_max, bool &log);
+  void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd); //2D
+  void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble &zEnd); //3D
+  void gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &val_min, DDouble &val_max, bool &log);
   PLFLT AutoTick(DDouble x);
   PLFLT AutoLogTick(DDouble min, DDouble max);
   void setIsoPort(GDLGStream* actStream, PLFLT x1, PLFLT x2, PLFLT y1, PLFLT y2, PLFLT aspect);
@@ -375,7 +377,20 @@ namespace lib {
     DLong decomposed = GraphicsDevice::GetDevice()->GetDecomposed();
     a->Background(background, decomposed);
   }
-
+  
+  static void gdlSetGraphicsForegroundColorFromBackgroundKw(EnvT *e, GDLGStream *a, bool kw = true) {
+    DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
+    DLong background =
+      (*static_cast<DLongGDL*>
+      (pStruct->GetTag(pStruct->Desc()->TagIndex("BACKGROUND"), 0)))[0];
+    if (kw) {
+      int BACKGROUNDIx = e->KeywordIx("BACKGROUND");
+      e->AssureLongScalarKWIfPresent(BACKGROUNDIx, background);
+    }
+    DLong decomposed = GraphicsDevice::GetDevice()->GetDecomposed();
+    a->Color(background, decomposed);
+  }
+  
   static void gdlSetGraphicsForegroundColorFromKw(EnvT *e, GDLGStream *a, string OtherColorKw = "") {
     // Get COLOR from PLOT system variable
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset 
