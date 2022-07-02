@@ -7,96 +7,88 @@ tags:
   - IDL
   - PV-WAVE
 authors:
-  - name: Jeongbin Park
+  - name: Jeongbin&nbsp;Park
     orcid: 0000-0002-9064-4912
-    affiliation: 1
-  - name: Gilles Duvert
+    affiliation: pusan.ac.kr
+  - name: Gilles&nbsp;Duvert
     orcid: 0000-0001-8769-3660 
-    affiliation: 2
-  - name: Alain Coulais
+    affiliation: univ-grenoble-alpes.fr
+  - name: Alain&nbsp;Coulais
     orcid: 0000-0001-6492-7719
-    affiliation: "3, 4"
-  - name: Gregory V. Jung
-    affiliation: 5
-  - name: Sylwester Arabas
+    affiliation: "obspm.fr,cea.fr"
+  - name: Gregory&nbsp;V.&nbsp;Jung
+    affiliation: ".us"
+  - name: Sylwester&nbsp;Arabas
     orcid: 0000-0003-2361-0082
-    affiliation: "6, 7"
+    affiliation: "illinois.edu,uj.edu.pl"
   - name: Brian Barker
-    affiliation: 8
-  - name: Takeshi Enomoto
-    affiliation: 9
-  - name: Sylvain Flinois
-    affiliation: 10
+    affiliation: ursinus.edu
+  - name: Takeshi&nbsp;Enomoto
+    affiliation: kyoto-u.ac.jp
+  - name: Sylvain&nbsp;Flinois
+    affiliation: kumullus.com
   - name: Oliver Gressel
-    affiliation: 11
+    affiliation: aip.de
   - name: Tomas Hillberg
-    affiliation: 12
+    affiliation: astro.su.se
   - name: Thibault Huillet
-    affiliation: 13
+    affiliation: .fr
   - name: Jan Kohnert
-    affiliation: 14
-  - name: Orion Poplawski
-    affiliation: 15
-  - name: Eloi Rozier de Linage
-    affiliation: 3
-  - name: Remi A. Solås
-    affiliation: 16
-  - name: Luke Stagner 
+    affiliation: ".de"
+  - name: Orion&nbsp;Poplawski
+    affiliation: nwra.com
+  - name: Eloi&nbsp;Rozier&nbsp;de&nbsp;Linage
+    affiliation: obspm.fr
+  - name: Remi&nbsp;A.&nbsp;Solås
+    affiliation: ".no" 
+  - name: Luke&nbsp;Stagner 
     orcid: 0000-0001-5516-3729
-    affiliation: 17
-  - name: Ole Streicher
+    affiliation: ga.com
+  - name: Ole&nbsp;Streicher
     orcid: 0000-0001-7751-1843
-    affiliation: 11
-  - name: James Tappin
-    affiliation: 18
-  - name: Thierry Thomas
-    affiliation: 19
-  - name: Jingwei Wang
-    affiliation: 20
-  - name: Christian Wimmer
-    affiliation: 14
+    affiliation: aip.de
+  - name: James&nbsp;Tappin
+    affiliation: stfc.ac.uk
+  - name: Thierry&nbsp;Thomas
+    affiliation: edf.fr
+  - name: Jingwei&nbsp;Wang
+    affiliation: mines-paristech.fr
+  - name: Christian&nbsp;Wimmer
+    affiliation: ".de"
 
 affiliations:
- - name: School of Biomedical Convergence Engineering, Pusan National University, Republic of Korea
-   index: 1
+ - name: Pusan National University, Korea
+   index: pusan.ac.kr
  - name: Univ. Grenoble Alpes, CNRS, IPAG, 38000 Grenoble, France 
-   index: 2
- - name: LERMA, Observatoire de Paris, CNRS, Paris, France 
-   index: 3
+   index: univ-grenoble-alpes.fr
  - name: AIM, CEA, CNRS, Université Paris-Saclay, Université Paris Diderot, Sorbonne Paris Cité, Gif-sur-Yvette, France
-   index: 4
- - name: Independent Researcher, USA
-   index: 5
- - name: University of Illinois at Urbana–Champaign, USA
-   index: 6
+   index: cea.fr
+ - name: LERMA, Observatoire de Paris, CNRS, PSL, Paris, France 
+   index: obspm.fr
  - name: Jagiellonian University, Kraków, Poland
-   index: 7
- - name: Ursinus College, PA, USA
-   index: 8
- - name: Kyoto University, Japan
-   index: 9
- - name: Kumullus, Paris, France
-   index: 10
- - name: Leibniz-Institut für Astrophysik Potsdam (AIP), Potsdam, Germany 
-   index: 11
- - name: Department of Astronomy, Stockholm University, Sweden
-   index: 12
- - name: Independent Researcher, France
-   index: 13
- - name: Independent Researcher, Germany
-   index: 14
- - name: NorthWest Research Associates, Boulder, CO, USA
-   index: 15
- - name: Independent Researcher, Norway
-   index: 16
- - name: General Atomics, San Diego, CA, USA
-   index: 17
+   index: uj.edu.pl
  - name: RAL Space, STFC Rutherford Appleton Laboratory, UK 
-   index: 18
+   index: stfc.ac.uk
+ - name: Leibniz-Institut für Astrophysik Potsdam (AIP), Potsdam, Germany 
+   index: aip.de
+ - name: University of Illinois at Urbana–Champaign, USA
+   index: illinois.edu
  - name: EDF, Lyon, France
-   index: 19
+   index: edf.fr
+ - name: NorthWest Research Associates, Boulder, CO, USA
+   index: nwra.com
+ - name: Kyoto University, Japan
+   index: kyoto-u.ac.jp
+ - name: Kumullus, Paris, France
+   index: kumullus.com
  - name: MINES ParisTech, Paris, France
-   index: 20
+   index: mines-paristech.fr
+ - name: General Atomics, San Diego, CA, USA
+   index: ga.com
+ - name:  Department of Astronomy, Stockholm University, Sweden
+   index: astro.su.se
+ - name: Ursinus College, PA, USA
+   index: ursinus.edu
 bibliography: paper.bib
 
 ---
@@ -126,8 +118,8 @@ Interactive Data Language (IDL) is a commercial, domain-specific language used f
   Faulty Language is neither open-source nor free as in free speach and thus users cannot report or fix problems in its 
   source code. Neither IDL nor FL fulfill modern requirements for freely reproducible research. 
 
-The GDL project is an international effort to create a free software clone of Interactive Data Language (IDL) or Precision
-  Visuals - Workstation Analysis and Visualization Environment (PV-WAVE), preserving the capability to run the vast body of
+The GDL project is an international effort to create a free software clone of IDL and PV-WAVE languages, 
+  preserving the capability to run the vast body of
   scientific legacy codes without any technical, legal or financial constraints. GDL has been developed for over four decades
   with public funding throughout academic institutions around the world. The initial development was done by **Marc Schellens**
   almost 20 years ago (commit history preserved on GitHub dates back to 2004) and since then a continuous development has
@@ -135,8 +127,9 @@ The GDL project is an international effort to create a free software clone of In
   (@Coulais_et_al_2010, @Coulais_et_al_2012, @Coulais_et_al_2014, @Coulais_et_al_2019, @Duvert_et_al_2020). As a result,
   we have recently announced GDL 1.0.
 
-In terms of compatibility, GDL aims at a full compatibility with modern IDL language specification, including partial
-  support of the IDL 8 specification and above. In addition, GDL is partially compatible with PV-WAVE, another data
+In terms of compatibility, GDL aims at a full compatibility with IDL language specification, including partial
+  support of the IDL 8 specification and above (syntax is the same, lot of internal functions and procedures are available, with most of the kwywords). 
+In addition, GDL is partially compatible with PV-WAVE, another data
   analysis framework forked from IDL and sharing parts of IDL syntax and library interface. GDL aims to closely mimic
   the behaviour of the IDL compiler and libraries distributed by Harris Geospatial Solutions, so that the existing IDL
   scripts to be compatible with GDL without any modifications. The development has been done by relying on IDL and PV-WAVE
@@ -178,6 +171,17 @@ Map projections are handled using PROJ.
 An evolving list of all project dependencies is maintained at the project website
   and can also be extracted from the CMake configuration files.
 
+# Performance and testability
+
+GDL comes with a large suite of sets (regression tests and unit tests) which cover more than half of the C++ code.
+Most of the critical functionalities are fully covered by carrefully designed tests. We still working to improve this coverage.
+
+GDL scale wells on multi-cores systems and performances of most of the core functionnalities are in line with
+the expeted ones, and checked through a large dedicated benchmark test. Thanks to Eigen3 (@eigenweb) linear algrebas are fast. We welcome feedbacks in any performance issues.
+
+GDL reached the interresting point that when in a large code the final numbers are different between IDL and GDL 
+you have to check the numerical stability of the code.
+
 # Availability
 
 GDL can be installed via the package managing system on Linux (Arch, Debian, Fedora, Gentoo, Mageia, Ubuntu), 
@@ -186,6 +190,17 @@ On Windows, we provide a precompiled Windows binary, wrapped as a convenient ins
   Install System (NSIS).
 The source code of GDL, GDL Workbench, and `gdl_kernel` is available at our GitHub repository (<https://github.com/gnudatalanguage>).
 The weekly unstable builds can be obtained from <https://github.com/gnudatalanguage/gdl/releases>.
+
+# Usage and third party libraries
+
+GDL was used as the framework in several refereed papers (Gallagher2016AA, @Danielski2018AJ, ...).
+
+Three widely used third party libraries are now packakged alongside of GDL 
+(<https://salsa.debian.org/debian-astro-team/idlastro>, 
+<https://salsa.debian.org/debian-astro-team/coyote>
+<https://salsa.debian.org/debian-astro-team/mpfit>.
+
+HEALpix (<https://healpix.sourceforge.io/>) is anounced to work fine within GDL 1.0+.
 
 # Support and Contributions
 
