@@ -147,10 +147,14 @@ map_set,/CONIC,standard_par=[30,60],/iso,e_cont={cont:1,fill:1,color:'33e469'x,h
 if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
 !P.MULTI=0
 READ_JPEG,FILE_SEARCH(!GDL_MAPS_DIR, 'earth.jpg'),R
-map_set,48.83,-2.33,name="GoodesHomolosine",/iso
-z=map_image(r,Startx,Starty)
-tv,z,startx,starty
+map_set,0,48.83,name="GoodesHomolosine",/iso
+im=map_image(r,Startx,Starty)
+tv,im,startx,starty
 map_continents
+Z = SHIFT(DIST(40), 20, 20)& Z = EXP(-(Z/10)^2)& xx=findgen(40,40) mod 40 &xx-=20 & yy=transpose(xx)& xx*=3 &yy+=30
+contour,z,xx,yy,/over,/fill & contour,z,xx,yy,/over
+map_horizon
+xyouts,-30,30,"Hurricane",chars=3,charth=3
 print, 'last demo done'
 ;
 go_to_end:
