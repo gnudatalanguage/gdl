@@ -147,7 +147,7 @@ map_set,/CONIC,standard_par=[30,60],/iso,e_cont={cont:1,fill:1,color:'33e469'x,h
 if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
 !P.MULTI=0
 READ_JPEG,FILE_SEARCH(!GDL_MAPS_DIR, 'earth.jpg'),R
-map_set,48.83,-2.33,name="goode",/iso
+map_set,48.83,-2.33,name="GoodesHomolosine",/iso
 z=map_image(r,Startx,Starty)
 tv,z,startx,starty
 map_continents

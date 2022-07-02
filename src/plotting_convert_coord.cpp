@@ -718,21 +718,18 @@ DDoubleGDL* gdlDoAsScale3(DDouble az, DDouble alt, DDouble *scalex, DDouble *sca
  //converts 3D values according to COORDSYS towards NORMAL coordinates and , logically, unset xLog,yLo,zLog and define code as NORMAL.
   void SelfConvertToNormXYZ(DDoubleGDL *x, bool &xLog, DDoubleGDL *y, bool &yLog, DDoubleGDL *z, bool &zLog, COORDSYS &code) {
 //    std::cerr<<"SelfConvertToNormXYZ(DDoubleGDL)\n";
-    assert (code != DEVICE);
-    assert (x->N_Elements()==y->N_Elements());
-    assert (x->N_Elements()==z->N_Elements());
     SizeT n=x->N_Elements();
     if (code == DATA) {
       DDouble *sx, *sy, *sz;
       GetSFromPlotStructs(&sx, &sy, &sz);
-      for (auto i = 0; i < n; ++i) TONORMCOORDX( (*x)[i], (*x)[i], xLog);
-      for (auto i = 0; i < n; ++i) TONORMCOORDY( (*y)[i], (*y)[i], yLog);
-      for (auto i = 0; i < n; ++i) TONORMCOORDZ( (*z)[i], (*z)[i], zLog);
+      for (auto i = 0; i < x->N_Elements(); ++i) TONORMCOORDX( (*x)[i], (*x)[i], xLog);
+      for (auto i = 0; i < y->N_Elements(); ++i) TONORMCOORDY( (*y)[i], (*y)[i], yLog);
+      for (auto i = 0; i < z->N_Elements(); ++i) TONORMCOORDZ( (*z)[i], (*z)[i], zLog);
+      code = NORMAL;
+      xLog = false;
+      yLog = false;
+      zLog = false;
     }
-    code=NORMAL;
-    xLog=false;
-    yLog=false;
-    zLog=false;
   }
   //same for a DDouble, leaves code and log unchanged.
 
@@ -782,13 +779,13 @@ DDoubleGDL* gdlDoAsScale3(DDouble az, DDouble alt, DDouble *scalex, DDouble *sca
   //converts x and y and updates code and log, for futher use in the pipeline.
    void SelfConvertToNormXY(DDoubleGDL *x, bool &xLog, DDoubleGDL *y, bool &yLog, COORDSYS &code) {
 //  std::cerr<<"SelfConvertToNormXY(DDoubleGD)"<<std::endl;
-    assert (x->N_Elements()==y->N_Elements());
-    SizeT n=x->N_Elements();
+    SizeT nx=x->N_Elements();
+    SizeT ny=y->N_Elements();
   if (code == DATA) {
       DDouble *sx, *sy;
       GetSFromPlotStructs(&sx, &sy);
-      for (auto i = 0; i < n; ++i) TONORMCOORDX( (*x)[i], (*x)[i], xLog);
-      for (auto i = 0; i < n; ++i) TONORMCOORDY( (*y)[i], (*y)[i], yLog);
+      for (auto i = 0; i < nx; ++i) TONORMCOORDX( (*x)[i], (*x)[i], xLog);
+      for (auto i = 0; i < ny; ++i) TONORMCOORDY( (*y)[i], (*y)[i], yLog);
     } else if (code == DEVICE) {
       int xSize, ySize;
       //give default values
@@ -797,8 +794,8 @@ DDoubleGDL* gdlDoAsScale3(DDouble az, DDouble alt, DDouble *scalex, DDouble *sca
       unsigned ysizeTag = dStruct->Desc()->TagIndex("Y_SIZE");
       xSize = (*static_cast<DLongGDL*> (dStruct->GetTag(xsizeTag, 0)))[0];
       ySize = (*static_cast<DLongGDL*> (dStruct->GetTag(ysizeTag, 0)))[0];
-      for (auto i = 0; i < n; ++i) (*x)[i] /= xSize;
-      for (auto i = 0; i < n; ++i) (*y)[i] /= ySize;
+      for (auto i = 0; i < nx; ++i) (*x)[i] /= xSize;
+      for (auto i = 0; i < ny; ++i) (*y)[i] /= ySize;
     }
     code=NORMAL;
     xLog=false;

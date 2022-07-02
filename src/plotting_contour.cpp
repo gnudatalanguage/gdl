@@ -479,6 +479,27 @@ namespace lib {
           SizeT nEl=xValIrregularCase->N_Elements();
           GetMinMaxVal(xValIrregularCase, &xmin, &xmax);
           GetMinMaxVal(yValIrregularCase, &ymin, &ymax);
+          if (!isfinite(xmin)||!isfinite(xmax)||!isfinite(ymin)||!isfinite(ymax)) return; //possible leak
+          //filter out z values whre x or y is nan
+          SizeT finalSize=0;
+          for (SizeT i = 0; i < nEl; ++i) if (isfinite((*xValIrregularCase)[i]) && isfinite((*yValIrregularCase)[i])) finalSize++;
+          if (finalSize != nEl) {
+            DDoubleGDL* newxValIrregularCase= new DDoubleGDL(finalSize,BaseGDL::NOZERO);
+            DDoubleGDL* newyValIrregularCase= new DDoubleGDL(finalSize,BaseGDL::NOZERO);
+            DDoubleGDL* newzVal= new DDoubleGDL(finalSize,BaseGDL::NOZERO);
+            SizeT k=0;
+            for (SizeT i = 0; i < nEl; ++i) if (isfinite((*xValIrregularCase)[i]) && isfinite((*yValIrregularCase)[i])) {
+              (*newxValIrregularCase)[k]=(*xValIrregularCase)[i];
+              (*newyValIrregularCase)[k]=(*yValIrregularCase)[i];
+              (*newzVal)[k]=(*zVal)[i];
+              k++;
+            }
+            //TODO: insure we recover the loss memory of this:
+            xValIrregularCase=newxValIrregularCase;
+            yValIrregularCase=newyValIrregularCase;
+            zVal=newzVal;
+            nEl=finalSize;
+          }
           // find a good compromise for default size of gridded map...
           ixEl = max(51.0, 2 * sqrt((double) nEl) + 1); //preferably odd
           iyEl = max(51.0, 2 * sqrt((double) nEl) + 1);
@@ -489,7 +510,7 @@ namespace lib {
           for (SizeT i = 0; i < ixEl; ++i) (*xVal)[i] = xmin + i * (xmax - xmin) / ixEl;
           for (SizeT i = 0; i < iyEl; ++i) (*yVal)[i] = ymin + i * (ymax - ymin) / iyEl;
           actStream->Alloc2dGrid(&map, ixEl, iyEl);
-          PLFLT data = 0;
+          PLFLT data = 1;
 
           //in order to avoid crash in plplot's griddata, we need to add some random value to x and y
           
