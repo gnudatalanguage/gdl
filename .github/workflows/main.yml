@@ -166,6 +166,7 @@ jobs:
             tar
             zstd
             make
+            patch
             git
             rsync
       - name: Checkout GDL
