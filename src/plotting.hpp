@@ -246,7 +246,48 @@ namespace lib {
   void gdlSetZto3DDriverTransform( GDLGStream *a, DDouble zValue);
   void gdlStop3DDriverTransform(GDLGStream *a);
   bool T3Denabled();
-
+  void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax = false, DDouble minVal = 0, DDouble maxVal = 0);
+  void draw_polyline(GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal, DLong psym = 0, bool append = false, DLongGDL *color = NULL);
+  void SelfNormLonLat(DDoubleGDL *lonlat);
+  void SelfPDotTTransformProjectedPolygonTable(DDoubleGDL *lonlat);
+  DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, DDoubleGDL *zVal, bool isRadians, bool const doFill, bool const dolines, DLongGDL *&conn);
+  void GDLgrPlotProjectedPolygon(GDLGStream * a, DDoubleGDL *lonlat, bool const doFill, DLongGDL *conn);
+  void gdlSetGraphicsPenColorToBackground(GDLGStream *a);
+  void gdlLineStyle(GDLGStream *a, DLong style);
+  DFloat* gdlGetRegion();
+  void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log);
+  void gdlStoreYAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log);
+  void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log, DDouble zposStart, DDouble zposEnd);
+  void gdlGetAxisType(int axisId, bool &log);
+  void gdlGetCurrentAxisWindow(int axisId, DDouble &wStart, DDouble &wEnd);
+  void gdlStoreAxisType(int axisId, bool type);
+  //  void gdlGetCharSizes(GDLGStream *a, PLFLT &nsx, PLFLT &nsy, DDouble &wsx, DDouble &wsy, 
+  //		       DDouble &dsx, DDouble &dsy, DDouble &lsx, DDouble &lsy); 
+  void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz = NULL);
+  void GetWFromPlotStructs(DDouble *wx, DDouble *wy, DDouble *wz = NULL);
+  void ConvertToNormXY(SizeT n, DDouble *x, bool const xLog, DDouble *y, bool const yLog, COORDSYS const code);
+  void ConvertToNormZ(SizeT n, DDouble *z, bool const zLog, COORDSYS const code);
+  void gdlStoreCLIP();
+//  void gdlGetCLIPXY(DLong &x0, DLong &y0, DLong &x1, DLong &y1);
+  void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd); //2D
+  void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble &zEnd); //3D
+  void gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &val_min, DDouble &val_max, bool &log);
+  PLFLT AutoTick(DDouble x);
+  PLFLT AutoLogTick(DDouble min, DDouble max);
+  void setIsoPort(GDLGStream* actStream, PLFLT x1, PLFLT x2, PLFLT y1, PLFLT y2, PLFLT aspect);
+  void GetMinMaxVal(DDoubleGDL* val, double* minVal, double* maxVal);
+  void GetMinMaxValuesForSubset(DDoubleGDL* val, DDouble &minVal, DDouble &maxVal, SizeT endElement);
+  void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart,
+    DDouble yEnd, bool xLog, bool yLog);
+  DDoubleGDL* getLabelingValues(int axisId);
+  void defineLabeling(GDLGStream *a, int axisId, void(*func)(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data), PLPointer data);
+  void resetLabeling(GDLGStream *a, int axisId);
+  void gdlSimpleAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
+  void gdlSingleAxisTickNamedFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
+  void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
+  void doOurOwnFormat(PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data);
+  void gdlHandleUnwantedLogAxisValue(DDouble &min, DDouble &max, bool log);
+  
   class plotting_routine_call {
     // ensure execution of child-class destructors
   public:
@@ -271,16 +312,26 @@ namespace lib {
     // prototypes for methods defining various steps
   private:
     virtual bool handle_args(EnvT*) = 0; // return value = overplot
-  private:
     virtual bool prepareDrawArea(EnvT*, GDLGStream*) = 0;
-  private:
     virtual void applyGraphics(EnvT*, GDLGStream*) = 0;
-  private:
     virtual void post_call(EnvT*, GDLGStream*) = 0;
+
+    void restoreDrawArea(GDLGStream *a){
+      //retrieve and reset plplot to the last setup for vpor() and wind() made by position-scaling commands like PLOT or CONTOUR
+      DDouble *sx, *sy;
+      DDouble wx[2], wy[2];
+      GetSFromPlotStructs(&sx, &sy, NULL);
+      GetWFromPlotStructs(wx, wy, NULL);
+      a->vpor(wx[0], wx[1], wy[0], wy[1]);
+      PLFLT wx0=(wx[0]-sx[0])/sx[1];
+      PLFLT wx1=(wx[1]-sx[0])/sx[1];
+      PLFLT wy0=(wy[0]-sy[0])/sy[1];
+      PLFLT wy1=(wy[1]-sy[0])/sy[1];
+      a->wind(wx0, wx1, wy0, wy1);
+    }
 
     // all steps combined (virtual methods cannot be called from ctor)
   public:
-
     void call(EnvT* e, SizeT n_params_required) {
       // when !d.name == Null  we do nothing !
       DString name = (*static_cast<DStringGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)))[0];
@@ -302,10 +353,14 @@ namespace lib {
 
       if (name == "X" || name == "MAC" || name == "WIN") actStream->updatePageInfo(); //since window size can change
 
+      restoreDrawArea(actStream);
+
       abort = prepareDrawArea(e, actStream);
       if (abort) return;
 
       applyGraphics(e, actStream);
+
+      restoreDrawArea(actStream);
 
       post_call(e, actStream);
       // IDEM: SLOW
@@ -318,48 +373,7 @@ namespace lib {
       actStream->Update();
     }
   };
-  void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax = false, DDouble minVal = 0, DDouble maxVal = 0);
-  void draw_polyline(GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal, DLong psym = 0, bool append = false, DLongGDL *color = NULL);
-  void SelfNormLonLat(DDoubleGDL *lonlat);
-  void SelfPDotTTransformProjectedPolygonTable(DDoubleGDL *lonlat);
-  DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, DDoubleGDL *zVal, bool isRadians, bool const doFill, bool const dolines, DLongGDL *&conn);
-  void GDLgrPlotProjectedPolygon(GDLGStream * a, DDoubleGDL *lonlat, bool const doFill, DLongGDL *conn);
-  void gdlSetGraphicsPenColorToBackground(GDLGStream *a);
-  void gdlLineStyle(GDLGStream *a, DLong style);
-  DFloat* gdlGetRegion();
-  void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log);
-  void gdlStoreYAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log);
-  void gdlStoreZAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log, DDouble zposStart, DDouble zposEnd);
-  void gdlGetAxisType(int axisId, bool &log);
-  void gdlGetCurrentAxisWindow(int axisId, DDouble &wStart, DDouble &wEnd);
-  void gdlStoreAxisType(int axisId, bool type);
-  //  void gdlGetCharSizes(GDLGStream *a, PLFLT &nsx, PLFLT &nsy, DDouble &wsx, DDouble &wsy, 
-  //		       DDouble &dsx, DDouble &dsy, DDouble &lsx, DDouble &lsy); 
-  void GetSFromPlotStructs(DDouble **sx, DDouble **sy, DDouble **sz = NULL);
-  void GetWFromPlotStructs(DFloat **wx, DFloat **wy, DFloat **wz);
-  void ConvertToNormXY(SizeT n, DDouble *x, bool const xLog, DDouble *y, bool const yLog, COORDSYS const code);
-  void ConvertToNormZ(SizeT n, DDouble *z, bool const zLog, COORDSYS const code);
-  void gdlStoreCLIP();
-  void gdlGetCLIPXY(DDouble &xStart,  DDouble &yStart, DDouble &xEnd, DDouble &yEnd);
-  void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd); //2D
-  void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble &zEnd); //3D
-  void gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &val_min, DDouble &val_max, bool &log);
-  PLFLT AutoTick(DDouble x);
-  PLFLT AutoLogTick(DDouble min, DDouble max);
-  void setIsoPort(GDLGStream* actStream, PLFLT x1, PLFLT x2, PLFLT y1, PLFLT y2, PLFLT aspect);
-  void GetMinMaxVal(DDoubleGDL* val, double* minVal, double* maxVal);
-  void GetMinMaxValuesForSubset(DDoubleGDL* val, DDouble &minVal, DDouble &maxVal, SizeT endElement);
-  void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart,
-    DDouble yEnd, bool xLog, bool yLog);
-  DDoubleGDL* getLabelingValues(int axisId);
-  void defineLabeling(GDLGStream *a, int axisId, void(*func)(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data), PLPointer data);
-  void resetLabeling(GDLGStream *a, int axisId);
-  void gdlSimpleAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
-  void gdlSingleAxisTickNamedFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
-  void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
-  void doOurOwnFormat(PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data);
-  void gdlHandleUnwantedLogAxisValue(DDouble &min, DDouble &max, bool log);
-  //
+ //
   //--------------FOLLOWING ARE STATIC FUNCTIONS-----------------------------------------------
   //This because static pointers to options indexes are needed to speed up process, but these indexes vary between
   //the definition of the caller functions (e.g. "CHARSIZE" is 1 for CONTOUR but 7 for XYOUTS). So they need to be kept
@@ -1365,7 +1379,6 @@ namespace lib {
     DDouble zValue_input, //input
     bool iso = false) {
 
-    DDouble zValue_output;
     COORDSYS coordinateSystem = DATA;
     DDouble xStart, yStart, xEnd, yEnd, zStart, zEnd;
 
@@ -1846,7 +1859,7 @@ namespace lib {
    
   //restore current clipbox, make another or remove it at all.
   static void gdlSwitchToClippedNormalizedCoordinates(EnvT *e, GDLGStream *actStream, bool invertedClipMeaning=false, bool commandHasCoordSys=true ) {
-    COORDSYS coordinateSystem = DATA;
+   COORDSYS coordinateSystem = DATA;
     //check presence of DATA,DEVICE and NORMAL options only of command accept them (otherwise assert triggered if in debug mode)
     if (commandHasCoordSys) {
       static int DATAIx = e->KeywordIx("DATA");
@@ -1869,46 +1882,45 @@ namespace lib {
     } else {
       noclip = e->BooleanKeywordSet(NOCLIPIx);
     }
-    doClip = (!noclip);  
+    doClip = (!noclip);
 
-    PLFLT xnormmin = 0;
-    PLFLT xnormmax = 1;
-    PLFLT ynormmin = 0;
-    PLFLT ynormmax = 1;
-
-    if (doClip) {
-      //retrieve current clip (default)
-      DDouble clipx0, clipy0, clipx1, clipy1;
-      gdlGetCLIPXY(clipx0, clipy0, clipx1, clipy1); //in normed
-      xnormmin = clipx0;
-      xnormmax = clipx1;
-      ynormmin = clipy0;
-      ynormmax = clipy1;
-      //redefine default viewport & world
-      //define a default clipbox (DATA coords):
-      PLFLT clipBox[4] = {clipx0, clipy0, clipx1, clipy1};
-      //clipBox is in NORMALIZED coords
+    if (doClip) { //we use current norm box, then clipping if smaller:
+      PLFLT xnormmin, xnormmax, ynormmin, ynormmax;
+      actStream->getCurrentNormBox(xnormmin, xnormmax, ynormmin, ynormmax);
+      PLFLT clipBox[4] = {xnormmin, xnormmax, ynormmin, ynormmax};
       static int CLIP = e->KeywordIx("CLIP"); //this one may be in other coordinates
       DDoubleGDL* clipBoxGDL = e->IfDefGetKWAs<DDoubleGDL>(CLIP);
-      if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() < 4) for (auto i = 0; i < 4; ++i) clipBox[i] = 0; //set clipbox to 0 0 0 0 apparently this is what IDL does.
-      if (clipBoxGDL != NULL && clipBoxGDL->N_Elements() == 4)
-      {
-        for (auto i = 0; i < 4; ++i) clipBox[i] = (*clipBoxGDL)[i];
-        //newClipBox is defined accordingly to /NORM /DEVICE /DATA:
-        //convert newClipBox to normalized coordinates:
+      if (clipBoxGDL != NULL) {
+        for (auto i = 0; i < MIN(clipBoxGDL->N_Elements(),4) ; ++i) clipBox[i] = (*clipBoxGDL)[i];
+        //clipBox is defined accordingly to /NORM /DEVICE /DATA:
+        //convert clipBox to normalized coordinates:
         ConvertToNormXY(1, &clipBox[0], false, &clipBox[1], false, coordinateSystem);
         ConvertToNormXY(1, &clipBox[2], false, &clipBox[3], false, coordinateSystem);
-        xnormmin = clipBox[0];
-        xnormmax = clipBox[2];
-        ynormmin = clipBox[1];
-        ynormmax = clipBox[3];
+        xnormmin = MAX(xnormmin,clipBox[0]);
+        xnormmax = MIN(xnormmax,clipBox[2]);
+        ynormmin = MAX(ynormmin,clipBox[1]);
+        ynormmax = MIN(ynormmax,clipBox[3]);
       }
+      bool ret = actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
+      if (ret) e->Throw("Data coordinate system not established.");
+      actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
+    } else {
+      //make the whole area writeable, but keep world to norm correspondance
+      PLFLT xnormmin = 0;
+      PLFLT xnormmax = 1;
+      PLFLT ynormmin = 0;
+      PLFLT ynormmax = 1;
+      DDouble *sx,*sy;
+      GetSFromPlotStructs(&sx,&sy);
+      PLFLT wx1=(xnormmin-sx[0])/sx[1];
+      PLFLT wx2=(xnormmax-sx[0])/sx[1];
+      PLFLT wy1=(ynormmin-sy[0])/sy[1];
+      PLFLT wy2=(ynormmax-sy[0])/sy[1];
+      bool ret = actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
+      if (ret) e->Throw("Data coordinate system not established.");
+      actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); 
     }
-    
-    bool ret=actStream->vpor(xnormmin, xnormmax, ynormmin, ynormmax);
-    if (ret) e->Throw("Data coordinate system not established.");
-    actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); //transformed (plotted) coords will be in NORM. Conversion will be made on the data values.
-    }
+  }
 } // namespace
 
 #endif

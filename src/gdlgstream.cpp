@@ -1155,6 +1155,8 @@ bool GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
 {
   //make vpor units really min max, otherwise som problems appear spuriously
   if (xmin > xmax || ymin > ymax) return true;
+  if (xmin == xmax) {xmin=0; xmax=1;}
+  if (ymin == ymax) {ymin=0; ymax=1;}
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"vpor(): requesting x[%f:%f],y[%f:%f] (normalized, subpage)\n",xmin,xmax,ymin,ymax);
   //note that plplot apparently does not write the y=0 line of pixels (in device coords). IDL page is on the contrary limited to
   // [0..1[ in both axes (normalized coordinates)
@@ -1171,9 +1173,6 @@ bool GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
   theBox.ondy=ymin;
   theBox.sndx=xmax-xmin;
   theBox.sndy=ymax-ymin;
-  // avoid complaints by plplot if we forget to reset the world box
-  wind(theBox.wx1,theBox.wx2,theBox.wy1,theBox.wy2);
-
   theBox.initialized=true;
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"vpor(): got x[%f:%f],x[%f:%f] (normalized, device)\n",theBox.ndx1,theBox.ndx2,theBox.ndy1,theBox.ndy2);
   syncPageInfo();
@@ -1203,8 +1202,7 @@ bool GDLGStream::isovpor(PLFLT x1, PLFLT x2, PLFLT y1,  PLFLT y2,  PLFLT aspect)
   x2 = mm2ndx(x2mm);
   y1 = mm2ndy(y1mm);
   y2 = mm2ndy(y2mm);
-  // here we need too compensate for the change of aspect due to eventual !P.MULTI plots
-  return vpor(x1, x2, y1, y2); //ask for non-iso window
+  return vpor(x1, x2, y1, y2);
 }
 
 void GDLGStream::wind( PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )

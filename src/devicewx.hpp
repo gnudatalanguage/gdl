@@ -178,11 +178,12 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
   } else {
     //only for REALIZED windows, we can change some 'interactive' properties.
   plotFrame->Realize();
+  plotFrame->Raise();
     plotFrame->ShowWithoutActivating();
   }
   plotFrame->Refresh();
   plotFrame->Update();
-  plotFrame->Raise();
+// plotFrame->Raise();
 
 //really show by letting the loop do its magic. Necessary.
 #ifdef __WXMAC__

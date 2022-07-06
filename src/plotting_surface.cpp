@@ -422,11 +422,10 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
         delete[] yg1;
         actStream->Free2dGrid(map, xEl, yEl);
       }
-    } 
+    }
 
-    virtual void post_call (EnvT*, GDLGStream* actStream) 
-{
-      actStream->lsty(1);//reset linestyle
+    virtual void post_call(EnvT*, GDLGStream* actStream) {
+      actStream->lsty(1); //reset linestyle
       actStream->sizeChar(1.0);
     } 
 

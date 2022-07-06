@@ -494,18 +494,27 @@ namespace lib
     if (sz != NULL) *sz= &(*static_cast<DDoubleGDL*>(zStruct->GetTag(szTag, 0)))[0];
   }
   
-//  void GetWFromPlotStructs(DFloat **wx, DFloat **wy, DFloat **wz )
-//  {
-//    DStructGDL* xStruct=SysVar::X();   //MUST NOT BE STATIC, due to .reset 
-//    DStructGDL* yStruct=SysVar::Y();   //MUST NOT BE STATIC, due to .reset 
-//    DStructGDL* zStruct=SysVar::Z();   //MUST NOT BE STATIC, due to .reset 
-//    unsigned xwindowTag=xStruct->Desc()->TagIndex("WINDOW");
-//    unsigned ywindowTag=yStruct->Desc()->TagIndex("WINDOW");
-//    unsigned zwindowTag=zStruct->Desc()->TagIndex("WINDOW");
-//    *wx= &(*static_cast<DFloatGDL*>(xStruct->GetTag(xwindowTag, 0)))[0];
-//    *wy= &(*static_cast<DFloatGDL*>(yStruct->GetTag(ywindowTag, 0)))[0];
-//    *wz= &(*static_cast<DFloatGDL*>(zStruct->GetTag(zwindowTag, 0)))[0];
-//  }
+  void GetWFromPlotStructs(DDouble *wx, DDouble *wy, DDouble *wz )
+  {
+    DStructGDL* xStruct=SysVar::X();   //MUST NOT BE STATIC, due to .reset 
+    DStructGDL* yStruct=SysVar::Y();   //MUST NOT BE STATIC, due to .reset 
+    DStructGDL* zStruct=SysVar::Z();   //MUST NOT BE STATIC, due to .reset 
+    unsigned xwindowTag=xStruct->Desc()->TagIndex("WINDOW");
+    unsigned ywindowTag=yStruct->Desc()->TagIndex("WINDOW");
+    unsigned zwindowTag=zStruct->Desc()->TagIndex("WINDOW");
+    if (wx != NULL) {
+      wx[0]= (*static_cast<DFloatGDL*>(xStruct->GetTag(xwindowTag, 0)))[0];
+      wx[1]= (*static_cast<DFloatGDL*>(xStruct->GetTag(xwindowTag, 0)))[1];
+    }
+    if (wy != NULL) {
+      wy[0]= (*static_cast<DFloatGDL*>(yStruct->GetTag(ywindowTag, 0)))[0];
+      wy[1]= (*static_cast<DFloatGDL*>(yStruct->GetTag(ywindowTag, 0)))[1];
+    }
+    if (wz != NULL) {
+      wz[0]= (*static_cast<DFloatGDL*>(zStruct->GetTag(zwindowTag, 0)))[0];
+      wz[1]= (*static_cast<DFloatGDL*>(zStruct->GetTag(zwindowTag, 0)))[1];
+    }
+  }
 
   void GetUsym(DLong **n, DInt **do_fill, DFloat **x, DFloat **y, bool **do_color, DLong **usymColor , bool **do_thick, DFloat **usymThick)
   {
@@ -1145,15 +1154,11 @@ namespace lib
     //easier to retrieve here the values sent to vpor() in the calling function instead of
     //calling a special function like gdlStoreRegion(), gdlStoreWindow() each time a memory of vpor() is needed.
     //Will thus need to be amended when/if we get rid of plplot.
-    PLFLT p_xmin, p_xmax, p_ymin, p_ymax, norm_min, norm_max, charDim;
+    PLFLT p_xmin, p_xmax, p_ymin, p_ymax, norm_min, norm_max;
     actStream->getCurrentNormBox(p_xmin, p_xmax, p_ymin, p_ymax); //viewport normalized coords
     DStructGDL* Struct=SysVar::X(); 
     norm_min=p_xmin; 
     norm_max=p_xmax; 
-    charDim=actStream->nCharLength();
-    static unsigned marginTag=Struct->Desc()->TagIndex("MARGIN");
-    DFloat m1=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[0];
-    DFloat m2=(*static_cast<DFloatGDL*>(Struct->GetTag(marginTag, 0)))[1];
     //WINDOW
     static unsigned windowTag=Struct->Desc()->TagIndex("WINDOW");
     (*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[0]=norm_min;
@@ -1182,15 +1187,11 @@ namespace lib
     //easier to retrieve here the values sent to vpor() in the calling function instead of
     //calling a special function like gdlStoreRegion(), gdlStoreWindow() each time a memory of vpor() is needed.
     //Will thus need to be amended when/if we get rid of plplot.
-    PLFLT p_xmin, p_xmax, p_ymin, p_ymax, norm_min, norm_max, charDim;
+    PLFLT p_xmin, p_xmax, p_ymin, p_ymax, norm_min, norm_max;
     actStream->getCurrentNormBox(p_xmin, p_xmax, p_ymin, p_ymax); //viewport normalized coords
     DStructGDL* Struct = SysVar::Y();
     norm_min = p_ymin;
     norm_max = p_ymax;
-    charDim = actStream->nLineSpacing();
-    static unsigned marginTag = Struct->Desc()->TagIndex("MARGIN");
-    DFloat m1 = (*static_cast<DFloatGDL*> (Struct->GetTag(marginTag, 0)))[0];
-    DFloat m2 = (*static_cast<DFloatGDL*> (Struct->GetTag(marginTag, 0)))[1];
     //WINDOW
     static unsigned windowTag = Struct->Desc()->TagIndex("WINDOW");
     (*static_cast<DFloatGDL*> (Struct->GetTag(windowTag, 0)))[0] = norm_min;
@@ -1238,19 +1239,14 @@ namespace lib
     }
 }
 
-  void gdlGetCLIPXY(DDouble &xStart, DDouble &yStart, DDouble &xEnd, DDouble &yEnd){
-    DStructGDL* dStruct=SysVar::D();   //MUST NOT BE STATIC, due to .reset 
-    static unsigned xsTag=dStruct->Desc()->TagIndex("X_SIZE");
-    static unsigned ysTag=dStruct->Desc()->TagIndex("Y_SIZE");
-    DLong xsize=(*static_cast<DLongGDL*>(dStruct->GetTag(xsTag, 0)))[0];
-    DLong ysize=(*static_cast<DLongGDL*>(dStruct->GetTag(ysTag, 0)))[0];
-    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
-    static unsigned clipTag=pStruct->Desc()->TagIndex("CLIP");
-    xStart=double((*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[0])/xsize;
-    yStart=double((*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[1])/ysize;
-    xEnd=double((*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[2])/xsize;
-    yEnd=double((*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[3])/ysize;
-  }
+//  void gdlGetCLIPXY(DLong &x0, DLong &y0, DLong &x1, DLong &y1){
+//    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
+//    static unsigned clipTag=pStruct->Desc()->TagIndex("CLIP");
+//    x0=(*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[0];
+//    y0=(*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[1];
+//    x1=(*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[2];
+//    y1=(*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[3];
+//  }
   void gdlStoreCLIP()
   {
     DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
