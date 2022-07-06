@@ -17,9 +17,13 @@
 
 #include "includefirst.hpp"
 
-#include "datatypes.hpp"
-#include "envt.hpp"
+// why ? not needed #include "datatypes.hpp"
+// why ? not needed #include "envt.hpp"
 #include "dinterpreter.hpp"
+
+// AC 22/05/11 (needed in Debian 10 & U 18.04)
+using namespace std;
+
 template<typename TGDL, typename T>
 void update_histo_limits (TGDL* array, T& endVal, DLong nbins, T bsize, T startVal) {
 
