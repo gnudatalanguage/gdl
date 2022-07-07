@@ -268,7 +268,7 @@ namespace lib
     DDouble range = max - min;
 
     // correct special case "all values are equal"
-    if (ABS(range) <= std::numeric_limits<DDouble>::min()) {
+    if (fabs(range) <= std::numeric_limits<DDouble>::min()) {
       DDouble val_ref;
       val_ref = max;
       if (0.98 * min < val_ref) { // positive case
