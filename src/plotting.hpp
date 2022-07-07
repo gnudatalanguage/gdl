@@ -70,6 +70,13 @@
 #include "projections.hpp"
 #endif 
 
+#undef MIN
+#define MIN(a,b) ((a) > (b) ? (b) : (a))
+#undef MAX
+#define MAX(a,b) ((a) < (b) ? (b) : (a))
+#undef ABS
+#define ABS(a) (((a) < 0) ? -(a) : (a))
+
 typedef enum {
   DATA = 0,
   NORMAL,

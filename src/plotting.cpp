@@ -268,7 +268,7 @@ namespace lib
     DDouble range = max - min;
 
     // correct special case "all values are equal"
-    if (fabs(range) <= std::numeric_limits<DDouble>::min()) {
+    if (ABS(range) <= std::numeric_limits<DDouble>::min()) {
       DDouble val_ref;
       val_ref = max;
       if (0.98 * min < val_ref) { // positive case
@@ -1990,7 +1990,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   void GDLgrPlotProjectedPolygon(GDLGStream * a, DDoubleGDL *lonlat, bool const doFill, DLongGDL *conn) {
     //convert to normed values
 //    std::cerr<<"GDLgrPlotProjectedPolygon()"<<std::endl;
-    if (doFill & conn->N_Elements()<3) return; //protection
+    if (doFill && (conn->N_Elements()<3) ) return; //protection
     else if (conn->N_Elements()<2) return; //protection
     SizeT nout=lonlat->Dim(0);
     int minpoly;

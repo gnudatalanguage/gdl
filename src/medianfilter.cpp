@@ -608,13 +608,12 @@ typedef UINT32 uint32_t;
 #define align(x)
 #endif
 
-#ifndef MIN
+#undef MIN
 #define MIN(a,b) ((a) > (b) ? (b) : (a))
-#endif
-
-#ifndef MAX
+#undef MAX
 #define MAX(a,b) ((a) < (b) ? (b) : (a))
-#endif
+#undef ABS
+#define ABS(a) (((a) < 0) ? -(a) : (a))
 
 /**
  * This structure represents a two-tier histogram. The first tier (known as the

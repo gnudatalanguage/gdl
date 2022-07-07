@@ -25,6 +25,12 @@
 
 #include "objects.hpp"
 
+#undef MIN
+#define MIN(a,b) ((a) > (b) ? (b) : (a))
+#undef MAX
+#define MAX(a,b) ((a) < (b) ? (b) : (a))
+#undef ABS
+#define ABS(a) (((a) < 0) ? -(a) : (a))
 
   static const float CM2IN = .01 / GSL_CONST_MKSA_INCH;
   static const float in2cm = GSL_CONST_MKSA_INCH*100;

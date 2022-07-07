@@ -179,11 +179,18 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
     //only for REALIZED windows, we can change some 'interactive' properties.
   plotFrame->Realize();
   plotFrame->Raise();
+//on wxMAC, frame will not appear if style is not exactly this (!!!)
+#ifdef __WXMAC__
+    plotFrame->Show();
+#else
+//Depending on the WINDOW MANAGER, you may or not find the new plot behind other wondows on your display. At least this insures that
+// the keyboard focus is NOT given to the window, since you do not want to lose the focus in the command line terminal.
     plotFrame->ShowWithoutActivating();
+#endif
   }
   plotFrame->Refresh();
   plotFrame->Update();
-// plotFrame->Raise();
+//plotFrame->Raise(); 
 
 //really show by letting the loop do its magic. Necessary.
 #ifdef __WXMAC__

@@ -210,6 +210,9 @@ namespace lib {
         (*me)[1 * dim1 + i] = (*mat)[2 * dim1 + i];
         (*me)[2 * dim1 + i] = (*mat)[1 * dim1 + i];
       }
+      break;
+    default: //is an error
+      assert(false);
     }
     GDLDelete(mat);
   }
