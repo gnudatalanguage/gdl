@@ -12,13 +12,14 @@
 ;       /NODERIVATIVE] [, STATUS={0 | 1 | 2}] [, TOL=value] [,
 ;       YERROR=variable] )
 ;
+; AC 2022/06/25 : adding _extra to be able to call MPFIT with /quiet ;)
 ;-
 FUNCTION CURVEFIT, x, y, w, p, sigma, FUNCTION_NAME = fcn, FITA=fita, $
                    ITMAX=maxiter, ITER=iter, TOL=tol, $
                    NODERIVATIVE=noderivative, $
                    CHISQ=bestnorm, $
                    DOUBLE=double, YERROR=yerror, CHI2=chi2,$
-                   STATUS=status
+                   STATUS=status, _EXTRA=extra
 
 ;  ON_ERROR,2              ;Return to caller IF error
 
