@@ -106,7 +106,7 @@ elif [ ${BUILD_OS} == "Linux" ]; then
     ) # JP 2021 Mar 21: SuSE lacks eccodes
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
-        llvm libomp ncurses readline zlib libpng gsl wxmac graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
+        llvm libomp ncurses readline zlib libpng gsl wxwidgets graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
         eccodes glpk shapelib expat gcc@10 qhull
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
@@ -372,7 +372,6 @@ function prep_packages {
             exit 1
         fi
         brew update-reset
-        brew unlink python@2
         log "Installing packages: ${BREW_PACKAGES[@]}"
         if [ ${DRY_RUN} == "true" ]; then
             log "Please run below command to install required packages to build GDL."

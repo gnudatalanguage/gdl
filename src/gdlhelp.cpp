@@ -126,7 +126,7 @@ extern "C" {
 
 
 // for sorting compiled pro/fun lists by name
-struct CompFunName: public std::binary_function< DFun*, DFun*, bool>
+struct CompFunName: public std::function<bool(DFun*, DFun*)>
 {
   bool operator() ( DFun* f1, DFun* f2) const
 	{
@@ -134,7 +134,7 @@ struct CompFunName: public std::binary_function< DFun*, DFun*, bool>
   }
 };
 
-struct CompProName: public std::binary_function< DPro*, DPro*, bool>
+struct CompProName: public std::function<bool(DPro*, DPro*)>
 {
   bool operator() ( DPro* f1, DPro* f2) const
 	{

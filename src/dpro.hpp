@@ -36,7 +36,7 @@
       extern bool posixpaths;
     }
 #endif
-template<typename T>  class Is_eq: public std::unary_function<T,bool>
+template<typename T>  class Is_eq: public std::function<bool(T)>
 {
   std::string name;
 public:
@@ -208,7 +208,7 @@ public:
 
   // for sorting lists by name. Not used (lists too short to make a time gain. Long lists would, if existing,
   // benefit from sorting by hash number in a std::map instead of a std::list.
-  struct CompLibFunName: public std::binary_function< DLib*, DLib*, bool>
+  struct CompLibFunName: public std::function<bool(DLib*, DLib*)>
   {
     bool operator() ( DLib* f1, DLib* f2) const
     { return f1->ObjectName() < f2->ObjectName();}

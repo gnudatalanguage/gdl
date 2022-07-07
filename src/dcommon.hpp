@@ -65,7 +65,7 @@ public:
   DCommon* getCommon(void) { return this; };
 };
 
-class DCommon_eq: public std::unary_function<DCommon,bool>
+class DCommon_eq: public std::function<bool(DCommon)>
 {
   std::string name;
 public:
@@ -102,7 +102,7 @@ public:
 typedef std::vector<DCommonBase*> CommonBaseListT;
 typedef std::vector<DCommon*>     CommonListT;
 
-class DCommon_contains_var: public std::unary_function<DCommonBase,bool>
+class DCommon_contains_var: public std::function<bool(DCommonBase*)>
 {
   std::string name;
 public:

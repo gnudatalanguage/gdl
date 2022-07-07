@@ -31,6 +31,9 @@
 # include <stdio.h>
 #endif
 
+// std::function needs this one
+#include <functional>
+
 #include <antlr/TokenStream.hpp>
 #include <antlr/RecognitionException.hpp>
 #include <antlr/SemanticException.hpp>
@@ -71,7 +74,7 @@ ANTLR_C_USING(strcasecmp)
 
 /** Functor for the literals map
  */
-class ANTLR_API CharScannerLiteralsLess : public ANTLR_USE_NAMESPACE(std)binary_function<ANTLR_USE_NAMESPACE(std)string,ANTLR_USE_NAMESPACE(std)string,bool> {
+class ANTLR_API CharScannerLiteralsLess : public ANTLR_USE_NAMESPACE(std)function<bool(ANTLR_USE_NAMESPACE(std)string,ANTLR_USE_NAMESPACE(std)string)> {
 private:
 	const CharScanner* scanner;
 public:
