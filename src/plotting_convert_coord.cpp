@@ -916,7 +916,7 @@ bool isValidRotationMatrix(DDoubleGDL* Matrix, T3DEXCHANGECODE &axisExchangeCode
 //    }
     return false;
 }  
-bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode) {
+bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &alt, DDouble &az, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode, bool &below) {
 //  std::cerr<<"isAxonometricRotation()\n";
   // Comments To Be Revised equations below are not exact.
   //with *DL notations, the 3x3 'rotation+scale' subset of the 4x4 matrix is of the form:
@@ -957,17 +957,22 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble
     scale[2]=sz;
     ay = -atan2((*t3dMatrix)[2 * 4 + 0], sqrt(pow((*t3dMatrix)[2 * 4 + 1], 2.0) + pow((*t3dMatrix)[2 * 4 + 2], 2.0))) * RADTODEG;
     az = atan2(-(*t3dMatrix)[1 * 4 + 0], (*t3dMatrix)[0 * 4 + 0]) * RADTODEG;
-    ax =  atan2((*t3dMatrix)[2 * 4 + 2], (*t3dMatrix)[2 * 4 + 1]) * RADTODEG;
-    if (ax < 0.0) {
-      ax = -ax ; //prevents plplot complain for epsilon not being strictly positive.
-      axisExchangeCode=INVALID;
-    }
-    if (ax > 90.0) {
-      ax = 180-ax;
-      az += 180;
+    alt =  atan2((*t3dMatrix)[2 * 4 + 2], (*t3dMatrix)[2 * 4 + 1]) * RADTODEG;
+    below = false;
+    alt = fmod((alt + 180), 360.0);
+    if (alt > 90 && alt <= 270) {
+      az += 180.;
+      if (alt > 180) {
+        below = true;
+        alt -= 180;
+        alt *= -1;
+      } else alt = 180 - alt;
+    } else if (alt > 270) {
+      below = true;
+      alt = -(360. - alt);
     }
 //    std::cerr<<"ax="<<ax<<", az="<<az<<", ay="<<ay<<", scale x="<<sx<<", scale y="<<sy<<", scale z="<<sz<<std::endl;
-    if (abs(ay) > 1E-4) return false;
+    if (abs(ay) > 1E-4) return false; //not a true rotation
     return true;
   }
 
@@ -976,7 +981,7 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble
   // Note that if drawing of axes and hidden surfaces (by plplot) are not needed (e.g., PLOTS), any matrix can be used.
   // Returns a 'plplot-compatible' matrix that will be used in calls to plplot.
   // Retunrs NULL if conversion is impossible.
-  bool gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble &az, DDouble &alt, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode) {
+  bool gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble &az, DDouble &alt, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode, bool &below) {
 //    std::cerr<<"gdlInterpretT3DMatrixAsPlplotRotationMatrix(()\n";
     //returns NULL if error!
     DDoubleGDL* t3dMatrix = (new DDoubleGDL(dimension(4, 4)));
@@ -987,7 +992,7 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &ax, DDouble &az, DDouble
     for (int i = 0; i < t3dMatrix->N_Elements(); ++i)(*t3dMatrix)[i] = (*static_cast<DDoubleGDL*> (pStruct->GetTag(tTag, 0)))[i];
     SelfTranspose3d(t3dMatrix);
     //check if valid, get rotation etc.
-    if (!isAxonometricRotation(t3dMatrix, alt, az, ay, scale, axisExchangeCode)) return false;
+    if (!isAxonometricRotation(t3dMatrix, alt, az, ay, scale, axisExchangeCode, below)) return false;
     return true;
   }
   

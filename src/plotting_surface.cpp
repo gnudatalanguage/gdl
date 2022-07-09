@@ -19,6 +19,8 @@
 #include "plotting.hpp"
 #include "dinterpreter.hpp"
 
+#define GDL_PI     double(3.1415926535897932384626433832795)
+
 namespace lib
 {
 
@@ -46,6 +48,7 @@ namespace lib
     PLFLT alt = 30.0;
     PLFLT az = 30.0;
     PLFLT ay = 0;
+    bool below=false;
     
   private:
     bool handle_args (EnvT* e)
@@ -247,20 +250,24 @@ namespace lib
       PLFLT scale[3]={SCALEBYDEFAULT,SCALEBYDEFAULT,SCALEBYDEFAULT};
       if (!doT3d) { // or absent and we have to compute !P.T from az and alt.
         //set az and ax (alt)
+        DFloat az_change = az;
+        static int AZIx = e->KeywordIx("AZ");
+        e->AssureFloatScalarKWIfPresent(AZIx, az_change);
+        az = az_change;
+        
         DFloat alt_change=alt;
         static int AXIx=e->KeywordIx("AX");
         e->AssureFloatScalarKWIfPresent(AXIx, alt_change);
         alt=alt_change;
-
-        alt=fmod(alt,360.0); //restrict between 0 and 90 for plplot!
-        if (alt > 90.0 || alt < 0.0)
-        {
-          e->Throw ( "SURFACE: AX restricted to [0-90] range by plplot (fix plplot!)" );
-        }
-        DFloat az_change=az;
-        static int AZIx=e->KeywordIx("AZ");
-        e->AssureFloatScalarKWIfPresent(AZIx, az_change);
-        az=az_change;
+        alt=atan2(sin(alt * GDL_PI/180.0), cos(alt * GDL_PI/180.0)) * 180.0/GDL_PI;
+        alt=fmod((alt+180),360.0);
+        if (alt > 90 && alt <= 270) {
+          az+=180.;
+          if (alt > 180) {below=true; alt-=180; alt*=-1;} else alt=180-alt;
+        } else if (alt > 270) {
+          below=true;
+          alt=-(360.-alt);
+        } 
         //Compute special transformation matrix for the BOX and give it to the driver
         DDoubleGDL* gdlBox3d=gdlDefinePlplotRotationMatrix( az, alt, scale, saveT3d);
         GDL_3DTRANSFORMDEVICE T3DForAXes;
@@ -269,8 +276,8 @@ namespace lib
         gdlStartSpecial3DDriverTransform(actStream,T3DForAXes);
       } else {
         //just ask for P.T3D transform with the driver:
-        bool ok=gdlInterpretT3DMatrixAsPlplotRotationMatrix(az, alt, ay, scale, axisExchangeCode);
-        if (!ok) e->Throw ( "SURFACE: Illegal 3D transformation." );
+        bool ok=gdlInterpretT3DMatrixAsPlplotRotationMatrix(az, alt, ay, scale, axisExchangeCode, below);
+        if (!ok) Warning ( "SURFACE: Illegal 3D transformation." );
         gdlStartT3DMatrixDriverTransform(actStream, zValue);
       }
       // We could have kept the old code where the box was written by plplot's box3(), but it would not be compatible with the rest of the eventual other (over)plots
@@ -304,7 +311,9 @@ namespace lib
 //   z = zmax   =>   wz =  height
       actStream->vpor(0,1,0,1);
       actStream->wind(-0.5/scale[0],0.5/scale[0],-0.5/scale[1],0.5/scale[1]);
-      actStream->w3d(1,1,1,0,1,0,1,0.5,1.5, alt, az);
+      if (below) { actStream->w3d(1,1,1,0,1,0,1,0.5,1.5, -alt, az);
+      gdlFlipYPlotDirection(actStream); //special trick, not possible with plplot
+      } else actStream->w3d(1,1,1,0,1,0,1,0.5,1.5, alt, az);
 
       return false;
     }
@@ -351,7 +360,7 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
             if ( !isfinite(v) ) v=minVal;
             if ( hasMinVal && v < minVal) v=minVal;
             if ( hasMaxVal && v > maxVal) v=maxVal;
-            map[i][j] = v;
+            map[i][j] = (below)?1-v:v;
           }
         }
         // 1 types of grid only: 1D X and Y.

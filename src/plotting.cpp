@@ -1710,6 +1710,15 @@ namespace lib
     yzaxisExch(PlotDevice3D.T); //for zAxis ONLY
     a->cmd(PLESC_3D, &PlotDevice3D);//copy to driver's
   }
+  void gdlFlipYPlotDirection( GDLGStream *a){
+    for (int i = 0; i < 16; ++i) PlotDevice3D.T[i] = 0;
+    PlotDevice3D.T[0] = 1;
+    PlotDevice3D.T[5] = -1;
+    PlotDevice3D.T[7] = 1; //displace in Y so that it appears in 3d viewport.
+    PlotDevice3D.T[10] = 1;
+    PlotDevice3D.T[15] = 1;
+    a->cmd(PLESC_3D, &PlotDevice3D);//copy to driver's
+  }
   void gdlSetZto3DDriverTransform( GDLGStream *a, DDouble zValue){
     PlotDevice3D.zValue=zValue; //for zAxis ONLY
     a->cmd(PLESC_3D, &PlotDevice3D);//copy to driver's
@@ -1740,20 +1749,7 @@ namespace lib
     me[14]=me[13];
     me[13]=tmp;
   }
-//  void xzaxisExch(DDouble* me) {
-//    DDouble tmp=me[2];
-//    me[2]=me[0];
-//    me[0]=tmp;
-//    tmp=me[6];
-//    me[6]=me[4];
-//    me[4]=tmp;
-//    tmp=me[10];
-//    me[10]=me[8];
-//    me[8]=tmp;
-//    tmp=me[14];
-//    me[14]=me[12];
-//    me[12]=tmp;
-//  }
+  void yaxisFlip(DDouble* me) {for (auto i=0; i<2; ++i) me[i]*=-1;}
 
   void usersym(EnvT *e)
   {
