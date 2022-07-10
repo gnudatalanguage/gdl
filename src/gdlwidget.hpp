@@ -20,7 +20,7 @@
 #define GDLWIDGET_HPP
 
 #ifdef HAVE_LIBWXWIDGETS
-#define GDL_DEBUG_WIDGETS
+// #define GDL_DEBUG_WIDGETS
 // #define GDL_DEBUG_WIDGETS_COLORIZE
 
 // use "plain menubars" instead of 'taskbars used as menubars'. taskbars permit to change font in bar, put pixmaps instead of text, and will work
