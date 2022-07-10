@@ -20,7 +20,7 @@
 #define GDLWIDGET_HPP
 
 #ifdef HAVE_LIBWXWIDGETS
-// #define GDL_DEBUG_WIDGETS
+#define GDL_DEBUG_WIDGETS
 // #define GDL_DEBUG_WIDGETS_COLORIZE
 
 // use "plain menubars" instead of 'taskbars used as menubars'. taskbars permit to change font in bar, put pixmaps instead of text, and will work
@@ -259,17 +259,22 @@ class gdlwxFrame : public wxFrame {
  wxSize frameSize;
  wxTimer * m_resizeTimer;
  GDLWidgetTopBase* gdlOwner;
-
+ wxWindowDisabler *m_windowDisabler; //for modal bases
 public:
 
  // ctor(s)
- gdlwxFrame(wxWindow* parent, GDLWidgetTopBase* gdlOwner_, wxWindowID id, const wxString& title, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style=wxDEFAULT_FRAME_STYLE);
+ gdlwxFrame(wxWindow* parent, GDLWidgetTopBase* gdlOwner_, wxWindowID id, const wxString& title, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style=wxDEFAULT_FRAME_STYLE, bool modal=false);
  ~gdlwxFrame();
  // called from ~GDLWidgetBase
  void NullGDLOwner() {
   gdlOwner = NULL;
  }
-
+ void UnblockIfModal() {
+    if (m_windowDisabler != NULL) {
+      delete m_windowDisabler; //destructor should reenable all windows.
+      m_windowDisabler = NULL;
+    }
+ }
  GDLWidgetTopBase* GetGDLOwner() {
   return gdlOwner;
  }
