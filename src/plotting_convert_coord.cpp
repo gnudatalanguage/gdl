@@ -959,7 +959,7 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &alt, DDouble &az, DDoubl
     az = atan2(-(*t3dMatrix)[1 * 4 + 0], (*t3dMatrix)[0 * 4 + 0]) * RADTODEG;
     alt =  atan2((*t3dMatrix)[2 * 4 + 2], (*t3dMatrix)[2 * 4 + 1]) * RADTODEG;
     below = false;
-    alt = fmod((alt + 180), 360.0);
+    alt = fmod((alt + 360), 360.0);
     if (alt > 90 && alt <= 270) {
       az += 180.;
       if (alt > 180) {

@@ -260,14 +260,14 @@ namespace lib
         e->AssureFloatScalarKWIfPresent(AXIx, alt_change);
         alt=alt_change;
         alt=atan2(sin(alt * GDL_PI/180.0), cos(alt * GDL_PI/180.0)) * 180.0/GDL_PI;
-        alt=fmod((alt+180),360.0);
+        alt=fmod((alt+360),360.0);
         if (alt > 90 && alt <= 270) {
           az+=180.;
           if (alt > 180) {below=true; alt-=180; alt*=-1;} else alt=180-alt;
         } else if (alt > 270) {
           below=true;
           alt=-(360.-alt);
-        } 
+        }
         //Compute special transformation matrix for the BOX and give it to the driver
         DDoubleGDL* gdlBox3d=gdlDefinePlplotRotationMatrix( az, alt, scale, saveT3d);
         GDL_3DTRANSFORMDEVICE T3DForAXes;

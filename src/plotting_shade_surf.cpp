@@ -257,7 +257,7 @@ namespace lib
       e->AssureFloatScalarKWIfPresent(AXIx, alt_change);
       alt=alt_change;
         alt=atan2(sin(alt * GDL_PI/180.0), cos(alt * GDL_PI/180.0)) * 180.0/GDL_PI;
-        alt=fmod((alt+180),360.0);
+        alt=fmod((alt+360),360.0);
         if (alt > 90 && alt <= 270) {
           az+=180.;
           if (alt > 180) {below=true; alt-=180; alt*=-1;} else alt=180-alt;
