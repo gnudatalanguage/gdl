@@ -20,9 +20,10 @@
 #ifndef __WXWIDGETS_H__
 #define __WXWIDGETS_H__
 
-//GDL does not use graphic_context (yet?)
-
-#undef wxUSE_GRAPHICS_CONTEXT
+////with graphic_context GDL can erase drawings by writing with !P.BACKGROUND since antialiasing can be removed.
+//
+//#undef wxUSE_GRAPHICS_CONTEXT
+//
 
 // some special wxWidgets headers
 #include <wx/spinctrl.h>
