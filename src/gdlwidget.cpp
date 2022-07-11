@@ -5921,6 +5921,7 @@ void GDLWidgetLabel::SetLabelValue(const DString& value_) {
             p->SetMinSize(label->GetBestSize()+wxSize(2*frameWidth,2*frameWidth));
           }
         }
+        RefreshDynamicWidget();
       }
     }
     else cerr << "Warning GDLWidgetLabel::SetLabelValue(): widget type confusion\n";
