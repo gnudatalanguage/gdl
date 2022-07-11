@@ -1944,7 +1944,6 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
     style |= wxFRAME_TOOL_WINDOW|wxSTAY_ON_TOP ; //wxFRAME_FLOAT_ON_PARENT will destroy the parent widget!!
   }
 #endif
-
   // Top Level Base Widget: can receive special events: tlb_size, tlb_move, tlb_icon and tlb_kill. cannot be framed.
   wxString titleWxString;
   if (title_.size() < 1) titleWxString = wxString("GDL");
@@ -1956,7 +1955,7 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
     if (wOffset.x < 0) wOffset.x =x.x+x.width/2;
     if (wOffset.y < 0) wOffset.y =x.y+x.height/2;
   }
-  topFrame = new gdlwxFrame(NULL, this, widgetID, titleWxString, wOffset, wxDefaultSize, style);
+  topFrame = new gdlwxFrame(NULL, this, widgetID, titleWxString, wOffset, wxDefaultSize, style, modal);
 
 #ifdef __wxMAC__
 //does not work.
@@ -2045,6 +2044,7 @@ GDLWidgetTopBase::~GDLWidgetTopBase() {
 #ifdef GDL_DEBUG_WIDGETS
   std::cout << "~GDLWidgetTopBase(" << widgetID << ")" << std::endl;
 #endif
+  topFrame->UnblockIfModal();
   topFrame->NullGDLOwner();
 
   //IMPORTANT: unxregister TLB if was managed 
@@ -5977,14 +5977,16 @@ void GDLWidgetLabel::SetLabelValue(const DString& value_) {
 #endif
 // GDL widgets =====================================================
 // GDLFrame ========================================================
-gdlwxFrame::gdlwxFrame( wxWindow* parent, GDLWidgetTopBase* gdlOwner_, wxWindowID id, const wxString& title , const wxPoint& pos, const wxSize& size, long style)
+gdlwxFrame::gdlwxFrame( wxWindow* parent, GDLWidgetTopBase* gdlOwner_, wxWindowID id, const wxString& title , const wxPoint& pos, const wxSize& size, long style, bool modal)
 : wxFrame()
 , mapped( false )
 , frameSize(size)
-, gdlOwner( gdlOwner_)
+, gdlOwner( gdlOwner_),
+  m_windowDisabler(NULL)
 {
   Create ( parent, id, title, pos, size, style );
   m_resizeTimer = new wxTimer(this,RESIZE_TIMER);
+  if (modal) m_windowDisabler = new wxWindowDisabler(this);
 }
 
 gdlwxFrame::~gdlwxFrame()
