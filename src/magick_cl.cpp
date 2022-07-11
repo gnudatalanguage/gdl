@@ -206,7 +206,7 @@ namespace lib {
       // Despite Type is NOT useful without a a->read(), it is OK for Palette !
       // This should be reliable (OK with ImageMagick AND GraphicsMagick)
       DInt has_palette = 0;
-      if ( (a->type() == PaletteType) || (a->type() == PaletteMatteType) ) has_palette = 1;
+      if ( a->classType() == PseudoClass) has_palette = 1;
 
       DString type;
       type = a->magick() == "PNM" ? "PPM" :
@@ -913,7 +913,7 @@ namespace lib {
 
       static int TRUECOLORIx = e->KeywordIx("TRUECOLOR");
       static int DITHERIx = e->KeywordIx("DITHER");
-      bool dither=true;
+      bool dither=false;
       if (e->GetKW(DITHERIx) !=NULL) dither=e->KeywordSet(DITHERIx);
       static int YUVIx = e->KeywordIx("YUV");
       static int GRAYSCALEIx = e->KeywordIx("GRAYSCALE");
@@ -924,10 +924,11 @@ namespace lib {
           image->quantizeColorSpace(GRAYColorspace);
         else
           image->quantizeColorSpace(RGBColorspace);
-
+        
       image->quantizeColors(ncol);
       image->quantizeDither(dither);
       image->quantize();
+//      image->quantizeTreeDepth(cube_depth);
       //magick_replace(e, mid, image);
     } catch (Exception &error_) {
       e->Throw(error_.what());
