@@ -196,7 +196,6 @@ namespace lib {
 
     bool prepareDrawArea(EnvT* e, GDLGStream* actStream) {
       //box defined in previous PLOT command, we pass in normalized coordinates w/clipping if needed 
-      if (flat3d) gdlStartT3DMatrixDriverTransform(actStream, zPosition);
       gdlSwitchToClippedNormalizedCoordinates(e, actStream, true); //inverted clip meaning
       return false; //do not abort
     }
@@ -278,11 +277,11 @@ namespace lib {
       } else { //just as if LIBPROJ WAS NOT present
         SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //DATA
         if (doT3d && !flat3d) {
-          SelfConvertToNormXYZ(xVal, xLog, yVal, yLog, zVal, zLog, coordinateSystem);
+         SelfConvertToNormXYZ(xVal, xLog, yVal, yLog, zVal, zLog, coordinateSystem);
           SelfPDotTTransformXYZ(xVal, yVal, zVal);
           actStream->fill(nEl, static_cast<PLFLT*> (&(*xVal)[0]), static_cast<PLFLT*> (&(*yVal)[0])); //draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, append, doColor ? color : NULL);
         } else {
-//          if (flat3d) actStream->stransform(PDotTTransformXYZval, &zPosition);
+          if (flat3d) actStream->stransform(PDotTTransformXYZval, &zPosition);
           SelfConvertToNormXY(xVal, xLog, yVal, yLog, coordinateSystem); //DATA
           actStream->fill(nEl, static_cast<PLFLT*> (&(*xVal)[0]), static_cast<PLFLT*> (&(*yVal)[0])); //draw_polyline(actStream, xVal, yVal, 0.0, 0.0, false, xLog, yLog, psym, append, doColor ? color : NULL);
         }
