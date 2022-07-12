@@ -226,6 +226,13 @@ target_link_libraries(gdl ${LIBRARIES})
 
 add_definitions(-DHAVE_CONFIG_H)
 
+# Workaround MinGW build problem: force problematic large file to be optimized to prevent string table overflow error
+# see also: https://github.com/assimp/assimp/pull/2418/files
+if ((MINGW) AND (CMAKE_BUILD_TYPE MATCHES Debug))
+	message("-- Applying MinGW basic_op.cpp Debug Workaround")
+	set_source_files_properties(basic_op.cpp PROPERTIES COMPILE_OPTIONS "-Os")
+endif()
+
 if(PYTHON_MODULE)
         find_package( PythonInterp ${PYTHONVERSION} REQUIRED )
 	execute_process(COMMAND ${PYTHON_EXECUTABLE} -c

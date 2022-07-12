@@ -7,21 +7,11 @@
 ; CATEGORY: Images (IO)
 ;
 ; CALLING SEQUENCE: 
-;      READ_JPEG, filename, red, green, blue, image_index=image_index, $
+;      READ_IMAGE, filename, [red, green, blue], image_index=image_index, $
 ;                 help=help, test=test
 ;
-; KEYWORD PARAMETERS: 
-;        UNIT: not supported yet
-;        BUFFER: not supported yet
-;        COLORS: Number of colors to dither to (8->256)
-;        DITHER: Method of dithering to use
-;        GRAYSCALE: Return a grayscale image
-;        ORDER: flip the image in the vertical 
-;        TRUE: Interleaving (1:pixel, 2:line, 3:band)
-;        TWO_PASS_QUANTIZE: Not supported yet
-;
-; OUTPUTS: [n,m], [2,n,m], [3,n,m], [4,n,m] following image properties
-;          (transparency adds one extra Dim)
+; OUTPUTS: [n,m], [3,n,m] with optional r,g,b if the image format is
+; indexed color (has a palette)
 ;
 ; OPTIONAL OUTPUTS: For pseudocolor only: Red, Green, Blue
 ;
@@ -43,6 +33,7 @@
 ; MODIFICATION HISTORY:
 ;  Initial version written by: Alain Coulais, 2012-02-15
 ;  2012-Feb-12, Alain Coulais :
+;  2022-Jul-11, GD
 ;
 ;-
 ; LICENCE:

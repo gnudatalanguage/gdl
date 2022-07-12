@@ -970,7 +970,6 @@ BaseGDL* widget_draw( EnvT* e ) {
       e->Throw( "MODAL top level bases must have a group leader specified." );
     if ( parentID != GDLWidget::NullID )
       e->Throw( "Only top level bases can be MODAL." );
-    Message("MODAL Keyword inactive, fixme.");
   }
   
   if ( parentID != GDLWidget::NullID ) {
