@@ -122,7 +122,7 @@ void GDLWXStream::SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot)
   isplot=isPlot;
 }
 
-void GDLWXStream::Update()
+void GDLWXStream::DoUpdate()
 {
   if( this->valid && container != NULL) {
     container->RepaintGraphics();
@@ -134,7 +134,8 @@ void GDLWXStream::Update()
 //#endif
   }
 }
-
+//We should not need "Update"
+void GDLWXStream::Update(){}
 ////should be used when one does not recreate a wxstream each time size changes...
 void GDLWXStream::SetSize( wxSize s )
 {

@@ -53,7 +53,8 @@ public:
 //     void set_stream();   //!< Calls some code before every PLplot command.
     void SetSize( const wxSize s );   //!< Set new size of plot area.
     void RenewPlot();   //!< Redo plot.
-    void Update();
+    void DoUpdate();
+    virtual void Update() final;
     void SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot=true);
     gdlwxGraphicsPanel* GetMyContainer(){return container;}
     void DestroyContainer(){delete container; container=NULL;}
