@@ -68,7 +68,7 @@ pro READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, colors=ncolors,
   if (keyword_set(order)) then magick_flip,mid
 
   if (KEYWORD_SET(ncolors)) then begin 
-     if (KEYWORD_SET(grayscale)) then ncolors = ncolors < 256 > 1 else ncolors = ncolors < 252 > 1 ; 252 IDL default
+     if (KEYWORD_SET(grayscale)) then ncolors = ncolors < 256 > 1 else ncolors = ncolors < !D.N_COLORS > 1 ; 252 IDL default
      MAGICK_QUANTIZE, mid, ncolors, grayscale=grayscale, dither=dither
   endif else if (KEYWORD_SET(grayscale)) then begin
      MAGICK_QUANTIZE, mid, /GRAYSCALE, dither=dither
