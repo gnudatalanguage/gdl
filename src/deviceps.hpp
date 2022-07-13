@@ -35,7 +35,7 @@
   static const float CM2IN = .01 / GSL_CONST_MKSA_INCH;
   static const float in2cm = GSL_CONST_MKSA_INCH*100;
   static const PLFLT PS_DPI = 72.0 ; //in dpi;
-  static const PLFLT DPICM = 72.0/2.54 ; //dpi/cm;
+  static const PLFLT DPICM = PS_DPI/2.54 ; //dpi/cm;
   static const float PS_RESOL = 1000.0;
   static const PLFLT PlplotInternalPageRatioXoverY=4./3.; //Some machines do not know PRIVATE values stored in plplotP.h 4/3=PlplotInternalPageRatioXoverY=float(PIXELS_X)/float(PIXELS_Y)
 
@@ -117,7 +117,7 @@ class DevicePS: public GraphicsDevice
     actStream->scolbg(255,255,255); // start with a white background
 
     actStream->Init();
-    
+
     // need to be called initially. permit to fix things
     actStream->plstream::ssub(1, 1); // plstream below stays with ONLY ONE page
     actStream->plstream::adv(0); //-->this one is the 1st and only pladv

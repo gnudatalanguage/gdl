@@ -274,6 +274,9 @@ ps_init( PLStream *pls )
 // Header comments into PostScript file
 
     fprintf( OF, "%%!PS-Adobe-2.0 EPSF-2.0\n" );
+/*
+    fprintf( OF, "%%!PS-Adobe-2.0\n" );
+*/
     fprintf( OF, "%%%%BoundingBox:         \n" );
     fprintf( OF, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" );
 
@@ -281,7 +284,7 @@ ps_init( PLStream *pls )
     fprintf( OF, "%%%%Creator: PLplot Version %s\n", PLPLOT_VERSION );
     fprintf( OF, "%%%%CreationDate: %s\n", ps_getdate() );
     fprintf( OF, "%%%%Pages: (atend)\n" );
-    fprintf( OF, "%%%%EndComments\n\n" );
+    fprintf( OF, "%%%%EndComments\n%%%%BeginProlog\nsave\n" );
 
 // Definitions
 // Save VM state
@@ -415,7 +418,7 @@ ps_init( PLStream *pls )
     fprintf( OF, "%d @hoffset\n", YOFFSET );
     fprintf( OF, "%d @voffset\n", XOFFSET );
     fprintf( OF, "@line\n" );
-    fprintf( OF, "@SetPlot\n\n" );
+    fprintf( OF, "@SetPlot\n%%%%EndProlog\n" );
 }
 
 //--------------------------------------------------------------------------
@@ -654,7 +657,7 @@ plD_bop_ps( PLStream *pls )
     else
         fprintf( OF, "%%%%Page: %d %d\n", (int) pls->page, (int) pls->page );
 
-    if ( !pls->portrait ) fprintf( OF, "%%PageOrientation: Landscape\n");
+    if ( !pls->portrait ) fprintf( OF, "%%%%PageOrientation: Landscape\n"); else fprintf( OF, "%%%%PageOrientation: Portrait\n");
 
     fprintf( OF, "bop\n" );
     if ( pls->color )

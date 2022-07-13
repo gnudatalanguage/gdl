@@ -1613,6 +1613,7 @@ namespace lib {
     //ticklen in a percentage of box x or y size, to be expressed in mm 
     if (axisId == XAXIS) ticklen_in_mm = a->mmyPageSize()*(a->boxnYSize()) * ticklen_in_mm;
     else ticklen_in_mm = a->mmxPageSize()*(a->boxnXSize()) * ticklen_in_mm;
+    if (ticklen_in_mm > 100.) ticklen_in_mm=0; //PATCH to avoid PS and MEM device problem. Check why gspa() returns silly values. TBC 
     DFloat ticklen_as_norm = (axisId == XAXIS) ? a->mm2ndy(ticklen_in_mm) : a->mm2ndx(ticklen_in_mm); //in normed coord
     //eventually, each succesive X or Y axis is separated from previous by interligne + ticklen in adequate units. 
     DFloat interligne_as_char;
