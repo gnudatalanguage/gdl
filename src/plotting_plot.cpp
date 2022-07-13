@@ -197,8 +197,8 @@ namespace lib {
         doMinMax = true; //...unless explicitely required
       e->AssureDoubleScalarKWIfPresent(MIN_VALUEIx, minVal);
       e->AssureDoubleScalarKWIfPresent(MAX_VALUEIx, maxVal);
-      yStart = gdlPlot_Max(yStart, minVal);
-      yEnd = gdlPlot_Min(yEnd, maxVal);
+      yStart = MAX(yStart, minVal);
+      yEnd = MIN(yEnd, maxVal);
       if (yEnd <= yStart) yEnd = yStart + 1;
       //XRANGE and YRANGE overrides all that, but  Start/End should be recomputed accordingly
       DDouble xAxisStart, xAxisEnd, yAxisStart, yAxisEnd;

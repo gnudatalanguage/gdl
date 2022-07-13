@@ -214,7 +214,7 @@ south=0
 passed_params=""
 
 n_passed=0
-list_of_passed_params=''
+list_of_passed_params=!NULL
 ; enable abbreviated parameters
 if n_elements(extra) gt 0 then begin
    

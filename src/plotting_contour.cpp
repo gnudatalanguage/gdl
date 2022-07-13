@@ -349,6 +349,9 @@ namespace lib {
 
   private:
 
+// FOR AN UNKNOWN REASON OPTIMZING THIS TOO MUCH PREVENTS Basic_Contour_Plot of test_coyote to pass!!! FIXME!
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
     void applyGraphics(EnvT* e, GDLGStream* actStream) {
       static int nodataIx = e->KeywordIx("NODATA");
       if (e->KeywordSet(nodataIx)) return; //will perform post_call
@@ -385,17 +388,19 @@ namespace lib {
       // C_THICK=vector of thickness. repated if less than contours. defaults to !P.THICK or THICK
 
       static int FOLLOW = e->KeywordIx("FOLLOW");
+      static int C_ANNOTATION = e->KeywordIx("C_ANNOTATION");
       static int C_CHARSIZE = e->KeywordIx("C_CHARSIZE");
       static int C_CHARTHICK = e->KeywordIx("C_CHARTHICK");
       static int C_LABELS = e->KeywordIx("C_LABELS");
       bool dolabels = false;
       static int FILL = e->KeywordIx("FILL");
+      static int CELL_FILL = e->KeywordIx("CELL_FILL");
       static int C_SPACING = e->KeywordIx("C_SPACING");
       bool dospacing = false;
       static int C_ORIENTATION = e->KeywordIx("C_ORIENTATION");
       bool doori = false;
-      bool label = (e->KeywordSet(FOLLOW) || e->KeywordSet(C_CHARSIZE) || e->KeywordSet(C_CHARTHICK) || e->KeywordSet(C_LABELS));
-      bool fill = (e->KeywordSet(FILL) || e->KeywordSet(C_SPACING) || e->KeywordSet(C_ORIENTATION));
+      bool label = (e->KeywordSet(FOLLOW) || e->KeywordSet(C_CHARSIZE) || e->KeywordSet(C_CHARTHICK) || e->KeywordSet(C_LABELS) || e->KeywordSet(C_ANNOTATION));
+      bool fill = (e->KeywordSet(FILL) || e->KeywordSet(CELL_FILL) || e->KeywordSet(C_SPACING) || e->KeywordSet(C_ORIENTATION));
       if (fill) label = false; //mutually exclusive
       if (recordPath) {
         fill = true;
@@ -797,7 +802,7 @@ namespace lib {
       //reset driver to 2D plotting routines in all cases
       gdlStop3DDriverTransform(actStream);
     }
-
+#pragma GCC pop_options
 
   private:
 

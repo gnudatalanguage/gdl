@@ -24,6 +24,13 @@
 #include <limits>
 #include <list>
 
+#undef MIN
+#define MIN(a,b) ((a) > (b) ? (b) : (a))
+#undef MAX
+#define MAX(a,b) ((a) < (b) ? (b) : (a))
+#undef ABS
+#define ABS(a) (((a) < 0) ? -(a) : (a))
+
 namespace lib {
 
   using namespace std;

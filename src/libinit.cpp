@@ -912,9 +912,9 @@ void LibInit()
       "XTICKV", "YTICKV","ZTICKV",
       "XTITLE", "YTITLE", "ZTITLE",
       "ZVALUE", "ZAXIS",
-      "C_CHARSIZE","OVERPLOT","C_COLORS","C_LINESTYLE",
+      "C_CHARSIZE","OVERPLOT","C_COLORS","C_LINESTYLE", "C_ANNOTATIONS",
       "C_LABELS", "C_CHARTHICK", "C_ORIENTATION", "C_SPACING", "C_THICK",
-      "PATH_INFO","PATH_XY",
+      "PATH_INFO","PATH_XY","CELL_FILL",
       "IRREGULAR", "CHANNEL", "FONT", // FONT is not permitted ???
       KLISTEND
     };
@@ -923,9 +923,8 @@ void LibInit()
   // "CHANNEL" is supposed to be passed from CONTOUR, PLOT, OPLOT, SHADE_SURF etc to ERASE
    const string contourWarnKey[]=
     {
-      "CELL_FILL","C_ANNOTATIONS","CLOSED","DOWNHILL",
-      "PATH_DATA_COORDS","PATH_FILENAME",
-      "PATH_INFO","PATH_XY","TRIANGULATION","PATH_DOUBLE",KLISTEND
+      "TRIANGULATION", "CLOSED","DOWNHILL",
+      "PATH_DATA_COORDS","PATH_FILENAME","PATH_INFO","PATH_XY","PATH_DOUBLE",KLISTEND
     };
    new DLibPro(lib::contour,string("CONTOUR"),3,contourKey,contourWarnKey);
 
