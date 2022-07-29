@@ -325,6 +325,18 @@ namespace lib {
 
       static int SAVEIx = e->KeywordIx("SAVE");
       if (e->KeywordSet(SAVEIx)) {
+        if (xLog) {
+          xStart = log10(xStart);
+          xEnd = log10(xEnd);
+        }
+        if (yLog) {
+          yStart = log10(yStart);
+          yEnd = log10(yEnd);
+        }
+        if (zLog) {
+          zStart = log10(zStart);
+          zEnd = log10(zEnd);
+        }
         if (xAxis) gdlStoreXAxisParameters(actStream, xStart, xEnd, xLog);
         if (yAxis) gdlStoreYAxisParameters(actStream, yStart, yEnd, yLog);
         if (zAxis) gdlStoreZAxisParameters(actStream, zStart, zEnd, zLog, znormmin, znormmax);
