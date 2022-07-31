@@ -224,6 +224,7 @@ public:
   virtual ~GDLGStream()
   {
 	  if (GDL_DEBUG_PLSTREAM) printf(" retire GDLGstream:pls=%p \n", (void *)pls);
+    plend1();
   }
 
   static bool checkPlplotDriver(const char *driver) {

@@ -29,7 +29,7 @@ class GDLXStream: public GDLGStream
   Window term_window;
 public:
   GDLXStream( PLINT xp , PLINT yp, PLINT nx, PLINT ny, PLINT xoff, PLINT yoff, const std::string &title)
-    : GDLGStream( nx, ny, "xwin",XOpenDisplay(NULL)==NULL?":0":NULL) //IDL also opens :0 when DISPLAY is not set.
+    : GDLGStream( nx, ny, "xwin") 
     , term_window(0)
 {
     spage( xp , yp, nx, ny, xoff, yoff); 
