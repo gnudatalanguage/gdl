@@ -132,7 +132,7 @@ void AtExit()
 #ifndef _WIN32
 void GDLSetLimits()
 {
-#define GDL_PREFERED_STACKSIZE 20480000 //20000*1024 OK for the time being
+#define GDL_PREFERED_STACKSIZE  1024000000 //1000000*1024 like IDL
 struct rlimit* gdlstack=new struct rlimit;
   int r=getrlimit(RLIMIT_STACK,gdlstack); 
 //  cerr <<"Current rlimit = "<<gdlstack->rlim_cur<<endl;
