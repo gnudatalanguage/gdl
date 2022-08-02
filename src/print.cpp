@@ -214,6 +214,7 @@ no_implied:
 
           // formatted output ignores WIDTH
           FMTOut Formatter(fmtAST, os, e, parOffset);
+          os->flush();
           return;
         } catch (antlr::ANTLRException& ex) {
           //Authorize the format to be "new" C format. Should better be handled in the parser, FIXME!
@@ -221,6 +222,7 @@ no_implied:
             DString fmtSTring2 = "(%\"" + fmtString + "\")";
             RefFMTNode fmtAST = GetFMTAST(fmtSTring2);
             FMTOut Formatter(fmtAST, os, e, parOffset);
+            os->flush();
             return;
           } catch (antlr::ANTLRException& ex) {
             e->Throw(ex.getMessage());
@@ -234,6 +236,7 @@ no_implied:
 
       if (nParam == parOffset) {
         (*os) << '\n';
+        os->flush();
         return;
       }
 
@@ -253,6 +256,7 @@ no_implied:
         if (lastParScalar && anyArrayBefore && par->Rank() != 0) (*os) << '\n'; // e.g. print,[1],1,[1] 
         anyArrayBefore |= par->Rank() != 0;
         par->ToStream(*os, width, &actPos);
+        os->flush();
         // debug	  
         // 		(*os) << flush;
       }
@@ -263,6 +267,7 @@ no_implied:
       // 	}
       if ((par->Dim().Rank() == 0 && !singleNullChar) || par->Type() == GDL_STRUCT) {
         (*os) << '\n';
+        os->flush();
       }
     }
   }
