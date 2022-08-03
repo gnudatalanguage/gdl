@@ -29,6 +29,7 @@ if [[ ${BUILD_OS} == *"MSYS"* ]] || [[ ${BUILD_OS} == *"MINGW"* ]]; then
     BUILD_OS="Windows"
 elif [[ ${BUILD_OS} == "Darwin" ]]; then
     BUILD_OS="macOS"
+    Platform=${Platform:-$(arch)}
 fi
 
 # Build flags
@@ -107,9 +108,10 @@ elif [ ${BUILD_OS} == "Linux" ]; then
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
         llvm libomp ncurses readline zlib libpng gsl wxwidgets graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
-        eccodes glpk shapelib expat gcc@10 qhull
+        eccodes glpk shapelib expat gcc@11 qhull
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
+      # J-KL 2022 July 30: GCC 10 didn't work with apple silicon mac. So I replaced it with GCC 11
 else
     log "Fatal error! Unknown OS: ${BUILD_OS}. This script only supports one of: Windows, Linux, macOS."
     exit 1
@@ -382,7 +384,7 @@ function prep_packages {
         log "Installing plplot..."
         brew --cache plplot
         bash $GDL_DIR/scripts/deps/macos/brew_enable_wxwidgets
-        bash $GDL_DIR/scripts/deps/macos//brew_make_good_symlink_plplot
+        bash $GDL_DIR/scripts/deps/macos/brew_make_good_symlink_plplot
     fi
 }
 
@@ -421,10 +423,17 @@ function configure_gdl {
     fi
     
     if [[ ${BUILD_OS} == "macOS" ]]; then
-        export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
-        CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/usr/local/opt/readline"
-                                "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
-                                "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
+        if [[ ${MAC_ARCH} == "Apple_Silicon" ]]; then
+            export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
+            CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/opt/homebrew/opt/readline"
++                                   "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
++                                   "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" )
+        else
+            export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
+            CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/usr/local/opt/readline"
+                                    "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
+                                    "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
+        fi
     fi
 
     if [[ ${BUILD_OS} != "macOS" ]]; then
@@ -447,7 +456,8 @@ function configure_gdl {
         -DMPI=${WITH_MPI} -DTIFF=${WITH_TIFF} -DGEOTIFF=${WITH_GEOTIFF} \
         -DLIBPROJ=${WITH_LIBPROJ} -DPYTHON=${WITH_PYTHON} -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=${WITH_FFTW} \
         -DUDUNITS2=${WITH_UDUNITS2} -DGLPK=${WITH_GLPK} -DGRIB=${WITH_GRIB} \
-        -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]} ${CMAKE_QHULLDIR_OPT}
+        -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]} ${CMAKE_QHULLDIR_OPT} \
+        -DMACHINE_ARCH=${Platform}
 }
 
 function build_gdl {
