@@ -423,7 +423,7 @@ function configure_gdl {
     fi
     
     if [[ ${BUILD_OS} == "macOS" ]]; then
-        if [[ ${MAC_ARCH} == "Apple_Silicon" ]]; then
+        if [[ ${Platform} == "arm64" ]]; then
             export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/opt/homebrew/opt/readline"
 +                                   "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
