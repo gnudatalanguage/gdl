@@ -6466,7 +6466,7 @@ int wxAppGDL::MainLoop() {
     if (loop->IsRunning()) {
       while (loop->Pending()) // Unprocessed events in queue
       {
-        loop->Dispatch(); // Dispatch next event in queue
+        if (loop->Dispatch() == 0) break; // Dispatch next event in queue
       }
     }
   }
