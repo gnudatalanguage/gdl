@@ -127,11 +127,11 @@ void GDLWXStream::DoUpdate()
   if( this->valid && container != NULL) {
     container->RepaintGraphics();
     //will be updated by eventloop.
-#ifdef __WXMAC__
-  wxTheApp->Yield();
-#else
-  wxGetApp().MainLoop(); //central loop for wxEvents!
-#endif
+//#ifdef __WXMAC__
+//  wxTheApp->Yield();
+//#else
+//  wxGetApp().MainLoop(); //central loop for wxEvents!
+//#endif
   }
 }
 //We should not need "Update"

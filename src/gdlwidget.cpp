@@ -562,7 +562,7 @@ void GDLWidget::UpdateGui()
     actID = widget->parentID;
   }
   this->GetMyTopLevelFrame()->Fit();
-  this->GetMyTopLevelFrame()->Refresh();
+//  this->GetMyTopLevelFrame()->Refresh();
   this->GetMyTopLevelFrame()->Update();
   END_CHANGESIZE_NOEVENT
 //#ifdef __WXMAC__
@@ -6099,8 +6099,8 @@ void gdlwxGraphicsPanel::RepaintGraphics(bool doClear) {
 //  dc.SetDeviceClippingRegion(GetUpdateRegion());
   if (doClear) dc.Clear();
   dc.Blit(0, 0, drawSize.x, drawSize.y, wx_dc, 0, 0);
-  this->Refresh();
-  this->Update();
+//  this->Refresh();
+//  this->Update();
 }
 
 ////Stem for generalization of Drag'n'Drop, a WIDGET_DRAW can receive drop events from something else than a tree widget...
@@ -6462,6 +6462,7 @@ int wxAppGDL::MainLoop() {
   wxEventLoopTiedPtr mainLoop((wxEventLoop **) & m_mainLoop, new wxEventLoop);
   m_mainLoop->SetActive(m_mainLoop);
   loop = this->GetMainLoop();
+//  std::cerr<<loop<<std::endl;
   if (loop) {
     if (loop->IsRunning()) {
       while (loop->Pending()) // Unprocessed events in queue
