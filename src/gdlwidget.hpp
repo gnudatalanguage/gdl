@@ -61,9 +61,9 @@
 #include "widget.hpp"
 
 #define gdlSCROLL_RATE 10
-#define gdlSCROLL_HEIGHT_X  sysScrollHeight //wxSystemSettings::GetMetric(wxSYS_VSCROLL_X,xxx) //25 
-#define gdlSCROLL_WIDTH_Y sysScrollWidth //wxSystemSettings::GetMetric(wxSYS_HSCROLL_Y,xxx) //25
-#define gdlABSENT_SIZE_VALUE 15; 
+#define gdlABSENT_SIZE_VALUE 15
+#define gdlSCROLL_HEIGHT_X  ((sysScrollHeight < 10) ? gdlABSENT_SIZE_VALUE: sysScrollHeight) //wxSystemSettings::GetMetric(wxSYS_VSCROLL_X,xxx) //25 
+#define gdlSCROLL_WIDTH_Y ((sysScrollWidth< 10) ? gdlABSENT_SIZE_VALUE: sysScrollWidth) //wxSystemSettings::GetMetric(wxSYS_HSCROLL_Y,xxx) //25
 #define gdlDEFAULT_XSIZE 100
 #define gdlDEFAULT_YSIZE 100
 #define gdlCOMBOBOX_ARROW_WIDTH sysComboboxArrow 

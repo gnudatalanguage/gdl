@@ -264,7 +264,7 @@ doMbar,mbar,fontname
 label=widget_label(base,value='to best mimic IDL`s widgets, call GDL with option "--widget-compat" ',/align_left)
 label=widget_label(base,value='Test calling me with options like "test_widgets,/col,font="Arial 32",/base_align_right" ',/align_left)
 label=widget_label(base,value='                          or like "test_widgets,/col,x_scroll=400,y_scroll=400" ',/align_left)
-label=widget_label(base,value='                          or like "test_widgets,/col,select="TEXT" (see test_widgets,/help) ',/align_left)
+label=widget_label(base,value='                          or like "test_widgets,/col,present="TEXT" (see test_widgets,/help) ',/align_left)
 
 tabbed_base = widget_tab( base, frame=12) ;, scr_xsize=400, scr_ysize=400);, multiline=6)
 
