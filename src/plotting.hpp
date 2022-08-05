@@ -1536,20 +1536,23 @@ namespace lib {
   // as it is temporarily superseded by setting a new a->win().
   //this makes GDLAXIS independent of WIN, and help the whole code to be dependent only on VPOR which is the sole useful plplot command to really use.
   //ZAXIS will always be an YAXIS plotted with a special YZEXCH T3D matrix. So no special handling of ZAXIS here.
+
   static void gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong modifierCode = 0) {
-    if (Start==End) return;
-    if (Log && (Start<=0 ||End <=0)) return; //important protection 
-    DLong Style;
-    gdlGetDesiredAxisStyle(e, axisId, Style);
-    if ((Style & 4) == 4) return; //if we do not write the axis...
-    
+    if (Start == End) return;
+    if (Log && (Start <= 0 || End <= 0)) return; //important protection 
+    DLong AxisStyle;
+    gdlGetDesiredAxisStyle(e, axisId, AxisStyle);
+    if ((AxisStyle & 4) == 4) return; //if we do not write the axis...
+
     // we WILL plot something, so set temporarlily WIN accordingly
-    PLFLT owxmin,owxmax,owymin,owymax;
-    a->getCurrentWorldBox(owxmin,owxmax,owymin,owymax);
+    PLFLT owxmin, owxmax, owymin, owymax;
+    a->getCurrentWorldBox(owxmin, owxmax, owymin, owymax);
     if (axisId == XAXIS) {
-      if (Log) a->wind(log10(Start),log10(End),owymin,owymax); else a->wind(Start,End,owymin,owymax);
+      if (Log) a->wind(log10(Start), log10(End), owymin, owymax);
+      else a->wind(Start, End, owymin, owymax);
     } else {
-      if (Log) a->wind(owxmin,owxmax,log10(Start),log10(End)); else a->wind(owxmin,owxmax,Start,End);
+      if (Log) a->wind(owxmin, owxmax, log10(Start), log10(End));
+      else a->wind(owxmin, owxmax, Start, End);
     }
     static GDL_TICKDATA tdata;
     tdata.a = a;
@@ -1576,7 +1579,8 @@ namespace lib {
 
     //special values
     PLFLT OtherAxisSizeInMm;
-    if (axisId == XAXIS) OtherAxisSizeInMm = a->mmyPageSize()*(a->boxnYSize()); else  OtherAxisSizeInMm = a->mmxPageSize()*(a->boxnXSize());
+    if (axisId == XAXIS) OtherAxisSizeInMm = a->mmyPageSize()*(a->boxnYSize());
+    else OtherAxisSizeInMm = a->mmxPageSize()*(a->boxnXSize());
     DLong GridStyle;
     gdlGetDesiredAxisGridStyle(e, axisId, GridStyle);
     DLong Minor;
@@ -1613,7 +1617,7 @@ namespace lib {
     //ticklen in a percentage of box x or y size, to be expressed in mm 
     if (axisId == XAXIS) ticklen_in_mm = a->mmyPageSize()*(a->boxnYSize()) * ticklen_in_mm;
     else ticklen_in_mm = a->mmxPageSize()*(a->boxnXSize()) * ticklen_in_mm;
-    if (ticklen_in_mm > 100.) ticklen_in_mm=0; //PATCH to avoid PS and MEM device problem. Check why gspa() returns silly values. TBC 
+    if (ticklen_in_mm > 100.) ticklen_in_mm = 0; //PATCH to avoid PS and MEM device problem. Check why gspa() returns silly values. TBC 
     DFloat ticklen_as_norm = (axisId == XAXIS) ? a->mm2ndy(ticklen_in_mm) : a->mm2ndx(ticklen_in_mm); //in normed coord
     //eventually, each succesive X or Y axis is separated from previous by interligne + ticklen in adequate units. 
     DFloat interligne_as_char;
@@ -1670,7 +1674,7 @@ namespace lib {
       if (axisId != XAXIS) title_position = nchars + 2.5;
       else title_position = 3.5;
       resetLabeling(a, axisId);
-    }      //care Tickunits size is 10 if not defined because it is the size of !X.TICKUNITS.
+    }//care Tickunits size is 10 if not defined because it is the size of !X.TICKUNITS.
     else if (hasTickUnitDefined) // /TICKUNITS=[several types of axes written below each other]
     {
       muaxdata.counter = 0;
@@ -1781,7 +1785,7 @@ namespace lib {
           Opt += BOTTOM;
           break;
         case 0:
-          if ((Style & 8) == 8) Opt += BOTTOM;
+          if ((AxisStyle & 8) == 8) Opt += BOTTOM;
           else Opt += BOTTOM TOP;
       }
       //gridstyle applies here:
@@ -1808,27 +1812,12 @@ namespace lib {
       else a->box("", 0.0, 0, Opt.c_str(), TickInterval, Minor);
       //reset gridstyle
       gdlLineStyle(a, 0);
-      // pass over with outer box, with thick. No style applied, only ticks
-      Opt = " ";
-      switch (modifierCode) {
-        case 2:
-          Opt += TOP;
-          break;
-        case 1:
-          Opt += BOTTOM;
-          break;
-        case 0:
-          if ((Style & 8) == 8) Opt += TOP;
-          else Opt += BOTTOM TOP;
-      }
-      if (axisId == XAXIS) a->box(Opt.c_str(), 0.0, 0, "", 0.0, 0);
-      else a->box("", 0.0, 0, Opt.c_str(), 0.0, 0);
     }
     gdlWriteDesiredAxisTickGet(e, axisId, Log);
     //reset charsize & thick
     a->Thick(1.0);
     a->sizeChar(1.0);
-    a->wind(owxmin,owxmax,owymin,owymax); //restore old values 
+    a->wind(owxmin, owxmax, owymin, owymax); //restore old values 
   }
 
   static void gdlBox(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog) {
