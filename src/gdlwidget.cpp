@@ -20,7 +20,6 @@
 #ifdef HAVE_LIBWXWIDGETS
 
 #include <memory> 
-
 #include <wx/grid.h>
 #include <wx/gbsizer.h>
 #include <wx/wrapsizer.h>
@@ -925,6 +924,10 @@ if (!wxInitialize()) {
     std::cerr << "WARNING: wxWidgets not initializing, widget-related commands will not be available." << std::endl;
     return false;
   }
+#ifndef __WXMAC__ 
+  wxAppGDL* app = new wxAppGDL();
+  app->SetInstance(app);
+#endif
 } else {std::cerr << "INFO: wxWidgets already initialized (in 3rd party library?), pursue with fingers crossed" << std::endl; }
   wxInitAllImageHandlers(); //do it here once for all
   return true;
@@ -944,11 +947,9 @@ void GDLWidget::Init()
   //initially defaultFont and systemFont are THE SAME.
   defaultFont=systemFont;
   SetWxStarted();
-//  //use a phantom window to retrieve th exact size of scrollBars wxWidget give wrong values.
-//   gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
-//   test->Hide();
-//   test->Realize();
-//   test->Destroy();
+#ifndef __WXMAC__  
+  wxGetApp().OnInit();
+#endif
   //initialize default image lists for trees:
   // Make an image list containing small icons
   wxSize ImagesSize(DEFAULT_TREE_IMAGE_SIZE,DEFAULT_TREE_IMAGE_SIZE);
@@ -6443,10 +6444,9 @@ void GDLWidgetDraw::SetWidgetScreenSize(DLong sizex, DLong sizey) {
     dp->Refresh();
   }
   
-  //for windows, it seems necessary to define our own wxApp and run it manually
-// for linux, it is NOT necessary, but thos works OK
-// for MacOS /COCOA port, the following code does not work and the widgets are not created.
-// (tied_scoped_ptr problem?)
+// for MacOS /COCOA port, the following code does not work and the application is hung (!) Help!
+// So we rely only on doing nothing and call Yield() , that works, fingers crossed.
+// Really strange but wxWidgets is not well documented (who is?)
 #ifndef __WXMAC__ 
 
 #include "wx/evtloop.h"
@@ -6455,7 +6455,12 @@ wxDEFINE_TIED_SCOPED_PTR_TYPE(wxEventLoop);
 
 bool wxAppGDL::OnInit()
 { 
-    return true;
+  //use a phantom window to retrieve the exact size of scrollBars wxWidget give wrong values.
+   gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
+   test->Hide();
+   test->Realize();
+   test->Destroy();
+  return true;
 }
 
 int wxAppGDL::MainLoop() {
@@ -6471,14 +6476,6 @@ int wxAppGDL::MainLoop() {
       }
     }
   }
-  return 0;
-}
-
-int wxAppGDL::OnExit()
-{
-  std::cout << " In GDLApp::OnExit()" << std::endl;
-  // Defined in guiThread::OnExit() in gdlwidget.cpp
-  //  std::cout << "Exiting thread (GDLApp::OnExit): " << thread << std::endl;
   return 0;
 }
 #endif

@@ -39,8 +39,6 @@
 #include <sys/resource.h> //rlimits to augment stack size (needed fot DICOM objects)
 #endif
 
-//#include <fenv.h>
-
 #include "str.hpp"
 #include "dinterpreter.hpp"
 #include "terminfo.hpp"
