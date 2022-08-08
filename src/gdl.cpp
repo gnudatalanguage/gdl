@@ -254,7 +254,9 @@ int main(int argc, char *argv[])
   if (!driversOK) {
     driversNotFound=true; 
     useLocalDrivers=false;
-    unsetenv(DrvEnvName);
+#ifndef _WIN32    
+    unsetenv(DrvEnvName); //unknown on windows
+#endif
     //eventually restore previous value
     if (oldDriverEnv) {
       strcpy(s,DrvEnvName);
