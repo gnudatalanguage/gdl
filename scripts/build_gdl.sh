@@ -80,8 +80,8 @@ if [ ${BUILD_OS} == "Windows" ]; then
         readline zlib libpng gsl wxWidgets plplot libgd libtiff libgeotiff netcdf hdf4 hdf5 fftw proj msmpi udunits
         eigen3 eccodes glpk shapelib expat openssl
     )
-    MSYS2_PACKAGES_REBUILD=(    #        plplot   # not yet, problems finally as plplot does not find driver (eveyting else OK)
-        graphicsmagick
+    MSYS2_PACKAGES_REBUILD=(
+        graphicsmagick plplot
     )
 elif [ ${BUILD_OS} == "Linux" ]; then
     # JP: Note the seperator ',' between the package name candidates below. The leftmost one has the highest priority.
@@ -491,6 +491,14 @@ function install_gdl {
         log "Copying plplot drivers to install directory..."
         mkdir -p share
         cp -rf /${mname}/share/plplot* share/
+
+        #this ensures that we overcome the bug in plplot version for Windows that does not know about PLPLOT_DRV_DIR env. var.
+        log "Copying our drivers to same direcory as gdl.."
+        cp -rf ${ROOT_DIR}/build/src/plplotdriver/* bin/
+
+        #with PROJ7, needs proj.db, and serachs for it at '"where libproj.dll is"/../share/proj so we do the same
+        log "Copying PROJ database at correct location"
+        cp -rf /${mname}/share/proj share/
 
         log "Copying GraphicsMagick drivers to install directory..."
         mkdir -p lib
