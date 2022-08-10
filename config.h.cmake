@@ -73,6 +73,7 @@
 #cmakedefine USE_LIBPROJ 1
 #define LIBPROJ_MAJOR_VERSION @LIBPROJ_MAJOR_VERSION@
 #cmakedefine USE_MAGICK 1
+#cmakedefine HAS_IMAGEMAGICK 1
 #cmakedefine USE_MPI 1
 #cmakedefine USE_NETCDF 1
 #cmakedefine USE_NETCDF4 1

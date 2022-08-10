@@ -19,7 +19,13 @@
 #define MAGICK_HPP_CL
 
 #include <Magick++.h>
-
+#ifdef HAS_IMAGEMAGICK
+#define matte alpha
+#define redQuantum quantumRed
+#define greenQuantum quantumGreen
+#define blueQuantum quantumBlue
+#define  QuantumDepth MAGICKCORE_QUANTUM_DEPTH //MagickQuantumDepth
+#endif
 namespace lib {
 
   using namespace Magick;
@@ -58,7 +64,7 @@ namespace lib {
   void magick_interlace(EnvT* e);
   void magick_addNoise(EnvT* e);
   void magick_quantize(EnvT* e);
-  void magick_writeIndexes(EnvT* e);
+//  void magick_writeIndexes(EnvT* e);
   void magick_writeColorTable(EnvT* e);
   void magick_quality(EnvT* e);
 
