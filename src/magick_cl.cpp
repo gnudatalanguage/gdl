@@ -384,7 +384,7 @@ namespace lib {
       {
         DByteGDL *bImage = new DByteGDL(dim, BaseGDL::ZERO);
 #ifndef HAS_IMAGEMAGICK
-        MagickCore::PixelPacket *pixel_cache = image->getPixels(0,0,columns,rows); //magick command, without it writePixels do NOTHING!
+        PixelPacket *pixel_cache = image->getPixels(0,0,columns,rows); //magick command, without it writePixels do NOTHING!
 #endif
         image->writePixels(IndexQuantum,(unsigned char*)(bImage->DataAddr()));
         return bImage;
@@ -397,7 +397,7 @@ namespace lib {
       {
         DUIntGDL *bImage = new DUIntGDL(dim, BaseGDL::NOZERO);
 #ifndef HAS_IMAGEMAGICK
-        MagickCore::PixelPacket *pixel_cache = image->getPixels(0,0,columns,rows); //magick command, without it writePixels do NOTHING!
+        PixelPacket *pixel_cache = image->getPixels(0,0,columns,rows); //magick command, without it writePixels do NOTHING!
 #endif
         image->writePixels(IndexQuantum,(unsigned char*)(bImage->DataAddr())); //probably not good, impossible to test yet.
         return bImage;
