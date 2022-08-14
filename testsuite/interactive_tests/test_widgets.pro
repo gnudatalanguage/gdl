@@ -378,7 +378,7 @@ endif
  endif
  if total(strcmp('BUTTON',present,/fold)) then begin
 ; BUTTON_BASE: 
-    button_base00 = widget_base( tabbed_base, TITLE="BUTTONs", COL=2, SPACE=20) & offy=10
+    button_base00 = widget_base( tabbed_base, TITLE="BUTTONs", _extra=extra) & offy=10
  ;   label=widget_label(yoff=offy,button_base00,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
     button_base01 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
     button_base02 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
