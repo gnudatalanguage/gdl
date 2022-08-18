@@ -378,7 +378,8 @@ endif
  endif
  if total(strcmp('BUTTON',present,/fold)) then begin
 ; BUTTON_BASE: 
-    button_base00 = widget_base( tabbed_base, TITLE="BUTTONs", _extra=extra) & offy=10
+    button_base00 = widget_base( tabbed_base, TITLE="BUTTONs", COL=2, $
+       SPACE=10, XPAD=10, YPAD=10) & offy=10
  ;   label=widget_label(yoff=offy,button_base00,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
     button_base01 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
     button_base02 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
@@ -599,7 +600,7 @@ fileNumbers = lonarr(nRows)
 ;   fileBase=widget_base(bases_base,/scroll,frame=3)
 ;base to contain column labels and cells with table values and selected files
 dummy = widget_label(bases_base,value=' ')
-listentries=widget_base(bases_base,row=nRows+1,/scroll,space=50, x_scroll=300,frame=10,y_scroll=300)
+listentries=widget_base(bases_base,row=nRows+1,/scroll,space=10, x_scroll=300,frame=10,y_scroll=300)
 widget_control,dummy,set_value='Scrolled Base below has ID='+string(listentries) 
 ;create column labels 
 dummy = widget_label(listentries,value=' ', xsize=30)

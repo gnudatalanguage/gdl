@@ -2124,22 +2124,12 @@ GDLWidgetTabbedBase::GDLWidgetTabbedBase(WidgetIDT parentID, EnvT* e, ULong even
   assert(parentTab != NULL);
 
   wxString titleWxString = wxString(title_.c_str(), wxConvUTF8);
-  wxSizer* sz=new wxBoxSizer(wxVERTICAL);
-//  wxPanel* p=new wxPanel(parentTab, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-//  p->SetSize(wScrollSize);
   if (nrows < 1 && ncols < 1 && frameWidth < 1) frameWidth=1; //set framewidth (temporary) in this case to get good result
   CreateBase(parentTab);
-//  sz->Add(w,DONOTALLOWSTRETCH, wxALL | wxEXPAND, 0);
-//  p->SetSizer(sz);
-//  theWxContainer=p;
-//
-//  theWxWidget = p;
   wxWindow* w=static_cast<wxWindow*>(theWxContainer); //defined in CreateBase.
   myPage=parentTab->GetPageCount();
-//  parentTab->AddPage(w, titleWxString);
   parentTab->InsertPage(myPage, w, titleWxString);
-//  myPage=parentTab->FindPage(w);
-  
+ 
 //  UPDATE_WINDOW
   REALIZE_IF_NEEDED
 }
@@ -2502,6 +2492,23 @@ BaseGDL* GDLWidgetTab::GetTabMultiline(){
   wxNotebook * notebook=dynamic_cast<wxNotebook*>(theWxWidget);
   assert( notebook != NULL);
   return new DIntGDL(notebook->GetExtraStyle()&wxNB_MULTILINE);
+}
+//special as wxNotebook DOES NOT RECOMPILE ITS SIZE BEFORE REALIZATION.
+void GDLWidgetTab::OnRealize(){
+  GDLWidgetContainer::OnRealize();
+  std::cerr<<".";
+  wxNotebook * nb=dynamic_cast<wxNotebook*>(theWxWidget);
+  assert( nb != NULL);
+  nb->InvalidateBestSize();
+  size_t n=nb->GetPageCount();
+  wxSize s(-1,1);
+  for (auto i=0; i<n; ++i) {
+    wxWindow* w=nb->GetPage(i);
+    wxSize s_tmp=w->GetBestSize();
+    s.x = MAX(s.x, s_tmp.x);
+    s.y = MAX(s.y, s_tmp.y);
+  }
+  nb->SetMinSize(s);
 }
 
 

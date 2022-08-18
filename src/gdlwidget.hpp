@@ -1525,6 +1525,7 @@ public:
   BaseGDL* GetTabCurrent();
   void SetTabCurrent(int val);
   BaseGDL* GetTabMultiline(); //not exactly what expected, fixme.
+  void OnRealize();
 };
 
 
