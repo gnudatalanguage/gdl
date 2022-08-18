@@ -475,7 +475,8 @@ function install_gdl {
     make install || exit 1
 
     cd ${ROOT_DIR}/install
-
+    echo "mname="${mname} 
+    echo "ROOT_DIR="${ROOT_DIR} 
     if [ ${BUILD_OS} == "Windows" ]; then
         log "Copying DLLs to install directory..."
         found_dlls=()
@@ -488,13 +489,19 @@ function install_gdl {
             cp -f "$f" bin/
         done
         
-        log "Copying plplot drivers to install directory..."
+        log "Copying plplot stuff (not drivers) to install directory..."
         mkdir -p share
         cp -rf /${mname}/share/plplot* share/
+        rm -rf share/plplot*/examples
+        rm -rf share/plplot*/ss
+        rm -rf share/plplot*/tcl
+        rm -rf share/plplot*/*.shx
+        rm -rf share/plplot*/*.shp
+        rm -rf share/plplot*/*.tcl
 
         #this ensures that we overcome the bug in plplot version for Windows that does not know about PLPLOT_DRV_DIR env. var.
-        log "Copying our drivers to same direcory as gdl.."
-        cp -rf ${ROOT_DIR}/build/src/plplotdriver/* bin/
+        log "Copying our drivers to same directory as gdl.."
+        cp -rf ${ROOT_DIR}/build/src/plplotdriver/*.dll bin/
 
         #with PROJ7, needs proj.db, and serachs for it at '"where libproj.dll is"/../share/proj so we do the same
         log "Copying PROJ database at correct location"
