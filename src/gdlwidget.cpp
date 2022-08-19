@@ -38,6 +38,8 @@
 
 #include "widget.hpp"
 #include "graphicsdevice.hpp"
+#undef MAX
+#define MAX(a,b) ((a) < (b) ? (b) : (a))
 
 //must arrive after "gdlwidget.hpp"
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
