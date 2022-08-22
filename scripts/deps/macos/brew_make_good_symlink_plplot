@@ -1,1 +1,7 @@
-ln -s /usr/local/opt/glib/lib/libgobject-2.0.0.dylib /usr/local/lib/gobject-2.0
+GOBJECT_LIB_1=/opt/homebrew/lib/libgobject-2.0.0.dylib
+GOBJECT_LIB_2=/opt/homebrew/lib/gobject-2.0
+if [[ ! -f $GOBJECT_LIB_1 ]]; then
+    GOBJECT_LIB_1=/usr/local/opt/glib/lib/libgobject-2.0.0.dylib
+    GOBJECT_LIB_2=/usr/local/lib/gobject-2.0
+fi
+ln -s $GOBJECT_LIB_1 $GOBJECT_LIB_2
