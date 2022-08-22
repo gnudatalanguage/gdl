@@ -76,7 +76,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ runner.temp }}/cache
-          key: cache-gdl-deps-${{ matrix.os }}-v4
+          key: cache-gdl-deps-${{ matrix.os }}-v5
       - name: Install Dependencies (macOS, Homebrew)
         if: contains(matrix.os, 'macos')                    # && steps.cache.outputs.cache-hit != 'true'  #removed as the cached state is bad.
         run: |
