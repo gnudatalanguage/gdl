@@ -1,5 +1,5 @@
-#conditionally compile a 'local' version of our (patched?) favorite drivers: safer as we do not depend on plplot's vagaries.
-if(USE_LOCAL_DRIVERS)
+#compile a 'local' version of our patched favorite drivers if we can: enable 3D support and fast plots.
+if(INSTALL_LOCAL_DRIVERS)
 set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${wxWidgets_LIBRARY_DIRS})
 foreach(WXDEF ${wxWidgets_DEFINITIONS})
     add_definitions(-D${WXDEF})
@@ -51,4 +51,4 @@ set_target_properties(
       DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/drivers
       )
 
-endif(USE_LOCAL_DRIVERS)
+endif(INSTALL_LOCAL_DRIVERS)

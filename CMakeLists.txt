@@ -48,7 +48,7 @@ include(TestBigEndian)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 #### GDL is an interactive tool. Normally INTERACTIVE_GRAPHICS must be set
-set(INTERACTIVE_GRAPHICS ON CACHE BOOL "GDL: Disable check of existence of a suited graphics driver in plplot.)")
+set(INTERACTIVE_GRAPHICS ON CACHE BOOL "GDL: Disable checking existence of a suited graphics driver in plplot. Only file output may be available, and 3D graphics may NOT work.")
 
 #### Default cached values
 set(GDLDEV OFF CACHE BOOL "GDL: Enable GDL developer mode (includes work-in-progress tests)")
@@ -214,6 +214,7 @@ check_include_file(mpi.h HAVE_MPI_H)
 #     version of antlr in system-wide directories
 include_directories(src)
 
+#-------------------------------MANDATORY MODULES-------------------------------------
 if (NOT WIN32)
     # Ncurses MANDATORY for readline on POSIX
     # -DNCURSESDIR=DIR
@@ -284,6 +285,149 @@ else(ZLIB_FOUND)
         "(suitable Fedora/CentOS package: zlib-devel)")
 endif(ZLIB_FOUND)
 
+# GSL MANDATORY
+# -DGSLDIR=DIR
+set(CMAKE_PREFIX_PATH ${GSLDIR})
+find_package(GSL QUIET)
+set(HAVE_LIBGSL ${GSL_FOUND})
+set(HAVE_LIBGSLCBLAS ${GSL_FOUND})
+if(GSL_FOUND)
+    set(LIBRARIES ${LIBRARIES} ${GSL_LIBRARIES})
+    include_directories(${GSL_INCLUDE_DIR})
+else(GSL_FOUND)
+    message(FATAL_ERROR "Gnu Scientific library (1.7 or higher) and libgslcblas are mandatory.\n"
+    "Use -DGSLDIR=DIR to specify the gsl directory tree.\n"
+        "(suitable Debian/Ubuntu package: libgsl-dev)\n"
+        "(suitable Fedora/CentOS package: gsl-devel)")
+endif(GSL_FOUND)
+
+#RPC or XDR MANDATORY
+if(UNIX)
+    set(CMAKE_PREFIX_PATH ${RPCDIR})
+    find_package(RPC QUIET)
+    set(HAVE_RPC ${RPC_FOUND})
+    if(RPC_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${RPC_LIBRARIES})
+        include_directories(${RPC_INCLUDE_DIR})
+    else(RPC_FOUND)
+        message(FATAL_ERROR "RPC support is mandatory.\n"
+        "Note that SunRPC has been removed in glibc-2.26 and later, "
+        "while being optional in earlier versions. Consider using the "
+        "recommended and more modern libtirpc instead.\n"
+        "Use -DRPCDIR=DIR to specify the rpc directory tree.\n")
+    endif(RPC_FOUND)
+elseif (WIN32)
+    set(CMAKE_PREFIX_PATH ${XDRDIR})
+    find_package(Xdr)
+    set(HAVE_LIBXDR ${XDR_FOUND})
+    if(XDR_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARIES})
+        include_directories(${XDR_INCLUDE_DIR})
+    else(XDR_FOUND)
+        message(FATAL_ERROR "bsd-xdr library is required but was not found.\n"
+        "Use -DXDRDIR=DIR to specify the bsd-xdr directory tree.")
+    endif(XDR_FOUND)
+
+    set(CMAKE_PREFIX_PATH ${PCREDIR})
+    find_package(PCRE)
+    set(HAVE_LIBPCRE ${PCRE_FOUND})
+    if(PCRE_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${PCRE_LIBRARIES})
+        include_directories(${PCRE_INCLUDE_DIR})
+    else(PCRE_FOUND)
+        message(FATAL_ERROR "pcre library is required but was not found.\n"
+        "Use -DPCREDIR=DIR to specify the pcre directory tree.")
+    endif(PCRE_FOUND)
+    LINK_LIBRARIES(shlwapi)
+    if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+      add_compile_options(-Wa,-mbig-obj)
+      message(STATUS "-Wa,-mbig-obj added to compiler options ")
+    endif() 
+endif()
+
+
+# PLplot with DYNDRIVERS MANDATORY
+# it is necessary for 3D support and wxwidgets to avoid using plplot's drivers and instead use a copy, eventually modified by us, 
+# that is installed in gnudatalanguage/lib/drivers. Thus, we NEED that plplot is installed WITH ENABLE_DYNDRIVERS 
+# -DPLPLOTDIR=DIR
+set(CMAKE_PREFIX_PATH ${PLPLOTDIR})
+find_package(Plplot QUIET)
+set(HAVE_LIBPLPLOTCXXD ${PLPLOT_FOUND})
+if(PLPLOT_FOUND)
+    set(LIBRARIES ${LIBRARIES} ${PLPLOT_LIBRARIES})
+    include_directories(${PLPLOT_INCLUDE_DIR})
+else(PLPLOT_FOUND)
+    message(FATAL_ERROR "plplot library is required but was not found.\n"
+    "Use -DPLPLOTDIR=DIR to specify the plplot directory tree.\n"
+        "(suitable Debian/Ubuntu packages: libplplot-dev, [plplot9-driver-xwin])"
+        "(suitable Fedora/CentOS package: plplot-devel)")
+endif(PLPLOT_FOUND)
+
+if(PLPLOT_FOUND)
+    #0) mandatory: plplot compiled with ENABLE_DYNDRIVERS --> check presence of plGetDrvDir()
+    check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" INSTALL_LOCAL_DRIVERS)
+    if(INTERACTIVE_GRAPHICS AND NOT INSTALL_LOCAL_DRIVERS)
+      message(FATAL_ERROR "Plplot installation lacks dynamic drivers. \n"
+      "It is mandatory to recompile plplot with option -DENABLE_DYNDRIVERS.\n"
+      "*** Dears Distribution Maintainers, GDL must be distributed only with INTERACTIVE GRAPHICS=ON (default), thanks. ***" )
+    endif()
+    #1) mandatory: has ps_labelfunc() function? 
+    check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
+    if(NOT HAVE_PLPLOT_SLABELFUNC)
+      message(FATAL_ERROR "please upgrade to plplot version > 5.9.6 (missing plslabelfunc")
+    endif()
+
+    set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
+    set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
+
+    #has correct plwidth() function? 
+    #the following does not work with clang (???)
+        check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
+    
+    #give it a 2nd try...
+    if(NOT HAVE_PLPLOT_WIDTH)
+       set(_test_plplot
+       "
+       #include <plplot/plstream.h>
+       int main(int argc, char **argv) {
+         plstream *p = new plstream();
+         PLFLT w = 0.5;
+         p->width(w);
+       }
+       "
+       )
+       check_cxx_source_compiles("${_test_plplot}" HAVE_PLPLOT_WIDTH)
+       if(HAVE_PLPLOT_WIDTH)
+         set(HAVE_PLPLOT_WIDTH 1)
+       endif(HAVE_PLPLOT_WIDTH)
+    endif(NOT HAVE_PLPLOT_WIDTH)
+    
+    #has plstrl function?
+    check_library_exists("${PLPLOT_LIBRARIES}" plstrl "" PLPLOT_PRIVATE_NOT_HIDDEN)
+    if(PLPLOT_PRIVATE_NOT_HIDDEN)
+      set(PLPLOT_PRIVATE_NOT_HIDDEN 1)
+    else(PLPLOT_PRIVATE_NOT_HIDDEN)
+      message(STATUS "Using a plplot library without private functions - UGLY workarounds will be used.")
+    endif(PLPLOT_PRIVATE_NOT_HIDDEN)
+
+    #has plcallback function?
+    set(_test_plplot2
+        "
+        #include <plplot/plstream.h>
+        int main(){
+        PLINT n; 
+        PLFLT x,y;
+        plcallback::fill(n,&x,&y);
+        }
+        "
+        )    
+    check_cxx_source_compiles("${_test_plplot2}" PLPLOT_HAS_PLCALLBACK)
+    if(PLPLOT_HAS_PLCALLBACK)
+      set(PLPLOT_HAS_PLCALLBACK 1)
+    endif(PLPLOT_HAS_PLCALLBACK)
+endif(PLPLOT_FOUND)
+
+#---------------------------------------OPTIONAL MODULES----------------------
 # libpng
 # -DPNGLIB=ON|OFF
 # -DPNGLIBDIR=DIR
@@ -344,65 +488,6 @@ else(OPENMP)
   endif(THREADS_FOUND)
 endif(OPENMP)
 
-# GSL MANDATORY
-# -DGSLDIR=DIR
-set(CMAKE_PREFIX_PATH ${GSLDIR})
-find_package(GSL QUIET)
-set(HAVE_LIBGSL ${GSL_FOUND})
-set(HAVE_LIBGSLCBLAS ${GSL_FOUND})
-if(GSL_FOUND)
-    set(LIBRARIES ${LIBRARIES} ${GSL_LIBRARIES})
-    include_directories(${GSL_INCLUDE_DIR})
-else(GSL_FOUND)
-    message(FATAL_ERROR "Gnu Scientific library (1.7 or higher) and libgslcblas are mandatory.\n"
-    "Use -DGSLDIR=DIR to specify the gsl directory tree.\n"
-        "(suitable Debian/Ubuntu package: libgsl-dev)\n"
-        "(suitable Fedora/CentOS package: gsl-devel)")
-endif(GSL_FOUND)
-
-if(UNIX)
-    set(CMAKE_PREFIX_PATH ${RPCDIR})
-    find_package(RPC QUIET)
-    set(HAVE_RPC ${RPC_FOUND})
-    if(RPC_FOUND)
-        set(LIBRARIES ${LIBRARIES} ${RPC_LIBRARIES})
-        include_directories(${RPC_INCLUDE_DIR})
-    else(RPC_FOUND)
-        message(FATAL_ERROR "RPC support is mandatory.\n"
-        "Note that SunRPC has been removed in glibc-2.26 and later, "
-        "while being optional in earlier versions. Consider using the "
-        "recommended and more modern libtirpc instead.\n"
-        "Use -DRPCDIR=DIR to specify the rpc directory tree.\n")
-    endif(RPC_FOUND)
-elseif (WIN32)
-    set(CMAKE_PREFIX_PATH ${XDRDIR})
-    find_package(Xdr)
-    set(HAVE_LIBXDR ${XDR_FOUND})
-    if(XDR_FOUND)
-        set(LIBRARIES ${LIBRARIES} ${XDR_LIBRARIES})
-        include_directories(${XDR_INCLUDE_DIR})
-    else(XDR_FOUND)
-        message(FATAL_ERROR "bsd-xdr library is required but was not found.\n"
-        "Use -DXDRDIR=DIR to specify the bsd-xdr directory tree.")
-    endif(XDR_FOUND)
-
-    set(CMAKE_PREFIX_PATH ${PCREDIR})
-    find_package(PCRE)
-    set(HAVE_LIBPCRE ${PCRE_FOUND})
-    if(PCRE_FOUND)
-        set(LIBRARIES ${LIBRARIES} ${PCRE_LIBRARIES})
-        include_directories(${PCRE_INCLUDE_DIR})
-    else(PCRE_FOUND)
-        message(FATAL_ERROR "pcre library is required but was not found.\n"
-        "Use -DPCREDIR=DIR to specify the pcre directory tree.")
-    endif(PCRE_FOUND)
-    LINK_LIBRARIES(shlwapi)
-    if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-      add_compile_options(-Wa,-mbig-obj)
-      message(STATUS "-Wa,-mbig-obj added to compiler options ")
-    endif() 
-endif()
-
 
 # wxWidgets: should be the one graphics library. Presence test is 'wxWidgets_FOUND'
 #
@@ -431,13 +516,11 @@ if(WXWIDGETS)
                 "(suitable Debian/Ubuntu package: libwxgtk3.0-gtk3-dev)\n"
                 "(suitable Fedora/CentOS package: wxGTK-devel)")
     endif(wxWidgets_FOUND)
-    set (USE_LOCAL_DRIVERS 1) # At the moment, the only case where having our owwn drivers is useful. Should be changed if we improve other drivers.
 else (WXWIDGETS)
   if (INTERACTIVE_GRAPHICS AND WIN32) 
-    message(FATAL_ERROR "wxWidgets are required on Windows unless the option -DINTERACTIVE_GRAPHICS=FALSE is given. In which case you will NOT have graphics plots on screen")
+    message(FATAL_ERROR "wxWidgets are required on Windows.")
   endif (INTERACTIVE_GRAPHICS AND WIN32) 
   #forcibly not used, no need to build and install our own copy of drivers, below
-  set (USE_LOCAL_DRIVERS 0)
 endif(WXWIDGETS)
 
 # X11 : OFF by default since wxWidgets SHOULD take preference in ALL builds.
@@ -462,101 +545,6 @@ if(CYGWIN OR NOT WIN32)
     endif (X11_FOUND AND NOT wxWidgets_FOUND) 
 endif(CYGWIN OR NOT WIN32)
 
-
-# PLplot MANDATORY
-# it is necessary at least for wxwidgets to avoid using plplot's drivers and instead use a copy, eventually modified by us, 
-# that is installed in gnudatalanguage/lib/drivers. This is done by default and triggered by USE_LOCAL_DRIVERS
-# -DPLPLOTDIR=DIR
-set(CMAKE_PREFIX_PATH ${PLPLOTDIR})
-find_package(Plplot QUIET)
-set(HAVE_LIBPLPLOTCXXD ${PLPLOT_FOUND})
-if(PLPLOT_FOUND)
-    set(LIBRARIES ${LIBRARIES} ${PLPLOT_LIBRARIES})
-    include_directories(${PLPLOT_INCLUDE_DIR})
-else(PLPLOT_FOUND)
-    message(FATAL_ERROR "plplot library is required but was not found.\n"
-    "Use -DPLPLOTDIR=DIR to specify the plplot directory tree.\n"
-        "(suitable Debian/Ubuntu packages: libplplot-dev, [plplot9-driver-xwin])"
-        "(suitable Fedora/CentOS package: plplot-devel)")
-endif(PLPLOT_FOUND)
-
-if(PLPLOT_FOUND)
-
-    #1) mandatory: has ps_labelfunc() function? 
-    check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
-    if(NOT HAVE_PLPLOT_SLABELFUNC)
-      message(FATAL_ERROR "please upgrade to plplot version > 5.9.6 (missing plslabelfunc")
-    endif()
-
-    set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
-    set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
-    #2) compiled with DYNDRIVERS?
-    check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" PL_IS_DYNDRIVERS)
-
-    #has correct plwidth() function? 
-    #the following does not work with clang (???)
-        check_library_exists("${PLPLOT_LIBRARIES}" c_plwidth "" HAVE_PLPLOT_WIDTH)
-    
-    #give it a 2nd try...
-    if(NOT HAVE_PLPLOT_WIDTH)
-       set(_test_plplot
-       "
-       #include <plplot/plstream.h>
-       int main(int argc, char **argv) {
-         plstream *p = new plstream();
-         PLFLT w = 0.5;
-         p->width(w);
-       }
-       "
-       )
-       check_cxx_source_compiles("${_test_plplot}" HAVE_PLPLOT_WIDTH)
-       if(HAVE_PLPLOT_WIDTH)
-         set(HAVE_PLPLOT_WIDTH 1)
-       endif(HAVE_PLPLOT_WIDTH)
-    endif(NOT HAVE_PLPLOT_WIDTH)
-    
-    #has plstrl function?
-    check_library_exists("${PLPLOT_LIBRARIES}" plstrl "" PLPLOT_PRIVATE_NOT_HIDDEN)
-    if(PLPLOT_PRIVATE_NOT_HIDDEN)
-      set(PLPLOT_PRIVATE_NOT_HIDDEN 1)
-    else(PLPLOT_PRIVATE_NOT_HIDDEN)
-      message(STATUS "Using a plplot library without private functions - UGLY workarounds will be used.")
-    endif(PLPLOT_PRIVATE_NOT_HIDDEN)
-
-    #has plcallback function?
-    set(_test_plplot2
-        "
-        #include <plplot/plstream.h>
-        int main(){
-        PLINT n; 
-        PLFLT x,y;
-        plcallback::fill(n,&x,&y);
-        }
-        "
-        )    
-    check_cxx_source_compiles("${_test_plplot2}" PLPLOT_HAS_PLCALLBACK)
-    if(PLPLOT_HAS_PLCALLBACK)
-      set(PLPLOT_HAS_PLCALLBACK 1)
-    endif(PLPLOT_HAS_PLCALLBACK)
- 
-# here, for windows, install_local_driver is already true as we impose wxwidgets now. So this section is skipped under windows. 
-    if ((NOT INSTALL_LOCAL_DRIVERS) AND INTERACTIVE_GRAPHICS)
-      message(STATUS "Will use a local copy of plplot drivers (patched for speed).")
-    endif ((NOT INSTALL_LOCAL_DRIVERS) AND INTERACTIVE_GRAPHICS)
-endif(PLPLOT_FOUND)
-
-if (USE_LOCAL_DRIVERS)  #meaning wxWidgets is found
-  if (WIN32)
-    set(USE_LOCAL_DRIVERS 0)  #PLPLOT constantly refuses to load our drivers on Windows. I quit.
-  else (WIN32)
-  #test if plplot has been compiled with DYNDRIVERS option:
-   if (PL_IS_DYNDRIVERS) 
-     set(INSTALL_LOCAL_DRIVERS 1)
-   else (PL_IS_DYNDRIVERS) 
-     message(FATAL_ERROR "Plplot was compiled without Dynamic Driver support. Please recompile plplot with option -DENABLE_DYNDRIVERS=ON.")
-   endif (PL_IS_DYNDRIVERS) 
-  endif(WIN32)
-endif (USE_LOCAL_DRIVERS)
     
 # GraphicsMagick (GM) is an alternative to the classical ImageMagick Lib (IM).
 # It was experienced that GM was more stable in time than IM
