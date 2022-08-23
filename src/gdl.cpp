@@ -236,8 +236,11 @@ int main(int argc, char *argv[])
   string driversPath=S_GDLDATADIR + lib::PathSeparator() + "drivers"; 
 
 #ifdef INSTALL_LOCAL_DRIVERS
+  useLocalDrivers=true;
   //get the current value for PLPLOT_DRV_DIR if any (useful later if something goes wrong below)
   static const char* DrvEnvName="PLPLOT_DRV_DIR";
+#ifdef _WIN32
+#else
   char* oldDriverEnv=getenv(DrvEnvName);
   // We must declare here (and not later) where our local copy of (customized?) drivers is to be found.
   char s[256];
@@ -246,7 +249,6 @@ int main(int argc, char *argv[])
   strcat(s,driversPath.c_str());
       //set nex drvPath as PLPLOT_DRV_DIR
   putenv(s);
-  useLocalDrivers=true;
   //Now, it is possible that GDL WAS compiled with INSTALL_LOCAL_DRIVERS, but the plplot installation is NOT compiled with DYNAMIC DRIVERS.
   //Then not only we will not have 'our' good driver, but calling our nicknamed wxwidgetsgdl driver will fail.
   //So I check here the plplot driver list to check if wxwidgetsgdl is present. If not, useLocalDriver=false
@@ -267,6 +269,7 @@ int main(int argc, char *argv[])
     plend(); //this is necessary to reset PLPLOT to a state that will read again the driver configuration at PLPLOT_DRV_DIR
              // otherwise the next call to checkPlplotDriver() in GDLWxStream will fail.
   }
+#endif
 #endif
   // keeps a list of files to be executed after the startup file
   // and before entering the interactive mode
