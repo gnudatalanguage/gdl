@@ -324,11 +324,11 @@ function prep_packages {
         if [ ${DRY_RUN} == "true" ]; then
             log "Please run below command to install bsd-xdr prior to build GDL."
             echo cp -f mingw/*.dll /${mname}/bin/
-            echo cp -f mingw/libbsdxdr.dll.a /${mname}/lib/
+            echo cp -f mingw/*.a /${mname}/lib/
             echo cp -rf rpc /${mname}/include/
         else
             cp -f mingw/*.dll /${mname}/bin/
-            cp -f mingw/libbsdxdr.dll.a /${mname}/lib/
+            cp -f mingw/*.a /${mname}/lib/
             cp -rf rpc /${mname}/include/
         fi
         popd
@@ -510,9 +510,9 @@ function install_gdl {
         rm -rf share/plplot*/*.shp
         rm -rf share/plplot*/*.tcl
 
-        #this ensures that we overcome the bug in plplot version for Windows that does not know about PLPLOT_DRV_DIR env. var.
-        log "Copying our drivers to same directory as gdl.."
-        cp -rf ${ROOT_DIR}/build/src/plplotdriver/*.dll bin/
+#        #this ensures that we overcome the bug in plplot version for Windows that does not know about PLPLOT_DRV_DIR env. var.
+#        log "Copying our drivers to same directory as gdl.."
+#        cp -rf ${ROOT_DIR}/build/src/plplotdriver/*.dll bin/
 
         #with PROJ7, needs proj.db, and serachs for it at '"where libproj.dll is"/../share/proj so we do the same
         log "Copying PROJ database at correct location"

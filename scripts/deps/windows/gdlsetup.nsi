@@ -184,10 +184,12 @@ Section -Post
   ; set env. variables in the system registry
   WriteRegExpandStr ${env_hklm} GDL_PATH "+$INSTDIR\share\gnudatalanguage\lib"
   WriteRegExpandStr ${env_hklm} GDL_MAPS_DIR "+$INSTDIR\share\gnudatalanguage\resource\maps"
+  WriteRegExpandStr ${env_hklm} PLPLOT_DRV_DIR "+$INSTDIR\share\gnudatalanguage\drivers"
   WriteRegExpandStr ${env_hklm} GDL_HOME "$INSTDIR"
   ; set env. variables manually for GDL launched from installer
   System::Call 'Kernel32::SetEnvironmentVariable(t "GDL_PATH",t "+$INSTDIR\share\gnudatalanguage\lib")i'
   System::Call 'Kernel32::SetEnvironmentVariable(t "GDL_MAPS_DIR",t "+$INSTDIR\share\gnudatalanguage\resource\maps")i'
+  System::Call 'Kernel32::SetEnvironmentVariable(t "PLPLOT_DRV_DIR",t "+$INSTDIR\share\gnudatalanguage\drivers")i'
   System::Call 'Kernel32::SetEnvironmentVariable(t "GDL_HOME",t "$INSTDIR")i'
   ; make sure windows knows about the change
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000

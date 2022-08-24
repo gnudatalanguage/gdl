@@ -239,8 +239,9 @@ int main(int argc, char *argv[])
   useLocalDrivers=true;
   //get the current value for PLPLOT_DRV_DIR if any (useful later if something goes wrong below)
   static const char* DrvEnvName="PLPLOT_DRV_DIR";
-#ifdef _WIN32
-#else
+  //For WIN32, as it GDL is normally installed via an installer, the PLPLOT_DRV_DIR env var MUST be set by the installer --- the one created here
+  //is probably always meaningless, due to the compilation with mingw toolchain. 
+#ifndef _WIN32
   char* oldDriverEnv=getenv(DrvEnvName);
   // We must declare here (and not later) where our local copy of (customized?) drivers is to be found.
   char s[256];
@@ -256,9 +257,7 @@ int main(int argc, char *argv[])
   if (!driversOK) {
     driversNotFound=true; 
     useLocalDrivers=false;
-#ifndef _WIN32    
     unsetenv(DrvEnvName); //unknown on windows
-#endif
     //eventually restore previous value
     if (oldDriverEnv) {
       strcpy(s,DrvEnvName);
