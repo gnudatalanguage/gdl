@@ -234,11 +234,11 @@ int main(int argc, char *argv[])
   useLocalDrivers=false;
   bool driversNotFound=false;
   string driversPath=S_GDLDATADIR + lib::PathSeparator() + "drivers"; 
+  //We'll ned to get the current value for PLPLOT_DRV_DIR if any (useful later if something goes wrong below)
+  static const char* DrvEnvName="PLPLOT_DRV_DIR";
 
 #ifdef INSTALL_LOCAL_DRIVERS
   useLocalDrivers=true;
-  //get the current value for PLPLOT_DRV_DIR if any (useful later if something goes wrong below)
-  static const char* DrvEnvName="PLPLOT_DRV_DIR";
   //For WIN32, as it GDL is normally installed via an installer, the PLPLOT_DRV_DIR env var MUST be set by the installer --- the one created here
   //is probably always meaningless, due to the compilation with mingw toolchain. 
 #ifndef _WIN32
@@ -490,7 +490,7 @@ int main(int argc, char *argv[])
     if (useWxWidgetsForGraphics) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
     if (useLocalDrivers || driversNotFound) {
       if (driversNotFound) cerr << "- Local drivers not found --- using default ones. " << endl;
-      else cerr << "- Using local drivers in " << driversPath << endl;
+      else cerr << "- Using local drivers in " << getenv(DrvEnvName) << endl;
     }
     }
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
