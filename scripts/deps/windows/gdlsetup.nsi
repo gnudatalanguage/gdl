@@ -217,6 +217,8 @@ Section Uninstall
   
   DeleteRegValue ${env_hklm} GDL_PATH
   DeleteRegValue ${env_hklm} GDL_HOME
+  DeleteRegValue ${env_hklm} GDL_MAPS_DIR
+  DeleteRegValue ${env_hklm} PLPLOT_DRV_DIR
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
   SetAutoClose true
 SectionEnd
