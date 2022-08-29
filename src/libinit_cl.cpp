@@ -217,7 +217,7 @@ void LibInit_cl()
   const string magick_quantizeKey[]={"TRUECOLOR","YUV","GRAYSCALE","DITHER",KLISTEND};
   new DLibPro(lib::magick_quantize,string("MAGICK_QUANTIZE"),2,magick_quantizeKey);
  
-  new DLibPro(lib::magick_writeIndexes, string("MAGICK_WRITEINDEXES"),2);
+//  new DLibPro(lib::magick_writeIndexes, string("MAGICK_WRITEINDEXES"),2);
   new DLibPro(lib::magick_writeColorTable, string("MAGICK_WRITECOLORTABLE"),4);
 
 
