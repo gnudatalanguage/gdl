@@ -67,9 +67,9 @@ affiliations:
    index: 4
  - name: Independent Researcher, USA
    index: 5
- - name: University of Illinois at Urbana–Champaign, USA
-   index: 6
  - name: Jagiellonian University, Kraków, Poland
+   index: 6
+ - name: University of Illinois at Urbana–Champaign, USA
    index: 7
  - name: Ursinus College, PA, USA
    index: 8

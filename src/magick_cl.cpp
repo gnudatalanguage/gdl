@@ -48,7 +48,6 @@
     if (notInitialized ) { \
       notInitialized = false; \
         Magick::InitializeMagick(NULL);  \
-        if ( QuantumDepth < 16) fprintf(stderr, "%% INFO: the %s library support only 8 bit images.\n", MagickPackageName);\
               }
 
 namespace lib {
@@ -78,7 +77,9 @@ namespace lib {
 
   Image *magick_image(EnvT *e, unsigned int mid) {
     if (gValid[mid] == 0) e->Throw("invalid ID.");
-    return gImage[mid];
+    Image* im=gImage[mid];
+//    std::cerr<<im->depth()<<std::endl;
+    return im;
   }
 
   unsigned int magick_image(EnvT* e, Image *imImage) {
@@ -382,7 +383,9 @@ namespace lib {
 #endif
       {
         DByteGDL *bImage = new DByteGDL(dim, BaseGDL::ZERO);
+#ifndef HAS_IMAGEMAGICK
         PixelPacket *pixel_cache = image->getPixels(0,0,columns,rows); //magick command, without it writePixels do NOTHING!
+#endif
         image->writePixels(IndexQuantum,(unsigned char*)(bImage->DataAddr()));
         return bImage;
       }
@@ -393,7 +396,9 @@ namespace lib {
 #endif
       {
         DUIntGDL *bImage = new DUIntGDL(dim, BaseGDL::NOZERO);
+#ifndef HAS_IMAGEMAGICK
         PixelPacket *pixel_cache = image->getPixels(0,0,columns,rows); //magick command, without it writePixels do NOTHING!
+#endif
         image->writePixels(IndexQuantum,(unsigned char*)(bImage->DataAddr())); //probably not good, impossible to test yet.
         return bImage;
       }
@@ -608,14 +613,18 @@ namespace lib {
             if (image->matte()) map = map + "A";
           }
         }
-        if (image->depth() == 8) {
+        if (image->depth() == 8 || GDLimage->Type()==GDL_BYTE || !(IntType(GDLimage->Type()))) { //only INTeger values > BYTE can be saved as 16 bits see WRITE_PNG help
           DByteGDL * bImage = static_cast<DByteGDL*> (GDLimage->Convert2(GDL_BYTE, BaseGDL::COPY));
           Guard<DByteGDL> bImageGuard(bImage);
+        // Ensure that there are no other references to this image.
+          image->modifyImage();
           image->read(columns, rows, map, CharPixel, &(*bImage)[0]);
-        } else if (image->depth() == 16) {
-          DUIntGDL * iImage = static_cast<DUIntGDL*> (GDLimage->Convert2(GDL_UINT, BaseGDL::COPY));
-          Guard<DUIntGDL> iImageGuard(iImage);
-          image->read(columns, rows, map, ShortPixel, &(*iImage)[0]);
+        } else if (image->depth() == 16) { //the only one able to support writng INTeger values > BYTES
+            DUIntGDL * iImage = static_cast<DUIntGDL*> (GDLimage->Convert2(GDL_UINT, BaseGDL::COPY));
+            Guard<DUIntGDL> iImageGuard(iImage);
+        // Ensure that there are no other references to this image.
+            image->modifyImage();
+            image->read(columns, rows, map, ShortPixel, &(*iImage)[0]);
         } else {
           e->Throw("Unsupported bit depth");
         }
@@ -633,7 +642,7 @@ namespace lib {
         if (image->colorMapSize() < 1) e->Throw("GDL internal: destination image has no colormap!");
         image->size(Geometry(columns, rows));
         image->setPixels(0,0,columns, rows);
-        image->readPixels(IndexQuantum,(unsigned char*)bImage->DataAddr());
+        image->read(columns, rows, "I", CharPixel, &(*bImage)[0]);
         image->syncPixels();
       }
       image->flip();
@@ -962,40 +971,41 @@ namespace lib {
     image->display();
 
   }
-
-  void magick_writeIndexes(EnvT* e) {
-    START_MAGICK;
-    try {
-      DUInt mid;
-      e->AssureScalarPar<DUIntGDL>(0, mid);
-      BaseGDL* GDLimage = e->GetParDefined(1);
-      DByteGDL * bImage = static_cast<DByteGDL*> (GDLimage->Convert2(GDL_BYTE, BaseGDL::COPY));
-
-      Image* image = magick_image(e, mid);
-
-//      const PixelPacket* pixels;
-      IndexPacket* index;
-
-      unsigned int columns, rows;
-      columns = image->columns();
-      rows = image->rows();
-
-//      pixels = image->setPixels(0, 0, columns, rows);
-      index = image->getIndexes();
-
-      SizeT nEl = columns*rows;
-      {
-        for (SizeT cx = 0; cx < nEl; ++cx) {
-          index[cx] = static_cast<unsigned int> ((*bImage)[cx]);
-        }
-      }
-      image->syncPixels();
-
-      //magick_replace(e, mid, image);
-    } catch (Exception &error_) {
-      e->Throw(error_.what());
-    }
-  }
+// //NOT USED -- AND WHAT SOES IT DO?
+//  void magick_writeIndexes(EnvT* e) {
+//    START_MAGICK;
+//    try {
+//      DUInt mid;
+//      e->AssureScalarPar<DUIntGDL>(0, mid);
+//      BaseGDL* GDLimage = e->GetParDefined(1);
+//      DByteGDL * bImage = static_cast<DByteGDL*> (GDLimage->Convert2(GDL_BYTE, BaseGDL::COPY));
+//
+//      Image* image = magick_image(e, mid);
+//#ifndef HAS_IMAGEMAGICK
+////      const MagicCore::PixelPacket* pixels;
+//      IndexPacket* index;
+//
+//      unsigned int columns, rows;
+//      columns = image->columns();
+//      rows = image->rows();
+//
+////      pixels = image->setPixels(0, 0, columns, rows);
+//      index = image->getIndexes();
+//
+//      SizeT nEl = columns*rows;
+//      {
+//        for (SizeT cx = 0; cx < nEl; ++cx) {
+//          index[cx] = static_cast<unsigned int> ((*bImage)[cx]);
+//        }
+//      }
+//#endif
+//      image->syncPixels();
+//
+//      //magick_replace(e, mid, image);
+//    } catch (Exception &error_) {
+//      e->Throw(error_.what());
+//    }
+//  }
 
   //MAGICK_WRITECOLORTABLE,mid[,r,g,b]
 
