@@ -446,8 +446,10 @@ function configure_gdl {
     if [ ${BUILD_OS} == "Windows" ]; then
         export WX_CONFIG=${GDL_DIR}/scripts/deps/windows/wx-config-wrapper
     fi
-    #interactive graphics added as we do not want the compilation to fail on systems where plplot is not correctly installed. The intent was to
-    #force distro packagers to include the plplot drivers in the dependency of the GDL package, not annoy the users of this script.
+    # The INTERACTIVE_GRAPHICS option is removed. 
+    # Now plplot drivers ARE shipped with GDL as we patched them to correct bugs and provide real 3D.
+    # In 'deps' we force plplot to be recompiled with DYNAMIC drivers.
+    # then it is a matter of depositing the drivers in the windows PATH as plplot uses lt_dlopenext() that search in the PATH.
     cmake ${GDL_DIR} -G"${GENERATOR}" \
         -DCMAKE_BUILD_TYPE=${Configuration} \
         -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
@@ -457,7 +459,7 @@ function configure_gdl {
         -DMPI=${WITH_MPI} -DTIFF=${WITH_TIFF} -DGEOTIFF=${WITH_GEOTIFF} \
         -DLIBPROJ=${WITH_LIBPROJ} -DPYTHON=${WITH_PYTHON} -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=${WITH_FFTW} \
         -DUDUNITS2=${WITH_UDUNITS2} -DGLPK=${WITH_GLPK} -DGRIB=${WITH_GRIB} \
-        -DINTERACTIVE_GRAPHICS=OFF ${CMAKE_ADDITIONAL_ARGS[@]} ${CMAKE_QHULLDIR_OPT} \
+         ${CMAKE_ADDITIONAL_ARGS[@]} ${CMAKE_QHULLDIR_OPT} \
         -DMACHINE_ARCH=${Platform}
 }
 
@@ -493,8 +495,16 @@ function install_gdl {
         found_dlls=()
         find_dlls ${ROOT_DIR}/build/src/gdl.exe
         PYTHON_DLL=`ldd ${ROOT_DIR}/build/src/gdl.exe | tr '[:upper:]' '[:lower:]' | grep python | xargs | cut -d' ' -f3`
+        PLPLOT_DRV_DLL=`ls ${ROOT_DIR}/build/src/plplotdriver/*.dll`
         if [[ -n "${PYTHON_DLL}" ]]; then
             cp -f "${PYTHON_DLL}" bin/
+        fi
+#        #this ensures that we overcome the bug in plplot version for Windows that does not know about PLPLOT_DRV_DIR env. var.
+        log "Copying our drivers to same directory as gdl.."
+        if [[ -n "${PLPLOT_DRV_DLL}" ]]; then
+          for f in ${PLPLOT_DRV_DLL}; do
+            cp -f "$f" bin/
+          done
         fi
         for f in ${found_dlls[@]}; do
             cp -f "$f" bin/
@@ -509,10 +519,6 @@ function install_gdl {
         rm -rf share/plplot*/*.shx
         rm -rf share/plplot*/*.shp
         rm -rf share/plplot*/*.tcl
-
-#        #this ensures that we overcome the bug in plplot version for Windows that does not know about PLPLOT_DRV_DIR env. var.
-#        log "Copying our drivers to same directory as gdl.."
-#        cp -rf ${ROOT_DIR}/build/src/plplotdriver/*.dll bin/
 
         #with PROJ7, needs proj.db, and serachs for it at '"where libproj.dll is"/../share/proj so we do the same
         log "Copying PROJ database at correct location"

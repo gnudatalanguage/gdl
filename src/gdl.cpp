@@ -239,8 +239,7 @@ int main(int argc, char *argv[])
 
 #ifdef INSTALL_LOCAL_DRIVERS
   useLocalDrivers=true;
-  //For WIN32, as it GDL is normally installed via an installer, the PLPLOT_DRV_DIR env var MUST be set by the installer --- the one created here
-  //is probably always meaningless, due to the compilation with mingw toolchain. 
+  //For WIN32 the drivers dlls are copied alongwith the gdl.exe and plplot does not use  PLPLOT_DRV_DIR to find them.
 #ifndef _WIN32
   char* oldDriverEnv=getenv(DrvEnvName);
   // We must declare here (and not later) where our local copy of (customized?) drivers is to be found.
@@ -490,7 +489,7 @@ int main(int argc, char *argv[])
     if (useWxWidgetsForGraphics) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
     if (useLocalDrivers || driversNotFound) {
       if (driversNotFound) cerr << "- Local drivers not found --- using default ones. " << endl;
-      else cerr << "- Using local drivers in " << getenv(DrvEnvName) << endl;
+      else if (getenv(DrvEnvName)) cerr << "- Using local drivers in " << getenv(DrvEnvName) << endl; //protect against NULL.
     }
     }
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
