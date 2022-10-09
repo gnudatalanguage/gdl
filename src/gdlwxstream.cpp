@@ -70,13 +70,13 @@ GDLWXStream::GDLWXStream( int width, int height )
   plstream::cmd(PLESC_DEVINIT, (void*)streamDC );
     
    // no pause on win destruction
-    spause( false);
+    plstream::spause( false);
 
     // extended fonts
-    fontld( 1);
+    plstream::fontld( 1);
 
     // we want color
-    scolor( 1);
+    plstream::scolor( 1);
 
     PLINT r[ctSize], g[ctSize], b[ctSize];
     GDLCT* myCT=GraphicsDevice::GetGUIDevice( )->GetCT();
@@ -84,12 +84,16 @@ GDLWXStream::GDLWXStream( int width, int height )
     SetColorMap0( r, g, b, ctSize); //set colormap 0 to 256 values
 
     // need to be called initially. permit to fix things
-    ssub(1,1);
-    adv(0);
+    plstream::ssub( 1, 1 ); // plstream below stays with ONLY ONE page
+    plstream::adv(0); //-->this one is the 1st and only pladv
     // load font
-    font( 1);
-    vpor(0,1,0,1);
-    wind(0,1,0,1);
+    plstream::font( 1);
+    plstream::vpor(0,1,0,1);
+    plstream::wind(0,1,0,1);
+
+    ssub(1,1);
+    adv(0); //this is for us (counters)
+    SetPageDPMM();
     DefaultCharSize();
     clear();
 }
@@ -118,7 +122,7 @@ void GDLWXStream::SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot)
   isplot=isPlot;
 }
 
-void GDLWXStream::Update()
+void GDLWXStream::DoUpdate()
 {
   if( this->valid && container != NULL) {
     container->RepaintGraphics();
@@ -130,7 +134,8 @@ void GDLWXStream::Update()
 //#endif
   }
 }
-
+//We should not need "Update"
+void GDLWXStream::Update(){DoUpdate();}
 ////should be used when one does not recreate a wxstream each time size changes...
 void GDLWXStream::SetSize( wxSize s )
 {

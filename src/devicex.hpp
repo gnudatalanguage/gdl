@@ -21,20 +21,7 @@
 #ifndef HAVE_X
 #else
 
-#include <algorithm>
-#include <vector>
-#include <cstring>
-
-#include <plplot/drivers.h>
-
-#include "graphicsdevice.hpp"
 #include "gdlxstream.hpp"
-#include "initsysvar.hpp"
-#include "gdlexception.hpp"
-
-//defined in graphicsdevice.hpp
-//#define MAX_WIN 32  //IDL free and widgets start at 32 ...
-//#define MAX_WIN_RESERVE 256
 
 class DeviceX : public GraphicsMultiDevice {
     
@@ -112,7 +99,7 @@ public:
 
     DLong xMaxSize=640;
     DLong yMaxSize=512;
-    DeviceX::MaxXYSize(&xMaxSize, &yMaxSize);
+    MaxXYSize(&xMaxSize, &yMaxSize);
     bool noPosx=(xPos==-1);
     bool noPosy=(yPos==-1);
     xPos=max(1,xPos); //starts at 1 to avoid problems plplot!
@@ -141,72 +128,24 @@ public:
     yoff+=1;
     xp=(*static_cast<DFloatGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("X_PX_CM"))))[0]*2.5;
     yp=(*static_cast<DFloatGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("Y_PX_CM"))))[0]*2.5;
-    
-    winList[ wIx] = new GDLXStream( xleng, yleng);
-    
+
+    winList[ wIx] = new GDLXStream(xp , yp, xleng, yleng, xoff, yoff, title);
     oList[ wIx]   = oIx++;    
-    winList[ wIx]->spage( xp , yp, xleng, yleng, xoff, yoff); //must be before 'Init'
 
-    // no pause on win destruction
-    winList[ wIx]->spause( false);
-
-    // extended fonts
-    winList[ wIx]->fontld( 1);
-
-    // we want color
-    winList[ wIx]->scolor( 1);
-
-    //if plplot uses a non-staticColor device [TrueColor, StaticColor, StaticGray] 
-    //(because it does not ask for a static even if it exists), we must initialize here colormaps
-    //otherwise our direct X11 color commands work well and are faster than plplot's.
-    if (!this->isStatic()){
-     PLINT r[ctSize], g[ctSize], b[ctSize];
-     GDLCT* myCT=GraphicsDevice::GetDevice( )->GetCT();
-     myCT->Get( r, g, b);
-     winList[ wIx]->scmap0( r, g, b, ctSize); //set colormap 0 to 256 values
-    }
-
-    // window title
-    static char buf[ 256];
-    strncpy( buf, title.c_str(), 255);
-    buf[ 255] = 0;
-//    winList[ wIx]->setopt( "db", 0); //handled elsewhere
-//    winList[ wIx]->setopt( "debug", "1"); //useful for debugging plplot!
-    winList[ wIx]->setopt( "plwindow", buf);
-// Do not init colors --- we handle colors ourseves, very much faster!
-    winList[ wIx]->setopt( "drvopt","noinitcolors=1");
-
-// Please no threads, no gain especially in remote X11 
-   winList[ wIx]->setopt( "drvopt","usepth=0");
-
-//all the options must be passed BEFORE INIT=plinit.
-    winList[ wIx]->Init();
-    // get actual size, and resize to it (overcomes some window managers problems, solves bug #535)
-    // bug #535 had other causes. removed until further notice.
-    //    bool success = WSize( wIx ,&xleng, &yleng, &xoff, &yoff);
-    //    ResizeWin((UInt)xleng, (UInt) yleng);
-    // need to be called initially. permit to fix things
-    winList[ wIx]->ssub(1,1);
-    winList[ wIx]->adv(0);
-    // load font
-    winList[ wIx]->font( 1);
-    winList[ wIx]->vpor(0,1,0,1);
-    winList[ wIx]->wind(0,1,0,1);
-    winList[ wIx]->DefaultCharSize();
-//    //in case these are not initalized, here is a good place to do it.
-//    if (winList[ wIx]->updatePageInfo()==true)
-//    {
-//      winList[ wIx]->GetPlplotDefaultCharSize(); //initializes everything in fact..
-//    }
-    // sets actWin and updates !D
     SetActWin( wIx);
+  //set current cursor:
+  winList[wIx]->CursorStandard(cursorId);
+  winList[wIx]->SetGraphicsFunction(gcFunction);
+  //backingStore (dummy call at the moment)
+  winList[wIx]->SetBackingStore(-1);
+
     bool success;
     if ( hide )
     {
       success=this->Hide();
     }
     else success=this->UnsetFocus();
-    return true; //winList[ wIx]->Valid(); // Valid() need to called once
+    return true; 
     }
   
     GDLGStream* GetStream(bool open = true) {
@@ -388,9 +327,6 @@ public:
   }
  }  
 };
-
-//#undef MAX_WIN
-//#undef MAX_WIN_RESERVE
 
 #endif
 

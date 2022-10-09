@@ -264,7 +264,7 @@ doMbar,mbar,fontname
 label=widget_label(base,value='to best mimic IDL`s widgets, call GDL with option "--widget-compat" ',/align_left)
 label=widget_label(base,value='Test calling me with options like "test_widgets,/col,font="Arial 32",/base_align_right" ',/align_left)
 label=widget_label(base,value='                          or like "test_widgets,/col,x_scroll=400,y_scroll=400" ',/align_left)
-label=widget_label(base,value='                          or like "test_widgets,/col,select="TEXT" (see test_widgets,/help) ',/align_left)
+label=widget_label(base,value='                          or like "test_widgets,/col,present="TEXT" (see test_widgets,/help) ',/align_left)
 
 tabbed_base = widget_tab( base, frame=12) ;, scr_xsize=400, scr_ysize=400);, multiline=6)
 
@@ -378,7 +378,8 @@ endif
  endif
  if total(strcmp('BUTTON',present,/fold)) then begin
 ; BUTTON_BASE: 
-    button_base00 = widget_base( tabbed_base, TITLE="BUTTONs", COL=2, SPACE=20) & offy=10
+    button_base00 = widget_base( tabbed_base, TITLE="BUTTONs", COL=2, $
+       SPACE=10, XPAD=10, YPAD=10) & offy=10
  ;   label=widget_label(yoff=offy,button_base00,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
     button_base01 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
     button_base02 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
@@ -599,7 +600,7 @@ fileNumbers = lonarr(nRows)
 ;   fileBase=widget_base(bases_base,/scroll,frame=3)
 ;base to contain column labels and cells with table values and selected files
 dummy = widget_label(bases_base,value=' ')
-listentries=widget_base(bases_base,row=nRows+1,/scroll,space=50, x_scroll=300,frame=10,y_scroll=300)
+listentries=widget_base(bases_base,row=nRows+1,/scroll,space=10, x_scroll=300,frame=10,y_scroll=300)
 widget_control,dummy,set_value='Scrolled Base below has ID='+string(listentries) 
 ;create column labels 
 dummy = widget_label(listentries,value=' ', xsize=30)

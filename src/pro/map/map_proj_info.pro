@@ -13,7 +13,7 @@ p4name=p4n ; special for GDL
    nproj=n_elements(proj)
 
    ; proj_names: easy
-   if arg_present(list_of_pnames) then list_of_pnames = [idl_ids,proj.fullname]
+   if arg_present(list_of_pnames) then list_of_pnames = strlowcase([idl_ids,compressed_ids1])
 ; rindex is [1...nproj] but map.p[15] is [0..
    if KEYWORD_SET(current) then begin
       index = fix(!map.p[15]) ; gdl variant

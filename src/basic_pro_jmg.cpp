@@ -26,7 +26,9 @@
 #include "dinterpreter.hpp"
 #include "prognode.hpp"
 #include "basic_pro_jmg.hpp"
-
+#ifdef HAVE_LIBWXWIDGETS
+#include "gdlwidget.hpp"
+#endif
 //#define GDL_DEBUG
 #undef GDL_DEBUG
 
@@ -549,6 +551,9 @@ namespace lib {
       int retval;
       retval=nanosleep(&tv,NULL);
     }
+#endif
+#ifdef HAVE_LIBWXWIDGETS
+  if (useWxWidgets) GDLWidget::HandleWidgetEvents();
 #endif
   }
 

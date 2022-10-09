@@ -95,11 +95,26 @@ get_font( PSDev* dev, PLUNICODE fci );
 // that scales, rotates (with slanting) and offsets text strings.
 // It has yet some bugs for 3d plots.
 
+//We have a special processing, defualt one does not work (meaning the driver is not well written)
+void plD_line_ps_3D( PLStream *, short, short, short, short );
+void plD_polyline_ps_3D( PLStream *, short *, short *, PLINT );
+
+#define SPECIFIC_3D
+#define LINE3D_FUNCTION plD_line_ps_3D
+#define POLYLINE3D_FUNCTION plD_polyline_ps_3D
+
+//define LINE2D, POLYLINE2D
+#define LINE2D plD_line_ps
+#define POLYLINE2D plD_polyline_ps
+#include "plplot3d.h"
 
 static void ps_dispatch_init_helper( PLDispatchTable *pdt,
                                      const char *menustr, const char *devnam,
                                      int type, int seq, plD_init_fp init )
 {
+  currDispatchTab = pdt;
+  Status3D = 0;
+
 #ifndef ENABLE_DYNDRIVERS
     pdt->pl_MenuStr = (char *) menustr;
     pdt->pl_DevName = (char *) devnam;
@@ -139,7 +154,7 @@ plD_init_ps( PLStream *pls )
 {
     color      = 0;
     pls->color = 0;             // Not a color device
-
+    
     plParseDrvOpts( ps_options );
     if ( color )
         pls->color = 1;         // But user wants color
@@ -259,6 +274,9 @@ ps_init( PLStream *pls )
 // Header comments into PostScript file
 
     fprintf( OF, "%%!PS-Adobe-2.0 EPSF-2.0\n" );
+/*
+    fprintf( OF, "%%!PS-Adobe-2.0\n" );
+*/
     fprintf( OF, "%%%%BoundingBox:         \n" );
     fprintf( OF, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" );
 
@@ -266,7 +284,7 @@ ps_init( PLStream *pls )
     fprintf( OF, "%%%%Creator: PLplot Version %s\n", PLPLOT_VERSION );
     fprintf( OF, "%%%%CreationDate: %s\n", ps_getdate() );
     fprintf( OF, "%%%%Pages: (atend)\n" );
-    fprintf( OF, "%%%%EndComments\n\n" );
+    fprintf( OF, "%%%%EndComments\n%%%%BeginProlog\nsave\n" );
 
 // Definitions
 // Save VM state
@@ -333,7 +351,7 @@ ps_init( PLStream *pls )
     fprintf( OF, "/@line\n" );
     fprintf( OF, "   {0 setlinecap\n" );
     fprintf( OF, "    0 setlinejoin\n" );
-    fprintf( OF, "    1 setmiterlimit\n" );
+    fprintf( OF, "    2.5 setmiterlimit\n" );
     fprintf( OF, "   } def\n" );
 
 // d @hsize -  horizontal clipping dimension
@@ -346,19 +364,12 @@ ps_init( PLStream *pls )
     fprintf( OF, "/@hoffset {/ho exch def} def\n" );
     fprintf( OF, "/@voffset {/vo exch def} def\n" );
 
-// Set line width
-
-    fprintf( OF, "/lw %d def\n", (int) (
-            ( pls->width < MIN_WIDTH ) ? DEF_WIDTH :
-            ( pls->width > MAX_WIDTH ) ? MAX_WIDTH : pls->width ) );
-
 // Setup user specified offsets, scales, sizes for clipping
 
     fprintf( OF, "/@SetPlot\n" );
     fprintf( OF, "   {\n" );
     fprintf( OF, "    ho vo translate\n" );
     fprintf( OF, "    XScale YScale scale\n" );
-    fprintf( OF, "    lw setlinewidth\n" );
     fprintf( OF, "   } def\n" );
 
 // Setup x & y scales
@@ -379,10 +390,10 @@ ps_init( PLStream *pls )
     // anti-aliasing
     //fprintf(OF, "/F {fill} def\n");
     if ( pls->dev_eofill )
-        fprintf( OF, "/F {closepath gsave eofill grestore stroke} def " );
+        fprintf( OF, "/F {closepath gsave eofill grestore stroke} def \n" );
     else
-        fprintf( OF, "/F {closepath gsave fill grestore stroke} def " );
-    fprintf( OF, "/N {newpath} def" );
+        fprintf( OF, "/F {closepath gsave fill grestore stroke} def \n" );
+    fprintf( OF, "/N {newpath} def\n" );
     fprintf( OF, "/C {setrgbcolor} def\n" );
     fprintf( OF, "/G {setgray} def\n" );
     fprintf( OF, "/W {setlinewidth} def\n" );
@@ -402,13 +413,12 @@ ps_init( PLStream *pls )
     fprintf( OF, "PSDict begin\n" );
     fprintf( OF, "@start\n" );
     fprintf( OF, "%d @copies\n", COPIES );
-    fprintf( OF, "@line\n" );
     fprintf( OF, "%d @hsize\n", YSIZE );
     fprintf( OF, "%d @vsize\n", XSIZE );
     fprintf( OF, "%d @hoffset\n", YOFFSET );
     fprintf( OF, "%d @voffset\n", XOFFSET );
-
-    fprintf( OF, "@SetPlot\n\n" );
+    fprintf( OF, "@line\n" );
+    fprintf( OF, "@SetPlot\n%%%%EndProlog\n" );
 }
 
 //--------------------------------------------------------------------------
@@ -420,7 +430,7 @@ ps_init( PLStream *pls )
 void
 plD_line_ps( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
 {
-    PSDev *dev = (PSDev *) pls->dev;
+   PSDev *dev = (PSDev *) pls->dev;
     PLINT x1   = x1a, y1 = y1a, x2 = x2a, y2 = y2a;
 
 // Rotate by 90 degrees
@@ -468,7 +478,121 @@ plD_line_ps( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
     dev->xold     = x2;
     dev->yold     = y2;
 }
+//--------------------------------------------------------------------------
+// same as above ut with 3D enabled
+//--------------------------------------------------------------------------
 
+//special 3D transform for PORTAIT mode
+static void SelfTransform3DPSP(int *xs, int *ys)
+{
+  if (Status3D == 1) { //enable use everywhere.
+    PLFLT x = *xs, y = *ys, z=Data3d.zValue;
+    // x and Y are in raw device coordinates.
+    // convert to NORM, here X and Y are inverted if PORTRAIT
+    //  x = my_plP_pcdcx(x);
+    //  y = my_plP_pcdcy(y);
+    x = (x - plsc->phyymi) / (double) plsc->phyylen;
+    y = (y - plsc->phyxmi) / (double) plsc->phyxlen;
+    //here it is !P.T not a c/c++ transposed matrix
+    PLFLT xx, yy, ww;
+    xx = x * Data3d.T[0] + y * Data3d.T[1] + z * Data3d.T[2] + Data3d.T[3];
+    yy = x * Data3d.T[4] + y * Data3d.T[5] + z * Data3d.T[6] + Data3d.T[7];
+    ww = x * Data3d.T[12] + y * Data3d.T[13] + z * Data3d.T[14] + Data3d.T[15];
+    xx /= ww;
+    yy /= ww;
+     // convert to device again
+    //  *xs = (int) (my_plP_dcpcx(xx));
+    //  *ys = (int) (my_plP_dcpcy(yy));
+    *xs = (int) (plsc->phyymi + plsc->phyylen * xx);
+    *ys = (int) (plsc->phyxmi + plsc->phyxlen * yy);
+  }
+}
+//special 3D transform for LANDCSAPE mode
+static void SelfTransform3DPSL(int *xs, int *ys)
+{
+  if (Status3D == 1) { //enable use everywhere.
+    PLFLT x = *xs, y = *ys;
+    PLFLT z=(1-Data3d.zValue); //this displacement is needed
+    // x and Y are in raw device coordinates.
+    // convert to NORM
+    //  x = my_plP_pcdcx(x);
+    //  y = my_plP_pcdcy(y);
+    x = (x - plsc->phyxmi) / (double) plsc->phyxlen;
+    y = (y - plsc->phyymi) / (double) plsc->phyylen;
+    //here it is !P.T not a c/c++ transposed matrix
+    PLFLT xx, yy, ww;
+    xx = x * Data3d.T[0] + y * Data3d.T[1] + z * Data3d.T[2] + Data3d.T[3];
+    yy = x * Data3d.T[4] + y * Data3d.T[5] + z * Data3d.T[6] + Data3d.T[7];
+    ww = x * Data3d.T[12] + y * Data3d.T[13] + z * Data3d.T[14] + Data3d.T[15];
+    xx /= ww;
+    yy /= ww;
+    // convert to device again
+    //  *xs = (int) (my_plP_dcpcx(xx));
+    //  *ys = (int) (my_plP_dcpcy(yy));
+    *xs = (int) (plsc->phyxmi + plsc->phyxlen * xx);
+    *ys = (int) (plsc->phyymi + plsc->phyylen * yy);
+  }
+}
+void
+plD_line_ps_3D(PLStream *pls, short x1a, short y1a, short x2a, short y2a)
+{
+  PSDev *dev = (PSDev *) pls->dev;
+  PLINT x1 = x1a, y1 = y1a, x2 = x2a, y2 = y2a;
+
+if ( !pls->portrait )
+{
+    // 3D convert on normalized values
+    
+    SelfTransform3DPSL(&x1, &y1);
+    SelfTransform3DPSL(&x2, &y2);
+}
+  
+  // Rotate by 90 degrees
+
+  plRotPhy(ORIENTATION, dev->xmin, dev->ymin, dev->xmax, dev->ymax, &x1, &y1);
+  plRotPhy(ORIENTATION, dev->xmin, dev->ymin, dev->xmax, dev->ymax, &x2, &y2);
+
+if ( pls->portrait )
+{
+  // 3D convert on normalized values
+  SelfTransform3DPSP(&x1, &y1);
+  SelfTransform3DPSP(&x2, &y2);
+}
+  if (x1 == dev->xold && y1 == dev->yold && dev->ptcnt < 40) {
+    if (pls->linepos > (LINELENGTH-12)) {
+      putc('\n', OF);
+      pls->linepos = 0;
+    } else
+      putc(' ', OF);
+
+    snprintf(outbuf, OUTBUF_LEN, "%d %d D", x2, y2);
+    dev->ptcnt++;
+    pls->linepos += 12;
+  } else {
+    fprintf(OF, " Z\n");
+    pls->linepos = 0;
+
+    if (x1 == x2 && y1 == y2) // must be a single dot, draw a circle
+      snprintf(outbuf, OUTBUF_LEN, "%d %d A", x1, y1);
+    else
+      snprintf(outbuf, OUTBUF_LEN, "%d %d M %d %d D", x1, y1, x2, y2);
+    dev->llx = MIN(dev->llx, x1);
+    dev->lly = MIN(dev->lly, y1);
+    dev->urx = MAX(dev->urx, x1);
+    dev->ury = MAX(dev->ury, y1);
+    dev->ptcnt = 1;
+    pls->linepos += 24;
+  }
+  dev->llx = MIN(dev->llx, x2);
+  dev->lly = MIN(dev->lly, y2);
+  dev->urx = MAX(dev->urx, x2);
+  dev->ury = MAX(dev->ury, y2);
+
+  fprintf(OF, "%s", outbuf);
+  pls->bytecnt += 1 + (PLINT) strlen(outbuf);
+  dev->xold = x2;
+  dev->yold = y2;
+}
 //--------------------------------------------------------------------------
 // plD_polyline_ps()
 //
@@ -478,10 +602,22 @@ plD_line_ps( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
 void
 plD_polyline_ps( PLStream *pls, short *xa, short *ya, PLINT npts )
 {
-    PLINT i;
+   PLINT i;
 
     for ( i = 0; i < npts - 1; i++ )
         plD_line_ps( pls, xa[i], ya[i], xa[i + 1], ya[i + 1] );
+}
+//--------------------------------------------------------------------------
+// Same as above for 3D
+//--------------------------------------------------------------------------
+
+void
+plD_polyline_ps_3D(PLStream *pls, short *xa, short *ya, PLINT npts)
+{
+ PLINT i;
+
+  for (i = 0; i < npts - 1; i++)
+    plD_line_ps_3D(pls, xa[i], ya[i], xa[i + 1], ya[i + 1]);
 }
 
 //--------------------------------------------------------------------------
@@ -520,6 +656,8 @@ plD_bop_ps( PLStream *pls )
         fprintf( OF, "%%%%Page: %d %d\n", (int) pls->page, 1 );
     else
         fprintf( OF, "%%%%Page: %d %d\n", (int) pls->page, (int) pls->page );
+
+    if ( !pls->portrait ) fprintf( OF, "%%%%PageOrientation: Landscape\n"); else fprintf( OF, "%%%%PageOrientation: Portrait\n");
 
     fprintf( OF, "bop\n" );
     if ( pls->color )
@@ -604,12 +742,13 @@ plD_state_ps( PLStream *pls, PLINT op )
 
     switch ( op )
     {
-    case PLSTATE_WIDTH: {
-        int width = (int) (
-            ( pls->width < MIN_WIDTH ) ? DEF_WIDTH :
-            ( pls->width > MAX_WIDTH ) ? MAX_WIDTH : pls->width );
-
-        fprintf( OF, " S\n%d W", width );
+    case PLSTATE_WIDTH:
+  {
+    // Set line width
+    float width = pls->width*DEF_WIDTH;
+    if (width < MIN_WIDTH) width = MIN_WIDTH;
+    if (width > MAX_WIDTH) width = MAX_WIDTH;
+        fprintf( OF, " S\n%f W", width );
 
         dev->xold = PL_UNDEFINED;
         dev->yold = PL_UNDEFINED;
@@ -653,15 +792,21 @@ plD_state_ps( PLStream *pls, PLINT op )
 //--------------------------------------------------------------------------
 
 void
-plD_esc_ps( PLStream *pls, PLINT op, void *ptr )
+plD_esc_ps(PLStream *pls, PLINT op, void *ptr)
 {
     switch ( op )
     {
-    case PLESC_FILL:
-        fill_polygon( pls );
+      case PLESC_FILL:
+        fill_polygon(pls);
         break;
-    case PLESC_HAS_TEXT:
-        proc_str( pls, (EscText *) ptr );
+      case PLESC_HAS_TEXT:
+        proc_str(pls, (EscText *) ptr);
+        break;
+      case PLESC_3D:
+        Set3D(ptr);
+        break;
+      case PLESC_2D:
+        UnSet3D();
         break;
     }
 }
@@ -681,15 +826,22 @@ fill_polygon( PLStream *pls )
     PLINT x, y;
 
     fprintf( OF, " Z\n" );
-
+    
     for ( n = 0; n < pls->dev_npts; n++ )
     {
         x = pls->dev_x[ix++];
         y = pls->dev_y[iy++];
-
+        
+    if ( Status3D == 1 && !pls->portrait ) { // 3D convert on normalized values
+          SelfTransform3DPSL(&x, &y);
+    }
 // Rotate by 90 degrees
 
         plRotPhy( ORIENTATION, dev->xmin, dev->ymin, dev->xmax, dev->ymax, &x, &y );
+
+    if ( Status3D == 1 && pls->portrait ) { // 3D convert on normalized values
+          SelfTransform3DPSP(&x, &y);
+    }
 
 // First time through start with a x y moveto
 
@@ -705,7 +857,7 @@ fill_polygon( PLStream *pls )
             continue;
         }
 
-        if ( pls->linepos + 21 > LINELENGTH )
+        if ( pls->linepos > (LINELENGTH-21) )
         {
             putc( '\n', OF );
             pls->linepos = 0;
@@ -893,7 +1045,7 @@ proc_str( PLStream *pls, EscText *args )
         // Determine the font height
         ft_ht = pls->chrht * 72.0 / 25.4; // ft_ht in points, ht is in mm
 
-
+        Project3DToPlplotFormMatrix(t);
         // The transform matrix has only rotations and shears; extract them
         plRotationShear( t, &theta, &shear, &stride );
         cs    = cos( theta );
@@ -927,9 +1079,19 @@ proc_str( PLStream *pls, EscText *args )
         args->y += (PLINT) ( offset * cos( theta ) );
         args->x -= (PLINT) ( offset * sin( theta ) );
 
+if ( ! pls->portrait )
+{
+  // 3D convert on normalized values
+  SelfTransform3DPSL(&(args->x), &(args->y));
+}
         // ps driver is rotated by default
         plRotPhy( ORIENTATION, dev->xmin, dev->ymin, dev->xmax, dev->ymax,
             &( args->x ), &( args->y ) );
+if ( pls->portrait )
+{
+  // 3D convert on normalized values
+  SelfTransform3DPSP(&(args->x), &(args->y));
+}
 
         // Correct for the fact ps driver uses landscape by default
         theta += PI / 2.;

@@ -39,8 +39,6 @@
 #include <sys/resource.h> //rlimits to augment stack size (needed fot DICOM objects)
 #endif
 
-//#include <fenv.h>
-
 #include "str.hpp"
 #include "dinterpreter.hpp"
 #include "terminfo.hpp"
@@ -236,10 +234,13 @@ int main(int argc, char *argv[])
   useLocalDrivers=false;
   bool driversNotFound=false;
   string driversPath=S_GDLDATADIR + lib::PathSeparator() + "drivers"; 
+  //We'll ned to get the current value for PLPLOT_DRV_DIR if any (useful later if something goes wrong below)
+  static const char* DrvEnvName="PLPLOT_DRV_DIR";
 
 #ifdef INSTALL_LOCAL_DRIVERS
-  //get the current value for PLPLOT_DRV_DIR if any (useful later if something goes wrong below)
-  static const char* DrvEnvName="PLPLOT_DRV_DIR";
+  useLocalDrivers=true;
+  //For WIN32 the drivers dlls are copied alongwith the gdl.exe and plplot does not use  PLPLOT_DRV_DIR to find them.
+#ifndef _WIN32
   char* oldDriverEnv=getenv(DrvEnvName);
   // We must declare here (and not later) where our local copy of (customized?) drivers is to be found.
   char s[256];
@@ -248,7 +249,6 @@ int main(int argc, char *argv[])
   strcat(s,driversPath.c_str());
       //set nex drvPath as PLPLOT_DRV_DIR
   putenv(s);
-  useLocalDrivers=true;
   //Now, it is possible that GDL WAS compiled with INSTALL_LOCAL_DRIVERS, but the plplot installation is NOT compiled with DYNAMIC DRIVERS.
   //Then not only we will not have 'our' good driver, but calling our nicknamed wxwidgetsgdl driver will fail.
   //So I check here the plplot driver list to check if wxwidgetsgdl is present. If not, useLocalDriver=false
@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
   if (!driversOK) {
     driversNotFound=true; 
     useLocalDrivers=false;
-    unsetenv(DrvEnvName);
+    unsetenv(DrvEnvName); //unknown on windows
     //eventually restore previous value
     if (oldDriverEnv) {
       strcpy(s,DrvEnvName);
@@ -267,6 +267,7 @@ int main(int argc, char *argv[])
     plend(); //this is necessary to reset PLPLOT to a state that will read again the driver configuration at PLPLOT_DRV_DIR
              // otherwise the next call to checkPlplotDriver() in GDLWxStream will fail.
   }
+#endif
 #endif
   // keeps a list of files to be executed after the startup file
   // and before entering the interactive mode
@@ -488,7 +489,7 @@ int main(int argc, char *argv[])
     if (useWxWidgetsForGraphics) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
     if (useLocalDrivers || driversNotFound) {
       if (driversNotFound) cerr << "- Local drivers not found --- using default ones. " << endl;
-      else cerr << "- Using local drivers in " << driversPath << endl;
+      else if (getenv(DrvEnvName)) cerr << "- Using local drivers in " << getenv(DrvEnvName) << endl; //protect against NULL.
     }
     }
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;

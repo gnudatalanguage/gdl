@@ -17,8 +17,6 @@
 
 #include "includefirst.hpp"
 
-// why ? not needed #include "datatypes.hpp"
-// why ? not needed #include "envt.hpp"
 #include "dinterpreter.hpp"
 
 // AC 22/05/11 (needed in Debian 10 & U 18.04)
@@ -28,15 +26,13 @@ template<typename TGDL, typename T>
 void update_histo_limits (TGDL* array, T& endVal, DLong nbins, T bsize, T startVal) {
 
   if (FloatType(array->Type()) ) {
-    DDouble endVal0 = endVal;
-    DDouble endVal1 = nbins * (DDouble) bsize + (DDouble) startVal;
-    if (endVal1 > std::numeric_limits<T>::max()) endVal = std::numeric_limits<T>::max();
-    else endVal = endVal1;
+    DDouble endValDble = nbins * (DDouble) bsize + (DDouble) startVal;
+    if (endValDble > std::numeric_limits<T>::max()) endVal = std::numeric_limits<T>::max();
+    else endVal = endValDble;
   } else {
-    DLong64 endVal0 = endVal;
-    DLong64 endVal1 = nbins * (DLong64) bsize + (DLong64) startVal;
-    if (endVal1 > std::numeric_limits<T>::max()) endVal = std::numeric_limits<T>::max();
-    else endVal = endVal1;
+    DLong64 endVal64 = nbins * (DLong64) bsize + (DLong64) startVal;
+    if (endVal64 > std::numeric_limits<T>::max()) endVal = std::numeric_limits<T>::max();
+    else endVal = endVal64;
   }
 }
 

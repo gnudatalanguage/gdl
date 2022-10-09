@@ -29,7 +29,12 @@
 //warning MAC should not have prefer_menubar=1 unless you solve the mac manubar problem.
 #define PREFERS_MENUBAR 1
 #endif
-#include <wx/wx.h>
+// For compilers that support precompilation, includes "wx/wx.h".
+#include <wx/wxprec.h>
+ 
+#ifndef WX_PRECOMP
+    #include <wx/wx.h>
+#endif
 #include <wx/app.h>
 #include <wx/panel.h>
 #include <wx/treebase.h>
@@ -61,9 +66,9 @@
 #include "widget.hpp"
 
 #define gdlSCROLL_RATE 10
-#define gdlSCROLL_HEIGHT_X  sysScrollHeight //wxSystemSettings::GetMetric(wxSYS_VSCROLL_X,xxx) //25 
-#define gdlSCROLL_WIDTH_Y sysScrollWidth //wxSystemSettings::GetMetric(wxSYS_HSCROLL_Y,xxx) //25
-#define gdlABSENT_SIZE_VALUE 15; 
+#define gdlABSENT_SIZE_VALUE 15
+#define gdlSCROLL_HEIGHT_X  ((sysScrollHeight < 10) ? gdlABSENT_SIZE_VALUE: sysScrollHeight) //wxSystemSettings::GetMetric(wxSYS_VSCROLL_X,xxx) //25 
+#define gdlSCROLL_WIDTH_Y ((sysScrollWidth< 10) ? gdlABSENT_SIZE_VALUE: sysScrollWidth) //wxSystemSettings::GetMetric(wxSYS_HSCROLL_Y,xxx) //25
 #define gdlDEFAULT_XSIZE 100
 #define gdlDEFAULT_YSIZE 100
 #define gdlCOMBOBOX_ARROW_WIDTH sysComboboxArrow 
@@ -228,17 +233,8 @@ class wxAppGDL: public wxApp
 {
  wxEventLoopBase* loop;
 public:
- int OnRun(){return 0;}
- int OnExit();
- int MainLoop();
-// virtual int OneLoop();
- bool OnInit();
-// bool Pending(); //Returns true if unprocessed events are in the window system event queue.
-// int FilterEvent(wxEvent& event) //This function is called before processing any event and 
-//allows the application to preempt the processing of some events. If this method returns -1
-//the event is processed normally, otherwise either true or false should be returned and 
-//the event processing stops immediately considering that the event had been already processed
-//(for the former return value) or that it is not going to be processed at all (for the latter one).
+virtual int MainLoop();
+ virtual bool OnInit();
 };
 wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
 #endif
@@ -1529,6 +1525,7 @@ public:
   BaseGDL* GetTabCurrent();
   void SetTabCurrent(int val);
   BaseGDL* GetTabMultiline(); //not exactly what expected, fixme.
+  void OnRealize();
 };
 
 

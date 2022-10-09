@@ -120,6 +120,11 @@ void plD_tidy_svg( PLStream * );
 void plD_state_svg( PLStream *, PLINT );
 void plD_esc_svg( PLStream *, PLINT, void * );
 
+//define LINE2D, POLYLINE2D
+#define LINE2D plD_line_svg
+#define POLYLINE2D plD_polyline_svg
+#include "plplot3d.h"
+
 //--------------------------------------------------------------------------
 // dispatch_init_init()
 //
@@ -128,6 +133,8 @@ void plD_esc_svg( PLStream *, PLINT, void * );
 
 void plD_dispatch_init_svg( PLDispatchTable *pdt )
 {
+  currDispatchTab = pdt;
+  Status3D = 0;
 #ifndef ENABLE_DYNDRIVERS
     pdt->pl_MenuStr = "Scalable Vector Graphics (SVG 1.1)";
     pdt->pl_DevName = "svg";
@@ -297,10 +304,12 @@ void plD_line_svg( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
 
     aStream = pls->dev;
 
+/*
     if ( svg_family_check( pls ) )
     {
         return;
     }
+*/
     svg_open( aStream, "polyline" );
     svg_stroke_width( pls );
     svg_stroke_color( pls );
@@ -318,10 +327,12 @@ void plD_line_svg( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
 
 void plD_polyline_svg( PLStream *pls, short *xa, short *ya, PLINT npts )
 {
+/*
     if ( svg_family_check( pls ) )
     {
         return;
     }
+*/
     poly_line( pls, xa, ya, npts, 0 );
 }
 
@@ -336,11 +347,13 @@ void plD_eop_svg( PLStream *pls )
     SVG *aStream;
 
     aStream = pls->dev;
+/*
 
     if ( svg_family_check( pls ) )
     {
         return;
     }
+*/
     // write the closing svg tag
 
     svg_close( aStream, "g" );
@@ -383,21 +396,54 @@ void plD_state_svg( PLStream *PL_UNUSED( pls ), PLINT PL_UNUSED( op ) )
 
 void plD_esc_svg( PLStream *pls, PLINT op, void *ptr )
 {
+/*
     if ( svg_family_check( pls ) )
     {
         return;
     }
+*/
     switch ( op )
     {
     case PLESC_FILL:      // fill polygon
+        if (Status3D == 1) { //enable use everywhere.
+          //perform conversion on the fly
+          for (PLINT i = 0; i < pls->dev_npts; ++i) {
+            int x = pls->dev_x[i];
+            int y = pls->dev_y[i];
+            // 3D convert, must take into account that y is inverted.
+            SelfTransform3D(&x, &y);
+
+            pls->dev_x[i] = x;
+            pls->dev_y[i] = y;
+          }
+        }
         poly_line( pls, pls->dev_x, pls->dev_y, pls->dev_npts, 1 );
         break;
     case PLESC_GRADIENT:      // render gradient inside polygon
-        gradient( pls, pls->dev_x, pls->dev_y, pls->dev_npts );
+        if (Status3D == 1) { //enable use everywhere.
+          //perform conversion on the fly
+          for (PLINT i = 0; i < pls->dev_npts; ++i) {
+            int x = pls->dev_x[i];
+            int y = pls->dev_y[i];
+            // 3D convert, must take into account that y is inverted.
+            SelfTransform3D(&x, &y);
+
+            pls->dev_x[i] = x;
+            pls->dev_y[i] = y;
+          }
+        }
+       gradient( pls, pls->dev_x, pls->dev_y, pls->dev_npts );
         break;
     case PLESC_HAS_TEXT:  // render text
         proc_str( pls, (EscText *) ptr );
         break;
+  case PLESC_3D:
+    Set3D(ptr);
+    break;
+  case PLESC_2D:
+    UnSet3D();
+    break;
+
     }
 }
 
@@ -586,7 +632,10 @@ void proc_str( PLStream *pls, EscText *args )
         printf( "Non unicode string passed to SVG driver, ignoring\n" );
         return;
     }
-
+  // 3D convert on normalized values
+  SelfTransform3D(&(args->x), &(args->y));
+  //rotate if 3D
+  Project3DToPlplotFormMatrix( args->xform);    
     // get plplot escape character and the current font
     plgesc( &plplot_esc );
     plgfci( &fci );
@@ -1145,8 +1194,8 @@ int svg_family_check( PLStream *pls )
         if ( !already_warned )
         {
             already_warned = 1;
-            plwarn( "All pages after the first skipped because family file output not specified.\n" );
-        }
+            plwarn( "Device does not support multiple pages (yet).\n" ); //todo: add support for 
+        }                                                                //https://www.w3.org/TR/2004/WD-SVG12-20041027/multipage.html
         return 1;
     }
 }

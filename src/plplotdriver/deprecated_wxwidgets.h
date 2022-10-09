@@ -20,6 +20,11 @@
 #ifndef __WXWIDGETS_H__
 #define __WXWIDGETS_H__
 
+////with graphic_context GDL can erase drawings by writing with !P.BACKGROUND since antialiasing can be removed.
+//
+//#undef wxUSE_GRAPHICS_CONTEXT
+//
+
 // some special wxWidgets headers
 #include <wx/spinctrl.h>
 
@@ -542,5 +547,6 @@ const int          fontWeightLookup[2] = {
     wxFONTFLAG_DEFAULT,     // medium
     wxFONTFLAG_BOLD         // bold
 };
-
+extern void SelfTransform3D(int *xs, int *ys);
+extern void Project3DToPlplotFormMatrix(PLFLT *P);
 #endif // __WXWIDGETS_H__

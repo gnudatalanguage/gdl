@@ -214,8 +214,15 @@ static DrvOpt xwin_options[] = { { "sync",         DRV_INT, &synchronize,   "Syn
                                  { "usepth",       DRV_INT, &usepthreads,   "Use pthreads (0|1)"                    },
                                  { NULL,           DRV_INT, NULL,           NULL                                    } };
 
+//define LINE2D, POLYLINE2D
+#define LINE2D plD_line_xw
+#define POLYLINE2D plD_polyline_xw
+#include "plplot3d.h"
+
 void plD_dispatch_init_xw( PLDispatchTable *pdt )
 {
+  currDispatchTab=pdt;
+  Status3D=0;
 #ifndef ENABLE_DYNDRIVERS
     pdt->pl_MenuStr = "X-Window (Xlib)";
     pdt->pl_DevName = "xwin";
@@ -362,7 +369,7 @@ plD_line_xw( PLStream *pls, short x1a, short y1a, short x2a, short y2a )
     int       x1 = x1a, y1 = y1a, x2 = x2a, y2 = y2a;
 
     dbug_enter( "plD_line_xw" );
-
+    
 #ifdef PL_USE_PTHREADS_XWIN
     if ( usepthreads )
         pthread_mutex_lock( &events_mutex );
@@ -760,6 +767,18 @@ plD_esc_xw( PLStream *pls, PLINT op, void *ptr )
         break;
 
     case PLESC_FILL:
+        if (Status3D == 1) { //enable use everywhere.
+          //perform conversion on the fly
+          for (PLINT i = 0; i < pls->dev_npts; ++i) {
+            int x = pls->dev_x[i];
+            int y = pls->dev_y[i];
+            // 3D convert, must take into account that y is inverted.
+            SelfTransform3D(&x, &y);
+
+            pls->dev_x[i] = x;
+            pls->dev_y[i] = y;
+          }
+        }
         FillPolygonCmd( pls );
         break;
 
@@ -812,6 +831,14 @@ plD_esc_xw( PLStream *pls, PLINT op, void *ptr )
 
     case PLESC_DEVINIT:
         OpenXwin( pls );
+        break;
+        
+    case PLESC_3D:
+        Set3D( ptr );
+        break;
+
+    case PLESC_2D:
+        UnSet3D();
         break;
     }
 

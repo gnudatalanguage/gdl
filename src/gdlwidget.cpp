@@ -20,7 +20,6 @@
 #ifdef HAVE_LIBWXWIDGETS
 
 #include <memory> 
-
 #include <wx/grid.h>
 #include <wx/gbsizer.h>
 #include <wx/wrapsizer.h>
@@ -39,6 +38,8 @@
 
 #include "widget.hpp"
 #include "graphicsdevice.hpp"
+#undef MAX
+#define MAX(a,b) ((a) < (b) ? (b) : (a))
 
 //must arrive after "gdlwidget.hpp"
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
@@ -562,6 +563,7 @@ void GDLWidget::UpdateGui()
     actID = widget->parentID;
   }
   this->GetMyTopLevelFrame()->Fit();
+//  this->GetMyTopLevelFrame()->Refresh();
   this->GetMyTopLevelFrame()->Update();
   END_CHANGESIZE_NOEVENT
 //#ifdef __WXMAC__
@@ -924,6 +926,10 @@ if (!wxInitialize()) {
     std::cerr << "WARNING: wxWidgets not initializing, widget-related commands will not be available." << std::endl;
     return false;
   }
+#ifndef __WXMAC__ 
+  wxAppGDL* app = new wxAppGDL();
+  app->SetInstance(app);
+#endif
 } else {std::cerr << "INFO: wxWidgets already initialized (in 3rd party library?), pursue with fingers crossed" << std::endl; }
   wxInitAllImageHandlers(); //do it here once for all
   return true;
@@ -943,11 +949,9 @@ void GDLWidget::Init()
   //initially defaultFont and systemFont are THE SAME.
   defaultFont=systemFont;
   SetWxStarted();
-//  //use a phantom window to retrieve th exact size of scrollBars wxWidget give wrong values.
-//   gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
-//   test->Hide();
-//   test->Realize();
-//   test->Destroy();
+#ifndef __WXMAC__  
+  wxGetApp().OnInit();
+#endif
   //initialize default image lists for trees:
   // Make an image list containing small icons
   wxSize ImagesSize(DEFAULT_TREE_IMAGE_SIZE,DEFAULT_TREE_IMAGE_SIZE);
@@ -2122,22 +2126,12 @@ GDLWidgetTabbedBase::GDLWidgetTabbedBase(WidgetIDT parentID, EnvT* e, ULong even
   assert(parentTab != NULL);
 
   wxString titleWxString = wxString(title_.c_str(), wxConvUTF8);
-  wxSizer* sz=new wxBoxSizer(wxVERTICAL);
-//  wxPanel* p=new wxPanel(parentTab, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-//  p->SetSize(wScrollSize);
   if (nrows < 1 && ncols < 1 && frameWidth < 1) frameWidth=1; //set framewidth (temporary) in this case to get good result
   CreateBase(parentTab);
-//  sz->Add(w,DONOTALLOWSTRETCH, wxALL | wxEXPAND, 0);
-//  p->SetSizer(sz);
-//  theWxContainer=p;
-//
-//  theWxWidget = p;
   wxWindow* w=static_cast<wxWindow*>(theWxContainer); //defined in CreateBase.
   myPage=parentTab->GetPageCount();
-//  parentTab->AddPage(w, titleWxString);
   parentTab->InsertPage(myPage, w, titleWxString);
-//  myPage=parentTab->FindPage(w);
-  
+ 
 //  UPDATE_WINDOW
   REALIZE_IF_NEEDED
 }
@@ -2500,6 +2494,23 @@ BaseGDL* GDLWidgetTab::GetTabMultiline(){
   wxNotebook * notebook=dynamic_cast<wxNotebook*>(theWxWidget);
   assert( notebook != NULL);
   return new DIntGDL(notebook->GetExtraStyle()&wxNB_MULTILINE);
+}
+//special as wxNotebook DOES NOT RECOMPILE ITS SIZE BEFORE REALIZATION.
+void GDLWidgetTab::OnRealize(){
+  GDLWidgetContainer::OnRealize();
+  std::cerr<<".";
+  wxNotebook * nb=dynamic_cast<wxNotebook*>(theWxWidget);
+  assert( nb != NULL);
+  nb->InvalidateBestSize();
+  size_t n=nb->GetPageCount();
+  wxSize s(-1,1);
+  for (auto i=0; i<n; ++i) {
+    wxWindow* w=nb->GetPage(i);
+    wxSize s_tmp=w->GetBestSize();
+    s.x = MAX(s.x, s_tmp.x);
+    s.y = MAX(s.y, s_tmp.y);
+  }
+  nb->SetMinSize(s);
 }
 
 
@@ -6098,6 +6109,8 @@ void gdlwxGraphicsPanel::RepaintGraphics(bool doClear) {
 //  dc.SetDeviceClippingRegion(GetUpdateRegion());
   if (doClear) dc.Clear();
   dc.Blit(0, 0, drawSize.x, drawSize.y, wx_dc, 0, 0);
+//  this->Refresh();
+//  this->Update();
 }
 
 ////Stem for generalization of Drag'n'Drop, a WIDGET_DRAW can receive drop events from something else than a tree widget...
@@ -6440,10 +6453,9 @@ void GDLWidgetDraw::SetWidgetScreenSize(DLong sizex, DLong sizey) {
     dp->Refresh();
   }
   
-  //for windows, it seems necessary to define our own wxApp and run it manually
-// for linux, it is NOT necessary, but thos works OK
-// for MacOS /COCOA port, the following code does not work and the widgets are not created.
-// (tied_scoped_ptr problem?)
+// for MacOS /COCOA port, the following code does not work and the application is hung (!) Help!
+// So we rely only on doing nothing and call Yield() , that works, fingers crossed.
+// Really strange but wxWidgets is not well documented (who is?)
 #ifndef __WXMAC__ 
 
 #include "wx/evtloop.h"
@@ -6452,13 +6464,19 @@ wxDEFINE_TIED_SCOPED_PTR_TYPE(wxEventLoop);
 
 bool wxAppGDL::OnInit()
 { 
-    return true;
+  //use a phantom window to retrieve the exact size of scrollBars wxWidget give wrong values.
+   gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
+   test->Hide();
+   test->Realize();
+   test->Destroy();
+  return true;
 }
 
 int wxAppGDL::MainLoop() {
   wxEventLoopTiedPtr mainLoop((wxEventLoop **) & m_mainLoop, new wxEventLoop);
   m_mainLoop->SetActive(m_mainLoop);
   loop = this->GetMainLoop();
+//  std::cerr<<loop<<std::endl;
   if (loop) {
     if (loop->IsRunning()) {
       while (loop->Pending()) // Unprocessed events in queue
@@ -6467,14 +6485,6 @@ int wxAppGDL::MainLoop() {
       }
     }
   }
-  return 0;
-}
-
-int wxAppGDL::OnExit()
-{
-  std::cout << " In GDLApp::OnExit()" << std::endl;
-  // Defined in guiThread::OnExit() in gdlwidget.cpp
-  //  std::cout << "Exiting thread (GDLApp::OnExit): " << thread << std::endl;
   return 0;
 }
 #endif

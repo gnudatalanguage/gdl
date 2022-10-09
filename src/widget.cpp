@@ -231,6 +231,8 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
 // non library functions
 // these reside here because gdlwidget.hpp is only included if wxWidgets are used
 // and hence putting them there would cause a compiler error without wxWidgets
+
+//GD not sure if the environment at the end of called PRO or FUNC is OK (nested procedures?) TBC.
 BaseGDL* CallEventFunc( const std::string& f, BaseGDL* ev)
 {
   StackGuard<EnvStackT> guard( BaseGDL::interpreter->CallStack( ) );

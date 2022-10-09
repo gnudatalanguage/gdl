@@ -48,7 +48,7 @@ include(TestBigEndian)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 #### GDL is an interactive tool. Normally INTERACTIVE_GRAPHICS must be set
-set(INTERACTIVE_GRAPHICS ON CACHE BOOL "GDL: Disable check of existence of a suited graphics driver in plplot.)")
+set(INTERACTIVE_GRAPHICS ON CACHE BOOL "GDL: Disable checking existence of a suited graphics driver in plplot. Only file output may be available, and 3D graphics may NOT work.")
 
 #### Default cached values
 set(GDLDEV OFF CACHE BOOL "GDL: Enable GDL developer mode (includes work-in-progress tests)")
@@ -214,6 +214,7 @@ check_include_file(mpi.h HAVE_MPI_H)
 #     version of antlr in system-wide directories
 include_directories(src)
 
+#-------------------------------MANDATORY MODULES-------------------------------------
 if (NOT WIN32)
     # Ncurses MANDATORY for readline on POSIX
     # -DNCURSESDIR=DIR
@@ -284,70 +285,6 @@ else(ZLIB_FOUND)
         "(suitable Fedora/CentOS package: zlib-devel)")
 endif(ZLIB_FOUND)
 
-# libpng
-# -DPNGLIB=ON|OFF
-# -DPNGLIBDIR=DIR
-if(PNGLIB)
-    set(CMAKE_PREFIX_PATH ${PNGLIBDIR})
-    find_package(PNG QUIET)
-    set(USE_PNGLIB ${PNG_FOUND})
-    if(PNG_FOUND)
-        set(LIBRARIES ${LIBRARIES} ${PNG_LIBRARIES})
-        set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${PNG_LIBRARY_DIRS})
-        include_directories(${PNG_INCLUDE_DIRS})
-    else(PNG_FOUND)
-        message(FATAL_ERROR "libpng is required but was not found.\n"
-        "Use -DPNGLIBDIR=DIR to specify the libpng directory tree.\n"
-        "Use -DPNGLIB=OFF to not use it.\n"
-                "(suitable Debian/Ubuntu package: libpng-dev)\n"
-                "(suitable Fedora/CentOS package: libpng-devel)")
-    endif(PNG_FOUND)
-endif(PNGLIB)
-
-# openmp
-# -DOPENMP=ON|OFF
-if(OPENMP)
-  find_package(OpenMP QUIET)
-  set(USE_OPENMP ${OPENMP_FOUND})
-  if(OPENMP_FOUND)
-    if(MSVC)
-      set(LIBRARIES ${LIBRARIES} vcomp)
-    elseif(WIN32)
-      set(LIBRARIES ${LIBRARIES} gomp pthread)
-    else()
-      set(LIBRARIES ${LIBRARIES} ${OpenMP_CXX_FLAGS})
-    endif()
-    if(APPLE)
-      if(${MACHINE_ARCH} STREQUAL "arm64")
-        link_directories(/opt/homebrew/lib)
-      else()
-        link_directories(/usr/local/lib)
-      endif()
-    endif()
-  else(OPENMP_FOUND)
-    message(FATAL_ERROR "Your compiler does not support OpenMP or OpenMP was not found"
-    "note that disabling OpenMP will incur significant performance penalty !\n"
-    "Use -DCMAKE_CXX_COMPILER=PATH and -DCMAKE_C_COMPILER=PATH to specify the compiler path."
-    "(find_package(OpenMP) will find OpenMP only if both are set !)\n"
-    "Use -DOPENMP=OFF to not use it.\n"
-    "(suitable Homebrew compiler package: llvm)"
-    "(suitable Homebrew library package: libomp)")
-  endif(OPENMP_FOUND) 
-else(OPENMP)
-  # we need to define those semaphore posix symbols, do it with threads libs
-  find_package(Threads)
-  if(THREADS_FOUND)
-    set(LIBRARIES ${LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-  else(THREADS_FOUND)
-    check_library_exists(rt sem_unlink "" HAVE_RT)
-    if(HAVE_RT)
-      set(LIBRARIES ${LIBRARIES} rt)
-    else(HAVE_RT)
-      message(FATAL_ERROR "Missing a POSIX semaphore symbols (rt or threads).\n")
-    endif(HAVE_RT)
-  endif(THREADS_FOUND)
-endif(OPENMP)
-
 # GSL MANDATORY
 # -DGSLDIR=DIR
 set(CMAKE_PREFIX_PATH ${GSLDIR})
@@ -364,6 +301,7 @@ else(GSL_FOUND)
         "(suitable Fedora/CentOS package: gsl-devel)")
 endif(GSL_FOUND)
 
+#RPC or XDR MANDATORY
 if(UNIX)
     set(CMAKE_PREFIX_PATH ${RPCDIR})
     find_package(RPC QUIET)
@@ -408,68 +346,9 @@ elseif (WIN32)
 endif()
 
 
-# wxWidgets: should be the one graphics library. Presence test is 'wxWidgets_FOUND'
-#
-#    I suggest to have wxWidgets a 'main' dependency. 
-#    thus removing the need of X11 for unix/linux/MacOS, as well as xwin and wingcc/wingdi.
-#    Behavior of plots, either in a WIDGET_DRAW or in a WINDOW, will be identical.
-#    Provided wxWidgets library exist, the graphic device will be 'X' on all platforms.
-#
-# -DWXWIDGETS=ON|OFF
-# -DWXWIDGETSDIR=DIR
-if(WXWIDGETS)
-    set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
-    find_package(wxWidgets COMPONENTS base core adv)
-    set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
-    if(wxWidgets_FOUND)
-        set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
-        set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${wxWidgets_LIBRARY_DIRS})
-        foreach(WXDEF ${wxWidgets_DEFINITIONS})
-            add_definitions(-D${WXDEF})
-        endforeach(WXDEF ${wxWidgets_DEFINITIONS})
-        include_directories(${wxWidgets_INCLUDE_DIRS})
-    else(wxWidgets_FOUND)
-        message(FATAL_ERROR "wxWidgets are required but were not found.\n"
-        "Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
-        "Use -DWXWIDGETS=OFF to not use it.\n"
-                "(suitable Debian/Ubuntu package: libwxgtk3.0-gtk3-dev)\n"
-                "(suitable Fedora/CentOS package: wxGTK-devel)")
-    endif(wxWidgets_FOUND)
-    set (USE_LOCAL_DRIVERS 1) # At the moment, the only case where having our owwn drivers is useful. Should be changed if we improve other drivers.
-else (WXWIDGETS)
-  if (INTERACTIVE_GRAPHICS AND WIN32) 
-    message(FATAL_ERROR "wxWidgets are required on Windows unless the option -DINTERACTIVE_GRAPHICS=FALSE is given. In which case you will NOT have graphics plots on screen")
-  endif (INTERACTIVE_GRAPHICS AND WIN32) 
-  #forcibly not used, no need to build and install our own copy of drivers, below
-  set (USE_LOCAL_DRIVERS 0)
-endif(WXWIDGETS)
-
-# X11 : OFF by default since wxWidgets SHOULD take preference in ALL builds.
-# Note that X11 is not present under native WIN32. Presence test is 'X11_FOUND'
-if(CYGWIN OR NOT WIN32)
-    if(X11)
-        set(CMAKE_PREFIX_PATH ${X11DIR})
-        find_package(X11 QUIET)
-        set(HAVE_X ${X11_FOUND})
-        if(X11_FOUND)
-            set(LIBRARIES ${LIBRARIES} ${X11_LIBRARIES})
-            include_directories(${X11_INCLUDE_DIR})
-        else(X11_FOUND)
-            message(FATAL_ERROR "X11 is required but was not found.\n"
-            "Use -DX11DIR=DIR to specify the X11 directory tree.\n"
-            "Use -DX11=OFF to not use it.\n"
-	    "(suitable Fedora/CentOS package xorg-x11-devel)\n")
-        endif(X11_FOUND)
-    endif(X11)
-    if (X11_FOUND AND NOT wxWidgets_FOUND) 
-      message(STATUS "WARNING: GDL is BEST with wxWidgets instead of X11, please consider installing wxWidgets")
-    endif (X11_FOUND AND NOT wxWidgets_FOUND) 
-endif(CYGWIN OR NOT WIN32)
-
-
-# PLplot MANDATORY
-# it is necessary at least for wxwidgets to avoid using plplot's drivers and instead use a copy, eventually modified by us, 
-# that is installed in gnudatalanguage/lib/drivers. This is done by default and triggered by USE_LOCAL_DRIVERS
+# PLplot with DYNDRIVERS MANDATORY
+# it is necessary for 3D support and wxwidgets to avoid using plplot's drivers and instead use a copy, eventually modified by us, 
+# that is installed in gnudatalanguage/lib/drivers. Thus, we NEED that plplot is installed WITH ENABLE_DYNDRIVERS 
 # -DPLPLOTDIR=DIR
 set(CMAKE_PREFIX_PATH ${PLPLOTDIR})
 find_package(Plplot QUIET)
@@ -485,7 +364,13 @@ else(PLPLOT_FOUND)
 endif(PLPLOT_FOUND)
 
 if(PLPLOT_FOUND)
-
+    #0) mandatory: plplot compiled with ENABLE_DYNDRIVERS --> check presence of plGetDrvDir()
+    check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" INSTALL_LOCAL_DRIVERS)
+    if(INTERACTIVE_GRAPHICS AND NOT INSTALL_LOCAL_DRIVERS)
+      message(FATAL_ERROR "Plplot installation lacks dynamic drivers. \n"
+      "It is mandatory to recompile plplot with option -DENABLE_DYNDRIVERS.\n"
+      "*** Dears Distribution Maintainers, GDL must be distributed only with INTERACTIVE GRAPHICS=ON (default), thanks. ***" )
+    endif()
     #1) mandatory: has ps_labelfunc() function? 
     check_library_exists("${PLPLOT_LIBRARIES}" c_plslabelfunc "" HAVE_PLPLOT_SLABELFUNC)
     if(NOT HAVE_PLPLOT_SLABELFUNC)
@@ -494,8 +379,6 @@ if(PLPLOT_FOUND)
 
     set(CMAKE_REQUIRED_INCLUDES "${PLPLOT_INCLUDE_DIR}")
     set(CMAKE_REQUIRED_LIBRARIES "${PLPLOT_LIBRARIES}")
-    #2) compiled with DYNDRIVERS?
-    check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" PL_IS_DYNDRIVERS)
 
     #has correct plwidth() function? 
     #the following does not work with clang (???)
@@ -542,25 +425,126 @@ if(PLPLOT_FOUND)
     if(PLPLOT_HAS_PLCALLBACK)
       set(PLPLOT_HAS_PLCALLBACK 1)
     endif(PLPLOT_HAS_PLCALLBACK)
- 
-# here, for windows, install_local_driver is already true as we impose wxwidgets now. So this section is skipped under windows. 
-    if ((NOT INSTALL_LOCAL_DRIVERS) AND INTERACTIVE_GRAPHICS)
-      message(STATUS "Will use a local copy of plplot drivers (patched for speed).")
-    endif ((NOT INSTALL_LOCAL_DRIVERS) AND INTERACTIVE_GRAPHICS)
 endif(PLPLOT_FOUND)
 
-if (USE_LOCAL_DRIVERS)  #meaning wxWidgets is found
-  if (WIN32)
-    set(USE_LOCAL_DRIVERS 0)  #PLPLOT constantly refuses to load our drivers on Windows. I quit.
-  else (WIN32)
-  #test if plplot has been compiled with DYNDRIVERS option:
-   if (PL_IS_DYNDRIVERS) 
-     set(INSTALL_LOCAL_DRIVERS 1)
-   else (PL_IS_DYNDRIVERS) 
-     message(FATAL_ERROR "Plplot was compiled without Dynamic Driver support. Please recompile plplot with option -DENABLE_DYNDRIVERS=ON.")
-   endif (PL_IS_DYNDRIVERS) 
-  endif(WIN32)
-endif (USE_LOCAL_DRIVERS)
+#---------------------------------------OPTIONAL MODULES----------------------
+# libpng
+# -DPNGLIB=ON|OFF
+# -DPNGLIBDIR=DIR
+if(PNGLIB)
+    set(CMAKE_PREFIX_PATH ${PNGLIBDIR})
+    find_package(PNG QUIET)
+    set(USE_PNGLIB ${PNG_FOUND})
+    if(PNG_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${PNG_LIBRARIES})
+        set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${PNG_LIBRARY_DIRS})
+        include_directories(${PNG_INCLUDE_DIRS})
+    else(PNG_FOUND)
+        message(FATAL_ERROR "libpng is required but was not found.\n"
+        "Use -DPNGLIBDIR=DIR to specify the libpng directory tree.\n"
+        "Use -DPNGLIB=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libpng-dev)\n"
+                "(suitable Fedora/CentOS package: libpng-devel)")
+    endif(PNG_FOUND)
+endif(PNGLIB)
+
+# openmp
+# -DOPENMP=ON|OFF
+if(OPENMP)
+  find_package(OpenMP QUIET)
+  set(USE_OPENMP ${OPENMP_FOUND})
+  if(OPENMP_FOUND)
+    if(MSVC)
+      set(LIBRARIES ${LIBRARIES} vcomp)
+    elseif(WIN32)
+      set(LIBRARIES ${LIBRARIES} gomp pthread)
+    else()
+      set(LIBRARIES ${LIBRARIES} ${OpenMP_CXX_FLAGS})
+    endif()
+    if(APPLE)
+      link_directories(/usr/local/lib)
+    endif()
+  else(OPENMP_FOUND)
+    message(FATAL_ERROR "Your compiler does not support OpenMP or OpenMP was not found"
+    "note that disabling OpenMP will incur significant performance penalty !\n"
+    "Use -DCMAKE_CXX_COMPILER=PATH and -DCMAKE_C_COMPILER=PATH to specify the compiler path."
+    "(find_package(OpenMP) will find OpenMP only if both are set !)\n"
+    "Use -DOPENMP=OFF to not use it.\n"
+    "(suitable Homebrew compiler package: llvm)"
+    "(suitable Homebrew library package: libomp)")
+  endif(OPENMP_FOUND) 
+else(OPENMP)
+  # we need to define those semaphore posix symbols, do it with threads libs
+  find_package(Threads)
+  if(THREADS_FOUND)
+    set(LIBRARIES ${LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+  else(THREADS_FOUND)
+    check_library_exists(rt sem_unlink "" HAVE_RT)
+    if(HAVE_RT)
+      set(LIBRARIES ${LIBRARIES} rt)
+    else(HAVE_RT)
+      message(FATAL_ERROR "Missing a POSIX semaphore symbols (rt or threads).\n")
+    endif(HAVE_RT)
+  endif(THREADS_FOUND)
+endif(OPENMP)
+
+
+# wxWidgets: should be the one graphics library. Presence test is 'wxWidgets_FOUND'
+#
+#    I suggest to have wxWidgets a 'main' dependency. 
+#    thus removing the need of X11 for unix/linux/MacOS, as well as xwin and wingcc/wingdi.
+#    Behavior of plots, either in a WIDGET_DRAW or in a WINDOW, will be identical.
+#    Provided wxWidgets library exist, the graphic device will be 'X' on all platforms.
+#
+# -DWXWIDGETS=ON|OFF
+# -DWXWIDGETSDIR=DIR
+if(WXWIDGETS)
+    set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
+    find_package(wxWidgets COMPONENTS base core adv)
+    set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
+    if(wxWidgets_FOUND)
+        set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
+        set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${wxWidgets_LIBRARY_DIRS})
+        foreach(WXDEF ${wxWidgets_DEFINITIONS})
+            add_definitions(-D${WXDEF})
+        endforeach(WXDEF ${wxWidgets_DEFINITIONS})
+        include_directories(${wxWidgets_INCLUDE_DIRS})
+    else(wxWidgets_FOUND)
+        message(FATAL_ERROR "wxWidgets are required but were not found.\n"
+        "Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
+        "Use -DWXWIDGETS=OFF to not use it.\n"
+                "(suitable Debian/Ubuntu package: libwxgtk3.0-gtk3-dev)\n"
+                "(suitable Fedora/CentOS package: wxGTK-devel)")
+    endif(wxWidgets_FOUND)
+else (WXWIDGETS)
+  if (INTERACTIVE_GRAPHICS AND WIN32) 
+    message(FATAL_ERROR "wxWidgets are required on Windows.")
+  endif (INTERACTIVE_GRAPHICS AND WIN32) 
+  #forcibly not used, no need to build and install our own copy of drivers, below
+endif(WXWIDGETS)
+
+# X11 : OFF by default since wxWidgets SHOULD take preference in ALL builds.
+# Note that X11 is not present under native WIN32. Presence test is 'X11_FOUND'
+if(CYGWIN OR NOT WIN32)
+    if(X11)
+        set(CMAKE_PREFIX_PATH ${X11DIR})
+        find_package(X11 QUIET)
+        set(HAVE_X ${X11_FOUND})
+        if(X11_FOUND)
+            set(LIBRARIES ${LIBRARIES} ${X11_LIBRARIES})
+            include_directories(${X11_INCLUDE_DIR})
+        else(X11_FOUND)
+            message(FATAL_ERROR "X11 is required but was not found.\n"
+            "Use -DX11DIR=DIR to specify the X11 directory tree.\n"
+            "Use -DX11=OFF to not use it.\n"
+	    "(suitable Fedora/CentOS package xorg-x11-devel)\n")
+        endif(X11_FOUND)
+    endif(X11)
+    if (X11_FOUND AND NOT wxWidgets_FOUND) 
+      message(STATUS "WARNING: GDL is BEST with wxWidgets instead of X11, please consider installing wxWidgets")
+    endif (X11_FOUND AND NOT wxWidgets_FOUND) 
+endif(CYGWIN OR NOT WIN32)
+
     
 # GraphicsMagick (GM) is an alternative to the classical ImageMagick Lib (IM).
 # It was experienced that GM was more stable in time than IM

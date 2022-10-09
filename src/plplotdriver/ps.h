@@ -14,7 +14,7 @@
 #define COPIES        1
 #define XSIZE         (int) ( pls->xlength * ( pls->xdpi / 72. ) )
 #define YSIZE         (int) ( pls->ylength * ( pls->ydpi / 72. ) )
-#define ENLARGE       5
+#define ENLARGE       20000/MAX(XSIZE,YSIZE)
 #define XPSSIZE       ENLARGE * XSIZE
 #define YPSSIZE       ENLARGE * YSIZE
 #define XOFFSET       (int) ( pls->xoffset * ( pls->xdpi / 72. ) )   // Margins --
@@ -22,9 +22,9 @@
 #define PSX           XPSSIZE - 1
 #define PSY           YPSSIZE - 1
 #define OF            pls->OutFile
-#define MIN_WIDTH     1.  // Minimum pen width
-#define MAX_WIDTH     30. // Maximum pen width
-#define DEF_WIDTH     3.  // Default pen width
+#define MIN_WIDTH     0.  // Minimum pen width in default pen width (dots)
+#define MAX_WIDTH     50 // Maximum pen width 
+#define DEF_WIDTH     10.  // Default pen width
 
 // These are for covering the page with the background color
 

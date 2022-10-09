@@ -39,6 +39,11 @@
 
 #include "deprecated_wxwidgets.h"
 
+//define LINE2D, POLYLINE2D
+#define LINE2D plD_line_wxwidgets
+#define POLYLINE2D plD_polyline_wxwidgets
+#include "plplot3d.h"
+
 // Static function prototypes
 #ifdef PL_HAVE_FREETYPE
 static void plD_pixel_wxwidgets( PLStream *pls, short x, short y );
@@ -517,6 +522,8 @@ wxPLDevBase* common_init( PLStream *pls )
 //--------------------------------------------------------------------------
 void plD_dispatch_init_wxwidgets( PLDispatchTable *pdt )
 {
+    currDispatchTab=pdt;
+    Status3D=0;
 #ifndef ENABLE_DYNDRIVERS
     pdt->pl_MenuStr = "wxWidgets DC";
     pdt->pl_DevName = "wxwidgets";
@@ -545,7 +552,7 @@ void plD_init_wxwidgets( PLStream* pls )
     wxPLDevBase* dev;
     dev = common_init( pls );
 
-    pls->plbuf_write = 1;             // use the plot buffer!
+    pls->plbuf_write = 0;             // use the plot buffer!
     pls->termin      = 1;             // interactive device
     pls->graphx      = GRAPHICS_MODE; //  No text mode for this driver (at least for now, might add a console window if I ever figure it out and have the inclination)
 
@@ -940,6 +947,14 @@ void plD_esc_wxwidgets( PLStream *pls, PLINT op, void *ptr )
         *( (int *) ptr ) = dev->backend;
         break;
 
+    case PLESC_3D:
+      Set3D(ptr);
+      break;
+
+    case PLESC_2D:
+      UnSet3D();
+      break;
+
     default:
         break;
     }
@@ -960,6 +975,18 @@ static void fill_polygon( PLStream *pls )
     if ( !( dev->ready ) )
         install_buffer( pls );
 
+    if (Status3D == 1) { //enable use everywhere.
+      //perform conversion on the fly
+      for (PLINT i = 0; i < pls->dev_npts; ++i) {
+        int x = pls->dev_x[i];
+        int y = pls->dev_y[i];
+        // 3D convert, must take into account that y is inverted.
+        SelfTransform3D(&x, &y);
+
+        pls->dev_x[i] = x;
+        pls->dev_y[i] = y;
+      }
+    }
     dev->FillPolygon( pls );
 
     if ( !( dev->resizing ) && dev->ownGUI )

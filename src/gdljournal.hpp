@@ -30,8 +30,8 @@ namespace lib
   extern const char*  JOURNALCOMMENT;
 
   void journal(EnvT *e);
-  void write_journal(const std::string str);
-  void write_journal_comment(const std::string str);
+  void write_journal(const std::string &str);
+  void write_journal_comment(const std::string &str);
   void write_journal_comment(EnvT *e, int offset, SizeT width);
   GDLStream* get_journal();
   

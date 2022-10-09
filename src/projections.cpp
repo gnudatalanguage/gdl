@@ -62,7 +62,7 @@ namespace lib {
     DDoubleGDL *res = NULL;
     SizeT nEl;
 
-    SizeT nParam = e->NParam();
+    SizeT nParam = e->NParam(1);
     if (nParam < 1 || nParam > 2)
       e->Throw("Incorrect number of arguments.");
 
@@ -91,17 +91,15 @@ namespace lib {
     bool doConn = e->KeywordPresent(connIx);
     if (doConn) connectivity = e->GetKWAs<DLongGDL>(connIx);
 
-    //with connectivity, polygons or polylines, and 1 argument, dimension MUST be [2,*]
-    bool fussy = (doConn || doGons || doLines);
+//    //with connectivity, polygons or polylines, and 1 argument, dimension MUST be [2,*]
+//    bool fussy = (doConn || doGons || doLines);
 
     //Get arguments
-    if (nParam == 1) { //lat is not present...
+    if (nParam == 1) { //lat is not present...it must be a 2,N array
       p0 = e->GetParDefined(0);
       DDoubleGDL* ll = static_cast<DDoubleGDL*> (p0->Convert2(GDL_DOUBLE, BaseGDL::COPY));
-      if (fussy) {
         if (p0->Rank() != 2) e->Throw("(X,Y) array must be (2,N).");
         if (p0->Dim(0) != 2) e->Throw("(X,Y) array must be (2,N).");
-      }
       nEl = p0->N_Elements() / 2; //as simple as that
 
       lon = new DDoubleGDL(dimension(nEl), BaseGDL::NOZERO);
@@ -150,7 +148,7 @@ namespace lib {
     }
 
     if (doGons || doLines) {
-      res = gdlProjForward(ref, map, lon, lat, connectivity, doConn, gons, doGons, lines, doLines, doFill);
+      res = gdlProjForward(ref, map, lon, lat, NULL, connectivity, doConn, gons, doGons, lines, doLines, doFill, false);
       if (doGons) e->SetKW(gonsIx, gons);
       else e->SetKW(linesIx, lines);
     } else res = gdlApplyFullProjection(ref, map, lon, lat);
@@ -886,38 +884,40 @@ namespace lib {
     return badProjXY;
   }
 
-  PJ_XY protect_proj_fwd_xy(PJ_XY idata, PJ *proj) {
-    PJ_COORD c, c_out;
-    DDouble x, y;
-    if (isfinite((idata.x)*(idata.y))) {
-      c.xy = idata;
-      c_out = proj_trans(proj, PJ_FWD, c);
-      if (isfinite(c_out.xy.x) && c_out.xy.x != HUGE_VAL) {
-        if (isRot) {
-          x = c_out.xy.x;
-          y = c_out.xy.y;
-          c_out.xy.x = x * cRot + y*sRot;
-          c_out.xy.y = -x * sRot + y*cRot;
-        }
-        return c_out.xy;
-      }
-    }
-    return badProjXY;
-  }
+//  PJ_XY protect_proj_fwd_xy(PJ_XY idata, PJ *proj) {
+//    PJ_COORD c, c_out;
+//    DDouble x, y;
+//    if (isfinite((idata.x)*(idata.y))) {
+//      c.xy = idata;
+//      c_out = proj_trans(proj, PJ_FWD, c);
+//      if (isfinite(c_out.xy.x) && c_out.xy.x != HUGE_VAL) {
+//        if (isRot) {
+//          x = c_out.xy.x;
+//          y = c_out.xy.y;
+//          c_out.xy.x = x * cRot + y*sRot;
+//          c_out.xy.y = -x * sRot + y*cRot;
+//        }
+//        return c_out.xy;
+//      }
+//    }
+//    return badProjXY;
+//  }
 
   PJ_LP protect_proj_inv_xy(PJ_XY idata, PJ *proj) {
     if (noInv) return badProjLP;
     //  throw GDLException("The PROJ library version you use unfortunately defines no inverse for this projection!");
     PJ_COORD c, c_out;
     DDouble x, y;
-    if (isRot) {
-      x = idata.x;
-      y = idata.y;
-      c.xy.x = x * cRot - y*sRot;
-      c.xy.y = x * sRot + y*cRot;
-    }
-    if (isfinite((c.xy.x)*(c.xy.y))) {
+    if (isfinite((idata.x)*(idata.y))){
+      c.xy = idata;
+      if (isRot) {
+        x = idata.x;
+        y = idata.y;
+        c.xy.x = x * cRot - y*sRot;
+        c.xy.y = x * sRot + y*cRot;
+      }
       c_out = proj_trans(proj, PJ_INV, c);
+      if (!isfinite((c_out.lp.lam)*(c_out.lp.phi))) return badProjLP; //IDL return NaNs not infinities.
       return c_out.lp;
     }
     return badProjLP;
@@ -984,6 +984,7 @@ namespace lib {
   struct Vertex {
     DDouble lon; //lon
     DDouble lat; //lat
+    DDouble z; //for 3D
   };
 
   struct Polygon {
@@ -992,6 +993,10 @@ namespace lib {
     int inside; // number of polygons inside
     int outside; // number of polygons outside
     bool valid; //to be ignored (polygon has been transferred to another polygon list
+    DDouble xmin;
+    DDouble ymin;
+    DDouble xmax;
+    DDouble ymax;
   };
 
   struct Point3d {
@@ -1036,7 +1041,7 @@ namespace lib {
 
   void printVertex(Vertex v) {
     std::cerr.precision(10);
-    std::cerr << "(" << v.lon / DEG_TO_RAD << "," << v.lat / DEG_TO_RAD << ")";
+    std::cerr << "(" << v.lon / DEG_TO_RAD << "," << v.lat / DEG_TO_RAD << v.z << ")";
   }
 
   Point3d* normedCrossP(const Point3d* p1, const Point3d *p2) {
@@ -1364,6 +1369,7 @@ namespace lib {
         Vertex stitch;
         stitch.lon = atan2(v.y, v.x);
         stitch.lat = atan2(v.z, sqrt(v.x * v.x + v.y * v.y));
+        stitch.z = (endOfP.z+startOfQ.z)/2;
         p->VertexList.push_back(stitch); //add at end of p
       }
     }
@@ -1605,10 +1611,33 @@ namespace lib {
       pz = (*pipeline)[pipedims[0] * line + 7];
     }
   }
+  inline bool intersectsLonLatBox(DDouble minlon, DDouble maxlon, DDouble minlat, DDouble maxlat, DDouble* llbox){
+    if (minlon >= llbox[3]) return false;
+    if (maxlon <= llbox[1]) return false;
+    if (minlat >= llbox[2]) return false;
+    if (maxlat <= llbox[0]) return false;
+    return true;
+  }
+  inline bool intersectsBox(DDouble xmin, DDouble xmax, DDouble ymin, DDouble ymax, DDouble* box){
+    if (xmin >= box[3]) return false;
+    if (xmax <= box[1]) return false;
+    if (ymin >= box[2]) return false;
+    if (ymax <= box[0]) return false;
+    return true;
+  }
+  inline bool inBox(DDouble x, DDouble y, DDouble* box){
+    if (x > box[3]) return false;
+    if (x < box[1]) return false;
+    if (y > box[2]) return false;
+    if (y < box[0]) return false;
+    return true;
+  }
+  //reproject, removing hidden points, cutting lines at projections splits & boundaries if LINE and FILL, closing contours if FILL.
+  //produces a [3,N] or [N,3] output. Or -1 if nothing works.
+  DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, DDoubleGDL *zIn, DLongGDL *connIn,
+    bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines, bool const doFill, bool const transpose) {
 
-  DDoubleGDL* gdlProjForward(PROJTYPE ref, DStructGDL* map, DDoubleGDL *lonsIn, DDoubleGDL *latsIn, DLongGDL *connIn,
-    bool doConn, DLongGDL *&gonsOut, bool doGons, DLongGDL *&linesOut, bool doLines, bool const doFill) {
-
+    bool doZ=(zIn!=NULL);
     //DATA MUST BE IN RADIANS
 #ifdef USE_LIBPROJ
     LPTYPE idata;
@@ -1622,9 +1651,12 @@ namespace lib {
     unsigned llboxTag = map->Desc()->TagIndex("LL_BOX");
     DDoubleGDL* llbox = (static_cast<DDoubleGDL*> (map->GetTag(llboxTag, 0))->Dup());
     Guard<BaseGDL> llboxGuard(llbox);
+    unsigned uvboxTag = map->Desc()->TagIndex("UV_BOX");
+    DDoubleGDL* uvbox = (static_cast<DDoubleGDL*> (map->GetTag(uvboxTag, 0))->Dup());
+    Guard<BaseGDL> uvboxGuard(uvbox);
     //test if we can eliminate some polygons as they are probably (this is the use of ll_box) not going to be seen at the end.
     //this has problems as ll_box is very crude and false for some projetions (satellite)
-    //    bool llsubset=!((*llbox)[0] <= -90.0 && (*llbox)[2] >= 90.0 && (*llbox)[1] <= -180.0 && (*llbox)[3] >= 180.0);
+    bool llsubset=!((*llbox)[0] <= -90.0 && (*llbox)[2] >= 90.0 && (*llbox)[1] <= -180.0 && (*llbox)[3] >= 180.0);
 
     // convert to radians
     for (int i = 0; i < 4; ++i) (*llbox)[i] *= DEG_TO_RAD;
@@ -1655,19 +1687,17 @@ namespace lib {
     DDouble px = (*pipeline)[dims[0] * line + 5]; //pole x,y,z
     DDouble py = (*pipeline)[dims[0] * line + 6];
     DDouble pz = (*pipeline)[dims[0] * line + 7];
-    DDouble x, y, z, before, after, xs, ys, zs, xe, ye, ze, xcutb, ycutb, zcutb, xcuta, ycuta, zcuta; //b: before, a: after cut
+    DDouble x, y, z, z3, before, after, xs, ys, zs, xe, ye, ze, xcutb, ycutb, zcutb, xcuta, ycuta, zcuta; //b: before, a: after cut
     OMPInt in;
-    DDoubleGDL *lons;
-    DDoubleGDL *lats;
     DLongGDL *currentConn;
 
     DDouble clon, slon, clat, slat;
     DDouble minlon, maxlon, minlat, maxlat;
-
+    
     //interpolations for GONS on cuts is every 2.5 degrees.
     //Gons takes precedence on Lines
 
-    SizeT nEl = lonsIn->N_Elements();
+    SizeT nEl = lons->N_Elements();
     //if connectivity does not exist, fake a simple one
     if (!doConn) {
       currentConn = new DLongGDL(dimension(nEl + 1), BaseGDL::INDGEN);
@@ -1676,11 +1706,6 @@ namespace lib {
     } else { //just copy
       currentConn = connIn->Dup();
     }
-
-    //copy Input
-    lons = lonsIn->Dup();
-    lats = latsIn->Dup();
-
 
     //convert to lists
     SizeT index;
@@ -1703,7 +1728,7 @@ namespace lib {
     SizeT num = 0;
     while (index < currentConn->N_Elements()) {
       size = (*currentConn)[index];
-      if (size > ((fill) ? 2 : 1)) { //two or 3 points I hope.
+      if (size > ((fill) ? 2 : (doLines)?1:0)) { //3pts for fill, 2 for line, 1 is OK for points
         start = index + 1; //start new chunk...
         num++;
         currentVertexList.clear();
@@ -1711,11 +1736,13 @@ namespace lib {
         k = (*currentConn)[start + 0];
         minlon = maxlon = currstart.lon = (*lons)[k];
         minlat = maxlat = currstart.lat = (*lats)[k];
+        if (doZ) currstart.z=(*zIn)[k]; else currstart.z=0;
         currentVertexList.push_back(currstart);
         for (in = 1; in < size; in++) {
           k = (*currentConn)[start + in]; //conn is a list of indexes...
           curr.lon = (*lons)[k];
           curr.lat = (*lats)[k];
+          if (doZ) curr.z=(*zIn)[k]; else curr.z=0;
           minlon = min(minlon, curr.lon);
           minlat = min(minlat, curr.lat);
           maxlon = max(maxlon, curr.lon);
@@ -1728,30 +1755,26 @@ namespace lib {
             Vertex curr;
             curr.lon = currstart.lon;
             curr.lat = currstart.lat;
+            curr.z = currstart.z;
             currentVertexList.push_back(curr);
           }
         }
-        //        if (llsubset) {
-        //          bool keep=intersectsLonLatBox(minlon,maxlon,minlat,maxlat,&((*llbox)[0]));
-        //          if (keep) 
-        //          {
-        //            currentPol.VertexList = currentVertexList;
-        //            currentPol.type = 1; //before cut
-        //            PolygonList.push_back(currentPol);
-        //          } else {
-        ////            cerr<<"removed "<<minlon*RAD_TO_DEG<<","<<maxlon*RAD_TO_DEG<<","<<minlat*RAD_TO_DEG<<","<<maxlat*RAD_TO_DEG<<endl;
-        //            currentVertexList.clear();
-        //          }
-        //        } else {
-        currentPol.VertexList = currentVertexList;
-        currentPol.type = 1; //before cut
-        PolygonList.push_back(currentPol);
-        //        }
+        bool keep=intersectsLonLatBox(minlon,maxlon,minlat,maxlat,&((*llbox)[0]));
+        if (llsubset && !keep) {
+//          cerr<<"removed "<<minlon*RAD_TO_DEG<<","<<maxlon*RAD_TO_DEG<<","<<minlat*RAD_TO_DEG<<","<<maxlat*RAD_TO_DEG<<endl;
+            currentVertexList.clear();
+          } else {
+          currentPol.VertexList = currentVertexList;
+          currentPol.type = 1; //before cut
+          currentPol.xmin = minlon;
+          currentPol.xmax = maxlon;
+          currentPol.ymin = minlat;
+          currentPol.ymax = maxlat;
+          PolygonList.push_back(currentPol);
+        }
       } else break;
       index += (size + 1);
     }
-    GDLDelete(lons);
-    GDLDelete(lats);
     GDLDelete(currentConn);
 
     std::list<Polygon> newPolygonList;
@@ -1777,6 +1800,7 @@ namespace lib {
           xs = clon * clat;
           ys = slon * clat;
           zs = slat;
+          z3= v->z;
           before = a * xs + b * ys + c * zs + d;
           // peculiar case: start point is on a split. We need to find the first point in the vertex list that is not on the split and "push"
           // all the previous points towards it. This is the reason of the "sideCode" parameter in avoidSplits(), based on positivity of the
@@ -1799,6 +1823,7 @@ namespace lib {
           currentPol.valid = (doClip && currentPol.type == -1) ? false : true;
           curr.lon = v->lon;
           curr.lat = v->lat;
+          curr.z = v->z;
           currentVertexList.push_back(curr);
           for (++v; v != p->VertexList.end(); ++v) {
 
@@ -1808,6 +1833,7 @@ namespace lib {
             xe = clon * clat;
             ye = slon * clat;
             ze = slat;
+            z3= v->z;
             after = a * xe + b * ye + c * ze + d;
 
             if (before * after < 0) {
@@ -1823,6 +1849,7 @@ namespace lib {
                 z = zcutb;
                 curr.lon = atan2(y, x);
                 curr.lat = atan2(z, sqrt(x * x + y * y));
+                curr.z = z3;
                 currentVertexList.push_back(curr);
                 //end of current Pol. Memorize cut position of first cut for cut ordering if filling occurs:
                 currentPol.VertexList = currentVertexList;
@@ -1837,11 +1864,13 @@ namespace lib {
                 z = zcuta;
                 curr.lon = atan2(y, x);
                 curr.lat = atan2(z, sqrt(x * x + y * y));
+                curr.z=z3;
                 currentVertexList.push_back(curr);
               }
             }
             curr.lon = v->lon;
             curr.lat = v->lat;
+            curr.z = v->z;
             currentVertexList.push_back(curr);
             before = after;
             xs = xe;
@@ -1860,10 +1889,6 @@ namespace lib {
             std::list<Polygon>::reverse_iterator end = tmpPolygonList.rbegin();
             beg->VertexList.splice(beg->VertexList.begin(), end->VertexList); //concatenate
             tmpPolygonList.pop_back();
-          }
-
-          if (doClip) { //eliminate invalid (cached) polygons.
-            tmpPolygonList.remove_if(isInvalid);
           }
 
           if (fill && tmpPolygonList.size() > 1) {
@@ -1976,13 +2001,17 @@ namespace lib {
         PolygonList.swap(newPolygonList);
         newPolygonList.clear();
 
-        //Should remove empty polygons: TODO
+        //Should remove empty polygons? ??? to do here. 
         break;
       case TRANSFORM:
         if (PolygonList.empty()) break;
 
 #ifdef USE_LIBPROJ
         for (std::list<Polygon>::iterator p = PolygonList.begin(); p != PolygonList.end(); ++p) {
+          p->xmin=std::numeric_limits<DDouble>::max();
+          p->ymin=std::numeric_limits<DDouble>::max();
+          p->xmax=std::numeric_limits<DDouble>::min();
+          p->ymax=std::numeric_limits<DDouble>::min();
           for (std::list<Vertex>::iterator v = p->VertexList.begin(); v != p->VertexList.end(); ++v) {
 #if LIBPROJ_MAJOR_VERSION >= 5
             idata.lam = v->lon;
@@ -1997,13 +2026,45 @@ namespace lib {
             v->lon = odata.u;
             v->lat = odata.v;
 #endif
+            p->xmin=MIN(p->xmin,v->lon);
+            p->ymin=MIN(p->ymin,v->lat);
+            p->xmax=MAX(p->xmax,v->lon);
+            p->ymax=MAX(p->ymax,v->lat);
           }
+          if (!intersectsBox(p->xmin,p->xmax,p->ymin,p->ymax,&((*uvbox)[0]))) p->valid=false;
         }
+        //remove invalid
+        PolygonList.remove_if(isInvalid);
 #endif   //USE_LIBPROJ 
         break;
       case CLIP_UV:
-        //TO BE DONE (really useful?)
-        //        if (PolygonList.empty()) break;
+        //a,b,c,d is [Umin, Vmin, Umax, Vmax].
+        //This is too crude but efficient for a debut.
+        if (PolygonList.empty()) break;
+        for (std::list<Polygon>::iterator p = PolygonList.begin(); p != PolygonList.end(); ++p) {
+          currentVertexList.clear();
+           for (std::list<Vertex>::iterator v = p->VertexList.begin(); v != p->VertexList.end(); ++v) {
+            double x=v->lon;
+            double y=v->lat;
+            if (x < a || x > c) { //bad lon
+              if ( y < b || y > d) { //bad lat
+                //forget
+              } else { //lat OK
+                if (x < a) v->lon = a; else v->lon = c;
+                currentVertexList.push_back(*v);
+              } 
+            } else { //x OK
+              if ( y < b || y > d) {
+                if (y < b) v->lat = b; else v->lat = d;
+                currentVertexList.push_back(*v);
+              } else { //y OK
+                currentVertexList.push_back(*v);
+              }
+            }
+          }
+          p->VertexList.clear();
+          if (!currentVertexList.empty()) p->VertexList=currentVertexList;
+        }
         break;
       default:
         continue;
@@ -2036,8 +2097,15 @@ namespace lib {
         nelem += p->VertexList.size();
       }
     }
-    lons = new DDoubleGDL(nelem, BaseGDL::NOZERO);
-    lats = new DDoubleGDL(nelem, BaseGDL::NOZERO);
+    if (nelem<1 || ngons < 1 ) {
+      if (doGons) gonsOut = new DLongGDL(-1);
+      else linesOut = new DLongGDL(-1);
+      return new DDoubleGDL(-1);
+    }
+    
+    DDoubleGDL* resLons = new DDoubleGDL(nelem, BaseGDL::NOZERO);
+    DDoubleGDL* resLats = new DDoubleGDL(nelem, BaseGDL::NOZERO);
+    DDoubleGDL* resZ = new DDoubleGDL(nelem, BaseGDL::ZERO); //Zero if Z is NULL
     currentConn = new DLongGDL(ngons, BaseGDL::NOZERO);
     SizeT i = 0;
     SizeT j = 0;
@@ -2045,8 +2113,9 @@ namespace lib {
       if (p->VertexList.size() > 0) {
         (*currentConn)[j++] = p->VertexList.size();
         for (std::list<Vertex>::iterator v = p->VertexList.begin(); v != p->VertexList.end(); ++v, i++) {
-          (*lons)[i] = v->lon;
-          (*lats)[i] = v->lat;
+          (*resLons)[i] = v->lon;
+          (*resLats)[i] = v->lat;
+          (*resZ)[i] = v->z;
           (*currentConn)[j++] = i;
         }
         //delete vertexlist
@@ -2056,28 +2125,41 @@ namespace lib {
     //finally, delete polygon list.
     PolygonList.clear();
 
-    nEl = lons->N_Elements();
-    DLong odims[2];
-    odims[0] = 2;
-    odims[1] = nEl;
-    dimension dim(odims, 2);
-    DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-    if ((GDL_NTHREADS=parallelize( nEl, TP_MEMORY_ACCESS))==1) {
-      for (OMPInt i = 0; i < nEl; ++i) {
-        (*res)[2 * i] = (*lons)[i];
-        (*res)[2 * i + 1] = (*lats)[i];
-      }
+    nEl = resLons->N_Elements();
+    DDoubleGDL *res;
+    if (transpose) {
+      DLong odims[2];
+      odims[0] = nEl;
+      odims[1] = 3;
+      dimension dim(odims, 2);
+      res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+      memcpy(&((*res)[0]), resLons->DataAddr(), nEl * sizeof (DDouble));
+      memcpy(&((*res)[nEl]), resLats->DataAddr(), nEl * sizeof (DDouble));
+      memcpy(&((*res)[2*nEl]), resZ->DataAddr(), nEl * sizeof (DDouble));
     } else {
-      TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
+      DLong odims[2];
+      odims[0] = 2; //routines still expect [2,N] not [3,N]
+      odims[1] = nEl;
+      dimension dim(odims, 2);
+      res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+      if ((GDL_NTHREADS = parallelize(nEl, TP_MEMORY_ACCESS)) == 1) {
         for (OMPInt i = 0; i < nEl; ++i) {
-        (*res)[2 * i] = (*lons)[i];
-        (*res)[2 * i + 1] = (*lats)[i];
+          (*res)[2 * i] = (*resLons)[i];
+          (*res)[2 * i + 1] = (*resLats)[i];
+        }
+      } else {
+        TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+          for (OMPInt i = 0; i < nEl; ++i) {
+          (*res)[2 * i] = (*resLons)[i];
+          (*res)[2 * i + 1] = (*resLats)[i];
+        }
       }
     }
     //cleanup
-    GDLDelete(lons);
-    GDLDelete(lats);
+    GDLDelete(resLons);
+    GDLDelete(resLats);
+    GDLDelete(resZ);
     if (doGons || doLines) {
       if (doGons) gonsOut = currentConn;
       else linesOut = currentConn;

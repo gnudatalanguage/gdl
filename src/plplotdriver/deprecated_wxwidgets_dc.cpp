@@ -165,7 +165,7 @@ void wxPLDevDC::FillPolygon( PLStream *pls )
     wxPoint *points = new wxPoint[pls->dev_npts];
     wxCoord xoffset = 0;
     wxCoord yoffset = 0;
-
+    
     for ( int i = 0; i < pls->dev_npts; i++ )
     {
         points[i].x = (int) ( pls->dev_x[i] / scalex );
@@ -335,7 +335,12 @@ PLINT wxPLDevDC::GetPixel( short x, short y )
 void wxPLDevDC::PSDrawTextToDC( char* utf8_string, bool drawText )
 {
     wxCoord  w, h, d, l;
-
+    
+    //must find the correct transformation in case of 3D
+//    printf( "%i %i\n",posX,posY );
+//    SelfTransform3D(&posX, &posY);
+//    printf( "%i %i\n",posX,posY );
+    
     wxString str( wxConvUTF8.cMB2WC( utf8_string ), *wxConvCurrent );
 
     m_dc->GetTextExtent( str, &w, &h, &d, &l );
@@ -445,9 +450,14 @@ void wxPLDevDC::ProcessString( PLStream* pls, EscText* args )
     {
         printf( "Sorry, the wxWidgets drivers only handles strings of length < %d\n", 500 );
         return;
-    }
+  }
 
-    // Calculate the font size (in pixels)
+  // 3D convert on normalized values
+  SelfTransform3D(&(args->x), &(args->y));
+  //rotate if 3D
+  Project3DToPlplotFormMatrix(args->xform);
+  
+  // Calculate the font size (in pixels)
     fontSize = pls->chrht * VIRTUAL_PIXELS_PER_MM / scaley * 1.3;
 
     // Use PLplot core routine to get the corners of the clipping rectangle

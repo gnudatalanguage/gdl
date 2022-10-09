@@ -23,22 +23,6 @@ static const PLFLT Z_DPI = 96 ; //in dpi;
 //#include "dstructgdl.hpp"
 #include "gdlzstream.hpp"
 
-#if defined (_MSC_VER) && (_MSC_VER < 1800)
-/* replacement of Unix rint() for Windows */
-static int rint (double x)
-{
-char *buf;
-int i,dec,sig;
-
-buf = _fcvt(x, 0, &dec, &sig);
-i = atoi(buf);
-if(sig == 1) {
-i = i * -1;
-}
-return(i);
-}
-#endif
-
 class DeviceZ: public GraphicsDevice
 {
   GDLZStream*     actStream;
@@ -118,13 +102,17 @@ class DeviceZ: public GraphicsDevice
    actStream->spage(Z_DPI, Z_DPI, nx, ny, 0, 0 );
 
    actStream->Init();
-   // need to be called initially. permit to fix things
-    actStream->ssub(1,1);
-    actStream->adv(0);
+    // need to be called initially. permit to fix things
+    actStream->plstream::ssub(1, 1); // plstream below stays with ONLY ONE page
+    actStream->plstream::adv(0); //-->this one is the 1st and only pladv
     // load font
-    actStream->font( 1);
-    actStream->vpor(0,1,0,1);
-    actStream->wind(0,1,0,1);
+    actStream->plstream::font(1);
+    actStream->plstream::vpor(0, 1, 0, 1);
+    actStream->plstream::wind(0, 1, 0, 1);
+
+    actStream->ssub(1, 1);
+    actStream->adv(0); //this is for us (counters)
+    actStream->SetPageDPMM();
     actStream->DefaultCharSize();
   }
 

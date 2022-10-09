@@ -34,13 +34,31 @@ namespace lib {
     DLong botLeftPixelX, botLeftPixelY;
     DLong channel;
     SizeT rank;
+    bool doT3d;
+    DDouble zPosition;
 
     bool handle_args(EnvT* e) {
 
+      //T3D
+      static int t3dIx = e->KeywordIx("T3D");
+      doT3d = (e->BooleanKeywordSet(t3dIx) || T3Denabled());
+
+      //note: Z (VALUE) will be used uniquely if Z is not effectively defined.
+      // Then Z is useful only if (doT3d).
+      static int zvIx = e->KeywordIx("Z");
+      zPosition = 0.0; //it is NOT a zValue.
+      if (doT3d) {
+        e->AssureDoubleScalarKWIfPresent(zvIx, zPosition);
+        //norm directly here, we are in 3D mode
+        DDouble *sz;
+        GetSFromPlotStructs(NULL, NULL, &sz);
+        zPosition = zPosition * sz[1] + sz[0];
+      }
+
       trueColor = 0;
-      static int TRUEIx=e->KeywordIx("TRUE");
-      static int ORDERIx=e->KeywordIx("ORDER");
-      static int CHANNELIx=e->KeywordIx("CHANNEL");
+      static int TRUEIx = e->KeywordIx("TRUE");
+      static int ORDERIx = e->KeywordIx("ORDER");
+      static int CHANNELIx = e->KeywordIx("CHANNEL");
 
       image = e->GetParDefined(0);
       rank = image->Rank();
@@ -51,12 +69,12 @@ namespace lib {
       // to be changed    if (trueColor == 1 && xwd->depth < 24) e->Throw("Device depth must be 24 or greater for trueColor color display");
       DLong orderVal = SysVar::TV_ORDER();
       e->AssureLongScalarKWIfPresent(ORDERIx, orderVal);
-      
+
       channel = 0;
       if (e->NParam(0) == 4) e->AssureLongScalarPar(3, channel);
       e->AssureLongScalarKWIfPresent(CHANNELIx, channel);
       if (channel < 0 || channel > 3) e->Throw("Value of Channel is out of allowed range.");
-      
+
       if (rank == 1) {
         byteImage = static_cast<DByteGDL*> (image->Convert2(GDL_BYTE, BaseGDL::COPY));
         byteImageGuard.Init(byteImage);
@@ -78,8 +96,8 @@ namespace lib {
           byteImage = static_cast<DByteGDL*> (image->Convert2(GDL_BYTE, BaseGDL::COPY));
           byteImageGuard.Init(byteImage);
           if (byteImage->Dim(0) < 3) e->Throw("Array <BYTE     Array[" + i2s(byteImage->Dim(0)) + "," +
-                  i2s(byteImage->Dim(1)) + "," + i2s(byteImage->Dim(2))
-                  + "]> does not have enough elements.");
+            i2s(byteImage->Dim(1)) + "," + i2s(byteImage->Dim(2))
+            + "]> does not have enough elements.");
           if (orderVal != 0) {
             byteImage->Reverse(2);
           }
@@ -90,8 +108,8 @@ namespace lib {
           byteImage = static_cast<DByteGDL*> (image->Convert2(GDL_BYTE, BaseGDL::COPY));
           byteImageGuard.Init(byteImage);
           if (byteImage->Dim(1) < 3) e->Throw("Array <BYTE     Array[" + i2s(byteImage->Dim(0)) + "," +
-                  i2s(byteImage->Dim(1)) + "," + i2s(byteImage->Dim(2))
-                  + "]> does not have enough elements.");
+            i2s(byteImage->Dim(1)) + "," + i2s(byteImage->Dim(2))
+            + "]> does not have enough elements.");
           if (orderVal != 0) {
             byteImage->Reverse(2);
           }
@@ -102,8 +120,8 @@ namespace lib {
           byteImage = static_cast<DByteGDL*> (image->Convert2(GDL_BYTE, BaseGDL::COPY));
           byteImageGuard.Init(byteImage);
           if (byteImage->Dim(2) < 3) e->Throw("Array <BYTE     Array[" + i2s(byteImage->Dim(0)) + "," +
-                  i2s(byteImage->Dim(1)) + "," + i2s(byteImage->Dim(2))
-                  + "]> does not have enough elements.");
+            i2s(byteImage->Dim(1)) + "," + i2s(byteImage->Dim(2))
+            + "]> does not have enough elements.");
           if (orderVal != 0) {
             byteImage->Reverse(1);
           }
@@ -120,11 +138,15 @@ namespace lib {
           } else if (image->Dim(2) == 1) {
             imageWidth = image->Dim(0);
             imageHeight = image->Dim(1);
-          } 
+          }
           else { //passed a tricolor image whithout saying it!
             imageWidth = image->Dim(0);
             imageHeight = image->Dim(1);
-            if (imageWidth == 3 ) {imageWidth=1;} else { if (imageHeight == 3 ) imageHeight = 1;} //rather horrible patch
+            if (imageWidth == 3) {
+              imageWidth = 1;
+            } else {
+              if (imageHeight == 3) imageHeight = 1;
+            } //rather horrible patch
           }
           byteImage = static_cast<DByteGDL*> (image->Convert2(GDL_BYTE, BaseGDL::COPY));
           byteImageGuard.Init(byteImage);
@@ -132,53 +154,33 @@ namespace lib {
           newdims[0] = imageWidth;
           newdims[1] = imageHeight;
           dimension dim(newdims, 2);
-          (static_cast<BaseGDL*>(byteImage))->SetDim(dim);
-          rank=2;
+          (static_cast<BaseGDL*> (byteImage))->SetDim(dim);
+          rank = 2;
           if (orderVal != 0) {
-             byteImage->Reverse(1);
-          }        
+            byteImage->Reverse(1);
+          }
         }
       }
-      return false;
+      return false; //do not abort
     }
 
   private:
 
-    void old_body(EnvT* e, GDLGStream * actStream) {
+    bool prepareDrawArea(EnvT* e, GDLGStream * actStream) {
 
-      enum {
-        DATA = 0,
-        NORMAL,
-        DEVICE,
-        NONE
-      } coordinateSystem = NONE;
-      static int DATAIx=e->KeywordIx("DATA");
-      static int DEVICEIx=e->KeywordIx("DEVICE");
-      static int NORMALIx=e->KeywordIx("NORMAL");
-      static int INCHES=e->KeywordIx("INCHES");
-      static int XSIZE=e->KeywordIx("XSIZE");
-      static int YSIZE=e->KeywordIx("YSIZE");
-      static int CENTIMETERS=e->KeywordIx("CENTIMETERS");
-    
-    //check presence of DATA,DEVICE and NORMAL options
+      COORDSYS coordinateSystem = NONE;
+      static int DATAIx = e->KeywordIx("DATA");
+      static int DEVICEIx = e->KeywordIx("DEVICE");
+      static int NORMALIx = e->KeywordIx("NORMAL");
+      static int INCHES = e->KeywordIx("INCHES");
+      static int XSIZE = e->KeywordIx("XSIZE");
+      static int YSIZE = e->KeywordIx("YSIZE");
+      static int CENTIMETERS = e->KeywordIx("CENTIMETERS");
+
+      //check presence of DATA,DEVICE and NORMAL options
       if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
       if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
       if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
-
-      bool mapSet = false;
-      
-#ifdef USE_LIBPROJ
-      // Map Stuff (xtype = 3)
-
-      get_mapset(mapSet);
-
-      if (mapSet) {
-        ref = map_init();
-        if (ref == NULL) {
-          e->Throw("Projection initialization failed.");
-        }
-      }
-#endif
 
       SizeT nParam = e->NParam(1);
 
@@ -187,75 +189,81 @@ namespace lib {
       DLong positionOnPage = 0;
       botLeftPixelX = 0;
       botLeftPixelY = 0;
-      
+
       //DEVICE HAS FIXED PIXELS?
-      bool fixedPixelSize = (((*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 1) == 0); 
+      bool fixedPixelSize = (((*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 1) == 0);
 
       //image size. In DEV, CM or INCHES
-      PLFLT devx, devy, x ,y;
+      PLFLT devx, devy, x, y;
       devx = 0;
       devy = 0;
       bool xSizeGiven, ySizeGiven;
-      double aspect=static_cast<double>(imageWidth)/static_cast<double>(imageHeight);
-        
-        xSizeGiven=e->KeywordPresent(XSIZE);
-        if (xSizeGiven) e->AssureDoubleScalarKWIfPresent(XSIZE, devx);
-        ySizeGiven=e->KeywordPresent(YSIZE);
-        if (ySizeGiven) e->AssureDoubleScalarKWIfPresent(YSIZE, devy);
+      double aspect = static_cast<double> (imageWidth) / static_cast<double> (imageHeight);
 
-        //interpret size:
-        if (xSizeGiven || ySizeGiven) {
-          PLFLT x1,y1, x2 ,y2;
-          if (coordinateSystem == DATA) { //devx and devy interpreted as floats
-            actStream->world2device(0, 0, x1,y1);
-            actStream->world2device(devx, devy, x2,y2);
-            devx=x2-x1; 
-            devy=y2-y1;
-          } else if (coordinateSystem == NORMAL) { //devx and devy interpreted as floats
-            actStream->NormedDeviceToDevice(0, 0, x1,y1);
-            actStream->NormedDeviceToDevice(devx, devy, x2,y2);
-            devx=(x2-x1); 
-            devy=(y2-y1);
-          } else if (coordinateSystem == DEVICE) { //devx and devy must be interpreted as ints to mimic IDL . test all cases with xsize=0.5 to check. 
-            //devx and devy must be interpreted as ints to mimic IDL in the DEVICE mode. 
-            // if this mode is set, then devx < 1 (resp devy) will be as if the xsize (resp. ysize) option was a /NORM value.
-            if (xSizeGiven && devx < 1) {
-              actStream->NormedDeviceToDevice(0, 0, x1,y1);
-              actStream->NormedDeviceToDevice(1, 0, x2,y2);
-              devx=(x2-x1); 
-            } 
-            if (ySizeGiven && devy < 1) {
-              actStream->NormedDeviceToDevice(0, 0, x1,y1);
-              actStream->NormedDeviceToDevice(0, 1, x2,y2);
-              devy=(y2-y1); 
-            }             
-          } else {
-            if (e->KeywordSet(INCHES)) { //devx and devy interpreted as floats
-              devx *= (INCHToMM);
-              devy *= (INCHToMM);
-              actStream->mm2device(devx, devy, x,y);
-              devx=x;
-              devy=y;
-            } else if (e->KeywordSet(CENTIMETERS)) { //devx and devy interpreted as floats
-              devx *= (10.);
-              devy *= (10.);
-              actStream->mm2device(devx, devy, x,y);
-              devx=x;
-              devy=y;
-            }
+      xSizeGiven = e->KeywordPresent(XSIZE);
+      if (xSizeGiven) e->AssureDoubleScalarKWIfPresent(XSIZE, devx);
+      ySizeGiven = e->KeywordPresent(YSIZE);
+      if (ySizeGiven) e->AssureDoubleScalarKWIfPresent(YSIZE, devy);
+
+      //interpret size:
+      if (xSizeGiven || ySizeGiven) {
+        PLFLT x1, y1, x2, y2;
+        if (coordinateSystem == DATA) { //devx and devy interpreted as floats
+          actStream->world2device(0, 0, x1, y1);
+          actStream->world2device(devx, devy, x2, y2);
+          devx = x2 - x1;
+          devy = y2 - y1;
+        } else if (coordinateSystem == NORMAL) { //devx and devy interpreted as floats
+          actStream->NormedDeviceToDevice(0, 0, x1, y1);
+          actStream->NormedDeviceToDevice(devx, devy, x2, y2);
+          devx = (x2 - x1);
+          devy = (y2 - y1);
+        } else if (coordinateSystem == DEVICE) { //devx and devy must be interpreted as ints to mimic IDL . test all cases with xsize=0.5 to check. 
+          //devx and devy must be interpreted as ints to mimic IDL in the DEVICE mode. 
+          // if this mode is set, then devx < 1 (resp devy) will be as if the xsize (resp. ysize) option was a /NORM value.
+          if (xSizeGiven && devx < 1) {
+            actStream->NormedDeviceToDevice(0, 0, x1, y1);
+            actStream->NormedDeviceToDevice(1, 0, x2, y2);
+            devx = (x2 - x1);
           }
-          if (xSizeGiven && !ySizeGiven) {devy=devx/aspect; ySizeGiven=true;}
-          if (!xSizeGiven && ySizeGiven) {devx=devy*aspect; xSizeGiven=true;}
+          if (ySizeGiven && devy < 1) {
+            actStream->NormedDeviceToDevice(0, 0, x1, y1);
+            actStream->NormedDeviceToDevice(0, 1, x2, y2);
+            devy = (y2 - y1);
+          }
         } else {
-          double pageaspect=xPageSize/yPageSize;
-          if (aspect>pageaspect){
-            devx=xPageSize;
-            devy=devx/aspect;
-          } else {
-            devy=yPageSize;
-            devx=devy*aspect;
+          if (e->KeywordSet(INCHES)) { //devx and devy interpreted as floats
+            devx *= (INCHToMM);
+            devy *= (INCHToMM);
+            actStream->mm2device(devx, devy, x, y);
+            devx = x;
+            devy = y;
+          } else if (e->KeywordSet(CENTIMETERS)) { //devx and devy interpreted as floats
+            devx *= (10.);
+            devy *= (10.);
+            actStream->mm2device(devx, devy, x, y);
+            devx = x;
+            devy = y;
           }
         }
+        if (xSizeGiven && !ySizeGiven) {
+          devy = devx / aspect;
+          ySizeGiven = true;
+        }
+        if (!xSizeGiven && ySizeGiven) {
+          devx = devy*aspect;
+          xSizeGiven = true;
+        }
+      } else {
+        double pageaspect = xPageSize / yPageSize;
+        if (aspect > pageaspect) {
+          devx = xPageSize;
+          devy = devx / aspect;
+        } else {
+          devy = yPageSize;
+          devx = devy*aspect;
+        }
+      }
 
       if (nParam == 2) {
         int nPerPageX, nPerPageY, ix, iy;
@@ -266,10 +274,16 @@ namespace lib {
         // AC 2011/11/06, bug 3433502
         if (nPerPageX > 0) {
           ix = positionOnPage % nPerPageX;
-        } else {nPerPageX = 1; ix = 0;}
+        } else {
+          nPerPageX = 1;
+          ix = 0;
+        }
         if (nPerPageY > 0) {
           iy = (positionOnPage / nPerPageX) % nPerPageY;
-        } else {nPerPageY=1; iy = 0;}
+        } else {
+          nPerPageY = 1;
+          iy = 0;
+        }
         botLeftPixelX = imageWidth*ix;
         botLeftPixelY = yPageSize - imageHeight * (iy + 1);
       } else if (nParam >= 3) {
@@ -278,14 +292,16 @@ namespace lib {
         e->AssureDoubleScalarPar(2, yLLf); //idem
         //convert to device Pixel:
         if (coordinateSystem == DATA) {
-//          actStream->WorldToDevice(xLLf, yLLf, x,y);
-          actStream->world2device(xLLf, yLLf, x,y);
-          botLeftPixelX=x; 
-          botLeftPixelY=y;
+          SelfProjectXY(1, &xLLf, &yLLf, coordinateSystem); //here for eventual projection
+          bool f = false;
+          SelfConvertToNormXY(1, &xLLf, f, &yLLf, f, coordinateSystem); //input coordinates converted to NORMAL
+          if (doT3d) SelfPDotTTransformXYZ(1, &xLLf, &yLLf, &zPosition); //T3D transform for point
+          botLeftPixelX = xLLf*xPageSize;
+          botLeftPixelY = yLLf*yPageSize;
         } else if (coordinateSystem == NORMAL) {
-          actStream->NormedDeviceToDevice(xLLf, yLLf, x,y);
-          botLeftPixelX=x;
-          botLeftPixelY=y;
+          actStream->NormedDeviceToDevice(xLLf, yLLf, x, y);
+          botLeftPixelX = x;
+          botLeftPixelY = y;
         } else if (coordinateSystem == DEVICE) {
           botLeftPixelX = xLLf;
           botLeftPixelY = yLLf;
@@ -293,15 +309,15 @@ namespace lib {
           if (e->KeywordSet(INCHES)) {
             xLLf *= (INCHToMM);
             yLLf *= (INCHToMM);
-            actStream->mm2device(xLLf, yLLf, x,y);
-            botLeftPixelX=x;
-            botLeftPixelY=y;
+            actStream->mm2device(xLLf, yLLf, x, y);
+            botLeftPixelX = x;
+            botLeftPixelY = y;
           } else if (e->KeywordSet(CENTIMETERS)) {
             xLLf *= (10.);
             yLLf *= (10.);
-            actStream->mm2device(xLLf, yLLf, x,y);
-            botLeftPixelX=x;
-            botLeftPixelY=y;
+            actStream->mm2device(xLLf, yLLf, x, y);
+            botLeftPixelX = x;
+            botLeftPixelY = y;
           } else {
             botLeftPixelX = xLLf;
             botLeftPixelY = yLLf;
@@ -312,37 +328,42 @@ namespace lib {
       xSize = devx;
       ySize = devy;
 
-      int debug=0;
+      int debug = 0;
       if (debug == 1) {
         std::cout << "==================== " << std::endl;
-        std::cout << "trueColor " << trueColor <<std::endl;
-        std::cout << "Rank " << rank <<std::endl;
-        std::cout << "Channel " << channel <<std::endl;
-        std::cout << "xSize " << xSize <<std::endl;
-        std::cout << "ySize " << ySize <<std::endl;
-        std::cout << "botLeftPixelX " << botLeftPixelX <<std::endl;
-        std::cout << "botLeftPixelY " << botLeftPixelY <<std::endl;
-        std::cout << "imageWidth " << imageWidth <<std::endl;
-        std::cout << "imageHeight " << imageHeight <<std::endl;
+        std::cout << "trueColor " << trueColor << std::endl;
+        std::cout << "Rank " << rank << std::endl;
+        std::cout << "Channel " << channel << std::endl;
+        std::cout << "xSize " << xSize << std::endl;
+        std::cout << "ySize " << ySize << std::endl;
+        std::cout << "botLeftPixelX " << botLeftPixelX << std::endl;
+        std::cout << "botLeftPixelY " << botLeftPixelY << std::endl;
+        std::cout << "imageWidth " << imageWidth << std::endl;
+        std::cout << "imageHeight " << imageHeight << std::endl;
       }
-   
+      return false; //do not abort
     }
 
   private:
 
-    void call_plplot(EnvT* e, GDLGStream * actStream) {
+    void applyGraphics(EnvT* e, GDLGStream * actStream) {
 
       //pass physical position of image
       DLong devicebox[4] = {botLeftPixelX, xSize, botLeftPixelY, ySize};
 
       Guard<BaseGDL> chan_guard;
-      bool tidy=false;
-      DByte* im=&(*byteImage)[0];
-      if (byteImage->Rank()==3 && byteImage->Dim(0)==4) {
-        SizeT s=imageWidth*imageHeight*3;
-        im=(DByte*)malloc(s);
-        for (SizeT i = 0, k=0; i<s;) {im[i++]=(*byteImage)[k++];im[i++]=(*byteImage)[k++];im[i++]=(*byteImage)[k++];k++;}
-        tidy=true;
+      bool tidy = false;
+      DByte* im = &(*byteImage)[0];
+      if (byteImage->Rank() == 3 && byteImage->Dim(0) == 4) {
+        SizeT s = imageWidth * imageHeight * 3;
+        im = (DByte*) malloc(s);
+        for (SizeT i = 0, k = 0; i < s;) {
+          im[i++] = (*byteImage)[k++];
+          im[i++] = (*byteImage)[k++];
+          im[i++] = (*byteImage)[k++];
+          k++;
+        }
+        tidy = true;
       }
       if (channel == 0) {
         if (!actStream->PaintImage(im, imageWidth, imageHeight, devicebox, trueColor, channel)) e->Throw("device does not support Paint");
@@ -370,12 +391,8 @@ namespace lib {
 
   private:
 
-    void post_call(EnvT*, GDLGStream * actStream) // {{{
+    void post_call(EnvT*, GDLGStream * actStream)
     {
-//      if (doT3d) {
-//        plplot3d_guard.Reset(plplot3d);
-//        actStream->stransform(NULL, NULL);
-//      }
     }
   };
 

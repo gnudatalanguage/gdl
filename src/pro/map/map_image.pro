@@ -16,9 +16,9 @@ function  map_image, pristine, xstart, ystart, xsize, ysize, $
 ; used for PostScript etc that have scalable pixels, so any number of
 ; output pixels (ppi) is possible, default is 0.02 pixel by graphic
 ; coordinate. MASK is an array of same size of the result indicating
-; good values (thse that were not put at MISSING by the
+; good values (those that were not put at MISSING by the
 ; interpolation). MAX_VALUE and MIN_VALUE define above and below
-; threshold where valuse are supposed MISSING. xstart, ystart,
+; threshold where values are supposed MISSING. xstart, ystart,
 ; are return values giving the coordinates where the resulting image
 ; whoul be placed on the screen; xsize and ysize are the pixel width and
 ; height of the warped image (pass them to TV if the device is
@@ -63,21 +63,11 @@ function  map_image, pristine, xstart, ystart, xsize, ysize, $
 ; of points being somehow to be adjusted.
 ; pristine map coverage already known
 ; however plotted map region may be much less:
-  normxmin=!x.crange[0]*!x.s[1]+!x.s[0]
-  normxmax=!x.crange[1]*!x.s[1]+!x.s[0]
-  normymin=!y.crange[0]*!y.s[1]+!y.s[0]
-  normymax=!y.crange[1]*!y.s[1]+!y.s[0]
-  lat = replicate((normymax-normymin)/(31),32) # findgen(32) +normymin
-  lon = normxmin + findgen(32) # replicate((normxmax-normxmin)/31,32)
-  uv = convert_coord(temporary(lon),temporary(lat),/norm,/to_data)
-  plotted_minlon=min(uv[0,*],max=plotted_maxlon,/nan)
-  plotted_minlat=min(uv[1,*],max=plotted_maxlat,/nan) & uv=0b
-; plotted_minlon etc are by construction with positive increments and
-; abs_xxx are also with positive increments
+  plotted_minlat=(doMymap)?map_structure.LL_BOX[0]:!MAP.LL_BOX[0]
+  plotted_minlon=(doMymap)?map_structure.LL_BOX[1]:!MAP.LL_BOX[1]
+  plotted_maxlat=(doMymap)?map_structure.LL_BOX[2]:!MAP.LL_BOX[2]
+  plotted_maxlon=(doMymap)?map_structure.LL_BOX[3]:!MAP.LL_BOX[3]
 
-; if, due to a problem in convert_coord, the results has NaNs, abort.
-
-  if ~finite(plotted_minlon+plotted_minlat+plotted_maxlon+plotted_maxlat) then message, "projection has no inverse, unable to proceed."
 ; we could eliminate the case when the plotted region is not in the map.
 ; but IDL only chokes on zero-size arrays instead (which is oK also
 ; but not so well informative).

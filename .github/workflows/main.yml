@@ -183,7 +183,7 @@ jobs:
         with:
           path: |
             C:\msys64\cache
-          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v8
+          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v9
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench
@@ -203,6 +203,8 @@ jobs:
           scripts/build_gdl.sh prep
           ls MINGW-packages/mingw-w64-graphicsmagick/
           mv MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-*-graphicsmagick-*.tar.* /var/cache/pacman/pkg
+          ls MINGW-packages/mingw-w64-plplot/
+          mv MINGW-packages/mingw-w64-plplot/mingw-w64-*-plplot-*.tar.* /var/cache/pacman/pkg
           pacman -Q | tr ' ' '-' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p /cache
