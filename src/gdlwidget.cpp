@@ -1530,7 +1530,8 @@ void GDLWidget::Lower()
 
 DStructGDL* GDLWidget::GetGeometry(wxRealPoint fact)
 {
-  if (!this->IsRealized()) this->Realize(true,false);//necessary if a geometry request is done previous to the command widget_control,xxx,,/Realize !
+// ABSOLUTELY FORBIDDEN TO realize -- find another way if geometry is wrong.
+//  if (!this->IsRealized()) this->Realize(true,false);//necessary if a geometry request is done previous to the command widget_control,xxx,,/Realize !
   GDLWidgetBase* container = static_cast<GDLWidgetBase*> (this->GetMyParent());
   assert(container != NULL);
   int ixsize = 0, iysize = 0, iscr_xsize = 0, iscr_ysize = 0;
@@ -2161,7 +2162,8 @@ GDLWidgetNormalBase::GDLWidgetNormalBase(WidgetIDT parentID, EnvT* e, ULong even
 }
 
 DStructGDL* GDLWidgetBase::GetGeometry(wxRealPoint fact) {
-  if (!this->IsRealized()) this->Realize(true, false); //necessary if a geometry request is done previous to the command widget_control,xxx,,/Realize !
+// ABSOLUTELY FORBIDDEN TO realize -- find another way if geometry is wrong.
+//  if (!this->IsRealized()) this->Realize(true, false); //necessary if a geometry request is done previous to the command widget_control,xxx,,/Realize !
   int panel_xoff = 0;
   int panel_yoff = 0;
 
@@ -3908,7 +3910,8 @@ void GDLWidgetTable::SetTableNumberOfRows( DLong nrows){
 }
 DStructGDL* GDLWidgetTable::GetGeometry(wxRealPoint fact)
 {
-  if (!this->IsRealized()) this->Realize(true,false);//necessary if a geometry request is done previous to the command widget_control,xxx,,/Realize !
+// ABSOLUTELY FORBIDDEN TO realize -- find another way if geometry is wrong.
+//  if (!this->IsRealized()) this->Realize(true,false);//necessary if a geometry request is done previous to the command widget_control,xxx,,/Realize !
   GDLWidgetBase* container = static_cast<GDLWidgetBase*> (this->GetMyParent());
   assert(container != NULL);
   int ixsize = 0, iysize = 0, iscr_xsize = 0, iscr_ysize = 0;

@@ -5,7 +5,7 @@
     Copyright            : (C) 2015 by Jeongbin Park
     email                : pjb7687@gmail.com
 
-****************************************************************************/
+ ****************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -27,8 +27,8 @@ using namespace std;
 
 namespace lib {
 #ifdef HAVE_LIBWXWIDGETS
-  BaseGDL* wxwidgets_exists(EnvT* e)
-  {
+
+  BaseGDL* wxwidgets_exists(EnvT* e) {
     return new DIntGDL(1);
   }
 
@@ -42,7 +42,7 @@ namespace lib {
       OVERWRITE_PROMPT=overwrite_prompt, PATH=path, $
       READ=read, WRITE=write, RESOURCE_NAME=resource_name, $
       TITLE=title)
-    */
+     */
 
 #ifdef HAVE_LOCALE_H
     setlocale(LC_ALL, "C");
@@ -131,66 +131,59 @@ namespace lib {
     static int titleIx = e->KeywordIx("TITLE");
     bool titleKW = e->KeywordPresent(titleIx);
     if (titleKW) istitle = e->KeywordSet(titleIx);
-		
+
     if (ismultiple_files && isdirectory)
       Warning("DIALOG_PICKFILE: Selecting multiple directories is not supported.");
-		
+
     if (get_pathKW) e->AssureGlobalKW(get_pathIx);
 
     // Set parent widget.
     // WARNING: THIS PART IS NOT TESTED
     GDLWidget *widget;
     wxWindow *parent;
-    if (isgroup || isdialog_parent)
-      {
-	DLong groupLeader = 0;
-	// GROUP == DIALOG_PARENT.
-	// However GROUP is deprecated, so we prefer DIALOG_PARENT here.
-	e->AssureLongScalarKWIfPresent(groupIx, groupLeader);
-	e->AssureLongScalarKWIfPresent(dialog_parentIx, groupLeader);
+    if (isgroup || isdialog_parent) {
+      DLong groupLeader = 0;
+      // GROUP == DIALOG_PARENT.
+      // However GROUP is deprecated, so we prefer DIALOG_PARENT here.
+      e->AssureLongScalarKWIfPresent(groupIx, groupLeader);
+      e->AssureLongScalarKWIfPresent(dialog_parentIx, groupLeader);
 
-	widget = GDLWidget::GetWidget(groupLeader);
-	if (widget == NULL) ThrowGDLException("Message code is invalid.");
-	parent = static_cast<wxWindow *> (widget->GetWxWidget());
-      }
-    else parent = 0;
+      widget = GDLWidget::GetWidget(groupLeader);
+      if (widget == NULL) ThrowGDLException("Message code is invalid.");
+      parent = static_cast<wxWindow *> (widget->GetWxWidget());
+    } else parent = 0;
 
     // Set style
     long style = 0;
-    if (isdirectory)
-      {
-	style |= wxDD_DEFAULT_STYLE;
-	if (ismust_exist)                  style |= wxDD_DIR_MUST_EXIST;
-      }
-    else
-      {
-	if (iswrite)                       style |= wxFD_SAVE;
-	else                               style |= wxFD_OPEN;
-	if (ismust_exist)                  style |= wxFD_FILE_MUST_EXIST;
-	if (ismultiple_files)              style |= wxFD_MULTIPLE;
-	if (iswrite && isoverwrite_prompt) style |= wxFD_OVERWRITE_PROMPT;
-      }
+    if (isdirectory) {
+      style |= wxDD_DEFAULT_STYLE;
+      if (ismust_exist) style |= wxDD_DIR_MUST_EXIST;
+    } else {
+      if (iswrite) style |= wxFD_SAVE;
+      else style |= wxFD_OPEN;
+      if (ismust_exist) style |= wxFD_FILE_MUST_EXIST;
+      if (ismultiple_files) style |= wxFD_MULTIPLE;
+      if (iswrite && isoverwrite_prompt) style |= wxFD_OVERWRITE_PROMPT;
+    }
 
     // Set title
     wxString wxtitlestr = wxT("Select File");
-    if (istitle)
-      {
-	DString titlestr;
-	e->AssureStringScalarKW(titleIx, titlestr);
-      }
-    else
-      {
-	if (iswrite)     wxtitlestr = wxT("Select File to Write");
-	else if (isread) wxtitlestr = wxT("Select File to Read");
-      }
- 
+    if (istitle) {
+      DString titlestr;
+      e->AssureStringScalarKW(titleIx, titlestr);
+      wxtitlestr = wxString(titlestr.c_str(), wxConvUTF8);
+    } else {
+      if (iswrite) wxtitlestr = wxT("Select File to Write");
+      else if (isread) wxtitlestr = wxT("Select File to Read");
+    }
+
     // Set default path, with recent Gnome, default path is "the previous"
     wxString wxpathstr = wxT("");
     DString pathstr;
     if (ispath) {
       e->AssureStringScalarKW(pathIx, pathstr);
     } else {
-      pathstr=GetCWD();
+      pathstr = GetCWD();
     }
     wxpathstr = wxString(pathstr.c_str(), wxConvUTF8);
 
@@ -198,147 +191,133 @@ namespace lib {
     // Show dialog
     wxArrayString wxpathstrarr;
     long pathcnt;
-    if (isdirectory)
-      {
-	// If DIRECTORY is set, show DirDialog
-	wxDirDialog gdlDirDialog(parent, wxtitlestr, wxpathstr, style);
-	if (gdlDirDialog.ShowModal() != wxID_CANCEL)
-	  {
-	    wxpathstr = gdlDirDialog.GetPath();
-	    wxpathstrarr.push_back(wxpathstr);
-	    pathcnt = 1;
-	  }
-	else pathcnt = 0;
-      }
-    else
-      {
-	// If DIRECTORY is not set, show FileDialog
-	wxString wxfilterstr;
-	if (isfilter) {
-    if (e->GetDefinedKW(filterIx)->Type()!=GDL_STRING) e->Throw("String expression required in this context: "+ e->GetString(filterIx));
-	  DStringGDL* filterstrarr = e->IfDefGetKWAs<DStringGDL>(filterIx);
-	  dimension dim = filterstrarr->Dim();
-	  if (dim.Rank() > 2 || (dim.Rank() == 2 && dim[1] != 2))
-	    ThrowGDLException("Filter must be a one dimensional or [N,2] string array.");
-	  if (dim.Rank() <= 1)
-	    {
-	      for (int i = 0; i < filterstrarr->Size(); i++)
-		{
-		  DString filterstr = (*filterstrarr)[i];
-		  if (i != 0) wxfilterstr += wxT("|");
-		  wxfilterstr += wxString((filterstr + "|" + filterstr).c_str(), wxConvUTF8);
-		}
-	    }
-	  else // rank == 2
-	    {
-	      long filtercnt = filterstrarr->Dim(0);
-	      for (int i = 0; i < filtercnt; i++)
-		{
-		  if (i != 0) wxfilterstr += wxT("|");
-		  wxfilterstr += wxString(((DString)((*filterstrarr)[i + filtercnt]) + "|" + (DString)((*filterstrarr)[i])).c_str(), wxConvUTF8);
-		}
-	    }
-	}
-	else wxfilterstr = wxT("*.*|*.*");
+    if (isdirectory) {
+      // If DIRECTORY is set, show DirDialog
+      wxDirDialog gdlDirDialog(parent, wxtitlestr, wxpathstr, style);
+      if (gdlDirDialog.ShowModal() != wxID_CANCEL) {
+        wxpathstr = gdlDirDialog.GetPath();
+        wxpathstrarr.push_back(wxpathstr);
+        pathcnt = 1;
+      } else pathcnt = 0;
+    } else {
+      // If DIRECTORY is not set, show FileDialog
+      wxString wxfilterstr;
+      if (isfilter) {
+        if (e->GetDefinedKW(filterIx)->Type() != GDL_STRING) e->Throw("String expression required in this context: " + e->GetString(filterIx));
+        DStringGDL* filterstrarr = e->IfDefGetKWAs<DStringGDL>(filterIx);
+        dimension dim = filterstrarr->Dim();
+        if (dim.Rank() > 2 || (dim.Rank() == 2 && dim[1] != 2))
+          ThrowGDLException("Filter must be a one dimensional or [N,2] string array.");
+        if (dim.Rank() <= 1) {
+          for (int i = 0; i < filterstrarr->Size(); i++) {
+            DString filterstr = (*filterstrarr)[i];
+            if (i != 0) wxfilterstr += wxT("|");
+            wxfilterstr += wxString((filterstr + "|" + filterstr).c_str(), wxConvUTF8);
+          }
+        } else // rank == 2
+        {
+          long filtercnt = filterstrarr->Dim(0);
+          for (int i = 0; i < filtercnt; i++) {
+            if (i != 0) wxfilterstr += wxT("|");
+            wxfilterstr += wxString(((DString) ((*filterstrarr)[i + filtercnt]) + "|" + (DString) ((*filterstrarr)[i])).c_str(), wxConvUTF8);
+          }
+        }
+      } else wxfilterstr = wxT("*.*|*.*");
 
-	wxString wxfilestr;
-	if (isfile) {
-	  DString filestr;
-	  e->AssureStringScalarKW(fileIx, filestr);
-	  wxfilestr = wxString(filestr.c_str(), wxConvUTF8);
-	}
-
-	wxFileDialog gdlFileDialog(parent, wxtitlestr, wxpathstr, wxfilestr, wxfilterstr, style);
-	if (gdlFileDialog.ShowModal() != wxID_CANCEL) {
-	  if (ismultiple_files)
-	    {
-	      gdlFileDialog.GetPaths(wxpathstrarr);
-	      pathcnt = wxpathstrarr.size();
-	    }
-	  else
-	    {
-	      wxString wxpath = gdlFileDialog.GetPath();
-	      wxpathstrarr.push_back(wxpath);
-	      pathcnt = 1;
-	    }
-	}
-	else pathcnt = 0;
+      wxString wxfilestr;
+      if (isfile) {
+        DString filestr;
+        e->AssureStringScalarKW(fileIx, filestr);
+        //if filestr contains a PATH, then having an empty wxpathstr will raise an assert by wxWidgets. Better to remmove it:
+#ifdef _WIN32
+        char pathsep[] = "\\";
+#else
+        char pathsep[] = "/";
+#endif
+        std::size_t found = filestr.find(pathsep[0]);
+        if (found!=std::string::npos) wxpathstr.clear();
+        wxfilestr = wxString(filestr.c_str(), wxConvUTF8);
       }
+
+      wxFileDialog gdlFileDialog(parent, wxtitlestr, wxpathstr, wxfilestr, wxfilterstr, style);
+      if (gdlFileDialog.ShowModal() != wxID_CANCEL) {
+        if (ismultiple_files) {
+          gdlFileDialog.GetPaths(wxpathstrarr);
+          pathcnt = wxpathstrarr.size();
+        } else {
+          wxString wxpath = gdlFileDialog.GetPath();
+          wxpathstrarr.push_back(wxpath);
+          pathcnt = 1;
+        }
+      } else pathcnt = 0;
+    }
 
     // If MULTIPLE_FILES is set, result is string array of filenames; otherwise result is string scalar.
     // If DIRECTORY is set, result is always string scalar.
     DStringGDL* res;
     if (pathcnt == 0) res = new DStringGDL("");
-    else
-      {
-	if (ismultiple_files && !isdirectory)
-	  {
-	    res = new DStringGDL(dimension(pathcnt), BaseGDL::NOZERO);
-	    for (SizeT r = 0; r < pathcnt; ++r)
-	      (*res)[r] = _D(wxpathstrarr[r]);
-	  }
-	else if (isdirectory) res = new DStringGDL(_D(wxpathstrarr[0]) + PathSeparator());
-	else                  res = new DStringGDL(_D(wxpathstrarr[0]));
-      }
+    else {
+      if (ismultiple_files && !isdirectory) {
+        res = new DStringGDL(dimension(pathcnt), BaseGDL::NOZERO);
+        for (SizeT r = 0; r < pathcnt; ++r)
+          (*res)[r] = _D(wxpathstrarr[r]);
+      } else if (isdirectory) res = new DStringGDL(_D(wxpathstrarr[0]) + PathSeparator());
+      else res = new DStringGDL(_D(wxpathstrarr[0]));
+    }
 
     // Set the given GET_PATH variable
     if (get_pathKW) {
-      if (pathcnt > 0)
-	{
-	  DStringGDL* pathstrgdl;
-	  if (isdirectory) pathstrgdl = new DStringGDL((*res)[0]);
-	  else
-	    {
-	      static int file_dirnameIx = LibFunIx("FILE_DIRNAME");
-	      EnvT *newEnv = new EnvT(e, libFunList[file_dirnameIx], NULL);
-	      Guard<EnvT> guard(newEnv);
-	      newEnv->SetNextPar(new DStringGDL((*res)[0]));
-	      pathstrgdl = (DStringGDL *)file_dirname(newEnv);
-	      guard.release();
-	      (*pathstrgdl)[0].append(PathSeparator());
-	    }
-	  e->SetKW(get_pathIx, pathstrgdl);
-	}
-      else e->SetKW(get_pathIx, new DStringGDL(""));
+      if (pathcnt > 0) {
+        DStringGDL* pathstrgdl;
+        if (isdirectory) pathstrgdl = new DStringGDL((*res)[0]);
+        else {
+          static int file_dirnameIx = LibFunIx("FILE_DIRNAME");
+          EnvT *newEnv = new EnvT(e, libFunList[file_dirnameIx], NULL);
+          Guard<EnvT> guard(newEnv);
+          newEnv->SetNextPar(new DStringGDL((*res)[0]));
+          pathstrgdl = (DStringGDL *) file_dirname(newEnv);
+          guard.release();
+          (*pathstrgdl)[0].append(PathSeparator());
+        }
+        e->SetKW(get_pathIx, pathstrgdl);
+      } else e->SetKW(get_pathIx, new DStringGDL(""));
     }
 
     // Add default extension to the results
-    if (isdefault_extension && !isdirectory && pathcnt > 0)
-      {
-	DString defaultextstr;
-	e->AssureStringScalarKW(default_extensionIx, defaultextstr);
-	bool fileexists;
-	EnvT *newEnv;
+    if (isdefault_extension && !isdirectory && pathcnt > 0) {
+      DString defaultextstr;
+      e->AssureStringScalarKW(default_extensionIx, defaultextstr);
+      bool fileexists;
+      EnvT *newEnv;
 
-	// TODO: below is not valid when 'write' and 'filter' keys are simultaneously specified.
-	//       See http://www.exelisvis.com/docs/DIALOG_PICKFILE.html
-	for (int i = 0; i < pathcnt; i++)
-	  {
-	    // Check file exists
-	    ifstream f((*res)[i].c_str());
-	    fileexists = f.good();
-	    f.close();
+      // TODO: below is not valid when 'write' and 'filter' keys are simultaneously specified.
+      //       See http://www.exelisvis.com/docs/DIALOG_PICKFILE.html
+      for (int i = 0; i < pathcnt; i++) {
+        // Check file exists
+        ifstream f((*res)[i].c_str());
+        fileexists = f.good();
+        f.close();
 
-	    if (!fileexists) {
-	      static int file_basenameIx = LibFunIx("FILE_BASENAME");
-	      newEnv = new EnvT(e, libFunList[file_basenameIx], NULL);
-	      Guard<EnvT> guard(newEnv);
-	      newEnv->SetNextPar(new DStringGDL((*res)[i]));
-	      DStringGDL *basenamestrgdl = (DStringGDL *)file_basename(newEnv);
-	      guard.release();
+        if (!fileexists) {
+          static int file_basenameIx = LibFunIx("FILE_BASENAME");
+          newEnv = new EnvT(e, libFunList[file_basenameIx], NULL);
+          Guard<EnvT> guard(newEnv);
+          newEnv->SetNextPar(new DStringGDL((*res)[i]));
+          DStringGDL *basenamestrgdl = (DStringGDL *) file_basename(newEnv);
+          guard.release();
 
-	      // Add default extention when the file does not have one
-	      if ((*basenamestrgdl)[0].find(".") == string::npos)
-		(*res)[i] += "." + defaultextstr;
-	    }
+          // Add default extention when the file does not have one
+          if ((*basenamestrgdl)[0].find(".") == string::npos)
+            (*res)[i] += "." + defaultextstr;
+        }
 #ifdef _WIN32 // if posixpaths desired, convert them here.
-    if (lib::posixpaths) {
-        char * ptr = (char *) (*res)[i].c_str();
-        for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
-    }
+        if (lib::posixpaths) {
+          char * ptr = (char *) (*res)[i].c_str();
+          for (int i = 0; ptr[i] != 0; i++) if (ptr[i] == '\\') ptr[i] = '/';
+        }
 #endif          
-	  }
       }
+    }
     return res;
   }
 
@@ -414,71 +393,76 @@ namespace lib {
 #endif
 
     // If two or three styles are specified simultaneously, set INFORMATION as default.
-    if ((iserror && isquestion) || (iserror && isinformation) || (isquestion && isinformation))
-      {
-	iserror = false;
-	isquestion = false;
-	isinformation = true;
-      }
+    if ((iserror && isquestion) || (iserror && isinformation) || (isquestion && isinformation)) {
+      iserror = false;
+      isquestion = false;
+      isinformation = true;
+    }
 
     // Set style
-    long style = wxOK|wxSTAY_ON_TOP;
-    if (isquestion)                   style = wxYES_NO;
+    long style = wxOK | wxSTAY_ON_TOP;
+    if (isquestion) style = wxYES_NO;
     if (iscancel || isdefault_cancel) style |= wxCANCEL;
-    if (iscenter)                     style |= wxCENTRE; // On windows, dialog is always centered with or without this option.
-    if (isdefault_cancel)             style |= wxCANCEL_DEFAULT;
-    if (isquestion && isdefault_no)   style |= wxNO_DEFAULT;
-    if (isquestion)                   style |= wxICON_QUESTION;
-    else if (iserror)                 style |= wxICON_ERROR;
-    else if (isinformation)           style |= wxICON_INFORMATION;
-    else                              style |= wxICON_WARNING; // Default type is 'Warning'
+    if (iscenter) style |= wxCENTRE; // On windows, dialog is always centered with or without this option.
+    if (isdefault_cancel) style |= wxCANCEL_DEFAULT;
+    if (isquestion && isdefault_no) style |= wxNO_DEFAULT;
+    if (isquestion) style |= wxICON_QUESTION;
+    else if (iserror) style |= wxICON_ERROR;
+    else if (isinformation) style |= wxICON_INFORMATION;
+    else style |= wxICON_WARNING; // Default type is 'Warning'
 
     // Set parent widget.
     // WARNING: THIS PART IS NOT TESTED
     GDLWidget *widget;
     wxWindow *parent;
-    if (isdialog_parent)
-      {
-	DLong groupLeader = 0;
-	e->AssureLongScalarKWIfPresent(dialog_parentIx, groupLeader);
+    if (isdialog_parent) {
+      DLong groupLeader = 0;
+      e->AssureLongScalarKWIfPresent(dialog_parentIx, groupLeader);
 
-	widget = GDLWidget::GetWidget(groupLeader);
-	if (widget == NULL) ThrowGDLException("Message code is invalid.");
-	parent = static_cast<wxWindow *> (widget->GetWxWidget());
-      }
-    else parent = 0;
+      widget = GDLWidget::GetWidget(groupLeader);
+      if (widget == NULL) ThrowGDLException("Message code is invalid.");
+      parent = static_cast<wxWindow *> (widget->GetWxWidget());
+    } else parent = 0;
 
     // Set title
     wxString wxtitlestr;
-    if (istitle)
-      {
-	DString titlestr;
-	e->AssureStringScalarKW(titleIx, titlestr);
-	wxtitlestr = wxString(titlestr.c_str(), wxConvUTF8);
-      }
-    else
-      {
-	if (iserror)            wxtitlestr = wxT("Error");
-	else if (isinformation) wxtitlestr = wxT("Information");
-	else if (isquestion)    wxtitlestr = wxT("Question");
-	else                    wxtitlestr = wxT("Warning");
-      }
+    if (istitle) {
+      DString titlestr;
+      e->AssureStringScalarKW(titleIx, titlestr);
+      wxtitlestr = wxString(titlestr.c_str(), wxConvUTF8);
+    } else {
+      if (iserror) wxtitlestr = wxT("Error");
+      else if (isinformation) wxtitlestr = wxT("Information");
+      else if (isquestion) wxtitlestr = wxT("Question");
+      else wxtitlestr = wxT("Warning");
+    }
     // convert eventual array of strings in a string:
     DString local_string;
-    for( int i=0; i<messagestr->N_Elements(); ++i) local_string += (*messagestr)[i]+'\n'; 
+    for (int i = 0; i < messagestr->N_Elements(); ++i) local_string += (*messagestr)[i] + '\n';
     // remove last \n
-    if (local_string.length() > 1)  local_string.resize(local_string.length()-1);
+    if (local_string.length() > 1) local_string.resize(local_string.length() - 1);
     // Show dialog
     wxMessageDialog gdlMessageDialog(parent, wxString(local_string.c_str(), wxConvUTF8), wxtitlestr, style);
     int rtn = gdlMessageDialog.ShowModal();
-    if (wxID_OK == rtn)          return new DStringGDL("OK");
-    else if (wxID_YES == rtn)    return new DStringGDL("Yes");
-    else if (wxID_NO == rtn)     return new DStringGDL("No");
-    else                         return new DStringGDL("Cancel");
+    if (wxID_OK == rtn) return new DStringGDL("OK");
+    else if (wxID_YES == rtn) return new DStringGDL("Yes");
+    else if (wxID_NO == rtn) return new DStringGDL("No");
+    else return new DStringGDL("Cancel");
   }
 #else
-  BaseGDL* wxwidgets_exists(EnvT* e) { return new DIntGDL(0); };
-  BaseGDL* dialog_pickfile_wxwidgets(EnvT* e) { ThrowGDLException("DIALOG_PICKFILE: GDL was compiled without support for wxWidgets"); return 0; }
-  BaseGDL* dialog_message_wxwidgets(EnvT* e) { ThrowGDLException("DIALOG_MESSAGE: GDL was compiled without support for wxWidgets"); return 0; }
+
+  BaseGDL* wxwidgets_exists(EnvT* e) {
+    return new DIntGDL(0);
+  };
+
+  BaseGDL* dialog_pickfile_wxwidgets(EnvT* e) {
+    ThrowGDLException("DIALOG_PICKFILE: GDL was compiled without support for wxWidgets");
+    return 0;
+  }
+
+  BaseGDL* dialog_message_wxwidgets(EnvT* e) {
+    ThrowGDLException("DIALOG_MESSAGE: GDL was compiled without support for wxWidgets");
+    return 0;
+  }
 #endif
 }
