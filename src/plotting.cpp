@@ -661,17 +661,17 @@ namespace lib
 /// @param color DLongGDL* pointer to color list (NULL if no use)
 ///
 
-  void draw_polyline(GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal, DLong psym, bool append, DLongGDL *color)
+  void draw_polyline(GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal, DLong psym, bool append, DLongGDL *colorgdl)
   {
 //        std::cerr<<"draw_polyline()"<<std::endl;
 
-    bool docolor=(color != NULL);
+    bool docolor=(colorgdl != NULL);
  
     // Get decomposed value for colors
     DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
     //if docolor, do we really have more than one color?
-    if (docolor) if (color->N_Elements() == 1) { //do the job once and forget it after.
-      a->Color ( ( *color )[0], decomposed);
+    if (docolor) if (colorgdl->N_Elements() == 1) { //do the job once and forget it after.
+      a->Color ( ( *colorgdl )[0], decomposed);
       docolor=false;
       
     }    
@@ -844,15 +844,23 @@ namespace lib
     bool hasNormalPsym=(local_psym > 0 && local_psym < 8);
     bool hasCustomPsym=(local_psym==8);
     bool hasHisto=(local_psym==10);
+    SizeT maxAllowedColorsForSpeed=minEl;
+    //wxWidgets driver by plplot somehow makes an N^2 call to change colors --- impossibly slow. Check if the driver is wxWidgets. 
+    // TO BE REMOVED WHEN BUG DISAPPEARS
+    if (a->IsWxStream()) maxAllowedColorsForSpeed=512;
     if (!docolor) { 
       for (SizeT i = (append ? 0 : 1); i < minEl; ++i) {
         isBad = (!isfinite(x) || !isfinite(y) ); //nb: isfinite(x)   returns a nonzero value if (fpclassify(x) != FP_NAN && fpclassify(x) != FP_INFINITE)
         if (isBad && i_buff > 0) {
           if (line) a->line(i_buff, x_buff, y_buff);
           if (hasNormalPsym) {
-            a->ssym(0, a->getSymbolSize()/2);
-            a->poin(i_buff, x_buff, y_buff, 0);
-            a->ssym(0, 1.);
+            for (int j = 0; j < i_buff; ++j) {
+              for (int kk = 0; kk < *userSymArrayDim; kk++) {
+                xSym[kk] = x_buff[j] + localUserSymX[kk];
+                ySym[kk] = y_buff[j] + localUserSymY[kk];
+              }
+              a->line(*userSymArrayDim, xSym, ySym);
+            }
           } else if (hasCustomPsym) {
             DLong oldStyl = gdlGetCurrentStyle();
             a->styl(0, NULL, NULL); //symbols drawn in continuous lines
@@ -891,9 +899,13 @@ namespace lib
 //          cout << "GDL_POLYLINE_BUFSIZE:" << GDL_POLYLINE_BUFSIZE << " i: " << i << " i_buff" << i_buff << " minEl: " << minEl << endl;
           if (line) a->line(i_buff, x_buff, y_buff);
           if (hasNormalPsym) {
-            a->ssym(0, a->getSymbolSize());
-            a->poin(i_buff, x_buff, y_buff, 0);
-            a->ssym(0, 1.);
+            for (int j = 0; j < i_buff; ++j) {
+              for (int kk = 0; kk < *userSymArrayDim; kk++) {
+                xSym[kk] = x_buff[j] + localUserSymX[kk];
+                ySym[kk] = y_buff[j] + localUserSymY[kk];
+              }
+              a->line(*userSymArrayDim, xSym, ySym);
+            }
           } else if (hasCustomPsym) {
             DLong oldStyl = gdlGetCurrentStyle();
             a->styl(0, NULL, NULL); //symbols drawn in continuous lines
@@ -926,23 +938,31 @@ namespace lib
         }
       }
     } else { //docolor mode
+      DLong* color=static_cast<DLong*>(colorgdl->DataAddr());
       for (SizeT i = (append ? 0 : 1); i < minEl; ++i) {
         isBad = (!isfinite(x) || !isfinite(y)); //nb: isfinite(x)   returns a nonzero value if (fpclassify(x) != FP_NAN && fpclassify(x) != FP_INFINITE)
         if (isBad && i_buff > 0) {
           //tricky as we need to plot line and/or eventual symbol the same color
           DLong oldStyl = gdlGetCurrentStyle();
-          if (hasNormalPsym) a->ssym(0, a->getSymbolSize()); 
-          else if (hasCustomPsym) {
+          if (hasCustomPsym) {
             a->styl(0, NULL, NULL); //symbols drawn in continuous lines
             if (*usersymhasthick) {
               a->Thick(*usymThick);
             }
           }
           for (SizeT j = 0; j < i_buff - 1; ++j) {
-            a->Color((*color)[plotIndex++], decomposed); //set color
+            DULong col=color[plotIndex++%maxAllowedColorsForSpeed];
+            a->Color(col, decomposed); //set color
             if (line) a->line(2, &(x_buff[j]), &(y_buff[j]));
-            if (hasNormalPsym) a->poin(1, &(x_buff[j]), &(y_buff[j]), 0);
-            else if (hasCustomPsym) {
+            if (hasNormalPsym) {
+              for (int j = 0; j < i_buff; ++j) {
+                for (int kk = 0; kk < *userSymArrayDim; kk++) {
+                  xSym[kk] = x_buff[j] + localUserSymX[kk];
+                  ySym[kk] = y_buff[j] + localUserSymY[kk];
+                }
+                a->line(*userSymArrayDim, xSym, ySym);
+              }
+            } else if (hasCustomPsym) {
               for (int kk = 0; kk < *userSymArrayDim; kk++) {
                 xSym[kk] = x_buff[j] + localUserSymX[kk];
                 ySym[kk] = y_buff[j] + localUserSymY[kk];
@@ -955,7 +975,6 @@ namespace lib
               gdlLineStyle(a, oldStyl);
             }
           }
-          if (hasNormalPsym) a->ssym(0, 1.);
           i_buff = 0;
         }
 
@@ -969,18 +988,25 @@ namespace lib
         if ((i_buff == GDL_POLYLINE_BUFSIZE) || (i == minEl - 1)) {
           //tricky as we need to plot line and/or eventual symbol the same color
           DLong oldStyl = gdlGetCurrentStyle();
-          if (hasNormalPsym) a->ssym(0, a->getSymbolSize());
-          else if (hasCustomPsym) {
+          if (hasCustomPsym) {
             a->styl(0, NULL, NULL); //symbols drawn in continuous lines
             if (*usersymhasthick) {
               a->Thick(*usymThick);
             }
           }
           for (SizeT j = 0; j < i_buff - 1; ++j) {
-            a->Color((*color)[plotIndex++], decomposed); //set color
+            DULong col=color[plotIndex++%maxAllowedColorsForSpeed];
+            a->Color(col, decomposed); //set color
             if (line) a->line(2, &(x_buff[j]), &(y_buff[j]));
-            if (hasNormalPsym) a->poin(1, &(x_buff[j]), &(y_buff[j]), 0);
-            else if (hasCustomPsym) {
+            if (hasNormalPsym) {
+              for (int j = 0; j < i_buff; ++j) {
+                for (int kk = 0; kk < *userSymArrayDim; kk++) {
+                  xSym[kk] = x_buff[j] + localUserSymX[kk];
+                  ySym[kk] = y_buff[j] + localUserSymY[kk];
+                }
+                a->line(*userSymArrayDim, xSym, ySym);
+              }
+            } else if (hasCustomPsym) {
               for (int kk = 0; kk < *userSymArrayDim; kk++) {
                 xSym[kk] = x_buff[j] + localUserSymX[kk];
                 ySym[kk] = y_buff[j] + localUserSymY[kk];
@@ -993,7 +1019,6 @@ namespace lib
               gdlLineStyle(a, oldStyl);
             }
           }
-          if (hasNormalPsym) a->ssym(0, 1.);
 
           // we must recopy the last point since the line must continue (tested via small buffer ...)
           x_buff[0] = x_buff[i_buff - 1];

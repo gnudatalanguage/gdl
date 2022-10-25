@@ -82,6 +82,7 @@ GDLWXStream::GDLWXStream( int width, int height )
     GDLCT* myCT=GraphicsDevice::GetGUIDevice( )->GetCT();
     myCT->Get( r, g, b);
     SetColorMap0( r, g, b, ctSize); //set colormap 0 to 256 values
+    SetColorMap1( r, g, b, ctSize); //set colormap 1 to 256 values
 
     // need to be called initially. permit to fix things
     plstream::ssub( 1, 1 ); // plstream below stays with ONLY ONE page

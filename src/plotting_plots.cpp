@@ -198,9 +198,9 @@ namespace lib {
       if (e->GetKW(colorIx) != NULL) {
         color = e->GetKWAs<DLongGDL>(colorIx);
         doColor = true;
+        //if color is not a singleton, its number of elements MUST be larger that nEl
+        if (!(color->Scalar()) && color->N_Elements() < nEl) e->Throw("Color array does not have enough elements.");
       }
-      //if color is not a singleton, its number of elements MUST be larger that nEl
-      if (!(color->Scalar()) && color->N_Elements() < nEl) e->Throw("Color array does not have enough elements.");
       //properties
       if (!doColor || color->N_Elements() == 1) {
         //if no KW or only 1 color, no need to complicate things
