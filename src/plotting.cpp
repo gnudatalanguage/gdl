@@ -43,8 +43,8 @@ namespace lib
   
 //static values
   static DLong savedStyle=0;
-  static DDouble savedPointX=0.0;
-  static DDouble savedPointY=0.0;
+  static DDouble savedPointX=std::numeric_limits<double>::quiet_NaN();
+  static DDouble savedPointY=std::numeric_limits<double>::quiet_NaN();
   static DFloat sym1x[6]={1, -1, 0, 0, 0, 0}; // +
   static DFloat sym1y[6]={0, 0, 0, -1, 1, 0}; // +
   static DFloat sym2x[12]= {1, -1, 0, 0, 0, 0,1,-1,0,1,-1, 0}; //*
@@ -823,13 +823,9 @@ namespace lib
     if (append) //start with the old point
     {
       getLastPoint(a, x, y);
-      isBad = (!isfinite(x) || !isfinite(y) || isnan(x) || isnan(y));
-      if (!isBad) {
-        x_buff[i_buff]=x;
-        y_buff[i_buff]=y;
-        i_buff++;
-        append=true;
-      } else append=false;
+      x_buff[i_buff]=x;
+      y_buff[i_buff]=y;
+      i_buff++;
     } else {
       if (!flag_x_const) x = static_cast<PLFLT> ((*xVal)[0]);
       else x = x_ref;
