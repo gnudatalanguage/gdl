@@ -64,25 +64,22 @@ void GDLGStream::Color( ULong color, DLong decomposed) {
     if (decomposed == 0) {
       if (printer && (color & 0xFF) == 0) { color=(bw)?WHITE:BLACK; //note that if bw other colors will be a gray value 
         GDLGStream::SetColorMap1SingleColor(color);
-        plstream::col1(1); //send specifically color ZERO = black.
-        return;
       } else plstream::col0(color & 0xFF); //just set color index [0..255]. simple and fast.
     } else {
       if (printer && color == 0) color=(bw)?WHITE:BLACK;
       GDLGStream::SetColorMap1SingleColor(color);
-      plstream::col1(1); //send specifically color ZERO = black.
-      return;
     }
 }
 #undef BLACK
 
 void GDLGStream::SetColorMap1SingleColor( ULong color)
 {
-    PLINT red[2],green[2],blue[2];
-    red[0] =red[1] = color & 0xFF;
-    green[0] = green[1] =(color >> 8)  & 0xFF;
-    blue[0]= blue[1]=(color >> 16) & 0xFF;
-    SetColorMap1(red, green, blue, 2); 
+    PLINT red[1],green[1],blue[1];
+    red[0] = color & 0xFF;
+    green[0] = (color >> 8)  & 0xFF;
+    blue[0]=(color >> 16) & 0xFF;
+    SetColorMap1(red, green, blue, 1);
+    plstream::col1(0); 
 }
 
 void GDLGStream::SetColorMap1DefaultColors(PLINT ncolors, DLong decomposed)

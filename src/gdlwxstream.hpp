@@ -47,7 +47,8 @@ public:
 
     GDLWXStream( int width, int height );  
     ~GDLWXStream(); 
-    
+    virtual bool IsWxStream() final{return true;}
+
     wxMemoryDC* GetStreamDC() const { return streamDC;}
 
 //     void set_stream();   //!< Calls some code before every PLplot command.

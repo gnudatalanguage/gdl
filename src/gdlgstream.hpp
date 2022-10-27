@@ -250,7 +250,7 @@ public:
   static void SetErrorHandlers();
 
   virtual void Init()=0;
-
+  virtual bool IsWxStream(){return false;}
   // called after draw operation
   //virtual void Update() {}
   virtual void Update(){plstream::cmd(PLESC_EXPOSE, NULL);}

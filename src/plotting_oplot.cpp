@@ -174,7 +174,8 @@ namespace lib {
         //at draw_polyline level!
         gdlSetGraphicsForegroundColorFromKw(e, actStream); //COLOR
         doColor = false;
-      }
+      } else if (color->N_Elements() > 1) e->Throw("Expression must be a scalar or 1 element array in this context:"+ e->GetString(colorIx));
+
       gdlSetPenThickness(e, actStream); //THICK
       gdlSetLineStyle(e, actStream); //LINESTYLE
       gdlGetPsym(e, psym); //PSYM
