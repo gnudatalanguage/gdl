@@ -1317,7 +1317,7 @@ void inputThread() {
     while (1) {
       // patch by Ole, 2017-01-06
       //char ch = getchar(); if (ch==EOF) return NULL;
-      char ch = getchar();
+      int ch = getchar(); //see #1377
       if (ch==EOF) {
 	return;
       }        
