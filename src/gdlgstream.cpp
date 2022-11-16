@@ -1151,9 +1151,9 @@ void GDLGStream::sizeChar( PLFLT scale )
 bool GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
 {
   //make vpor units really min max, otherwise som problems appear spuriously
-  if (xmin > xmax || ymin > ymax) return true;
-  if (xmin == xmax) {xmin=0; xmax=1;}
-  if (ymin == ymax) {ymin=0; ymax=1;}
+  // if (xmin > xmax || ymin > ymax) return true; // invalid: see isue #1387
+  if (xmin >= xmax) {xmin=0; xmax=1;} //#1387
+  if (ymin >= ymax) {ymin=0; ymax=1;} //#1387
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"vpor(): requesting x[%f:%f],y[%f:%f] (normalized, subpage)\n",xmin,xmax,ymin,ymax);
   //note that plplot apparently does not write the y=0 line of pixels (in device coords). IDL page is on the contrary limited to
   // [0..1[ in both axes (normalized coordinates)
