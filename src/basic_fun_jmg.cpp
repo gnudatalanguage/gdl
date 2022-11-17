@@ -717,10 +717,18 @@ namespace lib {
 	fileStatus->InitTag("CTIME", DLong64GDL( buffer.st_ctime)); 
 	fileStatus->InitTag("MTIME", DLong64GDL( buffer.st_mtime));  
 //	fileStatus->InitTag("TRANSFER_COUNT", DLongGDL( 0 ));
-	if (big) fileStatus->InitTag("CUR_PTR", DLong64GDL( actUnit.Tell()));
-	else fileStatus->InitTag("CUR_PTR", DLongGDL( actUnit.Tell()));
-	if (big) fileStatus->InitTag("SIZE", DLong64GDL( buffer.st_size ));
-        else  fileStatus->InitTag("SIZE", DLongGDL( buffer.st_size ));
+  //hopefully this solves #1394
+	if (big) {
+          DLong64 pos;
+          if (actUnit.Eof()) pos=buffer.st_size; else pos=actUnit.Tell(); //CUR_PTR needs to be the EOF offset position, not the EOF symbol (-1)! 
+          fileStatus->InitTag("CUR_PTR", DLong64GDL( pos) );
+          fileStatus->InitTag("SIZE", DLong64GDL( buffer.st_size ));
+        } else {
+          DLong pos;
+          if (actUnit.Eof()) pos=buffer.st_size; else pos=actUnit.Tell();
+          fileStatus->InitTag("CUR_PTR", DLongGDL( pos ));
+          fileStatus->InitTag("SIZE", DLongGDL( buffer.st_size ));
+        }
 //	fileStatus->InitTag("REC_LEN", DLongGDL( 0 ));
       }
 
