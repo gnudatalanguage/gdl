@@ -288,7 +288,8 @@ namespace lib
       gdlStop3DDriverTransform(actStream); 
       
       //we now pass EVERYTHING in normalized coordinates w/o clipping and set up a transformation to have plplot mesh correct on the 2D vpor.
-//      gdlSwitchToClippedNormalizedCoordinates(e, actStream, true); //true=noclip
+      //however we need to check that clip values are OK to reproduce IDL's behaviour (no plot at all):
+      if (gdlTestClipValidity(e, actStream)) return true; //note clip meaning is normal
       const COORDSYS coordinateSystem = DATA;
       SelfConvertToNormXYZ(xStart, xLog, yStart, yLog, zStart, zLog, coordinateSystem); 
       SelfConvertToNormXYZ(xEnd, xLog, yEnd, yLog, zEnd, zLog, coordinateSystem);

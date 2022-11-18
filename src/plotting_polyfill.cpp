@@ -196,7 +196,7 @@ namespace lib {
 
     bool prepareDrawArea(EnvT* e, GDLGStream* actStream) {
       //box defined in previous PLOT command, we pass in normalized coordinates w/clipping if needed 
-      gdlSwitchToClippedNormalizedCoordinates(e, actStream, true); //inverted clip meaning
+      if (gdlSwitchToClippedNormalizedCoordinates(e, actStream, true)) return true; //inverted clip meaning
       return false; //do not abort
     }
 

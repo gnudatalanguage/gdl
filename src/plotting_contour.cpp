@@ -342,7 +342,7 @@ namespace lib {
         if (doT3d) gdlStop3DDriverTransform(actStream);
       }
 
-      gdlSwitchToClippedNormalizedCoordinates(e, actStream); //normal clip meaning
+      if (gdlSwitchToClippedNormalizedCoordinates(e, actStream)) return true; //normal clip meaning
 
       return false;
     }
