@@ -70,8 +70,14 @@ namespace lib
                 case 64: pixelType = GDL_DOUBLE;    break;
                 default: printf(BPS_ERR_FMT, "FLOAT", bitsPerSample);
                 } break;
-            case TIFF::Directory::SampleFormat::Untyped:
             case TIFF::Directory::SampleFormat::ComplexInteger:
+                switch(bitsPerSample) {
+                case 16: pixelType = GDL_INT;       break;
+                case 32: pixelType = GDL_LONG;      break;
+                case 64: pixelType = GDL_LONG64;    break;
+                default: printf(BPS_ERR_FMT, "CINT", bitsPerSample);
+                } break;
+            case TIFF::Directory::SampleFormat::Untyped:
             case TIFF::Directory::SampleFormat::ComplexFloatingPoint:
             default:;
             }
