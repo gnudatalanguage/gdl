@@ -148,7 +148,7 @@ namespace lib {
       gdlGetAxisType(YAXIS, yLog);
       
       //box plotted, we pass in normalized coordinates w/clipping if needed 
-      gdlSwitchToClippedNormalizedCoordinates(e, actStream, true);
+      if (gdlSwitchToClippedNormalizedCoordinates(e, actStream, true)) return true; //inverted clip meaning
 
       SelfProjectXY(minEl, (DDouble*) xVal->DataAddr(), (DDouble*) yVal->DataAddr(), coordinateSystem);
       //input coordinates converted to NORMAL

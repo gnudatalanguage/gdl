@@ -258,7 +258,7 @@ namespace lib {
       
       //box plotted, we pass in normalized coordinates w/clipping if needed 
       gdlSetSymsize(e, actStream); //set symsize BEFORE switching (TBC)
-      gdlSwitchToClippedNormalizedCoordinates(e, actStream);
+      if (gdlSwitchToClippedNormalizedCoordinates(e, actStream)) return true;
 
       return false;
     }

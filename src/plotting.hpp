@@ -361,7 +361,11 @@ namespace lib {
       restoreDrawArea(actStream);
 
       abort = prepareDrawArea(e, actStream);
-      if (abort) return;
+      if (abort) { // clear if not  MULTI:
+        DLongGDL* pMulti = SysVar::GetPMulti();
+        if ((*pMulti)[1] <= 1 && (*pMulti)[2] <= 1) {actStream->Clear(); actStream->Update();}
+        return;
+      }
 
       applyGraphics(e, actStream);
 
@@ -1853,7 +1857,7 @@ namespace lib {
   }
    
   //restore current clipbox, make another or remove it at all.
-  static void gdlSwitchToClippedNormalizedCoordinates(EnvT *e, GDLGStream *actStream, bool invertedClipMeaning=false, bool commandHasCoordSys=true ) {
+  static bool gdlSwitchToClippedNormalizedCoordinates(EnvT *e, GDLGStream *actStream, bool invertedClipMeaning=false, bool commandHasCoordSys=true ) {
    COORDSYS coordinateSystem = DATA;
     //check presence of DATA,DEVICE and NORMAL options only of command accept them (otherwise assert triggered if in debug mode)
     if (commandHasCoordSys) {
@@ -1887,6 +1891,7 @@ namespace lib {
       DDoubleGDL* clipBoxGDL = e->IfDefGetKWAs<DDoubleGDL>(CLIP);
       if (clipBoxGDL != NULL) {
         for (auto i = 0; i < MIN(clipBoxGDL->N_Elements(),4) ; ++i) clipBox[i] = (*clipBoxGDL)[i];
+        if (clipBox[0]>=clipBox[2] || clipBox[1]>=clipBox[3]) return true; //abort
         //clipBox is defined accordingly to /NORM /DEVICE /DATA:
         //convert clipBox to normalized coordinates:
         ConvertToNormXY(1, &clipBox[0], false, &clipBox[1], false, coordinateSystem);
@@ -1915,6 +1920,57 @@ namespace lib {
       if (ret) e->Throw("Data coordinate system not established.");
       actStream->wind(xnormmin, xnormmax, ynormmin, ynormmax); 
     }
+    return false;
+  }
+  
+  //just test if clip values (!P.CLIP , CLIP=) are OK (accounting for all NOCLIP etc possibilities!)
+  static bool gdlTestClipValidity(EnvT *e, GDLGStream *actStream, bool invertedClipMeaning=false, bool commandHasCoordSys=true ) {
+   COORDSYS coordinateSystem = DATA;
+    //check presence of DATA,DEVICE and NORMAL options only of command accept them (otherwise assert triggered if in debug mode)
+    if (commandHasCoordSys) {
+      static int DATAIx = e->KeywordIx("DATA");
+      static int DEVICEIx = e->KeywordIx("DEVICE");
+      static int NORMALIx = e->KeywordIx("NORMAL");
+      coordinateSystem = DATA;
+      //check presence of DATA,DEVICE and NORMAL options
+      if (e->KeywordSet(DATAIx)) coordinateSystem = DATA;
+      if (e->KeywordSet(DEVICEIx)) coordinateSystem = DEVICE;
+      if (e->KeywordSet(NORMALIx)) coordinateSystem = NORMAL;
+    }
+
+    //CLIPPING (or not) is just defining the adequate viewport and world coordinates, all of them normalized since this is what plplot will get in the end.
+    //CLIPPING is in NORMAL case triggered by the existence of CLIP keyword, and is not set by GDL if 3D is in use, as IDL does weird things and we cannot clip correctly
+    // with the current version of plplot.
+    bool doClip,noclip;
+    static int NOCLIPIx = e->KeywordIx("NOCLIP");
+    if (invertedClipMeaning) {
+      noclip = e->BooleanKeywordAbsentOrSet(NOCLIPIx);
+    } else {
+      noclip = e->BooleanKeywordSet(NOCLIPIx);
+    }
+    doClip = (!noclip);
+
+    if (doClip) { //we use current norm box, then clipping if smaller:
+      PLFLT xnormmin, xnormmax, ynormmin, ynormmax;
+      actStream->getCurrentNormBox(xnormmin, xnormmax, ynormmin, ynormmax);
+      PLFLT clipBox[4] = {xnormmin, xnormmax, ynormmin, ynormmax};
+      static int CLIP = e->KeywordIx("CLIP"); //this one may be in other coordinates
+      DDoubleGDL* clipBoxGDL = e->IfDefGetKWAs<DDoubleGDL>(CLIP);
+      if (clipBoxGDL != NULL) {
+        for (auto i = 0; i < MIN(clipBoxGDL->N_Elements(),4) ; ++i) clipBox[i] = (*clipBoxGDL)[i];
+        if (clipBox[0]>=clipBox[2] || clipBox[1]>=clipBox[3]) return true; //abort
+        //clipBox is defined accordingly to /NORM /DEVICE /DATA:
+        //convert clipBox to normalized coordinates:
+        ConvertToNormXY(1, &clipBox[0], false, &clipBox[1], false, coordinateSystem);
+        ConvertToNormXY(1, &clipBox[2], false, &clipBox[3], false, coordinateSystem);
+        xnormmin = MAX(xnormmin,clipBox[0]);
+        xnormmax = MIN(xnormmax,clipBox[2]);
+        ynormmin = MAX(ynormmin,clipBox[1]);
+        ynormmax = MIN(ynormmax,clipBox[3]);
+      }
+      if (xnormmin >= xnormmax || ynormmin >= ynormmax) return true;
+    }
+    return false; //should be OK
   }
 } // namespace
 

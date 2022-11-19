@@ -154,7 +154,7 @@ namespace lib {
     bool prepareDrawArea(EnvT* e, GDLGStream* actStream) {
       //box defined in previous PLOT command, we pass in normalized coordinates w/clipping if needed 
       gdlSetSymsize(e, actStream); //set symsize BEFORE switching (TBC)
-      gdlSwitchToClippedNormalizedCoordinates(e, actStream, false, false); //normal clip meaning but does not know about DATA, DEVICE and NORMAL
+      if (gdlSwitchToClippedNormalizedCoordinates(e, actStream, false, false)) return true; //normal clip meaning but does not know about DATA, DEVICE and NORMAL
       return false; //do not abort
     }
 
