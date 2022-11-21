@@ -35,8 +35,10 @@ fi
 # Build flags
 if [[ ${DEPS} == "headless" ]]; then
     WITH_WXWIDGETS=${WITH_WXWIDGETS:-OFF}
+    WITH_X11=${WITH_X11:-OFF}
 else
     WITH_WXWIDGETS=${WITH_WXWIDGETS:-ON}
+    WITH_X11=${WITH_X11:-ON}
 fi
 WITH_GRAPHICSMAGICK=${WITH_GRAPHICSMAGICK:-ON}
 WITH_NETCDF=${WITH_NETCDF:-ON}
@@ -108,7 +110,7 @@ elif [ ${BUILD_OS} == "Linux" ]; then
     ) # JP 2021 Mar 21: SuSE lacks eccodes
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
-        llvm libomp ncurses readline zlib libpng gsl wxwidgets graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
+        llvm libx11 libomp ncurses readline zlib libpng gsl wxwidgets graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
         eccodes glpk shapelib expat gcc@11 qhull
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
@@ -448,13 +450,13 @@ function configure_gdl {
     fi
     # The INTERACTIVE_GRAPHICS option is removed. 
     # Now plplot drivers ARE shipped with GDL as we patched them to correct bugs and provide real 3D.
-    # In 'deps' we force plplot to be recompiled with DYNAMIC drivers.
+    # In 'deps' we force plplot to be recompiled with DYNAMIC drivers for OSX --and test if not the case for unix.
     # then it is a matter of depositing the drivers in the windows PATH as plplot uses lt_dlopenext() that search in the PATH.
     cmake ${GDL_DIR} -G"${GENERATOR}" \
         -DCMAKE_BUILD_TYPE=${Configuration} \
         -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
         -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
-        -DWXWIDGETS=${WITH_WXWIDGETS} -DGRAPHICSMAGICK=${WITH_GRAPHICSMAGICK} \
+        -DWXWIDGETS=${WITH_WXWIDGETS} -DX11={WITH_X11} -DGRAPHICSMAGICK=${WITH_GRAPHICSMAGICK} \
         -DNETCDF=${WITH_NETCDF} -DHDF=${WITH_HDF4} -DHDF5=${WITH_HDF5} \
         -DMPI=${WITH_MPI} -DTIFF=${WITH_TIFF} -DGEOTIFF=${WITH_GEOTIFF} \
         -DLIBPROJ=${WITH_LIBPROJ} -DPYTHON=${WITH_PYTHON} -DPYTHONVERSION=${PYTHONVERSION} -DFFTW=${WITH_FFTW} \
