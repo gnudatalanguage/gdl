@@ -60,6 +60,9 @@
 // GDLDATADIR
 #include "config.h"
 
+//we use gdlgstream in gdl.cpp
+#include "gdlgstream.hpp"
+
 //initialize wxWidgets system
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
@@ -250,9 +253,8 @@ int main(int argc, char *argv[])
       //set nex drvPath as PLPLOT_DRV_DIR
   putenv(s);
   //Now, it is possible that GDL WAS compiled with INSTALL_LOCAL_DRIVERS, but the plplot installation is NOT compiled with DYNAMIC DRIVERS.
-  //Then not only we will not have 'our' good driver, but calling our nicknamed wxwidgetsgdl driver will fail.
-  //So I check here the plplot driver list to check if wxwidgetsgdl is present. If not, useLocalDriver=false
-  bool driversOK=GDLGStream::checkPlplotDriver("wxwidgetsgdl");
+  //So I check here the plplot driver list to check if wxwidgets is present. If not, useLocalDriver=false
+  bool driversOK=GDLGStream::checkPlplotDriver("ps"); //ps because xwin and wxwidgets may be absent. ps is always present.
   if (!driversOK) {
     driversNotFound=true; 
     useLocalDrivers=false;
