@@ -9,17 +9,17 @@ if(INSTALL_LOCAL_DRIVERS)
   add_library(ps MODULE ps.c)
   target_link_libraries(
       ps
-      plplot
+      ${PLPLOT_LIBRARIES}
       )
   add_library(svg MODULE svg.c)
   target_link_libraries(
       svg
-      plplot
+      ${PLPLOT_LIBRARIES}
       )
   add_library(mem MODULE mem.c)
   target_link_libraries(
       mem
-      plplot
+      ${PLPLOT_LIBRARIES}
       )
 
   #driver wxwidgets
@@ -32,7 +32,7 @@ if(INSTALL_LOCAL_DRIVERS)
     add_library(wxwidgets MODULE deprecated_wxwidgets.cpp deprecated_wxwidgets_app.cpp deprecated_wxwidgets_dc.cpp deprecated_wxwidgets_gc.cpp)
     target_link_libraries(
         wxwidgets
-        plplot
+      ${PLPLOT_LIBRARIES}
         ${wxWidgets_LIBRARIES}
      )
      list(APPEND WHAT "wxwidgets")
@@ -49,8 +49,8 @@ if(INSTALL_LOCAL_DRIVERS)
     add_library(xwin MODULE xwin.c)
     target_link_libraries(
         xwin
-        plplot
-        X11 #absent on MacOSX ?
+      ${PLPLOT_LIBRARIES}
+        ${X11_LIBRARIES}
         )
     list (APPEND WHAT "xwin")
     list(APPEND WHATFILES "wxin.driver_info")
