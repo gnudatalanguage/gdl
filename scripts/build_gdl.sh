@@ -60,8 +60,8 @@ WITH_GLPK=${WITH_GLPK:-ON}
 if [[ ${BUILD_OS} == "macOS" ]]; then
     WITH_HDF4=${WITH_HDF4:-OFF}
     WITH_GRIB=${WITH_GRIB:-ON}
-    WITH_PYTHON=${WITH_PYTHON:-OFF}
-    WITH_PYTHONVERSION=${WITH_PYTHONVERSION:-OFF}
+    WITH_PYTHON=OFF
+    WITH_PYTHONVERSION=OFF
 else
     zz=`grep -i opensuse /etc/*-release 2> /dev/null`
     if [[ -n $zz ]]; then
