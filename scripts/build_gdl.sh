@@ -20,7 +20,7 @@ real_path() {
 export GDL_DIR=$(real_path "$(dirname $0)/..")
 export ROOT_DIR=${ROOT_DIR:-"${GDL_DIR}"}
 INSTALL_PREFIX=${INSTALL_PREFIX:-"${ROOT_DIR}/install"}
-PYTHONVERSION=${PYTHONVERSION:-"3"}
+PYTHONVERSION=${PYTHONVERSION:-"3.0.0"}
 GDLDE_VERSION=${GDLDE_VERSION:-"v1.0.0"} # needed by 'pack' (at the moment Windows only)
 NTHREADS=${NTHREADS:-$(getconf _NPROCESSORS_ONLN)} # find nthreads for make -j
 BUILD_OS=$(uname)
