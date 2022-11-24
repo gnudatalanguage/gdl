@@ -1182,7 +1182,12 @@ statement returns[ RetCode retCode]
                     DebugMsg( last, "Stop encountered: ");
                     if( !interruptEnable)
                         debugMode = DEBUG_PROCESS_STOP;
+                }else if( debugMode == DEBUG_STOP_SILENT) //no message
+                {
+                if( !interruptEnable)
+                debugMode = DEBUG_PROCESS_STOP;
                 }
+
 
                 if( debugMode == DEBUG_STEP)
                     {

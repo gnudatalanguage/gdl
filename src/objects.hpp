@@ -88,7 +88,8 @@ enum DebugCode {
   DEBUG_STOP = 1,
   DEBUG_PROCESS_STOP = 2,
   DEBUG_STEP = 3,
-  DEBUG_STEPOVER= 4
+  DEBUG_STEPOVER= 4,
+  DEBUG_STOP_SILENT=5
 };
 
 template< class Container> void PurgeContainer( Container& s) 

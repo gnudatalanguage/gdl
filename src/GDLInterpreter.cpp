@@ -368,6 +368,10 @@ GDLInterpreter::GDLInterpreter()
 		DebugMsg( last, "Stop encountered: ");
 		if( !interruptEnable)
 		debugMode = DEBUG_PROCESS_STOP;
+		} else	if( debugMode == DEBUG_STOP_SILENT) //no message
+		{
+		if( !interruptEnable)
+		debugMode = DEBUG_PROCESS_STOP;
 		}
 		
 		if( debugMode == DEBUG_STEP)
@@ -603,9 +607,8 @@ GDLInterpreter::GDLInterpreter()
 		e.SetLine( last->getLine());
 		
 		// tell where we are
-		ReportError(e, "Execution halted at:", targetEnv == NULL); 
-		
-		retCode = NewInterpreterInstance(e.getLine());//-1);
+		ReportError(e, "Execution halted at:", (targetEnv == NULL));
+    retCode = NewInterpreterInstance(e.getLine());
 		}    
 		else
 		{
