@@ -54,6 +54,10 @@ namespace lib {
       static int yaxisIx = e->KeywordIx("YAXIS");
       static int zaxisIx = e->KeywordIx("ZAXIS");
 
+      xaxis_value=0;
+      yaxis_value=0;
+      zaxis_value=0;
+      
       //IDL behaviour for XAXIS and YAXIS and ZAXIS options: only one option is considered, and ZAXIS above YAXIS above XAXIS
       if ((e->GetKW(xaxisIx) != NULL)) {
         xAxis = true;
@@ -268,7 +272,7 @@ namespace lib {
 
       if (yAxis) {
         PLFLT vpXL, vpXR, vpYB, vpYT; //define new viewport in relative units
-        if (xaxis_value == 0) {
+        if (yaxis_value == 0) {
           vpXL = (xAxis || xnodef) ? xnormmin : xPos;
           vpXR = (xAxis || xnodef) ? xnormmax : xnormmax;
           vpYB = (yAxis || ynodef) ? ynormmin : yPos;
