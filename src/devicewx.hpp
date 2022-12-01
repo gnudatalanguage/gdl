@@ -120,7 +120,7 @@ public:
 #ifdef __WXMAC__
 long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);
 #else
-long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX | wxFRAME_TOOL_WINDOW); //no focus 
+long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX ); //| wxFRAME_TOOL_WINDOW); //no focus 
 #endif
   gdlwxPlotFrame* plotFrame = new gdlwxPlotFrame(titleWxString, wxPoint(xoff,yoff), wxDefaultSize, style, scrolled);
   // Associate a sizer immediately
@@ -162,29 +162,33 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
   plot->SetPStreamIx(wIx);
 
   plotFrame->Fit();
-  // these widget specific events are always set:
-  plot->Connect(wxEVT_PAINT, wxPaintEventHandler(gdlwxGraphicsPanel::OnPaint));
-      //disable flicker see https://wiki.wxwidgets.org/Flicker-Free_Drawing
-  plot->Connect( wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(gdlwxDrawPanel::OnErase));
-
-  plotFrame->Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(gdlwxPlotFrame::OnUnhandledClosePlotFrame));
-//  plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
-  plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotWindowSize));
+  plotFrame->SetBackgroundColour(*wxBLACK); //set black background --> for "window" comand.
     plotFrame->Realize();
     if (hide) {
       winList[ wIx]->UnMapWindowAndSetPixmapProperty(); //needed: will set the "pixmap" property
     } else {
-      //    plotFrame->Raise(); //Raise will ALWAYS put focus on plot window, that we do not want
-      plotFrame->Show(); //WithoutActivating();
+      plotFrame->Show(); //WithoutActivating(); --> this does nothing good. Better tailor your window manager to 'focus under mouse"
     }
-    plotFrame->UpdateWindowUI();
+//    plotFrame->UpdateWindowUI(); not useful
+    plotFrame->Update();
+    plotFrame->Raise();
 //really show by letting the loop do its magic. Necessary.
 #ifdef __WXMAC__
   wxTheApp->Yield();
 #else
   wxGetApp().MainLoop(); //central loop for wxEvents!
 #endif
-  return true;
+    
+  // these widget specific events are always set:
+    plot->Connect(wxEVT_PAINT, wxPaintEventHandler(gdlwxGraphicsPanel::OnPaint));
+    //disable flicker see https://wiki.wxwidgets.org/Flicker-Free_Drawing
+    plot->Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(gdlwxDrawPanel::OnErase));
+
+    plotFrame->Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(gdlwxPlotFrame::OnUnhandledClosePlotFrame));
+    //  plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
+    plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotWindowSize));
+    
+    return true;
  }
 
  GDLGStream* GetStream(bool open = true) {
