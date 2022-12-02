@@ -1178,9 +1178,11 @@ statement returns[ RetCode retCode]
       sigControlC = false;
       retCode = NewInterpreterInstance(last->getLine()); //-1);
     } else if (interruptEnable && _retTree == NULL && debugMode == DEBUG_RETURN) {
-      DebugMsg(last, "Return encountered: ");
-      debugMode = DEBUG_CLEAR;
-      retCode = NewInterpreterInstance(last->getLine()); //-1);
+		if (callStack.back()->GetProName() == MyProName) { //only for current procedure (will hang if reentrant! wait for the case to be present!)
+          DebugMsg(last, "Return encountered: ");
+		  debugMode = DEBUG_CLEAR;
+		  retCode = NewInterpreterInstance(last->getLine()); //-1);
+    }
     } else if (debugMode != DEBUG_CLEAR) {
       if (debugMode == DEBUG_STOP) {
         DebugMsg(last, "Stop encountered: ");
