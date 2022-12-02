@@ -1167,8 +1167,10 @@ namespace lib {
   }
 
   void stop(EnvT* e) {
-    if (e->NParam() > 0) print(e);
-    debugMode = DEBUG_STOP;
+    if (e->NParam() > 0) {
+      print(e);
+      debugMode = DEBUG_STOP_SILENT;
+    } else debugMode = DEBUG_STOP;
   }
 
   void defsysv(EnvT* e) {

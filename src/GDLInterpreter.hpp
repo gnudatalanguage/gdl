@@ -201,7 +201,7 @@ protected:
     static EnvStackT  callStack; 
     static bool noInteractive;
     static DLong stepCount;
-
+    static std::string MyProName;
 
 // smuggle optimizations in
 //#include "GDLInterpreterOptimized.inc"
