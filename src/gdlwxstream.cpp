@@ -24,7 +24,7 @@
 
 
 GDLWXStream::GDLWXStream( int width, int height )
-: GDLGStream( width, height, (useLocalDrivers)?"wxwidgetsgdl":"wxwidgets")
+: GDLGStream( width, height,"wxwidgets")
   , streamDC(NULL)
   , streamBitmap(NULL)
   , m_width(width), m_height(height)

@@ -260,17 +260,19 @@ jobs:
           export GDLDE_VERSION=${{ steps.gdl_workbench.outputs.release }}
           scripts/build_gdl.sh pack
           scripts/build_gdl.sh prep_deploy
-      - name: Upload Build Artifacts
+      - name: Upload GDL Installer
         uses: actions/upload-artifact@v2.2.1
         with:
           name: GDL Installer (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
           path: gdlsetup-*-${{ matrix.deps }}.exe
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v2.2.1
-        with:
-          name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
-          path: gdl-*-${{ matrix.deps }}.zip
-      - name: Upload Release Assets (unstable)
+# DO NOT export .zip as artifact: due to necessary use of a precise location for our customized plplot drivers,
+# only an installer can be used (sets the correct environment variables) 
+#      - name: Upload Build Artifacts
+#        uses: actions/upload-artifact@v2.2.1
+#        with:
+#          name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
+#          path: gdl-*-${{ matrix.deps }}.zip
+      - name: Upload Release Windows Installer (unstable)
         if: github.event_name == 'schedule' || github.event.inputs.type == 'release'
         uses: ncipollo/release-action@v1
         with:
@@ -281,17 +283,19 @@ jobs:
           replacesArtifacts: true
           tag: weekly-release
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload Release Assets (stable)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "gdlsetup-*-${{ matrix.deps }}.exe,gdl-*-${{ matrix.deps }}.zip"
-          name: ${{ github.event.release.tag_name }}
-          prerelease: false
-          allowUpdates: true
-          replacesArtifacts: true
-          commit: ${{ github.sha }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+
+# supressed, same reason as above
+#       - name: Upload Release Assets (stable)
+#        if: startsWith(github.ref, 'refs/tags/v')
+#        uses: ncipollo/release-action@v1
+#        with:
+#          artifacts: "gdlsetup-*-${{ matrix.deps }}.exe,gdl-*-${{ matrix.deps }}.zip"
+#          name: ${{ github.event.release.tag_name }}
+#          prerelease: false
+#          allowUpdates: true
+#          replacesArtifacts: true
+#          commit: ${{ github.sha }}
+#          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test GDL
         shell: msys2 {0}
         run: |

@@ -364,7 +364,7 @@ else(PLPLOT_FOUND)
 endif(PLPLOT_FOUND)
 
 if(PLPLOT_FOUND)
-    #0) mandatory: plplot compiled with ENABLE_DYNDRIVERS --> check presence of plGetDrvDir()
+    #0) mandatory: plplot compiled with ENABLE_DYNDRIVERS if option INTERACTIVE_GRAPHICS is set --> check presence of plGetDrvDir()
     check_library_exists("${PLPLOT_LIBRARIES}" plGetDrvDir "" INSTALL_LOCAL_DRIVERS)
     if(INTERACTIVE_GRAPHICS AND NOT INSTALL_LOCAL_DRIVERS)
       message(FATAL_ERROR "Plplot installation lacks dynamic drivers. \n"
@@ -489,7 +489,7 @@ else(OPENMP)
 endif(OPENMP)
 
 
-# wxWidgets: should be the one graphics library. Presence test is 'wxWidgets_FOUND'
+# wxWidgets: should be the one graphics library. Presence test is 'WXWIDGETS_FOUND'
 #
 #    I suggest to have wxWidgets a 'main' dependency. 
 #    thus removing the need of X11 for unix/linux/MacOS, as well as xwin and wingcc/wingdi.
@@ -501,21 +501,21 @@ endif(OPENMP)
 if(WXWIDGETS)
     set(CMAKE_PREFIX_PATH ${WXWIDGETSDIR})
     find_package(wxWidgets COMPONENTS base core adv)
-    set(HAVE_LIBWXWIDGETS ${wxWidgets_FOUND})
-    if(wxWidgets_FOUND)
+    set(HAVE_LIBWXWIDGETS ${WXWIDGETS_FOUND})
+    if(WXWIDGETS_FOUND)
         set(LIBRARIES ${LIBRARIES} ${wxWidgets_LIBRARIES})
         set(LINK_DIRECTORIES ${LINK_DIRECTORIES} ${wxWidgets_LIBRARY_DIRS})
         foreach(WXDEF ${wxWidgets_DEFINITIONS})
             add_definitions(-D${WXDEF})
         endforeach(WXDEF ${wxWidgets_DEFINITIONS})
         include_directories(${wxWidgets_INCLUDE_DIRS})
-    else(wxWidgets_FOUND)
+    else(WXWIDGETS_FOUND)
         message(FATAL_ERROR "wxWidgets are required but were not found.\n"
         "Use -DWXWIDGETSDIR=DIR to specify the wxWidgets directory tree.\n"
         "Use -DWXWIDGETS=OFF to not use it.\n"
                 "(suitable Debian/Ubuntu package: libwxgtk3.0-gtk3-dev)\n"
                 "(suitable Fedora/CentOS package: wxGTK-devel)")
-    endif(wxWidgets_FOUND)
+    endif(WXWIDGETS_FOUND)
 else (WXWIDGETS)
   if (INTERACTIVE_GRAPHICS AND WIN32) 
     message(FATAL_ERROR "wxWidgets are required on Windows.")
@@ -540,9 +540,9 @@ if(CYGWIN OR NOT WIN32)
 	    "(suitable Fedora/CentOS package xorg-x11-devel)\n")
         endif(X11_FOUND)
     endif(X11)
-    if (X11_FOUND AND NOT wxWidgets_FOUND) 
+    if (X11_FOUND AND NOT WXWIDGETS_FOUND) 
       message(STATUS "WARNING: GDL is BEST with wxWidgets instead of X11, please consider installing wxWidgets")
-    endif (X11_FOUND AND NOT wxWidgets_FOUND) 
+    endif (X11_FOUND AND NOT WXWIDGETS_FOUND) 
 endif(CYGWIN OR NOT WIN32)
 
     
@@ -1094,7 +1094,7 @@ message("")
 message(STATUS "Options")
 message("")
 message("Interactive plots: ${INTERACTIVE_GRAPHICS}")
-message("Widgets support: ${wxWidgets_FOUND}")
+message("Widgets support: ${WXWIDGETS_FOUND}")
 message("")
 
 if(OPENMP AND OPENMP_FOUND)
