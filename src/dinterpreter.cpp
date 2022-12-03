@@ -872,6 +872,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command) {
     return CmdRun(command);
   } else if (cmd("RETURN")) {
     debugMode = DEBUG_RETURN;
+    MyProName=callStack.back()->GetProName();
     return CC_CONTINUE;
   } else if (cmd("RESET_SESSION")) {
     return CmdReset();
