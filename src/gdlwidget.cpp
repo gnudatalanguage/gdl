@@ -566,11 +566,11 @@ void GDLWidget::UpdateGui()
 //  this->GetMyTopLevelFrame()->Refresh();
   this->GetMyTopLevelFrame()->Update();
   END_CHANGESIZE_NOEVENT
-//#ifdef __WXMAC__
-//  wxTheApp->Yield();
-//#else
-//  wxGetApp().MainLoop(); //central loop for wxEvents!
-//#endif
+#ifdef __WXMAC__
+  wxTheApp->Yield();
+#else
+  wxGetApp().MainLoop(); //central loop for wxEvents!
+#endif
 }
 
 //Alternate version if there were sizing problems with the one above.

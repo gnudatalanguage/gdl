@@ -170,6 +170,7 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
       plotFrame->Show(); //WithoutActivating(); --> this does nothing good. Better tailor your window manager to 'focus under mouse"
     }
 //    plotFrame->UpdateWindowUI(); not useful
+    plotFrame->Refresh();
     plotFrame->Update();
     plotFrame->Raise();
 //really show by letting the loop do its magic. Necessary.
