@@ -162,6 +162,9 @@ void GDLWXStream::SetSize( wxSize s )
   m_width = s.x;
   m_height = s.y;
   Update();
+  //this because we use the old widget driver, which is fast but insane. We should not have such problems with the new driver, except that it is so slow..
+    SetPageDPMM();
+    DefaultCharSize();
 }
 
 void GDLWXStream::WarpPointer(DLong x, DLong y) {

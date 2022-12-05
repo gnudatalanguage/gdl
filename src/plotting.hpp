@@ -1621,7 +1621,7 @@ namespace lib {
     //ticklen in a percentage of box x or y size, to be expressed in mm 
     if (axisId == XAXIS) ticklen_in_mm = a->mmyPageSize()*(a->boxnYSize()) * ticklen_in_mm;
     else ticklen_in_mm = a->mmxPageSize()*(a->boxnXSize()) * ticklen_in_mm;
-    if (ticklen_in_mm > 100.) ticklen_in_mm = 0; //PATCH to avoid PS and MEM device problem. Check why gspa() returns silly values. TBC 
+//    if (ticklen_in_mm > 100.) ticklen_in_mm = 0; //PATCH to avoid PS and MEM device problem. Check why gspa() returns silly values. TBC 
     DFloat ticklen_as_norm = (axisId == XAXIS) ? a->mm2ndy(ticklen_in_mm) : a->mm2ndx(ticklen_in_mm); //in normed coord
     //eventually, each succesive X or Y axis is separated from previous by interligne + ticklen in adequate units. 
     DFloat interligne_as_char;
@@ -1705,6 +1705,7 @@ namespace lib {
       a->getCurrentNormBox(un, deux, trois, quatre);
       a->getCurrentWorldBox(xun, xdeux, xtrois, xquatre);
       a->smaj(ticklen_in_mm, 1.0);
+      a->smin(ticklen_in_mm / 2.0, 1.0); 
       for (SizeT i = 0; i < muaxdata.nTickUnits; ++i) //loop on TICKUNITS axis
       {
         muaxdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
@@ -1770,7 +1771,7 @@ namespace lib {
     }
     if (TickLayout == 0) {
       a->smaj(ticklen_in_mm, 1.0); //set base ticks to default 0.02 viewport converted to mm.
-      //a->smin(ticklen_in_mm / 2.0, 1.0); //idem min (plplt defaults) //NO NO NO
+      a->smin(ticklen_in_mm / 2.0, 1.0); 
       //thick for box and ticks.
       a->Thick(Thick);
 

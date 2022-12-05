@@ -1017,13 +1017,30 @@ void wx_set_size( PLStream* pls, int width, int height )
     // set new size and scale parameters
     dev->width  = width;
     dev->height = height;
-    dev->scalex = (PLFLT) ( dev->xmax - dev->xmin ) / dev->width;
-    dev->scaley = (PLFLT) ( dev->ymax - dev->ymin ) / dev->height;
 
-    // recalculate the dpi used in calculation of fontsize
-    pls->xdpi = VIRTUAL_PIXELS_PER_IN / dev->scalex;
-    pls->ydpi = VIRTUAL_PIXELS_PER_IN / dev->scaley;
+  pls->xlength = dev->width;
+  pls->ylength = dev->height;
+    dev->clipminx = pls->xlength;
+    dev->clipminy = pls->ylength;
 
+  PLFLT downscale, downscale2;
+  // Set up physical limits of plotting device (in drawing units)
+  downscale = (double) dev->width / (double) (PIXELS_X - 1);
+  downscale2 = (double) dev->height / (double) PIXELS_Y;
+  if (downscale < downscale2)
+    downscale = downscale2;
+  plP_setphy((PLINT) 0, (PLINT) (dev->width / downscale),
+    (PLINT) 0, (PLINT) (dev->height / downscale));
+
+  // get physical device limits coordinates
+  plP_gphy(&dev->xmin, &dev->xmax, &dev->ymin, &dev->ymax);
+
+  // setting scale factors
+  dev->scalex = (PLFLT) (dev->xmax - dev->xmin) / (dev->width);
+  dev->scaley = (PLFLT) (dev->ymax - dev->ymin) / (dev->height);
+   pls->xdpi=VIRTUAL_PIXELS_PER_IN / dev->scalex;
+   pls->ydpi=VIRTUAL_PIXELS_PER_IN / dev->scaley;
+   
     // clear background if we have a dc, since it's invalid (TODO: why, since in bop
     // it must be cleared anyway?)
     if ( dev->ready )
@@ -1033,7 +1050,7 @@ void wx_set_size( PLStream* pls, int width, int height )
 
         dev->CreateCanvas();
         dev->ClearBackground( bgr, bgg, bgb );
-    }
+  }
 
     // freetype parameters must also be changed
 #ifdef PL_HAVE_FREETYPE
