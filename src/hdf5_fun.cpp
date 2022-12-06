@@ -1054,6 +1054,27 @@ hid_t
 
   }
 
+  BaseGDL* h5g_create_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(2);
+
+    hid_t h5f_id = hdf5_input_conversion(e, 0);
+
+    DString h5gGroupname;
+    e->AssureScalarPar<DStringGDL>( 1, h5gGroupname);
+
+    size_t size_hint=-1; /* use default size for name heap */
+
+    hid_t h5g_id;
+    h5g_id = H5Gcreate(h5f_id, h5gGroupname.c_str(), size_hint);
+    if (h5g_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return hdf5_output_conversion( h5g_id );
+
+  }
+
   BaseGDL* h5g_get_objinfo_fun( EnvT* e)
   {
      /* Nov 2021, Oliver Gressel <ogressel@gmail.com>
