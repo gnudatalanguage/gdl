@@ -29,7 +29,7 @@ static GDL_3DTRANSFORMDEVICE PlotDevice3D;
 //#define TODATACOORDY( in, out, log) out = (log) ? pow(10.0, (in -sy[0])/sy[1]) : (in -sy[0])/sy[1];
 #define TONORMCOORDZ( in, out, log) out = (log) ? sz[0] + sz[1] * log10(in) : sz[0] + sz[1] * in;
 //#define TODATACOORDZ( in, out, log) out = (log) ? pow(10.0, (in -sz[0])/sz[1]) : (in -sz[0])/sz[1];
-
+#define  PROTECTXY if(x>32760.) x=32760; if(y>32760.) y=32760; if(x< -32760.) x=-32760; if( y< -32760.) y=-32760;
 namespace lib
 {
 
@@ -446,8 +446,8 @@ namespace lib
       } else {
         const double max_allowed_leak_factor = 1 - 1.25e-6;
         PLFLT intv = AutoIntv(range);
-        max = ceil((max * max_allowed_leak_factor) / intv) * intv;
-        min = floor(min / intv) * intv;
+        max =  ceil((max * max_allowed_leak_factor) / intv) * intv;
+        min = floor((min * max_allowed_leak_factor) / intv) * intv;
       }
     }
 
@@ -831,6 +831,7 @@ namespace lib
       else x = x_ref;
       if (!flag_y_const) y = static_cast<PLFLT> ((*yVal)[0]);
       else y = y_ref;
+      PROTECTXY //patch against PLPLOT unfortunate behaviour #1415
       x_buff[i_buff]=x;
       y_buff[i_buff]=y;
       i_buff++;
@@ -886,6 +887,7 @@ namespace lib
 
         x = static_cast<PLFLT> ((*xVal)[i]);
         y = static_cast<PLFLT> ((*yVal)[i]);
+        PROTECTXY //patch against PLPLOT unfortunate behaviour #1415
         x_buff[i_buff] = x;
         y_buff[i_buff] = y;
         i_buff++;
@@ -976,6 +978,7 @@ namespace lib
 
         x = static_cast<PLFLT> ((*xVal)[i]);
         y = static_cast<PLFLT> ((*yVal)[i]);
+        PROTECTXY //patch against PLPLOT unfortunate behaviour #1415
         x_buff[i_buff] = x;
         y_buff[i_buff] = y;
         i_buff++;

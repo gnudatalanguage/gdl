@@ -290,9 +290,7 @@ public:
 
    GDLGStream* actStream=GetStream(false);
    if( actStream != NULL) {
-     int tagxppcm = dStruct->Desc()->TagIndex( "X_PX_CM");
-     int tagyppcm = dStruct->Desc()->TagIndex( "Y_PX_CM");
-     actStream->setFixedCharacterSize(x,1.0,y);
+     actStream->SetCharSize(x,y);
    }
    return true;
   }
@@ -387,7 +385,7 @@ public:
    (*newych)[0]=y;
 
    for (WindowListT::iterator i= winList.begin(); i != winList.end(); ++i) if ((*i) != NULL) {
-     (*i)->setFixedCharacterSize(x,1.0,y);
+     (*i)->SetCharSize(x,y);
    }
    return true;
   }

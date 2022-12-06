@@ -192,7 +192,11 @@ void GDLGStream::SetPageDPMM() {
   plstream::adv(0);
   PLFLT xdpi, ydpi;
   PLINT xleng, yleng, xoff, yoff;
-  plstream::gpage( xdpi, ydpi, xleng, yleng, xoff, yoff); //so-called page parameters, but the units may vary: pixels or mm?
+  plstream::gpage( xdpi, ydpi, xleng, yleng, xoff, yoff); //so-called page parameters, the units vary pixels or mm (screen vs. printers)
+//  std::cerr<<"xdpi "<<xdpi<<" ydpi "<<ydpi<<std::endl;
+//  std::cerr<<"xleng "<<xleng<<" yleng "<<yleng<<std::endl;
+  PLFLT charHeight=pls->chrht;
+//  std::cerr<<"charHeight="<<charHeight<<std::endl;
   thePage.length = xleng;
   thePage.height = yleng;
   //get the mm values using gspa:
@@ -201,6 +205,11 @@ void GDLGStream::SetPageDPMM() {
   plstream::gspa(xmin, xmax, ymin, ymax); //subpage in mm
   bxsize_mm = xmax - xmin;
   bysize_mm = ymax - ymin;
+//  std::cerr<<"reported page size inmm "<<bxsize_mm<<","<<bysize_mm<<std::endl;
+  thePage.xsizemm = bxsize_mm;
+  thePage.ysizemm = bysize_mm;
+  //we need to rescale all plplot values such as X_PX_CM, X_CH_SIZE, X_SIZE combinations give the same results as combining plplot values.
+  //the returned xdpi and chrht is not good. We need to adjust chrht
   offx_mm = xmin;
   offy_mm = ymin;
   // test if plplot is consistent:
@@ -213,8 +222,8 @@ void GDLGStream::SetPageDPMM() {
   theory = yleng / ydpi * 25.4;
   if (fabs(bysize_mm - theory) > 1e-4) if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "plpot driver returns inconsistent y DPI values (2).\n");
   //we can derive the dpm in x and y which converts mm to device coords:
-  thePage.xdpmm = abs(thePage.length / bxsize_mm);
-  thePage.ydpmm = abs(thePage.height / bysize_mm);
+  thePage.xdpmm = xdpi/25.4; //abs(thePage.length / bxsize_mm);
+  thePage.ydpmm = ydpi/25.4; //abs(thePage.height / bysize_mm);
 }
 
 bool GDLGStream::updatePageInfo() {
@@ -284,6 +293,8 @@ void GDLGStream::updateBoxDeviceCoords() {
   NormToWorld(1.0, 1.0, theBox.subPageWorldCoordinates[1], theBox.subPageWorldCoordinates[3]);
   NormToDevice(theBox.nx1, theBox.ny1, theBox.dx1, theBox.dy1);
   NormToDevice(theBox.nx2, theBox.ny2, theBox.dx2, theBox.dy2);
+  theBox.dxsize=theBox.dx2-theBox.dx1;
+  theBox.dysize=theBox.dy2-theBox.dy1;
 }
 void GDLGStream::syncPageInfo()
 {
@@ -292,12 +303,6 @@ void GDLGStream::syncPageInfo()
   plstream::glevel(level);
   if (level > 1 && thePage.nbPages != 0) //we need to have a vpor defined, and a page!
   {
-    //resolution (xdpmm, ydpmm) never change.
-    //The page width and height in mm:
-    thePage.xsizemm = thePage.length / thePage.xdpmm;
-    thePage.ysizemm = thePage.height / thePage.ydpmm;
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "         device resolution [%f,%f]mm^-1, device size [%f,%f], [%f,%f] mm\n",
-      thePage.xdpmm, thePage.ydpmm, thePage.length, thePage.height, thePage.xsizemm, thePage.ysizemm);
     thePage.subpage.dxoff = 0; //our subpages have 0 offset
     thePage.subpage.dyoff = 0;
     thePage.subpage.dxsize = thePage.length / thePage.nx;
@@ -327,13 +332,23 @@ void GDLGStream::DefaultCharSize() {
     setFixedCharacterSize(chx, 1.0, chy);
   }
 }
-//  void GDLGStream::RenewPlplotDefaultCharsize(PLFLT newMmSize)
-//  {
-//    plstream::schr(newMmSize, 1.0);
-//    gdlDefaultCharInitialized=0;
-//    GetPlplotDefaultCharSize();
-//  }
-//  
+void GDLGStream::SetCharSize(DLong chx, DLong chy) {
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLGStream::SetCharSize()\n");
+  DStructGDL* d = SysVar::D();
+  DStructDesc* s = d->Desc();
+  int FLAGS = s->TagIndex("FLAGS");
+  DLong flags = (*static_cast<DLongGDL*> (d->GetTag(FLAGS, 0)))[0];
+  if (flags & 0x1) {
+    int X_PX_CM = s->TagIndex("X_PX_CM");
+    int Y_PX_CM = s->TagIndex("Y_PX_CM");
+    DFloat xpxcm = (*static_cast<DFloatGDL*> (d->GetTag(X_PX_CM, 0)))[0];
+    DFloat ypxcm = (*static_cast<DFloatGDL*> (d->GetTag(Y_PX_CM, 0)))[0];
+    setVariableCharacterSize(chx, 1.0, chy,xpxcm,ypxcm);
+  } else {
+    setFixedCharacterSize(chx, 1.0, chy);
+  }
+}
+ 
   void GDLGStream::GetPlplotDefaultCharSize()
   {
         
@@ -1068,6 +1083,7 @@ void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
 //this implies to have a correct value for DPI AND that the plplot driver is correctly written.
 void GDLGStream::setVariableCharacterSize( PLFLT charwidthpixel, PLFLT scale , PLFLT lineSpacingpixel, PLFLT xpxcm, PLFLT ypxcm)
 {
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"setVariableCharacterSize()\n");
   xpxcm/=FUDGE_VARCHARSIZE;
   ypxcm/=FUDGE_VARCHARSIZE;  //go figure why this is needed, but indeed it is needed!
   //tried by comparison of outputs of 
@@ -1111,7 +1127,8 @@ void GDLGStream::setVariableCharacterSize( PLFLT charwidthpixel, PLFLT scale , P
 //This defines the character size for FIXED character devices (X, Z )
 //The dimension of "average" character (given by X_CH_SIZE) is to be a number of pixels on screen
 void GDLGStream::setFixedCharacterSize( PLFLT charwidthpixel, PLFLT scale , PLFLT lineSpacingpixel) {
- if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"schr(width=%f, scale=%f, spacing=%f)\n",charwidthpixel,scale,lineSpacingpixel);
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"setFixedCharacterSize()\n");
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"schr(width=%f, scale=%f, spacing=%f)\n",charwidthpixel,scale,lineSpacingpixel);
 // GDL asks for pixels, plplot asks for mm size, but plplot's dpi is always wrong!
 // to get 'charwidthpixel' with this 'wrongdpi', wee need to ask a (wrong) mm size of the character HEIGHT, 
 // BUT we do not know the height/width ratio of the font used, plus the fact that some drivers make the wrong calculation!!!!
@@ -1166,10 +1183,8 @@ bool GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
   theBox.ndx2=xmax;
   theBox.ndy1=ymin;
   theBox.ndy2=ymax;
-  theBox.ondx=xmin;
-  theBox.ondy=ymin;
-  theBox.sndx=xmax-xmin;
-  theBox.sndy=ymax-ymin;
+  theBox.nxsize=xmax-xmin;
+  theBox.nysize=ymax-ymin;
   theBox.initialized=true;
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"vpor(): got x[%f:%f],x[%f:%f] (normalized, device)\n",theBox.ndx1,theBox.ndx2,theBox.ndy1,theBox.ndy2);
   syncPageInfo();

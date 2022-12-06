@@ -129,14 +129,14 @@ static std::string internalFontCodes[] = {
     PLFLT ndx2;
     PLFLT ndy1;
     PLFLT ndy2;
-    PLFLT ondx; //offset x of box in device coords
-    PLFLT ondy; // in y
-    PLFLT sndx; //size of box, x , device
-    PLFLT sndy;
+    PLFLT nxsize; //size of box, x , normed
+    PLFLT nysize;
     PLFLT dx1; //position in device coords (e.g. pixels)
     PLFLT dx2;
     PLFLT dy1;
     PLFLT dy2;
+    PLFLT dxsize; //size of box, x , normed
+    PLFLT dysize;
     PLFLT pageWorldCoordinates[4];
     PLFLT subPageWorldCoordinates[4];
   } gdlbox ;
@@ -224,7 +224,12 @@ public:
   virtual ~GDLGStream()
   {
 	  if (GDL_DEBUG_PLSTREAM) printf(" retire GDLGstream:pls=%p \n", (void *)pls);
-    plend1();
+//    plend1(); //strange. Was expected to solve #1342 but 1) I cannot reproduce now and 2) this crashes GDL in the following manner:
+//    plot,dist(10) ; using X11 not wxWidgets
+//    set_plot,'z'
+//    plot,dist(10)
+//    device, resolution=[1200,800] ; destroys and recretates the 'z' pls, but this plend1() above destroys the X11 window!!
+//      
   }
 
   static bool checkPlplotDriver(const char *driver) {
@@ -342,12 +347,10 @@ public:
   inline DDouble mmCharLength(){return theCurrentChar.mmsx;}
   inline DDouble mmCharHeight(){return theCurrentChar.mmsy;}
   inline DDouble mmLineSpacing(){return theCurrentChar.mmspacing;}
-  inline PLFLT xResolution(){return thePage.xdpmm;}
-  inline PLFLT yResolution(){return thePage.ydpmm;}
   inline PLFLT mmxPageSize(){return thePage.xsizemm;} //size in mm
   inline PLFLT mmyPageSize(){return thePage.ysizemm;}
-  inline PLFLT boxnXSize(){return theBox.sndx;}
-  inline PLFLT boxnYSize(){return theBox.sndy;}
+  inline PLFLT boxnXSize(){return theBox.nxsize;}
+  inline PLFLT boxnYSize(){return theBox.nysize;}
   inline PLFLT xPageSize(){return thePage.length;} //size in units (alternate:{return pls->xlength;})
   inline PLFLT yPageSize(){return thePage.height;} //alternate: {return pls->ylength;}
   inline PLFLT xSubPageSize(){return thePage.subpage.dxsize;} //size in units
@@ -605,6 +608,7 @@ public:
   //if create a colormap1 with a black to white ramp.
   void SetColorMap1Ramp(DLong decomposed=0, PLFLT minlight=0.0);
   void DefaultCharSize();
+  void SetCharSize(DLong chx, DLong chy);
   void NextPlot( bool erase=true); // handles multi plots
 
   void NoSub(); // no subwindows (/NORM, /DEVICE)

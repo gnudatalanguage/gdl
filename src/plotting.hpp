@@ -1582,9 +1582,6 @@ namespace lib {
     muaxdata.reset = true;
 
     //special values
-    PLFLT OtherAxisSizeInMm;
-    if (axisId == XAXIS) OtherAxisSizeInMm = a->mmyPageSize()*(a->boxnYSize());
-    else OtherAxisSizeInMm = a->mmxPageSize()*(a->boxnXSize());
     DLong GridStyle;
     gdlGetDesiredAxisGridStyle(e, axisId, GridStyle);
     DLong Minor;
@@ -1597,7 +1594,7 @@ namespace lib {
     gdlGetDesiredAxisTickInterval(e, axisId, TickInterval);
     DLong TickLayout;
     gdlGetDesiredAxisTickLayout(e, axisId, TickLayout);
-    DFloat TickLen;
+    DFloat TickLen=0.02;
     gdlGetDesiredAxisTickLen(e, axisId, TickLen);
     DStringGDL* TickName;
     gdlGetDesiredAxisTickName(e, a, axisId, TickName);
