@@ -1075,6 +1075,32 @@ hid_t
 
   }
 
+  static herr_t count_members( hid_t loc_id, const char *name, void *data ) {
+     (*(size_t*)data)++;
+     return 0;
+  }
+
+  BaseGDL* h5g_get_nmembers_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(2);
+
+    hid_t h5f_id = hdf5_input_conversion(e, 0);
+
+    DString h5gGroupname;
+    e->AssureScalarPar<DStringGDL>( 1, h5gGroupname);
+
+    /* use 'H5Giterate()' to count members (as per IDL manual) */
+    size_t nmembers=0;
+    if ( H5Giterate( h5f_id, h5gGroupname.c_str(),
+                     NULL, count_members, &nmembers ) < 0 )
+       { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return new DLongGDL( nmembers );
+
+  }
+
   BaseGDL* h5g_get_objinfo_fun( EnvT* e)
   {
      /* Nov 2021, Oliver Gressel <ogressel@gmail.com>
