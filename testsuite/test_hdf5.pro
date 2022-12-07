@@ -619,6 +619,12 @@ pro TEST_HDF5_GROUP, cumul_errors, create=create
    errors += (exit ne 0)
    spawn, 'rm -f gdl-'+file_name
 
+   ; --- test 'H5G_GET_NMEMBERS' function
+
+   f_id = h5f_open(full_file_name)
+   errors += ( h5g_get_nmembers(f_id,"/") ne 1 )
+   h5f_close, f_id
+
    ; --- output summary
 
    banner_for_testsuite, 'TEST_HDF5_GROUP', errors, /short
