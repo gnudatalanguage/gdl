@@ -139,6 +139,7 @@ void LibInit_mes()
   new DLibPro(lib::h5a_close_pro, string("H5A_CLOSE"), 1);
   new DLibPro(lib::h5t_close_pro, string("H5T_CLOSE"), 1);
   new DLibPro(lib::h5g_close_pro, string("H5G_CLOSE"), 1);
+  new DLibPro(lib::h5g_set_comment_pro, string("H5G_SET_COMMENT"), 3);
   new DLibFunRetNew(lib::h5g_open_fun, string("H5G_OPEN"), 2);
   new DLibFunRetNew(lib::h5g_create_fun, string("H5G_CREATE"), 2);
   const string getObjInfoKey[] = {"FOLLOW_LINK", KLISTEND};

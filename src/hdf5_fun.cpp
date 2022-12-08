@@ -1054,6 +1054,27 @@ hid_t
 
   }
 
+
+  void h5g_set_comment_pro( EnvT* e)
+  {
+    SizeT nParam=e->NParam(3);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e,0);
+
+    /* mandatory 'Name' parameter */
+    DString name;
+    e->AssureScalarPar<DStringGDL>(1, name);
+
+    /* mandatory 'Comment' parameter */
+    DString comment;
+    e->AssureScalarPar<DStringGDL>(2, comment);
+
+    if ( H5Gset_comment( loc_id, name.c_str(), comment.c_str() ) < 0 )
+      { string msg; e->Throw(hdf5_error_message(msg)); }
+  }
+
+
   BaseGDL* h5g_create_fun( EnvT* e)
   {
     /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
