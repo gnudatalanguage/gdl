@@ -1101,6 +1101,50 @@ hid_t
 
   }
 
+  static herr_t get_len( hid_t loc_id, const char *name, void *data ) {
+    static_cast<size_t*>(data)[0] = (name) ? strlen(name) : 0;
+    return 1;
+  }
+
+  static herr_t get_name( hid_t loc_id, const char *name, void *data ) {
+    strcpy(static_cast<char*>(data),name);
+    return 1;
+  }
+
+  BaseGDL* h5g_get_member_name_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(3);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e, 0);
+
+    /* mandatory 'Name' parameter */
+    DString name;
+    e->AssureScalarPar<DStringGDL>( 1, name);
+
+    /* mandatory 'Index' parameter */
+    DLong index;
+    e->AssureLongScalarKW(2, index);
+
+    /* use 'H5Giterate()' to get member name length */
+    size_t name_len;
+    if ( H5Giterate( loc_id, name.c_str(), &index, get_len, &name_len ) < 0 )
+       { string msg; e->Throw(hdf5_error_message(msg)); }
+    index--;
+
+    /* allocate string buffer (remains allocated) */
+    char* member_name=static_cast<char*>(calloc(name_len+1,sizeof(char)));
+
+    /* use 'H5Giterate()' to get member name (as per IDL manual) */
+    if ( H5Giterate( loc_id, name.c_str(), &index, get_name, member_name ) < 0 )
+       { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return new DStringGDL(member_name);
+
+  }
+
   BaseGDL* h5g_get_objinfo_fun( EnvT* e)
   {
      /* Nov 2021, Oliver Gressel <ogressel@gmail.com>
