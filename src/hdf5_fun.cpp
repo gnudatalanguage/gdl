@@ -1130,6 +1130,24 @@ hid_t
   }
 
 
+  BaseGDL* h5g_get_num_objs_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com> */
+
+    SizeT nParam=e->NParam(1);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e, 0);
+
+    hsize_t num;
+    if ( H5Gget_num_objs(loc_id, &num) < 0 )
+      { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return new DLongGDL( num );
+
+  }
+
+
   BaseGDL* h5d_open_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(2);

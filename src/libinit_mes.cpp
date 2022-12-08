@@ -143,6 +143,7 @@ void LibInit_mes()
   new DLibFunRetNew(lib::h5g_create_fun, string("H5G_CREATE"), 2);
   const string getObjInfoKey[] = {"FOLLOW_LINK", KLISTEND};
   new DLibFunRetNew(lib::h5g_get_objinfo_fun, string("H5G_GET_OBJINFO"), 2,getObjInfoKey);
+  new DLibFunRetNew(lib::h5g_get_num_objs_fun, string("H5G_GET_NUM_OBJS"), 1);
 
   // SA: disabling the default HDF5 error handler (error handling in hdf5_fun.cpp)
   H5Eset_auto(NULL, NULL);
