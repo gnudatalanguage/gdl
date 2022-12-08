@@ -1075,6 +1075,36 @@ hid_t
   }
 
 
+  BaseGDL* h5g_get_comment_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(2);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e, 0);
+
+    /* mandatory 'Name' parameter */
+    DString name;
+    e->AssureScalarPar<DStringGDL>( 1, name);
+
+    /* query the string length */
+    ssize_t len = H5Gget_comment(loc_id, name.c_str(), 0, NULL);
+    if( len < 0 ) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    /* allocate string buffer (remains allocated) */
+    char* comment_str = static_cast<char*>(calloc(len+1,sizeof(char)));
+    if (comment_str == NULL) e->Throw("Failed to allocate memory!");
+
+    /* obtain the comment string */
+    if( H5Gget_comment(loc_id, name.c_str(), len+1, comment_str) < 0)
+       { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return new DStringGDL(comment_str);
+
+  }
+
+
   BaseGDL* h5g_create_fun( EnvT* e)
   {
     /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
