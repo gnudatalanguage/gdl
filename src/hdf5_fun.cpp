@@ -1168,9 +1168,10 @@ hid_t
     else if ( len == 0 )
        { /* FIXME: handle the no-name-associated case */ }
 
-    /* allocate string buffer (remains allocated) */
+    /* allocate string buffer */
     char* obj_name = static_cast<char*>(calloc(len+1,sizeof(char)));
     if (obj_name == NULL) e->Throw("Failed to allocate memory!");
+    hdf5_name_guard obj_name_guard = hdf5_name_guard(obj_name);
 
     /* obtain the member name */
     if( H5Gget_objname_by_idx(loc_id, index, obj_name, len+1) < 0)
