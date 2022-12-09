@@ -1134,8 +1134,9 @@ hid_t
        { string msg; e->Throw(hdf5_error_message(msg)); }
     index--;
 
-    /* allocate string buffer (remains allocated) */
+    /* allocate string buffer */
     char* member_name=static_cast<char*>(calloc(name_len+1,sizeof(char)));
+    hdf5_name_guard member_name_guard = hdf5_name_guard(member_name);
 
     /* use 'H5Giterate()' to get member name (as per IDL manual) */
     if ( H5Giterate( loc_id, name.c_str(), &index, get_name, member_name ) < 0 )
