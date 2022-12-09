@@ -1092,9 +1092,10 @@ hid_t
     ssize_t len = H5Gget_comment(loc_id, name.c_str(), 0, NULL);
     if( len < 0 ) { string msg; e->Throw(hdf5_error_message(msg)); }
 
-    /* allocate string buffer (remains allocated) */
+    /* allocate string buffer */
     char* comment_str = static_cast<char*>(calloc(len+1,sizeof(char)));
     if (comment_str == NULL) e->Throw("Failed to allocate memory!");
+    hdf5_name_guard comment_str_guard = hdf5_name_guard(comment_str);
 
     /* obtain the comment string */
     if( H5Gget_comment(loc_id, name.c_str(), len+1, comment_str) < 0)
