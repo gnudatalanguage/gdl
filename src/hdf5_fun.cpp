@@ -571,9 +571,10 @@ namespace lib {
         // number of array elements
         SizeT num_elems=member_sz/str_len;
 
-        // allocate string buffer (remains allocated)
+        // allocate string buffer
         char* name = static_cast<char*>(calloc(member_sz,sizeof(char)));
         if (name == NULL) e->Throw("Failed to allocate memory!");
+        hdf5_name_guard name_guard = hdf5_name_guard(name);
 
         // create GDL variable
         dimension flat_dim(&num_elems, 1);
@@ -871,8 +872,9 @@ namespace lib {
       SizeT num_elems=1;
       for(int i=0; i<rank_s; i++) num_elems *= count_s[i];
 
-      // allocate & read raw buffer (remains allocated upon return)
+      // allocate & read raw buffer
       char* raw = (char*) malloc(num_elems*str_len*sizeof(char));
+      hdf5_name_guard raw_guard = hdf5_name_guard(raw);
       hdf5_basic_read( loc_id, datatype, ms_id, fs_id, raw, e );
 
       // create GDL variable
