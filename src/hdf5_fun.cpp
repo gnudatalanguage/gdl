@@ -1201,6 +1201,58 @@ hid_t
   }
 
 
+  BaseGDL* h5g_get_num_objs_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com> */
+
+    SizeT nParam=e->NParam(1);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e, 0);
+
+    hsize_t num;
+    if ( H5Gget_num_objs(loc_id, &num) < 0 )
+      { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return new DLongGDL( num );
+
+  }
+
+
+  BaseGDL* h5g_get_obj_name_by_idx_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com> */
+
+    SizeT nParam=e->NParam(2);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e, 0);
+
+    /* mandatory 'Index' parameter */
+    DLong index;
+    e->AssureLongScalarPar(1, index);
+
+    ssize_t len =
+       H5Gget_objname_by_idx(loc_id, index, NULL, 0);
+    if( len < 0 )
+       { string msg; e->Throw(hdf5_error_message(msg)); }
+    else if ( len == 0 )
+       { /* FIXME: handle the no-name-associated case */ }
+
+    /* allocate string buffer */
+    char* obj_name = static_cast<char*>(calloc(len+1,sizeof(char)));
+    if (obj_name == NULL) e->Throw("Failed to allocate memory!");
+    hdf5_name_guard obj_name_guard = hdf5_name_guard(obj_name);
+
+    /* obtain the member name */
+    if( H5Gget_objname_by_idx(loc_id, index, obj_name, len+1) < 0)
+       { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return new DStringGDL(obj_name);
+
+  }
+
+
   BaseGDL* h5d_open_fun( EnvT* e)
   {
     SizeT nParam=e->NParam(2);
