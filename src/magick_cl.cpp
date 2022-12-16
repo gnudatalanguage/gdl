@@ -385,8 +385,11 @@ namespace lib {
         DByteGDL *bImage = new DByteGDL(dim, BaseGDL::ZERO);
 #ifndef HAS_IMAGEMAGICK
         PixelPacket *pixel_cache = image->getPixels(0,0,columns,rows); //magick command, without it writePixels do NOTHING!
-#endif
         image->writePixels(IndexQuantum,(unsigned char*)(bImage->DataAddr()));
+#else
+        Quantum *pixel_cache = image->getPixels(0,0,columns,rows); //magick command, without it writePixels do NOTHING!
+        image->writePixels(IndexQuantum,(unsigned char*)(bImage->DataAddr()));
+#endif
         return bImage;
       }
 #ifdef USE_MAGICK6
@@ -397,9 +400,12 @@ namespace lib {
       {
         DUIntGDL *bImage = new DUIntGDL(dim, BaseGDL::NOZERO);
 #ifndef HAS_IMAGEMAGICK
-        PixelPacket *pixel_cache = image->getPixels(0,0,columns,rows); //magick command, without it writePixels do NOTHING!
+        PixelPacket *pixel_cache = image->getPixels(0, 0, columns, rows); //magick command, without it writePixels do NOTHING!
+        image->writePixels(IndexQuantum, (unsigned char*) (bImage->DataAddr()));
+#else
+        Quantum *pixel_cache = image->getPixels(0, 0, columns, rows); //magick command, without it writePixels do NOTHING!
+        image->writePixels(IndexQuantum, (unsigned char*) (bImage->DataAddr()));
 #endif
-        image->writePixels(IndexQuantum,(unsigned char*)(bImage->DataAddr())); //probably not good, impossible to test yet.
         return bImage;
       }
     } catch (Exception &error_) {

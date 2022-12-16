@@ -78,8 +78,12 @@ namespace lib {
   BaseGDL* h5a_read_fun( EnvT* e);
   BaseGDL* h5g_open_fun( EnvT* e);
   BaseGDL* h5g_create_fun( EnvT* e);
+  BaseGDL* h5g_get_nmembers_fun( EnvT* e);
+  BaseGDL* h5g_get_member_name_fun( EnvT* e);
   BaseGDL* h5g_get_objinfo_fun( EnvT* e);
   BaseGDL* h5g_get_comment_fun( EnvT* e);
+  BaseGDL* h5g_get_num_objs_fun( EnvT* e);
+  BaseGDL* h5g_get_obj_name_by_idx_fun( EnvT* e);
   void h5a_write_pro( EnvT* e );
   void h5a_delete_pro( EnvT* e );
   void h5a_close_pro( EnvT* e );

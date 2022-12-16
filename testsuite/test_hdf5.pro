@@ -625,6 +625,7 @@ pro TEST_HDF5_GROUP, cumul_errors, create=create
    f_id = h5f_open(full_file_name)
    errors += ( strcmp( "a_sample_comment", $
                        h5g_get_comment(f_id, "a_sample_group") ) eq 0 )
+
    h5f_close, f_id
 
    ; --- output summary

@@ -705,6 +705,7 @@ namespace lib {
     for (count = nElpXpos - 2; count != -1; --count) {
       (*res)[count] = (*res)[count]*(*res)[count + 1] + U[count];
     }
+    free(U); // see issue 1428
   givebackres:
     GM_CV0();
 
