@@ -620,6 +620,8 @@ pro TEST_HDF5_GROUP, cumul_errors, create=create
    errors += (exit ne 0)
    spawn, 'rm -f gdl-'+file_name
 
+;AC<<<<<<< revert-1427-add_hdf5_group_member_related_functions
+;AC=======
    ; --- test the 'H5G_GET_COMMENT' function
 
    f_id = h5f_open(full_file_name)
@@ -628,6 +630,7 @@ pro TEST_HDF5_GROUP, cumul_errors, create=create
 
    h5f_close, f_id
 
+;;AC>>>>>>> master
    ; --- output summary
 
    banner_for_testsuite, 'TEST_HDF5_GROUP', errors, /short
