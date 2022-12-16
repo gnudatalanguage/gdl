@@ -137,7 +137,6 @@ test_obj_valid.pro
 test_parse_url.pro
 test_plot_ranges.pro
 test_plot_usersym.pro
-test_plotting_ranges.pro
 test_pmulti.pro
 test_poly_fit.pro
 test_postscript.pro

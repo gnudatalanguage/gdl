@@ -3,7 +3,8 @@
 ; Debugged with GDL team 13/10/2006
 ; Postscript tests are move to another program
 ;
-pro TEST_COLORS, verbose=verbose, background=background
+pro TEST_COLORS, verbose=verbose, background=background, $
+                 test=test, no_exit=no_exit
 ;
 print, 'This program quickly checks basic colors in DEVICE, /decomposed mode'
 ;
@@ -50,9 +51,8 @@ xyouts, xx+xxo, xx+xxo, 'YELLOW expected', color='00ffff'x
 ;
 ; we switch back to previous Device mode
 DEVICE, decomposed=old_decomposed
-; we close the window we opened
-car=''
-read, 'press any case to finish', car
-WDELETE
+;
+if KEYWORD_SET(no_exit) then STOP
+if KEYWORD_SET(test) then STOP
 ;
 end

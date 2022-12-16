@@ -7,10 +7,13 @@
 ; Note by Alain: it would also be great to have some "numerical null
 ; tests"
 ;
+; ---------------------------------
 ; Modifications history :
 ;
 ; * 2012-Feb-10: AC. Adding a true self-consistant test (TEST_CONGRID_BASIC)
 ; * 2018-Feb-01: AC. Mixing PLOT & CONGRID
+; * 2022-Dec-15: AC. To avoid color side effect, reset of color table
+;                    at the end
 ; ---------------------------------
 ;
 pro TEST_CONGRID_BASIC, cumul_errors, nbp=nbp, test=test, byte=byte
@@ -150,6 +153,11 @@ TEST_CONGRID_BASIC, cumul_errors, nbp=121, /byte
 TEST_CONGRID_ON_IMAGES, cumul_errors
 ;
 TEST_CONGRID_ON_PLOT, cumul_errors
+;
+; AC 2022-Dec-15 : cleanup of the device + reset color table
+;
+DEVICE, decomposed=0
+LOADCT, 0
 ;
 ; ----------------- final message ----------
 ;
