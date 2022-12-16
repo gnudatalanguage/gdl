@@ -571,9 +571,10 @@ namespace lib {
         // number of array elements
         SizeT num_elems=member_sz/str_len;
 
-        // allocate string buffer (remains allocated)
+        // allocate string buffer
         char* name = static_cast<char*>(calloc(member_sz,sizeof(char)));
         if (name == NULL) e->Throw("Failed to allocate memory!");
+        hdf5_name_guard name_guard = hdf5_name_guard(name);
 
         // create GDL variable
         dimension flat_dim(&num_elems, 1);
@@ -871,8 +872,9 @@ namespace lib {
       SizeT num_elems=1;
       for(int i=0; i<rank_s; i++) num_elems *= count_s[i];
 
-      // allocate & read raw buffer (remains allocated upon return)
+      // allocate & read raw buffer
       char* raw = (char*) malloc(num_elems*str_len*sizeof(char));
+      hdf5_name_guard raw_guard = hdf5_name_guard(raw);
       hdf5_basic_read( loc_id, datatype, ms_id, fs_id, raw, e );
 
       // create GDL variable
@@ -1054,6 +1056,58 @@ hid_t
 
   }
 
+
+  void h5g_set_comment_pro( EnvT* e)
+  {
+    SizeT nParam=e->NParam(3);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e,0);
+
+    /* mandatory 'Name' parameter */
+    DString name;
+    e->AssureScalarPar<DStringGDL>(1, name);
+
+    /* mandatory 'Comment' parameter */
+    DString comment;
+    e->AssureScalarPar<DStringGDL>(2, comment);
+
+    if ( H5Gset_comment( loc_id, name.c_str(), comment.c_str() ) < 0 )
+      { string msg; e->Throw(hdf5_error_message(msg)); }
+  }
+
+
+  BaseGDL* h5g_get_comment_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(2);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e, 0);
+
+    /* mandatory 'Name' parameter */
+    DString name;
+    e->AssureScalarPar<DStringGDL>( 1, name);
+
+    /* query the string length */
+    ssize_t len = H5Gget_comment(loc_id, name.c_str(), 0, NULL);
+    if( len < 0 ) { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    /* allocate string buffer */
+    char* comment_str = static_cast<char*>(calloc(len+1,sizeof(char)));
+    if (comment_str == NULL) e->Throw("Failed to allocate memory!");
+    hdf5_name_guard comment_str_guard = hdf5_name_guard(comment_str);
+
+    /* obtain the comment string */
+    if( H5Gget_comment(loc_id, name.c_str(), len+1, comment_str) < 0)
+       { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return new DStringGDL(comment_str);
+
+  }
+
+
   BaseGDL* h5g_create_fun( EnvT* e)
   {
     /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
@@ -1126,6 +1180,58 @@ hid_t
     res->NewTag("LINKLEN", new DULongGDL(statbuf.linklen));
 
     return res;
+
+  }
+
+
+  BaseGDL* h5g_get_num_objs_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com> */
+
+    SizeT nParam=e->NParam(1);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e, 0);
+
+    hsize_t num;
+    if ( H5Gget_num_objs(loc_id, &num) < 0 )
+      { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return new DLongGDL( num );
+
+  }
+
+
+  BaseGDL* h5g_get_obj_name_by_idx_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com> */
+
+    SizeT nParam=e->NParam(2);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e, 0);
+
+    /* mandatory 'Index' parameter */
+    DLong index;
+    e->AssureLongScalarPar(1, index);
+
+    ssize_t len =
+       H5Gget_objname_by_idx(loc_id, index, NULL, 0);
+    if( len < 0 )
+       { string msg; e->Throw(hdf5_error_message(msg)); }
+    else if ( len == 0 )
+       { /* FIXME: handle the no-name-associated case */ }
+
+    /* allocate string buffer */
+    char* obj_name = static_cast<char*>(calloc(len+1,sizeof(char)));
+    if (obj_name == NULL) e->Throw("Failed to allocate memory!");
+    hdf5_name_guard obj_name_guard = hdf5_name_guard(obj_name);
+
+    /* obtain the member name */
+    if( H5Gget_objname_by_idx(loc_id, index, obj_name, len+1) < 0)
+       { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return new DStringGDL(obj_name);
 
   }
 
