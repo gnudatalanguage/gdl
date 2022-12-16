@@ -607,6 +607,7 @@ pro TEST_HDF5_GROUP, cumul_errors, create=create
    else                        f_id = h5f_create("gdl-"+file_name)
 
    g_id = h5g_create(f_id, "a_sample_group")
+   h5g_set_comment, f_id,  "a_sample_group", "a_sample_comment"
 
    h5g_close, g_id
    h5f_close, f_id
@@ -618,6 +619,12 @@ pro TEST_HDF5_GROUP, cumul_errors, create=create
    spawn, 'h5diff gdl-'+file_name+' '+full_file_name, res, exit_status=exit
    errors += (exit ne 0)
    spawn, 'rm -f gdl-'+file_name
+
+   ; --- test the 'H5G_GET_COMMENT' function
+
+   f_id = h5f_open(full_file_name)
+   errors += ( strcmp( "a_sample_comment", $
+                       h5g_get_comment(f_id, "a_sample_group") ) eq 0 )
 
    h5f_close, f_id
 
