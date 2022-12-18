@@ -278,6 +278,11 @@ namespace lib
         max = 0.98 * val_ref;
         min = 1.02 * val_ref;
       }
+      if (max==min) { //case "PLOT, [0]"
+        max=1;
+        min=0;
+      }
+      range = max - min;
     }
 
     if (range >= 0) {
@@ -444,10 +449,25 @@ namespace lib
         min = imin;
         max = imax;
       } else {
-        const double max_allowed_leak_factor = 1 - 1.25e-6;
+        const double leak_factor = 1.25e-6;
         PLFLT intv = AutoIntv(range);
-        max =  ceil((max * max_allowed_leak_factor) / intv) * intv;
-        min = floor((min * max_allowed_leak_factor) / intv) * intv;
+        //diminish max a little to avoid a jump of 'intv' when max value is practically indifferentiable from a 'intv' mark:
+        if (max >0) {
+          max *= (1 - leak_factor); 
+          max =  ceil(max/ intv) * intv;
+        } else {
+          max *= (1 + leak_factor); 
+          max =  ceil(max/ intv) * intv;
+        }
+        //same for min, in the otehr direction
+        if (min > 0) {
+          min *= (1 + leak_factor);
+          min = floor(min / intv) * intv;
+        } else {
+          min *= (1 - leak_factor);
+          min = floor(min / intv) * intv;
+        }
+        //min = floor((min * max_allowed_leak_factor) / intv) * intv;
       }
     }
 
