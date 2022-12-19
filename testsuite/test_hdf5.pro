@@ -626,6 +626,11 @@ pro TEST_HDF5_GROUP, cumul_errors, create=create
    errors += ( strcmp( "a_sample_comment", $
                        h5g_get_comment(f_id, "a_sample_group") ) eq 0 )
 
+   ; --- test the 'H5G_GET_NMEMBERS' and 'H5G_GET_MEMBER_NAME' functions
+
+   errors += ( h5g_get_nmembers(f_id,"/") ne 1 )
+   errors += ( strcmp("a_sample_group", h5g_get_member_name(f_id,"/",0)) eq 0 )
+
    h5f_close, f_id
 
    ; --- output summary
