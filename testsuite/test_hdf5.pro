@@ -631,6 +631,11 @@ pro TEST_HDF5_GROUP, cumul_errors, create=create
    errors += ( h5g_get_nmembers(f_id,"/") ne 1 )
    errors += ( strcmp("a_sample_group", h5g_get_member_name(f_id,"/",0)) eq 0 )
 
+   ; --- test the 'H5G_GET_NUM_OBJS' and 'H5G_GET_OBJ_NAME_BY_IDX' functions
+
+   errors += ( h5g_get_num_objs(f_id) ne 1 )
+   errors += ( strcmp("a_sample_group", h5g_get_obj_name_by_idx(f_id,0)) eq 0 )
+
    h5f_close, f_id
 
    ; --- output summary
