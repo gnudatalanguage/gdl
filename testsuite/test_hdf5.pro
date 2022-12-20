@@ -620,17 +620,24 @@ pro TEST_HDF5_GROUP, cumul_errors, create=create
    errors += (exit ne 0)
    spawn, 'rm -f gdl-'+file_name
 
-;AC<<<<<<< revert-1427-add_hdf5_group_member_related_functions
-;AC=======
    ; --- test the 'H5G_GET_COMMENT' function
 
    f_id = h5f_open(full_file_name)
    errors += ( strcmp( "a_sample_comment", $
                        h5g_get_comment(f_id, "a_sample_group") ) eq 0 )
 
+   ; --- test the 'H5G_GET_NMEMBERS' and 'H5G_GET_MEMBER_NAME' functions
+
+   errors += ( h5g_get_nmembers(f_id,"/") ne 1 )
+   errors += ( strcmp("a_sample_group", h5g_get_member_name(f_id,"/",0)) eq 0 )
+
+   ; --- test the 'H5G_GET_NUM_OBJS' and 'H5G_GET_OBJ_NAME_BY_IDX' functions
+
+   errors += ( h5g_get_num_objs(f_id) ne 1 )
+   errors += ( strcmp("a_sample_group", h5g_get_obj_name_by_idx(f_id,0)) eq 0 )
+
    h5f_close, f_id
 
-;;AC>>>>>>> master
    ; --- output summary
 
    banner_for_testsuite, 'TEST_HDF5_GROUP', errors, /short
