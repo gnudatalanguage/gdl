@@ -108,7 +108,7 @@ We present GNU Data Language (GDL), an open-source free incremental compiler for
   two computer languages used for scientific data analysis. GDL is highly compatible with the IDL and PV-WAVE and aims to run
   any existing IDL codes without any modifications. GDL comes with its dedicated IDE GDL Workbench and Jupyter kernel `gdl_kernel` 
   to provide a comfortable development environment. In addition, GDL supports interoperability with Python. GDL is freely
-  available at https://gnudatalanguage.github.io/.
+  available at <https://gnudatalanguage.github.io/>.
 
 \* IDL is a registered trademark of [L3HARRIS](http://l3harrisgeospatial.com). \
 ** PV-WAVE is a product of [Perforce](http://perforce.com).
@@ -116,11 +116,11 @@ We present GNU Data Language (GDL), an open-source free incremental compiler for
 # Statement of Need
 
 Interactive Data Language (IDL) is a commercial, domain-specific language used for processing data in various scientific
-  fields, including astronomy, geosciences, biology, hyperspectral, medical imaging (@burrage2021cardiac, @coates2019high,
-  @xiao2022superheating, @lee2022transboundary, @castro2021very), and even COVID-19 research (@chen2021orf3a). Although
-  IDL is not so widely used these days for scientific computing as the rise of modern computing languages, many legacy IDL
-  codes are still being used these days. Undoubtedly, porting such legacy codes to modern languages would require a huge
-  effort, it is much more economic to run them with IDL. To run such IDL codes without any financial constraints, there
+  fields, including astronomy, geosciences, biology, hyperspectral, medical imaging [@burrage2021cardiac; @coates2019high;
+  @xiao2022superheating; @lee2022transboundary; @castro2021very], and even COVID-19 research [@chen2021orf3a]. Although
+  IDL is not so widely used these days for scientific computing with the rise of modern computing languages, many legacy IDL
+  codes are still being used. Undoubtedly, porting such legacy codes to modern languages would require a huge
+  effort; it is much more economic to run them with IDL. To run such IDL codes without any financial constraints, there
   have been several efforts to create a freeware clone of IDL, including Fawlty Language (<https://www.flxpert.hu/fl/>).
   Fawlty Language is a very successful implementation as it supports nearly 100% of the latest IDL 8.0 syntax. However,
   Faulty Language is neither open-source nor free as in free speach and thus users cannot report or fix problems in its 
@@ -130,50 +130,50 @@ The GDL project is an international effort to create a free software clone of In
   Visuals - Workstation Analysis and Visualization Environment (PV-WAVE), preserving the capability to run the vast body of
   scientific legacy codes without any technical, legal or financial constraints. GDL has been developed for over four decades
   with public funding throughout academic institutions around the world. The initial development was done by **Marc Schellens**
-  almost 20 years ago (commit history preserved on GitHub dates back to 2004) and since then a continuous development has
+  almost 20 years ago (the commit history preserved on GitHub dates back to 2004) and since then, continuous development has
   been carried out by an evolving team of volunteer contributors -- both freelance and affiliated with academic institutions
-  (@Coulais_et_al_2010, @Coulais_et_al_2012, @Coulais_et_al_2014, @Coulais_et_al_2019, @Duvert_et_al_2020). As a result,
+  [@Coulais_et_al_2010; @Coulais_et_al_2012; @Coulais_et_al_2014; @Coulais_et_al_2019; @Duvert_et_al_2020]. As a result,
   we have recently announced GDL 1.0.
 
-In terms of compatibility, GDL aims at a full compatibility with modern IDL language specification, including partial
+In terms of compatibility, GDL aims at full compatibility with the modern IDL language specification, including partial
   support of the IDL 8 specification and above. In addition, GDL is partially compatible with PV-WAVE, another data
   analysis framework forked from IDL and sharing parts of IDL syntax and library interface. GDL aims to closely mimic
-  the behaviour of the IDL compiler and libraries distributed by Harris Geospatial Solutions, so that the existing IDL
-  scripts to be compatible with GDL without any modifications. The development has been done by relying on IDL and PV-WAVE
-  documentation which has been publicly available on the IDL and PV-WAVE proprietors' websites, IDL documentation which
+  the behavior of the IDL compiler and libraries distributed by Harris Geospatial Solutions, so that the existing IDL
+  scripts are compatible with GDL without any modifications. The development has been done by relying on IDL and PV-WAVE
+  documentation that has been publicly available on the IDL and PV-WAVE proprietors' websites, IDL documentation that
   had been publicly available on NASA websites (currently available at the Internet Archive, see
-  <https://web.archive.org/web/20090423093625/http://idlastro.gsfc.nasa.gov/idl_html_help/>), and several published books which
-  describes IDL syntax and library routines (@Fanning_2003, @Bowman_2005, @Gumley_2010, @Galloy_2015).
+  <https://web.archive.org/web/20090423093625/http://idlastro.gsfc.nasa.gov/idl_html_help/>), and several published books that
+  describe IDL syntax and library routines [@Fanning_2003; @Bowman_2005; @Gumley_2010; @Galloy_2015].
 
 For developer convenience, GDL comes with its own integrated development environment (IDE), GDL Workbench, based on Eclipse
-  Rich Client Platform (RCP), to aid users to simply edit IDL scripts and run them with GDL. In addition, there is an
-  ongoing effort to maintain a GDL Jupyter kernel `gdl_kernel` providing GDL data analysis and plotting functionalities via
-  familiar interactive notebook interface.
+  Rich Client Platform (RCP), to allow users to simply edit IDL scripts and run them with GDL. In addition, there is an
+  ongoing effort to maintain a GDL Jupyter kernel `gdl_kernel`, providing GDL data analysis and plotting functionalities via
+  a familiar interactive notebook interface.
   
 GDL is interoperable with Python, by featuring a bi-directional Python bridge offering access to IDL/GDL code from
   Python and vice versa.
 
-GDL, GDL Workbench and `gdl_kernel` are free/libre and open-source software publicly available under the terms of the GNU General
+GDL, GDL Workbench, and `gdl_kernel` are free/libre and open-source software, publicly available under the terms of the GNU General
   Public License v2 or above.
 
 # Highlights in GDL 1.0
 
-From GDL 1.0, the plotting part has been completely revamped based on wxWidgets by default for all platforms, which provides widget support and also guarantees the same behavior across different operating systems. GDL 1.0 also provides improved file format support, including reading/writing geoTIFF and writing HDF files. From the release of 1.0, the GDL project is automatically compiled and released via Github Actions, providing source code distribution and a convenient installer for Windows systems. In addition to new features, many performances and threading optimizations were also done. Map projections support in GDL is also much more mature compared to earlier major releases of GDL. Finally, the transition from SourceForge to GitHub that preceded the release of GDL 1.0 helped to consolidate the community efforts, streamline development, and support workflows.
+For GDL 1.0, the plotting part has been completely revamped based on wxWidgets by default for all platforms, which provides widget support and also guarantees the same behavior across different operating systems. GDL 1.0 also provides improved file format support, including reading/writing geoTIFF and writing HDF files. From release 1.0, the GDL project is automatically compiled and released via Github Actions, providing source code distribution and a convenient installer for Windows systems. In addition to new features, many performance and threading optimizations were also done. Map projections support in GDL is also much more mature compared to earlier major releases of GDL. Finally, the transition from SourceForge to GitHub that preceded the release of GDL 1.0 helped to consolidate the community efforts, streamline development, and support workflows.
 
 # Design and Dependencies
 
-GDL interpreter is written in C++ using the ANTLR framework.
+The GDL interpreter is written in C++ using the ANTLR framework.
 The library routines are written either in C++ or in GDL itself.
 Build and test automation is handled with CMake.
 Continuous integration is set up with GitHub Actions.
 
-GDL command-line interface is built on top of readline and ncurses.
+The GDL command-line interface is built on top of readline and ncurses.
 Basic array-handling, numerical processing, and I/O functionalities are implemented using Eigen,
-  GSL, FFTW, OpenMP and zlib.
+  GSL, FFTW, OpenMP, and zlib.
 Graphical output (screen and files) and widget handling is realised using 
   plplot and wxWidgets.
 Support for various file formats is implemented using netCDF, HDF4,
-  HDF5, Shapelib, Magick++ or GraphicsMagick and Expat.
+  HDF5, Shapelib, Magick++ or GraphicsMagick, and Expat.
 Map projections are handled using PROJ.
 An evolving list of all project dependencies is maintained at the project website
   and can also be extracted from the CMake configuration files.
@@ -181,7 +181,7 @@ An evolving list of all project dependencies is maintained at the project websit
 # Availability
 
 GDL can be installed via the package managing system on Linux (Arch, Debian, Fedora, Gentoo, Mageia, Ubuntu), 
-  FreeBSD and macOS (Homebrew and Macports).
+  FreeBSD, and macOS (Homebrew and Macports).
 On Windows, we provide a precompiled Windows binary, wrapped as a convenient installer based on the Nullsoft Scriptable
   Install System (NSIS).
 The source code of GDL, GDL Workbench, and `gdl_kernel` is available at our GitHub repository (<https://github.com/gnudatalanguage>).
@@ -189,8 +189,8 @@ The weekly unstable builds can be obtained from <https://github.com/gnudatalangu
 
 # Support and Contributions
 
-GDL resources are being catalogued at the GDL website (<https://gnudatalanguage.github.io/>).
-  The preferred and effective way to report requests for support, missing features or bugs present
+GDL resources are being cataloged at the GDL website (<https://gnudatalanguage.github.io/>).
+  The preferred and effective way to report requests for support, missing features, or bugs present
   is through the GitHub issue tracker (<https://github.com/gnudatalanguage/gdl/issues>).
 
 To streamline review and incorporation of code contributions, pull requests on GitHub are preferred.
