@@ -29,7 +29,10 @@ static GDL_3DTRANSFORMDEVICE PlotDevice3D;
 //#define TODATACOORDY( in, out, log) out = (log) ? pow(10.0, (in -sy[0])/sy[1]) : (in -sy[0])/sy[1];
 #define TONORMCOORDZ( in, out, log) out = (log) ? sz[0] + sz[1] * log10(in) : sz[0] + sz[1] * in;
 //#define TODATACOORDZ( in, out, log) out = (log) ? pow(10.0, (in -sz[0])/sz[1]) : (in -sz[0])/sz[1];
-#define  PROTECTXY if(x>32760.) x=32760; if(y>32760.) y=32760; if(x< -32760.) x=-32760; if( y< -32760.) y=-32760;
+// protect against plplot limited to 16 bit values. Also (#1441) should not change +Inf and -Inf to
+// permit correct functioning of draw_polyline
+#define  PROTECTXY if (isfinite(x)) { if(x>32760.) x=32760; else if(x< -32760.) x=-32760; } if (isfinite(y)) { if(y>32760.) y=32760; else if( y< -32760.) y=-32760;}
+
 namespace lib
 {
 
