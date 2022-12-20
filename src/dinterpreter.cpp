@@ -935,7 +935,7 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command) {
     stepCount = sCount;
     return CC_SKIP;
   } else if (cmd("SIZE")) {
-    cout << "SIZE not implemented yet." << endl;
+    cout << "% The .SIZE executive command is obsolete and no longer has any effect." << endl;
     return CC_OK;
   } else if (cmd("TRACE")) //Trace seems to be same as CONTINUE for IDL 
   {
