@@ -74,7 +74,6 @@ namespace lib {
       if (nPar == 1) {
         SizeT dim0 = p0->Dim(0);
         if (dim0 < 2 || dim0 > 3) e->Throw("When only 1 param, dims must be (2,n) or (3,n)");
-        if (p0->Dim(1) < 3) e->Throw("Not enough valid and unique points specified.");
 
         DDoubleGDL *val = e->GetParAs< DDoubleGDL>(0);
         nEl = p0->N_Elements() / dim0;

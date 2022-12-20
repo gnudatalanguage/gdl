@@ -278,6 +278,11 @@ namespace lib
         max = 0.98 * val_ref;
         min = 1.02 * val_ref;
       }
+      if (max==min) { //case "PLOT, [0]"
+        max=1;
+        min=0;
+      }
+      range = max - min;
     }
 
     if (range >= 0) {
@@ -444,10 +449,25 @@ namespace lib
         min = imin;
         max = imax;
       } else {
-        const double max_allowed_leak_factor = 1 - 1.25e-6;
+        const double leak_factor = 1.25e-6;
         PLFLT intv = AutoIntv(range);
-        max =  ceil((max * max_allowed_leak_factor) / intv) * intv;
-        min = floor((min * max_allowed_leak_factor) / intv) * intv;
+        //diminish max a little to avoid a jump of 'intv' when max value is practically indifferentiable from a 'intv' mark:
+        if (max >0) {
+          max *= (1 - leak_factor); 
+          max =  ceil(max/ intv) * intv;
+        } else {
+          max *= (1 + leak_factor); 
+          max =  ceil(max/ intv) * intv;
+        }
+        //same for min, in the otehr direction
+        if (min > 0) {
+          min *= (1 + leak_factor);
+          min = floor(min / intv) * intv;
+        } else {
+          min *= (1 - leak_factor);
+          min = floor(min / intv) * intv;
+        }
+        //min = floor((min * max_allowed_leak_factor) / intv) * intv;
       }
     }
 
@@ -812,25 +832,23 @@ namespace lib
     //    large amount of data whitout duplicating all the arrays
     // trick 2/ when we have a NaN or and Inf, we realize the plot, then reset.
 
-    int GDL_POLYLINE_BUFSIZE=500000; // idl default seems to be more than 2e6 !!
+    int GDL_POLYLINE_BUFSIZE=32; // WE HAVE TO CHECK WHERE WE LOOSE TIME -- LONG BUFSIZE ONLY SLOW THE PROCESS.
+    bool isBad=false;
 
+    if (append) { //check save value is not bad
+      getLastPoint(a, x, y);
+      isBad = (!isfinite(x) || !isfinite(y) );
+      if (isBad) append=false;
+    }
+    //size buffer to save space for small number of elements
     if ( minEl<GDL_POLYLINE_BUFSIZE ) GDL_POLYLINE_BUFSIZE=append?minEl+1:minEl;
     int i_buff=0;
     PLFLT *x_buff=new PLFLT[GDL_POLYLINE_BUFSIZE];
     PLFLT *y_buff=new PLFLT[GDL_POLYLINE_BUFSIZE];
 
-    bool isBad=false;
     if (append) //start with the old point
     {
       getLastPoint(a, x, y);
-      x_buff[i_buff]=x;
-      y_buff[i_buff]=y;
-      i_buff++;
-    } else {
-      if (!flag_x_const) x = static_cast<PLFLT> ((*xVal)[0]);
-      else x = x_ref;
-      if (!flag_y_const) y = static_cast<PLFLT> ((*yVal)[0]);
-      else y = y_ref;
       PROTECTXY //patch against PLPLOT unfortunate behaviour #1415
       x_buff[i_buff]=x;
       y_buff[i_buff]=y;
@@ -846,7 +864,7 @@ namespace lib
     // TO BE REMOVED WHEN BUG DISAPPEARS
     if (a->IsWxStream()) maxAllowedColorsForSpeed=512;
     if (!docolor) { 
-      for (SizeT i = (append ? 0 : 1); i < minEl; ++i) {
+      for (SizeT i = 0; i < minEl; ++i) {
         isBad = (!isfinite(x) || !isfinite(y) ); //nb: isfinite(x)   returns a nonzero value if (fpclassify(x) != FP_NAN && fpclassify(x) != FP_INFINITE)
         if (isBad && i_buff > 0) {
           if (line) a->line(i_buff, x_buff, y_buff);
@@ -937,7 +955,7 @@ namespace lib
       }
     } else { //docolor mode
       DLong* color=static_cast<DLong*>(colorgdl->DataAddr());
-      for (SizeT i = (append ? 0 : 1); i < minEl; ++i) {
+      for (SizeT i = 0; i < minEl; ++i) {
         isBad = (!isfinite(x) || !isfinite(y)); //nb: isfinite(x)   returns a nonzero value if (fpclassify(x) != FP_NAN && fpclassify(x) != FP_INFINITE)
         if (isBad && i_buff > 0) {
           //tricky as we need to plot line and/or eventual symbol the same color
