@@ -606,10 +606,18 @@ pro TEST_HDF5_GROUP, cumul_errors, create=create
    if keyword_set(create) then f_id = h5f_create(file_name) $
    else                        f_id = h5f_create("gdl-"+file_name)
 
-   g_id = h5g_create(f_id, "a_sample_group")
+   g1_id = h5g_create(f_id, "a_sample_group")
    h5g_set_comment, f_id,  "a_sample_group", "a_sample_comment"
 
-   h5g_close, g_id
+   h5g_link, f_id, "a_sample_group", "hard_link_1"
+   h5g_link, f_id, "a_sample_group", "soft_link_1", /soft
+
+   g2_id = h5g_create(f_id, "a_second_group")
+   h5g_link, f_id, "a_sample_group", "hard_link_2", new_loc_id=g2_id
+   h5g_link, f_id, "a_sample_group", "soft_link_2", new_loc_id=g2_id, /soft
+
+   h5g_close, g1_id
+   h5g_close, g2_id
    h5f_close, f_id
 
    if keyword_set(create) then return
@@ -628,12 +636,12 @@ pro TEST_HDF5_GROUP, cumul_errors, create=create
 
    ; --- test the 'H5G_GET_NMEMBERS' and 'H5G_GET_MEMBER_NAME' functions
 
-   errors += ( h5g_get_nmembers(f_id,"/") ne 1 )
+   errors += ( h5g_get_nmembers(f_id,"/") ne 4 )
    errors += ( strcmp("a_sample_group", h5g_get_member_name(f_id,"/",0)) eq 0 )
 
    ; --- test the 'H5G_GET_NUM_OBJS' and 'H5G_GET_OBJ_NAME_BY_IDX' functions
 
-   errors += ( h5g_get_num_objs(f_id) ne 1 )
+   errors += ( h5g_get_num_objs(f_id) ne 4 )
    errors += ( strcmp("a_sample_group", h5g_get_obj_name_by_idx(f_id,0)) eq 0 )
 
    h5f_close, f_id
