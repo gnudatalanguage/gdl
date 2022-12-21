@@ -90,6 +90,7 @@ namespace lib {
   void h5t_close_pro( EnvT* e );
   void h5g_close_pro( EnvT* e );
   void h5g_set_comment_pro( EnvT* e );
+  void h5g_link_pro( EnvT* e );
 
 } // namespace
 

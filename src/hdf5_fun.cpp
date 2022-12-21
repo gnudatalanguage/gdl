@@ -1077,6 +1077,32 @@ hid_t
   }
 
 
+  void h5g_link_pro( EnvT* e)
+  {
+    SizeT nParam=e->NParam(3);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e,0);
+
+    /* mandatory 'Current_Name' parameter */
+    DString current_name;
+    e->AssureScalarPar<DStringGDL>(1, current_name);
+
+    /* mandatory 'New_Name' parameter */
+    DString new_name;
+    e->AssureScalarPar<DStringGDL>(2, new_name);
+
+    /* optional 'SOFTLINK' keyword parameter */
+    static int soft_idx = e->KeywordIx("SOFTLINK");
+    hbool_t soft_link = e->KeywordSet(soft_idx);
+
+    /* optional 'NEW_LOC_ID' keyword parameter */
+    static int new_idx = e->KeywordIx("NEW_LOC_ID");
+    hid_t new_loc_id = hdf5_input_conversion_kw(e,new_idx);
+
+  }
+
+
   BaseGDL* h5g_get_comment_fun( EnvT* e)
   {
     /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
