@@ -1177,13 +1177,21 @@ statement returns[ RetCode retCode]
       DebugMsg(last, "Interrupted at: ");
       sigControlC = false;
       retCode = NewInterpreterInstance(last->getLine()); //-1);
-    } else if (interruptEnable && _retTree == NULL && debugMode == DEBUG_RETURN) {
-		if (callStack.back()->GetProName() == MyProName) { //only for current procedure (will hang if reentrant! wait for the case to be present!)
+	} else if (interruptEnable && _retTree == NULL && (debugMode == DEBUG_RETURN || debugMode == DEBUG_OUT)) {
+      if (debugMode == DEBUG_RETURN) {
+        if (callStack.back()->GetProName() == MyProName) {
           DebugMsg(last, "Return encountered: ");
-		  debugMode = DEBUG_CLEAR;
-		  retCode = NewInterpreterInstance(last->getLine()); //-1);
-    }
-    } else if (debugMode != DEBUG_CLEAR) {
+          debugMode = DEBUG_CLEAR;
+          return NewInterpreterInstance(last->getLine()); //-1);
+        }
+      } else { //DEBUG_OUT --> just do an additional .step if we are at MyProName
+         if (callStack.back()->GetProName() == MyProName) {
+          debugMode = DEBUG_STEP;
+          stepCount=1;
+          return retCode; //continue 
+        }
+     } 
+   } else if (debugMode != DEBUG_CLEAR) {
       if (debugMode == DEBUG_STOP) {
         DebugMsg(last, "Stop encountered: ");
         if (!interruptEnable) debugMode = DEBUG_PROCESS_STOP;
