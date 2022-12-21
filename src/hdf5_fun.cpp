@@ -1079,6 +1079,8 @@ hid_t
 
   void h5g_link_pro( EnvT* e)
   {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
     SizeT nParam=e->NParam(3);
 
     /* mandatory 'Loc_id' parameter */
@@ -1115,6 +1117,24 @@ hid_t
           { string msg; e->Throw(hdf5_error_message(msg)); }
     }
 
+  }
+
+
+  void h5g_unlink_pro( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(2);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e,0);
+
+    /* mandatory 'Name' parameter */
+    DString name;
+    e->AssureScalarPar<DStringGDL>(1, name);
+
+    if ( H5Gunlink(loc_id, name.c_str()) < 0 )
+       { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
 
