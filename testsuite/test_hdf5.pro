@@ -616,8 +616,12 @@ pro TEST_HDF5_GROUP, cumul_errors, create=create
    h5g_link, f_id, "a_sample_group", "hard_link_2", new_loc_id=g2_id
    h5g_link, f_id, "a_sample_group", "soft_link_2", new_loc_id=g2_id, /soft
 
+   g3_id = h5g_create(f_id, "a_third_group")
+   h5g_unlink, f_id, "a_third_group"
+
    h5g_close, g1_id
    h5g_close, g2_id
+   h5g_close, g3_id
    h5f_close, f_id
 
    if keyword_set(create) then return
