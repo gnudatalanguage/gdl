@@ -866,8 +866,9 @@ DInterpreter::CommandCode DInterpreter::ExecuteCommand(const string& command) {
     cout << "GO not implemented yet." << endl;
     return CC_OK;
   } else if (cmd("OUT")) {
-    cout << "OUT not implemented yet." << endl;
-    return CC_OK;
+    debugMode = DEBUG_OUT;
+    MyProName=callStack.back()->GetProName();
+    return CC_CONTINUE;
   } else if (cmd("RUN")) {
     return CmdRun(command);
   } else if (cmd("RETURN")) {
@@ -1440,7 +1441,7 @@ else
 // reads user input and executes it
 // inner loop (called via Control-C, STOP, error)
 
-RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset) {
+ RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset) {
   ProgNodeP retTreeSave = _retTree;
   for (;;) {
 #if defined (_MSC_VER) && _MSC_VER < 1800

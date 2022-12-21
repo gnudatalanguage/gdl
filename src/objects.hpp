@@ -85,13 +85,14 @@ extern          int  debugMode;
 
 enum DebugCode {
   DEBUG_CLEAR=0,
-  DEBUG_RETURN = 1,
-  DEBUG_STEP = 2,
-  DEBUG_STEPOVER = 3,
-  DEBUG_TRACE = 4,
-  DEBUG_STOP_SILENT = 5,
-  DEBUG_STOP = 6,
-  DEBUG_PROCESS_STOP = 7
+  DEBUG_OUT = 1,
+  DEBUG_RETURN = 2,
+  DEBUG_STEP = 3,
+  DEBUG_STEPOVER = 4,
+  DEBUG_TRACE = 5,
+  DEBUG_STOP_SILENT = 6,
+  DEBUG_STOP = 7,
+  DEBUG_PROCESS_STOP = 8
 };
 
 template< class Container> void PurgeContainer( Container& s) 
