@@ -1095,10 +1095,25 @@ hid_t
     /* optional 'SOFTLINK' keyword parameter */
     static int soft_idx = e->KeywordIx("SOFTLINK");
     hbool_t soft_link = e->KeywordSet(soft_idx);
+    H5L_type_t type = (soft_link) ? H5G_LINK_SOFT : H5G_LINK_HARD;
 
     /* optional 'NEW_LOC_ID' keyword parameter */
     static int new_idx = e->KeywordIx("NEW_LOC_ID");
-    hid_t new_loc_id = hdf5_input_conversion_kw(e,new_idx);
+
+    /* create the link */
+    if (e->GetKW(new_idx)!=NULL) {
+
+       hid_t new_loc_id = hdf5_input_conversion_kw(e,new_idx);
+
+       if ( H5Glink2(loc_id, current_name.c_str(), type,
+                     new_loc_id, new_name.c_str()) < 0 )
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    } else {
+
+       if ( H5Glink(loc_id, type, current_name.c_str(), new_name.c_str()) < 0 )
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+    }
 
   }
 
