@@ -143,6 +143,8 @@ void LibInit_mes()
   const string H5GlinkKey[] = {"SOFTLINK","NEW_LOC_ID", KLISTEND};
   new DLibPro(lib::h5g_link_pro, string("H5G_LINK"), 3, H5GlinkKey);
   new DLibPro(lib::h5g_unlink_pro, string("H5G_UNLINK"), 2);
+  const string H5GmoveKey[] = {"NEW_LOC_ID", KLISTEND};
+  new DLibPro(lib::h5g_move_pro, string("H5G_MOVE"), 3, H5GmoveKey);
   new DLibFunRetNew(lib::h5g_get_comment_fun, string("H5G_GET_COMMENT"), 2);
   new DLibFunRetNew(lib::h5g_open_fun, string("H5G_OPEN"), 2);
   new DLibFunRetNew(lib::h5g_create_fun, string("H5G_CREATE"), 2);

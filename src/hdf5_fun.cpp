@@ -1173,6 +1173,45 @@ hid_t
   }
 
 
+  void h5g_move_pro( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(3);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e,0);
+
+    /* mandatory 'Src_Name' parameter */
+    DString src_name;
+    e->AssureScalarPar<DStringGDL>(1, src_name);
+
+    /* mandatory 'Dst_Name' parameter */
+    DString dst_name;
+    e->AssureScalarPar<DStringGDL>(2, dst_name);
+
+    /* optional 'NEW_LOC_ID' keyword parameter */
+    static int new_idx = e->KeywordIx("NEW_LOC_ID");
+
+    /* perform the move/rename operation */
+    if (e->GetKW(new_idx)!=NULL) {
+
+       hid_t src_loc_id = loc_id;
+       hid_t dst_loc_id = hdf5_input_conversion_kw(e,new_idx);
+
+       if ( H5Gmove2( src_loc_id, src_name.c_str(),
+                      dst_loc_id, dst_name.c_str() ) < 0 )
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    } else {
+
+       if ( H5Gmove(loc_id, src_name.c_str(), dst_name.c_str()) < 0 )
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+    }
+
+  }
+
+
   BaseGDL* h5g_get_comment_fun( EnvT* e)
   {
     /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
