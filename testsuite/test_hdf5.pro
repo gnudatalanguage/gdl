@@ -648,6 +648,12 @@ pro TEST_HDF5_GROUP, cumul_errors, create=create
    errors += ( h5g_get_num_objs(f_id) ne 4 )
    errors += ( strcmp("a_sample_group", h5g_get_obj_name_by_idx(f_id,0)) eq 0 )
 
+   ; --- test the 'H5G_GET_LINKVAL' function
+
+   errors += ( strcmp("a_sample_group", $
+                      h5g_get_linkval(f_id,"soft_link_1")) eq 0 )
+   errors += ( strcmp("a_sample_group", $
+                      h5g_get_linkval(f_id,"a_second_group/soft_link_2")) eq 0 )
    h5f_close, f_id
 
    ; --- output summary
