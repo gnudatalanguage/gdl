@@ -1138,6 +1138,41 @@ hid_t
   }
 
 
+  BaseGDL* h5g_get_linkval_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(2);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e, 0);
+
+    /* mandatory 'Name' parameter */
+    DString name;
+    e->AssureScalarPar<DStringGDL>( 1, name);
+
+    /* check link type & query the string length */
+    H5L_info_t link_info;
+    if ( H5Lget_info(loc_id, name.c_str(), &link_info, H5P_DEFAULT) < 0 )
+       { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    if ( link_info.type != H5L_TYPE_SOFT )
+       e->Throw("Input argument is not a symbolic link");
+
+    /* allocate string buffer */
+    size_t len=link_info.u.val_size;
+    char* linkval = static_cast<char*>(calloc(len+1,sizeof(char)));
+    if (linkval == NULL) e->Throw("Failed to allocate memory!");
+    hdf5_name_guard linkval_guard = hdf5_name_guard(linkval);
+
+    /* obtain the value string */
+    if( H5Gget_linkval(loc_id, name.c_str(), len+1, linkval) < 0)
+       { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return new DStringGDL(linkval);
+  }
+
+
   BaseGDL* h5g_get_comment_fun( EnvT* e)
   {
     /* Dec 2022, Oliver Gressel <ogressel@gmail.com>

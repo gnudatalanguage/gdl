@@ -148,6 +148,7 @@ void LibInit_mes()
   new DLibFunRetNew(lib::h5g_create_fun, string("H5G_CREATE"), 2);
   new DLibFunRetNew(lib::h5g_get_nmembers_fun, string("H5G_GET_NMEMBERS"), 2);
   new DLibFunRetNew(lib::h5g_get_member_name_fun, string("H5G_GET_MEMBER_NAME"), 3);
+  new DLibFunRetNew(lib::h5g_get_linkval_fun, string("H5G_GET_LINKVAL"), 2);
   const string getObjInfoKey[] = {"FOLLOW_LINK", KLISTEND};
   new DLibFunRetNew(lib::h5g_get_objinfo_fun, string("H5G_GET_OBJINFO"), 2,getObjInfoKey);
   new DLibFunRetNew(lib::h5g_get_num_objs_fun, string("H5G_GET_NUM_OBJS"), 1);
