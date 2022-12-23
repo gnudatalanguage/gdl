@@ -122,6 +122,9 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
 #else
 long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX ); //| wxFRAME_TOOL_WINDOW); //no focus 
 #endif
+if(hide) {
+  style=wxFRAME_TOOL_WINDOW;
+}
   gdlwxPlotFrame* plotFrame = new gdlwxPlotFrame(titleWxString, wxPoint(xoff,yoff), wxDefaultSize, style, scrolled);
   // Associate a sizer immediately
   wxSizer* tfSizer = new wxBoxSizer(wxVERTICAL);
@@ -163,23 +166,23 @@ long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wx
 
   plotFrame->Fit();
   plotFrame->SetBackgroundColour(*wxBLACK); //set black background --> for "window" comand.
-    plotFrame->Realize();
-    if (hide) {
-      winList[ wIx]->UnMapWindowAndSetPixmapProperty(); //needed: will set the "pixmap" property
-    } else {
-      plotFrame->Show(); //WithoutActivating(); --> this does nothing good. Better tailor your window manager to 'focus under mouse"
-    }
-//    plotFrame->UpdateWindowUI(); not useful
-    plotFrame->Refresh();
-    plotFrame->Update();
-    plotFrame->Raise();
-//really show by letting the loop do its magic. Necessary.
+  plotFrame->Realize();
+  if (hide) {
+    winList[ wIx]->UnMapWindowAndSetPixmapProperty(); //needed: will set the "pixmap" property
+  } else {
+    plotFrame->Show(); //WithoutActivating(); --> this does nothing good. Better tailor your window manager to 'focus under mouse"
+  //    plotFrame->UpdateWindowUI(); not useful
+  plotFrame->Refresh();
+  plotFrame->Update();
+  plotFrame->Raise();
+  //really show by letting the loop do its magic. Necessary.
 #ifdef __WXMAC__
   wxTheApp->Yield();
 #else
   wxGetApp().MainLoop(); //central loop for wxEvents!
 #endif
-    
+   }
+   
   // these widget specific events are always set:
     plot->Connect(wxEVT_PAINT, wxPaintEventHandler(gdlwxGraphicsPanel::OnPaint));
     //disable flicker see https://wiki.wxwidgets.org/Flicker-Free_Drawing
