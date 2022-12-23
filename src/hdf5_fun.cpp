@@ -1077,6 +1077,141 @@ hid_t
   }
 
 
+  void h5g_link_pro( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(3);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e,0);
+
+    /* mandatory 'Current_Name' parameter */
+    DString current_name;
+    e->AssureScalarPar<DStringGDL>(1, current_name);
+
+    /* mandatory 'New_Name' parameter */
+    DString new_name;
+    e->AssureScalarPar<DStringGDL>(2, new_name);
+
+    /* optional 'SOFTLINK' keyword parameter */
+    static int soft_idx = e->KeywordIx("SOFTLINK");
+    hbool_t soft_link = e->KeywordSet(soft_idx);
+    H5L_type_t type = (soft_link) ? H5G_LINK_SOFT : H5G_LINK_HARD;
+
+    /* optional 'NEW_LOC_ID' keyword parameter */
+    static int new_idx = e->KeywordIx("NEW_LOC_ID");
+
+    /* create the link */
+    if (e->GetKW(new_idx)!=NULL) {
+
+       hid_t new_loc_id = hdf5_input_conversion_kw(e,new_idx);
+
+       if ( H5Glink2(loc_id, current_name.c_str(), type,
+                     new_loc_id, new_name.c_str()) < 0 )
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    } else {
+
+       if ( H5Glink(loc_id, type, current_name.c_str(), new_name.c_str()) < 0 )
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+    }
+
+  }
+
+
+  void h5g_unlink_pro( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(2);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e,0);
+
+    /* mandatory 'Name' parameter */
+    DString name;
+    e->AssureScalarPar<DStringGDL>(1, name);
+
+    if ( H5Gunlink(loc_id, name.c_str()) < 0 )
+       { string msg; e->Throw(hdf5_error_message(msg)); }
+  }
+
+
+  BaseGDL* h5g_get_linkval_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(2);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e, 0);
+
+    /* mandatory 'Name' parameter */
+    DString name;
+    e->AssureScalarPar<DStringGDL>( 1, name);
+
+    /* check link type & query the string length */
+    H5L_info_t link_info;
+    if ( H5Lget_info(loc_id, name.c_str(), &link_info, H5P_DEFAULT) < 0 )
+       { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    if ( link_info.type != H5L_TYPE_SOFT )
+       e->Throw("Input argument is not a symbolic link");
+
+    /* allocate string buffer */
+    size_t len=link_info.u.val_size;
+    char* linkval = static_cast<char*>(calloc(len+1,sizeof(char)));
+    if (linkval == NULL) e->Throw("Failed to allocate memory!");
+    hdf5_name_guard linkval_guard = hdf5_name_guard(linkval);
+
+    /* obtain the value string */
+    if( H5Gget_linkval(loc_id, name.c_str(), len+1, linkval) < 0)
+       { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return new DStringGDL(linkval);
+  }
+
+
+  void h5g_move_pro( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(3);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e,0);
+
+    /* mandatory 'Src_Name' parameter */
+    DString src_name;
+    e->AssureScalarPar<DStringGDL>(1, src_name);
+
+    /* mandatory 'Dst_Name' parameter */
+    DString dst_name;
+    e->AssureScalarPar<DStringGDL>(2, dst_name);
+
+    /* optional 'NEW_LOC_ID' keyword parameter */
+    static int new_idx = e->KeywordIx("NEW_LOC_ID");
+
+    /* perform the move/rename operation */
+    if (e->GetKW(new_idx)!=NULL) {
+
+       hid_t src_loc_id = loc_id;
+       hid_t dst_loc_id = hdf5_input_conversion_kw(e,new_idx);
+
+       if ( H5Gmove2( src_loc_id, src_name.c_str(),
+                      dst_loc_id, dst_name.c_str() ) < 0 )
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    } else {
+
+       if ( H5Gmove(loc_id, src_name.c_str(), dst_name.c_str()) < 0 )
+          { string msg; e->Throw(hdf5_error_message(msg)); }
+    }
+
+  }
+
+
   BaseGDL* h5g_get_comment_fun( EnvT* e)
   {
     /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
