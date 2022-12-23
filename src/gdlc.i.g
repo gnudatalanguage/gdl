@@ -254,7 +254,7 @@ protected:
     static EnvStackT  callStack; 
     static bool noInteractive;
     static DLong stepCount;
-
+    static std::string MyProName;
 
 // smuggle optimizations in
 //#include "GDLInterpreterOptimized.inc"
@@ -818,7 +818,7 @@ std::cout << add << " + <ObjHeapVar" << id << ">" << std::endl;
         std::string file=callStack.back()->GetFilename();
         if( file != "")
         {
-            SizeT line = e.getLine();
+            SizeT line = callStack.back()->GetLineNumber(); //e.getLine();
             if( line != 0)
             {       
                 std::cerr << std::right << std::setw(6) << line;
@@ -1090,39 +1090,46 @@ statement_list returns[ RetCode retCode]
 
 statement returns[ RetCode retCode]
 {
-//    ProgNodeP& actPos = statement_AST_in;
+
     assert( _t != NULL);
     ProgNodeP last;
     _retTree = _t;
-//  if( callStack.back()->GetLineNumber() == 0) 
-//  if( _t->getLine() != 0) 
-//      callStack.back()->SetLineNumber( _t->getLine());
 }
 	:  
         {
-            do {
-//                 if( _t->getLine() != 0) 
-//                     callStack.back()->SetLineNumber( _t->getLine());
-                
-                last = _retTree;
+    //optimize speed: differentiate inner loops to avoid one externally implicit comparison on controlc for each loop (if possible)
+    if (interruptEnable) { //will test for sigControlC
+      {
+        do {
+          last = _retTree;
+          callStack.back()->SetLineNumber(last->getLine()); // track actual line number
+          retCode = last->Run(); // Run() sets _retTree
+        } while (_retTree != NULL && retCode == RC_OK && !(sigControlC) && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
+        if (_retTree != NULL) last = _retTree; //this is OK see https://github.com/gnudatalanguage/gdl/issues/1403#issuecomment-1326490113
+        goto afterStatement;
+      }
+    } else { //will not test for sigControlC 
+      {
+        do {
+          last = _retTree;
+          callStack.back()->SetLineNumber(last->getLine()); // track actual line number
+          retCode = last->Run(); // Run() sets _retTree
+        } while (_retTree != NULL && retCode == RC_OK && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
+        if (_retTree != NULL) last = _retTree; //this is OK see https://github.com/gnudatalanguage/gdl/issues/1403#issuecomment-1326490113
+        goto afterStatement;
+      }
+    }
+// original single loop with all checks    
+//    {
+//      do {
+//        last = _retTree;
+//        callStack.back()->SetLineNumber(last->getLine()); // track actual line number
+//        retCode = last->Run(); // Run() sets _retTree
+//      } while (_retTree != NULL && retCode == RC_OK && !(sigControlC && interruptEnable) && (debugMode <= DEBUG_RETURN)); //loops if debug_clear or debug_return
+//      if (_retTree != NULL) last = _retTree; //this is OK see https://github.com/gnudatalanguage/gdl/issues/1403#issuecomment-1326490113
+//      goto afterStatement;
+//    }
 
-                // track actual line number
-                callStack.back()->SetLineNumber( last->getLine());
-
-                retCode = last->Run(); // Run() sets _retTree
-                        
-            }
-            while( 
-                    _retTree != NULL && 
-                    retCode == RC_OK && 
-                    !(sigControlC && interruptEnable) && 
-                    (debugMode == DEBUG_CLEAR));
-
-            // commented out, because we are only at the last statement
-            // if( _retTree != NULL) 
-            //     last = _retTree;
-
-            goto afterStatement;
 }
         (
             // note: assignment must take care to update the owner of lvalue
@@ -1164,76 +1171,74 @@ statement returns[ RetCode retCode]
 
         // control-c and debugging
         {
-           afterStatement:;
-
-           // possible optimization: make sigControlC a debugMode 
-           if( interruptEnable && sigControlC)
-            {
-                DebugMsg( last, "Interrupted at: "); 
-
-                sigControlC = false;
-
-                retCode = NewInterpreterInstance( last->getLine());//-1);
-            }
-           else if( debugMode != DEBUG_CLEAR)
-            {
-                if( debugMode == DEBUG_STOP)
-                {
-                    DebugMsg( last, "Stop encountered: ");
-                    if( !interruptEnable)
-                        debugMode = DEBUG_PROCESS_STOP;
-                }
-
-                if( debugMode == DEBUG_STEP)
-                    {
-                        if( stepCount == 1)
-                            {
-                                stepCount = 0;
-                                DebugMsg( last, "Stepped to: ");
-                                
-                                debugMode = DEBUG_CLEAR;
-                
-                                retCode = NewInterpreterInstance( last->getLine());//-1);
-                            }
-                        else
-                            {
-                            --stepCount;
-#ifdef GDL_DEBUG
-                            std::cout << "stepCount-- = " << stepCount << std::endl;
-#endif
-                            }
-                    }
-                // else if( debugMode == DEBUG_SKIP)
-                //     {
-                //         if( last != NULL)
-                //             {
-                //                 last = last->getNextSibling();
-                //                 DebugMsg( last, "Skipped to: ");
-                //             }
-                //         else
-                //             DebugMsg( last, "Cannot SKIP fro here");
-
-                //         debugMode = DEBUG_CLEAR;
-                //         retCode = RC_OK;
-                //     }
-                else if( interruptEnable)
-                {
-                    if( debugMode == DEBUG_PROCESS_STOP)
-                    {
-                        DebugMsg( last, "Stepped to: ");
-                    }
-
-                    debugMode = DEBUG_CLEAR;
-                
-                    retCode = NewInterpreterInstance( last->getLine());//-1);
-                }   
-                else
-                {
-                    retCode = RC_ABORT;
-                }
-            }
-           return retCode;
+  afterStatement:
+    // possible optimization: make sigControlC a debugMode 
+    if (interruptEnable && sigControlC) {
+      DebugMsg(last, "Interrupted at: ");
+      sigControlC = false;
+      retCode = NewInterpreterInstance(last->getLine()); //-1);
+	} else if (interruptEnable && _retTree == NULL && (debugMode == DEBUG_RETURN || debugMode == DEBUG_OUT)) {
+      if (debugMode == DEBUG_RETURN) {
+        if (callStack.back()->GetProName() == MyProName) {
+          DebugMsg(last, "Return encountered: ");
+          debugMode = DEBUG_CLEAR;
+          return NewInterpreterInstance(last->getLine()); //-1);
         }
+      } else { //DEBUG_OUT --> just do an additional .step if we are at MyProName
+         if (callStack.back()->GetProName() == MyProName) {
+          debugMode = DEBUG_STEP;
+          stepCount=1;
+          return retCode; //continue 
+        }
+     } 
+   } else if (debugMode != DEBUG_CLEAR) {
+      if (debugMode == DEBUG_STOP) {
+        DebugMsg(last, "Stop encountered: ");
+        if (!interruptEnable) debugMode = DEBUG_PROCESS_STOP;
+      } else if (debugMode == DEBUG_STOP_SILENT) {
+        if (!interruptEnable) debugMode = DEBUG_PROCESS_STOP;
+      }
+
+      if (debugMode == DEBUG_STEP) {
+        if (stepCount == 1) {
+          stepCount = 0;
+          DebugMsg(last, "Stepped to: ");
+
+          debugMode = DEBUG_CLEAR;
+
+          retCode = NewInterpreterInstance(last->getLine()); //-1);
+        } else {
+          --stepCount;
+#ifdef GDL_DEBUG
+          std::cout << "stepCount-- = " << stepCount << std::endl;
+#endif
+        }
+      } else if (debugMode == DEBUG_STEPOVER) {
+        if (callStack.back()->GetProName() == MyProName) { //we count only in current level
+          if (stepCount == 1) {
+            stepCount = 0;
+            DebugMsg(last, "Stepped to: ");
+
+            debugMode = DEBUG_CLEAR;
+            MyProName="";
+            retCode = NewInterpreterInstance(last->getLine()); //-1);
+          } else {
+            --stepCount;
+#ifdef GDL_DEBUG
+            std::cout << "stepCount-- = " << stepCount << std::endl;
+#endif
+          }
+        }
+      } else if (interruptEnable) {
+        if (debugMode == DEBUG_PROCESS_STOP) DebugMsg(last, "Stepped to: ");
+        debugMode = DEBUG_CLEAR;
+        retCode = NewInterpreterInstance(last->getLine()); //-1);
+      } else {
+        retCode = RC_ABORT;
+      }
+    }
+    return retCode;
+       }
 	;
     exception 
     catch [ GDLException& e] 
@@ -1254,7 +1259,7 @@ statement returns[ RetCode retCode]
 
         if( e.IsIOException())
             {
-                assert( dynamic_cast< GDLIOException*>( &e) != NULL);
+//		assert( dynamic_cast< GDLIOException*>( &e) != NULL);  //removed. for some reason dynamic_cast returns NULL on bona fide GDLIOException objects.
                 // set the jump target - also logs the jump
                 ProgNodeP onIOErr = 
                     static_cast<EnvUDT*>(callStack.back())->GetIOError();
@@ -1377,7 +1382,7 @@ statement returns[ RetCode retCode]
 //                     if( e.getLine() == 0 && _retTree != NULL)
 //                         e.SetLine( _retTree->getLine());
                     if( e.getLine() == 0 && last != NULL)
-                        e.SetLine( last->getLine());
+                        e.SetLine( last->getLine()); //probably false -- see ReportError, was obliged to replace e.getLine() by callStack.back()->GetLineNumber()
 
                     if( interruptEnable)
                         ReportError(e, "Error occurred at:");
@@ -2725,6 +2730,12 @@ arrayindex_list[ bool noAssoc] returns [ArrayIndexListT* aL]
             }
 			
         assert( s != NULL);
+       if (s == NullGDL::GetSingleInstance()) { //return an empty arraylist, to be checked further as to not apply any posterior 'AssignAt' function.
+	     aL->Init();                            //as an array assigment containing '!NULL' is to be ignored.
+         aL->SetIgnore();
+	     _retTree = ax->getNextSibling();//retTree;
+	     return aL;
+	   }
         ixExprList.push_back( s);
         if( ixExprList.size() == nExpr)
             break; // allows some manual tuning

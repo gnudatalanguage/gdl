@@ -46,7 +46,7 @@ jobs:
         if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" || '${{ github.ref }}' == "refs/tags/v"* ]]; then 
             matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['standard', 'headless'], configuration: ['Release']}"
         else
-            matrix="{os: ['ubuntu-latest', 'macos-latest', 'macos-11'], deps: ['debug'], configuration: ['Debug']}"
+            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['debug'], configuration: ['Debug']}"
         fi
         echo "::set-output name=matrix-others::$matrix"
     - name: Remove Release (scheduled build only)
@@ -76,18 +76,19 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ runner.temp }}/cache
-          key: cache-gdl-deps-${{ matrix.os }}-v3
+          key: cache-gdl-deps-${{ matrix.os }}-v5
       - name: Install Dependencies (macOS, Homebrew)
-        if: contains(matrix.os, 'macos') && steps.cache.outputs.cache-hit != 'true'
+        if: contains(matrix.os, 'macos')                    # && steps.cache.outputs.cache-hit != 'true'  #removed as the cached state is bad.
         run: |
-          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot1.txt
+          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort -o ~/snapshot1.txt
           scripts/build_gdl.sh prep
-          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort > ~/snapshot2.txt
+          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort -o ~/snapshot2.txt
           echo "Setting up cache..."
+          rm -rf ${{ runner.temp }}/cache
           mkdir -p ${{ runner.temp }}/cache
-          for fn in $(comm -13 ~/snapshot1.txt ~/snapshot2.txt); do
-            rsync -aR ${fn} ${{ runner.temp }}/cache || true
-          done
+          while IFS= read -r fn; do
+            rsync -aR "${fn}" ${{ runner.temp }}/cache
+          done < <(comm -13 ~/snapshot1.txt ~/snapshot2.txt)
       - name: Install Dependencies (Linux, Apt)
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -95,10 +96,13 @@ jobs:
       - name: Restore cache (macOS, Homebrew)
         if: contains(matrix.os, 'macos') && steps.cache.outputs.cache-hit == 'true'
         run: |
-          cd ${{ runner.temp }}
-          for d in `ls cache`; do
-            sudo rsync -rt --links --no-t --inplace cache/$d/ /$d
-          done
+          echo "Checking cache..."
+          if cd ${{ runner.temp }}/cache; then
+            echo "Extracting cache..."
+            while IFS= read -r fn; do
+              rsync -aR "${fn}" /
+            done < <(find -- * -maxdepth 0 -type d)
+          fi
       - name: Build GDL
         run: |
           scripts/build_gdl.sh configure
@@ -146,7 +150,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test GDL
         run: |
-          scripts/build_gdl.sh check || exit 0
+          scripts/build_gdl.sh check
   build-windows:
     runs-on: windows-latest
     needs: prelude
@@ -174,8 +178,10 @@ jobs:
             tar
             zstd
             make
+            patch
             git
             rsync
+            patch
       - name: Checkout GDL
         uses: actions/checkout@v2
       - name: Cache Dependencies
@@ -185,7 +191,7 @@ jobs:
         with:
           path: |
             C:\msys64\cache
-          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v5
+          key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v9
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench
@@ -203,8 +209,10 @@ jobs:
         run: |
           pacman -Q | tr ' ' '-' | sort > ~/snapshot1.txt
           scripts/build_gdl.sh prep
-          ls ../MINGW-packages/mingw-w64-graphicsmagick/
-          mv ../MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-*-graphicsmagick-*.tar.* /var/cache/pacman/pkg
+          ls MINGW-packages/mingw-w64-graphicsmagick/
+          mv MINGW-packages/mingw-w64-graphicsmagick/mingw-w64-*-graphicsmagick-*.tar.* /var/cache/pacman/pkg
+          ls MINGW-packages/mingw-w64-plplot/
+          mv MINGW-packages/mingw-w64-plplot/mingw-w64-*-plplot-*.tar.* /var/cache/pacman/pkg
           pacman -Q | tr ' ' '-' | sort > ~/snapshot2.txt
           echo "Setting up cache..."
           mkdir -p /cache
@@ -260,17 +268,19 @@ jobs:
           export GDLDE_VERSION=${{ steps.gdl_workbench.outputs.release }}
           scripts/build_gdl.sh pack
           scripts/build_gdl.sh prep_deploy
-      - name: Upload Build Artifacts
+      - name: Upload GDL Installer
         uses: actions/upload-artifact@v2.2.1
         with:
           name: GDL Installer (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
           path: gdlsetup-*-${{ matrix.deps }}.exe
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v2.2.1
-        with:
-          name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
-          path: gdl-*-${{ matrix.deps }}.zip
-      - name: Upload Release Assets (unstable)
+# DO NOT export .zip as artifact: due to necessary use of a precise location for our customized plplot drivers,
+# only an installer can be used (sets the correct environment variables) 
+#      - name: Upload Build Artifacts
+#        uses: actions/upload-artifact@v2.2.1
+#        with:
+#          name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
+#          path: gdl-*-${{ matrix.deps }}.zip
+      - name: Upload Release Windows Installer (unstable)
         if: github.event_name == 'schedule' || github.event.inputs.type == 'release'
         uses: ncipollo/release-action@v1
         with:
@@ -281,19 +291,21 @@ jobs:
           replacesArtifacts: true
           tag: weekly-release
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload Release Assets (stable)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "gdlsetup-*-${{ matrix.deps }}.exe,gdl-*-${{ matrix.deps }}.zip"
-          name: ${{ github.event.release.tag_name }}
-          prerelease: false
-          allowUpdates: true
-          replacesArtifacts: true
-          commit: ${{ github.sha }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+
+# supressed, same reason as above
+#       - name: Upload Release Assets (stable)
+#        if: startsWith(github.ref, 'refs/tags/v')
+#        uses: ncipollo/release-action@v1
+#        with:
+#          artifacts: "gdlsetup-*-${{ matrix.deps }}.exe,gdl-*-${{ matrix.deps }}.zip"
+#          name: ${{ github.event.release.tag_name }}
+#          prerelease: false
+#          allowUpdates: true
+#          replacesArtifacts: true
+#          commit: ${{ github.sha }}
+#          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test GDL
         shell: msys2 {0}
         run: |
           export PATH=`cygpath "${pythonLocation}"`:$PATH
-          scripts/build_gdl.sh check || exit 0
+          scripts/build_gdl.sh check

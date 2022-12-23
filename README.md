@@ -1,7 +1,7 @@
 [![Build status](https://github.com/gnudatalanguage/gdl/workflows/build/badge.svg)](https://github.com/gnudatalanguage/gdl/actions)
 [![Coverage Status](https://img.shields.io/codecov/c/github/gnudatalanguage/gdl/master.svg)](https://codecov.io/github/gnudatalanguage/gdl?branch=master)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e5de1c1571c649279dad18d5d8590789)](https://www.codacy.com/app/slayoo/gdl?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=gnudatalanguage/gdl&amp;utm_campaign=Badge_Grade)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.04633/status.svg)](https://doi.org/10.21105/joss.04633)
 
 GDL - GNU Data Language
 =======================
@@ -52,6 +52,11 @@ See:
 - [GDL on BSD](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-BSD)
 - [GDL on Windows](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-Windows)
 
+Alerts
+-------------------------------------
+
+Check the [WIKI](https://github.com/gnudatalanguage/gdl/wiki/Known-issues) for (transient) alerts.
+
 Dependencies 
 -------------------------------------
 
@@ -79,15 +84,15 @@ GDL has numerous dependencies, most of the optional but highly recommended if yo
 - [Python](https://www.python.org/)/[NumPy](http://www.numpy.org/) optional but add python bridge and jupyter notebook.
 - [udunits](https://www.unidata.ucar.edu/software/udunits/) optional, units conversion
 - [Eigen](https://eigen.tuxfamily.org/) optional but provides inordinate speed enhancements...
-- [ecCodes](https://software.ecmwf.int/wiki/display/ECC/ecCodes+Home) optional, for GRIB support.
+- [ecCodes](https://confluence.ecmwf.int/display/ECC/ecCodes+Home) optional, for GRIB support.
 - [GLPK](https://www.gnu.org/software/glpk/) optional, provides the SIMPLEX command.
 
 Besides, for optimal use (speed mainly), GDL incorporates slightly edited code of
 - [dSFMT](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT) as our parallel random Generator.
 - [delaunator](https://github.com/mapbox/delaunator) as our new hyperfast triangulation.
 - [ANTLR3](https://www.antlr3.org/) as interpretor.
-- [Median Filtering](http://nomis80.org/ctmf.html )
-- [Median Filtering](http://users.ics.aalto.fi/suomela)
+- [Median Filtering (S. Perreault)](http://nomis80.org/ctmf.html )
+- [Median Filtering (J. Suomela)](http://users.ics.aalto.fi/suomela)
 - [Radix Sorting](https://github.com/Pierre-Terdiman/RadixRedux) (we have written all variants up to doubles).
 
 Build-time dependencies

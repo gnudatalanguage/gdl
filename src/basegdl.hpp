@@ -247,7 +247,24 @@ const bool IsNonPODType[]={
   true, //GDL_LONG64,
   true //GDL_ULONG64
  };
-  
+ const bool IsUnsignedType[] = {
+  false, //GDL_UNDEF
+  true, //GDL_BYTE
+  false, //GDL_INT
+  false, //GDL_LONG,	
+  false, //GDL_FLOAT,	
+  false, //GDL_DOUBLE,	
+  false, //GDL_COMPLEX,	
+  false, //GDL_STRING,	
+  false, //GDL_STRUCT,	
+  false, //GDL_COMPLEXDBL,	
+  false, //GDL_PTR,		
+  false, //GDL_OBJ,
+  true, //GDL_UINT,	
+  true, //GDL_ULONG,
+  false, //GDL_LONG64,
+  true //GDL_ULONG64
+ };  
 } //namespace gdl_type_lookup 
 
 inline bool NonPODType( DType t)
@@ -278,8 +295,6 @@ inline bool ComplexType( DType t)
 inline bool NumericType( DType t) // Float or Int or Complex
 {
   return gdl_type_lookup::IsNumericType[ t];
-//   int o = DTypeOrder[ t];
-//   return (o >= 2 && o <= 11);
 }
 inline bool ConvertableType( DType t) // everything except Struct, Ptr, Obj
 {
@@ -288,6 +303,10 @@ inline bool ConvertableType( DType t) // everything except Struct, Ptr, Obj
 inline bool LongLongType( DType t) // POD but 64 bits
 {
   return gdl_type_lookup::IsLongLongType[ t];
+}
+inline bool UnsignedType( DType t) // integer, unsigned type
+{
+  return gdl_type_lookup::IsUnsignedType[ t];
 }
 class   BaseGDL;
 class   ArrayIndexListT;
@@ -557,7 +576,7 @@ public:
   virtual BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
  			   bool center, bool normalize, int edgeMode,
                                 bool doNan, BaseGDL* missing, bool doMissing,
-                                BaseGDL* invalid, bool doInvalid);
+                                BaseGDL* invalid, bool doInvalid, DDouble edgeVal);
   virtual BaseGDL* Smooth( DLong* width, int edgeMode,
                                 bool doNan, BaseGDL* missing);
   virtual BaseGDL* Rebin( const dimension& newDim, bool sample);
@@ -767,6 +786,16 @@ struct ForLoopInfoT
 // before NullGDL instance must not be deleted, now this is fine (overloaded operators new and delete)
 // inline void GDLDelete( BaseGDL* toDelete) { delete toDelete;}
 void GDLDelete( BaseGDL* toDelete);
+ 
+enum ThreadPoolType {
+    TP_DEFAULT=0, //the same as IDL, reserved for routines that use the thread pool, ideally check the special thread pool keywords.
+    TP_ARRAY_INITIALISATION, // used by GDL array initialisation (new, convert, gdlarray): probably needs som special tuning
+    TP_MEMORY_ACCESS, // concurrent memory access, probably needs to be capped to preserve bandwidth 
+    TP_CPU_INTENSIVE  // benefit from max number of threads
+  };
+
+extern  int GDL_NTHREADS;
+int parallelize(SizeT n, int modifier=TP_DEFAULT);
 
 #endif
 

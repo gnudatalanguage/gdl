@@ -44,7 +44,7 @@ namespace lib {
  
   BaseGDL* isa_fun( EnvT* e) 
   {
-    if (e->NParam() == 0) e->Throw("Requires at least one argument !");
+    e->NParam(1);
 
     DString type;
     BaseGDL *p0;
@@ -717,10 +717,18 @@ namespace lib {
 	fileStatus->InitTag("CTIME", DLong64GDL( buffer.st_ctime)); 
 	fileStatus->InitTag("MTIME", DLong64GDL( buffer.st_mtime));  
 //	fileStatus->InitTag("TRANSFER_COUNT", DLongGDL( 0 ));
-	if (big) fileStatus->InitTag("CUR_PTR", DLong64GDL( actUnit.Tell()));
-	else fileStatus->InitTag("CUR_PTR", DLongGDL( actUnit.Tell()));
-	if (big) fileStatus->InitTag("SIZE", DLong64GDL( buffer.st_size ));
-        else  fileStatus->InitTag("SIZE", DLongGDL( buffer.st_size ));
+  //hopefully this solves #1394
+	if (big) {
+          DLong64 pos;
+          if (actUnit.Eof()) pos=buffer.st_size; else pos=actUnit.Tell(); //CUR_PTR needs to be the EOF offset position, not the EOF symbol (-1)! 
+          fileStatus->InitTag("CUR_PTR", DLong64GDL( pos) );
+          fileStatus->InitTag("SIZE", DLong64GDL( buffer.st_size ));
+        } else {
+          DLong pos;
+          if (actUnit.Eof()) pos=buffer.st_size; else pos=actUnit.Tell();
+          fileStatus->InitTag("CUR_PTR", DLongGDL( pos ));
+          fileStatus->InitTag("SIZE", DLongGDL( buffer.st_size ));
+        }
 //	fileStatus->InitTag("REC_LEN", DLongGDL( 0 ));
       }
 
@@ -1100,7 +1108,7 @@ namespace lib {
           // Keywords are already counted (in FindVar)
           // 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
           if (((EnvT*)(callStack[desiredlevnum - 1]))->NParam() < 1) return NULL; //meaning this fetch level is not initialized. Avoids throwing an #assert in debug mode
-          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(xI);
+          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetTheKW(xI);
 
 // not IDL behaviour                    if (par == NULL) e->Throw("Variable is undefined: " + varName);
            if (par == NULL) return NULL;
@@ -1211,7 +1219,7 @@ namespace lib {
         // 	BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey);
 
         // 	((EnvT*)(callStack[desiredlevnum-1]))->GetPar( s-nKey) = res->Dup();
-        ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(s) = res->Dup();
+        ((EnvT*) (callStack[desiredlevnum - 1]))->GetTheKW(s) = res->Dup();
 
         //	cout << "par: " << &par << endl << endl;
         // 	memcpy(&par, &res, sizeof(par)); 
@@ -1330,7 +1338,7 @@ namespace lib {
         //	cout << xI << endl;
         if (xI != -1) {
           // 	  BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI-nKey);
-          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetKW(xI);
+          BaseGDL*& par = ((EnvT*) (callStack[desiredlevnum - 1]))->GetTheKW(xI);
           if (par == NULL) return NULL;
           return &par; // <-  HERE IS THE DIFFERENCE
         } else {

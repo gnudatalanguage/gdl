@@ -1,11 +1,11 @@
 GDL HACKING HOWTO
 =================
 
-A NOTE ON EXCEPTION SAVE PROGRAMMING
+A NOTE ON EXCEPTION-SAFE PROGRAMMING
 ====================================
 
-Exception save programming takes into account, that in C++ exceptions can be
-thrown anytime. The purpose of exception save programming is to keep a 
+Exception-safe programming takes into account, that in C++ exceptions can be
+thrown anytime. The purpose of exception-safe programming is to keep a 
 program always in a consistent state even if an exception occurs.
 Most often this is about avoiding memory leaks. They occur when a object is 
 allocated on the heap and an exception is thrown. Then the allocated heap
@@ -26,7 +26,7 @@ of "delete") GDL provides the templated ArrayGuard<> class.
 For objects with a cleanup function (e. g. GSL objects) the use of use
 GDLGuard is recommended. Please see the source code for examples.
 
-As this is not a proper place to discuss exception save programming in detail,
+As this is not a proper place to discuss exception-safe programming in detail,
 here are just some rules of thumb, when this might concern a code contributor:
 - you need almost always a guard when using (operator) new somewhere in 
   your code

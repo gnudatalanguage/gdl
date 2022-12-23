@@ -27,13 +27,27 @@ char NullGDL::buf[sizeof(NullGDL)];
 
 NullGDL* NullGDL::instance = NULL;
 
+/**
+ * @brief as GetParString of EnvT but directly from BaseGDL if possible
+ * @return 
+ */
+const std::string NullGDL::GetParString() {
+  EnvUDT* caller = interpreter->CallStackBack();
+  int i = caller->findvar(this);
+  DString parString = "!NULL";
+  if (i > 0) parString = caller->GetParString(i);
+  return parString;
+}
+
 NullGDL::~NullGDL()
 {
-// it would be the fastest way, to just ignore it.
-// but ~BaseGDL() is called as well. And this must not be
-  cerr << "Internal error: !NULL destructor called.\n"
-	  "Save your work and restart GDL (GDL is still functional, but !NULL will not work anymore).\n"
-	  "Please report at https://github.com/gnudatalanguage/gdl/issues" << endl;
+// Nulling "instance" will recreate !NULL correctly.
+  instance=NULL;
+}
+
+NullGDL* NullGDL::GetSingleInstance() {
+  if (instance == NULL) instance = new (NullGDL::buf) NullGDL();
+  return instance;
 }
 
 bool NullGDL::IsAssoc() const { return false;}
@@ -156,7 +170,7 @@ bool NullGDL::EqType( const BaseGDL*) const
 
 void* NullGDL::DataAddr()// SizeT elem)
 {
-  throw GDLException("NullGDL::DataAddr(...) called.");
+  return buf; //throw GDLException("NullGDL::DataAddr(...) called.");
 }
   
 // make same type on the heap
@@ -182,7 +196,7 @@ BaseGDL* NullGDL::Convert2( DType destTy, Convert2Mode mode)
 {
   if( destTy == GDL_STRING)
     return new DStringGDL( "!NULL");
-  throw GDLException("Variable is undefined: !NULL");  
+  throw GDLException("Variable is undefined: "+GetParString());  
 }
 
 BaseGDL* NullGDL::GetTag() const 
@@ -231,7 +245,7 @@ bool NullGDL::True()
 bool NullGDL::NullGDL::True()
 #endif
 {
-  throw GDLException("Operation not defined for !NULL 3.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 3.");
 }
 
 #ifdef _MSC_VER
@@ -240,35 +254,35 @@ bool NullGDL::False()
 bool NullGDL::NullGDL::False()
 #endif
 {
-  throw GDLException("Operation not defined for !NULL 4.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 4.");
 }
 
 bool NullGDL::LogTrue()
 {
-  throw GDLException("Operation not defined for !NULL 4a.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 4a.");
 }
 
 bool NullGDL::LogTrue( SizeT ix)
 {
-  throw GDLException("Operation not defined for !NULL 4b.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 4b.");
 }
 void NullGDL::Where(DLong* &ret, SizeT &passed_count, bool comp, DLong* &comp_ret)
 {
-  throw GDLException("Operation not defined for !NULL 4b.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 4b.");
 }
 void NullGDL::Where(DLong64* &ret, SizeT &passed_count, bool comp, DLong64* &comp_ret)
 {
-  throw GDLException("Operation not defined for !NULL 4b.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 4b.");
 }
 
 BaseGDL* NullGDL::LogNeg()
 {
-  throw GDLException("Operation not defined for !NULL 4c.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 4c.");
 }
 
 int NullGDL::Sgn() // -1,0,1
 {
-  throw GDLException("Operation not defined for !NULL 5.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 5.");
 }
 
 bool NullGDL::Equal( BaseGDL*) const
@@ -283,40 +297,40 @@ bool NullGDL::EqualNoDelete( const BaseGDL*) const
 
 bool NullGDL::ArrayEqual( BaseGDL*)
 {
-  throw GDLException("Operation not defined for !NULL 6b.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 6b.");
 }
 
 // for statement compliance (int types , float types scalar only)
 bool NullGDL::ForCheck( BaseGDL**, BaseGDL**)
 {
-  throw GDLException("Operation not defined for !NULL 7.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 7.");
   return false;
 }
 
 bool NullGDL::ForCondUp( BaseGDL*)
 {
-  throw GDLException("Operation not defined for !NULL 8.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 8.");
 }
 
 bool NullGDL::ForAddCondUp( BaseGDL* loopInfo)
 // bool NullGDL::ForAddCondUp( ForLoopInfoT& loopInfo)
 {
-  throw GDLException("Operation not defined for !NULL 8a.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 8a.");
 }
 
 bool NullGDL::ForCondDown( BaseGDL*)
 {
-  throw GDLException("Operation not defined for !NULL 9.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 9.");
 }
 
 // bool NullGDL::ForCondUpDown( BaseGDL*)
 // {
-//   throw GDLException("Operation not defined for !NULL 9a.");
+//   throw GDLException("Operation not defined for "+GetParString()+" - !NULL 9a.");
 // }
 
 void NullGDL::ForAdd( BaseGDL* add)
 {
-  throw GDLException("Operation not defined for !NULL 10.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 10.");
 }
 
 BaseGDL* NullGDL::CatArray( ExprListT& exprList,
@@ -334,37 +348,37 @@ BaseGDL* NullGDL::Index( ArrayIndexListT* ixList)
 // used in r_expr
 BaseGDL* NullGDL::UMinus()              
 {
-  throw GDLException("Operation not defined for !NULL 11.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 11.");
 }
 
 BaseGDL* NullGDL::NotOp()               
 {
-  throw GDLException("Operation not defined for !NULL 12.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 12.");
 }
 
 BaseGDL* NullGDL::AndOp( BaseGDL* r)    
 {
-  throw GDLException("Operation not defined for !NULL 13.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 13.");
 }
 
 BaseGDL* NullGDL::AndOpInv( BaseGDL* r) 
 {
-  throw GDLException("Operation not defined for !NULL 14.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 14.");
 }
 
 BaseGDL* NullGDL::OrOp( BaseGDL* r)    
 {
-  throw GDLException("Operation not defined for !NULL 13.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 13.");
 }
 
 BaseGDL* NullGDL::OrOpInv( BaseGDL* r) 
 {
-  throw GDLException("Operation not defined for !NULL 14.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 14.");
 }
 
 BaseGDL* NullGDL::XorOp( BaseGDL* r)    
 {
-  throw GDLException("Operation not defined for !NULL 13.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 13.");
 }
 
 BaseGDL* NullGDL::XorOpS( BaseGDL* r)    
@@ -449,71 +463,71 @@ BaseGDL* NullGDL::GtOp( BaseGDL* r)
 
 BaseGDL* NullGDL::Add( BaseGDL* r)      
 {
-  throw GDLException("Operation not defined for !NULL 15.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 15.");
 }
 BaseGDL* NullGDL::AddInv( BaseGDL* r)      
 {
-  throw GDLException("Operation not defined for !NULL 15.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 15.");
 }
 
 BaseGDL* NullGDL::Sub( BaseGDL* r)      
 {
-  throw GDLException("Operation not defined for !NULL 16.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 16.");
 }
 BaseGDL* NullGDL::SubInv( BaseGDL* r)   
 {
-  throw GDLException("Operation not defined for !NULL 17.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 17.");
 }
 
 BaseGDL* NullGDL::LtMark( BaseGDL* r)   
 {
-  throw GDLException("Operation not defined for !NULL 18.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 18.");
 }
 
 BaseGDL* NullGDL::GtMark( BaseGDL* r)   
 {
-  throw GDLException("Operation not defined for !NULL 19.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 19.");
 }
 
 BaseGDL* NullGDL::Mult( BaseGDL* r)   
 {
-  throw GDLException("Operation not defined for !NULL 19a.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 19a.");
 }
 
 BaseGDL* NullGDL::Div( BaseGDL* r)      
 {
-  throw GDLException("Operation not defined for !NULL 16.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 16.");
 }
 BaseGDL* NullGDL::DivInv( BaseGDL* r)   
 {
-  throw GDLException("Operation not defined for !NULL 17.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 17.");
 }
 
 BaseGDL* NullGDL::Mod( BaseGDL* r)      
 {
-  throw GDLException("Operation not defined for !NULL 16.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 16.");
 }
 BaseGDL* NullGDL::ModInv( BaseGDL* r)   
 {
-  throw GDLException("Operation not defined for !NULL 17.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 17.");
 }
 
 BaseGDL* NullGDL::Pow( BaseGDL* r)      
 {
-  throw GDLException("Operation not defined for !NULL 16.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 16.");
 }
 BaseGDL* NullGDL::PowInv( BaseGDL* r)   
 {
-  throw GDLException("Operation not defined for !NULL 17.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 17.");
 }
 BaseGDL* NullGDL::PowInt( BaseGDL* r)      
 {
-  throw GDLException("Operation not defined for !NULL 170.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 170.");
 }
 
 BaseGDL* NullGDL::MatrixOp( BaseGDL* r, bool atranspose, bool btranspose)
 {
-  throw GDLException("Operation not defined for !NULL 18.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 18.");
 }
 
 void NullGDL::AssignAt( BaseGDL* srcIn,	ArrayIndexListT* ixList, SizeT offset)
@@ -581,7 +595,7 @@ SizeT NullGDL::IFmtI( std::istream* is, SizeT offs, SizeT num, int width,
 BaseGDL* NullGDL::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
 		          bool center, bool normalize, int edgeMode,
                           bool doNan, BaseGDL* missing, bool doMissing,
-                          BaseGDL* invalid, bool doInvalid)
+                          BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   throw GDLException("NullGDL::Convol(...) called.");
 }
@@ -606,132 +620,132 @@ PyObject* NullGDL::ToPython()
 
 BaseGDL* NullGDL::AndOpS( BaseGDL* r)    
 {
-  throw GDLException("Operation not defined for !NULL 13.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 13.");
 }
 
 BaseGDL* NullGDL::AndOpInvS( BaseGDL* r) 
 {
-  throw GDLException("Operation not defined for !NULL 14.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 14.");
 }
 
 BaseGDL* NullGDL::OrOpS( BaseGDL* r)    
 {
-  throw GDLException("Operation not defined for !NULL 13.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 13.");
 }
 
 BaseGDL* NullGDL::OrOpInvS( BaseGDL* r) 
 {
-  throw GDLException("Operation not defined for !NULL 14.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 14.");
 }
 
 BaseGDL* NullGDL::AddS( BaseGDL* r)      
 {
-  throw GDLException("Operation not defined for !NULL 15.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 15.");
 }
 BaseGDL* NullGDL::AddInvS( BaseGDL* r)      
 {
-  throw GDLException("Operation not defined for !NULL 15.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 15.");
 }
 
 BaseGDL* NullGDL::SubS( BaseGDL* r)      
 {
-  throw GDLException("Operation not defined for !NULL 16.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 16.");
 }
 BaseGDL* NullGDL::SubInvS( BaseGDL* r)   
 {
-  throw GDLException("Operation not defined for !NULL 17.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 17.");
 }
 
 BaseGDL* NullGDL::LtMarkS( BaseGDL* r)   
 {
-  throw GDLException("Operation not defined for !NULL 18.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 18.");
 }
 
 BaseGDL* NullGDL::GtMarkS( BaseGDL* r)   
 {
-  throw GDLException("Operation not defined for !NULL 19.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 19.");
 }
 
 BaseGDL* NullGDL::MultS( BaseGDL* r)   
 {
-  throw GDLException("Operation not defined for !NULL 19a.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 19a.");
 }
 
 BaseGDL* NullGDL::DivS( BaseGDL* r)
 {
-  throw GDLException("Operation not defined for !NULL 16.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 16.");
 }
 BaseGDL* NullGDL::DivInvS( BaseGDL* r)   
 {
-  throw GDLException("Operation not defined for !NULL 17.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 17.");
 }
 
 BaseGDL* NullGDL::ModS( BaseGDL* r)      
 {
-  throw GDLException("Operation not defined for !NULL 16.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 16.");
 }
 BaseGDL* NullGDL::ModInvS( BaseGDL* r)   
 {
-  throw GDLException("Operation not defined for !NULL 17.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 17.");
 }
 
 BaseGDL* NullGDL::PowS( BaseGDL* r)      
 {
-  throw GDLException("Operation not defined for !NULL 16.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 16.");
 }
 BaseGDL* NullGDL::PowInvS( BaseGDL* r)   
 {
-  throw GDLException("Operation not defined for !NULL 17.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 17.");
 }
 
 BaseGDL* NullGDL::NewIx( SizeT ix)
 {
-  throw GDLException("Operation not defined for !NULL 20.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 20.");
 }
 BaseGDL* NullGDL::NewIx( BaseGDL* ix, bool strict)
 {
-  throw GDLException("Operation not defined for !NULL 21.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 21.");
 }
 BaseGDL* NullGDL::NewIx( AllIxBaseT* ix, const dimension* dIn)
 {
-  throw GDLException("Operation not defined for !NULL 22.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 22.");
 }
 BaseGDL* NullGDL::NewIxFrom( SizeT s)
 {
-  throw GDLException("Operation not defined for !NULL 23.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 23.");
 }
 BaseGDL* NullGDL::NewIxFrom( SizeT s, SizeT e)
 {
-  throw GDLException("Operation not defined for !NULL 24.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 24.");
 }
 BaseGDL* NullGDL::NewIxFromStride( SizeT s, SizeT stride)
 {
-  throw GDLException("Operation not defined for !NULL 25.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 25.");
 }
 BaseGDL* NullGDL::NewIxFromStride( SizeT s, SizeT e, SizeT stride)
 {
-  throw GDLException("Operation not defined for !NULL 26.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 26.");
 }
 BaseGDL* NullGDL::Log()              
 { 
-  throw GDLException("Operation not defined for !NULL 27a.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 27a.");
 }
 BaseGDL* NullGDL::LogThis()              
 { 
-  throw GDLException("Operation not defined for !NULL 27b.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 27b.");
 }
 BaseGDL* NullGDL::Log10()              
 { 
-  throw GDLException("Operation not defined for !NULL 27c.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 27c.");
 }
 BaseGDL* NullGDL::Log10This()              
 { 
-  throw GDLException("Operation not defined for !NULL 27d.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 27d.");
 }
 
 void NullGDL::AssignAtIx( RangeT ix, BaseGDL* srcIn)
 { 
-  throw GDLException("Operation not defined for !NULL 28.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 28.");
 }
 
 RangeT NullGDL::LoopIndex() const
@@ -745,60 +759,60 @@ DDouble NullGDL::HashValue() const
 
 BaseGDL* NullGDL::Rotate( DLong dir)
 { 
-  throw GDLException("Operation not defined for !NULL 30.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 30.");
 }
 
 void NullGDL::Reverse( DLong dim)
 { 
-  throw GDLException("Operation not defined for !NULL 31.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 31.");
 }
 
 BaseGDL* NullGDL::DupReverse( DLong dim)
 { 
-  throw GDLException("Operation not defined for !NULL 32.");
+  throw GDLException("Operation not defined for "+GetParString()+" - !NULL 32.");
 }
 
-  BaseGDL* NullGDL::AndOpNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 40.");}
-  BaseGDL* NullGDL::AndOpInvNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 41.");}
-  BaseGDL* NullGDL::OrOpNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 42.");}
-  BaseGDL* NullGDL::OrOpInvNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 43.");}
-  BaseGDL* NullGDL::XorOpNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 44.");}
-//   BaseGDL* NullGDL::EqOpNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 45.");}
-//   BaseGDL* NullGDL::NeOpNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 46.");}
-//   BaseGDL* NullGDL::LeOpNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 47.");}
-//   BaseGDL* NullGDL::GeOpNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 48.");}
-//   BaseGDL* NullGDL::LtOpNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 49.");}
-//   BaseGDL* NullGDL::GtOpNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 50.");}
-  BaseGDL* NullGDL::AddNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 51.");}       // implemented
-  BaseGDL* NullGDL::AddInvNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 52.");}       // implemented
-  BaseGDL* NullGDL::SubNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 53.");}
-  BaseGDL* NullGDL::SubInvNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 54.");}
-  BaseGDL* NullGDL::LtMarkNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 55.");}
-  BaseGDL* NullGDL::GtMarkNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 56.");}
-  BaseGDL* NullGDL::MultNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 57.");}    // implemented
-  BaseGDL* NullGDL::DivNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 58.");}
-  BaseGDL* NullGDL::DivInvNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 59.");}
-  BaseGDL* NullGDL::ModNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 60.");}
-  BaseGDL* NullGDL::ModInvNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 61.");}
-  BaseGDL* NullGDL::PowNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 62.");}
-  BaseGDL* NullGDL::PowInvNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 63.");}
-  BaseGDL* NullGDL::PowIntNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 64.");}    // implemented
+  BaseGDL* NullGDL::AndOpNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 40.");}
+  BaseGDL* NullGDL::AndOpInvNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 41.");}
+  BaseGDL* NullGDL::OrOpNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 42.");}
+  BaseGDL* NullGDL::OrOpInvNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 43.");}
+  BaseGDL* NullGDL::XorOpNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 44.");}
+//   BaseGDL* NullGDL::EqOpNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 45.");}
+//   BaseGDL* NullGDL::NeOpNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 46.");}
+//   BaseGDL* NullGDL::LeOpNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 47.");}
+//   BaseGDL* NullGDL::GeOpNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 48.");}
+//   BaseGDL* NullGDL::LtOpNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 49.");}
+//   BaseGDL* NullGDL::GtOpNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 50.");}
+  BaseGDL* NullGDL::AddNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 51.");}       // implemented
+  BaseGDL* NullGDL::AddInvNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 52.");}       // implemented
+  BaseGDL* NullGDL::SubNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 53.");}
+  BaseGDL* NullGDL::SubInvNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 54.");}
+  BaseGDL* NullGDL::LtMarkNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 55.");}
+  BaseGDL* NullGDL::GtMarkNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 56.");}
+  BaseGDL* NullGDL::MultNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 57.");}    // implemented
+  BaseGDL* NullGDL::DivNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 58.");}
+  BaseGDL* NullGDL::DivInvNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 59.");}
+  BaseGDL* NullGDL::ModNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 60.");}
+  BaseGDL* NullGDL::ModInvNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 61.");}
+  BaseGDL* NullGDL::PowNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 62.");}
+  BaseGDL* NullGDL::PowInvNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 63.");}
+  BaseGDL* NullGDL::PowIntNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 64.");}    // implemented
 
-  BaseGDL* NullGDL::AndOpSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 65.");}
-  BaseGDL* NullGDL::AndOpInvSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 66.");}
-  BaseGDL* NullGDL::OrOpSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 67.");}
-  BaseGDL* NullGDL::OrOpInvSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 68.");}
-  BaseGDL* NullGDL::XorOpSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 69.");}
-  BaseGDL* NullGDL::AddSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 70.");}          // implemented
-  BaseGDL* NullGDL::AddInvSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 71.");}     // implemented
-  BaseGDL* NullGDL::SubSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 73.");}
-  BaseGDL* NullGDL::SubInvSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 74.");}
-  BaseGDL* NullGDL::LtMarkSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 75.");}
-  BaseGDL* NullGDL::GtMarkSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 76.");}
-  BaseGDL* NullGDL::MultSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 77.");}       // implemented
-  BaseGDL* NullGDL::DivSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 78.");}
-  BaseGDL* NullGDL::DivInvSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 79.");}
-  BaseGDL* NullGDL::ModSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 80.");}
-  BaseGDL* NullGDL::ModInvSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 81.");}
-  BaseGDL* NullGDL::PowSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 82.");}
-  BaseGDL* NullGDL::PowInvSNew( BaseGDL* r) { throw GDLException("Operation not defined for !NULL 83.");}
+  BaseGDL* NullGDL::AndOpSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 65.");}
+  BaseGDL* NullGDL::AndOpInvSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 66.");}
+  BaseGDL* NullGDL::OrOpSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 67.");}
+  BaseGDL* NullGDL::OrOpInvSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 68.");}
+  BaseGDL* NullGDL::XorOpSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 69.");}
+  BaseGDL* NullGDL::AddSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 70.");}          // implemented
+  BaseGDL* NullGDL::AddInvSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 71.");}     // implemented
+  BaseGDL* NullGDL::SubSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 73.");}
+  BaseGDL* NullGDL::SubInvSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 74.");}
+  BaseGDL* NullGDL::LtMarkSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 75.");}
+  BaseGDL* NullGDL::GtMarkSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 76.");}
+  BaseGDL* NullGDL::MultSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 77.");}       // implemented
+  BaseGDL* NullGDL::DivSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 78.");}
+  BaseGDL* NullGDL::DivInvSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 79.");}
+  BaseGDL* NullGDL::ModSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 80.");}
+  BaseGDL* NullGDL::ModInvSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 81.");}
+  BaseGDL* NullGDL::PowSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 82.");}
+  BaseGDL* NullGDL::PowInvSNew( BaseGDL* r) { throw GDLException("Operation not defined for "+GetParString()+" - !NULL 83.");}

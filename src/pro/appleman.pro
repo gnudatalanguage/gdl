@@ -40,8 +40,6 @@ pro AppleMan,xRange,yRange,RESULT=res,XSIZE=xS,YSIZE=yS,$
 ;
 ;-
 
-;device,PSEUDO_COLOR=8,DECOMPOSED=0
-
 if KEYWORD_SET(help) then begin
    print, 'pro AppleMan, xRange, yRange, RESULT=res, $'
    print, '              NoDisplay=NoDisplay, test=test, help=help'
@@ -92,6 +90,7 @@ for i = 0, iter-1 do begin
 endfor
 
 if ~arg_present(res) || ~KEYWORD_SET(NoDisplay) then begin
+  device,DECOMPOSED=0
   loadct,15
   tv,res
 endif

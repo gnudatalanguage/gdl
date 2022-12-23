@@ -1266,7 +1266,7 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
         bool recursive=false, bool accErr=false, bool mark=false,
         bool quote=false, 
         bool match_dot=false,
-        bool  forceAbsPath=false,
+        bool  forceAbsPath=true,
         bool fold_case=false,
         bool onlyDir=false,   bool *tests = NULL)
 {               
@@ -2060,37 +2060,73 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
       e->Throw("invalid argument");
 
     static int compressIx = e->KeywordIx("COMPRESS");
-    bool compressed = e->KeywordSet(compressIx); // we actually don't use it. zlib does it all for us!
+    bool compressed = e->KeywordSet(compressIx); 
     static int noExpIx = e->KeywordIx("NOEXPAND_PATH");
     bool noExp = e->KeywordSet(noExpIx);
     
     DLongGDL* res = new DLongGDL( p0S->Dim(), BaseGDL::NOZERO);
 
-    gzFile gfd = NULL;
-    char newinput, lastchar = 0;
-    SizeT lines;
 
-      for( SizeT i=0; i<nEl; ++i)
-    {
-          std::string fname = (*p0S)[i];
 
-          if (!noExp) WordExp(fname);
+    if (compressed) {
+      char newinput, lastchar = 0;
+      SizeT lines;
+              gzFile gfd = NULL;
+        for (SizeT i = 0; i < nEl; ++i) {
+        std::string fname = (*p0S)[i];
 
-          if ((gfd = gzopen(fname.c_str(), "rb")) == NULL) {
-              e->Throw("Could not open file for reading ");// + p0[i]);
+        if (!noExp) WordExp(fname);
+
+        if ((gfd = gzopen(fname.c_str(), "r")) == NULL) {
+          e->Throw("Could not open file for reading "); // + p0[i]);
+        }
+        lines = 0;
+        while (gzread(gfd, &newinput, 1) == 1) {
+          if (newinput == '\n') {
+            lines++;
+            if (lastchar == '\r') lines--;
+          } else if (newinput == '\r') lines++;
+          lastchar = newinput;
+        }
+        gzclose(gfd);
+        if (lastchar != '\n' && lastchar != '\r') lines++;
+
+        (*res)[ i] = lines;
+      }
+    } else { //
+      char* newinput=(char*) malloc(BUFSIZ);
+      char lastchar = 0;
+      SizeT lines;
+              FILE* fd = NULL;
+        for (SizeT i = 0; i < nEl; ++i) {
+        std::string fname = (*p0S)[i];
+
+        if (!noExp) WordExp(fname);
+
+        if ((fd = fopen(fname.c_str(), "r")) == NULL) {
+          e->Throw("Could not open file for reading "); // + p0[i]);
+        }
+        lines = 0;
+        int count=0;
+        count=fread(newinput, 1, BUFSIZ, fd);
+        while (count != 0) {
+          for (int i = 0; i < count; ++i) {
+            if (newinput[i] == '\n') {
+              lines++;
+              if (lastchar == '\r') lines--;
+            } else if (newinput[i] == '\r') lines++;
+
+            lastchar = newinput[i];
           }
-          lines = 0;
-          while (gzread(gfd, &newinput, 1) == 1) {
-              if (newinput == '\r') lines++;
-              if (newinput == '\n') lines++;
-//                  if (newinput == '\r' && lastchar == '\n') length--;
-              if (newinput == '\n' && lastchar == '\r') lines--;
-              lastchar = newinput;
-          }
-          gzclose(gfd);
-      if (lastchar != '\n' && lastchar != '\r') lines++;
+          count = fread(newinput, 1, BUFSIZ, fd);
+        }
 
-      (*res)[ i] = lines;
+        fclose(fd);
+        if (lastchar != '\n' && lastchar != '\r') lines++;
+
+        (*res)[ i] = lines;
+      }
+      free(newinput);
     }
 
     return res;

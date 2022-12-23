@@ -30,7 +30,11 @@ class NullGDL: public BaseGDL
     NullGDL(): BaseGDL() {} 
 
     ~NullGDL(); // virtual due to base class -> can be called nevertheless (but this would be an error here)
-
+  
+    // as GetParString of EnvT but directly from BaseGDL if possible:
+    // get the name of 'i'th parameter
+    const std::string GetParString();
+  
   public:
 
     void* operator new( size_t bytes, char* cP)
@@ -51,12 +55,7 @@ class NullGDL: public BaseGDL
     void operator delete( void *ptr, size_t bytes) {}
     void operator delete( void *ptr, size_t bytes, char* cP) {}
     
-    static NullGDL* GetSingleInstance()
-    {
-      if( instance == NULL)
-    instance = new (NullGDL::buf) NullGDL();
-      return instance;
-    }
+    static NullGDL* GetSingleInstance();
     
     static bool IsNULLorNullGDL( BaseGDL* p)
     {
@@ -172,7 +171,7 @@ class NullGDL: public BaseGDL
   /*virtual*/ BaseGDL* Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
                    bool center, bool normalize, int edgeMode,
                                bool doNan, BaseGDL* missing, bool doMissing,
-                               BaseGDL* invalid, bool doInvalid);
+                               BaseGDL* invalid, bool doInvalid, DDouble edgeVal);
   /*virtual*/ BaseGDL* Smooth( DLong* width, int edgeMode,
                                bool doNan, BaseGDL* missing);
   /*virtual*/ BaseGDL* Rebin( const dimension& newDim, bool sample);

@@ -1,0 +1,31 @@
+    for (SizeT k = 0; k < ny; ++k) {
+      for (SizeT j = 0; j < nx; ++j) { 
+        x = xx[j];
+        if (x < 0) {
+          xi[0] = 0; xi[1] = 0;
+        } else if (x >= n1-1 ) {
+          xi[0] = n1-1; xi[1] = n1-1;
+        } else {
+          ix = floor(x);
+          xi[0] = ix;
+          xi[1] = ix + 1;
+        }
+        y = yy[k];
+        if (y < 0) {
+          yi[0] = 0; yi[1] = 0;
+        } else if (y >= n2-1 ) {
+          yi[0] = n2-1; yi[1] = n2-1;
+        } else {
+          iy = floor(y);
+          yi[0] = iy;
+          yi[1] = iy + 1;
+        }
+        dx = (x - xi[0]);
+        dy = (y - yi[0]);
+        double dxdy=dx*dy;
+        double c0=(1-dy-dx+dxdy);
+        double c1=(dy-dxdy);
+        double c2=(dx-dxdy);
+        res[k * nx + j] = array[yi[0] * n1 + xi[0]] * c0 + array[yi[1] * n1 + xi[0]] * c1 + array[yi[0] * n1 + xi[1]] * c2 + array[yi[1] * n1 + xi[1]] * dxdy;
+      }
+    }

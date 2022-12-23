@@ -1,0 +1,21 @@
+  for (SizeT k = 0; k < ny; ++k) {
+    for (SizeT j = 0; j < nx; ++j) { //nb output points
+      x = xx[j];
+      if (x < 0) {
+        xi = 0;
+      } else if (x >= n1-1 ) {
+        xi = n1-1;
+      } else {
+        xi = floor(x);
+      }
+      y = yy[k];
+      if (y < 0) {
+        yi = 0; 
+      } else if (y >= n2-1 ) {
+        yi = n2-1; 
+      } else {
+        yi = floor(y);
+      }
+      res[k * nx + j] = array[yi * n1 + xi];
+    }
+  }

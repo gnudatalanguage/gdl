@@ -64,31 +64,20 @@ end
 ;
 ; ------------------------------------
 ;
-function DoWeBreak, tictac=tictac, fill=fill
+function DoWeBreak, tictac=tictac
 ;
 ; when tictac set, we just wait a given time then continue
 ; (no interative question, no break)
 ;
 if KEYWORD_SET(tictac) then begin
    WAIT, tictac
-;   if KEYWORD_SET(fill) then begin
-;      MAP_CONTINENTS, /fill
-;      WAIT, tictac
-;   endif
    return, 0
 endif
 ;
-;msg1='Press F for filling continents, Q to quit, any key or Enter to continue '
-msg2='Press Q to quit, any key or Enter to continue '
+msg='Press Q to quit, any key or Enter to continue '
 ;
 key=''
-;read, prompt=msg1, key
-read, prompt=msg2, key
-;
-;if (STRUPCASE(key) EQ 'F') then begin
-;   map_continents, /fill
-;   read, prompt=msg2, key
-;endif
+read, prompt=msg, key
 ;
 if (STRUPCASE(key) EQ 'Q') then return, 1 else return, 0
 ;
@@ -96,61 +85,65 @@ end
 ;
 ; ------------------------------------
 ;
-pro TEST_MAP, dir=dir, tictac=tictac, fill=fill
+pro TEST_MAP, tictac=tictac, test=test
 ;
-  INTERNAL_GDL_MAP_CHECK
+INTERNAL_GDL_MAP_CHECK
 ;
 print, 'Exemple 1: Should plot the whole "classical view" of the world with a grid'
 map_set,/iso,e_cont={cont:1,fill:1,color:'33e469'x,hires:1},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:1,color:'1260E2'x,glinethick:1,glinestyle:0,latdel:10,londel:15}
-if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
+if DoWeBreak(tictac=tictac) then goto, go_to_end
 ;
 print, 'Exemple 2: Should plot Europa using Gnomic Projection, scale 30,000,000'
 map_set,50,15,/gnom,/iso,e_cont={cont:1,fill:1,color:'33e469'x,hires:1},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:1,color:'1260E2'x,glinethick:1,glinestyle:0,latdel:10,londel:15},scale=3E7
-if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
+if DoWeBreak(tictac=tictac) then goto, go_to_end
 ;
 print, 'Exemple 2 bis: same with rivers and country boundaries'
 map_set,50,15,/gnom,/iso,e_cont={cont:1,fill:1,color:'33e469'x,hires:1},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:1,color:'1260E2'x,glinethick:1,glinestyle:0,latdel:10,londel:15}, scale=3E7
 MAP_CONTINENTS, color='AAAA00'x, /river
 MAP_CONTINENTS, color='000000'x, /countrie
-if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
+if DoWeBreak(tictac=tictac) then goto, go_to_end
 ;
 print, 'Exemple 4: Should plot North America using Gnomic Projection'
 map_set,40,-105,/gnom,/iso,e_cont={cont:1,fill:1,color:'33e469'x,hires:1},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:1,color:'1260E2'x,glinethick:1,glinestyle:0,latdel:10,londel:15}, scale=3E7
 MAP_CONTINENTS, /USA, color='000000'x
 
-if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
+if DoWeBreak(tictac=tictac) then goto, go_to_end
 ;
 print, 'Exemple 5: Should plot North America using Satellite Projection'
 MAP_SET, 40,-105, /satellite, /grid, /cont,limit=[20,-130,70,-70], $
          sat_p=[2.22, 0, 0], title='Satellite Projection, North America'
-if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
+if DoWeBreak(tictac=tictac) then goto, go_to_end
 ;
 print, 'Exemple 6: Should plot World centered on Crozon peninsula using (GDL ONY) eckert1 projection -- Checking PROJ equivalent command used in the background'
 map_set,name="eckert1",48.3,-4.5,/iso,e_cont={cont:1,fill:1,color:'33e469'x,hires:1},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:1,color:'1260E2'x,glinethick:1,glinestyle:0,latdel:10,londel:15},/check
-if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
+if DoWeBreak(tictac=tictac) then goto, go_to_end
 ;
 print, 'Exemple 7: same zooming on Crozon, scale is 1:100000'
 map_set,/ortho,48.3,-4.5,/iso,e_cont={cont:1,fill:1,color:'33e469'x,hires:1},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:1,color:'1260E2'x,glinethick:1,glinestyle:0,latdel:1,londel:1},scale=1E6
-if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
+if DoWeBreak(tictac=tictac) then goto, go_to_end
 ;
 print, 'Exemple 8: Should plot World using (GDL ONY) Bertin projection'
 map_set,name="Bertin",/iso,e_cont={cont:1,fill:1,color:'33e469'x,hires:1},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:1,color:'1260E2'x,glinethick:1,glinestyle:0,latdel:10,londel:15}
-if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
+if DoWeBreak(tictac=tictac) then goto, go_to_end
 ;
 print, 'Exemple 9: Should plot World using CYLINDRICAL projection'
 map_set,/CYL,/iso,e_cont={cont:1,fill:1,color:'33e469'x,hires:1},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:1,color:'1260E2'x,glinethick:1,glinestyle:0,latdel:10,londel:15}
-if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
+if DoWeBreak(tictac=tictac) then goto, go_to_end
 ;
 print, 'Exemple 10: Should plot World using CONICAL projection'
 map_set,/CONIC,standard_par=[30,60],/iso,e_cont={cont:1,fill:1,color:'33e469'x,hires:1},/hor,e_hor={nvert:200,fill:1,color:'F06A10'x},e_grid={box_axes:1,color:'1260E2'x,glinethick:1,glinestyle:0,latdel:10,londel:15}
 ;
-if DoWeBreak(tictac=tictac, fill=fill) then goto, go_to_end
+if DoWeBreak(tictac=tictac) then goto, go_to_end
 !P.MULTI=0
 READ_JPEG,FILE_SEARCH(!GDL_MAPS_DIR, 'earth.jpg'),R
-map_set,48.83,-2.33,name="goode",/iso
-z=map_image(r,Startx,Starty)
-tv,z,startx,starty
+map_set,0,48.83,name="GoodesHomolosine",/iso
+im=map_image(r,Startx,Starty)
+tv,im,startx,starty
 map_continents
+Z = SHIFT(DIST(40), 20, 20)& Z = EXP(-(Z/10)^2)& xx=findgen(40,40) mod 40 &xx-=20 & yy=transpose(xx)& xx*=3 &yy+=30
+contour,z,xx,yy,/over,/fill & contour,z,xx,yy,/over
+map_horizon
+xyouts,-30,30,"Hurricane",chars=3,charth=3
 print, 'last demo done'
 ;
 go_to_end:

@@ -124,18 +124,11 @@ if (nb_channels eq 1) then begin
    mid=MAGICK_CREATE(im_size[0],im_size[1])
    if (n_elements(transparent) gt 0) then begin
       alpha=image*0+255
-      for i=0,n_elements(transparent)-1 do alpha[where(image eq transparent[i])]=0
-      _image=TRANSPOSE([[[red[image]]],[[green[image]]],[[blue[image]]],[[alpha]]],[2,0,1])
       MAGICK_MATTE, mid
-   endif else begin
-      _image=TRANSPOSE([[[red[image]]],$
-                        [[green[image]]],$
-                        [[blue[image]]]],$
-                       [2,0,1])
-   endelse
+   endif
    ;;
    MAGICK_WRITECOLORTABLE, mid, red, green, blue
-   MAGICK_WRITE, mid, _image, rgb=rgb
+   MAGICK_WRITE, mid, image, rgb=rgb
    if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
    MAGICK_WRITEFILE, mid, filename, "PNG"
    MAGICK_CLOSE, mid

@@ -184,7 +184,8 @@ public:
   unsigned char* SetCopyBuffer(SizeT size) 
   {
     if (CopyBufferSize != 0) {free (CopyBuffer); CopyBufferSize = 0;}
-    CopyBuffer=(unsigned char*)calloc(size, sizeof(char)); //set to zero
+//    CopyBuffer=(unsigned char*)calloc(size, sizeof(char)); //set to zero
+    CopyBuffer=(unsigned char*)malloc(size*sizeof(char)); //will be filled elsewhere, no need to set to zero
     CopyBufferSize = size;
     return CopyBuffer;
   }
@@ -223,7 +224,7 @@ public:
   virtual BaseGDL* GetFontnames()                     { ThrowGDLException("DEVICE: Keyword GET_FONTNAMES not allowed for call to: DEVICE" ); return NULL;}
   virtual DLong GetFontnum()                          { ThrowGDLException("DEVICE: Keyword GET_FONTNUM not allowed for call to: DEVICE" ); return 0;}
   virtual bool SetFont(DString &f)                 {static int warning_sent=1; if (warning_sent) {Warning("SET_FONT not active for this device (FIXME)."); warning_sent=0;} return true;}
-  virtual DString GetCurrentFont()                 {return NULL;}
+  virtual DString GetCurrentFont()                 {return "__$";}
   virtual DLong GetGraphicsFunction()                 { return -1;}
   virtual DIntGDL* GetPageSize()                      { return NULL;}
   virtual DLong GetPixelDepth()                       { return -1;}
@@ -287,17 +288,20 @@ public:
    (*newxch)[0]=x;
    (*newych)[0]=y;
 
-   int tagxppcm = dStruct->Desc()->TagIndex( "X_PX_CM");
-   int tagyppcm = dStruct->Desc()->TagIndex( "Y_PX_CM");
-   DFloat xppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagxppcm)))[0]*0.1;
-   DFloat yppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagyppcm)))[0]*0.1;
-
-   PLFLT newsize=x/xppm;
-   PLFLT newSpacing=y/yppm;
    GDLGStream* actStream=GetStream(false);
-   if( actStream != NULL) {actStream->setLineSpacing(newSpacing); actStream->RenewPlplotDefaultCharsize(newsize);}
+   if( actStream != NULL) {
+     actStream->SetCharSize(x,y);
+   }
    return true;
   }
+
+  virtual void FontChanged() {
+    GDLGStream* actStream = GetStream(false);
+    if (actStream != NULL) {
+      actStream->fontChanged();
+    }
+  }
+  
   virtual void ClearStream( DLong bColor)
   {
     throw GDLException( "Device "+Name()+" does not support ClearStream.");
@@ -364,32 +368,34 @@ public:
   DLong GetDecomposed();
   BaseGDL* GetFontnames(){ ThrowGDLException("DEVICE: Keyword GET_FONTNAMES not allowed for call to: DEVICE" );return NULL;}
   DLong GetFontnum(){ ThrowGDLException("DEVICE: Keyword GET_FONTNUM not allowed for call to: DEVICE" );return 0;}
-  bool SetFont(DString &f) {fontname=f; return true;}
+  virtual bool SetFont(DString &f) {fontname=f; return true;}
   DString GetCurrentFont() {return fontname;}
   bool SetBackingStore(int value);
   bool Hide(); 
   int MaxNonFreeWin();
   int ActWin();
   int GetNonManagedWidgetActWin(bool doTidyWindowList=true);
-  bool CopyRegion(DLongGDL* me);
-  virtual bool SetCharacterSize( DLong x, DLong y)     {
+  virtual bool CopyRegion(DLongGDL* me) final;
+  virtual bool SetCharacterSize( DLong x, DLong y)  final   {
    int tagx = dStruct->Desc()->TagIndex( "X_CH_SIZE");
    int tagy = dStruct->Desc()->TagIndex( "Y_CH_SIZE");
    DLongGDL* newxch = static_cast<DLongGDL*>( dStruct->GetTag( tagx));
    DLongGDL* newych = static_cast<DLongGDL*>( dStruct->GetTag( tagy));
    (*newxch)[0]=x;
    (*newych)[0]=y;
-   WindowListT::iterator i;
-   int tagxppcm = dStruct->Desc()->TagIndex( "X_PX_CM");
-   int tagyppcm = dStruct->Desc()->TagIndex( "Y_PX_CM");
-   DFloat xppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagxppcm)))[0]*0.1;
-   DFloat yppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagyppcm)))[0]*0.1;
 
-   PLFLT newsize=x/xppm;
-   PLFLT newSpacing=y/yppm;
-   for (i = winList.begin(); i != winList.end(); ++i) if ((*i) != NULL) {(*i)->setLineSpacing(newSpacing); (*i)->RenewPlplotDefaultCharsize(newsize);}
+   for (WindowListT::iterator i= winList.begin(); i != winList.end(); ++i) if ((*i) != NULL) {
+     (*i)->SetCharSize(x,y);
+   }
    return true;
-  }  
+  }
+
+  virtual void FontChanged() {
+    for (WindowListT::iterator i = winList.begin(); i != winList.end(); ++i) if ((*i) != NULL) {
+        (*i)->fontChanged();
+      }
+  }
+  
 };
 
 #endif

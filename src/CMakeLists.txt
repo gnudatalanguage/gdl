@@ -39,6 +39,7 @@ dialog.cpp
 dinterpreter.cpp
 dnode.cpp
 dpro.cpp
+dSFMT/dSFMT.c
 dstructdesc.cpp
 dstructfactory.cxx
 dstructgdl.cpp
@@ -49,25 +50,18 @@ exists_fun.cpp
 fftw.cpp
 file.cpp
 fmtnode.cpp
+gdlarray.cpp
 gdleventhandler.cpp
 gdlexception.cpp
 gdlgstream.cpp
-dSFMT/dSFMT.c
 )
 
-if(WIN32)
+if(NOT WIN32)
 set(SOURCES
 ${SOURCES}
-otherdevices/gdlwinstream.cpp
-gtdhelper.cpp
-otherdevices/devicewin.cpp
+gdlxstream.cpp
 )
-else(WIN32)
-set(SOURCES
-${SOURCES}
-otherdevices/gdlxstream.cpp
-)
-endif(WIN32)
+endif(NOT WIN32)
 
 set(SOURCES
 ${SOURCES}
@@ -92,12 +86,14 @@ hash.cpp
 hdf5_fun.cpp
 hdf_fun.cpp
 hdf_pro.cpp
+histogram.cpp
 image.cpp
 initct.cpp
 initsysvar.cpp
 interpolate.cpp
 interpol.cpp
 io.cpp
+labelregion.cpp
 lapack.cpp
 least_squares.cpp
 libinit.cpp
@@ -179,6 +175,12 @@ ${SOURCES}
 sax.cpp
 )
 endif(USE_EXPAT)
+if(HAVE_QHULL)
+set (SOURCES
+${SOURCES}
+qhull.cpp
+)
+endif(HAVE_QHULL)
 if(WIN32)
 set(SOURCES
 ${SOURCES}
@@ -192,10 +194,12 @@ ${SOURCES}
 ${WX_RC}
 )
 endif(HAVE_LIBWXWIDGETS AND WIN32)
+#local plplot drivers
+add_subdirectory(plplotdriver)
 
 add_subdirectory(antlr)
 
-include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_BINARY_DIR})
+include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_SOURCE_DIR}/src/plplotdriver ${CMAKE_BINARY_DIR})
 link_directories(${LINK_DIRECTORIES})
 
 if(PYTHON_MODULE) #GDL.so
@@ -219,7 +223,15 @@ if (MINGW)
 target_link_libraries(gdl ws2_32)
 endif (MINGW)
 target_link_libraries(gdl ${LIBRARIES})
+
 add_definitions(-DHAVE_CONFIG_H)
+
+# Workaround MinGW build problem: force problematic large file to be optimized to prevent string table overflow error
+# see also: https://github.com/assimp/assimp/pull/2418/files
+if ((MINGW) AND (CMAKE_BUILD_TYPE MATCHES Debug))
+	message("-- Applying MinGW basic_op.cpp Debug Workaround")
+	set_source_files_properties(basic_op.cpp PROPERTIES COMPILE_OPTIONS "-Os")
+endif()
 
 if(PYTHON_MODULE)
         find_package( PythonInterp ${PYTHONVERSION} REQUIRED )
@@ -250,3 +262,9 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource DESTINATION ${CMAKE_INSTALL_PREFI
 	PATTERN checks EXCLUDE
 	PATTERN Makefile* EXCLUDE
 	PATTERN UrgentNeed.txt EXCLUDE)
+
+configure_file(
+ 	${CMAKE_SOURCE_DIR}/scripts/quick_start_GDL.sh.in
+	${CMAKE_BINARY_DIR}/quick_start_GDL.sh
+)
+

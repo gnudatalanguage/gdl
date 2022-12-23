@@ -29,7 +29,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::New( const dimension& dim_, BaseGDL::InitType noZe
     {
       Data_* res =  new Data_(dim_, BaseGDL::NOZERO);
       SizeT nEl = res->dd.size();
-      /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl))
 	{
 	#pragma omp for*/
       for( OMPInt i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
@@ -49,7 +49,7 @@ Data_<SpDObj>* Data_<SpDObj>::New( const dimension& dim_, BaseGDL::InitType noZe
     {
       Data_* res =  new Data_(dim_, BaseGDL::NOZERO);
       SizeT nEl = res->dd.size();
-      /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+      /*#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl))
 	{
 	#pragma omp for*/
       for( OMPInt i=0; i<nEl; ++i) (*res)[ i] = (*this)[ 0]; // set all to scalar
@@ -342,7 +342,7 @@ void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 
 	  GDLInterpreter::AddRef( scalar, nCp);
 
-	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
 	  {
 	    //#pragma omp for
 	    for( SizeT c=0; c<nCp; ++c)
@@ -360,7 +360,7 @@ void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 	  
 	  GDLInterpreter::AddRef( scalar, nCp);
 
-	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
 	  {
 	    //#pragma omp for
 	    for( SizeT c=0; c<nCp; ++c)
@@ -385,7 +385,7 @@ void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 	    else
 	      throw GDLException("Source expression contains not enough elements.");
 	  }
-	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
 	  {
 	    //#pragma omp for
 	    for( SizeT c=0; c<nCp; ++c)
@@ -421,7 +421,7 @@ void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 				       " source expression.");
 		  
 		  AllIxBaseT* allIx = ixList->BuildIx();
-		  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+		  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
 		  {
 		    //#pragma omp for
 		    for( SizeT c=0; c<nCp; ++c)
@@ -441,7 +441,7 @@ void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 				       " source expression.");
 		  
 		  AllIxBaseT* allIx = ixList->BuildIx();
-		  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+		  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
 		  {
 		    //#pragma omp for
 		    for( SizeT c=0; c<nCp; ++c)
@@ -478,7 +478,7 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 
 	  GDLInterpreter::AddRefObj( scalar, nCp);
 
-	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
 	  {
 	    //#pragma omp for
 	    for( SizeT c=0; c<nCp; ++c)
@@ -496,7 +496,7 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 	  
 	  GDLInterpreter::AddRefObj( scalar, nCp);
 
-	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
 	  {
 	    //#pragma omp for
 	    for( SizeT c=0; c<nCp; ++c)
@@ -521,7 +521,7 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 	    else
 	      throw GDLException("Source expression contains not enough elements.");
 	  }
-	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
 	  {
 	    //#pragma omp for
 	    for( SizeT c=0; c<nCp; ++c)
@@ -557,7 +557,7 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 				       " source expression.");
 		  
 		  AllIxBaseT* allIx = ixList->BuildIx();
-		  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+		  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
 		  {
 		    //#pragma omp for
 		    for( SizeT c=0; c<nCp; ++c)
@@ -577,7 +577,7 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList, SizeT off
 				       " source expression.");
 		  
 		  AllIxBaseT* allIx = ixList->BuildIx();
-		  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+		  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
 		  {
 		    //#pragma omp for
 		    for( SizeT c=0; c<nCp; ++c)
@@ -656,7 +656,7 @@ void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 	
 	  GDLInterpreter::AddRef( scalar, nCp);
 
-	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
 	  {
 	    //#pragma omp for
 	    for( SizeT c=0; c<nCp; ++c)
@@ -685,7 +685,7 @@ void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 			       " source expression.");
 
 	  AllIxBaseT* allIx = ixList->BuildIx();
-	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
 	  {
 	    //#pragma omp for
 	    for( SizeT c=0; c<nCp; ++c)
@@ -716,7 +716,7 @@ void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn)
       SizeT nCp=Data_::N_Elements();
 	
       GDLInterpreter::AddRef( scalar, nCp);
-      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
       {
 	//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
@@ -739,7 +739,7 @@ void Data_<SpDPtr>::AssignAt( BaseGDL* srcIn)
       // if (non-indexed) src is smaller -> just copy its number of elements
       if( nCp > srcElem) nCp=srcElem;
 	
-      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
       {
 	//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
@@ -784,7 +784,7 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 	
 	  GDLInterpreter::AddRefObj( scalar, nCp);
 
-	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
 	  {
 	    //#pragma omp for
 	    for( SizeT c=0; c<nCp; ++c)
@@ -812,7 +812,7 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn, ArrayIndexListT* ixList)
 			       " source expression.");
 
 	  AllIxBaseT* allIx = ixList->BuildIx();
-	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+	  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
 	  {
 	    //#pragma omp for
 	    for( SizeT c=0; c<nCp; ++c)
@@ -844,7 +844,7 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn)
 	
       GDLInterpreter::AddRefObj( scalar, nCp);
 	
-      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
       {
 	//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
@@ -867,7 +867,7 @@ void Data_<SpDObj>::AssignAt( BaseGDL* srcIn)
       // if (non-indexed) src is smaller -> just copy its number of elements
       if( nCp > srcElem) nCp=srcElem;
 	
-      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
       {
 	//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
@@ -899,7 +899,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::Index( ArrayIndexListT* ixList)
 
   //  DataT& res_dd = res->dd;
   AllIxBaseT* allIx = ixList->BuildIx();
-  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
   {
     //#pragma omp for
     for( SizeT c=0; c<nCp; ++c)
@@ -928,7 +928,7 @@ Data_<SpDObj>* Data_<SpDObj>::Index( ArrayIndexListT* ixList)
 
   //  DataT& res_dd = res->dd;
   AllIxBaseT* allIx = ixList->BuildIx();
-  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
   {
     //#pragma omp for
     for( SizeT c=0; c<nCp; ++c)
@@ -957,7 +957,7 @@ void Data_<SpDPtr>::InsertAt( SizeT offset, BaseGDL* srcIn,
     {
       SizeT nCp=src->N_Elements();
 
-      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
       {
 	//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
@@ -974,7 +974,7 @@ void Data_<SpDPtr>::InsertAt( SizeT offset, BaseGDL* srcIn,
       SizeT nCp=ixList->N_Elements();
 
       AllIxBaseT* allIx = ixList->BuildIx();
-      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
       {
 	//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
@@ -1010,7 +1010,7 @@ void Data_<SpDPtr>::CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at
 
 #ifdef _OPENMP
   SizeT nEl = srcArr->N_Elements();
-  //#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+  //#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl))
   for( SizeT c=0; c<nCp; ++c)
     {
       // set new destination pointer
@@ -1063,7 +1063,7 @@ void Data_<SpDObj>::InsertAt( SizeT offset, BaseGDL* srcIn,
     {
       SizeT nCp=src->N_Elements();
 
-      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
       {
 	//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
@@ -1080,7 +1080,7 @@ void Data_<SpDObj>::InsertAt( SizeT offset, BaseGDL* srcIn,
       SizeT nCp=ixList->N_Elements();
 
       AllIxBaseT* allIx = ixList->BuildIx();
-      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+      //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
       {
 	//#pragma omp for
 	for( SizeT c=0; c<nCp; ++c)
@@ -1116,7 +1116,7 @@ void Data_<SpDObj>::CatInsert( const Data_* srcArr, const SizeT atDim, SizeT& at
 
 #ifdef _OPENMP
   SizeT nEl = srcArr->N_Elements();
-  //#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+  //#pragma omp parallel for if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl))
   for( SizeT c=0; c<nCp; ++c)
     {
       // set new destination pointer
@@ -1181,7 +1181,7 @@ void Data_<SpDPtr>::Assign( BaseGDL* src, SizeT nEl)
     srcT = static_cast<Data_*>( src);
   }
 
-  //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+  //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl))
   {
     //#pragma omp for
     for(long k=0; k < nEl; ++k)
@@ -1218,7 +1218,7 @@ void Data_<SpDObj>::Assign( BaseGDL* src, SizeT nEl)
     srcT = static_cast<Data_*>( src);
   }
 
-  //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nEl))
+  //#pragma omp parallel if (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl))
   {
     //#pragma omp for
     for(long k=0; k < nEl; ++k)
@@ -1355,7 +1355,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::NewIx( AllIxBaseT* ix, const dimension* dIn)
 {
   SizeT nCp = ix->size();
   Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
-  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
   {
     //#pragma omp for
     for( SizeT c=0; c<nCp; ++c)
@@ -1372,7 +1372,7 @@ Data_<SpDObj>* Data_<SpDObj>::NewIx( AllIxBaseT* ix, const dimension* dIn)
 {
   SizeT nCp = ix->size();
   Data_* res=Data_::New( *dIn, BaseGDL::NOZERO);
-  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
   {
     //#pragma omp for
     for( SizeT c=0; c<nCp; ++c)
@@ -1390,7 +1390,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::NewIxFrom( SizeT s)
 {
   SizeT nCp = dd.size() - s;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
-  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
   {
     //#pragma omp for
     for( SizeT c=0; c<nCp; ++c)
@@ -1407,7 +1407,7 @@ Data_<SpDObj>* Data_<SpDObj>::NewIxFrom( SizeT s)
 {
   SizeT nCp = dd.size() - s;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
-  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
   {
     //#pragma omp for
     for( SizeT c=0; c<nCp; ++c)
@@ -1425,7 +1425,7 @@ Data_<SpDPtr>* Data_<SpDPtr>::NewIxFrom( SizeT s, SizeT e)
 {
   SizeT nCp = e - s + 1;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
-  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
   {
     //#pragma omp for
     for( SizeT c=0; c<nCp; ++c)
@@ -1443,7 +1443,7 @@ Data_<SpDObj>* Data_<SpDObj>::NewIxFrom( SizeT s, SizeT e)
 {
   SizeT nCp = e - s + 1;
   Data_* res=Data_::New( dimension( nCp), BaseGDL::NOZERO);
-  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS <= nCp))
+  //#pragma omp parallel if (nCp >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nCp))
   {
     //#pragma omp for
     for( SizeT c=0; c<nCp; ++c)

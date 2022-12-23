@@ -70,8 +70,14 @@ namespace lib
                 case 64: pixelType = GDL_DOUBLE;    break;
                 default: printf(BPS_ERR_FMT, "FLOAT", bitsPerSample);
                 } break;
-            case TIFF::Directory::SampleFormat::Untyped:
             case TIFF::Directory::SampleFormat::ComplexInteger:
+                switch(bitsPerSample) {
+                case 16: pixelType = GDL_INT;       break;
+                case 32: pixelType = GDL_LONG;      break;
+                case 64: pixelType = GDL_LONG64;    break;
+                default: printf(BPS_ERR_FMT, "CINT", bitsPerSample);
+                } break;
+            case TIFF::Directory::SampleFormat::Untyped:
             case TIFF::Directory::SampleFormat::ComplexFloatingPoint:
             default:;
             }
@@ -285,7 +291,7 @@ namespace lib
                 auto scanSize = TIFFScanlineSize(tiff_);
 
                 if(!(buffer = static_cast<char*>(_TIFFmalloc(scanSize)))) {
-                    fprintf(stderr, "Could not allocate %lu bytes for TIFF scanline buffer\n", scanSize);
+                    fprintf(stderr, "Could not allocate %ld bytes for TIFF scanline buffer\n", (long)scanSize);
                     goto error;
                 }
 
@@ -303,7 +309,7 @@ namespace lib
                 auto tileSize = TIFFTileSize(tiff_);
 
                 if(!(buffer = static_cast<char*>(_TIFFmalloc(tileSize)))) {
-                    fprintf(stderr, "Could not allocate %lu bytes for TIFF tile buffer\n", tileSize);
+                    fprintf(stderr, "Could not allocate %ld bytes for TIFF tile buffer\n", (long)tileSize);
                     goto error;
                 }
 

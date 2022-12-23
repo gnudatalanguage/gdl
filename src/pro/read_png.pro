@@ -63,13 +63,8 @@
 ;
 ;-
 ;
-function INTERNAL_READ_PNG, filename, red, green, blue, $
-                            order=order, transparent=transparent, $
-                            test=test, verbose=verbose
-;
-
+function INTERNAL_READ_PNG, filename, red, green, blue, order=order, transparent=transparent
 compile_opt hidden, idl2
-
 ON_ERROR, 2
 
 ; this line allows to compile also in IDL ...
@@ -94,84 +89,36 @@ if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+fil
 ;
 ; testing whether the format is as expected
 ;
-if ~MAGICK_PING(filename, 'PNG') then begin
-   MESSAGE, /continue, "PNG error: Not a PNG file:"
-   if MAGICK_PING(filename, 'JPEG') then MESSAGE, "seems to be a JPEG file"
-   if MAGICK_PING(filename, 'GIF') then MESSAGE, "seems to be a GIF file"
-   if MAGICK_PING(filename, 'PDF') then MESSAGE, "seems to be a PDF file"
-   MESSAGE, "unknown/untested format file"   
-endif
+if ~MAGICK_PING(filename, 'PNG') then MESSAGE, "File "+filename+" is not in PNG format."
 ;
 mid=MAGICK_OPEN(filename)
 ;
 ;;flip if order is set
 ;
-if (KEYWORD_SET(order)) then MAGICK_FLIP, mid
+READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable, order=order
+if ( n_elements(colortable) gt 0 ) then begin
+   red=colortable[*,0]
+   green=colortable[*,1]
+   blue=colortable[*,2]
+endif
+transparent=0 ; fake
 
-if (magick_IndexedColor(mid)) then begin
-    image=MAGICK_READINDEXES(mid)
-    MAGICK_READCOLORMAPRGB, mid, red, green, blue
-    colortable=[[red],[green],[blue]]
-endif else begin
-   ;; AC 2012-Feb-02 the effective order of reading was bad ...
-   ;; now it is OK on all tested PNG images, including images with transparency
-   image=MAGICK_READ(mid, rgb=1s) ; must be short
-endelse
-;
-MAGICK_CLOSE, mid
-;
-if KEYWORD_SET(test) then STOP
-;
 return, image
 ;
 end
 ;
 ; ----------------------------- Procedure ------------------------
 ;
-pro READ_PNG, filename, image, red, green, blue, $
-              order=order, transparent=transparent, $
-              help=help, test=test, verbose=verbose
-;
-
+pro READ_PNG, filename, image, red, green, blue, order=order, transparent=transparent, verbose=verbose
 compile_opt hidden, idl2
-
 ON_ERROR, 2
-;
-if KEYWORD_SET(help) then begin
-   print, 'pro READ_PNG, filename, red, green, blue, $'
-   print, '              order=order, transparent=transparent, $'
-   print, '              help=help, test=test, verbose=verbose'
-   return
-endif
-;
-image=INTERNAL_READ_PNG(filename, red, green, blue, $
-                        order=order, transparent=transparent, $
-                        test=test, verbose=verbose)
-;
+image=INTERNAL_READ_PNG(filename, red, green, blue, order=order, transparent=transparent)
 end
 ;
 ; ----------------------------- Function ------------------------
 ;
-function READ_PNG, filename, red, green, blue, $
-                   order=order, transparent=transparent, $
-                   help=help, test=test, verbose=verbose
-;
-
+function READ_PNG, filename, red, green, blue,order=order, transparent=transparent, verbose=verbose
 compile_opt hidden, idl2
-
 ON_ERROR, 2
-;
-if KEYWORD_SET(help) then begin
-   print, 'function READ_PNG, filename, red, green, blue, $'
-   print, '                   order=order, transparent=transparent, $'
-   print, '                   help=help, test=test, verbose=verbose'
-   return, -1
-endif
-;
-image=INTERNAL_READ_PNG(filename, red, green, blue, $
-                        order=order, transparent=transparent, $
-                        test=test, verbose=verbose)
-;
-return, image
-;
+return,INTERNAL_READ_PNG(filename, red, green, blue, order=order, transparent=transparent)
 end

@@ -39,8 +39,6 @@
 #include <sys/resource.h> //rlimits to augment stack size (needed fot DICOM objects)
 #endif
 
-//#include <fenv.h>
-
 #include "str.hpp"
 #include "dinterpreter.hpp"
 #include "terminfo.hpp"
@@ -62,10 +60,13 @@
 // GDLDATADIR
 #include "config.h"
 
+//we use gdlgstream in gdl.cpp
+#include "gdlgstream.hpp"
+
 //initialize wxWidgets system
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
-#if __WXMSW__ 
+#ifndef __WXMAC__ 
 wxIMPLEMENT_APP_NO_MAIN( wxAppGDL);
 #else
 wxIMPLEMENT_APP_NO_MAIN( wxApp);
@@ -132,7 +133,7 @@ void AtExit()
 #ifndef _WIN32
 void GDLSetLimits()
 {
-#define GDL_PREFERED_STACKSIZE 20480000 //20000*1024 OK for the time being
+#define GDL_PREFERED_STACKSIZE  1024000000 //1000000*1024 like IDL
 struct rlimit* gdlstack=new struct rlimit;
   int r=getrlimit(RLIMIT_STACK,gdlstack); 
 //  cerr <<"Current rlimit = "<<gdlstack->rlim_cur<<endl;
@@ -148,6 +149,12 @@ void InitGDL()
 #ifndef _WIN32
   GDLSetLimits();
 #endif
+
+//rl_event_hook (defined below) uses a wxwidgets event loop, so wxWidgets must be started
+#ifdef HAVE_LIBWXWIDGETS
+    if (useWxWidgets) GDLWidget::Init();
+#endif
+
 #if defined(HAVE_LIBREADLINE)
   // initialize readline (own version - not pythons one)
   // in includefirst.hpp readline is disabled for python_module
@@ -159,9 +166,7 @@ void InitGDL()
   //but... without it we have no graphics event handler! FIXME!!! 
   rl_event_hook = GDLEventHandler;
 #endif
-#ifdef HAVE_LIBWXWIDGETS
-    if (useWxWidgets) GDLWidget::Init();
-#endif
+
   // ncurses blurs the output, initialize TermWidth here
   TermWidth();
 
@@ -217,7 +222,55 @@ int main(int argc, char *argv[])
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
+// in the (suggested) absence of IDL_PATH, !DIR is correct if set to GDLDATADIR.
+  std::string S_GDLDATADIR = std::string(GDLDATADIR);
+#ifdef _WIN32
+  std::replace(S_GDLDATADIR.begin(), S_GDLDATADIR.end(), '/', '\\');
+#endif 
 
+//PATH. This one is often modified by people before starting GDL.
+  string gdlPath=GetEnvPathString("GDL_PATH"); //warning: is a Path, use system separator.
+  if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH"); //warning: is a Path, use system separator.
+  if( gdlPath == "") gdlPath = S_GDLDATADIR + lib::PathSeparator() + "lib";
+
+//drivers if local
+  useLocalDrivers=false;
+  bool driversNotFound=false;
+  string driversPath=S_GDLDATADIR + lib::PathSeparator() + "drivers"; 
+  //We'll ned to get the current value for PLPLOT_DRV_DIR if any (useful later if something goes wrong below)
+  static const char* DrvEnvName="PLPLOT_DRV_DIR";
+
+#ifdef INSTALL_LOCAL_DRIVERS
+  useLocalDrivers=true;
+  //For WIN32 the drivers dlls are copied alongwith the gdl.exe and plplot does not use  PLPLOT_DRV_DIR to find them.
+#ifndef _WIN32
+  char* oldDriverEnv=getenv(DrvEnvName);
+  // We must declare here (and not later) where our local copy of (customized?) drivers is to be found.
+  char s[256];
+  strcpy(s,DrvEnvName);
+  strcat(s,"=");
+  strcat(s,driversPath.c_str());
+      //set nex drvPath as PLPLOT_DRV_DIR
+  putenv(s);
+  //Now, it is possible that GDL WAS compiled with INSTALL_LOCAL_DRIVERS, but the plplot installation is NOT compiled with DYNAMIC DRIVERS.
+  //So I check here the plplot driver list to check if wxwidgets is present. If not, useLocalDriver=false
+  bool driversOK=GDLGStream::checkPlplotDriver("ps"); //ps because xwin and wxwidgets may be absent. ps is always present.
+  if (!driversOK) {
+    driversNotFound=true; 
+    useLocalDrivers=false;
+    unsetenv(DrvEnvName); //unknown on windows
+    //eventually restore previous value
+    if (oldDriverEnv) {
+      strcpy(s,DrvEnvName);
+      strcat(s,"=");
+      strcat(s,oldDriverEnv);
+      putenv(s);
+    }
+    plend(); //this is necessary to reset PLPLOT to a state that will read again the driver configuration at PLPLOT_DRV_DIR
+             // otherwise the next call to checkPlplotDriver() in GDLWxStream will fail.
+  }
+#endif
+#endif
   // keeps a list of files to be executed after the startup file
   // and before entering the interactive mode
   vector<string> batch_files;
@@ -427,26 +480,20 @@ int main(int argc, char *argv[])
   InitGDL(); 
 
   // must be after !cpu initialisation
-  InitOpenMP();
-
-  if (gdlde || (isatty(0) && !quiet)) StartupMessage();
+  InitOpenMP(); //will supersede values for CpuTPOOL_NTHREADS
 
   // instantiate the interpreter
   DInterpreter interpreter;
 
-  string gdlPath=GetEnvString("GDL_PATH");
-  if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
-  if( gdlPath == "")
-    {
-      gdlPath = "+" GDLDATADIR "/lib";
-      if (gdlde || (isatty(0) && !quiet)) cerr <<
-        "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " GDLDATADIR "/lib" << endl;
+  if (gdlde || (isatty(0) && !quiet)) {
+    StartupMessage();
+    cerr << "- Default library routine search path used (GDL_PATH/IDL_PATH env. var. not set): " << gdlPath << endl;
+    if (useWxWidgetsForGraphics) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
+    if (useLocalDrivers || driversNotFound) {
+      if (driversNotFound) cerr << "- Local drivers not found --- using default ones. " << endl;
+      else if (getenv(DrvEnvName)) cerr << "- Using local drivers in " << getenv(DrvEnvName) << endl; //protect against NULL.
     }
-  if (useWxWidgetsForGraphics) {
-      if (gdlde || (isatty(0) && !quiet)) cerr << "- Using WxWidgets as graphics library (windows and widgets)." << endl;
     }
-
-  
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
   
   //report in !GDL status struct
@@ -458,8 +505,6 @@ int main(int argc, char *argv[])
   unsigned  useWXTAG= gdlconfig->Desc()->TagIndex("GDL_USE_WX");
   (*static_cast<DByteGDL*> (gdlconfig->GetTag(useWXTAG, 0)))[0]=useWxWidgetsForGraphics;
   
-  SysVar::SetGDLPath( gdlPath); //probably duplicate with the one in initobjects!
-  
   if (!pretendRelease.empty()) SysVar::SetFakeRelease(pretendRelease);
   //fussyness setup and change if switch at start
   if (syntaxOptionSet) { //take it no matters any env. var.
@@ -469,8 +514,8 @@ int main(int argc, char *argv[])
   }
   
   
-  string startup=GetEnvString("GDL_STARTUP");
-  if( startup == "") startup=GetEnvString("IDL_STARTUP");
+  string startup=GetEnvPathString("GDL_STARTUP");
+  if( startup == "") startup=GetEnvPathString("IDL_STARTUP");
   if( startup == "")
     {
       if (gdlde || (isatty(0) && !quiet)) cerr << 

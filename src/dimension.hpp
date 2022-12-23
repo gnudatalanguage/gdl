@@ -418,7 +418,7 @@ public:
   }
 
   // set the rank to r (pads 1s) if it is smaller than r
-  void MakeRank(SizeT r)
+  void InsureRankAtLeast(SizeT r)
   {
     SizeT rNow=rank;
     if( rNow >= r) return;

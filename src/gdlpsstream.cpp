@@ -25,7 +25,13 @@ using namespace std;
 
 void GDLPSStream::Init()
 {
+//select the fonts in all cases...
+   std::string what = "hrshsym=0,text=1";
+   setopt("drvopt", what.c_str());
    plstream::init();
+   //AFTER init, change back to selected
+   PLINT doFont = ((PLINT) SysVar::GetPFont()>-1) ? 1 : 0;
+   pls->dev_text=doFont;
    page = 0;
 }
  

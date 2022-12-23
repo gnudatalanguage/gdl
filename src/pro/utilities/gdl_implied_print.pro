@@ -6,6 +6,7 @@
 ; 
 ; MODIFICATION HISTORY:
 ;   29-Jun-2021 : written by G. Duvert
+;   03-Jan-2022 : print to 'out' as implied_print is possible with "printf'
 ;
 ; LICENCE:
 ; Copyright (C) 2017, G. Duvert
@@ -18,8 +19,8 @@
 ;
 function pretty_serialize,value,tagname=tagname,arrayIdentifier=arrayIdentifier
 common json_serialize_gdl_level, level, types
-
 COMPILE_OPT idl2, HIDDEN
+ON_ERROR,2
    ;; CATCH, Error_status
    ;; IF Error_status NE 0 THEN BEGIN
    ;;    CATCH, /CANCEL
@@ -41,8 +42,11 @@ arrayIdentifier=keyword_set(arrayIdentifier)
   ndim=ret[0]
   type=ret[ndim+1]
 
-  if( n_elements(tagname) gt 0) then tmpstr=space+'"'+tagname+'": ' else tmpstr=''
-  n=n_elements(value)
+if( n_elements(tagname) gt 0) then begin
+   if (typename(tagname) eq "STRING") then tmpstr=space+'"'+tagname+'": ' else tmpstr=space+strtrim(tagname,2)+': '
+endif else tmpstr=''
+
+ n=n_elements(value)
 
  ;; unfortunately lists etc are seen as arrays by 'size', so:
   mytype=typename(value)
@@ -75,7 +79,7 @@ arrayIdentifier=keyword_set(arrayIdentifier)
            nn=value.Count()
            keys=value.Keys()
            for j=0,nn-1 do begin
-              tmpstr+=pretty_serialize(tagname=keys[j],value[j])
+              tmpstr+=pretty_serialize(tagname=keys[j],value[keys[j]])
               if (j lt nn-1) then tmpstr+=comma
            endfor
            tmpstr+=braceright & level--
@@ -123,7 +127,7 @@ arrayIdentifier=keyword_set(arrayIdentifier)
                  nn=(value[i]).Count()
                  keys=(value[i]).Keys()
                  for j=0,nn-1 do begin
-                    tmpstr+=pretty_serialize(tagname=keys[j],(value[i])[j])
+                    tmpstr+=pretty_serialize(tagname=keys[j],(value[i])[keys[j]])
                     if (j lt nn-1) then tmpstr+=comma
                  endfor
                  tmpstr+=braceright & level--
@@ -145,32 +149,35 @@ arrayIdentifier=keyword_set(arrayIdentifier)
   return,tmpstr
 end
 
-pro gdl_implied_print,value
+pro gdl_implied_print,out,value
 COMPILE_OPT idl2, HIDDEN
 ON_ERROR, 2
 types=[1,2,3,4,5,6,7,9,12,13,14,15]
 type=size(value,/type)
-if (type eq 0) then return
+if (type eq 0) then begin
+ printf,out,"!NULL"
+ return
+endif
+
 w=where(type eq types, count)
 if (count gt 0) then begin
   ret=size(value)
   ndim=ret[0]
   type=ret[ndim+1]
   n=n_elements(value)
-  case type of
-  7: BEGIN
-    for i=0,n-1 do print,value[i]
-  END
-  4: print,value,format='(G16.8)'
-  5: print,value,format='(G25.17)'
-  6: print,value,format='("(",G16.8,",",G16.8,")")'
-  9: print,value,format='("(",G25.17,",",G25.17,")")'
-  ELSE: print,value
-  endcase
+  if (n eq 1) then begin
+    case type of
+    4: printf,out,value,format='(G16.8)'
+    5: printf,out,value,format='(G25.17)'
+    6: printf,out,value,format='("(",G16.8,",",G16.8,")")'
+    9: printf,out,value,format='("(",G25.17,",",G25.17,")")'
+    ELSE: printf,out,value
+    endcase
+  endif else printf,out,value
   return
 endif
 
 text=pretty_serialize(value)
-print,text
+printf,out,text
 end
 

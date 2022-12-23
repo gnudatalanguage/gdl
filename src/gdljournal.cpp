@@ -198,13 +198,13 @@ namespace lib
   }
 	
   // used only with GetClearActualLine, which already contains a trailinf '\n'
-  void write_journal(const std::string str)
+  void write_journal(const std::string &str)
   {
     if(gdljournal == NULL) return;
     gdljournal->OStream() << str;
   }
 	
-  void write_journal_comment(const std::string str)
+  void write_journal_comment(const std::string &str)
   {
     if(gdljournal == NULL) return;
     gdljournal->OStream()  << JOURNALCOMMENT << " " << str << "\n";

@@ -25,7 +25,7 @@ class ArrayIndexListT
 protected:
 
   SizeT nParam; // number of (BaseGDL*) parameters
-
+  bool ignoreMe; //used to signal a !NULL encountered in the creation of the list
 public:    
   
   SizeT NParam() { return nParam;}
@@ -33,11 +33,17 @@ public:
   virtual ~ArrayIndexListT();
 
   // constructor
-  ArrayIndexListT() {}
-
+  ArrayIndexListT():
+  ignoreMe(false) 
+  {}
   ArrayIndexListT( const ArrayIndexListT& cp):
     nParam( cp.nParam)
+    ,ignoreMe(false)
   {}
+  
+  //used when a !NULL appears in the definition of (a child of) ArrayIndexListT : 
+  //should be trapped to indicate no action like Assign is to be taken place, like in a[!NULL]=1 where a is not changed.
+  void SetIgnore(){ignoreMe=true;}
   
   virtual void Clear() {}
 
@@ -304,7 +310,8 @@ public:
   }
 
   void AssignAt( BaseGDL* var, BaseGDL* right)
-  {
+{
+    if (ignoreMe) return; //signals a !NULL argument for indexlist (a[!NULL]=33)
     // scalar case
     if( right->N_Elements() == 1 && !var->IsAssoc() &&
 	ix->NIter( var->N_Elements()/*var->Size()*/) == 1)// && var->Type() != GDL_STRUCT) 
@@ -1668,8 +1675,8 @@ public:
 
   void AssignAt( BaseGDL* var, BaseGDL* right)
   {
+    if (ignoreMe) return; //there was a !NULL argument for indexlist (a[!NULL]=33)    SetVariable( var);
     SetVariable( var);
-    
     if( var->EqType( right))
       {
 	var->AssignAt( right, this); // assigns inplace

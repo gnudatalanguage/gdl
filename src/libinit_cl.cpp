@@ -53,12 +53,12 @@ void LibInit_cl()
   new DLibPro(lib::journal,string("JOURNAL"),1);
 
   const string timestampKey[]={"DAY","HOUR","MINUTE","MONTH","OFFSET","SECOND","UTC","YEAR","ZERO",KLISTEND};
-  new DLibFunRetNew(lib::timestamp,string("TIMESTAMP"),2,timestampKey);
+  new DLibFunRetNew(lib::timestamp,string("TIMESTAMP"),0,timestampKey);
 
   const string timestamptovaluesKey[]={"DAY","HOUR","MINUTE","MONTH","OFFSET","SECOND","YEAR",KLISTEND};
   new DLibPro (lib::timestamptovalues,string("TIMESTAMPTOVALUES"),1,timestamptovaluesKey);
 
-  const string systimeKey[]={"JULIAN","SECONDS","UTC",KLISTEND};
+  const string systimeKey[]={"ELAPSED","JULIAN","SECONDS","UTC",KLISTEND};
   new DLibFunRetNew(lib::systime,string("SYSTIME"),2,systimeKey);
 
   const string legendreKey[]={"DOUBLE",KLISTEND};
@@ -200,7 +200,8 @@ void LibInit_cl()
   const string magick_readKey[]={"RGB","SUB_RECT","MAP",KLISTEND};
   new DLibFunRetNew(lib::magick_read,string("MAGICK_READ"),1,magick_readKey);
   new DLibFunRetNew(lib::magick_readindexes,string("MAGICK_READINDEXES"),1);
-  new DLibPro(lib::magick_readcolormapRGB,string("MAGICK_READCOLORMAPRGB"),4);
+  const string magick_readcolormapKey[]={"BACKGROUND_COLOR",KLISTEND}; //0
+  new DLibPro(lib::magick_readcolormapRGB,string("MAGICK_READCOLORMAPRGB"),4,magick_readcolormapKey);
   const string magick_writeKey[]={"RGB",KLISTEND};
   new DLibPro(lib::magick_write,string("MAGICK_WRITE"),2,magick_writeKey);
   new DLibPro(lib::magick_writefile,string("MAGICK_WRITEFILE"),3);
@@ -216,7 +217,7 @@ void LibInit_cl()
   const string magick_quantizeKey[]={"TRUECOLOR","YUV","GRAYSCALE","DITHER",KLISTEND};
   new DLibPro(lib::magick_quantize,string("MAGICK_QUANTIZE"),2,magick_quantizeKey);
  
-  new DLibPro(lib::magick_writeIndexes, string("MAGICK_WRITEINDEXES"),2);
+//  new DLibPro(lib::magick_writeIndexes, string("MAGICK_WRITEINDEXES"),2);
   new DLibPro(lib::magick_writeColorTable, string("MAGICK_WRITECOLORTABLE"),4);
 
 
@@ -234,7 +235,8 @@ void LibInit_cl()
 
   //hmm
   new DLibPro(lib::magick_display,string("MAGICK_DISPLAY"),1);
-
+  new DLibFunRetNew(lib::magick_type,string("MAGICK_TYPE"),1);
+  new DLibFunRetNew(lib::magick_class,string("MAGICK_CLASS"),1);
   // SA: support fot query/ping routines
   const string magick_pingKey[] = {"INFO", "CHANNELS", "DIMENSIONS", "HAS_PALETTE", "IMAGE_INDEX",
     "NUM_IMAGES", "PIXEL_TYPE",/* "SUPPORTED_READ", "SUPPORTED_WRITE", */"TYPE",KLISTEND};

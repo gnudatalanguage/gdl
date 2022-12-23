@@ -21,19 +21,7 @@
 #ifndef HAVE_LIBWXWIDGETS
 #else
 
-#include <algorithm>
-#include <vector>
-#include <cstring>
-
-#include <plplot/drivers.h>
-
-#include "graphicsdevice.hpp"
 #include "gdlwxstream.hpp"
-#include "initsysvar.hpp"
-#include "gdlexception.hpp"
-
-//#define MAX_WIN 32  //IDL free and widgets start at 32 ...
-//#define MAX_WIN_RESERVE 256
 
 class DeviceWX : public GraphicsMultiDevice {
   
@@ -55,7 +43,7 @@ public:
         dStruct->InitTag("X_VSIZE",    DLongGDL(640));
         dStruct->InitTag("Y_VSIZE",    DLongGDL(512));
         dStruct->InitTag("X_CH_SIZE",  DLongGDL(6));
-        dStruct->InitTag("Y_CH_SIZE",  DLongGDL(9));
+        dStruct->InitTag("Y_CH_SIZE",  DLongGDL(10));
         dStruct->InitTag("X_PX_CM",    DFloatGDL(40.0));
         dStruct->InitTag("Y_PX_CM",    DFloatGDL(40.0));
         dStruct->InitTag("N_COLORS",   DLongGDL( (decomposed==1)?256*256*256:256)); 
@@ -70,12 +58,13 @@ public:
  }
 
  bool WOpen(int wIx, const std::string& title,
-   int xSize, int ySize, int xPos, int yPos, bool hide = false) {
+	      int xSize, int ySize, int xPos, int yPos, bool hide=false)
+  {
+
+
   if (wIx >= winList.size() || wIx < 0) return false;
 
-  if (winList[ wIx] != NULL) winList[ wIx]->SetValid(false);
-
-  TidyWindowsList();
+    if( winList[ wIx] != NULL) winList[ wIx]->SetValid(false); TidyWindowsList();
 
   // set initial window size
   int x_scroll_size;
@@ -85,8 +74,7 @@ public:
 
   DLong xMaxSize=640;
   DLong yMaxSize=512;
-  DeviceWX::MaxXYSize(&xMaxSize, &yMaxSize);
-
+  MaxXYSize(&xMaxSize, &yMaxSize);
   bool noPosx = (xPos == -1);
   bool noPosy = (yPos == -1);
   xPos = max(1, xPos); //starts at 1 to avoid problems plplot!
@@ -111,15 +99,16 @@ public:
 #else
   PLINT Quady[4] = {1, yMaxSize - y_scroll_size - 1, 1, yMaxSize - y_scroll_size - 1}; //IDL covers the linux (bottom) taskbar too
 #endif
+  int locOnScreen=(wIx>31)?(wIx+2)%4:wIx % 4; //IDL shifts /FREE windows by 2
   if (noPosx && noPosy) { //no init given, use 4 quadrants:
-   xoff = Quadx[wIx % 4];
-   yoff = Quady[wIx % 4];
+   xoff = Quadx[locOnScreen];
+   yoff = Quady[locOnScreen];
   } else if (noPosx) {
-   xoff = Quadx[wIx % 4];
+   xoff = Quadx[locOnScreen];
    yoff = yMaxSize - yPos - y_scroll_size;
   } else if (noPosy) {
    xoff = xPos;
-   yoff = Quady[wIx % 4];
+   yoff = Quady[locOnScreen];
   } else {
    xoff = xPos;
    yoff = yMaxSize - yPos - y_scroll_size;
@@ -127,7 +116,12 @@ public:
 
   //1) a frame
   wxString titleWxString = wxString(title.c_str(), wxConvUTF8);
-  long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);
+//on wxMAC, frame will not appear if style is not exactly this (!!!)
+#ifdef __WXMAC__
+long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX);
+#else
+long style = (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxCAPTION | wxCLOSE_BOX ); //| wxFRAME_TOOL_WINDOW); //no focus 
+#endif
   gdlwxPlotFrame* plotFrame = new gdlwxPlotFrame(titleWxString, wxPoint(xoff,yoff), wxDefaultSize, style, scrolled);
   // Associate a sizer immediately
   wxSizer* tfSizer = new wxBoxSizer(wxVERTICAL);
@@ -168,28 +162,35 @@ public:
   plot->SetPStreamIx(wIx);
 
   plotFrame->Fit();
-  // these widget specific events are always set:
-  plot->Connect(wxEVT_PAINT, wxPaintEventHandler(gdlwxGraphicsPanel::OnPaint));
-  plotFrame->Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(gdlwxPlotFrame::OnUnhandledClosePlotFrame));
-//  plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
-  plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotWindowSize));
-  plotFrame->Realize();
-  if (hide) {
-   winList[ wIx]->UnMapWindowAndSetPixmapProperty(); //needed: will set the "pixmap" property
-  } else {
-    plotFrame->ShowWithoutActivating();
+  plotFrame->SetBackgroundColour(*wxBLACK); //set black background --> for "window" comand.
+    plotFrame->Realize();
+    if (hide) {
+      winList[ wIx]->UnMapWindowAndSetPixmapProperty(); //needed: will set the "pixmap" property
+    } else {
+      plotFrame->Show(); //WithoutActivating(); --> this does nothing good. Better tailor your window manager to 'focus under mouse"
+    }
+//    plotFrame->UpdateWindowUI(); not useful
+    plotFrame->Refresh();
+    plotFrame->Update();
     plotFrame->Raise();
-  }
-  //really show by letting the loop do its magic.
-#if __WXMSW__ 
-    wxTheApp->MainLoop(); //central loop for wxEvents!
+//really show by letting the loop do its magic. Necessary.
+#ifdef __WXMAC__
+  wxTheApp->Yield();
 #else
-    wxTheApp->Yield();
+  wxGetApp().MainLoop(); //central loop for wxEvents!
 #endif
-  return true;
- }
+    
+  // these widget specific events are always set:
+    plot->Connect(wxEVT_PAINT, wxPaintEventHandler(gdlwxGraphicsPanel::OnPaint));
+    //disable flicker see https://wiki.wxwidgets.org/Flicker-Free_Drawing
+    plot->Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(gdlwxDrawPanel::OnErase));
 
-    // should check for valid streams
+    plotFrame->Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(gdlwxPlotFrame::OnUnhandledClosePlotFrame));
+    //  plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
+    plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotWindowSize));
+    
+    return true;
+ }
 
  GDLGStream* GetStream(bool open = true) {
   TidyWindowsList();
@@ -225,7 +226,7 @@ public:
     }
 
     DLong GetGraphicsFunction() {
-        this->GetStream(); //to open a window if none opened.
+    this->GetStream(); //MUST open a window if none opened (even  if it is not useful with GDL, this is to mimic IDL).
         return gcFunction;
     }
 
@@ -250,7 +251,7 @@ public:
     }
 
     DIntGDL* GetWindowPosition() {
-        this->GetStream(); //to open a window if none opened.
+        this->GetStream(); //MUST open a window if none opened.
         long xpos, ypos;
         if (winList[actWin]->GetWindowPosition(xpos, ypos)) {
             DIntGDL* res;
@@ -367,27 +368,6 @@ public:
     SetActWin( wIx);
     return winList[ wIx]; 
   } // GUIOpen  
-   
-bool SetCharacterSize( DLong x, DLong y)     {
-   DStructGDL* dStruct=SysVar::D();
-   int tagx = dStruct->Desc()->TagIndex( "X_CH_SIZE");
-   int tagy = dStruct->Desc()->TagIndex( "Y_CH_SIZE");
-   DLongGDL* newxch = static_cast<DLongGDL*>( dStruct->GetTag( tagx));
-   DLongGDL* newych = static_cast<DLongGDL*>( dStruct->GetTag( tagy));
-   (*newxch)[0]=x;
-   (*newych)[0]=y;
-
-   int tagxppcm = dStruct->Desc()->TagIndex( "X_PX_CM");
-   int tagyppcm = dStruct->Desc()->TagIndex( "Y_PX_CM");
-   DFloat xppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagxppcm)))[0]*0.1;
-   DFloat yppm = (*static_cast<DFloatGDL*>(dStruct->GetTag(tagyppcm)))[0]*0.1;
-
-   PLFLT newsize=x/xppm/1.5; //1.5 is probably due to height / width ratio . 
-   PLFLT newSpacing=y/yppm;
-   GDLGStream* actStream=GetStream(false);
-   if( actStream != NULL) {actStream->setLineSpacing(newSpacing); actStream->RenewPlplotDefaultCharsize(newsize);}
-   return true;
-}
 
 };
 #endif

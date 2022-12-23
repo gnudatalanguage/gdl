@@ -57,9 +57,11 @@ extern GDLFileListT  fileUnits;
 // for OpenMP
 const SizeT DefaultTPOOL_MIN_ELTS = 100000;
 const SizeT DefaultTPOOL_MAX_ELTS = 0;
-extern DLong CpuTPOOL_NTHREADS;
-extern DLong64 CpuTPOOL_MIN_ELTS;
-extern DLong64 CpuTPOOL_MAX_ELTS;
+
+//defined as extern in typedefs.hpp, which is 'seen' by all code
+//extern DLong CpuTPOOL_NTHREADS;
+//extern DLong64 CpuTPOOL_MIN_ELTS;
+//extern DLong64 CpuTPOOL_MAX_ELTS;
 
 //extern DeviceListT   deviceList;
 //extern Graphics*     actDevice;
@@ -76,15 +78,21 @@ extern volatile bool useWxWidgetsForGraphics;
 extern volatile bool forceWxWidgetsUglyFonts;
 //do we favor SIMD-accelerated random number generation?
 extern volatile bool useDSFMTAcceleration;
+//do we use our own copy of (better?) drivers?
+extern volatile bool useLocalDrivers;
 extern volatile bool usePlatformDeviceName;
 extern          int  debugMode;
 
 enum DebugCode {
   DEBUG_CLEAR=0,
-  DEBUG_STOP = 1,
-  DEBUG_PROCESS_STOP = 2,
+  DEBUG_OUT = 1,
+  DEBUG_RETURN = 2,
   DEBUG_STEP = 3,
-  DEBUG_STEPOVER= 4
+  DEBUG_STEPOVER = 4,
+  DEBUG_TRACE = 5,
+  DEBUG_STOP_SILENT = 6,
+  DEBUG_STOP = 7,
+  DEBUG_PROCESS_STOP = 8
 };
 
 template< class Container> void PurgeContainer( Container& s) 
@@ -113,7 +121,6 @@ bool IsRelaxed(); //tells if syntax is not strict (i.e. parenthesis for array in
 void SetStrict(bool value);
 
 bool BigEndian();
-
 int get_suggested_omp_num_threads();
 int currentNumberOfThreads();
 int currentThreadNumber();

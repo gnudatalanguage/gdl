@@ -539,7 +539,7 @@ SizeT BaseGDL::IFmtI( std::istream* is, SizeT offs, SizeT num, int width,
 BaseGDL* BaseGDL::Convol( BaseGDL* kIn, BaseGDL* scaleIn, BaseGDL* bias,
 		          bool center, bool normalize, int edgeMode,
                           bool doNan, BaseGDL* missing, bool doMissing,
-                          BaseGDL* invalid, bool doInvalid)
+                          BaseGDL* invalid, bool doInvalid, DDouble edgeVal)
 {
   throw GDLException("BaseGDL::Convol(...) called.");
 }
@@ -833,7 +833,22 @@ char* MemStats::StartOfMemory = reinterpret_cast<char*>(::sbrk(0));
 
 void GDLDelete( BaseGDL* toDelete)
 {
-  if( toDelete != NullGDL::GetSingleInstance())
-    delete toDelete;
+  if( toDelete ==NULL) return;
+  if( toDelete == NullGDL::GetSingleInstance()) return;
+  delete toDelete;
 }
+int GDL_NTHREADS=1;
 
+int parallelize(SizeT n, int modifier) {
+//below, please modify if you find a way to persuade behaviour of those different cases to be better if they return different number of threads.
+  switch(modifier)
+  {
+  case TP_DEFAULT: //the same as IDL, reserved for routines that use the thread pool, ideally check the special thread pool keywords.
+  case TP_ARRAY_INITIALISATION: // used by GDL array initialisation (new, convert, gdlarray): probably needs som special tuning
+  case TP_MEMORY_ACCESS: // concurrent memory access, probably needs to be capped to preserve bandwidth 
+  case TP_CPU_INTENSIVE:  // benefit from max number of threads
+    return (n >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= n))?CpuTPOOL_NTHREADS:1;
+  default:
+    return 1;
+  }    
+}

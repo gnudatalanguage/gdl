@@ -221,7 +221,7 @@ BaseGDL* smooth_fun( EnvT* e)
     DLong width[MAXRANK];
     
     BaseGDL* p1 = e->GetNumericParDefined(1);
-    if (p1->Rank() != 0) {
+    if (p1->Rank() != 0) {    // if p1 has explicit dimensions, compare dim-to-dim
       if (rank != p1->N_Elements())
         e->Throw("Number of Array dimensions does not match number of Widths.");
 
@@ -230,10 +230,11 @@ BaseGDL* smooth_fun( EnvT* e)
         width[r] = (*gdlwidth)[r];
         if (((width[r]) % 2) == 0) width[r] += 1;
       }
-    } else {
+    } else {// make a smooth kernel adapted for each dimension -- if dimension is 1, use 1, not p1's value see #1375
       DLongGDL* gdlwidth = e->GetParAs<DLongGDL>(1);
       for (long r = 0; r < rank; ++r) {
-        width[r] = (*gdlwidth)[0];
+        width[r] = 1;
+        if (p0->Dim(r) > 1) width[r] = (*gdlwidth)[0];
         if (((width[r]) % 2) == 0) width[r] += 1;
       }
     }
@@ -270,7 +271,7 @@ BaseGDL* smooth_fun( EnvT* e)
     BaseGDL* missing;
     Guard<BaseGDL> missGuard;
     if (doMissing) {
-      missing = e->GetKW(missingIx);
+      missing = e->GetTheKW(missingIx);
       if (p0->Type() != missing->Type()) {
         missing = missing->Convert2(p0->Type(), BaseGDL::COPY);
         missGuard.Reset(missing);

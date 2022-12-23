@@ -67,21 +67,12 @@ if (N_ELEMENTS(filename) GT 1) then MESSAGE, "Only one file at once !"
 if (STRLEN(filename) EQ 0) then MESSAGE, "Null filename not allowed."
 if ((FILE_INFO(filename)).exists EQ 0) then MESSAGE, "Error opening file. File: "+filename
 if (FILE_TEST(filename, /regular) EQ 0) then MESSAGE, "Not a regular File: "+filename
-;
-; starting effective reading !
-;
-mid=MAGICK_OPEN(filename)
-;
-print, magick_IndexedColor(mid)
-if (MAGICK_INDEXEDCOLOR(mid)) then begin
-    image=MAGICK_READINDEXES(mid)
-    MAGICK_READCOLORMAPRGB, mid, red, green, blue
-endif else begin
-    image=MAGICK_READ(mid)
-endelse
-;
-MAGICK_CLOSE, mid
-;
+READ_ANYGRAPHICSFILEWITHMAGICK, filename, image, colortable
+if ( n_elements(colortable) gt 0 ) then begin
+   red=colortable[*,0]
+   green=colortable[*,1]
+   blue=colortable[*,2]
+endif
 return, image
 ;
 end

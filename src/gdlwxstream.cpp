@@ -24,14 +24,15 @@
 
 
 GDLWXStream::GDLWXStream( int width, int height )
-: GDLGStream( width, height, "wxwidgets")
+: GDLGStream( width, height,"wxwidgets")
   , streamDC(NULL)
   , streamBitmap(NULL)
   , m_width(width), m_height(height)
   , container(NULL)
+  , olddriver(false)
 {
   streamDC = new wxMemoryDC();
-  streamBitmap = new wxBitmap( width, height, 32);
+  streamBitmap = new wxBitmap( width, height, 24 );
   streamDC->SelectObject( *streamBitmap);
   if( !streamDC->IsOk())
   {
@@ -40,41 +41,60 @@ GDLWXStream::GDLWXStream( int width, int height )
     delete streamDC;
     throw GDLException("GDLWXStream: Failed to create DC.");
   }
-  setopt("drvopt", "hrshsym=0,text=1" ); //no hershey; WE USE TT fonts (antialiasing very nice and readable. Moreover, big bug somewhere with hershey fonts).
 
-  PLFLT XDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_PX_CM"))))[0]*2.5;
-  PLFLT YDPI=(*static_cast<DFloatGDL*>( SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_PX_CM"))))[0]*2.5;
-  spage( XDPI, YDPI, width, height, 0, 0 ); //width and height have importance. 90 dpi is what is in the driver code.
-  
-  //plplot switched from PLESC_DEVINIT to dev_data for wxwidgets around version 5.11
+  spage(0,0, width, height, 0, 0 ); //width and height have importance. dpi is best left to plplot.
+
+//select the fonts in all cases...
+  std::string what = "hrshsym=0,text=1";
+  setopt("drvopt", what.c_str());
+
+//init the driver...  
+//plplot switched from PLESC_DEVINIT to dev_data for wxwidgets around version 5.11
 #define PLPLOT_TEST_VERSION_NUMBER PLPLOT_VERSION_MAJOR*1000+PLPLOT_VERSION_MINOR
 #if (PLPLOT_TEST_VERSION_NUMBER > 5010)
   this->pls->dev_data=(void*)streamDC;
 #endif
   init();
-  plstream::cmd(PLESC_DEVINIT, (void*)streamDC );
   
+  // Up to now, new PLPLOT wxWidgets driver has a problem with Hershey fonts. Avoid at all costs!
+  // One possiblity to test if the new driver is in use is that it sets "has_string_length"
+  //To do this, we must have called init()!
+  if (pls->has_string_length == 0) { //old but good driver
+    olddriver=true;
+  //enable fonts OR Hershey --- eventually find how to do this outside initialization init()
+    PLINT doFont = ((PLINT) SysVar::GetPFont()>-1) ? 1 : 0;
+    pls->dev_text=doFont;
+  }
+  
+  
+  plstream::cmd(PLESC_DEVINIT, (void*)streamDC );
+    
    // no pause on win destruction
-    spause( false);
+    plstream::spause( false);
 
     // extended fonts
-    fontld( 1);
+    plstream::fontld( 1);
 
     // we want color
-    scolor( 1);
+    plstream::scolor( 1);
 
     PLINT r[ctSize], g[ctSize], b[ctSize];
     GDLCT* myCT=GraphicsDevice::GetGUIDevice( )->GetCT();
     myCT->Get( r, g, b);
     SetColorMap0( r, g, b, ctSize); //set colormap 0 to 256 values
+    SetColorMap1( r, g, b, ctSize); //set colormap 1 to 256 values
 
     // need to be called initially. permit to fix things
-    ssub(1,1);
-    adv(0);
+    plstream::ssub( 1, 1 ); // plstream below stays with ONLY ONE page
+    plstream::adv(0); //-->this one is the 1st and only pladv
     // load font
-    font( 1);
-    vpor(0,1,0,1);
-    wind(0,1,0,1);
+    plstream::font( 1);
+    plstream::vpor(0,1,0,1);
+    plstream::wind(0,1,0,1);
+
+    ssub(1,1);
+    adv(0); //this is for us (counters)
+    SetPageDPMM();
     DefaultCharSize();
     clear();
 }
@@ -94,7 +114,7 @@ void GDLWXStream::EventHandler() {
   if (!valid) return;
 // GraphicsDevice::GetDevice()->TidyWindowsList(); //necessary since we removed TidyWindowList() from GraphicsMultiDevice::EventHandler()
   // plplot event handler
-  plstream::cmd(PLESC_EH, NULL);
+//  plstream::cmd(PLESC_EH, NULL);
 }
 
 void GDLWXStream::SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot)
@@ -103,18 +123,20 @@ void GDLWXStream::SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot)
   isplot=isPlot;
 }
 
-void GDLWXStream::Update()
+void GDLWXStream::DoUpdate()
 {
   if( this->valid && container != NULL) {
     container->RepaintGraphics();
-#if __WXMSW__ 
-    wxTheApp->MainLoop(); //central loop for wxEvents!
-#else
-    wxTheApp->Yield();
-#endif
+    //will be updated by eventloop.
+//#ifdef __WXMAC__
+//  wxTheApp->Yield();
+//#else
+//  wxGetApp().MainLoop(); //central loop for wxEvents!
+//#endif
   }
 }
-
+//We should not need "Update"
+void GDLWXStream::Update(){DoUpdate();}
 ////should be used when one does not recreate a wxstream each time size changes...
 void GDLWXStream::SetSize( wxSize s )
 {
@@ -125,7 +147,7 @@ void GDLWXStream::SetSize( wxSize s )
   delete streamDC; //only solution to have it work with plplot-5.15 
   streamDC = new wxMemoryDC;
   container->SetStream(this); //act change of streamDC
-  streamBitmap = new wxBitmap( s.x, s.y, 32 );
+  streamBitmap = new wxBitmap( s.x, s.y, 24 );
   streamDC->SelectObject( *streamBitmap );
   if( !streamDC->IsOk())
   {
@@ -139,6 +161,10 @@ void GDLWXStream::SetSize( wxSize s )
   this->cmd(PLESC_RESIZE, (void*)&s );
   m_width = s.x;
   m_height = s.y;
+  Update();
+  //this because we use the old widget driver, which is fast but insane. We should not have such problems with the new driver, except that it is so slow..
+    SetPageDPMM();
+    DefaultCharSize();
 }
 
 void GDLWXStream::WarpPointer(DLong x, DLong y) {
@@ -197,80 +223,135 @@ void GDLWXStream::Clear() {
 void GDLWXStream::Clear(DLong bColor) {
   Clear();
 }
-
+#include <wx/rawbmp.h>
 bool GDLWXStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
         DLong trueColorOrder, DLong chan) {
-//  plstream::cmd( PLESC_FLUSH, NULL );
-//  Update();
-  DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
-  wxMemoryDC temp_dc;
-  temp_dc.SelectObject(*streamBitmap);
-  wxImage image=streamBitmap->ConvertToImage();
-  unsigned char* mem=image.GetData();
   PLINT xoff = (PLINT) pos[0]; //(pls->wpxoff / 32767 * dev->width + 1);
   PLINT yoff = (PLINT) pos[2]; //(pls->wpyoff / 24575 * dev->height + 1);
 
-  PLINT xsize = m_width;
-  PLINT ysize = m_height;
-  PLINT kxLimit = xsize - xoff;
-  PLINT kyLimit = ysize - yoff;
-  if (nx < kxLimit) kxLimit = nx;
-  if (ny < kyLimit) kyLimit = ny;
+  DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
 
-  if ( nx > 0 && ny > 0 ) {
-    SizeT p = (ysize - yoff - 1)*3*xsize;
-    for ( int iy = 0; iy < kyLimit; ++iy ) {
-      SizeT rowStart = p;
-      p += xoff*3;
-      for ( int ix = 0; ix < kxLimit; ++ix ) {
-        if ( trueColorOrder == 0 && chan == 0 ) {
-          if (decomposed == 1){
-            mem[p++] = idata[iy * nx + ix];
-            mem[p++] = idata[iy * nx + ix];
-            mem[p++] = idata[iy * nx + ix];
-          } else {
-            mem[p++] = pls->cmap0[idata[iy * nx + ix]].r;
-            mem[p++] = pls->cmap0[idata[iy * nx + ix]].g;
-            mem[p++] = pls->cmap0[idata[iy * nx + ix]].b;
+  wxBitmap bmp=wxBitmap(nx,ny,24);
+  //to work on a plane we need to have as start the copy of screen pixels
+  wxMemoryDC temp_dc2;
+  temp_dc2.SelectObject(bmp);
+  temp_dc2.Blit(0, 0, nx, ny, streamDC, xoff, m_height - yoff - ny);
+  temp_dc2.SelectObject(wxNullBitmap);
+  
+  wxNativePixelData data(bmp);
+if ( !data )
+{
+    // ... raw access to bitmap data unavailable, do something else ...
+    return false;
+  }
+
+  
+wxNativePixelData::Iterator p(data);
+
+  if (trueColorOrder == 0 && chan == 0) {
+    if (decomposed == 1) {
+      for (int y = 0; y < ny; ++y) {
+        int j0 = (ny - 1 - y) * nx;
+        wxNativePixelData::Iterator rowStart = p;
+        for (int x = 0; x < nx; ++x, ++p) {
+          p.Red() = p.Green() = p.Blue() = idata[j0 + x ];
+        }
+        p = rowStart;
+        p.OffsetY(data, 1);
+      }
+    } else {
+      for (int y = 0; y < ny; ++y) {
+        int j0 = (ny - 1 - y) * nx;
+        wxNativePixelData::Iterator rowStart = p;
+        for (int x = 0; x < nx; ++x, ++p) {
+          p.Red() = pls->cmap0[idata[j0 + x ]].r;
+          p.Green() = pls->cmap0[idata[j0 + x ]].g;
+          p.Blue() = pls->cmap0[idata[j0 + x ]].b;
+        }
+        p = rowStart;
+        p.OffsetY(data, 1);
+      }
+    }
+  } else {
+    if (chan == 0) {
+      if (trueColorOrder == 1) {
+        for (int y = 0; y < ny; ++y) {
+          int j0 =3 * (ny -1 -y) * nx;
+          wxNativePixelData::Iterator rowStart = p;
+          for (int x = 0; x < nx; ++x, ++p) {
+            int j1=j0 + 3 * x;
+            p.Red()   = idata[j1];
+            p.Green() = idata[j1+ 1];
+            p.Blue()  = idata[j1+ 2];
           }
-        } else {
-          if ( chan == 0 ) {
-            if ( trueColorOrder == 1 ) {
-              mem[p++] = idata[3 * (iy * nx + ix) + 0]; 
-              mem[p++] = idata[3 * (iy * nx + ix) + 1];
-              mem[p++] = idata[3 * (iy * nx + ix) + 2];
-            } else if ( trueColorOrder == 2 ) {
-              mem[p++] = idata[nx * (iy * 3 + 0) + ix];
-              mem[p++] = idata[nx * (iy * 3 + 1) + ix];
-              mem[p++] = idata[nx * (iy * 3 + 2) + ix];
-            } else if ( trueColorOrder == 3 ) {
-              mem[p++] = idata[nx * (0 * ny + iy) + ix];
-              mem[p++] = idata[nx * (1 * ny + iy) + ix];
-              mem[p++] = idata[nx * (2 * ny + iy) + ix];
-            }
-          } else { //1 byte bitmap passed.
-            if ( chan == 1 ) {
-              mem[p++] = idata[1 * (iy * nx + ix) + 0];
-              p += 2;
-            } else if ( chan == 2 ) {
-              p ++;
-              mem[p++] = idata[1 * (iy * nx + ix) + 0];
-              p ++;
-            } else if ( chan == 3 ) {
-              p += 2;
-              mem[p++] = idata[1 * (iy * nx + ix) + 0];
-            }
+          p = rowStart;
+          p.OffsetY(data, 1);
+        }
+      } else if (trueColorOrder == 2) {
+        for (int y = 0; y < ny; ++y) {
+          int j0 = nx * (ny - 1 - y) * 3 ;
+          wxNativePixelData::Iterator rowStart = p;
+          for (int x = 0; x < nx; ++x, ++p) {
+            int j1=j0 + x;
+            p.Red() = idata[j1];
+            p.Green() = idata[j1 + nx * 1];
+            p.Blue() = idata[j1 + nx * 2];
           }
+          p = rowStart;
+          p.OffsetY(data, 1);
+        }
+      } else if (trueColorOrder == 3) {
+          for (int y = 0; y < ny; ++y) {
+              wxNativePixelData::Iterator rowStart = p;
+            for (int x = 0; x < nx; ++x, ++p) {
+              int j1 =  nx * (ny - 1 - y) + x;
+              p.Red() = idata[ j1];
+              p.Green() = idata[nx * ny + j1];
+              p.Blue() = idata[2 * nx * ny +j1];
+            }
+            p = rowStart;
+            p.OffsetY(data, 1);
+          }
+      }
+    } else { //1 byte bitmap passed.
+      if (chan == 1) {
+        for (int y = 0; y < ny; ++y) {
+          int j0 = (ny - 1 - y) * nx;
+          wxNativePixelData::Iterator rowStart = p;
+          for (int x = 0; x < nx; ++x, ++p) {
+            p.Red() = idata[j0 + x ];
+          }
+          p = rowStart;
+          p.OffsetY(data, 1);
+        }
+      } else if (chan == 2) {
+        for (int y = 0; y < ny; ++y) {
+          int j0 = (ny - 1 - y) * nx;
+          wxNativePixelData::Iterator rowStart = p;
+          for (int x = 0; x < nx; ++x, ++p) {
+            p.Green() = idata[j0 + x ];
+          }
+          p = rowStart;
+          p.OffsetY(data, 1);
+        }
+      } else if (chan == 3) {
+        for (int y = 0; y < ny; ++y) {
+          int j0 = (ny - 1 - y) * nx;
+          wxNativePixelData::Iterator rowStart = p;
+          for (int x = 0; x < nx; ++x, ++p) {
+            p.Blue() = idata[j0 + x ];
+          }
+          p = rowStart;
+          p.OffsetY(data, 1);
         }
       }
-      p = rowStart - (xsize*3);  
     }
   }
-  streamDC->DrawBitmap(image,0,0);
-  image.Destroy();
-  temp_dc.SelectObject( wxNullBitmap);
-  *streamBitmap = streamDC->GetAsBitmap();
-//  Update();
+
+  wxMemoryDC temp_dc;
+  temp_dc.SelectObject(bmp);
+  streamDC->Blit(xoff, m_height-yoff-ny, nx, ny, &temp_dc, 0, 0);
+  temp_dc.SelectObject(wxNullBitmap);
   return true;
 }
 
@@ -297,31 +378,34 @@ bool GDLWXStream::SetGraphicsFunction( long value) {
     case 5: //wxNO_OP:
       streamDC->SetLogicalFunction( wxNO_OP);
       break;
-    case 6: //wxXOR:
+    case 6: //wxXOR
       streamDC->SetLogicalFunction( wxXOR);
+      break;    
+    case 7: //wxOR:
+      streamDC->SetLogicalFunction( wxOR);
       break;
-    case 7: //wxNOR:
+    case 8: //wxNOR:
       streamDC->SetLogicalFunction( wxNOR);
       break;
-    case 8: //wxEQUIV:
+    case 9: //wxEQUIV:
       streamDC->SetLogicalFunction( wxEQUIV);
       break;
-    case 9: //wxINVERT:
+    case 10: //wxINVERT:
       streamDC->SetLogicalFunction( wxINVERT);
       break;
-    case 10: //wxOR_REVERSE:
+    case 11: //wxOR_REVERSE:
       streamDC->SetLogicalFunction( wxOR_REVERSE);
       break;
-    case 11: //wxSRC_INVERT:
+    case 12: //wxSRC_INVERT:
       streamDC->SetLogicalFunction( wxSRC_INVERT);
       break;
-    case 12: //wxOR_INVERT:
+    case 13: //wxOR_INVERT:
       streamDC->SetLogicalFunction( wxOR_INVERT);
       break;
-    case 13: //wxNAND:
+    case 14: //wxNAND:
       streamDC->SetLogicalFunction( wxNAND);
       break;
-    case 14: //wxSET:
+    case 15: //wxSET:
       streamDC->SetLogicalFunction( wxSET);
       break;
   }
@@ -338,13 +422,13 @@ bool GDLWXStream::GetWindowPosition(long& xpos, long& ypos ) {
 bool GDLWXStream::GetScreenResolution(double& resx, double& resy) {
   wxScreenDC *temp_dc=new wxScreenDC();
   wxSize reso=temp_dc->GetPPI();
-  resx = reso.x/2.54;
-  resy = reso.y/2.54;
+  resx = reso.x/INCHToCM;
+  resy = reso.y/INCHToCM;
   return true;
 }
 void GDLWXStream::DefineSomeWxCursors(){
 
-#include "otherdevices/gdlcursors.h"
+#include "gdlcursors.h"
   for (int cnum=0; cnum<nglyphs; cnum++) {
   char* glyph=(char*)&(glyphs[glyphs_offset[cnum]]);
   char* glyph_mask=(char*)&(glyphs_mask[glyphs_mask_offset[cnum]]);
@@ -442,31 +526,45 @@ static const char* visual="TrueColor";
 return visual;
 }
 
-DByteGDL* GDLWXStream::GetBitmapData() {
-    wxImage image=streamBitmap->ConvertToImage();
-    unsigned char* mem=image.GetData();
-    if ( mem == NULL ) return NULL;    
+DByteGDL* GDLWXStream::GetBitmapData(int xoff, int yoff, int nx, int ny) {
+//this function is unprotected from wron xoff,  yoff etc bad values.
+  int orig_nx = streamBitmap->GetWidth();
+  int orig_ny = streamBitmap->GetHeight();
+  SizeT datadims[3];
+  datadims[0] = nx;
+  datadims[1] = ny;
+  datadims[2] = 3;
+  dimension datadim(datadims, (SizeT) 3);
+  DByteGDL *bitmapgdl = new DByteGDL(datadim, BaseGDL::NOZERO);
+  DByte* bmp = static_cast<DByte*> (bitmapgdl->DataAddr());
+ 
+  wxRect sub=wxRect(xoff, orig_ny-ny-yoff, nx, ny);
+  streamDC->SelectObject(wxNullBitmap);
+  wxBitmap subb=streamBitmap->GetSubBitmap(sub);
+  if (!subb.Ok()) throw GDLException("Value of Area is out of allowed range.");
+  wxNativePixelData data(subb);
+  if (!data) {
+    streamDC->SelectObject(*streamBitmap);
+    // ... raw access to bitmap data unavailable, do something else ...
+    return NULL;
+  }
 
-    unsigned int nx = streamBitmap->GetWidth();
-    unsigned int ny = streamBitmap->GetHeight();
+  wxNativePixelData::Iterator p(data);
 
-    SizeT datadims[3];
-    datadims[0] = nx;
-    datadims[1] = ny;
-    datadims[2] = 3;
-    dimension datadim(datadims, (SizeT) 3);
-    DByteGDL *bitmap = new DByteGDL( datadim, BaseGDL::NOZERO);
-    //PADDING is 3BPP -- we revert Y to respect IDL default
-    SizeT kpad = 0;
-    for ( SizeT iy =0; iy < ny ; ++iy ) {
-      for ( SizeT ix = 0; ix < nx; ++ix ) {
-        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 0] =  mem[kpad++];
-        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 1] =  mem[kpad++];
-        (*bitmap)[3 * ((ny-1-iy) * nx + ix) + 2] =  mem[kpad++];
-      }
+  for (int y = 0; y < ny; ++y) {
+    auto j0 = 3 * (ny - 1 - y) * nx;
+    wxNativePixelData::Iterator rowStart = p;
+    for (int x = j0; x < j0 + 3 * nx;) {
+      bmp[x++ ] = p.Red();
+      bmp[x++ ] = p.Green();
+      bmp[x++ ] = p.Blue();
+      p++;
     }
-    image.Destroy();
-    return bitmap;
+    p = rowStart;
+    p.OffsetY(data, 1);
+  }
+    streamDC->SelectObject(*streamBitmap);
+  return bitmapgdl;
 }
 
 void GDLWXStream::Raise() {

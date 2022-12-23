@@ -4,7 +4,7 @@
     begin                : July 22 2002
     copyright            : (C) 2002 by Marc Schellens
     email                : m_schellens@users.sourceforge.net
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -46,17 +46,17 @@ namespace lib {
 class EnvBaseT
 {
 private:
-//   typedef std::deque<BaseGDL*> ContainerT;
+  //   typedef std::deque<BaseGDL*> ContainerT;
   typedef ExprListT ContainerT;
 
-//   SizeT toDestroyInitialIndex;
+  //   SizeT toDestroyInitialIndex;
 
   EnvBaseT(){}
   
 protected:
   // stores all data which has to deleted upon destruction
   ContainerT toDestroy;
-   //   static ContainerT toDestroy;
+  //   static ContainerT toDestroy;
 
 public:
   // needed to delete temporary ptr parameters only after subroutine completion
@@ -65,11 +65,11 @@ public:
   // elimates the need of auto_ptr and in some places later destruction is needed
   
   void DeleteAtExit( BaseGDL* toGuard)
-    {
-//	if( toDestroy == NULL)
-//		toDestroy = new ContainerT();
-      toDestroy.push_back( toGuard);
-    }
+  {
+    //	if( toDestroy == NULL)
+    //		toDestroy = new ContainerT();
+    toDestroy.push_back( toGuard);
+  }
 
 protected:
 
@@ -88,9 +88,9 @@ protected:
   EnvBaseT*      newEnvOff;
 
   // finds the local variable pp points to
-//   int FindLocalKW( BaseGDL** pp) { return env.FindLocal( pp);}
+  //   int FindLocalKW( BaseGDL** pp) { return env.FindLocal( pp);}
 private:
-    BaseGDL** ptrToReturnValue;
+  BaseGDL** ptrToReturnValue;
 public:
 
   void SetPtrToReturnValue(BaseGDL** p) { ptrToReturnValue = p;}
@@ -101,10 +101,10 @@ public:
     if( ptrToReturnValue == NULL)
       return NULL;
     if( env.InLoc(ptrToReturnValue))
-    {
-      *ptrToReturnValue = NULL; // steal local value
-      return NULL; // return as not global
-    }
+      {
+	*ptrToReturnValue = NULL; // steal local value
+	return NULL; // return as not global
+      }
     return ptrToReturnValue;
     
   }
@@ -136,14 +136,14 @@ public:
     return false;
   }
 
-//   bool StealLocalKW( BaseGDL** ref) 
-//   { 
-//    if( !env.InLoc( pp))
-//      return false;
-// 
-//    *ref = NULL;
-//     return true;
-//   }
+  //   bool StealLocalKW( BaseGDL** ref) 
+  //   { 
+  //    if( !env.InLoc( pp))
+  //      return false;
+  // 
+  //    *ref = NULL;
+  //     return true;
+  //   }
 
   bool LocalKW( SizeT ix) const
   {
@@ -158,28 +158,31 @@ public:
   }
 
   bool KeywordSet( SizeT ix);
-
+  //as KeyWordSet but return true if KW is not present/defined (for logical that default to true)
+  bool BooleanKeywordAbsentOrSet( SizeT ix);
+  // this version is for testing boolean KWs: test if set (!null are ignored) but throws if not scalar
+  bool BooleanKeywordSet( SizeT ix);
 protected:
   // for HEAP_GC
   static void AddStruct( DPtrListT& ptrAccessible,  DPtrListT& objAccessible, 
-		  DStructGDL* stru);
+			 DStructGDL* stru);
   static void AddPtr( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
-	       DPtrGDL* ptr);
+		      DPtrGDL* ptr);
   static void AddObj( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
-	       DObjGDL* obj);
+		      DObjGDL* obj);
   static void Add( DPtrListT& ptrAccessible, DPtrListT& objAccessible, 
-	    BaseGDL* p);
+		   BaseGDL* p);
   
   // definition in list.cpp
   static void AddLIST( DPtrListT& ptrAccessible,
-		        DPtrListT& objAccessible, DStructGDL* listStruct);
+		       DPtrListT& objAccessible, DStructGDL* listStruct);
 
 
 public:
-// 	void DebugInfo()
-// 	{
-// 		std::cout << this->pro->ObjectName() << std::endl;
-// 	}
+  // 	void DebugInfo()
+  // 	{
+  // 		std::cout << this->pro->ObjectName() << std::endl;
+  // 	}
 
   EnvBaseT* GetNewEnv() {return newEnvOff; }
   void SetNewEnv( EnvBaseT* nE) { newEnvOff = nE;}
@@ -188,7 +191,7 @@ public:
 
   // for CLEANUP calls due to reference counting
   void PushNewEmptyEnvUD(  DSubUD* newPro, DObjGDL** newObj = NULL);
-//   void PushNewEmptyEnvUDWithExtra(  DSubUD* newPro, BaseGDL** newObj = NULL);
+  //   void PushNewEmptyEnvUDWithExtra(  DSubUD* newPro, BaseGDL** newObj = NULL);
   
   void AddEnv( DPtrListT& ptrAccessible, DPtrListT& objAccessible);
   void AddToDestroy( DPtrListT& ptrAccessible, DPtrListT& objAccessible);
@@ -196,15 +199,15 @@ public:
   virtual ~EnvBaseT()
   {
     delete extra;
-// 	delete toDestroy; // cleans up its content
-/*    for( SizeT i=toDestroyInitialIndex; i<toDestroy.size(); ++i)
-      {
-		delete toDestroy[i];
-      }
-    toDestroy.resize( toDestroyInitialIndex);*/
-//      for( ContainerT::iterator i=toDestroy.begin();
-//  	 i != toDestroy.end(); ++i) 
-//        delete *i;
+    // 	delete toDestroy; // cleans up its content
+    /*    for( SizeT i=toDestroyInitialIndex; i<toDestroy.size(); ++i)
+	  {
+	  delete toDestroy[i];
+	  }
+	  toDestroy.resize( toDestroyInitialIndex);*/
+    //      for( ContainerT::iterator i=toDestroy.begin();
+    //  	 i != toDestroy.end(); ++i) 
+    //        delete *i;
   }
 
   EnvBaseT( ProgNodeP cN, DSub* pro_);
@@ -219,24 +222,24 @@ public:
 
   int GetLineNumber()
   {
-  return lineNumber;
+    return lineNumber;
   }
   void SetLineNumber(int l)
   {
-  lineNumber = l;
+    lineNumber = l;
   }
   unsigned int CompileOpt()
   {
     DSubUD* proUD = dynamic_cast<DSubUD*>(pro);
     if( proUD == NULL)
-	    throw GDLException("Intenal error: CompileOpt called non DSub object.");
+      throw GDLException("Intenal error: CompileOpt called non DSub object.");
     return proUD->GetCompileOpt();
   }
   void SetCompileOpt( unsigned int cOpt)
   {
     DSubUD* proUD = dynamic_cast<DSubUD*>(pro);
     if( proUD == NULL)
-	    throw GDLException("Intenal error: CompileOpt called non DSub object.");
+      throw GDLException("Intenal error: CompileOpt called non DSub object.");
     proUD->SetCompileOpt( cOpt);
   }
 
@@ -253,7 +256,7 @@ public:
   // checks if pp points to a local variable
   bool IsLocalKW( BaseGDL** pp) const { return env.InLoc( pp);}
 
-//   void RemoveLoc( BaseGDL* p) { env.RemoveLoc( p);}
+  //   void RemoveLoc( BaseGDL* p) { env.RemoveLoc( p);}
 
   // called after parameter definition
   void ResolveExtra();
@@ -267,10 +270,10 @@ public:
     return s;
   }
 
-   void DelEnv()
-   {
-     env.pop_back();
-   }
+  void DelEnv()
+  {
+    env.pop_back();
+  }
 
   // the upper (calling) environment
   // a EnvT must have always a /*EnvUDT*/ caller
@@ -280,7 +283,10 @@ public:
   EnvBaseT* Caller();
 
   // returns environment data, by value (but that by C++ reference)
-  BaseGDL*& GetKW(SizeT ix) { return env[ix];}
+  BaseGDL*& GetTheKW(SizeT ix) { return env[ix];}
+  BaseGDL* GetDefinedKW(SizeT ix);
+//  inline const BaseGDL* GetKW(SizeT ix) { return GetDefinedKW(ix);}
+  inline BaseGDL* GetKW(SizeT ix) { return GetDefinedKW(ix);}
 
   // used by HELP, SetNextPar(...)
   SizeT EnvSize() const { return env.size();}
@@ -297,9 +303,9 @@ public:
   void SetKeyword( const std::string& k, BaseGDL** const val); // reference
 
   // to check if a lib function returned a variable of this env
-//   bool Contains( BaseGDL* p) const;
+  //   bool Contains( BaseGDL* p) const;
 
-//   BaseGDL** GetPtrTo( BaseGDL* p);
+  //   BaseGDL** GetPtrTo( BaseGDL* p);
 
   DInterpreter* Interpreter() const { return interpreter;}
 
@@ -329,8 +335,8 @@ public:
   // get name of 'p'
   const std::string GetString( BaseGDL*& p, bool calledFromHELP=false);
 
-//   // get name of 'p'
-//   const std::string GetString( BaseGDL* p);
+  //   // get name of 'p'
+  //   const std::string GetString( BaseGDL* p);
 
   virtual const std::string GetFilename() const=0;
 
@@ -340,10 +346,13 @@ public:
   void AssureLongScalarPar( SizeT ix, DLong& scalar);
   void AssureLongScalarPar( SizeT ix, DLong64& scalar);
   // get i'th parameter
-  // throws if not defined (ie. never returns NULL)
-  BaseGDL*& GetParDefined(SizeT i); //, const std::string& subName = "");
-  bool KeywordPresent( SizeT ix)
-  { return (env.Loc(ix)!=NULL)||(env.Env(ix)!=NULL);}
+  // throws if not defined (ie. never returns NULL, but can optionally return a !NULL)
+  BaseGDL*& GetParDefined(SizeT i, bool rejectNulls=true); //, const std::string& subName = "");
+
+  bool KeywordPresent( SizeT ix);
+  bool WriteableKeywordPresent( SizeT ix);
+  bool KeywordPresentAndDefined( SizeT ix);
+
   void SetNextParUnckeckedVarNum(BaseGDL** arg1);
 
   friend class DInterpreter; // gcc 4.4 compatibility
@@ -356,99 +365,99 @@ public:
 template< typename T, SizeT defaultLength> class ForInfoListT
 {
 public:
-typedef T* iterator;
+  typedef T* iterator;
 
 private:
-T* eArr;
-char buf[defaultLength * sizeof(T)]; // prevent constructor calls
-SizeT sz;
+  T* eArr;
+  char buf[defaultLength * sizeof(T)]; // prevent constructor calls
+  SizeT sz;
 
 public:
 
-ForInfoListT(): eArr( reinterpret_cast<T*>(buf)), sz( 0)
-{
-}
+  ForInfoListT(): eArr( reinterpret_cast<T*>(buf)), sz( 0)
+  {
+  }
 
-~ForInfoListT()
-{
-	if( eArr != reinterpret_cast<T*>(buf))
-		delete[] eArr;
-	else
-	{
-		T* pEnd = &eArr[sz];
-		for( T* p = &eArr[0]; p!=pEnd; ++p)
-			p->Clear();
-	}
-}
+  ~ForInfoListT()
+  {
+    if( eArr != reinterpret_cast<T*>(buf))
+      delete[] eArr;
+    else
+      {
+	T* pEnd = &eArr[sz];
+	for( T* p = &eArr[0]; p!=pEnd; ++p)
+	  p->Clear();
+      }
+  }
 
-// must be called before access
-void InitSize( SizeT s)
-{
+  // must be called before access
+  void InitSize( SizeT s)
+  {
     assert( sz == 0);
     if( s == 0)
-	  return;
+      return;
     sz = s;
     if( s < defaultLength)
-    {
-	    for( SizeT i=0; i<s; ++i)
-		    eArr[ i].Init();
-	    return;
-    }
+      {
+	for( SizeT i=0; i<s; ++i)
+	  eArr[ i].Init();
+	return;
+      }
     eArr = new T[ s]; // constructor called
-}
-// only needed for EXECUTE
-void resize( SizeT s)
-{
+  }
+  // only needed for EXECUTE
+  void resize( SizeT s)
+  {
     if( s == sz)
       return;
     if( s < sz) // shrink
-    {
+      {
 	for( SizeT i=s; i<sz; ++i)
-		eArr[ i].ClearInit(); // in case eArr was allocated
+	  eArr[ i].ClearInit(); // in case eArr was allocated
 	sz = s;
 	return;
-    }
+      }
     // s > sz -> grow
     if( s <= defaultLength && eArr == reinterpret_cast<T*>(buf))
-    {
-		for( SizeT i=sz; i<s; ++i)
-			eArr[ i].Init();
-		sz = s;
-		return;
-    }
+      {
+	for( SizeT i=sz; i<s; ++i)
+	  eArr[ i].Init();
+	sz = s;
+	return;
+      }
     // this should never happen (or only in extreme rarely cases)
     // the performance will go down
     // s > defaultLength
     T* newArr = new T[ s]; // ctor called
-	if( eArr != reinterpret_cast<T*>(buf))
-	{
-		for( SizeT i=0; i<sz; ++i)
-			{
-				newArr[i] = eArr[ i];
-				eArr[ i].Init(); // prevent dtor from freeing
-			}
-		delete[] eArr;
-	}
+    if( eArr != reinterpret_cast<T*>(buf))
+      {
+	for( SizeT i=0; i<sz; ++i)
+	  {
+	    newArr[i] = eArr[ i];
+	    eArr[ i].Init(); // prevent dtor from freeing
+	  }
+	delete[] eArr;
+      }
     else
-    {
-		for( SizeT i=0; i<s; ++i)
-			{
-				newArr[i] = eArr[ i];
-			}
-    }
+      {
+	for( SizeT i=0; i<s; ++i)
+	  {
+	    newArr[i] = eArr[ i];
+	  }
+      }
     eArr = newArr;
     sz = s;
-}
-// T operator[]( SizeT i) const { assert( i<sz);  return eArr[i];}
-T& operator[]( SizeT i) { assert( i<sz);  return eArr[i];}
-SizeT size() const { return sz;}
-iterator begin() const { return &eArr[0];}
-iterator end() const { return &eArr[sz];}
-bool empty() const { return sz == 0;}
-T& front() { return eArr[0];}
-const T& front() const { return eArr[0];}
-T& back() { return eArr[sz-1];}
-const T& back() const { return eArr[sz-1];}
+  }
+  // T operator[]( SizeT i) const { assert( i<sz);  return eArr[i];}
+  T& operator[]( SizeT i) { assert( i<sz);  return eArr[i];}
+  SizeT size() const { return sz;}
+  iterator begin() const { return &eArr[0];}
+  iterator end() const { return &eArr[sz];}
+  bool empty() const { return sz == 0;}
+  T& front() { return eArr[0];}
+  const T& front() const { return eArr[0];}
+  T& back() { return eArr[sz-1];}
+  const T& back() const { return eArr[sz-1];}
 };
 
 
@@ -456,22 +465,22 @@ const T& back() const { return eArr[sz-1];}
 // for UD subroutines (written in GDL) ********************************
 class EnvUDT: public EnvBaseT
 {
-// static std::deque< void*> freeList;
-static FreeListT freeList;
+  // static std::deque< void*> freeList;
+  static FreeListT freeList;
 
 public:
-static 	void* operator new( size_t bytes);
-static	void operator delete( void *ptr);
+  static 	void* operator new( size_t bytes);
+  static	void operator delete( void *ptr);
 
-enum CallContext {
-   RFUNCTION = 0
-  ,LFUNCTION
-  ,LRFUNCTION
-};
+  enum CallContext {
+    RFUNCTION = 0
+    ,LFUNCTION
+    ,LRFUNCTION
+  };
 
 private:
-ForInfoListT<ForLoopInfoT, 32> forLoopInfo;
-// std::vector<ForLoopInfoT> forLoopInfo;
+  ForInfoListT<ForLoopInfoT, 32> forLoopInfo;
+  // std::vector<ForLoopInfoT> forLoopInfo;
 
   ProgNodeP         ioError; 
   DLong             onError; // on_error setting
@@ -482,7 +491,7 @@ ForInfoListT<ForLoopInfoT, 32> forLoopInfo;
   int               lastJump; // to which label last jump went
   
 public:
-   ForLoopInfoT& GetForLoopInfo( int forIx) { return forLoopInfo[forIx];}
+  ForLoopInfoT& GetForLoopInfo( int forIx) { return forLoopInfo[forIx];}
    
   int NForLoops() const { return forLoopInfo.size();}
   void ResizeForLoops( int newSize) { forLoopInfo.resize(newSize);}
@@ -492,10 +501,10 @@ public:
 
   // member procedure
   EnvUDT( ProgNodeP idN, BaseGDL* self, 
-	const std::string& parent="");
+	  const std::string& parent="");
   // member function
   EnvUDT( BaseGDL* self, ProgNodeP idN, 
-	const std::string& parent="", CallContext lF = RFUNCTION);
+	  const std::string& parent="", CallContext lF = RFUNCTION);
 
 
   // for obj_new and obj_destroy
@@ -534,8 +543,8 @@ public:
     return subUD->GetFilename();
   }
 
-//   // for internal non-library routines (e.g. operator overloads) ('this' is on the stack)
-//   EnvUDT* CallingEnv();
+  //   // for internal non-library routines (e.g. operator overloads) ('this' is on the stack)
+  //   EnvUDT* CallingEnv();
 
   friend class DInterpreter;
   friend class EnvT;
@@ -546,11 +555,11 @@ public:
 // this contains the library function API ***********************
 class EnvT: public EnvBaseT
 {
-static std::vector< void*> freeList;
+  static std::vector< void*> freeList;
   
 public:
-static 	void* operator new( size_t bytes);
-static	void operator delete( void *ptr);
+  static 	void* operator new( size_t bytes);
+  static	void operator delete( void *ptr);
 
   // Please use non library API (see below) function with caution
   // (most of them can be ignored by library function authors)
@@ -585,12 +594,12 @@ public:
   // API for library functions
   // *************************
 
-//   // raise an exception from within a library function
-//   // automatically cares for adding line/column info and the
-//   // function name. 's' should be set to the 'raw' error message
-//   // saves some typing :-)
-//   void Throw( const std::string& s)
-//   { throw GDLException( CallingNode(), pro->ObjectName()+": "+s);}
+  //   // raise an exception from within a library function
+  //   // automatically cares for adding line/column info and the
+  //   // function name. 's' should be set to the 'raw' error message
+  //   // saves some typing :-)
+  //   void Throw( const std::string& s)
+  //   { throw GDLException( CallingNode(), pro->ObjectName()+": "+s);}
 
   // From now on all library functions which return a l-value must
   // call SetPtrToReturnValue with the ptr to the returned value
@@ -612,15 +621,15 @@ public:
   BaseGDL*& GetPar( SizeT i);  
 
   // get i'th parameter
-  // throws if not defined (ie. never returns NULL)
-  BaseGDL*& GetParDefined(SizeT i); //, const std::string& subName = "");
+  // throws if not defined (ie. never returns NULL, but can optionally return a !NULL)
+  BaseGDL*& GetParDefined(SizeT i, bool rejectNulls=true); //, const std::string& subName = "");
 
   // throw for GDL_STRING, GDL_STRUCT, GDL_PTR and GDL_OBJ
   BaseGDL*& GetNumericParDefined( SizeT ix)
   {
     BaseGDL*& p0 = GetParDefined( ix);
     if( NumericType( p0->Type()))
-	return p0;
+      return p0;
 
     // AC 2014-08-14 : in fact, in most case, a tentative of String to Numeric
     // convertion is done. E.g. invert(['1']) is OK !
@@ -661,25 +670,35 @@ public:
   T* GetParAs( SizeT pIx)
   {
     BaseGDL* p = GetParDefined( pIx);
-	if( p->Type() == T::t)
-		return static_cast<T*>( p);
-//     T* res = dynamic_cast<T*>( p);
-//     if( res != NULL) return res;
+    if( p->Type() == T::t)
+      return static_cast<T*>( p);
+    //     T* res = dynamic_cast<T*>( p);
+    //     if( res != NULL) return res;
     T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
     this->DeleteAtExit( res);
     return res;
   }
+  //same but ALWAYS a new copy, (BaseGDL::COPY) so it can be modified by the program 'safely' i.e. the original variable is not modified.
+  template <typename T> 
+  T* GetWriteableParAs( SizeT pIx)
+  {
+    BaseGDL* p = GetParDefined( pIx);
+    T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
+    this->DeleteAtExit( res);
+    return res;
+  }
+  
   // same as before for keywords
   template <typename T> 
   T* GetKWAs( SizeT ix)
   {
-    BaseGDL* p = GetKW( ix);
+    BaseGDL* p = GetKW( ix); //insure KW is not !NULL, which cannot be 'converted' 
     if( p == NULL)
       Throw( "Keyword is undefined: "+GetString( ix));
     if( p->Type() == T::t)
       return static_cast<T*>( p);
-//     T* res = dynamic_cast<T*>( p);
-//     if( res != NULL) return res;
+    //     T* res = dynamic_cast<T*>( p);
+    //     if( res != NULL) return res;
     T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
     this->DeleteAtExit( res);
     return res;
@@ -692,9 +711,9 @@ public:
     BaseGDL* p = GetPar( pIx);
     if( p == NULL) return NULL;
     if( p->Type() == T::t)
-	return static_cast<T*>( p);
-//     T* res = dynamic_cast<T*>( p);
-//     if( res != NULL) return res;
+      return static_cast<T*>( p);
+    //     T* res = dynamic_cast<T*>( p);
+    //     if( res != NULL) return res;
     T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
     this->DeleteAtExit( res);
     return res;
@@ -705,10 +724,10 @@ public:
   {
     BaseGDL* p = GetKW( ix);
     if( p == NULL) return NULL;
-	if( p->Type() == T::t)
-		return static_cast<T*>( p);
-//     T* res = dynamic_cast<T*>( p);
-//     if( res != NULL) return res;
+    if( p->Type() == T::t)
+      return static_cast<T*>( p);
+    //     T* res = dynamic_cast<T*>( p);
+    //     if( res != NULL) return res;
     T* res = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
     this->DeleteAtExit( res);
     return res;
@@ -727,7 +746,8 @@ public:
   int KeywordIx( const std::string& k);
 
   // for use within library functions
-  // consider to use (note: 'static' is the point here):
+  // consider to use (note: 'static' is the point here, it MUST NOT be in a .h file 
+  // that is shared between multiple commands, unless the position of these KW is identical in libinit):
   // static int kwIx = env->KeywordIx( "KEYWORD");
   // bool kwSet = env->KeywordSet( kwIx);
   //
@@ -741,15 +761,16 @@ public:
   bool KeywordSet( SizeT ix);
   // GD added -- possibly very wrong?
   bool KeywordPresent( const std::string& kw);
-  bool KeywordPresent( SizeT ix)
-  { return EnvBaseT::KeywordPresent( ix);}
+  bool WriteableKeywordPresent( const std::string& kw);
+  inline bool KeywordPresent( SizeT ix) { return EnvBaseT::KeywordPresent( ix);}
+  inline bool WriteableKeywordPresent( SizeT ix){ return EnvBaseT::WriteableKeywordPresent( ix);}
 
   // local/global keyword/paramter
   bool LocalKW( SizeT ix) const
   {
     return EnvBaseT::LocalKW( ix);
-//     if( ix >= env.size()) return false;
-//     return ( env.Loc( ix) != NULL);
+    //     if( ix >= env.size()) return false;
+    //     return ( env.Loc( ix) != NULL);
   }
   bool GlobalKW( SizeT ix) const
   {
@@ -765,18 +786,18 @@ public:
       }
     return false;
   }
-// removed: IDL does not undefine the global parameter with OVERWRITE
-//   void StealLocalParUndefGlobal( SizeT ix)
-//   {
-//     if( LocalKW( ix + pro->key.size()))
-//       {
-// 	env.Clear( ix + pro->key.size());
-//       }
-//       else
-//       {
-//       env[ ix + pro->key.size()] = NULL;
-//       }
-//   }
+  // removed: IDL does not undefine the global parameter with OVERWRITE
+  //   void StealLocalParUndefGlobal( SizeT ix)
+  //   {
+  //     if( LocalKW( ix + pro->key.size()))
+  //       {
+  // 	env.Clear( ix + pro->key.size());
+  //       }
+  //       else
+  //       {
+  //       env[ ix + pro->key.size()] = NULL;
+  //       }
+  //   }
   bool GlobalPar( SizeT ix) { return GlobalKW( ix + pro->key.size());}
 
   // next two to set keywords/paramters
@@ -788,7 +809,7 @@ public:
   // create the data (newVal) only if its necessary
   // if the functions throw, they delete newVal before -> no
   // guarding of newVal is needed
-//   void SetKW( SizeT ix, BaseGDL* newVal);
+  //   void SetKW( SizeT ix, BaseGDL* newVal);
   void SetPar( SizeT ix, BaseGDL* newVal);
 
   // Assure functions:
@@ -828,8 +849,30 @@ public:
 	    GetString(ix));
   }
 
+  //milder version, will convert to a given type scalar if possible. 
+  template <typename T> 
+  void ProvideScalarPar( SizeT pIx, typename T::Ty& scalar)
+  {
+    BaseGDL* p = GetParDefined( pIx);
+    if( p->Type() != T::t) Throw( "Variable must be a "+T::str+" in this context: "+ GetParString(pIx));
+    T* tp= static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
+    this->DeleteAtExit(tp);
+    if( !tp->Scalar( scalar))  Throw("Keyword must be a scalar in this context: "+GetString(pIx)); 
+  } // same as before for keywords
+  template <typename T> 
+  void ProvideScalarKW( SizeT ix, typename T::Ty& scalar)
+  {
+    BaseGDL* p = GetKW( ix);
+    if( p == NULL)
+      Throw("Keyword undefined: "+GetString(ix));
+    T* tp = static_cast<T*>( p->Convert2( T::t, BaseGDL::COPY));
+    this->DeleteAtExit(tp);
+    if( !tp->Scalar( scalar))  Throw("Keyword must be a scalar in this context: "+GetString(ix));
+  }
+
+
   void AssureGlobalPar( SizeT pIx);
-//   void AssureGlobalKW( SizeT ix);
+  //   void AssureGlobalKW( SizeT ix);
 
   // if keyword 'kw' is not set, 'scalar' is left unchanged
   void AssureLongScalarKWIfPresent( const std::string& kw, DLong& scalar);
@@ -896,21 +939,21 @@ public:
   void push_back( EnvUDT* b) 
   {
     if( top >= sz)
-    {
-      if( sz >= 32768)
-	    throw GDLException("Recursion limit reached ("+i2s(sz)+").");
+      {
+	if( sz >= 32768)
+	  throw GDLException("Recursion limit reached ("+i2s(sz)+").");
 
-      EnvUDT** newEnvStackFrame = new EnvUDT* [ sz + sz + 1];
-      EnvUDT** newEnvStack = newEnvStackFrame + 1;
+	EnvUDT** newEnvStackFrame = new EnvUDT* [ sz + sz + 1];
+	EnvUDT** newEnvStack = newEnvStackFrame + 1;
 
-      for( SizeT i=0; i<sz; ++i)
-	newEnvStack[ i] = envStack[ i];
+	for( SizeT i=0; i<sz; ++i)
+	  newEnvStack[ i] = envStack[ i];
 
-      delete[] envStackFrame;
-      envStackFrame = newEnvStackFrame;
-      envStack = newEnvStack;
-      sz += sz;
-    }
+	delete[] envStackFrame;
+	envStackFrame = newEnvStackFrame;
+	envStack = newEnvStack;
+	sz += sz;
+      }
     envStackFrame[ ++top] = b; 
   }
   void pop_back() { assert(top>0); --top;}
@@ -918,8 +961,8 @@ public:
   SizeT size() const { return top;}
   EnvUDT* operator[]( SizeT ix) const { return envStack[ ix];}
   EnvUDT*& operator[]( SizeT ix) { return envStack[ ix];}
-//   EnvUDT** begin() const { return &envStack[0];}
-//   EnvUDT** end() const { return &envStack[sz];}
+  //   EnvUDT** begin() const { return &envStack[0];}
+  //   EnvUDT** end() const { return &envStack[sz];}
 };
 
 // typedef std::deque<EnvBaseT*> EnvStackT;

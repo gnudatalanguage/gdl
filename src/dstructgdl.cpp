@@ -659,7 +659,7 @@ DStructGDL* DStructGDL::CatArray( ExprListT& exprList,
 
   dimension     catArrDim(dim); // list contains at least one element
 
-  catArrDim.MakeRank( maxIx+1);
+  catArrDim.InsureRankAtLeast( maxIx+1);
   catArrDim.SetOneDim(catRankIx,0);     // clear rank which is added up
 
   SizeT dimSum=0;

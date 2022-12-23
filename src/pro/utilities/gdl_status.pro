@@ -22,6 +22,9 @@
 ; 2021-Aug-03 : AC.
 ; -- it was not a good idea to use GDL_IDL_FL() here, removing it.
 ;
+; 2021-Dec-22 : AC., Cayenne ;)
+; -- adding QHULL, removing GSHHG/S
+;
 ; ---------------------------------------------------
 ;
 pro IPRINT, ii, txt, status, skip
@@ -43,10 +46,10 @@ pro GDL_STATUS, missing=missing, only_off=only_off, $
 ;
 FORWARD_FUNCTION DSFMT_EXISTS, EIGEN_EXISTS, EXPAT_EXISTS, $
    FFTW_EXISTS, GEOTIFF_EXISTS, $
-   GLPK_EXISTS, GRIB_EXISTS, GSHHG_EXISTS, HDF5_EXISTS, HDF_EXISTS, $
+   GLPK_EXISTS, GRIB_EXISTS, HDF5_EXISTS, HDF_EXISTS, $
    MAGICK_EXISTS, MPI_EXISTS, NCDF4_EXISTS, NCDF_EXISTS, $
    OPENMP_EXISTS, PNGLIB_EXISTS, $
-   PROJ_EXISTS, PYTHON_EXISTS, SHAPELIB_EXISTS, $
+   PROJ_EXISTS, PYTHON_EXISTS, QHYLL_EXISTS, SHAPELIB_EXISTS, $
    TIFF_EXISTS, UDUNITS_EXISTS, WXWIDGETS_EXISTS, X11_EXISTS
 ;
 ON_ERROR, 2
@@ -82,6 +85,7 @@ IPRINT, i, 'OpenMP ? : ', OPENMP_EXISTS(), skip
 IPRINT, i, 'PNGLIB ? : ', PNGLIB_EXISTS(), skip
 IPRINT, i, 'PROJ ?   : ', PROJ_EXISTS(), skip
 IPRINT, i, 'Python ? : ', PYTHON_EXISTS(), skip
+IPRINT, i, 'Qhull ?  : ', QHULL_EXISTS(), skip
 IPRINT, i, 'ShapeLib : ', SHAPELIB_EXISTS(), skip
 IPRINT, i, 'TIFF ?   : ', TIFF_EXISTS(), skip
 IPRINT, i, 'GEOTIFF ?: ', GEOTIFF_EXISTS(), skip

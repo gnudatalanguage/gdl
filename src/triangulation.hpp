@@ -29,9 +29,5 @@ namespace lib {
   void GDL_Triangulate(EnvT* e);
   BaseGDL* trigrid_fun( EnvT* e);
   void grid_input (EnvT* e);
-#ifdef HAVE_QHULL
-  void qhull ( EnvT* e);
-  BaseGDL* qgrid3_fun ( EnvT* e);
-#endif
 }
 #endif

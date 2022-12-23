@@ -19,7 +19,13 @@
 #define MAGICK_HPP_CL
 
 #include <Magick++.h>
-
+#ifdef HAS_IMAGEMAGICK
+#define matte alpha
+#define redQuantum quantumRed
+#define greenQuantum quantumGreen
+#define blueQuantum quantumBlue
+#define  QuantumDepth MAGICKCORE_QUANTUM_DEPTH //MagickQuantumDepth
+#endif
 namespace lib {
 
   using namespace Magick;
@@ -31,9 +37,8 @@ namespace lib {
   string GDLutos(unsigned int i);
   void magick_setup(void);
   unsigned int magick_id(void);
-  Image& magick_image(EnvT * e,unsigned int mid);
-  unsigned int magick_image(EnvT* e,Image &imImage);
-  void magick_replace(EnvT* e, unsigned int mid, Image &imImage);
+  Image* magick_image(EnvT *e, unsigned int mid);
+  unsigned int magick_image(EnvT *e, Image *imImage);
   //interface
   BaseGDL* magick_open(EnvT *e);
   BaseGDL* magick_create(EnvT *e);
@@ -59,12 +64,15 @@ namespace lib {
   void magick_interlace(EnvT* e);
   void magick_addNoise(EnvT* e);
   void magick_quantize(EnvT* e);
-  void magick_writeIndexes(EnvT* e);
+//  void magick_writeIndexes(EnvT* e);
   void magick_writeColorTable(EnvT* e);
   void magick_quality(EnvT* e);
 
   //hmm
   void magick_display(EnvT* e);
+  //gd
+  BaseGDL* magick_type(EnvT* e);
+  BaseGDL* magick_class(EnvT* e);
 
   // SA: query/ping routines support
   BaseGDL * magick_ping(EnvT* e);

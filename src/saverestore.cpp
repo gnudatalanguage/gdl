@@ -2133,7 +2133,7 @@ enum {
         if (nVar > 0 )
         {
           for (SizeT i = 0; i < nVar; ++i) {
-            BaseGDL* var = ((EnvT*) (callStack[curlevnum - 1]))->GetKW(i);
+            BaseGDL* var = ((EnvT*) (callStack[curlevnum - 1]))->GetTheKW(i); //NULL variables must be saved too
             if (var != NULL) varNameList.push(make_pair(pro->GetVarName(i),var));
           }
         }

@@ -1,0 +1,40 @@
+      for (SizeT j = 0; j < n; ++j) { //nb output points
+        vres = &(res[ncontiguous * j ]);
+        x = xx[j];
+        if (x < 0) {
+          xi[0] = 0;
+          xi[1] = 0;
+        } else if (x >= n1 - 1) {
+          xi[0] = n1 - 1;
+          xi[1] = n1 - 1;
+        } else {
+          ix = floor(x);
+          xi[0] = ix;
+          xi[1] = ix + 1;
+        }
+        y = yy[j];
+        if (y < 0) {
+          yi[0] = 0;
+          yi[1] = 0;
+        } else if (y >= n2 - 1) {
+          yi[0] = n2 - 1;
+          yi[1] = n2 - 1;
+        } else {
+          iy = floor(y);
+          yi[0] = iy;
+          yi[1] = iy + 1;
+        }
+        dx = (x - xi[0]);
+        dy = (y - yi[0]);
+        vx0 = &(array[ncontiguous * (yi[0] * n1 + xi[0])]);
+        vx1 = &(array[ncontiguous * (yi[0] * n1 + xi[1])]);
+        vy0 = &(array[ncontiguous * (yi[1] * n1 + xi[0])]);
+        vy1 = &(array[ncontiguous * (yi[1] * n1 + xi[1])]);
+        for (SizeT i = 0; i < ncontiguous; ++i) {
+          double dxdy = dx*dy;
+          double c0 = (1 - dy - dx + dxdy);
+          double c1 = (dy - dxdy);
+          double c2 = (dx - dxdy);
+          vres[i] = vx0[i] * c0 + vy0[i] * c1 + vx1[i] * c2 + vy1[i] * dxdy;
+        }
+      }

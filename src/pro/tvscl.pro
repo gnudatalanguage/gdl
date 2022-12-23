@@ -49,7 +49,7 @@
 ; (at your option) any later version.                                   
 ; 
 ;-
-pro TVSCL, image, x, y, NaN=NaN, top=top, _extra = _extra
+pro TVSCL, image, x, y, NaN=NaN, top=top, TPOOL_MAX_ELTS=TPOOL_MAX_ELTS, TPOOL_MIN_ELTS=TPOOL_MIN_ELTS, TPOOL_NOTHREAD=TPOOL_NOTHREAD, _extra = _extra
 
 ; silent:
 compile_opt idl2, hidden

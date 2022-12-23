@@ -58,7 +58,7 @@ $ make -j 3
 For other systems, a native project file will be produced.
 
 To launch the tests, run:
-$ make check
+$ make test
 
 To install, type:
 $ make install

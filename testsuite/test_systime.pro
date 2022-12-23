@@ -152,7 +152,7 @@ pro TEST_SYSTIME_EPOCH, cumul_errors, verbose=verbose, test=test, help=help
 nb_pbs_epoch=0
 ;
 ; Unix billennium
-expected='Sun Sep 09 01:46:40 2001'
+expected='Sun Sep  9 01:46:40 2001'
 value=SYSTIME(0,1000000000,/utc)
 if (expected NE value) then ERRORS_ADD, nb_pbs_epoch, 'Unix billennium conversion failed !'
 ;
@@ -170,6 +170,75 @@ ERRORS_CUMUL, cumul_errors, nb_pbs_epoch
 if KEYWORD_SET(test) then STOP
 ;
 end
+; ----------------------------------------------------
+;##########TO DO#############
+pro TEST_SYSTIME_ELAPSED, cumul_errors, verbose=verbose, test=test, help=help
+;
+nb_pbs_elapsed=0
+;
+;MESSAGE,/continue, 'test v1 et Elapsed, /utc"
+sec=5
+expected='00:00:05'
+if ( expected NE STRMID(SYSTIME(elapsed=sec,/utc),11,8)) then ERRORS_ADD, nb_pbs_elapsed, 'case elapsed'
+if ( expected NE STRMID(SYSTIME(el=sec,/utc),11,8)) then ERRORS_ADD, nb_pbs_elapsed, 'case el'
+if ( expected NE STRMID(SYSTIME(0, el=sec,/utc),11,8)) then ERRORS_ADD, nb_pbs_elapsed, 'case v1=0'
+if ( sec NE SYSTIME(1, el=sec,/utc)) then ERRORS_ADD, nb_pbs_elapsed, 'case v1=1'
+
+;MESSAGE,/continue, '0,v2,el"
+if ( expected NE STRMID(SYSTIME(0,sec,elapsed=sec,/utc),11,8)) then ERRORS_ADD, nb_pbs_elapsed, 'case v2 et elapsed 1'
+if ( expected NE STRMID(SYSTIME(0,0,el=sec,/utc),11,8)) then ERRORS_ADD, nb_pbs_elapsed, 'case v2 et elapsed 2'
+expected='00:00:00'
+if ( expected NE STRMID(SYSTIME(0, sec, el=0,/utc),11,8)) then ERRORS_ADD, nb_pbs_elapsed, 'case v2 et elapsed 3'
+if ( expected NE STRMID(SYSTIME(0, 0, el=0,/utc),11,8)) then ERRORS_ADD, nb_pbs_elapsed, 'case v2 et elapsed 4'
+
+
+;MESSAGE,/continue, '0,el,jul, /utc"
+expected=systime(el=0,/ju,/utc) 
+; = 2440587.5000000000
+resu_1d = systime(el=24*3600ul, /ju,/utc)
+if ( (resu_1d-expected) NE 1) then ERRORS_ADD, nb_pbs_elapsed, 'case julian et elapsed'
+expected = 'Thu Jan  1 00:00:00 1970'
+if ( expected NE SYSTIME(0, el=0, julian = 0, /utc)) then ERRORS_ADD, nb_pbs_elapsed, 'case julian=0, /el'
+
+;MESSAGE,/continue, 'Inf et NaN"
+na=!values.f_nan
+ifn=!values.f_infinity
+if (expected NE systime(0,el=na)) then ERRORS_ADD, nb_pbs_elapsed, 'case NaN'
+if (expected NE systime(0,el=na, /utc)) then ERRORS_ADD, nb_pbs_elapsed, 'case NaN'
+if (expected NE systime(0,el=ifn, /utc)) then ERRORS_ADD, nb_pbs_elapsed, 'case Infinity'
+
+expected = 'NaN'
+if (expected NE strmid(systime(1,el=na),13,3)) then ERRORS_ADD, nb_pbs_elapsed, 'case NaN'
+if (expected NE strmid(systime(1,el=na,/ju),13,3)) then ERRORS_ADD, nb_pbs_elapsed, 'case NaN'
+if (expected NE strmid(systime(0,el=na,/ju),13,3)) then ERRORS_ADD, nb_pbs_elapsed, 'case NaN'
+expected = 'Infinity'
+if (expected NE strmid(systime(1,el=ifn),8,8)) then ERRORS_ADD, nb_pbs_elapsed, 'case Infinity'
+if (expected NE strmid(systime(0,el=ifn,/julian),8,8)) then ERRORS_ADD, nb_pbs_elapsed, 'case Infinity'
+if (expected NE strmid(systime(1,el=ifn,/julian),8,8)) then ERRORS_ADD, nb_pbs_elapsed, 'case Infinity'
+if (expected NE strmid(systime(1,el=ifn,/julian,/utc),8,8)) then ERRORS_ADD, nb_pbs_elapsed, 'case Infinity'
+
+
+;MESSAGE,/continue, '0.5"
+;print,systime(0.5,0)
+;print,systime(1,0)
+;print,systime(0,0)
+;print,systime(0,0.5)
+;print,systime(0,1)
+;print,systime(0,julian=0.5)
+;print,systime(0,julian=1)
+;print,systime(0,utc=0.5)
+;print,systime(0,utc=1)
+
+
+;
+BANNER_FOR_TESTSUITE, "TEST_SYSTIME_ELAPSED", nb_pbs_elapsed, /short, verb=verbose
+;
+ERRORS_CUMUL, cumul_errors, nb_pbs_elapsed
+;
+if KEYWORD_SET(test) then STOP
+;
+end
+;
 ; ----------------------------------------------------
 ;
 pro TEST_SYSTIME_JULIAN, cumul_errors, verbose=verbose, test=test, help=help
@@ -210,6 +279,8 @@ endif
 TEST_SYSTIME_ZERO, cumul_errors, verbose=verbose, test=test
 ;
 TEST_SYSTIME_EPOCH, cumul_errors, verbose=verbose, test=test
+;
+TEST_SYSTIME_ELAPSED, cumul_errors, verbose=verbose, test=test
 ;
 TEST_SYSTIME_JULIAN, cumul_errors, verbose=verbose, test=test
 ;

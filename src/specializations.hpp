@@ -158,12 +158,12 @@ template<>
 Data_<SpDPtr>* Data_<SpDPtr>::AndOpNew( BaseGDL* r);
 template<> 
 Data_<SpDFloat>* Data_<SpDFloat>::OrOpNew( BaseGDL* r);
-template<> 
-Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvNew( BaseGDL* r);
+//template<> 
+//Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvNew( BaseGDL* r);
 template<> 
 Data_<SpDDouble>* Data_<SpDDouble>::OrOpNew( BaseGDL* r);
-template<> 
-Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvNew( BaseGDL* r);
+//template<> 
+//Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvNew( BaseGDL* r);
 template<> 
 Data_<SpDString>* Data_<SpDString>::OrOpNew( BaseGDL* r);
 template<> 
