@@ -5669,7 +5669,7 @@ void GDLWidgetText::InsertText( DStringGDL* valueStr, bool noNewLine_, bool appe
   
   //wxWidgets bug?
   wxTextPos pos=txt->GetLastPosition();
-  if (pos<=1) {
+  if (pos<1) {
     GDLWidgetText::ChangeText(valueStr,noNewLine_);
     return;
   }
