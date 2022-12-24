@@ -28,8 +28,8 @@ jobs:
   prelude:
     runs-on: ubuntu-latest
     outputs:
-      matrix-windows: ${{ steps.set-matrix-windows.outputs.matrix-windows }}
-      matrix-others: ${{ steps.set-matrix-others.outputs.matrix-others }}
+      matrix-windows: ${{ steps.set-matrix-windows.outputs.matrix_windows }}
+      matrix-others: ${{ steps.set-matrix-others.outputs.matrix_others }}
     steps:
     - name: Create Build Matrix (Windows)
       id: set-matrix-windows
@@ -39,7 +39,7 @@ jobs:
         else
             matrix="{deps: ['debug'], arch: ['x86_64'], configuration: ['Debug']}"
         fi
-        echo "::set-output name=matrix-windows::$matrix"
+        echo "matrix_windows=$matrix" >> $GITHUB_OUTPUT
     - name: Create Build Matrix (Linux/macOS)
       id: set-matrix-others
       run: |
@@ -48,7 +48,7 @@ jobs:
         else
             matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['debug'], configuration: ['Debug']}"
         fi
-        echo "::set-output name=matrix-others::$matrix"
+        echo "matrix_others=$matrix" >> $GITHUB_OUTPUT
     - name: Remove Release (scheduled build only)
       if: github.event_name == 'schedule' || github.event.inputs.type == 'release'
       uses: dev-drprasad/delete-tag-and-release@v0.2.0
