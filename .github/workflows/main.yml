@@ -192,12 +192,6 @@ jobs:
           path: |
             C:\msys64\cache
           key: cache-gdl-deps-windows-msys2-${{ matrix.arch }}-v9
-      - name: Check Version of Latest GDL Workbench
-        if: matrix.arch == 'x86_64'
-        id: gdl_workbench
-        uses: pozetroninc/github-action-get-latest-release@master
-        with:
-          repository: gnudatalanguage/gdlde
       - name: Install MSMPI
         if: matrix.deps == 'debug' || matrix.deps == 'headless'
         run: |
@@ -265,7 +259,7 @@ jobs:
       - name: Package GDL
         shell: msys2 {0}  
         run: |
-          export GDLDE_VERSION=${{ steps.gdl_workbench.outputs.release }}
+          export GDLDE_VERSION=$(git ls-remote --refs --tags https://github.com/gnudatalanguage/gdlde | tail -n1 | cut -d '/' -f3)
           scripts/build_gdl.sh pack
           scripts/build_gdl.sh prep_deploy
       - name: Upload GDL Installer
