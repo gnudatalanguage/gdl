@@ -796,6 +796,54 @@ end
 ;
 ; -----------------------------------------------
 ;
+pro TEST_HDF5_INTER, cumul_errors
+
+   errors=0
+
+   file_name = "hdf5-interface-test.h5"
+
+   f_id = h5f_create(file_name)
+   g_id = h5g_create(f_id,"a_sample_group")
+   t_id = h5t_idl_create(errors)
+   s_id = h5s_create_scalar()
+   d_id = h5d_create(g_id,"a_sample_dataset",t_id,s_id)
+   a_id = h5a_create(g_id,"a_sample_attribute",t_id,s_id)
+
+   ; --- test function 'H5I_GET_TYPE' ---
+
+   errors += ( strcmp("FILE", h5i_get_type(f_id)) eq 0 )
+   errors += ( strcmp("GROUP", h5i_get_type(g_id)) eq 0 )
+   errors += ( strcmp("DATATYPE", h5i_get_type(t_id)) eq 0 )
+   errors += ( strcmp("DATASPACE", h5i_get_type(s_id)) eq 0 )
+   errors += ( strcmp("DATASET", h5i_get_type(d_id)) eq 0 )
+   errors += ( strcmp("ATTR", h5i_get_type(a_id)) eq 0 )
+   errors += ( strcmp("BADID", h5i_get_type(123)) eq 0 )
+
+   ; --- test function 'H5I_GET_FILE_ID' ---
+
+   errors += ( h5i_get_file_id(g_id) ne f_id )
+   errors += ( h5i_get_file_id(d_id) ne f_id )
+   errors += ( h5i_get_file_id(a_id) ne f_id )
+
+   h5a_close, a_id
+   h5d_close, d_id
+   h5s_close, s_id
+   h5t_close, t_id
+   h5g_close, g_id
+   h5f_close, f_id
+
+   spawn, 'rm -f '+file_name
+
+   banner_for_testsuite, 'TEST_HDF5_INTER', errors, /short
+
+   if ~isa(cumul_errors) then cumul_errors=0
+   cumul_errors = cumul_errors + errors
+
+   return
+end
+;
+; -----------------------------------------------
+;
 pro TEST_HDF5, help=help, test=test, no_exit=no_exit
 ;
 if KEYWORD_SET(help) then begin
@@ -831,6 +879,8 @@ TEST_HDF5_GROUP, cumul_errors
 TEST_HDF5_OBJ_INFO, cumul_errors
 ;
 TEST_HDF5_COMP, cumul_errors
+;
+TEST_HDF5_INTER, cumul_errors
 ;
 BANNER_FOR_TESTSUITE, 'TEST_HDF5', cumul_errors
 ;
