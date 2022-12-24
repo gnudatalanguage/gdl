@@ -545,6 +545,19 @@ function test_gdl {
     fi
 }
 
+function copy_dylibs_recursive {
+    install_name_tool -add_rpath $2 $1
+    for dylib in $(otool -L $1 | grep local | sed 's; \(.*\);;' | xargs); do
+        install_name_tool -change $dylib @rpath/$(basename ${dylib}) $1
+        if [[ ! ${found_dylibs[@]} =~ (^|[[:space:]])"$dylib"($|[[:space:]]) ]]; then
+            found_dylibs+=("${dylib}")
+            echo "Copying $(basename ${dylib})..."
+            cp $dylib $3/
+            copy_dylibs_recursive $3/$(basename ${dylib}) @executable_path/. $3
+        fi
+    done
+}
+
 function pack_gdl {
     log "Packaging GDL..."
     if [ ${BUILD_OS} == "Windows" ]; then
@@ -560,17 +573,54 @@ function pack_gdl {
         export GDL_INSTALL_DIR=`cygpath -w ${ROOT_DIR}/install`
         export GDL_VERSION=`grep -oP 'set\(VERSION "\K.+(?="\))' ${GDL_DIR}/CMakeLists.txt`
         makensis -V3 ${GDL_DIR}/scripts/deps/windows/gdlsetup.nsi
+    elif [ ${BUILD_OS} == "macOS" ]; then
+        mkdir -p "${ROOT_DIR}/package/GNU Data Language.app/Contents"
+        cd "${ROOT_DIR}/package/GNU Data Language.app/Contents"
+
+        mkdir MacOS
+        echo "#!/bin/sh" > MacOS/gdl
+        echo 'SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"' >> MacOS/gdl
+        echo 'open -a Terminal "file://${SCRIPTPATH}/../Resources/bin/gdl"' >> MacOS/gdl
+        chmod +x MacOS/gdl
+
+        mkdir Resources
+        cp -R ${ROOT_DIR}/install/* Resources/
+        cp ${GDL_DIR}/resource/gdl.icns Resources/
+
+        mkdir Frameworks
+        found_dylibs=()
+        copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
+
+        echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist
+        echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> Info.plist
+        echo '<plist version="1.0">' >> Info.plist
+        echo '  <dict>' >> Info.plist
+        echo '    <key>CFBundleExecutable</key>' >> Info.plist
+        echo '    <string>gdl</string>' >> Info.plist
+        echo '    <key>CFBundleIconFile</key>' >> Info.plist
+        echo '    <string>gdl</string>' >> Info.plist
+        echo '  </dict>' >> Info.plist
+        echo '</plist>' >> Info.plist
+
+        cd "${ROOT_DIR}/package"
+        download_file "https://github.com/gnudatalanguage/gdlde/releases/download/${GDLDE_VERSION}/gdlde.product-macosx.cocoa.x86_64.zip"
+        decompress_file
+        rm gdlde.product-macosx.cocoa.x86_64.zip
+        mv Eclipse.app "GDL Workbench.app" # TODO: this should not be necessary
     fi
 }
 
 function prep_deploy {
-    if [ ${BUILD_OS} == "Windows" ]; then
-        cd ${GDL_DIR}
-        mv gdlsetup.exe gdlsetup-${BUILD_OS}-${arch}-${DEPS}.exe
-    fi
-    cd ${ROOT_DIR}/install
-    zip -qr ${GDL_DIR}/gdl-${BUILD_OS}-${arch}-${DEPS}.zip *
     cd ${GDL_DIR}
+    if [ ${BUILD_OS} == "macOS" ]; then
+        hdiutil create "gdl-${BUILD_OS}-${arch}-${DEPS}.dmg" -ov -volname "GNU Data Language" -fs HFS+ -srcfolder "${ROOT_DIR}/package"
+    else
+        if [ ${BUILD_OS} == "Windows" ]; then
+            mv gdlsetup.exe gdlsetup-${BUILD_OS}-${arch}-${DEPS}.exe
+        fi
+        cd ${ROOT_DIR}/install
+        zip -qr ${GDL_DIR}/gdl-${BUILD_OS}-${arch}-${DEPS}.zip *
+    fi
 }
 
 function test_antlr {
