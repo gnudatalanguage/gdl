@@ -69,11 +69,11 @@ jobs:
       ROOT_DIR: ${{ github.workspace }}/..
     steps:
       - name: Checkout GDL
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.2.0
       - name: Cache Dependencies (macOS, Homebrew)
         if: contains(matrix.os, 'macos')
         id: cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3.2.1
         with:
           path: ${{ runner.temp }}/cache
           key: cache-gdl-deps-${{ matrix.os }}-v6
@@ -183,11 +183,11 @@ jobs:
             rsync
             patch
       - name: Checkout GDL
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.2.0
       - name: Cache Dependencies
         if: matrix.arch == 'x86_64'
         id: cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3.2.1
         with:
           path: |
             C:\msys64\cache
