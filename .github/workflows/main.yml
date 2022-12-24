@@ -195,9 +195,11 @@ jobs:
       - name: Check Version of Latest GDL Workbench
         if: matrix.arch == 'x86_64'
         id: gdl_workbench
-        uses: pozetroninc/github-action-get-latest-release@master
-        with:
+        uses: rez0n/actions-github-release@main
+        env:
+          token: ${{ secrets.GITHUB_TOKEN }}
           repository: gnudatalanguage/gdlde
+          type: stable
       - name: Install MSMPI
         if: matrix.deps == 'debug' || matrix.deps == 'headless'
         run: |
