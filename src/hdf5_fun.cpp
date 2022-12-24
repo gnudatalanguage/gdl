@@ -2323,6 +2323,24 @@ hid_t
     if (H5Aclose(h5a_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
+
+  BaseGDL* h5i_get_file_id_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(1);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e, 0);
+
+    /* query the file ID */
+    hid_t h5f_id;
+    if ( (h5f_id = H5Iget_file_id(loc_id))  < 0 )
+      { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return hdf5_output_conversion( h5f_id );
+  }
+
 } // namespace
 
 #endif

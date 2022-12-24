@@ -85,6 +85,7 @@ namespace lib {
   BaseGDL* h5g_get_num_objs_fun( EnvT* e);
   BaseGDL* h5g_get_obj_name_by_idx_fun( EnvT* e);
   BaseGDL* h5g_get_linkval_fun( EnvT* e);
+  BaseGDL* h5i_get_file_id_fun( EnvT* e);
   void h5a_write_pro( EnvT* e );
   void h5a_delete_pro( EnvT* e );
   void h5a_close_pro( EnvT* e );
