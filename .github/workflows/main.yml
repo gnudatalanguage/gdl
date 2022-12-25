@@ -229,14 +229,14 @@ jobs:
           rsync -rt --no-t --inplace /cache/ /
       - name: Setup Python (64 bit)
         id: setup-python-64
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         if: matrix.arch == 'x86_64'
         with:
           python-version: '3.x'
           architecture: x64
       - name: Setup Python (32 bit)
         id: setup-python-32
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         if: matrix.arch == 'i686'
         with:
           python-version: '3.x'
