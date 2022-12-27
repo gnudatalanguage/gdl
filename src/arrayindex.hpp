@@ -827,16 +827,16 @@ public:
 
   SizeT NIter( SizeT varDim)
   {
-    if( sInit >= varDim) // && s > 0)
-      throw GDLException(-1,NULL,"Subscript out of range [s:*].",true,false);
-    if( sInit < 0)
+     if( sInit < 0)
     {
       s = sInit + varDim;
       if( s < 0)
 	      throw GDLException(-1,NULL,"Subscript out of range [-s:*].",true,false);
 	  
       return (varDim - s);
-    }
+    } else if( sInit >= varDim) // && s > 0)
+      throw GDLException(-1,NULL,"Subscript out of range [s:*].",true,false);
+
     s = sInit;
     return (varDim - s);
   }
