@@ -2323,6 +2323,50 @@ hid_t
     if (H5Aclose(h5a_id) < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
   }
 
+
+  BaseGDL* h5i_get_file_id_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(1);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e, 0);
+
+    /* query the file ID */
+    hid_t h5f_id;
+    if ( (h5f_id = H5Iget_file_id(loc_id))  < 0 )
+      { string msg; e->Throw(hdf5_error_message(msg)); }
+
+    return hdf5_output_conversion( h5f_id );
+  }
+
+
+  BaseGDL* h5i_get_type_fun( EnvT* e)
+  {
+    /* Dec 2022, Oliver Gressel <ogressel@gmail.com>
+    */
+    SizeT nParam=e->NParam(1);
+
+    /* mandatory 'Loc_id' parameter */
+    hid_t loc_id = hdf5_input_conversion(e, 0);
+
+    /* query the identifier type */
+    switch( H5Iget_type(loc_id) ) {
+
+    case H5I_FILE:      return new DStringGDL("FILE");      break;
+    case H5I_GROUP:     return new DStringGDL("GROUP");     break;
+    case H5I_DATATYPE:  return new DStringGDL("DATATYPE");  break;
+    case H5I_DATASPACE: return new DStringGDL("DATASPACE"); break;
+    case H5I_DATASET:   return new DStringGDL("DATASET");   break;
+    case H5I_ATTR:      return new DStringGDL("ATTR");      break;
+    case H5I_BADID:     return new DStringGDL("BADID");     break;
+    default: e->Throw("unsupported H5I type\n");
+    }
+
+    return NULL;
+  }
+
 } // namespace
 
 #endif

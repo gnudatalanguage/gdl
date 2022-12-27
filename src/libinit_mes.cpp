@@ -155,6 +155,8 @@ void LibInit_mes()
   new DLibFunRetNew(lib::h5g_get_objinfo_fun, string("H5G_GET_OBJINFO"), 2,getObjInfoKey);
   new DLibFunRetNew(lib::h5g_get_num_objs_fun, string("H5G_GET_NUM_OBJS"), 1);
   new DLibFunRetNew(lib::h5g_get_obj_name_by_idx_fun, string("H5G_GET_OBJ_NAME_BY_IDX"), 2);
+  new DLibFunRetNew(lib::h5i_get_file_id_fun, string("H5I_GET_FILE_ID"), 1);
+  new DLibFunRetNew(lib::h5i_get_type_fun, string("H5I_GET_TYPE"), 1);
 
   // SA: disabling the default HDF5 error handler (error handling in hdf5_fun.cpp)
   H5Eset_auto(NULL, NULL);
