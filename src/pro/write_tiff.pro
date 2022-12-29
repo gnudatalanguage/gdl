@@ -26,86 +26,125 @@
 ;        blue : the Blue colormap vector (for PseudoColor images)
 ;
 ; RESTRICTIONS:
-;         Requires ImageMagick or GraphicsMagick
+;         Requires ImageMagick or GraphicsMagick.
 ;
 ; PROCEDURE:
-;         Use ImageMagick to write the data as requested
+;         Uses ImageMagick to write the data as requested
 ;
 ; EXAMPLE: 
 ;         Currently no example is available
 ;
 ; MODIFICATION HISTORY:
-;  Written by: Jeongbin Park 2015-04-03, based on write_png.pro
-; 
+;  Written by James Tappin, based on the extant routine attempt to
+;  discern what is meant to happen.
 ;-
 ; LICENCE:
-; Copyright (C) 2015: JP
+; Copyright (C) 2021: SJT
 ; This program is free software; you can redistribute it and/or modify  
 ; it under the terms of the GNU General Public License as published by  
 ; the Free Software Foundation; either version 2 of the License, or     
 ; (at your option) any later version.                                   
-;
-;-
-;
-pro WRITE_TIFF, filename, image, bits_per_sample, red=red, green=green, blue=blue, $
-                compression=compression, verbose=verbose, help=help, test=test, $
-                debug=debug
-; lacks: /APPEND, /BIGTIFF,  /CMYK, DESCRIPTION=, DOCUMENT_NAME=, DOT_RANGE=, GEOTIFF=,
-;        /COMPLEX, /DCOMPLEX , /DOUBLE , /L64, /LONG, /SHORT , /FLOAT, ICC_PROFILE=, 
-;         ORIENTATION=, PHOTOSHOP=, PLANARCONFIG=, /SIGNED, UNITS=, XPOSITION=, XRESOL,
-;         YPOSITION=, YRESOL=
-;
-; this line allows to compile also in IDL ...
-FORWARD_FUNCTION MAGICK_EXISTS, MAGICK_PING, MAGICK_READ
-;
-;if ~KEYWORD_SET(debug) then ON_ERROR, 2
-;
-if KEYWORD_SET(help) then begin
-    print, 'pro WRITE_TIFF, filename, image, bits_per_sample, red=red, green=green, blue=blue, $'
-    print, '                compression=compression, verbose=verbose, help=help, test=test, $'
-    print, '                debug=debug $'
-    return
-endif
-;
-; Do we have access to ImageMagick functionnalities ??
-;
-if (MAGICK_EXISTS() EQ 0) then begin
-    MESSAGE, /continue, "GDL was compiled without ImageMagick support."
-    MESSAGE, "You must have ImageMagick support to use this functionaly."
-endif
-;
-rgb=1
-;
-nb_dims=SIZE(image, /n_dimensions)
-;
-if (nb_dims LT 2) OR (nb_dims GT 3) then begin
-   MESSAGE, "Image array must be (n,m) or (k,n,m)."
-endif
-if (nb_dims eq 3) then begin
-   MESSAGE, "Image array with (k,n,m) is not supported yet!"
-endif
-;
-im_size=SIZE(image,/dimensions)
-;
-if (nb_dims EQ 2) then mid=MAGICK_CREATE(im_size[0],im_size[1])
-;
-if KEYWORD_SET(red) AND KEYWORD_SET(green) AND KEYWORD_SET(blue) then begin
-    TVLCT, red, green, blue, /get
-endif else begin
-    red   = BINDGEN(256)
-    green = BINDGEN(256)
-    blue  = BINDGEN(256)
-endelse
-MAGICK_WRITECOLORTABLE, mid, red, green, blue
-_image=TRANSPOSE([[[red  [image]]],$
-                  [[green[image]]],$
-                  [[blue [image]]]],$
-                  [2,0,1])
 
-MAGICK_WRITE, mid, _image, rgb=1
-MAGICK_WRITEFILE, mid, filename, "TIFF"
-MAGICK_CLOSE, mid
+pro WRITE_TIFF, filename, image, bits_per_sample, $
+                red = red, green =  green, blue = blue, $
+                compression = compression, verbose = verbose, $
+                help = help, test = test, $
+                debug = debug, order = order
+
+; this line allows to compile also in IDL ...
+  forward_function magick_exists, magick_ping, magick_read
+
+  
+  if keyword_set(help) then begin
+     print, ' RITE_TIFF, filename, image, bits_per_sample, red=red, green=green, blue=blue, $'
+     print, '            compression=compression, verbose=verbose, help=help, test=test, $'
+     print, '            debug=debug'
+     return
+  endif
 ;
-if KEYWORD_SET(test) OR KEYWORD_SET(debug) then STOP
+; Do we have access to ImageMagick functionalities ??
 ;
+  if (MAGICK_EXISTS() EQ 0) then begin
+     MESSAGE, /continue, $
+              "GDL was compiled without ImageMagick/GraphicsMagick support."
+     MESSAGE, "You must have one of these to use this functionality."
+  endif
+
+  sz = size(image)
+
+  case sz[0] of
+     2: begin
+        mid = magick_create(sz[1], sz[2])
+        psflag = 1b
+     end
+     3: begin
+        md = min(sz[1:3], imd)
+        psflag = md eq 2        ; Pseudo colour with transparency
+        if md ne 3 then begin
+           message, /continue, $
+                    "Images with transparency aren't properly " + $
+                    "supported yet"
+           message, /continue, $
+                    "the result will be corrupted."
+        endif
+        case imd of
+           0: begin
+              seq = [0, 1, 2]
+              mid = magick_create(sz[2], sz[3])
+           end
+           1: begin
+              seq = [1, 0, 2]
+              mid = magick_create(sz[1], sz[3])
+           end
+           2: begin
+              seq = [2, 0, 1]
+              mid = magick_create(sz[1], sz[2])
+           end              
+        endcase
+     end
+     else: message, "Image array must be of dimension (n,m) or (k,n,m)."
+  endcase
+  
+  if psflag then begin
+     if ~keyword_set(red) then red = bindgen(256)
+     if ~keyword_set(green) then green = bindgen(256)
+     if ~keyword_set(blue) then blue = bindgen(256)
+
+     if sz[0] eq 2 then begin
+        timage = transpose([[[red  [image]]], $
+                            [[green[image]]], $
+                            [[blue [image]]]], $
+                           [2, 0, 1])
+     endif else begin
+        case imd of
+           0: begin
+              fci = reform(image[0, *, *])
+              tri = reform(image[1, *, *])
+           end
+           1: begin
+              fci = reform(image[*, 0, *])
+              tri = reform(image[*, 1, *])
+           end
+           2: begin
+              fci = reform(image[*, *, 0])
+              tri = reform(image[*, *, 1])
+           end
+        endcase
+        timage = transpose([[[red  [fci]]], $
+                            [[green[fci]]], $
+                            [[blue [fci]]], $
+                            [[tri]]], $
+                           [2, 0, 1])
+     endelse
+  endif else begin
+     if imd eq 0 then timage = image $
+     else timage = transpose(image, seq)
+  endelse
+
+  if keyword_set(order) then timage = reverse(timage, 3)
+  
+  magick_write, mid, timage, rgb = 1s
+  magick_writefile, mid, filename, 'TIFF'
+  magick_close, mid
+
 end
