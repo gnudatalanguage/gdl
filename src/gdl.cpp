@@ -265,7 +265,7 @@ std::string getExecutablePath() {
 std::string getExecutableDir() {
     std::string executablePath = getExecutablePath();
     char* exePath = new char[executablePath.length()+1];
-    strcpy_s(exePath, executablePath.c_str());
+    strcpy(exePath, executablePath.c_str());
     PathRemoveFileSpecA(exePath);
     std::string directory = std::string(exePath);
     delete[] exePath;
@@ -335,10 +335,10 @@ int main(int argc, char *argv[])
   std::string whereami=MyPaths::getExecutableDir();
 // if I am at a 'bin' location, then there are chances that I've bee INSTALLED, so all the resources I need can be accessed relatively to this 'bin' directory.
 // if not, then I'm probably just a 'build' gdl and my ressources may (should?) be in the default location   S_GDLDATADIR
-  std::size_t pos=whereami.find("bin");
+  std::size_t pos=whereami.rfind("bin");
   if (pos == whereami.size()-3) { //we are the installed gdl!
-  std::string S_GDLDATADIR = whereami+ lib::PathSeparator() + ".." + lib::PathSeparator() + "share" + lib::PathSeparator() + "gnudatalanguage" ;
-  std::cerr<<"installed at: "<<whereami<<std::endl;
+    S_GDLDATADIR = whereami+ lib::PathSeparator() + ".." + lib::PathSeparator() + "share" + lib::PathSeparator() + "gnudatalanguage" ;
+    std::cerr<<"installed at: "<<whereami<<std::endl;
   }
 
 //PATH. This one is often modified by people before starting GDL.
