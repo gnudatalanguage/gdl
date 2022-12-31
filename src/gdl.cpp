@@ -57,8 +57,8 @@
 #  include <locale.h>
 #endif
 
-//// GDLDATADIR
-//#include "config.h"
+// GDLDATADIR
+#include "config.h"
 
 //we use gdlgstream in gdl.cpp
 #include "gdlgstream.hpp"
@@ -326,30 +326,30 @@ int main(int argc, char *argv[])
   bool gdlde = false;
 
 //The default installation location --- will not always be there.  
-  std::string S_GDLDATADIR = std::string(GDLDATADIR);
+  gdlDataDir = std::string(GDLDATADIR);
 #ifdef _WIN32
-  std::replace(S_GDLDATADIR.begin(), S_GDLDATADIR.end(), '/', '\\');
+  std::replace(gdlDataDir.begin(), gdlDataDir.end(), '/', '\\');
 #endif 
 
 //check where is the executable being run
   std::string whereami=MyPaths::getExecutableDir();
 // if I am at a 'bin' location, then there are chances that I've bee INSTALLED, so all the resources I need can be accessed relatively to this 'bin' directory.
-// if not, then I'm probably just a 'build' gdl and my ressources may (should?) be in the default location   S_GDLDATADIR
+// if not, then I'm probably just a 'build' gdl and my ressources may (should?) be in the default location GDLDATADIR
   std::size_t pos=whereami.rfind("bin");
   if (pos == whereami.size()-3) { //we are the installed gdl!
-    S_GDLDATADIR = whereami+ lib::PathSeparator() + ".." + lib::PathSeparator() + "share" + lib::PathSeparator() + "gnudatalanguage" ;
-    std::cerr<<"installed at: "<<whereami<<std::endl;
+    gdlDataDir.assign( whereami+ lib::PathSeparator() + ".." + lib::PathSeparator() + "share" + lib::PathSeparator() + "gnudatalanguage") ;
+    std::cerr<<"installed at: "<<gdlDataDir<<std::endl;
   }
 
 //PATH. This one is often modified by people before starting GDL.
   string gdlPath=GetEnvPathString("GDL_PATH"); //warning: is a Path, use system separator.
   if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH"); //warning: is a Path, use system separator.
-  if( gdlPath == "") gdlPath = S_GDLDATADIR + lib::PathSeparator() + "lib";
+  if( gdlPath == "") gdlPath = gdlDataDir + lib::PathSeparator() + "lib";
 
 //drivers if local
   useLocalDrivers=false;
   bool driversNotFound=false;
-  string driversPath=S_GDLDATADIR + lib::PathSeparator() + "drivers"; 
+  string driversPath=gdlDataDir + lib::PathSeparator() + "drivers"; 
   //We'll ned to get the current value for PLPLOT_DRV_DIR if any (useful later if something goes wrong below)
   static const char* DrvEnvName="PLPLOT_DRV_DIR";
 

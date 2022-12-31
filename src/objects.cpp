@@ -96,6 +96,8 @@ DLong64 CpuTPOOL_MAX_ELTS;
 //_DNodeFactory DNodeFactory;
 antlr::ASTFactory DNodeFactory("DNode",DNode::factory);
 
+//this string contains the value of DATADIR
+std::string gdlDataDir;
 //do we use WxWidgets at all?
 volatile bool useWxWidgets;
 //do we use WxWidgets for graphics?
@@ -904,11 +906,7 @@ void InitObjects()
   string gdlPath=GetEnvPathString("GDL_PATH");
   if( gdlPath == "") gdlPath=GetEnvPathString("IDL_PATH");
   if( gdlPath == "") {
-    std::string S_GDLDATADIR=string(GDLDATADIR);
-  #ifdef _WIN32
-      std::replace(S_GDLDATADIR.begin(), S_GDLDATADIR.end(), '/', '\\');
-  #endif  
-    gdlPath = "+" + S_GDLDATADIR + lib::PathSeparator() + "lib";
+    gdlPath = "+" + gdlDataDir + lib::PathSeparator() + "lib";
   }
   SysVar::SetGDLPath( gdlPath);
 }

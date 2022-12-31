@@ -69,6 +69,9 @@ const SizeT DefaultTPOOL_MAX_ELTS = 0;
 // signals if control-c was pressed
 extern volatile bool sigControlC;
 
+//this string contains the value of DATADIR
+extern std::string gdlDataDir;
+
 extern volatile bool iAmANotebook;
 // tells if wxwidgets is to be used at all...
 extern volatile bool useWxWidgets;
