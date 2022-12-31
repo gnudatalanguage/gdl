@@ -214,6 +214,108 @@ namespace lib {
 
 }
 
+// Retrieve where we are. Could be in a separate file. Defines function getExecutableDir() that gives the location of the gdl executable called.
+// We then can build the location of all distributed assets, in particular where the drivers, maps, LUTs, fonts etc.. are located.
+// Absolutely necessary to enable a standalone gdl installed from an installer not compiled.
+// Just a slightly edited copy of atul's contribution to https://stackoverflow.com/questions/1528298/get-path-of-executable
+// note: will not work on BSD? --- but something can be found at the stackoverflow above.
+#include <string>
+namespace MyPaths {
+  std::string getExecutablePath();
+  std::string getExecutableDir();
+}
+#if defined(_WIN32)
+    #include <windows.h>
+    #include <Shlwapi.h>
+    #include <io.h> 
+
+    #define access _access_s
+#endif
+
+#ifdef __APPLE__
+    #include <libgen.h>
+    #include <limits.h>
+    #include <mach-o/dyld.h>
+    #include <unistd.h>
+#endif
+
+#ifdef __linux__
+    #include <limits.h>
+    #include <libgen.h>
+    #include <unistd.h>
+
+    #if defined(__sun)
+        #define PROC_SELF_EXE "/proc/self/path/a.out"
+    #else
+        #define PROC_SELF_EXE "/proc/self/exe"
+    #endif
+
+#endif
+
+namespace MyPaths {
+
+#if defined(_WIN32)
+
+std::string getExecutablePath() {
+   char rawPathName[MAX_PATH];
+   GetModuleFileNameA(NULL, rawPathName, MAX_PATH);
+   return std::string(rawPathName);
+}
+
+std::string getExecutableDir() {
+    std::string executablePath = getExecutablePath();
+    char* exePath = new char[executablePath.length()+1];
+    strcpy(exePath, executablePath.c_str());
+    PathRemoveFileSpecA(exePath);
+    std::string directory = std::string(exePath);
+    delete[] exePath;
+    return directory;
+}
+
+#endif
+
+#ifdef __linux__
+
+std::string getExecutablePath() {
+   char rawPathName[PATH_MAX];
+   realpath(PROC_SELF_EXE, rawPathName);
+   return  std::string(rawPathName);
+}
+
+std::string getExecutableDir() {
+   char rawPathName[PATH_MAX];
+   realpath(PROC_SELF_EXE, rawPathName);
+    char* executableDir = dirname(rawPathName);
+    return std::string(executableDir);
+}
+
+#endif
+
+#ifdef __APPLE__
+    std::string getExecutablePath() {
+        char rawPathName[PATH_MAX];
+        char realPathName[PATH_MAX];
+        uint32_t rawPathSize = (uint32_t)sizeof(rawPathName);
+
+        if(!_NSGetExecutablePath(rawPathName, &rawPathSize)) {
+            realpath(rawPathName, realPathName);
+        }
+        return  std::string(realPathName);
+    }
+
+    std::string getExecutableDir() {
+        std::string executablePath = getExecutablePath();
+        char *executablePathStr = new char[executablePath.length() + 1];
+        strcpy(executablePathStr, executablePath.c_str());
+        char* executableDir = dirname(executablePathStr);
+        delete [] executablePathStr;
+        return std::string(executableDir);
+    }
+
+#endif
+
+}
+
 int main(int argc, char *argv[])
 {
 #if GDL_DEBUG
@@ -222,21 +324,32 @@ int main(int argc, char *argv[])
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
-// in the (suggested) absence of IDL_PATH, !DIR is correct if set to GDLDATADIR.
-  std::string S_GDLDATADIR = std::string(GDLDATADIR);
+
+//The default installation location --- will not always be there.  
+  gdlDataDir = std::string(GDLDATADIR);
 #ifdef _WIN32
-  std::replace(S_GDLDATADIR.begin(), S_GDLDATADIR.end(), '/', '\\');
+  std::replace(gdlDataDir.begin(), gdlDataDir.end(), '/', '\\');
 #endif 
+
+//check where is the executable being run
+  std::string whereami=MyPaths::getExecutableDir();
+// if I am at a 'bin' location, then there are chances that I've bee INSTALLED, so all the resources I need can be accessed relatively to this 'bin' directory.
+// if not, then I'm probably just a 'build' gdl and my ressources may (should?) be in the default location GDLDATADIR
+  std::size_t pos=whereami.rfind("bin");
+  if (pos == whereami.size()-3) { //we are the installed gdl!
+    gdlDataDir.assign( whereami+ lib::PathSeparator() + ".." + lib::PathSeparator() + "share" + lib::PathSeparator() + "gnudatalanguage") ;
+    std::cerr<<"installed at: "<<gdlDataDir<<std::endl;
+  }
 
 //PATH. This one is often modified by people before starting GDL.
   string gdlPath=GetEnvPathString("GDL_PATH"); //warning: is a Path, use system separator.
   if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH"); //warning: is a Path, use system separator.
-  if( gdlPath == "") gdlPath = S_GDLDATADIR + lib::PathSeparator() + "lib";
+  if( gdlPath == "") gdlPath = gdlDataDir + lib::PathSeparator() + "lib";
 
 //drivers if local
   useLocalDrivers=false;
   bool driversNotFound=false;
-  string driversPath=S_GDLDATADIR + lib::PathSeparator() + "drivers"; 
+  string driversPath=gdlDataDir + lib::PathSeparator() + "drivers"; 
   //We'll ned to get the current value for PLPLOT_DRV_DIR if any (useful later if something goes wrong below)
   static const char* DrvEnvName="PLPLOT_DRV_DIR";
 

@@ -1210,16 +1210,8 @@ namespace SysVar
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH) 
 // ref:http://sourceforge.net/p/mingw/patches/256/ Keith Marshall 2005-12-02
 #endif
-
-    // !DIR
-#ifndef GDLDATADIR
-#define GDLDATADIR ""
-#endif
-    DStringGDL *dirData = new DStringGDL( GDLDATADIR) ;
-#ifdef _WIN32
-    std::replace((*dirData)[0].begin(), (*dirData)[0].end(), '/', '\\');
-#endif  
-    string gdlDir=GetEnvPathString("GDL_DIR");
+    DStringGDL *dirData = new DStringGDL(gdlDataDir) ;
+    std::string gdlDir=GetEnvPathString("GDL_DIR");
     if( gdlDir == "") gdlDir=GetEnvPathString("IDL_DIR");
     if (gdlDir != "") {
       delete dirData;
@@ -1230,12 +1222,8 @@ namespace SysVar
     sysVarList.push_back( dir);
 
     // !GDL_MAPS_DIR cannot be found in $IDL_DIR natively. It is only where we put it.
-    DStringGDL *nativeDirData = new DStringGDL( GDLDATADIR) ;
-#ifdef _WIN32
-    std::replace((*nativeDirData)[0].begin(), (*nativeDirData)[0].end(), '/', '\\');
-#endif  
     string gdlmapsdir=GetEnvPathString("GDL_MAPS_DIR");
-    if( gdlmapsdir == "") gdlmapsdir = (*nativeDirData)[0]+lib::PathSeparator() +"resource"+lib::PathSeparator()+"maps";
+    if( gdlmapsdir == "") gdlmapsdir = gdlDataDir +lib::PathSeparator() +"resource"+lib::PathSeparator()+"maps";
 
     DStringGDL *GdlMapsDataDir =  new DStringGDL( gdlmapsdir);
     DVar *GdlMapsDir = new DVar("GDL_MAPS_DIR", GdlMapsDataDir);
