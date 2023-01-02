@@ -959,7 +959,7 @@ void gdlwxPlotFrame::OnPlotSizeWithTimer(wxSizeEvent& event) {
     m_resizeTimer->Start(50, wxTIMER_ONE_SHOT);
     return;
   } else { //take it immediately.
-    m_resizeTimer->StartOnce(1);
+    m_resizeTimer->Stop(); //StartOnce(1);
   }
 }
 void gdlwxPlotFrame::OnPlotWindowSize(wxSizeEvent &event) {
