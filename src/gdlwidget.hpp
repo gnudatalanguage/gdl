@@ -2066,6 +2066,7 @@ public:
  ~gdlwxPlotFrame();
   bool IsScrolled(){return scrolled;}
  void Realize();
+ void SetFrameSize(wxSize s){frameSize=s;}
 // event handlers (these functions should _not_ be virtual)
 // void OnClosePlotFrame(wxCloseEvent & event);
 // void OnPlotSizeWithTimer(wxSizeEvent& event);

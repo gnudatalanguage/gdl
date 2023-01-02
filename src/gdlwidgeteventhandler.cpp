@@ -926,7 +926,7 @@ void gdlwxPlotFrame::OnTimerPlotResize(wxTimerEvent& event)
     return;
   }
   //there may have been size events since the start of the timer. Process them.
-//   frameSize=this->GetSize();
+   frameSize=this->GetSize();
    gdlwxGraphicsPanel* w = dynamic_cast<gdlwxGraphicsPanel*> (this->GetChildren().GetFirst()->GetData());
    if (w==NULL)     {
       event.Skip();
@@ -942,7 +942,7 @@ void gdlwxPlotFrame::OnTimerPlotResize(wxTimerEvent& event)
 void gdlwxPlotFrame::OnPlotSizeWithTimer(wxSizeEvent& event) {
   wxSize newSize = event.GetSize();
   if (frameSize == newSize) {
-    event.Skip();
+//    event.Skip();
     return;
   }
   frameSize = newSize; //no cost
@@ -963,8 +963,7 @@ void gdlwxPlotFrame::OnPlotSizeWithTimer(wxSizeEvent& event) {
   }
 }
 void gdlwxPlotFrame::OnPlotWindowSize(wxSizeEvent &event) {
-
-  wxSize newSize = event.GetSize(); //size returned by the external frame
+  frameSize = event.GetSize(); //size returned by the external frame
   gdlwxGraphicsPanel* w = dynamic_cast<gdlwxGraphicsPanel*> (this->GetChildren().GetFirst()->GetData());
    if (w==NULL)     {
       event.Skip();
@@ -1363,7 +1362,10 @@ void gdlwxGraphicsPanel::OnPaint(wxPaintEvent& event)
  
 void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
 
-  wxSize newSize = event.GetSize(); //size returned by the external frame
+  wxSize newSize = event.GetSize(); //size asked
+  wxSize me=this->GetVirtualSize(); // my Size
+  if (me==newSize) return; //nothing to do, especially *not* erasing the plot!
+  
   gdlwxPlotFrame* p = this->GetMyFrame();
   p->SetSize(newSize);
   newSize = p->GetClientSize();
@@ -1403,7 +1405,7 @@ void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
       = newSize.x;
   (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_VSIZE"), 0)))[0]
       = newSize.y;
-  event.Skip();
+//  event.Skip();
 }
 void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)
 {
@@ -1417,8 +1419,12 @@ void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)
 #endif
     return;
   }
+  
+  wxSize me = this->GetVirtualSize();
+  if (me == newSize) return;
+  
   this->ResizeDrawArea(newSize);
-  event.Skip();
+ // event.Skip();
 }
 //uses  a wxDropFilesEvent to get a 'drop' event, but this is not triggered by the eventloop but by a LeftUp() on a wxTreeCtrlGDL drag action.
 void gdlwxDrawPanel::OnFakeDropFileEvent(wxDropFilesEvent& event){

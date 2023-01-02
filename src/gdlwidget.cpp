@@ -6112,8 +6112,6 @@ void gdlwxGraphicsPanel::RepaintGraphics(bool doClear) {
 //  dc.SetDeviceClippingRegion(GetUpdateRegion());
   if (doClear) dc.Clear();
   dc.Blit(0, 0, drawSize.x, drawSize.y, wx_dc, 0, 0);
-//  this->Refresh();
-//  this->Update();
 }
 
 ////Stem for generalization of Drag'n'Drop, a WIDGET_DRAW can receive drop events from something else than a tree widget...
@@ -6155,7 +6153,7 @@ void gdlwxDrawPanel::InitStream(int wIx)
 
 void gdlwxGraphicsPanel::ResizeDrawArea(wxSize s)
 {
-  bool doClear=false; 
+  bool doClear=false;
   if (drawSize.x > s.x || drawSize.y > s.y ) doClear=true; 
   drawSize=s;
   this->SetVirtualSize(drawSize);
