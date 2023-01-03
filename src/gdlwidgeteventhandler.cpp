@@ -962,18 +962,18 @@ void gdlwxPlotFrame::OnPlotSizeWithTimer(wxSizeEvent& event) {
     m_resizeTimer->Stop(); //StartOnce(1);
   }
 }
-void gdlwxPlotFrame::OnPlotWindowSize(wxSizeEvent &event) {
-
-  wxSize newSize = event.GetSize(); //size returned by the external frame
-  gdlwxGraphicsPanel* w = dynamic_cast<gdlwxGraphicsPanel*> (this->GetChildren().GetFirst()->GetData());
-   if (w==NULL)     {
-      event.Skip();
-      std::cerr<<"No wxWidget!"<<std::endl; return; // happens on construction 
-    }
-   wxSizeEvent sizeEvent(frameSize, w->GetId());
-   w->OnPlotWindowSize(sizeEvent);
-   event.Skip();
-}
+//void gdlwxPlotFrame::OnPlotWindowSize(wxSizeEvent &event) {
+//
+//  wxSize newSize = event.GetSize(); //size returned by the external frame
+//  gdlwxGraphicsPanel* w = dynamic_cast<gdlwxGraphicsPanel*> (this->GetChildren().GetFirst()->GetData());
+//   if (w==NULL)     {
+//      event.Skip();
+//      std::cerr<<"No wxWidget!"<<std::endl; return; // happens on construction 
+//    }
+//   wxSizeEvent sizeEvent(frameSize, w->GetId());
+//   w->OnPlotWindowSize(sizeEvent);
+//   event.Skip();
+//}
 
 //same for widget_draw
 // mouse.LeftIsDown() is not present before wxWidgets  2.8.12 , find an alternative.
@@ -1033,7 +1033,7 @@ void gdlwxFrame::OnSizeWithTimer(wxSizeEvent& event)
     m_resizeTimer->Start(50, wxTIMER_ONE_SHOT);
     return;
   } else { //take it immediately.
-    m_resizeTimer->StartOnce(1);
+    m_resizeTimer->Stop(); //StartOnce(1);
   }
 }
      
@@ -1353,12 +1353,14 @@ void gdlwxDrawPanel::OnErase(wxEraseEvent& event)
 
 void gdlwxGraphicsPanel::OnPaint(wxPaintEvent& event)
 {
-  if (drawSize.x<1||drawSize.y<1) return;
+    if (drawSize.x<1||drawSize.y<1) return;
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_PAINT_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlwxGraphicsPanel::OnPaint: %d (%d,%d)\n"),event.GetId(),drawSize.x, drawSize.y);
 #endif
-  this->RepaintGraphics();
-  event.Skip();
+  wxPaintDC dc(this);
+  DoPrepareDC(dc); //you probably do not want to call wxScrolled::PrepareDC() on wxAutoBufferedPaintDC as it already does this internally for the real underlying wxPaintDC.
+  dc.SetDeviceClippingRegion(GetUpdateRegion());
+  dc.Blit(0, 0, drawSize.x, drawSize.y, wx_dc, 0, 0);
 }
  
 void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {

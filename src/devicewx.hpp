@@ -172,15 +172,15 @@ if(hide) {
   } else {
     plotFrame->Show(); //WithoutActivating(); --> this does nothing good. Better tailor your window manager to 'focus under mouse"
   //    plotFrame->UpdateWindowUI(); not useful
-  plotFrame->Refresh();
-  plotFrame->Update();
   plotFrame->Raise();
+  plotFrame->Refresh();
+//  plotFrame->Update();
   //really show by letting the loop do its magic. Necessary.
-#ifdef __WXMAC__
-  wxTheApp->Yield();
-#else
-  wxGetApp().MainLoop(); //central loop for wxEvents!
-#endif
+//#ifdef __WXMAC__
+//  wxTheApp->Yield();
+//#else
+//  wxGetApp().MainLoop(); //central loop for wxEvents!
+//#endif
    }
    
   // these widget specific events are always set:
