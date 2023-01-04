@@ -229,13 +229,15 @@ public:
 };
 #ifndef __WXMAC__
 // main App class
+ #include "wx/evtloop.h"
+ 
 class wxAppGDL: public wxApp
 {
- wxEventLoopBase* loop;
+ wxGUIEventLoop loop;
 public:
-virtual int MainLoop();
- virtual bool OnInit();
+ int MyLoop();
 };
+
 wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
 #endif
 

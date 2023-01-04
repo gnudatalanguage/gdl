@@ -63,7 +63,7 @@
 //we use gdlgstream in gdl.cpp
 #include "gdlgstream.hpp"
 
-//initialize wxWidgets system
+//initialize wxWidgets system:  create an instance of wxAppGDL
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
 #ifndef __WXMAC__ 

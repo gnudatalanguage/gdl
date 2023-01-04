@@ -174,12 +174,11 @@ if(hide) {
   //    plotFrame->UpdateWindowUI(); not useful
   plotFrame->Raise();
   plotFrame->Refresh();
-//  plotFrame->Update();
   //really show by letting the loop do its magic. Necessary.
 //#ifdef __WXMAC__
 //  wxTheApp->Yield();
 //#else
-//  wxGetApp().MainLoop(); //central loop for wxEvents!
+//  wxGetApp().MyLoop(); //central loop for wxEvents!
 //#endif
    }
    
