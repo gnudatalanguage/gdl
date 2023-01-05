@@ -938,7 +938,8 @@ bool GDLWidget::InitWx() {
   try{
      wxInitialize();
   } catch (...) {return false;}
-          wxDisplay *d= new wxDisplay();
+ //avoid using if no Display is present!
+  wxDisplay *d= new wxDisplay();
   if(d->GetCount()<1) return false;
   wxInitAllImageHandlers(); //do it here once for all
   return true;
