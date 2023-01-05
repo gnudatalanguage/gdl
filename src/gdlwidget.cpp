@@ -944,7 +944,7 @@ void GDLWidget::Init()
  //set system font to something sensible now that wx is ON:
   if (forceWxWidgetsUglyFonts)
     systemFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ;//  identical for me to GDLWidget::setDefaultFont(wxFont("Monospace 8"));
-#if __WXMSW__ //update for windows:
+#ifdef __WXMSW__ //update for windows:
     bool ok=systemFont.SetNativeFontInfoUserDesc(wxString("consolas 8"));  //consolas 8 is apparently the one most identical to linux courier 8 and IDL X11 default font.
     if (!ok) systemFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ; 
 #endif

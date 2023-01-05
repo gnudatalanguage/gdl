@@ -909,45 +909,11 @@ void gdlwxFrame::OnPageChanged( wxNotebookEvent& event)
 }
 
 //Timer-filtered resizing for graphics.
-
-// mouse.LeftIsDown() is not present before wxWidgets  2.8.12 , find an alternative.
-void gdlwxPlotFrame::OnTimerPlotResize(wxTimerEvent& event)
-{
-#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_TIMER_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlwxFrame::OnTimerPlotResize: %d (%d,%d).."), event.GetId(), frameSize.x, frameSize.y);
-#endif
-  wxMouseState mouse = wxGetMouseState();
-#if wxCHECK_VERSION(3,0,0)
-  if (mouse.LeftIsDown()) {
-#else
-  if (mouse.LeftDown()) {
-#endif
-    m_resizeTimer->Start(50, wxTIMER_ONE_SHOT);
-    return;
-  }
-  //there may have been size events since the start of the timer. Process them.
-//   frameSize=this->GetSize();
-   gdlwxGraphicsPanel* w = dynamic_cast<gdlwxGraphicsPanel*> (this->GetChildren().GetFirst()->GetData());
-   if (w==NULL)     {
-      event.Skip();
-      std::cerr<<"No wxWidget!"<<std::endl; return; // happens on construction 
-    }
-   wxSizeEvent sizeEvent(frameSize, w->GetId());
-   w->OnPlotWindowSize(sizeEvent);
-#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_TIMER_EVENTS)
-   wxMessageOutputStderr().Printf(_T("gdlwxFrame::OnTimerPlotResize() has been Processed.\n"));
-#endif
-}
-
+// 1) the timer : restart if still resizing by hand
 void gdlwxPlotFrame::OnPlotSizeWithTimer(wxSizeEvent& event) {
-  wxSize newSize = event.GetSize();
-  if (frameSize == newSize) {
-    event.Skip();
-    return;
-  }
-  frameSize = newSize; //no cost
+  frameSize = event.GetSize();
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlwxPlotWindow::OnPlotSizeWithTimer: new framesize is %d %d ; mouseState %d & Processed.\n"), frameSize.x, frameSize.y, wxGetMouseState().LeftIsDown());
+    wxMessageOutputStderr().Printf(_T("gdlwxPlotFrame::OnPlotSizeWithTimer:  %d %d \n"), frameSize.x, frameSize.y);
 #endif
   //is it a resize of frame due to a manual intervention?
   wxMouseState mouse = wxGetMouseState();
@@ -959,29 +925,25 @@ void gdlwxPlotFrame::OnPlotSizeWithTimer(wxSizeEvent& event) {
     m_resizeTimer->Start(50, wxTIMER_ONE_SHOT);
     return;
   } else { //take it immediately.
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
+    wxMessageOutputStderr().Printf(_T("gdlwxPlotFrame::OnPlotSizeWithTimer: handle new size \n"));
+#endif
     m_resizeTimer->Stop(); //StartOnce(1);
   }
 }
-//void gdlwxPlotFrame::OnPlotWindowSize(wxSizeEvent &event) {
-//
-//  wxSize newSize = event.GetSize(); //size returned by the external frame
-//  gdlwxGraphicsPanel* w = dynamic_cast<gdlwxGraphicsPanel*> (this->GetChildren().GetFirst()->GetData());
-//   if (w==NULL)     {
-//      event.Skip();
-//      std::cerr<<"No wxWidget!"<<std::endl; return; // happens on construction 
-//    }
-//   wxSizeEvent sizeEvent(frameSize, w->GetId());
-//   w->OnPlotWindowSize(sizeEvent);
-//   event.Skip();
-//}
+// 2) actual resize when mouse released
+void gdlwxPlotFrame::OnTimerPlotResize(wxTimerEvent& event) {
 
-//same for widget_draw
-// mouse.LeftIsDown() is not present before wxWidgets  2.8.12 , find an alternative.
-void gdlwxFrame::OnTimerResize(wxTimerEvent& event)
-{
+  gdlwxPlotPanel* w = dynamic_cast<gdlwxPlotPanel*> (this->GetChildren().GetFirst()->GetData());
+  if (w == NULL) {
+    event.Skip();
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_TIMER_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlwxFrame::OnTimerResize: %d (%d,%d).."), event.GetId(), frameSize.x, frameSize.y);
+    std::cerr << "No wxWidget!" << std::endl;
+    return;
 #endif
+  }
+
+  frameSize=this->GetSize(); //event.GetSize();
   wxMouseState mouse = wxGetMouseState();
 #if wxCHECK_VERSION(3,0,0)
   if (mouse.LeftIsDown()) {
@@ -991,10 +953,58 @@ void gdlwxFrame::OnTimerResize(wxTimerEvent& event)
     m_resizeTimer->Start(50, wxTIMER_ONE_SHOT);
     return;
   }
+  
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_TIMER_EVENTS)
-  wxMessageOutputStderr().Printf(_T("Processed.\n"));
+  wxMessageOutputStderr().Printf(_T("in gdlwxPlotFrame::OnTimerPlotResize: event %d  size: (%d,%d).."), event.GetId(), frameSize.x, frameSize.y);
 #endif
-    if (!gdlOwner) {event.Skip(); return;}
+  
+  //there may have been size events since the start of the timer. Process them.
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_TIMER_EVENTS)
+   wxMessageOutputStderr().Printf(_T(".. Processed.\n"));
+#endif
+   wxSizeEvent sizeEvent(frameSize, w->GetId());
+   w->OnPlotWindowSize(sizeEvent);
+}
+
+  //in case timers do not work (Windows, apparently).
+void gdlwxPlotFrame::OnPlotWindowSize(wxSizeEvent &event) {
+  gdlwxPlotPanel* w = dynamic_cast<gdlwxPlotPanel*> (this->GetChildren().GetFirst()->GetData());
+  if (w == NULL) {
+    event.Skip();
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
+    std::cerr << "No wxWidget!" << std::endl;
+    return;
+#endif
+  }
+
+  frameSize=event.GetSize();
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlwxPlotFrame::OnPlotWindowSize: event %d  size: (%d,%d) processed."), event.GetId(), frameSize.x, frameSize.y);
+#endif
+   wxSizeEvent sizeEvent(frameSize, w->GetId());
+   w->OnPlotWindowSize(sizeEvent);
+}
+
+//same for widget_draw
+// mouse.LeftIsDown() is not present before wxWidgets  2.8.12 , find an alternative.
+void gdlwxFrame::OnTimerResize(wxTimerEvent& event)
+{
+  wxMouseState mouse = wxGetMouseState();
+#if wxCHECK_VERSION(3,0,0)
+  if (mouse.LeftIsDown()) {
+#else
+  if (mouse.LeftDown()) {
+#endif
+    m_resizeTimer->Start(50, wxTIMER_ONE_SHOT);
+    return;
+  }
+
+    if (!gdlOwner) {event.Skip(); return; }
+  
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_TIMER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlwxFrame::OnTimerResize: %d (%d,%d) processed.\n"), event.GetId(), frameSize.x, frameSize.y);
+#endif
+  
   GDLWidget* owner = dynamic_cast<GDLWidget*> (gdlOwner);
   if (!owner) return;
   DULong flags = 0;
@@ -1017,12 +1027,7 @@ void gdlwxFrame::OnTimerResize(wxTimerEvent& event)
 // The timer will be canceled and the actual size processed if the event shows that the mouse is not pressed anymore.
 void gdlwxFrame::OnSizeWithTimer(wxSizeEvent& event)
 {
-  wxSize newSize = event.GetSize();
-  if (frameSize == newSize) {event.Skip();return;}
-  frameSize = newSize; //no cost
-#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlwxFrame::OnSizeWithTimer: new framesize is %d %d ; mouseState %d & Processed.\n"), frameSize.x, frameSize.y, wxGetMouseState().LeftIsDown());
-#endif
+  frameSize = event.GetSize();
   //is it a resize of frame due to a manual intervention?
   wxMouseState mouse = wxGetMouseState();
 #if wxCHECK_VERSION(3,0,0)
@@ -1031,8 +1036,14 @@ void gdlwxFrame::OnSizeWithTimer(wxSizeEvent& event)
   if (mouse.LeftDown()) {
 #endif
     m_resizeTimer->Start(50, wxTIMER_ONE_SHOT);
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
+    wxMessageOutputStderr().Printf(_T("in gdlwxFrame::OnSizeWithTimer: new framesize is %d %d ;\n"), frameSize.x, frameSize.y);
+#endif
     return;
   } else { //take it immediately.
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
+    wxMessageOutputStderr().Printf(_T("in gdlwxFrame::OnSizeWithTimer: new framesize is %d %d ; mouseState %d & Processed.\n"), frameSize.x, frameSize.y, wxGetMouseState().LeftIsDown());
+#endif
     m_resizeTimer->Stop(); //StartOnce(1);
   }
 }
