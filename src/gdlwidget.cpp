@@ -934,7 +934,9 @@ bool GDLWidget::InitWx() {
           CPSEnableForegroundOperation( &psn );
           SetFrontProcess( &psn );
   #endif
-  wxInitialize();
+  try{
+     wxInitialize();
+  } catch (...) {return false;}
   wxInitAllImageHandlers(); //do it here once for all
   return true;
 }
