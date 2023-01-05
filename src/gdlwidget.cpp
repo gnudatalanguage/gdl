@@ -25,6 +25,7 @@
 #include <wx/wrapsizer.h>
 #include <wx/textctrl.h>
 #include <wx/menuitem.h>
+#include <wx/display.h>
 
 #include "basegdl.hpp"
 #include "dstructgdl.hpp"
@@ -937,6 +938,8 @@ bool GDLWidget::InitWx() {
   try{
      wxInitialize();
   } catch (...) {return false;}
+          wxDisplay *d= new wxDisplay();
+  if(d->GetCount()<1) return false;
   wxInitAllImageHandlers(); //do it here once for all
   return true;
 }
