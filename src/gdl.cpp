@@ -297,7 +297,6 @@ int main(int argc, char *argv[])
 #else
   useWxWidgets=false;
 #endif
-  std::cerr<<"useWxWidgets: "<<useWxWidgets<<std::endl;
 #ifdef _WIN32
   lib::posixpaths = false;
 #endif
