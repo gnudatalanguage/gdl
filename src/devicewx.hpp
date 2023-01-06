@@ -172,15 +172,14 @@ if(hide) {
   } else {
     plotFrame->Show(); //WithoutActivating(); --> this does nothing good. Better tailor your window manager to 'focus under mouse"
   //    plotFrame->UpdateWindowUI(); not useful
-  plotFrame->Refresh();
-  plotFrame->Update();
   plotFrame->Raise();
+  plotFrame->Refresh();
   //really show by letting the loop do its magic. Necessary.
-#ifdef __WXMAC__
-  wxTheApp->Yield();
-#else
-  wxGetApp().MainLoop(); //central loop for wxEvents!
-#endif
+//#ifdef __WXMAC__
+//  wxTheApp->Yield();
+//#else
+//  wxGetApp().MyLoop(); //central loop for wxEvents!
+//#endif
    }
    
   // these widget specific events are always set:
@@ -189,9 +188,11 @@ if(hide) {
     plot->Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(gdlwxDrawPanel::OnErase));
 
     plotFrame->Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(gdlwxPlotFrame::OnUnhandledClosePlotFrame));
-    //  plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
-    plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotWindowSize));
-    
+#ifdef __WXMSW__
+    plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotWindowSize)); //Timer resize do not work on MSW
+#else
+      plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
+#endif
     return true;
  }
 

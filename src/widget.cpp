@@ -2495,7 +2495,7 @@ BaseGDL* widget_info( EnvT* e ) {
 #ifdef __WXMAC__
   wxTheApp->Yield();
 #else
-  wxGetApp().MainLoop(); //central loop for wxEvents!
+  wxGetApp().MyLoop(); //central loop for wxEvents!
 #endif
         if (!all) {
           //specific widget(s)
@@ -2527,9 +2527,6 @@ BaseGDL* widget_info( EnvT* e ) {
 
         if (nowait) return defaultRes;
         if (sigControlC) return defaultRes;
-#if __WXMSW__
-       wxMilliSleep(20); // Sleep a bit to prevent CPU overuse //not useful if Yield() 
-#endif
       } //end inner loop
       //here we got a real event, process it, walking back the hierachy (in CallEventHandler()) for modified ev in case of function handlers.
     endwait:

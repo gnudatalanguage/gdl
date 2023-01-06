@@ -95,8 +95,11 @@
 #else
   #define NEWLINECHARSIZE 1  //length of <nl> 
 #endif
-
+#ifdef __WXMSW__
+#define gdlSIZE_EVENT_HANDLER wxSizeEventHandler(gdlwxFrame::OnSize) //Timer resize do not work on MSW
+#else
 #define gdlSIZE_EVENT_HANDLER wxSizeEventHandler(gdlwxFrame::OnSizeWithTimer) //filter mouse events (manual resize) to avoid too many updtes for nothing
+#endif
 #define gdlSIZE_IMMEDIATE_EVENT_HANDLER wxSizeEventHandler(gdlwxFrame::OnSize) 
 typedef DLong WidgetIDT;
 static std::string widgetNameList[]={"BASE","BUTTON","SLIDER","TEXT","DRAW","LABEL","LIST","MBAR","DROPLIST","TABLE","TAB","TREE","COMBOBOX","PROPERTYSHEET","WINDOW"};
@@ -229,13 +232,15 @@ public:
 };
 #ifndef __WXMAC__
 // main App class
+ #include "wx/evtloop.h"
+ 
 class wxAppGDL: public wxApp
 {
- wxEventLoopBase* loop;
+ wxGUIEventLoop loop;
 public:
-virtual int MainLoop();
- virtual bool OnInit();
+ int MyLoop();
 };
+
 wxDECLARE_APP(wxAppGDL); //wxAppGDL is equivalent to wxGetApp()
 #endif
 
@@ -2067,12 +2072,10 @@ public:
   bool IsScrolled(){return scrolled;}
  void Realize();
 // event handlers (these functions should _not_ be virtual)
-// void OnClosePlotFrame(wxCloseEvent & event);
-// void OnPlotSizeWithTimer(wxSizeEvent& event);
  void OnTimerPlotResize(wxTimerEvent& event);
  void OnUnhandledClosePlotFrame(wxCloseEvent & event);
  void OnPlotSizeWithTimer(wxSizeEvent& event);
- void OnPlotWindowSize(wxSizeEvent& event);
+ void OnPlotWindowSize(wxSizeEvent& event); //unused
  DECLARE_EVENT_TABLE()
 };
 class GDLWXStream;

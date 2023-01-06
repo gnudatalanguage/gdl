@@ -123,20 +123,17 @@ void GDLWXStream::SetGdlxwGraphicsPanel(gdlwxGraphicsPanel* w, bool isPlot)
   isplot=isPlot;
 }
 
-void GDLWXStream::DoUpdate()
+void GDLWXStream::Update()
 {
   if( this->valid && container != NULL) {
-    container->RepaintGraphics();
-    //will be updated by eventloop.
-//#ifdef __WXMAC__
-//  wxTheApp->Yield();
-//#else
-//  wxGetApp().MainLoop(); //central loop for wxEvents!
-//#endif
+    container->Refresh();
+#ifdef __WXMAC__
+    wxTheApp->Yield();
+#else
+    wxGetApp().MyLoop(); //central loop for wxEvents!
+#endif
   }
 }
-//We should not need "Update"
-void GDLWXStream::Update(){DoUpdate();}
 ////should be used when one does not recreate a wxstream each time size changes...
 void GDLWXStream::SetSize( wxSize s )
 {

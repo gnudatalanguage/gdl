@@ -63,7 +63,7 @@
 //we use gdlgstream in gdl.cpp
 #include "gdlgstream.hpp"
 
-//initialize wxWidgets system
+//initialize wxWidgets system:  create an instance of wxAppGDL
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
 #ifndef __WXMAC__ 
@@ -398,10 +398,18 @@ int main(int argc, char *argv[])
   useDSFMTAcceleration = true;
   iAmANotebook=false; //option --notebook
  #ifdef HAVE_LIBWXWIDGETS 
-  useWxWidgets=true;
+
+    #if defined (__WXMAC__) 
+      useWxWidgets=true;
+    #elif defined (__WXMSW__)
+      useWxWidgets=true;
+    #else  
+      if (GetEnvString("DISPLAY").length() > 0) useWxWidgets=true; else useWxWidgets=false;
+    #endif
+  
 #else
   useWxWidgets=false;
-#endif  
+#endif
 #ifdef _WIN32
   lib::posixpaths = false;
 #endif
@@ -575,7 +583,7 @@ int main(int argc, char *argv[])
   
 #ifdef HAVE_LIBWXWIDGETS
   //tells if wxWidgets is working (may not be the case if DISPLAY is not set) by setting useWxWidgets to false
-  useWxWidgets=GDLWidget::InitWx();
+  if (useWxWidgets) useWxWidgets=GDLWidget::InitWx();
   // default is wx Graphics...
   useWxWidgetsForGraphics=useWxWidgets;
 #else
@@ -606,7 +614,7 @@ int main(int argc, char *argv[])
       if (driversNotFound) cerr << "- Local drivers not found --- using default ones. " << endl;
       else if (getenv(DrvEnvName)) cerr << "- Using local drivers in " << getenv(DrvEnvName) << endl; //protect against NULL.
     }
-    }
+  }
   if (useDSFMTAcceleration && (GetEnvString("GDL_NO_DSFMT").length() > 0)) useDSFMTAcceleration=false;
   
   //report in !GDL status struct

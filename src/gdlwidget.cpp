@@ -25,6 +25,7 @@
 #include <wx/wrapsizer.h>
 #include <wx/textctrl.h>
 #include <wx/menuitem.h>
+#include <wx/display.h>
 
 #include "basegdl.hpp"
 #include "dstructgdl.hpp"
@@ -563,14 +564,14 @@ void GDLWidget::UpdateGui()
     actID = widget->parentID;
   }
   this->GetMyTopLevelFrame()->Fit();
-//  this->GetMyTopLevelFrame()->Refresh();
-  this->GetMyTopLevelFrame()->Update();
+  this->GetMyTopLevelFrame()->Refresh();
+//  this->GetMyTopLevelFrame()->Update();
   END_CHANGESIZE_NOEVENT
-#ifdef __WXMAC__
-  wxTheApp->Yield();
-#else
-  wxGetApp().MainLoop(); //central loop for wxEvents!
-#endif
+//#ifdef __WXMAC__
+//  wxTheApp->Yield();
+//#else
+//  wxGetApp().MyLoop(); //central loop for wxEvents!
+//#endif
 }
 
 //Alternate version if there were sizing problems with the one above.
@@ -773,7 +774,7 @@ void GDLWidget::HandleWidgetEvents()
 #ifdef __WXMAC__
   wxTheApp->Yield();
 #else
-  wxGetApp().MainLoop(); //central loop for wxEvents!
+  wxGetApp().MyLoop(); //central loop for wxEvents!
 #endif
   //treat our GDL events...
     DStructGDL* ev = NULL;
@@ -918,19 +919,28 @@ DLongGDL* GDLWidget::GetAllHeirs(){
   for (SizeT i = 0; i < currentVectorSize ; ++i) (*result)[i] = widgetIDList[i];
   return result;
 }
+#ifdef __WXMAC__
+        #include <Carbon/Carbon.h>
+extern "C" { void CPSEnableForegroundOperation( ProcessSerialNumber* psn ); }
+#endif
 
 //
-bool GDLWidget::InitWx()
-{ if (wxTheApp == NULL) { //not already initialized
-if (!wxInitialize()) {
-    std::cerr << "WARNING: wxWidgets not initializing, widget-related commands will not be available." << std::endl;
-    return false;
-  }
-#ifndef __WXMAC__ 
-  wxAppGDL* app = new wxAppGDL();
-  app->SetInstance(app);
-#endif
-} else {std::cerr << "INFO: wxWidgets already initialized (in 3rd party library?), pursue with fingers crossed" << std::endl; }
+bool GDLWidget::InitWx() {
+  // this hack enables to have a GUI on Mac OSX even if the
+  // program was called from the command line (and isn't a bundle)
+  #ifdef __WXMAC__
+          ProcessSerialNumber psn;
+  
+          GetCurrentProcess( &psn );
+          CPSEnableForegroundOperation( &psn );
+          SetFrontProcess( &psn );
+  #endif
+  try{
+     wxInitialize();
+  } catch (...) {return false;}
+ //avoid using if no Display is present!
+  wxDisplay *d= new wxDisplay();
+  if(d->GetCount()<1) return false;
   wxInitAllImageHandlers(); //do it here once for all
   return true;
 }
@@ -940,7 +950,7 @@ void GDLWidget::Init()
  //set system font to something sensible now that wx is ON:
   if (forceWxWidgetsUglyFonts)
     systemFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ;//  identical for me to GDLWidget::setDefaultFont(wxFont("Monospace 8"));
-#if __WXMSW__ //update for windows:
+#ifdef __WXMSW__ //update for windows:
     bool ok=systemFont.SetNativeFontInfoUserDesc(wxString("consolas 8"));  //consolas 8 is apparently the one most identical to linux courier 8 and IDL X11 default font.
     if (!ok) systemFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ; 
 #endif
@@ -949,9 +959,6 @@ void GDLWidget::Init()
   //initially defaultFont and systemFont are THE SAME.
   defaultFont=systemFont;
   SetWxStarted();
-#ifndef __WXMAC__  
-  wxGetApp().OnInit();
-#endif
   //initialize default image lists for trees:
   // Make an image list containing small icons
   wxSize ImagesSize(DEFAULT_TREE_IMAGE_SIZE,DEFAULT_TREE_IMAGE_SIZE);
@@ -967,7 +974,12 @@ void GDLWidget::Init()
   gdlDefaultTreeStateImages->Add(wxIcon(pixmap_checked)); //gdlWxTree_UNCHECKED
   //create wxIcon HERE and not before wxWidgets is started!
   wxgdlicon = wxIcon(gdlicon_xpm);
-}
+  //use a phantom window to retrieve the exact size of scrollBars wxWidget give wrong values.
+  gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
+   test->Hide();
+   test->Realize();
+   test->Destroy();
+  }
 //ResetWidgets
 void GDLWidget::ResetWidgets() {
   //Delete current widgets --- complicated, use utility procedure
@@ -984,7 +996,7 @@ void GDLWidget::ResetWidgets() {
 #ifdef __WXMAC__
   wxTheApp->Yield();
 #else
-  wxGetApp().MainLoop(); //central loop for wxEvents!
+  wxGetApp().MyLoop(); //central loop for wxEvents!
 #endif
 }
 // UnInit
@@ -6108,12 +6120,10 @@ gdlwxPlotPanel::gdlwxPlotPanel( gdlwxPlotFrame* parent) //, wxWindowID id, const
 
 void gdlwxGraphicsPanel::RepaintGraphics(bool doClear) {
   wxClientDC dc(this); //is a scrolled window: needed
-  DoPrepareDC(dc); //you probably do not want to call wxScrolled::PrepareDC() on wxAutoBufferedPaintDC as it already does this internally for the real underlying wxPaintDC.
-//  dc.SetDeviceClippingRegion(GetUpdateRegion());
+//  DoPrepareDC(dc); //you probably do not want to call wxScrolled::PrepareDC() on wxAutoBufferedPaintDC as it already does this internally for the real underlying wxPaintDC.
+////  dc.SetDeviceClippingRegion(GetUpdateRegion());
   if (doClear) dc.Clear();
-  dc.Blit(0, 0, drawSize.x, drawSize.y, wx_dc, 0, 0);
-//  this->Refresh();
-//  this->Update();
+  this->Refresh(); //--> will call PAINT EVENT, this one will blit and work.
 }
 
 ////Stem for generalization of Drag'n'Drop, a WIDGET_DRAW can receive drop events from something else than a tree widget...
@@ -6267,8 +6277,6 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex,
 
   //these widget specific events are always set:
    this->AddToDesiredEvents( wxEVT_PAINT, wxPaintEventHandler(gdlwxDrawPanel::OnPaint),draw);
-   this->AddToDesiredEvents( wxEVT_PAINT, wxPaintEventHandler(gdlwxDrawPanel::OnPaint),draw);
-//   this->AddToDesiredEvents( wxEVT_SIZE,  wxSizeEventHandler(gdlwxDrawPanel::OnSize),draw);
    //disable flicker see https://wiki.wxwidgets.org/Flicker-Free_Drawing
    this->AddToDesiredEvents( wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(gdlwxDrawPanel::OnErase),draw);
 
@@ -6460,34 +6468,17 @@ void GDLWidgetDraw::SetWidgetScreenSize(DLong sizex, DLong sizey) {
 // So we rely only on doing nothing and call Yield() , that works, fingers crossed.
 // Really strange but wxWidgets is not well documented (who is?)
 #ifndef __WXMAC__ 
-
-#include "wx/evtloop.h"
-#include "wx/ptr_scpd.h"
-wxDEFINE_TIED_SCOPED_PTR_TYPE(wxEventLoop);
-
-bool wxAppGDL::OnInit()
-{ 
-  //use a phantom window to retrieve the exact size of scrollBars wxWidget give wrong values.
-   gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
-   test->Hide();
-   test->Realize();
-   test->Destroy();
-  return true;
-}
-
-int wxAppGDL::MainLoop() {
-  wxEventLoopTiedPtr mainLoop((wxEventLoop **) & m_mainLoop, new wxEventLoop);
-  m_mainLoop->SetActive(m_mainLoop);
-  loop = this->GetMainLoop();
-//  std::cerr<<loop<<std::endl;
-  if (loop) {
-    if (loop->IsRunning()) {
-      while (loop->Pending()) // Unprocessed events in queue
-      {
-        loop->Dispatch(); // Dispatch next event in queue
+int wxAppGDL::MyLoop() {
+    if (loop.IsOk()) {
+//      std::cerr<<&loop<<std::endl;
+      loop.SetActive(&loop);
+      if (loop.IsRunning()) {
+        while (loop.Pending()) // Unprocessed events in queue
+        {
+          loop.Dispatch(); // Dispatch next event in queue
+        }
       }
     }
-  }
   return 0;
 }
 #endif
