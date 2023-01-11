@@ -13,20 +13,27 @@ pro test_delvarrnew
  printf,lunw,"	exit & endif"
  printf,lunw,"i=1 & j=2 & k=3"
  printf,lunw,".rnew rnewtest"
- printf,lunw,"if(size(i,/type) + size(j,/type) +size(k,/type) eq 0) then print,'ALRIGHT' else $"
- printf,lunw,"   print,'FAILURE'"
+ printf,lunw,"if(size(i,/type) + size(j,/type) +size(k,/type) eq 0) then print,'ALRIGHT' else print,'FAILURE'"
  printf,lunw,""
  printf,lunw,"exit, status=0"
  free_lun,lunw
+
  openw,lunw,/get,'rnewtest.pro'
- printf,lunw,"; RNEW testproc"
  printf,lunw,"delvar,i,j,k,igstr"
  printf,lunw,"end"
  free_lun,lunw
-; resuming copy of test_delvarrnew.pp.pro
+
 ; now that the dependent files are written to the current directory,
 ; execute them
-  spawn,'../src/gdl -quiet ./delvarrnew.pro', result & nres=n_elements(result)
+  if !version.os_family ne 'Windows' then begin
+    spawn,'../src/gdl -quiet ./delvarrnew.pro', result & nres=n_elements(result)
+  endif else begin
+    spawn,'..\src\gdl -quiet delvarrnew.pro', result & nres=n_elements(result)
+  endelse
+  
+  stop
+  file_delete,'delvarrnew.pro'
+  file_delete,'rnewtest.pro'
   if nres lt 2 then exit, status=1
 
   if(result[nres-1] eq 'FAILURE') then exit, status=1
