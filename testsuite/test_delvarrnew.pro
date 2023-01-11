@@ -31,7 +31,6 @@ pro test_delvarrnew
     spawn,'..\src\gdl -quiet delvarrnew.pro', result & nres=n_elements(result)
   endelse
   
-  stop
   file_delete,'delvarrnew.pro'
   file_delete,'rnewtest.pro'
   if nres lt 2 then exit, status=1
