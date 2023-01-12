@@ -939,7 +939,9 @@ bool GDLWidget::InitWx() {
   //See #1470 and https://groups.google.com/g/wx-dev/c/fY8WeIDD35I
 #ifdef __WXGTK__
 //  std::cerr<<"Suppressing annoying GTK Diagnostics.\n";
+#ifndef __WXMAC__
   wxGetApp().GTKSuppressDiagnostics();
+#endif
 #endif
   return true;
 }
