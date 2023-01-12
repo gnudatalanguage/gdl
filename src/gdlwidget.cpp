@@ -937,8 +937,8 @@ bool GDLWidget::InitWx() {
   wxInitAllImageHandlers(); //do it here once for all
   
   //See #1470 and https://groups.google.com/g/wx-dev/c/fY8WeIDD35I
-#ifdef __WXGTK__
-//  std::cerr<<"Suppressing annoying GTK Diagnostics.\n";
+#ifdef __WXGTK3__
+//  std::cerr<<"Suppressing annoying GTK3 Diagnostics.\n";
 #ifndef __WXMAC__
   wxGetApp().GTKSuppressDiagnostics();
 #endif
