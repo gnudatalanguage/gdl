@@ -936,11 +936,13 @@ bool GDLWidget::InitWx() {
   if(d->GetCount()<1) return false;
   wxInitAllImageHandlers(); //do it here once for all
   
+#if wxCHECK_VERSION(3,1,6)
   //See #1470 and https://groups.google.com/g/wx-dev/c/fY8WeIDD35I
-#ifdef __WXGTK3__
+#if defined ( __WXGTK3__) 
 //  std::cerr<<"Suppressing annoying GTK3 Diagnostics.\n";
 #ifndef __WXMAC__
   wxGetApp().GTKSuppressDiagnostics();
+#endif
 #endif
 #endif
   return true;
