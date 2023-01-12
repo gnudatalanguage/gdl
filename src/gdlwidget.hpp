@@ -419,7 +419,13 @@ public:
    defaultFont=thefont;
   }
   static BaseGDL * getSystemColours();
-
+  static void CallWXEventLoop(){
+#ifdef __WXMAC__
+    wxTheApp->Yield();
+#else
+    wxGetApp().MyLoop(); //central loop for wxEvents!
+#endif
+  }
 protected:
   
 

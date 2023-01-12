@@ -2492,11 +2492,7 @@ BaseGDL* widget_info( EnvT* e ) {
 
     do { // outer while loop, will run once if NOWAIT
    while (1) { //inner loop, catch controlC, default return if no event trapped in nowait mode
-#ifdef __WXMAC__
-  wxTheApp->Yield();
-#else
-  wxGetApp().MyLoop(); //central loop for wxEvents!
-#endif
+   GDLWidget::CallWXEventLoop();
         if (!all) {
           //specific widget(s)
           // we cannot check only readlineEventQueue thinking our XMANAGER in blocking state looks to ALL widgets.
