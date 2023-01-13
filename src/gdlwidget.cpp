@@ -6055,7 +6055,6 @@ void gdlwxPhantomFrame::Realize() {
 // Frame for Plots ========================================================
 gdlwxPlotFrame::gdlwxPlotFrame( const wxString& title , const wxPoint& pos, const wxSize& size, long style, bool scrolled_)
 : wxFrame( NULL, wxID_ANY, title, pos, size, style )
-, frameSize(size)
 , scrolled(scrolled_)
 {
   m_resizeTimer = new wxTimer(this,RESIZE_PLOT_TIMER);

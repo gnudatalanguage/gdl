@@ -2069,7 +2069,6 @@ class gdlwxPhantomFrame : public wxFrame {
 // basic for (completely separated from widgets) plot windows done with wxWidgets driver.
 class gdlwxPlotFrame : public wxFrame {
  wxTimer * m_resizeTimer;
- wxSize frameSize;
  bool scrolled;
 public:
  // ctor(s)
@@ -2113,6 +2112,7 @@ public:
  void DeleteUsingWindowNumber();
  void SetStream(GDLWXStream* s);
 
+ void OnErase(wxEraseEvent& event);
  void OnPaint(wxPaintEvent& event);
  virtual void OnPlotWindowSize(wxSizeEvent &event);
  
