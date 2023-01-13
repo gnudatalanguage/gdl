@@ -174,12 +174,8 @@ if(hide) {
   //    plotFrame->UpdateWindowUI(); not useful
   plotFrame->Raise();
   plotFrame->Refresh();
-  //really show by letting the loop do its magic. Necessary.
-//#ifdef __WXMAC__
-//  wxTheApp->Yield();
-//#else
-//  wxGetApp().MyLoop(); //central loop for wxEvents!
-//#endif
+  //really show by letting the loop do its magic. Necessary ?.
+//  CallWXEventLoop();
    }
    
   // these widget specific events are always set:

@@ -567,11 +567,8 @@ void GDLWidget::UpdateGui()
   this->GetMyTopLevelFrame()->Refresh();
 //  this->GetMyTopLevelFrame()->Update();
   END_CHANGESIZE_NOEVENT
-//#ifdef __WXMAC__
-//  wxTheApp->Yield();
-//#else
-//  wxGetApp().MyLoop(); //central loop for wxEvents!
-//#endif
+  //really show by letting the loop do its magic. Necessary ?.
+//  CallWXEventLoop();
 }
 
 //Alternate version if there were sizing problems with the one above.
@@ -771,11 +768,7 @@ void GDLWidget::ClearEvents() {
 void GDLWidget::HandleWidgetEvents()
 {
   //make one loop for wxWidgets Events. Forcibly, as HandleWidgetEvents() is called by the readline eventLoop, we are in a non-blocked case.
-#ifdef __WXMAC__
-  wxTheApp->Yield();
-#else
-  wxGetApp().MyLoop(); //central loop for wxEvents!
-#endif
+  CallWXEventLoop();
   //treat our GDL events...
     DStructGDL* ev = NULL;
     while( (ev = GDLWidget::readlineEventQueue.Pop()) != NULL)
@@ -942,6 +935,16 @@ bool GDLWidget::InitWx() {
   wxDisplay *d= new wxDisplay();
   if(d->GetCount()<1) return false;
   wxInitAllImageHandlers(); //do it here once for all
+  
+#if wxCHECK_VERSION(3,1,6)
+  //See #1470 and https://groups.google.com/g/wx-dev/c/fY8WeIDD35I
+#if defined ( __WXGTK3__) 
+//  std::cerr<<"Suppressing annoying GTK3 Diagnostics.\n";
+#ifndef __WXMAC__
+  wxGetApp().GTKSuppressDiagnostics();
+#endif
+#endif
+#endif
   return true;
 }
 // Init
@@ -993,11 +996,7 @@ void GDLWidget::ResetWidgets() {
   BaseGDL::interpreter->CallStack().push_back(newEnv);
   BaseGDL::interpreter->call_pro(static_cast<DSubUD*> (newEnv->GetPro())->GetTree());
   //really remove widgets from screen
-#ifdef __WXMAC__
-  wxTheApp->Yield();
-#else
-  wxGetApp().MyLoop(); //central loop for wxEvents!
-#endif
+  CallWXEventLoop();
 }
 // UnInit
 void GDLWidget::UnInit() {
