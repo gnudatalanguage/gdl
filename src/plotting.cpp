@@ -818,14 +818,14 @@ namespace lib
 
     // is one of the 2 "arrays" a singleton or not ?
 
-    PLFLT y, yMapBefore, y_ref;
+    PLFLT y=0;
     int flag_y_const=0;
-    y_ref=static_cast<PLFLT>((*yVal)[0]);
+    PLFLT y_ref=static_cast<PLFLT>((*yVal)[0]);
     if ( yVal->N_Elements()==1&&yVal->Rank()==0 ) flag_y_const=1;
 
-    PLFLT x, x1, xMapBefore, x_ref;
+    PLFLT x=0;
     int flag_x_const=0;
-    x_ref=static_cast<PLFLT>((*xVal)[0]);
+    PLFLT x_ref=static_cast<PLFLT>((*xVal)[0]);
     if ( xVal->N_Elements()==1&&xVal->Rank()==0 ) flag_x_const=1;
 
     // AC 070601 we use a buffer to use the fast ->line method
