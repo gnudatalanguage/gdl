@@ -220,6 +220,7 @@ namespace lib {
   void set_mapset(bool mapset);
 #ifdef USE_LIBPROJ
   void GDLgrProjectedPolygonPlot(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, bool isRadians, bool const doFill, bool const doLines, DLongGDL *conn = NULL);
+  DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, DDoubleGDL *zVal, bool isRadians, bool const doFill, bool const dolines, DLongGDL *&conn);
 #endif
   //3D conversions
   void SelfTranspose3d(DDoubleGDL* me);
@@ -255,7 +256,6 @@ namespace lib {
   void draw_polyline(GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal, DLong psym = 0, bool append = false, DLongGDL *color = NULL);
   void SelfNormLonLat(DDoubleGDL *lonlat);
   void SelfPDotTTransformProjectedPolygonTable(DDoubleGDL *lonlat);
-  DDoubleGDL* GDLgrGetProjectPolygon(GDLGStream * a, PROJTYPE ref, DStructGDL* map, DDoubleGDL *lons, DDoubleGDL *lats, DDoubleGDL *zVal, bool isRadians, bool const doFill, bool const dolines, DLongGDL *&conn);
   void GDLgrPlotProjectedPolygon(GDLGStream * a, DDoubleGDL *lonlat, bool const doFill, DLongGDL *conn);
   void gdlSetGraphicsPenColorToBackground(GDLGStream *a);
   void gdlLineStyle(GDLGStream *a, DLong style);
