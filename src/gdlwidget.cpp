@@ -6113,16 +6113,9 @@ gdlwxPlotPanel::gdlwxPlotPanel( gdlwxPlotFrame* parent) //, wxWindowID id, const
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "gdlwxPlotPanel::gdlwxPlotPanel(" << this << ") called."<< std::endl;
 #endif
-    this->SetBackgroundColour(*wxBLACK);
+//    this->SetBackgroundColour(*wxBLACK);
 }
 
-void gdlwxGraphicsPanel::RepaintGraphics(bool doClear) {
-  wxClientDC dc(this); //is a scrolled window: needed
-//  DoPrepareDC(dc); //you probably do not want to call wxScrolled::PrepareDC() on wxAutoBufferedPaintDC as it already does this internally for the real underlying wxPaintDC.
-////  dc.SetDeviceClippingRegion(GetUpdateRegion());
-  if (doClear) dc.Clear();
-  this->Refresh(); //--> will call PAINT EVENT, this one will blit and work.
-}
 
 ////Stem for generalization of Drag'n'Drop, a WIDGET_DRAW can receive drop events from something else than a tree widget...
 //bool DnDText::OnDropText(wxCoord x, wxCoord y, const wxString& text)
@@ -6163,12 +6156,13 @@ void gdlwxDrawPanel::InitStream(int wIx)
 
 void gdlwxGraphicsPanel::ResizeDrawArea(wxSize s)
 {
+  if (drawSize.x == s.x & drawSize.y == s.y) return; //VERY important , was one problem in #1471
   bool doClear=false; 
   if (drawSize.x > s.x || drawSize.y > s.y ) doClear=true; 
   drawSize=s;
   this->SetVirtualSize(drawSize);
   pstreamP->SetSize(drawSize);
-  RepaintGraphics(doClear);
+  Refresh(); //--> will call PAINT EVENT, this one will blit and work.
 } 
 
 gdlwxPlotPanel::~gdlwxPlotPanel()
@@ -6275,8 +6269,8 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex,
 
   //these widget specific events are always set:
    this->AddToDesiredEvents( wxEVT_PAINT, wxPaintEventHandler(gdlwxDrawPanel::OnPaint),draw);
-   //disable flicker see https://wiki.wxwidgets.org/Flicker-Free_Drawing
-   this->AddToDesiredEvents( wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(gdlwxDrawPanel::OnErase),draw);
+//   //disable flicker see https://wiki.wxwidgets.org/Flicker-Free_Drawing
+//   this->AddToDesiredEvents( wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(gdlwxDrawPanel::OnErase),draw);
 
   //other set event handling according to flags
   if (eventFlags & GDLWidget::EV_MOTION) this->AddToDesiredEvents( wxEVT_MOTION, wxMouseEventHandler(gdlwxDrawPanel::OnMouseMove),draw);

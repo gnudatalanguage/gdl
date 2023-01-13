@@ -929,8 +929,6 @@ void gdlwxPlotFrame::OnPlotSizeWithTimer(wxSizeEvent& event) {
     wxMessageOutputStderr().Printf(_T("gdlwxPlotFrame::OnPlotSizeWithTimer: handle new size \n"));
 #endif
     m_resizeTimer->Stop(); //StartOnce(1);
-    wxTimerEvent t(*m_resizeTimer);
-    OnTimerPlotResize(t);
   }
 }
 // 2) actual resize when mouse released

@@ -2119,7 +2119,6 @@ public:
 // virtual bool isPlot() const {return false;}
 
 
- void RepaintGraphics(bool doClear = false);
  virtual void RaisePanel()  {}
  virtual void LowerPanel()  {}
  virtual void IconicPanel()    {}
