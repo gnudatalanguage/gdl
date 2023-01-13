@@ -25,7 +25,7 @@
 #include "dstructgdl.hpp"
 #include "gdlwidget.hpp"
 
-  #define GDL_DEBUG_ALL_EVENTS 1
+//  #define GDL_DEBUG_ALL_EVENTS 1
 //  #define GDL_DEBUG_MOVE_EVENTS 1
 //  #define GDL_DEBUG_KBRD_EVENTS 1
 //  #define GDL_DEBUG_TIMER_EVENTS 1
