@@ -807,7 +807,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   if (e->KeywordPresent(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP) ;
   GDLWidgetDraw* draw=new GDLWidgetDraw( parentID, e, -1, x_scroll_size, y_scroll_size, app_scroll, eventFlags, tooltipgdl);
   if (draw->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) draw->SetWidgetType( GDLWidget::WIDGET_DRAW );
-  if (keyboard_events) draw->SetFocus();
+//  if (keyboard_events) draw->SetFocus(); //cannot set focus on this one when there are others. Not here anyway!
   #ifdef GDL_DEBUG_WIDGETS
     cerr<<"WIDGET_DRAW "+i2s(draw->GetWidgetID( ))+" OK.\n";
   #endif
@@ -1895,12 +1895,16 @@ BaseGDL* widget_info( EnvT* e ) {
   
   //debug is used for the moment to list all windows hierarchy for debug purposes.
   if (debug) {
-      DLongGDL* res = static_cast<DLongGDL*>( GDLWidget::GetWidgetsList( ) );
-      Guard<BaseGDL> guard_res(res);
-      std::cerr<<" wxstarted: "<<GDLWidget::wxIsStarted()<<std::endl;
-      std::cerr<<" widgets:\n"; for ( SizeT i = 0; i < res->N_Elements(); i++ ) cerr<<(*res)[i]<<","; std::cerr<<std::endl;
-//     std::cerr<<"metrics:\n"; for ( SizeT i = 0; i < wxSYS_DCLICK_MSEC; i++ ) cerr<<wxSystemSettings::GetMetric((wxSystemMetric)i)<<std::endl;
-      return new DLongGDL( (GDLWidget::GetNumberOfWidgets( ) > 0)?1:0 );
+      DLongGDL* wid = static_cast<DLongGDL*>( GDLWidget::GetWidgetsList( ) );
+      Guard<BaseGDL> guard_wid(wid);
+      DStringGDL* res = new DStringGDL(wid->N_Elements());
+      for ( SizeT i = 0; i < wid->N_Elements(); i++ ) {
+        GDLWidget *widget = GDLWidget::GetWidget( (*wid)[i] );
+        std::stringstream os;
+        os<<(*wid)[i]<<"("<<widget->GetWidgetName()<<"@"<< std::hex << widget->GetWxWidget() << "), "; 
+        (*res)[i]=os.str();
+      }
+      return res;
   }
   
   // Returns a String, empty if no result:
