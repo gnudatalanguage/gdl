@@ -181,14 +181,15 @@ if(hide) {
   // these widget specific events are always set:
     plot->Connect(wxEVT_PAINT, wxPaintEventHandler(gdlwxGraphicsPanel::OnPaint));
     //disable flicker see https://wiki.wxwidgets.org/Flicker-Free_Drawing
-    plot->Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(gdlwxDrawPanel::OnErase));
+    plot->Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(gdlwxGraphicsPanel::OnErase));
 
     plotFrame->Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(gdlwxPlotFrame::OnUnhandledClosePlotFrame));
-#ifdef __WXMSW__
+    //OnPlotSizeWithTimer does not work on GNOME. OnPlotWindowSize works.
+//#ifdef __WXMSW__
     plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotWindowSize)); //Timer resize do not work on MSW
-#else
-      plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
-#endif
+//#else
+//      plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
+//#endif
     return true;
  }
 
