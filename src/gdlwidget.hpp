@@ -921,9 +921,12 @@ public:
    if (w != NULL)
     w->OnRealize();
   }
-  topFrame->Fit();
-  topFrame->refreshFrameSize();
   DoMapAsRequested();
+
+    topFrame->Fit();
+    topFrame->SetClientSize(topFrame->GetClientSize());
+    topFrame->refreshFrameSize();
+
   ConnectToDesiredEvents();
   
   if (notifyRealize != "") { //insure it is called once only for this.

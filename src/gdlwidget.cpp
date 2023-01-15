@@ -1329,7 +1329,7 @@ void GDLWidgetTopBase::Realize(bool map, bool use_default) {
 
   OnRealize();
 
- if (map) topFrame->Show() ; //endShowRequestEvent();
+  if (map) topFrame->Show() ; //endShowRequestEvent();
   else topFrame->Hide(); //SendHideRequestEvent();
   realized = true;
 }
@@ -2473,6 +2473,7 @@ GDLWidgetTab::GDLWidgetTab( WidgetIDT p, EnvT* e, ULong eventFlags_, DLong locat
     theWxContainer = theWxWidget = notebook;
     if (parentSizer) parentSizer->Add(notebook,DONOTALLOWSTRETCH,widgetAlignment()|wxALL, gdlSPACE);
   }
+  notebook->SetPadding(wxSize(0,0));
   //wxNotebook DOES NOT USE a sizer.
   this->AddToDesiredEvents(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,wxNotebookEventHandler(gdlwxFrame::OnPageChanged),notebook);
 }
@@ -2511,19 +2512,30 @@ BaseGDL* GDLWidgetTab::GetTabMultiline(){
 //special as wxNotebook DOES NOT RECOMPILE ITS SIZE BEFORE REALIZATION.
 void GDLWidgetTab::OnRealize(){
   GDLWidgetContainer::OnRealize();
-  std::cerr<<".";
   wxNotebook * nb=dynamic_cast<wxNotebook*>(theWxWidget);
   assert( nb != NULL);
-  nb->InvalidateBestSize();
   size_t n=nb->GetPageCount();
-  wxSize s(-1,1);
-  for (auto i=0; i<n; ++i) {
-    wxWindow* w=nb->GetPage(i);
-    wxSize s_tmp=w->GetBestSize();
-    s.x = MAX(s.x, s_tmp.x);
-    s.y = MAX(s.y, s_tmp.y);
+  if (n > 1) {
+    wxSize s=nb->GetSize();
+    //insure larger enough to see tab changer
+    if (s.x < 100) {
+      s.x=100;
+      nb->SetMinSize(s);
+    }
   }
-  nb->SetMinSize(s);
+  
+//  nb->InvalidateBestSize();
+//  size_t n=nb->GetPageCount();
+//  for (auto i=0; i<n; ++i) {
+//    wxWindow* w=nb->GetPage(i);
+//    wxSize s_tmp=w->GetBestSize();
+//    s.x = MAX(s.x, s_tmp.x);
+//    s.y = MAX(s.y, s_tmp.y);
+//    std::cerr<<"s.x="<<s.x<<" from "<<s_tmp.x<<std::endl;
+//    std::cerr<<"s.y="<<s.y<<" from "<<s_tmp.y<<std::endl;
+//  }
+//  nb->SetMinSize(s);
+//  nb->SetMinClientSize(s);
 }
 
 
@@ -6073,6 +6085,7 @@ gdlwxPlotFrame::~gdlwxPlotFrame() {
 }
 
 void gdlwxPlotFrame::Realize() {
+ this->SetClientSize(this->GetClientSize());
 #ifdef GDL_DEBUG_WIDGETS
     wxMessageOutputStderr().Printf(_T("gdlwxPlotFrame:Realize\n"));
 #endif
