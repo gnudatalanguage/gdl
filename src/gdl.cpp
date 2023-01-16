@@ -214,7 +214,7 @@ namespace lib {
 
 }
 
-#include "whereami/src/whereami.h"
+#include "whereami/whereami.h"
 
 namespace MyPaths {
   std::string getExecutablePath(){
