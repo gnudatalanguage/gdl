@@ -394,7 +394,7 @@ int main(int argc, char *argv[])
 
   bool force_no_wxgraphics = false;
   usePlatformDeviceName=false;
-  forceWxWidgetsUglyFonts = false;
+  tryToMimicOriginalWidgets = false;
   useDSFMTAcceleration = true;
   iAmANotebook=false; //option --notebook
  #ifdef HAVE_LIBWXWIDGETS 
@@ -536,7 +536,7 @@ int main(int argc, char *argv[])
       }
       else if (string(argv[a]) == "--widget-compat")
       {
-          forceWxWidgetsUglyFonts = true;
+          tryToMimicOriginalWidgets = true;
       }      
 #ifdef _WIN32
       else if (string(argv[a]) == "--posix") lib::posixpaths=true;
@@ -596,7 +596,7 @@ int main(int argc, char *argv[])
   if (force_no_wxgraphics) useWxWidgetsForGraphics=false; //this has the last answer, whatever the setup.
 #endif  
   std::string doUseUglyFonts=GetEnvString("GDL_WIDGETS_COMPAT");
-  if ( doUseUglyFonts.length() > 0) forceWxWidgetsUglyFonts=true; 
+  if ( doUseUglyFonts.length() > 0) tryToMimicOriginalWidgets=true; 
   
   InitGDL(); 
 

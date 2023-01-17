@@ -954,7 +954,7 @@ bool GDLWidget::InitWx() {
 void GDLWidget::Init()
 {
  //set system font to something sensible now that wx is ON:
-  if (forceWxWidgetsUglyFonts)
+  if (tryToMimicOriginalWidgets)
     systemFont = wxFont(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL) ;//  identical for me to GDLWidget::setDefaultFont(wxFont("Monospace 8"));
 #ifdef __WXMSW__ //update for windows:
     bool ok=systemFont.SetNativeFontInfoUserDesc(wxString("consolas 8"));  //consolas 8 is apparently the one most identical to linux courier 8 and IDL X11 default font.
@@ -1763,7 +1763,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
     wxBoxSizer* sz_inside=panelsz;
     wxPanel* frame_inside=frame;
     DLong newframewidth=frameWidth;
-    if (frameWidth > 10) {
+    if (frameWidth > 10 &&  tryToMimicOriginalWidgets ) {
       newframewidth=frameWidth/2;
       frame->SetBackgroundColour(*wxBLACK); //will show a strong frame as does IDL
 // Fancy variant:
@@ -1780,7 +1780,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       padxpady->SetBackgroundColour(wxColour(0xa7, 0x3d, 0x0f)); //orange fonce
 #else
-      padxpady->SetBackgroundColour(wxColour(sysPanelDefaultColour));
+      if (tryToMimicOriginalWidgets ) padxpady->SetBackgroundColour(wxColour(sysPanelDefaultColour));
 #endif
       wxGridBagSizer* sz = new wxGridBagSizer(ypad, xpad);
       padxpady->SetSizer(sz);
@@ -1808,7 +1808,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
 #else
-      widgetPanel->SetBackgroundColour(wxColour(sysPanelDefaultColour));
+      if (tryToMimicOriginalWidgets ) widgetPanel->SetBackgroundColour(wxColour(sysPanelDefaultColour));
 #endif
       //    widgetPanel->SetVirtualSize(wSize);
       widgetPanel->SetSize(wScrollSize);

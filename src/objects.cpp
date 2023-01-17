@@ -107,7 +107,7 @@ volatile bool iAmANotebook;
 //do we use name Devices differently among platforms?
 volatile bool usePlatformDeviceName;
 // do we force fonts to be the ugly IDL fonts?
-volatile bool forceWxWidgetsUglyFonts;
+volatile bool tryToMimicOriginalWidgets;
 //do we use our own copy of (better?) drivers?
 volatile bool useLocalDrivers;
 //do we favor SIMD-accelerated random number generation?

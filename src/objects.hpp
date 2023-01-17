@@ -78,7 +78,7 @@ extern volatile bool useWxWidgets;
 // tells if wxwidgets backend for graphics is to be used...
 extern volatile bool useWxWidgetsForGraphics;
 // do we force fonts to be the ugly IDL fonts?
-extern volatile bool forceWxWidgetsUglyFonts;
+extern volatile bool tryToMimicOriginalWidgets;
 //do we favor SIMD-accelerated random number generation?
 extern volatile bool useDSFMTAcceleration;
 //do we use our own copy of (better?) drivers?
