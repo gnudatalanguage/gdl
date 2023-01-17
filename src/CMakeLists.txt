@@ -196,10 +196,12 @@ ${WX_RC}
 endif(HAVE_LIBWXWIDGETS AND WIN32)
 #local plplot drivers
 add_subdirectory(plplotdriver)
+#whereami
+add_subdirectory(whereami)
 
 add_subdirectory(antlr)
 
-include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_SOURCE_DIR}/src/plplotdriver ${CMAKE_BINARY_DIR})
+include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_SOURCE_DIR}/src/plplotdriver ${CMAKE_SOURCE_DIR}/src/whereami ${CMAKE_BINARY_DIR})
 link_directories(${LINK_DIRECTORIES})
 
 if(PYTHON_MODULE) #GDL.so
@@ -217,8 +219,8 @@ if(USE_OPENMP)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif(USE_OPENMP)
 
-add_dependencies(gdl antlr) # be sure that antlr is built before gdl
-target_link_libraries(gdl antlr) # link antlr against gdl
+add_dependencies(gdl antlr whereami) # be sure that antlr is built before gdl
+target_link_libraries(gdl antlr whereami) # link antlr against gdl
 if (MINGW)
 target_link_libraries(gdl ws2_32)
 endif (MINGW)
