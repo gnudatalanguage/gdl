@@ -784,7 +784,7 @@ int output_qhull_voronoi_local(Qhull* qhull, ostream* out, const char *outputfla
         func = e->GetParAs<DDoubleGDL>(3);     //input function
         tetra_list = e->GetParAs<DLongGDL>(4); //indices of tetrahedra vertices from qhull
 
-        int inDim = e->GetParAs<DDoubleGDL>(0)->Dim(0);
+        SizeT inDim = e->GetParAs<DDoubleGDL>(0)->Dim(0);
         p0 = new DDoubleGDL( *(new dimension(3, inDim)), BaseGDL::ZERO ); //concatenation of the 3 separate inputs arrays
 
         for(int i=0; i<3; i++)
@@ -794,7 +794,7 @@ int output_qhull_voronoi_local(Qhull* qhull, ostream* out, const char *outputfla
           {
             e->Throw("separated input arrays must have same length and be 1 dimensional");
           }
-          for(int j=0; j<inDim; j++) (*p0)[i+j*3] = (*par)[j];
+          for(SizeT j=0; j<inDim; j++) (*p0)[i+j*3] = (*par)[j];
         }
     }
 
@@ -819,9 +819,9 @@ int output_qhull_voronoi_local(Qhull* qhull, ostream* out, const char *outputfla
 
     // putting input points in a vector...
     vector<Vec3> points;
-    points.reserve(np);
+    points.resize(np);
 
-    for (int i =0; i < np; i++)
+    for (size_t i =0; i < np; i++)
     {
       points[i] = { (*p0)[3*i], (*p0)[3*i+1], (*p0)[3*i+2] };
       //TODO handle not finite values
@@ -829,7 +829,7 @@ int output_qhull_voronoi_local(Qhull* qhull, ostream* out, const char *outputfla
 
     // vector holding all necessary info on the triangulation
     vector<Tetra> tetra_data;
-    tetra_data.reserve(n_tetra);
+    tetra_data.resize(n_tetra);
     
     // directly available info
     array<int,4> empty_neighbours {-1,-1,-1,-1};
@@ -848,7 +848,7 @@ int output_qhull_voronoi_local(Qhull* qhull, ostream* out, const char *outputfla
     // TOO SLOW, FIND ANOTHER METHOD
 
     vector<int> tetra_neigh_count(n_tetra, 0);
-    tetra_neigh_count.reserve(n_tetra);
+    tetra_neigh_count.resize(n_tetra);
     
     for(int i=0; i<n_tetra; ++i)
     {
