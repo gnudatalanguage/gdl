@@ -300,6 +300,9 @@ inline int GDLWidget::widgetAlignment()
   long expand=wxEXPAND;
   if (this->IsLabel()) expand=0; //labels are not expanded 
   if (this->IsDraw()) expand=0; //draw are not expanded 
+  if (this->IsDropList()) expand=0; //droplists are not expanded 
+  if (this->IsNormalBase()) expand=0; 
+  if (this->IsTabbedBase()) expand=0; //apparently IsTabbedBase() is not set even if base is a Tabbed base???
   if (myAlign == gdlwALIGN_NOT) return expand|wxALIGN_LEFT|wxALIGN_TOP;
   //left is top by default and right is bottom. So define left as top and remove top if bottom, etc.
   //ignore sets that do not concern the current layout (vetrtical or horizontal)
@@ -977,7 +980,8 @@ void GDLWidget::Init()
   gdlDefaultTreeStateImages->Add(wxIcon(pixmap_checked)); //gdlWxTree_UNCHECKED
   //create wxIcon HERE and not before wxWidgets is started!
   wxgdlicon = wxIcon(gdlicon_xpm);
-  //use a phantom window to retrieve the exact size of scrollBars wxWidget give wrong values.
+  //use a phantom window to retrieve the exact size of scrollBars (wxWidget give wrong values).
+  //Also get normal panel color
   gdlwxPhantomFrame* test = new gdlwxPhantomFrame();
    test->Hide();
    test->Realize();
@@ -1752,35 +1756,31 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
   bool doFrame=true; //!(this->IsTopBase()); //IDL Prevents topBases to be framed (?).
   if (doFrame && frameWidth > 0) {
     wxScrolled<wxPanel>* frame = new wxScrolled<wxPanel>(parent, wxID_ANY, wOffset, wxDefaultSize, gdlBORDER_EXT); 
-    frame->SetBackgroundColour(*wxBLACK);
     theWxContainer=frame;
-#ifdef GDL_DEBUG_WIDGETS_COLORIZE
-    frame->SetBackgroundColour(wxColour(0x60, 0xe0, 0x94)); //vert clair
-#endif
     wxBoxSizer* panelsz = new wxBoxSizer(wxVERTICAL);
     frame->SetSizer(panelsz);
-// Fancy variant:
-    int mode = wxBORDER_NONE;
-    int width = 2; //the size of wxBORDER_SUNKEN
-    if (frameWidth > 2) {
-      mode = wxBORDER_SIMPLE;
-      width = 3;
-    }
-    if (frameWidth > 3) {
-      mode = wxBORDER_RAISED;
-      width = 4;
-    }
-    wxPanel* frame_inside = new wxPanel(frame, wxID_ANY, wxDefaultPosition, wxDefaultSize, mode);
-    frame_inside->SetBackgroundColour(*wxLIGHT_GREY);
-    panelsz->Add(frame_inside, FRAME_ALLOWSTRETCH, wxALL, frameWidth/2);
 
-    wxBoxSizer* sz_inside = new wxBoxSizer(wxVERTICAL);
-    frame_inside->SetSizer(sz_inside);
-//    widgetPanel = new wxScrolledWindow(frame_inside, wxID_ANY, wOffset, wxDefaultSize); 
+    wxBoxSizer* sz_inside=panelsz;
+    wxPanel* frame_inside=frame;
+    DLong newframewidth=frameWidth;
+    if (frameWidth > 10) {
+      newframewidth=frameWidth/2;
+      frame->SetBackgroundColour(*wxBLACK); //will show a strong frame as does IDL
+// Fancy variant:
+      int mode = wxBORDER_NONE;
+      frame_inside = new wxPanel(frame, wxID_ANY, wxDefaultPosition, wxDefaultSize, mode);
+      frame_inside->SetBackgroundColour(*wxLIGHT_GREY);
+      panelsz->Add(frame_inside, FRAME_ALLOWSTRETCH, wxALL, newframewidth);
+
+      sz_inside = new wxBoxSizer(wxVERTICAL);
+      frame_inside->SetSizer(sz_inside);
+    } 
     if (xpad > 0 || ypad > 0) {
       wxScrolled<wxPanel>* padxpady = new wxScrolled<wxPanel>(frame_inside);
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       padxpady->SetBackgroundColour(wxColour(0xa7, 0x3d, 0x0f)); //orange fonce
+#else
+      padxpady->SetBackgroundColour(wxColour(sysPanelDefaultColour));
 #endif
       wxGridBagSizer* sz = new wxGridBagSizer(ypad, xpad);
       padxpady->SetSizer(sz);
@@ -1801,13 +1801,14 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
         padxpady->SetScrollbars(gdlSCROLL_RATE, gdlSCROLL_RATE, wSize.x / gdlSCROLL_RATE, wSize.y / gdlSCROLL_RATE);
         padxpady->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
       }
-      sz_inside->Add(padxpady, FRAME_ALLOWSTRETCH, wxALL | wxEXPAND, frameWidth/2);//gdlFRAME_MARGIN);
+      sz_inside->Add(padxpady, FRAME_ALLOWSTRETCH, wxALL | wxEXPAND, newframewidth);//gdlFRAME_MARGIN);
       sz_inside->Fit(padxpady);
     } else {
       widgetPanel = new wxScrolledWindow(frame_inside, widgetID, wOffset, wxDefaultSize);
-      widgetPanel->SetBackgroundColour(*wxWHITE);
 #ifdef GDL_DEBUG_WIDGETS_COLORIZE
       widgetPanel->SetBackgroundColour(RandomWxColour());
+#else
+      widgetPanel->SetBackgroundColour(wxColour(sysPanelDefaultColour));
 #endif
       //    widgetPanel->SetVirtualSize(wSize);
       widgetPanel->SetSize(wScrollSize);
@@ -1817,7 +1818,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
         widgetPanel->SetScrollbars(gdlSCROLL_RATE, gdlSCROLL_RATE, wSize.x / gdlSCROLL_RATE, wSize.y / gdlSCROLL_RATE);
         widgetPanel->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
       }
-      sz_inside->Add(widgetPanel, FRAME_ALLOWSTRETCH, wxALL | wxEXPAND, frameWidth/2);//gdlFRAME_MARGIN);
+      sz_inside->Add(widgetPanel, FRAME_ALLOWSTRETCH, wxALL | wxEXPAND, newframewidth);//gdlFRAME_MARGIN);
       sz_inside->Fit(widgetPanel);
     }
     theWxWidget = widgetPanel;
@@ -2139,7 +2140,6 @@ GDLWidgetTabbedBase::GDLWidgetTabbedBase(WidgetIDT parentID, EnvT* e, ULong even
 
   wxNotebook* parentTab = dynamic_cast<wxNotebook*> (parent->GetWxWidget());
   assert(parentTab != NULL);
-
   wxString titleWxString = wxString(title_.c_str(), wxConvUTF8);
   if (nrows < 1 && ncols < 1 && frameWidth < 1) frameWidth=1; //set framewidth (temporary) in this case to get good result
   CreateBase(parentTab);
@@ -6065,6 +6065,9 @@ void gdlwxPhantomFrame::Realize() {
   if (w.y <= 0) w.y=gdlABSENT_SIZE_VALUE;
   sysScrollHeight=w.y;
   sysScrollWidth=w.x;
+  wxColour color=c->GetBackgroundColour();
+  sysPanelDefaultColour=color.GetRGB();
+//  std::cerr<<sysPanelDefaultColour<<std::endl;
 }
 
 // Frame for Plots ========================================================

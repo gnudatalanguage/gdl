@@ -192,7 +192,7 @@ ex = widget_button(menu,VALUE="Exit",EVENT_PRO="exit_gui") ; 4
 siz= widget_button(menu,VALUE="Resize (error)",EVENT_PRO="resize_gui") ; 5
 ;buttons as menu buttons
         fileID = Widget_Button(mbar, Value='Complicated Menu') ; 6
-        saveID = Widget_Button(fileID, Value='submenu 1', /MENU,font=fontname,xsize=100)
+        saveID = Widget_Button(fileID, Value='submenu 1', /MENU,font=fontname)
         button = Widget_Button(saveID, Value='entry 1 (inactive)', UNAME='POSTSCRIPT',sensitive=0,font=fontname)
         button = Widget_Button(saveID, Value='entry 2', UNAME='PDF')
         raster = Widget_Button(saveID, Value='submenu 2', /MENU)
@@ -261,10 +261,9 @@ doMbar,mbar,fontname
 ;mysize=widget_info(base,string_size='012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234')
 
 ; define a tabbed base that contains everything:
-label=widget_label(base,value='to best mimic IDL`s widgets, call GDL with option "--widget-compat" ',/align_left)
-label=widget_label(base,value='Test calling me with options like "test_widgets,/col,font="Arial 32",/base_align_right" ',/align_left)
-label=widget_label(base,value='                          or like "test_widgets,/col,x_scroll=400,y_scroll=400" ',/align_left)
-label=widget_label(base,value='                          or like "test_widgets,/col,present="TEXT" (see test_widgets,/help) ',/align_left)
+label=widget_label(base,value='to best mimic IDL`s widgets, call GDL ',/align_left)
+label=widget_label(base,value='with option "--widget-compat" ',/align_left)
+label=widget_label(base,value='See test_widget,/help for useful hints.',/align_left)
 
 tabbed_base = widget_tab( base, frame=12) ;, scr_xsize=400, scr_ysize=400);, multiline=6)
 
@@ -433,7 +432,7 @@ endif
     entry2=widget_button(menu,value="entry 2")
     
     tmp=widget_label(yoff=offy,button_base02,value="ALIGNMENTS",/align_center,/fram) & offy+=10 ;
-    base1=widget_base(yoff=offy,button_base02,/COL,/fram,xsize=400) & offy+=10                  ;
+    base1=widget_base(yoff=offy,button_base02,/COL,/fram) & offy+=10                  ;
     tmp=widget_label(yoff=offy,base1,value="Row Base 1")
     base11=widget_base(yoff=offy,base1,/ROW,/fram)
     tmp=widget_label(base11,value="inherited")
@@ -601,10 +600,10 @@ fileNumbers = lonarr(nRows)
 ;base to contain column labels and cells with table values and selected files
 dummy = widget_label(bases_base,value=' ')
 listentries=widget_base(bases_base,row=nRows+1,/scroll,space=10, x_scroll=300,frame=10,y_scroll=300)
-widget_control,dummy,set_value='Scrolled Base below has ID='+string(listentries) 
+widget_control,dummy,set_value='300x300 pix Scrolled Base below has ID='+string(listentries) 
 ;create column labels 
-dummy = widget_label(listentries,value=' ', xsize=30)
-dummy1 = widget_label(listentries,value=' ',xsize=30)
+dummy = widget_label(listentries,value=' ', xsize=10)
+dummy1 = widget_label(listentries,value=' ',xsize=10)
 for icol =0, nCols-1 do tagButtons[icol]=widget_label(listentries,value=tags[icol], xsize=charpix*maxSize[icol],/align_left)
 for iRow=0,nRows-1 do begin
    fileNumbers[iRow]=widget_label(listentries, value=string(iRow), xsize=30, ysize=25)

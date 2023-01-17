@@ -357,7 +357,7 @@ private:
 static int sysScrollHeight=25;
 static int sysScrollWidth=25;
 static int sysComboboxArrow=25;
-  
+static wxUint32 sysPanelDefaultColour;  
 class GDLWidget
 { 
   // static part is used for the abstraction
@@ -631,6 +631,8 @@ public:
   virtual bool IsContainer() const { return false;} 
   virtual bool IsBase() const { return false;} 
   virtual bool IsTopBase() const { return false;} 
+  virtual bool IsNormalBase() const { return false;} 
+  virtual bool IsTabbedBase() const { return false;} 
   virtual bool IsContextBase() const {  return false; }
   virtual bool IsButton() const { return false;} 
   virtual bool IsMenu() const { return false;}
@@ -832,8 +834,6 @@ public:
   void CreateBase(wxWindow* parent);
   bool IsVertical() {return (ncols>0);}
   bool IsHorizontal() {return (nrows>0);}
-  virtual bool IsNormalBase() const { return false;} 
-  virtual bool IsTabbedBase() const { return false;} 
   void SetWidgetSize(DLong sizex, DLong sizey) final;
  
   void NullWxWidget() { theWxWidget = NULL;}
@@ -994,7 +994,7 @@ public:
  
  ~GDLWidgetTabbedBase();
  void SetBaseTitle(std::string &s);
- bool IsTabbedBase() const {  return true; }
+ bool IsTabbedBase() const final { return true;} 
  void mapBase(bool val) final;
 
  //Same as Container except that we have to reorder widgets in some cases
