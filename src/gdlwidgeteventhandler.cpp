@@ -93,16 +93,20 @@ wxPoint gdlwxGraphicsPanel::WhereIsMouse(wxMouseEvent &e) {
 }
 int RemapModifiers(wxMouseEvent &e) {
   int out = 0;
+#ifndef __WXGTK__
   if (wxGetKeyState(WXK_CAPITAL)) out |= 0x04;
-  if (e.ControlDown()) out |= 0x02;
+#endif
+  if (e.RawControlDown()) out |= 0x02; //RAW for OSX specificity 
   if (e.AltDown()) out |= 0x08;
   if (e.ShiftDown()) out |= 0x01;
   return out;
 }
 int GetModifiers() {
   int out = 0;
+#ifndef __WXGTK__
   if (wxGetKeyState(WXK_CAPITAL)) out |= 0x04;
-  if (wxGetKeyState(WXK_CONTROL)) out |= 0x02;
+#endif
+  if (wxGetKeyState(WXK_RAW_CONTROL)) out |= 0x02; //RAW for OSX specificity 
   if (wxGetKeyState(WXK_ALT)) out |= 0x08;
   if (wxGetKeyState(WXK_SHIFT)) out |= 0x01;
   return out;
