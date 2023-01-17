@@ -94,6 +94,7 @@ Besides, for optimal use (speed mainly), GDL incorporates slightly edited code o
 - [Median Filtering (S. Perreault)](http://nomis80.org/ctmf.html )
 - [Median Filtering (J. Suomela)](http://users.ics.aalto.fi/suomela)
 - [Radix Sorting](https://github.com/Pierre-Terdiman/RadixRedux) (we have written all variants up to doubles).
+- [whereami](https://github.com/gpakosz/whereami) 
 
 Build-time dependencies
 -----------------------
