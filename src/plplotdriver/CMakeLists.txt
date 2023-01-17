@@ -66,8 +66,8 @@ if(INSTALL_LOCAL_DRIVERS)
 
   foreach(v IN LISTS WHAT)
   set_target_properties(${v} PROPERTIES   PREFIX ""  SUFFIX ${DYNAMIC_SUFFIX} )
-  install(TARGETS ${v} DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/drivers)
-  install( FILES ${v}.driver_info DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/drivers)
+  install(TARGETS ${v} DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_LIB_DIR}/drivers)
+  install( FILES ${v}.driver_info DESTINATION ${CMAKE_INSTALL_PREFIX}/${GDL_LIB_DIR}/drivers)
   endforeach()
 
 endif(INSTALL_LOCAL_DRIVERS)

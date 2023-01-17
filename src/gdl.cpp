@@ -327,8 +327,10 @@ int main(int argc, char *argv[])
 
 //The default installation location --- will not always be there.  
   gdlDataDir = std::string(GDLDATADIR);
+  std::string gdlLibDir = std::string(GDLLIBDIR);
 #ifdef _WIN32
   std::replace(gdlDataDir.begin(), gdlDataDir.end(), '/', '\\');
+  std::replace(gdlLibDir.begin(), gdlLibDir.end(), '/', '\\');
 #endif 
 
 //check where is the executable being run
@@ -349,7 +351,7 @@ int main(int argc, char *argv[])
 //drivers if local
   useLocalDrivers=false;
   bool driversNotFound=false;
-  string driversPath=gdlDataDir + lib::PathSeparator() + "drivers"; 
+  string driversPath=gdlLibDir + lib::PathSeparator() + "drivers"; 
   //We'll ned to get the current value for PLPLOT_DRV_DIR if any (useful later if something goes wrong below)
   static const char* DrvEnvName="PLPLOT_DRV_DIR";
 
