@@ -70,6 +70,9 @@ jobs:
     steps:
       - name: Checkout GDL
         uses: actions/checkout@v3.2.0
+        with:
+          submodules: recursive
+          fetch-depth: 0
       - name: Cache Dependencies (macOS, Homebrew)
         if: contains(matrix.os, 'macos')
         id: cache
@@ -184,6 +187,9 @@ jobs:
             patch
       - name: Checkout GDL
         uses: actions/checkout@v3.2.0
+        with:
+          submodules: recursive
+          fetch-depth: 0
       - name: Cache Dependencies
         if: matrix.arch == 'x86_64'
         id: cache
