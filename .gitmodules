@@ -1,0 +1,4 @@
+[submodule "src/whereami"]
+	path = src/whereami
+	url = https://github.com/gpakosz/whereami
+	shallow = true
