@@ -95,8 +95,8 @@ function idlneturl::Get, buffer=buffer, filename=filename, string_array=string_a
   if self.ftp_connection_mode EQ 0 then curl_cmd+='--ftp-pasv '
 ; headers
   if ptr_valid(self.headers) and n_elements(*(self.headers)) gt 0 then begin
-     for i=0,n_elements(*(self.headers))-1 do begin
-        if strlen((*self.headers)[i]) gt 0 then curl_cmd+="-H '"+strtrim((*self.headers)[i],2)+"' "
+     for i=0,n_elements(*(self.headers))-1 do begin ; note below curl under Windows accept only "-quote see #1465
+        if strlen((*self.headers)[i]) gt 0 then curl_cmd+='-H "'+strtrim((*self.headers)[i],2)+'" ' ; was: if strlen((*self.headers)[i]) gt 0 then curl_cmd+="-H '"+strtrim((*self.headers)[i],2)+"' "
      endfor
   endif
 
@@ -128,7 +128,7 @@ function idlneturl::Get, buffer=buffer, filename=filename, string_array=string_a
 ; been downloaded. When we write this function directly in GDL using
 ; libcurl, things will be way esaier.
   curl_asyn_get_headers='curl -LI --silent --show-error --include '                                                             ; will get only headers
-  curl_asyn_get_headers+="--write-out '\n%{size_header}\n%{content_type}\n%{response_code}\n%{size_download}' "    ; we get some useful values
+  curl_asyn_get_headers+='--write-out "\n%{size_header}\n%{content_type}\n%{response_code}\n%{size_download}" '    ; we get some useful values
   cmd=curl_asyn_get_headers+id_cmd
   if KEYWORD_SET(verbose) then print, cmd
   SPAWN, cmd, result, blahblah
@@ -175,7 +175,7 @@ function idlneturl::Get, buffer=buffer, filename=filename, string_array=string_a
 ; number of bytes downloaded at each instant, aka progress_info[2]
 ; of course if the transfer encoding is not 'chunked'.
 
-     curl_asyn_get_all='curl -L --progress-bar -o '+filename+' ' ; will use progressbar values, but alas need output in external file.
+     curl_asyn_get_all='curl -L --progress-bar -o "'+filename+'" ' ; will use progressbar values, but alas need output in external file.
 ; remove /tmp/pb
      file_delete,'/tmp/pb',/allow_nonexistent,/quiet,/noexpand_path
      
@@ -206,7 +206,7 @@ no_callback:
 ; if there is no callback function, directly get the file as we do not
 ; need to be asynchronous. Best is to create the 'filename' directly.
 
-     curl_syn='curl -L --silent --show-error -o '+filename+' ' 
+     curl_syn='curl -L --silent --show-error -o "'+filename+'" ' 
      cmd=curl_syn+curl_cmd+id_cmd
      if KEYWORD_SET(verbose) then print, cmd
      SPAWN, cmd, result, blahblah
