@@ -197,11 +197,11 @@ endif(HAVE_LIBWXWIDGETS AND WIN32)
 #local plplot drivers
 add_subdirectory(plplotdriver)
 #whereami
-add_subdirectory(whereami)
+add_library(whereami STATIC ${CMAKE_SOURCE_DIR}/src/whereami/src/whereami.c)
 
 add_subdirectory(antlr)
 
-include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_SOURCE_DIR}/src/plplotdriver ${CMAKE_SOURCE_DIR}/src/whereami ${CMAKE_BINARY_DIR})
+include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/antlr ${CMAKE_SOURCE_DIR}/src/plplotdriver ${CMAKE_SOURCE_DIR}/src/whereami/src ${CMAKE_BINARY_DIR})
 link_directories(${LINK_DIRECTORIES})
 
 if(PYTHON_MODULE) #GDL.so
