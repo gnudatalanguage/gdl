@@ -16,7 +16,10 @@
 pro FILE_CHMOD, file , Mode, setgid=setgid,setuid=setuid,sticky_bit=sticky_bit, noexpand_path=noexpand_path, a_execute =a_execute , a_read = a_read , a_write = a_write , g_execute = g_execute , g_read = g_read , g_write= g_write,  o_execute=  o_execute, o_read= o_read, o_write= o_write, u_execute= u_execute, u_read= u_read, u_write=u_write
 
   compile_opt hidden, idl2
-  if !VERSION.OS_FAMILY ne 'unix' then MESSAGE,"FILE_CHMOD is only available on Unix Operating Systems (help!) "
+  if !VERSION.OS_FAMILY ne 'unix' then begin
+    print,"FILE_CHMOD is only available on Unix Operating Systems."
+    return
+  endif
   bit=['0','1']
   
   if (Not KEYWORD_SET(noexpand_path)) then begin  
