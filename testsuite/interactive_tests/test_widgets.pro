@@ -192,7 +192,7 @@ ex = widget_button(menu,VALUE="Exit",EVENT_PRO="exit_gui") ; 4
 siz= widget_button(menu,VALUE="Resize (error)",EVENT_PRO="resize_gui") ; 5
 ;buttons as menu buttons
         fileID = Widget_Button(mbar, Value='Complicated Menu') ; 6
-        saveID = Widget_Button(fileID, Value='submenu 1', /MENU,font=fontname,xsize=100)
+        saveID = Widget_Button(fileID, Value='submenu 1', /MENU,font=fontname)
         button = Widget_Button(saveID, Value='entry 1 (inactive)', UNAME='POSTSCRIPT',sensitive=0,font=fontname)
         button = Widget_Button(saveID, Value='entry 2', UNAME='PDF')
         raster = Widget_Button(saveID, Value='submenu 2', /MENU)
@@ -261,10 +261,9 @@ doMbar,mbar,fontname
 ;mysize=widget_info(base,string_size='012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234')
 
 ; define a tabbed base that contains everything:
-label=widget_label(base,value='to best mimic IDL`s widgets, call GDL with option "--widget-compat" ',/align_left)
-label=widget_label(base,value='Test calling me with options like "test_widgets,/col,font="Arial 32",/base_align_right" ',/align_left)
-label=widget_label(base,value='                          or like "test_widgets,/col,x_scroll=400,y_scroll=400" ',/align_left)
-label=widget_label(base,value='                          or like "test_widgets,/col,present="TEXT" (see test_widgets,/help) ',/align_left)
+label=widget_label(base,value='to best mimic IDL`s widgets, call GDL ',/align_left)
+label=widget_label(base,value='with option "--widget-compat" ',/align_left)
+label=widget_label(base,value='See test_widget,/help for useful hints.',/align_left)
 
 tabbed_base = widget_tab( base, frame=12) ;, scr_xsize=400, scr_ysize=400);, multiline=6)
 
@@ -277,7 +276,7 @@ endif
 ;TEXT
 if total(strcmp('TEXT',present,/fold)) then begin
    text_base = widget_base( tabbed_base, TITLE="TEXT",_extra=extra) & offy=0
-   label=widget_label(yoff=offy,text_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=20 ;
+
    label=widget_label(yoff=offy,text_base,/align_center,value='Various Sizes, no event should be issued') & offy+=20                                               ;
    text1=widget_text(yoff=offy,text_base,VALUE=["xsize=30,/scroll, (no ysize), follow base alignment","Line 2","line 3","line 4","line 5"],/scroll, xsize=30) & offy+=30     ;
    text1=widget_text(yoff=offy,text_base,VALUE=["xsize=20, no ysize, follow base alignment","Line 2","line 3","line 4","line 5"],XSIZE=20) & offy+=30              ;
@@ -306,7 +305,7 @@ endif
  if total(strcmp('LIST',present,/fold)) then begin  
 ;LIST
     list_base = widget_base( tabbed_base, TITLE="LISTs",_extra=extra) & offy=0                                                                                     ;
-    label=widget_label(yoff=offy,list_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
+
     label=widget_label(yoff=offy,list_base,value='3 lines, placement inherited') & offy+=10                                                                         ;
     list=widget_list(yoff=offy,list_base,value=["Simple rather long text of widget_list, ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST", "ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST", "ysize=3","created","with","WIDGET_LIST","widget_list, ysize=3","created","with","WIDGET_LIST"],/multiple,YSIZE=3) & offy+=100 ;
     label=widget_label(yoff=offy,list_base,value='idem,fancy,framed(32 pix)') & offy+=10 ;
@@ -328,7 +327,7 @@ endif
   if total(strcmp('DRAW',present,/fold)) then begin     
 ;DRAW_BASE: Attach 256 x 256 draw widgets. Offsets 256 pix
     draw_base = widget_base( tabbed_base, TITLE="DRAW",_extra=extra) & offy=0 ;,YSIZE=1000,XSIZE=1000,Y_SCROLL=300);XPAD=25,YPAD=50,SPACE=30)
-    label=widget_label(yoff=offy,draw_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
+
 ; populate
     if ~keyword_set(nocanvas) then begin 
        draw = WIDGET_DRAW(yoff=offy,draw_base, XSIZE = 1800, YSIZE = 600,x_scroll_size=256,y_scroll_size=256,frame=20)  & offy+=300                                         ;
@@ -355,7 +354,7 @@ endif
  if total(strcmp('SLIDER',present,/fold)) then begin
 ; SLIDER_BASE: 
     slider_baseh = widget_base( tabbed_base, TITLE="H_SLIDER",_extra=extra) & offy=0                                                                                           ;
-    label=widget_label(yoff=offy,slider_baseh,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10         ;
+
 ;SLIDERs
     tmp=widget_label(xoff=150,yoff=offy,slider_baseh,value="fancy, framed, horizontal, align:inherit") & offy+=10                                                              ;
     sl1=widget_slider(xoff=150,yoff=offy,slider_baseh,MIN=0,MAX=100,TITLE="FRAME=100+DRAG+HORIZONTAL+FANCY",kill_notify='slider_killed',/DRAG,FRAME=100,font=fontname) & offy+=200 ;
@@ -368,7 +367,7 @@ endif
     
     
     slider_basev = widget_base( tabbed_base, TITLE="V_SLIDER",_extra=extra) & offy=0
-    label=widget_label(yoff=offy,slider_basev,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10     ;
+
 ;SLIDERs
     sl=widget_slider(yoff=offy,slider_basev,MIN=0,MAX=100,TITLE="FRAME=100+VERTICAL",kill_notify='slider_killed',ysize=300,xsize=200,FRAME=20,/VERT,font=fontname) & offy+=400 ;
     sl3=widget_slider(yoff=offy,slider_basev,MIN=0,MAX=1000,TITLE="SIMPLE,VERTICAL",font=fontname,/vert) & offy+=200                                                           ;
@@ -380,7 +379,7 @@ endif
 ; BUTTON_BASE: 
     button_base00 = widget_base( tabbed_base, TITLE="BUTTONs", COL=2, $
        SPACE=10, XPAD=10, YPAD=10) & offy=10
- ;   label=widget_label(yoff=offy,button_base00,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
+
     button_base01 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
     button_base02 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
 ; BUTTONs
@@ -433,7 +432,7 @@ endif
     entry2=widget_button(menu,value="entry 2")
     
     tmp=widget_label(yoff=offy,button_base02,value="ALIGNMENTS",/align_center,/fram) & offy+=10 ;
-    base1=widget_base(yoff=offy,button_base02,/COL,/fram,xsize=400) & offy+=10                  ;
+    base1=widget_base(yoff=offy,button_base02,/COL,/fram) & offy+=10                  ;
     tmp=widget_label(yoff=offy,base1,value="Row Base 1")
     base11=widget_base(yoff=offy,base1,/ROW,/fram)
     tmp=widget_label(base11,value="inherited")
@@ -459,7 +458,7 @@ endif
 if total(strcmp('TABLE',present,/fold)) then begin
 ; TABLE
    table_base = widget_base( tabbed_base, TITLE="TABLEs",_extra=extra) & offy=0
-   label=widget_label(yoff=offy,table_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
+
 ;
    mytable1=widget_table(yoff=offy,table_base,value=dist(7),xsize=5,ysize=5,/editable,/all_events,font=fontname,frame=30) & offy+=200 ;
 ;to be implemented! ;widget_control,mytable1,/editable,use_table_sel=[1,1,4,4]
@@ -473,7 +472,7 @@ endif
 if total(strcmp('TREE',present,/fold)) then begin
 ; TREE
    tree_base = widget_base( tabbed_base, TITLE="TREE",_extra=extra) & offy=0
-   label=widget_label(yoff=offy,tree_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
+
    if ~keyword_set(notree) then begin
       racine = widget_tree(yoff=offy,tree_base,ysize=100) & offy+=90 ;
       wtRoot = widget_tree(racine, VALUE='GDL', /folder, /draggable, /drop_events,ysize=200)
@@ -512,7 +511,7 @@ endif
 if total(strcmp('LABEL',present,/fold)) then begin
 ; LABEL
    label_base = widget_base( tabbed_base, TITLE="LABELs",_extra=extra) & offy=0
-   label=widget_label(yoff=offy,label_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10 ;
+
 ;
    label1=widget_label(yoff=offy,label_base,VALUE="Sunken-frame label, inherits centering",/align_center) & offy+=10                   ;
    label1=widget_label(yoff=offy,label_base,VALUE="Sunken-frame label",uvalue={vEv,'lll',[1,-1]},/sunken_frame,frame=33) & offy+=10                   ;
@@ -538,7 +537,7 @@ endif
 if total(strcmp('DROPLIST',present,/fold)) then begin   
 ; DROPLIST
    droplist_base = widget_base( tabbed_base, TITLE="DROPLISTs",_extra=extra) & offy=0
-   label=widget_label(yoff=offy,droplist_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10                   ;
+
 ;
    droplist=widget_droplist(yoff=offy,droplist_base,VALUE=["droplist","created","with","WIDGET_DROPLIST","(no YSIZE)"],title="A fancy droplist (framed)",font=fontname,frame=10) & offy+=50 ;
    droplist=widget_droplist(yoff=offy,droplist_base,VALUE=["droplist","created","with","WIDGET_DROPLIST","(no YSIZE)"],title="A fancy droplist",font=fontname) & offy+=50                   ;
@@ -549,7 +548,7 @@ endif
 if total(strcmp('COMBOBOX',present,/fold)) then begin
 ;COMBO
 combobox_base = widget_base( tabbed_base, TITLE="COMBOBOXs",_extra=extra) & offy=0
-label=widget_label(yoff=offy,combobox_base,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10;
+
 ;
 combo=widget_combobox(xoff=100,yoff=offy,combobox_base,VALUE=["A fancy combobox (framed)","not editable","created","with","WIDGET_COMBOBOX"],frame=30,font=fontname) & offy+=100;
 combo=widget_combobox(yoff=offy,combobox_base,VALUE=["A combobox","editable","created","with","WIDGET_COMBOBOX"],/editable) & offy+=30;
@@ -559,7 +558,7 @@ endif
 if total(strcmp('BASE',present,/fold)) then begin
  ;MISC. BASES
  bases_base0 = widget_base( tabbed_base , TITLE="BASEs",event_pro='base_event_base',_extra=extra) & offy=0
- label=widget_label(yoff=offy,bases_base0,value='0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789') & offy+=10;
+
  tmp=widget_label(yoff=offy,bases_base0,value="below a tab-based base with frame=30",font=fontname) & offy+=10;
  tmp=widget_label(yoff=offy,bases_base0,value="containing a base, frame=100, with 2 buttons; ",font=fontname) & offy+=10;
  tmp=widget_label(yoff=offy,bases_base0,value="another with a label and a text; ",font=fontname) & offy+=10;
@@ -601,10 +600,10 @@ fileNumbers = lonarr(nRows)
 ;base to contain column labels and cells with table values and selected files
 dummy = widget_label(bases_base,value=' ')
 listentries=widget_base(bases_base,row=nRows+1,/scroll,space=10, x_scroll=300,frame=10,y_scroll=300)
-widget_control,dummy,set_value='Scrolled Base below has ID='+string(listentries) 
+widget_control,dummy,set_value='300x300 pix Scrolled Base below has ID='+string(listentries) 
 ;create column labels 
-dummy = widget_label(listentries,value=' ', xsize=30)
-dummy1 = widget_label(listentries,value=' ',xsize=30)
+dummy = widget_label(listentries,value=' ', xsize=10)
+dummy1 = widget_label(listentries,value=' ',xsize=10)
 for icol =0, nCols-1 do tagButtons[icol]=widget_label(listentries,value=tags[icol], xsize=charpix*maxSize[icol],/align_left)
 for iRow=0,nRows-1 do begin
    fileNumbers[iRow]=widget_label(listentries, value=string(iRow), xsize=30, ysize=25)

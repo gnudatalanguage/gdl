@@ -93,16 +93,20 @@ wxPoint gdlwxGraphicsPanel::WhereIsMouse(wxMouseEvent &e) {
 }
 int RemapModifiers(wxMouseEvent &e) {
   int out = 0;
+#ifndef __WXGTK__
   if (wxGetKeyState(WXK_CAPITAL)) out |= 0x04;
-  if (e.ControlDown()) out |= 0x02;
+#endif
+  if (e.RawControlDown()) out |= 0x02; //RAW for OSX specificity 
   if (e.AltDown()) out |= 0x08;
   if (e.ShiftDown()) out |= 0x01;
   return out;
 }
 int GetModifiers() {
   int out = 0;
+#ifndef __WXGTK__
   if (wxGetKeyState(WXK_CAPITAL)) out |= 0x04;
-  if (wxGetKeyState(WXK_CONTROL)) out |= 0x02;
+#endif
+  if (wxGetKeyState(WXK_RAW_CONTROL)) out |= 0x02; //RAW for OSX specificity 
   if (wxGetKeyState(WXK_ALT)) out |= 0x08;
   if (wxGetKeyState(WXK_SHIFT)) out |= 0x01;
   return out;
@@ -1382,7 +1386,7 @@ void gdlwxGraphicsPanel::OnPaint(wxPaintEvent& event)
 void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
   wxSize newSize = event.GetSize(); //size returned by the external frame
   gdlwxPlotFrame* p = this->GetMyFrame();
-  p->Disconnect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotWindowSize));
+//  p->Disconnect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotWindowSize));
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlwxPlotPanel::OnPlotWindowSize: %d (%d,%d), (%d,%d)\n"), event.GetId(), event.GetSize().x, event.GetSize().y,
     newSize.x, newSize.y);
@@ -1414,9 +1418,9 @@ void gdlwxPlotPanel::OnPlotWindowSize(wxSizeEvent &event) {
   (*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_VSIZE"), 0)))[0] = newSize.x;
   (*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_VSIZE"), 0)))[0] = newSize.y;
   
-  p->Fit();
-  p->Refresh();
-  p->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotWindowSize));
+//  p->Fit();
+//  p->Refresh();
+//  p->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotWindowSize));
 //  event.Skip();
 }
 void gdlwxGraphicsPanel::OnPlotWindowSize(wxSizeEvent &event)

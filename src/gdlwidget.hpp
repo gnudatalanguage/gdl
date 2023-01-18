@@ -81,8 +81,8 @@
 #define gdlBUTTON_SPACE 4
 #define gdlSMALL_SPACE 1
 #define gdlBORDER_SPACE 2
-#define gdlBORDER_EXT wxBORDER_THEME // wxBORDER_SUNKEN //wxBORDER_RAISED//wxBORDER_SIMPLE //wxBORDER_RAISED
-#define gdlBORDER_INT wxBORDER_NONE //wxBORDER_SUNKEN 
+#define gdlBORDER_EXT  wxBORDER_SUNKEN // wxBORDER_THEME // wxBORDER_SUNKEN //wxBORDER_RAISED//wxBORDER_SIMPLE //wxBORDER_RAISED
+#define gdlBORDER_INT wxBORDER_RAISED //wxBORDER_SUNKEN 
 #define gdlTEXT_XMARGIN 4
 #define gdlTEXT_YMARGIN 4
 #define DONOTALLOWSTRETCH 0
@@ -357,7 +357,7 @@ private:
 static int sysScrollHeight=25;
 static int sysScrollWidth=25;
 static int sysComboboxArrow=25;
-  
+static wxUint32 sysPanelDefaultColour;  
 class GDLWidget
 { 
   // static part is used for the abstraction
@@ -631,6 +631,8 @@ public:
   virtual bool IsContainer() const { return false;} 
   virtual bool IsBase() const { return false;} 
   virtual bool IsTopBase() const { return false;} 
+  virtual bool IsNormalBase() const { return false;} 
+  virtual bool IsTabbedBase() const { return false;} 
   virtual bool IsContextBase() const {  return false; }
   virtual bool IsButton() const { return false;} 
   virtual bool IsMenu() const { return false;}
@@ -832,8 +834,6 @@ public:
   void CreateBase(wxWindow* parent);
   bool IsVertical() {return (ncols>0);}
   bool IsHorizontal() {return (nrows>0);}
-  virtual bool IsNormalBase() const { return false;} 
-  virtual bool IsTabbedBase() const { return false;} 
   void SetWidgetSize(DLong sizex, DLong sizey) final;
  
   void NullWxWidget() { theWxWidget = NULL;}
@@ -921,9 +921,12 @@ public:
    if (w != NULL)
     w->OnRealize();
   }
-  topFrame->Fit();
-  topFrame->refreshFrameSize();
   DoMapAsRequested();
+
+    topFrame->Fit();
+    topFrame->SetClientSize(topFrame->GetClientSize());
+    topFrame->refreshFrameSize();
+
   ConnectToDesiredEvents();
   
   if (notifyRealize != "") { //insure it is called once only for this.
@@ -991,7 +994,7 @@ public:
  
  ~GDLWidgetTabbedBase();
  void SetBaseTitle(std::string &s);
- bool IsTabbedBase() const {  return true; }
+ bool IsTabbedBase() const final { return true;} 
  void mapBase(bool val) final;
 
  //Same as Container except that we have to reorder widgets in some cases
