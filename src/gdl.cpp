@@ -250,8 +250,10 @@ int main(int argc, char *argv[])
 
 //The default installation location --- will not always be there.  
   gdlDataDir = std::string(GDLDATADIR);
+  gdlLibDir = std::string(GDLLIBDIR);
 #ifdef _WIN32
   std::replace(gdlDataDir.begin(), gdlDataDir.end(), '/', '\\');
+  std::replace(gdlLibDir.begin(), gdlLibDir.end(), '/', '\\');
 #endif 
 
 //check where is the executable being run
@@ -269,16 +271,28 @@ int main(int argc, char *argv[])
   if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH"); //warning: is a Path, use system separator.
   if( gdlPath == "") gdlPath = gdlDataDir + lib::PathSeparator() + "lib";
 
-//drivers if local
+//LIBDIR. Can be '' in which case the location of drivers is deduced from the location of
+//the executable (OSX, Windows, unix in user-installed mode).
+  string driversPath = GetEnvPathString("GDL_DRV_DIR");
+  if (driversPath == "") { //NOT enforced by GDL_DRV_DIR
+    driversPath = gdlLibDir; //e.g. Fedora
+    if (driversPath == "") { //NOT enforced by GDLLIBDIR at build : not a distro
+      driversPath = gdlDataDir + lib::PathSeparator() + "drivers"; //deduced from the location of the executable 
+    }
+  }
+  //drivers if local
   useLocalDrivers=false;
   bool driversNotFound=false;
-  string driversPath=gdlDataDir + lib::PathSeparator() + "drivers"; 
-  //We'll ned to get the current value for PLPLOT_DRV_DIR if any (useful later if something goes wrong below)
-  static const char* DrvEnvName="PLPLOT_DRV_DIR";
+
+  //The current value for PLPLOT_DRV_DIR.
+  //To find our drivers, the plplot library needs to have PLPLOT_DRV_DIR set to the good path, i.e., driversPath.
+  const char* DrvEnvName = "PLPLOT_DRV_DIR";
+  //In a startup message (below), the value of $PLPLOT_DRV_DIR appears.
+  //It will be the value set inside the program (just below) to find the relevant drivers.
 
 #ifdef INSTALL_LOCAL_DRIVERS
   useLocalDrivers=true;
-  //For WIN32 the drivers dlls are copied alongwith the gdl.exe and plplot does not use  PLPLOT_DRV_DIR to find them.
+  //For WIN32 the drivers dlls are copied along with the gdl.exe and plplot does not use PLPLOT_DRV_DIR to find them.
 #ifndef _WIN32
   char* oldDriverEnv=getenv(DrvEnvName);
   // We must declare here (and not later) where our local copy of (customized?) drivers is to be found.

@@ -71,6 +71,8 @@ extern volatile bool sigControlC;
 
 //this string contains the value of DATADIR
 extern std::string gdlDataDir;
+//this string contains the value of LIBDIR
+extern std::string gdlLibDir;
 
 extern volatile bool iAmANotebook;
 // tells if wxwidgets is to be used at all...

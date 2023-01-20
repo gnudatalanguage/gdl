@@ -144,6 +144,7 @@ set(JPEGDIR "" CACHE PATH "GDL: Specify the JPEG directory tree")
 set(SZIPDIR "" CACHE PATH "GDL: Specify the SZip directory tree")
 
 set(GDL_DATA_DIR "/share/gnudatalanguage" CACHE PATH "GDL: data directory relative to CMAKE_INSTALL_PREFIX")
+set(GDL_LIB_DIR "" CACHE PATH "GDL: library directory relative to CMAKE_INSTALL_PREFIX")
 
 # check for 64-bit OS
 if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
