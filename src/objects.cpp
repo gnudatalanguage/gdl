@@ -98,6 +98,8 @@ antlr::ASTFactory DNodeFactory("DNode",DNode::factory);
 
 //this string contains the value of DATADIR
 std::string gdlDataDir;
+//this string contains the value of LIBDIR
+std::string gdlLibDir;
 //do we use WxWidgets at all?
 volatile bool useWxWidgets;
 //do we use WxWidgets for graphics?
