@@ -47,6 +47,7 @@ Getting GDL
 -------------------------------------
 
 See:
+- [Cloning GDL](https://github.com/gnudatalanguage/gdl/wiki/Cloning-gnudatalanguage-gdl) (new!)
 - [GDL on Linux](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-Linux)
 - [GDL on OSX](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-OSX)
 - [GDL on BSD](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-BSD)
