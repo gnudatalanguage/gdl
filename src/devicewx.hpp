@@ -185,11 +185,11 @@ if(hide) {
 
     plotFrame->Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(gdlwxPlotFrame::OnUnhandledClosePlotFrame));
     //OnPlotSizeWithTimer does not work on GNOME. OnPlotWindowSize works.
-//#ifdef __WXMSW__
+#ifdef __WXMSW__
     plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotWindowSize)); //Timer resize do not work on MSW
-//#else
-//      plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
-//#endif
+#else
+      plotFrame->Connect(wxEVT_SIZE, wxSizeEventHandler(gdlwxPlotFrame::OnPlotSizeWithTimer));
+#endif
     return true;
  }
 

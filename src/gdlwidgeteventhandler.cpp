@@ -964,7 +964,8 @@ void gdlwxPlotFrame::OnTimerPlotResize(wxTimerEvent& event) {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_TIMER_EVENTS)
    wxMessageOutputStderr().Printf(_T(".. Processed.\n"));
 #endif
-   wxSizeEvent sizeEvent(frameSize, w->GetId());
+   wxSize panelSize=this->GetClientSize(); //event.GetSize();
+   wxSizeEvent sizeEvent(panelSize, w->GetId());
    w->OnPlotWindowSize(sizeEvent);
 }
 
@@ -979,11 +980,11 @@ void gdlwxPlotFrame::OnPlotWindowSize(wxSizeEvent &event) {
 #endif
   }
 
-  wxSize frameSize=event.GetSize();
+  wxSize panelSize=this->GetClientSize(); //event.GetSize();
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlwxPlotFrame::OnPlotWindowSize: event %d  size: (%d,%d) processed."), event.GetId(), frameSize.x, frameSize.y);
 #endif
-   wxSizeEvent sizeEvent(frameSize, w->GetId());
+   wxSizeEvent sizeEvent(panelSize, w->GetId());
    w->OnPlotWindowSize(sizeEvent);
 }
 
