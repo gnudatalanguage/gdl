@@ -9,6 +9,10 @@
 
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
+if (NOT EXISTS "${CMAKE_SOURCE_DIR}/src/whereami/.git" )
+  message(FATAL_ERROR "The src/whereami git submodule is not initialised.\n Please run `git submodule update --init`")
+endif()
+
 # Set some policies to fix warnings in newer versions of cmake
 # Since VERSION_GREATER_EQUAL is available only since 3.7, we use 
 # VERSION_GREATER combined with VERSION_EQUAL to achieve what we want
