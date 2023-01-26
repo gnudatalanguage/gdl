@@ -28,6 +28,7 @@ endif (CMAKE_MINOR_VERSION GREATER 12)
 
 project(GDL)
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_C_STANDARD 99)
 
 # advice by Orion, mandatory for FC 28
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
