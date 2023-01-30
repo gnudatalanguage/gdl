@@ -35,7 +35,7 @@ jobs:
       id: set-matrix-windows
       run: |
         if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" || '${{ github.ref }}' == "refs/tags/v"* ]]; then 
-            matrix="{deps: ['standard', 'headless'], arch: ['x86_64'], configuration: ['Release']}"
+            matrix="{deps: ['standard'], arch: ['x86_64'], configuration: ['Release']}"
         else
             matrix="{deps: ['debug'], arch: ['x86_64'], configuration: ['Debug']}"
         fi
