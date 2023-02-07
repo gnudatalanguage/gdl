@@ -73,39 +73,9 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
-      - name: Cache Dependencies (macOS, Homebrew)
-        if: contains(matrix.os, 'macos')
-        id: cache
-        uses: actions/cache@v3.2.1
-        with:
-          path: ${{ runner.temp }}/cache
-          key: cache-gdl-deps-${{ matrix.os }}-v6
-      - name: Install Dependencies (macOS, Homebrew)
-        if: contains(matrix.os, 'macos')                    # && steps.cache.outputs.cache-hit != 'true'  #removed as the cached state is bad.
-        run: |
-          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort -o ~/snapshot1.txt
-          scripts/build_gdl.sh prep
-          find /usr/local -path /usr/local/miniconda -prune -false -or -type l -or -type f | sort -o ~/snapshot2.txt
-          echo "Setting up cache..."
-          rm -rf ${{ runner.temp }}/cache
-          mkdir -p ${{ runner.temp }}/cache
-          while IFS= read -r fn; do
-            rsync -aR "${fn}" ${{ runner.temp }}/cache
-          done < <(comm -13 ~/snapshot1.txt ~/snapshot2.txt)
-      - name: Install Dependencies (Linux, Apt)
-        if: matrix.os == 'ubuntu-latest'
+      - name: Install Dependencies
         run: |
           scripts/build_gdl.sh prep
-      - name: Restore cache (macOS, Homebrew)
-        if: contains(matrix.os, 'macos') && steps.cache.outputs.cache-hit == 'true'
-        run: |
-          echo "Checking cache..."
-          if cd ${{ runner.temp }}/cache; then
-            echo "Extracting cache..."
-            while IFS= read -r fn; do
-              rsync -aR "${fn}" /
-            done < <(find -- * -maxdepth 0 -type d)
-          fi
       - name: Build GDL
         run: |
           scripts/build_gdl.sh configure
