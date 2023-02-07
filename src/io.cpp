@@ -200,6 +200,7 @@ void AnyStream::Close() {
 
 void AnyStream::Open(const std::string& name_,
   ios_base::openmode mode_, bool compress_) {
+  currentOpenMode=mode_;
   if (compress_) {
 
     delete fStream;
@@ -458,8 +459,15 @@ std::streampos AnyStream::Size() {
 }
 
 std::streampos AnyStream::Tell() {
-  if (fStream != NULL)
-    return ( fStream->tellg());
+  if (fStream != NULL) { 
+    if (currentOpenMode & std::ios_base::trunc) return fStream->tellg(); //openw
+    else if (currentOpenMode & std::ios_base::out) return fStream->tellg(); //openu
+    else if (currentOpenMode & std::ios_base::in) return fStream->tellp(); //openr
+    else {
+      assert(false);
+      throw;
+    }
+  }
   else if (igzStream != NULL)
     return igzStream->tellg(); //rdbuf()->pubseekoff( 0, std::ios_base::cur, std::ios_base::in);
   else if (ogzStream != NULL)
