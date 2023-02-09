@@ -463,7 +463,7 @@ static	void operator delete( void *ptr);
   // binary input/output
   std::ostream& Write( std::ostream& os, bool swapEndian, bool compress,
 		       XDR *xdrs);
-  std::istream& Read( std::istream& os, bool swapEndian, bool compress,
+  std::istream& Read( std::istream& is, bool swapEndian, bool compress,
 		      XDR *xdrs);
   
   SizeT OFmtA( std::ostream* os, SizeT offset, SizeT num, int width, const int code=0);

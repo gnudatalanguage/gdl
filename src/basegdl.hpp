@@ -497,7 +497,7 @@ public:
   virtual void Destruct();
   virtual std::ostream& Write( std::ostream& os, bool swapEndian, 
 			       bool compress, XDR *xdrs);
-  virtual std::istream& Read( std::istream& os, bool swapEndian, 
+  virtual std::istream& Read( std::istream& is, bool swapEndian, 
 			      bool compress, XDR *xdrs);
 
   virtual std::ostream& ToStream(std::ostream& o, SizeT width = 0, 

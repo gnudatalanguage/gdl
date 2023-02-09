@@ -480,25 +480,41 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
 template<>
 istream& operator>>(istream& is, Data_<SpDString>& data_)
 {
-    stringstream ioss;
 
     SizeT nEl = data_.dd.size();
-
+    bool windows=false;
     char delim = '\n';
-    streampos startPos = is.tellg();
-    bool checkForCROnly = true;
-    goto start;
-
-rerunCR:
-    delim = '\r';
-    is.seekg( startPos);
-    ioss.str("");
-
-start:
-    for( SizeT c=0; c < nEl; c++)
+    std::getline(is, data_[ 0], delim);
+    // error handling 1st read
+    if ( (is.rdstate() & ifstream::failbit ) != 0 )
     {
-//      is.get( *ioss.rdbuf());
-        is.get( *ioss.rdbuf(), delim);
+        if ( (is.rdstate() & ifstream::eofbit ) != 0 )
+            throw GDLIOException( "End of file encountered. "+
+                                  StreamInfo( &is));
+
+        if ( (is.rdstate() & ifstream::badbit ) != 0 )
+            throw GDLIOException( "Error reading STRING. "+
+                                  StreamInfo( &is));
+
+        is.clear();
+        data_[ 0] = "";
+    }
+    if( !is.good() && !is.eof()) throw GDLIOException( "Error reading STRING. "+StreamInfo( &is));
+    //check termination.
+    SizeT posCR = (data_[0]).find( '\r');
+    SizeT l=data_[0].length();
+    if( posCR == (l-1))
+    {
+          data_[0]=data_[0].substr(0,l-1); //correct string by removing last \cr
+          windows=true;
+          delim = '\r';
+    }
+
+    //pursue for all other elements, now we have the good delim.
+
+    for( SizeT c=1; c < nEl; c++)
+    {
+        std::getline(is, data_[ c], delim);
 
         // error handling
         if ( (is.rdstate() & ifstream::failbit ) != 0 )
@@ -512,42 +528,13 @@ start:
                                       StreamInfo( &is));
 
             is.clear();
-            is.get();   // remove delimiter
             data_[ c] = "";
-
+            if (windows) is.get(); // advance 1 char since we extracted up to \cr, \lf is next
             continue;
         }
 
-        if( !is.good() && !is.eof())
-            throw GDLIOException( "Error reading STRING. "+StreamInfo( &is));
-
-        if( !is.eof()) is.get(); // remove delimiter
-
-        const string& str = ioss.str();
-
-        if( checkForCROnly)
-        {
-            // do only once
-            checkForCROnly = false;
-
-            SizeT posCR = str.find( '\r');
-            if( posCR != string::npos && posCR != str.length()-1)
-            {
-                goto rerunCR;
-            }
-        }
-
-        // handle \r\n (\n not read)
-        if( delim == '\n' && str.length() > 0 && str[ str.length()-1] == '\r')
-        {
-            data_[ c] = str.substr(0,str.length()-1);
-        }
-        else
-        {
-            data_[ c] = str;
-        }
-
-        ioss.str("");
+        if( !is.good() && !is.eof()) throw GDLIOException( "Error reading STRING. "+StreamInfo( &is));
+        if (windows) is.get(); // advance 1 char since we extracted up to \cr, \lf is next
     }
     return is;
 }
@@ -1669,9 +1656,9 @@ bool compress, XDR *xdrs ) {
 }
 
 template<class Sp>
-istream& Data_<Sp>::Read( istream& os, bool swapEndian,
+istream& Data_<Sp>::Read( istream& is, bool swapEndian,
 bool compress, XDR *xdrs ) {
-  if ( os.eof( ) )
+  if ( is.eof( ) )
     throw GDLIOException( "End of file encountered." );
 
   SizeT count = dd.size( );
@@ -1683,7 +1670,7 @@ bool compress, XDR *xdrs ) {
     if ( Data_<Sp>::IS_COMPLEX ) {
       char *swapBuf = (char*) malloc( sizeof (char) * sizeof (Ty) / 2 );
       for ( SizeT i = 0; i < cCount; i += sizeof (Ty) / 2 ) {
-        os.read( swapBuf, sizeof (Ty) / 2 );
+        is.read( swapBuf, sizeof (Ty) / 2 );
         SizeT src = i + sizeof (Ty) / 2 - 1;
         for ( SizeT dst = 0; dst<sizeof (Ty) / 2; dst++ ) cData[ src--] = swapBuf[dst];
       }
@@ -1691,7 +1678,7 @@ bool compress, XDR *xdrs ) {
     } else {
       char swapBuf[ sizeof (Ty)];
       for ( SizeT i = 0; i < cCount; i += sizeof (Ty) ) {
-        os.read( swapBuf, sizeof (Ty) );
+        is.read( swapBuf, sizeof (Ty) );
         SizeT src = i + sizeof (Ty) - 1;
         for ( SizeT dst = 0; dst<sizeof (Ty); dst++ ) cData[ src--] = swapBuf[dst];
       }
@@ -1703,7 +1690,7 @@ bool compress, XDR *xdrs ) {
     char *buf = (char *) calloc( bufsize, sizeof (char) );
     for ( SizeT i = 0; i < count; i++ ) {
       xdrmem_create( xdrs, buf, bufsize, XDR_DECODE );
-      os.read( buf, bufsize );
+      is.read( buf, bufsize );
       if ( !xdr_convert( xdrs, (&(*this)[i]) ) ) cerr << "Error in XDR read" << endl;
       xdr_destroy( xdrs );
     }
@@ -1716,29 +1703,29 @@ bool compress, XDR *xdrs ) {
     char curVal[typesize];    
     for (SizeT i = 0; i < count; ++i) 
     { 
-      for (int k=0; k<typesize; ++k) os.get(curVal[k]);
+      for (int k=0; k<typesize; ++k) is.get(curVal[k]);
       char* cData = reinterpret_cast<char*>(&(*this)[i]);
       for (int k=0; k<typesize; ++k) cData[k]=curVal[k];
     }
-    (static_cast<igzstream&> (os)).rdbuf()->incrementPosition(totCount); //ugly patch to maintain position        
-//was:    (static_cast<igzstream&>(os)).read( reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty) );
+    (static_cast<igzstream&> (is)).rdbuf()->incrementPosition(totCount); //ugly patch to maintain position        
+//was:    (static_cast<igzstream&>(is)).read( reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty) );
   } else {
-    os.read( reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty) );
+    is.read( reinterpret_cast<char*> (&(*this)[0]), count * sizeof (Ty) );
   }
 
-  if ( os.eof( ) )
+  if ( is.eof( ) )
     throw GDLIOException( "End of file encountered." );
 
-  if ( !os.good( ) ) {
+  if ( !is.good( ) ) {
     throw GDLIOException( "Error reading data." );
   }
 
-  return os;
+  return is;
 }
 
 template<>
-istream& Data_<SpDByte>::Read( istream& os, bool swapEndian, bool compress, XDR *xdrs ) {
-  if ( os.eof( ) )
+istream& Data_<SpDByte>::Read( istream& is, bool swapEndian, bool compress, XDR *xdrs ) {
+  if ( is.eof( ) )
     throw GDLIOException( "End of file encountered." );
 
   SizeT count = dd.size( );
@@ -1748,18 +1735,18 @@ istream& Data_<SpDByte>::Read( istream& os, bool swapEndian, bool compress, XDR 
 
     //read byte length in file
     char* buf = (char *) malloc( 4 );
-    os.read( buf, 4 );
+    is.read( buf, 4 );
     xdrmem_create( xdrs, &buf[0], 4, XDR_DECODE );
     short int length = 0;
     if ( !xdr_short( xdrs, &length ) ) {free( buf ); throw GDLIOException( "Problem reading XDR file." );}
     xdr_destroy( xdrs );
     free( buf );
-    if ( length <= 0 ) return os;
+    if ( length <= 0 ) return is;
 
     int bufsize = 4 * ((length - 1) / 4 + 1);
     buf = (char *) calloc( bufsize, sizeof (char) );
-    os.read( &buf[0], bufsize );
-    if ( !os.good( ) ) {free( buf ); throw GDLIOException( "Problem reading XDR file." );} //else we are correctly aligned for next read!
+    is.read( &buf[0], bufsize );
+    if ( !is.good( ) ) {free( buf ); throw GDLIOException( "Problem reading XDR file." );} //else we are correctly aligned for next read!
     //do it by ourselves, faster and surer!
     if ( bufsize < nChar ) nChar = bufsize; //truncate eventually
     for ( SizeT i = 0; i < nChar; i++ ) ( *this )[i] = buf[i];
@@ -1767,26 +1754,26 @@ istream& Data_<SpDByte>::Read( istream& os, bool swapEndian, bool compress, XDR 
   } else if ( compress ) {
     /* GD: minimum (?) hack since we want to keep trace of the position in gzipped stream.*/
     char* cData = reinterpret_cast<char*> (&(*this)[0]);
-    for (SizeT i = 0; i < count; ++i) (static_cast<igzstream&> (os)).get(cData[ i]);
-    (static_cast<igzstream&> (os)).rdbuf()->incrementPosition(count); //ugly patch to maintain position
+    for (SizeT i = 0; i < count; ++i) (static_cast<igzstream&> (is)).get(cData[ i]);
+    (static_cast<igzstream&> (is)).rdbuf()->incrementPosition(count); //ugly patch to maintain position
 //    (static_cast<igzstream&>(os)).read( reinterpret_cast<char*> (&(*this)[0]), count );
   } else {
-    os.read( reinterpret_cast<char*> (&(*this)[0]), count );
+    is.read( reinterpret_cast<char*> (&(*this)[0]), count );
   }
 
-  if ( os.eof( ) )
+  if ( is.eof( ) )
     throw GDLIOException( "End of file encountered." );
 
-  if ( !os.good( ) ) {
+  if ( !is.good( ) ) {
     throw GDLIOException( "Error reading data." );
   }
-  return os;
+  return is;
 }
 
 template<>
-istream& Data_<SpDString>::Read( istream& os, bool swapEndian,
+istream& Data_<SpDString>::Read( istream& is, bool swapEndian,
 bool compress, XDR *xdrs ) {
-  if ( os.eof( ) )
+  if ( is.eof( ) )
     throw GDLIOException( "End of file encountered." );
 
   SizeT count = dd.size( );
@@ -1797,7 +1784,7 @@ bool compress, XDR *xdrs ) {
     if ( xdrs != NULL ) {
       //read counted string length in file
       char* buf = (char *) malloc( 4 );
-      os.read( buf, 4 );
+      is.read( buf, 4 );
       xdrmem_create( xdrs, &buf[0], 4, XDR_DECODE );
       short int length = 0;
       if ( !xdr_short( xdrs, &length ) ) throw GDLIOException( "Problem reading XDR file." );
@@ -1808,8 +1795,8 @@ bool compress, XDR *xdrs ) {
       } else {
         int bufsize = 4 + 4 * ((length - 1) / 4 + 1) ;
         buf = (char *) calloc( bufsize, sizeof (char) );
-        os.read( &buf[0], bufsize );
-        if ( !os.good( ) ) throw GDLIOException( "Problem reading XDR file." ); //else we are correctly aligned for next read!
+        is.read( &buf[0], bufsize );
+        if ( !is.good( ) ) throw GDLIOException( "Problem reading XDR file." ); //else we are correctly aligned for next read!
         (*this)[i].assign( &buf[4], length );
       }
     } else {
@@ -1827,12 +1814,12 @@ bool compress, XDR *xdrs ) {
           char c;
           vbuf.clear( );
           for ( SizeT i = 0; i < nChar; i++ ) {
-            (static_cast<igzstream&>(os)).get( c ); //which does nothing more than os.get(c)...
+            (static_cast<igzstream&>(is)).get( c ); //which does nothing more than os.get(c)...
             vbuf.push_back( c );
           }
-          (static_cast<igzstream&>(os)).rdbuf()->incrementPosition(nChar);  //ugly patch to maintain position        
+          (static_cast<igzstream&>(is)).rdbuf()->incrementPosition(nChar);  //ugly patch to maintain position        
         } else {
-          os.read( &vbuf[0], nChar );
+          is.read( &vbuf[0], nChar );
         }
         //we have read nChar but this (a std::string) may be filled with ASCII NULL chars. These MUST be removed if we want the rest of GDL behave correctly on string manipulations (strlen, where etc...)
         while (vbuf[nChar-1]==0 && nChar>1) {nChar--;}
@@ -1841,14 +1828,14 @@ bool compress, XDR *xdrs ) {
     }
   }
 
-  if ( os.eof( ) )
+  if ( is.eof( ) )
     throw GDLIOException( "End of file encountered." );
 
-  if ( !os.good( ) ) {
+  if ( !is.good( ) ) {
     throw GDLIOException( "Error reading data." );
   }
 
-  return os;
+  return is;
 }
 
 ostream& DStructGDL::Write( ostream& os, bool swapEndian,
@@ -1861,14 +1848,14 @@ bool compress, XDR *xdrs ) {
   return os;
 }
 
-istream& DStructGDL::Read( istream& os, bool swapEndian,
+istream& DStructGDL::Read( istream& is, bool swapEndian,
 bool compress, XDR *xdrs ) {
   SizeT nEl = N_Elements( );
   SizeT nTags = NTags( );
   for ( SizeT i = 0; i < nEl; ++i )
     for ( SizeT t = 0; t < nTags; ++t )
-      GetTag( t, i )->Read( os, swapEndian, compress, xdrs );
-  return os;
+      GetTag( t, i )->Read( is, swapEndian, compress, xdrs );
+  return is;
 }
 
 template<class Sp>
