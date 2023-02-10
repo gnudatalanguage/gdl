@@ -117,6 +117,7 @@ elif [ ${BUILD_OS} == "macOS" ]; then
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
       # J-KL 2022 July 30: GCC 10 didn't work with apple silicon mac. So I replaced it with GCC 11
+      # GD Feb 2023: brew cannot recompile plplot --- will install plplot ourselves
 else
     log "Fatal error! Unknown OS: ${BUILD_OS}. This script only supports one of: Windows, Linux, macOS."
     exit 1
@@ -386,10 +387,17 @@ function prep_packages {
         else
             eval "brew install ${BREW_PACKAGES[@]}"
         fi
-        log "Installing plplot..."
-        brew --cache plplot
-        bash $GDL_DIR/scripts/deps/macos/brew_enable_wxwidgets
-        bash $GDL_DIR/scripts/deps/macos/brew_make_good_symlink_plplot
+	    pushd ${ROOT_DIR}
+           git clone https://github.com/PLplot/PLplot.git
+           pushd ${ROOT_DIR}/PLplot
+             mkdir build
+             pushd ${ROOT_DIR}/PLplot/build
+             cmake .. -DCMAKE_INSTALL_PREFIX=${HOME}/plplot-local -DENABLE_octave=OFF -DENABLE_qt=OFF -DENABLE_lua=OFF -DENABLE_tk=OFF -DENABLE_python=OFF -DENABLE_tcl=OFF -DPLD_xcairo=OFF -DPLD_wxwidgets=ON -DENABLE_wxwidgets=ON -DENABLE_DYNDRIVERS=ON -DENABLE_java=OFF -DPLD_xwin=ON -DENABLE_fortran=OFF
+             make
+             make install
+             popd
+           popd
+        popd
     fi
 }
 
@@ -432,12 +440,14 @@ function configure_gdl {
             export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/opt/homebrew/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
-                                    "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" )
+                                    "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" 
+                                    "-DCMAKE_PREFIX_PATH=${HOME}/plplot-local" )
         else
             export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/usr/local/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
-                                    "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
+                                    "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang"
+                                    "-DCMAKE_PREFIX_PATH=${HOME}/plplot-local" )
         fi
     fi
 
