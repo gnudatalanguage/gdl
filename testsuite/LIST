@@ -113,6 +113,7 @@ test_interpolate.pro
 test_ioerror.pro
 test_isa.pro
 test_ishft.pro
+test_issues1474.pro
 test_keyword_set_but_null.pro
 test_l64.pro
 test_la_least_squares.pro

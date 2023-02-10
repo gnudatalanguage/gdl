@@ -458,8 +458,7 @@ std::streampos AnyStream::Size() {
 }
 
 std::streampos AnyStream::Tell() {
-  if (fStream != NULL)
-    return ( fStream->tellg());
+  if (fStream != NULL) return fStream->tellp(); //openr
   else if (igzStream != NULL)
     return igzStream->tellg(); //rdbuf()->pubseekoff( 0, std::ios_base::cur, std::ios_base::in);
   else if (ogzStream != NULL)
