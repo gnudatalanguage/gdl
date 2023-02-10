@@ -460,9 +460,9 @@ std::streampos AnyStream::Size() {
 std::streampos AnyStream::Tell() {
   if (fStream != NULL) return fStream->tellp(); //openr
   else if (igzStream != NULL)
-    return igzStream->tellg(); //rdbuf()->pubseekoff( 0, std::ios_base::cur, std::ios_base::in);
+    return igzStream->rdbuf()->getPosition(); 
   else if (ogzStream != NULL)
-    return ogzStream->tellp(); //rdbuf()->pubseekoff(0, std::ios_base::cur, std::ios_base::out);
+    return ogzStream->tellp();
   else {
     assert(false);
     throw; // getting rid of compiler warning
