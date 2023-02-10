@@ -1,8 +1,0 @@
-BREW_INSTALL=`brew config | grep HOMEBREW_PREFIX| cut -d' ' -f2`
-FORMULA=$BREW_INSTALL/Homebrew/Library/Taps/homebrew/homebrew-core/Formula/plplot.rb
-if [[ ! -f $FORMULA ]]; then
-  FORMULA=$BREW_INSTALL/Library/Taps/homebrew/homebrew-core/Formula/plplot.rb
-fi
-sed -i old -e 's%_wxwidgets=OFF%_wxwidgets=ON%g;s%_xwin=OFF%_xwin=ON%g;s%DENABLE_DYNDRIVERS=OFF%DENABLE_DYNDRIVERS=ON%g' -e 's%depends_on "pango"%&\
-depends_on "wxwidgets"%' $FORMULA
-brew reinstall --build-from-source plplot
