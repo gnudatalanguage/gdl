@@ -345,6 +345,7 @@ wxNativePixelData::Iterator p(data);
   temp_dc.SelectObject(bmp);
   streamDC->Blit(xoff, m_height-yoff-ny, nx, ny, &temp_dc, 0, 0);
   temp_dc.SelectObject(wxNullBitmap);
+  Update(); //see #1509
   return true;
 }
 
