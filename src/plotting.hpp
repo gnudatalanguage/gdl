@@ -249,8 +249,10 @@ namespace lib {
   void gdlStartSpecial3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE &PlotDevice3D);
   void gdlExchange3DDriverTransform( GDLGStream *a);
   void gdlFlipYPlotDirection( GDLGStream *a);
+  void gdlShiftYaxisUsing3DDriverTransform( GDLGStream *a, DDouble yval, bool invert=false);
   void gdlSetZto3DDriverTransform( GDLGStream *a, DDouble zValue);
   void gdlStop3DDriverTransform(GDLGStream *a);
+  void Matrix3DTransformXYZval(DDouble x, DDouble y, DDouble z, DDouble *xt, DDouble *yt, DDouble *t);
   bool T3Denabled();
   void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax = false, DDouble minVal = 0, DDouble maxVal = 0);
   void draw_polyline(GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal, DLong psym = 0, bool append = false, DLongGDL *color = NULL);
