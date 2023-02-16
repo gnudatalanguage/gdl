@@ -319,13 +319,15 @@ namespace lib
 //   y = ymax   =>   wy =  0.5*basey
 //   z = zmin   =>   wz =  0.0
 //   z = zmax   =>   wz =  height
+  
+// SHADE is not yet supported since plplot cannot handle it properly. Still, the code is here in // shade // comments.      
 //Due to a bug in plplot, shading (here) and surface (in plotting_surface) do not behave similarly WRT the vpor and wind.
 //So depending on doShade, the handling is different:
-      static int shadesIx = e->KeywordIx("SHADES");
-      bool doShade = false;
-      if (e->KeywordPresent(shadesIx)) doShade = true;
-      
-      if (!doShade) {
+// shade //      static int shadesIx = e->KeywordIx("SHADES");
+// shade //      bool doShade = false;
+// shade //      if (e->KeywordPresent(shadesIx)) doShade = true;
+// shade //      
+// shade //      if (!doShade) {
         //This is the good version for surface without the shade argument.     
         actStream->vpor(0, 1, 0, 1);
         actStream->wind(-0.5 / scale[0], 0.5 / scale[0], -0.5 / scale[1], 0.5 / scale[1]);
@@ -333,33 +335,33 @@ namespace lib
           actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0.5, 1.5, -alt, az);
           gdlFlipYPlotDirection(actStream); //special trick, not possible with plplot
         } else actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0.5, 1.5, alt, az);
-      } else {
-        //This is the good version for shade_surf and surface with shade option
-        // (needs shifting the plplot plot by some amount in the 3DDriverTransform of the driver.)     
-        actStream->vpor(0, 1, 0, 1);
-        actStream->wind(-0.5 / scale[0], 0.5 / scale[0], -0.5 / scale[1], 0.5 / scale[1]); //mandatory: to center in (0,0,0) for 3D Matrix rotation.
-        if (below) {
-          actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0, 1, -alt, az);
-          DDouble xp = 0;
-          DDouble yp1 = 0;
-          DDouble yp2 = 0;
-          Matrix3DTransformXYZval(0, 0, 0, &xp, &yp1,Current3DMatrix);
-          Matrix3DTransformXYZval(0, 0, 0.5, &xp, &yp2,Current3DMatrix);
-          gdlShiftYaxisUsing3DDriverTransform(actStream, 1 - (yp1 - yp2), true);
-        } else {
-          actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0, 1, alt, az); //mandatory: in order to have shades plotted correctly, z must go from 0 to 1, not -0.5 to 0.5
-          //as the code in plplot prevents negative "normalized" values.
-          // To insure this (and shade_surf) to work in all cases, we must rely on the 3DDriverTransform, once again, to shift the [0,1] plot in [-0.5, 0.5]
-          // 
-          //compute vertical displacement of point [0,0,0] in projected coordinates between zv=0 and zv=0.5
-          DDouble xp = 0;
-          DDouble yp1 = 0;
-          DDouble yp2 = 0;
-          Matrix3DTransformXYZval(0, 0, 0, &xp, &yp1,Current3DMatrix);
-          Matrix3DTransformXYZval(0, 0, 0.5, &xp, &yp2,Current3DMatrix);
-          gdlShiftYaxisUsing3DDriverTransform(actStream, yp1 - yp2, false);
-        }
-      }
+// shade //      } else {
+// shade //        //This is the good version for shade_surf and surface with shade option
+// shade //        // (needs shifting the plplot plot by some amount in the 3DDriverTransform of the driver.)     
+// shade //        actStream->vpor(0, 1, 0, 1);
+// shade //        actStream->wind(-0.5 / scale[0], 0.5 / scale[0], -0.5 / scale[1], 0.5 / scale[1]); //mandatory: to center in (0,0,0) for 3D Matrix rotation.
+// shade //        if (below) {
+// shade //          actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0, 1, -alt, az);
+// shade //          DDouble xp = 0;
+// shade //          DDouble yp1 = 0;
+// shade //          DDouble yp2 = 0;
+// shade //          Matrix3DTransformXYZval(0, 0, 0, &xp, &yp1,Current3DMatrix);
+// shade //          Matrix3DTransformXYZval(0, 0, 0.5, &xp, &yp2,Current3DMatrix);
+// shade //          gdlShiftYaxisUsing3DDriverTransform(actStream, 1 - (yp1 - yp2), true);
+// shade //        } else {
+// shade //          actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0, 1, alt, az); //mandatory: in order to have shades plotted correctly, z must go from 0 to 1, not -0.5 to 0.5
+// shade //          //as the code in plplot prevents negative "normalized" values.
+// shade //          // To insure this (and shade_surf) to work in all cases, we must rely on the 3DDriverTransform, once again, to shift the [0,1] plot in [-0.5, 0.5]
+// shade //          // 
+// shade //          //compute vertical displacement of point [0,0,0] in projected coordinates between zv=0 and zv=0.5
+// shade //          DDouble xp = 0;
+// shade //          DDouble yp1 = 0;
+// shade //          DDouble yp2 = 0;
+// shade //          Matrix3DTransformXYZval(0, 0, 0, &xp, &yp1,Current3DMatrix);
+// shade //          Matrix3DTransformXYZval(0, 0, 0.5, &xp, &yp2,Current3DMatrix);
+// shade //          gdlShiftYaxisUsing3DDriverTransform(actStream, yp1 - yp2, false);
+// shade //        }
+// shade //      }
       return false;
     }
     
@@ -367,18 +369,19 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
       //NODATA
       static int nodataIx = e->KeywordIx("NODATA");
       nodata = e->KeywordSet(nodataIx);
-      //SHADES (again)
-      static int shadesIx = e->KeywordIx("SHADES");
-      bool doShade=false;
-      DLongGDL* shadevalues=NULL;
-      if (e->GetKW(shadesIx) != NULL) {
-        shadevalues = e->GetKWAs<DLongGDL>(shadesIx);
-        doShade=true;
-      }
+// shade //      //SHADES (again)
+// shade //      static int shadesIx = e->KeywordIx("SHADES");
+// shade //      bool doShade=false;
+// shade //      DLongGDL* shadevalues=NULL;
+// shade //      if (e->GetKW(shadesIx) != NULL) {
+// shade //        shadevalues = e->GetKWAs<DLongGDL>(shadesIx);
+// shade //        doShade=true;
+// shade //      }
       // Get decomposed value for shades
-      DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
-      if (doShade) actStream->SetColorMap1Table(shadevalues->N_Elements(), shadevalues, decomposed); //SetColorMap1DefaultColors(256,  decomposed ); //actStream->SetColorMap1DefaultColors(256,  decomposed );
-      else actStream->SetColorMap1Ramp(decomposed, 0.5); 
+// shade //      DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
+// shade //     if (doShade) actStream->SetColorMap1Table(shadevalues->N_Elements(), shadevalues, decomposed); //SetColorMap1DefaultColors(256,  decomposed ); //actStream->SetColorMap1DefaultColors(256,  decomposed );
+// shade //     else 
+// shade //      actStream->SetColorMap1Ramp(decomposed, 0.5); 
       static int UPPER_ONLYIx = e->KeywordIx( "UPPER_ONLY");
       static int LOWER_ONLYIx = e->KeywordIx( "LOWER_ONLY");
       bool up=e->KeywordSet ( UPPER_ONLYIx );
@@ -437,9 +440,9 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
         //in not up not low: mesh since mesh plots both sides
         if (up)
         {
-          if (doShade)
-            actStream->plot3dc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt+MAG_COLOR,NULL,0);
-          else
+// shade //          if (doShade)
+// shade //            actStream->plot3dc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt+MAG_COLOR,NULL,0);
+// shade //          else
             actStream->plot3dc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
         }
         else //mesh (both sides) but contains 'low' (remove top) and/or bottom
@@ -451,14 +454,16 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
              gdlSetGraphicsForegroundColorFromKw ( e, actStream );
              if (!low) //redraw top with top color
              {
-               if (doShade) actStream->plot3dc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt+MAG_COLOR,NULL,0);
-               else actStream->plot3dc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
+// shade //               if (doShade) actStream->plot3dc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt+MAG_COLOR,NULL,0);
+// shade //               else 
+                 actStream->plot3dc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
              }
            }
            else
            {
-             if (doShade) actStream->meshc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt+MAG_COLOR,NULL,0);
-             else actStream->mesh(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt);
+// shade //             if (doShade) actStream->meshc(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt+MAG_COLOR,NULL,0);
+// shade //             else 
+               actStream->mesh(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt);
            }
            //redraw upper part with background color to remove it... Not 100% satisfying though.
            if (low)

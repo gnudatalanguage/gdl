@@ -26,7 +26,7 @@ namespace lib
   using namespace std;
 
 // shared parameter
-  static PLFLT lightSourcePos[3]={1.0,1.0,0.0};
+  static PLFLT lightSourcePos[3]={0.0,0.0,1.0};
 
   class shade_surf_call: public plotting_routine_call
   {
@@ -350,19 +350,21 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
       //NODATA
       static int nodataIx = e->KeywordIx("NODATA");
       nodata = e->KeywordSet(nodataIx);
-      //SHADES
-      static int shadesIx = e->KeywordIx("SHADES");
-      bool doShade=false;
-      DLongGDL* shadevalues=NULL;
-      if (e->GetKW(shadesIx) != NULL) {
-        shadevalues = e->GetKWAs<DLongGDL>(shadesIx);
-        doShade=true;
-      }
-      // Get decomposed value for shades
+      //SHADES : not supported yet since plplot does not honor it correctly --- see documentation.
+// shades //      static int shadesIx = e->KeywordIx("SHADES");
+// shades //      bool doShade=false;
+// shades //      DLongGDL* shadevalues=NULL;
+// shades //      if (e->GetKW(shadesIx) != NULL) {
+// shades //        shadevalues = e->GetKWAs<DLongGDL>(shadesIx);
+// shades //        doShade=true;
+// shades //      }
+// Get decomposed value for shades
       DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
-      if (doShade && decomposed==0) actStream->SetColorMap1Table(shadevalues->N_Elements(), shadevalues, decomposed); 
-      else if (doShade && decomposed==1) actStream->SetColorMap1DefaultColors(256,  decomposed );
-      else actStream->SetColorMap1Ramp(decomposed, 0.1);
+// shades //      if (doShade && decomposed==0) actStream->SetColorMap1Table(shadevalues->N_Elements(), shadevalues, decomposed); 
+// shades //      else if (doShade && decomposed==1) actStream->SetColorMap1DefaultColors(256,  decomposed );
+// shades //      else 
+      
+      actStream->SetColorMap1Ramp(decomposed, 0.1);
 
       //Draw 3d mesh before axes
       // PLOT ONLY IF NODATA=0
@@ -400,15 +402,19 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
 
         gdlSetGraphicsForegroundColorFromKw ( e, actStream );
         //mesh option
-        PLINT meshOpt;
-        meshOpt=(doShade)?MAG_COLOR:0;
+        PLINT meshOpt=0;
+// shades //        meshOpt=(doShade)?MAG_COLOR:0;
 
         //position of light Source. Plplot does not use only the direction of the beam but the position of the illuminating
         //source. And its illumination looks strange. We try to make the ill. source a bit far in the good direction.
-        actStream->lightsource(lightSourcePos[0],lightSourcePos[1],lightSourcePos[2]);
+        PLFLT sun[3];
+        sun[0]=lightSourcePos[0]*1E10;
+        sun[1]=lightSourcePos[1]*1E10;
+        sun[2]=lightSourcePos[2]*1E10;
+        actStream->lightsource(sun[0],sun[1],sun[2]);
         actStream->surf3d(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
 
-//Clean alllocated data struct
+//Clean allocated data struct
         delete[] xg1;
         delete[] yg1;
         actStream->Free2dGrid(map, xEl, yEl);
@@ -432,6 +438,9 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
 
  void set_shading(EnvT* e)
  {
+   lightSourcePos[0]=0;
+   lightSourcePos[1]=0;
+   lightSourcePos[2]=1;
     DDoubleGDL *light;
     static int lightIx=e->KeywordIx ( "LIGHT" );
     if ( e->GetKW ( lightIx )!=NULL )

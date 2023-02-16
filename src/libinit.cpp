@@ -817,7 +817,7 @@ void LibInit()
 
   const string shade_surfKey[]=
     {
-      "AX", "AZ",  "MAX_VALUE", "MIN_VALUE", "SHADES", 
+      "AX", "AZ",  "MAX_VALUE", "MIN_VALUE", 
       "HORIZONTAL", "LOWER_ONLY", "UPPER_ONLY", "BOTTOM", 
       "XLOG", "YLOG", "ZLOG", "XTYPE", "YTYPE", "ZTYPE",  //XTYPE and YTYPE are oldies, equivalent to XLOG when value is odd.
       //General Graphics KW
@@ -847,7 +847,7 @@ void LibInit()
     };
   const string shade_surfWarnKey[]=
   {
-      "IMAGE", "PIXELS", KLISTEND
+       "SHADES", "IMAGE", "PIXELS", KLISTEND //SHADES cannot be correctly made with current plplot code
   };
   new DLibPro(lib::shade_surf,string("SHADE_SURF"),3,shade_surfKey, shade_surfWarnKey);
 
@@ -874,12 +874,12 @@ void LibInit()
      // SURFACE keywords
      "MAX_VALUE",  "MIN_VALUE", "AX", "AZ", 
      "XLOG", "YLOG", "ZLOG", "XTYPE", "YTYPE", "ZTYPE",      // ([xyz]type undocumented but still existing in SURFACE ...)
-     "HORIZONTAL", "LOWER_ONLY", "UPPER_ONLY", "SHADES", "ZAXIS",  "BOTTOM", 
+     "HORIZONTAL", "LOWER_ONLY", "UPPER_ONLY",  "ZAXIS",  "BOTTOM", 
      "SKIRT", "SAVE", "T3D",  "ZVALUE", "CHANNEL", KLISTEND
     };
   const string surfaceWarnKey[]=
   {
-      "LEGO", KLISTEND
+      "SHADES","LEGO", KLISTEND //SHADES cannot be correctly made with current plplot code
   };
   new DLibPro(lib::surface,string("SURFACE"),3,surfaceKey, surfaceWarnKey);
 
