@@ -289,6 +289,7 @@ namespace lib
       }
       // We could have kept the old code where the box was written by plplot's box3(), but it would not be compatible with the rest of the eventual other (over)plots
       //Draw axes with normal color!
+      //Should draw 3d mesh before axes
       gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
       //write OUR box using our 3D PLESC tricks:
       gdlBox3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue);
@@ -350,25 +351,23 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
       //NODATA
       static int nodataIx = e->KeywordIx("NODATA");
       nodata = e->KeywordSet(nodataIx);
-      //SHADES : not supported yet since plplot does not honor it correctly --- see documentation.
-// shades //      static int shadesIx = e->KeywordIx("SHADES");
-// shades //      bool doShade=false;
-// shades //      DLongGDL* shadevalues=NULL;
-// shades //      if (e->GetKW(shadesIx) != NULL) {
-// shades //        shadevalues = e->GetKWAs<DLongGDL>(shadesIx);
-// shades //        doShade=true;
-// shades //      }
-// Get decomposed value for shades
-// shades //      if (doShade && decomposed==0) actStream->SetColorMap1Table(shadevalues->N_Elements(), shadevalues, decomposed); 
-// shades //      else if (doShade && decomposed==1) actStream->SetColorMap1DefaultColors(256,  decomposed );
-// shades //      else 
-      
-      DLong decomposed=actStream->ForceColorMap1Ramp(0.2);
 
-      //Draw 3d mesh before axes
       // PLOT ONLY IF NODATA=0
-      if (!nodata)
-      {
+      if (!nodata) {
+        //SHADES : not supported yet since plplot does not honor it correctly --- see documentation.
+        // shades //      static int shadesIx = e->KeywordIx("SHADES");
+        // shades //      bool doShade=false;
+        // shades //      DLongGDL* shadevalues=NULL;
+        // shades //      if (e->GetKW(shadesIx) != NULL) {
+        // shades //        shadevalues = e->GetKWAs<DLongGDL>(shadesIx);
+        // shades //        doShade=true;
+        // shades //      }
+        // Get decomposed value for shades
+        // shades //      if (doShade && decomposed==0) actStream->SetColorMap1Table(shadevalues->N_Elements(), shadevalues, decomposed); 
+        // shades //      else if (doShade && decomposed==1) actStream->SetColorMap1DefaultColors(256,  decomposed );
+        // shades //      else 
+        
+        DLong decomposed = actStream->ForceColorMap1Ramp(0);
         //use of intermediate map for correct handling of blanking values and nans.
         PLFLT ** map;
         actStream->Alloc2dGrid( &map, xEl, yEl);
@@ -417,8 +416,8 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
         delete[] xg1;
         delete[] yg1;
         actStream->Free2dGrid(map, xEl, yEl);
+        if (decomposed > 0) GraphicsDevice::GetDevice()->Decomposed(true);
       }
-      if (decomposed>0) GraphicsDevice::GetDevice()->Decomposed(true);
     } 
 
     virtual void post_call (EnvT*, GDLGStream* actStream) 
