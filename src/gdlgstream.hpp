@@ -606,7 +606,7 @@ public:
   //if create a colormap1 color with passed colors, palette will be tableSize and colors assigned like in contour.
   void SetColorMap1Table(PLINT tableSize, DLongGDL *colors, DLong decomposed=0);
   //if create a colormap1 with a black to white ramp.
-  void SetColorMap1Ramp(DLong decomposed=0, PLFLT minlight=0.0);
+  DLong ForceColorMap1Ramp(PLFLT minlight=0.0);
   void DefaultCharSize();
   void SetCharSize(DLong chx, DLong chy);
   void NextPlot( bool erase=true); // handles multi plots

@@ -130,14 +130,25 @@ void GDLGStream::SetColorMap1Table( PLINT tableSize, DLongGDL *colors,  DLong de
   SetColorMap1(r, g, b, tableSize); 
 }
 
-void GDLGStream::SetColorMap1Ramp(DLong decomposed, PLFLT minlight)
-{ //cycle on passed colors to fill table1 with ramp.
+DLong GDLGStream::ForceColorMap1Ramp(PLFLT minlight) {
+  DLong old_decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
+  if (old_decomposed == 0) { //just copy Table0 to Table1 so that scale from 0 to 1 in table 1 goes through the whole table
+    PLINT r[ctSize], g[ctSize], b[ctSize];
+    GraphicsDevice::GetCT()->Get(r, g, b);
+    SetColorMap1(r, g, b, ctSize);
+  } else {
+  //force decomposed=false otherwise too difficult with silly plplot colortables.
+  GraphicsDevice::GetDevice()->Decomposed(false);
+  //cycle on passed colors to fill table1 with ramp.
     PLFLT h[2], l[2], s[2], pos[2];
-    h[0] = h[1] = s[0] = s[1] = pos[0] = 0.0;
+    h[0] = h[1] = pos[0] = 0.0;
+    s[0] = s[1] = 0.0;
     l[0] = minlight;
     l[1] = pos[1] = 1.0;
     SetColorMap1n(256);
     SetColorMap1l(FALSE,2,pos,h, l, s, NULL); 
+  }
+  return old_decomposed;
 }
 #define WHITEB 255
 void GDLGStream::Background( ULong color, DLong decomposed)

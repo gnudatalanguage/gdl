@@ -359,12 +359,11 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
 // shades //        doShade=true;
 // shades //      }
 // Get decomposed value for shades
-      DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
 // shades //      if (doShade && decomposed==0) actStream->SetColorMap1Table(shadevalues->N_Elements(), shadevalues, decomposed); 
 // shades //      else if (doShade && decomposed==1) actStream->SetColorMap1DefaultColors(256,  decomposed );
 // shades //      else 
       
-      actStream->SetColorMap1Ramp(decomposed, 0.1);
+      DLong decomposed=actStream->ForceColorMap1Ramp(0.2);
 
       //Draw 3d mesh before axes
       // PLOT ONLY IF NODATA=0
@@ -419,6 +418,7 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
         delete[] yg1;
         actStream->Free2dGrid(map, xEl, yEl);
       }
+      if (decomposed>0) GraphicsDevice::GetDevice()->Decomposed(true);
     } 
 
     virtual void post_call (EnvT*, GDLGStream* actStream) 
