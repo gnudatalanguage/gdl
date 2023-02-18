@@ -18,6 +18,9 @@
 #include "includefirst.hpp"
 #include "plotting.hpp"
 
+PLFLT clipBoxInMemory[4] = {0,0,0,0};
+COORDSYS coordinateSystemInMemory = NONE;
+
 namespace lib {
 
   using namespace std;
