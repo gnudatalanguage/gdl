@@ -423,10 +423,6 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
         for ( SizeT i=0; i<xEl; i++ ) cgrid1.xg[i] = (*xVal)[i];
         for ( SizeT i=0; i<yEl; i++ ) cgrid1.yg[i] = (*yVal)[i];
         
-        //apply projection transformations:
-        //not until plplot accepts 2D X Y!
-        
-        gdlSetGraphicsForegroundColorFromKw ( e, actStream );
         //mesh option
         PLINT meshOpt;
         meshOpt=DRAW_LINEXY;

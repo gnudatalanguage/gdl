@@ -26,7 +26,7 @@ namespace lib
   using namespace std;
 
 // shared parameter
-  static PLFLT lightSourcePos[3]={0.0,0.0,1.0};
+  static PLFLT lightSourcePos[3]={1.0,1.0,0.0};
 
   class shade_surf_call: public plotting_routine_call
   {
@@ -300,7 +300,8 @@ namespace lib
       
       //we now pass EVERYTHING in normalized coordinates w/o clipping and set up a transformation to have plplot mesh correct on the 2D vpor.
       //however we need to check that clip values are OK to reproduce IDL's behaviour (no plot at all):
-      if (gdlTestClipValidity(e, actStream)) return true; //note clip meaning is normal
+      //SHADE_SURF IGNORES the CLIP/NOCLIP stuff --- check by yourself.
+//      if (gdlTestClipValidity(e, actStream)) return true; //note clip meaning is normal
       const COORDSYS coordinateSystem = DATA;
       SelfConvertToNormXYZ(xStart, xLog, yStart, yLog, zStart, zLog, coordinateSystem); 
       SelfConvertToNormXYZ(xEnd, xLog, yEnd, yLog, zEnd, zLog, coordinateSystem);
@@ -395,10 +396,6 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
         for ( SizeT i=0; i<xEl; i++ ) cgrid1.xg[i] = (*xVal)[i];
         for ( SizeT i=0; i<yEl; i++ ) cgrid1.yg[i] = (*yVal)[i];
         
-        //apply projection transformations:
-        //not until plplot accepts 2D X Y!
-
-        gdlSetGraphicsForegroundColorFromKw ( e, actStream );
         //mesh option
         PLINT meshOpt=0;
 // shades //        meshOpt=(doShade)?MAG_COLOR:0;
@@ -437,9 +434,9 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
 
  void set_shading(EnvT* e)
  {
-   lightSourcePos[0]=0;
-   lightSourcePos[1]=0;
-   lightSourcePos[2]=1;
+   lightSourcePos[0]=1;
+   lightSourcePos[1]=1;
+   lightSourcePos[2]=0;
     DDoubleGDL *light;
     static int lightIx=e->KeywordIx ( "LIGHT" );
     if ( e->GetKW ( lightIx )!=NULL )
