@@ -1222,7 +1222,7 @@ bool GDLGStream::isovpor(PLFLT x1, PLFLT x2, PLFLT y1,  PLFLT y2,  PLFLT aspect)
   if (ys >= xs * aspect) { //x ok, resize y
     y2mm = y1mm + aspect*xs;
   } else {
-    x2mm = x1mm + aspect*ys;
+    x2mm = x1mm + xs / aspect;
   }
   x1 = mm2ndx(x1mm);
   x2 = mm2ndx(x2mm);
