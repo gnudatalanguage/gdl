@@ -141,10 +141,15 @@ DLong GDLGStream::ForceColorMap1Ramp(PLFLT minlight) {
   GraphicsDevice::GetDevice()->Decomposed(false);
   //fill table1 with grey ramp.
     PLFLT h[2], l[2], s[2], pos[2];
-    h[0] = s[0]= l[0] = pos[0] = 0.0;
-    h[1] = s[1]= l[1] = pos[1] = 1.0;
+    bool rev[2];
+    h[0] = h[1] = 0.0;
+    l[0] = 0.5;
+    l[1] = 1;
+    s[0] = s[1]= 0.0;
+    rev[0] = rev[1] = false;
+    pos[0] = 0; pos[1]=1;
     SetColorMap1n(256);
-    SetColorMap1l(TRUE,2,pos,h, l, s, NULL); 
+    SetColorMap1l(false,2,pos,h, l, s, rev); 
   }
   return old_decomposed;
 }
