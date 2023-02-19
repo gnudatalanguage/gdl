@@ -857,7 +857,7 @@ DDoubleGDL* gdlDoAsScale3(DDouble az, DDouble alt, DDouble *scalex, DDouble *sca
     *yt = x * t[4] + y * t[5] + z * t[6] + t[7]; 
   }
 
-  DDoubleGDL* gdlGetT3DMatrix() {
+   DDoubleGDL* gdlGetT3DMatrix() {
 //    std::cerr<<"gdlGetT3DMatrix()\n";
     DDoubleGDL* t3dMatrix = (new DDoubleGDL(dimension(4, 4), BaseGDL::NOZERO));
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset

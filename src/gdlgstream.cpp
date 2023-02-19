@@ -130,14 +130,28 @@ void GDLGStream::SetColorMap1Table( PLINT tableSize, DLongGDL *colors,  DLong de
   SetColorMap1(r, g, b, tableSize); 
 }
 
-void GDLGStream::SetColorMap1Ramp(DLong decomposed, PLFLT minlight)
-{ //cycle on passed colors to fill table1 with ramp.
+DLong GDLGStream::ForceColorMap1Ramp(PLFLT minlight) {
+  DLong old_decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
+  if (old_decomposed == 0) { //just copy Table0 to Table1 so that scale from 0 to 1 in table 1 goes through the whole table
+    PLINT r[ctSize], g[ctSize], b[ctSize];
+    GraphicsDevice::GetCT()->Get(r, g, b);
+    SetColorMap1(r, g, b, ctSize);
+  } else {
+  //force decomposed=false otherwise too difficult with silly plplot colortables.
+  GraphicsDevice::GetDevice()->Decomposed(false);
+  //fill table1 with grey ramp.
     PLFLT h[2], l[2], s[2], pos[2];
-    h[0] = h[1] = s[0] = s[1] = pos[0] = 0.0;
+    bool rev[2];
+    h[0] = h[1] = 0.0;
     l[0] = minlight;
-    l[1] = pos[1] = 1.0;
+    l[1] = 1;
+    s[0] = s[1]= 0.0;
+    rev[0] = rev[1] = false;
+    pos[0] = 0; pos[1]=1;
     SetColorMap1n(256);
-    SetColorMap1l(FALSE,2,pos,h, l, s, NULL); 
+    SetColorMap1l(false,2,pos,h, l, s, rev); 
+  }
+  return old_decomposed;
 }
 #define WHITEB 255
 void GDLGStream::Background( ULong color, DLong decomposed)
@@ -1208,7 +1222,7 @@ bool GDLGStream::isovpor(PLFLT x1, PLFLT x2, PLFLT y1,  PLFLT y2,  PLFLT aspect)
   if (ys >= xs * aspect) { //x ok, resize y
     y2mm = y1mm + aspect*xs;
   } else {
-    x2mm = x1mm + aspect*ys;
+    x2mm = x1mm + xs / aspect;
   }
   x1 = mm2ndx(x1mm);
   x2 = mm2ndx(x2mm);

@@ -85,13 +85,9 @@ typedef struct {
   DDouble T[16];
 } GDL_3DTRANSFORMDEVICE;
 
-
-static int code012[3] = {0, 1, 2};
-static int code102[3] = {1, 0, 2};
-static int code120[3] = {1, 2, 0};
-static int code210[3] = {2, 1, 0};
-static int code201[3] = {2, 0, 1};
-static int code021[3] = {0, 2, 1};
+//for clipping, shared, defined in plotting_plot.cpp
+extern PLFLT clipBoxInMemory[4];
+extern COORDSYS coordinateSystemInMemory;
 
 enum T3DEXCHANGECODE {
   INVALID = -1,
@@ -249,8 +245,10 @@ namespace lib {
   void gdlStartSpecial3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE &PlotDevice3D);
   void gdlExchange3DDriverTransform( GDLGStream *a);
   void gdlFlipYPlotDirection( GDLGStream *a);
+  void gdlShiftYaxisUsing3DDriverTransform( GDLGStream *a, DDouble yval, bool invert=false);
   void gdlSetZto3DDriverTransform( GDLGStream *a, DDouble zValue);
   void gdlStop3DDriverTransform(GDLGStream *a);
+  void Matrix3DTransformXYZval(DDouble x, DDouble y, DDouble z, DDouble *xt, DDouble *yt, DDouble *t);
   bool T3Denabled();
   void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax = false, DDouble minVal = 0, DDouble maxVal = 0);
   void draw_polyline(GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal, DLong psym = 0, bool append = false, DLongGDL *color = NULL);
@@ -361,9 +359,8 @@ namespace lib {
       restoreDrawArea(actStream);
 
       abort = prepareDrawArea(e, actStream);
-      if (abort) { // clear if not  MULTI:
-        DLongGDL* pMulti = SysVar::GetPMulti();
-        if ((*pMulti)[1] <= 1 && (*pMulti)[2] <= 1) {actStream->Clear(); actStream->Update();}
+      if (abort) { 
+        actStream->Update();
         return;
       }
 
@@ -1856,7 +1853,8 @@ namespace lib {
    
   //restore current clipbox, make another or remove it at all.
   static bool gdlSwitchToClippedNormalizedCoordinates(EnvT *e, GDLGStream *actStream, bool invertedClipMeaning=false, bool commandHasCoordSys=true ) {
-   COORDSYS coordinateSystem = DATA;
+    
+    COORDSYS coordinateSystem = DATA;
     //check presence of DATA,DEVICE and NORMAL options only of command accept them (otherwise assert triggered if in debug mode)
     if (commandHasCoordSys) {
       static int DATAIx = e->KeywordIx("DATA");
@@ -1884,14 +1882,28 @@ namespace lib {
     if (doClip) { //we use current norm box, then clipping if smaller:
       PLFLT xnormmin, xnormmax, ynormmin, ynormmax;
       actStream->getCurrentNormBox(xnormmin, xnormmax, ynormmin, ynormmax);
-      PLFLT clipBox[4] = {xnormmin, xnormmax, ynormmin, ynormmax};
       static int CLIP = e->KeywordIx("CLIP"); //this one may be in other coordinates
       DDoubleGDL* clipBoxGDL = e->IfDefGetKWAs<DDoubleGDL>(CLIP);
       if (clipBoxGDL != NULL) {
-        for (auto i = 0; i < MIN(clipBoxGDL->N_Elements(),4) ; ++i) clipBox[i] = (*clipBoxGDL)[i];
-        if (clipBox[0]>=clipBox[2] || clipBox[1]>=clipBox[3]) return true; //abort
+        //if clipBoxGDL is fully qualified, both its coordsys and values replace clipBoxInMemory
+        if (clipBoxGDL->N_Elements() >= 4) {
+          for (auto i = 0; i < MIN(clipBoxGDL->N_Elements(),4) ; ++i) clipBoxInMemory[i] = (*clipBoxGDL)[i];
+          coordinateSystemInMemory=coordinateSystem;
+        } else {
+          //passed clipbox not fully qualified:
+          //if same coordsys, replace as many as possible
+          if (coordinateSystem==coordinateSystemInMemory) {
+            for (auto i = 0; i < MIN(clipBoxGDL->N_Elements(),4) ; ++i) clipBoxInMemory[i] = (*clipBoxGDL)[i];
+          } else { //not possible
+            return true; //abort
+          }
+        }
+        //test validity of clipbox, we are with the same coordinate system:
+        if (clipBoxInMemory[0]>=clipBoxInMemory[2] || clipBoxInMemory[1]>=clipBoxInMemory[3]) return true; //abort
         //clipBox is defined accordingly to /NORM /DEVICE /DATA:
-        //convert clipBox to normalized coordinates:
+        //convert clipBox to normalized coordinates, avoiding overwriting clipBoxInMemory of course:
+        PLFLT clipBox[4];
+        for (auto i = 0; i < 4 ; ++i) clipBox[i] = clipBoxInMemory[i];
         ConvertToNormXY(1, &clipBox[0], false, &clipBox[1], false, coordinateSystem);
         ConvertToNormXY(1, &clipBox[2], false, &clipBox[3], false, coordinateSystem);
         xnormmin = MAX(xnormmin,clipBox[0]);
@@ -1951,14 +1963,28 @@ namespace lib {
     if (doClip) { //we use current norm box, then clipping if smaller:
       PLFLT xnormmin, xnormmax, ynormmin, ynormmax;
       actStream->getCurrentNormBox(xnormmin, xnormmax, ynormmin, ynormmax);
-      PLFLT clipBox[4] = {xnormmin, xnormmax, ynormmin, ynormmax};
       static int CLIP = e->KeywordIx("CLIP"); //this one may be in other coordinates
       DDoubleGDL* clipBoxGDL = e->IfDefGetKWAs<DDoubleGDL>(CLIP);
       if (clipBoxGDL != NULL) {
-        for (auto i = 0; i < MIN(clipBoxGDL->N_Elements(),4) ; ++i) clipBox[i] = (*clipBoxGDL)[i];
-        if (clipBox[0]>=clipBox[2] || clipBox[1]>=clipBox[3]) return true; //abort
+        //if clipBoxGDL is fully qualified, both its coordsys and values replace clipBoxInMemory
+        if (clipBoxGDL->N_Elements() >= 4) {
+          for (auto i = 0; i < MIN(clipBoxGDL->N_Elements(),4) ; ++i) clipBoxInMemory[i] = (*clipBoxGDL)[i];
+          coordinateSystemInMemory=coordinateSystem;
+        } else {
+          //passed clipbox not fully qualified:
+          //if same coordsys, replace as many as possible
+          if (coordinateSystem==coordinateSystemInMemory) {
+            for (auto i = 0; i < MIN(clipBoxGDL->N_Elements(),4) ; ++i) clipBoxInMemory[i] = (*clipBoxGDL)[i];
+          } else { //not possible
+            return true; //abort
+          }
+        }
+        //test validity of clipbox, we are with the same coordinate system:
+        if (clipBoxInMemory[0]>=clipBoxInMemory[2] || clipBoxInMemory[1]>=clipBoxInMemory[3]) return true; //abort
         //clipBox is defined accordingly to /NORM /DEVICE /DATA:
-        //convert clipBox to normalized coordinates:
+        //convert clipBox to normalized coordinates, avoiding overwriting clipBoxInMemory of course:
+        PLFLT clipBox[4];
+        for (auto i = 0; i < 4 ; ++i) clipBox[i] = clipBoxInMemory[i];
         ConvertToNormXY(1, &clipBox[0], false, &clipBox[1], false, coordinateSystem);
         ConvertToNormXY(1, &clipBox[2], false, &clipBox[3], false, coordinateSystem);
         xnormmin = MAX(xnormmin,clipBox[0]);

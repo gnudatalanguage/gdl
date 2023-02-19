@@ -1,4 +1,5 @@
 pro test_issues1474
+if !version.os_family eq 'Windows' then return
 close,1, 2
 openw,1,'basefile'
 line1='01234567890123456789'

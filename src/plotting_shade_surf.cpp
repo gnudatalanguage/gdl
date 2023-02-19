@@ -18,6 +18,7 @@
 #include "includefirst.hpp"
 #include "plotting.hpp"
 #include "dinterpreter.hpp"
+
 #define GDL_PI     double(3.1415926535897932384626433832795)
 
 namespace lib
@@ -25,7 +26,7 @@ namespace lib
   using namespace std;
 
 // shared parameter
-  static PLFLT lightSourcePos[3]={1.0,1.0,0.0};
+  static PLFLT lightSourcePos[3]={0,0,1.0};
 
   class shade_surf_call: public plotting_routine_call
   {
@@ -46,6 +47,8 @@ namespace lib
     PLFLT az = 30.0;
     PLFLT ay = 0;
     bool below=false;
+    DDouble* Current3DMatrix;
+    DDoubleGDL* gdlBox3d;
     
  private:
     bool handle_args (EnvT* e)
@@ -266,19 +269,27 @@ namespace lib
           alt=-(360.-alt);
       }
         //Compute special transformation matrix for the BOX and give it to the driver
-        DDoubleGDL* gdlBox3d=gdlDefinePlplotRotationMatrix( az, alt, scale, saveT3d);
+        gdlBox3d=gdlDefinePlplotRotationMatrix( az, alt, scale, saveT3d);
+        Guard<BaseGDL> g(gdlBox3d);
         GDL_3DTRANSFORMDEVICE T3DForAXes;
         for (int i = 0; i < 16; ++i)T3DForAXes.T[i] =(*gdlBox3d)[i];
         T3DForAXes.zValue = (std::isfinite(zValue))?zValue:0;
         gdlStartSpecial3DDriverTransform(actStream,T3DForAXes);
+        Current3DMatrix=static_cast<DDouble*>(gdlBox3d->DataAddr());
       } else {
         //just ask for P.T3D transform with the driver:
         bool ok=gdlInterpretT3DMatrixAsPlplotRotationMatrix(az, alt, ay, scale, axisExchangeCode, below);
         if (!ok) Warning ( "SHADE_SURF: Illegal 3D transformation." );
         gdlStartT3DMatrixDriverTransform(actStream, zValue);
+
+        DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
+        static unsigned tTag = pStruct->Desc()->TagIndex("T");
+        Current3DMatrix = static_cast<DDouble*> (pStruct->GetTag(tTag, 0)->DataAddr());
+        
       }
       // We could have kept the old code where the box was written by plplot's box3(), but it would not be compatible with the rest of the eventual other (over)plots
       //Draw axes with normal color!
+      //Should draw 3d mesh before axes
       gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
       //write OUR box using our 3D PLESC tricks:
       gdlBox3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue);
@@ -289,7 +300,8 @@ namespace lib
       
       //we now pass EVERYTHING in normalized coordinates w/o clipping and set up a transformation to have plplot mesh correct on the 2D vpor.
       //however we need to check that clip values are OK to reproduce IDL's behaviour (no plot at all):
-      if (gdlTestClipValidity(e, actStream)) return true; //note clip meaning is normal
+      //SHADE_SURF IGNORES the CLIP/NOCLIP stuff --- check by yourself.
+//      if (gdlTestClipValidity(e, actStream)) return true; //note clip meaning is normal
       const COORDSYS coordinateSystem = DATA;
       SelfConvertToNormXYZ(xStart, xLog, yStart, yLog, zStart, zLog, coordinateSystem); 
       SelfConvertToNormXYZ(xEnd, xLog, yEnd, yLog, zEnd, zLog, coordinateSystem);
@@ -307,13 +319,31 @@ namespace lib
 //   y = ymax   =>   wy =  0.5*basey
 //   z = zmin   =>   wz =  0.0
 //   z = zmax   =>   wz =  height
-      actStream->vpor(0,1,0,1);
-      actStream->wind(-0.5/scale[0],0.5/scale[0],-0.5/scale[1],0.5/scale[1]);
-      if (alt < 0) { actStream->w3d(1,1,1,0,1,0,1,0.5,1.5, -alt, az);
-      gdlFlipYPlotDirection(actStream); //special trick, not possible with plplot
-      } else actStream->w3d(1,1,1,0,1,0,1,0.5,1.5, alt, az);
       
-      if (zValue < 0.5) Message("SHADE_SURF: due to plplot restrictions, shaded surface is not entirely visible. Please try with zvalue=0.5 or greater.");
+//Due to a bug in plplot, shading (here) and surface (in plotting_surface) do not behave similarly WRT the vpor and wind.
+//This is the good version for shade_surf, shifting the shaded surface by som amount in the 3DDriverTransform of the driver, not the plplot library.     
+      actStream->vpor(0,1,0,1);
+      actStream->wind(-0.5/scale[0],0.5/scale[0],-0.5/scale[1],0.5/scale[1]); //mandatory: to center in (0,0,0) for 3D Matrix rotation.
+      if (below) { actStream->w3d(1,1,1,0,1,0,1,0,1, -alt, az);
+        DDouble xp = 0;
+        DDouble yp1 = 0;
+        DDouble yp2 = 0;
+        Matrix3DTransformXYZval(0, 0, 0, &xp, &yp1,Current3DMatrix);
+        Matrix3DTransformXYZval(0, 0, 0.5, &xp, &yp2,Current3DMatrix);
+        gdlShiftYaxisUsing3DDriverTransform(actStream, 1-(yp1 - yp2), true);
+      } else {
+        actStream->w3d(1,1,1,0,1,0,1,0,1, alt, az); //mandatory: in order to have shades plotted correctly, z must go from 0 to 1, not -0.5 to 0.5
+        //as the code in plplot prevents negative "normalized" values.
+        // To insure this (and shade_surf) to work in all cases, we must rely on the 3DDriverTransform, once again, to shift the [0,1] plot in [-0.5, 0.5]
+        // 
+        //compute vertical displacement of point [0,0,0] in projected coordinates between zv=0 and zv=0.5
+        DDouble xp = 0;
+        DDouble yp1 = 0;
+        DDouble yp2 = 0;
+        Matrix3DTransformXYZval(0, 0, 0, &xp, &yp1,Current3DMatrix);
+        Matrix3DTransformXYZval(0, 0, 0.5, &xp, &yp2,Current3DMatrix);
+        gdlShiftYaxisUsing3DDriverTransform(actStream, yp1 - yp2, false);
+      }
       
       return false;
       }
@@ -322,24 +352,23 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
       //NODATA
       static int nodataIx = e->KeywordIx("NODATA");
       nodata = e->KeywordSet(nodataIx);
-      //SHADES
-      static int shadesIx = e->KeywordIx("SHADES");
-      bool doShade=false;
-      DLongGDL* shadevalues=NULL;
-      if (e->GetKW(shadesIx) != NULL) {
-        shadevalues = e->GetKWAs<DLongGDL>(shadesIx);
-        doShade=true;
-      }
-      // Get decomposed value for shades
-      DLong decomposed=GraphicsDevice::GetDevice()->GetDecomposed();
-      if (doShade && decomposed==0) actStream->SetColorMap1Table(shadevalues->N_Elements(), shadevalues, decomposed); 
-      else if (doShade && decomposed==1) actStream->SetColorMap1DefaultColors(256,  decomposed );
-      else actStream->SetColorMap1Ramp(decomposed, 0.1);
 
-      //Draw 3d mesh before axes
       // PLOT ONLY IF NODATA=0
-      if (!nodata)
-      {
+      if (!nodata) {
+        //SHADES : not supported yet since plplot does not honor it correctly --- see documentation.
+        // shades //      static int shadesIx = e->KeywordIx("SHADES");
+        // shades //      bool doShade=false;
+        // shades //      DLongGDL* shadevalues=NULL;
+        // shades //      if (e->GetKW(shadesIx) != NULL) {
+        // shades //        shadevalues = e->GetKWAs<DLongGDL>(shadesIx);
+        // shades //        doShade=true;
+        // shades //      }
+        // Get decomposed value for shades
+        // shades //      if (doShade && decomposed==0) actStream->SetColorMap1Table(shadevalues->N_Elements(), shadevalues, decomposed); 
+        // shades //      else if (doShade && decomposed==1) actStream->SetColorMap1DefaultColors(256,  decomposed );
+        // shades //      else 
+        
+        DLong decomposed = actStream->ForceColorMap1Ramp(0.33);
         //use of intermediate map for correct handling of blanking values and nans.
         PLFLT ** map;
         actStream->Alloc2dGrid( &map, xEl, yEl);
@@ -367,32 +396,30 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
         for ( SizeT i=0; i<xEl; i++ ) cgrid1.xg[i] = (*xVal)[i];
         for ( SizeT i=0; i<yEl; i++ ) cgrid1.yg[i] = (*yVal)[i];
         
-        //apply projection transformations:
-        //not until plplot accepts 2D X Y!
-
-        gdlSetGraphicsForegroundColorFromKw ( e, actStream );
         //mesh option
-        PLINT meshOpt;
-        meshOpt=(doShade)?MAG_COLOR:0;
+        PLINT meshOpt=0;
+// shades //        meshOpt=(doShade)?MAG_COLOR:0;
 
         //position of light Source. Plplot does not use only the direction of the beam but the position of the illuminating
         //source. And its illumination looks strange. We try to make the ill. source a bit far in the good direction.
         PLFLT sun[3];
-        sun[0]=xStart+(xEnd-xStart)*(0.5+lightSourcePos[0]);
-        sun[1]=yStart+(yEnd-yStart)*(0.5+lightSourcePos[1]);
-        sun[2]=zStart+(zEnd-zStart)*((1.0-zValue)+lightSourcePos[2]);
+        sun[0]=lightSourcePos[0]*1E10;
+        sun[1]=lightSourcePos[1]*1E10;
+        sun[2]=lightSourcePos[2]*1E10;
         actStream->lightsource(sun[0],sun[1],sun[2]);
         actStream->surf3d(xg1,yg1,map,cgrid1.nx,cgrid1.ny,meshOpt,NULL,0);
 
-//Clean alllocated data struct
+//Clean allocated data struct
         delete[] xg1;
         delete[] yg1;
         actStream->Free2dGrid(map, xEl, yEl);
+        if (decomposed > 0) GraphicsDevice::GetDevice()->Decomposed(true);
       }
     } 
 
     virtual void post_call (EnvT*, GDLGStream* actStream) 
     {
+      gdlStop3DDriverTransform(actStream); 
       actStream->lsty(1);//reset linestyle
       actStream->sizeChar(1.0);
     } 
@@ -407,6 +434,9 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
 
  void set_shading(EnvT* e)
  {
+   lightSourcePos[0]=0;
+   lightSourcePos[1]=0;
+   lightSourcePos[2]=1;
     DDoubleGDL *light;
     static int lightIx=e->KeywordIx ( "LIGHT" );
     if ( e->GetKW ( lightIx )!=NULL )

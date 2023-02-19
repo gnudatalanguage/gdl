@@ -1770,11 +1770,27 @@ namespace lib
     PlotDevice3D.zValue=zValue; //for zAxis ONLY
     a->cmd(PLESC_3D, &PlotDevice3D);//copy to driver's
   }
+  void gdlShiftYaxisUsing3DDriverTransform( GDLGStream *a, DDouble yval, bool invert){
+    for (int i = 0; i < 16; ++i) PlotDevice3D.T[i] = 0;
+    PlotDevice3D.T[0] = 1;
+    PlotDevice3D.T[5] = invert?-1:1; //see gdlFlipYPlotDirection() above 
+    PlotDevice3D.T[10] = 1;
+    PlotDevice3D.T[15] = 1;
+    PlotDevice3D.zValue=0;
+    PlotDevice3D.T[7]=yval;
+    a->cmd(PLESC_3D, &PlotDevice3D);//copy to driver's
+  }
   void gdlStop3DDriverTransform( GDLGStream *a){ //stop and RESET to unity/
     for (int i = 0; i < 16; ++i) PlotDevice3D.T[i] = 0;PlotDevice3D.T[0] = 1;PlotDevice3D.T[5] = 1;PlotDevice3D.T[10] = 1;PlotDevice3D.T[15] = 1;
     PlotDevice3D.zValue=0;
     a->cmd(PLESC_2D, NULL);
   }
+  //Convert 3D to 2D using a passed PlotDevice3D matrix
+  void Matrix3DTransformXYZval(DDouble x, DDouble y, DDouble z, DDouble *xt, DDouble *yt, DDouble* t) {
+    *xt = x * t[0] + y * t[1] + z * t[2] + t[3];
+    *yt = x * t[4] + y * t[5] + z * t[6] + t[7];
+  }
+ 
   bool T3Denabled()
   {
     DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
