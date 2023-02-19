@@ -699,7 +699,6 @@ namespace lib {
 	  return fileStatus; // OPEN tag is init to zero (SpDByte::GetInstance())
 
 	struct stat buffer;
-  actUnit.Flush(); //necessary for, at least, Windows.
 	int status = stat(actUnit.Name().c_str(), &buffer);
 
 	fileStatus->InitTag("NAME", DStringGDL( actUnit.Name()));
