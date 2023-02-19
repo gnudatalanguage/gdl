@@ -23,7 +23,7 @@ ANTLR_C_USING(sprintf)
 ANTLR_USE_NAMESPACE(std)string operator+( const ANTLR_USE_NAMESPACE(std)string& lhs, const int rhs )
 {
 	char tmp[100];
-	sprintf(tmp,"%d",rhs);
+	snprintf(tmp,100,"%d",rhs);
 	return lhs+tmp;
 }
 

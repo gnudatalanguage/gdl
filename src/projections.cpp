@@ -401,6 +401,8 @@ namespace lib {
     int vcode[16];
   } projCoding;
 
+#define SZ 64
+  
   static projCoding projectionOptions[] = {
     // pidx, proj. Number as in doc, Name, PROJ litle name, number of projElements to read, 
     // Values as index in projElements (options for PROJ), idem for variant.
@@ -647,23 +649,23 @@ namespace lib {
       variant = (map_p[noptions] > 0);
     }
 
-    char proj[64];
-    char p0lon[64];
-    char p0lat[64];
-    char a[64];
-    char e2[64];
-    char lat_1[64];
-    char lat_2[64];
-    char lat_ts[64];
-    char opt[64];
-    char h[64];
-    char tilt[64];
-    char R[32];
+    char proj[SZ];
+    char p0lon[SZ];
+    char p0lat[SZ];
+    char a[SZ];
+    char e2[SZ];
+    char lat_1[SZ];
+    char lat_2[SZ];
+    char lat_ts[SZ];
+    char opt[SZ];
+    char h[SZ];
+    char tilt[SZ];
+    char R[SZ];
 
     // Oblique projection parameters
-    char ob_proj[64];
-    char ob_lon[64];
-    char ob_lat[64];
+    char ob_proj[SZ];
+    char ob_lon[SZ];
+    char ob_lat[SZ];
     DDouble proj_p0lon = 0.0; //Default
     DDouble proj_p0lat = 90.0; //Default
 
@@ -770,20 +772,20 @@ namespace lib {
         //        if (map_p0lon==180.0) map_p0lon=179.999992;
         if (map_p0lat > 89.999) map_p0lat = 89.999; //take some precautions as PROJ is not proetected!!! 
         if (map_p0lat < -89.999) map_p0lat = -89.999;
-        sprintf(ob_lon, "o_lon_p=%lf", proj_p0lon);
+        snprintf(ob_lon,SZ, "o_lon_p=%lf", proj_p0lon);
         proj_p0lat = 90.0 - map_p0lat; //ADD CENTRAL_AZIMUTH!!
         map_p0lat = 0.0;
-        sprintf(ob_lat, "o_lat_p=%lf", proj_p0lat);
+        snprintf(ob_lat,SZ, "o_lat_p=%lf", proj_p0lat);
       }
 
-      sprintf(p0lon, "lon_0=%lf", map_p0lon);
-      sprintf(p0lat, "lat_0=%lf", map_p0lat);
+      snprintf(p0lon,SZ, "lon_0=%lf", map_p0lon);
+      snprintf(p0lat,SZ, "lat_0=%lf", map_p0lat);
 
       //      if (map_e2 == 0.0) {
-      //        sprintf(a, "R=%lf", map_a);
+      //        snprintf(a,SZ, "R=%lf", map_a);
       //      } else {
-      sprintf(a, "a=%lf", map_a);
-      sprintf(e2, "es=%lf", map_e2);
+      snprintf(a,SZ, "a=%lf", map_a);
+      snprintf(e2,SZ, "es=%lf", map_e2);
       //      }
 
       DLong nparms = 0;
@@ -801,14 +803,14 @@ namespace lib {
         ) {
         strcpy(ob_proj, "proj=ob_tran");
         parms[nparms++] = &ob_proj[0];
-        sprintf(proj, "o_proj=%s", projectionOptions[map_projection].p4nam.c_str());
+        snprintf(proj, SZ,"o_proj=%s", projectionOptions[map_projection].p4nam.c_str());
         parms[nparms++] = &proj[0];
         parms[nparms++] = &ob_lon[0];
         parms[nparms++] = &ob_lat[0];
         parms[nparms++] = &p0lon[0];
         parms[nparms++] = &p0lat[0];
       } else {
-        sprintf(proj, "proj=%s", projectionOptions[map_projection].p4nam.c_str());
+        snprintf(proj, SZ,"proj=%s", projectionOptions[map_projection].p4nam.c_str());
         parms[nparms++] = &proj[0];
         parms[nparms++] = &p0lon[0];
         parms[nparms++] = &p0lat[0];
@@ -816,30 +818,30 @@ namespace lib {
 
       switch (map_projection) {
       case Mercator:
-        sprintf(lat_ts, "lat_ts=%lf", map_lat1 * RAD_TO_DEG);
+        snprintf(lat_ts,SZ, "lat_ts=%lf", map_lat1 * RAD_TO_DEG);
         parms[nparms++] = &lat_ts[0];
         break;
       case LambertConic:
       case AlbersEqualAreaConic:
       case LambertEllipsoidConic:
         if (map_lat2 == 0.0) {
-          sprintf(lat_1, "lat_0=%lf", map_lat1 * RAD_TO_DEG);
+          snprintf(lat_1, SZ,"lat_0=%lf", map_lat1 * RAD_TO_DEG);
           parms[nparms++] = &lat_1[0];
         } else {
-          sprintf(lat_1, "lat_1=%lf", map_lat1 * RAD_TO_DEG);
-          sprintf(lat_2, "lat_2=%lf", map_lat2 * RAD_TO_DEG);
+          snprintf(lat_1,SZ, "lat_1=%lf", map_lat1 * RAD_TO_DEG);
+          snprintf(lat_2,SZ, "lat_2=%lf", map_lat2 * RAD_TO_DEG);
           parms[nparms++] = &lat_1[0];
           parms[nparms++] = &lat_2[0];
         }
         break;
       case Satellite: //Satellite looks wrong ??? check
-        sprintf(h, "h=%lf", map_p[0] - 1.0);
+        snprintf(h, SZ,"h=%lf", map_p[0] - 1.0);
         parms[nparms++] = &h[0];
-        sprintf(tilt, "tilt=%lf", RAD_TO_DEG * map_p[1]);
+        snprintf(tilt,SZ, "tilt=%lf", RAD_TO_DEG * map_p[1]);
         parms[nparms++] = &tilt[0];
-        sprintf(R, "R=1");
+        snprintf(R,SZ, "R=1");
         parms[nparms++] = &R[0];
-        //          sprintf(azi, "azi=%lf", map_rot);
+        //          snprintf(azi,SZ, "azi=%lf", map_rot);
         //          parms[nparms++] = &azi[0]; 
         break;
       }

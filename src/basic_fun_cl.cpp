@@ -410,8 +410,8 @@ namespace lib {
         strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%S.000", tm_local);
         //puttinf in milliseconds
         char milli[50]; //size of 50 to avoid buffer overload (not optimal)
-        sprintf(milli, "%03ld", (long) tv.tv_usec/1000);
-        sprintf(timestamp + 20, "%.3s", milli);
+        snprintf(milli,50, "%03ld", (long) tv.tv_usec/1000);
+        snprintf(timestamp + 20,3, "%.3s", milli);
         ts=timestamp;
       }
 
@@ -431,11 +431,11 @@ namespace lib {
           ts+="Z";
       } else if(h_diff > 0) {
           char diff[50];  //size of 50 to avoid buffer overload (not optimal)
-          sprintf(diff,"%s%02ld:%02ld", "+", h_diff, m_diff);
+          snprintf(diff,50,"%s%02ld:%02ld", "+", h_diff, m_diff);
           ts += diff;
       } else if(h_diff < 0) {
           char diff[50];  //size of 50 to avoid buffer overload (not optimal)
-          sprintf(diff,"%s%02ld:%02ld", "-", -h_diff, m_diff);
+          snprintf(diff,50,"%s%02ld:%02ld", "-", -h_diff, m_diff);
           ts += diff;
       } else {
           ts+="Z";

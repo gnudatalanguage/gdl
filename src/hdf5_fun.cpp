@@ -476,7 +476,7 @@ namespace lib {
 
       case H5T_COMPOUND:
         {
-          sprintf(type_lbl, "nested compound");
+          snprintf(type_lbl,200, "nested compound");
 
           DStructDesc* cmp_desc = new DStructDesc("$truct");
           DStructGDL* res = new DStructGDL(cmp_desc);
@@ -487,7 +487,7 @@ namespace lib {
         break;
 
       case H5T_ARRAY:
-        sprintf(type_lbl, "array");
+        snprintf(type_lbl, 200, "array");
 
         if ((member_rank=H5Tget_array_ndims(member_type)) <0)
           { string msg; e->Throw(hdf5_error_message(msg)); }
@@ -498,15 +498,15 @@ namespace lib {
         break;
 
       case H5T_STRING:
-        sprintf(type_lbl, "string");
+        snprintf(type_lbl,200, "string");
         break;
 
       case H5T_INTEGER:
-        sprintf(type_lbl, "integer");
+        snprintf(type_lbl,200, "integer");
         break;
 
       case H5T_FLOAT:
-        sprintf(type_lbl, "float");
+        snprintf(type_lbl,200, "float");
         break;
 
       case H5T_BITFIELD:
