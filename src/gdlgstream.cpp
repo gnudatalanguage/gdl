@@ -143,7 +143,7 @@ DLong GDLGStream::ForceColorMap1Ramp(PLFLT minlight) {
     PLFLT h[2], l[2], s[2], pos[2];
     bool rev[2];
     h[0] = h[1] = 0.0;
-    l[0] = 0.5;
+    l[0] = minlight;
     l[1] = 1;
     s[0] = s[1]= 0.0;
     rev[0] = rev[1] = false;

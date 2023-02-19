@@ -26,7 +26,7 @@ namespace lib
   using namespace std;
 
 // shared parameter
-  static PLFLT lightSourcePos[3]={1.0,1.0,0.0};
+  static PLFLT lightSourcePos[3]={0,0,1.0};
 
   class shade_surf_call: public plotting_routine_call
   {
@@ -368,7 +368,7 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
         // shades //      else if (doShade && decomposed==1) actStream->SetColorMap1DefaultColors(256,  decomposed );
         // shades //      else 
         
-        DLong decomposed = actStream->ForceColorMap1Ramp(0);
+        DLong decomposed = actStream->ForceColorMap1Ramp(0.33);
         //use of intermediate map for correct handling of blanking values and nans.
         PLFLT ** map;
         actStream->Alloc2dGrid( &map, xEl, yEl);
@@ -434,9 +434,9 @@ void applyGraphics(EnvT* e, GDLGStream * actStream) {
 
  void set_shading(EnvT* e)
  {
-   lightSourcePos[0]=1;
-   lightSourcePos[1]=1;
-   lightSourcePos[2]=0;
+   lightSourcePos[0]=0;
+   lightSourcePos[1]=0;
+   lightSourcePos[2]=1;
     DDoubleGDL *light;
     static int lightIx=e->KeywordIx ( "LIGHT" );
     if ( e->GetKW ( lightIx )!=NULL )
