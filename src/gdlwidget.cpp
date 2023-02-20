@@ -196,6 +196,24 @@ bool GDLWidget::handlersOk=false;
 wxFont GDLWidget::defaultFont=wxNullFont; //the font defined by widget_control,default_font.
 wxFont GDLWidget::systemFont=wxNullFont;  //the initial system font. This to behave as IDL
 
+  //initialize wxWidgets system:  create an instance of wxAppGDL here, not at Main (
+#ifndef __WXMAC__ 
+    wxAppGDL& wxGetApp() { return *static_cast<wxAppGDL*>(wxApp::GetInstance()); }   
+    wxAppConsole *wxCreateApp() 
+    { 
+        wxAppConsole::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE,"GDL");
+        return new wxAppGDL;
+    }
+    wxAppInitializer  wxTheAppInitializer((wxAppInitializerFunction) wxCreateApp);
+#else
+    wxApp& wxGetApp() { return *static_cast<wxApp*>(wxApp::GetInstance()); }   
+    wxAppConsole *wxCreateApp() 
+    { 
+        wxAppConsole::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE,"GDL");
+        return new wxApp;
+    }
+    wxAppInitializer  wxTheAppInitializer((wxAppInitializerFunction) wxCreateApp);
+#endif
 
 void GDLEventQueue::Purge()
 {
