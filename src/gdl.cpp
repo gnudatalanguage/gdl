@@ -66,11 +66,12 @@
 //initialize wxWidgets system:  create an instance of wxAppGDL
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
-#ifndef __WXMAC__ 
-wxIMPLEMENT_APP_NO_MAIN( wxAppGDL);
-#else
-wxIMPLEMENT_APP_NO_MAIN( wxApp);
-#endif
+//displaced in gdlwidget.cpp to make wxGetApp() available under Python (in GDL.so)
+//#ifndef __WXMAC__ 
+//wxIMPLEMENT_APP_NO_MAIN( wxAppGDL);
+//#else
+//wxIMPLEMENT_APP_NO_MAIN( wxApp);
+//#endif
 #endif
 
 using namespace std;
