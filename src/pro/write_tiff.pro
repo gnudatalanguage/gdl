@@ -8,9 +8,13 @@
 ;
 ; CALLING SEQUENCE: 
 ;    WRITE_TIFF, filename, image, bits_per_sample, red, green, blue, $
-;                compression, verbose=verbose, help=help, test=test, $
+;                compression=[0|1|2|3], description=string,document_name=string,geotiff=structure,$
+;                double=double, verbose=verbose, help=help, test=test, $
 ;                debug=debug
-;
+;whiledescription=string,document_name=string,geotiff=structure,$
+;                double=double,  do begin
+
+endwhile
 ; KEYWORD PARAMETERS: 
 ;     ORDER      : 1 = top-bottom, 0 = bottom-top
 ;     VERBOSE    : Not Used
@@ -46,18 +50,23 @@
 ; (at your option) any later version.                                   
 
 pro WRITE_TIFF, filename, image, bits_per_sample, $
-                red = red, green =  green, blue = blue, $
-                compression = compression, verbose = verbose, $
-                help = help, test = test, $
-                debug = debug, order = order
+   red = red, green =  green, blue = blue, $
+   compression = compression, description=string, document_name=string, $
+   geotiff=geotiff,$
+   double=double, $
+   verbose = verbose, $
+   help = help, test = test, $
+   debug = debug, order = order
 
 ; this line allows to compile also in IDL ...
   forward_function magick_exists, magick_ping, magick_read
 
   
   if keyword_set(help) then begin
-     print, ' RITE_TIFF, filename, image, bits_per_sample, red=red, green=green, blue=blue, $'
-     print, '            compression=compression, verbose=verbose, help=help, test=test, $'
+     print, ' WRITE_TIFF, filename, image, bits_per_sample, red=red, green=green, blue=blue, $'
+     print, '            compression=compression, compression=[0|1|2|3], $'
+     print, '            description=string,document_name=string,$'
+     print, '            geotiff=structure, verbose=verbose, help=help, test=test, $'
      print, '            debug=debug'
      return
   endif
@@ -146,5 +155,5 @@ pro WRITE_TIFF, filename, image, bits_per_sample, $
   magick_write, mid, timage, rgb = 1s
   magick_writefile, mid, filename, 'TIFF'
   magick_close, mid
-
+  if keyword_set(geotiff) then updategeotagsinimage,filename,geotiff
 end
