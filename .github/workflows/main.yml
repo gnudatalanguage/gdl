@@ -57,6 +57,52 @@ jobs:
         tag_name: weekly-release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  upload-source-code:
+    runs-on: ubuntu-latest
+    needs: prelude
+    steps:
+      - name: Checkout GDL
+        uses: actions/checkout@v3.2.0
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: Compress Source Code Distribution
+        id: step-compress-source-code
+        run: |
+          RELEASE_NAME=
+          if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" ]]; then
+            RELEASE_NAME="unstable-${GITHUB_SHA:0:7}"
+          elif [[ '${{ github.ref }}' == "refs/tags/v"* ]]; then
+            RELEASE_NAME="${GITHUB_REF_NAME}"
+          fi
+          if [[ -z "${RELEASE_NAME}" ]]; then
+            tar czf "/tmp/gdl-${RELEASE_NAME}.tar.gz" "$PWD"
+            echo "released=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Upload Release Assets (unstable)
+        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && steps.step-compress-source-code.outputs.released == 'true'
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "/tmp/gdl-*.tar.gz"
+          name: Weekly Binary Release (unstable)
+          body: Weekly Binary Release (unstable)
+          prerelease: true
+          allowUpdates: true
+          replacesArtifacts: true
+          commit: ${{ github.sha }}
+          tag: weekly-release
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Release Assets (stable)
+        if: startsWith(github.ref, 'refs/tags/v') && steps.step-compress-source-code.outputs.released == 'true'
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "/tmp/gdl-*.tar.gz"
+          name: ${{ github.event.release.tag_name }}
+          prerelease: false
+          allowUpdates: true
+          replacesArtifacts: true
+          commit: ${{ github.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
   build-linux-macos:
     runs-on: ${{ matrix.os }}
     needs: prelude
