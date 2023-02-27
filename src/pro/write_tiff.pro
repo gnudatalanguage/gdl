@@ -8,13 +8,10 @@
 ;
 ; CALLING SEQUENCE: 
 ;    WRITE_TIFF, filename, image, bits_per_sample, red, green, blue, $
-;                compression=[0|1|2|3], description=string,document_name=string,geotiff=structure,$
+;                compression=[0|1|2|3], description=description,document_name=docname,geotiff=structure,$
 ;                double=double, verbose=verbose, help=help, test=test, $
 ;                debug=debug
-;whiledescription=string,document_name=string,geotiff=structure,$
-;                double=double,  do begin
-
-endwhile
+;
 ; KEYWORD PARAMETERS: 
 ;     ORDER      : 1 = top-bottom, 0 = bottom-top
 ;     VERBOSE    : Not Used
@@ -51,7 +48,7 @@ endwhile
 
 pro WRITE_TIFF, filename, image, bits_per_sample, $
    red = red, green =  green, blue = blue, $
-   compression = compression, description=string, document_name=string, $
+   compression = compression, description=description, document_name=docname, $
    geotiff=geotiff,$
    double=double, $
    verbose = verbose, $

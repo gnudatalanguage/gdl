@@ -266,7 +266,7 @@ pro writeOffsettedValueDouble,unit,offsettable,geostruct,i,geoindex,number
    endcase
    point_lun,-unit,current
    ; write start address at offsetable location and go to end 
-   point_lun,unit,offsettable[i]
+   point_lun,unit,fix(offsettable[i]) ; offsets are 2 bytes here
    writeu,unit,fix(number)
    point_lun,unit,current
 end
@@ -282,7 +282,7 @@ pro writeOffsettedValueAscii,unit,offsettable,geostruct,i,geoindex,number
    endcase
    point_lun,-unit,current
    ; write start address at offsetable location and go to end 
-   point_lun,unit,offsettable[i]
+   point_lun,unit,fix(offsettable[i]) ; offsets are 2 bytes here
    writeu,unit,fix(number)
    point_lun,unit,current
 end
@@ -319,7 +319,7 @@ pro updategeotagsinimage,filename,g
 ; get minimal tag informations
   tagidx=gettagindexes(g) ; will throw if problems
   ntags=n_elements(tagidx)
-  offsetTable=intarr(ntags)
+  offsetTable=lonarr(ntags)
 
 ; find total number of new IFD0 entriss
   w=where(GeoMethod[tagidx] eq 1, count)
