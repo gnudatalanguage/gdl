@@ -135,6 +135,19 @@ end
 ;
 ; ---------------------------------
 ;
+pro test_congrid_last_dimension_1,cumul_errors
+   catch,problem
+   if problem ne 0 then begin
+      BANNER_FOR_TESTSUITE, 'TEST_CONGRID_last_dimension_1', 1, /short
+      ERRORS_CUMUL, cumul_errors, 1
+      return
+   endif
+   z=indgen(256) & zz=reform(z, 256, 1)
+   zzz=congrid(zz,100,1)
+end
+;
+; ---------------------------------
+;
 pro TEST_CONGRID, help=help, noexit=noexit, test=test
 ;
 if KEYWORD_SET(help) then begin
@@ -153,6 +166,7 @@ TEST_CONGRID_BASIC, cumul_errors, nbp=121, /byte
 TEST_CONGRID_ON_IMAGES, cumul_errors
 ;
 TEST_CONGRID_ON_PLOT, cumul_errors
+TEST_CONGRID_LAST_DIMENSION_1,cumul_errors
 ;
 ; AC 2022-Dec-15 : cleanup of the device + reset color table
 ;
