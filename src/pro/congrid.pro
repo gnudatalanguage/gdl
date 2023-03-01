@@ -66,7 +66,6 @@ if (npar lt 2) or (npar gt 4) or KEYWORD_SET(help) then begin
     print,'   the pixel at (0,[0,[0]]) is clipped to 1/4 size.'
     print,'   Default is that pixel start (not center) is at index.'
     print,'   CUBIC=cubic: use a cubic interpolation. -0 to -1. -0.5 is recommended.'
-    print,'   /MINUS_ONE: option will be ignored. MISSING can be used instead.'
     print, '  /HELP gives this help.'
     print,' NOTE: CONGRID performs a resampling. Does not conserve Fluxes.'
     return,''
@@ -76,6 +75,11 @@ ON_ERROR, 2                   ;Return to caller if error
 ;
 ndim = SIZE(t, /N_DIMENSIONS)
 dims = SIZE(t, /DIMENSIONS)
+; remove spurious dimensions 1:
+while dims[ndim-1] eq 1 do begin
+   ndim--
+   dims=dims[0:-2]
+endwhile
 ;
 if(ndim EQ 0) then MESSAGE, 'Array must have 1, 2, or 3 dimensions.'
 if(ndim gt 3) then $
