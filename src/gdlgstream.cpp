@@ -1143,7 +1143,7 @@ void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
 //    std::cerr<<pos<<":"<<l<<" "<<s.substr(oldpos,l)<<std::endl;
     plstream::ptex(x,y,dx,dy,just,TranslateFormatCodes(s.substr(oldpos,l).c_str(),&d).c_str()) ;
     y-=ydisp;
-    *stringCharLength=MAX(*stringCharLength,d);
+    *stringCharLength=std::max<double>(*stringCharLength,d);
   }
 }
 
