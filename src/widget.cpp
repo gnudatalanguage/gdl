@@ -2602,6 +2602,9 @@ void widget_control( EnvT* e ) {
 
   static int mapIx = e->KeywordIx( "MAP" );
   bool do_map=e->KeywordPresent( mapIx );
+  
+  static int iconifyIx = e->KeywordIx( "ICONIFY" );
+  bool do_iconify=e->KeywordPresent( iconifyIx );
 
   static int xmanActComIx = e->KeywordIx( "XMANAGER_ACTIVE_COMMAND" ); //set by xmanager.pro when /NO_BLOCK is given.
   bool xmanActCom = e->KeywordSet( xmanActComIx );
@@ -3451,6 +3454,12 @@ void widget_control( EnvT* e ) {
   
   if (show) {
     if (e->KeywordSet(showIx)) widget->Raise(); else widget->Lower();
+  }
+  
+  if (do_iconify) {
+     GDLWidgetTopBase* tlb = widget->GetMyTopLevelBaseWidget();
+     gdlwxFrame* topFrame=tlb->GetTopFrame();
+     widget->GetMyTopLevelBaseWidget()->GetTopFrame()->Iconize(e->KeywordSet(iconifyIx));
   }
   
   if ( managed ) {
