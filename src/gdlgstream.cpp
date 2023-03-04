@@ -621,10 +621,6 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
           curr_fnt = 12; 
           break;
 
-        case 'C' : case 'c' : // carriage return (TODO FIXME: does not work in PostScript!)
-          out += "#[0xD]";
-          break;
-
         case 'X' : case 'x' : // reversion to entry font 
           out += internalFontCodes[curr_fnt = next_fnt = default_fnt];
           break;
@@ -1074,21 +1070,81 @@ void GDLGStream::setLineSpacing(PLFLT newSpacing)
   theLineSpacing_in_mm=newSpacing;
 }
 PLFLT GDLGStream::getSymbolSize(){return theCurrentSymSize;}
-void GDLGStream::mtex( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
+void GDLGStream::mtex( const char *side, PLFLT disp, PLFLT posit, PLFLT just,
                        const char *text)
 {
-  plstream::mtex(side,disp,pos,just,TranslateFormatCodes(text).c_str());
+   //plot does not handle !C
+  size_t len = strlen(text);
+  bool simple=true;
+  for (size_t i = 0; i < len; i++) if (text[i] == '!' && text[i + 1] == 'C') {
+    simple=false;
+  }
+  if (simple) {
+    plstream::mtex(side,disp,posit,just,TranslateFormatCodes(text).c_str());
+    return;
+  }
+  //complicated:
+  double d=0;
+  std::string s(text);
+  std::string newline="!C";
+  long pos = 0, oldpos=0;
+  PLFLT ydisp=(1.0+nLineSpacing()/nCharHeight());
+  std::vector<long> positions;
+  while (pos != string::npos) {
+    pos = s.find(newline, oldpos);
+    while (text[pos-1] == '!') { pos = s.find(newline, pos+2); }
+    positions.push_back(oldpos);
+    positions.push_back(pos);
+    oldpos=pos+2;
+  }
+  for (std::vector<long>::iterator it = positions.begin(); it != positions.end();) {
+    oldpos=(*it++);
+    pos=(*(it++));
+    long l=pos-oldpos; 
+    if (l<0) l=string::npos;
+//    std::cerr<<pos<<":"<<l<<" "<<s.substr(oldpos,l)<<std::endl;
+    plstream::mtex(side,disp,posit,just,TranslateFormatCodes(s.substr(oldpos,l).c_str()).c_str());
+    disp+=ydisp;
+  }
 }
 
-void GDLGStream::mtex3( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
-                       const char *text)
-{
-  plstream::mtex3(side,disp,pos,just,TranslateFormatCodes(text).c_str());
-}
 void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
                        const char *text , double *stringCharLength)
 {
-  plstream::ptex(x,y,dx,dy,just,TranslateFormatCodes(text,stringCharLength).c_str());
+  //plot does not handle !C
+  size_t len = strlen(text);
+  bool simple=true;
+  for (size_t i = 0; i < len; i++) if (text[i] == '!' && text[i + 1] == 'C') {
+    simple=false;
+  }
+  if (simple) {
+    plstream::ptex(x,y,dx,dy,just,TranslateFormatCodes(text,stringCharLength).c_str());
+    return;
+  }
+  //complicated:
+  double d=0;
+  std::string s(text);
+  std::string newline="!C";
+  long pos = 0, oldpos=0;
+  PLFLT ydisp=(1.0+nLineSpacing()/nCharHeight())*wCharHeight();
+  std::vector<long> positions;
+  while (pos != string::npos) {
+    pos = s.find(newline, oldpos);
+    while (text[pos-1] == '!') { pos = s.find(newline, pos+2); }
+    positions.push_back(oldpos);
+    positions.push_back(pos);
+    oldpos=pos+2;
+  }
+  for (std::vector<long>::iterator it = positions.begin(); it != positions.end();) {
+    oldpos=(*it++);
+    pos=(*(it++));
+    long l=pos-oldpos; 
+    if (l<0) l=string::npos;
+//    std::cerr<<pos<<":"<<l<<" "<<s.substr(oldpos,l)<<std::endl;
+    plstream::ptex(x,y,dx,dy,just,TranslateFormatCodes(s.substr(oldpos,l).c_str(),&d).c_str()) ;
+    y-=ydisp;
+    *stringCharLength=std::max<double>(*stringCharLength,d);
+  }
 }
 
 #define FUDGE_VARCHARSIZE sqrt(2)
