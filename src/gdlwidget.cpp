@@ -4702,10 +4702,12 @@ GDLWidgetNormalButton::GDLWidgetNormalButton(WidgetIDT p, EnvT* e,
 
 }
 
-void GDLWidgetNormalButton::SetButtonWidgetLabelText(const DString& value_) {
+void GDLWidgetNormalButton::SetButtonWidgetLabelText(const DString& value) {
+  delete(vValue);
+  vValue = new DStringGDL(value);
   if (theWxWidget != NULL) {
     wxAnyButton *b = dynamic_cast<wxAnyButton*> (theWxWidget);
-    b->SetLabelText(wxString(value_.c_str(), wxConvUTF8));
+    b->SetLabelText(wxString(value.c_str(), wxConvUTF8));
     // Should switch to version > 2.9 now!
 #if wxCHECK_VERSION(2,9,1)
     b->SetBitmap(wxBitmap(1, 1));
@@ -4781,8 +4783,10 @@ void GDLWidgetSubMenu::SetSensitive(bool value) {
   if (menuItem) menuItem->Enable(value);
 }
 
-void GDLWidgetSubMenu::SetButtonWidgetLabelText( const DString& value_ ) {
-  if (menuItem && value_.length() > 0 ) menuItem->SetItemLabel( wxString(value_.c_str( ), wxConvUTF8 ) ); //avoid null strings asserts!
+void GDLWidgetSubMenu::SetButtonWidgetLabelText( const DString& value ) {
+  delete(vValue);
+  vValue = new DStringGDL(value);
+  if (menuItem && value.length() > 0 ) menuItem->SetItemLabel( wxString(value.c_str( ), wxConvUTF8 ) ); //avoid null strings asserts!
 }
 
 void GDLWidgetSubMenu::SetButtonWidgetBitmap( wxBitmap* bitmap_ ) {
@@ -4837,9 +4841,11 @@ void GDLWidgetMenuEntry::SetSensitive(bool value) {
   if (item) item->Enable(value);
 }
 
-void GDLWidgetMenuEntry::SetButtonWidgetLabelText( const DString& value_ ) {
+void GDLWidgetMenuEntry::SetButtonWidgetLabelText( const DString& value ) {
+  delete(vValue);
+  vValue = new DStringGDL(value);
   wxMenuItem* item = dynamic_cast<wxMenuItem*> (theWxWidget);
-  if (item)  item->SetItemLabel(wxString( value_.c_str( ), wxConvUTF8 ));
+  if (item)  item->SetItemLabel(wxString( value.c_str( ), wxConvUTF8 ));
 }
 void GDLWidgetMenuEntry::SetButtonWidgetBitmap( wxBitmap* bitmap_ ) {
 wxMenuItem* item = dynamic_cast<wxMenuItem*> (theWxWidget);
@@ -4946,13 +4952,15 @@ void GDLWidgetMenuBarButton::SetSensitive(bool value) {
 #endif
 }
 
-void GDLWidgetMenuBarButton::SetButtonWidgetLabelText( const DString& value_ ) {
+void GDLWidgetMenuBarButton::SetButtonWidgetLabelText( const DString& value ) {
+  delete(vValue);
+  vValue = new DStringGDL(value);
 #ifdef PREFERS_MENUBAR
   wxMenuBar *menuBar = dynamic_cast<wxMenuBar*> (theWxContainer);
-  menuBar->SetMenuLabel(entry, wxString( value_.c_str( ), wxConvUTF8 ));
+  menuBar->SetMenuLabel(entry, wxString( value.c_str( ), wxConvUTF8 ));
 #else
   wxButton* m=dynamic_cast<wxButton*>(theWxWidget);
-  if (m) m->SetLabelText(wxString( value_.c_str( ), wxConvUTF8 ));
+  if (m) m->SetLabelText(wxString( value.c_str( ), wxConvUTF8 ));
   this->RefreshDynamicWidget();
 #endif
 }
@@ -5030,9 +5038,11 @@ void GDLWidgetMenuButton::SetSensitive(bool value) {
   if (m) m->Enable(value);
 }
 
-void GDLWidgetMenuButton::SetButtonWidgetLabelText( const DString& value_ ) {
+void GDLWidgetMenuButton::SetButtonWidgetLabelText( const DString& value ) {
+  delete(vValue);
+  vValue = new DStringGDL(value);
   wxButton* m=dynamic_cast<wxButton*>(theWxContainer);
-  if (m) m->SetLabelText(wxString( value_.c_str( ), wxConvUTF8 ));
+  if (m) m->SetLabelText(wxString( value.c_str( ), wxConvUTF8 ));
   this->RefreshDynamicWidget();
 }
 
@@ -5829,7 +5839,7 @@ return new DStringGDL(txt->GetStringSelection().mb_str(wxConvUTF8).data());
 }
 
 GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , DULong eventflags, bool sunken_)
-: GDLWidget( p, e , NULL, eventflags )
+: GDLWidget( p, e , new DStringGDL(value_), eventflags )
 , value(value_)
 , sunken(sunken_)
 {
