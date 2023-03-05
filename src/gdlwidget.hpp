@@ -866,7 +866,7 @@ public:
    GDLWidget* w = GetWidget(*c);
    if (w != NULL && w->IsBase()) static_cast<GDLWidgetBase*>(w)->DoMapAsRequested();
   }
-  dynamic_cast<wxWindow*>(theWxContainer)->Show(doMap);
+  mapBase(doMap);
  }
 };
 
@@ -921,7 +921,6 @@ public:
    if (w != NULL)
     w->OnRealize();
   }
-  DoMapAsRequested();
 
     topFrame->Fit();
     topFrame->SetClientSize(topFrame->GetClientSize());
@@ -934,6 +933,7 @@ public:
    notifyRealize.clear();
    CallEventPro(note, new DLongGDL(widgetID));
   }
+  DoMapAsRequested();
  }
 
 // void SelfDestroy(); // sends delete event to itself

@@ -2351,7 +2351,7 @@ DStructGDL* GDLWidgetBase::GetGeometry(wxRealPoint fact) {
     if (me) me->Show(val); else {cerr<<"Warning: GDLWidgetBase::mapBase(): Non-existent widget!\n"; return;}
   }
   void GDLWidgetTopBase::mapBase(bool val){
-    topFrame->Show(val);
+    if (this->IsRealized()) topFrame->Show(val);
   }  
   void GDLWidgetTabbedBase::mapBase(bool val){
     //Note: it is impossible to reproduce the IDL behaviour (tab is present but void) with wxWidgets unless doing ridiculously complicated things.
