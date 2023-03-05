@@ -75,8 +75,8 @@ jobs:
           elif [[ '${{ github.ref }}' == "refs/tags/v"* ]]; then
             RELEASE_NAME="${GITHUB_REF_NAME}"
           fi
-          if [[ -z "${RELEASE_NAME}" ]]; then
-            tar czf "/tmp/gdl-${RELEASE_NAME}.tar.gz" "$PWD"
+          if [[ ! -z "${RELEASE_NAME}" ]]; then
+            tar czf "/tmp/gdl-${RELEASE_NAME}.tar.gz" "."
             echo "released=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Upload Release Assets (unstable)
