@@ -76,7 +76,8 @@ jobs:
             RELEASE_NAME="${GITHUB_REF_NAME}"
           fi
           if [[ ! -z "${RELEASE_NAME}" ]]; then
-            tar czf "/tmp/gdl-${RELEASE_NAME}.tar.gz" "."
+            cp -r $PWD /tmp/gdl && rm -rf /tmp/gdl/.git && cd /tmp
+            tar czf "/tmp/gdl-${RELEASE_NAME}.tar.gz" gdl
             echo "released=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Upload Release Assets (unstable)
