@@ -266,20 +266,22 @@ if(hide) {
  BaseGDL* GetWxFontnames(DString pattern) {
   if (pattern.length() <= 0) return NULL;
   wxFontEnumerator fontEnumerator;
-  fontEnumerator.EnumerateFacenames();
-  int nFacenames = fontEnumerator.GetFacenames().GetCount();
+  wxArrayString fn=fontEnumerator.GetFacenames();
+//  fontEnumerator.EnumerateFacenames();
+  int nFacenames = fn.GetCount();
+  for (int i = 0; i < nFacenames; ++i) fn.Item(i).Upper();
   // we are supposed to select only entries lexically corresponding to 'pattern'.
   //first check who passes (ugly)
   wxString wxPattern(pattern);
-  wxPattern = wxPattern.Upper();
-  std::vector<int> good;
-  for (int i = 0; i < nFacenames; ++i) if (fontEnumerator.GetFacenames().Item(i).Upper().Matches(wxPattern)) {
-    good.push_back(i);
-   }
-  if (good.size() == 0) return NULL;
-  //then get them
-  DStringGDL* myList = new DStringGDL(dimension(good.size()));
-  for (int i = 0; i < good.size(); ++i) (*myList)[i].assign(fontEnumerator.GetFacenames().Item(good[i]).mb_str(wxConvUTF8));
+  wxPattern.Upper();
+  int* good=new int[nFacenames];
+  long total=0;
+  for (int i = 0; i < nFacenames; ++i) {good[i]=fn.Item(i).Matches(wxPattern);total+=good[i];}
+  if (total == 0) return NULL;
+  DStringGDL* myList = new DStringGDL(dimension(total),BaseGDL::NOZERO);
+  int k=0;
+  for (int i = 0; i < nFacenames; ++i) if (good[i]) (*myList)[k++].assign(fn.Item(i).mb_str(wxConvUTF8));
+  delete[] good;
   return myList;
  }
 
