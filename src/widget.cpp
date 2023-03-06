@@ -3167,7 +3167,7 @@ void widget_control( EnvT* e ) {
         }
         GDLWidgetButton *bb = (GDLWidgetButton *) widget;
 #ifdef PREFERS_MENUBAR
-        if (dynamic_cast<GDLWidgetMenuBarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
+        if (bitmap && dynamic_cast<GDLWidgetMenuBarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
 #endif
         if (bitmap) bb->SetButtonWidgetBitmap(bitmap);
         //passes the string
