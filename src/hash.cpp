@@ -1965,7 +1965,7 @@ void list_leftinsertion( EnvUDT* e, BaseGDL* theref, int iprm  );
     }
     
     SizeT keyListN_Elements = keyList->N_Elements();
-    DIntGDL* result = new DIntGDL( dimension(keyListN_Elements)); // zero
+    DIntGDL* result = new DIntGDL( dimension(keyListN_Elements),BaseGDL::ZERO); // zero
     Guard<BaseGDL> resultGuard( result);
     for( SizeT i=0; i<keyListN_Elements; ++i)
     {

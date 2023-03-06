@@ -1522,7 +1522,7 @@ namespace lib {
         if (e->KeywordSet(printIx) && e->GetPar(0)->Type() == GDL_STRING) {
           DLong64GDL* temp = static_cast<DLong64GDL*> (e->GetPar(0)->Convert2(GDL_LONG64, BaseGDL::COPY));
           SizeT nEl = temp->N_Elements();
-          DByteGDL* ret = new DByteGDL(dimension(nEl));
+          DByteGDL* ret = new DByteGDL(dimension(nEl),BaseGDL::NOZERO);
           for (SizeT i = 0; i < nEl; ++i) {
             (*ret)[i] = (*temp)[i];
           }
@@ -7023,9 +7023,9 @@ namespace lib {
     DStringGDL* p1S = static_cast<DStringGDL*> (p1);
     DObjGDL* pObj = static_cast<DObjGDL*> (p0);
     SizeT nObj = p0->StrictScalar() ? 1 : p0->N_Elements();
-    DByteGDL* res = new DByteGDL(dimension(nObj));
+    DByteGDL* res = new DByteGDL(dimension(nObj),BaseGDL::ZERO);
     Guard<DByteGDL> res_guard(res);
-    DByteGDL* altres = new DByteGDL(dimension(nObj));
+    DByteGDL* altres = new DByteGDL(dimension(nObj),BaseGDL::ZERO);
     Guard<DByteGDL> altres_guard(altres);
     GDLInterpreter* interpreter = e->Interpreter();
 
@@ -7382,7 +7382,7 @@ namespace lib {
 
       if (nTok > 0) {
         dimension dim(nTok);
-        DLongGDL* len = new DLongGDL(dim);
+        DLongGDL* len = new DLongGDL(dim,BaseGDL::NOZERO);
         for (int i = 0; i < nTok; i++)
           (*len)[i] = tokenLen[i];
 
@@ -7397,7 +7397,7 @@ namespace lib {
       if (nTok == 0) return new DLongGDL(0);
 
       dimension dim(nTok);
-      DLongGDL* d = new DLongGDL(dim);
+      DLongGDL* d = new DLongGDL(dim,BaseGDL::NOZERO);
       for (int i = 0; i < nTok; i++)
         (*d)[i] = tokenStart[i];
       return d;
@@ -7407,7 +7407,7 @@ namespace lib {
       if (nTok == 0) return new DStringGDL("");
 
       dimension dim(nTok);
-      DStringGDL *d = new DStringGDL(dim);
+      DStringGDL *d = new DStringGDL(dim,BaseGDL::NOZERO);
       for (int i = 0; i < nTok; i++) {
         (*d)[i] = stringIn.substr(tokenStart[i], tokenLen[i]);
 
@@ -7441,7 +7441,7 @@ namespace lib {
       for (nEnv = 0; environ[nEnv] != NULL; ++nEnv);
 
       dimension dim(nEnv);
-      env = new DStringGDL(dim);
+      env = new DStringGDL(dim,BaseGDL::NOZERO);
 
       // copy stuff into local string array
       for (SizeT i = 0; i < nEnv; ++i)
@@ -7455,7 +7455,7 @@ namespace lib {
       DStringGDL* name = e->GetParAs<DStringGDL>(0);
       nEnv = name->N_Elements();
 
-      env = new DStringGDL(name->Dim());
+      env = new DStringGDL(name->Dim(),BaseGDL::NOZERO);
 
       // copy the stuff into local string only if param found
       char *resPtr;
@@ -7525,7 +7525,7 @@ namespace lib {
       }
     } else {
       SizeT nTags = (*struc).Desc()->NTags();
-      tagNames = new DStringGDL(dimension(nTags));
+      tagNames = new DStringGDL(dimension(nTags),BaseGDL::NOZERO);
       for (int i = 0; i < nTags; ++i) {
         (*tagNames)[i] = (*struc).Desc()->TagName(i);
       }
@@ -7595,20 +7595,20 @@ namespace lib {
     BaseGDL* result;
 
     if (booleanKW)
-      result = new DByteGDL(dim);
+      result = new DByteGDL(dim,BaseGDL::ZERO); //must not use BaseGDL::NOZERO see below.
     else if (extractKW && !subexprKW) {
       //  cout << "my pb ! ? dim= " << dim << endl;
-      result = new DStringGDL(dim);
+      result = new DStringGDL(dim,BaseGDL::ZERO);
     } else if (subexprKW) {
       //  cout << "my pb 2 ? dim= " << dim << endl;
       dimension subExprDim = dim;
       subExprDim >> nSubExpr; // m_schellens: commented in, needed
       if (extractKW)
-        result = new DStringGDL(subExprDim);
+        result = new DStringGDL(subExprDim,BaseGDL::ZERO);
       else
-        result = new DLongGDL(subExprDim);
+        result = new DLongGDL(subExprDim,BaseGDL::ZERO);
     } else
-      result = new DLongGDL(dim);
+      result = new DLongGDL(dim,BaseGDL::ZERO);
 
     DLongGDL* len = NULL;
     if (lengthKW) {
@@ -7616,9 +7616,9 @@ namespace lib {
       if (subexprKW) {
         dimension subExprDim = dim;
         subExprDim >> nSubExpr; // m_schellens: commented in, needed
-        len = new DLongGDL(subExprDim);
+        len = new DLongGDL(subExprDim,BaseGDL::NOZERO);
       } else {
-        len = new DLongGDL(dim);
+        len = new DLongGDL(dim,BaseGDL::NOZERO);
       }
       for (SizeT i = 0; i < len->N_Elements(); ++i)
         (*len)[i] = -1;
@@ -7907,13 +7907,13 @@ namespace lib {
       stru->InitTag("NUM_ARGS", DLongGDL(np));
       stru->InitTag("NUM_KW_ARGS", DLongGDL(nk));
       if (np > 0) {
-        DStringGDL *pnames = new DStringGDL(dimension(np));
+        DStringGDL *pnames = new DStringGDL(dimension(np),BaseGDL::NOZERO);
         for (SizeT p = 0; p < np; ++p) (*pnames)[p] = routine->GetVarName(nk + p);
         stru->InitTag("ARGS", *pnames);
         GDLDelete(pnames);
       }
       if (nk > 0) {
-        DStringGDL *knames = new DStringGDL(dimension(nk));
+        DStringGDL *knames = new DStringGDL(dimension(nk),BaseGDL::NOZERO);
         for (SizeT k = 0; k < nk; ++k) (*knames)[k] = routine->GetKWName(k);
         stru->InitTag("KW_ARGS", *knames);
         GDLDelete(knames);
@@ -8054,13 +8054,13 @@ namespace lib {
       } else {
         // returning 4-element array
         if (kw_l64) {
-          ret = new DLong64GDL(dimension(4));
+          ret = new DLong64GDL(dimension(4),BaseGDL::NOZERO);
           (*static_cast<DLong64GDL*> (ret))[0] = MemStats::GetCurrent();
           (*static_cast<DLong64GDL*> (ret))[1] = MemStats::GetNumAlloc();
           (*static_cast<DLong64GDL*> (ret))[2] = MemStats::GetNumFree();
           (*static_cast<DLong64GDL*> (ret))[3] = MemStats::GetHighWater();
         } else {
-          ret = new DLongGDL(dimension(4));
+          ret = new DLongGDL(dimension(4),BaseGDL::NOZERO);
           (*static_cast<DLongGDL*> (ret))[0] = MemStats::GetCurrent();
           (*static_cast<DLongGDL*> (ret))[1] = MemStats::GetNumAlloc();
           (*static_cast<DLongGDL*> (ret))[2] = MemStats::GetNumFree();
@@ -8595,7 +8595,7 @@ namespace lib {
     // returning empty string or an array of arguments
     if (command_line_args.empty()) return new DStringGDL("");
     else {
-      BaseGDL* ret = new DStringGDL(dimension(command_line_args.size()));
+      BaseGDL* ret = new DStringGDL(dimension(command_line_args.size()),BaseGDL::NOZERO);
       for (size_t i = 0; i < command_line_args.size(); i++)
         (*static_cast<DStringGDL*> (ret))[i] = command_line_args[i];
       return ret;
@@ -8655,7 +8655,7 @@ namespace lib {
           e->Throw("Input string length must be a multiple of 4");
         unsigned int retlen = base64::decodeSize(*str);
         if (retlen == 0 || retlen > str->length()) e->Throw("No data in the input string");
-        DByteGDL* ret = new DByteGDL(dimension(retlen));
+        DByteGDL* ret = new DByteGDL(dimension(retlen),BaseGDL::NOZERO);
         if (!base64::decode(*str, (char*) &((*ret)[0]), ret->N_Elements())) {
           delete ret;
           e->Throw("Base64 decoder failed");

@@ -49,7 +49,7 @@ namespace lib {
     SizeT dim0 = me->Dim(0);
     SizeT dim1 = me->Dim(1);
     if (dim0 != 4 && dim1 != 4) return;
-    DDoubleGDL* mat = (new DDoubleGDL(dimension(dim1, dim0), BaseGDL::NOZERO));
+    DDoubleGDL* mat = new DDoubleGDL(dimension(dim1, dim0), BaseGDL::NOZERO);
     for (int j = 0; j < dim0; ++j) for (int i = 0; i < dim1; ++i)(*mat)[i * dim1 + j] = (*me)[j * dim0 + i];
     memcpy(me->DataAddr(), mat->DataAddr(), dim0 * dim1 * sizeof (double));
     GDLDelete(mat);
@@ -59,7 +59,7 @@ namespace lib {
     SizeT dim0 = me->Dim(0);
     SizeT dim1 = me->Dim(1);
     if (dim0 != 4 && dim1 != 4) return;
-    DDoubleGDL* Identity = (new DDoubleGDL(dimension(dim0, dim1)));
+    DDoubleGDL* Identity = new DDoubleGDL(dimension(dim0, dim1),BaseGDL::ZERO);
     for (SizeT i = 0; i < dim1; ++i) {
       (*Identity)[i * dim1 + i] = (double) 1.0;
     }
@@ -71,7 +71,7 @@ namespace lib {
     SizeT dim0 = me->Dim(0);
     SizeT dim1 = me->Dim(1);
     if (dim0 != 4 && dim1 != 4) return;
-    DDoubleGDL* mat = (new DDoubleGDL(dimension(dim0, dim1)));
+    DDoubleGDL* mat = new DDoubleGDL(dimension(dim0, dim1),BaseGDL::ZERO);
     SelfReset3d(mat); //identity Matrix
     for (SizeT i = 0; i < 3; ++i) {
       (*mat)[3 * dim1 + i] = trans[i];
@@ -86,7 +86,7 @@ namespace lib {
     SizeT dim0 = me->Dim(0);
     SizeT dim1 = me->Dim(1);
     if (dim0 != 4 && dim1 != 4) return;
-    DDoubleGDL* mat = (new DDoubleGDL(dimension(dim0, dim1)));
+    DDoubleGDL* mat = new DDoubleGDL(dimension(dim0, dim1),BaseGDL::ZERO);
     SelfReset3d(mat); //identity Matrix
     (*mat)[0] = scale[0];
     (*mat)[5] = scale[1];
@@ -105,11 +105,11 @@ namespace lib {
     SizeT dim0 = me->Dim(0);
     SizeT dim1 = me->Dim(1);
     if (dim0 != 4 && dim1 != 4) return;
-    DDoubleGDL* mat = (new DDoubleGDL(dimension(4, 4)));
+    DDoubleGDL* mat = new DDoubleGDL(dimension(4, 4),BaseGDL::ZERO);
     SelfReset3d(mat);
-    DDoubleGDL* maty = (new DDoubleGDL(dimension(4, 4)));
+    DDoubleGDL* maty = new DDoubleGDL(dimension(4, 4),BaseGDL::ZERO);
     SelfReset3d(maty);
-    DDoubleGDL* matz = (new DDoubleGDL(dimension(4, 4)));
+    DDoubleGDL* matz = new DDoubleGDL(dimension(4, 4),BaseGDL::ZERO);
     SelfReset3d(matz);
     SizeT ncols = 4;
     double c, s;
@@ -163,7 +163,7 @@ namespace lib {
     SizeT dim0 = me->Dim(0);
     SizeT dim1 = me->Dim(1);
     if (dim0 != 4 && dim1 != 4) return;
-    DDoubleGDL* mat = (new DDoubleGDL(dimension(dim0, dim1)));
+    DDoubleGDL* mat = new DDoubleGDL(dimension(dim0, dim1),BaseGDL::ZERO);
     SelfReset3d(mat); //identity Matrix
     (*mat)[2 * dim1 + 3] = -1.0 / zdist;
     DDoubleGDL* intermediary = mat->MatrixOp(me, false, false);
@@ -176,7 +176,7 @@ namespace lib {
     SizeT dim0 = me->Dim(0);
     SizeT dim1 = me->Dim(1);
     if (dim0 != 4 && dim1 != 4) return;
-    DDoubleGDL* mat = (new DDoubleGDL(dimension(dim0, dim1)));
+    DDoubleGDL* mat = new DDoubleGDL(dimension(dim0, dim1),BaseGDL::ZERO);
     SelfReset3d(mat); //identity Matrix
     (*mat)[2 * dim1 + 2] = 0.0;
     (*mat)[2 * dim1 + 0] = dist * cos(angle * DEGTORAD);
@@ -984,7 +984,7 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &alt, DDouble &az, DDoubl
   bool gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble &az, DDouble &alt, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode, bool &below) {
 //    std::cerr<<"gdlInterpretT3DMatrixAsPlplotRotationMatrix(()\n";
     //returns NULL if error!
-    DDoubleGDL* t3dMatrix = (new DDoubleGDL(dimension(4, 4)));
+    DDoubleGDL* t3dMatrix = new DDoubleGDL(dimension(4, 4),BaseGDL::NOZERO);
     Guard<DDoubleGDL> guard(t3dMatrix);
     //retrieve !P.T and find az, alt, inversions, and (possibly) scale and roty
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
@@ -1073,7 +1073,7 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &alt, DDouble &az, DDoubl
       if (matin->Dim(0) != 4 || matin->Dim(1) != 4) e->Throw(e->GetParString(0) + "must be a [4,4] array.");
       mat = matin->Dup();
     } else {
-      mat = (new DDoubleGDL(dimension(4, 4)));
+      mat = new DDoubleGDL(dimension(4, 4),BaseGDL::NOZERO);
       for (int i = 0; i < mat->N_Elements(); ++i)(*mat)[i] = (*static_cast<DDoubleGDL*> (SysVar::P()->GetTag(tTag, 0)))[i];
     }
     SelfTranspose3d(mat); //for c matrix handling

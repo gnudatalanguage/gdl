@@ -218,7 +218,7 @@ namespace lib {
     ncdf_handle_error(e,status,"NCDF_ATTGET");
 
     if (att_type == NC_CHAR) {
-      DByteGDL* temp = new DByteGDL(dimension(length));
+      DByteGDL* temp = new DByteGDL(dimension(length),BaseGDL::NOZERO);
       status = nc_get_att_text(cdfid, varid, attname.c_str(), (char*)(&((*temp)[0])));
       ncdf_handle_error(e, status, "NCDF_ATTGET");
       delete e->GetParGlobal(nParam-1);

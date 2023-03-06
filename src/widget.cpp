@@ -3223,7 +3223,7 @@ void widget_control( EnvT* e ) {
             dims[0] = nTags;
           }
           dimension dim(dims, 2);
-          valueAsStrings = new DStringGDL(dim);
+          valueAsStrings = new DStringGDL(dim,BaseGDL::NOZERO);
           stringstream os;
           input->ToStreamRaw(os);
           valueAsStrings->FromStream(os); //simple as that if we manage the dimensions and transpose accordingly....

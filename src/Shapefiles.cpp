@@ -177,7 +177,7 @@ namespace lib {
     if (e->KeywordPresent(ATTRIBUTE_NAMES)) {
       if (has_dbfh) {
         //Attribute_names
-        DStringGDL* attr_names=new DStringGDL(fieldCount);
+        DStringGDL* attr_names=new DStringGDL(fieldCount,BaseGDL::NOZERO);
         char name[12];
         for (int i=0; i< fieldCount; ++i) {
           DBFGetFieldInfo( dbfh, i, name,NULL,NULL);
@@ -354,7 +354,7 @@ namespace lib {
       dims[0] = n;
       dims[1] = dim2;
       dimension dim(dims, 2);
-      DDoubleGDL* vertices = new DDoubleGDL(dim);
+      DDoubleGDL* vertices = new DDoubleGDL(dim,BaseGDL::NOZERO);
       memcpy(&((*vertices)[0]), ret->padfX, n * sizeof (DDouble));
       memcpy(&((*vertices)[n]), ret->padfY, n * sizeof (DDouble));
       if (dim2 > 2) memcpy(&((*vertices)[2 * n]), ret->padfZ, n * sizeof (DDouble));
@@ -371,12 +371,12 @@ namespace lib {
       int nParts = ret->nParts;
       (*static_cast<DLongGDL*> (entities->GetTag(entities->Desc()->TagIndex("N_PARTS"), k)))[0] = nParts;
       if (nParts > 0) {
-        DLongGDL* parts = new DLongGDL(dimension(nParts));
+        DLongGDL* parts = new DLongGDL(dimension(nParts),BaseGDL::NOZERO);
         for (int j = 0; j < nParts; ++j) (*parts)[j] = ret->panPartStart[j];
         DPtr p = e->NewHeap(1, parts);
         (*static_cast<DPtrGDL*> (entities->GetTag(entities->Desc()->TagIndex("PARTS"), k)))[0] = p;
         if (doPartsType) {
-          DLongGDL* partstype = new DLongGDL(dimension(nParts));
+          DLongGDL* partstype = new DLongGDL(dimension(nParts),BaseGDL::NOZERO);
           for (int j = 0; j < nParts; ++j) (*partstype)[j] = ret->panPartType[j];
           DPtr p = e->NewHeap(1, partstype);
           (*static_cast<DPtrGDL*> (entities->GetTag(entities->Desc()->TagIndex("PART_TYPES"), k)))[0] = p;

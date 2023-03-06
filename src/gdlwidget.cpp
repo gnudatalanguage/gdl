@@ -2834,7 +2834,7 @@ DLongGDL* GDLWidgetTable::GetSelection( ) {
     dims[0] = 2;
     dims[1] = list.size( );
     dimension dim( dims, 2 );
-    sel = new DLongGDL( dim );
+    sel = new DLongGDL( dim,BaseGDL::NOZERO );
     for ( std::vector<wxPoint>::iterator it = list.begin( ); it != list.end( ); ++it ) {
       (*sel)[k++] = (*it).y;
       (*sel)[k++] = (*it).x;
@@ -3202,14 +3202,14 @@ DFloatGDL* GDLWidgetTable::GetColumnWidth(DLongGDL* selection){
   int nCols = grid->GetNumberCols( );
   
   if ( selection == NULL) {
-    DFloatGDL* res=new DFloatGDL(dimension(nCols));
+    DFloatGDL* res=new DFloatGDL(dimension(nCols),BaseGDL::NOZERO);
     for ( SizeT j = 0; j < nCols; ++j ) (*res)[j]=grid->GetColSize(j);
     return res;
   } else if ( selection->Rank( ) == 0 ) { //use current wxWidgets selection
     wxArrayInt list=grid->GetSortedSelectedColsList();
    //find concerned cols
     if (list.GetCount()==0) return NULL;
-   DFloatGDL* res=new DFloatGDL(dimension(list.GetCount()));
+   DFloatGDL* res=new DFloatGDL(dimension(list.GetCount()),BaseGDL::NOZERO);
    for ( int it = 0; it <list.GetCount(); ++it) {
        (*res)[it]=grid->GetColSize( list[it] );
     }
@@ -3235,7 +3235,7 @@ DFloatGDL* GDLWidgetTable::GetColumnWidth(DLongGDL* selection){
       }
      //final list:
      if (theCols.size()==0) return NULL;
-     DFloatGDL* res=new DFloatGDL(dimension(theCols.size()));
+     DFloatGDL* res=new DFloatGDL(dimension(theCols.size()),BaseGDL::NOZERO);
      for ( iter = theCols.begin(); iter !=theCols.end(); ++iter) {
        (*res)[k++]=grid->GetColSize( (*iter));
       }     
@@ -3245,7 +3245,7 @@ DFloatGDL* GDLWidgetTable::GetColumnWidth(DLongGDL* selection){
      int colBR = (*selection)[2];
      int count = colBR-colTL+1;
      if (count==0) return NULL;
-     DFloatGDL* res=new DFloatGDL(dimension(count));
+     DFloatGDL* res=new DFloatGDL(dimension(count),BaseGDL::NOZERO);
      for (int j=colTL; j<=colBR; ++j)
      {
        (*res)[k++]=grid->GetColSize(j); 
@@ -3261,14 +3261,14 @@ DFloatGDL* GDLWidgetTable::GetRowHeight(DLongGDL* selection){
   int nRows = grid->GetNumberRows( );
   
   if ( selection == NULL) {
-    DFloatGDL* res=new DFloatGDL(dimension(nRows));
+    DFloatGDL* res=new DFloatGDL(dimension(nRows),BaseGDL::NOZERO);
     for ( SizeT i = 0; i < nRows; ++i ) (*res)[i]=grid->GetRowSize(i);
     return res;
   } else if ( selection->Rank( ) == 0 ) { //use current wxWidgets selection
     wxArrayInt list=grid->GetSortedSelectedRowsList();
    //find concerned rows
     if (list.GetCount()==0) return NULL;
-   DFloatGDL* res=new DFloatGDL(dimension(list.GetCount()));
+   DFloatGDL* res=new DFloatGDL(dimension(list.GetCount()),BaseGDL::NOZERO);
    for ( int it = 0; it <list.GetCount(); ++it) {
        (*res)[it]=grid->GetRowSize( list[it] );
     }
@@ -3294,7 +3294,7 @@ DFloatGDL* GDLWidgetTable::GetRowHeight(DLongGDL* selection){
       }
      //final list:
      if (theRows.size()==0) return NULL;
-     DFloatGDL* res=new DFloatGDL(dimension(theRows.size()));
+     DFloatGDL* res=new DFloatGDL(dimension(theRows.size()),BaseGDL::NOZERO);
      for ( iter = theRows.begin(); iter !=theRows.end(); ++iter) {
        (*res)[k++]=grid->GetRowSize( (*iter));
       }     
@@ -3304,7 +3304,7 @@ DFloatGDL* GDLWidgetTable::GetRowHeight(DLongGDL* selection){
      int rowBR = (*selection)[3];
      int count = rowBR-rowTL+1;
      if (count==0) return NULL;
-     DFloatGDL* res=new DFloatGDL(dimension(count));
+     DFloatGDL* res=new DFloatGDL(dimension(count),BaseGDL::NOZERO);
      for (int j=rowTL; j<=rowBR; ++j)
      {
        (*res)[k++]=grid->GetRowSize(j); 
@@ -3713,40 +3713,40 @@ BaseGDL* GDLWidgetTable::GetTableValuesAsStruct(DLongGDL* selection)
         } 
         switch(what) {
           case GDL_STRING:
-            res=new DStringGDL(dimension(size));
+            res=new DStringGDL(dimension(size),BaseGDL::NOZERO);
             break;
           case GDL_BYTE:
-            res=new DByteGDL(dimension(size));
+            res=new DByteGDL(dimension(size),BaseGDL::NOZERO);
             break;
           case GDL_INT: 
-            res=new DIntGDL(dimension(size));
+            res=new DIntGDL(dimension(size),BaseGDL::NOZERO);
             break;
           case GDL_LONG:
-            res=new DLongGDL(dimension(size));
+            res=new DLongGDL(dimension(size)),BaseGDL::NOZERO;
             break;
           case GDL_FLOAT:
-            res=new DFloatGDL(dimension(size));
+            res=new DFloatGDL(dimension(size),BaseGDL::NOZERO);
             break;
           case GDL_DOUBLE:
-            res=new DDoubleGDL(dimension(size));
+            res=new DDoubleGDL(dimension(size),BaseGDL::NOZERO);
             break;
           case GDL_COMPLEX:
-            res=new DComplexGDL(dimension(dimension(size)));
+            res=new DComplexGDL(dimension(size),BaseGDL::NOZERO);
             break;
           case GDL_COMPLEXDBL:
-            res=new DComplexDblGDL(dimension(size));
+            res=new DComplexDblGDL(dimension(size),BaseGDL::NOZERO);
             break;
           case GDL_UINT:
-            res=new DUIntGDL(dimension(size));
+            res=new DUIntGDL(dimension(size),BaseGDL::NOZERO);
             break;
           case GDL_ULONG:
-            res=new DULongGDL(dimension(size));
+            res=new DULongGDL(dimension(size),BaseGDL::NOZERO);
             break;
           case GDL_LONG64:
-            res=new DLong64GDL(dimension(size));
+            res=new DLong64GDL(dimension(size),BaseGDL::NOZERO);
             break;
           case GDL_ULONG64:
-            res=new DULong64GDL(dimension(size));
+            res=new DULong64GDL(dimension(size),BaseGDL::NOZERO);
             break;
           default:
             cerr<<"Unhandled Table Type, please report!"<<endl;
@@ -3807,7 +3807,7 @@ DStringGDL* GDLWidgetTable::GetTableValues(DLongGDL* selection)
     dims[1]=(nrows>numRows)?numRows:nrows;
     dims[0]=(ncols>numCols)?numCols:ncols;
     dimension dim(dims,2);
-    stringres=new DStringGDL(dim);
+    stringres=new DStringGDL(dim,BaseGDL::NOZERO);
     
     for ( int ival=0, i=0; i<nrows; ++i, ++ival) for (int jval=0, j=0; j<ncols; ++j, ++jval)
     {
@@ -3817,14 +3817,14 @@ DStringGDL* GDLWidgetTable::GetTableValues(DLongGDL* selection)
     if (disjointSelection) { //pairs lists
       if (selection->Rank()==0) { //use current wxWidgets selection
         std::vector<wxPoint> list=grid->GetSelectedDisjointCellsList();
-        stringres=new DStringGDL(list.size()); 
+        stringres=new DStringGDL(list.size(),BaseGDL::NOZERO); 
         SizeT k=0;
         for ( std::vector<wxPoint>::iterator it = list.begin(); it !=list.end(); ++it) {
           if ((*it).x >= numRows || (*it).y >= numCols) return static_cast<DStringGDL*>(NULL); 
           (*stringres)[k++]=grid->GetCellValue( (*it).x, (*it).y ).mb_str(wxConvUTF8);
         }
       } else {
-        stringres=new DStringGDL(selection->Dim(1));
+        stringres=new DStringGDL(selection->Dim(1),BaseGDL::NOZERO);
         for (SizeT k=0,n=0,l=0; n<selection->Dim(1); ++n) {
           int col = (*selection)[l++];
           int row = (*selection)[l++];
@@ -3851,7 +3851,7 @@ DStringGDL* GDLWidgetTable::GetTableValues(DLongGDL* selection)
       dims[1]=(rowBR-rowTL+1);
       dims[0]=(colBR-colTL+1);
       dimension dim(dims,2);
-      stringres=new DStringGDL(dim);
+      stringres=new DStringGDL(dim,BaseGDL::NOZERO);
       for (SizeT k=0,i=rowTL; i<=rowBR; ++i) for (SizeT j=colTL; j<=colBR; ++j)
       {
         if ( i >= numRows || j >= numCols) return static_cast<DStringGDL*>(NULL); 
@@ -5234,7 +5234,7 @@ BaseGDL* GDLWidgetList::GetSelectedEntries(){
    liste=new DIntGDL(-1);
    return liste;
  }
- liste=new DIntGDL(dimension(selections.Count()));
+ liste=new DIntGDL(dimension(selections.Count()),BaseGDL::NOZERO);
  for (SizeT i=0; i< selections.Count(); ++i) (*liste)[i]=selections[i];
  return liste;
 }
