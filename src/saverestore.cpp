@@ -967,49 +967,49 @@ enum {
       }
       switch (typecode) {
         case GDL_BYTE: //	Byte
-          var = new DByteGDL(*dims);
+          var = new DByteGDL(*dims,BaseGDL::NOZERO);
           break;
         case GDL_INT: //	16-bit Integer 
-          var = new DIntGDL(*dims);
+          var = new DIntGDL(*dims,BaseGDL::NOZERO);
           break;
         case GDL_LONG: //	32-bit Long Integer 
-          var = new DLongGDL(*dims);
+          var = new DLongGDL(*dims,BaseGDL::NOZERO);
           break;
         case GDL_FLOAT: //	32-bit Floating Point Number 
-          var = new DFloatGDL(*dims);
+          var = new DFloatGDL(*dims,BaseGDL::NOZERO);
           break;
         case GDL_DOUBLE: //	64-bit Floating Point Number 
-          var = new DDoubleGDL(*dims);
+          var = new DDoubleGDL(*dims,BaseGDL::NOZERO);
           break;
         case GDL_COMPLEX: //	Complex Floating Point Number (32-bits each) 
-          var = new DComplexGDL(*dims);
+          var = new DComplexGDL(*dims,BaseGDL::NOZERO);
           break;
         case GDL_STRING: //	String
-          var = new DStringGDL(*dims);
+          var = new DStringGDL(*dims,BaseGDL::NOZERO);
           break;
         case GDL_STRUCT: //	Structure (never a scalar)
           cerr << "Should not happen: struct" << endl;
           break;
         case GDL_COMPLEXDBL: //	Complex Floating Point Number (64-bits each) 
-          var = new DComplexDblGDL(*dims);
+          var = new DComplexDblGDL(*dims,BaseGDL::NOZERO);
           break;
         case GDL_PTR: //	Heap Pointer 
-          var = new DPtrGDL(*dims);
+          var = new DPtrGDL(*dims,BaseGDL::NOZERO);
           break;
         case GDL_OBJ: //	Object Reference (not supported by CMSVLIB) 
-          var = new DObjGDL(*dims);
+          var = new DObjGDL(*dims,BaseGDL::NOZERO);
           break;
         case GDL_UINT: //	16-bit Unsigned Integer 
-          var = new DUIntGDL(*dims);
+          var = new DUIntGDL(*dims,BaseGDL::NOZERO);
           break;
         case GDL_ULONG: //	32-bit Unsigned Integer 
-          var = new DULongGDL(*dims);
+          var = new DULongGDL(*dims,BaseGDL::NOZERO);
           break;
         case GDL_LONG64: //	64-bit Integer 
-          var = new DLong64GDL(*dims);
+          var = new DLong64GDL(*dims,BaseGDL::NOZERO);
           break;
         case GDL_ULONG64: //	64-bit Unsigned Integer 
-          var = new DULong64GDL(*dims);
+          var = new DULong64GDL(*dims,BaseGDL::NOZERO);
           break;
         default: //	0 ? Undefined (not allowed) 
           var = NullGDL::GetSingleInstance(); //          cerr <<"Should not happen"<<endl;

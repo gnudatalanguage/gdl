@@ -139,7 +139,7 @@ namespace lib {
     MPI_Datatype mpi_type = MPI_DOUBLE;
 
     dimension dim(count);
-    DDoubleGDL* result = new DDoubleGDL(dim);
+    DDoubleGDL* result = new DDoubleGDL(dim); //ZERO???
 
     MPI_Status status;
 
@@ -193,7 +193,7 @@ namespace lib {
     MPI_Datatype mpi_type = MPI_DOUBLE;
 
     dimension dim(count);
-    DDoubleGDL* result = new DDoubleGDL(dim);
+    DDoubleGDL* result = new DDoubleGDL(dim); //ZERO?
 
     MPI_Status status;
 

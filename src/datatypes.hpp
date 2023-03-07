@@ -300,6 +300,7 @@ static	void operator delete( void *ptr);
   BaseGDL* Rebin( const dimension& newDim, bool sample);
 
   void Assign( BaseGDL* src, SizeT nEl);
+  void AssignIndexedValue( BaseGDL* src, SizeT index);
 
   template< typename To> typename Data_<To>::Ty GetAs( SizeT i);
 //   {

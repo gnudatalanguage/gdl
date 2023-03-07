@@ -170,7 +170,7 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn)
       if( nEl > 0)
 	{
 	  dimension dim( &nEl, 1);
-	  DStringGDL* extraString = new DStringGDL( dim);
+	  DStringGDL* extraString = new DStringGDL( dim, BaseGDL::NOZERO);
 	  for( SizeT i=0; i<nEl; i++)
 	    (*extraString)[i] = listName[i];
 

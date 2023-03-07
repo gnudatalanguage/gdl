@@ -735,7 +735,7 @@ BaseGDL* LIST___OverloadEQOp( EnvUDT* e)
   if( rightStruct != NULL)
   {
     SizeT nEl = (nListLeft < nListRight) ? nListLeft : nListRight;
-    DByteGDL* result = new DByteGDL( dimension( nEl));
+    DByteGDL* result = new DByteGDL( dimension( nEl),BaseGDL::ZERO);
     Guard<BaseGDL> resultGuard( result);
         if(trace_me) std::cout << "OverloadEQOp: left and right: nEl=" << nEl;
     DPtr pActLNode = GetLISTNode( e, leftStruct, 0);
@@ -800,7 +800,7 @@ BaseGDL* LIST___OverloadEQOp( EnvUDT* e)
   else
   {
     SizeT nEl = nListLeft;
-    DByteGDL* result = new DByteGDL( dimension( nEl));
+    DByteGDL* result = new DByteGDL( dimension( nEl),BaseGDL::ZERO);
     Guard<BaseGDL> resultGuard( result);
         if(trace_me) std::cout << "OverloadEQOp: left only: nEl=" << nEl ;
     DPtr pActLNode = GetLISTNode( e, leftStruct, 0);
@@ -3629,7 +3629,7 @@ void list__swap( EnvUDT* e)
     DLongGDL* pos = new DLongGDL( dimension(values->N_Elements()) );
     Guard<DLongGDL> posGuard( pos);
     
-    DByteGDL* result = new DByteGDL( dimension(nList));
+    DByteGDL* result = new DByteGDL( dimension(nList),BaseGDL::ZERO);
     Guard<DByteGDL> resultGuard( result);
     
     for( SizeT elIx = 0; elIx < nList; ++elIx)
@@ -3670,7 +3670,7 @@ void list__swap( EnvUDT* e)
     SizeT nParam = e->NParam(1);
     BaseGDL* value = e->GetKW( kwVALUEIx);
     if( nParam == 0 or value== NULL) return NullGDL::GetSingleInstance();
-    DByteGDL* result = new DByteGDL( dimension(nList));
+    DByteGDL* result = new DByteGDL( dimension(nList),BaseGDL::NOZERO);
     Guard<DByteGDL> resultGuard( result);
     DInt GDLContainerVersion = 
           (*static_cast<DIntGDL*>( self->GetTag( GDLContainerVersionTag, 0)))[0];

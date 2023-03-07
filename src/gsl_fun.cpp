@@ -1855,7 +1855,7 @@ namespace lib {
       } else e->Throw("Variable is undefined: P0."); //not exactly IDL. IDL throws on P0 not being defined.
       par1 = e->GetKW(SCALEIx);
       if (par1->N_Elements() != par0->N_Elements()) {
-        scale=new DDoubleGDL(dimension(par0->N_Elements()));
+        scale=new DDoubleGDL(dimension(par0->N_Elements()),BaseGDL::NOZERO);
         scale_guard.Reset(scale);
         DDoubleGDL* tmpscale=static_cast<DDoubleGDL*>(par1->Convert2(GDL_DOUBLE, BaseGDL::COPY));
         Guard<BaseGDL> tmpscale_guard(tmpscale); //deleted immediately when loop exits.
@@ -1901,7 +1901,7 @@ namespace lib {
       simplex = par2->Convert2(GDL_DOUBLE, BaseGDL::COPY);
       //do not guard simplex, it will be given back
       //create (temporary) p0 and scale
-      p0 = new DDoubleGDL(dimension(n));
+      p0 = new DDoubleGDL(dimension(n),BaseGDL::NOZERO);
       p0_guard.Reset(p0);
       for (SizeT j=0; j<n ; ++j) { //p0 coords is mean of coords
         DDouble mean=0;
@@ -1910,7 +1910,7 @@ namespace lib {
         }
         (*(DDoubleGDL*)p0)[j]=mean/(n+1);
       }
-      scale = new DDoubleGDL(dimension(n));
+      scale = new DDoubleGDL(dimension(n),BaseGDL::NOZERO);
       scale_guard.Reset(scale);
       for (SizeT j=0; j<n ; ++j) {
         DDouble charScale=0;
@@ -2002,12 +2002,12 @@ namespace lib {
     BaseGDL* ret;
     if (isDouble) {
       if (status == GSL_SUCCESS) {
-        ret  = new DDoubleGDL(dimension(minex_func.n));
+        ret  = new DDoubleGDL(dimension(minex_func.n),BaseGDL::NOZERO);
         for (SizeT i = 0; i < minex_func.n; ++i) (*(DDoubleGDL*)ret)[i] = gsl_vector_get(s->x, i);
       } else ret = new DDoubleGDL(-1);
     } else {
       if (status == GSL_SUCCESS) {
-        ret  = new DFloatGDL(dimension(minex_func.n));
+        ret  = new DFloatGDL(dimension(minex_func.n),BaseGDL::NOZERO);
         for (SizeT i = 0; i < minex_func.n; ++i) (*(DFloatGDL*)ret)[i] = gsl_vector_get(s->x, i);
       } else ret = new DFloatGDL(-1);
     }
@@ -3534,8 +3534,8 @@ namespace lib {
     {
       dimension dim = dimension(length);
       if (phi->Rank() == 0 && theta->Rank() == 0) dim.Remove(0);
-      if (dbl) res = new DComplexDblGDL(dim);
-      else res = new DComplexGDL(dim);
+      if (dbl) res = new DComplexDblGDL(dim,BaseGDL::NOZERO);
+      else res = new DComplexGDL(dim,BaseGDL::NOZERO);
     }
     Guard<BaseGDL> res_guard(res);
 

@@ -120,6 +120,10 @@ void BaseGDL::Assign( BaseGDL* src, SizeT nEl)
   throw GDLException("BaseGDL::Assign(...) called.");
 }
 
+void BaseGDL::AssignIndexedValue( BaseGDL* src, SizeT index)
+{
+  throw GDLException("BaseGDL::AssignIndexedValue(...) called.");
+}
 std::ostream& BaseGDL::Write( std::ostream& os, bool swapEndian, 
 			      bool compress, XDR *xdrs)
 {

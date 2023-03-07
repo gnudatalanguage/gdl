@@ -487,28 +487,7 @@ bool GDLWXStream::CursorImage(char* v, int x, int y, char* m)
 DLong GDLWXStream::GetVisualDepth() {
 return 24;
 }
-BaseGDL* GDLWXStream::GetFontnames(DString pattern) {
-  if (pattern.length()<=0) return NULL;
-  wxFontEnumerator fontEnumerator;
-  fontEnumerator.EnumerateFacenames();
-  int nFacenames = fontEnumerator.GetFacenames().GetCount();
-  // we are supposed to select only entries lexically corresponding to 'pattern'.
-  //first check who passes (ugly)
-  wxString wxPattern(pattern);
-  wxPattern=wxPattern.Upper();
-  std::vector<int> good;
-  for (int i=0; i< nFacenames; ++i) if (fontEnumerator.GetFacenames().Item(i).Upper().Matches(wxPattern)) { good.push_back(i); }
-  if (good.size() == 0) return NULL;
-  //then get them
-  DStringGDL* myList=new DStringGDL(dimension(good.size()));
-  for (int i=0; i< good.size(); ++i) (*myList)[i].assign(fontEnumerator.GetFacenames().Item(good[i]).mb_str(wxConvUTF8));
-  return myList;
-}
-DLong GDLWXStream::GetFontnum(DString pattern){
-  if (this->GetFontnames(pattern) == NULL) return 0;
-  if (pattern.length()==0) return 0;
-  return this->GetFontnames(pattern)->N_Elements();
-}
+
 void GDLWXStream::SetCurrentFont(std::string fontname){
   if (fontname.size() > 0) {
    wxFont font=wxFont(wxString(fontname.c_str( ), wxConvLibc));

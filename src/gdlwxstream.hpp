@@ -94,8 +94,6 @@ public:
     bool CursorStandard(int cursorNumber);
     bool CursorImage(char* v, int x, int y, char* m);
     DLong GetVisualDepth();
-    BaseGDL* GetFontnames(DString pattern);
-    DLong GetFontnum(DString pattern);
     void SetCurrentFont(std::string fontname);
     DString GetVisualName();
     bool GetScreenResolution(double& resx, double& resy);

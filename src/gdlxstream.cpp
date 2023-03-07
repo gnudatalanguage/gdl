@@ -214,7 +214,7 @@ BaseGDL* GDLXStream::GetFontnames(DString pattern) {
   int actual_count_return;
   char **list= XListFonts(xwd->display, pattern.c_str(), 30000, &actual_count_return);
   if (!actual_count_return) return NULL;
-  DStringGDL* myList=new DStringGDL(dimension(actual_count_return));
+  DStringGDL* myList=new DStringGDL(dimension(actual_count_return),BaseGDL::NOZERO);
   for (int i=0; i< actual_count_return; ++i) (*myList)[i].assign(list[i]);
   XFreeFontNames(list);
   return myList;

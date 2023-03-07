@@ -2316,11 +2316,11 @@ namespace lib {
     SizeT n = p0->N_Elements();
     static int doubleIx = e->KeywordIx("DOUBLE");
     if (e->KeywordSet(doubleIx) || p0->Type() == GDL_DOUBLE) {
-      DDoubleGDL *ret = new DDoubleGDL(dimension(n)), *p0d = e->GetParAs<DDoubleGDL>(0);
+      DDoubleGDL *ret = new DDoubleGDL(dimension(n),BaseGDL::NOZERO), *p0d = e->GetParAs<DDoubleGDL>(0);
       while (n != 0) --n, (*ret)[n] = inverf((*p0d)[n]);
       return ret;
     } else {
-      DFloatGDL *ret = new DFloatGDL(dimension(n)), *p0f = e->GetParAs<DFloatGDL>(0);
+      DFloatGDL *ret = new DFloatGDL(dimension(n),BaseGDL::NOZERO), *p0f = e->GetParAs<DFloatGDL>(0);
       while (n != 0) --n, (*ret)[n] = inverf((*p0f)[n]);
       return ret;
     }
