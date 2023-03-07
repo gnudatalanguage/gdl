@@ -53,7 +53,7 @@ void LibInit_jp()
   new DLibFunRetNew(lib::widget_base, string("WIDGET_BASE"), 1, widget_baseKey);
   //BUTTON
   const string widget_buttonKey[] = {WIDGET_COMMON_KEYWORDS, "MENU", "VALUE", "HELP", "SEPARATOR", "INPUT_FOCUS", "BITMAP", "IMAGE", "TOOLTIP",
-    "TRACKING_EVENTS", "DYNAMIC_RESIZE", "X_BITMAP_EXTRA", "FLAT", "NO_RELEASE", "CHECKED_MENU","PUSHBUTTON_EVENTS","RESOURCE_NAME",
+    "TRACKING_EVENTS", "DYNAMIC_RESIZE", "X_BITMAP_EXTRA", "FLAT", "NO_RELEASE", "CHECKED_MENU","PUSHBUTTON_EVENTS",
     "ACCELERATOR","TAB_MODE", 
     KLISTEND};
   new DLibFunRetNew(lib::widget_button, string("WIDGET_BUTTON"), 1, widget_buttonKey);
