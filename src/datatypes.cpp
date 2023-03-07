@@ -501,7 +501,7 @@ template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDo
 //faster, C++ initializer is probably too shy. 
 template<class Sp>
 Data_<Sp>::Data_(const Data_& d_) : Sp(d_.dim), dd(this->dim.NDimElements(), false) { 
-  this->dim.Purge(); //useful?
+//  this->dim.Purge(); //very bad, see #1537 
   SizeT sz = dd.size();
   if ((GDL_NTHREADS=parallelize( sz, TP_ARRAY_INITIALISATION))==1) { //most frequent
     for (SizeT i = 0; i < sz; i++) dd[i] = d_.dd[i];
