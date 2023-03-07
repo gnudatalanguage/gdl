@@ -1324,6 +1324,9 @@ RetCode  INCNode::Run()
   return RC_OK;
 }
 
+
+// FOR variable = init, limit : initialisation
+
 RetCode   FORNode::Run()//for_statement(ProgNodeP _t) {
 {
   EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStackBack());
@@ -1369,6 +1372,7 @@ RetCode   FORNode::Run()//for_statement(ProgNodeP _t) {
   }
 }
 
+// FOR variable = init, limit : LOOP
 
 RetCode   FOR_LOOPNode::Run()
 {
@@ -1405,7 +1409,7 @@ RetCode   FOR_LOOPNode::Run()
   return RC_OK;
 }
 
-	
+// FOR variable = init, limit , Increment : initialisation
 RetCode   FOR_STEPNode::Run()//for_statement(ProgNodeP _t) {
 {
   EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
@@ -1442,11 +1446,13 @@ RetCode   FOR_STEPNode::Run()//for_statement(ProgNodeP _t) {
     (*v) = s_guard.release(); // s held in *v after this
 
     if (loopInfo.loopStepVar->Sgn() == -1) {
+      loopInfo.IncrOrDec=&BaseGDL::ForCondDown; //(loopInfo.endLoopVar));
       if ((*v)->ForCondDown(loopInfo.endLoopVar)) {
         ProgNode::interpreter->_retTree = vP->GetNextSibling();
         return RC_OK;
       }
     } else {
+      loopInfo.IncrOrDec=&BaseGDL::ForCondUp;
       if ((*v)->ForCondUp(loopInfo.endLoopVar)) {
         ProgNode::interpreter->_retTree = vP->GetNextSibling();
         return RC_OK;
@@ -1462,6 +1468,7 @@ RetCode   FOR_STEPNode::Run()//for_statement(ProgNodeP _t) {
   }
 }
 	
+// FOR variable = init, limit , Increment : LOOP 
 RetCode   FOR_STEP_LOOPNode::Run()
 {
   EnvUDT* callStack_back = static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
@@ -1482,21 +1489,10 @@ RetCode   FOR_STEP_LOOPNode::Run()
   BaseGDL** v=this->GetFirstChild()->LEval(); //ProgNode::interpreter->l_simple_var(this->GetFirstChild());
 
   (*v)->ForAdd(loopInfo.loopStepVar);
-  if( loopInfo.loopStepVar->Sgn() == -1)
-  {
-    if( (*v)->ForCondDown( loopInfo.endLoopVar))
-    {
+  
+    if (((*v)->*loopInfo.IncrOrDec)(loopInfo.endLoopVar)) {
 	    ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling();
 	    return RC_OK;
-    }
-  }
-  else
-  {
-    if( (*v)->ForCondUp( loopInfo.endLoopVar))
-    {
-	    ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling();
-	    return RC_OK;
-    }
   }
   
   GDLDelete(loopInfo.endLoopVar);
@@ -1507,8 +1503,10 @@ RetCode   FOR_STEP_LOOPNode::Run()
   return RC_OK;
 }
 
+//FOREACH Element, Variable DO ... : First step, initialisation object
 RetCode   FOREACHNode::Run()
 {
+//  std::cerr<<"FOREACH_Node::Run()"<<std::endl;
   EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
   ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
 
@@ -1541,7 +1539,9 @@ RetCode   FOREACHNode::Run()
   // currently there are no empty arrays
   //SizeT nEl = loopInfo.endLoopVar->N_Elements();
 
-  // ASSIGNMENT used here also
+  // variable *v will be replaced by a good-valued, of the good type, NewIx().
+  // If the FOREACH variable is of a base type (not LIST or HASH or STRUCT) then will be possible
+  // to avoid deleting this variable in the coming LOOP (see below in FOREACH_LOOPNode::Run()).
   GDLDelete((*v));
   (*v) = loopInfo.endLoopVar->NewIx( 0);
 
@@ -1549,41 +1549,53 @@ RetCode   FOREACHNode::Run()
   return RC_OK;
 }
 	
-RetCode   FOREACH_LOOPNode::Run()
-{
+//FOREACH Element, Variable DO ... : LOOP object used until end
+RetCode   FOREACH_LOOPNode::Run() {
+//    std::cerr<<"FOREACH_LOOPNode::Run()"<<std::endl;
   EnvUDT* callStack_back = static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
   ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
 
-  if( loopInfo.endLoopVar == NULL)
-  {
+  if (loopInfo.endLoopVar == NULL) {
     // non-initialized loop (GOTO)
     ProgNode::interpreter->_retTree = this->GetNextSibling();
     return RC_OK;
   }
-
+  //get pointer to "element"
   BaseGDL** v=this->GetFirstChild()->LEval(); //ProgNode::interpreter->l_simple_var(this->GetFirstChild());
 
   ++loopInfo.foreachIx;
 
   SizeT nEl = loopInfo.endLoopVar->N_Elements();
-    if( loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar())
-    {
+  
+  //test frequent types before.
+  if (ConvertableType(loopInfo.endLoopVar->Type())) {
+    // The variable type does not change, we can use AssignIndexedValue and avoid a costly GDLDelete().
+    if (loopInfo.foreachIx < nEl) {
+      //change value inside "element" but do not delete/recreate it.
+      (*v)->AssignIndexedValue(loopInfo.endLoopVar, loopInfo.foreachIx); // = loopInfo.endLoopVar->NewIx( loopInfo.foreachIx);
+      ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling();
+      return RC_OK;
+    }
+  } else {//includes STRUCTS: AssignIndexedValue() could be overwritten for structs also
+    if (loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar()) {
         DObj s = (*static_cast<DObjGDL*>(loopInfo.endLoopVar))[0];
 		DStructGDL* oStruct= GDLInterpreter::GetObjHeap( s);
 		if( oStruct->Desc()->IsParent( "HASH")) nEl = lib::HASH_count(oStruct);
 		else if (oStruct->Desc()->IsParent( "LIST")) nEl = lib::LIST_count(oStruct);
 	}
-
-  if( loopInfo.foreachIx < nEl)
-  {
-	  // ASSIGNMENT used here also
+    if (loopInfo.foreachIx < nEl) {
+      //delete current "element" and replace by new, as it may have a different type.
 	  GDLDelete((*v));
 	  (*v) = loopInfo.endLoopVar->NewIx( loopInfo.foreachIx);
-
 	  ProgNode::interpreter->_retTree = this->GetFirstChild()->GetNextSibling();
 	  return RC_OK;
+     }
   }
 
+  // note: last created or updated "element" variable must remain as it can be accessed after loop end.
+  
+  // tidy temporary Dup()ed value. Dup()ing may be avoided (at a cost of complexity) since the introduction of AssignIndexedValue()
+  // and loop would be faster, including the reproduction of behaviour described in #1500
   GDLDelete(loopInfo.endLoopVar);
   loopInfo.endLoopVar = NULL;
   // 	loopInfo.foreachIx = -1;
@@ -1592,7 +1604,7 @@ RetCode   FOREACH_LOOPNode::Run()
 }
 
 
-
+//FOREACH Element, Variable, Index DO ... : First step, initialisation object
 RetCode FOREACH_INDEXNode::Run()
 {
   EnvUDT* callStack_back = 	static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
@@ -1601,7 +1613,9 @@ RetCode FOREACH_INDEXNode::Run()
   ProgNodeP vP = this->GetNextSibling()->GetFirstChild();
   ProgNodeP indexP = vP->GetNextSibling();
 
+  //get pointer to "element"
   BaseGDL** v=vP->LEval(); //ProgNode::interpreter->l_simple_var(vP);
+  //get pointer to "Index"
   BaseGDL** index=indexP->LEval(); //ProgNode::interpreter->l_simple_var(indexP);
 
   GDLDelete(loopInfo.endLoopVar);
@@ -1629,11 +1643,16 @@ RetCode FOREACH_INDEXNode::Run()
   // currently there are no empty arrays
   //SizeT nEl = loopInfo.endLoopVar->N_Elements();
 
-  // ASSIGNMENT used here also
+  // "Element" (pointed by *v) will be replaced by a good-valued, of the good type, NewIx().
+  // If the FOREACH Variable is of a base type (not LIST or HASH or STRUCT) then will be possible
+  // to avoid deleting "element" in the coming LOOP (see below in FOREACH_INDEX_LOOPNode::Run()).
   GDLDelete((*v));
   (*v) = loopInfo.endLoopVar->NewIx( 0); // HASH sets here TABLE_FOREACH to key ptr
 
-  // ASSIGNMENT used here also
+  // variable *index will be replaced by a good-valued, of the good type, index value.
+  // If the FOREACH variable is not a HASH it will be possible
+  // to avoid deleting this variable in the coming LOOP as it will always be of the same type
+  // (see below in FOREACH_INDEX_LOOPNode::Run()).
   GDLDelete((*index));
   if( loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar())
   {
@@ -1660,9 +1679,10 @@ RetCode FOREACH_INDEXNode::Run()
   ProgNode::interpreter->_retTree = indexP->GetNextSibling();
   return RC_OK;
 }
-
+//FOREACH Element, Variable, index DO ... : LOOP object used until end
 RetCode FOREACH_INDEX_LOOPNode::Run()
 {
+//  std::cerr<<"FOREACH_INDEX_LOOPNode::Run()"<<std::endl;
   EnvUDT* callStack_back = static_cast<EnvUDT*>(GDLInterpreter::CallStack().back());
   ForLoopInfoT& loopInfo = callStack_back->GetForLoopInfo( this->forLoopIx);
 
@@ -1675,54 +1695,65 @@ RetCode FOREACH_INDEX_LOOPNode::Run()
 
   ProgNodeP thisGetFirstChildGetNextSibling = this->GetFirstChild()->GetNextSibling();
   
+  //get pointer to "element"
   BaseGDL** v=this->GetFirstChild()->LEval(); //ProgNode::interpreter->l_simple_var(this->GetFirstChild());
+  //get pointer to "Index"
   BaseGDL** index=thisGetFirstChildGetNextSibling->LEval(); //ProgNode::interpreter->l_simple_var(this->GetFirstChild()->GetNextSibling());
 
   ++loopInfo.foreachIx;
 
   SizeT nEl = loopInfo.endLoopVar->N_Elements();
-    if( loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar())
-    {
+  if (ConvertableType(loopInfo.endLoopVar->Type())) {
+    // The Element type does not change, we can use AssignIndexedValue and avoid a costly GDLDelete().
+    if (loopInfo.foreachIx < nEl) {
+      //change value inside "element" but do not delete/recreate it.
+      (*v)->AssignIndexedValue(loopInfo.endLoopVar, loopInfo.foreachIx); // = loopInfo.endLoopVar->NewIx( loopInfo.foreachIx);
+    // The Index type does not change, we can use AssignIndexedValue and avoid a costly GDLDelete().
+      (*index)->Inc(); //same as ++foreachIx above.
+      ProgNode::interpreter->_retTree = thisGetFirstChildGetNextSibling->GetNextSibling();
+      return RC_OK;
+    }
+  } else { //includes STRUCTS: AssignIndexedValue() could be overwritten for structs also
+    if (loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar()) {
         DObj s = (*static_cast<DObjGDL*>(loopInfo.endLoopVar))[0];
 		DStructGDL* oStruct= GDLInterpreter::GetObjHeap( s);
-		if( oStruct->Desc()->IsParent( "HASH")) nEl = lib::HASH_count(oStruct);
-		else if (oStruct->Desc()->IsParent( "LIST")) nEl = lib::LIST_count(oStruct);
+      DStructDesc* oStructDesc = oStruct->Desc();
+      if (oStructDesc->IsParent("HASH")) {
+        nEl = lib::HASH_count(oStruct);
+      } else if (oStructDesc->IsParent("LIST")) nEl = lib::LIST_count(oStruct);
 	}
 
-  if( loopInfo.foreachIx < nEl)
-  {
-    // ASSIGNMENT used here also
+    if (loopInfo.foreachIx < nEl) {
+      //delete current "element" and replace by new, as it may have a different type.
     GDLDelete((*v));
     (*v) = loopInfo.endLoopVar->NewIx( loopInfo.foreachIx); // HASH sets here TABLE_FOREACH to key ptr
 
-    // ASSIGNMENT used here also
+      //delete current "Index" and replace by new, as it may have a different type.
     GDLDelete((*index));
-    if( loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar())
-    {
+      if (loopInfo.endLoopVar->Type() == GDL_OBJ && loopInfo.endLoopVar->StrictScalar()) {
         DObj s = (*static_cast<DObjGDL*>(loopInfo.endLoopVar))[0];
 	DStructGDL* oStruct= GDLInterpreter::GetObjHeap( s);
 	DStructDesc* oStructDesc = oStruct->Desc();
-	if( oStructDesc->IsParent( "HASH"))
-	{
+        if (oStructDesc->IsParent("HASH")) {
 	  unsigned forEachTag = oStructDesc->TagIndex( "TABLE_FOREACH");
 	  DPtr pForEach = (*static_cast<DULongGDL*>( oStruct->GetTag( forEachTag, 0)))[0];
 	  // pForEach is pointer to current key
 	  (*index) = GDLInterpreter::GetHeap( pForEach)->Dup();
-	}
-	else
-	{
-	  // ASSIGNMENT used here also
+        } else {
 	  (*index) = new DLongGDL( loopInfo.foreachIx);
 	}
-    }
-    else
-    {
+      } else {
       (*index) = new DLongGDL( loopInfo.foreachIx);
     }
     
     ProgNode::interpreter->_retTree = thisGetFirstChildGetNextSibling->GetNextSibling();
     return RC_OK;
   }
+  }
+  // note: last created or updated "element" and "Index" variables must remain as they can be accessed after loop end.
+  
+  // tidy temporary Dup()ed value. Dup()ing may be avoided (at a cost of complexity) since the introduction of AssignIndexedValue()
+  // and loop would be faster, including the reproduction of behaviour described in #1500
 
   GDLDelete(loopInfo.endLoopVar);
   loopInfo.endLoopVar = NULL;

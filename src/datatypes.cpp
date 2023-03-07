@@ -4632,7 +4632,14 @@ void Data_<Sp>::Assign( BaseGDL* src, SizeT nEl)
       (*this)[ k] = (*srcT)[ k];
     }
 }
-
+// plain copy of element at index i from src in scalar 'this'. To be used in loops to change the value of the loop variable.
+// absolutely no checking for speed so BE AWARE to check equality of Type() before use.
+template<class Sp>
+void Data_<Sp>::AssignIndexedValue( BaseGDL* src, SizeT i)
+{ TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* srcT = dynamic_cast<Data_*>( src);
+  (*this)[ 0] = (*srcT)[ i];
+}
 
 
 

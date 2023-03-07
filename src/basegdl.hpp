@@ -582,6 +582,7 @@ public:
   virtual BaseGDL* Rebin( const dimension& newDim, bool sample);
   // for STRUCT_ASSIGN
   virtual void Assign( BaseGDL* src, SizeT nEl);
+  virtual void AssignIndexedValue( BaseGDL* src, SizeT index);
 
   virtual BaseGDL* Log();              
   virtual BaseGDL* LogThis();
@@ -751,6 +752,7 @@ struct ForLoopInfoT
   BaseGDL*  endLoopVar; // the source for foreach as well
   BaseGDL*  loopStepVar;
   DLong     foreachIx;
+  bool (BaseGDL::*IncrOrDec)(BaseGDL*); //for FORSTEPLoop: method pointer saves if test on increment sign inside loop
 //   bool      isHash; // only used in FOREACH_INDEXNode::Run() and FOREACH_INDEX_LOOPNode::Run()
 
   ForLoopInfoT()
