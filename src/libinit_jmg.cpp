@@ -131,7 +131,7 @@ void LibInit_jmg()
   new DLibFunRetNew(lib::histogram_fun,string("HISTOGRAM"),1,histogramKey,histogramWarnKey);
   
   const string interpolKey[]={ "LSQUADRATIC","NAN", "QUADRATIC", "SPLINE" ,KLISTEND};
-  new DLibFunRetNew(lib::interpol_fun,string("INTERPOL"),3,interpolKey);
+  new DLibFunRetNew(lib::interpol_fun,string("GDL_INTERPOL"),3,interpolKey); //internal function, we use interpol.pro to sort x and y in the 3 parameter case.
   
   const string interpolateKey[]={"CUBIC","DOUBLE","GRID","MISSING","NEAREST_NEIGHBOUR",KLISTEND};
   new DLibFunRetNewTP(lib::interpolate_fun,string("INTERPOLATE"),4,interpolateKey);  //UsesThreadPOOL 

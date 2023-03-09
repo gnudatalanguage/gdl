@@ -2563,25 +2563,25 @@ void GDLWidgetTab::OnRealize(){
 /*********************************************************/
 // for WIDGET_TABLE
 /*********************************************************/
-//overrides method to label the columns & lines
-  wxString wxGridTableBase::GetRowLabelValue( int row )
-{
-    wxString s;
-
-    // RD: Starting the rows at zero confuses users,
-    // no matter how much it makes sense to us geeks.
-    // GD: So IDL and GDL are for geeks.
-    s << row ;
-
-    return s;
-}
-  wxString wxGridTableBase::GetColLabelValue( int col )
-{
-    wxString s;
-    s << col ;
-
-    return s;
-}
+////overrides method to label the columns & lines
+//  wxString wxGridTableBase::GetRowLabelValue( int row )
+//{
+//    wxString s;
+//
+//    // RD: Starting the rows at zero confuses users,
+//    // no matter how much it makes sense to us geeks.
+//    // GD: So IDL and GDL are for geeks.
+//    s << row ;
+//
+//    return s;
+//}
+//  wxString wxGridTableBase::GetColLabelValue( int col )
+//{
+//    wxString s;
+//    s << col ;
+//
+//    return s;
+//}
 
 GDLWidgetTable::GDLWidgetTable( WidgetIDT p, EnvT* e,
 DByteGDL* alignment_,
