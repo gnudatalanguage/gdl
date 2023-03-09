@@ -101,13 +101,16 @@ gdl_interpol* gdl_interpol_alloc(const gdl_interpol_type* T, ssize_t xsize) {
     if (xsize != interp->xsize) {
       GSL_ERROR("data must match size of interpolation object", GSL_EINVAL);
     }
-    for (i = 1; i < xsize; i++) {
-      if (xarr[i - 1] >= xarr[i]) {
-//        GSL_ERROR("x values must be strictly increasing", GSL_EINVAL);
-        Message ("X values are not strictly increasing, INTERPOL may give incorrect results");
-        break;
-      }
-    }
+    //not useful as long as sorting of xarr is done in procedue interpol.pro [GD]
+//    for (i = 1; i < xsize; i++) {
+//      if (xarr[i - 1] >= xarr[i]) {
+////        GSL_ERROR("x values must be strictly increasing", GSL_EINVAL);
+//        Message ("X values are not strictly increasing, INTERPOL may give incorrect results");
+//        std::cerr<<xarr[i-1]<<">="<<xarr[i]<<std::endl;
+////        return 1;
+//        break;
+//      }
+//    }
     interp->xmin = xarr[0];
     interp->xmax = xarr[xsize - 1];
     int status = interp->type->init(interp->state, xarr, tarr, xsize);
