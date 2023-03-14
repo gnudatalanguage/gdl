@@ -86,7 +86,7 @@ void DCommonRef::AddVar(const string& v)
 {
   // check size
   if( cRef->NVar() == NVar()) 
-    throw( GDLException("Attempt to extent common block: "+Name()));
+    throw( GDLException("Attempt to extend common block: "+Name()));
   // add name
   varNames.push_back(v);
 }
