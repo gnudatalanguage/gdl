@@ -11,7 +11,7 @@
 ;   red=red, green=green, blue=blue, cmyk=cmyk, compression=compression, complex=complex, dcomplex=dcomplex, description=decription,$
 ;   document_name=document_name,double=double, dot_range=dot_range,float=float,geotiff=geotiff,l64=l64,long=long,icc_profile=icc_profile,$
 ;   orientation=ori,photoshop=photoshop,planarconfig=planarconfig,signed=signed,units=units,$
-;   verbose=verbose, xposition=xpos, xresol=xres, yposition=ypos, yresol=yres filename, image, /append, /bigtiff, bits_per_sample=,
+;   verbose=verbose, xposition=xpos, xresol=xres, yposition=ypos, yresol=yres
 ;
 ; KEYWORD PARAMETERS: 
 ;     ORDER      : 1 = top-bottom, 0 = bottom-top
@@ -154,7 +154,7 @@ pro WRITE_TIFF, filename, imageDonotTouch, append=append, bigtiff=bigtiff, bits_
         szblue=check_dimension_is_2( blue, 'BLUE')
         if (szred[0] ne szgreen[0]) or (szred[0] ne szblue[0]) then   Message,"Red, Green and Blue arrays must be of same dimensions."
         if (szred[1] ne szgreen[1]) or (szred[1] ne szblue[1]) then   Message,"Red, Green and Blue arrays must be of same dimensions."
-        image=[[[red]],[[green]],[[blue]]]
+        image=reverse([[[red]],[[green]],[[blue]]],3,/over)
         special=1
         SamplePerPixel=3
         n=szred[0]
@@ -179,12 +179,15 @@ pro WRITE_TIFF, filename, imageDonotTouch, append=append, bigtiff=bigtiff, bits_
               SamplePerPixel=sz[1]
               n=sz[2]
               m=sz[3]
+              PlanarConfiguration=1
+              image=reverse(imageDoNotTouch,3,/over)
            end
            2: begin
-              SamplePerPixel=sz[3]
               n=sz[1]
               m=sz[2]
+              SamplePerPixel=sz[3]
               PlanarConfiguration=2
+              image=reverse(imageDoNotTouch,2,/over)
            end
            else: Message,"Illegal keyword value for PLANARCONFIG."
         endcase
@@ -192,11 +195,14 @@ pro WRITE_TIFF, filename, imageDonotTouch, append=append, bigtiff=bigtiff, bits_
         SamplePerPixel=sz[1]
         n=sz[2]
         m=sz[3]
+        PlanarConfiguration=1
+        image=reverse(imageDoNotTouch,3,/over)
      endelse
+     goto, image_defined
   endif
   
-  ;; will use a local copy of image
-  image=imageDoNotTouch
+  ;; will use a local copy of image. Reverse to have external display correctly plot it.
+  image=reverse(imageDoNotTouch,2,/over) ; 2d-case
   ;; gets here from special cases above
 image_defined:
   
@@ -319,7 +325,7 @@ if dodcomplex then begin & image=fix(temporary(image),type=9) & bps=128 & endif 
    endif
    
    ;; orientation
-   if (n_elements(orientation) eq 0 ) then orientation=1 else orientation=fix(orientation[0])
+   if (n_elements(orientation) eq 0 ) then orientation=1 else orientation=fix(orientation[0]) ; We write TIFF files with "real" orientation 4
    if orientation eq 0 then orientation = 4
    if orientation lt 1 or orientation gt 8 then message,"Illegal keyword value for ORIENTATION."
    ;; sampleformat
