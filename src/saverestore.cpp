@@ -2228,10 +2228,10 @@ enum {
 
 
     //will start at TIMESTAMP
-    uint64_t currentptr = LONG;
-    uint64_t nextptr = 0;
+    uint64_t nextptr = LONG;
+    uint64_t oldptr = 0;
 
-    fseek(save_fid, currentptr, SEEK_SET);
+    fseek(save_fid, nextptr, SEEK_SET);
     
     const int    MAX_DATE_STRING_LENGTH = 80;
     time_t t=time(0);
@@ -2279,13 +2279,14 @@ enum {
       if (verboselevel>0) Message("Saved common block: " + *itcommon);
     }
     //HEAP Variables: all terminal variables pointed by, OBJs or PTRs
-
+    oldptr=nextptr; //will test if number goes down: would be an error until the 64 bit xdr write is not fixed
+    
     if (heapIndexMapSave.size() > 0) { //there is some heap...
       DPtrGDL* heapPtrList=e->Interpreter( )->GetAllHeap( );
-      for (SizeT i=0; i<heapPtrList->N_Elements(); ++i) nextptr=writeHeapVariable(e, xdrs, (*heapPtrList)[i], false);
+      for (SizeT i=0; i<heapPtrList->N_Elements(); ++i) { nextptr=writeHeapVariable(e, xdrs, (*heapPtrList)[i], false); if (nextptr <= oldptr) goto fail;oldptr=nextptr;}
       GDLDelete(heapPtrList);
       DObjGDL* heapObjPtrList=e->Interpreter( )->GetAllObjHeap( );
-      for (SizeT i=0; i<heapObjPtrList->N_Elements(); ++i) nextptr=writeHeapVariable(e, xdrs, (*heapObjPtrList)[i], true);
+      for (SizeT i=0; i<heapObjPtrList->N_Elements(); ++i) {nextptr=writeHeapVariable(e, xdrs, (*heapObjPtrList)[i], true); if (nextptr <=oldptr) goto fail;oldptr=nextptr;}
       GDLDelete(heapObjPtrList);
     }
 
@@ -2298,14 +2299,14 @@ enum {
 //    }
     while (!systemVariableVector.empty())
     {
-      nextptr = writeNormalVariable(xdrs, systemVariableVector.back().first, (systemVariableVector.back()).second, 0x2);
+      nextptr = writeNormalVariable(xdrs, systemVariableVector.back().first, (systemVariableVector.back()).second, 0x2); if (nextptr <=oldptr) goto fail;oldptr=nextptr;
       if (verboselevel > 0) Message("SAVE: Saved system variable: " + (systemVariableVector.back()).first + ".");
       systemVariableVector.pop_back();
     }
     
     while (!variableVector.empty())
     { 
-      nextptr=writeNormalVariable(xdrs, variableVector.back().first, (variableVector.back()).second);
+      nextptr=writeNormalVariable(xdrs, variableVector.back().first, (variableVector.back()).second); if (nextptr <=oldptr) goto fail;oldptr=nextptr;
       if (verboselevel>0) Message("SAVE: Saved variable: " + (variableVector.back()).first+".");
       variableVector.pop_back();
     }
@@ -2313,6 +2314,11 @@ enum {
     nextptr=writeEnd(xdrs);
     xdr_destroy(xdrs);
     fclose(save_fid);
+    return;
+    fail:
+    xdr_destroy(xdrs);
+    fclose(save_fid);
+    e->Throw("GDL cannot yet write such large SAVE files. Try with less values. File "+name+" is invalid, remove it.");  
   }
 
 }
