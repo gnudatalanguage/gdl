@@ -327,7 +327,7 @@ public:
  void OnTextMouseEvents(wxMouseEvent& event);
  void OnTextPaste(wxClipboardTextEvent& event);
  void OnTextCut(wxClipboardTextEvent& event);
- //  void OnTextEnter( wxCommandEvent& event); //NOT USED
+ void OnTextEnter( wxCommandEvent& event); //NOT USED
  void OnThumbTrack(wxScrollEvent& event);
  void OnThumbRelease(wxScrollEvent& event);
  void OnSize(wxSizeEvent& event); //unused.

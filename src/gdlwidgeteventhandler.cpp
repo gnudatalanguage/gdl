@@ -156,9 +156,6 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
     this->GetSelection( &from, &to );
     long oldpos = this->GetInsertionPoint( ), newpos;
     switch ( event.GetKeyCode( ) ) {
-      case WXK_TAB:
-        event.Skip();  return;
-        break;
       case WXK_END:
         newpos = this->GetLastPosition( );
         this->SetInsertionPoint( newpos );
@@ -202,6 +199,19 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
           GDLWidget::PushEvent( baseWidgetID, widg );
         }
         if (edit) event.Skip( ); //do it!
+        return;
+        break;
+      case WXK_TAB:
+        widg = new DStructGDL( "WIDGET_TEXT_CH" );
+        widg->InitTag( "ID", DLongGDL( event.GetId( ) ) );
+        widg->InitTag( "TOP", DLongGDL( baseWidgetID ) );
+        widg->InitTag( "HANDLER", DLongGDL( baseWidgetID ) );
+        widg->InitTag( "TYPE", DIntGDL( 0 ) ); // selection
+        widg->InitTag( "OFFSET", DLongGDL( from ) );
+        widg->InitTag( "CH", DByteGDL( 9 ) );
+        GDLWidget::PushEvent( baseWidgetID, widg );
+        //if (!edit) event.Skip( ); //do NOT skip
+        if (edit) this->WriteText("\t"); //necessary!
         return;
         break;
       case WXK_RETURN: //important, *DL returns CH=10 instead of 13 for <CR>
@@ -820,7 +830,13 @@ void gdlwxFrame::OnText( wxCommandEvent& event)
   GDLWidget::PushEvent( baseWidgetID, widg);
 }
 
-
+void gdlwxFrame::OnTextEnter( wxCommandEvent& event)
+{
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_TEXT_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlwxFrame::OnTextEnter: %d (ignored)\n"),event.GetId());
+#endif
+  //ignore it.
+}
 //NOT USED
 //void gdlwxFrame::OnTextEnter( wxCommandEvent& event)
 //{
