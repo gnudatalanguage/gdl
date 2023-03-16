@@ -1611,17 +1611,15 @@ enum {
         nextptr = my_ulong64;
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
-      } else
+      } else //the 2 pointers may point together to a l64 address, bug #1545
       {
         if (!xdr_uint32_t(xdrs, &ptrs0)) break;
-        if (!xdr_uint32_t(xdrs, &ptrs1)) break;
-        if (!xdr_int32_t(xdrs, &UnknownLong)) break;
         nextptr = ptrs0;
-        if (ptrs1 > 0)
-        {
-          DULong64 tmp = ptrs1;
-          nextptr &= (tmp << 32);
-        }
+        if (!xdr_uint32_t(xdrs, &ptrs1)) break;
+        DULong64 tmp = ptrs1;
+        nextptr |= (tmp << 32);
+        if (!xdr_int32_t(xdrs, &UnknownLong)) break;
+        if (nextptr <=LONG) e->Throw("error in pointers, please report.");
       }
 
       //dispatch accordingly:
@@ -1796,14 +1794,11 @@ enum {
       } else
       {
         if (!xdr_uint32_t(xdrs, &ptrs0)) break;
-        if (!xdr_uint32_t(xdrs, &ptrs1)) break;
-        if (!xdr_int32_t(xdrs, &UnknownLong)) break;
         nextptr = ptrs0;
-        if (ptrs1 > 0)
-        {
-          DULong64 tmp = ptrs1;
-          nextptr &= (tmp << 32);
-        }
+        if (!xdr_uint32_t(xdrs, &ptrs1)) break;
+        DULong64 tmp = ptrs1;
+        nextptr |= (tmp << 32);
+        if (!xdr_int32_t(xdrs, &UnknownLong)) break;
       }
 
       //dispatch accordingly:
