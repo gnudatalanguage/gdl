@@ -47,12 +47,25 @@ FUNCTION POLY_FIT, x, y, ndegree, $
 
   COMPILE_OPT strictarr, hidden
   
-  if (ndegree lt 1) then message,"polynomial degree should be > 0" 
+ 
   farg={DEGREE:ndegree}
 ; test if yband is wanted...
   doyband=arg_present(yband) || arg_present(oldyband)
 ; test if measure_errors were given
   haserrors=arg_present(measure_errors)
+
+  if (ndegree lt 1) then begin
+     m=n_elements(x)
+     p=mean(y)
+     sigma=(sigma(y))[0]
+     dummy=moment(y,sdev=yerror) ; get yerror
+     yfit=p
+     measure_errors=replicate(p,m)
+     covar=total((y-p)*(x-mean(x)))/(m-1)
+     chisq=total((y-p)^2/p)
+     goto, near_end
+  endif
+ 
 ; weights w are based on measure_errors:
   if (n_elements(measure_errors) gt 0) then w=1D/measure_errors^2 else w=x*0+1
   p=dblarr(ndegree+1)+1.0
@@ -77,7 +90,7 @@ FUNCTION POLY_FIT, x, y, ndegree, $
      
      yband = sqrt( temporary(yband) )
   endif
-
+near_end:
 ; obsolete arguments?
     if (n_params() ge 4) then begin
         corrm = covar*yerror^2   ; was a correlation matrix
