@@ -34,8 +34,16 @@ FUNCTION GAUSSFIT, x, y, a, $
     YERROR=yerror
 
 compile_opt idl2, hidden
-  ON_ERROR,2              ;Return to caller IF error
-
+ON_ERROR,2                      ;Return to caller IF error
+;; be wiser than mpfitpeak, use POLY_FIT if degree high to make better estimates
+  if nterms gt 3 then begin
+     if n_elements(est) eq 0 then begin
+        c = POLY_FIT(x, y, (nterms eq 4) ? 0 : 1, yfit)
+        ytemp = y - yfit
+        temp=mpfitpeak (x, ytemp, a, estimates=est)
+     endif
+  endif
+  
   return,mpfitpeak (x, y, a, estimates=est, nterms=nterms, /gauss, $
                       chisq=chisq, sigma=sigma, yerror=yerror,$
                       measure_errors=measure_errors, /nan)
