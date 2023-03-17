@@ -35,13 +35,13 @@ FUNCTION CURVEFIT, x, y, w, p, sigma, FUNCTION_NAME = fcn, FITA=fita, $
                         /nocovar, yerror=yerror, $
                         noderivative=noderivative, ftol=tol, $
                         parinfo = parinfo, $
-                        STATUS=status, _EXTRA=extra )
+                        STATUS=status, /quiet, _EXTRA=extra )
   endif else yfit = mpcurvefit (x, y, w, p, sigma, function_name=fcn, $
                                 iter=iter, itmax=maxiter, $
                                 chisq=bestnorm, $
                                 /nocovar, yerror=yerror, $
                                 noderivative=noderivative, ftol=tol, $
-                                STATUS=status, _EXTRA=extra )
-  chi2 = bestnorm         ; Return chi2 obsolete
+                                STATUS=status, /quiet, _EXTRA=extra )
+  if n_elements(bestnorm) then chi2 = bestnorm         ; Return chi2 obsolete
   return, yfit
 END
