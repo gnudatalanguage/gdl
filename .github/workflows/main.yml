@@ -51,7 +51,7 @@ jobs:
         echo "matrix_others=$matrix" >> $GITHUB_OUTPUT
     - name: Remove Release (scheduled build only)
       if: github.event_name == 'schedule' || github.event.inputs.type == 'release'
-      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      uses: dev-drprasad/delete-tag-and-release@v0.2.1
       with:
         delete_release: true
         tag_name: weekly-release
