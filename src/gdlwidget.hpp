@@ -470,6 +470,7 @@ protected:
   DString      notifyRealize;
   
   wxTimer * m_windowTimer;
+//  bool delay_destroy;
   
 private:  
 
@@ -485,6 +486,8 @@ private:
   
 public:
 
+//  void SetDelayDestroy(bool val){delay_destroy=val;}
+//  bool GetDelayDestroy(){return delay_destroy;}
  void setFont();
  void setFont(wxObject* o);
 
@@ -2113,6 +2116,7 @@ public:
  wxPoint WhereIsMouse(wxKeyEvent &e);
  void ResizeDrawArea(const wxSize s);
  void DeleteUsingWindowNumber();
+ void SetUndecomposed();
  void SetStream(GDLWXStream* s);
 
  void OnErase(wxEraseEvent& event);

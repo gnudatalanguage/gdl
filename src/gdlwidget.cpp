@@ -1103,6 +1103,7 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV, DULong eventFlags_)
 , proValue("")
 , funcValue("")
 , uName("")
+//, delay_destroy(false)
 {
   m_windowTimer = NULL;
   
@@ -2084,7 +2085,7 @@ GDLWidgetTopBase::~GDLWidgetTopBase() {
 #endif
   topFrame->UnblockIfModal();
   topFrame->NullGDLOwner();
-
+  //what if delay_destroy ?
   //IMPORTANT: unxregister TLB if was managed 
   if (this->GetManaged()) CallEventPro("UNXREGISTER", new DLongGDL(widgetID)); //UNXREGISTER defined in XMANAGER.PRO
 
@@ -6148,6 +6149,9 @@ GDLWXStream* gdlwxGraphicsPanel::GetStream(){return pstreamP;};
 void gdlwxGraphicsPanel::DeleteUsingWindowNumber(){
   pstreamP->SetValid(false);
   GraphicsDevice::GetGUIDevice()->TidyWindowsList(); //tidy Window List will delete widget by itself
+}
+void gdlwxGraphicsPanel::SetUndecomposed(){
+  GraphicsDevice::GetGUIDevice()->Decomposed(0); //indexed
 }
 void gdlwxGraphicsPanel::SetStream(GDLWXStream* s) {
   pstreamP = s;

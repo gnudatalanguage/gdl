@@ -749,10 +749,10 @@ BaseGDL* widget_draw( EnvT* e ) {
   if (parent->IsContextBase()) e->Throw( "Parent is of incorrect type." );
 
   if (parent->GetExclusiveMode() != GDLWidget::BGNORMAL ) e->Throw( "Parent is of incorrect type." );
+  static int COLOR_MODEL = e->KeywordIx( "COLOR_MODEL" );
 
 // probably never implemented:
 //  static int CLASSNAME = e->KeywordIx( "CLASSNAME" ); // string
-//  static int COLOR_MODEL = e->KeywordIx( "COLOR_MODEL" );
 //  static int COLORS = e->KeywordIx( "COLORS" ); // long
 //  static int DRAG_NOTIFY = e->KeywordIx( "DRAG_NOTIFY" ); //string
 //  static int GRAPHICS_LEVEL = e->KeywordIx( "GRAPHICS_LEVEL" );
@@ -806,6 +806,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   DStringGDL* tooltipgdl=NULL;
   if (e->KeywordPresent(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP) ;
   GDLWidgetDraw* draw=new GDLWidgetDraw( parentID, e, -1, x_scroll_size, y_scroll_size, app_scroll, eventFlags, tooltipgdl);
+  if (e->KeywordPresent(COLOR_MODEL)) static_cast<gdlwxDrawPanel*>(draw->GetWxWidget())->SetUndecomposed(); 
   if (draw->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) draw->SetWidgetType( GDLWidget::WIDGET_DRAW );
 //  if (keyboard_events) draw->SetFocus(); //cannot set focus on this one when there are others. Not here anyway!
   #ifdef GDL_DEBUG_WIDGETS
@@ -961,13 +962,15 @@ BaseGDL* widget_draw( EnvT* e ) {
 
   }
 
-  if ( modal ) {
+  if ( modal || floating ) {
     //we must test groupleader even before it is set up by SetCommonKeywords.
     DLong groupLeader = 0;
     static int group_leaderIx = e->KeywordIx( "GROUP_LEADER" );
     e->AssureLongScalarKWIfPresent( group_leaderIx, groupLeader );
-    if ( groupLeader == 0 )
-      e->Throw( "MODAL top level bases must have a group leader specified." );
+    if ( groupLeader == 0 ) {
+      if (modal) e->Throw( "MODAL top level bases must have a group leader specified." );
+      if (floating) e->Throw( "FLOATING top level bases must have a group leader specified." );
+    }
     if ( parentID != GDLWidget::NullID )
       e->Throw( "Only top level bases can be MODAL." );
   }
@@ -2583,7 +2586,7 @@ void widget_control( EnvT* e ) {
   if (sethourglass){ //Ignore it for the moment!
     if (e->KeywordSet( hourglassIx )) wxBeginBusyCursor();
     else  if (wxIsBusy()) wxEndBusyCursor();
-    return;} //need to return immediately if /HOURGLASS!
+  }
 
   static int showIx = e->KeywordIx( "SHOW" );
   bool show = e->KeywordPresent( showIx );
@@ -2784,7 +2787,8 @@ void widget_control( EnvT* e ) {
   bool setTreeexpanded = e->KeywordPresent(SET_TREE_EXPANDED);
   static int SET_TREE_VISIBLE = e->KeywordIx( "SET_TREE_VISIBLE");
   bool setTreevisible = e->KeywordSet(SET_TREE_VISIBLE);
-
+//  static int DELAY_DESTROY = e->KeywordIx( "DELAY_DESTROY");
+//  bool delay_destroy = e->KeywordPresent(DELAY_DESTROY);
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
 
   WidgetIDT widgetID = (*p0L)[0];
@@ -2801,7 +2805,9 @@ void widget_control( EnvT* e ) {
     }
     }
 
-
+//  if (delay_destroy) {//this should be only used by XMANAGER 
+//    widget->SetDelayDestroy(e->KeywordSet(DELAY_DESTROY));
+//  }
   if ( getvalue ) {
     e->AssureGlobalKW( getvalueIx );
     BaseGDL** valueKW = &e->GetTheKW( getvalueIx );
@@ -3123,7 +3129,7 @@ void widget_control( EnvT* e ) {
         DString strvalue = " "; //default value : a whitespace as some buttons do not like empty strings (wxWidgets assert)
         wxBitmap * bitmap = NULL;
         BaseGDL* invalue = e->GetKW(setvalueIx);
-        if (invalue==NULL) return; //happens
+        if (invalue==NULL) goto endsetvalue; //happens
         //value=filename if /BITMAP present. Otherwise value must be string, although if array of correct size, is bitmap!
         //Note BITMAP and RadioButtons are not possible directly.
         DByteGDL* passedBytes = NULL;
@@ -3141,7 +3147,7 @@ void widget_control( EnvT* e ) {
               if (dynamic_cast<GDLWidgetMenuBarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
 #endif
               bb->SetButtonWidgetBitmap(bitmap);
-              return;
+              goto endsetvalue;
             } else {
               Warning("WIDGET_BUTTON: Can't open bitmap file: " + strvalue);
               delete bitmap;
@@ -3149,7 +3155,7 @@ void widget_control( EnvT* e ) {
               e->AssureStringScalarKWIfPresent(setvalueIx, strvalue);
               GDLWidgetButton *bb = (GDLWidgetButton *) widget;
               bb->SetButtonWidgetLabelText(strvalue);
-              return;
+              goto endsetvalue;
             }
           } else { //just a string, use it, unless "hasImage" where both the string strvalue AND the bimap will be passed
           }
@@ -3270,6 +3276,7 @@ void widget_control( EnvT* e ) {
       }
     } //end SetValue
 
+  endsetvalue:
   
 //  static int FRAME = e->KeywordIx( "FRAME" );
 //  if (e->KeywordPresent( FRAME )) {
@@ -3471,30 +3478,6 @@ void widget_control( EnvT* e ) {
     widget->SetXmanagerActiveCommand( );
     }
 
-  // This is the sole programmatic entry where a widget can be destroyed, apart 2 other special cases:
-  // - the destruction of a toplevel widget using a (trapped, managed) click on the close window.
-  // - the destruction of a widget induced by its parent destruction or a group leader.
-    if (destroy) { 
-      WidgetIDT id;
-      gdlwxFrame* local_topFrame;
-      bool reconnect = widget->DisableSizeEvents(local_topFrame, id);
-      if (id == widgetID) reconnect = false; //no need reconnec a destroyed widget...
-      // call KILL_NOTIFY procedures
-      widget->OnKill();
-
-      // widget may have been killed by above OnKill:
-      widget = GDLWidget::GetWidget(widgetID);
-      if (widget != NULL) {
-        if (widget->IsDraw()) {
-          GDLWidgetDraw* d = static_cast<GDLWidgetDraw*> (widget);
-          gdlwxGraphicsPanel* draw = static_cast<gdlwxGraphicsPanel*> (d->GetWxWidget());
-          draw->DeleteUsingWindowNumber(); //just emit quivalent to "wdelete,winNum".
-        } else delete widget;
-
-        if (reconnect) GDLWidget::EnableSizeEvents(local_topFrame, id);
-      }
-      return;
-    }
 
   if ( sensitiveControl) {
     if (e->KeywordSet(sensitiveControlIx)) widget->SetSensitive( true );
@@ -4013,8 +3996,33 @@ void widget_control( EnvT* e ) {
           t->SetBitmap(bitmap);
           t->SetMask(setTreemask); 
         }
-      } 
-   
+      }
+  
+    // This is the sole programmatic entry where a widget can be destroyed, apart 2 other special cases:
+    // - the destruction of a toplevel widget using a (trapped, managed) click on the close window.
+    // - the destruction of a widget induced by its parent destruction or a group leader.
+    if (destroy) {
+      WidgetIDT id;
+      gdlwxFrame* local_topFrame;
+      bool reconnect = widget->DisableSizeEvents(local_topFrame, id);
+      if (id == widgetID) reconnect = false; //no need reconnec a destroyed widget...
+      // call KILL_NOTIFY procedures
+      widget->OnKill();
+
+      // widget may have been killed by above OnKill:
+      widget = GDLWidget::GetWidget(widgetID);
+      if (widget != NULL) {
+        if (widget->IsDraw()) {
+          GDLWidgetDraw* d = static_cast<GDLWidgetDraw*> (widget);
+          gdlwxGraphicsPanel* draw = static_cast<gdlwxGraphicsPanel*> (d->GetWxWidget());
+          draw->DeleteUsingWindowNumber(); //just emit quivalent to "wdelete,winNum".
+        } else delete widget;
+
+        if (reconnect) GDLWidget::EnableSizeEvents(local_topFrame, id);
+      }
+      return;
+    }
+  
 #endif
 }
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID

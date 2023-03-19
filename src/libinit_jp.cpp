@@ -95,12 +95,11 @@ void LibInit_jp()
     "SET_TAB_CURRENT", "UNITS", "DYNAMIC_RESIZE", "SET_SLIDER_MIN", "SET_SLIDER_MAX",
     "X_BITMAP_EXTRA", "DEFAULT_FONT", "FONT", "EDITABLE", "BASE_SET_TITLE", "SET_TREE_EXPANDED", 
     "SET_TREE_SELECT","SET_TREE_INDEX","SET_DRAG_NOTIFY","SET_DRAGGABLE","SET_TREE_CHECKED",
-    "SET_TREE_BITMAP","SET_MASK","SET_TREE_VISIBLE","RESET","ICONIFY",
+    "SET_TREE_BITMAP","SET_MASK","SET_TREE_VISIBLE","RESET","ICONIFY", "DELAY_DESTROY",
     //unsupported but warning is a pain.
     "TAB_MODE", 
     KLISTEND};
-  const string widget_WarnControlKey[] = { "DELAY_DESTROY",
-    "PUSHBUTTON_EVENTS", "TABLE_BLANK", "SET_TAB_MULTILINE", "ICONIFY"
+  const string widget_WarnControlKey[] = { "PUSHBUTTON_EVENTS", "TABLE_BLANK", "SET_TAB_MULTILINE", "ICONIFY"
     , "CANCEL_BUTTON" //obsoleted in 6.2
     , "DEFAULT_BUTTON" //obsoleted in 6.2
     , KLISTEND}; //LIST NOT CLOSE!!!  
@@ -126,11 +125,11 @@ void LibInit_jp()
     , "GRAPHICS_LEVEL"//not taken into account, but not useful, too.
     , "IGNORE_ACCELERATORS"//not taken into account, but not useful, too.
     , "RENDERER"//not taken into account, but not useful, too.
+    , "COLOR_MODEL" //decomposed if 0 , decomposed=0 if 1 
     , KLISTEND};
   const string widget_drawWarnKey[] = {
     "DRAG_NOTIFY" //should be implemented 
     , "CLASSNAME" //obscure object class not implemented
-    , "COLOR_MODEL" //obscure object class not implemented
     , KLISTEND
   };
   new DLibFunRetNew(lib::widget_draw, string("WIDGET_DRAW"), 1, widget_drawKey, widget_drawWarnKey);
