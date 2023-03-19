@@ -190,6 +190,9 @@ end
 ; ---------------------------------------
 ;
 function VALUE_LOCATE, x, u, l64=l64
+compile_opt idl2, hidden
+
+ON_ERROR, 2
 ;
 ;increasing or decreasing
 ;default, l64,0

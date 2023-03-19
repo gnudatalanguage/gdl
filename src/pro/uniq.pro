@@ -67,7 +67,7 @@
 
 function UNIQ, arr, index
 
-compile_opt hidden, idl2
+compile_opt idl2
 
 ON_ERROR, 2
 

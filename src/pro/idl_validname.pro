@@ -32,6 +32,8 @@ function IDL_VALIDNAME, in_list, $
                         convert_all=convert_all, $
                         help=help, test=test
 ;
+on_error, 2
+compile_opt hidden,idl2
 if KEYWORD_SET(help) then begin
     print, 'function IDL_VALIDNAME, in_list, $'
     print, '                        convert_spaces=convert_spaces, $'
