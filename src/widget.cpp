@@ -253,21 +253,27 @@ BaseGDL* CallEventFunc( const std::string& f, BaseGDL* ev)
 }
 
 void CallEventPro( const std::string& p, BaseGDL* p0, BaseGDL* p1 ) {
-  StackGuard<EnvStackT> guard( BaseGDL::interpreter->CallStack( ) );
+  //due to the introduction of AUTO_PRINT_EXPR unfound procedures will crash GDL if this is not properly done.
+#ifdef 	AUTO_PRINT_EXPR
+    if ( GDLInterpreter::CheckProExist( p )) {
+#endif      
+    StackGuard<EnvStackT> guard( BaseGDL::interpreter->CallStack( ) );
+    int proIx = GDLInterpreter::GetProIx( p );
 
-  int proIx = GDLInterpreter::GetProIx( p );
+    ProgNodeP callingNode = NULL; //BaseGDL::interpreter->GetRetTree();
 
-  ProgNodeP callingNode = NULL; //BaseGDL::interpreter->GetRetTree();
+    EnvUDT* newEnv = new EnvUDT( callingNode, proList[ proIx], NULL );
+    newEnv->SetNextPar( p0 ); // pass as local
+    if ( p1 != NULL )
+      newEnv->SetNextPar( p1 ); // pass as local
 
-  EnvUDT* newEnv = new EnvUDT( callingNode, proList[ proIx], NULL );
-  newEnv->SetNextPar( p0 ); // pass as local
-  if ( p1 != NULL )
-    newEnv->SetNextPar( p1 ); // pass as local
+    BaseGDL::interpreter->CallStack( ).push_back( newEnv );
 
-  BaseGDL::interpreter->CallStack( ).push_back( newEnv );
-
-  // make the call
-  BaseGDL::interpreter->call_pro( static_cast<DSubUD*> (newEnv->GetPro( ))->GetTree( ) );
+    // make the call
+    BaseGDL::interpreter->call_pro( static_cast<DSubUD*> (newEnv->GetPro( ))->GetTree( ) );
+#ifdef 	AUTO_PRINT_EXPR
+  } else std::cerr<<"Internal error, procedure "+p+" is not found."<<std::endl;
+#endif      
 }
 
 DStructGDL* CallEventHandler( DStructGDL* ev ) {
@@ -2504,7 +2510,7 @@ BaseGDL* widget_info( EnvT* e ) {
           //specific widget(s)
           // we cannot check only readlineEventQueue thinking our XMANAGER in blocking state looks to ALL widgets.
           // because XMANAGER may have been called AFTER events are created.
-          while ((ev = GDLWidget::eventQueue.Pop()) != NULL) { // get event
+          while ((ev = GDLWidget::BlockingWidgetEventQueue.Pop()) != NULL) { // get event
             static int idIx = ev->Desc()->TagIndex("ID");
             id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
             for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
@@ -2524,7 +2530,7 @@ BaseGDL* widget_info( EnvT* e ) {
           }
         } else {
           //wait for ALL . This is the case of /XMANAGER_BLOCK for example. Both queues may be active, some widgets being managed other not. 
-          if ((ev = GDLWidget::eventQueue.Pop()) != NULL) goto endwait;
+          if ((ev = GDLWidget::BlockingWidgetEventQueue.Pop()) != NULL) goto endwait;
           if ((ev = GDLWidget::readlineEventQueue.Pop()) != NULL) goto endwait;
         }
 

@@ -189,7 +189,7 @@ WidgetListT GDLWidget::widgetList;
 wxImageList *gdlDefaultTreeStateImages;
 wxImageList *gdlDefaultTreeImages;
 
-GDLEventQueue GDLWidget::eventQueue; // the event queue
+GDLEventQueue GDLWidget::BlockingWidgetEventQueue; // the event queue
 GDLEventQueue GDLWidget::readlineEventQueue; // for process at command line level
 bool GDLWidget::wxIsOn=false;
 bool GDLWidget::handlersOk=false;
@@ -782,7 +782,7 @@ void GDLWidget::SendWidgetTimerEvent(DDouble secs) {
 }
 
 void GDLWidget::ClearEvents() {
-  if (!this->GetXmanagerActiveCommand()) eventQueue.Purge(this->GetWidgetID());
+  if (!this->GetXmanagerActiveCommand()) BlockingWidgetEventQueue.Purge(this->GetWidgetID());
   else readlineEventQueue.Purge(this->GetWidgetID());
 }
 
@@ -823,7 +823,7 @@ void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) {
     bool xmanActCom = baseWidget->GetXmanagerActiveCommand( );
     if ( !xmanActCom ) { //blocking: events in eventQueue.
       //     wxMessageOutputStderr().Printf(_T("eventQueue.Push: %d\n"),baseWidgetID);
-      eventQueue.PushBack( ev );
+      BlockingWidgetEventQueue.PushBack( ev );
     } else { //non-Blocking: events in readlineeventQueue.
       //     wxMessageOutputStderr().Printf(_T("readLineEventQueue.Push: %d\n"),baseWidgetID);
       readlineEventQueue.PushBack( ev );
@@ -1026,7 +1026,7 @@ void GDLWidget::UnInit() {
     ResetWidgets();
     //clear all events --- otherwise baoum!)
     readlineEventQueue.Purge();
-    eventQueue.Purge();
+    BlockingWidgetEventQueue.Purge();
     // the following cannot be done: once unitialized, the wxWidgets library cannot be safely initilized again.:  wxUninitialize( );
     UnsetWxStarted(); //reset handlersOk too.
   }
@@ -2098,7 +2098,7 @@ GDLWidgetTopBase::~GDLWidgetTopBase() {
   if (this->GetXmanagerActiveCommand() || !this->GetManaged()) {
     readlineEventQueue.PushFront(ev); // push front (will be handled next)
   } else {
-    eventQueue.PushFront(ev); // push front (will be handled next)
+    BlockingWidgetEventQueue.PushFront(ev); // push front (will be handled next)
   }
 }
 /*********************************************************/
