@@ -191,6 +191,7 @@ namespace lib {
       if (e->GetKW(charsizeIx) != NULL) {
         size = e->GetKWAs<DFloatGDL>(charsizeIx);
         docharsize = true;
+        for (auto i=0; i < size->N_Elements(); ++i) if ((*size)[i] <=0)  (*size)[i]=1.0;
       } else //for security in future conditional evaluation...
       {
         size = new DFloatGDL(dimension(1), BaseGDL::ZERO);

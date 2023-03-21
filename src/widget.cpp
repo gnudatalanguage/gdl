@@ -253,21 +253,27 @@ BaseGDL* CallEventFunc( const std::string& f, BaseGDL* ev)
 }
 
 void CallEventPro( const std::string& p, BaseGDL* p0, BaseGDL* p1 ) {
-  StackGuard<EnvStackT> guard( BaseGDL::interpreter->CallStack( ) );
+  //due to the introduction of AUTO_PRINT_EXPR unfound procedures will crash GDL if this is not properly done.
+#ifdef 	AUTO_PRINT_EXPR
+    if ( GDLInterpreter::CheckProExist( p )) {
+#endif      
+    StackGuard<EnvStackT> guard( BaseGDL::interpreter->CallStack( ) );
+    int proIx = GDLInterpreter::GetProIx( p );
 
-  int proIx = GDLInterpreter::GetProIx( p );
+    ProgNodeP callingNode = NULL; //BaseGDL::interpreter->GetRetTree();
 
-  ProgNodeP callingNode = NULL; //BaseGDL::interpreter->GetRetTree();
+    EnvUDT* newEnv = new EnvUDT( callingNode, proList[ proIx], NULL );
+    newEnv->SetNextPar( p0 ); // pass as local
+    if ( p1 != NULL )
+      newEnv->SetNextPar( p1 ); // pass as local
 
-  EnvUDT* newEnv = new EnvUDT( callingNode, proList[ proIx], NULL );
-  newEnv->SetNextPar( p0 ); // pass as local
-  if ( p1 != NULL )
-    newEnv->SetNextPar( p1 ); // pass as local
+    BaseGDL::interpreter->CallStack( ).push_back( newEnv );
 
-  BaseGDL::interpreter->CallStack( ).push_back( newEnv );
-
-  // make the call
-  BaseGDL::interpreter->call_pro( static_cast<DSubUD*> (newEnv->GetPro( ))->GetTree( ) );
+    // make the call
+    BaseGDL::interpreter->call_pro( static_cast<DSubUD*> (newEnv->GetPro( ))->GetTree( ) );
+#ifdef 	AUTO_PRINT_EXPR
+  } else std::cerr<<"Internal error, procedure "+p+" is not found."<<std::endl;
+#endif      
 }
 
 DStructGDL* CallEventHandler( DStructGDL* ev ) {
@@ -749,10 +755,10 @@ BaseGDL* widget_draw( EnvT* e ) {
   if (parent->IsContextBase()) e->Throw( "Parent is of incorrect type." );
 
   if (parent->GetExclusiveMode() != GDLWidget::BGNORMAL ) e->Throw( "Parent is of incorrect type." );
+  static int COLOR_MODEL = e->KeywordIx( "COLOR_MODEL" );
 
 // probably never implemented:
 //  static int CLASSNAME = e->KeywordIx( "CLASSNAME" ); // string
-//  static int COLOR_MODEL = e->KeywordIx( "COLOR_MODEL" );
 //  static int COLORS = e->KeywordIx( "COLORS" ); // long
 //  static int DRAG_NOTIFY = e->KeywordIx( "DRAG_NOTIFY" ); //string
 //  static int GRAPHICS_LEVEL = e->KeywordIx( "GRAPHICS_LEVEL" );
@@ -806,6 +812,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   DStringGDL* tooltipgdl=NULL;
   if (e->KeywordPresent(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP) ;
   GDLWidgetDraw* draw=new GDLWidgetDraw( parentID, e, -1, x_scroll_size, y_scroll_size, app_scroll, eventFlags, tooltipgdl);
+  if (e->KeywordPresent(COLOR_MODEL)) static_cast<gdlwxDrawPanel*>(draw->GetWxWidget())->SetUndecomposed(); 
   if (draw->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) draw->SetWidgetType( GDLWidget::WIDGET_DRAW );
 //  if (keyboard_events) draw->SetFocus(); //cannot set focus on this one when there are others. Not here anyway!
   #ifdef GDL_DEBUG_WIDGETS
@@ -961,13 +968,15 @@ BaseGDL* widget_draw( EnvT* e ) {
 
   }
 
-  if ( modal ) {
+  if ( modal || floating ) {
     //we must test groupleader even before it is set up by SetCommonKeywords.
     DLong groupLeader = 0;
     static int group_leaderIx = e->KeywordIx( "GROUP_LEADER" );
     e->AssureLongScalarKWIfPresent( group_leaderIx, groupLeader );
-    if ( groupLeader == 0 )
-      e->Throw( "MODAL top level bases must have a group leader specified." );
+    if ( groupLeader == 0 ) {
+      if (modal) e->Throw( "MODAL top level bases must have a group leader specified." );
+      if (floating) e->Throw( "FLOATING top level bases must have a group leader specified." );
+    }
     if ( parentID != GDLWidget::NullID )
       e->Throw( "Only top level bases can be MODAL." );
   }
@@ -1848,21 +1857,15 @@ BaseGDL* widget_info( EnvT* e ) {
     }
   }
   
-  // XMANAGER_BLOCK keyword
+  // XMANAGER_BLOCK keyword - NOTE: returns 1 if a (managed) Top Widget BLOCKS
   if ( xmanagerBlock ) {
-    return new DLongGDL( GDLWidget::GetXmanagerBlock( ) ? 1 : 0 );
+    return new DLongGDL( GDLWidget::IsXmanagerBlocking( ) );
   }
   // End /XMANAGER_BLOCK
 
   if (active) {
-    //must return 1 if there is at last one REALIZED MANAGED TOP-LEVEL WIDGET ON THE SCREEN 
-      DLongGDL* res = static_cast<DLongGDL*>( GDLWidget::GetManagedWidgetsList( ) );//which is not what is expected! FIXME!
-      long actnumber;
-      if ((*res)[0]==0) actnumber=0; else actnumber=1;
-      //allocated non-returned memory should be deallocated:
-      GDLDelete(res);
-      return new DLongGDL(actnumber); 
-    }
+    return new DLongGDL( GDLWidget::IsActive( ) );
+  }
   
   if (isdisplayed) return new DLongGDL(1); 
   
@@ -1900,8 +1903,15 @@ BaseGDL* widget_info( EnvT* e ) {
       DStringGDL* res = new DStringGDL(wid->N_Elements());
       for ( SizeT i = 0; i < wid->N_Elements(); i++ ) {
         GDLWidget *widget = GDLWidget::GetWidget( (*wid)[i] );
+        //protect against internal error where wid is not up-to-date
+        wxObject* wxWidgetAddr=NULL;
+        DString wxWidgetName="Zombie";
+        if (widget) {
+          wxWidgetAddr=widget->GetWxWidget();
+          wxWidgetName=widget->GetWidgetName();
+        }
         std::stringstream os;
-        os<<(*wid)[i]<<"("<<widget->GetWidgetName()<<"@"<< std::hex << widget->GetWxWidget() << "), "; 
+        os<<(*wid)[i]<<"("<<wxWidgetName<<"@"<< std::hex << wxWidgetAddr << "), "; 
         (*res)[i]=os.str();
       }
       return res;
@@ -2420,9 +2430,9 @@ BaseGDL* widget_info( EnvT* e ) {
     // it is said in the doc: 1) that WIDGET_CONTROL,/HOURGLASS busyCursor ends at the first WIDGET_EVENT processed. 
     // And 2) that /SAVE_HOURGLASS exist to prevent just that, ending.
     if (!savehourglass) if (wxIsBusy()) wxEndBusyCursor();
-    //xmanager_block (not a *DL standard) is used to block until TLB is killed
+    //xmanager_block (Hidden IDL option) is used to block until TLB is killed
     static int xmanagerBlockIx = e->KeywordIx("XMANAGER_BLOCK");
-    bool xmanagerBlock = e->KeywordSet(xmanagerBlockIx);
+    bool blockedByXmanager = e->KeywordSet(xmanagerBlockIx);
     static int nowaitIx = e->KeywordIx("NOWAIT");
     bool nowait = e->KeywordSet(nowaitIx);
     static int badidIx = e->KeywordIx("BAD_ID");
@@ -2501,7 +2511,7 @@ BaseGDL* widget_info( EnvT* e ) {
           //specific widget(s)
           // we cannot check only readlineEventQueue thinking our XMANAGER in blocking state looks to ALL widgets.
           // because XMANAGER may have been called AFTER events are created.
-          while ((ev = GDLWidget::eventQueue.Pop()) != NULL) { // get event
+          while ((ev = GDLWidget::BlockingEventQueue.Pop()) != NULL) { // get event
             static int idIx = ev->Desc()->TagIndex("ID");
             id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
             for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
@@ -2510,7 +2520,7 @@ BaseGDL* widget_info( EnvT* e ) {
               }
             }
           }
-          while ((ev = GDLWidget::readlineEventQueue.Pop()) != NULL) { // get event
+          while ((ev = GDLWidget::InteractiveEventQueue.Pop()) != NULL) { // get event
             static int idIx = ev->Desc()->TagIndex("ID");
             id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
             for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
@@ -2521,16 +2531,19 @@ BaseGDL* widget_info( EnvT* e ) {
           }
         } else {
           //wait for ALL . This is the case of /XMANAGER_BLOCK for example. Both queues may be active, some widgets being managed other not. 
-          if ((ev = GDLWidget::eventQueue.Pop()) != NULL) goto endwait;
-          if ((ev = GDLWidget::readlineEventQueue.Pop()) != NULL) goto endwait;
+          if ((ev = GDLWidget::BlockingEventQueue.Pop()) != NULL) goto endwait;
+          if ((ev = GDLWidget::InteractiveEventQueue.Pop()) != NULL) goto endwait;
         }
-
         if (nowait) return defaultRes;
         if (sigControlC) return defaultRes;
       } //end inner loop
       //here we got a real event, process it, walking back the hierachy (in CallEventHandler()) for modified ev in case of function handlers.
     endwait:
-      if (xmanagerBlock && ev->Desc( )->Name( ) == "*TOPLEVEL_DESTROYED*" ) {GDLDelete(ev); return defaultRes;}
+      if (blockedByXmanager && ev->Desc( )->Name( ) == "*TOPLEVEL_DESTROYED*" ) {
+        // deleted widgets list are hopefully handled internally by xmanager 
+        GDLDelete(ev);
+        return defaultRes;
+      }
       ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
       // examine return:
       if (ev == NULL) { //swallowed by a procedure or non-event-stucture returning function 
@@ -2583,7 +2596,7 @@ void widget_control( EnvT* e ) {
   if (sethourglass){ //Ignore it for the moment!
     if (e->KeywordSet( hourglassIx )) wxBeginBusyCursor();
     else  if (wxIsBusy()) wxEndBusyCursor();
-    return;} //need to return immediately if /HOURGLASS!
+  }
 
   static int showIx = e->KeywordIx( "SHOW" );
   bool show = e->KeywordPresent( showIx );
@@ -2784,7 +2797,8 @@ void widget_control( EnvT* e ) {
   bool setTreeexpanded = e->KeywordPresent(SET_TREE_EXPANDED);
   static int SET_TREE_VISIBLE = e->KeywordIx( "SET_TREE_VISIBLE");
   bool setTreevisible = e->KeywordSet(SET_TREE_VISIBLE);
-
+//  static int DELAY_DESTROY = e->KeywordIx( "DELAY_DESTROY");
+//  bool delay_destroy = e->KeywordPresent(DELAY_DESTROY);
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
 
   WidgetIDT widgetID = (*p0L)[0];
@@ -2801,7 +2815,9 @@ void widget_control( EnvT* e ) {
     }
     }
 
-
+//  if (delay_destroy) {//this should be only used by XMANAGER 
+//    widget->SetDelayDestroy(e->KeywordSet(DELAY_DESTROY));
+//  }
   if ( getvalue ) {
     e->AssureGlobalKW( getvalueIx );
     BaseGDL** valueKW = &e->GetTheKW( getvalueIx );
@@ -3123,7 +3139,7 @@ void widget_control( EnvT* e ) {
         DString strvalue = " "; //default value : a whitespace as some buttons do not like empty strings (wxWidgets assert)
         wxBitmap * bitmap = NULL;
         BaseGDL* invalue = e->GetKW(setvalueIx);
-        if (invalue==NULL) return; //happens
+        if (invalue==NULL) goto endsetvalue; //happens
         //value=filename if /BITMAP present. Otherwise value must be string, although if array of correct size, is bitmap!
         //Note BITMAP and RadioButtons are not possible directly.
         DByteGDL* passedBytes = NULL;
@@ -3141,7 +3157,7 @@ void widget_control( EnvT* e ) {
               if (dynamic_cast<GDLWidgetMenuBarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
 #endif
               bb->SetButtonWidgetBitmap(bitmap);
-              return;
+              goto endsetvalue;
             } else {
               Warning("WIDGET_BUTTON: Can't open bitmap file: " + strvalue);
               delete bitmap;
@@ -3149,7 +3165,7 @@ void widget_control( EnvT* e ) {
               e->AssureStringScalarKWIfPresent(setvalueIx, strvalue);
               GDLWidgetButton *bb = (GDLWidgetButton *) widget;
               bb->SetButtonWidgetLabelText(strvalue);
-              return;
+              goto endsetvalue;
             }
           } else { //just a string, use it, unless "hasImage" where both the string strvalue AND the bimap will be passed
           }
@@ -3270,6 +3286,7 @@ void widget_control( EnvT* e ) {
       }
     } //end SetValue
 
+  endsetvalue:
   
 //  static int FRAME = e->KeywordIx( "FRAME" );
 //  if (e->KeywordPresent( FRAME )) {
@@ -3468,33 +3485,9 @@ void widget_control( EnvT* e ) {
 
   if ( xmanActCom ) {
     //       cout << "Set xmanager active command: " << widgetID << endl;
-    widget->SetXmanagerActiveCommand( );
+    widget->MakeInteractive( );
     }
 
-  // This is the sole programmatic entry where a widget can be destroyed, apart 2 other special cases:
-  // - the destruction of a toplevel widget using a (trapped, managed) click on the close window.
-  // - the destruction of a widget induced by its parent destruction or a group leader.
-    if (destroy) { 
-      WidgetIDT id;
-      gdlwxFrame* local_topFrame;
-      bool reconnect = widget->DisableSizeEvents(local_topFrame, id);
-      if (id == widgetID) reconnect = false; //no need reconnec a destroyed widget...
-      // call KILL_NOTIFY procedures
-      widget->OnKill();
-
-      // widget may have been killed by above OnKill:
-      widget = GDLWidget::GetWidget(widgetID);
-      if (widget != NULL) {
-        if (widget->IsDraw()) {
-          GDLWidgetDraw* d = static_cast<GDLWidgetDraw*> (widget);
-          gdlwxGraphicsPanel* draw = static_cast<gdlwxGraphicsPanel*> (d->GetWxWidget());
-          draw->DeleteUsingWindowNumber(); //just emit quivalent to "wdelete,winNum".
-        } else delete widget;
-
-        if (reconnect) GDLWidget::EnableSizeEvents(local_topFrame, id);
-      }
-      return;
-    }
 
   if ( sensitiveControl) {
     if (e->KeywordSet(sensitiveControlIx)) widget->SetSensitive( true );
@@ -4013,8 +4006,33 @@ void widget_control( EnvT* e ) {
           t->SetBitmap(bitmap);
           t->SetMask(setTreemask); 
         }
-      } 
-   
+      }
+  
+    // This is the sole programmatic entry where a widget can be destroyed, apart 2 other special cases:
+    // - the destruction of a toplevel widget using a (trapped, managed) click on the close window.
+    // - the destruction of a widget induced by its parent destruction or a group leader.
+    if (destroy) {
+      WidgetIDT id;
+      gdlwxFrame* local_topFrame;
+      bool reconnect = widget->DisableSizeEvents(local_topFrame, id);
+      if (id == widgetID) reconnect = false; //no need reconnec a destroyed widget...
+      // call KILL_NOTIFY procedures
+      widget->OnKill();
+
+      // widget may have been killed by above OnKill:
+      widget = GDLWidget::GetWidget(widgetID);
+      if (widget != NULL) {
+        if (widget->IsDraw()) {
+          GDLWidgetDraw* d = static_cast<GDLWidgetDraw*> (widget);
+          gdlwxGraphicsPanel* draw = static_cast<gdlwxGraphicsPanel*> (d->GetWxWidget());
+          draw->DeleteUsingWindowNumber(); //just emit quivalent to "wdelete,winNum".
+        } else delete widget;
+
+        if (reconnect) GDLWidget::EnableSizeEvents(local_topFrame, id);
+      }
+      return;
+    }
+  
 #endif
 }
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID

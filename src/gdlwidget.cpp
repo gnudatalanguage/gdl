@@ -189,8 +189,8 @@ WidgetListT GDLWidget::widgetList;
 wxImageList *gdlDefaultTreeStateImages;
 wxImageList *gdlDefaultTreeImages;
 
-GDLEventQueue GDLWidget::eventQueue; // the event queue
-GDLEventQueue GDLWidget::readlineEventQueue; // for process at command line level
+GDLEventQueue GDLWidget::BlockingEventQueue; // the event queue in which all widget events are versed in case of blocking (XMANAGER)
+GDLEventQueue GDLWidget::InteractiveEventQueue; // event queue used when no blocking is made -- part of the main GDLEventHandler() 
 bool GDLWidget::wxIsOn=false;
 bool GDLWidget::handlersOk=false;
 wxFont GDLWidget::defaultFont=wxNullFont; //the font defined by widget_control,default_font.
@@ -782,17 +782,17 @@ void GDLWidget::SendWidgetTimerEvent(DDouble secs) {
 }
 
 void GDLWidget::ClearEvents() {
-  if (!this->GetXmanagerActiveCommand()) eventQueue.Purge(this->GetWidgetID());
-  else readlineEventQueue.Purge(this->GetWidgetID());
+    InteractiveEventQueue.Purge(this->GetWidgetID());
+    BlockingEventQueue.Purge(this->GetWidgetID());
 }
 
-void GDLWidget::HandleWidgetEvents()
+void GDLWidget::HandleUnblockedWidgetEvents()
 {
-  //make one loop for wxWidgets Events. Forcibly, as HandleWidgetEvents() is called by the readline eventLoop, we are in a non-blocked case.
+  //make one loop for wxWidgets Events. Forcibly, as HandleUnblockedWidgetEvents() is called by the readline eventLoop, we are in a non-blocked case.
   CallWXEventLoop();
   //treat our GDL events...
     DStructGDL* ev = NULL;
-    while( (ev = GDLWidget::readlineEventQueue.Pop()) != NULL)
+    while( (ev = GDLWidget::InteractiveEventQueue.Pop()) != NULL)
     {
 //        static int idIx = ev->Desc( )->TagIndex( "ID" ); // 0
 //        static int topIx = ev->Desc( )->TagIndex( "TOP" ); // 1
@@ -820,13 +820,17 @@ void GDLWidget::PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev) {
   // Get XmanagerActiveCommand status
   GDLWidget *baseWidget = GDLWidget::GetWidget( baseWidgetID );
   if ( baseWidget != NULL ) {
-    bool xmanActCom = baseWidget->GetXmanagerActiveCommand( );
-    if ( !xmanActCom ) { //blocking: events in eventQueue.
-      //     wxMessageOutputStderr().Printf(_T("eventQueue.Push: %d\n"),baseWidgetID);
-      eventQueue.PushBack( ev );
-    } else { //non-Blocking: events in readlineeventQueue.
-      //     wxMessageOutputStderr().Printf(_T("readLineEventQueue.Push: %d\n"),baseWidgetID);
-      readlineEventQueue.PushBack( ev );
+    bool interactive = baseWidget->IsUsingInteractiveEventLoop( );
+    if ( interactive ) { //non-Blocking: events in InteractiveEventQueue.
+#ifdef GDL_DEBUG_WIDGETS
+           wxMessageOutputStderr().Printf(_T("InteractiveEventQueue.PushEvent: %d\n"),baseWidgetID);
+#endif
+      InteractiveEventQueue.PushBack( ev );
+    } else { //blocking: events in BlockingEventQueue.
+#ifdef GDL_DEBUG_WIDGETS
+           wxMessageOutputStderr().Printf(_T("BlockingEventQueue.PushEvent: %d\n"),baseWidgetID);
+#endif
+      BlockingEventQueue.PushBack( ev );
     }
   } else cerr << "NULL baseWidget (possibly Destroyed?) found in GDLWidget::PushEvent( WidgetIDT baseWidgetID=" << baseWidgetID << ", DStructGDL* ev=" << ev << "), please report!\n";
 }
@@ -838,40 +842,50 @@ void GDLWidget::InformAuthorities(const std::string& message){
         ev->InitTag( "TOP", DLongGDL( 0 ) );
         ev->InitTag( "HANDLER", DLongGDL( 0 ) );
         ev->InitTag( "MESSAGE", DStringGDL(message) );
-          readlineEventQueue.PushFront( ev ); // push front (will be handled next)
+          InteractiveEventQueue.PushFront( ev ); // push front (will be handled next)
     }
-
-bool GDLWidget::GetXmanagerBlock() 
+//return false if already blocked by XManager (one managed realized top Widget is not marked as interactive).
+bool GDLWidget::IsXmanagerBlocking() 
 {
-  bool xmanBlock = false;
   WidgetListT::iterator it;
   // (*it).first is widgetID
   // (*it).second is pointer to widget
 
-  bool managed;
-  bool xmanActCom;
-
-#ifdef GDL_DEBUG_WIDGETS
-  std::cout << "+ GetXmanagerBlock: widgetList:" << std::endl;
   for ( it = widgetList.begin( ); it != widgetList.end( ); ++it ) {
-    std::cout << (*it).first << ": " << (*it).second->widgetID << "  parentID: " <<
-    (*it).second->parentID << "  uname: " << (*it).second->uName << std::endl;
-  }
-  std::cout << "- GetXmanagerBlock: widgetList end" << std::endl;
-#endif
-  for ( it = widgetList.begin( ); it != widgetList.end( ); ++it ) {
-    // Only consider base widgets
+    // Only consider managed top base widgets
     if ( (*it).second->parentID == GDLWidget::NullID ) {
-      managed = (*it).second->GetManaged( );
-      xmanActCom = (*it).second->GetXmanagerActiveCommand( );
-    }
-    if ( managed && !xmanActCom ) {
-      xmanBlock = true;
-      break;
+      bool managed = (*it).second->GetManaged( );
+      bool realized = (*it).second->IsRealized( );
+      if (managed & realized) {
+        bool IsBlocked = ((*it).second->IsUsingInteractiveEventLoop( )==false);
+        if (IsBlocked) {
+          //std::cerr<<"Found Blocked by "<<(*it).second->GetWidgetID()<<std::endl;
+          return true;
+        }
+      }
     }
   }
-  return xmanBlock;
+  //std::cerr<<"Found UnBlocked"<<std::endl;
+  return false;
 }
+//return true if at least one Managed Realized Top Widget is present in the hierarchy
+bool GDLWidget::IsActive() 
+{
+  WidgetListT::iterator it;
+  // (*it).first is widgetID
+  // (*it).second is pointer to widget
+
+  for ( it = widgetList.begin( ); it != widgetList.end( ); ++it ) {
+    // Only consider managed realized top base widgets
+    if ( (*it).second->parentID == GDLWidget::NullID ) {
+      bool managed = (*it).second->GetManaged( );
+      bool realized = (*it).second->IsRealized( );
+      if (managed && realized) return true;
+    }
+  }
+  return false;
+}
+
 DLong GDLWidget::GetNumberOfWidgets() {
   WidgetListT::iterator it;
   DLong result=0;
@@ -1025,8 +1039,8 @@ void GDLWidget::UnInit() {
   if (wxIsStarted()) {
     ResetWidgets();
     //clear all events --- otherwise baoum!)
-    readlineEventQueue.Purge();
-    eventQueue.Purge();
+    InteractiveEventQueue.Purge();
+    BlockingEventQueue.Purge();
     // the following cannot be done: once unitialized, the wxWidgets library cannot be safely initilized again.:  wxUninitialize( );
     UnsetWxStarted(); //reset handlersOk too.
   }
@@ -1103,6 +1117,7 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV, DULong eventFlags_)
 , proValue("")
 , funcValue("")
 , uName("")
+//, delay_destroy(false)
 {
   m_windowTimer = NULL;
   
@@ -1163,10 +1178,6 @@ bool GDLWidget::GetSensitive()
   return sensitive;
 }
 
-bool GDLWidget::GetXmanagerActiveCommand() {
-  GDLWidgetTopBase* w = GetMyTopLevelBaseWidget();
-  return w->GetXmanagerActiveCommand();
-}
   
 DLong GDLWidget::GetSibling()
 {
@@ -1957,7 +1968,7 @@ int xpad_, int ypad_,
 DLong x_scroll_size, DLong y_scroll_size, bool grid_layout, long children_alignment, int space_)
 : GDLWidgetBase( GDLWidget::NullID, e, eventFlags_, mapWid, col, row, exclusiveMode_, resource_name, rname_mbar, title_, display_name, xpad_, ypad_, x_scroll_size, y_scroll_size, grid_layout, children_alignment, space_)
 , mbarID(mBarIDInOut)
-, xmanActCom(false)
+, UseInteractiveEvents(false) //TopBases are blocking by default
 , modal(modal_)
 , realized(false)
 {
@@ -2084,9 +2095,9 @@ GDLWidgetTopBase::~GDLWidgetTopBase() {
 #endif
   topFrame->UnblockIfModal();
   topFrame->NullGDLOwner();
-
-  //IMPORTANT: unxregister TLB if was managed 
-  if (this->GetManaged()) CallEventPro("UNXREGISTER", new DLongGDL(widgetID)); //UNXREGISTER defined in XMANAGER.PRO
+  //what if delay_destroy ?
+  //IMPORTANT: xunregister TLB if was managed 
+  if (this->GetManaged()) CallEventPro("XUNREGISTER", new DLongGDL(widgetID)); //XUNREGISTER defined in XMANAGER.PRO
 
   //send RIP 
   // create GDL event struct
@@ -2094,11 +2105,17 @@ GDLWidgetTopBase::~GDLWidgetTopBase() {
   ev->InitTag("ID", DLongGDL(widgetID));
   ev->InitTag("TOP", DLongGDL(widgetID));
   ev->InitTag("HANDLER", DLongGDL(0));
-  if (this->GetXmanagerActiveCommand() || !this->GetManaged()) {
-    readlineEventQueue.PushFront(ev); // push front (will be handled next)
-  } else {
-    eventQueue.PushFront(ev); // push front (will be handled next)
-  }
+  if (this->IsUsingInteractiveEventLoop()) {
+#ifdef GDL_DEBUG_WIDGETS
+            wxMessageOutputStderr().Printf(_T("~GDLWidgetTopBase InteractiveEventQueue.Push: %d\n"),widgetID);
+#endif
+   InteractiveEventQueue.PushFront(ev); // push front (will be handled next)
+   } else {
+#ifdef GDL_DEBUG_WIDGETS
+           wxMessageOutputStderr().Printf(_T("~GDLWidgetTopBase BlockingEventQueue.Push: %d\n"),widgetID);
+#endif           
+    BlockingEventQueue.PushFront(ev); // push front (will be handled next)
+ }
 }
 /*********************************************************/
 // Context Menu pseudo-base
@@ -6148,6 +6165,9 @@ GDLWXStream* gdlwxGraphicsPanel::GetStream(){return pstreamP;};
 void gdlwxGraphicsPanel::DeleteUsingWindowNumber(){
   pstreamP->SetValid(false);
   GraphicsDevice::GetGUIDevice()->TidyWindowsList(); //tidy Window List will delete widget by itself
+}
+void gdlwxGraphicsPanel::SetUndecomposed(){
+  GraphicsDevice::GetGUIDevice()->Decomposed(0); //indexed
 }
 void gdlwxGraphicsPanel::SetStream(GDLWXStream* s) {
   pstreamP = s;

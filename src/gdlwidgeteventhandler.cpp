@@ -982,7 +982,7 @@ void gdlwxPlotFrame::OnPlotWindowSize(wxSizeEvent &event) {
 
   wxSize panelSize=this->GetClientSize(); //event.GetSize();
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_SIZE_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlwxPlotFrame::OnPlotWindowSize: event %d  size: (%d,%d) processed."), event.GetId(), frameSize.x, frameSize.y);
+  wxMessageOutputStderr().Printf(_T("in gdlwxPlotFrame::OnPlotWindowSize: event %d  size: (%d,%d) processed."), event.GetId(), panelSize.x, panelSize.y);
 #endif
    wxSizeEvent sizeEvent(panelSize, w->GetId());
    w->OnPlotWindowSize(sizeEvent);

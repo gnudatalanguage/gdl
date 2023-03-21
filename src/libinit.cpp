@@ -947,7 +947,7 @@ void LibInit()
     };
    const string polyfillWarnKey[]=
     {
-     "IMAGE_COORD","IMAGE_INTERP", "PATTERN", "TRANSPARENT",KLISTEND
+     "IMAGE_COORD","IMAGE_INTERP", "PATTERN", "FILL_PATTERN", "TRANSPARENT",KLISTEND
     };
   new DLibPro(lib::polyfill, string("POLYFILL"), 3, polyfillKey,polyfillWarnKey);
 

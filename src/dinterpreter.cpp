@@ -554,7 +554,23 @@ int GDLInterpreter::GetProIx( const string& subName)
     }
   return proIx;
 }
-
+//Before calling GetProIx in CallEventPro, better check procedure exist for reasons explicited in CallEventPro. This is the way.
+bool GDLInterpreter::CheckProExist( const string& subName)
+{
+  int proIx=ProIx(subName);
+  if( proIx == -1)
+    {
+      // trigger reading/compiling of source file
+      /*bool found=*/ SearchCompilePro(subName, true);
+	  
+      proIx=ProIx(subName);
+      if( proIx == -1)
+	{
+        return false;
+	}
+    }
+  return true;
+}
 // converts inferior type to superior type
 void GDLInterpreter::AdjustTypes(BaseGDL* &a, BaseGDL* &b)
 {

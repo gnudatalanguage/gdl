@@ -373,12 +373,12 @@ private:
 public:
   static wxFont defaultFont;
   static wxFont systemFont;
-  static GDLEventQueue eventQueue;
-  static GDLEventQueue readlineEventQueue;
+  static GDLEventQueue BlockingEventQueue;
+  static GDLEventQueue InteractiveEventQueue;
   static void PushEvent( WidgetIDT baseWidgetID, DStructGDL* ev);
   static void InformAuthorities(const std::string& message);
   
-  static void HandleWidgetEvents();
+  static void HandleUnblockedWidgetEvents();
   static const WidgetIDT NullID;
   
   GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV=NULL, DULong eventFlags_=0);
@@ -470,6 +470,7 @@ protected:
   DString      notifyRealize;
   
   wxTimer * m_windowTimer;
+//  bool delay_destroy;
   
 private:  
 
@@ -485,6 +486,8 @@ private:
   
 public:
 
+//  void SetDelayDestroy(bool val){delay_destroy=val;}
+//  bool GetDelayDestroy(){return delay_destroy;}
  void setFont();
  void setFont(wxObject* o);
 
@@ -660,9 +663,9 @@ public:
   //returns a list of IDs of all the widgets starting at me and below.
   DLongGDL* GetAllHeirs();
   
-  virtual void SetXmanagerActiveCommand() {std::cerr<<"XMANAGER ACTIVE COMMAND on a not-top widget, please report."<<std::endl;}
+  virtual void MakeInteractive() {std::cerr<<"XMANAGER ACTIVE COMMAND on a not-top widget, please report."<<std::endl;}
   
-  bool GetXmanagerActiveCommand();
+  virtual bool IsUsingInteractiveEventLoop() {std::cerr<<"IsEventLoopBlocked on a not-top widget, please report."<<std::endl;return false;} //default for a normal widget
 
   void SetEventPro( const DString& ePro) { eventPro = StrUpCase( ePro);}
   const DString& GetEventPro() const { return eventPro;};
@@ -673,7 +676,8 @@ public:
   void SetKillNotify( const DString& eKN) { killNotify = StrUpCase( eKN);}
   const DString& GetKillNotify() const { return killNotify;}
 
-  static bool GetXmanagerBlock();
+  static bool IsXmanagerBlocking();
+  static bool IsActive();
   static DLong GetNumberOfWidgets();
   static BaseGDL* GetWidgetsList();
   static BaseGDL* GetManagedWidgetsList();
@@ -873,7 +877,7 @@ public:
 class GDLWidgetTopBase : public GDLWidgetBase {
  WidgetIDT mbarID;
 public:
- bool xmanActCom; //set by /XMANAGER_ACTIVE_COMMAND (GDL's) aka NO_BLOCK . indirectly used in pushEvent, selfDestroy, ~GDLWidgetContainer, ClearEvents
+ bool UseInteractiveEvents; //set by /XMANAGER_ACTIVE_COMMAND (GDL's) aka NO_BLOCK . indirectly used in pushEvent, selfDestroy, ~GDLWidgetContainer, ClearEvents
  gdlwxFrame* topFrame;
  bool modal;
  bool realized;
@@ -938,12 +942,18 @@ public:
 
 // void SelfDestroy(); // sends delete event to itself
 
- void SetXmanagerActiveCommand() {
-  xmanActCom = true;
+ virtual void MakeInteractive() final {
+#ifdef GDL_DEBUG_WIDGETS
+          wxMessageOutputStderr().Printf(_T("MakeInteractive(%d)\n"),widgetID);
+#endif
+  UseInteractiveEvents = true; //unblocks base
  }
-
- bool GetXmanagerActiveCommand() const {
-  return xmanActCom;
+// returns UseInteractiveEvents
+ virtual bool IsUsingInteractiveEventLoop() final {
+#ifdef GDL_DEBUG_WIDGETS
+          wxMessageOutputStderr().Printf(_T("IsUsingInteractiveEventLoop(%d): %d\n"),widgetID,UseInteractiveEvents);
+#endif
+  return UseInteractiveEvents;  //false (blocked) by default
  }
  
 };
@@ -2113,6 +2123,7 @@ public:
  wxPoint WhereIsMouse(wxKeyEvent &e);
  void ResizeDrawArea(const wxSize s);
  void DeleteUsingWindowNumber();
+ void SetUndecomposed();
  void SetStream(GDLWXStream* s);
 
  void OnErase(wxEraseEvent& event);

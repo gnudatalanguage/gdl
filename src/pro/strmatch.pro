@@ -7,6 +7,8 @@
 ; of STRLEN ! We ensure to work on pure STRING = '' , not STRING = Array[1]
 ; 
 function STRMATCH_STRREPLACE, str, a, b
+compile_opt hidden, idl2
+on_error, 2
 pos = STRPOS(str, a)
 if (pos eq -1) then return, str
 ret = STRMID(str,0,pos)
@@ -26,6 +28,7 @@ end
 ;
 function STRMATCH, mstr, sstr, fold_case=fold_case
 ;
+compile_opt hidden, idl2
 on_error, 2
 if (SIZE(sstr))[0] ne 0 then MESSAGE, 'second argument must be a scalar string'
 ;
