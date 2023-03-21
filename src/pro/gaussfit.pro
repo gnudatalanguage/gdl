@@ -25,6 +25,7 @@
 ;       See the table above for the meanings of each parameter
 ;       element.
 ;-
+
 FUNCTION GAUSSFIT, x, y, a, $
     CHISQ=chisq, $
     ESTIMATES = est, $
@@ -36,7 +37,22 @@ FUNCTION GAUSSFIT, x, y, a, $
 compile_opt idl2, hidden
   ON_ERROR,2              ;Return to caller IF error
 
-  return,mpfitpeak (x, y, a, estimates=est, nterms=nterms, /gauss, $
-                      chisq=chisq, sigma=sigma, yerror=yerror,$
-                      measure_errors=measure_errors, /nan)
-END
+;; Use CURVEFIT instead of mpfitpeak at the end.
+;; calling poly_fit more than once to simplify this code (things are fast)
+  a=fltarr(nterms)
+  temp=mpfitpeak (x, y, a,nterms=nterms, /gauss) ;; populate a with good default values.
+;; get a better estimate by removing linear or square baseline
+  if nterms gt 3 then begin
+     if n_elements(est) eq 0 then begin
+        c = poly_fit(x, y, (nterms eq 4) ? 0 : 1, yfit)
+        ytemp = y - yfit
+        temp=mpfitpeak (x, ytemp, a,nterms=nterms, /gauss)
+     endif
+  endif
+  if (n_elements(measure_errors) gt 0) then weights = 1/measure_errors^2
+  
+  yfit = CURVEFIT(x,y,weights,a,sigma,  chisq=chisq, yerror=yerror, function_name =  "gdl_gaussfunct")
+  return, yfit
+
+ end
+
