@@ -99,10 +99,18 @@ pro XMANAGER, name, id, NO_BLOCK = noBlock, GROUP_LEADER=groupLeader, EVENT_HAND
   ON_ERROR, 2
 
   common managed, ids, names, modalList
-  ;;; Debug: uncomment the ;;
-  ;; common me,nx
-  ;; if n_elements(nx) eq 0 then nx=0
-  ;; nx++;
+
+  common gdl_xmanager_private,docatch,nx
+  if n_elements(nx) eq 0 then nx=0
+  if n_elements(docatch) eq 0 then docatch=1 ; catch by default
+  nx++;
+  if (n_elements(catch) ne 0) THEN BEGIN
+    docatch = keyword_set(catch)
+    message, /INFO, 'Error handling is now ' + (['off', 'on'])[docatch]
+    return
+  ENDIF
+
+  ;; Debug: uncomment the ;; below
   ;; print,"**************************************Entering Xmanager #"+strtrim(nx,2)+"**************************************"
 
   if keyword_set(modal) then message,/informational,"The MODAL keyword to the XMANAGER procedure is obsolete."+$
@@ -170,9 +178,17 @@ pro XMANAGER, name, id, NO_BLOCK = noBlock, GROUP_LEADER=groupLeader, EVENT_HAND
   Blocked = widget_info(/XMANAGER_BLOCK)
   ;; print,'after last tweaks, active is=',Blocked
   WHILE (Blocked NE 0) DO BEGIN
-      tmp = widget_event(/XMANAGER_BLOCK)
-      Blocked = widget_info(/XMANAGER_BLOCK)
-  ;; print,'active=',Blocked
+     error = 0
+     IF (docatch) then catch, error
+     IF (error EQ 0) THEN BEGIN
+        unused = widget_event(/XMANAGER_BLOCK)
+     endif else begin
+        Message,/informational, !ERROR_STATE.MSG_PREFIX+'Caught unexpected error from client application. Message follows...'
+        help,/last_message
+     endelse
+    IF (docatch) THEN catch, /cancel
+    Blocked = widget_info(/XMANAGER_BLOCK)
+    ;; print,'active=',Blocked
   ENDWHILE
 
  ; end of eventloop, cleanup       
