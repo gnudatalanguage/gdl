@@ -1857,21 +1857,15 @@ BaseGDL* widget_info( EnvT* e ) {
     }
   }
   
-  // XMANAGER_BLOCK keyword
+  // XMANAGER_BLOCK keyword - NOTE: returns 1 if a (managed) Top Widget BLOCKS
   if ( xmanagerBlock ) {
-    return new DLongGDL( GDLWidget::GetXmanagerBlock( ) ? 1 : 0 );
+    return new DLongGDL( GDLWidget::IsXmanagerBlocking( ) );
   }
   // End /XMANAGER_BLOCK
 
   if (active) {
-    //must return 1 if there is at last one REALIZED MANAGED TOP-LEVEL WIDGET ON THE SCREEN 
-      DLongGDL* res = static_cast<DLongGDL*>( GDLWidget::GetManagedWidgetsList( ) );//which is not what is expected! FIXME!
-      long actnumber;
-      if ((*res)[0]==0) actnumber=0; else actnumber=1;
-      //allocated non-returned memory should be deallocated:
-      GDLDelete(res);
-      return new DLongGDL(actnumber); 
-    }
+    return new DLongGDL( GDLWidget::IsActive( ) );
+  }
   
   if (isdisplayed) return new DLongGDL(1); 
   
@@ -1909,8 +1903,15 @@ BaseGDL* widget_info( EnvT* e ) {
       DStringGDL* res = new DStringGDL(wid->N_Elements());
       for ( SizeT i = 0; i < wid->N_Elements(); i++ ) {
         GDLWidget *widget = GDLWidget::GetWidget( (*wid)[i] );
+        //protect against internal error where wid is not up-to-date
+        wxObject* wxWidgetAddr=NULL;
+        DString wxWidgetName="Zombie";
+        if (widget) {
+          wxWidgetAddr=widget->GetWxWidget();
+          wxWidgetName=widget->GetWidgetName();
+        }
         std::stringstream os;
-        os<<(*wid)[i]<<"("<<widget->GetWidgetName()<<"@"<< std::hex << widget->GetWxWidget() << "), "; 
+        os<<(*wid)[i]<<"("<<wxWidgetName<<"@"<< std::hex << wxWidgetAddr << "), "; 
         (*res)[i]=os.str();
       }
       return res;
@@ -2429,9 +2430,9 @@ BaseGDL* widget_info( EnvT* e ) {
     // it is said in the doc: 1) that WIDGET_CONTROL,/HOURGLASS busyCursor ends at the first WIDGET_EVENT processed. 
     // And 2) that /SAVE_HOURGLASS exist to prevent just that, ending.
     if (!savehourglass) if (wxIsBusy()) wxEndBusyCursor();
-    //xmanager_block (not a *DL standard) is used to block until TLB is killed
+    //xmanager_block (Hidden IDL option) is used to block until TLB is killed
     static int xmanagerBlockIx = e->KeywordIx("XMANAGER_BLOCK");
-    bool xmanagerBlock = e->KeywordSet(xmanagerBlockIx);
+    bool blockedByXmanager = e->KeywordSet(xmanagerBlockIx);
     static int nowaitIx = e->KeywordIx("NOWAIT");
     bool nowait = e->KeywordSet(nowaitIx);
     static int badidIx = e->KeywordIx("BAD_ID");
@@ -2510,7 +2511,7 @@ BaseGDL* widget_info( EnvT* e ) {
           //specific widget(s)
           // we cannot check only readlineEventQueue thinking our XMANAGER in blocking state looks to ALL widgets.
           // because XMANAGER may have been called AFTER events are created.
-          while ((ev = GDLWidget::BlockingWidgetEventQueue.Pop()) != NULL) { // get event
+          while ((ev = GDLWidget::BlockingEventQueue.Pop()) != NULL) { // get event
             static int idIx = ev->Desc()->TagIndex("ID");
             id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
             for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
@@ -2519,7 +2520,7 @@ BaseGDL* widget_info( EnvT* e ) {
               }
             }
           }
-          while ((ev = GDLWidget::readlineEventQueue.Pop()) != NULL) { // get event
+          while ((ev = GDLWidget::InteractiveEventQueue.Pop()) != NULL) { // get event
             static int idIx = ev->Desc()->TagIndex("ID");
             id = (*static_cast<DLongGDL*> (ev->GetTag(idIx, 0)))[0]; // get its id
             for (SizeT i = 0; i < widgetIDList.size(); i++) { //is ID corresponding to any widget in list?
@@ -2530,16 +2531,19 @@ BaseGDL* widget_info( EnvT* e ) {
           }
         } else {
           //wait for ALL . This is the case of /XMANAGER_BLOCK for example. Both queues may be active, some widgets being managed other not. 
-          if ((ev = GDLWidget::BlockingWidgetEventQueue.Pop()) != NULL) goto endwait;
-          if ((ev = GDLWidget::readlineEventQueue.Pop()) != NULL) goto endwait;
+          if ((ev = GDLWidget::BlockingEventQueue.Pop()) != NULL) goto endwait;
+          if ((ev = GDLWidget::InteractiveEventQueue.Pop()) != NULL) goto endwait;
         }
-
         if (nowait) return defaultRes;
         if (sigControlC) return defaultRes;
       } //end inner loop
       //here we got a real event, process it, walking back the hierachy (in CallEventHandler()) for modified ev in case of function handlers.
     endwait:
-      if (xmanagerBlock && ev->Desc( )->Name( ) == "*TOPLEVEL_DESTROYED*" ) {GDLDelete(ev); return defaultRes;}
+      if (blockedByXmanager && ev->Desc( )->Name( ) == "*TOPLEVEL_DESTROYED*" ) {
+        // deleted widgets list are hopefully handled internally by xmanager 
+        GDLDelete(ev);
+        return defaultRes;
+      }
       ev = CallEventHandler(ev); //process it recursively (going up hierarchy) in eventHandler. Should block waiting for xmanager.
       // examine return:
       if (ev == NULL) { //swallowed by a procedure or non-event-stucture returning function 
@@ -3481,7 +3485,7 @@ void widget_control( EnvT* e ) {
 
   if ( xmanActCom ) {
     //       cout << "Set xmanager active command: " << widgetID << endl;
-    widget->SetXmanagerActiveCommand( );
+    widget->MakeInteractive( );
     }
 
 

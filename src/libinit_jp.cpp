@@ -145,7 +145,7 @@ void LibInit_jp()
   new DLibFunRetNew(lib::widget_event, string("WIDGET_EVENT"), 1, widget_eventKey, widget_eventWarnKey);
   //INFO
   const string widget_infoKey[] = {"DEBUG", "ACTIVE", "VALID_ID", "MODAL", "MANAGED",
-    "XMANAGER_BLOCK", //only GDL, used in xmanager.pro , may even not be useful now.
+    "XMANAGER_BLOCK", // in IDL too
     "CHILD", "VERSION", "GEOMETRY", "UNAME", "DISPLAY",
     "FONTNAME", "STRING_SIZE",
     "BUTTON_SET", "PARENT", "TEXT_SELECT", "FIND_BY_UNAME", "TYPE", "NAME",

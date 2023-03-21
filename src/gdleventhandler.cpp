@@ -37,7 +37,7 @@ int GDLEventHandler()
 {
 
 #ifdef HAVE_LIBWXWIDGETS
-  if (useWxWidgets) GDLWidget::HandleWidgetEvents();
+  if (useWxWidgets) GDLWidget::HandleUnblockedWidgetEvents();
 #endif
   GraphicsDevice::HandleEvents();
 

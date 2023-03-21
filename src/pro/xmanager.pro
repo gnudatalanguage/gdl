@@ -67,7 +67,7 @@ return
 
 end
 
-pro UNXREGISTER, id
+pro XUNREGISTER, id
 
 compile_opt hidden, idl2
 
@@ -92,65 +92,92 @@ end
 
 
 pro XMANAGER, name, id, NO_BLOCK = noBlock, GROUP_LEADER=groupLeader, EVENT_HANDLER=eventHandler, $
-    CLEANUP=Cleanup, JUST_REG=just_reg, CATCH=catch, MODAL=modal, BACKGROUND=background
+   CLEANUP=Cleanup, JUST_REG=just_reg, CATCH=catch, MODAL=modal, BACKGROUND=background
 
+  compile_opt hidden, idl2
+  
+  ON_ERROR, 2
 
-compile_opt hidden, idl2
+  common managed, ids, names, modalList
+  ;;; Debug: uncomment the ;;
+  ;; common me,nx
+  ;; if n_elements(nx) eq 0 then nx=0
+  ;; nx++;
+  ;; print,"**************************************Entering Xmanager #"+strtrim(nx,2)+"**************************************"
 
-ON_ERROR, 2
+  if keyword_set(modal) then message,/informational,"The MODAL keyword to the XMANAGER procedure is obsolete."+$
+     " It is superseded by the MODAL keyword to the WIDGET_BASE function. This will *not* work. Please modify your code."
+  if keyword_set(background) then message,/informational,"The BACKGROUND keyword to the XMANAGER procedure is obsolete."+$
+     " It is superseded by the TIMER keyword to the WIDGET_CONTROL procedure. Please modify your code."
 
-common managed, ids, names, modalList
+  ValidateManagedWidgets
 
-if keyword_set(modal) then message,/informational,"The MODAL keyword to the XMANAGER procedure is obsolete."+$
-" It is superseded by the MODAL keyword to the WIDGET_BASE function. This will *not* work. Please modify your code."
-if keyword_set(background) then message,/informational,"The BACKGROUND keyword to the XMANAGER procedure is obsolete."+$
-" It is superseded by the TIMER keyword to the WIDGET_CONTROL procedure. Please modify your code."
+  if (n_params() eq 0) then begin
+     if ~ids[0] then message,/informational, 'No widgets are currently being managed.'
+     return
+  endif else if (n_params() ne 2) then message, 'Wrong number of arguments, usage: XMANAGER [, name, id]'
 
-ValidateManagedWidgets
+  if (n_elements(just_reg) eq 0) then just_reg = 0
 
-if (n_params() eq 0) then begin
-   if ~ids[0] then message,/informational, 'No widgets are currently being managed.'
-   return
-endif else if (n_params() ne 2) then message, 'Wrong number of arguments, usage: XMANAGER [, name, id]'
-
-if (n_elements(just_reg) eq 0) then just_reg = 0
-
-if n_params() eq 2 then begin
-   if not keyword_set(eventHandler) then begin
-      eventHandler = name + '_event'
-   endif
+  if n_params() eq 2 then begin
+     if not keyword_set(eventHandler) then begin
+        eventHandler = name + '_event'
+     endif
 ;if id is not the top base, get the top base:
-   while (widget_info(id,/parent) ne 0) do id=widget_info(id,/parent)
-   
-   widget_control, id, event_pro=eventHandler
-   widget_control, id, /managed
+     while (widget_info(id,/parent) ne 0) do id=widget_info(id,/parent)
+     
 ; add to common
-   if (ids[0] ne 0) then begin
-      ids = [ids, id]
-      names = [names, name]
-   endif else begin
-      ids = id
-      names = name
-   endelse
-   
-   if keyword_set(groupLeader) then begin
-      widget_control, id, GROUP_LEADER=groupLeader
-   endif
+     if (ids[0] ne 0) then begin
+        ids = [ids, id]
+        names = [names, name]
+     endif else begin
+        ids = id
+        names = name
+     endelse
+  AlreadyBlocked = widget_info(/XMANAGER_BLOCK)
+  ;; print,'before widget registration, AlreadyBlocked is=',AlreadyBlocked
+
+; We can now define the widget as managed 
+     widget_control, id, /managed
+; define handler
+     widget_control, id, event_pro=eventHandler
+; define group leader     
+     if keyword_set(groupLeader) then begin
+        widget_control, id, GROUP_LEADER=groupLeader
+     endif
 ; cleanup is implemented now
-   if n_elements(cleanup) then begin
-      widget_control, id, KILL_NOTIFY=Cleanup
-   endif
+     if n_elements(cleanup) then begin
+        widget_control, id, KILL_NOTIFY=Cleanup
+     endif
+; return if just registering (use of registering only still not clear for me -- probably a relic from the past)
+     if (just_reg) then return
+     
+; XMANAGER must block, i.e. call widget_event until the widget that blocked is destroyed.
+; besides, ony one blocking widget is permitted, so if xmanager is blocking, a subsequent call to xmanager must not block.
 
-   if (not just_reg) then begin
-      if keyword_set(noBlock) then begin
-         widget_control, /XMANAGER_ACTIVE_COMMAND, id
-      endif else begin
-         tmp = widget_event(/XMANAGER_BLOCK) ; will block until TLB widget is closed
-      endelse
-      ValidateManagedWidgets
-   endif
+; all TopWidgets are blocking by default in GDL (makes no difference as long as XMANAGER is not called).
+; of course we consider only managed widgets.
+; if there was a blocking widget before registering this one, or if noBlocks is asked for, we 'unBlock' this widget:
 
-endif
 
+     if AlreadyBlocked or keyword_set(noBlock) then begin
+        widget_control, /XMANAGER_ACTIVE_COMMAND, id ; mark as non-blocking
+        return                                       ; passthrough
+     endif
+     
+; eventloop
+; are we blocked now, with the newly registered widget?     
+  Blocked = widget_info(/XMANAGER_BLOCK)
+  ;; print,'after last tweaks, active is=',Blocked
+  WHILE (Blocked NE 0) DO BEGIN
+      tmp = widget_event(/XMANAGER_BLOCK)
+      Blocked = widget_info(/XMANAGER_BLOCK)
+  ;; print,'active=',Blocked
+  ENDWHILE
+
+ ; end of eventloop, cleanup       
+     ValidateManagedWidgets
+  endif
+  ;; print,"**************************************Exiting Xmanager #"+strtrim(nx,2)+"**************************************"
 end
 
