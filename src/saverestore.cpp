@@ -2283,10 +2283,10 @@ enum {
     
     if (heapIndexMapSave.size() > 0) { //there is some heap...
       DPtrGDL* heapPtrList=e->Interpreter( )->GetAllHeap( );
-      for (SizeT i=0; i<heapPtrList->N_Elements(); ++i) { nextptr=writeHeapVariable(e, xdrs, (*heapPtrList)[i], false); if (nextptr <= oldptr) goto fail;oldptr=nextptr;}
+      for (SizeT i=0; i<heapPtrList->N_Elements(); ++i) { nextptr=writeHeapVariable(e, xdrs, (*heapPtrList)[i], false); if (nextptr < oldptr) goto fail;oldptr=nextptr;}
       GDLDelete(heapPtrList);
       DObjGDL* heapObjPtrList=e->Interpreter( )->GetAllObjHeap( );
-      for (SizeT i=0; i<heapObjPtrList->N_Elements(); ++i) {nextptr=writeHeapVariable(e, xdrs, (*heapObjPtrList)[i], true); if (nextptr <=oldptr) goto fail;oldptr=nextptr;}
+      for (SizeT i=0; i<heapObjPtrList->N_Elements(); ++i) {nextptr=writeHeapVariable(e, xdrs, (*heapObjPtrList)[i], true); if (nextptr < oldptr) goto fail;oldptr=nextptr;}
       GDLDelete(heapObjPtrList);
     }
 
@@ -2299,14 +2299,14 @@ enum {
 //    }
     while (!systemVariableVector.empty())
     {
-      nextptr = writeNormalVariable(xdrs, systemVariableVector.back().first, (systemVariableVector.back()).second, 0x2); if (nextptr <=oldptr) goto fail;oldptr=nextptr;
+      nextptr = writeNormalVariable(xdrs, systemVariableVector.back().first, (systemVariableVector.back()).second, 0x2); if (nextptr < oldptr) goto fail;oldptr=nextptr;
       if (verboselevel > 0) Message("SAVE: Saved system variable: " + (systemVariableVector.back()).first + ".");
       systemVariableVector.pop_back();
     }
     
     while (!variableVector.empty())
     { 
-      nextptr=writeNormalVariable(xdrs, variableVector.back().first, (variableVector.back()).second); if (nextptr <=oldptr) goto fail;oldptr=nextptr;
+      nextptr=writeNormalVariable(xdrs, variableVector.back().first, (variableVector.back()).second); if (nextptr < oldptr) goto fail;oldptr=nextptr;
       if (verboselevel>0) Message("SAVE: Saved variable: " + (variableVector.back()).first+".");
       variableVector.pop_back();
     }
