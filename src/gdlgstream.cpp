@@ -1276,11 +1276,11 @@ bool GDLGStream::isovpor(PLFLT x1, PLFLT x2, PLFLT y1,  PLFLT y2,  PLFLT aspect)
   PLFLT ys = y2mm - y1mm; //x and y are in normalized coordinates. ISO scaling must be performed using screen (or paper) coordinates:
   PLFLT xs = x2mm - x1mm;
   PLFLT page_aspect=ys/xs;
-  aspect/=page_aspect;
-  if (ys >= xs * aspect) { //x ok, resize y
-    y2mm = y1mm + aspect*xs;
+  aspect=page_aspect/aspect;
+   if (aspect > 1) { //x ok, resize y
+    y2mm = y1mm + ys/aspect;
   } else {
-    x2mm = x1mm + xs / aspect;
+    x2mm = x1mm + xs*aspect;
   }
   x1 = mm2ndx(x1mm);
   x2 = mm2ndx(x2mm);
