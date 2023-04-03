@@ -99,7 +99,7 @@ void LibInit_jp()
     //unsupported but warning is a pain.
     "TAB_MODE", 
     KLISTEND};
-  const string widget_WarnControlKey[] = { "PUSHBUTTON_EVENTS", "TABLE_BLANK", "SET_TAB_MULTILINE", "ICONIFY"
+  const string widget_WarnControlKey[] = { "PUSHBUTTON_EVENTS", "TABLE_BLANK", "SET_TAB_MULTILINE", "ICONIFY", "SET_TEXT_TOP_LINE"
     , "CANCEL_BUTTON" //obsoleted in 6.2
     , "DEFAULT_BUTTON" //obsoleted in 6.2
     , KLISTEND}; //LIST NOT CLOSE!!!  
