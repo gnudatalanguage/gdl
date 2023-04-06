@@ -2508,14 +2508,19 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     assert(false);
     return NULL;
   }
+  
   //dummy stub preventing !err and other !errore_state to be set!
-
   void pref_set_pro(EnvT* e) {
     SizeT nParam = e->NParam(1);
     if (nParam == 0) return;
     DStringGDL* p0 = e->GetParAs<DStringGDL>(0);
     cerr << "% PREF_SET: Unknown preference: " + (*p0)[0] << endl;
   }
+  //dummy stub preventing !err and other !errore_state to be set!
+  void pref_commit_pro(EnvT* e) {
+//    cerr << "% PREF_COMMIT: not implemented, FIXME."<< endl;
+  }
+  
 // delvar_pro used to live in gdlhelp.cpp
 
 void delvar_pro( EnvT* e)

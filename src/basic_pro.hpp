@@ -102,8 +102,9 @@ namespace lib {
   void caldat(EnvT* e);
   BaseGDL* julday(EnvT* e);
   void pm(EnvT* e);
-  //dummy stub preventing !err and other !error_state to be set!
+  //dummy stubs preventing !err and other !error_state to be set!
   void pref_set_pro(EnvT* e);
+  void pref_commit_pro(EnvT* e);
 
   void delvar_pro( EnvT* e);
   void findvar_pro( EnvT* e);
