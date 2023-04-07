@@ -24,6 +24,42 @@
 
 using namespace std;
 
+// returns the variable whose KW is listed in _REF_EXTRA array of Kws. Or null if KW is not present (was not passed).
+// by value (copy)
+BaseGDL* ExtraT::GetRefExtraList(DString &s) {
+  DSub* pro = thisEnv->pro;
+  if (pro == NULL) return NULL;
+  DSub::ExtraType extraType = pro->GetExtraType();
+  if (extraType == DSub::REFEXTRA) { // check if in string array
+    SizeT nEl = listName.size();
+    if (nEl > 0) {
+      for (SizeT i = 0; i < nEl; i++) {
+        if (listName[i] == s) { //is present
+          //return copy
+          return listEnv.Grab(i);
+        }
+      }
+    }
+  }
+  return NULL;
+}
+//by pointer to the true variable 
+BaseGDL** ExtraT::GetRefExtraListPtr(DString &s) {
+  DSub* pro = thisEnv->pro;
+  if (pro == NULL) return NULL;
+  DSub::ExtraType extraType = pro->GetExtraType();
+  if (extraType == DSub::REFEXTRA) { // check if in string array
+    SizeT nEl = listName.size();
+    if (nEl > 0) {
+      for (SizeT i = 0; i < nEl; i++) {
+        if (listName[i] == s) { //is present
+          return listEnv.Env(i);
+        }
+      }
+    }
+  }
+  return NULL;
+}
 void ExtraT::ResolveExtra(EnvBaseT* callerIn) {
   // if the subroutine has _REF_EXTRA, explicit keywords override
   // if the subroutine has _EXTRA, _EXTRA keywords override
@@ -34,7 +70,7 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn) {
 
   DSub* pro = thisEnv->pro;
 
-  DSub::ExtraType extraType = pro->Extra();
+  DSub::ExtraType extraType = pro->GetExtraType();
 
   //   EnvBaseT* callerDebug=thisEnv->Caller();
   //   DSub::ExtraType extraTypeDebug= callerDebug->pro->Extra();
@@ -94,7 +130,7 @@ void ExtraT::ResolveExtra(EnvBaseT* callerIn) {
           caller = callerIn;
 
         // GDL_STRING only works, if the *caller* has _REF_EXTRA
-        if (caller->pro->Extra() == DSub::REFEXTRA) {
+        if (caller->pro->GetExtraType() == DSub::REFEXTRA) {
           // caller's extra member holds the actual data
           assert(caller->extra != NULL);
 

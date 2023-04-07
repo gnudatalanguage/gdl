@@ -987,7 +987,17 @@ void EnvBaseT::ResolveExtra()
 {
   if( extra != NULL) extra->ResolveExtra( NULL);
 }
-
+// returns the variable whose KW is listed in _REF_EXTRA array of Kws. Or null if KW is not present (was not passed).
+BaseGDL* EnvBaseT::GetRefExtraList(DString &s)
+{
+  if( extra != NULL) return extra->GetRefExtraList(s);
+  return NULL;
+}
+BaseGDL** EnvBaseT::GetRefExtraListPtr(DString &s)
+{
+  if( extra != NULL) return extra->GetRefExtraListPtr(s);
+  return NULL;
+}
 // // for internal non-library routines (e.g. operator overloads) ('this' is on the stack)
 // EnvUDT* EnvUDT::CallingEnv()
 // {
@@ -1537,7 +1547,7 @@ int EnvBaseT::GetKeywordIx( const std::string& k) {
     if (strAbbrefEq_k("_EXTRA")) return -2;
     if (strAbbrefEq_k("_STRICT_EXTRA")) return -3;
 
-    if (pro->Extra() == DSub::NONE) {
+    if (pro->GetExtraType() == DSub::NONE) {
       // look if warnKeyword
       IDList::iterator wf = std::find_if(pro->warnKey.begin(),
         pro->warnKey.end(),

@@ -118,6 +118,8 @@ public:
   // combine additional keywords and the (remaining) _EXTRA data to pro's 
   // (_REF)_EXTRA value
   void ResolveExtra(EnvBaseT* caller);
+  BaseGDL* GetRefExtraList(DString &s);
+  BaseGDL** GetRefExtraListPtr(DString &s);
 };
 
 #endif

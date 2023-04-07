@@ -65,12 +65,12 @@ DLib::DLib( const string& n, const string& o, const int nPar_,
   if( nKey_ >= 1) {
     if( keyNames[0] == "_EXTRA")
       {
-	extra = EXTRA;
+	extra_type = EXTRA;
 	extraIx = 0;
       }
     else if( keyNames[0] == "_REF_EXTRA")
       {
-	extra = REFEXTRA;
+	extra_type = REFEXTRA;
 	extraIx = 0;
       }
   }
@@ -317,18 +317,18 @@ DSubUD* DSubUD::AddKey(const string& k, const string& v)
 {
   if( k == "_REF_EXTRA")
     {
-      if( extra == EXTRA)
+      if( extra_type == EXTRA)
 	throw GDLException("Routines cannot be declared with both"
 			   " _EXTRA and _REF_EXTRA.");
-      extra=REFEXTRA;
+      extra_type=REFEXTRA;
       extraIx=0;
     }
   else if( k == "_EXTRA")
     {
-      if( extra == REFEXTRA)
+      if( extra_type == REFEXTRA)
 	throw GDLException("Routines cannot be declared with both"
 			   " _EXTRA and _REF_EXTRA.");
-      extra=EXTRA;
+      extra_type=EXTRA;
       extraIx=0;
     }
   else
