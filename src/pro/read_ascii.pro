@@ -100,7 +100,8 @@
 ;   15-Nov-2011 : A. Coulais : better management of dir/file and
 ;                 missing file
 ;   05-Feb-2014 : G. Duvert : avoid unlawful tag names 
-;
+;   03-Apr-2023 : G. Duvert : do not 'extract' more tokens than
+;   requested by fieldcount...
 ;-
 ; LICENCE:
 ; Copyright (C) 2006, P. Chanial; 2011 A. Coulais
@@ -203,7 +204,7 @@ function READ_ASCII, filename, count=linecount, $
 
 compile_opt hidden, idl2
 
-ON_ERROR, 2
+;ON_ERROR, 2
 ;
 if KEYWORD_SET(help) then begin
    print, 'function READ_ASCII, filename, count=linecount, $'
@@ -353,8 +354,11 @@ strresult = STRARR(fieldcount, linecount)
 
 if KEYWORD_SET(delimiter) then begin
    for line=0l, linecount-1 do begin
-      row = STRSPLIT(text[line], STRING(delimiter), /extract)
-      strresult[0, line] = row
+      row = STRSPLIT(text[line], STRING(delimiter), /extract, count=c)
+      ;; may have less or more fields than asked for
+      n= (c < fieldcount)
+      for i=0L,n-1 do strresult[i, line] = row[i] ; the rest if any
+                                ; will be empty
    endfor
 endif else begin
    for i=0l, fieldcount-2 do begin

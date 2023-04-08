@@ -217,10 +217,11 @@ pro repeat_test
   repeat begin 
     i=i+1
   endrep until (i eq 100)
-
+; gdl says : "% Warning: Empty REPEAT UNTIL loop detected."
   repeat begin 
   endrep until (i eq 100)
 
+; gdl says : "% Warning: Empty REPEAT UNTIL loop detected."
   repeat begin 
   endrep until 1
 
@@ -574,14 +575,14 @@ pro struct_test
 
 ; bug tracker ID: 3612104
   a=ptrarr(1)
-  a(0)=ptr_new('a')
+  a[0]=ptr_new('a')
   s={a:a}
   ss={sst:s}
-  if *s.a(0) ne 'a' then begin
+  if *s.a[0] ne 'a' then begin
     message, '***STRUCT: ERROR12', /conti
     exit, status=1
   endif
-  if *ss.sst.a(0) ne 'a' then begin
+  if *(ss.sst).a[0] ne 'a' then begin
     message, '***STRUCT: ERROR13', /conti
     exit, status=1
   endif 
@@ -1074,7 +1075,9 @@ pro e2,A=a,B=b
 end
 
 pro eref,_REF_EXTRA=ex
-  e2,_EXTRA=ex
+   ;; at this point, ex shoudl contain all passed variale names, even !NULL or undefined, as it is a _REF_EXTRA
+  if (n_elements(ex) ne 4 ) then message, 'EREF: ERROR', /conti
+  e2,_EXTRA=ex ;; here only the defined values will be passed in the _EXTRA structure.
 end
 
 pro eval,_EXTRA=ex
@@ -1094,7 +1097,9 @@ end
 pro extra_test,_REF_EXTRA=ex
 
   eval,b='b',a='a',c=u ;;
-  eref,b='b',a='a',c=u
+  ;; pass to eref 2 defined values, 1 !NULL and 1 undefined. eref's _ref_extra should contain 4 values (a,b,c,z)
+  d=!NULL
+  eref,b='b',a='a',c=d,z=z  ;; GD: a !NULL value IS passed to _REF_EXTRA but IGNORED in _EXTRA
 
   eret,r1=r1,r2=r2
 
@@ -1118,8 +1123,8 @@ str_template={value:1.0}
 str_array=replicate(str_template,10)
 str={data:str_array}
 tmp=cos(str_template.value) 
-tmp=cos(str_array(0).value) 
-tmp=cos(str.data(0).value) 
+tmp=cos(str_array[0].value) 
+tmp=cos(str.data[0].value) 
 
   a=0
   a++

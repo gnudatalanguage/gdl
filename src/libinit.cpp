@@ -105,9 +105,12 @@ void LibInit()
 
   new DLibFun(lib::scope_level,string("SCOPE_LEVEL"),0);
 
-  const string scope_varfetchKey[]={"LEVEL","ENTER", KLISTEND};
-  const string scope_varfetchWarnKey[]={"COMMON","REF_EXTRA", KLISTEND};
+  //SCOPE_VARFETCH WARNING: changes in lib::scope_varfetch_value must be reported also in lib::scope_varfetch_reference
+  const string scope_varfetchKey[]={"LEVEL","ENTER", "REF_EXTRA", KLISTEND};
+  const string scope_varfetchWarnKey[]={"COMMON", KLISTEND};
   new DLibFun(lib::scope_varfetch_value,string("SCOPE_VARFETCH"),-1,scope_varfetchKey,scope_varfetchWarnKey);
+ // END OF WARNING 
+  
   const string scope_tracebackKey[]={"STRUCTURE","SYSTEM", KLISTEND};
   new DLibFunRetNew(lib::scope_traceback,string("SCOPE_TRACEBACK"),0,scope_tracebackKey);
   const string scope_varnameKey[] = {"COMMON", "COUNT", "LEVEL", KLISTEND};
@@ -322,7 +325,9 @@ void LibInit()
   // since !ERR=-1 is frequently checked by legacy procedures.
   const string pref_setKey[] = {"FILENAME","COMMIT","DEFAULT", KLISTEND };
   new DLibPro(lib::pref_set_pro, string("PREF_SET"), -1, pref_setKey);
-  
+  //Same for (related) pref_commit  
+  const string pref_commitKey[] = {"RESET","RESIGNAL", KLISTEND };
+  new DLibPro(lib::pref_commit_pro, string("PREF_COMMIT"), 1, pref_commitKey);
   
   const string memoryKey[]={"CURRENT","HIGHWATER","NUM_ALLOC",
     "NUM_FREE","STRUCTURE","L64",KLISTEND};

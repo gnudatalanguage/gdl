@@ -8798,7 +8798,9 @@ namespace lib {
     static int levelIx = e->KeywordIx("LEVEL");
     static int enterIx = e->KeywordIx("ENTER");
     bool acceptNew = e->KeywordSet(enterIx);
-
+    static int refextraIx = e->KeywordIx("REF_EXTRA");
+    bool doesRefExtra=e->KeywordSet(refextraIx);
+    
     DLongGDL* level = e->IfDefGetKWAs<DLongGDL>(levelIx);
 
     DLong desiredlevnum = 0;
@@ -8819,7 +8821,17 @@ namespace lib {
 
     e->AssureScalarPar<DStringGDL>(0, varName);
     varName = StrUpCase(varName);
-
+    
+    if (doesRefExtra) {
+      DString Kwname=varName; //in this case it is not a varname passed, but a kwname. 
+      //We need to find the associated varname at the point it was passed with the kwname
+      // currentlevnum is this function scope_varfetch_value
+      //previous is caller, probably contains _REF_EXTRA=xxx
+      //GetRefExtraList(Kwname) should go back in stack to the point where kwname=varName was passed.  
+      BaseGDL* var = ((EnvT*) (callStack[desiredlevnum - 1]))->GetRefExtraList(Kwname);
+      if (var == NULL) e->Throw("Variable not found: " + Kwname); else return var->Dup();
+    }
+    
     int xI = pro->FindVar(varName);
     if (xI != -1) {
       //       BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
@@ -8854,6 +8866,8 @@ namespace lib {
     static int levelIx = e->KeywordIx("LEVEL");
     static int enterIx = e->KeywordIx("ENTER");
     bool acceptNew = e->KeywordSet(enterIx);
+    static int refextraIx = e->KeywordIx("REF_EXTRA");
+    bool doesRefExtra=e->KeywordSet(refextraIx);
 
     DLongGDL* level = e->IfDefGetKWAs<DLongGDL>(levelIx);
 
@@ -8875,6 +8889,17 @@ namespace lib {
 
     e->AssureScalarPar<DStringGDL>(0, varName);
     varName = StrUpCase(varName);
+    
+    if (doesRefExtra) {
+      DString Kwname=varName; //in this case it is not a varname passed, but a kwname. 
+      //We need to find the associated varname at the point it was passed with the kwname
+      // currentlevnum is this function scope_varfetch_value
+      //previous is caller, probably contains _REF_EXTRA=xxx
+      //GetRefExtraList(Kwname) should go back in stack to the point where kwname=varName was passed.  
+      BaseGDL** var = ((EnvT*) (callStack[desiredlevnum - 1]))->GetRefExtraListPtr(Kwname);
+      if (var == NULL) e->Throw("Variable not found: " + Kwname); else return var;
+    }
+    
     int xI = pro->FindVar(varName);
     if (xI != -1) {
       //       BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);

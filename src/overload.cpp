@@ -766,10 +766,10 @@ void SetupOverloadSubroutines() {
   gdlContainerDesc->FunList().push_back(DFunlist);
 
   // GDL_CONTAINER::INIT()
-  //  DFunlist = new DFun("INIT","GDL_CONTAINER",INTERNAL_LIBRARY_STR);
-  //  treeFun = new WRAPPED_FUNNode( lib::list__init);
-  //  DFunlist->SetTree( treeFun);
-  //  gdlContainerDesc->FunList().push_back(DFunlist);
+    DFunlist = new DFun("INIT","GDL_CONTAINER",INTERNAL_LIBRARY_STR);
+    treeFun = new WRAPPED_FUNNode( lib::list__init);
+    DFunlist->SetTree( treeFun);
+    gdlContainerDesc->FunList().push_back(DFunlist);
 
   // GDL_CONTAINER::COUNT()
   DFunlist = new DFun("COUNT", "GDL_CONTAINER", INTERNAL_LIBRARY_STR);

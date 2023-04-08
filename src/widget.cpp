@@ -699,7 +699,7 @@ BaseGDL* widget_tree( EnvT* e)
   
   DByteGDL* testByte=NULL;
   wxBitmap* bitmap=NULL;
-  if (e->KeywordPresent(BITMAP)) { //must be 16 x 16 x 3 but we do not care about the 16x16
+  if (e->KeywordPresentAndDefined(BITMAP)) { //must be 16 x 16 x 3 but we do not care about the 16x16
     testByte = e->GetKWAs<DByteGDL>(BITMAP);
     if (testByte) {
       bitmap = GetBitmapFromPassedBytes(e, testByte, mask);
@@ -810,7 +810,7 @@ BaseGDL* widget_draw( EnvT* e ) {
     else if (val==1)  {eventFlags |=  GDLWidget::EV_KEYBOARD;}
   }
   DStringGDL* tooltipgdl=NULL;
-  if (e->KeywordPresent(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP) ;
+  if (e->KeywordPresentAndDefined(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP) ;
   GDLWidgetDraw* draw=new GDLWidgetDraw( parentID, e, -1, x_scroll_size, y_scroll_size, app_scroll, eventFlags, tooltipgdl);
   if (e->KeywordPresent(COLOR_MODEL)) static_cast<gdlwxDrawPanel*>(draw->GetWxWidget())->SetUndecomposed(); 
   if (draw->GetWidgetType()==GDLWidget::WIDGET_UNKNOWN ) draw->SetWidgetType( GDLWidget::WIDGET_DRAW );
@@ -913,7 +913,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   bool tlb_size_events = e->KeywordSet( tlb_size_eventsIx );
 //  bool toolbar = e->KeywordSet( toolbarIx );
   
-  if (e->KeywordPresent(tlb_bitmapIx)) Warning("BITMAP option not available.");
+  if (e->KeywordPresent(tlb_bitmapIx)) Warning("BITMAP option not available for WIDGET_BASE (fixme).");
   DLong frame_attr=0;
   e->AssureLongScalarKWIfPresent( tlb_frame_attrIx, frame_attr );
   DLong x_scroll_size = -1;
@@ -1144,7 +1144,7 @@ BaseGDL* widget_draw( EnvT* e ) {
 
   DStringGDL* tooltipgdl = NULL;
   GDLWidgetButton* button;
-  if (e->KeywordPresent(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP);  
+  if (e->KeywordPresentAndDefined(TOOLTIP)) tooltipgdl = e->GetKWAs<DStringGDL>(TOOLTIP);  
   
   
   DString strvalue = "button"+i2s(buttonNumber++); //tested default!
@@ -3185,9 +3185,9 @@ void widget_control( EnvT* e ) {
 #ifdef PREFERS_MENUBAR
         if (bitmap && dynamic_cast<GDLWidgetMenuBarButton*> (bb) != NULL) e->Throw("Menu bars items cannot be images.");
 #endif
-        if (bitmap) bb->SetButtonWidgetBitmap(bitmap);
-        //passes the string
+        //passes the string before bitmap
         bb->SetButtonWidgetLabelText(strvalue);
+        if (bitmap) bb->SetButtonWidgetBitmap(bitmap);
         
       } else if (widget->IsTable()) {
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
@@ -3289,7 +3289,7 @@ void widget_control( EnvT* e ) {
   endsetvalue:
   
 //  static int FRAME = e->KeywordIx( "FRAME" );
-//  if (e->KeywordPresent( FRAME )) {
+//  if (e->KeywordPresentAndDefined( FRAME )) {
 //    DLongGDL* val=e->GetKWAs<DLongGDL>(FRAME);
 //    if ( (*val)[0] > 0) widget->AddFrame((*val)[0]); else widget->RemoveFrame();
 //  }
@@ -3685,7 +3685,7 @@ void widget_control( EnvT* e ) {
     GDLWidgetDropList *droplist = (GDLWidgetDropList *) widget;
     
     static int SET_DROPLIST_SELECT = e->KeywordIx( "SET_DROPLIST_SELECT" );
-    if (e->KeywordPresent(SET_DROPLIST_SELECT)) {
+    if (e->KeywordPresentAndDefined(SET_DROPLIST_SELECT)) {
       DLongGDL* droplistSelection =  e->GetKWAs<DLongGDL>(SET_DROPLIST_SELECT);
       if (droplistSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context:");
       droplist->SelectEntry((*droplistSelection)[0]);
@@ -3713,7 +3713,7 @@ void widget_control( EnvT* e ) {
     GDLWidgetList *list = (GDLWidgetList *) widget;
     
     static int SET_LIST_SELECT = e->KeywordIx( "SET_LIST_SELECT" );
-    if (e->KeywordPresent(SET_LIST_SELECT)) {
+    if (e->KeywordPresentAndDefined(SET_LIST_SELECT)) {
       DLongGDL* listSelection =  e->GetKWAs<DLongGDL>(SET_LIST_SELECT);
       for (int i=0; i<listSelection->N_Elements() ; ++i) list->SelectEntry((*listSelection)[i]); //most probably not the right thing to do.
     }
@@ -3723,7 +3723,7 @@ void widget_control( EnvT* e ) {
     GDLWidgetComboBox *combo = (GDLWidgetComboBox *) widget;
     
     static int SET_COMBOBOX_SELECT = e->KeywordIx( "SET_COMBOBOX_SELECT" );
-    if (e->KeywordPresent(SET_COMBOBOX_SELECT)) {
+    if (e->KeywordPresentAndDefined(SET_COMBOBOX_SELECT)) {
       DLongGDL* comboSelection =  e->GetKWAs<DLongGDL>(SET_COMBOBOX_SELECT);
       if (comboSelection->N_Elements() > 1) e->Throw( "Expression must be a scalar or 1 element array in this context:");
       combo->SelectEntry((*comboSelection)[0]);
@@ -3731,7 +3731,7 @@ void widget_control( EnvT* e ) {
     static int COMBOBOX_ADDITEM = e->KeywordIx( "COMBOBOX_ADDITEM" );
     static int COMBOBOX_DELETEITEM = e->KeywordIx( "COMBOBOX_DELETEITEM" );
     static int COMBOBOX_INDEX = e->KeywordIx( "COMBOBOX_INDEX" );
-    if (e->KeywordPresent(COMBOBOX_ADDITEM)) {
+    if (e->KeywordPresentAndDefined(COMBOBOX_ADDITEM)) {
       DLong pos=-1;
       DString value="";
       e->AssureStringScalarKWIfPresent(COMBOBOX_ADDITEM, value);
@@ -3759,7 +3759,7 @@ void widget_control( EnvT* e ) {
        *drwKW=res->Dup();
      }
     static int SET_DRAW_VIEW = e->KeywordIx( "SET_DRAW_VIEW" );
-    if (e->KeywordPresent(SET_DRAW_VIEW)) {
+    if (e->KeywordPresentAndDefined(SET_DRAW_VIEW)) {
       DLongGDL* pos=e->IfDefGetKWAs<DLongGDL>(SET_DRAW_VIEW);
       int x=(*pos)[0];
       int y=x; //yes.

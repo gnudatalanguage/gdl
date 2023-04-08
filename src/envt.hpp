@@ -260,6 +260,8 @@ public:
 
   // called after parameter definition
   void ResolveExtra();
+  BaseGDL* GetRefExtraList(DString &s);
+  BaseGDL** GetRefExtraListPtr(DString &s);
   friend class ExtraT;
 
   // used by compiler and from EnvT (for variable number of paramters)

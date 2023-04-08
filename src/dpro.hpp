@@ -123,7 +123,7 @@ protected:
   int                 nPar;   // number of parameters (-1 = infinite)
   int                 nParMin;  // minimum number of parameters (-1 = infinite)
 
-  ExtraType           extra;
+  ExtraType           extra_type;
   int                 extraIx; // index of extra keyword
 
   IDList              warnKey;    // keyword names to accept but warn
@@ -131,7 +131,7 @@ protected:
 
 public:
   DSub( const std::string& n, const std::string& o=""): 
-    name(n), object(o), key(), nPar(0), nParMin(0), extra(NONE), extraIx(-1), warnKey() 
+    name(n), object(o), key(), nPar(0), nParMin(0), extra_type(NONE), extraIx(-1), warnKey() 
   {}
 
   virtual ~DSub(); // polymorphism
@@ -149,12 +149,12 @@ public:
     return object+"__"+name;
   }
 
-  ExtraType Extra() 
+  ExtraType GetExtraType() 
   {
-    return extra;
+    return extra_type;
   }
 
-  int ExtraIx() 
+  int GetExtraIx() 
   {
     return extraIx;
   }

@@ -126,6 +126,7 @@ print,toto[event.index]
 end
 pro handle_Event,ev
   common mycount,count
+  common pixmaps,green_bmp,red_bmp
   help,ev,/str
   if tag_names(ev, /structure_name) eq 'WIDGET_KILL_REQUEST' then begin
      acceptance=dialog_message(dialog_parent=ev.id,"I Do want to close the window", /CANCEL, /DEFAULT_NO,/QUESTION) ; +strtrim(ev.id,2))
@@ -176,6 +177,24 @@ pro handle_Event,ev
               widget_control,ev.id,set_value="entry 3 (checked)"
            endelse
         end
+        'clickbutton': begin
+           widget_control,ev.id,get_value = val
+	   if val eq 'ON' then begin
+              widget_control,ev.id,set_value = 'OFF' 
+           endif else begin
+              widget_control,ev.id,set_value = 'ON'
+           endelse
+        end
+        'clickpixmapbutton': begin
+           widget_control,ev.id,get_uvalue = val
+           if val.pos[0] eq 0 then begin
+              val.pos[0]=1
+              widget_control,ev.id,set_value = red_bmp, set_uvalue= val
+           endif else begin
+              val.pos[0]=0
+               widget_control,ev.id,set_value = green_bmp, set_uvalue= val
+           endelse
+        end
         'quit':  widget_control,ev.top,/DESTROY
         else: begin
            print, "(other, not treated, event: ok)"
@@ -218,8 +237,13 @@ siz= widget_button(menu,VALUE="Resize (error)",EVENT_PRO="resize_gui") ; 5
         button = Widget_Button(button, Value=myBitmap(), UNAME='BUT')
      end
 
-pro test_widgets,table,help=help,nocanvas=nocanvas,notree=notree,block=block,fontname=fontname,present=present,_extra=extra
+pro test_widgets,table,help=help,nocanvas=nocanvas,notree=notree,block=block,fontname=fontname,present=present,select=select,_extra=extra
   common mycount,count
+  common pixmaps,green_bmp,red_bmp
+
+  green_bmp= bytarr(7,7,3)& green_bmp[*,*,1] = 255& & green_bmp[0,0,1] = 254
+  red_bmp= bytarr(7,7,3)& red_bmp[*,*,0] = 255& & red_bmp[0,0,0] = 254
+  if (n_elements(select) gt 0) then present=select
   if (n_elements(present) eq 0) then present=['TEXT','LIST','DRAW','SLIDER','BUTTON','TABLE','TREE','LABEL','DROPLIST','COMBOBOX','BASE']
 count=0
 title='GDL Widget Examples'
@@ -295,7 +319,7 @@ if total(strcmp('TEXT',present,/fold)) then begin
    text1=widget_text(yoff=offy,text_base,VALUE=["a non editable LONG line using /wrap option in a restricted xsize=20,ysize=5 panel (sizes guaranteed only if an alignment has been defined), this is not finished there is still text below...","a non editable LONG line using /wrap option in a restricted xsize=20,ysize=5 panel (sizes guaranteed only if an alignment has been defined), this is not finished there is still text below...","a non editable LONG line using /wrap option in a restricted xsize=20,ysize=5 panel (sizes guaranteed only if an alignment has been defined), this is not finished there is still text below..."],$
                      xsize=20, ysize=5,/wrap,/all_events) & offy+=50 ;
    label=widget_label(yoff=offy,text_base,value='Is EDITABLE + ALL_EVENTS: input change widget content and events are generated') & offy+=20    ;
-   text1=widget_text(yoff=offy,text_base,VALUE=["EDITABLE, all_events","Line 2","line 3","line 4","line 5"],/EDITABLE,/ALL_EVENTS) & offy+=30   ;
+   text1=widget_text(yoff=offy,text_base,VALUE=["EDITABLE, all_events","Line 2","line 3","line 4","line 5"],/EDITABLE,/ALL_EVENTS,ysize=3) & offy+=30   ;
    label=widget_label(yoff=offy,text_base,value='Is NOT EDITABLE + ALL_EVENTS: no change but events are generated') & offy+=20                  ;
    text1=widget_text(yoff=offy,text_base,VALUE=["NOT EDITABLE, all_events","Line 2","line 3","line 4","line 5"],EDITABLE=0,/ALL_EVENTS) & offy+=30 ;
    label=widget_label(yoff=offy,text_base,value='Is only EDITABLE: input change widget content and <Return> generates an event.') & offy+=20       ;
@@ -383,8 +407,10 @@ endif
     button_base01 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
     button_base02 = widget_base(button_base00, TITLE="BUTTONs",/COL) & offy=10
 ; BUTTONs
-    tmp=widget_label(yoff=offy,button_base01,value="Simple Button") & offy+=10           ;
-    tmp=widget_button(yoff=offy,button_base01,value="Simple Button") & offy+=10 ;
+    tmp=widget_label(yoff=offy,button_base01,value="Simple ON/OFF Button") & offy+=10           ;
+    tmp=widget_button(yoff=offy,button_base01,value="OFF",uvalue={vEv,'clickbutton',[0,0]}) & offy+=10                                                                    ;
+    tmp=widget_label(yoff=offy,button_base01,value="Simple Color Button") & offy+=10           ;
+    tmp=widget_button(yoff=offy,button_base01,value=green_bmp,uvalue={vEv,'clickpixmapbutton',[0,0]}) & offy+=10                                                                    ;
     tmp=widget_label(yoff=offy,button_base01,value="Framed Simple Button") & offy+=10           ;
     tmp=widget_button(yoff=offy,button_base01,value="Framed 10 px Simple Button",frame=10) & offy+=10 ;
     tmp=widget_label(yoff=offy,button_base01,value="Bitmap Simple Button") & offy+=10           ;

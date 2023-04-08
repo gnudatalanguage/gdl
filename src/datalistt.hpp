@@ -19,6 +19,7 @@
 #define DATALISTT_HPP_
 
 #include "basegdl.hpp"
+#include "nullgdl.hpp"
 
 struct EnvType
 {
@@ -31,7 +32,7 @@ struct EnvType
   void NullPP() { pp = NULL;}
   
   bool IsSet() const { return (p != NULL || pp != NULL);}
-
+  bool IsDefined() const { return ((p != NULL && p!=NullGDL::GetSingleInstance()) || (pp != NULL && (*pp)!=NullGDL::GetSingleInstance()));}
   bool IsP() const { return p != NULL;}
   bool IsPP() const { return pp != NULL;}
   bool IsNULL() const { return (pp == NULL && p == NULL);}
@@ -252,7 +253,11 @@ public:
   {
     return env[ix].IsNULL();
   }
-
+  
+  bool IsDefined( const SizeT ix)
+  {
+    return env[ix].IsDefined();
+  }
   BaseGDL*& operator[]( const SizeT ix)
   {
     if( env[ ix].IsPP() )
