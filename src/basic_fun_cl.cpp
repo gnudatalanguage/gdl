@@ -411,7 +411,7 @@ namespace lib {
         //puttinf in milliseconds
         char milli[50]; //size of 50 to avoid buffer overload (not optimal)
         snprintf(milli,50, "%03ld", (long) tv.tv_usec/1000);
-        snprintf(timestamp + 20,3, "%.3s", milli);
+        snprintf(timestamp + 20,4, "%.3s", milli);
         ts=timestamp;
       }
 
