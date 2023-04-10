@@ -8787,58 +8787,98 @@ namespace lib {
   // indices must match
 
   BaseGDL* scope_varfetch_value(EnvT* e) {
-    SizeT nParam = e->NParam();
+    SizeT nParam = e->NParam(1);
 
     EnvStackT& callStack = e->Interpreter()->CallStack();
     //     DLong curlevnum = callStack.size()-1;
     // 'e' is not on the stack
     DLong curlevnum = callStack.size();
 
-    //     static int variablesIx = e->KeywordIx( "VARIABLES" );
     static int levelIx = e->KeywordIx("LEVEL");
     static int enterIx = e->KeywordIx("ENTER");
     bool acceptNew = e->KeywordSet(enterIx);
     static int refextraIx = e->KeywordIx("REF_EXTRA");
     bool doesRefExtra=e->KeywordSet(refextraIx);
+    static int commonIx = e->KeywordIx("COMMON");
+    bool common=e->KeywordSet(commonIx);
     
     DLongGDL* level = e->IfDefGetKWAs<DLongGDL>(levelIx);
 
     DLong desiredlevnum = 0;
-
-    if (level != NULL)
-      desiredlevnum = (*level)[0];
-
+    if (level != NULL) desiredlevnum = (*level)[0];
     if (desiredlevnum <= 0) desiredlevnum += curlevnum;
     if (desiredlevnum < 1) desiredlevnum = 1;
     else if (desiredlevnum > curlevnum) desiredlevnum = curlevnum;
-
-    DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum - 1]->GetPro());
-
-    SizeT nVar = pro->Size(); // # var in GDL for desired level
-    int nKey = pro->NKey();
-
-    DString varName;
-
-    e->AssureScalarPar<DStringGDL>(0, varName);
-    varName = StrUpCase(varName);
     
+    //a few checks:
+    if ( common && (level != NULL) ) e->Throw("Conflicting keywords.");
+    if ( common &&  acceptNew ) e->Throw("Conflicting keywords.");
+    if ( common &&  doesRefExtra ) e->Throw("Conflicting keywords.");
+    if ( acceptNew &&  doesRefExtra ) e->Throw("Conflicting keywords.");
+
+
     if (doesRefExtra) {
-      DString Kwname=varName; //in this case it is not a varname passed, but a kwname. 
+      DString varName="";
+      e->AssureScalarPar<DStringGDL>(0, varName);
+      StrUpCaseInplace(varName);
+      //in this case it is not a varname passed, but a kwname. 
       //We need to find the associated varname at the point it was passed with the kwname
       // currentlevnum is this function scope_varfetch_value
       //previous is caller, probably contains _REF_EXTRA=xxx
       //GetRefExtraList(Kwname) should go back in stack to the point where kwname=varName was passed.  
-      BaseGDL* var = ((EnvT*) (callStack[desiredlevnum - 1]))->GetRefExtraList(Kwname);
-      if (var == NULL) e->Throw("Variable not found: " + Kwname); else return var->Dup();
+      BaseGDL* var = ((EnvT*) (callStack[desiredlevnum - 1]))->GetRefExtraList(varName);
+      if (var == NULL) e->Throw("Variable not found: " + varName);
+      else return var->Dup();
     }
     
+    if (common) {
+      DString commonName = "";
+      e->AssureStringScalarKW(commonIx, commonName);
+      StrUpCaseInplace(commonName);
+      CommonListT::iterator it;
+      for (it = commonList.begin(); it != commonList.end(); ++it) {
+        if ((*it)->Name() == commonName) {
+          SizeT nComm = (*it)->NVar();
+          BaseGDL* p0 = e->GetPar(0);
+          if (p0->Type() == GDL_STRING) {
+            DString s = "";
+            e->AssureStringScalarPar(0, s);
+            StrUpCaseInplace(s);
+            for (auto i = 0; i < nComm; ++i) {
+              if ((*it)->VarName(i) == s) {
+                BaseGDL* ret = (*it)->Var(i)->Data();
+                if (ret == NULL) e->Throw("Variable is undefined: <No name>."); //must THROW on undefined value
+                return ret;
+              }
+            }
+            e->Throw("Variable not found: " + s);
+          } else { //number
+            DLong ipar = 0;
+            e->AssureLongScalarPar(0, ipar);
+            if ((ipar >= 0) && (ipar < nComm)) {
+              BaseGDL* ret = (*it)->Var(ipar)->Data();
+              if (ret == NULL) e->Throw("Variable is undefined: <No name>."); //must THROW on undefined value
+              return ret;
+            }
+            e->Throw("Attempt to extend common block: " + commonName);
+          }
+        }
+      }
+    }
+    
+    // not Common: normal name
+    DString varName;
+    e->AssureScalarPar<DStringGDL>(0, varName);
+    varName = StrUpCase(varName);
+    DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum - 1]->GetPro());
+    SizeT nVar = pro->Size(); // # var in GDL for desired level
+    int nKey = pro->NKey();
     int xI = pro->FindVar(varName);
     if (xI != -1) {
       //       BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
       BaseGDL*& par = callStack[desiredlevnum - 1]->GetTheKW(xI);
 
-      if (par == NULL)
-        e->Throw("Variable is undefined: " + varName);
+      if (par == NULL) e->Throw("Variable is undefined: " + varName);
 
       return par->Dup();
     } else if (acceptNew) {
@@ -8862,44 +8902,85 @@ namespace lib {
     // 'e' is not on the stack
     DLong curlevnum = callStack.size();
 
-    //     static int variablesIx = e->KeywordIx( "VARIABLES" );
     static int levelIx = e->KeywordIx("LEVEL");
     static int enterIx = e->KeywordIx("ENTER");
     bool acceptNew = e->KeywordSet(enterIx);
     static int refextraIx = e->KeywordIx("REF_EXTRA");
-    bool doesRefExtra=e->KeywordSet(refextraIx);
+    bool doesRefExtra = e->KeywordSet(refextraIx);
+    static int commonIx = e->KeywordIx("COMMON");
+    bool common = e->KeywordSet(commonIx);
 
     DLongGDL* level = e->IfDefGetKWAs<DLongGDL>(levelIx);
 
     DLong desiredlevnum = 0;
-
-    if (level != NULL)
-      desiredlevnum = (*level)[0];
-
+    if (level != NULL) desiredlevnum = (*level)[0];
     if (desiredlevnum <= 0) desiredlevnum += curlevnum;
     if (desiredlevnum < 1) desiredlevnum = 1;
     else if (desiredlevnum > curlevnum) desiredlevnum = curlevnum;
 
-    DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum - 1]->GetPro());
+    //a few checks:
+    if (common && (level != NULL)) e->Throw("Conflicting keywords.");
+    if (common && acceptNew) e->Throw("Conflicting keywords.");
+    if (common && doesRefExtra) e->Throw("Conflicting keywords.");
+    if (acceptNew && doesRefExtra) e->Throw("Conflicting keywords.");
 
-    SizeT nVar = pro->Size(); // # var in GDL for desired level
-    int nKey = pro->NKey();
 
-    DString varName;
-
-    e->AssureScalarPar<DStringGDL>(0, varName);
-    varName = StrUpCase(varName);
-    
     if (doesRefExtra) {
-      DString Kwname=varName; //in this case it is not a varname passed, but a kwname. 
+      DString varName;
+      e->AssureScalarPar<DStringGDL>(0, varName);
+      StrUpCaseInplace(varName);
+      //in this case it is not a varname passed, but a kwname. 
       //We need to find the associated varname at the point it was passed with the kwname
       // currentlevnum is this function scope_varfetch_value
       //previous is caller, probably contains _REF_EXTRA=xxx
       //GetRefExtraList(Kwname) should go back in stack to the point where kwname=varName was passed.  
-      BaseGDL** var = ((EnvT*) (callStack[desiredlevnum - 1]))->GetRefExtraListPtr(Kwname);
-      if (var == NULL) e->Throw("Variable not found: " + Kwname); else return var;
+      BaseGDL** var = ((EnvT*) (callStack[desiredlevnum - 1]))->GetRefExtraListPtr(varName);
+      if (var == NULL) e->Throw("Variable not found: " + varName);
+      else return var;
     }
-    
+
+    if (common) {
+      DString commonName = "";
+      e->AssureStringScalarKW(commonIx, commonName);
+      StrUpCaseInplace(commonName);
+      CommonListT::iterator it;
+      for (it = commonList.begin(); it != commonList.end(); ++it) {
+        if ((*it)->Name() == commonName) {
+          SizeT nComm = (*it)->NVar();
+          BaseGDL* p0 = e->GetPar(0);
+          if (p0->Type() == GDL_STRING) {
+            DString s="";
+            e->AssureStringScalarPar(0,s);
+            StrUpCaseInplace(s);
+            for (auto i = 0; i < nComm; ++i) {
+              if ((*it)->VarName(i) == s) {
+                BaseGDL* ret=(*it)->Var(i)->Data();
+                // if (ret == NULL) e->Throw("Variable is undefined: <No name>."); //does NOT THROW
+                return &((*it)->Var(i)->Data());
+              }
+            }
+            e->Throw("Variable not found: " + s);
+          } else { //number
+            DLong ipar = 0;
+            e->AssureLongScalarPar(0, ipar);
+            if ((ipar >= 0) && (ipar < nComm)) {
+              BaseGDL* ret=(*it)->Var(ipar)->Data();
+              // if (ret == NULL) e->Throw("Variable is undefined: <No name>."); //does not THROW
+              return &((*it)->Var(ipar)->Data());
+            }
+            e->Throw("Attempt to extend common block: " + commonName);
+          }
+        }
+      }
+    }
+
+    // not Common: normal name
+    DString varName;
+    e->AssureScalarPar<DStringGDL>(0, varName);
+    varName = StrUpCase(varName);
+    DSubUD* pro = static_cast<DSubUD*> (callStack[desiredlevnum - 1]->GetPro());
+    SizeT nVar = pro->Size(); // # var in GDL for desired level
+    int nKey = pro->NKey();
     int xI = pro->FindVar(varName);
     if (xI != -1) {
       //       BaseGDL*& par = ((EnvT*)(callStack[desiredlevnum-1]))->GetPar( xI);
@@ -8918,7 +8999,7 @@ namespace lib {
     e->Throw("LVariable not found: " + varName);
     return NULL; // compiler shut-up
   }
-
+  
   BaseGDL* scope_varname_fun(EnvT* e) {
 
     SizeT nParam = e->NParam();
@@ -8936,29 +9017,33 @@ namespace lib {
     static int levelIx = e->KeywordIx("LEVEL");
 
     if (e->KeywordSet(commonIx)) {
-
       if (e->KeywordSet(levelIx)) e->Throw("Conflicting keywords.");
-
       DString commonName = "";
       e->AssureStringScalarKW(commonIx, commonName);
-      DSubUD* pro = static_cast<DSubUD*> (e->Caller()->GetPro());
-      DCommon* common = pro->Common(StrUpCase(commonName));
-      if (common == NULL) e->Throw("Common block does not exist: " + commonName);
-      bool passed_list = true;
-      SizeT nComm = common->NVar();
-      if (nParam < 1) {
-        nParam = nComm;
-        passed_list = false;
+      StrUpCaseInplace(commonName);
+      CommonListT::iterator it;
+      bool absent=true;
+      for (it = commonList.begin(); it != commonList.end(); ++it) {
+        if ((*it)->Name() == commonName ) {
+          absent=false;
+          bool passed_list = true;
+          SizeT nComm = (*it)->NVar();
+          if (nParam < 1) {
+            nParam = nComm;
+            passed_list = false;
+          }
+          count = nParam;
+          retVal = new DStringGDL(dimension(count), BaseGDL::NOZERO);
+          for (auto i=0; i < count; ++i) {
+            DLong ipar = i;
+            if (passed_list) e->AssureLongScalarPar(i, ipar);
+            if ((ipar >= 0) && (ipar < nComm)) {
+              (*retVal)[i] = (*it)->VarName(ipar);
+            } else ( *retVal)[i] = "";
+          }
+        }
       }
-      count = nParam;
-      retVal = new DStringGDL(dimension(count), BaseGDL::NOZERO);
-      for (SizeT i(0); i < count; ++i) {
-        DLong ipar = i;
-        if (passed_list) e->AssureLongScalarPar(i, ipar);
-        if ((ipar >= 0) && (ipar < nComm)) {
-          (*retVal)[i] = common->VarName(ipar);
-        } else ( *retVal)[i] = "";
-      }
+      if (absent) e->Throw("Common block does not exist: " + commonName);
     } else {
 
       DLongGDL* kwLvl = e->IfDefGetKWAs<DLongGDL>(levelIx);
