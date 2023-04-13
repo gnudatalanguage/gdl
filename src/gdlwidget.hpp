@@ -86,8 +86,8 @@
 #define gdlTEXT_XMARGIN 4
 #define gdlTEXT_YMARGIN 4
 #define DONOTALLOWSTRETCH 0
-#define ALLOWSTRETCH 1
-#define FRAME_ALLOWSTRETCH 1
+#define ALLOWSTRETCH 0
+#define FRAME_ALLOWSTRETCH 0
 #define DEFAULT_TREE_IMAGE_SIZE 16
 
 #ifdef __WXMSW__
@@ -665,7 +665,7 @@ public:
   
   virtual void MakeInteractive() {std::cerr<<"XMANAGER ACTIVE COMMAND on a not-top widget, please report."<<std::endl;}
   
-  virtual bool IsUsingInteractiveEventLoop() {std::cerr<<"IsEventLoopBlocked on a not-top widget, please report."<<std::endl;return false;} //default for a normal widget
+  virtual bool IsUsingInteractiveEventLoop() {/*std::cerr<<"IsEventLoopBlocked on a not-top widget, please report."<<std::endl*/;return false;} //default for a normal widget
 
   void SetEventPro( const DString& ePro) { eventPro = StrUpCase( ePro);}
   const DString& GetEventPro() const { return eventPro;};
@@ -1071,7 +1071,7 @@ public:
  typedef enum ButtonType_ {
   UNDEFINED=-1, NORMAL=0, RADIO=1, CHECKBOX=2, MENU=3, ENTRY=4, BITMAP=5, POPUP_NORMAL=6, POPUP_BITMAP=7} ButtonType;
  ButtonType buttonType;
-  wxBitmap* buttonBitmap;
+//  wxBitmap* buttonBitmap;
   wxMenuItem* menuItem;
   bool       buttonState; //only for buttons
   wxString valueWxString;
@@ -1391,6 +1391,7 @@ public:
   void SetLabelValue( const DString& value_);
   bool IsLabel() const final { return true;} 
   wxSize computeWidgetSize() final;
+  wxSize updateDynamicWidgetSize();
   int widgetAlignment();
   void SetWidgetSize(DLong sizex, DLong sizey) final; 
 };
