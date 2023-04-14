@@ -3462,7 +3462,7 @@ void widget_control( EnvT* e ) {
     widget->EnableWidgetUpdate(e->KeywordSet(UPDATE));
   }
 
-  if (realize) {
+  if (realize && !widget->IsRealized()) { //prevent to act on a realized widget : caused problems.
     if (do_map) widget->Realize(e->KeywordSet(mapIx)); else widget->Realize(true,true); //specifically ask for whatever map value was given to the base widget
   } else if (do_map) { //alone... 
     GDLWidgetBase * w = widget->GetMyBaseWidget();
