@@ -92,7 +92,6 @@ if (frameWidth > 0) {\
   }\
   widgetPanel->FitInside();
 
-#define UPDATE_WINDOW { if (this->IsRealized()) UpdateGui(); }
 #define REALIZE_IF_NEEDED { if (this->IsRealized()) {this->OnRealize(); UpdateGui();} }
 
 //a few useful defaut pixmaps:
@@ -1224,7 +1223,7 @@ void GDLWidget::SetFocus() //gives focus to the CHILD of the panel.
       me->Move(where);
     } else cerr<<"set offset on non-existent widget!"<<endl;
 
-    UPDATE_WINDOW;
+    UpdateGui();
 
   }
 
@@ -1265,7 +1264,7 @@ void GDLWidget::SetWidgetSize(DLong sizex, DLong sizey) //in pixels. Always.
   //the sizer takes care of the eventual frame
   me->SetMinSize(wSize);
   
-    UPDATE_WINDOW;
+  UpdateGui();
 
   END_CHANGESIZE_NOEVENT
   
@@ -1947,7 +1946,7 @@ void GDLWidgetBase::CreateBase(wxWindow* parent){
   me->SetSize( theSize );
   me->SetMinSize( theSize );
   
-  UPDATE_WINDOW;
+  UpdateGui();
 
   END_CHANGESIZE_NOEVENT
 
@@ -2063,7 +2062,7 @@ wxMenu* macmenu[1];
   }
  this->AddToDesiredEvents(wxEVT_SHOW_REQUEST, wxCommandEventHandler(gdlwxFrame::OnShowRequest), topFrame);
  this->AddToDesiredEvents(wxEVT_HIDE_REQUEST, wxCommandEventHandler(gdlwxFrame::OnShowRequest), topFrame);
- //UPDATE_WINDOW; REALIZE_IF_NEEDED //no use here
+ //UpdateGui(); REALIZE_IF_NEEDED //no use here
  //this->Realize(false);
 }
 
@@ -2146,7 +2145,7 @@ GDLWidget* gdlParent = GetWidget( parentID );
   theWxWidget = menu;
   buttonType = MENU;
 
-//  UPDATE_WINDOW; REALIZE_IF_NEEDED; //no use (TBC)
+//  UpdateGui(); REALIZE_IF_NEEDED; //no use (TBC)
 }
 
 GDLWidgetContextBase::~GDLWidgetContextBase() {
@@ -2186,7 +2185,7 @@ GDLWidgetTabbedBase::GDLWidgetTabbedBase(WidgetIDT parentID, EnvT* e, ULong even
   myPage=parentTab->GetPageCount();
   parentTab->InsertPage(myPage, w, titleWxString);
  
-//  UPDATE_WINDOW
+//  UpdateGui();
   REALIZE_IF_NEEDED
 }
 /*********************************************************/
@@ -2210,7 +2209,7 @@ GDLWidgetNormalBase::GDLWidgetNormalBase(WidgetIDT parentID, EnvT* e, ULong even
   assert(wxParent != NULL);
   CreateBase(wxParent);
   
-//  UPDATE_WINDOW
+//  UpdateGui();
   REALIZE_IF_NEEDED
 }
 
@@ -2501,7 +2500,7 @@ GDLWidgetTab::GDLWidgetTab(WidgetIDT p, EnvT* e, ULong eventFlags_, DLong locati
   notebook->SetPadding(wxSize(0, 0));
   END_ADD_EVENTUAL_FRAME
   TIDY_WIDGET(gdlBORDER_SPACE)
-  //  UPDATE_WINDOW
+  //  UpdateGui();
   REALIZE_IF_NEEDED
   this->AddToDesiredEvents(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, wxNotebookEventHandler(gdlwxFrame::OnPageChanged), notebook);
 }
@@ -2806,7 +2805,7 @@ TIDY_WIDGET(gdlBORDER_SPACE);
       this->AddToDesiredEvents( wxEVT_GRID_SELECT_CELL,wxGridEventHandler(wxGridGDL::OnTableCellSelection),grid);
 //      this->AddToDesiredEvents( wxEVT_GRID_CELL_LEFT_CLICK,wxGridEventHandler(wxGridGDL::OnTableCellSelection),grid);
 
-// UPDATE_WINDOW
+// UpdateGui();
  REALIZE_IF_NEEDED
 }
 
@@ -4181,7 +4180,7 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
       myTreeRoot->Refresh();
     }
   }
-    //    UPDATE_WINDOW
+    //    UpdateGui();
     REALIZE_IF_NEEDED
     if ( eventFlags & GDLWidget::EV_CONTEXT ) myTreeRoot->Connect(widgetID,wxEVT_CONTEXT_MENU, wxContextMenuEventHandler(gdlwxFrame::OnContextEvent));
 }
@@ -4572,7 +4571,7 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
   END_ADD_EVENTUAL_FRAME
   widgetStyle=widgetAlignment(); //alignmant is only used in TIDY_WIDGET
   TIDY_WIDGET(gdlBORDER_SPACE)
-//  UPDATE_WINDOW
+//  UpdateGui();
   REALIZE_IF_NEEDED 
   this->AddToDesiredEvents( wxEVT_SCROLL_CHANGED,wxScrollEventHandler(gdlwxFrame::OnThumbRelease),slider);
   //dynamically select drag, saves resources! (note: there is no widget_control,/drag for sliders)
@@ -4683,7 +4682,7 @@ GDLWidgetNormalButton::GDLWidgetNormalButton(WidgetIDT p, EnvT* e,
   
   END_ADD_EVENTUAL_FRAME
   TIDY_WIDGET(gdlBORDER_SPACE)
-//  UPDATE_WINDOW
+//  UpdateGui();
   REALIZE_IF_NEEDED
 
 }
@@ -4760,7 +4759,7 @@ GDLWidgetSubMenu::GDLWidgetSubMenu(WidgetIDT p, EnvT* e,
   theWxContainer = menu; //is not a window: special treatment
   theWxWidget = submenu; 
   buttonType = MENU;
-  //No UPDATE_WINDOW see menu entry.
+  //No UpdateGui(); see menu entry.
 
 }
 
@@ -4877,7 +4876,7 @@ GDLWidgetMenuBarButton::GDLWidgetMenuBarButton(WidgetIDT p, EnvT* e,
 
     //MBAR menus cannot have a tooltip due to 
 
-//    UPDATE_WINDOW; REALIZE_IF_NEEDED; //made on the fly, non need.
+//    UpdateGui(); REALIZE_IF_NEEDED; //made on the fly, non need.
   }
 }
 
@@ -4924,7 +4923,7 @@ GDLWidgetMenuBarButton::GDLWidgetMenuBarButton(WidgetIDT p, EnvT* e,
     if (widgetSizer) widgetSizer->Add(win, DONOTALLOWSTRETCH, widgetStyle|wxALL, gdlSPACE); //|wxALL, gdlSPACE_BUTTON);
   } else cerr << "Warning GDLWidgetMenuButton::GDLWidgetMenuButton(): widget type confusion.\n";
 
-//    UPDATE_WINDOW; REALIZE_IF_NEEDED;
+//    UpdateGui(); REALIZE_IF_NEEDED;
 }
 #endif
 
@@ -5014,7 +5013,7 @@ GDLWidgetMenuButton::GDLWidgetMenuButton(WidgetIDT p, EnvT* e,
     if (widgetSizer) widgetSizer->Add(win, DONOTALLOWSTRETCH, widgetStyle|wxALL, gdlSPACE); //|wxALL, gdlSPACE_BUTTON);
   } else cerr << "Warning GDLWidgetMenuButton::GDLWidgetMenuButton(): widget type confusion.\n";
 
-//  UPDATE_WINDOW
+//  UpdateGui();
   REALIZE_IF_NEEDED
 }
 
@@ -5114,7 +5113,7 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style,
   END_ADD_EVENTUAL_FRAME
   TIDY_WIDGET(gdlBORDER_SPACE)
   
-//  UPDATE_WINDOW
+//  UpdateGui();
   REALIZE_IF_NEEDED
 }
 void GDLWidgetList::SetWidgetSize(DLong sizex, DLong sizey)
@@ -5166,7 +5165,7 @@ void GDLWidgetList::SetWidgetSize(DLong sizex, DLong sizey)
   
   if (!widgetSizer) { if (framePanel) framePanel->Fit();}
   
-  UPDATE_WINDOW
+  UpdateGui();
 
   END_CHANGESIZE_NOEVENT
 
@@ -5292,7 +5291,7 @@ TIDY_WIDGET(gdlBORDER_SPACE);
   droplist->SetSelection(0);
   this->AddToDesiredEvents(  wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler(gdlwxFrame::OnDropList),droplist);
 
-//  UPDATE_WINDOW
+//  UpdateGui();
   REALIZE_IF_NEEDED
 }
   
@@ -5377,7 +5376,7 @@ GDLWidgetComboBox::GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value, DULo
   
   END_ADD_EVENTUAL_FRAME
   TIDY_WIDGET(gdlBORDER_SPACE)
-//  UPDATE_WINDOW
+//  UpdateGui();
   REALIZE_IF_NEEDED
 }
 
@@ -5572,7 +5571,7 @@ bool editable_ )
   if (report) this->AddToDesiredEvents( wxEVT_LEFT_UP, wxMouseEventHandler(gdlwxFrame::OnTextMouseEvents),text); 
   if (report) this->AddToDesiredEvents( wxEVT_MIDDLE_DOWN, wxMouseEventHandler(gdlwxFrame::OnTextMouseEvents),text); 
 
-//  UPDATE_WINDOW
+//  UpdateGui();
   REALIZE_IF_NEEDED
 }
 void GDLWidgetText::SetWidgetSize(DLong sizex, DLong sizey)
@@ -5624,7 +5623,7 @@ void GDLWidgetText::SetWidgetSize(DLong sizex, DLong sizey)
   me->SetMinClientSize(wSize);
   if (!widgetSizer) if (framePanel) framePanel->Fit();
 
-  UPDATE_WINDOW
+  UpdateGui();
 
   END_CHANGESIZE_NOEVENT
   
@@ -5838,7 +5837,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , DU
     theWxContainer = theWxWidget = label;
     if (widgetSizer) widgetSizer->Add(label, ALLOWSTRETCH, widgetStyle|wxALL, gdlSPACE);
     if (widgetSizer) widgetSizer->Fit(label); else widgetPanel->Fit();
-//    UPDATE_WINDOW
+//    UpdateGui();
     REALIZE_IF_NEEDED
     return;
   } 
@@ -5869,7 +5868,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , DU
 TIDY_WIDGET(gdlBORDER_SPACE);
 theWxWidget=label; //good value for theWxWidget
 
-//  UPDATE_WINDOW
+//  UpdateGui();
   REALIZE_IF_NEEDED
 }
 
@@ -5909,7 +5908,7 @@ void GDLWidgetLabel::SetWidgetSize(DLong sizex, DLong sizey) //in pixels. Always
   //the sizer takes care of the eventual frame
   me->SetMinSize(wSize);
 
-  UPDATE_WINDOW
+  UpdateGui();
 
   END_CHANGESIZE_NOEVENT
   
@@ -5986,7 +5985,7 @@ void GDLWidgetLabel::SetLabelValue(const DString& value_) {
 //// A file selector property.
 //pg->Append( new wxFileProperty("FileProperty", wxPG_LABEL, wxEmptyString) );
 //
-//UPDATE_WINDOW; REALIZE_IF_NEEDED;
+//UpdateGui(); REALIZE_IF_NEEDED;
 //}
 #endif
 // GDL widgets =====================================================
@@ -6289,7 +6288,7 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex,
        this->AddToDesiredEvents(wxEVT_KEY_UP, wxKeyEventHandler(gdlwxDrawPanel::OnKey),draw); 
   }
 
-//   UPDATE_WINDOW 
+//   UpdateGui(); 
    REALIZE_IF_NEEDED 
 }
 
