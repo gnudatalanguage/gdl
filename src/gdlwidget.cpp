@@ -85,8 +85,8 @@ if (frameWidth > 0) {\
     /* 3) re-add all child windows (including this one) */\
     if (this->IsRealized()) {\
       GDLWidgetBase* b = static_cast<GDLWidgetBase*> (gdlParent);\
-      b->ReorderForANewWidget(static_cast<wxWindow*> (theWxContainer), DONOTALLOWSTRETCH, widgetStyle | wxALL, b->getSpace());\
-    } else widgetSizer->Add(static_cast<wxWindow*> (theWxContainer), DONOTALLOWSTRETCH, widgetStyle | wxALL, xxx);\
+      b->ReorderForANewWidget(static_cast<wxWindow*> (theWxContainer), DONOTALLOWSTRETCH, widgetAlignment() | wxALL, b->getSpace());\
+    } else widgetSizer->Add(static_cast<wxWindow*> (theWxContainer), DONOTALLOWSTRETCH, widgetAlignment()  | wxALL, xxx);\
   } else {\
     static_cast<wxWindow*> (theWxContainer)->SetPosition(wOffset);\
   }\
@@ -1129,7 +1129,6 @@ GDLWidget::GDLWidget( WidgetIDT p, EnvT* e, BaseGDL* vV, DULong eventFlags_)
 , font(defaultFont)
 , valid(true)
 , alignment(gdlwALIGN_NOT)
-, widgetStyle(wxSTRETCH_NOT)
 , dynamicResize(0) //unset
 , eventFun("")
 , eventPro("")
@@ -1337,7 +1336,7 @@ void GDLWidgetTabbedBase::SetBaseTitle(std::string &title_)
 {
   GDLWidgetTab* parentTab=dynamic_cast<GDLWidgetTab*>(this->GetMyParent());
   if (parentTab) {
-    wxNotebook* wxParent = dynamic_cast<wxNotebook*> (parentTab->GetWxWidget( ));
+    gdlNotebook* wxParent = dynamic_cast<gdlNotebook*> (parentTab->GetWxWidget( ));
     wxParent->SetPageText(wxParent->FindPage(static_cast<wxWindow*>(theWxWidget)),wxString(title_.c_str(), wxConvUTF8));
   }
 #ifdef GDL_DEBUG_WIDGETS
@@ -1352,7 +1351,7 @@ GDLWidgetTabbedBase::~GDLWidgetTabbedBase()
 #endif
   GDLWidgetTab* parentTab=static_cast<GDLWidgetTab*>(this->GetMyParent());
   if (parentTab) { //may be already destroyed.
-    wxNotebook* wxParent = static_cast<wxNotebook*> (parentTab->GetWxWidget( ));
+    gdlNotebook* wxParent = static_cast<gdlNotebook*> (parentTab->GetWxWidget( ));
     //whereAmI?
     myPage=wxParent->FindPage(static_cast<wxWindow*>(theWxContainer));
     if (wxParent) wxParent->RemovePage(myPage); //do not delete the page, GDL will delete the contents itself, widget per widget.
@@ -1789,8 +1788,11 @@ GDLWidgetBase::GDLWidgetBase(WidgetIDT parentID, EnvT* e, ULong eventFlags_,
 // the widgetSizer may be NULL, in which case the placement of children inside the panel will be governed by their respective size and position,
 // but if widgetSizer exist, then everytime a new child is created, it must be invoked to resize/reposition this child.
 //
+// NOTE: a=widget_base(/base_align_center, /scroll,xsize=300,ysize=300) will NOT produce a blank 300x300 panel inside a 100x100 scolled window, as we use only ONE
+// panel, and the internal size (the VirtualSize) will be determined by what WILL BE created as childrens (there exist no 
+// This is completely different from IDL's Motif widgets, and there is no SetMinVirtualSize()
 void GDLWidgetBase::CreateBase(wxWindow* parent){
-//the container is as ScrollPanel
+//the container is a ScrollPanel
 //  bool doFrame=true; //!(this->IsTopBase()); //IDL Prevents topBases to be framed (?).
   if (frameWidth > 0) {
     wxPanel* frame = new wxPanel(parent, wxID_ANY, wOffset, wxDefaultSize, gdlBORDER_EXT); 
@@ -2176,7 +2178,7 @@ GDLWidgetTabbedBase::GDLWidgetTabbedBase(WidgetIDT parentID, EnvT* e, ULong even
   GDLWidgetTab* parent = static_cast<GDLWidgetTab*> (GetWidget(parentID));
   assert(parent != NULL);
 
-  wxNotebook* parentTab = dynamic_cast<wxNotebook*> (parent->GetWxWidget());
+  gdlNotebook* parentTab = dynamic_cast<gdlNotebook*> (parent->GetWxWidget());
   assert(parentTab != NULL);
   wxString titleWxString = wxString(title_.c_str(), wxConvUTF8);
   if (nrows < 1 && ncols < 1 && frameWidth < 1) frameWidth=1; //set framewidth (temporary) in this case to get good result
@@ -2480,7 +2482,7 @@ GDLWidgetTab::GDLWidgetTab(WidgetIDT p, EnvT* e, ULong eventFlags_, DLong locati
 : GDLWidgetContainer(p, e, eventFlags_) {
 
   scrolled = false; //TAB has no Scrolled.
-
+  this->setFont();
   GDLWidget* gdlParent = GetWidget(parentID);
   widgetPanel = GetParentPanel();
   widgetSizer = GetParentSizer();
@@ -2494,10 +2496,10 @@ GDLWidgetTab::GDLWidgetTab(WidgetIDT p, EnvT* e, ULong eventFlags_, DLong locati
     style |= wxNB_MULTILINE; //works only for WINDOWS.
 
 #include "start_eventual_frame.incpp"
-  wxNotebook * notebook;
-  notebook = new wxNotebook(widgetPanel, widgetID, wOffset, computeWidgetSize(), style);
+  gdlNotebook * notebook;
+  notebook = new gdlNotebook(widgetPanel, widgetID, wOffset, computeWidgetSize(), style);
   theWxContainer = theWxWidget = notebook;
-  notebook->SetPadding(wxSize(0, 0));
+//  notebook->SetPadding(wxSize(0, 0));
   END_ADD_EVENTUAL_FRAME
   TIDY_WIDGET(gdlBORDER_SPACE)
   //  UpdateGui();
@@ -2511,19 +2513,19 @@ GDLWidgetTab::~GDLWidgetTab() {
 }
 
 BaseGDL* GDLWidgetTab::GetTabNumber(){
-  wxNotebook * notebook=dynamic_cast<wxNotebook*>(theWxWidget);
+  gdlNotebook * notebook=dynamic_cast<gdlNotebook*>(theWxWidget);
   assert( notebook != NULL);
   return new DIntGDL(notebook->GetPageCount());
 }
 
 BaseGDL* GDLWidgetTab::GetTabCurrent(){
-  wxNotebook * notebook=dynamic_cast<wxNotebook*>(theWxWidget);
+  gdlNotebook * notebook=dynamic_cast<gdlNotebook*>(theWxWidget);
   assert( notebook != NULL);
   return new DIntGDL(notebook->GetSelection());
 }
 
 void GDLWidgetTab::SetTabCurrent(int val){
-  wxNotebook * notebook=dynamic_cast<wxNotebook*>(theWxWidget);
+  gdlNotebook * notebook=dynamic_cast<gdlNotebook*>(theWxWidget);
   assert( notebook != NULL);
   if (val<notebook->GetPageCount()){
 //   notebook->GetPage(val)->Raise();    
@@ -2532,24 +2534,13 @@ void GDLWidgetTab::SetTabCurrent(int val){
 }
 
 BaseGDL* GDLWidgetTab::GetTabMultiline(){
-  wxNotebook * notebook=dynamic_cast<wxNotebook*>(theWxWidget);
+  gdlNotebook * notebook=dynamic_cast<gdlNotebook*>(theWxWidget);
   assert( notebook != NULL);
   return new DIntGDL(notebook->GetExtraStyle()&wxNB_MULTILINE);
 }
-//special as wxNotebook DOES NOT RECOMPILE ITS SIZE BEFORE REALIZATION.
+//special as gdlNotebook DOES NOT RECOMPILE ITS SIZE BEFORE REALIZATION.
 void GDLWidgetTab::OnRealize(){
   GDLWidgetContainer::OnRealize();
-//  wxNotebook * nb=dynamic_cast<wxNotebook*>(theWxWidget);
-//  assert( nb != NULL);
-//  size_t n=nb->GetPageCount();
-//  if (n > 1) {
-//    wxSize s=nb->GetSize();
-//    //insure larger enough to see tab changer
-//    if (s.x < 100) {
-//      s.x=100;
-//      nb->SetMinSize(s);
-//    }
-//  }
 }
 
 
@@ -2634,8 +2625,6 @@ DULong eventFlags_
   widgetSizer = GetParentSizer( );
 
   #include "start_eventual_frame.incpp"   //Widget_TABLE
-
-  widgetStyle=widgetAlignment();
 
 //at this stage, valueAsStrings is OK dim 1 or 2 BUT vVALUE MAY BE NULL!
 SizeT numRows,numCols;
@@ -4106,7 +4095,6 @@ GDLWidgetTree::GDLWidgetTree( WidgetIDT p, EnvT* e, BaseGDL* value_, DULong even
     treeItemData->SetItemId(treeItemID);
 //    tree->SetItemImage(treeItemID,(folder)?(expanded?gdlWxTree_FOLDER_OPEN:gdlWxTree_FOLDER):gdlWxTree_ITEM);
 // checkbox is not visible for root//    if (has_checkbox) tree->SetItemState(treeItemID,(checked==true)); else tree->SetItemState(treeItemID,wxTREE_ITEMSTATE_NONE); //CHECKED,UNCHECKE,NOT_VISIBLE
-    widgetStyle=widgetAlignment( );
     if (dropability == -1) droppable=0; //this for root only
     if (dragability == -1) draggable=0; //this for root only
 //do not expand root if hidden: will assert() in wxWidgets! //    if (expanded) tree->Expand(treeItemID); 
@@ -4569,7 +4557,6 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
   widgetPanel->Fit();
  
   END_ADD_EVENTUAL_FRAME
-  widgetStyle=widgetAlignment(); //alignmant is only used in TIDY_WIDGET
   TIDY_WIDGET(gdlBORDER_SPACE)
 //  UpdateGui();
   REALIZE_IF_NEEDED 
@@ -4637,7 +4624,6 @@ GDLWidgetNormalButton::GDLWidgetNormalButton(WidgetIDT p, EnvT* e,
   
   #include "start_eventual_frame.incpp" //Widget NORMAL BUTTON
 
-  widgetStyle = widgetAlignment();
   wSize = computeWidgetSize();
   //we deliberately prevent exclusive buttons when bitmap are present (exclusive buttons w/ pixmap do not exist in wxWidgets.
   if (gdlParent->GetExclusiveMode() == BGNORMAL || bitmap_) {
@@ -4981,7 +4967,6 @@ GDLWidgetMenuButton::GDLWidgetMenuButton(WidgetIDT p, EnvT* e,
   GDLWidget* gdlParent = GetWidget(parentID);
   widgetPanel = GetParentPanel();
   widgetSizer = GetParentSizer();
-  widgetStyle = widgetAlignment();
   wSize = computeWidgetSize();
 
   assert(gdlParent->IsBase());
@@ -5010,7 +4995,7 @@ GDLWidgetMenuButton::GDLWidgetMenuButton(WidgetIDT p, EnvT* e,
   wxWindow *win = dynamic_cast<wxWindow*> (theWxContainer);
   if (win) {
     if (buttonToolTip) win->SetToolTip(wxString((*buttonToolTip)[0].c_str(), wxConvUTF8));
-    if (widgetSizer) widgetSizer->Add(win, DONOTALLOWSTRETCH, widgetStyle|wxALL, gdlSPACE); //|wxALL, gdlSPACE_BUTTON);
+    if (widgetSizer) widgetSizer->Add(win, DONOTALLOWSTRETCH,  widgetAlignment()|wxALL, gdlSPACE); //|wxALL, gdlSPACE_BUTTON);
   } else cerr << "Warning GDLWidgetMenuButton::GDLWidgetMenuButton(): widget type confusion.\n";
 
 //  UpdateGui();
@@ -5082,7 +5067,6 @@ GDLWidgetList::GDLWidgetList( WidgetIDT p, EnvT* e, BaseGDL *value, DLong style,
   
   #include "start_eventual_frame.incpp" //Widget_LIST
     
-  widgetStyle = widgetAlignment();  
   if( vValue->Type() != GDL_STRING)
   {
     vValue = static_cast<DStringGDL*> (vValue->Convert2( GDL_STRING, BaseGDL::CONVERT ));
@@ -5249,7 +5233,6 @@ const DString& title_, DLong style_ )
   }
    
 ///  static int flatIx=e->KeywordIx("FLAT"); ignored.
-   widgetStyle=widgetAlignment();
   bool hastitle=(title.size()>0);
 
   //get defined sizes if any
@@ -5349,9 +5332,6 @@ GDLWidgetComboBox::GDLWidgetComboBox( WidgetIDT p, EnvT* e, BaseGDL *value, DULo
   
  #include "start_eventual_frame.incpp" //Widget_COMBOBOX
     
-  widgetStyle=widgetAlignment();
-//  wxSize size = computeWidgetSize();
-
   DStringGDL* val = static_cast<DStringGDL*> (vValue);
   DLong n = val->N_Elements( );
   wxArrayString choices; // = new wxString[n];
@@ -5524,7 +5504,6 @@ bool editable_ )
   
   #include "start_eventual_frame.incpp" //Widget_TEXT
   
-  widgetStyle = widgetAlignment();
   bool report=((eventFlags & GDLWidget::EV_ALL)==1);
   
  //for text, apparently, if   wxTE_MULTILINE is in effect, the font handler is probably RichText 
@@ -5817,7 +5796,6 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , DU
 
   if (sunken) frameWidth=0;
 
-  widgetStyle=widgetAlignment();
   const wxString valueWxString = wxString( value.c_str( ), wxConvUTF8 );
 
   bool simplelabel=(wSize.x < 0 && frameWidth <1 && !sunken); //before recomputing wSize!
@@ -5835,7 +5813,7 @@ GDLWidgetLabel::GDLWidgetLabel( WidgetIDT p, EnvT* e, const DString& value_ , DU
     label->SetMinSize(wSize);
     label->Wrap(-1);
     theWxContainer = theWxWidget = label;
-    if (widgetSizer) widgetSizer->Add(label, ALLOWSTRETCH, widgetStyle|wxALL, gdlSPACE);
+    if (widgetSizer) widgetSizer->Add(label, ALLOWSTRETCH, widgetAlignment()|wxALL, gdlSPACE);
     if (widgetSizer) widgetSizer->Fit(label); else widgetPanel->Fit();
 //    UpdateGui();
     REALIZE_IF_NEEDED
@@ -6230,7 +6208,6 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex,
   
   #include "start_eventual_frame.incpp" //Widget_DRAW
     
-  widgetStyle = widgetAlignment();
   long style = 0;
 
   gdlwxDrawPanel* draw = new gdlwxDrawPanel( widgetPanel, widgetID, wxDefaultPosition, wxDefaultSize, style);

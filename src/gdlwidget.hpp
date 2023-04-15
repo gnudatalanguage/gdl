@@ -54,6 +54,9 @@
 #include <wx/artprov.h>
 #include <wx/popupwin.h>
 #include <wx/notebook.h>
+#include <wx/toolbook.h>
+ #define gdlNotebook wxNotebook
+//#define gdlNotebook wxToolbook
 #include <wx/dcbuffer.h>
 #include <wx/toolbar.h>
 #include <wx/listbox.h>
@@ -463,7 +466,6 @@ protected:
   wxFont       font;
   bool         valid; //if not, is in the process of being destroyed (prevent reentrance).
   long  alignment; //alignment of the widget
-  int widgetStyle; //style (alignment code + other specific codes used as option to widgetsizer). Needed only because of frame/unframe  function
   int dynamicResize; //for some widgets, will enable resizing: -1: not resizable, 0/1 resizable
   std::vector<WidgetIDT> followers; //all the widgets that use me as group_leader
   std::vector<WidgetEventInfo*> desiredEventsList; //list of all the events (and handlers) this widget must obey.
