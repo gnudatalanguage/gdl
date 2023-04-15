@@ -926,17 +926,17 @@ BaseGDL* widget_draw( EnvT* e ) {
   // consistency
   if ( nonexclusive && exclusive ) e->Throw( "Conflicting keywords: [NON]EXCLUSIVE" );
   //exclusive and non-exclusive bases ignore the xoffset and yoffset keyword. Furthermore, the layout is always set (/COL or /ROW, but not "nothing").
-  //besides, SPACE is ignored.
+  //besides, SPACE, XPAD and YPAD are ignored.
   //according to doc, Exclusive and non-exclusive base admit only button widget children, but simple tests show it is not the case for IDL up to now.
 
   //xpad, ypad and space default to gdlPAD if not precised:
 
   DLong space=gdlSPACE;
   if ( e->KeywordPresent(spaceIx) && !nonexclusive && !exclusive ) e->AssureLongScalarKWIfPresent( spaceIx, space );
-  DLong xpad = gdlPAD;
-  e->AssureLongScalarKWIfPresent( xpadIx, xpad );
-  DLong ypad = gdlPAD;
-  e->AssureLongScalarKWIfPresent( ypadIx, ypad );
+  DLong xpad = space;
+  if ( !nonexclusive && !exclusive ) e->AssureLongScalarKWIfPresent( xpadIx, xpad );
+  DLong ypad = space;
+  if ( !nonexclusive && !exclusive ) e->AssureLongScalarKWIfPresent( ypadIx, ypad );
   
   DLong column = 0;
   e->AssureLongScalarKWIfPresent( columnIx, column );
@@ -995,7 +995,7 @@ BaseGDL* widget_draw( EnvT* e ) {
   WidgetIDT mBarID = mbarPresent ? 1 : 0;
 
   int exclusiveMode = GDLWidget::BGNORMAL;
-  if ( exclusive ) { exclusiveMode = GDLWidget::BGEXCLUSIVE;} //space ignored if mode=exclusive or nonexclusive
+  if ( exclusive ) { exclusiveMode = GDLWidget::BGEXCLUSIVE;} //space xpad ypad ignored if mode=exclusive or nonexclusive
   if ( nonexclusive ) { exclusiveMode = GDLWidget::BGNONEXCLUSIVE;}
 
   //events:
