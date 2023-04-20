@@ -384,7 +384,7 @@ endif
     sl1=widget_slider(xoff=150,yoff=offy,slider_baseh,MIN=0,MAX=100,TITLE="FRAME=100+DRAG+HORIZONTAL+FANCY",kill_notify='slider_killed',/DRAG,FRAME=100,font=fontname) & offy+=200 ;
     tmp=widget_label(yoff=offy,slider_baseh,value="fancy, simple, horizontal, align:inherit") & offy+=10                                                                           ;
     sl3=widget_slider(yoff=offy,slider_baseh,MIN=0,MAX=1000,TITLE="SIMPLE,HORIZONTAL",font=fontname) & offy+=100                                                                   ;
-    tmp=widget_label(yoff=offy,slider_baseh,value="no label, horizontal, align:inherit") & offy+=10                                                                                ;
+    tmp=widget_label(yoff=offy,slider_baseh,value="no label, horizontal, align:inherit") & offy+=10                                                                             ;
     sl3=widget_slider(yoff=offy,slider_baseh,MIN=0,MAX=1000) & offy+=30                                                                                                            ;
     tmp=widget_label(yoff=offy,slider_baseh,value="except the following no label slider, centered",/align_center) & offy+=10                                                       ;
     sl3=widget_slider(yoff=offy,slider_baseh,MIN=0,MAX=1000,/align_center) & offy+=10                                                                                              ;
@@ -393,9 +393,11 @@ endif
     slider_basev = widget_base( tabbed_base, TITLE="V_SLIDER",_extra=extra) & offy=0
 
 ;SLIDERs
-    sl=widget_slider(yoff=offy,slider_basev,MIN=0,MAX=100,TITLE="FRAME=100+VERTICAL",kill_notify='slider_killed',ysize=300,xsize=200,FRAME=20,/VERT,font=fontname) & offy+=400 ;
-    sl3=widget_slider(yoff=offy,slider_basev,MIN=0,MAX=1000,TITLE="SIMPLE,VERTICAL",font=fontname,/vert) & offy+=200                                                           ;
-    tmp=widget_label(yoff=offy,slider_basev,value="except the following no label slider, centered",/align_center) & offy+=10                                                   ;
+    tmp=widget_label(yoff=offy,slider_basev,value="Vertical slider, xsize=200, ysize=300, frame=20, fancy, kill_notify") & offy+=10                                                       ;
+    sl=widget_slider(yoff=offy,slider_basev,MIN=0,MAX=100,TITLE="A Quite Long Title.",kill_notify='slider_killed',ysize=300,xsize=200,FRAME=20,/VERT,font=fontname) & offy+=400 ;
+    tmp=widget_label(yoff=offy,slider_basev,value="Vertical slider, fancy") & offy+=10                                                       ;
+    sl3=widget_slider(yoff=offy,slider_basev,MIN=0,MAX=1000,TITLE="A title",font=fontname,/vert) & offy+=200                                                           ;
+    tmp=widget_label(yoff=offy,slider_basev,value="following no label slider will be always centered",/align_center) & offy+=10                                                   ;
     sl3=widget_slider(yoff=offy,slider_basev,MIN=0,MAX=1000,/vert,/align_center) & offy+=10                                                                                    ;
     
  endif

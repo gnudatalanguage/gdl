@@ -1,0 +1,24 @@
+wxScrolled<wxPanel>* saveWidgetPanel = widgetPanel; //widgetPanel is the panel in which the widget is created. At start it is the panel of the parent base.
+wxSizer* saveWidgetSizer = widgetSizer; //the above panel has a sizer (mat be null)
+wxSizer* frameSizer; //frameSizer must be defined since it will be used in the end_eventual_frame
+if (frameWidth > 0) {
+  framePanel = new wxPanel(widgetPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, gdlBORDER_EXT);
+  frameSizer = new wxBoxSizer(wxVERTICAL);
+  framePanel->SetSizer(frameSizer);
+  widgetPanel = static_cast<wxScrolled<wxPanel>*>(framePanel);
+
+  if (frameWidth > 1 /* &&  tryToMimicOriginalWidgets */) {
+//    framePanel->SetBackgroundColour(*wxBLACK); //will show a strong frame as does IDL
+    framePanel->SetBackgroundColour(wxColour(127,127,127)); //will show a strong frame as does IDL
+    wxPanel* frame_inside = new wxPanel(framePanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    frame_inside->SetBackgroundColour(*wxLIGHT_GREY);
+   DLong newframewidth = frameWidth/2;
+    frameSizer->Add(frame_inside, DONOTALLOWSTRETCH, wxALL|wxEXPAND, newframewidth);
+    frameWidth-=newframewidth; //maintain total framewidth width OK
+    wxSizer* sz_inside = new wxBoxSizer(wxVERTICAL);
+    frame_inside->SetSizer(sz_inside);
+    widgetPanel = static_cast<wxScrolled<wxPanel>*>(frame_inside);
+    frameSizer=sz_inside;
+  } 
+}
+
