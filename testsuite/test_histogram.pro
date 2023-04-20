@@ -601,6 +601,18 @@ if KEYWORD_SET(test) then STOP
 end
 ;
 ; ------------------------------------------------------------------
+pro TEST_BUG_1572, cumul_errors, test=test, verbose=verbose
+;
+errors=0
+;
+q=intarr(70) & q[5:-1]=1
+z=histogram(q,min=0,max=1, rev=t)
+if ~(t[2] eq 73) then ERRORS_ADD, errors, 'case 1'
+
+BANNER_FOR_TESTSUITE, "TEST_BUG_1572", errors, /short, verb=verbose
+ERRORS_CUMUL, cumul_errors, errors
+if KEYWORD_SET(test) then STOP
+end
 
 ;
 pro TEST_HISTOGRAM, help=help, test=test, verbose=verbose, no_exit=no_exit
@@ -621,6 +633,7 @@ TEST_HISTO_MAX, cumul_errors, test=test, verbose=verbose
 TEST_HISTO_TYPE, cumul_errors, test=test, verbose=verbose
 TEST_HISTO_TOUT, cumul_errors, test=test, verbose=verbose
 TEST_BUG_2846561, cumul_errors, test=test, verbose=verbose
+TEST_BUG_1572, cumul_errors, test=test, verbose=verbose
 ;
 ; ----------------- final message ----------
 ;
