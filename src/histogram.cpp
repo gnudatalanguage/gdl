@@ -207,7 +207,7 @@ static BaseGDL* do_histogram_fun(EnvT* e, BaseGDL* p0) {
       (*indices)[i] = k;
       k += (*res)[i];
     }
-    (*indices)[nbins] = (*indices)[nbins - 1] + 1;
+    (*indices)[nbins] = nri ;
     // When writing a reverse_index, one reads this offset,
     // write the reverse index at the offset, and increments offset by 1.
     for (SizeT j = 0; j < nEl; ++j) {
@@ -232,7 +232,6 @@ static BaseGDL* do_histogram_fun(EnvT* e, BaseGDL* p0) {
       (*indices)[i] = k;
       k += (*res)[i];
     }
-    (*indices)[nbins] = (*indices)[nbins - 1] + 1;
 
     e->SetKW(reverse_indicesIx, indices);
   } else {
