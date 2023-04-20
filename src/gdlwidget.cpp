@@ -3704,7 +3704,7 @@ BaseGDL* GDLWidgetTable::GetTableValuesAsStruct(DLongGDL* selection)
             res=new DIntGDL(dimension(size),BaseGDL::NOZERO);
             break;
           case GDL_LONG:
-            res=new DLongGDL(dimension(size)),BaseGDL::NOZERO;
+            res=new DLongGDL(dimension(size),BaseGDL::NOZERO);
             break;
           case GDL_FLOAT:
             res=new DFloatGDL(dimension(size),BaseGDL::NOZERO);
@@ -4906,7 +4906,7 @@ GDLWidgetMenuBarButton::GDLWidgetMenuBarButton(WidgetIDT p, EnvT* e,
   wxWindow *win = dynamic_cast<wxWindow*> (theWxContainer);
   if (win) {
     if (buttonToolTip) win->SetToolTip(wxString((*buttonToolTip)[0].c_str(), wxConvUTF8));
-    if (widgetSizer) widgetSizer->Add(win, DONOTALLOWSTRETCH, widgetStyle|wxALL, gdlSPACE); //|wxALL, gdlSPACE_BUTTON);
+    if (widgetSizer) widgetSizer->Add(win, DONOTALLOWSTRETCH, widgetAlignment()|wxALL, gdlSPACE); //|wxALL, gdlSPACE_BUTTON);
   } else cerr << "Warning GDLWidgetMenuButton::GDLWidgetMenuButton(): widget type confusion.\n";
 
 //    UpdateGui(); REALIZE_IF_NEEDED;
