@@ -74,7 +74,7 @@ namespace lib {
       if (e->NParam(0) == 4) e->AssureLongScalarPar(3, channel);
       e->AssureLongScalarKWIfPresent(CHANNELIx, channel);
       if (channel < 0 || channel > 3) e->Throw("Value of Channel is out of allowed range.");
-
+// byte conversion apparently handle NaNs quite gracefully so the /NAN (hidden) option of TV can be safely ignored?
       if (rank == 1) {
         byteImage = static_cast<DByteGDL*> (image->Convert2(GDL_BYTE, BaseGDL::COPY));
         byteImageGuard.Init(byteImage);
