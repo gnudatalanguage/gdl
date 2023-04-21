@@ -3652,15 +3652,17 @@ void widget_control( EnvT* e ) {
     }
 
   if (setbutton) {
-      if (!widget->IsButton()) {
-        e->Throw("Only WIDGET_BUTTON are allowed with keyword SET_BUTTON.");
-      }
-      DLong buttonVal;
-      e->AssureLongScalarKWIfPresent(setbuttonIx, buttonVal);
-      if (buttonVal == 0)
-        widget->SetButtonWidget(false);
-      else
-        widget->SetButtonWidget(true);
+//      if (!widget->IsButton() && !widget->IsBase()) {
+//        e->Throw("Only WIDGET_BUTTON are allowed with keyword SET_BUTTON.");
+//      }
+      if (widget->IsButton() || widget->IsBase()) {
+        DLong buttonVal;
+        e->AssureLongScalarKWIfPresent(setbuttonIx, buttonVal);
+        if (buttonVal == 0)
+          widget->SetButtonWidget(false);
+        else
+          widget->SetButtonWidget(true);
+      } 
     }
 
   if ( settextselect ) {

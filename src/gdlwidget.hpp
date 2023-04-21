@@ -874,6 +874,7 @@ public:
   }
   mapBase(doMap);
  }
+ virtual void SetButtonWidget( bool onOff) final;
 };
 
 class GDLWidgetTopBase : public GDLWidgetBase {
