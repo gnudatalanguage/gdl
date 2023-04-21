@@ -5512,7 +5512,7 @@ bool editable_ )
   wxTextAttr attr= wxTextAttr ();
   attr.SetFont(font, 	wxTEXT_ATTR_FONT);
   wxString valueWxString = wxString( lastValue.c_str( ), wxConvUTF8 );
-  long textStyle = wxTE_RICH2|wxTE_NOHIDESEL;
+  long textStyle = wxTE_PROCESS_ENTER|wxTE_RICH2|wxTE_NOHIDESEL; //PROCESS_ENTER is trapped and ignored --- check if this is OK for all platforms.
 
   if (multiline) textStyle |= wxTE_MULTILINE; 
   if (!scrolled) {textStyle |= wxTE_NO_VSCROLL;} else {textStyle |= wxHSCROLL;}
@@ -5539,7 +5539,7 @@ bool editable_ )
   END_ADD_EVENTUAL_FRAME
   TIDY_WIDGET(gdlBORDER_SPACE)
 
-//  this->AddToDesiredEvents( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler(gdlwxFrame::OnTextEnter),text); //NOT USED
+  this->AddToDesiredEvents( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler(gdlwxFrame::OnTextEnter),text); //NOT USED
   if( editable || report) this->AddToDesiredEvents(wxEVT_CHAR, wxKeyEventHandler(wxTextCtrlGDL::OnChar),text);
   //add scrolling even if text is not scrollable since scroll is not permitted (IDL widgets are not at all the same as GTK...)
   if (!scrolled) this->AddToDesiredEvents(wxEVT_MOUSEWHEEL, wxMouseEventHandler(wxTextCtrlGDL::OnMouseEvents),text);
