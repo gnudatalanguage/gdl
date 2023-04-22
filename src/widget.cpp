@@ -1869,11 +1869,15 @@ BaseGDL* widget_info( EnvT* e ) {
   }
   
   if (isdisplayed) {
+#if wxCHECK_VERSION(3,1,7)
 #ifdef __WXMSW__
     return new DLongGDL(1);
 #else
     wxDisplay w;
     if (w.GetCount() > 0) return new DLongGDL(1); else return new DLongGDL(0);
+#endif
+#else
+    return new DLongGDL(1);
 #endif
   }
   
