@@ -20,7 +20,7 @@
 #include "includefirst.hpp"
 
 #include <iostream>
-#include <wx-3.1/wx/display.h>
+#include <wx/display.h>
 
 #include "datatypes.hpp"
 #include "envt.hpp"
