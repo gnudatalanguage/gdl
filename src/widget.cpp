@@ -20,6 +20,7 @@
 #include "includefirst.hpp"
 
 #include <iostream>
+#include <wx-3.1/wx/display.h>
 
 #include "datatypes.hpp"
 #include "envt.hpp"
@@ -1850,7 +1851,7 @@ BaseGDL* widget_info( EnvT* e ) {
     rank = p0L->Rank( );
   } else {
   //only possible with ACTIVE, VERSION or MANAGED.
-    if (!(active || managed || version  || xmanagerBlock || debug ) ) e->Throw("Specified keyword requires ID argument.");
+    if (!(active || managed || version  || xmanagerBlock || isdisplayed || debug ) ) e->Throw("Specified keyword requires ID argument.");
   // special case of MANAGED without any widget number
     if ( managed ) {
       return GDLWidget::GetManagedWidgetsList( );
@@ -1867,7 +1868,14 @@ BaseGDL* widget_info( EnvT* e ) {
     return new DLongGDL( GDLWidget::IsActive( ) );
   }
   
-  if (isdisplayed) return new DLongGDL(1); 
+  if (isdisplayed) {
+#ifdef __WXMSW__
+    return new DLongGDL(1);
+#else
+    wxDisplay w;
+    if (w.GetCount() > 0) return new DLongGDL(1); else return new DLongGDL(0);
+#endif
+  }
   
   if (is_mapped) {
     //must return 1 if the widget is visible, which is normally because the grand parent is mapped.
