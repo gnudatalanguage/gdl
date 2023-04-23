@@ -30,15 +30,18 @@
 #define PREFERS_MENUBAR 1
 #endif
 // For compilers that support precompilation, includes "wx/wx.h".
-//#include <wx/wxprec.h> //problems on windows?
-// HAVE_LARGEFILE_SUPPORT may be set by Python, creates unnecessary warnings
+// HAVE_LARGEFILE_SUPPORT, SIZEOF_VOID_P, SIZEOF_SIZE_T,  may be set by Python, creates unnecessary warnings
 #ifdef HAVE_LARGEFILE_SUPPORT
 #undef HAVE_LARGEFILE_SUPPORT
 #endif
- 
-#ifndef WX_PRECOMP
-    #include <wx/wx.h>
+#ifdef SIZEOF_VOID_P
+#undef SIZEOF_VOID_P
 #endif
+#ifdef SIZEOF_SIZE_T
+#undef SIZEOF_SIZE_T
+#endif
+#include <wx/wx.h>
+
 #include <wx/app.h>
 #include <wx/panel.h>
 #include <wx/treebase.h>

@@ -19,6 +19,8 @@
 
 #ifdef HAVE_LIBWXWIDGETS
 
+#include "gdlwidget.hpp"
+
 #include <memory> 
 #include <wx/grid.h>
 #include <wx/gbsizer.h>
@@ -35,7 +37,6 @@
 
 #include "gdlwxstream.hpp"
 
-#include "gdlwidget.hpp"
 
 #include "widget.hpp"
 #include "graphicsdevice.hpp"
