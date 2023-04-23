@@ -20,7 +20,7 @@
 #include "includefirst.hpp"
 
 #include <iostream>
-#include <wx/display.h>
+// not yet ready? version problems? #include <wx/display.h>
 
 #include "datatypes.hpp"
 #include "envt.hpp"
@@ -1869,16 +1869,18 @@ BaseGDL* widget_info( EnvT* e ) {
   }
   
   if (isdisplayed) {
-#if wxCHECK_VERSION(3,1,7)
-#ifdef __WXMSW__
+//the code below has problems on MacOSX , better to just answer "YES" :
     return new DLongGDL(1);
-#else
-    wxDisplay w;
-    if (w.GetCount() > 0) return new DLongGDL(1); else return new DLongGDL(0);
-#endif
-#else
-    return new DLongGDL(1);
-#endif
+//#if wxCHECK_VERSION(3,1,7)
+//#ifdef __WXMSW__
+//    return new DLongGDL(1);
+//#else
+//    wxDisplay w;
+//    if (w.GetCount() > 0) return new DLongGDL(1); else return new DLongGDL(0);
+//#endif
+//#else
+//    return new DLongGDL(1);
+//#endif
   }
   
   if (is_mapped) {

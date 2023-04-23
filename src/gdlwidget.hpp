@@ -30,7 +30,7 @@
 #define PREFERS_MENUBAR 1
 #endif
 // For compilers that support precompilation, includes "wx/wx.h".
-#include <wx/wxprec.h>
+//#include <wx/wxprec.h> //problems on windows?
  
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
