@@ -1320,15 +1320,15 @@ namespace lib {
     }else{
       DDouble minVal=0;
       static int minvalueIx=e->KeywordIx( "MIN_VALUE");
-      bool dominvalue=(e->KeywordPresent(minvalueIx));
+      bool dominvalue=(e->KeywordPresentAndDefined(minvalueIx));
       if (dominvalue) e->AssureDoubleScalarKW(minvalueIx, minVal);
       DDouble maxVal=0;
       static int maxvalueIx=e->KeywordIx( "MAX_VALUE");
-      bool domaxvalue=(e->KeywordPresent(maxvalueIx));
+      bool domaxvalue=(e->KeywordPresentAndDefined(maxvalueIx));
       if (domaxvalue) e->AssureDoubleScalarKW(maxvalueIx, maxVal);
       DDoubleGDL* missVal=NULL;
       static int missvalueIx=e->KeywordIx( "MISSING");
-      bool doMiss=e->KeywordPresent(missvalueIx);
+      bool doMiss=e->KeywordPresentAndDefined(missvalueIx);
       if (doMiss) missVal=e->GetKWAs<DDoubleGDL>(missvalueIx);
       DDoubleGDL* zVal = static_cast<DDoubleGDL*>(p2->Convert2(GDL_DOUBLE, BaseGDL::COPY));
       DDoubleGDL* res;

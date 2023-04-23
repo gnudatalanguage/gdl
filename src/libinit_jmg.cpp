@@ -307,7 +307,9 @@ void LibInit_jmg()
  
 #endif
 
-  const string tvKey[]={"TRUE","NORMAL","CHANNEL","XSIZE","YSIZE","ORDER","DEVICE","DATA","T3D","Z","CENTIMETERS","INCHES",KLISTEND};
+  const string tvKey[]={"TRUE","NORMAL","CHANNEL","XSIZE","YSIZE","ORDER","DEVICE","DATA","T3D","Z","CENTIMETERS","INCHES",
+  "NAN",  //byte conversion in tv_image apparently handle NaNs quite gracefully so the /NAN (hidden) option of TV will be ignored (TBC)
+  KLISTEND};
   const string tvWarnKey[]={"WORDS",KLISTEND};
   new DLibPro(lib::tv_image,string("TV"),4,tvKey,tvWarnKey);
 

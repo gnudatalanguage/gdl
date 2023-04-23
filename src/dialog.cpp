@@ -154,27 +154,27 @@ namespace lib {
     } else parent = 0;
 
     // Set style
-    long style = 0;
+    long style = (ismust_exist)?0:wxFD_SAVE;//0;
     if (isdirectory) {
       style |= wxDD_DEFAULT_STYLE;
       if (ismust_exist) style |= wxDD_DIR_MUST_EXIST;
     } else {
-      if (iswrite) style |= wxFD_SAVE;
-      else style |= wxFD_OPEN;
+//      if (iswrite) style |= wxFD_SAVE;
+//      else style |= wxFD_OPEN;
       if (ismust_exist) style |= wxFD_FILE_MUST_EXIST;
       if (ismultiple_files) style |= wxFD_MULTIPLE;
       if (iswrite && isoverwrite_prompt) style |= wxFD_OVERWRITE_PROMPT;
     }
 
     // Set title
-    wxString wxtitlestr = wxT("Select File");
+    wxString wxtitlestr = wxT("Please Select a File");
     if (istitle) {
       DString titlestr;
       e->AssureStringScalarKW(titleIx, titlestr);
       wxtitlestr = wxString(titlestr.c_str(), wxConvUTF8);
     } else {
-      if (iswrite) wxtitlestr = wxT("Select File to Write");
-      else if (isread) wxtitlestr = wxT("Select File to Read");
+      if (iswrite) wxtitlestr = wxT("Please Select a File for Writing");
+      else if (isread) wxtitlestr = wxT("Please Select a File for Reading");
     }
 
     // Set default path, with recent Gnome, default path is "the previous"

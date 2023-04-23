@@ -30,11 +30,18 @@
 #define PREFERS_MENUBAR 1
 #endif
 // For compilers that support precompilation, includes "wx/wx.h".
-#include <wx/wxprec.h>
- 
-#ifndef WX_PRECOMP
-    #include <wx/wx.h>
+// HAVE_LARGEFILE_SUPPORT, SIZEOF_VOID_P, SIZEOF_SIZE_T,  may be set by Python, creates unnecessary warnings
+#ifdef HAVE_LARGEFILE_SUPPORT
+#undef HAVE_LARGEFILE_SUPPORT
 #endif
+#ifdef SIZEOF_VOID_P
+#undef SIZEOF_VOID_P
+#endif
+#ifdef SIZEOF_SIZE_T
+#undef SIZEOF_SIZE_T
+#endif
+#include <wx/wx.h>
+
 #include <wx/app.h>
 #include <wx/panel.h>
 #include <wx/treebase.h>
@@ -874,6 +881,7 @@ public:
   }
   mapBase(doMap);
  }
+ virtual void SetButtonWidget( bool onOff) final;
 };
 
 class GDLWidgetTopBase : public GDLWidgetBase {

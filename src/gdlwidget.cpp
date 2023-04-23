@@ -19,6 +19,8 @@
 
 #ifdef HAVE_LIBWXWIDGETS
 
+#include "gdlwidget.hpp"
+
 #include <memory> 
 #include <wx/grid.h>
 #include <wx/gbsizer.h>
@@ -35,7 +37,6 @@
 
 #include "gdlwxstream.hpp"
 
-#include "gdlwidget.hpp"
 
 #include "widget.hpp"
 #include "graphicsdevice.hpp"
@@ -2474,7 +2475,20 @@ void GDLWidgetBase::ReorderForANewWidget(wxWindow* w, int code,int style, int bo
   if (widgetSizer == NULL) return;
   if (ncols > 1 ) DoReorderColWidgets(code, style, border); //need to reorder widget for /COL only
   else widgetSizer->Add(w, code, style, border ); // just add widget in sizer for /ROW
-}  
+}
+
+void GDLWidgetBase::SetButtonWidget( bool onOff)
+{
+  int nchild = this->NChildren();
+  if ( exclusiveMode == BGEXCLUSIVE && nchild>1 ) throw GDLException("Exclusive base must have exactly one set button.");
+  if ( exclusiveMode == BGNORMAL) return;
+  DLongGDL* gdlwList = GetChildrenList();
+  for (int i = 0; i < nchild; ++i) {
+    GDLWidget* g = GetWidget((*gdlwList)[i]);
+    if (g->IsButton()) g->SetButtonWidget(onOff);
+  }
+  GDLDelete(gdlwList);
+}
 /*********************************************************/
 // for WIDGET_TAB
 /*********************************************************/

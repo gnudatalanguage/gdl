@@ -20,6 +20,7 @@
 #include "includefirst.hpp"
 
 #include <iostream>
+// not yet ready? version problems? #include <wx/display.h>
 
 #include "datatypes.hpp"
 #include "envt.hpp"
@@ -1850,7 +1851,7 @@ BaseGDL* widget_info( EnvT* e ) {
     rank = p0L->Rank( );
   } else {
   //only possible with ACTIVE, VERSION or MANAGED.
-    if (!(active || managed || version  || xmanagerBlock || debug ) ) e->Throw("Specified keyword requires ID argument.");
+    if (!(active || managed || version  || xmanagerBlock || isdisplayed || debug ) ) e->Throw("Specified keyword requires ID argument.");
   // special case of MANAGED without any widget number
     if ( managed ) {
       return GDLWidget::GetManagedWidgetsList( );
@@ -1867,7 +1868,20 @@ BaseGDL* widget_info( EnvT* e ) {
     return new DLongGDL( GDLWidget::IsActive( ) );
   }
   
-  if (isdisplayed) return new DLongGDL(1); 
+  if (isdisplayed) {
+//the code below has problems on MacOSX , better to just answer "YES" :
+    return new DLongGDL(1);
+//#if wxCHECK_VERSION(3,1,7)
+//#ifdef __WXMSW__
+//    return new DLongGDL(1);
+//#else
+//    wxDisplay w;
+//    if (w.GetCount() > 0) return new DLongGDL(1); else return new DLongGDL(0);
+//#endif
+//#else
+//    return new DLongGDL(1);
+//#endif
+  }
   
   if (is_mapped) {
     //must return 1 if the widget is visible, which is normally because the grand parent is mapped.
@@ -3652,15 +3666,17 @@ void widget_control( EnvT* e ) {
     }
 
   if (setbutton) {
-      if (!widget->IsButton()) {
-        e->Throw("Only WIDGET_BUTTON are allowed with keyword SET_BUTTON.");
-      }
-      DLong buttonVal;
-      e->AssureLongScalarKWIfPresent(setbuttonIx, buttonVal);
-      if (buttonVal == 0)
-        widget->SetButtonWidget(false);
-      else
-        widget->SetButtonWidget(true);
+//      if (!widget->IsButton() && !widget->IsBase()) {
+//        e->Throw("Only WIDGET_BUTTON are allowed with keyword SET_BUTTON.");
+//      }
+      if (widget->IsButton() || widget->IsBase()) {
+        DLong buttonVal;
+        e->AssureLongScalarKWIfPresent(setbuttonIx, buttonVal);
+        if (buttonVal == 0)
+          widget->SetButtonWidget(false);
+        else
+          widget->SetButtonWidget(true);
+      } 
     }
 
   if ( settextselect ) {

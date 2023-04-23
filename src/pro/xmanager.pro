@@ -90,6 +90,21 @@ endif else begin ; there are no others, clear lists
 endelse
 end
 
+FUNCTION LookupManagedWidget, name
+  compile_opt hidden, idl2
+  
+  ON_ERROR, 2
+
+  common managed, ids, names, modalList
+  ValidateManagedWidgets
+  if (n_elements(name) eq 0) then return, 0L
+  if (n_elements(ids) eq 0) then return, 0L
+  if (ids[0] eq 0) then return, 0L
+  occurences=where(names eq name, count, complement=complement, ncomplement=ncomp)
+  if (count le 0) then return, 0L
+  return, ids[occurences[0]]
+end
+
 
 pro XMANAGER, name, id, NO_BLOCK = noBlock, GROUP_LEADER=groupLeader, EVENT_HANDLER=eventHandler, $
    CLEANUP=Cleanup, JUST_REG=just_reg, CATCH=catch, MODAL=modal, BACKGROUND=background
