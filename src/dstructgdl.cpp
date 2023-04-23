@@ -25,15 +25,16 @@
 using namespace std;
 
 vector< void*> DStructGDL::freeList;
-#ifdef HAVE_LIBWXWIDGETS
-#include <wx/wx.h>
-wxMutex mutexNewDelete;
-#define LOCK_MUTEXNEWDELETE	if (useWxWidgets) mutexNewDelete.Lock();
-#define UNLOCK_MUTEXNEWDELETE	if (useWxWidgets) mutexNewDelete.Unlock();
-#else
+// MUTEX NOT USED FOR WXWIDGETS --- This for future use if we use a threaded wxwidgets ?
+//#ifdef HAVE_LIBWXWIDGETS
+//#include <wx/wx.h>
+//wxMutex mutexNewDelete;
+//#define LOCK_MUTEXNEWDELETE	if (useWxWidgets) mutexNewDelete.Lock();
+//#define UNLOCK_MUTEXNEWDELETE	if (useWxWidgets) mutexNewDelete.Unlock();
+//#else
 #define LOCK_MUTEXNEWDELETE	;
 #define UNLOCK_MUTEXNEWDELETE	;
-#endif
+//#endif
 
 void* DStructGDL::operator new( size_t bytes)
 {

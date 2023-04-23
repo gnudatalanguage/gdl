@@ -31,6 +31,10 @@
 #endif
 // For compilers that support precompilation, includes "wx/wx.h".
 //#include <wx/wxprec.h> //problems on windows?
+// HAVE_LARGEFILE_SUPPORT may be set by Python, creates unnecessary warnings
+#ifdef HAVE_LARGEFILE_SUPPORT
+#undef HAVE_LARGEFILE_SUPPORT
+#endif
  
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
