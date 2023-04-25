@@ -906,6 +906,7 @@ void REF_CHECKVNNode::Parameter( EnvBaseT* actEnv)
   ProgNode::interpreter->_retTree = this->getNextSibling();
 }
 
+//eval the single parameter of a libFunDirect() function (cos(),sin() etc)
 bool ParameterNode::ParameterDirect( BaseGDL*& pval)
 {
   pval = this->getFirstChild()->Eval(); 

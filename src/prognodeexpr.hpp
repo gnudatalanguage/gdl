@@ -109,6 +109,7 @@ public:
   BaseGDL* Eval();
 };
 
+//For nodes relative to a libFunDirect() function (cos(),sin() etc)
 class FCALL_LIB_DIRECTNode: public LeafNode
 {
   LibFunDirect libFunDirectFun;
