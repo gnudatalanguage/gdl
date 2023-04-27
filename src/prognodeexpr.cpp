@@ -684,7 +684,10 @@ BaseGDL** DEREFNode::LEval()
 BaseGDL** QUESTIONNode::EvalRefCheck( BaseGDL*& rEval)
 {
   ProgNodeP branch = this->GetThisBranch();
-  return branch->EvalRefCheck( rEval);
+  rEval = branch->Eval();
+  return NULL;
+  //was:  //  return branch->EvalRefCheck( rEval);
+  // but crash as reported in  #1576 for "a=0 & b=0 & c=0 & z=cos( a ? b:c)" and other strange things.
 }  
 
 BaseGDL** QUESTIONNode::LEval()

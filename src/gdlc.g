@@ -137,8 +137,8 @@ tokens {
 	PARAEXPR_VN; // _VN Variable Number of parameters version
     DEC_REF_CHECK; // called from EvalRefCheck() (no temporary needed then)
     INC_REF_CHECK; // called from EvalRefCheck() (no temporary needed then)
-    POSTDEC;
-    POSTINC; 
+    POSTDEC;  //post-decrement : i--
+    POSTINC; // Post-increment : i++
     DECSTATEMENT; // as a statement
     INCSTATEMENT; // as a statement
     REF;        // expr pass by reference
@@ -156,7 +156,7 @@ tokens {
 	SYSVAR;
 //	UPLUS;
 	UMINUS;
-	VAR;     // varaible, referenced through index
+	VAR;     // variable, referenced through index
 	VARPTR;  // variable, referenced through pointer
     WHILE;
 }
