@@ -160,6 +160,7 @@ terminfo.cpp
 tiff.cxx
 triangulation.cpp
 typetraits.cpp
+value_locate.cpp
 where.cpp
 widget.cpp
 )

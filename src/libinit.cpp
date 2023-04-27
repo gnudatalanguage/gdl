@@ -58,6 +58,7 @@
 #include "grib.hpp"
 #include "semshm.hpp"
 #include "labelregion.hpp"
+#include "value_locate.hpp"
 
 using namespace std;
 
@@ -1069,5 +1070,9 @@ void LibInit()
   // -----------------------------------------------------------------------------------------
   const string labelregionKey[] = {"ALL_NEIGHBORS", "ULONG", KLISTEND };
   new DLibFunRetNew(lib::labelregion, string("LABEL_REGION"),1,labelregionKey);
+  
+  const string valuelocateKey[] = {"L64",KLISTEND };
+  new DLibFunRetNew(lib::value_locate, string("VALUE_LOCATE"),2,valuelocateKey);
+
 }
 
