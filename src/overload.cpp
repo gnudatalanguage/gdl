@@ -916,16 +916,19 @@ void SetupOverloadSubroutines() {
 #endif
 
 #ifdef USE_EXPAT
+
   //IDLFFXMLSAX::INIT
   DFunlist = new DFun("INIT", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
   treeFun = new WRAPPED_FUNNode(lib::GDLffXmlSax___Init);
   DFunlist->SetTree(treeFun);
   GDLffXmlSaxDesc->FunList().push_back(DFunlist);
+
   //IDLFFXMLSAX::CLEANUP
   DProlist = new DPro("CLEANUP", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
   treePro = new WRAPPED_PRONode(lib::GDLffXmlSax___Cleanup);
   DProlist->SetTree(treePro);
   GDLffXmlSaxDesc->ProList().push_back(DProlist);
+
   //IDLFFXMLSAX::PARSEFILE
   DProlist = new DPro("PARSEFILE", "IDLFFXMLSAX", INTERNAL_LIBRARY_STR);
   DProlist->AddPar("INPUT");
