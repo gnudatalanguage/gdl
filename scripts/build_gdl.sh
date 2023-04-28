@@ -557,7 +557,9 @@ function test_gdl {
 
 function copy_dylibs_recursive {
     install_name_tool -add_rpath $2 $1
-    for dylib in $(otool -L $1 | sed 's; \(.*\);;' |sort|uniq| xargs); do # 'local' is supposed to bring back /usr/local but also ${HOME}/plplot-local
+    echo "list of libraries for "$1" :"
+    otool -L $1
+    for dylib in $(otool -L $1 | grep 'local' | sed 's; \(.*\);;' |sort|uniq| xargs); do # 'local' is supposed to bring back /usr/local but also ${HOME}/plplot-local
         install_name_tool -change $dylib @rpath/$(basename ${dylib}) $1
         if [[ ! ${found_dylibs[@]} =~ (^|[[:space:]])"$dylib"($|[[:space:]]) ]]; then
             found_dylibs+=("${dylib}")
