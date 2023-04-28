@@ -602,7 +602,7 @@ function pack_gdl {
         copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
         copy_dylibs_recursive Resources/share/gnudatalanguage/drivers/*.so @executable_path/../../Frameworks Frameworks
         #force plplot libraries that are not always found (!!!!????):
-        for dylib in $(otool -L  Resources/bin/gdl| grep 'plplot' | sed 's; \(.*\);;' |sort|uniq| xargs); do cp -nv $dylib Frameworks
+        for dylib in $(otool -L  Resources/bin/gdl| grep 'plplot' | sed 's; \(.*\);;' |sort|uniq| xargs); do cp -nv $dylib Frameworks; done
         echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist
         echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> Info.plist
         echo '<plist version="1.0">' >> Info.plist
