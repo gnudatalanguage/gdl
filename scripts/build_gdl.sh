@@ -557,7 +557,7 @@ function test_gdl {
 
 function copy_dylibs_recursive {
     install_name_tool -add_rpath $2 $1
-    for dylib in $(otool -L $1 | grep local | sed 's; \(.*\);;' | xargs); do
+    for dylib in $(otool -L $1 | grep '/local/' | sed 's; \(.*\);;' |sort|uniq| xargs); do
         install_name_tool -change $dylib @rpath/$(basename ${dylib}) $1
         if [[ ! ${found_dylibs[@]} =~ (^|[[:space:]])"$dylib"($|[[:space:]]) ]]; then
             found_dylibs+=("${dylib}")
@@ -600,6 +600,7 @@ function pack_gdl {
         mkdir Frameworks
         found_dylibs=()
         copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
+        copy_dylibs_recursive Resources/share/gnudatalanguage/drivers/*.so @executable_path/../../Frameworks Frameworks
 
         echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist
         echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> Info.plist
