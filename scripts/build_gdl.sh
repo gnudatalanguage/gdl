@@ -557,7 +557,7 @@ function test_gdl {
 
 function copy_dylibs_recursive {
     install_name_tool -add_rpath $2 $1
-    for dylib in $(otool -L $1 | grep -e 'local' -e 'rpath' | sed 's; \(.*\);;' |sort|uniq| xargs); do # 'local' but also 'rpath' for libplplot;
+    for dylib in $(otool -L $1 | grep -e 'local' | sed 's; \(.*\);;' |sort|uniq| xargs); do # 'local' but also 'rpath' for libplplot;
         install_name_tool -change $dylib @rpath/$(basename ${dylib}) $1
         if [[ ! ${found_dylibs[@]} =~ (^|[[:space:]])"$dylib"($|[[:space:]]) ]]; then
             found_dylibs+=("${dylib}")
@@ -602,7 +602,8 @@ function pack_gdl {
         copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
         copy_dylibs_recursive Resources/share/gnudatalanguage/drivers/*.so @executable_path/../../Frameworks Frameworks
         #force plplot libraries that are not always found (!!!!????):
-        for dylib in $(otool -L  Resources/bin/gdl| grep 'plplot' | sed 's; \(.*\);;' |sort|uniq| xargs); do cp -nv $dylib Frameworks; done
+        echo "Adding possibly forgotten plplot libraries to Framework:"
+        cp -nv ${HOME}/plplot-local/lib/libplplot*.dylib Frameworks
         echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist
         echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> Info.plist
         echo '<plist version="1.0">' >> Info.plist
