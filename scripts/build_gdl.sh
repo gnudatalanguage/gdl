@@ -555,7 +555,7 @@ function test_gdl {
     fi
 }
 
-# GD: insure a preexisting dylib is taken into account in the list. Useful to pass librraies that the resolver do not see
+# GD: preexisting found_dylib is taken into account in the list. Useful to pass librraies that the resolver do not see
 function copy_dylibs_recursive {
     install_name_tool -add_rpath $2 $1
     for dylib in $dylib $(otool -L $1 | grep -e 'local' | sed 's; \(.*\);;' |sort|uniq| xargs); do
@@ -567,6 +567,7 @@ function copy_dylibs_recursive {
             copy_dylibs_recursive $3/$(basename ${dylib}) @executable_path/. $3
         fi
     done
+    dylib=()
 }
 
 function pack_gdl {
@@ -599,12 +600,12 @@ function pack_gdl {
         cp ${GDL_DIR}/resource/gdl.icns Resources/
 
         mkdir Frameworks
-        found_dylibs=(${HOME}/plplot-local/lib/libplplot*.dylib) #add plplot libraries as they may be forgotten in the enumeration of copy_dylibs_recursive
+        found_dylibs=()
+        dylib=(${HOME}/plplot-local/lib/libplplot*.dylib) #start with plplot libraries as they may be forgotten in the enumeration of copy_dylibs_recursive
         copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
         copy_dylibs_recursive Resources/share/gnudatalanguage/drivers/*.so @executable_path/../../Frameworks Frameworks
-        #force plplot libraries that are not always found (!!!!????):
-        #echo "Adding possibly forgotten plplot libraries to Framework:"
-        #cp -nv ${HOME}/plplot-local/lib/libplplot*.dylib Frameworks
+        echo "dependent libraries added to App's Framework:"
+        echo $found_dylib
         echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist
         echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> Info.plist
         echo '<plist version="1.0">' >> Info.plist
