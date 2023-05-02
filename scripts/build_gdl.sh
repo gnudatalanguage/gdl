@@ -558,16 +558,17 @@ function test_gdl {
 # GD: preexisting found_dylib is taken into account in the list. Useful to pass librraies that the resolver do not see
 function copy_dylibs_recursive {
     install_name_tool -add_rpath $2 $1
-    for dylib in $dylib $(otool -L $1 | grep -e 'local' | sed 's; \(.*\);;' |sort|uniq| xargs); do
+    for dylib in $(otool -L $1 | grep -e 'local' -e 'rpath' | sed 's; \(.*\);;' |sort|uniq| xargs); do
+        echo "action: install_name_tool -change $dylib @rpath/$(basename ${dylib}) $1"
         install_name_tool -change $dylib @rpath/$(basename ${dylib}) $1
         if [[ ! ${found_dylibs[@]} =~ (^|[[:space:]])"$dylib"($|[[:space:]]) ]]; then
             found_dylibs+=("${dylib}")
+            echo $found_dylibs
             echo "Copying $(basename ${dylib})..."
             cp $dylib $3/
             copy_dylibs_recursive $3/$(basename ${dylib}) @executable_path/. $3
         fi
     done
-    dylib=()
 }
 
 function pack_gdl {
@@ -600,12 +601,11 @@ function pack_gdl {
         cp ${GDL_DIR}/resource/gdl.icns Resources/
 
         mkdir Frameworks
-        found_dylibs=()
-        dylib=(${HOME}/plplot-local/lib/libplplot*.dylib) #start with plplot libraries as they may be forgotten in the enumeration of copy_dylibs_recursive
         copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
-        copy_dylibs_recursive Resources/share/gnudatalanguage/drivers/*.so @executable_path/../../Frameworks Frameworks
+        # drivers:
+        for sofile in Resources/share/gnudatalanguage/drivers/*.so ; do copy_dylibs_recursive $sofile @executable_path/../../Frameworks Frameworks; done
         echo "dependent libraries added to App's Framework:"
-        echo $found_dylib
+        echo $found_dylibs
         echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist
         echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> Info.plist
         echo '<plist version="1.0">' >> Info.plist
