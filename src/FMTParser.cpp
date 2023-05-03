@@ -79,67 +79,21 @@ void FMTParser::qfq() {
 	
 	q();
 	astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-	{
-	switch ( LA(1)) {
-	case CSTR:
-	case CD:
-	case CSE:
-	case CE:
-	case CI:
-	case CF:
-	case CSG:
-	case CG:
-	case CO:
-	case CB:
-	case CS:
-	case CX:
-	case CZ:
-	case PM:
-	case MP:
-	case PLUS:
-	case MOINS:
-	case CNUMBER:
-	case LBRACE:
-	case STRING:
-	case TL:
-	case TR:
-	case TERM:
-	case NONL:
-	case Q:
-	case T:
-	case X:
-	case A:
-	case F:
-	case D:
-	case E:
-	case SE:
-	case G:
-	case SG:
-	case I:
-	case O:
-	case B:
-	case Z:
-	case ZZ:
-	case C:
-	case NUMBER:
-	{
-		f();
-		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		q();
-		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-		break;
+	{ // ( ... )*
+	for (;;) {
+		if ((_tokenSet_0.member(LA(1)))) {
+			f();
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+			q();
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		}
+		else {
+			goto _loop6;
+		}
+		
 	}
-	case COMMA:
-	case RBRACE:
-	{
-		break;
-	}
-	default:
-	{
-		throw antlr::NoViableAltException(LT(1), getFilename());
-	}
-	}
-	}
+	_loop6:;
+	} // ( ... )*
 	qfq_AST = RefFMTNode(currentAST.root);
 	returnAST = qfq_AST;
 }
@@ -161,11 +115,11 @@ void FMTParser::q() {
 			n1++;
 		}
 		else {
-			goto _loop8;
+			goto _loop9;
 		}
 		
 	}
-	_loop8:;
+	_loop9:;
 	} // ( ... )*
 	q_AST = RefFMTNode(currentAST.root);
 	
@@ -224,6 +178,15 @@ void FMTParser::f() {
 		tmp7_AST = astFactory->create(LT(1));
 		astFactory->addASTChild(currentAST, antlr::RefAST(tmp7_AST));
 		match(Q);
+		f_AST = RefFMTNode(currentAST.root);
+		break;
+	}
+	case CSTRING:
+	{
+		RefFMTNode tmp8_AST = RefFMTNode(antlr::nullAST);
+		tmp8_AST = astFactory->create(LT(1));
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp8_AST));
+		match(CSTRING);
 		f_AST = RefFMTNode(currentAST.root);
 		break;
 	}
@@ -362,9 +325,9 @@ void FMTParser::f_csubcode() {
 	switch ( LA(1)) {
 	case STRING:
 	{
-		RefFMTNode tmp8_AST = RefFMTNode(antlr::nullAST);
-		tmp8_AST = astFactory->create(LT(1));
-		astFactory->addASTChild(currentAST, antlr::RefAST(tmp8_AST));
+		RefFMTNode tmp9_AST = RefFMTNode(antlr::nullAST);
+		tmp9_AST = astFactory->create(LT(1));
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp9_AST));
 		match(STRING);
 		f_csubcode_AST = RefFMTNode(currentAST.root);
 		break;
@@ -433,48 +396,26 @@ void FMTParser::cstring() {
 	RefFMTNode s_AST = RefFMTNode(antlr::nullAST);
 	
 	{ // ( ... )+
-	int _cnt12=0;
+	int _cnt13=0;
 	for (;;) {
-		switch ( LA(1)) {
-		case CSTR:
-		{
+		if ((LA(1) == CSTR)) {
 			s = LT(1);
 			s_AST = astFactory->create(s);
 			astFactory->addASTChild(currentAST, antlr::RefAST(s_AST));
 			match(CSTR);
 			s_AST->setType( STRING);
-			break;
 		}
-		case CD:
-		case CSE:
-		case CE:
-		case CI:
-		case CF:
-		case CSG:
-		case CG:
-		case CO:
-		case CB:
-		case CS:
-		case CX:
-		case CZ:
-		case PM:
-		case MP:
-		case PLUS:
-		case MOINS:
-		case CNUMBER:
-		{
+		else if ((_tokenSet_1.member(LA(1)))) {
 			cformat();
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-			break;
 		}
-		default:
-		{
-			if ( _cnt12>=1 ) { goto _loop12; } else {throw antlr::NoViableAltException(LT(1), getFilename());}
+		else {
+			if ( _cnt13>=1 ) { goto _loop13; } else {throw antlr::NoViableAltException(LT(1), getFilename());}
 		}
-		}
-		_cnt12++;
+		
+		_cnt13++;
 	}
-	_loop12:;
+	_loop13:;
 	}  // ( ... )+
 	cstring_AST = RefFMTNode(currentAST.root);
 	returnAST = cstring_AST;
@@ -873,12 +814,12 @@ void FMTParser::rep_fmt(
 		astFactory->addASTChild(currentAST, antlr::RefAST(a_AST));
 		match(A);
 		{
-		if ((_tokenSet_0.member(LA(1)))) {
+		if ((_tokenSet_2.member(LA(1)))) {
 			n1=nnf(a_AST);
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 			a_AST->setW( n1);
 		}
-		else if (((LA(1) >= COMMA && LA(1) <= SLASH))) {
+		else if ((_tokenSet_2.member(LA(1)))) {
 		}
 		else {
 			throw antlr::NoViableAltException(LT(1), getFilename());
@@ -1054,12 +995,7 @@ int  FMTParser::nnf(
 	RefFMTNode num_AST = RefFMTNode(antlr::nullAST);
 	
 	{
-	switch ( LA(1)) {
-	case PM:
-	case MP:
-	case PLUS:
-	case MOINS:
-	{
+	if (((LA(1) >= PM && LA(1) <= MOINS))) {
 		{
 		switch ( LA(1)) {
 		case PM:
@@ -1069,15 +1005,15 @@ int  FMTParser::nnf(
 			switch ( LA(1)) {
 			case PM:
 			{
-				RefFMTNode tmp16_AST = RefFMTNode(antlr::nullAST);
-				tmp16_AST = astFactory->create(LT(1));
+				RefFMTNode tmp17_AST = RefFMTNode(antlr::nullAST);
+				tmp17_AST = astFactory->create(LT(1));
 				match(PM);
 				break;
 			}
 			case MP:
 			{
-				RefFMTNode tmp17_AST = RefFMTNode(antlr::nullAST);
-				tmp17_AST = astFactory->create(LT(1));
+				RefFMTNode tmp18_AST = RefFMTNode(antlr::nullAST);
+				tmp18_AST = astFactory->create(LT(1));
 				match(MP);
 				break;
 			}
@@ -1095,16 +1031,16 @@ int  FMTParser::nnf(
 		}
 		case PLUS:
 		{
-			RefFMTNode tmp18_AST = RefFMTNode(antlr::nullAST);
-			tmp18_AST = astFactory->create(LT(1));
+			RefFMTNode tmp19_AST = RefFMTNode(antlr::nullAST);
+			tmp19_AST = astFactory->create(LT(1));
 			match(PLUS);
 			fNode->setShowSign();
 			break;
 		}
 		case MOINS:
 		{
-			RefFMTNode tmp19_AST = RefFMTNode(antlr::nullAST);
-			tmp19_AST = astFactory->create(LT(1));
+			RefFMTNode tmp20_AST = RefFMTNode(antlr::nullAST);
+			tmp20_AST = astFactory->create(LT(1));
 			match(MOINS);
 			fNode->setALignLeft();
 			break;
@@ -1115,28 +1051,16 @@ int  FMTParser::nnf(
 		}
 		}
 		}
-		break;
 	}
-	case COMMA:
-	case RBRACE:
-	case SLASH:
-	case E:
-	case SE:
-	case NUMBER:
-	case DOT:
-	{
-		break;
+	else if ((_tokenSet_3.member(LA(1)))) {
 	}
-	default:
-	{
+	else {
 		throw antlr::NoViableAltException(LT(1), getFilename());
 	}
-	}
+	
 	}
 	{
-	switch ( LA(1)) {
-	case NUMBER:
-	{
+	if ((LA(1) == NUMBER)) {
 		num = LT(1);
 		num_AST = astFactory->create(num);
 		match(NUMBER);
@@ -1148,22 +1072,13 @@ int  FMTParser::nnf(
 		s >> n;
 		if (c == '0') fNode->setPadding();
 		
-		break;
 	}
-	case COMMA:
-	case RBRACE:
-	case SLASH:
-	case E:
-	case SE:
-	case DOT:
-	{
-		break;
+	else if ((_tokenSet_3.member(LA(1)))) {
 	}
-	default:
-	{
+	else {
 		throw antlr::NoViableAltException(LT(1), getFilename());
 	}
-	}
+	
 	}
 	returnAST = nnf_AST;
 	return n;
@@ -1182,25 +1097,65 @@ void FMTParser::w_d(
 	
 	
 	{
-	if ((_tokenSet_1.member(LA(1)))) {
+	if ((_tokenSet_3.member(LA(1)))) {
 		n1=nnf( fNode);
 		fNode->setW( n1);
 		{
 		switch ( LA(1)) {
 		case DOT:
 		{
-			RefFMTNode tmp20_AST = RefFMTNode(antlr::nullAST);
-			tmp20_AST = astFactory->create(LT(1));
+			RefFMTNode tmp21_AST = RefFMTNode(antlr::nullAST);
+			tmp21_AST = astFactory->create(LT(1));
 			match(DOT);
 			n2=nn();
 			fNode->setD( n2);
 			break;
 		}
+		case CSTR:
+		case CD:
+		case CSE:
+		case CE:
+		case CI:
+		case CF:
+		case CSG:
+		case CG:
+		case CO:
+		case CB:
+		case CS:
+		case CX:
+		case CZ:
+		case PM:
+		case MP:
+		case PLUS:
+		case MOINS:
+		case CNUMBER:
+		case LBRACE:
 		case COMMA:
 		case RBRACE:
 		case SLASH:
+		case STRING:
+		case TL:
+		case TR:
+		case TERM:
+		case NONL:
+		case Q:
+		case CSTRING:
+		case T:
+		case X:
+		case A:
+		case F:
+		case D:
 		case E:
 		case SE:
+		case G:
+		case SG:
+		case I:
+		case O:
+		case B:
+		case Z:
+		case ZZ:
+		case C:
+		case NUMBER:
 		{
 			break;
 		}
@@ -1231,26 +1186,23 @@ void FMTParser::w_d_e(
 	RefFMTNode ignored_AST = RefFMTNode(antlr::nullAST);
 	
 	{
-	if ((_tokenSet_1.member(LA(1)))) {
+	if ((_tokenSet_3.member(LA(1)))) {
 		w_d( fNode);
 		{
-		switch ( LA(1)) {
-		case E:
-		case SE:
-		{
+		if ((LA(1) == E || LA(1) == SE)) {
 			{
 			switch ( LA(1)) {
 			case E:
 			{
-				RefFMTNode tmp21_AST = RefFMTNode(antlr::nullAST);
-				tmp21_AST = astFactory->create(LT(1));
+				RefFMTNode tmp22_AST = RefFMTNode(antlr::nullAST);
+				tmp22_AST = astFactory->create(LT(1));
 				match(E);
 				break;
 			}
 			case SE:
 			{
-				RefFMTNode tmp22_AST = RefFMTNode(antlr::nullAST);
-				tmp22_AST = astFactory->create(LT(1));
+				RefFMTNode tmp23_AST = RefFMTNode(antlr::nullAST);
+				tmp23_AST = astFactory->create(LT(1));
 				match(SE);
 				break;
 			}
@@ -1269,22 +1221,16 @@ void FMTParser::w_d_e(
 			s >> n;
 			//does not work (loops probably at format_reversion)            if (n < 0 || n > 255) throw GDLException("Value is out of allowed range (0 - 255).");
 			
-			break;
 		}
-		case COMMA:
-		case RBRACE:
-		case SLASH:
-		{
-			break;
+		else if ((_tokenSet_2.member(LA(1)))) {
 		}
-		default:
-		{
+		else {
 			throw antlr::NoViableAltException(LT(1), getFilename());
 		}
-		}
+		
 		}
 	}
-	else if (((LA(1) >= COMMA && LA(1) <= SLASH))) {
+	else if ((_tokenSet_2.member(LA(1)))) {
 	}
 	else {
 		throw antlr::NoViableAltException(LT(1), getFilename());
@@ -1353,11 +1299,11 @@ void FMTParser::calendar_string() {
 				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 			}
 			else {
-				goto _loop31;
+				goto _loop32;
 			}
 			
 		}
-		_loop31:;
+		_loop32:;
 		} // ( ... )*
 		}
 		break;
@@ -1836,7 +1782,7 @@ void FMTParser::calendar_code() {
 
 void FMTParser::initializeASTFactory( antlr::ASTFactory& factory )
 {
-	factory.setMaxNodeType(85);
+	factory.setMaxNodeType(86);
 }
 const char* FMTParser::tokenNames[] = {
 	"<0>",
@@ -1883,6 +1829,7 @@ const char* FMTParser::tokenNames[] = {
 	"TERM",
 	"NONL",
 	"Q",
+	"CSTRING",
 	"T",
 	"X",
 	"A",
@@ -1917,7 +1864,7 @@ const char* FMTParser::tokenNames[] = {
 	"CSF",
 	"NUMBER",
 	"DOT",
-	"CSTRING",
+	"CSTYLE_STRING",
 	"H",
 	"L",
 	"R",
@@ -1928,14 +1875,23 @@ const char* FMTParser::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTParser::_tokenSet_0_data_[] = { 1006632960UL, 56UL, 4096UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// PM MP PLUS MOINS COMMA RBRACE SLASH NUMBER 
+const unsigned long FMTParser::_tokenSet_0_data_[] = { 3187662880UL, 268435396UL, 8192UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+// CSTR CD CSE CE CI CF CSG CG CO CB CS CX CZ PM MP PLUS MOINS CNUMBER 
+// LBRACE STRING "tl" "tr" TERM NONL Q CSTRING T X A F D E SE G SG I O 
+// B Z ZZ C NUMBER 
 const antlr::BitSet FMTParser::_tokenSet_0(_tokenSet_0_data_,8);
-const unsigned long FMTParser::_tokenSet_1_data_[] = { 1006632960UL, 393272UL, 12288UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// PM MP PLUS MOINS COMMA RBRACE SLASH E SE NUMBER DOT 
-const antlr::BitSet FMTParser::_tokenSet_1(_tokenSet_1_data_,8);
-const unsigned long FMTParser::_tokenSet_2_data_[] = { 0UL, 393272UL, 0UL, 0UL };
-// COMMA RBRACE SLASH E SE 
-const antlr::BitSet FMTParser::_tokenSet_2(_tokenSet_2_data_,4);
+const unsigned long FMTParser::_tokenSet_1_data_[] = { 3187662848UL, 0UL, 0UL, 0UL };
+// CD CSE CE CI CF CSG CG CO CB CS CX CZ PM MP PLUS MOINS CNUMBER 
+const antlr::BitSet FMTParser::_tokenSet_1(_tokenSet_1_data_,4);
+const unsigned long FMTParser::_tokenSet_2_data_[] = { 3187662880UL, 268435452UL, 8192UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+// CSTR CD CSE CE CI CF CSG CG CO CB CS CX CZ PM MP PLUS MOINS CNUMBER 
+// LBRACE COMMA RBRACE SLASH STRING "tl" "tr" TERM NONL Q CSTRING T X A 
+// F D E SE G SG I O B Z ZZ C NUMBER 
+const antlr::BitSet FMTParser::_tokenSet_2(_tokenSet_2_data_,8);
+const unsigned long FMTParser::_tokenSet_3_data_[] = { 3187662880UL, 268435452UL, 24576UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+// CSTR CD CSE CE CI CF CSG CG CO CB CS CX CZ PM MP PLUS MOINS CNUMBER 
+// LBRACE COMMA RBRACE SLASH STRING "tl" "tr" TERM NONL Q CSTRING T X A 
+// F D E SE G SG I O B Z ZZ C NUMBER DOT 
+const antlr::BitSet FMTParser::_tokenSet_3(_tokenSet_3_data_,8);
 
 

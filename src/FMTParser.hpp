@@ -88,10 +88,10 @@ protected:
 private:
 	static const char* tokenNames[];
 #ifndef NO_STATIC_CONSTS
-	static const int NUM_TOKENS = 86;
+	static const int NUM_TOKENS = 87;
 #else
 	enum {
-		NUM_TOKENS = 86
+		NUM_TOKENS = 87
 	};
 #endif
 	
@@ -101,6 +101,8 @@ private:
 	static const antlr::BitSet _tokenSet_1;
 	static const unsigned long _tokenSet_2_data_[];
 	static const antlr::BitSet _tokenSet_2;
+	static const unsigned long _tokenSet_3_data_[];
+	static const antlr::BitSet _tokenSet_3;
 };
 
 #endif /*INC_FMTParser_hpp_*/

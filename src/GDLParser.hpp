@@ -283,6 +283,10 @@ private:
 	static const antlr::BitSet _tokenSet_25;
 	static const unsigned long _tokenSet_26_data_[];
 	static const antlr::BitSet _tokenSet_26;
+	static const unsigned long _tokenSet_27_data_[];
+	static const antlr::BitSet _tokenSet_27;
+	static const unsigned long _tokenSet_28_data_[];
+	static const antlr::BitSet _tokenSet_28;
 };
 
 #endif /*INC_GDLParser_hpp_*/

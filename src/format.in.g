@@ -268,7 +268,7 @@ format
                         switch ( _t->getType()) {
                         case FORMAT:
                         case STRING:
-                        case CSTRING:
+                        case CSTYLE_STRING:
                         case TL:
                         case TR:
                         case TERM:
@@ -322,7 +322,7 @@ format_recursive // don't read in a new line
                         switch ( _t->getType()) {
                         case FORMAT:
                         case STRING:
-                        case CSTRING:
+                        case CSTYLE_STRING:
                         case TL:
                         case TR:
                         case TERM:
@@ -368,7 +368,7 @@ format_reversion
                 switch ( _t->getType()) {
                 case FORMAT:
                 case STRING:
-                case CSTRING:
+                case CSTYLE_STRING:
                 case TL:
                 case TR:
                 case TERM:

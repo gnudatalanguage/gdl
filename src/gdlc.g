@@ -342,7 +342,7 @@ interactive_compile!
         end_unit
     ;
 
-// intercative usage
+// interactive usage
 interactive
     :   ( end_unit (end_mark)? 
         | interactive_statement
@@ -640,46 +640,6 @@ statement
     bool parent=false;
 }
     : (assign_expr)=> assign_expr (DEC^ | INC^)?
-//     | (deref_expr_dot)=>
-//       (deref_expr 
-// 			// assignment
-// 			(EQUAL! expr 			
-//                 { #statement = #([ASSIGN,":="], #statement);}
-//             |   ( AND_OP_EQ^ 
-//                 | ASTERIX_EQ^ 
-//                 | EQ_OP_EQ^ 
-//                 | GE_OP_EQ^
-//                 | GTMARK_EQ^
-//                 | GT_OP_EQ^
-//                 | LE_OP_EQ^
-//                 | LTMARK_EQ^
-//                 | LT_OP_EQ^
-//                 | MATRIX_OP1_EQ^
-//                 | MATRIX_OP2_EQ^
-//                 | MINUS_EQ^
-//                 | MOD_OP_EQ^
-//                 | NE_OP_EQ^
-//                 | OR_OP_EQ^
-//                 | PLUS_EQ^
-//                 | POW_EQ^
-//                 | SLASH_EQ^
-//                 | XOR_OP_EQ^) expr
-// 			| (DEC^ | INC^) // no POSTDEC/POSTINC for statements			
-// 			| MEMBER! // member procedure call 
-//                 (baseclass_method { parent=true; })? 
-//                 formal_procedure_call
-// 				{ 
-//                     if( parent)
-//                         #statement = #([MPCALL_PARENT, "mpcall::"], 
-//                                         #statement);
-//                     else
-//                         #statement = #([MPCALL, "mpcall"], #statement);
-//                 }
-//             | // empty -> member procedure call with DOT parsed by tag_access
-//             )
-//       )
-
-
     | (deref_dot_expr_keeplast IDENTIFIER COMMA)=>
         d1:deref_dot_expr_keeplast formal_procedure_call
 				{ 
@@ -694,7 +654,7 @@ statement
                                         #statement);
                         #statement->SetLine( #d2->getLine());
                 }
-    | ( deref_expr
+    | ( deref_expr 
                 ( EQUAL
                 | AND_OP_EQ^ 
                 | ASTERIX_EQ^ 
@@ -742,7 +702,7 @@ statement
                 | POW_EQ^
                 | SLASH_EQ^
                 | XOR_OP_EQ^) expr
-			| (DEC^ | INC^) // no POSTDEC/POSTINC for statements			
+	    | (DEC^ | INC^) // no POSTDEC/POSTINC for statements			
             | MEMBER! // member procedure call 
                 (baseclass_method { parent=true; })? 
                 formal_procedure_call
@@ -754,8 +714,7 @@ statement
                         #statement = #([MPCALL, "mpcall"], #statement);
                 }
 			)
-    | // (deref_dot_expr_keeplast IDENTIFIER)=>
-      d3:deref_dot_expr_keeplast formal_procedure_call
+    | d3:deref_dot_expr_keeplast formal_procedure_call
 				{ 
                     #statement = #([MPCALL, "mpcall"], #statement);
                     #statement->SetLine( #d3->getLine());
@@ -814,10 +773,9 @@ for_statement
 	;
 
 for_block
-	: st:statement
-		{ #for_block = #([BLOCK, "block"], #st);}
-	| BEGIN! stl:statement_list endfor_mark
-		{ #for_block = #([BLOCK, "block"], #stl);}
+	: st:statement { #for_block = #([BLOCK, "block"], #st);}
+	| ( BEGIN statement_list endfor_mark ) =>BEGIN! stl:statement_list endfor_mark { #for_block = #([BLOCK, "block"], #stl);}
+    | BEGIN! stb:statement { #for_block = #([BLOCK, "block"], #stb);}
 	;	
 
 foreach_statement
@@ -1235,9 +1193,7 @@ arrayindex_list
     int rank = 1;
 }
 	: LSQUARE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RSQUARE!
-	| { IsRelaxed()}? LBRACE! arrayindex 
-        ({++rank <= MAXRANK}? COMMA! arrayindex
-        )* RBRACE!
+	| { IsRelaxed()}? LBRACE! arrayindex ({++rank <= MAXRANK}? COMMA! arrayindex)* RBRACE!
 	;	
 
 all_elements!
@@ -1291,13 +1247,14 @@ var!
         )
     ;
 
-// this is SYNTACTIALLY ok as an lvalue, but if one try to assign
+// this is SYNTATICALLY ok as an lvalue, but if one try to assign
 // something to an non-var an error is raised
 brace_expr
     // tags need this
 	:  LBRACE! expr RBRACE!
 		{ #brace_expr = 
-			#([EXPR,"expr"], #brace_expr);}
+			#([EXPR,"expr"], #brace_expr);
+                }
 	;
 
 // only used in deref_expr
@@ -1603,42 +1560,11 @@ primary_expr_deref
 {
 // the following needs to be updated if the symbols are rearranged (e. g. a symbol is inserted)
 // (it is taken from GDLParser.cpp: const antlr::BitSet GDLParser::_tokenSet_XX)
-const unsigned long _tokenSet_4_data_[] = { 0UL, 0UL, 268435456UL, 1048576UL, 536870912UL, 4UL, 4096UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// IDENTIFIER "inherits" LBRACE SYSVARNAME ASTERIX 
-const antlr::BitSet _tokenSet_4(_tokenSet_4_data_,16);
-const unsigned long _tokenSet_5_data_[] = { 0UL, 0UL, 268435456UL, 34603008UL, 536871296UL, 4294967253UL, 5013503UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// IDENTIFIER "inherits" "not" DEC INC LBRACE LSQUARE SYSVARNAME LCURLY 
-// CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT 
-// CONSTANT_HEX_I CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI 
-// CONSTANT_HEX_UINT CONSTANT_BYTE CONSTANT_LONG CONSTANT_LONG64 CONSTANT_INT 
-// CONSTANT_I CONSTANT_ULONG CONSTANT_ULONG64 CONSTANT_UI CONSTANT_UINT 
-// CONSTANT_OCT_BYTE CONSTANT_OCT_LONG CONSTANT_OCT_LONG64 CONSTANT_OCT_INT 
-// CONSTANT_OCT_I CONSTANT_OCT_ULONG CONSTANT_OCT_ULONG64 CONSTANT_OCT_UI 
-// CONSTANT_OCT_UINT CONSTANT_FLOAT CONSTANT_DOUBLE CONSTANT_BIN_BYTE CONSTANT_BIN_LONG 
-// CONSTANT_BIN_LONG64 CONSTANT_BIN_INT CONSTANT_BIN_I CONSTANT_BIN_ULONG 
-// CONSTANT_BIN_ULONG64 CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX DOT STRING_LITERAL 
-// PLUS MINUS LOG_NEG 
-const antlr::BitSet _tokenSet_5(_tokenSet_5_data_,16);
-const unsigned long _tokenSet_23_data_[] = { 0UL, 0UL, 268435456UL, 1048576UL, 536870912UL, 21UL, 4096UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// IDENTIFIER "inherits" LBRACE LSQUARE SYSVARNAME LCURLY ASTERIX 
-const antlr::BitSet _tokenSet_23(_tokenSet_23_data_,16);
-const unsigned long _tokenSet_24_data_[] = { 2UL, 0UL, 805306368UL, 2549424140UL, 4026532283UL, 4294967295UL, 67108863UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// EOF IDENTIFIER "and" "do" "else" "eq" "ge" "gt" "inherits" "le" "lt" 
-// "mod" "ne" "not" "of" "or" "then" "until" "xor" COMMA COLON END_U DEC 
-// INC MEMBER LBRACE RBRACE SLASH LSQUARE RSQUARE SYSVARNAME EXCLAMATION 
-// LCURLY RCURLY CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 
-// CONSTANT_HEX_INT CONSTANT_HEX_I CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 
-// CONSTANT_HEX_UI CONSTANT_HEX_UINT CONSTANT_BYTE CONSTANT_LONG CONSTANT_LONG64 
-// CONSTANT_INT CONSTANT_I CONSTANT_ULONG CONSTANT_ULONG64 CONSTANT_UI 
-// CONSTANT_UINT CONSTANT_OCT_BYTE CONSTANT_OCT_LONG CONSTANT_OCT_LONG64 
-// CONSTANT_OCT_INT CONSTANT_OCT_I CONSTANT_OCT_ULONG CONSTANT_OCT_ULONG64 
-// CONSTANT_OCT_UI CONSTANT_OCT_UINT CONSTANT_FLOAT CONSTANT_DOUBLE CONSTANT_BIN_BYTE 
-// CONSTANT_BIN_LONG CONSTANT_BIN_LONG64 CONSTANT_BIN_INT CONSTANT_BIN_I 
-// CONSTANT_BIN_ULONG CONSTANT_BIN_ULONG64 CONSTANT_BIN_UI CONSTANT_BIN_UINT 
-// ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 PLUS MINUS LTMARK 
-// GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
-const antlr::BitSet _tokenSet_24(_tokenSet_24_data_,16);
-
+// this is done automatically with the command
+// grep 'const.*GDLParser::.*;' GDLParser.cpp | sed -e 's%GDLParser::%%g' > GDLPrimaryExprDeref.inc
+// that creates a new version of "GDLPrimaryExprDeref.inc"
+// so 'antlr gdlc.g' must be done twice.
+#include "GDLPrimaryExprDeref.inc"
     bool parent;
 
     bool skip;
@@ -1797,17 +1723,17 @@ primary_expr
 	| numeric_constant
     | primary_expr_deref
 	;
-
+   
 // only one INC/DEC allowed per target
 decinc_expr
 	: primary_expr 
         ( i:INC^ { #i->setType( POSTINC); #i->setText( "_++");} 
         | d:DEC^ { #d->setType( POSTDEC); #d->setText( "_--");} 
         | // empty
-        )
+        )	
     | INC^ primary_expr
     | DEC^ primary_expr
-	;
+    ;
 
 exponential_expr
 	: decinc_expr 
@@ -1824,6 +1750,25 @@ multiplicative_expr
 			| MATRIX_OP2^
 			| SLASH^ 
 			| MOD_OP^
+| AND_OP_EQ^ 
+                | ASTERIX_EQ^ 
+                | EQ_OP_EQ^ 
+                | GE_OP_EQ^
+                | GTMARK_EQ^
+                | GT_OP_EQ^
+                | LE_OP_EQ^
+                | LTMARK_EQ^
+                | LT_OP_EQ^
+                | MATRIX_OP1_EQ^
+                | MATRIX_OP2_EQ^
+                | MINUS_EQ^
+                | MOD_OP_EQ^
+                | NE_OP_EQ^
+                | OR_OP_EQ^
+                | PLUS_EQ^
+                | POW_EQ^
+                | SLASH_EQ^
+                | XOR_OP_EQ^
 			) exponential_expr
 		)*
 	;
@@ -2302,7 +2247,20 @@ DOT:;
 CONSTANT_OR_STRING_LITERAL
 	// returns everything 'cleaned', ready to use
 	// could be a string, but octals have priority
-	: ('\"'(O)+ ( 'b' | 's' | "us" | "ub" | 'l' | 'u' | "ul" )?) => 
+	// but "012345" is a string because of ending \"
+	:
+        ("0x"(H)+ ( 's' | 'l' | 'u' )?) =>  //NOT 'b' as B is part of (H) : ex: 0x3BAFB 
+	  ("0x"! (H)+          { _ttype=CONSTANT_HEX_I; } // DEFINT32
+	        ( 's'!		{ _ttype=CONSTANT_HEX_INT; }
+		| 'u'!    	{ _ttype=CONSTANT_HEX_UI; }   // DEFINT32
+		| "us"!    	{ _ttype=CONSTANT_HEX_UINT; } 
+		| "ub"!		{ _ttype=CONSTANT_HEX_BYTE; }
+		| 'l'!	    	{ _ttype=CONSTANT_HEX_LONG; }
+		| "ll"!    	{ _ttype=CONSTANT_HEX_LONG64; }
+		| "ul"!	   	{ _ttype=CONSTANT_HEX_ULONG; }
+		| "ull"!	{ _ttype=CONSTANT_HEX_ULONG64; }
+	        )?)
+	|('\"'(O)+ ( 'b' | 's' | 'l' | 'u' | "\"")?) => 
 		('\"'! (O)+		{ _ttype=CONSTANT_OCT_I; }  // DEFINT32
 			( 's'!		{ _ttype=CONSTANT_OCT_INT; }
 			| 'b'!		{ _ttype=CONSTANT_OCT_BYTE; }
@@ -2313,18 +2271,19 @@ CONSTANT_OR_STRING_LITERAL
 			| "ll"!    	{ _ttype=CONSTANT_OCT_LONG64; }
 			| "ul"!		{ _ttype=CONSTANT_OCT_ULONG; }
 			| "ull"!	{ _ttype=CONSTANT_OCT_ULONG64; }
+			| "\""!	        { _ttype=STRING_LITERAL; }
 			)?)
-	| ('\''(H)+'\'' ( 'x' | "xs" | "xb" | "xl" | "xu" | "xus" | "xub" | "xul")) =>
+	| ('\''(H)+'\'' ( 'x' | "xs" | "xb" | "xl" | "xu" | "xus" | "xub" | "xul" )) =>
 		('\''! (H)+ '\''! 'x'!
 	  	(      			{ _ttype=CONSTANT_HEX_I; } // DEFINT32
 			| 's'!		{ _ttype=CONSTANT_HEX_INT; }
 			| 'b'!		{ _ttype=CONSTANT_HEX_BYTE; }
 			| 'u'!    	{ _ttype=CONSTANT_HEX_UI; }   // DEFINT32
 			| "us"!    	{ _ttype=CONSTANT_HEX_UINT; } 
-	        | "ub"!		{ _ttype=CONSTANT_HEX_BYTE; }
-			| 'l'!	    { _ttype=CONSTANT_HEX_LONG; }
-			| "ll"!     { _ttype=CONSTANT_HEX_LONG64; }
-			| "ul"!	    { _ttype=CONSTANT_HEX_ULONG; }
+	                | "ub"!		{ _ttype=CONSTANT_HEX_BYTE; }
+			| 'l'!	    	{ _ttype=CONSTANT_HEX_LONG; }
+			| "ll"!    	{ _ttype=CONSTANT_HEX_LONG64; }
+			| "ul"!	   	{ _ttype=CONSTANT_HEX_ULONG; }
 	  		| "ull"!	{ _ttype=CONSTANT_HEX_ULONG64; }
 			))
 	| ('\''(O)+'\''	( 'o' | "os" | "ol" | "ou" | "oul")) =>
