@@ -654,7 +654,7 @@ statement
                                         #statement);
                         #statement->SetLine( #d2->getLine());
                 }
-    | ( deref_expr 
+    | ( deref_expr
                 ( EQUAL
                 | AND_OP_EQ^ 
                 | ASTERIX_EQ^ 
@@ -702,7 +702,7 @@ statement
                 | POW_EQ^
                 | SLASH_EQ^
                 | XOR_OP_EQ^) expr
-	    | (DEC^ | INC^) // no POSTDEC/POSTINC for statements			
+			| (DEC^ | INC^) // no POSTDEC/POSTINC for statements			
             | MEMBER! // member procedure call 
                 (baseclass_method { parent=true; })? 
                 formal_procedure_call
@@ -1475,12 +1475,35 @@ arrayexpr_mfcall!
 			#([DEREF,"deref"], #deref_arrayexpr_mfcall);}
 	;
 
-primary_expr_tail
+
+// only here a function call is ok also (all other places must be an array)
+primary_expr 
 {
     bool parent;
-} 
-    :   
-         // a member function call starts with a deref_expr 
+}
+	   
+    : 
+        // with METHOD
+        (deref_dot_expr_keeplast baseclass_method)=>
+        d1:deref_dot_expr_keeplast baseclass_method formal_function_call
+        {
+            #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
+        }   
+    | 
+        // ambiguity (arrayexpr or mfcall)
+        (deref_dot_expr_keeplast 
+            (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=>
+
+        arrayexpr_mfcall
+    | 
+        // not the above -> unambigous mfcall (or unambigous array expr handled below)
+        (deref_dot_expr_keeplast formal_function_call)=> 
+        d3:deref_dot_expr_keeplast 
+            // here it is impossible to decide about function call
+            // as we do not know the object type/struct tag
+            formal_function_call
+			{ #primary_expr = #([MFCALL, "mfcall"], #primary_expr);}
+	|   // a member function call starts with a deref_expr 
  		(deref_dot_expr)=>
         // same parsing as (deref_expr)=> see below
 		deref_expr 
@@ -1488,42 +1511,44 @@ primary_expr_tail
             { 
                 if( parent)
                 {
-                    #primary_expr_tail = #([MFCALL_PARENT, "mfcall::"], #primary_expr_tail);
+                    #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
                 }
                 else
                 {
-                    #primary_expr_tail = #([MFCALL, "mfcall"], #primary_expr_tail);
+                    #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
                 }
             }
         | // empty -> array expression
         )
-    |
+    |   
         // ambiguity (arrayexpr or fcall)
         (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=>
-		( 
+		(
 
 			// already known function 
 			// (could be reordered, but this is conform to original)
 			{ IsFun(LT(1))}? formal_function_call
 			{ 
-                   #primary_expr_tail = #([FCALL, "fcall"], #primary_expr_tail);
+//             std::cout << "+++(IDENTIFIER LBRACE expr (COMMA expr)* RBRACE) 1" << std::endl;
+                   #primary_expr = #([FCALL, "fcall"], #primary_expr);
             }
 		| 
             // still ambiguity (arrayexpr or fcall)
         (var arrayindex_list)=> var arrayindex_list     // array_expr_fn
             { 
-                #primary_expr_tail = #([ARRAYEXPR_FCALL,"arrayexpr_fcall"], #primary_expr_tail);
-            }
+//             std::cout << "***(IDENTIFIER LBRACE expr (COMMA expr)* RBRACE) 2" << std::endl;
+
+                #primary_expr = #([ARRAYEXPR_FCALL,"arrayexpr_fcall"], #primary_expr);}
         |   // if arrayindex_list failed (due to to many indices)
             // this must be a function call
             formal_function_call
 			{ 
-                   #primary_expr_tail = #([FCALL, "fcall"], #primary_expr_tail);
+                   #primary_expr = #([FCALL, "fcall"], #primary_expr);
             }
 		)
 	|   // not the above => keyword parameter (or no args) => function call
 	 	(formal_function_call)=> formal_function_call
-	 	{ #primary_expr_tail = #([FCALL, "fcall"], #primary_expr_tail);}
+	 	{ #primary_expr = #([FCALL, "fcall"], #primary_expr);}
 
 	|   // a member function call starts with a deref_expr 
         // deref_dot_expr already failed
@@ -1533,207 +1558,45 @@ primary_expr_tail
             { 
                 if( parent)
                 {
-                    #primary_expr_tail = #([MFCALL_PARENT, "mfcall::"], #primary_expr_tail);
+                    #primary_expr = #([MFCALL_PARENT, "mfcall::"], #primary_expr);
                 }
                 else
                 {
-                    #primary_expr_tail = #([MFCALL, "mfcall"], #primary_expr_tail);
+                    #primary_expr = #([MFCALL, "mfcall"], #primary_expr);
                 }
             }
         | // empty -> array expression
         )
 
-    | assign_expr
-	| array_def
-	| struct_def
-    | ! ls:LSQUARE !RSQUARE
-		{ #primary_expr_tail=#[GDLNULL,"GDLNULL[]"];
-            #primary_expr_tail->SetLine( #ls->getLine());
-		}  
-    | ! lc:LCURLY !RCURLY
-		{ #primary_expr_tail=#[GDLNULL,"GDLNULL{}"];
-            #primary_expr_tail->SetLine( #lc->getLine());
-		}  
-    ;
-
-primary_expr_deref
-{
-// the following needs to be updated if the symbols are rearranged (e. g. a symbol is inserted)
-// (it is taken from GDLParser.cpp: const antlr::BitSet GDLParser::_tokenSet_XX)
-// this is done automatically with the command
-// grep 'const.*GDLParser::.*;' GDLParser.cpp | sed -e 's%GDLParser::%%g' > GDLPrimaryExprDeref.inc
-// that creates a new version of "GDLPrimaryExprDeref.inc"
-// so 'antlr gdlc.g' must be done twice.
-#include "GDLPrimaryExprDeref.inc"
-    bool parent;
-
-    bool skip;
-    int markIn = mark();
-
-	inputState->guessing++;
-
-    bool tailLa1La2 = (_tokenSet_23.member(LA(1))) && (_tokenSet_24.member(LA(2)));
-    bool derefLa1La2 = (_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))); 
-
-    if ( derefLa1La2) 
-    {
-        skip = false;
-        try {
-            deref_dot_expr_keeplast();
-        }
-        catch (antlr::RecognitionException& pe) {
-            skip = true;
-        }
-    }
-    else
-        skip = true;
-
-    if( skip && tailLa1La2)
-        {
-            rewind( markIn);
-            inputState->guessing--;
-
-            primary_expr_tail();
-            if (inputState->guessing==0) {
-                astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-            }
-            primary_expr_deref_AST = RefDNode(currentAST.root);
-            returnAST = primary_expr_deref_AST;
-            return;
-        }
-
-    bool arrayexpr_mfcallParse = false;
-    bool function_callParse = false;
-
-    int mark2nd = mark();
-
-    bool baseclass_methodParse = true;
-    try {
-        {
-        baseclass_method();
-        }
-    }
-    catch (antlr::RecognitionException& pe) {
-        baseclass_methodParse = false;
-    }
-
-    rewind( mark2nd);
-
-    if( !baseclass_methodParse)
-    {
-        int mark3rd = mark();
-
-        arrayexpr_mfcallParse = true;
-        try {
-                {
-    			match(IDENTIFIER);
-    			match(LBRACE);
-    			expr();
-    			{ // ( ... )*
-    			for (;;) {
-    				if ((LA(1) == COMMA)) {
-    					match(COMMA);
-    					expr();
-    				}
-    				else {
-                        break;
-    				}
-                }
-    			} // ( ... )*
-    			match(RBRACE);
-                }
-            }
-        catch (antlr::RecognitionException& pe) {
-            arrayexpr_mfcallParse = false;
-        }
-
-        rewind( mark3rd);
-
-        if( !arrayexpr_mfcallParse)
-        {
-            function_callParse = true;
-            try {
-                {
-                formal_function_call();
-                }
-            }
-            catch (antlr::RecognitionException& pe) {
-                 function_callParse = false;
-            }
-
-            if( !function_callParse && tailLa1La2)
-            {
-                rewind( markIn);
-                inputState->guessing--;
-
-                primary_expr_tail();
-                if (inputState->guessing==0) {
-                    astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-                }
-                primary_expr_deref_AST = RefDNode(currentAST.root);
-                returnAST = primary_expr_deref_AST;
-                return; 
-            }
-        }
-   }
-
-   rewind( markIn);
-   inputState->guessing--;
-}
-    : 
-        // with METHOD
-
-//        (deref_dot_expr_keeplast baseclass_method)=>
-        {baseclass_methodParse}?
-        deref_dot_expr_keeplast baseclass_method formal_function_call
-        {
-            #primary_expr_deref = #([MFCALL_PARENT, "mfcall::"], #primary_expr_deref);
-        }   
-    | 
-        // ambiguity (arrayexpr or mfcall)
-
-//        (deref_dot_expr_keeplast (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=>
-        {arrayexpr_mfcallParse}?
-        arrayexpr_mfcall
-    | 
-        // not the above -> unambigous mfcall (or unambigous array expr handled below)
-
-  //      (deref_dot_expr_keeplast formal_function_call)=> 
-        {function_callParse}?
-        deref_dot_expr_keeplast 
-            // here it is impossible to decide about function call
-            // as we do not know the object type/struct tag
-            formal_function_call
-			{ #primary_expr_deref = #([MFCALL, "mfcall"], #primary_expr_deref);}
-
-    |
-        primary_expr_tail
-    ;
-
-
-
-// only here a function call is ok also (all other places must be an array)
-primary_expr 
-    : 
-	 ! sl:STRING_LITERAL // also a CONSTANT
+	|! sl:STRING_LITERAL // also a CONSTANT
 		{ #primary_expr=#[CONSTANT,sl->getText()];
             #primary_expr->Text2String();	
             #primary_expr->SetLine( #sl->getLine());
 		}  
+    | assign_expr
 	| numeric_constant
-    | primary_expr_deref
+	| array_def
+	| struct_def
+    | ! ls:LSQUARE !RSQUARE
+		{ #primary_expr=#[GDLNULL,"GDLNULL[]"];
+            #primary_expr->SetLine( #ls->getLine());
+		}  
+    | ! lc:LCURLY !RCURLY
+		{ #primary_expr=#[GDLNULL,"GDLNULL{}"];
+            #primary_expr->SetLine( #lc->getLine());
+		}  
 	;
-   
+
 // only one INC/DEC allowed per target
 decinc_expr
 	: primary_expr 
         ( i:INC^ { #i->setType( POSTINC); #i->setText( "_++");} 
         | d:DEC^ { #d->setType( POSTDEC); #d->setText( "_--");} 
         | // empty
-        )	
+        )
     | INC^ primary_expr
     | DEC^ primary_expr
-    ;
+	;
 
 exponential_expr
 	: decinc_expr 
