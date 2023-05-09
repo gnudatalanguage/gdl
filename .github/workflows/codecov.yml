@@ -33,6 +33,7 @@ jobs:
           echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} test)" >> testsuite/CMakeLists.txt
       - name: Build GDL
         run: |
+          git submodule update --init
           scripts/build_gdl.sh configure
           scripts/build_gdl.sh build
       - name: Test GDL
