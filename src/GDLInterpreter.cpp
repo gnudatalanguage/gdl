@@ -43,6 +43,7 @@ GDLInterpreter::GDLInterpreter()
 		}
 		_retTree = _t;
 		return retCode;
+		//NOTE: *** code below is not active ***
 	
 	
 	{ // ( ... )+
@@ -667,6 +668,7 @@ GDLInterpreter::GDLInterpreter()
 		}
 		_retTree = _t;
 		return retCode;
+		//NOTE: *** code below is not active ***
 	
 	
 	{ // ( ... )+
@@ -724,6 +726,7 @@ GDLInterpreter::GDLInterpreter()
 		
 		_retTree = _t;
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	{ // ( ... )*
@@ -775,6 +778,7 @@ GDLInterpreter::GDLInterpreter()
 	false,false);
 		_retTree = _t;
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	{ // ( ... )*
@@ -810,6 +814,7 @@ void GDLInterpreter::call_pro(ProgNodeP _t) {
 		}
 		_retTree = _t;
 	return;
+		//NOTE: *** code below is not active ***
 	
 	
 	{ // ( ... )*
@@ -881,6 +886,7 @@ BaseGDL**  GDLInterpreter::l_deref(ProgNodeP _t) {
 	
 		_retTree = retTree;
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp34_AST_in = _t;
@@ -901,6 +907,7 @@ BaseGDL**  GDLInterpreter::l_decinc_indexable_expr(ProgNodeP _t,
 	if( res == NULL)
 	throw GDLException( _t, "Variable is undefined: "+Name(e),true,false);
 	return e;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -950,6 +957,7 @@ BaseGDL**  GDLInterpreter::l_decinc_indexable_expr(ProgNodeP _t,
 	res = _t->LEval();
 	_retTree = _t->getNextSibling();
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -1009,6 +1017,7 @@ BaseGDL**  GDLInterpreter::l_defined_simple_var(ProgNodeP _t) {
 	callStack.back()->GetString( *res),true,false);
 	}
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	
@@ -1047,6 +1056,7 @@ BaseGDL**  GDLInterpreter::l_sys_var(ProgNodeP _t) {
 		res=sysVar->LEval();
 		_retTree = sysVar->getNextSibling();
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	
@@ -1149,6 +1159,7 @@ BaseGDL**  GDLInterpreter::l_decinc_array_expr(ProgNodeP _t,
 	
 	// not used _______________________________________
 	// ------------------------------------------------
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -1230,6 +1241,7 @@ BaseGDL*  GDLInterpreter::l_decinc_dot_expr(ProgNodeP _t,
 		else if( dec_inc == POSTINC) aD.Get()->Inc();
 	
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp43_AST_in = _t;
@@ -1743,6 +1755,7 @@ BaseGDL*  GDLInterpreter::expr(ProgNodeP _t) {
 	res = _t->Eval();
 	_retTree = _t->getNextSibling();
 	return res; //tmp_expr(_t);
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -1801,6 +1814,7 @@ BaseGDL*  GDLInterpreter::indexable_expr(ProgNodeP _t) {
 	res = _t->EvalNC();
 	_retTree = _t->getNextSibling();
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	BaseGDL** e2;
 	
@@ -1851,6 +1865,7 @@ BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
 	res = _t->Eval(); //lib_function_call_retnew_internal(_t);
 		_retTree = _t->getNextSibling();
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -1939,6 +1954,7 @@ BaseGDL*  GDLInterpreter::indexable_tmp_expr(ProgNodeP _t) {
 	
 	callStack.back()->SetPtrToReturnValue( retValPtr); 
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp55_AST_in = _t;
@@ -1957,6 +1973,7 @@ BaseGDL**  GDLInterpreter::l_expr_internal(ProgNodeP _t,
 	res = _t->LExpr( right);
 	_retTree = _t->getNextSibling();
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	BaseGDL* e1; 
 	
@@ -2077,6 +2094,7 @@ BaseGDL*  GDLInterpreter::tmp_expr(ProgNodeP _t) {
 		res = _t->Eval();
 		_retTree = _t->getNextSibling();
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	BaseGDL** e2;
 	
@@ -2190,6 +2208,7 @@ BaseGDL**  GDLInterpreter::l_simple_var(ProgNodeP _t) {
 	res = _t->LEval();    
 	_retTree = _t->getNextSibling();
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	
@@ -2280,6 +2299,7 @@ void GDLInterpreter::parameter_def(ProgNodeP _t,
 		guard.release();
 		
 	return;
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp68_AST_in = _t;
@@ -2298,6 +2318,7 @@ BaseGDL*  GDLInterpreter::r_expr(ProgNodeP _t) {
 	res=_t->Eval();
 		_retTree = _t->getNextSibling();
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	BaseGDL** refRet; // not used
 	
@@ -2423,6 +2444,7 @@ BaseGDL**  GDLInterpreter::l_indexable_expr(ProgNodeP _t) {
 	}
 	_retTree = _t->getNextSibling();
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -2612,6 +2634,7 @@ ArrayIndexListT*  GDLInterpreter::arrayindex_list(ProgNodeP _t,
 		
 		_retTree = ax->getNextSibling();//retTree;
 		return aL;
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp83_AST_in = _t;
@@ -2657,6 +2680,7 @@ void GDLInterpreter::l_dot_array_expr(ProgNodeP _t,
 		}
 	return;
 	//	_retTree = _t;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -2838,6 +2862,7 @@ void GDLInterpreter::tag_expr(ProgNodeP _t,
 			_retTree = _t->getNextSibling();		
 		}
 	return;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -2894,6 +2919,7 @@ void GDLInterpreter::tag_array_expr(ProgNodeP _t,
 		}
 		//_retTree = _t;
 	return;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -2946,6 +2972,14 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 			_retTree = tIn->getNextSibling();
 			break;
 		}
+		// DEREF was forgotten: cause of #812 and #26
+	case DEREF:
+	{
+			BaseGDL** v=l_deref(_t);
+				//_t = _retTree;
+				res = *v;
+				break;
+		} 
 		case VAR:
 		case VARPTR:
 		{
@@ -2965,6 +2999,7 @@ BaseGDL*  GDLInterpreter::r_dot_indexable_expr(ProgNodeP _t,
 		}
 		//_retTree = _t;
 		return res;
+		//NOTE: *** code below is not active ***
 	
 	BaseGDL** e;
 	
@@ -3036,6 +3071,7 @@ void GDLInterpreter::r_dot_array_expr(ProgNodeP _t,
 			SetRootR( _t, aD, r, NULL); 
 		}
 	return;
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -3079,6 +3115,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	res = _t->Eval();
 		_retTree = _t->getNextSibling();
 	return res;
+		//NOTE: *** code below is not active ***
 	
 	BaseGDL** l;
 	
@@ -3168,6 +3205,7 @@ BaseGDL*  GDLInterpreter::assign_expr(ProgNodeP _t) {
 	res = _t->Eval();
 		_retTree = _t->getNextSibling();
 		return res; //_t->cData->Dup(); 
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp99_AST_in = _t;
@@ -3192,6 +3230,7 @@ BaseGDL*  GDLInterpreter::simple_var(ProgNodeP _t) {
 	}
 		_retTree = _t->getNextSibling();
 		return vData->Dup();
+		//NOTE: *** code below is not active ***
 	
 	
 	if (_t == ProgNodeP(antlr::nullAST) )
@@ -3227,6 +3266,7 @@ BaseGDL*  GDLInterpreter::sys_var(ProgNodeP _t) {
 	res = _t->Eval();
 		_retTree = _t->getNextSibling();
 		return res; // no ->Dup()
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp102_AST_in = _t;
@@ -3359,6 +3399,7 @@ void GDLInterpreter::parameter_def_n_elements(ProgNodeP _t,
 		guard.release();
 		
 	return;
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp104_AST_in = _t;
@@ -3411,6 +3452,7 @@ void GDLInterpreter::parameter_def_nocheck(ProgNodeP _t,
 		guard.release();
 		
 	return;
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp106_AST_in = _t;
@@ -3480,6 +3522,7 @@ void GDLInterpreter::arrayindex_list_overload(ProgNodeP _t,
 		_retTree = ax->getNextSibling();//retTree;
 		return;
 	
+		//NOTE: *** code below is not active ***
 	
 	
 	ProgNodeP tmp108_AST_in = _t;
