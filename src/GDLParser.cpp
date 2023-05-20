@@ -4412,7 +4412,7 @@ void GDLParser::procedure_call() {
 			
 			id_AST->setType(RETURN); // text is already "return"
 			procedure_call_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(id_AST))->add(antlr::RefAST(e_AST)))); // make root
-			if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+			if (debugParser) std::cout<<" procedure_call : \""<<LT(0)->getText()<<"\""<<std::endl;
 			currentAST.root = procedure_call_AST;
 			if ( procedure_call_AST!=RefDNode(antlr::nullAST) &&
 				procedure_call_AST->getFirstChild() != RefDNode(antlr::nullAST) )
@@ -6911,7 +6911,7 @@ void GDLParser::numeric_constant() {
 	}
 	}
 	if ( inputState->guessing==0 ) {
-		if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+		if (debugParser) std::cout<<" numeric_constant : \""<<LT(0)->getText()<<"\""<<std::endl;
 	}
 	returnAST = numeric_constant_AST;
 }
@@ -8158,22 +8158,734 @@ void GDLParser::arrayexpr_mfcall() {
 	returnAST = arrayexpr_mfcall_AST;
 }
 
-void GDLParser::primary_expr() {
+void GDLParser::primary_expr_tail() {
 	returnAST = RefDNode(antlr::nullAST);
 	antlr::ASTPair currentAST;
-	RefDNode primary_expr_AST = RefDNode(antlr::nullAST);
-	RefDNode d1_AST = RefDNode(antlr::nullAST);
-	RefDNode d3_AST = RefDNode(antlr::nullAST);
-	antlr::RefToken  sl = antlr::nullToken;
-	RefDNode sl_AST = RefDNode(antlr::nullAST);
+	RefDNode primary_expr_tail_AST = RefDNode(antlr::nullAST);
 	antlr::RefToken  ls = antlr::nullToken;
 	RefDNode ls_AST = RefDNode(antlr::nullAST);
 	antlr::RefToken  lc = antlr::nullToken;
 	RefDNode lc_AST = RefDNode(antlr::nullAST);
 	
 	bool parent;
-	if (debugParser) std::cout << " -> primary_expr -> ";
+	if (debugParser) std::cout << " -> primary_expr_tail -> ";
 	
+	
+	bool synPredMatched214 = false;
+	if (((_tokenSet_4.member(LA(1))) && (_tokenSet_24.member(LA(2))))) {
+		int _m214 = mark();
+		synPredMatched214 = true;
+		inputState->guessing++;
+		try {
+			{
+			deref_dot_expr();
+			}
+		}
+		catch (antlr::RecognitionException& pe) {
+			synPredMatched214 = false;
+		}
+		rewind(_m214);
+		inputState->guessing--;
+	}
+	if ( synPredMatched214 ) {
+		deref_expr();
+		if (inputState->guessing==0) {
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		}
+		{
+		switch ( LA(1)) {
+		case MEMBER:
+		{
+			parent=member_function_call();
+			if (inputState->guessing==0) {
+				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+			}
+			if ( inputState->guessing==0 ) {
+				primary_expr_tail_AST = RefDNode(currentAST.root);
+				
+				if( parent)
+				{
+				primary_expr_tail_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(MFCALL_PARENT,"mfcall::")))->add(antlr::RefAST(primary_expr_tail_AST))));
+						    if (debugParser) std::cout << " (deref_dot_expr)=>deref_expr ( parent=true) -> mfcall" << std::endl;
+				} 
+				else
+				{
+				primary_expr_tail_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(MFCALL,"mfcall")))->add(antlr::RefAST(primary_expr_tail_AST))));
+						    if (debugParser) std::cout << " (deref_dot_expr)=>deref_expr -> primary_expr ->  mfcall" << std::endl;
+				}
+				
+				currentAST.root = primary_expr_tail_AST;
+				if ( primary_expr_tail_AST!=RefDNode(antlr::nullAST) &&
+					primary_expr_tail_AST->getFirstChild() != RefDNode(antlr::nullAST) )
+					  currentAST.child = primary_expr_tail_AST->getFirstChild();
+				else
+					currentAST.child = primary_expr_tail_AST;
+				currentAST.advanceChildToEnd();
+			}
+			break;
+		}
+		case antlr::Token::EOF_TYPE:
+		case AND_OP:
+		case DO:
+		case ELSE:
+		case EQ_OP:
+		case GE_OP:
+		case GT_OP:
+		case LE_OP:
+		case LT_OP:
+		case MOD_OP:
+		case NE_OP:
+		case OF:
+		case OR_OP:
+		case THEN:
+		case UNTIL:
+		case XOR_OP:
+		case COMMA:
+		case COLON:
+		case END_U:
+		case DEC:
+		case INC:
+		case AND_OP_EQ:
+		case ASTERIX_EQ:
+		case EQ_OP_EQ:
+		case GE_OP_EQ:
+		case GTMARK_EQ:
+		case GT_OP_EQ:
+		case LE_OP_EQ:
+		case LTMARK_EQ:
+		case LT_OP_EQ:
+		case MATRIX_OP1_EQ:
+		case MATRIX_OP2_EQ:
+		case MINUS_EQ:
+		case MOD_OP_EQ:
+		case NE_OP_EQ:
+		case OR_OP_EQ:
+		case PLUS_EQ:
+		case POW_EQ:
+		case SLASH_EQ:
+		case XOR_OP_EQ:
+		case RBRACE:
+		case SLASH:
+		case RSQUARE:
+		case RCURLY:
+		case ASTERIX:
+		case POW:
+		case MATRIX_OP1:
+		case MATRIX_OP2:
+		case PLUS:
+		case MINUS:
+		case LTMARK:
+		case GTMARK:
+		case LOG_AND:
+		case LOG_OR:
+		case QUESTION:
+		{
+			if ( inputState->guessing==0 ) {
+				if (debugParser) std::cout << " | empty -> array expression -> "/* << std::endl */;
+			}
+			break;
+		}
+		default:
+		{
+			throw antlr::NoViableAltException(LT(1), getFilename());
+		}
+		}
+		}
+		primary_expr_tail_AST = RefDNode(currentAST.root);
+	}
+	else {
+		bool synPredMatched219 = false;
+		if (((LA(1) == IDENTIFIER || LA(1) == INHERITS) && (LA(2) == LBRACE || LA(2) == LSQUARE))) {
+			int _m219 = mark();
+			synPredMatched219 = true;
+			inputState->guessing++;
+			try {
+				{
+				match(IDENTIFIER);
+				match(LBRACE);
+				expr();
+				{ // ( ... )*
+				for (;;) {
+					if ((LA(1) == COMMA)) {
+						match(COMMA);
+						expr();
+					}
+					else {
+						goto _loop218;
+					}
+					
+				}
+				_loop218:;
+				} // ( ... )*
+				match(RBRACE);
+				}
+			}
+			catch (antlr::RecognitionException& pe) {
+				synPredMatched219 = false;
+			}
+			rewind(_m219);
+			inputState->guessing--;
+		}
+		if ( synPredMatched219 ) {
+			{
+			if (((LA(1) == IDENTIFIER) && (LA(2) == LBRACE))&&( IsFun(LT(1)))) {
+				formal_function_call();
+				if (inputState->guessing==0) {
+					astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+				}
+				if ( inputState->guessing==0 ) {
+					primary_expr_tail_AST = RefDNode(currentAST.root);
+					
+					if (debugParser) std::cout << " (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=> formal_function_call : primary_expr : " /* << std::endl */;
+					primary_expr_tail_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(FCALL,"fcall")))->add(antlr::RefAST(primary_expr_tail_AST)))); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+					
+					currentAST.root = primary_expr_tail_AST;
+					if ( primary_expr_tail_AST!=RefDNode(antlr::nullAST) &&
+						primary_expr_tail_AST->getFirstChild() != RefDNode(antlr::nullAST) )
+						  currentAST.child = primary_expr_tail_AST->getFirstChild();
+					else
+						currentAST.child = primary_expr_tail_AST;
+					currentAST.advanceChildToEnd();
+				}
+			}
+			else {
+				bool synPredMatched222 = false;
+				if (((LA(1) == IDENTIFIER || LA(1) == INHERITS) && (LA(2) == LBRACE || LA(2) == LSQUARE))) {
+					int _m222 = mark();
+					synPredMatched222 = true;
+					inputState->guessing++;
+					try {
+						{
+						var();
+						arrayindex_list();
+						}
+					}
+					catch (antlr::RecognitionException& pe) {
+						synPredMatched222 = false;
+					}
+					rewind(_m222);
+					inputState->guessing--;
+				}
+				if ( synPredMatched222 ) {
+					var();
+					if (inputState->guessing==0) {
+						astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+					}
+					arrayindex_list();
+					if (inputState->guessing==0) {
+						astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+					}
+					if ( inputState->guessing==0 ) {
+						primary_expr_tail_AST = RefDNode(currentAST.root);
+						
+						if (debugParser) std::cout << "(var arrayindex_list)=> var arrayindex_list -> primary_expr : " /* << std::endl */;
+						
+						primary_expr_tail_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(ARRAYEXPR_FCALL,"arrayexpr_fcall")))->add(antlr::RefAST(primary_expr_tail_AST)))); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+							
+						currentAST.root = primary_expr_tail_AST;
+						if ( primary_expr_tail_AST!=RefDNode(antlr::nullAST) &&
+							primary_expr_tail_AST->getFirstChild() != RefDNode(antlr::nullAST) )
+							  currentAST.child = primary_expr_tail_AST->getFirstChild();
+						else
+							currentAST.child = primary_expr_tail_AST;
+						currentAST.advanceChildToEnd();
+					}
+				}
+				else if ((LA(1) == IDENTIFIER) && (LA(2) == LBRACE)) {
+					formal_function_call();
+					if (inputState->guessing==0) {
+						astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+					}
+					if ( inputState->guessing==0 ) {
+						primary_expr_tail_AST = RefDNode(currentAST.root);
+						if (debugParser) std::cout << " (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=>formal_function_call -> primary_expr : " /* << std::endl */;
+						primary_expr_tail_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(FCALL,"fcall")))->add(antlr::RefAST(primary_expr_tail_AST)))); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+						
+						currentAST.root = primary_expr_tail_AST;
+						if ( primary_expr_tail_AST!=RefDNode(antlr::nullAST) &&
+							primary_expr_tail_AST->getFirstChild() != RefDNode(antlr::nullAST) )
+							  currentAST.child = primary_expr_tail_AST->getFirstChild();
+						else
+							currentAST.child = primary_expr_tail_AST;
+						currentAST.advanceChildToEnd();
+					}
+				}
+			else {
+				throw antlr::NoViableAltException(LT(1), getFilename());
+			}
+			}
+			}
+			primary_expr_tail_AST = RefDNode(currentAST.root);
+		}
+		else {
+			bool synPredMatched224 = false;
+			if (((LA(1) == IDENTIFIER) && (LA(2) == LBRACE))) {
+				int _m224 = mark();
+				synPredMatched224 = true;
+				inputState->guessing++;
+				try {
+					{
+					formal_function_call();
+					}
+				}
+				catch (antlr::RecognitionException& pe) {
+					synPredMatched224 = false;
+				}
+				rewind(_m224);
+				inputState->guessing--;
+			}
+			if ( synPredMatched224 ) {
+				formal_function_call();
+				if (inputState->guessing==0) {
+					astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+				}
+				if ( inputState->guessing==0 ) {
+					primary_expr_tail_AST = RefDNode(currentAST.root);
+					if (debugParser) std::cout << " (formal_function_call)=> formal_function_call -> primary_expr :" << std::endl; primary_expr_tail_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(FCALL,"fcall")))->add(antlr::RefAST(primary_expr_tail_AST))));
+					currentAST.root = primary_expr_tail_AST;
+					if ( primary_expr_tail_AST!=RefDNode(antlr::nullAST) &&
+						primary_expr_tail_AST->getFirstChild() != RefDNode(antlr::nullAST) )
+						  currentAST.child = primary_expr_tail_AST->getFirstChild();
+					else
+						currentAST.child = primary_expr_tail_AST;
+					currentAST.advanceChildToEnd();
+				}
+				primary_expr_tail_AST = RefDNode(currentAST.root);
+			}
+			else {
+				bool synPredMatched226 = false;
+				if (((_tokenSet_4.member(LA(1))) && (_tokenSet_24.member(LA(2))))) {
+					int _m226 = mark();
+					synPredMatched226 = true;
+					inputState->guessing++;
+					try {
+						{
+						deref_expr();
+						}
+					}
+					catch (antlr::RecognitionException& pe) {
+						synPredMatched226 = false;
+					}
+					rewind(_m226);
+					inputState->guessing--;
+				}
+				if ( synPredMatched226 ) {
+					deref_expr();
+					if (inputState->guessing==0) {
+						astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+					}
+					{
+					switch ( LA(1)) {
+					case MEMBER:
+					{
+						parent=member_function_call();
+						if (inputState->guessing==0) {
+							astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+						}
+						if ( inputState->guessing==0 ) {
+							primary_expr_tail_AST = RefDNode(currentAST.root);
+							
+							if( parent)
+							{
+							if (debugParser) std::cout << " (deref_expr)=> deref_expr ( parent=true) -> mfcall :" /* << std::endl */;
+							primary_expr_tail_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(MFCALL_PARENT,"mfcall::")))->add(antlr::RefAST(primary_expr_tail_AST)))); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+							}
+							else
+							{
+							if (debugParser) std::cout << " (deref_expr)=> deref_expr ( parent=false) -> mfcall :" /* << std::endl */;
+							primary_expr_tail_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(MFCALL,"mfcall")))->add(antlr::RefAST(primary_expr_tail_AST)))); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
+							}
+							
+							currentAST.root = primary_expr_tail_AST;
+							if ( primary_expr_tail_AST!=RefDNode(antlr::nullAST) &&
+								primary_expr_tail_AST->getFirstChild() != RefDNode(antlr::nullAST) )
+								  currentAST.child = primary_expr_tail_AST->getFirstChild();
+							else
+								currentAST.child = primary_expr_tail_AST;
+							currentAST.advanceChildToEnd();
+						}
+						break;
+					}
+					case antlr::Token::EOF_TYPE:
+					case AND_OP:
+					case DO:
+					case ELSE:
+					case EQ_OP:
+					case GE_OP:
+					case GT_OP:
+					case LE_OP:
+					case LT_OP:
+					case MOD_OP:
+					case NE_OP:
+					case OF:
+					case OR_OP:
+					case THEN:
+					case UNTIL:
+					case XOR_OP:
+					case COMMA:
+					case COLON:
+					case END_U:
+					case DEC:
+					case INC:
+					case AND_OP_EQ:
+					case ASTERIX_EQ:
+					case EQ_OP_EQ:
+					case GE_OP_EQ:
+					case GTMARK_EQ:
+					case GT_OP_EQ:
+					case LE_OP_EQ:
+					case LTMARK_EQ:
+					case LT_OP_EQ:
+					case MATRIX_OP1_EQ:
+					case MATRIX_OP2_EQ:
+					case MINUS_EQ:
+					case MOD_OP_EQ:
+					case NE_OP_EQ:
+					case OR_OP_EQ:
+					case PLUS_EQ:
+					case POW_EQ:
+					case SLASH_EQ:
+					case XOR_OP_EQ:
+					case RBRACE:
+					case SLASH:
+					case RSQUARE:
+					case RCURLY:
+					case ASTERIX:
+					case POW:
+					case MATRIX_OP1:
+					case MATRIX_OP2:
+					case PLUS:
+					case MINUS:
+					case LTMARK:
+					case GTMARK:
+					case LOG_AND:
+					case LOG_OR:
+					case QUESTION:
+					{
+						if ( inputState->guessing==0 ) {
+							if (debugParser) std::cout << " (deref_expr)=> deref_expr | empty -> array expression No 2! -> "/* << std::endl */;
+						}
+						break;
+					}
+					default:
+					{
+						throw antlr::NoViableAltException(LT(1), getFilename());
+					}
+					}
+					}
+					primary_expr_tail_AST = RefDNode(currentAST.root);
+				}
+				else if ((LA(1) == LBRACE) && (_tokenSet_4.member(LA(2)))) {
+					assign_expr();
+					if (inputState->guessing==0) {
+						astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+					}
+					primary_expr_tail_AST = RefDNode(currentAST.root);
+				}
+				else if ((LA(1) == LSQUARE) && (_tokenSet_13.member(LA(2)))) {
+					array_def();
+					if (inputState->guessing==0) {
+						astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+					}
+					primary_expr_tail_AST = RefDNode(currentAST.root);
+				}
+				else if ((LA(1) == LCURLY) && (_tokenSet_15.member(LA(2)))) {
+					struct_def();
+					if (inputState->guessing==0) {
+						astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+					}
+					primary_expr_tail_AST = RefDNode(currentAST.root);
+				}
+				else if ((LA(1) == LSQUARE) && (LA(2) == RSQUARE)) {
+					ls = LT(1);
+					ls_AST = astFactory->create(ls);
+					match(LSQUARE);
+					RefDNode tmp192_AST = RefDNode(antlr::nullAST);
+					if ( inputState->guessing == 0 ) {
+						tmp192_AST = astFactory->create(LT(1));
+					}
+					match(RSQUARE);
+					if ( inputState->guessing==0 ) {
+						primary_expr_tail_AST = RefDNode(currentAST.root);
+						primary_expr_tail_AST=astFactory->create(GDLNULL,"GDLNULL[]");
+						primary_expr_tail_AST->SetLine( ls_AST->getLine()); if (debugParser) std::cout << "NULL" << std::endl;
+						
+						currentAST.root = primary_expr_tail_AST;
+						if ( primary_expr_tail_AST!=RefDNode(antlr::nullAST) &&
+							primary_expr_tail_AST->getFirstChild() != RefDNode(antlr::nullAST) )
+							  currentAST.child = primary_expr_tail_AST->getFirstChild();
+						else
+							currentAST.child = primary_expr_tail_AST;
+						currentAST.advanceChildToEnd();
+					}
+				}
+				else if ((LA(1) == LCURLY) && (LA(2) == RCURLY)) {
+					lc = LT(1);
+					lc_AST = astFactory->create(lc);
+					match(LCURLY);
+					RefDNode tmp193_AST = RefDNode(antlr::nullAST);
+					if ( inputState->guessing == 0 ) {
+						tmp193_AST = astFactory->create(LT(1));
+					}
+					match(RCURLY);
+					if ( inputState->guessing==0 ) {
+						primary_expr_tail_AST = RefDNode(currentAST.root);
+						primary_expr_tail_AST=astFactory->create(GDLNULL,"GDLNULL{}");
+						primary_expr_tail_AST->SetLine( lc_AST->getLine()); if (debugParser) std::cout << "NULL" << std::endl;
+						
+						currentAST.root = primary_expr_tail_AST;
+						if ( primary_expr_tail_AST!=RefDNode(antlr::nullAST) &&
+							primary_expr_tail_AST->getFirstChild() != RefDNode(antlr::nullAST) )
+							  currentAST.child = primary_expr_tail_AST->getFirstChild();
+						else
+							currentAST.child = primary_expr_tail_AST;
+						currentAST.advanceChildToEnd();
+					}
+				}
+	else {
+		throw antlr::NoViableAltException(LT(1), getFilename());
+	}
+	}}}
+	returnAST = primary_expr_tail_AST;
+}
+
+void GDLParser::primary_expr_deref() {
+	returnAST = RefDNode(antlr::nullAST);
+	antlr::ASTPair currentAST;
+	RefDNode primary_expr_deref_AST = RefDNode(antlr::nullAST);
+	
+	// the following needs to be updated if the symbols are rearranged (e. g. a symbol is inserted)
+	// (it is taken from GDLParser.cpp: const antlr::BitSet GDLParser::_tokenSet_XX)
+	const unsigned long _tokenSet_4_data_[] = { 0UL, 0UL, 268435456UL, 1048576UL, 536870912UL, 4UL, 4096UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+	// IDENTIFIER "inherits" LBRACE SYSVARNAME ASTERIX 
+	const antlr::BitSet _tokenSet_4(_tokenSet_4_data_,16);
+	const unsigned long _tokenSet_5_data_[] = { 0UL, 0UL, 268435456UL, 34603008UL, 536871296UL, 4294967253UL, 5013503UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+	// IDENTIFIER "inherits" "not" DEC INC LBRACE LSQUARE SYSVARNAME LCURLY 
+	// CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT 
+	// CONSTANT_HEX_I CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI 
+	// CONSTANT_HEX_UINT CONSTANT_BYTE CONSTANT_LONG CONSTANT_LONG64 CONSTANT_INT 
+	// CONSTANT_I CONSTANT_ULONG CONSTANT_ULONG64 CONSTANT_UI CONSTANT_UINT 
+	// CONSTANT_OCT_BYTE CONSTANT_OCT_LONG CONSTANT_OCT_LONG64 CONSTANT_OCT_INT 
+	// CONSTANT_OCT_I CONSTANT_OCT_ULONG CONSTANT_OCT_ULONG64 CONSTANT_OCT_UI 
+	// CONSTANT_OCT_UINT CONSTANT_FLOAT CONSTANT_DOUBLE CONSTANT_BIN_BYTE CONSTANT_BIN_LONG 
+	// CONSTANT_BIN_LONG64 CONSTANT_BIN_INT CONSTANT_BIN_I CONSTANT_BIN_ULONG 
+	// CONSTANT_BIN_ULONG64 CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX DOT STRING_LITERAL 
+	// PLUS MINUS LOG_NEG 
+	const antlr::BitSet _tokenSet_5(_tokenSet_5_data_,16);
+	const unsigned long _tokenSet_23_data_[] = { 0UL, 0UL, 268435456UL, 1048576UL, 536870912UL, 21UL, 4096UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+	// IDENTIFIER "inherits" LBRACE LSQUARE SYSVARNAME LCURLY ASTERIX 
+	const antlr::BitSet _tokenSet_23(_tokenSet_23_data_,16);
+	const unsigned long _tokenSet_24_data_[] = { 2UL, 0UL, 805306368UL, 2549424140UL, 4026532283UL, 4294967295UL, 67108863UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+	// EOF IDENTIFIER "and" "do" "else" "eq" "ge" "gt" "inherits" "le" "lt" 
+	// "mod" "ne" "not" "of" "or" "then" "until" "xor" COMMA COLON END_U DEC 
+	// INC MEMBER LBRACE RBRACE SLASH LSQUARE RSQUARE SYSVARNAME EXCLAMATION 
+	// LCURLY RCURLY CONSTANT_HEX_BYTE CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 
+	// CONSTANT_HEX_INT CONSTANT_HEX_I CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 
+	// CONSTANT_HEX_UI CONSTANT_HEX_UINT CONSTANT_BYTE CONSTANT_LONG CONSTANT_LONG64 
+	// CONSTANT_INT CONSTANT_I CONSTANT_ULONG CONSTANT_ULONG64 CONSTANT_UI 
+	// CONSTANT_UINT CONSTANT_OCT_BYTE CONSTANT_OCT_LONG CONSTANT_OCT_LONG64 
+	// CONSTANT_OCT_INT CONSTANT_OCT_I CONSTANT_OCT_ULONG CONSTANT_OCT_ULONG64 
+	// CONSTANT_OCT_UI CONSTANT_OCT_UINT CONSTANT_FLOAT CONSTANT_DOUBLE CONSTANT_BIN_BYTE 
+	// CONSTANT_BIN_LONG CONSTANT_BIN_LONG64 CONSTANT_BIN_INT CONSTANT_BIN_I 
+	// CONSTANT_BIN_ULONG CONSTANT_BIN_ULONG64 CONSTANT_BIN_UI CONSTANT_BIN_UINT 
+	// ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 PLUS MINUS LTMARK 
+	// GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
+	const antlr::BitSet _tokenSet_24(_tokenSet_24_data_,16);
+	
+	bool parent;
+	
+	bool skip;
+	int markIn = mark();
+	
+		inputState->guessing++;
+	
+	bool tailLa1La2 = (_tokenSet_23.member(LA(1))) && (_tokenSet_24.member(LA(2)));
+	bool derefLa1La2 = (_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))); 
+	
+	if ( derefLa1La2) 
+	{
+	skip = false;
+	try {
+	deref_dot_expr_keeplast();
+	}
+	catch (antlr::RecognitionException& pe) {
+	skip = true;
+	}
+	}
+	else
+	skip = true;
+	
+	if( skip && tailLa1La2)
+	{
+	rewind( markIn);
+	inputState->guessing--;
+	
+	primary_expr_tail();
+	if (inputState->guessing==0) {
+	astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+	}
+	primary_expr_deref_AST = RefDNode(currentAST.root);
+	returnAST = primary_expr_deref_AST;
+	return;
+	}
+	
+	bool arrayexpr_mfcallParse = false;
+	bool function_callParse = false;
+	
+	int mark2nd = mark();
+	
+	bool baseclass_methodParse = true;
+	try {
+	{
+	baseclass_method();
+	}
+	}
+	catch (antlr::RecognitionException& pe) {
+	baseclass_methodParse = false;
+	}
+	
+	rewind( mark2nd);
+	
+	if( !baseclass_methodParse)
+	{
+	int mark3rd = mark();
+	
+	arrayexpr_mfcallParse = true;
+	try {
+	{
+				match(IDENTIFIER);
+				match(LBRACE);
+				expr();
+				{ // ( ... )*
+				for (;;) {
+					if ((LA(1) == COMMA)) {
+						match(COMMA);
+						expr();
+					}
+					else {
+	break;
+					}
+	}
+				} // ( ... )*
+				match(RBRACE);
+	}
+	}
+	catch (antlr::RecognitionException& pe) {
+	arrayexpr_mfcallParse = false;
+	}
+	
+	rewind( mark3rd);
+	
+	if( !arrayexpr_mfcallParse)
+	{
+	function_callParse = true;
+	try {
+	{
+	formal_function_call();
+	}
+	}
+	catch (antlr::RecognitionException& pe) {
+	function_callParse = false;
+	}
+	
+	if( !function_callParse && tailLa1La2)
+	{
+	rewind( markIn);
+	inputState->guessing--;
+	
+	primary_expr_tail();
+	if (inputState->guessing==0) {
+	astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+	}
+	primary_expr_deref_AST = RefDNode(currentAST.root);
+	returnAST = primary_expr_deref_AST;
+	return; 
+	}
+	}
+	}
+	
+	rewind( markIn);
+	inputState->guessing--;
+	
+	
+	if (((_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))))&&(baseclass_methodParse)) {
+		deref_dot_expr_keeplast();
+		if (inputState->guessing==0) {
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		}
+		baseclass_method();
+		if (inputState->guessing==0) {
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		}
+		formal_function_call();
+		if (inputState->guessing==0) {
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		}
+		if ( inputState->guessing==0 ) {
+			primary_expr_deref_AST = RefDNode(currentAST.root);
+			
+			primary_expr_deref_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(MFCALL_PARENT,"mfcall::")))->add(antlr::RefAST(primary_expr_deref_AST))));
+			
+			currentAST.root = primary_expr_deref_AST;
+			if ( primary_expr_deref_AST!=RefDNode(antlr::nullAST) &&
+				primary_expr_deref_AST->getFirstChild() != RefDNode(antlr::nullAST) )
+				  currentAST.child = primary_expr_deref_AST->getFirstChild();
+			else
+				currentAST.child = primary_expr_deref_AST;
+			currentAST.advanceChildToEnd();
+		}
+		primary_expr_deref_AST = RefDNode(currentAST.root);
+	}
+	else if (((_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))))&&(arrayexpr_mfcallParse)) {
+		arrayexpr_mfcall();
+		if (inputState->guessing==0) {
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		}
+		primary_expr_deref_AST = RefDNode(currentAST.root);
+	}
+	else if (((_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))))&&(function_callParse)) {
+		deref_dot_expr_keeplast();
+		if (inputState->guessing==0) {
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		}
+		formal_function_call();
+		if (inputState->guessing==0) {
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		}
+		if ( inputState->guessing==0 ) {
+			primary_expr_deref_AST = RefDNode(currentAST.root);
+			primary_expr_deref_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(MFCALL,"mfcall")))->add(antlr::RefAST(primary_expr_deref_AST))));
+			currentAST.root = primary_expr_deref_AST;
+			if ( primary_expr_deref_AST!=RefDNode(antlr::nullAST) &&
+				primary_expr_deref_AST->getFirstChild() != RefDNode(antlr::nullAST) )
+				  currentAST.child = primary_expr_deref_AST->getFirstChild();
+			else
+				currentAST.child = primary_expr_deref_AST;
+			currentAST.advanceChildToEnd();
+		}
+		primary_expr_deref_AST = RefDNode(currentAST.root);
+	}
+	else if ((_tokenSet_25.member(LA(1))) && (_tokenSet_26.member(LA(2)))) {
+		primary_expr_tail();
+		if (inputState->guessing==0) {
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		}
+		primary_expr_deref_AST = RefDNode(currentAST.root);
+	}
+	else {
+		throw antlr::NoViableAltException(LT(1), getFilename());
+	}
+	
+	returnAST = primary_expr_deref_AST;
+}
+
+void GDLParser::primary_expr() {
+	returnAST = RefDNode(antlr::nullAST);
+	antlr::ASTPair currentAST;
+	RefDNode primary_expr_AST = RefDNode(antlr::nullAST);
+	antlr::RefToken  sl = antlr::nullToken;
+	RefDNode sl_AST = RefDNode(antlr::nullAST);
+	if (debugParser) std::cout << " -> primary_expr -> ";
 	
 	switch ( LA(1)) {
 	case STRING_LITERAL:
@@ -8186,10 +8898,9 @@ void GDLParser::primary_expr() {
 		if ( inputState->guessing==0 ) {
 			primary_expr_AST = RefDNode(currentAST.root);
 			primary_expr_AST=astFactory->create(CONSTANT,sl->getText());
-			primary_expr_AST->Text2String();    
+			primary_expr_AST->Text2String();	
 			primary_expr_AST->SetLine( sl_AST->getLine());
-				    { if (debugParser) std::cout << "STRING_LITERAL" <<std::endl;}
-			
+					
 			currentAST.root = primary_expr_AST;
 			if ( primary_expr_AST!=RefDNode(antlr::nullAST) &&
 				primary_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )
@@ -8246,617 +8957,26 @@ void GDLParser::primary_expr() {
 		primary_expr_AST = RefDNode(currentAST.root);
 		break;
 	}
+	case IDENTIFIER:
+	case INHERITS:
+	case LBRACE:
+	case LSQUARE:
+	case SYSVARNAME:
+	case LCURLY:
+	case ASTERIX:
+	{
+		primary_expr_deref();
+		if (inputState->guessing==0) {
+			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		}
+		primary_expr_AST = RefDNode(currentAST.root);
+		break;
+	}
 	default:
-		bool synPredMatched214 = false;
-		if (((_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))))) {
-			int _m214 = mark();
-			synPredMatched214 = true;
-			inputState->guessing++;
-			try {
-				{
-				deref_dot_expr_keeplast();
-				baseclass_method();
-				}
-			}
-			catch (antlr::RecognitionException& pe) {
-				synPredMatched214 = false;
-			}
-			rewind(_m214);
-			inputState->guessing--;
-		}
-		if ( synPredMatched214 ) {
-			deref_dot_expr_keeplast();
-			if (inputState->guessing==0) {
-				d1_AST = returnAST;
-				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-			}
-			baseclass_method();
-			if (inputState->guessing==0) {
-				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-			}
-			formal_function_call();
-			if (inputState->guessing==0) {
-				astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-			}
-			if ( inputState->guessing==0 ) {
-				primary_expr_AST = RefDNode(currentAST.root);
-				
-				if (debugParser) std::cout << " d1:deref_dot_expr_keeplast baseclass_method formal_function_call "<< std::endl;
-				primary_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(MFCALL_PARENT,"mfcall::")))->add(antlr::RefAST(primary_expr_AST)))); if (debugParser) std::cout<<" : \""<<LT(0)->getText()<<"\""<<std::endl;
-				
-				currentAST.root = primary_expr_AST;
-				if ( primary_expr_AST!=RefDNode(antlr::nullAST) &&
-					primary_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )
-					  currentAST.child = primary_expr_AST->getFirstChild();
-				else
-					currentAST.child = primary_expr_AST;
-				currentAST.advanceChildToEnd();
-			}
-			primary_expr_AST = RefDNode(currentAST.root);
-		}
-		else {
-			bool synPredMatched219 = false;
-			if (((_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))))) {
-				int _m219 = mark();
-				synPredMatched219 = true;
-				inputState->guessing++;
-				try {
-					{
-					deref_dot_expr_keeplast();
-					{
-					match(IDENTIFIER);
-					match(LBRACE);
-					expr();
-					{ // ( ... )*
-					for (;;) {
-						if ((LA(1) == COMMA)) {
-							match(COMMA);
-							expr();
-						}
-						else {
-							goto _loop218;
-						}
-						
-					}
-					_loop218:;
-					} // ( ... )*
-					match(RBRACE);
-					}
-					}
-				}
-				catch (antlr::RecognitionException& pe) {
-					synPredMatched219 = false;
-				}
-				rewind(_m219);
-				inputState->guessing--;
-			}
-			if ( synPredMatched219 ) {
-				arrayexpr_mfcall();
-				if (inputState->guessing==0) {
-					astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-				}
-				if ( inputState->guessing==0 ) {
-					if (debugParser) std::cout << " deref_dot_expr_keeplast (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=> arrayexpr_mfcall -> " /*<< std::endl */;
-				}
-				primary_expr_AST = RefDNode(currentAST.root);
-			}
-			else {
-				bool synPredMatched221 = false;
-				if (((_tokenSet_4.member(LA(1))) && (_tokenSet_5.member(LA(2))))) {
-					int _m221 = mark();
-					synPredMatched221 = true;
-					inputState->guessing++;
-					try {
-						{
-						deref_dot_expr_keeplast();
-						formal_function_call();
-						}
-					}
-					catch (antlr::RecognitionException& pe) {
-						synPredMatched221 = false;
-					}
-					rewind(_m221);
-					inputState->guessing--;
-				}
-				if ( synPredMatched221 ) {
-					deref_dot_expr_keeplast();
-					if (inputState->guessing==0) {
-						d3_AST = returnAST;
-						astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-					}
-					formal_function_call();
-					if (inputState->guessing==0) {
-						astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-					}
-					if ( inputState->guessing==0 ) {
-						primary_expr_AST = RefDNode(currentAST.root);
-						if (debugParser) std::cout << "  (deref_dot_expr_keeplast formal_function_call)=> d3:deref_dot_expr_keeplast formal_function_call -> mfcall" << std::endl; primary_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(MFCALL,"mfcall")))->add(antlr::RefAST(primary_expr_AST))));
-						currentAST.root = primary_expr_AST;
-						if ( primary_expr_AST!=RefDNode(antlr::nullAST) &&
-							primary_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )
-							  currentAST.child = primary_expr_AST->getFirstChild();
-						else
-							currentAST.child = primary_expr_AST;
-						currentAST.advanceChildToEnd();
-					}
-					primary_expr_AST = RefDNode(currentAST.root);
-				}
-				else {
-					bool synPredMatched223 = false;
-					if (((_tokenSet_4.member(LA(1))) && (_tokenSet_24.member(LA(2))))) {
-						int _m223 = mark();
-						synPredMatched223 = true;
-						inputState->guessing++;
-						try {
-							{
-							deref_dot_expr();
-							}
-						}
-						catch (antlr::RecognitionException& pe) {
-							synPredMatched223 = false;
-						}
-						rewind(_m223);
-						inputState->guessing--;
-					}
-					if ( synPredMatched223 ) {
-						deref_expr();
-						if (inputState->guessing==0) {
-							astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-						}
-						{
-						switch ( LA(1)) {
-						case MEMBER:
-						{
-							parent=member_function_call();
-							if (inputState->guessing==0) {
-								astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-							}
-							if ( inputState->guessing==0 ) {
-								primary_expr_AST = RefDNode(currentAST.root);
-								
-								if( parent)
-								{
-								primary_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(MFCALL_PARENT,"mfcall::")))->add(antlr::RefAST(primary_expr_AST))));
-										    if (debugParser) std::cout << " (deref_dot_expr)=>deref_expr ( parent=true) -> mfcall" << std::endl;
-								} 
-								else
-								{
-								primary_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(MFCALL,"mfcall")))->add(antlr::RefAST(primary_expr_AST))));
-										    if (debugParser) std::cout << " (deref_dot_expr)=>deref_expr -> primary_expr ->  mfcall" << std::endl;
-								}
-								
-								currentAST.root = primary_expr_AST;
-								if ( primary_expr_AST!=RefDNode(antlr::nullAST) &&
-									primary_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )
-									  currentAST.child = primary_expr_AST->getFirstChild();
-								else
-									currentAST.child = primary_expr_AST;
-								currentAST.advanceChildToEnd();
-							}
-							break;
-						}
-						case antlr::Token::EOF_TYPE:
-						case AND_OP:
-						case DO:
-						case ELSE:
-						case EQ_OP:
-						case GE_OP:
-						case GT_OP:
-						case LE_OP:
-						case LT_OP:
-						case MOD_OP:
-						case NE_OP:
-						case OF:
-						case OR_OP:
-						case THEN:
-						case UNTIL:
-						case XOR_OP:
-						case COMMA:
-						case COLON:
-						case END_U:
-						case DEC:
-						case INC:
-						case AND_OP_EQ:
-						case ASTERIX_EQ:
-						case EQ_OP_EQ:
-						case GE_OP_EQ:
-						case GTMARK_EQ:
-						case GT_OP_EQ:
-						case LE_OP_EQ:
-						case LTMARK_EQ:
-						case LT_OP_EQ:
-						case MATRIX_OP1_EQ:
-						case MATRIX_OP2_EQ:
-						case MINUS_EQ:
-						case MOD_OP_EQ:
-						case NE_OP_EQ:
-						case OR_OP_EQ:
-						case PLUS_EQ:
-						case POW_EQ:
-						case SLASH_EQ:
-						case XOR_OP_EQ:
-						case RBRACE:
-						case SLASH:
-						case RSQUARE:
-						case RCURLY:
-						case ASTERIX:
-						case POW:
-						case MATRIX_OP1:
-						case MATRIX_OP2:
-						case PLUS:
-						case MINUS:
-						case LTMARK:
-						case GTMARK:
-						case LOG_AND:
-						case LOG_OR:
-						case QUESTION:
-						{
-							if ( inputState->guessing==0 ) {
-								if (debugParser) std::cout << " | empty -> array expression -> "/* << std::endl */;
-							}
-							break;
-						}
-						default:
-						{
-							throw antlr::NoViableAltException(LT(1), getFilename());
-						}
-						}
-						}
-						primary_expr_AST = RefDNode(currentAST.root);
-					}
-					else {
-						bool synPredMatched228 = false;
-						if (((LA(1) == IDENTIFIER || LA(1) == INHERITS) && (LA(2) == LBRACE || LA(2) == LSQUARE))) {
-							int _m228 = mark();
-							synPredMatched228 = true;
-							inputState->guessing++;
-							try {
-								{
-								match(IDENTIFIER);
-								match(LBRACE);
-								expr();
-								{ // ( ... )*
-								for (;;) {
-									if ((LA(1) == COMMA)) {
-										match(COMMA);
-										expr();
-									}
-									else {
-										goto _loop227;
-									}
-									
-								}
-								_loop227:;
-								} // ( ... )*
-								match(RBRACE);
-								}
-							}
-							catch (antlr::RecognitionException& pe) {
-								synPredMatched228 = false;
-							}
-							rewind(_m228);
-							inputState->guessing--;
-						}
-						if ( synPredMatched228 ) {
-							{
-							if (((LA(1) == IDENTIFIER) && (LA(2) == LBRACE))&&( IsFun(LT(1)))) {
-								formal_function_call();
-								if (inputState->guessing==0) {
-									astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-								}
-								if ( inputState->guessing==0 ) {
-									primary_expr_AST = RefDNode(currentAST.root);
-									
-									if (debugParser) std::cout << " (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=> formal_function_call : primary_expr : " /* << std::endl */;
-									primary_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(FCALL,"fcall")))->add(antlr::RefAST(primary_expr_AST)))); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
-									
-									currentAST.root = primary_expr_AST;
-									if ( primary_expr_AST!=RefDNode(antlr::nullAST) &&
-										primary_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )
-										  currentAST.child = primary_expr_AST->getFirstChild();
-									else
-										currentAST.child = primary_expr_AST;
-									currentAST.advanceChildToEnd();
-								}
-							}
-							else {
-								bool synPredMatched231 = false;
-								if (((LA(1) == IDENTIFIER || LA(1) == INHERITS) && (LA(2) == LBRACE || LA(2) == LSQUARE))) {
-									int _m231 = mark();
-									synPredMatched231 = true;
-									inputState->guessing++;
-									try {
-										{
-										var();
-										arrayindex_list();
-										}
-									}
-									catch (antlr::RecognitionException& pe) {
-										synPredMatched231 = false;
-									}
-									rewind(_m231);
-									inputState->guessing--;
-								}
-								if ( synPredMatched231 ) {
-									var();
-									if (inputState->guessing==0) {
-										astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-									}
-									arrayindex_list();
-									if (inputState->guessing==0) {
-										astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-									}
-									if ( inputState->guessing==0 ) {
-										primary_expr_AST = RefDNode(currentAST.root);
-										
-										if (debugParser) std::cout << "(var arrayindex_list)=> var arrayindex_list -> primary_expr : " /* << std::endl */;
-										
-										primary_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(ARRAYEXPR_FCALL,"arrayexpr_fcall")))->add(antlr::RefAST(primary_expr_AST)))); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
-											
-										currentAST.root = primary_expr_AST;
-										if ( primary_expr_AST!=RefDNode(antlr::nullAST) &&
-											primary_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )
-											  currentAST.child = primary_expr_AST->getFirstChild();
-										else
-											currentAST.child = primary_expr_AST;
-										currentAST.advanceChildToEnd();
-									}
-								}
-								else if ((LA(1) == IDENTIFIER) && (LA(2) == LBRACE)) {
-									formal_function_call();
-									if (inputState->guessing==0) {
-										astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-									}
-									if ( inputState->guessing==0 ) {
-										primary_expr_AST = RefDNode(currentAST.root);
-										if (debugParser) std::cout << " (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE)=>formal_function_call -> primary_expr : " /* << std::endl */;
-										primary_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(FCALL,"fcall")))->add(antlr::RefAST(primary_expr_AST)))); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
-										
-										currentAST.root = primary_expr_AST;
-										if ( primary_expr_AST!=RefDNode(antlr::nullAST) &&
-											primary_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )
-											  currentAST.child = primary_expr_AST->getFirstChild();
-										else
-											currentAST.child = primary_expr_AST;
-										currentAST.advanceChildToEnd();
-									}
-								}
-							else {
-								throw antlr::NoViableAltException(LT(1), getFilename());
-							}
-							}
-							}
-							primary_expr_AST = RefDNode(currentAST.root);
-						}
-						else {
-							bool synPredMatched233 = false;
-							if (((LA(1) == IDENTIFIER) && (LA(2) == LBRACE))) {
-								int _m233 = mark();
-								synPredMatched233 = true;
-								inputState->guessing++;
-								try {
-									{
-									formal_function_call();
-									}
-								}
-								catch (antlr::RecognitionException& pe) {
-									synPredMatched233 = false;
-								}
-								rewind(_m233);
-								inputState->guessing--;
-							}
-							if ( synPredMatched233 ) {
-								formal_function_call();
-								if (inputState->guessing==0) {
-									astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-								}
-								if ( inputState->guessing==0 ) {
-									primary_expr_AST = RefDNode(currentAST.root);
-									if (debugParser) std::cout << " (formal_function_call)=> formal_function_call -> primary_expr :" << std::endl; primary_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(FCALL,"fcall")))->add(antlr::RefAST(primary_expr_AST))));
-									currentAST.root = primary_expr_AST;
-									if ( primary_expr_AST!=RefDNode(antlr::nullAST) &&
-										primary_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )
-										  currentAST.child = primary_expr_AST->getFirstChild();
-									else
-										currentAST.child = primary_expr_AST;
-									currentAST.advanceChildToEnd();
-								}
-								primary_expr_AST = RefDNode(currentAST.root);
-							}
-							else {
-								bool synPredMatched235 = false;
-								if (((_tokenSet_4.member(LA(1))) && (_tokenSet_24.member(LA(2))))) {
-									int _m235 = mark();
-									synPredMatched235 = true;
-									inputState->guessing++;
-									try {
-										{
-										deref_expr();
-										}
-									}
-									catch (antlr::RecognitionException& pe) {
-										synPredMatched235 = false;
-									}
-									rewind(_m235);
-									inputState->guessing--;
-								}
-								if ( synPredMatched235 ) {
-									deref_expr();
-									if (inputState->guessing==0) {
-										astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-									}
-									{
-									switch ( LA(1)) {
-									case MEMBER:
-									{
-										parent=member_function_call();
-										if (inputState->guessing==0) {
-											astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-										}
-										if ( inputState->guessing==0 ) {
-											primary_expr_AST = RefDNode(currentAST.root);
-											
-											if( parent)
-											{
-											if (debugParser) std::cout << " (deref_expr)=> deref_expr ( parent=true) -> mfcall :" /* << std::endl */;
-											primary_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(MFCALL_PARENT,"mfcall::")))->add(antlr::RefAST(primary_expr_AST)))); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
-											}
-											else
-											{
-											if (debugParser) std::cout << " (deref_expr)=> deref_expr ( parent=false) -> mfcall :" /* << std::endl */;
-											primary_expr_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(MFCALL,"mfcall")))->add(antlr::RefAST(primary_expr_AST)))); if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
-											}
-											
-											currentAST.root = primary_expr_AST;
-											if ( primary_expr_AST!=RefDNode(antlr::nullAST) &&
-												primary_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )
-												  currentAST.child = primary_expr_AST->getFirstChild();
-											else
-												currentAST.child = primary_expr_AST;
-											currentAST.advanceChildToEnd();
-										}
-										break;
-									}
-									case antlr::Token::EOF_TYPE:
-									case AND_OP:
-									case DO:
-									case ELSE:
-									case EQ_OP:
-									case GE_OP:
-									case GT_OP:
-									case LE_OP:
-									case LT_OP:
-									case MOD_OP:
-									case NE_OP:
-									case OF:
-									case OR_OP:
-									case THEN:
-									case UNTIL:
-									case XOR_OP:
-									case COMMA:
-									case COLON:
-									case END_U:
-									case DEC:
-									case INC:
-									case AND_OP_EQ:
-									case ASTERIX_EQ:
-									case EQ_OP_EQ:
-									case GE_OP_EQ:
-									case GTMARK_EQ:
-									case GT_OP_EQ:
-									case LE_OP_EQ:
-									case LTMARK_EQ:
-									case LT_OP_EQ:
-									case MATRIX_OP1_EQ:
-									case MATRIX_OP2_EQ:
-									case MINUS_EQ:
-									case MOD_OP_EQ:
-									case NE_OP_EQ:
-									case OR_OP_EQ:
-									case PLUS_EQ:
-									case POW_EQ:
-									case SLASH_EQ:
-									case XOR_OP_EQ:
-									case RBRACE:
-									case SLASH:
-									case RSQUARE:
-									case RCURLY:
-									case ASTERIX:
-									case POW:
-									case MATRIX_OP1:
-									case MATRIX_OP2:
-									case PLUS:
-									case MINUS:
-									case LTMARK:
-									case GTMARK:
-									case LOG_AND:
-									case LOG_OR:
-									case QUESTION:
-									{
-										if ( inputState->guessing==0 ) {
-											if (debugParser) std::cout << " (deref_expr)=> deref_expr | empty -> array expression No 2! -> "/* << std::endl */;
-										}
-										break;
-									}
-									default:
-									{
-										throw antlr::NoViableAltException(LT(1), getFilename());
-									}
-									}
-									}
-									primary_expr_AST = RefDNode(currentAST.root);
-								}
-								else if ((LA(1) == LBRACE) && (_tokenSet_4.member(LA(2)))) {
-									assign_expr();
-									if (inputState->guessing==0) {
-										astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-									}
-									primary_expr_AST = RefDNode(currentAST.root);
-								}
-								else if ((LA(1) == LSQUARE) && (_tokenSet_13.member(LA(2)))) {
-									array_def();
-									if (inputState->guessing==0) {
-										astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-									}
-									primary_expr_AST = RefDNode(currentAST.root);
-								}
-								else if ((LA(1) == LCURLY) && (_tokenSet_15.member(LA(2)))) {
-									struct_def();
-									if (inputState->guessing==0) {
-										astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
-									}
-									primary_expr_AST = RefDNode(currentAST.root);
-								}
-								else if ((LA(1) == LSQUARE) && (LA(2) == RSQUARE)) {
-									ls = LT(1);
-									ls_AST = astFactory->create(ls);
-									match(LSQUARE);
-									RefDNode tmp192_AST = RefDNode(antlr::nullAST);
-									if ( inputState->guessing == 0 ) {
-										tmp192_AST = astFactory->create(LT(1));
-									}
-									match(RSQUARE);
-									if ( inputState->guessing==0 ) {
-										primary_expr_AST = RefDNode(currentAST.root);
-										primary_expr_AST=astFactory->create(GDLNULL,"GDLNULL[]");
-										primary_expr_AST->SetLine( ls_AST->getLine()); if (debugParser) std::cout << "NULL" << std::endl;
-										
-										currentAST.root = primary_expr_AST;
-										if ( primary_expr_AST!=RefDNode(antlr::nullAST) &&
-											primary_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )
-											  currentAST.child = primary_expr_AST->getFirstChild();
-										else
-											currentAST.child = primary_expr_AST;
-										currentAST.advanceChildToEnd();
-									}
-								}
-								else if ((LA(1) == LCURLY) && (LA(2) == RCURLY)) {
-									lc = LT(1);
-									lc_AST = astFactory->create(lc);
-									match(LCURLY);
-									RefDNode tmp193_AST = RefDNode(antlr::nullAST);
-									if ( inputState->guessing == 0 ) {
-										tmp193_AST = astFactory->create(LT(1));
-									}
-									match(RCURLY);
-									if ( inputState->guessing==0 ) {
-										primary_expr_AST = RefDNode(currentAST.root);
-										primary_expr_AST=astFactory->create(GDLNULL,"GDLNULL{}");
-										primary_expr_AST->SetLine( lc_AST->getLine()); if (debugParser) std::cout << "NULL" << std::endl;
-										
-										currentAST.root = primary_expr_AST;
-										if ( primary_expr_AST!=RefDNode(antlr::nullAST) &&
-											primary_expr_AST->getFirstChild() != RefDNode(antlr::nullAST) )
-											  currentAST.child = primary_expr_AST->getFirstChild();
-										else
-											currentAST.child = primary_expr_AST;
-										currentAST.advanceChildToEnd();
-									}
-								}
-	else {
+	{
 		throw antlr::NoViableAltException(LT(1), getFilename());
 	}
-	}}}}}}}
+	}
 	returnAST = primary_expr_AST;
 }
 
@@ -9076,11 +9196,11 @@ void GDLParser::exponential_expr() {
 			}
 		}
 		else {
-			goto _loop241;
+			goto _loop234;
 		}
 		
 	}
-	_loop241:;
+	_loop234:;
 	} // ( ... )*
 	exponential_expr_AST = RefDNode(currentAST.root);
 	returnAST = exponential_expr_AST;
@@ -9097,7 +9217,7 @@ void GDLParser::multiplicative_expr() {
 	}
 	{ // ( ... )*
 	for (;;) {
-		if ((_tokenSet_25.member(LA(1)))) {
+		if ((_tokenSet_27.member(LA(1)))) {
 			{
 			switch ( LA(1)) {
 			case ASTERIX:
@@ -9352,11 +9472,11 @@ void GDLParser::multiplicative_expr() {
 			}
 		}
 		else {
-			goto _loop245;
+			goto _loop238;
 		}
 		
 	}
-	_loop245:;
+	_loop238:;
 	} // ( ... )*
 	multiplicative_expr_AST = RefDNode(currentAST.root);
 	returnAST = multiplicative_expr_AST;
@@ -9669,11 +9789,11 @@ void GDLParser::additive_expr() {
 			}
 		}
 		else {
-			goto _loop252;
+			goto _loop245;
 		}
 		
 	}
-	_loop252:;
+	_loop245:;
 	} // ( ... )*
 	additive_expr_AST = RefDNode(currentAST.root);
 	returnAST = additive_expr_AST;
@@ -9734,7 +9854,7 @@ void GDLParser::relational_expr() {
 	}
 	{ // ( ... )*
 	for (;;) {
-		if ((_tokenSet_26.member(LA(1)))) {
+		if ((_tokenSet_28.member(LA(1)))) {
 			{
 			switch ( LA(1)) {
 			case EQ_OP:
@@ -9809,11 +9929,11 @@ void GDLParser::relational_expr() {
 			}
 		}
 		else {
-			goto _loop257;
+			goto _loop250;
 		}
 		
 	}
-	_loop257:;
+	_loop250:;
 	} // ( ... )*
 	relational_expr_AST = RefDNode(currentAST.root);
 	returnAST = relational_expr_AST;
@@ -9875,11 +9995,11 @@ void GDLParser::boolean_expr() {
 			}
 		}
 		else {
-			goto _loop261;
+			goto _loop254;
 		}
 		
 	}
-	_loop261:;
+	_loop254:;
 	} // ( ... )*
 	boolean_expr_AST = RefDNode(currentAST.root);
 	returnAST = boolean_expr_AST;
@@ -9931,11 +10051,11 @@ void GDLParser::logical_expr() {
 			}
 		}
 		else {
-			goto _loop265;
+			goto _loop258;
 		}
 		
 	}
-	_loop265:;
+	_loop258:;
 	} // ( ... )*
 	logical_expr_AST = RefDNode(currentAST.root);
 	returnAST = logical_expr_AST;
@@ -10461,14 +10581,35 @@ const unsigned long GDLParser::_tokenSet_24_data_[] = { 2UL, 0UL, 805306368UL, 2
 // CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 
 // MATRIX_OP2 PLUS MINUS LTMARK GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
 const antlr::BitSet GDLParser::_tokenSet_24(_tokenSet_24_data_,16);
-const unsigned long GDLParser::_tokenSet_25_data_[] = { 0UL, 0UL, 0UL, 8388608UL, 2415918592UL, 0UL, 200704UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long GDLParser::_tokenSet_25_data_[] = { 0UL, 0UL, 268435456UL, 1048576UL, 536870912UL, 21UL, 4096UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+// IDENTIFIER "inherits" LBRACE LSQUARE SYSVARNAME LCURLY ASTERIX 
+const antlr::BitSet GDLParser::_tokenSet_25(_tokenSet_25_data_,16);
+const unsigned long GDLParser::_tokenSet_26_data_[] = { 2UL, 0UL, 805306368UL, 2549424140UL, 4294967227UL, 4294967295UL, 67108863UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+// EOF IDENTIFIER "and" "do" "else" "eq" "ge" "gt" "inherits" "le" "lt" 
+// "mod" "ne" "not" "of" "or" "then" "until" "xor" COMMA COLON END_U DEC 
+// INC AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ LE_OP_EQ 
+// LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ NE_OP_EQ 
+// OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ MEMBER LBRACE RBRACE SLASH 
+// LSQUARE RSQUARE SYSVARNAME EXCLAMATION LCURLY RCURLY CONSTANT_HEX_BYTE 
+// CONSTANT_HEX_LONG CONSTANT_HEX_LONG64 CONSTANT_HEX_INT CONSTANT_HEX_I 
+// CONSTANT_HEX_ULONG CONSTANT_HEX_ULONG64 CONSTANT_HEX_UI CONSTANT_HEX_UINT 
+// CONSTANT_BYTE CONSTANT_LONG CONSTANT_LONG64 CONSTANT_INT CONSTANT_I 
+// CONSTANT_ULONG CONSTANT_ULONG64 CONSTANT_UI CONSTANT_UINT CONSTANT_OCT_BYTE 
+// CONSTANT_OCT_LONG CONSTANT_OCT_LONG64 CONSTANT_OCT_INT CONSTANT_OCT_I 
+// CONSTANT_OCT_ULONG CONSTANT_OCT_ULONG64 CONSTANT_OCT_UI CONSTANT_OCT_UINT 
+// CONSTANT_FLOAT CONSTANT_DOUBLE CONSTANT_BIN_BYTE CONSTANT_BIN_LONG CONSTANT_BIN_LONG64 
+// CONSTANT_BIN_INT CONSTANT_BIN_I CONSTANT_BIN_ULONG CONSTANT_BIN_ULONG64 
+// CONSTANT_BIN_UI CONSTANT_BIN_UINT ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 
+// MATRIX_OP2 PLUS MINUS LTMARK GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
+const antlr::BitSet GDLParser::_tokenSet_26(_tokenSet_26_data_,16);
+const unsigned long GDLParser::_tokenSet_27_data_[] = { 0UL, 0UL, 0UL, 8388608UL, 2415918592UL, 0UL, 200704UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // "mod" AND_OP_EQ ASTERIX_EQ EQ_OP_EQ GE_OP_EQ GTMARK_EQ GT_OP_EQ LE_OP_EQ 
 // LTMARK_EQ LT_OP_EQ MATRIX_OP1_EQ MATRIX_OP2_EQ MINUS_EQ MOD_OP_EQ NE_OP_EQ 
 // OR_OP_EQ PLUS_EQ POW_EQ SLASH_EQ XOR_OP_EQ SLASH ASTERIX MATRIX_OP1 
 // MATRIX_OP2 
-const antlr::BitSet GDLParser::_tokenSet_25(_tokenSet_25_data_,16);
-const unsigned long GDLParser::_tokenSet_26_data_[] = { 0UL, 0UL, 0UL, 23404544UL, 0UL, 0UL, 0UL, 0UL };
+const antlr::BitSet GDLParser::_tokenSet_27(_tokenSet_27_data_,16);
+const unsigned long GDLParser::_tokenSet_28_data_[] = { 0UL, 0UL, 0UL, 23404544UL, 0UL, 0UL, 0UL, 0UL };
 // "eq" "ge" "gt" "le" "lt" "ne" 
-const antlr::BitSet GDLParser::_tokenSet_26(_tokenSet_26_data_,8);
+const antlr::BitSet GDLParser::_tokenSet_28(_tokenSet_28_data_,8);
 
 

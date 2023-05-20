@@ -1,5 +1,19 @@
 ; not a formal test. GDL should pass these commands without trouble.
 pro test_antlr_issues
+; crashing issues:
+; issue #812
+a={z:[850.,1300.]}
+b=ptr_new(a)
+print,(*b).z(0)
+; issue #26
+struct={array7:[3,3,7,7,7,5,5],z:ptr_new(/allocate_heap)}
+zval=findgen(12)
+pointer=ptr_new(struct,/no_copy)
+*(*pointer).z=zval
+print,(*(*pointer).z)[0:(*pointer).array7[3]]
+print,(*(*pointer).z)((*pointer).array7[1])
+print,(*(*pointer).z)((*pointer).array7(1))
+; format etc issues:
 ; issue #1577
 b=1 & z=cos((b+=2))
 ; issue #1252
