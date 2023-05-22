@@ -9,7 +9,7 @@
 ; CALLING SEQUENCE: 
 ;    WRITE_TIFF, filename, image, append=append, bigtiff=bigtiff, bits_per_sample=bits_per_sample,$
 ;   red=red, green=green, blue=blue, cmyk=cmyk, compression=compression, complex=complex, dcomplex=dcomplex, description=decription,$
-;   document_name=document_name,double=double, dot_range=dot_range,float=float,geotiff=geotiff,l64=l64,long=long,icc_profile=icc_profile,$
+;   document_name=document_name,double=double, short=short, dot_range=dot_range,float=float,geotiff=geotiff,l64=l64,long=long,icc_profile=icc_profile,$
 ;   orientation=ori,photoshop=photoshop,planarconfig=planarconfig,signed=signed,units=units,$
 ;   verbose=verbose, xposition=xpos, xresol=xres, yposition=ypos, yresol=yres
 ;
@@ -115,7 +115,7 @@ end
 
 pro WRITE_TIFF, filename, imageDonotTouch, append=append, bigtiff=bigtiff, bits_per_sample=bits_per_sample,$
    red=red, green=green, blue=blue, cmyk=cmyk, compression=compression, complex=complex, dcomplex=dcomplex, description=decription,$
-   document_name=document_name,double=double, dot_range=dot_range,float=float,geotiff=geotiff,l64=l64,long=long,icc_profile=icc_profile,$
+   document_name=document_name,double=double, short=short, dot_range=dot_range,float=float,geotiff=geotiff,l64=l64,long=long,icc_profile=icc_profile,$
    orientation=orientation,photoshop=photoshop,planarconfig=planarconfig,signed=signed,units=units,$
    verbose=verbose, xposition=xpos, xresol=xres, yposition=ypos, yresol=yres
 
