@@ -678,46 +678,6 @@ statement
     if (debugParser) std::cout << " statement -> " /* << std::endl */; 
 }
     : (assign_expr)=> assign_expr (DEC^ | INC^)?
-//     | (deref_expr_dot)=>
-//       (deref_expr 
-// 			// assignment
-// 			(EQUAL! expr 			
-//                 { #statement = #([ASSIGN,":="], #statement);}
-//             |   ( AND_OP_EQ^ 
-//                 | ASTERIX_EQ^ 
-//                 | EQ_OP_EQ^ 
-//                 | GE_OP_EQ^
-//                 | GTMARK_EQ^
-//                 | GT_OP_EQ^
-//                 | LE_OP_EQ^
-//                 | LTMARK_EQ^
-//                 | LT_OP_EQ^
-//                 | MATRIX_OP1_EQ^
-//                 | MATRIX_OP2_EQ^
-//                 | MINUS_EQ^
-//                 | MOD_OP_EQ^
-//                 | NE_OP_EQ^
-//                 | OR_OP_EQ^
-//                 | PLUS_EQ^
-//                 | POW_EQ^
-//                 | SLASH_EQ^
-//                 | XOR_OP_EQ^) expr
-// 			| (DEC^ | INC^) // no POSTDEC/POSTINC for statements			
-// 			| MEMBER! // member procedure call 
-//                 (baseclass_method { parent=true; })? 
-//                 formal_procedure_call
-// 				{ 
-//                     if( parent)
-//                         #statement = #([MPCALL_PARENT, "mpcall::"], 
-//                                         #statement);
-//                     else
-//                         #statement = #([MPCALL, "mpcall"], #statement); if (debugParser) std::cout<<" statement : \""<<LT(0)->getText()<<"\""<<std::endl;
-//                 }
-//             | // empty -> member procedure call with DOT parsed by tag_access
-//             )
-//       )
-
-
     | (deref_dot_expr_keeplast IDENTIFIER COMMA)=>
         d1:deref_dot_expr_keeplast formal_procedure_call
                 { 
@@ -858,9 +818,10 @@ for_statement
 
 for_block
 {    if (debugParser) std::cout << " for_block " << std::endl; }
-    : st:statement { #for_block = #([BLOCK, "block"], #st); if (debugParser) std::cout<<std::endl;}
-    | ( BEGIN statement_list endfor_mark ) =>BEGIN! stl:statement_list endfor_mark { #for_block = #([BLOCK, "block"], #stl); if (debugParser) std::cout<<std::endl;}
-    | BEGIN! stb:statement { #for_block = #([BLOCK, "block"], #stb); if (debugParser) std::cout<<std::endl;}
+    :
+      (BEGIN statement)=> (BEGIN! stb:statement) { #for_block = #([BLOCK, "block"], #stb); if (debugParser) std::cout<<std::endl;}
+    |  BEGIN! stl:statement_list endfor_mark { #for_block = #([BLOCK, "block"], #stl); if (debugParser) std::cout<<std::endl;}
+    |  st:statement { #for_block = #([BLOCK, "block"], #st); if (debugParser) std::cout<<std::endl;}
     ;    
 
 foreach_statement
@@ -1731,7 +1692,6 @@ const unsigned long _tokenSet_24_data_[] = { 2UL, 0UL, 805306368UL, 2549424140UL
 // ASTERIX DOT STRING_LITERAL POW MATRIX_OP1 MATRIX_OP2 PLUS MINUS LTMARK 
 // GTMARK LOG_NEG LOG_AND LOG_OR QUESTION 
 const antlr::BitSet _tokenSet_24(_tokenSet_24_data_,16);
-
     bool parent;
 
     bool skip;
@@ -1847,33 +1807,34 @@ const antlr::BitSet _tokenSet_24(_tokenSet_24_data_,16);
    rewind( markIn);
    inputState->guessing--;
 }
-    : 
+   :
         // with METHOD
 
 //        (deref_dot_expr_keeplast baseclass_method)=>
         {baseclass_methodParse}?
         deref_dot_expr_keeplast baseclass_method formal_function_call
         {
+            if (debugParser) std::cout << " d1:deref_dot_expr_keeplast baseclass_method formal_function_call "<< std::endl;
             #primary_expr_deref = #([MFCALL_PARENT, "mfcall::"], #primary_expr_deref);
+            if (debugParser) std::cout<<"\""<<LT(0)->getText()<<"\""<<std::endl;
         }   
     | 
         // ambiguity (arrayexpr or mfcall)
-
-//        (deref_dot_expr_keeplast (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=>
         {arrayexpr_mfcallParse}?
-        arrayexpr_mfcall
+       arrayexpr_mfcall
+       {if (debugParser) std::cout << " deref_dot_expr_keeplast (IDENTIFIER LBRACE expr (COMMA expr)* RBRACE))=> arrayexpr_mfcall -> " /*<< std::endl */;}
     | 
         // not the above -> unambigous mfcall (or unambigous array expr handled below)
 
   //      (deref_dot_expr_keeplast formal_function_call)=> 
         {function_callParse}?
-        deref_dot_expr_keeplast 
+       deref_dot_expr_keeplast 
             // here it is impossible to decide about function call
             // as we do not know the object type/struct tag
             formal_function_call
-			{ #primary_expr_deref = #([MFCALL, "mfcall"], #primary_expr_deref);}
-
-    |
+            { #primary_expr_deref = #([MFCALL, "mfcall"], #primary_expr_deref);
+              if (debugParser) std::cout << "  (deref_dot_expr_keeplast formal_function_call)=> d3:deref_dot_expr_keeplast formal_function_call -> " << std::endl; }
+     |
         primary_expr_tail
     ;
 
