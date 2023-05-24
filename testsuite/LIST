@@ -1,4 +1,5 @@
 test_angles.pro
+test_antlr_issues.pro
 test_arg_present.pro
 test_array_equal.pro
 test_array_indices.pro

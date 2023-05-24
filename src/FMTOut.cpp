@@ -77,7 +77,7 @@ void FMTOut::format(RefFMTNode _t) {
 	// no break
 	}
 	case STRING:
-	case CSTRING:
+	case CSTYLE_STRING:
 	{
 	f(_t);
 	//                                if( actPar == NULL && termFlag) goto endFMT;
@@ -592,7 +592,7 @@ void FMTOut::format_reversion(RefFMTNode _t) {
 	switch ( _t->getType()) {
 	case FORMAT:
 	case STRING:
-	case CSTRING:
+	case CSTYLE_STRING:
 	case TL:
 	case TR:
 	case TERM:
@@ -1052,6 +1052,7 @@ const char* FMTOut::tokenNames[] = {
 	"TERM",
 	"NONL",
 	"Q",
+	"CSTRING",
 	"T",
 	"X",
 	"A",
@@ -1086,7 +1087,7 @@ const char* FMTOut::tokenNames[] = {
 	"CSF",
 	"NUMBER",
 	"DOT",
-	"CSTRING",
+	"CSTYLE_STRING",
 	"H",
 	"L",
 	"R",
@@ -1097,10 +1098,10 @@ const char* FMTOut::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTOut::_tokenSet_0_data_[] = { 0UL, 134152130UL, 0UL, 0UL };
+const unsigned long FMTOut::_tokenSet_0_data_[] = { 0UL, 268300226UL, 0UL, 0UL };
 // FORMAT STRING "tl" "tr" TERM NONL Q T X A F E SE G SG I O B Z ZZ C 
 const antlr::BitSet FMTOut::_tokenSet_0(_tokenSet_0_data_,4);
-const unsigned long FMTOut::_tokenSet_1_data_[] = { 0UL, 4160757824UL, 4095UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+const unsigned long FMTOut::_tokenSet_1_data_[] = { 0UL, 4026548288UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // STRING X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA CMOI CDI 
 // CYI CMI CSI CSF 
 const antlr::BitSet FMTOut::_tokenSet_1(_tokenSet_1_data_,8);
