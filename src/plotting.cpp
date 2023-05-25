@@ -1483,11 +1483,11 @@ namespace lib
         ns--;
       }
       ns-=2;ns=(ns>6)?6:ns;
-      if (floor(sgn*z)==1 && ns==0) {
-        snprintf( label, length, specialfmt.c_str(),e);
-      } else {
+//      if (floor(sgn*z)==1 && ns==0) { // removed see #1582 and, besides, intent was obscure ? 
+//        snprintf( label, length, specialfmt.c_str(),e);
+//      } else {
         snprintf( label, length, normalfmt[ns].c_str(),sgn*z,e);
-      }
+//      }
     }
     free(test);
   }
