@@ -41,7 +41,7 @@
 ; the Free Software Foundation; either version 2 of the License, or     
 ; (at your option) any later version.                                   
 
-function getTagindexes,g
+function geotiff_getTagindexes,g
   common geotifftagcommon,GeoSize,GeoTagNames,GeoTagKeyId,GeoMethod,TiffType,TagTypeLen
   Geosize=48
   Geotagnames=[$
@@ -222,7 +222,7 @@ function getTagindexes,g
   return, tagindexes
 end
 
-function writeAsimpletag,unit,geostruct,i,geoIndex
+function geotiff_WriteAsimpletag,unit,geostruct,i,geoIndex
   common geotifftagcommon,GeoSize,GeoTagNames,GeoTagKeyId,GeoMethod,TiffType
    val=geostruct.(i)
    count=long(n_elements(val))
@@ -232,7 +232,7 @@ function writeAsimpletag,unit,geostruct,i,geoIndex
    return, pos
 end
 
-function writeAGeoTag,unit,geostruct,i,geoIndex
+function geotiff_writeAGeoTag,unit,geostruct,i,geoIndex
   GeoDoubleParamsTag='87b0'xus
   GeoAsciiParamsTag='87b1'xus
   common geotifftagcommon,GeoSize,GeoTagNames,GeoTagKeyId,GeoMethod,TiffType,TagTypeLen
@@ -254,7 +254,7 @@ function writeAGeoTag,unit,geostruct,i,geoIndex
    return, -1
 end
 
-pro writeOffsettedValueDouble,unit,offsettable,geostruct,i,geoindex,number
+pro geotiff_writeOffsettedValueDouble,unit,offsettable,geostruct,i,geoindex,number
   common geotifftagcommon,GeoSize,GeoTagNames,GeoTagKeyId,GeoMethod,TiffType,TagTypeLen
   if offsettable[i] le 0 then message,"Internal error, please report."
    point_lun,-unit,pos
@@ -270,7 +270,7 @@ pro writeOffsettedValueDouble,unit,offsettable,geostruct,i,geoindex,number
    writeu,unit,fix(number)
    point_lun,unit,current
 end
-pro writeOffsettedValueAscii,unit,offsettable,geostruct,i,geoindex,number
+pro geotiff_writeOffsettedValueAscii,unit,offsettable,geostruct,i,geoindex,number
   common geotifftagcommon,GeoSize,GeoTagNames,GeoTagKeyId,GeoMethod,TiffType,TagTypeLen
   if offsettable[i] le 0 then message,"Internal error, please report."
    point_lun,-unit,pos
@@ -287,7 +287,7 @@ pro writeOffsettedValueAscii,unit,offsettable,geostruct,i,geoindex,number
    point_lun,unit,current
 end
 
-pro writeOffsettedValue,unit,offsettable,geostruct,i,geoindex
+pro geotiff_writeOffsettedValue,unit,offsettable,geostruct,i,geoindex
   common geotifftagcommon,GeoSize,GeoTagNames,GeoTagKeyId,GeoMethod,TiffType,TagTypeLen
   if offsettable[i] le 0 then return
    point_lun,-unit,pos
@@ -317,7 +317,7 @@ pro updategeotagsinimage,filename,g
   Double=12s
 ; check if worth doing anything
 ; get minimal tag informations
-  tagidx=gettagindexes(g) ; will throw if problems
+  tagidx=geotiff_getTagindexes(g) ; will throw if problems
   ntags=n_elements(tagidx)
   offsetTable=lonarr(ntags)
 
@@ -395,7 +395,7 @@ pro updategeotagsinimage,filename,g
   if nsimpletags gt 0 then begin
      for i=0,ntags-1 do begin
         if GeoMethod[tagidx[i]] ne 1 then continue
-        offsettable[i]=writeAsimpletag(unit,g,i,tagidx[i])
+        offsettable[i]=geotiff_WriteAsimpletag(unit,g,i,tagidx[i])
      endfor
   endif
 ; compute size of GeoTiffDirectory section
@@ -441,7 +441,7 @@ pro updategeotagsinimage,filename,g
 ; write all GeoKey tags:
   for i=0,ntags-1 do begin
      if GeoMethod[tagidx[i]] ne 0 then continue
-     offsettable[i]=writeAGeoTag(unit,g,i,tagidx[i])
+     offsettable[i]=geotiff_writeAGeoTag(unit,g,i,tagidx[i])
   endfor
   
 ; GeoDouble values
@@ -454,7 +454,7 @@ pro updategeotagsinimage,filename,g
      number=0
      for i=0,ntags-1 do begin
         if GeoMethod[tagidx[i]] eq 1 or TiffType[tagidx[i]] ne 12s then continue
-        writeOffsettedValueDouble,unit,offsettable,g,i,tagidx[i],number
+        geotiff_writeOffsettedValueDouble,unit,offsettable,g,i,tagidx[i],number
         number++
      endfor
      point_lun,-unit,current
@@ -471,7 +471,7 @@ pro updategeotagsinimage,filename,g
      number=0
      for i=0,ntags-1 do begin
         if GeoMethod[tagidx[i]] eq 1 or TiffType[tagidx[i]] ne 2s then continue
-        writeOffsettedValueAscii,unit,offsettable,g,i,tagidx[i],number
+        geotiff_writeOffsettedValueAscii,unit,offsettable,g,i,tagidx[i],number
         number+=strlen(g.(i))+1
      endfor
      if addToAsciiSection gt 0 then writeu,unit,replicate(0b,addToAsciiSection) ; hope it's OK
@@ -482,11 +482,12 @@ pro updategeotagsinimage,filename,g
   if nsimpletags gt 0 then begin
      for i=0,ntags-1 do begin
         if GeoMethod[tagidx[i]] eq 0 then continue
-        writeOffsettedValue,unit,offsettable,g,i,tagidx[i]
+        geotiff_writeOffsettedValue,unit,offsettable,g,i,tagidx[i]
      endfor
      point_lun,-unit,current
      pad=current mod 4 & if pad gt 0 then writeu,unit,replicate(0b,pad)
   endif
   flush,unit
   close,unit
+  free_lun, unit
 end
