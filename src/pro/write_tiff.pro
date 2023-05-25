@@ -138,7 +138,7 @@ pro WRITE_TIFF, filename, imageDonotTouch, append=append, bigtiff=bigtiff, bits_
   PhotometricInterpretation=1   ; GREY, Black is Zero
   
   ;;0) check sizes and image type
-  ;; planarconfig and R,G,B present and dim 2: ignore imageDonotTouch, create one with R,G,B
+  ;; planarconfig and R,G,B present and dim 2 and no imageDonotTouch: create one with R,G,B thus:
   hasr= keyword_set(red)
   hasg= keyword_set(green)
   hasb= keyword_set(blue)
@@ -146,7 +146,7 @@ pro WRITE_TIFF, filename, imageDonotTouch, append=append, bigtiff=bigtiff, bits_
   if tot ne 0 and tot ne 3 then Message,"RED, GREEN, and BLUE must appear together."
   hasplan= keyword_set(planarconfig)
   special=0
-  if hasplan then begin
+  if hasplan and n_elements(imageDoNotTouch) eq 0 then begin
      ;; special planarconfig case: create a [3,n,m] byte pixel image.
      if planarconfig eq 2 then begin
         szred=check_dimension_is_2( red, 'RED')
@@ -154,12 +154,15 @@ pro WRITE_TIFF, filename, imageDonotTouch, append=append, bigtiff=bigtiff, bits_
         szblue=check_dimension_is_2( blue, 'BLUE')
         if (szred[0] ne szgreen[0]) or (szred[0] ne szblue[0]) then   Message,"Red, Green and Blue arrays must be of same dimensions."
         if (szred[1] ne szgreen[1]) or (szred[1] ne szblue[1]) then   Message,"Red, Green and Blue arrays must be of same dimensions."
-        image=reverse([[[red]],[[green]],[[blue]]],3,/over)
+        image=[[[red]],[[green]],[[blue]]]
+        ; This script does not handle "planar' configurations as output ( would need to bother writing the strip byte counts ).
+        ; We just write a "Chunky" RGB array and PlanarConfiguration=1 
+        image=transpose(image,[2,0,1])
         special=1
         SamplePerPixel=3
         n=szred[0]
         m=szred[1]
-        PlanarConfiguration=2
+        PlanarConfiguration=1
         PhotometricInterpretation=2 ; RGB
         goto, image_defined
      endif
@@ -180,14 +183,16 @@ pro WRITE_TIFF, filename, imageDonotTouch, append=append, bigtiff=bigtiff, bits_
               n=sz[2]
               m=sz[3]
               PlanarConfiguration=1
-              image=reverse(imageDoNotTouch,3,/over)
+              image=imageDoNotTouch
            end
            2: begin
               n=sz[1]
               m=sz[2]
               SamplePerPixel=sz[3]
-              PlanarConfiguration=2
-              image=reverse(imageDoNotTouch,2,/over)
+              ; This script does not handle "planar' configurations as output ( would need to bother writing the strip byte counts ).
+              ; We just write a "Chunky" RGB array and PlanarConfiguration=1 and not 2
+               PlanarConfiguration=1
+              image=transpose(imageDoNotTouch,[2,0,1])
            end
            else: Message,"Illegal keyword value for PLANARCONFIG."
         endcase
@@ -196,13 +201,13 @@ pro WRITE_TIFF, filename, imageDonotTouch, append=append, bigtiff=bigtiff, bits_
         n=sz[2]
         m=sz[3]
         PlanarConfiguration=1
-        image=reverse(imageDoNotTouch,3,/over)
+        image=imageDoNotTouch
      endelse
      goto, image_defined
   endif
   
-  ;; will use a local copy of image. Reverse to have external display correctly plot it.
-  image=reverse(imageDoNotTouch,2,/over) ; 2d-case
+  ;; will use a local copy of image. 
+  image=imageDoNotTouch; 2d-case
   ;; gets here from special cases above
 image_defined:
   
