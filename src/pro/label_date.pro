@@ -57,19 +57,20 @@ FUNCTION LABEL_DATE, axis, index, x, level, DATE_FORMAT = format, MONTHS = month
 ;-
  
 COMMON label_date_com, fmt, month_chr
- 
-if keyword_set(format) then begin	;Save format string?
-   if keyword_set(months) then month_chr = months else month_chr = ['Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-   fmt = format
-   return, 0
+
+if n_elements(fmt) eq 0 then fmt='%W %M %D %H:%I:%S %Y'
+if n_elements(month_chr) eq 0 then month_chr = ['Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+if keyword_set(months) then begin
+   if n_elements(months) eq 12 then month_chr = months
 endif
+
+if keyword_set(format) then fmt = format
 
 IF (n_elements(level) lt 1) then level = 0
 
-if n_elements(month_chr) ne 12 or n_elements(fmt) le 0 then $
-   message,' Not initialized.'
 
-caldat, long(x), month, day, year ;Get the calendar date from julian
+caldat, long(x), month, day, year, hour , minute , second ;Get the calendar date from julian
 n = strlen(fmt[level])
 out = ''
 
@@ -78,14 +79,19 @@ for i=0, n-1 do begin           ;Each format character...
    if c eq '%' then begin
       i = i + 1
       c = strmid(fmt[level], i, 1)     ;The function
-      case c of                 ;format character?
-         'M' : out = out + month_chr(month-1)
-         'N' : out = out + string(format='(i2.2)', month)
-         'D' : out = out + string(format='(i2.2)', day)
-         'Y' : out = out + string(format='(i4)', year)
-         'Z' : out = out + string(format='(i2.2)', year  mod 100)
+      case c of                        ;format character?
+         'M' : out += month_chr(month-1)
+         'N' : out += string(format='(i2.2)', month)
+         'D' : out += string(format='(i2.2)', day)
+         'Y' : out += string(format='(i5)', year)
+         'Z' : out += string(format='(i3.3)', year  mod 100)
+         'W' :                  ;
+         'A' : out += (hour gt 12) ? 'PM':'AM'
+         'H' : out = out + string(format='(i2.2)', hour)
+         'I' : out = out + string(format='(i2.2)', minute)
+         'S' : out = out + string(format='(i2.2)', fix(second))
          '%' : out = out + '%'
-         else : message, 'Illegal character in date format string: '+fmt[level]
+         else : out = out + ""
       endcase
    endif else out = out + c
 endfor
