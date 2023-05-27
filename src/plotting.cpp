@@ -918,8 +918,7 @@ namespace lib
       // current buffer is too small, get a larger one, but try to use a max buffersize of GDL_MAX_PLOT_BUFFER_SIZE
       if (*current_buffer_size < GDL_POLYLINE_BUFSIZE) {
           *current_buffer_size = GDL_POLYLINE_BUFSIZE;
-          std::cerr<<GDL_POLYLINE_BUFSIZE<<std::endl;
-
+//          std::cerr<<"allocating more:"<<*current_buffer_size<<std::endl;
           x_buff = (PLFLT*) realloc(x_buff, *current_buffer_size * sizeof (PLFLT));
           y_buff = (PLFLT*) realloc(y_buff, *current_buffer_size * sizeof (PLFLT));
           GDL_POLYLINE_BUFSIZE = *current_buffer_size;
