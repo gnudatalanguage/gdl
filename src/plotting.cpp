@@ -241,7 +241,7 @@ namespace lib
     max = n*interval;
     return max-min; //return range
   }
-
+  
   void gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &start, DDouble &end, bool &log) {
 
     bool hastickunits=gdlHasTickUnits(e, axisId);
@@ -250,7 +250,7 @@ namespace lib
       log = false;
     }
     int code = gdlGetCalendarCode(e, axisId);
-
+    
     // [XY]STYLE
     DLong myStyle = 0;
 
@@ -275,7 +275,7 @@ namespace lib
     DDouble range = max - min;
 
     // correct special case "all values are equal"
-    if (ABS(range) <= std::numeric_limits<DDouble>::min()) {
+    if (code ==0 && (ABS(range) <= std::numeric_limits<DDouble>::min())) { //calendar cases limits handled differently
       DDouble val_ref;
       val_ref = max;
       if (0.98 * min < val_ref) { // positive case
@@ -1668,63 +1668,9 @@ namespace lib
       internalIndex=0; //reset index each time sub-axis changes
     }
    
-    if (ptr->what==GDL_TICKFORMAT || (ptr->what==GDL_TICKFORMAT_AND_UNITS && ptr->counter < ptr->nTickFormat) )
+    if (ptr->what==GDL_TICKUNITS) 
     {
-      if (ptr->counter > ptr->nTickFormat-1)
-      {
-        doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
-      }
-      else
-      { //must pass the value, not the log, to the formatter?
-        DDouble v=value;
-        if (tdata.isLog) v=pow(10.,v);
-        if (((*ptr->TickFormat)[ptr->counter]).substr(0,1) == "(")
-        { //internal format, call internal func "STRING"
-          EnvT *e=ptr->e;
-          static int stringIx = LibFunIx("STRING");
-          assert( stringIx >= 0);
-          EnvT* newEnv= new EnvT(e, libFunList[stringIx], NULL);
-          Guard<EnvT> guard( newEnv);
-          // add parameters
-          newEnv->SetNextPar( new DDoubleGDL(v));
-          newEnv->SetNextPar( new DStringGDL(((*ptr->TickFormat)[ptr->counter]).c_str()));
-          // make the call
-          BaseGDL* res = static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv);
-          strncpy(label,(*static_cast<DStringGDL*>(res))[0].c_str(),1000);
-        }
-        else // external function: if tickunits not specified, pass Axis (int), Index(int),Value(Double)
-          //    else pass also Level(int)
-          // Thanks to Marc for code snippet!
-          // NOTE: this encompasses the 'LABEL_DATE' format, an existing procedure in the IDL library.
-        {
-          EnvT *e=ptr->e;
-          DString callF=(*ptr->TickFormat)[ptr->counter];
-          // this is a function name -> convert to UPPERCASE
-          callF = StrUpCase( callF);
-          	//  Search in user proc and function
-          SizeT funIx = GDLInterpreter::GetFunIx( callF);
-
-          EnvUDT* newEnv = new EnvUDT( e->CallingNode(), funList[ funIx], (DObjGDL**)NULL);
-          Guard< EnvUDT> guard( newEnv);
-          // add parameters
-          newEnv->SetNextPar( new DLongGDL(axis-1)); //axis in PLPLOT starts at 1, it starts at 0 in IDL
-          newEnv->SetNextPar( new DLongGDL(internalIndex)); //index
-          newEnv->SetNextPar( new DDoubleGDL(v)); //value
-          if (ptr->what==GDL_TICKFORMAT_AND_UNITS) newEnv->SetNextPar( new DLongGDL(ptr->counter)); //level
-          // guard *before* pushing new env
-          StackGuard<EnvStackT> guard1 ( e->Interpreter()->CallStack());
-          e->Interpreter()->CallStack().push_back(newEnv);
-          guard.release();
-
-          BaseGDL* retValGDL = e->Interpreter()->call_fun(static_cast<DSubUD*>(newEnv->GetPro())->GetTree()); 
-          // we are the owner of the returned value
-          Guard<BaseGDL> retGuard( retValGDL);
-          strncpy(label,(*static_cast<DStringGDL*>(retValGDL))[0].c_str(),1000);
-        }
-      }
-    }
-    else if (ptr->what==GDL_TICKUNITS || (ptr->what==GDL_TICKFORMAT_AND_UNITS && ptr->counter >= ptr->nTickFormat))
-    {
+  do_tickunits:    
       if (ptr->counter > ptr->nTickUnits-1 )
       {
         doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
@@ -1780,6 +1726,55 @@ namespace lib
               break;
           }
           
+        }
+      }
+    } else if (ptr->what == GDL_TICKFORMAT_AND_UNITS) {
+      if (ptr->counter > ptr->nTickFormat - 1) {
+        goto do_tickunits; //format does not apply but tickunits still apply
+      }
+      else { //will be formatted -- not interpreting the tickunits
+        DDouble v = value;
+        if (tdata.isLog) v = pow(10., v);
+        if (((*ptr->TickFormat)[ptr->counter]).substr(0, 1) == "(") { //internal format, call internal func "STRING"
+          EnvT *e = ptr->e;
+          static int stringIx = LibFunIx("STRING");
+          assert(stringIx >= 0);
+          EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
+          Guard<EnvT> guard(newEnv);
+          // add parameters
+          newEnv->SetNextPar(new DDoubleGDL(v));
+          newEnv->SetNextPar(new DStringGDL(((*ptr->TickFormat)[ptr->counter]).c_str()));
+          // make the call
+          BaseGDL* res = static_cast<DLibFun*> (newEnv->GetPro())->Fun()(newEnv);
+          strncpy(label, (*static_cast<DStringGDL*> (res))[0].c_str(), 1000);
+        } else // external function: if tickunits not specified, pass Axis (int), Index(int),Value(Double)
+          //    else pass also Level(int)
+          // Thanks to Marc for code snippet!
+          // NOTE: this encompasses the 'LABEL_DATE' format, an existing procedure in the IDL library.
+        {
+          EnvT *e = ptr->e;
+          DString callF = (*ptr->TickFormat)[ptr->counter];
+          // this is a function name -> convert to UPPERCASE
+          callF = StrUpCase(callF);
+          //  Search in user proc and function
+          SizeT funIx = GDLInterpreter::GetFunIx(callF);
+
+          EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[ funIx], (DObjGDL**) NULL);
+          Guard< EnvUDT> guard(newEnv);
+          // add parameters
+          newEnv->SetNextPar(new DLongGDL(axis - 1)); //axis in PLPLOT starts at 1, it starts at 0 in IDL
+          newEnv->SetNextPar(new DLongGDL(internalIndex)); //index
+          newEnv->SetNextPar(new DDoubleGDL(v)); //value
+          if (ptr->what == GDL_TICKFORMAT_AND_UNITS) newEnv->SetNextPar(new DLongGDL(ptr->counter)); //level
+          // guard *before* pushing new env
+          StackGuard<EnvStackT> guard1(e->Interpreter()->CallStack());
+          e->Interpreter()->CallStack().push_back(newEnv);
+          guard.release();
+
+          BaseGDL* retValGDL = e->Interpreter()->call_fun(static_cast<DSubUD*> (newEnv->GetPro())->GetTree());
+          // we are the owner of the returned value
+          Guard<BaseGDL> retGuard(retValGDL);
+          strncpy(label, (*static_cast<DStringGDL*> (retValGDL))[0].c_str(), 1000);
         }
       }
     }
@@ -2296,7 +2291,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     a->Thick(charthick);
   }
 
-  PLFLT gdlComputeTickInterval(EnvT *e, int axisId, DDouble &min, DDouble &max, bool log) {
+  PLFLT gdlComputeTickInterval(EnvT *e, int axisId, DDouble &min, DDouble &max, bool log, int level) {
     DLong nticks = 0;
 
     int XTICKSIx = e->KeywordIx("XTICKS");
@@ -2324,12 +2319,31 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     e->AssureLongScalarKWIfPresent(choosenIx, nticks);
 
     PLFLT intv;
-    if (nticks == 0) {
-      intv = (log) ? AutoLogTick(min, max) : AutoTick(max - min);
-    } else {
-      intv = (log) ? log10(max - min) / nticks : (max - min) / nticks;
+    DDouble multiplier[]={0,365.25,30,1,1./24.,1./(24*60.),1./(24.*60*60)};
+    int code = gdlGetCalendarCode(e, axisId, level);
+    switch (code) {
+    case 0:
+    case 7:
+      if (nticks == 0) {
+        intv = (log) ? AutoLogTick(min, max) : AutoTick(max - min);
+      } else {
+        intv = (log) ? log10(max - min) / nticks : (max - min) / nticks;
+      }
+      return intv;
+    default:
+      intv = multiplier[code];
+      if (nticks == 0) {
+        int nintv=(max - min)/intv;
+        int test=AutoTick(nintv);
+        if (test > 1) return intv*test; else {
+          if (nintv==0) return (max-min); //at least one tick
+          return intv;
+        }
+      } else {
+        intv = (log) ? log10(max - min) / nticks : (max - min) / nticks;
+      }
+      return intv;
     }
-    return intv;
   }
 
   void gdlGetDesiredAxisCharsize(EnvT* e, int axisId, DFloat &charsize) {
@@ -2772,7 +2786,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   // for example, if tickunits=['year','day'] the limits will be on a round nuber of years.
   // This is conveyed by the code
 
-  int gdlGetCalendarCode(EnvT* e, int axisId) {
+  int gdlGetCalendarCode(EnvT* e, int axisId, int level) {
     int XTICKUNITSIx = e->KeywordIx("XTICKUNITS");
     int YTICKUNITSIx = e->KeywordIx("YTICKUNITS");
     int ZTICKUNITSIx = e->KeywordIx("ZTICKUNITS");
@@ -2799,7 +2813,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       axisTickunitsVect = e->GetKWAs<DStringGDL>(choosenIx);
     }
     int code = 0;
-    DString what = StrUpCase((*axisTickunitsVect)[0]);
+    DString what = StrUpCase((*axisTickunitsVect)[level]);
     if (what.substr(0, 4) == "YEAR") code = 1;
     else if (what.substr(0, 5) == "MONTH") code = 2;
     else if (what.substr(0, 3) == "DAY") code = 3;
@@ -3317,7 +3331,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
     // we WILL plot something, so set temporarlily WIN accordingly
     PLFLT owxmin, owxmax, owymin, owymax;
-    a->getCurrentWorldBox(owxmin, owxmax, owymin, owymax);
+    a->plstream::gvpw(owxmin, owxmax, owymin, owymax);
     if (axisId == XAXIS) {
       if (Log) a->wind(log10(Start), log10(End), owymin, owymax);
       else a->wind(Start, End, owymin, owymax);
@@ -3378,10 +3392,27 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
     bool hasTickUnitDefined = (TickUnits->NBytes() > 0);
     int tickUnitArraySize = (hasTickUnitDefined) ? TickUnits->N_Elements() : 0;
+    // tickunits stops when a null string is in the list. Check if such:
+    if (hasTickUnitDefined) {
+      int naxes=0;
+      for (auto i=0; i< tickUnitArraySize; ++i) {
+        if ( (*TickUnits)[i].size() < 1 ) break;
+        naxes++;
+      }
+      tickUnitArraySize=naxes;
+      if (tickUnitArraySize ==0) hasTickUnitDefined=false;
+    }
+    
+    
 
     //For labels we need ticklen in current character size, for ticks we need it in mm
     DFloat ticklen_in_mm = TickLen;
-    if (TickLen < 0) ticklen_in_mm *= -1;
+    bool inverted_ticks=false;
+    if (TickLen < 0) {
+      ticklen_in_mm *= -1;
+      inverted_ticks=true;
+      TickLen=-TickLen;
+    }
     //ticklen in a percentage of box x or y size, to be expressed in mm 
     if (axisId == XAXIS) ticklen_in_mm = a->mmyPageSize()*(a->boxnYSize()) * ticklen_in_mm;
     else ticklen_in_mm = a->mmxPageSize()*(a->boxnXSize()) * ticklen_in_mm;
@@ -3393,13 +3424,10 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     DFloat typical_char_size_mm = (axisId == XAXIS) ? a->mmCharHeight() : a->mmCharLength();
     interligne_as_char = (axisId == XAXIS) ? a->mmLineSpacing() / typical_char_size_mm : a->mmCharLength() / typical_char_size_mm; //in normed coord
     interligne_as_norm = (axisId == XAXIS) ? a->nLineSpacing() : a->nCharLength(); //in normed coord
-    DFloat displacement_of_new_axis_as_norm = 2 * interligne_as_norm + ticklen_as_norm;
-    DFloat current_displacement = 0;
-    DFloat title_position = 0;
+    DFloat displacement = 2*interligne_as_norm;
 
-    double nchars; //max number of chars written in label of axis. 
-    string Opt;
-    string otherOpt;
+    double nchars[100]; //max number of chars written in label of axis. //100 should be OK otherwise, paf!
+    std::string Opt;
     if (TickInterval == 0) {
       if (Ticks <= 0) TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log);
       else if (Ticks > 1) TickInterval = (End - Start) / Ticks;
@@ -3418,29 +3446,35 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
     //define all tick and drawing axes related options
     std::string tickOpt;
-    bool inverted_ticks=false;
+    std::string additionalAxesTickOpt;
     //define tick-related (ticklayout) options
     //ticks or grid eventually with style and length:
-    if (abs(TickLen) < 1e-6) tickOpt = "";
-    else tickOpt = TICKS; //remove ticks if ticklen=0
-    if (TickLen < 0) {
-      inverted_ticks=true;
-      tickOpt += TICKINVERT;
-      TickLen = -TickLen;
-    }
+    if (TickLen < 1e-6) tickOpt = ""; else tickOpt = TICKS; //remove ticks if ticklen=0
+    if (inverted_ticks)  tickOpt += TICKINVERT;
+    additionalAxesTickOpt = tickOpt; //layout==2 has ticks
+
     switch (modifierCode) {
     case 2:
       tickOpt += TOP;
+      additionalAxesTickOpt += TOP;
       break;
     case 1:
       tickOpt += BOTTOM;
+      additionalAxesTickOpt += BOTTOM;
       break;
     case 0:
-      if ((AxisStyle & 8) == 8) tickOpt += BOTTOM;
-      else tickOpt += BOTTOM TOP;
+      if ((AxisStyle & 8) == 8) {
+        tickOpt += BOTTOM;
+        additionalAxesTickOpt += BOTTOM;
+      }
+      else {
+        tickOpt += BOTTOM TOP;
+        additionalAxesTickOpt += BOTTOM; //no top!
+      }
     }
     //gridstyle applies here:
     gdlLineStyle(a, GridStyle);
+    // ticklayout2 has no log and no subticks
     if (Log) {
       if (TickInterval < 1) { //if log and tickinterval was >1 then we pass in 'linear, no subticks' mode (see issue #1112)
         if (hasTickv) tickOpt += LOG;
@@ -3462,33 +3496,39 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     // special case
     if (TickLayout == 1) tickOpt="";
     
-    //the reference norm box; refun, refduex, reftrois,refquatre
-    PLFLT refboxxmin, refboxxmax, refboxymin, refboxymax, boxxmin, boxxmax, boxymin, boxymax, xboxxmin, xboxxmax, xboxymin, xboxymax;
-    a->getCurrentNormBox(refboxxmin, refboxxmax, refboxymin, refboxymax);
-    a->getCurrentNormBox(boxxmin, boxxmax, boxymin, boxymax); //start with the same values
-    a->getCurrentWorldBox(xboxxmin, xboxxmax, xboxymin, xboxymax);
-    // Add the tick displacement if negative tick length, so as to write the labels UNDER the tick (a plplot flaw IMHO)
-    if (inverted_ticks)  {
-      if (axisId == XAXIS) {boxymin-=ticklen_as_norm;boxymax+=ticklen_as_norm;} else {boxxmin-=ticklen_as_norm;boxxmax+=ticklen_as_norm;}
-      a->vpor(boxxmin, boxxmax, boxymin, boxymax);
-      a->wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+    Opt =  NOTICKS BOTTOM_NOLINE TOP_NOLINE;
+    if (axisId == YAXIS && TickLayout != 2) {
+      Opt += YLABEL_HORIZONTAL;
     }
-    //ticklengths are defined once for all
-    a->smaj(ticklen_in_mm, 1.0);
-    a->smin(ticklen_in_mm / 2.0, 1.0);
-
-    //Write labels first , using charthick
-    Opt = YLABEL_VERTICAL NOTICKS BOTTOM_NOLINE TOP_NOLINE;
-    otherOpt = NOTICKS YLABEL_VERTICAL BOTTOM_NOLINE TOP_NOLINE; //draw major ticks "t" + v:values perp to Y axis + x:
     // the x option is in plplot 5.9.8 but not before. It permits
     // to avoid writing tick marks here (they will be written after)
     // I hope old plplots were clever enough to ignore 'x'
     // if they did not understand 'x'
     if (Log) {
-      if (TickInterval <= 1) Opt += LOG; //"l" for log; otherOpt is never in log I believe
+      if (TickInterval <= 1) Opt += LOG;
       //if log and tickinterval was >1 then we pass in 'linear, no subticks' mode (see issue #1112)
     }
-    
+
+    //the reference norm box
+    PLFLT refboxxmin, refboxxmax, refboxymin, refboxymax, boxxmin, boxxmax, boxymin, boxymax, xboxxmin, xboxxmax, xboxymin, xboxymax;
+    a->plstream::gvpd(refboxxmin, refboxxmax, refboxymin, refboxymax);
+    a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
+    a->plstream::gvpw(xboxxmin, xboxxmax, xboxymin, xboxymax);
+    // Add the tick displacement if negative tick length, so as to write the labels UNDER the tick (a plplot flaw IMHO)
+    if (inverted_ticks) { //the LABELS should be displaced
+      displacement += ticklen_as_norm;
+      if (axisId == XAXIS) {
+        boxymin -= ticklen_as_norm;
+        boxymax += ticklen_as_norm;
+      } else {
+        boxxmin -= ticklen_as_norm;
+        boxxmax += ticklen_as_norm;
+      }
+      a->plstream::vpor(boxxmin, boxxmax, boxymin, boxymax);
+      a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+    }
+
+    //Write labels first , using charthick
     if (hasTickUnitDefined) // /TICKUNITS=[several types of axes written below each other]
     {
       muaxdata.counter = 0;
@@ -3503,58 +3543,33 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       muaxdata.nTickUnits = tickUnitArraySize;
       defineLabeling(a, axisId, gdlMultiAxisTickFunc, &muaxdata);
       Opt += LABELFUNC;
-      otherOpt += LABELFUNC; //use external func custom labeling
       if (modifierCode == 2) {
         Opt += NUMERIC_UNCONVENTIONAL;
-        otherOpt += NUMERIC_UNCONVENTIONAL;
       } else {
         Opt += NUMERIC;
-        otherOpt += NUMERIC;
       } //m: write numerical/right above, n: below/left (normal)
+      if (!inverted_ticks && TickLayout != 2) displacement+=ticklen_as_norm; //every next axis will be separated by this
+      DFloat y_displacement=0;
       for (SizeT i = 0; i < muaxdata.nTickUnits; ++i) //loop on TICKUNITS axis
       {
+        TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log, i);
         muaxdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
-        if (i > 0) Opt = otherOpt + BOTTOM; //supplementary axes are to be written with ticks, no smallticks;
         if (axisId == XAXIS) {
-          a->vpor(boxxmin, boxxmax, boxymin - current_displacement, boxymax);
-          a->wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+          a->plstream::vpor(boxxmin, boxxmax, boxymin - i*displacement, boxymax);
+          a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
           a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
-          title_position = current_displacement / a->nCharHeight() + 3.5;
-          current_displacement += displacement_of_new_axis_as_norm; //and the spacing plus the ticklengths
         } else {
-          a->vpor(boxxmin - current_displacement, boxxmax, boxymin, boxymax);
-          a->wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+          a->plstream::vpor(boxxmin - (i*displacement+y_displacement), boxxmax, boxymin, boxymax);
+          a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
           a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
-          nchars = muaxdata.nchars;
-          title_position = current_displacement / a->nCharLength() + nchars + 2.5;
-          current_displacement += (nchars - 1) * a->nCharLength(); //we'll skip what was written
-          current_displacement += displacement_of_new_axis_as_norm; //and the spacing plus the ticklengths
+          nchars[i] = muaxdata.nchars;
+          if (TickLayout != 2) y_displacement+=(nchars[i]*a->nCharLength());
         }
         muaxdata.counter++;
       }
-      a->vpor(boxxmin, boxxmax, boxymin, boxymax);
-      a->wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-      resetLabeling(a, axisId);
-    } 
-    
-    else if (TickName->NBytes() > 0) // /TICKNAME=[array]
-    {
-      data.counter = 0;
-      data.nchars = 0;
-      data.TickName = TickName;
-      data.nTickName = TickName->N_Elements();
-      defineLabeling(a, axisId, gdlSingleAxisTickNamedFunc, &data);
-      Opt += LABELFUNC; //custom labelling
-      if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL; //write label "unconventional position" (top or right) 
-      else Opt += NUMERIC; //write label "conventional position" (bottom or left) 
-      if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-      else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
-      nchars = data.nchars;
-      if (axisId != XAXIS) title_position = nchars + 2.5;
-      else title_position = 3.5;
       resetLabeling(a, axisId);
     }
-    
+
     //care Tickunits size is 10 if not defined because it is the size of !X.TICKUNITS.
     else if (TickFormat->NBytes() > 0) //no /TICKUNITS=> only 1 value taken into account
     {
@@ -3569,9 +3584,21 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       else Opt += NUMERIC;
       if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
       else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
-      nchars = muaxdata.nchars;
-      if (axisId != XAXIS) title_position = nchars + 2;
-      else title_position = 3.5;
+      resetLabeling(a, axisId);
+    }
+    
+    else if (TickName->NBytes() > 0) // /TICKNAME=[array]
+    {
+      data.counter = 0;
+      data.nchars = 0;
+      data.TickName = TickName;
+      data.nTickName = TickName->N_Elements();
+      defineLabeling(a, axisId, gdlSingleAxisTickNamedFunc, &data);
+      Opt += LABELFUNC; //custom labelling
+      if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL; //write label "unconventional position" (top or right) 
+      else Opt += NUMERIC; //write label "conventional position" (bottom or left) 
+      if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
+      else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
       resetLabeling(a, axisId);
     }
     
@@ -3584,14 +3611,73 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       else Opt += NUMERIC;
       if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
       else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
-      nchars = tdata.nchars;
-      if (axisId != XAXIS) title_position = nchars + 2;
-      else title_position = 3.5;
       resetLabeling(a, axisId);
     }
-    
-    // Write title (postion depends on above values)
+
+    // insure no axes written with ticklayout=1
+    if (TickLayout == 1) tickOpt="";
+    if (TickLayout == 1) additionalAxesTickOpt="";
+
+    //replay above, with ticks only
+    //     write box with ticks, in proper XTHICK, in the reference poistion
+    a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax); //reset to initial box
+    a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
+    a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+    //      thick for box and ticks.
+    a->Thick(Thick);
+    a->smaj(ticklen_in_mm, 1.0);
+    a->smin(ticklen_in_mm / 2.0, 1.0);
+    if (hasTickUnitDefined) //  replay tickunits
+    {
+      DFloat y_displacement=0;
+      for (SizeT i = 0; i < muaxdata.nTickUnits; ++i) //loop on TICKUNITS axis
+      {
+        TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log, i);
+        if (i==1) tickOpt=additionalAxesTickOpt;
+        muaxdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
+        if (axisId == XAXIS) {
+          a->plstream::vpor(boxxmin, boxxmax, boxymin - i*displacement, boxymax);
+          a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+          a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
+        } else {
+          a->plstream::vpor(boxxmin - (i*displacement+y_displacement), boxxmax, boxymin, boxymax);
+          a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+          a->box("", 0.0, 0.0, tickOpt.c_str(), TickInterval, Minor); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
+          y_displacement+=(nchars[i]*a->nCharLength());
+        }
+        muaxdata.counter++;
+      }
+    } else { //replay normal
+      if (axisId == XAXIS) a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0);
+      else a->box("", 0.0, 0, tickOpt.c_str(), TickInterval, Minor);
+      // define the new box for 1) title and 2) ticklayout=2
+    }
+
+    a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
+    if (axisId == XAXIS) { //add last displacement
+      a->plstream::vpor(boxxmin, boxxmax, boxymin - displacement, boxymax);
+      a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+    } else {
+      a->plstream::vpor(boxxmin - displacement, boxxmax, boxymin, boxymax);
+      a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+    }
+  
+    if (TickLayout == 2) {
+      std::string tickOpt2; //for ticklayout=2
+      tickOpt2=TICKS BOTTOM;
+      DFloat ticklen = 2 * interligne_as_norm;
+      a->smaj(a->nd2my(ticklen), 1.0);
+      if (axisId == XAXIS) {
+        a->box(tickOpt2.c_str(), TickInterval, Minor, "", 0.0, 0);
+      } else {
+        a->box("", 0.0, 0, tickOpt2.c_str(), TickInterval, Minor);
+      }
+    }
+
+    // Write title (position depends on above values)
     if (hasTitle) {
+      gdlSetPlotCharthick(e, a);
+      PLFLT title_position = 2;
       if (modifierCode == 0 || modifierCode == 1) {
         if (axisId == XAXIS) a->mtex("b", title_position, 0.5, 0.5, Title.c_str());
         else a->mtex("l", title_position, 0.5, 0.5, Title.c_str());
@@ -3600,23 +3686,14 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
         else a->mtex("r", title_position, 0.5, 0.5, Title.c_str());
       }
     }
-    
-//     write box with ticks, in proper XTHICK, in the reference poistion
-      a->vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
-      a->wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-    
-      //thick for box and ticks.
-      a->Thick(Thick);
 
-      if (axisId == XAXIS) a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0);
-      else a->box("", 0.0, 0, tickOpt.c_str(), TickInterval, Minor);
       //reset gridstyle
-      gdlLineStyle(a, 0);
-    
+    gdlLineStyle(a, 0);
     gdlWriteDesiredAxisTickGet(e, axisId, Log);
     //reset charsize & thick
     a->Thick(1.0);
     a->sizeChar(1.0);
+    a->vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
     a->wind(owxmin, owxmax, owymin, owymax); //restore old values 
   }
 
