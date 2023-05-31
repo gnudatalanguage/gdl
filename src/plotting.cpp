@@ -241,6 +241,116 @@ namespace lib
     max = n*interval;
     return max-min; //return range
   }
+
+  // given a juldate, return the juldate of the first 'code' immediately before (or after). Not tested.
+  PLFLT gdlReturnTickJulday(DDouble val, int code, bool up) {
+    static int monthSize[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    DLong Day, Year, Hour, Minute, Month;
+    DLong idow, icap;
+    DDouble Seconde;
+    j2ymdhms(val, Month, Day, Year, Hour, Minute, Seconde, idow, icap);
+    Month++; //j2ymdhms gives back Month number in the [0-11] range for indexing month name tables. pity.
+    switch (code) {
+    case 1:
+      if (up) Year++;
+      dateToJD(val, 1, 1, Year, 0, 0, 0.0);
+      break;
+    case 2:
+      if (up) {
+        Month++;
+        if (Month > 12) {
+          Month -= 12;
+          Year += 1;
+        }
+      }
+      dateToJD(val, 1, Month, Year, 0, 0, 0.0);
+      break;
+    case 3:
+      if (up) {
+        Day++;
+        if (Day > monthSize[Month]) {
+          Day -= monthSize[Month];
+          Month += 1;
+        }
+        if (Month > 12) {
+          Month -= 12;
+          Year += 1;
+        }
+      }
+      dateToJD(val, Day, Month, Year, 0, 0, 0.0);
+      break;
+    case 4:
+      if (up) {
+        Hour++;
+        if (Hour > 23) {
+          Hour -= 24;
+          Day += 1;
+        }
+        if (Day > monthSize[Month]) {
+          Day -= monthSize[Month];
+          Month += 1;
+        }
+        if (Month > 12) {
+          Month -= 12;
+          Year += 1;
+        }
+      }
+      dateToJD(val, Day, Month, Year, Hour, 0, 0.0);
+      break;
+    case 5:
+      if (up) {
+        Minute++;
+        if (Minute > 59) {
+          Minute -= 60;
+          Hour += 1;
+        }
+        if (Hour > 23) {
+          Hour -= 24;
+          Day += 1;
+        }
+        if (Day > monthSize[Month]) {
+          Day -= monthSize[Month];
+          Month += 1;
+        }
+        if (Month > 12) {
+          Month -= 12;
+          Year += 1;
+        }
+      }
+      dateToJD(val, Day, Month, Year, Hour, Minute, 0.0);
+      break;
+    case 6:
+      if (up) {
+        Seconde++;
+        if (Seconde > 59) {
+          Seconde -= 60;
+          Minute += 1;
+        }
+        if (Minute > 59) {
+          Minute -= 60;
+          Hour += 1;
+        }
+        if (Hour > 23) {
+          Hour -= 24;
+          Day += 1;
+        }
+        if (Day > monthSize[Month]) {
+          Day -= monthSize[Month];
+          Month += 1;
+        }
+        if (Month > 12) {
+          Month -= 12;
+          Year += 1;
+        }
+      }
+      dateToJD(val, Day, Month, Year, Hour, Minute, Seconde);
+      break;
+    default:
+      assert(false);
+      break;
+    }
+    return val;
+  }
   
   void gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &start, DDouble &end, bool &log) {
 
@@ -275,21 +385,9 @@ namespace lib
     DDouble range = max - min;
 
     // correct special case "all values are equal"
-    if (code ==0 && (ABS(range) <= std::numeric_limits<DDouble>::min())) { //calendar cases limits handled differently
-      DDouble val_ref;
-      val_ref = max;
-      if (0.98 * min < val_ref) { // positive case
-        max = 1.02 * val_ref;
-        min = 0.98 * val_ref;
-      } else { // negative case
-        max = 0.98 * val_ref;
-        min = 1.02 * val_ref;
-      }
-      if (max==min) { //case "PLOT, [0]"
-        max=1;
-        min=0;
-      }
-      range = max - min;
+    if ((ABS(range) <= std::numeric_limits<DDouble>::min())) {
+      max=min+1;
+      range=1;
     }
 
     if (range >= 0) {
@@ -458,23 +556,28 @@ namespace lib
       } else {
         const double leak_factor = 1.25e-6;
         PLFLT intv = AutoIntv(range);
+        DLong64 n=(max/intv);
         //diminish max a little to avoid a jump of 'intv' when max value is practically indifferentiable from a 'intv' mark:
-        if (max >0) {
-          max *= (1 - leak_factor); 
-          max =  ceil(max/ intv) * intv;
-        } else {
-          max *= (1 + leak_factor); 
-          max =  ceil(max/ intv) * intv;
+        if (fabs(max - (n * intv)) < leak_factor) {
+          if (max >0) {
+              max *= (1 - leak_factor); 
+              max =  ceil(max/ intv) * intv;
+          } else {
+            max *= (1 + leak_factor); 
+            max =  ceil(max/ intv) * intv;
+          }
         }
-        //same for min, in the otehr direction
-        if (min > 0) {
-          min *= (1 + leak_factor);
-          min = floor(min / intv) * intv;
-        } else {
-          min *= (1 - leak_factor);
-          min = floor(min / intv) * intv;
+        n=(min/intv);
+        //same for min, in the other direction
+        if (fabs(min - (n * intv)) < leak_factor) {
+          if (min > 0) {
+            min *= (1 + leak_factor);
+            min = floor(min / intv) * intv;
+          } else {
+            min *= (1 - leak_factor);
+            min = floor(min / intv) * intv;
+          }
         }
-        //min = floor((min * max_allowed_leak_factor) / intv) * intv;
       }
     }
 
@@ -1728,7 +1831,7 @@ namespace lib
           
         }
       }
-    } else if (ptr->what == GDL_TICKFORMAT_AND_UNITS) {
+    } else if (ptr->what==GDL_TICKFORMAT || ptr->what == GDL_TICKFORMAT_AND_UNITS) {
       if (ptr->counter > ptr->nTickFormat - 1) {
         goto do_tickunits; //format does not apply but tickunits still apply
       }
@@ -2319,7 +2422,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     e->AssureLongScalarKWIfPresent(choosenIx, nticks);
 
     PLFLT intv;
-    DDouble multiplier[]={0,365.25,30,1,1./24.,1./(24*60.),1./(24.*60*60)};
+    static DDouble multiplier[]={0,365.25,30,1,1./24.,1./(24*60.),1./(24.*60*60)};
     int code = gdlGetCalendarCode(e, axisId, level);
     switch (code) {
     case 0:
@@ -2333,10 +2436,10 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     default:
       intv = multiplier[code];
       if (nticks == 0) {
-        int nintv=(max - min)/intv;
-        int test=AutoTick(nintv);
+        DDouble nintv=(max - min)/intv;
+        PLFLT test=AutoTick(nintv);
         if (test > 1) return intv*test; else {
-          if (nintv==0) return (max-min); //at least one tick
+          if (nintv<1) return (max-min); //at least one tick
           return intv;
         }
       } else {
@@ -3423,8 +3526,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     DFloat interligne_as_norm;
     DFloat typical_char_size_mm = (axisId == XAXIS) ? a->mmCharHeight() : a->mmCharLength();
     interligne_as_char = (axisId == XAXIS) ? a->mmLineSpacing() / typical_char_size_mm : a->mmCharLength() / typical_char_size_mm; //in normed coord
+//    interligne_as_norm = (axisId == XAXIS) ? a->nLineSpacing() : a->nCharLength(); //in normed coord
     interligne_as_norm = (axisId == XAXIS) ? a->nLineSpacing() : a->nCharLength(); //in normed coord
-    DFloat displacement = 2*interligne_as_norm;
+    DFloat displacement = (axisId == XAXIS) ? 2*interligne_as_norm: 3.5*interligne_as_norm;
 
     double nchars[100]; //max number of chars written in label of axis. //100 should be OK otherwise, paf!
     std::string Opt;
@@ -3447,6 +3551,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     //define all tick and drawing axes related options
     std::string tickOpt;
     std::string additionalAxesTickOpt;
+    std::string tickOpt2=TICKS BOTTOM TICKINVERT;
+    std::string tickOpt3=BOTTOM;
     //define tick-related (ticklayout) options
     //ticks or grid eventually with style and length:
     if (TickLen < 1e-6) tickOpt = ""; else tickOpt = TICKS; //remove ticks if ticklen=0
@@ -3630,20 +3736,41 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     if (hasTickUnitDefined) //  replay tickunits
     {
       DFloat y_displacement=0;
-      for (SizeT i = 0; i < muaxdata.nTickUnits; ++i) //loop on TICKUNITS axis
+      for (auto i = 0; i < muaxdata.nTickUnits; ++i) //loop on TICKUNITS axis
       {
         TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log, i);
-        if (i==1) tickOpt=additionalAxesTickOpt;
+
         muaxdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
         if (axisId == XAXIS) {
+          if (i == 1) {
+            tickOpt = (TickLayout == 2) ? tickOpt2 : additionalAxesTickOpt;
+            if (TickLayout == 2) {
+              a->smaj(a->nd2my(displacement), 1.0);
+            }
+          }          
           a->plstream::vpor(boxxmin, boxxmax, boxymin - i*displacement, boxymax);
           a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
           a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
         } else {
+          if (i == 1) {
+            tickOpt = (TickLayout == 2) ? tickOpt2 : additionalAxesTickOpt;
+            if (TickLayout == 2) {
+              a->smaj(a->nd2mx(displacement), 1.0);
+            }
+          }
           a->plstream::vpor(boxxmin - (i*displacement+y_displacement), boxxmax, boxymin, boxymax);
           a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
           a->box("", 0.0, 0.0, tickOpt.c_str(), TickInterval, Minor); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
-          y_displacement+=(nchars[i]*a->nCharLength());
+          if (TickLayout != 2) y_displacement+=(nchars[i]*a->nCharLength());
+        }
+        if (TickLayout == 2 && i==0) {
+          if (axisId == XAXIS) {
+            a->smaj(a->nd2my(displacement), 1.0);
+            a->box(tickOpt2.c_str(), TickInterval, Minor, "", 0.0, 0);
+          } else {
+            a->smaj(a->nd2mx(displacement), 1.0);
+            a->box("", 0.0, 0, tickOpt2.c_str(), TickInterval, Minor);
+          }
         }
         muaxdata.counter++;
       }
@@ -3663,14 +3790,10 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
   
     if (TickLayout == 2) {
-      std::string tickOpt2; //for ticklayout=2
-      tickOpt2=TICKS BOTTOM;
-      DFloat ticklen = 2 * interligne_as_norm;
-      a->smaj(a->nd2my(ticklen), 1.0);
       if (axisId == XAXIS) {
-        a->box(tickOpt2.c_str(), TickInterval, Minor, "", 0.0, 0);
+        a->box(tickOpt3.c_str(), TickInterval, Minor, "", 0.0, 0);
       } else {
-        a->box("", 0.0, 0, tickOpt2.c_str(), TickInterval, Minor);
+        a->box("", 0.0, 0, tickOpt3.c_str(), TickInterval, Minor);
       }
     }
 

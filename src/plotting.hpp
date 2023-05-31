@@ -343,7 +343,7 @@ namespace lib {
   void gdlSetPlotCharsize(EnvT *e, GDLGStream *a, bool accept_sizeKw = false);
 
   void gdlSetPlotCharthick(EnvT *e, GDLGStream *a);
-
+  
   PLFLT gdlComputeTickInterval(EnvT *e, int axisId, DDouble &min, DDouble &max, bool log, int level=0);
 
   void gdlGetDesiredAxisCharsize(EnvT* e, int axisId, DFloat &charsize);
