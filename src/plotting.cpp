@@ -386,6 +386,10 @@ namespace lib
 
     // correct special case "all values are equal"
     if ((ABS(range) <= std::numeric_limits<DDouble>::min())) {
+      DLong Ticks;
+      gdlGetDesiredAxisTicks(e, axisId, Ticks);
+      if (Ticks > 0) e->Throw("Data range for axis has zero length.");
+     
       max=min+1;
       range=1;
     }
@@ -556,28 +560,23 @@ namespace lib
       } else {
         const double leak_factor = 1.25e-6;
         PLFLT intv = AutoIntv(range);
-        DLong64 n=(max/intv);
         //diminish max a little to avoid a jump of 'intv' when max value is practically indifferentiable from a 'intv' mark:
-        if (fabs(max - (n * intv)) < leak_factor) {
-          if (max >0) {
-              max *= (1 - leak_factor); 
-              max =  ceil(max/ intv) * intv;
-          } else {
-            max *= (1 + leak_factor); 
-            max =  ceil(max/ intv) * intv;
-          }
-        }
-        n=(min/intv);
-        //same for min, in the other direction
-        if (fabs(min - (n * intv)) < leak_factor) {
-          if (min > 0) {
-            min *= (1 + leak_factor);
-            min = floor(min / intv) * intv;
-          } else {
-            min *= (1 - leak_factor);
-            min = floor(min / intv) * intv;
-          }
-        }
+        if (max >0) {
+          max *= (1 - leak_factor); 
+          max =  ceil(max/ intv) * intv;
+        } else {
+          max *= (1 + leak_factor); 
+          max =  ceil(max/ intv) * intv;
+      }
+        //same for min, in the otehr direction
+        if (min > 0) {
+          min *= (1 + leak_factor);
+          min = floor(min / intv) * intv;
+        } else {
+          min *= (1 - leak_factor);
+          min = floor(min / intv) * intv;
+       }
+        //min = floor((min * max_allowed_leak_factor) / intv) * intv;
       }
     }
 
