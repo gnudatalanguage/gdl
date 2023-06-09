@@ -233,12 +233,20 @@ namespace lib
 #undef EXTENDED_DEFAULT_LOGRANGE
 
   DDouble adjustForTickInterval(const DDouble interval, DDouble &min, DDouble &max) {
-    DLong64 n = min / interval;
-    if (n*interval > min) n--;
-    min=n*interval;
-    n = max / interval;
-    if ( n*interval < max) n++;
-    max = n*interval;
+    // due to  float to double conversion, computation of integer intervals are prone to failure. We use FLOAT solution
+    DFloat fmin=min;
+    DFloat fmax=max;
+    DFloat finterval=interval;
+//    DLong64 n = min / interval;
+    DLong64 fn = fmin / finterval;
+//    if (n < fn) n=fn; //happens 
+    if (fn*finterval > fmin) fn--;
+    min=fn*finterval;
+//    n = max / interval;
+    fn = fmax / finterval;
+//    if (n > fn) n=fn; //happens 
+    if ( fn*finterval < fmax) fn++;
+    max = fn*finterval;
     return max-min; //return range
   }
 
@@ -386,10 +394,12 @@ namespace lib
 
     // correct special case "all values are equal"
     if ((ABS(range) <= std::numeric_limits<DDouble>::min())) {
-      DLong Ticks;
-      gdlGetDesiredAxisTicks(e, axisId, Ticks);
-      if (Ticks > 0) e->Throw("Data range for axis has zero length.");
-     
+      if (exact) { //IDL does this
+        DLong Ticks;
+        gdlGetDesiredAxisTicks(e, axisId, Ticks);
+        if (Ticks > 0) e->Throw("Data range for axis has zero length.");
+      }
+
       max=min+1;
       range=1;
     }
@@ -407,8 +417,8 @@ namespace lib
     DDouble TickInterval = 0;
     if (!log) gdlGetDesiredAxisTickInterval(e, axisId, TickInterval); //tickinterval ignored when LOG
     bool doTickInt=(TickInterval > 0);
-    if (doTickInt && !exact) range=adjustForTickInterval(TickInterval, min, max);
-    
+    if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
+
     if (exact) { //exit soon...
       if (extended) { //... after 'extended' range correction
         range = max - min; //does not hurt to recompute
@@ -1734,17 +1744,70 @@ namespace lib
 	  }
   return res;
   }
-  //just a wrapper for doOurOwnFormat() adding general font code translation.
-  void gdlSimpleAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data)
-  {
-    addToTickGet(axis,value);
-    struct GDL_TICKDATA *ptr = (GDL_TICKDATA* )data;
-    doOurOwnFormat(axis, value, label, length, data);
+
+  void gdlAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data) {
+    SizeT internalIndex = 0;
+    addToTickGet(axis, value);
+    struct GDL_TICKDATA *ptr = (GDL_TICKDATA*) data;
+    if (ptr->nTickName > 0) {
+      if (ptr->tickNameCounter > ptr->nTickName - 1) {
+        doOurOwnFormat(axis, value, label, length, data);
+      } else {
+        snprintf(label, length, "%s", ((*ptr->TickName)[ptr->tickNameCounter]).c_str());
+      }
+      ptr->tickNameCounter++;
+    } else if (ptr->nTickFormat > 0) {//will be formatted -- not interpreting the tickunits
+      DDouble v = value;
+      if (ptr->isLog) v = pow(10., v);
+      if (((*ptr->TickFormat)[0]).substr(0, 1) == "(") { //internal format, call internal func "STRING"
+        EnvT *e = ptr->e;
+        static int stringIx = LibFunIx("STRING");
+        assert(stringIx >= 0);
+        EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
+        Guard<EnvT> guard(newEnv);
+        // add parameters
+        newEnv->SetNextPar(new DDoubleGDL(v));
+        newEnv->SetNextPar(new DStringGDL(((*ptr->TickFormat)[0]).c_str()));
+        // make the call
+        BaseGDL* res = static_cast<DLibFun*> (newEnv->GetPro())->Fun()(newEnv);
+        strncpy(label, (*static_cast<DStringGDL*> (res))[0].c_str(), length);
+      } else // external function: if tickunits not specified, pass Axis (int), Index(int),Value(Double)
+        //    else pass also Level(int)
+        // Thanks to Marc for code snippet!
+        // NOTE: this encompasses the 'LABEL_DATE' format, an existing procedure in the IDL library.
+      {
+        EnvT *e = ptr->e;
+        DString callF = (*ptr->TickFormat)[0];
+        // this is a function name -> convert to UPPERCASE
+        callF = StrUpCase(callF);
+        //  Search in user proc and function
+        SizeT funIx = GDLInterpreter::GetFunIx(callF);
+
+        EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[ funIx], (DObjGDL**) NULL);
+        Guard< EnvUDT> guard(newEnv);
+        // add parameters
+        newEnv->SetNextPar(new DLongGDL(axis - 1)); //axis in PLPLOT starts at 1, it starts at 0 in IDL
+        newEnv->SetNextPar(new DLongGDL(internalIndex)); //index
+        newEnv->SetNextPar(new DDoubleGDL(v)); //value
+        // guard *before* pushing new env
+        StackGuard<EnvStackT> guard1(e->Interpreter()->CallStack());
+        e->Interpreter()->CallStack().push_back(newEnv);
+        guard.release();
+
+        BaseGDL* retValGDL = e->Interpreter()->call_fun(static_cast<DSubUD*> (newEnv->GetPro())->GetTree());
+        // we are the owner of the returned value
+        Guard<BaseGDL> retGuard(retValGDL);
+        strncpy(label, (*static_cast<DStringGDL*> (retValGDL))[0].c_str(), length);
+        internalIndex++;
+      }
+    } else {
+      doOurOwnFormat(axis, value, label, length, data);
+    }
     //translate format codes (as in mtex).
     double nchars;
     std::string out = ptr->a->TranslateFormatCodes(label, &nchars);
-    ptr->nchars=max(ptr->nchars,nchars);
-    strcpy(label,out.c_str());
+    ptr->nchars = max(ptr->nchars, nchars);
+    strcpy(label, out.c_str());
   }
   
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer multiaxisdata)
@@ -3441,10 +3504,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       if (Log) a->wind(owxmin, owxmax, log10(Start), log10(End));
       else a->wind(owxmin, owxmax, Start, End);
     }
-    static GDL_TICKDATA tdata;
-    tdata.a = a;
-    tdata.isLog = Log;
-    tdata.axisrange = abs(End - Start);
 
     static GDL_TICKNAMEDATA data;
     data.a = a;
@@ -3459,8 +3518,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     muaxdata.what = GDL_NONE;
     muaxdata.nTickFormat = 0;
     muaxdata.nTickUnits = 0;
-    muaxdata.axismin = Start;
-    muaxdata.axismax = End;
     muaxdata.axisrange = abs(End - Start);
     muaxdata.reset = true;
 
@@ -3675,42 +3732,62 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       resetLabeling(a, axisId);
     }
 
-    //care Tickunits size is 10 if not defined because it is the size of !X.TICKUNITS.
-    else if (TickFormat->NBytes() > 0) //no /TICKUNITS=> only 1 value taken into account
-    {
-      muaxdata.counter = 0;
-      muaxdata.nchars = 0;
-      muaxdata.what = GDL_TICKFORMAT;
-      muaxdata.TickFormat = TickFormat;
-      muaxdata.nTickFormat = 1;
-      defineLabeling(a, axisId, gdlMultiAxisTickFunc, &muaxdata);
-      Opt += LABELFUNC;
-      if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL;
-      else Opt += NUMERIC;
-      if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-      else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
-      resetLabeling(a, axisId);
-    }
-    
-    else if (TickName->NBytes() > 0) // /TICKNAME=[array]
-    {
-      data.counter = 0;
-      data.nchars = 0;
-      data.TickName = TickName;
-      data.nTickName = TickName->N_Elements();
-      defineLabeling(a, axisId, gdlSingleAxisTickNamedFunc, &data);
-      Opt += LABELFUNC; //custom labelling
-      if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL; //write label "unconventional position" (top or right) 
-      else Opt += NUMERIC; //write label "conventional position" (bottom or left) 
-      if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-      else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
-      resetLabeling(a, axisId);
-    }
+//    //care Tickunits size is 10 if not defined because it is the size of !X.TICKUNITS.
+//    else if (TickFormat->NBytes() > 0) //no /TICKUNITS=> only 1 value taken into account
+//    {
+//      muaxdata.counter = 0;
+//      muaxdata.nchars = 0;
+//      muaxdata.what = GDL_TICKFORMAT;
+//      muaxdata.TickFormat = TickFormat;
+//      muaxdata.nTickFormat = 1;
+//      defineLabeling(a, axisId, gdlMultiAxisTickFunc, &muaxdata);
+//      Opt += LABELFUNC;
+//      if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL;
+//      else Opt += NUMERIC;
+//      if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
+//      else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
+//      resetLabeling(a, axisId);
+//    }
+//    
+//    else if (TickName->NBytes() > 0) // /TICKNAME=[array]
+//    {
+//      data.counter = 0;
+//      data.nchars = 0;
+//      data.TickName = TickName;
+//      data.nTickName = TickName->N_Elements();
+//      defineLabeling(a, axisId, gdlSingleAxisTickNamedFunc, &data);
+//      Opt += LABELFUNC; //custom labelling
+//      if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL; //write label "unconventional position" (top or right) 
+//      else Opt += NUMERIC; //write label "conventional position" (bottom or left) 
+//      if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
+//      else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
+//      resetLabeling(a, axisId);
+//    }
     
     else //normal simple axis
     {
+      static GDL_TICKDATA tdata;
+      //reset all values
+      tdata.a = a;
+      tdata.e = e;
+      tdata.isLog = Log;
+      tdata.axisrange = abs(End - Start);
       tdata.nchars = 0;
-      defineLabeling(a, axisId, gdlSimpleAxisTickFunc, &tdata);
+      tdata.TickFormat = NULL;
+      tdata.nTickFormat = 0;
+      tdata.TickName = NULL;
+      tdata.nTickName = 0;
+      tdata.tickNameCounter = 0;
+      //set modifiers
+      if (TickFormat->NBytes() > 0) {
+        tdata.TickFormat = TickFormat;
+        tdata.nTickFormat = TickFormat->N_Elements();
+      } else if (TickName->NBytes() > 0) {
+        tdata.TickName = TickName;
+        tdata.nTickName = TickName->N_Elements();
+      }
+//      defineLabeling(a, axisId, gdlSimpleAxisTickFunc, &tdata);
+      defineLabeling(a, axisId, gdlAxisTickFunc, &tdata);
       Opt += LABELFUNC;
       if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL;
       else Opt += NUMERIC;
