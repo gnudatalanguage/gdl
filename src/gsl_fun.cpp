@@ -3597,7 +3597,7 @@ namespace lib {
 
            
             y6=round(y6*100)/100;
-         cout << "y6 " << y6 << endl;
+         //cout << "y6 " << y6 << endl;
             if (y6>5){y6=0;}
             for (int i=0;i<n;i++){
                 yd[i]=yd[i]-y6*pow(xd[i],2.0);
@@ -3615,7 +3615,7 @@ namespace lib {
             y5=y5/(0.1*n);
             y5=y5/(-xd[0]);
 
-             cout << "y5 " << y5 << endl;
+             //cout << "y5 " << y5 << endl;
             double min = std::numeric_limits<double>::min();
             if (y5<min){y5=0;}
            
