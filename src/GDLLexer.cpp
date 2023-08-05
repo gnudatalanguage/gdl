@@ -400,11 +400,11 @@ void GDLLexer::mSTRING(bool _createToken) {
 			}
 		}
 		else {
-			goto _loop265;
+			goto _loop262;
 		}
 		
 	}
-	_loop265:;
+	_loop262:;
 	} // ( ... )*
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -1152,10 +1152,10 @@ void GDLLexer::mEOL(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{
-	bool synPredMatched317 = false;
+	bool synPredMatched314 = false;
 	if (((LA(1) == 0xd /* '\r' */ ) && (LA(2) == 0xa /* '\n' */ ) && (true))) {
-		int _m317 = mark();
-		synPredMatched317 = true;
+		int _m314 = mark();
+		synPredMatched314 = true;
 		inputState->guessing++;
 		try {
 			{
@@ -1163,12 +1163,12 @@ void GDLLexer::mEOL(bool _createToken) {
 			}
 		}
 		catch (antlr::RecognitionException& pe) {
-			synPredMatched317 = false;
+			synPredMatched314 = false;
 		}
-		rewind(_m317);
+		rewind(_m314);
 		inputState->guessing--;
 	}
-	if ( synPredMatched317 ) {
+	if ( synPredMatched314 ) {
 		match("\r\n");
 	}
 	else if ((LA(1) == 0xa /* '\n' */ )) {
@@ -1419,18 +1419,18 @@ void GDLLexer::mEXP(bool _createToken) {
 		}
 		}
 		{ // ( ... )+
-		int _cnt335=0;
+		int _cnt332=0;
 		for (;;) {
 			if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 				mD(false);
 			}
 			else {
-				if ( _cnt335>=1 ) { goto _loop335; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+				if ( _cnt332>=1 ) { goto _loop332; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 			}
 			
-			_cnt335++;
+			_cnt332++;
 		}
-		_loop335:;
+		_loop332:;
 		}  // ( ... )+
 	}
 	else {
@@ -1504,18 +1504,18 @@ void GDLLexer::mDBL(bool _createToken) {
 		}
 		}
 		{ // ( ... )+
-		int _cnt342=0;
+		int _cnt339=0;
 		for (;;) {
 			if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 				mD(false);
 			}
 			else {
-				if ( _cnt342>=1 ) { goto _loop342; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+				if ( _cnt339>=1 ) { goto _loop339; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 			}
 			
-			_cnt342++;
+			_cnt339++;
 		}
-		_loop342:;
+		_loop339:;
 		}  // ( ... )+
 	}
 	else {
@@ -1939,27 +1939,27 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 	_ttype = CONSTANT_OR_STRING_LITERAL;
 	std::string::size_type _saveIndex;
 	
-	bool synPredMatched397 = false;
+	bool synPredMatched394 = false;
 	if (((LA(1) == 0x27 /* '\'' */ ) && (_tokenSet_4.member(LA(2))) && (_tokenSet_5.member(LA(3))))) {
-		int _m397 = mark();
-		synPredMatched397 = true;
+		int _m394 = mark();
+		synPredMatched394 = true;
 		inputState->guessing++;
 		try {
 			{
 			match('\'' /* charlit */ );
 			{ // ( ... )+
-			int _cnt395=0;
+			int _cnt392=0;
 			for (;;) {
 				if ((_tokenSet_4.member(LA(1)))) {
 					mH(false);
 				}
 				else {
-					if ( _cnt395>=1 ) { goto _loop395; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+					if ( _cnt392>=1 ) { goto _loop392; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 				}
 				
-				_cnt395++;
+				_cnt392++;
 			}
-			_loop395:;
+			_loop392:;
 			}  // ( ... )+
 			match('\'' /* charlit */ );
 			{
@@ -1995,29 +1995,29 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 			}
 		}
 		catch (antlr::RecognitionException& pe) {
-			synPredMatched397 = false;
+			synPredMatched394 = false;
 		}
-		rewind(_m397);
+		rewind(_m394);
 		inputState->guessing--;
 	}
-	if ( synPredMatched397 ) {
+	if ( synPredMatched394 ) {
 		{
 		_saveIndex = text.length();
 		match('\'' /* charlit */ );
 		text.erase(_saveIndex);
 		{ // ( ... )+
-		int _cnt400=0;
+		int _cnt397=0;
 		for (;;) {
 			if ((_tokenSet_4.member(LA(1)))) {
 				mH(false);
 			}
 			else {
-				if ( _cnt400>=1 ) { goto _loop400; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+				if ( _cnt397>=1 ) { goto _loop397; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 			}
 			
-			_cnt400++;
+			_cnt397++;
 		}
-		_loop400:;
+		_loop397:;
 		}  // ( ... )+
 		_saveIndex = text.length();
 		match('\'' /* charlit */ );
@@ -2114,27 +2114,27 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 		}
 	}
 	else {
-		bool synPredMatched406 = false;
+		bool synPredMatched403 = false;
 		if (((LA(1) == 0x27 /* '\'' */ ) && ((LA(2) >= 0x30 /* '0' */  && LA(2) <= 0x37 /* '7' */ )) && (_tokenSet_6.member(LA(3))))) {
-			int _m406 = mark();
-			synPredMatched406 = true;
+			int _m403 = mark();
+			synPredMatched403 = true;
 			inputState->guessing++;
 			try {
 				{
 				match('\'' /* charlit */ );
 				{ // ( ... )+
-				int _cnt404=0;
+				int _cnt401=0;
 				for (;;) {
 					if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x37 /* '7' */ ))) {
 						mO(false);
 					}
 					else {
-						if ( _cnt404>=1 ) { goto _loop404; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+						if ( _cnt401>=1 ) { goto _loop401; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 					}
 					
-					_cnt404++;
+					_cnt401++;
 				}
-				_loop404:;
+				_loop401:;
 				}  // ( ... )+
 				match('\'' /* charlit */ );
 				{
@@ -2161,29 +2161,29 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 				}
 			}
 			catch (antlr::RecognitionException& pe) {
-				synPredMatched406 = false;
+				synPredMatched403 = false;
 			}
-			rewind(_m406);
+			rewind(_m403);
 			inputState->guessing--;
 		}
-		if ( synPredMatched406 ) {
+		if ( synPredMatched403 ) {
 			{
 			_saveIndex = text.length();
 			match('\'' /* charlit */ );
 			text.erase(_saveIndex);
 			{ // ( ... )+
-			int _cnt409=0;
+			int _cnt406=0;
 			for (;;) {
 				if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x37 /* '7' */ ))) {
 					mO(false);
 				}
 				else {
-					if ( _cnt409>=1 ) { goto _loop409; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+					if ( _cnt406>=1 ) { goto _loop406; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 				}
 				
-				_cnt409++;
+				_cnt406++;
 			}
-			_loop409:;
+			_loop406:;
 			}  // ( ... )+
 			_saveIndex = text.length();
 			match('\'' /* charlit */ );
@@ -2280,27 +2280,27 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 			}
 		}
 		else {
-			bool synPredMatched415 = false;
+			bool synPredMatched412 = false;
 			if (((LA(1) == 0x27 /* '\'' */ ) && (LA(2) == 0x30 /* '0' */  || LA(2) == 0x31 /* '1' */ ) && (LA(3) == 0x27 /* '\'' */  || LA(3) == 0x30 /* '0' */  || LA(3) == 0x31 /* '1' */ ))) {
-				int _m415 = mark();
-				synPredMatched415 = true;
+				int _m412 = mark();
+				synPredMatched412 = true;
 				inputState->guessing++;
 				try {
 					{
 					match('\'' /* charlit */ );
 					{ // ( ... )+
-					int _cnt413=0;
+					int _cnt410=0;
 					for (;;) {
 						if ((LA(1) == 0x30 /* '0' */  || LA(1) == 0x31 /* '1' */ )) {
 							mB(false);
 						}
 						else {
-							if ( _cnt413>=1 ) { goto _loop413; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+							if ( _cnt410>=1 ) { goto _loop410; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 						}
 						
-						_cnt413++;
+						_cnt410++;
 					}
-					_loop413:;
+					_loop410:;
 					}  // ( ... )+
 					match('\'' /* charlit */ );
 					{
@@ -2327,29 +2327,29 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 					}
 				}
 				catch (antlr::RecognitionException& pe) {
-					synPredMatched415 = false;
+					synPredMatched412 = false;
 				}
-				rewind(_m415);
+				rewind(_m412);
 				inputState->guessing--;
 			}
-			if ( synPredMatched415 ) {
+			if ( synPredMatched412 ) {
 				{
 				_saveIndex = text.length();
 				match('\'' /* charlit */ );
 				text.erase(_saveIndex);
 				{ // ( ... )+
-				int _cnt418=0;
+				int _cnt415=0;
 				for (;;) {
 					if ((LA(1) == 0x30 /* '0' */  || LA(1) == 0x31 /* '1' */ )) {
 						mB(false);
 					}
 					else {
-						if ( _cnt418>=1 ) { goto _loop418; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+						if ( _cnt415>=1 ) { goto _loop415; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 					}
 					
-					_cnt418++;
+					_cnt415++;
 				}
-				_loop418:;
+				_loop415:;
 				}  // ( ... )+
 				_saveIndex = text.length();
 				match('\'' /* charlit */ );
@@ -2446,27 +2446,27 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 				}
 			}
 			else {
-				bool synPredMatched379 = false;
+				bool synPredMatched376 = false;
 				if (((LA(1) == 0x30 /* '0' */ ) && (LA(2) == 0x78 /* 'x' */ ))) {
-					int _m379 = mark();
-					synPredMatched379 = true;
+					int _m376 = mark();
+					synPredMatched376 = true;
 					inputState->guessing++;
 					try {
 						{
 						match("0x");
 						{ // ( ... )+
-						int _cnt377=0;
+						int _cnt374=0;
 						for (;;) {
 							if ((_tokenSet_4.member(LA(1)))) {
 								mH(false);
 							}
 							else {
-								if ( _cnt377>=1 ) { goto _loop377; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+								if ( _cnt374>=1 ) { goto _loop374; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 							}
 							
-							_cnt377++;
+							_cnt374++;
 						}
-						_loop377:;
+						_loop374:;
 						}  // ( ... )+
 						{
 						switch ( LA(1)) {
@@ -2493,29 +2493,29 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 						}
 					}
 					catch (antlr::RecognitionException& pe) {
-						synPredMatched379 = false;
+						synPredMatched376 = false;
 					}
-					rewind(_m379);
+					rewind(_m376);
 					inputState->guessing--;
 				}
-				if ( synPredMatched379 ) {
+				if ( synPredMatched376 ) {
 					{
 					_saveIndex = text.length();
 					match("0x");
 					text.erase(_saveIndex);
 					{ // ( ... )+
-					int _cnt382=0;
+					int _cnt379=0;
 					for (;;) {
 						if ((_tokenSet_4.member(LA(1)))) {
 							mH(false);
 						}
 						else {
-							if ( _cnt382>=1 ) { goto _loop382; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+							if ( _cnt379>=1 ) { goto _loop379; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 						}
 						
-						_cnt382++;
+						_cnt379++;
 					}
-					_loop382:;
+					_loop379:;
 					}  // ( ... )+
 					if ( inputState->guessing==0 ) {
 						_ttype=CONSTANT_HEX_I;
@@ -2592,27 +2592,27 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 					}
 				}
 				else {
-					bool synPredMatched388 = false;
+					bool synPredMatched385 = false;
 					if (((LA(1) == 0x22 /* '\"' */ ) && ((LA(2) >= 0x30 /* '0' */  && LA(2) <= 0x37 /* '7' */ )) && (true))) {
-						int _m388 = mark();
-						synPredMatched388 = true;
+						int _m385 = mark();
+						synPredMatched385 = true;
 						inputState->guessing++;
 						try {
 							{
 							match('\"' /* charlit */ );
 							{ // ( ... )+
-							int _cnt386=0;
+							int _cnt383=0;
 							for (;;) {
 								if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x37 /* '7' */ ))) {
 									mO(false);
 								}
 								else {
-									if ( _cnt386>=1 ) { goto _loop386; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+									if ( _cnt383>=1 ) { goto _loop383; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 								}
 								
-								_cnt386++;
+								_cnt383++;
 							}
-							_loop386:;
+							_loop383:;
 							}  // ( ... )+
 							{
 							switch ( LA(1)) {
@@ -2649,29 +2649,29 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 							}
 						}
 						catch (antlr::RecognitionException& pe) {
-							synPredMatched388 = false;
+							synPredMatched385 = false;
 						}
-						rewind(_m388);
+						rewind(_m385);
 						inputState->guessing--;
 					}
-					if ( synPredMatched388 ) {
+					if ( synPredMatched385 ) {
 						{
 						_saveIndex = text.length();
 						match('\"' /* charlit */ );
 						text.erase(_saveIndex);
 						{ // ( ... )+
-						int _cnt391=0;
+						int _cnt388=0;
 						for (;;) {
 							if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x37 /* '7' */ ))) {
 								mO(false);
 							}
 							else {
-								if ( _cnt391>=1 ) { goto _loop391; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+								if ( _cnt388>=1 ) { goto _loop388; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 							}
 							
-							_cnt391++;
+							_cnt388++;
 						}
-						_loop391:;
+						_loop388:;
 						}  // ( ... )+
 						if ( inputState->guessing==0 ) {
 							_ttype=CONSTANT_OCT_I;
@@ -2772,10 +2772,10 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 						}
 					}
 					else {
-						bool synPredMatched439 = false;
+						bool synPredMatched436 = false;
 						if (((_tokenSet_7.member(LA(1))) && (_tokenSet_8.member(LA(2))) && (true))) {
-							int _m439 = mark();
-							synPredMatched439 = true;
+							int _m436 = mark();
+							synPredMatched436 = true;
 							inputState->guessing++;
 							try {
 								{
@@ -2793,18 +2793,18 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 								{
 									{
 									{ // ( ... )+
-									int _cnt431=0;
+									int _cnt428=0;
 									for (;;) {
 										if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 											mD(false);
 										}
 										else {
-											if ( _cnt431>=1 ) { goto _loop431; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+											if ( _cnt428>=1 ) { goto _loop428; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 										}
 										
-										_cnt431++;
+										_cnt428++;
 									}
-									_loop431:;
+									_loop428:;
 									}  // ( ... )+
 									{
 									switch ( LA(1)) {
@@ -2822,11 +2822,11 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 												mD(false);
 											}
 											else {
-												goto _loop434;
+												goto _loop431;
 											}
 											
 										}
-										_loop434:;
+										_loop431:;
 										} // ( ... )*
 										{
 										mDBL(false);
@@ -2846,18 +2846,18 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 								{
 									match('.' /* charlit */ );
 									{ // ( ... )+
-									int _cnt437=0;
+									int _cnt434=0;
 									for (;;) {
 										if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 											mD(false);
 										}
 										else {
-											if ( _cnt437>=1 ) { goto _loop437; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+											if ( _cnt434>=1 ) { goto _loop434; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 										}
 										
-										_cnt437++;
+										_cnt434++;
 									}
-									_loop437:;
+									_loop434:;
 									}  // ( ... )+
 									{
 									mDBL(false);
@@ -2872,12 +2872,12 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 								}
 							}
 							catch (antlr::RecognitionException& pe) {
-								synPredMatched439 = false;
+								synPredMatched436 = false;
 							}
-							rewind(_m439);
+							rewind(_m436);
 							inputState->guessing--;
 						}
-						if ( synPredMatched439 ) {
+						if ( synPredMatched436 ) {
 							{
 							switch ( LA(1)) {
 							case 0x30 /* '0' */ :
@@ -2893,18 +2893,18 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 							{
 								{
 								{ // ( ... )+
-								int _cnt443=0;
+								int _cnt440=0;
 								for (;;) {
 									if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 										mD(false);
 									}
 									else {
-										if ( _cnt443>=1 ) { goto _loop443; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+										if ( _cnt440>=1 ) { goto _loop440; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 									}
 									
-									_cnt443++;
+									_cnt440++;
 								}
-								_loop443:;
+								_loop440:;
 								}  // ( ... )+
 								{
 								switch ( LA(1)) {
@@ -2922,11 +2922,11 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 											mD(false);
 										}
 										else {
-											goto _loop446;
+											goto _loop443;
 										}
 										
 									}
-									_loop446:;
+									_loop443:;
 									} // ( ... )*
 									{
 									mDBL(false);
@@ -2946,18 +2946,18 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 							{
 								match('.' /* charlit */ );
 								{ // ( ... )+
-								int _cnt449=0;
+								int _cnt446=0;
 								for (;;) {
 									if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 										mD(false);
 									}
 									else {
-										if ( _cnt449>=1 ) { goto _loop449; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+										if ( _cnt446>=1 ) { goto _loop446; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 									}
 									
-									_cnt449++;
+									_cnt446++;
 								}
-								_loop449:;
+								_loop446:;
 								}  // ( ... )+
 								{
 								mDBL(false);
@@ -2975,10 +2975,10 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 							}
 						}
 						else {
-							bool synPredMatched462 = false;
+							bool synPredMatched459 = false;
 							if (((_tokenSet_7.member(LA(1))) && (_tokenSet_9.member(LA(2))) && (true))) {
-								int _m462 = mark();
-								synPredMatched462 = true;
+								int _m459 = mark();
+								synPredMatched459 = true;
 								inputState->guessing++;
 								try {
 									{
@@ -2996,18 +2996,18 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 									{
 										{
 										{ // ( ... )+
-										int _cnt454=0;
+										int _cnt451=0;
 										for (;;) {
 											if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 												mD(false);
 											}
 											else {
-												if ( _cnt454>=1 ) { goto _loop454; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+												if ( _cnt451>=1 ) { goto _loop451; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 											}
 											
-											_cnt454++;
+											_cnt451++;
 										}
-										_loop454:;
+										_loop451:;
 										}  // ( ... )+
 										{
 										switch ( LA(1)) {
@@ -3025,11 +3025,11 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 													mD(false);
 												}
 												else {
-													goto _loop457;
+													goto _loop454;
 												}
 												
 											}
-											_loop457:;
+											_loop454:;
 											} // ( ... )*
 											{
 											if ((LA(1) == 0x65 /* 'e' */ )) {
@@ -3054,18 +3054,18 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 									{
 										match('.' /* charlit */ );
 										{ // ( ... )+
-										int _cnt460=0;
+										int _cnt457=0;
 										for (;;) {
 											if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 												mD(false);
 											}
 											else {
-												if ( _cnt460>=1 ) { goto _loop460; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+												if ( _cnt457>=1 ) { goto _loop457; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 											}
 											
-											_cnt460++;
+											_cnt457++;
 										}
-										_loop460:;
+										_loop457:;
 										}  // ( ... )+
 										{
 										if ((LA(1) == 0x65 /* 'e' */ )) {
@@ -3085,12 +3085,12 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 									}
 								}
 								catch (antlr::RecognitionException& pe) {
-									synPredMatched462 = false;
+									synPredMatched459 = false;
 								}
-								rewind(_m462);
+								rewind(_m459);
 								inputState->guessing--;
 							}
-							if ( synPredMatched462 ) {
+							if ( synPredMatched459 ) {
 								{
 								switch ( LA(1)) {
 								case 0x30 /* '0' */ :
@@ -3106,18 +3106,18 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 								{
 									{
 									{ // ( ... )+
-									int _cnt466=0;
+									int _cnt463=0;
 									for (;;) {
 										if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 											mD(false);
 										}
 										else {
-											if ( _cnt466>=1 ) { goto _loop466; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+											if ( _cnt463>=1 ) { goto _loop463; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 										}
 										
-										_cnt466++;
+										_cnt463++;
 									}
-									_loop466:;
+									_loop463:;
 									}  // ( ... )+
 									{
 									switch ( LA(1)) {
@@ -3135,11 +3135,11 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 												mD(false);
 											}
 											else {
-												goto _loop469;
+												goto _loop466;
 											}
 											
 										}
-										_loop469:;
+										_loop466:;
 										} // ( ... )*
 										{
 										if ((LA(1) == 0x65 /* 'e' */ )) {
@@ -3164,18 +3164,18 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 								{
 									match('.' /* charlit */ );
 									{ // ( ... )+
-									int _cnt472=0;
+									int _cnt469=0;
 									for (;;) {
 										if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 											mD(false);
 										}
 										else {
-											if ( _cnt472>=1 ) { goto _loop472; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+											if ( _cnt469>=1 ) { goto _loop469; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 										}
 										
-										_cnt472++;
+										_cnt469++;
 									}
-									_loop472:;
+									_loop469:;
 									}  // ( ... )+
 									{
 									if ((LA(1) == 0x65 /* 'e' */ )) {
@@ -3215,11 +3215,11 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 										}
 									}
 									else {
-										goto _loop422;
+										goto _loop419;
 									}
 									
 								}
-								_loop422:;
+								_loop419:;
 								} // ( ... )*
 								{
 								if ((LA(1) == 0x22 /* '\"' */ )) {
@@ -3253,11 +3253,11 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 										}
 									}
 									else {
-										goto _loop426;
+										goto _loop423;
 									}
 									
 								}
-								_loop426:;
+								_loop423:;
 								} // ( ... )*
 								{
 								if ((LA(1) == 0x27 /* '\'' */ )) {
@@ -3281,18 +3281,18 @@ void GDLLexer::mCONSTANT_OR_STRING_LITERAL(bool _createToken) {
 							}
 							else if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ )) && (true) && (true)) {
 								{ // ( ... )+
-								int _cnt475=0;
+								int _cnt472=0;
 								for (;;) {
 									if (((LA(1) >= 0x30 /* '0' */  && LA(1) <= 0x39 /* '9' */ ))) {
 										mD(false);
 									}
 									else {
-										if ( _cnt475>=1 ) { goto _loop475; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+										if ( _cnt472>=1 ) { goto _loop472; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 									}
 									
-									_cnt475++;
+									_cnt472++;
 								}
-								_loop475:;
+								_loop472:;
 								}  // ( ... )+
 								if ( inputState->guessing==0 ) {
 									_ttype=CONSTANT_I;
@@ -3409,11 +3409,11 @@ void GDLLexer::mCOMMENT(bool _createToken) {
 			}
 		}
 		else {
-			goto _loop481;
+			goto _loop478;
 		}
 		
 	}
-	_loop481:;
+	_loop478:;
 	} // ( ... )*
 	if ( inputState->guessing==0 ) {
 		_ttype=antlr::Token::SKIP;
@@ -3489,11 +3489,11 @@ void GDLLexer::mIDENTIFIER(bool _createToken) {
 		}
 		default:
 		{
-			goto _loop485;
+			goto _loop482;
 		}
 		}
 	}
-	_loop485:;
+	_loop482:;
 	} // ( ... )*
 	if ( inputState->guessing==0 ) {
 		
@@ -3519,7 +3519,7 @@ void GDLLexer::mSYSVARNAME(bool _createToken) {
 	match('!' /* charlit */ );
 	}
 	{ // ( ... )+
-	int _cnt489=0;
+	int _cnt486=0;
 	for (;;) {
 		switch ( LA(1)) {
 		case 0x5f /* '_' */ :
@@ -3574,12 +3574,12 @@ void GDLLexer::mSYSVARNAME(bool _createToken) {
 		}
 		default:
 		{
-			if ( _cnt489>=1 ) { goto _loop489; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+			if ( _cnt486>=1 ) { goto _loop486; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 		}
 		}
-		_cnt489++;
+		_cnt486++;
 	}
-	_loop489:;
+	_loop486:;
 	}  // ( ... )+
 	if ( inputState->guessing==0 ) {
 		
@@ -3618,18 +3618,18 @@ void GDLLexer::mWHITESPACE(bool _createToken) {
 	std::string::size_type _saveIndex;
 	
 	{ // ( ... )+
-	int _cnt493=0;
+	int _cnt490=0;
 	for (;;) {
 		if ((LA(1) == 0x9 /* '\t' */  || LA(1) == 0xc /* '\14' */  || LA(1) == 0x20 /* ' ' */ )) {
 			mW(false);
 		}
 		else {
-			if ( _cnt493>=1 ) { goto _loop493; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
+			if ( _cnt490>=1 ) { goto _loop490; } else {throw antlr::NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());}
 		}
 		
-		_cnt493++;
+		_cnt490++;
 	}
-	_loop493:;
+	_loop490:;
 	}  // ( ... )+
 	if ( inputState->guessing==0 ) {
 		_ttype=antlr::Token::SKIP;
@@ -3670,11 +3670,11 @@ void GDLLexer::mSKIP_LINES(bool _createToken) {
 		}
 		default:
 		{
-			goto _loop496;
+			goto _loop493;
 		}
 		}
 	}
-	_loop496:;
+	_loop493:;
 	} // ( ... )*
 	if ( _createToken && _token==antlr::nullToken && _ttype!=antlr::Token::SKIP ) {
 	   _token = makeToken(_ttype);
@@ -3698,11 +3698,11 @@ void GDLLexer::mCONT_STATEMENT(bool _createToken) {
 			}
 		}
 		else {
-			goto _loop500;
+			goto _loop497;
 		}
 		
 	}
-	_loop500:;
+	_loop497:;
 	} // ( ... )*
 	mEOL(false);
 	mSKIP_LINES(false);

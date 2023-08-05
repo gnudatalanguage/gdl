@@ -816,13 +816,22 @@ for_statement
         for_block
     ;
 
+// GD reverted (below) to historical version as the following, while permitting #52 creates #1599 and #1608
+//for_block
+//{    if (debugParser) std::cout << " for_block " << std::endl; }
+//    :
+//      (BEGIN statement)=> (BEGIN! stb:statement) { #for_block = #([BLOCK, "block"], #stb); if (debugParser) std::cout<<std::endl;}
+//    |  BEGIN! stl:statement_list endfor_mark { #for_block = #([BLOCK, "block"], #stl); if (debugParser) std::cout<<std::endl;}
+//    |  st:statement { #for_block = #([BLOCK, "block"], #st); if (debugParser) std::cout<<std::endl;}
+//    ;    
+
 for_block
 {    if (debugParser) std::cout << " for_block " << std::endl; }
-    :
-      (BEGIN statement)=> (BEGIN! stb:statement) { #for_block = #([BLOCK, "block"], #stb); if (debugParser) std::cout<<std::endl;}
-    |  BEGIN! stl:statement_list endfor_mark { #for_block = #([BLOCK, "block"], #stl); if (debugParser) std::cout<<std::endl;}
-    |  st:statement { #for_block = #([BLOCK, "block"], #st); if (debugParser) std::cout<<std::endl;}
-    ;    
+ 	: st:statement
+		{ #for_block = #([BLOCK, "block"], #st);}
+	| BEGIN! stl:statement_list endfor_mark
+		{ #for_block = #([BLOCK, "block"], #stl);}
+    ;
 
 foreach_statement
 {    if (debugParser) std::cout << " foreach_statement " << std::endl; }
