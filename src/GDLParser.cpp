@@ -4940,7 +4940,7 @@ void GDLParser::for_block() {
 		}
 		if ( inputState->guessing==0 ) {
 			for_block_AST = RefDNode(currentAST.root);
-			for_block_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(BLOCK,"block")))->add(antlr::RefAST(st_AST))));
+			for_block_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(BLOCK,"block")))->add(antlr::RefAST(st_AST)))); if (debugParser) std::cout<<std::endl;
 			currentAST.root = for_block_AST;
 			if ( for_block_AST!=RefDNode(antlr::nullAST) &&
 				for_block_AST->getFirstChild() != RefDNode(antlr::nullAST) )
@@ -4966,7 +4966,7 @@ void GDLParser::for_block() {
 		}
 		if ( inputState->guessing==0 ) {
 			for_block_AST = RefDNode(currentAST.root);
-			for_block_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(BLOCK,"block")))->add(antlr::RefAST(stl_AST))));
+			for_block_AST = RefDNode(astFactory->make((new antlr::ASTArray(2))->add(antlr::RefAST(astFactory->create(BLOCK,"block")))->add(antlr::RefAST(stl_AST)))); if (debugParser) std::cout<<std::endl;
 			currentAST.root = for_block_AST;
 			if ( for_block_AST!=RefDNode(antlr::nullAST) &&
 				for_block_AST->getFirstChild() != RefDNode(antlr::nullAST) )

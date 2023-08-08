@@ -827,11 +827,9 @@ for_statement
 
 for_block
 {    if (debugParser) std::cout << " for_block " << std::endl; }
- 	: st:statement
-		{ #for_block = #([BLOCK, "block"], #st);}
-	| BEGIN! stl:statement_list endfor_mark
-		{ #for_block = #([BLOCK, "block"], #stl);}
-    ;
+    :  st:statement { #for_block = #([BLOCK, "block"], #st); if (debugParser) std::cout<<std::endl;}
+    |  BEGIN! stl:statement_list endfor_mark { #for_block = #([BLOCK, "block"], #stl); if (debugParser) std::cout<<std::endl;}
+    ;    
 
 foreach_statement
 {    if (debugParser) std::cout << " foreach_statement " << std::endl; }
