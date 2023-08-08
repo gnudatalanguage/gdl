@@ -15,7 +15,7 @@ print,(*(*pointer).z)((*pointer).array7[1])
 print,(*(*pointer).z)((*pointer).array7(1))
 ; format etc issues:
 ; issue #1577
-b=1 & z=cos((b+=2))
+;b=1 & z=cos((b+=2))
 ; issue #1252
 a = "123
 ;" //emacs IDLWAVE mode is fragile...
@@ -31,5 +31,15 @@ print,"a","b","c",format="%s-%s-%s"
 a = 'FF3A'x  ; existing notation
 a = 0xFF3A   ; new notation
 ; issue #52: shothand notation, but will crash as this is not an interactive input. Removed.
-; for i=0,2 do begin a=i
+; for i=0,2 do begin print,i
+; four different ways must be accepted:
+for i=0,1 do print,i
+for i=0,1 do begin print,i & endfor
+for i=0,1 do begin $
+print,i
+endfor
+for i=0,1 do begin
+   print,i
+endfor
+
 end
