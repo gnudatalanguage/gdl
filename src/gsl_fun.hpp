@@ -26,6 +26,12 @@
 
 #include "datatypes.hpp"
 #include "envt.hpp"
+#include <vector>
+#include <cassert>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_multifit_nlinear.h>
+#include <functional>
+
 
 namespace lib {
 
@@ -62,6 +68,8 @@ namespace lib {
   BaseGDL* wtn(EnvT* e);
   BaseGDL* zeropoly(EnvT* e);
   BaseGDL* spher_harm(EnvT* e);
+  BaseGDL* gaussfit2(EnvT* e);
+  BaseGDL* random_fun_gsl(EnvT* e);
 
   template< typename T1, typename T2>
   int cp2data2_template( BaseGDL* p0, T2* data, SizeT nEl, 
@@ -69,8 +77,8 @@ namespace lib {
   template< typename T>
   int cp2data_template( BaseGDL* p0, T* data, SizeT nEl, 
 			SizeT offset, SizeT stride_in, SizeT stride_out);
+    
 
-  BaseGDL* random_fun_gsl(EnvT* e);
 } // namespace
 
 #endif
