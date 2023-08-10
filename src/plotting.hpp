@@ -132,9 +132,8 @@ static const std::string axisName[6] = {"X", "Y", "Z", "X", "Y", "Z"};
 // ticks) except exclude drawing the major and minor tick marks.
 
 #define GDL_NONE -1
-#define GDL_TICKFORMAT 0
 #define GDL_TICKUNITS 1
-#define GDL_TICKFORMAT_AND_UNITS 2
+#define GDL_TICKUNITS_AND_FORMAT 2
 
 struct GDL_TICKDATA {
   GDLGStream *a;
@@ -142,37 +141,21 @@ struct GDL_TICKDATA {
   bool isLog;
   DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
   double nchars; //length of string *returned* after formatting. Can be non-integer.
-  SizeT tickNameCounter;
-  SizeT nTickName;
-  DStringGDL* TickName;
+  // For TICKNAMES
+  SizeT tickNameCounter; //internal counter of what tickname we use
+  SizeT nTickName; //number of tickname values passed
+  DStringGDL* TickName; //pointer to ticknames
+  //For TICKFORMAT
   SizeT nTickFormat;
-  DStringGDL* TickFormat;   
-};
-
-struct GDL_TICKNAMEDATA {
-  GDLGStream *a;
-  bool isLog;
-  DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
-  double nchars; //length of string *returned* after formatting. Can be non-integer.
-  SizeT counter;
-  SizeT nTickName;
-  DStringGDL* TickName;
-};
-
-struct GDL_MULTIAXISTICKDATA {
-  GDLGStream *a;
-  bool isLog;
-  DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
-  double nchars; //length of string *returned* after formatting. Can be non-integer.
+  DStringGDL* TickFormat; 
+  // for TICKUNITS => Multi-axis 
+  SizeT nTickUnits;
+  DStringGDL* TickUnits;
   SizeT counter;
   bool reset; //reset internal counter each time a new 'axis' command is issued
   int what;
-  SizeT nTickFormat;
-  DStringGDL* TickFormat;
-  SizeT nTickUnits;
-  DStringGDL* TickUnits;
-  EnvT *e;
 };
+
 
 namespace lib {
 

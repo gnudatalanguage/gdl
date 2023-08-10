@@ -459,108 +459,111 @@ namespace lib
         else if (range * 24 * 60 >= 1.1) code = 5;
         else code = 6;
       }
-      static int monthSize[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-      DLong Day1, Day2, Year1, Year2, Hour1, Hour2, Minute1, Minute2, MonthNum1, MonthNum2;
-      DLong idow1, icap1, idow2, icap2;
-      DDouble Seconde1, Seconde2;
-      j2ymdhms(min, MonthNum1, Day1, Year1, Hour1, Minute1, Seconde1, idow1, icap1);
-      MonthNum1++; //j2ymdhms gives back Month number in the [0-11] range for indexing month name tables. pity.
-      j2ymdhms(max, MonthNum2, Day2, Year2, Hour2, Minute2, Seconde2, idow2, icap2);
-      MonthNum2++;
-      switch (code) {
-      case 1:
-        //           day mon year h m s.s
-        dateToJD(min, 1, 1, Year1, 0, 0, 0.0);
-        dateToJD(max, 1, 1, Year2 + 1, 0, 0, 0.0);
-        break;
-      case 2:
-        dateToJD(min, 1, MonthNum1, Year1, 0, 0, 0.0);
-        MonthNum2++;
-        if (MonthNum2 > 12) {
-          MonthNum2 -= 12;
-          Year2 += 1;
-        }
-        dateToJD(max, 1, MonthNum2, Year2, 0, 0, 0.0);
-        break;
-      case 3:
-        dateToJD(min, Day1, MonthNum1, Year1, 0, 0, 0.0);
-        Day2++;
-        if (Day2 > monthSize[MonthNum2]) {
-          Day2 -= monthSize[MonthNum2];
-          MonthNum2 += 1;
-        }
-        if (MonthNum2 > 12) {
-          MonthNum2 -= 12;
-          Year2 += 1;
-        }
-        dateToJD(max, Day2, MonthNum2, Year2, 0, 0, 0.0);
-        break;
-      case 4:
-        dateToJD(min, Day1, MonthNum1, Year1, Hour1, 0, 0.0);
-        Hour2++;
-        if (Hour2 > 23) {
-          Hour2 -= 24;
-          Day2 += 1;
-        }
-        if (Day2 > monthSize[MonthNum2]) {
-          Day2 -= monthSize[MonthNum2];
-          MonthNum2 += 1;
-        }
-        if (MonthNum2 > 12) {
-          MonthNum2 -= 12;
-          Year2 += 1;
-        }
-        dateToJD(max, Day2, MonthNum2, Year2, Hour2, 0, 0.0);
-        break;
-      case 5:
-        dateToJD(min, Day1, MonthNum1, Year1, Hour1, Minute1, 0.0);
-        Minute2++;
-        if (Minute2 > 59) {
-          Minute2 -= 60;
-          Hour2 += 1;
-        }
-        if (Hour2 > 23) {
-          Hour2 -= 24;
-          Day2 += 1;
-        }
-        if (Day2 > monthSize[MonthNum2]) {
-          Day2 -= monthSize[MonthNum2];
-          MonthNum2 += 1;
-        }
-        if (MonthNum2 > 12) {
-          MonthNum2 -= 12;
-          Year2 += 1;
-        }
-        dateToJD(max, Day2, MonthNum2, Year2, Hour2, Minute2, 0.0);
-        break;
-      case 6:
-        dateToJD(min, Day1, MonthNum1, Year1, Hour1, Minute1, Seconde1);
-        Seconde2++;
-        if (Seconde2 > 59) {
-          Seconde2 -= 60;
-          Minute2 += 1;
-        }
-        if (Minute2 > 59) {
-          Minute2 -= 60;
-          Hour2 += 1;
-        }
-        if (Hour2 > 23) {
-          Hour2 -= 24;
-          Day2 += 1;
-        }
-        if (Day2 > monthSize[MonthNum2]) {
-          Day2 -= monthSize[MonthNum2];
-          MonthNum2 += 1;
-        }
-        if (MonthNum2 > 12) {
-          MonthNum2 -= 12;
-          Year2 += 1;
-        }
-        dateToJD(max, Day2, MonthNum2, Year2, Hour2, Minute2, Seconde2);
-        break;
-      default:
-        break;
-      }
+      min=gdlReturnTickJulday(min, code, false);
+      max=gdlReturnTickJulday(max, code, true);
+ //code below factorized by gdlReturnTickJulday() above - to be deleted.     
+//      static int monthSize[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+//      DLong Day1, Day2, Year1, Year2, Hour1, Hour2, Minute1, Minute2, MonthNum1, MonthNum2;
+//      DLong idow1, icap1, idow2, icap2;
+//      DDouble Seconde1, Seconde2;
+//      j2ymdhms(min, MonthNum1, Day1, Year1, Hour1, Minute1, Seconde1, idow1, icap1);
+//      MonthNum1++; //j2ymdhms gives back Month number in the [0-11] range for indexing month name tables. pity.
+//      j2ymdhms(max, MonthNum2, Day2, Year2, Hour2, Minute2, Seconde2, idow2, icap2);
+//      MonthNum2++;
+//      switch (code) {
+//      case 1:
+//        //           day mon year h m s.s
+//        dateToJD(min, 1, 1, Year1, 0, 0, 0.0);
+//        dateToJD(max, 1, 1, Year2 + 1, 0, 0, 0.0);
+//        break;
+//      case 2:
+//        dateToJD(min, 1, MonthNum1, Year1, 0, 0, 0.0);
+//        MonthNum2++;
+//        if (MonthNum2 > 12) {
+//          MonthNum2 -= 12;
+//          Year2 += 1;
+//        }
+//        dateToJD(max, 1, MonthNum2, Year2, 0, 0, 0.0);
+//        break;
+//      case 3:
+//        dateToJD(min, Day1, MonthNum1, Year1, 0, 0, 0.0);
+//        Day2++;
+//        if (Day2 > monthSize[MonthNum2]) {
+//          Day2 -= monthSize[MonthNum2];
+//          MonthNum2 += 1;
+//        }
+//        if (MonthNum2 > 12) {
+//          MonthNum2 -= 12;
+//          Year2 += 1;
+//        }
+//        dateToJD(max, Day2, MonthNum2, Year2, 0, 0, 0.0);
+//        break;
+//      case 4:
+//        dateToJD(min, Day1, MonthNum1, Year1, Hour1, 0, 0.0);
+//        Hour2++;
+//        if (Hour2 > 23) {
+//          Hour2 -= 24;
+//          Day2 += 1;
+//        }
+//        if (Day2 > monthSize[MonthNum2]) {
+//          Day2 -= monthSize[MonthNum2];
+//          MonthNum2 += 1;
+//        }
+//        if (MonthNum2 > 12) {
+//          MonthNum2 -= 12;
+//          Year2 += 1;
+//        }
+//        dateToJD(max, Day2, MonthNum2, Year2, Hour2, 0, 0.0);
+//        break;
+//      case 5:
+//        dateToJD(min, Day1, MonthNum1, Year1, Hour1, Minute1, 0.0);
+//        Minute2++;
+//        if (Minute2 > 59) {
+//          Minute2 -= 60;
+//          Hour2 += 1;
+//        }
+//        if (Hour2 > 23) {
+//          Hour2 -= 24;
+//          Day2 += 1;
+//        }
+//        if (Day2 > monthSize[MonthNum2]) {
+//          Day2 -= monthSize[MonthNum2];
+//          MonthNum2 += 1;
+//        }
+//        if (MonthNum2 > 12) {
+//          MonthNum2 -= 12;
+//          Year2 += 1;
+//        }
+//        dateToJD(max, Day2, MonthNum2, Year2, Hour2, Minute2, 0.0);
+//        break;
+//      case 6:
+//        dateToJD(min, Day1, MonthNum1, Year1, Hour1, Minute1, Seconde1);
+//        Seconde2++;
+//        if (Seconde2 > 59) {
+//          Seconde2 -= 60;
+//          Minute2 += 1;
+//        }
+//        if (Minute2 > 59) {
+//          Minute2 -= 60;
+//          Hour2 += 1;
+//        }
+//        if (Hour2 > 23) {
+//          Hour2 -= 24;
+//          Day2 += 1;
+//        }
+//        if (Day2 > monthSize[MonthNum2]) {
+//          Day2 -= monthSize[MonthNum2];
+//          MonthNum2 += 1;
+//        }
+//        if (MonthNum2 > 12) {
+//          MonthNum2 -= 12;
+//          Year2 += 1;
+//        }
+//        dateToJD(max, Day2, MonthNum2, Year2, Hour2, Minute2, Seconde2);
+//        break;
+//      default:
+//        break;
+//      }
     } else if (!doTickInt) {
       if (log) {
         int imin = floor(min);
@@ -578,7 +581,7 @@ namespace lib
           max *= (1 + leak_factor); 
           max =  ceil(max/ intv) * intv;
       }
-        //same for min, in the otehr direction
+        //same for min, in the other direction
         if (min > 0) {
           min *= (1 + leak_factor);
           min = floor(min / intv) * intv;
@@ -1680,6 +1683,56 @@ namespace lib
     }
     free(test);
   }
+
+  void doPossibleCalendarFormat(PLINT axisNotUsed, PLFLT value, char *label, PLINT length, DString &what, PLPointer data) {
+    struct GDL_TICKDATA *ptr = (GDL_TICKDATA* )data;
+    static string theMonth[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+    PLINT Month, Day, Year, Hour, Minute, dow, cap;
+    PLFLT Second;
+    j2ymdhms(value, Month, Day, Year, Hour, Minute, Second, dow, cap);
+    int convcode = 0;
+    if (what.length() < 1) convcode = 7;
+    else if (what.substr(0, 7) == "NUMERIC") convcode = 7;
+    else if (what.substr(0, 4) == "YEAR") convcode = 1;
+    else if (what.substr(0, 5) == "MONTH") convcode = 2;
+    else if (what.substr(0, 3) == "DAY") convcode = 3;
+    else if (what.substr(0, 4) == "HOUR") convcode = 4;
+    else if (what.substr(0, 6) == "MINUTE") convcode = 5;
+    else if (what.substr(0, 6) == "SECOND") convcode = 6;
+    else if (what.substr(0, 4) == "TIME") {
+      if (ptr->axisrange >= 366) convcode = 1;
+      else if (ptr->axisrange >= 32) convcode = 2;
+      else if (ptr->axisrange >= 1.1) convcode = 3;
+      else if (ptr->axisrange * 24 >= 1.1) convcode = 4;
+      else if (ptr->axisrange * 24 * 60 >= 1.1) convcode = 5;
+      else convcode = 6;
+    } else convcode = 7;
+    switch (convcode) {
+    case 7:
+      doOurOwnFormat(axisNotUsed, value, label, length, data);
+      break;
+    case 1:
+      snprintf(label, length, "%d", Year);
+      break;
+    case 2:
+      snprintf(label, length, "%s", theMonth[Month].c_str());
+      break;
+    case 3:
+      snprintf(label, length, "%d", Day);
+      break;
+    case 4:
+      snprintf(label, length, "%02d", Hour);
+      break;
+    case 5:
+      snprintf(label, length, "%02d", Minute);
+      break;
+    case 6:
+      snprintf(label, length, "%05.2f", Second);
+      break;
+
+    }
+  }
+  
   void doFormatAxisValue(DDouble value, string &label)
   {
     static string normalfmt[7]={"%1.0fx10^%d","%2.1fx10^%d","%3.2fx10^%d","%4.2fx10^%d","%5.4fx10^%d","%6.5fx10^%d","%7.6fx10^%d"};
@@ -1809,97 +1862,35 @@ namespace lib
     ptr->nchars = max(ptr->nchars, nchars);
     strcpy(label, out.c_str());
   }
-  
-  void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer multiaxisdata)
-  {
-    addToTickGet(axis,value);
-    PLINT axisNotUsed=0; //to indicate that effectively the axis number is not (yet?) used in some calls
-    static GDL_TICKDATA tdata;
-    static SizeT internalIndex=0;
-    static DLong lastMultiAxisLevel=0;
-    static string theMonth[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
-    PLINT Month, Day , Year , Hour , Minute, dow, cap;
-    PLFLT Second;
-    struct GDL_MULTIAXISTICKDATA *ptr = (GDL_MULTIAXISTICKDATA* )multiaxisdata;
-    tdata.a=ptr->a;
-    tdata.isLog=ptr->isLog;
+
+  void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer multiaxisdata) {
+    addToTickGet(axis, value);
+    PLINT axisNotUsed = 0; //to indicate that effectively the axis number is not (yet?) used in some calls
+    static SizeT internalIndex = 0;
+    static DLong lastMultiAxisLevel = 0;
+    struct GDL_TICKDATA *ptr = (GDL_TICKDATA*) multiaxisdata;
     if (ptr->reset) {
-      internalIndex=0; //reset index each time a new axis command is issued.
-      ptr->reset=false;
+      internalIndex = 0; //reset index each time a new axis command is issued.
+      ptr->reset = false;
     }
-    if (ptr->counter != lastMultiAxisLevel)
-    {
-      lastMultiAxisLevel=ptr->counter; 
-      internalIndex=0; //reset index each time sub-axis changes
+    if (ptr->counter != lastMultiAxisLevel) {
+      lastMultiAxisLevel = ptr->counter;
+      internalIndex = 0; //reset index each time sub-axis changes
     }
-   
-    if (ptr->what==GDL_TICKUNITS) 
-    {
-  do_tickunits:    
-      if (ptr->counter > ptr->nTickUnits-1 )
-      {
-        doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
+    if (ptr->what == GDL_TICKUNITS) {
+    do_tickunits:
+      if (ptr->counter > ptr->nTickUnits - 1) {
+        doOurOwnFormat(axisNotUsed, value, label, length, multiaxisdata);
+      } else {
+        DString what = StrUpCase((*ptr->TickUnits)[ptr->counter]);
+        doPossibleCalendarFormat( axisNotUsed, value, label, length, what, multiaxisdata);
       }
-      else
-      {
-        DString what=StrUpCase((*ptr->TickUnits)[ptr->counter]);
-        if (what.length()<1) {
-          doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
-        }
-        else if (what.substr(0,7)=="NUMERIC") {
-          doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
-     } else {
-          j2ymdhms(value, Month , Day , Year , Hour , Minute, Second, dow, cap);
-          int convcode=0;
-          if (what.length()<1) convcode=7;
-          else if (what.substr(0,4)=="YEAR") convcode=1;
-          else if (what.substr(0,5)=="MONTH") convcode=2;
-          else if (what.substr(0,3)=="DAY") convcode=3;
-          else if (what.substr(0,4)=="HOUR") convcode=4;
-          else if (what.substr(0,6)=="MINUTE") convcode=5;
-          else if (what.substr(0,6)=="SECOND") convcode=6;
-          else if (what.substr(0,4)=="TIME")
-          {
-            if(ptr->axisrange>=366)  convcode=1;
-            else if(ptr->axisrange>=32)  convcode=2;
-            else if(ptr->axisrange>=1.1)  convcode=3;
-            else if(ptr->axisrange*24>=1.1)  convcode=4;
-            else if(ptr->axisrange*24*60>=1.1)  convcode=5;
-            else convcode=6;
-          } else convcode=7;
-          switch(convcode){
-            case 1:
-              snprintf( label, length, "%d", Year);
-            break;
-            case 2:
-              snprintf( label, length, "%s", theMonth[Month].c_str());
-              break;
-            case 3:
-              snprintf( label, length, "%d", Day);
-              break;
-            case 4:
-              snprintf( label, length, "%02d", Hour);
-              break;
-            case 5:
-              snprintf( label, length, "%02d", Minute);
-              break;
-            case 6:
-              snprintf( label, length, "%05.2f", Second);
-              break;
-            case 7:
-              doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
-              break;
-          }
-          
-        }
-      }
-    } else if (ptr->what==GDL_TICKFORMAT || ptr->what == GDL_TICKFORMAT_AND_UNITS) {
+    } else if (ptr->what == GDL_TICKUNITS_AND_FORMAT) {
       if (ptr->counter > ptr->nTickFormat - 1) {
         goto do_tickunits; //format does not apply but tickunits still apply
-      }
-      else { //will be formatted -- not interpreting the tickunits
+      } else { //will be formatted -- not interpreting the tickunits
         DDouble v = value;
-        if (tdata.isLog) v = pow(10., v);
+        if (ptr->isLog) v = pow(10., v);
         if (((*ptr->TickFormat)[ptr->counter]).substr(0, 1) == "(") { //internal format, call internal func "STRING"
           EnvT *e = ptr->e;
           static int stringIx = LibFunIx("STRING");
@@ -1930,7 +1921,7 @@ namespace lib
           newEnv->SetNextPar(new DLongGDL(axis - 1)); //axis in PLPLOT starts at 1, it starts at 0 in IDL
           newEnv->SetNextPar(new DLongGDL(internalIndex)); //index
           newEnv->SetNextPar(new DDoubleGDL(v)); //value
-          if (ptr->what == GDL_TICKFORMAT_AND_UNITS) newEnv->SetNextPar(new DLongGDL(ptr->counter)); //level
+          newEnv->SetNextPar(new DLongGDL(ptr->counter)); //level
           // guard *before* pushing new env
           StackGuard<EnvStackT> guard1(e->Interpreter()->CallStack());
           e->Interpreter()->CallStack().push_back(newEnv);
@@ -1946,33 +1937,11 @@ namespace lib
     //translate format codes (as in mtex).
     double nchars;
     std::string out = ptr->a->TranslateFormatCodes(label, &nchars);
-    ptr->nchars=max(ptr->nchars,nchars);
-    strcpy(label,out.c_str());
+    ptr->nchars = max(ptr->nchars, nchars);
+    strcpy(label, out.c_str());
     internalIndex++;
   }
 
-  void gdlSingleAxisTickNamedFunc( PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data)
-  {
-    addToTickGet(axisNotUsed,value);
-    static GDL_TICKDATA tdata;
-    struct GDL_TICKNAMEDATA *ptr = (GDL_TICKNAMEDATA* )data;
-    tdata.isLog=ptr->isLog;
-    tdata.axisrange=ptr->axisrange;
-    if (ptr->counter > ptr->nTickName-1)
-    {
-      doOurOwnFormat(axisNotUsed, value, label, length, &tdata);
-    }
-    else
-    {
-      snprintf( label, length, "%s", ((*ptr->TickName)[ptr->counter]).c_str() );
-    }
-    //translate format codes (as in mtex).
-    double nchars;
-    std::string out = ptr->a->TranslateFormatCodes(label, &nchars);
-    ptr->nchars=max(ptr->nchars,nchars);
-    strcpy(label,out.c_str());
-    ptr->counter++;
-  }
   
   //this will take into account !Z.REGION to interpret zValue as a percentage between Z.REGION[0] and !Z.REGION[1]
   void gdlStartT3DMatrixDriverTransform( GDLGStream *a, DDouble zValue){
@@ -3505,22 +3474,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       else a->wind(owxmin, owxmax, Start, End);
     }
 
-    static GDL_TICKNAMEDATA data;
-    data.a = a;
-    data.isLog = Log;
-    data.axisrange = abs(End - Start);
-    data.nTickName = 0;
-
-    static GDL_MULTIAXISTICKDATA muaxdata;
-    muaxdata.e = e;
-    muaxdata.a = a;
-    muaxdata.isLog = Log;
-    muaxdata.what = GDL_NONE;
-    muaxdata.nTickFormat = 0;
-    muaxdata.nTickUnits = 0;
-    muaxdata.axisrange = abs(End - Start);
-    muaxdata.reset = true;
-
     //special values
     DLong GridStyle;
     gdlGetDesiredAxisGridStyle(e, axisId, GridStyle);
@@ -3690,20 +3643,42 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
     }
 
-    //Write labels first , using charthick
+//define minimal TICKDATA structure
+      
+      static GDL_TICKDATA tickdata;
+      //reset all values
+      tickdata.a = a;
+      tickdata.e = e;
+      tickdata.isLog = Log;
+      tickdata.axisrange = abs(End - Start);
+      tickdata.nchars = 0;
+      tickdata.TickFormat = NULL;
+      tickdata.nTickFormat = 0;
+      tickdata.TickName = NULL;
+      tickdata.nTickName = 0;
+      tickdata.tickNameCounter = 0;
+      //set modifiers
+      if (TickFormat->NBytes() > 0) {
+        tickdata.TickFormat = TickFormat;
+        tickdata.nTickFormat = TickFormat->N_Elements();
+      } else if (TickName->NBytes() > 0) {
+        tickdata.TickName = TickName;
+        tickdata.nTickName = TickName->N_Elements();
+      }
+
+      tickdata.what = GDL_NONE;
+      tickdata.reset = true;      
+      tickdata.counter = 0;
+
+      //Write labels first , using charthick
     if (hasTickUnitDefined) // /TICKUNITS=[several types of axes written below each other]
     {
-      muaxdata.counter = 0;
-      muaxdata.what = GDL_TICKUNITS;
-      if (TickFormat->NBytes() > 0) // with also TICKFORMAT option..
-      {
-        muaxdata.what = GDL_TICKFORMAT_AND_UNITS;
-        muaxdata.TickFormat = TickFormat;
-        muaxdata.nTickFormat = TickFormat->N_Elements();
-      }
-      muaxdata.TickUnits = TickUnits;
-      muaxdata.nTickUnits = tickUnitArraySize;
-      defineLabeling(a, axisId, gdlMultiAxisTickFunc, &muaxdata);
+      tickdata.what = GDL_TICKUNITS;
+      tickdata.TickUnits = TickUnits;
+      tickdata.nTickUnits = tickUnitArraySize;
+      if (TickFormat->NBytes() > 0) tickdata.what = GDL_TICKUNITS_AND_FORMAT;
+
+      defineLabeling(a, axisId, gdlMultiAxisTickFunc, &tickdata);
       Opt += LABELFUNC;
       if (modifierCode == 2) {
         Opt += NUMERIC_UNCONVENTIONAL;
@@ -3712,10 +3687,10 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       } //m: write numerical/right above, n: below/left (normal)
       if (!inverted_ticks && TickLayout != 2) displacement+=ticklen_as_norm; //every next axis will be separated by this
       DFloat y_displacement=0;
-      for (SizeT i = 0; i < muaxdata.nTickUnits; ++i) //loop on TICKUNITS axis
+      for (SizeT i = 0; i < tickdata.nTickUnits; ++i) //loop on TICKUNITS axis
       {
         TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log, i);
-        muaxdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
+        tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
         if (axisId == XAXIS) {
           a->plstream::vpor(boxxmin, boxxmax, boxymin - i*displacement, boxymax);
           a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
@@ -3724,70 +3699,16 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
           a->plstream::vpor(boxxmin - (i*displacement+y_displacement), boxxmax, boxymin, boxymax);
           a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
           a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
-          nchars[i] = muaxdata.nchars;
+          nchars[i] = tickdata.nchars;
           if (TickLayout != 2) y_displacement+=(nchars[i]*a->nCharLength());
         }
-        muaxdata.counter++;
+        tickdata.counter++;
       }
       resetLabeling(a, axisId);
     }
-
-//    //care Tickunits size is 10 if not defined because it is the size of !X.TICKUNITS.
-//    else if (TickFormat->NBytes() > 0) //no /TICKUNITS=> only 1 value taken into account
-//    {
-//      muaxdata.counter = 0;
-//      muaxdata.nchars = 0;
-//      muaxdata.what = GDL_TICKFORMAT;
-//      muaxdata.TickFormat = TickFormat;
-//      muaxdata.nTickFormat = 1;
-//      defineLabeling(a, axisId, gdlMultiAxisTickFunc, &muaxdata);
-//      Opt += LABELFUNC;
-//      if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL;
-//      else Opt += NUMERIC;
-//      if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-//      else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
-//      resetLabeling(a, axisId);
-//    }
-//    
-//    else if (TickName->NBytes() > 0) // /TICKNAME=[array]
-//    {
-//      data.counter = 0;
-//      data.nchars = 0;
-//      data.TickName = TickName;
-//      data.nTickName = TickName->N_Elements();
-//      defineLabeling(a, axisId, gdlSingleAxisTickNamedFunc, &data);
-//      Opt += LABELFUNC; //custom labelling
-//      if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL; //write label "unconventional position" (top or right) 
-//      else Opt += NUMERIC; //write label "conventional position" (bottom or left) 
-//      if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-//      else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
-//      resetLabeling(a, axisId);
-//    }
-    
     else //normal simple axis
     {
-      static GDL_TICKDATA tdata;
-      //reset all values
-      tdata.a = a;
-      tdata.e = e;
-      tdata.isLog = Log;
-      tdata.axisrange = abs(End - Start);
-      tdata.nchars = 0;
-      tdata.TickFormat = NULL;
-      tdata.nTickFormat = 0;
-      tdata.TickName = NULL;
-      tdata.nTickName = 0;
-      tdata.tickNameCounter = 0;
-      //set modifiers
-      if (TickFormat->NBytes() > 0) {
-        tdata.TickFormat = TickFormat;
-        tdata.nTickFormat = TickFormat->N_Elements();
-      } else if (TickName->NBytes() > 0) {
-        tdata.TickName = TickName;
-        tdata.nTickName = TickName->N_Elements();
-      }
-//      defineLabeling(a, axisId, gdlSimpleAxisTickFunc, &tdata);
-      defineLabeling(a, axisId, gdlAxisTickFunc, &tdata);
+      defineLabeling(a, axisId, gdlAxisTickFunc, &tickdata);
       Opt += LABELFUNC;
       if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL;
       else Opt += NUMERIC;
@@ -3801,7 +3722,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     if (TickLayout == 1) additionalAxesTickOpt="";
 
     //replay above, with ticks only
-    //     write box with ticks, in proper XTHICK, in the reference poistion
+    //     write box with ticks, in proper XTHICK, in the reference position
     a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax); //reset to initial box
     a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
     a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
@@ -3812,11 +3733,11 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     if (hasTickUnitDefined) //  replay tickunits
     {
       DFloat y_displacement=0;
-      for (auto i = 0; i < muaxdata.nTickUnits; ++i) //loop on TICKUNITS axis
+      for (auto i = 0; i < tickdata.nTickUnits; ++i) //loop on TICKUNITS axis
       {
         TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log, i);
 
-        muaxdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
+        tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
         if (axisId == XAXIS) {
           if (i == 1) {
             tickOpt = (TickLayout == 2) ? tickOpt2 : additionalAxesTickOpt;
@@ -3848,12 +3769,12 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
             a->box("", 0.0, 0, tickOpt2.c_str(), TickInterval, Minor);
           }
         }
-        muaxdata.counter++;
+        tickdata.counter++;
       }
-    } else { //replay normal
+    } else {
+      //replay normal
       if (axisId == XAXIS) a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0);
       else a->box("", 0.0, 0, tickOpt.c_str(), TickInterval, Minor);
-      // define the new box for 1) title and 2) ticklayout=2
     }
 
     a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
