@@ -1610,81 +1610,95 @@ namespace lib
   void resetLabeling(GDLGStream *a, int axisId) {
     a->slabelfunc(NULL, NULL);
   }
-  void doOurOwnFormat(PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data)
-  {
-    struct GDL_TICKDATA *ptr = (GDL_TICKDATA* )data;
+
+  void doOurOwnFormat(PLFLT value, char *label, PLINT length, PLPointer data) {
+    char *test = (char*) calloc(2 * length, sizeof (char)); //be safe
+    int sgn = (value < 0) ? -1 : 1;
+    int e = floor(log10(value * sgn));
+
+    struct GDL_TICKDATA *ptr = (GDL_TICKDATA*) data;
     //was:
-//    static string normalfmt[7]={"%1.0fx10#u%d#d","%2.1fx10#u%d#d","%3.2fx10#u%d#d","%4.2fx10#u%d#d","%5.4fx10#u%d#d","%6.5fx10#u%d#d","%7.6fx10#u%d#d"};
-//    static string specialfmt="10#u%d#d";
-//    static string specialfmtlog="10#u%s#d";
-    
+    //    static string normalfmt[7]={"%1.0fx10#u%d#d","%2.1fx10#u%d#d","%3.2fx10#u%d#d","%4.2fx10#u%d#d","%5.4fx10#u%d#d","%6.5fx10#u%d#d","%7.6fx10#u%d#d"};
+    //    static string specialfmt="10#u%d#d";
+    //    static string specialfmtlog="10#u%s#d";
+
+    // TICKNAME can be used here directly.
+    if (ptr->nTickName > 0) {
+      if (ptr->tickNameCounter < ptr->nTickName) {
+        snprintf(label, length, "%s", ((*ptr->TickName)[ptr->tickNameCounter]).c_str());
+        ptr->tickNameCounter++;
+        goto return_label;
+      }
+    }
+
     //we need !3x!X to insure the x sign is always written in single roman.
-    static string normalfmt[7]={"%1.0f!3x!X10!E%d!N","%2.1f!3x!X10!E%d!N","%3.2f!3x!X10!E%d!N","%4.2f!3x!X10!E%d!N","%5.4f!3x!X10!E%d!N","%6.5f!3x!X10!E%d!N","%7.6f!3x!X10!E%d!N"};
-    static string specialfmt="10!E%d!N";
-    static string specialfmtlog="10!E%s!N";
+    static string normalfmt[7] = {"%1.0f!3x!X10!E%d!N", "%2.1f!3x!X10!E%d!N", "%3.2f!3x!X10!E%d!N", "%4.2f!3x!X10!E%d!N", "%5.4f!3x!X10!E%d!N", "%6.5f!3x!X10!E%d!N", "%7.6f!3x!X10!E%d!N"};
+    static string specialfmt = "10!E%d!N";
+    static string specialfmtlog = "10!E%s!N";
     PLFLT z;
     int ns;
     char *i;
-    int sgn=(value<0)?-1:1;
     //special cases, since plplot gives approximate zero values, not strict zeros.
-    if (!(ptr->isLog) && (sgn*value<ptr->axisrange*1e-6)) 
-    {
+    if (!(ptr->isLog) && (sgn * value < ptr->axisrange * 1e-6)) {
       snprintf(label, length, "0");
-      return;
-    }
-    //in log, plplot gives correctly rounded "integer" values but 10^0 needs a bit of help.
-    if ((ptr->isLog) && (sgn*value<1e-6)) //i.e. 0 
+      goto return_label;
+    } //in log, plplot gives correctly rounded "integer" values but 10^0 needs a bit of help.
+
+    if ((ptr->isLog) && (sgn * value < 1e-6)) //i.e. 0 
     {
-      snprintf(label, length, "10!E0!N"); 
-      return;
+      snprintf(label, length, "10!E0!N");
+      goto return_label;
     }
-    
-    int e=floor(log10(value*sgn));
-    char *test=(char*)calloc(2*length, sizeof(char)); //be safe
-    if (!isfinite(log10(value*sgn))||(e<4 && e>-4)) 
-    {
-      snprintf(test, length, "%f",value);
-      ns=strlen(test);
-      i=strrchr (test,'0');
-      while (i==(test+ns-1)) //remove trailing zeros...
+    if (!isfinite(log10(value * sgn)) || (e < 4 && e>-4)) {
+      snprintf(test, length, "%f", value);
+      ns = strlen(test);
+      i = strrchr(test, '0');
+      while (i == (test + ns - 1)) //remove trailing zeros...
       {
-          *i='\0';
-        i=strrchr(test,'0');
+        *i = '\0';
+        i = strrchr(test, '0');
         ns--;
       }
-      i=strrchr(test,'.'); //remove trailing '.'
-      if (i==(test+ns-1)) {*i='\0'; ns--;}
-      if (ptr->isLog) {
-        snprintf( label, length, specialfmtlog.c_str(),test);
+      i = strrchr(test, '.'); //remove trailing '.'
+      if (i == (test + ns - 1)) {
+        *i = '\0';
+        ns--;
       }
-      else
-      {
+      if (ptr->isLog) {
+        snprintf(label, length, specialfmtlog.c_str(), test);
+      } else {
         strcpy(label, test);
       }
-    }
-    else
-    {
-      z=value*sgn/pow(10.,e);
-      snprintf(test,20,"%7.6f",z);
-      ns=strlen(test);
-      i=strrchr(test,'0');
-      while (i==(test+ns-1))
-      {
-          *i='\0';
-        i=strrchr(test,'0');
+    } else {
+      z = value * sgn / pow(10., e);
+      snprintf(test, 20, "%7.6f", z);
+      ns = strlen(test);
+      i = strrchr(test, '0');
+      while (i == (test + ns - 1)) {
+        *i = '\0';
+        i = strrchr(test, '0');
         ns--;
       }
-      ns-=2;ns=(ns>6)?6:ns;
-//      if (floor(sgn*z)==1 && ns==0) { // removed see #1582 and, besides, intent was obscure ? 
-//        snprintf( label, length, specialfmt.c_str(),e);
-//      } else {
-        snprintf( label, length, normalfmt[ns].c_str(),sgn*z,e);
-//      }
+      ns -= 2;
+      ns = (ns > 6) ? 6 : ns;
+      //      if (floor(sgn*z)==1 && ns==0) { // removed see #1582 and, besides, intent was obscure ? 
+      //        snprintf( label, length, specialfmt.c_str(),e);
+      //      } else {
+      snprintf(label, length, normalfmt[ns].c_str(), sgn*z, e);
+      //      }
+    }
+  return_label:
+    if (ptr->tickLayoutCode == 2) {
+      int l = strlen(label)+2;
+      //displace "label" on the right (for alignment purposes) by adding l whitespaces using test (which is larger enough). This is not always sufficicient alas.
+      memset(test, 32, l);
+      snprintf(test + l, 2 * length - l, label);
+      snprintf(label, length, "%s", test);
     }
     free(test);
   }
 
-  void doPossibleCalendarFormat(PLINT axisNotUsed, PLFLT value, char *label, PLINT length, DString &what, PLPointer data) {
+  void doPossibleCalendarFormat(PLFLT value, char *label, PLINT length, DString &what, PLPointer data) {
     struct GDL_TICKDATA *ptr = (GDL_TICKDATA* )data;
     static string theMonth[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
     PLINT Month, Day, Year, Hour, Minute, dow, cap;
@@ -1706,11 +1720,14 @@ namespace lib
       else if (ptr->axisrange * 24 >= 1.1) convcode = 4;
       else if (ptr->axisrange * 24 * 60 >= 1.1) convcode = 5;
       else convcode = 6;
-    } else convcode = 7;
+    } else {
+//      Message("Illegal keyword value for [XYZ]TICKUNITS");
+      convcode = 7;
+    }
     switch (convcode) {
     case 7:
-      doOurOwnFormat(axisNotUsed, value, label, length, data);
-      break;
+      doOurOwnFormat(value, label, length, data);
+      return;
     case 1:
       snprintf(label, length, "%d", Year);
       break;
@@ -1729,7 +1746,15 @@ namespace lib
     case 6:
       snprintf(label, length, "%05.2f", Second);
       break;
-
+    }
+    if (ptr->tickLayoutCode == 2) {
+      char *test = (char*) calloc(2 * length, sizeof (char)); //be safe
+      int l = strlen(label)+2;
+      //displace "label" on the right (for alignment purposes) by adding l whitespaces using test (which is larger enough).
+      memset(test, 32, l);
+      snprintf(test + l, 2 * length - l, label);
+      snprintf(label, length, "%s", test);
+      free(test);
     }
   }
   
@@ -1802,14 +1827,8 @@ namespace lib
     SizeT internalIndex = 0;
     addToTickGet(axis, value);
     struct GDL_TICKDATA *ptr = (GDL_TICKDATA*) data;
-    if (ptr->nTickName > 0) {
-      if (ptr->tickNameCounter > ptr->nTickName - 1) {
-        doOurOwnFormat(axis, value, label, length, data);
-      } else {
-        snprintf(label, length, "%s", ((*ptr->TickName)[ptr->tickNameCounter]).c_str());
-      }
-      ptr->tickNameCounter++;
-    } else if (ptr->nTickFormat > 0) {//will be formatted -- not interpreting the tickunits
+    if (ptr->nTickName > 0) doOurOwnFormat(value, label, length, data); //priority!
+    else if (ptr->nTickFormat > 0) {//will be formatted -- not interpreting the tickunits
       DDouble v = value;
       if (ptr->isLog) v = pow(10., v);
       if (((*ptr->TickFormat)[0]).substr(0, 1) == "(") { //internal format, call internal func "STRING"
@@ -1854,7 +1873,7 @@ namespace lib
         internalIndex++;
       }
     } else {
-      doOurOwnFormat(axis, value, label, length, data);
+      doOurOwnFormat(value, label, length, data);
     }
     //translate format codes (as in mtex).
     double nchars;
@@ -1865,7 +1884,6 @@ namespace lib
 
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer multiaxisdata) {
     addToTickGet(axis, value);
-    PLINT axisNotUsed = 0; //to indicate that effectively the axis number is not (yet?) used in some calls
     static SizeT internalIndex = 0;
     static DLong lastMultiAxisLevel = 0;
     struct GDL_TICKDATA *ptr = (GDL_TICKDATA*) multiaxisdata;
@@ -1876,22 +1894,27 @@ namespace lib
     if (ptr->counter != lastMultiAxisLevel) {
       lastMultiAxisLevel = ptr->counter;
       internalIndex = 0; //reset index each time sub-axis changes
+      ptr->tickNameCounter=0;
     }
-    if (ptr->what == GDL_TICKUNITS) {
+    if (ptr->tickOptionCode == GDL_TICKUNITS) {
     do_tickunits:
       if (ptr->counter > ptr->nTickUnits - 1) {
-        doOurOwnFormat(axisNotUsed, value, label, length, multiaxisdata);
+        doOurOwnFormat(value, label, length, multiaxisdata);
       } else {
         DString what = StrUpCase((*ptr->TickUnits)[ptr->counter]);
-        doPossibleCalendarFormat( axisNotUsed, value, label, length, what, multiaxisdata);
+        doPossibleCalendarFormat(value, label, length, what, multiaxisdata);
       }
-    } else if (ptr->what == GDL_TICKUNITS_AND_FORMAT) {
-      if (ptr->counter > ptr->nTickFormat - 1) {
+    } else if (ptr->tickOptionCode == GDL_TICKUNITS_AND_FORMAT) {
+      if ( (ptr->nTickFormat > 1) && (ptr->counter > ptr->nTickFormat - 1)) { //if Tickformat is of dimension 1, it applies everywhere...
         goto do_tickunits; //format does not apply but tickunits still apply
       } else { //will be formatted -- not interpreting the tickunits
         DDouble v = value;
         if (ptr->isLog) v = pow(10., v);
-        if (((*ptr->TickFormat)[ptr->counter]).substr(0, 1) == "(") { //internal format, call internal func "STRING"
+        
+        DString currentFormat = (*ptr->TickFormat)[(ptr->nTickFormat > 1)?ptr->counter:0]; //insure we stick to the only format if its dimension is 1.
+        
+        if (currentFormat.substr(0, 1) == "(") { 
+          //internal format, call internal func "STRING"
           EnvT *e = ptr->e;
           static int stringIx = LibFunIx("STRING");
           assert(stringIx >= 0);
@@ -1899,7 +1922,7 @@ namespace lib
           Guard<EnvT> guard(newEnv);
           // add parameters
           newEnv->SetNextPar(new DDoubleGDL(v));
-          newEnv->SetNextPar(new DStringGDL(((*ptr->TickFormat)[ptr->counter]).c_str()));
+          newEnv->SetNextPar(new DStringGDL(currentFormat));
           // make the call
           BaseGDL* res = static_cast<DLibFun*> (newEnv->GetPro())->Fun()(newEnv);
           strncpy(label, (*static_cast<DStringGDL*> (res))[0].c_str(), 1000);
@@ -1909,11 +1932,10 @@ namespace lib
           // NOTE: this encompasses the 'LABEL_DATE' format, an existing procedure in the IDL library.
         {
           EnvT *e = ptr->e;
-          DString callF = (*ptr->TickFormat)[ptr->counter];
           // this is a function name -> convert to UPPERCASE
-          callF = StrUpCase(callF);
+          currentFormat = StrUpCase(currentFormat);
           //  Search in user proc and function
-          SizeT funIx = GDLInterpreter::GetFunIx(callF);
+          SizeT funIx = GDLInterpreter::GetFunIx(currentFormat);
 
           EnvUDT* newEnv = new EnvUDT(e->CallingNode(), funList[ funIx], (DObjGDL**) NULL);
           Guard< EnvUDT> guard(newEnv);
@@ -3666,17 +3688,18 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
         tickdata.nTickName = TickName->N_Elements();
       }
 
-      tickdata.what = GDL_NONE;
+      tickdata.tickOptionCode = GDL_NONE;
+      tickdata.tickLayoutCode = TickLayout;
       tickdata.reset = true;      
       tickdata.counter = 0;
 
       //Write labels first , using charthick
     if (hasTickUnitDefined) // /TICKUNITS=[several types of axes written below each other]
     {
-      tickdata.what = GDL_TICKUNITS;
+      tickdata.tickOptionCode = GDL_TICKUNITS;
       tickdata.TickUnits = TickUnits;
       tickdata.nTickUnits = tickUnitArraySize;
-      if (TickFormat->NBytes() > 0) tickdata.what = GDL_TICKUNITS_AND_FORMAT;
+      if (TickFormat->NBytes() > 0) tickdata.tickOptionCode = GDL_TICKUNITS_AND_FORMAT;
 
       defineLabeling(a, axisId, gdlMultiAxisTickFunc, &tickdata);
       Opt += LABELFUNC;

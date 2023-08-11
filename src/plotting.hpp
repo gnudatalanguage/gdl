@@ -153,7 +153,8 @@ struct GDL_TICKDATA {
   DStringGDL* TickUnits;
   SizeT counter;
   bool reset; //reset internal counter each time a new 'axis' command is issued
-  int what;
+  int tickOptionCode;
+  int tickLayoutCode;
 };
 
 
