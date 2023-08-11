@@ -132,43 +132,31 @@ static const std::string axisName[6] = {"X", "Y", "Z", "X", "Y", "Z"};
 // ticks) except exclude drawing the major and minor tick marks.
 
 #define GDL_NONE -1
-#define GDL_TICKFORMAT 0
 #define GDL_TICKUNITS 1
-#define GDL_TICKFORMAT_AND_UNITS 2
+#define GDL_TICKUNITS_AND_FORMAT 2
 
 struct GDL_TICKDATA {
   GDLGStream *a;
+  EnvT *e;
   bool isLog;
   DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
   double nchars; //length of string *returned* after formatting. Can be non-integer.
-};
-
-struct GDL_TICKNAMEDATA {
-  GDLGStream *a;
-  bool isLog;
-  DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
-  double nchars; //length of string *returned* after formatting. Can be non-integer.
-  SizeT counter;
-  SizeT nTickName;
-  DStringGDL* TickName;
-};
-
-struct GDL_MULTIAXISTICKDATA {
-  GDLGStream *a;
-  bool isLog;
-  DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
-  double nchars; //length of string *returned* after formatting. Can be non-integer.
-  SizeT counter;
-  bool reset; //reset internal counter each time a new 'axis' command is issued
-  int what;
+  // For TICKNAMES
+  SizeT tickNameCounter; //internal counter of what tickname we use
+  SizeT nTickName; //number of tickname values passed
+  DStringGDL* TickName; //pointer to ticknames
+  //For TICKFORMAT
   SizeT nTickFormat;
-  DDouble axismin;
-  DDouble axismax;
-  DStringGDL* TickFormat;
+  DStringGDL* TickFormat; 
+  // for TICKUNITS => Multi-axis 
   SizeT nTickUnits;
   DStringGDL* TickUnits;
-  EnvT *e;
+  SizeT counter;
+  bool reset; //reset internal counter each time a new 'axis' command is issued
+  int tickOptionCode;
+  int tickLayoutCode;
 };
+
 
 namespace lib {
 
@@ -284,7 +272,7 @@ namespace lib {
   DDoubleGDL* getLabelingValues(int axisId);
   void defineLabeling(GDLGStream *a, int axisId, void(*func)(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data), PLPointer data);
   void resetLabeling(GDLGStream *a, int axisId);
-  void gdlSimpleAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
+  void gdlAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void gdlSingleAxisTickNamedFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void doOurOwnFormat(PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data);
@@ -381,7 +369,7 @@ namespace lib {
   void gdlGetDesiredAxisTickUnits(EnvT* e, int axisId, DStringGDL* &axisTickunitsVect);
   bool gdlHasTickUnits(EnvT* e, int axisId);
 
-  bool gdlGetDesiredAxisTickv(EnvT* e, int axisId, DDoubleGDL* axisTickvVect);
+  bool gdlGetDesiredAxisTickv(EnvT* e, int axisId, DDoubleGDL* &axisTickvVect);
 
   //if [X|Y|Z]TICK_GET was given for axis, write the values.
 
