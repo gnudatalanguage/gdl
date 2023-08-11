@@ -87,12 +87,16 @@ namespace lib
   static std::vector<PLFLT>ytickget;
   static std::vector<PLFLT>ztickget;
 
-  void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin, DDouble xmax, bool doMinMax, DDouble minVal, DDouble maxVal)
+  void gdlDoRangeExtrema(DDoubleGDL *xVal, DDoubleGDL *yVal, DDouble &min, DDouble &max, DDouble xmin2, DDouble xmax2, bool doMinMax, DDouble minVal, DDouble maxVal)
   {
     DDouble valx, valy;
     SizeT i,k;
     DLong n=xVal->N_Elements();
     if(n!=yVal->N_Elements()) return;
+    DDouble xmin,xmax;
+    // Must insure xmin < xmax to have this work see #1612
+    xmin=MIN(xmin2,xmax2);
+    xmax=MAX(xmin2,xmax2);
     for (i=0,k=0 ; i<n ; ++i)
     {
        //look only in range x=[xmin,xmax]
