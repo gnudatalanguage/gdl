@@ -413,6 +413,26 @@ namespace lib
       max = temp;
       invert = true;
     }
+    
+    // defining Tickv and ticks may change the box values, see below.
+    DDoubleGDL *Tickv = NULL;
+    bool hasTickv = gdlGetDesiredAxisTickv(e, axisId, Tickv);
+    DLong Ticks;
+    gdlGetDesiredAxisTicks(e, axisId, Ticks);
+    if (Ticks < 1) hasTickv = false;
+
+    if (hasTickv) { //we consider the number of Ticks (must also be present)
+      DLong minE, maxE;
+      const bool omitNaN = true;
+      SizeT nToConsider = MIN(Tickv->N_Elements(), Ticks + 1);
+      Tickv->MinMax(&minE, &maxE, NULL, NULL, omitNaN, 0, nToConsider);
+      DDouble min2, max2;
+      min2 = (*Tickv)[ minE];
+      max2 = (*Tickv)[ maxE];
+      max=MAX(max,max2);
+      min=MIN(min,min2);
+    }
+
 
     DDouble TickInterval = 0;
     if (!log) gdlGetDesiredAxisTickInterval(e, axisId, TickInterval); //tickinterval ignored when LOG
@@ -3049,7 +3069,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     return has;
   }
 
-  bool gdlGetDesiredAxisTickv(EnvT* e, int axisId, DDoubleGDL* axisTickvVect) {
+  bool gdlGetDesiredAxisTickv(EnvT* e, int axisId, DDoubleGDL* &axisTickvVect) {
     bool exist = false;
     int XTICKVIx = e->KeywordIx("XTICKV");
     int YTICKVIx = e->KeywordIx("YTICKV");
@@ -3472,7 +3492,36 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     return zposStart;
   }
 
-
+  void gdlDrawSingleTick (EnvT *e, GDLGStream *a, int axisId, DDouble val, DFloat TickLen, DLong whereCode, PLPointer data) {
+    static char label[256];
+    gdlAxisTickFunc(axisId, val, label, 255, data);
+    PLFLT position;
+    PLFLT owxmin, owxmax, owymin, owymax;
+    a->plstream::gvpw(owxmin, owxmax, owymin, owymax);
+    PLFLT x[2],y[2];
+    if (axisId == XAXIS) {
+      PLFLT size=fabs(owymax-owymin);
+      x[0]=val;x[1]=val;y[0]=owymin;y[1]=owymin+TickLen*size;
+      a->line(2,x,y);
+      y[0]=owymax;y[1]=owymax-TickLen*size;
+      a->line(2,x,y);
+      position=(val-owxmin)/(owxmax-owxmin);
+    } else {
+      PLFLT size=fabs(owxmax-owxmin);
+      y[0]=val;y[1]=val;x[0]=owxmin;x[1]=owxmin+TickLen*size;
+      a->line(2,x,y);
+      x[0]=owxmax;x[1]=owxmax-TickLen*size;
+      a->line(2,x,y);
+      position=(val-owymin)/(owymax-owymin);
+    }
+    if (whereCode == 0 || whereCode == 1) {
+      if (axisId == XAXIS) a->plstream::mtex("b", 2, position, 0.5, label);
+      else a->plstream::mtex("lv", 1, position, 1, label);
+    } else if (whereCode == 2) {
+      if (axisId == XAXIS) a->plstream::mtex("t", 2, position, 0.5, label);
+      else a->plstream::mtex("rv", 1, position, 1, label);
+    }
+  }
   //gdlAxis will write an axis from Start to End, following all modifier switch, in the good place of the current VPOR, independent of the current WIN,
   // as it is temporarily superseded by setting a new a->win().
   //this makes GDLAXIS independent of WIN, and help the whole code to be dependent only on VPOR which is the sole useful plplot command to really use.
@@ -3537,8 +3586,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       if (tickUnitArraySize ==0) hasTickUnitDefined=false;
     }
     
-    
-
     //For labels we need ticklen in current character size, for ticks we need it in mm
     DFloat ticklen_in_mm = TickLen;
     bool inverted_ticks=false;
@@ -3586,7 +3633,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     std::string tickOpt3=BOTTOM;
     //define tick-related (ticklayout) options
     //ticks or grid eventually with style and length:
-    if (TickLen < 1e-6) tickOpt = ""; else tickOpt = TICKS; //remove ticks if ticklen=0
+    if (TickLen < 1e-6 || hasTickv) tickOpt = ""; else tickOpt = TICKS; //remove ticks if ticklen=0 or TICKV
     if (inverted_ticks)  tickOpt += TICKINVERT;
     additionalAxesTickOpt = tickOpt; //layout==2 has ticks
 
@@ -3731,13 +3778,18 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
     else //normal simple axis
     {
-      defineLabeling(a, axisId, gdlAxisTickFunc, &tickdata);
-      Opt += LABELFUNC;
-      if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL;
-      else Opt += NUMERIC;
-      if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-      else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
-      resetLabeling(a, axisId);
+      if (hasTickv) {
+        int ntickv=MIN(Tickv->N_Elements(),Ticks+1);
+        for (auto i=0; i< ntickv; ++i) gdlDrawSingleTick (e, a, axisId, (*Tickv)[i], TickLen, modifierCode, &tickdata); 
+      } else {
+        defineLabeling(a, axisId, gdlAxisTickFunc, &tickdata);
+        Opt += LABELFUNC;
+        if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL;
+        else Opt += NUMERIC;
+        if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
+        else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
+        resetLabeling(a, axisId);
+      }
     }
 
     // insure no axes written with ticklayout=1

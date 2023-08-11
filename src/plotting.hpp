@@ -369,7 +369,7 @@ namespace lib {
   void gdlGetDesiredAxisTickUnits(EnvT* e, int axisId, DStringGDL* &axisTickunitsVect);
   bool gdlHasTickUnits(EnvT* e, int axisId);
 
-  bool gdlGetDesiredAxisTickv(EnvT* e, int axisId, DDoubleGDL* axisTickvVect);
+  bool gdlGetDesiredAxisTickv(EnvT* e, int axisId, DDoubleGDL* &axisTickvVect);
 
   //if [X|Y|Z]TICK_GET was given for axis, write the values.
 
