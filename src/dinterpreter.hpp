@@ -106,6 +106,7 @@ public:
   // called within InterpreterLoop()
   RetCode InnerInterpreterLoop(SizeT lineOffset);
 
+  bool IsInBatchProcedureAtMain(){return InBatchProcedureAtMain;}
 };
 
 #endif

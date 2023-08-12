@@ -201,6 +201,7 @@ protected:
 
     static EnvStackT  callStack; 
     static bool noInteractive;
+    static bool InBatchProcedureAtMain;
     static DLong stepCount;
     static std::string MyProName;
 
