@@ -70,7 +70,7 @@ format [ int repeat] // mark last format for format reversion
     ;
 
 qfq
-    : q (f q)?
+    : q (f q)* //produces nondeterminism 
     ;
 
 q!
@@ -154,6 +154,7 @@ f
     : TERM
     | NONL
     | Q
+    | CSTRING
     | t:T n1=nn { #t->setW( n1);}
     | f_csubcode
     | rep_fmt[ 1]
@@ -313,7 +314,7 @@ STRING
 	| '\''! (~('\'')| '\'' '\''! )* '\''!
 	;	
 
-CSTRING!
+CSTYLE_STRING!
 	: '%' '\"' 
         { cLexer->DoubleQuotes( true); selector->push( cLexer); selector->retry();}
     | '%' '\'' 

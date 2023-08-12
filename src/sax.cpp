@@ -163,9 +163,7 @@ startElement(void *data, const XML_Char *name, const XML_Char **atts)
   if (method->NPar() > par) curenv->GetPar(par++) = new DStringGDL(""); //URI
   if (method->NPar() > par) curenv->GetPar(par++) = new DStringGDL(name); // LOCAL, empty if no URI
   if (method->NPar() > par) curenv->GetPar(par++) = new DStringGDL(name);
-  std::cerr<<name<<": "<<method->NPar()<<": "<<n_name_value_pair<<" par="<<par<<std::endl;
-     for (auto i=0; i< 2*n_name_value_pair;++i) std::cerr<<atts[i]<<std::endl;
- if (method->NPar() > par && n_name_value_pair > 0) {
+  if (method->NPar() > par && n_name_value_pair > 0) {
     DStringGDL* ret1 = new DStringGDL(dimension(n_name_value_pair));
     for (auto i = 0; i<n_name_value_pair; ++i) (*ret1)[i] = atts[2*i];
     curenv->GetPar(par++) = ret1;

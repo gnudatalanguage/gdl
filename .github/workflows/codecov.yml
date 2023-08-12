@@ -3,8 +3,11 @@ name: codecov
 on:
   schedule:
     - cron: "0 0 * * 2"
+  push:
+    branches:
+      - master
+  pull_request:
   workflow_dispatch:
-  #pull_request:
 
 jobs:
   codecov:
@@ -15,28 +18,25 @@ jobs:
       ROOT_DIR: ${{ github.workspace }}/..
     steps:
       - name: Checkout GDL
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.5.2
       - name: Install Dependencies
         run: |
           scripts/build_gdl.sh prep
-      - name: Prepare Codecov
-        run: |
           sudo apt install -y lcov
-          wget -O CMakeModules/CodeCoverage.cmake https://raw.githubusercontent.com/bilke/cmake-modules/master/CodeCoverage.cmake
-          sed -i 's/--output-file ${Coverage_NAME}/--output-file ${PROJECT_BINARY_DIR}\/${Coverage_NAME}/g' CMakeModules/CodeCoverage.cmake
-          TMPFILE=`tempfile`
-          tac src/CMakeLists.txt > $TMPFILE
-          echo "set(CMAKE_CXX_FLAGS \${CMAKE_CXX_FLAGS_COVERAGE})" >> $TMPFILE
-          echo "INCLUDE(CodeCoverage)" >> $TMPFILE
-          tac $TMPFILE > src/CMakeLists.txt
-          rm $TMPFILE
-          echo "SETUP_TARGET_FOR_COVERAGE_LCOV(NAME codecov EXECUTABLE \${CMAKE_BUILD_TOOL} test)" >> testsuite/CMakeLists.txt
       - name: Build GDL
         run: |
-          scripts/build_gdl.sh configure
-          scripts/build_gdl.sh build
-      - name: Test GDL
-        run: |
-          scripts/build_gdl.sh check || exit 0
-      - name: Submit Codecov
-        run: bash <(curl -s https://codecov.io/bash) -f ../build/codecov.info
+          git submodule update --init
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=$PWD -DCMAKE_CXX_FLAGS:STRING="-fprofile-arcs -ftest-coverage" -DCMAKE_C_FLAGS:STRING="-fprofile-arcs -ftest-coverage"
+          make -j 4 install
+          lcov --capture --initial --directory . --output-file coverage1.info
+          make -k test
+          lcov --capture --directory . --output-file coverage2.info
+          gcov -pb src/*.o
+          lcov --add-tracefile ./coverage1.info --add-tracefile ./coverage2.info --output-file coveragefused.info
+          lcov -r coveragefused.info "/usr*" -o coveragefused.info
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          gcov: true

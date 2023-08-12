@@ -960,6 +960,7 @@ interactive returns[ RetCode retCode]
 	}
 	_retTree = _t;
 	return retCode;
+	//NOTE: *** code below is not active ***
 }
     : (retCode=statement
             {
@@ -1014,6 +1015,7 @@ call_fun returns[ BaseGDL* res]
 	
 	_retTree = _t;
 	return res;
+	//NOTE: *** code below is not active ***
 }
     : (retCode=statement
         )*
@@ -1047,6 +1049,7 @@ call_lfun returns[ BaseGDL** res]
                             false,false);
 	_retTree = _t;
 	return res;
+	//NOTE: *** code below is not active ***
 }
     : (retCode=statement
         )*
@@ -1066,6 +1069,7 @@ call_pro
 	}
 	_retTree = _t;
     return;
+	//NOTE: *** code below is not active ***
 }
     : (retCode=statement
         )*
@@ -1084,6 +1088,7 @@ statement_list returns[ RetCode retCode]
 	}
 	_retTree = _t;
 	return retCode;
+	//NOTE: *** code below is not active ***
 }
     : (retCode=statement
         )+
@@ -1507,6 +1512,7 @@ l_deref returns [BaseGDL** res]
     
 	_retTree = retTree;
 	return res;
+	//NOTE: *** code below is not active ***
 }
     : DEREF
     ;
@@ -1526,6 +1532,7 @@ l_decinc_indexable_expr [ BaseGDL*& res] returns [BaseGDL** e]
     if( res == NULL)
         throw GDLException( _t, "Variable is undefined: "+Name(e),true,false);
     return e;
+	//NOTE: *** code below is not active ***
 }
     : e=l_function_call_internal
     | e=l_deref 
@@ -1624,6 +1631,7 @@ l_decinc_array_expr [int dec_inc, BaseGDL*& res] returns [BaseGDL** e]
 
     // not used _______________________________________
     // ------------------------------------------------
+	//NOTE: *** code below is not active ***
 }
     : ARRAYEXPR 
     | e= l_decinc_indexable_expr[ res]
@@ -1674,6 +1682,7 @@ l_decinc_dot_expr [int dec_inc] returns [BaseGDL* res]
 	else if( dec_inc == POSTINC) aD.Get()->Inc();
 
 	return res;
+	//NOTE: *** code below is not active ***
 }
     : DOT
     ;
@@ -1923,6 +1932,7 @@ l_indexable_expr returns [BaseGDL** res]
         }
    _retTree = _t->getNextSibling();
 	return res;
+	//NOTE: *** code below is not active ***
 }
     : EXPR // for l_dot_array_expr
     | res=l_function_call_internal
@@ -1973,6 +1983,7 @@ l_dot_array_expr [DotAccessDescT* aD] // 1st
 	}
     return;
 //	_retTree = _t;
+	//NOTE: *** code below is not active ***
 }
     : #(ARRAYEXPR rP=l_indexable_expr aL=arrayindex_list[ false])   
     | rP=l_indexable_expr
@@ -1985,6 +1996,7 @@ l_expr_internal [BaseGDL* right] returns [BaseGDL** res]
     res = _t->LExpr( right);
     _retTree = _t->getNextSibling();
     return res;
+	//NOTE: *** code below is not active ***
     
     BaseGDL* e1; 
 }
@@ -2010,6 +2022,7 @@ l_simple_var returns [BaseGDL** res]
     res = _t->LEval();    
     _retTree = _t->getNextSibling();
     return res;
+	//NOTE: *** code below is not active ***
 
 }
     : VAR // DNode.varIx is index into functions/procedures environment
@@ -2031,6 +2044,7 @@ l_defined_simple_var returns [BaseGDL** res]
                                     callStack.back()->GetString( *res),true,false);
         }
     return res;
+	//NOTE: *** code below is not active ***
 
 }
     : VAR // DNode.varIx is index into functions/procedures environment
@@ -2044,6 +2058,7 @@ l_sys_var returns [BaseGDL** res]
 	res=sysVar->LEval();
 	_retTree = sysVar->getNextSibling();
 	return res;
+	//NOTE: *** code below is not active ***
 
 }
     : SYSVAR  
@@ -2057,6 +2072,7 @@ r_expr returns [BaseGDL* res]
     res=_t->Eval();
 	_retTree = _t->getNextSibling();
 	return res;
+	//NOTE: *** code below is not active ***
 
     BaseGDL** refRet; // not used
 }
@@ -2106,6 +2122,7 @@ tag_expr [DotAccessDescT* aD] // 2nd...
 		_retTree = _t->getNextSibling();		
 	}
     return;
+	//NOTE: *** code below is not active ***
 }
     : EXPR
     | IDENTIFIER
@@ -2138,6 +2155,7 @@ tag_array_expr  [DotAccessDescT* aD] // 2nd...
 	}
 	//_retTree = _t;
     return;
+	//NOTE: *** code below is not active ***
 }
 	: #(ARRAYEXPR tag_expr[ aD] aL=arrayindex_list[ true] /*{ aD->ADAddIx(aL);}*/ )
     | tag_expr[ aD] //{ aD->ADAddIx(NULL);} 
@@ -2157,6 +2175,14 @@ r_dot_indexable_expr [DotAccessDescT* aD] returns [BaseGDL* res] // 1st
 		_retTree = tIn->getNextSibling();
 		break;
 	}
+	// DEREF was forgotten: cause of #812 and #26
+    case DEREF:
+    {
+		BaseGDL** v=l_deref(_t);
+			//_t = _retTree;
+			res = *v;
+			break;
+	} 
 	case VAR:
 	case VARPTR:
 	{
@@ -2176,6 +2202,7 @@ r_dot_indexable_expr [DotAccessDescT* aD] returns [BaseGDL* res] // 1st
 	}
 	//_retTree = _t;
 	return res;
+	//NOTE: *** code below is not active ***
 
     BaseGDL** e;
 }
@@ -2211,6 +2238,7 @@ r_dot_array_expr [DotAccessDescT* aD] // 1st
 		SetRootR( _t, aD, r, NULL); 
 	}
     return;
+	//NOTE: *** code below is not active ***
 }
 // NOTE: r is owned by aD or a l_... (r must not be deleted here)
     : #(ARRAYEXPR r=r_dot_indexable_expr[ aD] 
@@ -2226,6 +2254,7 @@ indexable_tmp_expr returns [BaseGDL* res]
      res = _t->Eval(); //lib_function_call_retnew_internal(_t);
 	_retTree = _t->getNextSibling();
     return res;
+	//NOTE: *** code below is not active ***
 }
 	: (QUESTION) // trinary operator
     | (ARRAYEXPR) //res=array_expr
@@ -2242,6 +2271,7 @@ indexable_expr returns [BaseGDL* res]
     res = _t->EvalNC();
     _retTree = _t->getNextSibling();
     return res;
+	//NOTE: *** code below is not active ***
 
     BaseGDL** e2;
 }
@@ -2260,6 +2290,7 @@ expr returns [BaseGDL* res]
     res = _t->Eval();
     _retTree = _t->getNextSibling();
     return res; //tmp_expr(_t);
+	//NOTE: *** code below is not active ***
 }
     : res=tmp_expr
     | res=lib_function_call_internal
@@ -2272,6 +2303,7 @@ tmp_expr returns [BaseGDL* res]
  	res = _t->Eval();
  	_retTree = _t->getNextSibling();
     return res;
+	//NOTE: *** code below is not active ***
 
     BaseGDL** e2;
 } // tmp_expr
@@ -2295,6 +2327,7 @@ assign_expr returns [BaseGDL* res]
     res = _t->Eval();
 	_retTree = _t->getNextSibling();
     return res;
+	//NOTE: *** code below is not active ***
 
     BaseGDL** l;
 }
@@ -2318,6 +2351,7 @@ simple_var returns [BaseGDL* res]
         }
 	_retTree = _t->getNextSibling();
 	return vData->Dup();
+	//NOTE: *** code below is not active ***
 }
     : VAR // DNode.varIx is index into functions/procedures environment
     | VARPTR // DNode.var   is ptr to common block variable
@@ -2328,6 +2362,7 @@ sys_var returns [BaseGDL* res]
     res = _t->Eval();
 	_retTree = _t->getNextSibling();
 	return res; // no ->Dup()
+	//NOTE: *** code below is not active ***
 }
     : SYSVAR
     ;
@@ -2341,6 +2376,7 @@ lib_function_call_internal returns[ BaseGDL* res]
 
     callStack.back()->SetPtrToReturnValue( retValPtr); 
     return res;
+	//NOTE: *** code below is not active ***
 }
 	: FCALL_LIB
     ;    
@@ -2350,6 +2386,7 @@ lib_function_call_retnew_internal returns[ BaseGDL* res]
     res = _t->Eval();
 	_retTree = _t->getNextSibling();
 	return res; //_t->cData->Dup(); 
+	//NOTE: *** code below is not active ***
 }
 	: FCALL_LIB_RETNEW
     ;    
@@ -2497,6 +2534,7 @@ l_function_call_internal returns[ BaseGDL** res]
     res = _t->LEval();
     _retTree = _t->getNextSibling();
     return res;
+	//NOTE: *** code below is not active ***
 }
 	: FCALL_LIB
     | MFCALL 
@@ -2570,6 +2608,7 @@ parameter_def_n_elements [EnvBaseT* actEnv]
 	guard.release();
 	
     return;
+	//NOTE: *** code below is not active ***
 }
     : KEYDEF_REF_EXPR IDENTIFIER
     ;
@@ -2635,6 +2674,7 @@ parameter_def [EnvBaseT* actEnv]
 	guard.release();
 	
     return;
+	//NOTE: *** code below is not active ***
 }
     : KEYDEF_REF IDENTIFIER
 	;
@@ -2681,6 +2721,7 @@ parameter_def_nocheck [EnvBaseT* actEnv]
 	guard.release();
 	
     return;
+	//NOTE: *** code below is not active ***
 }
     : KEYDEF_REF IDENTIFIER
 	;
@@ -2748,6 +2789,7 @@ arrayindex_list[ bool noAssoc] returns [ArrayIndexListT* aL]
 	
 	_retTree = ax->getNextSibling();//retTree;
 	return aL;
+	//NOTE: *** code below is not active ***
 }
 	: ARRAYIX
     ;
@@ -2810,6 +2852,7 @@ arrayindex_list_overload [IxExprListT& indexList]
 	_retTree = ax->getNextSibling();//retTree;
 	return;
 
- }
+ 	//NOTE: *** code below is not active ***
+}
 	: ARRAYIX
     ;

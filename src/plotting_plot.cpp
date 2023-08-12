@@ -81,7 +81,10 @@ namespace lib {
           e->Throw("Expression must be an array in this context: " + e->GetParString(1));
         yEl = yTemp->N_Elements();
         
-        //we need to drop unmatched values, checking nEl
+        // we need to drop unmatched values, checking nEl. This will cause a discrepancy with IDL, as 
+        // x= findgen(32)*1d-24 & plot,[x], [1]
+        // will NOT plot a x axis from 0 to 4e-23 but from 0 to 1 (since there will be only 1 value left
+        // in xVal at the end: 0 and this will be rescaled between 0 and 0+1 before plotting. TBC.
         nEl=min(xEl, yEl);
       }
 

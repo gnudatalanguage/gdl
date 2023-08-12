@@ -25,6 +25,8 @@
 #include <antlr/TokenStreamIOException.hpp>
 #include <antlr/CharInputBuffer.hpp>
 
+// GD: set to 1 to traceout what the Parser does.
+#define debugParser 0
 //#include "dinterpreter.hpp"
 
 // defintion in dinterpreter.cpp
@@ -102,10 +104,10 @@ class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
         
 //        inputFile.Reset( &in); // make sure file 
 //                               // gets deleted (closed) 
-// 	  				             // when lexer finish
+//                                    // when lexer finish
 
-		// make sure errors are reported in right file
-		setFilename(name);
+        // make sure errors are reported in right file
+        setFilename(name);
         parserPtr->setFilename(name);
         selector->push(this);
     }
@@ -126,7 +128,7 @@ class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
   {
   if ( selector->getCurrentStream() != mainLexerPtr ) {
   //if( this != mainLexerPtr ) {
-	  
+      
       // make copy as we delete 'this'
       antlr::TokenStreamSelector* sel=selector; 
 
@@ -135,12 +137,12 @@ class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
 
       // make sure errors are reported in right file
       parserPtr->setFilename(
-		static_cast<GDLLexer*>(selector->getCurrentStream())->getFilename());
+        static_cast<GDLLexer*>(selector->getCurrentStream())->getFilename());
             
-	  // don't allow EOF until main lexer.  Force the
-	  // selector to retry for another token.
-	  sel->retry();
-	}	
+      // don't allow EOF until main lexer.  Force the
+      // selector to retry for another token.
+      sel->retry();
+    }    
   }
 private:
 	void initLiterals();

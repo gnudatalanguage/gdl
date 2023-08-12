@@ -25,6 +25,8 @@
 #include <antlr/TokenStreamIOException.hpp>
 #include <antlr/CharInputBuffer.hpp>
 
+// GD: set to 1 to traceout what the Parser does.
+#define debugParser 0
 //#include "dinterpreter.hpp"
 
 // defintion in dinterpreter.cpp
@@ -138,7 +140,7 @@ public:
 	public: void endcaseelse_mark();
 	public: void identifier_list();
 	public: void keyword_declaration();
-	public: std::string  object_name();
+	protected: std::string  object_name();
 	public: void compile_opt();
 	public: void endforeach_mark();
 	public: void endfor_mark();
@@ -193,10 +195,10 @@ public:
 	public: void array_expr_nth();
 	public: void tag_array_expr_nth_sub();
 	public: void tag_array_expr_nth();
-	public: int  tag_access_keeplast();
-	public: SizeT  tag_access();
+	protected: int  tag_access_keeplast();
+	protected: SizeT  tag_access();
 	public: void deref_dot_expr();
-	public: bool  member_function_call();
+	protected: bool  member_function_call();
 	public: void member_function_call_dot();
 	public: void arrayexpr_mfcall();
 	public: void primary_expr_tail();

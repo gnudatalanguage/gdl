@@ -203,7 +203,7 @@ format
                                 // no break
                             }
                         case STRING:
-                        case CSTRING:
+                        case CSTYLE_STRING:
                             {
                                 f(_t);
 //                                if( actPar == NULL && termFlag) goto endFMT;
@@ -242,7 +242,7 @@ format_reversion
                 switch ( _t->getType()) {
                 case FORMAT:
                 case STRING:
-                case CSTRING:
+                case CSTYLE_STRING:
                 case TL:
                 case TR:
                 case TERM:
@@ -281,7 +281,7 @@ q
 
 f_csubcode // note: IDL doesn't allow hollerith strings inside C()
     : s:STRING { (*os) << s->getText(); }
-//    | CSTRING // *** requires special handling
+//    | CSTYLE_STRING // *** requires special handling
     | tl:TL 
         { 
             SizeT actP  = os->tellp(); 
