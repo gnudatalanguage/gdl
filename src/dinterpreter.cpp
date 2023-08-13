@@ -64,6 +64,7 @@ EnvStackT                 GDLInterpreter::callStack;
 DLong                     GDLInterpreter::stepCount;
 std::string               GDLInterpreter::MyProName;
 bool                      GDLInterpreter::noInteractive; // To exit on error or stop in line execution mode (gdl -e do_something)
+bool                      GDLInterpreter::InBatchProcedureAtMain; // To exit on error or stop in interactive batch file (@file at MAIN level)
 ProgNode                  GDLInterpreter::NULLProgNode;
 ProgNodeP GDLInterpreter::NULLProgNodeP = &GDLInterpreter::NULLProgNode;
 
@@ -1115,8 +1116,9 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 	  file = fileRaw;
 	  CompleteFileName( file);
 	}
-
+      InBatchProcedureAtMain=true;
       ExecuteFile( file);
+      InBatchProcedureAtMain=false;
       return CC_OK;
     }
 
