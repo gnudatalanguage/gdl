@@ -102,7 +102,19 @@ enum {
 #define xdr_uint64_t xdr_u_int64_t
 #endif
 
-  //this is the routined used by IDL as per the documentation.
+// relaces xdr_getpos and setpos by these local functions that return 32 or 64 bits addresses ( "long int") depending on architecture.
+// Will permit to read and write files larger than 2^32 bytes (issue #1551) on 64 bits machines. Probably uncomplete support for 32 bit machines though.
+long int xdr_get_gdl_pos(XDR *x){
+  long int where=ftell(save_fid);
+//  std::cerr<<"getpos: "<<where<<std::endl;
+  return where;
+}
+bool_t xdr_set_gdl_pos(XDR *x, long int y){
+  int ret=fseek(save_fid,y,SEEK_SET);
+//  std::cerr<<"setpos returned "<<ret<<std::endl;
+  return ret;
+}
+//this is the routined used by IDL as per the documentation.
 
   bool_t xdr_complex(XDR *xdrs, DComplex *p) {
     return (xdr_float(xdrs, reinterpret_cast<float *> (p)) && xdr_float(xdrs, reinterpret_cast<float *> (p) + 1));
@@ -136,7 +148,7 @@ enum {
     }
   }
   
-  inline uint32_t writeNewRecordHeader(XDR *xdrs, int code){
+  inline uint64_t writeNewRecordHeader(XDR *xdrs, int code){
     int32_t rectype=code;    
     xdr_int32_t(xdrs, &rectype); //-16
     uint32_t ptrs0=0;
@@ -145,49 +157,55 @@ enum {
     xdr_uint32_t(xdrs, &ptrs1); //-8
     int32_t UnknownLong=0;
     xdr_int32_t(xdrs, &UnknownLong);
-    return xdr_getpos(xdrs); //end of header
+    return xdr_get_gdl_pos(xdrs); //end of header
   }
 
-  inline uint32_t updateNewRecordHeader(XDR *xdrs, uint32_t cur) {
-    uint32_t next = xdr_getpos(xdrs);
+  inline uint64_t updateNewRecordHeader(XDR *xdrs, uint64_t cur) {
+    uint64_t next = xdr_get_gdl_pos(xdrs);
+    std::cerr<<"updateNewRecordHeader : was at "<<next<<", cur is "<<cur<<std::endl;
     //dirty trick for compression: write uncompressed, rewind, read what was just written, compress, write over, reset positions.
     if (save_compress)
     {
-      uint32_t uLength = next - cur;
+      uint64_t uLength = next - cur;
       uLong cLength = compressBound(uLength);
       char* uncompressed = (char*) calloc(uLength+1,1);
-      xdr_setpos(xdrs, cur);
+      xdr_set_gdl_pos(xdrs, cur);
       size_t retval = fread(uncompressed, 1, uLength, save_fid);
       if (retval!=uLength) cerr<<"(compress) read error:"<<retval<<"eof:"<<feof(save_fid)<<", error:"<<ferror(save_fid)<<endl;
       char* compressed = (char*) calloc(cLength + 1,1);
       // Deflate
       compress2((Bytef *) compressed, &cLength, (Bytef *) uncompressed, uLength, Z_BEST_SPEED);
       //cLength is the good length now.
-      xdr_setpos(xdrs, cur);
+      xdr_set_gdl_pos(xdrs, cur);
       xdr_opaque(xdrs,compressed,cLength);
       next = cur+cLength;
-      xdr_setpos(xdrs, next);
+      xdr_set_gdl_pos(xdrs, next);
       //if (next!=(cur+cLength)) cerr<<"problem:"<<cur+cLength<<":"<<next<<"\n";
     }
-    xdr_setpos(xdrs, cur-12); //ptrs0
-    xdr_uint32_t(xdrs, &next);
-    xdr_setpos(xdrs, next);
+    xdr_set_gdl_pos(xdrs, cur-12); //ptrs0
+    //copy next (64 bit) as two 32 bits. Should be OK on 32 bit machines as next is uint64.
+    uint32_t first,second;
+    first = ((uint32_t *) &next)[0];
+    second = ((uint32_t *) &next)[1];
+    xdr_uint32_t(xdrs, &first);
+    xdr_uint32_t(xdrs, &second);
+    xdr_set_gdl_pos(xdrs, next);
     return next;
   }
   
-  uint32_t writeTimeUserHost(XDR *xdrs, char* FileDatestring, char* FileUser, char* FileHost) {
-    uint32_t cur=writeNewRecordHeader(xdrs, TIMESTAMP);
+  uint64_t writeTimeUserHost(XDR *xdrs, char* FileDatestring, char* FileUser, char* FileHost) {
+    uint64_t cur=writeNewRecordHeader(xdrs, TIMESTAMP);
     int32_t UnknownLong=0;
     for (int i = 0; i < 256; ++i) if (!xdr_int32_t(xdrs, &UnknownLong)) cerr << "write error" << endl;
     if (!xdr_string(xdrs, &FileDatestring, strlen(FileDatestring))) cerr << "write error" << endl;
     if (!xdr_string(xdrs, &FileUser, strlen(FileUser))) cerr << "write error" << endl;
     if (!xdr_string(xdrs, &FileHost, strlen(FileHost))) cerr << "write error" << endl;
-    uint32_t next=updateNewRecordHeader(xdrs, cur);
+    uint64_t next=updateNewRecordHeader(xdrs, cur);
     return next;
   }
   
-  uint32_t writeEnd(XDR *xdrs) {
-    uint32_t cur=writeNewRecordHeader(xdrs, END_MARKER);
+  uint64_t writeEnd(XDR *xdrs) {
+    uint64_t cur=writeNewRecordHeader(xdrs, END_MARKER);
     return cur;
   }
 
@@ -206,13 +224,13 @@ enum {
     return 1;
   }
   
-  uint32_t writeVersion(XDR* xdrs, int32_t *format, char* arch, char* os , char* release) {
-    uint32_t cur=writeNewRecordHeader(xdrs, VERSION_MARKER);
+  uint64_t writeVersion(XDR* xdrs, int32_t *format, char* arch, char* os , char* release) {
+    uint64_t cur=writeNewRecordHeader(xdrs, VERSION_MARKER);
     xdr_int32_t(xdrs, format);
     xdr_string(xdrs, &arch, strlen(arch));
     xdr_string(xdrs, &os, strlen(os));
     xdr_string(xdrs, &release, strlen(release));
-    uint32_t next=updateNewRecordHeader(xdrs, cur);
+    uint64_t next=updateNewRecordHeader(xdrs, cur);
     return next;
   }
   
@@ -223,10 +241,10 @@ enum {
     return 1;
   }
   
-  uint32_t writeNotice(XDR* xdrs, char* notice) {
-    uint32_t cur=writeNewRecordHeader(xdrs, NOTICE);
+  uint64_t writeNotice(XDR* xdrs, char* notice) {
+    uint64_t cur=writeNewRecordHeader(xdrs, NOTICE);
     xdr_string(xdrs, &notice, strlen(notice));
-    uint32_t next=updateNewRecordHeader(xdrs, cur);
+    uint64_t next=updateNewRecordHeader(xdrs, cur);
     return next;
   }
 
@@ -241,12 +259,12 @@ enum {
     } else return NULL;
   }
 
-  uint32_t writeDescription(XDR *xdrs, char* descr) {
-    uint32_t cur=writeNewRecordHeader(xdrs, DESCRIPTION_MARKER);
+  uint64_t writeDescription(XDR *xdrs, char* descr) {
+    uint64_t cur=writeNewRecordHeader(xdrs, DESCRIPTION_MARKER);
     int32_t length = strlen(descr);
     if (!xdr_int32_t(xdrs, &length)) cerr << "error writing description string length" << endl;
     if (!xdr_string(xdrs, &descr, length)) cerr << "error writing string" << endl;
-    uint32_t next=updateNewRecordHeader(xdrs, cur);
+    uint64_t next=updateNewRecordHeader(xdrs, cur);
     return next;
    }
 
@@ -264,12 +282,12 @@ enum {
     return 1;
   }
   
-  uint32_t writeIdentification(XDR *xdrs, char *saveFileAuthor, char* title, char* otherinfo ) {
-    uint32_t cur=writeNewRecordHeader(xdrs, IDENTIFICATION);
+  uint64_t writeIdentification(XDR *xdrs, char *saveFileAuthor, char* title, char* otherinfo ) {
+    uint64_t cur=writeNewRecordHeader(xdrs, IDENTIFICATION);
     xdr_string(xdrs, &saveFileAuthor, strlen(saveFileAuthor));
     xdr_string(xdrs, &title, strlen(title) );
     xdr_string(xdrs, &otherinfo, strlen(otherinfo) );
-    uint32_t next=updateNewRecordHeader(xdrs, cur);
+    uint64_t next=updateNewRecordHeader(xdrs, cur);
     return next;
   }
   
@@ -1280,7 +1298,7 @@ enum {
     if (isStructure) writeStructDesc(xdrs, static_cast<DStructGDL*>(var), isObject);
   }
 
-  uint32_t writeNormalVariable(XDR *xdrs, std::string varName, BaseGDL* var, int varflags=0x0) {
+  uint64_t writeNormalVariable(XDR *xdrs, std::string varName, BaseGDL* var, int varflags=0x0) {
     bool isSysVar=false;
     bool readonly=false;
     if (varflags & 0x02) //defines a system variable.
@@ -1292,7 +1310,7 @@ enum {
       readonly = true;
     }
     const char* varname=varName.c_str();
-    uint32_t cur=writeNewRecordHeader(xdrs, isSysVar?SYSTEM_VARIABLE:VARIABLE);
+    uint64_t cur=writeNewRecordHeader(xdrs, isSysVar?SYSTEM_VARIABLE:VARIABLE);
     xdr_string(xdrs, (char**)&varname, 2048); 
     if (var==NULL) return updateNewRecordHeader(xdrs, cur); //unexistent var
     if (DEBUG_SAVERESTORE)  std::cerr<<"Writing normal Variable "<<varName<<std::endl;
@@ -1306,7 +1324,7 @@ enum {
     return updateNewRecordHeader(xdrs, cur);
   }
   
-    uint32_t writeHeapVariable(EnvT* e, XDR *xdrs, DPtr ptr, bool isObject=false) {
+    uint64_t writeHeapVariable(EnvT* e, XDR *xdrs, DPtr ptr, bool isObject=false) {
     //what is passed is the list of existent heap positions occupied.
     //we  write only the ones that are actuall in , depending, the 
     heapT::iterator itheap;
@@ -1315,12 +1333,12 @@ enum {
       if ( itheap==heapIndexMapSave.end() ) unknown=true;
     if (unknown) {
       if (DEBUG_SAVERESTORE) std::cerr<<"ignoring unused heap_index "<<ptr<<std::endl;
-      return xdr_getpos(xdrs); //do nothing.
+      return xdr_get_gdl_pos(xdrs); //do nothing.
     }
     
     bool isSysVar=false;
     bool readonly=false;
-    uint32_t cur=writeNewRecordHeader(xdrs, HEAP_DATA); //HEAP_DATA
+    uint64_t cur=writeNewRecordHeader(xdrs, HEAP_DATA); //HEAP_DATA
     int32_t heap_index=ptr;
     if (DEBUG_SAVERESTORE) {
       if (isObject) {
@@ -1979,12 +1997,12 @@ enum {
     return;
   }
 
-  uint32_t writeHeapList(XDR* xdrs) {
+  uint64_t writeHeapList(XDR* xdrs) {
 // writing heap list for IDL compatiblilty implies to "mimic" the single heap list of IDL.
 //We write the PTRs first, then the OBJs after. OBJ ptrs will thus start at the last value held by PTRs plus one.
     int32_t elementcount = heapIndexMapSave.size();
-    if (elementcount < 1) return xdr_getpos(xdrs);
-    uint32_t cur = writeNewRecordHeader(xdrs, HEAP_HEADER); //HEAP_HEADER
+    if (elementcount < 1) return xdr_get_gdl_pos(xdrs);
+    uint64_t cur = writeNewRecordHeader(xdrs, HEAP_HEADER); //HEAP_HEADER
     xdr_int32_t(xdrs, &elementcount);
     int32_t indices[elementcount];
     SizeT i = 0;
@@ -1997,19 +2015,19 @@ enum {
       for (int i = 0; i < elementcount; ++i) cerr << indices[i] << ",";
       cerr << endl;
     }
-    uint32_t next = updateNewRecordHeader(xdrs, cur);
+    uint64_t next = updateNewRecordHeader(xdrs, cur);
     return next;
   }
 
-  uint32_t writeCommonList(EnvT*e, XDR* xdrs, std::string commonname) {
+  uint64_t writeCommonList(EnvT*e, XDR* xdrs, std::string commonname) {
    if (DEBUG_SAVERESTORE) std::cerr<<"Writing Common "<<commonname<<std::endl;
     EnvStackT& callStack = e->Interpreter()->CallStack();
     int32_t curlevnum = callStack.size();
     DSubUD* pro = static_cast<DSubUD*> (callStack[curlevnum - 1]->GetPro());
     DCommon* c=pro->Common(commonname);
     int32_t ncommonvars = c->NVar();
-    if (ncommonvars < 1) return xdr_getpos(xdrs);
-    uint32_t cur = writeNewRecordHeader(xdrs, COMMONBLOCK); //COMMON
+    if (ncommonvars < 1) return xdr_get_gdl_pos(xdrs);
+    uint64_t cur = writeNewRecordHeader(xdrs, COMMONBLOCK); //COMMON
     xdr_int32_t(xdrs, &ncommonvars);
     char* name = (char*)commonname.c_str();
     u_int len=c->Name().size();
@@ -2022,7 +2040,7 @@ enum {
      }
     for (int i = 0; i < ncommonvars; ++i) lens[i] = c->VarName(i).size();
     for (int i = 0; i < ncommonvars; ++i) xdr_string(xdrs, &varnames[i], lens[i]);    
-    uint32_t next = updateNewRecordHeader(xdrs, cur);
+    uint64_t next = updateNewRecordHeader(xdrs, cur);
     if (DEBUG_SAVERESTORE) std::cerr<<std::endl;
     return next;
   } 

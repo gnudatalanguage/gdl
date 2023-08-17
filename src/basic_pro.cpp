@@ -1167,6 +1167,11 @@ namespace lib {
   }
 
   void stop(EnvT* e) {
+    if ( e->Interpreter()->IsInBatchProcedureAtMain() ) {
+      debugMode = DEBUG_STOP;
+      e->Throw("Prematurely closing batch file:");
+      return;
+    }
     if (e->NParam() > 0) {
       print(e);
       debugMode = DEBUG_STOP_SILENT;
