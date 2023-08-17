@@ -1776,7 +1776,7 @@ namespace lib
       int l = strlen(label)+2;
       //displace "label" on the right (for alignment purposes) by adding l whitespaces using test (which is larger enough).
       memset(test, 32, l);
-      snprintf(test + l, 2 * length - l, label);
+      snprintf(test + l, 2 * length - l, "%s", label);
       snprintf(label, length, "%s", test);
       free(test);
     }
