@@ -555,7 +555,7 @@ function test_gdl {
     fi
 }
 
-# GD: preexisting found_dylib is taken into account in the list. Useful to pass librraies that the resolver do not see
+# GD: preexisting found_dylib is taken into account in the list. Useful to pass libraries that the resolver do not see
 function copy_dylibs_recursive {
     install_name_tool -add_rpath $2 $1
     for dylib in $(otool -L $1 | grep -e 'local' -e 'rpath' | sed 's; \(.*\);;' |sort|uniq| xargs); do
