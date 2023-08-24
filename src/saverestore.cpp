@@ -162,7 +162,6 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 
   inline uint64_t updateNewRecordHeader(XDR *xdrs, uint64_t cur) {
     uint64_t next = xdr_get_gdl_pos(xdrs);
-    std::cerr<<"updateNewRecordHeader : was at "<<next<<", cur is "<<cur<<std::endl;
     //dirty trick for compression: write uncompressed, rewind, read what was just written, compress, write over, reset positions.
     if (save_compress)
     {
