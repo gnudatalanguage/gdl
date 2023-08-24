@@ -242,7 +242,7 @@ namespace MyPaths {
 
 int main(int argc, char *argv[])
 {
-#if GDL_DEBUG
+#ifdef GDL_DEBUG
   if( atexit( AtExit) != 0) cerr << "atexit registration failed." << endl;
 #endif
   // indicates if the user wants to see the welcome message

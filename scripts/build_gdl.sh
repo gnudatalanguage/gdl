@@ -392,7 +392,9 @@ function prep_packages {
            pushd ${ROOT_DIR}/PLplot
              mkdir build
              pushd ${ROOT_DIR}/PLplot/build
-             cmake .. -DCMAKE_INSTALL_PREFIX=${HOME}/plplot-local -DENABLE_octave=OFF -DENABLE_qt=OFF -DENABLE_lua=OFF -DENABLE_tk=OFF -DENABLE_python=OFF -DENABLE_tcl=OFF -DPLD_xcairo=OFF -DPLD_wxwidgets=ON -DENABLE_wxwidgets=ON -DENABLE_DYNDRIVERS=ON -DENABLE_java=OFF -DPLD_xwin=ON -DENABLE_fortran=OFF
+             cmake .. -DENABLE_octave=OFF -DENABLE_qt=OFF -DENABLE_lua=OFF \
+             -DENABLE_tk=OFF -DENABLE_python=OFF -DENABLE_tcl=OFF -DPLD_xcairo=OFF -DPLD_wxwidgets=ON -DENABLE_wxwidgets=ON \
+             -DENABLE_DYNDRIVERS=ON -DENABLE_java=OFF -DPLD_xwin=ON -DENABLE_fortran=OFF
              make
              make install
              popd
@@ -440,14 +442,12 @@ function configure_gdl {
             export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/opt/homebrew/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
-                                    "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" 
-                                    "-DCMAKE_PREFIX_PATH=${HOME}/plplot-local" )
+                                    "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" ) 
         else
             export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/usr/local/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
-                                    "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang"
-                                    "-DCMAKE_PREFIX_PATH=${HOME}/plplot-local" )
+                                    "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
         fi
     fi
 
@@ -502,7 +502,6 @@ function install_gdl {
     make install || exit 1
 
     cd ${ROOT_DIR}/install
-    echo "mname="${mname} 
     echo "ROOT_DIR="${ROOT_DIR} 
     if [ ${BUILD_OS} == "Windows" ]; then
         log "Copying DLLs to install directory..."
@@ -598,6 +597,8 @@ function pack_gdl {
         cp ${GDL_DIR}/resource/gdl.icns Resources/
 
         mkdir Frameworks
+        #GD: found the need to have plplot libs seen with fixed paths in otool to make he App inependent from the build machine (to export via a DMG)
+        for dylib in $(otool -l Resources/bin/gdl | grep libplplot | sed -e "s%name %%g;s%(.*)%%g" | xargs); do install_name_tool -change $dylib /usr/local/lib/`basename $dylib` Resources/bin/gdl; done
         found_dylibs=()
         copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
 
