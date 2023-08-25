@@ -1283,6 +1283,7 @@ BaseGDL* POWNode::Eval()
      e2.reset( e2->Convert2( GDL_FLOAT, BaseGDL::COPY));
      bTy = GDL_FLOAT;
    }
+  //powers of complex must use std::pow always, no "integer power" refinement possible.
   if( ComplexType( aTy))
     {
       if( IntType( bTy))
@@ -2915,7 +2916,7 @@ BaseGDL* POWNCNode::Eval()
       g2.reset( e2); // deletes old e2
       bTy = GDL_FLOAT;
     }
-
+  //powers of complex must use std::pow always, no "integer power" refinement possible.
   if( ComplexType(aTy))
     {
       if( IntType( bTy))

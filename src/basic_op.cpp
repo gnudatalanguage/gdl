@@ -3134,7 +3134,7 @@ Data_<SpDObj>* Data_<SpDObj>::ModInvS(BaseGDL* r) {
 // Pow
 // C++ defines pow only for floats and doubles
 //template <typename T, typename TT> T pow( const T r, const TT l)
-
+// define pow() for pow(integertype,integertype) with 'exponentiation_by_squaring' method. fast.
 template <typename T> T pow(const T r, const T l) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   typedef T TT;
 
@@ -3155,7 +3155,26 @@ template <typename T> T pow(const T r, const T l) { TRACE_ROUTINE(__FUNCTION__,_
 
   return res;
 }
+template <typename T1, typename T2> T1 powI(const T1 x, const T2 y) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  typedef T2 EXPTYP;
 
+  if (y == 0) return 1;
+  if (y < 0) return 0;
+
+  const int nBits = sizeof (EXPTYP) * 8;
+
+  T1 arr = x;
+  T1 res = 1;
+  EXPTYP mask = 1;
+  for (SizeT i = 0; i < nBits; ++i) {
+    if (y & mask) res *= arr;
+    mask <<= 1;
+    if (y < mask) return res;
+    arr *= arr;
+  }
+
+  return res;
+}
 // power of value: left=left ^ right
 // integral types
 
@@ -3237,11 +3256,11 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInt(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION_
     DLong r0 = (*right)[0];
 
     if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = pow((*this)[i], r0);
+      for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = powI((*this)[i], r0);
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = pow((*this)[i], r0);
+        for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = powI((*this)[i], r0);
     }
     return this;
   }
@@ -3250,33 +3269,33 @@ Data_<SpDFloat>* Data_<SpDFloat>::PowInt(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION_
     Ty s0 = (*this)[ 0];
 
     if ((GDL_NTHREADS=parallelize( rEl))==1) {
-      for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s0, (*right)[ i]);
+      for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = powI(s0, (*right)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s0, (*right)[ i]);
+        for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = powI(s0, (*right)[ i]);
     }
     return res;
   }
   if (nEl <= rEl) {
 
     if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = pow((*this)[i], (*right)[i]);
+      for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = powI((*this)[i], (*right)[i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = pow((*this)[i], (*right)[i]);
+        for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = powI((*this)[i], (*right)[i]);
     }
     return this;
   } else {
     Data_* res = new Data_(right->Dim(), BaseGDL::NOZERO);
 
     if ((GDL_NTHREADS=parallelize( rEl))==1) {
-      for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
+      for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = powI((*this)[i], (*right)[i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
+        for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = powI((*this)[i], (*right)[i]);
     }
     return res;
   }
@@ -3294,11 +3313,11 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInt(BaseGDL* r) { TRACE_ROUTINE(__FUNCTIO
     DLong r0 = (*right)[0];
 
     if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = pow((*this)[i], r0);
+      for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = powI((*this)[i], r0);
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = pow((*this)[i], r0);
+        for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = powI((*this)[i], r0);
     }
     return this;
   }
@@ -3307,33 +3326,33 @@ Data_<SpDDouble>* Data_<SpDDouble>::PowInt(BaseGDL* r) { TRACE_ROUTINE(__FUNCTIO
     Ty s0 = (*this)[ 0];
 
     if ((GDL_NTHREADS=parallelize( rEl))==1) {
-      for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s0, (*right)[ i]);
+      for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = powI(s0, (*right)[ i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = pow(s0, (*right)[ i]);
+        for (OMPInt i = 0; i < rEl; ++i) (*res)[ i] = powI(s0, (*right)[ i]);
     }
     return res;
   }
   if (nEl <= rEl) {
 
     if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = pow((*this)[i], (*right)[i]);
+      for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = powI((*this)[i], (*right)[i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = pow((*this)[i], (*right)[i]);
+        for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = powI((*this)[i], (*right)[i]);
     }
     return this;
   } else {
     Data_* res = new Data_(right->Dim(), BaseGDL::NOZERO);
 
     if ((GDL_NTHREADS=parallelize( rEl))==1) {
-      for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
+      for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = powI((*this)[i], (*right)[i]);
     } else {
       TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = pow((*this)[i], (*right)[i]);
+        for (OMPInt i = 0; i < rEl; ++i) (*res)[i] = powI((*this)[i], (*right)[i]);
     }
     return res;
   }
