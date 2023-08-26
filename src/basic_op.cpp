@@ -3134,31 +3134,6 @@ Data_<SpDObj>* Data_<SpDObj>::ModInvS(BaseGDL* r) {
   return this;
 }
 
-// Pow
-// C++ defines pow only for floats and doubles
-//template <typename T, typename TT> T pow( const T r, const TT l)
-// define pow() for pow(integertype,integertype) with 'exponentiation_by_squaring' method. fast.
-template <typename T> T pow(const T r, const T l) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  typedef T TT;
-
-  if (l == 0) return 1;
-  if (l < 0) return 0;
-
-  const int nBits = sizeof (TT) * 8;
-
-  T arr = r;
-  T res = 1;
-  TT mask = 1;
-  for (SizeT i = 0; i < nBits; ++i) {
-    if (l & mask) res *= arr;
-    mask <<= 1;
-    if (l < mask) return res;
-    arr *= arr;
-  }
-
-  return res;
-}
-
 template<class Sp>
 Data_<Sp>* Data_<Sp>::Pow(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
