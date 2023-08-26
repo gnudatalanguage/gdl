@@ -28,6 +28,7 @@
 #include "math_utl.hpp"
 #include "math_fun_jmg.hpp"
 #include "graphicsdevice.hpp"
+#include "gdl_util.hpp"
 
 //#define GDL_DEBUG
 #undef GDL_DEBUG
@@ -2042,52 +2043,6 @@ namespace lib {
   }
 
 
-/*-------------------------------------------------------------------------*/
-/**
-  @brief        Same as pow(x,y) but for integer values of y only (faster).
-  @param        x       A double number.
-  @param        p       An integer power.
-  @return       x to the power p.
-
-  This is much faster than the math function due to the integer. Some
-  compilers make this optimization already, some do not.
-
-  p can be positive, negative or null.
- */
-/*--------------------------------------------------------------------------*/
-double ipow(double x, int p)
-{
-        double r, recip ;
-
-        /* Get rid of trivial cases */
-        switch (p) {
-                case 0:
-                return 1.00 ;
-
-                case 1:
-                return x ;
-
-                case 2:
-                return x*x ;
-
-                case 3:
-                return x*x*x ;
-
-                case -1:
-                return 1.00 / x ;
-
-                case -2:
-                return (1.00 / x) * (1.00 / x) ;
-        }
-        if (p>0) {
-                r = x ;
-                while (--p) r *= x ;
-        } else {
-                r = recip = 1.00 / x ;
-                while (++p) r *= recip ;
-        }
-        return r;
-}
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -2111,7 +2066,7 @@ double poly2d_compute(
 
 	z = 0.00 ;
 	for (i=0 ; i<p->nc ; i++) {
-		z += p->c[i] * ipow(x, p->px[i]) * ipow(y, p->py[i]) ;
+		z += p->c[i] * gdl::powI(x, p->px[i]) * gdl::powI(y, p->py[i]) ;
 	}
 	return z ;
 }
@@ -2173,10 +2128,10 @@ DDouble * generate_interpolation_kernel(int kernel_type, DDouble cubicParameter)
 	  for (i=1 ; i<samples ; ++i) {
 	    x = (double)KERNEL_WIDTH * (double)i/(double)(samples-1) ;
 	    if (x < 1)
-	      tab[i] = (cubicParameter+2)*ipow(x,3) - (cubicParameter+3)*ipow(x,2) + 1;
+	      tab[i] = (cubicParameter+2)*gdl::powI(x,3) - (cubicParameter+3)*gdl::powI(x,2) + 1;
 	    else if (x < 2)
-	      tab[i] = cubicParameter*ipow(x,3) - 
-		(5*cubicParameter)*ipow(x,2) + (8*cubicParameter)*x - (4*cubicParameter);
+	      tab[i] = cubicParameter*gdl::powI(x,3) - 
+		(5*cubicParameter)*gdl::powI(x,2) + (8*cubicParameter)*x - (4*cubicParameter);
 	  }
     } else if (kernel_type == 3) { //quintic
 	  tab = (double *) calloc(samples , sizeof(double)) ;
@@ -2184,22 +2139,22 @@ DDouble * generate_interpolation_kernel(int kernel_type, DDouble cubicParameter)
 	  for (i=1 ; i<samples ; ++i) {
 	    x = (double)KERNEL_WIDTH * (double)i/(double)(samples-1) ;
 	    if (x < 1)
-	      tab[i] = (10.*cubicParameter-(21./16.))*ipow(x,5) +
-            (-18.*cubicParameter+(45./16))*ipow(x,4)+
-            (8.*cubicParameter-(5./2.))*ipow(x,2)+
+	      tab[i] = (10.*cubicParameter-(21./16.))*gdl::powI(x,5) +
+            (-18.*cubicParameter+(45./16))*gdl::powI(x,4)+
+            (8.*cubicParameter-(5./2.))*gdl::powI(x,2)+
             1.0;
 	    else if (x < 2)
-	      tab[i] = (11.*cubicParameter-(5./16.))*ipow(x,5)+
-            (-88.*cubicParameter+(45./16.))*ipow(x,4)+
-            (270.*cubicParameter-10)*ipow(x,3)+
-            (-392.*cubicParameter+(35./2.))*ipow(x,2)+
+	      tab[i] = (11.*cubicParameter-(5./16.))*gdl::powI(x,5)+
+            (-88.*cubicParameter+(45./16.))*gdl::powI(x,4)+
+            (270.*cubicParameter-10)*gdl::powI(x,3)+
+            (-392.*cubicParameter+(35./2.))*gdl::powI(x,2)+
             (265.*cubicParameter-15.)*x+
             (-66.*cubicParameter+5);
         else if (x < 3)
-	      tab[i] = cubicParameter*ipow(x,5) +
-            (-14.*cubicParameter)*ipow(x,4) +
-            (78.*cubicParameter)*ipow(x,3)  +
-            (-216.*cubicParameter)*ipow(x,2)+
+	      tab[i] = cubicParameter*gdl::powI(x,5) +
+            (-14.*cubicParameter)*gdl::powI(x,4) +
+            (78.*cubicParameter)*gdl::powI(x,3)  +
+            (-216.*cubicParameter)*gdl::powI(x,2)+
             297.*cubicParameter*x +
             (-162.*cubicParameter);
 	  }

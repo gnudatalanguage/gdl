@@ -2986,24 +2986,40 @@ BaseGDL* POWNCNode::Eval()
 	}
     }
 
-  if( IntType( bTy) && FloatType( aTy))
-    {
-      if( bTy != GDL_LONG)
-	{
-	  e2 = e2->Convert2( GDL_LONG, BaseGDL::COPY);
-	  g2.reset( e2);
-	}
-      if( g1.get() == NULL)
-	res = e1->PowIntNew( e2);
-      else 
-	{
-	  res = g1->PowInt( e2);
-	  if( res == g1.get())
-		g1.release();
-	}
-      return res;
-    }
+//  if( IntType( bTy) && FloatType( aTy))
+//    {
+//      if( bTy != GDL_LONG)
+//	{
+//	  e2 = e2->Convert2( GDL_LONG, BaseGDL::COPY);
+//	  g2.reset( e2);
+//	}
+//      if( g1.get() == NULL)
+//	res = e1->PowIntNew( e2);
+//      else 
+//	{
+//	  res = g1->PowInt( e2);
+//	  if( res == g1.get())
+//		g1.release();
+//	}
+//      return res;
+//    }
 
+  // GD: simplify: force use of PowInt for all integer powers, not only integer powers of float types as above 
+  if (IntType(bTy)) {
+    if (bTy != GDL_LONG) {
+      e2 = e2->Convert2(GDL_LONG, BaseGDL::COPY);
+      g2.reset(e2);
+    }
+    if (g1.get() == NULL)
+      res = e1->PowIntNew(e2);
+    else {
+      res = g1->PowInt(e2);
+      if (res == g1.get())
+        g1.release();
+    }
+    return res;
+  }
+  
   DType convertBackT; 
  
   bool aTyGEbTy = DTypeOrder[aTy] >= DTypeOrder[bTy];
