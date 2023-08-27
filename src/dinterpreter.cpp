@@ -1327,7 +1327,7 @@ void inputThread() {
 // if readline is not available or !EDIT_INPUT set to zero
 char* DInterpreter::NoReadline( const string& prompt)
 {
-  static const size_t inputStrMaxSize = MIN(GDL_MAX_INPUT_STR_LENGTH, inputstr.max_size()/2); //plenty of room left!!!
+  static const size_t inputStrMaxSize = std::min(GDL_MAX_INPUT_STR_LENGTH, inputstr.max_size()/2); //plenty of room left!!!
   if (isatty(0)) cout << prompt << flush;
   if( feof(stdin)) return NULL;
 
