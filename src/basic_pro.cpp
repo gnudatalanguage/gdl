@@ -967,8 +967,10 @@ namespace lib {
     SizeT nParam = e->NParam(1);
 
     DLong lun;
-    e->AssureLongScalarPar(0, lun);
-
+    e->AssureLongScalarPar(0, lun, true); //throw on an input conversion error when defining lun see #78. IDL catches this too and sets !ERR
+    
+	if (lun==0) return; //see #78 . 0 is open and ready, but only for READ, READF. READU just returns without setting !ERR
+	
     istream* is = NULL;
     igzstream* igzs = NULL;
     bool f77 = false;
