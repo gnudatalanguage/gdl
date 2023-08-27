@@ -569,15 +569,19 @@ bool GDLWXStream::GetGin(PLGraphicsIn *gin, int mode) {
     DOWN, //3
     UP //4
   };
+  Update();
   wxMouseState mouse=wxGetMouseState();
   wxPoint mousePoint = wxGetMousePosition ();
   unsigned int state=0, ostate=0; //start with null state
   unsigned int button=0; //gets the button state 1,2,3
   int x,y;
-  x = mouse.GetX();
-  y = mouse.GetY();
-  gin->pX = x;
-  gin->pY = y;
+  x = 0;
+  y = 0;
+   if (container->GetScreenRect().Contains(wxGetMousePosition())) { //if cursor is in the window...
+     mouse=wxGetMouseState();
+     x = mouse.GetX();
+     y = mouse.GetY();
+   }
 
   //state is like the button state value, combination of all buttonstate masks of X11. It is merely to know what buttons are down
   if (mouse.LeftIsDown())  {button = 1; ostate |= 1;}
@@ -615,7 +619,7 @@ bool GDLWXStream::GetGin(PLGraphicsIn *gin, int mode) {
          if (mode==UP && ButtonRelease) goto end;
          if (!ButtonRelease && (mode==WAIT || mode==DOWN) ) goto end;
        }
-       if ( (pow((float)x-gin->pX,2)+pow((float)y-gin->pY,2) > 0) && mode==CHANGE) {
+       if ( ( (x-gin->pX)*(x-gin->pX)+(y-gin->pY)*(y-gin->pY) > 0 ) && mode==CHANGE) {
          gin->pX = x;
          gin->pY = y;
          goto end;
