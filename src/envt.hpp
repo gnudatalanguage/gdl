@@ -344,9 +344,9 @@ public:
 
   void AssureGlobalKW( SizeT ix);
 
-  // converts parameter 'ix' if necessary and sets 'scalar' 
-  void AssureLongScalarPar( SizeT ix, DLong& scalar);
-  void AssureLongScalarPar( SizeT ix, DLong64& scalar);
+  // converts parameter 'ix' if necessary and sets 'scalar' . sets scalar to 0 if a type conversion was found, or throws depending on bool
+  void AssureLongScalarPar( SizeT ix, DLong& scalar, bool throwIfConversionErrorOccured=false);
+  void AssureLongScalarPar( SizeT ix, DLong64& scalar, bool throwIfConversionErrorOccured=false);
   // get i'th parameter
   // throws if not defined (ie. never returns NULL, but can optionally return a !NULL)
   BaseGDL*& GetParDefined(SizeT i, bool rejectNulls=true); //, const std::string& subName = "");
@@ -886,8 +886,8 @@ public:
   void AssureLongScalarKW( SizeT ix, DLong& scalar);
   void AssureLongScalarKW( SizeT ix, DLong64& scalar);
   // converts parameter 'ix' if necessary and sets 'scalar' 
-  void AssureLongScalarPar( SizeT ix, DLong& scalar);
-  void AssureLongScalarPar( SizeT ix, DLong64& scalar);
+  void AssureLongScalarPar( SizeT ix, DLong& scalar, bool throwIfConversionErrorOccured=false);
+  void AssureLongScalarPar( SizeT ix, DLong64& scalar, bool throwIfConversionErrorOccured=false);
 
   // same as for Long
   void AssureDoubleScalarKWIfPresent( const std::string& kw, DDouble& scalar);

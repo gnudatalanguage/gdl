@@ -1664,10 +1664,10 @@ BaseGDL*& EnvT::GetPar(SizeT i)
 /**
  * @brief converts par if necessary and sets 'scalar' to Long . Chokes on !NULL, NULL and non-scalar
  */
-void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
+void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong64& scalar, bool throwIfConversionErrorOccured)
 {
   BaseGDL* p = GetParDefined( pIx);
-  DLong64GDL* lp = static_cast<DLong64GDL*>(p->Convert2( GDL_LONG64, BaseGDL::COPY));
+  DLong64GDL* lp = static_cast<DLong64GDL*>(p->Convert2( GDL_LONG64, throwIfConversionErrorOccured?BaseGDL::COPY_THROWIOERROR:BaseGDL::COPY));
   Guard<DLong64GDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar or 1 element array in this context: "+
@@ -1676,10 +1676,10 @@ void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
 /**
  * @brief converts par if necessary and sets 'scalar' to Long . Chokes on !NULL, NULL and non-scalar
  */
-void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
+void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar, bool throwIfConversionErrorOccured)
 {
   BaseGDL* p = GetParDefined( pIx);
-  DLongGDL* lp = static_cast<DLongGDL*>(p->Convert2( GDL_LONG, BaseGDL::COPY));
+  DLongGDL* lp = static_cast<DLongGDL*>(p->Convert2( GDL_LONG, throwIfConversionErrorOccured?BaseGDL::COPY_THROWIOERROR:BaseGDL::COPY));
   Guard<DLongGDL> guard_lp( lp);
   if( !lp->Scalar( scalar))
     Throw("Parameter must be a scalar or 1 element array in this context: "+
@@ -1688,16 +1688,16 @@ void EnvBaseT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
 /**
  * @brief converts par if necessary and sets 'scalar' to Long . Chokes on !NULL, NULL and non-scalar
  */
-void EnvT::AssureLongScalarPar( SizeT pIx, DLong64& scalar)
+void EnvT::AssureLongScalarPar( SizeT pIx, DLong64& scalar, bool throwIfConversionErrorOccured)
 {
-  EnvBaseT::AssureLongScalarPar( pIx, scalar);
+  EnvBaseT::AssureLongScalarPar( pIx, scalar, throwIfConversionErrorOccured);
 }
 /**
  * @brief converts par if necessary and sets 'scalar' to Long . Chokes on !NULL, NULL and non-scalar
  */
-void EnvT::AssureLongScalarPar( SizeT pIx, DLong& scalar)
+void EnvT::AssureLongScalarPar( SizeT pIx, DLong& scalar, bool throwIfConversionErrorOccured)
 {
-  EnvBaseT::AssureLongScalarPar( pIx, scalar);
+  EnvBaseT::AssureLongScalarPar( pIx, scalar, throwIfConversionErrorOccured);
 }
 /**
  * @brief converts ix if necessary and sets 'scalar' to Long . scalar unchanged if !NULL, NULL. Chokes on non-scalar
