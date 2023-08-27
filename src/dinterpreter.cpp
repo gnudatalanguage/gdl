@@ -37,6 +37,9 @@
 #ifdef USE_MPI
 #include "mpi.h"
 #endif
+/* Macros for min/max.  */
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 #include <cassert>
 
@@ -1308,32 +1311,40 @@ DInterpreter::CommandCode DInterpreter::ExecuteLine( istream* in, SizeT lineOffs
 
   return CC_OK;
 }
+#define GDL_MAX_INPUT_STR_LENGTH 32766 //current limitation of our esteemed model
 
 void inputThread() {
-    while (1) {
-      // patch by Ole, 2017-01-06
-      //char ch = getchar(); if (ch==EOF) return NULL;
-      int ch = getchar(); //see #1377
+  while (1) {
+	// patch by Ole, 2017-01-06
+	//char ch = getchar(); if (ch==EOF) return NULL;
+	int ch = getchar(); //see #1377
       if (ch==EOF) {
 	return;
-      }        
-      inputstr += ch;
-      if (ch == '\n')
-	break;
-    }
+	}
+	inputstr += ch;
+	if (ch == '\n')
+	  break;
+  }
 }
 
 // if readline is not available or !EDIT_INPUT set to zero
 char* DInterpreter::NoReadline( const string& prompt)
 {
+  static const size_t inputStrMaxSize = MIN(GDL_MAX_INPUT_STR_LENGTH, inputstr.max_size()/2); //plenty of room left!!!
   if (isatty(0)) cout << prompt << flush;
   if( feof(stdin)) return NULL;
 
-  thread th(inputThread);
-
+  std::thread th(inputThread);
+  std::thread::native_handle_type h=th.native_handle();
   for (;;)
     {
         GDLEventHandler();
+		if (inputstr.size() > inputStrMaxSize) {
+		  Warning ("Input line is too long for input buffer of " + i2s(inputStrMaxSize) + " characters.");
+		  pthread_cancel(h);
+		  
+		  exit (EXIT_FAILURE);
+		}
         if (inputstr.size() && inputstr[inputstr.size() - 1] == '\n') break;
         if (feof(stdin)) 
         {
