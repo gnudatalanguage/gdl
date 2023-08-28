@@ -2301,6 +2301,7 @@ namespace lib {
     return res;
   }
 
+  //GD: cannot be made faster if we keep using std::string . Performance is not good wrt idl.
   BaseGDL* strjoin(EnvT* e) {
     SizeT nParam = e->NParam(1);
 
@@ -7282,16 +7283,18 @@ namespace lib {
     if (regex && e->KeywordPresent(ESCAPEIx)) e->Throw("Conflicting keywords.");
     if (foldCaseKW && e->KeywordPresent(ESCAPEIx)) e->Throw("Conflicting keywords.");
 
-    e->AssureStringScalarKWIfPresent(ESCAPEIx, escape);
     vector<long> escList;
-    long pos = 0;
-    while (pos != string::npos) {
-      pos = stringIn.find_first_of(escape, pos);
-      if (pos != string::npos) {
-        escList.push_back(pos + 1); // remember escaped char
-        pos += 2; // skip escaped char
-      }
-    }
+	if (e->KeywordSet(ESCAPEIx)) {
+	  e->AssureStringScalarKWIfPresent(ESCAPEIx, escape); //must be a singleton.
+	  size_t pos = 0;
+	  while (pos != std::string::npos) {
+		pos = stringIn.find_first_of(escape, pos);
+		if (pos != string::npos) {
+		  escList.push_back(pos + 1); // remember escaped char
+		  pos += 2; // skip escaped char
+		}
+	  }
+	}
     vector<long>::iterator escBeg = escList.begin();
     vector<long>::iterator escEnd = escList.end();
 
