@@ -2097,19 +2097,19 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
       char* newinput=(char*) malloc(BUFSIZ);
       char lastchar = 0;
       SizeT lines;
-              FILE* fd = NULL;
+        int fd = 0;
         for (SizeT i = 0; i < nEl; ++i) {
         std::string fname = (*p0S)[i];
 
         if (!noExp) WordExp(fname);
 
-        if ((fd = fopen(fname.c_str(), "r")) == NULL) {
+        if ((fd = open(fname.c_str(), O_RDONLY)) == -1) {
           e->Throw("Could not open file for reading "); // + p0[i]);
         }
         lines = 0;
         int count=0;
-        count=fread(newinput, 1, BUFSIZ, fd);
-        while (count != 0) {
+        count=read(fd, newinput, BUFSIZ);
+        while (count > 0) {
           for (int i = 0; i < count; ++i) {
             if (newinput[i] == '\n') {
               lines++;
@@ -2118,10 +2118,10 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 
             lastchar = newinput[i];
           }
-          count = fread(newinput, 1, BUFSIZ, fd);
+          count=read(fd, newinput, BUFSIZ);
         }
 
-        fclose(fd);
+        close(fd);
         if (lastchar != '\n' && lastchar != '\r') lines++;
 
         (*res)[ i] = lines;
@@ -2615,7 +2615,7 @@ static int copy_basic(const char *source, const char *dest)
         status = chmod(dest, srcmode);
 
     return status;
-}
+  }
 
 static void FileCopy(   FileListT& fileList, const DString& destdir,
             bool overwrite, bool recursive=false,
