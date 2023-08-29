@@ -377,6 +377,7 @@ int main(int argc, char *argv[])
       cerr << "  --no-dSFMT         Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random doubles." << endl;
       cerr << "                     Also disable by setting the environment variable GDL_NO_DSFMT to a non-null value." << endl;
       cerr << "  --with-eigen-transpose lets GDL use Eigen::transpose and related functions instead of our accelerated transpose function. Normally slower." <<endl;
+      cerr << "  --smart-tpool      switch to a mode where the number of threads is adaptive (experimental). Should enable better perfs on many core machines." <<endl;
 #ifdef _WIN32
       cerr << "  --posix (Windows only): paths will be posix paths (experimental)." << endl;
 #endif
@@ -491,6 +492,10 @@ int main(int argc, char *argv[])
       else if (string(argv[a]) == "--with-eigen-transpose")
       {
          useEigenForTransposeOps = true;
+      }
+      else if (string(argv[a]) == "--smart-tpool")
+      {
+         useSmartTpool = true;
       }
       else if (string(argv[a]) == "--notebook")
       {
