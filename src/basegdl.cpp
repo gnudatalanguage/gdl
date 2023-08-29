@@ -857,7 +857,7 @@ int parallelize(SizeT nEl, int modifier) {
 	  // here we have more than 1 thread, so n operations will be divided between nt threads. It becomes inefficient if nt is large, to start so many threads for diminishing returns.
 	  // I propose to enable as many threads as necessary so that each thread will compute at least CpuTPOOL_MIN_ELTS:
 	  if (CpuTPOOL_MIN_ELTS < 1) return CpuTPOOL_NTHREADS; // the user did not understand IDL's doc about threadpools?.
-	  uint nchunk = nEl / CpuTPOOL_MIN_ELTS;
+	  int nchunk = nEl / CpuTPOOL_MIN_ELTS;
 	  nchunk++; //to be sure
 	  if (nThreads > nchunk) nThreads = nchunk;
 	  //	std::cerr << nThreads;
