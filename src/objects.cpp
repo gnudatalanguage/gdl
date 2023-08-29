@@ -116,6 +116,8 @@ volatile bool useLocalDrivers;
 volatile bool useDSFMTAcceleration;
 //Transpose() operations are faster with our method, but setting this may test if this is still true for future Eigen:: versions or platforms.
 volatile bool useEigenForTransposeOps=false;
+//experimental TPOOL use adaptive number of threads.
+volatile bool useSmartTpool=false;
 
 void ResetObjects()
 {

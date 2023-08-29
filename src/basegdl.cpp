@@ -19,6 +19,7 @@
 
 #include "basegdl.hpp"
 #include "nullgdl.hpp"
+#include "objects.hpp"
 
 using namespace std;
 
@@ -845,26 +846,27 @@ int GDL_NTHREADS=1;
 
 int parallelize(SizeT nEl, int modifier) {
   int nThreads = (nEl >= CpuTPOOL_MIN_ELTS && (CpuTPOOL_MAX_ELTS == 0 || CpuTPOOL_MAX_ELTS >= nEl)) ? CpuTPOOL_NTHREADS : 1;
-  //below, please modify if you find a way to persuade behaviour of those different cases to be better if they return different number of threads.
-  switch (modifier) {
-  case TP_DEFAULT: //the same as IDL, reserved for routines that use the thread pool, ideally check the special thread pool keywords.
-  case TP_ARRAY_INITIALISATION: // used by GDL array initialisation (new, convert, gdlarray): probably needs some special tuning
-  case TP_MEMORY_ACCESS: // concurrent memory access, probably needs to be capped to preserve bandwidth 
-  {
-	if (nThreads == 1) return nThreads;
-	// here we have more than 1 thread, so n operations will be divided between nt threads. It becomes inefficient if nt is large, to start so many threads for diminishing returns.
-	// I propose to enable as many threads as necessary so that each thread will compute at least CpuTPOOL_MIN_ELTS:
-	if (CpuTPOOL_MIN_ELTS < 1) return CpuTPOOL_NTHREADS; // the user did not understand IDL's doc about threadpools?.
-	uint nchunk = nEl / CpuTPOOL_MIN_ELTS;
-	nchunk++; //to be sure
-	if (nThreads > nchunk) nThreads = nchunk;
-//	std::cerr << nThreads;
-	return nThreads;
-  }
-  case TP_CPU_INTENSIVE: // benefit from max number of threads
-	return nThreads;
-  default:
-	return 1;
-  }
-
+  if (useSmartTpool) {
+	//below, please modify if you find a way to persuade behaviour of those different cases to be better if they return different number of threads.
+	switch (modifier) {
+	case TP_DEFAULT: //the same as IDL, reserved for routines that use the thread pool, ideally check the special thread pool keywords.
+	case TP_ARRAY_INITIALISATION: // used by GDL array initialisation (new, convert, gdlarray): need to concern only 1 thread/code whicj is not possible AFAIK.
+	case TP_MEMORY_ACCESS: // concurrent memory access, probably needs to be capped to preserve bandwidth 
+	{
+	  if (nThreads == 1) return nThreads;
+	  // here we have more than 1 thread, so n operations will be divided between nt threads. It becomes inefficient if nt is large, to start so many threads for diminishing returns.
+	  // I propose to enable as many threads as necessary so that each thread will compute at least CpuTPOOL_MIN_ELTS:
+	  if (CpuTPOOL_MIN_ELTS < 1) return CpuTPOOL_NTHREADS; // the user did not understand IDL's doc about threadpools?.
+	  uint nchunk = nEl / CpuTPOOL_MIN_ELTS;
+	  nchunk++; //to be sure
+	  if (nThreads > nchunk) nThreads = nchunk;
+	  //	std::cerr << nThreads;
+	  return nThreads;
+	}
+	case TP_CPU_INTENSIVE: // benefit from max number of threads if possible given MIN and MAX elts etc
+	  return nThreads;
+	default:
+	  return 1;
+	}
+  } else return nThreads;
 }
