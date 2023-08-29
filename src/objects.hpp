@@ -86,6 +86,7 @@ extern volatile bool useDSFMTAcceleration;
 //do we use our own copy of (better?) drivers?
 extern volatile bool useLocalDrivers;
 extern volatile bool usePlatformDeviceName;
+extern volatile bool useEigenForTransposeOps;
 extern          int  debugMode;
 
 enum DebugCode {

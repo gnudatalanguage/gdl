@@ -1320,13 +1320,16 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__
   for (SizeT d = 0; d < rank; ++d) {
     resDim[ d] = this->dim[ perm[ d]];
   }
-
+ 
   Data_* res = new Data_(dimension(resDim, rank), BaseGDL::NOZERO);
 
   // src stride
   SizeT srcStride[ MAXRANK + 1];
   this->dim.Stride(srcStride, rank);
-  
+
+// GD: Tests show that we are way faster than eigen (below) with our 'parallell' method in ALL CASES on my intel I7.  
+// But this may not be true on other platforms, so keep the possibility via a -- switch.
+  if (useEigenForTransposeOps) {
 #ifdef USE_EIGEN
   //for some reason, this simple eigen::code dos not like dimensions == 1, so cannot be used if this is the case.
   bool try_eigen=true;
@@ -1344,6 +1347,7 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__
     return res;
   }
 #endif
+  
 #ifdef EIGEN_HAS_TENSOR  
   else if (try_eigen && rank == 3) // special case: eigen x 3
   {
@@ -1390,6 +1394,8 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__
   }
 
 #endif
+  
+  } //will have returned if eigen ops exist.
   
   SizeT nElem = dd.size();
   long chunksize = nElem;

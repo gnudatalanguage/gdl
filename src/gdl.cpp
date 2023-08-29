@@ -368,14 +368,15 @@ int main(int argc, char *argv[])
       cerr << "  --sloppy           Sets the traditional (default) compiling option where \"()\"  can be used both with functions and arrays." << endl;
       cerr << "                     Needed to counteract temporarily the effect of the enviromnment variable \"GDL_IS_FUSSY\"." << endl;
       cerr << "  --MAC              Graphic device will be called 'MAC' on MacOSX. (default: 'X')" << endl;
-      cerr << "  --no-use-wx        Tells GDL not to use WxWidgets graphics." << endl;
+      cerr << "  [--no-use-wx | -X] Tells GDL not to use WxWidgets graphics and resort to X11 (if available)." << endl;
       cerr << "                     Also enabled by setting the environment variable GDL_DISABLE_WX_PLOTS to a non-null value." << endl;
       cerr << "  --notebook         Force SVG-only device, used only when GDL is a Python Notebook Kernel." << endl;
       cerr << "  --widget-compat    Tells GDL to use a default (rather ugly) fixed pitch font for compatiblity with IDL widgets." << endl;
       cerr << "                     Also enabled by setting the environment variable GDL_WIDGET_COMPAT to a non-null value." << endl;
-      cerr << "                     Using this option may render some historical widgets unworkable (as they are based on fixed sizes)." << endl;
+      cerr << "                     Using this option may render some historical widgets more readable (as they are based on fixed sizes)." << endl;
       cerr << "  --no-dSFMT         Tells GDL not to use double precision SIMD oriented Fast Mersenne Twister(dSFMT) for random doubles." << endl;
       cerr << "                     Also disable by setting the environment variable GDL_NO_DSFMT to a non-null value." << endl;
+      cerr << "  --with-eigen-transpose lets GDL use Eigen::transpose and related functions instead of our accelerated transpose function. Normally slower." <<endl;
 #ifdef _WIN32
       cerr << "  --posix (Windows only): paths will be posix paths (experimental)." << endl;
 #endif
@@ -483,9 +484,13 @@ int main(int argc, char *argv[])
       {
          usePlatformDeviceName = true;
       }
-      else if (string(argv[a]) == "--no-use-wx")
+      else if (string(argv[a]) == "--no-use-wx" |  string(argv[a]) == "-X")
       {
          force_no_wxgraphics = true;
+      }
+      else if (string(argv[a]) == "--with-eigen-transpose")
+      {
+         useEigenForTransposeOps = true;
       }
       else if (string(argv[a]) == "--notebook")
       {
