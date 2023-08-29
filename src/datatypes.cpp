@@ -1401,7 +1401,7 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__
   long chunksize = nElem;
   long nchunk = 1;
   bool do_parallel = false;
-  GDL_NTHREADS=parallelize( nElem, TP_MEMORY_ACCESS);
+  GDL_NTHREADS=parallelize( nElem, TP_CPU_INTENSIVE);
   if (GDL_NTHREADS > 1) { //no use start parallel threading for small numbers.
     chunksize = nElem /  GDL_NTHREADS;
     nchunk = nElem / chunksize;
@@ -1491,7 +1491,7 @@ void Data_<Sp>::Reverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE_
   if (this->dim[dim]%2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT span=outerStride - revStride;
-  if ((GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS))==1) {  //most frequent
+  if ((GDL_NTHREADS=parallelize(nEl, TP_CPU_INTENSIVE))==1) {  //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = o; i < o+revStride; ++i) {
         for (SizeT s = i, opp=span+i; s < halfDim+i  ; s += revStride, opp-=revStride) {
@@ -1529,7 +1529,7 @@ BaseGDL* Data_<Sp>::DupReverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
   if (this->dim[dim]%2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT span=outerStride - revStride;
-  if ((GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS))==1) {  //most frequent
+  if ((GDL_NTHREADS=parallelize(nEl, TP_CPU_INTENSIVE))==1) {  //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = o; i < o+revStride; ++i) {
         for (SizeT s = i, opp=span+i; s < halfDim+i  ; s += revStride, opp-=revStride) {
@@ -1569,7 +1569,7 @@ BaseGDL* Data_<SpDPtr>::DupReverse(DLong dim) {
   if (this->dim[dim] % 2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT span = outerStride - revStride;
-  if ((GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS)) == 1) { //most frequent
+  if ((GDL_NTHREADS=parallelize(nEl, TP_CPU_INTENSIVE)) == 1) { //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = o; i < o + revStride; ++i) {
         for (SizeT s = i, opp = span + i; s < halfDim + i; s += revStride, opp -= revStride) {
@@ -1611,7 +1611,7 @@ BaseGDL* Data_<SpDObj>::DupReverse(DLong dim)  {
   if (this->dim[dim] % 2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT span = outerStride - revStride;
-  if ((GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS)) == 1) { //most frequent
+  if ((GDL_NTHREADS=parallelize(nEl, TP_CPU_INTENSIVE)) == 1) { //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = o; i < o + revStride; ++i) {
         for (SizeT s = i, opp = span + i; s < halfDim + i; s += revStride, opp -= revStride) {
@@ -3823,7 +3823,7 @@ void Data_<Sp>::CatInsert (const Data_* srcArr, const SizeT atDim, SizeT& at)
   SizeT gap = this->dim.Stride (atDim + 1); // dest array
   
 //GD: speed up by using indexing that permit parallel and collapse.
-  if ((GDL_NTHREADS=parallelize( len*nCp, TP_MEMORY_ACCESS))==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( len*nCp, TP_CPU_INTENSIVE))==1) { //most frequent
     for (OMPInt c = 0; c < nCp; ++c) {
       for (SizeT destIx = 0; destIx < len; destIx++) (*this)[destIx + destStart + c * gap] = (*srcArr)[ destIx + c * len];
     }
