@@ -182,12 +182,6 @@ ${SOURCES}
 qhull.cpp
 )
 endif(HAVE_QHULL)
-if(WIN32)
-set(SOURCES
-${SOURCES}
-gdl.rc
-)
-endif(WIN32)
 if(HAVE_LIBWXWIDGETS AND WIN32)
 find_file(WX_RC wx.rc HINTS ${wxWidgets_INCLUDE_DIRS} PATH_SUFFIXES wx/msw)
 set(SOURCES
@@ -214,6 +208,9 @@ if(PYTHON_MODULE) #GDL.so
 else(PYTHON_MODULE) #GDL.so
 	set(SOURCES ${SOURCES} gdl.cpp)
 	add_executable(gdl ${SOURCES})
+	if(WIN32)
+		target_sources(gdl PRIVATE gdl.rc)
+	endif(WIN32)
 endif(PYTHON_MODULE)
 
 if(USE_OPENMP)
