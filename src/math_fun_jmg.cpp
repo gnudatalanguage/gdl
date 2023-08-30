@@ -927,7 +927,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_CPU_INTENSIVE))==1) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -1027,7 +1027,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_CPU_INTENSIVE))==1) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -1225,7 +1225,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_CPU_INTENSIVE))==1) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i in P and Q definition of IDL doc.
@@ -1373,7 +1373,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_CPU_INTENSIVE))==1) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
@@ -1485,7 +1485,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_CPU_INTENSIVE))==1) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.
@@ -1691,7 +1691,7 @@ namespace lib {
     }
 
     /* Double loop on the output image  */
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
+    if ((GDL_NTHREADS=parallelize( nEl, TP_CPU_INTENSIVE))==1) {
       for (OMPInt j = 0; j < nRows; ++j) {
         for (OMPInt i = 0; i < nCols; ++i) {
           // Compute the original source for this pixel, note order of j and i.

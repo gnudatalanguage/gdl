@@ -4091,50 +4091,6 @@ namespace lib {
   }
 
 
-  // BaseGDL* matrix_multiply( EnvT* e)
-  //   {
-  //     SizeT nParam=e->NParam( 2);
-  //
-  //     BaseGDL* a = e->GetNumericArrayParDefined( 0);
-  //     BaseGDL* b = e->GetNumericArrayParDefined( 1);
-  //
-  //     static int aTIx = e->KeywordIx("ATRANSPOSE");
-  //     bool aT = e->KeywordPresent(aTIx);
-  //     static int bTIx = e->KeywordIx("BTRANSPOSE");
-  //     bool bT = e->KeywordPresent(bTIx);
-  //
-  //     static int strassenIx = e->KeywordIx("STRASSEN_ALGORITHM");
-  //     bool strassen = e->KeywordPresent(strassenIx);
-  //
-  //
-  //     if( p1->N_Elements() != rank)
-  //      e->Throw("Incorrect number of elements in permutation.");
-  //
-  //    DUInt* perm = new DUInt[rank];
-  //    Guard<DUInt> perm_guard( perm);
-  //
-  //    DUIntGDL* p1L = static_cast<DUIntGDL*>
-  //      (p1->Convert2( GDL_UINT, BaseGDL::COPY));
-  //    for( SizeT i=0; i<rank; ++i) perm[i] = (*p1L)[ i];
-  //    delete p1L;
-  //
-  //    // check permutaion vector
-  //    for( SizeT i=0; i<rank; ++i)
-  //      {
-  //        DUInt j;
-  //        for( j=0; j<rank; ++j) if( perm[j] == i) break;
-  //        if (j == rank)
-  //          e->Throw( "Incorrect permutation vector.");
-  //      }
-  //    return p0->Transpose( perm);
-  //       }
-  //
-  //     return a->Transpose( NULL);
-  //   }
-
-  // helper function for sort_fun, recursive
-  // optimized version
-
   template< typename IndexT>
   void MergeSortOpt(BaseGDL* p0, IndexT* hhS, IndexT* h1, IndexT* h2,
     SizeT len) {
