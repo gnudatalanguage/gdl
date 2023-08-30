@@ -44,7 +44,7 @@
   
 
   SizeT nElem = (stop - start) / step;
-  GDL_NTHREADS=parallelize( nElem);
+  GDL_NTHREADS=parallelize( nElem, TP_CPU_INTENSIVE);
   //trap existence of ABSFUNC and create something that stands cppchekck useage (needed by contiunous integration scripts!) 
 #ifndef ABSFUNC
 #define FUNCABS

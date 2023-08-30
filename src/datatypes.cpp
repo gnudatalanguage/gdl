@@ -1320,13 +1320,16 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__
   for (SizeT d = 0; d < rank; ++d) {
     resDim[ d] = this->dim[ perm[ d]];
   }
-
+ 
   Data_* res = new Data_(dimension(resDim, rank), BaseGDL::NOZERO);
 
   // src stride
   SizeT srcStride[ MAXRANK + 1];
   this->dim.Stride(srcStride, rank);
-  
+
+// GD: Tests show that we are way faster than eigen (below) with our 'parallell' method in ALL CASES on my intel I7.  
+// But this may not be true on other platforms, so keep the possibility via a -- switch.
+  if (useEigenForTransposeOps) {
 #ifdef USE_EIGEN
   //for some reason, this simple eigen::code dos not like dimensions == 1, so cannot be used if this is the case.
   bool try_eigen=true;
@@ -1344,6 +1347,7 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__
     return res;
   }
 #endif
+  
 #ifdef EIGEN_HAS_TENSOR  
   else if (try_eigen && rank == 3) // special case: eigen x 3
   {
@@ -1391,11 +1395,13 @@ BaseGDL* Data_<Sp>::Transpose(DUInt* perm) { TRACE_ROUTINE(__FUNCTION__,__FILE__
 
 #endif
   
+  } //will have returned if eigen ops exist.
+  
   SizeT nElem = dd.size();
   long chunksize = nElem;
   long nchunk = 1;
   bool do_parallel = false;
-  GDL_NTHREADS=parallelize( nElem, TP_MEMORY_ACCESS);
+  GDL_NTHREADS=parallelize( nElem, TP_CPU_INTENSIVE);
   if (GDL_NTHREADS > 1) { //no use start parallel threading for small numbers.
     chunksize = nElem /  GDL_NTHREADS;
     nchunk = nElem / chunksize;
@@ -1485,7 +1491,7 @@ void Data_<Sp>::Reverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE_
   if (this->dim[dim]%2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT span=outerStride - revStride;
-  if ((GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS))==1) {  //most frequent
+  if ((GDL_NTHREADS=parallelize(nEl, TP_CPU_INTENSIVE))==1) {  //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = o; i < o+revStride; ++i) {
         for (SizeT s = i, opp=span+i; s < halfDim+i  ; s += revStride, opp-=revStride) {
@@ -1523,7 +1529,7 @@ BaseGDL* Data_<Sp>::DupReverse(DLong dim) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
   if (this->dim[dim]%2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT span=outerStride - revStride;
-  if ((GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS))==1) {  //most frequent
+  if ((GDL_NTHREADS=parallelize(nEl, TP_CPU_INTENSIVE))==1) {  //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = o; i < o+revStride; ++i) {
         for (SizeT s = i, opp=span+i; s < halfDim+i  ; s += revStride, opp-=revStride) {
@@ -1563,7 +1569,7 @@ BaseGDL* Data_<SpDPtr>::DupReverse(DLong dim) {
   if (this->dim[dim] % 2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT span = outerStride - revStride;
-  if ((GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS)) == 1) { //most frequent
+  if ((GDL_NTHREADS=parallelize(nEl, TP_CPU_INTENSIVE)) == 1) { //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = o; i < o + revStride; ++i) {
         for (SizeT s = i, opp = span + i; s < halfDim + i; s += revStride, opp -= revStride) {
@@ -1605,7 +1611,7 @@ BaseGDL* Data_<SpDObj>::DupReverse(DLong dim)  {
   if (this->dim[dim] % 2) halfDim++;
   SizeT outerStride = this->dim.Stride(dim + 1);
   SizeT span = outerStride - revStride;
-  if ((GDL_NTHREADS=parallelize(nEl, TP_MEMORY_ACCESS)) == 1) { //most frequent
+  if ((GDL_NTHREADS=parallelize(nEl, TP_CPU_INTENSIVE)) == 1) { //most frequent
     for (SizeT o = 0; o < nEl; o += outerStride) {
       for (SizeT i = o; i < o + revStride; ++i) {
         for (SizeT s = i, opp = span + i; s < halfDim + i; s += revStride, opp -= revStride) {
@@ -3817,7 +3823,7 @@ void Data_<Sp>::CatInsert (const Data_* srcArr, const SizeT atDim, SizeT& at)
   SizeT gap = this->dim.Stride (atDim + 1); // dest array
   
 //GD: speed up by using indexing that permit parallel and collapse.
-  if ((GDL_NTHREADS=parallelize( len*nCp, TP_MEMORY_ACCESS))==1) { //most frequent
+  if ((GDL_NTHREADS=parallelize( len*nCp, TP_CPU_INTENSIVE))==1) { //most frequent
     for (OMPInt c = 0; c < nCp; ++c) {
       for (SizeT destIx = 0; destIx < len; destIx++) (*this)[destIx + destStart + c * gap] = (*srcArr)[ destIx + c * len];
     }
