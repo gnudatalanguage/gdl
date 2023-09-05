@@ -1103,33 +1103,39 @@ void help_help(EnvT* e)
       DStringGDL *previous_commands;
       previous_commands = recall_commands_internal();
       SizeT nEl2 = previous_commands->N_Elements();
-      cout << "Recall buffer length: " << nEl2 << '\n';
 
-      char ctmp;
-      int nb_lines=TermHeight();
 
-      for (SizeT i = 0; i < nEl2; ++i) {
-        if (isKWSetNames and
-          !CompareWithJokers(names, (*previous_commands)[i])) continue;
-        *ostrp << i + 1 << "  " << (*previous_commands)[i] << '\n';
-	if (( i > 0) && (i % (nb_lines-4)) == 0) {
-	  *ostrp << "      < Press q or Q to quit, any key to continue, ? for help >" << '\n'; 
-	  ctmp=my_get_kbrd(); 
-	  nb_lines=TermHeight();
-	  if ((tolower(ctmp) == 'h') || (ctmp == '?')) {
-	    *ostrp << "---------------------------------------------------    " << '\n';
-	    *ostrp << "<space>		Display next page of text." << '\n';
-	    *ostrp << "<return>	Display next line of text. (TBD)" << '\n';
-	    *ostrp << "q or Q		Quit" << '\n';
-	    *ostrp << "h, H, or ?	Display this message." << '\n';
-	    *ostrp << "---------------------------------------------------" << '\n';
-	    ctmp=my_get_kbrd(); 
-	    nb_lines=TermHeight();
+      if (doOutput) { //bug 1628
+		*ostrp << "Recall buffer length: " << nEl2 << '\n';
+		for (SizeT i = 0; i < nEl2; ++i) {
+		  if (isKWSetNames and !CompareWithJokers(names, (*previous_commands)[i])) continue;
+		  *ostrp << i + 1 << "  " << (*previous_commands)[i] << '\n';
+		}
+	  } else { //bug 1628
+		char ctmp;
+		int nb_lines = TermHeight();
+		*ostrp << "Recall buffer length: " << nEl2 << '\n';
+		for (SizeT i = 0; i < nEl2; ++i) {
+		  if (isKWSetNames and !CompareWithJokers(names, (*previous_commands)[i])) continue;
+		  *ostrp << i + 1 << "  " << (*previous_commands)[i] << '\n';
+		  if ((i > 0) && (i % (nb_lines - 4)) == 0) {
+			*ostrp << "      < Press q or Q to quit, any key to continue, ? for help >" << '\n';
+			ctmp = my_get_kbrd();
+			nb_lines = TermHeight();
+			if ((tolower(ctmp) == 'h') || (ctmp == '?')) {
+			  *ostrp << "---------------------------------------------------    " << '\n';
+			  *ostrp << "<space>		Display next page of text." << '\n';
+			  *ostrp << "<return>	Display next line of text. (TBD)" << '\n';
+			  *ostrp << "q or Q		Quit" << '\n';
+			  *ostrp << "h, H, or ?	Display this message." << '\n';
+			  *ostrp << "---------------------------------------------------" << '\n';
+			  ctmp = my_get_kbrd();
+			  nb_lines = TermHeight();
+			}
+			if (tolower(ctmp) == 'q') break;
+		  }
+		}
 	  }
-	  if (tolower(ctmp) == 'q') break;	  
-	}
-      }
-
       GDLDelete(previous_commands);
       if (doOutput) (*outputKW) = StreamToGDLString(ostr);
       else cout << ostr.str();
