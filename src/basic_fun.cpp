@@ -8203,6 +8203,8 @@ namespace lib {
   string TagName(EnvT* e, const string& name) {
     string n = StrUpCase(name);
     SizeT len = n.size();
+    //GD: bug (#1627) 
+    if (n[0] == ' ' || n[0] == '\t' ) n[0] = '_';
     if (n[0] != '_' && n[0] != '!' && (n[0] < 'A' || n[0] > 'Z'))
       e->Throw("Illegal tag name: " + name + ".");
     for (SizeT i = 1; i < len; ++i) {
