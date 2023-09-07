@@ -2152,13 +2152,14 @@ tokens {
       // make copy as we delete 'this'
       antlr::TokenStreamSelector* sel=selector; 
 
-      // here 'this' is deleted (pops selector)
-      delete sel->getCurrentStream();
-
       // make sure errors are reported in right file
       parserPtr->setFilename(
         static_cast<GDLLexer*>(selector->getCurrentStream())->getFilename());
-            
+
+ //GD: see issue #1632 -- deletion must be here and not before previous line!           
+      // here 'this' is deleted (pops selector)
+      delete sel->getCurrentStream();
+
       // don't allow EOF until main lexer.  Force the
       // selector to retry for another token.
       sel->retry();
