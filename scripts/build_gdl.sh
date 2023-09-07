@@ -392,7 +392,7 @@ function prep_packages {
            pushd ${ROOT_DIR}/PLplot
              mkdir build
              pushd ${ROOT_DIR}/PLplot/build
-             cmake .. -DCMAKE_INSTALL_PREFIX=${HOME}/plplot-local -DENABLE_octave=OFF -DENABLE_qt=OFF -DENABLE_lua=OFF \
+             cmake .. -DENABLE_octave=OFF -DENABLE_qt=OFF -DENABLE_lua=OFF \
              -DENABLE_tk=OFF -DENABLE_python=OFF -DENABLE_tcl=OFF -DPLD_xcairo=OFF -DPLD_wxwidgets=ON -DENABLE_wxwidgets=ON \
              -DENABLE_DYNDRIVERS=ON -DENABLE_java=OFF -DPLD_xwin=ON -DENABLE_fortran=OFF
              make
@@ -442,14 +442,12 @@ function configure_gdl {
             export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/opt/homebrew/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
-                                    "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" 
-                                    "-DCMAKE_PREFIX_PATH=${HOME}/plplot-local" ) 
+                                    "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" ) 
         else
             export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/usr/local/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
-                                    "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" 
-                                    "-DCMAKE_PREFIX_PATH=${HOME}/plplot-local" )
+                                    "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
         fi
     fi
 
@@ -590,8 +588,9 @@ function pack_gdl {
 
         mkdir MacOS
         echo "#!/bin/sh" > MacOS/gdl
+        echo 'export ARCHPREFERENCE="arm64,x86_64" ' > MacOS/gdl
         echo 'SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"' >> MacOS/gdl
-        echo 'open -a Terminal "file://${SCRIPTPATH}/../Resources/bin/gdl"' >> MacOS/gdl
+        echo 'open -a Terminal "${SCRIPTPATH}/../Resources/bin/gdl"' >> MacOS/gdl
         chmod +x MacOS/gdl
 
         mkdir Resources
@@ -675,7 +674,7 @@ else
             if [ ${BUILD_OS} == "Windows" ]; then
                 find_architecture
             else
-                export arch="x86_64"
+                export arch=$(uname -m)
             fi
             cmd=AVAILABLE_OPTIONS_$optkey
             eval ${!cmd}
