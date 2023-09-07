@@ -392,7 +392,7 @@ function prep_packages {
            pushd ${ROOT_DIR}/PLplot
              mkdir build
              pushd ${ROOT_DIR}/PLplot/build
-             cmake .. -DENABLE_octave=OFF -DENABLE_qt=OFF -DENABLE_lua=OFF \
+             cmake .. -DCMAKE_INSTALL_PREFIX=${HOME}/plplot-local -DENABLE_octave=OFF -DENABLE_qt=OFF -DENABLE_lua=OFF \
              -DENABLE_tk=OFF -DENABLE_python=OFF -DENABLE_tcl=OFF -DPLD_xcairo=OFF -DPLD_wxwidgets=ON -DENABLE_wxwidgets=ON \
              -DENABLE_DYNDRIVERS=ON -DENABLE_java=OFF -DPLD_xwin=ON -DENABLE_fortran=OFF
              make
@@ -442,12 +442,14 @@ function configure_gdl {
             export LIBRARY_PATH=$LIBRARY_PATH:/opt/homebrew/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/opt/homebrew/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
-                                    "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" ) 
+                                    "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang" 
+                                    "-DCMAKE_PREFIX_PATH=${HOME}/plplot-local" ) 
         else
             export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/opt/llvm/lib
             CMAKE_ADDITIONAL_ARGS=( "-DREADLINEDIR=/usr/local/opt/readline"
                                     "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++"
-                                    "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" )
+                                    "-DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang" 
+                                    "-DCMAKE_PREFIX_PATH=${HOME}/plplot-local" )
         fi
     fi
 
@@ -556,7 +558,7 @@ function test_gdl {
 
 function copy_dylibs_recursive {
     install_name_tool -add_rpath $2 $1
-    for dylib in $(otool -L $1 | grep local | sed 's; \(.*\);;' | xargs); do
+    for dylib in $(otool -L $1 | grep -e 'homebrew' -e 'local' -e '/usr/lib' | sed 's; \(.*\);;' | xargs); do
         install_name_tool -change $dylib @rpath/$(basename ${dylib}) $1
         if [[ ! ${found_dylibs[@]} =~ (^|[[:space:]])"$dylib"($|[[:space:]]) ]]; then
             found_dylibs+=("${dylib}")
@@ -597,8 +599,8 @@ function pack_gdl {
         cp ${GDL_DIR}/resource/gdl.icns Resources/
 
         mkdir Frameworks
-        #GD: found the need to have plplot libs seen with fixed paths in otool to make he App inependent from the build machine (to export via a DMG)
-        for dylib in $(otool -l Resources/bin/gdl | grep libplplot | sed -e "s%name %%g;s%(.*)%%g" | xargs); do install_name_tool -change $dylib /usr/local/lib/`basename $dylib` Resources/bin/gdl; done
+#        #GD: found the need to have plplot libs seen with fixed paths in otool to make he App inependent from the build machine (to export via a DMG)
+#        for dylib in $(otool -l Resources/bin/gdl | grep libplplot | sed -e "s%name %%g;s%(.*)%%g" | xargs); do install_name_tool -change $dylib /usr/local/lib/`basename $dylib` Resources/bin/gdl; done
         found_dylibs=()
         copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
 
