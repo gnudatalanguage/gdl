@@ -132,13 +132,14 @@ class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
       // make copy as we delete 'this'
       antlr::TokenStreamSelector* sel=selector; 
 
-      // here 'this' is deleted (pops selector)
-      delete sel->getCurrentStream();
 
       // make sure errors are reported in right file
       parserPtr->setFilename(
         static_cast<GDLLexer*>(selector->getCurrentStream())->getFilename());
-            
+
+      // here 'this' is deleted (pops selector)
+      delete sel->getCurrentStream();
+
       // don't allow EOF until main lexer.  Force the
       // selector to retry for another token.
       sel->retry();
