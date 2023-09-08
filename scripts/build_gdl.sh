@@ -392,7 +392,7 @@ function prep_packages {
            pushd ${ROOT_DIR}/PLplot
              mkdir build
              pushd ${ROOT_DIR}/PLplot/build
-             cmake .. -DENABLE_octave=OFF -DENABLE_qt=OFF -DENABLE_lua=OFF \
+             cmake .. -DCMAKE_INSTALL_PREFIX=$(brew --prefix) -DENABLE_octave=OFF -DENABLE_qt=OFF -DENABLE_lua=OFF \
              -DENABLE_tk=OFF -DENABLE_python=OFF -DENABLE_tcl=OFF -DPLD_xcairo=OFF -DPLD_wxwidgets=ON -DENABLE_wxwidgets=ON \
              -DENABLE_DYNDRIVERS=ON -DENABLE_java=OFF -DPLD_xwin=ON -DENABLE_fortran=OFF
              make
@@ -556,7 +556,8 @@ function test_gdl {
 
 function copy_dylibs_recursive {
     install_name_tool -add_rpath $2 $1
-    for dylib in $(otool -L $1 | grep local | sed 's; \(.*\);;' | xargs); do
+    #copy libraries in the form /usr/local/lib/xxx ...
+    for dylib in $(otool -L $1 | grep $(brew --prefix) | sed 's; \(.*\);;' | xargs); do
         install_name_tool -change $dylib @rpath/$(basename ${dylib}) $1
         if [[ ! ${found_dylibs[@]} =~ (^|[[:space:]])"$dylib"($|[[:space:]]) ]]; then
             found_dylibs+=("${dylib}")
@@ -588,8 +589,9 @@ function pack_gdl {
 
         mkdir MacOS
         echo "#!/bin/sh" > MacOS/gdl
+        echo 'export ARCHPREFERENCE="arm64,x86_64" ' >> MacOS/gdl
         echo 'SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"' >> MacOS/gdl
-        echo 'open -a Terminal "file://${SCRIPTPATH}/../Resources/bin/gdl"' >> MacOS/gdl
+        echo 'open -a Terminal "${SCRIPTPATH}/../Resources/bin/gdl"' >> MacOS/gdl
         chmod +x MacOS/gdl
 
         mkdir Resources
@@ -597,8 +599,9 @@ function pack_gdl {
         cp ${GDL_DIR}/resource/gdl.icns Resources/
 
         mkdir Frameworks
-        #GD: found the need to have plplot libs seen with fixed paths in otool to make he App inependent from the build machine (to export via a DMG)
-        for dylib in $(otool -l Resources/bin/gdl | grep libplplot | sed -e "s%name %%g;s%(.*)%%g" | xargs); do install_name_tool -change $dylib /usr/local/lib/`basename $dylib` Resources/bin/gdl; done
+        #GD: found the need to have @rpath libs changed to their fixed paths to insure copy_dylibs_recursive find and copy them (to export via a DMG)
+        # This seems more complicated to do inside copy_dylibs_recursive as it is, recursive.
+        for dylib in $(otool -l Resources/bin/gdl | grep @rpath | sed -e "s%name %%g;s%(.*)%%g" | xargs); do install_name_tool -change $dylib $(brew --prefix)/lib/`basename $dylib` Resources/bin/gdl; done
         found_dylibs=()
         copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
 
@@ -673,7 +676,7 @@ else
             if [ ${BUILD_OS} == "Windows" ]; then
                 find_architecture
             else
-                export arch="x86_64"
+                export arch=$(uname -m)
             fi
             cmd=AVAILABLE_OPTIONS_$optkey
             eval ${!cmd}
