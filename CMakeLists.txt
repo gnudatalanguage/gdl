@@ -34,7 +34,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # X.X.X git becomes release X.X.X+1
-set(VERSION "1.0.2 Git")
+set(VERSION "1.0.3 Git")
 enable_testing()
 
 # cf issue 511, managing MultiArch on Debian ...
