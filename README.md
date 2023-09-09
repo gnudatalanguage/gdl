@@ -128,16 +128,17 @@ Help welcome!
 
 Information resources
 ---------------------
-
-As GDL is aimed as a drop-in replacement for IDL,
-resources for IDL constitute valuable sources of information for GDL users as well.
-These include:
+GDL does not maintain a proper documentation: as GDL is aimed as a drop-in replacement for IDL,
+resources for IDL constitute the valuable sources of information for GDL users as well. GDL MUST behave (at least) as IDL, and any discrepancy should be reported by opening an issue.
+Conversely, the GDL issues and discussion forum on GitHub are not the good place for beginners to ask for advice on how to use IDL (or GDL). Use the forum below.
+IDL freely available resources include:
 - the [official IDL documentation](https://www.harrisgeospatial.com/docs/)
 - the [idl-pvwave Google Group](https://groups.google.com/forum/#!forum/idl-pvwave)
 - the [comp.lang.idl-pvwave usenet group archives](http://www.idlcoyote.com/comp.lang.idl-pvwave/) (dating back to 1991!)
 - Wikipedia article on [IDL](https://en.wikipedia.org/wiki/IDL_\(programming_language\)) and references therein
 - websites of IDL gurus including [David Fanning](http://www.idlcoyote.com/) and [Michael Galloy](http://michaelgalloy.com/)
 - numerous [tutorials and lecture notes](https://www.google.com/search?q=interactive+data+language) introducing IDL
+- old, used, but still very valid IDL booklets can be found in various libraries, second-hand bookstores etc.
 
 There are several open source packages compatible or interoperable with GDL, including:
 - the [MPFIT](https://pages.physics.wisc.edu/~craigm/idl/cmpfit.html) curve fitting library written in IDL (also available as a [Debian package](https://packages.debian.org/gdl-mpfit))
