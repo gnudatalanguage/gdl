@@ -84,21 +84,6 @@ class DevicePS: public GraphicsDevice
     PLINT XOFF=encapsulated?0:ceil(XOffset*DPICM);
     PLINT YOFF=encapsulated?0:ceil(YOffset*DPICM);
     
-    // as setting the offsets and sizes with plPlot is (extremely) tricky, and some of these setting
-    // are hardcoded into plplot (like EPS header, and offsets in older versions of plplot)
-    // here we play only with the aspect ratio 
-
-    // plot orientation
-    //std::cout  << "orientation : " << orient_portrait<< '\n';
-    if (orient_portrait) { //X size will be OK, Y size must be scaled 
-     actStream->setopt( "portrait",NULL);
-     actStream->sdidev( PL_NOTSET, PlplotInternalPageRatioXoverY, PL_NOTSET, PL_NOTSET ); //only OK if page ratio is 540x720 
-     actStream->spage(PS_DPI, PS_DPI, XSIZE, YSIZE, YOFF, XOFF);
-    } else {
-     actStream->spage(PS_DPI, PS_DPI, YSIZE, XSIZE, YOFF-XSIZE, XOFF); //invert axes, displace as does IDL..
-     actStream->sdiori(2);
-    }
-
     // no pause on destruction
     actStream->spause( false);
 
@@ -116,6 +101,33 @@ class DevicePS: public GraphicsDevice
     actStream->setopt( "drvopt",what.c_str());
     actStream->scolbg(255,255,255); // start with a white background
 
+    // as setting the offsets and sizes with plPlot is (extremely) tricky, and some of these setting
+    // are hardcoded into plplot (like EPS header, and offsets in older versions of plplot)
+    // here we play only with the aspect ratio, and, I must confess, this has been largely based on trial and error.
+
+    // plot orientation
+    PLFLT xovery = float(XSIZE) / float(YSIZE);
+    //Only by using the -a option can we really fix the aspect ratio. use plsdidev (revious version) did absolutely nothing 
+    //to keep characters etc aspect ok we need to make the 'good' size larger or smaller by truc*PlplotInternalPageRatioXoverY and displace by half this value 
+    actStream->setopt("a", i2s(xovery).c_str()); //this will compress the X or Y axis by xovery, but does not change the position of the axis center. So some difficulty to find the good offsets as
+    //they depend on the axis compression, the half axis size . the following should do.
+    if (orient_portrait) { //X size will be OK, Y size must be scaled 
+      actStream->setopt("portrait", NULL);
+      if (xovery <= PlplotInternalPageRatioXoverY) { //expand Y (will be compressed by the -a setopt)
+        actStream->spage(PS_DPI, PS_DPI, XSIZE, YSIZE/xovery*PlplotInternalPageRatioXoverY, YOFF  -YSIZE/2/xovery*PlplotInternalPageRatioXoverY + YSIZE/2,  XOFF);
+      } else { //expand X
+        actStream->spage(PS_DPI, PS_DPI, XSIZE*xovery/PlplotInternalPageRatioXoverY, YSIZE, YOFF, -XSIZE/2*xovery/PlplotInternalPageRatioXoverY + XSIZE/2 + XOFF);
+      }
+    } else { //landscape: XOFF and YOFF are X and Y but XSIZE and YSIZE are exchanged wrt previous case, and YOFF is replaced by YOFF-XSIZE.
+      if (xovery <= PlplotInternalPageRatioXoverY) {
+        actStream->spage(PS_DPI, PS_DPI, YSIZE, XSIZE/xovery*PlplotInternalPageRatioXoverY, YOFF-XSIZE -XSIZE/2/xovery*PlplotInternalPageRatioXoverY + XSIZE/2 , XOFF);
+      } else {
+        actStream->spage(PS_DPI, PS_DPI, YSIZE*xovery/PlplotInternalPageRatioXoverY, XSIZE, YOFF-XSIZE, -YSIZE/2*xovery/PlplotInternalPageRatioXoverY + YSIZE/2 + XOFF);
+      }
+      actStream->sdiori(2);
+
+    }
+    
     actStream->Init();
 
     // need to be called initially. permit to fix things
@@ -135,7 +147,7 @@ class DevicePS: public GraphicsDevice
     
 public:
   DevicePS(): GraphicsDevice(), fileName( "gdl.ps"), actStream( NULL),
-    XPageSize(17.78), YPageSize(12.7), XOffset(1.905),YOffset(12.7),  //IDL default for offests: 54 pts /X and 360 pts/Y
+    XPageSize(17.78), YPageSize(12.7), XOffset(1.905),YOffset(12.7),  //IDL default for offsets: 54 pts /X and 360 pts/Y
     color(0), decomposed( 0), encapsulated(false), scale(1.), orient_portrait(true), bitsPerPix(8)
   {
     name = "PS";
@@ -263,10 +275,10 @@ public:
       // no need to update !D
     orient_portrait = true;
 //    nb: IDL defaults to:
-//    SetXPageSize(7 * in2cm);
-//    SetYPageSize(5 * in2cm);
-//    SetXOffset(.75 * in2cm);
-//    SetYOffset(5 * in2cm); 
+    SetXPageSize(7 * in2cm);
+    SetYPageSize(5 * in2cm);
+    SetXOffset(.75 * in2cm);
+    SetYOffset(5 * in2cm); 
     return true;
   }
 
@@ -274,10 +286,10 @@ public:
   {
       // no need to update !D
     orient_portrait = false;
-//    SetXPageSize(9.5 * in2cm);
-//    SetYPageSize(7.0 * in2cm);
-//    SetXOffset(.75 * in2cm);
-//    SetYOffset(10.25 * in2cm);
+    SetXPageSize(9.5 * in2cm);
+    SetYPageSize(7.0 * in2cm);
+    SetXOffset(.75 * in2cm);
+    SetYOffset(10.25 * in2cm);
     return true;
   }
 

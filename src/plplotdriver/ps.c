@@ -369,7 +369,7 @@ ps_init( PLStream *pls )
     fprintf( OF, "/@SetPlot\n" );
     fprintf( OF, "   {\n" );
     fprintf( OF, "    ho vo translate\n" );
-    fprintf( OF, "    XScale YScale scale\n" );
+    fprintf( OF, "    XScale YScale scale  \n" );
     fprintf( OF, "   } def\n" );
 
 // Setup x & y scales
@@ -396,7 +396,8 @@ ps_init( PLStream *pls )
     fprintf( OF, "/N {newpath} def\n" );
     fprintf( OF, "/C {setrgbcolor} def\n" );
     fprintf( OF, "/G {setgray} def\n" );
-    fprintf( OF, "/W {setlinewidth} def\n" );
+// try to make linewidth more like IDL
+    fprintf( OF, "/W { XScale YScale add 2 div div 2 div setlinewidth} def %% note: IDL scale is fixed to 0.028346 \n" );
     fprintf( OF, "/SF {selectfont} def\n" );
     fprintf( OF, "/R {rotate} def\n" );
     fprintf( OF, "/SW {stringwidth 2 index mul exch 2 index mul exch rmoveto pop} bind def\n" );
