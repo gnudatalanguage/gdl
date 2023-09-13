@@ -171,9 +171,8 @@ function cw_bgroup, parent, labels, $
   else issens = 1
   
   b0 = widget_base(parent, $
-                   column = keyword_set(label_top), $
-                   row = keyword_set(label_left) && $
-                   ~keyword_set(label_top), $
+                   column = keyword_set(label_top) || ~keyword_set(label_left) , $
+                   row = keyword_set(label_left) && ~keyword_set(label_top), $
                    map = ismap, $
                    uvalue = uvalue, $
                    uname = uname, $
