@@ -3808,7 +3808,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     //      thick for box and ticks.
     a->Thick(Thick);
     a->smaj(ticklen_in_mm, 1.0);
-    a->smin(ticklen_in_mm / 2.0, 1.0);
+    if (TickLen < 0.3 || inverted_ticks) a->smin(ticklen_in_mm / 2.0, 1.0); //IDL behaviour.
     if (hasTickUnitDefined) //  replay tickunits
     {
       DFloat y_displacement=0;
