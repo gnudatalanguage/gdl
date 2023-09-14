@@ -54,7 +54,7 @@ static const float ALLCHARACTERSFORSTRINGLENGTHTEST_NCHARS = 36;
 const double INCHToMM = 25.4 ; 
 const double INCHToCM = 2.54 ;
 const double CM_IN_MM = 10.00000000 ; 
-const double DEFAULT_FONT_ASPECT_RATIO = 1.2; // Height / Width
+const double DEFAULT_FONT_ASPECT_RATIO = 1.3; // Height / Width
 using namespace std;
 static std::string internalFontCodes[] = {
     "#fn",      // !0  : unused
@@ -642,7 +642,7 @@ public:
   void ssub( PLINT nx, PLINT ny, PLINT nz=1);
   void adv(PLINT page);
   void getSubpageRegion(PLFLT &sxmin, PLFLT &symin, PLFLT &sxmax, PLFLT &symax, PLFLT *zmin=NULL, PLFLT *zmax=NULL);
-  void SetPageDPMM();
+  void SetPageDPMM(float setPsCharFudge=1.0, float setPsSymFudge=1.0);
   void syncPageInfo();
   void updateBoxDeviceCoords();
 

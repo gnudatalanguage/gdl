@@ -125,7 +125,6 @@ class DevicePS: public GraphicsDevice
         actStream->spage(PS_DPI, PS_DPI, YSIZE*xovery/PlplotInternalPageRatioXoverY, XSIZE, YOFF-XSIZE, -YSIZE/2*xovery/PlplotInternalPageRatioXoverY + YSIZE/2 + XOFF);
       }
       actStream->sdiori(2);
-
     }
     
     actStream->Init();
@@ -140,7 +139,9 @@ class DevicePS: public GraphicsDevice
 
     actStream->ssub(1, 1);
     actStream->adv(0); //this is for us (counters)
-    actStream->SetPageDPMM();
+    float fudge=17780./float(XPageSize*scale*PS_RESOL)*12700./float(YPageSize*scale*PS_RESOL);
+    fudge=1.5*sqrt(fudge);
+    actStream->SetPageDPMM(text==1?1:fudge,fudge);
     actStream->DefaultCharSize();
 //    clear();
   }

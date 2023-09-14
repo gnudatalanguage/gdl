@@ -25,24 +25,8 @@
 
 using namespace std;
 
-// bool GDLGStream::plstreamInitCalled = false;
-
-// void PLPlotAbortHandler(const char *c)
-// {
-//   cout << "PLPlot abort handler: " << c << endl;
-// }
-// 
-// int PLPlotExitHandler(const char *c)
-// {
-//   cout << "PLPlot exit handler: " << c << endl;
-//   return 0;
-// }
-// 
-// void GDLGStream::SetErrorHandlers()
-// {
-//   plsexit( PLPlotExitHandler);
-//   plsabort( PLPlotAbortHandler);
-// }
+static float psCharFudge=1; //to compensate the wrong size of fonts in PS using Hershey
+static float psSymFudge=1; //to compensate the wrong size of symbols in PS
 
 void GDLGStream::Thick(DFloat thick)
 {
@@ -194,10 +178,12 @@ void GDLGStream::DefaultBackground()
 }
 #undef WHITEB
 
-void GDLGStream::SetPageDPMM() {
+void GDLGStream::SetPageDPMM(float setPsCharFudge, float setPsSymFudge) {
   //This is supposed to be called each time DPI is changed, which happens only at creation of a new device.
   // contrary to the page size, that may change for intercative devices that can be resized.
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr, "SetPageDPMM()\n");
+  psCharFudge=setPsCharFudge;
+  psSymFudge=setPsSymFudge;
   PLINT level;
   plstream::glevel(level);
   if (level <= 1) return;
@@ -332,8 +318,10 @@ void GDLGStream::DefaultCharSize() {
   DStructDesc* s = d->Desc();
   int X_CH_SIZE = s->TagIndex("X_CH_SIZE");
   int Y_CH_SIZE = s->TagIndex("Y_CH_SIZE");
-  DLong chx = (*static_cast<DLongGDL*> (d->GetTag(X_CH_SIZE, 0)))[0];
-  DLong chy = (*static_cast<DLongGDL*> (d->GetTag(Y_CH_SIZE, 0)))[0];
+  DLong ichx = (*static_cast<DLongGDL*> (d->GetTag(X_CH_SIZE, 0)))[0];
+  DLong ichy = (*static_cast<DLongGDL*> (d->GetTag(Y_CH_SIZE, 0)))[0];
+  PLFLT chx=ichx; //needed as floats for subsequent computations!
+  PLFLT chy=ichy;
   int FLAGS = s->TagIndex("FLAGS");
   DLong flags = (*static_cast<DLongGDL*> (d->GetTag(FLAGS, 0)))[0];
   if (flags & 0x1) {
@@ -346,7 +334,8 @@ void GDLGStream::DefaultCharSize() {
     setFixedCharacterSize(chx, 1.0, chy);
   }
 }
-void GDLGStream::SetCharSize(DLong chx, DLong chy) {
+void GDLGStream::SetCharSize(DLong ichx, DLong chy) {
+  PLFLT chx=ichx;
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"GDLGStream::SetCharSize()\n");
   DStructGDL* d = SysVar::D();
   DStructDesc* s = d->Desc();
@@ -483,16 +472,8 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
   
 //since the page sizes for PS and EPS images are processed by GDL after plplot finishes 
 //its work, gpage will not output correct sizes 
-  DString name = (*static_cast<DStringGDL*>(
-    SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)
-  ))[0];
-  if (name == "PS") { 
-    xSize = (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"), 0)))[0];
-    ySize = (*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"), 0)))[0];
-  } else {
   xSize = xleng;
   ySize = yleng;
-  }
   if (xSize<1.0||ySize<1) //plplot gives back crazy values! z-buffer for example!
   {
     PLFLT xmin,xmax,ymin,ymax;
@@ -1062,7 +1043,7 @@ void GDLGStream::setSymbolSize( PLFLT scale )
 {
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"setSymbolScale(%f)\n",scale);
 //  plstream::ssym(0.0, scale);
-  theCurrentSymSize=scale;
+  theCurrentSymSize=scale*psSymFudge;
 }
 
 void GDLGStream::setLineSpacing(PLFLT newSpacing)
@@ -1147,15 +1128,12 @@ void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
   }
 }
 
-#define FUDGE_VARCHARSIZE sqrt(2)
 //This defines the character size for SCALABLE character devices (POSTSCRIPT, SVG))
 //The dimension of "average" character (given by X_CH_SIZE) is to be a physical (mm) size.
 //this implies to have a correct value for DPI AND that the plplot driver is correctly written.
 void GDLGStream::setVariableCharacterSize( PLFLT charwidthpixel, PLFLT scale , PLFLT lineSpacingpixel, PLFLT xpxcm, PLFLT ypxcm)
 {
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"setVariableCharacterSize()\n");
-  xpxcm/=FUDGE_VARCHARSIZE;
-  ypxcm/=FUDGE_VARCHARSIZE;  //go figure why this is needed, but indeed it is needed!
   //tried by comparison of outputs of 
   // "set_plot,'ps' & !P.multi=[0,2,2]&a=dist(5)&for i=1,4 do begin&s=i*0.7& plot,a,psym=6,syms=s,chars=s,xtit="XXXX" $
   //  & xyouts,indgen(25),a,"M",ali=0.5,chars=s & end & !p.multi=0 & plots,[0.001,0.001,0.999,0.999,0.001],$
@@ -1188,7 +1166,7 @@ void GDLGStream::setVariableCharacterSize( PLFLT charwidthpixel, PLFLT scale , P
 //    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"re-check character width=%f, ratio is %f\n",em, ratio);
 //#endif
   }
- setLineSpacing(lineSpacingpixel/ydpi*INCHToMM); //this one is NOT related to characters idiosyncrasies.
+  setLineSpacing(lineSpacingpixel/ydpi*INCHToMM); //this one is NOT related to characters idiosyncrasies.
   gdlDefaultCharInitialized=0; //reset Default
   CurrentCharSize(scale);
 }
@@ -1230,8 +1208,8 @@ void GDLGStream::setFixedCharacterSize( PLFLT charwidthpixel, PLFLT scale , PLFL
 
 void GDLGStream::sizeChar( PLFLT scale )
 {
-    if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"SizeChar(%f)\n",scale);
-  plstream::schr(theDefaultChar.mmsx, scale); //must FORCE a new size.
+  if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"SizeChar(%f)\n",scale);
+  plstream::schr(theDefaultChar.mmsx, scale*psCharFudge); //must FORCE a new size.
   CurrentCharSize(scale);
 }
 
