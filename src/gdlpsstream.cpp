@@ -23,6 +23,8 @@
 
 using namespace std;
 
+static const PLFLT PlplotInternalPageRatioXoverY=4./3.; //Some machines do not know PRIVATE values stored in plplotP.h 4/3=PlplotInternalPageRatioXoverY=float(PIXELS_X)/float(PIXELS_Y)
+
 void GDLPSStream::Init()
 {
 //select the fonts in all cases...
@@ -74,16 +76,51 @@ bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
     cerr << "TV: Value of CHANNEL (use TRUE instead) is out of allowed range." << endl;
     return false;
   } 
-  pls->bytecnt += fprintf(pls->OutFile, "\n%%BeginObject: Image\n");
+  //PS may be compressed/expanded to circumvent strange driver behaviour. The compression factor is found by comparing !D.XSIZE with xleng below
+  DLong ix_size=(*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"))))[0] ;
+  float xsize=float(ix_size)/1000.*72/2.54; //in cm
+  DLong iy_size=(*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"))))[0] ;
+  float ysize=float(iy_size)/1000.*72/2.54; //in cm
+//  std::cerr<<xPageSize()<<","<<yPageSize()<<std::endl;
+//  std::cerr<<xsize<<","<<ysize<<std::endl;
+  PLFLT xovery = xsize/ysize; //see deviceps.hpp : this is the desired ratio between axes.
+  //To maintain hershey fonts shapes etc, it was needed to force the aspect ratio of the PS file using '-a xovery' option,
+  //however this changes terribly the positioning of non-plplot objects such as images or psyms.
+  //the conversion factor is:
+  xovery/=PlplotInternalPageRatioXoverY;
+  PLFLT xdpi, ydpi;
+  PLINT xleng, yleng, xoff, yoff;
+  plstream::gpage( xdpi, ydpi, xleng, yleng, xoff, yoff); //so-called page parameters, the units vary pixels or mm (screen vs. printers)
+  float xfact=xsize/xleng;
+  float yfact=ysize/yleng; //one of those two is very close to 1, as the '-a' compression for PS works only on one axis. int to float rounding errors make the value
+  // for the non-expanded axis slightly different from 1. it is important that it be 1.
+  //if (abs(xfact-1.)> abs(yfact-1)) yfact=1; else xfact=1; //xScale is modified, yScale is 1.
   
-  // note PLPLOT_PS_MAGIC_FACTOR = 1000 (dpi) /72 * 2.54 = 0.028346458 
-
+  pls->bytecnt += fprintf(pls->OutFile, "\nS\n%%BeginObject: Image\n");
+  // the x or y fact that is not 1 is the coefficient of the '-a' 
+  // presence of "compression" (see deviceps.hpp) makes offset calculations a bit heavy. We copy the complicated formula of deviceps.hpp
   if (portrait) {
-  pls->bytecnt += fprintf(pls->OutFile, "%d 0.028346458 mul XScale div %d 0.028346458 mul YScale div translate\n", pos[0], pos[2]);
+      if (xovery <= 1) { 
+//        std::cerr<<"portrait 1"<<std::endl;
+        pls->bytecnt += fprintf(pls->OutFile, "%d XScale div  %d %f mul hs 2 div add hs 2 div %f mul sub YScale div translate\n", pos[0], yfact, xovery, pos[2]); //offx, offy
+        pls->bytecnt += fprintf(pls->OutFile, "%d XScale div %d %f mul YScale div scale\n", pos[1], pos[3], xovery); //xsize, ysize
+      } else {
+//        std::cerr<<"portrait 2"<<std::endl;
+        pls->bytecnt += fprintf(pls->OutFile, "%d %f mul vs 2 div add vs 2 div %f div sub XScale div %d YScale div translate\n", pos[0], xfact, xovery, pos[2]); //offx, offy
+        pls->bytecnt += fprintf(pls->OutFile, "%d %f div XScale div %d YScale div scale\n", pos[1], xovery, pos[3]); //xsize, ysize
+      }
   } else {
-  pls->bytecnt += fprintf(pls->OutFile, "%d 0.028346458 mul YScale div hs 0.028346458 div %d sub 0.028346458 mul XScale div translate 270 rotate\n", pos[2], pos[0]);
+      if (xovery <= 1) { 
+//        std::cerr<<"land 1"<<std::endl;
+	pls->bytecnt += fprintf(pls->OutFile, "%d %f mul YScale div \n vs %d sub XScale div translate \n 270 rotate\n", pos[2], yfact, pos[0]);
+    pls->bytecnt += fprintf(pls->OutFile, "%d XScale div %f mul %d YScale div %f mul scale\n", pos[1], xfact, pos[3], yfact); //xsize, ysize
+      } else {
+//        std::cerr<<"land 2"<<std::endl;
+	pls->bytecnt += fprintf(pls->OutFile, "%d %f mul YScale div \n hs %d %f mul sub XScale div translate \n 270 rotate\n", pos[2], xfact, pos[0], xfact);
+    pls->bytecnt += fprintf(pls->OutFile, "%d XScale div %f mul %d YScale div %f mul scale\n", pos[1], yfact, pos[3], yfact); //xsize, ysize
+      }
+
   }
-  pls->bytecnt += fprintf(pls->OutFile, "%d 0.028346458 mul XScale div %d 0.028346458 mul YScale div scale\n", pos[1], pos[3]);
 #define LINEWIDTH 80
 
   if (trueColorOrder == 0) { 
