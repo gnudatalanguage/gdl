@@ -28,11 +28,14 @@ DEVICE, filename=filename, encap=encap, port=port, /color
 aa=FINDGEN(60)
 !P.MULTI=[0,3,2]
 for i=0,5 do begin
-    PLOT, aa, ticklen=1
-    TV, image, 10*i, 10*i, /DATA, /true, xsize=50
-end
+   pos=10*i
+   spos=strtrim(pos,2)
+    PLOT, aa, ticklen=1, /xst, /yst, xtitle='image at ('+spos+","+spos+").", ytitle='image length: 50 units.'
+    TV, image, pos, pos, /DATA, /true, xsize=50
+ endfor
 ;
 DEVICE, /close
+!P.MULTI=0
 SET_PLOT, 'X'
 ;
 end
@@ -46,14 +49,16 @@ filename=prefix+'appleman.ps'
 MESSAGE, /continue, 'writing file : '+filename
 ;
 SET_PLOT, 'PS'
-DEVICE, filename=filename, /color
-;
+DEVICE, filename=filename, xsize=8,ysize=30, /land,/color
+
 PLOT, FINDGEN(1000), /nodata, $
       xrange=[-10, 650], yrange=[-10,522], /xstyle, /ystyle
+plots,[0,0,1,1,0],[0,1,1,0,0],/norm
 ;
 APPLEMAN, res=res, /NoDisplay
 LOADCT, 15
-TV, res, 10, 10, xsize=640, ysize=512, /DATA
+;TV, res, 0.5, 0.5, xsize=0.5, ysize=0.5, /NORM
+TV, res, 0, 0, xsize=200, ysize=300, /DATA
 ;
 DEVICE, /close
 SET_PLOT, 'X'

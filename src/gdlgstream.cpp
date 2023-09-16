@@ -1210,7 +1210,7 @@ void GDLGStream::sizeChar( PLFLT scale )
 {
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"SizeChar(%f)\n",scale);
   plstream::schr(theDefaultChar.mmsx, scale*psCharFudge); //must FORCE a new size.
-  CurrentCharSize(scale);
+  CurrentCharSize(scale*psCharFudge);
 }
 
 bool GDLGStream::vpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax )
