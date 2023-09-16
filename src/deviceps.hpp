@@ -111,18 +111,19 @@ class DevicePS: public GraphicsDevice
     //to keep characters etc aspect ok we need to make the 'good' size larger or smaller by truc*PlplotInternalPageRatioXoverY and displace by half this value 
     actStream->setopt("a", i2s(xovery).c_str()); //this will compress the X or Y axis by xovery, but does not change the position of the axis center. So some difficulty to find the good offsets as
     //they depend on the axis compression, the half axis size . the following should do.
+    xovery/=PlplotInternalPageRatioXoverY; //normalize
     if (orient_portrait) { //X size will be OK, Y size must be scaled 
       actStream->setopt("portrait", NULL);
-      if (xovery <= PlplotInternalPageRatioXoverY) { //expand Y (will be compressed by the -a setopt)
-        actStream->spage(PS_DPI, PS_DPI, XSIZE, YSIZE/xovery*PlplotInternalPageRatioXoverY, YOFF  -YSIZE/2/xovery*PlplotInternalPageRatioXoverY + YSIZE/2,  XOFF);
+      if (xovery <= 1) { //expand Y (will be compressed by the -a setopt)
+        actStream->spage(PS_DPI, PS_DPI, XSIZE, YSIZE/xovery, YOFF       -YSIZE/2/xovery + YSIZE/2,  XOFF);
       } else { //expand X
-        actStream->spage(PS_DPI, PS_DPI, XSIZE*xovery/PlplotInternalPageRatioXoverY, YSIZE, YOFF, -XSIZE/2*xovery/PlplotInternalPageRatioXoverY + XSIZE/2 + XOFF);
+        actStream->spage(PS_DPI, PS_DPI, XSIZE*xovery, YSIZE, YOFF      , -XSIZE/2*xovery + XSIZE/2 + XOFF);
       }
     } else { //landscape: XOFF and YOFF are X and Y but XSIZE and YSIZE are exchanged wrt previous case, and YOFF is replaced by YOFF-XSIZE.
-      if (xovery <= PlplotInternalPageRatioXoverY) {
-        actStream->spage(PS_DPI, PS_DPI, YSIZE, XSIZE/xovery*PlplotInternalPageRatioXoverY, YOFF-XSIZE -XSIZE/2/xovery*PlplotInternalPageRatioXoverY + XSIZE/2 , XOFF);
+      if (xovery <= 1) {
+        actStream->spage(PS_DPI, PS_DPI, YSIZE, XSIZE/xovery, YOFF-XSIZE -XSIZE/2/xovery + XSIZE/2 , XOFF);
       } else {
-        actStream->spage(PS_DPI, PS_DPI, YSIZE*xovery/PlplotInternalPageRatioXoverY, XSIZE, YOFF-XSIZE, -YSIZE/2*xovery/PlplotInternalPageRatioXoverY + YSIZE/2 + XOFF);
+        actStream->spage(PS_DPI, PS_DPI, YSIZE*xovery, XSIZE, YOFF-XSIZE, -YSIZE/2*xovery + YSIZE/2 + XOFF);
       }
       actStream->sdiori(2);
     }
