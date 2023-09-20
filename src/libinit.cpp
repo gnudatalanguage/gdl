@@ -1076,6 +1076,6 @@ void LibInit()
   new DLibFunRetNew(lib::value_locate, string("VALUE_LOCATE"),2,valuelocateKey);
 
   const string gaussfitKey[] = {"CHISQ","ESTIMATES", "MEASURE_ERRORS", "NTERMS", "SIGMA", "YERROR",KLISTEND};
-  new DLibFunRetNew(lib::gaussfit2, string("GAUSSFIT2"), 3, gaussfitKey);
+  new DLibFunRetNew(lib::gaussfit, string("GAUSSFIT"), 3, gaussfitKey);
 }
 

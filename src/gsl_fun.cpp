@@ -3476,7 +3476,7 @@ namespace lib {
 
 
      
-        // chisq2 is here in order to have access to its value in the function gaussfit2
+        // chisq2 is here in order to have access to its value in the function gaussfit
         const gsl_multifit_nlinear_type *T = gsl_multifit_nlinear_trust;
         const size_t max_iter = 200;
         const double xtol = 1.0e-8;
@@ -3679,7 +3679,7 @@ namespace lib {
 
     }
 
-    BaseGDL *gaussfit2(EnvT *e) {
+    BaseGDL *gaussfit(EnvT *e) {
         int realNterms = 6;
 
         static int ntermsIx = e->KeywordIx("NTERMS");
@@ -3772,13 +3772,13 @@ namespace lib {
         else if (p == 5) fdf.f = gaussian_vec5;
         else fdf.f = gaussian_vec6;
 
-        // uncomment and change lm to another algorithm if needed (see https://www.gnu.org/software/gsl/doc/html/nls.html#c.gsl_multifit_nlinear_trs for all algorithms)
+        // uncomment and change lm to another algorithm if needed
+	// (see https://www.gnu.org/software/gsl/doc/html/nls.html#c.gsl_multifit_nlinear_trs for all algorithms)
         //fdf_params.trs = gsl_multifit_nlinear_trs_lm;
 
         // get chisq in case we want it later
         double chisqGSL = 0;
         solve_system(x, &fdf, &fdf_params, &chisqGSL);
-
 
         DDoubleGDL *res = new DDoubleGDL(fit_data.n, BaseGDL::NOZERO);
 

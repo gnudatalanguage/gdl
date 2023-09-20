@@ -68,7 +68,7 @@ namespace lib {
   BaseGDL* wtn(EnvT* e);
   BaseGDL* zeropoly(EnvT* e);
   BaseGDL* spher_harm(EnvT* e);
-  BaseGDL* gaussfit2(EnvT* e);
+  BaseGDL* gaussfit(EnvT* e);
   BaseGDL* random_fun_gsl(EnvT* e);
 
   template< typename T1, typename T2>
