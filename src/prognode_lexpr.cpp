@@ -216,6 +216,7 @@ BaseGDL** SYSVARNode::LExpr( BaseGDL* right)
 		true,false);
 
 	BaseGDL** res=this->LEval(); //l_sys_var(this);
+	if (*res == NullGDL::GetSingleInstance()) return NULL;  //!NULL is a SYSVAR so this is the only place for !NULL=something.
 	Guard<BaseGDL> conv_guard; //( rConv);
 	BaseGDL* rConv = right;
 	if( !(*res)->EqType( right))
