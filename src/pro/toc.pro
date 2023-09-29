@@ -1,90 +1,44 @@
 ; AC, first version 14/01/2013 at JPL
 ; using the timing ... eventually no reseting it
 ;
+; rewrote by GD 2023 (!) not accurate enough
 ; under GPL 2 or any later
 ;
-pro TOC, list_of_clocks, report=report, help=help, test=test
-;
-compile_opt idl2, hidden
-ON_ERROR, 2
-;
-if KEYWORD_SET(help) then begin
-   print, 'pro TOC, list_of_clocks, report=report, help=help, test=test'
-   return
-endif
-;
-if KEYWORD_SET(report) then begin
-   MESSAGE,/continue, 'This /REPORT keyword is not available, please contribute'
-endif
-;
-if N_PARAMS() GT 1 then MESSAGE, 'Incorrect number of arguments.'
-;
-t0=SYSTIME(1)
-prefix='% Time elapsed '
-suffix=' seconds.'
-;
-input_is_null=(N_ELEMENTS(list_of_clocks) EQ 0) OR (list_of_clocks EQ !null)
-;
-if ((N_PARAMS() EQ 0) OR (input_is_null)) then begin
-   DEFSYSV, '!TIC', exist=tic_exist
-   if ~tic_exist then MESSAGE, 'No tic, no toc'
-   print, prefix+': ', t0-!tic.time, suffix
-   return
-endif
-;
-;if N_PARAMS() EQ 1 then stop
-;if N_ELEMENTS(list_of_clocks) EQ 0 then begin
-;   help, list_of_clocks 
-;   stop
-;endif
-;
-for ii=0, N_ELEMENTS(list_of_clocks)-1 do begin
-   print, prefix+list_of_clocks[ii].name+': ', $
-          t0-list_of_clocks[ii].TIME, suffix
-endfor
-;
-if KEYWORD_SET(test) then STOP
-;
+function toc, listOfClocks, report=profilerReport ; report ignored.
+
+  compile_opt idl2, hidden
+  on_error, 2
+  common ourtictoc, NewReferenceTime
+; get time first
+  tt = systime(/seconds)
+
+  if (~isa(listOfClocks) && ~isa(NewReferenceTime)) then begin
+    message, 'no tic, no toc', /informational
+    return, !null
+  endif else return, isa(listOfClocks) ? tt - listOfClocks.time : tt - NewReferenceTime
 end
-;
-; --------------------------------
-;
-function TOC, list_of_clocks, report=report, help=help, test=test
-;
-compile_opt idl2, hidden
-ON_ERROR, 2
-;
-if KEYWORD_SET(help) then begin
-   print, 'function TOC, list_of_clocks, report=report, help=help, test=test'
-   return, !null
-endif
-;
-if KEYWORD_SET(report) then begin
-   MESSAGE,/continue, 'This /REPORT keyword is not available, please contribute'
-endif
-;
-if N_PARAMS() GT 1 then MESSAGE, 'Incorrect number of arguments.'
-;
-t0=SYSTIME(1)
-;
-input_is_null=(N_ELEMENTS(list_of_clocks) EQ 0) OR (list_of_clocks EQ !null)
-;
-if ((N_PARAMS() EQ 0) OR (input_is_null)) then begin
-   DEFSYSV, '!TIC', exist=tic_exist
-   if ~tic_exist then begin
-      MESSAGE, /continue, 'No tic, no toc'
-      return, !null
-   endif
-   return, t0-!tic.time
-endif
-;
-list_of_times=DBLARR(N_ELEMENTS(list_of_clocks))
-for ii=0, N_ELEMENTS(list_of_clocks)-1 do begin
-   list_of_times[ii]=t0-list_of_clocks[ii].TIME
-endfor
-;
-if KEYWORD_SET(test) then STOP
-;
-return, list_of_times
-;
+
+
+pro toc, listOfClocks, lun=lun, report=profilerReport  ; report ignored.
+  
+  compile_opt idl2, hidden
+  on_error, 2
+  common ourtictoc, NewReferenceTime
+
+  tt = toc(listOfClocks)
+  if ~isa(tt) then return
+  if ~isa(lun) then lun=-1
+  
+  header = '% Time elapsed '
+  semi=': '
+  for iClock=0,N_ELEMENTS(tt)-1 do begin
+    if (isa(listOfClocks) && listOfClocks[iClock].name ne '') then begin
+       str = header + listOfClocks[iClock].name + semi + strtrim(tt[iClock],2) + ' seconds.'
+       printf, lun, str 
+    endif else begin
+       str = header + semi + strtrim(tt[iClock],2) + ' seconds.'
+       printf, lun, str
+    endelse
+  endfor
+
 end
