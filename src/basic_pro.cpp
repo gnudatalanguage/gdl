@@ -2277,8 +2277,6 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
       e->GetParString(0));
     DStringGDL* p0S = static_cast<DStringGDL*> (p0);
 
-    static StrArr openFiles;
-
     SizeT nEl = p0S->N_Elements();
     for (int i = 0; i < nEl; ++i) {
       DString pro = (*p0S)[i];
@@ -2293,34 +2291,34 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
         else return;
       }
 
-      // file already opened?
-      bool open = false;
-      for (StrArr::iterator j = openFiles.begin(); j != openFiles.end(); ++j) {
-        if (proFile == *j) {
-          open = true;
-          break;
-        }
-      }
-      if (open)
-        continue;
       //routine already compiled? NATCHKEBIA Ilia 24.06.2015
       bool exists = false;
       for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
         if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
-          //cout << "Routine is compiled,so won't recompile " << (*i)->ObjectName() <<endl;
           exists = true;
           break;
         }
       }
-      if (exists && norecompileKeyword)
-        continue;
+	  if (!exists && (isfunctionKeyword || eitherKeyword)) { //give a chance that the FUNC is already compiled. GD.
+		for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+		  if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
+			exists = true;
+			break;
+		  }
+		}		
+	  }
+      if (exists && norecompileKeyword) continue;
 
-      StackSizeGuard<StrArr> guard(openFiles);
-
-      // append file to list
-      openFiles.push_back(proFile);
       bool success = GDLInterpreter::CompileFile(proFile,cff?StrUpCase(pro):""); // this might trigger recursion
-
+	  //here the compilation may have produced BOTH a PRO and a FUNC (e.g;: TIC and TOC. Check:
+      bool isPro = false; //is pro (GD).
+      for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+        if (StrUpCase(proFile).find((*i)->ObjectName()) != std::string::npos) {
+          //cout << "exists function " << (*i)->ObjectName() <<endl;
+          isPro = true;
+          break;
+        }
+      }
       //is func NATCHKEBIA Ilia 25.06.2015
       bool isFunc = false;
       for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
@@ -2330,9 +2328,11 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
           break;
         }
       }
-      if ((!isFunc && isfunctionKeyword && !eitherKeyword) ||
-        (isFunc && !isfunctionKeyword && !eitherKeyword && !exists))
-        if (!quiet) e->Throw("Attempt to call undefined : " + proFile);
+	  bool both=(isFunc && isPro);
+	  if (!quiet && !both) {
+		if (!isFunc && isfunctionKeyword && !eitherKeyword) e->Throw("Attempt to call undefined : " + proFile);
+		if (isFunc && !isfunctionKeyword && !eitherKeyword && !exists) e->Throw("Attempt to call undefined : " + proFile);
+	  }
 
       if (success) {
         // Message("RESOLVE_ROUTINE: Compiled file: " + proFile);
