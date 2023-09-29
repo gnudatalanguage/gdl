@@ -2,66 +2,36 @@
 ; initializing the timing ...
 ;
 ; revisiting on Nov. 26, 2013
-;
+; rewrote by GD 2023 (!) not accurate enough
 ; under GPL 2 or any later
-; 
-pro TIC, vide, profiler=profiler, help=help, test=test
+;
+function TIC, tagname, profiler=doProfile, default=UseAsDefault ; default undocumented and profiler not exactly supported.
 ;
 compile_opt idl2, hidden
 ON_ERROR, 2
 ;
-if KEYWORD_SET(help) then begin
-   print, 'pro TIC, name, profiler=profiler, help=help, test=test'
-   return
-endif
+common ourtictoc,  NewReferenceTime
 ;
-if KEYWORD_SET(profiler) then begin
-   MESSAGE, /continue, 'This /PROFILER keyword is not available, please contribute'
-endif
-;
-if N_PARAMS() GT 1 then MESSAGE, 'Incorrect number of arguments.'
-;
-if N_PARAMS() EQ 1 then vide=''
-;
-t0=SYSTIME(1)
-;
-DEFSYSV, '!TIC', {NAME: '', TIME : t0}
-;
-if KEYWORD_SET(test) then STOP
-;
+if ~isa(NewReferenceTime) eq 0 then NewReferenceTime=0d
+if ~isa(tagname) then tagname=''
+; TOC must be alredy compiled when it will be called, so:
+resolve_routine, 'toc', /no_recompile
+
+  time = systime(/seconds)
+  return_value = {name: tagname, time: time}
+
+  if (keyword_set(UseAsDefault)) then NewReferenceTime = time
+
+  return, return_value
 end
-;
-; --------------------
-;
-function TIC, name, profiler=profiler, help=help, test=test
-;
-compile_opt idl2, hidden
-ON_ERROR, 2
-;
-if KEYWORD_SET(help) then begin
-   print, 'function TIC, name, profiler=profiler, help=help, test=test'
-   return, !null
-endif
-;
-if KEYWORD_SET(profiler) then begin
-   MESSAGE, /continue, 'This /PROFILER keyword is not available, please contribute'
-endif
-;
-if N_PARAMS() GT 1 then MESSAGE, 'Incorrect number of arguments.'
-;
-if N_PARAMS() EQ 0 then name=''
-;
-t0=SYSTIME(1)
-;
-; since a function call to TIC then TOC is OK, !tic must be set up
-; (the value is wrong but works as expected !)
-;
-DEFSYSV, '!TIC', exist=tic_exist
-if ~tic_exist then DEFSYSV, '!TIC', {NAME: '', TIME : 0.0D}
-;
-if KEYWORD_SET(test) then STOP
-;
-return, {NAME: name, TIME : t0}
-;
+
+pro tic, tagname, profiler=doProfile ; profiler not exactly supported.
+
+  compile_opt idl2, hidden
+  on_error, 2
+;  common ourtictoc, NewReferenceTime
+  
+;  !null = tic(tagname, /default, profiler=doProfile)
+  z = tic(tagname, /default, profiler=doProfile)
 end
 
