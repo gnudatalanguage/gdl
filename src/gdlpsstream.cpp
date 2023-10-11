@@ -23,8 +23,6 @@
 
 using namespace std;
 
-static const PLFLT PlplotInternalPageRatioXoverY=4./3.; //Some machines do not know PRIVATE values stored in plplotP.h 4/3=PlplotInternalPageRatioXoverY=float(PIXELS_X)/float(PIXELS_Y)
-
 void GDLPSStream::Init()
 {
 //select the fonts in all cases...
@@ -70,57 +68,44 @@ void image_compress(unsigned char *idata, PLINT size, long bpp)
 }
 bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *pos,
         DLong trueColorOrder, DLong channel) {
+  if (firstTime){
+    firstTime=false;
+//    this->OnePageSaveLayout();
+    this->vpor(0, 1, 0, 1); //ALL PAGE
+    this->wind(0, 1, 0, 1); //ALL PAGE
+    PLFLT x=0;
+    PLFLT y=0;
+    this->poin(1,&x,&y,-1); //put a point at 0,0 wherever it is on the plot
+    this->Flush();
+    pls->bytecnt += fprintf(pls->OutFile, "\ncurrentpoint /YMIN exch def /XMIN exch def\n");
+    x=1;
+    y=1;
+    this->poin(1,&x,&y,-1); //put a point at 0,0 wherever it is on the plot
+    this->Flush();
+//    this->RestoreLayout();
+//autotest whether PS was rotated + define good sizes.
+    pls->bytecnt += fprintf(pls->OutFile, "\n%%Introspection code by GDL to insure exact positioning of images.\n");
+    pls->bytecnt += fprintf(pls->OutFile, "\ncurrentpoint /YMAX exch def /XMAX exch def\n");
+    pls->bytecnt += fprintf(pls->OutFile, "YMAX YMIN lt /LAND exch def \n");
+    pls->bytecnt += fprintf(pls->OutFile, "LAND { YMAX /YMAX YMIN def /YMIN exch def /ROT 270 def} {/ROT 0 def} ifelse\n");
+    pls->bytecnt += fprintf(pls->OutFile, "XMAX XMIN sub /XRANGE exch def YMAX YMIN sub /YRANGE exch def\n");
+    pls->bytecnt += fprintf(pls->OutFile, "LAND {/X0 XMIN def /Y0 YMAX def /RX YRANGE def /RY XRANGE def}"
+    "{/X0 XMIN def /Y0 YMIN def /RX XRANGE def /RY YRANGE def} ifelse\n");
+  }
+  //need to : check position in file Ok; update bounding box values.
+  //test black and white:
   bool bw = (((*static_cast<DLongGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("FLAGS"), 0)))[0] & 16) == 0); 
+  long xs, ys;
+  GDLPSStream::GetGeometry(xs, ys);
   SizeT nelem;
   if (channel > 0) {
     cerr << "TV: Value of CHANNEL (use TRUE instead) is out of allowed range." << endl;
     return false;
   } 
-  //PS may be compressed/expanded to circumvent strange driver behaviour. The compression factor is found by comparing !D.XSIZE with xleng below
-  DLong ix_size=(*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("X_SIZE"))))[0] ;
-  float xsize=float(ix_size)/1000.*72/2.54; //in cm
-  DLong iy_size=(*static_cast<DLongGDL*>(SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("Y_SIZE"))))[0] ;
-  float ysize=float(iy_size)/1000.*72/2.54; //in cm
-//  std::cerr<<xPageSize()<<","<<yPageSize()<<std::endl;
-//  std::cerr<<xsize<<","<<ysize<<std::endl;
-  PLFLT xovery = xsize/ysize; //see deviceps.hpp : this is the desired ratio between axes.
-  //To maintain hershey fonts shapes etc, it was needed to force the aspect ratio of the PS file using '-a xovery' option,
-  //however this changes terribly the positioning of non-plplot objects such as images or psyms.
-  //the conversion factor is:
-  xovery/=PlplotInternalPageRatioXoverY;
-  PLFLT xdpi, ydpi;
-  PLINT xleng, yleng, xoff, yoff;
-  plstream::gpage( xdpi, ydpi, xleng, yleng, xoff, yoff); //so-called page parameters, the units vary pixels or mm (screen vs. printers)
-  float xfact=xsize/xleng;
-  float yfact=ysize/yleng; //one of those two is very close to 1, as the '-a' compression for PS works only on one axis. int to float rounding errors make the value
-  // for the non-expanded axis slightly different from 1. it is important that it be 1.
-  //if (abs(xfact-1.)> abs(yfact-1)) yfact=1; else xfact=1; //xScale is modified, yScale is 1.
   
-  pls->bytecnt += fprintf(pls->OutFile, "\nS\n%%BeginObject: Image\n");
-  // the x or y fact that is not 1 is the coefficient of the '-a' 
-  // presence of "compression" (see deviceps.hpp) makes offset calculations a bit heavy. We copy the complicated formula of deviceps.hpp
-  if (portrait) {
-      if (xovery <= 1) { 
-//        std::cerr<<"portrait 1"<<std::endl;
-        pls->bytecnt += fprintf(pls->OutFile, "%d XScale div  %d %f mul hs 2 div add hs 2 div %f mul sub YScale div translate\n", pos[0], yfact, xovery, pos[2]); //offx, offy
-        pls->bytecnt += fprintf(pls->OutFile, "%d XScale div %d %f mul YScale div scale\n", pos[1], pos[3], xovery); //xsize, ysize
-      } else {
-//        std::cerr<<"portrait 2"<<std::endl;
-        pls->bytecnt += fprintf(pls->OutFile, "%d %f mul vs 2 div add vs 2 div %f div sub XScale div %d YScale div translate\n", pos[0], xfact, xovery, pos[2]); //offx, offy
-        pls->bytecnt += fprintf(pls->OutFile, "%d %f div XScale div %d YScale div scale\n", pos[1], xovery, pos[3]); //xsize, ysize
-      }
-  } else {
-      if (xovery <= 1) { 
-//        std::cerr<<"land 1"<<std::endl;
-	pls->bytecnt += fprintf(pls->OutFile, "%d %f mul YScale div \n vs %d sub XScale div translate \n 270 rotate\n", pos[2], yfact, pos[0]);
-    pls->bytecnt += fprintf(pls->OutFile, "%d XScale div %f mul %d YScale div %f mul scale\n", pos[1], xfact, pos[3], yfact); //xsize, ysize
-      } else {
-//        std::cerr<<"land 2"<<std::endl;
-	pls->bytecnt += fprintf(pls->OutFile, "%d %f mul YScale div \n hs %d %f mul sub XScale div translate \n 270 rotate\n", pos[2], xfact, pos[0], xfact);
-    pls->bytecnt += fprintf(pls->OutFile, "%d XScale div %f mul %d YScale div %f mul scale\n", pos[1], yfact, pos[3], yfact); //xsize, ysize
-      }
-
-  }
+  pls->bytecnt += fprintf(pls->OutFile, "\n%%BeginObject: Image\n S gsave\nX0 Y0 translate ROT rotate RX RY scale\n");
+  pls->bytecnt += fprintf(pls->OutFile, "%d %ld div %d %ld div translate\n", pos[0], xs, pos[2], ys);
+  pls->bytecnt += fprintf(pls->OutFile, "%d %ld div %d %ld div scale\n", pos[1], xs, pos[3], ys);
 #define LINEWIDTH 80
 
   if (trueColorOrder == 0) { 
@@ -145,7 +130,7 @@ bool GDLPSStream::PaintImage(unsigned char *idata, PLINT nx, PLINT ny, DLong *po
       GraphicsDevice::GetCT()->Get( r, g, b); //OUR colors, *NOT* plplot's colors (background mess)
       unsigned char *data=(unsigned char*)malloc(nx*ny*3*sizeof(unsigned char));
       //following is false for bits_per_pix not equal to 8. Colortable must be written differently. FIXME!
-      for (SizeT i = 0; i < nx*ny; ++i) {data[i*3+0]=r[idata[i]];data[i*3+1]=g[idata[i]];data[i*3+2]=b[idata[i]];}
+		for (SizeT i = 0; i < nx*ny; ++i) {data[i*3+0]=r[idata[i]];data[i*3+1]=g[idata[i]];data[i*3+2]=b[idata[i]];}
       pls->bytecnt += fprintf(pls->OutFile, "{currentfile gdlImagePixString readhexstring pop} bind false 3 colorimage\n");
       //if bpp is not 8, convert to, else use it directly
       if (bitsPerPix != 8) image_compress(data,3*nx*ny,bitsPerPix);
