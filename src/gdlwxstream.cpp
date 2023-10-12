@@ -127,7 +127,7 @@ void GDLWXStream::Update()
 {
   if (this->valid && container != NULL) {
     container->Refresh();
-	  flush(); //needed otherwise synchro is bad see #1643
+    container->Update(); //solve 1643
     GDLWidget::CallWXEventLoop();
   }
 }
