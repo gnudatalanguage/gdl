@@ -23,7 +23,7 @@ filename=prefix+'test_tv_pmulti.ps'
 MESSAGE, /continue, 'writing file : '+filename
 ;
 SET_PLOT,'PS'
-DEVICE, filename=filename, encap=encap, port=port, /color
+DEVICE, filename=filename, encap=encap, port=port, xsize=20, ysize=30, /color
 ;
 aa=FINDGEN(60)
 !P.MULTI=[0,3,2]

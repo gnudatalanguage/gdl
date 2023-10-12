@@ -81,8 +81,8 @@ class DevicePS: public GraphicsDevice
     // for the offsets to be taken into account by spage(), works with plplot >= 5.9.9)
     PLINT XSIZE=ceil(XPageSize*DPICM);
     PLINT YSIZE=ceil(YPageSize*DPICM);
-    PLINT XOFF=encapsulated?0:ceil(XOffset*DPICM);
-    PLINT YOFF=encapsulated?0:ceil(YOffset*DPICM);
+    PLINT XOFF=ceil(XOffset*DPICM);
+    PLINT YOFF=ceil(YOffset*DPICM);
     
     // no pause on destruction
     actStream->spause( false);
@@ -97,14 +97,13 @@ class DevicePS: public GraphicsDevice
     // default: black+white (IDL behaviour)
     //? force TTF fonts as scaling of hershey fonts will not be good 
     short text=(SysVar::GetPFont()>=0)?1:0;
-    string what="hrshsym=1,text="+i2s(text)+",color="+i2s(color);
+    string what="hrshsym=1,text="+i2s(text)+",color="+i2s(color)+",epsf="+i2s(encapsulated);
     actStream->setopt( "drvopt",what.c_str());
     actStream->scolbg(255,255,255); // start with a white background
 
-    // as setting the offsets and sizes with plPlot is (extremely) tricky, and some of these setting
+    // setting the offsets and sizes with plPlot is (extremely) tricky as some of these setting
     // are hardcoded into plplot (like EPS header, and offsets in older versions of plplot)
     // here we play only with the aspect ratio, and, I must confess, this has been largely based on trial and error.
-
     // plot orientation
     PLFLT xovery = float(XSIZE) / float(YSIZE);
     //Only by using the -a option can we really fix the aspect ratio. use plsdidev (revious version) did absolutely nothing 
