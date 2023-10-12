@@ -24,7 +24,7 @@
 #define OF            pls->OutFile
 #define MIN_WIDTH     0.  // Minimum pen width in default pen width (dots)
 #define MAX_WIDTH     50 // Maximum pen width 
-#define DEF_WIDTH     10.  // Default pen width
+#define DEF_WIDTH     1.  // Default pen width
 
 // These are for covering the page with the background color
 

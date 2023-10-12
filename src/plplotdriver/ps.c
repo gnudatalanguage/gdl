@@ -77,8 +77,10 @@ static char   outbuf[OUTBUF_LEN];
 static int    text = 1;
 static int    color;
 static int    hrshsym = 1;
+static int    epsf = 1;
 
 static DrvOpt ps_options[] = { { "text",    DRV_INT, &text,    "Use Postscript text (text=0|1)"       },
+                               { "epsf",    DRV_INT, &epsf,    "EncapsulatedPostScript (epsf=0|1)"    },
                                { "color",   DRV_INT, &color,   "Use color (color=0|1)"                },
                                { "hrshsym", DRV_INT, &hrshsym, "Use Hershey symbol set (hrshsym=0|1)" },
                                { NULL,      DRV_INT, NULL,     NULL                                   } };
@@ -95,7 +97,7 @@ get_font( PSDev* dev, PLUNICODE fci );
 // that scales, rotates (with slanting) and offsets text strings.
 // It has yet some bugs for 3d plots.
 
-//We have a special processing, defualt one does not work (meaning the driver is not well written)
+//We have a special processing, default one does not work (meaning the driver is not well written)
 void plD_line_ps_3D( PLStream *, short, short, short, short );
 void plD_polyline_ps_3D( PLStream *, short *, short *, PLINT );
 
@@ -103,7 +105,6 @@ void plD_polyline_ps_3D( PLStream *, short *, short *, PLINT );
 #define LINE3D_FUNCTION plD_line_ps_3D
 #define POLYLINE3D_FUNCTION plD_polyline_ps_3D
 
-//define LINE2D, POLYLINE2D
 #define LINE2D plD_line_ps
 #define POLYLINE2D plD_polyline_ps
 #include "plplot3d.h"
@@ -273,10 +274,7 @@ ps_init( PLStream *pls )
 
 // Header comments into PostScript file
 
-    fprintf( OF, "%%!PS-Adobe-2.0 EPSF-2.0\n" );
-/*
-    fprintf( OF, "%%!PS-Adobe-2.0\n" );
-*/
+    if (epsf == 1) fprintf( OF, "%%!PS-Adobe-3.0 EPSF-2.0\n" ); else fprintf( OF, "%%!PS-Adobe-3.0\n" );
     fprintf( OF, "%%%%BoundingBox:         \n" );
     fprintf( OF, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" );
 
@@ -369,7 +367,7 @@ ps_init( PLStream *pls )
     fprintf( OF, "/@SetPlot\n" );
     fprintf( OF, "   {\n" );
     fprintf( OF, "    ho vo translate\n" );
-    fprintf( OF, "    XScale YScale scale\n" );
+    fprintf( OF, "    XScale YScale scale  \n" );
     fprintf( OF, "   } def\n" );
 
 // Setup x & y scales
@@ -396,7 +394,8 @@ ps_init( PLStream *pls )
     fprintf( OF, "/N {newpath} def\n" );
     fprintf( OF, "/C {setrgbcolor} def\n" );
     fprintf( OF, "/G {setgray} def\n" );
-    fprintf( OF, "/W {setlinewidth} def\n" );
+// try to make linewidth more like IDL
+    fprintf( OF, "/W { XScale YScale add 2 div div 2 div setlinewidth} def %% note: IDL scale is fixed to 0.028346 \n" );
     fprintf( OF, "/SF {selectfont} def\n" );
     fprintf( OF, "/R {rotate} def\n" );
     fprintf( OF, "/SW {stringwidth 2 index mul exch 2 index mul exch rmoveto pop} bind def\n" );
@@ -723,7 +722,7 @@ plD_tidy_ps( PLStream *pls )
 // Some applications don't like it atend
 
     rewind( OF );
-    fprintf( OF, "%%!PS-Adobe-2.0 EPSF-2.0\n" );
+    if (epsf == 1) fprintf( OF, "%%!PS-Adobe-3.0 EPSF-2.0\n" ); else fprintf( OF, "%%!PS-Adobe-3.0\n" );
     fprintf( OF, "%%%%BoundingBox: %d %d %d %d\n",
         dev->llx, dev->lly, dev->urx, dev->ury );
     plCloseFile( pls );

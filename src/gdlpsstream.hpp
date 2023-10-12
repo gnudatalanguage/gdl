@@ -28,6 +28,7 @@ private:
   bool encapsulated;
   bool portrait;
   long bitsPerPix;
+  bool firstTime; //to enable a PS hack on correspondence postscript pixels - plplot position. 
 public:
   GDLPSStream( int nx, int ny, int pfont, bool encaps, int color, int bpp, bool orient_portrait):
   GDLGStream::GDLGStream( nx, ny, (color==0)?"ps":"psc")
@@ -36,6 +37,7 @@ public:
     page = 0;
     portrait = orient_portrait;
     bitsPerPix=bpp;
+    firstTime=true;
   }
 
   ~GDLPSStream(){}

@@ -60,13 +60,16 @@ namespace lib
   static DFloat sym3y[2]={0,0}; // .
   static DFloat sym4x[5]={ 0, 1, 0, -1, 0 }; //diamond.
   static DFloat sym4y[5]={ 1, 0, -1, 0, 1 }; //diamond.
-  static DFloat sym5x[4]={ -1, 0, 1, -1 }; // triangle up.
-  static DFloat sym5y[4]={ -1, 1, -1, -1 }; // triangle up.
-  static DFloat sym6x[5]={ -1, 1, 1, -1, -1 }; //square
-  static DFloat sym6y[5]={ 1, 1, -1, -1, 1 }; //square
+
+  static DFloat sym5x[5]={ 0, -1, 0, 1, 0 }; // triangle up.
+  static DFloat sym5y[5]={ -1, -1, 1, -1, -1 }; // triangle up.
+
+  static DFloat sym6x[6]={ 0, 1, 1, -1, -1, 0 }; //square
+  static DFloat sym6y[6]={ 1, 1, -1, -1, 1, 1 }; //square
+
   static DFloat sym7x[6]= {1,-1,0,1,-1,0}; //x
   static DFloat sym7y[6]= {1,-1,0,-1,1,0}; //x
-  DLong syml[7]={6,12,2,5,4,5,6};
+  DLong syml[7]={6,12,2,5,5,6,6};
   static DFloat sym3xalt[6]={-0.2,-0.2,0.2,0.2,-0.2,0}; // big dot.
   static DFloat sym3yalt[6]={-0.2,0.2,0.2,-0.2,-0.2,0}; // .
   DLong syml_alt=6;
