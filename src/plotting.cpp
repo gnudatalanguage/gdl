@@ -239,23 +239,23 @@ namespace lib
   }
 #undef EXTENDED_DEFAULT_LOGRANGE
 
-  DDouble adjustForTickInterval(const DDouble interval, DDouble &min, DDouble &max) {
-    // due to  float to double conversion, computation of integer intervals are prone to failure. We use FLOAT solution
-    DFloat fmin=min;
-    DFloat fmax=max;
-    DFloat finterval=interval;
-//    DLong64 n = min / interval;
-    DLong64 fn = fmin / finterval;
-//    if (n < fn) n=fn; //happens 
-    if (fn*finterval > fmin) fn--;
-    min=fn*finterval;
-//    n = max / interval;
-    fn = fmax / finterval;
-//    if (n > fn) n=fn; //happens 
-    if ( fn*finterval < fmax) fn++;
-    max = fn*finterval;
-    return max-min; //return range
-  }
+//  DDouble adjustForTickInterval(const DDouble interval, DDouble &min, DDouble &max) {
+//    // due to  float to double conversion, computation of integer intervals are prone to failure. We use FLOAT solution
+//    DFloat fmin=min;
+//    DFloat fmax=max;
+//    DFloat finterval=interval;
+////    DLong64 n = min / interval;
+//    DLong64 fn = fmin / finterval;
+////    if (n < fn) n=fn; //happens 
+//    if (fn*finterval > fmin) fn--;
+//    min=fn*finterval;
+////    n = max / interval;
+//    fn = fmax / finterval;
+////    if (n > fn) n=fn; //happens 
+//    if ( fn*finterval < fmax) fn++;
+//    max = fn*finterval;
+//    return max-min; //return range
+//  }
 
   // given a juldate, return the juldate of the first 'code' immediately before (or after). Not tested.
   PLFLT gdlReturnTickJulday(DDouble val, int code, bool up) {
@@ -441,10 +441,10 @@ namespace lib
     }
 
 
-    DDouble TickInterval = 0;
-    if (!log) gdlGetDesiredAxisTickInterval(e, axisId, TickInterval); //tickinterval ignored when LOG
-    bool doTickInt=(TickInterval > 0);
-    if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
+//    DDouble TickInterval = 0;
+//    if (!log) gdlGetDesiredAxisTickInterval(e, axisId, TickInterval); //tickinterval ignored when LOG
+//    bool doTickInt=(TickInterval > 0);
+//    if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
 
     if (exact) { //exit soon...
       if (extended) { //... after 'extended' range correction
@@ -452,11 +452,11 @@ namespace lib
         DDouble val = 0.025 * range;
         min -= val;
         max += val;
-        if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
+//        if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
       }
 
       //check if tickinterval would make more than 59 ticks (IDL apparent limit). In which case, IDL plots only the first 59 intervals:
-      if (doTickInt) if (range / TickInterval > 59) max = min + 59.0 * TickInterval;
+//      if (doTickInt) if (range / TickInterval > 59) max = min + 59.0 * TickInterval;
 
       //give back non-log values
       if (log) {
@@ -488,110 +488,7 @@ namespace lib
       }
       min=gdlReturnTickJulday(min, code, false);
       max=gdlReturnTickJulday(max, code, true);
- //code below factorized by gdlReturnTickJulday() above - to be deleted.     
-//      static int monthSize[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-//      DLong Day1, Day2, Year1, Year2, Hour1, Hour2, Minute1, Minute2, MonthNum1, MonthNum2;
-//      DLong idow1, icap1, idow2, icap2;
-//      DDouble Seconde1, Seconde2;
-//      j2ymdhms(min, MonthNum1, Day1, Year1, Hour1, Minute1, Seconde1, idow1, icap1);
-//      MonthNum1++; //j2ymdhms gives back Month number in the [0-11] range for indexing month name tables. pity.
-//      j2ymdhms(max, MonthNum2, Day2, Year2, Hour2, Minute2, Seconde2, idow2, icap2);
-//      MonthNum2++;
-//      switch (code) {
-//      case 1:
-//        //           day mon year h m s.s
-//        dateToJD(min, 1, 1, Year1, 0, 0, 0.0);
-//        dateToJD(max, 1, 1, Year2 + 1, 0, 0, 0.0);
-//        break;
-//      case 2:
-//        dateToJD(min, 1, MonthNum1, Year1, 0, 0, 0.0);
-//        MonthNum2++;
-//        if (MonthNum2 > 12) {
-//          MonthNum2 -= 12;
-//          Year2 += 1;
-//        }
-//        dateToJD(max, 1, MonthNum2, Year2, 0, 0, 0.0);
-//        break;
-//      case 3:
-//        dateToJD(min, Day1, MonthNum1, Year1, 0, 0, 0.0);
-//        Day2++;
-//        if (Day2 > monthSize[MonthNum2]) {
-//          Day2 -= monthSize[MonthNum2];
-//          MonthNum2 += 1;
-//        }
-//        if (MonthNum2 > 12) {
-//          MonthNum2 -= 12;
-//          Year2 += 1;
-//        }
-//        dateToJD(max, Day2, MonthNum2, Year2, 0, 0, 0.0);
-//        break;
-//      case 4:
-//        dateToJD(min, Day1, MonthNum1, Year1, Hour1, 0, 0.0);
-//        Hour2++;
-//        if (Hour2 > 23) {
-//          Hour2 -= 24;
-//          Day2 += 1;
-//        }
-//        if (Day2 > monthSize[MonthNum2]) {
-//          Day2 -= monthSize[MonthNum2];
-//          MonthNum2 += 1;
-//        }
-//        if (MonthNum2 > 12) {
-//          MonthNum2 -= 12;
-//          Year2 += 1;
-//        }
-//        dateToJD(max, Day2, MonthNum2, Year2, Hour2, 0, 0.0);
-//        break;
-//      case 5:
-//        dateToJD(min, Day1, MonthNum1, Year1, Hour1, Minute1, 0.0);
-//        Minute2++;
-//        if (Minute2 > 59) {
-//          Minute2 -= 60;
-//          Hour2 += 1;
-//        }
-//        if (Hour2 > 23) {
-//          Hour2 -= 24;
-//          Day2 += 1;
-//        }
-//        if (Day2 > monthSize[MonthNum2]) {
-//          Day2 -= monthSize[MonthNum2];
-//          MonthNum2 += 1;
-//        }
-//        if (MonthNum2 > 12) {
-//          MonthNum2 -= 12;
-//          Year2 += 1;
-//        }
-//        dateToJD(max, Day2, MonthNum2, Year2, Hour2, Minute2, 0.0);
-//        break;
-//      case 6:
-//        dateToJD(min, Day1, MonthNum1, Year1, Hour1, Minute1, Seconde1);
-//        Seconde2++;
-//        if (Seconde2 > 59) {
-//          Seconde2 -= 60;
-//          Minute2 += 1;
-//        }
-//        if (Minute2 > 59) {
-//          Minute2 -= 60;
-//          Hour2 += 1;
-//        }
-//        if (Hour2 > 23) {
-//          Hour2 -= 24;
-//          Day2 += 1;
-//        }
-//        if (Day2 > monthSize[MonthNum2]) {
-//          Day2 -= monthSize[MonthNum2];
-//          MonthNum2 += 1;
-//        }
-//        if (MonthNum2 > 12) {
-//          MonthNum2 -= 12;
-//          Year2 += 1;
-//        }
-//        dateToJD(max, Day2, MonthNum2, Year2, Hour2, Minute2, Seconde2);
-//        break;
-//      default:
-//        break;
-//      }
-    } else if (!doTickInt) {
+    } else {
       if (log) {
         int imin = floor(min);
         int imax = ceil(max);
@@ -620,18 +517,18 @@ namespace lib
       }
     }
 
-    if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
+//    if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
 
     if (extended) {
       range = max - min;
       DDouble val = 0.025 * range;
       min -= val;
       max += val;
-      if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
+//      if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
     }
 
     //check if tickinterval would make more than 59 ticks (IDL apparent limit). In which case, IDL plots only the first 59 intervals:
-    if (doTickInt) if (range / TickInterval > 59) max = min + 59.0 * TickInterval;
+//    if (doTickInt) if (range / TickInterval > 59) max = min + 59.0 * TickInterval;
 
     //give back non-log values
     if (log) {
@@ -1724,7 +1621,44 @@ namespace lib
     }
     free(test);
   }
-
+  
+  DDouble ApplyCalendarFormatCorrectionToValue(DDouble value, DString &code) {
+    int convcode = 0;
+	DString what=StrUpCase(code);
+    if (what.length() < 1) convcode = 7;
+    else if (what.substr(0, 7) == "NUMERIC") convcode = 7;
+    else if (what.substr(0, 4) == "YEAR") convcode = 1;
+    else if (what.substr(0, 5) == "MONTH") convcode = 2;
+    else if (what.substr(0, 3) == "DAY") convcode = 3;
+    else if (what.substr(0, 4) == "HOUR") convcode = 4;
+    else if (what.substr(0, 6) == "MINUTE") convcode = 5;
+    else if (what.substr(0, 6) == "SECOND") convcode = 6;
+    else if (what.substr(0, 4) == "TIME") convcode = 1;
+    else convcode = 7;
+    switch (convcode) {
+    case 7:
+    case 1:
+      return value; //default years (julian) if calendar time, or numeric
+      break;
+    case 2:
+	  return value*(1./12.); // x month in years ... not accurate
+      break;
+    case 3:
+	  return value*(1./365.25); // x days in years ... not accurate
+      break;
+    case 4:
+	  return value*(1./365.25/24); // x hours in years ... not accurate
+      break;
+    case 5:
+	  return value*(1./365.25/24/60); // x minutes in years ... not accurate
+      break;
+    case 6:
+	  return value*(1./365.25/24/3600); // x seconds in years ... not accurate
+      break;
+    }
+	return value;
+  }
+  
   void doPossibleCalendarFormat(PLFLT value, char *label, PLINT length, DString &what, PLPointer data) {
     struct GDL_TICKDATA *ptr = (GDL_TICKDATA* )data;
     static string theMonth[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
@@ -3621,7 +3555,12 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       if (Ticks <= 0) TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log);
       else if (Ticks > 1) TickInterval = (End - Start) / Ticks;
       else TickInterval = (End - Start);
-    } else { //check that tickinterval does not make more than 59 ticks:
+    } else { 
+	  //Tickinterval is interpreted in the UNIT eventually expressed by XTICKUNITS for the 1st level
+	  if (hasTickUnitDefined) {
+		TickInterval=ApplyCalendarFormatCorrectionToValue(TickInterval, (*TickUnits)[0]); 
+	  }
+	  //check that tickinterval does not make more than 59 ticks:
       if (abs((End - Start) / TickInterval) > 59) TickInterval = (End - Start) / 59;
     }
     if (Minor == 0) {// if tickinterval is 0.1,1,10,100..., IDL wants to see all 10 tickmarks.
@@ -3840,7 +3779,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
           a->plstream::vpor(boxxmin - (i*displacement+y_displacement), boxxmax, boxymin, boxymax);
           a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
           a->box("", 0.0, 0.0, tickOpt.c_str(), TickInterval, Minor); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
-          if (TickLayout != 2) y_displacement+=(nchars[i]*a->nCharLength());
+          if (TickLayout != 2) y_displacement+=(tickdata.nchars*a->nCharLength());
         }
         if (TickLayout == 2 && i==0) {
           if (axisId == XAXIS) {
@@ -3857,7 +3796,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       //replay normal
       if (axisId == XAXIS) a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0);
       else a->box("", 0.0, 0, tickOpt.c_str(), TickInterval, Minor);
-    }
+	  }
 
     a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
     if (axisId == XAXIS) { //add last displacement
@@ -3879,13 +3818,12 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     // Write title (position depends on above values)
     if (hasTitle) {
       gdlSetPlotCharthick(e, a);
-      PLFLT title_position = 2;
       if (modifierCode == 0 || modifierCode == 1) {
-        if (axisId == XAXIS) a->mtex("b", title_position, 0.5, 0.5, Title.c_str());
-        else a->mtex("l", title_position, 0.5, 0.5, Title.c_str());
+        if (axisId == XAXIS) a->mtex("b", 1 , 0.5, 0.5, Title.c_str());
+        else a->mtex("l", 2, 0.5, 0.5, Title.c_str());
       } else if (modifierCode == 2) {
-        if (axisId == XAXIS) a->mtex("t", title_position, 0.5, 0.5, Title.c_str());
-        else a->mtex("r", title_position, 0.5, 0.5, Title.c_str());
+        if (axisId == XAXIS) a->mtex("t", 1, 0.5, 0.5, Title.c_str());
+        else a->mtex("r", 2, 0.5, 0.5, Title.c_str());
       }
     }
 
