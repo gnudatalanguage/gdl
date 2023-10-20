@@ -1634,7 +1634,10 @@ namespace lib
     else if (what.substr(0, 6) == "MINUTE") convcode = 5;
     else if (what.substr(0, 6) == "SECOND") convcode = 6;
     else if (what.substr(0, 4) == "TIME") convcode = 1;
-    else convcode = 7;
+    else {
+	  Message("Illegal keyword value for [XYZ]TICKUNITS");
+	  convcode = 7;
+	}
     switch (convcode) {
     case 7:
     case 1:
@@ -1682,7 +1685,7 @@ namespace lib
       else if (ptr->axisrange * 24 * 60 >= 1.1) convcode = 5;
       else convcode = 6;
     } else {
-//      Message("Illegal keyword value for [XYZ]TICKUNITS");
+      Message("Illegal keyword value for [XYZ]TICKUNITS");
       convcode = 7;
     }
     switch (convcode) {
@@ -3526,7 +3529,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       tickUnitArraySize=naxes;
       if (tickUnitArraySize ==0) hasTickUnitDefined=false;
     }
-    
+	//check tickunits strings, will complain if silly values as IDL does. Use ApplyCalendarFormatCorrectionToValue(TickInterval, (*TickUnits)[0]); 
+    if (hasTickUnitDefined)  for (auto i=0; i< tickUnitArraySize; ++i) DDouble dummy=ApplyCalendarFormatCorrectionToValue(0, (*TickUnits)[i]); 
     //For labels we need ticklen in current character size, for ticks we need it in mm
     DFloat ticklen_in_mm = TickLen;
     bool inverted_ticks=false;
@@ -3545,9 +3549,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     DFloat interligne_as_norm;
     DFloat typical_char_size_mm = (axisId == XAXIS) ? a->mmCharHeight() : a->mmCharLength();
     interligne_as_char = (axisId == XAXIS) ? a->mmLineSpacing() / typical_char_size_mm : a->mmCharLength() / typical_char_size_mm; //in normed coord
-//    interligne_as_norm = (axisId == XAXIS) ? a->nLineSpacing() : a->nCharLength(); //in normed coord
-    interligne_as_norm = (axisId == XAXIS) ? a->nLineSpacing() : a->nCharLength(); //in normed coord
-    DFloat displacement = (axisId == XAXIS) ? 2*interligne_as_norm: 3.5*interligne_as_norm;
+    interligne_as_norm = (axisId == XAXIS) ? a->nLineSpacing() : a->nCharHeight(); //in normed coord
+    DFloat displacement = 0; //(axisId == XAXIS) ? 2*interligne_as_norm:0;//3.5*interligne_as_norm;
 
     double nchars[100]; //max number of chars written in label of axis. //100 should be OK otherwise, paf!
     std::string Opt;
@@ -3576,7 +3579,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     std::string tickOpt;
     std::string additionalAxesTickOpt;
     std::string tickOpt2=TICKS BOTTOM TICKINVERT;
-    std::string tickOpt3=BOTTOM;
+    std::string tickOpt3=TICKS BOTTOM;
     //define tick-related (ticklayout) options
     //ticks or grid eventually with style and length:
     if (TickLen < 1e-6 || hasTickv) tickOpt = ""; else tickOpt = TICKS; //remove ticks if ticklen=0 or TICKV
@@ -3686,7 +3689,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       tickdata.reset = true;      
       tickdata.counter = 0;
 
-      //Write labels first , using charthick
+	 //Write labels first , using charthick
     if (hasTickUnitDefined) // /TICKUNITS=[several types of axes written below each other]
     {
       tickdata.tickOptionCode = GDL_TICKUNITS;
@@ -3708,7 +3711,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
         TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log, i);
         tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
         if (axisId == XAXIS) {
-          a->plstream::vpor(boxxmin, boxxmax, boxymin - i*displacement, boxymax);
+          a->plstream::vpor(boxxmin, boxxmax, boxymin - i*(2*interligne_as_norm+displacement) +2*a->nCharHeight() - 1.5*interligne_as_norm, boxymax);
           a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
           a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
         } else {
@@ -3724,6 +3727,10 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
     else //normal simple axis
     {
+	  //plplot does write the base of the labels 2 char height below the box (or the tick if external). 
+	  // Nice but IDL writes the base of the labels at 1.5 interligne below the axis line.
+	  // the difference is +2 char height (-> base @ axis line ) -1.5 interligne
+	  // So (for X axis) we need to change the vpor temporarily to write the labels at the good position
       if (hasTickv) {
         int ntickv=MIN(Tickv->N_Elements(),Ticks+1);
         for (auto i=0; i< ntickv; ++i) gdlDrawSingleTick (e, a, axisId, (*Tickv)[i], TickLen, modifierCode, &tickdata); 
@@ -3732,8 +3739,18 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
         Opt += LABELFUNC;
         if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL;
         else Opt += NUMERIC;
-        if (axisId == XAXIS) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-        else a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
+        if (axisId == XAXIS) {
+          a->plstream::vpor(boxxmin, boxxmax, boxymin +2*a->nCharHeight() - 1.5*interligne_as_norm, boxymax);
+          a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+		  a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
+		  a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax); //reset to initial box
+          a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
+          a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+		  if (TickLayout != 2) displacement+=interligne_as_norm; else displacement+=2*interligne_as_norm;//for title 
+		} else {
+		  a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
+		  if (TickLayout != 2) displacement+=tickdata.nchars*a->nCharLength(); else displacement+=a->nCharLength();
+		}
         resetLabeling(a, axisId);
       }
     }
@@ -3763,10 +3780,11 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
           if (i == 1) {
             tickOpt = (TickLayout == 2) ? tickOpt2 : additionalAxesTickOpt;
             if (TickLayout == 2) {
-              a->smaj(a->nd2my(displacement), 1.0);
+//			  a->smaj(2 * a->mmLineSpacing(), 1.0);
+//              a->smaj(a->nd2my(interligne_as_norm), 1.0);
             }
           }          
-          a->plstream::vpor(boxxmin, boxxmax, boxymin - i*displacement, boxymax);
+          a->plstream::vpor(boxxmin, boxxmax, boxymin - i*(2*interligne_as_norm+displacement), boxymax);
           a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
           a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
         } else {
@@ -3783,8 +3801,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
         }
         if (TickLayout == 2 && i==0) {
           if (axisId == XAXIS) {
-            a->smaj(a->nd2my(displacement), 1.0);
-            a->box(tickOpt2.c_str(), TickInterval, Minor, "", 0.0, 0);
+//			a->smaj(2 * a->mmLineSpacing(), 1.0);
+//            a->smaj(a->nd2my(interligne_as_norm), 1.0);
+//            a->box(tickOpt2.c_str(), TickInterval, Minor, "", 0.0, 0);
           } else {
             a->smaj(a->nd2mx(displacement), 1.0);
             a->box("", 0.0, 0, tickOpt2.c_str(), TickInterval, Minor);
@@ -3796,7 +3815,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
       //replay normal
       if (axisId == XAXIS) a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0);
       else a->box("", 0.0, 0, tickOpt.c_str(), TickInterval, Minor);
-	  }
+		}
 
     a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
     if (axisId == XAXIS) { //add last displacement
@@ -3808,6 +3827,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
   
     if (TickLayout == 2) {
+	  a->smaj(2*a->mmLineSpacing(), 1.0);
       if (axisId == XAXIS) {
         a->box(tickOpt3.c_str(), TickInterval, Minor, "", 0.0, 0);
       } else {
@@ -3816,13 +3836,14 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
 
     // Write title (position depends on above values)
+	// IDL positions title 1.25 interligne below bottom of label.
     if (hasTitle) {
       gdlSetPlotCharthick(e, a);
       if (modifierCode == 0 || modifierCode == 1) {
-        if (axisId == XAXIS) a->mtex("b", 1 , 0.5, 0.5, Title.c_str());
+        if (axisId == XAXIS) a->mtex("b", 1.25*interligne_as_char, 0.5, 0.5, Title.c_str());
         else a->mtex("l", 2, 0.5, 0.5, Title.c_str());
       } else if (modifierCode == 2) {
-        if (axisId == XAXIS) a->mtex("t", 1, 0.5, 0.5, Title.c_str());
+        if (axisId == XAXIS) a->mtex("t", 1.25*interligne_as_char, 0.5, 0.5, Title.c_str());
         else a->mtex("r", 2, 0.5, 0.5, Title.c_str());
       }
     }
