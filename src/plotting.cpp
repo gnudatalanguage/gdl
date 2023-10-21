@@ -1612,13 +1612,6 @@ namespace lib
       //      }
     }
   return_label:
-    if (ptr->tickLayoutCode == 2) {
-      int l = strlen(label)+2;
-      //displace "label" on the right (for alignment purposes) by adding l whitespaces using test (which is larger enough). This is not always sufficicient alas.
-      memset(test, 32, l);
-      snprintf(test + l, 2 * length - l, "%s", label);
-      snprintf(label, length, "%s", test);
-    }
     free(test);
   }
   
@@ -1710,15 +1703,6 @@ namespace lib
     case 6:
       snprintf(label, length, "%05.2f", Second);
       break;
-    }
-    if (ptr->tickLayoutCode == 2) {
-      char *test = (char*) calloc(2 * length, sizeof (char)); //be safe
-      int l = strlen(label)+2;
-      //displace "label" on the right (for alignment purposes) by adding l whitespaces using test (which is larger enough).
-      memset(test, 32, l);
-      snprintf(test + l, 2 * length - l, "%s", label);
-      snprintf(label, length, "%s", test);
-      free(test);
     }
   }
   
@@ -1838,12 +1822,27 @@ namespace lib
       }
     } else {
       doOurOwnFormat(value, label, length, data);
-    }
+	}
+	if (ptr->tickLayoutCode == 2) {
+	  int l = strlen(label);
+      char *test = (char*) calloc(length+1, sizeof (char));
+	  // we are bound by the length=40 max of plplot, for a STATIC "label" string! Impossible to do more!
+	  // in average only 18 characters possible to pad by whitespaces (if no !xx codes inside)
+	  int left_to_pad=(length-l);  //max num of possible blanks before.
+	  int to_pad=l+2; //number of characters to add to push on the right
+	  to_pad*=1.75; //..as the whitespace is smaller than the average character (always those approximations since hershey and other charatcers are not fixed-point)
+	  to_pad=min(left_to_pad,to_pad); //to insure at last that labels are writtent even if not correctly aligned
+	  //displace "label" on the right (for alignment purposes) by adding l whitespaces using test (which is larger enough). This is not always sufficicient alas.
+	  memset(test, ' ', to_pad);
+	  snprintf(test + to_pad, length-to_pad,"%s",label);
+	  strncpy(label, test, length);
+      free(test);
+	}
     //translate format codes (as in mtex).
     double nchars;
     std::string out = ptr->a->TranslateFormatCodes(label, &nchars);
     ptr->nchars = max(ptr->nchars, nchars);
-    strcpy(label, out.c_str());
+    strncpy(label, out.c_str(), length);
   }
 
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer multiaxisdata) {
@@ -1919,12 +1918,27 @@ namespace lib
           strncpy(label, (*static_cast<DStringGDL*> (retValGDL))[0].c_str(), 1000);
         }
       }
-    }
+	}
+	if (ptr->tickLayoutCode == 2) {
+	  int l = strlen(label);
+      char *test = (char*) calloc(length+1, sizeof (char));
+	  // we are bound by the length=40 max of plplot, for a STATIC "label" string! Impossible to do more!
+	  // in average only 18 characters possible to pad by whitespaces (if no !xx codes inside)
+	  int left_to_pad=(length-l);  //max num of possible blanks before.
+	  int to_pad=l+2; //number of characters to add to push on the right
+	  to_pad*=1.75; //..as the whitespace is smaller than the average character (always those approximations since hershey and other charatcers are not fixed-point)
+	  to_pad=min(left_to_pad,to_pad); //to insure at last that labels are writtent even if not correctly aligned
+	  //displace "label" on the right (for alignment purposes) by adding l whitespaces using test (which is larger enough). This is not always sufficicient alas.
+	  memset(test, ' ', to_pad);
+	  snprintf(test + to_pad, length-to_pad,"%s",label);
+	  strncpy(label, test, length);
+      free(test);
+	}
     //translate format codes (as in mtex).
     double nchars;
     std::string out = ptr->a->TranslateFormatCodes(label, &nchars);
     ptr->nchars = max(ptr->nchars, nchars);
-    strcpy(label, out.c_str());
+    strncpy(label, out.c_str(), length);
     internalIndex++;
   }
 
@@ -3777,13 +3791,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
         tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
         if (axisId == XAXIS) {
-          if (i == 1) {
-            tickOpt = (TickLayout == 2) ? tickOpt2 : additionalAxesTickOpt;
-            if (TickLayout == 2) {
-//			  a->smaj(2 * a->mmLineSpacing(), 1.0);
-//              a->smaj(a->nd2my(interligne_as_norm), 1.0);
-            }
-          }          
+          if (i == 1) tickOpt = (TickLayout == 2) ? tickOpt2 : additionalAxesTickOpt;
           a->plstream::vpor(boxxmin, boxxmax, boxymin - i*(2*interligne_as_norm+displacement), boxymax);
           a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
           a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
@@ -3801,9 +3809,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
         }
         if (TickLayout == 2 && i==0) {
           if (axisId == XAXIS) {
-//			a->smaj(2 * a->mmLineSpacing(), 1.0);
-//            a->smaj(a->nd2my(interligne_as_norm), 1.0);
-//            a->box(tickOpt2.c_str(), TickInterval, Minor, "", 0.0, 0);
+			a->smaj(2 * a->mmLineSpacing(), 1.0);
+            a->box(tickOpt2.c_str(), TickInterval, Minor, "", 0.0, 0);
           } else {
             a->smaj(a->nd2mx(displacement), 1.0);
             a->box("", 0.0, 0, tickOpt2.c_str(), TickInterval, Minor);
@@ -3811,12 +3818,17 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
         }
         tickdata.counter++;
       }
+	  if (axisId == XAXIS && TickLayout == 2) { //define a last viewport for eventual title below
+		a->plstream::vpor(boxxmin, boxxmax, boxymin - (tickdata.nTickUnits)*(2*interligne_as_norm+displacement), boxymax);
+		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+	  }
     } else {
       //replay normal
       if (axisId == XAXIS) a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0);
       else a->box("", 0.0, 0, tickOpt.c_str(), TickInterval, Minor);
 		}
 
+	//get current (last) viewport (last axis plotted)
     a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
     if (axisId == XAXIS) { //add last displacement
       a->plstream::vpor(boxxmin, boxxmax, boxymin - displacement, boxymax);
