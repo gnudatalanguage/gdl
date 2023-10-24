@@ -3731,18 +3731,20 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	// So for all axis we need to change the vpor temporarily to write the labels at the good position
 	
    	if (!inverted_ticks && TickLayout != 2) adddisplacement += ticklen_as_norm; //every next axis will be separated by this
+	xdisplacement = 2 * a->nCharHeight() - 1.5 * interligne_as_norm;
 	for (SizeT i = 0; i < tickdata.nTickUnits; ++i) //loop on TICKUNITS axis
 	{
 	  TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log, i);
 	  tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
 	  if (axisId == XAXIS) {
-		a->plstream::vpor(boxxmin, boxxmax, boxymin - i * (2 * interligne_as_norm + adddisplacement) + 2 * a->nCharHeight() - 1.5 * interligne_as_norm, boxymax);
+		a->plstream::vpor(boxxmin, boxxmax, boxymin - xdisplacement, boxymax);
 		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-		a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
+		a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
+		xdisplacement += 2*interligne_as_norm+adddisplacement;
 	  } else {
 		a->plstream::vpor(boxxmin - ydisplacement, boxxmax, boxymin, boxymax);
 		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-		a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
+		a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
 		nchars[i] = tickdata.nchars;
 		if (TickLayout == 2) ydisplacement += 2*interligne_as_norm+adddisplacement;  else ydisplacement += ((nchars[i]+1.5) * a->nCharLength())+ticklen_as_norm; 
 	  }
@@ -3760,7 +3762,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	// ****** FIRST reset to initial box &values
 	xdisplacement = 0;
 	ydisplacement = 0;
-//    if (TickLayout == 2) ydisplacement = -a->nCharLength()-adddisplacement+interligne_as_norm;
 	a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
 	a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
 	a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
@@ -3776,19 +3777,20 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	  tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
 	  if (i == 1) tickOpt = (TickLayout == 2) ? tickDown : additionalAxesTickOpt;
 	  if (axisId == XAXIS) {
-		a->plstream::vpor(boxxmin, boxxmax, boxymin - i * (2 * interligne_as_norm + adddisplacement), boxymax);
+		a->plstream::vpor(boxxmin, boxxmax, boxymin - xdisplacement, boxymax);
 		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-		a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
+		a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0); 
+		xdisplacement += 2*interligne_as_norm+adddisplacement;
+		if (i == tickdata.nTickUnits-1 && TickLayout != 2 && !inverted_ticks) xdisplacement -= ticklen_as_norm;
 	  } else {
 		a->plstream::vpor(boxxmin - ydisplacement, boxxmax, boxymin, boxymax);
 		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-		a->box("", 0.0, 0.0, tickOpt.c_str(), TickInterval, Minor); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
+		a->box("", 0.0, 0.0, tickOpt.c_str(), TickInterval, Minor);
 		if (TickLayout == 2) {
 		  ydisplacement += 2*interligne_as_norm+adddisplacement;
-//		  if (i == tickdata.nTickUnits-1) ydisplacement -= interligne_as_norm;
 		} else {
 		  ydisplacement += ((nchars[i]+1.5) * a->nCharLength())+ticklen_as_norm;
-		  if (i == tickdata.nTickUnits-1) ydisplacement -= ((nchars[i]+1.5) * a->nCharLength()); // no further labels
+		  if (i == tickdata.nTickUnits-1 && !inverted_ticks) ydisplacement -= ticklen_as_norm;
 		}
 	  }
 	  if (TickLayout == 2 && i == 0) {
@@ -3804,10 +3806,10 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	}
 	
 	  if (axisId == XAXIS) { //define a last viewport for eventual title below
-		a->plstream::vpor(boxxmin, boxxmax, boxymin - (tickdata.nTickUnits)*( ((TickLayout == 2)?2:1) * interligne_as_norm + adddisplacement), boxymax);
+		a->plstream::vpor(boxxmin, boxxmax, boxymin - xdisplacement , boxymax);
 		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
 	  } else {
-      a->plstream::vpor(boxxmin - ydisplacement, boxxmax, boxymin, boxymax);
+        a->plstream::vpor(boxxmin - ydisplacement, boxxmax, boxymin, boxymax);
 		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
 	  }
 
