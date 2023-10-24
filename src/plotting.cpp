@@ -3486,388 +3486,361 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   //ZAXIS will always be an YAXIS plotted with a special YZEXCH T3D matrix. So no special handling of ZAXIS here.
 
   void gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong modifierCode) {
-    if (Start == End) return;
-    if (Log && (Start <= 0 || End <= 0)) return; //important protection 
-    DLong AxisStyle;
-    gdlGetDesiredAxisStyle(e, axisId, AxisStyle);
-    if ((AxisStyle & 4) == 4) return; //if we do not write the axis...
+	if (Start == End) return;
+	if (Log && (Start <= 0 || End <= 0)) return; //important protection 
+	DLong AxisStyle;
+	gdlGetDesiredAxisStyle(e, axisId, AxisStyle);
+	if ((AxisStyle & 4) == 4) return; //if we do not write the axis...
 
-    // we WILL plot something, so set temporarlily WIN accordingly
-    PLFLT owxmin, owxmax, owymin, owymax;
-    a->plstream::gvpw(owxmin, owxmax, owymin, owymax);
-    if (axisId == XAXIS) {
-      if (Log) a->wind(log10(Start), log10(End), owymin, owymax);
-      else a->wind(Start, End, owymin, owymax);
-    } else {
-      if (Log) a->wind(owxmin, owxmax, log10(Start), log10(End));
-      else a->wind(owxmin, owxmax, Start, End);
-    }
+	// we WILL plot something, so set temporarlily WIN accordingly
+	PLFLT owxmin, owxmax, owymin, owymax;
+	a->plstream::gvpw(owxmin, owxmax, owymin, owymax);
+	if (axisId == XAXIS) {
+	  if (Log) a->wind(log10(Start), log10(End), owymin, owymax);
+	  else a->wind(Start, End, owymin, owymax);
+	} else {
+	  if (Log) a->wind(owxmin, owxmax, log10(Start), log10(End));
+	  else a->wind(owxmin, owxmax, Start, End);
+	}
 
-    //special values
-    DLong GridStyle;
-    gdlGetDesiredAxisGridStyle(e, axisId, GridStyle);
-    DLong Minor;
-    gdlGetDesiredAxisMinor(e, axisId, Minor);
-    DFloat Thick;
-    gdlGetDesiredAxisThick(e, axisId, Thick);
-    DStringGDL* TickFormat;
-    gdlGetDesiredAxisTickFormat(e, axisId, TickFormat);
-    DDouble TickInterval;
-    gdlGetDesiredAxisTickInterval(e, axisId, TickInterval);
-    DLong TickLayout;
-    gdlGetDesiredAxisTickLayout(e, axisId, TickLayout);
-    DFloat TickLen = 0.02;
-    gdlGetDesiredAxisTickLen(e, axisId, TickLen);
-    DStringGDL* TickName;
-    gdlGetDesiredAxisTickName(e, a, axisId, TickName);
-    DDoubleGDL *Tickv = NULL;
-    bool hasTickv = gdlGetDesiredAxisTickv(e, axisId, Tickv);
-    DLong Ticks;
-    gdlGetDesiredAxisTicks(e, axisId, Ticks);
-    if (Ticks < 1) hasTickv = false;
-    DStringGDL* TickUnits;
-    gdlGetDesiredAxisTickUnits(e, axisId, TickUnits);
-    DString Title;
-    gdlGetDesiredAxisTitle(e, axisId, Title);
-    bool hasTitle = (Title.size() > 0);
+	//special values
+	DLong GridStyle;
+	gdlGetDesiredAxisGridStyle(e, axisId, GridStyle);
+	DLong Minor;
+	gdlGetDesiredAxisMinor(e, axisId, Minor);
+	DFloat Thick;
+	gdlGetDesiredAxisThick(e, axisId, Thick);
+	DStringGDL* TickFormat;
+	gdlGetDesiredAxisTickFormat(e, axisId, TickFormat);
+	DDouble TickInterval;
+	gdlGetDesiredAxisTickInterval(e, axisId, TickInterval);
+	DLong TickLayout;
+	gdlGetDesiredAxisTickLayout(e, axisId, TickLayout);
+	DFloat TickLen = 0.02;
+	gdlGetDesiredAxisTickLen(e, axisId, TickLen);
+	DStringGDL* TickName;
+	gdlGetDesiredAxisTickName(e, a, axisId, TickName);
+	DDoubleGDL *Tickv = NULL;
+	bool hasTickv = gdlGetDesiredAxisTickv(e, axisId, Tickv);
+	DLong Ticks;
+	gdlGetDesiredAxisTicks(e, axisId, Ticks);
+	if (Ticks < 1) hasTickv = false;
+	DStringGDL* TickUnits;
+	gdlGetDesiredAxisTickUnits(e, axisId, TickUnits);
+	DString Title;
+	gdlGetDesiredAxisTitle(e, axisId, Title);
+	bool hasTitle = (Title.size() > 0);
 
-    bool hasTickUnitDefined = (TickUnits->NBytes() > 0);
-    int tickUnitArraySize = (hasTickUnitDefined) ? TickUnits->N_Elements() : 0;
-    // tickunits stops when a null string is in the list. Check if such:
-    if (hasTickUnitDefined) {
-      int naxes=0;
-      for (auto i=0; i< tickUnitArraySize; ++i) {
-        if ( (*TickUnits)[i].size() < 1 ) break;
-        naxes++;
-      }
-      tickUnitArraySize=naxes;
-      if (tickUnitArraySize ==0) hasTickUnitDefined=false;
-    }
+	bool hasTickUnitDefined = (TickUnits->NBytes() > 0);
+	int tickUnitArraySize = (hasTickUnitDefined) ? TickUnits->N_Elements() : 0;
+	// tickunits stops when a null string is in the list. Check if such:
+	if (hasTickUnitDefined) {
+	  int naxes = 0;
+	  for (auto i = 0; i < tickUnitArraySize; ++i) {
+		if ((*TickUnits)[i].size() < 1) break;
+		naxes++;
+	  }
+	  tickUnitArraySize = naxes;
+	  if (tickUnitArraySize == 0) hasTickUnitDefined = false;
+	}
 	//check tickunits strings, will complain if silly values as IDL does. Use ApplyCalendarFormatCorrectionToValue(TickInterval, (*TickUnits)[0]); 
-    if (hasTickUnitDefined)  for (auto i=0; i< tickUnitArraySize; ++i) DDouble dummy=ApplyCalendarFormatCorrectionToValue(0, (*TickUnits)[i]); 
-    //For labels we need ticklen in current character size, for ticks we need it in mm
-    DFloat ticklen_in_mm = TickLen;
-    bool inverted_ticks=false;
-    if (TickLen < 0) {
-      ticklen_in_mm *= -1;
-      inverted_ticks=true;
-      TickLen=-TickLen;
-    }
-    //ticklen in a percentage of box x or y size, to be expressed in mm 
-    if (axisId == XAXIS) ticklen_in_mm = a->mmyPageSize()*(a->boxnYSize()) * ticklen_in_mm;
-    else ticklen_in_mm = a->mmxPageSize()*(a->boxnXSize()) * ticklen_in_mm;
-    //    if (ticklen_in_mm > 100.) ticklen_in_mm = 0; //PATCH to avoid PS and MEM device problem. Check why gspa() returns silly values. TBC 
-    DFloat ticklen_as_norm = (axisId == XAXIS) ? a->mm2ndy(ticklen_in_mm) : a->mm2ndx(ticklen_in_mm); //in normed coord
-    //eventually, each succesive X or Y axis is separated from previous by interligne + ticklen in adequate units. 
-    DFloat interligne_as_char;
-    DFloat interligne_as_norm;
-    DFloat typical_char_size_mm = (axisId == XAXIS) ? a->mmCharHeight() : a->mmCharLength();
-    interligne_as_char = (axisId == XAXIS) ? a->mmLineSpacing() / typical_char_size_mm : a->mmCharLength() / typical_char_size_mm; //in normed coord
-    interligne_as_norm = (axisId == XAXIS) ? a->nLineSpacing() : a->nCharHeight(); //in normed coord
-    DFloat displacement = 0; //(axisId == XAXIS) ? 2*interligne_as_norm:0;//3.5*interligne_as_norm;
+	if (hasTickUnitDefined) for (auto i = 0; i < tickUnitArraySize; ++i) DDouble dummy = ApplyCalendarFormatCorrectionToValue(0, (*TickUnits)[i]);
+	//For labels we need ticklen in current character size, for ticks we need it in mm
+	DFloat ticklen_in_mm = TickLen;
+	bool inverted_ticks = false;
+	if (TickLen < 0) {
+	  ticklen_in_mm *= -1;
+	  inverted_ticks = true;
+	  TickLen = -TickLen;
+	}
+	//ticklen in a percentage of box x or y size, to be expressed in mm 
+	if (axisId == XAXIS) ticklen_in_mm = a->mmyPageSize()*(a->boxnYSize()) * ticklen_in_mm;
+	else ticklen_in_mm = a->mmxPageSize()*(a->boxnXSize()) * ticklen_in_mm;
+	//    if (ticklen_in_mm > 100.) ticklen_in_mm = 0; //PATCH to avoid PS and MEM device problem. Check why gspa() returns silly values. TBC 
+	DFloat ticklen_as_norm = (axisId == XAXIS) ? a->mm2ndy(ticklen_in_mm) : a->mm2ndx(ticklen_in_mm); //in normed coord
+	//eventually, each succesive X or Y axis is separated from previous by interligne + ticklen in adequate units. 
+	DFloat interligne_as_char;
+	DFloat interligne_as_norm;
+	DFloat typical_char_size_mm = (axisId == XAXIS) ? a->mmCharHeight() : a->mmCharLength();
+	interligne_as_char = (axisId == XAXIS) ? a->mmLineSpacing() / typical_char_size_mm : a->mmLineSpacing() / typical_char_size_mm; //in normed coord
+	interligne_as_norm = (axisId == XAXIS) ? a->nLineSpacing() : a->nLineSpacing() * a->yPageSize() / a->xPageSize(); //a->nCharHeight(); //in normed coord
+	DFloat xdisplacement = 0;
+	DFloat ydisplacement = 0;
+	DFloat adddisplacement = 0;
 
-    double nchars[100]; //max number of chars written in label of axis. //100 should be OK otherwise, paf!
-    std::string Opt;
-    if (TickInterval == 0) {
-      if (Ticks <= 0) TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log);
-      else if (Ticks > 1) TickInterval = (End - Start) / Ticks;
-      else TickInterval = (End - Start);
-    } else { 
+	double nchars[100]; //max number of chars written in label of axis. //100 should be OK otherwise, paf!
+	std::string Opt;
+	if (TickInterval == 0) {
+	  if (Ticks <= 0) TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log);
+	  else if (Ticks > 1) TickInterval = (End - Start) / Ticks;
+	  else TickInterval = (End - Start);
+	} else {
 	  //Tickinterval is interpreted in the UNIT eventually expressed by XTICKUNITS for the 1st level
 	  if (hasTickUnitDefined) {
-		TickInterval=ApplyCalendarFormatCorrectionToValue(TickInterval, (*TickUnits)[0]); 
+		TickInterval = ApplyCalendarFormatCorrectionToValue(TickInterval, (*TickUnits)[0]);
 	  }
 	  //check that tickinterval does not make more than 59 ticks:
-      if (abs((End - Start) / TickInterval) > 59) TickInterval = (End - Start) / 59;
-    }
-    if (Minor == 0) {// if tickinterval is 0.1,1,10,100..., IDL wants to see all 10 tickmarks.
-      DDouble test = log10(abs(TickInterval));
-      if ((test - floor(test)) < std::numeric_limits<DDouble>::epsilon()) Minor = 10;
-    }
-    
-    //first write labels only:
-    gdlSetAxisCharsize(e, a, axisId);
-    gdlSetPlotCharthick(e, a);
+	  if (abs((End - Start) / TickInterval) > 59) TickInterval = (End - Start) / 59;
+	}
+	if (Minor == 0) {// if tickinterval is 0.1,1,10,100..., IDL wants to see all 10 tickmarks.
+	  DDouble test = log10(abs(TickInterval));
+	  if ((test - floor(test)) < std::numeric_limits<DDouble>::epsilon()) Minor = 10;
+	}
 
-    //define all tick and drawing axes related options
-    std::string tickOpt;
-    std::string additionalAxesTickOpt;
-    std::string tickOpt2=TICKS BOTTOM TICKINVERT;
-    std::string tickOpt3=TICKS BOTTOM;
-    //define tick-related (ticklayout) options
-    //ticks or grid eventually with style and length:
-    if (TickLen < 1e-6 || hasTickv) tickOpt = ""; else tickOpt = TICKS; //remove ticks if ticklen=0 or TICKV
-    if (inverted_ticks)  tickOpt += TICKINVERT;
-    additionalAxesTickOpt = tickOpt; //layout==2 has ticks
+	//first write labels only:
+	gdlSetAxisCharsize(e, a, axisId);
+	gdlSetPlotCharthick(e, a);
 
-    switch (modifierCode) {
-    case 2:
-      tickOpt += TOP;
-      additionalAxesTickOpt += TOP;
-      break;
-    case 1:
-      tickOpt += BOTTOM;
-      additionalAxesTickOpt += BOTTOM;
-      break;
-    case 0:
-      if ((AxisStyle & 8) == 8) {
-        tickOpt += BOTTOM;
-        additionalAxesTickOpt += BOTTOM;
-      }
-      else {
-        tickOpt += BOTTOM TOP;
-        additionalAxesTickOpt += BOTTOM; //no top!
-      }
-    }
-    //gridstyle applies here:
-    gdlLineStyle(a, GridStyle);
-    // ticklayout2 has no log and no subticks
-    if (Log) {
-      if (TickInterval < 1) { //if log and tickinterval was >1 then we pass in 'linear, no subticks' mode (see issue #1112)
-        if (hasTickv) tickOpt += LOG;
-        else tickOpt += SUBTICKS LOG;
-        Minor = 0;
-      } else if (TickInterval < 2) {
-        Minor = 1;
-      } else if (TickInterval < 2.1) {
-        if (!hasTickv) tickOpt += SUBTICKS;
-        Minor = 2;
-      } else if (TickInterval < 5.1) {
-        if (!hasTickv) tickOpt += SUBTICKS;
-        Minor = 5;
-      } else {
-        if (!hasTickv) tickOpt += SUBTICKS;
-        Minor = 10;
-      }
-    } else if (!hasTickv) tickOpt += SUBTICKS;
-    // special case
-    if (TickLayout == 1) tickOpt="";
-    
+	//define all tick and drawing axes related options
+	std::string tickOpt;
+	std::string additionalAxesTickOpt;
+	std::string tickDown = TICKS BOTTOM TICKINVERT;
+	std::string justLine = BOTTOM;
+	//define tick-related (ticklayout) options
+	//ticks or grid eventually with style and length:
+	if (TickLen < 1e-6 || hasTickv) tickOpt = "";
+	else tickOpt = TICKS; //remove ticks if ticklen=0 or TICKV
+	if (inverted_ticks) tickOpt += TICKINVERT;
+	additionalAxesTickOpt = tickOpt; //layout==2 has ticks
+
+	switch (modifierCode) {
+	case 2:
+	  tickOpt += TOP;
+	  additionalAxesTickOpt += TOP;
+	  break;
+	case 1:
+	  tickOpt += BOTTOM;
+	  additionalAxesTickOpt += BOTTOM;
+	  break;
+	case 0:
+	  if ((AxisStyle & 8) == 8) {
+		tickOpt += BOTTOM;
+		additionalAxesTickOpt += BOTTOM;
+	  } else {
+		tickOpt += BOTTOM TOP;
+		additionalAxesTickOpt += BOTTOM; //no top!
+	  }
+	}
+	//gridstyle applies here:
+	gdlLineStyle(a, GridStyle);
+	// ticklayout2 has no log and no subticks
+	if (Log) {
+	  if (TickInterval < 1) { //if log and tickinterval was >1 then we pass in 'linear, no subticks' mode (see issue #1112)
+		if (hasTickv) tickOpt += LOG;
+		else tickOpt += SUBTICKS LOG;
+		Minor = 0;
+	  } else if (TickInterval < 2) {
+		Minor = 1;
+	  } else if (TickInterval < 2.1) {
+		if (!hasTickv) tickOpt += SUBTICKS;
+		Minor = 2;
+	  } else if (TickInterval < 5.1) {
+		if (!hasTickv) tickOpt += SUBTICKS;
+		Minor = 5;
+	  } else {
+		if (!hasTickv) tickOpt += SUBTICKS;
+		Minor = 10;
+	  }
+	} else if (!hasTickv) tickOpt += SUBTICKS;
+	// special case
+	if (TickLayout == 1) tickOpt = "";
+
     Opt =  NOTICKS BOTTOM_NOLINE TOP_NOLINE;
-    if (axisId == YAXIS && TickLayout != 2) {
-      Opt += YLABEL_HORIZONTAL;
-    }
-    // the x option is in plplot 5.9.8 but not before. It permits
-    // to avoid writing tick marks here (they will be written after)
-    // I hope old plplots were clever enough to ignore 'x'
-    // if they did not understand 'x'
-    if (Log) {
-      if (TickInterval <= 1) Opt += LOG;
-      //if log and tickinterval was >1 then we pass in 'linear, no subticks' mode (see issue #1112)
-    }
+	if (axisId == YAXIS && TickLayout != 2) {
+	  Opt += YLABEL_HORIZONTAL;
+	}
+	// the x option is in plplot 5.9.8 but not before. It permits
+	// to avoid writing tick marks here (they will be written after)
+	// I hope old plplots were clever enough to ignore 'x'
+	// if they did not understand 'x'
+	if (Log) {
+	  if (TickInterval <= 1) Opt += LOG;
+	  //if log and tickinterval was >1 then we pass in 'linear, no subticks' mode (see issue #1112)
+	}
 
-    //the reference norm box
-    PLFLT refboxxmin, refboxxmax, refboxymin, refboxymax, boxxmin, boxxmax, boxymin, boxymax, xboxxmin, xboxxmax, xboxymin, xboxymax;
-    a->plstream::gvpd(refboxxmin, refboxxmax, refboxymin, refboxymax);
-    a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
-    a->plstream::gvpw(xboxxmin, xboxxmax, xboxymin, xboxymax);
-    // Add the tick displacement if negative tick length, so as to write the labels UNDER the tick (a plplot flaw IMHO)
-    if (inverted_ticks) { //the LABELS should be displaced
-      displacement += ticklen_as_norm;
-      if (axisId == XAXIS) {
-        boxymin -= ticklen_as_norm;
-        boxymax += ticklen_as_norm;
-      } else {
-        boxxmin -= ticklen_as_norm;
-        boxxmax += ticklen_as_norm;
-      }
-      a->plstream::vpor(boxxmin, boxxmax, boxymin, boxymax);
-      a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-    }
+	//the reference norm box
+	PLFLT refboxxmin, refboxxmax, refboxymin, refboxymax, boxxmin, boxxmax, boxymin, boxymax, xboxxmin, xboxxmax, xboxymin, xboxymax;
+	a->plstream::gvpd(refboxxmin, refboxxmax, refboxymin, refboxymax);
+	a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
+	a->plstream::gvpw(xboxxmin, xboxxmax, xboxymin, xboxymax);
+	// Will add the tick displacement if negative tick length, so as to write the labels UNDER the tick (a plplot flaw IMHO)
+	if (inverted_ticks) { //the LABELS should be displaced
+	  adddisplacement += ticklen_as_norm;
+	  if (axisId == XAXIS) {
+		boxymin -= ticklen_as_norm;
+		boxymax += ticklen_as_norm;
+	  } else {
+		boxxmin -= ticklen_as_norm;
+		boxxmax += ticklen_as_norm;
+	  }
+	  a->plstream::vpor(boxxmin, boxxmax, boxymin, boxymax);
+	  a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+	}
 
-//define minimal TICKDATA structure
-      
-      static GDL_TICKDATA tickdata;
-      //reset all values
-      tickdata.a = a;
-      tickdata.e = e;
-      tickdata.isLog = Log;
-      tickdata.axisrange = abs(End - Start);
-      tickdata.nchars = 0;
-      tickdata.TickFormat = NULL;
-      tickdata.nTickFormat = 0;
-      tickdata.TickName = NULL;
-      tickdata.nTickName = 0;
-      tickdata.tickNameCounter = 0;
-      //set modifiers
-      if (TickFormat->NBytes() > 0) {
-        tickdata.TickFormat = TickFormat;
-        tickdata.nTickFormat = TickFormat->N_Elements();
-      } else if (TickName->NBytes() > 0) {
-        tickdata.TickName = TickName;
-        tickdata.nTickName = TickName->N_Elements();
-      }
+	//define minimal TICKDATA structure
 
-      tickdata.tickOptionCode = GDL_NONE;
-      tickdata.tickLayoutCode = TickLayout;
-      tickdata.reset = true;      
-      tickdata.counter = 0;
+	static GDL_TICKDATA tickdata;
+	//reset all values
+	tickdata.a = a;
+	tickdata.e = e;
+	tickdata.isLog = Log;
+	tickdata.axisrange = abs(End - Start);
+	tickdata.nchars = 0;
+	tickdata.TickFormat = NULL;
+	tickdata.nTickFormat = 0;
+	tickdata.TickName = NULL;
+	tickdata.nTickName = 0;
+	tickdata.tickNameCounter = 0;
+	//set modifiers
+	if (TickFormat->NBytes() > 0) {
+	  tickdata.TickFormat = TickFormat;
+	  tickdata.nTickFormat = TickFormat->N_Elements();
+	} else if (TickName->NBytes() > 0) {
+	  tickdata.TickName = TickName;
+	  tickdata.nTickName = TickName->N_Elements();
+	}
 
-	 //Write labels first , using charthick
-    if (hasTickUnitDefined) // /TICKUNITS=[several types of axes written below each other]
-    {
-      tickdata.tickOptionCode = GDL_TICKUNITS;
-      tickdata.TickUnits = TickUnits;
-      tickdata.nTickUnits = tickUnitArraySize;
-      if (TickFormat->NBytes() > 0) tickdata.tickOptionCode = GDL_TICKUNITS_AND_FORMAT;
+	tickdata.tickOptionCode = GDL_NONE;
+	tickdata.tickLayoutCode = TickLayout;
+	tickdata.reset = true;
+	tickdata.counter = 0;
+	if (!hasTickUnitDefined) {
+	  TickUnits = new DStringGDL("");
+	  tickUnitArraySize = 1;
+	}
+	//Write labels first , using charthick.
+	tickdata.tickOptionCode = GDL_TICKUNITS;
+	tickdata.TickUnits = TickUnits;
+	tickdata.nTickUnits = tickUnitArraySize;
+	if (TickFormat->NBytes() > 0) tickdata.tickOptionCode = GDL_TICKUNITS_AND_FORMAT;
 
-      defineLabeling(a, axisId, gdlMultiAxisTickFunc, &tickdata);
-      Opt += LABELFUNC;
-      if (modifierCode == 2) {
-        Opt += NUMERIC_UNCONVENTIONAL;
-      } else {
-        Opt += NUMERIC;
-      } //m: write numerical/right above, n: below/left (normal)
-      if (!inverted_ticks && TickLayout != 2) displacement+=ticklen_as_norm; //every next axis will be separated by this
-      DFloat y_displacement=0;
-      for (SizeT i = 0; i < tickdata.nTickUnits; ++i) //loop on TICKUNITS axis
-      {
-        TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log, i);
-        tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
-        if (axisId == XAXIS) {
-          a->plstream::vpor(boxxmin, boxxmax, boxymin - i*(2*interligne_as_norm+displacement) +2*a->nCharHeight() - 1.5*interligne_as_norm, boxymax);
-          a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-          a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
-        } else {
-          a->plstream::vpor(boxxmin - (i*displacement+y_displacement), boxxmax, boxymin, boxymax);
-          a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-          a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
-          nchars[i] = tickdata.nchars;
-          if (TickLayout != 2) y_displacement+=(nchars[i]*a->nCharLength());
-        }
-        tickdata.counter++;
-      }
-      resetLabeling(a, axisId);
-    }
-    else //normal simple axis
-    {
-	  //plplot does write the base of the labels 2 char height below the box (or the tick if external). 
-	  // Nice but IDL writes the base of the labels at 1.5 interligne below the axis line.
-	  // the difference is +2 char height (-> base @ axis line ) -1.5 interligne
-	  // So (for X axis) we need to change the vpor temporarily to write the labels at the good position
-      if (hasTickv) {
-        int ntickv=MIN(Tickv->N_Elements(),Ticks+1);
-        for (auto i=0; i< ntickv; ++i) gdlDrawSingleTick (e, a, axisId, (*Tickv)[i], TickLen, modifierCode, &tickdata); 
-      } else {
-        defineLabeling(a, axisId, gdlAxisTickFunc, &tickdata);
-        Opt += LABELFUNC;
-        if (modifierCode == 2) Opt += NUMERIC_UNCONVENTIONAL;
-        else Opt += NUMERIC;
-        if (axisId == XAXIS) {
-          a->plstream::vpor(boxxmin, boxxmax, boxymin +2*a->nCharHeight() - 1.5*interligne_as_norm, boxymax);
-          a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-		  a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
-		  a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax); //reset to initial box
-          a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
-          a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-		  if (TickLayout != 2) displacement+=interligne_as_norm; else displacement+=2*interligne_as_norm;//for title 
+	defineLabeling(a, axisId, gdlMultiAxisTickFunc, &tickdata);
+	Opt += LABELFUNC;
+	if (modifierCode == 2) {
+	  Opt += NUMERIC_UNCONVENTIONAL;
+	} else {
+	  Opt += NUMERIC;
+	} //m: write numerical/right above, n: below/left (normal)
+	// X-AXIS
+	//plplot does write the base of the labels 2 char height below the box (or the tick if external). 
+	// Nice but IDL writes the *base* of the labels at 1 interligne below the axis line. So, on the axis line if interligne = 0
+	// Y-AXIS
+	// plplot does not take negative ticks into account
+	// IDL writes the base of the labels at 1 interligne left of the axis line.
+	// On (TickLayout == 2) the sucessive axes are separated by 2*ticksize (if negative) + interligne
+	// So for all axis we need to change the vpor temporarily to write the labels at the good position
+	
+   	if (!inverted_ticks && TickLayout != 2) adddisplacement += ticklen_as_norm; //every next axis will be separated by this
+	for (SizeT i = 0; i < tickdata.nTickUnits; ++i) //loop on TICKUNITS axis
+	{
+	  TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log, i);
+	  tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
+	  if (axisId == XAXIS) {
+		a->plstream::vpor(boxxmin, boxxmax, boxymin - i * (2 * interligne_as_norm + adddisplacement) + 2 * a->nCharHeight() - 1.5 * interligne_as_norm, boxymax);
+		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+		a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
+	  } else {
+		a->plstream::vpor(boxxmin - ydisplacement, boxxmax, boxymin, boxymax);
+		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+		a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
+		nchars[i] = tickdata.nchars;
+		if (TickLayout == 2) ydisplacement += 2*interligne_as_norm+adddisplacement;  else ydisplacement += ((nchars[i]+1.5) * a->nCharLength())+ticklen_as_norm; 
+	  }
+	  tickdata.counter++;
+	}
+	resetLabeling(a, axisId);
+
+
+	if (TickLayout == 1) tickOpt = "";
+	if (TickLayout == 1) additionalAxesTickOpt = "";
+
+	//replay above, with ticks only
+	//     write box with ticks, in proper XTHICK, in the reference position
+
+	// ****** FIRST reset to initial box &values
+	xdisplacement = 0;
+	ydisplacement = 0;
+//    if (TickLayout == 2) ydisplacement = -a->nCharLength()-adddisplacement+interligne_as_norm;
+	a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
+	a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
+	a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+	//      thick for box and ticks.
+	a->Thick(Thick);
+	a->smaj(ticklen_in_mm, 1.0);
+	if (TickLen < 0.3 || inverted_ticks) a->smin(ticklen_in_mm / 2.0, 1.0); //IDL behaviour.
+
+	for (auto i = 0; i < tickdata.nTickUnits; ++i) //loop on TICKUNITS axis
+	{
+	  TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log, i);
+
+	  tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
+	  if (i == 1) tickOpt = (TickLayout == 2) ? tickDown : additionalAxesTickOpt;
+	  if (axisId == XAXIS) {
+		a->plstream::vpor(boxxmin, boxxmax, boxymin - i * (2 * interligne_as_norm + adddisplacement), boxymax);
+		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+		a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
+	  } else {
+		a->plstream::vpor(boxxmin - ydisplacement, boxxmax, boxymin, boxymax);
+		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+		a->box("", 0.0, 0.0, tickOpt.c_str(), TickInterval, Minor); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
+		if (TickLayout == 2) {
+		  ydisplacement += 2*interligne_as_norm+adddisplacement;
+//		  if (i == tickdata.nTickUnits-1) ydisplacement -= interligne_as_norm;
 		} else {
-		  a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
-		  if (TickLayout != 2) displacement+=tickdata.nchars*a->nCharLength(); else displacement+=a->nCharLength();
+		  ydisplacement += ((nchars[i]+1.5) * a->nCharLength())+ticklen_as_norm;
+		  if (i == tickdata.nTickUnits-1) ydisplacement -= ((nchars[i]+1.5) * a->nCharLength()); // no further labels
 		}
-        resetLabeling(a, axisId);
-      }
-    }
-
-    // insure no axes written with ticklayout=1
-    if (TickLayout == 1) tickOpt="";
-    if (TickLayout == 1) additionalAxesTickOpt="";
-
-    //replay above, with ticks only
-    //     write box with ticks, in proper XTHICK, in the reference position
-    a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax); //reset to initial box
-    a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
-    a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-    //      thick for box and ticks.
-    a->Thick(Thick);
-    a->smaj(ticklen_in_mm, 1.0);
-    if (TickLen < 0.3 || inverted_ticks) a->smin(ticklen_in_mm / 2.0, 1.0); //IDL behaviour.
-    if (hasTickUnitDefined) //  replay tickunits
-    {
-      DFloat y_displacement=0;
-      for (auto i = 0; i < tickdata.nTickUnits; ++i) //loop on TICKUNITS axis
-      {
-        TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log, i);
-
-        tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
-        if (axisId == XAXIS) {
-          if (i == 1) tickOpt = (TickLayout == 2) ? tickOpt2 : additionalAxesTickOpt;
-          a->plstream::vpor(boxxmin, boxxmax, boxymin - i*(2*interligne_as_norm+displacement), boxymax);
-          a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-          a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
-        } else {
-          if (i == 1) {
-            tickOpt = (TickLayout == 2) ? tickOpt2 : additionalAxesTickOpt;
-            if (TickLayout == 2) {
-              a->smaj(a->nd2mx(displacement), 1.0);
-            }
-          }
-          a->plstream::vpor(boxxmin - (i*displacement+y_displacement), boxxmax, boxymin, boxymax);
-          a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-          a->box("", 0.0, 0.0, tickOpt.c_str(), TickInterval, Minor); //to avoid plplot crashes: do not use tickinterval. or recompute it correctly (no too small!)
-          if (TickLayout != 2) y_displacement+=(tickdata.nchars*a->nCharLength());
-        }
-        if (TickLayout == 2 && i==0) {
-          if (axisId == XAXIS) {
-			a->smaj(2 * a->mmLineSpacing(), 1.0);
-            a->box(tickOpt2.c_str(), TickInterval, Minor, "", 0.0, 0);
-          } else {
-            a->smaj(a->nd2mx(displacement), 1.0);
-            a->box("", 0.0, 0, tickOpt2.c_str(), TickInterval, Minor);
-          }
-        }
-        tickdata.counter++;
-      }
-	  if (axisId == XAXIS && TickLayout == 2) { //define a last viewport for eventual title below
-		a->plstream::vpor(boxxmin, boxxmax, boxymin - (tickdata.nTickUnits)*(2*interligne_as_norm+displacement), boxymax);
+	  }
+	  if (TickLayout == 2 && i == 0) {
+		if (axisId == XAXIS) {
+		  a->smaj(a->nd2my(2*interligne_as_norm+adddisplacement),1.0);
+		  a->box(tickDown.c_str(), TickInterval, Minor, "", 0.0, 0);
+		} else {
+		  a->smaj(a->nd2mx(2*interligne_as_norm+adddisplacement),1.0);
+		  a->box("", 0.0, 0, tickDown.c_str(), TickInterval, Minor);
+		}
+	  }
+	  tickdata.counter++;
+	}
+	
+	  if (axisId == XAXIS) { //define a last viewport for eventual title below
+		a->plstream::vpor(boxxmin, boxxmax, boxymin - (tickdata.nTickUnits)*( ((TickLayout == 2)?2:1) * interligne_as_norm + adddisplacement), boxymax);
+		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+	  } else {
+      a->plstream::vpor(boxxmin - ydisplacement, boxxmax, boxymin, boxymax);
 		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
 	  }
-    } else {
-      //replay normal
-      if (axisId == XAXIS) a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0);
-      else a->box("", 0.0, 0, tickOpt.c_str(), TickInterval, Minor);
-		}
 
-	//get current (last) viewport (last axis plotted)
-    a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
-    if (axisId == XAXIS) { //add last displacement
-      a->plstream::vpor(boxxmin, boxxmax, boxymin - displacement, boxymax);
-      a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-    } else {
-      a->plstream::vpor(boxxmin - displacement, boxxmax, boxymin, boxymax);
-      a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-    }
-  
-    if (TickLayout == 2) {
-	  a->smaj(2*a->mmLineSpacing(), 1.0);
-      if (axisId == XAXIS) {
-        a->box(tickOpt3.c_str(), TickInterval, Minor, "", 0.0, 0);
-      } else {
-        a->box("", 0.0, 0, tickOpt3.c_str(), TickInterval, Minor);
-      }
-    }
+	if (TickLayout == 2) {
+	  a->smaj(2 * a->mmLineSpacing(), 1.0);
+	  if (axisId == XAXIS) {
+		a->box(justLine.c_str(), TickInterval, Minor, "", 0.0, 0);
+	  } else {
+		a->box("", 0.0, 0, justLine.c_str(), TickInterval, Minor);
+	  }
+	}
 
-    // Write title (position depends on above values)
+	// Write title (position depends on above values)
 	// IDL positions title 1.25 interligne below bottom of label.
-    if (hasTitle) {
-      gdlSetPlotCharthick(e, a);
-      if (modifierCode == 0 || modifierCode == 1) {
-        if (axisId == XAXIS) a->mtex("b", 1.25*interligne_as_char, 0.5, 0.5, Title.c_str());
-        else a->mtex("l", 2, 0.5, 0.5, Title.c_str());
-      } else if (modifierCode == 2) {
-        if (axisId == XAXIS) a->mtex("t", 1.25*interligne_as_char, 0.5, 0.5, Title.c_str());
-        else a->mtex("r", 2, 0.5, 0.5, Title.c_str());
-      }
-    }
+	if (hasTitle) {
+	  gdlSetPlotCharthick(e, a);
+	  if (modifierCode == 0 || modifierCode == 1) {
+		if (axisId == XAXIS) a->mtex("b", 1.25 * interligne_as_char, 0.5, 0.5, Title.c_str());
+		else a->mtex("l", 1, 0.5, 0.5, Title.c_str());
+	  } else if (modifierCode == 2) {
+		if (axisId == XAXIS) a->mtex("t", 1.25 * interligne_as_char, 0.5, 0.5, Title.c_str());
+		else a->mtex("r", 1, 0.5, 0.5, Title.c_str());
+	  }
+	}
 
       //reset gridstyle
-    gdlLineStyle(a, 0);
-    gdlWriteDesiredAxisTickGet(e, axisId, Log);
-    //reset charsize & thick
-    a->Thick(1.0);
-    a->sizeChar(1.0);
-    a->vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
-    a->wind(owxmin, owxmax, owymin, owymax); //restore old values 
+	gdlLineStyle(a, 0);
+	gdlWriteDesiredAxisTickGet(e, axisId, Log);
+	//reset charsize & thick
+	a->Thick(1.0);
+	a->sizeChar(1.0);
+	a->vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
+	a->wind(owxmin, owxmax, owymin, owymax); //restore old values 
   }
 
   void gdlBox(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog) {
