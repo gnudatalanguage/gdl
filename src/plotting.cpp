@@ -3161,33 +3161,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     a->Thick(gdlGetPenThickness(e, a));
   }
 
-  void gdlWriteTitleAndSubtitle(EnvT* e, GDLGStream *a) {
-    unsigned titleTag = SysVar::P()->Desc()->TagIndex("TITLE");
-    unsigned subTitleTag = SysVar::P()->Desc()->TagIndex("SUBTITLE");
-    DString title = (*static_cast<DStringGDL*> (SysVar::P()->GetTag(titleTag, 0)))[0];
-    DString subTitle = (*static_cast<DStringGDL*> (SysVar::P()->GetTag(subTitleTag, 0)))[0];
-
-    int TITLEIx = e->KeywordIx("TITLE");
-    int SUBTITLEIx = e->KeywordIx("SUBTITLE");
-    e->AssureStringScalarKWIfPresent(TITLEIx, title);
-    e->AssureStringScalarKWIfPresent(SUBTITLEIx, subTitle);
-    if (title.empty() && subTitle.empty()) return;
-
-    gdlSetPlotCharsize(e, a);
-    if (!title.empty()) {
-      e->AssureStringScalarKWIfPresent(TITLEIx, title);
-      gdlSetPlotCharthick(e, a);
-      a->sizeChar(1.25 * a->charScale());
-      a->mtex("t", 1.5, 0.5, 0.5, title.c_str()); //position is in units of current char height. baseline at half-height
-      a->sizeChar(a->charScale() / 1.25);
-    }
-    if (!subTitle.empty()) {
-      e->AssureStringScalarKWIfPresent(SUBTITLEIx, subTitle);
-      //      DFloat step=a->mmLineSpacing()/a->mmCharHeight();
-      //      a->mtex("b", 5*step, 0.5, 0.5, subTitle.c_str());
-      a->mtex("b", 5, 0.5, 0.5, subTitle.c_str()); //position is in units of current char height. baseline at half-height
-    }
-  }
   //call this function if Y data is strictly >0.
   //set yStart to 0 only if gdlYaxisNoZero is false.
 
@@ -3490,7 +3463,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	if (Log && (Start <= 0 || End <= 0)) return; //important protection 
 	DLong AxisStyle;
 	gdlGetDesiredAxisStyle(e, axisId, AxisStyle);
-	if ((AxisStyle & 4) == 4) return; //if we do not write the axis...
+	bool doplot=((AxisStyle & 4) != 4); // We historically would just return if XYZStyle==4, 
+	//but now we need to go through all vpor() changes to write the eventual titles and subtitles.
 
 	// we WILL plot something, so set temporarlily WIN accordingly
 	PLFLT owxmin, owxmax, owymin, owymax;
@@ -3595,6 +3569,8 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	std::string tickOpt;
 	std::string additionalAxesTickOpt;
 	std::string tickDown = TICKS BOTTOM TICKINVERT;
+	std::string tickUp = TICKS BOTTOM;
+	std::string tickLayout2;
 	std::string justLine = BOTTOM;
 	//define tick-related (ticklayout) options
 	//ticks or grid eventually with style and length:
@@ -3723,7 +3699,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	} //m: write numerical/right above, n: below/left (normal)
 	// X-AXIS
 	//plplot does write the base of the labels 2 char height below the box (or the tick if external). 
-	// Nice but IDL writes the *base* of the labels at 1 interligne below the axis line. So, on the axis line if interligne = 0
+	// Nice but IDL writes the *base* of the labels at 1.5 interligne below the axis line. So, on the axis line if interligne = 0
 	// Y-AXIS
 	// plplot does not take negative ticks into account
 	// IDL writes the base of the labels at 1 interligne left of the axis line.
@@ -3731,7 +3707,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	// So for all axis we need to change the vpor temporarily to write the labels at the good position
 	
    	if (!inverted_ticks && TickLayout != 2) adddisplacement += ticklen_as_norm; //every next axis will be separated by this
-	xdisplacement = 2 * a->nCharHeight() - 1.5 * interligne_as_norm;
+	xdisplacement = - 2 * a->nCharHeight() + 1.5*interligne_as_norm;
 	for (SizeT i = 0; i < tickdata.nTickUnits; ++i) //loop on TICKUNITS axis
 	{
 	  TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log, i);
@@ -3739,12 +3715,12 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	  if (axisId == XAXIS) {
 		a->plstream::vpor(boxxmin, boxxmax, boxymin - xdisplacement, boxymax);
 		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-		a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
+		if (doplot) a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0);
 		xdisplacement += 2*interligne_as_norm+adddisplacement;
 	  } else {
 		a->plstream::vpor(boxxmin - ydisplacement, boxxmax, boxymin, boxymax);
 		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-		a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
+		if (doplot) a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor);
 		nchars[i] = tickdata.nchars;
 		if (TickLayout == 2) ydisplacement += 2*interligne_as_norm+adddisplacement;  else ydisplacement += ((nchars[i]+1.5) * a->nCharLength())+ticklen_as_norm; 
 	  }
@@ -3758,7 +3734,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 
 	//replay above, with ticks only
 	//     write box with ticks, in proper XTHICK, in the reference position
-
+    tickLayout2=(interligne_as_norm >0) ? tickDown: tickUp;
 	// ****** FIRST reset to initial box &values
 	xdisplacement = 0;
 	ydisplacement = 0;
@@ -3775,17 +3751,17 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	  TickInterval = gdlComputeTickInterval(e, axisId, Start, End, Log, i);
 
 	  tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
-	  if (i == 1) tickOpt = (TickLayout == 2) ? tickDown : additionalAxesTickOpt;
+	  if (i == 1) tickOpt = (TickLayout == 2) ? tickLayout2 : additionalAxesTickOpt;
 	  if (axisId == XAXIS) {
 		a->plstream::vpor(boxxmin, boxxmax, boxymin - xdisplacement, boxymax);
 		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-		a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0); 
+		if (doplot) a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0); 
 		xdisplacement += 2*interligne_as_norm+adddisplacement;
 		if (i == tickdata.nTickUnits-1 && TickLayout != 2 && !inverted_ticks) xdisplacement -= ticklen_as_norm;
 	  } else {
 		a->plstream::vpor(boxxmin - ydisplacement, boxxmax, boxymin, boxymax);
 		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-		a->box("", 0.0, 0.0, tickOpt.c_str(), TickInterval, Minor);
+		if (doplot) a->box("", 0.0, 0.0, tickOpt.c_str(), TickInterval, Minor);
 		if (TickLayout == 2) {
 		  ydisplacement += 2*interligne_as_norm+adddisplacement;
 		} else {
@@ -3796,29 +3772,29 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	  if (TickLayout == 2 && i == 0) {
 		if (axisId == XAXIS) {
 		  a->smaj(a->nd2my(2*interligne_as_norm+adddisplacement),1.0);
-		  a->box(tickDown.c_str(), TickInterval, Minor, "", 0.0, 0);
+		  if (doplot) a->box(tickLayout2.c_str(), TickInterval, Minor, "", 0.0, 0);
 		} else {
 		  a->smaj(a->nd2mx(2*interligne_as_norm+adddisplacement),1.0);
-		  a->box("", 0.0, 0, tickDown.c_str(), TickInterval, Minor);
+		  if (doplot) a->box("", 0.0, 0, tickLayout2.c_str(), TickInterval, Minor);
 		}
 	  }
 	  tickdata.counter++;
 	}
 	
-	  if (axisId == XAXIS) { //define a last viewport for eventual title below
-		a->plstream::vpor(boxxmin, boxxmax, boxymin - xdisplacement , boxymax);
-		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-	  } else {
-        a->plstream::vpor(boxxmin - ydisplacement, boxxmax, boxymin, boxymax);
-		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
-	  }
+	if (axisId == XAXIS) { //define a last viewport for eventual title below
+	  a->plstream::vpor(boxxmin, boxxmax, boxymin - xdisplacement , boxymax);
+	  a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+	} else {
+	  a->plstream::vpor(boxxmin - ydisplacement, boxxmax, boxymin, boxymax);
+	  a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+	}
 
 	if (TickLayout == 2) {
 	  a->smaj(2 * a->mmLineSpacing(), 1.0);
 	  if (axisId == XAXIS) {
-		a->box(justLine.c_str(), TickInterval, Minor, "", 0.0, 0);
+		if (doplot) a->box(justLine.c_str(), TickInterval, Minor, "", 0.0, 0);
 	  } else {
-		a->box("", 0.0, 0, justLine.c_str(), TickInterval, Minor);
+		if (doplot) a->box("", 0.0, 0, justLine.c_str(), TickInterval, Minor);
 	  }
 	}
 
@@ -3826,15 +3802,45 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	// IDL positions title 1.25 interligne below bottom of label.
 	if (hasTitle) {
 	  gdlSetPlotCharthick(e, a);
+	  PLFLT title_disp=((TickLayout == 2)?1.5:1) * interligne_as_char-0.5;//in chars
 	  if (modifierCode == 0 || modifierCode == 1) {
-		if (axisId == XAXIS) a->mtex("b", 1.25 * interligne_as_char, 0.5, 0.5, Title.c_str());
+		if (axisId == XAXIS) a->mtex("b", title_disp, 0.5, 0.5, Title.c_str());
 		else a->mtex("l", 1, 0.5, 0.5, Title.c_str());
 	  } else if (modifierCode == 2) {
-		if (axisId == XAXIS) a->mtex("t", 1.25 * interligne_as_char, 0.5, 0.5, Title.c_str());
+		if (axisId == XAXIS) a->mtex("t", title_disp, 0.5, 0.5, Title.c_str());
 		else a->mtex("r", 1, 0.5, 0.5, Title.c_str());
 	  }
 	}
 
+	//Global Title and Subtitle
+	if (axisId==XAXIS) {
+	  unsigned titleTag = SysVar::P()->Desc()->TagIndex("TITLE");
+	  unsigned subTitleTag = SysVar::P()->Desc()->TagIndex("SUBTITLE");
+	  DString title = (*static_cast<DStringGDL*> (SysVar::P()->GetTag(titleTag, 0)))[0];
+	  DString subTitle = (*static_cast<DStringGDL*> (SysVar::P()->GetTag(subTitleTag, 0)))[0];
+	  
+	  //Proect against commands that have no TITLE or SUBTITLE option (AXIS etc)
+	  int TITLEIx = e->GetPro()->FindKey("TITLE");
+	  if (TITLEIx >= 0 ) {
+		e->AssureStringScalarKWIfPresent(TITLEIx, title);
+	  }
+	  int SUBTITLEIx = e->GetPro()->FindKey("SUBTITLE");
+	  if (SUBTITLEIx >=0) {
+	    e->AssureStringScalarKWIfPresent(SUBTITLEIx, subTitle);
+	  }
+
+	  gdlSetPlotCharsize(e, a);
+	  if (!title.empty()) {
+		gdlSetPlotCharthick(e, a);
+		a->sizeChar(1.25 * a->charScale());
+		a->mtex("t", 1.5, 0.5, 0.5, title.c_str()); //position is in units of current char height. baseline at half-height
+		a->sizeChar(a->charScale() / 1.25);
+	  }
+	  if (!subTitle.empty()) {
+		PLFLT title_disp = ((TickLayout == 2) ? 2.5 : 2) * interligne_as_char - 0.5; //in chars
+		a->mtex("b", title_disp, 0.5, 0.5, subTitle.c_str()); //position is in units of current char height. baseline at half-height
+	  }
+	}
       //reset gridstyle
 	gdlLineStyle(a, 0);
 	gdlWriteDesiredAxisTickGet(e, axisId, Log);
@@ -3846,13 +3852,11 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   }
 
   void gdlBox(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog) {
-    gdlWriteTitleAndSubtitle(e, a);
     gdlAxis(e, a, XAXIS, xStart, xEnd, xLog);
     gdlAxis(e, a, YAXIS, yStart, yEnd, yLog);
   }
 
   void gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue) {
-    gdlWriteTitleAndSubtitle(e, a);
     gdlAxis(e, a, XAXIS, xStart, xEnd, xLog, 1); //only Bottom
     gdlAxis(e, a, YAXIS, yStart, yEnd, yLog, 1); //only left
 

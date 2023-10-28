@@ -383,7 +383,6 @@ namespace lib {
 
   void gdlSetPenThickness(EnvT *e, GDLGStream *a);
 
-  void gdlWriteTitleAndSubtitle(EnvT* e, GDLGStream *a);
   //call this function if Y data is strictly >0.
   //set yStart to 0 only if gdlYaxisNoZero is false.
 
