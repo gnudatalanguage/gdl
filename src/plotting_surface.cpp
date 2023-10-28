@@ -294,8 +294,6 @@ namespace lib
       gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
       //write OUR box using our 3D PLESC tricks:
       gdlBox3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue);
-      // title and sub title
-      gdlWriteTitleAndSubtitle(e, actStream);
        //reset driver to 2D plotting routines, further 3D is just plplot drawing a mesh.
       gdlStop3DDriverTransform(actStream); 
       
