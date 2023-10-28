@@ -22,6 +22,9 @@
 #include "graphicsdevice.hpp"
 #include "gdlgstream.hpp"
 #include "initsysvar.hpp"
+#ifndef MAX
+#define MAX(a,b) ((a) < (b) ? (b) : (a))
+#endif
 
 using namespace std;
 
@@ -380,8 +383,9 @@ void GDLGStream::SetCharSize(DLong ichx, DLong chy) {
     gdlDefaultCharInitialized=1;
   }
 
-void GDLGStream::NextPlot( bool erase )
-{
+void GDLGStream::NextPlot( bool erase ) {
+  // restore charsize to default for newpage at beginning since adv() uses charsize to get box position.
+  if (!erase) sizeChar(1.0);
   DLongGDL* pMulti = SysVar::GetPMulti();
 
   DLong nx = (*pMulti)[ 1];
@@ -446,8 +450,7 @@ void GDLGStream::NextPlot( bool erase )
       --(*pMulti)[0];
     }
   }
-  // restore charsize to default for newpage
-  sizeChar(1.0);
+
 }
 
 void GDLGStream::NoSub()
@@ -1339,18 +1342,46 @@ void GDLGStream::adv(PLINT page)
   (*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(regionTag, 0)))[1]=szmax;
 }
 
-void GDLGStream::getSubpageRegion(PLFLT &sxmin, PLFLT &symin, PLFLT &sxmax, PLFLT &symax, PLFLT *szmin, PLFLT *szmax){
+void GDLGStream::getSubpageRegion(PLFLT &sxmin, PLFLT &symin, PLFLT &sxmax, PLFLT &symax, PLFLT *szmin, PLFLT *szmax) {
+  //here we must take into account the contents of ![X|Y|Z].OMARGIN
+  unsigned int omarginTag = SysVar::X()->Desc()->TagIndex("OMARGIN");
+  DFloat xstart = (*static_cast<DFloatGDL*> (SysVar::X()->GetTag(omarginTag, 0)))[0];
+  xstart=MAX(xstart,0);
+  DFloat xend = (*static_cast<DFloatGDL*> (SysVar::X()->GetTag(omarginTag, 0)))[1];
+  xend=MAX(xend,0);
+  omarginTag = SysVar::Y()->Desc()->TagIndex("OMARGIN");
+  DFloat ystart = (*static_cast<DFloatGDL*> (SysVar::Y()->GetTag(omarginTag, 0)))[0];
+  ystart=MAX(ystart,0);
+  DFloat yend = (*static_cast<DFloatGDL*> (SysVar::Y()->GetTag(omarginTag, 0)))[1];
+  yend=MAX(yend,0);
+  //  Z OMARGIN to BE CHECKED and code must be written.
+  //  omarginTag = SysVar::Z()->Desc()->TagIndex("OMARGIN");
+  //  DFloat zstart = (*static_cast<DFloatGDL*> (SysVar::Z()->GetTag(omarginTag, 0)))[0];
+  //  DFloat zend = (*static_cast<DFloatGDL*> (SysVar::Z()->GetTag(omarginTag, 0)))[1];
+  DFloat xNormedPageSize=1-(xend+xstart)*theCurrentChar.ndsx;
+  DFloat yNormedPageSize=1-(yend+ystart)*theCurrentChar.nspacing;
+  if (xNormedPageSize < 0 || xNormedPageSize > 1 || yNormedPageSize < 0 || yNormedPageSize > 1) {
+	Message,"Data coordinate system not established.";
+	if (xNormedPageSize < 0) xNormedPageSize=0;
+	if (yNormedPageSize < 0) yNormedPageSize=0;
+	if (xNormedPageSize > 1) xNormedPageSize=1;
+	if (yNormedPageSize > 1) yNormedPageSize=1;
+  } 
+  DFloat zNormedPageSize=1; //zend-zstart??;
+  DFloat xNormedOffset=xstart*theCurrentChar.ndsx;
+  DFloat yNormedOffset=yend*theCurrentChar.nspacing;
+  //check silly values: normed must be >0 and < 1
   int p=thePage.curPage-1;
-  PLFLT width=1.0/thePage.nx;
-  PLFLT height=1.0/thePage.ny;
-  PLFLT profund=1.0/thePage.nz;
+  PLFLT width=xNormedPageSize/thePage.nx;
+  PLFLT height=yNormedPageSize/thePage.ny;
+  PLFLT profund=zNormedPageSize/thePage.nz;
  int k= p / (thePage.nx*thePage.ny);
  int l= p - k*(thePage.nx*thePage.ny);
  int j= l /thePage.nx ;
- int i= (l - j*thePage.nx); 
- sxmin=i*width;
+ int i= (l - j*thePage.nx);
+ sxmin=i*width+xNormedOffset;
  sxmax=sxmin+width;
- symax=1-(j*height);
+ symax=1-(j*height+yNormedOffset);
  symin=symax-height;
  if (szmin != NULL) {
    *szmin=k*profund;
