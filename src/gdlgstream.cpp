@@ -508,7 +508,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
   // - ... a look-up table instead of the long switch/case blocks ...
  
   size_t len = strlen(in);
-  if (stringLength) *stringLength=0;
+  if (stringLength!=NULL) *stringLength=0;
   // skip conversion if the string is empty
   if (len == 0) return "";
 
@@ -697,12 +697,12 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
     }
     else 
     {
-      if (stringLength) *stringLength+=base*fact[curr_lev%7];
+      if (stringLength!=NULL) *stringLength+=base*fact[curr_lev%7];
       curr_pos++;
       // handling IDL exclamation mark escape '!!'
       if (in[i] == '!') {
         i++;
-        if (stringLength) *stringLength+=base*fact[curr_lev%7];
+        if (stringLength!=NULL) *stringLength+=base*fact[curr_lev%7];
       }
       // handling plplot number sign escape '##'
       if 
@@ -1032,12 +1032,12 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
   activeFontCodeNum = curr_fnt;
   //if gdlGetStringLength function is available, use it to give back a better value ("X" and "I" do not have the same width in hershey format!)
 #if PLPLOT_PRIVATE_NOT_HIDDEN
-  if (stringLength) *stringLength=gdlGetStringLength(out)/this->mmCharLength();
+  if (stringLength!=NULL) *stringLength=gdlGetStringLength(out)/this->mmCharLength();
 #endif
   return out;
 retrn:
   activeFontCodeNum = curr_fnt;
-  if (stringLength) *stringLength=0;
+  if (stringLength!=NULL) *stringLength=0;
   cout << "ERROR: GDLGStream::TranslateFormatCodes(\"" << in << "\") = \"" << out << "\"" << endl;  
   return ""; 
 }
