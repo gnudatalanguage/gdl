@@ -51,7 +51,7 @@ public:
   dimension(const dimension& dim_)
   { 
     rank = dim_.rank;
-    for(char i=0; i<rank; ++i)
+    for(SizeT i=0; i<rank; ++i)
       { dim[i]=dim_.dim[i];}
     stride[0] = 0; // not set
   }
@@ -94,20 +94,21 @@ public:
     rank = 2;
     stride[0] = 0; // not set
   }
-     dimension(const SizeT d0, const SizeT d1, const SizeT d2)
-     {
-       assert( d0 != 0);
-       dim[0] = d0;
-       assert( d1 != 0);
-       dim[1] = d1;
-       assert( d2 != 0);
-       dim[2] = d2;
-       rank = 3;
+
+  dimension(const SizeT d0, const SizeT d1, const SizeT d2)
+  {
+    assert( d0 != 0);
+    dim[0] = d0;
+    assert( d1 != 0);
+    dim[1] = d1;
+    assert( d2 != 0);
+    dim[2] = d2;
+    rank = 3;
     stride[0] = 0; // not set
-   //     stride[0] = 1; // set
-   //     stride[1] = d0; // set
-   //     stride[1] = d0 * d1; // set
-     }
+    //     stride[0] = 1; // set
+    //     stride[1] = d0; // set
+    //     stride[1] = d0 * d1; // set
+  }
 
   // operators
   // assignment
