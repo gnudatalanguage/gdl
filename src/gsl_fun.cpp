@@ -531,8 +531,8 @@ namespace lib {
 
         SizeT nParam = e->NParam(1);
         SizeT overwrite = 0, dbl = 0;
-        SizeT stride;
-        SizeT offset;
+	//unused    SizeT stride;
+        //unused    SizeT offset;
 
         double direct = -1.0;
 
@@ -601,7 +601,7 @@ namespace lib {
         } else if (p0->Type() == GDL_COMPLEX) {
 
             //cout << "if 2" << endl;
-            DComplexGDL *res;
+	  //            DComplexGDL *res;
 
             if (overwrite)
                 e->StealLocalPar(0); // only steals if local par
@@ -1220,26 +1220,26 @@ namespace lib {
 #endif
 
     void la_trired_pro(EnvT *e) {
-        SizeT nParam = e->NParam(3);
-        float f32;
-        double f64;
+      //        SizeT nParam = e->NParam(3);
+      float f32;
+      double f64;
+      
+      BaseGDL *p0 = e->GetNumericArrayParDefined(0);
+      
+      SizeT nEl = p0->N_Elements();
+      if (nEl == 0)
+	e->Throw("Variable is undefined: " + e->GetParString(0));
+      
+      if (p0->Dim(0) != p0->Dim(1))
+	e->Throw("Input must be a square matrix: " + e->GetParString(0));
+      
+      // AC2022 : can we write in the inputs ?!
+      e->AssureGlobalPar(0);
+      e->AssureGlobalPar(1);
+      e->AssureGlobalPar(2);
 
-        BaseGDL *p0 = e->GetNumericArrayParDefined(0);
-
-        SizeT nEl = p0->N_Elements();
-        if (nEl == 0)
-            e->Throw("Variable is undefined: " + e->GetParString(0));
-
-        if (p0->Dim(0) != p0->Dim(1))
-            e->Throw("Input must be a square matrix: " + e->GetParString(0));
-
-        // AC2022 : can we write in the inputs ?!
-        e->AssureGlobalPar(0);
-        e->AssureGlobalPar(1);
-        e->AssureGlobalPar(2);
-
-        if (p0->Type() == GDL_COMPLEX) {
-            DComplexGDL *p0C = static_cast<DComplexGDL *>( p0);
+      if (p0->Type() == GDL_COMPLEX) {
+	DComplexGDL *p0C = static_cast<DComplexGDL *>( p0);
 
             float f32_2[2];
             double f64_2[2];
@@ -2588,19 +2588,22 @@ namespace lib {
                                       wsize, w, &result, &error);
             } else if (e->KeywordSet(midinfIx) || e->KeywordSet(midpntIx) ||
                        e->KeywordSet(midsqlIx) || e->KeywordSet(midsquIx) ||
-                       e->KeywordSet(jmaxIx) || e->KeywordSet(kkkIx)) {
-                gsl_integration_qag(&F, first, last, 0, eps,
-                                    wsize, GSL_INTEG_GAUSS61, w, &result, &error);
-            } else {
-                // AC 2012-10-10: ToDo: checks on values at the boundaries.
-                // if no problem, using QAG, else QAGS
-                // intregation on open range ]first,last[
-                gsl_integration_qags(&F, first, last, 0, eps,
-                                     wsize, w, &result, &error);
+                       e->KeywordSet(jmaxIx) || e->KeywordSet(kkkIx))
+	      {
+		gsl_integration_qag(&F, first, last, 0, eps,
+				    wsize, GSL_INTEG_GAUSS61, w, &result, &error);
+	      } else {
+	      //	      cout << "debug this case" << endl;
+	      //	      cout << *last[0] << end;
+	      // AC 2012-10-10: ToDo: checks on values at the boundaries.
+	      // if no problem, using QAG, else QAGS
+	      // integration on open range ]first,last[
+	      gsl_integration_qags(&F, first, last, 0, eps,
+				   wsize, w, &result, &error);
             }
-
+	    
             if (debug) cout << "Result : " << result << endl;
-
+	    
             (*res)[i] = result;
         }
 
@@ -2744,9 +2747,7 @@ namespace lib {
         static int tolIx = e->KeywordIx("TOL");
         if (e->KeywordSet(tolIx)) {
             e->AssureDoubleScalarKWIfPresent(tolIx, tol);
-        }
-        if (isfinite(tol) == 0) {
-            DDouble tol = 0.0001;
+	    if (isfinite(tol) == 0) { tol = 0.0001;}
         }
 
         //Mueller method
@@ -3058,7 +3059,7 @@ namespace lib {
     }
 
     BaseGDL *binomialcoef(EnvT *e) {
-        SizeT nParam = e->NParam(2);
+      //        SizeT nParam = e->NParam(2);
         if (!IntType(e->GetParDefined(0)->Type()) || !IntType(e->GetParDefined(1)->Type()))
             e->Throw("Arguments must not be floating point numbers");
         DLong n, m;
@@ -3111,7 +3112,7 @@ namespace lib {
     //     2. As of version 1.13 GSL supports only two dimensions (checked at GDL level), and
     //        square matrices in 2D case (left for the GSL error handler to report)
     BaseGDL *wtn(EnvT *e) {
-        SizeT nParam = e->NParam(2);
+      //        SizeT nParam = e->NParam(2);
         static int doubleIx = e->KeywordIx("DOUBLE");
         static int overwriteIx = e->KeywordIx("OVERWRITE");
         static int columnIx = e->KeywordIx("COLUMN");
@@ -3260,7 +3261,7 @@ namespace lib {
         static int doubleIx = e->KeywordIx("DOUBLE");
         static int jenkisTraubIx = e->KeywordIx("JENKINS_TRAUB");
 
-        SizeT nParam = e->NParam(1);
+	//        SizeT nParam = e->NParam(1);
         if (e->KeywordSet(jenkisTraubIx))
             e->Throw("Jenkins-Traub method not supported yet (FIXME!)");
 
@@ -3346,7 +3347,7 @@ namespace lib {
 
     BaseGDL *spher_harm(EnvT *e) {
         // sanity checks etc
-        SizeT nParam = e->NParam(4);
+      //SizeT nParam = e->NParam(4);
 
         BaseGDL *theta = e->GetNumericParDefined(0);
         BaseGDL *phi = e->GetNumericParDefined(1);
@@ -3579,55 +3580,53 @@ namespace lib {
     vector<double> calcul_estimates(DDoubleGDL *param_x, DDoubleGDL *param_y, int realNterms) {
         int n = param_x->N_Elements();
 
+	bool debug=TRUE;
+	
+	cout << "inside  calcul_estimates" << endl;
+	
         double *yd = (double *) malloc(n * sizeof(double));
         memcpy(yd, &(*param_y)[0], n * sizeof(double));
         double *xd = (double *) malloc(n * sizeof(double));
         memcpy(xd, &(*param_x)[0], n * sizeof(double));
-        double y4,y5,y6=0;
+
+        double y4=0.,y5=0.,y6=0.;
       
         
-       if (realNterms>5){
+	if (realNterms>5){
 
-            for (int i=0;i<n;i++){
-                y6=y6+yd[i];
-               
-            } 
+	 for (int i=0;i<n;i++){y6=y6+yd[i];}
+	 
+	 y6=round(y6*100)/100;
+	 if (debug) { cout << "y6 " << y6 << endl;}
+	 if (y6>5){y6=0;}
+	 for (int i=0;i<n;i++){
+	   yd[i]=yd[i]-y6*pow(xd[i],2.0);
+	 }   
             
-            y6=(y6/(pow(n,2.0)*(n/10)))*20;
-
-           
-            y6=round(y6*100)/100;
-         //cout << "y6 " << y6 << endl;
-            if (y6>5){y6=0;}
-            for (int i=0;i<n;i++){
-                yd[i]=yd[i]-y6*pow(xd[i],2.0);
-            }   
-            
-         }
+       }
 
         
        if (realNterms>4){
-           
-            for (int i=n-(0.1*n);i<n;i++){
-                y5=y5+yd[i];
-            } 
-            
-            y5=y5/(0.1*n);
-            y5=y5/(-xd[0]);
-
-             //cout << "y5 " << y5 << endl;
-            double min = std::numeric_limits<double>::min();
-            if (y5<min){y5=0;}
-           
-            for (int i=0;i<n;i++){
-                yd[i]=yd[i]-(xd[i]*round(y5*10)/10);
-            }    
-            
-         }
+	 
+	 for (int i=n-(0.1*n);i<n;i++){
+	   y5=y5+yd[i];
+	 } 
+         
+	 y5=y5/(0.1*n);
+	 y5=y5/(-xd[0]);
+	 
+	 double min = std::numeric_limits<double>::min();
+	 if (y5<min){y5=0;}
+         
+	 for (int i=0;i<n;i++){
+	   yd[i]=yd[i]-(xd[i]*round(y5*10)/10);
+	 }    
+         
+       }
 
         
-        if (realNterms>3){
-            
+       if (realNterms>3){
+	  
             for (int i=0;i<(0.1*n);i++){
                 y4=y4+yd[i];
             } 
@@ -3638,19 +3637,21 @@ namespace lib {
                 yd[i]=yd[i]-round(y4*10)/10;
             }             
          }
-     
-
-        
-
+	if (debug) {
+	  cout << "y6 " << y6 << endl;
+	  cout << "y5 " << y5 << endl;
+	  cout << "y4 " << y4 << endl;
+	}
+	
         double ymaxi = max_element(yd, yd + n)[0];
         double *aymaxi = find(yd, yd + n, ymaxi);
         int iymaxi = distance(yd, aymaxi);
-        double xmaxi = xd[iymaxi];
+	// double xmaxi = xd[iymaxi];
 
         double ymini = min_element(yd, yd + n)[0];
         double *aymini = find(yd, yd + n, ymini);
         int iymini = distance(yd, aymini);
-        double xmini = xd[iymini];
+        //double xmini = xd[iymini];
 
         int i0 = 0;
         if (abs(ymaxi) > abs(ymini)) i0 = iymaxi;
@@ -3684,15 +3685,19 @@ namespace lib {
 
         static int ntermsIx = e->KeywordIx("NTERMS");
         bool nterms = e->KeywordSet(ntermsIx);
+
         static int estimatesIx = e->KeywordIx("ESTIMATES");
         bool estimates = e->KeywordSet(estimatesIx);
-        static int measureErrorsIx = e->KeywordIx("MEASURE_ERRORS");
+
+	static int measureErrorsIx = e->KeywordIx("MEASURE_ERRORS");
         bool measureErrors = e->KeywordSet(measureErrorsIx);
 
         static int chisqIx = e->KeywordIx("CHISQ");
         bool chisq = e->KeywordPresent(chisqIx);
+	
         static int sigmaIx = e->KeywordIx("SIGMA");
         bool sigma = e->KeywordPresent(sigmaIx);
+
         static int yerrorIx = e->KeywordIx("YERROR");
         bool yerror = e->KeywordPresent(yerrorIx);
 
@@ -3706,13 +3711,22 @@ namespace lib {
         DDoubleGDL *param_x = e->GetParAs<DDoubleGDL>(0);
         DDoubleGDL *param_y = e->GetParAs<DDoubleGDL>(1);
 
+	if (param_x->N_Elements() != param_y->N_Elements()) {
+	  e->Throw("X and Y must have same number of elements.");
+	}
+	
         const size_t n = param_x->N_Elements();
         const size_t p = realNterms; // gsl wants a const
         gsl_vector *x = gsl_vector_alloc(p);
 
         DDoubleGDL *estimatesInput;
-        if (estimates) estimatesInput = e->GetKWAs<DDoubleGDL>(estimatesIx); // not necessary but easier to read
+        if (estimates) estimatesInput = e->GetKWAs<DDoubleGDL>(estimatesIx);
+	// not necessary but easier to read
 
+	// AC 2023-11-09 : removing usage of "calcul_estimates()"
+	// calcul_estimates() is very strange
+	// it is not working well on OSX
+	
         if (nterms && estimates) {
             if (realNterms != estimatesInput->N_Elements()) {
                 e->Throw("Inconsistent NTERMS and ESTIMATES elements");
@@ -3721,8 +3735,9 @@ namespace lib {
                 gsl_vector_set(x, i, (*estimatesInput)[i]);
             }
             if (gsl_vector_get(x, 2) == 0) {
-                // "compute a best guess for the starting value for this term"
-                gsl_vector_set(x, 2, calcul_estimates(param_x, param_y, realNterms)[2]);
+	      // "compute a best guess for the starting value for this term"
+	      gsl_vector_set(x, 2, 1.);
+	      //gsl_vector_set(x, 2, calcul_estimates(param_x, param_y, realNterms)[2]);
             }
         } else if (!nterms && estimates) {
             if (estimatesInput->N_Elements() != 6) {
@@ -3732,18 +3747,22 @@ namespace lib {
                 gsl_vector_set(x, i, (*estimatesInput)[i]);
             }
             if (gsl_vector_get(x, 2) == 0) {
-                // "compute a best guess for the starting value for this term"
-                gsl_vector_set(x, 2, calcul_estimates(param_x, param_y, realNterms)[2]);
+	      // "compute a best guess for the starting value for this term"
+	      gsl_vector_set(x, 2, 1.);
+	      //gsl_vector_set(x, 2, calcul_estimates(param_x, param_y, realNterms)[2]);
             }
         } else if (!estimates) {
-            vector <double> a = calcul_estimates(param_x, param_y, realNterms);
-            
-                for (int i = 0; i < p; i++) {
-                    gsl_vector_set(x, i, a[i]);
-                }
-            
+	  //vector <double> a = calcul_estimates(param_x, param_y, realNterms);
+	  
+	  for (int i = 0; i < p; i++) {
+	    gsl_vector_set(x, i, 1.);
+	  }
+	  
         }
+	//	for (int i = 0; i < p; i++) { cout <<  gsl_vector_get(x, i) << " " ;}
+	//cout << endl;
 
+	
         gsl_multifit_nlinear_fdf fdf;
         gsl_multifit_nlinear_parameters fdf_params = gsl_multifit_nlinear_default_parameters();
 
@@ -3850,7 +3869,31 @@ namespace lib {
                     memcpy(&(*(DFloatGDL *) *coefs)[i], &temp, sizeof(float));
                 }
             }
+	    //	    for (int i = 0; i < realNterms; i++) {cout << **coefs[i] << " ";}
         }
+
+	/*
+
+	cout << "hello" << endl;
+	
+	if (e->NParam() == 3) {
+
+	  DDoubleGDL *esti = new DDoubleGDL(realNterms, BaseGDL::NOZERO);
+	  for (int i = 0; i < realNterms; i++) { // not optimal, don't know how to copy the whole vector at once
+	    double temp = gsl_vector_get(x, i);
+	    if(i==2){temp=abs(temp);}
+	    memcpy(&((DDoubleGDL ) *esti)[i], &temp, sizeof(double));
+	  }
+
+	  e->SetPar(2, esti);
+
+	  //	  	cout << "yes" << endl;
+
+	  //BaseGDL* coefs = e->GetParDefined(2);
+	  //  DDoubleGDL *coefs = e->GetParAs<DDoubleGDL>(2);
+	}
+	*/
+
 
         if (yerror) { // black magic to create/update a variable in gdl, if optional keyword yerror is specified
             BaseGDL **valueYerror = &e->GetTheKW(yerrorIx);
@@ -3872,6 +3915,7 @@ namespace lib {
             memcpy(&(*(DDoubleGDL *) *valueChisq)[0], &chisqGSL, sizeof(chisqGSL));
         }
 
+	
         ///TODO
         if (sigma) { // black magic to create/update a variable in gdl, if optional keyword sigma is specified
             cout << "sigma is not yet developed" << endl; 
