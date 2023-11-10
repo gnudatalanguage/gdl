@@ -239,24 +239,6 @@ namespace lib
   }
 #undef EXTENDED_DEFAULT_LOGRANGE
 
-//  DDouble adjustForTickInterval(const DDouble interval, DDouble &min, DDouble &max) {
-//    // due to  float to double conversion, computation of integer intervals are prone to failure. We use FLOAT solution
-//    DFloat fmin=min;
-//    DFloat fmax=max;
-//    DFloat finterval=interval;
-////    DLong64 n = min / interval;
-//    DLong64 fn = fmin / finterval;
-////    if (n < fn) n=fn; //happens 
-//    if (fn*finterval > fmin) fn--;
-//    min=fn*finterval;
-////    n = max / interval;
-//    fn = fmax / finterval;
-////    if (n > fn) n=fn; //happens 
-//    if ( fn*finterval < fmax) fn++;
-//    max = fn*finterval;
-//    return max-min; //return range
-//  }
-
   // given a juldate, return the juldate of the first 'code' immediately before (or after). Not tested.
   PLFLT gdlReturnTickJulday(DDouble val, int code, bool up) {
     static int monthSize[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -366,13 +348,13 @@ namespace lib
     }
     return val;
   }
-  
+
   void gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &start, DDouble &end, bool &log) {
 
-    bool hastickunits=gdlHasTickUnits(e, axisId);
-    if (hastickunits && log) {
-      Message("PLOT: LOG setting ignored for Date/Time TICKUNITS.");
-      log = false;
+	bool hastickunits = gdlHasTickUnits(e, axisId);
+	if (hastickunits && log) {
+	  Message("PLOT: LOG setting ignored for Date/Time TICKUNITS.");
+	  log = false;
 	}
 	// defining Tickv and ticks may change the box values, see below.
 	DDoubleGDL *Tickv = NULL;
@@ -380,19 +362,19 @@ namespace lib
 	DLong Ticks;
 	gdlGetDesiredAxisTicks(e, axisId, Ticks);
 	if (Ticks < 1) hasTickv = false;
-    
-    // [XY]STYLE
-    DLong myStyle = 0;
 
-    gdlGetDesiredAxisStyle(e, axisId, myStyle);
+	// [XY]STYLE
+	DLong myStyle = 0;
 
-    bool exact = ((myStyle & 1) == 1 || hasTickv ); //TICKV (IMPLIES ticks) is equivalent to /XSTYLE
-    bool extended = ((myStyle & 2) == 2);
+	gdlGetDesiredAxisStyle(e, axisId, myStyle);
+
+	bool exact = ((myStyle & 1) == 1 || hasTickv); //TICKV (IMPLIES ticks) is equivalent to /XSTYLE
+	bool extended = ((myStyle & 2) == 2);
 
 
 	DDouble min = start;
 	DDouble max = end;
-	
+
 	if (hasTickv) {
 	  DLong minE, maxE;
 	  const bool omitNaN = true;
@@ -401,165 +383,147 @@ namespace lib
 	  DDouble min2, max2;
 	  min2 = (*Tickv)[ minE];
 	  max2 = (*Tickv)[ maxE];
-	  max=MAX(max,max2);
-	  min=MIN(min,min2);
+	  max = MAX(max, max2);
+	  min = MIN(min, min2);
 	}
 
-    if (log) {
-      gdlHandleUnwantedLogAxisValue(min, max, log);
-      min = log10(min);
-      max = log10(max);
-    }
+	if (log) {
+	  gdlHandleUnwantedLogAxisValue(min, max, log);
+	  min = log10(min);
+	  max = log10(max);
+	}
 
-    bool invert = false;
+	bool invert = false;
 
-    //range useful for estimate
-    DDouble range = max - min;
+	//range useful for estimate
+	DDouble range = max - min;
 
-    // correct special case "all values are equal"
-    if ((ABS(range) <= std::numeric_limits<DDouble>::min())) {
-      if (exact) { //IDL does this
-        DLong Ticks;
-        gdlGetDesiredAxisTicks(e, axisId, Ticks);
-        if (Ticks > 0) e->Throw("Data range for axis has zero length.");
-      }
+	// correct special case "all values are equal"
+	if ((ABS(range) <= std::numeric_limits<DDouble>::min())) {
+	  if (exact) { //IDL does this
+		DLong Ticks;
+		gdlGetDesiredAxisTicks(e, axisId, Ticks);
+		if (Ticks > 0) e->Throw("Data range for axis has zero length.");
+	  }
 
-      max=min+1;
-      range=1;
-    }
+	  max = min + 1;
+	  range = 1;
+	}
 
-    if (range >= 0) {
-      invert = false;
-    } else {
-      range = -range;
-      DDouble temp = min;
-      min = max;
-      max = temp;
-      invert = true;
-    }
-    
+	if (range >= 0) {
+	  invert = false;
+	} else {
+	  range = -range;
+	  DDouble temp = min;
+	  min = max;
+	  max = temp;
+	  invert = true;
+	}
 
+	if (exact) { //exit soon...
+	  if (extended) { //... after 'extended' range correction
+		range = max - min; //does not hurt to recompute
+		DDouble val = 0.025 * range;
+		min -= val;
+		max += val;
+	  }
 
+	  //give back non-log values
+	  if (log) {
+		min = pow(10, min);
+		max = pow(10, max);
+	  }
 
-//    DDouble TickInterval = 0;
-//    if (!log) gdlGetDesiredAxisTickInterval(e, axisId, TickInterval); //tickinterval ignored when LOG
-//    bool doTickInt=(TickInterval > 0);
-//    if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
+	  if (invert) {
+		start = max;
+		end = min;
+	  } else {
+		start = min;
+		end = max;
+	  }
 
-    if (exact) { //exit soon...
-      if (extended) { //... after 'extended' range correction
-        range = max - min; //does not hurt to recompute
-        DDouble val = 0.025 * range;
-        min -= val;
-        max += val;
-//        if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
-      }
+	  return;
+	}
 
-      //check if tickinterval would make more than 59 ticks (IDL apparent limit). In which case, IDL plots only the first 59 intervals:
-//      if (doTickInt) if (range / TickInterval > 59) max = min + 59.0 * TickInterval;
-
-      //give back non-log values
-      if (log) {
-        min = pow(10, min);
-        max = pow(10, max);
-      }
-
-      if (invert) {
-        start = max;
-        end = min;
-      } else {
-        start = min;
-        end = max;
-      }
-
-      return;
-    }
-
-    // general case (only negative OR negative and positive)
-    //correct this for calendar values (round to nearest year, month, etc)
+	// general case (only negative OR negative and positive)
+	//correct this for calendar values (round to nearest year, month, etc)
 	int code = gdlGetCalendarCode(e, axisId);
-    if (code > 0) {
-      if (code == 7) {
-        if (range >= 366) code = 1;
-        else if (range >= 32) code = 2;
-        else if (range >= 1.1) code = 3;
-        else if (range * 24 >= 1.1) code = 4;
-        else if (range * 24 * 60 >= 1.1) code = 5;
-        else code = 6;
-      }
-      min=gdlReturnTickJulday(min, code, false);
-      max=gdlReturnTickJulday(max, code, true);
-    } else {
-      if (log) {
-        int imin = floor(min);
-        int imax = ceil(max);
-        min = imin;
-        max = imax;
-      } else {
-        const double leak_factor = 1.25e-6;
-        PLFLT intv = AutoIntv(range);
-        //diminish max a little to avoid a jump of 'intv' when max value is practically indifferentiable from a 'intv' mark:
-        if (max >0) {
-          max *= (1 - leak_factor); 
-          max =  ceil(max/ intv) * intv;
-        } else {
-          max *= (1 + leak_factor); 
-          max =  ceil(max/ intv) * intv;
-      }
-        //same for min, in the other direction
-        if (min > 0) {
-          min *= (1 + leak_factor);
-          min = floor(min / intv) * intv;
-        } else {
-          min *= (1 - leak_factor);
-          min = floor(min / intv) * intv;
-       }
-        //min = floor((min * max_allowed_leak_factor) / intv) * intv;
-      }
-    }
+	if (code > 0) {
+	  if (code == 7) {
+		if (range >= 366) code = 1;
+		else if (range >= 32) code = 2;
+		else if (range >= 1.1) code = 3;
+		else if (range * 24 >= 1.1) code = 4;
+		else if (range * 24 * 60 >= 1.1) code = 5;
+		else code = 6;
+	  }
+	  min = gdlReturnTickJulday(min, code, false);
+	  max = gdlReturnTickJulday(max, code, true);
+	} else {
+	  if (log) {
+		int imin = floor(min);
+		int imax = ceil(max);
+		min = imin;
+		max = imax;
+	  } else {
+		const double leak_factor = 1.25e-6;
+		PLFLT intv = AutoIntv(range);
+		//diminish max a little to avoid a jump of 'intv' when max value is practically indifferentiable from a 'intv' mark:
+		if (max > 0) {
+		  max *= (1 - leak_factor);
+		  max = ceil(max / intv) * intv;
+		} else {
+		  max *= (1 + leak_factor);
+		  max = ceil(max / intv) * intv;
+		}
+		//same for min, in the other direction
+		if (min > 0) {
+		  min *= (1 + leak_factor);
+		  min = floor(min / intv) * intv;
+		} else {
+		  min *= (1 - leak_factor);
+		  min = floor(min / intv) * intv;
+		}
+	  }
+	}
 
-//    if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
 
-    if (extended) {
-      range = max - min;
-      DDouble val = 0.025 * range;
-      min -= val;
-      max += val;
-//      if (doTickInt) range=adjustForTickInterval(TickInterval, min, max);
-    }
+	if (extended) {
+	  range = max - min;
+	  DDouble val = 0.025 * range;
+	  min -= val;
+	  max += val;
+	}
 
-    //check if tickinterval would make more than 59 ticks (IDL apparent limit). In which case, IDL plots only the first 59 intervals:
-//    if (doTickInt) if (range / TickInterval > 59) max = min + 59.0 * TickInterval;
+	//give back non-log values
+	if (log) {
+	  min = pow(10, min);
+	  max = pow(10, max);
+	}
 
-    //give back non-log values
-    if (log) {
-      min = pow(10, min);
-      max = pow(10, max);
-    }
-
-    if (invert) {
-      start = max;
-      end = min;
-    } else {
-      start = min;
-      end = max;
-    }
+	if (invert) {
+	  start = max;
+	  end = min;
+	} else {
+	  start = min;
+	  end = max;
+	}
   }
 
-    void plotting_routine_call::restoreDrawArea(GDLGStream *a)
-    {
-      //retrieve and reset plplot to the last setup for vpor() and wind() made by position-scaling commands like PLOT or CONTOUR
-      DDouble *sx, *sy;
-      DDouble wx[2], wy[2];
-      GetSFromPlotStructs(&sx, &sy, NULL);
-      GetWFromPlotStructs(wx, wy, NULL);
-      a->vpor(wx[0], wx[1], wy[0], wy[1]);
-      PLFLT wx0=(wx[0]-sx[0])/sx[1];
-      PLFLT wx1=(wx[1]-sx[0])/sx[1];
-      PLFLT wy0=(wy[0]-sy[0])/sy[1];
-      PLFLT wy1=(wy[1]-sy[0])/sy[1];
-      a->wind(wx0, wx1, wy0, wy1);
-    }
+  void plotting_routine_call::restoreDrawArea(GDLGStream *a) {
+	//retrieve and reset plplot to the last setup for vpor() and wind() made by position-scaling commands like PLOT or CONTOUR
+	DDouble *sx, *sy;
+	DDouble wx[2], wy[2];
+	GetSFromPlotStructs(&sx, &sy, NULL);
+	GetWFromPlotStructs(wx, wy, NULL);
+	a->vpor(wx[0], wx[1], wy[0], wy[1]);
+	PLFLT wx0 = (wx[0] - sx[0]) / sx[1];
+	PLFLT wx1 = (wx[1] - sx[0]) / sx[1];
+	PLFLT wy0 = (wy[0] - sy[0]) / sy[1];
+	PLFLT wy1 = (wy[1] - sy[0]) / sy[1];
+	a->wind(wx0, wx1, wy0, wy1);
+  }
+  
     void plotting_routine_call::call(EnvT* e, SizeT n_params_required) {
       // when !d.name == Null  we do nothing !
       DString name = (*static_cast<DStringGDL*> (SysVar::D()->GetTag(SysVar::D()->Desc()->TagIndex("NAME"), 0)))[0];
@@ -768,7 +732,10 @@ namespace lib
     return savedStyle;
   }
 
-///
+
+#define GDL_MAX_PLOT_BUFFER_SIZE 128*128
+
+  ///
 /// Draws a line along xVal, yVal
 /// @param general environnement pointer 
 /// @param graphic stream 
@@ -783,9 +750,6 @@ namespace lib
 /// @param append bool values must be drawn starting from last plotted value 
 /// @param color DLongGDL* pointer to color list (NULL if no use)
 ///
-
-#define GDL_MAX_PLOT_BUFFER_SIZE 128*128
-  
   void draw_polyline(GDLGStream *a, DDoubleGDL *xVal, DDoubleGDL *yVal, DLong psym, bool append, DLongGDL *colorgdl)
   {
 //        std::cerr<<"draw_polyline()"<<std::endl;
@@ -1175,11 +1139,6 @@ namespace lib
     //save last point
     saveLastPoint(x, y);
   }
-
- 
-  //BACKGROUND COLOR
-
-
   
   //Very special usage only in plotting surface
   void gdlSetGraphicsPenColorToBackground(GDLGStream *a)
@@ -1187,20 +1146,7 @@ namespace lib
     a->plstream::col0( 0);
   }
 
-  //COLOR
-
-  // helper for NOERASE
-
-  //PSYM
-
-  //SYMSIZE
-
-  //CHARSIZE
-
-  //THICK
-  
-  //crange to struct
-
+ //crange to struct
   void gdlStoreAxisCRANGE(int axisId, DDouble Start, DDouble End, bool log)
   {
     DStructGDL* Struct=NULL;
@@ -1228,7 +1174,6 @@ namespace lib
   }
 
 //CRANGE from struct
-
   void gdlGetCurrentAxisWindow(int axisId, DDouble &wStart, DDouble &wEnd)
   {
     DStructGDL* Struct=NULL;
@@ -1244,8 +1189,8 @@ namespace lib
       wEnd=(*static_cast<DFloatGDL*>(Struct->GetTag(windowTag, 0)))[1];
     }
   }
-  //converts x and y but leaves code and log unchanged.
 
+  //converts x and y but leaves code and log unchanged.
   void ConvertToNormXY(SizeT n, DDouble *x, bool const xLog, DDouble *y, bool const yLog, COORDSYS const code) {
     //  std::cerr<<"ConvertToNormXY(DDouble)"<<std::endl;
     if (code == DATA) {
@@ -1265,6 +1210,7 @@ namespace lib
       for (auto i = 0; i < n; ++i) y[i] /= ySize;
     }
   }
+
   void ConvertToNormZ(SizeT n, DDouble *z, bool const zLog, COORDSYS const code) {
     //  std::cerr<<"ConvertToNormZ(DDouble)"<<std::endl;
     if (code == DATA) {
@@ -1275,6 +1221,7 @@ namespace lib
       for (auto i = 0; i < n; ++i) z[i] = 0;
     }
   }
+
   void gdlStoreSC() {
     //save corresponding SCxx values useful for oldies compatibility (to be checked as some changes have been done):
     DStructGDL* pStruct = SysVar::P(); //MUST NOT BE STATIC, due to .reset
@@ -1299,6 +1246,7 @@ namespace lib
     sc[3] = (position[2] != 0) ? position[3] * y_vsize : ywindow[1]*y_vsize;
 
   }
+
   //Get [XYZ].WINDOW
   DFloat* gdlGetRegion() {
     static const SizeT REGIONTAG=12;
@@ -1311,6 +1259,7 @@ namespace lib
     position[5]=(*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(REGIONTAG, 0)))[1];
     return position;
 }
+
   //Stores [XYZ].WINDOW, .REGION and .S
   void gdlStoreXAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log)
   {
@@ -1345,8 +1294,9 @@ namespace lib
     //OLDIES COMPATIBILITY (?)
     gdlStoreSC();
   }
-    void gdlStoreYAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log)
-{
+
+  void gdlStoreYAxisParameters(GDLGStream* actStream, DDouble Start, DDouble End, bool log)
+  {
     // !Y etc parameters relative to the VIEWPORT:
     //easier to retrieve here the values sent to vpor() in the calling function instead of
     //calling a special function like gdlStoreRegion(), gdlStoreWindow() each time a memory of vpor() is needed.
@@ -1403,14 +1353,6 @@ namespace lib
     }
 }
 
-//  void gdlGetCLIPXY(DLong &x0, DLong &y0, DLong &x1, DLong &y1){
-//    DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
-//    static unsigned clipTag=pStruct->Desc()->TagIndex("CLIP");
-//    x0=(*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[0];
-//    y0=(*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[1];
-//    x1=(*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[2];
-//    y1=(*static_cast<DLongGDL*>(pStruct->GetTag(clipTag, 0)))[3];
-//  }
   void gdlStoreCLIP()
   {
     DStructGDL* pStruct=SysVar::P();   //MUST NOT BE STATIC, due to .reset 
@@ -1502,6 +1444,7 @@ namespace lib
     }
     return res;
   }
+
   void resetTickGet(int axisId){
     switch(axisId){
     case XAXIS:
@@ -1514,7 +1457,9 @@ namespace lib
       ztickget.clear();
       break;
     }
-  }//WARNING addToTickGet is used by plplot, where axisID starts at 1
+  }
+  
+  //WARNING addToTickGet is used by plplot, where axisID starts at 1
   void addToTickGet(int axisId, PLFLT value){
     switch(axisId){
     case PL_X_AXIS:
@@ -1528,10 +1473,12 @@ namespace lib
       break;
     }
   }
+
   void defineLabeling(GDLGStream *a, int axisId, void(*func)(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data), PLPointer data) {
     resetTickGet(axisId);
     a->slabelfunc(func, data);
   }
+
   void resetLabeling(GDLGStream *a, int axisId) {
     a->slabelfunc(NULL, NULL);
   }
@@ -1542,11 +1489,6 @@ namespace lib
     int e = floor(log10(value * sgn));
 
     struct GDL_TICKDATA *ptr = (GDL_TICKDATA*) data;
-    //was:
-    //    static string normalfmt[7]={"%1.0fx10#u%d#d","%2.1fx10#u%d#d","%3.2fx10#u%d#d","%4.2fx10#u%d#d","%5.4fx10#u%d#d","%6.5fx10#u%d#d","%7.6fx10#u%d#d"};
-    //    static string specialfmt="10#u%d#d";
-    //    static string specialfmtlog="10#u%s#d";
-
     // TICKNAME can be used here directly.
     if (ptr->nTickName > 0) {
       if (ptr->tickNameCounter < ptr->nTickName) {
@@ -1862,28 +1804,6 @@ namespace lib
 	  for (int j = num; j < l; ++j) label[i++] = label[j];
 	  for (; i < l; ++i) label[i] = '\0';
 	}
-
-//	if (ptr->tickLayoutCode == 2) {
-//	  int l = strlen(label);
-//	  char *test = (char*) calloc(length + 1, sizeof (char));
-//	  // we are bound by the length=40 max of plplot, for a STATIC "label" string! Impossible to do more!
-//	  // in average only 18 characters possible to pad by whitespaces (if no !xx codes inside)
-//	  int left_to_pad = (length - l); //max num of possible blanks before.
-//	  int to_pad = l + 2; //number of characters to add to push on the right
-//	  to_pad *= 1.75; //..as the whitespace is smaller than the average character (always those approximations since hershey and other charatcers are not fixed-point)
-//	  to_pad = min(left_to_pad, to_pad); //to insure at last that labels are writtent even if not correctly aligned
-//	  //displace "label" on the right (for alignment purposes) by adding l whitespaces using test (which is larger enough). This is not always sufficicient alas.
-//	  memset(test, ' ', to_pad);
-//	  snprintf(test + to_pad, length - to_pad, "%s", label);
-//	  strncpy(label, test, length);
-//	  free(test);
-//  }
-//	//translate format codes (as in mtex).
-//	double nchars;
-//	std::string out = ptr->a->TranslateFormatCodes(label, &nchars);
-//	ptr->nchars = max(ptr->nchars, nchars);
-//	strncpy(label, out.c_str(), length);
-//	internalIndex++;
   }
 
   void gdlSimpleAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data) {
@@ -2874,13 +2794,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
     if (e->GetDefinedKW(choosenIx) != NULL) {
       axisTicknameVect = e->GetKWAs<DStringGDL>(choosenIx);
-      //translate format codes here:
-      //      for (SizeT iname=0; iname < axisTicknameVect->N_Elements(); ++iname) {
-      //        std::string out = std::string("");
-      //        a->TranslateFormatCodes(((*axisTicknameVect)[iname]).c_str(),out);
-      ////TBD: not finished, see cases not treated in TransmateFormatCodes (gdlgstream.cpp)
-      //        (*axisTicknameVect)[iname]=out;
-      //      }
     }
 
   }
@@ -3577,7 +3490,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   // as it is temporarily superseded by setting a new a->win().
   //this makes GDLAXIS independent of WIN, and help the whole code to be dependent only on VPOR which is the sole useful plplot command to really use.
   //ZAXIS will always be an YAXIS plotted with a special YZEXCH T3D matrix. So no special handling of ZAXIS here.
- // modifierCode: 0 : both axes (UP+DOWN) ; 1: DOWN only 2: TOP only (used only with AXIS command)
+ // where: 0 : both axes (UP+DOWN) ; 1: DOWN only 2: TOP only (used only with AXIS command)
 
   void gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong where) {
 	if (Start == End) return;
@@ -3950,9 +3863,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	  if (!title.empty()) {
 		gdlSetPlotCharthick(e, a);
 		PLFLT disp = interligne_as_char / 2;
-		a->sizeChar(1.25 * a->charScale());
+		a->sizeChar(1.25);
 		a->mtex("t", disp + 0.5, 0.5, 0.5, title.c_str()); //position is in units of current char height. baseline at half-height
-		a->sizeChar(a->charScale() / 1.25);
+		a->sizeChar(1);
 	  }
 	  if (!subTitle.empty()) {
 		PLFLT title_disp = 4 * interligne_as_char - 0.5; //in chars
