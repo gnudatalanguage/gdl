@@ -1073,7 +1073,7 @@ void GDLGStream::mtex( const char *side, PLFLT disp, PLFLT posit, PLFLT just,
   double d=0;
   std::string s(text);
   std::string newline="!C";
-  long pos = 0, oldpos=0;
+  size_t pos = 0, oldpos=0;
   PLFLT yadd=nLineSpacing()/nCharHeight();
   std::vector<long> positions;
   while (pos != string::npos) {
@@ -1086,7 +1086,7 @@ void GDLGStream::mtex( const char *side, PLFLT disp, PLFLT posit, PLFLT just,
   for (std::vector<long>::iterator it = positions.begin(); it != positions.end();) {
     oldpos=(*it++);
     pos=(*(it++));
-    long l=pos-oldpos; 
+    size_t l=pos-oldpos; 
     if (l<0) l=string::npos;
 //    std::cerr<<pos<<":"<<l<<" "<<s.substr(oldpos,l)<<std::endl;
     plstream::mtex(side,disp,posit,just,TranslateFormatCodes(s.substr(oldpos,l).c_str(),&d).c_str());
@@ -1119,7 +1119,7 @@ void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
   double d=0;
   std::string s(text);
   std::string newline="!C";
-  long pos = 0, oldpos=0;
+  size_t pos = 0, oldpos=0;
   PLFLT ydisp=(nLineSpacing()/nCharHeight())*wCharHeight();
   std::vector<long> positions;
   while (pos != string::npos) {
@@ -1132,7 +1132,7 @@ void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
   for (std::vector<long>::iterator it = positions.begin(); it != positions.end();) {
     oldpos=(*it++);
     pos=(*(it++));
-    long l=pos-oldpos; 
+    size_t l=pos-oldpos; 
     if (l<0) l=string::npos;
 //    std::cerr<<pos<<":"<<l<<" "<<s.substr(oldpos,l)<<std::endl;
     plstream::ptex(x,y,dx,dy,just,TranslateFormatCodes(s.substr(oldpos,l).c_str(),&d).c_str()) ;
@@ -1371,7 +1371,7 @@ void GDLGStream::getSubpageRegion(PLFLT *sxmin, PLFLT *symin, PLFLT *sxmax, PLFL
   DFloat xNormedPageSize=1-(xend+xstart)*theCurrentChar.ndsx;
   DFloat yNormedPageSize=1-(yend+ystart)*theCurrentChar.nspacing;
   if (xNormedPageSize < 0 || xNormedPageSize > 1 || yNormedPageSize < 0 || yNormedPageSize > 1) {
-	Message,"Data coordinate system not established.";
+	Message("Data coordinate system not established.");
 	if (xNormedPageSize < 0) xNormedPageSize=0;
 	if (yNormedPageSize < 0) yNormedPageSize=0;
 	if (xNormedPageSize > 1) xNormedPageSize=1;
