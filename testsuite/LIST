@@ -6,6 +6,7 @@ test_array_indices.pro
 test_array_indices_star.pro
 test_base64.pro
 test_binfmt.pro
+test_box_axis.pro
 test_bug_1779553.pro
 test_bug_2555865.pro
 test_bug_2610174.pro
