@@ -3423,7 +3423,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	}
 
 	//give back increment in X or Y due to the box ticks & labels
-	if (tickinvert < 0) {
+	if (tickinvert) {
 	  a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
 	  a->plstream::wind(owxmin, owxmax, owymin, owymax);
 	}
