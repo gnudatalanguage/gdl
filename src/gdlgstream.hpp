@@ -625,9 +625,7 @@ public:
   void setLineSpacing( PLFLT spacing );
   PLFLT getSymbolSize();
   void mtex( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
-                         const char *text);
-  void mtex3( const char *side, PLFLT disp, PLFLT pos, PLFLT just,
-                         const char *text);
+                         const char *text, double *stringCharLength=NULL, double *stringCharHeight=NULL);
   void ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
                          const char *text, double *stringCharLength=NULL );
   void setVariableCharacterSize( PLFLT charwidthpixel, PLFLT scale, PLFLT lineSpacingpixel, PLFLT xpxcm, PLFLT ypxcm);
@@ -641,7 +639,7 @@ public:
   void wind( PLFLT xmin, PLFLT xmax, bool xLog, PLFLT ymin, PLFLT ymax, bool yLog );
   void ssub( PLINT nx, PLINT ny, PLINT nz=1);
   void adv(PLINT page);
-  void getSubpageRegion(PLFLT &sxmin, PLFLT &symin, PLFLT &sxmax, PLFLT &symax, PLFLT *zmin=NULL, PLFLT *zmax=NULL);
+  void getSubpageRegion(PLFLT *sxmin, PLFLT *symin, PLFLT *sxmax, PLFLT *symax, PLFLT *zmin=NULL, PLFLT *zmax=NULL);
   void SetPageDPMM(float setPsCharFudge=1.0, float setPsSymFudge=1.0);
   void syncPageInfo();
   void updateBoxDeviceCoords();
