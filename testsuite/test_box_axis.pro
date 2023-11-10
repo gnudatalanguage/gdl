@@ -49,22 +49,35 @@ pro axistickv,tl,la,units,cs
 end
 
 pro test_box_axis, no_exit=no_exit, test=test
-
+; if the plot is not exactly at the same place, the mask of values should show it in the sum
+  val=[[4970901929984ULL,8319184928768ULL,5470964154368ULL,5125227151360ULL],[4711432847360ULL,7829696020480ULL,5298193956864ULL,4928479166464ULL]]
+  cpu,tpool_nthreads=1 ; until the problem with total() is solved.
+  defsysv,"!GDL",exists=isgdl
+  if isgdl then v=val[*,0] else v=val[*,1]
   nb_errors=0
   set_plot,'z'
+  b=findgen(1920,1080)
   device, set_resolution=[1920,1080]
+  erase
   axistick,0.1,2,[".","."],[8,20]
-  a=tvrd()
-  if (fix(total(a),type=3) ne 4822305) then nb_errors++
+  a=tvrd()*b
+  print,fix(total(a),type=15)
+  if (fix(total(a),type=15) - v[0] ne 0) then nb_errors++
+  erase
   axistick,-0.1,2,[".",".","."],[8,20]
-  a=tvrd()
-  if (fix(total(a),type=3) ne 7938150) then nb_errors++
+  a=tvrd()*b
+  print,fix(total(a),type=15)
+  if (fix(total(a),type=15) - v[1] ne 0) then nb_errors++
+  erase
   tick,-0.1,2,[".",".","."],[8,15]
-  a=tvrd()
-  if (fix(total(a),type=3) ne 5124990) then nb_errors++
+  a=tvrd()*b
+  print,fix(total(a),type=15)
+  if (fix(total(a),type=15) - v[2] ne 0) then nb_errors++
+  erase
   tick,0.1,2,[".",".","."],[8,15]
-  a=tvrd()
-  if (fix(total(a),type=3) ne 4535940) then nb_errors++
+  a=tvrd()*b
+  print,fix(total(a),type=15)
+  if (fix(total(a),type=15) - v[3] ne 0) then nb_errors++
 ;
 ; ----------------- final message ----------
 ;
