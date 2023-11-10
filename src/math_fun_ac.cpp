@@ -16,7 +16,6 @@
  ***************************************************************************/
 
 /*
-
   using the Besel functions provided by GSL
 
   http://www.physics.ohio-state.edu/~ntg/780/gsl_examples/J0_test.cpp
@@ -65,7 +64,7 @@
   DType t0 = e->GetParDefined(0)->Type();				\
 
 //no "//" comments in macro !!!!
-//if (t0 == GDL_COMPLEX || t0 == GDL_COMPLEXDBL)		\
+//if (t0 == GDL_COMPLEX || t0 == GDL_COMPLEXDBL)		
 //  e->Throw("Complex not implemented (GSL limitation). ");
 
 #define AC_2P1()							\
@@ -93,8 +92,8 @@
 									\
   const double dzero = 0.0000000000000000000 ;				\
 									\
-  //    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(1)); \
-  									\
+  //    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(1)); 
+  									
   //  DType t1 = e->GetParDefined(1)->Type();				\
   //  if (t1 == GDL_COMPLEX || t1 == GDL_COMPLEXDBL)			\
   // e->Throw("Complex not implemented (GSL limitation). ");
@@ -582,7 +581,7 @@ namespace lib {
       firstderiv = yp1Ix;
       Yderiv0 = e->GetKW(firstderiv);
     }
-    DDoubleGDL* YP0;
+    DDoubleGDL* YP0=NULL;
     bool Yderiv0ok=false;
     if (Yderiv0 != NULL ) {
       YP0 = e->GetKWAs<DDoubleGDL>(firstderiv);
