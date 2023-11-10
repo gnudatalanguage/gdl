@@ -982,7 +982,8 @@ void LibInit()
 
   new DLibFunRetNew(lib::t_pdf,string("T_PDF"),2);
 
-  new DLibPro(lib::caldat, string("CALDAT"), 7);
+  const string caldatKey[]={"GDL_DOW","GDL_ICAP",KLISTEND};
+  new DLibPro(lib::caldat, string("CALDAT"), 7, caldatKey);
   new DLibFunRetNew(lib::julday, string("JULDAY"), 6);
 
   // SA: the HYBRID key is used in imsl_zerosys.pro to switch to the modif. brent algo. 
