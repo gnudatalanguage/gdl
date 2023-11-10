@@ -336,9 +336,6 @@ namespace lib {
         gdlSetGraphicsForegroundColorFromKw(e, actStream);
         gdlBox(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog);
 
-        // title and sub title
-        gdlWriteTitleAndSubtitle(e, actStream);
-
         if (doT3d) gdlStop3DDriverTransform(actStream);
       }
 
