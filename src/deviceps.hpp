@@ -138,11 +138,11 @@ class DevicePS: public GraphicsDevice
     actStream->plstream::wind(0, 1, 0, 1);
 
     actStream->ssub(1, 1);
-    actStream->adv(0); //this is for us (counters)
     float fudge=17780./float(XPageSize*scale*PS_RESOL)*12700./float(YPageSize*scale*PS_RESOL);
     fudge=1.46*sqrt(fudge); //best value (experimental) to get same results as IDL with varying CHARSIZE
     actStream->SetPageDPMM(fudge);
     actStream->DefaultCharSize();
+    actStream->adv(0); //this is for us (counters) //needs DefaultCharSize
 //    clear();
   }
     
