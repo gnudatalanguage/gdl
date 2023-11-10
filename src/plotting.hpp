@@ -108,6 +108,12 @@ enum PLOT_AXES_IDENTIFIERS {
   ZAXIS,
 };
 
+enum PLOT_WHERE_DRAW_AXES {
+  AT_BOTH = 0,
+  AT_BOTTOM = 1,
+  AT_TOP = 2,
+};
+
 static const std::string axisName[6] = {"X", "Y", "Z", "X", "Y", "Z"};
 #define DRAWAXIS "a"     //: Draw axis (X is horizontal line Y=0, Y is vertical line X=0)
 #define BOTTOM "b"     //: Draw bottom (X) or left (Y) frame of box
@@ -272,7 +278,7 @@ namespace lib {
   DDoubleGDL* getLabelingValues(int axisId);
   void defineLabeling(GDLGStream *a, int axisId, void(*func)(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data), PLPointer data);
   void resetLabeling(GDLGStream *a, int axisId);
-  void gdlAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
+  void gdlSimpleAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void gdlSingleAxisTickNamedFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void gdlMultiAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
   void doOurOwnFormat(PLINT axisNotUsed, PLFLT value, char *label, PLINT length, PLPointer data);
@@ -383,7 +389,6 @@ namespace lib {
 
   void gdlSetPenThickness(EnvT *e, GDLGStream *a);
 
-  void gdlWriteTitleAndSubtitle(EnvT* e, GDLGStream *a);
   //call this function if Y data is strictly >0.
   //set yStart to 0 only if gdlYaxisNoZero is false.
 
