@@ -186,8 +186,13 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     uint32_t first,second;
     first = ((uint32_t *) &next)[0];
     second = ((uint32_t *) &next)[1];
-    xdr_uint32_t(xdrs, &first);
-    xdr_uint32_t(xdrs, &second);
+    if (BigEndian()) { //swap: we write in LittleEndian
+	  xdr_uint32_t(xdrs, &second);
+      xdr_uint32_t(xdrs, &first);
+	} else {
+	  xdr_uint32_t(xdrs, &first);
+      xdr_uint32_t(xdrs, &second);
+	}
     xdr_set_gdl_pos(xdrs, next);
     return next;
   }
@@ -1601,7 +1606,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     //will start at TMESTAMP
     uint64_t currentptr = 0;
     uint64_t nextptr = LONG;
-    uint32_t ptrs0, ptrs1;
+    uint32_t ptr_low, ptr_high;
     int32_t rectype;
     int32_t UnknownLong;
     bool SomethingFussyHappened = true;
@@ -1629,12 +1634,18 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
       } else //the 2 pointers may point together to a l64 address, bug #1545
-      {
-        if (!xdr_uint32_t(xdrs, &ptrs0)) break;
-        nextptr = ptrs0;
-        if (!xdr_uint32_t(xdrs, &ptrs1)) break;
-        DULong64 tmp = ptrs1;
-        nextptr |= (tmp << 32);
+      { //we read LittleEndian format
+		if (!xdr_uint32_t(xdrs, &ptr_low)) break;
+		if (!xdr_uint32_t(xdrs, &ptr_high)) break;
+		if (BigEndian()) { //swap & merge
+		  nextptr = ptr_high;
+		  uint64_t tmp = ptr_low;
+		  nextptr |= (tmp << 32);
+		} else { //merge
+		  nextptr = ptr_low;
+		  uint64_t tmp = ptr_high;
+		  nextptr |= (tmp << 32);
+		}
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
         if (nextptr <=LONG) e->Throw("error in pointers, please report.");
       }
@@ -1808,14 +1819,19 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         nextptr = my_ulong64;
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
-      } else
-      {
-        if (!xdr_uint32_t(xdrs, &ptrs0)) break;
-        nextptr = ptrs0;
-        if (!xdr_uint32_t(xdrs, &ptrs1)) break;
-        DULong64 tmp = ptrs1;
-        nextptr |= (tmp << 32);
-        if (!xdr_int32_t(xdrs, &UnknownLong)) break;
+      } else {//we read LittleEndian format
+		if (!xdr_uint32_t(xdrs, &ptr_low)) break;
+		if (!xdr_uint32_t(xdrs, &ptr_high)) break;
+		if (BigEndian()) { //swap & merge
+		  nextptr = ptr_high;
+		  uint64_t tmp = ptr_low;
+		  nextptr |= (tmp << 32);
+		} else { //merge
+		  nextptr = ptr_low;
+		  uint64_t tmp = ptr_high;
+		  nextptr |= (tmp << 32);
+		}
+		if (!xdr_int32_t(xdrs, &UnknownLong)) break;
       }
 
       //dispatch accordingly:
