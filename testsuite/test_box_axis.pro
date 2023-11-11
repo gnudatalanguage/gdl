@@ -50,38 +50,48 @@ end
 
 pro test_box_axis, no_exit=no_exit, test=test
 ; if the plot is not exactly at the same place, the mask of values should show it in the sum
-  val=[[4970901929984ULL,8319184928768ULL,5470964154368ULL,5125227151360ULL],[4711432847360ULL,7829696020480ULL,5298193956864ULL,4928479166464ULL]]
+  val=[[18475769856ULL,30704844800ULL,20777508864ULL,19327422464ULL],[19970168832ULL,32820781056ULL,19776729088ULL,19139545088ULL]]
   cpu,tpool_nthreads=1 ; until the problem with total() is solved.
   defsysv,"!GDL",exists=isgdl
-  if isgdl then v=val[*,0] else v=val[*,1]
+  if isgdl then v=val[*,1] else v=val[*,0]
   nb_errors=0
   set_plot,'z'
   b=findgen(1920,1080)
   device, set_resolution=[1920,1080]
+  ; under IDL we have to create a first plot to get the new charzise accepted. A flaw of IDL IMHO.
+  plot,dist(10)
   erase
-  axistick,0.1,2,[".","."],[8,20]
-  a=tvrd()*b
-  print,fix(total(a),type=15)
-  if (fix(total(a),type=15) - v[0] ne 0) then nb_errors++
+  axistick,0.1,2,["Numeric","Numeric"],[8,20]
+  a=tvrd()
+  w=where(a eq 255, count) & if count gt 0 then a[w]=1b
+  t=fix(total(a*b),type=15)
+  print,t
+  if (t - v[0] ne 0) then nb_errors++
   erase
-  axistick,-0.1,2,[".",".","."],[8,20]
-  a=tvrd()*b
-  print,fix(total(a),type=15)
-  if (fix(total(a),type=15) - v[1] ne 0) then nb_errors++
+  axistick,-0.1,2,["Numeric","Numeric","Numeric"],[8,20]
+  a=tvrd()
+  w=where(a eq 255, count) & if count gt 0 then a[w]=1b
+  t=fix(total(a*b),type=15)
+  print,t
+  if (t - v[1] ne 0) then nb_errors++
   erase
-  tick,-0.1,2,[".",".","."],[8,15]
-  a=tvrd()*b
-  print,fix(total(a),type=15)
-  if (fix(total(a),type=15) - v[2] ne 0) then nb_errors++
+  tick,-0.1,2,["Numeric","Numeric","Numeric"],[8,15]
+  a=tvrd()
+  w=where(a eq 255, count) & if count gt 0 then a[w]=1b
+  t=fix(total(a*b),type=15)
+  print,t
+  if (t - v[2] ne 0) then nb_errors++
   erase
-  tick,0.1,2,[".",".","."],[8,15]
-  a=tvrd()*b
-  print,fix(total(a),type=15)
-  if (fix(total(a),type=15) - v[3] ne 0) then nb_errors++
+  tick,0.1,2,["Numeric","Numeric","Numeric"],[8,15]
+  a=tvrd()
+  w=where(a eq 255, count) & if count gt 0 then a[w]=1b
+  t=fix(total(a*b),type=15)
+  print,t
+  if (t - v[3] ne 0) then nb_errors++
 ;
 ; ----------------- final message ----------
 ;
-BANNER_FOR_TESTSUITE, "TEST_LABEL_DATE", nb_errors
+BANNER_FOR_TESTSUITE, "TEST_BOX_AXIS", nb_errors
 ;
 if (nb_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
