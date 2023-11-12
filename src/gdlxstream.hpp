@@ -74,9 +74,9 @@ public:
     plstream::wind(0, 1, 0, 1);
 
     ssub(1, 1);
-    adv(0); //this is for us (counters)
     SetPageDPMM();
     DefaultCharSize();
+    adv(0); //this is for us (counters) //needs DefaultCharSize
     clear();
   }
 

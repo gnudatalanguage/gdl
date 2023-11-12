@@ -22,6 +22,9 @@
 #include "graphicsdevice.hpp"
 #include "gdlgstream.hpp"
 #include "initsysvar.hpp"
+#ifndef MAX
+#define MAX(a,b) ((a) < (b) ? (b) : (a))
+#endif
 
 using namespace std;
 
@@ -380,8 +383,9 @@ void GDLGStream::SetCharSize(DLong ichx, DLong chy) {
     gdlDefaultCharInitialized=1;
   }
 
-void GDLGStream::NextPlot( bool erase )
-{
+void GDLGStream::NextPlot( bool erase ) {
+  // restore charsize to default for newpage at beginning since adv() uses charsize to get box position.
+  if (!erase) sizeChar(1.0);
   DLongGDL* pMulti = SysVar::GetPMulti();
 
   DLong nx = (*pMulti)[ 1];
@@ -446,8 +450,7 @@ void GDLGStream::NextPlot( bool erase )
       --(*pMulti)[0];
     }
   }
-  // restore charsize to default for newpage
-  sizeChar(1.0);
+
 }
 
 void GDLGStream::NoSub()
@@ -505,7 +508,7 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
   // - ... a look-up table instead of the long switch/case blocks ...
  
   size_t len = strlen(in);
-  if (stringLength) *stringLength=0;
+  if (stringLength!=NULL) *stringLength=0;
   // skip conversion if the string is empty
   if (len == 0) return "";
 
@@ -694,12 +697,12 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
     }
     else 
     {
-      if (stringLength) *stringLength+=base*fact[curr_lev%7];
+      if (stringLength!=NULL) *stringLength+=base*fact[curr_lev%7];
       curr_pos++;
       // handling IDL exclamation mark escape '!!'
       if (in[i] == '!') {
         i++;
-        if (stringLength) *stringLength+=base*fact[curr_lev%7];
+        if (stringLength!=NULL) *stringLength+=base*fact[curr_lev%7];
       }
       // handling plplot number sign escape '##'
       if 
@@ -1029,12 +1032,12 @@ void GDLGStream::GetGeometry( long& xSize, long& ySize)
   activeFontCodeNum = curr_fnt;
   //if gdlGetStringLength function is available, use it to give back a better value ("X" and "I" do not have the same width in hershey format!)
 #if PLPLOT_PRIVATE_NOT_HIDDEN
-  if (stringLength) *stringLength=gdlGetStringLength(out)/this->mmCharLength();
+  if (stringLength!=NULL) *stringLength=gdlGetStringLength(out)/this->mmCharLength();
 #endif
   return out;
 retrn:
   activeFontCodeNum = curr_fnt;
-  if (stringLength) *stringLength=0;
+  if (stringLength!=NULL) *stringLength=0;
   cout << "ERROR: GDLGStream::TranslateFormatCodes(\"" << in << "\") = \"" << out << "\"" << endl;  
   return ""; 
 }
@@ -1052,7 +1055,7 @@ void GDLGStream::setLineSpacing(PLFLT newSpacing)
 }
 PLFLT GDLGStream::getSymbolSize(){return theCurrentSymSize;}
 void GDLGStream::mtex( const char *side, PLFLT disp, PLFLT posit, PLFLT just,
-                       const char *text)
+                       const char *text, double *stringCharLength, double *stringCharHeight)
 {
    //plot does not handle !C
   size_t len = strlen(text);
@@ -1061,15 +1064,17 @@ void GDLGStream::mtex( const char *side, PLFLT disp, PLFLT posit, PLFLT just,
     simple=false;
   }
   if (simple) {
-    plstream::mtex(side,disp,posit,just,TranslateFormatCodes(text).c_str());
+    plstream::mtex(side,disp,posit,just,TranslateFormatCodes(text,stringCharLength).c_str());
+	if (stringCharHeight!=NULL) *stringCharHeight = 1;
     return;
   }
   //complicated:
+  if (stringCharHeight != NULL) *stringCharHeight = 0;
   double d=0;
   std::string s(text);
   std::string newline="!C";
-  long pos = 0, oldpos=0;
-  PLFLT ydisp=(1.0+nLineSpacing()/nCharHeight());
+  size_t pos = 0, oldpos=0;
+  PLFLT yadd=nLineSpacing()/nCharHeight();
   std::vector<long> positions;
   while (pos != string::npos) {
     pos = s.find(newline, oldpos);
@@ -1081,11 +1086,19 @@ void GDLGStream::mtex( const char *side, PLFLT disp, PLFLT posit, PLFLT just,
   for (std::vector<long>::iterator it = positions.begin(); it != positions.end();) {
     oldpos=(*it++);
     pos=(*(it++));
-    long l=pos-oldpos; 
+    size_t l=pos-oldpos; 
     if (l<0) l=string::npos;
 //    std::cerr<<pos<<":"<<l<<" "<<s.substr(oldpos,l)<<std::endl;
-    plstream::mtex(side,disp,posit,just,TranslateFormatCodes(s.substr(oldpos,l).c_str()).c_str());
-    disp+=ydisp;
+    plstream::mtex(side,disp,posit,just,TranslateFormatCodes(s.substr(oldpos,l).c_str(),&d).c_str());
+    if (strstr(side,"b")!=NULL) { //bottom increments 1 line
+	  disp += yadd;
+	} else if (strstr(side,"t")!=NULL) {//top decrements 1 line
+	  disp -= yadd;
+	} else {//left decrements position in Y : change posit not disp unless parallel
+	  if (strstr(side,"v")!=NULL) posit-=nLineSpacing()/boxnYSize() ; else disp -= yadd;
+	}
+	if (stringCharLength!=NULL) *stringCharLength = std::max<double>(*stringCharLength, d);
+	if (stringCharHeight!=NULL) *stringCharHeight += 1;
   }
 }
 
@@ -1106,8 +1119,8 @@ void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
   double d=0;
   std::string s(text);
   std::string newline="!C";
-  long pos = 0, oldpos=0;
-  PLFLT ydisp=(1.0+nLineSpacing()/nCharHeight())*wCharHeight();
+  size_t pos = 0, oldpos=0;
+  PLFLT ydisp=(nLineSpacing()/nCharHeight())*wCharHeight();
   std::vector<long> positions;
   while (pos != string::npos) {
     pos = s.find(newline, oldpos);
@@ -1119,7 +1132,7 @@ void GDLGStream::ptex( PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just,
   for (std::vector<long>::iterator it = positions.begin(); it != positions.end();) {
     oldpos=(*it++);
     pos=(*(it++));
-    long l=pos-oldpos; 
+    size_t l=pos-oldpos; 
     if (l<0) l=string::npos;
 //    std::cerr<<pos<<":"<<l<<" "<<s.substr(oldpos,l)<<std::endl;
     plstream::ptex(x,y,dx,dy,just,TranslateFormatCodes(s.substr(oldpos,l).c_str(),&d).c_str()) ;
@@ -1326,7 +1339,7 @@ void GDLGStream::adv(PLINT page)
   if (thePage.curPage > thePage.nbPages) thePage.curPage=1;
   if (GDL_DEBUG_PLSTREAM) fprintf(stderr,"adv() now at page %d\n",thePage.curPage);
   PLFLT sxmin,symin,sxmax,symax,szmin,szmax;
-  getSubpageRegion(sxmin,symin,sxmax,symax,&szmin,&szmax);
+  getSubpageRegion(&sxmin,&symin,&sxmax,&symax,&szmin,&szmax);
   //SET ALL REGION TAGS
   unsigned regionTag=SysVar::X()->Desc()->TagIndex("REGION");
   (*static_cast<DFloatGDL*>(SysVar::X()->GetTag(regionTag, 0)))[0]=sxmin;
@@ -1339,19 +1352,47 @@ void GDLGStream::adv(PLINT page)
   (*static_cast<DFloatGDL*>(SysVar::Z()->GetTag(regionTag, 0)))[1]=szmax;
 }
 
-void GDLGStream::getSubpageRegion(PLFLT &sxmin, PLFLT &symin, PLFLT &sxmax, PLFLT &symax, PLFLT *szmin, PLFLT *szmax){
+void GDLGStream::getSubpageRegion(PLFLT *sxmin, PLFLT *symin, PLFLT *sxmax, PLFLT *symax, PLFLT *szmin, PLFLT *szmax) {
+  //here we must take into account the contents of ![X|Y|Z].OMARGIN
+  unsigned int omarginTag = SysVar::X()->Desc()->TagIndex("OMARGIN");
+  DFloat xstart = (*static_cast<DFloatGDL*> (SysVar::X()->GetTag(omarginTag, 0)))[0];
+  xstart=MAX(xstart,0);
+  DFloat xend = (*static_cast<DFloatGDL*> (SysVar::X()->GetTag(omarginTag, 0)))[1];
+  xend=MAX(xend,0);
+  omarginTag = SysVar::Y()->Desc()->TagIndex("OMARGIN");
+  DFloat ystart = (*static_cast<DFloatGDL*> (SysVar::Y()->GetTag(omarginTag, 0)))[0];
+  ystart=MAX(ystart,0);
+  DFloat yend = (*static_cast<DFloatGDL*> (SysVar::Y()->GetTag(omarginTag, 0)))[1];
+  yend=MAX(yend,0);
+  //  Z OMARGIN to BE CHECKED and code must be written.
+  //  omarginTag = SysVar::Z()->Desc()->TagIndex("OMARGIN");
+  //  DFloat zstart = (*static_cast<DFloatGDL*> (SysVar::Z()->GetTag(omarginTag, 0)))[0];
+  //  DFloat zend = (*static_cast<DFloatGDL*> (SysVar::Z()->GetTag(omarginTag, 0)))[1];
+  DFloat xNormedPageSize=1-(xend+xstart)*theCurrentChar.ndsx;
+  DFloat yNormedPageSize=1-(yend+ystart)*theCurrentChar.nspacing;
+  if (xNormedPageSize < 0 || xNormedPageSize > 1 || yNormedPageSize < 0 || yNormedPageSize > 1) {
+	Message("Data coordinate system not established.");
+	if (xNormedPageSize < 0) xNormedPageSize=0;
+	if (yNormedPageSize < 0) yNormedPageSize=0;
+	if (xNormedPageSize > 1) xNormedPageSize=1;
+	if (yNormedPageSize > 1) yNormedPageSize=1;
+  } 
+  DFloat zNormedPageSize=1; //zend-zstart??;
+  DFloat xNormedOffset=xstart*theCurrentChar.ndsx;
+  DFloat yNormedOffset=yend*theCurrentChar.nspacing;
+  //check silly values: normed must be >0 and < 1
   int p=thePage.curPage-1;
-  PLFLT width=1.0/thePage.nx;
-  PLFLT height=1.0/thePage.ny;
-  PLFLT profund=1.0/thePage.nz;
+  PLFLT width=xNormedPageSize/thePage.nx;
+  PLFLT height=yNormedPageSize/thePage.ny;
+  PLFLT profund=zNormedPageSize/thePage.nz;
  int k= p / (thePage.nx*thePage.ny);
  int l= p - k*(thePage.nx*thePage.ny);
  int j= l /thePage.nx ;
- int i= (l - j*thePage.nx); 
- sxmin=i*width;
- sxmax=sxmin+width;
- symax=1-(j*height);
- symin=symax-height;
+ int i= (l - j*thePage.nx);
+ *sxmin=i*width+xNormedOffset;
+ *sxmax=*sxmin+width;
+ *symax=1-(j*height+yNormedOffset);
+ *symin=*symax-height;
  if (szmin != NULL) {
    *szmin=k*profund;
    *szmax=*szmin+profund;

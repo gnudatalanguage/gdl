@@ -259,9 +259,6 @@ namespace lib {
       gdlSetGraphicsForegroundColorFromKw(e, actStream);
       gdlBox(e, actStream, xStart, xEnd, xLog, yStart, yEnd,  yLog);
       
-      // title and sub title
-      gdlWriteTitleAndSubtitle(e, actStream);
-      
       //box plotted, we pass in normalized coordinates w/clipping if needed 
       gdlSetSymsize(e, actStream); //set symsize BEFORE switching (TBC)
       if (gdlSwitchToClippedNormalizedCoordinates(e, actStream)) return true;

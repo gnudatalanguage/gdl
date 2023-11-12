@@ -111,9 +111,9 @@ class DeviceZ: public GraphicsDevice
     actStream->plstream::wind(0, 1, 0, 1);
 
     actStream->ssub(1, 1);
-    actStream->adv(0); //this is for us (counters)
     actStream->SetPageDPMM();
     actStream->DefaultCharSize();
+    actStream->adv(0); //this is for us (counters) //needs DefaultCharSize
   }
 
 public:

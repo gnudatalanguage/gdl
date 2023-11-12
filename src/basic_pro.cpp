@@ -2355,7 +2355,12 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     SizeT nParam = e->NParam(1);
     if (nParam == 1) return;
     DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
-
+    
+	static int GDL_DOW = e->KeywordIx("GDL_DOW");
+	bool hasDow = e->WriteableKeywordPresent(GDL_DOW); //insure the output variable exist and is of 'good' type
+    static int GDL_ICAP = e->KeywordIx("GDL_ICAP");
+	bool hasIcap = e->WriteableKeywordPresent(GDL_ICAP); //insure the output variable exist and is of 'good' type
+	
     // checking output (if present and global); exiting if nothing to do
     bool global[6];
     {
@@ -2374,6 +2379,11 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
     BaseGDL*** ret;
     ret = (BaseGDL***) malloc((nParam - 1) * sizeof (BaseGDL**));
     GDLGuard<BaseGDL**, void, void> retGuard(ret, free);
+	
+	DLongGDL* retdow;
+	DLongGDL* reticap;
+	if (hasDow) retdow=new DLongGDL(dimension(nEl));
+	if (hasIcap) reticap=new DLongGDL(dimension(nEl));
 
     for (int i = nParam - 2; i >= 0; i--) {
       if (global[i]) {
@@ -2416,7 +2426,12 @@ static DWORD launch_cmd(BOOL hide, BOOL nowait,
 
       // seconds
       if (global[6 - 1]) (*static_cast<DDoubleGDL*> (*ret[6 - 1]))[i] = Second;
+	  
+	  if (hasDow) (*retdow)[i]= dow;
+	  if (hasIcap) (*reticap)[i]= icap;
     }
+	if (hasDow) e->SetKW(GDL_DOW,retdow);
+	if (hasIcap) e->SetKW(GDL_ICAP,reticap);
     // now guarded. s. a.
     //     free((void *)ret);
   }

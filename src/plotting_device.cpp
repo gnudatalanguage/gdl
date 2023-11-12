@@ -262,7 +262,7 @@ namespace lib {
         DLong x = (*character_size)[0];
         DLong y = (*character_size)[1];
 
-        if (x < 0 || y < 0)
+        if (x < 0)
           e->Throw("Value of Character Size is out of allowed range.");
 
         bool success = actDevice->SetCharacterSize(x, y);
