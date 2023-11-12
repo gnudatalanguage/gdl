@@ -50,13 +50,12 @@ end
 
 pro test_box_axis, no_exit=no_exit, test=test
 ; if the plot is not exactly at the same place, the mask of values should show it in the sum
-  val=[[18475769856ULL,30704844800ULL,20777508864ULL,19327422464ULL],[19970168832ULL,32820781056ULL,19776729088ULL,19139545088ULL]]
-  cpu,tpool_nthreads=1 ; until the problem with total() is solved.
+  val=[[18476179244ULL,30704664758ULL,20777230060ULL,19327358191ULL],[19970041330ULL,32821191080ULL,19776391130ULL,19139418781ULL]]
   defsysv,"!GDL",exists=isgdl
   if isgdl then v=val[*,1] else v=val[*,0]
   nb_errors=0
   set_plot,'z'
-  b=findgen(1920,1080)
+  b=dindgen(1920,1080) ; work in double precision otherwise  TOTAL() below will give different results depending on the threads and machine precision for floats.
   device, set_resolution=[1920,1080]
   ; under IDL we have to create a first plot to get the new charzise accepted. A flaw of IDL IMHO.
   plot,dist(10)
