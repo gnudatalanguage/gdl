@@ -64,7 +64,9 @@ pro test_box_axis, no_exit=no_exit, test=test
   a=tvrd()
   w=where(a eq 255, count) & if count gt 0 then a[w]=1b
   t=fix(total(a*b),type=15)
-  print,t
+  ; visual check if error
+  q=fix(total(a),type=15) & r=fix(total(b),type=15)
+  print,t,q,r
   if (t - v[0] ne 0) then nb_errors++
   erase
   axistick,-0.1,2,["Numeric","Numeric","Numeric"],[8,20]
