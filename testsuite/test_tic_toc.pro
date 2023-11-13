@@ -14,13 +14,16 @@ if KEYWORD_SET(help) then begin
 endif
 ;
 fft_dim=1729
+; **************IMPORTANT ***************
+; make all procedures used in the loop below known, compiled and run before starting the test.
 ;
-cumul=TIC('cumul')
-;
+TIC & TOC & r = FFT(RANDOMU(seed, fft_dim, fft_dim)) ; this may take time the firsttime they are called.
+; the variance test will not work if these are not already executed once.
 ; how many time we compute ...
 if ~KEYWORD_SET(nb_times) then nb_times=4
 val_times=DBLARR(nb_times)
 ;
+cumul=TIC('cumul') ;; need to be just before loop
 for i=0, nb_times-1 do begin
     ;; Start another clock named FFT
     ;; combined with the iteration number
@@ -44,11 +47,13 @@ print, 'Total Time elapsed      : ', val_cumul, ' seconds.'
 ;
 errors=0
 ;
-; We accepte a tolerance of 1 % (ok on various Linux, might be wrong
-; on OSX [cf "test_wait"])
-tolerance=0.01
-; temporarily removed until OSX problem with TICTOC accuracy is resolved.
-;if (ABS((TOTAL(val_times)-val_cumul)/val_cumul) GT tolerance) then errors=1
+; We accepte a tolerance of 0.001 on the variance of measurements.
+tolerance=0.001
+;
+m=moment(val_times)
+precision=m[1]/m[0]
+if (precision GT tolerance) then errors=1
+print, 'Time Precision          : ', precision, '.'
 ;
 BANNER_FOR_TESTSUITE, 'TEST_TIC_TOC', errors, short=short
 ;
