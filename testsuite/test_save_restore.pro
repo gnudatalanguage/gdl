@@ -115,15 +115,8 @@ for ii=0,N_ELEMENTS(list_numeric_names)-1 do begin
    ok2=EXECUTE(type_name+'_s_a2d=INDGEN(dim2, type=type_value)')
    if KEYWORD_SET(test) then print, type_name, ok0, ok1, ok2
 endfor
-; This just to manage all options, and augment the coverage of our functions by the coverage programs.
-; Does not test the accuracy of what is saved with the following options: /COMM /SYSTEM
-common test_saverestore,toto,tata
-toto=10
-tata=!X
-
 ;
-SAVE, file=file, /COMM, /SYSTEM, DESCRIPTION="made by test_save_restore",  $
-      compress=compress, dim1, dim2, $
+SAVE, file=file, compress=compress, dim1, dim2, $
       byte_s, byte_s_a1d, byte_s_a2d, $
       int_s, int_s_a1d, int_s_a2d, $
       long_s, long_s_a1d, long_s_a2d, $
