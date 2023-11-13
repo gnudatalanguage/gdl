@@ -2593,7 +2593,7 @@ namespace lib {
 		gsl_integration_qag(&F, first, last, 0, eps,
 				    wsize, GSL_INTEG_GAUSS61, w, &result, &error);
 	      } else {
-	      //	      cout << "debug this case" << endl;
+	      cout << "debug this case" << endl;
 	      //	      cout << *last[0] << end;
 	      // AC 2012-10-10: ToDo: checks on values at the boundaries.
 	      // if no problem, using QAG, else QAGS
@@ -3474,8 +3474,6 @@ namespace lib {
 
     void solve_system(gsl_vector *x, gsl_multifit_nlinear_fdf *fdf, gsl_multifit_nlinear_parameters *params,
                       double *chisq2) {
-
-
      
         // chisq2 is here in order to have access to its value in the function gaussfit
         const gsl_multifit_nlinear_type *T = gsl_multifit_nlinear_trust;
@@ -3508,7 +3506,8 @@ namespace lib {
         /* store cond(J(x)) */
         gsl_multifit_nlinear_rcond(&rcond, work);
 
-        gsl_vector_memcpy(x, y);
+	// AC ??? https://www.gnu.org/software/gsl/doc/html/nls.html
+	gsl_vector_memcpy(x, y);
 
         //fprintf(stderr, "NITER         = %zu\n", gsl_multifit_nlinear_niter(work));
 
@@ -3577,10 +3576,91 @@ namespace lib {
         return GSL_SUCCESS;
     }
 
-    vector<double> calcul_estimates(DDoubleGDL *param_x, DDoubleGDL *param_y, int realNterms) {
+  vector<double> calcul_estimates(DDoubleGDL *xd, DDoubleGDL *yd, int realNterms) {
+    
+        int n = xd->N_Elements();
+
+	/*        double *yd = (double *) malloc(n * sizeof(double));
+        memcpy(yd, &(*param_y)[0], n * sizeof(double));
+        double *xd = (double *) malloc(n * sizeof(double));
+        memcpy(xd, &(*param_x)[0], n * sizeof(double));
+	*/
+
+        double y4=0.,y5=0.,y6=0.;
+
+	// first : removal of the slope
+	
+	if (realNterms>4){
+	  if (n > 6) {
+	    vector<double> derive(n-1);
+		    
+	    //	    double derive=0., debut, fin;
+	    for (SizeT i=0;i<n-1;i++) {derive[i]=(*yd)[i+1]-(*yd)[i];}
+	    std::sort(derive.begin(), derive.end());
+	    double median = derive[derive.size() / 2];
+	    //	    debut=(*yd)[0]+(*yd)[1]+(*yd)[2];
+	    //fin=(*yd)[n-3]+(*yd)[n-2]+(*yd)[n-1];
+	    //derive=(fin-debut)/(3.*n);
+	    y5=median;
+	    cout << median << endl;
+	  }
+	  for (SizeT i=0;i<n;i++) {
+	    (*yd)[i]=(*yd)[i]-y5*(*xd)[i];
+	  } 
+	}
+
+	// second : removal of the mean value
+	
+	if (realNterms>3){
+	  for (SizeT i=0;i<n;i++){y4=y4+(*yd)[i];}
+	  y4=y4/n;
+	}
+
+	for (SizeT i=0;i<n;i++) {
+	  (*yd)[i]=(*yd)[i]-y4;
+	}
+	
+	// since here, mean value (y4) is removed (or zero !)
+	
+	DLong maxEl, minEl, location;
+	DDouble maxVal, minVal, amplitude;
+	yd->MinMax(&minEl,&maxEl,NULL,NULL,false);
+	maxVal=(*yd)[maxEl];
+	minVal=(*yd)[minEl];
+	cout << "i max/i min " << maxEl << " " <<minEl<< endl;
+	cout << "max, min " << maxVal << " " <<minVal<< endl;
+
+	if ((maxVal) > abs(minVal)) {
+	  amplitude=maxVal;
+	  location=(*xd)[maxEl];
+	}
+	else {
+	  amplitude=minVal;
+	  location=(*xd)[minEl];
+	}  
+
+        vector<double> a(6);
+	a[0] = amplitude;
+	a[1] = location;
+        a[2] = 2.;
+	if (realNterms > 3) a[3] = y4;
+        if (realNterms > 4) a[4] = y5;
+        if (realNterms > 5) a[5] = y6;
+	
+	
+	if (1) {
+	  for (int i = 0; i < 6; i++) {cout << a[i] << " "; }
+	  cout << endl;
+	}
+       
+        return a;
+ }
+
+	
+    vector<double> calcul_estimates2(DDoubleGDL *param_x, DDoubleGDL *param_y, int realNterms) {
         int n = param_x->N_Elements();
 
-	bool debug=TRUE;
+	bool debug=FALSE;
 	
 	cout << "inside  calcul_estimates" << endl;
 	
@@ -3675,6 +3755,10 @@ namespace lib {
         if (realNterms > 4) a[4] = y5;
         if (realNterms > 5) a[5] = y6;
 
+	
+	if (1) {
+	  for (int i = 0; i < 6; i++) {cout << a[i]; }
+	}
        
         return a;
 
@@ -3711,18 +3795,35 @@ namespace lib {
         DDoubleGDL *param_x = e->GetParAs<DDoubleGDL>(0);
         DDoubleGDL *param_y = e->GetParAs<DDoubleGDL>(1);
 
+        DDoubleGDL *xd = e->GetParAs<DDoubleGDL>(0);
+        DDoubleGDL *yd = e->GetParAs<DDoubleGDL>(1);
+
 	if (param_x->N_Elements() != param_y->N_Elements()) {
 	  e->Throw("X and Y must have same number of elements.");
 	}
-	
-        const size_t n = param_x->N_Elements();
+	const size_t n = param_x->N_Elements();
         const size_t p = realNterms; // gsl wants a const
         gsl_vector *x = gsl_vector_alloc(p);
 
+	//	cout << " realNterms : " << p << endl;
+
         DDoubleGDL *estimatesInput;
         if (estimates) estimatesInput = e->GetKWAs<DDoubleGDL>(estimatesIx);
+	//	if (!estimates) *estimatesInput= DDoubleGDL(6, BaseGDL::NOZERO);
 	// not necessary but easier to read
 
+	bool debug=FALSE;
+	if (debug) {
+
+	  if (estimates) {
+	    for (int i = 0; i < estimatesInput->N_Elements(); i++) {
+	      cout <<  (*estimatesInput)[i] << " ";
+	    }
+	  }	  else {
+	    cout << "no estimates" << endl;
+	  }
+	}
+	
 	// AC 2023-11-09 : removing usage of "calcul_estimates()"
 	// calcul_estimates() is very strange
 	// it is not working well on OSX
@@ -3752,15 +3853,22 @@ namespace lib {
 	      //gsl_vector_set(x, 2, calcul_estimates(param_x, param_y, realNterms)[2]);
             }
         } else if (!estimates) {
-	  //vector <double> a = calcul_estimates(param_x, param_y, realNterms);
-	  
+	  vector <double> a = calcul_estimates(xd, yd, realNterms);
+
+	  //	  DDoubleGDL *zero;
+	  //(*zero)[0]=0.0
+	  //	  vector<double> a(6);
 	  for (int i = 0; i < p; i++) {
-	    gsl_vector_set(x, i, 1.);
+	    //a[i]=1.;
+	    gsl_vector_set(x, i, a[i]);
 	  }
 	  
         }
-	//	for (int i = 0; i < p; i++) { cout <<  gsl_vector_get(x, i) << " " ;}
-	//cout << endl;
+	if (debug) {
+	  cout << "init : ";
+	  for (int i = 0; i < p; i++) { cout <<  gsl_vector_get(x, i) << " " ;}
+	  cout << endl;
+	}
 
 	
         gsl_multifit_nlinear_fdf fdf;
@@ -3850,6 +3958,11 @@ namespace lib {
             }
         }
 
+	if (debug) {
+	  for (size_t i = 0; i < p;  i++) { cout << " " <<  gsl_vector_get(x, i);}
+	  cout << endl;
+	}
+	
         if (e->NParam() == 3) { // black magic to create/update a variable in gdl, if optional param a is specified
             BaseGDL **coefs = &e->GetPar(2);
             GDLDelete((*coefs));
