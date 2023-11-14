@@ -94,6 +94,7 @@ test_finite.pro
 test_fixprint.pro
 test_fx_root.pro
 test_fz_roots.pro
+test_gaussfit.pro
 test_gc.pro
 test_get_lun.pro
 test_gh00178.pro

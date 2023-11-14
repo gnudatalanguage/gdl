@@ -174,7 +174,6 @@ if TOTAL((resuQR-resuIN)^2) GT eps then ERRORS_ADD, nb_errors, function_name+' c
 resuQR=QROMO(function_name, debut, /MIDEXP, eps=eps_idl)
 resuIN=CALL_FUNCTION(function_name+'_INTEGRAL', infini)-CALL_FUNCTION(function_name+'_INTEGRAL', debut)
 if TOTAL((resuQR-resuIN)^2) GT eps then ERRORS_ADD, nb_errors, function_name+' case /MIDEXP'
-stop
 ;
 resuQR=QROMO(function_name, debut, fin, /DOUBLE)
 resuIN=CALL_FUNCTION(function_name+'_INTEGRAL', fin)-CALL_FUNCTION(function_name+'_INTEGRAL', debut)
