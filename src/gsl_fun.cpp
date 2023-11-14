@@ -3583,22 +3583,33 @@ namespace lib {
 
     double y4=0.,y5=0.,y6=0.;
 
+    // estimation of the step ... (now we assume it is constant ... TO DO)
+    vector<double> steps(n-1);
+    for (SizeT i=0;i<n-1;i++) {steps[i]=(*xd)[i+1]-(*xd)[i];}
+    std::sort(steps.begin(), steps.end());
+    double step = steps[steps.size() / 2];
+    if ((steps[0] < (0.9*step)) || (steps[n-2] > (1.1*step))) {
+      cout << "Warning : unregular steps not managed in GAUSSFIT blind" << endl;
+    }
+    if (debug) {cout << "step :" << step << endl;}
+    
     // first : removal of the slope
 	
     if (realNterms>4){
-      if (n > 6) {
-	vector<double> derive(n-1);
-		    
-	//	    double derive=0., debut, fin;
-	for (SizeT i=0;i<n-1;i++) {derive[i]=(*yd)[i+1]-(*yd)[i];}
-	std::sort(derive.begin(), derive.end());
-	double median = derive[derive.size() / 2];
-	//	    debut=(*yd)[0]+(*yd)[1]+(*yd)[2];
-	//fin=(*yd)[n-3]+(*yd)[n-2]+(*yd)[n-1];
-	//derive=(fin-debut)/(3.*n);
-	y5=median;
-	//cout << median << endl;
-      }
+      vector<double> derive(n-1);
+      for (SizeT i=0;i<n-1;i++) {derive[i]=(*yd)[i+1]-(*yd)[i];}
+      //
+      // this idea was good when the nose level is low ...
+      // 
+      //std::sort(derive.begin(), derive.end());
+      //double median = derive[derive.size() / 2];
+      //y5=median/step;
+      //
+      // more robust method when noise level increases ...
+      double average =0.;
+      for (SizeT i=0;i<n-1;i++) {average=average+derive[i];}
+      y5=average/(n-1)/step;
+      
       for (SizeT i=0;i<n;i++) {
 	(*yd)[i]=(*yd)[i]-y5*(*xd)[i];
       } 
@@ -3642,7 +3653,6 @@ namespace lib {
     if (realNterms > 4) a[4] = y5;
     if (realNterms > 5) a[5] = y6;
 	
-	
     if (debug) {
       for (int i = 0; i < 6; i++) {cout << a[i] << " "; }
       cout << endl;
@@ -3652,7 +3662,8 @@ namespace lib {
   }
 
 	
-  vector<double> calcul_estimates2(DDoubleGDL *param_x, DDoubleGDL *param_y, int realNterms) {
+  vector<double> calcul_estimates2(DDoubleGDL *param_x, DDoubleGDL *param_y,
+				   int realNterms) {
     int n = param_x->N_Elements();
 
     bool debug=FALSE;
@@ -3668,16 +3679,13 @@ namespace lib {
       
         
     if (realNterms>5){
-
-      for (int i=0;i<n;i++){y6=y6+yd[i];}
-	 
+      for (int i=0;i<n;i++) { y6=y6+yd[i];}
       y6=round(y6*100)/100;
       if (debug) { cout << "y6 " << y6 << endl;}
       if (y6>5){y6=0;}
       for (int i=0;i<n;i++){
 	yd[i]=yd[i]-y6*pow(xd[i],2.0);
-      }   
-            
+      }
     }
 
         
@@ -3695,8 +3703,7 @@ namespace lib {
          
       for (int i=0;i<n;i++){
 	yd[i]=yd[i]-(xd[i]*round(y5*10)/10);
-      }    
-         
+      }             
     }
 
         
@@ -3760,15 +3767,11 @@ namespace lib {
   }
   
   BaseGDL *gaussfit(EnvT *e) {
-    
-    int realNterms = 6;
+
     bool debug=false;
 
-    static int ntermsIx = e->KeywordIx("NTERMS");
-    bool nterms = e->KeywordSet(ntermsIx);
-
-    static int estimatesIx = e->KeywordIx("ESTIMATES");
-    bool estimates = e->KeywordSet(estimatesIx);
+    DDoubleGDL *x_data = e->GetParAs<DDoubleGDL>(0);
+    DDoubleGDL *y_data = e->GetParAs<DDoubleGDL>(1);
 
     static int measureErrorsIx = e->KeywordIx("MEASURE_ERRORS");
     bool measureErrors = e->KeywordSet(measureErrorsIx);
@@ -3782,6 +3785,9 @@ namespace lib {
     static int yerrorIx = e->KeywordIx("YERROR");
     bool yerror = e->KeywordPresent(yerrorIx);
 
+    static int ntermsIx = e->KeywordIx("NTERMS");
+    bool nterms = e->KeywordSet(ntermsIx);
+    int realNterms=6; // default value :)
     if (nterms) {
       realNterms = (e->GetKWAs<DIntGDL>(ntermsIx))->GetAsIndex(0);
       if (realNterms < 3 || realNterms > 6) {
@@ -3789,20 +3795,19 @@ namespace lib {
       }
     }
 
-    DDoubleGDL *param_x = e->GetParAs<DDoubleGDL>(0);
-    DDoubleGDL *param_y = e->GetParAs<DDoubleGDL>(1);
+    bool isReturnDouble = false;
+    //    if ((e->GetParDefined(0)->Type() == GDL_DOUBLE) ||
+    //(e->GetParDefined(1)->Type() == GDL_DOUBLE)) isReturnDouble = true;
 
-    DDoubleGDL *xd = e->GetParAs<DDoubleGDL>(0);
-    DDoubleGDL *yd = e->GetParAs<DDoubleGDL>(1);
-
-    if (param_x->N_Elements() != param_y->N_Elements()) {
+    if (x_data->N_Elements() != y_data->N_Elements()) {
       e->Throw("X and Y must have same number of elements.");
     }
-    const size_t n = param_x->N_Elements();
+    const size_t n = x_data->N_Elements();
     const size_t p = realNterms; // gsl wants a const
     gsl_vector *x = gsl_vector_alloc(p);
 
-    //	cout << " realNterms : " << p << endl;
+    static int estimatesIx = e->KeywordIx("ESTIMATES");
+    bool estimates = e->KeywordSet(estimatesIx);
 
     DDoubleGDL *estimatesInput;
     if (estimates) estimatesInput = e->GetKWAs<DDoubleGDL>(estimatesIx);
@@ -3834,7 +3839,7 @@ namespace lib {
       if (gsl_vector_get(x, 2) == 0) {
 	// "compute a best guess for the starting value for this term"
 	gsl_vector_set(x, 2, 1.);
-	//gsl_vector_set(x, 2, calcul_estimates(param_x, param_y, realNterms)[2]);
+	//gsl_vector_set(x, 2, calcul_estimates(x_data, y_data, realNterms)[2]);
       }
     } else if (!nterms && estimates) {
       if (estimatesInput->N_Elements() != 6) {
@@ -3846,12 +3851,15 @@ namespace lib {
       if (gsl_vector_get(x, 2) == 0) {
 	// "compute a best guess for the starting value for this term"
 	gsl_vector_set(x, 2, 1.);
-	//gsl_vector_set(x, 2, calcul_estimates(param_x, param_y, realNterms)[2]);
+	//gsl_vector_set(x, 2, calcul_estimates(x_data, y_data, realNterms)[2]);
       }
     } else if (!estimates) {
+      // we duplicate here because we will modify those values ...
+      DDoubleGDL *xd = e->GetParAs<DDoubleGDL>(0);
+      DDoubleGDL *yd = e->GetParAs<DDoubleGDL>(1);
+
       vector <double> a = calcul_estimates(xd, yd, realNterms);
       for (int i = 0; i < p; i++) {
-	//a[i]=1.;
 	gsl_vector_set(x, i, a[i]);
       }
 	  
@@ -3871,8 +3879,8 @@ namespace lib {
     fit_data.x = (double *) malloc(n * sizeof(double));
     fit_data.y = (double *) malloc(n * sizeof(double));
 
-    memcpy(fit_data.x, &(*param_x)[0], n * sizeof(double));
-    memcpy(fit_data.y, &(*param_y)[0], n * sizeof(double));
+    memcpy(fit_data.x, &(*x_data)[0], n * sizeof(double));
+    memcpy(fit_data.y, &(*y_data)[0], n * sizeof(double));
 
     /* define function to be minimized */
     fdf.df = nullptr;
@@ -3881,11 +3889,6 @@ namespace lib {
     fdf.p = p;
     fdf.params = &fit_data;
 
-    bool isReturnDouble = false;
-    BaseGDL *param_x_type = e->GetPar(0);
-    BaseGDL *param_y_type = e->GetPar(1);
-
-    if (param_x_type->Type() == GDL_DOUBLE || param_y_type->Type() == GDL_DOUBLE) isReturnDouble = true;
     if (p == 3) fdf.f = gaussian_vec3;
     else if (p == 4) fdf.f = gaussian_vec4;
     else if (p == 5) fdf.f = gaussian_vec5;
@@ -3899,8 +3902,10 @@ namespace lib {
     double chisqGSL = 0;
     solve_system(x, &fdf, &fdf_params, &chisqGSL);
 
-    DDoubleGDL *res = new DDoubleGDL(fit_data.n, BaseGDL::NOZERO);
 
+    // preparing the output ... since calculation were done in "double" ...
+    DDoubleGDL *res = new DDoubleGDL(fit_data.n, BaseGDL::NOZERO);
+    
     // compute new y values with the new coeffs
     if (p == 3) {
       double z, w;
@@ -4005,10 +4010,10 @@ namespace lib {
       GDLDelete((*valueYerror));
       *valueYerror = new DDoubleGDL(1, BaseGDL::NOZERO);
       double numerator = 0;
-      for (size_t i = 0; i < param_y->N_Elements(); i++) {
-	numerator = numerator + pow(((*param_y)[i] - (*res)[i]), (double) 2.0);
+      for (size_t i = 0; i < y_data->N_Elements(); i++) {
+	numerator = numerator + pow(((*y_data)[i] - (*res)[i]), (double) 2.0);
       }
-      double standarderr = sqrt(numerator / (param_y->N_Elements() - realNterms));
+      double standarderr = sqrt(numerator / (y_data->N_Elements() - realNterms));
       memcpy(&(*(DDoubleGDL *) *valueYerror)[0], &standarderr, sizeof(standarderr));
     }
 
@@ -4037,6 +4042,8 @@ namespace lib {
       cout << "measureErrors  is not yet developed" << endl; 
     }
 
-    return res;
-  }
+    if (isReturnDouble) return res;
+    else return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);
+      
+  } // end GAUSSFIT
 } // namespace

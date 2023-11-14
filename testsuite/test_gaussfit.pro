@@ -4,6 +4,11 @@
 ; Basic tests for GAUSSFIT. Please repor any idea to extend
 ; these tests, which are very important in the domains
 ; where IDL/GDL are used
+; -------------------------------------------------------------
+; Modifications history :
+;
+; - 2023-11-14 : AC. I forgot than the steps between X points
+; may not be equal to unity. I add few tests for that.
 ;
 ; -------------------------------------------------------------
 ;
@@ -41,16 +46,6 @@ end
 ;
 ; -------------------------------------------------------------
 ;
-function TABLE_FOR_GAUSS, indice
-
-if indice EQ 1 then params=[4, 0, 1]
-if indice EQ 2 then params=[4, 0, 3]
-if indice EQ 3 then params=[4, 0, 6]
-return, params
-end
-;
-; -------------------------------------------------------------
-;
 function CRITERE, a, b, lenght, verbose=verbose
 ;
 if ~ISA(lenght) then begin
@@ -68,17 +63,75 @@ end
 ;
 ; -------------------------------------------------------------
 ;
-pro TEST_GAUSSFIT_INIT, cumul_errors, test=test, verbose=verbose
+pro TEST_GAUSSFIT_SCALE, cumul_errors, scale=scale, $
+                         test=test, verbose=verbose
 ;
 nb_errors=0
 ;
 if KEYWORD_SET(verbose) then v=1
 ;
+; this is the way to test with various steps in X
+if ~KEYWORD_SET(scale) then scale=1
+;
 ;  Only 3 params, the 3 last ones should stay close to zero
 ;
-eps3=1e-5
+eps3=1e-3
+par_input=[10, 1, 3, 0, 0, 0]
+y=THE_GAUSS_FUNCTION(par_input, x=x, scale=scale)
+;
+for ii=3, 6 do begin
+   yfit=GAUSSFIT(x,y, estim, nterms=ii)
+   if (CRITERE(par_input,estim,ii,v=v) GT eps3) then $
+      ERRORS_ADD, nb_errors, 'c3 nt'+STRING(ii)
+endfor
+;
+eps3=0.004
+par_input=[10, 1, 3, -21.3, 0, 0]
+y=THE_GAUSS_FUNCTION(par_input, x=x, scale=scale, first=-5)
+;
+for ii=4, 6 do begin
+   yfit=GAUSSFIT(x,y, estim, nterms=ii)
+   if (CRITERE(par_input,estim,ii,v=v) GT eps3) then $
+      ERRORS_ADD, nb_errors, 'c4 nt'+STRING(ii)
+endfor
+;
+; same than previous, but negative peak
+eps3=0.004
+par_input=[-53, 1, 3, -21.3, 0, 0]
+y=THE_GAUSS_FUNCTION(par_input, x=x, scale=scale, first=-7)
+;
+for ii=4, 6 do begin
+   yfit=GAUSSFIT(x,y, estim, nterms=ii)
+   if (CRITERE(par_input,estim,ii,v=v) GT eps3) then $
+      ERRORS_ADD, nb_errors, 'c4 neg nt'+STRING(ii)
+endfor
+;
+; ----- final ----
+;
+txt=' (scale ='+STRING(format='(f5.2)', scale)+')'
+BANNER_FOR_TESTSUITE, 'TEST_GAUSSFIT_SCALE'+txt, nb_errors, /short
+ERRORS_CUMUL, cumul_errors, nb_errors
+if KEYWORD_set(test) then STOP
+;
+end
+;
+; -------------------------------------------------------------
+;
+pro TEST_GAUSSFIT_INIT, cumul_errors, test=test, verbose=verbose, scale=scale
+;
+nb_errors=0
+;
+if KEYWORD_SET(verbose) then v=1
+;
+; this is the way to test with various steps in X
+if ~KEYWORD_SET(scale) then scale=1
+;
+;  Only 3 params, the 3 last ones should stay close to zero
+;
+eps3=4e-5
+if scale LT 1 then eps3=2e-3
 par_input=[10, 10, 1, 0, 0, 0]
-y=THE_GAUSS_FUNCTION(par_input, x=x, scale=1)
+y=THE_GAUSS_FUNCTION(par_input, x=x, scale=scale)
 ;
 yfit=GAUSSFIT(x,y, estim)
 if (CRITERE(par_input,estim,v=v) GT eps3) then ERRORS_ADD, nb_errors, 'c3'
@@ -142,11 +195,14 @@ if (CRITERE(par_input,estim,6,v=v) GT eps5) then ERRORS_ADD, nb_errors, 'c6 nt6'
 ;
 ; ----- final ----
 ;
-BANNER_FOR_TESTSUITE, 'TEST_GAUSSFIT_INIT', nb_errors, /short
+txt=' (scale ='+STRING(format='(f5.2)', scale)+')'
+BANNER_FOR_TESTSUITE, 'TEST_GAUSSFIT_INIT'+txt, nb_errors, /short
 ERRORS_CUMUL, cumul_errors, nb_errors
 if KEYWORD_set(test) then STOP
 ;
 end
+;
+; -------------------------------------------------------------
 ;
 function MASQUE, indice
 res=REPLICATE(1.,6)
@@ -268,7 +324,15 @@ endif
 cumul_errors=0
 ;
 TEST_GAUSSFIT_BASIC, cumul_errors
+;
 TEST_GAUSSFIT_INIT, cumul_errors
+TEST_GAUSSFIT_INIT, cumul_errors, scale=1.2
+TEST_GAUSSFIT_INIT, cumul_errors, scale=0.82
+;
+TEST_GAUSSFIT_SCALE, cumul_errors
+TEST_GAUSSFIT_SCALE, cumul_errors, sca=.75
+TEST_GAUSSFIT_SCALE, cumul_errors, sca=1.5
+;
 TEST_GAUSSFIT_NOISE, cumul_errors
 ;
 ; ----------------- final message ----------
