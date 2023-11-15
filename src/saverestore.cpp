@@ -926,7 +926,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
   }
   
   
-  BaseGDL* getVariable(EnvT* e, XDR* xdrs, int &isSysVar, bool &isObjStruct) {
+  BaseGDL* getVariable(EnvT* e, XDR* xdrs, int &varStatus, bool &isObjStruct) {
     bool isStructure = false;
     bool isArray = false;
     // start of TYPEDESC
@@ -937,17 +937,17 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     // 2) VARFLAGS
     int32_t varflags;
     if (!xdr_int32_t(xdrs, &varflags)) return NULL;
-
+	//varStatus may indicate we get a SystemVariable :
+	if (varStatus & 0x02) { //The format of the data is different, read the next two integers
+	  //This is not signaled in C. Marqwardt doc: a system variable has two supplemental int32 (0x04 and 0x02) here, that we skip, but should probably look closer.
+      int32_t dummy;
+      if (!xdr_int32_t(xdrs, &dummy)) return NULL;
+      if (!xdr_int32_t(xdrs, &dummy)) return NULL;
+	}
     if (varflags & 0x40) return NullGDL::GetSingleInstance(); //special !NULL variable, no variable content follows.
-
-    if (varflags & 0x02) //defines a system variable.
-    {
-      isSysVar |= 0x02;
-//           cerr << " system " << endl;
-    }
     if (varflags & 0x01)
     {
-      isSysVar |= 0x01;
+      varStatus |= 0x01;
 //            cerr << " readonly " << endl;
     }
 
@@ -960,13 +960,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     {
       isArray = true;
     }
-    //This is not signaled in C. Marqwardt doc: a system variable has two supplemental int32 (0x04 and 0x02) here, that we skip.
-    if (isSysVar & 0x02)
-    {
-      int32_t dummy;
-      if (!xdr_int32_t(xdrs, &dummy)) return NULL;
-      if (!xdr_int32_t(xdrs, &dummy)) return NULL;
-    }
+
     //we gonnna create a BaseGDL:
 
     BaseGDL* var;
@@ -1287,15 +1281,19 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     if (readonly) varflags |= 0x01;
     if (isObject) varflags |= 0x34; if (isStructure) varflags |= 0x24; else if (isArray) varflags |= 0x04;   
     if (nullsize) varflags=0x40; 
-    xdr_int32_t(xdrs, &varflags);
-    if (nullsize) return;
-    //This is not signaled in C. Marqwardt doc: a system variable has two supplemental int32 (0x04 and 0x02).
+
+    //This is not signaled in C. Marqwardt doc: a system variable has two supplemental int32 as such:
     if (isSysVar)
     {
-      int32_t dummy;
-      xdr_int32_t(xdrs, &dummy);
-      xdr_int32_t(xdrs, &dummy);
-    }
+      int32_t zero=0x0;
+      xdr_int32_t(xdrs, &zero);
+	  xdr_int32_t(xdrs, &typecode);
+	  xdr_int32_t(xdrs, &varflags);
+	  if (nullsize) return;
+    } else {
+	  xdr_int32_t(xdrs, &varflags);
+	  if (nullsize) return;
+	}
 
     // if ARRAY or STRUCTURE, write ARRAY_DESC that follows:
     if (isStructure||isArray) writeArrDesc(xdrs, var);
@@ -1862,8 +1860,16 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
           }
 
           fillVariableData(xdrs, ret);
-
-          if (isSysVar & 0x01) systemReadonlyVariableVector.push_back(make_pair(varName, ret));
+          if (isSysVar & 0x03) { //readonly system var
+			std::string name=varName.substr(1);
+		    if (FindInVarList(sysVarRdOnlyList, name) != NULL) { //exists as readonly
+			  if (FindInVarList(sysVarNoSaveList, name) != NULL) { //is a system-defined readonly, not updateable.
+				Message("Read only system defined system variable not restored: " + varName);
+			  } else {
+			    Message("Attempt to write to a readonly variable: " + varName);
+			  }
+			} else systemReadonlyVariableVector.push_back(make_pair(varName, ret));
+		  }
           else if (isSysVar & 0x02) systemVariableVector.push_back(make_pair(varName, ret));
           else variableVector.push_back(make_pair(varName, ret));
           Guard<BaseGDL>* guard = new Guard<BaseGDL>;
@@ -2119,8 +2125,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       {
         DVar* var = sysVarList[v];
         DString sysVarName = var->Name();
-        if (FindInVarList(sysVarRdOnlyList, sysVarName) != NULL) continue; //systemReadonlyVariableVector.push_back(make_pair("!" + sysVarName, sysVarRdOnly->Data()));
-        if (FindInVarList(sysVarNoSaveList, sysVarName) != NULL) continue; 
+        if (FindInVarList(sysVarNoSaveList, sysVarName) != NULL) continue; //only those need to be absent from a SVAE file. User-defined readonly sysVars CAN be written to a SAVE file.
         systemVariableVector.push_back(make_pair("!" + sysVarName, var->Data()));
       }
       std::sort (systemVariableVector.begin(), systemVariableVector.end(),  myfunctionToSortStringsInPair);
