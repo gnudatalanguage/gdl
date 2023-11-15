@@ -717,24 +717,28 @@ namespace SysVar
     DVar *dpi = new DVar( "DPI", dpiData);
     sysVarList.push_back( dpi);
     sysVarRdOnlyList.push_back( dpi); // make it read only
+	sysVarNoSaveList.push_back( dpi); //Is not saveable as system-defined var
 
     // !PI
     DFloatGDL *piData = new DFloatGDL( (float)(4*atan(1.0)) );
     DVar *pi = new DVar( "PI", piData);
     sysVarList.push_back( pi);
     sysVarRdOnlyList.push_back( pi); // make it read only
+	sysVarNoSaveList.push_back( pi); //Is not saveable as system-defined var
 
     // !DTOR
     DFloatGDL *dtorData = new DFloatGDL((*piData)[0] / 180.);// 0.0174533);
     DVar *dtor = new DVar( "DTOR", dtorData);
     sysVarList.push_back( dtor);
     sysVarRdOnlyList.push_back( dtor); // make it read only
+	sysVarNoSaveList.push_back( dtor); //Is not saveable as system-defined var
 
     // !RADEG
     DFloatGDL *radegData = new DFloatGDL(180. / (*piData)[0]);// 57.2957764);
     DVar *radeg = new DVar( "RADEG", radegData);
     sysVarList.push_back( radeg);
     sysVarRdOnlyList.push_back( radeg); // make it read only
+	sysVarNoSaveList.push_back( radeg); //Is not saveable as system-defined var
 
     // !CONST
     // source : http://physics.nist.gov/cgi-bin/cuu/Results?category=abbr_in
@@ -816,6 +820,7 @@ namespace SysVar
     DVar *constant = new DVar("CONST",constantList);
     sysVarList.push_back(constant);
     sysVarRdOnlyList.push_back(constant); // make it read only
+	sysVarNoSaveList.push_back(constant); //Is not saveable as system-defined var
 
 
     // ![XYZ]
@@ -1005,6 +1010,7 @@ namespace SysVar
     vIx                = sysVarList.size();
     sysVarList.push_back(v);
     sysVarRdOnlyList.push_back(v);
+	sysVarNoSaveList.push_back(v); //Is not saveable as system-defined var
 
     // !Mouse
     DStructGDL*  MouseData = new DStructGDL( "!MOUSE");
@@ -1084,6 +1090,7 @@ namespace SysVar
     err_stringIx        = sysVarList.size();
     sysVarList.push_back( err_stringVar );
     sysVarRdOnlyList.push_back( err_stringVar); //!err_string IS a readonly variable!
+	sysVarNoSaveList.push_back( err_stringVar); //Is not saveable as system-defined var
 
     // !VALUES
     DStructGDL*  valuesData = new DStructGDL( "!VALUES");
@@ -1125,6 +1132,7 @@ namespace SysVar
     valuesIx           = sysVarList.size();
     sysVarList.push_back(values);
     sysVarRdOnlyList.push_back( values);
+	sysVarNoSaveList.push_back( values); //Is not saveable as system-defined var
 
     // !JOURNAL hold journal file lun
     DLongGDL *journalData = new DLongGDL( 0);
@@ -1132,6 +1140,7 @@ namespace SysVar
     journalIx     = sysVarList.size();
     sysVarList.push_back( journal);
     sysVarRdOnlyList.push_back( journal);
+	sysVarNoSaveList.push_back( journal); //Is not saveable as system-defined var
 
     // !EXCEPT
     DIntGDL *exceptData = new DIntGDL( 1);
@@ -1200,6 +1209,7 @@ namespace SysVar
     cpuIx=sysVarList.size();
     sysVarList.push_back( cpu);
     sysVarRdOnlyList.push_back( cpu);
+	sysVarNoSaveList.push_back( cpu); //Is not saveable as system-defined var
 
 #ifdef _OPENMP
     if( omp_get_dynamic())
@@ -1235,6 +1245,7 @@ namespace SysVar
     stimeIx=sysVarList.size();
     sysVarList.push_back( stime);
     sysVarRdOnlyList.push_back( stime); // make it read only
+	sysVarNoSaveList.push_back( stime); //Is not saveable as system-defined var
 
     // !WARN
     DStructGDL*  warnData = new DStructGDL( "!WARN");
@@ -1286,7 +1297,8 @@ namespace SysVar
     DVar *color = new DVar( "COLOR", colorData);
     colorIx     = sysVarList.size();
     sysVarList.push_back(color);
-    sysVarRdOnlyList.push_back( color); //Is Readonly.  
+    sysVarRdOnlyList.push_back( color); //Is Readonly. 
+	sysVarNoSaveList.push_back( color); //Is not saveable as system-defined var
   }
 
 }
