@@ -148,6 +148,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     }
   }
   
+  //we write only "normal" (i.e. no PROMOTE64) headers
   inline uint64_t writeNewRecordHeader(XDR *xdrs, int code){
     int32_t rectype=code;    
     xdr_int32_t(xdrs, &rectype); //-16
@@ -183,11 +184,15 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     }
     xdr_set_gdl_pos(xdrs, cur-12); //ptrs0
     //copy next (64 bit) as two 32 bits. Should be OK on 32 bit machines as next is uint64.
+    if (BigEndian()) { //first 32 bit is low, second high (XDRS is BigEndian)
+	  xdr_uint64_t(xdrs, &next);
+	} else {
     uint32_t first,second;
     first = ((uint32_t *) &next)[0];
     second = ((uint32_t *) &next)[1];
     xdr_uint32_t(xdrs, &first);
     xdr_uint32_t(xdrs, &second);
+	}
     xdr_set_gdl_pos(xdrs, next);
     return next;
   }
@@ -828,7 +833,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     }
     //flags.
 
-    int32_t structure_def_flags=0;
+    int32_t structure_def_flags=0x28; //0;
     if (ispredef) structure_def_flags |= 0x01;
     if (isObject) structure_def_flags |= 0x08; //it is a CLASS
     if (isObject) structure_def_flags |= 0x02;
@@ -836,7 +841,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     xdr_int32_t(xdrs, &structure_def_flags);
     int32_t ntags=str->NTags();
     xdr_int32_t(xdrs, &ntags);
-    int32_t struct_nbytes=(ispredef)?str->NBytes():0;
+    int32_t struct_nbytes=0; //(ispredef)?str->NBytes():0;
     xdr_int32_t(xdrs, &struct_nbytes);
     //if predef == 1  this ends the Struct_desc, meaning that we have already presented this structure.
     if (ispredef) return;
@@ -932,14 +937,20 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     // 2) VARFLAGS
     int32_t varflags;
     if (!xdr_int32_t(xdrs, &varflags)) return NULL;
-
+	//This is not signaled in C. Marqwardt doc: a system variable (isSysVar=0x02 when function is called) has two supplemental int32, that we skip.
+	if (isSysVar & 0x02) {
+	  int32_t dummy;
+	  if (!xdr_int32_t(xdrs, &dummy)) return NULL;
+	  if (!xdr_int32_t(xdrs, &dummy)) return NULL;
+	}
+	
     if (varflags & 0x40) return NullGDL::GetSingleInstance(); //special !NULL variable, no variable content follows.
 
     if (varflags & 0x02) //defines a system variable.
     {
       isSysVar |= 0x02;
 //           cerr << " system " << endl;
-    }
+	}
     if (varflags & 0x01)
     {
       isSysVar |= 0x01;
@@ -955,13 +966,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     {
       isArray = true;
     }
-    //This is not signaled in C. Marqwardt doc: a system variable has two supplemental int32 (0x04 and 0x02) here, that we skip.
-    if (isSysVar & 0x02)
-    {
-      int32_t dummy;
-      if (!xdr_int32_t(xdrs, &dummy)) return NULL;
-      if (!xdr_int32_t(xdrs, &dummy)) return NULL;
-    }
+
     //we gonnna create a BaseGDL:
 
     BaseGDL* var;
@@ -1282,15 +1287,30 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     if (readonly) varflags |= 0x01;
     if (isObject) varflags |= 0x34; if (isStructure) varflags |= 0x24; else if (isArray) varflags |= 0x04;   
     if (nullsize) varflags=0x40; 
-    xdr_int32_t(xdrs, &varflags);
-    if (nullsize) return;
-    //This is not signaled in C. Marqwardt doc: a system variable has two supplemental int32 (0x04 and 0x02).
-    if (isSysVar)
-    {
-      int32_t dummy;
-      xdr_int32_t(xdrs, &dummy);
-      xdr_int32_t(xdrs, &dummy);
-    }
+
+    //This is not signaled in C. Marqwardt doc: a system variable has two supplemental int32 as such:
+    if (isSysVar) {
+	  if (typecode == 8) {
+		int32_t system = 54;
+		int32_t writeable = 52;
+		int32_t notwriteable = 53;
+		if (readonly) xdr_int32_t(xdrs, &notwriteable);
+		else xdr_int32_t(xdrs, &writeable);
+		xdr_int32_t(xdrs, &typecode);
+		xdr_int32_t(xdrs, &system); //system
+	  } else {
+		int32_t noll = 0x0;
+		int32_t array = 0x04;
+		if (isArray) xdr_int32_t(xdrs, &array);
+		else xdr_int32_t(xdrs, &noll);
+		xdr_int32_t(xdrs, &typecode);
+		xdr_int32_t(xdrs, &varflags);
+	  }
+	  if (nullsize) return;
+	} else {
+	  xdr_int32_t(xdrs, &varflags);
+	  if (nullsize) return;
+	}
 
     // if ARRAY or STRUCTURE, write ARRAY_DESC that follows:
     if (isStructure||isArray) writeArrDesc(xdrs, var);
@@ -1601,7 +1621,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     //will start at TMESTAMP
     uint64_t currentptr = 0;
     uint64_t nextptr = LONG;
-    uint32_t ptrs0, ptrs1;
+    uint32_t ptr_low, ptr_high;
     int32_t rectype;
     int32_t UnknownLong;
     bool SomethingFussyHappened = true;
@@ -1625,17 +1645,17 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       {
         uint64_t my_ulong64;
         if (!xdr_uint64_t(xdrs, &my_ulong64)) break;
-        nextptr = my_ulong64;
+        nextptr = my_ulong64; //HDR64 is followed by 2 longs.
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
       } else //the 2 pointers may point together to a l64 address, bug #1545
-      {
-        if (!xdr_uint32_t(xdrs, &ptrs0)) break;
-        nextptr = ptrs0;
-        if (!xdr_uint32_t(xdrs, &ptrs1)) break;
-        DULong64 tmp = ptrs1;
+      { //we read a sort of BigEndian format
+		if (!xdr_uint32_t(xdrs, &ptr_low)) break;
+		if (!xdr_uint32_t(xdrs, &ptr_high)) break;
+		nextptr = ptr_low;
+		uint64_t tmp = ptr_high;
         nextptr |= (tmp << 32);
-        if (!xdr_int32_t(xdrs, &UnknownLong)) break;
+        if (!xdr_int32_t(xdrs, &UnknownLong)) break; //only 1 long following in non-HDR64 format
         if (nextptr <=LONG) e->Throw("error in pointers, please report.");
       }
 
@@ -1673,6 +1693,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
           break;
       case PROMOTE64:
           isHdr64 = true;
+		  Message("Using unsupported PROMOTE64 pointers, expect problems.");
           break;
       case IDENTIFICATION:
           if (verbose)
@@ -1808,12 +1829,11 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         nextptr = my_ulong64;
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
-      } else
-      {
-        if (!xdr_uint32_t(xdrs, &ptrs0)) break;
-        nextptr = ptrs0;
-        if (!xdr_uint32_t(xdrs, &ptrs1)) break;
-        DULong64 tmp = ptrs1;
+      } else {//we read a sort of BigEndian format
+		if (!xdr_uint32_t(xdrs, &ptr_low)) break;
+		if (!xdr_uint32_t(xdrs, &ptr_high)) break;
+		nextptr = ptr_low;
+		uint64_t tmp = ptr_high;
         nextptr |= (tmp << 32);
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
       }
@@ -1857,8 +1877,16 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
           }
 
           fillVariableData(xdrs, ret);
-
-          if (isSysVar & 0x01) systemReadonlyVariableVector.push_back(make_pair(varName, ret));
+          if (isSysVar & 0x03) { //readonly system var
+			std::string name=varName.substr(1);
+		    if (FindInVarList(sysVarRdOnlyList, name) != NULL) { //exists as readonly
+			  if (FindInVarList(sysVarNoSaveList, name) != NULL) { //is a system-defined readonly, not updateable.
+				Message("Read only system defined system variable not restored: " + varName);
+			  } else {
+			    Message("Attempt to write to a readonly variable: " + varName);
+			  }
+			} else systemReadonlyVariableVector.push_back(make_pair(varName, ret));
+		  }
           else if (isSysVar & 0x02) systemVariableVector.push_back(make_pair(varName, ret));
           else variableVector.push_back(make_pair(varName, ret));
           Guard<BaseGDL>* guard = new Guard<BaseGDL>;
@@ -2114,8 +2142,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       {
         DVar* var = sysVarList[v];
         DString sysVarName = var->Name();
-        if (FindInVarList(sysVarRdOnlyList, sysVarName) != NULL) continue; //systemReadonlyVariableVector.push_back(make_pair("!" + sysVarName, sysVarRdOnly->Data()));
-        if (FindInVarList(sysVarNoSaveList, sysVarName) != NULL) continue; 
+        if (FindInVarList(sysVarNoSaveList, sysVarName) != NULL) continue; //only those need to be absent from a SVAE file. User-defined readonly sysVars CAN be written to a SAVE file.
         systemVariableVector.push_back(make_pair("!" + sysVarName, var->Data()));
       }
       std::sort (systemVariableVector.begin(), systemVariableVector.end(),  myfunctionToSortStringsInPair);
@@ -2258,16 +2285,16 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     const char *dateformat="%a %h %d %T %Y";// day,month,day number,time,year
     SizeT res=strftime(saveFileDatestring,MAX_DATE_STRING_LENGTH,dateformat,tstruct);
     std::string saveFileUser = GetEnvString( "USER");
-    std::string saveFileHost = GetEnvString( "HOST");
-    if (saveFileHost == "") saveFileHost = GetEnvString( "HOSTNAME");
-    if (saveFileHost == "") {
+    std::string saveFileHost = ""; //GetEnvString( "HOST");
+//    if (saveFileHost == "") saveFileHost = GetEnvString( "HOSTNAME");
+//    if (saveFileHost == "") {
 #define GDL_HOST_NAME_MAX 255
       char gethost[GDL_HOST_NAME_MAX];
       size_t lgethost=GDL_HOST_NAME_MAX;
       // don't know if this primitive is available on Mac OS X
       int success = gethostname(gethost, lgethost);
       if( success == 0) saveFileHost=string(gethost);
-    }
+//    }
     //TIMESTAMP
     nextptr=writeTimeUserHost(xdrs, saveFileDatestring, (char*)saveFileUser.c_str(), (char*)saveFileHost.c_str());
     int32_t format=9; //IDL v. 6.1 ++

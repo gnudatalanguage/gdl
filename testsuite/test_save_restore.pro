@@ -247,6 +247,10 @@ endfor
 ;
 TEST_SR_COMPRESS, total_errors, test=test, verbose=verbose
 ;
+; this test is only for maximize coverage:
+defsysv,"!READONLY","ezcezcezcezc",1
+save,/sys
+restore
 ; ---- Final message ----
 ;
 BANNER_FOR_TESTSUITE, 'TEST_SAVE_RESTORE', total_errors, short=short
