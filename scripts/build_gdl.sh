@@ -602,6 +602,8 @@ function pack_gdl {
         #GD: found the need to have @rpath libs changed to their fixed paths to insure copy_dylibs_recursive find and copy them (to export via a DMG)
         # This seems more complicated to do inside copy_dylibs_recursive as it is, recursive.
         for dylib in $(otool -l Resources/bin/gdl | grep @rpath | sed -e "s%name %%g;s%(.*)%%g" | xargs); do install_name_tool -change $dylib $(brew --prefix)/lib/`basename $dylib` Resources/bin/gdl; done
+        #add dependency of plplot.
+        for dylib in $(otool -l $(brew --prefix)/lib/libplplot.dylib | grep @rpath | sed -e "s%name %%g;s%(.*)%%g" | xargs); do install_name_tool -change $dylib $(brew --prefix)/lib/`basename $dylib` Resources/bin/gdl; done
         found_dylibs=()
         copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
 
