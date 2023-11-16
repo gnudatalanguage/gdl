@@ -605,8 +605,9 @@ function pack_gdl {
         #add dependency of plplot.
         found_dylibs=()
         copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
-        cp -pa $(brew --prefix)/lib/libcsirocsa*.dylib Frameworks
-        cp -pa $(brew --prefix)/lib/libqsastime*.dylib Frameworks
+        cp -pa $(brew --prefix)/lib/libcsirocsa.*dylib Frameworks
+        cp -pa $(brew --prefix)/lib/libqsastime.*dylib Frameworks
+        cp -pa $(brew --prefix)/lib/libsz.*dylib Frameworks
 
         echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist
         echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> Info.plist
