@@ -113,11 +113,12 @@ elif [ ${BUILD_OS} == "Linux" ]; then
 elif [ ${BUILD_OS} == "macOS" ]; then
     BREW_PACKAGES=(
         llvm libx11 libomp ncurses readline zlib libpng gsl wxwidgets graphicsmagick libtiff libgeotiff netcdf hdf5 fftw proj open-mpi python numpy udunits eigen
-        eccodes glpk shapelib expat gcc@11 qhull
+        eccodes glpk shapelib expat gcc@11 qhull dylibbundler
     ) # JP 2021 Mar 21: HDF4 isn't available - not so critical I guess
       # JP 2021 May 25: Added GCC 10 which includes libgfortran, which the numpy tap relies on.
       # J-KL 2022 July 30: GCC 10 didn't work with apple silicon mac. So I replaced it with GCC 11
       # GD Feb 2023: brew cannot recompile plplot --- will install plplot ourselves
+      # GD added dylibbundler that simplify building correct apps.
 else
     log "Fatal error! Unknown OS: ${BUILD_OS}. This script only supports one of: Windows, Linux, macOS."
     exit 1
@@ -554,19 +555,19 @@ function test_gdl {
     fi
 }
 
-function copy_dylibs_recursive {
-    install_name_tool -add_rpath $2 $1
-    #copy libraries in the form /usr/local/lib/xxx ...
-    for dylib in $(otool -L $1 | grep $(brew --prefix) | sed 's; \(.*\);;' | xargs); do
-        install_name_tool -change $dylib @rpath/$(basename ${dylib}) $1
-        if [[ ! ${found_dylibs[@]} =~ (^|[[:space:]])"$dylib"($|[[:space:]]) ]]; then
-            found_dylibs+=("${dylib}")
-            echo "Copying $(basename ${dylib})..."
-            cp $dylib $3/
-            copy_dylibs_recursive $3/$(basename ${dylib}) @executable_path/. $3
-        fi
-    done
-}
+#function copy_dylibs_recursive {
+#    install_name_tool -add_rpath $2 $1
+#    #copy libraries in the form /usr/local/lib/xxx ...
+#    for dylib in $(otool -L $1 | grep $(brew --prefix) | sed 's; \(.*\);;' | xargs); do
+#        install_name_tool -change $dylib @rpath/$(basename ${dylib}) $1
+#        if [[ ! ${found_dylibs[@]} =~ (^|[[:space:]])"$dylib"($|[[:space:]]) ]]; then
+#            found_dylibs+=("${dylib}")
+#            echo "Copying $(basename ${dylib})..."
+#            cp $dylib $3/
+#            copy_dylibs_recursive $3/$(basename ${dylib}) @executable_path/. $3
+#        fi
+#    done
+#}
 
 function pack_gdl {
     log "Packaging GDL..."
@@ -598,13 +599,19 @@ function pack_gdl {
         cp -R ${ROOT_DIR}/install/* Resources/
         cp ${GDL_DIR}/resource/gdl.icns Resources/
 
-        mkdir Frameworks
-        #GD: found the need to have @rpath libs changed to their fixed paths to insure copy_dylibs_recursive find and copy them (to export via a DMG)
-        # This seems more complicated to do inside copy_dylibs_recursive as it is, recursive.
-        for dylib in $(otool -l Resources/bin/gdl | grep @rpath | sed -e "s%name %%g;s%(.*)%%g" | xargs); do install_name_tool -change $dylib $(brew --prefix)/lib/`basename $dylib` Resources/bin/gdl; done
-        found_dylibs=()
-        copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
-
+        mkdir Resources/libs
+        dylibbundler -od -b -s $(brew --prefix)/lib/ -x Resources/bin/gdl -d Resources/libs
+#        mkdir Frameworks
+#        #GD: found the need to have @rpath libs changed to their fixed paths to insure copy_dylibs_recursive find and copy them (to export via a DMG)
+#        # This seems more complicated to do inside copy_dylibs_recursive as it is, recursive.
+#        for dylib in $(otool -l Resources/bin/gdl | grep @rpath | sed -e "s%name %%g;s%(.*)%%g" | xargs); do install_name_tool -change $dylib $(brew --prefix)/lib/`basename $dylib` Resources/bin/gdl; done
+#        #add dependency of plplot.
+#        found_dylibs=()
+#        copy_dylibs_recursive Resources/bin/gdl @executable_path/../../Frameworks Frameworks
+#        cp -pa $(brew --prefix)/lib/libcsirocsa.*dylib Frameworks #copy link possible
+#        cp -pa $(brew --prefix)/lib/libqsastime.*dylib Frameworks #copy link possible
+#        cp  $(brew --prefix)/lib/libsz.*dylib Frameworks #copy link impossible
+#
         echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist
         echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> Info.plist
         echo '<plist version="1.0">' >> Info.plist
