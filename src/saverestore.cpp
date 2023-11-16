@@ -833,7 +833,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     }
     //flags.
 
-    int32_t structure_def_flags=0;
+    int32_t structure_def_flags=0x28; //0;
     if (ispredef) structure_def_flags |= 0x01;
     if (isObject) structure_def_flags |= 0x08; //it is a CLASS
     if (isObject) structure_def_flags |= 0x02;
@@ -841,7 +841,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     xdr_int32_t(xdrs, &structure_def_flags);
     int32_t ntags=str->NTags();
     xdr_int32_t(xdrs, &ntags);
-    int32_t struct_nbytes=(ispredef)?str->NBytes():0;
+    int32_t struct_nbytes=0; //(ispredef)?str->NBytes():0;
     xdr_int32_t(xdrs, &struct_nbytes);
     //if predef == 1  this ends the Struct_desc, meaning that we have already presented this structure.
     if (ispredef) return;
@@ -926,7 +926,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
   }
   
   
-  BaseGDL* getVariable(EnvT* e, XDR* xdrs, int &varStatus, bool &isObjStruct) {
+  BaseGDL* getVariable(EnvT* e, XDR* xdrs, int &isSysVar, bool &isObjStruct) {
     bool isStructure = false;
     bool isArray = false;
     // start of TYPEDESC
@@ -937,17 +937,23 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     // 2) VARFLAGS
     int32_t varflags;
     if (!xdr_int32_t(xdrs, &varflags)) return NULL;
-	//varStatus may indicate we get a SystemVariable :
-	if (varStatus & 0x02) { //The format of the data is different, read the next two integers
-	  //This is not signaled in C. Marqwardt doc: a system variable has two supplemental int32 (0x04 and 0x02) here, that we skip, but should probably look closer.
-      int32_t dummy;
-      if (!xdr_int32_t(xdrs, &dummy)) return NULL;
-      if (!xdr_int32_t(xdrs, &dummy)) return NULL;
+	//This is not signaled in C. Marqwardt doc: a system variable (isSysVar=0x02 when function is called) has two supplemental int32, that we skip.
+	if (isSysVar & 0x02) {
+	  int32_t dummy;
+	  if (!xdr_int32_t(xdrs, &dummy)) return NULL;
+	  if (!xdr_int32_t(xdrs, &dummy)) return NULL;
 	}
+	
     if (varflags & 0x40) return NullGDL::GetSingleInstance(); //special !NULL variable, no variable content follows.
+
+    if (varflags & 0x02) //defines a system variable.
+    {
+      isSysVar |= 0x02;
+//           cerr << " system " << endl;
+	}
     if (varflags & 0x01)
     {
-      varStatus |= 0x01;
+      isSysVar |= 0x01;
 //            cerr << " readonly " << endl;
     }
 
@@ -1283,14 +1289,25 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     if (nullsize) varflags=0x40; 
 
     //This is not signaled in C. Marqwardt doc: a system variable has two supplemental int32 as such:
-    if (isSysVar)
-    {
-      int32_t zero=0x0;
-      xdr_int32_t(xdrs, &zero);
-	  xdr_int32_t(xdrs, &typecode);
-	  xdr_int32_t(xdrs, &varflags);
+    if (isSysVar) {
+	  if (typecode == 8) {
+		int32_t system = 54;
+		int32_t writeable = 52;
+		int32_t notwriteable = 53;
+		if (readonly) xdr_int32_t(xdrs, &notwriteable);
+		else xdr_int32_t(xdrs, &writeable);
+		xdr_int32_t(xdrs, &typecode);
+		xdr_int32_t(xdrs, &system); //system
+	  } else {
+		int32_t noll = 0x0;
+		int32_t array = 0x04;
+		if (isArray) xdr_int32_t(xdrs, &array);
+		else xdr_int32_t(xdrs, &noll);
+		xdr_int32_t(xdrs, &typecode);
+		xdr_int32_t(xdrs, &varflags);
+	  }
 	  if (nullsize) return;
-    } else {
+	} else {
 	  xdr_int32_t(xdrs, &varflags);
 	  if (nullsize) return;
 	}
@@ -2268,16 +2285,16 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     const char *dateformat="%a %h %d %T %Y";// day,month,day number,time,year
     SizeT res=strftime(saveFileDatestring,MAX_DATE_STRING_LENGTH,dateformat,tstruct);
     std::string saveFileUser = GetEnvString( "USER");
-    std::string saveFileHost = GetEnvString( "HOST");
-    if (saveFileHost == "") saveFileHost = GetEnvString( "HOSTNAME");
-    if (saveFileHost == "") {
+    std::string saveFileHost = ""; //GetEnvString( "HOST");
+//    if (saveFileHost == "") saveFileHost = GetEnvString( "HOSTNAME");
+//    if (saveFileHost == "") {
 #define GDL_HOST_NAME_MAX 255
       char gethost[GDL_HOST_NAME_MAX];
       size_t lgethost=GDL_HOST_NAME_MAX;
       // don't know if this primitive is available on Mac OS X
       int success = gethostname(gethost, lgethost);
       if( success == 0) saveFileHost=string(gethost);
-    }
+//    }
     //TIMESTAMP
     nextptr=writeTimeUserHost(xdrs, saveFileDatestring, (char*)saveFileUser.c_str(), (char*)saveFileHost.c_str());
     int32_t format=9; //IDL v. 6.1 ++
