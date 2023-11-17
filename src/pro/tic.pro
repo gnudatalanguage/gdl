@@ -15,7 +15,7 @@ common ourtictoc,  NewReferenceTime
 if ~isa(NewReferenceTime) eq 0 then NewReferenceTime=0d
 if ~isa(tagname) then tagname=''
 ; TOC must be alredy compiled when it will be called, so:
-resolve_routine, 'toc', /no_recompile
+resolve_routine, 'toc', /no_recompile, /either
 
   time = systime(/seconds)
   return_value = {name: tagname, time: time}
