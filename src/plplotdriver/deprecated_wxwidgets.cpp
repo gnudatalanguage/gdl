@@ -750,7 +750,7 @@ void plD_bop_wxwidgets( PLStream *pls )
         // }
 
         // clear background
-        PLINT bgr, bgg, bgb;                  // red, green, blue
+        PLINT bgr=0, bgg=0, bgb=0;                  // red, green, blue
         plgcolbg( &bgr, &bgg, &bgb );         // get background color information
         dev->ClearBackground( bgr, bgg, bgb );
 
@@ -1045,7 +1045,7 @@ void wx_set_size( PLStream* pls, int width, int height )
     // it must be cleared anyway?)
     if ( dev->ready )
     {
-        PLINT bgr, bgg, bgb;                  // red, green, blue
+        PLINT bgr=0, bgg=0, bgb=0;                  // red, green, blue
         plgcolbg( &bgr, &bgg, &bgb );         // get background color information
 
         dev->CreateCanvas();

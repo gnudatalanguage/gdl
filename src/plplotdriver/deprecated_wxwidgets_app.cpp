@@ -864,7 +864,7 @@ void wxPLplotWindow::DrawCrosshair()
 //--------------------------------------------------------------------------
 void wxPLplotWindow::SetOrientation( int rot )
 {
-    PLINT bgr, bgg, bgb; // red, green, blue
+    PLINT bgr=0, bgg=0, bgb=0; // red, green, blue
 
     //plsstrm( m_pls );
     plsdiori( rot );

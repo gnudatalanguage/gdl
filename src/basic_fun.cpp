@@ -820,7 +820,7 @@ namespace lib {
         }
       } else {
         DLongGDL* pL;
-        Guard<DLongGDL> pL_guard(pL);
+        Guard<DLongGDL> pL_guard;
         if (pType != GDL_LONG) {
           pL = static_cast<DLongGDL*> (p->Convert2(GDL_LONG, BaseGDL::COPY));
           pL_guard.Init(pL);
@@ -845,7 +845,7 @@ namespace lib {
           //  if(trace_me)
           //  cout << " heap_refcount(prm=lonarr, KeywordPresent(IS_ENABLEDIx) "<< endl;
           DLongGDL* pL;
-          Guard<DLongGDL> pL_guard(pL);
+          Guard<DLongGDL> pL_guard;
           if (pType != GDL_LONG) {
             pL = static_cast<DLongGDL*> (p->Convert2(GDL_LONG, BaseGDL::COPY));
             pL_guard.Init(pL);
