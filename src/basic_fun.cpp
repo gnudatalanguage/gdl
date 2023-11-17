@@ -820,13 +820,13 @@ namespace lib {
         }
       } else {
         DLongGDL* pL;
-        Guard<DLongGDL> pL_guard(pL);
         if (pType != GDL_LONG) {
           pL = static_cast<DLongGDL*> (p->Convert2(GDL_LONG, BaseGDL::COPY));
           pL_guard.Init(pL);
         } else {
           pL = static_cast<DLongGDL*> (p);
-        }
+		}
+		Guard<DLongGDL> pL_guard(pL); //pL is initialized. 
         for (SizeT i = 0; i < nEl; ++i)
           (*ret)[ i] = interpreter->RefCountHeap((*pL)[ i]);
       }
@@ -845,13 +845,13 @@ namespace lib {
           //  if(trace_me)
           //  cout << " heap_refcount(prm=lonarr, KeywordPresent(IS_ENABLEDIx) "<< endl;
           DLongGDL* pL;
-          Guard<DLongGDL> pL_guard(pL);
           if (pType != GDL_LONG) {
             pL = static_cast<DLongGDL*> (p->Convert2(GDL_LONG, BaseGDL::COPY));
             pL_guard.Init(pL);
           } else {
             pL = static_cast<DLongGDL*> (p);
-          }
+		  }
+		  Guard<DLongGDL> pL_guard(pL);
           DPtrGDL* ptr = new DPtrGDL(p->Dim());
           Guard<DPtrGDL> ptr_guard(ptr);
           for (SizeT i = 0; i < nEl; ++i)
