@@ -32,5 +32,6 @@
 namespace lib {
   void gdl_restore(EnvT* e);
   void gdl_save(EnvT* e);
+  void gdl_savetest(EnvT* e);
 }
 #endif

@@ -32,7 +32,7 @@
 #include "calendar.hpp"
 
 //#define GDL_DEBUG
-#undef GDL_DEBUG
+//#undef GDL_DEBUG
 
 class DInterpreter;
 

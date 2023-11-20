@@ -16,11 +16,14 @@
  ***************************************************************************/
 
 #include "includefirst.hpp"
+#include "getfmtast.hpp"
 #include "datatypes.hpp"
 #include "envt.hpp"
 #include "dinterpreter.hpp"
 #include "nullgdl.hpp"
 #include <queue>
+
+#include "print_tree.hpp"
 
 //Useful for debugging...
 #define DEBUG_SAVERESTORE 0
@@ -213,6 +216,72 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     return cur;
   }
 
+  //user-defined Sub
+
+  uint64_t writeDSubUD(XDR *xdrs, DSubUD* p) {
+	//write file name
+	std::string profuncname = p->GetFilename();
+	u_int len = profuncname.size();
+	//	std::cerr<<name<<",size:"<<len<<std::endl;
+	uint64_t cur = writeNewRecordHeader(xdrs, COMPILED);
+	const char* name = profuncname.c_str();
+	if (!xdr_string(xdrs, (char**) &name, len)) cerr << "write error" << endl;
+	//write KeyVarList
+	long profunc_nVar = p->Size();
+
+	long profunc_nComm = p->CommonsSize();
+	long count = profunc_nVar + profunc_nComm;
+	if (!xdr_long(xdrs, &profunc_nVar)) cerr << "write error " << endl;
+	if (!xdr_long(xdrs, &profunc_nComm)) cerr << "write error " << endl;
+
+	if (count) {
+	  for (SizeT i(0); i < profunc_nVar; ++i) {
+		std::string name = p->GetVarName(i);
+		if (name.empty()) name = "*";
+		std::cerr<<name<<std::endl;
+		const char* passed = name.c_str();
+		xdr_string(xdrs, (char**) &passed, name.size());
+	  }
+	  if (profunc_nComm) {
+		DStringGDL* list = static_cast<DStringGDL*> (p->GetCommonVarNameList());
+		for (SizeT i(0); i < list->N_Elements(); ++i) {
+		  std::string name = (*list)[i];
+		  const char* passed = name.c_str();
+		  xdr_string(xdrs, (char**) &passed, name.size());
+		}
+	  }
+	}
+	return updateNewRecordHeader(xdrs, cur);
+  }
+
+  //user-defined Sub
+
+  int getDSubUD(XDR *xdrs, bool verbose) {
+	char* dsubUD_name = 0;
+	//get file
+	if (!xdr_string(xdrs, &dsubUD_name, 512)) return 0;
+	std::cerr << "file: " << dsubUD_name << std::endl;
+	//get vars
+	long profunc_nVar = 0;
+	long profunc_nComm = 0;
+	if (!xdr_long(xdrs, &profunc_nVar)) cerr << "read error " << endl;
+	if (!xdr_long(xdrs, &profunc_nComm)) cerr << "readerror " << endl;
+	long count = profunc_nVar + profunc_nComm;
+	char* varname = 0;
+	for (auto i = 0; i < profunc_nVar; ++i) {
+	  varname = 0;
+	  xdr_string(xdrs, &varname, 2048);
+	  std::cerr << "VAR NAME:" << varname << std::endl;
+	}
+	for (auto i = 0; i < profunc_nComm; ++i) {
+	  varname = 0;
+	  xdr_string(xdrs, &varname, 2048);
+	  std::cerr << "COMM name:" << varname << std::endl;
+	}
+	if (verbose) Message("Restored procedure: " + std::string(dsubUD_name));
+	return 1;
+  }
+  
   int getVersion(XDR* xdrs) {
     if (!xdr_int32_t(xdrs, &format)) return 0;
     //    cerr << "Format: " << format << endl;
@@ -1920,6 +1989,14 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 
         }
           break;
+      case COMPILED:
+          if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
+          if (!getDSubUD(xdrs, verbose))
+          {
+            cerr << "error in COMPILED" << endl;
+            break;
+          }
+          break;
       default:
           break;
       }
@@ -2109,7 +2186,8 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     bool doComm=e->KeywordSet(COMM);
     static int COMPRESS = e->KeywordIx("COMPRESS");
     save_compress=e->KeywordSet(COMPRESS);
-    
+    static int ROUTINES=e->KeywordIx("ROUTINES");
+    bool doRoutines =e->KeywordSet(ROUTINES);
     if (allVars) {
       doSys=true;
       doComm=true;
@@ -2354,7 +2432,16 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       if (verboselevel>0) Message("SAVE: Saved variable: " + (variableVector.back()).first+".");
       variableVector.pop_back();
     }
-
+    if (doRoutines) {
+	  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+		DPro * p=(*i);
+		nextptr = writeDSubUD(xdrs, p);
+	  }
+	  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+		DFun * f=(*i);
+		nextptr = writeDSubUD(xdrs, f);
+	  }
+	}
     nextptr=writeEnd(xdrs);
     xdr_destroy(xdrs);
     fclose(save_fid);
@@ -2364,6 +2451,18 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     fclose(save_fid);
     e->Throw("GDL cannot yet write such large SAVE files. Try with less values. File "+name+" is invalid, remove it.");  
   }
-
+  void gdl_savetest(EnvT* e) {
+	bool exists = false;
+	for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+	  std::cout<<(*i)->ToString()<<std::endl;
+			cout << "TreeParser output:" << endl;
+			antlr::print_tree pt;
+			pt.pr_tree(static_cast<ProgNodeP>((*i)->GetTree()));
+			cout << "CompileFile: TreeParser end." << endl;
+	}
+	for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+	  std::cout<<(*i)->ToString()<<std::endl;
+	}
+  }
 }
 

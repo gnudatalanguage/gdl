@@ -32,7 +32,7 @@
 
 #include "ncdf_cl.hpp"
 
-#define GDL_DEBUG
+//#define GDL_DEBUG
 //#undef GDL_DEBUG
 
 #ifdef USE_NETCDF4

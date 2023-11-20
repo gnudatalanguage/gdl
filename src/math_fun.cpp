@@ -36,7 +36,7 @@
 #include "dinterpreter.hpp"
 
 //#define GDL_DEBUG
-#undef GDL_DEBUG
+//#undef GDL_DEBUG
 
 #ifdef _MSC_VER
 #define round(f) floor(f+0.5)

@@ -31,7 +31,7 @@
 #include "gdl_util.hpp"
 
 //#define GDL_DEBUG
-#undef GDL_DEBUG
+//#undef GDL_DEBUG
 
 #define COMPLEX2 GDL_COMPLEX
 

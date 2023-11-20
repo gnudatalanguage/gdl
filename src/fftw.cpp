@@ -29,7 +29,7 @@
 #include <gsl/gsl_math.h>
 #include "gsl_fun.hpp"
 
-#undef GDL_DEBUG
+//#undef GDL_DEBUG
 
 namespace lib {
 

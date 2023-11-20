@@ -25,7 +25,7 @@
 #include "basegdl.hpp" // DLong
 
 //#define GDL_DEBUG
-#undef GDL_DEBUG
+//#undef GDL_DEBUG
 
 #ifdef GDL_DEBUG
 #include <iostream>

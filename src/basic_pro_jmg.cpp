@@ -28,7 +28,7 @@
 #include "basic_pro_jmg.hpp"
 
 //#define GDL_DEBUG
-#undef GDL_DEBUG
+//#undef GDL_DEBUG
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #   include "gtdhelper.hpp" // just a workaround, using QueryPerformanceCounter is better
