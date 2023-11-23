@@ -285,8 +285,9 @@ enum {
 	  int ligne = 0;
 	  xdr_int32_t(xdrs, &ligne); //LineNUM
 	  BaseGDL* cData = readCData(e, xdrs); //CData
-	  
-	  std::cerr<<"["<<ttype<< ":" <<std::hex<<cData<<"]"<<text<<"("<<ligne<<")"<<std::endl;
+	  std::cerr<<"["<<ttype<< ":";
+	  if (cData) std::cerr<<std::hex<<cData->NBytes();
+	  std::cerr<<"]"<<text<<"("<<ligne<<")"<<std::hex<<node<<"->"<<right<<" !"<<down<<std::endl;
 	  return marker;
 
 	} // sv_name
@@ -1610,6 +1611,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 	{
 	  e->Throw("Lost track in VARIABLE definition .");
 	}
+    fillVariableData(xdrs, ret);
 
     return ret;
   }
