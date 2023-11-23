@@ -154,6 +154,7 @@ void GDLTreeParser::translation_unit(RefDNode _t) {
 			retAST_AST = returnAST;
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 			
+			comp.SetAstTree(translation_unit_AST_in);
 			comp.SetTree( retAST_AST);
 			comp.EndPro();
 			
@@ -416,8 +417,9 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 		statement_list(_t);
 		_t = _retTree;
 		
+		comp.SetAstTree(procedure_def_AST_in);
 		comp.SetTree( returnAST);
-		
+
 		break;
 	}
 	case 3:
@@ -659,8 +661,9 @@ void GDLTreeParser::function_def(RefDNode _t) {
 		statement_list(_t);
 		_t = _retTree;
 		
+		comp.SetAstTree(function_def_AST_in);
 		comp.SetTree( returnAST);
-		
+	
 		break;
 	}
 	case 3:

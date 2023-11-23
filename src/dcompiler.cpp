@@ -576,6 +576,12 @@ void DCompiler::SetTree(RefDNode n)
   pro->SetTree( n);
 }
 
+void DCompiler::SetAstTree(RefDNode q)
+{
+  assert( pro != NULL);
+  pro->SetAstTree( q);
+}
+
 void DCompiler::Label(RefDNode n)
 {
   LabelListT& ll = pro->LabelList();

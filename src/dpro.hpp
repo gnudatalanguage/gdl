@@ -333,7 +333,8 @@ class DSubUD: public DSub
 
   CommonBaseListT     common;      // common blocks or references 
   ProgNodeP           tree;        // the 'code'
-  unsigned int                 compileOpt;  // e.g. hidden or obsolete
+  RefDNode            asttree;     // the AST translation of procedure code 
+  unsigned int        compileOpt;  // e.g. hidden or obsolete
 
   LabelListT          labelList;
 
@@ -349,6 +350,7 @@ public:
   void Reset();
   void DelTree();
   void SetTree( ProgNodeP t) { tree = t;}
+  void SetAstTree( RefDNode q) { asttree= q;}
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
   void DeleteLastAddedCommon(bool kill=true)
@@ -542,7 +544,10 @@ void ReName( SizeT ix, const std::string& s)
   {
     return tree;
   }
-
+  RefDNode GetAstTree()
+  {
+    return asttree;
+  }
   unsigned int GetCompileOpt() { return compileOpt; }
   void SetCompileOpt(const unsigned int n) { compileOpt = n; }
   bool isObsolete();
