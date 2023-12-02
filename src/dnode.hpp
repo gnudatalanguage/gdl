@@ -100,6 +100,7 @@ public:
     var=NULL;
     arrIxList=NULL;
     arrIxListNoAssoc=NULL;
+    initInt=0;
   }
 
   // used by DNodeFactory

@@ -702,6 +702,46 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool s
   return true;
 }      
 
+bool GDLInterpreter::CompileSaveFile(RefDNode theAST) 
+{  
+#ifdef GDL_DEBUG
+  RefDNode trAST;
+#endif
+  GDLTreeParser treeParser( "", "");
+
+  try
+    {
+      treeParser.translation_unit(theAST);
+
+ #ifdef GDL_DEBUG
+// nothing is returned (pro/funList are changed)
+       trAST=treeParser.getAST();
+ #endif
+
+      if( treeParser.ActiveProCompiled()) RetAll();
+    }
+  catch( GDLException& e)
+    {
+      ReportCompileError( e, "");
+      if( treeParser.ActiveProCompiled()) RetAll();
+      return false;
+    }
+  catch( ANTLRException& e)
+    {
+      cerr << "Compiler exception: " <<  e.getMessage() << endl;
+      if( treeParser.ActiveProCompiled()) RetAll();
+      return false;
+    }
+#ifdef GDL_DEBUG
+      cout << "Tree parser output:" << endl;
+      antlr::print_tree ptTP;
+      ptTP.pr_tree(static_cast<antlr::RefAST>(trAST));
+      cout << "CompileFile: Tree parser end." << endl;
+#endif
+  
+  return true;
+}   
+
 void AppendExtension( string& argstr)
 {
   SizeT slPos = argstr.find_last_of( '/');

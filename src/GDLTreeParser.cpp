@@ -35,7 +35,7 @@ void GDLTreeParser::translation_unit(RefDNode _t) {
 	RefDNode translation_unit_AST = RefDNode(antlr::nullAST);
 	RefDNode retAST_AST = RefDNode(antlr::nullAST);
 	RefDNode retAST = RefDNode(antlr::nullAST);
-	
+
 	//    returnProgNodeP = _t;
 	bool mainStarted = false;
 	
@@ -154,7 +154,6 @@ void GDLTreeParser::translation_unit(RefDNode _t) {
 			retAST_AST = returnAST;
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 			
-			comp.SetAstTree(translation_unit_AST_in);
 			comp.SetTree( retAST_AST);
 			comp.EndPro();
 			
@@ -245,7 +244,7 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 		match(antlr::RefAST(_t),IDENTIFIER);
 		_t = _t->getNextSibling();
 		
-		comp.StartPro(name->getText(),p_AST->GetCompileOpt(),obj->getText());
+		comp.StartPro(name->getText(),p_AST->GetCompileOpt(),obj->getText(), RefDNode(procedure_def_AST_in));
 		
 		break;
 	}
@@ -295,7 +294,7 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 	case XOR_OP_EQ:
 	{
 		
-		comp.StartPro(name->getText(),p_AST->GetCompileOpt());
+		comp.StartPro(name->getText(),p_AST->GetCompileOpt(),"", RefDNode(procedure_def_AST_in));
 		
 		break;
 	}
@@ -417,7 +416,6 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 		statement_list(_t);
 		_t = _retTree;
 		
-		comp.SetAstTree(procedure_def_AST_in);
 		comp.SetTree( returnAST);
 
 		break;
@@ -489,7 +487,8 @@ void GDLTreeParser::function_def(RefDNode _t) {
 		match(antlr::RefAST(_t),IDENTIFIER);
 		_t = _t->getNextSibling();
 		
-		comp.StartFun(name->getText(),f_AST->GetCompileOpt(),obj->getText());
+//		comp.StartFun(name->getText(),f_AST->GetCompileOpt(),obj->getText(),RefDNode(astFactory->dupTree(  antlr::RefAST(function_def_AST_in))));
+		comp.StartFun(name->getText(),f_AST->GetCompileOpt(),obj->getText(),RefDNode(function_def_AST_in));
 		
 		break;
 	}
@@ -539,7 +538,8 @@ void GDLTreeParser::function_def(RefDNode _t) {
 	case XOR_OP_EQ:
 	{
 		
-		comp.StartFun(name->getText(),f_AST->GetCompileOpt());
+//		comp.StartFun(name->getText(),f_AST->GetCompileOpt(),"", RefDNode(astFactory->dupTree(  antlr::RefAST(function_def_AST_in))));
+		comp.StartFun(name->getText(),f_AST->GetCompileOpt(),"", RefDNode(function_def_AST_in));
 		
 		break;
 	}
@@ -661,7 +661,6 @@ void GDLTreeParser::function_def(RefDNode _t) {
 		statement_list(_t);
 		_t = _retTree;
 		
-		comp.SetAstTree(function_def_AST_in);
 		comp.SetTree( returnAST);
 	
 		break;

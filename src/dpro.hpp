@@ -350,7 +350,7 @@ public:
   void Reset();
   void DelTree();
   void SetTree( ProgNodeP t) { tree = t;}
-  void SetAstTree( RefDNode q) { asttree= q;}
+  void SetAstTree( RefDNode q) { asttree=RefDNode(q);}
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
   void DeleteLastAddedCommon(bool kill=true)

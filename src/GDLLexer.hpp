@@ -26,7 +26,7 @@
 #include <antlr/CharInputBuffer.hpp>
 
 // GD: set to 1 to traceout what the Parser does.
-#define debugParser 0
+//#define debugParser 0
 //#include "dinterpreter.hpp"
 
 // defintion in dinterpreter.cpp

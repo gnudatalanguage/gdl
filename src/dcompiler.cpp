@@ -145,13 +145,14 @@ void DCompiler::EndInteractiveStatement() // add common blocks
   ownCommonList.clear(); // not responsible anymore
 }
 
-void DCompiler::StartPro(const string& n, const int compileOpt, const string& o)
+void DCompiler::StartPro(const string& n, const int compileOpt, const string& o, const RefDNode semiCompiledTree)
 {
   ClearOwnCommon();
   if( n != "$MAIN$" || o != "")
     {
       pro = new DPro(n,o,actualFile);
       pro->SetCompileOpt(compileOpt);
+	  pro->SetAstTree(semiCompiledTree);
     }
   else
     {
@@ -167,11 +168,12 @@ void DCompiler::ContinueMainPro()
   pro = static_cast<DSubUD*>( env->GetPro());
 }
 
-void DCompiler::StartFun(const string& n, const int compileOpt = 0, const string& o)
+void DCompiler::StartFun(const string& n, const int compileOpt = 0, const string& o, const RefDNode semiCompiledTree)
 {
   ClearOwnCommon();
   pro = new DFun(n,o,actualFile);
   pro->SetCompileOpt(compileOpt);
+  pro->SetAstTree(semiCompiledTree);
 }
 
 bool DCompiler::IsActivePro( DSub* p)
@@ -579,6 +581,12 @@ void DCompiler::SetTree(RefDNode n)
 void DCompiler::SetAstTree(RefDNode q)
 {
   assert( pro != NULL);
+#ifdef GDL_DEBUG
+  cout << "Setting SemiCompiled procedure/function tree:" << endl;
+  antlr::print_tree pt;
+  pt.pr_tree(static_cast<antlr::RefAST>( q));
+  cout << endl;
+#endif
   pro->SetAstTree( q);
 }
 
