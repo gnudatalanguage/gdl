@@ -78,6 +78,8 @@ enum {
   GDL_END_MARKER = 1790 // Real End of SAVE file for GDL
 } Markers;
 
+#define GDL_SAVE_ROUTINES_VERSION 1
+
   typedef std::map<DPtr, SizeT> heapT;
   static heapT heapIndexMapSave;  //list of [ heap pointer, heap index ] used when saving.
   static std::map<long, std::pair<BaseGDL*,DPtr>> heapIndexMapRestore; //list of [heap index , [variable,heap pointer]] used when reading.
@@ -572,7 +574,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     uint64_t cur=writeNewRecordHeader(xdrs, END_MARKER);
     return cur;
   }
-
+  
   uint64_t writeGDLEnd(XDR *xdrs) {
     uint64_t cur=writeNewRecordHeader(xdrs, GDL_END_MARKER);
     return cur;
@@ -2292,6 +2294,16 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         SomethingFussyHappened = false;
 		//test if something behind END_MARKER
 		nextptr+=16; //jump to end of normal file, may be EOF
+		xdrs = xdrsfile; //back to file if we were smarting the xdr to read a char* due to compression.
+		if (fseek(fid, nextptr, SEEK_SET)) break;
+		int32_t save_routine_version=0;
+		if (!xdr_int32_t(xdrs, &save_routine_version)) break;
+		if (save_routine_version != GDL_SAVE_ROUTINES_VERSION) {
+		  Message ("This SAVE file ( version "+i2s(save_routine_version)+") is not compatible with Current version ("+i2s(GDL_SAVE_ROUTINES_VERSION)+"), saved routines cannot be restored.");
+		  goto endoffile;
+		}
+		nextptr+=4;
+		
 		while (1) {
 		  xdrs = xdrsfile; //back to file if we were smarting the xdr to read a char* due to compression.
 		  if (fseek(fid, nextptr, SEEK_SET)) break;
@@ -2880,6 +2892,10 @@ endoffile:
 	
 
 	if (doRoutines) {
+	  //write version just after
+	  int32_t save_routine_version = GDL_SAVE_ROUTINES_VERSION;
+	  xdr_int32_t(xdrs, &save_routine_version);
+	  
 	  if (nparam > 0) { //will not check nosave as the names are explicit
 		for (int i = 0; i < nparam; ++i) {
 		  DString name;
