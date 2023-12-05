@@ -595,7 +595,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 
   //user-defined Sub
 
-  int getDSubUD(EnvT*e, XDR *xdrs, bool verbose) {
+  int getDSubUD(EnvT*e, XDR *xdrs, bool verbose, bool skipIfExist) {
 	char* dsubUD_name = 0;
 	//get pro name
 	if (!xdr_string(xdrs, &dsubUD_name, 4096)) return 0;
@@ -620,6 +620,8 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 		}
 	  }
 	}
+	//if existing and skipIfExist set, just ignore:
+	if (skipIfExist && already_present)  return 1;
 	//check if active
 	EnvStackT& cS = GDLInterpreter::CallStack();
 	SizeT stSz = cS.size();
@@ -2035,7 +2037,10 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     bool hasDescription = e->KeywordPresent(DESCRIPTION);
     // AC 20200323 : we may have this keyword set but no value in the file : should return "" 
     if (hasDescription)	e->SetKW(DESCRIPTION, new DStringGDL(""));
-
+	
+	static int SKIP_EXISTING = e->KeywordIx("SKIP_EXISTING");
+	bool doSkipExisting=e->KeywordSet(SKIP_EXISTING);
+	
     //empty heap map by security.
     heapIndexMapRestore.clear();
 
@@ -2337,7 +2342,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 			goto endoffile;
 		  case GDL_COMPILED:
 			if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
-			if (!getDSubUD(e, xdrs, verbose)) {
+			if (!getDSubUD(e, xdrs, verbose, doSkipExisting)) {
 			  cerr << "error in COMPILED" << endl;
         break;
       }
