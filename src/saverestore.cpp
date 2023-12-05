@@ -60,7 +60,7 @@ enum {
   COMMONBLOCK=1, // Block contains a common block definition
   VARIABLE=2, // Block contains variable data
   SYSTEM_VARIABLE=3, // Block contains system variable data
-  END_MARKER=6, // End of SAVE file
+  END_MARKER=6, // End of SAVE file for IDL
   VARSTART=7, //start of variable data
   ARRAYSTART=8,
   STRUCTSTART=9,
@@ -74,7 +74,8 @@ enum {
   ARRAYSTART64=18,
   NOTICE=19, // Disclaimer notice
   DESCRIPTION_MARKER=20, //description ?
-  GDL_COMPILED = 1789 // revolutionary. Block contains gdl semi-compiled procedure or function
+  GDL_COMPILED = 1789, // revolutionary. Block contains gdl semi-compiled procedure or function
+  GDL_END_MARKER = 1790 // Real End of SAVE file for GDL
 } Markers;
 
   typedef std::map<DPtr, SizeT> heapT;
@@ -573,7 +574,10 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     return cur;
   }
 
-  //user-defined Sub
+  uint64_t writeGDLEnd(XDR *xdrs) {
+    uint64_t cur=writeNewRecordHeader(xdrs, GDL_END_MARKER);
+    return cur;
+  }  //user-defined Sub
 
   uint64_t writeDSubUD(XDR *xdrs, DSubUD* p) {
 	uint64_t cur = writeNewRecordHeader(xdrs, GDL_COMPILED);
@@ -2103,7 +2107,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 
       if (DEBUG_SAVERESTORE) cerr << "Offset " << nextptr << ": record type " << rectypes[rectype] << endl;
 
-      if (rectype == 6)
+      if (rectype == END_MARKER)
       {
         SomethingFussyHappened = false;
         break;
@@ -2284,11 +2288,55 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 
       if (DEBUG_SAVERESTORE) cerr << "Offset " << nextptr << ": record type " << rectypes[rectype] << endl;
 
-      if (rectype == 6)
+      if (rectype == END_MARKER)
       {
         SomethingFussyHappened = false;
+		//test if something behind END_MARKER
+		nextptr+=16; //jump to end of normal file, may be EOF
+		while (1) {
+		  xdrs = xdrsfile; //back to file if we were smarting the xdr to read a char* due to compression.
+		  if (fseek(fid, nextptr, SEEK_SET)) break;
+		  if (!xdr_int32_t(xdrs, &rectype)) break;
+
+		  if (DEBUG_SAVERESTORE) cerr << "Offset " << nextptr << ": record type " << rectypes[rectype] << endl;
+		  if (isHdr64) {
+			uint64_t my_ulong64;
+			if (!xdr_uint64_t(xdrs, &my_ulong64)) break;
+			nextptr = my_ulong64;
+			if (!xdr_int32_t(xdrs, &UnknownLong)) break;
+			if (!xdr_int32_t(xdrs, &UnknownLong)) break;
+		  } else {//we read a sort of BigEndian format
+			if (!xdr_uint32_t(xdrs, &ptr_low)) break;
+			if (!xdr_uint32_t(xdrs, &ptr_high)) break;
+			nextptr = ptr_low;
+			uint64_t tmp = ptr_high;
+			nextptr |= (tmp << 32);
+			if (!xdr_int32_t(xdrs, &UnknownLong)) break;
+		  }
+
+		  //dispatch accordingly:
+
+		  isSysVar = 0x00;
+		  isArray = false;
+		  isStructure = false;
+		  currentptr = ftell(fid);
+
+		  switch ((int) rectype) {
+		  case GDL_END_MARKER:
+			goto endoffile;
+		  case GDL_COMPILED:
+			if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
+			if (!getDSubUD(e, xdrs, verbose)) {
+			  cerr << "error in COMPILED" << endl;
         break;
       }
+			break;
+		  default:
+			goto endoffile;
+			break;
+		  }
+		}
+	  }
       if (isHdr64)
       {
         uint64_t my_ulong64;
@@ -2387,19 +2435,11 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 
         }
           break;
-      case GDL_COMPILED:
-          if (isCompress) xdrs = uncompress_trick(fid, xdrsmem, expanded, nextptr, currentptr);
-          if (!getDSubUD(e, xdrs, verbose))
-          {
-            cerr << "error in COMPILED" << endl;
-            break;
-          }
-          break;
       default:
           break;
       }
     }
-    
+endoffile:    
     if (expanded!=NULL) free(expanded);
     fclose(fid);
     delete xdrsmem;
@@ -2830,6 +2870,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       if (verboselevel>0) Message("SAVE: Saved variable: " + (variableVector.back()).first+".");
       variableVector.pop_back();
     }
+    nextptr=writeEnd(xdrs);
     if (doRoutines) {
 	  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
 		DPro * p=(*i);
@@ -2842,7 +2883,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 		nextptr = writeDSubUD(xdrs, f);
 	  }
 	}
-    nextptr=writeEnd(xdrs);
+    nextptr=writeGDLEnd(xdrs);
     xdr_destroy(xdrs);
     fclose(save_fid);
     return;
