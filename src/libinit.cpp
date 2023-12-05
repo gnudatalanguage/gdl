@@ -91,10 +91,10 @@ void LibInit()
   new DLibPro(lib::gdl_restore,string("RESTORE"),1,restoreKey,restoreWarnKey);
   new DLibPro(lib::gdl_savetest,string("SAVETEST"),1); //,restoreKey,restoreWarnKey);
   
-  const string saveKey[]={ "FILENAME","DESCRIPTION","VERBOSE","VARIABLES", "ALL", "COMM", "COMPRESS", "SYSTEM_VARIABLES", "ROUTINES"
+  const string saveKey[]={ "FILENAME","DESCRIPTION","VERBOSE","VARIABLES", "ALL", "COMM", "COMPRESS", "SYSTEM_VARIABLES", "ROUTINES", "IGNORE_NOSAVE"
     ,"XDR" //obsolete
     ,KLISTEND};
-  const string saveWarnKey[]={"BUFFER", "IGNORE_NOSAVE", "EMBEDDED", KLISTEND};
+  const string saveWarnKey[]={"BUFFER", "EMBEDDED", KLISTEND};
   new DLibPro(lib::gdl_save,string("SAVE"),-1,saveKey,saveWarnKey);
 
 

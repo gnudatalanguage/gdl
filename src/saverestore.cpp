@@ -459,7 +459,6 @@ enum {
 	  if (nodes[i].right != 0) vrefdnodes[i].get()->setNextSibling(vrefdnodes[nodes[i].right - 1].get());
 	}
 	DNode* root = vrefdnodes[0].get();
-//	RefDNode root = vrefdnodes[0];
 	GDLInterpreter::CompileSaveFile(root);
   } // rd_tree
   
@@ -2613,29 +2612,39 @@ endoffile:
     DLong verboselevel=(verbose?1:0);
     if (verbose) e->AssureLongScalarKW(VERBOSE,verboselevel);
 
-
+	//variables or routines, not both. Note this is not a GDL requirement, merely for compatibility.
+	bool wantsToSaveVariables=false;
     static int VARIABLES = e->KeywordIx("VARIABLES");
     bool doVars=e->KeywordSet(VARIABLES);
+	if (doVars) wantsToSaveVariables=true;
     static int ALL = e->KeywordIx("ALL");
     bool allVars=e->KeywordSet(ALL);
+	if (allVars) wantsToSaveVariables=true;
     static int SYSTEM_VARIABLES = e->KeywordIx("SYSTEM_VARIABLES");
     bool doSys=e->KeywordSet(SYSTEM_VARIABLES);
+	if (doSys) wantsToSaveVariables=true;
     static int COMM = e->KeywordIx("COMM");
     bool doComm=e->KeywordSet(COMM);
-    static int COMPRESS = e->KeywordIx("COMPRESS");
-    save_compress=e->KeywordSet(COMPRESS);
+	if (doComm) wantsToSaveVariables=true;
     static int ROUTINES=e->KeywordIx("ROUTINES");
     bool doRoutines =e->KeywordSet(ROUTINES);
+	if (doRoutines && wantsToSaveVariables) e->Throw("Conflicting keywords.");
     if (allVars) {
       doSys=true;
       doComm=true;
       doVars=true;
     }
-    
-    static int FILENAME = e->KeywordIx("FILENAME");
-    static int DESCRIPTION = e->KeywordIx("DESCRIPTION");
 
+	static int COMPRESS = e->KeywordIx("COMPRESS");
+	save_compress = e->KeywordSet(COMPRESS);
+
+	static int FILENAME = e->KeywordIx("FILENAME");
+
+    static int DESCRIPTION = e->KeywordIx("DESCRIPTION");
     bool needsDescription = e->KeywordPresent(DESCRIPTION);
+
+	static int IGNORE_NOSAVE = e->KeywordIx("IGNORE_NOSAVE");
+	bool ignore_nosave=e->KeywordPresent(IGNORE_NOSAVE);
     
     DStringGDL* description=NULL;
     if (needsDescription) description=e->GetKWAs<DStringGDL>(DESCRIPTION);
@@ -2649,7 +2658,7 @@ endoffile:
     std::queue<std::pair<std::string, BaseGDL*> >varNameList;
 
     long nparam=e->NParam();
-    if (!doComm && !doSys) doVars=(doVars||(nparam==0)); 
+    if (!doComm && !doSys) doVars=(doVars||(nparam==0 && !doRoutines)); 
 
     if (doSys)
     {
@@ -2712,58 +2721,55 @@ endoffile:
           commonList.insert(common->Name());
         }
       }
-    }
+	}
 
+	if (!doRoutines) {
+	  for (int i = 0; i < nparam; ++i) {
+		BaseGDL* var = e->GetPar(i);
+		if (var == NULL) {
+		  Message("Undefined item not saved: " + e->GetParString(i));
+		} else //var exists, but may have been already done by doVars.
+		{
+		  if (!doVars) varNameList.push(make_pair(e->GetParString(i), var));
+		}
+	  }
 
-    for (int i = 0; i < nparam; ++i)
-    {
-      BaseGDL* var = e->GetPar(i);
-      if (var == NULL)
-      {
-        Message("Undefined item not saved: " + e->GetParString(i));
-      } else //var exists, but may have been already done by doVars.
-      {
-        if (!doVars) varNameList.push(make_pair(e->GetParString(i),var));
-      }
-    }
+	  while (!varNameList.empty()) {
+		std::string varName = varNameList.front().first;
+		BaseGDL* var = varNameList.front().second;
+		varNameList.pop();
+		if (var->N_Elements() == 0) Message("Undefined item not saved: " + varName + ".");
+		else {
+		  //sytem variables are saved with /SYSTEM. This is a special case, test: try "SAVE,!P" with IDL:
+		  //<Expression> xxx generates an error.
+		  if (varName.substr(0, 1) == "<") e->Throw("Expression must be named variable in this context:" + varName);
+		  else {
+			//examine variable. Cases: in common, normal. remove common name if necessary.
+			std::size_t pos = varName.find("(", 0);
+			if (pos != std::string::npos) varName = varName.substr(0, pos - 1); //one Blank.
+			variableVector.push_back(make_pair(varName, var));
+		  }
+		}
+	  }
 
-    while (!varNameList.empty())
-    {
-      std::string varName = varNameList.front().first;
-      BaseGDL* var = varNameList.front().second;
-      varNameList.pop();
-      if (var->N_Elements()==0) Message("Undefined item not saved: "+varName+".");
-      else {
-          //sytem variables are saved with /SYSTEM. This is a special case, test: try "SAVE,!P" with IDL:
-          //<Expression> xxx generates an error.
-          if (varName.substr(0, 1) == "<") e->Throw("Expression must be named variable in this context:" + varName);
-          else
-          {
-            //examine variable. Cases: in common, normal. remove common name if necessary.
-            std::size_t pos = varName.find("(", 0);
-            if (pos != std::string::npos) varName = varName.substr(0, pos - 1); //one Blank.
-            variableVector.push_back(make_pair(varName, var)); 
-          }
-        }
-    }
-    
-    //Now, do we have heap variables in the variableVector (pointers)? If yes, we add these BaseGDL* to the heaplist unique list.
-    //we then write the heap variables first.
-    //then, anytime a pointer is found in any normal variable, instead of writing the data we will
-    //just write the index of the pointed-to address in the heaplist.
-    std::vector<std::pair<std::string, BaseGDL*> >::iterator itvar;
-    for (itvar=variableVector.begin(); itvar!=variableVector.end(); ++itvar) {
-      addToHeapList(e, itvar->second);
-    }
-    //NOTE: the following will not presently keep the information of a sysvar and readonly sysvar in heap. Which
-    //is probably overkill?
-    for (itvar=systemVariableVector.begin(); itvar!=systemVariableVector.end(); ++itvar) {
-      addToHeapList(e, itvar->second);
-    }
-//    for (itvar=systemReadonlyVariableVector.begin(); itvar!=systemReadonlyVariableVector.end(); ++itvar) {
-//      addToHeapList(e, itvar->second);
-//    }    
-
+	  //Now, do we have heap variables in the variableVector (pointers)? If yes, we add these BaseGDL* to the heaplist unique list.
+	  //we then write the heap variables first.
+	  //then, anytime a pointer is found in any normal variable, instead of writing the data we will
+	  //just write the index of the pointed-to address in the heaplist.
+	  std::vector<std::pair<std::string, BaseGDL*> >::iterator itvar;
+	  for (itvar = variableVector.begin(); itvar != variableVector.end(); ++itvar) {
+		addToHeapList(e, itvar->second);
+	  }
+	  //NOTE: the following will not presently keep the information of a sysvar and readonly sysvar in heap. Which
+	  //is probably overkill?
+	  for (itvar = systemVariableVector.begin(); itvar != systemVariableVector.end(); ++itvar) {
+		addToHeapList(e, itvar->second);
+	  }
+	  //    for (itvar=systemReadonlyVariableVector.begin(); itvar!=systemReadonlyVariableVector.end(); ++itvar) {
+	  //      addToHeapList(e, itvar->second);
+	  //    }    
+	}
+	
     DString name;
     if (e->KeywordPresent(FILENAME))
     {
@@ -2871,16 +2877,47 @@ endoffile:
       variableVector.pop_back();
     }
     nextptr=writeEnd(xdrs);
-    if (doRoutines) {
-	  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-		DPro * p=(*i);
-//		std::cerr<<"PRO: "<<p->ObjectName()<<std::endl;
-		nextptr = writeDSubUD(xdrs, p);
-	  }
-	  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-		DFun * f=(*i);
-//		std::cerr<<"FUN: "<<f->ObjectName()<<std::endl;
-		nextptr = writeDSubUD(xdrs, f);
+	
+
+	if (doRoutines) {
+	  if (nparam > 0) { //will not check nosave as the names are explicit
+		for (int i = 0; i < nparam; ++i) {
+		  DString name;
+		  bool notFound=true;
+		  e->AssureStringScalarPar(i,name);
+		  name = StrUpCase(name);
+		  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+			if ((*i)->ObjectName() == name) {
+			  notFound=false;
+			  DPro * p = (*i);
+			  //		std::cerr<<"PRO: "<<p->ObjectName()<<std::endl;
+			  nextptr = writeDSubUD(xdrs, p);
+			  break;
+			}
+		  }
+		  //May also exist as a FUN, see e.g. TIC & TOC
+		  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+			if ((*i)->ObjectName() == name) {
+			  notFound = false;
+			  DFun * f = (*i);
+			  //		std::cerr<<"FUN: "<<f->ObjectName()<<std::endl;
+			  nextptr = writeDSubUD(xdrs, f);
+			  break;
+			}
+		  }
+		  if (notFound) Message("Undefined item not saved: "+name);
+		}
+	  } else { //wil not save NoSave pro/funs unless IGNORE_NOSAVE is set
+		for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+		  DPro * p = (*i);
+		  //		std::cerr<<"PRO: "<<p->ObjectName()<<std::endl;
+		  if (ignore_nosave || !(p->isNoSave())) nextptr = writeDSubUD(xdrs, p);
+		}
+		for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+		  DFun * f = (*i);
+		  //		std::cerr<<"FUN: "<<f->ObjectName()<<std::endl;
+		  if (ignore_nosave || !(f->isNoSave())) nextptr = writeDSubUD(xdrs, f);
+		}
 	  }
 	}
     nextptr=writeGDLEnd(xdrs);

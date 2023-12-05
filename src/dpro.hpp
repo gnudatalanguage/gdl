@@ -350,7 +350,7 @@ public:
   void Reset();
   void DelTree();
   void SetTree( ProgNodeP t) { tree = t;}
-  void SetAstTree( RefDNode q) { asttree=RefDNode(q);}
+  void SetAstTree( RefDNode q) { asttree=q;}
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
   void DeleteLastAddedCommon(bool kill=true)
@@ -553,6 +553,7 @@ void ReName( SizeT ix, const std::string& s)
   bool isObsolete();
   bool isHidden();
   bool isStatic();
+  bool isNoSave();
 
   friend class EnvUDT;
 };

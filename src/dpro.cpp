@@ -476,3 +476,8 @@ bool DSubUD::isHidden()
   return compileOpt & GDLParser::HIDDEN;
 }
 
+bool DSubUD::isNoSave()
+{
+  return compileOpt & GDLParser::NOSAVE;
+}
+
