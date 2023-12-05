@@ -79,8 +79,6 @@ enum {
 
   typedef std::map<DPtr, SizeT> heapT;
   static heapT heapIndexMapSave;  //list of [ heap pointer, heap index ] used when saving.
-  typedef std::map<u_int64_t,u_int64_t> saveNodeT;
-  static saveNodeT nodesIndexList;
   static std::map<long, std::pair<BaseGDL*,DPtr>> heapIndexMapRestore; //list of [heap index , [variable,heap pointer]] used when reading.
   static std::vector<std::string> predeflist;
   static char* saveFileAuthor;
@@ -136,8 +134,18 @@ enum {
 	u_int64_t marker = 99;
 	xdr_u_int64_t(xdrs, & marker);
 	// address is not that simple to retrieve. The address is what ' std::cout<<this " prints, and it is NOT easy to get it right. 'This is the way'.
-	antlr::AST* ast;
-	ast = node.get();
+	DNode* ast=node.get();
+//	std::cerr<<"----- "<<ast->getText()<<"------"<<std::endl;
+//	std::cerr<<"ast->GetCompileOpt()"<<ast->GetCompileOpt()<<std::endl;
+//	std::cerr<<"ast->CData()"<<ast->CData()<<std::endl;
+//	std::cerr<<"ast->GetFirstCh"<<ast->GetFirstChild()<<std::endl;
+//	std::cerr<<"NDot = "<<ast->GetNDot()<<std::endl;
+//	std::cerr<<"NParam = "<<ast->GetNParam()<<std::endl;
+//	std::cerr<<"ast->GetNextSib"<<ast->GetNextSibling()<<std::endl;
+	if (ast->GetVar() != NULL) std::cerr<<"Var = "<<ast->GetVar()<<std::endl; //TBD: check if var is used.
+//	std::cerr<<"Line "<<ast->getLine()<<std::endl;
+//	std::cerr<<"typeName "<<ast->typeName()<<std::endl;
+//	std::cerr<<"ast->getType();"<<ast->getType()<<std::endl;
 	RefDNode dNode = static_cast<RefDNode> (node);
 	//write node address:
 	u_int64_t me = reinterpret_cast<u_int64_t> (ast);
@@ -164,7 +172,8 @@ enum {
 	xdr_int32_t(xdrs, &ligne); //LineNUM
 	// the 'flags' are an union of ints, with different meanings depending on the actual node
 	int32_t flags=0;
-	if (text.find("<ASTNULL>")==std::string::npos) dNode->GetCompileOpt(); //othrwise undefined and Valgrind Complains.
+//	if (text.find("<ASTNULL>")==std::string::npos) //otherwise undefined and Valgrind Complains.
+	flags=dNode->GetCompileOpt(); 
 	xdr_int32_t(xdrs, &flags);
 	BaseGDL* var = dNode->CData();
 	// instead of writing CData (very lengthy) just write var->Type and var's value according to type
@@ -316,7 +325,7 @@ enum {
 	// the 'flags' are an union of ints, with different meanings depending on the actual node
 	xdr_int32_t(xdrs, &savenode.flags);
 	//see comment in sv_writeNode above about var not using readCData.
-	// BaseGDL* cData = readCData(e, xdrs); //CData
+	// BaseGDL* savenode.var = readCData(e, xdrs); //CData
 	int varType = 0;
 	xdr_int32_t(xdrs, &varType); //get VarType
 	switch (varType) {
@@ -395,6 +404,9 @@ enum {
 	default:
 	  break;
 	}
+//	  std::cerr<<"["<<savenode.nodeType<< ":";
+//	  if (savenode.var!=NULL) std::cerr<<savenode.var->NBytes();
+//	  std::cerr<<"]"<<savenode.Text<<"("<<savenode.ligne<<")"<<std::hex<<savenode.node<<"->"<<savenode.right<<" !"<<savenode.down<<std::dec<<std::endl;
 	nodes.push_back(savenode);
 
 	return marker;
@@ -407,14 +419,17 @@ enum {
 	while (marker != ENDOFLIST) {
 	  marker = rd_readNode(e, xdrs, nodes);
 	}
+	//PRO or FUNCTION top node may contain a 'wrong' right pointer in the first node, due to the way the whole .pro file is compiled at once.
+	//Remove it:
+	nodes[0].right=0;
+    std::map<u_int64_t,u_int64_t> nodesIndexList;
 	// change savenode pointers to logical serie 1,2,3..
-	nodesIndexList.clear();
 	for (auto i = 0; i < nodes.size(); ++i) {
 	  nodesIndexList.insert(std::pair<u_int64_t, u_int64_t>(nodes[i].node, i + 1)); //+1 as adress 0 is special for all nodes
 	}
 	for (auto i = 0; i < nodes.size(); ++i) {
 	  u_int64_t ptr = nodes[i].node;
-	  saveNodeT::iterator it = nodesIndexList.find(ptr);
+	  std::map<u_int64_t,u_int64_t>::iterator it = nodesIndexList.find(ptr);
 	  if (it != nodesIndexList.end()) nodes[i].node = (*it).second;
 	  ptr = nodes[i].right;
 	  it = nodesIndexList.find(ptr);
@@ -436,10 +451,14 @@ enum {
 
 	//update dnodes links:
 	for (auto i = 0; i < nodes.size(); ++i) {
+	  //The following warnings should not happen.
+	  if (nodes[i].down > nodes.size() + 1) { std::cerr<<"bad down link @"<<nodes[i].ligne<<" in "<<nodes[i].Text<<" for "<<nodes[3].Text<<std::endl; nodes[i].down = 0;}
+	  if (nodes[i].right > nodes.size() + 1) { std::cerr<<"bad right link @"<<nodes[i].ligne<<" in "<<nodes[i].Text<<" for "<<nodes[3].Text<<std::endl;nodes[i].right = 0;}
 	  if (nodes[i].down != 0) vrefdnodes[i].get()->setFirstChild(vrefdnodes[nodes[i].down - 1].get());
 	  if (nodes[i].right != 0) vrefdnodes[i].get()->setNextSibling(vrefdnodes[nodes[i].right - 1].get());
 	}
 	DNode* root = vrefdnodes[0].get();
+//	RefDNode root = vrefdnodes[0];
 	GDLInterpreter::CompileSaveFile(root);
   } // rd_tree
   
@@ -576,9 +595,40 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 	//get pro name
 	if (!xdr_string(xdrs, &dsubUD_name, 4096)) return 0;
 	std::string name(dsubUD_name);
-	rd_tree(e,xdrs);
+//	std::cerr<<"getting "<<name<<std::endl;
+	//check if present
+	bool already_present=false;
+	DSubUD * present=NULL;
+	for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+	  if ((*i)->ObjectName() == name) {
+		already_present = true;
+		present = (*i);
+		break;
+	  }
+	}
+	if (!already_present) {
+	  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+		if ((*i)->ObjectName() == name) {
+		  already_present = true;
+		  present = (*i);
+		  break;
+		}
+	  }
+	}
+	//check if active
+	EnvStackT& cS = GDLInterpreter::CallStack();
+	SizeT stSz = cS.size();
+	for (SizeT i = 1; i < stSz; ++i) // i=1: skip $MAIN$
+	{
+	  if (cS[ i]->GetPro() == present)
+	  {
+		Warning("Procedure "+name+" can't be restored while active.");
+		return 1;
+	  }
+	}
+    rd_tree(e,xdrs);
 
-  if (verbose) Message("Restored procedure: " + std::string(dsubUD_name));
+  if (verbose) Message("Restored procedure: " + name);
 	return 1;
   }
   
@@ -2783,10 +2833,12 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     if (doRoutines) {
 	  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
 		DPro * p=(*i);
+//		std::cerr<<"PRO: "<<p->ObjectName()<<std::endl;
 		nextptr = writeDSubUD(xdrs, p);
 	  }
 	  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
 		DFun * f=(*i);
+//		std::cerr<<"FUN: "<<f->ObjectName()<<std::endl;
 		nextptr = writeDSubUD(xdrs, f);
 	  }
 	}
@@ -2802,18 +2854,14 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
   void gdl_savetest(EnvT* e) {
 	bool exists = false;
 	for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-	  std::cout<<(*i)->ToString()<<std::endl;
-			cout << "TreeParser output:" << endl;
+	  std::cout<<"-----------------------------------"<<(*i)->ObjectName()<<"----------------------------------------"<<std::endl;
 			antlr::print_tree pt;
 			pt.pr_tree(static_cast<ProgNodeP>((*i)->GetTree()));
-			cout << "CompileFile: TreeParser end." << endl;
 	}
 	for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-	  std::cout<<(*i)->ToString()<<std::endl;
-	  cout << "TreeParser output:" << endl;
+	  std::cout<<"-----------------------------------"<<(*i)->ObjectName()<<"----------------------------------------"<<std::endl;
 	  antlr::print_tree pt;
 	  pt.pr_tree(static_cast<ProgNodeP> ((*i)->GetTree()));
-	  cout << "CompileFile: TreeParser end." << endl;
 	}
   }
 }
