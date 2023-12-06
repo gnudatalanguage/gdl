@@ -18,11 +18,10 @@
 #ifndef DPRO_HPP_
 #define DPRO_HPP_
 
-// #include <deque>
 #include <string>
 #include <algorithm>
 #include <vector>
-//#include <stack>
+#include <map>
 
 #include "basegdl.hpp"
 #include "dcommon.hpp"
@@ -37,7 +36,9 @@
     }
 #endif
 
-typedef std::vector<RefDNode> CodeListT;
+class DSubUD;
+typedef std::map<DSubUD*, RefDNode> CodeListT;
+
 extern CodeListT     codeList;
     
 template<typename T>  class Is_eq: public std::function<bool(T)>
@@ -337,7 +338,6 @@ class DSubUD: public DSub
 
   CommonBaseListT     common;      // common blocks or references 
   ProgNodeP           tree;        // the 'code'
-  unsigned int        code_index;  // the index in codeList of the AST tree (semicompiled translation of procedure code) 
   unsigned int        compileOpt;  // e.g. hidden or obsolete
 
   LabelListT          labelList;
@@ -354,7 +354,9 @@ public:
   void Reset();
   void DelTree();
   void SetTree( ProgNodeP t) { tree = t;}
-  void SetAstTree( unsigned int i) { code_index=i;}
+  void SetAstTree( RefDNode n) { 
+    codeList.insert(std::pair<DSubUD*, RefDNode>(this, n));
+  }
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
   void DeleteLastAddedCommon(bool kill=true)
@@ -551,7 +553,7 @@ void ReName( SizeT ix, const std::string& s)
   RefDNode GetAstTree()
   {
     //find Semicompiled code saved in codeList
-    return codeList[code_index];
+    return codeList.find(this)->second;
   }
   unsigned int GetCompileOpt() { return compileOpt; }
   void SetCompileOpt(const unsigned int n) { compileOpt = n; }

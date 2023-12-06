@@ -262,6 +262,7 @@ DSubUD::~DSubUD()
 
   labelList.Clear();
   delete tree;
+  codeList.erase(this);
 }
 
 DSubUD::DSubUD(const string& n,const string& o,const string& f) : 

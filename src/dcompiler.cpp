@@ -154,8 +154,7 @@ void DCompiler::StartPro(const string& n, const int compileOpt, const string& o,
       pro->SetCompileOpt(compileOpt);
 	  //"restored" procedures have no file name associated. They will be marked as "CompileHidden", to avoid the message "Compiled module" issued when (re)compiling the Lexer code.
 	  if (actualFile.length()==0) pro->AddHiddenToCompileOpt();
-	  codeList.push_back(semiCompiledTree);
-	  pro->SetAstTree(codeList.size()-1); //entry number
+	  pro->SetAstTree(semiCompiledTree); //entry number
     }
   else
     {
@@ -178,8 +177,7 @@ void DCompiler::StartFun(const string& n, const int compileOpt = 0, const string
   pro->SetCompileOpt(compileOpt);
   //"restored" procedures have no file name associated. They will be marked as "CompileHidden", to avoid the message "Compiled module" issued when (re)compiling the Lexer code.
   if (actualFile.length() == 0) pro->AddHiddenToCompileOpt();
-  codeList.push_back(semiCompiledTree);
-  pro->SetAstTree(codeList.size()-1); //entry number
+  pro->SetAstTree(semiCompiledTree); //entry number
 }
 
 bool DCompiler::IsActivePro( DSub* p)
