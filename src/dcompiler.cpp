@@ -152,7 +152,10 @@ void DCompiler::StartPro(const string& n, const int compileOpt, const string& o,
     {
       pro = new DPro(n,o,actualFile);
       pro->SetCompileOpt(compileOpt);
-	  pro->SetAstTree(semiCompiledTree);
+	  //"restored" procedures have no file name associated. They will be marked as "CompileHidden", to avoid the message "Compiled module" issued when (re)compiling the Lexer code.
+	  if (actualFile.length()==0) pro->AddHiddenToCompileOpt();
+	  codeList.push_back(semiCompiledTree);
+	  pro->SetAstTree(codeList.size()-1); //entry number
     }
   else
     {
@@ -173,7 +176,10 @@ void DCompiler::StartFun(const string& n, const int compileOpt = 0, const string
   ClearOwnCommon();
   pro = new DFun(n,o,actualFile);
   pro->SetCompileOpt(compileOpt);
-  pro->SetAstTree(semiCompiledTree);
+  //"restored" procedures have no file name associated. They will be marked as "CompileHidden", to avoid the message "Compiled module" issued when (re)compiling the Lexer code.
+  if (actualFile.length() == 0) pro->AddHiddenToCompileOpt();
+  codeList.push_back(semiCompiledTree);
+  pro->SetAstTree(codeList.size()-1); //entry number
 }
 
 bool DCompiler::IsActivePro( DSub* p)
@@ -247,7 +253,7 @@ void DCompiler::EndPro() // inserts in proList
       }
     }
 
-  if(!pro->isHidden()) {  if ( subRoutine == "" || subRoutine == pro->ObjectFileName())
+    if(!(pro->isHidden() || pro->isGdlHidden())) {  if ( subRoutine == "" || subRoutine == pro->ObjectFileName())
     Message( "Compiled module: "+pro->ObjectName()+"."); }
 
   // reset pro // will be deleted otherwise
@@ -314,7 +320,7 @@ void DCompiler::EndFun() // inserts in funList
    WarnAboutObsoleteRoutine(pro->ObjectName());
   }
 
-  if(!pro->isHidden()) {  if (subRoutine == "" || subRoutine == pro->ObjectFileName())
+  if(!(pro->isHidden() || pro->isGdlHidden())) {  if (subRoutine == "" || subRoutine == pro->ObjectFileName())
     Message( "Compiled module: "+pro->ObjectName()+"."); }
   // reset pro // will be deleted otherwise
   if( env != NULL) pro=dynamic_cast<DSubUD*>(env->GetPro()); else pro=NULL;
@@ -576,18 +582,6 @@ void DCompiler::SetTree(RefDNode n)
 #endif
 
   pro->SetTree( n);
-}
-
-void DCompiler::SetAstTree(RefDNode q)
-{
-  assert( pro != NULL);
-#ifdef GDL_DEBUG
-  cout << "Setting SemiCompiled procedure/function tree:" << endl;
-  antlr::print_tree pt;
-  pt.pr_tree(static_cast<antlr::RefAST>( q));
-  cout << endl;
-#endif
-  pro->SetAstTree( q);
 }
 
 void DCompiler::Label(RefDNode n)

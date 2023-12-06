@@ -35,6 +35,8 @@
 #include "print_tree.hpp"
 #endif
 
+CodeListT     codeList;
+
 using namespace std;
 
 // vtable
@@ -260,7 +262,6 @@ DSubUD::~DSubUD()
 
   labelList.Clear();
   delete tree;
-  delete asttree;
 }
 
 DSubUD::DSubUD(const string& n,const string& o,const string& f) : 
@@ -298,8 +299,6 @@ void DSubUD::DelTree()
   labelList.Clear(); // labels are invalid after tree is deleted
   delete tree;
   tree = NULL; //static_cast<RefDNode>(antlr::nullAST);
-  delete asttree;
-  asttree = NULL;
   nForLoops = 0;
 }
 
@@ -476,8 +475,17 @@ bool DSubUD::isHidden()
   return compileOpt & GDLParser::HIDDEN;
 }
 
+bool DSubUD::isGdlHidden()
+{
+  return compileOpt & GDLParser::GDL_HIDDEN;
+}
+
 bool DSubUD::isNoSave()
 {
   return compileOpt & GDLParser::NOSAVE;
+}
+
+void DSubUD::AddHiddenToCompileOpt() {
+  compileOpt |= GDLParser::GDL_HIDDEN;
 }
 

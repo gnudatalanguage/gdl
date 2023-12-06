@@ -36,6 +36,10 @@
       extern bool posixpaths;
     }
 #endif
+
+typedef std::vector<RefDNode> CodeListT;
+extern CodeListT     codeList;
+    
 template<typename T>  class Is_eq: public std::function<bool(T)>
 {
   std::string name;
@@ -333,7 +337,7 @@ class DSubUD: public DSub
 
   CommonBaseListT     common;      // common blocks or references 
   ProgNodeP           tree;        // the 'code'
-  RefDNode            asttree;     // the AST translation of procedure code 
+  unsigned int        code_index;  // the index in codeList of the AST tree (semicompiled translation of procedure code) 
   unsigned int        compileOpt;  // e.g. hidden or obsolete
 
   LabelListT          labelList;
@@ -350,7 +354,7 @@ public:
   void Reset();
   void DelTree();
   void SetTree( ProgNodeP t) { tree = t;}
-  void SetAstTree( RefDNode q) { asttree=q;}
+  void SetAstTree( unsigned int i) { code_index=i;}
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
   void DeleteLastAddedCommon(bool kill=true)
@@ -546,12 +550,15 @@ void ReName( SizeT ix, const std::string& s)
   }
   RefDNode GetAstTree()
   {
-    return asttree;
+    //find Semicompiled code saved in codeList
+    return codeList[code_index];
   }
   unsigned int GetCompileOpt() { return compileOpt; }
   void SetCompileOpt(const unsigned int n) { compileOpt = n; }
+  void AddHiddenToCompileOpt();
   bool isObsolete();
   bool isHidden();
+  bool isGdlHidden();
   bool isStatic();
   bool isNoSave();
 

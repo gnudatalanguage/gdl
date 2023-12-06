@@ -662,47 +662,46 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool s
 #ifdef GDL_DEBUG
   RefDNode trAST;
 #endif
-  return CompileSaveFile(theAST);
-//  GDLTreeParser treeParser( f, untilPro);
-//  try
-//    {
-//      treeParser.translation_unit(theSemiCompiledAST);
-//
-//// #ifdef GDL_DEBUG
-//// nothing is returned (pro/funList are changed)
-////       trAST=treeParser.getAST();
-//// #endif
-//
-//      if( treeParser.ActiveProCompiled()) RetAll();
-//    }
-//  catch( GDLException& e)
-//    {
-//      ReportCompileError( e, f);
-//      if( treeParser.ActiveProCompiled()) RetAll();
-//      return false;
-//    }
-//  catch( ANTLRException& e)
-//    {
-//      cerr << "Compiler exception: " <<  e.getMessage() << endl;
-//      if( treeParser.ActiveProCompiled()) RetAll();
-//      return false;
-//    }
-//// #ifdef GDL_DEBUG
-////   cout << "Tree parser output:" << endl;
-////   pt.pr_tree(static_cast<antlr::RefAST>(trAST));
-////   cout << "ExecuteLine: Tree parser end." << endl;
-//// #endif
-///*#ifdef GDL_DEBUG
-//      cout << "Tree parser output:" << endl;
-//      antlr::print_tree ptTP;
-//      ptTP.pr_tree(static_cast<antlr::RefAST>(trAST));
-//      cout << "CompileFile: Tree parser end." << endl;
-//#endif*/
-//  
-//  return true;
+  GDLTreeParser treeParser( f, untilPro);
+  try
+    {
+      treeParser.translation_unit(theAST);
+
+// #ifdef GDL_DEBUG
+// nothing is returned (pro/funList are changed)
+//       trAST=treeParser.getAST();
+// #endif
+
+      if( treeParser.ActiveProCompiled()) RetAll();
+    }
+  catch( GDLException& e)
+    {
+      ReportCompileError( e, f);
+      if( treeParser.ActiveProCompiled()) RetAll();
+      return false;
+    }
+  catch( ANTLRException& e)
+    {
+      cerr << "Compiler exception: " <<  e.getMessage() << endl;
+      if( treeParser.ActiveProCompiled()) RetAll();
+      return false;
+    }
+// #ifdef GDL_DEBUG
+//   cout << "Tree parser output:" << endl;
+//   pt.pr_tree(static_cast<antlr::RefAST>(trAST));
+//   cout << "ExecuteLine: Tree parser end." << endl;
+// #endif
+/*#ifdef GDL_DEBUG
+      cout << "Tree parser output:" << endl;
+      antlr::print_tree ptTP;
+      ptTP.pr_tree(static_cast<antlr::RefAST>(trAST));
+      cout << "CompileFile: Tree parser end." << endl;
+#endif*/
+  
+  return true;
 }      
 
-bool GDLInterpreter::CompileSaveFile(RefDNode theAST) 
+bool GDLInterpreter::CompileSaveFile(RefDNode theSemiCompiledAST) 
 {  
 #ifdef GDL_DEBUG
   RefDNode trAST;
@@ -711,25 +710,19 @@ bool GDLInterpreter::CompileSaveFile(RefDNode theAST)
 
   try
     {
-      treeParser.translation_unit(theAST);
-
- #ifdef GDL_DEBUG
-// nothing is returned (pro/funList are changed)
-       trAST=treeParser.getAST();
- #endif
-
-      if( treeParser.ActiveProCompiled()) RetAll();
+      treeParser.translation_unit(theSemiCompiledAST);
+//     if( treeParser.ActiveProCompiled()) RetAll(); //should not happen as CompileSaveFile is not called in this case
     }
   catch( GDLException& e)
     {
       ReportCompileError( e, "");
-      if( treeParser.ActiveProCompiled()) RetAll();
+//      if( treeParser.ActiveProCompiled()) RetAll();
       return false;
     }
   catch( ANTLRException& e)
     {
       cerr << "Compiler exception: " <<  e.getMessage() << endl;
-      if( treeParser.ActiveProCompiled()) RetAll();
+//      if( treeParser.ActiveProCompiled()) RetAll();
       return false;
     }
 #ifdef GDL_DEBUG

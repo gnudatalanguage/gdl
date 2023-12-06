@@ -84,7 +84,6 @@ public:
   void Var(RefDNode);    // sets var in node
   void SysVar(RefDNode); // sets var in node
   void SetTree(RefDNode);
-  void SetAstTree(RefDNode q); 
   void Label(RefDNode);
   void Goto(RefDNode);
   bool IsFun() const;

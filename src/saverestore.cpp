@@ -2670,7 +2670,8 @@ endoffile:
     std::vector<std::pair<std::string, BaseGDL*> > systemVariableVector;
 //    std::vector<std::pair<std::string, BaseGDL*> > systemReadonlyVariableVector; //for readonly variables //not used
     set<string> commonList;
-
+// versioning for safety of future changes in parser (for saved routine code)	
+	int32_t save_routine_version = GDL_SAVE_ROUTINES_VERSION;
 //Variables
     std::queue<std::pair<std::string, BaseGDL*> >varNameList;
 
@@ -2894,13 +2895,11 @@ endoffile:
       variableVector.pop_back();
     }
     nextptr=writeEnd(xdrs);
-	
+	//write Our save routine library version just after regular end. It will not be seen by IDL.
 
+	xdr_int32_t(xdrs, &save_routine_version);
+	
 	if (doRoutines) {
-	  //write version just after
-	  int32_t save_routine_version = GDL_SAVE_ROUTINES_VERSION;
-	  xdr_int32_t(xdrs, &save_routine_version);
-	  
 	  if (nparam > 0) { //will not check nosave as the names are explicit
 		for (int i = 0; i < nparam; ++i) {
 		  DString name;
@@ -2941,6 +2940,7 @@ endoffile:
 		}
 	  }
 	}
+	
     nextptr=writeGDLEnd(xdrs);
     xdr_destroy(xdrs);
     fclose(save_fid);
