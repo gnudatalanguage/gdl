@@ -866,38 +866,38 @@ namespace lib {
       e->Throw( "Array must have 2 dimensions: "+ e->GetParString(0));
 
     switch (p0->Type()) {
-    case GDL_BYTE:{ long int a;
+    case GDL_BYTE:{ long int a=0;
       return Sobel_Template<DIntGDL>(static_cast<DByteGDL*>(p0),a);
     }
-    case GDL_INT: {long int a;
+    case GDL_INT: {long int a=0;
 	return Sobel_Template<DIntGDL>(static_cast<DIntGDL*> (p0),a);
     }
-    case GDL_UINT:{long int a;
+    case GDL_UINT:{long int a=0;
 	return Sobel_Template<DUIntGDL>(static_cast<DUIntGDL*> (p0),a);
     }
-    case GDL_LONG:{long int a;
+    case GDL_LONG:{long int a=0;
 	return Sobel_Template<DLongGDL>(static_cast<DLongGDL*> (p0),a);
     }
-    case GDL_ULONG:{long int a;
+    case GDL_ULONG:{long int a=0;
 	return Sobel_Template<DULongGDL>(static_cast<DULongGDL*> (p0),a);
     }
-    case GDL_LONG64:{DLong64 a;
+    case GDL_LONG64:{DLong64 a=0;
 	return Sobel_Template<DLong64GDL>(static_cast<DLong64GDL*> (p0),a);
     }
-    case GDL_ULONG64:{DLong64 a;
+    case GDL_ULONG64:{DLong64 a=0;
 	return Sobel_Template<DULong64GDL>(static_cast<DULong64GDL*> (p0),a);
     }
-    case GDL_FLOAT:{long double a;
+    case GDL_FLOAT:{long double a=0;
 	return Sobel_Template_floatingpointTypes<DFloatGDL>(static_cast<DFloatGDL*> (p0),a);
     }
-    case GDL_DOUBLE: {long double a;
+    case GDL_DOUBLE: {long double a=0;
 	return Sobel_Template_floatingpointTypes<DDoubleGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
-    case GDL_COMPLEX: { long double a;
+    case GDL_COMPLEX: { long double a=0;
 	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
 	return Sobel_Template_floatingpointTypes<DComplexGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
-    case GDL_COMPLEXDBL:{long double a;
+    case GDL_COMPLEXDBL:{long double a=0;
 	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
 	return Sobel_Template_floatingpointTypes<DComplexDblGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
@@ -1014,38 +1014,38 @@ namespace lib {
 
     switch (p0->Type()) {
     case GDL_BYTE:{
-      long int a;
+      long int a=0;
       return Prewitt_Template<DIntGDL>(static_cast<DByteGDL*>(p0),a);
     }
-    case GDL_INT: {long int a;
+    case GDL_INT: {long int a=0;
 	return Prewitt_Template<DIntGDL>(static_cast<DIntGDL*> (p0),a);
     }
-    case GDL_UINT:{long int a;
+    case GDL_UINT:{long int a=0;
 	return Prewitt_Template<DUIntGDL>(static_cast<DUIntGDL*> (p0),a);
     }
-    case GDL_LONG:{long int a;
+    case GDL_LONG:{long int a=0;
 	return Prewitt_Template<DLongGDL>(static_cast<DLongGDL*> (p0),a);
     }
-    case GDL_ULONG:{long int a;
+    case GDL_ULONG:{long int a=0;
 	return Prewitt_Template<DULongGDL>(static_cast<DULongGDL*> (p0),a);
     }
-    case GDL_LONG64:{long int a;
+    case GDL_LONG64:{long int a=0;
 	return Prewitt_Template<DLong64GDL>(static_cast<DLong64GDL*> (p0),a);
     }
-    case GDL_ULONG64:{long int a;
+    case GDL_ULONG64:{long int a=0;
 	return Prewitt_Template<DULong64GDL>(static_cast<DULong64GDL*> (p0),a);
     }
-    case GDL_FLOAT:{long int a;
+    case GDL_FLOAT:{long int a=0;
 	return Prewitt_Template<DFloatGDL>(static_cast<DFloatGDL*> (p0),a);
     }
-    case GDL_DOUBLE: {long int a;
+    case GDL_DOUBLE: {long int a=0;
 	return Prewitt_Template<DDoubleGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
-    case GDL_COMPLEX: { long int a;
+    case GDL_COMPLEX: { long int a=0;
 	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
 	return Prewitt_Template<DComplexGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
-    case GDL_COMPLEXDBL:{long int a;
+    case GDL_COMPLEXDBL:{long int a=0;
 	DDoubleGDL* p0 = e->GetParAs<DDoubleGDL>(0);
 	return Prewitt_Template<DComplexDblGDL>(static_cast<DDoubleGDL*> (p0),a);
     }
