@@ -3294,7 +3294,7 @@ logical inside_(doublereal *p, integer *lv, doublereal *xv, doublereal *yv,
 
     /* System generated locals */
     integer i__1;
-    logical ret_val;
+    logical ret_val=TRUE; /*initialized to pacify the compiler*/
 
     /* Builtin functions */
     double sqrt(doublereal);
