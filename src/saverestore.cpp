@@ -233,19 +233,19 @@ enum {
 	}
 	case GDL_LONG:
 	{
-	  long l = (*static_cast<DLongGDL*> (var))[0];
-	  xdr_long(xdrs, & l);
+	  int32_t l = (*static_cast<DLongGDL*> (var))[0];
+	  xdr_int32_t(xdrs, & l);
 	  break;
 	}
 	case GDL_ULONG:
 	{
-	  unsigned long ul = (*static_cast<DULongGDL*> (var))[0];
-	  xdr_u_long(xdrs, & ul);
+	  u_int32_t ul = (*static_cast<DULongGDL*> (var))[0];
+	  xdr_u_int32_t(xdrs, & ul);
 	  break;
 	}
 	case GDL_STRING:
 	{
-	  std::string s = (*static_cast<DStringGDL*> (var))[0];
+	  DString s = (*static_cast<DStringGDL*> (var))[0];
 	  u_int l = s.length();
 	  char* c = (char*) s.c_str();
 	  xdr_string(xdrs, &c, l);
@@ -292,7 +292,7 @@ enum {
 	}
   } // sv_tree
 
-  typedef struct {
+  typedef struct _SAVENODE_STRUCT_ {
 	int nodeType = 0;
 	int ligne = 0;
 	int flags = 0;
@@ -385,15 +385,15 @@ enum {
 	}
 	case GDL_LONG:
 	{
-	  long l = 0;
-	  xdr_long(xdrs, & l);
+	  int32_t l = 0;
+	  xdr_int32_t(xdrs, & l);
 	  savenode.var = new DLongGDL(l);
 	  break;
 	}
 	case GDL_ULONG:
 	{
-	  unsigned long ul = 0;
-	  xdr_u_long(xdrs, & ul);
+	  u_int32_t ul = 0;
+	  xdr_u_int32_t(xdrs, & ul);
 	  savenode.var = new DULongGDL(ul);
 	  break;
 	}
