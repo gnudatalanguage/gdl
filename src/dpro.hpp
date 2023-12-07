@@ -38,7 +38,7 @@
 
 class DSubUD;
 typedef std::map<DSubUD*, RefDNode> CodeListT;
-
+typedef std::map<DSubUD*, RefDNode>::iterator CodeListIterator;
 extern CodeListT     codeList;
     
 template<typename T>  class Is_eq: public std::function<bool(T)>
@@ -553,7 +553,9 @@ void ReName( SizeT ix, const std::string& s)
   RefDNode GetAstTree()
   {
     //find Semicompiled code saved in codeList
-    return codeList.find(this)->second;
+    CodeListIterator i = codeList.find(this);
+    if (i!=codeList.end()) return (*i).second;
+    return NULL;
   }
   unsigned int GetCompileOpt() { return compileOpt; }
   void SetCompileOpt(const unsigned int n) { compileOpt = n; }

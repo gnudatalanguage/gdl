@@ -580,14 +580,17 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     return cur;
   }  //user-defined Sub
 
-  uint64_t writeDSubUD(XDR *xdrs, DSubUD* p) {
+  uint64_t writeDSubUD(XDR *xdrs, DSubUD* p, bool isPro) {
 	uint64_t cur = writeNewRecordHeader(xdrs, GDL_COMPILED);
-	//write file name ?
+	//write file name
 	std::string name = p->ObjectName();
 	u_int len = name.size();
 	//PRO/FUN name 
 	const char* cname = name.c_str();
 	xdr_string(xdrs, (char**) &cname, len);
+	// FUN (0) or PRO (1)
+	int32_t proorfun=isPro;
+	xdr_int32_t(xdrs, & proorfun);
 	//the tree
 	sv_tree(p->GetAstTree(),xdrs);
 	return updateNewRecordHeader(xdrs, cur);
@@ -601,17 +604,37 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 	if (!xdr_string(xdrs, &dsubUD_name, 4096)) return 0;
 	std::string name(dsubUD_name);
 //	std::cerr<<"getting "<<name<<std::endl;
+	// PRO or FUN?
+	int32_t isPro=0;
+	xdr_int32_t(xdrs, &isPro);
 	//check if present
 	bool already_present=false;
 	DSubUD * present=NULL;
-	for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-	  if ((*i)->ObjectName() == name) {
-		already_present = true;
-		present = (*i);
-		break;
+	if (isPro == 1) {
+	  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+		if ((*i)->ObjectName() == name) {
+		  already_present = true;
+		  present = (*i);
+		  break;
+		}
 	  }
-	}
-	if (!already_present) {
+	  //if existing and skipIfExist set, just ignore:
+	  if (skipIfExist && already_present) return 1;
+	  //check if active
+	  EnvStackT& cS = GDLInterpreter::CallStack();
+	  SizeT stSz = cS.size();
+	  for (SizeT i = 1; i < stSz; ++i) // i=1: skip $MAIN$
+	  {
+		if (cS[ i]->GetPro() == present) {
+		  Warning("Procedure " + name + " can't be restored while active.");
+		  return 1;
+		}
+	  }
+	  rd_tree(e, xdrs);
+
+	  if (verbose) Message("RESTORE: Restored procedure: " + name +".");
+	  return 1;
+	} else if (isPro == 0) {
 	  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
 		if ((*i)->ObjectName() == name) {
 		  already_present = true;
@@ -619,24 +642,25 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 		  break;
 		}
 	  }
-	}
-	//if existing and skipIfExist set, just ignore:
-	if (skipIfExist && already_present)  return 1;
-	//check if active
-	EnvStackT& cS = GDLInterpreter::CallStack();
-	SizeT stSz = cS.size();
-	for (SizeT i = 1; i < stSz; ++i) // i=1: skip $MAIN$
-	{
-	  if (cS[ i]->GetPro() == present)
+	  //if existing and skipIfExist set, just ignore:
+	  if (skipIfExist && already_present)  return 1;
+	  //check if active
+	  EnvStackT& cS = GDLInterpreter::CallStack();
+	  SizeT stSz = cS.size();
+	  for (SizeT i = 1; i < stSz; ++i) // i=1: skip $MAIN$
 	  {
-		Warning("Procedure "+name+" can't be restored while active.");
-		return 1;
+		if (cS[ i]->GetPro() == present)
+		{
+		  Warning("Function "+name+" can't be restored while active.");
+		  return 1;
+		}
 	  }
-	}
-    rd_tree(e,xdrs);
+	  rd_tree(e,xdrs);
 
-  if (verbose) Message("Restored procedure: " + name);
-	return 1;
+	if (verbose) Message("RESTORE: Restored function: " + name+".");
+	  return 1;
+	} else Message("Error in SAVE file, please report.");
+	return 0;
   }
   
   int getVersion(XDR* xdrs) {
@@ -2908,20 +2932,22 @@ endoffile:
 		  name = StrUpCase(name);
 		  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
 			if ((*i)->ObjectName() == name) {
-			  notFound=false;
 			  DPro * p = (*i);
-			  //		std::cerr<<"PRO: "<<p->ObjectName()<<std::endl;
-			  nextptr = writeDSubUD(xdrs, p);
+			  if (p->GetAstTree() != NULL) {
+				nextptr = writeDSubUD(xdrs, p, true);
+				notFound = false;
+			  }
 			  break;
 			}
 		  }
 		  //May also exist as a FUN, see e.g. TIC & TOC
 		  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
 			if ((*i)->ObjectName() == name) {
-			  notFound = false;
 			  DFun * f = (*i);
-			  //		std::cerr<<"FUN: "<<f->ObjectName()<<std::endl;
-			  nextptr = writeDSubUD(xdrs, f);
+			  if (f->GetAstTree() != NULL) {
+				nextptr = writeDSubUD(xdrs, f, false);
+				notFound = false;
+			  }
 			  break;
 			}
 		  }
@@ -2931,13 +2957,25 @@ endoffile:
 		for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
 		  DPro * p = (*i);
 		  //		std::cerr<<"PRO: "<<p->ObjectName()<<std::endl;
-		  if (ignore_nosave || !(p->isNoSave())) nextptr = writeDSubUD(xdrs, p);
+		  if (ignore_nosave || !(p->isNoSave())) nextptr = writeDSubUD(xdrs, p, true);
 		}
 		for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
 		  DFun * f = (*i);
 		  //		std::cerr<<"FUN: "<<f->ObjectName()<<std::endl;
-		  if (ignore_nosave || !(f->isNoSave())) nextptr = writeDSubUD(xdrs, f);
+		  if (ignore_nosave || !(f->isNoSave())) nextptr = writeDSubUD(xdrs, f, false);
 		}
+		for (SizeT i = 0; i < structList.size(); ++i) {
+		  DStructDesc* s=structList[i];
+		  for (auto j = 0; j < s->ProList().size(); ++j) {
+			DPro * p = (s->ProList())[j];
+			if (p->GetAstTree() != NULL) if (ignore_nosave || !(p->isNoSave())) nextptr = writeDSubUD(xdrs, p, true);
+		  }
+		  for (auto j= 0 ; j < s->FunList().size(); ++j) {
+			DFun * f = (s->FunList())[j];
+  		    if (f->GetAstTree() != NULL) if (ignore_nosave || !(f->isNoSave())) nextptr = writeDSubUD(xdrs, f, false);
+		  }
+		}
+
 	  }
 	}
 	

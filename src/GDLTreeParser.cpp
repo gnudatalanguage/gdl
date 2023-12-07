@@ -487,7 +487,6 @@ void GDLTreeParser::function_def(RefDNode _t) {
 		match(antlr::RefAST(_t),IDENTIFIER);
 		_t = _t->getNextSibling();
 		
-//		comp.StartFun(name->getText(),f_AST->GetCompileOpt(),obj->getText(),RefDNode(astFactory->dupTree(  antlr::RefAST(function_def_AST_in))));
 		comp.StartFun(name->getText(),f_AST->GetCompileOpt(),obj->getText(),RefDNode(function_def_AST_in));
 		
 		break;
@@ -538,7 +537,6 @@ void GDLTreeParser::function_def(RefDNode _t) {
 	case XOR_OP_EQ:
 	{
 		
-//		comp.StartFun(name->getText(),f_AST->GetCompileOpt(),"", RefDNode(astFactory->dupTree(  antlr::RefAST(function_def_AST_in))));
 		comp.StartFun(name->getText(),f_AST->GetCompileOpt(),"", RefDNode(function_def_AST_in));
 		
 		break;
