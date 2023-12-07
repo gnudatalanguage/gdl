@@ -976,7 +976,7 @@ void help_help(EnvT* e)
 		proList_tmp = proList;
 		sort(proList_tmp.begin(), proList_tmp.end(), CompProName());
 		*ostrp << "Compiled Procedures:" << '\n';
-		*ostrp << "$MAIN$" << '\n';
+		*ostrp << "$MAIN$\n";
 		OutputLines += 2;
 		for (SizeT i = 0; i < proList_tmp.size(); ++i) {
 		  if (proList_tmp[i]->isHidden() and !fullKW) continue;
@@ -1194,7 +1194,7 @@ void help_help(EnvT* e)
 	  if (nParam == 0 and !isKWSetFunctions and !isKWSetProcedures and !routinesKW)	SimpleDumpStack(e, *ostrp);
 
 	  if (isKWSetProcedures or routinesKW) {
-		*ostrp << "Compiled Procedures:" << '\n' << "$MAIN$" << '\n';
+		*ostrp << "Compiled Procedures:\n$MAIN$\n";
 		OutputLines += 2;
 		DPro *pro = NULL;
 		for (SizeT i = 1; i < pList.size(); ++i) {
@@ -1221,11 +1221,13 @@ void help_help(EnvT* e)
 		  if (!briefKW) {
 		  int nPar = pro->NPar();
 		  int nKey = pro->NKey();
-		  // Loop through parameters and keywords
-		  for (SizeT j = 0; j < pro->NPar(); ++j)
-			*ostrp << StrLowCase(pro->GetVarName(nKey + j)) << " ";
-		  for (SizeT j = 0; j < pro->NKey(); ++j)
-			*ostrp << StrUpCase(pro->GetVarName(j)) << " ";
+		  // Loop through parameters and keywords, sort keywords by alphabetic order
+		  for (SizeT j = 0; j < pro->NPar(); ++j) *ostrp << StrLowCase(pro->GetVarName(nKey + j)) << " ";
+		  std::vector<std::string>kwdList;
+		  for (SizeT j = 0; j < pro->NKey(); ++j) kwdList.push_back(StrUpCase(pro->GetVarName(j)));
+		  std::sort(kwdList.begin(), kwdList.end());
+		  //sorted list can only be explored via pointer:
+		  for (std::vector<std::string>::iterator j = kwdList.begin(); j != kwdList.end(); ++j) *ostrp << *j << " ";
 			*ostrp << '\n';
 			++OutputLines;
 		  }
@@ -1264,10 +1266,12 @@ void help_help(EnvT* e)
 		  if (!briefKW) {
 			int nPar = fun->NPar();
 			int nKey = fun->NKey();
-			for (SizeT j = 0; j < nPar; ++j)
-			  *ostrp << StrLowCase(fun->GetVarName(nKey + j)) << " ";
-			for (SizeT j = 0; j < nKey; ++j)
-			  *ostrp << StrUpCase(fun->GetVarName(j)) << " ";
+			for (SizeT j = 0; j < nPar; ++j)  *ostrp << StrLowCase(fun->GetVarName(nKey + j)) << " ";
+			std::vector<std::string>kwdList;
+			for (SizeT j = 0; j < fun->NKey(); ++j) kwdList.push_back(StrUpCase(fun->GetVarName(j)));
+			std::sort(kwdList.begin(), kwdList.end());
+		    //sorted list can only be explored via pointer:
+		    for (std::vector<std::string>::iterator j = kwdList.begin(); j != kwdList.end(); ++j) *ostrp << *j << " ";
 			*ostrp << '\n';
 			OutputLines++;
 		  }
