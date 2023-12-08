@@ -2988,17 +2988,44 @@ endoffile:
     fclose(save_fid);
     e->Throw("GDL cannot yet write such large SAVE files. Try with less values. File "+name+" is invalid, remove it.");  
   }
+
   void gdl_savetest(EnvT* e) {
-	bool exists = false;
-	for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-	  std::cout<<"-----------------------------------"<<(*i)->ObjectName()<<"----------------------------------------"<<std::endl;
+	long nparam = e->NParam();
+	if (nparam > 0) { //will not check nosave as the names are explicit
+	  for (int i = 0; i < nparam; ++i) {
+		DString name;
+		bool notFound = true;
+		e->AssureStringScalarPar(i, name);
+		name = StrUpCase(name);
+		for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+		  if ((*i)->ObjectName() == name) {
+			std::cout << "-----------------------------------" << (*i)->ObjectName() << "----------------------------------------" << std::endl;
 			antlr::print_tree pt;
-			pt.pr_tree(static_cast<ProgNodeP>((*i)->GetTree()));
-	}
-	for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-	  std::cout<<"-----------------------------------"<<(*i)->ObjectName()<<"----------------------------------------"<<std::endl;
-	  antlr::print_tree pt;
-	  pt.pr_tree(static_cast<ProgNodeP> ((*i)->GetTree()));
+			pt.pr_tree(static_cast<ProgNodeP> ((*i)->GetTree()));
+			break;
+		  }
+		}
+		//May also exist as a FUN, see e.g. TIC & TOC
+		for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+		  if ((*i)->ObjectName() == name) {
+			std::cout << "-----------------------------------" << (*i)->ObjectName() << "----------------------------------------" << std::endl;
+			antlr::print_tree pt;
+			pt.pr_tree(static_cast<ProgNodeP> ((*i)->GetTree()));
+			break;
+		  }
+		}
+	  }
+	} else {
+	  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+		std::cout << "-----------------------------------" << (*i)->ObjectName() << "----------------------------------------" << std::endl;
+		antlr::print_tree pt;
+		pt.pr_tree(static_cast<ProgNodeP> ((*i)->GetTree()));
+	  }
+	  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+		std::cout << "-----------------------------------" << (*i)->ObjectName() << "----------------------------------------" << std::endl;
+		antlr::print_tree pt;
+		pt.pr_tree(static_cast<ProgNodeP> ((*i)->GetTree()));
+	  }
 	}
   }
 }
