@@ -29,11 +29,13 @@
 
 // print out AST tree
 //#define GDL_DEBUG
-#undef GDL_DEBUG
+//#undef GDL_DEBUG
 
 #ifdef GDL_DEBUG
 #include "print_tree.hpp"
 #endif
+
+CodeListT     codeList;
 
 using namespace std;
 
@@ -260,6 +262,7 @@ DSubUD::~DSubUD()
 
   labelList.Clear();
   delete tree;
+  codeList.erase(this);
 }
 
 DSubUD::DSubUD(const string& n,const string& o,const string& f) : 
@@ -471,5 +474,19 @@ bool DSubUD::isStatic()
 bool DSubUD::isHidden()
 {
   return compileOpt & GDLParser::HIDDEN;
+}
+
+bool DSubUD::isGdlHidden()
+{
+  return compileOpt & GDLParser::GDL_HIDDEN;
+}
+
+bool DSubUD::isNoSave()
+{
+  return compileOpt & GDLParser::NOSAVE;
+}
+
+void DSubUD::AddHiddenToCompileOpt() {
+  compileOpt |= GDLParser::GDL_HIDDEN;
 }
 

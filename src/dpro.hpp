@@ -18,11 +18,10 @@
 #ifndef DPRO_HPP_
 #define DPRO_HPP_
 
-// #include <deque>
 #include <string>
 #include <algorithm>
 #include <vector>
-//#include <stack>
+#include <map>
 
 #include "basegdl.hpp"
 #include "dcommon.hpp"
@@ -36,6 +35,12 @@
       extern bool posixpaths;
     }
 #endif
+
+class DSubUD;
+typedef std::map<DSubUD*, RefDNode> CodeListT;
+typedef std::map<DSubUD*, RefDNode>::iterator CodeListIterator;
+extern CodeListT     codeList;
+    
 template<typename T>  class Is_eq: public std::function<bool(T)>
 {
   std::string name;
@@ -333,7 +338,7 @@ class DSubUD: public DSub
 
   CommonBaseListT     common;      // common blocks or references 
   ProgNodeP           tree;        // the 'code'
-  unsigned int                 compileOpt;  // e.g. hidden or obsolete
+  unsigned int        compileOpt;  // e.g. hidden or obsolete
 
   LabelListT          labelList;
 
@@ -349,6 +354,9 @@ public:
   void Reset();
   void DelTree();
   void SetTree( ProgNodeP t) { tree = t;}
+  void SetAstTree( RefDNode n) { 
+    codeList.insert(std::pair<DSubUD*, RefDNode>(this, n));
+  }
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
   void DeleteLastAddedCommon(bool kill=true)
@@ -542,12 +550,21 @@ void ReName( SizeT ix, const std::string& s)
   {
     return tree;
   }
-
+  RefDNode GetAstTree()
+  {
+    //find Semicompiled code saved in codeList
+    CodeListIterator i = codeList.find(this);
+    if (i!=codeList.end()) return (*i).second;
+    return NULL;
+  }
   unsigned int GetCompileOpt() { return compileOpt; }
   void SetCompileOpt(const unsigned int n) { compileOpt = n; }
+  void AddHiddenToCompileOpt();
   bool isObsolete();
   bool isHidden();
+  bool isGdlHidden();
   bool isStatic();
+  bool isNoSave();
 
   friend class EnvUDT;
 };

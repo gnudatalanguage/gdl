@@ -341,8 +341,19 @@ else
 // }
 
 // searches and compiles procedure (searchForPro == true) or function (searchForPro == false)  'pro'
+// if pro/fun is already present because it has been restored, (thus there may be no files, and no filename), return immediately 
 bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro) 
 {
+  std::string name_in_list = StrUpCase(pro);
+  if (searchForPro) {
+    for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+		  if ((*i)->ObjectName() == name_in_list) return true;
+	}
+  } else {
+	for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+	  if ((*i)->ObjectName() == name_in_list) return true;
+	}
+  }
   static StrArr openFiles;
 
   string proFile=StrLowCase(pro)+".pro";
@@ -655,14 +666,13 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool s
 #ifdef GDL_DEBUG
   cout << "Parser output:" << endl;
   antlr::print_tree pt;
-  pt.pr_tree(static_cast<antlr::RefAST>(theAST));
+  pt.pr_tree(static_cast<antlr::RefAST>(theSemiCompiledAST));
   cout << "CompileFile: Parser end." << endl;
 #endif
   
 #ifdef GDL_DEBUG
   RefDNode trAST;
 #endif
-
   GDLTreeParser treeParser( f, untilPro);
   try
     {
@@ -701,6 +711,40 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool s
   
   return true;
 }      
+
+bool GDLInterpreter::CompileSaveFile(RefDNode theSemiCompiledAST) 
+{  
+#ifdef GDL_DEBUG
+  RefDNode trAST;
+#endif
+  GDLTreeParser treeParser( "", "");
+
+  try
+    {
+      treeParser.translation_unit(theSemiCompiledAST);
+//     if( treeParser.ActiveProCompiled()) RetAll(); //should not happen as CompileSaveFile is not called in this case
+    }
+  catch( GDLException& e)
+    {
+      ReportCompileError( e, "");
+//      if( treeParser.ActiveProCompiled()) RetAll();
+      return false;
+    }
+  catch( ANTLRException& e)
+    {
+      cerr << "Compiler exception: " <<  e.getMessage() << endl;
+//      if( treeParser.ActiveProCompiled()) RetAll();
+      return false;
+    }
+#ifdef GDL_DEBUG
+      cout << "Tree parser output:" << endl;
+      antlr::print_tree ptTP;
+      ptTP.pr_tree(static_cast<antlr::RefAST>(trAST));
+      cout << "CompileFile: Tree parser end." << endl;
+#endif
+  
+  return true;
+}   
 
 void AppendExtension( string& argstr)
 {

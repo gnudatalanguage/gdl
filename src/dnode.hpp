@@ -68,14 +68,19 @@ public:
 	   var(NULL), 
 	   libFun(NULL),
 	   libPro(NULL),
-	   arrIxList(NULL),arrIxListNoAssoc(NULL), labelStart( -1), labelEnd( -1)
+	   arrIxList(NULL),arrIxListNoAssoc(NULL), labelStart( -1), labelEnd( -1), initInt(0)
   {
   }
 
   DNode( const DNode& cp);
 
-  DNode(antlr::RefToken t) : antlr::CommonAST(t) //, down(), right()
+  DNode(antlr::RefToken t) : antlr::CommonAST(t), //, down(), right()
 //   	, keepRight( false)
+	   cData(NULL), 
+	   var(NULL), 
+	   libFun(NULL),
+	   libPro(NULL),
+	   arrIxList(NULL),arrIxListNoAssoc(NULL), labelStart( -1), labelEnd( -1), initInt(0)
 {
     //    antlr::CommonAST::setType(t->getType() );
     //    antlr::CommonAST::setText(t->getText() );
@@ -100,6 +105,7 @@ public:
     var=NULL;
     arrIxList=NULL;
     arrIxListNoAssoc=NULL;
+    initInt=0;
   }
 
   // used by DNodeFactory

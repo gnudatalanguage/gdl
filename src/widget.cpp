@@ -273,7 +273,7 @@ void CallEventPro( const std::string& p, BaseGDL* p0, BaseGDL* p1 ) {
     // make the call
     BaseGDL::interpreter->call_pro( static_cast<DSubUD*> (newEnv->GetPro( ))->GetTree( ) );
 #ifdef 	AUTO_PRINT_EXPR
-  } else std::cerr<<"Internal error, procedure "+p+" is not found."<<std::endl;
+  } else std::cerr<<"Attempt to call undefined procedure: '"+p+"'."<<std::endl;
 #endif      
 }
 

@@ -36,7 +36,7 @@
 
 #include "ncdf_cl.hpp"
 
-#define GDL_DEBUG
+//#define GDL_DEBUG
 //#undef GDL_DEBUG
 
 namespace lib {
