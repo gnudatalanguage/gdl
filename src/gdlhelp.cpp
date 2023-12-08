@@ -393,6 +393,13 @@ static void help_object(std::ostream* ostrp, DStructDesc* objDesc, bool verbose 
 {
   FunListT& funlist = objDesc->FunList();
   ProListT& prolist = objDesc->ProList();
+  //if object is purely GDL internal , do not display it if not verbose:
+  if (!verbose) {
+  bool internal=true;
+	for (auto i=0; i< funlist.size(); ++i) if (funlist[i]->GetAstTree()!=NULL) {internal=false; break;}
+	if (internal)  for (auto i=0; i< prolist.size(); ++i) if (prolist[i]->GetAstTree()!=NULL) {internal=false; break;}
+	if (internal) return;
+  }
   int num_methods = funlist.size() + prolist.size();
   int numpar = objDesc->GetNumberOfParents();
   if (numpar==1) *ostrp << "** Object class " << objDesc->Name() << ", " << numpar << " direct superclass, " << num_methods << " known methods" << '\n';
@@ -416,11 +423,11 @@ static void help_object(std::ostream* ostrp, DStructDesc* objDesc, bool verbose 
       *ostrp << "   Known Procedure Methods:\n";
       for (int j = 0; j < prolist.size(); ++j) *ostrp << "      " << objDesc->Name() << "::" << prolist[j]->Name() << "\n";
 }
-
-    if (!verbose) return;
-    DStructGDL* dumm = new DStructGDL(objDesc, dimension());
-      Guard<DStructGDL> guard(dumm);
-    lib::help_struct(*ostrp, dumm, 0, false);
+//
+//    if (!verbose) return;
+//    DStructGDL* dumm = new DStructGDL(objDesc, dimension());
+//      Guard<DStructGDL> guard(dumm);
+//    lib::help_struct(*ostrp, dumm, 0, false);
     }
 	}
 
