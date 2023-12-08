@@ -341,8 +341,19 @@ else
 // }
 
 // searches and compiles procedure (searchForPro == true) or function (searchForPro == false)  'pro'
+// if pro/fun is already present because it has been restored, (thus there may be no files, and no filename), return immediately 
 bool GDLInterpreter::SearchCompilePro(const string& pro, bool searchForPro) 
 {
+  std::string name_in_list = StrUpCase(pro);
+  if (searchForPro) {
+    for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+		  if ((*i)->ObjectName() == name_in_list) return true;
+	}
+  } else {
+	for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+	  if ((*i)->ObjectName() == name_in_list) return true;
+	}
+  }
   static StrArr openFiles;
 
   string proFile=StrLowCase(pro)+".pro";
