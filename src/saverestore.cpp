@@ -2677,7 +2677,8 @@ endoffile:
     }
 
 	static int COMPRESS = e->KeywordIx("COMPRESS");
-	save_compress = e->KeywordSet(COMPRESS);
+	//To save a lot of space the /routine save files will be automatically in compressed format:
+	save_compress = (e->KeywordSet(COMPRESS)||doRoutines);
 
 	static int FILENAME = e->KeywordIx("FILENAME");
 
