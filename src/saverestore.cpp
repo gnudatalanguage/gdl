@@ -48,7 +48,8 @@ const string rectypes[] = {"START_MARKER", //0
   "PROMOTE64", //17
   "", "NOTICE", //19
   "DESCRIPTION", //20
-  "UNKNOWN", "UNKNOWN", "UNKNOWN"};
+  "UNKNOWN", "UNKNOWN", "UNKNOWN", //23
+  "GDL Private"};
 
 const int sizeOfType[] = {0, 1, 2, 4, 4, 8, 8, 0, 0, 16,0,0,2,4,8,8};
 
@@ -175,7 +176,7 @@ enum {
 	xdr_int32_t(xdrs, &ligne); //LineNUM
 	// the 'flags' are an union of ints, with different meanings depending on the actual node
 	int32_t flags=0;
-//	if (text.find("<ASTNULL>")==std::string::npos) //otherwise undefined and Valgrind Complains.
+//	if (text.find("<ASTNULL>")==std::string::npos) //otherwise undefined and Valgrind Complains. //NO since explicitely defined in object constructor (I hope everywhere)
 	flags=dNode->GetCompileOpt(); 
 	xdr_int32_t(xdrs, &flags);
 	BaseGDL* var = dNode->CData();
@@ -186,6 +187,7 @@ enum {
 	int varType = 0;
 	if (var) varType = var->Type(); //will be 0 otherwise
 	xdr_int32_t(xdrs, &varType);
+	if (varType > 0) {
 	switch (varType) {
 	case GDL_FLOAT:
 	{
@@ -254,6 +256,7 @@ enum {
 	case GDL_UNDEF:
 	  break;
 	default: std::cerr << "unsupported constant var in procedure code :" << varType;
+	}
 	}
   } // sv_name
 
@@ -331,6 +334,7 @@ enum {
 	// BaseGDL* savenode.var = readCData(e, xdrs); //CData
 	int varType = 0;
 	xdr_int32_t(xdrs, &varType); //get VarType
+	if (varType > 0) {
 	switch (varType) {
 	case GDL_FLOAT:
 	{
@@ -406,6 +410,7 @@ enum {
 	}
 	default:
 	  break;
+	}
 	}
 //	  std::cerr<<"["<<savenode.nodeType<< ":";
 //	  if (savenode.var!=NULL) std::cerr<<savenode.var->NBytes();
@@ -2135,7 +2140,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       if (fseek(fid, nextptr, SEEK_SET)) break;
       if (!xdr_int32_t(xdrs, &rectype)) break;
 
-      if (DEBUG_SAVERESTORE) cerr << "Offset " << nextptr << ": record type " << rectypes[rectype] << endl;
+      if (DEBUG_SAVERESTORE) cerr << "Offset " << nextptr << ": record type " << rectypes[min(23,rectype)] << endl;
 
       if (rectype == END_MARKER)
       {
@@ -2316,7 +2321,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       if (fseek(fid, nextptr, SEEK_SET)) break;
       if (!xdr_int32_t(xdrs, &rectype)) break;
 
-      if (DEBUG_SAVERESTORE) cerr << "Offset " << nextptr << ": record type " << rectypes[rectype] << endl;
+      if (DEBUG_SAVERESTORE) cerr << "Offset " << nextptr << ": record type " << rectypes[min(23,rectype)] << endl;
 
       if (rectype == END_MARKER)
       {
@@ -2338,7 +2343,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 		  if (fseek(fid, nextptr, SEEK_SET)) break;
 		  if (!xdr_int32_t(xdrs, &rectype)) break;
 
-		  if (DEBUG_SAVERESTORE) cerr << "Offset " << nextptr << ": record type " << rectypes[rectype] << endl;
+		  if (DEBUG_SAVERESTORE) cerr << "Offset " << nextptr << ": record type " << rectypes[min(24,rectype)] << endl;
 		  if (isHdr64) {
 			uint64_t my_ulong64;
 			if (!xdr_uint64_t(xdrs, &my_ulong64)) break;
@@ -2677,8 +2682,7 @@ endoffile:
     }
 
 	static int COMPRESS = e->KeywordIx("COMPRESS");
-	//To save a lot of space the /routine save files will be automatically in compressed format:
-	save_compress = (e->KeywordSet(COMPRESS)||doRoutines);
+	save_compress = (e->KeywordSet(COMPRESS));
 
 	static int FILENAME = e->KeywordIx("FILENAME");
 
@@ -2701,7 +2705,14 @@ endoffile:
     std::queue<std::pair<std::string, BaseGDL*> >varNameList;
 
     long nparam=e->NParam();
-    if (!doComm && !doSys) doVars=(doVars||(nparam==0 && !doRoutines)); 
+//Saving routines excludes saving anything else (same as IDL in fact)
+	if (doRoutines) {
+	  doVars=false;
+	  doSys=false;
+	  doComm=false;
+	} else {
+      if (!doComm && !doSys) doVars=(doVars||(nparam==0));
+	}
 
     if (doSys)
     {
@@ -2836,12 +2847,13 @@ endoffile:
 #define ULONG LONG 
 
 
-    //will start at TIMESTAMP
+    //will start at TIMESTAMP if not /ROUTINE
     uint64_t nextptr = LONG;
     uint64_t oldptr = 0;
 
     fseek(save_fid, nextptr, SEEK_SET);
-    
+
+if (!doRoutines){    
     const int    MAX_DATE_STRING_LENGTH = 80;
     time_t t=time(0);
     struct tm * tstruct;
@@ -2919,6 +2931,7 @@ endoffile:
       if (verboselevel>0) Message("SAVE: Saved variable: " + (variableVector.back()).first+".");
       variableVector.pop_back();
     }
+}
     nextptr=writeEnd(xdrs);
 	//write Our save routine library version just after regular end. It will not be seen by IDL.
 
@@ -2990,44 +3003,44 @@ endoffile:
     e->Throw("GDL cannot yet write such large SAVE files. Try with less values. File "+name+" is invalid, remove it.");  
   }
 
-  void gdl_savetest(EnvT* e) {
-	long nparam = e->NParam();
-	if (nparam > 0) { //will not check nosave as the names are explicit
-	  for (int i = 0; i < nparam; ++i) {
-		DString name;
-		bool notFound = true;
-		e->AssureStringScalarPar(i, name);
-		name = StrUpCase(name);
-		for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-		  if ((*i)->ObjectName() == name) {
-			std::cout << "-----------------------------------" << (*i)->ObjectName() << "----------------------------------------" << std::endl;
-			antlr::print_tree pt;
-			pt.pr_tree(static_cast<ProgNodeP> ((*i)->GetTree()));
-			break;
-		  }
-		}
-		//May also exist as a FUN, see e.g. TIC & TOC
-		for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-		  if ((*i)->ObjectName() == name) {
-			std::cout << "-----------------------------------" << (*i)->ObjectName() << "----------------------------------------" << std::endl;
-			antlr::print_tree pt;
-			pt.pr_tree(static_cast<ProgNodeP> ((*i)->GetTree()));
-			break;
-		  }
-		}
-	  }
-	} else {
-	  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
-		std::cout << "-----------------------------------" << (*i)->ObjectName() << "----------------------------------------" << std::endl;
-		antlr::print_tree pt;
-		pt.pr_tree(static_cast<ProgNodeP> ((*i)->GetTree()));
-	  }
-	  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
-		std::cout << "-----------------------------------" << (*i)->ObjectName() << "----------------------------------------" << std::endl;
-		antlr::print_tree pt;
-		pt.pr_tree(static_cast<ProgNodeP> ((*i)->GetTree()));
-	  }
-	}
-  }
+//  void gdl_savetest(EnvT* e) {
+//	long nparam = e->NParam();
+//	if (nparam > 0) { //will not check nosave as the names are explicit
+//	  for (int i = 0; i < nparam; ++i) {
+//		DString name;
+//		bool notFound = true;
+//		e->AssureStringScalarPar(i, name);
+//		name = StrUpCase(name);
+//		for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+//		  if ((*i)->ObjectName() == name) {
+//			std::cout << "-----------------------------------" << (*i)->ObjectName() << "----------------------------------------" << std::endl;
+//			antlr::print_tree pt;
+//			pt.pr_tree(static_cast<ProgNodeP> ((*i)->GetTree()));
+//			break;
+//		  }
+//		}
+//		//May also exist as a FUN, see e.g. TIC & TOC
+//		for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+//		  if ((*i)->ObjectName() == name) {
+//			std::cout << "-----------------------------------" << (*i)->ObjectName() << "----------------------------------------" << std::endl;
+//			antlr::print_tree pt;
+//			pt.pr_tree(static_cast<ProgNodeP> ((*i)->GetTree()));
+//			break;
+//		  }
+//		}
+//	  }
+//	} else {
+//	  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
+//		std::cout << "-----------------------------------" << (*i)->ObjectName() << "----------------------------------------" << std::endl;
+//		antlr::print_tree pt;
+//		pt.pr_tree(static_cast<ProgNodeP> ((*i)->GetTree()));
+//	  }
+//	  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
+//		std::cout << "-----------------------------------" << (*i)->ObjectName() << "----------------------------------------" << std::endl;
+//		antlr::print_tree pt;
+//		pt.pr_tree(static_cast<ProgNodeP> ((*i)->GetTree()));
+//	  }
+//	}
+//  }
 }
 
