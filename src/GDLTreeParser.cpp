@@ -35,7 +35,7 @@ void GDLTreeParser::translation_unit(RefDNode _t) {
 	RefDNode translation_unit_AST = RefDNode(antlr::nullAST);
 	RefDNode retAST_AST = RefDNode(antlr::nullAST);
 	RefDNode retAST = RefDNode(antlr::nullAST);
-
+	
 	//    returnProgNodeP = _t;
 	bool mainStarted = false;
 	
@@ -417,7 +417,7 @@ void GDLTreeParser::procedure_def(RefDNode _t) {
 		_t = _retTree;
 		
 		comp.SetTree( returnAST);
-
+		
 		break;
 	}
 	case 3:
@@ -660,7 +660,7 @@ void GDLTreeParser::function_def(RefDNode _t) {
 		_t = _retTree;
 		
 		comp.SetTree( returnAST);
-	
+		
 		break;
 	}
 	case 3:

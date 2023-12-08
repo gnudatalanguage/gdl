@@ -26,7 +26,7 @@
 #include <antlr/CharInputBuffer.hpp>
 
 // GD: set to 1 to traceout what the Parser does.
-//#define debugParser 0
+#define debugParser 0
 //#include "dinterpreter.hpp"
 
 // defintion in dinterpreter.cpp
@@ -132,11 +132,11 @@ class CUSTOM_API GDLLexer : public antlr::CharScanner, public GDLTokenTypes
       // make copy as we delete 'this'
       antlr::TokenStreamSelector* sel=selector; 
 
-
       // make sure errors are reported in right file
       parserPtr->setFilename(
         static_cast<GDLLexer*>(selector->getCurrentStream())->getFilename());
 
+ //GD: see issue #1632 -- deletion must be here and not before previous line!           
       // here 'this' is deleted (pops selector)
       delete sel->getCurrentStream();
 

@@ -48,7 +48,7 @@ class CUSTOM_API GDLParser : public antlr::LLkParser, public GDLTokenTypes
         STATIC=64,
         NOSAVE=128,
         GDL_HIDDEN=256 //flag to avoid writing "Compiled module" at compilation. 
-                       //Not the same as HIDDEN, that can be set in the procdure code an hides also the procedure frrm the HELP. 
+                       //Not the same as HIDDEN, that can be set in the procdure code and hides also the procedure from the HELP. 
     };
 
     void SetCompileOpt( unsigned int cOpt)

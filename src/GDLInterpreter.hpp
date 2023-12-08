@@ -180,7 +180,6 @@ public:
                             const std::string& untilPro="",
                             bool searchForPro=true); 
     static bool CompileSaveFile(RefDNode theAST); 
-
     typedef RefHeap<BaseGDL> RefBaseGDL;
     typedef RefHeap<DStructGDL> RefDStructGDL;
 

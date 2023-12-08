@@ -300,11 +300,11 @@ procedure_def!
             name:IDENTIFIER
             (METHOD obj:IDENTIFIER
                 {
-                    comp.StartPro(name->getText(),#p->GetCompileOpt(),obj->getText());
+                    comp.StartPro(name->getText(),#p->GetCompileOpt(),obj->getText(), RefDNode(procedure_def_AST_in));
                 }
             |
                 {
-                    comp.StartPro(name->getText(),#p->GetCompileOpt());
+                    comp.StartPro(name->getText(),#p->GetCompileOpt(),"", RefDNode(procedure_def_AST_in));
                 }
             ) 
             (parameter_declaration)?
@@ -327,11 +327,11 @@ function_def!
             name:IDENTIFIER
             (METHOD obj:IDENTIFIER
                 {
-                    comp.StartFun(name->getText(),#f->GetCompileOpt(),obj->getText());
+                    comp.StartFun(name->getText(),#f->GetCompileOpt(),obj->getText(),RefDNode(function_def_AST_in));
                 }
             |
                 {
-                    comp.StartFun(name->getText(),#f->GetCompileOpt());
+                    comp.StartFun(name->getText(),#f->GetCompileOpt(),"", RefDNode(function_def_AST_in));
                 }
             ) 
             (parameter_declaration)? 
