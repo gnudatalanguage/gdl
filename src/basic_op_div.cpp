@@ -41,6 +41,11 @@ Data_<Sp>* Data_<Sp>::Div(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LI
   GDLStartRegisteringFPExceptions();
   SizeT i = 0;
 
+  if (nEl == 1) {
+	(*this)[0] /= (*right)[0];
+	GDLStopRegisteringFPExceptions();
+	return this;
+  }
   if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
 	for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] /= (*right)[ix];
   } else {
@@ -62,14 +67,17 @@ Data_<Sp>* Data_<Sp>::DivInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,_
   assert(nEl); 
   GDLStartRegisteringFPExceptions();
 
-  SizeT i = 0;
-
+  if (nEl == 1) {
+	(*this)[0] = (*right)[0] / (*this)[0];
+    GDLStopRegisteringFPExceptions();
+	return this;
+  }
   if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
-	for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] = (*right)[ix] / (*this)[ix];
+	for (OMPInt ix = 0; ix < nEl; ++ix) (*this)[ix] = (*right)[ix] / (*this)[ix];
   } else {
 	TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-	  for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] = (*right)[ix] / (*this)[ix];
+	  for (OMPInt ix = 0; ix < nEl; ++ix) (*this)[ix] = (*right)[ix] / (*this)[ix];
   }
 
   GDLStopRegisteringFPExceptions();
@@ -122,9 +130,17 @@ Data_<Sp>* Data_<Sp>::DivS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__L
   assert(nEl); 
   Ty s = (*right)[0];
   GDLStartRegisteringFPExceptions();
- 
-  for (SizeT i = 0; i < nEl; ++i) {
-	(*this)[i] /= s;
+  if (nEl == 1) {
+	(*this)[0] /= s;
+    GDLStopRegisteringFPExceptions();
+	return this;
+  }
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (OMPInt ix = 0; ix < nEl; ++ix) (*this)[ix] /= s;
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	  for (OMPInt ix = 0; ix < nEl; ++ix) (*this)[ix] /= s;
   }
 
   GDLStopRegisteringFPExceptions();
@@ -144,7 +160,18 @@ Data_<Sp>* Data_<Sp>::DivInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
 
   Ty s = (*right)[0];
   SizeT i = 0;
-  for (SizeT i=0; i < nEl; ++i) (*this)[i] = s / (*this)[i];
+  if (nEl == 1) {
+	(*this)[0] = s / (*this)[0];
+	GDLStopRegisteringFPExceptions();
+	return this;
+  }
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] = s / (*this)[ix];
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	  for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] = s / (*this)[ix];
+  }
 
   GDLStopRegisteringFPExceptions();
   

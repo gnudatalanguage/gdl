@@ -1645,6 +1645,11 @@ Data_<Sp>* Data_<Sp>::DivNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,_
   GDLStartRegisteringFPExceptions();
 
   Data_* res = NewResult();
+  if (nEl == 1) {
+	(*res)[0] = (*this)[0] / (*right)[0];
+	GDLStopRegisteringFPExceptions();
+	return res;
+  }
 
   if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
 	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] / (*right)[ix];
@@ -1670,6 +1675,11 @@ Data_<Sp>* Data_<Sp>::DivInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE_
   //  assert( rEl);
   assert(nEl); 
   GDLStartRegisteringFPExceptions();
+  if (nEl == 1) {
+	(*res)[0] = (*right)[0] / (*this)[0];
+	GDLStopRegisteringFPExceptions();
+	return res;
+  }
 
   if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
 	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*right)[ix] / (*this)[ix];
@@ -1732,6 +1742,11 @@ Data_<Sp>* Data_<Sp>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
   GDLStartRegisteringFPExceptions();
   Ty s = (*right)[0];
   Data_* res = NewResult();
+  if (nEl == 1) {
+	(*res)[0] = (*this)[0] / s;
+	GDLStopRegisteringFPExceptions();
+	return res;
+  }
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = (*this)[ix] / s;
   } else {
@@ -1752,10 +1767,13 @@ Data_<SpDLong>* Data_<SpDLong>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__
 
   ULong nEl = N_Elements();
   assert(nEl); 
-  GDLStartRegisteringFPExceptions();
   DLong s = (*right)[0];
 //  libdivide::divider<DLong> fast_d((*right)[0]); //constructs an instance of libdivide::divider  //C++ version too long. Only C version is faster.
   Data_* res = NewResult();
+  if (nEl == 1) {
+	(*res)[0] = (*this)[0] / s;
+	return res;
+  }
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = (*this)[ix] / s;
   } else {
@@ -1765,8 +1783,6 @@ Data_<SpDLong>* Data_<SpDLong>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = libdivide::libdivide_s32_do((*this)[ix], &fast_d );
 	//	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] / s;
  }
- 
-  GDLStopRegisteringFPExceptions();
   
  return res;
 }
@@ -1777,11 +1793,14 @@ Data_<SpDULong>* Data_<SpDULong>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION
 
   ULong nEl = N_Elements();
   assert(nEl); 
-  GDLStartRegisteringFPExceptions();
   DULong s = (*right)[0];
 //  libdivide::divider<DLong> fast_d((*right)[0]); //constructs an instance of libdivide::divider  //C++ version too long. Only C version is faster.
   Data_* res = NewResult();
-  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+  if (nEl == 1) {
+	(*res)[0] = (*this)[0] / s;
+	return res;
+  }
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = (*this)[ix] / s;
   } else {
 	TRACEOMP(__FILE__, __LINE__)
@@ -1790,8 +1809,6 @@ Data_<SpDULong>* Data_<SpDULong>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = libdivide::libdivide_u32_do((*this)[ix], &fast_d );
 	//	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] / s;
  }
- 
-  GDLStopRegisteringFPExceptions();
   
  return res;
 }
@@ -1801,10 +1818,13 @@ Data_<SpDLong64>* Data_<SpDLong64>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
 
   ULong nEl = N_Elements();
   assert(nEl); 
-  GDLStartRegisteringFPExceptions();
   DLong64 s = (*right)[0];
 //  libdivide::divider<DLong> fast_d((*right)[0]); //constructs an instance of libdivide::divider  //C++ version too long. Only C version is faster.
   Data_* res = NewResult();
+  if (nEl == 1) {
+	(*res)[0] = (*this)[0] / s;
+	return res;
+  }
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = (*this)[ix] / s;
   } else {
@@ -1814,8 +1834,6 @@ Data_<SpDLong64>* Data_<SpDLong64>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = libdivide::libdivide_s64_do((*this)[ix], &fast_d );
 	//	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] / s;
  }
- 
-  GDLStopRegisteringFPExceptions();
   
  return res;
 }
@@ -1825,10 +1843,13 @@ Data_<SpDULong64>* Data_<SpDULong64>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
 
   ULong nEl = N_Elements();
   assert(nEl); 
-  GDLStartRegisteringFPExceptions();
   DULong64 s = (*right)[0];
 //  libdivide::divider<DLong> fast_d((*right)[0]); //constructs an instance of libdivide::divider  //C++ version too long. Only C version is faster.
   Data_* res = NewResult();
+  if (nEl == 1) {
+	(*res)[0] = (*this)[0] / s;
+	return res;
+  }
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = (*this)[ix] / s;
   } else {
@@ -1838,8 +1859,6 @@ Data_<SpDULong64>* Data_<SpDULong64>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = libdivide::libdivide_u64_do((*this)[ix], &fast_d );
 	//	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] / s;
  }
-
-  GDLStopRegisteringFPExceptions();
   
   return res;
 }
@@ -1855,6 +1874,11 @@ Data_<Sp>* Data_<Sp>::DivInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE
   GDLStartRegisteringFPExceptions();
 
   Ty s = (*right)[0];
+  if (nEl == 1) {
+	(*res)[0] = s / (*this)[0];
+	GDLStopRegisteringFPExceptions();
+	return res;
+  }
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
 	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = s / (*this)[ix];
   } else {
@@ -1938,6 +1962,11 @@ Data_<Sp>* Data_<Sp>::ModNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,_
   //  assert( rEl);
   assert(nEl); 
   GDLStartRegisteringFPExceptions();
+  if (nEl == 1) {
+	(*res)[0] = (*this)[0] % (*right)[0];
+	GDLStopRegisteringFPExceptions();
+	return res;
+  }
 
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
 	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] % (*right)[ix];
@@ -1961,6 +1990,11 @@ Data_<Sp>* Data_<Sp>::ModInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE_
   Data_* res = NewResult();
   assert(nEl); 
   GDLStartRegisteringFPExceptions();
+  if (nEl == 1) {
+	(*res)[0] = (*right)[0] % (*this)[0];
+	GDLStopRegisteringFPExceptions();
+	return res;
+  }
 
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
 	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*right)[ix] % (*this)[ix];
@@ -1988,6 +2022,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION_
   GDLStartRegisteringFPExceptions();
   if (nEl == 1) {
     (*res)[0] = Modulo((*this)[0], (*right)[0]);
+	GDLStopRegisteringFPExceptions();
     return res;
   }
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
@@ -2016,6 +2051,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
   GDLStartRegisteringFPExceptions();
   if (nEl == 1) {
     (*res)[0] = Modulo((*right)[0], (*this)[0]);
+	GDLStopRegisteringFPExceptions();
     return res;
   }
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
@@ -2044,6 +2080,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTIO
   Data_* res = NewResult();
   if (nEl == 1) {
     (*res)[0] = DModulo((*this)[0], (*right)[0]);
+	GDLStopRegisteringFPExceptions();
     return res;
   }
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
@@ -2072,6 +2109,7 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
   GDLStartRegisteringFPExceptions();
   if (nEl == 1) {
     (*res)[0] = DModulo((*right)[0], (*this)[0]);
+	GDLStopRegisteringFPExceptions();
     return res;
   }
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
@@ -2158,10 +2196,22 @@ Data_<Sp>* Data_<Sp>::ModSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
   assert(nEl); 
   GDLStartRegisteringFPExceptions();
 
-  Ty s = (*right)[0];
 
   Data_* res = NewResult();
-    for (SizeT i = 0; i < nEl; ++i)   (*res)[i] = (*this)[i] % s;
+  if (nEl == 1) {
+	(*res)[0] = (*this)[0] % (*right)[0];
+	GDLStopRegisteringFPExceptions();
+	return res;
+  }
+  
+  Ty s = (*right)[0];
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] % s;
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	  for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] % s;
+  }
 
   GDLStopRegisteringFPExceptions();
   
@@ -2752,6 +2802,10 @@ Data_<SpDComplex>* Data_<SpDComplex>::PowInvNew(BaseGDL* r) { TRACE_ROUTINE(__FU
   assert(nEl);
 
   Data_* res = NewResult();
+  if (nEl == 1) {
+	(*res)[0] = pow((*right)[0], (*this)[0]);
+	return res;
+  }
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*right)[i], (*this)[i]);
   } else {
@@ -2927,7 +2981,11 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvNew(BaseGDL* r) { TRACE_ROUTIN
   assert(rEl);
   assert(nEl);
   Data_* res = NewResult();
-  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+  if (nEl == 1) {
+	(*res)[0] = pow((*right)[0], (*this)[0]);
+	return res;
+  }
+    if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow((*right)[i], (*this)[i]);
   } else {
     TRACEOMP(__FILE__, __LINE__)
@@ -3333,8 +3391,12 @@ Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::PowInvSNew(BaseGDL* r) { TRACE_ROUTI
 
   ULong nEl = N_Elements();
   assert(nEl);
-  Ty s = (*right)[0];
   Data_* res = NewResult();
+  if (nEl == 1) {
+	(*res)[0] = pow((*right)[0], (*this)[0]);
+	return res;
+  }
+  Ty s = (*right)[0];
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = pow(s, (*this)[ i]);
   } else {
