@@ -16,13 +16,23 @@
  ***************************************************************************/
 #ifndef GDLFPEXCEPTIONS_HPP_
 #define GDLFPEXCEPTIONS_HPP_
-
+#include <memory>
+#include "gdlfpexceptions.hpp"
+class ReportFPExceptionsGuard;
 void gdlReportFPExceptions();
 //void GDLInitFPExceptionCatching();
 void GDLStopRegisteringFPExceptions();
 void GDLStartRegisteringFPExceptions();
+std::unique_ptr<ReportFPExceptionsGuard> GDLStartAutoStopRegisteringFPExceptions();
 void GDLCheckFPExceptionsAtLineLevel();
 //Clled from innards
 void GDLCheckFPExceptionsAtEndBlockLevel();
 
+class ReportFPExceptionsGuard {
+public:
+
+  ~ReportFPExceptionsGuard() {
+    GDLStopRegisteringFPExceptions();
+  }
+};
 #endif

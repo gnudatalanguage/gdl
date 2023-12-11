@@ -55,6 +55,13 @@ void GDLStartRegisteringFPExceptions() {
   // just clear existing fpe exceptions
     std::feclearexcept(FE_ALL_EXCEPT);
 }
+//start monitoring fp exceptions and will automatically call  GDLStopRegisteringFPExceptions() when exiting
+std::unique_ptr<ReportFPExceptionsGuard> GDLStartAutoStopRegisteringFPExceptions() {
+  // just clear existing fpe exceptions
+    std::feclearexcept(FE_ALL_EXCEPT);
+	std::unique_ptr<ReportFPExceptionsGuard> p(new ReportFPExceptionsGuard()) ;
+	return std::move( p ); 
+}
 //normal !EXCEPT=1 reporting
 void GDLCheckFPExceptionsAtLineLevel() {
 static DInt* except = static_cast<DInt*>(SysVar::Except()->DataAddr());
