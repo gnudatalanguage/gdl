@@ -31,8 +31,7 @@
 
 #include "typetraits.hpp"
 
-#include "sigfpehandler.hpp"
-
+#include "gdlfpexceptions.hpp"
 #include "gdl_util.hpp" //for gdl::powI
 
 using namespace std;
@@ -2740,26 +2739,21 @@ Data_<Sp>* Data_<Sp>::Mod(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LI
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
-  assert(nEl);
+  assert(nEl); 
+  GDLStartRegisteringFPExceptions();
 
   SizeT i = 0;
-
-  if (sigsetjmp(sigFPEJmpBuf, 1) == 0) {
-    for (/*SizeT i=0*/; i < nEl; ++i) (*this)[i] %= (*right)[i];
-    return this;
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] %= (*right)[ix];
   } else {
-
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt ix = i; ix < nEl; ++ix) if ((*right)[ix] != this->zero) (*this)[ix] %= (*right)[ix];
-        else (*this)[ix] = this->zero;
-    } else {
-      TRACEOMP(__FILE__, __LINE__)
+	TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt ix = i; ix < nEl; ++ix) if ((*right)[ix] != this->zero) (*this)[ix] %= (*right)[ix];
-        else (*this)[ix] = this->zero;
-    }
-    return this;
+	  for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] %= (*right)[ix];
   }
+
+  GDLStopRegisteringFPExceptions();
+  
+  return this;
 }
 // inverse modulo division: left=right % left
 
@@ -2768,25 +2762,20 @@ Data_<Sp>* Data_<Sp>::ModInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,_
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
-  assert(nEl);
+  assert(nEl); 
+  GDLStartRegisteringFPExceptions();
   SizeT i = 0;
-
-  if (sigsetjmp(sigFPEJmpBuf, 1) == 0) {
-    for (/*SizeT i=0*/; i < nEl; ++i) (*this)[i] = (*right)[i] % (*this)[i];
-    return this;
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (OMPInt ix = i; ix < nEl; ++ix)  (*this)[ix] = (*right)[ix] % (*this)[ix];
   } else {
-
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*this)[ix] = (*right)[ix] % (*this)[ix];
-        else (*this)[ix] = this->zero;
-    } else {
-      TRACEOMP(__FILE__, __LINE__)
+	TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*this)[ix] = (*right)[ix] % (*this)[ix];
-        else (*this)[ix] = this->zero;
-    }
-    return this;
+	  for (OMPInt ix = i; ix < nEl; ++ix)  (*this)[ix] = (*right)[ix] % (*this)[ix];
   }
+
+  GDLStopRegisteringFPExceptions();
+  
+  return this;
 }
 // float modulo division: left=left % right
 
@@ -2800,6 +2789,7 @@ Data_<SpDFloat>* Data_<SpDFloat>::Mod(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,_
 
   ULong nEl = N_Elements();
   assert(nEl);
+  GDLStartRegisteringFPExceptions();
 
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = Modulo((*this)[i], (*right)[i]);
@@ -2808,6 +2798,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::Mod(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,_
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = Modulo((*this)[i], (*right)[i]);
   }
+
+  GDLStopRegisteringFPExceptions();
+  
   return this;
 }
 // float  inverse modulo division: left=right % left
@@ -2817,7 +2810,8 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION_
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
-  assert(nEl);
+  assert(nEl); 
+  GDLStartRegisteringFPExceptions();
 
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = Modulo((*right)[i], (*this)[i]);
@@ -2826,6 +2820,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION_
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = Modulo((*right)[i], (*this)[i]);
   }
+
+  GDLStopRegisteringFPExceptions();
+  
   return this;
 }
 // in basic_op.cpp
@@ -2840,7 +2837,8 @@ Data_<SpDDouble>* Data_<SpDDouble>::Mod(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
-  assert(nEl);
+  assert(nEl); 
+  GDLStartRegisteringFPExceptions();
 
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = DModulo((*this)[i], (*right)[i]);
@@ -2849,6 +2847,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::Mod(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = DModulo((*this)[i], (*right)[i]);
   }
+
+  GDLStopRegisteringFPExceptions();
+  
   return this;
 }
 // double inverse modulo division: left=right % left
@@ -2858,7 +2859,8 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTIO
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
-  assert(nEl);
+  assert(nEl); 
+  GDLStartRegisteringFPExceptions();
 
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
     for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = DModulo((*right)[i], (*this)[i]);
@@ -2867,6 +2869,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTIO
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = DModulo((*right)[i], (*this)[i]);
   }
+
+  GDLStopRegisteringFPExceptions();
+  
   return this;
 }
 // invalid types
@@ -2932,79 +2937,54 @@ Data_<SpDObj>* Data_<SpDObj>::ModInv(BaseGDL* r) {
 }
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::ModS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+Data_<Sp>* Data_<Sp>::ModS(BaseGDL* r) {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
-  assert(nEl);
+  assert(nEl); 
+  GDLStartRegisteringFPExceptions();
 
   Ty s = (*right)[0];
-  SizeT i = 0;
+  for (SizeT i=0; i < nEl; ++i) (*this)[i] %= s;
 
-  // remember: this is a template (must work for several types)
-  // due to error handling the actual division by 0
-  // has to be done
-  // but if not 0, we save the expensive error handling
-  if (s != this->zero) { 
-    for (/*SizeT i=0*/; i < nEl; ++i) (*this)[i] %= s;
-    return this;
-  }
-  if (sigsetjmp(sigFPEJmpBuf, 1) == 0) {
-    for (/*SizeT i=0*/; i < nEl; ++i) (*this)[i] %= s;
-    return this;
-  } else {
-    assert(s == this->zero);
-    {
-      for (SizeT ix = i; ix < nEl; ++ix) (*this)[ix] = 0;
-    }
-    return this;
-  }
+  GDLStopRegisteringFPExceptions();
+  
+  return this;
 }
 // inverse modulo division: left=right % left
 
-template<class Sp>
-Data_<Sp>* Data_<Sp>::ModInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  Data_* right = static_cast<Data_*> (r);
+template<class Sp >
+  Data_<Sp>* Data_<Sp>::ModInvS(BaseGDL * r) {
+	TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+	Data_* right = static_cast<Data_*> (r);
 
-  ULong nEl = N_Elements();
-  assert(nEl);
-  // remember: this is a template (must work for several types)
-  // due to error handling the actual division by 0
-  // has to be done
-  // but if not 0, we save the expensive error handling
-  if (nEl == 1 && (*this)[0] != this->zero) { 
-    (*this)[0] = (*right)[0] % (*this)[0];
-    return this;
-  }
+	ULong nEl = N_Elements();
+	assert(nEl); 
+	GDLStartRegisteringFPExceptions();
 
-  Ty s = (*right)[0];
-  SizeT i = 0;
-  if (sigsetjmp(sigFPEJmpBuf, 1) == 0) {
-    for (/*SizeT i=0*/; i < nEl; ++i) {
-      (*this)[i] = s % (*this)[i];
-    }
-    return this;
-  } else {
-
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*this)[ix] = s % (*this)[ix];
-        else (*this)[ix] = this->zero;
-    } else {
-      TRACEOMP(__FILE__, __LINE__)
+	Ty s = (*right)[0];
+	SizeT i = 0;
+	if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	  for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] = s % (*this)[ix];
+	} else {
+	  TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*this)[ix] = s % (*this)[ix];
-        else (*this)[ix] = this->zero;
-    }
-    return this;
+		for (OMPInt ix = i; ix < nEl; ++ix)(*this)[ix] = s % (*this)[ix];
   }
-}
+
+  GDLStopRegisteringFPExceptions();
+  
+	return this;
+  }
 
 template<>
 Data_<SpDFloat>* Data_<SpDFloat>::ModS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
-  assert(nEl);
+  assert(nEl); 
+  GDLStartRegisteringFPExceptions();
   Ty s = (*right)[0];
 
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
@@ -3014,6 +2994,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = Modulo((*this)[i], s);
   }
+
+  GDLStopRegisteringFPExceptions();
+  
   return this;
 }
 // float  inverse modulo division: left=right % left
@@ -3023,7 +3006,8 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
-  assert(nEl);
+  assert(nEl); 
+  GDLStartRegisteringFPExceptions();
   Ty s = (*right)[0];
 
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
@@ -3033,6 +3017,9 @@ Data_<SpDFloat>* Data_<SpDFloat>::ModInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = Modulo(s, (*this)[i]);
   }
+
+  GDLStopRegisteringFPExceptions();
+  
   return this;
 }
 
@@ -3041,7 +3028,8 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION_
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
-  assert(nEl);
+  assert(nEl); 
+  GDLStartRegisteringFPExceptions();
   Ty s = (*right)[0];
 
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
@@ -3051,6 +3039,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION_
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = DModulo((*this)[i], s);
   }
+
+  GDLStopRegisteringFPExceptions();
+  
   return this;
 }
 // double inverse modulo division: left=right % left
@@ -3060,7 +3051,8 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
-  assert(nEl);
+  assert(nEl); 
+  GDLStartRegisteringFPExceptions();
   Ty s = (*right)[0];
 
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
@@ -3070,6 +3062,9 @@ Data_<SpDDouble>* Data_<SpDDouble>::ModInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
 #pragma omp parallel for num_threads(GDL_NTHREADS)
       for (OMPInt i = 0; i < nEl; ++i) (*this)[i] = DModulo(s, (*this)[i]);
   }
+
+  GDLStopRegisteringFPExceptions();
+  
   return this;
 }
 // invalid types

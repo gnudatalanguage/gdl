@@ -25,7 +25,6 @@
 #include "datatypes.hpp"
 #include "envt.hpp"
 #include "dinterpreter.hpp"
-#include "gdleventhandler.hpp"
 
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
