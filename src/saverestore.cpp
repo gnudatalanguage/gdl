@@ -79,7 +79,8 @@ enum {
   GDL_END_MARKER = 1790 // Real End of SAVE file for GDL
 } Markers;
 
-#define GDL_SAVE_ROUTINES_VERSION 1
+//should be increased each time the COMPILER CODE (gdlc.g, etc) is modified and the Tokens are changed.
+#define GDL_SAVE_ROUTINES_VERSION 2
 
   typedef std::map<DPtr, SizeT> heapT;
   static heapT heapIndexMapSave;  //list of [ heap pointer, heap index ] used when saving.
@@ -114,191 +115,109 @@ enum {
 #define xdr_uint64_t xdr_u_int64_t
 #endif
   
-  static u_int64_t ENDOFLIST = 0x0;
-  void sv_writeNode(RefDNode node, XDR* xdrs);
-  u_int64_t rd_readNode(EnvT* e, XDR* xdrs);
-  void sv_top(RefDNode top, XDR* xdrs);
-  void sv_leaves(RefDNode top, XDR* xdrs);
-  bool is_nonleaf(RefDNode node);
-  void sv_tree(const RefDNode top, XDR* xdrs);
-  void rd_tree(EnvT* e, XDR* xdrs, int compileOpt);
-  void writeCData(XDR *xdrs, BaseGDL* var);
-  BaseGDL* readCData(EnvT* e, XDR *xdrs);
+  static u_int64_t ENDOFLIST =   0xFFFFFFFFFFFFFFFF;
+//  void writeCData(XDR *xdrs, BaseGDL* var);
+//  BaseGDL* readCData(EnvT* e, XDR *xdrs);
 
-  bool is_nonleaf(RefDNode node) {
-	bool rslt = (node->getFirstChild() != NULL);
-	return rslt;
-  }
+//  write a copy of the SemiCompiledCode stored along with any new compiled routine.
 
-  //write a "Node" : current memory address (serves as identifier), type, text, cdata, down( aka GetFirstChild) , right (aka getNextSibling)
-
-  void sv_writeNode(RefDNode node, XDR* xdrs) {
-
-	//write 99 as node marker.
-	u_int64_t marker = 99;
-	xdr_u_int64_t(xdrs, & marker);
-	// address is not that simple to retrieve. The address is what ' std::cout<<this " prints, and it is NOT easy to get it right. 'This is the way'.
-	DNode* ast=node.get();
-//	std::cerr<<"----- "<<ast->getText()<<"------"<<std::endl;
-//	std::cerr<<"ast->GetCompileOpt()"<<ast->GetCompileOpt()<<std::endl;
-//	std::cerr<<"ast->CData()"<<ast->CData()<<std::endl;
-//	std::cerr<<"ast->GetFirstCh"<<ast->GetFirstChild()<<std::endl;
-//	std::cerr<<"NDot = "<<ast->GetNDot()<<std::endl;
-//	std::cerr<<"NParam = "<<ast->GetNParam()<<std::endl;
-//	std::cerr<<"ast->GetNextSib"<<ast->GetNextSibling()<<std::endl;
-	if (ast->GetVar() != NULL) std::cerr<<"Var = "<<ast->GetVar()<<std::endl; //TBD: check if var is used.
-//	std::cerr<<"Line "<<ast->getLine()<<std::endl;
-//	std::cerr<<"typeName "<<ast->typeName()<<std::endl;
-//	std::cerr<<"ast->getType();"<<ast->getType()<<std::endl;
-	RefDNode dNode = static_cast<RefDNode> (node);
-	//write node address:
-	u_int64_t me = reinterpret_cast<u_int64_t> (ast);
-	xdr_u_int64_t(xdrs, & me);
-	//write right address:
-	RefDNode right = dNode->GetNextSibling();
-	ast = right.get();
-	me = reinterpret_cast<u_int64_t> (ast);
-	xdr_u_int64_t(xdrs, & me);
-	//write down address:
-	RefDNode down = dNode->GetFirstChild();
-	ast = down.get();
-	me = reinterpret_cast<u_int64_t> (ast);
-	xdr_u_int64_t(xdrs, & me);
+  void wr_writeNode(sccstruct node, XDR* xdrs) {
+	//write node index:
+	xdr_u_int(xdrs, & node.node);
+	//write right index:
+	xdr_u_int(xdrs, & node.right);
+	//write down index:
+	xdr_u_int(xdrs, & node.down);
 	//other infos
-	int nodeType = dNode->getType();
-	xdr_int32_t(xdrs, &nodeType); //ttype
-	std::string text = dNode->getText();
-	u_int l = text.length();
+    xdr_u_int(xdrs, &node.nodeType); //ttype
+	uint l = (node.Text).length();
 	xdr_u_int(xdrs, &l);
-	char *t = (char*) text.c_str();
+	char *t = (char*) (node.Text).c_str();
 	xdr_string(xdrs, &t, l); //TEXT
-	int ligne = dNode->getLine();
-	xdr_int32_t(xdrs, &ligne); //LineNUM
-	// the 'flags' are an union of ints, with different meanings depending on the actual node
-	int32_t flags=0;
-//	if (text.find("<ASTNULL>")==std::string::npos) //otherwise undefined and Valgrind Complains. //NO since explicitely defined in object constructor (I hope everywhere)
-	flags=dNode->GetCompileOpt(); 
-	xdr_int32_t(xdrs, &flags);
-	BaseGDL* var = dNode->CData();
-	// instead of writing CData (very lengthy) just write var->Type and var's value according to type
-	// read routine will recreate CData with Type and var's value.
-	// writeCData(xdrs, var); //CData 
-	//Note that writeCData and readCDATA is written below and available should we need to use them (copy completely compiled Tree)
+	xdr_u_int(xdrs, & node.ligne); //LineNUM
+	xdr_u_int(xdrs, & node.flags);
 	int varType = 0;
-	if (var) varType = var->Type(); //will be 0 otherwise
+	if (node.var) varType = node.var->Type(); //will be 0 otherwise
 	xdr_int32_t(xdrs, &varType);
 	if (varType > 0) {
-	switch (varType) {
-	case GDL_FLOAT:
-	{
-	  DFloat f = (*static_cast<DFloatGDL*> (var))[0];
-	  xdr_float(xdrs, &f);
-	  break;
-	}
-	case GDL_DOUBLE:
-	{
-	  DDouble d = (*static_cast<DDoubleGDL*> (var))[0];
-	  xdr_double(xdrs, & d);
-	  break;
-	}
-	  //		case GDL_COMPLEX: //should not happen
-	  //		case GDL_COMPLEXDBL:
-	case GDL_ULONG64:
-	{
-	  u_int64_t ul6 = (*static_cast<DULong64GDL*> (var))[0];
-	  xdr_u_int64_t(xdrs, & ul6);
-	  break;
-	}
-	case GDL_LONG64:
-	{
-	  int64_t l6 = (*static_cast<DLong64GDL*> (var))[0];
-	  xdr_int64_t(xdrs, & l6);
-	  break;
-	}
-	case GDL_BYTE:
-	{
-	  DByte b = (*static_cast<DByteGDL*> (var))[0];
-	  xdr_u_char(xdrs, & b);
-	  break;
-	}
-	case GDL_INT:
-	{
-	  DInt i = (*static_cast<DIntGDL*> (var))[0];
-	  xdr_short(xdrs, & i);
-	  break;
-	}
-	case GDL_UINT:
-	{
-	  DUInt ui = (*static_cast<DUIntGDL*> (var))[0];
-	  xdr_u_short(xdrs, & ui);
-	  break;
-	}
-	case GDL_LONG:
-	{
-	  int32_t l = (*static_cast<DLongGDL*> (var))[0];
-	  xdr_int32_t(xdrs, & l);
-	  break;
-	}
-	case GDL_ULONG:
-	{
-	  u_int32_t ul = (*static_cast<DULongGDL*> (var))[0];
-	  xdr_u_int32_t(xdrs, & ul);
-	  break;
-	}
-	case GDL_STRING:
-	{
-	  DString s = (*static_cast<DStringGDL*> (var))[0];
-	  u_int l = s.length();
-	  char* c = (char*) s.c_str();
-	  xdr_string(xdrs, &c, l);
-	  break;
-	}
-	case GDL_UNDEF:
-	  break;
-	default: std::cerr << "unsupported constant var in procedure code :" << varType;
-	}
-	}
-  } // sv_name
-
-  void sv_leaves(RefDNode top, XDR* xdrs) {
-	RefDNode t;
-
-	for (t = ((top && is_nonleaf(top)) ? top->getFirstChild() : (RefDNode) NULL); t; t = t->getNextSibling()) {
-	  if (is_nonleaf(t))
-		sv_top(t, xdrs);
-	  else
-		sv_writeNode(t, xdrs);
-	}
-  } // sv_leaves
-
-  void sv_top(RefDNode top, XDR* xdrs) {
-	RefDNode t;
-	bool first = true;
-
-	sv_writeNode(top, xdrs);
-
-	if (is_nonleaf(top)) {
-	  for (t = ((top && is_nonleaf(top)) ? top->getFirstChild() : (RefDNode) NULL); t; t = t->getNextSibling()) {
-		if (is_nonleaf(t))
-		  first = false;
+	  switch (varType) {
+	  case GDL_FLOAT:
+	  {
+		DFloat f = (*static_cast<DFloatGDL*> (node.var))[0];
+		xdr_float(xdrs, &f);
+		break;
 	  }
-	  sv_leaves(top, xdrs);
+	  case GDL_DOUBLE:
+	  {
+		DDouble d = (*static_cast<DDoubleGDL*> (node.var))[0];
+		xdr_double(xdrs, & d);
+		break;
+	  }
+		//		case GDL_COMPLEX: //should not happen
+		//		case GDL_COMPLEXDBL:
+	  case GDL_ULONG64:
+	  {
+		u_int64_t ul6 = (*static_cast<DULong64GDL*> (node.var))[0];
+		xdr_u_int64_t(xdrs, & ul6);
+		break;
+	  }
+	  case GDL_LONG64:
+	  {
+		int64_t l6 = (*static_cast<DLong64GDL*> (node.var))[0];
+		xdr_int64_t(xdrs, & l6);
+		break;
+	  }
+	  case GDL_BYTE:
+	  {
+		DByte b = (*static_cast<DByteGDL*> (node.var))[0];
+		xdr_u_char(xdrs, & b);
+		break;
+	  }
+	  case GDL_INT:
+	  {
+		DInt i = (*static_cast<DIntGDL*> (node.var))[0];
+		xdr_short(xdrs, & i);
+		break;
+	  }
+	  case GDL_UINT:
+	  {
+		DUInt ui = (*static_cast<DUIntGDL*> (node.var))[0];
+		xdr_u_short(xdrs, & ui);
+		break;
+	  }
+	  case GDL_LONG:
+	  {
+		int32_t l = (*static_cast<DLongGDL*> (node.var))[0];
+		xdr_int32_t(xdrs, & l);
+		break;
+	  }
+	  case GDL_ULONG:
+	  {
+		u_int32_t ul = (*static_cast<DULongGDL*> (node.var))[0];
+		xdr_u_int32_t(xdrs, & ul);
+		break;
+	  }
+	  case GDL_STRING:
+	  {
+		DString s = (*static_cast<DStringGDL*> (node.var))[0];
+		u_int l = s.length();
+		char* c = (char*) s.c_str();
+		xdr_string(xdrs, &c, l);
+		break;
+	  }
+	  case GDL_UNDEF:
+		break;
+	  default: std::cerr << "unsupported constant var in procedure code :" << varType;
+	  }
 	}
-  } // sv_top
+  } 
 
-  void sv_tree(RefDNode top, XDR* xdrs) {
-    RefDNode t;
-	for (t = top; t != NULL; t = t->getNextSibling()) {
-	  sv_top(t, xdrs);
-	  //finish by ENDOFLIST address
-	  xdr_u_int64_t(xdrs, &ENDOFLIST); //ENDOFLIST
-	}
-  } // sv_tree
+
 
   typedef struct _SAVENODE_STRUCT_ {
-	int nodeType = 0;
-	int ligne = 0;
-	int flags = 0;
+	uint nodeType = 0;
+	uint ligne = 0;
+	uint flags = 0;
 	u_int64_t node = 0;
 	u_int64_t right = 0;
 	u_int64_t down = 0;
@@ -306,146 +225,128 @@ enum {
 	std::string Text;
   } savenodestruct;
 
-  u_int64_t rd_readNode(EnvT*e, XDR* xdrs, std::vector<savenodestruct> &nodes) {
+  bool rd_readNode(EnvT*e, XDR* xdrs, std::vector<savenodestruct> &nodes) {
 	//read node marker. if END,return
 	savenodestruct savenode;
-	u_int64_t marker = 0;
-	xdr_u_int64_t(xdrs, & marker);
-	if (marker == ENDOFLIST) return marker;
+	// address is not that simple to retrieve. The address is what ' std::cout<<this " prints, and it is NOT easy to get it right. 'This is the way'.
 	//read node address:
-	xdr_u_int64_t(xdrs, & savenode.node);
+	uint node=0;
+	xdr_u_int(xdrs, & node);
+	if (node == 0xFFFFFFFF) return false;
+	savenode.node=node;
 	//read right address:
-	xdr_u_int64_t(xdrs, & savenode.right);
+	xdr_u_int(xdrs, & node);
+	savenode.right=node;
 	//read down address:
-	xdr_u_int64_t(xdrs, & savenode.down);
-	//read ttype
-	xdr_int32_t(xdrs, &savenode.nodeType);
+	xdr_u_int(xdrs, & node);
+	savenode.down=node;
+	xdr_u_int(xdrs, &savenode.nodeType);
 	//read text length
-	u_int l = 0;
+	uint l = 0;
 	xdr_u_int(xdrs, &l);
 	//read text
 	char *text = NULL;
 	xdr_string(xdrs, &text, l); //TEXT
 	savenode.Text = std::string(text);
-	xdr_int32_t(xdrs, &savenode.ligne); //LineNUM
+	xdr_u_int(xdrs, &savenode.ligne); //LineNUM
 	// the 'flags' are an union of ints, with different meanings depending on the actual node
-	xdr_int32_t(xdrs, &savenode.flags);
-	//see comment in sv_writeNode above about var not using readCData.
-	// BaseGDL* savenode.var = readCData(e, xdrs); //CData
-	int varType = 0;
-	xdr_int32_t(xdrs, &varType); //get VarType
+	xdr_u_int(xdrs, &savenode.flags);
+	uint varType = 0;
+	xdr_u_int(xdrs, &varType); //get VarType
+	savenode.var=NULL;
 	if (varType > 0) {
-	switch (varType) {
-	case GDL_FLOAT:
-	{
-	  DFloat f = 0;
-	  xdr_float(xdrs, &f);
-	  savenode.var = new DFloatGDL(f);
-	  break;
-	}
-	case GDL_DOUBLE:
-	{
-	  DDouble d = 0;
-	  xdr_double(xdrs, & d);
-	  savenode.var = new DDoubleGDL(d);
-	  break;
-	}
-	  //		case GDL_COMPLEX:
-	  //		case GDL_COMPLEXDBL:
-	case GDL_ULONG64:
-	{
-	  u_int64_t ul6 = 0;
-	  xdr_u_int64_t(xdrs, & ul6);
-	  savenode.var = new DULong64GDL(ul6);
-	  break;
-	}
-	case GDL_LONG64:
-	{
-	  int64_t l6 = 0;
-	  xdr_int64_t(xdrs, & l6);
-	  savenode.var = new DLong64GDL(l6);
-	  break;
-	}
-	case GDL_BYTE:
-	{
-	  DByte b = 0;
-	  xdr_u_char(xdrs, & b);
-	  savenode.var = new DByteGDL(b);
-	  break;
-	}
-	case GDL_INT:
-	{
-	  DInt i = 0;
-	  xdr_short(xdrs, & i);
-	  savenode.var = new DIntGDL(i);
-	  break;
-	}
-	case GDL_UINT:
-	{
-	  DUInt ui = 0;
-	  xdr_u_short(xdrs, & ui);
-	  savenode.var = new DUIntGDL(ui);
-	  break;
-	}
-	case GDL_LONG:
-	{
-	  int32_t l = 0;
-	  xdr_int32_t(xdrs, & l);
-	  savenode.var = new DLongGDL(l);
-	  break;
-	}
-	case GDL_ULONG:
-	{
-	  u_int32_t ul = 0;
-	  xdr_u_int32_t(xdrs, & ul);
-	  savenode.var = new DULongGDL(ul);
-	  break;
-	}
-	case GDL_STRING:
-	{
-	  char* c = 0;
-	  xdr_string(xdrs, &c, 4096);
-	  savenode.var = new DStringGDL(std::string(c));
-	  break;
-	}
-	default:
-	  break;
-	}
+	  switch (varType) {
+	  case GDL_FLOAT:
+	  {
+		DFloat f = 0;
+		xdr_float(xdrs, &f);
+		savenode.var = new DFloatGDL(f);
+		break;
+	  }
+	  case GDL_DOUBLE:
+	  {
+		DDouble d = 0;
+		xdr_double(xdrs, & d);
+		savenode.var = new DDoubleGDL(d);
+		break;
+	  }
+		//		case GDL_COMPLEX:
+		//		case GDL_COMPLEXDBL:
+	  case GDL_ULONG64:
+	  {
+		u_int64_t ul6 = 0;
+		xdr_u_int64_t(xdrs, & ul6);
+		savenode.var = new DULong64GDL(ul6);
+		break;
+	  }
+	  case GDL_LONG64:
+	  {
+		int64_t l6 = 0;
+		xdr_int64_t(xdrs, & l6);
+		savenode.var = new DLong64GDL(l6);
+		break;
+	  }
+	  case GDL_BYTE:
+	  {
+		DByte b = 0;
+		xdr_u_char(xdrs, & b);
+		savenode.var = new DByteGDL(b);
+		break;
+	  }
+	  case GDL_INT:
+	  {
+		DInt i = 0;
+		xdr_short(xdrs, & i);
+		savenode.var = new DIntGDL(i);
+		break;
+	  }
+	  case GDL_UINT:
+	  {
+		DUInt ui = 0;
+		xdr_u_short(xdrs, & ui);
+		savenode.var = new DUIntGDL(ui);
+		break;
+	  }
+	  case GDL_LONG:
+	  {
+		int32_t l = 0;
+		xdr_int32_t(xdrs, & l);
+		savenode.var = new DLongGDL(l);
+		break;
+	  }
+	  case GDL_ULONG:
+	  {
+		u_int32_t ul = 0;
+		xdr_u_int32_t(xdrs, & ul);
+		savenode.var = new DULongGDL(ul);
+		break;
+	  }
+	  case GDL_STRING:
+	  {
+		char* c = 0;
+		xdr_string(xdrs, &c, 4096);
+		savenode.var = new DStringGDL(std::string(c));
+		break;
+	  }
+	  default:
+		break;
+	  }
 	}
 //	  std::cerr<<"["<<savenode.nodeType<< ":";
 //	  if (savenode.var!=NULL) std::cerr<<savenode.var->NBytes();
 //	  std::cerr<<"]"<<savenode.Text<<"("<<savenode.ligne<<")"<<std::hex<<savenode.node<<"->"<<savenode.right<<" !"<<savenode.down<<std::dec<<std::endl;
 	nodes.push_back(savenode);
+	return true;
 
-	return marker;
-
-  } // sv_name
+  } 
 
   void rd_tree(EnvT* e, XDR* xdrs) {
 	std::vector<savenodestruct> nodes;
-	u_int64_t marker = 0xFFFFFFFFFFFFFFFF;
-	while (marker != ENDOFLIST) {
-	  marker = rd_readNode(e, xdrs, nodes);
-	}
-	//PRO or FUNCTION top node may contain a 'wrong' right pointer in the first node, due to the way the whole .pro file is compiled at once.
-	//Remove it:
-	nodes[0].right=0;
-    std::map<u_int64_t,u_int64_t> nodesIndexList;
-	// change savenode pointers to logical serie 1,2,3..
-	for (auto i = 0; i < nodes.size(); ++i) {
-	  nodesIndexList.insert(std::pair<u_int64_t, u_int64_t>(nodes[i].node, i + 1)); //+1 as adress 0 is special for all nodes
-	}
-	for (auto i = 0; i < nodes.size(); ++i) {
-	  u_int64_t ptr = nodes[i].node;
-	  std::map<u_int64_t,u_int64_t>::iterator it = nodesIndexList.find(ptr);
-	  if (it != nodesIndexList.end()) nodes[i].node = (*it).second;
-	  ptr = nodes[i].right;
-	  it = nodesIndexList.find(ptr);
-	  if (it != nodesIndexList.end()) nodes[i].right = (*it).second;
-	  ptr = nodes[i].down;
-	  it = nodesIndexList.find(ptr);
-	  if (it != nodesIndexList.end()) nodes[i].down = (*it).second;
-	}
+	bool ok;
+	do {
+	  ok = rd_readNode(e, xdrs, nodes);
+	}	while (ok) ;
+
 	//make RefDNode vector
 	std::vector<RefDNode> vrefdnodes;
 	for (auto i = 0; i < nodes.size(); ++i) {
@@ -460,17 +361,21 @@ enum {
 	//update dnodes links:
 	for (auto i = 0; i < nodes.size(); ++i) {
 	  //The following warnings should not happen.
-	  if (nodes[i].down > nodes.size() + 1) { std::cerr<<"bad down link @"<<nodes[i].ligne<<" in "<<nodes[i].Text<<" for "<<nodes[3].Text<<std::endl; nodes[i].down = 0;}
-	  if (nodes[i].right > nodes.size() + 1) { std::cerr<<"bad right link @"<<nodes[i].ligne<<" in "<<nodes[i].Text<<" for "<<nodes[3].Text<<std::endl;nodes[i].right = 0;}
+	  if (nodes[i].down > nodes.size() + 1) {
+		std::cerr << "bad down link @" << nodes[i].ligne << " in " << nodes[i].Text << " for " << nodes[3].Text << std::endl;
+		nodes[i].down = 0;
+	  }
+	  if (nodes[i].right > nodes.size() + 1) {
+		std::cerr << "bad right link @" << nodes[i].ligne << " in " << nodes[i].Text << " for " << nodes[3].Text << std::endl;
+		nodes[i].right = 0;
+	  }
 	  if (nodes[i].down != 0) vrefdnodes[i].get()->setFirstChild(vrefdnodes[nodes[i].down - 1].get());
 	  if (nodes[i].right != 0) vrefdnodes[i].get()->setNextSibling(vrefdnodes[nodes[i].right - 1].get());
 	}
 	DNode* root = vrefdnodes[0].get();
 	GDLInterpreter::CompileSaveFile(root);
-  } // rd_tree
+  } 
   
-// replaces xdr_getpos and setpos by these local functions that return 32 or 64 bits addresses ( "long int") depending on architecture.
-// Will permit to read and write files larger than 2^32 bytes (issue #1551) on 64 bits machines. Probably uncomplete support for 32 bit machines though.
 long int xdr_get_gdl_pos(XDR *x){
   long int where=ftell(save_fid);
 //  std::cerr<<"getpos: "<<where<<std::endl;
@@ -596,8 +501,14 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 	// FUN (0) or PRO (1)
 	int32_t proorfun=isPro;
 	xdr_int32_t(xdrs, & proorfun);
-	//the tree
-	sv_tree(p->GetAstTree(),xdrs);
+	//the SemiCompiledCode
+	SCCStructV* topP=p->GetSCC();
+	SCCStructV top=*topP;
+    for (SCCStructV::iterator i = top.begin() ; i != top.end(); ++i) {
+	  wr_writeNode((*i), xdrs);
+	}
+	//finish by ENDOFLIST address
+	xdr_u_int64_t(xdrs, &ENDOFLIST); //ENDOFLIST
 	return updateNewRecordHeader(xdrs, cur);
   }
 
@@ -1798,53 +1709,55 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     return updateNewRecordHeader(xdrs, cur);
   }
   
-    void writeCData(XDR *xdrs, BaseGDL* var) {
-    if (var==NULL) { //write 0 if NULL
-	  int32_t null = 0;
-	  xdr_int32_t(xdrs, &null);
-	  return;
-	} else { //write 1 if exist
-	  int32_t exist = 1;
-	  xdr_int32_t(xdrs, &exist);
-	}
-    writeVariableHeader(xdrs, var, false, false); 
-    // !NULL variable stops here since no data
-    if (var->N_Elements() == 0) return;
-    // varstat=7 to read data
-    int32_t varstart = VARSTART;
-    xdr_int32_t(xdrs, &varstart);
-    writeVariableData(xdrs, var);
-    return;
-  }
-   
-   BaseGDL* readCData(EnvT* e, XDR *xdrs) {
-	 int32_t code=0;
-	 xdr_int32_t(xdrs, &code);
-	 if (code==0) return NULL;
-	 else if (code!=1) {
-	   std::cerr<<"error in readCData"<<std::endl;
-	   return NULL;
-	}
-	int isSysVar = 0;
-	bool isObjStruct = false;
-	BaseGDL* ret = getVariable(e, xdrs, isSysVar, isObjStruct);
-	if (ret == NULL)
-	{
-	  Message("Unable to restore CData.");
-	  return NULL;
-	}
-	if (isObjStruct) std::cerr<<"Problem: found an Object in normal variable processing -- should not happen.\n";
-	// should be at varstat=VARSTAT to read data
-	int32_t varstart = 0;
-	if (!xdr_int32_t(xdrs, &varstart)) std::cerr<<"problem in readCData."<<std::endl;
-	if (varstart != VARSTART)
-	{
-	  e->Throw("Lost track in VARIABLE definition .");
-	}
-    fillVariableData(xdrs, ret);
+// //if we want to read a CData variable 
+//    void writeCData(XDR *xdrs, BaseGDL* var) {
+//    if (var==NULL) { //write 0 if NULL
+//	  int32_t null = 0;
+//	  xdr_int32_t(xdrs, &null);
+//	  return;
+//	} else { //write 1 if exist
+//	  int32_t exist = 1;
+//	  xdr_int32_t(xdrs, &exist);
+//	}
+//    writeVariableHeader(xdrs, var, false, false); 
+//    // !NULL variable stops here since no data
+//    if (var->N_Elements() == 0) return;
+//    // varstat=7 to read data
+//    int32_t varstart = VARSTART;
+//    xdr_int32_t(xdrs, &varstart);
+//    writeVariableData(xdrs, var);
+//    return;
+//  }
 
-    return ret;
-  }
+// //if we want to save a CData variable	
+//   BaseGDL* readCData(EnvT* e, XDR *xdrs) {
+//	 int32_t code=0;
+//	 xdr_int32_t(xdrs, &code);
+//	 if (code==0) return NULL;
+//	 else if (code!=1) {
+//	   std::cerr<<"error in readCData"<<std::endl;
+//	   return NULL;
+//	}
+//	int isSysVar = 0;
+//	bool isObjStruct = false;
+//	BaseGDL* ret = getVariable(e, xdrs, isSysVar, isObjStruct);
+//	if (ret == NULL)
+//	{
+//	  Message("Unable to restore CData.");
+//	  return NULL;
+//	}
+//	if (isObjStruct) std::cerr<<"Problem: found an Object in normal variable processing -- should not happen.\n";
+//	// should be at varstat=VARSTAT to read data
+//	int32_t varstart = 0;
+//	if (!xdr_int32_t(xdrs, &varstart)) std::cerr<<"problem in readCData."<<std::endl;
+//	if (varstart != VARSTART)
+//	{
+//	  e->Throw("Lost track in VARIABLE definition .");
+//	}
+//    fillVariableData(xdrs, ret);
+//
+//    return ret;
+//  }
 	
 	uint64_t writeHeapVariable(EnvT* e, XDR *xdrs, DPtr ptr, bool isObject=false) {
     //what is passed is the list of existent heap positions occupied.

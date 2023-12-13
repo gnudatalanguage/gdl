@@ -35,8 +35,26 @@
       extern bool posixpaths;
     }
 #endif
+  typedef struct _SCC_STRUCT_ { //semicompiled code, small memory imprint (instead of a copy of the DNodes)
+	uint nodeType = 0;
+	uint ligne = 0;
+	uint flags = 0;
+	uint node = 0;
+	uint right = 0L;
+	uint down = 0;
+  BaseGDL* var  = NULL;
+	std::string Text;
+  } sccstruct;
 
 class DSubUD;
+typedef std::vector<sccstruct> SCCStructV;
+typedef std::map<DSubUD*, SCCStructV> SCCodeListT;
+typedef std::map<DSubUD*, SCCStructV>::iterator SCCodeListIterator;
+extern SCCodeListT     sccList;
+
+typedef std::map<DNode*,int> SCCodeAddresses;
+typedef std::map<DNode*,int>::iterator SCCodeAddressesIterator;
+
 typedef std::map<DSubUD*, RefDNode> CodeListT;
 typedef std::map<DSubUD*, RefDNode>::iterator CodeListIterator;
 extern CodeListT     codeList;
@@ -354,9 +372,9 @@ public:
   void Reset();
   void DelTree();
   void SetTree( ProgNodeP t) { tree = t;}
-  void SetAstTree( RefDNode n) { 
-    codeList.insert(std::pair<DSubUD*, RefDNode>(this, n));
-  }
+  
+  //converts a SemiCompiledCode (chained list of DNodes) to a 'flat' vector of sccstruct and insert the vector in the map pointed by "sccList"
+  void SetAstTree( RefDNode n);
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
   void DeleteLastAddedCommon(bool kill=true)
@@ -555,6 +573,13 @@ void ReName( SizeT ix, const std::string& s)
     //find Semicompiled code saved in codeList
     CodeListIterator i = codeList.find(this);
     if (i!=codeList.end()) return (*i).second;
+    return NULL;
+  }
+  SCCStructV* GetSCC()
+  {
+    //find Semicompiled code saved in codeList
+    SCCodeListIterator i = sccList.find(this);
+    if (i!=sccList.end()) return &((*i).second);
     return NULL;
   }
   unsigned int GetCompileOpt() { return compileOpt; }
