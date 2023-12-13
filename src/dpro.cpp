@@ -35,7 +35,6 @@
 #include "print_tree.hpp"
 #endif
 
-CodeListT     codeList;
 SCCodeListT     sccList;
 
 using namespace std;
@@ -70,9 +69,11 @@ using namespace std;
 	savenode.ligne = dNode->getLine();
 	savenode.flags=dNode->GetCompileOpt();
 	// trick to avoid saving a Text and a CData containing the same text, either as a string or a value converted to the good BaseGDL type.
-	// if dNode->CData() is non-nil, set savenode.Text to ""
-	savenode.var=dNode->CData();
-	if (savenode.var == NULL) savenode.Text = dNode->getText(); else savenode.Text = "";
+	// if dNode->CData() is non-nil, set savenode.Text to "" and save CData as copy.
+	if (dNode->CData() != NULL) {
+	  savenode.var=dNode->CData()->Convert2(dNode->CData()->Type(),BaseGDL::COPY);
+	  savenode.Text = "";
+	} else  savenode.Text = dNode->getText(); 
     nodes.push_back(savenode);
   } 
 
@@ -101,9 +102,11 @@ using namespace std;
 	  process_leaves(top,nodes,addrList);
 	}
   }
-
+ //same as index_tree: no not use
   void process_tree(RefDNode top, SCCStructV &nodes, SCCodeAddresses &addrList) {
-    RefDNode t;
+  std::cerr<<"use of process_tree, please report."<<std::endl;
+  assert(false);
+  RefDNode t;
 	for (t = top; t != NULL; t = t->getNextSibling()) {
 	  process_top(t,nodes,addrList);
 	}
@@ -115,7 +118,7 @@ void indexNodeAddress(RefDNode node, SCCodeAddresses &addrList, int &i) {
 // associate node address to an increasing number starting at 1
   DNode* ast = node.get();
   addrList.insert(std::pair<DNode*,int>(ast, ++i)); //+1 as address 0 is special for all nodes
-}
+  }
 
 void index_leaves(RefDNode top, SCCodeAddresses &addrList, int &i) {
   RefDNode t;
@@ -140,7 +143,10 @@ void index_top(RefDNode top, SCCodeAddresses &addrList, int &i) {
   }
 }
 
+//this would be to index a full tree, but our use at the time is of index_top, that serialize only the current PRO or FUN .
 void index_tree(RefDNode top, SCCodeAddresses &addrList, int &i) {
+  std::cerr<<"use of index_tree, please report."<<std::endl;
+  assert(false);
   RefDNode t;
   for (t = top; t != NULL; t = t->getNextSibling()) {
 	index_top(t, addrList, i);
@@ -369,7 +375,7 @@ DSubUD::~DSubUD()
 
   labelList.Clear();
   delete tree;
-  codeList.erase(this);
+  sccList.erase(this);
 }
 
 DSubUD::DSubUD(const string& n,const string& o,const string& f) : 
@@ -525,20 +531,18 @@ void DSubUD::SetTree( RefDNode n)
 }
 //converts a SemiCompiledCode (chained list of DNodes) to a 'flat' vector of sccstruct and insert the vector in the map pointed by "sccList"
 
-void DSubUD::SetAstTree(RefDNode n) {
-  //first, walk RefDnode tree to associate right,down, and self addresses with a number in the list:
+void DSubUD::SetSCC(RefDNode n) {
+  //first, walk RefDnode tree to associate right,down, and self addresses with a number in the list.
   SCCodeAddresses addrList;
   int i=0;
-  index_tree(n, addrList, i);
+  //serialize only the current PRO or FUN by using index_top and *not* index_tree.
+  index_top(n, addrList, i);
   SCCStructV sccv;
-  process_tree(n, sccv, addrList);
+  process_top(n, sccv, addrList);
 	//PRO or FUNCTION top node may contain a 'wrong' right pointer in the first node, due to the way the whole .pro file is compiled at once.
 	//Remove it:
   sccv[0].right=0;
   sccList.insert(std::pair<DSubUD*,SCCStructV >(this, sccv));
-  
-  //to be removed
-  codeList.insert(std::pair<DSubUD*, RefDNode>(this, n));
 }
 bool DSubUD::GetCommonVarName(const BaseGDL* p, std::string& varName)
 {

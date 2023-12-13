@@ -121,35 +121,37 @@ enum {
 
 //  write a copy of the SemiCompiledCode stored along with any new compiled routine.
 
-  void wr_writeNode(sccstruct node, XDR* xdrs) {
+  void wr_writeNode(sccstruct savenode, XDR* xdrs) {
 	//write node index:
-	xdr_u_int(xdrs, & node.node);
+	xdr_u_int(xdrs, & savenode.node);
 	//write right index:
-	xdr_u_int(xdrs, & node.right);
+	xdr_u_int(xdrs, & savenode.right);
 	//write down index:
-	xdr_u_int(xdrs, & node.down);
+	xdr_u_int(xdrs, & savenode.down);
 	//other infos
-    xdr_u_int(xdrs, &node.nodeType); //ttype
-	uint l = (node.Text).length();
+    xdr_u_int(xdrs, &savenode.nodeType); //ttype
+	uint l = (savenode.Text).length();
 	xdr_u_int(xdrs, &l);
-	char *t = (char*) (node.Text).c_str();
+	char *t = (char*) (savenode.Text).c_str();
 	xdr_string(xdrs, &t, l); //TEXT
-	xdr_u_int(xdrs, & node.ligne); //LineNUM
-	xdr_u_int(xdrs, & node.flags);
+	xdr_u_int(xdrs, & savenode.ligne); //LineNUM
+	xdr_u_int(xdrs, & savenode.flags);
 	int varType = 0;
-	if (node.var) varType = node.var->Type(); //will be 0 otherwise
+	if (savenode.var!=NULL) {
+	  varType = savenode.var->Type(); //will be 0 otherwise
+	}
 	xdr_int32_t(xdrs, &varType);
 	if (varType > 0) {
 	  switch (varType) {
 	  case GDL_FLOAT:
 	  {
-		DFloat f = (*static_cast<DFloatGDL*> (node.var))[0];
+		DFloat f = (*static_cast<DFloatGDL*> (savenode.var))[0];
 		xdr_float(xdrs, &f);
 		break;
 	  }
 	  case GDL_DOUBLE:
 	  {
-		DDouble d = (*static_cast<DDoubleGDL*> (node.var))[0];
+		DDouble d = (*static_cast<DDoubleGDL*> (savenode.var))[0];
 		xdr_double(xdrs, & d);
 		break;
 	  }
@@ -157,49 +159,49 @@ enum {
 		//		case GDL_COMPLEXDBL:
 	  case GDL_ULONG64:
 	  {
-		u_int64_t ul6 = (*static_cast<DULong64GDL*> (node.var))[0];
+		u_int64_t ul6 = (*static_cast<DULong64GDL*> (savenode.var))[0];
 		xdr_u_int64_t(xdrs, & ul6);
 		break;
 	  }
 	  case GDL_LONG64:
 	  {
-		int64_t l6 = (*static_cast<DLong64GDL*> (node.var))[0];
+		int64_t l6 = (*static_cast<DLong64GDL*> (savenode.var))[0];
 		xdr_int64_t(xdrs, & l6);
 		break;
 	  }
 	  case GDL_BYTE:
 	  {
-		DByte b = (*static_cast<DByteGDL*> (node.var))[0];
+		DByte b = (*static_cast<DByteGDL*> (savenode.var))[0];
 		xdr_u_char(xdrs, & b);
 		break;
 	  }
 	  case GDL_INT:
 	  {
-		DInt i = (*static_cast<DIntGDL*> (node.var))[0];
+		DInt i = (*static_cast<DIntGDL*> (savenode.var))[0];
 		xdr_short(xdrs, & i);
 		break;
 	  }
 	  case GDL_UINT:
 	  {
-		DUInt ui = (*static_cast<DUIntGDL*> (node.var))[0];
+		DUInt ui = (*static_cast<DUIntGDL*> (savenode.var))[0];
 		xdr_u_short(xdrs, & ui);
 		break;
 	  }
 	  case GDL_LONG:
 	  {
-		int32_t l = (*static_cast<DLongGDL*> (node.var))[0];
+		int32_t l = (*static_cast<DLongGDL*> (savenode.var))[0];
 		xdr_int32_t(xdrs, & l);
 		break;
 	  }
 	  case GDL_ULONG:
 	  {
-		u_int32_t ul = (*static_cast<DULongGDL*> (node.var))[0];
+		u_int32_t ul = (*static_cast<DULongGDL*> (savenode.var))[0];
 		xdr_u_int32_t(xdrs, & ul);
 		break;
 	  }
 	  case GDL_STRING:
 	  {
-		DString s = (*static_cast<DStringGDL*> (node.var))[0];
+		DString s = (*static_cast<DStringGDL*> (savenode.var))[0];
 		u_int l = s.length();
 		char* c = (char*) s.c_str();
 		xdr_string(xdrs, &c, l);
@@ -2860,7 +2862,7 @@ if (!doRoutines){
 		  for (ProListT::iterator i = proList.begin(); i != proList.end(); ++i) {
 			if ((*i)->ObjectName() == name) {
 			  DPro * p = (*i);
-			  if (p->GetAstTree() != NULL) {
+			  if (p->GetSCC() != NULL) {
 				nextptr = writeDSubUD(xdrs, p, true);
 				notFound = false;
 			  }
@@ -2871,7 +2873,7 @@ if (!doRoutines){
 		  for (FunListT::iterator i = funList.begin(); i != funList.end(); ++i) {
 			if ((*i)->ObjectName() == name) {
 			  DFun * f = (*i);
-			  if (f->GetAstTree() != NULL) {
+			  if (f->GetSCC() != NULL) {
 				nextptr = writeDSubUD(xdrs, f, false);
 				notFound = false;
 			  }
@@ -2895,11 +2897,11 @@ if (!doRoutines){
 		  DStructDesc* s=structList[i];
 		  for (auto j = 0; j < s->ProList().size(); ++j) {
 			DPro * p = (s->ProList())[j];
-			if (p->GetAstTree() != NULL) if (ignore_nosave || !(p->isNoSave())) nextptr = writeDSubUD(xdrs, p, true);
+			if (p->GetSCC() != NULL) if (ignore_nosave || !(p->isNoSave())) nextptr = writeDSubUD(xdrs, p, true);
 		  }
 		  for (auto j= 0 ; j < s->FunList().size(); ++j) {
 			DFun * f = (s->FunList())[j];
-  		    if (f->GetAstTree() != NULL) if (ignore_nosave || !(f->isNoSave())) nextptr = writeDSubUD(xdrs, f, false);
+  		    if (f->GetSCC() != NULL) if (ignore_nosave || !(f->isNoSave())) nextptr = writeDSubUD(xdrs, f, false);
 		  }
 		}
 

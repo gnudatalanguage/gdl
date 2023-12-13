@@ -374,7 +374,7 @@ public:
   void SetTree( ProgNodeP t) { tree = t;}
   
   //converts a SemiCompiledCode (chained list of DNodes) to a 'flat' vector of sccstruct and insert the vector in the map pointed by "sccList"
-  void SetAstTree( RefDNode n);
+  void SetSCC( RefDNode n);
 
   void AddCommon(DCommonBase* c) { common.push_back(c);}
   void DeleteLastAddedCommon(bool kill=true)
@@ -568,13 +568,7 @@ void ReName( SizeT ix, const std::string& s)
   {
     return tree;
   }
-  RefDNode GetAstTree()
-  {
-    //find Semicompiled code saved in codeList
-    CodeListIterator i = codeList.find(this);
-    if (i!=codeList.end()) return (*i).second;
-    return NULL;
-  }
+
   SCCStructV* GetSCC()
   {
     //find Semicompiled code saved in codeList

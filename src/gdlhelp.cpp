@@ -396,8 +396,8 @@ static void help_object(std::ostream* ostrp, DStructDesc* objDesc, bool verbose 
   //if object is purely GDL internal , do not display it if not verbose:
   if (!verbose) {
   bool internal=true;
-	for (auto i=0; i< funlist.size(); ++i) if (funlist[i]->GetAstTree()!=NULL) {internal=false; break;}
-	if (internal)  for (auto i=0; i< prolist.size(); ++i) if (prolist[i]->GetAstTree()!=NULL) {internal=false; break;}
+	for (auto i=0; i< funlist.size(); ++i) if (funlist[i]->GetSCC()!=NULL) {internal=false; break;}
+	if (internal)  for (auto i=0; i< prolist.size(); ++i) if (prolist[i]->GetSCC()!=NULL) {internal=false; break;}
 	if (internal) return;
   }
   int num_methods = funlist.size() + prolist.size();
@@ -1030,7 +1030,7 @@ void help_help(EnvT* e)
 	  DStructDesc* s = structList[i];
 	  for (auto j = 0; j < s->FunList().size(); ++j) {
 		DFun* fun = (s->FunList())[j];
-		if (fun->GetAstTree() != NULL) { //compiled objects, not native ones
+		if (fun->GetSCC() != NULL) { //compiled objects, not native ones
 		  if (fullKW or !fun->isHidden()) {
 			fList.push_back(fun->ObjectName());
 			++nfun;
@@ -1052,7 +1052,7 @@ void help_help(EnvT* e)
 	  DStructDesc* s = structList[i];
 	  for (auto j = 0; j < s->ProList().size(); ++j) {
 		DPro * pro = (s->ProList())[j];
-		if (pro->GetAstTree() != NULL) { //compiled objects, not native ones
+		if (pro->GetSCC() != NULL) { //compiled objects, not native ones
 		  if (fullKW or !pro->isHidden()) {
 			pList.push_back(pro->ObjectName());
 			++npro;

@@ -666,7 +666,7 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool s
 #ifdef GDL_DEBUG
   cout << "Parser output:" << endl;
   antlr::print_tree pt;
-  pt.pr_tree(static_cast<antlr::RefAST>(theSemiCompiledAST));
+  pt.pr_tree(static_cast<antlr::RefAST>(theAST));
   cout << "CompileFile: Parser end." << endl;
 #endif
   
@@ -714,6 +714,13 @@ bool GDLInterpreter::CompileFile(const string& f, const string& untilPro, bool s
 
 bool GDLInterpreter::CompileSaveFile(RefDNode theSemiCompiledAST) 
 {  
+#ifdef GDL_DEBUG
+  cout << "Parser output:" << endl;
+  antlr::print_tree pt;
+  pt.pr_tree(static_cast<antlr::RefAST>(theSemiCompiledAST));
+  cout << "CompileFile: Parser end." << endl;
+#endif
+
 #ifdef GDL_DEBUG
   RefDNode trAST;
 #endif
