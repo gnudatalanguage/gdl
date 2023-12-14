@@ -36,12 +36,12 @@
     }
 #endif
   typedef struct _SCC_STRUCT_ { //semicompiled code, small memory imprint (instead of a copy of the DNodes)
-	uint nodeType = 0;
-	uint ligne = 0;
-	uint flags = 0;
-	uint node = 0;
-	uint right = 0L;
-	uint down = 0;
+	u_int nodeType = 0;
+	u_int ligne = 0;
+	u_int flags = 0;
+	u_int node = 0;
+	u_int right = 0L;
+	u_int down = 0;
   BaseGDL* var  = NULL;
 	std::string Text;
   } sccstruct;

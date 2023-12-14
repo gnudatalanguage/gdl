@@ -110,9 +110,9 @@ enum {
   // it may be needed for others OS : Cygwin, Mingw (seems to be OK for *BSD)
 
 #ifdef __APPLE__
-#define xdr_uint16_t xdr_u_int16_t
-#define xdr_uint32_t xdr_u_int32_t
-#define xdr_uint64_t xdr_u_int64_t
+#define xdr_u_int16_t xdr_u_int16_t
+#define xdr_u_int32_t xdr_u_int32_t
+#define xdr_u_int64_t xdr_u_int64_t
 #endif
   
   static u_int64_t ENDOFLIST =   0xFFFFFFFFFFFFFFFF;
@@ -130,7 +130,7 @@ enum {
 	xdr_u_int(xdrs, & savenode.down);
 	//other infos
     xdr_u_int(xdrs, &savenode.nodeType); //ttype
-	uint l = (savenode.Text).length();
+	u_int l = (savenode.Text).length();
 	xdr_u_int(xdrs, &l);
 	char *t = (char*) (savenode.Text).c_str();
 	xdr_string(xdrs, &t, l); //TEXT
@@ -217,9 +217,9 @@ enum {
 
 
   typedef struct _SAVENODE_STRUCT_ {
-	uint nodeType = 0;
-	uint ligne = 0;
-	uint flags = 0;
+	u_int nodeType = 0;
+	u_int ligne = 0;
+	u_int flags = 0;
 	u_int64_t node = 0;
 	u_int64_t right = 0;
 	u_int64_t down = 0;
@@ -232,7 +232,7 @@ enum {
 	savenodestruct savenode;
 	// address is not that simple to retrieve. The address is what ' std::cout<<this " prints, and it is NOT easy to get it right. 'This is the way'.
 	//read node address:
-	uint node=0;
+	u_int node=0;
 	xdr_u_int(xdrs, & node);
 	if (node == 0xFFFFFFFF) return false;
 	savenode.node=node;
@@ -244,7 +244,7 @@ enum {
 	savenode.down=node;
 	xdr_u_int(xdrs, &savenode.nodeType);
 	//read text length
-	uint l = 0;
+	u_int l = 0;
 	xdr_u_int(xdrs, &l);
 	//read text
 	char *text = NULL;
@@ -253,7 +253,7 @@ enum {
 	xdr_u_int(xdrs, &savenode.ligne); //LineNUM
 	// the 'flags' are an union of ints, with different meanings depending on the actual node
 	xdr_u_int(xdrs, &savenode.flags);
-	uint varType = 0;
+	u_int varType = 0;
 	xdr_u_int(xdrs, &varType); //get VarType
 	savenode.var=NULL;
 	if (varType > 0) {
@@ -423,24 +423,24 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
   }
   
   //we write only "normal" (i.e. no PROMOTE64) headers
-  inline uint64_t writeNewRecordHeader(XDR *xdrs, int code){
+  inline u_int64_t writeNewRecordHeader(XDR *xdrs, int code){
     int32_t rectype=code;    
     xdr_int32_t(xdrs, &rectype); //-16
-    uint32_t ptrs0=0;
-    uint32_t ptrs1=0;
-    xdr_uint32_t(xdrs, &ptrs0); //-12 //void, to be updated
-    xdr_uint32_t(xdrs, &ptrs1); //-8
+    u_int32_t ptrs0=0;
+    u_int32_t ptrs1=0;
+    xdr_u_int32_t(xdrs, &ptrs0); //-12 //void, to be updated
+    xdr_u_int32_t(xdrs, &ptrs1); //-8
     int32_t UnknownLong=0;
     xdr_int32_t(xdrs, &UnknownLong);
     return xdr_get_gdl_pos(xdrs); //end of header
   }
 
-  inline uint64_t updateNewRecordHeader(XDR *xdrs, uint64_t cur) {
-    uint64_t next = xdr_get_gdl_pos(xdrs);
+  inline u_int64_t updateNewRecordHeader(XDR *xdrs, u_int64_t cur) {
+    u_int64_t next = xdr_get_gdl_pos(xdrs);
     //dirty trick for compression: write uncompressed, rewind, read what was just written, compress, write over, reset positions.
     if (save_compress)
     {
-      uint64_t uLength = next - cur;
+      u_int64_t uLength = next - cur;
       uLong cLength = compressBound(uLength);
       char* uncompressed = (char*) calloc(uLength+1,1);
       xdr_set_gdl_pos(xdrs, cur);
@@ -457,43 +457,43 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       //if (next!=(cur+cLength)) cerr<<"problem:"<<cur+cLength<<":"<<next<<"\n";
     }
     xdr_set_gdl_pos(xdrs, cur-12); //ptrs0
-    //copy next (64 bit) as two 32 bits. Should be OK on 32 bit machines as next is uint64.
+    //copy next (64 bit) as two 32 bits. Should be OK on 32 bit machines as next is u_int64.
     if (BigEndian()) { //first 32 bit is low, second high (XDRS is BigEndian)
-	  xdr_uint64_t(xdrs, &next);
+	  xdr_u_int64_t(xdrs, &next);
 	} else {
-    uint32_t first,second;
-    first = ((uint32_t *) &next)[0];
-    second = ((uint32_t *) &next)[1];
-    xdr_uint32_t(xdrs, &first);
-    xdr_uint32_t(xdrs, &second);
+    u_int32_t first,second;
+    first = ((u_int32_t *) &next)[0];
+    second = ((u_int32_t *) &next)[1];
+    xdr_u_int32_t(xdrs, &first);
+    xdr_u_int32_t(xdrs, &second);
 	}
     xdr_set_gdl_pos(xdrs, next);
     return next;
   }
   
-  uint64_t writeTimeUserHost(XDR *xdrs, char* FileDatestring, char* FileUser, char* FileHost) {
-    uint64_t cur=writeNewRecordHeader(xdrs, TIMESTAMP);
+  u_int64_t writeTimeUserHost(XDR *xdrs, char* FileDatestring, char* FileUser, char* FileHost) {
+    u_int64_t cur=writeNewRecordHeader(xdrs, TIMESTAMP);
     int32_t UnknownLong=0;
     for (int i = 0; i < 256; ++i) if (!xdr_int32_t(xdrs, &UnknownLong)) cerr << "write error" << endl;
     if (!xdr_string(xdrs, &FileDatestring, strlen(FileDatestring))) cerr << "write error" << endl;
     if (!xdr_string(xdrs, &FileUser, strlen(FileUser))) cerr << "write error" << endl;
     if (!xdr_string(xdrs, &FileHost, strlen(FileHost))) cerr << "write error" << endl;
-    uint64_t next=updateNewRecordHeader(xdrs, cur);
+    u_int64_t next=updateNewRecordHeader(xdrs, cur);
     return next;
   }
   
-  uint64_t writeEnd(XDR *xdrs) {
-    uint64_t cur=writeNewRecordHeader(xdrs, END_MARKER);
+  u_int64_t writeEnd(XDR *xdrs) {
+    u_int64_t cur=writeNewRecordHeader(xdrs, END_MARKER);
     return cur;
   }
   
-  uint64_t writeGDLEnd(XDR *xdrs) {
-    uint64_t cur=writeNewRecordHeader(xdrs, GDL_END_MARKER);
+  u_int64_t writeGDLEnd(XDR *xdrs) {
+    u_int64_t cur=writeNewRecordHeader(xdrs, GDL_END_MARKER);
     return cur;
   }  //user-defined Sub
 
-  uint64_t writeDSubUD(XDR *xdrs, DSubUD* p, bool isPro) {
-	uint64_t cur = writeNewRecordHeader(xdrs, GDL_COMPILED);
+  u_int64_t writeDSubUD(XDR *xdrs, DSubUD* p, bool isPro) {
+	u_int64_t cur = writeNewRecordHeader(xdrs, GDL_COMPILED);
 	//write file name
 	std::string name = p->ObjectName();
 	u_int len = name.size();
@@ -596,13 +596,13 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     return 1;
   }
   
-  uint64_t writeVersion(XDR* xdrs, int32_t *format, char* arch, char* os , char* release) {
-    uint64_t cur=writeNewRecordHeader(xdrs, VERSION_MARKER);
+  u_int64_t writeVersion(XDR* xdrs, int32_t *format, char* arch, char* os , char* release) {
+    u_int64_t cur=writeNewRecordHeader(xdrs, VERSION_MARKER);
     xdr_int32_t(xdrs, format);
     xdr_string(xdrs, &arch, strlen(arch));
     xdr_string(xdrs, &os, strlen(os));
     xdr_string(xdrs, &release, strlen(release));
-    uint64_t next=updateNewRecordHeader(xdrs, cur);
+    u_int64_t next=updateNewRecordHeader(xdrs, cur);
     return next;
   }
   
@@ -613,10 +613,10 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     return 1;
   }
   
-  uint64_t writeNotice(XDR* xdrs, char* notice) {
-    uint64_t cur=writeNewRecordHeader(xdrs, NOTICE);
+  u_int64_t writeNotice(XDR* xdrs, char* notice) {
+    u_int64_t cur=writeNewRecordHeader(xdrs, NOTICE);
     xdr_string(xdrs, &notice, strlen(notice));
-    uint64_t next=updateNewRecordHeader(xdrs, cur);
+    u_int64_t next=updateNewRecordHeader(xdrs, cur);
     return next;
   }
 
@@ -631,12 +631,12 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     } else return NULL;
   }
 
-  uint64_t writeDescription(XDR *xdrs, char* descr) {
-    uint64_t cur=writeNewRecordHeader(xdrs, DESCRIPTION_MARKER);
+  u_int64_t writeDescription(XDR *xdrs, char* descr) {
+    u_int64_t cur=writeNewRecordHeader(xdrs, DESCRIPTION_MARKER);
     int32_t length = strlen(descr);
     if (!xdr_int32_t(xdrs, &length)) cerr << "error writing description string length" << endl;
     if (!xdr_string(xdrs, &descr, length)) cerr << "error writing string" << endl;
-    uint64_t next=updateNewRecordHeader(xdrs, cur);
+    u_int64_t next=updateNewRecordHeader(xdrs, cur);
     return next;
    }
 
@@ -654,12 +654,12 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     return 1;
   }
   
-  uint64_t writeIdentification(XDR *xdrs, char *saveFileAuthor, char* title, char* otherinfo ) {
-    uint64_t cur=writeNewRecordHeader(xdrs, IDENTIFICATION);
+  u_int64_t writeIdentification(XDR *xdrs, char *saveFileAuthor, char* title, char* otherinfo ) {
+    u_int64_t cur=writeNewRecordHeader(xdrs, IDENTIFICATION);
     xdr_string(xdrs, &saveFileAuthor, strlen(saveFileAuthor));
     xdr_string(xdrs, &title, strlen(title) );
     xdr_string(xdrs, &otherinfo, strlen(otherinfo) );
-    uint64_t next=updateNewRecordHeader(xdrs, cur);
+    u_int64_t next=updateNewRecordHeader(xdrs, cur);
     return next;
   }
   
@@ -1427,7 +1427,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         break;
       case GDL_UINT:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DUInt), (xdrproc_t) xdr_uint16_t)) cerr << "error GDL_UINT" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DUInt), (xdrproc_t) xdr_u_int16_t)) cerr << "error GDL_UINT" << endl;
       }
         break;
       case GDL_LONG:
@@ -1437,7 +1437,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         break;
       case GDL_ULONG:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong), (xdrproc_t) xdr_uint32_t)) cerr << "error GDL_ULONG" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong), (xdrproc_t) xdr_u_int32_t)) cerr << "error GDL_ULONG" << endl;
       }
         break;
       case GDL_LONG64:
@@ -1447,7 +1447,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         break;
       case GDL_ULONG64:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong64), (xdrproc_t) xdr_uint64_t)) cerr << "error GDL_ULONG64" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong64), (xdrproc_t) xdr_u_int64_t)) cerr << "error GDL_ULONG64" << endl;
       }
         break;
       case GDL_FLOAT:
@@ -1543,7 +1543,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         break;
       case GDL_UINT:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DUInt), (xdrproc_t) xdr_uint16_t)) cerr << "error GDL_UINT" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DUInt), (xdrproc_t) xdr_u_int16_t)) cerr << "error GDL_UINT" << endl;
       }
         break;
       case GDL_LONG:
@@ -1553,7 +1553,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         break;
       case GDL_ULONG:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong), (xdrproc_t) xdr_uint32_t)) cerr << "error GDL_ULONG" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong), (xdrproc_t) xdr_u_int32_t)) cerr << "error GDL_ULONG" << endl;
       }
         break;
       case GDL_LONG64:
@@ -1563,7 +1563,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         break;
       case GDL_ULONG64:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong64), (xdrproc_t) xdr_uint64_t)) cerr << "error GDL_ULONG64" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong64), (xdrproc_t) xdr_u_int64_t)) cerr << "error GDL_ULONG64" << endl;
       }
         break;
       case GDL_FLOAT:
@@ -1608,7 +1608,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       }
       case GDL_PTR:  //we must translate PTRs as they may have been scrambled in the writing of the heap indexes.
       {
-        uint32_t heapNumber[nEl];
+        u_int32_t heapNumber[nEl];
         for (SizeT i = 0; i < nEl; ++i)
         {
           heapNumber[i]=0;
@@ -1616,12 +1616,12 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
           heapT::iterator it=heapIndexMapSave.find(ptr);
           if (it!=heapIndexMapSave.end()) heapNumber[i]=(*it).second;
         }
-        if (!xdr_vector(xdrs, (char*) &heapNumber, nEl, sizeof (int32_t), (xdrproc_t) xdr_uint32_t)) cerr << "error PTR" << endl;
+        if (!xdr_vector(xdrs, (char*) &heapNumber, nEl, sizeof (int32_t), (xdrproc_t) xdr_u_int32_t)) cerr << "error PTR" << endl;
         break;
       }
       case GDL_OBJ:
       {
-        uint32_t heapNumber[nEl];
+        u_int32_t heapNumber[nEl];
         for (SizeT i = 0; i < nEl; ++i)
         {
           heapNumber[i]=0;
@@ -1629,7 +1629,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
           heapT::iterator it=heapIndexMapSave.find(ptr);
           if (it!=heapIndexMapSave.end()) heapNumber[i]=(*it).second; 
         }
-        if (!xdr_vector(xdrs, (char*) &heapNumber, nEl, sizeof (int32_t), (xdrproc_t) xdr_uint32_t)) cerr << "error OBJ" << endl;
+        if (!xdr_vector(xdrs, (char*) &heapNumber, nEl, sizeof (int32_t), (xdrproc_t) xdr_u_int32_t)) cerr << "error OBJ" << endl;
         break;
       }
       default: assert(false);
@@ -1685,7 +1685,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     if (isStructure) writeStructDesc(xdrs, static_cast<DStructGDL*>(var), isObject);
   }
 
-  uint64_t writeNormalVariable(XDR *xdrs, std::string varName, BaseGDL* var, int varflags=0x0) {
+  u_int64_t writeNormalVariable(XDR *xdrs, std::string varName, BaseGDL* var, int varflags=0x0) {
     bool isSysVar=false;
     bool readonly=false;
     if (varflags & 0x02) //defines a system variable.
@@ -1697,7 +1697,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       readonly = true;
     }
     const char* varname=varName.c_str();
-    uint64_t cur=writeNewRecordHeader(xdrs, isSysVar?SYSTEM_VARIABLE:VARIABLE);
+    u_int64_t cur=writeNewRecordHeader(xdrs, isSysVar?SYSTEM_VARIABLE:VARIABLE);
     xdr_string(xdrs, (char**)&varname, 2048); 
     if (var==NULL) return updateNewRecordHeader(xdrs, cur); //unexistent var
     if (DEBUG_SAVERESTORE)  std::cerr<<"Writing normal Variable "<<varName<<std::endl;
@@ -1761,7 +1761,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 //    return ret;
 //  }
 	
-	uint64_t writeHeapVariable(EnvT* e, XDR *xdrs, DPtr ptr, bool isObject=false) {
+	u_int64_t writeHeapVariable(EnvT* e, XDR *xdrs, DPtr ptr, bool isObject=false) {
     //what is passed is the list of existent heap positions occupied.
     //we  write only the ones that are actuall in , depending, the 
     heapT::iterator itheap;
@@ -1775,7 +1775,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     
     bool isSysVar=false;
     bool readonly=false;
-    uint64_t cur=writeNewRecordHeader(xdrs, HEAP_DATA); //HEAP_DATA
+    u_int64_t cur=writeNewRecordHeader(xdrs, HEAP_DATA); //HEAP_DATA
     int32_t heap_index=ptr;
     if (DEBUG_SAVERESTORE) {
       if (isObject) {
@@ -1944,9 +1944,9 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     if (sizeof(int16_t) != sizeof(DInt)) return false;
     if (sizeof(int32_t) != sizeof(DLong)) return false;
     if (sizeof(int64_t) != sizeof(DLong64)) return false;
-    if (sizeof(uint16_t) != sizeof(DUInt)) return false;
-    if (sizeof(uint32_t) != sizeof(DULong)) return false;
-    if (sizeof(uint64_t) != sizeof(DULong64)) return false;    
+    if (sizeof(u_int16_t) != sizeof(DUInt)) return false;
+    if (sizeof(u_int32_t) != sizeof(DULong)) return false;
+    if (sizeof(u_int64_t) != sizeof(DULong64)) return false;    
     if (sizeof(double) != sizeof(DDouble)) return false;    
     if (sizeof(float) != sizeof(DFloat)) return false;    
     return true;
@@ -2040,9 +2040,9 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     bool isArray = false;
     bool isStructure = false;
     //will start at TMESTAMP
-    uint64_t currentptr = 0;
-    uint64_t nextptr = LONG;
-    uint32_t ptr_low, ptr_high;
+    u_int64_t currentptr = 0;
+    u_int64_t nextptr = LONG;
+    u_int32_t ptr_low, ptr_high;
     int32_t rectype;
     int32_t UnknownLong;
     bool SomethingFussyHappened = true;
@@ -2064,17 +2064,17 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       }
       if (isHdr64)
       {
-        uint64_t my_ulong64;
-        if (!xdr_uint64_t(xdrs, &my_ulong64)) break;
+        u_int64_t my_ulong64;
+        if (!xdr_u_int64_t(xdrs, &my_ulong64)) break;
         nextptr = my_ulong64; //HDR64 is followed by 2 longs.
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
       } else //the 2 pointers may point together to a l64 address, bug #1545
       { //we read a sort of BigEndian format
-		if (!xdr_uint32_t(xdrs, &ptr_low)) break;
-		if (!xdr_uint32_t(xdrs, &ptr_high)) break;
+		if (!xdr_u_int32_t(xdrs, &ptr_low)) break;
+		if (!xdr_u_int32_t(xdrs, &ptr_high)) break;
 		nextptr = ptr_low;
-		uint64_t tmp = ptr_high;
+		u_int64_t tmp = ptr_high;
         nextptr |= (tmp << 32);
         if (!xdr_int32_t(xdrs, &UnknownLong)) break; //only 1 long following in non-HDR64 format
         if (nextptr <=LONG) e->Throw("error in pointers, please report.");
@@ -2260,16 +2260,16 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 
 		  if (DEBUG_SAVERESTORE) cerr << "Offset " << nextptr << ": record type " << rectypes[min(24,rectype)] << endl;
 		  if (isHdr64) {
-			uint64_t my_ulong64;
-			if (!xdr_uint64_t(xdrs, &my_ulong64)) break;
+			u_int64_t my_ulong64;
+			if (!xdr_u_int64_t(xdrs, &my_ulong64)) break;
 			nextptr = my_ulong64;
 			if (!xdr_int32_t(xdrs, &UnknownLong)) break;
 			if (!xdr_int32_t(xdrs, &UnknownLong)) break;
 		  } else {//we read a sort of BigEndian format
-			if (!xdr_uint32_t(xdrs, &ptr_low)) break;
-			if (!xdr_uint32_t(xdrs, &ptr_high)) break;
+			if (!xdr_u_int32_t(xdrs, &ptr_low)) break;
+			if (!xdr_u_int32_t(xdrs, &ptr_high)) break;
 			nextptr = ptr_low;
-			uint64_t tmp = ptr_high;
+			u_int64_t tmp = ptr_high;
 			nextptr |= (tmp << 32);
 			if (!xdr_int32_t(xdrs, &UnknownLong)) break;
 		  }
@@ -2299,16 +2299,16 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 	  }
       if (isHdr64)
       {
-        uint64_t my_ulong64;
-        if (!xdr_uint64_t(xdrs, &my_ulong64)) break;
+        u_int64_t my_ulong64;
+        if (!xdr_u_int64_t(xdrs, &my_ulong64)) break;
         nextptr = my_ulong64;
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
       } else {//we read a sort of BigEndian format
-		if (!xdr_uint32_t(xdrs, &ptr_low)) break;
-		if (!xdr_uint32_t(xdrs, &ptr_high)) break;
+		if (!xdr_u_int32_t(xdrs, &ptr_low)) break;
+		if (!xdr_u_int32_t(xdrs, &ptr_high)) break;
 		nextptr = ptr_low;
-		uint64_t tmp = ptr_high;
+		u_int64_t tmp = ptr_high;
         nextptr |= (tmp << 32);
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
       }
@@ -2499,12 +2499,12 @@ endoffile:
     return;
   }
 
-  uint64_t writeHeapList(XDR* xdrs) {
+  u_int64_t writeHeapList(XDR* xdrs) {
 // writing heap list for IDL compatiblilty implies to "mimic" the single heap list of IDL.
 //We write the PTRs first, then the OBJs after. OBJ ptrs will thus start at the last value held by PTRs plus one.
     int32_t elementcount = heapIndexMapSave.size();
     if (elementcount < 1) return xdr_get_gdl_pos(xdrs);
-    uint64_t cur = writeNewRecordHeader(xdrs, HEAP_HEADER); //HEAP_HEADER
+    u_int64_t cur = writeNewRecordHeader(xdrs, HEAP_HEADER); //HEAP_HEADER
     xdr_int32_t(xdrs, &elementcount);
     int32_t indices[elementcount];
     SizeT i = 0;
@@ -2517,11 +2517,11 @@ endoffile:
       for (int i = 0; i < elementcount; ++i) cerr << indices[i] << ",";
       cerr << endl;
     }
-    uint64_t next = updateNewRecordHeader(xdrs, cur);
+    u_int64_t next = updateNewRecordHeader(xdrs, cur);
     return next;
   }
 
-  uint64_t writeCommonList(EnvT*e, XDR* xdrs, std::string commonname) {
+  u_int64_t writeCommonList(EnvT*e, XDR* xdrs, std::string commonname) {
    if (DEBUG_SAVERESTORE) std::cerr<<"Writing Common "<<commonname<<std::endl;
     EnvStackT& callStack = e->Interpreter()->CallStack();
     int32_t curlevnum = callStack.size();
@@ -2529,7 +2529,7 @@ endoffile:
     DCommon* c=pro->Common(commonname);
     int32_t ncommonvars = c->NVar();
     if (ncommonvars < 1) return xdr_get_gdl_pos(xdrs);
-    uint64_t cur = writeNewRecordHeader(xdrs, COMMONBLOCK); //COMMON
+    u_int64_t cur = writeNewRecordHeader(xdrs, COMMONBLOCK); //COMMON
     xdr_int32_t(xdrs, &ncommonvars);
     char* name = (char*)commonname.c_str();
     u_int len=c->Name().size();
@@ -2542,7 +2542,7 @@ endoffile:
      }
     for (int i = 0; i < ncommonvars; ++i) lens[i] = c->VarName(i).size();
     for (int i = 0; i < ncommonvars; ++i) xdr_string(xdrs, &varnames[i], lens[i]);    
-    uint64_t next = updateNewRecordHeader(xdrs, cur);
+    u_int64_t next = updateNewRecordHeader(xdrs, cur);
     if (DEBUG_SAVERESTORE) std::cerr<<std::endl;
     return next;
   } 
@@ -2763,8 +2763,8 @@ endoffile:
 
 
     //will start at TIMESTAMP if not /ROUTINE
-    uint64_t nextptr = LONG;
-    uint64_t oldptr = 0;
+    u_int64_t nextptr = LONG;
+    u_int64_t oldptr = 0;
 
     fseek(save_fid, nextptr, SEEK_SET);
 
