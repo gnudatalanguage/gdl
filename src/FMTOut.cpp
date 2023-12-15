@@ -246,7 +246,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtA( os, valIx, r, w, c);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -267,7 +267,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::FIXED);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -288,7 +288,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::SCIENTIFIC);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -310,7 +310,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::SCIENTIFIC);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -331,7 +331,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::AUTO);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -353,7 +353,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtF( os, valIx, r, w, d, c, BaseGDL::AUTO);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -374,7 +374,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::DEC);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -395,7 +395,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::OCT);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -416,7 +416,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::BIN);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -437,7 +437,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::HEX);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
@@ -458,7 +458,7 @@ void FMTOut::f(RefFMTNode _t) {
 		SizeT tCount = actPar->OFmtI( os, valIx, r, w, d, c, BaseGDL::HEXL);
 		r -= tCount;
 		NextVal( tCount);
-		if( actPar == NULL) break;
+		if( actPar == NULL) {termFlag=true; break;};
 		} while( r>0);
 		
 		break;
