@@ -275,15 +275,15 @@ using std::isnan;
 
     DType t1  = GDL_LONG;
     DDoubleGDL* tmp1;
-    DDoubleGDL* p1 = e->GetParAs<DDoubleGDL>(1);
-    SizeT nElp1 = p1->N_Elements();
+    DDoubleGDL* p1;
+    SizeT nElp1 = 0;
 
     DType t1bis;
 
     if (nParam == 2) {
       GM_CheckComplex_P1(0);
       p1 = e->GetParAs<DDoubleGDL>(1);
-//      SizeT nElp1 = p1->N_Elements();
+      nElp1 = p1->N_Elements();
       tmp1=new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);
       t1bis = e->GetParDefined(1)->Type();
       //cout << "type : "<< t1 << endl;
@@ -291,6 +291,9 @@ using std::isnan;
     } else {
       nElp1=1;
       tmp1=new DDoubleGDL(1.);
+	  Guard<DDoubleGDL> g1(tmp1);
+	  p1=new DDoubleGDL(1.);
+	  Guard<DDoubleGDL> g2(p1);
       //      DType 
       t1bis = GDL_FLOAT;
     }
