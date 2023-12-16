@@ -6266,12 +6266,12 @@ GDLWidgetDraw::GDLWidgetDraw( WidgetIDT p, EnvT* e, int windowIndex,
   if ( eventFlags &  GDLWidget::EV_BUTTON) {
       this->AddToDesiredEvents(wxEVT_LEFT_DOWN, wxMouseEventHandler(gdlwxDrawPanel::OnMouseDown),draw); 
       this->AddToDesiredEvents(wxEVT_LEFT_UP, wxMouseEventHandler(gdlwxDrawPanel::OnMouseUp),draw); 
-      this->AddToDesiredEvents(wxEVT_LEFT_DCLICK, wxMouseEventHandler(gdlwxDrawPanel::OnMouseDown),draw); 
+      this->AddToDesiredEvents(wxEVT_LEFT_DCLICK, wxMouseEventHandler(gdlwxDrawPanel::OnMouseDownDble),draw); 
       this->AddToDesiredEvents(wxEVT_MIDDLE_DOWN, wxMouseEventHandler(gdlwxDrawPanel::OnMouseDown),draw); 
-      this->AddToDesiredEvents(wxEVT_MIDDLE_DCLICK, wxMouseEventHandler(gdlwxDrawPanel::OnMouseDown),draw); 
+      this->AddToDesiredEvents(wxEVT_MIDDLE_DCLICK, wxMouseEventHandler(gdlwxDrawPanel::OnMouseDownDble),draw); 
       this->AddToDesiredEvents(wxEVT_MIDDLE_UP, wxMouseEventHandler(gdlwxDrawPanel::OnMouseUp),draw); 
       this->AddToDesiredEvents(wxEVT_RIGHT_DOWN, wxMouseEventHandler(gdlwxDrawPanel::OnMouseDown),draw); 
-      this->AddToDesiredEvents(wxEVT_RIGHT_DCLICK, wxMouseEventHandler(gdlwxDrawPanel::OnMouseDown),draw); 
+      this->AddToDesiredEvents(wxEVT_RIGHT_DCLICK, wxMouseEventHandler(gdlwxDrawPanel::OnMouseDownDble),draw); 
       this->AddToDesiredEvents(wxEVT_RIGHT_UP, wxMouseEventHandler(gdlwxDrawPanel::OnMouseUp),draw); 
   }
   if (eventFlags &  GDLWidget::EV_KEYBOARD2 || eventFlags & GDLWidget::EV_KEYBOARD){

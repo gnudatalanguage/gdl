@@ -386,6 +386,7 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
           GDLDelete(ev);
           throw GDLException(eventHandlerFun + ": Event handler return struct must contain ID, TOP, HANDLER as first tags.");
         }
+		return ev;
       } else { //not a struct, same as a procedure, has swallowed the event
         ev = NULL;
         break; 

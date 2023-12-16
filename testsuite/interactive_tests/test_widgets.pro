@@ -119,6 +119,43 @@ pro deletedraw,ev
   tobedeleted = WIDGET_INFO(ev.TOP, FIND_BY_UNAME = 'drawToBeDeleted')
   widget_control,tobedeleted,/destroy
 end
+function draw2_event,ev
+  print,"draw2 event"
+  return,ev
+end
+
+pro draw1_event,ev
+widget_id=ev.id
+print,"draw1 started, will exit on key 1 release"
+sav_draw_motion_events = widget_info(widget_id, /draw_motion_events)
+sav_draw_button_events = widget_info(widget_id, /draw_button_events)
+sav_event_pro = widget_info(widget_id,/event_pro)
+sav_event_func = widget_info(widget_id,/event_func)
+
+widget_control, widget_id, /draw_button_events
+widget_control, widget_id, event_pro=''
+widget_control, widget_id, event_func='draw2_event'
+while 1 do begin
+
+	ev = widget_event (widget_id)
+;	print,'event in stretch_box
+;	help,ev,/st
+
+	if ev.press eq 1 then begin
+          print,"keypress 1"
+	endif
+
+        if ev.release eq 1 then begin
+			if sav_event_pro ne '' then widget_control, widget_id, event_pro=sav_event_pro
+			if sav_event_func ne '' then widget_control, widget_id, event_func=sav_event_func
+			widget_control, widget_id, draw_button_events=sav_draw_button_events, $
+                           draw_motion_events=sav_draw_motion_events
+                        print,"reset pro fun events & exit draw1"
+                        return
+	endif
+	wait, .1
+endwhile
+end
 
 pro list_event,event
 toto=["A","list","created","with","WIDGET_LIST","YSIZE=3"]
@@ -354,7 +391,7 @@ endif
 
 ; populate
     if ~keyword_set(nocanvas) then begin 
-       draw = WIDGET_DRAW(yoff=offy,draw_base, XSIZE = 1800, YSIZE = 600,x_scroll_size=256,y_scroll_size=256,frame=20)  & offy+=300                                         ;
+       draw = WIDGET_DRAW(yoff=offy,draw_base, XSIZE = 1800, YSIZE = 600,x_scroll_size=256,y_scroll_size=256,frame=20,/button_events,event_pro="draw1_event")  & offy+=300                                         ;
        draw2 = WIDGET_DRAW(yoff=offy,draw_base, xoff=100, xsize=400,ysize=400,x_scroll_size=200,y_scroll_size=200,/button_events,keyboard_events=1,/motion_events)  & offy+=250 ;
        tmp=widget_label(xoff=200,yoff=offy,draw_base,value="below, has tooltip and has a popup") & offy+=10                                                                     ;
        

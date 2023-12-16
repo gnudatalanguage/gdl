@@ -74,6 +74,7 @@
 #include "str.hpp"
 #include "datatypes.hpp"
 #include "widget.hpp"
+#include "GDLInterpreter.hpp"
 
 #define gdlSCROLL_RATE 10
 #define gdlABSENT_SIZE_VALUE 15
@@ -585,6 +586,18 @@ public:
    this->setFont();
    this->SetSensitive(sensitive);
 //   if (this->GetRealized()) this->RefreshWidget();
+    if (eventPro.size() > 0 ) {
+#ifdef GDL_DEBUG_WIDGETS
+      wxMessageOutputStderr().Printf(_T("Realize: SetEventPro: \"%s\" for %d\n"), eventPro, widgetID);
+#endif
+      bool found=GDLInterpreter::SearchCompilePro(eventPro, true); // true -> search for procedure
+    }
+    if (eventFun.size() > 0 ) {
+#ifdef GDL_DEBUG_WIDGETS
+      wxMessageOutputStderr().Printf(_T("Realize: SetEventFun: \"%s\" for %d\n"), eventFun, widgetID);
+#endif
+      bool found=GDLInterpreter::SearchCompilePro(eventFun, false); // false -> search for function
+    }
    if( notifyRealize != "") { //insure it is called once only for this.
       std::string note=notifyRealize;
       notifyRealize.clear();
@@ -676,9 +689,27 @@ public:
   
   virtual bool IsUsingInteractiveEventLoop() {/*std::cerr<<"IsEventLoopBlocked on a not-top widget, please report."<<std::endl*/;return false;} //default for a normal widget
 
-  void SetEventPro( const DString& ePro) { eventPro = StrUpCase( ePro);}
+  void SetEventPro( const DString& ePro) {
+    eventPro = StrUpCase( ePro);
+#ifdef GDL_DEBUG_WIDGETS
+      wxMessageOutputStderr().Printf(_T("SetEventPro: \"%s\" for %d\n"), eventPro, widgetID);
+#endif
+    if (eventPro.size() > 0) {
+      bool found = GDLInterpreter::SearchCompilePro(eventPro, true); // true -> search for procedure
+    }
+   }
+  
   const DString& GetEventPro() const { return eventPro;};
-  void SetEventFun( const DString& eFun) { eventFun = StrUpCase( eFun);}
+  
+  void SetEventFun( const DString& eFun) {
+    eventFun = StrUpCase(eFun);
+#ifdef GDL_DEBUG_WIDGETS
+    wxMessageOutputStderr().Printf(_T("SetEventFun: \"%s\" for %d\n"),eventFun, widgetID);
+#endif
+    if (eventFun.size() > 0) {
+      bool found = GDLInterpreter::SearchCompilePro(eventFun, false); // false -> search for function
+    }
+  }
   const DString& GetEventFun() const { return eventFun;}
   void SetNotifyRealize( const DString& eNR) { notifyRealize = StrUpCase( eNR);}
   const DString& GetNotifyRealize() const { return notifyRealize;}
@@ -2233,6 +2264,7 @@ public:
  void OnMouseMove(wxMouseEvent& event);
  void OnMouseDown(wxMouseEvent& event);
  void OnMouseUp(wxMouseEvent& event);
+ void OnMouseDownDble(wxMouseEvent& event);
  void OnMouseWheel(wxMouseEvent& event);
  void OnKey(wxKeyEvent& event);
  void OnFakeDropFileEvent(wxDropFilesEvent& event);
