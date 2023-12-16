@@ -1530,6 +1530,34 @@ void gdlwxDrawPanel::OnMouseDown( wxMouseEvent &event ) {
   } else event.Skip(); //normal end of event processing!
 }
 
+//Only difference with above is CLICKS=2
+void gdlwxDrawPanel::OnMouseDownDble(wxMouseEvent &event) {
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_KBRD_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlwxDrawPanel::OnMouseDown: %d\n"), event.GetId());
+#endif
+  DULong eventFlags = myWidgetDraw->GetEventFlags();
+
+  if (eventFlags & GDLWidget::EV_BUTTON) {
+	WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase(event.GetId());
+	DStructGDL* widgdraw = new DStructGDL("WIDGET_DRAW");
+	widgdraw->InitTag("ID", DLongGDL(myWidgetDraw->GetWidgetID()));
+	widgdraw->InitTag("TOP", DLongGDL(baseWidgetID));
+	widgdraw->InitTag("HANDLER", DLongGDL(baseWidgetID));
+	widgdraw->InitTag("TYPE", DIntGDL(0)); //button Press
+	wxPoint where = WhereIsMouse(event);
+	widgdraw->InitTag("X", DLongGDL(where.x));
+	widgdraw->InitTag("Y", DLongGDL(drawSize.y - where.y));
+	unsigned long btn = 1 << (event.GetButton() - 1);
+	widgdraw->InitTag("PRESS", DByteGDL(btn));
+	widgdraw->InitTag("RELEASE", DByteGDL(0));
+	widgdraw->InitTag("CLICKS", DLongGDL(2));
+	widgdraw->InitTag("MODIFIERS", DLongGDL(RemapModifiers(event)));
+	widgdraw->InitTag("CH", DByteGDL(0));
+	widgdraw->InitTag("KEY", DLongGDL(0));
+	GDLWidget::PushEvent(baseWidgetID, widgdraw);
+  } else event.Skip(); //normal end of event processing!
+}
+
 void gdlwxDrawPanel::OnMouseUp( wxMouseEvent &event ) {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_KBRD_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlwxDrawPanel::OnMouseUp: %d\n"),event.GetId());
@@ -1549,7 +1577,7 @@ void gdlwxDrawPanel::OnMouseUp( wxMouseEvent &event ) {
     unsigned long btn=1<<(event.GetButton()-1);
     widgdraw->InitTag( "PRESS", DByteGDL( 0 ) );
     widgdraw->InitTag( "RELEASE", DByteGDL( btn ) );
-    widgdraw->InitTag( "CLICKS", DLongGDL( 1 ) );
+    widgdraw->InitTag( "CLICKS", DLongGDL( 0 ) );
     widgdraw->InitTag( "MODIFIERS", DLongGDL( RemapModifiers(event)));
     widgdraw->InitTag( "CH", DByteGDL( 0 ) );
     widgdraw->InitTag( "KEY", DLongGDL( 0 ) );
