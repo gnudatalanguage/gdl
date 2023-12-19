@@ -24,6 +24,7 @@
 
 #include "math_fun_ac.hpp"
 #include "gsl_matrix.hpp"
+#include "sparse_matrix.hpp"
 #include "gsl_fun.hpp"
 
 #include "smooth.hpp"
@@ -74,6 +75,15 @@ void LibInit_ac()
   new DLibFunRetNew(lib::fx_root_fun,string("FX_ROOT"),2,fx_rootKey);
 
 #endif
+  
+  //sparse matrices by GD
+  const string sprsinKey[]={"COLUMN", "DOUBLE", "THRESHOLD", KLISTEND};
+  new DLibFunRetNew(lib::sprsin_fun,string("SPRSIN"),4,sprsinKey);
+  const string sprsabKey[]={"DOUBLE", "THRESHOLD",KLISTEND};
+  new DLibFunRetNew(lib::sprsab_fun,string("SPRSAB"),2,sprsabKey);
+  const string sprsaxKey[]={"DOUBLE",KLISTEND};
+  new DLibFunRetNew(lib::sprsax_fun,string("SPRSAX"),2,sprsaxKey);
+  new DLibFunRetNew(lib::fulstr_fun,string("FULSTR"),1);
 
   const string spl1Key[]={"YP0","YPN_1","YP1","DOUBLE","HELP",KLISTEND}; //YP1 is old value for YP0
   new DLibFunRetNew(lib::spl_init_fun,string("SPL_INIT"),2,spl1Key);
