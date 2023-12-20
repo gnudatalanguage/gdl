@@ -152,10 +152,17 @@ namespace lib {
 	  DDoubleGDL* vals = e->GetParAs<DDoubleGDL>(2);
 	  int nVals=vals->N_Elements();
 	  if (nVals != nRows) e->Throw("Vector "+e->GetString(2) + " must have "+ i2s(nCols) + " elements.");
-	  DLongGDL* size = e->GetParAs<DLongGDL>(3);
-      SPMATRowMajDbl *Mat= new SPMATRowMajDbl((*size)[0],(*size)[0]); //only square matrices this way.
+	  DLongGDL* sizegdl = e->GetParAs<DLongGDL>(3);
+	  DLong size=(*sizegdl)[0];
+      SPMATRowMajDbl *Mat= new SPMATRowMajDbl(size,size); //only square matrices this way.
 	  Mat->reserve(nCols);
-	  for (auto i=0; i< nCols; ++i) Mat->insert((*rows)[i],(*cols)[i])=(*vals)[i];
+	  for (auto i=0; i< nCols; ++i) {
+		DLong irow=(*rows)[i];
+		if (irow >= size ) e->Throw(" Out of range subscript encountered: "+e->GetString(0)+" .");
+		DLong icol=(*cols)[i];
+		if (icol >= size ) e->Throw(" Out of range subscript encountered: "+e->GetString(1)+" .");
+		Mat->insert(irow,icol)=(*vals)[i];
+	  }
 	  return convertToPtr(Mat);
 	} else e->Throw("Incorrect number of arguments.");
 	
