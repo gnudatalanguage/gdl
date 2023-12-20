@@ -77,8 +77,9 @@ void LibInit_ac()
 #endif
   
   //sparse matrices by GD
-  const string sprsinKey[]={"COLUMN", "DOUBLE", "THRESHOLD", KLISTEND};
-  new DLibFunRetNew(lib::sprsin_fun,string("SPRSIN"),4,sprsinKey);
+  const string sprsinKey[]={"THRESHOLD", "COLUMN", KLISTEND};
+  const string sprsinIgnoreKey[]={"DOUBLE", KLISTEND};
+  new DLibFunRetNew(lib::sprsin_fun,string("SPRSIN"),4,sprsinKey,sprsinIgnoreKey);
   const string sprsabKey[]={"DOUBLE", "THRESHOLD",KLISTEND};
   new DLibFunRetNew(lib::sprsab_fun,string("SPRSAB"),2,sprsabKey);
   const string sprsaxKey[]={"DOUBLE",KLISTEND};
