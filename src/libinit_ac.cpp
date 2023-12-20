@@ -85,6 +85,7 @@ void LibInit_ac()
   const string sprsaxKey[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::sprsax_fun,string("SPRSAX"),2,sprsaxKey);
   new DLibFunRetNew(lib::fulstr_fun,string("FULSTR"),1);
+  new DLibFunRetNew(lib::sprstp_fun,string("SPRSTP"),1);
 
   const string spl1Key[]={"YP0","YPN_1","YP1","DOUBLE","HELP",KLISTEND}; //YP1 is old value for YP0
   new DLibFunRetNew(lib::spl_init_fun,string("SPL_INIT"),2,spl1Key);

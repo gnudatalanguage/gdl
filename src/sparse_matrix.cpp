@@ -161,7 +161,8 @@ namespace lib {
 		if (irow >= size ) e->Throw(" Out of range subscript encountered: "+e->GetString(0)+" .");
 		DLong icol=(*cols)[i];
 		if (icol >= size ) e->Throw(" Out of range subscript encountered: "+e->GetString(1)+" .");
-		Mat->insert(irow,icol)=(*vals)[i];
+		Mat->coeffRef(irow,icol)+=(*vals)[i]; //protect against doublons
+		if (Mat->coeffRef(irow,icol)!=(*vals)[i]) e->Throw("Duplicate subscript encountered in Columns and Rows arrays at element: "+i2s(i));
 	  }
 	  return convertToPtr(Mat);
 	} else e->Throw("Incorrect number of arguments.");
@@ -183,6 +184,13 @@ namespace lib {
 	return convertToPtr(Mat3);
   }
   
+  BaseGDL* sprstp_fun(EnvT* e){	
+    SizeT nParam = e->NParam(1);
+	SPMATRowMajDbl *Mat=getFromPtr(e, 0);
+	SPMATRowMajDbl *res=new SPMATRowMajDbl((*Mat).transpose());
+	delete Mat;
+	return convertToPtr(res);
+  }
   BaseGDL* sprsax_fun(EnvT* e) {
 	SizeT nParam = e->NParam(2);
 	SPMATRowMajDbl* Mat = getFromPtr(e, 0);
