@@ -188,7 +188,6 @@ namespace lib {
     SizeT nParam = e->NParam(1);
 	SPMATRowMajDbl *Mat=getFromPtr(e, 0);
 	SPMATRowMajDbl *res=new SPMATRowMajDbl((*Mat).transpose());
-	delete Mat;
 	return convertToPtr(res);
   }
   BaseGDL* sprsax_fun(EnvT* e) {
@@ -208,6 +207,36 @@ namespace lib {
 	return convertToGDL(Mat3);
   }
   
+  BaseGDL* linbcg_fun(EnvT* e) {
+	SizeT nParam = e->NParam(3);
+	SPMATRowMajDbl* A = getFromPtr(e, 0);
+	BaseGDL* p1 = e->GetParDefined(1); // Right Hand B 
+	DType varType = p1->Type();
+	if (p1->Dim().Rank() != 1) e->Throw("Argument " + e->GetString(1) + " must be a vector.");
+	if (varType == GDL_STRING) e->Throw("Argument " + e->GetString(1) + " must not be of STRING type.");
+	int m = p1->Dim(0);
+	if (m != A->cols()) e->Throw("Argument " + e->GetString(1) + " does not have correct size.");
+	DDoubleGDL* Bgdl = e->GetParAs<DDoubleGDL>(1);
+	Eigen::Map<Eigen::VectorXd> B(&(*Bgdl)[0], m);
+	BaseGDL* p2 = e->GetParDefined(2); // Initial Guess
+	varType = p2->Type();
+	if (p2->Dim().Rank() != 1) e->Throw("Argument " + e->GetString(2) + " must be a vector.");
+	if (varType == GDL_STRING) e->Throw("Argument " + e->GetString(2) + " must not be of STRING type.");
+	int n = p2->Dim(0);
+	if (n != m) e->Throw("Argument " + e->GetString(2) + " does not have correct size.");
+	DDoubleGDL* Xgdl = e->GetParAs<DDoubleGDL>(2);
+	Eigen::Map<Eigen::VectorXd> X(&(*Xgdl)[0], n); 
+	//solve ax=b
+	Eigen::SparseLU<Eigen::SparseMatrix<double>> sparseLU;
+    sparseLU.compute(*A);
+    if(sparseLU.info()!=Eigen::Success) e->Throw("Matrix decomposition failed.");
+	X=sparseLU.solve(B);
+    if(sparseLU.info()!=Eigen::Success) e->Throw("No solution found.");
+	DDoubleGDL* resD =new DDoubleGDL(n, BaseGDL::NOZERO);
+	Eigen::Map<Eigen::VectorXd>(&(*resD)[0], n) = X;
+	return resD;
+  }
+ 
   BaseGDL* fulstr_fun(EnvT* e){
 	SizeT nParam = e->NParam(1);
 //    SPMATRowMajDbl Mat=getFromIndexInMatVec(e, 0);

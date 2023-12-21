@@ -28,6 +28,6 @@ namespace lib {
   BaseGDL* sprsab_fun(EnvT* e);
   BaseGDL* sprstp_fun(EnvT* e);
   BaseGDL* fulstr_fun(EnvT* e);
-
+  BaseGDL* linbcg_fun(EnvT* e);
 }
 #endif
