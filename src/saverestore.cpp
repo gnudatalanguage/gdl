@@ -110,9 +110,9 @@ enum {
   // it may be needed for others OS : Cygwin, Mingw (seems to be OK for *BSD)
 
 #ifdef __APPLE__
-#define xdr_u_int16_t xdr_u_int16_t
-#define xdr_u_int32_t xdr_u_int32_t
-#define xdr_u_int64_t xdr_u_int64_t
+#define xdr_uint16_t xdr_u_int16_t
+#define xdr_uint32_t xdr_u_int32_t
+#define xdr_uint64_t xdr_u_int64_t
 #endif
   
   static u_int64_t ENDOFLIST =   0xFFFFFFFFFFFFFFFF;
