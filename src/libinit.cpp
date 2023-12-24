@@ -1082,14 +1082,16 @@ void LibInit()
   new DLibFunRetNew(lib::gaussfit, string("GAUSSFIT"), 3, gaussfitKey);
   
   //SHM --------------------------------------------------------------------------------------
-  const string shmmapKey[] = {"BYTE","COMPLEX","DCOMPLEX","DESTROY_SEGMENT","DIMENSION",
-			 "DOUBLE","FILENAME","FLOAT","GET_NAME", "GET_OS_HANDLE", "INTEGER","L64","LONG",
-			 "OFFSET", "OS_HANDLE", "PRIVATE", "SIZE", "SYSV", "TEMPLATE", "TYPE","UINT","UL64","ULONG",KLISTEND};
+  // Note: counted values, do not change order:
+  const string shmmapKey[] = {
+	"BYTE","COMPLEX","DCOMPLEX","DOUBLE","FLOAT","INTEGER","L64","LONG","UINT","UL64","ULONG", "DIMENSION","SIZE", "TEMPLATE", "TYPE", //"TYPE": position 14
+	//the rest free
+             "DESTROY_SEGMENT","FILENAME","GET_NAME", "GET_OS_HANDLE", "OFFSET", 
+              "OS_HANDLE", "PRIVATE", "SYSV", KLISTEND};
   new DLibPro(lib::shmmap_pro,string("SHMMAP"),9,shmmapKey);
   new DLibPro(lib::shmunmap_pro,string("SHMUNMAP"),1);
-  const string shmvarKey[] = {"BYTE","COMPLEX","DCOMPLEX","DIMENSION",
-			 "DOUBLE","FLOAT","INTEGER","L64","LONG",
-			 "SIZE", "TEMPLATE", "TYPE","UINT","UL64","ULONG",KLISTEND};
+  // Note: counted values, do not change order:
+  const string shmvarKey[] = {"BYTE","COMPLEX","DCOMPLEX","DOUBLE","FLOAT","INTEGER","L64","LONG","UINT","UL64","ULONG","DIMENSION","SIZE", "TEMPLATE", "TYPE",KLISTEND};
   new DLibFunRetNew(lib::shmvar_fun,string("SHMVAR"),9,shmvarKey);
   new DLibFunRetNew(lib::shmdebug_fun,string("SHMDEBUG"),1);
 }
