@@ -153,6 +153,7 @@ randomgenerators.cpp
 read.cpp
 saverestore.cpp
 semshm.cpp
+shm.cpp
 sigfpehandler.cpp
 sorting.cpp
 str.cpp
