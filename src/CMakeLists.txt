@@ -155,6 +155,7 @@ saverestore.cpp
 semshm.cpp
 sigfpehandler.cpp
 sorting.cpp
+sparse_matrix.cpp
 str.cpp
 terminfo.cpp
 tiff.cxx
