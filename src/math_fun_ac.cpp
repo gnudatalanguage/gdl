@@ -75,8 +75,8 @@
 									\
   if  (e->NParam() == 1)						\
     {									\
-      p1 = new DIntGDL(1, BaseGDL::NOZERO);				\
-      (*p1)[0]=0;							\
+      p1 = new DIntGDL(BaseGDL::NOZERO);				\
+      (*p1)[0]=0;        						\
       nElp1=1;								\
       t1 = GDL_INT;							\
       p1_float = new DFloatGDL(1, BaseGDL::NOZERO);			\
@@ -91,7 +91,9 @@
     }									\
 									\
   const double dzero = 0.0000000000000000000 ;				\
-									\
+
+  //  cout << "helo " << t1 << " " << (*p1_float)[0] << " " << nElp1 << endl; \
+  //									\
   //    throw GDLException(e->CallingNode(), "Variable is undefined: "+e->GetParString(1)); 
   									
   //  DType t1 = e->GetParDefined(1)->Type();				\
@@ -207,6 +209,7 @@ namespace lib {
 
   BaseGDL* beseli_fun(EnvT* e)
   {
+
     AC_HELP();
     GM_5P0(1);
     AC_2P1();
