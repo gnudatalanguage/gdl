@@ -32,6 +32,7 @@
 #include "dinterpreter.hpp"
 #include "gdljournal.hpp"
 #include "gdleventhandler.hpp"
+#include "gdlfpexceptions.hpp"
 #include "basic_pro_jmg.hpp"
 
 #ifdef USE_MPI
@@ -1447,7 +1448,8 @@ string DInterpreter::GetLine()
 	actualPrompt = SysVar::Prompt();
 
     lineEdit = true;
-
+	//report last math exceptions
+	GDLCheckFPExceptionsAtLineLevel();
 #if defined(HAVE_LIBREADLINE)
     
     if( edit_input != 0)
@@ -1524,11 +1526,6 @@ else
  RetCode DInterpreter::InnerInterpreterLoop(SizeT lineOffset) {
   ProgNodeP retTreeSave = _retTree;
   for (;;) {
-#if defined (_MSC_VER) && _MSC_VER < 1800
-    _clearfp();
-#else
-    feclearexcept(FE_ALL_EXCEPT);
-#endif
 
     DInterpreter::CommandCode ret = ExecuteLine(NULL, lineOffset);
 
@@ -1565,11 +1562,6 @@ bool DInterpreter::RunBatch( istream* in)
 
   while( in->good())
     {
-#if defined (_MSC_VER) && _MSC_VER < 1800
-	  _clearfp();
-#else
-      feclearexcept(FE_ALL_EXCEPT);
-#endif
       
       try
 	{
@@ -1612,12 +1604,6 @@ void DInterpreter::ExecuteFile( const string& file)
   bool runCmd = false;
   while( in.good())
     {
-#if defined (_MSC_VER) && _MSC_VER < 1800
-	  _clearfp();
-#else
-      feclearexcept(FE_ALL_EXCEPT);
-#endif 
-
       try
  	{
 	  if( runCmd)
@@ -1697,12 +1683,6 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
     bool runCmd = false;
     try {
       while (in.good()) {
-#if defined (_MSC_VER) && _MSC_VER < 1800
-        _clearfp();
-#else
-        feclearexcept(FE_ALL_EXCEPT);
-#endif
-
         try {
           if (runCmd) {
             runCmd = false;
@@ -1819,13 +1799,7 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
 
   // go into main loop
   for (;;) {
-#if defined (_MSC_VER) && _MSC_VER < 1800
-    _clearfp();
-#else
-    feclearexcept(FE_ALL_EXCEPT);
-#endif
-
-    try {
+   try {
       if (runCmd) {
         runCmd = false;
         continueCmd = false;
@@ -1898,12 +1872,6 @@ RetCode DInterpreter::InterpreterLoop(const string& startup,
           bool runCmd = false;
           try {
             while (in.good()) {
-#if defined (_MSC_VER) && _MSC_VER < 1800
-              _clearfp();
-#else
-              feclearexcept(FE_ALL_EXCEPT);
-#endif
-
               try {
                 if (runCmd) {
                   runCmd = false;

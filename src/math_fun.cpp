@@ -34,6 +34,7 @@
 #include "math_utl.hpp"
 #include "math_fun.hpp"
 #include "dinterpreter.hpp"
+#include "gdlfpexceptions.hpp"
 
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
@@ -588,6 +589,8 @@ namespace lib {
     T* p0C = static_cast<T*> (p0);
     T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
+	GDLStartRegisteringFPExceptions();
+	
     if (nEl == 1) {
       (*res)[0] = sqrt((*p0C)[0]);
       return res;
@@ -599,6 +602,9 @@ namespace lib {
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sqrt((*p0C)[ i]);
     }
+
+	GDLStopRegisteringFPExceptions();
+	
     return res;
   }
 
@@ -606,6 +612,9 @@ namespace lib {
   BaseGDL* sqrt_fun_template_grab(BaseGDL* p0) {
     T* p0C = static_cast<T*> (p0);
     SizeT nEl = p0->N_Elements();
+
+	GDLStartRegisteringFPExceptions();
+	
     if (nEl == 1) {
       (*p0C)[0] = sqrt((*p0C)[0]);
       return p0;
@@ -617,6 +626,9 @@ namespace lib {
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sqrt((*p0C)[ i]);
     }
+
+	GDLStopRegisteringFPExceptions();
+	
     return p0;
   }
 
@@ -637,14 +649,20 @@ namespace lib {
       if (isReference) return sqrt_fun_template< DFloatGDL>(p0);
       else return sqrt_fun_template_grab< DFloatGDL>(p0);
     else {
-      DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+
+	  GDLStartRegisteringFPExceptions();
+	  
+     DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
       if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sqrt((*res)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sqrt((*res)[ i]);
-      }
+	  }
+
+	  GDLStopRegisteringFPExceptions();
+	  
       return res;
     }
   }

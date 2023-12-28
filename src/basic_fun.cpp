@@ -47,7 +47,7 @@ strtok_fun, getenv_fun, tag_names_fun, stregex_fun:
 #include <limits>
 #include <string>
 #include <fstream>
-//#include <memory>
+#include <memory>
 #include <regex.h> // stregex
 
 #ifdef __APPLE__
@@ -68,7 +68,7 @@ extern "C" char **environ;
 #include "typedefs.hpp"
 #include "base64.hpp"
 #include "objects.hpp"
-//#include "file.hpp"
+#include "gdlfpexceptions.hpp"
 
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
@@ -2628,6 +2628,9 @@ namespace lib {
     // sumStride is also the number of linear src indexing
     SizeT sumStride = srcDim.Stride(sumDimIx);
     SizeT outerStride = srcDim.Stride(sumDimIx + 1);
+	//compare sumStride and nEl/outerStride. Use best suited method, one uses expensive integer division times nEl/outerStride the other a test x sumStride.
+	// estimated ratio is ~20 times faster for the test
+	if (2*outerStride > 20* nEl / outerStride+sumStride ) { // outerStride tests +outerStride ops
     if (omitNaN) {
       for (SizeT o = 0, k = 0; o < nEl; o += outerStride, ++k) {
         SizeT jump = k*sumStride;
@@ -2645,6 +2648,30 @@ namespace lib {
         }
       }
     }
+	} else { //favor integer division
+	  SizeT sumLimit = nSum * sumStride;
+	  if (omitNaN) {
+		  for (SizeT o = 0; o < nEl; o += outerStride) { //nEl / outerStride divisions=20* nEl / outerStride tests + sumStride ops
+			SizeT rIx = (o / outerStride) * sumStride; 
+			for (SizeT i = 0; i < sumStride; ++i) {
+			  SizeT oi = o + i;
+			  SizeT oiLimit = sumLimit + oi;
+			  for (SizeT s = oi; s < oiLimit; s += sumStride) AddOmitNaN((*res)[ rIx], (*src)[ s]);
+			  ++rIx;
+		  }
+		}
+	  } else {
+		  for (SizeT o = 0; o < nEl; o += outerStride) {
+			SizeT rIx = (o / outerStride) * sumStride;
+			for (SizeT i = 0; i < sumStride; ++i) {
+			  SizeT oi = o + i;
+			  SizeT oiLimit = sumLimit + oi;
+			  for (SizeT s = oi; s < oiLimit; s += sumStride) (*res)[ rIx] += (*src)[ s];
+			  ++rIx;
+		  }
+		}
+	  }
+	}
     return res;
   }
 
@@ -2674,6 +2701,9 @@ namespace lib {
 
   BaseGDL* total_fun(EnvT* e) {
 
+	// TOTAL is watched for overflows
+	std::unique_ptr<ReportFPExceptionsGuard> p=GDLStartAutoStopRegisteringFPExceptions(); //stops monitoring when exiting from here
+	
     // Integer parts initially by Erin Sheldon
 
     SizeT nParam = e->NParam(1); //, "TOTAL");
@@ -3362,7 +3392,9 @@ namespace lib {
     // prodStride is also the number of linear src indexing
     SizeT prodStride = srcDim.Stride(prodDimIx);
     SizeT outerStride = srcDim.Stride(prodDimIx + 1);
-    SizeT prodLimit = nProd * prodStride;
+	//compare prodStride and nEl/outerStride. Use best suited method, one uses expensive integer division times nEl/outerStride the other a test x prodStride.
+	// estimated ratio is ~20 times faster for the test
+	if (2 * outerStride > 20 * nEl / outerStride + prodStride) { // outerStride tests +outerStride ops
       if (omitNaN) {
         for (SizeT o = 0, k = 0; o < nEl; o += outerStride, ++k) {
           SizeT jump = k*prodStride; //there is an obvious optimisation for sumDimIx=0 where j=0 always. Strangely, it seems ineffective and has been dropped.
@@ -3377,6 +3409,30 @@ namespace lib {
           for (SizeT i = 0, j = 0; i < outerStride; ++i, ++j) {
             if (j >= prodStride) j = 0; //this is so much better than slow integer divides or %
             (*res)[j + jump] *= (*src)[ i + o];
+          }
+        }
+      }
+  } else {
+	SizeT prodLimit = nProd * prodStride;
+	if (omitNaN) {
+	  for (SizeT o = 0; o < nEl; o += outerStride) {
+		SizeT rIx = (o / outerStride) * prodStride;
+		for (SizeT i = 0; i < prodStride; ++i) {
+		  SizeT oi = o + i;
+		  SizeT oiLimit = prodLimit + oi;
+		  for (SizeT s = oi; s < oiLimit; s += prodStride) MultOmitNaN((*res)[ rIx], (*src)[ s]);
+		  ++rIx;
+		}
+	  }
+	} else {
+	  for (SizeT o = 0; o < nEl; o += outerStride) {
+		SizeT rIx = (o / outerStride) * prodStride;
+		for (SizeT i = 0; i < prodStride; ++i) {
+		  SizeT oi = o + i;
+		  SizeT oiLimit = prodLimit + oi;
+		  for (SizeT s = oi; s < oiLimit; s += prodStride) (*res)[ rIx] *= (*src)[ s];
+		  ++rIx;
+		}
           }
         }
       }
@@ -3406,6 +3462,9 @@ namespace lib {
   }
 
   BaseGDL* product_fun(EnvT* e) {
+	// PRODUCT is watched for overflows
+	std::unique_ptr<ReportFPExceptionsGuard> p=GDLStartAutoStopRegisteringFPExceptions(); //stops monitoring when exiting from here
+	
     SizeT nParam = e->NParam(1);
 
     BaseGDL* p0 = e->GetParDefined(0);
