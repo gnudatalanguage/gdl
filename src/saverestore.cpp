@@ -109,6 +109,10 @@ enum {
   // Following https://www.gnu.org/software/gnulib/manual/html_node/xdr_005fint16_005ft.html
   // it may be needed for others OS : Cygwin, Mingw (seems to be OK for *BSD)
 
+  // AC 2023-12-27
+  // xdr_uint16_t are defined in old Linux systems (but no xdr_u_int16_t)
+  // xdr_uint16_t and xdr_u_int16_t in new (eg u2204) Linux systems
+  // xdr_u_int16_t are defined in OSX since 2017 (but no xdr_uint16_t )
 #ifdef __APPLE__
 #define xdr_uint16_t xdr_u_int16_t
 #define xdr_uint32_t xdr_u_int32_t
@@ -160,7 +164,7 @@ enum {
 	  case GDL_ULONG64:
 	  {
 		u_int64_t ul6 = (*static_cast<DULong64GDL*> (savenode.var))[0];
-		xdr_u_int64_t(xdrs, & ul6);
+		xdr_uint64_t(xdrs, & ul6);
 		break;
 	  }
 	  case GDL_LONG64:
@@ -196,7 +200,7 @@ enum {
 	  case GDL_ULONG:
 	  {
 		u_int32_t ul = (*static_cast<DULongGDL*> (savenode.var))[0];
-		xdr_u_int32_t(xdrs, & ul);
+		xdr_uint32_t(xdrs, & ul);
 		break;
 	  }
 	  case GDL_STRING:
@@ -277,7 +281,7 @@ enum {
 	  case GDL_ULONG64:
 	  {
 		u_int64_t ul6 = 0;
-		xdr_u_int64_t(xdrs, & ul6);
+		xdr_uint64_t(xdrs, & ul6);
 		savenode.var = new DULong64GDL(ul6);
 		break;
 	  }
@@ -319,7 +323,7 @@ enum {
 	  case GDL_ULONG:
 	  {
 		u_int32_t ul = 0;
-		xdr_u_int32_t(xdrs, & ul);
+		xdr_uint32_t(xdrs, & ul);
 		savenode.var = new DULongGDL(ul);
 		break;
 	  }
@@ -428,8 +432,8 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     xdr_int32_t(xdrs, &rectype); //-16
     u_int32_t ptrs0=0;
     u_int32_t ptrs1=0;
-    xdr_u_int32_t(xdrs, &ptrs0); //-12 //void, to be updated
-    xdr_u_int32_t(xdrs, &ptrs1); //-8
+    xdr_uint32_t(xdrs, &ptrs0); //-12 //void, to be updated
+    xdr_uint32_t(xdrs, &ptrs1); //-8
     int32_t UnknownLong=0;
     xdr_int32_t(xdrs, &UnknownLong);
     return xdr_get_gdl_pos(xdrs); //end of header
@@ -459,13 +463,13 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
     xdr_set_gdl_pos(xdrs, cur-12); //ptrs0
     //copy next (64 bit) as two 32 bits. Should be OK on 32 bit machines as next is u_int64.
     if (BigEndian()) { //first 32 bit is low, second high (XDRS is BigEndian)
-	  xdr_u_int64_t(xdrs, &next);
+	  xdr_uint64_t(xdrs, &next);
 	} else {
     u_int32_t first,second;
     first = ((u_int32_t *) &next)[0];
     second = ((u_int32_t *) &next)[1];
-    xdr_u_int32_t(xdrs, &first);
-    xdr_u_int32_t(xdrs, &second);
+    xdr_uint32_t(xdrs, &first);
+    xdr_uint32_t(xdrs, &second);
 	}
     xdr_set_gdl_pos(xdrs, next);
     return next;
@@ -510,7 +514,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 	  wr_writeNode((*i), xdrs);
 	}
 	//finish by ENDOFLIST address
-	xdr_u_int64_t(xdrs, &ENDOFLIST); //ENDOFLIST
+	xdr_uint64_t(xdrs, &ENDOFLIST); //ENDOFLIST
 	return updateNewRecordHeader(xdrs, cur);
   }
 
@@ -1427,7 +1431,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         break;
       case GDL_UINT:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DUInt), (xdrproc_t) xdr_u_int16_t)) cerr << "error GDL_UINT" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DUInt), (xdrproc_t) xdr_uint16_t)) cerr << "error GDL_UINT" << endl;
       }
         break;
       case GDL_LONG:
@@ -1437,7 +1441,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         break;
       case GDL_ULONG:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong), (xdrproc_t) xdr_u_int32_t)) cerr << "error GDL_ULONG" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong), (xdrproc_t) xdr_uint32_t)) cerr << "error GDL_ULONG" << endl;
       }
         break;
       case GDL_LONG64:
@@ -1447,7 +1451,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         break;
       case GDL_ULONG64:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong64), (xdrproc_t) xdr_u_int64_t)) cerr << "error GDL_ULONG64" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong64), (xdrproc_t) xdr_uint64_t)) cerr << "error GDL_ULONG64" << endl;
       }
         break;
       case GDL_FLOAT:
@@ -1543,7 +1547,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         break;
       case GDL_UINT:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DUInt), (xdrproc_t) xdr_u_int16_t)) cerr << "error GDL_UINT" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DUInt), (xdrproc_t) xdr_uint16_t)) cerr << "error GDL_UINT" << endl;
       }
         break;
       case GDL_LONG:
@@ -1553,7 +1557,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         break;
       case GDL_ULONG:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong), (xdrproc_t) xdr_u_int32_t)) cerr << "error GDL_ULONG" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong), (xdrproc_t) xdr_uint32_t)) cerr << "error GDL_ULONG" << endl;
       }
         break;
       case GDL_LONG64:
@@ -1563,7 +1567,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
         break;
       case GDL_ULONG64:
       {
-        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong64), (xdrproc_t) xdr_u_int64_t)) cerr << "error GDL_ULONG64" << endl;
+        if (!xdr_vector(xdrs, (char*) var->DataAddr(), nEl, sizeof (DULong64), (xdrproc_t) xdr_uint64_t)) cerr << "error GDL_ULONG64" << endl;
       }
         break;
       case GDL_FLOAT:
@@ -1616,7 +1620,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
           heapT::iterator it=heapIndexMapSave.find(ptr);
           if (it!=heapIndexMapSave.end()) heapNumber[i]=(*it).second;
         }
-        if (!xdr_vector(xdrs, (char*) &heapNumber, nEl, sizeof (int32_t), (xdrproc_t) xdr_u_int32_t)) cerr << "error PTR" << endl;
+        if (!xdr_vector(xdrs, (char*) &heapNumber, nEl, sizeof (int32_t), (xdrproc_t) xdr_uint32_t)) cerr << "error PTR" << endl;
         break;
       }
       case GDL_OBJ:
@@ -1629,7 +1633,7 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
           heapT::iterator it=heapIndexMapSave.find(ptr);
           if (it!=heapIndexMapSave.end()) heapNumber[i]=(*it).second; 
         }
-        if (!xdr_vector(xdrs, (char*) &heapNumber, nEl, sizeof (int32_t), (xdrproc_t) xdr_u_int32_t)) cerr << "error OBJ" << endl;
+        if (!xdr_vector(xdrs, (char*) &heapNumber, nEl, sizeof (int32_t), (xdrproc_t) xdr_uint32_t)) cerr << "error OBJ" << endl;
         break;
       }
       default: assert(false);
@@ -2065,14 +2069,14 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       if (isHdr64)
       {
         u_int64_t my_ulong64;
-        if (!xdr_u_int64_t(xdrs, &my_ulong64)) break;
+        if (!xdr_uint64_t(xdrs, &my_ulong64)) break;
         nextptr = my_ulong64; //HDR64 is followed by 2 longs.
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
       } else //the 2 pointers may point together to a l64 address, bug #1545
       { //we read a sort of BigEndian format
-		if (!xdr_u_int32_t(xdrs, &ptr_low)) break;
-		if (!xdr_u_int32_t(xdrs, &ptr_high)) break;
+		if (!xdr_uint32_t(xdrs, &ptr_low)) break;
+		if (!xdr_uint32_t(xdrs, &ptr_high)) break;
 		nextptr = ptr_low;
 		u_int64_t tmp = ptr_high;
         nextptr |= (tmp << 32);
@@ -2261,13 +2265,13 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
 		  if (DEBUG_SAVERESTORE) cerr << "Offset " << nextptr << ": record type " << rectypes[min(24,rectype)] << endl;
 		  if (isHdr64) {
 			u_int64_t my_ulong64;
-			if (!xdr_u_int64_t(xdrs, &my_ulong64)) break;
+			if (!xdr_uint64_t(xdrs, &my_ulong64)) break;
 			nextptr = my_ulong64;
 			if (!xdr_int32_t(xdrs, &UnknownLong)) break;
 			if (!xdr_int32_t(xdrs, &UnknownLong)) break;
 		  } else {//we read a sort of BigEndian format
-			if (!xdr_u_int32_t(xdrs, &ptr_low)) break;
-			if (!xdr_u_int32_t(xdrs, &ptr_high)) break;
+			if (!xdr_uint32_t(xdrs, &ptr_low)) break;
+			if (!xdr_uint32_t(xdrs, &ptr_high)) break;
 			nextptr = ptr_low;
 			u_int64_t tmp = ptr_high;
 			nextptr |= (tmp << 32);
@@ -2300,13 +2304,13 @@ bool_t xdr_set_gdl_pos(XDR *x, long int y){
       if (isHdr64)
       {
         u_int64_t my_ulong64;
-        if (!xdr_u_int64_t(xdrs, &my_ulong64)) break;
+        if (!xdr_uint64_t(xdrs, &my_ulong64)) break;
         nextptr = my_ulong64;
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
         if (!xdr_int32_t(xdrs, &UnknownLong)) break;
       } else {//we read a sort of BigEndian format
-		if (!xdr_u_int32_t(xdrs, &ptr_low)) break;
-		if (!xdr_u_int32_t(xdrs, &ptr_high)) break;
+		if (!xdr_uint32_t(xdrs, &ptr_low)) break;
+		if (!xdr_uint32_t(xdrs, &ptr_high)) break;
 		nextptr = ptr_low;
 		u_int64_t tmp = ptr_high;
         nextptr |= (tmp << 32);
