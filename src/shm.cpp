@@ -14,7 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
+#ifndef _MSC_VER
 #include <sys/mman.h>   /* shared memory and mmap() */
 #include <sys/stat.h>
 #include <fcntl.h>      /* O_flags */
@@ -275,3 +275,4 @@ namespace lib {
   }
 
 } // namespace
+#endif

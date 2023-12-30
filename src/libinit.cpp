@@ -57,7 +57,9 @@
 
 #include "grib.hpp"
 #include "semshm.hpp"
+#ifndef _MSC_VER
 #include "shm.hpp"
+#endif
 #include "labelregion.hpp"
 #include "value_locate.hpp"
 
@@ -1080,7 +1082,7 @@ void LibInit()
 
   const string gaussfitKey[] = {"CHISQ","ESTIMATES", "MEASURE_ERRORS", "NTERMS", "SIGMA", "YERROR",KLISTEND};
   new DLibFunRetNew(lib::gaussfit, string("GAUSSFIT"), 3, gaussfitKey);
-  
+  #ifndef _MSC_VER
   //SHM --------------------------------------------------------------------------------------
   // Note: counted values, do not change order:
   const string shmmapKey[] = {
@@ -1094,5 +1096,6 @@ void LibInit()
   const string shmvarKey[] = {"BYTE","COMPLEX","DCOMPLEX","DOUBLE","FLOAT","INTEGER","L64","LONG","UINT","UL64","ULONG","DIMENSION","SIZE", "TEMPLATE", "TYPE",KLISTEND};
   new DLibFunRetNew(lib::shmvar_fun,string("SHMVAR"),9,shmvarKey);
   new DLibFunRetNew(lib::shmdebug_fun,string("SHMDEBUG"),1);
+  #endif
 }
 

@@ -19,7 +19,7 @@
 
 #include "datatypes.hpp"
 #include "envt.hpp"
-
+#ifndef _MSC_VER
 namespace lib {
 
   void shmmap_pro(EnvT* e);
@@ -29,4 +29,5 @@ namespace lib {
 
 } // namespace
 
+#endif
 #endif
