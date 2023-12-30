@@ -222,7 +222,7 @@ if(USE_OPENMP)
 endif(USE_OPENMP)
 
 add_dependencies(gdl antlr whereami) # be sure that antlr is built before gdl
-target_link_libraries(gdl antlr whereami) # link antlr against gdl
+target_link_libraries(gdl antlr whereami rt) # link antlr against gdl. added librt for mmap.
 if (MINGW)
 target_link_libraries(gdl ws2_32)
 endif (MINGW)
