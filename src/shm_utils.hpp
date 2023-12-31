@@ -1,5 +1,5 @@
 /***************************************************************************
-                          shm.hpp  -  Shared memory mapping
+                          shm_utils.hpp  -  Shared memory mapping, external utilities defs
                              -------------------
     begin                : Dec 24 2023
     copyright            : (C) 2023 by Gilles Duvert
@@ -14,25 +14,17 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#ifndef SHM_HPP_
-#define SHM_HPP_
-
-#include "datatypes.hpp"
-#include "envt.hpp"
-#include <iostream>     // std::cout, std::ostream, std::ios
-#include "shm_utils.hpp"
+#ifndef SHM_UTILS_HPP_
+#define SHM_UTILS_HPP_
 #ifndef _MSC_VER
-extern std::map<DString, std::pair<DPtrGDL*, int> > shmList;
-
-typedef std::map<DString, std::pair<DPtrGDL*, int> > ::iterator shmListIter;
 namespace lib {
-
-  void shmmap_pro(EnvT* e);
-  void shmunmap_pro(EnvT* e);
-  BaseGDL* shmvar_fun(EnvT* e);
-  BaseGDL* shmdebug_fun(EnvT* e);
-
+  void help_shared(EnvT* e, std::ostream& ostr);
+  void shm_unreference(BaseGDL* var);
 } // namespace
-
+#else
+namespace lib {
+  void help_shared(EnvT* e, std::ostream& ostr){};
+  void shm_unreference(BaseGDL* var){};
+} // namespace
 #endif
 #endif

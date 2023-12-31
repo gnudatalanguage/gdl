@@ -385,6 +385,7 @@ public:
 
 protected:
   dimension dim;
+  bool shared;
   
 public:
   // type of initalization
@@ -446,7 +447,8 @@ public:
   BaseGDL();//: dim() {} 
   explicit BaseGDL(const dimension& dim_);//: dim(dim_) {} 
 
-
+  //shared
+  bool IsShared() {return shared;}
   // provide access to dim member
   inline const dimension& Dim()   const      { return dim;}
   inline SizeT    Dim(SizeT d)    const      { return dim[d];}

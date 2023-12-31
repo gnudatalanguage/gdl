@@ -315,9 +315,8 @@ void LibInit()
 			  "INTERNAL_LIB_GDL","KEYS","LAST_MESSAGE","LIB","MEMORY","NAMES",
 		"OBJECTS","OUTPUT","PATH_CACHE","PREFERENCES","PROCEDURES",
 			  "RECALL_COMMANDS","ROUTINES","SOURCE_FILES","STRUCTURES",
-              "SYSTEM_VARIABLES","TRACEBACK", "COMMON","LEVEL", KLISTEND};
-  const string helpWarnKey[]={"BREAKPOINTS","DLM", "MESSAGES",
-			      "SHARED_MEMORY", KLISTEND};
+              "SYSTEM_VARIABLES","TRACEBACK", "COMMON","LEVEL", "SHARED_MEMORY", KLISTEND};
+  const string helpWarnKey[]={"BREAKPOINTS","DLM", "MESSAGES", KLISTEND};
   new DLibPro(lib::help_pro,string("HELP"),-1,helpKey,helpWarnKey);
 
   new DLibPro(lib::delvar_pro,string("DELVAR"),-1,NULL,NULL);

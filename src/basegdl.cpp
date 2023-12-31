@@ -20,6 +20,7 @@
 #include "basegdl.hpp"
 #include "nullgdl.hpp"
 #include "objects.hpp"
+#include "shm_utils.hpp"
 
 using namespace std;
 
@@ -840,7 +841,7 @@ void GDLDelete( BaseGDL* toDelete)
 {
   if( toDelete ==NULL) return;
   if( toDelete == NullGDL::GetSingleInstance()) return;
-  delete toDelete;
+  if (!toDelete->IsShared())  delete toDelete; else lib::shm_unreference(toDelete);
 }
 int GDL_NTHREADS=1;
 

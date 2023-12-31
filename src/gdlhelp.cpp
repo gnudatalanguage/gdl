@@ -123,6 +123,7 @@ extern "C" {
 #include "gdlhelp.hpp"
 #include "nullgdl.hpp"
 #include "terminfo.hpp"
+#include "shm_utils.hpp"
 
 
 // for sorting compiled pro/fun lists by name
@@ -901,7 +902,14 @@ void help_help(EnvT* e)
 	  else SortAndPrintStream(ostr);
 	  return;
 	}
-
+    static int sharedIx = e->KeywordIx("SHARED_MEMORY");
+	if (e->KeywordSet(sharedIx)) {
+	  help_shared(e, *ostrp);
+	  if (briefKW) return;
+	  if (doOutput) (*outputKW) = StreamToGDLString(ostr, true);
+	  else SortAndPrintStream(ostr);
+	  return;
+	}
 	static int namesIx = e->KeywordIx("NAMES");
 	bool isKWSetNames = e->KeywordPresent(namesIx);
 

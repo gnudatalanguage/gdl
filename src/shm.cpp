@@ -23,12 +23,15 @@
 #include <string.h>
 #include "shm.hpp"
 #include "basic_fun.hpp" //for arr()
-static std::map<DString, BaseGDL*> shmList;
-typedef std::map<DString, BaseGDL*>::iterator shmListIter;
+#include "gdlhelp.hpp"
+#include "dinterpreter.hpp"
+
+std::map<DString, std::pair<DPtrGDL*, int> > shmList;
 
 enum { BYTE=0,COMPLEX,DCOMPLEX,DOUBLE,FLOAT,INTEGER,L64,LONG,UINT,UL64,ULONG, DIMENSION,SIZE, TEMPLATE, TYPE} common_options_shm;
 
-//atom size of all types
+//atom size of all types and names
+static const std::string atomName[16]={"UNDEFINED","BYTE","INT","LONG","FLOAT","DOUBLE","COMPLEX","STRING","STRUCT","DCOMPLEX","POINTER","OBJREF","UINT","ULONG","LONG64","ULONG64"};
 static const int atomSize[16]={0,1,2,4,4,8,8,0,0,16,0,0,2,4,8,8};
 namespace lib {
 
@@ -87,6 +90,7 @@ namespace lib {
 	if (!gdl_type_lookup::IsConvertableType[type]) { //problems begins
 	  e->Throw("Objects, Pointers and Structures not allowed in this context.");
 	}
+	if (type==GDL_STRING) e->Throw("Expression containing string data not allowed in this context.");
 	return dimNotSet;
   }
 
@@ -110,7 +114,7 @@ namespace lib {
 	if (e->KeywordPresentAndDefined(offsetIx)) {
 	  e->AssureLongScalarKW(offsetIx, offset);
 	}
-	
+	if (offset%atomSize[type] != 0) e->Throw("This machine cannot access data of type "+atomName[type]+" at this alignment: "+i2s(offset)+".");
 	length += offset;
 
     shm_fd = shm_open(segmentName.c_str(), O_RDWR, exist_perms); //minimal setup.
@@ -190,10 +194,13 @@ namespace lib {
 	int mmap_prot = PROT_READ | PROT_WRITE;
 	void* mapAddress = mmap(NULL, length, mmap_prot, mmap_flags, shm_fd, 0);
 	if (mapAddress == MAP_FAILED) e->Throw("shmmap failed, please report.");
-	var->SetBuffer(mapAddress);
+    var->SetBuffer(mapAddress);
 	var->SetBufferSize(dim.NDimElements());
 	var->SetDim(dim);
-	shmList.insert(std::pair<DString, BaseGDL*>(segmentName, var));
+	
+	BaseGDL** p = &var;
+	DPtr heapID = e->NewHeap(1, *p);
+	shmList.insert(std::pair<DString, std::pair<DPtrGDL*, int>>(segmentName, std::pair<DPtrGDL*, int>(new DPtrGDL(heapID), offset)));
 
 	static int getnameIx = e->KeywordIx("GET_NAME");
 	if (e->WriteableKeywordPresent(getnameIx)) {
@@ -207,18 +214,24 @@ namespace lib {
 	e->AssureStringScalarPar(0, segmentName);
 	if (segmentName.size() == 0) e->Throw("Null string not allowed in this context: "+e->GetParString(0)+".");
 	shmListIter i = shmList.find(segmentName);
-	BaseGDL* res;
+	DPtrGDL* ptr;
 	void* was=NULL;
 	SizeT length=0;
+	SizeT refc=0;
 	if (i != shmList.end()) {
-	  res = (*i).second;
-	  was=res->DataAddr();
-	  length=res->NBytes();
-	  shmList.erase(i);
+	  ptr = (*i).second.first;
+	  BaseGDL* heapVar=e->GetHeap((*ptr)[0]);
+	  was=heapVar->DataAddr();
+	  length=heapVar->NBytes();
+//	  GDLInterpreter::DecRef(ptr); //remove initial basegdl reference
+	  SizeT refc = e->Interpreter()->RefCountHeap((*ptr)[0]);
+	  if (refc < 2) shmList.erase(i);
 	} else e->Throw("Shared Memory Segment not found: " + segmentName + ".");
-	int result=munmap(was,length);
-	if (result ==0) return;
-	e->Throw("Shared Memory Segment " + segmentName + " Unmapping unsucessfull, reason: "+ std::string(strerror(result))+".");
+	if (refc == 1) {
+	  int result=munmap(was,length);
+	  if (result ==0) return;
+	  e->Throw("Shared Memory Segment " + segmentName + " Unmapping unsucessfull, reason: "+ std::string(strerror(result))+".");
+	}
  };
 
   BaseGDL* shmvar_fun(EnvT* e) {
@@ -227,12 +240,16 @@ namespace lib {
 	std::string segmentName = "";
 	bool dimNotSet = get_shm_common_keywords(e, segmentName, dim, type);
 	shmListIter i = shmList.find(segmentName);
-	BaseGDL* res;
+	DPtrGDL* ptr;
 	if (i != shmList.end()) {
-	  res = (*i).second;
+	  ptr = (*i).second.first;
+	  BaseGDL* heapVar=e->GetHeap((*ptr)[0]);
 	  //check if compatible
-	  if (dimNotSet) return res; //no further problem, we take as it was
-	  if (dim.NDimElements()*(atomSize[type]) > res->NBytes()) e->Throw("Requested variable is too long for the underlying shared memory segment: " + segmentName + ".");
+	  if (dimNotSet) {
+		GDLInterpreter::IncRef(ptr); //is used. /???? check necessary ?
+		return heapVar; //no further problem, we take as it was
+	  }
+	  if (dim.NDimElements()*(atomSize[type]) > heapVar->NBytes()) e->Throw("Requested variable is too long for the underlying shared memory segment: " + segmentName + ".");
 
 	  //create a BaseGDL corresponding to that:
 	  BaseGDL* var;
@@ -278,7 +295,8 @@ namespace lib {
 		//  case GDL_UNDEF:
 		e->Throw(" internal error, please report.");
 	  }
-	  var->SetBuffer(static_cast<void*> (res->DataAddr()));
+	  var->SetBuffer(static_cast<void*> (heapVar->DataAddr()));
+	  GDLInterpreter::IncRef(ptr); //is used. /???? check necessary ?
 	  var->SetBufferSize(dim.NDimElements());
 	  var->SetDim(dim);
 	  return var;
@@ -293,5 +311,30 @@ namespace lib {
 	return new DIntGDL(0);
   }
 
+  void help_shared(EnvT* e, std::ostream& ostr) {
+	for (shmListIter it=shmList.begin(); it!=shmList.end(); ++it) {
+	  DPtrGDL* ptr = (*it).second.first;
+	  BaseGDL* heapVar = e->GetHeap((*ptr)[0]);
+	  SizeT refc = BaseGDL::interpreter->RefCountHeap((*ptr)[0]);
+		lib::help_item(ostr, heapVar, DString("<Posix(\"" +it->first + "\"), Offset("+i2s((*it).second.second)+"), Refcnt("+i2s(refc-1)+")>"), true); //note: -1
+	}
+	return;
+  }
+
+  //called from system
+  void shm_unreference(BaseGDL* var){
+	void* pointer=var->DataAddr(); //the mapped address
+	for (shmListIter it=shmList.begin(); it!=shmList.end(); ++it) {
+	  DPtrGDL* ptr = (*it).second.first;
+	  BaseGDL* heapVar = BaseGDL::interpreter->GetHeap((*ptr)[0]);
+	  void* pointed=heapVar->DataAddr();
+	  if (pointer == pointed) {
+		GDLInterpreter::DecRef(ptr);
+		return;
+	  }
+	}
+	//unreference a BaseGDL::NOALLOC adress which is not in the shm list: best to delete the pointed memory
+	free (pointer);
+  }
 } // namespace
 #endif
