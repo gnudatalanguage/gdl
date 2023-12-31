@@ -263,8 +263,10 @@ using std::isnan;
   {
     GM_NaN_Inf();
 
+    bool debug=false;
+
     SizeT nParam = e->NParam();
-    //   cout << nParam << endl;
+    if (debug) { cout << nParam << endl;}
 
     // real part of Complex inputs are used
     GM_CheckComplex_P0(0);
@@ -277,81 +279,81 @@ using std::isnan;
     DDoubleGDL* tmp1;
     DDoubleGDL* p1;
     SizeT nElp1 = 0;
-
     DType t1bis;
 
     if (nParam == 2) {
       GM_CheckComplex_P1(0);
       p1 = e->GetParAs<DDoubleGDL>(1);
       nElp1 = p1->N_Elements();
-      tmp1=new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);
+      tmp1=new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);      
       t1bis = e->GetParDefined(1)->Type();
-      //cout << "type : "<< t1 << endl;
 
     } else {
       nElp1=1;
-      tmp1=new DDoubleGDL(1.);
-	  Guard<DDoubleGDL> g1(tmp1);
-	  p1=new DDoubleGDL(1.);
-	  Guard<DDoubleGDL> g2(p1);
-      //      DType 
+      p1=new DDoubleGDL(BaseGDL::NOZERO);
+      cout << p1->Type() << " " << p1->Rank() << p1->N_Elements() << endl;
+      tmp1=new DDoubleGDL(p1->Dim(),BaseGDL::NOZERO);
+      (*tmp1)[0]=1.000;
       t1bis = GDL_FLOAT;
     }
     
     t1=t1bis;
-    // cout << "type : "<< t1bis << endl;
-    // cout << "type : "<< t1 << endl;
+
+    if (debug) {
+      cout << "nParam : " << nParam << endl;
+      cout << "p0 (type, rank, nbp) :" << p0->Type() << " " << p0->Rank() << " " << nElp0 << endl;
+      cout << "p1 (type, rank, nbp) :" << p1->Type() << " " << p1->Rank() << " " << nElp1 << endl;
+    }
 
     // computation for X input
     for (SizeT c = 0; c < nElp0; ++c)
-    {
+      {
         if ((*p0)[c] == d_infinity)
-            (*tmp0)[c] = 1.0;
+	  (*tmp0)[c] = 1.0;
         else if ((*p0)[c] == -d_infinity)
-            (*tmp0)[c] = 0.0;
+	  (*tmp0)[c] = 0.0;
         else if (isnan((*p0)[c]) == 1)
-            (*tmp0)[c] = d_nan;
+	  (*tmp0)[c] = d_nan;
         else
-            (*tmp0)[c] = 0.5*(1.+gsl_sf_erf((*p0)[c]/sqrt(2.)));
-    }
-    if (nParam == 2) {
+	  (*tmp0)[c] = 0.5*(1.+gsl_sf_erf((*p0)[c]/sqrt(2.)));
+      }
 
     // computation for Y input 
-    for (SizeT c = 0; c < nElp1; ++c)
-    {
-        if ((*p1)[c] == d_infinity)
+    if (nParam == 2) {
+      for (SizeT c = 0; c < nElp1; ++c)
+	{
+	  if ((*p1)[c] == d_infinity)
             (*tmp1)[c] = 1.0;
-        else if ((*p1)[c] == -d_infinity)
+	  else if ((*p1)[c] == -d_infinity)
             (*tmp1)[c] = 0.0;
-        else if (isnan((*p1)[c]) == 1)
+	  else if (isnan((*p1)[c]) == 1)
             (*tmp1)[c] = d_nan;
-        else
+	  else
             (*tmp1)[c] = 0.5*(1.+gsl_sf_erf((*p1)[c]/sqrt(2.)));
-    }
+	}
     }    
+
     DDoubleGDL* res;
 
     if (p0->Rank() == 0) {
       res =new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);
       for (SizeT c = 0; c < nElp1; ++c) 
-	(*res)[c] =(*tmp1)[c]*(*tmp0)[0];
+	(*res)[c] =(*tmp0)[0]*(*tmp1)[c];
+    } else if (p1->Rank() == 0) {
+      res =new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
+      for (SizeT c = 0; c < nElp0; ++c)
+	(*res)[c] =((*tmp0)[c])*(*tmp1)[0];
     } else {
-      if (p1->Rank() == 0) {
-	res =new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
-	for (SizeT c = 0; c < nElp0; ++c) 
-	  (*res)[c] =(*tmp0)[c]*(*tmp1)[0];
+      SizeT nbp;
+      if (nElp0 > nElp1) {
+	nbp=nElp1;
+	res =new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);
       } else {
-	SizeT nbp;
-	if (nElp0 > nElp1) {
-	  nbp=nElp1;
-	  res =new DDoubleGDL(p1->Dim(), BaseGDL::NOZERO);
-	} else {
-	  nbp=nElp0;
-	  res =new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
-	}
-	for (SizeT c = 0; c < nbp; ++c) 
-	  (*res)[c] =(*tmp0)[c]*(*tmp1)[c];
+	nbp=nElp0;
+	res =new DDoubleGDL(p0->Dim(), BaseGDL::NOZERO);
       }
+      for (SizeT c = 0; c < nbp; ++c) 
+	(*res)[c] =(*tmp0)[c]*(*tmp1)[c];
     }
 
     GM_CV2();

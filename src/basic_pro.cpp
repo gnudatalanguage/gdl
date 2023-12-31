@@ -173,7 +173,10 @@ namespace lib {
     // we manage the ASCII "history" file (located in ~/.gdl/)
     // we do not manage NOW the number of lines we save,
     // this should be limited by "history/readline" itself
-
+	
+	// clear all exceptions
+	std::feclearexcept(FE_ALL_EXCEPT);
+	
     if (historyIntialized) {
       // Create eventually the ".gdl" path in user $HOME
       int result, debug = 0;

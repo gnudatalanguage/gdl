@@ -28,6 +28,7 @@
 #include "objects.hpp"
 #include "FMTIn.hpp"
 #include "dinterpreter.hpp"
+#include "gdlfpexceptions.hpp"
 
 //#include "format.g"
 
@@ -242,7 +243,8 @@ namespace lib {
 		  char *cline;
 
 		  lineEdit = true;
-
+			//report last math exceptions
+			GDLCheckFPExceptionsAtLineLevel();
 		  if( edit_input != 0)
 		    cline = readline(actualPrompt.c_str());
 		  else

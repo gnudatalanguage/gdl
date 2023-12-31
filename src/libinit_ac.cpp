@@ -77,13 +77,18 @@ void LibInit_ac()
 #endif
   
   //sparse matrices by GD
-  const string sprsinKey[]={"COLUMN", "DOUBLE", "THRESHOLD", KLISTEND};
-  new DLibFunRetNew(lib::sprsin_fun,string("SPRSIN"),4,sprsinKey);
+  const string sprsinKey[]={"THRESHOLD", "COLUMN", KLISTEND};
+  const string sprsinIgnoreKey[]={"DOUBLE", KLISTEND};
+  new DLibFunRetNew(lib::sprsin_fun,string("SPRSIN"),4,sprsinKey,sprsinIgnoreKey);
   const string sprsabKey[]={"DOUBLE", "THRESHOLD",KLISTEND};
   new DLibFunRetNew(lib::sprsab_fun,string("SPRSAB"),2,sprsabKey);
   const string sprsaxKey[]={"DOUBLE",KLISTEND};
   new DLibFunRetNew(lib::sprsax_fun,string("SPRSAX"),2,sprsaxKey);
   new DLibFunRetNew(lib::fulstr_fun,string("FULSTR"),1);
+  new DLibFunRetNew(lib::sprstp_fun,string("SPRSTP"),1);
+  const string linbcgKey[]={"ITER", "DOUBLE", KLISTEND};
+  const string linbcgIgnoreKey[]={"ITOL", "TOL", "ITMAX", KLISTEND};
+  new DLibFunRetNew(lib::linbcg_fun,string("LINBCG"),3,linbcgKey,linbcgIgnoreKey);
 
   const string spl1Key[]={"YP0","YPN_1","YP1","DOUBLE","HELP",KLISTEND}; //YP1 is old value for YP0
   new DLibFunRetNew(lib::spl_init_fun,string("SPL_INIT"),2,spl1Key);

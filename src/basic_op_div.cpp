@@ -25,11 +25,10 @@
 //#include "datatypes.hpp" // for friend declaration
 #include "nullgdl.hpp"
 #include "dinterpreter.hpp"
+#include "gdlfpexceptions.hpp"
 
 // needed with gcc-3.3.2
 #include <cassert>
-
-#include "sigfpehandler.hpp"
 
 // Div
 // division: left=left/right
@@ -39,25 +38,25 @@ Data_<Sp>* Data_<Sp>::Div(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LI
   Data_* right = static_cast<Data_*> (r);
   ULong nEl = N_Elements();
   assert(nEl);
+  GDLStartRegisteringFPExceptions();
   SizeT i = 0;
 
-  if (sigsetjmp(sigFPEJmpBuf, 1) == 0) {
-    // TODO: Check if we can use OpenMP here (is longjmp allowed?)
-    //             if yes: need to run the full loop after the longjmp
-    for (/*SizeT i=0*/; i < nEl; ++i)
-      (*this)[i] /= (*right)[i];
-    return this;
-  } else {
-
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt ix = i; ix < nEl; ++ix) if ((*right)[ix] != this->zero) (*this)[ix] /= (*right)[ix];
-    } else {
-      TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt ix = i; ix < nEl; ++ix) if ((*right)[ix] != this->zero) (*this)[ix] /= (*right)[ix];
-    }
-    return this;
+  if (nEl == 1) {
+	(*this)[0] /= (*right)[0];
+	GDLStopRegisteringFPExceptions();
+	return this;
   }
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] /= (*right)[ix];
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] /= (*right)[ix];
+  }
+
+  GDLStopRegisteringFPExceptions();
+  
+  return this;
 }
 // inverse division: left=right/left
 
@@ -65,32 +64,25 @@ template<class Sp>
 Data_<Sp>* Data_<Sp>::DivInv(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
   ULong nEl = N_Elements();
-  assert(nEl);
+  assert(nEl); 
+  GDLStartRegisteringFPExceptions();
 
-  SizeT i = 0;
-
-  if (sigsetjmp(sigFPEJmpBuf, 1) == 0) {
-    for (/*SizeT i=0*/; i < nEl; ++i)    (*this)[i] = (*right)[i] / (*this)[i];
-    return this;
-  } else {
-
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt ix = i; ix < nEl; ++ix)
-        if ((*this)[ix] != this->zero)
-          (*this)[ix] = (*right)[ix] / (*this)[ix];
-        else
-          (*this)[ix] = (*right)[ix];
-    } else {
-      TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt ix = i; ix < nEl; ++ix)
-        if ((*this)[ix] != this->zero)
-          (*this)[ix] = (*right)[ix] / (*this)[ix];
-        else
-          (*this)[ix] = (*right)[ix];
-    }
-    return this;
+  if (nEl == 1) {
+	(*this)[0] = (*right)[0] / (*this)[0];
+    GDLStopRegisteringFPExceptions();
+	return this;
   }
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (OMPInt ix = 0; ix < nEl; ++ix) (*this)[ix] = (*right)[ix] / (*this)[ix];
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	  for (OMPInt ix = 0; ix < nEl; ++ix) (*this)[ix] = (*right)[ix] / (*this)[ix];
+  }
+
+  GDLStopRegisteringFPExceptions();
+  
+  return this;
 }
 // invalid types
 
@@ -135,25 +127,24 @@ Data_<Sp>* Data_<Sp>::DivS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__L
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
-  assert(nEl);
+  assert(nEl); 
   Ty s = (*right)[0];
+  GDLStartRegisteringFPExceptions();
+  if (nEl == 1) {
+	(*this)[0] /= s;
+    GDLStopRegisteringFPExceptions();
+	return this;
+  }
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (OMPInt ix = 0; ix < nEl; ++ix) (*this)[ix] /= s;
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	  for (OMPInt ix = 0; ix < nEl; ++ix) (*this)[ix] /= s;
+  }
 
-  // remember: this is a template (must work for several types)
-  // due to error handling the actual devision by 0
-  // has to be done
-  // but if not 0, we save the expensive error handling
-  if (s != this->zero) {
-    for (SizeT i = 0; i < nEl; ++i) {
-      (*this)[i] /= s;
-    }
-    return this;
-  }
-  if (sigsetjmp(sigFPEJmpBuf, 1) == 0) {
-    for (SizeT i = 0; i < nEl; ++i) {
-      (*this)[i] /= s;
-    }
-    return this;
-  }
+  GDLStopRegisteringFPExceptions();
+  
   return this;
 }
 
@@ -164,27 +155,27 @@ Data_<Sp>* Data_<Sp>::DivInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
-  assert(nEl);
-
-  // remember: this is a template (must work for several types)
-  // due to error handling the actual devision by 0
-  // has to be done
-  // but if not 0, we save the expensive error handling
-  if (nEl == 1 && (*this)[0] != this->zero) {
-    (*this)[0] = (*right)[0] / (*this)[0];
-    return this;
-  }
+  assert(nEl); 
+  GDLStartRegisteringFPExceptions();
 
   Ty s = (*right)[0];
   SizeT i = 0;
-  if (sigsetjmp(sigFPEJmpBuf, 1) == 0) {
-    for (/*SizeT i=0*/; i < nEl; ++i) (*this)[i] = s / (*this)[i];
-    return this;
-  } else {
-    for (SizeT ix = i; ix < nEl; ++ix) if ((*this)[ix] != this->zero) (*this)[ix] = s / (*this)[ix];
-      else (*this)[ix] = s;
-    return this;
+  if (nEl == 1) {
+	(*this)[0] = s / (*this)[0];
+	GDLStopRegisteringFPExceptions();
+	return this;
   }
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] = s / (*this)[ix];
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	  for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] = s / (*this)[ix];
+  }
+
+  GDLStopRegisteringFPExceptions();
+  
+  return this;
 }
 // invalid types
 

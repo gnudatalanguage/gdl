@@ -31,7 +31,6 @@
 
 #include "datatypes.hpp"
 #include "envt.hpp"
-#include "sigfpehandler.hpp"
 #include "terminfo.hpp"
 #include "dinterpreter.hpp"
 

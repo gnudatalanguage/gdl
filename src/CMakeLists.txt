@@ -53,6 +53,7 @@ fmtnode.cpp
 gdlarray.cpp
 gdleventhandler.cpp
 gdlexception.cpp
+gdlfpexceptions.cpp
 gdlgstream.cpp
 )
 
@@ -153,7 +154,6 @@ randomgenerators.cpp
 read.cpp
 saverestore.cpp
 semshm.cpp
-sigfpehandler.cpp
 sorting.cpp
 sparse_matrix.cpp
 str.cpp

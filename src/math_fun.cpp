@@ -34,6 +34,7 @@
 #include "math_utl.hpp"
 #include "math_fun.hpp"
 #include "dinterpreter.hpp"
+#include "gdlfpexceptions.hpp"
 
 //#define GDL_DEBUG
 //#undef GDL_DEBUG
@@ -588,6 +589,8 @@ namespace lib {
     T* p0C = static_cast<T*> (p0);
     T* res = new T(p0C->Dim(), BaseGDL::NOZERO);
     SizeT nEl = p0->N_Elements();
+	GDLStartRegisteringFPExceptions();
+	
     if (nEl == 1) {
       (*res)[0] = sqrt((*p0C)[0]);
       return res;
@@ -599,6 +602,9 @@ namespace lib {
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*res)[ i] = sqrt((*p0C)[ i]);
     }
+
+	GDLStopRegisteringFPExceptions();
+	
     return res;
   }
 
@@ -606,6 +612,9 @@ namespace lib {
   BaseGDL* sqrt_fun_template_grab(BaseGDL* p0) {
     T* p0C = static_cast<T*> (p0);
     SizeT nEl = p0->N_Elements();
+
+	GDLStartRegisteringFPExceptions();
+	
     if (nEl == 1) {
       (*p0C)[0] = sqrt((*p0C)[0]);
       return p0;
@@ -617,6 +626,9 @@ namespace lib {
 #pragma omp parallel for num_threads(GDL_NTHREADS)
         for (SizeT i = 0; i < nEl; ++i) (*p0C)[ i] = sqrt((*p0C)[ i]);
     }
+
+	GDLStopRegisteringFPExceptions();
+	
     return p0;
   }
 
@@ -637,14 +649,20 @@ namespace lib {
       if (isReference) return sqrt_fun_template< DFloatGDL>(p0);
       else return sqrt_fun_template_grab< DFloatGDL>(p0);
     else {
-      DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
+
+	  GDLStartRegisteringFPExceptions();
+	  
+     DFloatGDL* res = static_cast<DFloatGDL*> (p0->Convert2(GDL_FLOAT, BaseGDL::COPY));
       if ((GDL_NTHREADS=parallelize( nEl))==1) {
         for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sqrt((*res)[ i]);
       } else {
         TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
           for (SizeT i = 0; i < nEl; ++i)(*res)[ i] = sqrt((*res)[ i]);
-      }
+	  }
+
+	  GDLStopRegisteringFPExceptions();
+	  
       return res;
     }
   }
@@ -2004,9 +2022,18 @@ namespace lib {
   }
 
   // by medericboquien@users.sourceforge.net
+  // (tested OK by AC on +-NaN +-Inf in 2023)
 
   BaseGDL* t_pdf(EnvT* e) {
     SizeT nParam = e->NParam(2);
+
+    DType t0 = e->GetParDefined(0)->Type();
+    if ((t0 == GDL_COMPLEX) || (t0 == GDL_COMPLEXDBL))
+      e->Throw("Complex not implemented. (please report)");
+    DType t1 = e->GetParDefined(1)->Type();
+    if ((t1 == GDL_COMPLEX) || (t1 == GDL_COMPLEXDBL))
+      e->Throw("Complex not implemented. (please report)");
+    
     DDoubleGDL* v = e->GetParAs<DDoubleGDL>(0);
     DDoubleGDL* df = e->GetParAs<DDoubleGDL>(1);
     DDoubleGDL* res;
@@ -2018,29 +2045,34 @@ namespace lib {
       if ((*df)[i] <= 0.)
         e->Throw("Degrees of freedom must be positive.");
 
-    if (nv == 1 && ndf == 1) {
-      res = new DDoubleGDL(dimension(1), BaseGDL::NOZERO);
-      (*res)[0] = gsl_cdf_tdist_P((*v)[0], (*df)[0]);
-    } else if (nv > 1 && ndf == 1) {
-      res = new DDoubleGDL(dimension(nv), BaseGDL::NOZERO);
+    // revised by AC 2023-12-26 to enforce Dim() & Rank()
+    
+    if (v->Rank() == 0) {
+      res = new DDoubleGDL(df->Dim(), BaseGDL::NOZERO);
+      for (SizeT count = 0; count < ndf; ++count) 
+	(*res)[count] = gsl_cdf_tdist_P((*v)[0], (*df)[count]);
+    } else if (df->Rank() == 0) {
+      res = new DDoubleGDL(v->Dim(), BaseGDL::NOZERO);
       for (SizeT count = 0; count < nv; ++count)
         (*res)[count] = gsl_cdf_tdist_P((*v)[count], (*df)[0]);
-    } else if (nv == 1 && ndf > 1) {
-      res = new DDoubleGDL(dimension(ndf), BaseGDL::NOZERO);
-      for (SizeT count = 0; count < ndf; ++count)
-        (*res)[count] = gsl_cdf_tdist_P((*v)[0], (*df)[count]);
     } else {
-      SizeT nreturn = nv > ndf ? ndf : nv;
-      res = new DDoubleGDL(dimension(nreturn), BaseGDL::NOZERO);
-      for (SizeT count = 0; count < nreturn; ++count)
+      SizeT nbp;
+      if (nv > ndf) {
+	nbp=ndf;
+	res = new DDoubleGDL(df->Dim(), BaseGDL::NOZERO);
+      } else {
+	nbp=nv;
+	res = new DDoubleGDL(v->Dim(), BaseGDL::NOZERO);
+      }	
+      for (SizeT count = 0; count < nbp; ++count)
         (*res)[count] = gsl_cdf_tdist_P((*v)[count], (*df)[count]);
     }
 
-    if (e->GetParDefined(0)->Type() != GDL_DOUBLE && e->GetParDefined(0)->Type() != GDL_DOUBLE)
+    if (e->GetParDefined(0)->Type() != GDL_DOUBLE &&
+	e->GetParDefined(1)->Type() != GDL_DOUBLE)
       return res->Convert2(GDL_FLOAT, BaseGDL::CONVERT);
     else
       return res;
-    return new DByteGDL(0);
   }
 
   // by medericboquien@users.sourceforge.net
@@ -2049,7 +2081,8 @@ namespace lib {
     SizeT nParam = e->NParam(2);
 
     DDoubleGDL* xvals = e->GetParAs<DDoubleGDL>(0);
-    if (e->GetParDefined(0)->Type() == GDL_COMPLEX || e->GetParDefined(0)->Type() == GDL_COMPLEXDBL)
+    if (e->GetParDefined(0)->Type() == GDL_COMPLEX ||
+	e->GetParDefined(0)->Type() == GDL_COMPLEXDBL)
       e->Throw("Complex Laguerre not implemented: ");
 
     DIntGDL* nval = e->GetParAs<DIntGDL>(1);
