@@ -20,6 +20,7 @@
 #include <fcntl.h>      /* O_flags */
 #include <sys/types.h>
 #include <unistd.h>
+#include <string.h>
 #include "shm.hpp"
 #include "basic_fun.hpp" //for arr()
 static std::map<DString, BaseGDL*> shmList;
@@ -200,7 +201,25 @@ namespace lib {
 	}
   }
 
-  void shmunmap_pro(EnvT* e) { };
+  void shmunmap_pro(EnvT* e) {
+	std::string segmentName;
+	SizeT np = e->NParam(1);
+	e->AssureStringScalarPar(0, segmentName);
+	if (segmentName.size() == 0) e->Throw("Null string not allowed in this context: "+e->GetParString(0)+".");
+	shmListIter i = shmList.find(segmentName);
+	BaseGDL* res;
+	void* was=NULL;
+	SizeT length=0;
+	if (i != shmList.end()) {
+	  res = (*i).second;
+	  was=res->DataAddr();
+	  length=res->NBytes();
+	  shmList.erase(i);
+	} else e->Throw("Shared Memory Segment not found: " + segmentName + ".");
+	int result=munmap(was,length);
+	if (result ==0) return;
+	e->Throw("Shared Memory Segment " + segmentName + " Unmapping unsucessfull, reason: "+ std::string(strerror(result))+".");
+ };
 
   BaseGDL* shmvar_fun(EnvT* e) {
 	dimension dim;
