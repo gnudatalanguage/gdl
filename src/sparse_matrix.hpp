@@ -1,9 +1,9 @@
 /***************************************************************************
-                            sigfpehandler.hpp  -  handle floating exceptions
-                             -------------------
-    begin                : Wed Apr 18 16:58:14 JST 2001
-    copyright            : (C) 2002-2004 by Marc Schellens
-    email                : m_schellens@users.sourceforge.net
+						  sparse_matrix.hpp  -  GDL sparse matrix functions
+							 -------------------
+	begin                : Dec 9 2023
+	copyright            : (C) 2023 by Gilles Duvert
+	email                : surname dot name at free dot fr
  ***************************************************************************/
 
 /***************************************************************************
@@ -14,19 +14,20 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+#ifndef SPARSE_MATRIX_HPP_
+#define SPARSE_MATRIX_HPP_
 
-#ifndef SIGFPEHANDLER_HPP_
-#define SIGFPEHANDLER_HPP_
+#include "includefirst.hpp"
+#include "datatypes.hpp"
+#include "envt.hpp"
 
-#include <csetjmp>
+namespace lib {
 
-#if defined(_WIN32) && !defined(__CYGWIN__)
-extern jmp_buf sigFPEJmpBuf;
-#define sigsetjmp(x,s) setjmp(x)
-#else
-extern sigjmp_buf sigFPEJmpBuf;
-#endif
-
-void SigFPEHandler( int signo); 
-
+  BaseGDL* sprsin_fun(EnvT* e);
+  BaseGDL* sprsax_fun(EnvT* e);
+  BaseGDL* sprsab_fun(EnvT* e);
+  BaseGDL* sprstp_fun(EnvT* e);
+  BaseGDL* fulstr_fun(EnvT* e);
+  BaseGDL* linbcg_fun(EnvT* e);
+}
 #endif

@@ -42,7 +42,6 @@
 #include "str.hpp"
 #include "dinterpreter.hpp"
 #include "terminfo.hpp"
-#include "sigfpehandler.hpp"
 #include "gdleventhandler.hpp"
 
 #ifdef _OPENMP
@@ -183,12 +182,11 @@ void InitGDL()
   setlocale(LC_ALL, "C");
 #endif
 
-  // turn on all floating point exceptions
+  // for debug one could turn on all floating point exceptions, it will stop at first one.
   //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 
   signal(SIGINT,ControlCHandler);
-  signal(SIGFPE,SigFPEHandler);
-  
+
   lib::SetGDLGenericGSLErrorHandler();
 }
 

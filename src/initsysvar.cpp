@@ -398,7 +398,11 @@ namespace SysVar
     DVar* sysVarList_warnIx = sysVarList[ warnIx];
     return static_cast<DStructGDL*>(sysVarList_warnIx->Data());
   }
-
+  DIntGDL* Except()
+  {
+    DVar* sysVarList_exceptIx = sysVarList[ exceptIx];
+    return static_cast<DIntGDL*>(sysVarList_exceptIx->Data());
+  }
   DString MsgPrefix()
   {
     DStructGDL* errorState = Error_State();

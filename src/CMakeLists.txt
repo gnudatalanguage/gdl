@@ -53,6 +53,7 @@ fmtnode.cpp
 gdlarray.cpp
 gdleventhandler.cpp
 gdlexception.cpp
+gdlfpexceptions.cpp
 gdlgstream.cpp
 )
 
@@ -154,8 +155,8 @@ read.cpp
 saverestore.cpp
 semshm.cpp
 shm.cpp
-sigfpehandler.cpp
 sorting.cpp
+sparse_matrix.cpp
 str.cpp
 terminfo.cpp
 tiff.cxx
