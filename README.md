@@ -142,7 +142,7 @@ IDL freely available resources include:
 
 There are several open source packages compatible or interoperable with GDL, including:
 - the [MPFIT](https://pages.physics.wisc.edu/~craigm/idl/cmpfit.html) curve fitting library written in IDL (also available as a [Debian package](https://packages.debian.org/gdl-mpfit))
-- the [IDL Astronomy User's Library](https://idlastro.gsfc.nasa.gov/) written in IDL (also available as a [Debian package](https://packages.debian.org/gdl-idlastro))
+- the [IDL Astronomy User's Library](https://github.com/wlandsman/IDLAstro) written in IDL (also available as a [Debian package](https://packages.debian.org/gdl-idlastro))
 - the [Coyote](https://www.idlcoyote.com) library of IDL-written utilities (also available as a [Debian package](https://packages.debian.org/gdl-coyote))
 - the [TeXtoIDL](http://physics.mnstate.edu/craig/textoidl/) package 
 - the [gdlde](https://github.com/gnudatalanguage/gdlde) IDE
