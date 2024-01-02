@@ -333,8 +333,7 @@ namespace lib {
 		return;
 	  }
 	}
-	//unreference a BaseGDL::NOALLOC adress which is not in the shm list: best to delete the pointed memory
-	free (pointer);
+	//else: absolutely DO NOTHING!!
   }
 } // namespace
 #endif
