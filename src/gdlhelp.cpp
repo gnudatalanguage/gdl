@@ -687,6 +687,7 @@ BaseGDL* recall_commands( EnvT* e)
       if (!doIndentation) ostr << "= ";
       if (par->IsAssoc())
         par->ToStream(ostr);
+	  else if (par->IsShared()) help_par_shared(par, ostr);
     }
 
     // Dimension display

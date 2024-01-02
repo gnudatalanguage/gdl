@@ -385,7 +385,7 @@ public:
 
 protected:
   dimension dim;
-  bool shared;
+  bool shared=false;
   
 public:
   // type of initalization
@@ -449,6 +449,7 @@ public:
 
   //shared
   bool IsShared() {return shared;}
+  void SetShared() {shared=true;} //used only with shmvar variables, explicitely in theur creation.
   // provide access to dim member
   inline const dimension& Dim()   const      { return dim;}
   inline SizeT    Dim(SizeT d)    const      { return dim[d];}

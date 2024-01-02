@@ -26,7 +26,7 @@
 #include "gdlhelp.hpp"
 #include "dinterpreter.hpp"
 
-std::map<DString, std::pair<DPtrGDL*, int> > shmList;
+std::map<DString, SHMAP_STRUCT > shmList;
 
 enum { BYTE=0,COMPLEX,DCOMPLEX,DOUBLE,FLOAT,INTEGER,L64,LONG,UINT,UL64,ULONG, DIMENSION,SIZE, TEMPLATE, TYPE} common_options_shm;
 
@@ -100,8 +100,8 @@ namespace lib {
 	std::string segmentName;
 	//get common infos:
 	if (get_shm_common_keywords(e,  segmentName, dim, type) != false) e->Throw("Expression must be an array in this context: <Shared Memory Segment>.");
-	size_t length = dim.NDimElements()*(atomSize[type]);
-	if (length < 1) e->Throw("internal error,please report.");
+	size_t requested_length = dim.NDimElements()*(atomSize[type]);
+	if (requested_length < 1) e->Throw("internal error,please report.");
 	struct stat filestat;
 	//try to open existing:
 	int shm_fd; /* file descriptor */
@@ -115,14 +115,18 @@ namespace lib {
 	  e->AssureLongScalarKW(offsetIx, offset);
 	}
 	if (offset%atomSize[type] != 0) e->Throw("This machine cannot access data of type "+atomName[type]+" at this alignment: "+i2s(offset)+".");
-	length += offset;
+	size_t total_length=(requested_length + offset);
 
     shm_fd = shm_open(segmentName.c_str(), O_RDWR, exist_perms); //minimal setup.
 	if (shm_fd != -1) { //file exist
 	  exist=true;
-	  //get max allowed size and set default values
+	  if (shmList.find(segmentName) != shmList.end()) {
+		e->Throw("Attempt to redefine existing shared memory segment: " + segmentName + ".");
+		return; //already existing
+	  }
+	  //check max allowed size and set default values
 	  if (fstat(shm_fd, &filestat) == -1) e->Throw("Existing Mapping segment " + segmentName + " size retrieval failed.");
-	  if (length > filestat.st_size) {
+	  if (total_length > filestat.st_size) {
 		shm_unlink(segmentName.c_str());
 		e->Throw("Existing file too short for desired mapping.");
 	  }
@@ -132,58 +136,7 @@ namespace lib {
 	  //try to open unexisting:
 	  shm_fd = shm_open(segmentName.c_str(), oflags, create_perms);
 	  if (shm_fd == -1) e->Throw("Mapping segment " + segmentName + " failed."); //this is an error
-	  ftruncate(shm_fd, length);
-	}
-	//create a BaseGDL corresponding to all info:
-	BaseGDL* var;
-	switch (type) {
-	case GDL_FLOAT:
-	  var = new DFloatGDL(dim, BaseGDL::NOALLOC);
-	  break;
-	case GDL_DOUBLE:
-	  var = new DDoubleGDL(dim, BaseGDL::NOALLOC);
-	  break;
-	case GDL_LONG:
-	  var = new DLongGDL(dim, BaseGDL::NOALLOC);
-	  break;
-	case GDL_BYTE:
-	  var = new DByteGDL(dim, BaseGDL::NOALLOC);
-	  break;
-	case GDL_INT:
-	  var = new DIntGDL(dim, BaseGDL::NOALLOC);
-	  break;
-	case GDL_COMPLEX:
-	  var = new DComplexGDL(dim, BaseGDL::NOALLOC);
-	  break;
-	case GDL_COMPLEXDBL:
-	  var = new DComplexDblGDL(dim, BaseGDL::NOALLOC);
-	  break;
-	case GDL_UINT:
-	  var = new DUIntGDL(dim, BaseGDL::NOALLOC);
-	  break;
-	case GDL_ULONG:
-	  var = new DULongGDL(dim, BaseGDL::NOALLOC);
-	  break;
-	case GDL_LONG64:
-	  var = new DLong64GDL(dim, BaseGDL::NOALLOC);
-	  break;
-	case GDL_ULONG64:
-	  var = new DULong64GDL(dim, BaseGDL::NOALLOC);
-	  break;
-	default:
-	  //  case GDL_STRING:
-	  //  case GDL_PTR:
-	  //  case GDL_OBJ:
-	  //  case GDL_STRUCT:
-	  //  case GDL_UNDEF:
-	  e->Throw(" internal error, please report.");
-	}
-	if (exist) { //checks OK for size
-	  if (var->NBytes() + offset > filestat.st_size) e->Throw("Mapped address is not large enough for requested size and type.");
-	  if (shmList.find(segmentName) != shmList.end()) {
-		GDLDelete(var);
-		return; //already existing
-	  }
+	  ftruncate(shm_fd, total_length);
 	}
 	//now, exist or not, we define only the requested memory mapping size "length".
 	static int privateIx = e->KeywordIx("PRIVATE");
@@ -192,15 +145,16 @@ namespace lib {
 	if (e->KeywordSet(filenameIx) && e->KeywordSet(privateIx)) isPrivate = true;
 	int mmap_flags = (isPrivate) ? MAP_PRIVATE : MAP_SHARED;
 	int mmap_prot = PROT_READ | PROT_WRITE;
-	void* mapAddress = mmap(NULL, length, mmap_prot, mmap_flags, shm_fd, 0);
+	void* mapAddress = mmap(NULL, requested_length, mmap_prot, mmap_flags, shm_fd, offset);
 	if (mapAddress == MAP_FAILED) e->Throw("shmmap failed, please report.");
-    var->SetBuffer(mapAddress);
-	var->SetBufferSize(dim.NDimElements());
-	var->SetDim(dim);
-	
-	BaseGDL** p = &var;
-	DPtr heapID = e->NewHeap(1, *p);
-	shmList.insert(std::pair<DString, std::pair<DPtrGDL*, int>>(segmentName, std::pair<DPtrGDL*, int>(new DPtrGDL(heapID), offset)));
+	SHMAP_STRUCT s;
+    s.mapped_address=mapAddress;
+	s.length=requested_length;
+	s.offset=offset;
+	s.refcount=0;
+	s.dim=dim;
+	s.type=type;
+	shmList.insert(std::pair<DString, SHMAP_STRUCT>(segmentName, s));
 
 	static int getnameIx = e->KeywordIx("GET_NAME");
 	if (e->WriteableKeywordPresent(getnameIx)) {
@@ -214,23 +168,17 @@ namespace lib {
 	e->AssureStringScalarPar(0, segmentName);
 	if (segmentName.size() == 0) e->Throw("Null string not allowed in this context: "+e->GetParString(0)+".");
 	shmListIter i = shmList.find(segmentName);
-	DPtrGDL* ptr;
-	void* was=NULL;
-	SizeT length=0;
-	SizeT refc=0;
-	if (i != shmList.end()) {
-	  ptr = (*i).second.first;
-	  BaseGDL* heapVar=e->GetHeap((*ptr)[0]);
-	  was=heapVar->DataAddr();
-	  length=heapVar->NBytes();
-//	  GDLInterpreter::DecRef(ptr); //remove initial basegdl reference
-	  SizeT refc = e->Interpreter()->RefCountHeap((*ptr)[0]);
-	  if (refc < 2) shmList.erase(i);
+	if (i != shmList.end()) { 
+	  // if to be deleted, must not appear as existing
+	  if ((*i).second.toBeDeleted==true)  e->Throw("Specified shared memory segment pending unmap operation: " + segmentName + ".");
+	  //mark as candidate for deletion
+	  (*i).second.toBeDeleted=true;
 	} else e->Throw("Shared Memory Segment not found: " + segmentName + ".");
-	if (refc == 1) {
-	  int result=munmap(was,length);
-	  if (result ==0) return;
-	  e->Throw("Shared Memory Segment " + segmentName + " Unmapping unsucessfull, reason: "+ std::string(strerror(result))+".");
+	//if candidate for deletion and nothing referencing it, delete right now:
+	if ((*i).second.refcount==0) {
+	  int result=munmap((*i).second.mapped_address,(*i).second.length); //unmap
+	  if (result !=0) e->Throw("Shared Memory Segment " + segmentName + " Unmapping unsucessfull, reason: "+ std::string(strerror(result))+".");
+	  shmList.erase(i);
 	}
  };
 
@@ -240,16 +188,13 @@ namespace lib {
 	std::string segmentName = "";
 	bool dimNotSet = get_shm_common_keywords(e, segmentName, dim, type);
 	shmListIter i = shmList.find(segmentName);
-	DPtrGDL* ptr;
 	if (i != shmList.end()) {
-	  ptr = (*i).second.first;
-	  BaseGDL* heapVar=e->GetHeap((*ptr)[0]);
-	  //check if compatible
-	  if (dimNotSet) {
-		GDLInterpreter::IncRef(ptr); //is used. /???? check necessary ?
-		return heapVar; //no further problem, we take as it was
-	  }
-	  if (dim.NDimElements()*(atomSize[type]) > heapVar->NBytes()) e->Throw("Requested variable is too long for the underlying shared memory segment: " + segmentName + ".");
+	  
+	  // if shmap is to be deleted, must not appear as existing
+	  if ((*i).second.toBeDeleted==true)  e->Throw("Specified shared memory segment pending unmap operation: " + segmentName + ".");
+	  if (type == 0) type=(*i).second.type;
+	  if (dimNotSet) dim=(*i).second.dim;
+	  if (dim.NDimElements()*(atomSize[type]) > (*i).second.length) e->Throw("Requested variable is too long for the underlying shared memory segment: " + segmentName + ".");
 
 	  //create a BaseGDL corresponding to that:
 	  BaseGDL* var;
@@ -295,12 +240,12 @@ namespace lib {
 		//  case GDL_UNDEF:
 		e->Throw(" internal error, please report.");
 	  }
-	  var->SetBuffer(static_cast<void*> (heapVar->DataAddr()));
-	  GDLInterpreter::IncRef(ptr); //is used. /???? check necessary ?
+	  var->SetBuffer((*i).second.mapped_address);
+	  var->SetShared(); //necessary!
+	  (*i).second.refcount++;
 	  var->SetBufferSize(dim.NDimElements());
 	  var->SetDim(dim);
 	  return var;
-
 	}
 
 	e->Throw("Shared Memory Segment not found: " + segmentName + ".");
@@ -310,30 +255,69 @@ namespace lib {
   BaseGDL* shmdebug_fun(EnvT* e) {
 	return new DIntGDL(0);
   }
+  
+  void shm_print_help_item(std::ostream& ostr, DString name, dimension dim, int type, DString parString, bool doIndentation = false)
+  {
+    if (doIndentation) ostr << "   ";
+
+    // Name display
+    ostr.width(16);
+    ostr << std::left << name;
+    if (name.length() >= 16) {
+      ostr << '\n'; // for cmsv compatible output (uses help,OUTPUT)
+      ostr.width(doIndentation ? 19 : 16);
+      ostr << "";
+    }
+
+    ostr.width(10);
+    ostr <<  atomName[type] << std::right;
+    if (!doIndentation) ostr << "= ";
+    
+	ostr << parString << " ";
+    // Dimension display
+    ostr << dim ;
+
+    // End of line
+    ostr << '\n';
+  }
 
   void help_shared(EnvT* e, std::ostream& ostr) {
 	for (shmListIter it=shmList.begin(); it!=shmList.end(); ++it) {
-	  DPtrGDL* ptr = (*it).second.first;
-	  BaseGDL* heapVar = e->GetHeap((*ptr)[0]);
-	  SizeT refc = BaseGDL::interpreter->RefCountHeap((*ptr)[0]);
-		lib::help_item(ostr, heapVar, DString("<Posix(\"" +it->first + "\"), Offset("+i2s((*it).second.second)+"), Refcnt("+i2s(refc-1)+")>"), true); //note: -1
+	  if((*it).second.toBeDeleted) {
+		shm_print_help_item(ostr, it->first, (*it).second.dim, (*it).second.type, DString("<Posix(\"" +it->first + "\"), Offset("+i2s((*it).second.offset)+", UnmapPending, Refcnt("+i2s((*it).second.refcount)+")>"));
+	  } else {
+		shm_print_help_item(ostr, it->first, (*it).second.dim, (*it).second.type, DString("<Posix(\"" +it->first + "\"), Offset("+i2s((*it).second.offset)+", Refcnt("+i2s((*it).second.refcount)+")>"));
+	  }
 	}
 	return;
   }
-
-  //called from system
-  void shm_unreference(BaseGDL* var){
+  void help_par_shared(BaseGDL* var, std::ostream& ostr) {
 	void* pointer=var->DataAddr(); //the mapped address
 	for (shmListIter it=shmList.begin(); it!=shmList.end(); ++it) {
-	  DPtrGDL* ptr = (*it).second.first;
-	  BaseGDL* heapVar = BaseGDL::interpreter->GetHeap((*ptr)[0]);
-	  void* pointed=heapVar->DataAddr();
+	  void* pointed=(*it).second.mapped_address;
 	  if (pointer == pointed) {
-		GDLInterpreter::DecRef(ptr);
+		ostr << "SharedMemory<"<<it->first<<"> ";
+	  }
+	}
+	return;
+  }
+  //called from system when deleting a mapped variable
+  void shm_unreference(BaseGDL* var){
+	void* pointer=var->DataAddr(); //the mapped address
+	for (shmListIter i=shmList.begin(); i!=shmList.end(); ++i) {
+	  void* pointed=(*i).second.mapped_address;
+	  if (pointer == pointed) {
+		(*i).second.refcount--;
+		if ((*i).second.toBeDeleted && (*i).second.refcount<1) {
+		  //no more reference, if shmap is pending delete, delete it.
+		  //if candidate for deletion and nothing referencing, delete right now:
+		  int result = munmap((*i).second.mapped_address, (*i).second.length); //unmap
+		  if (result != 0) Warning("Shared Memory Segment " + (*i).first + " Unmapping unsucessfull  after deleting mapped variable, reason: " + std::string(strerror(result)) + ".");
+		  shmList.erase(i);
+		}
 		return;
 	  }
 	}
-	//else: absolutely DO NOTHING!!
   }
 } // namespace
 #endif

@@ -331,7 +331,6 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT,
   Sp( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false)
 { 
   this->dim.Purge();
-  if (iT == BaseGDL::NOALLOC) this->shared=true;
   
   if (iT == BaseGDL::NOZERO) return;  //very frequent
   
@@ -372,7 +371,6 @@ template<class Sp> Data_<Sp>::Data_(const dimension& dim_, BaseGDL::InitType iT,
 template<> Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble off, DDouble inc):
   SpDFloat( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false) { 
   this->dim.Purge();
-  if (iT == BaseGDL::NOALLOC) this->shared=true;
 
   if (iT == BaseGDL::NOZERO) return; //very frequent
 
@@ -414,7 +412,6 @@ template<> Data_<SpDFloat>::Data_(const dimension& dim_, BaseGDL::InitType iT, D
 template<> Data_<SpDComplex>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble off, DDouble inc):
   SpDComplex( dim_), dd( (iT == BaseGDL::NOALLOC) ? 0 : this->dim.NDimElements(), false) { 
   this->dim.Purge();
-  if (iT == BaseGDL::NOALLOC) this->shared=true;
 
   if (iT == BaseGDL::NOZERO) return; //very frequent
 

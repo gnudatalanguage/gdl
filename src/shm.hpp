@@ -22,9 +22,20 @@
 #include <iostream>     // std::cout, std::ostream, std::ios
 #include "shm_utils.hpp"
 #ifndef _MSC_VER
-extern std::map<DString, std::pair<DPtrGDL*, int> > shmList;
 
-typedef std::map<DString, std::pair<DPtrGDL*, int> > ::iterator shmListIter;
+typedef struct {
+  void* mapped_address;
+  size_t length;
+  off_t offset;
+  int   refcount;
+  dimension dim;
+  int type;
+  bool toBeDeleted=false;
+} SHMAP_STRUCT;
+
+extern std::map<DString, SHMAP_STRUCT > shmList;
+
+typedef std::map<DString, SHMAP_STRUCT > ::iterator shmListIter;
 namespace lib {
 
   void shmmap_pro(EnvT* e);
