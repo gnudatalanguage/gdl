@@ -16,7 +16,7 @@
  ***************************************************************************/
 #ifndef SHM_UTILS_HPP_
 #define SHM_UTILS_HPP_
-#ifndef _MSC_VER
+#ifndef _WIN32
 namespace lib {
   void help_par_shared(BaseGDL* var, std::ostream& ostr);
   void help_shared(EnvT* e, std::ostream& ostr);

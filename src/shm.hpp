@@ -21,7 +21,7 @@
 #include "envt.hpp"
 #include <iostream>     // std::cout, std::ostream, std::ios
 #include "shm_utils.hpp"
-#ifndef _MSC_VER
+#ifndef _WIN32
 
 typedef struct {
   void* mapped_address;
