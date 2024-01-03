@@ -1081,7 +1081,7 @@ void LibInit()
 
   const string gaussfitKey[] = {"CHISQ","ESTIMATES", "MEASURE_ERRORS", "NTERMS", "SIGMA", "YERROR",KLISTEND};
   new DLibFunRetNew(lib::gaussfit, string("GAUSSFIT"), 3, gaussfitKey);
-  #ifndef _MSC_VER
+  #ifndef _WIN32
   //SHM --------------------------------------------------------------------------------------
   // Note: counted values, do not change order:
   const string shmmapKey[] = {

@@ -24,15 +24,23 @@
 #ifndef _WIN32
 
 typedef struct {
-  void* mapped_address;
-  size_t length;
-  off_t offset;
-  int   refcount;
+  void* mapped_address=NULL;
+  std::string osHandle;
+  size_t length=0;
+  off_t offset=0;
+  int   refcount=0;
   dimension dim;
-  int type;
-  bool toBeDeleted=false;
+  int type=0;
+  int flags=0;
 } SHMAP_STRUCT;
 
+enum Shmap_flags {
+  DELETE_PENDING=1,
+  MAPPEDFILE=2,
+  DESTROY_SEGMENT_ON_UNMAP=4,
+  USE_SYSV=8,
+  IS_PRIVATE=16
+};
 extern std::map<DString, SHMAP_STRUCT > shmList;
 
 typedef std::map<DString, SHMAP_STRUCT > ::iterator shmListIter;
