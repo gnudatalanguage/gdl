@@ -97,9 +97,23 @@ namespace lib {
   void shmmap_pro(EnvT* e) {
 	dimension dim;
 	int type;
+	std::string osHandle;
 	std::string segmentName;
 	//get common infos:
 	if (get_shm_common_keywords(e,  segmentName, dim, type) != false) e->Throw("Expression must be an array in this context: <Shared Memory Segment>.");
+    static int OS_HANDLE=e->KeywordIx("OS_HANDLE");
+	bool doOsHandle=e->KeywordSet(OS_HANDLE);
+	if (doOsHandle) e->AssureStringScalarKW(OS_HANDLE,osHandle); else {
+      if (segmentName.substr(0,1) != "/") osHandle="/"+segmentName; else osHandle=segmentName;
+	}
+	
+	static int filenameIx = e->KeywordIx("FILENAME");
+	bool mappedfile=false;
+	if (e->KeywordPresent(filenameIx)){
+	  mappedfile=true;
+	  e->AssureStringScalarKW(filenameIx,osHandle);
+	}
+	
 	size_t requested_length = dim.NDimElements()*(atomSize[type]);
 	if (requested_length < 1) e->Throw("internal error,please report.");
 	struct stat filestat;
@@ -108,7 +122,14 @@ namespace lib {
 	int exist_perms = S_IRUSR | S_IWUSR ; 
 	int create_perms = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP; 
 	bool exist = false;
-    
+
+    static int DESTROY_SEGMENT=e->KeywordIx("DESTROY_SEGMENT");
+	bool destroy_segment=false; //by default
+    static int SYSV=e->KeywordIx("SYSV");
+	bool sysv=e->KeywordSet(SYSV);
+    static int PRIVATE=e->KeywordIx("PRIVATE");
+	bool open_private=e->KeywordSet(PRIVATE);
+	
 	static int offsetIx = e->KeywordIx("OFFSET");
 	DLong64 offset = 0;
 	if (e->KeywordPresentAndDefined(offsetIx)) {
@@ -116,8 +137,11 @@ namespace lib {
 	}
 	if (offset%atomSize[type] != 0) e->Throw("This machine cannot access data of type "+atomName[type]+" at this alignment: "+i2s(offset)+".");
 	size_t total_length=(requested_length + offset);
-
-    shm_fd = shm_open(segmentName.c_str(), O_RDWR, exist_perms); //minimal setup.
+    if (mappedfile) {
+	  shm_fd= open(osHandle.c_str(), O_RDWR, exist_perms); //minimal setup.
+	} else {
+      shm_fd = shm_open(osHandle.c_str(), O_RDWR, exist_perms); //minimal setup.
+	}
 	if (shm_fd != -1) { //file exist
 	  exist=true;
 	  if (shmList.find(segmentName) != shmList.end()) {
@@ -125,42 +149,55 @@ namespace lib {
 		return; //already existing
 	  }
 	  //check max allowed size and set default values
-	  if (fstat(shm_fd, &filestat) == -1) e->Throw("Existing Mapping segment " + segmentName + " size retrieval failed.");
+	  if (fstat(shm_fd, &filestat) == -1) e->Throw("Existing Mapping segment " + osHandle + " size retrieval failed.");
 	  if (total_length > filestat.st_size) {
-		shm_unlink(segmentName.c_str());
+		shm_unlink(osHandle.c_str());
 		e->Throw("Existing file too short for desired mapping.");
 	  }
+	  //segment is not destroyable on exit unless 'destroy_segment' is set
+	  destroy_segment=e->KeywordSet(DESTROY_SEGMENT);
 	}
 	if (!exist) {
 	  int oflags = O_RDWR | O_CREAT | O_EXCL; /* open flags receives -c, -x, -t */
 	  //try to open unexisting:
-	  shm_fd = shm_open(segmentName.c_str(), oflags, create_perms);
-	  if (shm_fd == -1) e->Throw("Mapping segment " + segmentName + " failed."); //this is an error
+	  if (mappedfile) {
+		shm_fd = open(osHandle.c_str(), oflags, create_perms); //minimal setup.
+	  } else {
+		shm_fd = shm_open(osHandle.c_str(), oflags, create_perms);
+	  }
+	  if (shm_fd == -1) e->Throw("Mapping segment " + osHandle + " failed."); //this is an error
 	  ftruncate(shm_fd, total_length);
+	  //segment is destroyable on exit unless 'destroy_segment' is set to 0
+	  destroy_segment=true;
+	  if (e->KeywordPresentAndDefined(DESTROY_SEGMENT)) destroy_segment=e->KeywordSet(DESTROY_SEGMENT);
 	}
 	//now, exist or not, we define only the requested memory mapping size "length".
-	static int privateIx = e->KeywordIx("PRIVATE");
-	static int filenameIx = e->KeywordIx("FILENAME");
-	bool isPrivate = false;
-	if (e->KeywordSet(filenameIx) && e->KeywordSet(privateIx)) isPrivate = true;
-	int mmap_flags = (isPrivate) ? MAP_PRIVATE : MAP_SHARED;
+	int mmap_flags = (mappedfile && open_private) ? MAP_PRIVATE : MAP_SHARED;
 	int mmap_prot = PROT_READ | PROT_WRITE;
 	void* mapAddress = mmap(NULL, requested_length, mmap_prot, mmap_flags, shm_fd, offset);
+	close(shm_fd); //"After a call to mmap(2) the file descriptor may be closed without affecting the memory mapping."
 	if (mapAddress == MAP_FAILED) e->Throw("shmmap failed, please report.");
 	SHMAP_STRUCT s;
     s.mapped_address=mapAddress;
+	s.osHandle=osHandle;
 	s.length=requested_length;
 	s.offset=offset;
 	s.refcount=0;
 	s.dim=dim;
 	s.type=type;
+	if (destroy_segment) s.flags |= DESTROY_SEGMENT_ON_UNMAP;
+	if (sysv) s.flags |= USE_SYSV;
 	shmList.insert(std::pair<DString, SHMAP_STRUCT>(segmentName, s));
 
 	static int getnameIx = e->KeywordIx("GET_NAME");
 	if (e->WriteableKeywordPresent(getnameIx)) {
 	  e->SetKW(getnameIx, new DStringGDL(segmentName));
 	}
-  }
+    static int GET_OS_HANDLE=e->KeywordIx("GET_OS_HANDLE");
+	if (e->WriteableKeywordPresent(GET_OS_HANDLE)) {
+	  e->SetKW(GET_OS_HANDLE, new DStringGDL(osHandle));
+	}
+}
 
   void shmunmap_pro(EnvT* e) {
 	std::string segmentName;
@@ -169,15 +206,14 @@ namespace lib {
 	if (segmentName.size() == 0) e->Throw("Null string not allowed in this context: "+e->GetParString(0)+".");
 	shmListIter i = shmList.find(segmentName);
 	if (i != shmList.end()) { 
-	  // if to be deleted, must not appear as existing
-	  if ((*i).second.toBeDeleted==true)  e->Throw("Specified shared memory segment pending unmap operation: " + segmentName + ".");
 	  //mark as candidate for deletion
-	  (*i).second.toBeDeleted=true;
+	  (*i).second.flags |= DELETE_PENDING;
 	} else e->Throw("Shared Memory Segment not found: " + segmentName + ".");
 	//if candidate for deletion and nothing referencing it, delete right now:
 	if ((*i).second.refcount==0) {
 	  int result=munmap((*i).second.mapped_address,(*i).second.length); //unmap
 	  if (result !=0) e->Throw("Shared Memory Segment " + segmentName + " Unmapping unsucessfull, reason: "+ std::string(strerror(result))+".");
+	  shm_unlink((*i).second.osHandle.c_str());
 	  shmList.erase(i);
 	}
  };
@@ -191,7 +227,7 @@ namespace lib {
 	if (i != shmList.end()) {
 	  
 	  // if shmap is to be deleted, must not appear as existing
-	  if ((*i).second.toBeDeleted==true)  e->Throw("Specified shared memory segment pending unmap operation: " + segmentName + ".");
+	  if (((*i).second.flags & DELETE_PENDING)==DELETE_PENDING)  e->Throw("Specified shared memory segment pending unmap operation: " + segmentName + ".");
 	  if (type == 0) type=(*i).second.type;
 	  if (dimNotSet) dim=(*i).second.dim;
 	  if (dim.NDimElements()*(atomSize[type]) > (*i).second.length) e->Throw("Requested variable is too long for the underlying shared memory segment: " + segmentName + ".");
@@ -283,11 +319,14 @@ namespace lib {
 
   void help_shared(EnvT* e, std::ostream& ostr) {
 	for (shmListIter it=shmList.begin(); it!=shmList.end(); ++it) {
-	  if((*it).second.toBeDeleted) {
-		shm_print_help_item(ostr, it->first, (*it).second.dim, (*it).second.type, DString("<Posix(\"" +it->first + "\"), Offset("+i2s((*it).second.offset)+", UnmapPending, Refcnt("+i2s((*it).second.refcount)+")>"));
-	  } else {
-		shm_print_help_item(ostr, it->first, (*it).second.dim, (*it).second.type, DString("<Posix(\"" +it->first + "\"), Offset("+i2s((*it).second.offset)+", Refcnt("+i2s((*it).second.refcount)+")>"));
-	  }
+	  DString text1="<";
+	  if (((*it).second.flags & IS_PRIVATE)==IS_PRIVATE) text1+="Private";
+	  if (((*it).second.flags & MAPPEDFILE)==MAPPEDFILE) text1+="MappedFile"; else text1+="Posix";
+	  text1+="(";
+	  DString text2="";
+	  if(((*it).second.flags & DELETE_PENDING)==DELETE_PENDING) text2="UnmapPending, ";
+	  shm_print_help_item(ostr, it->first, (*it).second.dim, (*it).second.type, DString(text1+(*it).second.osHandle + 
+		  "), Offset("+i2s((*it).second.offset)+"), "+text2+"Refcnt("+i2s((*it).second.refcount)+")>"));
 	}
 	return;
   }
@@ -308,11 +347,12 @@ namespace lib {
 	  void* pointed=(*i).second.mapped_address;
 	  if (pointer == pointed) {
 		(*i).second.refcount--;
-		if ((*i).second.toBeDeleted && (*i).second.refcount<1) {
+		if ((((*i).second.flags & DELETE_PENDING)==DELETE_PENDING) && (*i).second.refcount<1) {
 		  //no more reference, if shmap is pending delete, delete it.
 		  //if candidate for deletion and nothing referencing, delete right now:
 		  int result = munmap((*i).second.mapped_address, (*i).second.length); //unmap
 		  if (result != 0) Warning("Shared Memory Segment " + (*i).first + " Unmapping unsucessfull  after deleting mapped variable, reason: " + std::string(strerror(result)) + ".");
+	      shm_unlink((*i).second.osHandle.c_str());
 		  shmList.erase(i);
 		}
 		return;
