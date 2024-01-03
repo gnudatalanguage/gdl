@@ -61,6 +61,7 @@ if(NOT WIN32)
 set(SOURCES
 ${SOURCES}
 gdlxstream.cpp
+shm.cpp
 )
 endif(NOT WIN32)
 
@@ -154,7 +155,6 @@ randomgenerators.cpp
 read.cpp
 saverestore.cpp
 semshm.cpp
-shm.cpp
 sorting.cpp
 sparse_matrix.cpp
 str.cpp
@@ -184,12 +184,14 @@ ${SOURCES}
 qhull.cpp
 )
 endif(HAVE_QHULL)
+
 if(WIN32)
 set(SOURCES
 ${SOURCES}
 gdl.rc
 )
 endif(WIN32)
+
 if(HAVE_LIBWXWIDGETS AND WIN32)
 find_file(WX_RC wx.rc HINTS ${wxWidgets_INCLUDE_DIRS} PATH_SUFFIXES wx/msw)
 set(SOURCES
@@ -197,6 +199,7 @@ ${SOURCES}
 ${WX_RC}
 )
 endif(HAVE_LIBWXWIDGETS AND WIN32)
+
 #local plplot drivers
 add_subdirectory(plplotdriver)
 #whereami

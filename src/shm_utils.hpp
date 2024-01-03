@@ -24,6 +24,7 @@ namespace lib {
 } // namespace
 #else
 namespace lib {
+  void help_par_shared(BaseGDL* var, std::ostream& ostr){};
   void help_shared(EnvT* e, std::ostream& ostr){};
   void shm_unreference(BaseGDL* var){};
 } // namespace
