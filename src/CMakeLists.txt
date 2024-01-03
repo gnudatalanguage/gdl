@@ -230,7 +230,7 @@ target_link_libraries(gdl antlr whereami) # link antlr against gdl. added librt 
 if (MINGW)
 target_link_libraries(gdl ws2_32)
 endif (MINGW)
-if (NOT APPLE AND NOT OSX)
+if (NOT APPLE AND NOT OSX AND NOT MINGW)
 target_link_libraries(gdl rt) # link antlr against gdl. added librt for mmap (unix only, not osx, apparently)
 endif (NOT APPLE AND NOT OSX)
 target_link_libraries(gdl ${LIBRARIES})
