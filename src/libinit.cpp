@@ -57,6 +57,9 @@
 
 #include "grib.hpp"
 #include "semshm.hpp"
+#ifndef _WIN32
+#include "shm.hpp"
+#endif
 #include "labelregion.hpp"
 #include "value_locate.hpp"
 
@@ -312,9 +315,8 @@ void LibInit()
 			  "INTERNAL_LIB_GDL","KEYS","LAST_MESSAGE","LIB","MEMORY","NAMES",
 		"OBJECTS","OUTPUT","PATH_CACHE","PREFERENCES","PROCEDURES",
 			  "RECALL_COMMANDS","ROUTINES","SOURCE_FILES","STRUCTURES",
-              "SYSTEM_VARIABLES","TRACEBACK", "COMMON","LEVEL", KLISTEND};
-  const string helpWarnKey[]={"BREAKPOINTS","DLM", "MESSAGES",
-			      "SHARED_MEMORY", KLISTEND};
+              "SYSTEM_VARIABLES","TRACEBACK", "COMMON","LEVEL", "SHARED_MEMORY", KLISTEND};
+  const string helpWarnKey[]={"BREAKPOINTS","DLM", "MESSAGES", KLISTEND};
   new DLibPro(lib::help_pro,string("HELP"),-1,helpKey,helpWarnKey);
 
   new DLibPro(lib::delvar_pro,string("DELVAR"),-1,NULL,NULL);
@@ -1079,5 +1081,20 @@ void LibInit()
 
   const string gaussfitKey[] = {"CHISQ","ESTIMATES", "MEASURE_ERRORS", "NTERMS", "SIGMA", "YERROR",KLISTEND};
   new DLibFunRetNew(lib::gaussfit, string("GAUSSFIT"), 3, gaussfitKey);
+  #ifndef _WIN32
+  //SHM --------------------------------------------------------------------------------------
+  // Note: counted values, do not change order:
+  const string shmmapKey[] = {
+	"BYTE","COMPLEX","DCOMPLEX","DOUBLE","FLOAT","INTEGER","L64","LONG","UINT","UL64","ULONG", "DIMENSION","SIZE", "TEMPLATE", "TYPE", //"TYPE": position 14
+	//the rest free
+             "DESTROY_SEGMENT","FILENAME","GET_NAME", "GET_OS_HANDLE", "OFFSET", 
+              "OS_HANDLE", "PRIVATE", "SYSV", KLISTEND};
+  new DLibPro(lib::shmmap_pro,string("SHMMAP"),9,shmmapKey);
+  new DLibPro(lib::shmunmap_pro,string("SHMUNMAP"),1);
+  // Note: counted values, do not change order:
+  const string shmvarKey[] = {"BYTE","COMPLEX","DCOMPLEX","DOUBLE","FLOAT","INTEGER","L64","LONG","UINT","UL64","ULONG","DIMENSION","SIZE", "TEMPLATE", "TYPE",KLISTEND};
+  new DLibFunRetNew(lib::shmvar_fun,string("SHMVAR"),9,shmvarKey);
+  new DLibFunRetNew(lib::shmdebug_fun,string("SHMDEBUG"),1);
+  #endif
 }
 

@@ -123,7 +123,9 @@ extern "C" {
 #include "gdlhelp.hpp"
 #include "nullgdl.hpp"
 #include "terminfo.hpp"
-
+#ifndef _WIN32
+#include "shm_utils.hpp"
+#endif
 
 // for sorting compiled pro/fun lists by name
 struct CompFunName: public std::function<bool(DFun*, DFun*)>
@@ -686,6 +688,9 @@ BaseGDL* recall_commands( EnvT* e)
       if (!doIndentation) ostr << "= ";
       if (par->IsAssoc())
         par->ToStream(ostr);
+#ifndef _WIN32
+	  else if (par->IsShared()) help_par_shared(par, ostr);
+#endif
     }
 
     // Dimension display
@@ -901,7 +906,16 @@ void help_help(EnvT* e)
 	  else SortAndPrintStream(ostr);
 	  return;
 	}
-
+    static int sharedIx = e->KeywordIx("SHARED_MEMORY");
+	if (e->KeywordSet(sharedIx)) {
+#ifndef _WIN32
+	  help_shared(e, *ostrp);
+	  if (briefKW) return;
+	  if (doOutput) (*outputKW) = StreamToGDLString(ostr, true);
+	  else SortAndPrintStream(ostr);
+#endif	  
+	  return;
+	}
 	static int namesIx = e->KeywordIx("NAMES");
 	bool isKWSetNames = e->KeywordPresent(namesIx);
 

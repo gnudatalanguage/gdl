@@ -61,6 +61,7 @@ if(NOT WIN32)
 set(SOURCES
 ${SOURCES}
 gdlxstream.cpp
+shm.cpp
 )
 endif(NOT WIN32)
 
@@ -183,12 +184,14 @@ ${SOURCES}
 qhull.cpp
 )
 endif(HAVE_QHULL)
+
 if(WIN32)
 set(SOURCES
 ${SOURCES}
 gdl.rc
 )
 endif(WIN32)
+
 if(HAVE_LIBWXWIDGETS AND WIN32)
 find_file(WX_RC wx.rc HINTS ${wxWidgets_INCLUDE_DIRS} PATH_SUFFIXES wx/msw)
 set(SOURCES
@@ -196,6 +199,7 @@ ${SOURCES}
 ${WX_RC}
 )
 endif(HAVE_LIBWXWIDGETS AND WIN32)
+
 #local plplot drivers
 add_subdirectory(plplotdriver)
 #whereami
@@ -222,10 +226,13 @@ if(USE_OPENMP)
 endif(USE_OPENMP)
 
 add_dependencies(gdl antlr whereami) # be sure that antlr is built before gdl
-target_link_libraries(gdl antlr whereami) # link antlr against gdl
+target_link_libraries(gdl antlr whereami) # link antlr against gdl. added librt for mmap (unix only, not osx, apparently)
 if (MINGW)
 target_link_libraries(gdl ws2_32)
 endif (MINGW)
+if (NOT APPLE AND NOT OSX AND NOT MINGW)
+target_link_libraries(gdl rt) # link antlr against gdl. added librt for mmap (unix only, not osx, apparently)
+endif (NOT APPLE AND NOT OSX AND NOT MINGW)
 target_link_libraries(gdl ${LIBRARIES})
 
 add_definitions(-DHAVE_CONFIG_H)
