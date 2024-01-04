@@ -17,6 +17,8 @@
 #ifndef _WIN32
 #include <sys/mman.h>   /* shared memory and mmap() */
 #include <sys/stat.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
 #include <fcntl.h>      /* O_flags */
 #include <sys/types.h>
 #include <unistd.h>
@@ -98,6 +100,7 @@ namespace lib {
 	dimension dim;
 	int type;
 	std::string osHandle;
+	int sysv_hdle=0;
 	std::string segmentName;
 	//get common infos:
 	if (get_shm_common_keywords(e,  segmentName, dim, type) != false) e->Throw("Expression must be an array in this context: <Shared Memory Segment>.");
@@ -120,13 +123,15 @@ namespace lib {
 	//try to open existing:
 	int shm_fd; /* file descriptor */
 	int exist_perms = S_IRUSR | S_IWUSR ; 
-	int create_perms = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP; 
+	int create_perms = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
+	int all_perms = 0777;
 	bool exist = false;
 
     static int DESTROY_SEGMENT=e->KeywordIx("DESTROY_SEGMENT");
 	bool destroy_segment=false; //by default
     static int SYSV=e->KeywordIx("SYSV");
 	bool sysv=e->KeywordSet(SYSV);
+	if (sysv && mappedfile ) e->Throw("Conflicting keywords.");
     static int PRIVATE=e->KeywordIx("PRIVATE");
 	bool open_private=e->KeywordSet(PRIVATE);
 	
@@ -137,46 +142,72 @@ namespace lib {
 	}
 	if (offset%atomSize[type] != 0) e->Throw("This machine cannot access data of type "+atomName[type]+" at this alignment: "+i2s(offset)+".");
 	size_t total_length=(requested_length + offset);
-    if (mappedfile) {
-	  shm_fd= open(osHandle.c_str(), O_RDWR, exist_perms); //minimal setup.
-	} else {
-      shm_fd = shm_open(osHandle.c_str(), O_RDWR, exist_perms); //minimal setup.
-	}
-	if (shm_fd != -1) { //file exist
-	  exist=true;
-	  if (shmList.find(segmentName) != shmList.end()) {
-		e->Throw("Attempt to redefine existing shared memory segment: " + segmentName + ".");
-		return; //already existing
-	  }
-	  //check max allowed size and set default values
-	  if (fstat(shm_fd, &filestat) == -1) e->Throw("Existing Mapping segment " + osHandle + " size retrieval failed.");
-	  if (total_length > filestat.st_size) {
-		shm_unlink(osHandle.c_str());
-		e->Throw("Existing file too short for desired mapping.");
-	  }
-	  //segment is not destroyable on exit unless 'destroy_segment' is set
-	  destroy_segment=e->KeywordSet(DESTROY_SEGMENT);
-	}
-	if (!exist) {
-	  int oflags = O_RDWR | O_CREAT | O_EXCL; /* open flags receives -c, -x, -t */
-	  //try to open unexisting:
-	  if (mappedfile) {
-		shm_fd = open(osHandle.c_str(), oflags, create_perms); //minimal setup.
+	if (sysv) {
+	  //reinterpret OS_HANDLE
+	  DLong sysv_handle=0;
+	  if (doOsHandle) { //must exist and be useable
+		e->AssureLongScalarKW(OS_HANDLE,sysv_handle);
+		int shmflg=all_perms;
+		key_t handle=sysv_handle;
+		sysv_hdle=shmget(handle,total_length,shmflg);
+		if (sysv_hdle ==-1) e->Throw("SYSV Shared Memory Segment " + i2s(sysv_handle) + " attach failed, reason: " + std::string(strerror(errno)) + ".");
 	  } else {
-		shm_fd = shm_open(osHandle.c_str(), oflags, create_perms);
+		int shmflg=IPC_CREAT|all_perms;
+		key_t handle=0;
+		sysv_hdle=shmget(handle,total_length,shmflg);
+		if (sysv_hdle == -1) e->Throw("SYSV Shared Memory Segment " + i2s(sysv_handle) + " creation failed, reason: " + std::string(strerror(errno)) + ".");
 	  }
-	  if (shm_fd == -1) e->Throw("Mapping segment " + osHandle + " failed."); //this is an error
-	  ftruncate(shm_fd, total_length);
-	  //segment is destroyable on exit unless 'destroy_segment' is set to 0
-	  destroy_segment=true;
-	  if (e->KeywordPresentAndDefined(DESTROY_SEGMENT)) destroy_segment=e->KeywordSet(DESTROY_SEGMENT);
+	} else {
+	  if (mappedfile) {
+		shm_fd = open(osHandle.c_str(), O_RDWR, exist_perms); //minimal setup.
+	  } else {
+		shm_fd = shm_open(osHandle.c_str(), O_RDWR, exist_perms); //minimal setup.
+	  }
+	  if (shm_fd != -1) { //file exist
+		exist = true;
+		if (shmList.find(segmentName) != shmList.end()) {
+		  e->Throw("Attempt to redefine existing shared memory segment: " + segmentName + ".");
+		  return; //already existing
+		}
+		//check max allowed size and set default values
+		if (fstat(shm_fd, &filestat) == -1) e->Throw("Existing Mapping segment " + osHandle + " size retrieval failed.");
+		if (total_length > filestat.st_size) {
+		  shm_unlink(osHandle.c_str());
+		  e->Throw("Existing file too short for desired mapping.");
+		}
+		//segment is not destroyable on exit unless 'destroy_segment' is set
+		destroy_segment = e->KeywordSet(DESTROY_SEGMENT);
+	  }
+	  if (!exist) {
+		int oflags = O_RDWR | O_CREAT | O_EXCL; /* open flags receives -c, -x, -t */
+		//try to open unexisting:
+		if (mappedfile) {
+		  shm_fd = open(osHandle.c_str(), oflags, create_perms); //minimal setup.
+		} else {
+		  shm_fd = shm_open(osHandle.c_str(), oflags, create_perms);
+		}
+		if (shm_fd == -1) e->Throw("Mapping segment " + osHandle + " failed."); //this is an error
+		int status = ftruncate(shm_fd, total_length);
+		if (status != 0) e->Throw("Shared Memory Segment " + segmentName + " creation failed (size), reason: " + std::string(strerror(errno)) + ".");
+		//segment is destroyable on exit unless 'destroy_segment' is set to 0
+		destroy_segment = true;
+		if (e->KeywordPresentAndDefined(DESTROY_SEGMENT)) destroy_segment = e->KeywordSet(DESTROY_SEGMENT);
+	  }
 	}
 	//now, exist or not, we define only the requested memory mapping size "length".
-	int mmap_flags = (mappedfile && open_private) ? MAP_PRIVATE : MAP_SHARED;
-	int mmap_prot = PROT_READ | PROT_WRITE;
-	void* mapAddress = mmap(NULL, requested_length, mmap_prot, mmap_flags, shm_fd, offset);
-	close(shm_fd); //"After a call to mmap(2) the file descriptor may be closed without affecting the memory mapping."
-	if (mapAddress == MAP_FAILED) e->Throw("shmmap failed, please report.");
+	void* mapAddress=NULL;
+	if (sysv) {
+	  int shmflg=0;
+	  mapAddress=shmat(sysv_hdle,NULL,shmflg);
+	  if (mapAddress == (void*) -1) e->Throw("shmmap (/SYSV) failed, please report.");
+	  osHandle=i2s(sysv_hdle); //saved as string
+	} else {
+	  int mmap_flags = (mappedfile && open_private) ? MAP_PRIVATE : MAP_SHARED;
+	  int mmap_prot = PROT_READ | PROT_WRITE;
+	  mapAddress = mmap(NULL, requested_length, mmap_prot, mmap_flags, shm_fd, offset);
+	  close(shm_fd); //"After a call to mmap(2) the file descriptor may be closed without affecting the memory mapping."
+	  if (mapAddress == MAP_FAILED) e->Throw("shmmap failed, please report.");
+	}
 	SHMAP_STRUCT s;
     s.mapped_address=mapAddress;
 	s.osHandle=osHandle;
@@ -195,7 +226,8 @@ namespace lib {
 	}
     static int GET_OS_HANDLE=e->KeywordIx("GET_OS_HANDLE");
 	if (e->WriteableKeywordPresent(GET_OS_HANDLE)) {
-	  e->SetKW(GET_OS_HANDLE, new DStringGDL(osHandle));
+	  if (sysv) e->SetKW(GET_OS_HANDLE, new DLongGDL(sysv_hdle));
+	  else e->SetKW(GET_OS_HANDLE, new DStringGDL(osHandle));
 	}
 }
 
@@ -211,9 +243,14 @@ namespace lib {
 	} else e->Throw("Shared Memory Segment not found: " + segmentName + ".");
 	//if candidate for deletion and nothing referencing it, delete right now:
 	if ((*i).second.refcount==0) {
-	  int result=munmap((*i).second.mapped_address,(*i).second.length); //unmap
-	  if (result !=0) e->Throw("Shared Memory Segment " + segmentName + " Unmapping unsucessfull, reason: "+ std::string(strerror(result))+".");
-	  shm_unlink((*i).second.osHandle.c_str());
+	  if ((*i).second.flags & USE_SYSV == USE_SYSV) {
+		int result=shmdt((*i).second.mapped_address);
+		if (result ==-1) e->Throw("SYSV Shared Memory Segment " + segmentName + " Unmapping unsucessfull, reason: "+ std::string(strerror(errno))+".");
+	  } else {
+		int result=munmap((*i).second.mapped_address,(*i).second.length); //unmap
+		if (result !=0) e->Throw("Shared Memory Segment " + segmentName + " Unmapping unsucessfull, reason: "+ std::string(strerror(errno))+".");
+		if (((*i).second.flags & DESTROY_SEGMENT_ON_UNMAP)==DESTROY_SEGMENT_ON_UNMAP)  shm_unlink((*i).second.osHandle.c_str());
+	  }
 	  shmList.erase(i);
 	}
  };
@@ -321,10 +358,13 @@ namespace lib {
 	for (shmListIter it=shmList.begin(); it!=shmList.end(); ++it) {
 	  DString text1="<";
 	  if (((*it).second.flags & IS_PRIVATE)==IS_PRIVATE) text1+="Private";
-	  if (((*it).second.flags & MAPPEDFILE)==MAPPEDFILE) text1+="MappedFile"; else text1+="Posix";
+	  if (((*it).second.flags & MAPPEDFILE)==MAPPEDFILE) {text1+="MappedFile";}
+	  else if (((*it).second.flags & USE_SYSV)==USE_SYSV) {text1+="SysV";}
+	  else text1+="Posix";
 	  text1+="(";
 	  DString text2="";
-	  if(((*it).second.flags & DELETE_PENDING)==DELETE_PENDING) text2="UnmapPending, ";
+	  if(((*it).second.flags & DESTROY_SEGMENT_ON_UNMAP)==DESTROY_SEGMENT_ON_UNMAP) text2="DestroyOnUnmap, ";
+	  if(((*it).second.flags & DELETE_PENDING)==DELETE_PENDING) text2+="UnmapPending, ";
 	  shm_print_help_item(ostr, it->first, (*it).second.dim, (*it).second.type, DString(text1+(*it).second.osHandle + 
 		  "), Offset("+i2s((*it).second.offset)+"), "+text2+"Refcnt("+i2s((*it).second.refcount)+")>"));
 	}
@@ -350,9 +390,14 @@ namespace lib {
 		if ((((*i).second.flags & DELETE_PENDING)==DELETE_PENDING) && (*i).second.refcount<1) {
 		  //no more reference, if shmap is pending delete, delete it.
 		  //if candidate for deletion and nothing referencing, delete right now:
-		  int result = munmap((*i).second.mapped_address, (*i).second.length); //unmap
-		  if (result != 0) Warning("Shared Memory Segment " + (*i).first + " Unmapping unsucessfull  after deleting mapped variable, reason: " + std::string(strerror(result)) + ".");
-	      shm_unlink((*i).second.osHandle.c_str());
+		  if ((*i).second.flags & USE_SYSV == USE_SYSV) {
+			int result = shmdt((*i).second.mapped_address);
+			if (result == -1) Warning("SYSV Shared Memory Segment " + (*i).first  + " Unmapping unsucessfull after deleting last mapped variable, reason: " + std::string(strerror(errno)) + ".");
+		  } else {
+			int result = munmap((*i).second.mapped_address, (*i).second.length); //unmap
+			if (result != 0) Warning("Shared Memory Segment " + (*i).first  + " Unmapping unsucessfull after deleting last mapped variable, reason: " + std::string(strerror(errno)) + ".");
+			if (((*i).second.flags & DESTROY_SEGMENT_ON_UNMAP) == DESTROY_SEGMENT_ON_UNMAP) shm_unlink((*i).second.osHandle.c_str());
+		  }
 		  shmList.erase(i);
 		}
 		return;

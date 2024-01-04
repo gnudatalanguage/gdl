@@ -57,7 +57,7 @@
 
 #include "grib.hpp"
 #include "semshm.hpp"
-#ifndef _MSC_VER
+#ifndef _WIN32
 #include "shm.hpp"
 #endif
 #include "labelregion.hpp"
