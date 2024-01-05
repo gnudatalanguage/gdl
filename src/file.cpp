@@ -2155,7 +2155,6 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 
     DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
 
-
     {
 
       for( SizeT r=0; r<nPath ; ++r) {
@@ -2168,54 +2167,63 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
         struct stat64 statStruct;
         int actStat = lstat64(tmp.c_str(), &statStruct);
         if(actStat != 0) {
-            if(!allow_nonexist) e->Throw(" Link path does not exist "+tmp);
-            (*res)[r]=""; 
-            continue;
+	  if(!allow_nonexist) e->Throw(" Link path does not exist "+tmp);
+	  (*res)[r]=""; 
+	  continue;
         }
 #ifdef _WIN32
-    DWORD dwattrib;
+	DWORD dwattrib;
         int addlink = 0;
         fstat_win32(tmp, addlink, dwattrib);
         statStruct.st_mode |= addlink;
 #endif
-        SizeT lenpath = statStruct.st_size;
+	
+        // AC24 this is NOT the length od the path !!
+	// SizeT lenpath = statStruct.st_size;
+	
         bool isaSymLink = (S_ISLNK(statStruct.st_mode) != 0);
+
         if(!isaSymLink ) {
-            if(!allow_nonsymlink) e->Throw(" Path provided is not a symlink "+tmp);
-            (*res)[r]=""; 
-            continue;
+	  if(!allow_nonsymlink) e->Throw(" Path provided is not a symlink "+tmp);
+	  (*res)[r]=""; 
+	  continue;
         }           
-          char *symlinkpath =const_cast<char*> (tmp.c_str());
-          char actualpath [PATH_MAX+1];
-          char *ptr;
+	char *symlinkpath =const_cast<char*> (tmp.c_str());
+	char actualpath [PATH_MAX+1];
+	char *ptr;
 #ifndef _WIN32
-//      SizeT len; // doesn't work this way (opengroup doc):
-//      if( len = readlink(symlinkpath, actualpath, PATH_MAX) != -1)
-//                          actualpath[len] = '\0';
-        if( readlink(symlinkpath, actualpath, PATH_MAX) != -1)
-                actualpath[lenpath]='\0';
+	//      SizeT len; // doesn't work this way (opengroup doc):
+	//      if( len = readlink(symlinkpath, actualpath, PATH_MAX) != -1)
+	//                          actualpath[len] = '\0';
+
+	// follwing https://stackoverflow.com/questions/5525668/how-to-implement-readlink-to-find-the-path
+	ssize_t len1 = ::readlink(symlinkpath, actualpath, PATH_MAX);
+	if (len1 != -1) { actualpath[len1] = '\0';}
         ptr = &actualpath[0];
+
 #else
-          ptr = realpath(symlinkpath, actualpath);
-    if (lib::posixpaths) for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
+	ptr = realpath(symlinkpath, actualpath);
+	cout << "symlinkpath" << ptr << endl;
+	if (lib::posixpaths) for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
+	cout << "symlinkpath" << ptr << endl;
         
 #endif
-          if( ptr != NULL ){
-        (*res)[r] =string(ptr);
-          } else {
-        (*res)[r] = tmp ;
-          }
+	if( ptr != NULL ){
+	  (*res)[r] =string(ptr);
+	} else {
+	  (*res)[r] = tmp ;
+	}
         }
       }
       return res;
-
+      
     }
     
-      }
-    
-    
-    BaseGDL* file_info( EnvT* e)
-    {
+  }
+
+
+BaseGDL* file_info( EnvT* e)
+{
       SizeT nParam=e->NParam( 1); 
       DStringGDL* p0S = dynamic_cast<DStringGDL*>(e->GetParDefined(0));
       if( p0S == NULL)

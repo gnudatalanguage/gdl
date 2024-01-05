@@ -89,6 +89,7 @@ test_file_dirname.pro
 test_file_lines.pro
 test_file_mkdir.pro
 test_file_move.pro
+test_file_readlink.pro
 test_file_which.pro
 test_finite.pro
 test_fixprint.pro
