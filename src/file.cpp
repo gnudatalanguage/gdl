@@ -2203,9 +2203,9 @@ static void PathSearch( FileListT& fileList,  const DString& pathSpec,
 
 #else
 	ptr = realpath(symlinkpath, actualpath);
-	cout << "symlinkpath" << ptr << endl;
+	//cout << "symlinkpath" << ptr << endl;
 	if (lib::posixpaths) for(int i=0;ptr[i] != 0;i++) if(ptr[i] == '\\') ptr[i] = '/';
-	cout << "symlinkpath" << ptr << endl;
+	//cout << "symlinkpath" << ptr << endl;
         
 #endif
 	if( ptr != NULL ){
