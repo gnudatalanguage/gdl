@@ -377,15 +377,20 @@ DStructGDL* CallEventHandler( DStructGDL* ev ) {
 #ifdef GDL_DEBUG_WIDGETS
       std::cout << "CallEventFunc: " + eventHandlerFun + " on " + i2s(actID) << std::endl;
 #endif
+	  DStructGDL* evstart=(DStructGDL*)(ev)->Dup();
       BaseGDL* retVal = CallEventFunc(eventHandlerFun, ev); // grabs ev
       // note: ev is already deleted at this point when returning.
+	  //will test if ev is unchanged:
+	  
       if (retVal->Type() == GDL_STRUCT) {
         ev = static_cast<DStructGDL*> (retVal);
         if (ev->Desc()->TagIndex("ID") != idIx || ev->Desc()->TagIndex("TOP") != topIx || ev->Desc()->TagIndex("HANDLER") != handlerIx) {
           GDLDelete(ev);
           throw GDLException(eventHandlerFun + ": Event handler return struct must contain ID, TOP, HANDLER as first tags.");
         }
-		return ev;
+		bool doReturn = ( (*static_cast<DLongGDL*> (ev->GetTag(handlerIx, 0)))[0] == (*static_cast<DLongGDL*> (evstart->GetTag(handlerIx, 0)))[0] );
+		GDLDelete(evstart);
+		if (doReturn) return ev; //apparently, this is a case where a function should return, at least this patch solves PLOTMAN's panel problem see #1685
       } else { //not a struct, same as a procedure, has swallowed the event
         ev = NULL;
         break; 
@@ -2521,7 +2526,7 @@ BaseGDL* widget_info( EnvT* e ) {
     do { // outer while loop, will run once if NOWAIT
    while (1) { //inner loop, catch controlC, default return if no event trapped in nowait mode
    GDLWidget::CallWXEventLoop();
-        if (!all) {
+       if (!all) {
           //specific widget(s)
           // we cannot check only readlineEventQueue thinking our XMANAGER in blocking state looks to ALL widgets.
           // because XMANAGER may have been called AFTER events are created.
