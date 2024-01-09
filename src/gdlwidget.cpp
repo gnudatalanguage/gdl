@@ -2712,12 +2712,13 @@ if (!resizeableRows) grid->DisableDragRowSize();
 grid->CreateGrid( grid_nrows, grid_ncols, static_cast<wxGrid::wxGridSelectionModes>(selmode));
 // Set grid cell contents as strings. Note that there may be less or more cells than valueAsStrings, due to possibly different wSize.x,wSize.y :
 
-      for ( int ival=0, i=0; i<grid_nrows; ++i, ++ival) for (int jval=0, j=0; j<grid_ncols; ++j, ++jval)
+      for ( int ival=0, i=0, k=0; i<numRows; ++i, ++ival) for (int jval=0, j=0; j<numCols; ++j, ++jval) 
       {
-        if (ival < numRows && jval < numCols ) {
-          StrTrim((*valueAsStrings)[jval*numRows+ival]);
-          grid->SetCellValue( i, j ,wxString(((*valueAsStrings)[jval*numRows+ival]).c_str(), wxConvUTF8 ) ); 
-        }
+        if (i < grid_nrows && j < grid_ncols ) {
+          StrTrim((*valueAsStrings)[k]);
+          grid->SetCellValue( i, j ,wxString(((*valueAsStrings)[k]).c_str(), wxConvUTF8 ) );
+		}
+		k++;
       }
 
 //Editability

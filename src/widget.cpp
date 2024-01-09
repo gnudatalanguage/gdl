@@ -505,7 +505,7 @@ BaseGDL* widget_table( EnvT* e)
 //  DLong tabMode = 0;
 //  e->AssureLongScalarKWIfPresent( TAB_MODE, tabMode );
 
-  int majority = GDLWidgetTable::NONE_MAJOR;
+  int majority = GDLWidgetTable::ROW_MAJOR;
 
   static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE" );
   DLong x_scroll_size = 0;
@@ -535,9 +535,10 @@ BaseGDL* widget_table( EnvT* e)
   BaseGDL* value = e->GetKW( VALUE ); //value may not exist!!!! Dangerous!!!
   DStringGDL* valueAsStrings;
   //test of non-conformity
-  if (value != NULL) value=value->Dup();
-  if (value && value->Rank() > 2 ) e->Throw("Value has greater than 2 dimensions.");
-  else if (value && value->Rank() < 1 ) e->Throw("Expression must be an array in this context: "+e->GetParString(0));
+  if (value != NULL) {
+  if (value->Rank() > 2 ) e->Throw("Value has greater than 2 dimensions.");
+  else if (value->Rank() < 1 ) e->Throw("Expression must be an array in this context: "+e->GetParString(0));
+  }
   //local check of size given, changes number of lines/columns
   DLong xSize, ySize;
   static int xsizeIx = e->KeywordIx( "XSIZE" );
@@ -546,7 +547,6 @@ BaseGDL* widget_table( EnvT* e)
   e->AssureLongScalarKWIfPresent( xsizeIx, xSize );
   ySize = -1;
   e->AssureLongScalarKWIfPresent( ysizeIx, ySize );
-  
   if ( value == NULL ) { //set valueAsString. 
     SizeT dims[2];
     dims[0] = (xSize>0)?xSize:6;
@@ -557,7 +557,6 @@ BaseGDL* widget_table( EnvT* e)
   else if (value->Type()==GDL_STRING) {valueAsStrings=static_cast<DStringGDL*>(value->Dup());} 
   else if (value->Type()==GDL_STRUCT) {
     if (value->Rank() > 1) e->Throw("Multi dimensional arrays of structures not allowed.");
-    majority = GDLWidgetTable::ROW_MAJOR;
     if (e->KeywordSet( COLUMN_MAJOR )) majority = GDLWidgetTable::COLUMN_MAJOR;
     //convert to STRING
     DStructGDL *input=static_cast<DStructGDL*>(value);
@@ -569,26 +568,21 @@ BaseGDL* widget_table( EnvT* e)
     }
     SizeT nEl   = input->N_Elements();
     SizeT dims[2];
-    if (majority== GDLWidgetTable::COLUMN_MAJOR ) {
-      dims[0] = nEl;
-      dims[1] = nTags;
-    } else {
-      dims[1] = nEl;
-      dims[0] = nTags;      
-    }
+    dims[0] = nTags;
+    dims[1] = nEl;
     dimension dim(dims, 2); 
     valueAsStrings=new DStringGDL ( dim );
     stringstream os;
     input->ToStreamRaw(os);
     valueAsStrings->FromStream(os); //simple as that if we manage the dimensions and transpose accordingly....
-    if ( majority == GDLWidgetTable::ROW_MAJOR ) {
+    if ( majority == GDLWidgetTable::COLUMN_MAJOR ) {
       valueAsStrings=static_cast<DStringGDL*>(valueAsStrings->Transpose(NULL));
-    //transpose back sizes only...
-      SizeT dims[2];
-      dims[1] = nEl;
-      dims[0] = nTags;      
-      dimension dim(dims, 2); 
-      (static_cast<BaseGDL*>(valueAsStrings))->SetDim(dim);
+//    //transpose back sizes only...
+//      SizeT dims[2];
+//      dims[0] = nEl;
+//      dims[1] = nTags;      
+//      dimension dim(dims, 2); 
+//      (static_cast<BaseGDL*>(valueAsStrings))->SetDim(dim);
     }
   } else {
     //convert to STRING using FORMAT.
