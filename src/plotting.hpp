@@ -334,7 +334,7 @@ namespace lib {
 
   void gdlSetSymsize(EnvT *e, GDLGStream *a);
 
-  void gdlSetPlotCharsize(EnvT *e, GDLGStream *a, bool accept_sizeKw = false);
+  void gdlSetPlotCharsize(EnvT *e, GDLGStream *a, PLFLT use_factor = 1, bool accept_sizeKw = false);
 
   void gdlSetPlotCharthick(EnvT *e, GDLGStream *a);
   
