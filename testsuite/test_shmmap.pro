@@ -3,7 +3,11 @@
 ;
 ; Proof of concept of a very priliminary test for SHMMAP
 ; Need 2 sesssions
-; tested with GDL & IDL
+;
+; No test on the types !
+;
+; * tested with GDL & IDL & FL on Linux
+; * tested with GDL & IDL on OSX
 ;
 pro TEST_SHMMAP, test=test, no_exit=no_exit, help=help
 ;
@@ -26,7 +30,17 @@ print, 'session 1 after cleaning : ', tmp
 ; SESSION 2
 ;
 path_to_exe=GET_PATH_TO_EXE()
-SPAWN, path_to_exe+' -quiet test_shmmap_session2.pro'
+;
+path_to_file=FILE_WHICH('test_shmmap_session2.pro')
+if (path_to_file EQ '') then begin
+   MESSAGE, 'input file <<test_shmmap_session2.pro>> not found'
+   if ~KEYWORD_SET(no_exit) then EXIT, status=1 else STOP
+endif
+;
+quiet=' -quiet '
+if (GDL_IDL_FL() EQ 'FL') then quiet=' '
+;
+SPAWN, path_to_exe+quiet+path_to_file[0]
 ;
 print, 'session 1 after : ', tmp
 ;
