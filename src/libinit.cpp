@@ -1021,10 +1021,10 @@ void LibInit()
   new DLibFunRetNew(lib::ll_arc_distance, string("LL_ARC_DISTANCE"), 3, ll_arc_distanceKey);
   const string command_line_argsKey[] = {"COUNT","RESET","SET", KLISTEND }; //note: reset and set are unsupported extensions.
 // original  const string command_line_argsKey[] = {"COUNT", KLISTEND };
-  new DLibFunRetNew(lib::command_line_args_fun, string("COMMAND_LINE_ARGS"), 0, command_line_argsKey);
+new DLibFunRetNew(lib::command_line_args_fun, string("COMMAND_LINE_ARGS"), 0, command_line_argsKey);
 
- // const string pmKey[] = {"FORMAT", "TITLE", KLISTEND };
-  new DLibPro(lib::pm, string("PM"), -1);
+const string pmKey[] = {"FORMAT", "TITLE", KLISTEND };
+new DLibPro(lib::pm_pro, string("PM"), -1, pmKey);
 
   const string constantKey[] = {"DOUBLE", KLISTEND };
   new DLibFunRetNew(lib::constant, string("IMSL_CONSTANT"), 2, constantKey);

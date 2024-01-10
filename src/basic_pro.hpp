@@ -101,7 +101,7 @@ namespace lib {
   // (slayoo@igf.fuw.edu.pl)
   void caldat(EnvT* e);
   BaseGDL* julday(EnvT* e);
-  void pm(EnvT* e);
+  void pm_pro(EnvT* e);
   //dummy stubs preventing !err and other !error_state to be set!
   void pref_set_pro(EnvT* e);
   void pref_commit_pro(EnvT* e);

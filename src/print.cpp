@@ -273,7 +273,7 @@ no_implied:
   }
 
   // SA: we're better than IDL! - we accept more than 20 parameters ;)
-  void pm(EnvT* e)
+  void pm_pro(EnvT* e)
   {
     int nParam = e->NParam();
     if (nParam == 0) return;
@@ -286,22 +286,23 @@ no_implied:
     env->SetNextPar(&par);
 
 // The following are notpart of standard    
-//    // printing first the title if TITLE keyword present
-//    static int titleIx = e->KeywordIx("TITLE");
-//    if (e->GetKW(titleIx) != NULL)
-//    {
-//      par = e->GetKW(titleIx);
-//      static_cast<DLibPro*>(env->GetPro())->Pro()( env);
-//    }
-//
+// printing first the title if TITLE keyword present
+
+    static int titleIx = e->KeywordIx("TITLE");
+    if (e->GetKW(titleIx) != NULL)
+    {
+      par = e->GetKW(titleIx);
+      static_cast<DLibPro*>(env->GetPro())->Pro()( env);
+    }
+
 //    // passing on the FORMAT keyword
-//    static int formatIx = e->KeywordIx("FORMAT");
-//    if (e->GetKW(formatIx) != NULL) 
-//    {
-//      if (e->GetKW(formatIx)->Rank() != 0)
-//        e->Throw("FORMAT keyword must be a scalar");
-//      env->SetKeyword("FORMAT", &e->GetTheKW(formatIx));
-//    }
+    static int formatIx = e->KeywordIx("FORMAT");
+    if (e->GetKW(formatIx) != NULL) 
+    {
+      if (e->GetKW(formatIx)->Rank() != 0)
+        e->Throw("FORMAT keyword must be a scalar");
+      env->SetKeyword("FORMAT", &e->GetTheKW(formatIx));
+    }
 
 //     // is it needed here? MS: not anymore :-)
 //     StackSizeGuard<EnvStackT> guard( GDLInterpreter::CallStack());

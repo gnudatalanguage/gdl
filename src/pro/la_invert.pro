@@ -5,7 +5,15 @@
 ;
 function LA_INVERT, input, status=status, double=double
 ;
-return, INVERT(input, status, double=double)
+tmp=INVERT(input, status, double=double)
+;
+if (status GT 0) then begin
+   mess='Singular matrix encountered, STATUS='
+   mess=mess+STRCOMPRESS(STRING(status),/remove_all)+'.'
+   MESSAGE, mess,/continue
+endif
+;
+return, tmp
 ;
 end
 
