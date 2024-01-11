@@ -571,18 +571,12 @@ BaseGDL* widget_table( EnvT* e)
     dims[0] = nTags;
     dims[1] = nEl;
     dimension dim(dims, 2); 
-    valueAsStrings=new DStringGDL ( dim );
+    valueAsStrings=new DStringGDL ( dim , BaseGDL::NOZERO);
     stringstream os;
     input->ToStreamRaw(os);
     valueAsStrings->FromStream(os); //simple as that if we manage the dimensions and transpose accordingly....
     if ( majority == GDLWidgetTable::COLUMN_MAJOR ) {
       valueAsStrings=static_cast<DStringGDL*>(valueAsStrings->Transpose(NULL));
-//    //transpose back sizes only...
-//      SizeT dims[2];
-//      dims[0] = nEl;
-//      dims[1] = nTags;      
-//      dimension dim(dims, 2); 
-//      (static_cast<BaseGDL*>(valueAsStrings))->SetDim(dim);
     }
   } else {
     //convert to STRING using FORMAT.
@@ -597,7 +591,7 @@ BaseGDL* widget_table( EnvT* e)
     valueAsStrings = static_cast<DStringGDL*>(static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv));
     //give back invalue's rank and dims to value, they have been lost in the process
     (static_cast<BaseGDL*>(valueAsStrings))->SetDim(value->Dim());
-  }
+	  }
   
   GDLWidgetTable* table = new GDLWidgetTable( parentID, e,
   alignment,
@@ -2873,8 +2867,7 @@ void widget_control( EnvT* e ) {
         }
 
         DStringGDL *retval;
-        if ( useATableSelection ) retval = table->GetTableValues( tableSelectionToUse );
-        else retval = table->GetTableValues( );
+        retval = table->GetTableValues( tableSelectionToUse );
         if ( retval == NULL ) e->Throw( "USE_TABLE_SELECT value out of range." );
         else if ( table->GetVvalue( ) == NULL ) {
           e->Throw( " Class of specified widget has no value: 1" );

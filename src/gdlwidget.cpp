@@ -2731,9 +2731,9 @@ if (columnWidth!=NULL) this->DoColumnWidth();
 if (rowHeights!=NULL) this->DoRowHeights();
 //treat other alignment cases.
 if (hasAlignment) this->DoAlign();
-
-if (columnLabels!=NULL)this->DoColumnLabels();
-if (rowLabels!=NULL) this->DoRowLabels();
+// default values for row and col labels in IDL are 0...n so we always redefine column and row as it is not the same default as wxWidgets.
+this->DoColumnLabels();
+this->DoRowLabels();
 
 //get back on sizes. Do we enforce some size or scroll_size, in columns/rows:
 int currentColLabelHeight = grid->GetColLabelSize();
@@ -3101,11 +3101,16 @@ void GDLWidgetTable::DoForegroundColor(DLongGDL* selection) {
 }
   
 void GDLWidgetTable::DoColumnLabels( ) {
-  if (columnLabels->N_Elements( )==0) {return;}
+
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
   assert( grid != NULL);
   int nCols = grid->GetNumberCols( );
   grid->BeginBatch();
+  if (columnLabels==NULL || columnLabels->N_Elements( ) == 0) {
+	for ( SizeT j = 0; j < nCols; ++j ) grid->SetColLabelValue( j, wxString( i2s(j) ) );
+	grid->EndBatch();
+	return;
+  }
   if ( columnLabels->N_Elements( ) == 1 ) { //singleton case
     if ( static_cast<DString> ((*columnLabels)[0]).length( ) == 0 ) {
       for ( SizeT j = 0; j < nCols; ++j ) grid->SetColLabelValue( j, wxEmptyString );
@@ -3378,12 +3383,16 @@ void GDLWidgetTable::DoRowHeights( DLongGDL* selection ) {
 }
 
 void GDLWidgetTable::DoRowLabels( ) {
-  if (rowLabels->N_Elements( )==0) {return;}
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
   assert( grid != NULL);
   int nRows = grid->GetNumberRows( );
   grid->BeginBatch();
-  if ( rowLabels->N_Elements( ) == 1 ) { //singleton case
+  if (rowLabels == NULL || rowLabels->N_Elements() == 0) {
+	for ( SizeT i = 0; i < nRows; ++i ) grid->SetRowLabelValue( i, wxString(i2s(i)) );
+	grid->EndBatch();
+	return;
+  }
+    if ( rowLabels->N_Elements( ) == 1 ) { //singleton case
     if ( static_cast<DString> ((*rowLabels)[0]).length( ) == 0 ) {
       for ( SizeT i = 0; i < nRows; ++i ) grid->SetRowLabelValue( i, wxEmptyString );
     } else {
@@ -3791,70 +3800,56 @@ DStringGDL* GDLWidgetTable::GetTableValues(DLongGDL* selection)
 {
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
   assert( grid != NULL);
-
+  if ( selection==NULL ) return valueAsStrings;
+  
   DStringGDL * stringres;
-  int numRows=valueAsStrings->Dim(0);
-  int numCols=valueAsStrings->Dim(1);
-
-  if ( selection==NULL ){
-    int ncols=grid->GetNumberCols();
-    int nrows=grid->GetNumberCols();
-
-    SizeT dims[2];
-    dims[1]=(nrows>numRows)?numRows:nrows;
-    dims[0]=(ncols>numCols)?numCols:ncols;
-    dimension dim(dims,2);
-    stringres=new DStringGDL(dim,BaseGDL::NOZERO);
-    
-    for ( int ival=0, i=0; i<nrows; ++i, ++ival) for (int jval=0, j=0; j<ncols; ++j, ++jval)
-    {
-      if (ival < numRows && jval < numCols ) (*stringres)[jval*numRows+ival]= grid->GetCellValue( i, j).mb_str(wxConvUTF8); 
-    }
-  } else { //use the wxWidget selection or the passed selection, mode-dependent:
-    if (disjointSelection) { //pairs lists
-      if (selection->Rank()==0) { //use current wxWidgets selection
-        std::vector<wxPoint> list=grid->GetSelectedDisjointCellsList();
-        stringres=new DStringGDL(list.size(),BaseGDL::NOZERO); 
-        SizeT k=0;
-        for ( std::vector<wxPoint>::iterator it = list.begin(); it !=list.end(); ++it) {
-          if ((*it).x >= numRows || (*it).y >= numCols) return static_cast<DStringGDL*>(NULL); 
-          (*stringres)[k++]=grid->GetCellValue( (*it).x, (*it).y ).mb_str(wxConvUTF8);
-        }
-      } else {
-        stringres=new DStringGDL(selection->Dim(1),BaseGDL::NOZERO);
-        for (SizeT k=0,n=0,l=0; n<selection->Dim(1); ++n) {
-          int col = (*selection)[l++];
-          int row = (*selection)[l++];
-          if ( row >= numRows || col >= numCols) return static_cast<DStringGDL*>(NULL); 
-          (*stringres)[k++]=grid->GetCellValue( row, col).mb_str(wxConvUTF8);
-        }
-      }
-    } else { //IDL maintains the 2D-structure of val!
-      int colTL,colBR,rowTL,rowBR;
-      if (selection->Rank()==0) { 
-        wxArrayInt block=grid->GetSelectedBlockOfCells();
-        //normally only ONE block is available.
-        colTL = block[0];
-        rowTL = block[1];
-        colBR = block[2];
-        rowBR = block[3];
-      } else {
-        colTL = (*selection)[0];
-        rowTL = (*selection)[1];
-        colBR = (*selection)[2];
-        rowBR = (*selection)[3];
-      }
-      SizeT dims[2];
-      dims[1]=(rowBR-rowTL+1);
-      dims[0]=(colBR-colTL+1);
-      dimension dim(dims,2);
-      stringres=new DStringGDL(dim,BaseGDL::NOZERO);
-      for (SizeT k=0,i=rowTL; i<=rowBR; ++i) for (SizeT j=colTL; j<=colBR; ++j)
-      {
-        if ( i >= numRows || j >= numCols) return static_cast<DStringGDL*>(NULL); 
-        (*stringres)[k++]=grid->GetCellValue(i, j).mb_str(wxConvUTF8);
-      }
-    }
+  int data_numberCols=valueAsStrings->Dim(0);
+  int data_numberRows=valueAsStrings->Dim(1);
+  int grid_ncols=grid->GetNumberCols();
+  int grid_nrows=grid->GetNumberRows();
+  //use the wxWidget selection or the passed selection, mode-dependent:
+  if (disjointSelection) { //pairs lists
+	if (selection->Rank()==0) { //use current wxWidgets selection
+	  std::vector<wxPoint> list=grid->GetSelectedDisjointCellsList();
+	  stringres=new DStringGDL(list.size(),BaseGDL::NOZERO); 
+	  SizeT k=0;
+	  for ( std::vector<wxPoint>::iterator it = list.begin(); it !=list.end(); ++it) {
+		if ((*it).x >= data_numberRows || (*it).y >= data_numberCols) return static_cast<DStringGDL*>(NULL); 
+		(*stringres)[k++]=grid->GetCellValue( (*it).x, (*it).y ).mb_str(wxConvUTF8);
+	  }
+	} else {
+	  stringres=new DStringGDL(selection->Dim(1),BaseGDL::NOZERO);
+	  for (SizeT k=0,n=0,l=0; n<selection->Dim(1); ++n) {
+		int col = (*selection)[l++];
+		int row = (*selection)[l++];
+		if ( row >= data_numberRows || col >= data_numberCols) return static_cast<DStringGDL*>(NULL); 
+		(*stringres)[k++]=grid->GetCellValue( row, col).mb_str(wxConvUTF8);
+	  }
+	}
+  } else { //IDL maintains the 2D-structure of val!
+	int colTL,colBR,rowTL,rowBR;
+	if (selection->Rank()==0) { 
+	  wxArrayInt block=grid->GetSelectedBlockOfCells();
+	  //normally only ONE block is available.
+	  colTL = block[0]; if ( colTL < 0 || colTL > data_numberCols-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  rowTL = block[1]; if ( rowTL < 0 || rowTL > data_numberRows-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  colBR = block[2]; if ( colBR < 0 || colBR > data_numberCols-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  rowBR = block[3]; if ( rowBR < 0 || rowBR > data_numberRows-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	} else {
+	  colTL = (*selection)[0]; if ( colTL < 0 || colTL > data_numberCols-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  rowTL = (*selection)[1]; if ( rowTL < 0 || rowTL > data_numberRows-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  colBR = (*selection)[2]; if ( colBR < 0 || colBR > data_numberCols-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  rowBR = (*selection)[3]; if ( rowBR < 0 || rowBR > data_numberRows-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	}
+	SizeT dims[2];
+	dims[1]=(rowBR-rowTL+1);
+	dims[0]=(colBR-colTL+1);
+	dimension dim(dims,2);
+	stringres=new DStringGDL(dim,BaseGDL::NOZERO);
+	for (SizeT k=0,j=rowTL; j<=rowBR; ++j) for (SizeT i=colTL; i<=colBR; ++i) 
+	{
+	  (*stringres)[k++]=(*valueAsStrings)[j*data_numberCols+i];
+	}
   }
   //convention: if value is of type struct, string array will always be row_major. thus if we are column major, transpose return string array
   if (vValue->Type()==GDL_STRUCT && majority==GDLWidgetTable::COLUMN_MAJOR) return static_cast<DStringGDL*>(stringres->Transpose(NULL))->Dup();  
