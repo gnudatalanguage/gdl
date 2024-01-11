@@ -2802,12 +2802,11 @@ grid->SetSize(windowSize);
 grid->SetMinSize(windowSize);
 END_ADD_EVENTUAL_FRAME
 TIDY_WIDGET(gdlBORDER_SPACE);
-  
+ grid->SelectBlock(0,0,0,0,FALSE); 
       this->AddToDesiredEvents( wxEVT_GRID_COL_SIZE,wxGridSizeEventHandler(wxGridGDL::OnTableColResizing),grid);
       this->AddToDesiredEvents( wxEVT_GRID_ROW_SIZE,wxGridSizeEventHandler(wxGridGDL::OnTableRowResizing),grid);
       this->AddToDesiredEvents( wxEVT_GRID_RANGE_SELECT,wxGridRangeSelectEventHandler(wxGridGDL::OnTableRangeSelection),grid);
       this->AddToDesiredEvents( wxEVT_GRID_SELECT_CELL,wxGridEventHandler(wxGridGDL::OnTableCellSelection),grid);
-//      this->AddToDesiredEvents( wxEVT_GRID_CELL_LEFT_CLICK,wxGridEventHandler(wxGridGDL::OnTableCellSelection),grid);
 
 // UpdateGui();
  REALIZE_IF_NEEDED

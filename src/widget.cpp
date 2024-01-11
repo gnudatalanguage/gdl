@@ -547,6 +547,7 @@ BaseGDL* widget_table( EnvT* e)
   e->AssureLongScalarKWIfPresent( xsizeIx, xSize );
   ySize = -1;
   e->AssureLongScalarKWIfPresent( ysizeIx, ySize );
+  
   if ( value == NULL ) { //set valueAsString. 
     SizeT dims[2];
     dims[0] = (xSize>0)?xSize:6;
