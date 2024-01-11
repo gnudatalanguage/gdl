@@ -535,10 +535,9 @@ BaseGDL* widget_table( EnvT* e)
   BaseGDL* value = e->GetKW( VALUE ); //value may not exist!!!! Dangerous!!!
   DStringGDL* valueAsStrings;
   //test of non-conformity
-  if (value != NULL) {
-  if (value->Rank() > 2 ) e->Throw("Value has greater than 2 dimensions.");
-  else if (value->Rank() < 1 ) e->Throw("Expression must be an array in this context: "+e->GetParString(0));
-  }
+  if (value != NULL) value=value->Dup();
+  if (value && value->Rank() > 2 ) e->Throw("Value has greater than 2 dimensions.");
+  else if (value && value->Rank() < 1 ) e->Throw("Expression must be an array in this context: "+e->GetParString(0));
   //local check of size given, changes number of lines/columns
   DLong xSize, ySize;
   static int xsizeIx = e->KeywordIx( "XSIZE" );
