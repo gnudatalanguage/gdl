@@ -2326,7 +2326,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   //				    UsymConvX, UsymConvY,a->wCharLength(),a->wCharHeight(),a->charScale());
   //  }
 
-  void gdlSetPlotCharsize(EnvT *e, GDLGStream *a, bool accept_sizeKw) {
+  void gdlSetPlotCharsize(EnvT *e, GDLGStream *a, PLFLT use_factor /* = 1 */, bool accept_sizeKw) {
     PLFLT charsize;
     DDouble pmultiscale = 1.0;
     // get !P preference or !FANCY ... they should agree as charsize = 0.2*FANCY+0.8 
@@ -2360,7 +2360,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     // adjust if MULTI:
     DLongGDL* pMulti = SysVar::GetPMulti();
     if ((*pMulti)[1] > 2 || (*pMulti)[2] > 2) pmultiscale = 0.5;
-    a->sizeChar(charsize * pmultiscale);
+    a->sizeChar(charsize *  use_factor *pmultiscale );
   }
 
   void gdlSetPlotCharthick(EnvT *e, GDLGStream *a) {
@@ -3858,18 +3858,18 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	  } else goto NoTitlesAccepted;
 
 	  a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
-	  a->wind(owxmin, owxmax, owymin, owymax); //restore old values 
-	  gdlSetPlotCharsize(e, a);
-	  if (!title.empty()) {
-		gdlSetPlotCharthick(e, a);
-		PLFLT disp = interligne_as_char / 2;
-		a->sizeChar(1.25);
-		a->mtex("t", disp + 0.5, 0.5, 0.5, title.c_str()); //position is in units of current char height. baseline at half-height
-		a->sizeChar(1);
-	  }
+	  a->wind(owxmin, owxmax, owymin, owymax); //restore old values
+	  gdlSetPlotCharthick(e, a);
 	  if (!subTitle.empty()) {
+		gdlSetPlotCharsize(e, a);
 		PLFLT title_disp = 4 * interligne_as_char - 0.5; //in chars
 		a->mtex("b", title_disp, 0.5, 0.5, subTitle.c_str()); //position is in units of current char height. baseline at half-height
+	  }
+	  if (!title.empty()) {
+		gdlSetPlotCharsize(e, a, 1.25);
+		PLFLT disp = interligne_as_char / 2;
+		a->mtex("t", disp + 0.5, 0.5, 0.5, title.c_str()); //position is in units of current char height. baseline at half-height
+		a->sizeChar(1);
 	  }
 	}
 NoTitlesAccepted:
