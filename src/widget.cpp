@@ -29,7 +29,7 @@
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
 #include "graphicsdevice.hpp"
-#include "basic_pro_jmg.hpp"
+#include "basic_fun.hpp" //for GDL_TOSTRING
 #endif
 
 #ifdef HAVE_LIBWXWIDGETS
@@ -231,6 +231,19 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
 // non library functions
 // these reside here because gdlwidget.hpp is only included if wxWidgets are used
 // and hence putting them there would cause a compiler error without wxWidgets
+static DStringGDL* CallStringFunction(EnvT* e,  BaseGDL* val, BaseGDL* format)
+{
+	int stringIx = LibFunIx("GDL_TOSTRING");
+	EnvT *newEnv = new EnvT(e, libFunList[stringIx], NULL);
+	Guard<EnvT> guard(newEnv);
+	newEnv->SetNextPar(val ); // pass as local
+	if (format != NULL) newEnv->SetKeyword("FORMAT",format);
+	DStringGDL* s=static_cast<DStringGDL*>(lib::gdl_tostring_fun(newEnv));
+	guard.release();
+	for (auto i=0; i< s->N_Elements() ; ++i) StrTrim((*s)[i]);
+	s->SetDim(val->Dim()); //necessary
+	return s;
+}
 
 //GD not sure if the environment at the end of called PRO or FUNC is OK (nested procedures?) TBC.
 BaseGDL* CallEventFunc( const std::string& f, BaseGDL* ev)
@@ -421,6 +434,58 @@ T* GetKeywordAs( EnvT* e, int ix)
   return static_cast<T*> (kwBaseGDL->Dup( ));
 }
 
+DStringGDL*  GetTableValueAsString(EnvT* e, BaseGDL* &value, DStringGDL* format, bool isColumnMajor) {
+  DStringGDL* valueAsStrings;
+  //test of non-conformity
+  if (value != NULL) value = value->Dup();
+  if (value && value->Rank() > 2) e->Throw("Value has greater than 2 dimensions.");
+  else if (value && value->Rank() < 1) e->Throw("Expression must be an array in this context: " + e->GetParString(0));
+  //local check of size given, changes number of lines/columns
+  DLong xSize, ySize;
+  static int xsizeIx = e->KeywordIx("XSIZE");
+  static int ysizeIx = e->KeywordIx("YSIZE");
+  xSize = -1;
+  e->AssureLongScalarKWIfPresent(xsizeIx, xSize);
+  ySize = -1;
+  e->AssureLongScalarKWIfPresent(ysizeIx, ySize);
+
+  if (value == NULL) { //set valueAsString. 
+	SizeT dims[2];
+	dims[0] = (xSize > 0) ? xSize : 6;
+	dims[1] = (ySize > 0) ? ySize : 6;
+	dimension dim(dims, 2);
+	valueAsStrings = new DStringGDL(dim);
+  } else if (value->Type() == GDL_STRING) {
+	valueAsStrings = static_cast<DStringGDL*> (value->Dup());
+  }
+  else if (value->Type() == GDL_STRUCT) {
+	if (value->Rank() > 1) e->Throw("Multi dimensional arrays of structures not allowed.");
+	//convert to STRING
+	DStructGDL *input = static_cast<DStructGDL*> (value);
+	SizeT nTags = input->NTags();
+	//further check:
+	for (SizeT iTag = 0; iTag < nTags; ++iTag) {
+	  BaseGDL* tested = input->GetTag(iTag);
+	  if (tested->Rank() > 0 || tested->Type() == GDL_STRUCT) e->Throw("Structures cannot include arrays or other structures.");
+	}
+	SizeT nEl = input->N_Elements();
+	stringstream os;
+	input->ToStreamRaw(os);
+	SizeT dims[2];
+	dims[0] = nTags;
+	dims[1] = nEl;
+	dimension dim(dims, 2);
+	valueAsStrings = new DStringGDL(dim, BaseGDL::NOZERO);
+
+	valueAsStrings->FromStream(os); //simple as that if we manage the dimensions and transpose accordingly....
+	if (isColumnMajor) valueAsStrings = static_cast<DStringGDL*> (valueAsStrings->Transpose(NULL));
+  } else {
+	//convert to STRING using FORMAT.
+	valueAsStrings = CallStringFunction( e, value, format);
+  }
+  return valueAsStrings;
+  }
+
 
 namespace lib {
 using namespace std;
@@ -458,7 +523,6 @@ BaseGDL* widget_table( EnvT* e)
   static int RESIZEABLE_ROWS = e->KeywordIx( "RESIZEABLE_ROWS" );
   static int ROW_HEIGHTS = e->KeywordIx( "ROW_HEIGHTS" );
   static int ROW_LABELS = e->KeywordIx( "ROW_LABELS" );
-//  static int TAB_MODE = e->KeywordIx( "TAB_MODE" );
   static int VALUE = e->KeywordIx( "VALUE" );
   
   bool disjointSelection = e->KeywordSet( DISJOINT_SELECTION );
@@ -496,7 +560,7 @@ BaseGDL* widget_table( EnvT* e)
   DStringGDL* month = GetKeywordAs<DStringGDL>(e, MONTHS);
   //check
   if (month) {if (month->N_Elements()!=12) e->Throw("% Keyword array parameter MONTH must have 12 elements.");}
-  
+
   DStringGDL* format = GetKeywordAs<DStringGDL>(e, FORMAT);
 
   DLongGDL* rowHeights = GetKeywordAs<DLongGDL>(e, ROW_HEIGHTS);
@@ -506,6 +570,8 @@ BaseGDL* widget_table( EnvT* e)
 //  e->AssureLongScalarKWIfPresent( TAB_MODE, tabMode );
 
   int majority = GDLWidgetTable::ROW_MAJOR;
+  bool IsColumnMajor=e->KeywordSet(COLUMN_MAJOR);
+  if (IsColumnMajor) majority = GDLWidgetTable::COLUMN_MAJOR;
 
   static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE" );
   DLong x_scroll_size = 0;
@@ -531,68 +597,9 @@ BaseGDL* widget_table( EnvT* e)
   if (kbrdfocusevents) eventFlags |= GDLWidget::EV_KBRD_FOCUS;
   if (contextevents) eventFlags |= GDLWidget::EV_CONTEXT;
 
-
   BaseGDL* value = e->GetKW( VALUE ); //value may not exist!!!! Dangerous!!!
-  DStringGDL* valueAsStrings;
-  //test of non-conformity
-  if (value != NULL) value=value->Dup();
-  if (value && value->Rank() > 2 ) e->Throw("Value has greater than 2 dimensions.");
-  else if (value && value->Rank() < 1 ) e->Throw("Expression must be an array in this context: "+e->GetParString(0));
-  //local check of size given, changes number of lines/columns
-  DLong xSize, ySize;
-  static int xsizeIx = e->KeywordIx( "XSIZE" );
-  static int ysizeIx = e->KeywordIx( "YSIZE" );
-  xSize = -1;
-  e->AssureLongScalarKWIfPresent( xsizeIx, xSize );
-  ySize = -1;
-  e->AssureLongScalarKWIfPresent( ysizeIx, ySize );
-  
-  if ( value == NULL ) { //set valueAsString. 
-    SizeT dims[2];
-    dims[0] = (xSize>0)?xSize:6;
-    dims[1] = (ySize>0)?ySize:6;
-    dimension dim(dims, 2); 
-    valueAsStrings=new DStringGDL ( dim );
-  } 
-  else if (value->Type()==GDL_STRING) {valueAsStrings=static_cast<DStringGDL*>(value->Dup());} 
-  else if (value->Type()==GDL_STRUCT) {
-    if (value->Rank() > 1) e->Throw("Multi dimensional arrays of structures not allowed.");
-    if (e->KeywordSet( COLUMN_MAJOR )) majority = GDLWidgetTable::COLUMN_MAJOR;
-    //convert to STRING
-    DStructGDL *input=static_cast<DStructGDL*>(value);
-    SizeT nTags = input->NTags();
-    //further check:
-    for (SizeT iTag=0; iTag<nTags; ++iTag) {
-      BaseGDL* tested=input->GetTag(iTag);
-      if (tested->Rank() > 0 || tested->Type()==GDL_STRUCT) e->Throw("Structures cannot include arrays or other structures.");
-    }
-    SizeT nEl   = input->N_Elements();
-    SizeT dims[2];
-    dims[0] = nTags;
-    dims[1] = nEl;
-    dimension dim(dims, 2); 
-    valueAsStrings=new DStringGDL ( dim , BaseGDL::NOZERO);
-    stringstream os;
-    input->ToStreamRaw(os);
-    valueAsStrings->FromStream(os); //simple as that if we manage the dimensions and transpose accordingly....
-    if ( majority == GDLWidgetTable::COLUMN_MAJOR ) {
-      valueAsStrings=static_cast<DStringGDL*>(valueAsStrings->Transpose(NULL));
-    }
-  } else {
-    //convert to STRING using FORMAT.
-    static int stringIx = LibFunIx("STRING");
-    assert( stringIx >= 0);
-    EnvT* newEnv= new EnvT(e, libFunList[stringIx], NULL);
-    Guard<EnvT> guard( newEnv);
-    // add parameters
-    newEnv->SetNextPar( value->Dup());
-    if (format) newEnv->SetNextPar( format->Dup() );
-    // make the call
-    valueAsStrings = static_cast<DStringGDL*>(static_cast<DLibFun*>(newEnv->GetPro())->Fun()(newEnv));
-    //give back invalue's rank and dims to value, they have been lost in the process
-    (static_cast<BaseGDL*>(valueAsStrings))->SetDim(value->Dim());
-	  }
-  
+  DStringGDL* valueAsStrings=GetTableValueAsString(e, value, format, IsColumnMajor);
+ 
   GDLWidgetTable* table = new GDLWidgetTable( parentID, e,
   alignment,
   amPm,
@@ -2236,18 +2243,8 @@ BaseGDL* widget_info( EnvT* e ) {
       if (tableselect) return table->GetSelection();
       if (tabledisjointselection)  return new DLongGDL( table->GetDisjointSelection()?1:0 );
       
-      bool useATableSelection = e->KeywordSet(USE_TABLE_SELECT);
       DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
-      if (useATableSelection && tableSelectionToUse->Rank()==0 && !table->IsSomethingSelected())
-        { e->Throw( "USE_TABLE_SELECT value out of range.");}
-      if (useATableSelection && tableSelectionToUse->Rank()>0) { //check further a bit...
-        if (table->GetDisjointSelection()) {
-          if (tableSelectionToUse->Dim(0) != 2) e->Throw( "Array must have dimensions of (2, N): " + e->GetString( USE_TABLE_SELECT ) );
-        } else {
-          if (tableSelectionToUse->Rank() != 1 || tableSelectionToUse->Dim(0) != 4 ) e->Throw( "Array must have dimensions of (4): " + e->GetString( USE_TABLE_SELECT ) );
-        }
-      }
-      
+      bool useATableSelection = table->GetValidTableSelection(tableSelectionToUse); //will throw if a syntax problem
       if (giveColumnWidths && unitsGiven ){
         wxRealPoint fact=GetRequestedUnitConversionFactor(e);
         DFloatGDL* ret;
@@ -2785,25 +2782,14 @@ void widget_control( EnvT* e ) {
   static int base_set_titleIx = e->KeywordIx( "BASE_SET_TITLE" );
   bool set_base_title = e->KeywordSet( base_set_titleIx );
   
-  static int SET_TREE_SELECT = e->KeywordIx( "SET_TREE_SELECT");
-  bool setTreeselect = e->KeywordPresent(SET_TREE_SELECT);
-  static int SET_TREE_INDEX = e->KeywordIx( "SET_TREE_INDEX");
-  bool setTreeindex = e->KeywordPresent(SET_TREE_INDEX);
-  static int SET_DRAG_NOTIFY = e->KeywordIx( "SET_DRAG_NOTIFY");
-  bool setDragnotify= e->KeywordPresent(SET_DRAG_NOTIFY);
-  static int SET_DRAGGABLE = e->KeywordIx( "SET_DRAGGABLE");
-  bool setDraggable= e->KeywordPresent(SET_DRAGGABLE);
-  static int SET_TREE_CHECKED = e->KeywordIx( "SET_TREE_CHECKED");
-  bool setTreechecked= e->KeywordPresent(SET_TREE_CHECKED);
-  static int SET_TREE_BITMAP = e->KeywordIx( "SET_TREE_BITMAP");
-  bool setTreebitmap= e->KeywordPresent(SET_TREE_BITMAP);
-  static int SET_MASK = e->KeywordIx( "SET_MASK");
-  bool setTreemask= e->KeywordPresent(SET_MASK);
-
-  static int SET_TREE_EXPANDED = e->KeywordIx( "SET_TREE_EXPANDED");
-  bool setTreeexpanded = e->KeywordPresent(SET_TREE_EXPANDED);
-  static int SET_TREE_VISIBLE = e->KeywordIx( "SET_TREE_VISIBLE");
-  bool setTreevisible = e->KeywordSet(SET_TREE_VISIBLE);
+  
+  //TABLE
+  	static int USE_TABLE_SELECT = e->KeywordIx("USE_TABLE_SELECT");
+	static int USE_TEXT_SELECT = e->KeywordIx("USE_TEXT_SELECT");
+  	static int FORMAT = e->KeywordIx("FORMAT");
+	
+//    static int IGNORE_ACCELERATORS = e->KeywordIx( "IGNORE_ACCELERATORS" );
+	
 //  static int DELAY_DESTROY = e->KeywordIx( "DELAY_DESTROY");
 //  bool delay_destroy = e->KeywordPresent(DELAY_DESTROY);
   DLongGDL* p0L = e->GetParAs<DLongGDL>(0);
@@ -2825,6 +2811,17 @@ void widget_control( EnvT* e ) {
 //  if (delay_destroy) {//this should be only used by XMANAGER 
 //    widget->SetDelayDestroy(e->KeywordSet(DELAY_DESTROY));
 //  }
+  //special modifiers used in various parts below: define them globally here
+  //special for TABLE 	  bool useATableSelection=false;
+  bool useATableSelection=false;
+  DLongGDL* tableSelectionToUse = NULL;  
+  DStringGDL* format = NULL;
+  if (widget->IsTable()) { //set and throw if table selection is bad.
+	GDLWidgetTable *table = (GDLWidgetTable *) widget;
+	tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
+	useATableSelection=table->GetValidTableSelection(tableSelectionToUse); //will throw if a syntax problem
+    format = GetKeywordAs<DStringGDL>(e, FORMAT);
+  }
   if ( getvalue ) {
     e->AssureGlobalKW( getvalueIx );
     BaseGDL** valueKW = &e->GetTheKW( getvalueIx );
@@ -2851,23 +2848,7 @@ void widget_control( EnvT* e ) {
     } else { 
         if ( widget->IsTable( ) ) { //TABLE
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
-        static int USE_TABLE_SELECT = e->KeywordIx( "USE_TABLE_SELECT" );
-        bool useATableSelection = e->KeywordPresentAndDefined( USE_TABLE_SELECT );
-        DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e,USE_TABLE_SELECT);
-
-        if ( useATableSelection && tableSelectionToUse->Rank( ) == 0 && !table->IsSomethingSelected( ) ) {
-          e->Throw( "USE_TABLE_SELECT value out of range." );
-        }
-        if ( useATableSelection && tableSelectionToUse->Rank( ) > 0 ) { //check further a bit...
-          if ( table->GetDisjointSelection( ) ) {
-            if ( tableSelectionToUse->Dim( 0 ) != 2 ) e->Throw( "Array must have dimensions of (2, N): " + e->GetString( USE_TABLE_SELECT ) );
-          } else {
-            if ( tableSelectionToUse->Rank( ) != 1 || tableSelectionToUse->Dim( 0 ) != 4 ) e->Throw( "Array must have dimensions of (4): " + e->GetString( USE_TABLE_SELECT ) );
-          }
-        }
-
-        DStringGDL *retval;
-        retval = table->GetTableValues( tableSelectionToUse );
+        DStringGDL* retval = table->GetTableValues( tableSelectionToUse );
         if ( retval == NULL ) e->Throw( "USE_TABLE_SELECT value out of range." );
         else if ( table->GetVvalue( ) == NULL ) {
           e->Throw( " Class of specified widget has no value: 1" );
@@ -2879,8 +2860,7 @@ void widget_control( EnvT* e ) {
         else if ( table->GetVvalue( )->Type( ) == GDL_STRUCT ) {
           BaseGDL* val;
           //use a special case handling transpositions due to column or row majority.
-          if ( useATableSelection ) val = table->GetTableValuesAsStruct( tableSelectionToUse );
-          else val = table->GetTableValuesAsStruct( );
+          val = table->GetTableValuesAsStruct( tableSelectionToUse );
           if ( val == NULL ) e->Throw( "USE_TABLE_SELECT value out of range." ); //superfluous.
           if (valueKW) GDLDelete( (*valueKW) );
           *valueKW = val->Dup( );
@@ -2949,8 +2929,7 @@ void widget_control( EnvT* e ) {
           *valueKW = widval->Dup( );
         }
       } else if ( widget->IsText( ) ) {
-        static int usetextselectIx  = e->KeywordIx( "USE_TEXT_SELECT" );
-        bool usetextselect = e->KeywordPresent( usetextselectIx );
+        bool usetextselect = e->KeywordPresent( USE_TEXT_SELECT );
         BaseGDL *v;
         if (usetextselect) {
           GDLWidgetText* txt= static_cast<GDLWidgetText*>(widget);
@@ -3197,95 +3176,26 @@ void widget_control( EnvT* e ) {
         
       } else if (widget->IsTable()) {
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
-        static int USE_TABLE_SELECT = e->KeywordIx("USE_TABLE_SELECT");
-        bool useATableSelection = e->KeywordPresent(USE_TABLE_SELECT);
-        DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
-
-        if (useATableSelection && tableSelectionToUse->Rank() > 0) { //check further a bit...
-          if (table->GetDisjointSelection()) {
-            if (tableSelectionToUse->Dim(0) != 2) e->Throw("Array must have dimensions of (2, N): " + e->GetString(USE_TABLE_SELECT));
-          } else {
-            if (tableSelectionToUse->Rank() != 1 || tableSelectionToUse->Dim(0) != 4) e->Throw("Array must have dimensions of (4): " + e->GetString(USE_TABLE_SELECT));
-          }
-        }
-        DStringGDL* valueAsStrings;
-        static int FORMAT = e->KeywordIx("FORMAT");
-        DStringGDL* format = GetKeywordAs<DStringGDL>(e, FORMAT);
-        //test of non-conformity
-        if (useATableSelection && table->GetDisjointSelection()) {
-          //everything works in this case
-        } else if (useATableSelection && !table->GetDisjointSelection()) {
-          if (value && value->Rank() > 2) e->Throw("Value has greater than 2 dimensions.");
-        } else {
-          if (value && value->Rank() > 2) e->Throw("Value has greater than 2 dimensions.");
-          else if (value && value->Rank() < 1) e->Throw("Expression must be an array in this context: " + e->GetString(setvalueIx));
-        }
-
-        if (value->Type() == GDL_STRING) {
-          valueAsStrings = static_cast<DStringGDL*> (value->Dup());
-        }
-        else if (value->Type() == GDL_STRUCT) { //FIXME we support only complete replacement with structures. Note that IDL crashes in many of those cases! 
-          if (useATableSelection) e->Throw("Table Structure replacement with USE_TABLE_SELECT is NOT IMPLEMENTED, Sorry!");
-          if (value->Rank() > 1) e->Throw("Multi dimensional arrays of structures not allowed.");
-          //convert to STRING
-          DStructGDL *input = static_cast<DStructGDL*> (value);
-          SizeT nTags = input->NTags();
-          //further check:
-          for (SizeT iTag = 0; iTag < nTags; ++iTag) {
-            BaseGDL* tested = input->GetTag(iTag);
-            if (tested->Rank() > 0 || tested->Type() == GDL_STRUCT) e->Throw("Structures cannot include arrays or other structures.");
-          }
-          SizeT nEl = input->N_Elements();
-          SizeT dims[2];
-          if (table->GetMajority() == GDLWidgetTable::COLUMN_MAJOR) {
-            dims[0] = nEl;
-            dims[1] = nTags;
-          } else {
-            dims[1] = nEl;
-            dims[0] = nTags;
-          }
-          dimension dim(dims, 2);
-          valueAsStrings = new DStringGDL(dim,BaseGDL::NOZERO);
-          stringstream os;
-          input->ToStreamRaw(os);
-          valueAsStrings->FromStream(os); //simple as that if we manage the dimensions and transpose accordingly....
-          if (table->GetMajority() == GDLWidgetTable::ROW_MAJOR) {
-            valueAsStrings = static_cast<DStringGDL*> (valueAsStrings->Transpose(NULL));
-            //transpose back sizes only...
-            SizeT dims[2];
-            dims[1] = nEl;
-            dims[0] = nTags;
-            dimension dim(dims, 2);
-            (static_cast<BaseGDL*> (valueAsStrings))->SetDim(dim);
-          }
-        } else {
-          //convert to STRING using FORMAT.
-          static int stringIx = LibFunIx("STRING");
-          assert(stringIx >= 0);
-          EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
-          Guard<EnvT> guard(newEnv);
-          // add parameters
-          newEnv->SetNextPar(value->Dup());
-          if (format) newEnv->SetNextPar(format->Dup());
-          // make the call
-          valueAsStrings = static_cast<DStringGDL*> (static_cast<DLibFun*> (newEnv->GetPro())->Fun()(newEnv));
-          //give back invalue's rank and dims to value, they have been lost in the process
-          (static_cast<BaseGDL*> (valueAsStrings))->SetDim(value->Dim());
-        }
-
-        if (useATableSelection) table->SetTableValues(valueAsStrings, tableSelectionToUse);
-        else {
-          //value replaces completely old value, even value type may be changed
-          table->SetValue(value);
-          table->SetTableValues(valueAsStrings);
-        }
+		if (useATableSelection) {
+		  if (format != NULL) e->Throw("Unable to set format for table widget."); //format not allowed if selection
+		  format=table->GetCurrentFormat(); //use stored form
+		  //convert 'value' to vValue type FIRST...
+		  DType type = table->GetVvalue()->Type();
+		  value = value->Convert2(type);
+		} 
+		//... then create the String equivalent
+		DStringGDL* newValueAsStrings=GetTableValueAsString(e, value, format, (table->GetMajority()==GDLWidgetTable::COLUMN_MAJOR));
+		//set all values inside:
+		table->SetTableValues( value, newValueAsStrings, tableSelectionToUse);
+		//The above formatting was not in error, as it not throwed: if format is not null, replace format in widget for future reference:
+		if (format != NULL) table->SetCurrentFormat(format);
       } else if (widget->IsTree()) {
         DString value = "";
         e->AssureStringScalarKWIfPresent(setvalueIx, value); //value is a string
         GDLWidgetTree *tree = (GDLWidgetTree *) widget;
         tree->SetValue(value);
       } else if (wType == "BASE" || wType == "TAB") {
-        //no use to complain. this is acepted.
+        //no use to complain. this is accepted.
 //#ifdef GDL_DEBUG_WIDGETS
 //        wxMessageOutputStderr().Printf(_T("Class of specified widget has no value: %d (%s)\n"), widget->GetWidgetID(),widget->GetWidgetName());
 //#endif
@@ -3792,11 +3702,8 @@ void widget_control( EnvT* e ) {
     static int COLUMN_WIDTHS = e->KeywordIx( "COLUMN_WIDTHS" );
     static int DELETE_COLUMNS = e->KeywordIx( "DELETE_COLUMNS" );
     static int DELETE_ROWS = e->KeywordIx( "DELETE_ROWS" );
-//    static int EDITABLE = e->KeywordIx( "EDITABLE" ); 
     static int FONT = e->KeywordIx( "FONT" );
     static int FOREGROUND_COLOR = e->KeywordIx( "FOREGROUND_COLOR" );
-//    static int FORMAT = e->KeywordIx( "FORMAT" ); //NOT USED IN ALL THE PRO I KNOW OF
-//    static int IGNORE_ACCELERATORS = e->KeywordIx( "IGNORE_ACCELERATORS" );
     static int INSERT_COLUMNS = e->KeywordIx( "INSERT_COLUMNS" );
     static int INSERT_ROWS = e->KeywordIx( "INSERT_ROWS" );
     static int ROW_LABELS = e->KeywordIx( "ROW_LABELS" );
@@ -3808,10 +3715,7 @@ void widget_control( EnvT* e ) {
     static int TABLE_DISJOINT_SELECTION = e->KeywordIx( "TABLE_DISJOINT_SELECTION" );
     static int TABLE_XSIZE = e->KeywordIx( "TABLE_XSIZE" );
     static int TABLE_YSIZE = e->KeywordIx( "TABLE_YSIZE" );
-    static int USE_TABLE_SELECT = e->KeywordIx("USE_TABLE_SELECT");
     static int EDIT_CELL = e->KeywordIx("EDIT_CELL");
-//
-//    DByteGDL* editable = GetKeywordAs<DByteGDL>(e, EDITABLE );
 
     static int AM_PM = e->KeywordIx( "AM_PM" );
     DStringGDL* amPm = GetKeywordAs<DStringGDL>(e, AM_PM);
@@ -3862,17 +3766,8 @@ void widget_control( EnvT* e ) {
       table->SetSelection(tableSelectionToSet);
     }
     
-    bool useATableSelection = e->KeywordPresent(USE_TABLE_SELECT);
-    DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
-    if (useATableSelection && tableSelectionToUse->Rank()==0 && !table->IsSomethingSelected())
-      { e->Throw( "USE_TABLE_SELECT value out of range.");}
-    if (useATableSelection && tableSelectionToUse->Rank()>0) { //check further a bit...
-      if (table->GetDisjointSelection()) {
-        if (tableSelectionToUse->Dim(0) != 2) e->Throw( "Array must have dimensions of (2, N): " + e->GetString( USE_TABLE_SELECT ) );
-      } else {
-        if (tableSelectionToUse->Rank() != 1 || tableSelectionToUse->Dim(0) != 4 ) e->Throw( "Array must have dimensions of (4): " + e->GetString( USE_TABLE_SELECT ) );
-      }
-    }
+	DLongGDL* tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
+	bool useATableSelection = table->GetValidTableSelection(tableSelectionToUse); //will throw if a syntax problem
     
     bool tablexsize=e->KeywordSet(TABLE_XSIZE);
     bool tableysize=e->KeywordSet(TABLE_YSIZE);
@@ -3961,6 +3856,25 @@ void widget_control( EnvT* e ) {
   }
 
   if (widget->IsTree()) {
+	  static int SET_TREE_SELECT = e->KeywordIx("SET_TREE_SELECT");
+	  bool setTreeselect = e->KeywordPresent(SET_TREE_SELECT);
+	  static int SET_TREE_INDEX = e->KeywordIx("SET_TREE_INDEX");
+	  bool setTreeindex = e->KeywordPresent(SET_TREE_INDEX);
+	  static int SET_DRAG_NOTIFY = e->KeywordIx("SET_DRAG_NOTIFY");
+	  bool setDragnotify = e->KeywordPresent(SET_DRAG_NOTIFY);
+	  static int SET_DRAGGABLE = e->KeywordIx("SET_DRAGGABLE");
+	  bool setDraggable = e->KeywordPresent(SET_DRAGGABLE);
+	  static int SET_TREE_CHECKED = e->KeywordIx("SET_TREE_CHECKED");
+	  bool setTreechecked = e->KeywordPresent(SET_TREE_CHECKED);
+	  static int SET_TREE_BITMAP = e->KeywordIx("SET_TREE_BITMAP");
+	  bool setTreebitmap = e->KeywordPresent(SET_TREE_BITMAP);
+	  static int SET_MASK = e->KeywordIx("SET_MASK");
+	  bool setTreemask = e->KeywordPresent(SET_MASK);
+
+	  static int SET_TREE_EXPANDED = e->KeywordIx("SET_TREE_EXPANDED");
+	  bool setTreeexpanded = e->KeywordPresent(SET_TREE_EXPANDED);
+	  static int SET_TREE_VISIBLE = e->KeywordIx("SET_TREE_VISIBLE");
+	  bool setTreevisible = e->KeywordSet(SET_TREE_VISIBLE);
       if (setTreeexpanded) static_cast<GDLWidgetTree *>(widget)->DoExpand(e->KeywordSet(SET_TREE_EXPANDED));
       else if (setDraggable) {
         DLong what=-1;

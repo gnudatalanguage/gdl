@@ -1656,7 +1656,8 @@ public:
 
 ~GDLWidgetTable();
 
-
+  DStringGDL* GetCurrentFormat(){return format;}
+  void SetCurrentFormat(DStringGDL* f){format=f;}
   int  GetMajority(){return majority;}
   bool IsTable() const final { return true;}
   void SetDOW(DStringGDL* val){GDLDelete(daysOfWeek); daysOfWeek=val->Dup();}
@@ -1706,7 +1707,7 @@ public:
   void SetSelection(DLongGDL* selection);
   DStringGDL* GetTableValues(DLongGDL* selection=NULL);
   BaseGDL* GetTableValuesAsStruct(DLongGDL* selection=NULL);
-  void SetTableValues(DStringGDL *val, DLongGDL* selection=NULL);
+  void SetTableValues(BaseGDL* value, DStringGDL *stringval, DLongGDL* selection=NULL);
   void SetValue(BaseGDL * val){GDLDelete(vValue); vValue=val->Dup();};
   
   void SetTableView(DLongGDL* pos);
@@ -1715,6 +1716,7 @@ public:
   void SetTableNumberOfRows( DLong nrows);
   
   bool IsSomethingSelected();
+  bool GetValidTableSelection(DLongGDL* &selection);
   
   bool IsUpdating(){return updating;}
   void ClearUpdating(){updating=false;}

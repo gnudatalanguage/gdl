@@ -271,7 +271,7 @@ namespace lib {
         DStringGDL* pathstrgdl;
         if (isdirectory) pathstrgdl = new DStringGDL((*res)[0]);
         else {
-          static int file_dirnameIx = LibFunIx("FILE_DIRNAME");
+          int file_dirnameIx = LibFunIx("FILE_DIRNAME");
           EnvT *newEnv = new EnvT(e, libFunList[file_dirnameIx], NULL);
           Guard<EnvT> guard(newEnv);
           newEnv->SetNextPar(new DStringGDL((*res)[0]));
@@ -299,7 +299,7 @@ namespace lib {
         f.close();
 
         if (!fileexists) {
-          static int file_basenameIx = LibFunIx("FILE_BASENAME");
+          int file_basenameIx = LibFunIx("FILE_BASENAME");
           newEnv = new EnvT(e, libFunList[file_basenameIx], NULL);
           Guard<EnvT> guard(newEnv);
           newEnv->SetNextPar(new DStringGDL((*res)[i]));

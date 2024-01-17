@@ -362,7 +362,10 @@ void LibInit()
 
   const string stringKey[]={COMMONKEYWORDSFORSTRINGFORMATTINGWITHIMPLIEDPRINT,"PRINT",KLISTEND};
   new DLibFun(lib::string_fun,string("STRING"),-1,stringKey);
-
+  //idem but ony with "FORMAT" option, for internal use
+  const string gdl_stringKey[]={"FORMAT",KLISTEND};
+  new DLibFun(lib::gdl_tostring_fun,string("GDL_TOSTRING"),1,gdl_stringKey);
+  
   const string defsysvKey[]={"EXISTS","TEST",KLISTEND};
   new DLibPro(lib::defsysv,string("DEFSYSV"),4,defsysvKey); 
 

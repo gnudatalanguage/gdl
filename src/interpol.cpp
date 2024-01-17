@@ -320,14 +320,14 @@ const gdl_interpol_type* gdl_interpol_cspline = &cspline_type;
       X=new DDoubleGDL(dimension(4),BaseGDL::NOZERO); for(int i=0; i<4; ++i) (*X)[i]=C[i];
       Y=new DDoubleGDL(dimension(4),BaseGDL::NOZERO); for(int i=0; i<4; ++i) (*Y)[i]=C[i+4]; 
 
-      static int splinitIx = LibFunIx( "SPL_INIT" );
+      int splinitIx = LibFunIx( "SPL_INIT" );
       EnvT* newEnv = new EnvT(NULL, libFunList[ splinitIx]);
       newEnv->SetNextPar( X ); // pass as local
       newEnv->SetNextPar( Y ); // pass as local
       newEnv->SetKeyword("DOUBLE",&One);
       DDoubleGDL* Q = static_cast<DDoubleGDL*>(static_cast<DLibFun*>(newEnv->GetPro())->Fun()(static_cast<EnvT*>(newEnv)));
 
-      static int splinterpIx = LibFunIx( "SPL_INTERP" );
+      int splinterpIx = LibFunIx( "SPL_INTERP" );
       EnvT* newEnv1 = new EnvT(NULL, libFunList[ splinterpIx]);
       newEnv1->SetNextPar( X ); // pass as local
       newEnv1->SetNextPar( Y ); // pass as local

@@ -2715,7 +2715,6 @@ grid->CreateGrid( grid_nrows, grid_ncols, static_cast<wxGrid::wxGridSelectionMod
       for ( int ival=0, i=0, k=0; i<numRows; ++i, ++ival) for (int jval=0, j=0; j<numCols; ++j, ++jval) 
       {
         if (i < grid_nrows && j < grid_ncols ) {
-          StrTrim((*valueAsStrings)[k]);
           grid->SetCellValue( i, j ,wxString(((*valueAsStrings)[k]).c_str(), wxConvUTF8 ) );
 		}
 		k++;
@@ -2812,6 +2811,50 @@ TIDY_WIDGET(gdlBORDER_SPACE);
  REALIZE_IF_NEEDED
 }
 
+//returns true if selection is invalid, but it will have throwed before returning anyway.
+bool GDLWidgetTable::GetValidTableSelection(DLongGDL* &selection) {
+  wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
+  assert( grid != NULL);
+
+  if (selection == NULL) return false;
+  else if (selection->Rank() == 0) {
+	if ((*selection)[0] == 0) return false;
+	else { //create selection from current selected areas
+	  selection=GetSelection();
+	  return true;
+	} 
+  }
+  
+  //there is a passed selection. Check and throw if necessary.
+  if (this->GetDisjointSelection()) {
+	if (selection->Dim(0) != 2) {
+	  ThrowGDLException("USE_TABLE_SELECT (disjoint mode) Array must have dimensions of (2, N) ");
+	} else {
+	  if (selection->Rank() != 1 || selection->Dim(0) != 4) ThrowGDLException("USE_TABLE_SELECT (continuous mode) Array must have dimensions of (4) ");
+	}
+  }
+  int ncolsmax = valueAsStrings->Dim(0) - 1;
+  int nrowsmax = valueAsStrings->Dim(1) - 1;
+  if (disjointSelection) { //pairs lists
+	for (auto j=0; j<selection->Dim(1); ++j) {
+	  DLong col = (*selection)[j*2+0];
+	  DLong row = (*selection)[j*2+1];
+	  if (col < 0 || col > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  if (row < 0 || row > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	}
+  } else { //4 values
+	DLong val=(*selection)[0];
+	  if (val < 0 || val > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	val=(*selection)[1];
+	  if (val < 0 || val > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	val=(*selection)[2];
+	  if (val < 0 || val > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	val=(*selection)[3];
+	  if (val < 0 || val > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+  }
+  return true;
+}
+
 bool GDLWidgetTable::IsSomethingSelected(){
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
   assert( grid != NULL);
@@ -2823,8 +2866,8 @@ DLongGDL* GDLWidgetTable::GetSelection( ) {
   assert( grid != NULL);
   SizeT k = 0;
   DLongGDL * sel;
-  std::vector<wxPoint> list = grid->GetSelectedDisjointCellsList( );
   if ( disjointSelection ) { //pairs lists
+	std::vector<wxPoint> list = grid->GetSelectedDisjointCellsList();
     if ( list.size( ) < 1 ) {sel = new DLongGDL( 2, BaseGDL::ZERO ); sel->Dec(); return sel;} //returns [-1,-1] if nothing selected
     SizeT dims[2];
     dims[0] = 2;
@@ -3250,7 +3293,8 @@ DFloatGDL* GDLWidgetTable::GetColumnWidth(DLongGDL* selection){
      for (int j=colTL; j<=colBR; ++j)
      {
        (*res)[k++]=grid->GetColSize(j); 
-     }
+	  }
+	  return res;
     }
   }
   return new DFloatGDL(0); //to keep compiler happy
@@ -3558,16 +3602,19 @@ bool GDLWidgetTable::InsertRows(DLong count, DLongGDL* selection) {
   return success;
 }
 
-void GDLWidgetTable::SetTableValues(DStringGDL* val, DLongGDL* selection)
+void GDLWidgetTable::SetTableValues(BaseGDL* value, DStringGDL* newValueAsStrings, DLongGDL* selection)
 {
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
   assert( grid != NULL);
-
+  
   grid->BeginBatch();
   
   if ( selection==NULL ){ //reset table to everything. val replaces valueAsStrings.
-    GDLDelete(valueAsStrings);
-    valueAsStrings=val->Dup();
+	// replace all vValue
+	SetValue(value);
+	//replace all valueAsStrings
+	GDLDelete(valueAsStrings);
+    valueAsStrings=newValueAsStrings->Dup();
     SizeT numRows,numCols;
     if (valueAsStrings->Rank()==1) {
       numRows=1;
@@ -3583,33 +3630,55 @@ void GDLWidgetTable::SetTableValues(DStringGDL* val, DLongGDL* selection)
     if (numRows > curr_rows) grid->AppendRows(numRows-curr_rows);
     if (numCols > curr_cols) grid->AppendCols(numCols-curr_cols);
     // Set grid cell contents as strings
-    {SizeT k=0; for (SizeT i=0; i<numRows ; ++i) for (SizeT j=0; j< numCols; ++j) {grid->SetCellValue( i, j, wxString(((*valueAsStrings)[k]).c_str(), wxConvUTF8 ) );++k;}}
-    
-  } else { //use the wxWidget selection or the passed selection, mode-dependent:
-    if (disjointSelection) { //pairs lists
+	{
+	  SizeT k = 0;
+	  for (SizeT i = 0; i < numRows; ++i) for (SizeT j = 0; j < numCols; ++j) {
+		  grid->SetCellValue(i, j, wxString(((*valueAsStrings)[k]).c_str(), wxConvUTF8));
+		  ++k;
+		}
+	}
+  } else { 
+	//use the wxWidget selection or the passed selection, mode-dependent:
+	assert(value->Type() == vValue->Type());
+	SizeT nmaxVal = newValueAsStrings->N_Elements();
+	SizeT vVal_Ncols = vValue->Dim(0);
+	DType type = vValue->Type();
+	if (disjointSelection) { //pairs lists
       if (selection->Rank()==0) { 
         std::vector<wxPoint> list=grid->GetSelectedDisjointCellsList();
         SizeT k=0;
         for (std::vector<wxPoint>::iterator it = list.begin(); it !=list.end(); ++it) {
-          grid->SetCellValue( (*it).x, (*it).y ,wxString(((*val)[k++]).c_str(), wxConvUTF8 ) ); 
-          if (k==val->N_Elements()) break;
+		  //update vValue
+//		  (*vValue)[it->y*vVal_Ncols+it->x]=(*value)[k];
+		  //update ValueAsStrings
+		  (*valueAsStrings)[(*it).y*vVal_Ncols+(*it).x]=(*newValueAsStrings)[k];
+		  //Show in widget
+          grid->SetCellValue( (*it).x, (*it).y ,wxString(((*newValueAsStrings)[k]).c_str(), wxConvUTF8 ) );
+		  k++; //next one
+          if (k==nmaxVal) break;
         }
        } else {
         for (SizeT k=0,n=0,l=0; n<selection->Dim(1); ++n) {
           int col = (*selection)[l++];
           int row = (*selection)[l++];
-          grid->SetCellValue( row, col ,wxString(((*val)[k++]).c_str(), wxConvUTF8 ) ); 
-          if (k==val->N_Elements()) break;
+		  //update vValue
+//		  (*vValue)[row*vVal_Ncols +col]=(*value)[k];
+		  //update ValueAsStrings
+		  (*valueAsStrings)[row*vVal_Ncols +col]=(*newValueAsStrings)[k];
+		  //Show in widget
+          grid->SetCellValue( row, col ,wxString(((*newValueAsStrings)[k]).c_str(), wxConvUTF8 ) );
+		  k++; //next one
+          if (k==nmaxVal) break;
         }
       }
     } else { //IDL maintains the 2D-structure of val!
       SizeT numRows,numCols;
-      if (val->Rank()==1) {
+      if (newValueAsStrings->Rank()==1) {
         numRows=1;
-        numCols=val->Dim(0); //lines
+        numCols=newValueAsStrings->Dim(0); //lines
       } else {
-        numRows=val->Dim(1);
-        numCols=val->Dim(0);
+        numRows=newValueAsStrings->Dim(1);
+        numCols=newValueAsStrings->Dim(0);
       }
       int colTL,colBR,rowTL,rowBR;
       if (selection->Rank()==0) { 
@@ -3625,9 +3694,14 @@ void GDLWidgetTable::SetTableValues(DStringGDL* val, DLongGDL* selection)
         colBR = (*selection)[2];
         rowBR = (*selection)[3];
       }
-      for ( int ival=0, i=rowTL; i<=rowBR; ++i, ++ival) for (int jval=0, j=colTL; j<=colBR; ++j, ++jval)
-      {
-        if (ival < numRows && jval < numCols ) grid->SetCellValue( i, j ,wxString(((*val)[jval*numRows+ival]).c_str(), wxConvUTF8 ) ); 
+      for (int jVal=0, j=colTL; j<=colBR; ++j, ++jVal) for ( int iVal=0, i=rowTL; i<=rowBR; ++i, ++iVal) 
+	  {
+		  //update vValue
+//		  (*vValue)[j * vVal_Ncols + i] = (*value)[jVal*numRows+iVal]
+		  //update ValueAsStrings
+		  (*valueAsStrings)[j * vVal_Ncols + i] = (*newValueAsStrings)[jVal*numRows+iVal];
+		  //Show in widget
+        if (iVal < numRows && jVal < numCols ) grid->SetCellValue( i, j ,wxString(((*newValueAsStrings)[jVal*numRows+iVal]).c_str(), wxConvUTF8 ) ); 
       }
     }
   }
