@@ -2799,9 +2799,10 @@ grid->SetScrollLineX(grid->GetColSize(0));
 grid->SetScrollLineY(grid->GetRowHeight(0));
 grid->SetSize(windowSize);
 grid->SetMinSize(windowSize);
+grid->SetDefaultCellFitMode(wxGridFitMode::Clip());
 END_ADD_EVENTUAL_FRAME
 TIDY_WIDGET(gdlBORDER_SPACE);
- grid->SelectBlock(0,0,0,0,FALSE); 
+grid->SelectBlock(0,0,0,0,FALSE); //hyperimportant
       this->AddToDesiredEvents( wxEVT_GRID_COL_SIZE,wxGridSizeEventHandler(wxGridGDL::OnTableColResizing),grid);
       this->AddToDesiredEvents( wxEVT_GRID_ROW_SIZE,wxGridSizeEventHandler(wxGridGDL::OnTableRowResizing),grid);
       this->AddToDesiredEvents( wxEVT_GRID_RANGE_SELECT,wxGridRangeSelectEventHandler(wxGridGDL::OnTableRangeSelection),grid);
