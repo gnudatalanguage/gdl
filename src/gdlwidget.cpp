@@ -4578,23 +4578,40 @@ GDLWidgetSlider::GDLWidgetSlider( WidgetIDT p, EnvT* e, DLong value_
   //dynamically select drag, saves resources! (note: there is no widget_control,/drag for sliders)
   if ( eventFlags & GDLWidget::EV_DRAG ) this->AddToDesiredEvents( wxEVT_SCROLL_THUMBTRACK,wxScrollEventHandler(gdlwxFrame::OnThumbTrack),slider);
 }
+wxSlider* GDLWidgetSlider::GetSliderWidget(){
+  wxSlider* s;
+  if (title.length() > 0) {
+      wxPanel* p=dynamic_cast<wxPanel*>(theWxWidget);
+      const wxWindowList& l = p->GetChildren();
+      for ( wxWindowList::Node *node = l.GetFirst(); node; node = node->GetNext() ) {
+        wxWindow *current = (wxWindow *)node->GetData();
+        if (current->IsKindOf(CLASSINFO(wxSlider))) {
+            s = dynamic_cast<wxSlider*>(current);
+        }
+      }
+  } else {
+      s = dynamic_cast<wxSlider*>(theWxWidget);
+  }
+  return(s);
+}  
+ 
 void GDLWidgetSlider::ControlSetValue(DLong v){
   value=v;
-  wxSlider* s=dynamic_cast<wxSlider*>(theWxWidget);
+  wxSlider* s = GDLWidgetSlider::GetSliderWidget();
   assert( s != NULL);
   s->SetValue(v);
 }
 
 void GDLWidgetSlider::ControlSetMinValue(DLong v) {
   value = v;
-  wxSlider* s = dynamic_cast<wxSlider*> (theWxWidget);
+  wxSlider* s = GDLWidgetSlider::GetSliderWidget();
   assert(s != NULL);
   s->SetRange(v, s->GetMax());
 }
 
 void GDLWidgetSlider::ControlSetMaxValue(DLong v) {
   value = v;
-  wxSlider* s = dynamic_cast<wxSlider*> (theWxWidget);
+  wxSlider* s = GDLWidgetSlider::GetSliderWidget();
   assert(s != NULL);
   s->SetRange(s->GetMin(),v);
 }
