@@ -75,6 +75,7 @@
 #include "datatypes.hpp"
 #include "widget.hpp"
 #include "GDLInterpreter.hpp"
+#include "basic_fun.hpp" //for GDL_TOSTRING
 
 #define gdlSCROLL_RATE 10
 #define gdlABSENT_SIZE_VALUE 15
@@ -1655,7 +1656,7 @@ public:
          );
 
 ~GDLWidgetTable();
-
+  std::vector<int> GetSortedSelectedRowsOrColsList(DLongGDL* selection, bool doCol);
   DStringGDL* GetCurrentFormat(){return format;}
   void SetCurrentFormat(DStringGDL* f){format=f;}
   int  GetMajority(){return majority;}
@@ -1664,7 +1665,7 @@ public:
   void SetAmPm(DStringGDL* val){GDLDelete(amPm); amPm=val->Dup();};
   void SetMonth(DStringGDL* val){GDLDelete(month); month=val->Dup();};
 
-  DLongGDL* GetSelection();
+  DLongGDL* GetSelection(bool dothrow=false);
   
   void SetAlignment(DByteGDL* val){GDLDelete(table_alignment); table_alignment=val->Dup();};
   void DoAlign();
@@ -2060,41 +2061,6 @@ public:
     block.push_back(row);
     return block;
   }
-  
-   wxArrayInt GetSortedSelectedColsList(){
-   std::vector<wxPoint> list=GetSelectedDisjointCellsList();
-   wxArrayInt cols;
-   if (list.empty()) return cols; 
-   std::vector<wxPoint>::iterator iPoint;
-   std::vector<int> allCols;
-   std::vector<int>::iterator iter;
-   for ( iPoint = list.begin(); iPoint !=list.end(); ++iPoint) {
-       allCols.push_back((*iPoint).y);
-    }
-   std::sort (allCols.begin(), allCols.end());
-   int theCol=-1;
-   for ( iter = allCols.begin(); iter !=allCols.end(); ++iter) {
-       if ((*iter)!=theCol) {theCol=(*iter);cols.Add(theCol);}
-    }
-   return cols;
-  }
-  wxArrayInt GetSortedSelectedRowsList(){
-   std::vector<wxPoint> list=GetSelectedDisjointCellsList();
-   wxArrayInt rows;
-   if (list.empty()) return rows; 
-   std::vector<wxPoint>::iterator iPoint;
-   std::vector<int> allRows;
-   std::vector<int>::iterator iter;
-   for ( iPoint = list.begin(); iPoint !=list.end(); ++iPoint) {
-       allRows.push_back((*iPoint).x);
-    }
-   std::sort (allRows.begin(), allRows.end());
-   int theRow=-1;
-   for ( iter = allRows.begin(); iter !=allRows.end(); ++iter) {
-       if ((*iter)!=theRow) {theRow=(*iter);rows.Add(theRow);}
-    }
-   return rows;
-  }
 
   void OnTableCellSelection(wxGridEvent & event);
   void OnTableRangeSelection(wxGridRangeSelectEvent & event);
@@ -2274,7 +2240,7 @@ public:
 // void OnPlotWindowSize(wxSizeEvent &event);
 
 };
-
+DStringGDL* CallStringFunction(BaseGDL* val, BaseGDL* format);
 #endif
 
 #endif

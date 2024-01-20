@@ -2812,6 +2812,252 @@ grid->SelectBlock(0,0,0,0,FALSE); //hyperimportant
  REALIZE_IF_NEEDED
 }
 
+std::vector<int> GDLWidgetTable::GetSortedSelectedRowsOrColsList(DLongGDL* selection, bool doCol = true) {
+  wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
+  assert( grid != NULL);
+  std::vector<int> list;
+  if (selection == NULL) {
+	std::vector<wxPoint> wxList = grid->GetSelectedDisjointCellsList();
+	if (wxList.empty()) return list;
+	std::vector<wxPoint>::iterator iPoint;
+	std::vector<int> allRowsOrCols;
+	std::vector<int>::iterator iter;
+	for (iPoint = wxList.begin(); iPoint != wxList.end(); ++iPoint) {
+	  if (doCol) allRowsOrCols.push_back((*iPoint).y);
+	  else allRowsOrCols.push_back((*iPoint).x);
+	}
+	std::sort(allRowsOrCols.begin(), allRowsOrCols.end());
+	int theRowOrCol = -1;
+	for (iter = allRowsOrCols.begin(); iter != allRowsOrCols.end(); ++iter) {
+	  if ((*iter) != theRowOrCol) {
+		theRowOrCol = (*iter);
+		list.push_back(theRowOrCol);
+	  }
+	}
+  } else { //use the passed selection, mode-dependent:
+	//check selection is OK otherwise will throw);
+	bool ok = GetValidTableSelection(selection);
+	if (disjointSelection) { //pairs lists
+	  std::vector<int> allRowsOrCols;
+	  std::vector<int>::reverse_iterator riter;
+	  //find concerned rows or cols
+	  int index = 0;
+	  for (SizeT n = 0, l = 0; n < selection->Dim(1); ++n) {
+		index = (*selection)[l++];
+		if (doCol) allRowsOrCols.push_back(index);
+		index = (*selection)[l++];
+		if (!doCol) allRowsOrCols.push_back(index);
+	  }
+	  std::sort(allRowsOrCols.begin(), allRowsOrCols.end());
+	  int theRowOrCol = -1;
+	  for (riter = allRowsOrCols.rbegin(); riter != allRowsOrCols.rend(); ++riter) {
+		if ((*riter) != theRowOrCol) {
+		  theRowOrCol = (*riter);
+		  list.push_back(theRowOrCol);
+		}
+	  }
+	} else { //4 values, cols are contiguous, easy.
+	  int colTL = (*selection)[0];
+	  int colBR = (*selection)[2];
+	  int count = colBR - colTL + 1;
+	  for (auto i = colTL; i < colBR + 1; ++i) list.push_back(i);
+	}
+  }
+  return list;
+}
+
+DStringGDL* CallStringFunction(BaseGDL* val, BaseGDL* format) {
+  int stringIx = LibFunIx("GDL_TOSTRING");
+  EnvT *newEnv = new EnvT(NULL, libFunList[stringIx]);
+  Guard<EnvT> guard(newEnv);
+  newEnv->SetNextPar(val); // pass as local
+  if (format != NULL) newEnv->SetKeyword("FORMAT", format);
+  DStringGDL* s = static_cast<DStringGDL*> (lib::gdl_tostring_fun(newEnv));
+  guard.release();
+  for (auto i = 0; i < s->N_Elements(); ++i) StrTrim((*s)[i]);
+  s->SetDim(val->Dim()); //necessary
+  return s;
+}
+
+DStringGDL* ConvertValueToStringArray(BaseGDL* &value, DStringGDL* format, int majority) {
+  DStringGDL* valueAsStrings;
+  if (value->Type() == GDL_STRING) {
+	valueAsStrings = static_cast<DStringGDL*> (value->Dup());
+  } else if (value->Type() == GDL_STRUCT) {
+	if (majority == GDLWidgetTable::NONE_MAJOR) majority = GDLWidgetTable::ROW_MAJOR;
+	//convert to STRING
+	DStructGDL *input = static_cast<DStructGDL*> (value);
+	SizeT nTags = input->NTags();
+	SizeT nEl = input->N_Elements();
+	stringstream os;
+	input->ToStreamRaw(os);
+	SizeT dims[2];
+	dims[0] = nTags;
+	dims[1] = nEl;
+	dimension dim(dims, 2);
+	valueAsStrings = new DStringGDL(dim, BaseGDL::NOZERO);
+	valueAsStrings->FromStream(os); //simple as that if we manage the dimensions and transpose accordingly....
+	if (majority == GDLWidgetTable::COLUMN_MAJOR) valueAsStrings = static_cast<DStringGDL*> (valueAsStrings->Transpose(NULL));
+  } else {
+	//convert to STRING using FORMAT.
+	valueAsStrings = CallStringFunction(value, format);
+  }
+  return valueAsStrings;
+}
+
+template <typename T>
+void RemoveGDLCols(BaseGDL* outvarGDL, BaseGDL* invarGDL,  std::vector<int> &list) {
+  T* invar = static_cast<T*> (invarGDL);
+  T* outvar = static_cast<T*> (outvarGDL);
+  for (auto j = 0, l = 0, k = 0; j < invar->Dim(1); ++j) {
+	for (auto i = 0; i < invar->Dim(0); ++i, ++l) {
+	  bool go = true;
+	  for (auto n = 0; n < list.size(); ++n) if (i == list[n]) {go = false; break;}
+	  if (go) (*outvar)[k++] = (*invar)[l];
+	}
+  }
+}
+
+template <typename T>
+void RemoveGDLRows(BaseGDL* outvarGDL, BaseGDL* invarGDL,  std::vector<int> &list) {
+  T* invar = static_cast<T*> (invarGDL);
+  T* outvar = static_cast<T*> (outvarGDL);
+  for (auto j = 0, l = 0, k = 0; j < invar->Dim(1); ++j) {
+	bool go = true;
+	for (auto n = 0; n < list.size(); ++n) if (j == list[n]) {go = false; break;}
+	if (go) {
+	  for (auto i = 0; i < invar->Dim(0); ++i, ++l) {
+		(*outvar)[k++] = (*invar)[l];
+	  }
+	} else l+=invar->Dim(0);
+  }
+}
+BaseGDL* GetNewTypedBaseGDLColRemoved(BaseGDL* var, std::vector<int> &list) {
+  int n_remove=list.size();
+  SizeT newdims[2];
+  newdims[0]=var->Dim(0)-n_remove;
+  newdims[1]=var->Dim(1);
+  dimension dim(newdims,2);
+  BaseGDL* res = NULL;
+  switch (var->Type()) {
+  case GDL_STRING:
+	res = new DStringGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLCols<DStringGDL>( res, var, list);
+	break;
+  case GDL_BYTE:
+	res = new DByteGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLCols<DByteGDL>( res, var, list);
+	break;
+  case GDL_INT:
+	res = new DIntGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLCols<DIntGDL>( res, var, list);
+	break;
+  case GDL_LONG:
+	res = new DLongGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLCols<DLongGDL>( res, var, list);
+	break;
+  case GDL_FLOAT:
+	res = new DFloatGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLCols<DFloatGDL>( res, var, list);
+	break;
+  case GDL_DOUBLE:
+	res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLCols<DDoubleGDL>( res, var, list);
+	break;
+  case GDL_COMPLEX:
+	res = new DComplexGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLCols<DComplexGDL>( res, var, list);
+	break;
+  case GDL_COMPLEXDBL:
+	res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLCols<DComplexDblGDL>( res, var, list);
+	break;
+  case GDL_UINT:
+	res = new DUIntGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLCols<DUIntGDL>( res, var, list);
+	break;
+  case GDL_ULONG:
+	res = new DULongGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLCols<DULongGDL>( res, var, list);
+	break;
+  case GDL_LONG64:
+	res = new DULongGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLCols<DULongGDL>( res, var, list);
+	break;
+  case GDL_ULONG64:
+	res = new DULong64GDL(dim, BaseGDL::NOZERO);
+    RemoveGDLCols<DULong64GDL>( res, var, list);
+	break;
+  default:
+	cerr << "Unhandled Table Type, please report!" << endl;
+	return NULL; //signal error
+  }
+  return res;
+}
+BaseGDL* GetNewTypedBaseGDLRowRemoved(BaseGDL* var, std::vector<int> &list) {
+  int n_remove=list.size();
+  SizeT newdims[2];
+  newdims[0]=var->Dim(0);
+  newdims[1]=var->Dim(1)-n_remove;
+  dimension dim(newdims,2);
+  BaseGDL* res = NULL;
+  switch (var->Type()) {
+  case GDL_STRING:
+	res = new DStringGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLRows<DStringGDL>( res, var, list);
+	break;
+  case GDL_BYTE:
+	res = new DByteGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLRows<DByteGDL>( res, var, list);
+	break;
+  case GDL_INT:
+	res = new DIntGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLRows<DIntGDL>( res, var, list);
+	break;
+  case GDL_LONG:
+	res = new DLongGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLRows<DLongGDL>( res, var, list);
+	break;
+  case GDL_FLOAT:
+	res = new DFloatGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLRows<DFloatGDL>( res, var, list);
+	break;
+  case GDL_DOUBLE:
+	res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLRows<DDoubleGDL>( res, var, list);
+	break;
+  case GDL_COMPLEX:
+	res = new DComplexGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLRows<DComplexGDL>( res, var, list);
+	break;
+  case GDL_COMPLEXDBL:
+	res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLRows<DComplexDblGDL>( res, var, list);
+	break;
+  case GDL_UINT:
+	res = new DUIntGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLRows<DUIntGDL>( res, var, list);
+	break;
+  case GDL_ULONG:
+	res = new DULongGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLRows<DULongGDL>( res, var, list);
+	break;
+  case GDL_LONG64:
+	res = new DULongGDL(dim, BaseGDL::NOZERO);
+    RemoveGDLRows<DULongGDL>( res, var, list);
+	break;
+  case GDL_ULONG64:
+	res = new DULong64GDL(dim, BaseGDL::NOZERO);
+    RemoveGDLRows<DULong64GDL>( res, var, list);
+	break;
+  default:
+	cerr << "Unhandled Table Type, please report!" << endl;
+	return NULL; //signal error
+  }
+  return res;
+}
+		
+		
 //returns true if selection is invalid, but it will have throwed before returning anyway.
 bool GDLWidgetTable::GetValidTableSelection(DLongGDL* &selection) {
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
@@ -2821,7 +3067,7 @@ bool GDLWidgetTable::GetValidTableSelection(DLongGDL* &selection) {
   else if (selection->Rank() == 0) {
 	if ((*selection)[0] == 0) return false;
 	else { //create selection from current selected areas
-	  selection=GetSelection();
+	  selection=GetSelection(true); //will throw id selection is bad.
 	  return true;
 	} 
   }
@@ -2862,27 +3108,40 @@ bool GDLWidgetTable::IsSomethingSelected(){
   return grid->IsSomethingSelected();
 }
 
-DLongGDL* GDLWidgetTable::GetSelection( ) {
+DLongGDL* GDLWidgetTable::GetSelection( bool dothrow) {
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
   assert( grid != NULL);
   SizeT k = 0;
   DLongGDL * sel;
+  Guard<BaseGDL> guard;
+  int ncolsmax = valueAsStrings->Dim(0) - 1;
+  int nrowsmax = valueAsStrings->Dim(1) - 1;
   if ( disjointSelection ) { //pairs lists
 	std::vector<wxPoint> list = grid->GetSelectedDisjointCellsList();
-    if ( list.size( ) < 1 ) {sel = new DLongGDL( 2, BaseGDL::ZERO ); sel->Dec(); return sel;} //returns [-1,-1] if nothing selected
-    SizeT dims[2];
-    dims[0] = 2;
-    dims[1] = list.size( );
-    dimension dim( dims, 2 );
-    sel = new DLongGDL( dim,BaseGDL::NOZERO );
-    for ( std::vector<wxPoint>::iterator it = list.begin( ); it != list.end( ); ++it ) {
-      (*sel)[k++] = (*it).y;
-      (*sel)[k++] = (*it).x;
-    }
+	if (list.size() < 1) {
+	  sel = new DLongGDL(2, BaseGDL::ZERO);
+	  sel->Dec();
+	} else {
+	  SizeT dims[2];
+	  dims[0] = 2;
+	  dims[1] = list.size();
+	  dimension dim(dims, 2);
+	  sel = new DLongGDL(dim, BaseGDL::NOZERO);
+	  guard.Reset(sel); //remove sel if we throw below
+	  for (std::vector<wxPoint>::iterator it = list.begin(); it != list.end(); ++it) {
+		if (dothrow) {
+		  if ((*it).y < 0 || (*it).y > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+		  if ((*it).x < 0 || (*it).x > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+		}
+		(*sel)[k++] = (*it).y;
+		(*sel)[k++] = (*it).x;
+	  }
+	}
   } else { //4 values
     wxGridCellCoordsArray selectionTL = grid->GetSelectionBlockTopLeft( );
     wxGridCellCoordsArray selectionBR = grid->GetSelectionBlockBottomRight( );
     sel = new DLongGDL( 4, BaseGDL::ZERO ); sel->Dec(); //will return [-1,-1,-1,-1] if nothing selected
+	guard.Reset(sel); //remove sel if we throw  below
     if (!selectionTL.IsEmpty() && !selectionBR.IsEmpty()){ //ok with a block...
       //LEFT TOP BOTTOM RIGHT
       (*sel)[0] = selectionTL[0].GetCol( );
@@ -2913,11 +3172,20 @@ DLongGDL* GDLWidgetTable::GetSelection( ) {
         (*sel)[2] = col;
         (*sel)[3] = row;
         }
-      }
-      return sel;
-    }
-
+	  }
+	}
+	if (dothrow) {
+	  DLong val = (*sel)[0];
+	  if (val < 0 || val > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  val = (*sel)[1];
+	  if (val < 0 || val > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  val = (*sel)[2];
+	  if (val < 0 || val > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  val = (*sel)[3];
+	  if (val < 0 || val > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	}
   }
+  guard.Release();
   return sel;
 }
 
@@ -3199,9 +3467,9 @@ void GDLWidgetTable::DoColumnWidth( DLongGDL* selection ) {
   SizeT k=0;
 
   if ( selection->Rank( ) == 0 ) { //use current wxWidgets selection
-   wxArrayInt list=grid->GetSortedSelectedColsList();
+    std::vector<int> list=GetSortedSelectedRowsOrColsList(selection,true);
    //find concerned cols
-   for ( int it = 0; it <list.GetCount(); ++it) {
+   for ( int it = 0; it <list.size(); ++it) {
        grid->SetColSize( list[it], (*columnWidth)[it % nbCols]*unitConversionFactor.x);
     }
   } else { //use the passed selection, mode-dependent:
@@ -3251,11 +3519,11 @@ DFloatGDL* GDLWidgetTable::GetColumnWidth(DLongGDL* selection){
     for ( SizeT j = 0; j < nCols; ++j ) (*res)[j]=grid->GetColSize(j);
     return res;
   } else if ( selection->Rank( ) == 0 ) { //use current wxWidgets selection
-    wxArrayInt list=grid->GetSortedSelectedColsList();
+     std::vector<int> list=GetSortedSelectedRowsOrColsList(selection, true);
    //find concerned cols
-    if (list.GetCount()==0) return NULL;
-   DFloatGDL* res=new DFloatGDL(dimension(list.GetCount()),BaseGDL::NOZERO);
-   for ( int it = 0; it <list.GetCount(); ++it) {
+    if (list.size()==0) return NULL;
+   DFloatGDL* res=new DFloatGDL(dimension(list.size()),BaseGDL::NOZERO);
+   for ( int it = 0; it <list.size(); ++it) {
        (*res)[it]=grid->GetColSize( list[it] );
     }
    return res;
@@ -3311,11 +3579,11 @@ DFloatGDL* GDLWidgetTable::GetRowHeight(DLongGDL* selection){
     for ( SizeT i = 0; i < nRows; ++i ) (*res)[i]=grid->GetRowSize(i);
     return res;
   } else if ( selection->Rank( ) == 0 ) { //use current wxWidgets selection
-    wxArrayInt list=grid->GetSortedSelectedRowsList();
+    std::vector<int> list=GetSortedSelectedRowsOrColsList(selection, false);
    //find concerned rows
-    if (list.GetCount()==0) return NULL;
-   DFloatGDL* res=new DFloatGDL(dimension(list.GetCount()),BaseGDL::NOZERO);
-   for ( int it = 0; it <list.GetCount(); ++it) {
+    if (list.size()==0) return NULL;
+   DFloatGDL* res=new DFloatGDL(dimension(list.size()),BaseGDL::NOZERO);
+   for ( int it = 0; it <list.size(); ++it) {
        (*res)[it]=grid->GetRowSize( list[it] );
     }
    return res;
@@ -3386,8 +3654,8 @@ void GDLWidgetTable::DoRowHeights( DLongGDL* selection ) {
   SizeT k=0;
 
   if ( selection->Rank( ) == 0 ) { //use current wxWidgets selection
-   wxArrayInt list=grid->GetSortedSelectedRowsList();
-   for ( int it = 0; it <list.GetCount(); ++it) {
+   std::vector<int> list=GetSortedSelectedRowsOrColsList(selection, false);
+   for ( int it = 0; it <list.size(); ++it) {
        if (list[it]<grid->GetNumberRows())  grid->SetRowSize( list[it], (*rowHeights)[it % nbRows]*unitConversionFactor.y );
     }
   } else { //use the passed selection, mode-dependent:
@@ -3454,43 +3722,38 @@ void GDLWidgetTable::DoRowLabels( ) {
   grid->EndBatch();
 }
 
+//Row and Column insertion and deletion cannot be done using wxWidgets wxGrid functions, as IDL perform them on a different representation (private array).
+//It is necessary to delete all the rows and columns of the widget and recreate a new table
+
 void GDLWidgetTable::DeleteColumns(DLongGDL* selection) {
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
-  assert( grid != NULL);
-  grid->BeginBatch( );
-
-  if ( selection==NULL || selection->Rank( ) == 0 ) { //use current wxWidgets selection
-   wxArrayInt list=grid->GetSortedSelectedColsList();
-   //delete in reverse order to avoid column-numbering problems
-   for ( int it = list.GetCount()-1; it >-1 ; --it) {
-       grid->DeleteCols( list[it], 1, true);
-    }
-  } else { //use the passed selection, mode-dependent:
-    if (disjointSelection) { //pairs lists
-     std::vector<int> allCols;
-     std::vector<int>::reverse_iterator riter;
-     //find concerned cols
-     for ( SizeT n=0, l=0 ; n<selection->Dim(1); ++n) {
-        int col = (*selection)[l++];l++;
-        allCols.push_back(col);
-      }
-     std::sort (allCols.begin(), allCols.end());
-     int theCol=-1;
-     for ( riter = allCols.rbegin(); riter !=allCols.rend(); ++riter) {
-        if ((*riter)!=theCol) {
-          theCol=(*riter);
-          grid->DeleteCols( theCol, 1, true);
-        }
-      }
-    } else { //4 values, cols are contiguous, easy.
-     int colTL = (*selection)[0];
-     int colBR = (*selection)[2];
-     int count=colBR-colTL+1;
-     grid->DeleteCols( colTL , count, true );
-    }
-  }
-  
-  grid->EndBatch( );
+  assert(grid != NULL);
+  std::vector<int> list= GetSortedSelectedRowsOrColsList(selection, true);
+  //check "memory" selection is good:
+  int ncolsmax = valueAsStrings->Dim(0) - 1;
+  for (int it = list.size() - 1; it > -1; --it) if (list[it] < 0 || list[it] > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+  //OK, resize vValue:
+  BaseGDL* newVal=GetNewTypedBaseGDLColRemoved(vValue,list);
+  //... then create the String equivalent
+  int majority = GetMajority();
+  DStringGDL* format = GetCurrentFormat();
+  DStringGDL* newValueAsStrings=ConvertValueToStringArray(newVal, format, majority);
+  SetTableValues(newVal, newValueAsStrings, NULL);
+}
+void GDLWidgetTable::DeleteRows(DLongGDL* selection) {
+  wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
+  assert(grid != NULL);
+  std::vector<int> list= GetSortedSelectedRowsOrColsList(selection, false);
+  //check "memory" selection is good:
+  int nrowsmax = valueAsStrings->Dim(1) - 1;
+  for (int it = list.size() - 1; it > -1; --it) if (list[it] < 0 || list[it] > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+  //OK, resize vValue:
+  BaseGDL* newVal=GetNewTypedBaseGDLRowRemoved(vValue,list);
+  //... then create the String equivalent
+  int majority = GetMajority();
+  DStringGDL* format = GetCurrentFormat();
+  DStringGDL* newValueAsStrings=ConvertValueToStringArray(newVal, format, majority);
+  SetTableValues(newVal, newValueAsStrings, NULL);
 }
 bool GDLWidgetTable::InsertColumns(DLong count, DLongGDL* selection) {
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
@@ -3505,7 +3768,7 @@ bool GDLWidgetTable::InsertColumns(DLong count, DLongGDL* selection) {
    {SizeT k=0; for (SizeT i=0; i< grid->GetNumberRows(); ++i) for (SizeT j=pos; j<grid->GetNumberCols() ; ++j) {grid->SetCellValue( i, j, wxString( "0" , wxConvUTF8 ) );++k;}}
   }
   else if (selection->Rank( ) == 0 ) { //add left of current wxWidgets selection
-   wxArrayInt list=grid->GetSortedSelectedColsList();
+    std::vector<int> list=GetSortedSelectedRowsOrColsList(selection, true);
    //insert to left of first one
    success=grid->InsertCols( list[0], count, true);
   } else { //use the passed selection, mode-dependent:
@@ -3528,45 +3791,6 @@ bool GDLWidgetTable::InsertColumns(DLong count, DLongGDL* selection) {
   return success;
 }
 
-void GDLWidgetTable::DeleteRows(DLongGDL* selection) {
-  wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
-  assert( grid != NULL);
-  grid->BeginBatch( );
-
-  if ( selection==NULL || selection->Rank( ) == 0 ) { //use current wxWidgets selection
-   wxArrayInt list=grid->GetSortedSelectedRowsList();
-   //delete in reverse order to avoid column-numbering problems
-   for ( int it = list.GetCount()-1; it >-1 ; --it) {
-       grid->DeleteRows( list[it], 1, true);
-    }
-  } else { //use the passed selection, mode-dependent:
-    if (disjointSelection) { //pairs lists
-     std::vector<int> allRows;
-     std::vector<int>::reverse_iterator riter;
-     //find concerned Rows
-     for ( SizeT n=0, l=0 ; n<selection->Dim(1); ++n) {
-        int row = (*selection)[l++];l++;
-        allRows.push_back(row);
-      }
-     std::sort (allRows.begin(), allRows.end());
-     int theRow=-1;
-     for ( riter = allRows.rbegin(); riter !=allRows.rend(); ++riter) {
-        if ((*riter)!=theRow) {
-          theRow=(*riter);
-          grid->DeleteRows( theRow, 1, true);
-        }
-      }
-    } else { //4 values, Rows are contiguous, easy.
-     int rowTL = (*selection)[1];
-     int rowBR = (*selection)[3];
-     int count=rowBR-rowTL+1;
-     grid->DeleteRows( rowTL , count, true );
-    }
-  }
-  
-  grid->EndBatch( );
-}
-
 bool GDLWidgetTable::InsertRows(DLong count, DLongGDL* selection) {
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
   assert( grid != NULL);
@@ -3580,7 +3804,7 @@ bool GDLWidgetTable::InsertRows(DLong count, DLongGDL* selection) {
    {SizeT k=0; for (SizeT i=pos; i<grid->GetNumberRows(); ++i) for (SizeT j=0; j<grid->GetNumberCols() ; ++j) {grid->SetCellValue( i, j, wxString( "0" , wxConvUTF8 ) );++k;}}
   }
   else if (selection->Rank( ) == 0 ) { //add left of current wxWidgets selection
-   wxArrayInt list=grid->GetSortedSelectedRowsList();
+  std::vector<int> list=GetSortedSelectedRowsOrColsList(selection, false);
    //insert to left of first one
    success=grid->InsertRows( list[0], count, true);
   } else { //use the passed selection, mode-dependent:

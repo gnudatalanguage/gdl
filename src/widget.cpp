@@ -29,7 +29,6 @@
 #ifdef HAVE_LIBWXWIDGETS
 #include "gdlwidget.hpp"
 #include "graphicsdevice.hpp"
-#include "basic_fun.hpp" //for GDL_TOSTRING
 #endif
 
 #ifdef HAVE_LIBWXWIDGETS
@@ -231,19 +230,6 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
 // non library functions
 // these reside here because gdlwidget.hpp is only included if wxWidgets are used
 // and hence putting them there would cause a compiler error without wxWidgets
-static DStringGDL* CallStringFunction(EnvT* e,  BaseGDL* val, BaseGDL* format)
-{
-	int stringIx = LibFunIx("GDL_TOSTRING");
-	EnvT *newEnv = new EnvT(e, libFunList[stringIx], NULL);
-	Guard<EnvT> guard(newEnv);
-	newEnv->SetNextPar(val ); // pass as local
-	if (format != NULL) newEnv->SetKeyword("FORMAT",format);
-	DStringGDL* s=static_cast<DStringGDL*>(lib::gdl_tostring_fun(newEnv));
-	guard.release();
-	for (auto i=0; i< s->N_Elements() ; ++i) StrTrim((*s)[i]);
-	s->SetDim(val->Dim()); //necessary
-	return s;
-}
 
 //GD not sure if the environment at the end of called PRO or FUNC is OK (nested procedures?) TBC.
 BaseGDL* CallEventFunc( const std::string& f, BaseGDL* ev)
@@ -434,7 +420,7 @@ T* GetKeywordAs( EnvT* e, int ix)
   return static_cast<T*> (kwBaseGDL->Dup( ));
 }
 
-DStringGDL*  GetTableValueAsString(EnvT* e, BaseGDL* &value, DStringGDL* format, bool isColumnMajor) {
+DStringGDL*  GetTableValueAsString(EnvT* e, BaseGDL* &value, DStringGDL* format,  int &majority) {
   DStringGDL* valueAsStrings;
   //test of non-conformity
   if (value != NULL) value = value->Dup();
@@ -455,11 +441,14 @@ DStringGDL*  GetTableValueAsString(EnvT* e, BaseGDL* &value, DStringGDL* format,
 	dims[1] = (ySize > 0) ? ySize : 6;
 	dimension dim(dims, 2);
 	valueAsStrings = new DStringGDL(dim);
+	majority=GDLWidgetTable::NONE_MAJOR;
   } else if (value->Type() == GDL_STRING) {
 	valueAsStrings = static_cast<DStringGDL*> (value->Dup());
+	majority=GDLWidgetTable::NONE_MAJOR;
   }
   else if (value->Type() == GDL_STRUCT) {
 	if (value->Rank() > 1) e->Throw("Multi dimensional arrays of structures not allowed.");
+	if(majority==GDLWidgetTable::NONE_MAJOR) majority=GDLWidgetTable::ROW_MAJOR;
 	//convert to STRING
 	DStructGDL *input = static_cast<DStructGDL*> (value);
 	SizeT nTags = input->NTags();
@@ -478,13 +467,15 @@ DStringGDL*  GetTableValueAsString(EnvT* e, BaseGDL* &value, DStringGDL* format,
 	valueAsStrings = new DStringGDL(dim, BaseGDL::NOZERO);
 
 	valueAsStrings->FromStream(os); //simple as that if we manage the dimensions and transpose accordingly....
-	if (isColumnMajor) valueAsStrings = static_cast<DStringGDL*> (valueAsStrings->Transpose(NULL));
+	if (majority == GDLWidgetTable::COLUMN_MAJOR) valueAsStrings = static_cast<DStringGDL*> (valueAsStrings->Transpose(NULL));
   } else {
 	//convert to STRING using FORMAT.
-	valueAsStrings = CallStringFunction( e, value, format);
+	valueAsStrings = CallStringFunction(value, format);
+	majority=GDLWidgetTable::NONE_MAJOR;
   }
   return valueAsStrings;
-  }
+}
+
 
 
 namespace lib {
@@ -569,9 +560,9 @@ BaseGDL* widget_table( EnvT* e)
 //  DLong tabMode = 0;
 //  e->AssureLongScalarKWIfPresent( TAB_MODE, tabMode );
 
-  int majority = GDLWidgetTable::ROW_MAJOR;
-  bool IsColumnMajor=e->KeywordSet(COLUMN_MAJOR);
-  if (IsColumnMajor) majority = GDLWidgetTable::COLUMN_MAJOR;
+  int majority = GDLWidgetTable::NONE_MAJOR;
+  if (e->KeywordSet(COLUMN_MAJOR)) majority = GDLWidgetTable::COLUMN_MAJOR; //
+  if (e->KeywordSet(ROW_MAJOR)) majority = GDLWidgetTable::ROW_MAJOR; //order of preference
 
   static int x_scroll_sizeIx = e->KeywordIx( "X_SCROLL_SIZE" );
   DLong x_scroll_size = 0;
@@ -598,7 +589,7 @@ BaseGDL* widget_table( EnvT* e)
   if (contextevents) eventFlags |= GDLWidget::EV_CONTEXT;
 
   BaseGDL* value = e->GetKW( VALUE ); //value may not exist!!!! Dangerous!!!
-  DStringGDL* valueAsStrings=GetTableValueAsString(e, value, format, IsColumnMajor);
+  DStringGDL* valueAsStrings=GetTableValueAsString(e, value, format, majority);
  
   GDLWidgetTable* table = new GDLWidgetTable( parentID, e,
   alignment,
@@ -3184,7 +3175,8 @@ void widget_control( EnvT* e ) {
 		  value = value->Convert2(type);
 		} 
 		//... then create the String equivalent
-		DStringGDL* newValueAsStrings=GetTableValueAsString(e, value, format, (table->GetMajority()==GDLWidgetTable::COLUMN_MAJOR));
+		int majority=table->GetMajority();
+		DStringGDL* newValueAsStrings=GetTableValueAsString(e, value, format, majority);
 		//set all values inside:
 		table->SetTableValues( value, newValueAsStrings, tableSelectionToUse);
 		//The above formatting was not in error, as it not throwed: if format is not null, replace format in widget for future reference:
@@ -3734,8 +3726,8 @@ void widget_control( EnvT* e ) {
     DByteGDL* backgroundColor = GetKeywordAs<DByteGDL>(e, BACKGROUND_COLOR);
     DStringGDL* columnLabels = GetKeywordAs<DStringGDL>(e, COLUMN_LABELS);
     DLongGDL* columnWidth = GetKeywordAs<DLongGDL>(e, COLUMN_WIDTHS);
-    bool hasColumnsToDelete = e->KeywordPresent(DELETE_COLUMNS); //Present is sufficient to trig column deletion (IDL feature).
-    bool hasRowsToDelete = e->KeywordPresent(DELETE_ROWS); //Present is sufficient to trig column deletion (IDL feature).
+    bool hasColumnsToDelete = e->KeywordPresent(DELETE_COLUMNS);
+    bool hasRowsToDelete = e->KeywordPresent(DELETE_ROWS);
 
     bool insertColumns = e->KeywordPresent(INSERT_COLUMNS);
     int columnsToInsert = 0;
@@ -3823,18 +3815,22 @@ void widget_control( EnvT* e ) {
       table->SetRowHeights(rowHeights);
       if (useATableSelection) table->DoRowHeights(tableSelectionToUse); else table->DoRowHeights();
     }
-    if (hasColumnsToDelete && table->GetMajority()!=GDLWidgetTable::COLUMN_MAJOR) {
+    if (hasColumnsToDelete) {
+	  if (table->GetMajority()==GDLWidgetTable::ROW_MAJOR)  e->Throw("Unable to delete rows and/or columns in table widget.");
       if (useATableSelection) table->DeleteColumns(tableSelectionToUse); else table->DeleteColumns();
     }
-    if (hasRowsToDelete && table->GetMajority()!=GDLWidgetTable::ROW_MAJOR) {
+    if (hasRowsToDelete) {
+	  if (table->GetMajority()==GDLWidgetTable::COLUMN_MAJOR)  e->Throw("Unable to delete rows and/or columns in table widget.");  
       if (useATableSelection) table->DeleteRows(tableSelectionToUse); else table->DeleteRows();
-    }    
-    if (insertRows && table->GetMajority()!=GDLWidgetTable::ROW_MAJOR) {
+    }
+    if (insertRows) {
+	  if (table->GetMajority()==GDLWidgetTable::COLUMN_MAJOR) e->Throw("Unable to insert rows and/or columns in table widget.");
       bool success;
       if (useATableSelection)  success=table->InsertRows(rowsToInsert,tableSelectionToUse); else  success=table->InsertRows(rowsToInsert);
       if (!success) e->Throw("Error adding Row(s).");
-    }
-    if (insertColumns && table->GetMajority()!=GDLWidgetTable::COLUMN_MAJOR) {
+    } 
+    if (insertColumns) {
+	  if (table->GetMajority()==GDLWidgetTable::ROW_MAJOR) e->Throw("Unable to insert rows and/or columns in table widget.");
       bool success;
       if (useATableSelection) success=table->InsertColumns(columnsToInsert,tableSelectionToUse); else success=table->InsertColumns(columnsToInsert);
       if (!success) e->Throw("Error adding Column(s).");
