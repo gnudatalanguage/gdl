@@ -2917,6 +2917,19 @@ void RemoveGDLCols(BaseGDL* outvarGDL, BaseGDL* invarGDL,  std::vector<int> &lis
 	}
   }
 }
+template <typename T>
+void AddGDLCols(BaseGDL* outvarGDL, BaseGDL* invarGDL,  int iCol, int num, bool before) {
+  T* invar = static_cast<T*> (invarGDL);
+  T* outvar = static_cast<T*> (outvarGDL);
+  for (auto j = 0, l = 0, k = 0; j < invar->Dim(1); ++j) {
+	for (auto i = 0; i < invar->Dim(0); ++i, ++l) {
+	  bool dojump = (i == iCol);
+	  if (dojump && before) {k+=num; dojump=false;}
+	  (*outvar)[k++] = (*invar)[l];
+	  if (dojump) k+=num;
+	}
+  }
+}
 
 template <typename T>
 void RemoveGDLRows(BaseGDL* outvarGDL, BaseGDL* invarGDL,  std::vector<int> &list) {
@@ -2932,61 +2945,124 @@ void RemoveGDLRows(BaseGDL* outvarGDL, BaseGDL* invarGDL,  std::vector<int> &lis
 	} else l+=invar->Dim(0);
   }
 }
+
 BaseGDL* GetNewTypedBaseGDLColRemoved(BaseGDL* var, std::vector<int> &list) {
-  int n_remove=list.size();
+  int n_remove = list.size();
   SizeT newdims[2];
-  newdims[0]=var->Dim(0)-n_remove;
-  newdims[1]=var->Dim(1);
-  dimension dim(newdims,2);
+  newdims[0] = var->Dim(0) - n_remove;
+  newdims[1] = var->Dim(1);
+  dimension dim(newdims, 2);
   BaseGDL* res = NULL;
   switch (var->Type()) {
   case GDL_STRING:
 	res = new DStringGDL(dim, BaseGDL::NOZERO);
-    RemoveGDLCols<DStringGDL>( res, var, list);
+	RemoveGDLCols<DStringGDL>(res, var, list);
 	break;
   case GDL_BYTE:
 	res = new DByteGDL(dim, BaseGDL::NOZERO);
-    RemoveGDLCols<DByteGDL>( res, var, list);
+	RemoveGDLCols<DByteGDL>(res, var, list);
 	break;
   case GDL_INT:
 	res = new DIntGDL(dim, BaseGDL::NOZERO);
-    RemoveGDLCols<DIntGDL>( res, var, list);
+	RemoveGDLCols<DIntGDL>(res, var, list);
 	break;
   case GDL_LONG:
 	res = new DLongGDL(dim, BaseGDL::NOZERO);
-    RemoveGDLCols<DLongGDL>( res, var, list);
+	RemoveGDLCols<DLongGDL>(res, var, list);
 	break;
   case GDL_FLOAT:
 	res = new DFloatGDL(dim, BaseGDL::NOZERO);
-    RemoveGDLCols<DFloatGDL>( res, var, list);
+	RemoveGDLCols<DFloatGDL>(res, var, list);
 	break;
   case GDL_DOUBLE:
 	res = new DDoubleGDL(dim, BaseGDL::NOZERO);
-    RemoveGDLCols<DDoubleGDL>( res, var, list);
+	RemoveGDLCols<DDoubleGDL>(res, var, list);
 	break;
   case GDL_COMPLEX:
 	res = new DComplexGDL(dim, BaseGDL::NOZERO);
-    RemoveGDLCols<DComplexGDL>( res, var, list);
+	RemoveGDLCols<DComplexGDL>(res, var, list);
 	break;
   case GDL_COMPLEXDBL:
 	res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
-    RemoveGDLCols<DComplexDblGDL>( res, var, list);
+	RemoveGDLCols<DComplexDblGDL>(res, var, list);
 	break;
   case GDL_UINT:
 	res = new DUIntGDL(dim, BaseGDL::NOZERO);
-    RemoveGDLCols<DUIntGDL>( res, var, list);
+	RemoveGDLCols<DUIntGDL>(res, var, list);
 	break;
   case GDL_ULONG:
 	res = new DULongGDL(dim, BaseGDL::NOZERO);
-    RemoveGDLCols<DULongGDL>( res, var, list);
+	RemoveGDLCols<DULongGDL>(res, var, list);
 	break;
   case GDL_LONG64:
 	res = new DULongGDL(dim, BaseGDL::NOZERO);
-    RemoveGDLCols<DULongGDL>( res, var, list);
+	RemoveGDLCols<DULongGDL>(res, var, list);
 	break;
   case GDL_ULONG64:
 	res = new DULong64GDL(dim, BaseGDL::NOZERO);
-    RemoveGDLCols<DULong64GDL>( res, var, list);
+	RemoveGDLCols<DULong64GDL>(res, var, list);
+	break;
+  default:
+	cerr << "Unhandled Table Type, please report!" << endl;
+	return NULL; //signal error
+  }
+  return res;
+}
+
+BaseGDL* GetNewTypedBaseGDLColAdded(BaseGDL* var, int iCol, int n_add, bool before) {
+  SizeT newdims[2];
+  newdims[0] = var->Dim(0) + n_add;
+  newdims[1] = var->Dim(1);
+  dimension dim(newdims, 2);
+  BaseGDL* res = NULL;
+  switch (var->Type()) {
+  case GDL_STRING:
+	res = new DStringGDL(dim, BaseGDL::ZERO);
+	AddGDLCols<DStringGDL>(res, var, iCol, n_add, before);
+	break;
+  case GDL_BYTE:
+	res = new DByteGDL(dim, BaseGDL::ZERO);
+	AddGDLCols<DByteGDL>(res, var,  iCol, n_add, before);
+	break;
+  case GDL_INT:
+	res = new DIntGDL(dim, BaseGDL::ZERO);
+	AddGDLCols<DIntGDL>(res, var,  iCol, n_add, before);
+	break;
+  case GDL_LONG:
+	res = new DLongGDL(dim, BaseGDL::ZERO);
+	AddGDLCols<DLongGDL>(res, var,  iCol, n_add, before);
+	break;
+  case GDL_FLOAT:
+	res = new DFloatGDL(dim, BaseGDL::ZERO);
+	AddGDLCols<DFloatGDL>(res, var,  iCol, n_add, before);
+	break;
+  case GDL_DOUBLE:
+	res = new DDoubleGDL(dim, BaseGDL::ZERO);
+	AddGDLCols<DDoubleGDL>(res, var,  iCol, n_add, before);
+	break;
+  case GDL_COMPLEX:
+	res = new DComplexGDL(dim, BaseGDL::ZERO);
+	AddGDLCols<DComplexGDL>(res, var,  iCol, n_add, before);
+	break;
+  case GDL_COMPLEXDBL:
+	res = new DComplexDblGDL(dim, BaseGDL::ZERO);
+	AddGDLCols<DComplexDblGDL>(res, var,  iCol, n_add, before);
+	break;
+  case GDL_UINT:
+	res = new DUIntGDL(dim, BaseGDL::ZERO);
+	AddGDLCols<DUIntGDL>(res, var,  iCol, n_add, before);
+	break;
+  case GDL_ULONG:
+	res = new DULongGDL(dim, BaseGDL::ZERO);
+	AddGDLCols<DULongGDL>(res, var,  iCol, n_add, before);
+	break;
+  case GDL_LONG64:
+	res = new DULongGDL(dim, BaseGDL::ZERO);
+	AddGDLCols<DULongGDL>(res, var,  iCol, n_add, before);
+	break;
+  case GDL_ULONG64:
+	res = new DULong64GDL(dim, BaseGDL::ZERO);
+	AddGDLCols<DULong64GDL>(res, var,  iCol, n_add, before);
 	break;
   default:
 	cerr << "Unhandled Table Type, please report!" << endl;
@@ -3755,43 +3831,58 @@ void GDLWidgetTable::DeleteRows(DLongGDL* selection) {
   DStringGDL* newValueAsStrings=ConvertValueToStringArray(newVal, format, majority);
   SetTableValues(newVal, newValueAsStrings, NULL);
 }
-bool GDLWidgetTable::InsertColumns(DLong count, DLongGDL* selection) {
+bool GDLWidgetTable::InsertColumns(DLong count, bool insertAtEnd, DLongGDL* selection) {
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
-  assert( grid != NULL);
-  bool success;
-  grid->BeginBatch( );
-
-  if ( selection==NULL ){ //add count to rightmost position
-    int pos=grid->GetNumberCols();
-    success=grid->InsertCols(pos,count,true);
-   // Set new grid cell contents TBD FIXME!
-   {SizeT k=0; for (SizeT i=0; i< grid->GetNumberRows(); ++i) for (SizeT j=pos; j<grid->GetNumberCols() ; ++j) {grid->SetCellValue( i, j, wxString( "0" , wxConvUTF8 ) );++k;}}
-  }
-  else if (selection->Rank( ) == 0 ) { //add left of current wxWidgets selection
-    std::vector<int> list=GetSortedSelectedRowsOrColsList(selection, true);
-   //insert to left of first one
-   success=grid->InsertCols( list[0], count, true);
-  } else { //use the passed selection, mode-dependent:
-    if (disjointSelection) { //pairs lists
-     std::vector<int> allCols;
-     //find concerned cols
-     for ( SizeT n=0, l=0 ; n<selection->Dim(1); ++n) {
-        int col = (*selection)[l++];l++;
-        allCols.push_back(col);
-      }
-     std::sort (allCols.begin(), allCols.end());
-     success=grid->InsertCols( *(allCols.begin()), 1, true);
-    } else { //4 values, cols are contiguous, easy.
-     int colTL = (*selection)[0];
-     success=grid->InsertCols( colTL , count, true );
-    }
-  }
-  
-  grid->EndBatch( );
-  return success;
+  assert(grid != NULL);
+  std::vector<int> list= GetSortedSelectedRowsOrColsList(selection, true);
+  //check "memory" selection is good:
+  int ncolsmax = valueAsStrings->Dim(0) - 1;
+  for (int it = list.size() - 1; it > -1; --it) if (list[it] < 0 || list[it] > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+  int iCol=list[0];
+  if (insertAtEnd) iCol=vValue->Dim(0)-1; 
+  //OK, resize vValue:
+  BaseGDL* newVal=GetNewTypedBaseGDLColAdded(vValue,iCol,count,!insertAtEnd);
+  //... then create the String equivalent
+  int majority = GetMajority();
+  DStringGDL* format = GetCurrentFormat();
+  DStringGDL* newValueAsStrings=ConvertValueToStringArray(newVal, format, majority);
+  SetTableValues(newVal, newValueAsStrings, NULL);
+//  wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
+//  assert( grid != NULL);
+//  bool success;
+//  grid->BeginBatch( );
+//
+//  if ( selection==NULL ){ //add count to rightmost position
+//    int pos=grid->GetNumberCols();
+//    success=grid->InsertCols(pos,count,true);
+//   // Set new grid cell contents TBD FIXME!
+//   {SizeT k=0; for (SizeT i=0; i< grid->GetNumberRows(); ++i) for (SizeT j=pos; j<grid->GetNumberCols() ; ++j) {grid->SetCellValue( i, j, wxString( "0" , wxConvUTF8 ) );++k;}}
+//  }
+//  else if (selection->Rank( ) == 0 ) { //add left of current wxWidgets selection
+//    std::vector<int> list=GetSortedSelectedRowsOrColsList(selection, true);
+//   //insert to left of first one
+//   success=grid->InsertCols( list[0], count, true);
+//  } else { //use the passed selection, mode-dependent:
+//    if (disjointSelection) { //pairs lists
+//     std::vector<int> allCols;
+//     //find concerned cols
+//     for ( SizeT n=0, l=0 ; n<selection->Dim(1); ++n) {
+//        int col = (*selection)[l++];l++;
+//        allCols.push_back(col);
+//      }
+//     std::sort (allCols.begin(), allCols.end());
+//     success=grid->InsertCols( *(allCols.begin()), 1, true);
+//    } else { //4 values, cols are contiguous, easy.
+//     int colTL = (*selection)[0];
+//     success=grid->InsertCols( colTL , count, true );
+//    }
+//  }
+//  
+//  grid->EndBatch( );
+  return true;
 }
 
-bool GDLWidgetTable::InsertRows(DLong count, DLongGDL* selection) {
+bool GDLWidgetTable::InsertRows(DLong count, bool insertAtEnd, DLongGDL* selection) {
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
   assert( grid != NULL);
   bool success;

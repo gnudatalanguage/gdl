@@ -1702,8 +1702,8 @@ public:
   void DeleteColumns(DLongGDL* selection=NULL);
   void DeleteRows(DLongGDL* selection=NULL);
 
-  bool InsertColumns(DLong count, DLongGDL* selection=NULL);
-  bool InsertRows(DLong count, DLongGDL* selection=NULL);
+  bool InsertColumns(DLong count, bool insertAtEnd, DLongGDL* selection=NULL);
+  bool InsertRows(DLong count, bool insertAtEnd, DLongGDL* selection=NULL);
 
   void SetSelection(DLongGDL* selection);
   DStringGDL* GetTableValues(DLongGDL* selection=NULL);

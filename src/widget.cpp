@@ -3826,13 +3826,13 @@ void widget_control( EnvT* e ) {
     if (insertRows) {
 	  if (table->GetMajority()==GDLWidgetTable::COLUMN_MAJOR) e->Throw("Unable to insert rows and/or columns in table widget.");
       bool success;
-      if (useATableSelection)  success=table->InsertRows(rowsToInsert,tableSelectionToUse); else  success=table->InsertRows(rowsToInsert);
+      if (useATableSelection)  success=table->InsertRows(rowsToInsert,false,tableSelectionToUse); else  success=table->InsertRows(rowsToInsert,true);
       if (!success) e->Throw("Error adding Row(s).");
     } 
     if (insertColumns) {
 	  if (table->GetMajority()==GDLWidgetTable::ROW_MAJOR) e->Throw("Unable to insert rows and/or columns in table widget.");
       bool success;
-      if (useATableSelection) success=table->InsertColumns(columnsToInsert,tableSelectionToUse); else success=table->InsertColumns(columnsToInsert);
+      if (useATableSelection) success=table->InsertColumns(columnsToInsert,false,tableSelectionToUse); else success=table->InsertColumns(columnsToInsert,true);
       if (!success) e->Throw("Error adding Column(s).");
     }
     if (setATableView) {if ( tableView->N_Elements() !=2 ) e->Throw("Table view attribute has the wrong dimensions.");
