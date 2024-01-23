@@ -525,13 +525,13 @@ if total(strcmp('TABLE',present,/fold)) then begin
    table_base = widget_base( tabbed_base, TITLE="TABLEs",_extra=extra) & offy=0
 
 ;
-   mytable1=widget_table(yoff=offy,table_base,value=dist(7),xsize=5,ysize=5,/editable,/all_events,font=fontname,frame=30) & offy+=200 ;
+   mytable1=widget_table(yoff=offy,table_base,value=dist(7),xsize=5,ysize=5,/editable);,font=fontname,frame=30) & offy+=200 ;
 ;to be implemented! ;widget_control,mytable1,/editable,use_table_sel=[1,1,4,4]
    widget_control,mytable1,edit_cell=[0,0]
    widget_control,mytable1,background_color=[255,255,0],use_table_sel=[1,1,4,4]
    nrows=n_elements(table)
    subsize=nrows < 6
-   mytable2=widget_table(yoff=offy,table_base,value=table[0:subsize-1],/row_major,row_labels='',column_labels=tags,column_width=60,/resizeable_columns,y_scroll_size=40,/disjoint,/all_events,alignment=2,frame=50) & offy+=10 ;
+   mytable2=widget_table(yoff=offy,table_base,value=table[0:subsize-1],/row_major,row_labels='',column_labels=tags,column_width=60,/resizeable_columns,y_scroll_size=40,/disjoint,/all_events,/editable,alignment=2,frame=50) & offy+=10 ;
 endif
 
 if total(strcmp('TREE',present,/fold)) then begin

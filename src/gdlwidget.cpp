@@ -2815,7 +2815,7 @@ grid->SelectBlock(0,0,0,0,FALSE); //hyperimportant
       this->AddToDesiredEvents( wxEVT_GRID_ROW_SIZE,wxGridSizeEventHandler(wxGridGDL::OnTableRowResizing),grid);
       this->AddToDesiredEvents( wxEVT_GRID_RANGE_SELECT,wxGridRangeSelectEventHandler(wxGridGDL::OnTableRangeSelection),grid);
       this->AddToDesiredEvents( wxEVT_GRID_SELECT_CELL,wxGridEventHandler(wxGridGDL::OnTableCellSelection),grid);
-
+      this->AddToDesiredEvents( wxEVT_GRID_CELL_CHANGING,wxGridEventHandler(wxGridGDL::OnTextChanging),grid);
 // UpdateGui();
  REALIZE_IF_NEEDED
 }
@@ -4337,7 +4337,7 @@ void GDLWidgetTable::SetTableView(DLongGDL* pos)
   assert( grid != NULL);
   grid->MakeCellVisible((*pos)[1],(*pos)[0]);
 }
-void GDLWidgetTable::EditCell(DLongGDL* pos)
+void GDLWidgetTable::MakeCellEditable(DLongGDL* pos)
 {  
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
   assert( grid != NULL);

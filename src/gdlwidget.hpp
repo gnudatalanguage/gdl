@@ -1712,7 +1712,7 @@ public:
   void SetValue(BaseGDL * val){GDLDelete(vValue); vValue=val->Dup();};
   
   void SetTableView(DLongGDL* pos);
-  void EditCell(DLongGDL* pos);
+  void MakeCellEditable(DLongGDL* pos);
   void SetTableNumberOfColumns( DLong ncols);
   void SetTableNumberOfRows( DLong nrows);
   
@@ -1957,7 +1957,7 @@ public:
 	    const wxString& name = wxPanelNameStr):
   wxGrid( container, id, pos, size, style, name )
   , GDLWidgetTableID(id)
-  {
+{
    //replaced by addtodesiredevents.
 //    Connect(id,wxEVT_GRID_COL_SIZE,wxGridSizeEventHandler(wxGridGDL::OnTableColResizing));
 //    Connect(id,wxEVT_GRID_ROW_SIZE,wxGridSizeEventHandler(wxGridGDL::OnTableRowResizing));
@@ -2067,7 +2067,7 @@ public:
   void OnTableColResizing(wxGridSizeEvent & event);
   void OnTableRowResizing(wxGridSizeEvent & event); 
 //  void OnText( wxCommandEvent& event);
-//  void OnTextEnter( wxCommandEvent& event);
+  void OnTextChanging( wxGridEvent & event);
 };
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID
 //

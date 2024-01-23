@@ -585,6 +585,7 @@ BaseGDL* widget_table( EnvT* e)
   bool contextevents = e->KeywordSet( CONTEXT_EVENTS );
 
   if (allevents)  eventFlags |= GDLWidget::EV_ALL;
+  if (editable != NULL)  eventFlags |= GDLWidget::EV_KEYBOARD; //use this for handling editable events
   if (kbrdfocusevents) eventFlags |= GDLWidget::EV_KBRD_FOCUS;
   if (contextevents) eventFlags |= GDLWidget::EV_CONTEXT;
 
@@ -3839,7 +3840,7 @@ void widget_control( EnvT* e ) {
       table->SetTableView(tableView);
     }
     if (editcell) {if ( cellToEdit->N_Elements() !=2 ) e->Throw("Edit cell attribute has the wrong dimensions.");
-      table->EditCell(cellToEdit);
+      table->MakeCellEditable(cellToEdit);
     }
     if (tablexsize) {
       DLong xsize= (*e->GetKWAs<DLongGDL>(TABLE_XSIZE))[0];
