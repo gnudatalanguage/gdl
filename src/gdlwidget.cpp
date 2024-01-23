@@ -2823,7 +2823,9 @@ grid->SetScrollLineX(grid->GetColSize(0));
 grid->SetScrollLineY(grid->GetRowHeight(0));
 grid->SetSize(windowSize);
 grid->SetMinSize(windowSize);
+#if wxCHECK_VERSION(3,1,4)
 grid->SetDefaultCellFitMode(wxGridFitMode::Clip());
+#endif
 END_ADD_EVENTUAL_FRAME
 TIDY_WIDGET(gdlBORDER_SPACE);
 grid->SelectBlock(0,0,0,0,FALSE); //hyperimportant
