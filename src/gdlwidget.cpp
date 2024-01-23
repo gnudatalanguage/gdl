@@ -2681,28 +2681,6 @@ if (hasAlignment) {
     hasAlignment=false; //otherwise will be treated cell by cell below!
   }
 } 
-//General Editability
-bool isEditable=(editable!=NULL);
-bool hasEditableList=false;
-if (isEditable) {
-  if (editable->N_Elements()==1) { //singleton case
-    if ((*editable)[0]==0) {grid->EnableEditing(false); isEditable=false;}
-    else {grid->EnableEditing(true);} // fully editable
-	} else {
-	  grid->EnableEditing(true);
-	  hasEditableList = true;
-	  //Editability cell by cell
-	  //take too long as soon as table has a more than a few elements. Fixme!
-	  {
-		SizeT k = 0;
-		for (SizeT irow = 0; irow < grid_nrows; ++irow) for (SizeT icol = 0; icol < grid_ncols; ++icol) {
-		  if ((*editable)[k]==0) grid->SetReadOnly(irow, icol); else grid->SetReadOnly(irow, icol, false);
-			++k; 
-			if (k==editable->N_Elements()) k=0;
-		  }
-	  }
-	}
-} else grid->EnableEditing(false); 
 
 //Single Background Colour
 bool isBackgroundColored=(backgroundColor!=NULL);
@@ -2742,7 +2720,34 @@ for (SizeT j = numRows; j < grid_nrows; ++j) for (SizeT i = 0; i < grid_ncols; +
 for (SizeT j = numRows; j < grid_nrows; ++j) for (SizeT i = 0; i < grid_ncols; ++i) grid->SetReadOnly(j,i);
 for (SizeT i = numCols; i < grid_ncols; ++i) for (SizeT j = 0; j < grid_nrows; ++j) grid->SetCellBackgroundColour( j, i,*wxLIGHT_GREY); 
 for (SizeT i = numCols; i < grid_ncols; ++i) for (SizeT j = 0; j < grid_nrows; ++j) grid->SetReadOnly(j,i);
-//colors per element
+  //General Editability
+  bool isEditable = (editable != NULL);
+  bool hasEditableList = false;
+  if (isEditable) {
+	if (editable->N_Elements() == 1) { //singleton case
+	  if ((*editable)[0] == 0) {
+		grid->EnableEditing(false);
+		isEditable = false;
+	  } else {
+		grid->EnableEditing(true);
+	  } // fully editable
+	} else {
+	  hasEditableList = true;
+	  //Editability cell by cell
+	  //take too long as soon as table has a more than a few elements. Fixme!
+	  {
+		SizeT k = 0;
+		for (SizeT irow = 0; irow < grid_nrows; ++irow) for (SizeT icol = 0; icol < grid_ncols; ++icol) {
+			if ((*editable)[k] == 0) grid->SetReadOnly(irow, icol);
+			else grid->SetReadOnly(irow, icol, false);
+			++k;
+			if (k == editable->N_Elements()) k = 0;
+		  }
+	  }
+	}
+  } else grid->EnableEditing(false); 
+
+  //colors per element
 if (isBackgroundColored) this->DoBackgroundColor();
 if (isForegroundColored) this->DoForegroundColor();
 if (columnWidth!=NULL) this->DoColumnWidth();
