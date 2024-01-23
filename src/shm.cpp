@@ -63,7 +63,7 @@ namespace lib {
 	//	else if (!e->KeywordSet(TEMPLATE)) e->Throw("Unable to set Dimension(s).");
 
 	//TYPE
-	type = GDL_FLOAT; //by default
+	type = GDL_UNDEF; 
 	if (e->KeywordSet(TYPE)) {
 	  DLong typeget = type;
 	  e->AssureLongScalarKW(TYPE, typeget);
@@ -88,11 +88,6 @@ namespace lib {
 	  dimNotSet = false;
 	  type = pTemp->Type();
 	}
-	//check type
-	if (!gdl_type_lookup::IsConvertableType[type]) { //problems begins
-	  e->Throw("Objects, Pointers and Structures not allowed in this context.");
-	}
-	if (type==GDL_STRING) e->Throw("Expression containing string data not allowed in this context.");
 	return dimNotSet;
   }
 
@@ -104,6 +99,12 @@ namespace lib {
 	std::string segmentName;
 	//get common infos:
 	if (get_shm_common_keywords(e,  segmentName, dim, type) != false) e->Throw("Expression must be an array in this context: <Shared Memory Segment>.");
+	//check type
+	if (type==GDL_UNDEF) type=GDL_LONG; //type was not set
+	if (!gdl_type_lookup::IsConvertableType[type]) { //problems begins
+	  e->Throw("Objects, Pointers and Structures not allowed in this context.");
+	}
+	if (type == GDL_STRING) e->Throw("Expression containing string data not allowed in this context.");
     static int OS_HANDLE=e->KeywordIx("OS_HANDLE");
 	bool doOsHandle=e->KeywordSet(OS_HANDLE);
 	if (doOsHandle) e->AssureStringScalarKW(OS_HANDLE,osHandle); else {
@@ -265,7 +266,12 @@ namespace lib {
 	  
 	  // if shmap is to be deleted, must not appear as existing
 	  if (((*i).second.flags & DELETE_PENDING)==DELETE_PENDING)  e->Throw("Specified shared memory segment pending unmap operation: " + segmentName + ".");
-	  if (type == 0) type=(*i).second.type;
+	  //check type
+	  if (type == GDL_UNDEF) type=(*i).second.type; //type was not set
+	  if (!gdl_type_lookup::IsConvertableType[type]) { //problems begins
+		e->Throw("Objects, Pointers and Structures not allowed in this context.");
+	  }
+	  if (type == GDL_STRING) e->Throw("Expression containing string data not allowed in this context.");
 	  if (dimNotSet) dim=(*i).second.dim;
 	  if (dim.NDimElements()*(atomSize[type]) > (*i).second.length) e->Throw("Requested variable is too long for the underlying shared memory segment: " + segmentName + ".");
 
