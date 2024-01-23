@@ -1491,6 +1491,38 @@ namespace lib {
     }
   }
 
+  //Simplified 'string' function to write out a string even for a structure, without the blanks and '{}' pretties usually present.
+  BaseGDL* gdl_tostring_fun(EnvT* e) {
+	SizeT nParam = e->NParam(1);
+	static int formatIx = e->KeywordIx("FORMAT");
+	BaseGDL* format_kw = e->GetKW(formatIx);
+	bool formatKey = format_kw != NULL;
+
+	if (formatKey && format_kw->Type() == GDL_STRING && (*static_cast<DStringGDL*> (format_kw))[0] == "") formatKey = false;
+	stringstream os;
+	print_os(&os, e, 0, 0);
+	vector<DString> buf;
+	while (os.good()) {
+	  string line;
+	  getline(os, line);
+	  if (!line.empty()) buf.push_back(line); //should save the day for the formats with '$' at end.
+	}
+
+	SizeT bufSize = buf.size();
+	if (bufSize == 0) return new DStringGDL("");
+
+	if (bufSize > 1) {
+	  DStringGDL* retVal =
+		new DStringGDL(dimension(bufSize), BaseGDL::NOZERO);
+
+	  for (SizeT i = 0; i < bufSize; ++i)
+		(*retVal)[ i] = buf[ i];
+
+	  return retVal;
+	} else
+	  return new DStringGDL(buf[0]);
+  }
+
   BaseGDL* fix_fun(EnvT* e) {
     SizeT np = e->NParam(1);
 
@@ -1538,7 +1570,7 @@ namespace lib {
 
       if (typ == GDL_STRING) {
         // SA: calling GDL_STRING() with correct parameters
-        static int stringIx = LibFunIx("STRING");
+        int stringIx = LibFunIx("STRING");
         //assert(stringIx >= 0);
 
         EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);

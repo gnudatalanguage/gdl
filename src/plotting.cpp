@@ -1754,7 +1754,7 @@ namespace lib
 		if (currentFormat.substr(0, 1) == "(") {
 		  //internal format, call internal func "STRING"
 		  EnvT *e = ptr->e;
-		  static int stringIx = LibFunIx("STRING");
+		  int stringIx = LibFunIx("STRING");
 		  assert(stringIx >= 0);
 		  EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
 		  Guard<EnvT> guard(newEnv);
@@ -1840,7 +1840,7 @@ namespace lib
         if (currentFormat.substr(0, 1) == "(") { 
           //internal format, call internal func "STRING"
           EnvT *e = ptr->e;
-          static int stringIx = LibFunIx("STRING");
+          int stringIx = LibFunIx("STRING");
           assert(stringIx >= 0);
           EnvT* newEnv = new EnvT(e, libFunList[stringIx], NULL);
           Guard<EnvT> guard(newEnv);

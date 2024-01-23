@@ -318,74 +318,23 @@ istream& operator>>(istream& i, Data_<SpDComplex>& data_)
     {
       const string& actLine = ReadComplexElement( i);
       SizeT strLen = actLine.length();
-
-      // cout << "Processing : " << actLine <<endl;
-      // AC 2020 May : since now, always a space between "(" and digit
-      if( actLine[ 0] == '(')
-	{	  
-	  SizeT mid  = actLine.find_first_of(" \t,",2);
-	  if( mid >= strLen) mid = strLen;
-	      
-	  string seg1 = actLine.substr( 1, mid-1);
-
-	  mid++;
-	  SizeT next = actLine.find_first_not_of(" \t",mid);
-	  if( next >= strLen) next = strLen;
-
-	  SizeT last = actLine.find_first_of(")",next);
-	  if( last >= strLen) last = strLen;
-
-	  if( last <= next)
-	    {
-	      char* cEnd1;
-	      const char* c1=seg1.c_str();
-	      double re = StrToD( c1, &cEnd1);
-	      data_[ assignIx]= DComplex(re,0.0); //this is what IDL does
-//	      Warning("Imaginary part of complex missing."); no warning for IDL
-	    } 
-	  else
-	    {
-	      
-	      string seg2 = actLine.substr( next, last-next);
-	      
-	      char* cEnd1, *cEnd2;
-	      const char* c1=seg1.c_str();
-	      double re = StrToD( c1, &cEnd1);
-	      const char* c2=seg2.c_str();
-	      double im = StrToD( c2, &cEnd2);
-	      if( cEnd1 == c1 || cEnd2 == c2)
-		{
+      SizeT skip=0;
+      if( actLine[ 0] == '(') skip=1;
+		const char* cstring=actLine.c_str(); //actline is 1 or 2 numeric values, but the eventual comma ',' has disappeared.
+		char* pos=(char*)cstring;
+		pos+=skip; //skip eventual "("
+		char* oldpos=pos;
+		double re=StrToD( pos, &pos);
+		if (pos==oldpos) {
 		  data_[ assignIx]= DComplex(0.0,0.0);
 		  ThrowGDLException("Input conversion error.");
+		} 
+		oldpos=pos;
+		double im=StrToD( pos, &pos);
+		if (pos==oldpos) {
+		  data_[ assignIx]= DComplex(re,0.0); //no exception in this case see IDL: a=complex(20,10) & s="(12,)"& reads,s,a
 		}
-	      else
-		{
-		  data_[ assignIx] = DComplex( re, im);
-		}
-	    }
-	}
-      else
-	{ // real part only read, all values are set to this
-	  // the file pointer hangs (ie. a following
-	  // float reads the same value again)
-	  
-	  // convert segment and assign
-	  const char* cStart=actLine.c_str();
-	  char* cEnd;
-	  double val = StrToD( cStart, &cEnd);
-	  if( cEnd == cStart)
-	    {
-	      data_[ assignIx]= DComplex(0.0,0.0);
-	      ThrowGDLException("Input conversion error.");
-	    }
-	  //	  cout << val << endl;
-	  //	  for( long int c=assignIx; c<nTrans; c++)
-	  data_[assignIx] = DComplex(val,0.0);
-	  
-	  // AC 2020 May unclear why we need that ... 
-	  // i.seekg( pos); // rewind stream	  
-	  //	  return i;
-	}
+		data_[ assignIx] = DComplex( re, im);
 	  
       assignIx++;
       nTrans--;
@@ -404,71 +353,23 @@ istream& operator>>(istream& i, Data_<SpDComplexDbl>& data_)
     {
       const string& actLine = ReadComplexElement( i);
       SizeT strLen = actLine.length();
-
-      // AC 2020 May : since now, always a space between "(" and digit
-      if( actLine[ 0] == '(')
-	{
-	  SizeT mid  = actLine.find_first_of(" \t,",2);
-	  if( mid >= strLen) mid = strLen;
-	      
-	  string seg1 = actLine.substr( 1, mid-1);
-
-	  mid++;
-	  SizeT next = actLine.find_first_not_of(" \t",mid);
-	  if( next >= strLen) next = strLen;
-
-	  SizeT last = actLine.find_first_of(")",next);
-	  if( last >= strLen) last = strLen;
-
-	  if( last <= next)
-	    {
-	      data_[ assignIx]= DComplexDbl(0.0,0.0);
-//	      Warning("Imaginary part of complex missing.");
-	    } 
-	  else
-	    {
-	      
-	      string seg2 = actLine.substr( next, last-next);
-	      
-	      char* cEnd1, *cEnd2;
-	      const char* c1=seg1.c_str();
-	      double re = StrToD( c1, &cEnd1);
-	      const char* c2=seg2.c_str();
-	      double im = StrToD( c2, &cEnd2);
-	      if( cEnd1 == c1 || cEnd2 == c2)
-		{
-		  data_[ assignIx]= DComplexDbl(0.0,0.0);
-		  ThrowGDLException("Input conversion error.");
-		}
-	      else
-		{
-		  data_[ assignIx] = DComplexDbl( re, im);
-		}
-	    }
+	SizeT skip = 0;
+	if (actLine[ 0] == '(') skip = 1;
+	const char* cstring = actLine.c_str(); //actline is 1 or 2 numeric values, but the eventual comma ',' has disappeared.
+	char* pos = (char*) cstring;
+	pos += skip; //skip eventual "("
+	char* oldpos = pos;
+	double re = StrToD(pos, &pos);
+	if (pos == oldpos) {
+	  data_[ assignIx] = DComplexDbl(0.0, 0.0);
+	  ThrowGDLException("Input conversion error.");
 	}
-      else
-	{ // real part only read, all values are set to this
-	  // the file pointer hangs (ie. a following
-	  // float reads the same value again)
-	  
-	  // convert segment and assign
-	  const char* cStart=actLine.c_str();
-	  char* cEnd;
-	  double val = StrToD( cStart, &cEnd);
-	  if( cEnd == cStart)
-	    {
-	      data_[ assignIx]= DComplexDbl(0.0,0.0);
-	      ThrowGDLException("Input conversion error.");
-	    }
-	  
-	  //	  for( long int c=assignIx; c<nTrans; c++)
-	  data_[ assignIx] = DComplexDbl(val,0.0);
-	  
-	  // AC 2020 May unclear why we need that ... 
-	  // i.seekg( pos); // rewind stream
-	  //	  return i;
+	oldpos = pos;
+	double im = StrToD(pos, &pos);
+	if (pos == oldpos) {
+	  data_[ assignIx] = DComplexDbl(re, 0.0); //no exception in this case see IDL: a=complex(20,10) & s="(12,)"& reads,s,a
 	}
-
+	data_[ assignIx] = DComplexDbl(re, im);
       assignIx++;
       nTrans--;
     }
