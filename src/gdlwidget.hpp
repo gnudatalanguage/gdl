@@ -1916,6 +1916,9 @@ class GDLWidgetSlider: public GDLWidget
   DLong minimum; 
   DLong maximum;
   DString title;
+
+  wxSlider* GetSliderWidget();
+
 public:
   GDLWidgetSlider( WidgetIDT parentID, EnvT* e, DLong value_,
        DULong eventFlags_ ,
