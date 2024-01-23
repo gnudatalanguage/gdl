@@ -144,8 +144,7 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
       widg->InitTag( "OFFSET", DLongGDL( this->GetInsertionPoint() ) );
       widg->InitTag( "CH", DByteGDL( 10 ) );
       GDLWidget::PushEvent( baseWidgetID, widg );
-      if (txt->IsMultiline()) event.Skip( );
-      return;
+	  this->WriteText("\n"); //necessary!
       }
       event.Skip( );
       return;
@@ -223,6 +222,7 @@ void wxTextCtrlGDL::OnChar(wxKeyEvent& event ) {
         widg->InitTag( "OFFSET", DLongGDL( from ) );
         widg->InitTag( "CH", DByteGDL( 10 ) );
         GDLWidget::PushEvent( baseWidgetID, widg );
+	  if (edit) this->WriteText("\n"); //necessary!
         if (edit) event.Skip( );
         return;
         break;
