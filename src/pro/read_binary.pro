@@ -112,7 +112,7 @@ compile_opt idl2, hidden
  if n_elements(endian)    eq 0 then endian = 'native'
  if n_elements(template)  eq 0 then fieldcount = 1
  
- nbytes = [0, 1, 2, 2, 4, 8, 8, 0, 0, 16, 0, 0, 2, 4, 8, 8]
+ nbytes = [0, 1, 2, 4, 4, 8, 8, 0, 0, 16, 0, 0, 2, 4, 8, 8]
 
  if size(input, /tname) eq 'STRING' then begin
     filename = input
