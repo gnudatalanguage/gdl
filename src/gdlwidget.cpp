@@ -5044,8 +5044,8 @@ wxSlider* GDLWidgetSlider::GetSliderWidget(){
   if (title.length() > 0) {
       wxPanel* p=dynamic_cast<wxPanel*>(theWxWidget);
       const wxWindowList& l = p->GetChildren();
-      for ( wxWindowListNode *node = l.GetFirst(); node; node = node->GetNext() ) {
-        wxWindow *current = (wxWindow *)node->GetData();
+      for ( wxWindowList::compatibility_iterator it = l.GetFirst(); it; it = it->GetNext() ) {
+        wxWindow *current = (wxWindow *)it->GetData();
         if (current->IsKindOf(CLASSINFO(wxSlider))) {
             s = dynamic_cast<wxSlider*>(current);
         }
