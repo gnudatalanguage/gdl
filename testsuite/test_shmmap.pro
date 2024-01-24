@@ -31,9 +31,9 @@ print, 'session 1 after cleaning : ', tmp
 ;
 path_to_exe=GET_PATH_TO_EXE()
 ;
-path_to_file=FILE_WHICH('test_shmmap_session2.pro')
+path_to_file=FILE_WHICH('test_shmmap_session2.pro', /INCLUDE_CURRENT_DIR)
 if (path_to_file EQ '') then begin
-   MESSAGE, 'input file <<test_shmmap_session2.pro>> not found'
+   MESSAGE, 'input file <<test_shmmap_session2.pro>> not found',/cont
    if ~KEYWORD_SET(no_exit) then EXIT, status=1 else STOP
 endif
 ;
