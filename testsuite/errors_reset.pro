@@ -26,7 +26,10 @@ if N_PARAMS() NE 2 then begin
     return
 endif
 ;
-if KEYWORD_SET(verbose) then print, cumul_errors, nb_errors
+if KEYWORD_SET(verbose) then begin
+   if ISA(cumul_errors) then print, cumul_errors else print, 'Undefined <<cumul_errors>>'
+   if ISA(nb_errors) then print, nb_errors else print, 'Undefined <<nb_errors>>'
+endif
 ;
 ; it would be surprising if "nb_errors" don't have a value ...
 if (SIZE(nb_errors, /type) EQ 0) then $
