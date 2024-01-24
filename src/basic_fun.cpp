@@ -7836,6 +7836,10 @@ namespace lib {
               break;
             }
           }
+	  if (name == "$MAIN$") {
+	    found = true;
+	    FullFileName = "";
+	  }
           if (!found) e->Throw("% Attempt to call undefined/not compiled procedure: '" + raw_name + "'");
         }
 
