@@ -188,6 +188,352 @@ static const char * pixmap_checked[] = {
 #include "../resource/gdlicon.xpm"
 wxIcon wxgdlicon;
 
+
+class GDLWidgetTable;
+
+//class wxGridGDLCellStringRenderer : public wxGridCellStringRenderer {
+//public:
+//
+//  wxGridGDLCellStringRenderer() : wxGridCellStringRenderer() { }
+//
+//  virtual void Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc,
+//	const wxRect &rect, int row, int col, bool isSelected) {
+////	dc.SetBackground(attr.GetBackgroundColour());
+////	dc.Clear();
+//    // Get text
+////	GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(grid.GetWidgetTableID()));
+////    std::cerr<<table->GetVvalue()->N_Elements()<<std::endl;
+//	
+//	// Draw the text.
+//
+//	wxGridCellStringRenderer::Draw(grid, attr, dc, rect,
+//	  row, col, isSelected);
+//  }
+//};
+
+class wxGridGDLCellTextEditor : public wxGridCellEditor {
+GDLWidgetTable* table;
+public:
+  explicit wxGridGDLCellTextEditor(size_t maxChars = 0);
+
+  virtual void Create(wxWindow* parent,
+	wxWindowID id,
+	wxEvtHandler* evtHandler) wxOVERRIDE;
+//  virtual void SetSize(const wxRect& rect) wxOVERRIDE;
+
+  virtual void PaintBackground(wxDC& dc,
+	const wxRect& rectCell,
+	const wxGridCellAttr& attr) wxOVERRIDE;
+
+//  virtual bool IsAcceptedKey(wxKeyEvent& event) wxOVERRIDE;
+  virtual void BeginEdit(int row, int col, wxGrid* grid) wxOVERRIDE;
+  virtual bool EndEdit(int row, int col, const wxGrid* grid,
+	const wxString& oldval, wxString *newval) wxOVERRIDE;
+  virtual void ApplyEdit(int row, int col, wxGrid* grid) wxOVERRIDE;
+
+  virtual void Reset() wxOVERRIDE;
+//  virtual void StartingKey(wxKeyEvent& event) wxOVERRIDE;
+//  virtual void HandleReturn(wxKeyEvent& event) wxOVERRIDE;
+  wxString GetEditedValue(int row, int col, wxGrid* grid);
+  wxString SetEditedValue(wxString s, int row, int col);
+  virtual void SetParameters(const wxString& params) wxOVERRIDE;
+#if wxUSE_VALIDATORS
+  virtual void SetValidator(const wxValidator& validator);
+#endif
+
+  virtual wxGridCellEditor *Clone() const wxOVERRIDE;
+
+  // added GetValue so we can get the value which is in the control
+  virtual wxString GetValue() const wxOVERRIDE;
+
+protected:
+  // parts of our virtual functions reused by the derived classes
+  void DoCreate(wxWindow* parent, wxWindowID id, wxEvtHandler* evtHandler,
+	long style = 0);
+  void DoBeginEdit(const wxString& startValue);
+  void DoReset(const wxString& startValue);
+
+  wxTextCtrl* Text() {
+	return m_text;
+  }
+private:
+  size_t m_maxChars; // max number of chars allowed
+#if wxUSE_VALIDATORS
+  wxScopedPtr<wxValidator> m_validator;
+#endif
+  wxString m_value;
+
+  wxDECLARE_NO_COPY_CLASS(wxGridGDLCellTextEditor);
+
+  wxEvtHandler* m_handler;
+  wxTextCtrl* m_text;
+};
+
+wxGridGDLCellTextEditor::wxGridGDLCellTextEditor(size_t maxChars) {
+  m_maxChars = maxChars;
+}
+
+void wxGridGDLCellTextEditor::Create(wxWindow* parent,
+  wxWindowID id,
+  wxEvtHandler* evtHandler) {
+  DoCreate(parent, id, evtHandler);
+}
+
+void wxGridGDLCellTextEditor::DoCreate(wxWindow* parent,
+  wxWindowID id,
+  wxEvtHandler* evtHandler,
+  long style) {
+  wxControl* control = new wxControl(parent, id, wxDefaultPosition,
+	wxDefaultSize, wxNO_BORDER);
+  m_handler = evtHandler;
+
+  style |= wxTE_PROCESS_ENTER | wxTE_PROCESS_TAB | wxNO_BORDER;
+  m_text = new wxTextCtrl(control, wxID_ANY, wxEmptyString,
+	wxDefaultPosition, wxDefaultSize,
+	style);
+  m_text->SetMargins(0, 0);
+
+  m_control = control;
+
+  wxBoxSizer* szr = new wxBoxSizer(wxHORIZONTAL);
+  szr->Add(m_text, wxSizerFlags(1));
+
+  control->SetSizer(szr);
+
+#ifdef __WXOSX__
+  wxWidgetImpl* impl = m_text->GetPeer();
+  impl->SetNeedsFocusRect(false);
+#endif
+  // set max length allowed in the textctrl, if the parameter was set
+  if (m_maxChars != 0) {
+	m_text->SetMaxLength(m_maxChars);
+  }
+#if wxUSE_VALIDATORS
+  // validate text in textctrl, if validator is set
+  if (m_validator) {
+	m_text->SetValidator(*m_validator);
+  }
+#endif
+
+  wxGridCellEditor::Create(parent, id, evtHandler);
+}
+
+void wxGridGDLCellTextEditor::PaintBackground(wxDC& dc,
+  const wxRect& WXUNUSED(rectCell),
+  const wxGridCellAttr& WXUNUSED(attr)) {
+  // as we fill the entire client area,
+  // don't do anything here to minimize flicker
+}
+
+//void wxGridGDLCellTextEditor::SetSize(const wxRect& rectOrig) {
+//  wxRect rect = AdjustRectForPlatform(rectOrig);
+//
+//  wxGridCellEditor::SetSize(rect);
+//}
+wxString wxGridGDLCellTextEditor::GetEditedValue(int row, int col, wxGrid* grid){
+  wxGridGDL* mygrid=static_cast<wxGridGDL*>(grid);
+  table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(mygrid->GetWidgetTableID()));
+  BaseGDL* value = table->GetVvalue();
+  int majority=table->GetMajority();
+  SizeT dim0 = value->Dim(0);
+  SizeT nEl = value->N_Elements();
+  wxString ret="!!!";
+  switch (value->Type()) {
+  case GDL_STRING:
+	ret = table->GetRawEditingValue <DStringGDL,DString> (static_cast<DStringGDL*>(value), nEl, row*dim0+col, majority);
+	break;
+  case GDL_FLOAT:
+	ret = table->GetRawEditingValue <DFloatGDL,DFloat> (static_cast<DFloatGDL*>(value), nEl, row*dim0+col, majority);
+	break;
+  case GDL_INT:
+	ret = table->GetRawEditingValue <DIntGDL,DInt> (static_cast<DIntGDL*>(value), nEl, row*dim0+col, majority);
+	break;
+  }
+  return ret;
+}
+wxString wxGridGDLCellTextEditor::SetEditedValue(wxString sval, int row, int col){
+  BaseGDL* value = table->GetVvalue();
+  DStringGDL* format=table->GetCurrentFormat();
+  SizeT dim0 = value->Dim(0);
+  SizeT nEl = value->N_Elements();
+  // update vValue with sval and get back formatted string
+  wxString ret="!!!";
+  switch (value->Type()) {
+  case GDL_STRING:
+	ret = table->SetEditedValue <DStringGDL,DString> (sval, static_cast<DStringGDL*>(value), nEl, row*dim0+col, format);
+	break;
+  case GDL_FLOAT:
+	ret = table->SetEditedValue <DFloatGDL,DFloat> (sval, static_cast<DFloatGDL*>(value), nEl, row*dim0+col, format);
+	break;
+  case GDL_INT:
+	ret = table->SetEditedValue <DIntGDL,DInt> (sval, static_cast<DIntGDL*>(value), nEl, row*dim0+col, format);
+	break;
+  }
+  return ret;
+}
+
+void wxGridGDLCellTextEditor::BeginEdit(int row, int col, wxGrid* grid) {
+  wxASSERT_MSG(m_control, wxT("The wxGridCellEditor must be created first!"));
+  wxGridGDL* mygrid=static_cast<wxGridGDL*>(grid);
+  GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(mygrid->GetWidgetTableID()));
+  BaseGDL* value = table->GetVvalue();
+  int majority=table->GetMajority();
+  SizeT dim0 = value->Dim(0);
+  SizeT nEl = value->N_Elements();
+  m_value=GetEditedValue(row, col, grid);
+  std::cerr<<"wxGridGDLCellTextEditor::BeginEdit(): "<<m_value<<std::endl;
+  DoBeginEdit(m_value);
+}
+
+void wxGridGDLCellTextEditor::DoBeginEdit(const wxString& startValue) {
+  m_text->SetValue(startValue);
+  m_text->SetInsertionPointEnd();
+  m_text->SelectAll();
+  m_text->SetFocus();
+
+  m_control->Layout();
+}
+
+bool wxGridGDLCellTextEditor::EndEdit(int row,
+  int col,
+  const wxGrid* grid,
+  const wxString& WXUNUSED(oldval),
+  wxString *newval) {
+  wxCHECK_MSG(m_control, false,
+	"wxGridCellTextAndButtonEditor must be created first!");
+
+  const wxString value = m_text->GetValue();
+  if (value == m_value)	return false; else m_value=value;
+  m_value = SetEditedValue(m_value, row, col); //value;
+
+  if (newval)
+	*newval = m_value;
+
+  return true;
+}
+
+void wxGridGDLCellTextEditor::ApplyEdit(int row, int col, wxGrid* grid) {
+  grid->GetTable()->SetValue(row, col, m_value);
+  m_value.clear();
+}
+
+void wxGridGDLCellTextEditor::Reset() {
+  wxASSERT_MSG(m_control, "wxGridCellTextAndButtonEditor must be created first!");
+
+  DoReset(m_value);
+}
+
+void wxGridGDLCellTextEditor::DoReset(const wxString& startValue) {
+  m_text->SetValue(startValue);
+  m_text->SetInsertionPointEnd();
+}
+
+//bool wxGridGDLCellTextEditor::IsAcceptedKey(wxKeyEvent& event) {
+//  switch (event.GetKeyCode()) {
+//  case WXK_DELETE:
+//  case WXK_BACK:
+//	return true;
+//
+//  default:
+//	return wxGridCellEditor::IsAcceptedKey(event);
+//  }
+//}
+
+//void wxGridGDLCellTextEditor::StartingKey(wxKeyEvent& event) {
+//  // Since this is now happening in the EVT_CHAR event EmulateKeyPress is no
+//  // longer an appropriate way to get the character into the text control.
+//  // Do it ourselves instead.  We know that if we get this far that we have
+//  // a valid character, so not a whole lot of testing needs to be done.
+//
+//  int ch;
+//
+//  bool isPrintable;
+//
+//#if wxUSE_UNICODE
+//  ch = event.GetUnicodeKey();
+//  if (ch != WXK_NONE)
+//	isPrintable = true;
+//  else
+//#endif // wxUSE_UNICODE
+//  {
+//	ch = event.GetKeyCode();
+//	isPrintable = ch >= WXK_SPACE && ch < WXK_START;
+//  }
+//
+//  switch (ch) {
+//  case WXK_DELETE:
+//	// Delete the initial character when starting to edit with DELETE.
+//	m_text->Remove(0, 1);
+//	break;
+//
+//  case WXK_BACK:
+//	// Delete the last character when starting to edit with BACKSPACE.
+//  {
+//	const long pos = m_text->GetLastPosition();
+//	m_text->Remove(pos - 1, pos);
+//  }
+//	break;
+//
+//  default:
+//	if (isPrintable)
+//	  m_text->WriteText(static_cast<wxChar> (ch));
+//	break;
+//  }
+//}
+
+//void wxGridGDLCellTextEditor::HandleReturn(wxKeyEvent& event) {
+//#if defined(__WXMOTIF__) || defined(__WXGTK__)
+//  // wxMotif needs a little extra help...
+//  size_t pos = (size_t) (Text()->GetInsertionPoint());
+//  wxString s(Text()->GetValue());
+//  s = s.Left(pos) + wxT("\n") + s.Mid(pos);
+//  Text()->SetValue(s);
+//  Text()->SetInsertionPoint(pos);
+//#else
+//  // the other ports can handle a Return key press
+//  //
+//  event.Skip();
+//#endif
+//}
+
+void wxGridGDLCellTextEditor::SetParameters(const wxString& params) {
+  if (!params) {
+	// reset to default
+	m_maxChars = 0;
+  } else {
+	long tmp;
+	if (params.ToLong(&tmp)) {
+	  m_maxChars = (size_t) tmp;
+	} else {
+	  wxLogDebug(wxT("Invalid wxGridCellTextAndButtonEditor parameter string '%s' ignored"), params.c_str());
+	}
+  }
+}
+
+#if wxUSE_VALIDATORS
+
+void wxGridGDLCellTextEditor::SetValidator(const wxValidator& validator) {
+  m_validator.reset(static_cast<wxValidator*> (validator.Clone()));
+}
+#endif
+
+wxGridCellEditor *wxGridGDLCellTextEditor::Clone() const {
+  wxGridGDLCellTextEditor* editor = new wxGridGDLCellTextEditor(m_maxChars);
+#if wxUSE_VALIDATORS
+  if (m_validator) {
+	editor->SetValidator(*m_validator);
+  }
+#endif
+  return editor;
+}
+
+// return the value in the text control
+
+wxString wxGridGDLCellTextEditor::GetValue() const {
+  return m_text->GetValue();
+}
+
+
 const WidgetIDT GDLWidget::NullID = 0;
 
 // instantiation
@@ -2666,8 +3012,11 @@ if (wSize.x<=0) wSize.x=numCols; else grid_ncols=wSize.x;
   theWxContainer = theWxWidget = grid;
 // important: use adapted font for further sizes & shapes. Define font for labels AND  cells.
   this->setFont();
+// editor & renderer:
+  grid->SetDefaultEditor(new wxGridGDLCellTextEditor(10));
+//	grid->SetDefaultRenderer(new wxGridGDLCellStringRenderer);
 //Alignment
-bool hasAlignment=(table_alignment!=NULL);
+	bool hasAlignment=(table_alignment!=NULL);
 if (hasAlignment) {
   if (table_alignment->N_Elements()==1) { //singleton case
     switch( (*table_alignment)[0] ){
@@ -2834,6 +3183,7 @@ grid->SelectBlock(0,0,0,0,FALSE); //hyperimportant
       this->AddToDesiredEvents( wxEVT_GRID_RANGE_SELECT,wxGridRangeSelectEventHandler(wxGridGDL::OnTableRangeSelection),grid);
       this->AddToDesiredEvents( wxEVT_GRID_SELECT_CELL,wxGridEventHandler(wxGridGDL::OnTableCellSelection),grid);
       this->AddToDesiredEvents( wxEVT_GRID_CELL_CHANGING,wxGridEventHandler(wxGridGDL::OnTextChanging),grid);
+      this->AddToDesiredEvents( wxEVT_GRID_CELL_CHANGED,wxGridEventHandler(wxGridGDL::OnTextChanged),grid);
 // UpdateGui();
  REALIZE_IF_NEEDED
 }
@@ -2905,12 +3255,9 @@ DStringGDL* CallStringFunction(BaseGDL* val, BaseGDL* format) {
   return s;
 }
 
-DStringGDL* ConvertValueToStringArray(BaseGDL* &value, DStringGDL* format, int majority) {
+DStringGDL* ConvertValueToStringArray(BaseGDL* &value, DStringGDL* format, const int majority) {
   DStringGDL* valueAsStrings;
-  if (value->Type() == GDL_STRING) {
-	valueAsStrings = static_cast<DStringGDL*> (value->Dup());
-  } else if (value->Type() == GDL_STRUCT) {
-	if (majority == GDLWidgetTable::NONE_MAJOR) majority = GDLWidgetTable::ROW_MAJOR;
+  if (value->Type() == GDL_STRUCT) {
 	//convert to STRING
 	DStructGDL *input = static_cast<DStructGDL*> (value);
 	SizeT nTags = input->NTags();
@@ -3035,8 +3382,8 @@ BaseGDL* GetNewTypedBaseGDLColRemoved(BaseGDL* var, std::vector<int> &list) {
 	RemoveGDLCols<DULongGDL>(res, var, list);
 	break;
   case GDL_LONG64:
-	res = new DULongGDL(dim, BaseGDL::NOZERO);
-	RemoveGDLCols<DULongGDL>(res, var, list);
+	res = new DLong64GDL(dim, BaseGDL::NOZERO);
+	RemoveGDLCols<DLong64GDL>(res, var, list);
 	break;
   case GDL_ULONG64:
 	res = new DULong64GDL(dim, BaseGDL::NOZERO);
@@ -3097,8 +3444,8 @@ BaseGDL* GetNewTypedBaseGDLColAdded(BaseGDL* var, int iCol, int n_add, bool befo
 	AddGDLCols<DULongGDL>(res, var,  iCol, n_add, before);
 	break;
   case GDL_LONG64:
-	res = new DULongGDL(dim, BaseGDL::ZERO);
-	AddGDLCols<DULongGDL>(res, var,  iCol, n_add, before);
+	res = new DLong64GDL(dim, BaseGDL::ZERO);
+	AddGDLCols<DLong64GDL>(res, var,  iCol, n_add, before);
 	break;
   case GDL_ULONG64:
 	res = new DULong64GDL(dim, BaseGDL::ZERO);
@@ -3159,8 +3506,8 @@ BaseGDL* GetNewTypedBaseGDLRowRemoved(BaseGDL* var, std::vector<int> &list) {
     RemoveGDLRows<DULongGDL>( res, var, list);
 	break;
   case GDL_LONG64:
-	res = new DULongGDL(dim, BaseGDL::NOZERO);
-    RemoveGDLRows<DULongGDL>( res, var, list);
+	res = new DLong64GDL(dim, BaseGDL::NOZERO);
+    RemoveGDLRows<DLong64GDL>( res, var, list);
 	break;
   case GDL_ULONG64:
 	res = new DULong64GDL(dim, BaseGDL::NOZERO);
@@ -3221,8 +3568,8 @@ BaseGDL* GetNewTypedBaseGDLRowAdded(BaseGDL* var, int iRow, int n_add, bool befo
 	AddGDLRows<DULongGDL>(res, var, iRow, n_add, before);
 	break;
   case GDL_LONG64:
-	res = new DULongGDL(dim, BaseGDL::ZERO);
-	AddGDLRows<DULongGDL>(res, var, iRow, n_add, before);
+	res = new DLong64GDL(dim, BaseGDL::ZERO);
+	AddGDLRows<DLong64GDL>(res, var, iRow, n_add, before);
 	break;
   case GDL_ULONG64:
 	res = new DULong64GDL(dim, BaseGDL::ZERO);
@@ -3257,8 +3604,8 @@ bool GDLWidgetTable::GetValidTableSelection(DLongGDL* &selection) {
 	  if (selection->Rank() != 1 || selection->Dim(0) != 4) ThrowGDLException("USE_TABLE_SELECT (continuous mode) Array must have dimensions of (4) ");
 	}
   }
-  int ncolsmax = valueAsStrings->Dim(0) - 1;
-  int nrowsmax = valueAsStrings->Dim(1) - 1;
+  int ncolsmax = vValue->Dim(0) - 1;
+  int nrowsmax = vValue->Dim(1) - 1;
   if (disjointSelection) { //pairs lists
 	for (auto j=0; j<selection->Dim(1); ++j) {
 	  DLong col = (*selection)[j*2+0];
@@ -3291,8 +3638,8 @@ DLongGDL* GDLWidgetTable::GetSelection( bool dothrow) {
   SizeT k = 0;
   DLongGDL * sel;
   Guard<BaseGDL> guard;
-  int ncolsmax = valueAsStrings->Dim(0) - 1;
-  int nrowsmax = valueAsStrings->Dim(1) - 1;
+  int ncolsmax = vValue->Dim(0) - 1;
+  int nrowsmax = vValue->Dim(1) - 1;
   if ( disjointSelection ) { //pairs lists
 	std::vector<wxPoint> list = grid->GetSelectedDisjointCellsList();
 	if (list.size() < 1) {
@@ -3907,14 +4254,14 @@ void GDLWidgetTable::DeleteColumns(DLongGDL* selection) {
   assert(grid != NULL);
   std::vector<int> list= GetSortedSelectedRowsOrColsList(selection, true);
   //check "memory" selection is good:
-  int ncolsmax = valueAsStrings->Dim(0) - 1;
+  int ncolsmax = vValue->Dim(0) - 1;
   for (int it = list.size() - 1; it > -1; --it) if (list[it] < 0 || list[it] > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
   // if possible, unset background of end rows:
   int count=list.size();
   int grid_ncols = grid->GetNumberCols();
-  int data_ncols = valueAsStrings->Dim(0) - count;
+  int data_ncols = vValue->Dim(0) - count;
   int ncols = MIN( data_ncols , grid_ncols);
-  int data_nrows = valueAsStrings->Dim(1);
+  int data_nrows = vValue->Dim(1);
   for (SizeT j = 0; j < data_nrows; ++j) for (SizeT i = data_ncols; i < grid_ncols; ++i) grid->SetCellBackgroundColour(j, i, *wxLIGHT_GREY);
   //OK, resize vValue:
   BaseGDL* newVal=GetNewTypedBaseGDLColRemoved(vValue,list);
@@ -3929,13 +4276,13 @@ void GDLWidgetTable::DeleteRows(DLongGDL* selection) {
   assert(grid != NULL);
   std::vector<int> list= GetSortedSelectedRowsOrColsList(selection, false);
   //check "memory" selection is good:
-  int nrowsmax = valueAsStrings->Dim(1) - 1;
+  int nrowsmax = vValue->Dim(1) - 1;
   for (int it = list.size() - 1; it > -1; --it) if (list[it] < 0 || list[it] > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
   // if possible, set grayed background of count end rows:
   int count=list.size();
   int grid_nrows = grid->GetNumberRows();
-  int data_ncols = valueAsStrings->Dim(0);
-  int data_nrows = valueAsStrings->Dim(1)-count;
+  int data_ncols = vValue->Dim(0);
+  int data_nrows = vValue->Dim(1)-count;
   int nrows=MIN(data_nrows,grid_nrows);
   for (SizeT j = data_nrows; j < grid_nrows; ++j) for (SizeT i = 0; i < data_ncols; ++i) grid->SetCellBackgroundColour(j, i, *wxLIGHT_GREY);
   //OK, resize vValue:
@@ -3951,15 +4298,15 @@ bool GDLWidgetTable::InsertColumns(DLong count, bool insertAtEnd, DLongGDL* sele
   assert(grid != NULL);
   std::vector<int> list= GetSortedSelectedRowsOrColsList(selection, true);
   //check "memory" selection is good:
-  int ncolsmax = valueAsStrings->Dim(0) - 1;
+  int ncolsmax = vValue->Dim(0) - 1;
   for (int it = list.size() - 1; it > -1; --it) if (list[it] < 0 || list[it] > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
   int iCol=list[0];
   if (insertAtEnd) iCol=vValue->Dim(0)-1; 
   // if possible, unset background of count end rows:
   int grid_ncols=grid->GetNumberCols();
-  int data_ncols=valueAsStrings->Dim(0);
+  int data_ncols=vValue->Dim(0);
   int ncols=MIN(data_ncols+count,grid_ncols);
-  int data_nrows=valueAsStrings->Dim(1);
+  int data_nrows=vValue->Dim(1);
   for (SizeT j = 0; j < data_nrows; ++j) for (SizeT i = data_ncols; i < ncols ; ++i) grid->SetCellBackgroundColour(j, i, *wxWHITE);
   //OK, resize vValue:
   BaseGDL* newVal=GetNewTypedBaseGDLColAdded(vValue,iCol,count,!insertAtEnd);
@@ -3975,14 +4322,14 @@ bool GDLWidgetTable::InsertRows(DLong count, bool insertAtEnd, DLongGDL* selecti
   assert(grid != NULL);
   std::vector<int> list= GetSortedSelectedRowsOrColsList(selection, true);
   //check "memory" selection is good:
-  int nrowsmax = valueAsStrings->Dim(1) - 1;
+  int nrowsmax = vValue->Dim(1) - 1;
   for (int it = list.size() - 1; it > -1; --it) if (list[it] < 0 || list[it] > nrowsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
   int iRow=list[0];
   if (insertAtEnd) iRow=vValue->Dim(1)-1;
   // if possible, unset background of count end rows:
   int grid_nrows = grid->GetNumberRows();
-  int data_ncols = valueAsStrings->Dim(0);
-  int data_nrows = valueAsStrings->Dim(1);
+  int data_ncols = vValue->Dim(0);
+  int data_nrows = vValue->Dim(1);
   int nrows=MIN(data_nrows+count,grid_nrows);
   for (SizeT j = data_nrows; j < nrows; ++j) for (SizeT i = 0; i < data_ncols; ++i) grid->SetCellBackgroundColour(j, i, *wxWHITE);
   //OK, resize vValue:
@@ -4001,19 +4348,16 @@ void GDLWidgetTable::SetTableValues(BaseGDL* value, DStringGDL* newValueAsString
   
   grid->BeginBatch();
   
-  if ( selection==NULL ){ //reset table to everything. val replaces valueAsStrings.
+  if ( selection==NULL ){ //reset table to everything. val replaces newValueAsStrings.
 	// replace all vValue
 	SetValue(value);
-	//replace all valueAsStrings
-	GDLDelete(valueAsStrings);
-    valueAsStrings=newValueAsStrings->Dup();
     SizeT numRows,numCols;
-    if (valueAsStrings->Rank()==1) {
+    if (newValueAsStrings->Rank()==1) {
       numRows=1;
-      numCols=valueAsStrings->Dim(0); //lines
+      numCols=newValueAsStrings->Dim(0); //lines
     } else {
-      numRows=valueAsStrings->Dim(1);
-      numCols=valueAsStrings->Dim(0);
+      numRows=newValueAsStrings->Dim(1);
+      numCols=newValueAsStrings->Dim(0);
     }
     grid->ClearGrid();
     int curr_rows=grid->GetNumberRows();
@@ -4025,7 +4369,7 @@ void GDLWidgetTable::SetTableValues(BaseGDL* value, DStringGDL* newValueAsString
 	{
 	  SizeT k = 0;
 	  for (SizeT i = 0; i < numRows; ++i) for (SizeT j = 0; j < numCols; ++j) {
-		  grid->SetCellValue(i, j, wxString(((*valueAsStrings)[k]).c_str(), wxConvUTF8));
+		  grid->SetCellValue(i, j, wxString(((*newValueAsStrings)[k]).c_str(), wxConvUTF8));
 		  ++k;
 		}
 	}
@@ -4042,8 +4386,6 @@ void GDLWidgetTable::SetTableValues(BaseGDL* value, DStringGDL* newValueAsString
         for (std::vector<wxPoint>::iterator it = list.begin(); it !=list.end(); ++it) {
 		  //update vValue
 //		  (*vValue)[it->y*vVal_Ncols+it->x]=(*value)[k];
-		  //update ValueAsStrings
-		  (*valueAsStrings)[(*it).y*vVal_Ncols+(*it).x]=(*newValueAsStrings)[k];
 		  //Show in widget
           grid->SetCellValue( (*it).x, (*it).y ,wxString(((*newValueAsStrings)[k]).c_str(), wxConvUTF8 ) );
 		  k++; //next one
@@ -4055,8 +4397,6 @@ void GDLWidgetTable::SetTableValues(BaseGDL* value, DStringGDL* newValueAsString
           int row = (*selection)[l++];
 		  //update vValue
 //		  (*vValue)[row*vVal_Ncols +col]=(*value)[k];
-		  //update ValueAsStrings
-		  (*valueAsStrings)[row*vVal_Ncols +col]=(*newValueAsStrings)[k];
 		  //Show in widget
           grid->SetCellValue( row, col ,wxString(((*newValueAsStrings)[k]).c_str(), wxConvUTF8 ) );
 		  k++; //next one
@@ -4090,8 +4430,6 @@ void GDLWidgetTable::SetTableValues(BaseGDL* value, DStringGDL* newValueAsString
 	  {
 		  //update vValue
 //		  (*vValue)[j * vVal_Ncols + i] = (*value)[jVal*numRows+iVal]
-		  //update ValueAsStrings
-		  (*valueAsStrings)[j * vVal_Ncols + i] = (*newValueAsStrings)[jVal*numRows+iVal];
 		  //Show in widget
         if (iVal < numRows && jVal < numCols ) grid->SetCellValue( i, j ,wxString(((*newValueAsStrings)[jVal*numRows+iVal]).c_str(), wxConvUTF8 ) ); 
       }
@@ -4099,226 +4437,256 @@ void GDLWidgetTable::SetTableValues(BaseGDL* value, DStringGDL* newValueAsString
   }
   grid->EndBatch( );
 }
-BaseGDL* GDLWidgetTable::GetTableValuesAsStruct(DLongGDL* selection)
-{
-  wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
-  assert( grid != NULL);
-  BaseGDL* res;
-  int numRows=valueAsStrings->Dim(0);
-  int numCols=valueAsStrings->Dim(1);
-  DStringGDL* stringres=this->GetTableValues(selection);
-  if (stringres==NULL) return NULL; //pass error back.
 
-  if ( selection==NULL ){ //just convert
-    res=vValue->Dup();
-    stringstream is;
-//    if (majority == GDLWidgetTable::ROW_MAJOR ) {
-//      BaseGDL* tmp=static_cast<BaseGDL*>(stringres)->Transpose(NULL);
-//      GDLDelete(stringres);
-//      stringres=static_cast<DStringGDL*>(tmp);
-//      for( SizeT i = 0; i < stringres->N_Elements(); i++)  is << (*stringres)[ i] << '\n';
-//    } else {
-      for( SizeT i = 0; i < stringres->N_Elements(); i++)  is << (*stringres)[ i] << '\n';
-//    }
-    res->FromStream( is);
-  } 
-  else { //use the wxWidget selection or the passed selection, mode-dependent:
-    if (disjointSelection) { //pairs lists
-      std::vector<wxPoint> list;
-      if (selection->Rank()==0) { //use current wxWidgets selection. Result is a STRUCT
-        list=grid->GetSelectedDisjointCellsList();
-      } else {                   //make equivalent vector.
-        for (SizeT k=0,n=0,l=0; n<selection->Dim(1); ++n) {
-          int col = (*selection)[l++];
-          int row = (*selection)[l++];
-          list.push_back(wxPoint(row,col));
-        }
-      }
-      SizeT k=0;
-      DStructGDL*  typecodes = new DStructGDL( "GDL_TYPECODES_AS_STRUCT"); 
-      // creating the output anonymous structure
-      DStructDesc* res_desc = new DStructDesc("$truct");
-      for ( std::vector<wxPoint>::iterator it = list.begin(); it !=list.end(); ++it, ++k) {
-        //get tag values:
-        BaseGDL* tested;
-        if (majority == GDLWidgetTable::ROW_MAJOR )
-          tested=static_cast<DStructGDL*>(vValue)->GetTag((*it).y); //table columns are tags
-        else
-          tested=static_cast<DStructGDL*>(vValue)->GetTag((*it).x); //table rows are tags
-        stringstream os;
-        os << std::setfill ('_') << std::setw (12) << k ; //as IDL does
-        std::string tagName;
-        os >> tagName; 
-        res_desc->AddTag(tagName, typecodes->GetTag(tested->Type()));
-      }
-      stringstream is;
-      for( SizeT i = 0; i < stringres->N_Elements(); i++)  is << (*stringres)[ i] << '\n';
-      res = new DStructGDL(res_desc, dimension());
-      res->FromStream( is);
-    } else { //IDL maintains the 2D-structure of val!
-      int colTL,colBR,rowTL,rowBR;
-      if (selection->Rank()==0) { 
-        wxArrayInt block=grid->GetSelectedBlockOfCells();
-        //normally only ONE block is available.
-        colTL = block[0];
-        rowTL = block[1];
-        colBR = block[2];
-        rowBR = block[3];
-      } else {
-        colTL = (*selection)[0];
-        rowTL = (*selection)[1];
-        colBR = (*selection)[2];
-        rowBR = (*selection)[3];
-      }
-      //complication: if only one row (col) is selected, result is an array of <type>.
-      //else result is a structure with correct tag names. Very clever!
-      if ((majority == GDLWidgetTable::ROW_MAJOR && colTL==colBR)||(majority == GDLWidgetTable::COLUMN_MAJOR && rowTL==rowBR)) {
-        DType what=GDL_BYTE;
-        SizeT size;
-        if (majority == GDLWidgetTable::ROW_MAJOR && colTL==colBR) {
-          what=static_cast<DStructGDL*>(vValue)->GetTag(colTL)->Type();
-          size=rowBR-rowTL+1;
-        } else if (rowTL==rowBR) {
-          what=static_cast<DStructGDL*>(vValue)->GetTag(rowTL)->Type();
-          size=colBR-colTL+1;
-        } 
-        switch(what) {
-          case GDL_STRING:
-            res=new DStringGDL(dimension(size),BaseGDL::NOZERO);
-            break;
-          case GDL_BYTE:
-            res=new DByteGDL(dimension(size),BaseGDL::NOZERO);
-            break;
-          case GDL_INT: 
-            res=new DIntGDL(dimension(size),BaseGDL::NOZERO);
-            break;
-          case GDL_LONG:
-            res=new DLongGDL(dimension(size),BaseGDL::NOZERO);
-            break;
-          case GDL_FLOAT:
-            res=new DFloatGDL(dimension(size),BaseGDL::NOZERO);
-            break;
-          case GDL_DOUBLE:
-            res=new DDoubleGDL(dimension(size),BaseGDL::NOZERO);
-            break;
-          case GDL_COMPLEX:
-            res=new DComplexGDL(dimension(size),BaseGDL::NOZERO);
-            break;
-          case GDL_COMPLEXDBL:
-            res=new DComplexDblGDL(dimension(size),BaseGDL::NOZERO);
-            break;
-          case GDL_UINT:
-            res=new DUIntGDL(dimension(size),BaseGDL::NOZERO);
-            break;
-          case GDL_ULONG:
-            res=new DULongGDL(dimension(size),BaseGDL::NOZERO);
-            break;
-          case GDL_LONG64:
-            res=new DLong64GDL(dimension(size),BaseGDL::NOZERO);
-            break;
-          case GDL_ULONG64:
-            res=new DULong64GDL(dimension(size),BaseGDL::NOZERO);
-            break;
-          default:
-            cerr<<"Unhandled Table Type, please report!"<<endl;
-            return NULL; //signal error
-        }
-      } else { //create dedicated struct
-        DStructGDL*  typecodes = new DStructGDL( "GDL_TYPECODES_AS_STRUCT"); 
-        // creating the output anonymous structure
-        DStructDesc* res_desc = new DStructDesc("$truct");
-        SizeT size;
-        if (majority == GDLWidgetTable::ROW_MAJOR) { //data is in rows of structures. Columns are tags
-          size=rowBR-rowTL+1;
-          for (SizeT j=colTL; j<=colBR; ++j) {
-          //get tag values:
-            BaseGDL* tested;
-            std::string tagName;
-            tested=static_cast<DStructGDL*>(vValue)->GetTag(j);
-            tagName=static_cast<DStructGDL*>(vValue)->Desc()->TagName(j); //preserve tag names
-            res_desc->AddTag(tagName, typecodes->GetTag(tested->Type()));
-          }          
-        } else {
-          size=colBR-colTL+1;
-          for (SizeT i=rowTL; i<=rowBR; ++i) { 
-          //get tag values:
-            BaseGDL* tested;
-            std::string tagName;
-            tested=static_cast<DStructGDL*>(vValue)->GetTag(i);
-            tagName=static_cast<DStructGDL*>(vValue)->Desc()->TagName(i); //preserve tag names
-            res_desc->AddTag(tagName, typecodes->GetTag(tested->Type()));
-          }
-        }
-        //create res with correct dim:
-        res = new DStructGDL(res_desc, dimension(size));
-      }
-      //populate res:
-      stringstream is;
-      for( SizeT i = 0; i < stringres->N_Elements(); i++)  is << (*stringres)[ i] << '\n';
-      res->FromStream( is);        
-    }
+template <typename T1, typename T2>
+void GDLWidgetTable::PopulateWithDisjointSelection(T1* res, DLongGDL* selection) {
+  int data_numberCols = vValue->Dim(0);
+  int data_numberRows = vValue->Dim(1);
+  for (SizeT k = 0, n = 0, l = 0; n < selection->Dim(1); ++n) {
+	int col = (*selection)[l++];
+	int row = (*selection)[l++];
+	if (row >= data_numberRows || col >= data_numberCols) continue;
+	(*res)[k++] = static_cast<T2*> (vValue->DataAddr())[col + row * data_numberCols];
   }
-  return res;
 }
 
-DStringGDL* GDLWidgetTable::GetTableValues(DLongGDL* selection)
-{
-  wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
-  assert( grid != NULL);
-  if ( selection==NULL ) return valueAsStrings;
-  
-  DStringGDL * stringres;
-  int data_numberCols=valueAsStrings->Dim(0);
-  int data_numberRows=valueAsStrings->Dim(1);
-  int grid_ncols=grid->GetNumberCols();
-  int grid_nrows=grid->GetNumberRows();
-  //use the wxWidget selection or the passed selection, mode-dependent:
-  if (disjointSelection) { //pairs lists
-	if (selection->Rank()==0) { //use current wxWidgets selection
-	  std::vector<wxPoint> list=grid->GetSelectedDisjointCellsList();
-	  stringres=new DStringGDL(list.size(),BaseGDL::NOZERO); 
-	  SizeT k=0;
-	  for ( std::vector<wxPoint>::iterator it = list.begin(); it !=list.end(); ++it) {
-		if ((*it).x >= data_numberRows || (*it).y >= data_numberCols) return static_cast<DStringGDL*>(NULL); 
-		(*stringres)[k++]=grid->GetCellValue( (*it).x, (*it).y ).mb_str(wxConvUTF8);
-	  }
-	} else {
-	  stringres=new DStringGDL(selection->Dim(1),BaseGDL::NOZERO);
-	  for (SizeT k=0,n=0,l=0; n<selection->Dim(1); ++n) {
-		int col = (*selection)[l++];
-		int row = (*selection)[l++];
-		if ( row >= data_numberRows || col >= data_numberCols) return static_cast<DStringGDL*>(NULL); 
-		(*stringres)[k++]=grid->GetCellValue( row, col).mb_str(wxConvUTF8);
-	  }
-	}
-  } else { //IDL maintains the 2D-structure of val!
-	int colTL,colBR,rowTL,rowBR;
-	if (selection->Rank()==0) { 
-	  wxArrayInt block=grid->GetSelectedBlockOfCells();
-	  //normally only ONE block is available.
-	  colTL = block[0]; if ( colTL < 0 || colTL > data_numberCols-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
-	  rowTL = block[1]; if ( rowTL < 0 || rowTL > data_numberRows-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
-	  colBR = block[2]; if ( colBR < 0 || colBR > data_numberCols-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
-	  rowBR = block[3]; if ( rowBR < 0 || rowBR > data_numberRows-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
-	} else {
-	  colTL = (*selection)[0]; if ( colTL < 0 || colTL > data_numberCols-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
-	  rowTL = (*selection)[1]; if ( rowTL < 0 || rowTL > data_numberRows-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
-	  colBR = (*selection)[2]; if ( colBR < 0 || colBR > data_numberCols-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
-	  rowBR = (*selection)[3]; if ( rowBR < 0 || rowBR > data_numberRows-1 ) ThrowGDLException("USE_TABLE_SELECT value out of range.");
-	}
-	SizeT dims[2];
-	dims[1]=(rowBR-rowTL+1);
-	dims[0]=(colBR-colTL+1);
-	dimension dim(dims,2);
-	stringres=new DStringGDL(dim,BaseGDL::NOZERO);
-	for (SizeT k=0,j=rowTL; j<=rowBR; ++j) for (SizeT i=colTL; i<=colBR; ++i) 
-	{
-	  (*stringres)[k++]=(*valueAsStrings)[j*data_numberCols+i];
-	}
+BaseGDL* GDLWidgetTable::GetDisjointSelectionValues(DLongGDL* selection) {
+  dimension dim(selection->Dim(1));
+  switch (vValue->Type()) {
+  case GDL_STRING:
+  {
+	DStringGDL* res = new DStringGDL(dim, BaseGDL::NOZERO);
+	PopulateWithDisjointSelection<DStringGDL, DString>(res, selection);
+	return res;
+	break;
   }
-  //convention: if value is of type struct, string array will always be row_major. thus if we are column major, transpose return string array
-  if (vValue->Type()==GDL_STRUCT && majority==GDLWidgetTable::COLUMN_MAJOR) return static_cast<DStringGDL*>(stringres->Transpose(NULL))->Dup();  
-  else return stringres;
+  case GDL_BYTE:
+  {
+	DByteGDL* res = new DByteGDL(dim, BaseGDL::NOZERO);
+	PopulateWithDisjointSelection<DByteGDL, DByte>(res, selection);
+	return res;
+	break;
+  }
+  case GDL_INT:
+  {
+	DIntGDL* res = new DIntGDL(dim, BaseGDL::NOZERO);
+	PopulateWithDisjointSelection<DIntGDL, DInt>(res, selection);
+	return res;
+	break;
+  }
+  case GDL_LONG:
+  {
+	DLongGDL* res = new DLongGDL(dim, BaseGDL::NOZERO);
+	PopulateWithDisjointSelection<DLongGDL, DLong>(res, selection);
+	return res;
+	break;
+  }
+  case GDL_FLOAT:
+  {
+	DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+	PopulateWithDisjointSelection<DFloatGDL, DFloat>(res, selection);
+	return res;
+	break;
+  }
+  case GDL_DOUBLE:
+  {
+	DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+	PopulateWithDisjointSelection<DDoubleGDL, DDouble>(res, selection);
+	return res;
+	break;
+  }
+  case GDL_COMPLEX:
+  {
+	DComplexGDL* res = new DComplexGDL(dim, BaseGDL::NOZERO);
+	PopulateWithDisjointSelection<DComplexGDL, DComplex>(res, selection);
+	return res;
+	break;
+  }
+  case GDL_COMPLEXDBL:
+  {
+	DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
+	PopulateWithDisjointSelection<DComplexDblGDL, DComplexDbl>(res, selection);
+	return res;
+	break;
+  }
+  case GDL_UINT:
+  {
+	DUIntGDL* res = new DUIntGDL(dim, BaseGDL::NOZERO);
+	PopulateWithDisjointSelection<DUIntGDL, DUInt>(res, selection);
+	return res;
+	break;
+  }
+  case GDL_ULONG:
+  {
+	DULongGDL* res = new DULongGDL(dim, BaseGDL::NOZERO);
+	PopulateWithDisjointSelection<DULongGDL, DULong>(res, selection);
+	return res;
+	break;
+  }
+  case GDL_LONG64:
+  {
+	DLong64GDL* res = new DLong64GDL(dim, BaseGDL::NOZERO);
+	PopulateWithDisjointSelection<DLong64GDL, DLong64>(res, selection);
+	return res;
+	break;
+  }
+  case GDL_ULONG64:
+  {
+	DULong64GDL* res = new DULong64GDL(dim, BaseGDL::NOZERO);
+	PopulateWithDisjointSelection<DULong64GDL, DULong64>(res, selection);
+	return res;
+	break;
+  }
+  default:
+	cerr << "Unhandled Table Type, please report!" << endl;
+	return NULL; //signal error
+  }
+  return NULL;
+}
+
+template <typename T1, typename T2>
+void GDLWidgetTable::PopulateWithSelection(T1* res, int colTL, int colBR, int rowTL, int rowBR) {
+  int data_numberCols = vValue->Dim(0);
+  for (SizeT k = 0, j = rowTL; j <= rowBR; ++j) for (SizeT i = colTL; i <= colBR; ++i) {
+	(*res)[k++] = static_cast<T2*> (vValue->DataAddr())[j * data_numberCols + i];
+	}
+}
+
+BaseGDL* GDLWidgetTable::GetSelectionValues(int colTL, int colBR, int rowTL, int rowBR) {
+	SizeT dims[2];
+	dims[1] = (rowBR - rowTL + 1);
+	dims[0] = (colBR - colTL + 1);
+	dimension dim(dims, 2);
+  switch (vValue->Type()) {
+  case GDL_STRING:
+  {
+	DStringGDL* res = new DStringGDL(dim, BaseGDL::NOZERO);
+	PopulateWithSelection<DStringGDL, DString>(res, colTL, colBR, rowTL, rowBR);
+	return res;
+	break;
+  }
+  case GDL_BYTE:
+  {
+	DByteGDL* res = new DByteGDL(dim, BaseGDL::NOZERO);
+	PopulateWithSelection<DByteGDL, DByte>(res, colTL, colBR, rowTL, rowBR);
+	return res;
+	break;
+  }
+  case GDL_INT:
+  {
+	DIntGDL* res = new DIntGDL(dim, BaseGDL::NOZERO);
+	PopulateWithSelection<DIntGDL, DInt>(res, colTL, colBR, rowTL, rowBR);
+	return res;
+	break;
+  }
+  case GDL_LONG:
+  {
+	DLongGDL* res = new DLongGDL(dim, BaseGDL::NOZERO);
+	PopulateWithSelection<DLongGDL, DLong>(res, colTL, colBR, rowTL, rowBR);
+	return res;
+	break;
+  }
+  case GDL_FLOAT:
+  {
+	DFloatGDL* res = new DFloatGDL(dim, BaseGDL::NOZERO);
+	PopulateWithSelection<DFloatGDL, DFloat>(res, colTL, colBR, rowTL, rowBR);
+	return res;
+	break;
+  }
+  case GDL_DOUBLE:
+  {
+	DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
+	PopulateWithSelection<DDoubleGDL, DDouble>(res, colTL, colBR, rowTL, rowBR);
+	return res;
+	break;
+  }
+  case GDL_COMPLEX:
+  {
+	DComplexGDL* res = new DComplexGDL(dim, BaseGDL::NOZERO);
+	PopulateWithSelection<DComplexGDL, DComplex>(res, colTL, colBR, rowTL, rowBR);
+	return res;
+	break;
+  }
+  case GDL_COMPLEXDBL:
+  {
+	DComplexDblGDL* res = new DComplexDblGDL(dim, BaseGDL::NOZERO);
+	PopulateWithSelection<DComplexDblGDL, DComplexDbl>(res, colTL, colBR, rowTL, rowBR);
+	return res;
+	break;
+  }
+  case GDL_UINT:
+  {
+	DUIntGDL* res = new DUIntGDL(dim, BaseGDL::NOZERO);
+	PopulateWithSelection<DUIntGDL, DUInt>(res, colTL, colBR, rowTL, rowBR);
+	return res;
+	break;
+  }
+  case GDL_ULONG:
+  {
+	DULongGDL* res = new DULongGDL(dim, BaseGDL::NOZERO);
+	PopulateWithSelection<DULongGDL, DULong>(res, colTL, colBR, rowTL, rowBR);
+	return res;
+	break;
+  }
+  case GDL_LONG64:
+  {
+	DLong64GDL* res = new DLong64GDL(dim, BaseGDL::NOZERO);
+	PopulateWithSelection<DLong64GDL, DLong64>(res, colTL, colBR, rowTL, rowBR);
+	return res;
+	break;
+  }
+  case GDL_ULONG64:
+  {
+	DULong64GDL* res = new DULong64GDL(dim, BaseGDL::NOZERO);
+	PopulateWithSelection<DULong64GDL, DULong64>(res, colTL, colBR, rowTL, rowBR);
+	return res;
+	break;
+  }
+  default:
+	cerr << "Unhandled Table Type, please report!" << endl;
+	return NULL; //signal error
+  }
+  return NULL;
+}
+BaseGDL* GDLWidgetTable::GetTableValues(DLongGDL* selection) {
+  wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
+  assert(grid != NULL);
+  if (selection == NULL) return vValue->Dup();
+
+  BaseGDL * res;
+  int data_numberCols = vValue->Dim(0);
+  int data_numberRows = vValue->Dim(1);
+  int grid_ncols = grid->GetNumberCols();
+  int grid_nrows = grid->GetNumberRows();
+  //use the wxWidget selection or the passed selection, mode-dependent:
+  if (disjointSelection) { 
+	return GetDisjointSelectionValues(selection);
+  } else { //IDL maintains the 2D-structure of val!
+	int colTL, colBR, rowTL, rowBR;
+	if (selection->Rank() == 0) {
+	  wxArrayInt block = grid->GetSelectedBlockOfCells();
+	  //normally only ONE block is available.
+	  colTL = block[0];
+	  if (colTL < 0 || colTL > data_numberCols - 1) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  rowTL = block[1];
+	  if (rowTL < 0 || rowTL > data_numberRows - 1) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  colBR = block[2];
+	  if (colBR < 0 || colBR > data_numberCols - 1) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  rowBR = block[3];
+	  if (rowBR < 0 || rowBR > data_numberRows - 1) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	} else {
+	  colTL = (*selection)[0];
+	  if (colTL < 0 || colTL > data_numberCols - 1) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  rowTL = (*selection)[1];
+	  if (rowTL < 0 || rowTL > data_numberRows - 1) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  colBR = (*selection)[2];
+	  if (colBR < 0 || colBR > data_numberCols - 1) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	  rowBR = (*selection)[3];
+	  if (rowBR < 0 || rowBR > data_numberRows - 1) ThrowGDLException("USE_TABLE_SELECT value out of range.");
+	}
+	return GetSelectionValues(colTL, colBR, rowTL, rowBR);
+  }
+  return NULL;
 }
 
 void GDLWidgetTable::SetSelection(DLongGDL* selection)
@@ -4366,8 +4734,8 @@ void GDLWidgetTable::SetTableNumberOfColumns( DLong ncols){
   assert( grid != NULL);
   grid->BeginBatch( );
   int old_ncols=grid->GetNumberCols();
-  int numRows=valueAsStrings->Dim(0);
-  int numCols=valueAsStrings->Dim(1);
+  int numRows=vValue->Dim(0);
+  int numCols=vValue->Dim(1);
   if (ncols > old_ncols) {
     grid->AppendCols(ncols-old_ncols);
     if (numCols > old_ncols) {
@@ -4390,8 +4758,8 @@ void GDLWidgetTable::SetTableNumberOfRows( DLong nrows){
   assert( grid != NULL);
   grid->BeginBatch( );
   SizeT old_nrows=grid->GetNumberRows();
-  int numRows=valueAsStrings->Dim(0);
-  int numCols=valueAsStrings->Dim(1);
+  int numRows=vValue->Dim(0);
+  int numCols=vValue->Dim(1);
   if (nrows > old_nrows) {
     grid->AppendRows(nrows-old_nrows);
     if (numRows > old_nrows) {

@@ -50,7 +50,7 @@
 #include <wx/dragimag.h>
 #include <wx/dcbuffer.h>
 #include <wx/dnd.h>
-
+#include <wx/renderer.h>
 #include <wx/grid.h>
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID
 //#include <wx/propgrid/propgrid.h>
@@ -249,7 +249,7 @@ public:
 class wxAppGDL: public wxApp
 {
  wxGUIEventLoop loop;
-public:
+ public:
  int MyLoop();
 };
 
@@ -1706,7 +1706,35 @@ public:
   bool InsertRows(DLong count, bool insertAtEnd, DLongGDL* selection=NULL);
 
   void SetSelection(DLongGDL* selection);
-  DStringGDL* GetTableValues(DLongGDL* selection=NULL);
+
+  template<typename T1, typename T2>
+  DString GetRawEditingValue(T1* value, const int nEl, const int n, const int majority) {
+    if (n > nEl-1) return "";
+    T2* val=static_cast<T2*>(value->DataAddr());
+    std::stringstream os;
+    os << val[n];
+    return os.str();
+  }
+  template<typename T1, typename T2>
+  DString SetEditedValue(wxString s, T1* value, const int nEl, const int n, DStringGDL* format) {
+    if (n > nEl-1) return "";
+     if (value->Type() == GDL_STRUCT) return "";
+    //convert to STRING using FORMAT.
+    T2* val=static_cast<T2*>(value->DataAddr());
+    std::stringstream os;
+    os << s;
+    os >> val[n];
+    T1* subvalue=new T1(val[n]);
+    Guard<T1> guard(subvalue);
+    return (*CallStringFunction(subvalue, format))[0];
+  }
+  template <typename T1, typename T2>
+  void PopulateWithSelection(T1* res, int colTL, int colBR, int rowTL, int rowBR);
+  BaseGDL* GetSelectionValues(int colTL, int colBR, int rowTL, int rowBR);
+  BaseGDL* GetDisjointSelectionValues(DLongGDL* selection);
+  template <typename T1, typename T2>
+  void PopulateWithDisjointSelection(T1* resGDL, DLongGDL* selection);
+  BaseGDL* GetTableValues(DLongGDL* selection=NULL);
   BaseGDL* GetTableValuesAsStruct(DLongGDL* selection=NULL);
   void SetTableValues(BaseGDL* value, DStringGDL *stringval, DLongGDL* selection=NULL);
   void SetValue(BaseGDL * val){GDLDelete(vValue); vValue=val->Dup();};
@@ -1971,7 +1999,11 @@ public:
   ~wxGridGDL(){
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "~wxGridGDL: " << this << std::endl;
-#endif 
+#endif
+  }
+
+  wxWindowID GetWidgetTableID() {
+    return GDLWidgetTableID;
   }
   
   bool IsSomethingSelected(){
@@ -2064,13 +2096,14 @@ public:
     block.push_back(row);
     return block;
   }
-
+  
   void OnTableCellSelection(wxGridEvent & event);
   void OnTableRangeSelection(wxGridRangeSelectEvent & event);
   void OnTableColResizing(wxGridSizeEvent & event);
   void OnTableRowResizing(wxGridSizeEvent & event); 
 //  void OnText( wxCommandEvent& event);
   void OnTextChanging( wxGridEvent & event);
+  void OnTextChanged( wxGridEvent & event);
 };
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID
 //

@@ -444,11 +444,7 @@ DStringGDL*  GetTableValueAsString(EnvT* e, BaseGDL* &value, DStringGDL* format,
 	dimension dim(dims, 2);
 	valueAsStrings = new DStringGDL(dim);
 	majority=GDLWidgetTable::NONE_MAJOR;
-  } else if (value->Type() == GDL_STRING) {
-	valueAsStrings = static_cast<DStringGDL*> (value->Dup());
-	majority=GDLWidgetTable::NONE_MAJOR;
-  }
-  else if (value->Type() == GDL_STRUCT) {
+  } else if (value->Type() == GDL_STRUCT) {
 	if (value->Rank() > 1) e->Throw("Multi dimensional arrays of structures not allowed.");
 	if(majority==GDLWidgetTable::NONE_MAJOR) majority=GDLWidgetTable::ROW_MAJOR;
 	//convert to STRING
@@ -2842,68 +2838,69 @@ void widget_control( EnvT* e ) {
     } else { 
         if ( widget->IsTable( ) ) { //TABLE
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
-        DStringGDL* retval = table->GetTableValues( tableSelectionToUse );
-        if ( retval == NULL ) e->Throw( "USE_TABLE_SELECT value out of range." );
-        else if ( table->GetVvalue( ) == NULL ) {
-          e->Throw( " Class of specified widget has no value: 1" );
-        }//Just as IDL does!
-        else if ( table->GetVvalue( )->Type( ) == GDL_STRING ) {
-          if (valueKW) GDLDelete( (*valueKW) );      
-          *valueKW = retval->Dup( );
-        }
-        else if ( table->GetVvalue( )->Type( ) == GDL_STRUCT ) {
-          BaseGDL* val;
-          //use a special case handling transpositions due to column or row majority.
-          val = table->GetTableValuesAsStruct( tableSelectionToUse );
-          if ( val == NULL ) e->Throw( "USE_TABLE_SELECT value out of range." ); //superfluous.
-          if (valueKW) GDLDelete( (*valueKW) );
-          *valueKW = val->Dup( );
-        }
-        else {
-          BaseGDL* val;
-          switch ( table->GetVvalue( )->Type( ) ) {
-            case GDL_BYTE:
-              val = new DByteGDL( retval->Dim( ) );
-              break;
-            case GDL_INT:
-              val = new DIntGDL( retval->Dim( ) );
-              break;
-            case GDL_LONG:
-              val = new DLongGDL( retval->Dim( ) );
-              break;
-            case GDL_FLOAT:
-              val = new DFloatGDL( retval->Dim( ) );
-              break;
-            case GDL_DOUBLE:
-              val = new DDoubleGDL( retval->Dim( ) );
-              break;
-            case GDL_COMPLEX:
-              val = new DComplexGDL( retval->Dim( ) );
-              break;
-            case GDL_COMPLEXDBL:
-              val = new DComplexDblGDL( retval->Dim( ) );
-              break;
-            case GDL_UINT:
-              val = new DUIntGDL( retval->Dim( ) );
-              break;
-            case GDL_ULONG:
-              val = new DULongGDL( retval->Dim( ) );
-              break;
-            case GDL_LONG64:
-              val = new DLong64GDL( retval->Dim( ) );
-              break;
-            case GDL_ULONG64:
-              val = new DULong64GDL( retval->Dim( ) );
-              break;
-            default:
-              e->Throw("Internal GDL error, please report!");
-          }
-          stringstream is;
-          for ( SizeT i = 0; i < val->N_Elements( ); i++ ) is << (*retval)[ i] << '\n';
-          val->FromStream( is );
-          if (valueKW) GDLDelete( (*valueKW) );
-          *valueKW = val->Dup( );
-        }
+		  if (valueKW) GDLDelete((*valueKW));
+		  *valueKW = table->GetTableValues( tableSelectionToUse );
+//        if ( retval == NULL ) e->Throw( "USE_TABLE_SELECT value out of range." );
+//        else if ( table->GetVvalue( ) == NULL ) {
+//          e->Throw( " Class of specified widget has no value: 1" );
+//        }//Just as IDL does!
+//        else if ( table->GetVvalue( )->Type( ) == GDL_STRING ) {
+//          if (valueKW) GDLDelete( (*valueKW) );      
+//          *valueKW = retval->Dup( );
+//        }
+//        else if ( table->GetVvalue( )->Type( ) == GDL_STRUCT ) {
+//          BaseGDL* val;
+//          //use a special case handling transpositions due to column or row majority.
+//          val = table->GetTableValuesAsStruct( tableSelectionToUse );
+//          if ( val == NULL ) e->Throw( "USE_TABLE_SELECT value out of range." ); //superfluous.
+//          if (valueKW) GDLDelete( (*valueKW) );
+//          *valueKW = val->Dup( );
+//        }
+//        else {
+//          BaseGDL* val;
+//          switch ( table->GetVvalue( )->Type( ) ) {
+//            case GDL_BYTE:
+//              val = new DByteGDL( retval->Dim( ) );
+//              break;
+//            case GDL_INT:
+//              val = new DIntGDL( retval->Dim( ) );
+//              break;
+//            case GDL_LONG:
+//              val = new DLongGDL( retval->Dim( ) );
+//              break;
+//            case GDL_FLOAT:
+//              val = new DFloatGDL( retval->Dim( ) );
+//              break;
+//            case GDL_DOUBLE:
+//              val = new DDoubleGDL( retval->Dim( ) );
+//              break;
+//            case GDL_COMPLEX:
+//              val = new DComplexGDL( retval->Dim( ) );
+//              break;
+//            case GDL_COMPLEXDBL:
+//              val = new DComplexDblGDL( retval->Dim( ) );
+//              break;
+//            case GDL_UINT:
+//              val = new DUIntGDL( retval->Dim( ) );
+//              break;
+//            case GDL_ULONG:
+//              val = new DULongGDL( retval->Dim( ) );
+//              break;
+//            case GDL_LONG64:
+//              val = new DLong64GDL( retval->Dim( ) );
+//              break;
+//            case GDL_ULONG64:
+//              val = new DULong64GDL( retval->Dim( ) );
+//              break;
+//            default:
+//              e->Throw("Internal GDL error, please report!");
+//          }
+//          stringstream is;
+//          for ( SizeT i = 0; i < val->N_Elements( ); i++ ) is << (*retval)[ i] << '\n';
+//          val->FromStream( is );
+//          if (valueKW) GDLDelete( (*valueKW) );
+//          *valueKW = val->Dup( );
+//        }
       } else if ( widget->IsSlider( ) ) {
         GDLWidgetSlider *s = (GDLWidgetSlider *) widget;
         if (valueKW) GDLDelete( (*valueKW) );
