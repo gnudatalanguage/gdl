@@ -224,7 +224,7 @@ void GDLWidget::GetCommonKeywords( EnvT* e)
   e->AssureStringScalarKWIfPresent( unameIx, uName );
   // no case change
 }
-#endif    
+#endif
 
 
 // non library functions
@@ -420,6 +420,8 @@ T* GetKeywordAs( EnvT* e, int ix)
   return static_cast<T*> (kwBaseGDL->Dup( ));
 }
 
+#ifdef HAVE_LIBWXWIDGETS
+
 DStringGDL*  GetTableValueAsString(EnvT* e, BaseGDL* &value, DStringGDL* format,  int &majority) {
   DStringGDL* valueAsStrings;
   //test of non-conformity
@@ -475,7 +477,7 @@ DStringGDL*  GetTableValueAsString(EnvT* e, BaseGDL* &value, DStringGDL* format,
   }
   return valueAsStrings;
 }
-
+#endif
 
 
 namespace lib {
