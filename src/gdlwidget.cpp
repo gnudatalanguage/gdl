@@ -337,39 +337,94 @@ wxString wxGridGDLCellTextEditor::GetEditedValue(int row, int col, wxGrid* grid)
   int majority=table->GetMajority();
   SizeT dim0 = value->Dim(0);
   SizeT nEl = value->N_Elements();
-  wxString ret="!!!";
   switch (value->Type()) {
   case GDL_STRING:
-	ret = table->GetRawEditingValue <DStringGDL,DString> (static_cast<DStringGDL*>(value), nEl, row*dim0+col, majority);
+	return table->GetRawEditingValue <DStringGDL, DString> (static_cast<DStringGDL*> (value), nEl, row * dim0 + col, majority);
 	break;
-  case GDL_FLOAT:
-	ret = table->GetRawEditingValue <DFloatGDL,DFloat> (static_cast<DFloatGDL*>(value), nEl, row*dim0+col, majority);
+  case GDL_BYTE:
+	return table->GetRawEditingValue <DByteGDL, DByte> (static_cast<DByteGDL*> (value), nEl, row * dim0 + col, majority);
 	break;
   case GDL_INT:
-	ret = table->GetRawEditingValue <DIntGDL,DInt> (static_cast<DIntGDL*>(value), nEl, row*dim0+col, majority);
+	return table->GetRawEditingValue <DIntGDL, DInt> (static_cast<DIntGDL*> (value), nEl, row * dim0 + col, majority);
 	break;
+  case GDL_LONG:
+	return table->GetRawEditingValue <DLongGDL, DLong> (static_cast<DLongGDL*> (value), nEl, row * dim0 + col, majority);
+	break;
+  case GDL_FLOAT:
+	return table->GetRawEditingValue <DFloatGDL, DFloat> (static_cast<DFloatGDL*> (value), nEl, row * dim0 + col, majority);
+	break;
+  case GDL_DOUBLE:
+	return table->GetRawEditingValue <DDoubleGDL, DDouble> (static_cast<DDoubleGDL*> (value), nEl, row * dim0 + col, majority);
+	break;
+  case GDL_COMPLEX:
+	return table->GetRawEditingValue <DComplexGDL, DComplex> (static_cast<DComplexGDL*> (value), nEl, row * dim0 + col, majority);
+	break;
+  case GDL_COMPLEXDBL:
+	return table->GetRawEditingValue <DComplexDblGDL, DComplexDbl> (static_cast<DComplexDblGDL*> (value), nEl, row * dim0 + col, majority);
+	break;
+  case GDL_UINT:
+	return table->GetRawEditingValue <DUIntGDL, DUInt> (static_cast<DUIntGDL*> (value), nEl, row * dim0 + col, majority);
+	break;
+  case GDL_ULONG:
+	return table->GetRawEditingValue <DULongGDL, DULong> (static_cast<DULongGDL*> (value), nEl, row * dim0 + col, majority);
+	break;
+  case GDL_LONG64:
+	return table->GetRawEditingValue <DLong64GDL, DLong64> (static_cast<DLong64GDL*> (value), nEl, row * dim0 + col, majority);
+	break;
+  case GDL_ULONG64:
+	return table->GetRawEditingValue <DULong64GDL, DULong64> (static_cast<DULong64GDL*> (value), nEl, row * dim0 + col, majority);
+	break;
+  default:
+	cerr << "Unhandled Table Type, please report!" << endl;
   }
-  return ret;
+  return "";
 }
 wxString wxGridGDLCellTextEditor::SetEditedValue(wxString sval, int row, int col){
   BaseGDL* value = table->GetVvalue();
   DStringGDL* format=table->GetCurrentFormat();
   SizeT dim0 = value->Dim(0);
   SizeT nEl = value->N_Elements();
-  // update vValue with sval and get back formatted string
-  wxString ret="!!!";
   switch (value->Type()) {
   case GDL_STRING:
-	ret = table->SetEditedValue <DStringGDL,DString> (sval, static_cast<DStringGDL*>(value), nEl, row*dim0+col, format);
+	return table->SetEditedValue <DStringGDL, DString> (sval, static_cast<DStringGDL*> (value), nEl, row * dim0 + col, format);
 	break;
-  case GDL_FLOAT:
-	ret = table->SetEditedValue <DFloatGDL,DFloat> (sval, static_cast<DFloatGDL*>(value), nEl, row*dim0+col, format);
+  case GDL_BYTE:
+	return table->SetEditedValue <DByteGDL, DByte> (sval, static_cast<DByteGDL*> (value), nEl, row * dim0 + col, format);
 	break;
   case GDL_INT:
-	ret = table->SetEditedValue <DIntGDL,DInt> (sval, static_cast<DIntGDL*>(value), nEl, row*dim0+col, format);
+	return table->SetEditedValue <DIntGDL, DInt> (sval, static_cast<DIntGDL*> (value), nEl, row * dim0 + col, format);
 	break;
+  case GDL_LONG:
+	return table->SetEditedValue <DLongGDL, DLong> (sval, static_cast<DLongGDL*> (value), nEl, row * dim0 + col, format);
+	break;
+  case GDL_FLOAT:
+	return table->SetEditedValue <DFloatGDL, DFloat> (sval, static_cast<DFloatGDL*> (value), nEl, row * dim0 + col, format);
+	break;
+  case GDL_DOUBLE:
+	return table->SetEditedValue <DDoubleGDL, DDouble> (sval, static_cast<DDoubleGDL*> (value), nEl, row * dim0 + col, format);
+	break;
+  case GDL_COMPLEX:
+	return table->SetEditedValue <DComplexGDL, DComplex> (sval, static_cast<DComplexGDL*> (value), nEl, row * dim0 + col, format);
+	break;
+  case GDL_COMPLEXDBL:
+	return table->SetEditedValue <DComplexDblGDL, DComplexDbl> (sval, static_cast<DComplexDblGDL*> (value), nEl, row * dim0 + col, format);
+	break;
+  case GDL_UINT:
+	return table->SetEditedValue <DUIntGDL, DUInt> (sval, static_cast<DUIntGDL*> (value), nEl, row * dim0 + col, format);
+	break;
+  case GDL_ULONG:
+	return table->SetEditedValue <DULongGDL, DULong> (sval, static_cast<DULongGDL*> (value), nEl, row * dim0 + col, format);
+	break;
+  case GDL_LONG64:
+	return table->SetEditedValue <DLong64GDL, DLong64> (sval, static_cast<DLong64GDL*> (value), nEl, row * dim0 + col, format);
+	break;
+  case GDL_ULONG64:
+	return table->SetEditedValue <DULong64GDL, DULong64> (sval, static_cast<DULong64GDL*> (value), nEl, row * dim0 + col, format);
+	break;
+  default:
+	cerr << "Unhandled Table Type, please report!" << endl;
   }
-  return ret;
+  return ""; 
 }
 
 void wxGridGDLCellTextEditor::BeginEdit(int row, int col, wxGrid* grid) {
