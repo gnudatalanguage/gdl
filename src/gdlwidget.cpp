@@ -4795,6 +4795,7 @@ void GDLWidgetTable::SetTableXsizeAsNumberOfColumns( DLong ncols){
 	DStringGDL* format = GetCurrentFormat();
 	DStringGDL* newValueAsStrings = ConvertValueToStringArray(vValue, format, majority);
     grid->AppendCols(ncols-old_ncols);
+	for (SizeT i = old_ncols; i < ncols; ++i) grid->SetColLabelValue(i, wxString(i2s(i)));
     if (numCols > old_ncols) {
       int colTL,colBR,rowTL,rowBR;
       colTL=old_ncols-1;
