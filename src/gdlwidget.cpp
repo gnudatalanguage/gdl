@@ -3011,7 +3011,7 @@ DStringGDL* rowLabels_,
 BaseGDL* value_,
 DLong xScrollSize_,
 DLong yScrollSize_,
-DStringGDL* valueAsStrings_,
+DStringGDL* valueAsStrings,
 DULong eventFlags_
 )
 : GDLWidget( p, e, value_, eventFlags_ )
@@ -3037,7 +3037,6 @@ DULong eventFlags_
 //, tabMode( tabMode_ )
 , x_scroll_size_columns( xScrollSize_ )
 , y_scroll_size_rows( yScrollSize_)
-, valueAsStrings( valueAsStrings_ )
 , updating(false)
 {
   GDLWidget* gdlParent = GetWidget( parentID );
@@ -3048,12 +3047,12 @@ DULong eventFlags_
 
 //at this stage, valueAsStrings is OK dim 1 or 2 BUT vVALUE MAY BE NULL!
 SizeT numRows,numCols;
-if (valueAsStrings->Rank()==1) {
+if (vValue->Rank()==1) {
   numRows=1;
-  numCols=valueAsStrings->Dim(0); //lines
+  numCols=vValue->Dim(0); //lines
 } else {
-  numRows=valueAsStrings->Dim(1);
-  numCols=valueAsStrings->Dim(0);
+  numRows=vValue->Dim(1);
+  numCols=vValue->Dim(0);
 }
 
 //if wSize is not explicit, it must now be explicit:
@@ -4784,7 +4783,7 @@ void GDLWidgetTable::MakeCellEditable(DLongGDL* pos)
   assert( grid != NULL);
   grid->SetReadOnly((*pos)[0],(*pos)[1],false);
 }
-void GDLWidgetTable::SetTableNumberOfColumns( DLong ncols){
+void GDLWidgetTable::SetTableXsizeAsNumberOfColumns( DLong ncols){
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
   assert( grid != NULL);
   grid->BeginBatch( );
@@ -4792,6 +4791,9 @@ void GDLWidgetTable::SetTableNumberOfColumns( DLong ncols){
   int numRows=vValue->Dim(0);
   int numCols=vValue->Dim(1);
   if (ncols > old_ncols) {
+	int majority = GetMajority();
+	DStringGDL* format = GetCurrentFormat();
+	DStringGDL* newValueAsStrings = ConvertValueToStringArray(vValue, format, majority);
     grid->AppendCols(ncols-old_ncols);
     if (numCols > old_ncols) {
       int colTL,colBR,rowTL,rowBR;
@@ -4799,16 +4801,16 @@ void GDLWidgetTable::SetTableNumberOfColumns( DLong ncols){
       colBR=ncols-1;
       rowTL=0;
       rowBR=grid->GetNumberRows()-1;
-      for ( int i=rowTL; i<=rowBR; ++i) for (int j=colTL; j<=colBR; ++j)
+      for ( int j=rowTL; j<=rowBR; ++j) for (int i=colTL; i<=colBR; ++i)
       {
-        if (i < numRows && j < numCols ) grid->SetCellValue( i, j ,wxString(((*valueAsStrings)[j*numRows+i]).c_str(), wxConvUTF8 ) ); 
+        if (i < numCols && j < numRows ) grid->SetCellValue( j, i, wxString(((*newValueAsStrings)[j*numCols+i]).c_str(), wxConvUTF8 ) ); 
       }
     }
   }
   else if (ncols < old_ncols) grid->DeleteCols(ncols,old_ncols-ncols);
   grid->EndBatch( );
 }
-void GDLWidgetTable::SetTableNumberOfRows( DLong nrows){
+void GDLWidgetTable::SetTableYsizeAsNumberOfRows( DLong nrows){
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
   assert( grid != NULL);
   grid->BeginBatch( );
@@ -4816,6 +4818,9 @@ void GDLWidgetTable::SetTableNumberOfRows( DLong nrows){
   int numRows=vValue->Dim(0);
   int numCols=vValue->Dim(1);
   if (nrows > old_nrows) {
+	int majority = GetMajority();
+	DStringGDL* format = GetCurrentFormat();
+	DStringGDL* newValueAsStrings = ConvertValueToStringArray(vValue, format, majority);
     grid->AppendRows(nrows-old_nrows);
     if (numRows > old_nrows) {
       int colTL,colBR,rowTL,rowBR;
@@ -4823,9 +4828,9 @@ void GDLWidgetTable::SetTableNumberOfRows( DLong nrows){
       colBR=grid->GetNumberCols()-1;
       rowTL=old_nrows-1;
       rowBR=nrows-1;
-      for ( int i=rowTL; i<=rowBR; ++i) for (int j=colTL; j<=colBR; ++j)
+      for ( int j=rowTL; j<=rowBR; ++j) for (int i=colTL; i<=colBR; ++i)
       {
-        if (i < numRows && j < numCols ) grid->SetCellValue( i, j ,wxString(((*valueAsStrings)[j*numRows+i]).c_str(), wxConvUTF8 ) ); 
+        if (i < numCols && j < numRows ) grid->SetCellValue( j, i, wxString(((*newValueAsStrings)[j*numCols+i]).c_str(), wxConvUTF8 ) ); 
       }
     }
   }

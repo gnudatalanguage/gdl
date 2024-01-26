@@ -2955,7 +2955,8 @@ void widget_control( EnvT* e ) {
     widget->SetWidgetVirtualSize(xsize,ysize);   
    }
   
-  if (hasXsize || hasYsize) {
+  if ((hasXsize || hasYsize) && !widget->IsTable()) { //widgetTable tested separately
+	
     if ( widget->IsButton()) {
       GDLWidgetButton* whatSortofBut=static_cast<GDLWidgetButton*>(widget);
       if (whatSortofBut->IsMenu() || whatSortofBut->IsEntry()) e->Throw("Geometry request not allowed for menubar or pulldown menus.");
@@ -2974,14 +2975,7 @@ void widget_control( EnvT* e ) {
         if (hasXsize) xsize*=fact.x;
         if (hasYsize) ysize*=fact.y;
       }     
-    } else {
-      if ( widget->IsTable()) {
-        wxGridGDL* grid=dynamic_cast<wxGridGDL*>(widget->GetWxWidget());
-        if (!grid) e->Throw("Internal GDL error with widgets, please report.");
-        if (hasXsize) xsize=xsize*grid->GetColSize(0)+grid->GetRowLabelSize(); 
-        if (hasYsize) ysize=ysize*grid->GetRowSize(0)+grid->GetColLabelSize();
-      }
-    }
+    } 
     widget->SetWidgetSize(xsize,ysize);
   }
 
@@ -3702,6 +3696,8 @@ void widget_control( EnvT* e ) {
     
     bool tablexsize=e->KeywordSet(TABLE_XSIZE);
     bool tableysize=e->KeywordSet(TABLE_YSIZE);
+    bool justxsize=e->KeywordSet(XSIZE);
+    bool justysize=e->KeywordSet(YSIZE);
 
     bool hasTableDisjointSelection = e->KeywordPresent(TABLE_DISJOINT_SELECTION);
     if (hasTableDisjointSelection) {
@@ -3782,11 +3778,17 @@ void widget_control( EnvT* e ) {
     }
     if (tablexsize) {
       DLong xsize= (*e->GetKWAs<DLongGDL>(TABLE_XSIZE))[0];
-      table->SetTableNumberOfColumns(xsize);
+      table->SetTableXsizeAsNumberOfColumns(xsize);
+    } else if (justxsize) {
+      DLong xsize= (*e->GetKWAs<DLongGDL>(XSIZE))[0];
+      table->SetTableXsizeAsNumberOfColumns(xsize);
     }
     if (tableysize) {
       DLong ysize= (*e->GetKWAs<DLongGDL>(TABLE_YSIZE))[0];
-      table->SetTableNumberOfRows(ysize);
+      table->SetTableYsizeAsNumberOfRows(ysize);
+    } else if (justysize) {
+      DLong ysize= (*e->GetKWAs<DLongGDL>(YSIZE))[0];
+      table->SetTableYsizeAsNumberOfRows(ysize);
     }
   }
 

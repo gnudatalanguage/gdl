@@ -1621,7 +1621,6 @@ class GDLWidgetTable: public GDLWidget
 //  DLong tabMode;
   DLong x_scroll_size_columns;
   DLong y_scroll_size_rows;
-  DStringGDL * valueAsStrings;
   bool         updating; //widget is modified by program (avoid sending events)
 
 public:
@@ -1651,9 +1650,9 @@ public:
 		  BaseGDL* value_,
 		  DLong xScrollSize_,
 		  DLong yScrollSize_,
-                  DStringGDL* valueAsStrings_,
-                  DULong eventFlags_
-         );
+      DStringGDL* valueAsStrings,
+      DULong eventFlags_
+  );
 
 ~GDLWidgetTable();
   std::vector<int> GetSortedSelectedRowsOrColsList(DLongGDL* selection, bool doCol);
@@ -1741,8 +1740,8 @@ public:
   
   void SetTableView(DLongGDL* pos);
   void MakeCellEditable(DLongGDL* pos);
-  void SetTableNumberOfColumns( DLong ncols);
-  void SetTableNumberOfRows( DLong nrows);
+  void SetTableXsizeAsNumberOfColumns( DLong ncols);
+  void SetTableYsizeAsNumberOfRows( DLong nrows);
   
   bool IsSomethingSelected();
   bool GetValidTableSelection(DLongGDL* &selection);
