@@ -1,6 +1,6 @@
 /***************************************************************************
-						  sparse_matrix.cpp  -  GDL sparse matrix functions
-							 -------------------
+        sparse_matrix.cpp  -  GDL sparse matrix functions
+			 -------------------
 	begin                : Dec 9 2023
 	copyright            : (C) 2023 by Gilles Duvert
 	email                : surname dot name at free dot fr
@@ -15,10 +15,43 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "sparse_matrix.hpp"
+
+#if !defined(USE_EIGEN)
+
+namespace lib { 
+
+  BaseGDL* sprsin_fun(EnvT* e) {
+    Message("GDL compiled without Eigen3 : SPRSIN not avaialble");
+    return new DIntGDL(0);
+  }
+  BaseGDL* sprsax_fun(EnvT* e){
+    Message("GDL compiled without Eigen3 : SPRSAX not avaialble");
+    return new DIntGDL(0);
+  }  
+  BaseGDL* sprsab_fun(EnvT* e) {
+    Message("GDL compiled without Eigen3 : SPRSAB not avaialble");
+    return new DIntGDL(0);
+  }
+  BaseGDL* sprstp_fun(EnvT* e) {
+    Message("GDL compiled without Eigen3 : SPRSTP not avaialble");
+    return new DIntGDL(0);
+  }
+  BaseGDL* fulstr_fun(EnvT* e) {
+    Message("GDL compiled without Eigen3 : SPRSTR not avaialble");
+    return new DIntGDL(0);
+  }
+  BaseGDL* linbcg_fun(EnvT* e) {
+    Message("GDL compiled without Eigen3 : LINBCG not avaialble");
+     return new DIntGDL(0);
+  }
+}
+
+#else
+
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 #include <vector>
-#include "sparse_matrix.hpp"
 
 typedef Eigen::SparseMatrix<double, Eigen::RowMajor> SPMATRowMajDbl;
 typedef Eigen::SparseVector<double> SPVecDbl;
@@ -244,3 +277,5 @@ namespace lib {
 	return convertToGDL(Mat);
   }
 }
+
+#endif

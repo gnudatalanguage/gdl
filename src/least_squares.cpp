@@ -30,13 +30,26 @@
 #include "basic_fun.hpp"
 #include "dinterpreter.hpp"
 
-#if defined(USE_EIGEN)
+#include "least_squares.hpp"
+
+#if !defined(USE_EIGEN)
+
+namespace lib {
+
+  BaseGDL* la_least_squares_fun( EnvT* e) {
+    Message("GDL compiled without Eigen3 :  LA_LEAST_SQUARES not available");
+    return new DIntGDL(0);
+  }
+}
+
+#else
+
 #include <Eigen/LU>
 #include <Eigen/Eigenvalues>
 #include <Eigen/Core>
-#endif
 
 namespace lib {
+  using namespace Eigen;
 
   using namespace std;
 #ifndef _MSC_VER
@@ -46,8 +59,8 @@ namespace lib {
   //const int szdbl=sizeof(double);
   //const int szflt=sizeof(float);
 
-#if defined(USE_EIGEN)
-  using namespace Eigen;
+  //#if defined(USE_EIGEN)
+  // using namespace Eigen;
 
 
   /***********************************************************
@@ -162,5 +175,7 @@ namespace lib {
     }
   }
 
-#endif
+  //#endif
 } //namespace lib
+
+#endif //Use_Eigen
