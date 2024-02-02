@@ -3102,7 +3102,7 @@ void widget_control( EnvT* e ) {
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
 		if (useATableSelection) {
 		  if (format != NULL) e->Throw("Unable to set format for table widget."); //format not allowed if selection
-		  format=table->GetCurrentFormat(); //use stored form
+		  format=table->GetCurrentFormat(); //use stored format
 		  //convert 'value' to vValue type FIRST...
 		  DType type = table->GetVvalue()->Type();
 		  value = value->Convert2(type);
