@@ -218,33 +218,33 @@ public:
 
   virtual void Create(wxWindow* parent,
 	wxWindowID id,
-	wxEvtHandler* evtHandler) wxOVERRIDE;
-//  virtual void SetSize(const wxRect& rect) wxOVERRIDE;
+	wxEvtHandler* evtHandler);
+//  virtual void SetSize(const wxRect& rect);
 
   virtual void PaintBackground(wxDC& dc,
 	const wxRect& rectCell,
-	const wxGridCellAttr& attr) wxOVERRIDE;
+	const wxGridCellAttr& attr);
 
-//  virtual bool IsAcceptedKey(wxKeyEvent& event) wxOVERRIDE;
-  virtual void BeginEdit(int row, int col, wxGrid* grid) wxOVERRIDE;
+//  virtual bool IsAcceptedKey(wxKeyEvent& event);
+  virtual void BeginEdit(int row, int col, wxGrid* grid);
   virtual bool EndEdit(int row, int col, const wxGrid* grid,
-	const wxString& oldval, wxString *newval) wxOVERRIDE;
-  virtual void ApplyEdit(int row, int col, wxGrid* grid) wxOVERRIDE;
+	const wxString& oldval, wxString *newval);
+  virtual void ApplyEdit(int row, int col, wxGrid* grid);
 
-  virtual void Reset() wxOVERRIDE;
-//  virtual void StartingKey(wxKeyEvent& event) wxOVERRIDE;
-//  virtual void HandleReturn(wxKeyEvent& event) wxOVERRIDE;
+  virtual void Reset();
+//  virtual void StartingKey(wxKeyEvent& event);
+//  virtual void HandleReturn(wxKeyEvent& event);
   wxString GetEditedValue(int row, int col, wxGrid* grid);
   wxString SetEditedValue(wxString s, int row, int col);
-  virtual void SetParameters(const wxString& params) wxOVERRIDE;
+  virtual void SetParameters(const wxString& params);
 #if wxUSE_VALIDATORS
   virtual void SetValidator(const wxValidator& validator);
 #endif
 
-  virtual wxGridCellEditor *Clone() const wxOVERRIDE;
+  virtual wxGridCellEditor *Clone() const;
 
   // added GetValue so we can get the value which is in the control
-  virtual wxString GetValue() const wxOVERRIDE;
+  virtual wxString GetValue() const;
 
 protected:
   // parts of our virtual functions reused by the derived classes
