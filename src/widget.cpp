@@ -422,54 +422,59 @@ T* GetKeywordAs( EnvT* e, int ix)
 
 #ifdef HAVE_LIBWXWIDGETS
 
-DStringGDL*  GetTableValueAsString(EnvT* e, BaseGDL* &value, DStringGDL* format,  int &majority) {
+DStringGDL*  GetTableValueAsString(EnvT* e, BaseGDL* &value, DStringGDL* format,  int &majority, bool acceptSingle=false) {
   DStringGDL* valueAsStrings;
-  //test of non-conformity
-  if (value != NULL) value = value->Dup();
-  if (value && value->Rank() > 2) e->Throw("Value has greater than 2 dimensions.");
-  else if (value && value->Rank() < 1) e->Throw("Expression must be an array in this context: " + e->GetParString(0));
-  //local check of size given, changes number of lines/columns
-  DLong xSize, ySize;
-  static int xsizeIx = e->KeywordIx("XSIZE");
-  static int ysizeIx = e->KeywordIx("YSIZE");
-  xSize = -1;
-  e->AssureLongScalarKWIfPresent(xsizeIx, xSize);
-  ySize = -1;
-  e->AssureLongScalarKWIfPresent(ysizeIx, ySize);
 
   if (value == NULL) { //set valueAsString. 
+	//local check of size given, changes number of lines/columns
+	DLong xSize, ySize;
+	static int xsizeIx = e->KeywordIx("XSIZE");
+	static int ysizeIx = e->KeywordIx("YSIZE");
+	xSize = -1;
+	e->AssureLongScalarKWIfPresent(xsizeIx, xSize);
+	ySize = -1;
+	e->AssureLongScalarKWIfPresent(ysizeIx, ySize);
 	SizeT dims[2];
 	dims[0] = (xSize > 0) ? xSize : 6;
 	dims[1] = (ySize > 0) ? ySize : 6;
 	dimension dim(dims, 2);
 	valueAsStrings = new DStringGDL(dim);
 	majority=GDLWidgetTable::NONE_MAJOR;
-  } else if (value->Type() == GDL_STRUCT) {
-	if (value->Rank() > 1) e->Throw("Multi dimensional arrays of structures not allowed.");
-	if(majority==GDLWidgetTable::NONE_MAJOR) majority=GDLWidgetTable::ROW_MAJOR;
-	//convert to STRING
-	DStructGDL *input = static_cast<DStructGDL*> (value);
-	SizeT nTags = input->NTags();
-	//further check:
-	for (SizeT iTag = 0; iTag < nTags; ++iTag) {
-	  BaseGDL* tested = input->GetTag(iTag);
-	  if (tested->Rank() > 0 || tested->Type() == GDL_STRUCT) e->Throw("Structures cannot include arrays or other structures.");
-	}
-	SizeT nEl = input->N_Elements();
-	stringstream os;
-	input->ToStreamRaw(os);
-	SizeT dims[2];
-	dims[0] = nTags;
-	dims[1] = nEl;
-	dimension dim(dims, 2);
-	valueAsStrings = new DStringGDL(dim, BaseGDL::NOZERO);
-
-	valueAsStrings->FromStream(os); //simple as that if we manage the dimensions and transpose accordingly....
-	if (majority == GDLWidgetTable::COLUMN_MAJOR) valueAsStrings = static_cast<DStringGDL*> (valueAsStrings->Transpose(NULL));
   } else {
-	//convert to STRING using FORMAT.
-	valueAsStrings = CallStringFunction(value, format);
-	majority=GDLWidgetTable::NONE_MAJOR;
+	//test of non-conformity for value
+	value = value->Dup();
+	if (value->Rank() > 2) e->Throw("Value has greater than 2 dimensions.");
+	if (value->Rank() == 0) {
+	  if (acceptSingle) value->SetDim(dimension(1)) ; //convert to 1D array
+	  else e->Throw("Expression must be an array in this context: " + e->GetParString(0));
+	}
+	if (value->Type() == GDL_STRUCT) {
+	  if (value->Rank() > 1) e->Throw("Multi dimensional arrays of structures not allowed.");
+	  if (majority == GDLWidgetTable::NONE_MAJOR) majority = GDLWidgetTable::ROW_MAJOR;
+	  //convert to STRING
+	  DStructGDL *input = static_cast<DStructGDL*> (value);
+	  SizeT nTags = input->NTags();
+	  //further check:
+	  for (SizeT iTag = 0; iTag < nTags; ++iTag) {
+		BaseGDL* tested = input->GetTag(iTag);
+		if (tested->Rank() > 0 || tested->Type() == GDL_STRUCT) e->Throw("Structures cannot include arrays or other structures.");
+	  }
+	  SizeT nEl = input->N_Elements();
+	  stringstream os;
+	  input->ToStreamRaw(os);
+	  SizeT dims[2];
+	  dims[0] = nTags;
+	  dims[1] = nEl;
+	  dimension dim(dims, 2);
+	  valueAsStrings = new DStringGDL(dim, BaseGDL::NOZERO);
+
+	  valueAsStrings->FromStream(os); //simple as that if we manage the dimensions and transpose accordingly....
+	  if (majority == GDLWidgetTable::COLUMN_MAJOR) valueAsStrings = static_cast<DStringGDL*> (valueAsStrings->Transpose(NULL));
+	} else {
+	  //convert to STRING using FORMAT.
+	  valueAsStrings = CallStringFunction(value, format);
+	  majority = GDLWidgetTable::NONE_MAJOR;
+	}
   }
   return valueAsStrings;
 }
@@ -3109,7 +3114,7 @@ void widget_control( EnvT* e ) {
 		} 
 		//... then create the String equivalent
 		int majority=table->GetMajority();
-		DStringGDL* newValueAsStrings=GetTableValueAsString(e, value, format, majority);
+		DStringGDL* newValueAsStrings=GetTableValueAsString(e, value, format, majority, true); //true as IDL accepts non-array in this case
 		//set all values inside:
 		table->SetTableValues( value, newValueAsStrings, tableSelectionToUse);
 		//The above formatting was not in error, as it not throwed: if format is not null, replace format in widget for future reference:
