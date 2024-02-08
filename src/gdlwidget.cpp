@@ -3271,7 +3271,7 @@ std::vector<int> GDLWidgetTable::GetSortedSelectedRowsOrColsList(DLongGDL* selec
 	  std::vector<int>::reverse_iterator riter;
 	  //find concerned rows or cols
 	  int index = 0;
-	  for (SizeT n = 0, l = 0; n < selection->Dim(1); ++n) {
+	  for (SizeT n = 0, l = 0; n < MAX(selection->Dim(1),1); ++n) {
 		index = (*selection)[l++];
 		if (doCol) allRowsOrCols.push_back(index);
 		index = (*selection)[l++];
@@ -3701,7 +3701,7 @@ bool GDLWidgetTable::GetValidTableSelection(DLongGDL* &selection) {
   int ncolsmax = vValue->Dim(0) - 1;
   int nrowsmax = vValue->Dim(1) - 1;
   if (disjointSelection) { //pairs lists
-	for (auto j=0; j<selection->Dim(1); ++j) {
+	for (auto j=0; j<MAX(selection->Dim(1),1); ++j) {
 	  DLong col = (*selection)[j*2+0];
 	  DLong row = (*selection)[j*2+1];
 	  if (col < 0 || col > ncolsmax) ThrowGDLException("USE_TABLE_SELECT value out of range.");
@@ -3869,7 +3869,7 @@ void GDLWidgetTable::DoAlign(DLongGDL* selection) {
     }
   } else { //use the passed selection, mode-dependent:
     if (disjointSelection) { //pairs lists
-      for (SizeT n=0,l=0; n<selection->Dim(1); ++n) {
+      for (SizeT n=0,l=0; n<MAX(selection->Dim(1),1); ++n) {
         int col = (*selection)[l++];
         int row = (*selection)[l++];
         int ali;
@@ -3932,7 +3932,7 @@ void GDLWidgetTable::DoBackgroundColor() {
 }
 void GDLWidgetTable::DoBackgroundColor(DLongGDL* selection) {
   SizeT nbColors=backgroundColor->N_Elements( );
-  if (nbColors==0) {return;}
+ 
   wxGridGDL * grid = dynamic_cast<wxGridGDL*> (theWxWidget);
   assert( grid != NULL);
   grid->BeginBatch();
@@ -3947,7 +3947,7 @@ void GDLWidgetTable::DoBackgroundColor(DLongGDL* selection) {
     }
   } else { //use the passed selection, mode-dependent:
     if (disjointSelection) { //pairs lists
-      for (SizeT n=0,l=0; n<selection->Dim(1); ++n) {
+      for (SizeT n=0,l=0; n<MAX(selection->Dim(1),1); ++n) {
         int col = (*selection)[l++];
         int row = (*selection)[l++];
         grid->SetCellBackgroundColour( row, col, wxColour((*backgroundColor)[k%nbColors],(*backgroundColor)[k%nbColors+1],(*backgroundColor)[k%nbColors+2]));
@@ -4006,7 +4006,7 @@ void GDLWidgetTable::DoForegroundColor(DLongGDL* selection) {
     }
   } else { //use the passed selection, mode-dependent:
     if (disjointSelection) { //pairs lists
-      for (SizeT n=0,l=0; n<selection->Dim(1); ++n) {
+      for (SizeT n=0,l=0; n<MAX(selection->Dim(1),1); ++n) {
         int col = (*selection)[l++];
         int row = (*selection)[l++];
         grid->SetCellTextColour( row, col, wxColour((*foregroundColor)[k%nbColors],(*foregroundColor)[k%nbColors+1],(*foregroundColor)[k%nbColors+2]));
@@ -4095,7 +4095,7 @@ void GDLWidgetTable::DoColumnWidth( DLongGDL* selection ) {
      std::vector<int> allCols;
      std::vector<int>::iterator iter;
      //find concerned cols
-     for ( SizeT n=0, l=0 ; n<selection->Dim(1); ++n) {
+     for ( SizeT n=0, l=0 ; n<MAX(selection->Dim(1),1); ++n) {
         int col = (*selection)[l++];l++;
         allCols.push_back(col);
       }
@@ -4151,7 +4151,7 @@ DFloatGDL* GDLWidgetTable::GetColumnWidth(DLongGDL* selection){
      std::vector<int>::iterator iter;
      std::vector<int> theCols;
      //find concerned cols
-     for ( SizeT n=0, l=0 ; n<selection->Dim(1); ++n) {
+     for ( SizeT n=0, l=0 ; n<MAX(selection->Dim(1),1); ++n) {
         int col = (*selection)[l++];l++;
         allCols.push_back(col);
       }
@@ -4211,7 +4211,7 @@ DFloatGDL* GDLWidgetTable::GetRowHeight(DLongGDL* selection){
      std::vector<int>::iterator iter;
      std::vector<int> theRows;
      //find concerned rows
-     for ( SizeT n=0, l=0 ; n<selection->Dim(1); ++n) {
+     for ( SizeT n=0, l=0 ; n<MAX(selection->Dim(1),1); ++n) {
         int row = (*selection)[l++];l++;
         allRows.push_back(row);
       }
@@ -4280,7 +4280,7 @@ void GDLWidgetTable::DoRowHeights( DLongGDL* selection ) {
     if (disjointSelection) { //pairs lists
      std::vector<int> allRows;
      std::vector<int>::iterator iter;
-     for ( SizeT n=0, l=0 ; n<selection->Dim(1); ++n) {
+     for ( SizeT n=0, l=0 ; n<MAX(selection->Dim(1),1); ++n) {
        l++;
        int row = (*selection)[l++];
        allRows.push_back(row);
@@ -4487,8 +4487,7 @@ void GDLWidgetTable::SetTableValues(BaseGDL* value, DStringGDL* newValueAsString
           if (k==nmaxVal) break;
         }
        } else {
-		SizeT m=selection->Dim(1); if (m==0) m=1;
-        for (SizeT k=0,n=0,l=0; n<m; ++n) {
+        for (SizeT k=0,n=0,l=0; n<MAX(selection->Dim(1),1); ++n) {
           int col = (*selection)[l++];
           int row = (*selection)[l++];
 		  //update vValue
@@ -4540,7 +4539,7 @@ template <typename T1, typename T2>
 void GDLWidgetTable::PopulateWithDisjointSelection(T1* res, DLongGDL* selection) {
   int data_numberCols = vValue->Dim(0);
   int data_numberRows = vValue->Dim(1);
-  for (SizeT k = 0, n = 0, l = 0; n < selection->Dim(1); ++n) {
+  for (SizeT k = 0, n = 0, l = 0; n < MAX(selection->Dim(1),1); ++n) {
 	int col = (*selection)[l++];
 	int row = (*selection)[l++];
 	if (row >= data_numberRows || col >= data_numberCols) continue;
@@ -4549,7 +4548,7 @@ void GDLWidgetTable::PopulateWithDisjointSelection(T1* res, DLongGDL* selection)
 }
 
 BaseGDL* GDLWidgetTable::GetDisjointSelectionValues(DLongGDL* selection) {
-  dimension dim(selection->Dim(1));
+  dimension dim(MAX(selection->Dim(1),1));
   switch (vValue->Type()) {
   case GDL_STRING:
   {
@@ -4797,7 +4796,7 @@ void GDLWidgetTable::SetSelection(DLongGDL* selection)
   wxPoint firstVisible=wxPoint(0,0);
   if (disjointSelection) { //pairs lists
     SizeT k=0;
-    for (SizeT i=0; i< selection->Dim(1); ++i) {
+    for (SizeT i=0; i< MAX(selection->Dim(1),1); ++i) {
       int col=(*selection)[k++];
       int row=(*selection)[k++];
       grid->SelectBlock(row,col,row,col,true);
