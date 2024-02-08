@@ -2223,6 +2223,7 @@ BaseGDL* widget_info( EnvT* e ) {
       GDLWidget *widget = GDLWidget::GetWidget( widgetID );
       if ( widget == NULL ) e->Throw("Invalid widget identifier:"+i2s(widgetID));
       if ( widget->IsText()) return static_cast<GDLWidgetText*>(widget)->GetTextSelection();
+      if ( widget->IsTable()) std::cerr<<"sorry, TEXT_SELECT not ready for WIDGET_TABLE, Fixme!";
       //other cases return [0,0]
       DLongGDL* pos=new DLongGDL(dimension(2),BaseGDL::ZERO);
       return pos;
@@ -2655,9 +2656,6 @@ void widget_control( EnvT* e ) {
   static int setvalueIx = e->KeywordIx( "SET_VALUE" );
   bool setvalue = e->KeywordPresent( setvalueIx );
   
-  static int settextselectIx  = e->KeywordIx( "SET_TEXT_SELECT" );
-  bool settextselect = e->KeywordPresent( settextselectIx ); 
-
   static int getvalueIx = e->KeywordIx( "GET_VALUE" );
   bool getvalue = e->KeywordPresent( getvalueIx );
 
@@ -2776,12 +2774,15 @@ void widget_control( EnvT* e ) {
 
   static int base_set_titleIx = e->KeywordIx( "BASE_SET_TITLE" );
   bool set_base_title = e->KeywordSet( base_set_titleIx );
-  
+
+//TEXT and TABLE
+  static int USE_TEXT_SELECT = e->KeywordIx("USE_TEXT_SELECT");
+  static int settextselectIx = e->KeywordIx("SET_TEXT_SELECT");
+  bool settextselect = e->KeywordPresent(settextselectIx); 
   
   //TABLE
-  	static int USE_TABLE_SELECT = e->KeywordIx("USE_TABLE_SELECT");
-	static int USE_TEXT_SELECT = e->KeywordIx("USE_TEXT_SELECT");
-  	static int FORMAT = e->KeywordIx("FORMAT");
+  static int USE_TABLE_SELECT = e->KeywordIx("USE_TABLE_SELECT");
+  static int FORMAT = e->KeywordIx("FORMAT");
 	
 //    static int IGNORE_ACCELERATORS = e->KeywordIx( "IGNORE_ACCELERATORS" );
 	
@@ -2812,6 +2813,8 @@ void widget_control( EnvT* e ) {
   DLongGDL* tableSelectionToUse = NULL;  
   DStringGDL* format = NULL;
   if (widget->IsTable()) { //set and throw if table selection is bad.
+	if (e->KeywordPresent( USE_TEXT_SELECT )) e->Throw("Sorry, USE_TEXT_SELECT is not ready for WIDGET_TABLE, Fixme!"); //need to process the text_select events in the wxGridGDLCellTextEditor object. Just DO it.
+	if (settextselect) e->Throw("Sorry, SET_TEXT_SELECT is not ready for WIDGET_TABLE, Fixme!");  //need to process the text_select events in the wxGridGDLCellTextEditor object. Just DO it.
 	GDLWidgetTable *table = (GDLWidgetTable *) widget;
 	tableSelectionToUse = GetKeywordAs<DLongGDL>(e, USE_TABLE_SELECT);
 	useATableSelection=table->GetValidTableSelection(tableSelectionToUse); //will throw if a syntax problem
@@ -3518,7 +3521,7 @@ void widget_control( EnvT* e ) {
       if (value->N_Elements() > 2) e->Throw( "Keyword array parameter SET_TEXT_SELECT must have from 1 to 2 elements." );
       GDLWidgetText *textWidget = (GDLWidgetText *) widget;
       textWidget->SetTextSelection( value );
-    } else if ( wType == "TABLE" ) e->Throw( "SET_TEXT_SELECT not ready for Table Widgets, FIXME." );
+    } else if ( wType == "TABLE" ) e->Throw( "SET_TEXT_SELECT not ready for Table Widgets, FIXME." ); //need to process the text_select events in the wxGridGDLCellTextEditor object. Just DO it.
   }
 
   if ( editable ) {
