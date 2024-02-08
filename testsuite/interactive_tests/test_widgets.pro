@@ -176,7 +176,7 @@ pro handle_Event,ev
   endif
 
   if tag_names(ev, /structure_name) eq 'WIDGET_TABLE_CELL_DESEL' then begin
-     col=[255,255,255]
+     col=[255b,255,255]
      disj=widget_info(ev.id,/table_disj)
      if disj then begin
         desel=[ev.sel_left,ev.sel_top]
