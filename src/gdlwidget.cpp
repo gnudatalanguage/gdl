@@ -300,10 +300,10 @@ void wxGridGDLCellTextEditor::DoCreate(wxWindow* parent,
 
   control->SetSizer(szr);
 
-#ifdef __WXOSX__
-  wxWidgetImpl* impl = m_text->GetPeer();
-  impl->SetNeedsFocusRect(false);
-#endif
+//#ifdef __WXOSX__
+//  wxWidgetImpl* impl = m_text->GetPeer();
+//  impl->SetNeedsFocusRect(false);
+//#endif
   // set max length allowed in the textctrl, if the parameter was set
   if (m_maxChars != 0) {
 	m_text->SetMaxLength(m_maxChars);

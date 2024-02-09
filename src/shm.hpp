@@ -24,7 +24,7 @@
 #ifndef _WIN32
 
 typedef struct {
-  void* mapped_address=NULL;
+  void* mapped_address;
   std::string osHandle;
   size_t length=0;
   off_t offset=0;
