@@ -38,6 +38,11 @@ void gdlReportFPExceptions() {
     if (gdlExceptFlags&FE_OVERFLOW) std::cout << "% Program caused arithmetic error: Floating overflow" << std::endl;
 	gdlExceptFlags=0; //cleared
 }
+void GDLRegisterADivByZeroException() {
+// intentionnally inform of a divbyzero to gdl's current exception status
+  gdlExceptFlags|=FE_DIVBYZERO;
+}
+
 //stop monitoring and save currently registered exceptions in gdlExceptFlags.
 void GDLStopRegisteringFPExceptions() {
 // copy existing fpe exceptions (if any) to gdl's current exception status
