@@ -26,7 +26,7 @@
 #include "nullgdl.hpp"
 #include "dinterpreter.hpp"
 #include "gdlfpexceptions.hpp"
-
+#include "libdivide.h" // for fast divison by integer constant
 // needed with gcc-3.3.2
 #include <cassert>
 
@@ -256,6 +256,113 @@ Data_<Sp>* Data_<Sp>::DivS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__L
   }
   
   return this;
+}
+
+//int32_t, uint32_t, int64_t, and uint64_t integer versions use libdivide in some cases.
+
+template<>
+Data_<SpDLong>* Data_<SpDLong>::DivS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
+  ULong nEl = N_Elements();
+  assert(nEl); 
+  DLong s = (*right)[0];
+  if (s == 0) {
+	GDLRegisterADivByZeroException();
+	return this; 
+  }
+  //s is not zero
+  if (nEl == 1) {
+	(*this)[0] /= s;
+	return this;
+  }
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+	for (OMPInt ix = 0; ix < nEl; ++ix)  (*this)[ix] /= s;
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+	struct libdivide::libdivide_s32_t fast_d = libdivide::libdivide_s32_gen(s); //only when many values (>100000) is libdivide useful.
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	for (OMPInt ix = 0; ix < nEl; ++ix)  (*this)[ix] = libdivide::libdivide_s32_do((*this)[ix], &fast_d );
+ }
+  
+ return this;
+}
+template<>
+Data_<SpDULong>* Data_<SpDULong>::DivS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
+  ULong nEl = N_Elements();
+  assert(nEl); 
+  DULong s = (*right)[0];
+  if (s == 0) {
+	GDLRegisterADivByZeroException();
+	return this; 
+  }
+  //s is not zero
+  if (nEl == 1) {
+	(*this)[0] /= s;
+	return this;
+  }
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+	for (OMPInt ix = 0; ix < nEl; ++ix)  (*this)[ix] /= s;
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+	struct libdivide::libdivide_u32_t fast_d = libdivide::libdivide_u32_gen(s); //only when many values (>100000) is libdivide useful.
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	for (OMPInt ix = 0; ix < nEl; ++ix)  (*this)[ix] = libdivide::libdivide_u32_do((*this)[ix], &fast_d );
+ }
+  
+ return this;
+}
+template<>
+Data_<SpDLong64>* Data_<SpDLong64>::DivS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
+  ULong nEl = N_Elements();
+  assert(nEl); 
+  DLong64 s = (*right)[0];
+  if (s == 0) {
+	GDLRegisterADivByZeroException();
+	return this; 
+  }
+  //s is not zero
+  if (nEl == 1) {
+	(*this)[0] /= s;
+	return this;
+  }
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+	for (OMPInt ix = 0; ix < nEl; ++ix)  (*this)[ix] /= s;
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+	struct libdivide::libdivide_s64_t fast_d = libdivide::libdivide_s64_gen(s); //only when many values (>100000) is libdivide useful.
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	for (OMPInt ix = 0; ix < nEl; ++ix)  (*this)[ix] = libdivide::libdivide_s64_do((*this)[ix], &fast_d );
+ }
+  
+ return this;
+}
+template<>
+Data_<SpDULong64>* Data_<SpDULong64>::DivS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
+  ULong nEl = N_Elements();
+  assert(nEl); 
+  DULong64 s = (*right)[0];
+  if (s == 0) {
+	GDLRegisterADivByZeroException();
+	return this; 
+  }
+  //s is not zero
+  if (nEl == 1) {
+	(*this)[0] /= s;
+	return this;
+  }
+  if ((GDL_NTHREADS=parallelize( nEl))==1) {
+	for (OMPInt ix = 0; ix < nEl; ++ix)  (*this)[ix] /= s;
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+	struct libdivide::libdivide_u64_t fast_d = libdivide::libdivide_u64_gen(s); //only when many values (>100000) is libdivide useful.
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	for (OMPInt ix = 0; ix < nEl; ++ix)  (*this)[ix] = libdivide::libdivide_u64_do((*this)[ix], &fast_d );
+ }
+  
+ return this;
 }
 
 // inverse division: left=right/left
