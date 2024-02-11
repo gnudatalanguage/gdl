@@ -1840,14 +1840,14 @@ Data_<Sp>* Data_<Sp>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
 
   ULong nEl = N_Elements();
   assert(nEl); 
-  Data_* res = NewResult();
   Ty s = (*right)[0];
-  
+  Data_* res; 
   if (s == this->zero) {
-	for (SizeT ix = 0; ix < nEl; ++ix) (*res)[ix]=(*this)[ix];
+	res = this->Dup(); //faster 
 	GDLRegisterADivByZeroException();
 	return res; 
   }
+  res=NewResult(); 
   //s is not zero
   if (nEl == 1) {
 	(*res)[0]=(*this)[0] / s;
@@ -1872,13 +1872,13 @@ Data_<SpDLong>* Data_<SpDLong>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__
   ULong nEl = N_Elements();
   assert(nEl); 
   DLong s = (*right)[0];
-//  libdivide::divider<DLong> fast_d((*right)[0]); //constructs an instance of libdivide::divider  //C++ version too long. Only C version is faster.
-  Data_* res = NewResult();
+  Data_* res; 
   if (s == 0) {
-	for (SizeT ix = 0; ix < nEl; ++ix) (*res)[ix]=(*this)[ix];
+	res = this->Dup(); //faster 
 	GDLRegisterADivByZeroException();
 	return res; 
   }
+  res=NewResult();
   //s is not zero
   if (nEl == 1) {
 	(*res)[0] = (*this)[0] / s;
@@ -1888,15 +1888,15 @@ Data_<SpDLong>* Data_<SpDLong>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = (*this)[ix] / s;
   } else {
 	TRACEOMP(__FILE__, __LINE__)
-	struct libdivide::libdivide_s32_t fast_d = libdivide::libdivide_s32_gen(s); //only when many values is libdivide useful.
-#pragma omp parallel for num_threads(GDL_NTHREADS)
+	struct libdivide::libdivide_s32_t fast_d = libdivide::libdivide_s32_gen(s); //only when many values (>100000) is libdivide useful.
+//#pragma omp parallel for num_threads(GDL_NTHREADS)
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = libdivide::libdivide_s32_do((*this)[ix], &fast_d );
 	//	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] / s;
  }
   
  return res;
 }
-//integer versions use libdivide in some cases.
+
 template<>
 Data_<SpDULong>* Data_<SpDULong>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
@@ -1904,13 +1904,13 @@ Data_<SpDULong>* Data_<SpDULong>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION
   ULong nEl = N_Elements();
   assert(nEl); 
   DULong s = (*right)[0];
-//  libdivide::divider<DLong> fast_d((*right)[0]); //constructs an instance of libdivide::divider  //C++ version too long. Only C version is faster.
-  Data_* res = NewResult();
+  Data_* res; 
   if (s == 0) {
-	for (SizeT ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix];
+	res = this->Dup(); //faster 
 	GDLRegisterADivByZeroException();
-	return res;
+	return res; 
   }
+  res=NewResult();
   //s is not zero
   if (nEl == 1) {
 	(*res)[0] = (*this)[0] / s;
@@ -1920,7 +1920,7 @@ Data_<SpDULong>* Data_<SpDULong>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = (*this)[ix] / s;
   } else {
 	TRACEOMP(__FILE__, __LINE__)
-	struct libdivide::libdivide_u32_t fast_d = libdivide::libdivide_u32_gen(s); //only when many values is libdivide useful.
+	struct libdivide::libdivide_u32_t fast_d = libdivide::libdivide_u32_gen(s); //only when many values (>100000) is libdivide useful.
 #pragma omp parallel for num_threads(GDL_NTHREADS)
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = libdivide::libdivide_u32_do((*this)[ix], &fast_d );
 	//	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] / s;
@@ -1935,13 +1935,13 @@ Data_<SpDLong64>* Data_<SpDLong64>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
   ULong nEl = N_Elements();
   assert(nEl); 
   DLong64 s = (*right)[0];
-//  libdivide::divider<DLong> fast_d((*right)[0]); //constructs an instance of libdivide::divider  //C++ version too long. Only C version is faster.
-  Data_* res = NewResult();
+  Data_* res; 
   if (s == 0) {
-	for (SizeT ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix];
+	res = this->Dup(); //faster 
 	GDLRegisterADivByZeroException();
-	return res;
+	return res; 
   }
+  res=NewResult();
   //s is not zero
   if (nEl == 1) {
 	(*res)[0] = (*this)[0] / s;
@@ -1951,7 +1951,7 @@ Data_<SpDLong64>* Data_<SpDLong64>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTI
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = (*this)[ix] / s;
   } else {
 	TRACEOMP(__FILE__, __LINE__)
-	struct libdivide::libdivide_s64_t fast_d = libdivide::libdivide_s64_gen(s); //only when many values is libdivide useful.
+	struct libdivide::libdivide_s64_t fast_d = libdivide::libdivide_s64_gen(s); //only when many values (>100000) is libdivide useful.
 #pragma omp parallel for num_threads(GDL_NTHREADS)
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = libdivide::libdivide_s64_do((*this)[ix], &fast_d );
 	//	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] / s;
@@ -1966,13 +1966,13 @@ Data_<SpDULong64>* Data_<SpDULong64>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
   ULong nEl = N_Elements();
   assert(nEl); 
   DULong64 s = (*right)[0];
-//  libdivide::divider<DLong> fast_d((*right)[0]); //constructs an instance of libdivide::divider  //C++ version too long. Only C version is faster.
-  Data_* res = NewResult();
+  Data_* res; 
   if (s == 0) {
-	for (SizeT ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix];
+	res = this->Dup(); //faster 
 	GDLRegisterADivByZeroException();
-	return res;
+	return res; 
   }
+  res=NewResult();
   //s is not zero
   if (nEl == 1) {
 	(*res)[0] = (*this)[0] / s;
@@ -1982,7 +1982,7 @@ Data_<SpDULong64>* Data_<SpDULong64>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNC
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = (*this)[ix] / s;
   } else {
 	TRACEOMP(__FILE__, __LINE__)
-	struct libdivide::libdivide_u64_t fast_d = libdivide::libdivide_u64_gen(s); //only when many values is libdivide useful.
+	struct libdivide::libdivide_u64_t fast_d = libdivide::libdivide_u64_gen(s); //only when many values (>100000) is libdivide useful.
 #pragma omp parallel for num_threads(GDL_NTHREADS)
 	for (OMPInt ix = 0; ix < nEl; ++ix)  (*res)[ix] = libdivide::libdivide_u64_do((*this)[ix], &fast_d );
 	//	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] / s;
