@@ -2394,11 +2394,11 @@ Data_<Sp>* Data_<Sp>::ModSNew(BaseGDL* r) {
 	return res;
   }
   if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
-	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[0] = (*this)[ix] = s;
+	for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] % s;
   } else {
 	TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-	  for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[0] = (*this)[ix] = s;
+	  for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix] = (*this)[ix] % s;
   }
   return res;
 }
