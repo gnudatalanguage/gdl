@@ -1851,7 +1851,7 @@ Data_<Sp>* Data_<Sp>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
   //s is not zero
   if (nEl == 1) {
 	(*res)[0]=(*this)[0] / s;
-	return this;
+	return this->Dup();
   }
   if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
 	for (SizeT ix = 0; ix < nEl; ++ix) (*res)[ix]=(*this)[ix] / s;
