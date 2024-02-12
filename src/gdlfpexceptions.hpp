@@ -20,6 +20,7 @@
 #include "gdlfpexceptions.hpp"
 class ReportFPExceptionsGuard;
 void gdlReportFPExceptions();
+void GDLRegisterADivByZeroException();
 //void GDLInitFPExceptionCatching();
 void GDLStopRegisteringFPExceptions();
 void GDLStartRegisteringFPExceptions();

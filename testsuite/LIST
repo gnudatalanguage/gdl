@@ -1,3 +1,5 @@
+test_all_basic_functions.pro
+test_zero_divide.pro
 test_angles.pro
 test_antlr_issues.pro
 test_arg_present.pro
@@ -201,4 +203,3 @@ test_xdr.pro
 test_xmlsax.pro
 test_zeropoly.pro
 test_write_csv.pro
-test_all_basic_functions.pro

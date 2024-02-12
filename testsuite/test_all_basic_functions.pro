@@ -18,9 +18,42 @@ pro test_all_basic_functions, size=size, section=section
   cote=long(sqrt(size)) > 8
   a=randomn(seed,cote,cote,/double)*randomu(seed,cote,cote,/ulong)
   various_types=ptrarr(11,/allo)
-k=0 & foreach i,typecodes do begin & *various_types[k]=fix(a,type=i) & k++ &end
+  k=0 & foreach i,typecodes do begin & *various_types[k]=fix(a,type=i) & k++ &end
+  simple_various_types=ptrarr(11,/allo)
+  k=0 & foreach i,typecodes do begin & *simple_various_types[k]=fix(1,type=i) & k++ &end
 ; for poly_2d:
    XO = [61, 62, 143, 133]&YO = [89, 34, 38, 105]&XI = [24, 35, 102, 92]&YI = [81, 24, 25, 92]&POLYWARP, XI, YI, XO, YO, 1, P, Q
+; test all divide and mod basic functions (there are dozens of specializations) do not crash on integer divide
+   for k=0,integers_only do begin
+      simple_var=*simple_various_types[k]
+      multiple_var=replicate(simple_var,10)
+      zero_var=simple_var*0
+      zero_multiple=multiple_var*0
+      multiple_var2=replicate(simple_var,20)
+                                ; division by zero , no dimension
+      b=simple_var/0  ; DivInvSNew
+      b=simple_var/zero_var  ; DivInvSNew
+      b=multiple_var/0  ; DivS 
+      b=multiple_var/zero_var   ; DivS 
+      b=multiple_var/zero_multiple  ; Div // e1->N_Elements() <= e2->N_Elements() : res= e1->Div(e2)
+      b=multiple_var2/zero_multiple  ; DivInvNew different size
+      v=simple_var
+      v/=0  ; DivInvSNew
+      v/=zero_var  ;DivInvSNew 
+      v=multiple_var
+      v/=0  ; DivS 
+      v/=zero_multiple  ; DivNew
+      v=multiple_var2
+      v/=zero_multiple  ; DivInvNew 
+
+      b=0/simple_var  ; DivInvS
+      b=zero_var/simple_var  ; DivInvS
+      b=0/multiple_var  ; DivInvS
+      b=zero_var/multiple_var  ; DivInvS
+      b=zero_multiple/multiple_var  ; DivInv // e1->N_Elements() > e2->N_Elements() : res= e2->DivInv(e1) 
+      b=zero_multiple/multiple_var2  ; DivNew
+
+   endfor
 
 ; start master clock here --- random  does not obey pool 
    masterclock=tic("ALL TESTS")
@@ -80,7 +113,7 @@ olddev=!D.NAME
 set_plot,"Z"
 device,set_resolution=[cote,cote]
 
-; functions that oerate on whole array
+; functions that operate on whole array
 if (section eq 0 or section eq 5) then begin
   what=['BYTSCL','SORT','TRANSPOSE','WHERE','FINITE','SHIFT','ISHIFT','LOGICAL_AND','LOGICAL_OR','LOGICAL_TRUE','ATAN','CONVOL','INTERPOLATE' , 'POLY_2D' , 'TVSCL']
   calls=[$
