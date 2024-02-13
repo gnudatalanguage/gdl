@@ -15,7 +15,8 @@
 ; KEYWORD PARAMETERS:
 ;   - /test : stop at the end, before returning
 ;   - /help : plot a short help and return without computation
-;   - /demo : super basic plot
+;   - /plot : super basic plot (log/log)
+;   - /overplot : ...
 ;   - n_clusters : number of clusters
 ;   - min_size
 ;   - max_size
@@ -33,20 +34,25 @@
 ; RESTRICTIONS:
 ; -- The input array is assumed to be 1D
 ; -- no test on the presence of Infinity or NaN
+; -- min_size, max_size, n_clusters : not fully tested. Use with caution
 ;
-; PROCEDURE: a lot of doc. & pseudo on the Web.
+; PROCEDURE: a lot of doc. & pseudo codes on the Web.
+; https://en.wikipedia.org/wiki/Allan_variance
 ;
 ; EXAMPLE:
-;    - ALLANVAR, randomu(seed, 100000), /demo
-;    - nb=1e6 & ALLANVAR, RANDOMU(seed, nb)+0.01*sin(350.*findgen(nb)/nb),/de
+;    nbp=LONG(1e6)
+;    noise=RANDOMU(seed, nbp)
+;    ALLANVAR, noise, /plot
+;    ALLANVAR, noise+0.01*SIN(350.*FINDGEN(nbp)/nbp), /overplot
+;    ALLANVAR, noise+0.02*SIN(133.*FINDGEN(nbp)/nbp), /overplot
 ;
 ; MODIFICATION HISTORY: intitial import in GDL project by AC 2024, Jan 30
 ;
 ; This work is a derived work from Nikolay Mayorov
 ; https://github.com/nmayorov/allan-variance/tree/master
 ;
-; The transposition in IDL/GDL/FL syntax was done by René Gastaud
-; 2024-january-25
+; The initial transposition in IDL/GDL/FL syntax was done by René Gastaud
+; 2024-january-25. Thanks !
 ;
 ; This code is under MIT licence (same licence thant the original one)
 ; and with written agreement from the orignal author. This licence is
@@ -58,6 +64,9 @@
 ; No equivalent function was found in IDL or associated mainstream
 ; libs (idlastro, Coyote, ....) If an equivalent does exist, please report.
 ; This code was tested on diffents signals.
+;
+; We welcome feedbacks and any idea how to facilitate the way
+; to use and call this procedure, very usefull in time series analysis.
 ;
 ; --------------------------
 ;-
@@ -85,7 +94,14 @@ end
 ;
 pro ALLANVAR, input, avar, cluster_sizes, $
               min_size=min_size, max_size=max_size, n_clusters=n_clusters, $
-              test=test, help=help, demo=demo
+              test=test, help=help, plot=plot, overplot=overplot
+;
+if KEYWORD_SET(help) then begin
+   print, 'pro ALLANVAR, input, avar, cluster_sizes, $'
+   print, '              min_size=min_size, max_size=max_size, n_clusters=n_clusters, $'
+   print, '              test=test, help=help, plot=plot, overplot=overplot'
+   return
+endif
 ;
 nx = N_ELEMENTS(input)
 cluster_sizes = COMPUTE_CLUSTER_SIZES(nx, min_size=min_size, $
@@ -99,7 +115,8 @@ for i=0,nn-1 do begin
    avar[i] = MEAN(c*c)/k/k/2
 endfor
 ;
-if KEYWORD_SET(demo) then PLOT_OO, cluster_sizes , avar, psym=-2
+if KEYWORD_SET(overplot) then OPLOT, cluster_sizes, avar, psym=-2
+if KEYWORD_SET(plot) then PLOT_OO, cluster_sizes , avar, psym=-2
 ;
 if KEYWORD_SET(test) then STOP
 ;
