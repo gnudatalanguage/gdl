@@ -1,5 +1,5 @@
 /***************************************************************************
-						  sparse_matrix.hpp  -  GDL sparse matrix functions
+        sparse_matrix.hpp  -  GDL sparse matrix functions
 							 -------------------
 	begin                : Dec 9 2023
 	copyright            : (C) 2023 by Gilles Duvert
@@ -29,5 +29,7 @@ namespace lib {
   BaseGDL* sprstp_fun(EnvT* e);
   BaseGDL* fulstr_fun(EnvT* e);
   BaseGDL* linbcg_fun(EnvT* e);
+  
 }
+
 #endif

@@ -171,7 +171,7 @@ test_shmmap.pro
 test_simplex.pro
 test_size.pro
 test_sort.pro
-test_sparse.pro
+test_sparse_matrix.pro
 test_spher_harm.pro
 test_spl.pro
 test_standardize.pro

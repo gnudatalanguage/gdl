@@ -2254,7 +2254,7 @@ int Data_<Sp>::Scalar2Index( SizeT& st) const
 template<>
 int Data_<SpDFloat>::Scalar2Index(SizeT& st) const {
   if (dd.size() != 1) return 0;
-  if (isfinite((*this)[0])) {
+  if (std::isfinite((*this)[0])) {
     if ((*this)[0] < 0) {
       if (this->dim.Rank() != 0)
         return -2;
@@ -2275,7 +2275,7 @@ int Data_<SpDFloat>::Scalar2Index(SizeT& st) const {
 template<>
 int Data_<SpDDouble>::Scalar2Index(SizeT& st) const {
   if (dd.size() != 1) return 0;
-  if (isfinite((*this)[0])) {
+  if (std::isfinite((*this)[0])) {
     if ((*this)[0] < 0 ) {
       if (this->dim.Rank() != 0)
         return -2;
@@ -2308,7 +2308,7 @@ int Data_<SpDComplex>::Scalar2Index( SizeT& st) const
 { 
   if( dd.size() != 1) return 0;
   float r=real((*this)[0]);
-  if (isfinite(r)) {
+  if (std::isfinite(r)) {
     if( r < 0.0) return -1;
     st= static_cast<SizeT>(r);
     if( this->dim.Rank() != 0) return 2;
@@ -2334,7 +2334,7 @@ int Data_<SpDComplexDbl>::Scalar2Index(SizeT& st) const
 {
   if (dd.size() != 1) return 0;
   float r = real((*this)[0]);
-  if (isfinite(r)) {
+  if (std::isfinite(r)) {
     if (r < 0.0) return -1;
     st = static_cast<SizeT> (r);
     if (this->dim.Rank() != 0) return 2;

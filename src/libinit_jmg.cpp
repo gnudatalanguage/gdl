@@ -44,11 +44,8 @@
 #include "fftw.hpp"
 #endif
 
-#if defined(USE_EIGEN)
 #include "matrix_cholesky.hpp"
 #include "least_squares.hpp"
-#endif
-
 #include "matrix_invert.hpp"
 #include "triangulation.hpp"
 
@@ -86,7 +83,7 @@ void LibInit_jmg()
   // Since we have a difference between the IDL way and the Eigen way
   // we (temporary) remove these 2 codes in the CVS of GDL
   // Help welcome. 
-#if defined(USE_EIGEN)
+  //#if defined(USE_EIGEN)
   const string cholKey[]={"DOUBLE",KLISTEND};
   new DLibPro(lib::choldc_pro,string("CHOLDC"),2,cholKey);
   new DLibFunRetNew(lib::cholsol_fun,string("CHOLSOL"),3,cholKey);
@@ -96,12 +93,12 @@ void LibInit_jmg()
   new DLibPro(lib::la_choldc_pro,string("LA_CHOLDC"),1,lacholdcKey);
   const string lacholsolKey[]={"DOUBLE","STATUS",KLISTEND};
   new DLibFunRetNew(lib::la_cholsol_fun,string("LA_CHOLSOL"),2,lacholsolKey);
+  //#endif
 
   // Ilia N. & Alain C., Summer 2015
   const string laleastsquaresKey[]={"DOUBLE","METHOD","RANK","RCONDITION","RESIDUAL","STATUS",KLISTEND};
   new DLibFunRetNew(lib::la_least_squares_fun,string("LA_LEAST_SQUARES"),2,laleastsquaresKey);
 
-#endif
 
 #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)
   

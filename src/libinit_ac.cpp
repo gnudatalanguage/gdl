@@ -75,7 +75,9 @@ void LibInit_ac()
   new DLibFunRetNew(lib::fx_root_fun,string("FX_ROOT"),2,fx_rootKey);
 
 #endif
-  
+
+  //#if defined(USE_EIGEN)
+
   //sparse matrices by GD
   const string sprsinKey[]={"THRESHOLD", "COLUMN", KLISTEND};
   const string sprsinIgnoreKey[]={"DOUBLE", KLISTEND};
@@ -90,6 +92,8 @@ void LibInit_ac()
   const string linbcgIgnoreKey[]={"ITOL", "TOL", "ITMAX", KLISTEND};
   new DLibFunRetNew(lib::linbcg_fun,string("LINBCG"),3,linbcgKey,linbcgIgnoreKey);
 
+  //#endif
+  
   const string spl1Key[]={"YP0","YPN_1","YP1","DOUBLE","HELP",KLISTEND}; //YP1 is old value for YP0
   new DLibFunRetNew(lib::spl_init_fun,string("SPL_INIT"),2,spl1Key);
   const string spl2Key[]={"DOUBLE","HELP",KLISTEND};
