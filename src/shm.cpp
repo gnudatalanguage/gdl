@@ -244,7 +244,7 @@ namespace lib {
 	} else e->Throw("Shared Memory Segment not found: " + segmentName + ".");
 	//if candidate for deletion and nothing referencing it, delete right now:
 	if ((*i).second.refcount==0) {
-	  if ((*i).second.flags & USE_SYSV == USE_SYSV) {
+	  if (((*i).second.flags & USE_SYSV) == USE_SYSV) {
 		int result=shmdt((*i).second.mapped_address);
 		if (result ==-1) e->Throw("SYSV Shared Memory Segment " + segmentName + " Unmapping unsucessfull, reason: "+ std::string(strerror(errno))+".");
 	  } else {
@@ -396,7 +396,7 @@ namespace lib {
 		if ((((*i).second.flags & DELETE_PENDING)==DELETE_PENDING) && (*i).second.refcount<1) {
 		  //no more reference, if shmap is pending delete, delete it.
 		  //if candidate for deletion and nothing referencing, delete right now:
-		  if ((*i).second.flags & USE_SYSV == USE_SYSV) {
+		  if (((*i).second.flags & USE_SYSV) == USE_SYSV) {
 			int result = shmdt((*i).second.mapped_address);
 			if (result == -1) Warning("SYSV Shared Memory Segment " + (*i).first  + " Unmapping unsucessfull after deleting last mapped variable, reason: " + std::string(strerror(errno)) + ".");
 		  } else {

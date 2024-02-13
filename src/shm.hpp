@@ -24,14 +24,14 @@
 #ifndef _WIN32
 
 typedef struct {
-  void* mapped_address=NULL;
+  void* mapped_address;
   std::string osHandle;
-  size_t length=0;
-  off_t offset=0;
-  int   refcount=0;
+  size_t length;
+  off_t offset;
+  int   refcount;
   dimension dim;
-  int type=0;
-  int flags=0;
+  int type;
+  int flags;
 } SHMAP_STRUCT;
 
 enum Shmap_flags {

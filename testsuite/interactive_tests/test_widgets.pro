@@ -174,7 +174,38 @@ pro handle_Event,ev
      endif
      
   endif
-  
+
+  if tag_names(ev, /structure_name) eq 'WIDGET_TABLE_CELL_DESEL' then begin
+     col=[255b,255,255]
+     disj=widget_info(ev.id,/table_disj)
+     if disj then begin
+        desel=[ev.sel_left,ev.sel_top]
+        nel=1
+     endif else  begin
+        desel=[ev.sel_left,ev.sel_top,ev.sel_right,ev.sel_bottom]
+        nel=(ev.sel_right+1-ev.sel_left)*(ev.sel_bottom+1-ev.sel_top)
+     endelse
+     widget_control,ev.id,use_table_select=desel,background_color=col,set_value=replicate(-1,nel)
+     
+     return
+  endif
+  if tag_names(ev, /structure_name) eq 'WIDGET_TABLE_CELL_SEL' then begin
+     if ev.sel_left eq -1 then begin
+        ;widget_control,ev.id,background_color=[255,255,255]
+        return
+     endif
+     col=byte(randomu(seed,3)*255) 
+     widget_control,ev.id,background_color=col,/use_table_select
+     z=widget_info(ev.id,/table_select)
+     col=byte(randomu(seed,3)*255)
+     nel=n_elements(z)
+     if nel gt 0 then widget_control,ev.id,foreground_color=col,set_value=indgen(nel),use_table_select=z
+     ;; disj=widget_info(ev.id,/table_disj)
+     ;; if disj then dozero=[-1,-1] else dozero=[-1,-1,-1,-1]
+     ;; widget_control,ev.id,set_table_select=dozero
+     return
+  endif
+ 
   widget_control,ev.id,get_uvalue=uv 
   widget_control,ev.top,get_uvalue=topuv
   if n_elements(uv) gt 0 then begin
@@ -525,13 +556,14 @@ if total(strcmp('TABLE',present,/fold)) then begin
    table_base = widget_base( tabbed_base, TITLE="TABLEs",_extra=extra) & offy=0
 
 ;
-   mytable1=widget_table(yoff=offy,table_base,value=dist(7),xsize=5,ysize=5,/editable);,font=fontname,frame=30) & offy+=200 ;
+   mytable1=widget_table(yoff=offy,table_base,value=dist(7),xsize=5,ysize=5,/all);,font=fontname,frame=30) & offy+=200 ;
 ;to be implemented! ;widget_control,mytable1,/editable,use_table_sel=[1,1,4,4]
-   widget_control,mytable1,edit_cell=[0,0]
+   widget_control,mytable1,edit_cell=[1,1]
    widget_control,mytable1,background_color=[255,255,0],use_table_sel=[1,1,4,4]
+   widget_control,mytable1,/table_disjoint
    nrows=n_elements(table)
    subsize=nrows < 6
-   mytable2=widget_table(yoff=offy,table_base,value=table[0:subsize-1],/row_major,row_labels='',column_labels=tags,column_width=60,/resizeable_columns,y_scroll_size=40,/disjoint,/all_events,/editable,alignment=2,frame=50) & offy+=10 ;
+   mytable2=widget_table(yoff=offy,table_base,value=table[0:subsize-1],/row_major,row_labels='',column_labels=tags,column_width=60,/resizeable_columns,y_scroll_size=40,/all,alignment=2,frame=20) & offy+=10 ;
 endif
 
 if total(strcmp('TREE',present,/fold)) then begin

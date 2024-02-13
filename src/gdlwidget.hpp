@@ -40,6 +40,7 @@
 #ifdef SIZEOF_SIZE_T
 #undef SIZEOF_SIZE_T
 #endif
+#include <list>
 #include <wx/wx.h>
 
 #include <wx/app.h>
@@ -50,7 +51,7 @@
 #include <wx/dragimag.h>
 #include <wx/dcbuffer.h>
 #include <wx/dnd.h>
-
+#include <wx/renderer.h>
 #include <wx/grid.h>
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID
 //#include <wx/propgrid/propgrid.h>
@@ -113,6 +114,18 @@
 #define gdlSIZE_EVENT_HANDLER wxSizeEventHandler(gdlwxFrame::OnSizeWithTimer) //filter mouse events (manual resize) to avoid too many updtes for nothing
 #endif
 #define gdlSIZE_IMMEDIATE_EVENT_HANDLER wxSizeEventHandler(gdlwxFrame::OnSize) 
+
+
+
+#define UPDATE_VVALUE_HELPER(xxx,yyy) {\
+xxx* typed_gdl = static_cast<xxx*>(vValue);\
+yyy* typed_vvalue = static_cast<yyy*> (typed_gdl->DataAddr());\
+xxx* typed_new_gdl = static_cast<xxx*>(value);\
+yyy* typed_new_value = static_cast<yyy*> (typed_new_gdl->DataAddr());\
+updateVal<yyy>(typed_vvalue,iold,typed_new_value,inew);\
+}
+
+
 typedef DLong WidgetIDT;
 static std::string widgetNameList[]={"BASE","BUTTON","SLIDER","TEXT","DRAW","LABEL","LIST","MBAR","DROPLIST","TABLE","TAB","TREE","COMBOBOX","PROPERTYSHEET","WINDOW"};
 static int    widgetTypeList[]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
@@ -249,7 +262,7 @@ public:
 class wxAppGDL: public wxApp
 {
  wxGUIEventLoop loop;
-public:
+ public:
  int MyLoop();
 };
 
@@ -1621,7 +1634,6 @@ class GDLWidgetTable: public GDLWidget
 //  DLong tabMode;
   DLong x_scroll_size_columns;
   DLong y_scroll_size_rows;
-  DStringGDL * valueAsStrings;
   bool         updating; //widget is modified by program (avoid sending events)
 
 public:
@@ -1651,9 +1663,9 @@ public:
 		  BaseGDL* value_,
 		  DLong xScrollSize_,
 		  DLong yScrollSize_,
-                  DStringGDL* valueAsStrings_,
-                  DULong eventFlags_
-         );
+      DStringGDL* valueAsStrings,
+      DULong eventFlags_
+  );
 
 ~GDLWidgetTable();
   std::vector<int> GetSortedSelectedRowsOrColsList(DLongGDL* selection, bool doCol);
@@ -1706,15 +1718,50 @@ public:
   bool InsertRows(DLong count, bool insertAtEnd, DLongGDL* selection=NULL);
 
   void SetSelection(DLongGDL* selection);
-  DStringGDL* GetTableValues(DLongGDL* selection=NULL);
+
+  template<typename T1, typename T2>
+  DString GetRawEditingValue(T1* value, const int nEl, const int n, const int majority) {
+    if (n > nEl-1) return "";
+    T2* val=static_cast<T2*>(value->DataAddr());
+    std::stringstream os;
+    os << val[n];
+    return os.str();
+  }
+  template<typename T1, typename T2>
+  DString SetEditedValue(wxString s, T1* value, const int nEl, const int n, DStringGDL* format) {
+    if (n > nEl-1) return "";
+     if (value->Type() == GDL_STRUCT) return "";
+    //convert to STRING using FORMAT.
+    T2* val=static_cast<T2*>(value->DataAddr());
+    std::stringstream os;
+    os << s;
+    os >> val[n];
+    T1* subvalue=new T1(val[n]);
+    Guard<T1> guard(subvalue);
+    return (*CallStringFunction(subvalue, format))[0];
+  }
+  void UpdatevValues(SizeT iold, BaseGDL* value, SizeT inew);
+
+template <typename T>
+void updateVal(T* oldvalue, SizeT iold, T* newvalue, SizeT inew){
+    oldvalue[iold]=newvalue[inew];
+  }
+  
+  template <typename T1, typename T2>
+  void PopulateWithSelection(T1* res, int colTL, int colBR, int rowTL, int rowBR);
+  BaseGDL* GetSelectionValues(int colTL, int colBR, int rowTL, int rowBR);
+  BaseGDL* GetDisjointSelectionValues(DLongGDL* selection);
+  template <typename T1, typename T2>
+  void PopulateWithDisjointSelection(T1* resGDL, DLongGDL* selection);
+  BaseGDL* GetTableValues(DLongGDL* selection=NULL);
   BaseGDL* GetTableValuesAsStruct(DLongGDL* selection=NULL);
   void SetTableValues(BaseGDL* value, DStringGDL *stringval, DLongGDL* selection=NULL);
   void SetValue(BaseGDL * val){GDLDelete(vValue); vValue=val->Dup();};
   
   void SetTableView(DLongGDL* pos);
   void MakeCellEditable(DLongGDL* pos);
-  void SetTableNumberOfColumns( DLong ncols);
-  void SetTableNumberOfRows( DLong nrows);
+  void SetTableXsizeAsNumberOfColumns( DLong ncols);
+  void SetTableYsizeAsNumberOfRows( DLong nrows);
   
   bool IsSomethingSelected();
   bool GetValidTableSelection(DLongGDL* &selection);
@@ -1971,7 +2018,11 @@ public:
   ~wxGridGDL(){
 #ifdef GDL_DEBUG_WIDGETS
     std::cout << "~wxGridGDL: " << this << std::endl;
-#endif 
+#endif
+  }
+
+  wxWindowID GetWidgetTableID() {
+    return GDLWidgetTableID;
   }
   
   bool IsSomethingSelected(){
@@ -1985,13 +2036,19 @@ public:
       if ( selectionCol.GetCount() > 0 ) return true;
       return false;
   }
+  static bool is_unique_wxPoint (wxPoint first, wxPoint second)
+{ return ( first.x==second.x && first.y==second.y ); }
+  static bool compare_wxPoint (wxPoint first, wxPoint second)
+{ if (first.x==second.x) return ( first.y<second.y );
+  else return ( first.x<second.x ); 
+  }
   std::vector<wxPoint> GetSelectedDisjointCellsList(){
-      std::vector<wxPoint> list;
+      std::list<wxPoint> mylist;
       wxGridCellCoordsArray cellSelection=this->GetSelectedCells();
       for( int i=0; i<cellSelection.Count(); i++ ) {
        int row = cellSelection[i].GetRow();
        int col = cellSelection[i].GetCol();
-       list.push_back(wxPoint(row,col));
+       mylist.push_back(wxPoint(row,col));
       }
 
       wxGridCellCoordsArray selectionTL=this->GetSelectionBlockTopLeft();
@@ -2003,19 +2060,23 @@ public:
        int colBR = selectionBR[k].GetCol();
        int nrows=rowBR-rowTL+1;
        int ncols=colBR-colTL+1;
-       for ( int i=0; i< nrows; ++i) for (int j=0; j<ncols; ++j) list.push_back(wxPoint(rowTL+i,colTL+j));
+       for ( int i=0; i< nrows; ++i) for (int j=0; j<ncols; ++j) mylist.push_back(wxPoint(rowTL+i,colTL+j));
       }
       wxArrayInt selectionRow=this->GetSelectedRows();
       for( int k=0; k<selectionRow.GetCount(); k++ ) {
        int row = selectionRow[k];
-       for ( int i=0; i< this->GetNumberCols(); ++i) list.push_back(wxPoint(row,i));
+       for ( int i=0; i< this->GetNumberCols(); ++i) mylist.push_back(wxPoint(row,i));
       }
       wxArrayInt selectionCol=this->GetSelectedCols();
       for( int k=0; k<selectionCol.GetCount(); k++ ) {
        int col = selectionCol[k];
-       for ( int i=0; i< this->GetNumberRows(); ++i) list.push_back(wxPoint(i,col));
-      }      
-      return list;
+       for ( int i=0; i< this->GetNumberRows(); ++i) mylist.push_back(wxPoint(i,col));
+      }
+      mylist.sort(compare_wxPoint);
+      mylist.unique(is_unique_wxPoint);
+      std::vector<wxPoint> ret;
+      for (std::list<wxPoint>::iterator it = mylist.begin(); it != mylist.end(); it++) ret.push_back(*it);
+      return ret;
   }
 
   wxArrayInt GetSelectedBlockOfCells() {
@@ -2064,13 +2125,14 @@ public:
     block.push_back(row);
     return block;
   }
-
+  
   void OnTableCellSelection(wxGridEvent & event);
   void OnTableRangeSelection(wxGridRangeSelectEvent & event);
   void OnTableColResizing(wxGridSizeEvent & event);
   void OnTableRowResizing(wxGridSizeEvent & event); 
 //  void OnText( wxCommandEvent& event);
-  void OnTextChanging( wxGridEvent & event);
+//  void OnTextChanging( wxGridEvent & event);
+  void OnTextChanged( wxGridEvent & event);
 };
 #ifdef HAVE_WXWIDGETS_PROPERTYGRID
 //

@@ -1718,238 +1718,88 @@ void wxGridGDL::OnTableColResizing(wxGridSizeEvent & event){
     GDLWidget::PushEvent( baseWidgetID, widgtablerowheight );
   } else event.Skip();
 }
-void  wxGridGDL::OnTableRangeSelection(wxGridRangeSelectEvent & event){
+
+void wxGridGDL::OnTableRangeSelection(wxGridRangeSelectEvent & event) {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTableRangeSelection: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTableRangeSelection: %d\n"), event.GetId());
 #endif
   //this event is called when a selection is added or changed (control-click, etc).
   //If we are not in disjoint mode, clear previous selection to mimick idl's when the user control-clicked.
-  GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
-
-  DULong eventFlags=table->GetEventFlags();
-  if (eventFlags & GDLWidget::EV_ALL  && !table->IsUpdating() ) {
-    if (event.Selecting()) 
-    {
-      WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
-      DStructGDL* widgtablecelsel = new DStructGDL( "WIDGET_TABLE_CELL_SEL");
-      widgtablecelsel->InitTag("ID",  DLongGDL( event.GetId( ) ));
-      widgtablecelsel->InitTag("TOP", DLongGDL( baseWidgetID));
-      widgtablecelsel->InitTag("HANDLER", DLongGDL( baseWidgetID ));
-      widgtablecelsel->InitTag("TYPE",DIntGDL(4)); // 4 or 9
-      widgtablecelsel->InitTag("SEL_LEFT",  DLongGDL( event.GetLeftCol()));
-      widgtablecelsel->InitTag("SEL_TOP",  DLongGDL( event.GetTopRow()));
-      widgtablecelsel->InitTag("SEL_RIGHT",  DLongGDL( event.GetRightCol()));
-      widgtablecelsel->InitTag("SEL_BOTTOM",  DLongGDL( event.GetBottomRow()));
-      GDLWidget::PushEvent( baseWidgetID, widgtablecelsel );
-    } else {
-      int ncols = static_cast<wxGrid*>(event.GetEventObject())->GetNumberCols();
-      int nrows = static_cast<wxGrid*>(event.GetEventObject())->GetNumberRows();
-      if (event.GetLeftCol()==0 && event.GetRightCol()==ncols-1 && event.GetTopRow()==0 && event.GetBottomRow()==nrows-1 ) {
-        WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
-        DStructGDL* widgtablecelsel = new DStructGDL( "WIDGET_TABLE_CELL_SEL");
-        widgtablecelsel->InitTag("ID",  DLongGDL( event.GetId( ) ));
-        widgtablecelsel->InitTag("TOP", DLongGDL( baseWidgetID ));
-        widgtablecelsel->InitTag("HANDLER", DLongGDL( baseWidgetID ) );
-        widgtablecelsel->InitTag("TYPE",DIntGDL( 4 )); // 
-        widgtablecelsel->InitTag("SEL_LEFT",  DLongGDL( -1 ));
-        widgtablecelsel->InitTag("SEL_TOP",  DLongGDL( -1 ));
-        widgtablecelsel->InitTag("SEL_RIGHT",  DLongGDL( -1 ));
-        widgtablecelsel->InitTag("SEL_BOTTOM",  DLongGDL( -1 ));
-        GDLWidget::PushEvent( baseWidgetID, widgtablecelsel );
-      } else {
-        if (!table->GetDisjointSelection()  && event.ControlDown() ) this->ClearSelection(); else {
-        WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
-        DStructGDL* widgtablecelsel = new DStructGDL( "WIDGET_TABLE_CELL_DESEL");
-        widgtablecelsel->InitTag("ID",  DLongGDL( event.GetId( ) ));
-        widgtablecelsel->InitTag("TOP", DLongGDL( baseWidgetID ));
-        widgtablecelsel->InitTag("HANDLER", DLongGDL( baseWidgetID ));
-        widgtablecelsel->InitTag("TYPE",DIntGDL( 9 )); // 9
-        widgtablecelsel->InitTag("SEL_LEFT",  DLongGDL( event.GetLeftCol() ));
-        widgtablecelsel->InitTag("SEL_TOP",  DLongGDL( event.GetTopRow() ));
-        widgtablecelsel->InitTag("SEL_RIGHT",  DLongGDL( event.GetRightCol() ));
-        widgtablecelsel->InitTag("SEL_BOTTOM",  DLongGDL( event.GetBottomRow()));
-        GDLWidget::PushEvent( baseWidgetID, widgtablecelsel );
-        }
-      }
-    }
-}
-  else event.Skip();
-}
-
- void  wxGridGDL::OnTableCellSelection(wxGridEvent & event){
-#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTableCellSelection: %d\n"),event.GetId());
-#endif
-//This event is called only when the user left-clicks somewhere, thus deleting all previous selection.
-  GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
-  if (!table->GetDisjointSelection()  && event.ControlDown() ) {
-    table->ClearSelection();
+  GDLWidgetTable* table = static_cast<GDLWidgetTable*> (GDLWidget::GetWidget(GDLWidgetTableID));
+  if (table->IsUpdating()) return;
+  
+  DULong eventFlags = table->GetEventFlags();
+  WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase(event.GetId());
+//  std::cerr << table->GetDisjointSelection() << ":" << event.Selecting() << ":" << event.ControlDown() << ":" << event.AltDown() << ":" << event.CmdDown() << ":" << event.GetModifiers() << std::endl;
+  int lc = event.GetLeftCol();
+  int tr = event.GetTopRow();
+  int rc = event.GetRightCol();
+  int br = event.GetBottomRow();
+  
+  if (event.Selecting()) { 
+	if (eventFlags & GDLWidget::EV_ALL) {
+	  DStructGDL* widgtablecelsel2 = new DStructGDL("WIDGET_TABLE_CELL_SEL"); //sel 
+	  widgtablecelsel2->InitTag("ID", DLongGDL(event.GetId()));
+	  widgtablecelsel2->InitTag("TOP", DLongGDL(baseWidgetID));
+	  widgtablecelsel2->InitTag("HANDLER", DLongGDL(baseWidgetID));
+	  widgtablecelsel2->InitTag("TYPE", DIntGDL(4)); // 4 or 9
+	  widgtablecelsel2->InitTag("SEL_LEFT", DLongGDL(lc));
+	  widgtablecelsel2->InitTag("SEL_TOP", DLongGDL(tr));
+	  widgtablecelsel2->InitTag("SEL_RIGHT", DLongGDL(rc));
+	  widgtablecelsel2->InitTag("SEL_BOTTOM", DLongGDL(br));
+	  GDLWidget::PushEvent(baseWidgetID, widgtablecelsel2);
+	}
+  } else { //remove
+	if (table->GetDisjointSelection() && event.ControlDown()) {
+	  if (eventFlags & GDLWidget::EV_ALL) {
+		DStructGDL* widgtablecelsel = new DStructGDL("WIDGET_TABLE_CELL_DESEL");
+		widgtablecelsel->InitTag("ID", DLongGDL(event.GetId()));
+		widgtablecelsel->InitTag("TOP", DLongGDL(baseWidgetID));
+		widgtablecelsel->InitTag("HANDLER", DLongGDL(baseWidgetID));
+		widgtablecelsel->InitTag("TYPE", DIntGDL(9)); // 9
+		widgtablecelsel->InitTag("SEL_LEFT", DLongGDL(lc));
+		widgtablecelsel->InitTag("SEL_TOP", DLongGDL(tr));
+		widgtablecelsel->InitTag("SEL_RIGHT", DLongGDL(rc));
+		widgtablecelsel->InitTag("SEL_BOTTOM", DLongGDL(br));
+		GDLWidget::PushEvent(baseWidgetID, widgtablecelsel);
+	  }
+	} else {
+	  if (!(table->GetDisjointSelection() && event.ControlDown())) { //desel 
+		DStructGDL* widgtablecelsel = new DStructGDL("WIDGET_TABLE_CELL_SEL");
+		widgtablecelsel->InitTag("ID", DLongGDL(event.GetId()));
+		widgtablecelsel->InitTag("TOP", DLongGDL(baseWidgetID));
+		widgtablecelsel->InitTag("HANDLER", DLongGDL(baseWidgetID));
+		widgtablecelsel->InitTag("TYPE", DIntGDL(4)); // 
+		widgtablecelsel->InitTag("SEL_LEFT", DLongGDL(-1));
+		widgtablecelsel->InitTag("SEL_TOP", DLongGDL(-1));
+		widgtablecelsel->InitTag("SEL_RIGHT", DLongGDL(-1));
+		widgtablecelsel->InitTag("SEL_BOTTOM", DLongGDL(-1));
+		GDLWidget::PushEvent(baseWidgetID, widgtablecelsel);
+	  }
+	}
   }
-//For compatibility with idl, we should force to select the current table entry.
-  this->SelectBlock(event.GetRow(),event.GetCol(),event.GetRow(),event.GetCol(),FALSE);
   event.Skip();
 }
 
-
-//Forget this function for the time being!
-
-//  void  gdlGrid::OnTableCellSelection(wxGridEvent & event){
-//#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_ALL_EVENTS)
-//  wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTableCellSelection: %d\n"),event.GetId());
-//#endif
+void  wxGridGDL::OnTableCellSelection(wxGridEvent & event){
+#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
+  wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTableCellSelection: %d\n"),event.GetId());
+#endif
 ////This event is called only when the user left-clicks somewhere, thus deleting all previous selection.
-//
 //  GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
-//  DULong eventFlags=table->GetEventFlags();
-//
-//  if (eventFlags & GDLWidget::EV_ALL && !table->IsUpdating()) {
-//    WidgetIDT baseWidgetID = GDLWidget::GetTopLevelBase( event.GetId( ) );
-//    DStructGDL* widgtablecelsel = new DStructGDL( "WIDGET_TABLE_CELL_SEL");
-//    widgtablecelsel->InitTag("ID",  DLongGDL( event.GetId( ) ));
-//    widgtablecelsel->InitTag("TOP", DLongGDL( baseWidgetID));
-//    widgtablecelsel->InitTag("HANDLER", DLongGDL( baseWidgetID ));
-//    widgtablecelsel->InitTag("TYPE",DIntGDL(4)); // 4
-//    widgtablecelsel->InitTag("SEL_LEFT",  DLongGDL(event.Selecting()?event.GetCol():-1));
-//    widgtablecelsel->InitTag("SEL_TOP",  DLongGDL(event.Selecting()?event.GetRow(): -1 ));
-//    widgtablecelsel->InitTag("SEL_RIGHT",  DLongGDL( event.Selecting()?event.GetCol():-1 ));
-//    widgtablecelsel->InitTag("SEL_BOTTOM",  DLongGDL( event.Selecting()?event.GetCol():-1 ));
-//    GDLWidget::PushEvent( baseWidgetID, widgtablecelsel );
-//  }
-//  else event.Skip();
-////For compatibility with idl, we should force to select the current table entry.
-////  this->SelectBlock(event.GetRow(),event.GetCol(),event.GetRow(),event.GetCol(),FALSE);
-//  if (table->IsUpdating()) {cerr<<"cleared"<<endl; table->ClearUpdating();}
-//  }
+//   if (table->IsUpdating()) return;
 
+//  int c = event.GetCol();
+//  int r = event.GetRow();
+//  std::cerr << table->GetDisjointSelection() << ":" << event.Selecting() << ":" << event.ControlDown() << ":" << event.AltDown() << ":" << event.CmdDown() << ":" << event.GetModifiers() << std::endl;
  
-//void gdlGrid::OnTextEntered( wxGridEvent & event)
-//{
-//#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_ALL_EVENTS)
-//  wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTextEnter: %d\n"),event.GetId());
-//#endif
-//} 
- 
- //this apparently does not work
-//void wxGridGDL::OnText( wxCommandEvent& event)
-//{
-//#if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_ALL_EVENTS)
-//  wxMessageOutputStderr().Printf(_T("in gdlGrid::OnText: %d\n"),event.GetId());
-//#endif
-//  GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
-//  DULong eventFlags=table->GetEventFlags();
-//
-//    WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
-//
-//  bool isModified;
-//  long selStart, selEnd;
-//  DLong offset;
-//  std::string lastValue;
-//  std::string newValue;
-//  
-//  wxTextCtrl* textCtrl = dynamic_cast<wxTextCtrl*>(event.GetEventObject());
-//  if( textCtrl == NULL)
-//  {
-//    event.Skip();
-//    std::cerr<<"No wxWidget!"<<std::endl; return; // happens on construction 
-//  }
-//  textCtrl->GetSelection( &selStart, &selEnd);
-//  offset = textCtrl->GetInsertionPoint();
-//  lastValue = textCtrl->GetLabelText().mb_str(wxConvUTF8);
-//  newValue = textCtrl->GetValue().mb_str(wxConvUTF8);
-//  isModified = lastValue != newValue;
-////  textCtrl->SetValue(wxString(newValue, wxConvUTF8));
-////return without producing event struct if eventType is not set
-//  if (!(eventFlags & GDLWidget::EV_ALL )) return;
-//
-//  DStructGDL*  widg;
-//  if( !isModified)
-//  {
-//    widg = new DStructGDL( "WIDGET_TABLE_TEXT_SEL");
-//    widg->InitTag("ID", DLongGDL( GDLWidgetTableID));
-//    widg->InitTag("TOP", DLongGDL( baseWidgetID));
-//    widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
-//    widg->InitTag("TYPE", DIntGDL( 3)); // selection
-//    widg->InitTag("OFFSET", DLongGDL( offset));
-//    widg->InitTag("LENGTH", DLongGDL( selEnd-selStart));
-//    widg->InitTag("X", DLongGDL( 0 ));
-//    widg->InitTag("Y", DLongGDL( 0 ));
-//  }
-//  else
-//  {
-//    int lengthDiff = newValue.length() - lastValue.length();
-//    if( lengthDiff < 0) // deleted
-//    {
-//      widg = new DStructGDL( "WIDGET_TABLE_DEL");
-//      widg->InitTag("ID", DLongGDL(  GDLWidgetTableID));
-//      widg->InitTag("TOP", DLongGDL( baseWidgetID));
-//      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
-//      widg->InitTag("TYPE", DIntGDL( 2)); // delete
-//      widg->InitTag("OFFSET", DLongGDL( offset-1));
-//      widg->InitTag("LENGTH", DLongGDL( -lengthDiff));
-//      widg->InitTag("X", DLongGDL( 0 ));
-//      widg->InitTag("Y", DLongGDL( 0 ));
-//    }
-//    else if( lengthDiff == 0) // replace TODO: just flag the real change
-//    {   
-//      // 1st delete all
-//      widg = new DStructGDL( "WIDGET_TABLE_DEL");
-//      widg->InitTag("ID", DLongGDL(  GDLWidgetTableID));
-//      widg->InitTag("TOP", DLongGDL( baseWidgetID));
-//      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
-//      widg->InitTag("TYPE", DIntGDL( 2)); // delete
-//      widg->InitTag("OFFSET", DLongGDL( 0));
-//      widg->InitTag("LENGTH", DLongGDL( lastValue.length()));
-//      widg->InitTag("X", DLongGDL( 0 ));
-//      widg->InitTag("Y", DLongGDL( 0 ));
-//    
-//      GDLWidget::PushEvent( baseWidgetID, widg);
-//
-//      // 2nd insert new
-//      widg = new DStructGDL( "WIDGET_TABLE_STR");
-//      widg->InitTag("ID", DLongGDL(  GDLWidgetTableID));
-//      widg->InitTag("TOP", DLongGDL( baseWidgetID));
-//      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
-//      widg->InitTag("TYPE", DIntGDL( 1)); // multiple char
-//      widg->InitTag("OFFSET", DLongGDL( 0));
-//      widg->InitTag("STR", DStringGDL( newValue));
-//      widg->InitTag("X", DLongGDL( 0 ));
-//      widg->InitTag("Y", DLongGDL( 0 ));
-//    }
-//    else if( lengthDiff == 1)
-//    {
-//      widg = new DStructGDL( "WIDGET_TABLE_CH");
-//      widg->InitTag("ID", DLongGDL(  GDLWidgetTableID));
-//      widg->InitTag("TOP", DLongGDL( baseWidgetID));
-//      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
-//      widg->InitTag("TYPE", DIntGDL( 0)); // single char
-//      widg->InitTag("OFFSET", DLongGDL( offset+1));
-//      widg->InitTag("CH", DByteGDL( newValue[offset<newValue.length()?offset:newValue.length()-1]));
-//      widg->InitTag("X", DLongGDL( 0 ));
-//      widg->InitTag("Y", DLongGDL( 0 ));
-//    }
-//    else // lengthDiff > 1
-//    {
-//      int nVLenght = newValue.length();
-//      if( offset < lengthDiff)  lengthDiff = offset;
-//      std::string str = "";
-//      if( offset <= nVLenght && lengthDiff > 0)	 str = newValue.substr(offset-lengthDiff,lengthDiff+1);
-//      
-//      widg = new DStructGDL( "WIDGET_TABLE_STR");
-//      widg->InitTag("ID", DLongGDL( GDLWidgetTableID));
-//      widg->InitTag("TOP", DLongGDL( baseWidgetID));
-//      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
-//      widg->InitTag("TYPE", DIntGDL( 1)); // multiple char
-//      widg->InitTag("OFFSET", DLongGDL( offset));
-//      widg->InitTag("STR", DStringGDL( str));
-//      widg->InitTag("X", DLongGDL( 0 ));
-//      widg->InitTag("Y", DLongGDL( 0 ));
-//    }
-//  }
-//  GDLWidget::PushEvent( baseWidgetID, widg);
-//}
+//////For compatibility with idl, we should force to select the current table entry.---> DOES NOT WORK!!
+////  this->SelectBlock(event.GetRow(),event.GetCol(),event.GetRow(),event.GetCol(),true);
+//  event.Skip();
+}
 
- 
- //returns -1 if unchanged, or pos of last common character
+
+
  int firstChange(std::string &s1, std::string &s2) {
    int index = 0;
         int minsize = min(s1.length(), s2.length());
@@ -1958,102 +1808,100 @@ void  wxGridGDL::OnTableRangeSelection(wxGridRangeSelectEvent & event){
 
         return (index == minsize && s1.length() == s2.length()) ? -1 : index;
  }
-void  wxGridGDL::OnTextChanging( wxGridEvent & event)
-{
+
+void wxGridGDL::OnTextChanged(wxGridEvent & event) {
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_ALL_EVENTS)
-  wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTextChanging: %d\n"),event.GetId());
+  wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTextChanged: %d\n"), event.GetId());
 #endif
-  GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
-  DULong eventFlags=table->GetEventFlags();
+  GDLWidgetTable* table = static_cast<GDLWidgetTable*> (GDLWidget::GetWidget(GDLWidgetTableID));
+  DULong eventFlags = table->GetEventFlags();
   if (!(eventFlags & GDLWidget::EV_KEYBOARD)) return;
 
-  WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase( event.GetId( ) );
+  WidgetIDT baseWidgetID = GDLWidget::GetIdOfTopLevelBase(event.GetId());
 
   std::string newValue;
   std::string previousValue;
-  int x=event.GetCol();
-  int y=event.GetRow();
-  previousValue = this->GetCellValue(y,x);
-  newValue = event.GetString(); 
+  int x = event.GetCol();
+  int y = event.GetRow();
+  previousValue = this->GetCellValue(y, x);
+  newValue = event.GetString();
   bool isModified = (newValue != previousValue);
-  if( !isModified) return;
+  if (!isModified) return;
 
-  DLong offset = firstChange(previousValue,newValue);
+  DLong offset = firstChange(previousValue, newValue);
 
-  DStructGDL*  widg;
- 
-    int lengthDiff = newValue.length() - previousValue.length();
-    if( lengthDiff < 0) //only deleted
-    {
-      widg = new DStructGDL( "WIDGET_TABLE_DEL");
-      widg->InitTag("ID", DLongGDL(  GDLWidgetTableID));
-      widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
-      widg->InitTag("TYPE", DIntGDL( 2)); // delete
-      widg->InitTag("OFFSET", DLongGDL( offset));
-      widg->InitTag("LENGTH", DLongGDL( -lengthDiff));
-      widg->InitTag("X", DLongGDL( x ));
-      widg->InitTag("Y", DLongGDL( y ));
-	  GDLWidget::PushEvent(baseWidgetID, widg);
-	  return;
-    } else if( lengthDiff == 0) //empty to empty, but RETURN entered
-    {
-      widg = new DStructGDL( "WIDGET_TABLE_CH");
-      widg->InitTag("ID", DLongGDL(  GDLWidgetTableID));
-      widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
-      widg->InitTag("TYPE", DIntGDL( 0)); // single char
-      widg->InitTag("OFFSET", DLongGDL( offset));
-      widg->InitTag("CH", DByteGDL( 10 )); //newline
-      widg->InitTag("X", DLongGDL( x ));
-      widg->InitTag("Y", DLongGDL( y ));
-	  GDLWidget::PushEvent(baseWidgetID, widg);
-	  return;
-    }
-    else if( lengthDiff == 1) //only character added only
-    {
-      widg = new DStructGDL( "WIDGET_TABLE_CH");
-      widg->InitTag("ID", DLongGDL(  GDLWidgetTableID));
-      widg->InitTag("TOP", DLongGDL( baseWidgetID));
-      widg->InitTag("HANDLER", DLongGDL( baseWidgetID ));
-      widg->InitTag("TYPE", DIntGDL( 0)); // single char
-      widg->InitTag("OFFSET", DLongGDL( offset));
-      widg->InitTag("CH", DByteGDL( (newValue.substr(offset,offset).c_str())[0] ));
-      widg->InitTag("X", DLongGDL( x ));
-      widg->InitTag("Y", DLongGDL( y ));
-	  GDLWidget::PushEvent(baseWidgetID, widg);
-	  return;
-    }
-    else // lengthDiff > 1 We just imagine it is deleted from there to the end, and the new characters are added
-    {
-		if (previousValue.length()!=0) {
-			// 1st delete from offset to (old) end
-		  widg = new DStructGDL("WIDGET_TABLE_DEL");
-		  widg->InitTag("ID", DLongGDL(GDLWidgetTableID));
-		  widg->InitTag("TOP", DLongGDL(baseWidgetID));
-		  widg->InitTag("HANDLER", DLongGDL(baseWidgetID));
-		  widg->InitTag("TYPE", DIntGDL(2)); // delete
-		  widg->InitTag("OFFSET", DLongGDL(offset));
-		  widg->InitTag("LENGTH", DLongGDL(previousValue.length()-offset));
-      widg->InitTag("X", DLongGDL( x ));
-      widg->InitTag("Y", DLongGDL( y ));
+  DStructGDL* widg;
 
-		  GDLWidget::PushEvent(baseWidgetID, widg);
-		}
-		DStructGDL*  widg2;
-		// 2nd insert new
-		widg2 = new DStructGDL("WIDGET_TABLE_STR");
-		widg2->InitTag("ID", DLongGDL(GDLWidgetTableID));
-		widg2->InitTag("TOP", DLongGDL(baseWidgetID));
-		widg2->InitTag("HANDLER", DLongGDL(baseWidgetID));
-		widg2->InitTag("TYPE", DIntGDL(1)); // multiple char
-		widg2->InitTag("OFFSET", DLongGDL(offset));
-		widg2->InitTag("STR", DStringGDL(newValue.substr(offset)));
-      widg2->InitTag("X", DLongGDL( x ));
-      widg2->InitTag("Y", DLongGDL( y ));
-		GDLWidget::PushEvent(baseWidgetID, widg2);
-		return;
-    }
+  int lengthDiff = newValue.length() - previousValue.length();
+  if (lengthDiff < 0) //only deleted
+  {
+	widg = new DStructGDL("WIDGET_TABLE_DEL");
+	widg->InitTag("ID", DLongGDL(GDLWidgetTableID));
+	widg->InitTag("TOP", DLongGDL(baseWidgetID));
+	widg->InitTag("HANDLER", DLongGDL(baseWidgetID));
+	widg->InitTag("TYPE", DIntGDL(2)); // delete
+	widg->InitTag("OFFSET", DLongGDL(offset));
+	widg->InitTag("LENGTH", DLongGDL(-lengthDiff));
+	widg->InitTag("X", DLongGDL(x));
+	widg->InitTag("Y", DLongGDL(y));
+	GDLWidget::PushEvent(baseWidgetID, widg);
+	return;
+  } else if (lengthDiff == 0) //empty to empty, but RETURN entered
+  {
+	widg = new DStructGDL("WIDGET_TABLE_CH");
+	widg->InitTag("ID", DLongGDL(GDLWidgetTableID));
+	widg->InitTag("TOP", DLongGDL(baseWidgetID));
+	widg->InitTag("HANDLER", DLongGDL(baseWidgetID));
+	widg->InitTag("TYPE", DIntGDL(0)); // single char
+	widg->InitTag("OFFSET", DLongGDL(offset));
+	widg->InitTag("CH", DByteGDL(10)); //newline
+	widg->InitTag("X", DLongGDL(x));
+	widg->InitTag("Y", DLongGDL(y));
+	GDLWidget::PushEvent(baseWidgetID, widg);
+	return;
+  } else if (lengthDiff == 1) //only character added only
+  {
+	widg = new DStructGDL("WIDGET_TABLE_CH");
+	widg->InitTag("ID", DLongGDL(GDLWidgetTableID));
+	widg->InitTag("TOP", DLongGDL(baseWidgetID));
+	widg->InitTag("HANDLER", DLongGDL(baseWidgetID));
+	widg->InitTag("TYPE", DIntGDL(0)); // single char
+	widg->InitTag("OFFSET", DLongGDL(offset));
+	widg->InitTag("CH", DByteGDL((newValue.substr(offset, offset).c_str())[0]));
+	widg->InitTag("X", DLongGDL(x));
+	widg->InitTag("Y", DLongGDL(y));
+	GDLWidget::PushEvent(baseWidgetID, widg);
+	return;
+  } else // lengthDiff > 1 We just imagine it is deleted from there to the end, and the new characters are added
+  {
+	if (previousValue.length() != 0) {
+	  // 1st delete from offset to (old) end
+	  widg = new DStructGDL("WIDGET_TABLE_DEL");
+	  widg->InitTag("ID", DLongGDL(GDLWidgetTableID));
+	  widg->InitTag("TOP", DLongGDL(baseWidgetID));
+	  widg->InitTag("HANDLER", DLongGDL(baseWidgetID));
+	  widg->InitTag("TYPE", DIntGDL(2)); // delete
+	  widg->InitTag("OFFSET", DLongGDL(offset));
+	  widg->InitTag("LENGTH", DLongGDL(previousValue.length() - offset));
+	  widg->InitTag("X", DLongGDL(x));
+	  widg->InitTag("Y", DLongGDL(y));
+
+	  GDLWidget::PushEvent(baseWidgetID, widg);
+	}
+	DStructGDL* widg2;
+	// 2nd insert new
+	widg2 = new DStructGDL("WIDGET_TABLE_STR");
+	widg2->InitTag("ID", DLongGDL(GDLWidgetTableID));
+	widg2->InitTag("TOP", DLongGDL(baseWidgetID));
+	widg2->InitTag("HANDLER", DLongGDL(baseWidgetID));
+	widg2->InitTag("TYPE", DIntGDL(1)); // multiple char
+	widg2->InitTag("OFFSET", DLongGDL(offset));
+	widg2->InitTag("STR", DStringGDL(newValue.substr(offset)));
+	widg2->InitTag("X", DLongGDL(x));
+	widg2->InitTag("Y", DLongGDL(y));
+	GDLWidget::PushEvent(baseWidgetID, widg2);
+	return;
+  }
 }
 
 void wxTreeCtrlGDL::OnItemActivated(wxTreeEvent & event){
