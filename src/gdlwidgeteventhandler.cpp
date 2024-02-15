@@ -25,7 +25,7 @@
 #include "dstructgdl.hpp"
 #include "gdlwidget.hpp"
 
-//  #define GDL_DEBUG_ALL_EVENTS 1
+  #define GDL_DEBUG_ALL_EVENTS 1
 //  #define GDL_DEBUG_MOVE_EVENTS 1
 //  #define GDL_DEBUG_KBRD_EVENTS 1
 //  #define GDL_DEBUG_TIMER_EVENTS 1
@@ -1785,17 +1785,15 @@ void  wxGridGDL::OnTableCellSelection(wxGridEvent & event){
 #if (GDL_DEBUG_ALL_EVENTS || GDL_DEBUG_OTHER_EVENTS)
   wxMessageOutputStderr().Printf(_T("in gdlGrid::OnTableCellSelection: %d\n"),event.GetId());
 #endif
-////This event is called only when the user left-clicks somewhere, thus deleting all previous selection.
-//  GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
-//   if (table->IsUpdating()) return;
-
-//  int c = event.GetCol();
-//  int r = event.GetRow();
-//  std::cerr << table->GetDisjointSelection() << ":" << event.Selecting() << ":" << event.ControlDown() << ":" << event.AltDown() << ":" << event.CmdDown() << ":" << event.GetModifiers() << std::endl;
- 
-//////For compatibility with idl, we should force to select the current table entry.---> DOES NOT WORK!!
-////  this->SelectBlock(event.GetRow(),event.GetCol(),event.GetRow(),event.GetCol(),true);
-//  event.Skip();
+//This event is called only when the user left-clicks somewhere, thus deleting all previous selection.
+  GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(GDLWidgetTableID));
+  if (table->IsUpdating()) return;
+  int c = event.GetCol();
+  int r = event.GetRow();
+//For compatibility with idl, we should force to select the current table entry and position current in the selected cell
+  this->SelectBlock(r,c,r,c,false);
+  this->SetCurrentCell(r,c);
+  //of course do not skip.
 }
 
 

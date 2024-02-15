@@ -3233,7 +3233,7 @@ TIDY_WIDGET(gdlBORDER_SPACE);
       this->AddToDesiredEvents( wxEVT_GRID_COL_SIZE,wxGridSizeEventHandler(wxGridGDL::OnTableColResizing),grid);
       this->AddToDesiredEvents( wxEVT_GRID_ROW_SIZE,wxGridSizeEventHandler(wxGridGDL::OnTableRowResizing),grid);
       this->AddToDesiredEvents( wxEVT_GRID_RANGE_SELECT,wxGridRangeSelectEventHandler(wxGridGDL::OnTableRangeSelection),grid);
-      this->AddToDesiredEvents( wxEVT_GRID_SELECT_CELL,wxGridEventHandler(wxGridGDL::OnTableCellSelection),grid);
+      this->AddToDesiredEvents( wxEVT_GRID_CELL_LEFT_CLICK,wxGridEventHandler(wxGridGDL::OnTableCellSelection),grid);
 //      this->AddToDesiredEvents( wxEVT_GRID_CELL_CHANGING,wxGridEventHandler(wxGridGDL::OnTextChanging),grid);
       this->AddToDesiredEvents( wxEVT_GRID_CELL_CHANGED,wxGridEventHandler(wxGridGDL::OnTextChanged),grid);
 // UpdateGui();
