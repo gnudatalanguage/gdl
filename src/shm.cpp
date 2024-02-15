@@ -210,6 +210,7 @@ namespace lib {
 	  if (mapAddress == MAP_FAILED) e->Throw("shmmap failed, please report.");
 	}
 	SHMAP_STRUCT s;
+	  //need to initialize all elements
     s.mapped_address=mapAddress;
 	s.osHandle=osHandle;
 	s.length=requested_length;
@@ -217,6 +218,7 @@ namespace lib {
 	s.refcount=0;
 	s.dim=dim;
 	s.type=type;
+	s.flags=0;
 	if (destroy_segment) s.flags |= DESTROY_SEGMENT_ON_UNMAP;
 	if (sysv) s.flags |= USE_SYSV;
 	shmList.insert(std::pair<DString, SHMAP_STRUCT>(segmentName, s));
