@@ -6641,13 +6641,15 @@ void GDLWidgetText::InsertText( DStringGDL* valueStr, bool noNewLine_, bool appe
   
   //really append/replace
   if (append) { //see discussion wxTextEntry::GetInsertionPoint() at https://docs.wxwidgets.org/trunk/classwx_text_entry.html
-    if (multiline) {
-      txt->SetSelection(pos-1,pos);
-    } else {
-      txt->SetSelection(pos,pos);
-    }
+	//changes suggested by @klimpel (on windows)
+	if (multiline) {
+	  from = pos - 1;
+	  to = pos;
+	} else {
+	  from = pos;
+	  to = pos;
+	}
   }
-  txt->GetSelection(&from, &to);
   bool doNotAddNl=(noNewLine_ || (!multiline) );
 
   DString value = (doNotAddNl)?"":(!append)?"":"\n";
@@ -6664,7 +6666,7 @@ void GDLWidgetText::InsertText( DStringGDL* valueStr, bool noNewLine_, bool appe
   }
   //note value.size it will be used
   int insertedLength=value.size();
-  lastValue.replace(from,to-from,value);
+  lastValue.replace(std::min(size_t(from),lastValue.size()),to-from,value); //avoid the exception even if lastValue would still be wrong
   //recompute nlines, maxlinelength from start to be sure
   nlines=1;
   maxlinelength=0;
