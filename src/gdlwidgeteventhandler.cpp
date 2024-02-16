@@ -1791,7 +1791,8 @@ void  wxGridGDL::OnTableCellSelection(wxGridEvent & event){
   int c = event.GetCol();
   int r = event.GetRow();
 //For compatibility with idl, we should force to select the current table entry and position current in the selected cell
-  this->SelectBlock(r,c,r,c,false);
+if (table->GetDisjointSelection() && event.ControlDown())  this->SelectBlock(r,c,r,c,true);
+else  this->SelectBlock(r,c,r,c,false);
   this->SetCurrentCell(r,c);
   //of course do not skip.
 }
