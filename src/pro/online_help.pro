@@ -75,7 +75,7 @@ ON_ERROR, 2
 ;
 path2pdf='http://aramis.obspm.fr/~coulais/GDL/' ;gdl.pdfhttp://gnudatalanguage.sourceforge.net/'
 path2ourTable='http://aramis.obspm.fr/~coulais/IDL_et_GDL/'
-link2html='http://www.exelisvis.com/docs/'
+link2html='https://www.nv5geospatialsoftware.com/docs/'
 
 if ~KEYWORD_SET(test) then ON_ERROR, 2
 ;
