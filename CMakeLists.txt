@@ -33,8 +33,26 @@ set(CMAKE_C_STANDARD 99)
 # advice by Orion, mandatory for FC 28
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# X.X.X git becomes release X.X.X+1
-set(VERSION "1.0.4 git")
+# create version string based on git metadata (based on https://github.com/nocnokneo/cmake-git-versioning-example)
+# in case version.hpp does not exist (it is shipped in GDL tarballs but not stored in the repo)
+if (NOT EXISTS "${CMAKE_SOURCE_DIR}/src/version.hpp")
+  find_package(Git REQUIRED)
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} describe --tags --dirty --match "v*"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE VERSION
+    RESULT_VARIABLE GIT_DESCRIBE_ERROR_CODE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  if(NOT "${GIT_DESCRIBE_ERROR_CODE}" EQUAL "0")
+    message(FATAL_ERROR
+      "Failed to obtain version data from git."
+      "Please use GDL tarballs which contain version.h header (release or weekly from https://github.com/gnudatalanguage/gdl/releases)."
+      "Alternatively, clone the repo using git to be able to generate version.h from git metadata")
+  endif()
+  configure_file(${CMAKE_SOURCE_DIR}/version.hpp.in ${CMAKE_BINARY_DIR}/version.hpp)
+endif()
+
 enable_testing()
 
 # cf issue 511, managing MultiArch on Debian ...

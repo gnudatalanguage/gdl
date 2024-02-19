@@ -73,6 +73,8 @@
 //#endif
 #endif
 
+#include "version.hpp"
+
 using namespace std;
 
 static void StartupMessage()
