@@ -50,7 +50,7 @@ if (NOT EXISTS "${CMAKE_SOURCE_DIR}/src/version.hpp")
       "Please use GDL tarballs which contain version.h header (release or weekly from https://github.com/gnudatalanguage/gdl/releases)."
       "Alternatively, clone the repo using git to be able to generate version.h from git metadata")
   endif()
-  configure_file(${CMAKE_SOURCE_DIR}/version.hpp.in ${CMAKE_BINARY_DIR}/version.hpp)
+  configure_file(${CMAKE_SOURCE_DIR}/src/version.hpp.in ${CMAKE_BINARY_DIR}/version.hpp)
 endif()
 
 enable_testing()
