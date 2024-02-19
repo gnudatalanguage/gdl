@@ -77,7 +77,7 @@ jobs:
           fi
           if [[ ! -z "${RELEASE_NAME}" ]]; then
             cp -r $PWD /tmp/gdl-${RELEASE_NAME} && rm -rf /tmp/gdl-${RELEASE_NAME}/.git && cd /tmp
-            cat src/version.hpp.in | sed "s/@VERSION@/`git describe --tags --dirty --match "v*"`/" > /tmp/gdl-${RELEASE_NAME}/src/version.hpp
+            cmake -D SRC=src/version.hpp.in -D DST=/tmp/gdl-${RELEASE_NAME}/src/version.hpp -D GIT_EXECUTABLE=git -P CMakeModules/GenerateVersionHeader.cmake 
             rm /tmp/gdl-${RELEASE_NAME}/src/version.hpp.in
             tar czf "/tmp/gdl-${RELEASE_NAME}.tar.gz" gdl-${RELEASE_NAME}
             echo "released=true" >> "$GITHUB_OUTPUT"
