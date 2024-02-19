@@ -1274,8 +1274,8 @@ ostream& DStructGDL::ToStream(ostream& o, SizeT w, SizeT* actPosPtr)
   return o;
 }
 
+//copy of ToStream only useable (?) as a helper for widget_table. Incidentally, all tags are scalars.
 ostream& DStructGDL::ToStreamRaw( ostream& o) {
-  // avoid checking actPosPtr
   SizeT dummyPos = 0;
 
   SizeT nTags = NTags( );
@@ -1287,6 +1287,11 @@ ostream& DStructGDL::ToStreamRaw( ostream& o) {
     for ( SizeT tIx = 0; tIx < nTags - 1; ++tIx ) {
       BaseGDL* actEl = GetTag( tIx, e );
       assert( actEl != NULL );
+      if( actEl->Type() == GDL_STRING ) { 
+		DString s=(*static_cast<DStringGDL*>(actEl))[0];
+	 if (s.size() ==0) o << CheckNL( 0, &dummyPos, 1) << " "; //Ugly patch replacing a "" string by a whitespace - hopefully suffices to get correct tables. 
+		// (ToStream would not write anything in the stream for an empty string, but FromStream would not then detect an empty string: next best option is a whitespace)
+	  }
       bool isArr = (actEl->Dim( ).Rank( ) != 0);
       actEl->ToStream( o, 0, &dummyPos );
       if ( isArr ) arrOut = true;
@@ -1294,6 +1299,10 @@ ostream& DStructGDL::ToStreamRaw( ostream& o) {
 
     BaseGDL* actEl = GetTag( nTags - 1, e );
     assert( actEl != NULL );
+      if( actEl->Type() == GDL_STRING ) {
+		DString s=(*static_cast<DStringGDL*>(actEl))[0];
+	 if (s.size() ==0) o << CheckNL( 0, &dummyPos, 1) << " "; //see above
+	  }
     actEl->ToStream( o, 0, &dummyPos );
   }
   return o;

@@ -563,7 +563,11 @@ BaseGDL* widget_table( EnvT* e)
 //  DLong tabMode = 0;
 //  e->AssureLongScalarKWIfPresent( TAB_MODE, tabMode );
 
+  BaseGDL* value = e->GetKW( VALUE ); //value may not exist!!!! Dangerous!!!
+  bool isstruct=( value!=NULL && value->Type()==GDL_STRUCT);
   int majority = GDLWidgetTable::NONE_MAJOR;
+  if (e->KeywordSet(COLUMN_MAJOR) && ! isstruct) e->Throw("The COLUMN_MAJOR keyword can only be used on structure values.");
+  if (e->KeywordSet(ROW_MAJOR) && ! isstruct) e->Throw("The ROW_MAJOR keyword can only be used on structure values.");
   if (e->KeywordSet(COLUMN_MAJOR)) majority = GDLWidgetTable::COLUMN_MAJOR; //
   if (e->KeywordSet(ROW_MAJOR)) majority = GDLWidgetTable::ROW_MAJOR; //order of preference
 
@@ -592,7 +596,6 @@ BaseGDL* widget_table( EnvT* e)
   if (kbrdfocusevents) eventFlags |= GDLWidget::EV_KBRD_FOCUS;
   if (contextevents) eventFlags |= GDLWidget::EV_CONTEXT;
 
-  BaseGDL* value = e->GetKW( VALUE ); //value may not exist!!!! Dangerous!!!
   DStringGDL* valueAsStrings=GetTableValueAsString(e, value, format, majority);
  
   GDLWidgetTable* table = new GDLWidgetTable( parentID, e,
@@ -3108,15 +3111,23 @@ void widget_control( EnvT* e ) {
         
       } else if (widget->IsTable()) {
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
+		int majority = table->GetMajority();
 		if (useATableSelection) {
 		  if (format != NULL) e->Throw("Unable to set format for table widget."); //format not allowed if selection
 		  format=table->GetCurrentFormat(); //use stored format
 		  //convert 'value' to vValue type FIRST...
 		  DType type = table->GetVvalue()->Type();
-		  value = value->Convert2(type);
+		  if (table->GetMajority() == GDLWidgetTable::NONE_MAJOR) value = value->Convert2(type); //simple case
+		  else { // force all value elements to string, insert in table_as_string and  
+			DStringGDL* newValueAsStrings=GetTableValueAsString(e, value, format, majority, true); //true as IDL accepts non-array in this case
+			//set all values inside:
+			table->SetTableValuesStructCase( value, newValueAsStrings, tableSelectionToUse);
+			//The above formatting was not in error, as it not throwed: if format is not null, replace format in widget for future reference:
+			if (format != NULL) table->SetCurrentFormat(format);
+		  }
+		  goto endsetvalue;
 		} 
 		//... then create the String equivalent
-		int majority=table->GetMajority();
 		DStringGDL* newValueAsStrings=GetTableValueAsString(e, value, format, majority, true); //true as IDL accepts non-array in this case
 		//set all values inside:
 		table->SetTableValues( value, newValueAsStrings, tableSelectionToUse);

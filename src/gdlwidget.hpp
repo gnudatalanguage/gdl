@@ -1719,8 +1719,11 @@ public:
 
   void SetSelection(DLongGDL* selection);
 
+  int GetSecondDimension(){
+    if ( majority > NONE_MAJOR) return static_cast<DStructGDL*>(vValue)->NTags(); else return vValue->Dim(1);
+  }
   template<typename T1, typename T2>
-  DString GetRawEditingValue(T1* value, const int nEl, const int n, const int majority) {
+  DString GetRawEditingValue(T1* value, const int nEl, const int n) {
     if (n > nEl-1) return "";
     T2* val=static_cast<T2*>(value->DataAddr());
     std::stringstream os;
@@ -1730,7 +1733,6 @@ public:
   template<typename T1, typename T2>
   DString SetEditedValue(wxString s, T1* value, const int nEl, const int n, DStringGDL* format) {
     if (n > nEl-1) return "";
-     if (value->Type() == GDL_STRUCT) return "";
     //convert to STRING using FORMAT.
     T2* val=static_cast<T2*>(value->DataAddr());
     std::stringstream os;
@@ -1754,8 +1756,8 @@ void updateVal(T* oldvalue, SizeT iold, T* newvalue, SizeT inew){
   template <typename T1, typename T2>
   void PopulateWithDisjointSelection(T1* resGDL, DLongGDL* selection);
   BaseGDL* GetTableValues(DLongGDL* selection=NULL);
-  BaseGDL* GetTableValuesAsStruct(DLongGDL* selection=NULL);
   void SetTableValues(BaseGDL* value, DStringGDL *stringval, DLongGDL* selection=NULL);
+  void SetTableValuesStructCase(BaseGDL* value, DStringGDL *stringval, DLongGDL* selection=NULL);
   void SetValue(BaseGDL * val){GDLDelete(vValue); vValue=val->Dup();};
   
   void SetTableView(DLongGDL* pos);
