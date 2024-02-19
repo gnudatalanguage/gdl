@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout GDL
         uses: actions/checkout@v3.5.2
+        with:
+          fetch-tags: true
       - name: Install Dependencies
         run: |
           scripts/build_gdl.sh prep
