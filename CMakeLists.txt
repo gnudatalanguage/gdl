@@ -13,6 +13,19 @@ if (NOT EXISTS "${CMAKE_SOURCE_DIR}/src/whereami/.git" )
   message(FATAL_ERROR "The src/whereami git submodule is not initialised.\n Please run `git submodule update --init`")
 endif()
 
+# create version string based on git metadata (based on https://github.com/nocnokneo/cmake-git-versioning-example)
+# in case version.hpp does not exist (it is shipped in GDL tarballs but not stored in the repo)
+if (NOT EXISTS "${CMAKE_SOURCE_DIR}/src/version.hpp")
+  find_package(Git REQUIRED)
+  add_custom_target(version
+    ${CMAKE_COMMAND} -D SRC=${CMAKE_SOURCE_DIR}/src/version.hpp.in
+                     -D DST=${CMAKE_BINARY_DIR}/version.hpp
+                     -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
+                     -P ${CMAKE_SOURCE_DIR}/CMakeModules/GenerateVersionHeader.cmake
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  )
+endif()
+
 # Set some policies to fix warnings in newer versions of cmake
 # Since VERSION_GREATER_EQUAL is available only since 3.7, we use 
 # VERSION_GREATER combined with VERSION_EQUAL to achieve what we want
@@ -1029,16 +1042,7 @@ endif(EXPAT)
 
 add_subdirectory(src)
 
-# create version string based on git metadata (based on https://github.com/nocnokneo/cmake-git-versioning-example)
-# in case version.hpp does not exist (it is shipped in GDL tarballs but not stored in the repo)
-if (NOT EXISTS "${CMAKE_SOURCE_DIR}/src/version.hpp")
-  find_package(Git REQUIRED)
-  add_custom_target(version
-  ${CMAKE_COMMAND} -D SRC=${CMAKE_SOURCE_DIR}/src/version.hpp.in
-                   -D DST=${CMAKE_BINARY_DIR}/version.hpp
-                   -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
-                   -P ${CMAKE_SOURCE_DIR}/CMakeModules/GenerateVersionHeader.cmake
-  )
+if (TARGET version)
   add_dependencies(gdl version)
 endif()
 
