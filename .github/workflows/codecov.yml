@@ -18,16 +18,16 @@ jobs:
       ROOT_DIR: ${{ github.workspace }}/..
     steps:
       - name: Checkout GDL
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v3.5.2
         with:
-          fetch-tags: true
+          submodules: recursive
+          fetch-depth: 0
       - name: Install Dependencies
         run: |
           scripts/build_gdl.sh prep
           sudo apt install -y lcov
       - name: Build GDL
         run: |
-          git submodule update --init
           mkdir build
           cd build
           cmake .. -DCMAKE_INSTALL_PREFIX=$PWD -DCMAKE_CXX_FLAGS:STRING="-fprofile-arcs -ftest-coverage" -DCMAKE_C_FLAGS:STRING="-fprofile-arcs -ftest-coverage"
