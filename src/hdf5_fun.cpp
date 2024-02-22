@@ -1454,7 +1454,7 @@ hid_t
     DString h5dDatasetname;
     e->AssureScalarPar<DStringGDL>( 1, h5dDatasetname);
 
-    hid_t h5d_id= H5Dopen((long)h5f_id, h5dDatasetname.c_str());
+    hid_t h5d_id= H5Dopen( h5f_id, h5dDatasetname.c_str() );
 
     if (h5d_id < 0) { string msg; e->Throw(hdf5_error_message(msg)); }
 
