@@ -3112,21 +3112,11 @@ void widget_control( EnvT* e ) {
       } else if (widget->IsTable()) {
         GDLWidgetTable *table = (GDLWidgetTable *) widget;
 		int majority = table->GetMajority();
-		if (useATableSelection) {
-		  if (format != NULL) e->Throw("Unable to set format for table widget."); //format not allowed if selection
-		  format=table->GetCurrentFormat(); //use stored format
-		  //convert 'value' to vValue type FIRST...
-		  DType type = table->GetVvalue()->Type();
-		  if (table->GetMajority() == GDLWidgetTable::NONE_MAJOR) value = value->Convert2(type); //simple case
-		  else { // force all value elements to string, insert in table_as_string and  
-			DStringGDL* newValueAsStrings=GetTableValueAsString(e, value, format, majority, true); //true as IDL accepts non-array in this case
-			//set all values inside:
-			table->SetTableValuesStructCase( value, newValueAsStrings, tableSelectionToUse);
-			//The above formatting was not in error, as it not throwed: if format is not null, replace format in widget for future reference:
-			if (format != NULL) table->SetCurrentFormat(format);
-		  }
-		  goto endsetvalue;
-		} 
+		if (useATableSelection && format != NULL) e->Throw("Unable to set format for table widget."); //format not allowed if selection
+		format=table->GetCurrentFormat(); //use stored format
+		//convert 'value' to vValue type FIRST...
+		DType type = table->GetVvalue()->Type();
+		if (table->GetMajority() == GDLWidgetTable::NONE_MAJOR) value = value->Convert2(type); //simple case
 		//... then create the String equivalent
 		DStringGDL* newValueAsStrings=GetTableValueAsString(e, value, format, majority, true); //true as IDL accepts non-array in this case
 		//set all values inside:
