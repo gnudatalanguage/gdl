@@ -129,6 +129,8 @@ void ResetObjects()
 
   PurgeContainer(sysVarList);
   sysVarRdOnlyList.clear(); // data is owned by sysVarList
+  obsoleteSysVarList.clear();
+  sysVarNoSaveList.clear();
   PurgeContainer(funList);
   PurgeContainer(proList);
 

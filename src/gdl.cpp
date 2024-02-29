@@ -120,29 +120,30 @@ void InitOpenMP() {
 #endif
 }
 
+#if GDL_DO_ATEXIT
 void AtExit()
 {
   //this function probably cleans otherwise cleaned objets and should be called only for debugging purposes.
-  cerr << "Using AtExit() for debugging" << endl;
-  cerr << flush; cout << flush; clog << flush;
+//  cerr << "Using AtExit() for debugging" << endl;
   // clean up everything
   // (for debugging memory leaks)
   ResetObjects();
   PurgeContainer(libFunList);
   PurgeContainer(libProList);
 }
+#endif
 
 #ifndef _WIN32
 void GDLSetLimits()
 {
 #define GDL_PREFERED_STACKSIZE  1024000000 //1000000*1024 like IDL
-struct rlimit* gdlstack=new struct rlimit;
-  int r=getrlimit(RLIMIT_STACK,gdlstack); 
+struct rlimit gdlstack;
+  int r=getrlimit(RLIMIT_STACK,&gdlstack); 
 //  cerr <<"Current rlimit = "<<gdlstack->rlim_cur<<endl;
 //  cerr<<"Max rlimit = "<<  gdlstack->rlim_max<<endl;
-  if (gdlstack->rlim_cur >= GDL_PREFERED_STACKSIZE ) return; //the bigger the better.
-  if (gdlstack->rlim_max > GDL_PREFERED_STACKSIZE ) gdlstack->rlim_cur=GDL_PREFERED_STACKSIZE; //not completely satisfactory.
-  r=setrlimit(RLIMIT_STACK,gdlstack);
+  if (gdlstack.rlim_cur >= GDL_PREFERED_STACKSIZE ) return; //the bigger the better.
+  if (gdlstack.rlim_max > GDL_PREFERED_STACKSIZE ) gdlstack.rlim_cur=GDL_PREFERED_STACKSIZE; //not completely satisfactory.
+  r=setrlimit(RLIMIT_STACK,&gdlstack);
 }
 #endif
 
@@ -242,7 +243,7 @@ namespace MyPaths {
 
 int main(int argc, char *argv[])
 {
-#ifdef GDL_DEBUG
+#ifdef GDL_DO_ATEXIT
   if( atexit( AtExit) != 0) cerr << "atexit registration failed." << endl;
 #endif
   // indicates if the user wants to see the welcome message
