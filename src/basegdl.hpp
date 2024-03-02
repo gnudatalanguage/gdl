@@ -345,7 +345,7 @@ public:
 #if defined(HAVE_MALLOC_ZONE_STATISTICS) && defined(HAVE_MALLOC_MALLOC_H)
 // - the sbrk(0) does not give any meaningfull info for HIGHWATER
 // - using mallinfo() frequently gives a large performace loss
-    UpdateCurrent(); // updates the highwater mark 
+// avoid doing this here, explains the slowness on OSX  //   UpdateCurrent(); // updates the highwater mark 
 #endif
   }
 
