@@ -513,6 +513,12 @@ function install_gdl {
         if [[ -n "${PYTHON_DLL}" ]]; then
             cp -f "${PYTHON_DLL}" bin/
         fi
+
+        if [[ $WITH_UDUNITS2 == "ON" ]]; then
+            log "Copying udunits xml files to install directory..."
+            cp -rf /${mname}/share/udunits share/
+        fi
+
 #        #this ensures that we overcome the bug in plplot version for Windows that does not know about PLPLOT_DRV_DIR env. var.
         log "Copying our drivers to same directory as gdl.."
         if [[ -n "${PLPLOT_DRV_DLL}" ]]; then
