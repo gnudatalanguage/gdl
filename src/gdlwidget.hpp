@@ -118,11 +118,11 @@
 
 
 #define UPDATE_VVALUE_HELPER(xxx,yyy) {\
-xxx* typed_gdl = static_cast<xxx*>(vValue);\
-yyy* typed_vvalue = static_cast<yyy*> (typed_gdl->DataAddr());\
-xxx* typed_new_gdl = static_cast<xxx*>(value);\
+xxx* typed_old_gdl = static_cast<xxx*>(oldValue);\
+yyy* typed_old_value = static_cast<yyy*> (typed_old_gdl->DataAddr());\
+xxx* typed_new_gdl = static_cast<xxx*>(newValue);\
 yyy* typed_new_value = static_cast<yyy*> (typed_new_gdl->DataAddr());\
-updateVal<yyy>(typed_vvalue,iold,typed_new_value,inew);\
+updateVal<yyy>(typed_old_value,iold,typed_new_value,inew);\
 }
 
 
@@ -1719,8 +1719,18 @@ public:
 
   void SetSelection(DLongGDL* selection);
 
+  int GetDataNCols(){
+    if ( majority == NONE_MAJOR) return vValue->Dim(0);
+    else if ( majority == COLUMN_MAJOR) return vValue->Dim(0);
+    else  return static_cast<DStructGDL*>(vValue)->NTags();
+  }
+  int GetDataNRows(){
+    if ( majority == NONE_MAJOR) return vValue->Dim(1);
+    else if ( majority == COLUMN_MAJOR) return static_cast<DStructGDL*>(vValue)->NTags();
+    else  return vValue->Dim(0);
+  }
   template<typename T1, typename T2>
-  DString GetRawEditingValue(T1* value, const int nEl, const int n, const int majority) {
+  DString GetRawEditingValue(T1* value, const int nEl, const int n) {
     if (n > nEl-1) return "";
     T2* val=static_cast<T2*>(value->DataAddr());
     std::stringstream os;
@@ -1730,7 +1740,6 @@ public:
   template<typename T1, typename T2>
   DString SetEditedValue(wxString s, T1* value, const int nEl, const int n, DStringGDL* format) {
     if (n > nEl-1) return "";
-     if (value->Type() == GDL_STRUCT) return "";
     //convert to STRING using FORMAT.
     T2* val=static_cast<T2*>(value->DataAddr());
     std::stringstream os;
@@ -1740,7 +1749,7 @@ public:
     Guard<T1> guard(subvalue);
     return (*CallStringFunction(subvalue, format))[0];
   }
-  void UpdatevValues(SizeT iold, BaseGDL* value, SizeT inew);
+  void UpdatevValues(BaseGDL* oldValue, SizeT iold, BaseGDL* newValue, SizeT inew);
 
 template <typename T>
 void updateVal(T* oldvalue, SizeT iold, T* newvalue, SizeT inew){
@@ -1749,12 +1758,13 @@ void updateVal(T* oldvalue, SizeT iold, T* newvalue, SizeT inew){
   
   template <typename T1, typename T2>
   void PopulateWithSelection(T1* res, int colTL, int colBR, int rowTL, int rowBR);
+  BaseGDL* GetSelectionValuesForStructs(int colTL, int colBR, int rowTL, int rowBR);
   BaseGDL* GetSelectionValues(int colTL, int colBR, int rowTL, int rowBR);
   BaseGDL* GetDisjointSelectionValues(DLongGDL* selection);
+  BaseGDL* GetDisjointSelectionValuesForStructs(DLongGDL* selection);
   template <typename T1, typename T2>
   void PopulateWithDisjointSelection(T1* resGDL, DLongGDL* selection);
   BaseGDL* GetTableValues(DLongGDL* selection=NULL);
-  BaseGDL* GetTableValuesAsStruct(DLongGDL* selection=NULL);
   void SetTableValues(BaseGDL* value, DStringGDL *stringval, DLongGDL* selection=NULL);
   void SetValue(BaseGDL * val){GDLDelete(vValue); vValue=val->Dup();};
   
@@ -2075,7 +2085,7 @@ public:
       mylist.sort(compare_wxPoint);
       mylist.unique(is_unique_wxPoint);
       std::vector<wxPoint> ret;
-      for (std::list<wxPoint>::iterator it = mylist.begin(); it != mylist.end(); it++) ret.push_back(*it);
+      for (std::list<wxPoint>::iterator it = mylist.begin(); it != mylist.end(); ++it) ret.push_back(*it);
       return ret;
   }
 
