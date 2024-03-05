@@ -2,7 +2,7 @@ name: build
 
 on:
   schedule:
-    - cron: "0 0 * * 2"
+    - cron: "35 9 * * 2"
   push:
     branches:
       - master
@@ -76,8 +76,10 @@ jobs:
             RELEASE_NAME="${GITHUB_REF_NAME}"
           fi
           if [[ ! -z "${RELEASE_NAME}" ]]; then
-            cp -r $PWD /tmp/gdl-${RELEASE_NAME} && rm -rf /tmp/gdl-${RELEASE_NAME}/.git && cd /tmp
+            cp -r $PWD /tmp/gdl-${RELEASE_NAME}
             cmake -D SRC=/tmp/gdl-${RELEASE_NAME}/src/version.hpp.in -D DST=/tmp/gdl-${RELEASE_NAME}/src/version.hpp -D GIT_EXECUTABLE=git -P /tmp/gdl-${RELEASE_NAME}/CMakeModules/GenerateVersionHeader.cmake 
+            rm -rf /tmp/gdl-${RELEASE_NAME}/.git
+            cd /tmp
             rm /tmp/gdl-${RELEASE_NAME}/src/version.hpp.in
             tar czf "/tmp/gdl-${RELEASE_NAME}.tar.gz" gdl-${RELEASE_NAME}
             echo "released=true" >> "$GITHUB_OUTPUT"
