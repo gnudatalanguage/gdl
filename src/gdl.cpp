@@ -120,18 +120,14 @@ void InitOpenMP() {
 #endif
 }
 
-#if GDL_DO_ATEXIT
 void AtExit()
 {
-  //this function probably cleans otherwise cleaned objets and should be called only for debugging purposes.
-//  cerr << "Using AtExit() for debugging" << endl;
-  // clean up everything
-  // (for debugging memory leaks)
+  //this function cleans objets and should be called only for debugging purposes.(for debugging memory leaks)
+  // enabled with flag --clean-at-exit
   ResetObjects();
   PurgeContainer(libFunList);
   PurgeContainer(libProList);
 }
-#endif
 
 #ifndef _WIN32
 void GDLSetLimits()
@@ -243,9 +239,6 @@ namespace MyPaths {
 
 int main(int argc, char *argv[])
 {
-#ifdef GDL_DO_ATEXIT
-  if( atexit( AtExit) != 0) cerr << "atexit registration failed." << endl;
-#endif
   // indicates if the user wants to see the welcome message
   bool quiet = false;
   bool gdlde = false;
@@ -336,6 +329,7 @@ int main(int argc, char *argv[])
   tryToMimicOriginalWidgets = false;
   useDSFMTAcceleration = true;
   iAmANotebook=false; //option --notebook
+  iAmSilent=false; //option --silent
  #ifdef HAVE_LIBWXWIDGETS 
 
     #if defined (__WXMAC__) 
@@ -379,6 +373,7 @@ int main(int argc, char *argv[])
       cerr << "                     Also disable by setting the environment variable GDL_NO_DSFMT to a non-null value." << endl;
       cerr << "  --with-eigen-transpose lets GDL use Eigen::transpose and related functions instead of our accelerated transpose function. Normally slower." <<endl;
       cerr << "  --smart-tpool      switch to a mode where the number of threads is adaptive (experimental). Should enable better perfs on many core machines." <<endl;
+      cerr << "  --silent           Supresses some messages (mainly \"Compiled Module XXX\" ." <<endl;
 #ifdef _WIN32
       cerr << "  --posix (Windows only): paths will be posix paths (experimental)." << endl;
 #endif
@@ -502,6 +497,10 @@ int main(int argc, char *argv[])
       {
          iAmANotebook = true;
       }
+      else if (string(argv[a]) == "--silent")
+      {
+         iAmSilent = true;
+      }
       else if (string(argv[a]) == "--fakerelease")
       {
         if (a == argc - 1)
@@ -510,9 +509,9 @@ int main(int argc, char *argv[])
             return 0;
           }
         pretendRelease = string(argv[++a]);
-      }
-      else if (*argv[a] == '-')
-      {
+	} else if (string(argv[a]) == "--clean-at-exit") {
+	  if (atexit(AtExit) != 0) cerr << "atexit registration failed. option \"--clean-at-exit\" unefficient." << endl;
+	} else if (*argv[a] == '-') {
         cerr << argv[0] << ": " << argv[a] << " option not recognized." << endl;
         return 0;
       }
