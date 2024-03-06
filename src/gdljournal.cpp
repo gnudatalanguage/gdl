@@ -18,6 +18,7 @@
 #define GDL_JOURNAL_C
 
 #include "includefirst.hpp"
+#include "version.hpp"
 
 #ifndef _MSC_VER
 #include <unistd.h>
