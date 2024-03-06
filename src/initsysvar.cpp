@@ -16,6 +16,7 @@
  ***************************************************************************/
 
 #include "includefirst.hpp"
+#include "version.hpp"
 
 #ifndef _WIN32
 #include <sys/utsname.h>
