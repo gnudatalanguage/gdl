@@ -40,6 +40,9 @@
 
 #include <assert.h>
 
+//do we print all spurious informations (like "Compiled module XXX")
+volatile bool iAmSilent;
+
 using namespace std;
 
 DCompiler::DCompiler(const string& f, EnvBaseT* e, const std::string& sub)
@@ -252,7 +255,7 @@ void DCompiler::EndPro() // inserts in proList
     }
 
     if(!(pro->isHidden() || pro->isGdlHidden())) {  if ( subRoutine == "" || subRoutine == pro->ObjectFileName())
-    Message( "Compiled module: "+pro->ObjectName()+"."); }
+    if (!iAmSilent) Message( "Compiled module: "+pro->ObjectName()+"."); }
 
   // reset pro // will be deleted otherwise
   if( env != NULL) 
@@ -319,7 +322,7 @@ void DCompiler::EndFun() // inserts in funList
   }
 
   if(!(pro->isHidden() || pro->isGdlHidden())) {  if (subRoutine == "" || subRoutine == pro->ObjectFileName())
-    Message( "Compiled module: "+pro->ObjectName()+"."); }
+    if (!iAmSilent) Message( "Compiled module: "+pro->ObjectName()+"."); }
   // reset pro // will be deleted otherwise
   if( env != NULL) pro=dynamic_cast<DSubUD*>(env->GetPro()); else pro=NULL;
 }

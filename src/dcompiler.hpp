@@ -31,6 +31,8 @@
 #include "dcommon.hpp"
 #include "dnode.hpp"
 
+extern volatile bool iAmSilent;
+
 class GDLInterpreter;
 
 class DCompiler: public GDLTokenTypes
