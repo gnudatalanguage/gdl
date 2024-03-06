@@ -334,6 +334,7 @@ wxString wxGridGDLCellTextEditor::GetEditedValue(int row, int col, wxGrid* grid)
   wxGridGDL* mygrid=static_cast<wxGridGDL*>(grid);
   table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(mygrid->GetWidgetTableID()));
   BaseGDL* value = table->GetVvalue();
+  if (value==NULL) return "";
   SizeT dim0 = value->Dim(0);
   SizeT nEl = value->N_Elements();
   int offset=row * dim0 + col;
@@ -400,7 +401,9 @@ wxString wxGridGDLCellTextEditor::GetEditedValue(int row, int col, wxGrid* grid)
   return "";
 }
 wxString wxGridGDLCellTextEditor::SetEditedValue(wxString sval, int row, int col){
-  BaseGDL* value = table->GetVvalue();
+  BaseGDL* value = table->GetVvalue();  
+  if (value==NULL) return "";
+
   DStringGDL* format=table->GetCurrentFormat();
   SizeT dim0 = value->Dim(0);
   SizeT nEl = value->N_Elements();
@@ -474,6 +477,8 @@ void wxGridGDLCellTextEditor::BeginEdit(int row, int col, wxGrid* grid) {
   wxGridGDL* mygrid=static_cast<wxGridGDL*>(grid);
   GDLWidgetTable* table = static_cast<GDLWidgetTable*>(GDLWidget::GetWidget(mygrid->GetWidgetTableID()));
   BaseGDL* value = table->GetVvalue();
+  if (value==NULL) return;
+
   int majority=table->GetMajority();
   SizeT dim0 = value->Dim(0);
   SizeT nEl = value->N_Elements();
@@ -3366,6 +3371,9 @@ DStringGDL* ConvertValueToStringArray(BaseGDL* &value, DStringGDL* format, const
 	valueAsStrings = new DStringGDL(dim, BaseGDL::NOZERO);
 	valueAsStrings->FromStream(os); //simple as that if we manage the dimensions and transpose accordingly....
 	if (majority == GDLWidgetTable::COLUMN_MAJOR) valueAsStrings = static_cast<DStringGDL*> (valueAsStrings->Transpose(NULL));
+  } else if (value->Type() == GDL_STRING) {
+	//no conversion and besides, prevent problem with NULL strings
+	 valueAsStrings = static_cast<DStringGDL*>(value)->Dup();
   } else {
 	//convert to STRING using FORMAT.
 	valueAsStrings = CallStringFunction(value, format);
