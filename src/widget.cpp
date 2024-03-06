@@ -470,6 +470,9 @@ DStringGDL*  GetTableValueAsString(EnvT* e, BaseGDL* &value, DStringGDL* format,
 
 	  valueAsStrings->FromStream(os); //simple as that if we manage the dimensions and transpose accordingly....
 	  if (majority == GDLWidgetTable::COLUMN_MAJOR) valueAsStrings = static_cast<DStringGDL*> (valueAsStrings->Transpose(NULL));
+	} else if (value->Type() == GDL_STRING) {
+	  //no conversion and besides, prevent problem with NULL strings
+	  valueAsStrings = static_cast<DStringGDL*>(value)->Dup();
 	} else {
 	  //convert to STRING using FORMAT.
 	  valueAsStrings = CallStringFunction(value, format);
@@ -3115,8 +3118,11 @@ void widget_control( EnvT* e ) {
 		if (useATableSelection && format != NULL) e->Throw("Unable to set format for table widget."); //format not allowed if selection
 		format=table->GetCurrentFormat(); //use stored format
 		//convert 'value' to vValue type FIRST...
-		DType type = table->GetVvalue()->Type();
-		if (table->GetMajority() == GDLWidgetTable::NONE_MAJOR) value = value->Convert2(type); //simple case
+		BaseGDL* v=table->GetVvalue();
+		if (v != NULL) {
+		  DType type = v->Type();
+		  if (table->GetMajority() == GDLWidgetTable::NONE_MAJOR) value = value->Convert2(type);
+		}
 		//... then create the String equivalent
 		DStringGDL* newValueAsStrings=GetTableValueAsString(e, value, format, majority, true); //true as IDL accepts non-array in this case
 		//set all values inside:
