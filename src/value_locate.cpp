@@ -15,9 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 #define VALUE_LOCATE_HELPER(xxx,yyy) {\

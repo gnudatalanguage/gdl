@@ -15,12 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
 #include "shapefil.h"
 
-#include "datatypes.hpp"
-#include "envt.hpp"
 #include "dinterpreter.hpp"
 
 static DStructGDL* GetOBJ( BaseGDL* Objptr, EnvUDT* e)

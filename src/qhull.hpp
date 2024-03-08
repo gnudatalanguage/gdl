@@ -22,7 +22,6 @@
 #ifndef QHULL_HPP_
 #define QHULL_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 #include <iostream>

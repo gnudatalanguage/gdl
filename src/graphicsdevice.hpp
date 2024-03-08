@@ -48,7 +48,6 @@ SVG - a SVG compliant file.
 #include <vector>
 
 #include "datatypes.hpp" // DByte
-#include "dstructgdl.hpp"
 #include "gdlgstream.hpp"
 
 #define MAX_WIN 32  //IDL free and widgets start at 32 ...

@@ -22,7 +22,6 @@
 #ifndef HISTOGRAM_HPP_
 #define HISTOGRAM_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

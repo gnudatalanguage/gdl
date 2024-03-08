@@ -24,15 +24,8 @@
 
 #include "dinterpreter.hpp"
 #include "prognodeexpr.hpp"
-#include "basegdl.hpp"
-#include "arrayindexlistt.hpp"
-#include "envt.hpp"
-#include "gdlexception.hpp"
-#include "nullgdl.hpp"
-#include "basic_fun.hpp"
-#include "basic_fun_jmg.hpp"
-
-#include "initsysvar.hpp"
+#include "basic_fun.hpp" //LIST_count, HASH_count, scope_varfetch_***
+#include "basic_fun_jmg.hpp"//routine_names_***
 
 using namespace std;
 

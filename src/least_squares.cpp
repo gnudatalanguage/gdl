@@ -25,11 +25,7 @@
 #include <string>
 #include <complex>
 
-#include "datatypes.hpp"
 #include "envt.hpp"
-#include "basic_fun.hpp"
-#include "dinterpreter.hpp"
-
 #include "least_squares.hpp"
 
 #if !defined(USE_EIGEN)

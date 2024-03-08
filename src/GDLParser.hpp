@@ -10,13 +10,11 @@
 
 
 #include <fstream>
-
-#include "GDLParser.hpp"
-
-#include "str.hpp"
-#include "dnodefactory.hpp"
+#include "basegdl.hpp"
+//#include "str.hpp"
+//#include "dnodefactory.hpp"
 #include "objects.hpp"
-#include "initsysvar.hpp"
+//#include "initsysvar.hpp"
 
 #include <antlr/TokenStreamSelector.hpp>
 

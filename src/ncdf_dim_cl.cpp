@@ -29,13 +29,8 @@
 #include <memory>
 #include <netcdf.h>
 
-#include "datatypes.hpp"
 #include "envt.hpp"
-#include "dpro.hpp"
-#include "dinterpreter.hpp"
 #include "ncdf_cl.hpp"
-#include "terminfo.hpp"
-#include "typedefs.hpp"
 
 #define MAX_DATE_STRING_LENGTH 80
 

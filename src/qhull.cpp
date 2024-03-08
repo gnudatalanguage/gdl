@@ -14,10 +14,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#include "includefirst.hpp"
-#include "datatypes.hpp"
 #include "envt.hpp"
-#include "dinterpreter.hpp"
 
 #include <vector>
 #include <string>

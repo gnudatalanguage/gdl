@@ -18,7 +18,6 @@
 #ifndef DATALISTT_HPP_
 #define DATALISTT_HPP_
 
-#include "basegdl.hpp"
 #include "nullgdl.hpp"
 
 struct EnvType

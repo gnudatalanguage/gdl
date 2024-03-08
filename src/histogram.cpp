@@ -15,8 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
 #include "dinterpreter.hpp"
 
 // AC 22/05/11 (needed in Debian 10 & U 18.04)

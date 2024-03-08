@@ -18,18 +18,6 @@
 #ifndef ACCESSDESC_HPP_
 #define ACCESSDESC_HPP_
 
-#include <vector>
-
-#include "typedefs.hpp"
-#include "datatypes.hpp"
-#include "arrayindexlistt.hpp"
-#include "assocdata.hpp"
-#include "initsysvar.hpp"
-
-// #ifdef _OPENMP
-// #include "objects.hpp"
-// #endif
-
 class DotAccessDescT
 {
 private:
@@ -570,8 +558,6 @@ public:
   }
 
 };
-
-// typedef std::vector<DotAccessDescT*> AccessStackT;
 
 #endif
 

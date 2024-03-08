@@ -18,7 +18,6 @@
 #ifndef HDF5_FUN_HPP_
 #define HDF5_FUN_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 /**

@@ -20,7 +20,6 @@
 #include <map>
 #include <cmath>
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include "basic_fun.hpp"
 #include "gsl_fun.hpp"

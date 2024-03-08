@@ -21,7 +21,6 @@
 #ifndef BRENT_HPP_
 #define BRENT_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

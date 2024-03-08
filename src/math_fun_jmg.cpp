@@ -20,14 +20,10 @@
 #include <iostream>
 #include <complex>
 #include <cmath>
-
-#include "datatypes.hpp"
+#include <cfenv>
 #include "envt.hpp"
-#include "dinterpreter.hpp"
-#include "initsysvar.hpp"
 #include "math_utl.hpp"
 #include "math_fun_jmg.hpp"
-#include "graphicsdevice.hpp"
 #include "gdl_util.hpp"
 
 //#define GDL_DEBUG

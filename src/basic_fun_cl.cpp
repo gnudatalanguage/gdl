@@ -42,8 +42,6 @@
 
 #include <gsl/gsl_sf.h>
 
-#include "initsysvar.hpp"
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include "basic_fun_cl.hpp"
 

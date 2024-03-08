@@ -23,7 +23,6 @@
 #ifndef WHERE_HPP_
 #define WHERE_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

@@ -18,7 +18,6 @@
 #ifndef HDF_PRO_HPP_
 #define HDF_PRO_HPP_
 #undef NOP
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

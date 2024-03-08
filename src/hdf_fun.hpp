@@ -18,7 +18,6 @@
 #ifndef HDF_FUN_HPP_
 #define HDF_FUN_HPP_
 #undef NOP
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

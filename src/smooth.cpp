@@ -16,11 +16,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
-#include "nullgdl.hpp"
-#include "dstructgdl.hpp"
-#include "dinterpreter.hpp"
+#include "datatypes.hpp"
 #ifdef _MSC_VER
 #define isfinite _finite
 #define std__isnan isnan

@@ -15,19 +15,12 @@ email                : m_schellens@users.sf.net
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
 // from GDLInterpreter::l_expr
 #include <cassert>
 #include <string>
 
 #include "dinterpreter.hpp"
 #include "prognodeexpr.hpp"
-#include "basegdl.hpp"
-#include "arrayindexlistt.hpp"
-//#include "envt.hpp"
-#include "gdlexception.hpp"
-#include "nullgdl.hpp"
 
 // illegal
 BaseGDL** ProgNode::LExpr( BaseGDL* right)

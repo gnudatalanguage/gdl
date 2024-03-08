@@ -23,7 +23,7 @@
 #include "accessdesc.hpp"
 #include "initsysvar.hpp"
 #include "gdljournal.hpp"
-#include "nullgdl.hpp"
+//#include "nullgdl.hpp"
 
 //class ProgNode;
 //typedef ProgNode* ProgNodeP;

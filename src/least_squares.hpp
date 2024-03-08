@@ -24,7 +24,6 @@
 
 // this code needs Eigen3
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

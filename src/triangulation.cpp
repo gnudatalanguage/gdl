@@ -15,8 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include "dinterpreter.hpp"
 

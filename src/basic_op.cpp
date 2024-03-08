@@ -23,13 +23,10 @@
 #include <omp.h>
 #endif
 
-#include "nullgdl.hpp"
 #include "dinterpreter.hpp"
 
 // needed with gcc-3.3.2
 #include <cassert>
-
-#include "typetraits.hpp"
 
 #include "gdlfpexceptions.hpp"
 #include "gdl_util.hpp" //for gdl::powI

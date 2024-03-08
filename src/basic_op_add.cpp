@@ -22,8 +22,6 @@
 #include <omp.h>
 #endif
 
-//#include "datatypes.hpp" // for friend declaration
-#include "nullgdl.hpp"
 #include "dinterpreter.hpp"
 
 // needed with gcc-3.3.2

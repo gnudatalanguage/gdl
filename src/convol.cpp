@@ -16,11 +16,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
-#include "nullgdl.hpp"
-#include "dstructgdl.hpp"
-#include "dinterpreter.hpp"
+#include "envt.hpp"
 
 template<typename T>
 inline bool gdlValid( const T &value )

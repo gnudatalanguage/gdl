@@ -58,12 +58,6 @@
           } \
         }
     
-#include "includefirst.hpp"
-
-#include "nullgdl.hpp"
-#include "datatypes.hpp"
-#include "envt.hpp"
-#include "dpro.hpp"
 #include "dinterpreter.hpp"
 
 

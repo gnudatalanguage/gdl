@@ -21,10 +21,7 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-//#include "datatypes.hpp" // for friend declaration
-#include "nullgdl.hpp"
-#include "dinterpreter.hpp"
+#include "datatypes.hpp"
 #include "gdlfpexceptions.hpp"
 #include "libdivide.h" // for fast divison by integer constant
 // needed with gcc-3.3.2

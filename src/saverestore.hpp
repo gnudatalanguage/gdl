@@ -23,7 +23,6 @@
 #ifndef SAVERESTORE_HPP_
 #define SAVERESTORE_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

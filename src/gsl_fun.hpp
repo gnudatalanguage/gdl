@@ -24,8 +24,7 @@
 #ifndef GSL_FUN_HPP_
 #define GSL_FUN_HPP_
 
-#include "datatypes.hpp"
-#include "envt.hpp"
+#include "dinterpreter.hpp"
 #include <vector>
 #include <cassert>
 #include <gsl/gsl_vector.h>

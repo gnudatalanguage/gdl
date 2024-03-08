@@ -17,8 +17,6 @@
 #ifndef SPARSE_MATRIX_HPP_
 #define SPARSE_MATRIX_HPP_
 
-#include "includefirst.hpp"
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

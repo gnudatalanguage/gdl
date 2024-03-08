@@ -29,16 +29,7 @@
 #include <wx/menuitem.h>
 #include <wx/display.h>
 
-#include "basegdl.hpp"
-#include "dstructgdl.hpp"
-
-#include "dinterpreter.hpp"
-
-
 #include "gdlwxstream.hpp"
-
-
-#include "widget.hpp"
 #include "graphicsdevice.hpp"
 
 #undef MIN

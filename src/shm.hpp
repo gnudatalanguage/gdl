@@ -17,7 +17,6 @@
 #ifndef SHM_HPP_
 #define SHM_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include <iostream>     // std::cout, std::ostream, std::ios
 #include "shm_utils.hpp"

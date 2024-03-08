@@ -23,7 +23,6 @@
 #ifndef FFTW_HPP_
 #define FFTW_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

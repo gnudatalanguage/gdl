@@ -19,14 +19,10 @@
 
 // Convert2( DType) functions
 #include <string.h>
-#include "includefirst.hpp"
-
-//#include "datatypes.hpp"
-#include "dstructgdl.hpp"
-#include "real2int.hpp"
-#include "ofmt.hpp" // OutAuto
 
 #include "dinterpreter.hpp"
+#include "real2int.hpp"
+#include "ofmt.hpp" // OutAuto
 
 using namespace std;
 

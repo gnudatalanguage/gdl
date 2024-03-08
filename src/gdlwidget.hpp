@@ -71,11 +71,8 @@
 #include <deque>
 #include <map>
 
-#include "typedefs.hpp"
-#include "str.hpp"
-#include "datatypes.hpp"
+#include "envt.hpp"
 #include "widget.hpp"
-#include "GDLInterpreter.hpp"
 #include "basic_fun.hpp" //for GDL_TOSTRING
 
 #define gdlSCROLL_RATE 10

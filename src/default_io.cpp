@@ -16,15 +16,7 @@
  ***************************************************************************/
 
 
-#include "includefirst.hpp"
-
-#include "nullgdl.hpp"
-#include "typedefs.hpp"
-//#include "datatypes.hpp" // for friend declaration
-
-#include "dstructgdl.hpp"
-#include "arrayindexlistt.hpp"
-#include "assocdata.hpp"
+#include "assocdata.hpp" //for Assoc
 #include "dinterpreter.hpp"
 
 // needed with gcc-3.3.2

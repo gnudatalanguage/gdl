@@ -16,8 +16,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 #define CALL_INTERPOLATE_1D(G1,T1,G2,T2)\

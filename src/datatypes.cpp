@@ -22,8 +22,7 @@
 #include <omp.h>
 #endif
 
-#include "datatypes.hpp" // for friend declaration
-#include "nullgdl.hpp"
+//#include "datatypes.hpp" // for friend declaration
 #include "dinterpreter.hpp"
 
 // needed with gcc-3.3.2
@@ -4914,6 +4913,17 @@ SizeT Data_<SpDComplexDbl>::GetAsIndexStrict( SizeT i) const
   if( real((*this)[i]) <= 0.0)
     return 0;
   return Real2Int<SizeT,double>(real((*this)[i]));
-}	
-
+}
+#ifdef ONE_DATAFILE
+//#warning "using a big datatype.cpp file, compilation slow"
+#include "basic_op_sub.cpp"
+#include "basic_op_add.cpp"
+#include "basic_op.cpp"
+#include "basic_op_new.cpp"
+#include "basic_op_div.cpp"
+#include "basic_op_mult.cpp"
+#include "default_io.cpp"
+#include "ifmt.cpp"
+#include "ofmt.cpp"
+#endif
 #include "instantiate_templates.hpp"
