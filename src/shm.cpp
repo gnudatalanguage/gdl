@@ -25,8 +25,6 @@
 #include <string.h>
 #include "shm.hpp"
 #include "basic_fun.hpp" //for arr()
-#include "gdlhelp.hpp"
-#include "dinterpreter.hpp"
 
 std::map<DString, SHMAP_STRUCT > shmList;
 

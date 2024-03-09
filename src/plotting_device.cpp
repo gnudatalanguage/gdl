@@ -15,9 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
 #include "plotting.hpp"
-#include "nullgdl.hpp"
 #include <gsl/gsl_const_mksa.h> // GSL_CONST_MKSA_INCH
 
 namespace lib {

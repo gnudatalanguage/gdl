@@ -17,7 +17,6 @@
 #ifndef LABELREGION_HPP_
 #define LABELREGION_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

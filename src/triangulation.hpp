@@ -23,7 +23,6 @@
 #ifndef TRIANGULATION_HPP_
 #define TRIANGULATION_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 namespace lib {
   void GDL_Triangulate(EnvT* e);

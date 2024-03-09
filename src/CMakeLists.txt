@@ -8,13 +8,15 @@ GDLInterpreter.cpp
 GDLLexer.cpp
 GDLParser.cpp
 GDLTreeParser.cpp
-datatypes.cpp #long
-convol.cpp #long
-convol2.cpp #long
-smooth.cpp   #long also
+datatypes.cpp
+)
+ 
+if(NOT ONE_DATAFILE)
+message(STATUS "Using Splitted datatypes.cpp.")
+set(SOURCES
+${SOURCES}
 basic_op.cpp
 basic_op_new.cpp
-getas.cpp
 basic_op_add.cpp
 basic_op_sub.cpp
 basic_op_mult.cpp
@@ -22,6 +24,15 @@ basic_op_div.cpp
 default_io.cpp
 ifmt.cpp
 ofmt.cpp
+)
+endif(NOT ONE_DATAFILE)
+
+set (SOURCES
+${SOURCES}
+convol.cpp #long
+convol2.cpp #long
+smooth.cpp   #long also
+getas.cpp
 datatypes_minmax.cpp
 allix.cpp
 arrayindex.cpp

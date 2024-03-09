@@ -15,12 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-#include "getfmtast.hpp"
-#include "datatypes.hpp"
-#include "envt.hpp"
 #include "dinterpreter.hpp"
-#include "nullgdl.hpp"
 #include <queue>
 
 #include "print_tree.hpp"

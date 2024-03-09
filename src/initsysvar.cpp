@@ -29,13 +29,13 @@
 #include <omp.h> // for !CPU
 #endif
 
-#include "nullgdl.hpp"
+//#include "nullgdl.hpp"
 
 #include "objects.hpp"
 #include "dstructgdl.hpp"
 #include "graphicsdevice.hpp"
 
-#include "file.hpp"
+#include "file.hpp" //for ExpandPath
 
 #ifdef _MSC_VER
 #include "gtdhelper.hpp"

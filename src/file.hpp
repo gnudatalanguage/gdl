@@ -17,7 +17,7 @@
 
 #ifndef FILE_HPP_
 #define FILE_HPP_
-
+#include "dinterpreter.hpp"
 namespace lib {
   // library functions
   BaseGDL* file_test( EnvT* e);

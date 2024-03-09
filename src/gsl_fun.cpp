@@ -25,11 +25,9 @@
 #include <iostream>
 #include <complex>
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include "basic_fun.hpp"
 #include "gsl_fun.hpp"
-#include "dinterpreter.hpp"
 
 #ifdef _MSC_VER
 #include "gtdhelper.hpp" //for gettimeofday()
@@ -95,10 +93,6 @@
 
 // spher_harm
 #include <gsl/gsl_sf_legendre.h>
-
-#include "nullgdl.hpp"
-
-//#include "gsl_errorhandler.hpp"
 
 
 #define LOG10E 0.434294

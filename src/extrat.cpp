@@ -20,7 +20,6 @@
 #include "objects.hpp"
 #include "extrat.hpp"
 #include "envt.hpp"
-#include "nullgdl.hpp"
 
 using namespace std;
 

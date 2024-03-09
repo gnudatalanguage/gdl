@@ -30,7 +30,6 @@ The GSL is mandatory. Eigen3 is not mandatory. */
 // current versions are based on Eigen3
 // #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

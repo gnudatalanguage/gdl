@@ -15,11 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
 #include "nullgdl.hpp"
 #include "dinterpreter.hpp"
-#include "datatypes.hpp"
 
 using namespace std;
 

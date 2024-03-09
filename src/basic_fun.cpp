@@ -59,15 +59,11 @@ strtok_fun, getenv_fun, tag_names_fun, stregex_fun:
 extern "C" char **environ;
 #endif
 
-#include "nullgdl.hpp"
-#include "datatypes.hpp"
+//#include "nullgdl.hpp"
 #include "envt.hpp"
-#include "dpro.hpp"
 #include "dinterpreter.hpp"
 #include "basic_pro.hpp"
-#include "typedefs.hpp"
 #include "base64.hpp"
-#include "objects.hpp"
 #include "gdlfpexceptions.hpp"
 
 #ifdef HAVE_LOCALE_H

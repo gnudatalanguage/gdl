@@ -17,9 +17,7 @@
 
 #include "includefirst.hpp"
 
-#include "datatypes.hpp"
 #include "envt.hpp"
-#include "dinterpreter.hpp"
 
 namespace lib {
 #define INSERTION_SORT_THRESHOLD 256  //after, merge is better (floats)

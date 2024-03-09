@@ -15,8 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
 #include "gdlexception.hpp"
 #include "dnode.hpp"
 #include "initsysvar.hpp"

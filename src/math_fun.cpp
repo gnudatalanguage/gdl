@@ -29,11 +29,9 @@
 #include <gsl/gsl_linalg.h>
 
 #include "objects.hpp"
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include "math_utl.hpp"
 #include "math_fun.hpp"
-#include "dinterpreter.hpp"
 #include "gdlfpexceptions.hpp"
 
 //#define GDL_DEBUG

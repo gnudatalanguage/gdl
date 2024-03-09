@@ -17,13 +17,10 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
 #include <iostream>
 // not yet ready? version problems? #include <wx/display.h>
 
 #include "datatypes.hpp"
-#include "envt.hpp"
 #include "dinterpreter.hpp"
 
 #ifdef HAVE_LIBWXWIDGETS

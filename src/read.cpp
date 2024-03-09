@@ -21,7 +21,6 @@
 #include <string>
 #include <iostream>
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include "getfmtast.hpp"
 #include "basic_pro.hpp"

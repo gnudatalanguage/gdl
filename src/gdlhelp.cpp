@@ -111,17 +111,11 @@ extern "C" {
 
 
 #include "dinterpreter.hpp"
-#include "datatypes.hpp"
-#include "envt.hpp"
-#include "dpro.hpp"
-
-
 #include "graphicsdevice.hpp"
 #include "dcommon.hpp"
 #include "dpro.hpp"
 
 #include "gdlhelp.hpp"
-#include "nullgdl.hpp"
 #include "terminfo.hpp"
 #ifndef _WIN32
 #include "shm_utils.hpp"

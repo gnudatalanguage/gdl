@@ -15,18 +15,12 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
 #include <iostream>
 
-#include "datatypes.hpp"
-#include "envt.hpp"
 #include "getfmtast.hpp"
 #include "basic_pro.hpp"
-#include "objects.hpp"
 #include "FMTOut.hpp"
 #include "terminfo.hpp" 
-#include "gdljournal.hpp"
 #include "dinterpreter.hpp"
 #include <sys/stat.h>
 #include <errno.h>

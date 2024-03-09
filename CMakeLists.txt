@@ -65,7 +65,8 @@ include(TestBigEndian)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 #### GDL is an interactive tool. Normally INTERACTIVE_GRAPHICS must be set
 set(INTERACTIVE_GRAPHICS ON CACHE BOOL "GDL: Disable checking existence of a suited graphics driver in plplot. Only file output may be available, and 3D graphics may NOT work.")
-
+### compile basic sources monolithically or not, make compilation slow
+set(SPLIT_SOURCES_FILES ON CACHE BOOL "GDL: Force a single compilation for all templates, avoid symbol duplication")
 #### Default cached values
 set(GDLDEV OFF CACHE BOOL "GDL: Enable GDL developer mode (includes work-in-progress tests)")
 
@@ -368,7 +369,9 @@ elseif (WIN32)
     endif() 
 endif()
 
-
+if (NOT SPLIT_SOURCES_FILES)
+set(ONE_DATAFILE 1)
+endif (NOT SPLIT_SOURCES_FILES)
 # PLplot with DYNDRIVERS MANDATORY
 # it is necessary for 3D support and wxwidgets to avoid using plplot's drivers and instead use a copy, eventually modified by us, 
 # that is installed in gnudatalanguage/lib/drivers. Thus, we NEED that plplot is installed WITH ENABLE_DYNDRIVERS 
@@ -1177,6 +1180,10 @@ if(NOT WIN32)
 endif(NOT WIN32)
 message("")
 message("GDLDEV mode: ${GDLDEV} (use -DGDLDEV=ON to enable work-in-progress tests)")
+if (NOT SPLIT_SOURCES_FILES)
+message("Not splitting some template definition for quick compilation.")
+endif (NOT SPLIT_SOURCES_FILES)
+
 message("")
 
 # do we have a Conda env. around ? see issues #780

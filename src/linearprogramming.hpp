@@ -24,7 +24,6 @@
 #define GDLGLPK_HPP_
 
 //#ifdef USE_GLPK
-#include "datatypes.hpp"
 #include "envt.hpp"
 namespace lib {
   BaseGDL* simplex(EnvT* e);

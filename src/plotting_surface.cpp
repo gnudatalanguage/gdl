@@ -15,9 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
 #include "plotting.hpp"
-#include "dinterpreter.hpp"
 
 #define GDL_PI     double(3.1415926535897932384626433832795)
 

@@ -19,11 +19,9 @@
 
 #include <iomanip>
 
-#include "envt.hpp"
-#include "objects.hpp"
-#include "dinterpreter.hpp"
-#include "basic_pro.hpp"
-#include "nullgdl.hpp"
+//#include "envt.hpp"
+#include "dinterpreter.hpp" //calls envt
+#include "basic_pro.hpp" //for help_item
 
 #include <cassert> // always as last
 

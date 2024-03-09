@@ -25,17 +25,9 @@
 
 #include "includefirst.hpp"
 
-#include <string>
-#include <fstream>
-#include <memory>
-
-#include "initsysvar.hpp"
-#include "datatypes.hpp"
+#include "objects.hpp"
 #include "envt.hpp"
-//#include "dpro.hpp"
-//#include "dinterpreter.hpp"
 #include "basic_fun_cl.hpp"
-//#include "terminfo.hpp"
 
 #define MAX_DATE_STRING_LENGTH 80
 

@@ -23,16 +23,11 @@
 #endif
 
 #ifdef USE_NETCDF
-#  include "includefirst.hpp"
 #  define HDF 1
 
 #  include <netcdf.h>
 
-#  include "datatypes.hpp"
 #  include "envt.hpp"
-
-//#  include "dpro.hpp"
-//#  include "dinterpreter.hpp"
 #  include "ncdf_cl.hpp"
 
 

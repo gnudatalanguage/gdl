@@ -27,11 +27,6 @@
 #include <string>
 #include <complex>
 
-#include "datatypes.hpp"
-#include "envt.hpp"
-#include "basic_fun.hpp"
-#include "dinterpreter.hpp"
-
 #include "matrix_cholesky.hpp"
 
 #if !defined(USE_EIGEN)

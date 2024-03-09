@@ -22,7 +22,6 @@
 
 #if defined(HAVE_LIBGSL)
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

@@ -29,15 +29,9 @@
 #include <fstream>
 #include <iostream>
 
-#include "datatypes.hpp"
-#include "envt.hpp"
-#include "dpro.hpp"
 #include "dinterpreter.hpp"
 
 #include "ncdf_cl.hpp"
-
-//#define GDL_DEBUG
-//#undef GDL_DEBUG
 
 namespace lib {
 

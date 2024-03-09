@@ -22,14 +22,10 @@
 #include <omp.h>
 #endif
 
-//#include "datatypes.hpp" // for friend declaration
-#include "nullgdl.hpp"
-#include "dinterpreter.hpp"
+#include "datatypes.hpp"
 
 // needed with gcc-3.3.2
 #include <cassert>
-
-#include "typetraits.hpp"
 
 #include "gdl_util.hpp" //for gdl::powI
 #include "gdlfpexceptions.hpp"
@@ -2119,7 +2115,8 @@ Data_<SpDObj>* Data_<SpDObj>::DivInvSNew(BaseGDL* r) {
 // modulo division: left=left % right
 
 // float modulo division: left=left % right
-
+//avoid multiple definition when this file is coalesced within datatypes.cpp:
+#ifndef ONE_DATAFILE
 inline DFloat Modulo(const DFloat& l, const DFloat& r) {
   return fmodf(l, r); //fmodf returns a float
 }
@@ -2129,7 +2126,7 @@ inline DFloat Modulo(const DFloat& l, const DFloat& r) {
 inline DDouble DModulo(const DDouble& l, const DDouble& r) {
   return fmod(l, r); //fmod returns a double
 }
-
+#endif
 // modulo division: left=left % right
 // ex: b=(a mod c)
 // right is of size > 1 (otherwise ModS would have been called)

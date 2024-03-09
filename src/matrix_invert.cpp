@@ -41,11 +41,9 @@ The GSL is mandatory. Eigen3 is not mandatory. */
 #include <complex>
 
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include "basic_fun.hpp"
 #include "gsl_fun.hpp"
-#include "dinterpreter.hpp"
 
 #include <gsl/gsl_sys.h>
 #include <gsl/gsl_linalg.h>

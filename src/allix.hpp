@@ -23,7 +23,7 @@
 class AllIxBaseT
 {
 public:
-  virtual ~AllIxBaseT(); // code in arrayindex.cpp
+  virtual ~AllIxBaseT() {} // code in arrayindex.cpp
 
   virtual AllIxBaseT* Clone() = 0;
 

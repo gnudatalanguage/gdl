@@ -22,9 +22,7 @@
 #include <fstream>
 #include <limits>
 
-#include "envt.hpp"
 #include "dinterpreter.hpp"
-#include "prognode.hpp"
 #include "basic_pro_jmg.hpp"
 
 //#define GDL_DEBUG

@@ -18,7 +18,6 @@
 #ifndef MATH_FUN_HPP_
 #define MATH_FUN_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

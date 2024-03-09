@@ -18,8 +18,7 @@
 #include "includefirst.hpp"
 
 #include "basegdl.hpp"
-#include "nullgdl.hpp"
-#include "objects.hpp"
+#include "objects.hpp" //for UseSmartTpool
 #ifndef _WIN32
 #include "shm_utils.hpp"
 #endif

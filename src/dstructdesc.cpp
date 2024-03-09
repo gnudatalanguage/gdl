@@ -15,12 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
-#include <algorithm>
-
-#include "datatypes.hpp"
-#include "dstructdesc.hpp"
 #include "GDLInterpreter.hpp"
 #include "dstructgdl.hpp"
 

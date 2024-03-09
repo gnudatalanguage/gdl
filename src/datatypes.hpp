@@ -26,12 +26,6 @@
 
 #include <string>
 
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
-// by default intel C++ defines __GNUC__
-#pragma interface
-#endif
-
-
 // for each group we need one definition
 // usage: GDL_DEFINE_INTEGER_FUNCTION(retType) fName( arg list) { definition}
 #define GDL_DEFINE_INTEGER_FUNCTION( retType ) template<typename Sp>template< typename U> typename U::template IfInteger< retType >::type Data_<Sp>::
@@ -495,10 +489,10 @@ private:
 
 };
 
-// template<> Data_<SpDPtr>::Data_(const Ty& d_);
-// template<> Data_<SpDObj>::Data_(const Ty& d_);
+template<> Data_<SpDObj>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble);
+template<> Data_<SpDPtr>::Data_(const dimension& dim_, BaseGDL::InitType iT, DDouble, DDouble);
+template<> SizeT Data_<SpDObj>::N_Elements() const;
 
-#include "specializations.hpp"
 
 typedef Data_<SpDByte>       DByteGDL;
 typedef Data_<SpDInt>        DIntGDL;

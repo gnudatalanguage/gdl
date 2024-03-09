@@ -23,9 +23,6 @@ email                : m_schellens@users.sf.net
 
 #include "dinterpreter.hpp"
 
-#include "objects.hpp"
-#include "nullgdl.hpp"
-
 using namespace std;
 
 static bool trace_me(false);

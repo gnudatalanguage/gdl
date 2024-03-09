@@ -22,9 +22,7 @@
 #include <complex>
 #include <cmath>
 
-#include "datatypes.hpp"
 #include "envt.hpp"
-#include "basic_fun.hpp"
 #include "fftw3.h"
 #include <gsl/gsl_math.h>
 #include "gsl_fun.hpp"

@@ -18,7 +18,6 @@ datatypesref.cpp  -  specializations for DPtrGDL and DObjGDL for reference count
 // to be included from datatypes.cpp
 #ifdef INCLUDE_DATATYPESREF_CPP
 #undef INCLUDE_DATATYPESREF_CPP
-#include "nullgdl.hpp"
 
 // reference counting for INIT
 template<>

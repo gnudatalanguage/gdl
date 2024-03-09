@@ -22,7 +22,6 @@
 #ifndef CHOLSOL_FUN_HPP_
 #define CHOLSOL_FUN_HPP_
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 
 namespace lib {

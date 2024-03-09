@@ -27,7 +27,6 @@
 #include <fstream>
 #include <sys/stat.h>
 
-#include "envt.hpp"
 #include "dinterpreter.hpp"
 #include "gdljournal.hpp"
 #include "io.hpp"

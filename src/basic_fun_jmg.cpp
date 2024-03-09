@@ -22,14 +22,10 @@
 #include <memory>
 #include <sys/stat.h>
 
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include "basic_fun.hpp"
-#include "io.hpp"
 #include "dinterpreter.hpp"
-#include "objects.hpp"
 #include "basic_fun_jmg.hpp"
-#include "nullgdl.hpp"
 
 
 //#define GDL_DEBUG

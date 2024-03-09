@@ -15,10 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-
-#include "nullgdl.hpp"
-#include "dstructgdl.hpp"
 #include "dinterpreter.hpp" //for sysVarList() 
 
 

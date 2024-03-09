@@ -31,13 +31,7 @@
 #include <fstream>
 #include <memory>
 
-#include "datatypes.hpp"
 #include "envt.hpp"
-#include "dpro.hpp"
-#include "dinterpreter.hpp"
-#include "basic_fun_cl.hpp"
-#include "terminfo.hpp"
-#include "typedefs.hpp"
 #include "magick_cl.hpp"
 #include "graphicsdevice.hpp"
 

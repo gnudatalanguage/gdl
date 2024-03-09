@@ -16,13 +16,6 @@
  *                                                                         *
  **************************************************************************/
   
-#include "includefirst.hpp"
-
-#include "datatypes.hpp"
-#include "envt.hpp"
-#include "basic_fun.hpp"
-#include "dinterpreter.hpp"
-#include "nullgdl.hpp"
 
 #include "gsl_fun.hpp"
 

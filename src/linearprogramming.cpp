@@ -15,10 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "includefirst.hpp"
-#include "datatypes.hpp"
 #include "envt.hpp"
-#include "dinterpreter.hpp"
 
 
 //#if defined(HAVE_GLPK)

@@ -87,4 +87,5 @@
 #cmakedefine USE_EIGEN 1
 #cmakedefine USE_PNGLIB 1
 #cmakedefine INSTALL_LOCAL_DRIVERS 1
+#cmakedefine ONE_DATAFILE 1
 #endif

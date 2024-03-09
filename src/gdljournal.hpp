@@ -17,10 +17,6 @@
 #ifndef GDL_JOURNAL_H
 #define GDL_JOURNAL_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-#include "datatypes.hpp"
 #include "envt.hpp"
 #include "io.hpp"
 

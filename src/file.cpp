@@ -28,16 +28,8 @@
 #   include <unistd.h> 
 #endif
 
-#include "basegdl.hpp"
 #include "str.hpp"
-
-
-#include "envt.hpp"
 #include "file.hpp"
-#include "objects.hpp"
-
-#include "dinterpreter.hpp"
-
 
 #include <zlib.h>
 
