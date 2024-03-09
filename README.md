@@ -53,10 +53,10 @@ See:
 - [GDL on BSD](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-BSD)
 - [GDL on Windows](https://github.com/gnudatalanguage/gdl/wiki/GDL-on-Windows)
 
-Alerts
+Find specific information on GDL
 -------------------------------------
-
-Check the [WIKI](https://github.com/gnudatalanguage/gdl/wiki/Known-issues) for (transient) alerts.
+- Browse the [WIKI](https://github.com/gnudatalanguage/gdl/wiki)
+- Be aware of current problems/limitations: Check the [issues](https://github.com/gnudatalanguage/gdl/wiki/Known-issues).
 
 Dependencies 
 -------------------------------------
