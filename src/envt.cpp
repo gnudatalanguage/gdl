@@ -208,7 +208,7 @@ EnvUDT::EnvUDT( ProgNodeP cN, BaseGDL* self,
 
   DSubUD* proUD=static_cast<DSubUD*>(pro);
 
-  forLoopInfo.InitSize( proUD->NForLoops());
+  forLoopInfo.InitSize(proUD->NForLoops());
 
   SizeT envSize;
   //   SizeT keySize;
@@ -264,7 +264,7 @@ EnvUDT::EnvUDT( BaseGDL* self, ProgNodeP cN, const string& parent, CallContext l
 
   DSubUD* proUD=static_cast<DSubUD*>(pro);
 
-  forLoopInfo.InitSize( proUD->NForLoops());
+  forLoopInfo.InitSize(proUD->NForLoops());
 
   SizeT envSize=proUD->var.size();
   parIx=proUD->key.size();
@@ -318,7 +318,7 @@ EnvUDT::EnvUDT( ProgNodeP callingNode_, DSubUD* newPro, DObjGDL** self):
 
   DSubUD* proUD= newPro; //static_cast<DSubUD*>(pro);
   
-  forLoopInfo.InitSize( proUD->NForLoops());
+  forLoopInfo.InitSize(proUD->NForLoops());
 
   SizeT envSize;
   //   SizeT keySize;
