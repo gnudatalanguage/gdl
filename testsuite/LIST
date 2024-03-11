@@ -54,6 +54,7 @@ test_bug_3595172.pro
 test_bug_635.pro
 test_bug_709.pro
 test_bug_719.pro
+test_bug_gh_01777.pro
 test_bug_n000542.pro
 test_bug_n000580.pro
 test_bug_n000581.pro
