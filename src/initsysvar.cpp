@@ -656,7 +656,7 @@ namespace SysVar
 
     // !GDL (to allow distinguish IDL/GDL with DEFSYSV, '!gdl', exists=exists )
     DStructGDL*  gdlStruct = new DStructGDL( "!GNUDATALANGUAGE");
-    gdlStruct->NewTag("RELEASE", new DStringGDL( VERSION));
+    gdlStruct->NewTag("RELEASE", new DStringGDL( VERSION + (VERSION[0] == 'v' ? 1 : 0)));
 
     // creating an explicit build date in !GDL (also exist in !version)
     gdlStruct->NewTag("BUILD_DATE", new DStringGDL(BUILD_DATE));
