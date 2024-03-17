@@ -1,4 +1,5 @@
 test_all_basic_functions.pro
+test_indepth_basic_functions
 test_zero_divide.pro
 test_angles.pro
 test_antlr_issues.pro

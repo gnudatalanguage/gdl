@@ -1,0 +1,22 @@
+  Data_* right = static_cast<Data_*> (r);
+
+  ULong nEl = N_Elements();
+  Data_* res = NewResult();
+  assert(nEl);
+  if (nEl == 1) {
+    if (abs((*this)[0]) > abs((*right)[0])) (*res)[0] = (*right)[0];
+    else (*res)[0] = (*this)[0];
+    return res;
+  }
+  Ty s=(*right)[0];
+  DDouble v= abs(s); // note: we compare to doubles.
+   if ((GDL_NTHREADS=parallelize( nEl))==1) {
+    for (OMPInt i = 0; i < nEl; ++i) if (abs((*this)[i]) > v) (*res)[i] = s;
+      else (*res)[i] = (*this)[i];
+  } else {
+    TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+      for (OMPInt i = 0; i < nEl; ++i) if (abs((*this)[i]) > v) (*res)[i] = s;
+      else (*res)[i] = (*this)[i];
+  };
+  return res;

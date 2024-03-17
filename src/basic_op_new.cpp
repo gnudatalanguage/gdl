@@ -31,7 +31,8 @@
 #include "gdlfpexceptions.hpp"
 #include "libdivide.h" // for fast divison by integer constant
 using namespace std;
-
+static const std::complex<float> complex_float_nan (sqrt(-1),sqrt(-1));
+static const std::complex<double> complex_double_nan (sqrt(-1),sqrt(-1));
 // binary operators
 
 // in basic_op.cpp:
@@ -554,11 +555,9 @@ Data_<SpDObj>* Data_<SpDObj>::OrOpNew(BaseGDL* r) {
   return NULL;
 }
 
-// OrOpS
-// for integers
 
 template<class Sp>
-Data_<Sp>* Data_<Sp>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+Data_<Sp>* Data_<Sp>::OrOpInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -569,57 +568,63 @@ Data_<Sp>* Data_<Sp>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__
   //s &= Ty(1);
   //  dd |= s;
   if (nEl == 1) {
-    (*res)[0] = (*this)[0] | s;
-    return res;
+	(*res)[0] = (*this)[0] | s;
+	return res;
   }
-  if ((GDL_NTHREADS=parallelize( nEl))==1) {
-    for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] | s;
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] | s;
   } else {
-    TRACEOMP(__FILE__, __LINE__)
+	TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-      for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] | s;
+	  for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] | s;
   } //C delete right;
   return res;
 }
-// different for floats
-
-template<class Sp>
-Data_<Sp>* Data_<Sp>::OrOpInvSNew(BaseGDL* right) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  return OrOpSNew(right);
-}
-// for floats
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  Data_* right = static_cast<Data_*> (r);
-
-  ULong nEl = N_Elements();
-  assert(nEl);
-
-  Ty s = (*right)[0];
-  if (s != zero) {
-    Data_* res = NewResult();
-    if (nEl == 1) {
-      if ((*this)[0] == zero) (*res)[0] = s;
-      else (*res)[0] = (*this)[0];
-      return res;
-    }
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = s;
-        else (*res)[i] = (*this)[i];
-    } else {
-      TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = s;
-        else (*res)[i] = (*this)[i];
-    }
-    return res;
-  } else // s == zero
-  {
-    return this->Dup();
-  }
+Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvSNew(BaseGDL* r) {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+return this->Dup();
 }
-// b=(a or 0)
+
+template<>
+Data_<SpDDouble>* Data_<SpDDouble>::OrOpInvSNew(BaseGDL* r) {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+return this->Dup();
+}
+
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::OrOpInvSNew(BaseGDL* r) {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+return this->Dup();
+}
+
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::OrOpInvSNew(BaseGDL* r) {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
+return this->Dup();
+}
+
+// invalid types
+
+template<>
+Data_<SpDString>* Data_<SpDString>::OrOpInvSNew(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype STRING.", true, false);
+  return NULL;
+}
+
+template<>
+Data_<SpDPtr>* Data_<SpDPtr>::OrOpInvSNew(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype PTR.", true, false);
+  return NULL;
+}
+
+template<>
+Data_<SpDObj>* Data_<SpDObj>::OrOpInvSNew(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype OBJECT.", true, false);
+  return NULL;
+}
+// for floats
 //template<>
 //Data_<SpDFloat>* Data_<SpDFloat>::OrOpInvSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 //  Data_* right = static_cast<Data_*> (r);
@@ -651,9 +656,12 @@ Data_<SpDFloat>* Data_<SpDFloat>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTIO
 //  }
 //}
 // for doubles
+// OrOpS
+// for integers
 
-template<>
-Data_<SpDDouble>* Data_<SpDDouble>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+template<class Sp>
+Data_<Sp>* Data_<Sp>::OrOpSNew(BaseGDL* r) {
+  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
   Data_* right = static_cast<Data_*> (r);
 
   ULong nEl = N_Elements();
@@ -661,34 +669,33 @@ Data_<SpDDouble>* Data_<SpDDouble>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCT
   assert(nEl);
   Ty s = (*right)[0];
   // right->Scalar(s);
-  if (s != zero) {
-    if (nEl == 1) {
-      if ((*this)[0] == zero) (*res)[0] = s;
-      else (*res)[0] = (*this)[0];
-      return res;
-    }
-    if ((GDL_NTHREADS=parallelize( nEl))==1) {
-      for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = s;
-        else (*res)[i] = (*this)[i];
-    } else {
-      TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-        for (OMPInt i = 0; i < nEl; ++i) if ((*this)[i] == zero) (*res)[i] = s;
-        else (*res)[i] = (*this)[i];
-    }
-    return res;
+  //s &= Ty(1);
+  //  dd |= s;
+  if (nEl == 1) {
+	(*res)[0] = (*this)[0] | s;
+	return res;
   }
-  // s == zero
-  return this->Dup();
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] | s;
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	  for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] | s;
+  } //C delete right;
+  return res;
 }
-
-// invalid types
+// different for floats
 
 template<>
-Data_<SpDString>* Data_<SpDString>::OrOpSNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype STRING.", true, false);
-  return NULL;
+Data_<SpDFloat>* Data_<SpDFloat>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+#include "snippets/basic_op_OrOpSNewCplx.incpp"
 }
+template<>
+Data_<SpDDouble>* Data_<SpDDouble>::OrOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+ #include "snippets/basic_op_OrOpSNewCplx.incpp"
+}
+
+
 
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::OrOpSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
@@ -698,6 +705,14 @@ Data_<SpDComplex>* Data_<SpDComplex>::OrOpSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNC
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::OrOpSNew(BaseGDL* r) {TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
 #include "snippets/basic_op_OrOpSNewCplx.incpp"
+}
+
+// invalid types
+
+template<>
+Data_<SpDString>* Data_<SpDString>::OrOpSNew(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype STRING.", true, false);
+  return NULL;
 }
 
 template<>
@@ -819,11 +834,11 @@ Data_<Sp>* Data_<Sp>::XorOpSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE_
 
   Data_* res = NewResult();
   if ((GDL_NTHREADS=parallelize( nEl))==1) {
-    for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i];
+    for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] ^ (*right)[0];
   } else {
     TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-      for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i];
+      for (OMPInt i = 0; i < nEl; ++i) (*res)[i] = (*this)[i] ^ (*right)[0];
   }
   return res;
 }
@@ -1280,12 +1295,9 @@ template<class Sp>
 Data_<Sp>* Data_<Sp>::LtMarkNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
-  //  ULong rEl=right->N_Elements();
   ULong nEl = N_Elements();
   Data_* res = NewResult();
-  //  assert( rEl);
   assert(nEl);
-  //  if( !rEl || !nEl) throw GDLException("Variable is undefined.");
   if (nEl == 1) {
     if ((*this)[0] > (*right)[0]) (*res)[0] = (*right)[0];
     else (*res)[0] = (*this)[0];
@@ -1302,23 +1314,21 @@ Data_<Sp>* Data_<Sp>::LtMarkNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE_
   } //C delete right;
   return res;
 }
+
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::LtMarkNew(BaseGDL* r) {
+#include "snippets/basic_op_LtMarkNewCplx.incpp"
+}
+
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::LtMarkNew(BaseGDL* r) {
+#include "snippets/basic_op_LtMarkNewCplx.incpp"
+}
 // invalid types
 
 template<>
 Data_<SpDString>* Data_<SpDString>::LtMarkNew(BaseGDL* r) {
   throw GDLException("Cannot apply operation to datatype STRING.", true, false);
-  return NULL;
-}
-
-template<>
-Data_<SpDComplex>* Data_<SpDComplex>::LtMarkNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return NULL;
-}
-
-template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::LtMarkNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
   return NULL;
 }
 
@@ -1361,6 +1371,17 @@ Data_<Sp>* Data_<Sp>::LtMarkSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE
   } //C delete right;
   return res;
 }
+
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::LtMarkSNew(BaseGDL* r) {
+#include "snippets/basic_op_LtMarkSNewCplx.incpp"
+}
+
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::LtMarkSNew(BaseGDL* r) {
+#include "snippets/basic_op_LtMarkSNewCplx.incpp"
+}
+
 // invalid types
 
 template<>
@@ -1369,17 +1390,7 @@ Data_<SpDString>* Data_<SpDString>::LtMarkSNew(BaseGDL* r) {
   return NULL;
 }
 
-template<>
-Data_<SpDComplex>* Data_<SpDComplex>::LtMarkSNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return NULL;
-}
 
-template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::LtMarkSNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return NULL;
-}
 
 template<>
 Data_<SpDPtr>* Data_<SpDPtr>::LtMarkSNew(BaseGDL* r) {
@@ -1423,23 +1434,22 @@ Data_<Sp>* Data_<Sp>::GtMarkNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE_
   } //C delete right;
   return res;
 }
+
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::GtMarkNew(BaseGDL* r) {
+#include "snippets/basic_op_GtMarkNewCplx.incpp"
+}
+
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::GtMarkNew(BaseGDL* r) {
+#include "snippets/basic_op_GtMarkNewCplx.incpp"
+}
+
 // invalid types
 
 template<>
 Data_<SpDString>* Data_<SpDString>::GtMarkNew(BaseGDL* r) {
   throw GDLException("Cannot apply operation to datatype STRING.", true, false);
-  return NULL;
-}
-
-template<>
-Data_<SpDComplex>* Data_<SpDComplex>::GtMarkNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
-  return NULL;
-}
-
-template<>
-Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::GtMarkNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
   return NULL;
 }
 
@@ -1483,23 +1493,25 @@ Data_<Sp>* Data_<Sp>::GtMarkSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE
   };
   return res;
 }
-// invalid types
-
-template<>
-Data_<SpDString>* Data_<SpDString>::GtMarkSNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype STRING.", true, false);
-  return NULL;
-}
 
 template<>
 Data_<SpDComplex>* Data_<SpDComplex>::GtMarkSNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
+
+#include "snippets/basic_op_GtMarkSNewCplx.incpp"
   return NULL;
 }
 
 template<>
 Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::GtMarkSNew(BaseGDL* r) {
-  throw GDLException("Cannot apply operation to datatype " + str + ".", true, false);
+#include "snippets/basic_op_GtMarkSNewCplx.incpp"
+  return NULL;
+}
+
+// invalid types
+
+template<>
+Data_<SpDString>* Data_<SpDString>::GtMarkSNew(BaseGDL* r) {
+  throw GDLException("Cannot apply operation to datatype STRING.", true, false);
   return NULL;
 }
 
@@ -1857,6 +1869,130 @@ Data_<Sp>* Data_<Sp>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
 	  for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix]=(*this)[ix] / s;
   }
   
+  return res;
+}
+// float version: gives Inf for division by zero
+template<>  //no need to differentiate Sp Types, as the FP exception is produced only by s
+Data_<SpDFloat>* Data_<SpDFloat>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
+
+  ULong nEl = N_Elements();
+  assert(nEl); 
+  Ty s = (*right)[0];
+  Data_* res=NewResult(); 
+
+  GDLStartRegisteringFPExceptions();
+  if (nEl == 1) {
+	(*res)[0]=(*this)[0] / s;
+	GDLStopRegisteringFPExceptions();
+	return res;
+  }
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (SizeT ix = 0; ix < nEl; ++ix) (*res)[ix]=(*this)[ix] / s;
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	  for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix]=(*this)[ix] / s;
+  }
+  
+  GDLStopRegisteringFPExceptions();
+  return res;
+}
+// double version: gives Inf for division by zero
+template<>  //no need to differentiate Sp Types, as the FP exception is produced only by s
+Data_<SpDDouble>* Data_<SpDDouble>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
+
+  ULong nEl = N_Elements();
+  assert(nEl); 
+  Ty s = (*right)[0];
+  Data_* res=NewResult(); 
+
+  GDLStartRegisteringFPExceptions();
+  if (nEl == 1) {
+	(*res)[0]=(*this)[0] / s;
+	GDLStopRegisteringFPExceptions();
+	return res;
+  }
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (SizeT ix = 0; ix < nEl; ++ix) (*res)[ix]=(*this)[ix] / s;
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	  for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix]=(*this)[ix] / s;
+  }
+  
+  GDLStopRegisteringFPExceptions();
+  return res;
+}
+// double version: gives -NaN for division by zero to copy IDL.
+template<>  //no need to differentiate Sp Types, as the FP exception is produced only by s
+Data_<SpDComplex>* Data_<SpDComplex>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
+
+  ULong nEl = N_Elements();
+  assert(nEl); 
+  Ty s = (*right)[0];
+  // the general complex division code below will cost time and produce a slightly different result
+  // from IDL when s=complex(0,0). Best to treat that here directly
+  Data_* res; 
+  if (s == this->zero) {
+	res = this->Dup(); //faster 
+    for (SizeT ix = 0; ix < nEl; ++ix) (*res)[ix]=complex_float_nan;
+	GDLRegisterADivByZeroException();
+	return res; 
+  }
+  res = NewResult(); 
+  GDLStartRegisteringFPExceptions();
+  if (nEl == 1) {
+	(*res)[0]=(*this)[0] / s;
+	GDLStopRegisteringFPExceptions();
+	return res;
+  }
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (SizeT ix = 0; ix < nEl; ++ix) (*res)[ix]=(*this)[ix] / s;
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	  for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix]=(*this)[ix] / s;
+  }
+  
+  GDLStopRegisteringFPExceptions();
+  return res;
+}
+// double version: gives -NaN for division by zero to copy IDL.
+template<>  //no need to differentiate Sp Types, as the FP exception is produced only by s
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::DivSNew(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
+
+  ULong nEl = N_Elements();
+  assert(nEl); 
+  Ty s = (*right)[0];
+  // the general complex division code below will cost time and produce a slightly different result
+  // from IDL when s=complex(0,0). Best to treat that here directly
+  Data_* res; 
+  if (s == this->zero) {
+	res = this->Dup(); //faster 
+    for (SizeT ix = 0; ix < nEl; ++ix) (*res)[ix]=complex_double_nan;
+	GDLRegisterADivByZeroException();
+	return res; 
+  }
+  res = NewResult(); 
+  GDLStartRegisteringFPExceptions();
+  if (nEl == 1) {
+	(*res)[0]=(*this)[0] / s;
+	GDLStopRegisteringFPExceptions();
+	return res;
+  }
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (SizeT ix = 0; ix < nEl; ++ix) (*res)[ix]=(*this)[ix] / s;
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	  for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix]=(*this)[ix] / s;
+  }
+  
+  GDLStopRegisteringFPExceptions();
   return res;
 }
 
