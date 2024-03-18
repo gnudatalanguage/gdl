@@ -26,6 +26,8 @@
 #include "libdivide.h" // for fast divison by integer constant
 // needed with gcc-3.3.2
 #include <cassert>
+static const std::complex<float> complex_float_nan(sqrt(-1), sqrt(-1));
+static const std::complex<double> complex_double_nan(sqrt(-1), sqrt(-1));
 
 // Div
 // division: left=left/right
@@ -227,7 +229,7 @@ Data_<SpDObj>* Data_<SpDObj>::DivInv(BaseGDL* r) {
   return this;
 }
 
-template<class Sp>  //no need to differentiate Sp Types, as the FP exception is produced only by s
+template<class Sp>
 Data_<Sp>* Data_<Sp>::DivS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
   Data_* right = static_cast<Data_*> (r);
 
@@ -362,6 +364,24 @@ Data_<SpDULong64>* Data_<SpDULong64>::DivS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTIO
  return this;
 }
 
+//floats & Complex
+template<>
+Data_<SpDFloat>* Data_<SpDFloat>::DivS(BaseGDL* r) {
+#include "snippets/basic_op_DivS.incpp"
+}
+
+template<>
+Data_<SpDDouble>* Data_<SpDDouble>::DivS(BaseGDL* r) {
+#include "snippets/basic_op_DivS.incpp"
+}
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::DivS(BaseGDL* r) {
+#include "snippets/basic_op_DivSCplx.incpp"
+}
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::DivS(BaseGDL* r) {
+#include "snippets/basic_op_DivSCplxDbl.incpp"
+}
 // inverse division: left=right/left
 
 template<class Sp>
@@ -389,60 +409,21 @@ Data_<Sp>* Data_<Sp>::DivInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,
 }
 
 template<>
-Data_<SpDFloat>* Data_<SpDFloat>::DivInvS(BaseGDL* r) { TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
-  Data_* right = static_cast<Data_*> (r);
-
-  ULong nEl = N_Elements();
-  assert(nEl); 
-  GDLStartRegisteringFPExceptions();
-
-  Ty s = (*right)[0];
-  SizeT i = 0;
-  if (nEl == 1) {
-	(*this)[0] = s / (*this)[0];
-	GDLStopRegisteringFPExceptions();
-	return this;
-  }
-  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
-	for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] = s / (*this)[ix];
-  } else {
-	TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-	  for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] = s / (*this)[ix];
-  }
-
-  GDLStopRegisteringFPExceptions();
-  
-  return this;
+Data_<SpDFloat>* Data_<SpDFloat>::DivInvS(BaseGDL* r) {
+#include "snippets/basic_op_DivInvSCplx.incpp"
 }
 
 template<>
 Data_<SpDDouble>* Data_<SpDDouble>::DivInvS(BaseGDL* r) {
-  TRACE_ROUTINE(__FUNCTION__, __FILE__, __LINE__)
-  Data_* right = static_cast<Data_*> (r);
-
-  ULong nEl = N_Elements();
-  assert(nEl);
-  GDLStartRegisteringFPExceptions();
-
-  Ty s = (*right)[0];
-  SizeT i = 0;
-  if (nEl == 1) {
-	(*this)[0] = s / (*this)[0];
-	GDLStopRegisteringFPExceptions();
-	return this;
-  }
-  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
-	for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] = s / (*this)[ix];
-  } else {
-	TRACEOMP(__FILE__, __LINE__)
-#pragma omp parallel for num_threads(GDL_NTHREADS)
-	  for (OMPInt ix = i; ix < nEl; ++ix) (*this)[ix] = s / (*this)[ix];
-  }
-
-  GDLStopRegisteringFPExceptions();
-
-  return this;
+#include "snippets/basic_op_DivInvSCplx.incpp"
+}
+template<>
+Data_<SpDComplex>* Data_<SpDComplex>::DivInvS(BaseGDL* r) {
+#include "snippets/basic_op_DivInvSCplx.incpp"
+}
+template<>
+Data_<SpDComplexDbl>* Data_<SpDComplexDbl>::DivInvS(BaseGDL* r) {
+#include "snippets/basic_op_DivInvSCplx.incpp"
 }
 
 // invalid types

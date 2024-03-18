@@ -9,11 +9,17 @@ end
 pro process_new,what,limit
   format='("{",a,"} ",a)'
   common test_all_basic_function_common, lun, typecodes, typenames, zero, scalar, onedim, small, big
+intent="zero right: z=scalar"+what+'0'
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & ret=(*scalar[k]"+what+"*zero[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
 intent="zero right: z=onedim"+what+'0'
   calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & ret=(*onedim[k]"+what+"*zero[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
   for i=0,n_elements(what)-1 do z=execute(calls[i])
 intent="zero right: z=big"+what+'0'
   calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & ret=(*big[k]"+what+"*zero[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+intent="zero left: z=0"+what+"scalar"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin &ret=(*zero[k]"+what+"*scalar[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
   for i=0,n_elements(what)-1 do z=execute(calls[i])
 intent="zero left: z=0"+what+"onedim"
   calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin &ret=(*zero[k]"+what+"*onedim[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
@@ -44,16 +50,22 @@ intent="big big: z=big"+what+"big"
   for i=0,n_elements(what)-1 do z=execute(calls[i])
 end
 ; helper for repetitive test with guarded variable (after "AdjustTypesXXX", in prognodeexpr.cpp) operators like in "z= a and temporary(b) " )
-pro process_temporary,what,limit
+pro process_temporary_right,what,limit
   format='("{",a,"} ",a)'
   common test_all_basic_function_common, lun, typecodes, typenames, zero, scalar, onedim, small, big
+intent="*Guarded*,zero right: z=scalar"+what+"temporary(0)"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*zero[k] &ret=(*scalar[k]"+what+"temporary(var)) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
 intent="*Guarded*,zero right: z=onedim"+what+"temporary(0)"
   calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*zero[k] &ret=(*onedim[k]"+what+"temporary(var)) & printf,lun,typenames[k] & printf,lun,ret & end"
   for i=0,n_elements(what)-1 do z=execute(calls[i])
 intent="*Guarded*,zero right: z=big"+what+"temporary(0)"
   calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*zero[k] &ret=(*big[k]"+what+"temporary(var)) & printf,lun,typenames[k] & printf,lun,ret & end"
   for i=0,n_elements(what)-1 do z=execute(calls[i])
-intent="*Guarded*,zero left: z=0"+what+"temporary(onedim"
+intent="*Guarded*,zero left: z=0"+what+"temporary(scalar)"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*scalar[k] &ret=(*zero[k]"+what+"temporary(var)) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+intent="*Guarded*,zero left: z=0"+what+"temporary(onedim)"
   calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*onedim[k] &ret=(*zero[k]"+what+"temporary(var)) & printf,lun,typenames[k] & printf,lun,ret & end"
   for i=0,n_elements(what)-1 do z=execute(calls[i])
 intent="*Guarded*,zero left: z=0"+what+"temporary(big"
@@ -79,6 +91,50 @@ intent="*Guarded*,small left: z=small"+what+"temporary(big"
   for i=0,n_elements(what)-1 do z=execute(calls[i])
 intent="*Guarded*,big big: z=big"+what+"temporary(big"
   calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*big[k] &ret=(*big[k]"+what+"temporary(var)) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+end
+; helper for repetitive test with guarded variable (after "AdjustTypesXXX", in prognodeexpr.cpp) operators like in "z= temporary(a) and b " )
+pro process_temporary_left,what,limit
+  format='("{",a,"} ",a)'
+  common test_all_basic_function_common, lun, typecodes, typenames, zero, scalar, onedim, small, big
+intent="*Guarded*,zero right: z=temporary(scalar)"+what+"zero"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*scalar[k] &ret=(temporary(var)"+what+"*zero[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+intent="*Guarded*,zero right: z=temporary(onedim)"+what+"zero"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*onedim[k] &ret=(temporary(var)"+what+"*zero[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+intent="*Guarded*,zero right: z=temporary(big)"+what+"zero"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*big[k] &ret=(temporary(var)"+what+"*zero[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+intent="*Guarded*,zero left: z=temporary(zero)"+what+"scalar"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*zero[k] &ret=(temporary(var)"+what+"*scalar[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+intent="*Guarded*,zero left: z=temporary(zero)"+what+"onedim"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*zero[k] &ret=(temporary(var)"+what+"*onedim[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+intent="*Guarded*,zero left: z=temporary(zero)"+what+"big"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin &  var=*zero[k] &ret=(temporary(var)"+what+"*big[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+intent="*Guarded*,scalar right: z=temporary(onedim)"+what+"scalar"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*onedim[k] & ret=(temporary(var)"+what+"*scalar[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+intent="*Guarded*,scalar right: z=temporary(big)"+what+"scalar"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*big[k] & ret=(temporary(var)"+what+"*scalar[k])  & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+intent="*Guarded*,scalar left: z=temporary(scalar)"+what+"onedim"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*scalar[k] & ret=(temporary(var)"+what+"*onedim[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+intent="*Guarded*,scalar left: z=temporary(scalar)"+what+"big"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*scalar[k] & ret=(temporary(var)"+what+"*big[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+intent="*Guarded*,small right: z=temporary(big)"+what+"small"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin &var=*big[k] & ret=(temporary(var)"+what+"*small[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+intent="*Guarded*,small left: z=temporary(small)"+what+"big"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*small[k] & ret=(temporary(var)"+what+"*big[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
+  for i=0,n_elements(what)-1 do z=execute(calls[i])
+intent="*Guarded*,big big: z=temporary(big)"+what+"big"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do  begin & var=*big[k] & ret=(temporary(var)"+what+"*big[k]) & printf,lun,typenames[k] & printf,lun,ret & end"
   for i=0,n_elements(what)-1 do z=execute(calls[i])
 end
 
@@ -162,7 +218,7 @@ intent="z="+what+"scalar"
   calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do begin & var=(*scalar[k]) & " + "ret="+what+"var & printf,lun,typenames[k] & printf,lun,ret & end"
   for i=0,n_elements(what)-1 do z=execute(calls[i])
 intent="z="+what+"array"
-  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do begin & var=(*small[k]) & " + "ret"+what+"var  & printf,lun,typenames[k] & printf,lun,ret & end"
+  calls="printf,lun,what[i],intent[i],format=format & for k=0,limit do begin & var=(*small[k]) & " + "ret="+what+"var  & printf,lun,typenames[k] & printf,lun,ret & end"
   for i=0,n_elements(what)-1 do z=execute(calls[i])
 end
 
@@ -199,7 +255,8 @@ pro test_indepth_operators_sub, size, given_lun
 ; Some of these operators have 4 flavors, depending on size, ex AndOP, AndOpS, AndOpInv, AndOpInvS, and 3 cases: new, new but one var is Guarded, or operating on same operand
 what=[" + "," - " ," * "," / "," ^ "]
 process_new, what, all_numeric
-process_temporary, what, all_numeric
+process_temporary_right, what, all_numeric
+process_temporary_left, what, all_numeric
 ; operators 2
 ;; what=[" # "," ## "]
 ;; calls="for k=0,all_numeric do ret=(*big[k])"+what+"(*big[k])"
@@ -216,19 +273,22 @@ process_onevar_right,what, all_numeric
 ; 
 what=[" AND "," OR "," EQ "," NE "," LE "," LT ", " GE ", " GT "]
 process_new, what, all_numeric
-process_temporary, what, all_numeric
+process_temporary_right, what, all_numeric
+process_temporary_left, what, all_numeric
 ; just integer types
 what=[" XOR "]
 process_new, what, integers_only
-process_temporary, what, integers_only
+process_temporary_right, what, integers_only
+process_temporary_left, what, integers_only
 ; just integer types
 what=[" XOR= "]
 process_new_self, what, integers_only
 ; operators 5: complex not supported (GDL error)
 what=[" < "," > "," MOD "]
 process_new, what, not_complex
-process_temporary, what, not_complex
-; after this, no need to use process_temporary, already done.
+process_temporary_right, what, not_complex
+process_temporary_left, what, not_complex
+; after this, no need to use process_temporary_xxxx, already done.
 ; operators 6
 what=[" ^= " , " *= " , " EQ= " , " GE= " ,  " GT= " , " LE= " ,  " LT= " ,  " -= " ,  " NE= " , " OR= " , " += " , " /= ", " AND= ", " MOD= ", " >= ", " <= "]
 process_new_self,what, all_numeric
