@@ -38,7 +38,6 @@ test_bug_3189072.pro
 test_bug_3199465.pro
 test_bug_3285659.pro
 test_bug_3286031.pro
-test_bug_3288652.pro
 test_bug_3290532.pro
 test_bug_3296360.pro
 test_bug_3298378.pro
@@ -96,6 +95,7 @@ test_file_readlink.pro
 test_file_which.pro
 test_finite.pro
 test_fixprint.pro
+test_foreach.pro
 test_fx_root.pro
 test_fz_roots.pro
 test_gaussfit.pro
@@ -144,6 +144,7 @@ test_null.pro
 test_numeric_limits.pro
 test_obj_hasmethod.pro
 test_obj_valid.pro
+test_operators.pro
 test_parse_url.pro
 test_plot_ranges.pro
 test_plot_usersym.pro
@@ -202,5 +203,6 @@ test_wordexp.pro
 test_wordexp_null_string.pro
 test_xdr.pro
 test_xmlsax.pro
+test_xyztick_get.pro
 test_zeropoly.pro
 test_write_csv.pro
