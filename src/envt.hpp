@@ -372,12 +372,14 @@ public:
 private:
   T* eArr;
   char buf[defaultLength * sizeof(T)]; // prevent constructor calls
+  SizeT currentMaxLength;
   SizeT sz;
 
 public:
 
   ForInfoListT(): eArr( reinterpret_cast<T*>(buf)), sz( 0)
-  {
+  { 
+    currentMaxLength=defaultLength;
   }
 
   ~ForInfoListT()
@@ -395,33 +397,40 @@ public:
   // must be called before access
   void InitSize( SizeT s)
   {
+//    std::cerr<<this<<": InitSize("<<s<<")\n";
     assert( sz == 0);
     if( s == 0)
       return;
-    sz = s;
-    if( s < defaultLength)
+    sz = 0;
+    if( s <= currentMaxLength) //initialise currentMaxLength objects
       {
-	for( SizeT i=0; i<s; ++i)
+	for( SizeT i=0; i<currentMaxLength; ++i)
 	  eArr[ i].Init();
 	return;
       }
     eArr = new T[ s]; // constructor called
+    currentMaxLength=s;
   }
   // only needed for EXECUTE
   void resize( SizeT s)
   {
-    if( s == sz)
+//    std::cerr<<this<<": resize("<<s<<"): ";
+    if( s == sz) {
+//    std::cerr<<" == "<<sz<<": return.\n";
       return;
+    }
     if( s < sz) // shrink
       {
+//      std::cerr << " < " << sz << ": shrink.\n";
 	for( SizeT i=s; i<sz; ++i)
 	  eArr[ i].ClearInit(); // in case eArr was allocated
 	sz = s;
 	return;
       }
     // s > sz -> grow
-    if( s <= defaultLength && eArr == reinterpret_cast<T*>(buf))
+    if( s <= currentMaxLength && eArr == reinterpret_cast<T*>(buf))
       {
+//      std::cerr << " > " << sz << " but <= currentMaxLength : grow.\n";
 	for( SizeT i=sz; i<s; ++i)
 	  eArr[ i].Init();
 	sz = s;
@@ -429,8 +438,10 @@ public:
       }
     // this should never happen (or only in extreme rarely cases)
     // the performance will go down
-    // s > defaultLength
+    // s > currentMaxLength
+//    std::cerr << " > " << sz << " and > currentMaxLength : should not happen.\n";
     T* newArr = new T[ s]; // ctor called
+    currentMaxLength=s;
     if( eArr != reinterpret_cast<T*>(buf))
       {
 	for( SizeT i=0; i<sz; ++i)
@@ -451,7 +462,7 @@ public:
     sz = s;
   }
   // T operator[]( SizeT i) const { assert( i<sz);  return eArr[i];}
-  T& operator[]( SizeT i) { assert( i<sz);  return eArr[i];}
+  T& operator[]( SizeT i) { assert( i<currentMaxLength);  return eArr[i];}
   SizeT size() const { return sz;}
   iterator begin() const { return &eArr[0];}
   iterator end() const { return &eArr[sz];}
@@ -461,7 +472,6 @@ public:
   T& back() { return eArr[sz-1];}
   const T& back() const { return eArr[sz-1];}
 };
-
 
 
 // for UD subroutines (written in GDL) ********************************
@@ -481,8 +491,7 @@ public:
   };
 
 private:
-  ForInfoListT<ForLoopInfoT, 32> forLoopInfo;
-  // std::vector<ForLoopInfoT> forLoopInfo;
+   ForInfoListT<ForLoopInfoT, MAX_LOOPS_NUMBER> forLoopInfo;  //defaults to $MAIN$ values in dpro.hpp
 
   ProgNodeP         ioError; 
   DLong             onError; // on_error setting

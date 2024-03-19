@@ -35,6 +35,9 @@
       extern bool posixpaths;
     }
 #endif
+    
+#define MAX_LOOPS_NUMBER 32
+    
   typedef struct _SCC_STRUCT_ { //semicompiled code, small memory imprint (instead of a copy of the DNodes)
 	u_int nodeType = 0;
 	u_int ligne = 0;
@@ -592,8 +595,8 @@ class DPro: public DSubUD
 {
 public:
   // for main function, not inserted into proList
-  // should be fine (way too much): 32 NESTED loops in $MAIN$ (elswhere: unlimited)
-  DPro(): DSubUD("$MAIN$","","") { this->nForLoops = 32;}
+  // should be fine (way too much): MAX_LOOPS_NUMBER (32?) NESTED loops in $MAIN$ (elswhere: unlimited)
+  DPro(): DSubUD("$MAIN$","","") { this->nForLoops = MAX_LOOPS_NUMBER;}
 
   DPro(const std::string& n,const std::string& o="",const std::string& f=""): 
     DSubUD(n,o,f)
