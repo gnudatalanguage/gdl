@@ -1,0 +1,32 @@
+  TRACE_ROUTINE(__FUNCTION__,__FILE__,__LINE__)
+  Data_* right = static_cast<Data_*> (r);
+
+  ULong nEl = N_Elements();
+  assert(nEl); 
+  Ty s = (*right)[0];
+  // the general complex division code below will cost time and produce a slightly different result
+  // from IDL when s=complex(0,0). Best to treat that here directly
+  Data_* res; 
+  if (s == this->zero) {
+	res = this->Dup(); //faster 
+    for (SizeT ix = 0; ix < nEl; ++ix) (*res)[ix]=complex_float_nan;
+	GDLRegisterADivByZeroException();
+	return res; 
+  }
+  res = NewResult(); 
+  GDLStartRegisteringFPExceptions();
+  if (nEl == 1) {
+	(*res)[0]=(*this)[0] / s;
+	GDLStopRegisteringFPExceptions();
+	return res;
+  }
+  if ((GDL_NTHREADS = parallelize(nEl)) == 1) {
+	for (SizeT ix = 0; ix < nEl; ++ix) (*res)[ix]=(*this)[ix] / s;
+  } else {
+	TRACEOMP(__FILE__, __LINE__)
+#pragma omp parallel for num_threads(GDL_NTHREADS)
+	  for (OMPInt ix = 0; ix < nEl; ++ix) (*res)[ix]=(*this)[ix] / s;
+  }
+  
+  GDLStopRegisteringFPExceptions();
+  return res;
