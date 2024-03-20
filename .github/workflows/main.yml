@@ -44,9 +44,9 @@ jobs:
       id: set-matrix-others
       run: |
         if [[ '${{ github.event_name }}' == "schedule" || '${{ github.event.inputs.type }}' == "release" || '${{ github.ref }}' == "refs/tags/v"* ]]; then 
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['standard', 'headless'], configuration: ['Release']}"
+            matrix="{os: ['ubuntu-latest', 'macos-12', 'macos-14'], deps: ['standard', 'headless'], configuration: ['Release']}"
         else
-            matrix="{os: ['ubuntu-latest', 'macos-latest'], deps: ['debug'], configuration: ['Debug']}"
+            matrix="{os: ['ubuntu-latest', 'macos-12', 'macos-14'], deps: ['debug'], configuration: ['Debug']}"
         fi
         echo "matrix_others=$matrix" >> $GITHUB_OUTPUT
     - name: Remove Release (scheduled build only)
@@ -149,7 +149,7 @@ jobs:
           path: gdl-*-${{ matrix.deps }}.zip
           name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
       - name: Upload Release Assets (unstable)
-        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && matrix.os == 'macos-latest'
+        if: (github.event_name == 'schedule' || github.event.inputs.type == 'release') && startsWith(matrix.os, 'macos-')
         uses: ncipollo/release-action@v1
         with:
           artifacts: "gdl-*-${{ matrix.deps }}.dmg"
