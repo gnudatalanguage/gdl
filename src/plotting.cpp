@@ -1423,7 +1423,6 @@ namespace lib
         res = new DDoubleGDL(nEl, BaseGDL::NOZERO);
         for (auto i = 0; i < nEl; ++i) (*res)[i] = xtickget[i];
       }
-      xtickget.clear();
       break;
     case YAXIS:
       nEl = ytickget.size();
@@ -1431,7 +1430,6 @@ namespace lib
         res = new DDoubleGDL(nEl, BaseGDL::NOZERO);
         for (auto i = 0; i < nEl; ++i) (*res)[i] = ytickget[i];
       }
-      ytickget.clear();
       break;
     case ZAXIS:
       nEl = ztickget.size();
@@ -1439,7 +1437,6 @@ namespace lib
         res = new DDoubleGDL(nEl, BaseGDL::NOZERO);
         for (auto i = 0; i < nEl; ++i) (*res)[i] = ztickget[i];
       }
-      ztickget.clear();
       break;
     }
     return res;
@@ -3767,8 +3764,9 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 		  else {
 			a->box(tickOpt.c_str(), TickInterval, Minor, "", 0.0, 0); //ticks
 			a->box(Opt.c_str(), TickInterval, Minor, "", 0.0, 0); //no labels, just get ticks positions
-		  }
-		  DDoubleGDL* values = getLabelingValues(axisId);
+		  }	
+		  if (i == 0) gdlWriteDesiredAxisTickGet(e, axisId, Log);
+		  DDoubleGDL* values = getLabelingValues(axisId);	
 		  gdlDrawOurLabels(a, axisId, values, adddisplacement, Opt, where, TickLayout, (i == 0) ? gdlSimpleAxisTickFunc : gdlMultiAxisTickFunc, &tickdata, otheraxis, doplot);
 		  GDLDelete(values);
 		}
@@ -3783,6 +3781,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 			a->box("", 0.0, 0.0, tickOpt.c_str(), TickInterval, Minor); //write ticks
 			a->box("", 0.0, 0.0, Opt.c_str(), TickInterval, Minor); //write blank labels and get ticks positions
 		  }
+		  if (i == 0) gdlWriteDesiredAxisTickGet(e, axisId, Log);
 		  DDoubleGDL* values = getLabelingValues(axisId);
 		  //write labels our way, with any centering , even on multiline etc. We need the length of the 
 		  nchars[i] = gdlDrawOurLabels(a, axisId, values, adddisplacement, Opt, where, TickLayout, (i == 0) ? gdlSimpleAxisTickFunc : gdlMultiAxisTickFunc, &tickdata, otheraxis, doplot);
@@ -3875,7 +3874,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 NoTitlesAccepted:
 	//reset gridstyle
 	gdlLineStyle(a, 0);
-	gdlWriteDesiredAxisTickGet(e, axisId, Log);
 	//reset charsize & thick
 	a->Thick(1.0);
 	a->sizeChar(1.0);
