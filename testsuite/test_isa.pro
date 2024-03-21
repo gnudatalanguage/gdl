@@ -382,8 +382,6 @@ accumul_errors=0
 txt=' testing ISA for UNDEFINED'
 if (verb) then MESSAGE, /continue, 'Starting '+txt
 ;
-if KEYWORD_SET(verbose) then verb=1 else verb=0
-;
 ;; testing type = undefined
 if (verb) then MESSAGE, /cont, 'Testing Undefined.'
 if ISA(a) eq 1 then  ERRORS_ADD, nb_errors, ''
@@ -425,6 +423,32 @@ end
 ;
 ; -----------------------------------------------
 ;
+; If fact /file is not ready in ISA()
+;
+pro TEST_ISA_FOR_FILE, cumul_errors, verbose=verbose, test=test
+;
+if KEYWORD_SET(verbose) then verb=1 else verb=0
+;
+nb_errors=0
+accumul_errors=0
+;
+txt=' testing ISA for /FILE'
+if (verb) then MESSAGE, /continue, 'Starting '+txt
+;
+res=EXECUTE('pb=ISA("toto",/file)')
+if res EQ 0 then BANNER_FOR_TESTSUITE, ROUTINE_NAME(), 'keyword /FILE not ready in ISA()'
+return
+;
+; -------------- final message ------------
+;
+BANNER_FOR_TESTSUITE, ROUTINE_NAME(), accumul_errors, /short, verb=verbose
+ERRORS_CUMUL, cumul_errors, accumul_errors
+if KEYWORD_SET(test) then STOP
+;
+end
+;;
+; -----------------------------------------------
+;
 pro TEST_ISA, help=help, verbose=verbose, no_exit=no_exit, test=test
 ;
 if KEYWORD_SET(help) then begin
@@ -454,6 +478,8 @@ TEST_ISA_FOR_STRUCT, cumul_errors, verbose=verbose
 TEST_ISA_FOR_LIST, cumul_errors, verbose=verbose
 ;
 TEST_ISA_FOR_HASH, cumul_errors, verbose=verbose
+;
+TEST_ISA_FOR_FILE, cumul_errors, verbose=verbose
 ;
 ; -------------------------
 ; final message
