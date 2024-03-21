@@ -215,7 +215,7 @@ SET_PLOT, init_devicename
 ;
 ; ----------------- final message ----------
 ;
-BANNER_FOR_TESTSUITE, 'TEST_OPERATORS', cumul_errors, short=short
+BANNER_FOR_TESTSUITE, 'TEST_XYZTICK_GET', cumul_errors, short=short
 ;
 if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
 ;
