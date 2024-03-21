@@ -2125,7 +2125,8 @@ BaseGDL* list__toarray( EnvUDT* e)
 
 BaseGDL* list__isempty( EnvUDT* e)
 {
-      
+             std::cout << "par par ici et là" << std::endl;
+   
     GDL_LIST_STRUCT()
         
   static int kwSELFIx = 0;
@@ -2137,16 +2138,20 @@ BaseGDL* list__isempty( EnvUDT* e)
 
 SizeT LIST_count( DStructGDL* list)
 {// straight through, no checks
-  static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
-    return (*static_cast<DLongGDL*>( list->GetTag( nListTag, 0)))[0];         
 
+  static unsigned nListTag = structDesc::LIST->TagIndex( "NLIST");
+  
+  //  std::cout << nListTag << std::endl;
+  return (*static_cast<DLongGDL*>( list->GetTag( nListTag, 0)))[0];
 }
+
 BaseGDL* list__count( EnvUDT* e)
 {
     static int kwSELFIx = 0; // no keywords
     static int kwVALUEIx = 1;
-   
-//    DStructGDL* self = GetOBJ( e->GetKW( kwSELFIx), e);
+
+    //    std::cout << "ici ici" << std::endl;
+    //    DStructGDL* self = GetOBJ( e->GetKW( kwSELFIx), e);
     SizeT nParam = e->NParam(1);
     if( nParam == 1)
         return new DLongGDL( LIST_count( GetOBJ( e->GetTheKW( kwSELFIx), e)));
