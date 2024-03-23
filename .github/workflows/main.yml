@@ -127,6 +127,10 @@ jobs:
       - name: Install Dependencies
         run: |
           scripts/build_gdl.sh prep
+      - name: Set HDF path on macOS usin brew
+        # https://stackoverflow.com/questions/66741778/how-to-install-h5py-needed-for-keras-on-macos-with-m1
+        if: contains(matrix.os, 'macos')
+        run: export HDF5_DIR="$(brew --prefix hdf5)"
       - name: Build GDL
         run: |
           scripts/build_gdl.sh configure
