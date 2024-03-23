@@ -707,7 +707,7 @@ if(NETCDF)
         if(HAVE_NETCDF4)
           set(USE_NETCDF4 1)
         else(HAVE_NETCDF4)
-          message(STATUS "warning, you don't have NetCDF-4 version"
+          message(STATUS "warning, you don't have NetCDF-4 version\n"
             "some new NetCDF capabilities in NetCDF-4 (related to Groups) will not be usable")
         endif(HAVE_NETCDF4)
     else(NETCDF_FOUND)
