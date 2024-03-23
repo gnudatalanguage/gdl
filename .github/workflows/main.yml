@@ -179,6 +179,9 @@ jobs:
       - name: Test GDL
         run: |
           scripts/build_gdl.sh check
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+
   build-windows:
     runs-on: windows-latest
     needs: prelude
