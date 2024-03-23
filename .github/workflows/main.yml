@@ -179,8 +179,9 @@ jobs:
       - name: Test GDL
         run: |
           scripts/build_gdl.sh check
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
+      - name: Setup debug ssh session
+        if: startsWith(matrix.os, 'macos-14')
+        uses: mxschmitt/action-tmate@v3
 
   build-windows:
     runs-on: windows-latest
