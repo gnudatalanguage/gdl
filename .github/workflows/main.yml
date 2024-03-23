@@ -141,7 +141,7 @@ jobs:
           scripts/build_gdl.sh pack
           scripts/build_gdl.sh prep_deploy
       - name: Upload Build Artifacts
-        if: contains(matrix.os, 'macos')
+        if: contains(, 'macos')
         uses: actions/upload-artifact@v3.1.1
         with:
           path: gdl-*-${{ matrix.deps }}.dmg
@@ -179,9 +179,6 @@ jobs:
       - name: Test GDL
         run: |
           scripts/build_gdl.sh check
-      - name: Setup debug ssh session
-        if: startsWith(matrix.os, 'macos-14')
-        uses: mxschmitt/action-tmate@v3
 
   build-windows:
     runs-on: windows-latest
