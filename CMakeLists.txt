@@ -167,7 +167,7 @@ set(GDL_LIB_DIR "" CACHE PATH "GDL: library directory relative to CMAKE_INSTALL_
 if ( GDL_LIB_DIR STREQUAL "" OR NOT GDL_LIB_DIR)
  set (GDL_DRV_DIR "${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/drivers") # CACHE PATH "GDL: where the drivers will be installed.")
 else()
- set (GDL_DRV_DIR "${GDL_LIB_DIR}" ) # CACHE PATH "GDL: where the drivers will be installed.")
+ set (GDL_DRV_DIR "${CMAKE_INSTALL_PREFIX}/${GDL_LIB_DIR}" ) # CACHE PATH "GDL: where the drivers will be installed.")
 endif()
 # check for 64-bit OS
 if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
