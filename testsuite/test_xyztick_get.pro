@@ -10,6 +10,9 @@
 ;
 ; These tests are also tests on the ranges computed for PLOT & SURFACE ...
 ;
+; Modifications history :
+; -2024-03-29 AC : adding more cases for PLOT since #1785 don't work well
+;
 ; -------------------------------------------------
 ; simple debug print when needed ...
 pro MODE_DEBUG, exp, val, valname, debug=debug, test=test
@@ -28,7 +31,9 @@ errors=0
 ;
 ; testing only XTICK_GET
 ;
-res=EXECUTE('plot, FINDGEN(10), xtick_get=xt')
+command='plot, FINDGEN(10), xtick_get=xt'
+res=EXECUTE(command)
+if KEYWORD_SET(verbose) or KEYWORD_SET(debug) then print, command 
 ;
 if (res EQ 0) then ERRORS_ADD, errors, 'bad execution, X fields only'
 ;
@@ -40,7 +45,9 @@ endif else ERRORS_ADD, errors, 'undefined xtick_get (X-axis (1))'
 ;
 ; testing only YTICK_GET
 ;
-res=EXECUTE('PLOT, -FINDGEN(10), ytick_get=yt')
+command='plot, -FINDGEN(10), ytick_get=yt'
+res=EXECUTE(command)
+if KEYWORD_SET(verbose) or KEYWORD_SET(debug) then print, command 
 ;
 if (res EQ 0) then ERRORS_ADD, errors, 'bad execution, Y fields only'
 ;
@@ -50,9 +57,11 @@ if ISA(yt) then begin
    MODE_DEBUG, expected, yt, 'Y axis', debug=debug
 endif else ERRORS_ADD, errors, 'undefined ytick_get (Y-axis (1))'
 ;
-; -----
+; ----- testing both
 ;
-res=EXECUTE('PLOT, FINDGEN(10), xtick_get=xt, ytick_get=yt')
+command='plot, FINDGEN(10), xtick_get=xt, ytick_get=yt'
+res=EXECUTE(command)
+if KEYWORD_SET(verbose) or KEYWORD_SET(debug) then print, command 
 ;
 if (res EQ 0) then ERRORS_ADD, errors, 'bad execution, two fields'
 ;
@@ -62,6 +71,40 @@ if ISA(xt) AND ISA(yt) then begin
    if ~ARRAY_EQUAL(expected, yt) then ERRORS_ADD, errors, 'bad Y-axis'
    MODE_DEBUG, expected, xt, 'X axis', debug=debug
    MODE_DEBUG, expected, yt, 'Y axis', debug=debug
+endif else ERRORS_ADD, errors, 'undefined xtick_get OR ytick_get'
+;
+; ----- another ranges v2 ...
+;
+command='plot, FINDGEN(63)-500, xtick_get=xt, ytick_get=yt'
+res=EXECUTE(command)
+if KEYWORD_SET(verbose) or KEYWORD_SET(debug) then print, command 
+;
+if (res EQ 0) then ERRORS_ADD, errors, 'bad execution, two fields, v2'
+;
+if ISA(xt) AND ISA(yt) then begin
+   exp_x=20.*DINDGEN(5)
+   exp_y=-500+20.*DINDGEN(5)
+   if ~ARRAY_EQUAL(exp_x, xt) then ERRORS_ADD, errors, 'bad X-axis'
+   if ~ARRAY_EQUAL(exp_y, yt) then ERRORS_ADD, errors, 'bad Y-axis'
+   MODE_DEBUG, exp_x, xt, 'X axis', debug=debug
+   MODE_DEBUG, exp_y, yt, 'Y axis', debug=debug
+endif else ERRORS_ADD, errors, 'undefined xtick_get OR ytick_get'
+;
+; ----- another ranges v2 ...
+;
+command='plot, FINDGEN(71)-500, xtick_get=xt, ytick_get=yt'
+res=EXECUTE(command)
+if KEYWORD_SET(verbose) or KEYWORD_SET(debug) then print, command 
+;
+if (res EQ 0) then ERRORS_ADD, errors, 'bad execution, two fields, v3'
+;
+if ISA(xt) AND ISA(yt) then begin
+   exp_x=20.*DINDGEN(5)
+   exp_y=-500+20.*DINDGEN(5)
+   if ~ARRAY_EQUAL(exp_x, xt) then ERRORS_ADD, errors, 'bad X-axis'
+   if ~ARRAY_EQUAL(exp_y, yt) then ERRORS_ADD, errors, 'bad Y-axis'
+   MODE_DEBUG, exp_x, xt, 'X axis', debug=debug
+   MODE_DEBUG, exp_y, yt, 'Y axis', debug=debug
 endif else ERRORS_ADD, errors, 'undefined xtick_get OR ytick_get'
 ;
 ; --------------
