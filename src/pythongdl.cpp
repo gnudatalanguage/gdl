@@ -585,7 +585,7 @@ extern "C" {
 //    if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH");
 //    if( gdlPath == "")
 //      {
-//        gdlPath = "+" GDLDATADIR "/lib";
+//        gdlPath = "+" GDL_DATA_DIR "/lib";
 //      }
 //    SysVar::SetGDLPath( gdlPath);
     

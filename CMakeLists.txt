@@ -161,14 +161,7 @@ set(JPEGDIR "" CACHE PATH "GDL: Specify the JPEG directory tree")
 set(SZIPDIR "" CACHE PATH "GDL: Specify the SZip directory tree")
 
 set(GDL_DATA_DIR "/share/gnudatalanguage" CACHE PATH "GDL: data directory relative to CMAKE_INSTALL_PREFIX")
-set(GDL_LIB_DIR "" CACHE PATH "GDL: library directory relative to CMAKE_INSTALL_PREFIX")
-#define (for plplotdriver/CMakeLists.txt) the GDL_DRV_DIR where the drivers will be installed.
-#if GDL_LIB_DIR is empty, it will be the default (GDL_DATA_DIR/drivers) otherwise it is GDL_LIB_DIR (not GDL_LIB_DIR/drivers)
-if ( GDL_LIB_DIR STREQUAL "" OR NOT GDL_LIB_DIR)
- set (GDL_DRV_DIR "${CMAKE_INSTALL_PREFIX}/${GDL_DATA_DIR}/drivers") # CACHE PATH "GDL: where the drivers will be installed.")
-else()
- set (GDL_DRV_DIR "${CMAKE_INSTALL_PREFIX}/${GDL_LIB_DIR}" ) # CACHE PATH "GDL: where the drivers will be installed.")
-endif()
+set(GDL_LIB_DIR "/lib/gnudatalanguage" CACHE PATH "GDL: library directory relative to CMAKE_INSTALL_PREFIX")
 # check for 64-bit OS
 if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
     set(HAVE_64BIT_OS 1)

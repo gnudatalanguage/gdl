@@ -224,7 +224,7 @@ namespace MyPaths {
   if (length > 0)
   {
     path = (char*)malloc(length + 1);
-    if (!path) return std::string(".");
+    if (!path) return {"."};
     wai_getExecutablePath(path, length, &dirname_length);
     path[dirname_length] = '\0';
 //    printf("  dirname: %s\n", path);
@@ -232,7 +232,7 @@ namespace MyPaths {
     free(path);
     return pathstring;
   }
-  return std::string(".");
+  return {"."};
 }
 }
 
@@ -243,38 +243,37 @@ int main(int argc, char *argv[])
   bool quiet = false;
   bool gdlde = false;
 
-//The default installation location --- will not always be there.  
-  gdlDataDir = std::string(GDLDATADIR);
-  gdlLibDir = std::string(GDLLIBDIR);
+  // The default installation location --- will not always be there.
+  gdlDataDir = std::string(GDL_DATA_DIR);
+  gdlLibDir = std::string(GDL_LIB_DIR);
 #ifdef _WIN32
   std::replace(gdlDataDir.begin(), gdlDataDir.end(), '/', '\\');
   std::replace(gdlLibDir.begin(), gdlLibDir.end(), '/', '\\');
-#endif 
+#endif
+  // make sure dirs are prefixed with the system's path separator
+  if (gdlDataDir.at(0) != lib::PathSeparator()) gdlDataDir.assign(lib::PathSeparator() + gdlDataDir);
+  if (gdlLibDir.at(0) != lib::PathSeparator()) gdlLibDir.assign(lib::PathSeparator() + gdlLibDir);
 
 //check where is the executable being run
- std::string whereami=MyPaths::getExecutablePath();
-// if I am at a 'bin' location, then there are chances that I've bee INSTALLED, so all the resources I need can be accessed relatively to this 'bin' directory.
-// if not, then I'm probably just a 'build' gdl and my ressources may (should?) be in the default location GDLDATADIR
-  std::size_t pos=whereami.rfind("bin");
-  if (pos == whereami.size()-3) { //we are the installed gdl!
-    gdlDataDir.assign( whereami+ lib::PathSeparator() + ".." + lib::PathSeparator() + "share" + lib::PathSeparator() + "gnudatalanguage") ;
-//    std::cerr<<"installed at: "<<gdlDataDir<<std::endl;
+ auto whereami = MyPaths::getExecutablePath();
+// if I am at a 'bin' location, then there are chances that I've been INSTALLED, so all the resources I need can be accessed relatively to this 'bin' directory.
+// if not, then I'm probably just a 'build' gdl and my resources may (should?) be in the default location GDL_DATA_DIR
+  auto pos = whereami.rfind("bin");
+  if (pos != std::string::npos) { // we are the installed gdl!
+    // use pos - 1, so we remove the path separator, too
+    gdlDataDir.assign(whereami.substr(0, pos - 1) + gdlDataDir);
+    gdlLibDir.assign(whereami.substr(0, pos - 1) + gdlLibDir);
   }
 
 //PATH. This one is often modified by people before starting GDL.
-  string gdlPath=GetEnvPathString("GDL_PATH"); //warning: is a Path, use system separator.
-  if( gdlPath == "") gdlPath=GetEnvString("IDL_PATH"); //warning: is a Path, use system separator.
-  if( gdlPath == "") gdlPath = gdlDataDir + lib::PathSeparator() + "lib";
+  auto gdlPath = GetEnvPathString("GDL_PATH");
+  if( gdlPath.empty()) gdlPath = GetEnvPathString("IDL_PATH");
+  if( gdlPath.empty()) gdlPath = gdlDataDir + lib::PathSeparator() + "lib";
 
-//LIBDIR. Can be '' in which case the location of drivers is deduced from the location of
-//the executable (OSX, Windows, unix in user-installed mode).
-  string driversPath = GetEnvPathString("GDL_DRV_DIR");
-  if (driversPath == "") { //NOT enforced by GDL_DRV_DIR
-    driversPath = gdlLibDir; //e.g. Fedora
-    if (driversPath == "") { //NOT enforced by GDLLIBDIR at build : not a distro
-      driversPath = gdlDataDir + lib::PathSeparator() + "drivers"; //deduced from the location of the executable 
-    }
-  }
+  auto driversPath = GetEnvPathString("GDL_DRV_DIR");
+  // use the identical approach already used for figuring out the path to out *.pro files etc.
+  if (driversPath.empty()) driversPath = gdlLibDir;
+
   //drivers if local
   useLocalDrivers=false;
   bool driversNotFound=false;

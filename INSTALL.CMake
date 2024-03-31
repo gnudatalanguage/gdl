@@ -41,6 +41,9 @@ Other options include:
 - GDL_DATA_DIR (default: /share/gnudatalanguage) to specify
   a custom installation location for GDL files 
   (a subdirectory of the main installation prefix)
+- GDL_LIB_DIR (default: /lib/gnudatalanguage) to specify
+  a custom installation location for local PlPlot driver files
+  (a subdirectory of the main installation prefix)
 
 The list of all GDL-related options accepted by CMake along
 with their default values can be obtained by calling:
