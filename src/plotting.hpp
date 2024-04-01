@@ -144,9 +144,6 @@ static const std::string axisName[6] = {"X", "Y", "Z", "X", "Y", "Z"};
 struct GDL_TICKDATA {
   GDLGStream *a;
   EnvT *e;
-  bool isLog;
-  DDouble axisrange; //to circumvent plplot passing a non-zero value instead of strict 0.0
-  double nchars; //length of string *returned* after formatting. Can be non-integer.
   // For TICKNAMES
   SizeT tickNameCounter; //internal counter of what tickname we use
   SizeT nTickName; //number of tickname values passed
@@ -158,9 +155,14 @@ struct GDL_TICKDATA {
   SizeT nTickUnits;
   DStringGDL* TickUnits;
   SizeT counter;
-  bool reset; //reset internal counter each time a new 'axis' command is issued
+  DDouble Start; //used where the span of values in axis matters.
+  DDouble End; //used where the spand of values in axis matters.
+  double nchars; //length of string *returned* after formatting. Can be non-integer.
   int tickOptionCode;
   int tickLayoutCode;
+  int maxPrec;
+  bool isLog;
+  bool reset; //reset internal counter each time a new 'axis' command is issued
 };
 
 
@@ -268,14 +270,15 @@ namespace lib {
   void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd); //2D
   void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble &zEnd); //3D
   void gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &val_min, DDouble &val_max, bool &log);
-  PLFLT AutoTick(DDouble x);
-  PLFLT AutoLogTick(DDouble min, DDouble max);
+  PLFLT AutoTickIntv(DDouble x, bool freeRange=false);
+  PLFLT AutoLogTickIntv(DDouble min, DDouble max);
   void setIsoPort(GDLGStream* actStream, PLFLT x1, PLFLT x2, PLFLT y1, PLFLT y2, PLFLT aspect);
   void GetMinMaxVal(DDoubleGDL* val, double* minVal, double* maxVal);
   void GetMinMaxValuesForSubset(DDoubleGDL* val, DDouble &minVal, DDouble &maxVal, SizeT endElement);
   void UpdateSWPlotStructs(GDLGStream* actStream, DDouble xStart, DDouble xEnd, DDouble yStart,
     DDouble yEnd, bool xLog, bool yLog);
   DDoubleGDL* getLabelingValues(int axisId);
+  DDoubleGDL* computeLabelingValues(int axisId);
   void defineLabeling(GDLGStream *a, int axisId, void(*func)(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data), PLPointer data);
   void resetLabeling(GDLGStream *a, int axisId);
   void gdlSimpleAxisTickFunc(PLINT axis, PLFLT value, char *label, PLINT length, PLPointer data);
@@ -338,7 +341,7 @@ namespace lib {
 
   void gdlSetPlotCharthick(EnvT *e, GDLGStream *a);
   
-  PLFLT gdlComputeTickInterval(EnvT *e, int axisId, DDouble &min, DDouble &max, bool log, int level=0);
+  PLFLT gdlComputeAxisTickInterval(EnvT *e, int axisId, DDouble min, DDouble max, bool log, int level=0, bool freeRange=false);
 
   void gdlGetDesiredAxisCharsize(EnvT* e, int axisId, DFloat &charsize);
 
@@ -355,8 +358,6 @@ namespace lib {
   void gdlGetDesiredAxisStyle(EnvT *e, int axisId, DLong &style);
 
   void gdlGetDesiredAxisThick(EnvT *e, int axisId, DFloat &thick);
-
-  void gdlGetDesiredAxisTickget(EnvT *e, int axisId, DDoubleGDL *Axistickget);
 
   void gdlGetDesiredAxisTickFormat(EnvT* e, int axisId, DStringGDL* &axisTickformatVect);
 
@@ -379,7 +380,7 @@ namespace lib {
 
   //if [X|Y|Z]TICK_GET was given for axis, write the values.
 
-  void gdlWriteDesiredAxisTickGet(EnvT* e, int axisId, bool isLog);
+  void gdlGetDesiredAxisTickGet(EnvT* e, int axisId, DDouble TickInterval, DDouble Start, DDouble End, bool isLog);
 
   void gdlGetDesiredAxisTitle(EnvT *e, int axisId, DString &title);
 
