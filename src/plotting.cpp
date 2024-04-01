@@ -138,10 +138,14 @@ namespace lib
     if ((*maxVal)==(*minVal)) *maxVal=*minVal+1.0;
 #undef UNDEF_RANGE_VALUE
   }
-  DDouble AutoTickIntv(DDouble x) {
+  DDouble AutoTickIntv(DDouble x, bool freeRange) {
 	static const double s2 = sqrt(2) / 2.;
+	static const double s3 = sqrt(2) / 2.5;
 	static const double s4 = sqrt(2) / 4.;
-	static const double s9 = sqrt(2) / 9.;
+	static const double s5 = sqrt(2) / 5;
+	static const double s9 = 0.15811390; //not sqrt(2) / 9.;
+	static const double s10 = s9/1.25; //not sqrt(2) / 9.;
+	static const double recompute = 0.1;
 
 	if (x == 0.0) return 1.0;
 	x = abs(x);
@@ -151,12 +155,24 @@ namespace lib
 	y -= n; //range is [-1:0]
 	y = pow(10, y); //range is [0:1]
 	DDouble mag = pow(10,n);
-	while (true) {
-	  if (y >= s2) return 0.2*mag;
-	  if (y >= s4) return 0.1*mag;
-	  if (y >= s9) return 0.05*mag;
-	  y *= 10;
-	  mag /= 10;
+	if (freeRange) {
+	  while (true) {
+		if (y >= s3) return 0.2 * mag;
+		if (y >= s5) return 0.1 * mag;
+		if (y >= s10) return 0.05 * mag;
+		if (y >= recompute) return 0.02 * mag;
+		y *= 10;
+		mag /= 10;
+	  }
+	} else {
+	  while (true) {
+		if (y >= s2) return 0.2 * mag;
+		if (y >= s4) return 0.1 * mag;
+		if (y >= s9) return 0.05 * mag;
+		if (y >= recompute) return 0.02 * mag;
+		y *= 10;
+		mag /= 10;
+	  }
 	}
   }
   
@@ -460,24 +476,25 @@ namespace lib
 			intvold = AutoLogTickIntv(pow(10, start), pow(10, end));
 		  }
 		//intv is OK, find nearest value for max and min
-		  max = ceil(max / intv) * intv;
-		  min = floor(min / intv) * intv;
+		  if ( abs ( (floor(max / intv) * intv ) - max ) > intv/1000) max =  ceil(max / intv) * intv;
+		  if ( abs ( (ceil(min / intv) * intv ) - min ) > intv/1000)  min = floor(min / intv) * intv;
 	  } else {
-		PLFLT intvold = AutoTickIntv(range);
+		PLFLT intvold = AutoTickIntv(range,true);
 		PLFLT intv = 0;
 		//find the "good" intv
 		PLFLT start=min;
 		PLFLT end=max;
-		while (intv != intvold) {
+//		while (intv != intvold) {
 			intv = intvold;
 			start= floor(start / intv) * intv;
 			end = ceil(end / intv) * intv;
 			range=end-start;
-			intvold = AutoTickIntv(range);
-		  }
-		//intv is OK, find nearest value for max and min
-		  max = ceil(max / intv) * intv;
-		  min = floor(min / intv) * intv;
+			intvold = AutoTickIntv(range,true);
+//		  }
+			intv = intvold;
+		//intv is OK, find nearest value for max and min, do not jump to next tick if the difference is invisible:
+		  if ( abs ( (floor(max / intv) * intv ) - max ) > intv/1000) max =  ceil(max / intv) * intv;
+		  if ( abs ( (ceil(min / intv) * intv ) - min ) > intv/1000)  min = floor(min / intv) * intv;
 		}
 	}
 
@@ -2390,7 +2407,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     a->Thick(charthick);
   }
 
-  PLFLT gdlComputeAddtionalAxisTickInterval(EnvT *e, int axisId, DDouble &min, DDouble &max, bool log, int level) {
+  PLFLT gdlComputeAxisTickInterval(EnvT *e, int axisId, DDouble min, DDouble max, bool log, int level, bool freeRange) {
     PLFLT intv;
     static DDouble multiplier[]={0,365.25,30,1,1./24.,1./(24*60.),1./(24.*60*60)};
 	DDouble range=max-min;
@@ -2399,10 +2416,10 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     switch (code) {
     case 0:
     case 7:
-      intv = (log) ? AutoLogTickIntv(min, max) : AutoTickIntv(range);
+      intv = (log) ? AutoLogTickIntv(min, max) : AutoTickIntv(range, freeRange);
   	  if (zeroInside) { //take max of all 3 posibilities [min,max] [min,0] [0,max]
-		PLFLT intv1 = (log) ? AutoLogTickIntv(0, max) : AutoTickIntv(max);
-		PLFLT intv2 = (log) ? AutoLogTickIntv(min, 0) : AutoTickIntv(-min);
+		PLFLT intv1 = (log) ? AutoLogTickIntv(0, max) : AutoTickIntv(max, freeRange);
+		PLFLT intv2 = (log) ? AutoLogTickIntv(min, 0) : AutoTickIntv(-min, freeRange);
 	    if (intv1 > intv) intv=intv1;
 	    if (intv2 > intv) intv=intv2;
 	  }
@@ -2410,7 +2427,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     default:
       intv = multiplier[code];
 	  DDouble nintv=(range)/intv;
-	  PLFLT test=AutoTickIntv(nintv);
+	  PLFLT test=AutoTickIntv(nintv, freeRange);
 	  if (test > 1) return intv*test; else {
 		if (nintv<1) return (max-min); //at least one tick
 		return intv;
@@ -2663,10 +2680,6 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
     }
     e->AssureFloatScalarKWIfPresent(choosenIx, thick);
     if (thick <= 0.0) thick = 1.0;
-  }
-
-  void gdlGetDesiredAxisTickget(EnvT *e, int axisId, DDoubleGDL *Axistickget) {
-    //TODO!
   }
 
   void gdlGetDesiredAxisTickFormat(EnvT* e, int axisId, DStringGDL* &axisTickformatVect) {
@@ -3019,19 +3032,24 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	}
 	if (e->WriteableKeywordPresent(choosenIx)) {
 	  //reorder start & end
-	  DDouble value = (isLog) ? log10(End) - log10(Start) : End - Start;
-	  value=abs(value);
-	  DLong nint = ceil(value / TickInterval);
+	  DDouble min=(isLog)?log10(Start):Start;
+	  DDouble max=(isLog)?log10(End):End;
+	  DDouble sign=1;
+	  if (max < min) {
+		sign=-1;
+	  }
+	  DDouble range=abs(max-min);
+	  DLong nint = ceil(range / TickInterval);
 	  if (nint > 0) {
 		if (isLog) {
-		  DDouble first = ceil(log10(Start) / TickInterval) * TickInterval;
+		  DDouble first = ceil(min / TickInterval) * TickInterval;
 		  DDoubleGDL* val = new DDoubleGDL(dimension(nint+1), BaseGDL::NOZERO);
-		  for (auto i = 0; i < val->N_Elements(); ++i) (*val)[i] = pow(10,first + i * TickInterval);
+		  for (auto i = 0; i < val->N_Elements(); ++i) (*val)[i] = pow(10,first + i * sign* TickInterval);
 		  e->SetKW(choosenIx, val);
 		} else {
-		  DDouble first = ceil(Start/TickInterval)*TickInterval;
+		  DDouble first = ceil(min / TickInterval)*TickInterval;
 		  DDoubleGDL* val = new DDoubleGDL(dimension(nint+1), BaseGDL::NOZERO);
-		  for (auto i = 0; i < val->N_Elements(); ++i) (*val)[i] = first + i * TickInterval;
+		  for (auto i = 0; i < val->N_Elements(); ++i) (*val)[i] = first + i * sign * TickInterval;
 		  e->SetKW(choosenIx, val);
 		}
 	  } else ThrowGDLException("Internal GDL error in TICK_GET, please report.");
@@ -3541,12 +3559,17 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
   void gdlAxis(EnvT *e, GDLGStream *a, int axisId, DDouble Start, DDouble End, bool Log, DLong where) {
 
 	//the various boxes used here
-	PLFLT refboxxmin, refboxxmax, refboxymin, refboxymax, boxxmin, boxxmax, boxymin, boxymax, xboxxmin, xboxxmax, xboxymin, xboxymax;
+	PLFLT refboxxmin, refboxxmax, refboxymin, refboxymax, boxxmin, boxxmax, boxymin, boxymax, wboxxmin, wboxxmax, wboxymin, wboxymax;
 	a->plstream::gvpd(refboxxmin, refboxxmax, refboxymin, refboxymax);
 	a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
-	a->plstream::gvpw(xboxxmin, xboxxmax, xboxymin, xboxymax);
-	PLFLT owxmin, owxmax, owymin, owymax;
-	a->plstream::gvpw(owxmin, owxmax, owymin, owymax);
+	a->plstream::gvpw(wboxxmin, wboxxmax, wboxymin, wboxymax);
+	PLFLT owboxxmin, owboxxmax, owboxymin, owboxymax;
+	a->plstream::gvpw(owboxxmin, owboxxmax, owboxymin, owboxymax);
+	//BUT if this is a Z AXIS the ymin and ymax are false
+	if (axisId == ZAXIS) {
+	  owboxymax=wboxymax=End;
+	  owboxymin=wboxymin=Start;
+	}
 
 	//useful values for the rest of the procedure 
 	DFloat interligne_as_char;
@@ -3573,7 +3596,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	  } else goto NoTitlesAccepted;
 
 	  a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
-	  a->wind(owxmin, owxmax, owymin, owymax); //restore old values
+	  a->wind(owboxxmin, owboxxmax, owboxymin, owboxymax); //restore old values
 	  gdlSetPlotCharthick(e, a);
 	  if (!subTitle.empty()) {
 		gdlSetPlotCharsize(e, a);
@@ -3600,8 +3623,10 @@ NoTitlesAccepted:
 	DStringGDL* TickUnits;
 	gdlGetDesiredAxisTickUnits(e, axisId, TickUnits);
 	bool hasTickUnitDefined = (TickUnits->NBytes() > 0);
+	DLong AxisStyle;
+	gdlGetDesiredAxisStyle(e, axisId, AxisStyle);
 	if (TickInterval == 0 && !hasTickv) {
-	  if (Ticks <= 0) TickInterval = gdlComputeAddtionalAxisTickInterval(e, axisId, Start, End, Log);
+	  if (Ticks <= 0) TickInterval = gdlComputeAxisTickInterval(e, axisId, Start, End, Log, 0, (axisId==ZAXIS && ((AxisStyle & 1) == 0)));
 	  else if (Ticks > 1) TickInterval = (End - Start) / Ticks;
 	  else TickInterval = (End - Start);
 	} else {
@@ -3622,18 +3647,16 @@ NoTitlesAccepted:
 	
 	if (Start == End) return;
 	if (Log && (Start <= 0 || End <= 0)) return; //important protection 
-	DLong AxisStyle;
-	gdlGetDesiredAxisStyle(e, axisId, AxisStyle);
 	bool doplot = ((AxisStyle & 4) != 4); 
 	if (!doplot) return;
 	
 	// we WILL plot something, so set temporarlily WIN accordingly
 	if (axisId == XAXIS) {
-	  if (Log) a->wind(log10(Start), log10(End), owymin, owymax);
-	  else a->wind(Start, End, owymin, owymax);
+	  if (Log) a->wind(log10(Start), log10(End), owboxymin, owboxymax);
+	  else a->wind(Start, End, owboxymin, owboxymax);
 	} else {
-	  if (Log) a->wind(owxmin, owxmax, log10(Start), log10(End));
-	  else a->wind(owxmin, owxmax, Start, End);
+	  if (Log) a->wind(owboxxmin, owboxxmax, log10(Start), log10(End));
+	  else a->wind(owboxxmin, owboxxmax, Start, End);
 	}
 
 	//special values
@@ -3840,7 +3863,7 @@ NoTitlesAccepted:
 	ydisplacement = 0;
 	a->plstream::vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
 	a->plstream::gvpd(boxxmin, boxxmax, boxymin, boxymax);
-	a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+	a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
 	//      thick for box and ticks.
 	a->Thick(Thick);
 	a->smaj(ticklen_in_mm, 1.0);
@@ -3848,14 +3871,14 @@ NoTitlesAccepted:
 
 	for (auto i = 0; i < tickdata.nTickUnits; ++i) //loop on TICKUNITS axis
 	{
-	  if (i > 0 || TickInterval == 0) TickInterval = gdlComputeAddtionalAxisTickInterval(e, axisId, Start, End, Log, i);
+	  if (i > 0 || TickInterval == 0) TickInterval = gdlComputeAxisTickInterval(e, axisId, Start, End, Log, i/*, (AxisStyle & 1) == 0*/);
 
 	  tickdata.nchars = 0; //set nchars to 0, at the end nchars will be the maximum size.
 	  if (i == 1) tickOpt = (TickLayout == 2) ? tickLayout2 : additionalAxesTickOpt; //change style of ticks for supplemental axes
 	  defineLabeling(a, axisId, gdlNoLabelTickFunc, &tickdata); //prevent plplot to write labels (but writes something, so that label positions are reported in getLabelingValues())
 	  if (axisId == XAXIS) {
 		a->plstream::vpor(boxxmin, boxxmax, (otheraxis)?boxymin:boxymin - xdisplacement, (otheraxis)?boxymax + xdisplacement:boxymax);
-		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
 		if (doplot) {
 		  bool isTickv = (hasTickv && i == 0);
 		  if (isTickv) {
@@ -3873,7 +3896,7 @@ NoTitlesAccepted:
 		if (!inverted_ticks && TickLayout != 2) xdisplacement += ticklen_as_norm; //every axis after the first will be separated by this
 	  } else {
 		a->plstream::vpor((otheraxis)?boxxmin:boxxmin - ydisplacement, (otheraxis)?boxxmax+ydisplacement:boxxmax, boxymin, boxymax);
-		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
 		if (doplot) {
 		  bool isTickv = (hasTickv && i == 0);
 		  if (isTickv) {
@@ -3910,10 +3933,10 @@ NoTitlesAccepted:
 	if (TickLayout == 2) { //ad a final box
 	  if (axisId == XAXIS) { //define a last viewport for eventual title below
 		a->plstream::vpor(boxxmin, boxxmax, (otheraxis) ? boxymin : boxymin - xdisplacement, (otheraxis) ? boxymax + xdisplacement : boxymax);
-		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
 	  } else {
 		a->plstream::vpor((otheraxis) ? boxxmin : boxxmin - ydisplacement, (otheraxis) ? boxxmax + ydisplacement : boxxmax, boxymin, boxymax);
-		a->plstream::wind(xboxxmin, xboxxmax, xboxymin, xboxymax);
+		a->plstream::wind(wboxxmin, wboxxmax, wboxymin, wboxymax);
 	  }
 	  a->smaj(2 * a->mmLineSpacing(), 1.0);
 	  if (axisId == XAXIS) {
@@ -3945,7 +3968,7 @@ NoTitlesAccepted:
 	a->Thick(1.0);
 	a->sizeChar(1.0);
 	a->vpor(refboxxmin, refboxxmax, refboxymin, refboxymax);
-	a->wind(owxmin, owxmax, owymin, owymax); //restore old values 
+	a->wind(owboxxmin, owboxxmax, owboxymin, owboxymax); //restore old values 
   }
 
   void gdlBox(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog) {

@@ -270,7 +270,7 @@ namespace lib {
   void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd); //2D
   void GetCurrentUserLimits(DDouble &xStart, DDouble &xEnd, DDouble &yStart, DDouble &yEnd, DDouble &zStart, DDouble &zEnd); //3D
   void gdlAdjustAxisRange(EnvT* e, int axisId, DDouble &val_min, DDouble &val_max, bool &log);
-  PLFLT AutoTickIntv(DDouble x);
+  PLFLT AutoTickIntv(DDouble x, bool freeRange=false);
   PLFLT AutoLogTickIntv(DDouble min, DDouble max);
   void setIsoPort(GDLGStream* actStream, PLFLT x1, PLFLT x2, PLFLT y1, PLFLT y2, PLFLT aspect);
   void GetMinMaxVal(DDoubleGDL* val, double* minVal, double* maxVal);
@@ -341,7 +341,7 @@ namespace lib {
 
   void gdlSetPlotCharthick(EnvT *e, GDLGStream *a);
   
-  PLFLT gdlComputeAddtionalAxisTickInterval(EnvT *e, int axisId, DDouble &min, DDouble &max, bool log, int level=0);
+  PLFLT gdlComputeAxisTickInterval(EnvT *e, int axisId, DDouble min, DDouble max, bool log, int level=0, bool freeRange=false);
 
   void gdlGetDesiredAxisCharsize(EnvT* e, int axisId, DFloat &charsize);
 
