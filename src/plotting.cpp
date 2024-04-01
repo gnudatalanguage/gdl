@@ -1539,7 +1539,7 @@ namespace lib
 	  int prec = 0;
 	  int mag = log10(ptr->Start);
 	  if (mag < 0) prec = -mag;
-	  snprintf(label, length, "%.*f", pow(10, value), prec);
+	  snprintf(label, length, "%.*f", prec, pow(10, value));
 	  return;
 	}
 	
