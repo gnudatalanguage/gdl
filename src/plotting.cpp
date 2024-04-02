@@ -3490,7 +3490,7 @@ void SelfNormLonLat(DDoubleGDL *lonlat) {
 	if (TickLayout == 2) nVal--; //last label not written
 	PLFLT displacement = 0;
 	PLFLT just = 0.5;
-	if (axisId == YAXIS)just = (otheraxis)?0:1;
+	if (axisId != XAXIS)just = (otheraxis)?0:1;
 	if (TickLayout == 2) just = 0;
 	//mtex options due to ticklayout
 	std::string sideCode = "b";
