@@ -231,6 +231,14 @@ namespace lib
     {
       static int savet3dIx = e->KeywordIx("SAVE");
       bool saveT3d = e->KeywordSet(savet3dIx);
+	  bool zAxis=true;
+	  static int zaxisIx = e->KeywordIx("ZAXIS");
+	  DLong zaxis_value=0;
+      if (e->GetKW(zaxisIx) != NULL) {
+        e->AssureLongScalarKWIfPresent(zaxisIx, zaxis_value);
+		if (zaxis_value > 4) zaxis_value=0;
+	  }
+	  if (zaxis_value < 0) zAxis = false;
 
       // background BEFORE next plot since it is the only place plplot may redraw the background...
       gdlSetGraphicsBackgroundColorFromKw ( e, actStream );
@@ -246,6 +254,7 @@ namespace lib
       // or absent and we have to compute !P.T from az and alt.
 
       PLFLT scale[3]={SCALEBYDEFAULT,SCALEBYDEFAULT,SCALEBYDEFAULT};
+	  PLFLT trans[3]={0,0,0};
       if (!doT3d) { // or absent and we have to compute !P.T from az and alt.
       //set az and ax (alt)
         DFloat az_change = az;
@@ -276,7 +285,7 @@ namespace lib
         Current3DMatrix=static_cast<DDouble*>(gdlBox3d->DataAddr());
       } else {
         //just ask for P.T3D transform with the driver:
-        bool ok=gdlInterpretT3DMatrixAsPlplotRotationMatrix(az, alt, ay, scale, axisExchangeCode, below);
+        bool ok=gdlInterpretT3DMatrixAsPlplotRotationMatrix(az, alt, ay, scale, trans, axisExchangeCode, below);
         if (!ok) Warning ( "SHADE_SURF: Illegal 3D transformation." );
         gdlStartT3DMatrixDriverTransform(actStream, zValue);
 
@@ -290,7 +299,7 @@ namespace lib
       //Should draw 3d mesh before axes
       gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
       //write OUR box using our 3D PLESC tricks:
-      gdlBox3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue);
+      gdlBox3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, zAxis, zaxis_value);
        //reset driver to 2D plotting routines, further 3D is just plplot drawing a mesh.
       gdlStop3DDriverTransform(actStream); 
       

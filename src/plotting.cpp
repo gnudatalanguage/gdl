@@ -3976,24 +3976,55 @@ NoTitlesAccepted:
     gdlAxis(e, a, YAXIS, yStart, yEnd, yLog);
   }
 
-  void gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue) {
+  void gdlBox3(EnvT *e, GDLGStream *a, DDouble xStart, DDouble xEnd, bool xLog, DDouble yStart, DDouble yEnd, bool yLog, DDouble zStart, DDouble zEnd, bool zLog, DDouble zValue, bool zAxis, DLong zaxis_value) {
     gdlAxis(e, a, XAXIS, xStart, xEnd, xLog, 1); //only Bottom
     gdlAxis(e, a, YAXIS, yStart, yEnd, yLog, 1); //only left
-
+	
     PLFLT xnormmin, xnormmax, ynormmin, ynormmax, znormmin = 0, znormmax = 1;
     a->getCurrentNormBox(xnormmin, xnormmax, ynormmin, ynormmax);
     gdlGetCurrentAxisWindow(ZAXIS, znormmin, znormmax);
 
     //almost cut and paste of plotting_axis section on Z axis:
-    PLFLT yPos = ynormmax;
-    PLFLT xPos = xnormmin;
-    PLFLT viewportXSize = xnormmax - xPos;
-    if (viewportXSize < 0.001) viewportXSize = 0.01;
-    a->vpor(xPos, xPos + viewportXSize, znormmin, znormmax);
-    //special transform to use 'y' axis code, but with 'z' values and yz exch.
-    gdlSetZto3DDriverTransform(a, yPos);
-    gdlExchange3DDriverTransform(a);
-    gdlAxis(e, a, ZAXIS, zStart, zEnd, zLog, 1);
+      if (zAxis) { //no use drawing something unseen, but IDL does, and wee need values if ztick_get is asked for!!!
+	      PLFLT yPos ;
+	      PLFLT xPos ;
+	      PLFLT viewportXSize ;
+        DLong modifierCode=0;
+        switch (zaxis_value) {
+        case 1:
+          modifierCode = 2;
+          yPos = ynormmin;
+          xPos = xnormmax;
+          viewportXSize=xPos-xnormmin; if (viewportXSize<0.001) viewportXSize=0.01;
+          a->vpor(xPos - viewportXSize, xPos, znormmin, znormmax);
+          break;
+        case 4:
+          modifierCode = 2;
+          yPos = ynormmax;
+          xPos = xnormmax;
+          viewportXSize=xPos-xnormmin; if (viewportXSize<0.001) viewportXSize=0.01;
+          a->vpor(xPos - viewportXSize, xPos, znormmin, znormmax);
+          break;
+        case 2:
+          modifierCode = 1;
+          yPos = ynormmin;
+          xPos = xnormmin;
+          viewportXSize=xnormmax-xPos; if (viewportXSize<0.001) viewportXSize=0.01;
+          a->vpor(xPos, xPos + viewportXSize, znormmin, znormmax);
+          break;
+        default: //->3 = 0
+          modifierCode = 1;
+          yPos =ynormmax;
+          xPos =xnormmin;
+          viewportXSize=xnormmax-xPos; if (viewportXSize<0.001) viewportXSize=0.01;
+          a->vpor(xPos, xPos + viewportXSize, znormmin, znormmax);
+          break;
+        }
+        //special transform to use 'y' axis code, but with 'z' values and yz exch.
+		gdlSetZto3DDriverTransform(a, yPos);
+        gdlExchange3DDriverTransform(a);
+        gdlAxis(e, a, ZAXIS, zStart, zEnd, zLog, modifierCode);
+      }
 
     //restore (normally not useful?)
     gdlExchange3DDriverTransform(a);

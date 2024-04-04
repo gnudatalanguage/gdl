@@ -233,7 +233,15 @@ namespace lib
     {
       static int savet3dIx = e->KeywordIx("SAVE");
       bool saveT3d = e->KeywordSet(savet3dIx);
-
+	  bool zAxis=true;
+	  static int zaxisIx = e->KeywordIx("ZAXIS");
+	  DLong zaxis_value=0;
+      if (e->GetKW(zaxisIx) != NULL) {
+        e->AssureLongScalarKWIfPresent(zaxisIx, zaxis_value);
+		if (zaxis_value > 4) zaxis_value=0;
+	  }
+	  if (zaxis_value < 0) zAxis = false;
+ 
       // background BEFORE next plot since it is the only place plplot may redraw the background...
       gdlSetGraphicsBackgroundColorFromKw ( e, actStream );
       //start a plot
@@ -248,6 +256,7 @@ namespace lib
       // or absent and we have to compute !P.T from az and alt.
 
       PLFLT scale[3]={SCALEBYDEFAULT,SCALEBYDEFAULT,SCALEBYDEFAULT};
+	  PLFLT trans[3]={0,0,0};
       if (!doT3d) { // or absent and we have to compute !P.T from az and alt.
         //set az and ax (alt)
         DFloat az_change = az;
@@ -278,7 +287,7 @@ namespace lib
         Current3DMatrix=static_cast<DDouble*>(gdlBox3d->DataAddr());
       } else {
         //just ask for P.T3D transform with the driver:
-        bool ok=gdlInterpretT3DMatrixAsPlplotRotationMatrix(az, alt, ay, scale, axisExchangeCode, below);
+        bool ok=gdlInterpretT3DMatrixAsPlplotRotationMatrix(az, alt, ay, scale, trans, axisExchangeCode, below);
         if (!ok) Warning ( "SURFACE: Illegal 3D transformation." );
         gdlStartT3DMatrixDriverTransform(actStream, zValue);
 
@@ -324,13 +333,13 @@ namespace lib
 // shade //      if (e->KeywordPresent(shadesIx)) doShade = true;
 // shade //      
 // shade //      if (!doShade) {
-        //This is the good version for surface without the shade argument.     
+        //This is the good version for surface without the shade argument.
         actStream->vpor(0, 1, 0, 1);
-        actStream->wind(-0.5 / scale[0], 0.5 / scale[0], -0.5 / scale[1], 0.5 / scale[1]);
-        if (below) {
-          actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0.5, 1.5, -alt, az);
-          gdlFlipYPlotDirection(actStream); //special trick, not possible with plplot
-        } else actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0.5, 1.5, alt, az);
+		actStream->wind(-0.5 / scale[0], 0.5 / scale[0], -0.5 / scale[1], 0.5 / scale[1]);
+		if (below) {
+		  actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0.5, 1.5, -alt, az);
+		  gdlFlipYPlotDirection(actStream); //special trick, not possible with plplot
+		} else actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0.5, 1.5, alt, az);
 // shade //      } else {
 // shade //        //This is the good version for shade_surf and surface with shade option
 // shade //        // (needs shifting the plplot plot by some amount in the 3DDriverTransform of the driver.)     

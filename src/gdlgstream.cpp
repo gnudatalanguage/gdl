@@ -1398,7 +1398,24 @@ void GDLGStream::getSubpageRegion(PLFLT *sxmin, PLFLT *symin, PLFLT *sxmax, PLFL
    *szmax=*szmin+profund;
  }
 }
-//get region (3BPP data)
+
+void GDLGStream::getCurrentSubpageInfo(PLINT &nx, PLINT &ny, PLFLT &xratio, PLFLT &yratio, PLFLT &zratio, PLFLT &xdisplacement, PLFLT &ydisplacement, PLFLT &zdisplacement) {
+  int p=thePage.curPage-1;
+  nx = thePage.nx;
+  ny = thePage.ny;
+  xratio=1.0/thePage.nx;
+  yratio=1.0/thePage.ny;
+  zratio=1.0/thePage.nz;
+ int k= p / (thePage.nx*thePage.ny);
+ int l= p - k*(thePage.nx*thePage.ny);
+ int j= l /thePage.nx ;
+ int i= (l - j*thePage.nx);
+ xdisplacement=i*xratio;
+ ydisplacement=j*yratio;
+ zdisplacement=k*zratio;
+}
+
+  //get region (3BPP data)
 
 bool GDLGStream::GetRegion(DLong& xoff, DLong& yoff, DLong& nx, DLong& ny) {
   long nxOrig,nyOrig;

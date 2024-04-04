@@ -640,6 +640,7 @@ public:
   void ssub( PLINT nx, PLINT ny, PLINT nz=1);
   void adv(PLINT page);
   void getSubpageRegion(PLFLT *sxmin, PLFLT *symin, PLFLT *sxmax, PLFLT *symax, PLFLT *zmin=NULL, PLFLT *zmax=NULL);
+  void getCurrentSubpageInfo(PLINT &nx, PLINT &ny, PLFLT &xratio, PLFLT &yratio, PLFLT &zratio, PLFLT &xdisplacement, PLFLT &ydisplacement, PLFLT &zdisplacement);
   void SetPageDPMM(float setPsCharFudge=1.0, float setPsSymFudge=1.0);
   void syncPageInfo();
   void updateBoxDeviceCoords();
