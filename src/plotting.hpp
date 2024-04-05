@@ -234,7 +234,9 @@ namespace lib {
   void SelfPDotTTransformXYZ(DDoubleGDL *xt, DDoubleGDL *yt, DDoubleGDL *zt);
   void PDotTTransformXYZval(PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data);
   DDoubleGDL* gdlDefinePlplotRotationMatrix(DDouble az, DDouble alt, DDouble *scale, bool save);
-  bool gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble &az, DDouble &alt, DDouble &ay, DDouble *scale, DDouble *trans, T3DEXCHANGECODE &axisExchangeCode, bool &below);
+  void gdlMakeSubpageRotationMatrix3d(DDoubleGDL* me, PLFLT xratio, PLFLT yratio, PLFLT zratio, PLFLT* trans);
+  void gdlMakeSubpageRotationMatrix2d(DDoubleGDL* me, PLFLT xratio, PLFLT yratio, PLFLT zratio, PLFLT* trans);
+  bool gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble &az, DDouble &alt, DDouble &ay, DDouble *scale, /* DDouble *trans,*/  T3DEXCHANGECODE &axisExchangeCode, bool &below);
   DDoubleGDL* gdlGetT3DMatrix();
   void gdlStartT3DMatrixDriverTransform(GDLGStream *a, DDouble zValue);
   void gdlStartSpecial3DDriverTransform( GDLGStream *a, GDL_3DTRANSFORMDEVICE &PlotDevice3D);

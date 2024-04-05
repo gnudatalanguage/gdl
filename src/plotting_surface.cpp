@@ -49,7 +49,8 @@ namespace lib
     bool below=false;
     DDouble* Current3DMatrix;
     DDoubleGDL* gdlBox3d;
-    
+	PLFLT xratio, yratio, zratio, trans[3];
+	PLINT nx, ny;    
   private:
     bool handle_args (EnvT* e)
 {
@@ -256,7 +257,6 @@ namespace lib
       // or absent and we have to compute !P.T from az and alt.
 
       PLFLT scale[3]={SCALEBYDEFAULT,SCALEBYDEFAULT,SCALEBYDEFAULT};
-	  PLFLT trans[3]={0,0,0};
       if (!doT3d) { // or absent and we have to compute !P.T from az and alt.
         //set az and ax (alt)
         DFloat az_change = az;
@@ -276,10 +276,15 @@ namespace lib
         } else if (alt > 270) {
           below=true;
           alt=-(360.-alt);
-        }
-        //Compute special transformation matrix for the BOX and give it to the driver
+		}
+		//Compute special transformation matrix for the BOX and give it to the driver. Subpage info is important
         gdlBox3d=gdlDefinePlplotRotationMatrix( az, alt, scale, saveT3d);
-        Guard<BaseGDL> g(gdlBox3d);
+		actStream->getCurrentSubpageInfo(xratio, yratio, zratio, trans);
+		gdlMakeSubpageRotationMatrix3d(gdlBox3d, xratio, yratio, zratio,trans);
+		//now that 3D matrix is OK, we pass in 'No Sub'
+		actStream->NoSub();
+		zValue=gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue);
+
         GDL_3DTRANSFORMDEVICE T3DForAXes;
         for (int i = 0; i < 16; ++i)T3DForAXes.T[i] =(*gdlBox3d)[i];
         T3DForAXes.zValue = (std::isfinite(zValue))?zValue:0;
@@ -287,7 +292,7 @@ namespace lib
         Current3DMatrix=static_cast<DDouble*>(gdlBox3d->DataAddr());
       } else {
         //just ask for P.T3D transform with the driver:
-        bool ok=gdlInterpretT3DMatrixAsPlplotRotationMatrix(az, alt, ay, scale, trans, axisExchangeCode, below);
+        bool ok=gdlInterpretT3DMatrixAsPlplotRotationMatrix(az, alt, ay, scale, axisExchangeCode, below);
         if (!ok) Warning ( "SURFACE: Illegal 3D transformation." );
         gdlStartT3DMatrixDriverTransform(actStream, zValue);
 
@@ -335,7 +340,15 @@ namespace lib
 // shade //      if (!doShade) {
         //This is the good version for surface without the shade argument.
         actStream->vpor(0, 1, 0, 1);
-		actStream->wind(-0.5 / scale[0], 0.5 / scale[0], -0.5 / scale[1], 0.5 / scale[1]);
+        actStream->wind(-0.5/scale[0],0.5/scale[0],-0.5/scale[1],0.5/scale[1]); //mandatory: to center in (0,0,0) for 3D Matrix rotation.
+		if (!doT3d) { //use a special matrix to shift and scale into current subpage
+		  gdlMakeSubpageRotationMatrix2d(gdlBox3d, xratio, yratio, zratio,trans);
+		  GDL_3DTRANSFORMDEVICE T3DForAXes;
+		  for (int i = 0; i < 16; ++i)T3DForAXes.T[i] = (*gdlBox3d)[i];
+		  T3DForAXes.zValue = (std::isfinite(zValue)) ? zValue : 0;
+		  gdlStartSpecial3DDriverTransform(actStream, T3DForAXes);
+          Guard<BaseGDL> g(gdlBox3d);
+		}
 		if (below) {
 		  actStream->w3d(1, 1, 1, 0, 1, 0, 1, 0.5, 1.5, -alt, az);
 		  gdlFlipYPlotDirection(actStream); //special trick, not possible with plplot
