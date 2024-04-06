@@ -122,11 +122,11 @@ void FMTIn::q(RefFMTNode _t) {
 	case 3:
 	case FORMAT:
 	case STRING:
-	case TL:
-	case TR:
 	case TERM:
 	case NONL:
 	case Q:
+	case TL:
+	case TR:
 	case T:
 	case X:
 	case A:
@@ -1021,12 +1021,12 @@ const char* FMTIn::tokenNames[] = {
 	"RBRACE",
 	"SLASH",
 	"STRING",
-	"\"tl\"",
-	"\"tr\"",
 	"TERM",
 	"NONL",
 	"Q",
 	"CSTRING",
+	"TL",
+	"TR",
 	"T",
 	"X",
 	"A",
@@ -1072,11 +1072,11 @@ const char* FMTIn::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTIn::_tokenSet_0_data_[] = { 0UL, 268300226UL, 0UL, 0UL };
-// FORMAT STRING "tl" "tr" TERM NONL Q T X A F E SE G SG I O B Z ZZ C 
+const unsigned long FMTIn::_tokenSet_0_data_[] = { 0UL, 268303298UL, 0UL, 0UL };
+// FORMAT STRING TERM NONL Q TL TR T X A F E SE G SG I O B Z ZZ C 
 const antlr::BitSet FMTIn::_tokenSet_0(_tokenSet_0_data_,4);
-const unsigned long FMTIn::_tokenSet_1_data_[] = { 0UL, 4026548672UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL };
-// STRING "tl" "tr" X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA 
+const unsigned long FMTIn::_tokenSet_1_data_[] = { 0UL, 4026554432UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL };
+// STRING TL TR X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA 
 // CMOI CDI CYI CMI CSI CSF 
 const antlr::BitSet FMTIn::_tokenSet_1(_tokenSet_1_data_,8);
 

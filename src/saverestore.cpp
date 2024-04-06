@@ -75,7 +75,7 @@ enum {
 } Markers;
 
 //should be increased each time the COMPILER CODE (gdlc.g, etc) is modified and the Tokens are changed.
-#define GDL_SAVE_ROUTINES_VERSION 2
+#define GDL_SAVE_ROUTINES_VERSION 3
 
   typedef std::map<DPtr, SizeT> heapT;
   static heapT heapIndexMapSave;  //list of [ heap pointer, heap index ] used when saving.

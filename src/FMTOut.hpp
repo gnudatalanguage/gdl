@@ -70,7 +70,7 @@ std::unique_ptr<std::ostream> osLocalGuard;
             format_reversion( reversionAnker);            
  
            if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
-                throw GDLException("Infinite format loop detected.");
+                throw GDLException("Format syntax Error.");//"Infinite format loop detected.");
          }
         
         os->seekp( 0, std::ios_base::end);

@@ -107,7 +107,7 @@ std::unique_ptr<std::ostream> osLocalGuard;
             format_reversion( reversionAnker);            
  
            if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
-                throw GDLException("Infinite format loop detected.");
+                throw GDLException("Format syntax Error.");//"Infinite format loop detected.");
          }
         
         os->seekp( 0, std::ios_base::end);
@@ -282,8 +282,15 @@ q
 f_csubcode // note: IDL doesn't allow hollerith strings inside C()
     : s:STRING { (*os) << s->getText(); }
 //    | CSTYLE_STRING // *** requires special handling
+
+    ;
+
+f
+    : TERM { termFlag = true; }
+    | NONL { nonlFlag = true; }
+    | Q // ignored on output
     | tl:TL 
-        { 
+        { //relative position left
             SizeT actP  = os->tellp(); 
             int    tlVal = tl->getW();
             if( tlVal > actP)
@@ -292,23 +299,18 @@ f_csubcode // note: IDL doesn't allow hollerith strings inside C()
                 os->seekp( actP - tlVal);
         }
     | tr:TR 
-        { 
-            int    tlVal = tl->getW();
-            for( int i=tlVal; i>0; --i)
-            (*os) << " ";
-//            os->seekp( tlVal, std::ios_base::cur);
+        { //relative position right
+            int    trVal = tr->getW();
+            for( int i=trVal; i>0; --i) (*os) << " "; //just add blanks.
+//            os->seekp( trVal, std::ios_base::cur);
         }
-    ;
-
-f
-    : TERM { termFlag = true; }
-    | NONL { nonlFlag = true; }
-    | Q // ignored on output
-    | t:T
-        { 
+    | t:T 
+        {  //absolute position
             int    tVal = t->getW();
-            assert( tVal >= 1);
-            os->seekp( tVal-1, std::ios_base::beg);
+            if (tVal < 1) throw GDLException("Value must be greater or equal to 1.");
+            SizeT actP  = os->tellp(); 
+            if( tVal > actP) for( int i=0; i<tVal-actP-1; ++i) (*os) << " "; //just add blanks.
+            else os->seekp( tVal-1); //like IDL
         }
     | f_csubcode
     | x

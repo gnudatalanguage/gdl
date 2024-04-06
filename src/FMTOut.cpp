@@ -126,11 +126,11 @@ void FMTOut::q(RefFMTNode _t) {
 	case 3:
 	case FORMAT:
 	case STRING:
-	case TL:
-	case TR:
 	case TERM:
 	case NONL:
 	case Q:
+	case TL:
+	case TR:
 	case T:
 	case X:
 	case A:
@@ -159,6 +159,8 @@ void FMTOut::q(RefFMTNode _t) {
 
 void FMTOut::f(RefFMTNode _t) {
 	RefFMTNode f_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
+	RefFMTNode tl = RefFMTNode(antlr::nullAST);
+	RefFMTNode tr = RefFMTNode(antlr::nullAST);
 	RefFMTNode t = RefFMTNode(antlr::nullAST);
 	RefFMTNode a = RefFMTNode(antlr::nullAST);
 	RefFMTNode ff = RefFMTNode(antlr::nullAST);
@@ -199,21 +201,48 @@ void FMTOut::f(RefFMTNode _t) {
 		_t = _t->getNextSibling();
 		break;
 	}
+	case TL:
+	{
+		tl = _t;
+		match(antlr::RefAST(_t),TL);
+		_t = _t->getNextSibling();
+		//relative position left
+		SizeT actP  = os->tellp(); 
+		int    tlVal = tl->getW();
+		if( tlVal > actP)
+		os->seekp( 0);
+		else
+		os->seekp( actP - tlVal);
+		
+		break;
+	}
+	case TR:
+	{
+		tr = _t;
+		match(antlr::RefAST(_t),TR);
+		_t = _t->getNextSibling();
+		//relative position right
+		int    trVal = tr->getW();
+		for( int i=trVal; i>0; --i) (*os) << " "; //just add blanks.
+		//            os->seekp( trVal, std::ios_base::cur);
+		
+		break;
+	}
 	case T:
 	{
 		t = _t;
 		match(antlr::RefAST(_t),T);
 		_t = _t->getNextSibling();
-		
+		//absolute position
 		int    tVal = t->getW();
-		assert( tVal >= 1);
-		os->seekp( tVal-1, std::ios_base::beg);
+		if (tVal < 1) throw GDLException("Value must be greater or equal to 1.");
+		SizeT actP  = os->tellp(); 
+		if( tVal > actP) for( int i=0; i<tVal-actP-1; ++i) (*os) << " "; //just add blanks.
+		else os->seekp( tVal-1); //like IDL
 		
 		break;
 	}
 	case STRING:
-	case TL:
-	case TR:
 	{
 		f_csubcode(_t);
 		_t = _retTree;
@@ -620,53 +649,11 @@ void FMTOut::format_reversion(RefFMTNode _t) {
 void FMTOut::f_csubcode(RefFMTNode _t) {
 	RefFMTNode f_csubcode_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode s = RefFMTNode(antlr::nullAST);
-	RefFMTNode tl = RefFMTNode(antlr::nullAST);
-	RefFMTNode tr = RefFMTNode(antlr::nullAST);
 	
-	if (_t == RefFMTNode(antlr::nullAST) )
-		_t = ASTNULL;
-	switch ( _t->getType()) {
-	case STRING:
-	{
-		s = _t;
-		match(antlr::RefAST(_t),STRING);
-		_t = _t->getNextSibling();
-		(*os) << s->getText();
-		break;
-	}
-	case TL:
-	{
-		tl = _t;
-		match(antlr::RefAST(_t),TL);
-		_t = _t->getNextSibling();
-		
-		SizeT actP  = os->tellp(); 
-		int    tlVal = tl->getW();
-		if( tlVal > actP)
-		os->seekp( 0);
-		else
-		os->seekp( actP - tlVal);
-		
-		break;
-	}
-	case TR:
-	{
-		tr = _t;
-		match(antlr::RefAST(_t),TR);
-		_t = _t->getNextSibling();
-		
-		int    tlVal = tl->getW();
-		for( int i=tlVal; i>0; --i)
-		(*os) << " ";
-		//            os->seekp( tlVal, std::ios_base::cur);
-		
-		break;
-	}
-	default:
-	{
-		throw antlr::NoViableAltException(antlr::RefAST(_t));
-	}
-	}
+	s = _t;
+	match(antlr::RefAST(_t),STRING);
+	_t = _t->getNextSibling();
+	(*os) << s->getText();
 	_retTree = _t;
 }
 
@@ -1047,12 +1034,12 @@ const char* FMTOut::tokenNames[] = {
 	"RBRACE",
 	"SLASH",
 	"STRING",
-	"\"tl\"",
-	"\"tr\"",
 	"TERM",
 	"NONL",
 	"Q",
 	"CSTRING",
+	"TL",
+	"TR",
 	"T",
 	"X",
 	"A",
@@ -1098,8 +1085,8 @@ const char* FMTOut::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTOut::_tokenSet_0_data_[] = { 0UL, 268300226UL, 0UL, 0UL };
-// FORMAT STRING "tl" "tr" TERM NONL Q T X A F E SE G SG I O B Z ZZ C 
+const unsigned long FMTOut::_tokenSet_0_data_[] = { 0UL, 268303298UL, 0UL, 0UL };
+// FORMAT STRING TERM NONL Q TL TR T X A F E SE G SG I O B Z ZZ C 
 const antlr::BitSet FMTOut::_tokenSet_0(_tokenSet_0_data_,4);
 const unsigned long FMTOut::_tokenSet_1_data_[] = { 0UL, 4026548288UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // STRING X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA CMOI CDI 

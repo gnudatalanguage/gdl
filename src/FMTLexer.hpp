@@ -72,6 +72,8 @@ public:
 	public: void mQ(bool _createToken);
 	public: void mH(bool _createToken);
 	public: void mT(bool _createToken);
+	public: void mTR(bool _createToken);
+	public: void mTL(bool _createToken);
 	public: void mL(bool _createToken);
 	public: void mR(bool _createToken);
 	public: void mX(bool _createToken);
