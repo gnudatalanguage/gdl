@@ -418,8 +418,8 @@ f_csubcode // note: IDL doesn't allow hollerith strings inside C()
         }
     | tr:TR 
         { 
-            int    tlVal = tl->getW();
-            ioss.seekg( tlVal, std::ios_base::cur);
+            int    trVal = tr->getW();
+            ioss.seekg( trVal, std::ios_base::cur);
         }
     ;
 

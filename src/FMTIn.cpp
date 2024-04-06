@@ -714,8 +714,8 @@ void FMTIn::f_csubcode(RefFMTNode _t) {
 		match(antlr::RefAST(_t),TR);
 		_t = _t->getNextSibling();
 		
-		int    tlVal = tl->getW();
-		ioss.seekg( tlVal, std::ios_base::cur);
+		int    trVal = tr->getW();
+		ioss.seekg( trVal, std::ios_base::cur);
 		
 		break;
 	}
