@@ -141,7 +141,7 @@ jobs:
           scripts/build_gdl.sh pack
           scripts/build_gdl.sh prep_deploy
       - name: Upload Build Artifacts
-        if: contains(, 'macos')
+        if: contains(matrix.os, 'macos')
         uses: actions/upload-artifact@v3.1.1
         with:
           path: gdl-*-${{ matrix.deps }}.dmg
