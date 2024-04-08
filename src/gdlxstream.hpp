@@ -28,7 +28,7 @@ class GDLXStream: public GDLGStream
   Atom wm_delete_window;
   Window term_window;
 public:
-  GDLXStream( PLINT xp , PLINT yp, PLINT nx, PLINT ny, PLINT xoff, PLINT yoff, const std::string &title)
+  GDLXStream( PLINT xp , PLINT yp, PLINT nx, PLINT ny, PLINT xoff, PLINT yoff, const std::string &title, bool hide=false)
     : GDLGStream( nx, ny, "xwin") 
     , term_window(0)
 {
@@ -60,6 +60,8 @@ public:
     // Please no threads, no gain especially in remote X11 
     setopt("drvopt", "noinitcolors=1,nobuffered=1,usepth=0");
 
+    if (hide) UglyPatchMakeHidden(); 
+ 
     FindTerminalWindow(); //to pro
     //all the options must be passed BEFORE INIT=plinit.
     init(); //creates the X11 window.
@@ -128,6 +130,7 @@ public:
   void Flush();
   void SetDoubleBuffering();
   void UnSetDoubleBuffering();
+  void UglyPatchMakeHidden(); 
   bool HasSafeDoubleBuffering();
   bool PaintImage(unsigned char *idata, PLINT nx, PLINT ny,  DLong *pos, DLong tru, DLong chan);
   virtual bool HasCrossHair() {return true;}

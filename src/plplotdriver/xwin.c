@@ -1188,8 +1188,9 @@ Init( PLStream *pls )
         XSetFillRule( xwd->display, dev->gc, WindingRule );
 
 // If main window, need to map it and wait for exposure
-
-    if ( dev->is_main )
+// Ugly Patch: use pls->arrow_npts=999 to make window hiden and no MapMain
+    int hide=(pls->arrow_npts==999);
+    if ( dev->is_main && !hide)
         MapMain( pls );
 }
 
