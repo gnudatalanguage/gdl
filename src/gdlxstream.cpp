@@ -104,7 +104,10 @@ bool GDLXStream::SetGraphicsFunction( long value) {
     gcValues.function = (value<0)?0:(value>15)?15:value;
     XwDev *dev = (XwDev *) pls->dev;
     XwDisplay *xwd = (XwDisplay *) dev->xwd;
-    return XChangeGC( xwd->display, dev->gc, GCFunction, &gcValues );
+//    int ret=XChangeGC( xwd->display, dev->gc, GCFunction, &gcValues );
+	
+	plstream::cmd( PLESC_XORMOD, &value );
+	return true;
 }
 
 bool GDLXStream::GetWindowPosition(long& xpos, long& ypos ) {

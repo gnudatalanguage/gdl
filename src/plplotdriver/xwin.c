@@ -193,6 +193,7 @@ static void  ConfigBufferingCmd( PLStream *pls, PLBufferingCB *ptr );
 static void  GetCursorCmd( PLStream *pls, PLGraphicsIn *ptr );
 static void  FillPolygonCmd( PLStream *pls );
 static void  XorMod( PLStream *pls, PLINT *mod );
+static void  AnyMod( PLStream *pls, PLINT *mod );
 static void  DrawImage( PLStream *pls );
 
 // Miscellaneous
@@ -415,6 +416,15 @@ XorMod( PLStream *pls, PLINT *mod )
         XSetFunction( xwd->display, dev->gc, GXxor );
 }
 
+static void
+AnyMod( PLStream *pls, PLINT *mod )
+{
+    XwDev     *dev = (XwDev *) pls->dev;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+
+    XGCValues values_return;
+    XSetFunction( xwd->display, dev->gc, *mod );
+}
 //--------------------------------------------------------------------------
 // plD_polyline_xw()
 //
@@ -802,7 +812,7 @@ plD_esc_xw( PLStream *pls, PLINT op, void *ptr )
         break;
 
     case PLESC_XORMOD:
-        XorMod( pls, (PLINT *) ptr );
+        AnyMod( pls, (PLINT *) ptr );
         break;
 
     case PLESC_DOUBLEBUFFERING:
