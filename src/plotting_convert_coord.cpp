@@ -646,11 +646,13 @@ namespace lib {
   // create all 8 homogenous coordinates of the cubes points, 
   // compute their projected coord,
   // find min and max on both axes.
-    static DDoubleGDL* cube_coord = (new DDoubleGDL(dimension(8,4), BaseGDL::NOZERO));
-    static DDouble vals[32]={0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1};
-    for (auto i=0; i< 32; ++i) (*cube_coord)[i]=vals[i];
+	static DDouble vals[32] = {0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+//    static DDoubleGDL cube_coord(dimension(8,4), BaseGDL::NOZERO);
+    static DDoubleGDL cube_coord(vals,32);
+	cube_coord.SetDim(dimension(8,4)); //needed as previous initializaton is 1D only.
+//    for (auto i=0; i< 32; ++i) (*(&cube_coord))[i]=vals[i];
     //    w=v#!p.t
-    DDoubleGDL* tmp = plplot3d->MatrixOp(cube_coord, false, true);
+    DDoubleGDL* tmp = plplot3d->MatrixOp(&cube_coord, false, true);
     DDoubleGDL* res = static_cast<DDoubleGDL*>(tmp->Transpose(NULL));
     GDLDelete(tmp);
 //    SelfPrint3d(res);
@@ -718,6 +720,22 @@ DDoubleGDL* gdlDoAsScale3(DDouble az, DDouble alt, DDouble *scalex, DDouble *sca
     return t3dMatrix; 
   }
   
+   //this displaces 3d elements made in NoSubpage mode to a particular subpage. Used for axis for example.
+  void gdlMakeSubpageRotationMatrix3d(DDoubleGDL* me, PLFLT xratio, PLFLT yratio, PLFLT zratio, PLFLT* trans) {
+	DDouble newscale[3]={ xratio, yratio, zratio};
+    SelfTranspose3d(me);
+	SelfScale3d(me,newscale);
+	SelfTranslate3d(me,trans);
+    SelfTranspose3d(me);
+  }
+  //this displaces 2D elements (images, already reprojected 3d) made in NoSubpage mode to a particluar subpage
+  void gdlMakeSubpageRotationMatrix2d(DDoubleGDL* me, PLFLT xratio, PLFLT yratio, PLFLT zratio, PLFLT* trans) {
+	DDouble newscale[3]={ xratio, yratio, zratio};
+	SelfReset3d(me);
+	SelfScale3d(me,newscale);
+	SelfTranslate3d(me,trans);
+    SelfTranspose3d(me);
+  } 
  //converts 3D values according to COORDSYS towards NORMAL coordinates and , logically, unset xLog,yLo,zLog and define code as NORMAL.
   void SelfConvertToNormXYZ(DDoubleGDL *x, bool &xLog, DDoubleGDL *y, bool &yLog, DDoubleGDL *z, bool &zLog, COORDSYS &code) {
 //    std::cerr<<"SelfConvertToNormXYZ(DDoubleGDL)\n";
@@ -981,7 +999,7 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &alt, DDouble &az, DDoubl
   // Note that if drawing of axes and hidden surfaces (by plplot) are not needed (e.g., PLOTS), any matrix can be used.
   // Returns a 'plplot-compatible' matrix that will be used in calls to plplot.
   // Retunrs NULL if conversion is impossible.
-  bool gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble &az, DDouble &alt, DDouble &ay, DDouble *scale, T3DEXCHANGECODE &axisExchangeCode, bool &below) {
+  bool gdlInterpretT3DMatrixAsPlplotRotationMatrix(DDouble &az, DDouble &alt, DDouble &ay, DDouble *scale, /*DDouble *trans,*/ T3DEXCHANGECODE &axisExchangeCode, bool &below) {
 //    std::cerr<<"gdlInterpretT3DMatrixAsPlplotRotationMatrix(()\n";
     //returns NULL if error!
     DDoubleGDL* t3dMatrix = new DDoubleGDL(dimension(4, 4),BaseGDL::NOZERO);
@@ -991,6 +1009,12 @@ bool isAxonometricRotation(DDoubleGDL* Matrix, DDouble &alt, DDouble &az, DDoubl
     static unsigned tTag = pStruct->Desc()->TagIndex("T");
     for (int i = 0; i < t3dMatrix->N_Elements(); ++i)(*t3dMatrix)[i] = (*static_cast<DDoubleGDL*> (pStruct->GetTag(tTag, 0)))[i];
     SelfTranspose3d(t3dMatrix);
+//	//compute translation in vport space using the displacement of [0,0,0]:
+//	static DDouble center[4]={0.5,0.5,0.5,1.};
+//	static DDoubleGDL zeropos(center,4);
+//	DDoubleGDL* intermediary = t3dMatrix->MatrixOp(&zeropos, false, false);
+//	for (int i=0; i< 3; ++i) trans[i]= (*intermediary)[i]-0.5;
+//	GDLDelete(intermediary);	
     //check if valid, get rotation etc.
     if (!isAxonometricRotation(t3dMatrix, alt, az, ay, scale, axisExchangeCode, below)) return false;
     return true;
