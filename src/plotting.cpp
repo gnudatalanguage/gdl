@@ -1896,7 +1896,7 @@ namespace lib
           newEnv->SetNextPar(new DLongGDL(axis - 1)); //axis in PLPLOT starts at 1, it starts at 0 in IDL
           newEnv->SetNextPar(new DLongGDL(internalIndex)); //index
           newEnv->SetNextPar(new DDoubleGDL(v)); //value
-          newEnv->SetNextPar(new DLongGDL(ptr->counter)); //level
+          //newEnv->SetNextPar(new DLongGDL(ptr->counter)); //level 4th argument is not present for SIMPLE AXIS!!
           // guard *before* pushing new env
           StackGuard<EnvStackT> guard1(e->Interpreter()->CallStack());
           e->Interpreter()->CallStack().push_back(newEnv);
