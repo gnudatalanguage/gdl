@@ -559,11 +559,12 @@ function install_gdl {
 
 function test_gdl {
     log "Testing GDL..."
-    cd ${ROOT_DIR}/build
-    if [ -f ${GDL_DIR}/CMakeModules/CodeCoverage.cmake ]; then
+    cd "${ROOT_DIR}/build" || exit 1
+    if [ -f "${GDL_DIR}/CMakeModules/CodeCoverage.cmake" ]; then
         make codecov || exit 1
     else
-        CTEST_OUTPUT_ON_FAILURE=1 make test || exit 1
+        # since we do not install anything we need to set the driver path to the directory of the compiles drivers
+        CTEST_OUTPUT_ON_FAILURE=1 GDL_DRV_DIR="${ROOT_DIR}/build/src/plplotdriver" make test || exit 1
     fi
 }
 
