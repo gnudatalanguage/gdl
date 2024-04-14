@@ -48,6 +48,7 @@
 #include "least_squares.hpp"
 #include "matrix_invert.hpp"
 #include "triangulation.hpp"
+#include "elmhes.hpp"
 
 #ifdef HAVE_QHULL
 #include "qhull.hpp"
@@ -99,7 +100,9 @@ void LibInit_jmg()
   const string laleastsquaresKey[]={"DOUBLE","METHOD","RANK","RCONDITION","RESIDUAL","STATUS",KLISTEND};
   new DLibFunRetNew(lib::la_least_squares_fun,string("LA_LEAST_SQUARES"),2,laleastsquaresKey);
 
-
+  const string elmhesKey[]={"COLUMN", "DOUBLE", "NO_BALANCE",KLISTEND};
+  new DLibFunRetNew(lib::elmhes_fun,string("ELMHES"),1,elmhesKey);
+  
 #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)
   
   const string invertKey[]={"DOUBLE","GSL","EIGEN",KLISTEND};

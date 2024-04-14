@@ -1,0 +1,14 @@
+// interface to elmhes.inccc with floats and doubles
+#define ABS fabs
+#define doubleprecision DDouble
+#include "elmhes.inccc"
+#include "balanc.inccc"
+#undef ABS
+#undef doubleprecision
+#define ABS fabsf
+#define doubleprecision DFloat
+#include "elmhes.inccc"
+#include "balanc.inccc"
+#undef ABS
+#undef doubleprecision
+
