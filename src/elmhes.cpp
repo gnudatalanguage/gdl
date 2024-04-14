@@ -70,4 +70,63 @@ namespace lib {
 	}
 	return NULL;
   }
+  BaseGDL* hqr_fun(EnvT* e) {
+	SizeT nParam = e->NParam(1);
+	BaseGDL* p0 = e->GetParDefined(0);
+
+	/*********************************Checking_if_arguments_are_OK*********************/
+
+	if (p0->N_Elements() == 0)
+	  e->Throw("Variable A is undefined: " + e->GetParString(0));
+	if (p0->Rank() == 2) {
+	  if (p0->Dim(0) != p0->Dim(1))
+		e->Throw("Argument A must be a square matrix:" + e->GetParString(0));
+	} else e->Throw("Argument A must be a square matrix:" + e->GetParString(0));
+
+	static int COLUMN = e->KeywordIx("COLUMN");
+	bool columnMajor = e->KeywordSet(COLUMN);
+	static int DOUBLE = e->KeywordIx("DOUBLE");
+	bool doDouble = e->KeywordSet(DOUBLE);
+
+	int nm=p0->Dim(0);
+	int n=nm;
+	int low=1;
+	int igh=n;
+	
+	if (doDouble || p0->Type() == GDL_DOUBLE || p0->Type() == GDL_COMPLEXDBL) {
+	  DDoubleGDL* a = e->GetParAs<DDoubleGDL>(0);
+	  DDoubleGDL* val=(columnMajor)?a->Dup():(DDoubleGDL*)a->Transpose(NULL);
+	  DDouble* data = static_cast<DDouble*> (val->DataAddr());
+	  DDouble scale[n];
+	  DDouble wr[n];
+	  DDouble wi[n];
+	  int status;
+	  int ierr[n];
+	  status=hqr_(&nm, &n, &low, &igh, data, wr, wi,ierr);
+	  DComplexDblGDL* res=new DComplexDblGDL(dimension(n),BaseGDL::NOZERO);
+	  for (auto i=0; i<n; ++i) {
+		(*res)[i].real(wr[i]);
+		(*res)[i].imag(wi[i]);
+	  }
+	  return res;
+	} else {
+	  DFloatGDL* a = e->GetParAs<DFloatGDL>(0);
+	  DFloatGDL* val=(columnMajor)?a->Dup():(DFloatGDL*)a->Transpose(NULL);
+	  DFloat* data = static_cast<DFloat*> (val->DataAddr());
+	  DFloat scale[n];
+	  DFloat wr[n];
+	  DFloat wi[n];
+	  int status;
+	  int ierr[n];
+	  status=hqr_(&nm, &n, &low, &igh, data, wr, wi,ierr);
+	  DComplexGDL* res=new DComplexGDL(dimension(n),BaseGDL::NOZERO);
+	  for (auto i=0; i<n; ++i) {
+		(*res)[i].real(wr[i]);
+		(*res)[i].imag(wi[i]);
+	  }
+	  return res;
+	}
+
+	return NULL;
+  }
 }

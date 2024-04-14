@@ -20,6 +20,7 @@
 #include "envt.hpp"
 namespace lib {
   BaseGDL* elmhes_fun(EnvT* e);
+  BaseGDL* hqr_fun(EnvT* e);
 } // namespace
 
 #endif

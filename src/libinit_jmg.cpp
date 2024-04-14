@@ -102,6 +102,8 @@ void LibInit_jmg()
 
   const string elmhesKey[]={"COLUMN", "DOUBLE", "NO_BALANCE",KLISTEND};
   new DLibFunRetNew(lib::elmhes_fun,string("ELMHES"),1,elmhesKey);
+   const string hqrKey[]={"COLUMN", "DOUBLE",KLISTEND};
+  new DLibFunRetNew(lib::hqr_fun,string("HQR"),1,hqrKey);
   
 #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)
   
