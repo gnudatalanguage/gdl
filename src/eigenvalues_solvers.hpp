@@ -14,13 +14,21 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#ifndef ELMHES_HPP_
-#define ELMHES_HPP_
+#ifndef EIGENVALUES_SOLVERS_HPP_
+#define EIGENVALUES_SOLVERS_HPP_
 
 #include "envt.hpp"
 namespace lib {
+#if defined(USE_EIGEN)
+  BaseGDL* la_elmhes_fun(EnvT* e);
+  void la_trired_pro(EnvT* e);
+#else
+  BaseGDL* elmhes_fun(EnvT* e);
+#endif
   BaseGDL* elmhes_fun(EnvT* e);
   BaseGDL* hqr_fun(EnvT* e);
-} // namespace
+  void trired_pro(EnvT* e);
+  void triql_pro(EnvT* e);
+  } // namespace
 
 #endif

@@ -55,7 +55,7 @@ dstructdesc.cpp
 dstructfactory.cxx
 dstructgdl.cpp
 dvar.cpp
-elmhes.cpp
+eigenvalues_solvers.cpp
 envt.cpp
 extrat.cpp
 exists_fun.cpp

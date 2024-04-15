@@ -38,8 +38,11 @@ namespace lib {
   BaseGDL* fft_fun( EnvT* e);
   BaseGDL* random_fun( EnvT* e);
 
+  //GD: replaced la_trired from gsl by la_trired from eigen (if eigen is present) as it gives the same results as IDL's LA_TRIRED and is 5 times faster.
+#if  !defined(USE_EIGEN)
   void la_trired_pro( EnvT* e);
-
+#endif
+  
 //  int fft_1d( BaseGDL*, void*, SizeT, SizeT, //SizeT, 
 //	      double, SizeT);
   int fft_1d( BaseGDL* p0, void* data, SizeT nEl, SizeT offset, SizeT stride, 
