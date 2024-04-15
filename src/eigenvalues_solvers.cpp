@@ -43,22 +43,41 @@ namespace lib {
 	int n=p0->Dim(0);
 	
 	if (doDouble || p0->Type() == GDL_DOUBLE || p0->Type() == GDL_COMPLEXDBL) {
-	  
-	  DDoubleGDL* a = e->GetParAs<DDoubleGDL>(0);
+	  if (ComplexType(p0->Type())) {
+	    DComplexDblGDL* a = e->GetParAs<DComplexDblGDL>(0);
+		Map<Matrix<std::complex<DDouble>,Dynamic,Dynamic,RowMajor> >  A(&(*a)[0], n,n);
+		HessenbergDecomposition<MatrixXcd> hessOfA(A);
+	    DComplexDblGDL* res = new DComplexDblGDL(a->Dim(),BaseGDL::NOZERO);
+		Map<MatrixXcd> H(&(*res)[0],n, n);
+		H = hessOfA.matrixH().transpose();
+		return res;
+	  } else {		
+	    DDoubleGDL* a = e->GetParAs<DDoubleGDL>(0);
 		Map<Matrix<double,Dynamic,Dynamic,RowMajor> >  A(&(*a)[0], n,n);
 		HessenbergDecomposition<MatrixXd> hessOfA(A);
 	    DDoubleGDL* res = new DDoubleGDL(a->Dim(),BaseGDL::NOZERO);
 		Map<MatrixXd> H(&(*res)[0],n, n);
 		H = hessOfA.matrixH().transpose();
 		return res;
+	  }
 	} else {
-	  DFloatGDL* a = e->GetParAs<DFloatGDL>(0);
+	  if (ComplexType(p0->Type())) {
+	    DComplexGDL* a = e->GetParAs<DComplexGDL>(0);
+		Map<Matrix<std::complex<DFloat>,Dynamic,Dynamic,RowMajor> >  A(&(*a)[0], n,n);
+		HessenbergDecomposition<MatrixXcf> hessOfA(A);
+	    DComplexGDL* res = new DComplexGDL(a->Dim(),BaseGDL::NOZERO);
+		Map<MatrixXcf> H(&(*res)[0],n, n);
+		H = hessOfA.matrixH().transpose();
+		return res;
+	  } else {
+		DFloatGDL* a = e->GetParAs<DFloatGDL>(0);
 		Map<Matrix<float,Dynamic,Dynamic,RowMajor> >  A(&(*a)[0], n,n);
 		HessenbergDecomposition<MatrixXf> hessOfA(A);
 		DFloatGDL* res = new DFloatGDL(a->Dim(), BaseGDL::NOZERO);
 		Map<MatrixXf> H(&(*res)[0], n, n);
 		H = hessOfA.matrixH().transpose();
 		return res;
+	  }
 	}
   }
 
