@@ -48,6 +48,7 @@
 #include "least_squares.hpp"
 #include "matrix_invert.hpp"
 #include "triangulation.hpp"
+#include "eigenvalues_solvers.hpp"
 
 #ifdef HAVE_QHULL
 #include "qhull.hpp"
@@ -99,7 +100,27 @@ void LibInit_jmg()
   const string laleastsquaresKey[]={"DOUBLE","METHOD","RANK","RCONDITION","RESIDUAL","STATUS",KLISTEND};
   new DLibFunRetNew(lib::la_least_squares_fun,string("LA_LEAST_SQUARES"),2,laleastsquaresKey);
 
-
+  // square matrices , eispack 'old' free code, by GD.
+  const string elmhesKey[]={"COLUMN", "DOUBLE", "NO_BALANCE",KLISTEND};
+  new DLibFunRetNew(lib::elmhes_fun,string("ELMHES"),1,elmhesKey);
+ #if defined(USE_EIGEN)
+  const string la_elmhesKey[]={"DOUBLE",KLISTEND};
+  const string la_elmhesWarnKey[]={"BALANCE","NORM_BALANCE", "PERMUTE_RESULT", "SCALE_RESULT",KLISTEND};
+  new DLibFunRetNew(lib::la_elmhes_fun,string("LA_ELMHES"),2,la_elmhesKey,la_elmhesWarnKey);
+ #endif
+  const string hqrKey[]={"COLUMN", "DOUBLE",KLISTEND};
+  new DLibFunRetNew(lib::hqr_fun,string("HQR"),1,hqrKey);
+  //GD: replaced la_trired from gsl by la_trired from eigen (if eigen is present) as it gives the same results as IDL's LA_TRIRED and is 5 times faster.
+#if defined(USE_EIGEN)
+  const string la_triredKey[]={"DOUBLE",KLISTEND};
+  const string la_triredWarnKey[]={"UPPER",KLISTEND};
+  new DLibPro(lib::la_trired_pro,string("LA_TRIRED"),3,la_triredKey,la_triredWarnKey);
+#endif
+  const string triredKey[]={"DOUBLE",KLISTEND};
+  new DLibPro(lib::trired_pro,string("TRIRED"),3,triredKey);
+  const string triqlKey[]={"DOUBLE",KLISTEND};
+  new DLibPro(lib::triql_pro,string("TRIQL"),3,triqlKey);
+    
 #if defined(HAVE_LIBGSL) && defined(HAVE_LIBGSLCBLAS)
   
   const string invertKey[]={"DOUBLE","GSL","EIGEN",KLISTEND};
@@ -133,8 +154,11 @@ void LibInit_jmg()
   const string interpolateKey[]={"CUBIC","DOUBLE","GRID","MISSING","NEAREST_NEIGHBOUR",KLISTEND};
   new DLibFunRetNewTP(lib::interpolate_fun,string("INTERPOLATE"),4,interpolateKey);  //UsesThreadPOOL 
 
+  //GD: replaced la_trired from gsl by la_trired from eigen (if eigen is present) as it gives the same results as IDL's LA_TRIRED and is 5 times faster.
+#if  !defined(USE_EIGEN)
   const string la_triredKey[]={"DOUBLE","UPPER",KLISTEND};
   new DLibPro(lib::la_trired_pro,string("LA_TRIRED"),3,la_triredKey);
+#endif
 #endif
 
   const string macharKey[]={"DOUBLE",KLISTEND};
