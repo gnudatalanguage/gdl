@@ -374,7 +374,7 @@ bool GDLWXStream::SetGraphicsFunction( long value) {
       streamDC->SetLogicalFunction( wxNO_OP);
       break;
     case 6: //wxXOR
-      streamDC->SetLogicalFunction( wxXOR);
+      streamDC->SetLogicalFunction(  wxINVERT /*wxXOR*/); //at least permits box_cursor to be used in some cases. CAIRO has no 'old' graphic functions.
       break;    
     case 7: //wxOR:
       streamDC->SetLogicalFunction( wxOR);

@@ -434,7 +434,7 @@ namespace lib {
           if (nlevel == 0) nlevel = 3; //idem
           zintv = (cmax - cmin) / (nlevel + 1);
         } else {
-          zintv = AutoTick(cmax - cmin); //zintv never null.
+          zintv = AutoTickIntv(cmax - cmin, true); //zintv never null.
           nlevel = (PLINT) floor((cmax - cmin) / zintv);
           if (nlevel <= 0) nodata = true; //yes, happens if image has constant value...
         }

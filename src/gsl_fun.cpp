@@ -1213,6 +1213,7 @@ namespace lib {
 
 #endif
 
+#if  !defined(USE_EIGEN)
   void la_trired_pro(EnvT *e) {
     //        SizeT nParam = e->NParam(3);
     float f32;
@@ -1505,7 +1506,8 @@ namespace lib {
     }
   }
 
-
+#endif
+  
   // gsl_multiroot_function-compatible function serving as a wrapper to the
   // user-defined function passed (by name) as the second arg. to NEWTON or BROYDEN
   class n_b_param {
