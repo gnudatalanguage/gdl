@@ -1,22 +1,52 @@
-pro test_obj_valid, noexit=noexit
 ;
- llist = list(fltarr(4),"hello",2.)
+; Unknown origin ...
 ;
-; when N_Elements() hack is fixed this won't happen anymore:
-; GDL> help,[llist]
-;GDLArray line 210 ix=1, sz = 1
-;GDLArray line 210 ix=2, sz = 1
-;<Expression>    OBJREF    = Array[1]
+; Modifications history :
+; -2024-04-15 AC : cleaning (details ...)
 ;
-mlist = list("!gdl", "goodbye",findgen(3,4))
-err=0
-if ~(obj_valid(llist) and obj_valid(mlist)) then err++
+; -------------------------------------------------
 
-; particular case for ptr_valid and comparison with !NULL that should be the inverse
- good=[1b,0b] & p=obj_new('idl_container') & res=[obj_valid(p),p eq !NULL] & if total(res eq good) ne 2 then err++
- good=[0b,1b] & obj_destroy,p & res=[obj_valid(p),!NULL eq p] & if total(res eq good) ne 2 then err++
-
-banner_for_testsuite,' TEST_OBJ_VALID',err
-if (err gt 0) and ~keyword_set(noexit) then exit, status = 1 
-
+pro TEST_OBJ_VALID, help=help, verbose=verbose, test=test, no_exit=no_exit
+;
+if KEYWORD_SET(help) then begin
+   print, 'TEST_OBJ_VALID, help=help, verbose=verbose, $'
+   print, '                test=test, no_exit=no_exit'
+   return
+endif
+;
+errors=0
+;
+llist = LIST(FLTARR(4),"hello",2.)
+mlist = LIST("!pi", "goodbye",FINDGEN(3,4),COMPLEX(0))
+;
+if ~OBJ_VALID(llist) then ERRORS_ADD, errors, 'Not an valid OBJ (1)'
+if ~OBJ_VALID(mlist) then ERRORS_ADD, errors, 'Not an valid OBJ (2)'
+;
+; Particular case for ptr_valid and
+; comparison with !NULL that should be the inverse
+;
+good=[1b,0b]
+p=OBJ_NEW('idl_container')
+res=[OBJ_VALID(p), p eq !NULL]
+if ~ARRAY_EQUAL(res,good, /no_typeconv) then $
+   ERRORS_ADD, errors, 'Problem 1 : OBJ_NEW & !null'
+;
+good=[0b,1b]
+OBJ_DESTROY, p
+res=[OBJ_VALID(p),!NULL eq p]
+if ~ARRAY_EQUAL(res,good,/no_typeconv) then $
+   ERRORS_ADD, errors, 'Problem 2 : OBJ_DESTROY & !null'
+;
+; to prepare any further/future evolution, if any 
+;
+cumul_errors=errors
+;
+; ----------------- final message ----------
+;
+BANNER_FOR_TESTSUITE, 'TEST_OBJ_VALID', cumul_errors, short=short
+;
+if (cumul_errors GT 0) AND ~KEYWORD_SET(no_exit) then EXIT, status=1
+;
+if KEYWORD_SET(test) then STOP
+;
 end
