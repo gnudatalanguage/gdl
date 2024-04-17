@@ -68,7 +68,7 @@ void FMTOut::format(RefFMTNode _t) {
 	case TL:
 	case TR:
 	case TERM:
-	case NONL:
+	//case NONL:
 	case Q: case T: case X: case A:
 	case F: case D: case E: case SE: case G: case SG:
 	case I: case O: case B: case Z: case ZZ: case C:
@@ -104,32 +104,24 @@ void FMTOut::q(RefFMTNode _t) {
 	RefFMTNode q_AST_in = (_t == RefFMTNode(ASTNULL)) ? RefFMTNode(antlr::nullAST) : _t;
 	RefFMTNode s = RefFMTNode(antlr::nullAST);
 	
-	{
 	if (_t == RefFMTNode(antlr::nullAST) )
 		_t = ASTNULL;
 	switch ( _t->getType()) {
-	case SLASH:
+	case NONL:
 	{
-		s = _t;
-		match(antlr::RefAST(_t),SLASH);
+		RefFMTNode tmp1_AST_in = _t;
+		match(antlr::RefAST(_t),NONL);
 		_t = _t->getNextSibling();
-		
-		// only one newline to journal file
-		GDLStream* j = lib::get_journal();
-		if( j != NULL && j->OStream().rdbuf() == os->rdbuf())
-		(*os) << '\n' << lib::JOURNALCOMMENT;
-		else
-		for( int r=s->getRep(); r > 0; r--) (*os) << '\n';
-		
+		nonlFlag = true;
 		break;
 	}
 	case 3:
 	case FORMAT:
+	case SLASH:
 	case STRING:
 	case TL:
 	case TR:
 	case TERM:
-	case NONL:
 	case Q:
 	case T:
 	case X:
@@ -146,12 +138,60 @@ void FMTOut::q(RefFMTNode _t) {
 	case ZZ:
 	case C:
 	{
+		{
+		if (_t == RefFMTNode(antlr::nullAST) )
+			_t = ASTNULL;
+		switch ( _t->getType()) {
+		case SLASH:
+		{
+			s = _t;
+			match(antlr::RefAST(_t),SLASH);
+			_t = _t->getNextSibling();
+			
+			// only one newline to journal file
+			GDLStream* j = lib::get_journal();
+			if( j != NULL && j->OStream().rdbuf() == os->rdbuf())
+			(*os) << '\n' << lib::JOURNALCOMMENT;
+			else
+			for( int r=s->getRep(); r > 0; r--) (*os) << '\n';
+			
+			break;
+		}
+		case 3:
+		case FORMAT:
+		case STRING:
+		case TL:
+		case TR:
+		case TERM:
+		case Q:
+		case T:
+		case X:
+		case A:
+		case F:
+		case E:
+		case SE:
+		case G:
+		case SG:
+		case I:
+		case O:
+		case B:
+		case Z:
+		case ZZ:
+		case C:
+		{
+			break;
+		}
+		default:
+		{
+			throw antlr::NoViableAltException(antlr::RefAST(_t));
+		}
+		}
+		}
 		break;
 	}
 	default:
 	{
 		throw antlr::NoViableAltException(antlr::RefAST(_t));
-	}
 	}
 	}
 	_retTree = _t;
@@ -178,18 +218,10 @@ void FMTOut::f(RefFMTNode _t) {
 	switch ( _t->getType()) {
 	case TERM:
 	{
-		RefFMTNode tmp1_AST_in = _t;
+		RefFMTNode tmp2_AST_in = _t;
 		match(antlr::RefAST(_t),TERM);
 		_t = _t->getNextSibling();
 		termFlag = true;
-		break;
-	}
-	case NONL:
-	{
-		RefFMTNode tmp2_AST_in = _t;
-		match(antlr::RefAST(_t),NONL);
-		_t = _t->getNextSibling();
-		nonlFlag = true;
 		break;
 	}
 	case Q:
@@ -596,7 +628,7 @@ void FMTOut::format_reversion(RefFMTNode _t) {
 	case TL:
 	case TR:
 	case TERM:
-	case NONL:
+	// case NONL:
 	case Q: case T: case X: case A:
 	case F: case D: case E: case SE: case G: case SG:
 	case I: case O: case B: case Z: case ZZ: case C:
@@ -1098,8 +1130,8 @@ const char* FMTOut::tokenNames[] = {
 	0
 };
 
-const unsigned long FMTOut::_tokenSet_0_data_[] = { 0UL, 268300226UL, 0UL, 0UL };
-// FORMAT STRING "tl" "tr" TERM NONL Q T X A F E SE G SG I O B Z ZZ C 
+const unsigned long FMTOut::_tokenSet_0_data_[] = { 0UL, 268299202UL, 0UL, 0UL };
+// FORMAT STRING "tl" "tr" TERM Q T X A F E SE G SG I O B Z ZZ C 
 const antlr::BitSet FMTOut::_tokenSet_0(_tokenSet_0_data_,4);
 const unsigned long FMTOut::_tokenSet_1_data_[] = { 0UL, 4026548288UL, 8191UL, 0UL, 0UL, 0UL, 0UL, 0UL };
 // STRING X CMOA CMoA CmoA CHI ChI CDWA CDwA CdwA CAPA CApA CapA CMOI CDI 
