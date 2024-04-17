@@ -194,7 +194,7 @@ format
                         case TL:
                         case TR:
                         case TERM:
-                        case NONL:
+                        //case NONL:
                         case Q: case T: case X: case A:
                         case F: case D: case E: case SE: case G: case SG:
                         case I: case O: case B: case Z: case ZZ: case C:
@@ -246,7 +246,7 @@ format_reversion
                 case TL:
                 case TR:
                 case TERM:
-                case NONL:
+               // case NONL:
                 case Q: case T: case X: case A:
                 case F: case D: case E: case SE: case G: case SG:
                 case I: case O: case B: case Z: case ZZ: case C:
@@ -267,7 +267,8 @@ format_reversion
     ;
 
 q
-    : (s:SLASH 
+    : NONL { nonlFlag = true; }
+      | (s:SLASH 
             {
                 // only one newline to journal file
                 GDLStream* j = lib::get_journal();
@@ -302,7 +303,7 @@ f_csubcode // note: IDL doesn't allow hollerith strings inside C()
 
 f
     : TERM { termFlag = true; }
-    | NONL { nonlFlag = true; }
+//    | NONL { nonlFlag = true; }
     | Q // ignored on output
     | t:T
         { 
