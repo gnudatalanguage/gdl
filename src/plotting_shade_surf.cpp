@@ -47,7 +47,8 @@ namespace lib
     bool below=false;
     DDouble* Current3DMatrix;
     DDoubleGDL* gdlBox3d;
-    
+	PLFLT xratio, yratio, zratio, trans[3];
+	PLINT nx, ny;    
  private:
     bool handle_args (EnvT* e)
     {
@@ -231,6 +232,14 @@ namespace lib
     {
       static int savet3dIx = e->KeywordIx("SAVE");
       bool saveT3d = e->KeywordSet(savet3dIx);
+	  bool zAxis=true;
+	  static int zaxisIx = e->KeywordIx("ZAXIS");
+	  DLong zaxis_value=0;
+      if (e->GetKW(zaxisIx) != NULL) {
+        e->AssureLongScalarKWIfPresent(zaxisIx, zaxis_value);
+		if (zaxis_value > 4) zaxis_value=0;
+	  }
+	  if (zaxis_value < 0) zAxis = false;
 
       // background BEFORE next plot since it is the only place plplot may redraw the background...
       gdlSetGraphicsBackgroundColorFromKw ( e, actStream );
@@ -266,9 +275,14 @@ namespace lib
           below=true;
           alt=-(360.-alt);
       }
-        //Compute special transformation matrix for the BOX and give it to the driver
+		//Compute special transformation matrix for the BOX and give it to the driver. Subpage info is important
         gdlBox3d=gdlDefinePlplotRotationMatrix( az, alt, scale, saveT3d);
-        Guard<BaseGDL> g(gdlBox3d);
+		actStream->getCurrentSubpageInfo(xratio, yratio, zratio, trans);
+		gdlMakeSubpageRotationMatrix3d(gdlBox3d, xratio, yratio, zratio,trans);
+		//now that 3D matrix is OK, we pass in 'No Sub'
+		actStream->NoSub();
+		zValue=gdlSetViewPortAndWorldCoordinates(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue);
+
         GDL_3DTRANSFORMDEVICE T3DForAXes;
         for (int i = 0; i < 16; ++i)T3DForAXes.T[i] =(*gdlBox3d)[i];
         T3DForAXes.zValue = (std::isfinite(zValue))?zValue:0;
@@ -290,7 +304,7 @@ namespace lib
       //Should draw 3d mesh before axes
       gdlSetGraphicsForegroundColorFromKw ( e, actStream ); //COLOR
       //write OUR box using our 3D PLESC tricks:
-      gdlBox3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue);
+      gdlBox3(e, actStream, xStart, xEnd, xLog, yStart, yEnd, yLog, zStart, zEnd, zLog, zValue, zAxis, zaxis_value);
        //reset driver to 2D plotting routines, further 3D is just plplot drawing a mesh.
       gdlStop3DDriverTransform(actStream); 
       
@@ -320,7 +334,8 @@ namespace lib
 //This is the good version for shade_surf, shifting the shaded surface by som amount in the 3DDriverTransform of the driver, not the plplot library.     
       actStream->vpor(0,1,0,1);
       actStream->wind(-0.5/scale[0],0.5/scale[0],-0.5/scale[1],0.5/scale[1]); //mandatory: to center in (0,0,0) for 3D Matrix rotation.
-      if (below) { actStream->w3d(1,1,1,0,1,0,1,0,1, -alt, az);
+      if (below) {
+		actStream->w3d(1,1,1,0,1,0,1,0,1, -alt, az);
         DDouble xp = 0;
         DDouble yp1 = 0;
         DDouble yp2 = 0;
@@ -340,6 +355,14 @@ namespace lib
         Matrix3DTransformXYZval(0, 0, 0.5, &xp, &yp2,Current3DMatrix);
         gdlShiftYaxisUsing3DDriverTransform(actStream, yp1 - yp2, false);
       }
+		if (!doT3d) { //use a special matrix to shift and scale into current subpage
+		  gdlMakeSubpageRotationMatrix2d(gdlBox3d, xratio, yratio, zratio,trans);
+		  GDL_3DTRANSFORMDEVICE T3DForAXes;
+		  for (int i = 0; i < 16; ++i)T3DForAXes.T[i] = (*gdlBox3d)[i];
+		  T3DForAXes.zValue = (std::isfinite(zValue)) ? zValue : 0;
+		  gdlStartSpecial3DDriverTransform(actStream, T3DForAXes);
+          Guard<BaseGDL> g(gdlBox3d);
+		}
       
       return false;
       }
