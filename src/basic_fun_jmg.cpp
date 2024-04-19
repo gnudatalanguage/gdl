@@ -567,23 +567,33 @@ namespace lib {
 	res->InitTag("FILE_OFFSET", DLongGDL(0));
 	res->InitTag("N_ELEMENTS",  DLongGDL(nEl));
       }
-      res->InitTag("N_DIMENSIONS",  DLongGDL(Rank));
+      
+      // AC2024/03/21 bug  #1810
+      //res->InitTag("N_DIMENSIONS",  DLongGDL(Rank));
+      res->InitTag("N_DIMENSIONS",  DLongGDL(LogicalRank));
 
       // Initialize dimension values to 0
       if (e->KeywordSet(L64Ix) || forceL64 ) {
 	DLong64GDL *dims_res = new DLong64GDL(dimension(MAXRANK), BaseGDL::ZERO);
-	for( SizeT i=Rank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
-	for( SizeT i=0; i<Rank; ++i) (*dims_res)[ i] = p0->Dim(i);
+	for( SizeT i=LogicalRank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
+	if (isObjectContainer) {
+	  (*dims_res)[0]=nEl;
+	} else {
+	  for( SizeT i=0; i<LogicalRank; ++i) (*dims_res)[ i] = p0->Dim(i);
+	}
 	res->InitTag("DIMENSIONS",  *dims_res);
       } else {
 	DLongGDL *dims_res = new DLongGDL(dimension(MAXRANK), BaseGDL::ZERO);	
-	for( SizeT i=Rank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
-	for( SizeT i=0; i<Rank; ++i) (*dims_res)[ i] = p0->Dim(i);
+	for( SizeT i=LogicalRank; i<MAXRANK; ++i) (*dims_res)[ i] = 0;
+	if (isObjectContainer) {
+	  (*dims_res)[0]=nEl;
+	} else {
+	  for( SizeT i=0; i<LogicalRank; ++i) (*dims_res)[ i] = p0->Dim(i);
+	}
 	res->InitTag("DIMENSIONS",  *dims_res);
       }
 
       return res;
-      //e->Throw( "STRUCTURE not supported yet.");
     }
     
     // SNAME

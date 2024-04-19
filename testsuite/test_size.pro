@@ -15,6 +15,8 @@
 ; - 2024-04-15 AC : cleaning (details ...) + some extra tests for LIST
 ;   and HASH () bugs found, see #issue 1807
 ;   + new tests for STRUCT
+; - 2024-04-18 AC : bugs for HASH() and LIST() now solved in c++ code,
+;   then new tests added !
 ;
 ; ------------------------
 ; reported by Giloo in 2015-10-30
@@ -36,13 +38,13 @@ if ~res then ERRORS_ADD, nb_errors, 'bad assigantion [0,0] not really 2D'
 ;
 print, 'The following message is OK'
 res=EXECUTE('array1d[0,0]=array2d')
-if res then ERRORS_ADD, nb_errors, 'bad assigantion [0,0]'
+if res then ERRORS_ADD, nb_errors, 'bad assignation [0,0]'
 ;
 res=EXECUTE('array1d[1,0,0]=array1d[1:8]')
-if ~res then ERRORS_ADD, nb_errors, 'bad assigantion [1,0,0]'
+if ~res then ERRORS_ADD, nb_errors, 'bad assignation [1,0,0]'
 
 res=EXECUTE('array1d[0]=arraynotreally2d')
-if ~res then ERRORS_ADD, nb_errors, 'bad assigantion [0]'
+if ~res then ERRORS_ADD, nb_errors, 'bad assignation [0]'
 ;
 ; -----------
 ;
@@ -219,6 +221,27 @@ expected.dimensions=LONARR(8)
 expected.dimensions[0]=nel
 errors=errors+ARE_SIZE_STRUCTS_EQUAL(strucobj, expected, mess='<<list>> ')
 ;
+; test on LIST() with internal dims ...
+;
+mylist=LIST(DIST(4),RANDOMU(seed,2,3,4))
+strucobj0=SIZE(mylist[0],/struct)
+strucobj1=SIZE(mylist[1],/struct)
+;
+expected=SIZE(0.,/struct)
+exp0=expected
+exp0.n_elements=SIZE(mylist[0], /N_elem)
+exp0.n_dimensions=SIZE(mylist[0], /N_dim)
+exp0.dimensions=LONARR(8)
+exp0.dimensions[0:1]=[4,4]
+errors=errors+ARE_SIZE_STRUCTS_EQUAL(strucobj0, exp0, mess='<<list>> 0 ')
+
+exp1=expected
+exp1.n_elements=SIZE(mylist[1], /N_elem)
+exp1.n_dimensions=SIZE(mylist[1], /N_dim)
+exp1.dimensions=LONARR(8)
+exp1.dimensions[0:2]=[2,3,4]
+errors=errors+ARE_SIZE_STRUCTS_EQUAL(strucobj1, exp1, mess='<<list>> 1 ')
+
 ; --------------
 ;
 BANNER_FOR_TESTSUITE, "TEST_SIZE_LIST", errors, /short, verb=verbose
