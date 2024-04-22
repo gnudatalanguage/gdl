@@ -1,8 +1,18 @@
 ;
+; under GNU GPL 2 or later
+;
 ; testsuite for the SPL_INIT and SPL_INTERP functions
-; Eloi Rozier de Linage
+;
+; mergning by Eloi Rozier de Linage Mai 2020
+;
+; the initial testsuite for the SPL_INIT function
+; was written by Lea Noreskal and Alain Coulais
 ; Mai 2010
-; based on test_spl_init
+; under GNU GPL 2 or later
+;
+; Modifications history :
+; -2024-04-22 AC : re-wrtting this header, remove old
+;     "test_spl_init.pro" inside Git depot
 ;
 ; ----------------------------------------------------
 ;
