@@ -526,7 +526,10 @@ namespace lib {
     exclusiveKW = e->KeywordPresent(LONGIx);
     exclusiveKW = exclusiveKW + e->KeywordPresent(ULONGIx);
     if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
-    
+
+    static int DoubleIdx = e->KeywordIx("DOUBLE");
+    bool doDouble = e->KeywordSet(DoubleIdx);
+
     static dsfmt_state dsfmt_mem;
     //initialize only once, and for 1 state (this unparallel version)
     if (dsfmt_mem.r==NULL) {
@@ -610,10 +613,10 @@ namespace lib {
         if (test_n > 0.0) n = 1;
       }
       if (n <= 0) e->Throw("Value of (Int/Long) GAMMA is out of allowed range: Gamma = 1, 2, 3, ...");
-      if (!e->KeywordSet(0)) { //hence:float
+      if (!doDouble) { //hence:float
         if (n >= 10000000) e->Throw("Value of GAMMA is out of allowed range: Try /DOUBLE.");
       }
-      if (e->KeywordSet(0)) { // GDL_DOUBLE
+      if (doDouble) { // GDL_DOUBLE
         DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
         random_gamma((double*)res->DataAddr(), dsfmt_mem,res->N_Elements(), n);
         get_random_state(e, dsfmt_mem, seed);
@@ -638,7 +641,7 @@ namespace lib {
       if (((*binomialKey)[1] < 0.0) || ((*binomialKey)[1] > 1.0))
         e->Throw(" Value of BINOMIAL[1] is out of allowed range: 0.0 <= p <= 1.0");
 
-      if (e->KeywordSet(0)) { // GDL_DOUBLE
+      if (doDouble) { // GDL_DOUBLE
         DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
         random_binomial((double*)res->DataAddr(), dsfmt_mem, res->N_Elements(), binomialKey);
         get_random_state(e, dsfmt_mem, seed);
@@ -659,7 +662,7 @@ namespace lib {
       if ((*poissonKey)[0] < 0.0)
 	  e->Throw("Value of POISSON is out of allowed range: Poisson > 0.0");
 
-      if (e->KeywordSet("DOUBLE")) { // GDL_DOUBLE
+      if (doDouble) { // GDL_DOUBLE
         DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
         random_poisson((double*)res->DataAddr(), dsfmt_mem, res->N_Elements(), poissonKey);
         get_random_state(e, dsfmt_mem, seed);
@@ -676,7 +679,7 @@ namespace lib {
     }
 
     if (e->KeywordSet(UNIFORMIx) || ((e->GetProName() == "RANDOMU") && !e->KeywordSet(NORMALIx))) {
-      if (e->KeywordSet(0)) { // GDL_DOUBLE
+      if (doDouble) { // GDL_DOUBLE
         DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
         random_uniform((double*)res->DataAddr(), dsfmt_mem, res->N_Elements());
         get_random_state(e, dsfmt_mem, seed);
@@ -690,7 +693,7 @@ namespace lib {
     }
 
     if (e->KeywordSet(NORMALIx) || ((e->GetProName() == "RANDOMN") && !e->KeywordSet(UNIFORMIx))) {
-      if (e->KeywordSet(0)) { // GDL_DOUBLE
+      if (doDouble) { // GDL_DOUBLE
        DDoubleGDL* res = new DDoubleGDL(dim, BaseGDL::NOZERO);
         random_normal((double*)res->DataAddr(), dsfmt_mem, res->N_Elements());
         get_random_state(e, dsfmt_mem, seed);

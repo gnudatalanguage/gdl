@@ -1159,7 +1159,7 @@ void EnvT::Catch()
   SizeT nParam = NParam();
   if( nParam == 0)
     {
-      if( KeywordSet( 0)) // CANCEL
+      if( KeywordSet("CANCEL"))
 	{
 	  caller->catchVar = NULL;
 	  caller->catchNode = NULL;

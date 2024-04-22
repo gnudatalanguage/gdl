@@ -165,10 +165,10 @@ TRACEOMP(__FILE__, __LINE__)
     SizeT offset;
 
     // If DIMENSION keyword set then use GSL fft
+    // which is bad practice. We should do the same as in min_fun or max_fun,
+    // use the stride facility.
     
-    
-    // which is bad practice. We should do the same as in min_fun or max_fun, use the stride facility.
-    if(e->KeywordSet(3)) {
+    if(e->KeywordSet("DIMENSION")) {
       return fft_fun(e);
     }
 
@@ -194,10 +194,10 @@ TRACEOMP(__FILE__, __LINE__)
       GDLDelete(direction);
     }
 
-    if( e->KeywordSet(0)) dbl = 1;
-    if( e->KeywordSet(1)) direct = +1.0;
-    if( e->KeywordSet(2)) overwrite = 1;
-    if( e->KeywordSet(4)) recenter = true;
+    if( e->KeywordSet("DOUBLE")) dbl = 1;
+    if( e->KeywordSet("INVERSE")) direct = +1.0;
+    if( e->KeywordSet("OVERWRITE")) overwrite = 1;
+    if( e->KeywordSet("CENTER")) recenter = true;
 
     // If not global parameter no overwrite
     // ok as we steal it then //if( !e->GlobalPar( 0)) overwrite = 0;

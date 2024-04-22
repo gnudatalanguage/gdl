@@ -552,11 +552,11 @@ namespace lib {
       direct = GSL_SIGN((*direction)[0]);
     }
 
-
-    if (e->KeywordSet(0)) dbl = 1;
-    if (e->KeywordSet(1)) direct = +1.0;
-    if (e->KeywordSet(2)) overwrite = 1;
-    if (e->KeywordSet(4) && !warning_done) {
+    // AC 2024/04/22 : some of the last "by number" keywords :(
+    if (e->KeywordSet("DOUBLE")) dbl = 1;
+    if (e->KeywordSet("INVERSE")) direct = +1.0;
+    if (e->KeywordSet("OVERWRITE")) overwrite = 1;
+    if (e->KeywordSet("CENTER") && !warning_done) {
       warning_done = true;
       cerr << "Warning, keyword CENTER ignored, fixme!" << endl; //(recenter not handled here)
     }
@@ -1079,10 +1079,10 @@ namespace lib {
 	if (test_n > 0.0) n = 1;
       }
       if (n <= 0) e->Throw("Value of (Int/Long) GAMMA is out of allowed range: Gamma = 1, 2, 3, ...");
-      if (!e->KeywordSet(0)) { //hence:float
+      if (!e->KeywordSet("DOUBLE")) { //hence:float
 	if (n >= 10000000) e->Throw("Value of GAMMA is out of allowed range: Try /DOUBLE.");
       }
-      if (e->KeywordSet(0)) { // GDL_DOUBLE
+      if (e->KeywordSet("DOUBLE")) { // GDL_DOUBLE
 	DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 	random_gamma<DDoubleGDL, double>(res, gsl_rng_mem, dim, n);
 	get_random_state(e, gsl_rng_mem, seed);
@@ -1106,7 +1106,7 @@ namespace lib {
 
       if (((*binomialKey)[1] < 0.0) || ((*binomialKey)[1] > 1.0))
 	e->Throw(" Value of BINOMIAL[1] is out of allowed range: 0.0 <= p <= 1.0");
-      if (e->KeywordSet(0)) { // GDL_DOUBLE
+      if (e->KeywordSet("DOUBLE")) { // GDL_DOUBLE
 	DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 	random_binomial<DDoubleGDL, double>(res, gsl_rng_mem, dim, binomialKey);
 	get_random_state(e, gsl_rng_mem, seed);
@@ -1143,7 +1143,7 @@ namespace lib {
     }
 
     if (e->KeywordSet(UNIFORMIx) || ((e->GetProName() == "RANDOMU") && !e->KeywordSet(NORMALIx))) {
-      if (e->KeywordSet(0)) { // GDL_DOUBLE
+      if (e->KeywordSet("DOUBLE")) { // GDL_DOUBLE
 	DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 	random_uniform<DDoubleGDL, double>(res, gsl_rng_mem, dim);
 	get_random_state(e, gsl_rng_mem, seed);
@@ -1157,7 +1157,7 @@ namespace lib {
     }
 
     if (e->KeywordSet(NORMALIx) || ((e->GetProName() == "RANDOMN") && !e->KeywordSet(UNIFORMIx))) {
-      if (e->KeywordSet(0)) { // GDL_DOUBLE
+      if (e->KeywordSet("DOUBLE")) { // GDL_DOUBLE
 	DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 	random_normal<DDoubleGDL, double>(res, gsl_rng_mem, dim);
 	get_random_state(e, gsl_rng_mem, seed);
@@ -1214,11 +1214,16 @@ namespace lib {
 #endif
 
 #if  !defined(USE_EIGEN)
+
   void la_trired_pro(EnvT *e) {
-    //        SizeT nParam = e->NParam(3);
+
+    if (e->KeywordSet("DEBUG")) cout << "GSL version of LA_TRIRED" << endl;
+
+    SizeT nParam = e->NParam(3);
+
     float f32;
     double f64;
-      
+
     BaseGDL *p0 = e->GetNumericArrayParDefined(0);
       
     SizeT nEl = p0->N_Elements();
@@ -1642,8 +1647,8 @@ namespace lib {
     gsl_multiroot_fsolver *solver;
     {
       const gsl_multiroot_fsolver_type *T;
-      static int HYBRIDIx = e->KeywordIx("HYBRID"); //same place in both functions.
-      if (e->KeywordSet(HYBRIDIx))
+      static int hybridIx = e->KeywordIx("HYBRID"); //same place in both functions.
+      if (e->KeywordSet(hybridIx))
 	T = gsl_multiroot_fsolver_hybrid;  //Not using static int KwIx since lists are different.
       else if (e->GetProName() == "NEWTON") T = gsl_multiroot_fsolver_dnewton; //id
       else if (e->GetProName() == "BROYDEN") T = gsl_multiroot_fsolver_broyden; //ibid
@@ -3373,7 +3378,7 @@ namespace lib {
 
     // allocating (and guarding) memory
     BaseGDL *res;
-    bool dbl = e->KeywordSet(0) || theta->Type() == GDL_DOUBLE || phi->Type() == GDL_DOUBLE;
+    bool dbl = e->KeywordSet("DOUBLE") || theta->Type() == GDL_DOUBLE || phi->Type() == GDL_DOUBLE;
     {
       dimension dim = dimension(length);
       if (phi->Rank() == 0 && theta->Rank() == 0) dim.Remove(0);

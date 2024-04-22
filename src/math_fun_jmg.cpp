@@ -56,7 +56,7 @@ namespace lib {
     float  eps, epsneg, xmin, xmax;
     double epsD, epsnegD, xminD, xmaxD;
     
-    if( e->KeywordSet(0)) //DOUBLE
+    if (e->KeywordSet("DOUBLE"))
       {
 	machar_d(&ibeta, &it, &irnd, &ngrd, &machep, 
 		 &negep, &iexp, &minexp, &maxexp, 

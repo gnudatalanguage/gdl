@@ -257,7 +257,7 @@ namespace lib {
     if (!(NumericType(p0->Type()))) e->Throw(p0->TypeStr() + " expression: not allowed in this context: " + e->GetParString(0));
 
     //L64 means it: output IS ALWAYS L64.
-    if (e->KeywordSet(0)) { //L64
+    if (e->KeywordSet("L64")) {
       if (p0->Type() == GDL_COMPLEX) {
         DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
         SizeT nEl = p0->N_Elements();
@@ -379,7 +379,7 @@ namespace lib {
     if (!(NumericType(p0->Type()))) e->Throw(p0->TypeStr() + " expression: not allowed in this context: " + e->GetParString(0));
 
     //L64 means it: output IS ALWAYS L64.
-    if (e->KeywordSet(0)) { //L64
+    if (e->KeywordSet("L64")) {
       if (p0->Type() == GDL_COMPLEX) {
         DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
         SizeT nEl = p0->N_Elements();
@@ -501,7 +501,7 @@ namespace lib {
     if (!(NumericType(p0->Type()))) e->Throw(p0->TypeStr() + " expression: not allowed in this context: " + e->GetParString(0));
 
     //L64 means it: output IS ALWAYS L64.
-    if (e->KeywordSet(0)) { //L64
+    if (e->KeywordSet("L64")) {
       if (p0->Type() == GDL_COMPLEX) {
         DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
         SizeT nEl = p0->N_Elements();
@@ -577,8 +577,9 @@ namespace lib {
     }
   }
 
-  // GDL Direct functions (no new environment created because the function has no keywords and only one parameter-->no overheads)
-  //RETURNS: float (all 32 bits + strings), double, complex, double complex outputs.
+  // GDL Direct functions (no new environment created because
+  // the function has no keywords and only one parameter-->no overheads)
+  // RETURNS: float (all 32 bits + strings), double, complex, double complex outputs.
 
   //SQRT
 
@@ -2211,7 +2212,7 @@ namespace lib {
         (*static_cast<DFloatGDL*> (p0))[0],
         (*static_cast<DFloatGDL*> (rt))[1],
         (*static_cast<DFloatGDL*> (rt))[0],
-        e->KeywordSet(0) //DEGREES (sole option)
+        e->KeywordSet("DEGREES") //DEGREES (sole option)
         );
     } else {
       ll_arc_distance_helper(
@@ -2221,7 +2222,7 @@ namespace lib {
         (*static_cast<DDoubleGDL*> (p0))[0],
         (*static_cast<DDoubleGDL*> (rt))[1],
         (*static_cast<DDoubleGDL*> (rt))[0],
-        e->KeywordSet(0)
+        e->KeywordSet("DEGREES")
         );
     }
 
