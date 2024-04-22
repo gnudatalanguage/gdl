@@ -217,7 +217,7 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet(0)) return new DByteGDL(dim, BaseGDL::NOZERO);
+    if (e->KeywordSet("NOZERO")) return new DByteGDL(dim, BaseGDL::NOZERO);
     return new DByteGDL(dim);
   }
 
@@ -228,7 +228,7 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet(0)) return new DIntGDL(dim, BaseGDL::NOZERO);
+    if (e->KeywordSet("NOZERO")) return new DIntGDL(dim, BaseGDL::NOZERO);
     return new DIntGDL(dim);
     //     }
     //     catch( GDLException& ex)
@@ -244,7 +244,7 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet(0)) return new DUIntGDL(dim, BaseGDL::NOZERO);
+    if (e->KeywordSet("NOZERO")) return new DUIntGDL(dim, BaseGDL::NOZERO);
     return new DUIntGDL(dim);
     //     }
     //     catch( GDLException& ex)
@@ -260,7 +260,7 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet(0)) return new DLongGDL(dim, BaseGDL::NOZERO);
+    if (e->KeywordSet("NOZERO")) return new DLongGDL(dim, BaseGDL::NOZERO);
     return new DLongGDL(dim);
     /*    }
       catch( GDLException& ex)
@@ -276,7 +276,7 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet(0)) return new DULongGDL(dim, BaseGDL::NOZERO);
+    if (e->KeywordSet("NOZERO")) return new DULongGDL(dim, BaseGDL::NOZERO);
     return new DULongGDL(dim);
     /*   }
      catch( GDLException& ex)
@@ -293,7 +293,7 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet(0)) return new DLong64GDL(dim, BaseGDL::NOZERO);
+    if (e->KeywordSet("NOZERO")) return new DLong64GDL(dim, BaseGDL::NOZERO);
     return new DLong64GDL(dim);
     /*    }
       catch( GDLException& ex)
@@ -309,7 +309,7 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet(0)) return new DULong64GDL(dim, BaseGDL::NOZERO);
+    if (e->KeywordSet("NOZERO")) return new DULong64GDL(dim, BaseGDL::NOZERO);
     return new DULong64GDL(dim);
     /*  }
     catch( GDLException& ex)
@@ -325,7 +325,7 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet(0)) return new DFloatGDL(dim, BaseGDL::NOZERO);
+    if (e->KeywordSet("NOZERO")) return new DFloatGDL(dim, BaseGDL::NOZERO);
     return new DFloatGDL(dim);
     /* }
        catch( GDLException& ex)
@@ -342,7 +342,7 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet(0)) return new DDoubleGDL(dim, BaseGDL::NOZERO);
+    if (e->KeywordSet("NOZERO")) return new DDoubleGDL(dim, BaseGDL::NOZERO);
     return new DDoubleGDL(dim);
     /* }
        catch( GDLException& ex)
@@ -358,7 +358,7 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet(0))
+    if (e->KeywordSet("NOZERO"))
       e->Throw("Keyword parameters not allowed in call.");
     return new DStringGDL(dim);
     /*   }
@@ -376,7 +376,7 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet(0)) return new DComplexGDL(dim, BaseGDL::NOZERO);
+    if (e->KeywordSet("NOZERO")) return new DComplexGDL(dim, BaseGDL::NOZERO);
     return new DComplexGDL(dim);
     /*}
       catch( GDLException& ex)
@@ -392,7 +392,7 @@ namespace lib {
     arr(e, dim);
     if (dim[0] == 0)
 
-      if (e->KeywordSet(0)) return new DComplexDblGDL(dim, BaseGDL::NOZERO);
+      if (e->KeywordSet("NOZERO")) return new DComplexDblGDL(dim, BaseGDL::NOZERO);
     return new DComplexDblGDL(dim);
     /*   }
      catch( GDLException& ex)
@@ -411,7 +411,7 @@ namespace lib {
 
     DPtrGDL* ret;
 
-    if (!e->KeywordSet(0))
+    if (!e->KeywordSet("NOZERO"))
       return new DPtrGDL(dim);
 
     // ALLOCATE_HEAP
@@ -462,7 +462,7 @@ namespace lib {
         return new DPtrGDL(heapID);
       }
     } else {
-      if (e->KeywordSet(1)) // ALLOCATE_HEAP
+      if (e->KeywordSet("ALLOCATE_HEAP"))
       {
         DPtr heapID = e->NewHeap(1, NullGDL::GetSingleInstance()); //allocate a !NULL, not a null ptr!!
         return new DPtrGDL(heapID);
@@ -2074,7 +2074,7 @@ namespace lib {
 
     DStringGDL* p0S = e->GetParAs<DStringGDL>(0);
 
-    bool removeAll = e->KeywordSet(0);
+    bool removeAll = e->KeywordSet("REMOVE_ALL");
 
     DStringGDL* res = new DStringGDL(p0S->Dim(), BaseGDL::NOZERO);
 
@@ -2094,8 +2094,11 @@ namespace lib {
   BaseGDL* strpos(EnvT* e) {
     SizeT nParam = e->NParam(2); //, "STRPOS");
 
-    bool reverseOffset = e->KeywordSet(0); // REVERSE_OFFSET
-    bool reverseSearch = e->KeywordSet(1); // REVERSE_SEARCH
+    static int revOffsetIdx=e->KeywordIx("REVERSE_OFFSET");
+    bool reverseOffset = e->KeywordSet(revOffsetIdx);
+
+    static int revSearchIdx=e->KeywordIx("REVERSE_SEARCH");
+    bool reverseSearch = e->KeywordSet(revSearchIdx);
 
     DStringGDL* p0S = e->GetParAs<DStringGDL>(0);
 
@@ -2140,7 +2143,8 @@ namespace lib {
   BaseGDL* strmid(EnvT* e) {
     SizeT nParam = e->NParam(2); //, "STRMID");
 
-    bool reverse = e->KeywordSet(0);
+    static int revOffsetIdx=e->KeywordIx("REVERSE_OFFSET");
+    bool reverse = e->KeywordSet(revOffsetIdx);
 
     DStringGDL* p0S = e->GetParAs<DStringGDL>(0);
     DLongGDL* p1L = e->GetParAs<DLongGDL>(1);
@@ -2340,7 +2344,7 @@ namespace lib {
     if (nParam > 1)
       e->AssureStringScalarPar(1, delim);
 
-    bool single = e->KeywordSet(0); // SINGLE
+    bool single = e->KeywordSet("SINGLE");
 
     if (single) {
       DStringGDL* res = new DStringGDL((*p0S)[0]);
@@ -2389,7 +2393,7 @@ namespace lib {
   //    Expression is a scalar or 1-element array with a zero value.
 
   BaseGDL* keyword_set(EnvT* e) {
-    e->NParam(1); //, "KEYWORD_SET");
+    e->NParam(1);
 
     BaseGDL* p0 = e->GetPar(0);
     if (p0 == NULL) return new DIntGDL(0);
@@ -4300,6 +4304,7 @@ namespace lib {
   //simple median for double arrays with no NaNs.
 
   inline BaseGDL* mymedian_d(EnvT* e) {
+    
     DDoubleGDL* array = e->GetParAs<DDoubleGDL>(0)->Dup(); //original array is protected
     SizeT nEl = array->N_Elements();
     static int evenIx = e->KeywordIx("EVEN");
