@@ -82,7 +82,7 @@ public:
             format_reversion( reversionAnker);
             
             if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
-                throw GDLException("Infinite format loop detected.");
+                throw GDLException("Format in Error."); //Infinite format loop detected.");
         }
     }
     
@@ -418,8 +418,8 @@ f_csubcode // note: IDL doesn't allow hollerith strings inside C()
         }
     | tr:TR 
         { 
-            int    tlVal = tl->getW();
-            ioss.seekg( tlVal, std::ios_base::cur);
+            int    trVal = tr->getW();
+            ioss.seekg( trVal, std::ios_base::cur);
         }
     ;
 
