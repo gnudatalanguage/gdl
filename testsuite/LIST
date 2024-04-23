@@ -198,6 +198,7 @@ test_tiff.pro
 test_timestamp.pro
 test_total.pro
 test_triangulate.pro
+test_trired.pro
 test_trisol.pro
 test_tv.pro
 test_typename.pro

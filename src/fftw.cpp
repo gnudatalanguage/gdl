@@ -4,7 +4,7 @@
     begin                : Sep 21 2005
     copyright            : (C) 2005 by Joel Gales
     email                : jomoga@users.sourceforge.net
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -33,8 +33,8 @@ namespace lib {
 
   using namespace std;
 
-//   static int szdbl=sizeof(double);
-//   static int szflt=sizeof(float);
+  //   static int szdbl=sizeof(double);
+  //   static int szflt=sizeof(float);
 
   template < typename T>
   T* fftw_template(EnvT* e, BaseGDL* p0,
@@ -49,110 +49,110 @@ namespace lib {
     // and of course not center the result.
 
     if (recenter && direct == 1)
-    {
-      DLong centerIx[ MAXRANK];
-      for (int i = 0; i < p0->Rank(); ++i) centerIx[i] = (p0->Dim(i)%2==1)?((p0->Dim(i))/2)+1:((p0->Dim(i))/2);
-      data = p0->CShift(centerIx);
-      recenter = false;
-      guard_data.Reset(data);
-    } else data = p0;
+      {
+	DLong centerIx[ MAXRANK];
+	for (int i = 0; i < p0->Rank(); ++i) centerIx[i] = (p0->Dim(i)%2==1)?((p0->Dim(i))/2)+1:((p0->Dim(i))/2);
+	data = p0->CShift(centerIx);
+	recenter = false;
+	guard_data.Reset(data);
+      } else data = p0;
 
     if (overwrite == 0)
       res = new T(data->Dim(), BaseGDL::ZERO);
     else
-    {
-      res = (T*) p0; //we overwrite the real p0.
-      if (e->GlobalPar(0)) e->SetPtrToReturnValue(&e->GetPar(0));
-    }
+      {
+	res = (T*) p0; //we overwrite the real p0.
+	if (e->GlobalPar(0)) e->SetPtrToReturnValue(&e->GetPar(0));
+      }
 
     for (SizeT i = 0; i < data->Rank(); ++i)
-    {
-      dim[i] = (int) data->Dim(data->Rank() - i - 1);
-    }
+      {
+	dim[i] = (int) data->Dim(data->Rank() - i - 1);
+      }
 
     DComplexDblGDL* p0C = static_cast<DComplexDblGDL*> (data);
     DComplexGDL* p0CF = static_cast<DComplexGDL*> (data);
     if (data->Type() == GDL_COMPLEXDBL)
-    {
-      double *dptr;
-      dptr = (double*) &(*res)[0];
-
-      fftw_plan p;
-      fftw_complex *in, *out;
-      in = (fftw_complex *) &(*p0C)[0];
-      out = (fftw_complex *) & dptr[0];
-
-      p = fftw_plan_dft((int) data->Rank(), dim, in, out, (int) direct, FFTW_ESTIMATE);
-
-      fftw_execute(p);
-
-      if (direct == -1)
       {
-        if ((GDL_NTHREADS=parallelize( nEl))==1) {
-          for (OMPInt i = 0; i < nEl; ++i) {
-            out[i][0] /= nEl;
-            out[i][1] /= nEl;
-          }          
-        } else {
-TRACEOMP(__FILE__, __LINE__)
+	double *dptr;
+	dptr = (double*) &(*res)[0];
+
+	fftw_plan p;
+	fftw_complex *in, *out;
+	in = (fftw_complex *) &(*p0C)[0];
+	out = (fftw_complex *) & dptr[0];
+
+	p = fftw_plan_dft((int) data->Rank(), dim, in, out, (int) direct, FFTW_ESTIMATE);
+
+	fftw_execute(p);
+
+	if (direct == -1)
+	  {
+	    if ((GDL_NTHREADS=parallelize( nEl))==1) {
+	      for (OMPInt i = 0; i < nEl; ++i) {
+		out[i][0] /= nEl;
+		out[i][1] /= nEl;
+	      }          
+	    } else {
+	      TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-          for (OMPInt i = 0; i < nEl; ++i)
-          {
-            out[i][0] /= nEl;
-            out[i][1] /= nEl;
-          }
-        }
-      }
+		for (OMPInt i = 0; i < nEl; ++i)
+		  {
+		    out[i][0] /= nEl;
+		    out[i][1] /= nEl;
+		  }
+	    }
+	  }
 
-      // 02 06 2010
-      //cout << "fftw dest" << endl ;
-      fftw_destroy_plan(p); // 1 
+	// 02 06 2010
+	//cout << "fftw dest" << endl ;
+	fftw_destroy_plan(p); // 1 
 
-    } else if (data->Type() == GDL_COMPLEX)
-    {
-      float *dptrf;
-      dptrf = (float*) &(*res)[0];
-
-      fftwf_plan p_f;
-      fftwf_complex *in_f, *out_f;
-      in_f = (fftwf_complex *) &(*p0CF)[0];
-      out_f = (fftwf_complex *) & dptrf[0];
-
-      p_f = fftwf_plan_dft((int) data->Rank(), dim, in_f, out_f, (int) direct, FFTW_ESTIMATE);
-
-      fftwf_execute(p_f);
-
-      if (direct == -1)
+      } else if (data->Type() == GDL_COMPLEX)
       {
-        if ((GDL_NTHREADS=parallelize( nEl))==1) {
-          for (OMPInt i = 0; i < nEl; ++i)
-          {
-            out_f[i][0] /= nEl;
-            out_f[i][1] /= nEl;
-          }          
-        } else {
-TRACEOMP(__FILE__, __LINE__)
+	float *dptrf;
+	dptrf = (float*) &(*res)[0];
+
+	fftwf_plan p_f;
+	fftwf_complex *in_f, *out_f;
+	in_f = (fftwf_complex *) &(*p0CF)[0];
+	out_f = (fftwf_complex *) & dptrf[0];
+
+	p_f = fftwf_plan_dft((int) data->Rank(), dim, in_f, out_f, (int) direct, FFTW_ESTIMATE);
+
+	fftwf_execute(p_f);
+
+	if (direct == -1)
+	  {
+	    if ((GDL_NTHREADS=parallelize( nEl))==1) {
+	      for (OMPInt i = 0; i < nEl; ++i)
+		{
+		  out_f[i][0] /= nEl;
+		  out_f[i][1] /= nEl;
+		}          
+	    } else {
+	      TRACEOMP(__FILE__, __LINE__)
 #pragma omp parallel for num_threads(GDL_NTHREADS)
-          for (OMPInt i = 0; i < nEl; ++i)
-          {
-            out_f[i][0] /= nEl;
-            out_f[i][1] /= nEl;
-          }
-        }
+		for (OMPInt i = 0; i < nEl; ++i)
+		  {
+		    out_f[i][0] /= nEl;
+		    out_f[i][1] /= nEl;
+		  }
+	    }
+	  }
+
+	// 02 06 2010
+	//cout << "fftwF dest" << endl ;
+	fftwf_destroy_plan(p_f); // 2
+
       }
-
-      // 02 06 2010
-      //cout << "fftwF dest" << endl ;
-      fftwf_destroy_plan(p_f); // 2
-
-    }
     if (recenter)
-    {
-      Guard<BaseGDL> guard_res(res);
-      DLong centerIx[ MAXRANK];
-      for (int i = 0; i < data->Rank(); ++i) centerIx[i] = (p0->Dim(i))/2;
-      return (T*) res->CShift(centerIx);
-    } else return res;
+      {
+	Guard<BaseGDL> guard_res(res);
+	DLong centerIx[ MAXRANK];
+	for (int i = 0; i < data->Rank(); ++i) centerIx[i] = (p0->Dim(i))/2;
+	return (T*) res->CShift(centerIx);
+      } else return res;
   }
 
 
@@ -167,8 +167,8 @@ TRACEOMP(__FILE__, __LINE__)
     // If DIMENSION keyword set then use GSL fft
     // which is bad practice. We should do the same as in min_fun or max_fun,
     // use the stride facility.
-    
-    if(e->KeywordSet("DIMENSION")) {
+    static int DimEnvIx = e->KeywordIx("DIMENSION");
+    if(e->KeywordSet(DimEnvIx)) {
       return fft_fun(e);
     }
 
@@ -194,10 +194,14 @@ TRACEOMP(__FILE__, __LINE__)
       GDLDelete(direction);
     }
 
-    if( e->KeywordSet("DOUBLE")) dbl = 1;
-    if( e->KeywordSet("INVERSE")) direct = +1.0;
-    if( e->KeywordSet("OVERWRITE")) overwrite = 1;
-    if( e->KeywordSet("CENTER")) recenter = true;
+    static int doubleIx=e->KeywordIx("DOUBLE");
+    static int inverseIx=e->KeywordIx("INVERSE");
+    static int overwriteIx=e->KeywordIx("OVERWRITE");
+    static int centerIx=e->KeywordIx("CENTER");    
+    if (e->KeywordSet(doubleIx)) dbl = 1;
+    if (e->KeywordSet(inverseIx)) direct = +1.0;
+    if (e->KeywordSet(overwriteIx)) overwrite = 1;
+    if (e->KeywordSet(centerIx)) recenter = true;
 
     // If not global parameter no overwrite
     // ok as we steal it then //if( !e->GlobalPar( 0)) overwrite = 0;
@@ -206,23 +210,23 @@ TRACEOMP(__FILE__, __LINE__)
     if( dbl) overwrite = 0;
 
     if( p0->Type() == GDL_COMPLEXDBL || p0->Type() == GDL_DOUBLE || dbl) { 
-
+	  
       DComplexDblGDL *p0C;
 
       Guard<BaseGDL> guard_p0C;
 
       if( p0->Type() != GDL_COMPLEXDBL) {
 	p0C = static_cast<DComplexDblGDL*>(p0->Convert2( GDL_COMPLEXDBL, BaseGDL::COPY));
-        guard_p0C.Init(p0C); 
+	guard_p0C.Init(p0C); 
       } else
-      {
+	{
 	  if( overwrite)
-	  {
-		e->StealLocalPar(0);
-//		e->StealLocalParUndefGlobal(0);
-		}
-       p0C = (DComplexDblGDL *) p0;
-	 }
+	    {
+	      e->StealLocalPar(0);
+	      //		e->StealLocalParUndefGlobal(0);
+	    }
+	  p0C = (DComplexDblGDL *) p0;
+	}
 
       return fftw_template< DComplexDblGDL> (e, p0C, nEl, dbl, overwrite, direct, recenter);
 
@@ -230,9 +234,9 @@ TRACEOMP(__FILE__, __LINE__)
     else if( p0->Type() == GDL_COMPLEX) {
 
       //      DComplexGDL* res;
-	  if( overwrite)
-	  	e->StealLocalPar(0);
-// 		e->StealLocalParUndefGlobal(0);
+      if( overwrite)
+	e->StealLocalPar(0);
+      // 		e->StealLocalParUndefGlobal(0);
 
       return fftw_template< DComplexGDL> (e, p0, nEl, dbl, overwrite, direct, recenter);
 

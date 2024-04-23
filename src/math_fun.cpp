@@ -256,8 +256,11 @@ namespace lib {
     if (nEl == 0) e->Throw("Variable is undefined: " + e->GetParString(0));
     if (!(NumericType(p0->Type()))) e->Throw(p0->TypeStr() + " expression: not allowed in this context: " + e->GetParString(0));
 
+    static int l64Ix = e->KeywordIx("L64");
+    bool forceL64 = e->KeywordSet(l64Ix);
+    
     //L64 means it: output IS ALWAYS L64.
-    if (e->KeywordSet("L64")) {
+    if (forceL64) {
       if (p0->Type() == GDL_COMPLEX) {
         DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
         SizeT nEl = p0->N_Elements();
@@ -378,8 +381,11 @@ namespace lib {
     if (nEl == 0) e->Throw("Variable is undefined: " + e->GetParString(0));
     if (!(NumericType(p0->Type()))) e->Throw(p0->TypeStr() + " expression: not allowed in this context: " + e->GetParString(0));
 
+    static int l64Ix = e->KeywordIx("L64");
+    bool forceL64 = e->KeywordSet(l64Ix);
+
     //L64 means it: output IS ALWAYS L64.
-    if (e->KeywordSet("L64")) {
+    if (forceL64) {
       if (p0->Type() == GDL_COMPLEX) {
         DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
         SizeT nEl = p0->N_Elements();
@@ -500,8 +506,11 @@ namespace lib {
     if (nEl == 0) e->Throw("Variable is undefined: " + e->GetParString(0));
     if (!(NumericType(p0->Type()))) e->Throw(p0->TypeStr() + " expression: not allowed in this context: " + e->GetParString(0));
 
+    static int l64Ix = e->KeywordIx("L64");
+    bool forceL64 = e->KeywordSet(l64Ix);
+
     //L64 means it: output IS ALWAYS L64.
-    if (e->KeywordSet("L64")) {
+    if (forceL64) {
       if (p0->Type() == GDL_COMPLEX) {
         DComplexGDL* p0C = static_cast<DComplexGDL*> (p0);
         SizeT nEl = p0->N_Elements();
@@ -2203,6 +2212,9 @@ namespace lib {
     if (p2->Type() != type) p2 = p2->Convert2(type, BaseGDL::COPY);
 
     // calculating (by calling a helper template function for float/double versions)
+
+    static int degreesIx=e->KeywordIx("DEGREES");
+    
     BaseGDL* rt = p0->New(dimension(2, BaseGDL::NOZERO));
     if (type == GDL_FLOAT) {
       ll_arc_distance_helper(
@@ -2212,7 +2224,7 @@ namespace lib {
         (*static_cast<DFloatGDL*> (p0))[0],
         (*static_cast<DFloatGDL*> (rt))[1],
         (*static_cast<DFloatGDL*> (rt))[0],
-        e->KeywordSet("DEGREES") //DEGREES (sole option)
+        e->KeywordSet(degreesIx) //DEGREES (sole option)
         );
     } else {
       ll_arc_distance_helper(
@@ -2222,7 +2234,7 @@ namespace lib {
         (*static_cast<DDoubleGDL*> (p0))[0],
         (*static_cast<DDoubleGDL*> (rt))[1],
         (*static_cast<DDoubleGDL*> (rt))[0],
-        e->KeywordSet("DEGREES")
+        e->KeywordSet(degreesIx)
         );
     }
 

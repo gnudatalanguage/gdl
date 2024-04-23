@@ -553,10 +553,14 @@ namespace lib {
     }
 
     // AC 2024/04/22 : some of the last "by number" keywords :(
-    if (e->KeywordSet("DOUBLE")) dbl = 1;
-    if (e->KeywordSet("INVERSE")) direct = +1.0;
-    if (e->KeywordSet("OVERWRITE")) overwrite = 1;
-    if (e->KeywordSet("CENTER") && !warning_done) {
+    static int doubleIx=e->KeywordIx("DOUBLE");
+    static int inverseIx=e->KeywordIx("INVERSE");
+    static int overwriteIx=e->KeywordIx("OVERWRITE");
+    static int centerIx=e->KeywordIx("CENTER");    
+    if (e->KeywordSet(doubleIx)) dbl = 1;
+    if (e->KeywordSet(inverseIx)) direct = +1.0;
+    if (e->KeywordSet(overwriteIx)) overwrite = 1;
+    if (e->KeywordSet(centerIx) && !warning_done) {
       warning_done = true;
       cerr << "Warning, keyword CENTER ignored, fixme!" << endl; //(recenter not handled here)
     }
@@ -1005,6 +1009,9 @@ namespace lib {
     exclusiveKW = exclusiveKW + e->KeywordPresent(ULONGIx);
     if (exclusiveKW > 1) e->Throw("Conflicting keywords.");
 
+    static int doubleIx = e->KeywordIx("DOUBLE");
+    bool isDouble = e->KeywordSet(doubleIx);
+    
     // the generator structure
     static gsl_rng *gsl_rng_mem = gsl_rng_alloc(gsl_rng_mt19937);
 
@@ -1079,10 +1086,10 @@ namespace lib {
 	if (test_n > 0.0) n = 1;
       }
       if (n <= 0) e->Throw("Value of (Int/Long) GAMMA is out of allowed range: Gamma = 1, 2, 3, ...");
-      if (!e->KeywordSet("DOUBLE")) { //hence:float
+      if (!isDouble) { //hence:float
 	if (n >= 10000000) e->Throw("Value of GAMMA is out of allowed range: Try /DOUBLE.");
       }
-      if (e->KeywordSet("DOUBLE")) { // GDL_DOUBLE
+      if (isDouble) { // GDL_DOUBLE
 	DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 	random_gamma<DDoubleGDL, double>(res, gsl_rng_mem, dim, n);
 	get_random_state(e, gsl_rng_mem, seed);
@@ -1106,7 +1113,7 @@ namespace lib {
 
       if (((*binomialKey)[1] < 0.0) || ((*binomialKey)[1] > 1.0))
 	e->Throw(" Value of BINOMIAL[1] is out of allowed range: 0.0 <= p <= 1.0");
-      if (e->KeywordSet("DOUBLE")) { // GDL_DOUBLE
+      if (isDouble) { // GDL_DOUBLE
 	DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 	random_binomial<DDoubleGDL, double>(res, gsl_rng_mem, dim, binomialKey);
 	get_random_state(e, gsl_rng_mem, seed);
@@ -1127,7 +1134,7 @@ namespace lib {
       if ((*poissonKey)[0] < 0.0)
 	e->Throw("Value of POISSON is out of allowed range: Poisson > 0.0");
 
-      if (e->KeywordSet("DOUBLE")) {
+      if (isDouble) {
 	DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 	random_poisson<DDoubleGDL, double>(res, gsl_rng_mem, dim, poissonKey);
 	get_random_state(e, gsl_rng_mem, seed);
@@ -1143,7 +1150,7 @@ namespace lib {
     }
 
     if (e->KeywordSet(UNIFORMIx) || ((e->GetProName() == "RANDOMU") && !e->KeywordSet(NORMALIx))) {
-      if (e->KeywordSet("DOUBLE")) { // GDL_DOUBLE
+      if (isDouble) { // GDL_DOUBLE
 	DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 	random_uniform<DDoubleGDL, double>(res, gsl_rng_mem, dim);
 	get_random_state(e, gsl_rng_mem, seed);
@@ -1157,7 +1164,7 @@ namespace lib {
     }
 
     if (e->KeywordSet(NORMALIx) || ((e->GetProName() == "RANDOMN") && !e->KeywordSet(UNIFORMIx))) {
-      if (e->KeywordSet("DOUBLE")) { // GDL_DOUBLE
+      if (isDouble) { // GDL_DOUBLE
 	DDoubleGDL *res = new DDoubleGDL(dim, BaseGDL::NOZERO);
 	random_normal<DDoubleGDL, double>(res, gsl_rng_mem, dim);
 	get_random_state(e, gsl_rng_mem, seed);
@@ -1217,7 +1224,8 @@ namespace lib {
 
   void la_trired_pro(EnvT *e) {
 
-    if (e->KeywordSet("DEBUG")) cout << "GSL version of LA_TRIRED" << endl;
+    static int debugIx=KeywordIx("DEBUG");
+    if (e->KeywordSet(debugIx)) cout << "GSL version of LA_TRIRED" << endl;
 
     SizeT nParam = e->NParam(3);
 
@@ -2179,9 +2187,9 @@ namespace lib {
     //but we will use only this special crafted function that accompanies GDL:
     DStringGDL *gdlFun = new DStringGDL("GDL_MULTIMIN_FDF");
 
-    static int DOUBLEIx = e->KeywordIx("DOUBLE");
+    static int doubleIx = e->KeywordIx("DOUBLE");
     bool isDouble = (p0->Type() == GDL_DOUBLE);
-    if (e->KeywordSet(DOUBLEIx)) isDouble = true;
+    if (e->KeywordSet(doubleIx)) isDouble = true;
 
     static int EPSIx = e->KeywordIx("EPS");
     DDouble eps = isDouble ? 3E-10 : 3E-8;
@@ -2815,15 +2823,15 @@ namespace lib {
     res = new DComplexDblGDL(1, BaseGDL::NOZERO);
     (*res)[0] = root;
 
-    static int DOUBLEIx = e->KeywordIx("DOUBLE");
-    bool isdouble = e->KeywordSet(DOUBLEIx);
+    static int doubleIx = e->KeywordIx("DOUBLE");
+    bool isDouble = e->KeywordSet(doubleIx);
 
     if ((*res)[0].imag() == 0) {
       DDoubleGDL *resreal;
       resreal = new DDoubleGDL(1, BaseGDL::NOZERO);
       (*resreal)[0] = (*res)[0].real();
 
-      if (isdouble || p0->Type() == GDL_COMPLEXDBL ||
+      if (isDouble || p0->Type() == GDL_COMPLEXDBL ||
 	  p0->Type() == GDL_DOUBLE) {
 	return resreal->Convert2(GDL_DOUBLE, BaseGDL::CONVERT);
       } else {
@@ -2831,7 +2839,7 @@ namespace lib {
       }
     }
 
-    if (isdouble || p0->Type() == GDL_COMPLEXDBL) {
+    if (isDouble || p0->Type() == GDL_COMPLEXDBL) {
       return res->Convert2(GDL_COMPLEXDBL, BaseGDL::CONVERT);
     } else {
       return res->Convert2(GDL_COMPLEX, BaseGDL::CONVERT);
@@ -3378,7 +3386,10 @@ namespace lib {
 
     // allocating (and guarding) memory
     BaseGDL *res;
-    bool dbl = e->KeywordSet("DOUBLE") || theta->Type() == GDL_DOUBLE || phi->Type() == GDL_DOUBLE;
+    static int doubleIx=e->KeywordIx("DOUBLE");
+    bool dbl = e->KeywordSet(doubleIx) ||
+      (theta->Type() == GDL_DOUBLE) ||
+      (phi->Type() == GDL_DOUBLE);
     {
       dimension dim = dimension(length);
       if (phi->Rank() == 0 && theta->Rank() == 0) dim.Remove(0);

@@ -523,24 +523,24 @@ static void help_lastmsg(EnvT* e)
   {
       // if LAST_MESSAGE is present, it is the only output.
       // All other kw are ignored *EXCEPT 'output'*.
-      BaseGDL** outputKW = NULL;
-
-	  DStructGDL* errorState = SysVar::Error_State();
-	  static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
-
-      static int outputIx = e->KeywordIx( "OUTPUT");
-	  if (e->WriteableKeywordPresent( outputIx)) 
-	    {    // Setup output return variable
-	      outputKW = &e->GetTheKW( outputIx);
-	      GDLDelete((*outputKW));
-	      *outputKW = static_cast<DStringGDL*>((errorState->GetTag( msgTag))
-	                                             ->Convert2( GDL_STRING, BaseGDL::COPY));
-	      return;
-			}
-			else {
-	    cout << (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0]<< '\n';
-	    return;
-	  }
+    BaseGDL** outputKW = NULL;
+    
+    DStructGDL* errorState = SysVar::Error_State();
+    static unsigned msgTag = errorState->Desc()->TagIndex( "MSG");
+    
+    static int outputIx = e->KeywordIx( "OUTPUT");
+    if (e->WriteableKeywordPresent( outputIx)) 
+      {    // Setup output return variable
+	outputKW = &e->GetTheKW( outputIx);
+	GDLDelete((*outputKW));
+	*outputKW = static_cast<DStringGDL*>((errorState->GetTag( msgTag))
+					     ->Convert2( GDL_STRING, BaseGDL::COPY));
+	return;
+      }
+    else {
+      cout << (*static_cast<DStringGDL*>( errorState->GetTag( msgTag)))[0]<< '\n';
+      return;
+    }
   }
     
   static DStringGDL* recall_commands_internal()
@@ -1130,7 +1130,7 @@ void help_help(EnvT* e)
 	static int MEMORYIx = e->KeywordIx("MEMORY");
 	bool isKWSetMemory = e->KeywordSet(MEMORYIx);
 	static int PREFERENCESIx = e->KeywordIx("PREFERENCES");
-	bool isKWSetPreferences = e->KeywordSet("PREFERENCES");
+	bool isKWSetPreferences = e->KeywordSet(PREFERENCESIx);
 	if (isKWSetStructures) kw = true;
 
 	if ((isKWSetStructures or isKWSetRecall or isKWSetMemory or

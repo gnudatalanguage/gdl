@@ -217,7 +217,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet("NOZERO")) return new DByteGDL(dim, BaseGDL::NOZERO);
+    static int nozeroIx = e->KeywordIx("NOZERO");
+    if (e->KeywordSet(nozeroIx)) return new DByteGDL(dim, BaseGDL::NOZERO);
     return new DByteGDL(dim);
   }
 
@@ -228,7 +229,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet("NOZERO")) return new DIntGDL(dim, BaseGDL::NOZERO);
+    static int nozeroIx = e->KeywordIx("NOZERO");
+    if (e->KeywordSet(nozeroIx)) return new DIntGDL(dim, BaseGDL::NOZERO);
     return new DIntGDL(dim);
     //     }
     //     catch( GDLException& ex)
@@ -244,7 +246,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet("NOZERO")) return new DUIntGDL(dim, BaseGDL::NOZERO);
+    static int nozeroIx = e->KeywordIx("NOZERO");
+    if (e->KeywordSet(nozeroIx)) return new DUIntGDL(dim, BaseGDL::NOZERO);
     return new DUIntGDL(dim);
     //     }
     //     catch( GDLException& ex)
@@ -260,7 +263,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet("NOZERO")) return new DLongGDL(dim, BaseGDL::NOZERO);
+    static int nozeroIx = e->KeywordIx("NOZERO");
+    if (e->KeywordSet(nozeroIx)) return new DLongGDL(dim, BaseGDL::NOZERO);
     return new DLongGDL(dim);
     /*    }
       catch( GDLException& ex)
@@ -276,7 +280,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet("NOZERO")) return new DULongGDL(dim, BaseGDL::NOZERO);
+    static int nozeroIx = e->KeywordIx("NOZERO");
+    if (e->KeywordSet(nozeroIx)) return new DULongGDL(dim, BaseGDL::NOZERO);
     return new DULongGDL(dim);
     /*   }
      catch( GDLException& ex)
@@ -293,7 +298,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet("NOZERO")) return new DLong64GDL(dim, BaseGDL::NOZERO);
+    static int nozeroIx = e->KeywordIx("NOZERO");
+    if (e->KeywordSet(nozeroIx)) return new DLong64GDL(dim, BaseGDL::NOZERO);
     return new DLong64GDL(dim);
     /*    }
       catch( GDLException& ex)
@@ -309,7 +315,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet("NOZERO")) return new DULong64GDL(dim, BaseGDL::NOZERO);
+    static int nozeroIx = e->KeywordIx("NOZERO");
+    if (e->KeywordSet(nozeroIx)) return new DULong64GDL(dim, BaseGDL::NOZERO);
     return new DULong64GDL(dim);
     /*  }
     catch( GDLException& ex)
@@ -325,7 +332,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet("NOZERO")) return new DFloatGDL(dim, BaseGDL::NOZERO);
+    static int nozeroIx = e->KeywordIx("NOZERO");
+    if (e->KeywordSet(nozeroIx)) return new DFloatGDL(dim, BaseGDL::NOZERO);
     return new DFloatGDL(dim);
     /* }
        catch( GDLException& ex)
@@ -342,7 +350,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet("NOZERO")) return new DDoubleGDL(dim, BaseGDL::NOZERO);
+     static int nozeroIx = e->KeywordIx("NOZERO");
+   if (e->KeywordSet(nozeroIx)) return new DDoubleGDL(dim, BaseGDL::NOZERO);
     return new DDoubleGDL(dim);
     /* }
        catch( GDLException& ex)
@@ -358,8 +367,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet("NOZERO"))
-      e->Throw("Keyword parameters not allowed in call.");
+    // AC 2024/04°23 : no /NOZERO key *only* in this ARR function
+
     return new DStringGDL(dim);
     /*   }
      catch( GDLException& ex)
@@ -376,7 +385,8 @@ namespace lib {
     if (dim[0] == 0)
       throw GDLException("Array dimensions must be greater than 0");
 
-    if (e->KeywordSet("NOZERO")) return new DComplexGDL(dim, BaseGDL::NOZERO);
+    static int nozeroIx = e->KeywordIx("NOZERO");
+    if (e->KeywordSet(nozeroIx)) return new DComplexGDL(dim, BaseGDL::NOZERO);
     return new DComplexGDL(dim);
     /*}
       catch( GDLException& ex)
@@ -391,8 +401,10 @@ namespace lib {
     //     try{
     arr(e, dim);
     if (dim[0] == 0)
+      throw GDLException("Array dimensions must be greater than 0");
 
-      if (e->KeywordSet("NOZERO")) return new DComplexDblGDL(dim, BaseGDL::NOZERO);
+    static int nozeroIx = e->KeywordIx("NOZERO");
+    if (e->KeywordSet(nozeroIx)) return new DComplexDblGDL(dim, BaseGDL::NOZERO);
     return new DComplexDblGDL(dim);
     /*   }
      catch( GDLException& ex)
@@ -410,8 +422,9 @@ namespace lib {
       throw GDLException("Array dimensions must be greater than 0");
 
     DPtrGDL* ret;
-
-    if (!e->KeywordSet("NOZERO"))
+    
+    static int nozeroIx = e->KeywordIx("NOZERO");    
+    if (!e->KeywordSet(nozeroIx))
       return new DPtrGDL(dim);
 
     // ALLOCATE_HEAP

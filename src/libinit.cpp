@@ -389,13 +389,14 @@ void LibInit()
   new DLibFunRetNew(lib::ulon64arr,string("ULON64ARR"),MAXRANK,arrKey,NULL,true);
   new DLibFunRetNew(lib::fltarr,string("FLTARR"),MAXRANK,arrKey,NULL,true);
   new DLibFunRetNew(lib::dblarr,string("DBLARR"),MAXRANK,arrKey,NULL,true);
-  new DLibFunRetNew(lib::strarr,string("STRARR"),MAXRANK,arrKey,NULL,true);
   new DLibFunRetNew(lib::complexarr,string("COMPLEXARR"),MAXRANK,arrKey,NULL,true);
   new DLibFunRetNew(lib::dcomplexarr,string("DCOMPLEXARR"),MAXRANK,arrKey,NULL,true);
 
+  new DLibFunRetNew(lib::strarr,string("STRARR"),MAXRANK,NULL,NULL,true);
+
   const string ptrArrKey[]={"ALLOCATE_HEAP",KLISTEND};
   new DLibFunRetNew(lib::ptrarr,string("PTRARR"),MAXRANK,ptrArrKey);
-  new DLibFunRetNew(lib::objarr,string("OBJARR"),MAXRANK);
+  new DLibFunRetNew(lib::objarr,string("OBJARR"),MAXRANK,arrKey);
 
   const string ptr_newKey[]={"NO_COPY","ALLOCATE_HEAP",KLISTEND};
   new DLibFunRetNew(lib::ptr_new,string("PTR_NEW"),1,ptr_newKey);

@@ -95,7 +95,8 @@ namespace lib {
 
     void la_trired_pro(EnvT* e) {
 
-      if (e->KeywordSet("DEBUG")) cout << "Eigen3 version of LA_TRIRED" << endl;
+      static int debugIx=e->KeywordIx("DEBUG");
+      if (e->KeywordSet(debugIx)) cout << "Eigen3 version of LA_TRIRED" << endl;
 
       SizeT nParam = e->NParam(3);
       BaseGDL* p0 = e->GetParDefined(0);
