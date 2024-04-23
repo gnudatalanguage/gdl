@@ -1157,12 +1157,9 @@ void EnvT::Catch()
   EnvUDT* caller = static_cast<EnvUDT*>(Caller());
   if( caller == NULL) return;
   SizeT nParam = NParam();
-  
-  static int cancelIx=KeywordIx("CANCEL");
-    
   if( nParam == 0)
     {
-      if( KeywordSet(cancelIx))
+      if( KeywordSet("CANCEL"))
 	{
 	  caller->catchVar = NULL;
 	  caller->catchNode = NULL;
