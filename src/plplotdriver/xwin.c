@@ -193,6 +193,7 @@ static void  ConfigBufferingCmd( PLStream *pls, PLBufferingCB *ptr );
 static void  GetCursorCmd( PLStream *pls, PLGraphicsIn *ptr );
 static void  FillPolygonCmd( PLStream *pls );
 static void  XorMod( PLStream *pls, PLINT *mod );
+static void  AnyMod( PLStream *pls, PLINT *mod );
 static void  DrawImage( PLStream *pls );
 
 // Miscellaneous
@@ -415,6 +416,15 @@ XorMod( PLStream *pls, PLINT *mod )
         XSetFunction( xwd->display, dev->gc, GXxor );
 }
 
+static void
+AnyMod( PLStream *pls, PLINT *mod )
+{
+    XwDev     *dev = (XwDev *) pls->dev;
+    XwDisplay *xwd = (XwDisplay *) dev->xwd;
+
+    XGCValues values_return;
+    XSetFunction( xwd->display, dev->gc, *mod );
+}
 //--------------------------------------------------------------------------
 // plD_polyline_xw()
 //
@@ -802,7 +812,7 @@ plD_esc_xw( PLStream *pls, PLINT op, void *ptr )
         break;
 
     case PLESC_XORMOD:
-        XorMod( pls, (PLINT *) ptr );
+        AnyMod( pls, (PLINT *) ptr );
         break;
 
     case PLESC_DOUBLEBUFFERING:
@@ -1188,8 +1198,9 @@ Init( PLStream *pls )
         XSetFillRule( xwd->display, dev->gc, WindingRule );
 
 // If main window, need to map it and wait for exposure
-
-    if ( dev->is_main )
+// Ugly Patch: use pls->arrow_npts=999 to make window hiden and no MapMain
+    int hide=(pls->arrow_npts==999);
+    if ( dev->is_main && !hide)
         MapMain( pls );
 }
 

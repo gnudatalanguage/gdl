@@ -1417,26 +1417,38 @@ void GDLGStream::getCurrentSubpageInfo(PLFLT &xratio, PLFLT &yratio, PLFLT &zrat
 
   //get region (3BPP data)
 
-bool GDLGStream::GetRegion(DLong& xoff, DLong& yoff, DLong& nx, DLong& ny) {
+int GDLGStream::GetRegion(DLong& xoff, DLong& yoff, DLong& nPixelsX, DLong& nPixelsY) {
   long nxOrig,nyOrig;
   this->GetGeometry(nxOrig,nyOrig);
-
-  DLong xmax = xoff + nx - 1;
-  DLong ymax = yoff + ny - 1;
-  if (yoff < 0 || yoff > nyOrig - 1) return false;
-  if (xoff < 0 || xoff > nxOrig - 1) return false;
-  if (xmax < 0 || xmax > nxOrig - 1) return false;
-  if (ymax < 0 || ymax > nyOrig - 1) return false;
-
-  DByteGDL *bitmap = static_cast<DByteGDL*> (this->GetBitmapData(xoff,yoff,nx,ny));
-  if (bitmap == NULL) return false; //need to GDLDelete bitmap on exit after this line.
+  if (nPixelsX <= 0) return 1;
+  int xmin=xoff;
+  int xmax = xoff + nPixelsX - 1;
+  if (xmax < 0 || xmin > nxOrig - 1) return 1;
+  
+  if (nPixelsY <= 0) return 1;
+  int ymin=yoff;
+  int ymax = yoff + nPixelsY - 1;
+  if (ymax < 0 || ymin > nyOrig - 1) return 1;
+ 
+  if ( xmax > nxOrig - 1) xmax = nxOrig - 1;
+  if ( xmin < 0 ) xmin=0;
+  if ( xmin > xmax) return 1;
+  
+  if ( ymax > nyOrig - 1) ymax = nyOrig - 1;
+  if ( ymin < 0 ) ymin=0;
+  if ( ymin > ymax) return 1;
+  //give back updated number of pixels! important!
+  nPixelsX=xmax-xmin+1;
+  nPixelsY=ymax-ymin+1;
+  DByteGDL *bitmap = static_cast<DByteGDL*> (this->GetBitmapData(xmin,ymin,nPixelsX,nPixelsY));
+  if (bitmap == NULL) return 2; //need to GDLDelete bitmap on exit after this line.
   DByte* bmp=static_cast<DByte*>(bitmap->DataAddr());
 
   GraphicsDevice* actDevice = GraphicsDevice::GetDevice();
-  unsigned char* data = actDevice->SetCopyBuffer(nx * ny * 3);
-  for (auto k=0; k< nx*ny*3; ++k) data[k] = bmp[k];
+  unsigned char* data = actDevice->SetCopyBuffer(nPixelsX * nPixelsY * 3);
+  for (auto k=0; k< nPixelsX*nPixelsY*3; ++k) data[k] = bmp[k];
   GDLDelete(bitmap);
-  return true;
+  return 0; //0 is OK
 }
 
 bool GDLGStream::SetRegion(DLong& xs, DLong& ys, DLong& nx, DLong& ny){

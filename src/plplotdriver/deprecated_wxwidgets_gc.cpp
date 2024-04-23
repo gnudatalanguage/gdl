@@ -250,8 +250,6 @@ void wxPLDevGC::CreateCanvas()
     {
         delete m_context;
         m_context = wxGraphicsContext::Create( *( (wxMemoryDC *) m_dc ) );
-        char* do_antialias = getenv("GDL_DO_ANTIALIASING");
-        if (do_antialias==NULL ) m_context->SetAntialiasMode(wxANTIALIAS_NONE); //GD May 2022 force no antialias as antialiasing prevents erasing lines by redrawing them ontop by a color 0
         // see what procedure PROFILES do.
     }
 }
@@ -317,6 +315,9 @@ void wxPLDevGC::SetExternalBuffer( void* dc )
 
     m_dc      = (wxDC *) dc; // Add the dc to the device
     m_context = wxGraphicsContext::Create( *( (wxMemoryDC *) m_dc ) );
+    char* do_antialias = getenv("GDL_DO_ANTIALIASING");
+    if (do_antialias == NULL) m_context->SetAntialiasMode(wxANTIALIAS_NONE); //GD May 2022 force no antialias as antialiasing prevents erasing lines by redrawing them ontop by a color 0.
+	//NOTE: antialiasing and no double buffer makes plots very slow.
     ready     = true;
     ownGUI    = false;
 }

@@ -129,7 +129,7 @@ public:
     xp=(*static_cast<DFloatGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("X_PX_CM"))))[0]*2.5;
     yp=(*static_cast<DFloatGDL*>( dStruct->GetTag(dStruct->Desc()->TagIndex("Y_PX_CM"))))[0]*2.5;
 
-    winList[ wIx] = new GDLXStream(xp , yp, xleng, yleng, xoff, yoff, title);
+    winList[ wIx] = new GDLXStream(xp , yp, xleng, yleng, xoff, yoff, title, hide);
     oList[ wIx]   = oIx++;    
 
     SetActWin( wIx);
@@ -140,11 +140,7 @@ public:
   winList[wIx]->SetBackingStore(-1);
 
     bool success;
-    if ( hide )
-    {
-      success=this->Hide();
-    }
-    else success=this->UnsetFocus();
+    if ( !hide ) success=this->UnsetFocus();
     return true; 
     }
   
