@@ -395,8 +395,8 @@ void LibInit()
   new DLibFunRetNew(lib::strarr,string("STRARR"),MAXRANK,NULL,NULL,true);
 
 const string ptrArrKey[]={"ALLOCATE_HEAP","NOZERO",KLISTEND};
-  new DLibFunRetNew(lib::ptrarr,string("PTRARR"),MAXRANK,ptrArrKey);
-  new DLibFunRetNew(lib::objarr,string("OBJARR"),MAXRANK,arrKey);
+  new DLibFunRetNew(lib::ptrarr,string("PTRARR"),MAXRANK,ptrArrKey,NULL,true);
+  new DLibFunRetNew(lib::objarr,string("OBJARR"),MAXRANK,arrKey,NULL,true);
 
   const string ptr_newKey[]={"NO_COPY","ALLOCATE_HEAP",KLISTEND};
   new DLibFunRetNew(lib::ptr_new,string("PTR_NEW"),1,ptr_newKey);
