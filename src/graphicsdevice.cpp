@@ -496,12 +496,13 @@ int GraphicsMultiDevice::WAddFree() {
   TidyWindowsList();
 
   int wLSize = winList.size();
-  // plplot allows only 101 windows
-  if (wLSize == 101) return -1;
-
+//test if handle available
   for (int i = max_win; i < wLSize; i++)
     if (winList[i] == NULL) return i;
-
+  
+  // plplot allows only 101 windows [0 to 100], do not allocate more
+  if (wLSize == 101) return -1;
+  //else allocate new
   winList.push_back(NULL);
   oList.push_back(0);
   return wLSize;

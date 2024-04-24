@@ -224,11 +224,11 @@ public:
   virtual ~GDLGStream()
   {
 	  if (GDL_DEBUG_PLSTREAM) printf(" retire GDLGstream:pls=%p \n", (void *)pls);
-//    plend1(); //strange. Was expected to solve #1342 but 1) I cannot reproduce now and 2) this crashes GDL in the following manner:
+    plend1(); //strange. Was expected to solve #1342 but 1) I cannot reproduce now and 2) this crashes GDL in the following manner:
 //    plot,dist(10) ; using X11 not wxWidgets
 //    set_plot,'z'
 //    plot,dist(10)
-//    device, resolution=[1200,800] ; destroys and recretates the 'z' pls, but this plend1() above destroys the X11 window!!
+//    device, set_resolution=[1200,800] ; destroys and recretates the 'z' pls, but this plend1() above destroys the X11 window!!
 //      
   }
 
