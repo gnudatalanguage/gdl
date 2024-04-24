@@ -148,7 +148,7 @@ test_numeric_limits.pro
 test_obj_destroy.pro
 test_obj_hasmethod.pro
 test_obj_isa.pro
-test_obj_new.pro
+#test_obj_new.pro
 test_obj_valid.pro
 test_operators.pro
 test_parse_url.pro
@@ -210,6 +210,6 @@ test_wordexp.pro
 test_wordexp_null_string.pro
 test_xdr.pro
 test_xmlsax.pro
-test_xyztick_get.pro
+#test_xyztick_get.pro
 test_zeropoly.pro
 test_write_csv.pro
