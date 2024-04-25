@@ -40,11 +40,12 @@ else
     WITH_WXWIDGETS=${WITH_WXWIDGETS:-ON}
     WITH_X11=${WITH_X11:-ON}
 fi
+WITH_OPENMP=${WITH_OPENMP:-ON}
 WITH_GRAPHICSMAGICK=${WITH_GRAPHICSMAGICK:-ON}
 WITH_NETCDF=${WITH_NETCDF:-ON}
 WITH_HDF=${WITH_HDF:-ON}
 WITH_HDF5=${WITH_HDF5:-ON}
-if [[ ${DEPS} == "standard" ]]; then
+if [[ ${DEPS} != "headless" ]]; then
     WITH_MPI=${WITH_MPI:-OFF}
 else
     WITH_MPI=${WITH_MPI:-ON}
@@ -62,6 +63,7 @@ if [[ ${BUILD_OS} == "macOS" ]]; then
     WITH_GRIB=${WITH_GRIB:-ON}
     WITH_PYTHON="OFF"
     WITH_PYTHONVERSION="OFF"
+    WITH_OPENMP="OFF"
 else
     zz=`grep -i opensuse /etc/*-release 2> /dev/null`
     if [[ -n $zz ]]; then
@@ -74,7 +76,11 @@ else
         WITH_GRIB=${WITH_GRIB:-ON}
     fi
 fi
-
+if [[ ${BUILD_OS} == "Windows" ]]; then
+    WITH_HDF4="OFF"
+    WITH_PYTHON="OFF"
+    WITH_PYTHONVERSION="OFF"
+fi
 function log {  # log is needded just below!
     echo "[${ME}] $@"
 }
