@@ -908,19 +908,19 @@ void outA( ostream* os, string s, int w, const int code)
 }
 // struct
 SizeT DStructGDL::
-OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f, int code, BaseGDL::Cal_IOMode cMode) 
+OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, const std::string &s, int code, BaseGDL::Cal_IOMode cMode) 
 {
   SizeT firstOut, firstOffs, tCount, tCountOut;
   OFmtAll( offs, r, firstOut, firstOffs, tCount, tCountOut);
 
-  SizeT trans = (*this)[ firstOut]->OFmtCal( os, firstOffs, tCount, w, d, f, code, cMode);
+  SizeT trans = (*this)[ firstOut]->OFmtCal( os, firstOffs, tCount, w, d, s, code, cMode);
   if( trans >= tCount) return tCountOut;
   tCount -= trans;
 
   SizeT ddSize = dd.size();
   for( SizeT i = (firstOut+1); i < ddSize; ++i)
     {
-      trans = (*this)[ i]->OFmtCal( os, 0, tCount, w, d, f, code, cMode);
+      trans = (*this)[ i]->OFmtCal( os, 0, tCount, w, d, s, code, cMode);
       if( trans >= tCount) return tCountOut;
       tCount -= trans;
      }
@@ -929,7 +929,7 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f, int code, Base
 }
 
  template<class Sp> SizeT Data_<Sp>::
- OFmtCal( ostream* os, SizeT offs, SizeT repeat, int w, int d, char *fill, int code, BaseGDL::Cal_IOMode cMode)
+ OFmtCal( ostream* os, SizeT offs, SizeT repeat, int w, int d, const std::string &fill, int code, BaseGDL::Cal_IOMode cMode)
  {
 
    static string theMonth[12]={"January","February","March","April","May","June",
@@ -1027,35 +1027,41 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, char *f, int code, Base
       break;
     case BaseGDL::STRING:
       for (SizeT i=0; i<r; i++){
-      (*local_os[i]) << *fill;
+      (*local_os[i]) << fill;
       }
       break;
     case BaseGDL::CMOA:
+	  if (w == -1) w=3;
       for (SizeT i=0; i<r; i++){
       outA( local_os[i], theMONTH[iMonth[i]], w, code);
       }
       break;
     case BaseGDL::CMoA:
+	  if (w == -1) w=3;
       for (SizeT i=0; i<r; i++){
       outA( local_os[i], theMonth[iMonth[i]], w, code);
       }
       break;
     case BaseGDL::CmoA:
+	  if (w == -1) w=3;
       for (SizeT i=0; i<r; i++){
       outA( local_os[i], themonth[iMonth[i]], w, code);
       }
       break;
     case BaseGDL::CDWA:
+	  if (w == -1) w=3;
       for (SizeT i=0; i<r; i++){
       outA( local_os[i], theDAY[dow[i]], w, code);
       }
       break;
     case BaseGDL::CDwA:
+	  if (w == -1) w=3;
       for (SizeT i=0; i<r; i++){
       outA( local_os[i], theDay[dow[i]], w, code);
       }
       break;
     case BaseGDL::CdwA:
+	  if (w == -1) w=3;
       for (SizeT i=0; i<r; i++){
       outA( local_os[i], theday[dow[i]], w, code );
       }

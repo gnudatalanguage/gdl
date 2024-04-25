@@ -70,7 +70,7 @@ format [ int repeat] // mark last format for format reversion
     ;
 
 qfq
-    : q (f q)* //produces nondeterminism 
+    : q (f q) ? // q (f q)* produces nondeterminism 
     ;
 
 q!
@@ -93,8 +93,6 @@ f_csubcode // note: IDL doesn't allow hollerith strings inside C()
 }
     : STRING // just write it out (H strings are handled in the scanner)
     | cstring
-    | tl:TL n1=nn { #tl->setW( n1);}
-    | tr:TR n1=nn { #tr->setW( n1);}
     ;
 
 cstring
@@ -155,6 +153,8 @@ f
     | NONL
     | Q
     | CSTRING
+    | tl:TL n1=nn { #tl->setW( n1);}
+    | tr:TR n1=nn { #tr->setW( n1);}
     | t:T n1=nn { #t->setW( n1);}
     | f_csubcode
     | rep_fmt[ 1]
@@ -210,8 +210,9 @@ calendar_code
     | c15:CMI w_d[ #c15]
     | c16:CSI w_d[ #c16]
     | c17:CSF w_d[ #c17]
-    | (n1=nn|) x:X { #x->setW( n1);}
-    | f_csubcode
+    | n1=nn (rep_fmt[ n1] | x:X { #x->setW( n1);})
+    | xx:X { #xx->setW( 1);}
+    | STRING
     ;
 
 // no nodes for numbers
@@ -286,11 +287,6 @@ options {
 // 	analyzerDebug=true;
 }
 
-// the reserved words
-tokens {
-	TL="tl";
-	TR="tr";
-}
 {
     private:
     antlr::TokenStreamSelector*  selector; 
@@ -350,6 +346,8 @@ Q:('q'|'Q');
 H:('h'|'H');
 
 T:('t'|'T');
+TR:('t' 'r'|'T' 'R');
+TL:('t' 'l'|'T' 'L');
 
 L:('l'|'L');
 R:('r'|'R');

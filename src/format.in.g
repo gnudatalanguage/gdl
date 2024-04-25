@@ -82,7 +82,7 @@ public:
             format_reversion( reversionAnker);
             
             if( (nextParIx == nextParIxComp) && (valIx == valIxComp))   
-                throw GDLException("Infinite format loop detected.");
+                throw GDLException("Format in Error."); //Infinite format loop detected.");
         }
     }
     
@@ -418,8 +418,8 @@ f_csubcode // note: IDL doesn't allow hollerith strings inside C()
         }
     | tr:TR 
         { 
-            int    tlVal = tl->getW();
-            ioss.seekg( tlVal, std::ios_base::cur);
+            int    trVal = tr->getW();
+            ioss.seekg( trVal, std::ios_base::cur);
         }
     ;
 
@@ -661,8 +661,13 @@ calendar_code
             int w = c17->getW(); 
             SizeT tCount = actPar->IFmtCal( &ioss, valIx, r, w, BaseGDL::CSF);
         }
+    | s:STRING 
+        {
+		SizeT actP  = ioss.tellg(); 
+		int  strlen = s->getText().length();
+		ioss.seekg( actP + strlen);
+        }
     | x
-    | f_csubcode
     ;
 
 x
@@ -670,7 +675,7 @@ x
         {
             if( _t != static_cast<RefFMTNode>(antlr::nullAST))
             {
-                int    tlVal = #tl->getW();if (tlVal<1) tlVal=1;
+                int    tlVal = #tl->getW();if (tlVal<=1) tlVal=1;
                 ioss.seekg( tlVal, std::ios_base::cur);
             }
         }
