@@ -14,7 +14,7 @@ jobs:
       ROOT_DIR: ${{ github.workspace }}/..
     steps:
       - name: Checkout GDL
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Test ANTLR
         run: |
           scripts/build_gdl.sh antlr

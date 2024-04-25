@@ -62,7 +62,7 @@ jobs:
     needs: prelude
     steps:
       - name: Checkout GDL
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
@@ -120,7 +120,7 @@ jobs:
       ROOT_DIR: ${{ github.workspace }}/..
     steps:
       - name: Checkout GDL
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
@@ -138,13 +138,13 @@ jobs:
           scripts/build_gdl.sh prep_deploy
       - name: Upload Build Artifacts
         if: contains(matrix.os, 'macos')
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v4
         with:
           path: gdl-*-${{ matrix.deps }}.dmg
           name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
       - name: Upload Build Artifacts
         if: "!contains(matrix.os, 'macos')"
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v4
         with:
           path: gdl-*-${{ matrix.deps }}.zip
           name: GDL (${{ matrix.os }}, ${{ matrix.deps }}, ${{ matrix.configuration }})
@@ -207,14 +207,14 @@ jobs:
             rsync
             patch
       - name: Checkout GDL
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
       - name: Cache Dependencies
         if: matrix.arch == 'x86_64'
         id: cache
-        uses: actions/cache@v3.2.1
+        uses: actions/cache@v4
         with:
           path: |
             C:\msys64\cache
@@ -290,14 +290,14 @@ jobs:
           scripts/build_gdl.sh pack
           scripts/build_gdl.sh prep_deploy
       - name: Upload GDL Installer
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v4
         with:
           name: GDL Installer (${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
           path: gdlsetup-*-${{ matrix.deps }}.exe
 # DO NOT export .zip as artifact: due to necessary use of a precise location for our customized plplot drivers,
 # only an installer can be used (sets the correct environment variables) 
 #      - name: Upload Build Artifacts
-#        uses: actions/upload-artifact@v3.1.1
+#        uses: actions/upload-artifact@v4
 #        with:
 #          name: GDL (windows-latest, ${{ matrix.deps }}, ${{ matrix.arch }}, ${{ matrix.configuration }})
 #          path: gdl-*-${{ matrix.deps }}.zip
