@@ -1309,24 +1309,6 @@ void FMTParser::calendar_string() {
 	
 	{
 	switch ( LA(1)) {
-	case CSTR:
-	case CD:
-	case CSE:
-	case CE:
-	case CI:
-	case CF:
-	case CSG:
-	case CG:
-	case CO:
-	case CB:
-	case CS:
-	case CX:
-	case CZ:
-	case PM:
-	case MP:
-	case PLUS:
-	case MOINS:
-	case CNUMBER:
 	case STRING:
 	case X:
 	case CMOA:
@@ -1422,6 +1404,8 @@ void FMTParser::calendar_code() {
 	RefFMTNode c17_AST = RefFMTNode(antlr::nullAST);
 	antlr::RefToken  x = antlr::nullToken;
 	RefFMTNode x_AST = RefFMTNode(antlr::nullAST);
+	antlr::RefToken  xx = antlr::nullToken;
+	RefFMTNode xx_AST = RefFMTNode(antlr::nullAST);
 	
 	int n1;
 	
@@ -1776,19 +1760,38 @@ void FMTParser::calendar_code() {
 		calendar_code_AST = RefFMTNode(currentAST.root);
 		break;
 	}
-	case X:
 	case NUMBER:
 	{
+		n1=nn();
+		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 		{
 		switch ( LA(1)) {
-		case NUMBER:
+		case LBRACE:
+		case A:
+		case F:
+		case D:
+		case E:
+		case SE:
+		case G:
+		case SG:
+		case I:
+		case O:
+		case B:
+		case Z:
+		case ZZ:
+		case C:
 		{
-			n1=nn();
+			rep_fmt( n1);
 			astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
 			break;
 		}
 		case X:
 		{
+			x = LT(1);
+			x_AST = astFactory->create(x);
+			astFactory->addASTChild(currentAST, antlr::RefAST(x_AST));
+			match(X);
+			x_AST->setW( n1);
 			break;
 		}
 		default:
@@ -1797,36 +1800,25 @@ void FMTParser::calendar_code() {
 		}
 		}
 		}
-		x = LT(1);
-		x_AST = astFactory->create(x);
-		astFactory->addASTChild(currentAST, antlr::RefAST(x_AST));
-		match(X);
-		x_AST->setW( n1);
 		calendar_code_AST = RefFMTNode(currentAST.root);
 		break;
 	}
-	case CSTR:
-	case CD:
-	case CSE:
-	case CE:
-	case CI:
-	case CF:
-	case CSG:
-	case CG:
-	case CO:
-	case CB:
-	case CS:
-	case CX:
-	case CZ:
-	case PM:
-	case MP:
-	case PLUS:
-	case MOINS:
-	case CNUMBER:
+	case X:
+	{
+		xx = LT(1);
+		xx_AST = astFactory->create(xx);
+		astFactory->addASTChild(currentAST, antlr::RefAST(xx_AST));
+		match(X);
+		xx_AST->setW( 1);
+		calendar_code_AST = RefFMTNode(currentAST.root);
+		break;
+	}
 	case STRING:
 	{
-		f_csubcode();
-		astFactory->addASTChild(currentAST, antlr::RefAST(returnAST));
+		RefFMTNode tmp25_AST = RefFMTNode(antlr::nullAST);
+		tmp25_AST = astFactory->create(LT(1));
+		astFactory->addASTChild(currentAST, antlr::RefAST(tmp25_AST));
+		match(STRING);
 		calendar_code_AST = RefFMTNode(currentAST.root);
 		break;
 	}

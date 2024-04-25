@@ -677,7 +677,7 @@ calendar_code
     | c18:X
         {
 		if( actPar == NULL) break;
-		int    tlVal = c18->getW(); if (tlVal < 1) tlVal=1;
+		int    tlVal = c18->getW(); if (tlVal <= 1) tlVal=1;
 		std::string s(tlVal,' ');
 		SizeT tCount = actPar->OFmtCal( os, valIx, r, 0, 0, s, 0, BaseGDL::STRING);
         }
