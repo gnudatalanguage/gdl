@@ -530,7 +530,7 @@ SizeT BaseGDL::OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int mi
 SizeT BaseGDL::IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, BaseGDL::Cal_IOMode cMode)
 {throw GDLException("BaseGDL::IFmtCal(...) called.");}
 
-SizeT BaseGDL::OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, const std::string &s, int code, BaseGDL::Cal_IOMode oM)
+SizeT BaseGDL::OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, std::string s, int code, BaseGDL::Cal_IOMode oM)
 {throw GDLException("BaseGDL::OFmtCal(...) called.");}
 
 SizeT BaseGDL::IFmtA( std::istream* is, SizeT offset, SizeT num, int width)

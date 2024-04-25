@@ -394,7 +394,7 @@ static	void operator delete( void *ptr);
   {
     throw GDLException("File expression not allowed in this context.");
   }
-  SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, const std::string &s, int code, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT)
+  SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, int minN, std::string s, int code, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT)
   {
     throw GDLException("File expression not allowed in this context.");
   }
