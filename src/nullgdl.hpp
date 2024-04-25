@@ -307,7 +307,7 @@ class NullGDL: public BaseGDL
   /*virtual*/ SizeT OFmtF( std::ostream* os, SizeT offs, SizeT num, int width, int prec, const int code, BaseGDL::IOMode oM = FIXED); 
   /*virtual*/ SizeT OFmtI( std::ostream* os, SizeT offs, SizeT num, int width, int minN,  int code, BaseGDL::IOMode oM = DEC);
   /*virtual*/ SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width, 
-                 int minN, std::string &s, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT);
+                 int minN, const std::string &s, BaseGDL::Cal_IOMode oM = BaseGDL::DEFAULT);
   /*virtual*/ SizeT IFmtA( std::istream* is, SizeT offset, SizeT num, int width);
   /*virtual*/ SizeT IFmtF( std::istream* is, SizeT offs, SizeT num, int width);
   /*virtual*/ SizeT IFmtI( std::istream* is, SizeT offs, SizeT num, int width, 

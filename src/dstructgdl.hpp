@@ -725,7 +725,7 @@ private:
   
   void OFmtAll( SizeT offs, SizeT r,
 		SizeT& firstOut, SizeT& firstOffs, SizeT& tCount, SizeT& tCountOut);
-  SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT r, int w, int d, std::string s,  int code, BaseGDL::Cal_IOMode oMode);   
+  SizeT OFmtCal( std::ostream* os, SizeT offs, SizeT r, int w, int d,const std::string &s,  int code, BaseGDL::Cal_IOMode oMode);   
   // inserts srcIn at ixDim
   // respects the exact structure
   // used by Assign -> old data must be freed

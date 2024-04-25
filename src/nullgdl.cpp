@@ -576,7 +576,7 @@ SizeT NullGDL::IFmtCal( std::istream* is, SizeT offs, SizeT r, int width, BaseGD
 {throw GDLException("NullGDL::IFmtCal(...) called.");}
 
 SizeT NullGDL::OFmtCal( std::ostream* os, SizeT offs, SizeT num, int width,
-			int minN, std::string &s, NullGDL::Cal_IOMode cM)
+			int minN, const std::string &s, NullGDL::Cal_IOMode cM)
 {throw GDLException("NullGDL::OFmtCal(...) called.");}
           
 SizeT NullGDL::IFmtA( std::istream* is, SizeT offset, SizeT num, int width)

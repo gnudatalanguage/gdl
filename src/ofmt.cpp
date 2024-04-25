@@ -908,7 +908,7 @@ void outA( ostream* os, string s, int w, const int code)
 }
 // struct
 SizeT DStructGDL::
-OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, std::string s, int code, BaseGDL::Cal_IOMode cMode) 
+OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, const std::string &s, int code, BaseGDL::Cal_IOMode cMode) 
 {
   SizeT firstOut, firstOffs, tCount, tCountOut;
   OFmtAll( offs, r, firstOut, firstOffs, tCount, tCountOut);
@@ -929,7 +929,7 @@ OFmtCal( ostream* os, SizeT offs, SizeT r, int w, int d, std::string s, int code
 }
 
  template<class Sp> SizeT Data_<Sp>::
- OFmtCal( ostream* os, SizeT offs, SizeT repeat, int w, int d, std::string fill, int code, BaseGDL::Cal_IOMode cMode)
+ OFmtCal( ostream* os, SizeT offs, SizeT repeat, int w, int d, const std::string &fill, int code, BaseGDL::Cal_IOMode cMode)
  {
 
    static string theMonth[12]={"January","February","March","April","May","June",
